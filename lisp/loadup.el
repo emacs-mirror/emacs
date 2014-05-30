@@ -1,7 +1,7 @@
 ;;; loadup.el --- load up standardly loaded Lisp files for Emacs
 
-;; Copyright (C) 1985-1986, 1992, 1994, 2001-2014 Free Software
-;; Foundation, Inc.
+;; Copyright (C) 1985-1986, 1992, 1994, 2001-2014
+;;   Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: internal
@@ -46,8 +46,7 @@
 ;; Add subdirectories to the load-path for files that might get
 ;; autoloaded when bootstrapping.
 ;; This is because PATH_DUMPLOADSEARCH is just "../lisp".
-(if (or (equal (nth 3 command-line-args) "bootstrap")
-	(equal (nth 4 command-line-args) "bootstrap")
+(if (or (equal (member "bootstrap" command-line-args) '("bootstrap"))
 	;; FIXME this is irritatingly fragile.
 	(equal (nth 4 command-line-args) "unidata-gen.el")
 	(equal (nth 7 command-line-args) "unidata-gen-files")
@@ -70,8 +69,9 @@
 
 (message "Using load-path %s" load-path)
 
-(if (or (member (nth 3 command-line-args) '("dump" "bootstrap"))
-	(member (nth 4 command-line-args) '("dump" "bootstrap")))
+;; This is a poor man's `last', since we haven't loaded subr.el yet.
+(if (or (equal (member "bootstrap" command-line-args) '("bootstrap"))
+	(equal (member "dump" command-line-args) '("dump")))
     ;; To reduce the size of dumped Emacs, we avoid making huge
     ;; char-tables.
     (setq inhibit-load-charset-map t))
@@ -306,17 +306,13 @@ lost after dumping")))
 ;; file primitive.  So the only workable solution to support building
 ;; in non-ASCII directories is to manipulate unibyte strings in the
 ;; current locale's encoding.
-(if (and (or (equal (nth 3 command-line-args) "dump")
-	     (equal (nth 4 command-line-args) "dump")
-	     (equal (nth 3 command-line-args) "bootstrap")
-	     (equal (nth 4 command-line-args) "bootstrap"))
+(if (and (member (car (last command-line-args)) '("dump" "bootstrap"))
 	 (multibyte-string-p default-directory))
     (error "default-directory must be unibyte when dumping Emacs!"))
 
 ;; Determine which last version number to use
 ;; based on the executables that now exist.
-(if (and (or (equal (nth 3 command-line-args) "dump")
-	     (equal (nth 4 command-line-args) "dump"))
+(if (and (equal (last command-line-args) '("dump"))
 	 (not (eq system-type 'ms-dos)))
     (let* ((base (concat "emacs-" emacs-version "."))
 	   (exelen (if (eq system-type 'windows-nt) -4))
@@ -335,8 +331,7 @@ lost after dumping")))
 
 
 (message "Finding pointers to doc strings...")
-(if (or (equal (nth 3 command-line-args) "dump")
-	(equal (nth 4 command-line-args) "dump"))
+(if (equal (last command-line-args) '("dump"))
     (Snarf-documentation "DOC")
   (condition-case nil
       (Snarf-documentation "DOC")
@@ -394,8 +389,7 @@ lost after dumping")))
 (if (null (garbage-collect))
     (setq pure-space-overflow t))
 
-(if (or (member (nth 3 command-line-args) '("dump" "bootstrap"))
-	(member (nth 4 command-line-args) '("dump" "bootstrap")))
+(if (member (car (last command-line-args)) '("dump" "bootstrap"))
     (progn
       (message "Dumping under the name emacs")
       (condition-case ()
@@ -411,8 +405,7 @@ lost after dumping")))
       (if (not (or (eq system-type 'ms-dos)
                    ;; Don't bother adding another name if we're just
                    ;; building bootstrap-emacs.
-                   (equal (nth 3 command-line-args) "bootstrap")
-                   (equal (nth 4 command-line-args) "bootstrap")))
+                   (equal (last command-line-args) '("bootstrap"))))
 	  (let ((name (concat "emacs-" emacs-version))
 		(exe (if (eq system-type 'windows-nt) ".exe" "")))
 	    (while (string-match "[^-+_.a-zA-Z0-9]+" name)
@@ -433,7 +426,7 @@ lost after dumping")))
 ;; this file must be loaded each time Emacs is run.
 ;; So run the startup code now.  First, remove `-l loadup' from args.
 
-(if (and (equal (nth 1 command-line-args) "-l")
+(if (and (member (nth 1 command-line-args) '("-l" "--load"))
 	 (equal (nth 2 command-line-args) "loadup"))
     (setcdr command-line-args (nthcdr 3 command-line-args)))
 

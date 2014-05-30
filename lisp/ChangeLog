@@ -1,3 +1,7 @@
+2014-05-30  Glenn Morris  <rgm@gnu.org>
+
+	* loadup.el: Treat `command-line-args' more flexibly.
+
 2014-05-30  Alan Mackenzie  <acm@muc.de>
 
 	Guard (looking-at "\\s!") from XEmacs.
