@@ -146,6 +146,9 @@ permissions set to temporary values (e.g., for creating private files).
 
 ** You can access the slots of structures using `cl-struct-slot-value'.
 
+** Functions `rmail-delete-forward' and `rmail-delete-backward' take an
+optional repeat-count argument.
+
 
 * Changes in Emacs 24.5 on Non-Free Operating Systems
 

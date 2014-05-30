@@ -1,3 +1,9 @@
+2014-05-30    Ken Olum  <kdo@cosmos.phy.tufts.edu>  (tiny change)
+
+	* mail/rmail.el (rmail-delete-forward, rmail-delete-backward): The
+	argument COUNT is now optional, to be more backward-compatible.
+	Doc fix.  (Bug#17560)
+
 2014-05-29  Reuben Thomas  <rrt@sc3d.org>
 
 	* whitespace.el (whitespace-report-region): Simplify

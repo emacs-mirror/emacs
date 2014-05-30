@@ -3476,11 +3476,12 @@ STATE non-nil means mark as deleted."
 (defun rmail-delete-forward (&optional count)
   "Delete this message and move to next nondeleted one.
 Deleted messages stay in the file until the \\[rmail-expunge] command is given.
-A prefix argument is a repeat count;
+Optional argument COUNT (interactively, prefix argument) is a repeat count;
 negative argument means move backwards instead of forwards.
 
 Returns t if a new message is displayed after the delete, or nil otherwise."
   (interactive "p")
+  (if (not count) (setq count 1))
   (let (value backward)
     (if (< count 0)
 	(setq count (- count) backward t))
@@ -3495,15 +3496,16 @@ Returns t if a new message is displayed after the delete, or nil otherwise."
     (rmail-maybe-display-summary)
     value))
 
-(defun rmail-delete-backward (count)
+(defun rmail-delete-backward (&optional count)
   "Delete this message and move to previous nondeleted one.
 Deleted messages stay in the file until the \\[rmail-expunge] command is given.
-A prefix argument is a repeat count;
+Optional argument COUNT (interactively, prefix argument) is a repeat count;
 negative argument means move forwards instead of backwards.
 
 Returns t if a new message is displayed after the delete, or nil otherwise."
 
   (interactive "p")
+  (if (not count) (setq count 1))
   (rmail-delete-forward (- count)))
 
 ;; Expunging.
