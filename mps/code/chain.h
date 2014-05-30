@@ -91,13 +91,13 @@ extern void PoolGenFinish(PoolGen pgen);
 extern Res PoolGenAlloc(Seg *segReturn, PoolGen pgen, SegClass class,
                         Size size, Bool withReservoirPermit, ArgList args);
 extern void PoolGenFree(PoolGen pgen, Seg seg);
-extern void PoolGenFill(PoolGen pgen, Size size, Bool deferred);
-extern void PoolGenEmpty(PoolGen pgen, Size unused, Bool deferred);
-extern void PoolGenAge(PoolGen pgen, Size aged, Bool deferred);
-extern void PoolGenReclaim(PoolGen pgen, Size reclaimed, Bool deferred);
+extern void PoolGenAccountForFill(PoolGen pgen, Size size, Bool deferred);
+extern void PoolGenAccountForEmpty(PoolGen pgen, Size unused, Bool deferred);
+extern void PoolGenAccountForAge(PoolGen pgen, Size aged, Bool deferred);
+extern void PoolGenAccountForReclaim(PoolGen pgen, Size reclaimed, Bool deferred);
 extern void PoolGenUndefer(PoolGen pgen, Size oldSize, Size newSize);
-extern void PoolGenSegSplit(PoolGen pgen);
-extern void PoolGenSegMerge(PoolGen pgen);
+extern void PoolGenAccountForSegSplit(PoolGen pgen);
+extern void PoolGenAccountForSegMerge(PoolGen pgen);
 
 #endif /* chain_h */
 

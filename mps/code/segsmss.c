@@ -467,7 +467,7 @@ static void AMSUnallocateRange(AMS ams, Seg seg, Addr base, Addr limit)
   amsseg->freeGrains += limitIndex - baseIndex;
   AVER(amsseg->newGrains >= limitIndex - baseIndex);
   amsseg->newGrains -= limitIndex - baseIndex;
-  PoolGenEmpty(&ams->pgen, AddrOffset(base, limit), FALSE);
+  PoolGenAccountForEmpty(&ams->pgen, AddrOffset(base, limit), FALSE);
 }
 
 
@@ -507,7 +507,7 @@ static void AMSAllocateRange(AMS ams, Seg seg, Addr base, Addr limit)
   AVER(amsseg->freeGrains >= limitIndex - baseIndex);
   amsseg->freeGrains -= limitIndex - baseIndex;
   amsseg->newGrains += limitIndex - baseIndex;
-  PoolGenFill(&ams->pgen, AddrOffset(base, limit), FALSE);
+  PoolGenAccountForFill(&ams->pgen, AddrOffset(base, limit), FALSE);
 }
 
 
