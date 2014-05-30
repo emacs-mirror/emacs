@@ -65,8 +65,7 @@ SRCID(vmix, "$Id$");
 typedef struct VMStruct {
   Sig sig;                      /* <design/sig/> */
   Align align;                  /* page size */
-  void *mapped_base;            /* unaligned base of mmap'd memory */
-  size_t mapped_size;           /* size of mmap'd memory */
+  void *reserved_base;          /* unaligned base of mmap'd memory */
   Addr base, limit;             /* aligned boundaries of reserved space */
   Size reserved;                /* total reserved address space */
   Size mapped;                  /* total mapped memory */
@@ -112,7 +111,7 @@ Res VMCreate(VM *vmReturn, Size size, Align align, void *params)
 {
   VM vm;
   int pagesize;
-  size_t mapped_size;
+  size_t reserved;
   Align pagealign;
   void *addr;
   Res res;
@@ -153,9 +152,8 @@ Res VMCreate(VM *vmReturn, Size size, Align align, void *params)
   vm->align = align;
 
   /* See .assume.not-last. */
-  addr = mmap(0, (size_t)(size + align - pagealign),
-              PROT_NONE, MAP_ANON | MAP_PRIVATE,
-              -1, 0);
+  reserved = size + align - pagealign;
+  addr = mmap(0, reserved, PROT_NONE, MAP_ANON | MAP_PRIVATE, -1, 0);
   if(addr == MAP_FAILED) {
     int e = errno;
     AVER(e == ENOMEM); /* .assume.mmap.err */
@@ -163,10 +161,10 @@ Res VMCreate(VM *vmReturn, Size size, Align align, void *params)
     goto failReserve;
   }
 
-  vm->mapped_base = addr;
+  vm->reserved_base = addr;
   vm->base = AddrAlignUp(addr, align);
   vm->limit = AddrAdd(vm->base, size);
-  vm->reserved = size;
+  vm->reserved = reserved;
   vm->mapped = (Size)0;
 
   vm->sig = VMSig;
@@ -179,7 +177,7 @@ Res VMCreate(VM *vmReturn, Size size, Align align, void *params)
   return ResOK;
 
 failReserve:
-  (void)munmap((void *)vm, (size_t)SizeAlignUp(sizeof(VMStruct), align));
+  (void)munmap((void *)vm, (size_t)SizeAlignUp(sizeof(VMStruct), pagealign));
   return res;
 }
 
@@ -189,6 +187,7 @@ failReserve:
 void VMDestroy(VM vm)
 {
   int r;
+  Align pagealign = (Align)getpagesize();
 
   AVERT(VM, vm);
   AVER(vm->mapped == (Size)0);
@@ -201,10 +200,9 @@ void VMDestroy(VM vm)
   /* discovered if sigs were being checked. */
   vm->sig = SigInvalid;
 
-  r = munmap((void *)vm->base, (size_t)AddrOffset(vm->base, vm->limit));
+  r = munmap(vm->reserved_base, vm->reserved);
   AVER(r == 0);
-  r = munmap((void *)vm,
-             (size_t)SizeAlignUp(sizeof(VMStruct), vm->align));
+  r = munmap((void *)vm, (size_t)SizeAlignUp(sizeof(VMStruct), pagealign));
   AVER(r == 0);
 }
 
