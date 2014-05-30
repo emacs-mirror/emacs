@@ -47,6 +47,7 @@
 
 #include <config.h>
 #include <stdio.h>
+#include <errno.h>
 
 #include <sys/mman.h>
 #include "w32common.h"
@@ -241,7 +242,8 @@ init_heap (void)
         if (s_pfn_Heap_Set_Information ((PVOID) heap,
                                         HeapCompatibilityInformation,
                                         &enable_lfh, sizeof(enable_lfh)) == 0)
-          DebPrint (("Enabling Low Fragmentation Heap failed\n"));
+          DebPrint (("Enabling Low Fragmentation Heap failed: error %ld\n",
+		     GetLastError ()));
 #endif
 
       the_malloc_fn = malloc_after_dump;
@@ -298,7 +300,10 @@ malloc_after_dump (size_t size)
   void *p = HeapAlloc (heap, 0, size);
 
   /* After dump, keep track of the last allocated byte for sbrk(0).  */
-  data_region_end = p + size - 1;
+  if (p)
+    data_region_end = p + size - 1;
+  else
+    errno = ENOMEM;
   return p;
 }
 
@@ -313,6 +318,8 @@ malloc_before_dump (size_t size)
     {
       /* Use the private heap if possible.  */
       p = HeapAlloc (heap, 0, size);
+      if (!p)
+	errno = ENOMEM;
     }
   else
     {
@@ -371,16 +378,22 @@ realloc_after_dump (void *ptr, size_t size)
     {
       /* Reallocate the block since it lies in the new heap.  */
       p = HeapReAlloc (heap, 0, ptr, size);
+      if (!p)
+	errno = ENOMEM;
     }
   else
     {
       /* If the block lies in the dumped data, do not free it.  Only
          allocate a new one.  */
       p = HeapAlloc (heap, 0, size);
-      CopyMemory (p, ptr, size);
+      if (p)
+	CopyMemory (p, ptr, size);
+      else
+	errno = ENOMEM;
     }
   /* After dump, keep track of the last allocated byte for sbrk(0).  */
-  data_region_end = p + size - 1;
+  if (p)
+    data_region_end = p + size - 1;
   return p;
 }
 
@@ -392,7 +405,11 @@ realloc_before_dump (void *ptr, size_t size)
   /* Before dumping.  */
   if (dumped_data < (unsigned char *)ptr
       && (unsigned char *)ptr < bc_limit && size <= MaxBlockSize)
-    p = HeapReAlloc (heap, 0, ptr, size);
+    {
+      p = HeapReAlloc (heap, 0, ptr, size);
+      if (!p)
+	errno = ENOMEM;
+    }
   else
     {
       /* In this case, either the new block is too large for the heap,
@@ -400,8 +417,11 @@ realloc_before_dump (void *ptr, size_t size)
          malloc_before_dump() and free_before_dump() will take care of
          reallocation.  */
       p = malloc_before_dump (size);
-      CopyMemory (p, ptr, size);
-      free_before_dump (ptr);
+      if (p)
+	{
+	  CopyMemory (p, ptr, size);
+	  free_before_dump (ptr);
+	}
     }
   return p;
 }
@@ -508,8 +528,16 @@ mmap_alloc (void **var, size_t nbytes)
       *var = VirtualAlloc (p, nbytes, MEM_COMMIT, PAGE_READWRITE);
     }
 
-  if (!p && GetLastError () != ERROR_NOT_ENOUGH_MEMORY)
-    DebPrint (("mmap_alloc: error %ld\n", GetLastError()));
+  if (!p)
+    {
+      if (GetLastError () == ERROR_NOT_ENOUGH_MEMORY)
+	errno = ENOMEM;
+      else
+	{
+	  DebPrint (("mmap_alloc: error %ld\n", GetLastError ()));
+	  errno = EINVAL;
+	}
+    }
 
   return *var = p;
 }
@@ -520,7 +548,7 @@ mmap_free (void **var)
   if (*var)
     {
       if (VirtualFree (*var, 0, MEM_RELEASE) == 0)
-        DebPrint (("mmap_free: error %ld\n", GetLastError()));
+        DebPrint (("mmap_free: error %ld\n", GetLastError ()));
       *var = NULL;
     }
 }
@@ -541,13 +569,14 @@ mmap_realloc (void **var, size_t nbytes)
     }
 
   if (VirtualQuery (*var, &memInfo, sizeof (memInfo)) == 0)
-    DebPrint (("mmap_realloc: VirtualQuery error = %ld\n", GetLastError()));
+    DebPrint (("mmap_realloc: VirtualQuery error = %ld\n", GetLastError ()));
 
   /* We need to enlarge the block.  */
   if (memInfo.RegionSize < nbytes)
     {
       if (VirtualQuery (*var + memInfo.RegionSize, &m2, sizeof(m2)) == 0)
-        DebPrint (("mmap_realloc: VirtualQuery error = %ld\n", GetLastError()));
+        DebPrint (("mmap_realloc: VirtualQuery error = %ld\n",
+		   GetLastError ()));
       /* If there is enough room in the current reserved area, then
 	 commit more pages as needed.  */
       if (m2.State == MEM_RESERVE
@@ -559,8 +588,11 @@ mmap_realloc (void **var, size_t nbytes)
 			    nbytes - memInfo.RegionSize,
 			    MEM_COMMIT, PAGE_READWRITE);
 	  if (!p /* && GetLastError() != ERROR_NOT_ENOUGH_MEMORY */)
-	    DebPrint (("realloc enlarge: VirtualAlloc error %ld\n",
-		       GetLastError()));
+	    {
+	      DebPrint (("realloc enlarge: VirtualAlloc error %ld\n",
+			 GetLastError ()));
+	      errno = ENOMEM;
+	    }
 	  return *var;
 	}
       else
@@ -615,7 +647,7 @@ mmap_realloc (void **var, size_t nbytes)
       if (VirtualFree (*var + nbytes + get_page_size(),
 		       memInfo.RegionSize - nbytes - get_page_size(),
 		       MEM_DECOMMIT) == 0)
-        DebPrint (("mmap_realloc: VirtualFree error %ld\n", GetLastError()));
+        DebPrint (("mmap_realloc: VirtualFree error %ld\n", GetLastError ()));
       return *var;
     }
 

@@ -1,3 +1,10 @@
+2014-05-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32heap.c (malloc_before_dump, malloc_after_dump)
+	(malloc_before_dump, realloc_after_dump, realloc_before_dump)
+	(mmap_alloc, mmap_realloc): Check for errors more thoroughly and
+	set errno where appropriate to emulate CRT functions.
+
 2014-05-30  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Debugging facility to check whether 'const char *' points to
