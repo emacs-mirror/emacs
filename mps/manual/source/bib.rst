@@ -827,6 +827,35 @@ Bibliography
     experiments with a non-moving generational collector suggest that
     they remain quite useful.
 
+* .. _BOEHM01:
+
+  Hans-J. Boehm. 2002. "Bounding Space Usage of Conservative Garbage Collectors `<http://www.hpl.hp.com/techreports/2001/HPL-2001-251.html>`_". HP Labs technical report HPL-2001-251.
+
+  .. admonition:: Abstract
+
+    Conservative garbage collectors can automatically reclaim unused
+    memory in the absence of precise pointer location information. If
+    a location can possibly contain a pointer, it is treated by the
+    collector as though it contained a pointer. Although it is
+    commonly assumed that this can lead to unbounded space use due to
+    misidentified pointers, such extreme space use is rarely observed
+    in practice, and then generally only if the number of
+    misidentified pointers is itself unbounded. We show that if the
+    program manipulates only data structures satisfying a simple
+    GC-robustness criterion, then a bounded number of misidentified
+    pointers can result at most in increasing space usage by a
+    constant factor. We argue that nearly all common data structures
+    are already GC- robust, and it is typically easy to identify and
+    replace those that are not. Thus it becomes feasible to prove
+    space bounds on programs collected by mildly conservative garbage
+    collectors, such as the one in Barabash et al. (2001). The
+    worst-case space overhead introduced by such mild conservatism is
+    comparable to the worst-case fragmentation overhead for inherent
+    in any non-moving storage allocator. The same GC-robustness
+    criterion also ensures the absence of temporary space leaks of the
+    kind discussed in Rojemo (1995) for generational garbage
+    collectors.
+
 * .. _BOEHM02:
 
   Hans-J. Boehm. 2002. "`Destructors, Finalizers, and Synchronization <http://www.hpl.hp.com/techreports/2002/HPL-2002-335.html>`_". HP Labs technical report HPL-2002-335.
