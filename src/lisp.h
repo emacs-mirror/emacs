@@ -3747,6 +3747,7 @@ extern void init_alloc (void);
 extern void syms_of_alloc (void);
 extern struct buffer * allocate_buffer (void);
 extern int valid_lisp_object_p (Lisp_Object);
+extern int relocatable_string_data_p (const char *);
 #ifdef GC_CHECK_CONS_LIST
 extern void check_cons_list (void);
 #else

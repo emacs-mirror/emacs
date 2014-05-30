@@ -1,3 +1,14 @@
+2014-05-30  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Debugging facility to check whether 'const char *' points to
+	relocatable data of non-pure Lisp string.
+	* alloc.c (maybe_lisp_pointer): New function, refactored out of ...
+	(mark_maybe_pointer): ... adjusted user.
+	(relocatable_string_data_p): New function.
+	* lisp.h (relocatable_string_data_p): Add prototype.
+	* xdisp.c (message_with_string): If ENABLE_CHECKING, make sure
+	the pointer to relocatable Lisp data is not used.
+
 2014-05-30  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Don't let SIGINT handling block SIGCHLD indefinitely (Bug#17561).

@@ -4547,7 +4547,16 @@ mark_maybe_object (Lisp_Object obj)
     }
 }
 
+/* Return true if P can point to Lisp data, and false otherwise.
+   USE_LSB_TAG needs Lisp data to be aligned on multiples of GCALIGNMENT.
+   Otherwise, assume that Lisp data is aligned on even addresses.  */
 
+static bool
+maybe_lisp_pointer (void *p)
+{
+  return !((intptr_t) p % (USE_LSB_TAG ? GCALIGNMENT : 2));
+}
+  
 /* If P points to Lisp data, mark that as live if it isn't already
    marked.  */
 
@@ -4561,10 +4570,7 @@ mark_maybe_pointer (void *p)
     VALGRIND_MAKE_MEM_DEFINED (&p, sizeof (p));
 #endif
 
-  /* Quickly rule out some values which can't point to Lisp data.
-     USE_LSB_TAG needs Lisp data to be aligned on multiples of GCALIGNMENT.
-     Otherwise, assume that Lisp data is aligned on even addresses.  */
-  if ((intptr_t) p % (USE_LSB_TAG ? GCALIGNMENT : 2))
+  if (!maybe_lisp_pointer (p))
     return;
 
   m = mem_find (p);
@@ -5007,9 +5013,34 @@ valid_lisp_object_p (Lisp_Object obj)
 #endif
 }
 
+/* If GC_MARK_STACK, return 1 if STR is a relocatable data of Lisp_String
+   (i.e. there is a non-pure Lisp_Object X so that SDATA (X) == STR) and 0
+   if not.  Otherwise we can't rely on valid_lisp_object_p and return -1.
+   This function is slow and should be used for debugging purposes.  */
 
+int
+relocatable_string_data_p (const char *str)
+{
+  if (PURE_POINTER_P (str))
+    return 0;
+#if GC_MARK_STACK  
+  if (str)
+    {
+      struct sdata *sdata
+	= (struct sdata *) (str - offsetof (struct sdata, data));
 
-
+      if (valid_pointer_p (sdata)
+	  && valid_pointer_p (sdata->string)
+	  && maybe_lisp_pointer (sdata->string))
+	return (valid_lisp_object_p
+		(make_lisp_ptr (sdata->string, Lisp_String))
+		&& (const char *) sdata->string->data == str);
+    }
+  return 0;
+#endif /* GC_MARK_STACK */  
+  return -1;
+}
+
 /***********************************************************************
 		       Pure Storage Management
  ***********************************************************************/

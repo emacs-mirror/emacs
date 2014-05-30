@@ -10201,19 +10201,17 @@ message_with_string (const char *m, Lisp_Object string, int log)
     {
       if (m)
 	{
-	  /* ENCODE_SYSTEM below can GC and/or relocate the Lisp
-	     String whose data pointer might be passed to us in M.  So
-	     we use a local copy.  */
-	  char *fmt = xstrdup (m);
+	  /* ENCODE_SYSTEM below can GC and/or relocate the
+	     Lisp data, so make sure we don't use it here.  */
+	  eassert (relocatable_string_data_p (m) != 1);
 
 	  if (noninteractive_need_newline)
 	    putc ('\n', stderr);
 	  noninteractive_need_newline = 0;
-	  fprintf (stderr, fmt, SDATA (ENCODE_SYSTEM (string)));
+	  fprintf (stderr, m, SDATA (ENCODE_SYSTEM (string)));
 	  if (!cursor_in_echo_area)
 	    fprintf (stderr, "\n");
 	  fflush (stderr);
-	  xfree (fmt);
 	}
     }
   else if (INTERACTIVE)
