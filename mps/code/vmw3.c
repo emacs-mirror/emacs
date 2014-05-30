@@ -59,7 +59,8 @@ SRCID(vmw3, "$Id$");
 typedef struct VMStruct {
   Sig sig;                      /* <design/sig/> */
   Align align;                  /* page size */
-  Addr base, limit;             /* boundaries of reserved space */
+  void *reserved_base;          /* unaligned base of VirtualAlloc'd memory */
+  Addr base, limit;             /* aligned boundaries of reserved space */
   Size reserved;                /* total reserved address space */
   Size mapped;                  /* total mapped memory */
 } VMStruct;
@@ -120,13 +121,16 @@ Res VMCreate(VM *vmReturn, Size size, Align align, void *params)
 {
   LPVOID vbase;
   SYSTEM_INFO si;
-  Align align;
+  Align pagealign;
   VM vm;
   Res res;
   BOOL b;
   VMParams vmParams = params;
+  Size reserved;
 
   AVER(vmReturn != NULL);
+  AVER(size > 0);
+  AVERT(Align, align);
   AVER(params != NULL); /* FIXME: Should have full AVERT? */
 
   AVER(COMPATTYPE(LPVOID, Addr));  /* .assume.lpvoid-addr */
@@ -137,10 +141,11 @@ Res VMCreate(VM *vmReturn, Size size, Align align, void *params)
   /* Check that the page size will fit in an object of type Align, and
    * that it is a valid alignment (see .assume.sysalign). */
   AVER(si.dwPageSize > 0);
-  AVER(si.dwPageSize <= (DWORD)(Align)-1);
-  AVERT(Align, (Align)si.dwPageSize);
+  AVER(si.dwPageSize <= (Align)-1);
+  pagealign = si.dwPageSize;
+  AVERT(Align, pagealign);
 
-  align = AlignAlignUp(align, (Align)si.dwPageSize);
+  align = AlignAlignUp(align, pagealign);
   size = SizeAlignUp(size, align);
   if ((size == 0) || (size > (Size)(SIZE_T)-1))
     return ResRESOURCE;
@@ -153,8 +158,9 @@ Res VMCreate(VM *vmReturn, Size size, Align align, void *params)
   vm = (VM)vbase;
 
   /* Allocate the address space. */
+  reserved = size + align - pagealign;
   vbase = VirtualAlloc(NULL,
-                       size,
+                       reserved,
                        vmParams->topDown ?
                          MEM_RESERVE | MEM_TOP_DOWN :
                          MEM_RESERVE,
@@ -164,19 +170,19 @@ Res VMCreate(VM *vmReturn, Size size, Align align, void *params)
     goto failReserve;
   }
 
-  AVER(AddrIsAligned(vbase, align));
-
   vm->align = align;
-  vm->base = (Addr)vbase;
-  vm->limit = AddrAdd(vbase, size);
+  vm->reserved_base = vbase;
+  vm->base = AddrAlignUp(vbase, align);
+  vm->limit = AddrAdd(vm->base, size);
+  AVER(vm->base < vm->limit);  /* .assume.not-last */
   vm->reserved = size;
   vm->mapped = 0;
-  AVER(vm->base < vm->limit);  /* .assume.not-last */
 
   vm->sig = VMSig;
   AVERT(VM, vm);
 
   EVENT4(VMCreate, vm, vm->align, vm->base, vm->limit);
+
   *vmReturn = vm;
   return ResOK;
 
@@ -203,7 +209,7 @@ void VMDestroy(VM vm)
    * fail and it would be nice to have a dead sig there. */
   vm->sig = SigInvalid;
 
-  b = VirtualFree((LPVOID)vm->base, (SIZE_T)0, MEM_RELEASE);
+  b = VirtualFree((LPVOID)vm->reserved_base, (SIZE_T)0, MEM_RELEASE);
   AVER(b != 0);
 
   b = VirtualFree((LPVOID)vm, (SIZE_T)0, MEM_RELEASE);
@@ -276,6 +282,7 @@ Res VMMap(VM vm, Addr base, Addr limit)
   AVER((Addr)b == base);        /* base should've been aligned */
 
   vm->mapped += AddrOffset(base, limit);
+  AVER(vm->mapped <= vm->reserved);
 
   EVENT3(VMMap, vm, base, limit);
   return ResOK;
