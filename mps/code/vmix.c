@@ -149,8 +149,6 @@ Res VMCreate(VM *vmReturn, Size size, Align align, void *params)
   }
   vm = (VM)addr;
 
-  vm->align = align;
-
   /* See .assume.not-last. */
   reserved = size + align - pagealign;
   addr = mmap(0, reserved, PROT_NONE, MAP_ANON | MAP_PRIVATE, -1, 0);
@@ -161,14 +159,15 @@ Res VMCreate(VM *vmReturn, Size size, Align align, void *params)
     goto failReserve;
   }
 
+  vm->align = align;
   vm->reserved_base = addr;
   vm->base = AddrAlignUp(addr, align);
   vm->limit = AddrAdd(vm->base, size);
+  AVER(vm->base < vm->limit);  /* .assume.not-last */
   vm->reserved = reserved;
-  vm->mapped = (Size)0;
+  vm->mapped = 0;
 
   vm->sig = VMSig;
-
   AVERT(VM, vm);
 
   EVENT4(VMCreate, vm, vm->align, vm->base, vm->limit);
