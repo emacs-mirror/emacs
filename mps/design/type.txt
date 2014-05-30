@@ -155,9 +155,12 @@ _`.bool.bitfield`: When a Boolean needs to be stored in a bitfield,
 the type of the bitfield must be ``unsigned:1``, not ``Bool:1``.
 (That's because the two values of the type ``Bool:1`` are ``0`` and
 ``-1``, which means that assigning ``TRUE`` would require a sign
-conversion.) To avoid warnings about loss of data from GCC with the
-``-Wconversion`` option, ``misc.h`` provides the ``BOOLOF`` macro for
-coercing a value to an unsigned single-bit field.
+conversion.) To make it clear why this is done, ``misc.h`` provides
+the ``BOOLFIELD`` macro.
+
+_`.bool.bitfield.assign`: To avoid warnings about loss of data from
+GCC with the ``-Wconversion`` option, ``misc.h`` provides the
+``BOOLOF`` macro for coercing a value to an unsigned single-bit field.
 
 
 ``typedef unsigned BufferMode``
