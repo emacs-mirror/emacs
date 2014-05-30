@@ -100,9 +100,7 @@ Res VMCreate(VM *vmReturn, Size size, Align align, void *params)
 
   memset((void *)vm->block, VMJunkBYTE, size);
  
-  /* Lie about the reserved address space, to simulate real */
-  /* virtual memory. */
-  vm->reserved = size - align;
+  vm->reserved = size;
   vm->mapped = (Size)0;
  
   vm->sig = VMSig;
@@ -191,6 +189,7 @@ Res VMMap(VM vm, Addr base, Addr limit)
   memset((void *)base, (int)0, size);
 
   vm->mapped += size;
+  AVER(vm->mapped <= vm->reserved);
 
   EVENT3(VMMap, vm, base, limit);
   return ResOK;
