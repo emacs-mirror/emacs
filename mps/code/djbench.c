@@ -48,7 +48,8 @@ static double pact = 0.2;         /* probability per pass of acting */
 static unsigned rinter = 75;      /* pass interval for recursion */
 static unsigned rmax = 10;        /* maximum recursion depth */
 static mps_bool_t zoned = TRUE;   /* arena allocates using zones */
-static size_t arenasize = 256ul * 1024 * 1024; /* arena size */
+static size_t arena_size = 256ul * 1024 * 1024; /* arena size */
+static mps_align_t arena_align = 1; /* arena alignment */
 
 #define DJRUN(fname, alloc, free) \
   static unsigned fname##_inner(mps_ap_t ap, unsigned depth, unsigned r) { \
@@ -178,7 +179,8 @@ static void wrap(dj_t dj, mps_class_t dummy, const char *name)
 static void arena_wrap(dj_t dj, mps_class_t pool_class, const char *name)
 {
   MPS_ARGS_BEGIN(args) {
-    MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, arenasize);
+    MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, arena_size);
+    MPS_ARGS_ADD(args, MPS_KEY_ALIGN, arena_align);
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_ZONED, zoned);
     DJMUST(mps_arena_create_k(&arena, mps_arena_class_vm(), args));
   } MPS_ARGS_END(args);
@@ -192,19 +194,20 @@ static void arena_wrap(dj_t dj, mps_class_t pool_class, const char *name)
 /* Command-line options definitions.  See getopt_long(3). */
 
 static struct option longopts[] = {
-  {"help",    no_argument,        NULL,   'h'},
-  {"nthreads",required_argument,  NULL,   't'},
-  {"niter",   required_argument,  NULL,   'i'},
-  {"npass",   required_argument,  NULL,   'p'},
-  {"nblocks", required_argument,  NULL,   'b'},
-  {"sshift",  required_argument,  NULL,   's'},
-  {"pact",    required_argument,  NULL,   'a'},
-  {"rinter",  required_argument,  NULL,   'r'},
-  {"rmax",    required_argument,  NULL,   'd'},
-  {"seed",    required_argument,  NULL,   'x'},
-  {"arena-size", required_argument, NULL, 'm'},
-  {"arena-unzoned", no_argument,  NULL,   'z'},
-  {NULL,      0,                  NULL,   0}
+  {"help",          no_argument,       NULL, 'h'},
+  {"nthreads",      required_argument, NULL, 't'},
+  {"niter",         required_argument, NULL, 'i'},
+  {"npass",         required_argument, NULL, 'p'},
+  {"nblocks",       required_argument, NULL, 'b'},
+  {"sshift",        required_argument, NULL, 's'},
+  {"pact",          required_argument, NULL, 'c'},
+  {"rinter",        required_argument, NULL, 'r'},
+  {"rmax",          required_argument, NULL, 'd'},
+  {"seed",          required_argument, NULL, 'x'},
+  {"arena-size",    required_argument, NULL, 'm'},
+  {"arena-align",   required_argument, NULL, 'a'},
+  {"arena-unzoned", no_argument,       NULL, 'z'},
+  {NULL,            0,                 NULL, 0  }
 };
 
 
@@ -237,7 +240,7 @@ int main(int argc, char *argv[]) {
 
   seed = rnd_seed();
   
-  while ((ch = getopt_long(argc, argv, "ht:i:p:b:s:a:r:d:m:x:z", longopts, NULL)) != -1)
+  while ((ch = getopt_long(argc, argv, "ht:i:p:b:s:c:r:d:m:a:x:z", longopts, NULL)) != -1)
     switch (ch) {
     case 't':
       nthreads = (unsigned)strtoul(optarg, NULL, 10);
@@ -254,7 +257,7 @@ int main(int argc, char *argv[]) {
     case 's':
       sshift = (unsigned)strtoul(optarg, NULL, 10);
       break;
-    case 'a':
+    case 'c':
       pact = strtod(optarg, NULL);
       break;
     case 'r':
@@ -271,14 +274,28 @@ int main(int argc, char *argv[]) {
       break;
     case 'm': {
         char *p;
-        arenasize = (unsigned)strtoul(optarg, &p, 10);
+        arena_size = (unsigned)strtoul(optarg, &p, 10);
         switch(toupper(*p)) {
-        case 'G': arenasize <<= 30; break;
-        case 'M': arenasize <<= 20; break;
-        case 'K': arenasize <<= 10; break;
+        case 'G': arena_size <<= 30; break;
+        case 'M': arena_size <<= 20; break;
+        case 'K': arena_size <<= 10; break;
         case '\0': break;
         default:
           fprintf(stderr, "Bad arena size %s\n", optarg);
+          return EXIT_FAILURE;
+        }
+      }
+      break;
+    case 'a': {
+        char *p;
+        arena_align = (unsigned)strtoul(optarg, &p, 10);
+        switch(toupper(*p)) {
+        case 'G': arena_align <<= 30; break;
+        case 'M': arena_align <<= 20; break;
+        case 'K': arena_align <<= 10; break;
+        case '\0': break;
+        default:
+          fprintf(stderr, "Bad arena alignment %s\n", optarg);
           return EXIT_FAILURE;
         }
       }
@@ -287,6 +304,10 @@ int main(int argc, char *argv[]) {
       fprintf(stderr,
               "Usage: %s [option...] [test...]\n"
               "Options:\n"
+              "  -m n, --arena-size=n[KMG]?\n"
+              "    Initial size of arena (default %lu).\n"
+              "  -a n, --arena-align=n[KMG]?\n"
+              "    Alignment of arena (default %lu).\n"
               "  -t n, --nthreads=n\n"
               "    Launch n threads each running the test\n"
               "  -i n, --niter=n\n"
@@ -297,9 +318,11 @@ int main(int argc, char *argv[]) {
               "    Length of the block array (default %u).\n"
               "  -s n, --sshift=n\n"
               "    Log2 max block size in words (default %u).\n"
-              "  -a p, --pact=p\n"
+              "  -c p, --pact=p\n"
               "    Probability of acting on a block (default %g).\n",
               argv[0],
+              (unsigned long)arena_size,
+              (unsigned long)arena_align,
               niter,
               npass,
               nblocks,
