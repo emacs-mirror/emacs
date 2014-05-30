@@ -829,7 +829,7 @@ Bibliography
 
 * .. _BOEHM01:
 
-  Hans-J. Boehm. 2002. "Bounding Space Usage of Conservative Garbage Collectors `<http://www.hpl.hp.com/techreports/2001/HPL-2001-251.html>`_". HP Labs technical report HPL-2001-251.
+  Hans-J. Boehm. 2001. "Bounding Space Usage of Conservative Garbage Collectors `<http://www.hpl.hp.com/techreports/2001/HPL-2001-251.html>`_". HP Labs technical report HPL-2001-251.
 
   .. admonition:: Abstract
 
