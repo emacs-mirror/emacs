@@ -127,34 +127,38 @@
 (add-to-list 'emulation-mode-map-alists
              `((override-global-mode . ,override-global-map)))
 
-(defvar personal-keybindings nil)
+(defvar personal-keybindings nil
+  "List of bindings performed by `bind-key'.
+
+Elements have the form ((KEY . [MAP]) CMD ORIGINAL-CMD)")
 
 (defmacro bind-key (key-name command &optional keymap)
   "Bind KEY-NAME to COMMAND in KEYMAP (`global-map' if not passed).
 
-KEY-NAME may be a vector, in which case it passed straight to
+KEY-NAME may be a vector, in which case it is passed straight to
 `define-key'. Or it may be a string to be interpreted as
 spelled-out keystrokes, e.g., \"C-c C-z\". See documentation of
 `edmacro-mode' for details."
   (let ((namevar (make-symbol "name"))
         (keyvar (make-symbol "key"))
+        (kdescvar (make-symbol "kdesc"))
         (bindingvar (make-symbol "binding"))
         (entryvar (make-symbol "entry")))
     `(let* ((,namevar ,key-name)
             (,keyvar (if (vectorp ,namevar) ,namevar
                        (read-kbd-macro ,namevar)))
+            (,kdescvar (cons (if (stringp ,namevar) ,namevar
+                               (key-description ,namevar))
+                             (quote ,keymap)))
             (,bindingvar (lookup-key (or ,keymap global-map)
-                                     ,keyvar)))
-       (let ((,entryvar (assoc (cons ,namevar (quote ,keymap))
-                               personal-keybindings)))
-         (if ,entryvar
-             (setq personal-keybindings
-                   (delq ,entryvar personal-keybindings))))
-       (setq personal-keybindings
-             (cons (list (cons ,namevar (quote ,keymap))
-                         ,command
-                         (unless (numberp ,bindingvar) ,bindingvar))
-                   personal-keybindings))
+                                     ,keyvar))
+            (,entryvar (assoc ,kdescvar personal-keybindings)))
+       (when ,entryvar
+         (setq personal-keybindings
+               (delq ,entryvar personal-keybindings)))
+       (push (list ,kdescvar ,command
+                   (unless (numberp ,bindingvar) ,bindingvar))
+             personal-keybindings)
        (define-key (or ,keymap global-map) ,keyvar ,command))))
 
 (defmacro unbind-key (key-name &optional keymap)
