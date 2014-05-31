@@ -1,3 +1,11 @@
+2014-05-31  Eli Zaretskii  <eliz@gnu.org>
+
+	Revert last changes to GDB-visible symbols.
+	* lisp.h (ENUMABLE, DEFINE_GDB_SYMBOL_ENUM): Delete macros.
+	(ARRAY_MARK_FLAG, PSEUDOVECTOR_FLAG, VALMASK): Don't use them.
+	(ARRAY_MARK_FLAG_val, PSEUDOVECTOR_FLAG_val, VALMASK_val):
+	Delete macros.
+
 2014-05-31  Glenn Morris  <rgm@gnu.org>
 
 	* cmds.c (Fself_insert_command): Allow zero repeat count.  (Bug#17649)

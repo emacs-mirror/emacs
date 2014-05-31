@@ -36,21 +36,14 @@ INLINE_HEADER_BEGIN
 
 /* Define a TYPE constant ID as an externally visible name.  Use like this:
 
-      #define ID_val (some integer preprocessor expression)
-      #if ENUMABLE (ID_val)
-      DEFINE_GDB_SYMBOL_ENUM (ID)
-      #else
       DEFINE_GDB_SYMBOL_BEGIN (TYPE, ID)
-      # define ID ID_val
+      #define ID something
       DEFINE_GDB_SYMBOL_END (ID)
-      #endif
 
    This hack is for the benefit of compilers that do not make macro
    definitions visible to the debugger.  It's used for symbols that
    .gdbinit needs, symbols whose values may not fit in 'int' (where an
    enum would suffice).  */
-#define ENUMABLE(val) (INT_MIN <= (val) && (val) <= INT_MAX)
-#define DEFINE_GDB_SYMBOL_ENUM(id) enum { id = id##_val };
 #if defined MAIN_PROGRAM
 # define DEFINE_GDB_SYMBOL_BEGIN(type, id) type const id EXTERNALLY_VISIBLE
 # define DEFINE_GDB_SYMBOL_END(id) = id;
@@ -578,25 +571,15 @@ LISP_MACRO_DEFUN (XIL, Lisp_Object, (EMACS_INT i), (i))
 
 /* In the size word of a vector, this bit means the vector has been marked.  */
 
-#define ARRAY_MARK_FLAG_val PTRDIFF_MIN
-#if ENUMABLE (ARRAY_MARK_FLAG_val)
-DEFINE_GDB_SYMBOL_ENUM (ARRAY_MARK_FLAG)
-#else
 DEFINE_GDB_SYMBOL_BEGIN (ptrdiff_t, ARRAY_MARK_FLAG)
-# define ARRAY_MARK_FLAG ARRAY_MARK_FLAG_val
+#define ARRAY_MARK_FLAG PTRDIFF_MIN
 DEFINE_GDB_SYMBOL_END (ARRAY_MARK_FLAG)
-#endif
 
 /* In the size word of a struct Lisp_Vector, this bit means it's really
    some other vector-like object.  */
-#define PSEUDOVECTOR_FLAG_val (PTRDIFF_MAX - PTRDIFF_MAX / 2)
-#if ENUMABLE (PSEUDOVECTOR_FLAG_val)
-DEFINE_GDB_SYMBOL_ENUM (PSEUDOVECTOR_FLAG)
-#else
 DEFINE_GDB_SYMBOL_BEGIN (ptrdiff_t, PSEUDOVECTOR_FLAG)
-# define PSEUDOVECTOR_FLAG PSEUDOVECTOR_FLAG_val
+#define PSEUDOVECTOR_FLAG (PTRDIFF_MAX - PTRDIFF_MAX / 2)
 DEFINE_GDB_SYMBOL_END (PSEUDOVECTOR_FLAG)
-#endif
 
 /* In a pseudovector, the size field actually contains a word with one
    PSEUDOVECTOR_FLAG bit set, and one of the following values extracted
@@ -658,15 +641,9 @@ enum More_Lisp_Bits
    XCONS (tem) is the struct Lisp_Cons * pointing to the memory for
    that cons.  */
 
-/* Mask for the value (as opposed to the type bits) of a Lisp object.  */
-#define VALMASK_val (USE_LSB_TAG ? - (1 << GCTYPEBITS) : VAL_MAX)
-#if ENUMABLE (VALMASK_val)
-DEFINE_GDB_SYMBOL_ENUM (VALMASK)
-#else
 DEFINE_GDB_SYMBOL_BEGIN (EMACS_INT, VALMASK)
-# define VALMASK VALMASK_val
+#define VALMASK (USE_LSB_TAG ? - (1 << GCTYPEBITS) : VAL_MAX)
 DEFINE_GDB_SYMBOL_END (VALMASK)
-#endif
 
 /* Largest and smallest representable fixnum values.  These are the C
    values.  They are macros for use in static initializers.  */
