@@ -1,3 +1,9 @@
+2014-05-31  Leo Liu  <sdl.web@gmail.com>
+
+	* emacs-lisp/gv.el (window-buffer, window-display-table)
+	(window-dedicated-p, window-hscroll, window-point, window-start):
+	Fix gv-expander.  (Bug#17630)
+
 2014-05-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mouse.el (mouse-posn-property): Ignore posn-point for mode-line
