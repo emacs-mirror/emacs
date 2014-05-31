@@ -127,12 +127,15 @@
 (add-to-list 'emulation-mode-map-alists
              `((override-global-mode . ,override-global-map)))
 
-(defvar personal-keybindings nil)
+(defvar personal-keybindings nil
+  "List of bindings performed by `bind-key'.
+
+Elements have the form ((KEY . [MAP]) CMD ORIGINAL-CMD)")
 
 (defmacro bind-key (key-name command &optional keymap)
   "Bind KEY-NAME to COMMAND in KEYMAP (`global-map' if not passed).
 
-KEY-NAME may be a vector, in which case it passed straight to
+KEY-NAME may be a vector, in which case it is passed straight to
 `define-key'. Or it may be a string to be interpreted as
 spelled-out keystrokes, e.g., \"C-c C-z\". See documentation of
 `edmacro-mode' for details."
