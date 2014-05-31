@@ -306,7 +306,7 @@ Key translation rules are:
  ("~ " ?~)
  (",C" ?Ç)
  (",c" ?ç)
- (", " ?,)
+ (",," ?,)
 )
 
 (quail-define-package
