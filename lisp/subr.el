@@ -4310,6 +4310,7 @@ lookup sequence then continues."
           (lambda ()
             (with-demoted-errors "set-transient-map PCH: %S"
               (unless (cond
+                       ((null keep-pred) nil)
                        ((not (eq map (cadr overriding-terminal-local-map)))
                         ;; There's presumably some other transient-map in
                         ;; effect.  Wait for that one to terminate before we
@@ -4322,7 +4323,6 @@ lookup sequence then continues."
                         ;; C-u and that 1 exits isearch whereas it doesn't
                         ;; exit C-u.
                         t)
-                       ((null keep-pred) nil)
                        ((eq t keep-pred)
                         (eq this-command
                             (lookup-key map (this-command-keys-vector))))

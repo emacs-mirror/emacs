@@ -1,3 +1,9 @@
+2014-05-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (set-transient-map): Don't wait for some "nested"
+	transient-map to finish if we're only supposed to be active for
+	the next command (bug#17642).
+
 2014-05-31  Leo Liu  <sdl.web@gmail.com>
 
 	* emacs-lisp/gv.el (window-buffer, window-display-table)
