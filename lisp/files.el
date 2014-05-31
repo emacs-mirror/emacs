@@ -883,7 +883,7 @@ which we're looking."
   ;;
   ;; Represent /home/luser/foo as ~/foo so that we don't try to look for
   ;; `name' in /home or in /.
-  (setq file (abbreviate-file-name file))
+  (setq file (abbreviate-file-name (expand-file-name file)))
   (let ((root nil)
         ;; `user' is not initialized outside the loop because
         ;; `file' may not exist, so we may have to walk up part of the

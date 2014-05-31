@@ -1,3 +1,7 @@
+2014-05-31  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (locate-dominating-file): Expand file argument.  (Bug#17641)
+
 2014-05-30  Glenn Morris  <rgm@gnu.org>
 
 	* loadup.el: Treat `command-line-args' more flexibly.
