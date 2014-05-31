@@ -154,7 +154,9 @@ spelled-out keystrokes, e.g., \"C-c C-z\". See documentation of
              (setq personal-keybindings
                    (delq ,entryvar personal-keybindings))))
        (setq personal-keybindings
-             (cons (list (cons ,namevar (quote ,keymap))
+             (cons (list (cons (if (stringp ,namevar) ,namevar
+                                 (key-description ,namevar))
+                               (quote ,keymap))
                          ,command
                          (unless (numberp ,bindingvar) ,bindingvar))
                    personal-keybindings))
