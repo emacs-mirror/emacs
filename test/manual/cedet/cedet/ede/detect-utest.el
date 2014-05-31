@@ -31,9 +31,12 @@
     ( "src/android/src/test.java" . ede-android-project-p )
     ( "src/emacs/Makefile" . ede-emacs-project-p )
     ( "src/emacs/src/emacs.c" . ede-emacs-project-p )
-    ;( "src/ant/build.xml" . ede-ant-project-p )
     ( "src/linux/Makefile" . ede-linux-project-p )
     ( "src/linux/scripts/ver_linux" . ede-linux-project-p )
+    ;; jvm-base based projects.
+    ( "src/jvm/ant/build.xml" . ede-ant-project-p )
+    ( "src/jvm/lein/project.clj" . ede-lein2-project-p )
+    ( "src/jvm/maven/pom.xml" . ede-maven2-project-p )
     ;; Generic project types just key of Makefile, SCons, etc.
     ( "src/generic/gen_make/sub/test.cpp" . ede-detect-utest-generic-p )
     ( "src/generic/gen_scons/sub/test.cpp" . ede-detect-utest-generic-p )
