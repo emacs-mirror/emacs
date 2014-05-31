@@ -1,5 +1,8 @@
 2014-05-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* mouse.el (mouse-posn-property): Ignore posn-point for mode-line
+	clicks (bug#17633).
+
 	* leim/quail/latin-pre.el ("latin-2-prefix"): Use ",," rather than ", "
 	for the single comma, since ", " is *very* common in normal French text
 	(bug#17643).

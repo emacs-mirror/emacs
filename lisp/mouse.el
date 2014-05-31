@@ -658,7 +658,10 @@ its value is returned."
 	    (str (posn-string pos)))
 	(or (and str
 		 (get-text-property (cdr str) property (car str)))
-	    (and pt
+            ;; FIXME: mouse clicks on the mode-line come with a position in
+            ;; (nth 5).  Maybe we should change the C code instead so that
+            ;; mouse-clicks don't include a position there!
+	    (and pt (not (memq (posn-area pos) '(mode-line header-line)))
 		 (get-char-property pt property w))))
     (get-char-property pos property)))
 
