@@ -2151,6 +2151,10 @@ where the optional arg MILLISECONDS specifies an additional wait period,
 in milliseconds; this was useful when Emacs was built without
 floating point support."
   (declare (advertised-calling-convention (seconds &optional nodisp) "22.1"))
+  ;; This used to be implemented in C until the following discussion:
+  ;; http://lists.gnu.org/archive/html/emacs-devel/2006-07/msg00401.html
+  ;; Then it was moved to C using an implementation based on an idle timer,
+  ;; which was then replaced by the use of read-event.
   (if (numberp nodisp)
       (setq seconds (+ seconds (* 1e-3 nodisp))
             nodisp obsolete)
