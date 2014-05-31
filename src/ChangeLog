@@ -1,5 +1,8 @@
 2014-05-31  Eli Zaretskii  <eliz@gnu.org>
 
+	* fileio.c (Finsert_file_contents): Call prepare_to_modify_buffer
+	with PT, not GPT.  (Bug#16433)
+
 	Revert last changes to GDB-visible symbols.
 	* lisp.h (ENUMABLE, DEFINE_GDB_SYMBOL_ENUM): Delete macros.
 	(ARRAY_MARK_FLAG, PSEUDOVECTOR_FLAG, VALMASK): Don't use them.

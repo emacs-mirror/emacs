@@ -4087,7 +4087,7 @@ by calling `format-decode', which see.  */)
 	  && SAVE_MODIFF >= MODIFF)
 	we_locked_file = 1;
 #endif /* CLASH_DETECTION */
-      prepare_to_modify_buffer (GPT, GPT, NULL);
+      prepare_to_modify_buffer (PT, PT, NULL);
     }
 
   move_gap_both (PT, PT_BYTE);
