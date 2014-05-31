@@ -141,25 +141,24 @@ spelled-out keystrokes, e.g., \"C-c C-z\". See documentation of
 `edmacro-mode' for details."
   (let ((namevar (make-symbol "name"))
         (keyvar (make-symbol "key"))
+        (kdescvar (make-symbol "kdesc"))
         (bindingvar (make-symbol "binding"))
         (entryvar (make-symbol "entry")))
     `(let* ((,namevar ,key-name)
             (,keyvar (if (vectorp ,namevar) ,namevar
                        (read-kbd-macro ,namevar)))
+            (,kdescvar (cons (if (stringp ,namevar) ,namevar
+                               (key-description ,namevar))
+                             (quote ,keymap)))
             (,bindingvar (lookup-key (or ,keymap global-map)
-                                     ,keyvar)))
-       (let ((,entryvar (assoc (cons ,namevar (quote ,keymap))
-                               personal-keybindings)))
-         (if ,entryvar
-             (setq personal-keybindings
-                   (delq ,entryvar personal-keybindings))))
-       (setq personal-keybindings
-             (cons (list (cons (if (stringp ,namevar) ,namevar
-                                 (key-description ,namevar))
-                               (quote ,keymap))
-                         ,command
-                         (unless (numberp ,bindingvar) ,bindingvar))
-                   personal-keybindings))
+                                     ,keyvar))
+            (,entryvar (assoc ,kdescvar personal-keybindings)))
+       (when ,entryvar
+         (setq personal-keybindings
+               (delq ,entryvar personal-keybindings)))
+       (push (list ,kdescvar ,command
+                   (unless (numberp ,bindingvar) ,bindingvar))
+             personal-keybindings)
        (define-key (or ,keymap global-map) ,keyvar ,command))))
 
 (defmacro unbind-key (key-name &optional keymap)
