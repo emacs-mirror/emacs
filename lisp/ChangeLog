@@ -1,3 +1,7 @@
+2014-06-01  Glenn Morris  <rgm@gnu.org>
+
+	* loadup.el (load-prefer-newer): Set non-nil when dumping.  (Bug#17629)
+
 2014-05-31  Glenn Morris  <rgm@gnu.org>
 
 	* files.el (locate-dominating-file): Expand file argument.  (Bug#17641)

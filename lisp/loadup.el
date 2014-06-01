@@ -72,9 +72,12 @@
 ;; This is a poor man's `last', since we haven't loaded subr.el yet.
 (if (or (equal (member "bootstrap" command-line-args) '("bootstrap"))
 	(equal (member "dump" command-line-args) '("dump")))
-    ;; To reduce the size of dumped Emacs, we avoid making huge
-    ;; char-tables.
-    (setq inhibit-load-charset-map t))
+    (progn
+      ;; To reduce the size of dumped Emacs, we avoid making huge char-tables.
+      (setq inhibit-load-charset-map t)
+      ;; --eval gets handled too late.
+      (defvar load--prefer-newer load-prefer-newer)
+      (setq load-prefer-newer t)))
 
 ;; We don't want to have any undo records in the dumped Emacs.
 (set-buffer "*scratch*")
@@ -357,6 +360,12 @@ lost after dumping")))
 (set-buffer-modified-p nil)
 
 (remove-hook 'after-load-functions (lambda (f) (garbage-collect)))
+
+(if (boundp 'load--prefer-newer)
+    (progn
+      (setq load-prefer-newer load--prefer-newer)
+      (put 'load-prefer-newer 'standard-value load--prefer-newer)
+      (makunbound 'load--prefer-newer)))
 
 (setq inhibit-load-charset-map nil)
 (clear-charset-maps)
