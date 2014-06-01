@@ -237,7 +237,8 @@ fix_command (Lisp_Object input, Lisp_Object values)
 DEFUN ("funcall-interactively", Ffuncall_interactively, Sfuncall_interactively,
        1, MANY, 0, doc: /* Like `funcall' but marks the call as interactive.
 I.e. arrange that within the called function `called-interactively-p' will
-return non-nil.  */)
+return non-nil.
+usage: (funcall-interactively FUNCTION &rest ARGUMENTS)  */)
      (ptrdiff_t nargs, Lisp_Object *args)
 {
   ptrdiff_t speccount = SPECPDL_INDEX ();

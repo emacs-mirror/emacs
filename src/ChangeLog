@@ -1,3 +1,7 @@
+2014-06-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* callint.c (Ffuncall_interactively): Add usage.
+
 2014-06-01  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsfns.m (ns_appkit_version_str): Add os version for Cocoa.
