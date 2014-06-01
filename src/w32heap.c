@@ -417,6 +417,12 @@ realloc_before_dump (void *ptr, size_t size)
          malloc_before_dump() and free_before_dump() will take care of
          reallocation.  */
       p = malloc_before_dump (size);
+      /* If SIZE is below MaxBlockSize, malloc_before_dump will try to
+	 allocate it in the fixed heap.  If that fails, we could have
+	 kept the block in its original place, above bc_limit, instead
+	 of failing the call as below.  But this doesn't seem to be
+	 worth the added complexity, as loadup allocates only a very
+	 small number of large blocks, and never reallocates them.  */
       if (p)
 	{
 	  CopyMemory (p, ptr, size);
