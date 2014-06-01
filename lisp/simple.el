@@ -6598,6 +6598,10 @@ At top-level, as an editor command, this simply beeps."
     (deactivate-mark))
   (if (fboundp 'kmacro-keyboard-quit)
       (kmacro-keyboard-quit))
+  ;; Force the next redisplay cycle to remove the "Def" indicator from
+  ;; all the mode lines.
+  (if defining-kbd-macro
+      (force-mode-line-update t))
   (setq defining-kbd-macro nil)
   (let ((debug-on-quit nil))
     (signal 'quit nil)))
