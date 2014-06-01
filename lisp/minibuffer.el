@@ -1222,12 +1222,16 @@ scroll the window of possible completions."
 (defun minibuffer-force-complete-and-exit ()
   "Complete the minibuffer with first of the matches and exit."
   (interactive)
-  (minibuffer-force-complete)
-  (completion--complete-and-exit
-   (minibuffer-prompt-end) (point-max) #'exit-minibuffer
-   ;; If the previous completion completed to an element which fails
-   ;; test-completion, then we shouldn't exit, but that should be rare.
-   (lambda () (minibuffer-message "Incomplete"))))
+  (if (and (eq (minibuffer-prompt-end) (point-max))
+           minibuffer-default)
+      ;; Use the provided default if there's one (bug#17545).
+      (minibuffer-complete-and-exit)
+    (minibuffer-force-complete)
+    (completion--complete-and-exit
+     (minibuffer-prompt-end) (point-max) #'exit-minibuffer
+     ;; If the previous completion completed to an element which fails
+     ;; test-completion, then we shouldn't exit, but that should be rare.
+     (lambda () (minibuffer-message "Incomplete")))))
 
 (defun minibuffer-force-complete (&optional start end)
   "Complete the minibuffer to an exact match.
@@ -1946,7 +1950,7 @@ This respects the wrapper hook `completion-in-region-functions'."
   "Keymap activated during `completion-in-region'.")
 
 ;; It is difficult to know when to exit completion-in-region-mode (i.e. hide
-;; the *Completions*).
+;; the *Completions*).  Here's how previous packages did it:
 ;; - lisp-mode: never.
 ;; - comint: only do it if you hit SPC at the right time.
 ;; - pcomplete: pop it down on SPC or after some time-delay.

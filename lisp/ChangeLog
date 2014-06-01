@@ -1,5 +1,8 @@
 2014-06-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* minibuffer.el (minibuffer-force-complete-and-exit):
+	Obey minibuffer-default (bug#17545).
+
 	* progmodes/js.el (js-indent-line): Don't mix columns and chars
 	(bug#17619).
 
@@ -91,8 +94,8 @@
 	Todo file, make sure we're in the right mode and the buffer local
 	variables are set.
 	(todo-make-categories-list, todo-reset-nondiary-marker)
-	(todo-reset-done-string, todo-reset-comment-string): After
-	processing all Todo files, kill the buffers of those files that
+	(todo-reset-done-string, todo-reset-comment-string):
+	After processing all Todo files, kill the buffers of those files that
 	weren't being visited before the processing.
 	(todo-display-as-todo-file, todo-add-to-buffer-list)
 	(todo-visit-files-commands): Comment out.
@@ -155,8 +158,8 @@
 
 2014-05-21  Dmitry Gutov  <dgutov@yandex.ru>
 
-	* emacs-lisp/package.el (package--download-one-archive): Use
-	`write-region' instead of `save-buffer' to avoid running various
+	* emacs-lisp/package.el (package--download-one-archive):
+	Use `write-region' instead of `save-buffer' to avoid running various
 	hooks.  (Bug#17155)
 	(describe-package-1): Same.  Insert newline at the end of the
 	buffer if appropriate.
