@@ -41,13 +41,15 @@
     ( "src/generic/gen_make/sub/test.cpp" . ede-detect-utest-generic-p )
     ( "src/generic/gen_scons/sub/test.cpp" . ede-detect-utest-generic-p )
     ( "src/generic/gen_cmake/sub/test.cpp" . ede-detect-utest-generic-p )
+    ;; Generic MADE FOR TEST only case.
+    ( "src/generic/gen_vc/sub/test.cpp" . ede-detect-utest-generic-vc-p )
     ;; these ROOT projects are created by hand in a .emacs file.
     ;; These need to be defined in here to get this test to work.
     ( "src/cpproot/src/main.cpp" . ede-cpp-root-project-p )
     ( "src/cpproot/README" . ede-cpp-root-project-p )
     ( "src/javaroot/com/test/Foo.Java" . ede-java-root-project-p )
     ( "src/javaroot/README" . ede-java-root-project-p )
-     )
+    )
   "List of sources to load in detectable projects.
 Each entry is a cons cell:
   ( SRCFILE . PROJECT-TYPE )")
@@ -90,6 +92,10 @@ Each entry is a cons cell:
 
     ;; Enable the generic EDE project types so we can test them.
     (ede-enable-generic-projects)
+
+    ;; Create a fake VC style project that we can detect.
+    (ede-generic-new-autoloader "generic-VC" "FAKE VC"
+				"VC" 'ede-generic-vc-project)
 
     ;; Start Logging
     (cedet-utest-log-setup "EDE DETECT")
@@ -255,6 +261,11 @@ Each entry is a cons cell:
 	      (string= "TEST" (car (car (oref config c-preprocessor-table))))
 	      ))
        ))
+
+(defun ede-detect-utest-generic-vc-p (project)
+  "Special predicate for testing a generic VC project was loaded."
+  (and (ede-detect-utest-generic-p project)
+       (ede-generic-vc-project-p project)))
 
 ;;; TEST PROJECT
 ;;
