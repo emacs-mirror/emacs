@@ -1,3 +1,12 @@
+2014-06-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Bring back the changes to GDB-visible symbols, but only on AIX.
+	And only if it's not pre-4.2 GCC.
+	* lisp.h (ENUMABLE, DEFINE_GDB_SYMBOL_ENUM): New macros.
+	(ARRAY_MARK_FLAG, PSEUDOVECTOR_FLAG, VALMASK): Use them.
+	(ARRAY_MARK_FLAG_val, PSEUDOVECTOR_FLAG_val, VALMASK_val):
+	New macros.
+
 2014-05-31  Eli Zaretskii  <eliz@gnu.org>
 
 	* fileio.c (Finsert_file_contents): Call prepare_to_modify_buffer
