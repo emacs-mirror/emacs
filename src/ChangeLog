@@ -1,3 +1,7 @@
+2014-06-01  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsfns.m (ns_appkit_version_str): Add os version for Cocoa.
+
 2014-05-30  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32heap.c (malloc_before_dump, malloc_after_dump)

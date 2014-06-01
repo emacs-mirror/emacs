@@ -873,12 +873,16 @@ x_set_mouse_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 static Lisp_Object
 ns_appkit_version_str (void)
 {
-  char tmp[80];
+  char tmp[256];
 
 #ifdef NS_IMPL_GNUSTEP
   sprintf(tmp, "gnustep-gui-%s", Xstr(GNUSTEP_GUI_VERSION));
 #elif defined (NS_IMPL_COCOA)
-  sprintf(tmp, "apple-appkit-%.2f", NSAppKitVersionNumber);
+  NSString *osversion
+    = [[NSProcessInfo processInfo] operatingSystemVersionString];
+  sprintf(tmp, "appkit-%.2f %s",
+          NSAppKitVersionNumber,
+          [osversion UTF8String]);
 #else
   tmp = "ns-unknown";
 #endif
