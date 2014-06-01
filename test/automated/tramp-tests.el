@@ -1430,7 +1430,12 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 		       (list (file-name-nondirectory tmp-name2)))))
 	  (should (vc-registered tmp-name2)))
 
-	(ignore-errors (delete-directory tmp-name1 'recursive))))))
+      (with-parsed-tramp-file-name tramp-test-temporary-file-directory nil
+	(with-current-buffer (tramp-get-connection-buffer v)
+	  (message "%s" (buffer-string)))
+	(with-current-buffer (tramp-get-debug-buffer v)
+	  (message "%s" (buffer-string))))
+      (ignore-errors (delete-directory tmp-name1 'recursive))))))
 
 (defun tramp--test-check-files (&rest files)
   "Runs a simple but comprehensive test over every file in FILES."
