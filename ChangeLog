@@ -1,3 +1,8 @@
+2014-06-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* configure.ac (C_HEAP_SWITCH): Raise HEAPSIZE value for 32-bit
+	builds on Windows.
+
 2014-05-29  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* configure.ac (pthread_sigmask): Look in LIB_PTHREAD too (Bug#17561).
@@ -23,7 +28,7 @@
 
 2014-05-27  Fabrice Popineau  <fabrice.popineau@gmail.com>
 
-	* configure.ac (C_HEAP_SWITCH) define for different values of
+	* configure.ac (C_HEAP_SWITCH): Define for different values of
 	dumped heap size depending on 32/64bits arch on Windows.
 	Don't check for pthreads.h on MinGW32/64, it gets in the way.
 	Use mmap(2) for buffers and system malloc for MinGW32/64.

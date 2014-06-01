@@ -4841,7 +4841,7 @@ if test "${opsys}" = "mingw32"; then
   ## Preload heap size of temacs.exe in MB.
   case "$canonical" in
     x86_64-*-*) C_HEAP_SWITCH="-DHEAPSIZE=18" ;;
-    *) C_HEAP_SWITCH="-DHEAPSIZE=10" ;;
+    *) C_HEAP_SWITCH="-DHEAPSIZE=12" ;;
   esac
 fi
 
