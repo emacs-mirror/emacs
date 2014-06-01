@@ -4441,14 +4441,11 @@ xg_scroll_callback (GtkRange     *range,
                     gpointer      user_data)
 {
   struct scroll_bar *bar = user_data;
-  gdouble position;
   int part = -1, whole = 0, portion = 0;
   GtkAdjustment *adj = GTK_ADJUSTMENT (gtk_range_get_adjustment (range));
   struct frame *f = g_object_get_data (G_OBJECT (range), XG_FRAME_DATA);
 
   if (xg_ignore_gtk_scrollbar) return FALSE;
-  position = gtk_adjustment_get_value (adj);
-
 
   switch (scroll)
     {
@@ -4460,7 +4457,7 @@ xg_scroll_callback (GtkRange     *range,
           part = scroll_bar_handle;
           whole = gtk_adjustment_get_upper (adj) -
             gtk_adjustment_get_page_size (adj);
-          portion = min ((int)position, whole);
+          portion = min ((int)value, whole);
           bar->dragging = portion;
         }
       break;

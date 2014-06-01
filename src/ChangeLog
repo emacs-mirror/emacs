@@ -1,3 +1,8 @@
+2014-06-01  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.c (xg_scroll_callback): Remove position, for jump set portion
+	to min(value, whole).
+
 2014-06-01  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Bring back the changes to GDB-visible symbols, but only on AIX.
