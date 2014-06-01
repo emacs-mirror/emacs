@@ -1,3 +1,8 @@
+2014-06-01  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/tramp-tests.el (tramp-test29-vc-registered):
+	Instrument failed test case.
+
 2014-05-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* automated/ruby-mode-tests.el (ruby-assert-face): Use font-lock-ensure.
