@@ -1,8 +1,3 @@
-2014-06-01  Michael Albinus  <michael.albinus@gmx.de>
-
-	* automated/tramp-tests.el (tramp-test29-vc-registered):
-	Instrument failed test case.
-
 2014-05-08  Glenn Morris  <rgm@gnu.org>
 
 	* automated/vc-bzr.el (vc-bzr-test-bug9726, vc-bzr-test-bug9781)
