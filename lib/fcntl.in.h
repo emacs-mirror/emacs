@@ -186,6 +186,22 @@ _GL_WARN_ON_USE (openat, "openat is not portable - "
 
 /* Fix up the O_* macros.  */
 
+/* AIX 7.1 with XL C 12.1 defines O_CLOEXEC, O_NOFOLLOW, and O_TTY_INIT
+   to values outside 'int' range, so omit these misdefinitions.
+   But avoid namespace pollution on non-AIX systems.  */
+#ifdef _AIX
+# include <limits.h>
+# if defined O_CLOEXEC && ! (INT_MIN <= O_CLOEXEC && O_CLOEXEC <= INT_MAX)
+#  undef O_CLOEXEC
+# endif
+# if defined O_NOFOLLOW && ! (INT_MIN <= O_NOFOLLOW && O_NOFOLLOW <= INT_MAX)
+#  undef O_NOFOLLOW
+# endif
+# if defined O_TTY_INIT && ! (INT_MIN <= O_TTY_INIT && O_TTY_INIT <= INT_MAX)
+#  undef O_TTY_INIT
+# endif
+#endif
+
 #if !defined O_DIRECT && defined O_DIRECTIO
 /* Tru64 spells it 'O_DIRECTIO'.  */
 # define O_DIRECT O_DIRECTIO

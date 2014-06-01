@@ -1,3 +1,14 @@
+2014-06-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	2014-06-02 acl: apply pure attribute to two functions
+	2014-06-01 gnulib-common.m4: add _GL_UNUSED_LABEL
+	2014-05-31 dup2, fcntl, fcntl-h: port to AIX 7.1
+	2014-05-30 ftoastr: work around compiler bug in IBM xlc 12.1
+	* lib/acl-internal.h, lib/fcntl.in.h, lib/ftoastr.h:
+	* m4/dup2.m4, m4/fcntl.m4, m4/gnulib-common.m4:
+	Update from gnulib.
+
 2014-06-01  Juanma Barranquero  <lekktu@gmail.com>
 
 	* configure.ac (C_HEAP_SWITCH): Raise HEAPSIZE value for 32-bit

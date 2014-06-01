@@ -8,6 +8,7 @@ AC_DEFUN([gl_FUNC_DUP2],
 [
   AC_REQUIRE([gl_UNISTD_H_DEFAULTS])
   AC_REQUIRE([AC_CANONICAL_HOST])
+  AC_CHECK_FUNCS_ONCE([getdtablesize])
   m4_ifdef([gl_FUNC_DUP2_OBSOLETE], [
     AC_CHECK_FUNCS_ONCE([dup2])
     if test $ac_cv_func_dup2 = no; then
@@ -23,6 +24,11 @@ AC_DEFUN([gl_FUNC_DUP2],
 #include <fcntl.h>
 #include <errno.h>]],
            [int result = 0;
+#ifdef HAVE_GETDTABLESIZE
+            int bad_fd = getdtablesize ();
+#else
+            int bad_fd = 1000000;
+#endif
 #ifdef FD_CLOEXEC
             if (fcntl (1, F_SETFD, FD_CLOEXEC) == -1)
               result |= 1;
@@ -37,7 +43,7 @@ AC_DEFUN([gl_FUNC_DUP2],
             if (dup2 (0, 0) != -1)
               result |= 8;
             /* Many gnulib modules require POSIX conformance of EBADF.  */
-            if (dup2 (2, 1000000) == -1 && errno != EBADF)
+            if (dup2 (2, bad_fd) == -1 && errno != EBADF)
               result |= 16;
             /* Flush out some cygwin core dumps.  */
             if (dup2 (2, -1) != -1 || errno != EBADF)
@@ -56,7 +62,9 @@ AC_DEFUN([gl_FUNC_DUP2],
            linux*) # On linux between 2008-07-27 and 2009-05-11, dup2 of a
                    # closed fd may yield -EBADF instead of -1 / errno=EBADF.
              gl_cv_func_dup2_works="guessing no" ;;
-           freebsd*) # on FreeBSD 6.1, dup2(1,1000000) gives EMFILE, not EBADF.
+           aix* | freebsd*)
+                   # on AIX 7.1 and FreeBSD 6.1, dup2 (1,toobig) gives EMFILE,
+                   # not EBADF.
              gl_cv_func_dup2_works="guessing no" ;;
            haiku*) # on Haiku alpha 2, dup2(1, 1) resets FD_CLOEXEC.
              gl_cv_func_dup2_works="guessing no" ;;
