@@ -1,3 +1,8 @@
+2014-06-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/js.el (js-indent-line): Don't mix columns and chars
+	(bug#17619).
+
 2014-05-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* subr.el (set-transient-map): Don't wait for some "nested"
