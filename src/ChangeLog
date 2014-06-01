@@ -1,3 +1,11 @@
+2014-06-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port signal-handling to DragonFly BSD (Bug#17646).
+	* callproc.c, sysdep.c (block_child_signal, unblock_child_signal):
+	Move implementations from callproc.c to sysdep.c.
+	* process.h, syssignal.h (block_child_signal, unblock_child_signal):
+	Move declaratations from process.h to syssignal.h.
+
 2014-06-01  Juanma Barranquero  <lekktu@gmail.com>
 
 	* callint.c (Ffuncall_interactively): Add usage.

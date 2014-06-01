@@ -659,7 +659,29 @@ ignore_sigio (void)
   signal (SIGIO, SIG_IGN);
 #endif
 }
+
+#ifndef MSDOS
+/* Block SIGCHLD.  */
 
+void
+block_child_signal (sigset_t *oldset)
+{
+  sigset_t blocked;
+  sigemptyset (&blocked);
+  sigaddset (&blocked, SIGCHLD);
+  sigaddset (&blocked, SIGINT);
+  pthread_sigmask (SIG_BLOCK, &blocked, oldset);
+}
+
+/* Unblock SIGCHLD.  */
+
+void
+unblock_child_signal (sigset_t const *oldset)
+{
+  pthread_sigmask (SIG_SETMASK, oldset, 0);
+}
+
+#endif	/* !MSDOS */
 
 /* Saving and restoring the process group of Emacs's terminal.  */
 

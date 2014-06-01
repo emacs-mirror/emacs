@@ -105,30 +105,6 @@ enum
 
 static Lisp_Object call_process (ptrdiff_t, Lisp_Object *, int, ptrdiff_t);
 
-
-#ifndef MSDOS
-/* Block SIGCHLD.  */
-
-void
-block_child_signal (sigset_t *oldset)
-{
-  sigset_t blocked;
-  sigemptyset (&blocked);
-  sigaddset (&blocked, SIGCHLD);
-  sigaddset (&blocked, SIGINT);
-  pthread_sigmask (SIG_BLOCK, &blocked, oldset);
-}
-
-/* Unblock SIGCHLD.  */
-
-void
-unblock_child_signal (sigset_t const *oldset)
-{
-  pthread_sigmask (SIG_SETMASK, oldset, 0);
-}
-
-#endif	/* !MSDOS */
-
 /* Return the current buffer's working directory, or the home
    directory if it's unreachable, as a string suitable for a system call.
    Signal an error if the result would not be an accessible directory.  */
