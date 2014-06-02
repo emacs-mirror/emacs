@@ -47,6 +47,7 @@
 (declare-function tramp-find-executable "tramp-sh")
 (declare-function tramp-get-remote-path "tramp-sh")
 (defvar tramp-copy-size-limit)
+(defvar tramp-remote-process-environment)
 
 ;; There is no default value on w32 systems, which could work out of the box.
 (defconst tramp-test-temporary-file-directory
@@ -1398,10 +1399,19 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
   (let* ((default-directory tramp-test-temporary-file-directory)
 	 (tmp-name1 (tramp--test-make-temp-name))
 	 (tmp-name2 (expand-file-name "foo" tmp-name1))
+	 (tramp-remote-process-environment tramp-remote-process-environment)
 	 (vc-handled-backends
 	  (with-parsed-tramp-file-name tramp-test-temporary-file-directory nil
 	    (cond
 	     ((tramp-find-executable v vc-bzr-program (tramp-get-remote-path v))
+	      (setq tramp-remote-process-environment
+		    (cons (format "BZR_HOME=%s"
+				  (file-remote-p tmp-name1 'localname))
+			  tramp-remote-process-environment))
+	      ;; We must force a reconnect, in order to activate $BZR_HOME.
+	      (tramp-cleanup-connection
+	       (tramp-dissect-file-name tramp-test-temporary-file-directory)
+	       nil 'keep-password)
 	      '(Bzr))
 	     ((tramp-find-executable v vc-git-program (tramp-get-remote-path v))
 	      '(Git))
