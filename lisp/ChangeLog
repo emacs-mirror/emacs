@@ -2,6 +2,7 @@
 
 	* net/tramp.el (with-tramp-progress-reporter, tramp-call-process):
 	Add traces.
+	(tramp-handle-unhandled-file-name-directory): Return "/".
 
 2014-06-02  Wilson Snyder  <wsnyder@wsnyder.org>
 
