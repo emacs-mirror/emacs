@@ -1,3 +1,8 @@
+2014-06-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* callproc.c (call_process): Don't check read-only if we don't insert
+	anything (bug#17666).
+
 2014-06-02  Eli Zaretskii  <eliz@gnu.org>
 
 	* dispnew.c (update_frame_with_menu): Set display_completed.
