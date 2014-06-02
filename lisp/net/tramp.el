@@ -1676,7 +1676,10 @@ without a visible progress reporter."
            (prog1
 	       (condition-case err
 		   (progn ,@body)
-		 (error (tramp-message ,vec 6 "%s" (error-message-string err))))
+		 (error
+		  (tramp-message ,vec 6 "%s" (error-message-string err))
+		  ;; Propagate the error.
+		  (signal (car err) (cdr err))))
 	     (setq cookie "done"))
          ;; Stop progress reporter.
          (if tm (tramp-compat-funcall 'cancel-timer tm))
