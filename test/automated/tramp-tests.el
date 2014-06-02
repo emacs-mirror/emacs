@@ -1395,7 +1395,6 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
     (tramp-find-foreign-file-name-handler tramp-test-temporary-file-directory)
     'tramp-sh-file-name-handler))
 
-  (tramp--instrument-test-case 10
   (let* ((default-directory tramp-test-temporary-file-directory)
 	 (tmp-name1 (tramp--test-make-temp-name))
 	 (tmp-name2 (expand-file-name "foo" tmp-name1))
@@ -1440,12 +1439,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 		       (list (file-name-nondirectory tmp-name2)))))
 	  (should (vc-registered tmp-name2)))
 
-      (with-parsed-tramp-file-name tramp-test-temporary-file-directory nil
-	(with-current-buffer (tramp-get-connection-buffer v)
-	  (message "%s" (buffer-string)))
-	(with-current-buffer (tramp-get-debug-buffer v)
-	  (message "%s" (buffer-string))))
-      (ignore-errors (delete-directory tmp-name1 'recursive))))))
+	(ignore-errors (delete-directory tmp-name1 'recursive)))))
 
 (defun tramp--test-check-files (&rest files)
   "Runs a simple but comprehensive test over every file in FILES."
