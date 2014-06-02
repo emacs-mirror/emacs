@@ -201,7 +201,7 @@ dumped_data_commit (PVOID Base, PVOID *CommitAddress, PSIZE_T CommitSize)
 
 /* Heap creation.  */
 
-/* Under MinGW32, we want to turn on Low Fragmentation Heap for XP.
+/* We want to turn on Low Fragmentation Heap for XP and older systems.
    MinGW32 lacks those definitions.  */
 #ifndef _W64
 typedef enum _HEAP_INFORMATION_CLASS {
@@ -234,8 +234,7 @@ init_heap (void)
       heap = HeapCreate(0, 0, 0);
 
 #ifndef _W64
-      /* Set the low-fragmentation heap for OS before XP and Windows
-	 Server 2003.  */
+      /* Set the low-fragmentation heap for OS before Vista.  */
       HMODULE hm_kernel32dll = LoadLibrary("kernel32.dll");
       HeapSetInformation_Proc s_pfn_Heap_Set_Information = (HeapSetInformation_Proc) GetProcAddress(hm_kernel32dll, "HeapSetInformation");
       if (s_pfn_Heap_Set_Information != NULL)
