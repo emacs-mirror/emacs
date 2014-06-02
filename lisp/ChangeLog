@@ -1,3 +1,10 @@
+2014-06-02  Sam Steingold  <sds@gnu.org>
+
+	* menu-bar.el (lookup-key-ignore-too-long): Extract from...
+	(popup-menu): ...here.
+	(menu-bar-open): Use it to avoid an error when `lookup-key'
+	returns a number.
+
 2014-06-02  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-call-process): Add traces.
