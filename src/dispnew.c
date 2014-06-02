@@ -3132,12 +3132,11 @@ update_frame_with_menu (struct frame *f)
   check_window_matrix_pointers (root_window);
 #endif
   add_frame_display_history (f, paused_p);
-#else
-  IF_LINT ((void) paused_p);
 #endif
 
   /* Reset flags indicating that a window should be updated.  */
   set_window_update_flags (root_window, false);
+  display_completed = !paused_p;
 }
 
 

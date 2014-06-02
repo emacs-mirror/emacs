@@ -1,3 +1,7 @@
+2014-06-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* dispnew.c (update_frame_with_menu): Set display_completed.
+
 2014-06-01  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* frame.c (x_set_frame_parameters): Don't read uninitialized storage.
