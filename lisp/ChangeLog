@@ -1,3 +1,15 @@
+2014-06-02  Wilson Snyder  <wsnyder@wsnyder.org>
+
+	Sync with upstream verilog-mode revision 3cd8144.
+	* progmodes/verilog-mode.el (verilog-mode-version): Bump.
+	(verilog-auto-arg-format): New option, to support newlines in AUTOARG.
+	(verilog-type-font-keywords): Add nor.
+	(verilog-batch-execute-func): Force reading of Local Variables.
+	Fix printing "no changes to be saved" with verilog-batch.
+	(verilog-auto-arg-ports): Doc fix.
+	Add verilog-auto-arg-format to support newlines in AUTOARG.
+	(verilog-auto-arg): Doc fix.
+
 2014-06-02  Glenn Morris  <rgm@gnu.org>
 
 	* emulation/crisp.el, emulation/tpu-edt.el, emulation/tpu-extras.el:
