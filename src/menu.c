@@ -576,21 +576,26 @@ parse_single_submenu (Lisp_Object item_key, Lisp_Object item_name,
 
 #if defined (USE_X_TOOLKIT) || defined (USE_GTK) || defined (HAVE_NS) || defined (HAVE_NTGUI)
 
-/* Allocate a widget_value, blocking input.  */
+/* Allocate and basically initialize widget_value, blocking input.  */
 
 widget_value *
-xmalloc_widget_value (void)
+make_widget_value (const char *name, char *value,
+		   bool enabled, Lisp_Object help)
 {
-  widget_value *value;
+  widget_value *wv;
 
   block_input ();
-  value = malloc_widget_value ();
+  wv = xzalloc (sizeof (widget_value));
   unblock_input ();
 
-  return value;
+  wv->name = (char *) name;
+  wv->value = value;
+  wv->enabled = enabled;
+  wv->help = help;
+  return wv;
 }
 
-/* This recursively calls free_widget_value on the tree of widgets.
+/* This recursively calls xfree on the tree of widgets.
    It must free all data that was malloc'ed for these widget_values.
    In Emacs, many slots are pointers into the data of Lisp_Strings, and
    must be left alone.  */
@@ -613,7 +618,7 @@ free_menubar_widget_value_tree (widget_value *wv)
       wv->next = (widget_value *) 0xDEADBEEF;
     }
   block_input ();
-  free_widget_value (wv);
+  xfree (wv);
   unblock_input ();
 }
 
@@ -632,12 +637,8 @@ digest_single_submenu (int start, int end, bool top_level_items)
   struct frame *f = XFRAME (Vmenu_updating_frame);
 
   submenu_stack = alloca (menu_items_used * sizeof *submenu_stack);
-  wv = xmalloc_widget_value ();
-  wv->name = "menu";
-  wv->value = 0;
-  wv->enabled = 1;
+  wv = make_widget_value ("menu", NULL, true, Qnil);
   wv->button_type = BUTTON_TYPE_NONE;
-  wv->help = Qnil;
   first_wv = wv;
   save_wv = 0;
   prev_wv = 0;
@@ -721,17 +722,14 @@ digest_single_submenu (int start, int end, bool top_level_items)
 	     with its items as a submenu beneath it.  */
 	  if (strcmp (pane_string, ""))
 	    {
-	      wv = xmalloc_widget_value ();
+	      /* Set value to 1 so update_submenu_strings can handle '@'.  */
+	      wv = make_widget_value (NULL, (char *) 1, true, Qnil);
 	      if (save_wv)
 		save_wv->next = wv;
 	      else
 		first_wv->contents = wv;
 	      wv->lname = pane_name;
-              /* Set value to 1 so update_submenu_strings can handle '@'  */
-	      wv->value = (char *)1;
-	      wv->enabled = 1;
 	      wv->button_type = BUTTON_TYPE_NONE;
-	      wv->help = Qnil;
 	      save_wv = wv;
 	    }
 	  else
@@ -805,7 +803,8 @@ digest_single_submenu (int start, int end, bool top_level_items)
 #endif
 	    }
 
-	  wv = xmalloc_widget_value ();
+	  wv = make_widget_value (NULL, NULL, !NILP (enable),
+				  STRINGP (help) ? help : Qnil);
 	  if (prev_wv)
 	    prev_wv->next = wv;
 	  else
@@ -814,11 +813,9 @@ digest_single_submenu (int start, int end, bool top_level_items)
 	  wv->lname = item_name;
 	  if (!NILP (descrip))
 	    wv->lkey = descrip;
-	  wv->value = 0;
 	  /* The intptr_t cast avoids a warning.  There's no problem
 	     as long as pointers have enough bits to hold small integers.  */
 	  wv->call_data = (!NILP (def) ? (void *) (intptr_t) i : 0);
-	  wv->enabled = !NILP (enable);
 
 	  if (NILP (type))
 	    wv->button_type = BUTTON_TYPE_NONE;
@@ -830,10 +827,6 @@ digest_single_submenu (int start, int end, bool top_level_items)
 	    emacs_abort ();
 
 	  wv->selected = !NILP (selected);
-	  if (! STRINGP (help))
-	    help = Qnil;
-
-	  wv->help = help;
 
 	  prev_wv = wv;
 
@@ -846,7 +839,7 @@ digest_single_submenu (int start, int end, bool top_level_items)
   if (top_level_items && first_wv->contents && first_wv->contents->next == 0)
     {
       wv = first_wv->contents;
-      free_widget_value (first_wv);
+      xfree (first_wv);
       return wv;
     }
 

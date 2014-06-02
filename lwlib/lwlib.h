@@ -119,11 +119,6 @@ typedef struct _widget_value
   /* tell us if we should free the toolkit data slot when freeing the
      widget_value itself. */
   Boolean free_toolkit_data;
-
-  /* we resource the widget_value structures; this points to the next
-     one on the free list if this one has been deallocated.
-   */
-  struct _widget_value *free_list;
 } widget_value;
 
 
@@ -153,8 +148,6 @@ widget_value* lw_get_all_values (LWLIB_ID id);
 Boolean lw_get_some_values (LWLIB_ID id, widget_value* val);
 void lw_pop_up_all_widgets (LWLIB_ID id);
 void lw_pop_down_all_widgets (LWLIB_ID id);
-widget_value *malloc_widget_value (void);
-void free_widget_value (widget_value *);
 void lw_popup_menu (Widget, XEvent *);
 
 /* Toolkit independent way of focusing on a Widget at the Xt level. */

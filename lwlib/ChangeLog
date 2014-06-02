@@ -1,3 +1,12 @@
+2014-06-02  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Use common memory management functions for widgets.
+	* lwlib.h (widget_value): Do not maintain a free list any more.
+	(malloc_widget_value, free_widget_value): Remove prototypes.
+	* lwlib.c (malloc_widget_value, free_widget_value):
+	(widget_value_free_list, malloc_cpt): Remove.
+	(free_widget_value_tree, copy_widget_value_tree): Adjust users.
+
 2014-05-30  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Use common string allocation and freeing functions where applicable.

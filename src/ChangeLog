@@ -1,5 +1,23 @@
 2014-06-02  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Adjust to match recent lwlib changes.
+	* menu.h (xmalloc_widget_value): Replaced by ...
+	(make_widget_value): ... new prototype.
+	* menu.c (xmalloc_widget_value): Replaced by ...
+	(make_widget_value): ... new function.
+	(free_menubar_widget_value_tree, digest_single_submenu): Adjust users.
+	* gtkutil.c (malloc_widget_value, free_widget_value):
+	(widget_value_free_list, malloc_cpt): Remove old lwlib-compatible code.
+	* keyboard.h (enum button_type, struct _widget_value):
+	* gtkutil.h, nsgui.h, w32gui.h (malloc_widget_value, free_widget_value):
+	Likewise.
+	* nsmenu.m (ns_update_menubar, ns_menu_show):
+	* w32menu.c (set_frame_menubar, w32_menu_show, w32_dialog_show):
+	* xmenu.c (set_frame_menubar, xmenu_show, x_dialog_show): Adjust users.
+	* xterm.h (XtParent) [USE_GTK]: Remove unused macro.
+
+2014-06-02  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	* image.c (x_query_frame_background_color)
 	[HAVE_PNG || HAVE_NS || HAVE_IMAGEMAGICK || HAVE_RSVG]:
 	Fix --enable-gcc-warnings compilation without image libraries.

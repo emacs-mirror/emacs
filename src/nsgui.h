@@ -48,11 +48,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef _GL_VERIFY_H
 #include <verify.h>
 
-/* menu-related */
-#define free_widget_value(wv) xfree (wv)
-#define malloc_widget_value() ((widget_value *) memset (xmalloc \
-    (sizeof (widget_value)), 0, sizeof (widget_value)))
-
 /* Emulate XCharStruct.  */
 typedef struct _XCharStruct
 {

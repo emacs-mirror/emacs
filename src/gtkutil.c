@@ -221,57 +221,6 @@ xg_display_close (Display *dpy)
 /***********************************************************************
                       Utility functions
  ***********************************************************************/
-/* The next two variables and functions are taken from lwlib.  */
-static widget_value *widget_value_free_list;
-static int malloc_cpt;
-
-/* Allocate a widget_value structure, either by taking one from the
-   widget_value_free_list or by malloc:ing a new one.
-
-   Return a pointer to the allocated structure.  */
-
-widget_value *
-malloc_widget_value (void)
-{
-  widget_value *wv;
-  if (widget_value_free_list)
-    {
-      wv = widget_value_free_list;
-      widget_value_free_list = wv->free_list;
-      wv->free_list = 0;
-    }
-  else
-    {
-      wv = xmalloc (sizeof *wv);
-      malloc_cpt++;
-    }
-  memset (wv, 0, sizeof (widget_value));
-  return wv;
-}
-
-/* This is analogous to free.  It frees only what was allocated
-   by malloc_widget_value, and no substructures.  */
-
-void
-free_widget_value (widget_value *wv)
-{
-  if (wv->free_list)
-    emacs_abort ();
-
-  if (malloc_cpt > 25)
-    {
-      /* When the number of already allocated cells is too big,
-	 We free it.  */
-      xfree (wv);
-      malloc_cpt--;
-    }
-  else
-    {
-      wv->free_list = widget_value_free_list;
-      widget_value_free_list = wv;
-    }
-}
-
 
 /* Create and return the cursor to be used for popup menus and
    scroll bars on display DPY.  */

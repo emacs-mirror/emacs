@@ -20,6 +20,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define MENU_H
 
 #include "systime.h" /* for Time */
+#if defined (USE_X_TOOLKIT) || defined (USE_GTK) || defined (HAVE_NTGUI) \
+  || defined (HAVE_NS)
+#include "../lwlib/lwlib.h" /* for widget_value */
+#endif
 
 #ifdef HAVE_NTGUI
 extern Lisp_Object Qunsupported__w32_dialog;
@@ -41,7 +45,7 @@ extern void free_menubar_widget_value_tree (widget_value *);
 extern void update_submenu_strings (widget_value *);
 extern void find_and_call_menu_selection (struct frame *, int,
                                           Lisp_Object, void *);
-extern widget_value *xmalloc_widget_value (void);
+extern widget_value *make_widget_value (const char *, char *, bool, Lisp_Object);
 extern widget_value *digest_single_submenu (int, int, bool);
 #endif
 

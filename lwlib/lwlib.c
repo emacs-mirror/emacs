@@ -99,51 +99,6 @@ static void lw_pop_all_widgets (LWLIB_ID, Boolean);
 static Boolean get_one_value (widget_instance *, widget_value *);
 static void show_one_widget_busy (Widget, Boolean);
 
-static widget_value *widget_value_free_list = 0;
-static int malloc_cpt = 0;
-
-widget_value *
-malloc_widget_value (void)
-{
-  widget_value *wv;
-  if (widget_value_free_list)
-    {
-      wv = widget_value_free_list;
-      widget_value_free_list = wv->free_list;
-      wv->free_list = 0;
-    }
-  else
-    {
-      wv = (widget_value *) xmalloc (sizeof (widget_value));
-      malloc_cpt++;
-    }
-  memset ((void*) wv, 0, sizeof (widget_value));
-  return wv;
-}
-
-/* this is analogous to free().  It frees only what was allocated
-   by malloc_widget_value(), and no substructures.
- */
-void
-free_widget_value (widget_value *wv)
-{
-  if (wv->free_list)
-    abort ();
-
-  if (malloc_cpt > 25)
-    {
-      /* When the number of already allocated cells is too big,
-	 We free it.  */
-      xfree (wv);
-      malloc_cpt--;
-    }
-  else
-    {
-      wv->free_list = widget_value_free_list;
-      widget_value_free_list = wv;
-    }
-}
-
 static void
 free_widget_value_tree (widget_value *wv)
 {
@@ -172,7 +127,7 @@ free_widget_value_tree (widget_value *wv)
       free_widget_value_tree (wv->next);
       wv->next = (widget_value *) 0xDEADBEEF;
     }
-  free_widget_value (wv);
+  xfree (wv);
 }
 
 static widget_value *
@@ -185,7 +140,8 @@ copy_widget_value_tree (widget_value *val, change_type change)
   if (val == (widget_value *) 1)
     return val;
 
-  copy = malloc_widget_value ();
+  copy = xmalloc (sizeof (widget_value));
+  copy->lname = copy->lkey = Qnil;
   copy->name = xstrdup (val->name);
   copy->value = val->value ? xstrdup (val->value) : NULL;
   copy->key = val->key ? xstrdup (val->key) : NULL;

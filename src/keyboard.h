@@ -354,57 +354,6 @@ extern void unuse_menu_items (void);
 #define ENCODE_MENU_STRING(str) (str)
 #endif
 
-#if defined (HAVE_NS) || defined (HAVE_NTGUI) || defined (USE_GTK)
-
-/* Definitions copied from lwlib.h */
-
-enum button_type
-{
-  BUTTON_TYPE_NONE,
-  BUTTON_TYPE_TOGGLE,
-  BUTTON_TYPE_RADIO
-};
-
-/* This structure is based on the one in ../lwlib/lwlib.h, with unused portions
-   removed.  No term uses these. */
-typedef struct _widget_value
-{
-  /* name of widget */
-  Lisp_Object   lname;
-  const char*	name;
-  /* value (meaning depend on widget type) */
-  const char*	value;
-  /* keyboard equivalent. no implications for XtTranslations */
-  Lisp_Object   lkey;
-  const char*	key;
-  /* Help string or nil if none.
-     GC finds this string through the frame's menu_bar_vector
-     or through menu_items.  */
-  Lisp_Object	help;
-  /* true if enabled */
-  unsigned char	enabled;
-  /* true if selected */
-  unsigned char selected;
-  /* The type of a button.  */
-  enum button_type button_type;
-#if defined (HAVE_NTGUI)
-  /* true if menu title */
-  unsigned char title;
-#endif
-  /* Contents of the sub-widgets, also selected slot for checkbox */
-  struct _widget_value*	contents;
-  /* data passed to callback */
-  void	*call_data;
-  /* next one in the list */
-  struct _widget_value*	next;
-#ifdef USE_GTK
-  struct _widget_value *free_list;
-#endif
-} widget_value;
-
-#endif /* HAVE_NS || HAVE_NTGUI */
-
-
 /* Macros for dealing with lispy events.  */
 
 /* True if EVENT has data fields describing it (i.e. a mouse click).  */

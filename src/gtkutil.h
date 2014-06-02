@@ -24,6 +24,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef USE_GTK
 
 #include <gtk/gtk.h>
+#include "../lwlib/lwlib.h"
 #include "frame.h"
 #include "xterm.h"
 
@@ -73,9 +74,6 @@ typedef struct xg_menu_item_cb_data_
   xg_menu_cb_data *cl_data;
 
 } xg_menu_item_cb_data;
-
-extern struct _widget_value *malloc_widget_value (void) ATTRIBUTE_MALLOC;
-extern void free_widget_value (struct _widget_value *);
 
 extern bool xg_uses_old_file_dialog (void) ATTRIBUTE_CONST;
 

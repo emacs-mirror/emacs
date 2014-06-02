@@ -22,13 +22,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "systime.h" /* for Time */
 
-/* Local memory management for menus.  */
+/* FIXME: old local memory management for menus.  */
 #define local_heap (GetProcessHeap ())
 #define local_alloc(n) (HeapAlloc (local_heap, HEAP_ZERO_MEMORY, (n)))
 #define local_free(p) (HeapFree (local_heap, 0, ((LPVOID) (p))))
-
-#define malloc_widget_value() ((widget_value *) local_alloc (sizeof (widget_value)))
-#define free_widget_value(wv) (local_free ((wv)))
 
 /* Emulate X GC's by keeping color and font info in a structure.  */
 typedef struct _XGCValues
