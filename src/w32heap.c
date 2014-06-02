@@ -299,9 +299,14 @@ malloc_after_dump (size_t size)
   /* Use the new private heap.  */
   void *p = HeapAlloc (heap, 0, size);
 
-  /* After dump, keep track of the last allocated byte for sbrk(0).  */
+  /* After dump, keep track of the "brk value" for sbrk(0).  */
   if (p)
-    data_region_end = p + size - 1;
+    {
+      unsigned char *new_brk = (unsigned char *)p + size;
+
+      if (new_brk > data_region_end)
+	data_region_end = new_brk;
+    }
   else
     errno = ENOMEM;
   return p;
@@ -391,9 +396,14 @@ realloc_after_dump (void *ptr, size_t size)
       else
 	errno = ENOMEM;
     }
-  /* After dump, keep track of the last allocated byte for sbrk(0).  */
+  /* After dump, keep track of the "brk value" for sbrk(0).  */
   if (p)
-    data_region_end = p + size - 1;
+    {
+      unsigned char *new_brk = (unsigned char *)p + size;
+
+      if (new_brk > data_region_end)
+	data_region_end = new_brk;
+    }
   return p;
 }
 
@@ -497,10 +507,11 @@ getpagesize (void)
 void *
 sbrk (ptrdiff_t increment)
 {
-  /* The data_region_end address is the one of the last byte
-     allocated.  The sbrk() function is not emulated at all, except
-     for a 0 value of its parameter.  This is needed by the emacs lisp
-     function `memory-limit'.   */
+  /* data_region_end is the address beyond the last allocated byte.
+     The sbrk() function is not emulated at all, except for a 0 value
+     of its parameter.  This is needed by the Emacs Lisp function
+     `memory-limit'.  */
+  eassert (increment == 0);
   return data_region_end;
 }
 
