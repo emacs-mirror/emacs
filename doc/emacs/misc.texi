@@ -9,10 +9,9 @@
 else: viewing ``document files'', reading Usenet news, running shell
 commands and shell subprocesses, using a single shared Emacs for
 utilities that expect to run an editor as a subprocess, printing
-hardcopy, sorting text, narrowing display to part of the buffer,
-editing binary files, saving an Emacs session for later resumption,
-following hyperlinks, browsing images, emulating other editors, and
-various diversions and amusements.
+hardcopy, sorting text, editing binary files, saving an Emacs session
+for later resumption, following hyperlinks, emulating other editors,
+and various diversions and amusements.
 
 @end iftex
 
@@ -2282,7 +2281,7 @@ the order you choose.
 @cindex Macintosh key bindings
 @cindex WordStar
 
-  GNU Emacs can be programmed to emulate (more or less) most other
+  GNU Emacs can be programmed to emulate (more or less) some other
 editors.  Standard facilities can emulate these:
 
 @table @asis
