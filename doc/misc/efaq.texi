@@ -3264,8 +3264,8 @@ archive sites that make GNU software available.
 
 First of all, you should check to make sure that the package isn't
 already available.  For example, typing @kbd{M-x apropos @key{RET}
-wordstar @key{RET}} lists all functions and variables containing the
-string @samp{wordstar}.
+python @key{RET}} lists all functions and variables containing the
+string @samp{python}.
 
 It is also possible that the package is on your system, but has not been
 loaded.  To see which packages are available for loading, look through

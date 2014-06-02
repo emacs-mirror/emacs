@@ -1,3 +1,7 @@
+2014-06-02  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp-intro.texi (Autoload): Update loaddefs.el details.
+
 2014-04-17  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* Makefile.in (infoclean): Be consistent about reporting failures.

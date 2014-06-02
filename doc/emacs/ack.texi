@@ -346,8 +346,7 @@ mail messages; and @file{saveplace.el}, for preserving point's
 location in files between editing sessions.
 
 @item
-Gary Foster wrote @file{crisp.el}, the emulation for CRiSP and Brief
-editors; and @file{scroll-all.el}, a mode for scrolling several buffers
+Gary Foster wrote @file{scroll-all.el}, a mode for scrolling several buffers
 together.
 
 @item
@@ -593,7 +592,7 @@ buffers.
 @item
 Michael Kifer wrote @code{ediff}, an interactive interface to the
 @command{diff}, @command{patch}, and @command{merge} programs; and
-Viper, another emulator of the VI editor.
+Viper, an emulator of the VI editor.
 
 @item
 Richard King wrote the first version of @file{userlock.el} and
@@ -872,9 +871,6 @@ Thien-Thi Nguyen and Dan Nicolaescu wrote @file{hideshow.el}, a minor
 mode for selectively displaying blocks of text.
 
 @item
-Jurgen Nickelsen wrote @file{ws-mode.el}, providing WordStar emulation.
-
-@item
 Dan Nicolaescu added support for running Emacs as a daemon.  He also
 wrote @file{romanian.el}, support for editing Romanian text;
 @file{iris-ansi.el}, support for running Emacs on SGI's @code{xwsh}
@@ -1025,10 +1021,8 @@ Alex Rezinsky wrote @file{which-func.el}, a mode that shows the name
 of the current function in the mode line.
 
 @item
-Rob Riepel wrote @file{tpu-edt.el} and its associated files, providing
-an emulation of the VMS TPU text editor emulating the VMS EDT editor,
-and @file{vt-control.el}, providing some control functions for the DEC
-VT line of terminals.
+Rob Riepel wrote @file{vt-control.el}, providing some control
+functions for the DEC VT line of terminals.
 
 @item
 Nick Roberts wrote @file{t-mouse.el}, for mouse support in text
@@ -1069,9 +1063,6 @@ references in Info files.
 @item
 James B. Salem and Brewster Kahle wrote @file{completion.el}, providing
 dynamic word completion.
-
-@item
-Masahiko Sato wrote @file{vip.el}, an emulation of the VI editor.
 
 @item
 Holger Schauer wrote @file{fortune.el}, a package for using fortune in

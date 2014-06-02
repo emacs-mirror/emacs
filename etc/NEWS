@@ -109,6 +109,14 @@ protocols as well as for "telnet" and "ftp" are passed to Tramp.
 ---
 *** gulp.el
 
+---
+*** vi.el, vip.el (try M-x viper instead)
+
+---
+*** crisp.el, tpu-edt.el, ws-mode.el
+These emulations of old editors are believed to be no longer relevant
+ - contact emacs-devel@gnu.org if you disagree.
+
 
 * New Modes and Packages in Emacs 24.5
 

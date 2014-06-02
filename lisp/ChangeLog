@@ -1,3 +1,9 @@
+2014-06-02  Glenn Morris  <rgm@gnu.org>
+
+	* emulation/crisp.el, emulation/tpu-edt.el, emulation/tpu-extras.el:
+	* emulation/tpu-mapper.el, emulation/vi.el, emulation/vip.el:
+	* emulation/ws-mode.el: Move to obsolete/.
+
 2014-06-02  Eli Zaretskii  <eliz@gnu.org>
 
 	* simple.el (keyboard-quit): Force update of mode lines, to remove

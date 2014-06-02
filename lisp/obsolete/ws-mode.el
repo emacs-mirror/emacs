@@ -5,6 +5,7 @@
 ;; Author: Juergen Nickelsen <nickel@cs.tu-berlin.de>
 ;; Version: 0.7
 ;; Keywords: emulations
+;; Obsolete-since: 24.5
 
 ;; This file is part of GNU Emacs.
 

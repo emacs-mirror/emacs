@@ -8,8 +8,11 @@
 ;; Author: Neal Ziring <nz@rsch.wisc.edu>
 ;;	Felix S. T. Wu <wu@crys.wisc.edu>
 ;; Keywords: emulations
+;; Obsolete-since: 24.5
 
 ;;; Commentary:
+
+;; This file is obsolete.  Consider using viper instead.
 
 ;; Originally written by : seismo!wucs!nz@rsch.wisc.edu (Neal Ziring)
 ;; Extensively redesigned and rewritten by wu@crys.wisc.edu (Felix S.T. Wu)

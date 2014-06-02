@@ -1,3 +1,9 @@
+2014-06-02  Glenn Morris  <rgm@gnu.org>
+
+	* efaq.texi (Finding a package with particular functionality):
+	Update example.
+	* vip.texi: Mention this is obsolete.
+
 2014-05-27  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* texinfo.tex: Update from gnulib.
