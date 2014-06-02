@@ -1673,18 +1673,10 @@ without a visible progress reporter."
                                  #'tramp-progress-reporter-update pr)))))))
        (unwind-protect
            ;; Execute the body.
-           (prog1
-	       (condition-case err
-		   (progn ,@body)
-		 (error
-		  (tramp-message ,vec 6 "%s" (error-message-string err))
-		  ;; Propagate the error.
-		  (signal (car err) (cdr err))))
-	     (setq cookie "done"))
+           (prog1 (progn ,@body) (setq cookie "done"))
          ;; Stop progress reporter.
          (if tm (tramp-compat-funcall 'cancel-timer tm))
-         (tramp-message ,vec ,level "%s...%s" ,message cookie)
-	 (when (string-equal "failed" cookie) (tramp-backtrace ,vec))))))
+         (tramp-message ,vec ,level "%s...%s" ,message cookie)))))
 
 (tramp-compat-font-lock-add-keywords
  'emacs-lisp-mode '("\\<with-tramp-progress-reporter\\>"))
