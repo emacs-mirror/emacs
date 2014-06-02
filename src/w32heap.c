@@ -219,9 +219,9 @@ init_heap (void)
       unsigned long enable_lfh = 2;
 
       /* After dumping, use a new private heap.  We explicitly enable
-         the low fragmentation heap here, for the sake of pre Vista
-         versions.  Note: this will harnlessly fail on Vista and
-         later, whyere the low fragmentation heap is enabled by
+         the low fragmentation heap (LFH) here, for the sake of pre
+         Vista versions.  Note: this will harmlessly fail on Vista and
+         later, where the low-fragmentation heap is enabled by
          default.  It will also fail on pre-Vista versions when Emacs
          is run under a debugger; set _NO_DEBUG_HEAP=1 in the
          environment before starting GDB to get low fragmentation heap
