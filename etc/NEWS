@@ -816,6 +816,12 @@ Use `electric-indent-mode' instead.
 
 ** Package
 
+FIXME
+*** New option `package-pinned-packages'.
+
+FIXME
+*** New options `package-check-signature' and `package-unsigned-archives'.
+
 +++
 *** In the `list-packages' buffer, you can use `f' (`package-menu-filter')
 to filter the list of packages by a keyword.
