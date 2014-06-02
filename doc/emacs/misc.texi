@@ -1,18 +1,17 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2014 Free Software
-@c Foundation, Inc.
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2014
+@c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @iftex
 @chapter Miscellaneous Commands
 
   This chapter contains several brief topics that do not fit anywhere
-else: viewing ``document files'', reading Usenet news, running shell
-commands and shell subprocesses, using a single shared Emacs for
-utilities that expect to run an editor as a subprocess, printing
-hardcopy, sorting text, narrowing display to part of the buffer,
-editing binary files, saving an Emacs session for later resumption,
-following hyperlinks, browsing images, emulating other editors, and
-various diversions and amusements.
+else: reading Usenet news, viewing PDFs and other such documents, web
+browsing, running shell commands and shell subprocesses, using a
+single shared Emacs for utilities that expect to run an editor as a
+subprocess, printing, sorting text, editing binary files, saving an
+Emacs session for later resumption, recursive editing level, following
+hyperlinks, and various diversions and amusements.
 
 @end iftex
 

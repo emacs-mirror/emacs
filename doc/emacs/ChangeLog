@@ -1,7 +1,8 @@
 2014-06-02  Glenn Morris  <rgm@gnu.org>
 
 	* ack.texi (Acknowledgments): Remove some obsolete items.
-	* misc.texi (Emulation): Remove section.
+	* misc.texi [iftex]: Update chapter summary.
+	(Emulation): Remove section.
 
 	* macos.texi (Mac / GNUstep Customization): Mention ns custom group.
 	(Customization options specific to Mac OS / GNUstep): Remove section.
