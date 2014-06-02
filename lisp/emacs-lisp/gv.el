@@ -340,13 +340,18 @@ The return value is the last VAL in the list.
 (gv-define-simple-setter process-filter set-process-filter)
 (gv-define-simple-setter process-sentinel set-process-sentinel)
 (gv-define-simple-setter process-get process-put)
-(gv-define-simple-setter window-buffer set-window-buffer)
-(gv-define-simple-setter window-display-table set-window-display-table 'fix)
-(gv-define-simple-setter window-dedicated-p set-window-dedicated-p)
-(gv-define-simple-setter window-hscroll set-window-hscroll)
 (gv-define-simple-setter window-parameter set-window-parameter)
-(gv-define-simple-setter window-point set-window-point)
-(gv-define-simple-setter window-start set-window-start)
+(gv-define-setter window-buffer (v &optional w)
+  (macroexp-let2 nil v v
+    `(progn (set-window-buffer ,w ,v) ,v)))
+(gv-define-setter window-display-table (v &optional w)
+  (macroexp-let2 nil v v
+    `(progn (set-window-display-table ,w ,v) ,v)))
+(gv-define-setter window-dedicated-p (v &optional w)
+  `(set-window-dedicated-p ,w ,v))
+(gv-define-setter window-hscroll (v &optional w) `(set-window-hscroll ,w ,v))
+(gv-define-setter window-point (v &optional w) `(set-window-point ,w ,v))
+(gv-define-setter window-start (v &optional w) `(set-window-start ,w ,v))
 
 (gv-define-setter buffer-local-value (val var buf)
   (macroexp-let2 nil v val

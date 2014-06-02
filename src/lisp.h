@@ -36,14 +36,40 @@ INLINE_HEADER_BEGIN
 
 /* Define a TYPE constant ID as an externally visible name.  Use like this:
 
+      #define ID_val (some integer preprocessor expression)
+      #if ENUMABLE (ID_val)
+      DEFINE_GDB_SYMBOL_ENUM (ID)
+      #else
       DEFINE_GDB_SYMBOL_BEGIN (TYPE, ID)
-      #define ID something
+      # define ID ID_val
       DEFINE_GDB_SYMBOL_END (ID)
+      #endif
 
    This hack is for the benefit of compilers that do not make macro
    definitions visible to the debugger.  It's used for symbols that
    .gdbinit needs, symbols whose values may not fit in 'int' (where an
-   enum would suffice).  */
+   enum would suffice).
+
+   Some GCC versions before GCC 4.2 omit enums in debugging output;
+   see GCC bug 23336.  So don't use enums with older GCC.  */
+
+#if !defined __GNUC__ || 4 < __GNUC__ + (2 <= __GNUC_MINOR__)
+# define ENUMABLE(val) (INT_MIN <= (val) && (val) <= INT_MAX)
+#else
+# define ENUMABLE(val) 0
+#endif
+
+/* On AIX 7.1 ENUMABLE should return true when possible, otherwise the
+   linker can optimize the symbols away, making it harder to debug.
+   This was discovered only late in the release process, so to play it
+   safe for now, non-AIX platforms do not use enums for debugging symbols.
+   FIXME: remove this comment and the following four lines of code.  */
+#ifndef _AIX
+# undef ENUMABLE
+# define ENUMABLE(val) 0
+#endif
+
+#define DEFINE_GDB_SYMBOL_ENUM(id) enum { id = id##_val };
 #if defined MAIN_PROGRAM
 # define DEFINE_GDB_SYMBOL_BEGIN(type, id) type const id EXTERNALLY_VISIBLE
 # define DEFINE_GDB_SYMBOL_END(id) = id;
@@ -574,15 +600,25 @@ LISP_MACRO_DEFUN (XIL, Lisp_Object, (EMACS_INT i), (i))
 
 /* In the size word of a vector, this bit means the vector has been marked.  */
 
+#define ARRAY_MARK_FLAG_val PTRDIFF_MIN
+#if ENUMABLE (ARRAY_MARK_FLAG_val)
+DEFINE_GDB_SYMBOL_ENUM (ARRAY_MARK_FLAG)
+#else
 DEFINE_GDB_SYMBOL_BEGIN (ptrdiff_t, ARRAY_MARK_FLAG)
-#define ARRAY_MARK_FLAG PTRDIFF_MIN
+# define ARRAY_MARK_FLAG ARRAY_MARK_FLAG_val
 DEFINE_GDB_SYMBOL_END (ARRAY_MARK_FLAG)
+#endif
 
 /* In the size word of a struct Lisp_Vector, this bit means it's really
    some other vector-like object.  */
+#define PSEUDOVECTOR_FLAG_val (PTRDIFF_MAX - PTRDIFF_MAX / 2)
+#if ENUMABLE (PSEUDOVECTOR_FLAG_val)
+DEFINE_GDB_SYMBOL_ENUM (PSEUDOVECTOR_FLAG)
+#else
 DEFINE_GDB_SYMBOL_BEGIN (ptrdiff_t, PSEUDOVECTOR_FLAG)
-#define PSEUDOVECTOR_FLAG (PTRDIFF_MAX - PTRDIFF_MAX / 2)
+# define PSEUDOVECTOR_FLAG PSEUDOVECTOR_FLAG_val
 DEFINE_GDB_SYMBOL_END (PSEUDOVECTOR_FLAG)
+#endif
 
 /* In a pseudovector, the size field actually contains a word with one
    PSEUDOVECTOR_FLAG bit set, and one of the following values extracted
@@ -634,9 +670,15 @@ enum More_Lisp_Bits
    XCONS (tem) is the struct Lisp_Cons * pointing to the memory for
    that cons.  */
 
+/* Mask for the value (as opposed to the type bits) of a Lisp object.  */
+#define VALMASK_val (USE_LSB_TAG ? - (1 << GCTYPEBITS) : VAL_MAX)
+#if ENUMABLE (VALMASK_val)
+DEFINE_GDB_SYMBOL_ENUM (VALMASK)
+#else
 DEFINE_GDB_SYMBOL_BEGIN (EMACS_INT, VALMASK)
-#define VALMASK (USE_LSB_TAG ? - (1 << GCTYPEBITS) : VAL_MAX)
+# define VALMASK VALMASK_val
 DEFINE_GDB_SYMBOL_END (VALMASK)
+#endif
 
 /* Largest and smallest representable fixnum values.  These are the C
    values.  They are macros for use in static initializers.  */
@@ -3794,7 +3836,7 @@ extern void print_error_message (Lisp_Object, Lisp_Object, const char *,
 				 Lisp_Object);
 extern Lisp_Object internal_with_output_to_temp_buffer
         (const char *, Lisp_Object (*) (Lisp_Object), Lisp_Object);
-enum FLOAT_TO_STRING_BUFSIZE { FLOAT_TO_STRING_BUFSIZE = 350 };
+#define FLOAT_TO_STRING_BUFSIZE 350
 extern int float_to_string (char *, double);
 extern void init_print_once (void);
 extern void syms_of_print (void);

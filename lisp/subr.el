@@ -2161,6 +2161,10 @@ where the optional arg MILLISECONDS specifies an additional wait period,
 in milliseconds; this was useful when Emacs was built without
 floating point support."
   (declare (advertised-calling-convention (seconds &optional nodisp) "22.1"))
+  ;; This used to be implemented in C until the following discussion:
+  ;; http://lists.gnu.org/archive/html/emacs-devel/2006-07/msg00401.html
+  ;; Then it was moved to C using an implementation based on an idle timer,
+  ;; which was then replaced by the use of read-event.
   (if (numberp nodisp)
       (setq seconds (+ seconds (* 1e-3 nodisp))
             nodisp obsolete)
@@ -2178,7 +2182,12 @@ floating point support."
     ;; FIXME: we should not read-event here at all, because it's much too
     ;; difficult to reliably "undo" a read-event by pushing it onto
     ;; unread-command-events.
-    (let ((read (read-event nil t seconds)))
+    ;; For bug#14782, we need read-event to do the keyboard-coding-system
+    ;; decoding (hence non-nil as second arg under POSIX ttys).
+    ;; For bug#15614, we need read-event not to inherit-input-method.
+    ;; So we temporarily suspend input-method-function.
+    (let ((read (let ((input-method-function nil))
+                  (read-event nil t seconds))))
       (or (null read)
 	  (progn
             ;; https://lists.gnu.org/archive/html/emacs-devel/2006-10/msg00394.html
@@ -4318,28 +4327,28 @@ lookup sequence then continues."
     ;; in a cycle.
     (fset clearfun
           (suspicious-object
-           (lambda ()
-             (with-demoted-errors "set-transient-map PCH: %S"
-               (unless (cond
-                         ((not (eq map (cadr overriding-terminal-local-map)))
-                          ;; There's presumably some other transient-map in
-                          ;; effect.  Wait for that one to terminate before we
-                          ;; remove ourselves.
-                          ;; For example, if isearch and C-u both use transient
-                          ;; maps, then the lifetime of the C-u should be nested
-                          ;; within isearch's, so the pre-command-hook of
-                          ;; isearch should be suspended during the C-u one so
-                          ;; we don't exit isearch just because we hit 1 after
-                          ;; C-u and that 1 exits isearch whereas it doesn't
-                          ;; exit C-u.
-                          t)
-                         ((null keep-pred) nil)
-                         ((eq t keep-pred)
-                          (eq this-command
-                              (lookup-key map (this-command-keys-vector))))
-                         (t (funcall keep-pred)))
-                 (internal-pop-keymap map 'overriding-terminal-local-map)
-                 (remove-hook 'pre-command-hook clearfun)
+          (lambda ()
+            (with-demoted-errors "set-transient-map PCH: %S"
+              (unless (cond
+                       ((null keep-pred) nil)
+                       ((not (eq map (cadr overriding-terminal-local-map)))
+                        ;; There's presumably some other transient-map in
+                        ;; effect.  Wait for that one to terminate before we
+                        ;; remove ourselves.
+                        ;; For example, if isearch and C-u both use transient
+                        ;; maps, then the lifetime of the C-u should be nested
+                        ;; within isearch's, so the pre-command-hook of
+                        ;; isearch should be suspended during the C-u one so
+                        ;; we don't exit isearch just because we hit 1 after
+                        ;; C-u and that 1 exits isearch whereas it doesn't
+                        ;; exit C-u.
+                        t)
+                       ((eq t keep-pred)
+                        (eq this-command
+                            (lookup-key map (this-command-keys-vector))))
+                       (t (funcall keep-pred)))
+                (internal-pop-keymap map 'overriding-terminal-local-map)
+                (remove-hook 'pre-command-hook clearfun)
                  (when on-exit (funcall on-exit))
                  ;; Comment out the fset if you want to debug the GC bug.
 ;;;		(fset clearfun nil)

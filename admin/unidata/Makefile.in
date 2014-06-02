@@ -33,7 +33,12 @@ emacs = "${EMACS}" -batch --no-site-file --no-site-lisp
 
 .PHONY: all compile install
 
-all: ${DSTDIR}/charprop.el
+all: ${top_srcdir}/src/macuvs.h ${DSTDIR}/charprop.el
+
+${top_srcdir}/src/macuvs.h: ${srcdir}/uvs.el ${srcdir}/IVD_Sequences.txt
+	${EMACS} -batch -l "${srcdir}/uvs.el" \
+	  --eval '(uvs-print-table-ivd "${srcdir}/IVD_Sequences.txt" "Adobe-Japan1")' \
+	  > $@
 
 .el.elc:
 	${emacs} -f batch-byte-compile $<
@@ -82,6 +87,7 @@ maintainer-clean: distclean
 ## change and it slows down bootstrap (a tiny bit).
 ## Cf leim/ja-dic (which is much slower).
 extraclean:
+	rm -f ${top_srcdir}/src/macuvs.h
 	if test -f ${DSTDIR}/charprop.el; then \
 	  (cd ${DSTDIR} && rm -f `sed -n 's/^;; FILE: //p' < charprop.el`); \
 	  rm -f ${DSTDIR}/charprop.el; \

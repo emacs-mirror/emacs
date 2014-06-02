@@ -90,9 +90,10 @@ of setting PATH is recommended on Mac OS X 10.5 and later, using the
 @node Mac / GNUstep Customization
 @section Mac / GNUstep Customization
 
-Emacs can be customized in several ways in addition to the standard
-customization buffers and the Options menu.
-
+There are a few customization options that are specific to the
+Nextstep port.  For example, they affect things such as the modifier
+keys and the fullscreen behavior.  To see all such options, use
+@kbd{M-x customize-group @key{RET} ns @key{RET}}.
 
 @subsection Font and Color Panels
 
@@ -116,16 +117,14 @@ close the altered one.
 Useful in this context is the listing of all faces obtained by
 @kbd{M-x list-faces-display}.
 
-@subsection Customization options specific to Mac OS / GNUstep
+@cindex Core Text, on Mac OS X
+In Mac OS X 10.5 and later, Emacs uses a Core Text based font backend
+by default.  If you prefer the older font style, enter the following
+at the command-line before starting Emacs:
 
-The following customization options are specific to the Nextstep port.
-
-@table @code
-@item ns-auto-hide-menu-bar
-Non-nil means the menu-bar is hidden by default, but appears if you
-move the mouse pointer over it.  (Requires Mac OS X 10.6 or later.)
-
-@end table
+@example
+% defaults write org.gnu.Emacs FontBackend ns
+@end example
 
 
 @node Mac / GNUstep Events

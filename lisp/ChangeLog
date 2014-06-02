@@ -1,3 +1,75 @@
+2014-06-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* simple.el (keyboard-quit): Force update of mode lines, to remove
+	the "Def" indicator, if we were defining a macro.  (Bug#17615)
+
+2014-06-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (minibuffer-force-complete-and-exit):
+	Obey minibuffer-default (bug#17545).
+
+	* progmodes/js.el (js-indent-line): Don't mix columns and chars
+	(bug#17619).
+
+	* subr.el (set-transient-map): Don't wait for some "nested"
+	transient-map to finish if we're only supposed to be active for
+	the next command (bug#17642).
+
+2014-06-02  Leo Liu  <sdl.web@gmail.com>
+
+	* emacs-lisp/gv.el (window-buffer, window-display-table)
+	(window-dedicated-p, window-hscroll, window-point, window-start):
+	Fix gv-expander.  (Bug#17630)
+
+2014-06-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mouse.el (mouse-posn-property): Ignore posn-point for mode-line
+	clicks (bug#17633).
+
+	* leim/quail/latin-pre.el ("latin-2-prefix"): Use ",," rather than ", "
+	for the single comma, since ", " is *very* common in normal French text
+	(bug#17643).
+
+2014-06-02  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/package.el (package-check-signature)
+	(package-unsigned-archives): Fix :version.
+
+2014-06-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (sit-for): Don't run input-methods (bug#15614).
+
+2014-06-02  Glenn Morris  <rgm@gnu.org>
+
+	* cus-start.el: Fix some :version numbers.
+
+2014-06-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (deactivate-mark): Set mark-active to nil even if
+	deactivation is done via setting transient-mark-mode to nil,
+	since one is buffer-local and the other is global.
+
+	* emacs-lisp/byte-opt.el (byte-optimize-binary-predicate): Don't assume
+	there can't be more than 2 arguments (bug#17584).
+
+2014-06-02  Glenn Morris  <rgm@gnu.org>
+
+	* simple.el (filter-buffer-substring-functions)
+	(filter-buffer-substring-function, buffer-substring-filters)
+	(filter-buffer-substring, buffer-substring--filter): Doc fixes.
+
+	* minibuffer.el (completion-in-region-functions, completion-in-region)
+	(completion--in-region): Doc fixes.
+
+	* abbrev.el (abbrev-expand-functions, abbrev-expand-function)
+	(expand-abbrev, abbrev--default-expand): Doc fixes.
+
+2014-06-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Include sources used to create macuvs.h.
+	* international/README: Refer to the Unicode Terms of Use rather
+	than copying it bodily here, as that simplifies maintenance.
+
 2014-06-01  Glenn Morris  <rgm@gnu.org>
 
 	* loadup.el (load-prefer-newer): Set non-nil when dumping.  (Bug#17629)

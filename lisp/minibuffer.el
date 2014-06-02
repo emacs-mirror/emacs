@@ -1224,12 +1224,16 @@ scroll the window of possible completions."
 (defun minibuffer-force-complete-and-exit ()
   "Complete the minibuffer with first of the matches and exit."
   (interactive)
-  (minibuffer-force-complete)
-  (completion--complete-and-exit
-   (minibuffer-prompt-end) (point-max) #'exit-minibuffer
-   ;; If the previous completion completed to an element which fails
-   ;; test-completion, then we shouldn't exit, but that should be rare.
-   (lambda () (minibuffer-message "Incomplete"))))
+  (if (and (eq (minibuffer-prompt-end) (point-max))
+           minibuffer-default)
+      ;; Use the provided default if there's one (bug#17545).
+      (minibuffer-complete-and-exit)
+    (minibuffer-force-complete)
+    (completion--complete-and-exit
+     (minibuffer-prompt-end) (point-max) #'exit-minibuffer
+     ;; If the previous completion completed to an element which fails
+     ;; test-completion, then we shouldn't exit, but that should be rare.
+     (lambda () (minibuffer-message "Incomplete")))))
 
 (defun minibuffer-force-complete (&optional start end)
   "Complete the minibuffer to an exact match.
@@ -1878,14 +1882,14 @@ variables.")
   (exit-minibuffer))
 
 (defvar completion-in-region-functions nil
-  "Wrapper hook around `completion-in-region'.")
+  "Wrapper hook around `completion--in-region'.")
 (make-obsolete-variable 'completion-in-region-functions
                         'completion-in-region-function "24.4")
 
 (defvar completion-in-region-function #'completion--in-region
   "Function to perform the job of `completion-in-region'.
 The function is called with 4 arguments: START END COLLECTION PREDICATE.
-The arguments and expected return value are like the ones of
+The arguments and expected return value are as specified for
 `completion-in-region'.")
 
 (defvar completion-in-region--data nil)
@@ -1903,10 +1907,12 @@ we entered `completion-in-region-mode'.")
 
 (defun completion-in-region (start end collection &optional predicate)
   "Complete the text between START and END using COLLECTION.
-Return nil if there is no valid completion, else t.
 Point needs to be somewhere between START and END.
-PREDICATE (a function called with no arguments) says when to
-exit."
+PREDICATE (a function called with no arguments) says when to exit.
+This calls the function that `completion-in-region-function' specifies
+\(passing the same four arguments that it received) to do the work,
+and returns whatever it does.  The return value should be nil
+if there was no valid completion, else t."
   (cl-assert (<= start (point)) (<= (point) end))
   (funcall completion-in-region-function start end collection predicate))
 
@@ -1918,6 +1924,9 @@ exit."
   :version "22.1")
 
 (defun completion--in-region (start end collection &optional predicate)
+  "Default function to use for `completion-in-region-function'.
+Its arguments and return value are as specified for `completion-in-region'.
+This respects the wrapper hook `completion-in-region-functions'."
   (with-wrapper-hook
       ;; FIXME: Maybe we should use this hook to provide a "display
       ;; completions" operation as well.
@@ -1943,7 +1952,7 @@ exit."
   "Keymap activated during `completion-in-region'.")
 
 ;; It is difficult to know when to exit completion-in-region-mode (i.e. hide
-;; the *Completions*).
+;; the *Completions*).  Here's how previous packages did it:
 ;; - lisp-mode: never.
 ;; - comint: only do it if you hit SPC at the right time.
 ;; - pcomplete: pop it down on SPC or after some time-delay.

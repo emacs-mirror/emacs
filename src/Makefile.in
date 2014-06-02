@@ -419,7 +419,8 @@ all: emacs$(EXEEXT) $(OTHER_FILES)
 $(leimdir)/leim-list.el: bootstrap-emacs$(EXEEXT)
 	cd ../leim && $(MAKE) $(MFLAGS) leim-list.el EMACS="$(bootstrap_exe)"
 
-$(lispsource)/international/charprop.el: bootstrap-emacs$(EXEEXT)
+$(srcdir)/macuvs.h $(lispsource)/international/charprop.el: \
+  bootstrap-emacs$(EXEEXT)
 	cd ../admin/unidata && $(MAKE) $(MFLAGS) all EMACS="../$(bootstrap_exe)"
 
 ## The dumped Emacs is as functional and more efficient than

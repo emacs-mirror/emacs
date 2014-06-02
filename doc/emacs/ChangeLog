@@ -1,3 +1,10 @@
+2014-06-02  Glenn Morris  <rgm@gnu.org>
+
+	* macos.texi (Mac / GNUstep Customization): Mention ns custom group.
+	(Customization options specific to Mac OS / GNUstep): Remove section.
+
+	* abbrevs.texi (Expanding Abbrevs): Update re abbrev-expand-function.
+
 2014-05-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* frames.texi (Fonts): Clarify which frames are affected by

@@ -366,7 +366,7 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 			     left)
 		      (const control) (const meta)
 		      (const alt) (const hyper)
-		      (const super)) "24.0")
+		      (const super)) "24.1")
 	     (ns-command-modifier
 	      ns
 	      (choice (const :tag "No modifier" nil)
@@ -380,7 +380,7 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 			     left)
 		      (const control) (const meta)
 		      (const alt) (const hyper)
-		      (const super)) "24.0")
+		      (const super)) "24.1")
 	     (ns-alternate-modifier
 	      ns
 	      (choice (const :tag "No modifier (work as alternate/option)" none)
@@ -402,7 +402,7 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 		      (const alt) (const hyper)
 		      (const super)) "23.1")
 	     (ns-antialias-text ns boolean "23.1")
-	     (ns-auto-hide-menu-bar ns boolean "24.0")
+	     (ns-auto-hide-menu-bar ns boolean "24.1")
 	     (ns-use-native-fullscreen ns boolean "24.4")
 	     (ns-use-srgb-colorspace ns boolean "24.4")
 	     ;; process.c

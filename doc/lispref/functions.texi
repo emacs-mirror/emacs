@@ -1207,10 +1207,10 @@ specify how the two functions are composed, since there are many different
 ways to do it.  The added function is also called an @emph{advice}.
 
 @menu
-* Core Advising Primitives::    Primitives to Manipulate Advices
-* Advising Named Functions::    Advising Named Functions
-* Advice combinators::          Ways to compose advices
-* Porting old advices::         Adapting code using the old defadvice
+* Core Advising Primitives::    Primitives to manipulate advice.
+* Advising Named Functions::    Advising named functions.
+* Advice combinators::          Ways to compose advice.
+* Porting old advices::         Adapting code using the old defadvice.
 @end menu
 
 @node Core Advising Primitives

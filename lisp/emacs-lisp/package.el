@@ -291,14 +291,14 @@ contrast, `package-user-dir' contains packages for personal use."
 		 (const t :tag "Check always"))
   :risky t
   :group 'package
-  :version "24.1")
+  :version "24.4")
 
 (defcustom package-unsigned-archives nil
   "A list of archives which do not use package signature."
   :type '(repeat (string :tag "Archive name"))
   :risky t
   :group 'package
-  :version "24.1")
+  :version "24.4")
 
 (defvar package--default-summary "No description available.")
 

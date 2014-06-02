@@ -1,3 +1,65 @@
+2014-06-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* frame.c (x_set_frame_parameters): Don't read uninitialized storage.
+
+2014-06-02  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.c (xg_scroll_callback): Remove position, for jump set portion
+	to min(value, whole).
+
+2014-06-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Bring back the changes to GDB-visible symbols, but only on AIX.
+	And only if it's not pre-4.2 GCC.
+	* lisp.h (ENUMABLE, DEFINE_GDB_SYMBOL_ENUM): New macros.
+	(ARRAY_MARK_FLAG, PSEUDOVECTOR_FLAG, VALMASK): Use them.
+	(ARRAY_MARK_FLAG_val, PSEUDOVECTOR_FLAG_val, VALMASK_val):
+	New macros.
+
+2014-06-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* fileio.c (Finsert_file_contents): Call prepare_to_modify_buffer
+	with PT, not GPT.  (Bug#16433)
+
+	Revert last changes to GDB-visible symbols.
+	* lisp.h (ENUMABLE, DEFINE_GDB_SYMBOL_ENUM): Delete macros.
+	(ARRAY_MARK_FLAG, PSEUDOVECTOR_FLAG, VALMASK): Don't use them.
+	(ARRAY_MARK_FLAG_val, PSEUDOVECTOR_FLAG_val, VALMASK_val):
+	Delete macros.
+
+2014-06-02  Glenn Morris  <rgm@gnu.org>
+
+	* cmds.c (Fself_insert_command): Allow zero repeat count.  (Bug#17649)
+
+2014-06-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix port to 32-bit AIX with xlc (Bug#17598).
+	* alloc.c (gdb_make_enums_visible): Remove FLOAT_TO_STRING_BUFSIZE.
+	* conf_post.h (FLEXIBLE_ARRAY_MEMBER) [__IBMC__]: Don't define to empty.
+	* lisp.h (FLOAT_TO_STRING_BUFSIZE): Make it a macro, instead of an enum,
+	to work around a compiler bug in IBM xlc 12.1.
+
+2014-06-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* xterm.c (x_update_window_end): Don't invalidate the entire
+	mouse-highlight info, just signal frame_up_to_date_hook that mouse
+	highlight needs to be redisplayed.  (Bug#17588)
+
+2014-06-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port the GDB-visible symbols to AIX.
+	Without them, GDB doesn't work to debug Emacs, since the AIX linker
+	optimizes away the relevant external symbols.  Use enums instead;
+	this suffices for the AIX port, which is 32-bit-only anyway.
+	* lisp.h (ENUMABLE, DEFINE_GDB_SYMBOL_ENUM): New macros.
+	(ARRAY_MARK_FLAG, PSEUDOVECTOR_FLAG, VALMASK): Use them.
+	(ARRAY_MARK_FLAG_val, PSEUDOVECTOR_FLAG_val, VALMASK_val):
+	New macros.
+
+	Include sources used to create macuvs.h.
+	* Makefile.in ($(srcdir)/macuvs.h): New rule.
+	* macuvs.h: Use automatically-generated header.
+
 2014-06-01  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Port signal-handling to DragonFly BSD (Bug#17646).

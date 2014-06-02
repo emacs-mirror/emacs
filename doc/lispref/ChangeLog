@@ -1,3 +1,11 @@
+2014-06-02  Glenn Morris  <rgm@gnu.org>
+
+	* text.texi (Buffer Contents):
+	Update for filter-buffer-substring changes.
+
+	* abbrevs.texi (Abbrev Expansion): Update for expand-abbrev changes.
+	* functions.texi (Advising Functions): Standardize menu case.
+
 2014-05-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* display.texi (Invisible Text): Clarify the description of

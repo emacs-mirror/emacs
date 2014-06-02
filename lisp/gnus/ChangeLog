@@ -1,3 +1,8 @@
+2014-06-02  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* html2text.el (html2text-get-attr): Fix typo when splitting value from
+	attribute. (Bug#17613)
+
 2014-05-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mm-view.el (mm-display-inline-fontify): Use font-lock-ensure.

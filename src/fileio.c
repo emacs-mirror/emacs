@@ -4085,7 +4085,7 @@ by calling `format-decode', which see.  */)
 	  && !NILP (BVAR (current_buffer, filename))
 	  && SAVE_MODIFF >= MODIFF)
 	we_locked_file = 1;
-      prepare_to_modify_buffer (GPT, GPT, NULL);
+      prepare_to_modify_buffer (PT, PT, NULL);
     }
 
   move_gap_both (PT, PT_BYTE);

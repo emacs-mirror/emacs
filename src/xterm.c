@@ -602,7 +602,13 @@ x_update_window_end (struct window *w, bool cursor_on_p,
   /* If a row with mouse-face was overwritten, arrange for
      XTframe_up_to_date to redisplay the mouse highlight.  */
   if (mouse_face_overwritten_p)
-    reset_mouse_highlight (MOUSE_HL_INFO (XFRAME (w->frame)));
+    {
+      Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (XFRAME (w->frame));
+
+      hlinfo->mouse_face_beg_row = hlinfo->mouse_face_beg_col = -1;
+      hlinfo->mouse_face_end_row = hlinfo->mouse_face_end_col = -1;
+      hlinfo->mouse_face_window = Qnil;
+    }
 }
 
 
@@ -4428,14 +4434,11 @@ xg_scroll_callback (GtkRange     *range,
                     gpointer      user_data)
 {
   struct scroll_bar *bar = user_data;
-  gdouble position;
   int part = -1, whole = 0, portion = 0;
   GtkAdjustment *adj = GTK_ADJUSTMENT (gtk_range_get_adjustment (range));
   struct frame *f = g_object_get_data (G_OBJECT (range), XG_FRAME_DATA);
 
   if (xg_ignore_gtk_scrollbar) return FALSE;
-  position = gtk_adjustment_get_value (adj);
-
 
   switch (scroll)
     {
@@ -4447,7 +4450,7 @@ xg_scroll_callback (GtkRange     *range,
           part = scroll_bar_handle;
           whole = gtk_adjustment_get_upper (adj) -
             gtk_adjustment_get_page_size (adj);
-          portion = min ((int)position, whole);
+          portion = min ((int)value, whole);
           bar->dragging = portion;
         }
       break;

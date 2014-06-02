@@ -240,11 +240,9 @@ choose-completion-string-functions
 completing-read-function
 completion-annotate-function
 completion-at-point-functions
-completion-in-region-functions
 completion-list-insert-choice-function
 deactivate-current-input-method-function
 describe-current-input-method-function
-filter-buffer-substring-functions
 font-lock-function
 menu-bar-select-buffer-function
 read-file-name-function
