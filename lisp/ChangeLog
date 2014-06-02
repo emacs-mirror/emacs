@@ -1,3 +1,7 @@
+2014-06-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* menu-bar.el (menu-bar-open): Fix invocation via M-x.
+
 2014-06-01  Eli Zaretskii  <eliz@gnu.org>
 
 	* simple.el (keyboard-quit): Force update of mode lines, to remove
