@@ -4124,18 +4124,17 @@ Lisp error raised when PROGRAM is nil is trapped also, returning 1.
 Furthermore, traces are written with verbosity of 6."
   (let ((v (vector tramp-current-method tramp-current-user tramp-current-host
 		   nil nil))
-	(result 1))
+	result)
     (tramp-message
      v 6 "`%s %s' %s %s"
      program (mapconcat 'identity args " ") infile destination)
-    (when (executable-find program)
-      (with-temp-buffer
-	(setq result
-	      (apply
-	       'call-process program infile (or destination t) display args))
-	(with-current-buffer
-	    (if (bufferp destination) destination (current-buffer))
-	  (tramp-message v 6 "%d\n%s" result (buffer-string)))))
+    (with-temp-buffer
+      (setq result
+	    (apply
+	     'call-process program infile (or destination t) display args))
+      (with-current-buffer
+	  (if (bufferp destination) destination (current-buffer))
+	(tramp-message v 6 "%d\n%s" result (buffer-string))))
     result))
 
 ;;;###tramp-autoload
