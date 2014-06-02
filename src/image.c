@@ -1236,6 +1236,9 @@ image_background_transparent (struct image *img, struct frame *f, XImagePtr_or_D
   return img->background_transparent;
 }
 
+#if defined (HAVE_PNG) || defined (HAVE_NS) \
+  || defined (HAVE_IMAGEMAGICK) || defined (HAVE_RSVG)
+
 /* Store F's background color into *BGCOLOR.  */
 static void
 x_query_frame_background_color (struct frame *f, XColor *bgcolor)
@@ -1248,7 +1251,8 @@ x_query_frame_background_color (struct frame *f, XColor *bgcolor)
 #endif
 }
 
-
+#endif /* HAVE_PNG || HAVE_NS || HAVE_IMAGEMAGICK || HAVE_RSVG */
+
 /***********************************************************************
 		  Helper functions for X image types
  ***********************************************************************/

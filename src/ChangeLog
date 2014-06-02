@@ -1,3 +1,9 @@
+2014-06-02  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* image.c (x_query_frame_background_color)
+	[HAVE_PNG || HAVE_NS || HAVE_IMAGEMAGICK || HAVE_RSVG]:
+	Fix --enable-gcc-warnings compilation without image libraries.
+
 2014-06-02  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32heap.c (malloc_after_dump, realloc_after_dump): Update the
