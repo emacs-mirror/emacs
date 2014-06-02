@@ -59,16 +59,6 @@ INLINE_HEADER_BEGIN
 # define ENUMABLE(val) 0
 #endif
 
-/* On AIX 7.1 ENUMABLE should return true when possible, otherwise the
-   linker can optimize the symbols away, making it harder to debug.
-   This was discovered only late in the release process, so to play it
-   safe for now, non-AIX platforms do not use enums for debugging symbols.
-   FIXME: remove this comment and the following four lines of code.  */
-#ifndef _AIX
-# undef ENUMABLE
-# define ENUMABLE(val) 0
-#endif
-
 #define DEFINE_GDB_SYMBOL_ENUM(id) enum { id = id##_val };
 #if defined MAIN_PROGRAM
 # define DEFINE_GDB_SYMBOL_BEGIN(type, id) type const id EXTERNALLY_VISIBLE

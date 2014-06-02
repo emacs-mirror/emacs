@@ -1,5 +1,10 @@
 2014-06-02  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Improve AIX-related merge from emacs-24.
+	* conf_post.h (FLEXIBLE_ARRAY_MEMBER): Fix comment.
+	* lisp.h (ENUMABLE) [!_AIX]: Don't define to 0 merely because we're
+	not on AIX; since we're on the trunk we can use enums more broadly.
+
 	* frame.c (x_set_frame_parameters): Don't read uninitialized storage.
 
 2014-06-02  Jan Djärv  <jan.h.d@swipnet.se>
