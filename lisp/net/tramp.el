@@ -1673,7 +1673,11 @@ without a visible progress reporter."
                                  #'tramp-progress-reporter-update pr)))))))
        (unwind-protect
            ;; Execute the body.
-           (prog1 (progn ,@body) (setq cookie "done"))
+           (prog1
+	       (condition-case err
+		   (progn ,@body)
+		 (error (tramp-message ,vec 6 "%s" (error-message-string err))))
+	     (setq cookie "done"))
          ;; Stop progress reporter.
          (if tm (tramp-compat-funcall 'cancel-timer tm))
          (tramp-message ,vec ,level "%s...%s" ,message cookie)
