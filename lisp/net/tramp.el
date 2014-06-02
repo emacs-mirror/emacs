@@ -1676,7 +1676,8 @@ without a visible progress reporter."
            (prog1 (progn ,@body) (setq cookie "done"))
          ;; Stop progress reporter.
          (if tm (tramp-compat-funcall 'cancel-timer tm))
-         (tramp-message ,vec ,level "%s...%s" ,message cookie)))))
+         (tramp-message ,vec ,level "%s...%s" ,message cookie)
+	 (when (string-equal "failed" cookie) (tramp-backtrace ,vec))))))
 
 (tramp-compat-font-lock-add-keywords
  'emacs-lisp-mode '("\\<with-tramp-progress-reporter\\>"))
@@ -4128,13 +4129,17 @@ Furthermore, traces are written with verbosity of 6."
     (tramp-message
      v 6 "`%s %s' %s %s"
      program (mapconcat 'identity args " ") infile destination)
-    (with-temp-buffer
-      (setq result
-	    (apply
-	     'call-process program infile (or destination t) display args))
-      (with-current-buffer
-	  (if (bufferp destination) destination (current-buffer))
-	(tramp-message v 6 "%d\n%s" result (buffer-string))))
+    (condition-case err
+	(with-temp-buffer
+	  (setq result
+		(apply
+		 'call-process program infile (or destination t) display args))
+	  (with-current-buffer
+	      (if (bufferp destination) destination (current-buffer))
+	    (tramp-message v 6 "%d\n%s" result (buffer-string))))
+      (error
+       (setq result 1)
+       (tramp-message v 6 "%d\n%s" result (error-message-string err))))
     result))
 
 ;;;###tramp-autoload

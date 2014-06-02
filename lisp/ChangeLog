@@ -1,6 +1,7 @@
 2014-06-02  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/tramp.el (tramp-call-process): Add traces.
+	* net/tramp.el (with-tramp-progress-reporter, tramp-call-process):
+	Add traces.
 
 2014-06-02  Wilson Snyder  <wsnyder@wsnyder.org>
 
