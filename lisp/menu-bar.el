@@ -2272,7 +2272,7 @@ If FRAME is nil or not given, use the selected frame."
       ;; via M-x, in which case the menu bar includes the "Minibuf"
       ;; menu item that should be removed when we exit the minibuffer.
       (force-mode-line-update)
-      (sit-for 0)
+      (redisplay)
       (let* ((x tty-menu--initial-menu-x)
 	     (menu (menu-bar-menu-at-x-y x 0 frame)))
 	(popup-menu (or

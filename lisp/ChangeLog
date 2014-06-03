@@ -1,3 +1,8 @@
+2014-06-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* menu-bar.el (menu-bar-open): Fix last change: use the PC
+	'redisplay' instead of '(sit-for 0)'.
+
 2014-06-03  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-ssh-controlmaster-options): Improve search
