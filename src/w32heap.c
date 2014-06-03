@@ -108,7 +108,19 @@ typedef struct _RTL_HEAP_PARAMETERS {
    be freed anyway), and we use a new private heap for all new
    allocations.  */
 
-unsigned char dumped_data[DUMPED_HEAP_SIZE];
+/* FIXME: Most of the space reserved for dumped_data[] is only used by
+   the 1st bootstrap-emacs.exe built while bootstrapping.  Once the
+   preloaded Lisp files are byte-compiled, the next loadup uses less
+   than half of the size stated below.  It would be nice to find a way
+   to build only the first bootstrap-emacs.exe with the large size,
+   and reset that to a lower value afterwards.  */
+#ifdef _WIN64
+# define DUMPED_HEAP_SIZE (18*1024*1024)
+#else
+# define DUMPED_HEAP_SIZE (12*1024*1024)
+#endif
+
+static unsigned char dumped_data[DUMPED_HEAP_SIZE];
 
 /* Info for managing our preload heap, which is essentially a fixed size
    data area in the executable. */

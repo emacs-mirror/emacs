@@ -86,9 +86,6 @@ PNG_CFLAGS=@PNG_CFLAGS@
 ## something similar.  This is normally set by configure.
 C_SWITCH_X_SITE=@C_SWITCH_X_SITE@
 
-## Set Emacs dumped heap size for Windows NT
-C_HEAP_SWITCH=@C_HEAP_SWITCH@
-
 ## Define LD_SWITCH_X_SITE to contain any special flags your loader
 ## may need to deal with X Windows.  For instance, if your X libraries
 ## aren't in a place that your loader can find on its own, you might
@@ -322,7 +319,7 @@ MKDEPDIR=@MKDEPDIR@
 ##
 ## FIXME? MYCPPFLAGS only referenced in etc/DEBUG.
 ALL_CFLAGS=-Demacs $(MYCPPFLAGS) -I. -I$(srcdir) \
-  -I$(lib) -I$(srcdir)/../lib $(C_HEAP_SWITCH) \
+  -I$(lib) -I$(srcdir)/../lib \
   $(C_SWITCH_MACHINE) $(C_SWITCH_SYSTEM) $(C_SWITCH_X_SITE) \
   $(GNUSTEP_CFLAGS) $(CFLAGS_SOUND) $(RSVG_CFLAGS) $(IMAGEMAGICK_CFLAGS) \
   $(PNG_CFLAGS) $(LIBXML2_CFLAGS) $(DBUS_CFLAGS) \

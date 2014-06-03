@@ -28,10 +28,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
  * Heap related stuff.
  */
 
-#define DUMPED_HEAP_SIZE (HEAPSIZE*1024*1024)
-
-extern unsigned char dumped_data[];
-
 extern unsigned char *get_data_start (void);
 extern unsigned char *get_data_end (void);
 extern size_t         reserved_heap_size;

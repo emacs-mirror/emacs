@@ -1,5 +1,12 @@
 2014-06-03  Eli Zaretskii  <eliz@gnu.org>
 
+	* w32heap.c (DUMPED_HEAP_SIZE): Move from w32heap.h.  Don't use
+	HEAPSIZE; instead, define separate values for the 32- and 64-bit
+	builds.
+
+	* Makefile.in (C_HEAP_SWITCH): Remove.
+	(ALL_CFLAGS): Don't use $(C_HEAP_SWITCH).
+
 	Fix MS-Windows build broken by menu changes on 2014-06-02.
 	* w32menu.c (w32_menu_show): Fix a typo that broke compilation.
 

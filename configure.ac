@@ -4835,18 +4835,6 @@ LD_SWITCH_SYSTEM_TEMACS="$LDFLAGS_NOCOMBRELOC $LD_SWITCH_SYSTEM_TEMACS"
 
 AC_SUBST(LD_SWITCH_SYSTEM_TEMACS)
 
-## MinGW-specific compilation switch.
-C_HEAP_SWITCH=
-if test "${opsys}" = "mingw32"; then
-  ## Preload heap size of temacs.exe in MB.
-  case "$canonical" in
-    x86_64-*-*) C_HEAP_SWITCH="-DHEAPSIZE=18" ;;
-    *) C_HEAP_SWITCH="-DHEAPSIZE=12" ;;
-  esac
-fi
-
-AC_SUBST(C_HEAP_SWITCH)
-
 ## Common for all window systems
 if test "$window_system" != "none"; then
   AC_DEFINE(HAVE_WINDOW_SYSTEM, 1, [Define if you have a window system.])
