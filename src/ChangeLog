@@ -1,3 +1,7 @@
+2014-06-03  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32heap.c (DUMPED_HEAP_SIZE) [!_WIN64]: Reduce to 11 MB.
+
 2014-06-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* sysselect.h (fd_CLR, fd_ISSET, fd_SET, FD_CLR, FD_ISSET)

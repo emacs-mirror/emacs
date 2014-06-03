@@ -117,7 +117,7 @@ typedef struct _RTL_HEAP_PARAMETERS {
 #ifdef _WIN64
 # define DUMPED_HEAP_SIZE (18*1024*1024)
 #else
-# define DUMPED_HEAP_SIZE (12*1024*1024)
+# define DUMPED_HEAP_SIZE (11*1024*1024)
 #endif
 
 static unsigned char dumped_data[DUMPED_HEAP_SIZE];
