@@ -83,12 +83,26 @@ Other changes
 
    .. _job003756: https://www.ravenbrook.com/project/mps/issue/job003756/
 
-#. An :ref:`pool-ams` pool gets collected even if it is the only pool
-   on its generation chain and is allocating into a generation other
-   than the nursery. See job003771_.
+#. :ref:`pool-ams`, :ref:`pool-awl` and :ref:`pool-lo` pools get
+   reliably collected, even in the case where the pool is the only
+   pool on its generation chain and is allocating into some generation
+   other than the nursery. See job003771_.
 
    .. _job003771: https://www.ravenbrook.com/project/mps/issue/job003771/
 
+#. Allocation into :ref:`pool-awl` pools again reliably provokes
+   garbage collections of the generation that the pool belongs to. (In
+   release 1.113.0, the generation would only be collected if a pool
+   of some other class allocated into it.) See job003772_.
+
+   .. _job003772: https://www.ravenbrook.com/project/mps/issue/job003772/
+
+#. All unreachable objects in :ref:`pool-lo` pools are finalized.
+   (Previously, objects on a segment attached to an allocation point
+   were not finalized until the allocation point was full.) See
+   job003773_.
+
+   .. _job003773: https://www.ravenbrook.com/project/mps/issue/job003773/
 
 
 .. _release-notes-1.113:
