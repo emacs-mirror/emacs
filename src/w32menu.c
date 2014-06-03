@@ -697,7 +697,7 @@ w32_menu_show (struct frame *f, int x, int y, int for_click, int keymaps,
 	      ASET (menu_items, i + MENU_ITEMS_ITEM_EQUIV_KEY, descrip);
 	    }
 
-	  wv = make_widget_value (SSDATA (item_name), NULL, !NILP (enabled),
+	  wv = make_widget_value (SSDATA (item_name), NULL, !NILP (enable),
 				  STRINGP (help) ? help : Qnil);
 	  if (prev_wv)
 	    prev_wv->next = wv;

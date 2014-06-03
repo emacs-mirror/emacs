@@ -20,12 +20,52 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define MENU_H
 
 #include "systime.h" /* for Time */
-#if defined (USE_X_TOOLKIT) || defined (USE_GTK) || defined (HAVE_NTGUI) \
-  || defined (HAVE_NS)
+#if defined (USE_X_TOOLKIT) || defined (USE_GTK) || defined (HAVE_NS)
 #include "../lwlib/lwlib.h" /* for widget_value */
 #endif
 
 #ifdef HAVE_NTGUI
+/* This is based on the one in ../lwlib/lwlib.h, with unused portions
+   removed.  HAVE_NTGUI cannot include lwlib.h, as that pulls in X11
+   headers.  */
+
+enum button_type
+{
+  BUTTON_TYPE_NONE,
+  BUTTON_TYPE_TOGGLE,
+  BUTTON_TYPE_RADIO
+};
+
+typedef struct _widget_value
+{
+  /* name of widget */
+  Lisp_Object   lname;
+  const char*   name;
+  /* value (meaning depend on widget type) */
+  const char*   value;
+  /* keyboard equivalent. no implications for XtTranslations */
+  Lisp_Object   lkey;
+  const char*   key;
+  /* Help string or nil if none.
+     GC finds this string through the frame's menu_bar_vector
+     or through menu_items.  */
+  Lisp_Object   help;
+  /* true if enabled */
+  unsigned char enabled;
+  /* true if selected */
+  unsigned char selected;
+  /* The type of a button.  */
+  enum button_type button_type;
+  /* true if menu title */
+  unsigned char title;
+  /* Contents of the sub-widgets, also selected slot for checkbox */
+  struct _widget_value* contents;
+  /* data passed to callback */
+  void  *call_data;
+  /* next one in the list */
+  struct _widget_value* next;
+} widget_value;
+
 extern Lisp_Object Qunsupported__w32_dialog;
 #endif
 
