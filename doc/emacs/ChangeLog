@@ -1,3 +1,7 @@
+2014-06-03  Glenn Morris  <rgm@gnu.org>
+
+	* package.texi (Package Installation): Mention package-pinned-packages.
+
 2014-06-02  Glenn Morris  <rgm@gnu.org>
 
 	* misc.texi [iftex]: Update chapter summary.

@@ -816,6 +816,7 @@ Use `electric-indent-mode' instead.
 
 ** Package
 
++++
 *** New option `package-pinned-packages'.  This is useful if you have multiple
 archives enabled, with more than one offering a package that you want.
 

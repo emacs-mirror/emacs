@@ -167,6 +167,13 @@ directory name of the package archive.  You can alter this list if you
 wish to use third party package archives---but do so at your own risk,
 and use only third parties that you think you can trust!
 
+@vindex package-pinned-packages
+  If you have more than one package archive enabled, and some of them
+offer different versions of the same package, you may find the option
+@code{package-pinned-packages} useful.  You can add package/archive
+pairs to this list, to ensure that the specified package is only ever
+downloaded from the specified archive.
+
   Once a package is downloaded and installed, it is @dfn{loaded} into
 the current Emacs session.  Loading a package is not quite the same as
 loading a Lisp library (@pxref{Lisp Libraries}); its effect varies
