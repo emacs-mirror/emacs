@@ -1,3 +1,14 @@
+2014-06-03  Paul Eggert  <eggert@penguin.cs.ucla.edu>
+
+	If ENABLE_CHECKING, range-check args of FD_CLR, FD_ISSET, FD_SET.
+	* process.c (add_read_fd, delete_read_fd, add_write_fd)
+	(delete_write_fd, wait_reading_process_output):
+	Remove now-redundant easserts.
+	* sysselect.h (SYSSELECT_H): New macro, to avoid double-inclusion woes.
+	Use INLINE_HEADER_BEGIN, INLINE_HEADER_END.
+	(fd_CLR, fd_ISSET, fd_SET): New inline functions.
+	(FD_CLR, FD_ISSET, FD_SET): Redefine in terms of these functions.
+
 2014-06-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32heap.c (DUMPED_HEAP_SIZE): Move from w32heap.h.  Don't use
