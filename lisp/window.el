@@ -6497,7 +6497,7 @@ that frame."
       ;; resize it to its old height but don't signal an error.
       (when (and (listp quad)
 		 (integerp (nth 3 quad))
-		 (/= (nth 3 quad) (window-total-height window)))
+		 (> (nth 3 quad) (window-total-height window)))
 	(condition-case nil
 	    (window-resize window (- (nth 3 quad) (window-total-height window)))
 	  (error nil)))
