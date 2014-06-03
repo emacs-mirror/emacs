@@ -122,9 +122,7 @@ typedef struct _RTL_HEAP_PARAMETERS {
 
 static unsigned char dumped_data[DUMPED_HEAP_SIZE];
 
-/* Info for managing our preload heap, which is essentially a fixed size
-   data area in the executable. */
-/* Info for keeping track of our heap. */
+/* Info for keeping track of our dynamic heap used after dumping. */
 unsigned char *data_region_base = NULL;
 unsigned char *data_region_end = NULL;
 static DWORD_PTR committed = 0;
@@ -155,7 +153,9 @@ static DWORD_PTR committed = 0;
                   + committed
 
 */
-#define HEAP_ENTRY_SHIFT 3
+
+/* Info for managing our preload heap, which is essentially a fixed size
+   data area in the executable. */
 #define PAGE_SIZE 0x1000
 #define MaxBlockSize (0x80000 - PAGE_SIZE)
 
@@ -296,7 +296,6 @@ init_heap (void)
 
 #undef malloc
 #undef realloc
-#undef calloc
 #undef free
 
 /* FREEABLE_P checks if the block can be safely freed.  */

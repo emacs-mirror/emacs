@@ -3,6 +3,8 @@
 	* w32heap.c (DUMPED_HEAP_SIZE): Move from w32heap.h.  Don't use
 	HEAPSIZE; instead, define separate values for the 32- and 64-bit
 	builds.
+	(calloc): Don't undef, it is never defined.
+	(HEAP_ENTRY_SHIFT): Remove unused macro.
 
 	* Makefile.in (C_HEAP_SWITCH): Remove.
 	(ALL_CFLAGS): Don't use $(C_HEAP_SWITCH).
