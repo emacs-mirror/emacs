@@ -1,3 +1,12 @@
+2014-06-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Do not require libXt-devel when building with gtk.
+	* lwlib-widget.h: New file, with contents taken from lwlib.h.
+	(widget_value) [HAVE_NTGUI]: New member 'title'.
+	* lwlib.h: Include lwlib-widget.h.
+	(change_type, enum button_type, widget_value):
+	Move to lwlib-widget.h.
+
 2014-06-03  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* xlwmenu.c (openXftFont): Do not load regular X font here.

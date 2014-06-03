@@ -24,7 +24,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef USE_GTK
 
 #include <gtk/gtk.h>
-#include "../lwlib/lwlib.h"
+#include "../lwlib/lwlib-widget.h"
 #include "frame.h"
 #include "xterm.h"
 

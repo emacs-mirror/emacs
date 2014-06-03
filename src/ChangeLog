@@ -1,3 +1,13 @@
+2014-06-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Do not require libXt-devel when building with gtk.
+	* gtkutil.h, menu.h: Include lwlib-widget.h, not lwlib-h, to avoid
+	dependency on libXt-devel.
+	* menu.h [HAVE_NTGUI]: Include lwlib-widget.h in this case too.
+	(enum button_type, widget_value) [HAVE_NTGUI]: Remove, as
+	lwlib-widget.h now does this.
+	* nsmenu.m (ns_menu_show): "enabled" -> "enable" to fix typo.
+
 2014-06-03  Paul Eggert  <eggert@penguin.cs.ucla.edu>
 
 	If ENABLE_CHECKING, range-check args of FD_CLR, FD_ISSET, FD_SET.

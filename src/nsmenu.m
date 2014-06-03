@@ -943,7 +943,7 @@ ns_menu_show (struct frame *f, int x, int y, bool for_click, bool keymaps,
 	    }
 #endif /* not HAVE_MULTILINGUAL_MENU */
 
-	  wv = make_widget_value (SSDATA (item_name), NULL, !NILP (enabled),
+	  wv = make_widget_value (SSDATA (item_name), NULL, !NILP (enable),
 				  STRINGP (help) ? help : Qnil);
 	  if (prev_wv)
 	    prev_wv->next = wv;
