@@ -1,3 +1,7 @@
+2014-06-03  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
+
+	* register.el: Add link to Emacs manual in Commentary.
+
 2014-06-02  Sam Steingold  <sds@gnu.org>
 
 	* menu-bar.el (lookup-key-ignore-too-long): Extract from...

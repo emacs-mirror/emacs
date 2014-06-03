@@ -27,7 +27,7 @@
 ;; This package of functions emulates and somewhat extends the venerable
 ;; TECO's `register' feature, which permits you to save various useful
 ;; pieces of buffer state to named variables.  The entry points are
-;; documented in the Emacs user's manual.
+;; documented in the Emacs user's manual: (info "(emacs) Registers").
 
 (eval-when-compile (require 'cl-lib))
 
