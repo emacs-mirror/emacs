@@ -1,5 +1,9 @@
 2014-06-03  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* emacs.c: Include "sysselect.h", to define its inline functions.
+	Problem reported by Glenn Morris in:
+	http://lists.gnu.org/archive/html/emacs-devel/2014-06/msg00077.html
+
 	Do not require libXt-devel when building with gtk.
 	* gtkutil.h, menu.h: Include lwlib-widget.h, not lwlib-h, to avoid
 	dependency on libXt-devel.

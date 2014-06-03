@@ -80,6 +80,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "composite.h"
 #include "dispextern.h"
 #include "syntax.h"
+#include "sysselect.h"
 #include "systime.h"
 
 #ifdef HAVE_GNUTLS
