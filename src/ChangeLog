@@ -1,3 +1,9 @@
+2014-06-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* process.c (wait_reading_process_output): Omit incorrect test
+	of p->infd against zero.  Add easserts for infd having a plausible
+	value.
+
 2014-06-02  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Adjust to match recent lwlib changes.

@@ -4630,12 +4630,13 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 		      {
 			struct Lisp_Process *p =
 			  XPROCESS (chan_process[channel]);
-			if (p && p->gnutls_p && p->gnutls_state && p->infd
+			if (p && p->gnutls_p && p->gnutls_state
 			    && ((emacs_gnutls_record_check_pending
 				 (p->gnutls_state))
 				> 0))
 			  {
 			    nfds++;
+			    eassert (p->infd == channel);
 			    FD_SET (p->infd, &Available);
 			  }
 		      }
@@ -4651,6 +4652,8 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 			  > 0))
 		    {
 		      nfds = 1;
+		      eassert (0 <= wait_proc->infd
+			       && wait_proc->infd < FD_SETSIZE);
 		      /* Set to Available.  */
 		      FD_SET (wait_proc->infd, &Available);
 		    }
