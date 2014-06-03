@@ -302,18 +302,19 @@ useful only in combination with `tramp-default-proxies-alist'.")
 
 ;;;###tramp-autoload
 (defconst tramp-ssh-controlmaster-options
-  (let ((result ""))
+  (let ((result "")
+	(case-fold-search t))
     (ignore-errors
       (with-temp-buffer
 	(call-process "ssh" nil t nil "-o" "ControlMaster")
 	(goto-char (point-min))
-	(when (search-forward-regexp "Missing ControlMaster argument" nil t)
+	(when (search-forward-regexp "missing.+argument" nil t)
 	  (setq result "-o ControlPath=%t.%%r@%%h:%%p -o ControlMaster=auto")))
-      (when result
+      (unless (zerop (length result))
 	(with-temp-buffer
 	  (call-process "ssh" nil t nil "-o" "ControlPersist")
 	  (goto-char (point-min))
-	  (when (search-forward-regexp "Missing ControlPersist argument" nil t)
+	  (when (search-forward-regexp "missing.+argument" nil t)
 	    (setq result (concat result " -o ControlPersist=no"))))))
     result)
     "Call ssh to detect whether it supports the Control* arguments.

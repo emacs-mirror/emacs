@@ -1,3 +1,8 @@
+2014-06-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-ssh-controlmaster-options): Improve search
+	regexp.  (Bug#17653)
+
 2014-06-03  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/package.el (package-pinned-packages): Doc fix.
