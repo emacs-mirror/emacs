@@ -51,6 +51,7 @@ typedef int fd_set;
 #define pselect sys_select
 #endif
 
+#ifndef WINDOWSNT
 INLINE_HEADER_BEGIN
 
 /* Check for out-of-range errors if ENABLE_CHECKING is defined.  */
@@ -84,5 +85,7 @@ fd_SET (int fd, fd_set *set)
 #define FD_SET(fd, set) fd_SET (fd, set)
 
 INLINE_HEADER_END
+
+#endif	/* !WINDOWSNT */
 
 #endif

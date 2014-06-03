@@ -1,3 +1,8 @@
+2014-06-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* sysselect.h (fd_CLR, fd_ISSET, fd_SET, FD_CLR, FD_ISSET)
+	(FD_SET): Don't define on WINDOWSNT.
+
 2014-06-03  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* emacs.c: Include "sysselect.h", to define its inline functions.
