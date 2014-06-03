@@ -640,6 +640,10 @@ Res SegSplit(Seg *segLoReturn, Seg *segHiReturn, Seg seg, Addr at,
   AVER(at < limit);
   AVERT(Bool, withReservoirPermit);
 
+  /* Can only split a buffered segment if the entire buffer is below
+   * the split point. */
+  AVER(SegBuffer(seg) == NULL || BufferLimit(SegBuffer(seg)) <= at);
+
   ShieldFlush(arena);  /* see <design/seg/#split-merge.shield> */
 
   /* Allocate the new segment object from the control pool */
