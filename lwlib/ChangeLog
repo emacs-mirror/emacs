@@ -1,3 +1,9 @@
+2014-06-03  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xlwmenu.c (openXftFont): Do not load regular X font here.
+	(XlwMenuInitialize): Remove ancient #if 0 code.
+	(XlwMenuDestroy): Likewise.  Free regular X font here.
+
 2014-06-02  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Use common memory management functions for widgets.

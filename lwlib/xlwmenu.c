@@ -1863,16 +1863,9 @@ openXftFont (XlwMenuWidget mw)
           fname[i] = '-';
         }
 
-      mw->menu.font = XLoadQueryFont (XtDisplay (mw), fname);
-      if (!mw->menu.font)
-        {
-          mw->menu.xft_font = XftFontOpenName (XtDisplay (mw), screen, fname);
-          if (!mw->menu.xft_font)
-            {
-              fprintf (stderr, "Can't find font '%s'\n", fname);
-              mw->menu.xft_font = getDefaultXftFont (mw);
-            }
-        }
+      mw->menu.xft_font = XftFontOpenName (XtDisplay (mw), screen, fname);
+      if (!mw->menu.xft_font)
+	mw->menu.xft_font = getDefaultXftFont (mw);
     }
 
   if (fname != mw->menu.fontName) xfree (fname);
@@ -1888,15 +1881,6 @@ XlwMenuInitialize (Widget request, Widget w, ArgList args, Cardinal *num_args)
   XlwMenuWidget mw = (XlwMenuWidget) w;
   Window window = RootWindowOfScreen (DefaultScreenOfDisplay (XtDisplay (mw)));
   Display* display = XtDisplay (mw);
-
-#if 0
-  widget_value *tem = (widget_value *) XtMalloc (sizeof (widget_value));
-
-  /* _XtCreate is freeing the object that was passed to us,
-     so make a copy that we will actually keep.  */
-  memcpy (tem, mw->menu.contents, sizeof (widget_value));
-  mw->menu.contents = tem;
-#endif
 
   /*  mw->menu.cursor = XCreateFontCursor (display, mw->menu.cursor_shape); */
   mw->menu.cursor = mw->menu.cursor_shape;
@@ -2074,19 +2058,15 @@ XlwMenuDestroy (Widget w)
   XFreePixmap (XtDisplay (mw), mw->menu.gray_pixmap);
   mw->menu.gray_pixmap = (Pixmap) -1;
 
-#if 0
-  /* Do free mw->menu.contents because nowadays we copy it
-     during initialization.  */
-  XtFree (mw->menu.contents);
-#endif
-
   /* Don't free mw->menu.contents because that comes from our creator.
      The `*_stack' elements are just pointers into `contents' so leave
      that alone too.  But free the stacks themselves. */
   if (mw->menu.old_stack) XtFree ((char *) mw->menu.old_stack);
   if (mw->menu.new_stack) XtFree ((char *) mw->menu.new_stack);
 
-  /* Remember, you can't free anything that came from the resource
+  /* Original comment was:
+
+     Remember, you can't free anything that came from the resource
      database.  This includes:
          mw->menu.cursor
          mw->menu.top_shadow_pixmap
@@ -2095,7 +2075,11 @@ XlwMenuDestroy (Widget w)
      Also the color cells of top_shadow_color, bottom_shadow_color,
      foreground, and button_foreground will never be freed until this
      client exits.  Nice, eh?
-   */
+
+     But now I can free font without any visible glitches.  */
+
+  if (mw->menu.font)
+    XFreeFont (XtDisplay (mw), mw->menu.font);
 
 #ifdef HAVE_XFT
   if (mw->menu.windows [0].xft_draw)
