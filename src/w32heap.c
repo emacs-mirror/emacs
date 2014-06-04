@@ -498,7 +498,8 @@ free_before_dump (void *ptr)
 void
 report_temacs_memory_usage (void)
 {
-  DWORD blocks_used = 0, large_mem_used = 0;
+  DWORD blocks_used = 0;
+  size_t large_mem_used = 0;
   int i;
 
   for (i = 0; i < blocks_number; i++)
