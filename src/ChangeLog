@@ -1,5 +1,9 @@
 2014-06-04  Eli Zaretskii  <eliz@gnu.org>
 
+	* sysdep.c (reset_sys_modes): Use cursorX, not curX, as the latter
+	contains garbage on WINDOWSNT (which could potentially infloop at
+	exit).
+
 	Minimize cursor motion during TTY menu updates.
 	* term.c (tty_menu_display): Don't position cursor here.  Instead,
 	pass the cursor coordinates to update_frame_with_menu.
