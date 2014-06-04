@@ -479,7 +479,7 @@ free_before_dump (void *ptr)
       /* Look for the big chunk.  */
       int i;
 
-      for(i = 0; i < blocks_number; i++)
+      for (i = 0; i < blocks_number; i++)
 	{
 	  if (blocks[i].address == ptr)
 	    {
@@ -498,11 +498,22 @@ free_before_dump (void *ptr)
 void
 report_temacs_memory_usage (void)
 {
+  DWORD blocks_used = 0, large_mem_used = 0;
+  int i;
+
+  for (i = 0; i < blocks_number; i++)
+    if (blocks[i].occupied)
+      {
+	blocks_used++;
+	large_mem_used += blocks[i].size;
+      }
+
   /* Emulate 'message', which writes to stderr in non-interactive
      sessions.  */
   fprintf (stderr,
-	   "Dump memory usage: Heap: %" PRIu64 "  Large blocks(%lu): %" PRIu64 "\n",
-	   (unsigned long long)committed, blocks_number,
+	   "Dump memory usage: Heap: %" PRIu64 "  Large blocks(%lu/%lu): %" PRIu64 "/%" PRIu64 "\n",
+	   (unsigned long long)committed, blocks_used, blocks_number,
+	   (unsigned long long)large_mem_used,
 	   (unsigned long long)(dumped_data + DUMPED_HEAP_SIZE - bc_limit));
 }
 #endif

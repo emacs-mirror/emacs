@@ -1,5 +1,9 @@
 2014-06-04  Eli Zaretskii  <eliz@gnu.org>
 
+	* w32heap.c (report_temacs_memory_usage): Improve the report by
+	reporting the large blocks that are actually occupied at dump
+	time.
+
 	* w32console.c (initialize_w32_display): Set the console
 	menu_show_hook, otherwise TTY menus are broken on w32.
 
