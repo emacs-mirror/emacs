@@ -1,3 +1,8 @@
+2014-06-04  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* lwlib-widget.h (widget_value) [USE_X_TOOLKIT]: Use X toolkit
+	fields conditionally.
+
 2014-06-03  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Do not require libXt-devel when building with gtk.

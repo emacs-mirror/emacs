@@ -73,13 +73,6 @@ typedef struct _widget_value
   /* The type of a button.  */
   enum button_type button_type;
 
-  /* Type of change (maintained by lw library).  */
-  change_type change;
-
-  /* Type of this widget's change, but not counting the other widgets
-     found in the `next' field.  */
-  change_type this_one_change;
-
   /* Contents of the sub-widgets, also selected slot for checkbox.  */
   struct _widget_value *contents;
 
@@ -89,12 +82,22 @@ typedef struct _widget_value
   /* Next one in the list.  */
   struct _widget_value *next;
 
+#ifdef USE_X_TOOLKIT
+  /* Type of change (maintained by lw library).  */
+  change_type change;
+
+  /* Type of this widget's change, but not counting the other widgets
+     found in the `next' field.  */
+  change_type this_one_change;
+
   /* Slot for the toolkit dependent part.  Always initialize to NULL.  */
   void *toolkit_data;
 
   /* Whether we should free the toolkit data slot when freeing the
      widget_value itself.  */
   bool free_toolkit_data;
+#endif  
+
 } widget_value;
 
 #endif
