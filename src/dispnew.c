@@ -92,7 +92,7 @@ static void check_matrix_pointers (struct glyph_matrix *,
 static void mirror_line_dance (struct window *, int, int, int *, char *);
 static bool update_window_tree (struct window *, bool);
 static bool update_window (struct window *, bool);
-static bool update_frame_1 (struct frame *, bool, bool);
+static bool update_frame_1 (struct frame *, bool, bool, bool);
 static bool scrolling (struct frame *);
 static void set_window_cursor_after_update (struct window *);
 static void adjust_frame_glyphs_for_window_redisplay (struct frame *);
@@ -3070,7 +3070,7 @@ update_frame (struct frame *f, bool force_p, bool inhibit_hairy_id_p)
 
       /* Update the display  */
       update_begin (f);
-      paused_p = update_frame_1 (f, force_p, inhibit_hairy_id_p);
+      paused_p = update_frame_1 (f, force_p, inhibit_hairy_id_p, 1);
       update_end (f);
 
       if (FRAME_TERMCAP_P (f) || FRAME_MSDOS_P (f))
@@ -3100,12 +3100,17 @@ update_frame (struct frame *f, bool force_p, bool inhibit_hairy_id_p)
    glyphs.  This is like the second part of update_frame, but it
    doesn't call build_frame_matrix, because we already have the
    desired matrix prepared, and don't want it to be overwritten by the
-   text of the normal display.  */
+   text of the normal display.
+
+   ROW and COL, if non-negative, are the row and column of the TTY
+   frame where to position the cursor after the frame update is
+   complete.  Negative values mean ask update_frame_1 to position the
+   cursor "normally", i.e. at point in the selected window.  */
 void
-update_frame_with_menu (struct frame *f)
+update_frame_with_menu (struct frame *f, int row, int col)
 {
   struct window *root_window = XWINDOW (f->root_window);
-  bool paused_p;
+  bool paused_p, cursor_at_point_p;
 
   eassert (FRAME_TERMCAP_P (f));
 
@@ -3115,9 +3120,14 @@ update_frame_with_menu (struct frame *f)
 
   /* Update the display.  */
   update_begin (f);
+  cursor_at_point_p = !(row >= 0 && col >= 0);
   /* Force update_frame_1 not to stop due to pending input, and not
      try scrolling.  */
-  paused_p = update_frame_1 (f, 1, 1);
+  paused_p = update_frame_1 (f, 1, 1, cursor_at_point_p);
+  /* ROW and COL tell us where in the menu to position the cursor, so
+     that screen readers know the active region on the screen.  */
+  if (!cursor_at_point_p)
+    cursor_to (f, row, col);
   update_end (f);
 
   if (FRAME_TTY (f)->termscript)
@@ -4413,12 +4423,14 @@ scrolling_window (struct window *w, bool header_line_p)
 /* Update the desired frame matrix of frame F.
 
    FORCE_P means that the update should not be stopped by pending input.
-   INHIBIT_HAIRY_ID_P means that scrolling should not be tried.
+   INHIBIT_ID_P means that scrolling by insert/delete should not be tried.
+   SET_CURSOR_P false means do not set cursor at point in selected window.
 
    Value is true if update was stopped due to pending input.  */
 
 static bool
-update_frame_1 (struct frame *f, bool force_p, bool inhibit_id_p)
+update_frame_1 (struct frame *f, bool force_p, bool inhibit_id_p,
+		bool set_cursor_p)
 {
   /* Frame matrices to work on.  */
   struct glyph_matrix *current_matrix = f->current_matrix;
@@ -4490,7 +4502,7 @@ update_frame_1 (struct frame *f, bool force_p, bool inhibit_id_p)
   pause_p = 0 < i && i < FRAME_LINES (f) - 1;
 
   /* Now just clean up termcap drivers and set cursor, etc.  */
-  if (!pause_p)
+  if (!pause_p && set_cursor_p)
     {
       if ((cursor_in_echo_area
 	   /* If we are showing a message instead of the mini-buffer,

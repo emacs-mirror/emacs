@@ -2907,8 +2907,7 @@ tty_menu_display (tty_menu *menu, int x, int y, int pn, int *faces,
       display_tty_menu_item (menu->text[j], max_width, face, x, y + i,
 			     menu->submenu[j] != NULL);
     }
-  update_frame_with_menu (sf);
-  cursor_to (sf, row, col);
+  update_frame_with_menu (sf, row, col);
 }
 
 /* --------------------------- X Menu emulation ---------------------- */
@@ -3079,7 +3078,7 @@ static void
 screen_update (struct frame *f, struct glyph_matrix *mtx)
 {
   restore_desired_matrix (f, mtx);
-  update_frame_with_menu (f);
+  update_frame_with_menu (f, -1, -1);
 }
 
 typedef enum {
@@ -3228,7 +3227,7 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
 
   /* Force update of the current frame, so that the desired and the
      current matrices are identical.  */
-  update_frame_with_menu (sf);
+  update_frame_with_menu (sf, -1, -1);
   state[0].menu = menu;
   state[0].screen_behind = save_and_enable_current_matrix (sf);
 
@@ -3373,8 +3372,6 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
 			    state[statecount - 1].y,
 			    state[statecount - 1].pane,
 			    faces, x, y, first_item, 1);
-	  tty_hide_cursor (tty);
-	  fflush (tty->output);
 	  /* The call to display help-echo below will move the cursor,
 	     so remember its current position as computed by
 	     tty_menu_display.  */
@@ -3393,10 +3390,13 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
 	     item, so that screen readers and other accessibility aids
 	     know where the active region is.  */
 	  cursor_to (sf, row, col);
-	  tty_hide_cursor (tty);
-	  fflush (tty->output);
 	  prev_menu_help_message = menu_help_message;
 	}
+      /* Both tty_menu_display and help_callback invoke update_end,
+	 which calls tty_show_cursor.  Re-hide it, so it doesn't show
+	 through the menus.  */
+      tty_hide_cursor (tty);
+      fflush (tty->output);
     }
 
   sf->mouse_moved = 0;
