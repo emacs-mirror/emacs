@@ -1,6 +1,6 @@
 ;;; cedet-uutil.el --- Unit test utilities for the CEDET suite.
 ;;
-;; Copyright (C) 2011 Eric M. Ludlam
+;; Copyright (C) 2011, 2014 Eric M. Ludlam
 ;;
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 ;;
@@ -100,6 +100,11 @@ ERRORCONDITION is some error that may have occured durinig testing."
 	)
     (cedet-utest-log-shutdown-msg title cedet-utest-log-timer endtime)
     (setq cedet-utest-log-timer nil)
+
+    ;; If this isn't working in batch mode for testing, perhaps
+    ;; we can use an output message, and collect errors to the
+    ;; very end?
+    (when errorcondition (error errorcondition))
     ))
 
 (defun cedet-utest-log-shutdown-msg (title startime endtime)
@@ -214,7 +219,8 @@ Optional argument PRECR indicates to prefix the done msg w/ a newline."
 
 (defun cedet-utest-log(format &rest args)
   "Log the text string FORMAT.
-The rest of the ARGS are used to fill in FORMAT with `format'."
+The rest of the ARGS are used to fill in FORMAT with `format'.
+Makes sure the log entry is on its own line, and ends in a CR."
   (if (cedet-utest-noninteractive)
       (apply 'message format args)
     (save-excursion
