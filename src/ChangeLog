@@ -1,3 +1,8 @@
+2014-06-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32console.c (initialize_w32_display): Set the console
+	menu_show_hook, otherwise TTY menus are broken on w32.
+
 2014-06-04  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Use terminal-specific hooks to display menus.
