@@ -37,23 +37,15 @@
 Return nil if there isn't one.
 Argument DIR is the directory it is created for.
 ROOTPROJ is nil, sinc there is only one project for a directory tree."
-  (let* ((proj (ede-directory-get-open-project dir)))
-    (if proj
-	proj
-
-      ;; Create a new project here.
-      (let* ((name (file-name-nondirectory (directory-file-name dir)))
-	     (cpp (expand-file-name (concat name ".cpp") dir)))
-	(setq proj (ede-detect-test-dirmatch-project
-		    name
-		    :name name
-		    :directory (file-name-as-directory dir)
-		    :file cpp
-		    :targets nil))
-	;;(message "Create dirtest project type!")
-	proj
-	)
-      )))
+  ;; Create a new project here.
+  (let* ((name (file-name-nondirectory (directory-file-name dir)))
+	 (cpp (expand-file-name (concat name ".cpp") dir)))
+    (ede-detect-test-dirmatch-project
+     name
+     :name name
+     :directory (file-name-as-directory dir)
+     :file cpp
+     :targets nil)))
 
 (defmethod ede-project-root ((this ede-detect-test-dirmatch-project))
   "Return my root."
@@ -80,6 +72,12 @@ ROOTPROJ is nil, sinc there is only one project for a directory tree."
 					      dir)
   "Return PROJ, for handling all subdirs below DIR."
   proj)
+
+(defmethod project-rescan ((this ede-detect-test-dirmatch-project))
+  "Don't rescan this project from the sources."
+  ;;(message "Rescan for dirmatch test project run.")
+  nil)
+
 
 ;;(message "Loaded detect-dirtest.el")
 
