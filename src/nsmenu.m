@@ -812,7 +812,7 @@ extern NSString *NSMenuDidBeginTrackingNotification;
    ========================================================================== */
 
 Lisp_Object
-ns_menu_show (struct frame *f, int x, int y, bool for_click, bool keymaps,
+ns_menu_show (struct frame *f, int x, int y, int menuflags,
 	      Lisp_Object title, const char **error)
 {
   EmacsMenu *pmenu;
@@ -820,6 +820,7 @@ ns_menu_show (struct frame *f, int x, int y, bool for_click, bool keymaps,
   Lisp_Object tem;
   ptrdiff_t specpdl_count = SPECPDL_INDEX ();
   widget_value *wv, *first_wv = 0;
+  bool keymaps = (menuflags & MENU_KEYMAPS);
 
   block_input ();
 

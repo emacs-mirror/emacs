@@ -75,6 +75,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "xsettings.h"
 #include "xgselect.h"
 #include "sysselect.h"
+#include "menu.h"
 
 #ifdef USE_X_TOOLKIT
 #include <X11/Shell.h>
@@ -10531,6 +10532,7 @@ x_create_terminal (struct x_display_info *dpyinfo)
   terminal->frame_rehighlight_hook = XTframe_rehighlight;
   terminal->frame_raise_lower_hook = XTframe_raise_lower;
   terminal->fullscreen_hook = XTfullscreen_hook;
+  terminal->menu_show_hook = x_menu_show;
   terminal->set_vertical_scroll_bar_hook = XTset_vertical_scroll_bar;
   terminal->condemn_scroll_bars_hook = XTcondemn_scroll_bars;
   terminal->redeem_scroll_bar_hook = XTredeem_scroll_bar;

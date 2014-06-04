@@ -1161,9 +1161,7 @@ no quit occurs and `x-popup-menu' returns nil.  */)
   Lisp_Object selection = Qnil;
   struct frame *f = NULL;
   Lisp_Object x, y, window;
-  bool keymaps = 0;
-  bool for_click = 0;
-  bool kbd_menu_navigation = 0;
+  int menuflags = 0;
   ptrdiff_t specpdl_count = SPECPDL_INDEX ();
   struct gcpro gcpro1;
 
@@ -1193,12 +1191,12 @@ no quit occurs and `x-popup-menu' returns nil.  */)
 	  }
 	else
 	  {
-	    for_click = 1;
+	    menuflags |= MENU_FOR_CLICK;
 	    tem = Fcar (Fcdr (position));  /* EVENT_START (position) */
 	    window = Fcar (tem);	     /* POSN_WINDOW (tem) */
 	    tem2 = Fcar (Fcdr (tem));	     /* POSN_POSN (tem) */
-	    /* The kbd_menu_navigation flag is set when the menu was
-	       invoked by F10, which probably means they have no
+	    /* The MENU_KBD_NAVIGATION field is set when the menu
+	       was invoked by F10, which probably means they have no
 	       mouse.  In that case, we let them switch between
 	       top-level menu-bar menus by using C-f/C-b and
 	       horizontal arrow keys, since they cannot click the
@@ -1211,7 +1209,7 @@ no quit occurs and `x-popup-menu' returns nil.  */)
 	    if (!EQ (POSN_POSN (last_nonmenu_event),
 		     POSN_POSN (position))
 		&& CONSP (tem2) && EQ (Fcar (tem2), Qmenu_bar))
-	      kbd_menu_navigation = 1;
+	      menuflags |= MENU_KBD_NAVIGATION;
 	    tem = Fcar (Fcdr (Fcdr (tem))); /* POSN_WINDOW_POSN (tem) */
 	    x = Fcar (tem);
 	    y = Fcdr (tem);
@@ -1340,7 +1338,7 @@ no quit occurs and `x-popup-menu' returns nil.  */)
       if (!NILP (prompt) && menu_items_n_panes >= 0)
 	ASET (menu_items, MENU_ITEMS_PANE_NAME, prompt);
 
-      keymaps = 1;
+      menuflags |= MENU_KEYMAPS;
     }
   else if (CONSP (menu) && KEYMAPP (XCAR (menu)))
     {
@@ -1373,7 +1371,7 @@ no quit occurs and `x-popup-menu' returns nil.  */)
       if (!NILP (title) && menu_items_n_panes >= 0)
 	ASET (menu_items, MENU_ITEMS_PANE_NAME, title);
 
-      keymaps = 1;
+      menuflags |= MENU_KEYMAPS;
 
       SAFE_FREE ();
     }
@@ -1385,7 +1383,7 @@ no quit occurs and `x-popup-menu' returns nil.  */)
 
       list_of_panes (Fcdr (menu));
 
-      keymaps = 0;
+      menuflags &= ~MENU_KEYMAPS;
     }
 
   unbind_to (specpdl_count, Qnil);
@@ -1416,39 +1414,8 @@ no quit occurs and `x-popup-menu' returns nil.  */)
 #endif
 
   /* Display them in a menu.  */
-
-  /* FIXME: Use a terminal hook!  */
-#if defined HAVE_NTGUI
-  if (FRAME_W32_P (f))
-    selection = w32_menu_show (f, xpos, ypos, for_click,
-			       keymaps, title, &error_name);
-  else
-#endif
-#if defined HAVE_NS
-  if (FRAME_NS_P (f))
-    selection = ns_menu_show (f, xpos, ypos, for_click,
-			      keymaps, title, &error_name);
-  else
-#endif
-#if (defined (HAVE_X_WINDOWS) || defined (MSDOS))
-  if (FRAME_X_P (f) || FRAME_MSDOS_P (f))
-    selection = xmenu_show (f, xpos, ypos, for_click,
-			    keymaps, title, &error_name);
-  else
-#endif
-#ifndef MSDOS
-  if (FRAME_TERMCAP_P (f))
-    {
-      ptrdiff_t count1 = SPECPDL_INDEX ();
-
-      /* Avoid crashes if, e.g., another client will connect while we
-	 are in a menu.  */
-      temporarily_switch_to_single_kboard (f);
-      selection = tty_menu_show (f, xpos, ypos, for_click, keymaps, title,
-				 kbd_menu_navigation, &error_name);
-      unbind_to (count1, Qnil);
-    }
-#endif
+  selection = FRAME_TERMINAL (f)->menu_show_hook (f, xpos, ypos, menuflags,
+						  title, &error_name);
 
 #ifdef HAVE_NS
   unbind_to (specpdl_count, Qnil);

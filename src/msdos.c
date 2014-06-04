@@ -1863,6 +1863,7 @@ initialize_msdos_display (struct terminal *term)
   term->update_end_hook = IT_update_end;
   term->frame_up_to_date_hook = IT_frame_up_to_date;
   term->mouse_position_hook = 0; /* set later by dos_ttraw */
+  term->menu_show_hook = x_menu_show;
   term->frame_rehighlight_hook = 0;
   term->frame_raise_lower_hook = 0;
   term->set_vertical_scroll_bar_hook = 0;

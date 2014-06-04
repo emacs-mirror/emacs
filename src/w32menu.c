@@ -549,8 +549,9 @@ free_frame_menubar (struct frame *f)
 /* F is the frame the menu is for.
    X and Y are the frame-relative specified position,
    relative to the inside upper left corner of the frame F.
-   FOR_CLICK is nonzero if this menu was invoked for a mouse click.
-   KEYMAPS is 1 if this menu was specified with keymaps;
+   Bitfield MENUFLAGS bits are:
+   MENU_FOR_CLICK is set if this menu was invoked for a mouse click.
+   MENU_KEYMAPS is set if this menu was specified with keymaps;
     in that case, we return a list containing the chosen item's value
     and perhaps also the pane's prefix.
    TITLE is the specified menu title.
@@ -558,7 +559,7 @@ free_frame_menubar (struct frame *f)
    (We return nil on failure, but the value doesn't actually matter.)  */
 
 Lisp_Object
-w32_menu_show (struct frame *f, int x, int y, int for_click, int keymaps,
+w32_menu_show (struct frame *f, int x, int y, int menuflags,
 	       Lisp_Object title, const char **error)
 {
   int i;
@@ -647,14 +648,14 @@ w32_menu_show (struct frame *f, int x, int y, int for_click, int keymaps,
 	  /* If the pane has a meaningful name,
 	     make the pane a top-level menu item
 	     with its items as a submenu beneath it.  */
-	  if (!keymaps && strcmp (pane_string, ""))
+	  if (!(menuflags & MENU_KEYMAPS) && strcmp (pane_string, ""))
 	    {
 	      wv = make_widget_value (pane_string, NULL, true, Qnil);
 	      if (save_wv)
 		save_wv->next = wv;
 	      else
 		first_wv->contents = wv;
-	      if (keymaps && !NILP (prefix))
+	      if ((menuflags & MENU_KEYMAPS) && !NILP (prefix))
 		wv->name++;
 	      wv->button_type = BUTTON_TYPE_NONE;
 	      save_wv = wv;
@@ -811,10 +812,10 @@ w32_menu_show (struct frame *f, int x, int y, int for_click, int keymaps,
 	    i += 1;
 	  else
 	    {
-	      entry	= AREF (menu_items, i + MENU_ITEMS_ITEM_VALUE);
+	      entry = AREF (menu_items, i + MENU_ITEMS_ITEM_VALUE);
 	      if (menu_item_selection == i)
 		{
-		  if (keymaps != 0)
+		  if (menuflags & MENU_KEYMAPS)
 		    {
 		      int j;
 
@@ -832,7 +833,7 @@ w32_menu_show (struct frame *f, int x, int y, int for_click, int keymaps,
 	    }
 	}
     }
-  else if (!for_click)
+  else if (!(menuflags & MENU_FOR_CLICK))
     {
       unblock_input ();
       /* Make "Cancel" equivalent to C-g.  */

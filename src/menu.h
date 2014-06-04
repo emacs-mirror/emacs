@@ -26,6 +26,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 extern Lisp_Object Qunsupported__w32_dialog;
 #endif
 
+/* Bit fields used by terminal-specific menu_show_hook.  */
+
+enum {
+  MENU_KEYMAPS = 0x1, 
+  MENU_FOR_CLICK = 0x2,
+  MENU_KBD_NAVIGATION = 0x4
+};
+
 extern void x_set_menu_bar_lines (struct frame *f,
                                   Lisp_Object value,
                                   Lisp_Object oldval);
@@ -49,14 +57,19 @@ extern widget_value *digest_single_submenu (int, int, bool);
 #ifdef HAVE_X_WINDOWS
 extern void mouse_position_for_popup (struct frame *f, int *x, int *y);
 #endif
-
-extern Lisp_Object w32_menu_show (struct frame *, int, int, int, int,
+#if defined (HAVE_X_WINDOWS) || defined (MSDOS)
+extern Lisp_Object x_menu_show (struct frame *, int, int, int,
+				Lisp_Object, const char **);
+#endif
+#ifdef HAVE_NTGUI
+extern Lisp_Object w32_menu_show (struct frame *, int, int, int,
 				  Lisp_Object, const char **);
-extern Lisp_Object ns_menu_show (struct frame *, int, int, bool, bool,
+#endif
+#ifdef HAVE_NS
+extern Lisp_Object ns_menu_show (struct frame *, int, int, int,
 				 Lisp_Object, const char **);
-extern Lisp_Object xmenu_show (struct frame *, int, int, bool, bool,
-			       Lisp_Object, const char **);
-extern Lisp_Object tty_menu_show (struct frame *, int, int, bool, bool,
-				  Lisp_Object, bool, const char **);
+#endif
+extern Lisp_Object tty_menu_show (struct frame *, int, int, int,
+				  Lisp_Object, const char **);
 extern ptrdiff_t menu_item_width (const unsigned char *);
 #endif /* MENU_H */

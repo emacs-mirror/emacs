@@ -478,7 +478,10 @@ struct terminal
      may do something OS dependent, like extended window manager hints on X11.  */
   void (*fullscreen_hook) (struct frame *f);
 
-  
+  /* This hook is called to display menus.  */
+  Lisp_Object (*menu_show_hook) (struct frame *f, int x, int y, int menuflags,
+				 Lisp_Object title, const char **error_name);
+
   /* Scroll bar hooks.  */
 
   /* The representation of scroll bars is determined by the code which

@@ -179,7 +179,7 @@ mouse_position_for_popup (struct frame *f, int *x, int *y)
 
   unblock_input ();
 
-  /* xmenu_show expects window coordinates, not root window
+  /* x_menu_show expects window coordinates, not root window
      coordinates.  Translate.  */
   *x -= f->left_pos + FRAME_OUTER_TO_INNER_DIFF_X (f);
   *y -= f->top_pos + FRAME_OUTER_TO_INNER_DIFF_Y (f);
@@ -1158,16 +1158,17 @@ free_frame_menubar (struct frame *f)
 
 #endif /* USE_X_TOOLKIT || USE_GTK */
 
-/* xmenu_show actually displays a menu using the panes and items in menu_items
+/* x_menu_show actually displays a menu using the panes and items in menu_items
    and returns the value selected from it.
-   There are two versions of xmenu_show, one for Xt and one for Xlib.
+   There are two versions of x_menu_show, one for Xt and one for Xlib.
    Both assume input is blocked by the caller.  */
 
 /* F is the frame the menu is for.
    X and Y are the frame-relative specified position,
    relative to the inside upper left corner of the frame F.
-   FOR_CLICK is true if this menu was invoked for a mouse click.
-   KEYMAPS is true if this menu was specified with keymaps;
+   Bitfield MENUFLAGS bits are:
+   MENU_FOR_CLICK is set if this menu was invoked for a mouse click.
+   MENU_KEYMAPS is set if this menu was specified with keymaps;
     in that case, we return a list containing the chosen item's value
     and perhaps also the pane's prefix.
    TITLE is the specified menu title.
@@ -1433,8 +1434,8 @@ cleanup_widget_value_tree (void *arg)
 }
 
 Lisp_Object
-xmenu_show (struct frame *f, int x, int y, bool for_click, bool keymaps,
-	    Lisp_Object title, const char **error_name)
+x_menu_show (struct frame *f, int x, int y, int menuflags,
+	     Lisp_Object title, const char **error_name)
 {
   int i;
   widget_value *wv, *save_wv = 0, *first_wv = 0, *prev_wv = 0;
@@ -1519,14 +1520,14 @@ xmenu_show (struct frame *f, int x, int y, bool for_click, bool keymaps,
 	  /* If the pane has a meaningful name,
 	     make the pane a top-level menu item
 	     with its items as a submenu beneath it.  */
-	  if (!keymaps && strcmp (pane_string, ""))
+	  if (!(menuflags & MENU_KEYMAPS) && strcmp (pane_string, ""))
 	    {
 	      wv = make_widget_value (pane_string, NULL, true, Qnil);
 	      if (save_wv)
 		save_wv->next = wv;
 	      else
 		first_wv->contents = wv;
-	      if (keymaps && !NILP (prefix))
+	      if ((menuflags & MENU_KEYMAPS) && !NILP (prefix))
 		wv->name++;
 	      wv->button_type = BUTTON_TYPE_NONE;
 	      save_wv = wv;
@@ -1625,7 +1626,8 @@ xmenu_show (struct frame *f, int x, int y, bool for_click, bool keymaps,
   record_unwind_protect_ptr (cleanup_widget_value_tree, first_wv);
 
   /* Actually create and show the menu until popped down.  */
-  create_and_show_popup_menu (f, first_wv, x, y, for_click);
+  create_and_show_popup_menu (f, first_wv, x, y,
+			      menuflags & MENU_FOR_CLICK);
 
   unbind_to (specpdl_count, Qnil);
 
@@ -1666,7 +1668,7 @@ xmenu_show (struct frame *f, int x, int y, bool for_click, bool keymaps,
 		= AREF (menu_items, i + MENU_ITEMS_ITEM_VALUE);
 	      if (menu_item_selection == aref_addr (menu_items, i))
 		{
-		  if (keymaps)
+		  if (menuflags & MENU_KEYMAPS)
 		    {
 		      int j;
 
@@ -1684,7 +1686,7 @@ xmenu_show (struct frame *f, int x, int y, bool for_click, bool keymaps,
 	    }
 	}
     }
-  else if (!for_click)
+  else if (!(menuflags & MENU_FOR_CLICK))
     {
       unblock_input ();
       /* Make "Cancel" equivalent to C-g.  */
@@ -2022,7 +2024,7 @@ menu_help_callback (char const *help_string, int pane, int item)
   if (EQ (first_item[0], Qt))
     pane_name = first_item[MENU_ITEMS_PANE_NAME];
   else if (EQ (first_item[0], Qquote))
-    /* This shouldn't happen, see xmenu_show.  */
+    /* This shouldn't happen, see x_menu_show.  */
     pane_name = empty_unibyte_string;
   else
     pane_name = first_item[MENU_ITEMS_ITEM_NAME];
@@ -2064,8 +2066,8 @@ pop_down_menu (Lisp_Object arg)
 
 
 Lisp_Object
-xmenu_show (struct frame *f, int x, int y, bool for_click, bool keymaps,
-	    Lisp_Object title, const char **error_name)
+x_menu_show (struct frame *f, int x, int y, int menuflags,
+	     Lisp_Object title, const char **error_name)
 {
   Window root;
   XMenu *menu;
@@ -2140,7 +2142,7 @@ xmenu_show (struct frame *f, int x, int y, bool for_click, bool keymaps,
 	  prefix = AREF (menu_items, i + MENU_ITEMS_PANE_PREFIX);
 	  pane_string = (NILP (pane_name)
 			 ? "" : SSDATA (pane_name));
-	  if (keymaps && !NILP (prefix))
+	  if ((menuflags & MENU_KEYMAPS) && !NILP (prefix))
 	    pane_string++;
 
 	  lpane = XMenuAddPane (FRAME_X_DISPLAY (f), menu, pane_string, TRUE);
@@ -2263,7 +2265,7 @@ xmenu_show (struct frame *f, int x, int y, bool for_click, bool keymaps,
   if (ulx < 0) x -= ulx;
   if (uly < 0) y -= uly;
 
-  if (! for_click)
+  if (!(menuflags & MENU_FOR_CLICK))
     {
       /* If position was not given by a mouse click, adjust so upper left
          corner of the menu as a whole ends up at given coordinates.  This
@@ -2317,7 +2319,7 @@ xmenu_show (struct frame *f, int x, int y, bool for_click, bool keymaps,
 		    {
 		      entry
 			= AREF (menu_items, i + MENU_ITEMS_ITEM_VALUE);
-		      if (keymaps)
+		      if (menuflags & MENU_KEYMAPS)
 			{
 			  entry = list1 (entry);
 			  if (!NILP (pane_prefix))
@@ -2339,7 +2341,7 @@ xmenu_show (struct frame *f, int x, int y, bool for_click, bool keymaps,
     case XM_NO_SELECT:
       /* Make "Cancel" equivalent to C-g unless FOR_CLICK (which means
 	 the menu was invoked with a mouse event as POSITION).  */
-      if (! for_click)
+      if (!(menuflags & MENU_FOR_CLICK))
 	{
 	  unblock_input ();
 	  Fsignal (Qquit, Qnil);

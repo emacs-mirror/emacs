@@ -1,3 +1,21 @@
+2014-06-04  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Use terminal-specific hooks to display menus.
+	* termhooks.h (struct terminal): New field menu_show_hook.
+	* menu.h (<anonymous enum>): Bit flags for menu hooks.
+	(x_menu_show, w32_menu_show, ns_menu_show, tty_menu_show):
+	Adjust prototypes.
+	* menu.c (Fx_popup_menu): Use bit flags and menu_show_hook.
+	* nsmenu.m (ns_menu_show):
+	* w32menu.c (w32_menu_show):
+	* xmenu.c (x_menu_show):
+	* term.c (tty_menu_show): Adjust to use bit flags.
+	(set_tty_hooks): Set menu_show_hook.
+	* xterm.c (x_create_terminal):
+	* nsterm.m (ns_create_terminal):
+	* msdos.c (initialize_msdos_display):
+	* w32term.c (w32_create_terminal): Likewise.
+
 2014-06-03  Juanma Barranquero  <lekktu@gmail.com>
 
 	* w32heap.c (DUMPED_HEAP_SIZE) [!_WIN64]: Reduce to 11 MB.
