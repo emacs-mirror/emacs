@@ -6274,6 +6274,7 @@ w32_create_terminal (struct w32_display_info *dpyinfo)
   terminal->frame_raise_lower_hook = w32_frame_raise_lower;
   terminal->fullscreen_hook = w32fullscreen_hook;
   terminal->menu_show_hook = w32_menu_show;
+  terminal->popup_dialog_hook = w32_popup_dialog;
   terminal->set_vertical_scroll_bar_hook = w32_set_vertical_scroll_bar;
   terminal->condemn_scroll_bars_hook = w32_condemn_scroll_bars;
   terminal->redeem_scroll_bar_hook = w32_redeem_scroll_bar;

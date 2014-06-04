@@ -1428,11 +1428,10 @@ pop_down_menu (void *arg)
 
 
 Lisp_Object
-ns_popup_dialog (Lisp_Object position, Lisp_Object header, Lisp_Object contents)
+ns_popup_dialog (struct frame *f, Lisp_Object header, Lisp_Object contents)
 {
   id dialog;
   Lisp_Object window, tem, title;
-  struct frame *f;
   NSPoint p;
   BOOL isQ;
   NSAutoreleasePool *pool;
@@ -1440,41 +1439,6 @@ ns_popup_dialog (Lisp_Object position, Lisp_Object header, Lisp_Object contents)
   NSTRACE (x-popup-dialog);
 
   isQ = NILP (header);
-
-  if (EQ (position, Qt)
-      || (CONSP (position) && (EQ (XCAR (position), Qmenu_bar)
-                               || EQ (XCAR (position), Qtool_bar))))
-    {
-      window = selected_window;
-    }
-  else if (CONSP (position))
-    {
-      Lisp_Object tem;
-      tem = Fcar (position);
-      if (XTYPE (tem) == Lisp_Cons)
-        window = Fcar (Fcdr (position));
-      else
-        {
-          tem = Fcar (Fcdr (position));  /* EVENT_START (position) */
-          window = Fcar (tem);	     /* POSN_WINDOW (tem) */
-        }
-    }
-  else if (WINDOWP (position) || FRAMEP (position))
-    {
-      window = position;
-    }
-  else
-    window = Qnil;
-
-  if (FRAMEP (window))
-    f = XFRAME (window);
-  else if (WINDOWP (window))
-    {
-      CHECK_LIVE_WINDOW (window);
-      f = XFRAME (WINDOW_FRAME (XWINDOW (window)));
-    }
-  else
-    CHECK_WINDOW (window);
 
   check_window_system (f);
 

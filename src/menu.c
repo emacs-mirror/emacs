@@ -1434,6 +1434,38 @@ no quit occurs and `x-popup-menu' returns nil.  */)
   return selection;
 }
 
+/* If F's terminal is not capable to display popup dialog,
+   emulate it with a menu.  */
+
+static Lisp_Object
+emulate_dialog_with_menu (struct frame *f, Lisp_Object contents)
+{
+  Lisp_Object x, y, frame, newpos, prompt = Fcar (contents);
+  int x_coord, y_coord;
+
+  if (FRAME_WINDOW_P (f))
+    {
+      x_coord = FRAME_PIXEL_WIDTH (f);
+      y_coord = FRAME_PIXEL_HEIGHT (f);
+    }
+  else
+    {
+      x_coord = FRAME_COLS (f);
+      /* Center the title at frame middle.  (TTY menus have
+	 their upper-left corner at the given position.)  */
+      if (STRINGP (prompt))
+	x_coord -= SCHARS (prompt);
+      y_coord = FRAME_LINES (f);
+    }
+  
+  XSETFRAME (frame, f);
+  XSETINT (x, x_coord / 2);
+  XSETINT (y, y_coord / 2);
+  newpos = list2 (list2 (x, y), frame);
+
+  return Fx_popup_menu (newpos, list2 (prompt, contents));
+}
+
 DEFUN ("x-popup-dialog", Fx_popup_dialog, Sx_popup_dialog, 2, 3, 0,
        doc: /* Pop up a dialog box and return user's selection.
 POSITION specifies which frame to use.
@@ -1466,24 +1498,7 @@ for instance using the window manager, then this produces a quit and
   if (EQ (position, Qt)
       || (CONSP (position) && (EQ (XCAR (position), Qmenu_bar)
 			       || EQ (XCAR (position), Qtool_bar))))
-    {
-#if 0 /* Using the frame the mouse is on may not be right.  */
-      /* Use the mouse's current position.  */
-      struct frame *new_f = SELECTED_FRAME ();
-      Lisp_Object bar_window;
-      enum scroll_bar_part part;
-      Time time;
-      Lisp_Object x, y;
-
-      (*mouse_position_hook) (&new_f, 1, &bar_window, &part, &x, &y, &time);
-
-      if (new_f != 0)
-	XSETFRAME (window, new_f);
-      else
-	window = selected_window;
-#endif
-      window = selected_window;
-    }
+    window = selected_window;
   else if (CONSP (position))
     {
       Lisp_Object tem = XCAR (position);
@@ -1525,51 +1540,18 @@ for instance using the window manager, then this produces a quit and
      string contents, because Fredisplay may GC and relocate them.  */
   Fredisplay (Qt);
 
-#if defined USE_X_TOOLKIT || defined USE_GTK
-  if (FRAME_WINDOW_P (f))
-    return xw_popup_dialog (f, header, contents);
-#endif
-#ifdef HAVE_NTGUI
-  if (FRAME_W32_P (f))
+  /* Display the popup dialog by a terminal-specific hook ... */
+  if (FRAME_TERMINAL (f)->popup_dialog_hook)
     {
-      Lisp_Object selection = w32_popup_dialog (f, header, contents);
-
+      Lisp_Object selection
+	= FRAME_TERMINAL (f)->popup_dialog_hook (f, header, contents);
+#ifdef HAVE_NTGUI
       if (!EQ (selection, Qunsupported__w32_dialog))
-	return selection;
+#endif	
+      return selection;
     }
-#endif
-#ifdef HAVE_NS
-  if (FRAME_NS_P (f))
-    return ns_popup_dialog (position, header, contents);
-#endif
-  /* Display a menu with these alternatives
-     in the middle of frame F.  */
-  {
-    Lisp_Object x, y, frame, newpos, prompt;
-    int x_coord, y_coord;
-
-    prompt = Fcar (contents);
-    if (FRAME_WINDOW_P (f))
-      {
-	x_coord = FRAME_PIXEL_WIDTH (f);
-	y_coord = FRAME_PIXEL_HEIGHT (f);
-      }
-    else
-      {
-	x_coord = FRAME_COLS (f);
-	/* Center the title at frame middle.  (TTY menus have their
-	   upper-left corner at the given position.)  */
-	if (STRINGP (prompt))
-	  x_coord -= SCHARS (prompt);
-	y_coord = FRAME_LINES (f);
-      }
-    XSETFRAME (frame, f);
-    XSETINT (x, x_coord / 2);
-    XSETINT (y, y_coord / 2);
-    newpos = list2 (list2 (x, y), frame);
-
-    return Fx_popup_menu (newpos, list2 (prompt, contents));
-  }
+  /* ... or emulate it with a menu.  */
+  return emulate_dialog_with_menu (f, contents);
 }
 
 void

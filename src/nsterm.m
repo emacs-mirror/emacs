@@ -4165,6 +4165,7 @@ ns_create_terminal (struct ns_display_info *dpyinfo)
   terminal->frame_raise_lower_hook = ns_frame_raise_lower;
   terminal->fullscreen_hook = ns_fullscreen_hook;
   terminal->menu_show_hook = ns_menu_show;
+  terminal->popup_dialog_hook = ns_popup_dialog;
   terminal->set_vertical_scroll_bar_hook = ns_set_vertical_scroll_bar;
   terminal->condemn_scroll_bars_hook = ns_condemn_scroll_bars;
   terminal->redeem_scroll_bar_hook = ns_redeem_scroll_bar;

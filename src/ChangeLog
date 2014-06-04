@@ -1,3 +1,17 @@
+2014-06-04  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Use terminal-specific hooks to display popup dialogs.
+	* termhooks.h (struct terminal): New field popup_dialog_hook.
+	* menu.c (emulate_dialog_with_menu): New function, refactored from ...
+	(Fx_popup_dialog): ... adjusted user.  Also remove old #if 0
+	code and use popup_dialog_hook.
+	* nsmenu.m (ns_popup_dialog): Make hook-compatible.
+	* nsterm.h (ns_popup_dialog): Adjust prototype.
+	* nsterm.m (ns_create_terminal):
+	* w32term.c (w32_create_terminal):
+	* xterm.c (x_create_terminal) [USE_X_TOOLKIT || USE_GTK]: Setup
+	popup_dialog_hook.
+
 2014-06-04  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32heap.c (report_temacs_memory_usage): Improve the report by

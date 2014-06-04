@@ -482,6 +482,10 @@ struct terminal
   Lisp_Object (*menu_show_hook) (struct frame *f, int x, int y, int menuflags,
 				 Lisp_Object title, const char **error_name);
 
+  /* This hook is called to display popup dialog.  */
+  Lisp_Object (*popup_dialog_hook) (struct frame *f, Lisp_Object header,
+				    Lisp_Object contents);
+
   /* Scroll bar hooks.  */
 
   /* The representation of scroll bars is determined by the code which

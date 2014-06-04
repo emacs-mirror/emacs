@@ -10533,6 +10533,9 @@ x_create_terminal (struct x_display_info *dpyinfo)
   terminal->frame_raise_lower_hook = XTframe_raise_lower;
   terminal->fullscreen_hook = XTfullscreen_hook;
   terminal->menu_show_hook = x_menu_show;
+#if defined (USE_X_TOOLKIT) || defined (USE_GTK)
+  terminal->popup_dialog_hook = xw_popup_dialog;
+#endif  
   terminal->set_vertical_scroll_bar_hook = XTset_vertical_scroll_bar;
   terminal->condemn_scroll_bars_hook = XTcondemn_scroll_bars;
   terminal->redeem_scroll_bar_hook = XTredeem_scroll_bar;
