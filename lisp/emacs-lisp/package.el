@@ -113,8 +113,6 @@
 
 ;;; ToDo:
 
-;; - a trust mechanism, since compiling a package can run arbitrary code.
-;;   For example, download package signatures and check that they match.
 ;; - putting info dirs at the start of the info path means
 ;;   users see a weird ordering of categories.  OTOH we want to
 ;;   override later entries.  maybe emacs needs to enforce
