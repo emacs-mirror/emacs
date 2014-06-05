@@ -1,5 +1,28 @@
 2014-06-05  Michal Nazarewicz  <mina86@mina86.com>
 
+	* textmodes/tildify.el (tildify-find-env): Fix matched group
+	indexes in end-regex building
+
+	When looking for a start of an ignore-environment, the regex is built
+	by concatenating regexes of all the environments configured in
+	`tildify-ignored-environments-alist'.  So for example, the following
+	list could be used to match TeX's \verb and \verb* commands:
+
+	    (("\\\\verb\\(.\\)" . (1))
+	     ("\\\\verb\\*\\(.\\)" . (1)))
+
+	This would result in the following regex being used to find the start
+	of any of the variants of the \verb command:
+
+	    \\\\verb\\(.\\)\\|\\\\verb\\*\\(.\\)
+
+	But now, if “\\\\verb\\*\\(.\\)” matches, the first capture group
+	won't match anything, and thus (match-string 1) will be nil, which
+	will cause building of the end-matching regex to fail.
+
+	Fix this by using capture groups from the time when the opening
+	regexes are matched individually.
+
 	* textmodes/tildify.el (tildify-find-env): Fix end-regex building
 	in `tildify-find-env'
 

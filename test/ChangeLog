@@ -1,5 +1,9 @@
 2014-06-05  Michal Nazarewicz  <mina86@mina86.com>
 
+	* automated/tildify-tests.el (tildify-test-find-env-group-index-bug):
+	New test checking end-regex building when multiple environment pairs
+	use integers to refer to capture groups.
+
 	* automated/tildify-tests.el (tildify-test-find-env-end-re-bug): New
 	test checking end-regex building in `tildify-find-env' function when
 	integers (denoting capture groups) and strings are mixed together.

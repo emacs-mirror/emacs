@@ -271,22 +271,22 @@ Return regexp for the end of the environment or nil if no environment was
 found."
   ;; Find environment
   (when (re-search-forward regexp nil t)
-    ;; Build end-env regexp
-    (let ((match (match-string 0))
-          (alist (tildify-mode-alist tildify-ignored-environments-alist)))
-      (save-match-data
+    (save-match-data
+      ;; Build end-env regexp
+      (let ((match (match-string 0))
+            (alist (tildify-mode-alist tildify-ignored-environments-alist)))
         (while (not (eq (string-match (caar alist) match) 0))
-          (setq alist (cdr alist))))
-      (let ((expression (cdar alist)))
-        (if (stringp expression)
-            expression
-          (mapconcat
-           (lambda (expr)
-             (if (stringp expr)
-                 expr
-               (regexp-quote (match-string expr))))
-           expression
-           ""))))))
+          (setq alist (cdr alist)))
+        (let ((expression (cdar alist)))
+          (if (stringp expression)
+              expression
+            (mapconcat
+             (lambda (expr)
+               (if (stringp expr)
+                   expr
+                 (regexp-quote (match-string expr match))))
+             expression
+             "")))))))
 
 (defun tildify-tildify (beg end ask)
   "Add tilde characters in the region between BEG and END.

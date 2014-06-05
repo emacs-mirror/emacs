@@ -112,6 +112,18 @@ latter is missing, SENTENCE will be used in all placeholder positions."
       (should (string-equal "end-foo" (tildify-find-env "foo\\|bar"))))))
 
 
+(ert-deftest tildify-test-find-env-group-index-bug ()
+    "Tests generation of match-string indexes"
+  (with-temp-buffer
+    (let ((tildify-ignored-environments-alist
+           `((,major-mode ("start-\\(foo\\|bar\\)" . ("end-" 1))
+                          ("open-\\(foo\\|bar\\)" . ("close-" 1)))))
+          (beg-re "start-\\(foo\\|bar\\)\\|open-\\(foo\\|bar\\)"))
+      (insert "open-foo whatever close-foo")
+      (goto-char (point-min))
+      (should (string-equal "close-foo" (tildify-find-env beg-re))))))
+
+
 (provide 'tildify-tests)
 
 ;;; tildify-tests.el ends here
