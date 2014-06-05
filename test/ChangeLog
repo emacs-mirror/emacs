@@ -1,3 +1,9 @@
+2014-06-05  Michal Nazarewicz  <mina86@mina86.com>
+
+	* automated/tildify-tests.el (tildify-test-find-env-end-re-bug): New
+	test checking end-regex building in `tildify-find-env' function when
+	integers (denoting capture groups) and strings are mixed together.
+
 2014-06-02  Michael Albinus  <michael.albinus@gmx.de>
 
 	* automated/tramp-tests.el (tramp-remote-process-environment): Declare.

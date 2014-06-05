@@ -101,6 +101,17 @@ latter is missing, SENTENCE will be used in all placeholder positions."
                         (tildify-test--example-tex sentence sentence)
                         (tildify-test--example-tex sentence with-nbsp))))
 
+
+(ert-deftest tildify-test-find-env-end-re-bug ()
+    "Tests generation of end-regex using mix of indexes and strings"
+  (with-temp-buffer
+    (let ((tildify-ignored-environments-alist
+           `((,major-mode ("foo\\|bar" . ("end-" 0))))))
+      (insert "foo whatever end-foo")
+      (goto-char (point-min))
+      (should (string-equal "end-foo" (tildify-find-env "foo\\|bar"))))))
+
+
 (provide 'tildify-tests)
 
 ;;; tildify-tests.el ends here

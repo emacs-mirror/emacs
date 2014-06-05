@@ -1,3 +1,34 @@
+2014-06-05  Michal Nazarewicz  <mina86@mina86.com>
+
+	* textmodes/tildify.el (tildify-find-env): Fix end-regex building
+	in `tildify-find-env'
+
+	The `tildify-ignored-environments-alist' allows the end-regex to
+	be provided not as a static string but mix of strings and indexes
+	of groups matched the begin-regex.  For example, the “\verb!…!”
+	TeX-command (where “!” is an arbitrary character) is handled
+	using:
+
+	    ("\\\\verb\\*?\\(.\\)" . (1))
+
+	In the same way, the following should be supported as well:
+
+	    ("open-\\(.\\)" . ("end-" 1))
+
+	However the tildify-find-env function fails at
+
+	    (concat result
+	            (if (stringp (setq aux (car expression)))
+	                 expression  ; BUG: expression is a list
+	               (regexp-quote (match-string aux))))
+
+	where the string part is handled incorrectly.
+
+	The most trivial fix would be to replace `expression' in the
+	true-part of the if-statement with `aux', but instead, this commit
+	optimises `tildify-find-env' by changing it to use `mapconcat'
+	rather than open-coded while-loop.
+
 2014-06-05  Mario Lang  <mlang@delysid.org>
 
 	* woman.el (woman-mapcan): Remove.

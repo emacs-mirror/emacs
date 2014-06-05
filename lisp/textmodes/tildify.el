@@ -3,7 +3,7 @@
 ;; Copyright (C) 1997-2014 Free Software Foundation, Inc.
 
 ;; Author:     Milan Zamazal <pdm@zamazal.org>
-;; Version:    4.5.1
+;; Version:    4.5.2
 ;; Keywords:   text, TeX, SGML, wp
 
 ;; This file is part of GNU Emacs.
@@ -270,27 +270,23 @@ won't be prompted for confirmation of each substitution."
 Return regexp for the end of the environment or nil if no environment was
 found."
   ;; Find environment
-  (if (re-search-forward regexp nil t)
-      ;; Build end-env regexp
-      (let ((match (match-string 0))
-	    (alist (tildify-mode-alist tildify-ignored-environments-alist))
-	    expression)
-	(save-match-data
-	  (while (not (eq (string-match (caar alist) match) 0))
-	    (setq alist (cdr alist))))
-	(if (stringp (setq expression (cdar alist)))
-	    expression
-	  (let ((result "")
-		aux)
-	    (while expression
-	      (setq result (concat result
-				   (if (stringp (setq aux (car expression)))
-				       expression
-				     (regexp-quote (match-string aux)))))
-	      (setq expression (cdr expression)))
-	    result)))
-    ;; Return nil if not found
-    nil))
+  (when (re-search-forward regexp nil t)
+    ;; Build end-env regexp
+    (let ((match (match-string 0))
+          (alist (tildify-mode-alist tildify-ignored-environments-alist)))
+      (save-match-data
+        (while (not (eq (string-match (caar alist) match) 0))
+          (setq alist (cdr alist))))
+      (let ((expression (cdar alist)))
+        (if (stringp expression)
+            expression
+          (mapconcat
+           (lambda (expr)
+             (if (stringp expr)
+                 expr
+               (regexp-quote (match-string expr))))
+           expression
+           ""))))))
 
 (defun tildify-tildify (beg end ask)
   "Add tilde characters in the region between BEG and END.
