@@ -1,3 +1,8 @@
+2014-06-05  Mario Lang  <mlang@delysid.org>
+
+	* woman.el (woman-mapcan): Remove.
+	(woman-parse-colon-path): Use cl-mapcan instead.
+
 2014-06-03  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
 
 	* register.el: Add link to Emacs manual in Commentary.
