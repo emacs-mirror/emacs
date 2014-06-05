@@ -193,7 +193,7 @@ static void MVFFFreeSegs(MVFF mvff, Addr base, Addr limit)
       mvff->total -= RangeSize(&range);
     }
 
-    /* Avoid calling SegNext if the next segment would fail */
+    /* Avoid calling SegFindAboveAddr if the next segment would fail */
     /* the loop test, mainly because there might not be a */
     /* next segment. */
     if (segLimit == limit) /* segment ends at end of range */
