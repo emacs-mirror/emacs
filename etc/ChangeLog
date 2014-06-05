@@ -1,3 +1,9 @@
+2014-06-05  Juri Linkov  <juri@jurta.org>
+
+	* themes/deeper-blue-theme.el (diff-added, diff-changed, diff-removed):
+	Set face definitions explicitly.  Inherit indicator faces from them.
+	(Bug#17695)
+
 2014-05-24  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Specify coding if Latin-1 Emacs would misinterpret (Bug#17575).
