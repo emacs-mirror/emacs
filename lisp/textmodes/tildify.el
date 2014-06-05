@@ -77,7 +77,13 @@ by the hard space character.
 The form (MAJOR-MODE . SYMBOL) defines alias item for MAJOR-MODE.  For this
 mode, the item for the mode SYMBOL is looked up in the alist instead."
   :group 'tildify
-  :type '(repeat (choice (list symbol regexp integer) (cons symbol symbol))))
+  :type '(repeat (cons :tag "Entry for major mode"
+                       (choice (const  :tag "Default" t)
+                               (symbol :tag "Major mode"))
+                       (choice (list   :tag "Regexp"
+                                       regexp
+                                       (integer :tag "Group "))
+                               (symbol :tag "Like other")))))
 
 (defcustom tildify-string-alist
   '((latex-mode . "~")
@@ -104,7 +110,12 @@ for SGML.
 The form (MAJOR-MODE . SYMBOL) defines alias item for MAJOR-MODE.  For this
 mode, the item for the mode SYMBOL is looked up in the alist instead."
   :group 'tildify
-  :type '(repeat (cons symbol (choice string symbol))))
+  :type '(repeat (cons :tag "Entry for major mode"
+                       (choice (const  :tag "Default" t)
+                               (symbol :tag "Major mode"))
+                       (choice (const  :tag "No-break space (U+00A0)" "\u00A0")
+                               (string :tag "String    ")
+                               (symbol :tag "Like other")))))
 
 (defcustom tildify-ignored-environments-alist
   '((latex-mode
@@ -160,7 +171,22 @@ END-REGEX defines end of the corresponding text part and can be either:
   subexpressions of BEG-REGEX (this is used to solve cases like
   \\\\verb<character> in TeX)."
   :group 'tildify
-  :type '(repeat (cons symbol (choice symbol (repeat sexp)))))
+  :type '(repeat
+          (cons :tag "Entry for major mode"
+                (choice (const  :tag "Default" t)
+                        (symbol :tag "Major mode"))
+                (choice
+                 (const  :tag "None")
+                 (repeat
+                  :tag "Environments"
+                  (cons :tag "Regexp pair"
+                        (regexp :tag "Open ")
+                        (choice :tag "Close"
+                                (regexp :tag "Regexp")
+                                (list :tag "Regexp and groups (concatenated)"
+                                      (choice (regexp  :tag "Regexp")
+                                              (integer :tag "Group "))))))
+                 (symbol :tag "Like other")))))
 
 
 ;;; *** Internal variables ***

@@ -1,5 +1,11 @@
 2014-06-05  Michal Nazarewicz  <mina86@mina86.com>
 
+	* textmodes/tildify.el (tildify-pattern-alist)
+	(tildify-string-alist, tildify-ignored-environments-alist):
+	Improve defcustom's types by adding more tags explaining what each
+	value means and replace “sexp” used in
+	`tildify-ignored-environments-alist' with a full type declaration.
+
 	* textmodes/tildify.el (tildify-find-env): Fix matched group
 	indexes in end-regex building
 
