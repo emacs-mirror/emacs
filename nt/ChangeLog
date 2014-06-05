@@ -1,3 +1,7 @@
+2014-06-05  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* inc/ms-w32.h (POLL_FOR_INPUT): Define with HAVE_WINDOW_SYSTEM.
+
 2014-05-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* Makefile.in (DONT_INSTALL): Now empty.

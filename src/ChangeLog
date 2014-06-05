@@ -1,3 +1,8 @@
+2014-06-05  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* keyboard.c, process.c: Do not define POLL_FOR_INPUT here
+	because it will be defined in generated config.h if needed.
+
 2014-06-04  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Use terminal-specific hooks to display popup dialogs.

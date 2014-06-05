@@ -4847,6 +4847,7 @@ AC_SUBST(LD_SWITCH_SYSTEM_TEMACS)
 ## Common for all window systems
 if test "$window_system" != "none"; then
   AC_DEFINE(HAVE_WINDOW_SYSTEM, 1, [Define if you have a window system.])
+  AC_DEFINE(POLL_FOR_INPUT, 1, [Define if you poll periodically to detect C-g.])
   WINDOW_SYSTEM_OBJ="fontset.o fringe.o image.o"
 fi
 

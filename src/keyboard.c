@@ -377,12 +377,6 @@ bool interrupt_input;
 /* Nonzero while interrupts are temporarily deferred during redisplay.  */
 bool interrupts_deferred;
 
-/* If we support a window system, turn on the code to poll periodically
-   to detect C-g.  It isn't actually used when doing interrupt input.  */
-#ifdef HAVE_WINDOW_SYSTEM
-#define POLL_FOR_INPUT
-#endif
-
 /* The time when Emacs started being idle.  */
 
 static struct timespec timer_idleness_start_time;

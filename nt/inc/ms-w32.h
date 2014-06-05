@@ -159,6 +159,7 @@ extern char *getenv ();
 #ifdef HAVE_NTGUI
 # ifndef HAVE_WINDOW_SYSTEM
 #  define HAVE_WINDOW_SYSTEM 1
+#  define POLL_FOR_INPUT 1
 # endif
 #endif
 

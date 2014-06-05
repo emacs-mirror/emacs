@@ -286,12 +286,6 @@ static int read_process_output (Lisp_Object, int);
 static void handle_child_signal (int);
 static void create_pty (Lisp_Object);
 
-/* If we support a window system, turn on the code to poll periodically
-   to detect C-g.  It isn't actually used when doing interrupt input.  */
-#ifdef HAVE_WINDOW_SYSTEM
-#define POLL_FOR_INPUT
-#endif
-
 static Lisp_Object get_process (register Lisp_Object name);
 static void exec_sentinel (Lisp_Object proc, Lisp_Object reason);
 
