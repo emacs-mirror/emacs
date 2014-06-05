@@ -1,3 +1,7 @@
+2014-06-05  Leo Liu  <sdl.web@gmail.com>
+
+	* emacs-lisp/cl-macs.el (cl-macrolet): Avoid excessive progn's.
+
 2014-06-05  Michal Nazarewicz  <mina86@mina86.com>
 
 	* textmodes/tildify.el (tildify-foreach-region-outside-env): New
