@@ -1,3 +1,13 @@
+2014-06-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Try harder to find GNU Make when configuring.
+	* configure.ac (AC_PROG_MAKE_SET): Define a dummy.
+	(MAKE): Set it to GNU Make, if one can be found.
+	Search PATH for 'make', 'gmake', 'gnumake'.
+	This works better on platforms like AIX, where GNU Make
+	might be in /opt/freeware/bin/make, and reside
+	behind /usr/bin/make in the PATH.
+
 2014-06-05  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* configure.ac (POLL_FOR_INPUT): Define with HAVE_WINDOW_SYSTEM.

@@ -92,7 +92,7 @@ AC_CHECK_PROGS(XCRUN, [xcrun])
 if test -n "$XCRUN"; then
   if test -z "$MAKE"; then
     dnl Call the variable MAKE_PROG, not MAKE, to avoid confusion with
-    dnl SET_MAKE and with the usual MAKE variable that 'make' itself uses.
+    dnl the usual MAKE variable that 'make' itself uses.
     AC_CHECK_PROG([MAKE_PROG], [make], [yes])
     if test -z "$MAKE_PROG"; then
       MAKE="$XCRUN MAKE"
@@ -101,6 +101,47 @@ if test -n "$XCRUN"; then
     fi
   fi
 fi
+
+dnl GNU Make is required, so don't test for its individual features.
+am_cv_make_support_nested_variables=yes
+AC_DEFUN([AC_PROG_MAKE_SET],
+  [SET_MAKE=
+   AC_SUBST([SET_MAKE])])
+
+dnl Check for GNU Make and possibly set MAKE before running AM_INIT_AUTOMAKE.
+AC_CACHE_CHECK([for GNU Make], [ac_cv_path_MAKE],
+  [ac_path_MAKE_found=false
+   if test -n "$MAKE"; then
+     emacs_makeout=`($MAKE --version) 2>/dev/null` &&
+     case $emacs_makeout in
+       'GNU Make '*)
+	 ac_path_MAKE_found=:;;
+     esac
+     ac_cv_path_MAKE=$MAKE
+   else
+     emacs_tried_make=false
+     emacs_tried_gmake=false
+     emacs_tried_gnumake=false
+     AC_PATH_PROGS_FEATURE_CHECK([MAKE], [make gmake gnumake],
+       [[emacs_makeout=`($ac_path_MAKE --version) 2>/dev/null` &&
+	 case $emacs_makeout in
+	   'GNU Make '*)
+	      # Use the fully-qualified program name only if the basename
+	      # would not resolve to it.
+	      if eval \$emacs_tried_$ac_prog; then
+		ac_cv_path_MAKE=$ac_path_MAKE
+	      else
+		ac_cv_path_MAKE=$ac_prog
+	      fi
+	      ac_path_MAKE_found=:;;
+	 esac
+	 eval emacs_tried_$ac_prog=:]])
+   fi])
+$ac_path_MAKE_found || { AC_MSG_ERROR([[Building Emacs requires GNU Make.
+If you have it installed under another name, configure with 'MAKE=...'.
+For example, run '$0 MAKE=gnu-make'.]])
+}
+MAKE=$ac_cv_path_MAKE
 
 dnl Fairly arbitrary, older versions might work too.
 AM_INIT_AUTOMAKE(1.11)
@@ -656,18 +697,6 @@ if test $unported = yes; then
   AC_MSG_ERROR([Emacs does not support `${canonical}' systems.
 If you think it should, please send a report to ${PACKAGE_BUGREPORT}.
 Check `etc/MACHINES' for recognized configuration names.])
-fi
-
-
-AC_MSG_CHECKING([whether we are using GNU Make])
-testval=`${MAKE-make} --version 2>/dev/null | grep 'GNU Make'`
-if test "x$testval" != x; then
-  AC_MSG_RESULT([yes])
-else
-  AC_MSG_RESULT([no])
-  AC_MSG_ERROR([Building Emacs requires GNU make.
-If you have it installed under another name, configure with 'MAKE=...'.
-For example, run './configure MAKE=gmake'.])
 fi
 
 
@@ -1531,7 +1560,6 @@ dnl Check for endianness.
 dnl AC_C_BIGENDIAN is done by gnulib.
 
 dnl check for Make feature
-dnl AC_PROG_MAKE_SET is done by Automake.
 
 DEPFLAGS=
 MKDEPDIR=":"
@@ -5090,3 +5118,5 @@ fi
 ])
 
 AC_OUTPUT
+
+test "$MAKE" = make || AC_MSG_NOTICE([Now you can run '$MAKE'.])
