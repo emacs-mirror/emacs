@@ -169,6 +169,7 @@ X11 is being used.
   X libjpeg for JPEG: http://www.ijg.org/
   X libtiff for TIFF: http://www.remotesensing.org/libtiff/
   X libgif for GIF:   http://sourceforge.net/projects/giflib/
+    librsvg2 for SVG: http://wiki.gnome.org/action/show/Projects/LibRsvg
 
 If you supply the appropriate --without-LIB option, 'configure' will
 omit the corresponding library from Emacs, even if that makes for a
@@ -293,6 +294,7 @@ or more of these options:
   --without-tiff       for TIFF image support
   --without-gif        for GIF image support
   --without-png        for PNG image support
+  --without-rsvg       for SVG image support
 
 Use --without-toolkit-scroll-bars to disable Motif or Xaw3d scroll bars.
 

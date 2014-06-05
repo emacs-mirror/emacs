@@ -11,6 +11,7 @@
 2014-06-05  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* configure.ac (POLL_FOR_INPUT): Define with HAVE_WINDOW_SYSTEM.
+	* INSTALL: Mention SVG image support.
 
 2014-06-05  Paul Eggert  <eggert@cs.ucla.edu>
 
