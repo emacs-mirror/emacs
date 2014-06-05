@@ -292,7 +292,12 @@ contrast, `package-user-dir' contains packages for personal use."
   :version "24.1")
 
 (defcustom package-check-signature 'allow-unsigned
-  "Whether to check package signatures when installing."
+  "Non-nil means to check package signatures when installing.
+The value `allow-unsigned' means to still install a package even if
+it is unsigned.
+
+This also applies to the \"archive-contents\" file that lists the
+contents of the archive."
   :type '(choice (const nil :tag "Never")
 		 (const allow-unsigned :tag "Allow unsigned")
 		 (const t :tag "Check always"))
@@ -301,7 +306,7 @@ contrast, `package-user-dir' contains packages for personal use."
   :version "24.4")
 
 (defcustom package-unsigned-archives nil
-  "A list of archives which do not use package signature."
+  "List of archives where we do not check for package signatures."
   :type '(repeat (string :tag "Archive name"))
   :risky t
   :group 'package

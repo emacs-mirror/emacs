@@ -1,3 +1,7 @@
+2014-06-05  Glenn Morris  <rgm@gnu.org>
+
+	* package.texi (Package Archives): Mention signing packages.
+
 2014-05-27  Glenn Morris  <rgm@gnu.org>
 
 	* text.texi (Buffer Contents):

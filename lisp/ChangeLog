@@ -1,3 +1,8 @@
+2014-06-05  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/package.el (package-check-signature)
+	(package-unsigned-archives): Doc fixes.
+
 2014-06-03  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (display-buffer-use-some-window): Don't make window

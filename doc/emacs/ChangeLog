@@ -1,3 +1,8 @@
+2014-06-05  Glenn Morris  <rgm@gnu.org>
+
+	* package.texi (Package Menu, Package Installation):
+	Mention signed packages.
+
 2014-06-03  Glenn Morris  <rgm@gnu.org>
 
 	* package.texi (Package Installation): Mention package-pinned-packages.

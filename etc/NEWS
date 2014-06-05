@@ -817,11 +817,22 @@ Use `electric-indent-mode' instead.
 ** Package
 
 +++
+*** The package library now supports digital signing of packages.
+Maintainers of package archives should consider signing their packages
+to enhance security.
+
++++
+**** If the user option `package-check-signature' is non-nil,
+Emacs tries to check package signatures at install time.
+The value `allow-unsigned' allows installation of unsigned packages.
+
++++
+**** The user option `package-unsigned-archives' lists archives where
+Emacs will not try to check signatures.
+
++++
 *** New option `package-pinned-packages'.  This is useful if you have multiple
 archives enabled, with more than one offering a package that you want.
-
-FIXME
-*** New options `package-check-signature' and `package-unsigned-archives'.
 
 +++
 *** In the `list-packages' buffer, you can use `f' (`package-menu-filter')
