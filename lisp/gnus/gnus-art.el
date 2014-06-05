@@ -4987,7 +4987,6 @@ and `gnus-mime-delete-part', and not provided at run-time normally."
     (gnus-article-edit-article
      `(lambda ()
 	(buffer-disable-undo)
-	(erase-buffer)
 	(let ((mail-parse-charset (or gnus-article-charset
 				      ',gnus-newsgroup-charset))
 	      (mail-parse-ignored-charsets
@@ -4995,7 +4994,11 @@ and `gnus-mime-delete-part', and not provided at run-time normally."
 		   ',gnus-newsgroup-ignored-charsets))
 	      (mbl mml-buffer-list))
 	  (setq mml-buffer-list nil)
-	  (insert-buffer-substring gnus-original-article-buffer)
+	  (delete-region
+	   (point-min)
+	   (prog1
+	       (goto-char (point-max))
+	     (insert-buffer-substring gnus-original-article-buffer)))
 	  (mime-to-mml ',handles)
 	  (setq gnus-article-mime-handles nil)
 	  (let ((mbl1 mml-buffer-list))
@@ -5736,7 +5739,7 @@ all parts."
 			`(lambda ()
 			   (let ((inhibit-read-only t))
 			     (delete-region ,(copy-marker (point-min) t)
-					    ,(copy-marker (point-max) t)))))))
+					    ,(point-max-marker)))))))
 		    (part
 		     (mm-display-inline handle))))))
       (goto-char point)
@@ -6790,7 +6793,7 @@ not have a face in `gnus-article-boring-faces'."
 			(when (eq obuf (current-buffer))
 			  (set-buffer in-buffer)
 			  t))
-		(setq selected (gnus-summary-select-article))
+		(setq selected (ignore-errors (gnus-summary-select-article)))
 		(set-buffer obuf)
 		(unless not-restore-window
 		  (set-window-configuration owin))

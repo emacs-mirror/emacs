@@ -1,5 +1,16 @@
 2014-06-05  Katsumi Yamaoka  <yamaoka@jpl.org>
 
+	* gnus-art.el (gnus-article-edit-part): Don't modifiy markers.
+	(gnus-article-read-summary-keys):
+	Don't bug out when there is no article in the summary buffer.
+
+	* gnus-art.el (gnus-mm-display-part):
+	* mm-decode.el (mm-shr):
+	* mm-view.el (mm-inline-text-html-render-with-w3m, mm-inline-text)
+	(mm-insert-inline): Revert last changes.
+
+2014-06-05  Katsumi Yamaoka  <yamaoka@jpl.org>
+
 	* gnus-art.el (gnus-mm-display-part):
 	* mm-decode.el (mm-shr):
 	* mm-view.el (mm-inline-text-html-render-with-w3m, mm-inline-text)

@@ -1868,7 +1868,7 @@ If RECURSIVE, search recursively."
        `(lambda ()
 	  (let ((inhibit-read-only t))
 	    (delete-region ,(copy-marker (point-min) t)
-			   ,(copy-marker (point-max) t))))))))
+			   ,(point-max-marker))))))))
 
 (defvar shr-map)
 
