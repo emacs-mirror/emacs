@@ -218,7 +218,7 @@
 	 `(lambda ()
 	    (let ((inhibit-read-only t))
 	      (delete-region ,(copy-marker (point-min) t)
-			     ,(point-max-marker)))))))))
+			     ,(copy-marker (point-max) t)))))))))
 
 (defvar mm-w3m-standalone-supports-m17n-p (if (featurep 'mule) 'undecided)
   "*T means the w3m command supports the m17n feature.")
@@ -392,7 +392,7 @@
        `(lambda ()
           (let ((inhibit-read-only t))
 	    (delete-region ,(copy-marker (point-min) t)
-			   ,(point-max-marker))))))))
+			   ,(copy-marker (point-max) t))))))))
 
 (defun mm-insert-inline (handle text)
   "Insert TEXT inline from HANDLE."
@@ -405,7 +405,7 @@
      `(lambda ()
 	(let ((inhibit-read-only t))
 	  (delete-region ,(copy-marker b t)
-			 ,(copy-marker (point))))))))
+			 ,(copy-marker (point) t)))))))
 
 (defun mm-inline-audio (handle)
   (message "Not implemented"))

@@ -5736,7 +5736,7 @@ all parts."
 			`(lambda ()
 			   (let ((inhibit-read-only t))
 			     (delete-region ,(copy-marker (point-min) t)
-					    ,(point-max-marker)))))))
+					    ,(copy-marker (point-max) t)))))))
 		    (part
 		     (mm-display-inline handle))))))
       (goto-char point)

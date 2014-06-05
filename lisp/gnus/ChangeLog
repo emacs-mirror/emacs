@@ -1,3 +1,11 @@
+2014-06-05  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-mm-display-part):
+	* mm-decode.el (mm-shr):
+	* mm-view.el (mm-inline-text-html-render-with-w3m, mm-inline-text)
+	(mm-insert-inline): Set insertion type of end-marker, not only
+	start-marker, of undisplayer so as to stay after inserted text.
+
 2014-06-02  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* html2text.el (html2text-get-attr): Fix typo when splitting value from
