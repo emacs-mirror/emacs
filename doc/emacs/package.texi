@@ -173,7 +173,7 @@ and use only third parties that you think you can trust!
 @cindex package signing
   The maintainers of package archives can increase the trust that you
 can have in their packages by @dfn{signing} them.  They generate a
-private/public pair of crytopgraphic keys, and use the private key to
+private/public pair of cryptographic keys, and use the private key to
 create a @dfn{signature file} for each package.  With the public key, you
 can use the signature files to verify who created the package, and
 that it has not been modified.  A valid signature is not a cast-iron
@@ -198,7 +198,7 @@ option has the value @code{allow-unsigned}, you can still install a
 package that is not signed.  If you use some archives that do not sign
 their packages, you can add them to the list @code{package-unsigned-archives}.
 
-  For more information on crytopgraphic keys and signing,
+  For more information on cryptographic keys and signing,
 @pxref{Top,, Top, gnupg, The GNU Privacy Guard Manual}.
 Emacs comes with an interface to GNU Privacy Guard,
 @pxref{Top,, EasyPG, epa, Emacs EasyPG Assistant Manual}.

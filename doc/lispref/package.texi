@@ -353,7 +353,7 @@ for packages.)  So you should ensure that your archive is
 well-maintained and keep the hosting system secure.
 
   One way to increase the security of your packages is to @dfn{sign}
-them using a crytopgraphic key.  If you have generated a
+them using a cryptographic key.  If you have generated a
 private/public gpg key pair, you can use gpg to sign the package like
 this:
 
@@ -373,7 +373,7 @@ When people install packages from your archive, they can use
 your public key to verify the signatures.
 
 A full explanation of these matters is outside the scope of this
-manual.  For more information on crytopgraphic keys and signing,
+manual.  For more information on cryptographic keys and signing,
 @pxref{Top,, GnuPG, gnupg, The GNU Privacy Guard Manual}.  Emacs comes
 with an interface to GNU Privacy Guard, @pxref{Top,, EasyPG, epa,
 Emacs EasyPG Assistant Manual}.
