@@ -1,5 +1,22 @@
 2014-06-05  Michal Nazarewicz  <mina86@mina86.com>
 
+	* textmodes/tildify.el (tildify-foreach-region-outside-env): New
+	function which calls a callback on portions of the buffer that are
+	outside of ignored environments.
+	(tildify-build-regexp): Remove function since it is now
+	incorporated in `tildify-foreach-region-outside-env' where it is
+	optimised and simplified by the use of `mapconcat'.
+	(tildify-tildify): Return number of substitutions made so that…
+	(tildify-count): …can be removed.
+	(tildify-find-env): Accept a new PAIRS argument which was
+	previously looked up in `tildify-ignored-environments-alist' each
+	time the function was called.  With this change, the lookup is
+	performed only once in `tildify-foreach-region-outside-env'.
+	(tildify-region): Greatly simplify the function since now most of
+	the work is done by `tildify-foreach-region-outside-env'.
+	(tildify-mode-alist): Simplify slightly by avoiding if and setq
+	and instead using or.
+
 	* textmodes/tildify.el (tildify-ignored-environments-alist):
 	Optimise environments regexes
 

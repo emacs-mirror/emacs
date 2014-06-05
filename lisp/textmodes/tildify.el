@@ -3,7 +3,8 @@
 ;; Copyright (C) 1997-2014 Free Software Foundation, Inc.
 
 ;; Author:     Milan Zamazal <pdm@zamazal.org>
-;; Version:    4.5.2
+;;             Michal Nazarewicz <mina86@mina86.com>
+;; Version:    4.5.3
 ;; Keywords:   text, TeX, SGML, wp
 
 ;; This file is part of GNU Emacs.
@@ -187,12 +188,6 @@ END-REGEX defines end of the corresponding text part and can be either:
                  (symbol :tag "Like other")))))
 
 
-;;; *** Internal variables ***
-
-(defvar tildify-count nil
-  "Counter for replacements.")
-
-
 ;;; *** Interactive functions ***
 
 ;;;###autoload
@@ -205,51 +200,16 @@ This function performs no refilling of the changed text.
 If DONT-ASK is set, or called interactively with prefix argument, user
 won't be prompted for confirmation of each substitution."
   (interactive "*rP")
-  (setq tildify-count 0)
-  (let (a
-	z
-	(marker-end (copy-marker end))
-	end-env
-	finish
-	(ask (not dont-ask))
-	(case-fold-search nil)
-	(regexp (tildify-build-regexp))	; beginnings of environments
-	aux)
-    (if regexp
-	;; Yes, ignored environments exist for the current major mode,
-	;; tildify just texts outside them
-	(save-excursion
-	  (save-restriction
-	    (widen)
-	    (goto-char (point-min))
-	    (while (not finish)
-	      (setq a (point))
-	      (setq end-env (tildify-find-env regexp))
-	      (setq z (copy-marker (if end-env (1- (point)) (point-max))))
-	      (if (>= (marker-position z) beg)
-		  (progn
-		    (or (>= a beg) (setq a beg))
-		    (or (<= (marker-position z) (marker-position marker-end))
-			(setq z marker-end))
-		    (setq aux (tildify-tildify a (marker-position z) ask))
-		    (if (eq aux 'force)
-			(setq ask nil)
-		      (if (eq aux nil)
-			  (setq finish t)))))
-	      (if (>= (marker-position z) (marker-position marker-end))
-		  (setq finish t))
-	      (or (>= (point) (marker-position z))
-		  (goto-char (marker-position z)))
-	      (if (not finish)
-		  (if (re-search-forward end-env nil t)
-		      (if (> (point) (marker-position marker-end))
-			  (setq finish t))
-		    (message
-		     "End of environment not found: %s" end-env)
-		    (setq finish t))))))
-      ;; No ignored environments, tildify directly
-      (tildify-tildify beg end ask)))
-  (message "%d spaces replaced." tildify-count))
+  (let (case-fold-search (count 0) (ask (not dont-ask)))
+    (tildify-foreach-region-outside-env beg end
+      (lambda (beg end)
+        (let ((aux (tildify-tildify beg end ask)))
+          (setq count (+ count (car aux)))
+          (if (not (eq (cdr aux) 'force))
+              (cdr aux)
+            (setq ask nil)
+            t))))
+    (message "%d spaces replaced." count)))
 
 ;;;###autoload
 (defun tildify-buffer (&optional dont-ask)
@@ -266,42 +226,58 @@ won't be prompted for confirmation of each substitution."
 
 ;;; *** Auxiliary functions ***
 
-(defun tildify-build-regexp ()
-  "Build start of environment regexp."
-  (let ((alist (tildify-mode-alist tildify-ignored-environments-alist))
-	regexp)
-    (when alist
-      (setq regexp (caar alist))
-      (setq alist (cdr alist))
-      (while alist
-	(setq regexp (concat regexp "\\|" (caar alist)))
-	(setq alist (cdr alist)))
-      regexp)))
-
 (defun tildify-mode-alist (mode-alist &optional mode)
   "Return alist item for the MODE-ALIST in the current major MODE."
-  (if (null mode)
-      (setq mode major-mode))
-  (let ((alist (cdr (or (assoc mode mode-alist)
+  (let ((alist (cdr (or (assoc (or mode major-mode) mode-alist)
 			(assoc t mode-alist)))))
     (if (and alist
 	     (symbolp alist))
 	(tildify-mode-alist mode-alist alist)
       alist)))
 
-(defun tildify-find-env (regexp)
+(defun tildify-foreach-region-outside-env (beg end callback)
+  "Scan region from BEG to END calling CALLBACK on portions out of environments.
+Call CALLBACK on each region outside of environment to ignore.
+CALLBACK will only be called for regions which have intersection
+with [BEG END].  It must be a function that takes two point
+arguments specifying the region to operate on.  Stop scanning the
+region as soon as CALLBACK returns nil.  Environments to ignore
+are determined from `tildify-ignored-environments-alist'."
+  (declare (indent 2))
+  (let ((pairs (tildify-mode-alist tildify-ignored-environments-alist)))
+    (if (not pairs)
+        (funcall callback beg end)
+      (let ((func (lambda (b e)
+                    (let ((b (max b beg)) (e (min e end)))
+                    (if (< b e) (funcall callback b e) t))))
+            (beg-re (concat "\\(?:"
+                            (mapconcat 'car pairs "\\)\\|\\(?:")
+                            "\\)"))
+            p end-re)
+        (save-excursion
+          (save-restriction
+            (widen)
+            (goto-char (point-min))
+            (while (and (< (setq p (point)) end)
+                        (if (not (setq end-re
+                                       (tildify-find-env beg-re pairs)))
+                            (progn (funcall func p end) nil)
+                          (funcall func p (match-beginning 0))
+                          (when (< (point) end)
+                            (setq p (point))
+                            (re-search-forward end-re nil t)))))))))))
+
+(defun tildify-find-env (regexp pairs)
   "Find environment using REGEXP.
-Return regexp for the end of the environment or nil if no environment was
-found."
+Return regexp for the end of the environment found in PAIRS or nil if
+no environment was found."
   ;; Find environment
   (when (re-search-forward regexp nil t)
     (save-match-data
-      ;; Build end-env regexp
-      (let ((match (match-string 0))
-            (alist (tildify-mode-alist tildify-ignored-environments-alist)))
-        (while (not (eq (string-match (caar alist) match) 0))
-          (setq alist (cdr alist)))
-        (let ((expression (cdar alist)))
+      (let ((match (match-string 0)))
+        (while (not (eq (string-match (caar pairs) match) 0))
+          (setq pairs (cdr pairs)))
+        (let ((expression (cdar pairs)))
           (if (stringp expression)
               expression
             (mapconcat
@@ -319,8 +295,9 @@ macros.
 
 If ASK is nil, perform replace without asking user for confirmation.
 
-Returns one of symbols: t (all right), nil (quit), force (replace without
-further questions)."
+Returns (count . response) cons where count is number of string
+replacements done and response is one of symbols: t (all right), nil
+(quit), force (replace without further questions)."
   (save-excursion
     (goto-char beg)
     (let* ((alist (tildify-mode-alist tildify-pattern-alist))
@@ -332,7 +309,8 @@ further questions)."
 	   bad-answer
 	   replace
 	   quit
-	   (message-log-max nil))
+	   (message-log-max nil)
+	   (count 0))
       (while (and (not quit)
 		  (re-search-forward regexp (marker-position end-marker) t))
 	(when (or (not ask)
@@ -359,12 +337,11 @@ further questions)."
 		      (setq bad-answer t)))
 		    replace))
 	  (replace-match tilde t t nil match-number)
-	  (setq tildify-count (1+ tildify-count))))
+	  (setq count (1+ count))))
       ;; Return value
-      (cond
-       (quit nil)
-       ((not ask) 'force)
-       (t t)))))
+      (cons count (cond (quit nil)
+                        ((not ask) 'force)
+                        (t t))))))
 
 
 ;;; *** Announce ***

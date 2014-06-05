@@ -114,23 +114,22 @@ latter is missing, SENTENCE will be used in all placeholder positions."
 (ert-deftest tildify-test-find-env-end-re-bug ()
     "Tests generation of end-regex using mix of indexes and strings"
   (with-temp-buffer
-    (let ((tildify-ignored-environments-alist
-           `((,major-mode ("foo\\|bar" . ("end-" 0))))))
-      (insert "foo whatever end-foo")
-      (goto-char (point-min))
-      (should (string-equal "end-foo" (tildify-find-env "foo\\|bar"))))))
+    (insert "foo whatever end-foo")
+    (goto-char (point-min))
+    (should (string-equal "end-foo"
+                          (tildify-find-env "foo\\|bar"
+                                            '(("foo\\|bar" . ("end-" 0))))))))
 
 
 (ert-deftest tildify-test-find-env-group-index-bug ()
     "Tests generation of match-string indexes"
   (with-temp-buffer
-    (let ((tildify-ignored-environments-alist
-           `((,major-mode ("start-\\(foo\\|bar\\)" . ("end-" 1))
-                          ("open-\\(foo\\|bar\\)" . ("close-" 1)))))
+    (let ((pairs '(("start-\\(foo\\|bar\\)" . ("end-" 1))
+                   ("open-\\(foo\\|bar\\)" . ("close-" 1))))
           (beg-re "start-\\(foo\\|bar\\)\\|open-\\(foo\\|bar\\)"))
       (insert "open-foo whatever close-foo")
       (goto-char (point-min))
-      (should (string-equal "close-foo" (tildify-find-env beg-re))))))
+      (should (string-equal "close-foo" (tildify-find-env beg-re pairs))))))
 
 
 (provide 'tildify-tests)
