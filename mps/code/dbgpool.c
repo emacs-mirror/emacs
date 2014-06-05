@@ -227,15 +227,8 @@ static void DebugPoolFinish(Pool pool)
 }
 
 
-/* patternCopy -- copy pattern to fill a range
- *
- * Fill the range of addresses from base (inclusive) to limit
- * (exclusive) with copies of pattern (which is size bytes long).
- *
- * Keep in sync with patternCheck.
- */
-
-static void patternCopy(Addr pattern, Size size, Addr base, Addr limit)
+static Bool patternIterate(Addr pattern, Size size, Addr base, Addr limit,
+                           Bool (*visitor)(Addr target, Addr source, Size size))
 {
   Addr p;
 
@@ -254,20 +247,44 @@ static void patternCopy(Addr pattern, Size size, Addr base, Addr limit)
       break;
     } else if (p == rounded && end <= limit) {
       /* Room for a whole copy */
-      (void)AddrCopy(p, pattern, size);
+      if (!visitor(p, pattern, size))
+        return FALSE;
       p = end;
     } else if (p < rounded && rounded <= end && rounded <= limit) {
       /* Copy up to rounded */
-      (void)AddrCopy(p, (char *)pattern + offset, AddrOffset(p, rounded));
+      if (!visitor(p, AddrAdd(pattern, offset), AddrOffset(p, rounded)))
+        return FALSE;
       p = rounded;
     } else {
       /* Copy up to limit */
       AVER(limit <= end && (p == rounded || limit <= rounded));
-      (void)AddrCopy(p, (char *)pattern + offset, AddrOffset(p, limit));
+      if (!visitor(p, AddrAdd(pattern, offset), AddrOffset(p, limit)))
+        return FALSE;
       p = limit;
     }
   }
+
+  return TRUE;
 }
+
+
+/* patternCopy -- copy pattern to fill a range
+ *
+ * Fill the range of addresses from base (inclusive) to limit
+ * (exclusive) with copies of pattern (which is size bytes long).
+ */
+
+static Bool patternCopyVisitor(Addr target, Addr source, Size size)
+{
+  (void)AddrCopy(target, source, size);
+  return TRUE;
+}
+
+static void patternCopy(Addr pattern, Size size, Addr base, Addr limit)
+{
+  (void)patternIterate(pattern, size, base, limit, patternCopyVisitor);
+}
+
 
 /* patternCheck -- check pattern against a range
  *
@@ -275,47 +292,16 @@ static void patternCopy(Addr pattern, Size size, Addr base, Addr limit)
  * (exclusive) with copies of pattern (which is size bytes long). The
  * copies of pattern must be arranged so that fresh copies start at
  * aligned addresses wherever possible.
- *
- * Keep in sync with patternCopy.
  */
+
+static Bool patternCheckVisitor(Addr target, Addr source, Size size)
+{
+  return AddrComp(target, source, size) == 0;
+}
 
 static Bool patternCheck(Addr pattern, Size size, Addr base, Addr limit)
 {
-  Addr p;
-
-  AVER(pattern != NULL);
-  AVER(0 < size);
-  AVER(base != NULL);
-  AVER(base <= limit);
-
-  p = base;
-  while (p < limit) {
-    Addr end = AddrAdd(p, size);
-    Addr rounded = AddrRoundUp(p, size);
-    Size offset = (Word)p % size;
-    if (end < p || rounded < p) {
-      /* Address range overflow */
-      break;
-    } else if (p == rounded && end <= limit) {
-      /* Room for a whole copy */
-      if (AddrComp(p, pattern, size) != 0)
-        return FALSE;
-      p = end;
-    } else if (p < rounded && rounded <= end && rounded <= limit) {
-      /* Copy up to rounded */
-      if (AddrComp(p, (char *)pattern + offset, AddrOffset(p, rounded)) != 0)
-        return FALSE;
-      p = rounded;
-    } else {
-      /* Copy up to limit */
-      AVER(limit <= end && (p == rounded || limit <= rounded));
-      if (AddrComp(p, (char *)pattern + offset, AddrOffset(p, limit)) != 0)
-        return FALSE;
-      p = limit;
-    }
-  }
-
-  return TRUE;
+  return patternIterate(pattern, size, base, limit, patternCheckVisitor);
 }
 
 
