@@ -319,28 +319,42 @@ static Bool patternCheck(Addr pattern, Size size, Addr base, Addr limit)
 }
 
 
+/* debugSegApply -- iterate over a range of segments in an arena
+ *
+ * Expects to be called on a range corresponding to objects withing a
+ * single pool, and that pools consistently use segments contiguously.
+ */
+
+static void debugPoolSegIterate(Arena arena, Addr base, Addr limit,
+                                void (*visitor)(Arena, Seg))
+{
+  Seg seg;
+
+  if (SegOfAddr(&seg, arena, base)) {
+    do {
+      visitor(arena, seg);
+      base = SegLimit(seg);
+    } while (base < limit && SegOfAddr(&seg, arena, base));
+    AVER(base >= limit); /* shouldn't run out of segments */
+  }
+}
+
+
 /* freeSplat -- splat free block with splat pattern */
 
 static void freeSplat(PoolDebugMixin debug, Pool pool, Addr base, Addr limit)
 {
   Arena arena;
-  Seg seg;
 
   AVER(base < limit);
 
-  /* If the block is in a segment, make sure any shield is up. */
+  /* If the block is segments, make sure they're exposes so that we can write
+     in the pattern.  NOTE: Assumes that pools consistently use segments
+     contiguously. */
   arena = PoolArena(pool);
-  if (SegOfAddr(&seg, arena, base)) {
-    do {
-      ShieldExpose(arena, seg);
-    } while (SegLimit(seg) < limit && SegNext(&seg, arena, seg));
-  }
+  debugPoolSegIterate(arena, base, limit, ShieldExpose);
   patternCopy(debug->freeTemplate, debug->freeSize, base, limit);
-  if (SegOfAddr(&seg, arena, base)) {
-    do {
-      ShieldCover(arena, seg);
-    } while (SegLimit(seg) < limit && SegNext(&seg, arena, seg));
-  }
+  debugPoolSegIterate(arena, base, limit, ShieldCover);
 }
 
 
@@ -350,23 +364,14 @@ static Bool freeCheck(PoolDebugMixin debug, Pool pool, Addr base, Addr limit)
 {
   Bool res;
   Arena arena;
-  Seg seg;
 
   AVER(base < limit);
 
   /* If the block is in a segment, make sure any shield is up. */
   arena = PoolArena(pool);
-  if (SegOfAddr(&seg, arena, base)) {
-    do {
-      ShieldExpose(arena, seg);
-    } while (SegLimit(seg) < limit && SegNext(&seg, arena, seg));
-  }
+  debugPoolSegIterate(arena, base, limit, ShieldExpose);
   res = patternCheck(debug->freeTemplate, debug->freeSize, base, limit);
-  if (SegOfAddr(&seg, arena, base)) {
-    do {
-      ShieldCover(arena, seg);
-    } while (SegLimit(seg) < limit && SegNext(&seg, arena, seg));
-  }
+  debugPoolSegIterate(arena, base, limit, ShieldCover);
   return res;
 }
 
