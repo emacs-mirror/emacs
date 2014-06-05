@@ -36,14 +36,15 @@
           "consectetur adipiscing elit."))
 
 
-(defun tildify-test--example-html (sentence &optional with-nbsp)
+(defun tildify-test--example-html (sentence &optional with-nbsp is-xml)
   "Return an example HTML code.
 SENTENCE is placed where spaces should not be replaced with hard spaces, and
 WITH-NBSP is placed where spaces should be replaced with hard spaces.  If the
-latter is missing, SENTENCE will be used in all placeholder positions."
+latter is missing, SENTENCE will be used in all placeholder positions.
+If IS-XML is non-nil, <pre> tag is not treated specially."
   (let ((with-nbsp (or with-nbsp sentence)))
     (concat "<p>" with-nbsp "</p>\n"
-            "<pre>" sentence "</pre>\n"
+            "<pre>" (if is-xml with-nbsp sentence) "</pre>\n"
             "<! -- " sentence " -- >\n"
             "<p>" with-nbsp "</p>\n"
             "<" sentence ">\n")))
@@ -76,6 +77,14 @@ after `tildify-buffer' is run."
     (tildify-test--test '(html-mode sgml-mode)
                         (tildify-test--example-html sentence sentence)
                         (tildify-test--example-html sentence with-nbsp))))
+
+(ert-deftest tildify-test-xml ()
+  "Tests tildification in an XML document"
+  (let* ((sentence (tildify-test--example-sentence " "))
+         (with-nbsp (tildify-test--example-sentence "&#160;")))
+    (tildify-test--test '(nxml-mode)
+                        (tildify-test--example-html sentence sentence t)
+                        (tildify-test--example-html sentence with-nbsp t))))
 
 
 (defun tildify-test--example-tex (sentence &optional with-nbsp)

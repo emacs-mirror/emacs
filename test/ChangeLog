@@ -1,5 +1,10 @@
 2014-06-05  Michal Nazarewicz  <mina86@mina86.com>
 
+	* automated/tildify-tests.el (tildify-test--example-html): Add support
+	for generating XML code, so that…
+	(tildify-test-xml) …test can be added to check handling of XML
+	documents.
+
 	* automated/tildify-tests.el (tildify-test-find-env-group-index-bug):
 	New test checking end-regex building when multiple environment pairs
 	use integers to refer to capture groups.

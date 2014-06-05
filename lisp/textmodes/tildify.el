@@ -90,8 +90,9 @@ mode, the item for the mode SYMBOL is looked up in the alist instead."
     (tex-mode . latex-mode)
     (plain-tex-mode . latex-mode)
     (sgml-mode . "&nbsp;")
-    (xml-mode . sgml-mode)
     (html-mode . sgml-mode)
+    (xml-mode . "&#160;") ; XML does not define &nbsp; use numeric reference
+    (nxml-mode . xml-mode)
     (t . " "))
   "Alist specifying what is a hard space in the current major mode.
 
@@ -149,6 +150,10 @@ mode, the item for the mode SYMBOL is looked up in the alist instead."
      ("<! *--" . "-- *>")
      ("<" . ">"))
     (sgml-mode . html-mode)
+    (xml-mode
+     ("<! *--" . "-- *>")
+     ("<" . ">"))
+    (nxml-mode . xml-mode)
     (t nil))
   "Alist specifying ignored structured text environments.
 Parts of text defined in this alist are skipped without performing hard space

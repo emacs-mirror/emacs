@@ -1,5 +1,19 @@
 2014-06-05  Michal Nazarewicz  <mina86@mina86.com>
 
+	* textmodes/tildify.el (tildify-string-alist)
+	(tildify-ignored-environments-alist): Add `nxml-mode' to the list
+	of supported modes since `xml-mode' is no longer a thing but just
+	an alias to the former.  Also include comments and insides of tags
+	in `tildify-ignored-environments-alist' for XML modes.  Finally,
+	since XML does not define “&nbsp;”[1], use a numeric reference for
+	a no-break space (namely “&#160;”)
+
+	[1] XML specification defines only a handful of predefined entities.
+	    The list is at <http://www.w3.org/TR/REC-xml/#sec-predefined-ent>
+	    and includes only &lt;, &gt;, &amp;, &apos; and &quot; (meaning <,
+	    >, &, ' and " respectively).  This is in contrast to HTML and even
+	    XHTML which defined a whole bunch of entities including “&nbsp;”.
+
 	* textmodes/tildify.el (tildify-pattern-alist)
 	(tildify-string-alist, tildify-ignored-environments-alist):
 	Improve defcustom's types by adding more tags explaining what each
