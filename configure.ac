@@ -2817,14 +2817,17 @@ fi
 
 ### Start of font-backend (under X11) section.
 if test "${HAVE_X11}" = "yes"; then
-   EMACS_CHECK_MODULES([FONTCONFIG], [fontconfig >= 2.2.0],
-     [HAVE_FC=yes], [HAVE_FC=no])
-
-   ## Use -lXft if available, unless `--with-xft=no'.
-   HAVE_XFT=maybe
-    if test "${HAVE_FC}" = "no" || test "x${with_x}" = "xno"; then
+    ## Use -lXft if available, unless `--with-xft=no'.
+    HAVE_XFT=maybe
+    if test "x${with_x}" = "xno"; then
       with_xft="no";
     fi
+
+    if test "$with_xft" != no; then
+      EMACS_CHECK_MODULES([FONTCONFIG], [fontconfig >= 2.2.0])
+      with_xft=$HAVE_FONTCONFIG
+    fi
+
     if test "x${with_xft}" != "xno"; then
 
       EMACS_CHECK_MODULES([XFT], [xft >= 0.13.0], [], [HAVE_XFT=no])
@@ -4750,6 +4753,12 @@ AH_VERBATIM([FORTIFY_SOUR],
 # endif
 #endif
 ])
+
+# If user asks to omit features, disable optional features that gnulib
+# might otherwise enable.
+if test "$with_features" = no && test "$enable_acl" != yes; then
+  enable_acl=no
+fi
 
 # Configure gnulib.  Although this does not affect CFLAGS or LIBS permanently.
 # it temporarily reverts them to their pre-pkg-config values,

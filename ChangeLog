@@ -1,3 +1,9 @@
+2014-06-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure.ac: --without-all now implies --without-xft, --disable-acl.
+	* INSTALL: Remove apparently unmaintained documentation about what
+	--without-all exactly means.
+
 2014-06-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* configure.ac (C_HEAP_SWITCH): Remove.
