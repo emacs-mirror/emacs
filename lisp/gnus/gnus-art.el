@@ -4994,6 +4994,9 @@ and `gnus-mime-delete-part', and not provided at run-time normally."
 		   ',gnus-newsgroup-ignored-charsets))
 	      (mbl mml-buffer-list))
 	  (setq mml-buffer-list nil)
+	  ;; A new text must be inserted before deleting existing ones
+	  ;; at the end so as not to move existing markers of which
+	  ;; the insertion type is t.
 	  (delete-region
 	   (point-min)
 	   (prog1
@@ -6370,7 +6373,7 @@ in the body.  Use `gnus-header-face-alist' to highlight buttons."
 			(setcar handle (caar handle))))
 		    flat)
 	      flat))))
-      (let ((case-fold-search t) buttons st handle)
+      (let ((case-fold-search t) buttons handle type st)
 	(save-excursion
 	  (save-restriction
 	    (widen)
@@ -6390,14 +6393,24 @@ in the body.  Use `gnus-header-face-alist' to highlight buttons."
 	    (unless (and interactive buttons)
 	      ;; Find buttons.
 	      (setq buttons nil)
-	      (dolist (handle (flattened-alist))
-		(when (and (not (stringp (cadr handle)))
-			   (or (equal (car (mm-handle-disposition
-					    (cdr handle)))
-				      "attachment")
-			       (not (and (mm-inlinable-p (cdr handle))
-					 (mm-inlined-p (cdr handle))))))
-		  (push handle buttons)))
+	      (dolist (button (flattened-alist))
+		(setq handle (cdr button)
+		      type (mm-handle-media-type handle))
+		(when (or (and (if (gnus-buffer-live-p gnus-summary-buffer)
+				   (with-current-buffer gnus-summary-buffer
+				     gnus-inhibit-images)
+				 gnus-inhibit-images)
+			       (string-match "\\`image/" type))
+			  (mm-inline-override-p handle)
+			  (and (mm-handle-disposition handle)
+			       (not (equal (car (mm-handle-disposition handle))
+					   "inline"))
+			       (not (mm-attachment-override-p handle)))
+			  (not (mm-automatic-display-p handle))
+			  (not (or (and (mm-inlinable-p handle)
+					(mm-inlined-p handle))
+				   (mm-automatic-external-display-p type))))
+		  (push button buttons)))
 	      (when buttons
 		;; Add header buttons.
 		(article-goto-body)

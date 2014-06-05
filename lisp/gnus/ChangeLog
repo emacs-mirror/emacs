@@ -3,6 +3,8 @@
 	* gnus-art.el (gnus-article-edit-part): Don't modifiy markers.
 	(gnus-article-read-summary-keys):
 	Don't bug out when there is no article in the summary buffer.
+	(gnus-mime-buttonize-attachments-in-header):
+	Improve criterion that finds parts to display.
 
 	* gnus-art.el (gnus-mm-display-part):
 	* mm-decode.el (mm-shr):
