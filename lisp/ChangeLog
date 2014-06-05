@@ -1,5 +1,19 @@
 2014-06-05  Michal Nazarewicz  <mina86@mina86.com>
 
+	* textmodes/tildify.el (tildify-ignored-environments-alist):
+	Optimise environments regexes
+
+	Each time beginning of an environment to ignore is found,
+	`tildify-find-env' needs to identify regexp for the ending
+	of the environment.  This is done by trying all the opening
+	regexes on matched text in a loop, so to speed that up, this
+	loop should have fewer things to match, which can be done by
+	using alternatives in the opening regexes.
+
+	Coincidentally, this should make matching of the opening
+	regexp faster as well thanks to the use of `regexp-opt' and
+	having common prefix pulled from many regexes.
+
 	* textmodes/tildify.el (tildify-string-alist)
 	(tildify-ignored-environments-alist): Add `nxml-mode' to the list
 	of supported modes since `xml-mode' is no longer a thing but just

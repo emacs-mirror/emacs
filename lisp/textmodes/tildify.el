@@ -119,42 +119,35 @@ mode, the item for the mode SYMBOL is looked up in the alist instead."
                                (symbol :tag "Like other")))))
 
 (defcustom tildify-ignored-environments-alist
-  '((latex-mode
+  `((latex-mode
      ("\\\\\\\\" . "")		; do not remove this
-     ("\\\\begin{verbatim}" . "\\\\end{verbatim}")
+     (,(eval-when-compile (concat
+                           "\\\\begin{\\("
+                           (regexp-opt '("verbatim" "math" "displaymath"
+                                         "equation" "eqnarray" "eqnarray*"))
+                           "\\)}"))
+      . ("\\\\end{" 1 "}"))
      ("\\\\verb\\*?\\(.\\)" . (1))
-     ("\\$\\$" . "\\$\\$")
-     ("\\$" . "\\$")
+     ("\\$\\$?" . (0))
      ("\\\\(" . "\\\\)")
      ("\\\\[[]" . "\\\\[]]")
-     ("\\\\begin{math}" . "\\\\end{math}")
-     ("\\\\begin{displaymath}" . "\\\\end{displaymath}")
-     ("\\\\begin{equation}" . "\\\\end{equation}")
-     ("\\\\begin{eqnarray\\*?}" . "\\\\end{eqnarray\\*?}")
      ("\\\\[a-zA-Z]+\\( +\\|{}\\)[a-zA-Z]*" . "")
      ("%" . "$"))
     (plain-tex-mode . latex-mode)
     (html-mode
-     ("<pre[^>]*>" . "</pre>")
-     ("<dfn>" . "</dfn>")
-     ("<code>" . "</code>")
-     ("<samp>" . "</samp>")
-     ("<kbd>" . "</kbd>")
-     ("<var>" . "</var>")
-     ("<PRE[^>]*>" . "</PRE>")
-     ("<DFN>" . "</DFN>")
-     ("<CODE>" . "</CODE>")
-     ("<SAMP>" . "</SAMP>")
-     ("<KBD>" . "</KBD>")
-     ("<VAR>" . "</VAR>")
+     (,(eval-when-compile (concat
+                           "<\\("
+                           (regexp-opt '("pre" "dfn" "code" "samp" "kbd" "var"
+                                         "PRE" "DFN" "CODE" "SAMP" "KBD" "VAR"))
+                           "\\)\\>[^>]*>"))
+      . ("</" 1 ">"))
      ("<! *--" . "-- *>")
      ("<" . ">"))
     (sgml-mode . html-mode)
     (xml-mode
      ("<! *--" . "-- *>")
      ("<" . ">"))
-    (nxml-mode . xml-mode)
-    (t nil))
+    (nxml-mode . xml-mode))
   "Alist specifying ignored structured text environments.
 Parts of text defined in this alist are skipped without performing hard space
 insertion on them.  These setting allow skipping text parts like verbatim or
