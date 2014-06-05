@@ -1,5 +1,9 @@
 2014-06-05  Michal Nazarewicz  <mina86@mina86.com>
 
+	* automated/tildify-tests.el (tildify-test--test): Optimise the test
+	slightly by reusing the same temporary buffer across multiple test
+	cases.
+
 	* automated/tildify-tests.el (tildify-test-find-env-end-re-bug)
 	(tildify-test-find-env-group-index-bug): Update to support new
 	signature of the `tildify-foreach-region-outside-env' function.

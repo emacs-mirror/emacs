@@ -54,16 +54,16 @@ If IS-XML is non-nil, <pre> tag is not treated specially."
   "Test tildify running in MODES.
 INPUT is the initial content of the buffer and EXPECTED is expected result
 after `tildify-buffer' is run."
-  (dolist (mode modes)
-    (with-temp-buffer
+  (with-temp-buffer
+    (dolist (mode modes)
+      (erase-buffer)
       (funcall mode)
       (let ((header (concat "Testing `tildify-buffer' in "
                             (symbol-name mode) "\n")))
         (insert header input)
         (tildify-buffer t)
-        (should (string-equal (concat header expected) (buffer-string)))))
-    (with-temp-buffer
-      (funcall mode)
+        (should (string-equal (concat header expected) (buffer-string))))
+      (erase-buffer)
       (let ((header (concat "Testing `tildify-region' in "
                             (symbol-name mode) "\n")))
         (insert header input)
