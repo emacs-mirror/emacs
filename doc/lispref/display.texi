@@ -6519,18 +6519,6 @@ indicator of Emacs capabilities on a given display type.  Instead, use
 @code{display-graphic-p} or any of the other @code{display-*-p}
 predicates described in @ref{Display Feature Testing}.
 
-@defvar window-setup-hook
-This variable is a normal hook which Emacs runs after handling the
-initialization files.  Emacs runs this hook after it has completed
-loading your init file, the default initialization file (if
-any), and the terminal-specific Lisp code, and running the hook
-@code{emacs-startup-hook}.
-
-This hook is used for internal purposes: setting up communication with
-the window system, and creating the initial window.  Users should not
-interfere with it.
-@end defvar
-
 @node Bidirectional Display
 @section Bidirectional Display
 @cindex bidirectional display

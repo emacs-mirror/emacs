@@ -1,3 +1,7 @@
+2014-06-06  Glenn Morris  <rgm@gnu.org>
+
+	* startup.el (window-setup-hook): Doc fix.
+
 2014-06-05  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/package.el (package-check-signature)

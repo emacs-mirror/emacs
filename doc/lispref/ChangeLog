@@ -1,5 +1,11 @@
 2014-06-06  Glenn Morris  <rgm@gnu.org>
 
+	* display.texi (Window Systems): Remove window-setup-hook.
+	* os.texi (Startup Summary, Init File):
+	Improve description of window-setup-hook.
+	(Terminal-Specific): Update window-setup-hook cross-reference.
+	* hooks.texi (Standard Hooks): Update window-setup-hook cross-reference.
+
 	* display.texi (Overlay Properties): Update re priority.  (Bug#17234)
 
 2014-06-05  Glenn Morris  <rgm@gnu.org>

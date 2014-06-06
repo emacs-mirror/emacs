@@ -302,9 +302,12 @@ keys for use under X.  It is used in a fashion analogous to the
 environment variable TERM.")
 
 (defvar window-setup-hook nil
-  "Normal hook run to initialize window system display.
-Emacs runs this hook after processing the command line arguments and loading
-the user's init file.")
+  "Normal hook run after loading init files and handling the command line.
+This is very similar to `emacs-startup-hook'.  The only difference
+is that this hook runs after frame parameters have been set up in
+response to any settings from your init file.  Unless this matters
+to you, use `emacs-startup-hook' instead.  (The name of this hook
+is due to historical reasons, and does not reflect its purpose very well.)")
 
 (defcustom initial-major-mode 'lisp-interaction-mode
   "Major mode command symbol to use for the initial `*scratch*' buffer."
