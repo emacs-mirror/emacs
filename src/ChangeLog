@@ -1,3 +1,8 @@
+2014-06-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* term.c (tty_menu_show) [!HAVE_NTGUI]: Now static.
+	* menu.h (tty_menu_show) [!HAVE_NTGUI]: Omit extern decl.
+
 2014-06-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* window.c (Frecenter): Signal an error if window-buffer is not

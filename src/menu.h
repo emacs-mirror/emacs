@@ -29,7 +29,7 @@ extern Lisp_Object Qunsupported__w32_dialog;
 /* Bit fields used by terminal-specific menu_show_hook.  */
 
 enum {
-  MENU_KEYMAPS = 0x1, 
+  MENU_KEYMAPS = 0x1,
   MENU_FOR_CLICK = 0x2,
   MENU_KBD_NAVIGATION = 0x4
 };
@@ -64,12 +64,12 @@ extern Lisp_Object x_menu_show (struct frame *, int, int, int,
 #ifdef HAVE_NTGUI
 extern Lisp_Object w32_menu_show (struct frame *, int, int, int,
 				  Lisp_Object, const char **);
+extern Lisp_Object tty_menu_show (struct frame *, int, int, int,
+				  Lisp_Object, const char **);
 #endif
 #ifdef HAVE_NS
 extern Lisp_Object ns_menu_show (struct frame *, int, int, int,
 				 Lisp_Object, const char **);
 #endif
-extern Lisp_Object tty_menu_show (struct frame *, int, int, int,
-				  Lisp_Object, const char **);
 extern ptrdiff_t menu_item_width (const unsigned char *);
 #endif /* MENU_H */
