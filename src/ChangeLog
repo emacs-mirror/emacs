@@ -1,3 +1,8 @@
+2014-06-06  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xterm.c (x_setup_pointer_blanking): Conditionally
+	probe Xfixes until this stuff is stabilized (Bug#17609).
+
 2014-06-05  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* keyboard.c, process.c: Do not define POLL_FOR_INPUT here

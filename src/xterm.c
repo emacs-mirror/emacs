@@ -9781,7 +9781,9 @@ x_toggle_visible_pointer (struct frame *f, bool invisible)
 static void
 x_setup_pointer_blanking (struct x_display_info *dpyinfo)
 {
-  if (x_probe_xfixes_extension (dpyinfo->display))
+  /* FIXME: the brave tester should set EMACS_XFIXES because we're suspecting
+     X server bug, see http://debbugs.gnu.org/cgi/bugreport.cgi?bug=17609.  */
+  if (egetenv ("EMACS_XFIXES") && x_probe_xfixes_extension (dpyinfo->display))
     dpyinfo->toggle_visible_pointer = xfixes_toggle_visible_pointer;
   else
     {
