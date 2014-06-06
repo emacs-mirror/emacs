@@ -1,3 +1,8 @@
+2014-06-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mouse.el (mouse-posn-property): Ignore buffer position info when the
+	even happened elsewhere.
+
 2014-06-06  Mario Lang  <mlang@delysid.org>
 
 	* emacs-lisp/tabulated-list.el (tabulated-list-print): Only call
@@ -9,8 +14,8 @@
 
 2014-06-05  Michal Nazarewicz  <mina86@mina86.com>
 
-	* textmodes/tildify.el (tildify-foreach-region-outside-env): New
-	function which calls a callback on portions of the buffer that are
+	* textmodes/tildify.el (tildify-foreach-region-outside-env):
+	New function which calls a callback on portions of the buffer that are
 	outside of ignored environments.
 	(tildify-build-regexp): Remove function since it is now
 	incorporated in `tildify-foreach-region-outside-env' where it is
@@ -243,14 +248,14 @@
 
 2014-05-30    Ken Olum  <kdo@cosmos.phy.tufts.edu>  (tiny change)
 
-	* mail/rmail.el (rmail-delete-forward, rmail-delete-backward): The
-	argument COUNT is now optional, to be more backward-compatible.
+	* mail/rmail.el (rmail-delete-forward, rmail-delete-backward):
+	The argument COUNT is now optional, to be more backward-compatible.
 	Doc fix.  (Bug#17560)
 
 2014-05-29  Reuben Thomas  <rrt@sc3d.org>
 
-	* whitespace.el (whitespace-report-region): Simplify
-	documentation.
+	* whitespace.el (whitespace-report-region):
+	Simplify documentation.
 	(whitespace-report-region): Allow report-if-bogus to take the
 	value `never', for non-interactive use.
 	(whitespace-report): Refer to whitespace-report-region's

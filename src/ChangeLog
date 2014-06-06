@@ -1,5 +1,8 @@
 2014-06-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* window.c (Frecenter): Signal an error if window-buffer is not
+	current-buffer.
+
 	* keyboard.c (make_lispy_position): Don't include a buffer position in
 	mode/header-line mouse events.
 

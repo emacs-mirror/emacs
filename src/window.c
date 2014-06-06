@@ -4867,7 +4867,7 @@ window_scroll_pixel_based (Lisp_Object window, int n, bool whole, int noerror)
   /* If PT is not visible in WINDOW, move back one half of
      the screen.  Allow PT to be partially visible, otherwise
      something like (scroll-down 1) with PT in the line before
-     the partially visible one would recenter. */
+     the partially visible one would recenter.  */
 
   if (!pos_visible_p (w, PT, &x, &y, &rtop, &rbot, &rowh, &vpos))
     {
@@ -4896,7 +4896,7 @@ window_scroll_pixel_based (Lisp_Object window, int n, bool whole, int noerror)
     }
   else if (auto_window_vscroll_p)
     {
-      if (rtop || rbot)		/* partially visible */
+      if (rtop || rbot)		/* Partially visible.  */
 	{
 	  int px;
 	  int dy = frame_line_height;
@@ -5643,14 +5643,16 @@ and redisplay normally--don't erase and redraw the frame.  */)
 {
   struct window *w = XWINDOW (selected_window);
   struct buffer *buf = XBUFFER (w->contents);
-  struct buffer *obuf = current_buffer;
   bool center_p = 0;
   ptrdiff_t charpos, bytepos;
   EMACS_INT iarg IF_LINT (= 0);
   int this_scroll_margin;
 
+  if (buf != current_buffer)
+    error ("`recenter'ing a window that does not display current-buffer.");
+  
   /* If redisplay is suppressed due to an error, try again.  */
-  obuf->display_error_modiff = 0;
+  buf->display_error_modiff = 0;
 
   if (NILP (arg))
     {
@@ -5672,7 +5674,7 @@ and redisplay normally--don't erase and redraw the frame.  */)
 
       center_p = 1;
     }
-  else if (CONSP (arg)) /* Just C-u. */
+  else if (CONSP (arg)) /* Just C-u.  */
     center_p = 1;
   else
     {
@@ -5681,12 +5683,10 @@ and redisplay normally--don't erase and redraw the frame.  */)
       iarg = XINT (arg);
     }
 
-  set_buffer_internal (buf);
-
   /* Do this after making BUF current
      in case scroll_margin is buffer-local.  */
-  this_scroll_margin =
-    max (0, min (scroll_margin, w->total_lines / 4));
+  this_scroll_margin
+    = max (0, min (scroll_margin, w->total_lines / 4));
 
   /* Handle centering on a graphical frame specially.  Such frames can
      have variable-height lines and centering point on the basis of
@@ -5734,7 +5734,7 @@ and redisplay normally--don't erase and redraw the frame.  */)
 	    h -= it.current_y;
 	  else
 	    {
-	      /* Last line has no newline */
+	      /* Last line has no newline.  */
 	      h -= line_bottom_y (&it);
 	      it.vpos++;
 	    }
@@ -5813,10 +5813,9 @@ and redisplay normally--don't erase and redraw the frame.  */)
 
   w->optional_new_start = 1;
 
-  w->start_at_line_beg = (bytepos == BEGV_BYTE ||
-			  FETCH_BYTE (bytepos - 1) == '\n');
+  w->start_at_line_beg = (bytepos == BEGV_BYTE
+			  || FETCH_BYTE (bytepos - 1) == '\n');
 
-  set_buffer_internal (obuf);
   return Qnil;
 }
 
