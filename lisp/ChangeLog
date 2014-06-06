@@ -1,3 +1,10 @@
+2014-06-06  Santiago Payà i Miralta  <santiagopim@gmail.com>
+
+	* vc/vc-hg.el (vc-hg-log-graph): New var.
+	(vc-hg-print-log): Use it.
+	(vc-hg-root-log-format): Include branch name and bookmarks; ignore
+	graph output (bug#17515).
+
 2014-06-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mouse.el (mouse-posn-property): Ignore buffer position info when the
@@ -631,7 +638,7 @@
 	* emacs-lisp/nadvice.el (advice--interactive-form): Don't get fooled
 	into autoloading just because of a silly indirection.
 
-2014-05-12  Santiago Payà i Miralta  <santiagopim@gmail.com>  (tiny change)
+2014-05-12  Santiago Payà i Miralta  <santiagopim@gmail.com>
 
 	* vc/vc-hg.el (vc-hg-unregister): New function.  (Bug#17454)
 
