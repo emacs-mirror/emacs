@@ -1,3 +1,8 @@
+2014-06-06  Mario Lang  <mlang@delysid.org>
+
+	* emacs-lisp/tabulated-list.el (tabulated-list-print): Only call
+	`recenter' if `current-buffer' is equal to `window-buffer'.
+
 2014-06-05  Leo Liu  <sdl.web@gmail.com>
 
 	* emacs-lisp/cl-macs.el (cl-macrolet): Avoid excessive progn's.
