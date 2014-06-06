@@ -1149,6 +1149,12 @@ low-level libraries gfilenotify.c, inotify.c or w32notify.c.
 
 * Incompatible Lisp Changes in Emacs 24.4
 
++++
+** Do not assume that the priority of all overlays will be numeric.
+(You should still only specify integer priorities on overlays you create.)
+If you need to sort arbitrary overlays into priority order, `overlays-at'
+can now optionally do this.
+
 ---
 ** `kill-region' has lost its `yank-handler' optional argument.
 
@@ -1247,8 +1253,6 @@ the other.
 
 
 * Lisp Changes in Emacs 24.4
-
-** overlays-at can optionally sort its result by priority.
 
 +++
 ** The second argument of `eval' can now specify a lexical environment.

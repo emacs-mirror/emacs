@@ -1,3 +1,7 @@
+2014-06-06  Glenn Morris  <rgm@gnu.org>
+
+	* display.texi (Overlay Properties): Update re priority.  (Bug#17234)
+
 2014-06-05  Glenn Morris  <rgm@gnu.org>
 
 	* package.texi (Package Archives): Mention signing packages.
