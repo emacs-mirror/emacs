@@ -2434,7 +2434,6 @@ read_char (int commandflag, Lisp_Object map,
 
  retry:
 
-  reread = 0;
   if (CONSP (Vunread_post_input_method_events))
     {
       c = XCAR (Vunread_post_input_method_events);
@@ -2448,9 +2447,12 @@ read_char (int commandflag, Lisp_Object map,
 	  && NILP (XCDR (c)))
 	c = XCAR (c);
 
-      reread = 1;
+      reread = true;
       goto reread_first;
     }
+  else
+    reread = false;
+
 
   if (CONSP (Vunread_command_events))
     {
@@ -2459,17 +2461,13 @@ read_char (int commandflag, Lisp_Object map,
       c = XCAR (Vunread_command_events);
       Vunread_command_events = XCDR (Vunread_command_events);
 
-      reread = 1;
-
       /* Undo what sit-for did when it unread additional keys
 	 inside universal-argument.  */
 
-      if (CONSP (c)
-	  && EQ (XCAR (c), Qt))
-	{
-	  reread = 0;
+      if (CONSP (c) && EQ (XCAR (c), Qt))
 	  c = XCDR (c);
-	}
+      else
+	reread = true;
 
       /* Undo what read_char_x_menu_prompt did when it unread
 	 additional keys returned by Fx_popup_menu.  */
@@ -2503,7 +2501,7 @@ read_char (int commandflag, Lisp_Object map,
 	  && (SYMBOLP (XCAR (c)) || INTEGERP (XCAR (c)))
 	  && NILP (XCDR (c)))
 	c = XCAR (c);
-      reread = 1;
+      reread = true;
       goto reread_for_input_method;
     }
 
@@ -2844,6 +2842,11 @@ read_char (int commandflag, Lisp_Object map,
     {
       c = XCAR (Vunread_command_events);
       Vunread_command_events = XCDR (Vunread_command_events);
+
+      if (CONSP (c) && EQ (XCAR (c), Qt))
+	c = XCDR (c);
+      else
+	reread = true;
     }
 
   /* Read something from current KBOARD's side queue, if possible.  */
@@ -2897,8 +2900,8 @@ read_char (int commandflag, Lisp_Object map,
     {
       c = read_decoded_event_from_main_queue (end_time, local_getcjmp,
                                               prev_event, used_mouse_menu);
-      if (NILP(c) && end_time &&
-          timespec_cmp (*end_time, current_timespec ()) <= 0)
+      if (NILP (c) && end_time
+	  && timespec_cmp (*end_time, current_timespec ()) <= 0)
         {
           goto exit;
         }
