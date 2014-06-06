@@ -82,8 +82,8 @@
 ;; - annotate-current-time ()                  NOT NEEDED
 ;; - annotate-extract-revision-at-line ()      OK
 ;; TAG SYSTEM
-;; - create-tag (dir name branchp)             NEEDED
-;; - retrieve-tag (dir name update)            NEEDED
+;; - create-tag (dir name branchp)             OK
+;; - retrieve-tag (dir name update)            OK FIXME UPDATE BUFFERS
 ;; MISCELLANEOUS
 ;; - make-version-backups-p (file)             ??
 ;; - repository-hostname (dirname)             ??
@@ -391,8 +391,26 @@ Optional arg REVISION is a revision to annotate from."
       (if (match-beginning 3)
 	  (match-string-no-properties 1)
 	(cons (match-string-no-properties 1)
-	      (expand-file-name (match-string-no-properties 4)
-				(vc-hg-root default-directory)))))))
+      (expand-file-name (match-string-no-properties 4)
+ (vc-hg-root default-directory)))))))
+
+;;; Tag system
+
+(defun vc-hg-create-tag (dir name branchp)
+  "Attach the tag NAME to the state of the working copy."
+  (let ((default-directory dir))
+    (and (vc-hg-command nil 0 nil "status")
+         (vc-hg-command nil 0 nil (if branchp "bookmark" "tag") name))))
+
+(defun vc-hg-retrieve-tag (dir name update)
+  "Retrieve the version tagged by NAME of all registered files at or below DIR."
+  (let ((default-directory dir))
+    (vc-hg-command nil 0 nil "update" name)
+    ;; FIXME: update buffers if `update' is true
+    ;; TODO: update *vc-change-log* buffer so can see @ if --graph
+    ))
+
+;;; Miscellaneous
 
 (defun vc-hg-previous-revision (_file rev)
   (let ((newrev (1- (string-to-number rev))))

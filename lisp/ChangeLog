@@ -1,5 +1,8 @@
 2014-06-06  Santiago Payà i Miralta  <santiagopim@gmail.com>
 
+	* vc/vc-hg.el (vc-hg-create-tag, vc-hg-retrieve-tag): New functions
+	(bug#17586).
+
 	* vc/vc-hg.el (vc-hg-log-graph): New var.
 	(vc-hg-print-log): Use it.
 	(vc-hg-root-log-format): Include branch name and bookmarks; ignore
