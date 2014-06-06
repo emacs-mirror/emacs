@@ -1,5 +1,8 @@
 2014-06-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* keyboard.c (make_lispy_position): Don't include a buffer position in
+	mode/header-line mouse events.
+
 	* keyboard.c (read_char): Handle (t . <event>) in the second use of
 	Vunread_command_events (bug#17650).
 

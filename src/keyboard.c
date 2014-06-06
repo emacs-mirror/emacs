@@ -2465,7 +2465,7 @@ read_char (int commandflag, Lisp_Object map,
 	 inside universal-argument.  */
 
       if (CONSP (c) && EQ (XCAR (c), Qt))
-	  c = XCDR (c);
+	c = XCDR (c);
       else
 	reread = true;
 
@@ -5228,7 +5228,7 @@ make_lispy_position (struct frame *f, Lisp_Object x, Lisp_Object y,
       /* It's a click in window WINDOW at frame coordinates (X,Y)  */
       struct window *w = XWINDOW (window);
       Lisp_Object string_info = Qnil;
-      ptrdiff_t textpos = -1;
+      ptrdiff_t textpos = 0;
       int col = -1, row = -1;
       int dx  = -1, dy  = -1;
       int width = -1, height = -1;
@@ -5263,9 +5263,7 @@ make_lispy_position (struct frame *f, Lisp_Object x, Lisp_Object y,
 				     &object, &dx, &dy, &width, &height);
 	  if (STRINGP (string))
 	    string_info = Fcons (string, make_number (charpos));
-	  textpos = (w == XWINDOW (selected_window)
-		     && current_buffer == XBUFFER (w->contents))
-	    ? PT : marker_position (w->pointm);
+	  textpos = -1;
 
 	  xret = wx;
 	  yret = wy;
@@ -5333,7 +5331,7 @@ make_lispy_position (struct frame *f, Lisp_Object x, Lisp_Object y,
       /* For clicks in the text area, fringes, or margins, call
 	 buffer_posn_from_coords to extract TEXTPOS, the buffer
 	 position nearest to the click.  */
-      if (textpos < 0)
+      if (!textpos)
 	{
 	  Lisp_Object string2, object2 = Qnil;
 	  struct display_pos p;
@@ -5384,15 +5382,15 @@ make_lispy_position (struct frame *f, Lisp_Object x, Lisp_Object y,
 	}
 #endif
 
-      /* Object info */
+      /* Object info.  */
       extra_info
 	= list3 (object,
 		 Fcons (make_number (dx), make_number (dy)),
 		 Fcons (make_number (width), make_number (height)));
 
-      /* String info */
+      /* String info.  */
       extra_info = Fcons (string_info,
-			  Fcons (make_number (textpos),
+			  Fcons (textpos < 0 ? Qnil : make_number (textpos),
 				 Fcons (Fcons (make_number (col),
 					       make_number (row)),
 					extra_info)));
