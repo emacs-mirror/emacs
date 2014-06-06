@@ -1,3 +1,8 @@
+2014-06-06  Santiago Payà i Miralta  <santiagopim@gmail.com>
+
+	* vc/vc-hg.el (vc-hg-working-revision): Use "hg parent" and
+	vc-hg-command (bug#17570).
+
 2014-06-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* international/mule-cmds.el (ucs-names): Add special entry for BEL

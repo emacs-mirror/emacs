@@ -227,14 +227,11 @@ highlighting the Log View buffer."
 
 (defun vc-hg-working-revision (file)
   "Hg-specific version of `vc-working-revision'."
-  (let ((default-directory (if (file-directory-p file)
-                               (file-name-as-directory file)
-                             (file-name-directory file))))
-    (ignore-errors
-      (with-output-to-string
-        (process-file vc-hg-program nil standard-output nil
-                      "log" "-l" "1" "--template" "{rev}"
-                      (file-relative-name file))))))
+  (or (ignore-errors
+        (with-output-to-string
+          (vc-hg-command standard-output 0 file
+                         "parent" "--template" "{rev}")))
+      "0"))
 
 ;;; History functions
 
