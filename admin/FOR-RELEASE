@@ -11,6 +11,10 @@ Check for node names using problematic characters:
   find doc -name '*.texi' -exec grep '^@node[^,]*[:.()]' {} +
 Sadly makeinfo does not warn about such characters.
 
+Check for major new features added since the last release (e.g. new
+lisp files), and add the relevant authors to the Acknowledgments in
+doc/emacs/ack.texi and emacs.texi.
+
 Check cross-references between the manuals (eg from emacs to elisp)
 are correct.  You can use something like the following in the info
 directory in the Emacs build tree:
