@@ -263,6 +263,24 @@ It is passed the root project found.")
       ;; line worked.
       (ede-detect-utest-validate-loadstate t)
 
+      ;; Now lets retry the basics with INODE support turned off -- assuming
+      ;; that our test platform supports it in the first place.
+      (unless ede--disable-inode
+
+	(setq ede--disable-inode t)
+	(unwind-protect
+	    (progn
+
+	      (cedet-utest-log "\n-- Retry All Tests w/ INODE optimizations disabled.")
+	      ;; ReTry all the primary project types.
+	      (ede-detect-utest-loop ede-detect-utest-project-entries)
+
+	      ;; Now retry that DIRTEST is testing properly.
+	      (ede-detect-utest-loop ede-detect-utest-project-dirmatch-entries)
+
+	      )
+	  (setq ede--disable-inode nil)))
+
       ;; Close out the test suite.
       (cedet-utest-log-shutdown
        "EDE DETECT"
