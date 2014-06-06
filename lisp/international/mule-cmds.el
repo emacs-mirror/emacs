@@ -2945,7 +2945,10 @@ on encoding."
 	    (if (setq name (get-char-code-property c 'name))
 		(push (cons name c) names))
 	    (setq c (1+ c))))
-        (setq ucs-names names))))
+	;; Special case for "BELL" which is apparently the only char which
+	;; doesn't have a new name and whose old-name is shadowed by a newer
+	;; char with that name.
+	(setq ucs-names `(("BELL (BEL)" . 7) ,@names)))))
 
 (defun read-char-by-name (prompt)
   "Read a character by its Unicode name or hex number string.

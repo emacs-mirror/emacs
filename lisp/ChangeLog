@@ -1,3 +1,8 @@
+2014-06-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* international/mule-cmds.el (ucs-names): Add special entry for BEL
+	(bug#17702).
+
 2014-06-06  Glenn Morris  <rgm@gnu.org>
 
 	* startup.el (window-setup-hook): Doc fix.
