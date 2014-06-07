@@ -1,3 +1,12 @@
+2014-06-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port better to AIX (Bug#17598).
+	* configure.ac (with_xpm_set): New shell var.
+	(_THREAD_SAFE): Define on AIX if HAVE_PTHREAD.
+	(with_xpm): Default to 'no' on AIX.
+	(LIBXPM): Append -lXpm if -lXaw is also used, as the latter
+	requires the former on AIX.
+
 2014-05-30  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix port to 32-bit AIX with xlc (Bug#17598).
