@@ -1,3 +1,9 @@
+2014-06-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* term.c (tty_menu_show) [WINDOWSNT]: Make tty_menu_show extern
+	only for WINDOWSNT.
+	* menu.h (tty_menu_show) [WINDOWSNT]: Declare extern only for WINDOWSNT.
+
 2014-06-06  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* term.c (tty_menu_show) [!HAVE_NTGUI]: Now static.

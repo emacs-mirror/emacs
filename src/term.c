@@ -3582,7 +3582,8 @@ tty_menu_new_item_coords (struct frame *f, int which, int *x, int *y)
     }
 }
 
-#ifndef HAVE_NTGUI
+/* WINDOWSNT uses this as menu_show_hook, see w32console.c.  */
+#ifndef WINDOWSNT
 static
 #endif
 Lisp_Object
