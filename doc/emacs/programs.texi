@@ -38,7 +38,6 @@ Highlight program syntax (@pxref{Font Lock}).
 * Symbol Completion::   Completion on symbol names of your program or language.
 * MixedCase Words::     Dealing with identifiersLikeThis.
 * Semantic::            Suite of editing tools based on source code parsing.
-* Prettifying Symbols:: Display symbols as composed characters.
 * Misc for Programs::   Other Emacs features useful for editing programs.
 * C Modes::             Special commands of C, C++, Objective-C, Java,
                           IDL, Pike and AWK modes.
@@ -1434,37 +1433,6 @@ is idle.
 @xref{Top, Semantic,, semantic, Semantic}, for details.
 @end ifnottex
 
-@node Prettifying Symbols
-@section Prettifying Symbols
-@cindex prettifying symbols
-@cindex symbol, prettifying
-
-@code{prettify-symbols-mode} and @code{global-prettify-symbols-mode}
-are two minor modes (@pxref{Minor Modes}) that can display specified
-symbols as composed characters.  For instance, in Emacs Lisp mode
-(@pxref{Lisp Eval}), this mode will replace the string ``lambda'' with
-the Greek lambda character.
-
-@findex prettify-symbols-mode
-@vindex prettify-symbols-alist
-When Prettify Symbols mode and Font Lock mode (@pxref{Font Lock}) are
-enabled, symbols are prettified (displayed as composed characters)
-according to the rules in @code{prettify-symbols-alist}, which are
-locally defined by major modes (@pxref{Major Modes}) supporting
-prettifying.  To add further customizations for a given major mode,
-you can modify @code{prettify-symbols-alist}.  For example:
-
-@example
-(add-hook 'emacs-lisp-mode-hook
-	  (lambda ()
-	    (push '("<=" . ?≤) prettify-symbols-alist)))
-@end example
-
-@findex global-prettify-symbols-mode
-You can enable this mode locally in desired buffers, or use
-@code{global-prettify-symbols-mode} to enable it for all modes that
-support it.
-
 @node Misc for Programs
 @section Other Features Useful for Editing Programs
 
@@ -1511,6 +1479,17 @@ with the Foldout package (@pxref{Foldout}).
   The ``automatic typing'' features may be useful for writing programs.
 @xref{Top,,Autotyping, autotype, Autotyping}.
 @end ifinfo
+
+@findex prettify-symbols-mode
+  Prettify Symbols mode is a buffer-local minor mode that replaces
+certain strings with more ``attractive'' versions for display
+purposes.  For example, in Emacs Lisp mode, it replaces the string
+``lambda'' with the Greek lambda character.  You may wish to use this
+in non-programming modes as well.  You can customize the mode by
+adding more entries to @code{prettify-symbols-alist}.  There is also a
+global version, @code{global-prettify-symbols-mode}, which enables the
+mode in all buffers that support it.
+
 
 @node C Modes
 @section C and Related Modes

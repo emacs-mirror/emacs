@@ -1,3 +1,9 @@
+2014-06-07  Glenn Morris  <rgm@gnu.org>
+
+	* programs.texi (Prettifying Symbols): Remove node.
+	(Misc for Programs): Mention more briefly here.
+	* emacs.texi (Top): Update menu.
+
 2014-06-05  Glenn Morris  <rgm@gnu.org>
 
 	* package.texi (Package Menu, Package Installation):
