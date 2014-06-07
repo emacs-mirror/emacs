@@ -132,6 +132,12 @@ active region handling.
 
 ** cl-the now asserts that its argument is of the given type.
 
++++
+** Mouse click events on mode line or header line no longer include
+any reference to a buffer position.  The 6th member of the mouse
+position list returned for such events is now nil.
+
+
 
 * Lisp Changes in Emacs 24.5
 

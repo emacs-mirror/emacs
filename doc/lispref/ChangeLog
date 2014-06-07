@@ -1,3 +1,8 @@
+2014-06-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* commands.texi (Click Events): Update contents of click event's
+	position list due to last changes in make_lispy_position.
+
 2014-06-02  Glenn Morris  <rgm@gnu.org>
 
 	* text.texi (Buffer Contents):

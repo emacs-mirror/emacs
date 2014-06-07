@@ -1396,8 +1396,9 @@ The position in the string where the click occurred.
 @item @var{text-pos}
 For clicks on a marginal area or on a fringe, this is the buffer
 position of the first visible character in the corresponding line in
-the window.  For other events, it is the current buffer position in
-the window.
+the window.  For clicks on the mode line or the header line, this is
+@code{nil}.  For other events, it is the buffer position closest to
+the click.
 
 @item @var{col}, @var{row}
 These are the actual column and row coordinate numbers of the glyph
