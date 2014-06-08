@@ -400,27 +400,23 @@ returns @code{t} if they are not, and @code{nil} if they are.
 @end defun
 
 @defun <  number-or-marker &rest number-or-markers
-This function tests whether every argument is strictly less than the
-respective next argument.  It returns @code{t} if so, @code{nil}
-otherwise.
+This function tests whether each argument is strictly less than the
+following argument.  It returns @code{t} if so, @code{nil} otherwise.
 @end defun
 
 @defun <= number-or-marker &rest number-or-markers
-This function tests whether every argument is less than or equal to
-the respective next argument.  It returns @code{t} if so, @code{nil}
-otherwise.
+This function tests whether each argument is less than or equal to
+the following argument.  It returns @code{t} if so, @code{nil} otherwise.
 @end defun
 
 @defun > number-or-marker &rest number-or-markers
-This function tests whether every argument is strictly greater than
-the respective next argument.  It returns @code{t} if so, @code{nil}
-otherwise.
+This function tests whether each argument is strictly greater than
+the following argument.  It returns @code{t} if so, @code{nil} otherwise.
 @end defun
 
 @defun >= number-or-marker &rest number-or-markers
-This function tests whether every argument is greater than or equal to
-the respective next argument.  It returns @code{t} if so, @code{nil}
-otherwise.
+This function tests whether each argument is greater than or equal to
+the following argument.  It returns @code{t} if so, @code{nil} otherwise.
 @end defun
 
 @defun max number-or-marker &rest numbers-or-markers

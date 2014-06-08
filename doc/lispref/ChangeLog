@@ -1,3 +1,7 @@
+2014-06-08  Glenn Morris  <rgm@gnu.org>
+
+	* numbers.texi (Comparison of Numbers): Copyedits.
+
 2014-06-06  Glenn Morris  <rgm@gnu.org>
 
 	* display.texi (Window Systems): Remove window-setup-hook.
