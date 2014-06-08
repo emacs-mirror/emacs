@@ -108,6 +108,13 @@ static void MVFFReduce(MVFF mvff)
 
   AVERT(MVFF, mvff);
   arena = PoolArena(MVFF2Pool(mvff));
+
+  /* NOTE: Memory is returned to the arena in the smallest units
+     possible (arena grains). There's a possibility that this could
+     lead to fragmentation in the arena (because allocation is in
+     multiples of mvff->extendBy). If so, try setting align =
+     mvff->extendBy here. */
+
   align = ArenaAlign(arena);
 
   /* Try to return memory when the amount of free memory exceeds a
@@ -121,6 +128,8 @@ static void MVFFReduce(MVFF mvff)
   freeSize = LandSize(MVFFFailover(mvff));
   if (freeSize < freeLimit)
     return;
+
+  /* For hysteresis, return only a proportion of the free memory. */
 
   targetFree = freeLimit / 2;
 
