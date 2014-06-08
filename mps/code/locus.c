@@ -630,13 +630,15 @@ void PoolGenAccountForSegMerge(PoolGen pgen)
 
 /* PoolGenFree -- free a segment and update accounting
  *
- * Call this when all the memory in the segment is accounted as free.
- * (If not, call PoolGenAccountForAge and then PoolGenAccountForReclaim first.)
+ * Pass the amount of memory in the segment that is accounted as free,
+ * old, or new, respectively. The deferred flag is as for
+ * PoolGenAccountForFill.
  *
  * See <design/strategy/#accounting.op.free>
  */
 
-void PoolGenFree(PoolGen pgen, Seg seg)
+void PoolGenFree(PoolGen pgen, Seg seg, Size freeSize, Size oldSize,
+                 Size newSize, Bool deferred)
 {
   Size size;
 
@@ -644,6 +646,13 @@ void PoolGenFree(PoolGen pgen, Seg seg)
   AVERT(Seg, seg);
 
   size = SegSize(seg);
+  AVER(freeSize + oldSize + newSize == size);
+
+  /* Pretend to age and reclaim the contents of the segment to ensure
+   * that the entire segment is accounted as free. */
+  PoolGenAccountForAge(pgen, newSize, deferred);
+  PoolGenAccountForReclaim(pgen, oldSize + newSize, deferred);
+
   AVER(pgen->totalSize >= size);
   pgen->totalSize -= size;
   STATISTIC_STAT ({

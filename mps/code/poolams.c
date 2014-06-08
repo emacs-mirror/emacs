@@ -736,16 +736,14 @@ static void AMSSegsDestroy(AMS ams)
   RING_FOR(node, ring, next) {
     Seg seg = SegOfPoolRing(node);
     AMSSeg amsseg = Seg2AMSSeg(seg);
+    AVERT(AMSSeg, amsseg);
     AVER(amsseg->ams == ams);
     AMSSegFreeCheck(amsseg);
-    PoolGenAccountForAge(&ams->pgen, AMSGrainsSize(ams, amsseg->newGrains), FALSE);
-    amsseg->oldGrains += amsseg->newGrains;
-    amsseg->newGrains = 0;
-    PoolGenAccountForReclaim(&ams->pgen, AMSGrainsSize(ams, amsseg->oldGrains), FALSE);
-    amsseg->freeGrains += amsseg->oldGrains;
-    amsseg->oldGrains = 0;
-    AVER(amsseg->freeGrains == amsseg->grains);
-    PoolGenFree(&ams->pgen, seg);
+    PoolGenFree(&ams->pgen, seg,
+                AMSGrainsSize(ams, amsseg->freeGrains),
+                AMSGrainsSize(ams, amsseg->oldGrains),
+                AMSGrainsSize(ams, amsseg->newGrains),
+                FALSE);
   }
 }
 
@@ -1636,7 +1634,11 @@ static void AMSReclaim(Pool pool, Trace trace, Seg seg)
 
   if (amsseg->freeGrains == grains && SegBuffer(seg) == NULL)
     /* No survivors */
-    PoolGenFree(&ams->pgen, seg);
+    PoolGenFree(&ams->pgen, seg,
+                AMSGrainsSize(ams, amsseg->freeGrains),
+                AMSGrainsSize(ams, amsseg->oldGrains),
+                AMSGrainsSize(ams, amsseg->newGrains),
+                FALSE);
 }
 
 
