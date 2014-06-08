@@ -305,9 +305,7 @@ extern Lisp_Object menu_items;
 
 /* If non-nil, means that the global vars defined here are already in use.
    Used to detect cases where we try to re-enter this non-reentrant code.  */
-#if defined USE_GTK || defined USE_MOTIF
 extern Lisp_Object menu_items_inuse;
-#endif
 
 /* Number of slots currently allocated in menu_items.  */
 extern int menu_items_allocated;
@@ -415,9 +413,7 @@ extern bool waiting_for_input;
    happens.  */
 extern struct timespec *input_available_clear_time;
 
-#if defined HAVE_WINDOW_SYSTEM && !defined USE_GTK && !defined HAVE_NS
 extern bool ignore_mouse_drag_p;
-#endif
 
 /* The primary selection.  */
 extern Lisp_Object QPRIMARY;
@@ -467,9 +463,7 @@ extern bool input_polling_used (void);
 extern void clear_input_pending (void);
 extern bool requeued_events_pending_p (void);
 extern void bind_polling_period (int);
-#if HAVE_NTGUI
 extern int make_ctrl_char (int) ATTRIBUTE_CONST;
-#endif
 extern void stuff_buffered_input (Lisp_Object);
 extern void clear_waiting_for_input (void);
 extern void swallow_events (bool);

@@ -480,9 +480,6 @@ static struct fringe_bitmap **fringe_bitmaps;
 static Lisp_Object *fringe_faces;
 static int max_fringe_bitmaps;
 
-#ifndef HAVE_NS
-static
-#endif
 int max_used_fringe_bitmap = MAX_STANDARD_FRINGE_BITMAPS;
 
 

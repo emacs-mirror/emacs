@@ -834,7 +834,8 @@ extern void syms_of_ftxfont (void);
 extern Lisp_Object Qxft;
 extern struct font_driver xftfont_driver;
 extern void syms_of_xftfont (void);
-#elif defined HAVE_FREETYPE
+#endif
+#if defined HAVE_FREETYPE || defined HAVE_XFT
 extern struct font_driver ftxfont_driver;
 #endif
 #ifdef HAVE_BDFFONT

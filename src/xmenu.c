@@ -208,9 +208,6 @@ x_menu_set_in_use (int in_use)
 
 /* Wait for an X event to arrive or for a timer to expire.  */
 
-#ifndef USE_MOTIF
-static
-#endif
 void
 x_menu_wait_for_event (void *data)
 {

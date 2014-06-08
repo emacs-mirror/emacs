@@ -1031,9 +1031,7 @@ extern Lisp_Object xw_popup_dialog (struct frame *, Lisp_Object, Lisp_Object);
 #if defined USE_GTK || defined USE_MOTIF
 extern void x_menu_set_in_use (int);
 #endif
-#ifdef USE_MOTIF
 extern void x_menu_wait_for_event (void *data);
-#endif
 extern int popup_activated (void);
 extern void initialize_frame_menubar (struct frame *);
 

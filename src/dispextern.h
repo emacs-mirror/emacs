@@ -3163,9 +3163,7 @@ int default_line_pixel_height (struct window *);
 int display_prop_intangible_p (Lisp_Object, Lisp_Object, ptrdiff_t, ptrdiff_t);
 void resize_echo_area_exactly (void);
 int resize_mini_window (struct window *, int);
-#if defined USE_TOOLKIT_SCROLL_BARS && !defined USE_GTK
 void set_vertical_scroll_bar (struct window *);
-#endif
 int try_window (Lisp_Object, struct text_pos, int);
 void window_box (struct window *, enum glyph_row_area,
 		 int *, int *, int *, int *);
@@ -3238,9 +3236,7 @@ extern void draw_phys_cursor_glyph (struct window *,
                                     enum draw_glyphs_face);
 extern void get_phys_cursor_geometry (struct window *, struct glyph_row *,
                                       struct glyph *, int *, int *, int *);
-#if HAVE_NTGUI
 extern void erase_phys_cursor (struct window *);
-#endif
 extern void display_and_set_cursor (struct window *, bool, int, int, int, int);
 extern void x_update_cursor (struct frame *, bool);
 extern void x_clear_cursor (struct window *);
@@ -3354,10 +3350,8 @@ void update_face_from_frame_parameter (struct frame *, Lisp_Object,
                                        Lisp_Object);
 Lisp_Object tty_color_name (struct frame *, int);
 void clear_face_cache (int);
-#ifdef MSDOS
 unsigned long load_color (struct frame *, struct face *, Lisp_Object,
                           enum lface_attribute_index);
-#endif
 char *choose_face_font (struct frame *, Lisp_Object *, Lisp_Object,
                         int *);
 void prepare_face_for_display (struct frame *, struct face *);

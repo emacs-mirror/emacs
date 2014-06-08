@@ -15710,9 +15710,6 @@ try_cursor_movement (Lisp_Object window, struct text_pos startp, int *scroll_ste
   return rc;
 }
 
-#if !defined USE_TOOLKIT_SCROLL_BARS || defined USE_GTK
-static
-#endif
 void
 set_vertical_scroll_bar (struct window *w)
 {
@@ -27055,9 +27052,6 @@ draw_phys_cursor_glyph (struct window *w, struct glyph_row *row,
 
 /* Erase the image of a cursor of window W from the screen.  */
 
-#ifndef HAVE_NTGUI
-static
-#endif
 void
 erase_phys_cursor (struct window *w)
 {

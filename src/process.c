@@ -1957,9 +1957,6 @@ create_pty (Lisp_Object process)
 /* Convert an internal struct sockaddr to a lisp object (vector or string).
    The address family of sa is not included in the result.  */
 
-#ifndef WINDOWSNT
-static
-#endif
 Lisp_Object
 conv_sockaddr_to_lisp (struct sockaddr *sa, int len)
 {
@@ -7051,9 +7048,6 @@ integer or floating point values.
    futz with the SIGCHLD handler, but before Emacs forks any children.
    This function's caller should block SIGCHLD.  */
 
-#ifndef NS_IMPL_GNUSTEP
-static
-#endif
 void
 catch_child_signal (void)
 {

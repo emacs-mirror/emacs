@@ -1248,9 +1248,6 @@ load_color2 (struct frame *f, struct face *face, Lisp_Object name,
    record that fact in flags of the face so that we don't try to free
    these colors.  */
 
-#ifndef MSDOS
-static
-#endif
 unsigned long
 load_color (struct frame *f, struct face *face, Lisp_Object name,
 	    enum lface_attribute_index target_index)

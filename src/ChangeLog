@@ -1,3 +1,28 @@
+2014-06-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	If a C name must be extern on some platforms, make it extern on all.
+	* dispextern.h (set_vertical_scroll_bar, erase_phys_cursor)
+	(load_color):
+	* font.h (ftxfont_driver) [HAVE_XFT]:
+	* keyboard.h (menu_items_inuse, ignore_mouse_drag_p, make_ctrl_char):
+	* lisp.h (get_frame_param):
+	* menu.h (tty_menu_show):
+	* process.h (conv_sockaddr_to_lisp, catch_child_signal):
+	* termhooks.h (encode_terminal_code):
+	* xterm.h (x_menu_wait_for_event):
+	Always declare.
+	* frame.c (get_frame_param):
+	* fringe.c (max_used_fringe_bitmap):
+	* ftxfont.c (ftxfont_driver):
+	* keyboard.c (ignore_mouse_drag_p, make_ctrl_char):
+	* menu.c (menu_items_inuse):
+	* process.c (conv_sockaddr_to_lisp, catch_child_signal):
+	* term.c (encode_terminal_code, tty_menu_show):
+	* xdisp.c (set_vertical_scroll_bar, erase_phys_cursor):
+	* xfaces.c (load_color):
+	* xmenu.c (x_menu_wait_for_event):
+	Now always extern.
+
 2014-06-08  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Change object marking routines to minimize stack usage.
