@@ -1,5 +1,7 @@
 2014-06-08  Glenn Morris  <rgm@gnu.org>
 
+	* os.texi (Startup Summary): Small fix for initial-buffer-choice.
+
 	* files.texi (Subroutines of Visiting): Mention uniquify.
 
 	* numbers.texi (Comparison of Numbers): Copyedits.

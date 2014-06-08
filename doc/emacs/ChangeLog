@@ -1,5 +1,8 @@
 2014-06-08  Glenn Morris  <rgm@gnu.org>
 
+	* entering.texi (Entering Emacs): Small fix re initial-buffer-choice.
+	* misc.texi (emacsclient Options): Copyedit.
+
 	* buffers.texi (Uniquify): Copyedits.
 	* files.texi (Visiting): Update for uniquify changes.
 
