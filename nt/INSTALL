@@ -276,6 +276,19 @@ build will run on Windows 9X and newer systems).
   Bash will find MSYS executables first, which is exactly what you
   need.
 
+* Starting the MSYS Bash shell
+
+  For most reliable and predictable results, we recommend to start
+  Bash by clicking the "MSYS" icon on your desktop.  That icon is
+  created when you install MSYS, and using it is the official way of
+  running the MSYS tools.
+
+  For other methods of starting the shell, make sure Bash is invoked
+  with the "--login" command-line switch.
+
+  When the shell window opens and you get the shell prompt, change to
+  the directory where you intend to build Emacs.
+
   At this point, you are ready to build Emacs in its basic
   configuration.  If you want to build it with image support and other
   optional libraries, read about that near the end of this document.
@@ -290,7 +303,7 @@ build will run on Windows 9X and newer systems).
   auto-generated files.
 
   To generate the configure script, type this at the MSYS Bash prompt
-  from the top-level directory of the Emacs tree:
+  from the top-level directory of the Emacs source tree:
 
      ./autogen.sh
 

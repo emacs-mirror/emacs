@@ -342,3 +342,38 @@ otherwise, an error is raised.
 @noindent
 After you create an archive, remember that it is not accessible in the
 Package Menu interface unless it is in @code{package-archives}.
+
+@cindex package archive security
+@cindex package signing
+Maintaining a public package archive entails a degree of responsibility.
+When Emacs users install packages from your archive, those packages
+can cause Emacs to run arbitrary code with the permissions of the
+installing user.  (This is true for Emacs code in general, not just
+for packages.)  So you should ensure that your archive is
+well-maintained and keep the hosting system secure.
+
+  One way to increase the security of your packages is to @dfn{sign}
+them using a cryptographic key.  If you have generated a
+private/public gpg key pair, you can use gpg to sign the package like
+this:
+
+@c FIXME EasyPG / package-x way to do this.
+@example
+gpg -ba -o @var{file}.sig @var{file}
+@end example
+
+@noindent
+For a single-file package, @var{file} is the package Lisp file;
+for a multi-file package, it is the package tar file.
+You can also sign the archive's contents file in the same way.
+Make the @file{.sig} files available in the same location as the packages.
+You should also make your public key available for people to download;
+e.g., by uploading it to a key server such as @url{http://pgp.mit.edu/}.
+When people install packages from your archive, they can use
+your public key to verify the signatures.
+
+A full explanation of these matters is outside the scope of this
+manual.  For more information on cryptographic keys and signing,
+@pxref{Top,, GnuPG, gnupg, The GNU Privacy Guard Manual}.  Emacs comes
+with an interface to GNU Privacy Guard, @pxref{Top,, EasyPG, epa,
+Emacs EasyPG Assistant Manual}.

@@ -1,3 +1,53 @@
+2014-06-08  Juri Linkov  <juri@jurta.org>
+
+	* desktop.el: Activate auto-saving on window configuration changes.
+	(desktop-save-mode, desktop-auto-save-timeout): Add/remove
+	`desktop-auto-save-set-timer' to/from
+	`window-configuration-change-hook'.
+	(desktop-auto-save-set-timer): Change REPEAT arg of
+	`run-with-idle-timer' from t to nil.
+	http://lists.gnu.org/archive/html/emacs-devel/2014-06/msg00147.html
+
+2014-06-08  Santiago Payà i Miralta  <santiagopim@gmail.com>
+
+	* vc/vc-hg.el (vc-hg-working-revision): Use "hg parent" and
+	vc-hg-command (bug#17570).
+
+2014-06-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* international/mule-cmds.el (ucs-names): Add special entry for BEL
+	(bug#17702).
+
+2014-06-08  Glenn Morris  <rgm@gnu.org>
+
+	* startup.el (window-setup-hook): Doc fix.
+
+	* emacs-lisp/package.el (package-check-signature)
+	(package-unsigned-archives): Doc fixes.
+
+2014-06-08  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer-use-some-window): Don't make window
+	used smaller than it was before (Bug#17671).
+
+2014-06-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* menu-bar.el (menu-bar-open): Fix last change: use the PC
+	'redisplay' instead of '(sit-for 0)'.
+
+2014-06-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-ssh-controlmaster-options):
+	Improve search regexp.  (Bug#17653)
+
+2014-06-08  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/package.el (package-pinned-packages): Doc fix.
+
+2014-06-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* menu-bar.el (menu-bar-open): Fix invocation via M-x.
+
 2014-06-06  Santiago Payà i Miralta  <santiagopim@gmail.com>
 
 	* vc/vc-hg.el (vc-hg-create-tag, vc-hg-retrieve-tag): New functions

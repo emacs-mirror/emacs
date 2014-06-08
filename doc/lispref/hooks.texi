@@ -55,6 +55,7 @@ not exactly a hook, but does a similar job.
 @item after-init-hook
 @itemx before-init-hook
 @itemx emacs-startup-hook
+@itemx window-setup-hook
 @xref{Init File}.
 
 @item after-insert-file-functions
@@ -219,9 +220,6 @@ Hook run when about to switch windows with a mouse command.
 @itemx window-scroll-functions
 @itemx window-size-change-functions
 @xref{Window Hooks}.
-
-@item window-setup-hook
-@xref{Window Systems}.
 
 @item window-text-change-functions
 @vindex window-text-change-functions

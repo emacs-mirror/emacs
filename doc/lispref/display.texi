@@ -1515,9 +1515,9 @@ of them:
 @table @code
 @item priority
 @kindex priority @r{(overlay property)}
-This property's value determines the priority of the overlay.  No priority, or
-@code{nil}, means zero.  A non-nil and non-integer value has
-undefined behavior.
+This property's value determines the priority of the overlay.
+If you want to specify a priority value, use either @code{nil}
+(or zero), or a positive integer.  Any other value has undefined behavior.
 
 The priority matters when two or more overlays cover the same
 character and both specify the same property; the one whose
@@ -1527,9 +1527,13 @@ completely override the other value; instead, its face attributes
 override the face attributes of the lower priority @code{face}
 property.
 
-Currently, all overlays take priority over text properties.  Please
-avoid using negative priority values, as we have not yet decided just
-what they should mean.
+Currently, all overlays take priority over text properties.
+
+Note that Emacs sometimes uses non-numeric priority values for some of
+its internal overlays, so do not try to do arithmetic on the
+priority of an overlay (unless it is one that you created).  If you
+need to put overlays in priority order, use the @var{sorted} argument
+of @code{overlays-at}.  @xref{Finding Overlays}.
 
 @item window
 @kindex window @r{(overlay property)}
@@ -6514,18 +6518,6 @@ graphic displays.  That is because @code{window-system} is not a good
 indicator of Emacs capabilities on a given display type.  Instead, use
 @code{display-graphic-p} or any of the other @code{display-*-p}
 predicates described in @ref{Display Feature Testing}.
-
-@defvar window-setup-hook
-This variable is a normal hook which Emacs runs after handling the
-initialization files.  Emacs runs this hook after it has completed
-loading your init file, the default initialization file (if
-any), and the terminal-specific Lisp code, and running the hook
-@code{emacs-startup-hook}.
-
-This hook is used for internal purposes: setting up communication with
-the window system, and creating the initial window.  Users should not
-interfere with it.
-@end defvar
 
 @node Bidirectional Display
 @section Bidirectional Display

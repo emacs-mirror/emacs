@@ -59,8 +59,9 @@ The package's version number (e.g., @samp{11.86}).
 
 @item
 The package's status---normally one of @samp{available} (can be
-downloaded from the package archive), @samp{installed}, or
-@samp{built-in} (included in Emacs by default).
+downloaded from the package archive), @samp{installed},
+@samp{unsigned} (installed, but not signed; @pxref{Package Signing}),
+or @samp{built-in} (included in Emacs by default).
 
 The status can also be @samp{new}.  This is equivalent to
 @samp{available}, except that it means the package became newly
@@ -166,6 +167,48 @@ package archive and @var{location} is the @acronym{HTTP} address or
 directory name of the package archive.  You can alter this list if you
 wish to use third party package archives---but do so at your own risk,
 and use only third parties that you think you can trust!
+
+@anchor{Package Signing}
+@cindex package security
+@cindex package signing
+  The maintainers of package archives can increase the trust that you
+can have in their packages by @dfn{signing} them.  They generate a
+private/public pair of cryptographic keys, and use the private key to
+create a @dfn{signature file} for each package.  With the public key, you
+can use the signature files to verify who created the package, and
+that it has not been modified.  A valid signature is not a cast-iron
+guarantee that a package is not malicious, so you should still
+exercise caution.  Package archives should provide instructions
+on how you can obtain their public key.  One way is to download the
+key from a server such as @url{http://pgp.mit.edu/}.
+Use @kbd{M-x package-import-keyring} to import the key into Emacs.
+Emacs stores package keys in the @file{gnupg} subdirectory
+of @code{package-user-dir}.
+@c Uncomment this if it becomes true.
+@ignore
+The public key for the GNU package archive is distributed with Emacs,
+in the @file{etc/package-keyring.gpg}.  Emacs uses it automatically.
+@end ignore
+
+@vindex package-check-signature
+@vindex package-unsigned-archives
+  If the user option @code{package-check-signature} is non-@code{nil},
+Emacs attempts to verify signatures when you install packages.  If the
+option has the value @code{allow-unsigned}, you can still install a
+package that is not signed.  If you use some archives that do not sign
+their packages, you can add them to the list @code{package-unsigned-archives}.
+
+  For more information on cryptographic keys and signing,
+@pxref{Top,, Top, gnupg, The GNU Privacy Guard Manual}.
+Emacs comes with an interface to GNU Privacy Guard,
+@pxref{Top,, EasyPG, epa, Emacs EasyPG Assistant Manual}.
+
+@vindex package-pinned-packages
+  If you have more than one package archive enabled, and some of them
+offer different versions of the same package, you may find the option
+@code{package-pinned-packages} useful.  You can add package/archive
+pairs to this list, to ensure that the specified package is only ever
+downloaded from the specified archive.
 
   Once a package is downloaded and installed, it is @dfn{loaded} into
 the current Emacs session.  Loading a package is not quite the same as

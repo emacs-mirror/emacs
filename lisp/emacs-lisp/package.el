@@ -113,8 +113,6 @@
 
 ;;; ToDo:
 
-;; - a trust mechanism, since compiling a package can run arbitrary code.
-;;   For example, download package signatures and check that they match.
 ;; - putting info dirs at the start of the info path means
 ;;   users see a weird ordering of categories.  OTOH we want to
 ;;   override later entries.  maybe emacs needs to enforce
@@ -229,18 +227,25 @@ a package can run arbitrary code."
   :version "24.1")
 
 (defcustom package-pinned-packages nil
-  "An alist of packages that are pinned to a specific archive
+  "An alist of packages that are pinned to specific archives.
+This can be useful if you have multiple package archives enabled,
+and want to control which archive a given package gets installed from.
 
-Each element has the form (SYM . ID).
- SYM is a package, as a symbol.
- ID is an archive name. This should correspond to an
- entry in `package-archives'.
+Each element of the alist has the form (PACKAGE . ARCHIVE), where:
+ PACKAGE is a symbol representing a package
+ ARCHIVE is a string representing an archive (it should be the car of
+an element in `package-archives', e.g. \"gnu\").
 
-If the archive of name ID does not contain the package SYM, no
-other location will be considered, which will make the
-package unavailable."
+Adding an entry to this variable means that only ARCHIVE will be
+considered as a source for PACKAGE.  If other archives provide PACKAGE,
+they are ignored (for this package).  If ARCHIVE does not contain PACKAGE,
+the package will be unavailable."
   :type '(alist :key-type (symbol :tag "Package")
                 :value-type (string :tag "Archive name"))
+  ;; I don't really see why this is risky...
+  ;; I suppose it could prevent you receiving updates for a package,
+  ;; via an entry (PACKAGE . NON-EXISTING).  Which could be an issue
+  ;; if PACKAGE has a known vulnerability that is fixed in newer versions.
   :risky t
   :group 'package
   :version "24.4")
@@ -285,7 +290,12 @@ contrast, `package-user-dir' contains packages for personal use."
   :version "24.1")
 
 (defcustom package-check-signature 'allow-unsigned
-  "Whether to check package signatures when installing."
+  "Non-nil means to check package signatures when installing.
+The value `allow-unsigned' means to still install a package even if
+it is unsigned.
+
+This also applies to the \"archive-contents\" file that lists the
+contents of the archive."
   :type '(choice (const nil :tag "Never")
 		 (const allow-unsigned :tag "Allow unsigned")
 		 (const t :tag "Check always"))
@@ -294,7 +304,7 @@ contrast, `package-user-dir' contains packages for personal use."
   :version "24.4")
 
 (defcustom package-unsigned-archives nil
-  "A list of archives which do not use package signature."
+  "List of archives where we do not check for package signatures."
   :type '(repeat (string :tag "Archive name"))
   :risky t
   :group 'package

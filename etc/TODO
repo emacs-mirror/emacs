@@ -659,7 +659,7 @@ rather than interactively.  This a trivial one-liner in easy-mode.el.
      [As of trunk r109635, 2012-08-15, the event loop no longer polls.]
 
 **** (mouse-avoidance-mode 'banish) then minimize Emacs, will pop window back
-up on top of all others
+up on top of all others (probably fixed in bug#17439)
 
 **** free_frame_resources, face colors
 

@@ -2272,6 +2272,12 @@ If FRAME is nil or not given, use the selected frame."
      ((eq type 'w32) (w32-menu-bar-open frame))
      ((and (null tty-menu-open-use-tmm)
 	   (not (zerop (or (frame-parameter nil 'menu-bar-lines) 0))))
+      ;; Make sure the menu bar is up to date.  One situation where
+      ;; this is important is when this function is invoked by name
+      ;; via M-x, in which case the menu bar includes the "Minibuf"
+      ;; menu item that should be removed when we exit the minibuffer.
+      (force-mode-line-update)
+      (redisplay)
       (let* ((x tty-menu--initial-menu-x)
 	     (menu (menu-bar-menu-at-x-y x 0 frame)))
 	(popup-menu (or

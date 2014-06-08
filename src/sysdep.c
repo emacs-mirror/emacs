@@ -1270,7 +1270,7 @@ reset_sys_modes (struct tty_display_info *tty_out)
       int i;
       tty_turn_off_insert (tty_out);
 
-      for (i = curX (tty_out); i < FrameCols (tty_out) - 1; i++)
+      for (i = cursorX (tty_out); i < FrameCols (tty_out) - 1; i++)
         {
           fputc (' ', tty_out->output);
         }

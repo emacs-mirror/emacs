@@ -287,6 +287,7 @@ fi
 
 dnl _ON results in a '--without' option in the --help output, so
 dnl the help text should refer to "don't compile", etc.
+with_xpm_set=${with_xpm+set}
 OPTION_DEFAULT_ON([xpm],[don't compile with XPM image support])
 OPTION_DEFAULT_ON([jpeg],[don't compile with JPEG image support])
 OPTION_DEFAULT_ON([tiff],[don't compile with TIFF image support])
@@ -2089,7 +2090,14 @@ if test "$ac_cv_header_pthread_h"; then
   OLD_LIBS=$LIBS
   AC_SEARCH_LIBS([$emacs_pthread_function], [pthread],
     [AC_DEFINE([HAVE_PTHREAD], [1],
-       [Define to 1 if you have pthread (-lpthread).])])
+       [Define to 1 if you have pthread (-lpthread).])
+     # Some systems optimize for single-threaded programs by default, and
+     # need special flags to disable these optimizations. For example, the
+     # definition of 'errno' in <errno.h>.
+     if test "$opsys" = aix4-2; then
+       AC_DEFINE([_THREAD_SAFE], [1],
+         [Define to 1 if your system requires this in multithreaded code.])
+     fi])
   if test "X$LIBS" != "X$OLD_LIBS"; then
     eval LIB_PTHREAD=\$ac_cv_search_$emacs_pthread_function
   fi
@@ -2989,6 +2997,9 @@ no_return_alloc_pixels
 fi
 
 if test "${HAVE_X11}" = "yes"; then
+  dnl Avoid Xpm on AIX unless requested, as it crashes; see Bug#17598.
+  test "$opsys$with_xpm_set" = aix4-2 && with_xpm=no
+
   if test "${with_xpm}" != "no"; then
     AC_CHECK_HEADER(X11/xpm.h,
       [AC_CHECK_LIB(Xpm, XpmReadFileToPixmap, HAVE_XPM=yes, , -lX11)])
@@ -3011,6 +3022,9 @@ no_return_alloc_pixels
 
   if test "${HAVE_XPM}" = "yes"; then
     AC_DEFINE(HAVE_XPM, 1, [Define to 1 if you have the Xpm library (-lXpm).])
+    LIBXPM=-lXpm
+  elif test "$opsys,$LUCID_LIBW" = aix4-2,-lXaw; then
+    dnl AIX -lXaw needs -lXpm linked too; see Bug#17598 Message#152.
     LIBXPM=-lXpm
   fi
 fi

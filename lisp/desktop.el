@@ -174,7 +174,10 @@ For further details, see info node `(emacs)Saving Emacs Sessions'."
   :global t
   :group 'desktop
   (if desktop-save-mode
-      (desktop-auto-save-set-timer)
+      (when (and (integerp desktop-auto-save-timeout)
+		 (> desktop-auto-save-timeout 0))
+	(add-hook 'window-configuration-change-hook 'desktop-auto-save-set-timer))
+    (remove-hook 'window-configuration-change-hook 'desktop-auto-save-set-timer)
     (desktop-auto-save-cancel-timer)))
 
 (defun desktop-save-mode-off ()
@@ -207,13 +210,18 @@ determine where the desktop is saved."
 
 (defcustom desktop-auto-save-timeout auto-save-timeout
   "Number of seconds idle time before auto-save of the desktop.
+The idle timer activates auto-saving only when window configuration changes.
 This applies to an existing desktop file when `desktop-save-mode' is enabled.
 Zero or nil means disable auto-saving due to idleness."
   :type '(choice (const :tag "Off" nil)
                  (integer :tag "Seconds"))
   :set (lambda (symbol value)
          (set-default symbol value)
-         (ignore-errors (desktop-auto-save-set-timer)))
+         (ignore-errors
+	   (if (and (integerp value) (> value 0))
+	       (add-hook 'window-configuration-change-hook 'desktop-auto-save-set-timer)
+	     (remove-hook 'window-configuration-change-hook 'desktop-auto-save-set-timer)
+	     (desktop-auto-save-cancel-timer))))
   :group 'desktop
   :version "24.4")
 
@@ -1244,7 +1252,7 @@ after that many seconds of idle time."
   (when (and (integerp desktop-auto-save-timeout)
 	     (> desktop-auto-save-timeout 0))
     (setq desktop-auto-save-timer
-	  (run-with-idle-timer desktop-auto-save-timeout t
+	  (run-with-idle-timer desktop-auto-save-timeout nil
 			       'desktop-auto-save))))
 
 (defun desktop-auto-save-cancel-timer ()

@@ -962,6 +962,24 @@ Use `electric-indent-mode' instead.
 ** Package
 
 +++
+*** The package library now supports digital signing of packages.
+Maintainers of package archives should consider signing their packages
+to enhance security.
+
++++
+**** If the user option `package-check-signature' is non-nil,
+Emacs tries to check package signatures at install time.
+The value `allow-unsigned' allows installation of unsigned packages.
+
++++
+**** The user option `package-unsigned-archives' lists archives where
+Emacs will not try to check signatures.
+
++++
+*** New option `package-pinned-packages'.  This is useful if you have multiple
+archives enabled, with more than one offering a package that you want.
+
++++
 *** In the `list-packages' buffer, you can use `f' (`package-menu-filter')
 to filter the list of packages by a keyword.
 
@@ -1276,6 +1294,12 @@ low-level libraries gfilenotify.c, inotify.c or w32notify.c.
 
 * Incompatible Lisp Changes in Emacs 24.4
 
++++
+** Do not assume that the priority of all overlays will be numeric.
+(You should still only specify integer priorities on overlays you create.)
+If you need to sort arbitrary overlays into priority order, `overlays-at'
+can now optionally do this.
+
 ---
 ** `kill-region' has lost its `yank-handler' optional argument.
 
@@ -1374,8 +1398,6 @@ the other.
 
 
 * Lisp Changes in Emacs 24.4
-
-** overlays-at can optionally sort its result by priority.
 
 +++
 ** The second argument of `eval' can now specify a lexical environment.

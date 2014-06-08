@@ -1,3 +1,16 @@
+2014-06-08  Glenn Morris  <rgm@gnu.org>
+
+	* ack.texi (Acknowledgments):
+	* emacs.texi (Acknowledgments): Updates.
+
+	* programs.texi (Prettifying Symbols): Remove node.
+	(Misc for Programs): Mention more briefly here.
+	* emacs.texi (Top): Update menu.
+
+	* package.texi (Package Menu, Package Installation):
+	Mention signed packages.
+	(Package Installation): Mention package-pinned-packages.
+
 2014-06-02  Glenn Morris  <rgm@gnu.org>
 
 	* ack.texi (Acknowledgments): Remove some obsolete items.

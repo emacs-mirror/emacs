@@ -15,7 +15,7 @@ We thank them for their generosity as well.
 
 This list is intended to mention every contributor of a major package or
 feature we currently distribute; if you know of someone we have omitted,
-please report that as a manual bug.  More comprehensive information is
+please make a bug report.  More comprehensive information is
 available in the @file{ChangeLog} files, summarized in the file
 @file{etc/AUTHORS} in the distribution.
 
@@ -51,12 +51,12 @@ files.
 @item
 Michael Albinus wrote @file{dbus.el}, a package that implements the
 D-Bus message bus protocol; @file{zeroconf.el}, a mode for browsing
-Avahi services;
-and @file{secrets.el}, an interface to keyring daemons for
-storing confidential data.  He and Kai Großjohann wrote the Tramp package, which
-provides transparent remote file editing using rcp, ssh, ftp, and
-other network protocols.  He and Daniel Pittman wrote
-@file{tramp-cache.el}.
+Avahi services; @file{secrets.el}, an interface to keyring daemons for
+storing confidential data; and @file{filenotify.el} and the associated
+low-level interface routines, for watching file status changes.
+He and Kai Großjohann wrote the Tramp package, which provides
+transparent remote file editing using ssh, ftp, and other network
+protocols.  He and Daniel Pittman wrote @file{tramp-cache.el}.
 
 @item
 Ralf Angeli wrote @file{scroll-lock.el}, a minor mode which keeps the
@@ -88,7 +88,8 @@ moving the mouse in particular patterns.
 @item
 Juanma Barranquero wrote @file{emacs-lock.el} (based on the original
 version by Tom Wurgler), which makes it harder to exit with valuable
-buffers unsaved.  He also made many other contributions to other
+buffers unsaved; and @file{frameset.el}, for saving and restoring the
+frame/window setup.  He also made many other contributions to other
 areas, including MS Windows support.
 
 @item
@@ -203,7 +204,9 @@ for Korean Hanja.
 
 @item
 Andrew Choi and Yamamoto Mitsuharu wrote the Carbon support, used
-prior to Emacs 23 for Mac OS.
+prior to Emacs 23 for Mac OS.  Yamamoto Mitsuharu continued to
+contribute to Mac OS support in the newer Nextstep port; and also
+improved support for multi-monitor displays.
 
 @item
 Chong Yidong was the Emacs co-maintainer from Emacs 23 to 24.3.  He made many
@@ -348,6 +351,10 @@ location in files between editing sessions.
 @item
 Gary Foster wrote @file{scroll-all.el}, a mode for scrolling several buffers
 together.
+
+@item
+Romain Francoise contributed ACL (Access Control List) support,
+for preserving extended file attributes on backup and copy.
 
 @item
 Noah Friedman wrote @file{rlogin.el}, an interface to Rlogin,
@@ -510,13 +517,14 @@ Emacs, including: @file{dns.el} for Domain Name Service lookups;
 @file{time-date.el} for general date and time handling.
 He also wrote @file{network-stream.el}, for opening network processes;
 @file{url-queue.el}, for controlling parallel downloads of URLs;
-and implemented libxml2 support.
+and implemented libxml2 support.  He also wrote @file{eww.el},
+an Emacs Lisp web browser; and implemented native zlib decompression.
 Components of Gnus have also been written by: Nagy Andras, David
 Blacka, Scott Byer, Ludovic Courtès, Julien Danjou, Kevin Greiner, Kai
 Großjohann, Joe Hildebrand, Paul Jarc, Simon Josefsson, Sascha
 Lüdecke, David Moore, Jim Radford, Benjamin Rutt, Raymond Scholz,
-Thomas Steffen, Reiner Steib, Didier Verna, Ilja Weis, Katsumi
-Yamaoka, Teodor Zlatanov, and others (@pxref{Contributors,,,gnus, the
+Thomas Steffen, Reiner Steib, Jan Tatarik, Didier Verna, Ilja Weis,
+Katsumi Yamaoka, Teodor Zlatanov, and others (@pxref{Contributors,,,gnus, the
 Gnus Manual}).
 
 @item
@@ -696,6 +704,10 @@ directory-local variables; and the @code{info-finder} feature that
 creates a virtual Info manual of package keywords.
 
 @item
+Leo Liu wrote @file{pcmpl-x.el}, providing completion for
+miscellaneous external tools; and revamped support for Octave in Emacs 24.4.
+
+@item
 Károly Lőrentey wrote the ``multi-terminal'' code, which allows
 Emacs to run on graphical and text terminals simultaneously.
 
@@ -840,8 +852,8 @@ client for the ``Music Player Daemon''; @file{smie.el}, a generic
 indentation engine; and @file{pcase.el}, implementing ML-style pattern
 matching.  In Emacs 24, he integrated the lexical binding code,
 cleaned up the CL namespace (making it acceptable to use CL
-functions at runtime), and added generalized variables to core Emacs
-Lisp.
+functions at runtime), added generalized variables to core Emacs
+Lisp, and implemented a new lightweight advice mechanism.
 
 @item
 Morioka Tomohiko wrote several packages for MIME support in Gnus and
@@ -1042,7 +1054,8 @@ Guillermo J. Rozas wrote @file{scheme.el}, a mode for editing Scheme and
 DSSSL code.
 
 @item
-Martin Rudalics implemented improved display-buffer handling in Emacs 24.
+Martin Rudalics implemented improved display-buffer handling in Emacs 24;
+and implemented ``pixel-wise'' resizing of windows and frames.
 
 @item
 Ivar Rummelhoff wrote @file{winner.el}, which records recent window
@@ -1390,7 +1403,8 @@ zone out in front of Emacs.
 Eli Zaretskii made many standard Emacs features work on MS-DOS and
 Microsoft Windows.  He also wrote @file{tty-colors.el}, which
 implements transparent mapping of X colors to tty colors; and
-@file{rxvt.el}.  He implemented support for bidirectional text.
+@file{rxvt.el}.  He implemented support for bidirectional text,
+and also menus on text-mode terminals.
 
 @item
 Jamie Zawinski wrote much of the support for faces and X selections.

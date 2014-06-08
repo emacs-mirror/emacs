@@ -1,3 +1,35 @@
+2014-06-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* sysdep.c (reset_sys_modes): Use cursorX, not curX, as the latter
+	contains garbage on WINDOWSNT (which could potentially infloop at
+	exit).
+
+	Minimize cursor motion during TTY menu updates.
+	* term.c (tty_menu_display): Don't position cursor here.
+	Instead, pass the cursor coordinates to update_frame_with_menu.
+	(tty_menu_activate): Send the hide cursor command only once in an
+	iteration through the outer 'while' loop.
+
+	* dispnew.c (update_frame_1): Accept an additional argument
+	SET_CURSOR_P, and position the cursor at the end of the frame
+	update only if that argument is non-zero.  All callers changed to
+	provide the additional argument as non-zero, except for
+	update_frame_with_menu.
+	(update_frame_with_menu): Accept 2 additional arguments ROW and
+	COL; if they are non-negative, instruct update_frame_1 not to
+	position the cursor, and instead position it according to ROW and COL.
+
+	* dispextern.h (update_frame_with_menu): Update prototype.
+
+2014-06-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* callproc.c (call_process): Don't check read-only if we don't insert
+	anything (bug#17666).
+
+2014-06-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* dispnew.c (update_frame_with_menu): Set display_completed.
+
 2014-06-07  Eli Zaretskii  <eliz@gnu.org>
 
 	* term.c (tty_menu_show) [WINDOWSNT]: Make tty_menu_show extern
