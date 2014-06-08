@@ -123,11 +123,8 @@ Bool PoolDebugOptionsCheck(PoolDebugOptions opt)
 
 ARG_DEFINE_KEY(pool_debug_options, PoolDebugOptions);
 
-static char debugFencepostTemplate[4] = {'P', 'O', 'S', 'T'};
-static char debugFreeTemplate[4] = {'D', 'E', 'A', 'D'};
-
 static PoolDebugOptionsStruct debugPoolOptionsDefault = {
-  debugFencepostTemplate, 4, debugFreeTemplate, 4,
+  "POST", 4, "DEAD", 4,
 };
 
 static Res DebugPoolInit(Pool pool, ArgList args)
@@ -241,8 +238,10 @@ static void DebugPoolFinish(Pool pool)
  * of the copy or part.
  */
 
-static Bool patternIterate(Addr pattern, Size size, Addr base, Addr limit,
-                           Bool (*visitor)(Addr target, Addr source, Size size))
+typedef Bool (*patternVisitor)(Addr target, ReadonlyAddr source, Size size);
+
+static Bool patternIterate(ReadonlyAddr pattern, Size size,
+                           Addr base, Addr limit, patternVisitor visitor)
 {
   Addr p;
 
@@ -288,13 +287,13 @@ static Bool patternIterate(Addr pattern, Size size, Addr base, Addr limit,
  * (exclusive) with copies of pattern (which is size bytes long).
  */
 
-static Bool patternCopyVisitor(Addr target, Addr source, Size size)
+static Bool patternCopyVisitor(Addr target, ReadonlyAddr source, Size size)
 {
   (void)AddrCopy(target, source, size);
   return TRUE;
 }
 
-static void patternCopy(Addr pattern, Size size, Addr base, Addr limit)
+static void patternCopy(ReadonlyAddr pattern, Size size, Addr base, Addr limit)
 {
   (void)patternIterate(pattern, size, base, limit, patternCopyVisitor);
 }
@@ -308,12 +307,12 @@ static void patternCopy(Addr pattern, Size size, Addr base, Addr limit)
  * aligned addresses wherever possible.
  */
 
-static Bool patternCheckVisitor(Addr target, Addr source, Size size)
+static Bool patternCheckVisitor(Addr target, ReadonlyAddr source, Size size)
 {
   return AddrComp(target, source, size) == 0;
 }
 
-static Bool patternCheck(Addr pattern, Size size, Addr base, Addr limit)
+static Bool patternCheck(ReadonlyAddr pattern, Size size, Addr base, Addr limit)
 {
   return patternIterate(pattern, size, base, limit, patternCheckVisitor);
 }
