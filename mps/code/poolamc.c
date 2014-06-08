@@ -113,8 +113,8 @@ static Bool amcSegCheck(amcSeg amcseg)
     CHECKD(Nailboard, amcseg->board);
     CHECKL(SegNailed(amcSeg2Seg(amcseg)) != TraceSetEMPTY);
   }
-  CHECKL(BoolCheck(amcseg->old));
-  CHECKL(BoolCheck(amcseg->deferred));
+  /* CHECKL(BoolCheck(amcseg->old)); <design/type/#bool.bitfield.check> */
+  /* CHECKL(BoolCheck(amcseg->deferred)); <design/type/#bool.bitfield.check> */
   return TRUE;
 }
 
