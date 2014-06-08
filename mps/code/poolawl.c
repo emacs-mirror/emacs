@@ -1325,7 +1325,7 @@ static Bool AWLCheck(AWL awl)
   CHECKS(AWL, awl);
   CHECKD(Pool, &awl->poolStruct);
   CHECKL(awl->poolStruct.class == AWLPoolClassGet());
-  CHECKL(AWLGrainsSize(awl, 1) == awl->poolStruct.alignment);
+  CHECKL(AWLGrainsSize(awl, (Count)1) == awl->poolStruct.alignment);
   /* Nothing to check about succAccesses. */
   CHECKL(FUNCHECK(awl->findDependent));
   /* Don't bother to check stats. */

@@ -162,6 +162,11 @@ _`.bool.bitfield.assign`: To avoid warnings about loss of data from
 GCC with the ``-Wconversion`` option, ``misc.h`` provides the
 ``BOOLOF`` macro for coercing a value to an unsigned single-bit field.
 
+_`.bool.bitfield.check`: A Boolean bitfield cannot have an incorrect
+value, and if you call ``BoolCheck()`` on such a bitfield then GCC 4.2
+issues the warning "comparison is always true due to limited range of
+data type". When avoiding such a warning, reference this tag.
+
 
 ``typedef unsigned BufferMode``
 
