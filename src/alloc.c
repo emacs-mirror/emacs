@@ -5974,6 +5974,19 @@ mark_char_table (struct Lisp_Vector *ptr)
     }
 }
 
+NO_INLINE /* To reduce stack depth in mark_object.  */
+static Lisp_Object
+mark_compiled (struct Lisp_Vector *ptr)
+{
+  int i, size = ptr->header.size & PSEUDOVECTOR_SIZE_MASK;
+  
+  VECTOR_MARK (ptr);
+  for (i = 0; i < size; i++)
+    if (i != COMPILED_CONSTANTS)
+      mark_object (ptr->contents[i]);
+  return size > COMPILED_CONSTANTS ? ptr->contents[COMPILED_CONSTANTS] : Qnil;
+}
+
 /* Mark the chain of overlays starting at PTR.  */
 
 static void
@@ -6014,6 +6027,7 @@ mark_buffer (struct buffer *buffer)
 
 /* Mark Lisp faces in the face cache C.  */
 
+NO_INLINE /* To reduce stack depth in mark_object.  */
 static void
 mark_face_cache (struct face_cache *c)
 {
@@ -6034,6 +6048,24 @@ mark_face_cache (struct face_cache *c)
 	    }
 	}
     }
+}
+
+NO_INLINE /* To reduce stack depth in mark_object.  */
+static void
+mark_localized_symbol (struct Lisp_Symbol *ptr)
+{
+  struct Lisp_Buffer_Local_Value *blv = SYMBOL_BLV (ptr);
+  Lisp_Object where = blv->where;
+  /* If the value is set up for a killed buffer or deleted
+     frame, restore it's global binding.  If the value is
+     forwarded to a C variable, either it's not a Lisp_Object
+     var, or it's staticpro'd already.  */
+  if ((BUFFERP (where) && !BUFFER_LIVE_P (XBUFFER (where)))
+      || (FRAMEP (where) && !FRAME_LIVE_P (XFRAME (where))))
+    swap_in_global_binding (ptr);
+  mark_object (blv->where);
+  mark_object (blv->valcell);
+  mark_object (blv->defcell);
 }
 
 /* Remove killed buffers or items whose car is a killed buffer from
@@ -6180,22 +6212,13 @@ mark_object (Lisp_Object arg)
 	    break;
 
 	  case PVEC_COMPILED:
-	    { /* We could treat this just like a vector, but it is better
-		 to save the COMPILED_CONSTANTS element for last and avoid
-		 recursion there.  */
-	      int size = ptr->header.size & PSEUDOVECTOR_SIZE_MASK;
-	      int i;
-
-	      VECTOR_MARK (ptr);
-	      for (i = 0; i < size; i++)
-		if (i != COMPILED_CONSTANTS)
-		  mark_object (ptr->contents[i]);
-	      if (size > COMPILED_CONSTANTS)
-		{
-		  obj = ptr->contents[COMPILED_CONSTANTS];
-		  goto loop;
-		}
-	    }
+	    /* Although we could treat this just like a vector, mark_compiled
+	       returns the COMPILED_CONSTANTS element, which is marked at the
+	       next iteration of goto-loop here.  This is done to avoid a few
+	       recursive calls to mark_object.  */
+	    obj = mark_compiled (ptr);
+	    if (!NILP (obj))
+	      goto loop;
 	    break;
 
 	  case PVEC_FRAME:
@@ -6283,8 +6306,7 @@ mark_object (Lisp_Object arg)
     case Lisp_Symbol:
       {
 	register struct Lisp_Symbol *ptr = XSYMBOL (obj);
-	struct Lisp_Symbol *ptrx;
-
+      nextsym:
 	if (ptr->gcmarkbit)
 	  break;
 	CHECK_ALLOCATED_AND_LIVE (live_symbol_p);
@@ -6304,21 +6326,8 @@ mark_object (Lisp_Object arg)
 	      break;
 	    }
 	  case SYMBOL_LOCALIZED:
-	    {
-	      struct Lisp_Buffer_Local_Value *blv = SYMBOL_BLV (ptr);
-	      Lisp_Object where = blv->where;
-	      /* If the value is set up for a killed buffer or deleted
-		 frame, restore it's global binding.  If the value is
-		 forwarded to a C variable, either it's not a Lisp_Object
-		 var, or it's staticpro'd already.  */
-	      if ((BUFFERP (where) && !BUFFER_LIVE_P (XBUFFER (where)))
-		  || (FRAMEP (where) && !FRAME_LIVE_P (XFRAME (where))))
-		swap_in_global_binding (ptr);
-	      mark_object (blv->where);
-	      mark_object (blv->valcell);
-	      mark_object (blv->defcell);
-	      break;
-	    }
+	    mark_localized_symbol (ptr);
+	    break;
 	  case SYMBOL_FORWARDED:
 	    /* If the value is forwarded to a buffer or keyboard field,
 	       these are marked when we see the corresponding object.
@@ -6330,14 +6339,10 @@ mark_object (Lisp_Object arg)
 	if (!PURE_POINTER_P (XSTRING (ptr->name)))
 	  MARK_STRING (XSTRING (ptr->name));
 	MARK_INTERVAL_TREE (string_intervals (ptr->name));
-
+	/* Inner loop to mark next symbol in this bucket, if any.  */
 	ptr = ptr->next;
 	if (ptr)
-	  {
-	    ptrx = ptr;		/* Use of ptrx avoids compiler bug on Sun.  */
-	    XSETSYMBOL (obj, ptrx);
-	    goto loop;
-	  }
+	  goto nextsym;
       }
       break;
 

@@ -1,3 +1,18 @@
+2014-06-08  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Change object marking routines to minimize stack usage.
+	This change moves a few cold paths from mark_object to NO_INLINE
+	functions and adjusts symbol marking loop.  According to GCC 4.8.2
+	-Wstack-usage, this reduces mark_object's stack usage from 80 to
+	48 bytes on a 64-bit system.  For a long byte-force-recompile runs,
+	stack usage at the mark phase is reduced up to 28%.  Surprisingly,
+	it also gains up to 3% in speed (with default '-O2 -g3' flags).
+	* alloc.c (mark_compiled, mark_localized_symbol): New functions,
+	refactored out from ...
+	(mark_object): ... adjusted user.  Also mark symbols in a tight
+	inner loop.
+	(mark_face_cache): Add NO_INLINE.
+
 2014-06-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* sysdep.c (reset_sys_modes): Use cursorX, not curX, as the latter
