@@ -167,19 +167,19 @@ static ABQ MVTABQ(MVT mvt)
 
 static Land MVTCBS(MVT mvt)
 {
-  return &mvt->cbsStruct.landStruct;
+  return CBSLand(&mvt->cbsStruct);
 }
 
 
 static Land MVTFreelist(MVT mvt)
 {
-  return &mvt->flStruct.landStruct;
+  return FreelistLand(&mvt->flStruct);
 }
 
 
 static Land MVTFailover(MVT mvt)
 {
-  return &mvt->foStruct.landStruct;
+  return FailoverLand(&mvt->foStruct);
 }
 
 

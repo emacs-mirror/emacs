@@ -26,7 +26,6 @@ SRCID(cbs, "$Id$");
 #define CBSBlockSize(block) AddrOffset((block)->base, (block)->limit)
 
 
-#define cbsLand(cbs) (&((cbs)->landStruct))
 #define cbsOfLand(land) PARENT(CBSStruct, landStruct, land)
 #define cbsSplay(cbs) (&((cbs)->splayTreeStruct))
 #define cbsOfSplay(_splay) PARENT(CBSStruct, splayTreeStruct, _splay)
@@ -54,7 +53,7 @@ Bool CBSCheck(CBS cbs)
   /* See .enter-leave.simple. */
   Land land;
   CHECKS(CBS, cbs);
-  land = cbsLand(cbs);
+  land = CBSLand(cbs);
   CHECKD(Land, land);
   CHECKD(SplayTree, cbsSplay(cbs));
   CHECKD(Pool, cbs->blockPool);
@@ -126,7 +125,7 @@ static Bool cbsTestNode(SplayTree splay, Tree tree,
   AVERT(Tree, tree);
   AVER(closureP == NULL);
   AVER(size > 0);
-  AVER(IsLandSubclass(cbsLand(cbsOfSplay(splay)), CBSFastLandClass));
+  AVER(IsLandSubclass(CBSLand(cbsOfSplay(splay)), CBSFastLandClass));
 
   block = cbsBlockOfTree(tree);
 
@@ -142,7 +141,7 @@ static Bool cbsTestTree(SplayTree splay, Tree tree,
   AVERT(Tree, tree);
   AVER(closureP == NULL);
   AVER(size > 0);
-  AVER(IsLandSubclass(cbsLand(cbsOfSplay(splay)), CBSFastLandClass));
+  AVER(IsLandSubclass(CBSLand(cbsOfSplay(splay)), CBSFastLandClass));
 
   block = cbsFastBlockOfTree(tree);
 
@@ -158,7 +157,7 @@ static void cbsUpdateFastNode(SplayTree splay, Tree tree)
 
   AVERT_CRITICAL(SplayTree, splay);
   AVERT_CRITICAL(Tree, tree);
-  AVER_CRITICAL(IsLandSubclass(cbsLand(cbsOfSplay(splay)), CBSFastLandClass));
+  AVER_CRITICAL(IsLandSubclass(CBSLand(cbsOfSplay(splay)), CBSFastLandClass));
 
   maxSize = CBSBlockSize(cbsBlockOfTree(tree));
 
@@ -189,13 +188,13 @@ static void cbsUpdateZonedNode(SplayTree splay, Tree tree)
 
   AVERT_CRITICAL(SplayTree, splay);
   AVERT_CRITICAL(Tree, tree);
-  AVER_CRITICAL(IsLandSubclass(cbsLand(cbsOfSplay(splay)), CBSZonedLandClass));
+  AVER_CRITICAL(IsLandSubclass(CBSLand(cbsOfSplay(splay)), CBSZonedLandClass));
 
   cbsUpdateFastNode(splay, tree);
 
   zonedBlock = cbsZonedBlockOfTree(tree);
   block = &zonedBlock->cbsFastBlockStruct.cbsBlockStruct;
-  arena = LandArena(cbsLand(cbsOfSplay(splay)));
+  arena = LandArena(CBSLand(cbsOfSplay(splay)));
   zones = ZoneSetOfRange(arena, CBSBlockBase(block), CBSBlockLimit(block));
 
   if (TreeHasLeft(tree))
@@ -840,7 +839,7 @@ static Bool cbsFindFirst(Range rangeReturn, Range oldRangeReturn,
   AVERT(Land, land);
   cbs = cbsOfLand(land);
   AVERT(CBS, cbs);
-  AVER(IsLandSubclass(cbsLand(cbs), CBSFastLandClass));
+  AVER(IsLandSubclass(CBSLand(cbs), CBSFastLandClass));
 
   AVER(rangeReturn != NULL);
   AVER(oldRangeReturn != NULL);
@@ -925,7 +924,7 @@ static Bool cbsFindLast(Range rangeReturn, Range oldRangeReturn,
   AVERT(Land, land);
   cbs = cbsOfLand(land);
   AVERT(CBS, cbs);
-  AVER(IsLandSubclass(cbsLand(cbs), CBSFastLandClass));
+  AVER(IsLandSubclass(CBSLand(cbs), CBSFastLandClass));
 
   AVER(rangeReturn != NULL);
   AVER(oldRangeReturn != NULL);
@@ -962,7 +961,7 @@ static Bool cbsFindLargest(Range rangeReturn, Range oldRangeReturn,
   AVERT(Land, land);
   cbs = cbsOfLand(land);
   AVERT(CBS, cbs);
-  AVER(IsLandSubclass(cbsLand(cbs), CBSFastLandClass));
+  AVER(IsLandSubclass(CBSLand(cbs), CBSFastLandClass));
 
   AVER(rangeReturn != NULL);
   AVER(oldRangeReturn != NULL);
@@ -1013,7 +1012,7 @@ static Res cbsFindInZones(Bool *foundReturn, Range rangeReturn,
   AVERT(Land, land);
   cbs = cbsOfLand(land);
   AVERT(CBS, cbs);
-  AVER(IsLandSubclass(cbsLand(cbs), CBSZonedLandClass));
+  AVER(IsLandSubclass(CBSLand(cbs), CBSZonedLandClass));
   /* AVERT(ZoneSet, zoneSet); */
   AVER(BoolCheck(high));
 
