@@ -7,6 +7,17 @@
  * free but never allocated as alloc starts searching after the tables.
  * TractOfAddr uses the fact that these pages are marked as free in order
  * to detect "references" to these pages as being bogus.
+ *
+ * .chunk.at.base: The chunks are stored in a balanced binary tree.
+ * Looking up an address in this tree is on the critical path, and
+ * therefore vital that it runs quickly. It is an implementation
+ * detail of chunks that they are always stored at the base of the
+ * region of address space they represent. Thus chunk happens to
+ * always be the same as chunk->base. We take advantage of this in the
+ * tree search by using chunk as its own key (instead of looking up
+ * chunk->base): this saves a dereference and perhaps a cache miss.
+ * See ChunkKey and ChunkCompare for this optimization. The necessary
+ * property is asserted in ChunkCheck.
  */
 
 #include "tract.h"
@@ -117,7 +128,7 @@ Bool ChunkCheck(Chunk chunk)
 
   CHECKL(chunk->base != (Addr)0);
   CHECKL(chunk->base < chunk->limit);
-  /* .chunk.at.base: check chunk structure is at its own base */
+  /* check chunk structure is at its own base: see .chunk.at.base. */
   CHECKL(chunk->base == (Addr)chunk);
   CHECKL((Addr)(chunk+1) <= chunk->limit);
   CHECKL(ChunkSizeToPages(chunk, ChunkSize(chunk)) == chunk->pages);
@@ -276,6 +287,7 @@ Compare ChunkCompare(Tree tree, TreeKey key)
   AVERT_CRITICAL(Tree, tree);
   AVER_CRITICAL(tree != TreeEMPTY);
 
+  /* See .chunk.at.base. */
   chunk = ChunkOfTree(tree);
   AVERT_CRITICAL(Chunk, chunk);
 

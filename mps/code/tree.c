@@ -85,9 +85,9 @@ Compare TreeFind(Tree *treeReturn, Tree root, TreeKey key, TreeCompare compare)
   Tree node, parent;
   Compare cmp = CompareEQUAL;
   
-  AVERT(Tree, root);
-  AVER(treeReturn != NULL);
-  AVER(FUNCHECK(compare));
+  AVERT_CRITICAL(Tree, root);
+  AVER_CRITICAL(treeReturn != NULL);
+  AVER_CRITICAL(FUNCHECK(compare));
   /* key is arbitrary */
 
   parent = NULL;

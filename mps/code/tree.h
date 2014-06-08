@@ -138,7 +138,7 @@ extern void TreeBalance(Tree *treeIO);
  *
  * root is an lvalue storing a pointer to the root of the tree. It is
  * evaluated twice.
- * treeref and nextref are variable of type Tree*.
+ * treeref and nextref are variables of type Tree*.
  * tree and next are variables of type Tree.
  *
  * In the body of the loop, tree and next are the current and next
