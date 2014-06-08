@@ -520,7 +520,6 @@ static Bool tractSearch(Tract *tractReturn, Arena arena, Addr addr)
     }
   }
   while (chunkAboveAddr(&chunk, arena, addr)) {
-    /* If the ring was kept in address order, this could be improved. */
     addr = chunk->base;
     /* Start from allocBase to skip the tables. */
     if (tractSearchInChunk(tractReturn, chunk, chunk->allocBase)) {

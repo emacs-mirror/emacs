@@ -401,11 +401,19 @@ failSaMapped:
 
 /* vmChunkDestroy -- destroy a VMChunk */
 
-static void vmChunkDestroy(Chunk chunk)
+static Bool vmChunkDestroy(Tree tree, void *closureP, Size closureS)
 {
   VM vm;
+  Chunk chunk;
   VMChunk vmChunk;
 
+  AVERT(Tree, tree);
+  /* FIXME: AVER(closureP == UNUSED_POINTER); */
+  UNUSED(closureP);
+  /* FIXME: AVER(closureS == UNUSED_SIZE); */
+  UNUSED(closureS);
+
+  chunk = ChunkOfTree(tree);
   AVERT(Chunk, chunk);
   vmChunk = Chunk2VMChunk(chunk);
   AVERT(VMChunk, vmChunk);
@@ -418,6 +426,8 @@ static void vmChunkDestroy(Chunk chunk)
   vm = vmChunk->vm;
   ChunkFinish(chunk);
   VMDestroy(vm);
+
+  return TRUE;
 }
 
 
@@ -589,7 +599,6 @@ static void VMArenaFinish(Arena arena)
 {
   VMArena vmArena;
   VM arenaVM;
-  Tree *treeref, *nextref, tree, next;
 
   vmArena = Arena2VMArena(arena);
   AVERT(VMArena, vmArena);
@@ -600,9 +609,8 @@ static void VMArenaFinish(Arena arena)
   /* Destroy all chunks, including the primary. See
    * <design/arena/#chunk.delete> */
   arena->primary = NULL;
-  TREE_TRAVERSE_AND_DELETE(treeref, nextref, tree, next, arena->chunkTree) {
-    vmChunkDestroy(ChunkOfTree(tree));
-  }
+  /* FIXME: use UNUSED_POINTER, UNUSED_SIZE instead of NULL, 0 */
+  TreeTraverseAndDelete(&arena->chunkTree, vmChunkDestroy, NULL, 0);
   
   /* Destroying the chunks should have purged and removed all spare pages. */
   RingFinish(&vmArena->spareRing);
@@ -1084,11 +1092,42 @@ static void VMFree(Addr base, Size size, Pool pool)
 }
 
 
+/* vmChunkCompact -- delete chunk if empty and not primary */
+
+static Bool vmChunkCompact(Tree tree, void *closureP, Size closureS)
+{
+  Chunk chunk;
+  Arena arena = closureP;
+  VMArena vmArena;
+
+  AVERT(Tree, tree);
+  AVERT(Arena, arena);
+  /* FIXME: AVER(closureS == UNUSED_SIZE); */
+  UNUSED(closureS);
+
+  vmArena = Arena2VMArena(arena);
+  AVERT(VMArena, vmArena);
+  chunk = ChunkOfTree(tree);
+  AVERT(Chunk, chunk);
+  if(chunk != arena->primary
+     && BTIsResRange(chunk->allocTable, 0, chunk->pages))
+  {
+    Addr base = chunk->base;
+    Size size = ChunkSize(chunk);
+    vmChunkDestroy(tree, closureP, closureS);
+    vmArena->contracted(arena, base, size);
+    return TRUE;
+  } else {
+    /* Keep this chunk. */
+    return FALSE;
+  }
+}
+
+
 static void VMCompact(Arena arena, Trace trace)
 {
   VMArena vmArena;
   Size vmem1;
-  Tree *treeref, *nextref, tree, next;
 
   vmArena = Arena2VMArena(arena);
   AVERT(VMArena, vmArena);
@@ -1099,21 +1138,8 @@ static void VMCompact(Arena arena, Trace trace)
   /* Destroy chunks that are completely free, but not the primary
    * chunk. See <design/arena/#chunk.delete>
    * TODO: add hysteresis here. See job003815. */
-  TREE_TRAVERSE_AND_DELETE(treeref, nextref, tree, next, arena->chunkTree) {
-    Chunk chunk = ChunkOfTree(tree);
-    AVERT(Chunk, chunk);
-    if(chunk != arena->primary
-       && BTIsResRange(chunk->allocTable, 0, chunk->pages))
-    {
-      Addr base = chunk->base;
-      Size size = ChunkSize(chunk);
-      vmChunkDestroy(chunk);
-      vmArena->contracted(arena, base, size);
-    } else {
-      /* Keep this chunk. */
-      treeref = nextref;
-    }
-  }
+  /* FIXME: use UNUSED_SIZE instead of 0 */
+  TreeTraverseAndDelete(&arena->chunkTree, vmChunkCompact, arena, 0);
 
   {
     Size vmem0 = trace->preTraceArenaReserved;
