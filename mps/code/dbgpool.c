@@ -227,6 +227,20 @@ static void DebugPoolFinish(Pool pool)
 }
 
 
+/* patternIterate -- call visitor for occurrences of pattern between
+ * base and limit
+ *
+ * pattern is an arbitrary pattern that's size bytes long.
+ *
+ * Imagine that the entirety of memory were covered by contiguous
+ * copies of pattern starting at address 0. Then call visitor for each
+ * copy (or part) of pattern that lies between base and limit. In each
+ * call, target is the address of the copy or part (where base <=
+ * target < limit); source is the corresponding byte of the pattern
+ * (where pattern <= source < pattern + size); and size is the length
+ * of the copy or part.
+ */
+
 static Bool patternIterate(Addr pattern, Size size, Addr base, Addr limit,
                            Bool (*visitor)(Addr target, Addr source, Size size))
 {
@@ -247,18 +261,18 @@ static Bool patternIterate(Addr pattern, Size size, Addr base, Addr limit,
       break;
     } else if (p == rounded && end <= limit) {
       /* Room for a whole copy */
-      if (!visitor(p, pattern, size))
+      if (!(*visitor)(p, pattern, size))
         return FALSE;
       p = end;
     } else if (p < rounded && rounded <= end && rounded <= limit) {
       /* Copy up to rounded */
-      if (!visitor(p, AddrAdd(pattern, offset), AddrOffset(p, rounded)))
+      if (!(*visitor)(p, AddrAdd(pattern, offset), AddrOffset(p, rounded)))
         return FALSE;
       p = rounded;
     } else {
       /* Copy up to limit */
       AVER(limit <= end && (p == rounded || limit <= rounded));
-      if (!visitor(p, AddrAdd(pattern, offset), AddrOffset(p, limit)))
+      if (!(*visitor)(p, AddrAdd(pattern, offset), AddrOffset(p, limit)))
         return FALSE;
       p = limit;
     }
