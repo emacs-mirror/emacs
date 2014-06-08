@@ -13,6 +13,8 @@
 
 typedef struct FreelistStruct *Freelist;
 
+#define FreelistLand(fl) (&(fl)->landStruct)
+
 extern Bool FreelistCheck(Freelist freelist);
 
 extern LandClass FreelistLandClassGet(void);

@@ -60,13 +60,6 @@ typedef struct MFSHeaderStruct {
 #define UNIT_MIN        sizeof(HeaderStruct)
 
 
-Pool (MFSPool)(MFS mfs)
-{
-  AVERT(MFS, mfs);
-  return &mfs->poolStruct;
-}
-
-
 /* MFSVarargs -- decode obsolete varargs */
 
 static void MFSVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
