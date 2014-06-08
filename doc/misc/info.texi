@@ -151,12 +151,11 @@ Since your terminal has a relatively small number of lines on its
 screen, it is necessary to give you special advice at the beginning.
 
 If the entire text you are looking at fits on the screen, the text
-@samp{All} will be displayed at the bottom of the screen.  In the
-stand-alone Info reader, it is displayed at the bottom right corner of
-the screen; in Emacs, it is displayed on the modeline.  If you see the
-text @samp{Top} instead, it means that there is more text below that
-does not fit.  To move forward through the text and see another screen
-full, press @key{SPC}, the Space bar.  To move back up, press the key
+@samp{All} will be displayed near the bottom of the screen, on the
+mode line (usually, the line in inverse video).  If you see the text
+@samp{Top} instead, it means that there is more text below that does
+not fit.  To move forward through the text and see another screenful,
+press @key{SPC}, the Space bar.  To move back up, press the key
 labeled @samp{Backspace} or @samp{DEL} (on some keyboards, this key
 might be labeled @samp{Delete}).  In a graphical Emacs, you can also use
 @kbd{S-@key{SPC}} (press and hold the @key{Shift} key and then press
@@ -405,12 +404,9 @@ repeatedly.
 >> Type a @key{?} now.  Press @key{SPC} to see consecutive screenfuls of
    the list until finished.  Then type @key{SPC} several times.  If
    you are using Emacs, the help will then go away automatically.
+   If you are using the stand-alone Info reader, type @kbd{x} to
+   return here.
 @end format
-
-  (If you are using the stand-alone Info reader, type @kbd{C-x 0} to
-return here, that is---press and hold @key{CTRL}, type an @kbd{x},
-then release @key{CTRL} and @kbd{x}, and press @kbd{0}; that's a zero,
-not the letter ``o''.)
 
   From now on, you will encounter large nodes without warning, and
 will be expected to know how to use @key{SPC} and @key{BACKSPACE} to

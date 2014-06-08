@@ -1,3 +1,10 @@
+2014-06-08  Karl Berry  <karl@gnu.org>
+
+	* doc/info.texi (Help-^L): "mode line", "screenful",
+	stand-alone and Emacs Info both use the mode line.
+	Use x instead of weird C-x 0 to get rid of help msg
+	in standalone Info.
+
 2014-06-08  Glenn Morris  <rgm@gnu.org>
 
 	* vip.texi (Files): Defer to Emacs manual for uniquify details.
