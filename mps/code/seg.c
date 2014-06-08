@@ -309,9 +309,12 @@ void SegSetSummary(Seg seg, RefSet summary)
   AVERT(Seg, seg);
   AVER(summary == RefSetEMPTY || SegRankSet(seg) != RankSetEMPTY);
 
-#ifdef PROTECTION_NONE
+#if defined(REMEMBERED_SET_NONE)
+  /* Without protection, we can't maintain the remembered set because
+     there are writes we don't know about. */
   summary = RefSetUNIV;
 #endif
+
   if (summary != SegSummary(seg))
     seg->class->setSummary(seg, summary);
 }
@@ -324,11 +327,12 @@ void SegSetRankAndSummary(Seg seg, RankSet rankSet, RefSet summary)
   AVERT(Seg, seg); 
   AVERT(RankSet, rankSet);
 
-#ifdef PROTECTION_NONE
+#if defined(REMEMBERED_SET_NONE)
   if (rankSet != RankSetEMPTY) {
     summary = RefSetUNIV;
   }
 #endif
+
   seg->class->setRankSummary(seg, rankSet, summary);
 }
 
@@ -593,7 +597,7 @@ Res SegMerge(Seg *mergedSegReturn, Seg segLo, Seg segHi,
   if (ResOK != res)
     goto failMerge;
 
-  EVENT3(SegMerge, segLo, segHi, withReservoirPermit);
+  EVENT3(SegMerge, segLo, segHi, BOOLOF(withReservoirPermit));
   /* Deallocate segHi object */
   ControlFree(arena, segHi, class->size);
   AVERT(Seg, segLo);
@@ -635,6 +639,10 @@ Res SegSplit(Seg *segLoReturn, Seg *segHiReturn, Seg seg, Addr at,
   AVER(at > base);
   AVER(at < limit);
   AVERT(Bool, withReservoirPermit);
+
+  /* Can only split a buffered segment if the entire buffer is below
+   * the split point. */
+  AVER(SegBuffer(seg) == NULL || BufferLimit(SegBuffer(seg)) <= at);
 
   ShieldFlush(arena);  /* see <design/seg/#split-merge.shield> */
 
@@ -678,10 +686,8 @@ failControl:
 
 Bool SegCheck(Seg seg)
 {
-  Tract tract;
   Arena arena;
   Pool pool;
-  Addr addr;
   Size align;
  
   CHECKS(Seg, seg);
@@ -700,16 +706,25 @@ Bool SegCheck(Seg seg)
   CHECKL(AddrIsAligned(seg->limit, align));
   CHECKL(seg->limit > TractBase(seg->firstTract));
 
-  /* Each tract of the segment must agree about white traces */
-  TRACT_TRACT_FOR(tract, addr, arena, seg->firstTract, seg->limit) {
-    Seg trseg = NULL; /* suppress compiler warning */
+  /* Each tract of the segment must agree about white traces. Note
+   * that even if the CHECKs are compiled away there is still a
+   * significant cost in looping over the tracts, hence the guard. See
+   * job003778. */
+#if defined(AVER_AND_CHECK_ALL)
+  {
+    Tract tract;
+    Addr addr;
+    TRACT_TRACT_FOR(tract, addr, arena, seg->firstTract, seg->limit) {
+      Seg trseg = NULL; /* suppress compiler warning */
 
-    CHECKD_NOSIG(Tract, tract);
-    CHECKL(TRACT_SEG(&trseg, tract) && (trseg == seg));
-    CHECKL(TractWhite(tract) == seg->white);
-    CHECKL(TractPool(tract) == pool);
+      CHECKD_NOSIG(Tract, tract);
+      CHECKL(TRACT_SEG(&trseg, tract) && (trseg == seg));
+      CHECKL(TractWhite(tract) == seg->white);
+      CHECKL(TractPool(tract) == pool);
+    }
+    CHECKL(addr == seg->limit);
   }
-  CHECKL(addr == seg->limit);
+#endif  /* AVER_AND_CHECK_ALL */
 
   /* The segment must belong to some pool, so it should be on a */
   /* pool's segment ring.  (Actually, this isn't true just after */
@@ -1200,7 +1215,7 @@ static void gcSegSetGreyInternal(Seg seg, TraceSet oldGrey, TraceSet grey)
   /* Internal method. Parameters are checked by caller */
   gcseg = SegGCSeg(seg);
   arena = PoolArena(SegPool(seg));
-  seg->grey = grey;
+  seg->grey = BS_BITFIELD(Trace, grey);
 
   /* If the segment is now grey and wasn't before, add it to the */
   /* appropriate grey list so that TraceFindGrey can locate it */
@@ -1313,11 +1328,11 @@ static void gcSegSetWhite(Seg seg, TraceSet white)
 
     AVERT_CRITICAL(Tract, tract);
     AVER_CRITICAL(TRACT_SEG(&trseg, tract) && (trseg == seg));
-    TractSetWhite(tract, white);
+    TractSetWhite(tract, BS_BITFIELD(Trace, white));
   }
   AVER(addr == limit);
 
-  seg->white = white;
+  seg->white = BS_BITFIELD(Trace, white);
 }
 
 
@@ -1350,7 +1365,7 @@ static void gcSegSetRankSet(Seg seg, RankSet rankSet)
 
   arena = PoolArena(SegPool(seg));
   oldRankSet = seg->rankSet;
-  seg->rankSet = rankSet;
+  seg->rankSet = BS_BITFIELD(Rank, rankSet);
 
   if (oldRankSet == RankSetEMPTY) {
     if (rankSet != RankSetEMPTY) {
@@ -1427,7 +1442,7 @@ static void gcSegSetRankSummary(Seg seg, RankSet rankSet, RefSet summary)
   wasShielded = (seg->rankSet != RankSetEMPTY && gcseg->summary != RefSetUNIV);
   willbeShielded = (rankSet != RankSetEMPTY && summary != RefSetUNIV);
 
-  seg->rankSet = rankSet;
+  seg->rankSet = BS_BITFIELD(Rank, rankSet);
   gcseg->summary = summary;
 
   if (willbeShielded && !wasShielded) {

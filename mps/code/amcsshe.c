@@ -91,18 +91,6 @@ static void report(mps_arena_t arena)
     printf("not_condemned %"PRIuLONGEST"\n", (ulongest_t)not_condemned);
 
     mps_message_discard(arena, message);
-
-    if (condemned > (gen1SIZE + gen2SIZE + (size_t)128) * 1024) {
-      /* When condemned size is larger than could happen in a gen 2
-       * collection (discounting ramps, natch), guess that was a dynamic
-       * collection, and reset the commit limit, so it doesn't run out.
-       *
-       * GDR 2013-03-07: Fiddling with the commit limit was causing
-       * the test to fail sometimes (see job003432), so I've commented
-       * out this feature.
-       */
-      /*die(mps_arena_commit_limit_set(arena, 2 * testArenaSIZE), "set limit");*/
-    }
   }
 }
 
@@ -237,6 +225,7 @@ static void *test(mps_arena_t arena, mps_class_t pool_class, size_t roots_count)
   }
 
   (void)mps_commit(busy_ap, busy_init, 64);
+  mps_arena_park(arena);
   mps_ap_destroy(busy_ap);
   mps_ap_destroy(ap);
   mps_root_destroy(exactRoot);
@@ -245,6 +234,7 @@ static void *test(mps_arena_t arena, mps_class_t pool_class, size_t roots_count)
   mps_pool_destroy(pool);
   mps_chain_destroy(chain);
   mps_fmt_destroy(format);
+  mps_arena_release(arena);
 
   return NULL;
 }
@@ -257,14 +247,10 @@ int main(int argc, char *argv[])
 
   testlib_init(argc, argv);
 
-  die(mps_arena_create(&arena, mps_arena_class_vm(), 3*testArenaSIZE),
+  die(mps_arena_create(&arena, mps_arena_class_vm(), 2*testArenaSIZE),
       "arena_create\n");
   mps_message_type_enable(arena, mps_message_type_gc());
-  /* GDR 2013-03-07: Fiddling with the commit limit was causing
-   * the test to fail sometimes (see job003432), so I've commented
-   * out this feature.
-   */
-  /*die(mps_arena_commit_limit_set(arena, testArenaSIZE), "set limit");*/
+  die(mps_arena_commit_limit_set(arena, 2*testArenaSIZE), "set limit");
   die(mps_thread_reg(&thread, arena), "thread_reg");
   test(arena, mps_class_amc(), exactRootsCOUNT);
   test(arena, mps_class_amcz(), 0);

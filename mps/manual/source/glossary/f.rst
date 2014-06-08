@@ -26,6 +26,11 @@ Memory Management Glossary: F
 
         .. similar:: :term:`in-band header`.
 
+        .. mps:specific::
+
+            :term:`Debugging pools` use fenceposts. See
+            :ref:`topic-debugging`.
+
     fencepost error
     fence post error
 

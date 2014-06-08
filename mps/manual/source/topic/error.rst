@@ -232,12 +232,12 @@ assertion that is listed here but for which you discovered a different
 cause), please :ref:`let us know <contact>` so that we can improve
 this documentation.
 
-``arenavm.c: BTIsResRange(vmChunk->pageTableMapped, 0, chunk->pageTablePages)``
 
-    The client program called :c:func:`mps_arena_destroy` without
-    having destroyed all pools in that arena first. (The assertion is
-    from the virtual memory manager which is checking that all pages
-    have been unmapped.)
+``buffer.c: BufferIsReady(buffer)``
+
+    The client program called :c:func:`mps_reserve` twice on the same
+    :term:`allocation point` without calling :c:func:`mps_commit`. See
+    :ref:`topic-allocation-point-protocol`.
 
 
 ``dbgpool.c: fencepost check on free``
@@ -269,6 +269,15 @@ this documentation.
     :term:`format methods` and :term:`stepper functions`.
 
 
+``locus.c: chain->activeTraces == TraceSetEMPTY)``
+
+    The client program called :c:func:`mps_chain_destroy`, but there
+    was a garbage collection in progress on that chain.
+
+    Park the arena before destroying the chain by calling
+    :c:func:`mps_arena_park`.
+
+
 ``mpsi.c: SizeIsAligned(size, BufferPool(buf)->alignment)``
 
     The client program reserved a block by calling
@@ -276,19 +285,11 @@ this documentation.
     alignment required by the pool's :term:`object format`.
 
 
-``pool.c: (pool->class->attr & AttrALLOC) != 0``
+``pool.c: PoolHasAttr(pool, AttrALLOC)``
 
     The client program called :c:func:`mps_alloc` on a pool that does
     not support this form of allocation. Use an :term:`allocation
     point` instead.
-
-
-``poolams.c: !AMS_IS_INVALID_COLOUR(seg, i)``
-
-    The client program failed to :term:`fix` a reference to an object
-    in an :ref:`pool-ams` pool, violating the :term:`tri-colour
-    invariant` that the MPS depends on for the correctness of its
-    :term:`incremental garbage collection`.
 
 
 ``poolams.c: AMS_ALLOCED(seg, i)``
@@ -299,6 +300,25 @@ this documentation.
     have kept the block alive failed to be scanned. Perhaps a
     :term:`formatted object` was updated in some way that has a race
     condition?
+
+
+``ring.c: ring->next == ring``
+
+    The client program destroyed an object without having destroyed
+    all the objects that it owns first. For example, it destroyed an
+    arena without first destroying all pools in that arena, or it
+    destroyed a pool without first destroying all allocation points
+    created on that pool.
+
+
+``trace.c: RefSetSub(ScanStateUnfixedSummary(ss), SegSummary(seg))``
+
+    The client program's :term:`scan method` failed to update a
+    reference to an object that moved. See
+    :ref:`topic-scanning-protocol`, which says, "If :c:func:`MPS_FIX2`
+    returns :c:macro:`MPS_RES_OK`, it may have updated the reference.
+    If necessary, make sure that the updated reference is stored back
+    to the region being scanned."
 
 
 .. index::

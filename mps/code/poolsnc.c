@@ -84,6 +84,7 @@ typedef struct SNCBufStruct {
 
 /* SNCBufCheck -- check consistency of an SNCBuf */
 
+ATTRIBUTE_UNUSED
 static Bool SNCBufCheck(SNCBuf sncbuf)
 {
   SegBuf segbuf;
@@ -214,6 +215,7 @@ typedef struct SNCSegStruct {
 #define sncSegSetNext(seg, nextseg) \
   ((void)(SegSNCSeg(seg)->next = SegSNCSeg(nextseg)))
 
+ATTRIBUTE_UNUSED
 static Bool SNCSegCheck(SNCSeg sncseg)
 {
   CHECKS(SNCSeg, sncseg);
@@ -696,6 +698,7 @@ mps_class_t mps_class_snc(void)
 
 /* SNCCheck -- Check an SNC pool */
 
+ATTRIBUTE_UNUSED
 static Bool SNCCheck(SNC snc)
 {
   CHECKS(SNC, snc);

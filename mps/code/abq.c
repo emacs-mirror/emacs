@@ -1,7 +1,7 @@
 /* abq.c: QUEUE IMPLEMENTATION
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: A fixed-length FIFO queue.
  *
@@ -185,18 +185,10 @@ Res ABQDescribe(ABQ abq, ABQDescribeElement describeElement, mps_lib_FILE *strea
   if(res != ResOK)
     return res;
 
-  res = METER_WRITE(abq->push, stream);
-  if(res != ResOK)
-    return res;
-  res = METER_WRITE(abq->pop, stream);
-  if(res != ResOK)
-    return res;
-  res = METER_WRITE(abq->peek, stream);
-  if(res != ResOK)
-    return res;
-  res = METER_WRITE(abq->delete, stream);
-  if(res != ResOK)
-    return res;
+  METER_WRITE(abq->push, stream);
+  METER_WRITE(abq->pop, stream);
+  METER_WRITE(abq->peek, stream);
+  METER_WRITE(abq->delete, stream);
  
   res = WriteF(stream, "}\n", NULL);
   if(res != ResOK)
@@ -311,7 +303,7 @@ static void *ABQElement(ABQ abq, Index index) {
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

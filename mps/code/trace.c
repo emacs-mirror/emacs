@@ -390,6 +390,7 @@ Res TraceCondemnZones(Trace trace, ZoneSet condemnedSet)
   Seg seg;
   Arena arena;
   Res res;
+  Bool haveWhiteSegs = FALSE;
 
   AVERT(Trace, trace);
   AVER(condemnedSet != ZoneSetEMPTY);
@@ -415,7 +416,8 @@ Res TraceCondemnZones(Trace trace, ZoneSet condemnedSet)
       {
         res = TraceAddWhite(trace, seg);
         if(res != ResOK)
-          return res;
+          goto failBegin;
+        haveWhiteSegs = TRUE;
       }
     } while (SegNext(&seg, arena, seg));
   }
@@ -426,6 +428,10 @@ Res TraceCondemnZones(Trace trace, ZoneSet condemnedSet)
   AVER(ZoneSetSuper(condemnedSet, trace->white));
 
   return ResOK;
+
+failBegin:
+  AVER(!haveWhiteSegs); /* See .whiten.fail. */
+  return res;
 }
 
 
@@ -628,33 +634,6 @@ failRootFlip:
   return res;
 }
 
-/* traceCopySizes -- preserve size information for later use
- *
- * A PoolGen's newSize is important information that we want to emit in
- * a diagnostic message at TraceStart.  In order to do that we must copy
- * the information before Whiten changes it.  This function does that.
- */
-
-static void traceCopySizes(Trace trace)
-{
-  Ring node, nextNode;
-  Index i;
-  Arena arena = trace->arena;
-
-  RING_FOR(node, &arena->chainRing, nextNode) {
-    Chain chain = RING_ELT(Chain, chainRing, node);
-
-    for(i = 0; i < chain->genCount; ++i) {
-      Ring n, nn;
-      GenDesc desc = &chain->gens[i];
-      RING_FOR(n, &desc->locusRing, nn) {
-        PoolGen gen = RING_ELT(PoolGen, genRing, n);
-        gen->newSizeAtCreate = gen->newSize;
-      }
-    }
-  }
-  return;
-}
 
 /* TraceCreate -- create a Trace object
  *
@@ -670,6 +649,17 @@ static void traceCopySizes(Trace trace)
  *
  * This code is written to be adaptable to allocating Trace objects
  * dynamically.  */
+
+static void TraceCreatePoolGen(GenDesc gen)
+{
+  Ring n, nn;
+  RING_FOR(n, &gen->locusRing, nn) {
+    PoolGen pgen = RING_ELT(PoolGen, genRing, n);
+    EVENT11(TraceCreatePoolGen, gen, gen->capacity, gen->mortality, gen->zones,
+            pgen->pool, pgen->totalSize, pgen->freeSize, pgen->newSize,
+            pgen->oldSize, pgen->newDeferredSize, pgen->oldDeferredSize);
+  }
+}
 
 Res TraceCreate(Trace *traceReturn, Arena arena, int why)
 {
@@ -741,7 +731,24 @@ found:
   /* .. _request.dylan.160098: https://info.ravenbrook.com/project/mps/import/2001-11-05/mmprevol/request/dylan/160098 */
   ShieldSuspend(arena);
 
-  traceCopySizes(trace);
+  STATISTIC_STAT ({
+    /* Iterate over all chains, all GenDescs within a chain, and all
+     * PoolGens within a GenDesc. */
+    Ring node;
+    Ring nextNode;
+
+    RING_FOR(node, &arena->chainRing, nextNode) {
+      Chain chain = RING_ELT(Chain, chainRing, node);
+      Index i;
+      for (i = 0; i < chain->genCount; ++i) {
+        GenDesc gen = &chain->gens[i];
+        TraceCreatePoolGen(gen);
+      }
+    }
+
+    /* Now do topgen GenDesc, and all PoolGens within it. */
+    TraceCreatePoolGen(&arena->topGen);
+  });
 
   *traceReturn = trace;
   return ResOK;
@@ -797,10 +804,11 @@ void TraceDestroy(Trace trace)
                   (TraceStatReclaim, trace,
                    trace->reclaimCount, trace->reclaimSize));
 
+  EVENT1(TraceDestroy, trace);
+
   trace->sig = SigInvalid;
   trace->arena->busyTraces = TraceSetDel(trace->arena->busyTraces, trace);
   trace->arena->flippedTraces = TraceSetDel(trace->arena->flippedTraces, trace);
-  EVENT1(TraceDestroy, trace);
 }
 
 
@@ -1502,21 +1510,31 @@ static Res traceCondemnAll(Trace trace)
 {
   Res res;
   Arena arena;
-  Ring chainNode, nextChainNode;
+  Ring poolNode, nextPoolNode, chainNode, nextChainNode;
   Bool haveWhiteSegs = FALSE;
 
   arena = trace->arena;
   AVERT(Arena, arena);
-  /* Condemn all the chains. */
-  RING_FOR(chainNode, &arena->chainRing, nextChainNode) {
-    Chain chain = RING_ELT(Chain, chainRing, chainNode);
 
-    AVERT(Chain, chain);
-    res = ChainCondemnAll(chain, trace);
-    if(res != ResOK)
-      goto failBegin;
-    haveWhiteSegs = TRUE;
+  /* Condemn all segments in pools with the GC attribute. */
+  RING_FOR(poolNode, &ArenaGlobals(arena)->poolRing, nextPoolNode) {
+    Pool pool = RING_ELT(Pool, arenaRing, poolNode);
+    AVERT(Pool, pool);
+
+    if (PoolHasAttr(pool, AttrGC)) {
+      Ring segNode, nextSegNode;
+      RING_FOR(segNode, PoolSegRing(pool), nextSegNode) {
+        Seg seg = SegOfPoolRing(segNode);
+        AVERT(Seg, seg);
+
+        res = TraceAddWhite(trace, seg);
+        if (res != ResOK)
+          goto failBegin;
+        haveWhiteSegs = TRUE;
+      }
+    }
   }
+
   /* Notify all the chains. */
   RING_FOR(chainNode, &arena->chainRing, nextChainNode) {
     Chain chain = RING_ELT(Chain, chainRing, chainNode);
@@ -1526,7 +1544,14 @@ static Res traceCondemnAll(Trace trace)
   return ResOK;
 
 failBegin:
-  AVER(!haveWhiteSegs); /* Would leave white sets inconsistent. */
+  /* .whiten.fail: If we successfully whitened one or more segments,
+   * but failed to whiten them all, then the white sets would now be
+   * inconsistent. This can't happen in practice (at time of writing)
+   * because all PoolWhiten methods always succeed. If we ever have a
+   * pool class that fails to whiten a segment, then this assertion
+   * will be triggered. In that case, we'll have to recover here by
+   * blackening the segments again. */
+  AVER(!haveWhiteSegs);
   return res;
 }
 
@@ -1540,9 +1565,9 @@ double TraceWorkFactor = 0.25;
  *
  * TraceStart should be passed a trace with state TraceINIT, i.e.,
  * recently returned from TraceCreate, with some condemned segments
- * added.  mortality is the fraction of the condemned set expected to
- * survive.  finishingTime is relative to the current polling clock, see
- * <design/arena/#poll.clock>.
+ * added. mortality is the fraction of the condemned set expected not
+ * to survive. finishingTime is relative to the current polling clock,
+ * see <design/arena/#poll.clock>.
  *
  * .start.black: All segments are black w.r.t. a newly allocated trace.
  * However, if TraceStart initialized segments to black when it
@@ -1561,19 +1586,6 @@ static Res rootGrey(Root root, void *p)
   }
 
   return ResOK;
-}
-
-
-static void TraceStartPoolGen(Chain chain, GenDesc desc, Bool top, Index i)
-{
-  Ring n, nn;
-  RING_FOR(n, &desc->locusRing, nn) {
-    PoolGen gen = RING_ELT(PoolGen, genRing, n);
-    EVENT11(TraceStartPoolGen, chain, top, i, desc,
-            desc->capacity, desc->mortality, desc->zones,
-            gen->pool, gen->nr, gen->totalSize,
-            gen->newSizeAtCreate);
-  }
 }
 
 
@@ -1641,26 +1653,6 @@ Res TraceStart(Trace trace, double mortality, double finishingTime)
     } while (SegNext(&seg, arena, seg));
   }
 
-  STATISTIC_STAT ({
-    /* @@ */
-    /* Iterate over all chains, all GenDescs within a chain, */
-    /* (and all PoolGens within a GenDesc).  */
-    Ring node;
-    Ring nextNode;
-    Index i;
-    
-    RING_FOR(node, &arena->chainRing, nextNode) {
-      Chain chain = RING_ELT(Chain, chainRing, node);
-      for(i = 0; i < chain->genCount; ++i) {
-        GenDesc desc = &chain->gens[i];
-        TraceStartPoolGen(chain, desc, FALSE, i);
-      }
-    }
-    
-    /* Now do topgen GenDesc (and all PoolGens within it). */
-    TraceStartPoolGen(NULL, &arena->topGen, TRUE, 0);
-  });
-
   res = RootsIterate(ArenaGlobals(arena), rootGrey, (void *)trace);
   AVER(res == ResOK);
 
@@ -1714,7 +1706,10 @@ Res TraceStart(Trace trace, double mortality, double finishingTime)
 void TraceQuantum(Trace trace)
 {
   Size pollEnd;
-  Arena arena = trace->arena;
+  Arena arena;
+
+  AVERT(Trace, trace);
+  arena = trace->arena;
 
   pollEnd = traceWorkClock(trace) + trace->rate;
   do {

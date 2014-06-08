@@ -53,7 +53,6 @@ Old design
     scan
     seg
     shield
-    splay
     sso1al
     strategy
     telemetry

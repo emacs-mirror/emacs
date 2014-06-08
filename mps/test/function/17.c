@@ -47,6 +47,7 @@ static void test(void)
    pool1=pool;
  }
 
+ mps_arena_park(arena);
  mps_pool_destroy(pool);
  mps_chain_destroy(chain);
  mps_fmt_destroy(format);

@@ -1,7 +1,7 @@
 /* chain.h: GENERATION CHAINS
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  */
 
 #ifndef chain_h
@@ -31,7 +31,6 @@ typedef struct GenDescStruct {
   ZoneSet zones; /* zoneset for this generation */
   Size capacity; /* capacity in kB */
   double mortality;
-  double proflow; /* predicted proportion of survivors promoted */
   RingStruct locusRing; /* Ring of all PoolGen's in this GenDesc (locus) */
 } GenDescStruct;
 
@@ -44,19 +43,19 @@ typedef struct PoolGenStruct *PoolGen;
 
 typedef struct PoolGenStruct {
   Sig sig;
-  Serial nr;          /* generation number */
   Pool pool;          /* pool this belongs to */
-  Chain chain;        /* chain this belongs to */
+  GenDesc gen;        /* generation this belongs to */
   /* link in ring of all PoolGen's in this GenDesc (locus) */
   RingStruct genRing;
-  Size totalSize;     /* total size of segs in gen in this pool */
-  Size newSize;       /* size allocated since last GC */
-  /* newSize when TraceCreate was called. This is used in the
-   * TraceStartPoolGen event emitted at the start of a trace; at that
-   * time, newSize has already been diminished by Whiten so we can't
-   * use that value. TODO: This will not work well with multiple
-   * traces. */
-  Size newSizeAtCreate;
+
+  /* Accounting of memory in this generation for this pool */  
+  STATISTIC_DECL(Size segs);     /* number of segments */
+  Size totalSize;                /* total (sum of segment sizes) */
+  STATISTIC_DECL(Size freeSize); /* unused (free or lost to fragmentation) */
+  Size newSize;                  /* allocated since last collection */
+  STATISTIC_DECL(Size oldSize);  /* allocated prior to last collection */
+  Size newDeferredSize;          /* new (but deferred) */
+  STATISTIC_DECL(Size oldDeferredSize); /* old (but deferred) */
 } PoolGenStruct;
 
 
@@ -81,27 +80,32 @@ extern Bool ChainCheck(Chain chain);
 
 extern double ChainDeferral(Chain chain);
 extern Res ChainCondemnAuto(double *mortalityReturn, Chain chain, Trace trace);
-extern Res ChainCondemnAll(Chain chain, Trace trace);
 extern void ChainStartGC(Chain chain, Trace trace);
 extern void ChainEndGC(Chain chain, Trace trace);
 extern size_t ChainGens(Chain chain);
-extern Res ChainAlloc(Seg *segReturn, Chain chain, Serial genNr,
-                      SegClass class, Size size, Pool pool,
-                      Bool withReservoirPermit, ArgList args);
+extern GenDesc ChainGen(Chain chain, Index gen);
 
-extern Bool PoolGenCheck(PoolGen gen);
-extern Res PoolGenInit(PoolGen gen, Chain chain, Serial nr, Pool pool);
-extern void PoolGenFinish(PoolGen gen);
-extern void PoolGenFlip(PoolGen gen);
-#define PoolGenNr(gen) ((gen)->nr)
-
+extern Bool PoolGenCheck(PoolGen pgen);
+extern Res PoolGenInit(PoolGen pgen, GenDesc gen, Pool pool);
+extern void PoolGenFinish(PoolGen pgen);
+extern Res PoolGenAlloc(Seg *segReturn, PoolGen pgen, SegClass class,
+                        Size size, Bool withReservoirPermit, ArgList args);
+extern void PoolGenFree(PoolGen pgen, Seg seg, Size freeSize, Size oldSize,
+                        Size newSize, Bool deferred);
+extern void PoolGenAccountForFill(PoolGen pgen, Size size, Bool deferred);
+extern void PoolGenAccountForEmpty(PoolGen pgen, Size unused, Bool deferred);
+extern void PoolGenAccountForAge(PoolGen pgen, Size aged, Bool deferred);
+extern void PoolGenAccountForReclaim(PoolGen pgen, Size reclaimed, Bool deferred);
+extern void PoolGenUndefer(PoolGen pgen, Size oldSize, Size newSize);
+extern void PoolGenAccountForSegSplit(PoolGen pgen);
+extern void PoolGenAccountForSegMerge(PoolGen pgen);
 
 #endif /* chain_h */
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

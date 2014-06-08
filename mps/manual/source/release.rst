@@ -26,9 +26,32 @@ New features
    :c:macro:`MPS_KEY_INTERIOR` keyword argument to ``FALSE`` when
    calling :c:func:`mps_pool_create_k`.
 
+#. The logic for deciding which generations should be collected has
+   changed. Now, a chain may be scheduled for collection if the new
+   size of *any* of its generations exceeds its capacity, and when a
+   chain is collected, all generations are collected up to, and
+   including, the highest generation whose new size exceeds its
+   capacity. This ensures that all generations are collected reliably
+   on chains where there is no allocation into the nursery generation.
+   See :ref:`topic-collection-schedule`.
+
+   (Previously, only the nursery generation in each chain
+   was considered, and a chain was collected up to, but not including,
+   the lowest generation whose new size was within its capacity.)
+
 
 Interface changes
 .................
+
+#. There is now a default value (currently 256 \ :term:`megabytes`)
+   for the :c:macro:`MPS_KEY_ARENA_SIZE` keyword argument to
+   :c:func:`mps_arena_create_k` when creating a virtual memory arena.
+   See :c:func:`mps_arena_class_vm`.
+
+#. The keyword argument :c:macro:`MPS_KEY_AMS_SUPPORT_AMBIGUOUS` now
+   defaults to ``TRUE`` in order to better support the general case:
+   the value ``FALSE`` is appropriate only when you know that all
+   references are exact. See :ref:`pool-ams`.
 
 #. It is now possible to configure the alignment of objects allocated
    in a :ref:`pool-mv` pool, by passing the :c:macro:`MPS_KEY_ALIGN`
@@ -48,6 +71,19 @@ Interface changes
 Other changes
 .............
 
+#. The :ref:`pool-ams` pool class no longer triggers the assertion
+   ``!AMS_IS_INVALID_COLOUR(seg, i)`` under rare circumstances
+   (namely, detaching an :term:`allocation point` from a :term:`grey`
+   segment when :c:macro:`MPS_KEY_AMS_SUPPORT_AMBIGUOUS` is
+   ``FALSE``). See job001549_.
+
+   .. _job001549: https://www.ravenbrook.com/project/mps/issue/job001549/
+
+#. :c:func:`mps_arena_roots_walk` no longer triggers an assertion
+   failure when run twice in succession. See job003496_.
+
+   .. _job003496: https://www.ravenbrook.com/project/mps/issue/job003496/
+
 #. The alignment of :ref:`pool-awl` pools is now configurable via the
    object format, as documented, and is no longer always
    :c:macro:`MPS_PF_ALIGN`. See job003745_.
@@ -60,11 +96,76 @@ Other changes
 
    .. _job003751: https://www.ravenbrook.com/project/mps/issue/job003751/
 
+#. :program:`mpseventtxt` now successfully processes a telemetry log
+   containing multiple labels associated with the same address. See
+   job003756_.
+
+   .. _job003756: https://www.ravenbrook.com/project/mps/issue/job003756/
+
+#. :ref:`pool-ams`, :ref:`pool-awl` and :ref:`pool-lo` pools get
+   reliably collected, even in the case where the pool is the only
+   pool on its generation chain and is allocating into some generation
+   other than the nursery. See job003771_.
+
+   .. _job003771: https://www.ravenbrook.com/project/mps/issue/job003771/
+
+#. Allocation into :ref:`pool-awl` pools again reliably provokes
+   garbage collections of the generation that the pool belongs to. (In
+   release 1.113.0, the generation would only be collected if a pool
+   of some other class allocated into it.) See job003772_.
+
+   .. _job003772: https://www.ravenbrook.com/project/mps/issue/job003772/
+
+#. All unreachable objects in :ref:`pool-lo` pools are finalized.
+   (Previously, objects on a segment attached to an allocation point
+   were not finalized until the allocation point was full.) See
+   job003773_.
+
+   .. _job003773: https://www.ravenbrook.com/project/mps/issue/job003773/
+
 
 .. _release-notes-1.113:
 
 Release 1.113.0
 ---------------
+
+New features
+............
+
+#. In previous releases there was an implicit connection between
+   blocks allocated by :ref:`pool-awl` and :ref:`pool-lo` pools, and
+   blocks allocated by other automatically managed pool classes.
+
+   In particular, blocks allocated by AWL and LO pools were garbage
+   collected together with blocks allocated by :ref:`pool-ams` pools,
+   and blocks allocated by :ref:`pool-amc` pools in generation 1 of
+   their chains.
+
+   This is no longer the case: to arrange for blocks to be collected
+   together you need to ensure that they are allocated in the *same*
+   generation chain, using the :c:macro:`MPS_KEY_CHAIN` and
+   :c:macro:`MPS_KEY_GEN` keyword arguments to
+   :c:func:`mps_pool_create_k`.
+
+   So if you have code like this::
+
+       res = mps_pool_create(&my_amc, arena, mps_class_amc(), my_chain);
+       res = mps_pool_create(&my_awl, arena, mps_class_awl());
+
+   and you want to retain the connection between these pools, then you
+   must ensure that they use the same generation chain::
+
+       MPS_ARGS_BEGIN(args) {
+         MPS_ARGS_ADD(args, MPS_KEY_CHAIN, my_chain);
+         res = mps_pool_create_k(&my_amc, arena, mps_class_amc(), args);
+       } MPS_ARGS_END(args);
+
+       MPS_ARGS_BEGIN(args) {
+         MPS_ARGS_ADD(args, MPS_KEY_CHAIN, my_chain);
+         MPS_ARGS_ADD(args, MPS_KEY_GEN, 1);
+         res = mps_pool_create_k(&my_awl, arena, mps_class_awl(), args);
+       } MPS_ARGS_END(args);
+
 
 Interface changes
 .................
@@ -138,17 +239,23 @@ Interface changes
 
 #. Functions that take a variable number of arguments
    (:c:func:`mps_arena_create`, :c:func:`mps_pool_create`,
-   :c:func:`mps_ap_create`, :c:func:`mps_fmt_create_A`) and their
-   ``va_list`` alternatives (:c:func:`mps_arena_create_v` etc.) are
-   now deprecated in favour of functions that use a :term:`keyword
-   argument` interface (:c:func:`mps_arena_create_k`,
-   :c:func:`mps_pool_create_k`, :c:func:`mps_ap_create_k`,
-   :c:func:`mps_fmt_create_k`). The new interface provides better
-   reporting of errors, provides default values for arguments, and
-   provides forward compatibility. See :ref:`topic-keyword`.
+   :c:func:`mps_ap_create`) and their ``va_list`` alternatives
+   (:c:func:`mps_arena_create_v` etc.) are now deprecated in favour of
+   functions that use a :term:`keyword argument` interface
+   (:c:func:`mps_arena_create_k`, :c:func:`mps_pool_create_k`,
+   :c:func:`mps_ap_create_k`).
 
-   The old interface continues to be supported, but new features will
-   become available through the keyword interface only.
+   Similarly, the object format variant structures
+   (:c:type:`mps_fmt_A_s` etc.) and the functions that take them as
+   arguments (:c:func:`mps_fmt_create_A` etc.) are now deprecated in
+   favour of :c:func:`mps_fmt_create_k`.
+
+   The new interfaces provide better reporting of errors, default
+   values for arguments, and forward compatibility. See
+   :ref:`topic-keyword`.
+
+   The old interfaces continue to be supported for now, but new
+   features will become available through the keyword interface only.
 
 #. :ref:`pool-mfs` pools no longer refuse to manage blocks that are
    smaller than the platform alignment. They now round up smaller
@@ -182,8 +289,9 @@ Other changes
 
    .. _job003435: https://www.ravenbrook.com/project/mps/issue/job003435/
 
-#. :ref:`pool-mvt` no longer triggers an assertion failure when it
-   runs out of space on its reserved block queue. See job003486_.
+#. An :ref:`pool-mvt` pool no longer triggers an assertion failure
+   when it runs out of space on its reserved block queue. See
+   job003486_.
 
    .. _job003486: https://www.ravenbrook.com/project/mps/issue/job003486/
 
@@ -220,13 +328,13 @@ New features
    <telemetry-mpseventsql>` loads an event stream into a SQLite
    database for further analysis. See :ref:`topic-telemetry`.
 
-#. The new pool class MFS provide manually managed allocation of
-   fixed-size objects. See :ref:`pool-mfs`.
+#. The new pool class :ref:`pool-mfs` provides manually managed
+   allocation of fixed-size objects.
 
-#. The new pool class MVT provide manually managed allocation of
-   variable-size objects using a *temporal fit* allocation policy
-   (that is, objects that are allocated togther are expected to be
-   freed together). See :ref:`pool-mvt`.
+#. The new pool class :ref:`pool-mvt` provides manually managed
+   allocation of variable-size objects using a *temporal fit*
+   allocation policy (that is, objects that are allocated togther are
+   expected to be freed together).
 
 
 Interface changes

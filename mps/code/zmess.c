@@ -381,6 +381,7 @@ static void *testscriptB(void *arg, size_t s)
 
   testscriptC(arena, script);
 
+  mps_arena_park(arena);
   mps_ap_destroy(ap);
   mps_root_destroy(root_table);
   mps_pool_destroy(amc);

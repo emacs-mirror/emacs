@@ -36,27 +36,34 @@ SRCID(prmci3li, "$Id$");
 
 MRef Prmci3AddressHoldingReg(MutatorFaultContext mfc, unsigned int regnum)
 {
+  MRef gregs;
+
+  AVER(mfc != NULL);
   AVER(NONNEGATIVE(regnum));
   AVER(regnum <= 7);
+  AVER(mfc->ucontext != NULL);
+
+  /* TODO: The current arrangement of the fix operation (taking a Ref *)
+     forces us to pun these registers (actually `int` on LII3GC).  We can
+     suppress the warning by casting through `void *` and this might make
+     it safe, but does it really?  RB 2012-09-10 */
+  AVER(sizeof(void *) == sizeof(*mfc->ucontext->uc_mcontext.gregs));
+  gregs = (void *)mfc->ucontext->uc_mcontext.gregs;
 
   /* .source.i486 */
   /* .assume.regref */
   /* The register numbers (REG_EAX etc.) are defined in <ucontext.h>
      but only if _GNU_SOURCE is defined: see .feature.li in
      config.h. */
-  /* TODO: The current arrangement of the fix operation (taking a Ref *)
-     forces us to pun these registers (actually `int` on LII3GC).  We can
-     suppress the warning my casting through `char *` and this might make
-     it safe, but does it really?  RB 2012-09-10 */
   switch (regnum) {
-    case 0: return (MRef)((char *)&mfc->ucontext->uc_mcontext.gregs[REG_EAX]);
-    case 1: return (MRef)((char *)&mfc->ucontext->uc_mcontext.gregs[REG_ECX]);
-    case 2: return (MRef)((char *)&mfc->ucontext->uc_mcontext.gregs[REG_EDX]);
-    case 3: return (MRef)((char *)&mfc->ucontext->uc_mcontext.gregs[REG_EBX]);
-    case 4: return (MRef)((char *)&mfc->ucontext->uc_mcontext.gregs[REG_ESP]);
-    case 5: return (MRef)((char *)&mfc->ucontext->uc_mcontext.gregs[REG_EBP]);
-    case 6: return (MRef)((char *)&mfc->ucontext->uc_mcontext.gregs[REG_ESI]);
-    case 7: return (MRef)((char *)&mfc->ucontext->uc_mcontext.gregs[REG_EDI]);
+    case 0: return &gregs[REG_EAX];
+    case 1: return &gregs[REG_ECX];
+    case 2: return &gregs[REG_EDX];
+    case 3: return &gregs[REG_EBX];
+    case 4: return &gregs[REG_ESP];
+    case 5: return &gregs[REG_EBP];
+    case 6: return &gregs[REG_ESI];
+    case 7: return &gregs[REG_EDI];
     default:
       NOTREACHED;
       return NULL;  /* Avoids compiler warning. */

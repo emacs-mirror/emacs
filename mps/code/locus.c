@@ -6,7 +6,8 @@
  * DESIGN
  *
  * See <design/arenavm/> and <design/locus/> for basic locus stuff.
- * See <design/trace/> for chains.
+ * See <design/trace/> for chains. See <design/strategy/> for the
+ * collection strategy.
  */
 
 #include "chain.h"
@@ -80,6 +81,7 @@ void SegPrefExpress(SegPref pref, SegPrefKind kind, void *p)
 
 /* GenDescCheck -- check a GenDesc */
 
+ATTRIBUTE_UNUSED
 static Bool GenDescCheck(GenDesc gen)
 {
   CHECKS(GenDesc, gen);
@@ -87,8 +89,6 @@ static Bool GenDescCheck(GenDesc gen)
   /* nothing to check for capacity */
   CHECKL(gen->mortality >= 0.0);
   CHECKL(gen->mortality <= 1.0);
-  CHECKL(gen->proflow >= 0.0);
-  CHECKL(gen->proflow <= 1.0);
   CHECKD_NOSIG(Ring, &gen->locusRing);
   return TRUE;
 }
@@ -156,9 +156,9 @@ Res ChainCreate(Chain *chainReturn, Arena arena, size_t genCount,
     gens[i].zones = ZoneSetEMPTY;
     gens[i].capacity = params[i].capacity;
     gens[i].mortality = params[i].mortality;
-    gens[i].proflow = 1.0; /* @@@@ temporary */
     RingInit(&gens[i].locusRing);
     gens[i].sig = GenDescSig;
+    AVERT(GenDesc, &gens[i]);
   }
 
   res = ControlAlloc(&p, arena, sizeof(ChainStruct), FALSE);
@@ -211,8 +211,10 @@ void ChainDestroy(Chain chain)
   size_t i;
 
   AVERT(Chain, chain);
+  AVER(chain->activeTraces == TraceSetEMPTY);
 
-  arena = chain->arena; genCount = chain->genCount;
+  arena = chain->arena;
+  genCount = chain->genCount;
   RingRemove(&chain->chainRing);
   chain->sig = SigInvalid;
   for (i = 0; i < genCount; ++i) {
@@ -234,66 +236,94 @@ size_t ChainGens(Chain chain)
 }
 
 
-/* ChainAlloc -- allocate tracts in a generation */
+/* ChainGen -- return a generation in a chain, or the arena top generation */
 
-Res ChainAlloc(Seg *segReturn, Chain chain, Serial genNr, SegClass class,
-               Size size, Pool pool, Bool withReservoirPermit,
-               ArgList args)
+GenDesc ChainGen(Chain chain, Index gen)
+{
+  AVERT(Chain, chain);
+  AVER(gen <= chain->genCount);
+
+  if (gen < chain->genCount)
+    return &chain->gens[gen];
+  else
+    return &chain->arena->topGen;
+}
+
+
+/* PoolGenAlloc -- allocate a segment in a pool generation and update
+ * accounting
+ */
+
+Res PoolGenAlloc(Seg *segReturn, PoolGen pgen, SegClass class, Size size,
+                 Bool withReservoirPermit, ArgList args)
 {
   SegPrefStruct pref;
   Res res;
   Seg seg;
   ZoneSet zones, moreZones;
   Arena arena;
+  GenDesc gen;
 
-  AVERT(Chain, chain);
-  AVER(genNr <= chain->genCount);
+  AVER(segReturn != NULL);
+  AVERT(PoolGen, pgen);
+  AVERT(SegClass, class);
+  AVER(size > 0);
+  AVERT(Bool, withReservoirPermit);
+  AVERT(ArgList, args);
 
-  arena = chain->arena;
-  if (genNr < chain->genCount)
-    zones = chain->gens[genNr].zones;
-  else
-    zones = arena->topGen.zones;
+  arena = PoolArena(pgen->pool);
+  gen = pgen->gen;
+  zones = gen->zones;
 
   SegPrefInit(&pref);
   pref.high = FALSE;
   pref.zones = zones;
   pref.avoid = ZoneSetBlacklist(arena);
-  res = SegAlloc(&seg, class, &pref, size, pool, withReservoirPermit, args);
+  res = SegAlloc(&seg, class, &pref, size, pgen->pool, withReservoirPermit,
+                 args);
   if (res != ResOK)
     return res;
 
   moreZones = ZoneSetUnion(zones, ZoneSetOfSeg(arena, seg));
+  gen->zones = moreZones;
   
   if (!ZoneSetSuper(zones, moreZones)) {
-    /* Tracking the whole zoneset for each generation number gives
-     * more understandable telemetry than just reporting the added
+    /* Tracking the whole zoneset for each generation gives more
+     * understandable telemetry than just reporting the added
      * zones. */
-    EVENT3(ArenaGenZoneAdd, arena, genNr, moreZones);
+    EVENT3(ArenaGenZoneAdd, arena, gen, moreZones);
   }
 
-  if (genNr < chain->genCount)
-    chain->gens[genNr].zones = moreZones;
-  else
-    chain->arena->topGen.zones = moreZones;
-
+  size = SegSize(seg);
+  pgen->totalSize += size;
+  STATISTIC_STAT ({
+    ++ pgen->segs;
+    pgen->freeSize += size;
+  });
   *segReturn = seg;
   return ResOK;
 }
-
 
 
 /* ChainDeferral -- time until next ephemeral GC for this chain */
 
 double ChainDeferral(Chain chain)
 {
+  double time = DBL_MAX;
+  size_t i;
+
   AVERT(Chain, chain);
 
-  if (chain->activeTraces != TraceSetEMPTY)
-    return DBL_MAX;
-  else
-    return chain->gens[0].capacity * 1024.0
-           - (double)GenDescNewSize(&chain->gens[0]);
+  if (chain->activeTraces == TraceSetEMPTY) {
+    for (i = 0; i < chain->genCount; ++i) {
+      double genTime = chain->gens[i].capacity * 1024.0
+        - (double)GenDescNewSize(&chain->gens[i]);
+      if (genTime < time)
+        time = genTime;
+    }
+  }
+
+  return time;
 }
 
 
@@ -306,7 +336,7 @@ double ChainDeferral(Chain chain)
 Res ChainCondemnAuto(double *mortalityReturn, Chain chain, Trace trace)
 {
   Res res;
-  Serial topCondemnedGenSerial, currGenSerial;
+  size_t topCondemnedGen, i;
   GenDesc gen;
   ZoneSet condemnedSet = ZoneSetEMPTY;
   Size condemnedSize = 0, survivorSize = 0, genNewSize, genTotalSize;
@@ -314,33 +344,39 @@ Res ChainCondemnAuto(double *mortalityReturn, Chain chain, Trace trace)
   AVERT(Chain, chain);
   AVERT(Trace, trace);
 
-  /* Find lowest gen within its capacity, set topCondemnedGenSerial to the */
-  /* preceeding one. */
-  currGenSerial = 0;
-  gen = &chain->gens[0];
-  AVERT(GenDesc, gen);
-  genNewSize = GenDescNewSize(gen);
-  do { /* At this point, we've decided to collect currGenSerial. */
-    topCondemnedGenSerial = currGenSerial;
+  /* Find the highest generation that's over capacity. We will condemn
+   * this and all lower generations in the chain. */
+  topCondemnedGen = chain->genCount;
+  for (;;) {
+    /* It's an error to call this function unless some generation is
+     * over capacity as reported by ChainDeferral. */
+    AVER(topCondemnedGen > 0);
+    if (topCondemnedGen == 0)
+      return ResFAIL;
+    -- topCondemnedGen;
+    gen = &chain->gens[topCondemnedGen];
+    AVERT(GenDesc, gen);
+    genNewSize = GenDescNewSize(gen);
+    if (genNewSize >= gen->capacity * (Size)1024)
+      break;
+  }
+
+  /* At this point, we've decided to condemn topCondemnedGen and all
+   * lower generations. */
+  for (i = 0; i <= topCondemnedGen; ++i) {
+    gen = &chain->gens[i];
+    AVERT(GenDesc, gen);
     condemnedSet = ZoneSetUnion(condemnedSet, gen->zones);
     genTotalSize = GenDescTotalSize(gen);
+    genNewSize = GenDescNewSize(gen);
     condemnedSize += genTotalSize;
     survivorSize += (Size)(genNewSize * (1.0 - gen->mortality))
                     /* predict survivors will survive again */
                     + (genTotalSize - genNewSize);
-
-    /* is there another one to consider? */
-    currGenSerial += 1;
-    if (currGenSerial >= chain->genCount)
-      break; /* reached the top */
-    gen = &chain->gens[currGenSerial];
-    AVERT(GenDesc, gen);
-    genNewSize = GenDescNewSize(gen);
-  } while (genNewSize >= gen->capacity * (Size)1024);
+  }
   
   AVER(condemnedSet != ZoneSetEMPTY || condemnedSize == 0);
-  EVENT3(ChainCondemnAuto, chain, topCondemnedGenSerial, chain->genCount);
-  UNUSED(topCondemnedGenSerial); /* only used for EVENT */
+  EVENT3(ChainCondemnAuto, chain, topCondemnedGen, chain->genCount);
   
   /* Condemn everything in these zones. */
   if (condemnedSet != ZoneSetEMPTY) {
@@ -351,41 +387,6 @@ Res ChainCondemnAuto(double *mortalityReturn, Chain chain, Trace trace)
 
   *mortalityReturn = 1.0 - (double)survivorSize / condemnedSize;
   return ResOK;
-}
-
-
-/* ChainCondemnAll -- condemn everything in the chain */
-
-Res ChainCondemnAll(Chain chain, Trace trace)
-{
-  Ring node, nextNode;
-  Bool haveWhiteSegs = FALSE;
-  Res res;
-
-  /* Condemn every segment in every pool using this chain. */
-  /* Finds the pools by iterating over the PoolGens in gen 0. */
-  RING_FOR(node, &chain->gens[0].locusRing, nextNode) {
-    PoolGen nursery = RING_ELT(PoolGen, genRing, node);
-    Pool pool = nursery->pool;
-    Ring segNode, nextSegNode;
-
-    AVERT(Pool, pool);
-    AVER(PoolHasAttr(pool, AttrGC));
-    RING_FOR(segNode, PoolSegRing(pool), nextSegNode) {
-      Seg seg = SegOfPoolRing(segNode);
-
-      res = TraceAddWhite(trace, seg);
-      if (res != ResOK)
-        goto failBegin;
-      haveWhiteSegs = TRUE;
-    }
-  }
- 
-  return ResOK;
-
-failBegin:
-  AVER(!haveWhiteSegs); /* Would leave white sets inconsistent. */
-  return res;
 }
 
 
@@ -413,54 +414,254 @@ void ChainEndGC(Chain chain, Trace trace)
 
 /* PoolGenInit -- initialize a PoolGen */
 
-Res PoolGenInit(PoolGen gen, Chain chain, Serial nr, Pool pool)
+Res PoolGenInit(PoolGen pgen, GenDesc gen, Pool pool)
 {
-  /* Can't check gen, because it's not been initialized. */
-  AVERT(Chain, chain);
-  AVER(nr <= chain->genCount);
+  /* Can't check pgen, because it's not been initialized. */
+  AVER(pgen != NULL);
+  AVERT(GenDesc, gen);
   AVERT(Pool, pool);
+  AVER(PoolHasAttr(pool, AttrGC));
 
-  gen->nr = nr;
-  gen->pool = pool;
-  gen->chain = chain;
-  RingInit(&gen->genRing);
-  gen->totalSize = (Size)0;
-  gen->newSize = (Size)0;
-  gen->sig = PoolGenSig;
+  pgen->pool = pool;
+  pgen->gen = gen;
+  RingInit(&pgen->genRing);
+  STATISTIC(pgen->segs = 0);
+  pgen->totalSize = 0;
+  STATISTIC(pgen->freeSize = 0);
+  pgen->newSize = 0;
+  STATISTIC(pgen->oldSize = 0);
+  pgen->newDeferredSize = 0;
+  STATISTIC(pgen->oldDeferredSize = 0);
+  pgen->sig = PoolGenSig;
+  AVERT(PoolGen, pgen);
 
-  if(nr != chain->genCount) {
-    RingAppend(&chain->gens[nr].locusRing, &gen->genRing);
-  } else {
-    /* Dynamic generation is linked to the arena, not the chain. */
-    RingAppend(&chain->arena->topGen.locusRing, &gen->genRing);
-  }
-  AVERT(PoolGen, gen);
+  RingAppend(&gen->locusRing, &pgen->genRing);
   return ResOK;
 }
 
 
 /* PoolGenFinish -- finish a PoolGen */
 
-void PoolGenFinish(PoolGen gen)
+void PoolGenFinish(PoolGen pgen)
 {
-  AVERT(PoolGen, gen);
+  AVERT(PoolGen, pgen);
+  AVER(pgen->totalSize == 0);
+  AVER(pgen->newSize == 0);
+  AVER(pgen->newDeferredSize == 0);
+  STATISTIC_STAT ({
+    AVER(pgen->segs == 0);
+    AVER(pgen->freeSize == 0);
+    AVER(pgen->oldSize == 0);
+    AVER(pgen->oldDeferredSize == 0);
+  });
 
-  gen->sig = SigInvalid;
-  RingRemove(&gen->genRing);
+  pgen->sig = SigInvalid;
+  RingRemove(&pgen->genRing);
 }
 
 
 /* PoolGenCheck -- check a PoolGen */
 
-Bool PoolGenCheck(PoolGen gen)
+Bool PoolGenCheck(PoolGen pgen)
 {
-  CHECKS(PoolGen, gen);
+  CHECKS(PoolGen, pgen);
   /* nothing to check about serial */
-  CHECKU(Pool, gen->pool);
-  CHECKU(Chain, gen->chain);
-  CHECKD_NOSIG(Ring, &gen->genRing);
-  CHECKL(gen->newSize <= gen->totalSize);
+  CHECKU(Pool, pgen->pool);
+  CHECKU(GenDesc, pgen->gen);
+  CHECKD_NOSIG(Ring, &pgen->genRing);
+  STATISTIC_STAT ({
+    CHECKL((pgen->totalSize == 0) == (pgen->segs == 0));
+    CHECKL(pgen->totalSize >= pgen->segs * ArenaAlign(PoolArena(pgen->pool)));
+    CHECKL(pgen->totalSize == pgen->freeSize + pgen->newSize + pgen->oldSize
+           + pgen->newDeferredSize + pgen->oldDeferredSize);
+  });
   return TRUE;
+}
+
+
+/* PoolGenAccountForFill -- accounting for allocation
+ *
+ * Call this when the pool allocates memory to the client program via
+ * BufferFill. The deferred flag indicates whether the accounting of
+ * this memory (for the purpose of scheduling collections) should be
+ * deferred until later.
+ *
+ * See <design/strategy/#accounting.op.fill>
+ */
+
+void PoolGenAccountForFill(PoolGen pgen, Size size, Bool deferred)
+{
+  AVERT(PoolGen, pgen);
+  AVERT(Bool, deferred);
+
+  STATISTIC_STAT ({
+    AVER(pgen->freeSize >= size);
+    pgen->freeSize -= size;
+  });
+  if (deferred)
+    pgen->newDeferredSize += size;
+  else
+    pgen->newSize += size;
+}
+
+
+/* PoolGenAccountForEmpty -- accounting for emptying a buffer
+ *
+ * Call this when the client program returns memory (that was never
+ * condemned) to the pool via BufferEmpty. The deferred flag is as for
+ * PoolGenAccountForFill.
+ *
+ * See <design/strategy/#accounting.op.empty>
+ */
+
+void PoolGenAccountForEmpty(PoolGen pgen, Size unused, Bool deferred)
+{
+  AVERT(PoolGen, pgen);
+  AVERT(Bool, deferred);
+
+  if (deferred) {
+    AVER(pgen->newDeferredSize >= unused);
+    pgen->newDeferredSize -= unused;
+  } else {
+    AVER(pgen->newSize >= unused);
+    pgen->newSize -= unused;
+  }
+  STATISTIC(pgen->freeSize += unused);
+}
+
+
+/* PoolGenAccountForAge -- accounting for condemning
+ *
+ * Call this when memory is condemned via PoolWhiten. The size
+ * parameter should be the amount of memory that is being condemned
+ * for the first time. The deferred flag is as for PoolGenAccountForFill.
+ *
+ * See <design/strategy/#accounting.op.age>
+ */
+
+void PoolGenAccountForAge(PoolGen pgen, Size size, Bool deferred)
+{
+  AVERT(PoolGen, pgen);
+  
+  if (deferred) {
+    AVER(pgen->newDeferredSize >= size);
+    pgen->newDeferredSize -= size;
+    STATISTIC(pgen->oldDeferredSize += size);
+  } else {
+    AVER(pgen->newSize >= size);
+    pgen->newSize -= size;
+    STATISTIC(pgen->oldSize += size);
+  }
+}
+
+
+/* PoolGenAccountForReclaim -- accounting for reclaiming
+ *
+ * Call this when reclaiming memory, passing the amount of memory that
+ * was reclaimed. The deferred flag is as for PoolGenAccountForFill.
+ *
+ * See <design/strategy/#accounting.op.reclaim>
+ */
+
+void PoolGenAccountForReclaim(PoolGen pgen, Size reclaimed, Bool deferred)
+{
+  AVERT(PoolGen, pgen);
+  AVERT(Bool, deferred);
+
+  STATISTIC_STAT ({
+    if (deferred) {
+      AVER(pgen->oldDeferredSize >= reclaimed);
+      pgen->oldDeferredSize -= reclaimed;
+    } else {
+      AVER(pgen->oldSize >= reclaimed);
+      pgen->oldSize -= reclaimed;
+    }
+    pgen->freeSize += reclaimed;
+  });
+}
+
+
+/* PoolGenUndefer -- finish deferring accounting
+ *
+ * Call this when exiting ramp mode, passing the amount of old
+ * (condemned at least once) and new (never condemned) memory whose
+ * accounting was deferred (for example, during a ramp).
+ *
+ * See <design/strategy/#accounting.op.undefer>
+ */
+
+void PoolGenUndefer(PoolGen pgen, Size oldSize, Size newSize)
+{
+  AVERT(PoolGen, pgen);
+  STATISTIC_STAT ({
+    AVER(pgen->oldDeferredSize >= oldSize);
+    pgen->oldDeferredSize -= oldSize;
+    pgen->oldSize += oldSize;
+  });
+  AVER(pgen->newDeferredSize >= newSize);
+  pgen->newDeferredSize -= newSize;
+  pgen->newSize += newSize;
+}
+
+
+/* PoolGenAccountForSegSplit -- accounting for splitting a segment */
+
+void PoolGenAccountForSegSplit(PoolGen pgen)
+{
+  AVERT(PoolGen, pgen);
+  STATISTIC_STAT ({
+    AVER(pgen->segs >= 1); /* must be at least one segment to split */
+    ++ pgen->segs;
+  });
+}
+
+
+/* PoolGenAccountForSegMerge -- accounting for merging a segment */
+
+void PoolGenAccountForSegMerge(PoolGen pgen)
+{
+  AVERT(PoolGen, pgen);
+  STATISTIC_STAT ({
+    AVER(pgen->segs >= 2); /* must be at least two segments to merge */
+    -- pgen->segs;
+  });
+}
+
+
+/* PoolGenFree -- free a segment and update accounting
+ *
+ * Pass the amount of memory in the segment that is accounted as free,
+ * old, or new, respectively. The deferred flag is as for
+ * PoolGenAccountForFill.
+ *
+ * See <design/strategy/#accounting.op.free>
+ */
+
+void PoolGenFree(PoolGen pgen, Seg seg, Size freeSize, Size oldSize,
+                 Size newSize, Bool deferred)
+{
+  Size size;
+
+  AVERT(PoolGen, pgen);
+  AVERT(Seg, seg);
+
+  size = SegSize(seg);
+  AVER(freeSize + oldSize + newSize == size);
+
+  /* Pretend to age and reclaim the contents of the segment to ensure
+   * that the entire segment is accounted as free. */
+  PoolGenAccountForAge(pgen, newSize, deferred);
+  PoolGenAccountForReclaim(pgen, oldSize + newSize, deferred);
+
+  AVER(pgen->totalSize >= size);
+  pgen->totalSize -= size;
+  STATISTIC_STAT ({
+    AVER(pgen->segs > 0);
+    -- pgen->segs;
+    AVER(pgen->freeSize >= size);
+    pgen->freeSize -= size;
+  });
+  SegFree(seg);
 }
 
 
@@ -477,9 +678,9 @@ void LocusInit(Arena arena)
   gen->zones = ZoneSetEMPTY;
   gen->capacity = 0; /* unused */
   gen->mortality = 0.51;
-  gen->proflow = 0.0;
   RingInit(&gen->locusRing);
   gen->sig = GenDescSig;
+  AVERT(GenDesc, gen);
 }
 
 

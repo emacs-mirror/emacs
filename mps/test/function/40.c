@@ -66,7 +66,7 @@ static void test(void)
   comment("%i of 10.", i);
   UC;
   z[i] = allocone(ap, 1, 1);
-  if (i % 8 == 0) { z[i] = (mycell *) ((int)z[i] + 4); } /* error to scan this! */
+  if (i % 8 == 0) { z[i] = (mycell *) ((mps_word_t)z[i] + 4); } /* error to scan this! */
  }
 
  for (i=0; i<1000; i++) {
@@ -75,6 +75,7 @@ static void test(void)
  DC;
  DMC;
 
+ mps_arena_park(arena);
  mps_ap_destroy(ap);
  mps_pool_destroy(pool);
  mps_chain_destroy(chain);
