@@ -89,6 +89,8 @@ extern Addr (AddrAlignDown)(Addr addr, Align align);
 #define AddrAlignUp(p, a)       ((Addr)WordAlignUp((Word)(p), a))
 #define AddrRoundUp(p, r)       ((Addr)WordRoundUp((Word)(p), r))
 
+#define ReadonlyAddrAdd(p, s) ((ReadonlyAddr)((const char *)(p) + (s)))
+
 #define SizeIsAligned(s, a)     WordIsAligned((Word)(s), a)
 #define SizeAlignUp(s, a)       ((Size)WordAlignUp((Word)(s), a))
 #define SizeAlignDown(s, a)     ((Size)WordAlignDown((Word)(s), a))
