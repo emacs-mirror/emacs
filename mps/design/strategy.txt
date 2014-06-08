@@ -270,8 +270,13 @@ _`.accounting.op`: The following operations are provided:
 _`.accounting.op.alloc`: Allocate a segment in a pool generation.
 Debit *total*, credit *free*. (But see `.account.total.negated`_.)
 
-_`.accounting.op.free`: Free a segment. Debit *free*, credit *total*.
-(But see `.account.total.negated`_.)
+_`.accounting.op.free`: Free a segment. First, ensure that the
+contents of the segment are accounted as free, by artificially ageing
+any memory accounted as *new* or *newDeferred* (see
+`.accounting.op.age`_) and then artifically reclaiming any memory
+accounted as *old* or *oldDeferred* (see `.accounting.op.reclaim`_).
+Finally, debit *free*, credit *total*. (But see
+`.account.total.negated`_.)
 
 _`.accounting.op.fill`: Allocate memory, for example by filling a
 buffer. Debit *free*, credit *new* or *newDeferred*.

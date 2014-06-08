@@ -1,7 +1,7 @@
 /* chain.h: GENERATION CHAINS
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  */
 
 #ifndef chain_h
@@ -90,7 +90,8 @@ extern Res PoolGenInit(PoolGen pgen, GenDesc gen, Pool pool);
 extern void PoolGenFinish(PoolGen pgen);
 extern Res PoolGenAlloc(Seg *segReturn, PoolGen pgen, SegClass class,
                         Size size, Bool withReservoirPermit, ArgList args);
-extern void PoolGenFree(PoolGen pgen, Seg seg);
+extern void PoolGenFree(PoolGen pgen, Seg seg, Size freeSize, Size oldSize,
+                        Size newSize, Bool deferred);
 extern void PoolGenAccountForFill(PoolGen pgen, Size size, Bool deferred);
 extern void PoolGenAccountForEmpty(PoolGen pgen, Size unused, Bool deferred);
 extern void PoolGenAccountForAge(PoolGen pgen, Size aged, Bool deferred);
@@ -104,7 +105,7 @@ extern void PoolGenAccountForSegMerge(PoolGen pgen);
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
