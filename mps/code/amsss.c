@@ -105,7 +105,7 @@ static mps_addr_t make(void)
 /* test -- the actual stress test */
 
 static mps_pool_debug_option_s freecheckOptions =
-  { NULL, 0, (void *)"Dead", 4 };
+  { NULL, 0, "Dead", 4 };
 
 static void *test(void *arg, size_t haveAmbigous)
 {
