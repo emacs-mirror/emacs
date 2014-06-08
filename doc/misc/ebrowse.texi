@@ -475,13 +475,13 @@ You can view or find a class declaration when the cursor is on a class
 name.
 
 @table @kbd
-@item SPC
+@item @key{SPC}
 This command views the class declaration if the database
 contains information about it.  If you don't parse the entire source
 you are working on, some classes will only be known to exist but the
 location of their declarations and definitions will not be known.
 
-@item RET
+@item @key{RET}
 Works like @kbd{SPC}, except that it finds the class
 declaration rather than viewing it, so that it is ready for
 editing.
@@ -876,7 +876,7 @@ context menu.
 @cindex declaration of a member, in member buffers
 
 @table @kbd
-@item RET
+@item @key{RET}
 This command finds the definition of the member the cursor is on.
 Finding involves roughly the same as the standard Emacs tags facility
 does---loading the file and searching for a regular expression matching
@@ -885,7 +885,7 @@ the member.
 @item f
 This command finds the declaration of the member the cursor is on.
 
-@item SPC
+@item @key{SPC}
 This is the same command as @kbd{RET}, but views the member definition
 instead of finding the member's source file.
 

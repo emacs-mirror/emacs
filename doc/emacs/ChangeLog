@@ -1,5 +1,8 @@
 2014-06-08  Glenn Morris  <rgm@gnu.org>
 
+	* dired.texi (Marks vs Flags):
+	* rmail.texi (Rmail Scrolling): Markup fixes re SPC.
+
 	* help.texi (Help, Misc Help): Copyedits.
 
 	* screen.texi (Menu Bar): Copyedits.

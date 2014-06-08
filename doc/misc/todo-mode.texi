@@ -1029,7 +1029,7 @@ modified form of @code{y-or-n-p}, which by default only accepts @kbd{y}
 or @kbd{Y}, but not @key{SPC}, as an affirmative answer.  This is to
 diminish the risk of unintentionally executing the command, which is
 especially important with commands that do deletion, since there is no
-Todo command to undo a deletion.  If you want to be able to use SPC for
+Todo command to undo a deletion.  If you want to be able to use @key{SPC} for
 confirmation, enable the option @code{todo-y-with-space}.
 @end quotation
 
