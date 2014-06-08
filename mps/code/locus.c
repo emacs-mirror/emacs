@@ -609,7 +609,10 @@ void PoolGenUndefer(PoolGen pgen, Size oldSize, Size newSize)
 void PoolGenAccountForSegSplit(PoolGen pgen)
 {
   AVERT(PoolGen, pgen);
-  STATISTIC(++ pgen->segs);
+  STATISTIC_STAT ({
+    AVER(pgen->segs >= 1); /* must be at least one segment to split */
+    ++ pgen->segs;
+  });
 }
 
 
@@ -619,7 +622,7 @@ void PoolGenAccountForSegMerge(PoolGen pgen)
 {
   AVERT(PoolGen, pgen);
   STATISTIC_STAT ({
-    AVER(pgen->segs > 0);
+    AVER(pgen->segs >= 2); /* must be at least two segments to merge */
     -- pgen->segs;
   });
 }
