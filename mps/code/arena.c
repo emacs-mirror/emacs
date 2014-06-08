@@ -638,6 +638,7 @@ typedef struct ArenaAllocPageClosureStruct {
   Pool pool;
   Addr base;
   Chunk avoid;
+  Res res;
 } ArenaAllocPageClosureStruct, *ArenaAllocPageClosure;
 
 static Bool arenaAllocPageInChunk(Tree tree, void *closureP, Size closureS)
@@ -656,18 +657,25 @@ static Bool arenaAllocPageInChunk(Tree tree, void *closureP, Size closureS)
   UNUSED(closureS);
 
   /* Already searched in arenaAllocPage. */
-  if (chunk == cl->avoid)
+  if (chunk == cl->avoid) {
+    cl->res = ResRESOURCE;
     return TRUE;
+  }
   
   if (!BTFindShortResRange(&basePageIndex, &limitPageIndex,
                            chunk->allocTable,
                            chunk->allocBase, chunk->pages, 1))
+  {
+    cl->res = ResRESOURCE;
     return TRUE;
+  }
   
   res = (*cl->arena->class->pagesMarkAllocated)(cl->arena, chunk,
                                                 basePageIndex, 1, cl->pool);
-  if (res != ResOK)
+  if (res != ResOK) {
+    cl->res = res;
     return TRUE;
+  }
   
   cl->base = PageIndexBase(chunk, basePageIndex);
   return FALSE;
@@ -685,6 +693,7 @@ static Res arenaAllocPage(Addr *baseReturn, Arena arena, Pool pool)
   closure.pool = pool;
   closure.base = NULL;
   closure.avoid = NULL;
+  closure.res = ResOK;
 
   /* Favour the primary chunk, because pages allocated this way aren't
      currently freed, and we don't want to prevent chunks being destroyed. */
@@ -697,7 +706,8 @@ static Res arenaAllocPage(Addr *baseReturn, Arena arena, Pool pool)
                     arenaAllocPageInChunk, &closure, 0))
     goto found;
 
-  return ResRESOURCE;
+  AVER(closure.res != ResOK);
+  return closure.res;
 
 found:
   AVER(closure.base != NULL);
