@@ -20,9 +20,9 @@ function/14.c
 function/15.c
 function/16.c
 function/17.c
-% function/18.c -- tries to exhaust memory by mps_alloc
-% function/19.c -- tries to exhaust memory by mps_alloc
-% function/20.c -- tries to exhaust memory by mps_alloc
+function/18.c
+function/19.c
+function/20.c
 function/21.c
 function/22.c
 % function/23.c -- interactive test, can't run unattended
@@ -47,7 +47,7 @@ function/41.c
 function/42.c
 function/43.c
 function/44.c
-function/45.c
+% function/45.c -- setref: to non-data object @@@@
 function/46.c
 function/47.c
 function/48.c
@@ -60,7 +60,7 @@ function/55.c
 function/56.c
 function/57.c
 % 58-59 -- no such test
-% function/60.c -- slow
+function/60.c
 function/61.c
 function/62.c
 function/63.c
@@ -77,7 +77,7 @@ function/73.c
 function/74.c
 function/75.c
 function/76.c
-% function/77.c -- slow
+function/77.c
 function/78.c
 function/79.c
 function/80.c
@@ -87,7 +87,7 @@ function/83.c
 % 84-95 -- no such test
 function/96.c
 function/97.c
-function/98.c
+% function/98.c -- tries to exhaust memory by mps_arena_create
 function/99.c
 function/100.c
 function/101.c
@@ -104,13 +104,13 @@ function/112.c
 function/113.c
 function/114.c
 % 115 -- no such test
-% function/116.c -- tries to exhaust memory by mps_alloc
+function/116.c
 function/117.c
 function/118.c
 function/119.c
 function/120.c
 % function/121.c -- job003495
-% function/122.c -- job003496
+function/122.c
 function/123.c
 function/124.c
 function/125.c
@@ -118,10 +118,10 @@ function/126.c
 function/127.c
 function/128.c
 function/129.c
-% function/130.c -- tries to exhaust memory by mps_alloc
-% function/131.c -- tries to exhaust memory by mps_alloc
-% function/132.c -- failed on allocfail2: wanted > 10000, was 6840 @@@@
-% function/133.c -- failed on allocfail3: wanted > 8000, was 3060 @@@@
+% function/130.c -- job003789
+% function/131.c -- job003789
+function/132.c
+function/133.c
 function/134.c
 function/135.c
 function/136.c
@@ -134,7 +134,7 @@ function/144.c
 % 145-146 -- no such test
 function/147.c
 % function/148.c -- failed on inc4: wanted = 1, was 0 @@@@
-% function/149.c -- failed on allocfail2: wanted > 10000, was 6858 @@@@
+function/149.c
 function/150.c
 function/151.c
 function/152.c
@@ -155,15 +155,15 @@ function/167.c
 % function/171.c -- job003495
 function/200.c
 % 201-202 -- no such test
-% function/203.c -- requires mps_count_t and mps_class_mv2
-% function/204.c -- requires mps_count_t and mps_class_mv2
-% function/205.c -- requires mps_count_t and mps_class_mv2
+function/203.c
+function/204.c
+function/205.c
 function/206.c
 function/207.c
 % 208-213 -- no such test
-% function/214.c -- requires mps_count_t and mps_class_mv2
+function/214.c
 function/215.c
-% function/223.c -- requires mps_message_type_collection_stats
-% function/224.c -- COMMIT_LIMIT @@@@
+function/223.c
+function/224.c
 % 225 -- no such test
 function/226.c

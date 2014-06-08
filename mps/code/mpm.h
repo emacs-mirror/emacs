@@ -144,11 +144,13 @@ extern Bool ResIsAllocFailure(Res res);
  * SizeFloorLog2 returns the floor of the logarithm in base 2 of size.
  * size can be any positive non-zero value.  */
 
-extern Bool SizeIsP2(Size size);
+extern Bool (SizeIsP2)(Size size);
+#define SizeIsP2(size) WordIsP2((Word)size)
 extern Shift SizeLog2(Size size);
 extern Shift SizeFloorLog2(Size size);
 
-extern Bool WordIsP2(Word word);
+extern Bool (WordIsP2)(Word word);
+#define WordIsP2(word) ((word) > 0 && ((word) & ((word) - 1)) == 0)
 
 /* Formatted Output -- see <design/writef/>, <code/mpm.c> */
 
@@ -494,8 +496,8 @@ extern void ArenaFinish(Arena arena);
 extern Res ArenaDescribe(Arena arena, mps_lib_FILE *stream);
 extern Res ArenaDescribeTracts(Arena arena, mps_lib_FILE *stream);
 extern Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context);
-extern Res ArenaFreeCBSInsert(Arena arena, Addr base, Addr limit);
-extern void ArenaFreeCBSDelete(Arena arena, Addr base, Addr limit);
+extern Res ArenaFreeLandInsert(Arena arena, Addr base, Addr limit);
+extern void ArenaFreeLandDelete(Arena arena, Addr base, Addr limit);
 
 
 extern Bool GlobalsCheck(Globals arena);
@@ -518,23 +520,26 @@ extern Ring GlobalsRememberedSummaryRing(Globals);
 #define ArenaGreyRing(arena, rank) (&(arena)->greyRing[rank])
 #define ArenaPoolRing(arena) (&ArenaGlobals(arena)->poolRing)
 
+extern void ArenaEnterLock(Arena arena, Bool recursive);
+extern void ArenaLeaveLock(Arena arena, Bool recursive);
+
 extern void (ArenaEnter)(Arena arena);
 extern void (ArenaLeave)(Arena arena);
+extern void (ArenaPoll)(Globals globals);
 
-#if defined(THREAD_SINGLE) && defined(PROTECTION_NONE)
+#if defined(SHIELD)
+#define ArenaEnter(arena)  ArenaEnterLock(arena, FALSE)
+#define ArenaLeave(arena)  ArenaLeaveLock(arena, FALSE)
+#elif defined(SHIELD_NONE)
 #define ArenaEnter(arena)  UNUSED(arena)
-#define ArenaLeave(arena)  UNUSED(arena)
-#endif
+#define ArenaLeave(arena)  AVER(arena->busyTraces == TraceSetEMPTY)
+#define ArenaPoll(globals)  UNUSED(globals)
+#else
+#error "No shield configuration."
+#endif  /* SHIELD */
 
 extern void ArenaEnterRecursive(Arena arena);
 extern void ArenaLeaveRecursive(Arena arena);
-
-extern void (ArenaPoll)(Globals globals);
-#ifdef MPS_PROD_EPCORE
-#define ArenaPoll(globals)  UNUSED(globals)
-#endif
-/* .nogc.why: ScriptWorks doesn't use MM-provided incremental GC, so */
-/* doesn't need to poll when allocating. */
 
 extern Bool (ArenaStep)(Globals globals, double interval, double multiplier);
 extern void ArenaClamp(Globals globals);
@@ -710,10 +715,10 @@ extern Addr (SegLimit)(Seg seg);
 
 #define SegSummary(seg)         (((GCSeg)(seg))->summary)
 
-#define SegSetPM(seg, mode)     ((void)((seg)->pm = (mode)))
-#define SegSetSM(seg, mode)     ((void)((seg)->sm = (mode)))
-#define SegSetDepth(seg, d)     ((void)((seg)->depth = (d)))
-#define SegSetNailed(seg, ts)   ((void)((seg)->nailed = (ts)))
+#define SegSetPM(seg, mode)     ((void)((seg)->pm = BS_BITFIELD(Access, (mode))))
+#define SegSetSM(seg, mode)     ((void)((seg)->sm = BS_BITFIELD(Access, (mode))))
+#define SegSetDepth(seg, d)     ((void)((seg)->depth = BITFIELD(unsigned, (d), ShieldDepthWIDTH)))
+#define SegSetNailed(seg, ts)   ((void)((seg)->nailed = BS_BITFIELD(Trace, (ts))))
 
 
 /* Buffer Interface -- see <code/buffer.c> */
@@ -811,7 +816,7 @@ extern AllocPattern AllocPatternRamp(void);
 extern AllocPattern AllocPatternRampCollectAll(void);
 
 
-/* FindDelete -- see <code/cbs.c> and <code/freelist.c> */
+/* FindDelete -- see <code/land.c> */
 
 extern Bool FindDeleteCheck(FindDelete findDelete);
 
@@ -892,7 +897,9 @@ extern void (ShieldSuspend)(Arena arena);
 extern void (ShieldResume)(Arena arena);
 extern void (ShieldFlush)(Arena arena);
 
-#if defined(THREAD_SINGLE) && defined(PROTECTION_NONE)
+#if defined(SHIELD)
+/* Nothing to do: functions declared in all shield configurations. */
+#elif defined(SHIELD_NONE)
 #define ShieldRaise(arena, seg, mode) \
   BEGIN UNUSED(arena); UNUSED(seg); UNUSED(mode); END
 #define ShieldLower(arena, seg, mode) \
@@ -906,7 +913,9 @@ extern void (ShieldFlush)(Arena arena);
 #define ShieldSuspend(arena) BEGIN UNUSED(arena); END
 #define ShieldResume(arena) BEGIN UNUSED(arena); END
 #define ShieldFlush(arena) BEGIN UNUSED(arena); END
-#endif
+#else
+#error "No shield configuration."
+#endif  /* SHIELD */
 
 
 /* Protection Interface
@@ -921,8 +930,6 @@ extern void (ShieldFlush)(Arena arena);
 extern void ProtSetup(void);
 
 extern void ProtSet(Addr base, Addr limit, AccessSet mode);
-extern void ProtTramp(void **resultReturn, void *(*f)(void *, size_t),
-                      void *p, size_t s);
 extern void ProtSync(Arena arena);
 extern Bool ProtCanStepInstruction(MutatorFaultContext context);
 extern Res ProtStepInstruction(MutatorFaultContext context);
@@ -994,6 +1001,37 @@ extern Res VMMap(VM vm, Addr base, Addr limit);
 extern void VMUnmap(VM vm, Addr base, Addr limit);
 extern Size VMReserved(VM vm);
 extern Size VMMapped(VM vm);
+
+
+/* Land Interface -- see <design/land/> */
+
+extern Bool LandCheck(Land land);
+#define LandArena(land) ((land)->arena)
+#define LandAlignment(land) ((land)->alignment)
+extern Size LandSize(Land land);
+extern Res LandInit(Land land, LandClass class, Arena arena, Align alignment, void *owner, ArgList args);
+extern Res LandCreate(Land *landReturn, Arena arena, LandClass class, Align alignment, void *owner, ArgList args);
+extern void LandDestroy(Land land);
+extern void LandFinish(Land land);
+extern Res LandInsert(Range rangeReturn, Land land, Range range);
+extern Res LandDelete(Range rangeReturn, Land land, Range range);
+extern Bool LandIterate(Land land, LandVisitor visitor, void *closureP, Size closureS);
+extern Bool LandIterateAndDelete(Land land, LandDeleteVisitor visitor, void *closureP, Size closureS);
+extern Bool LandFindFirst(Range rangeReturn, Range oldRangeReturn, Land land, Size size, FindDelete findDelete);
+extern Bool LandFindLast(Range rangeReturn, Range oldRangeReturn, Land land, Size size, FindDelete findDelete);
+extern Bool LandFindLargest(Range rangeReturn, Range oldRangeReturn, Land land, Size size, FindDelete findDelete);
+extern Res LandFindInZones(Bool *foundReturn, Range rangeReturn, Range oldRangeReturn, Land land, Size size, ZoneSet zoneSet, Bool high);
+extern Res LandDescribe(Land land, mps_lib_FILE *stream);
+extern Bool LandFlush(Land dest, Land src);
+
+extern Size LandSlowSize(Land land);
+extern Bool LandClassCheck(LandClass class);
+extern LandClass LandClassGet(void);
+#define LAND_SUPERCLASS(className) ((LandClass)SUPERCLASS(className))
+#define DEFINE_LAND_CLASS(className, var) \
+  DEFINE_ALIAS_CLASS(className, LandClass, var)
+#define IsLandSubclass(land, className) \
+  IsSubclassPoly((land)->class, className ## Get())
 
 
 /* Stack Probe */

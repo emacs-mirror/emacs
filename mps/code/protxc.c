@@ -76,9 +76,6 @@
 #if !defined(MPS_OS_XC)
 #error "protxc.c is OS X specific"
 #endif
-#if !defined(PROTECTION)
-#error "protxc.c implements protection, but PROTECTION is not defined"
-#endif
 
 SRCID(protxc, "$Id$");
 
@@ -243,7 +240,7 @@ static void protCatchOne(void)
        different size" warnings in GCC, for the  XCI3GC build. */
     mfcStruct.address = (Addr)(Word)request.code[1];
     AVER(sizeof(*mfcStruct.threadState) == sizeof(THREAD_STATE_S));
-    mfcStruct.threadState = (THREAD_STATE_S *)request.old_state;
+    mfcStruct.threadState = (void *)request.old_state;
   
     if (ArenaAccess(mfcStruct.address,
                     AccessREAD | AccessWRITE,
@@ -282,6 +279,7 @@ static void protCatchOne(void)
  * handler won't cause a deadlock.
  */
 
+ATTRIBUTE_NORETURN
 static void *protCatchThread(void *p) {
   UNUSED(p);
   for (;;)

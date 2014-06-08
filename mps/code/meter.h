@@ -1,7 +1,7 @@
 /* meter.h: METER INTERFACE
  *
  * $Id$
- * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
  * .sources: mps.design.metrics.
  *
@@ -45,9 +45,12 @@ extern void MeterEmit(Meter meter);
 #define METER_ACC(meter, delta) \
   STATISTIC(MeterAccumulate(&(meter), delta))
 #if defined(STATISTICS)
-#define METER_WRITE(meter, stream) MeterWrite(&(meter), stream)
+#define METER_WRITE(meter, stream) BEGIN \
+    Res _res = MeterWrite(&(meter), (stream)); \
+    if (_res != ResOK) return _res; \
+  END
 #elif defined(STATISTICS_NONE)
-#define METER_WRITE(meter, stream) (ResOK)
+#define METER_WRITE(meter, stream) NOOP
 #else
 #error "No statistics configured."
 #endif
@@ -59,7 +62,7 @@ extern void MeterEmit(Meter meter);
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

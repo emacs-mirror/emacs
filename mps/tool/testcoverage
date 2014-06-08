@@ -1,11 +1,10 @@
 #!/bin/sh
 #
-#                              Ravenbrook
-#                     <http://www.ravenbrook.com/>
-#
 #          TESTCOVERAGE -- TEST COVERAGE REPORT FOR THE MPS
-#
 #             Gareth Rees, Ravenbrook Limited, 2014-03-21
+# 
+# $Id$
+# Copyright (c) 2014 Ravenbrook Limited. See end of file for license.
 #
 #
 # 1. INTRODUCTION
@@ -20,20 +19,22 @@ OS=$(uname -s)
 PROJECT=mps
 TOOL=$(dirname "$0")
 CODE=$TOOL/../code
+MPS_TELEMETRY_CONTROL=all
+export MPS_TELEMETRY_CONTROL
 
 case "$ARCH-$OS" in
     *-Darwin)
         CONFIGURATION=Debug
         (
             cd -- "$CODE"
-            xcodebuild -config "$CONFIGURATION" clean
-            xcodebuild -config "$CONFIGURATION" -target testrun \
+            xcrun xcodebuild -config "$CONFIGURATION" clean
+            xcrun xcodebuild -config "$CONFIGURATION" -target testrun \
                 GCC_GENERATE_TEST_COVERAGE_FILES=YES \
                 GCC_INSTRUMENT_PROGRAM_FLOW_ARCS=YES
         )
         (
             cd -- "$CODE/xc/$PROJECT.build/$CONFIGURATION/$PROJECT.build/Objects-normal/$ARCH"
-            gcov mps.c 2> /dev/null
+            xcrun gcov mps.c 2> /dev/null
         ) | "$TOOL/gcovfmt"
         ;;
     *)

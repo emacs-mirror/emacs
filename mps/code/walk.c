@@ -26,6 +26,7 @@ typedef struct FormattedObjectsStepClosureStruct {
 } FormattedObjectsStepClosureStruct;
 
 
+ATTRIBUTE_UNUSED
 static Bool FormattedObjectsStepClosureCheck(FormattedObjectsStepClosure c)
 {
   CHECKS(FormattedObjectsStepClosure, c);
@@ -164,6 +165,7 @@ typedef struct rootsStepClosureStruct {
 
 /* rootsStepClosureCheck -- check a rootsStepClosure */
 
+ATTRIBUTE_UNUSED
 static Bool rootsStepClosureCheck(rootsStepClosure rsc)
 {
   CHECKS(rootsStepClosure, rsc);
@@ -273,6 +275,20 @@ static Res rootWalk(Root root, void *p)
 }
 
 
+/* rootWalkGrey -- make the root grey for the trace passed as p */
+
+static Res rootWalkGrey(Root root, void *p)
+{
+  Trace trace = p;
+
+  AVERT(Root, root);
+  AVERT(Trace, trace);
+
+  RootGrey(root, trace);
+  return ResOK;
+}
+
+
 /* ArenaRootsWalk -- walks all the root in the arena */
 
 static Res ArenaRootsWalk(Globals arenaGlobals, mps_roots_stepper_t f,
@@ -315,7 +331,7 @@ static Res ArenaRootsWalk(Globals arenaGlobals, mps_roots_stepper_t f,
   }
 
   /* Make the roots grey so that they are scanned */
-  res = RootsIterate(arenaGlobals, (RootIterateFn)RootGrey, (void *)trace);
+  res = RootsIterate(arenaGlobals, rootWalkGrey, trace);
   /* Make this trace look like any other trace. */
   arena->flippedTraces = TraceSetAdd(arena->flippedTraces, trace);
 
@@ -328,6 +344,16 @@ static Res ArenaRootsWalk(Globals arenaGlobals, mps_roots_stepper_t f,
     res = RootsIterate(arenaGlobals, rootWalk, (void *)ss);
     if (res != ResOK)
       break;
+  }
+
+  /* Turn segments black again. */
+  if (SegFirst(&seg, arena)) {
+    do {
+      if (PoolHasAttr(SegPool(seg), AttrGC)) {
+        SegSetGrey(seg, TraceSetDel(SegGrey(seg), trace));
+        SegSetWhite(seg, TraceSetDel(SegWhite(seg), trace));
+      }
+    } while (SegNext(&seg, arena, seg));
   }
 
   rootsStepClosureFinish(rsc);

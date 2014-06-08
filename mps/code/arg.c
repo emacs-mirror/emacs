@@ -159,6 +159,7 @@ Bool ArgPick(ArgStruct *argOut, ArgList args, Key key) {
   return FALSE;
 
 found:
+  AVERT(Arg, &args[i]);
   *argOut = args[i];
   for(;;) {
     args[i] = args[i + 1];

@@ -28,12 +28,9 @@
 
 
 /* Suppress Pelles C warnings at warning level 2 */
-/* Some of these are also done in config.h. */
+/* This is also done in config.h. */
 
 #ifdef MPS_BUILD_PC
-
-/* "Structured Exception Handling is not portable." (mps_tramp). */
-#pragma warn(disable: 2008)
 
 /* "Unreachable code" (AVER, if condition is constantly true). */
 #pragma warn(disable: 2154)
@@ -67,6 +64,22 @@
 #if defined(MPS_OS_W3)
 
 #define alloca _alloca
+
+#endif
+
+
+/* setenv -- set environment variable
+ *
+ * Windows lacks setenv(), but _putenv_s() has similar functionality.
+ * <http://msdn.microsoft.com/en-us/library/eyw7eyfw.aspx>
+ *
+ * This macro version may evaluate the name argument twice.
+ */
+
+#if defined(MPS_OS_W3)
+
+#define setenv(name, value, overwrite) \
+    (((overwrite) || !getenv(name)) ? _putenv_s(name, value) : 0)
 
 #endif
 

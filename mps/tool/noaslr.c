@@ -1,45 +1,68 @@
-/* mpsw3.h: RAVENBROOK MEMORY POOL SYSTEM C INTERFACE, WINDOWS PART
+/* noaslr.c: Disable ASLR on OS X Mavericks
+ * 
+ * $Id: //info.ravenbrook.com/project/mps/master/code/eventcnv.c#26 $
+ * Copyright (c) 2014 Ravenbrook Limited. See end of file for license.
  *
- * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * This is a command-line tool that runs another program with address
+ * space layout randomization (ASLR) disabled.
  *
- * .readership: customers, MPS developers.
- * .sources: <design/interface-c/>.
+ * The technique is taken from GDB via "How gdb disables ASLR in Mac
+ * OS X Lion"
+ * <http://reverse.put.as/2011/08/11/how-gdb-disables-aslr-in-mac-os-x-lion/>
+ *
+ * On OS X Mavericks, the _POSIX_SPAWN_DISABLE_ASLR constant is not
+ * defined in any header, but the LLDB sources reveal its value, and
+ * experimentally this value works.
+ * <https://llvm.org/svn/llvm-project/lldb/trunk/tools/darwin-debug/darwin-debug.cpp>
  */
 
-#ifndef mpsw3_h
-#define mpsw3_h
+#include <spawn.h>
+#include <sys/wait.h>
+#include <stdio.h>
+#include <stdlib.h>
 
-#include "mps.h"               /* needed for mps_tramp_t */
-#include "mpswin.h"            /* needed for SEH filter */
+#ifndef _POSIX_SPAWN_DISABLE_ASLR
+#define _POSIX_SPAWN_DISABLE_ASLR 0x100
+#endif
 
+int main(int argc, char **argv)
+{
+  extern char **environ;
+  pid_t pid;
+  posix_spawnattr_t attr;
+  int res, status = 1;
+  char *default_argv[] = {"/bin/sh", NULL};
 
-extern LONG mps_SEH_filter(LPEXCEPTION_POINTERS, void **, size_t *);
-extern void mps_SEH_handler(void *, size_t);
+  if (argc >= 2)
+    ++ argv;
+  else
+    argv = default_argv;
 
+  res = posix_spawnattr_init(&attr);
+  if (res != 0)
+    return res;
 
-#define mps_tramp(r_o, f, p, s) \
-  MPS_BEGIN \
-    void **_r_o = (r_o); \
-    mps_tramp_t _f = (f); \
-    void *_p = (p); \
-    size_t _s = (s); \
-    void *_hp = NULL; size_t _hs = 0; \
-    __try { \
-      *_r_o = (*_f)(_p, _s); \
-    } __except(mps_SEH_filter(GetExceptionInformation(), \
-               &_hp, &_hs)) { \
-      mps_SEH_handler(_hp, _hs); \
-    } \
-  MPS_END
+  res = posix_spawnattr_setflags(&attr, _POSIX_SPAWN_DISABLE_ASLR);
+  if (res != 0)
+    return res;
 
+  res = posix_spawn(&pid, argv[0], NULL, &attr, argv, environ);
+  if (res != 0)
+    return res;
 
-#endif /* mpsw3_h */
+  if (waitpid(pid, &status, 0) == -1)
+    return 1;
+
+  if (!WIFEXITED(status))
+    return 1;
+
+  return WEXITSTATUS(status);
+}
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

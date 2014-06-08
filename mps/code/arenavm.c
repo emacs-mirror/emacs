@@ -93,6 +93,7 @@ static void VMCompact(Arena arena, Trace trace);
 
 /* VMChunkCheck -- check the consistency of a VM chunk */
 
+ATTRIBUTE_UNUSED
 static Bool VMChunkCheck(VMChunk vmchunk)
 {
   Chunk chunk;
@@ -152,6 +153,7 @@ static Bool VMChunkCheck(VMChunk vmchunk)
 
 /* VMArenaCheck -- check the consistency of an arena structure */
 
+ATTRIBUTE_UNUSED
 static Bool VMArenaCheck(VMArena vmArena)
 {
   Arena arena;
@@ -480,7 +482,7 @@ ARG_DEFINE_KEY(arena_contracted, Fun);
 
 static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
 {
-  Size userSize;        /* size requested by user */
+  Size userSize = VM_ARENA_SIZE_DEFAULT; /* size requested by user */
   Size chunkSize;       /* size actually created */
   Size vmArenaSize; /* aligned size of VMArenaStruct */
   Res res;
@@ -495,8 +497,8 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
   AVER(class == VMArenaClassGet());
   AVERT(ArgList, args);
 
-  ArgRequire(&arg, args, MPS_KEY_ARENA_SIZE);
-  userSize = arg.val.size;
+  if (ArgPick(&arg, args, MPS_KEY_ARENA_SIZE))
+    userSize = arg.val.size;
 
   AVER(userSize > 0);
   
@@ -593,6 +595,8 @@ static void VMArenaFinish(Arena arena)
   AVERT(VMArena, vmArena);
   arenaVM = vmArena->vm;
 
+  EVENT1(ArenaDestroy, vmArena);
+
   /* destroy all chunks, including the primary */
   arena->primary = NULL;
   RING_FOR(node, &arena->chunkRing, next) {
@@ -612,7 +616,6 @@ static void VMArenaFinish(Arena arena)
 
   VMUnmap(arenaVM, VMBase(arenaVM), VMLimit(arenaVM));
   VMDestroy(arenaVM);
-  EVENT1(ArenaDestroy, vmArena);
 }
 
 

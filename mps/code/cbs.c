@@ -26,37 +26,18 @@ SRCID(cbs, "$Id$");
 #define CBSBlockSize(block) AddrOffset((block)->base, (block)->limit)
 
 
+#define cbsLand(cbs) (&((cbs)->landStruct))
+#define cbsOfLand(land) PARENT(CBSStruct, landStruct, land)
 #define cbsSplay(cbs) (&((cbs)->splayTreeStruct))
 #define cbsOfSplay(_splay) PARENT(CBSStruct, splayTreeStruct, _splay)
 #define cbsBlockTree(block) (&((block)->treeStruct))
 #define cbsBlockOfTree(_tree) TREE_ELT(CBSBlock, treeStruct, _tree)
+#define cbsFastBlockOfTree(_tree) \
+  PARENT(CBSFastBlockStruct, cbsBlockStruct, cbsBlockOfTree(_tree))
+#define cbsZonedBlockOfTree(_tree) \
+  PARENT(CBSZonedBlockStruct, cbsFastBlockStruct, cbsFastBlockOfTree(_tree))
 #define cbsBlockKey(block) (&((block)->base))
 #define cbsBlockPool(cbs) RVALUE((cbs)->blockPool)
-
-
-/* cbsEnter, cbsLeave -- Avoid re-entrance
- *
- * .enter-leave: The callbacks are restricted in what they may call.
- * These functions enforce this.
- *
- * .enter-leave.simple: Simple queries may be called from callbacks.
- */
-
-static void cbsEnter(CBS cbs)
-{
-  /* Don't need to check as always called from interface function. */
-  AVER(!cbs->inCBS);
-  cbs->inCBS = TRUE;
-  return;
-}
-
-static void cbsLeave(CBS cbs)
-{
-  /* Don't need to check as always called from interface function. */
-  AVER(cbs->inCBS);
-  cbs->inCBS = FALSE;
-  return;
-}
 
 
 /* CBSCheck -- Check CBS */
@@ -64,25 +45,23 @@ static void cbsLeave(CBS cbs)
 Bool CBSCheck(CBS cbs)
 {
   /* See .enter-leave.simple. */
+  Land land;
   CHECKS(CBS, cbs);
-  CHECKL(cbs != NULL);
+  land = cbsLand(cbs);
+  CHECKD(Land, land);
   CHECKD(SplayTree, cbsSplay(cbs));
-  /* nothing to check about treeSize */
   CHECKD(Pool, cbs->blockPool);
-  CHECKU(Arena, cbs->arena);
-  CHECKL(BoolCheck(cbs->fastFind));
-  CHECKL(BoolCheck(cbs->inCBS));
   CHECKL(BoolCheck(cbs->ownPool));
-  CHECKL(BoolCheck(cbs->zoned));
-  /* No MeterCheck */
+  CHECKL(SizeIsAligned(cbs->size, LandAlignment(land)));
+  CHECKL((cbs->size == 0) == (cbs->treeSize == 0));
 
   return TRUE;
 }
 
 
+ATTRIBUTE_UNUSED
 static Bool CBSBlockCheck(CBSBlock block)
 {
-  /* See .enter-leave.simple. */
   UNUSED(block); /* Required because there is no signature */
   CHECKL(block != NULL);
   /* Can't use CHECKD_NOSIG because TreeEMPTY is NULL. */
@@ -139,7 +118,7 @@ static Bool cbsTestNode(SplayTree splay, Tree tree,
   AVERT(Tree, tree);
   AVER(closureP == NULL);
   AVER(size > 0);
-  AVER(cbsOfSplay(splay)->fastFind);
+  AVER(IsLandSubclass(cbsLand(cbsOfSplay(splay)), CBSFastLandClass));
 
   block = cbsBlockOfTree(tree);
 
@@ -149,51 +128,45 @@ static Bool cbsTestNode(SplayTree splay, Tree tree,
 static Bool cbsTestTree(SplayTree splay, Tree tree,
                         void *closureP, Size size)
 {
-  CBSBlock block;
+  CBSFastBlock block;
 
   AVERT(SplayTree, splay);
   AVERT(Tree, tree);
-#if 0
   AVER(closureP == NULL);
   AVER(size > 0);
-#endif
-  UNUSED(closureP);
-  UNUSED(size);
-  AVER(cbsOfSplay(splay)->fastFind);
+  AVER(IsLandSubclass(cbsLand(cbsOfSplay(splay)), CBSFastLandClass));
 
-  block = cbsBlockOfTree(tree);
+  block = cbsFastBlockOfTree(tree);
 
   return block->maxSize >= size;
 }
 
 
-/* cbsUpdateNode -- update size info after restructuring */
+/* cbsUpdateFastNode -- update size info after restructuring */
 
-static void cbsUpdateNode(SplayTree splay, Tree tree)
+static void cbsUpdateFastNode(SplayTree splay, Tree tree)
 {
   Size maxSize;
-  CBSBlock block;
 
   AVERT_CRITICAL(SplayTree, splay);
   AVERT_CRITICAL(Tree, tree);
-  AVER_CRITICAL(cbsOfSplay(splay)->fastFind);
+  AVER_CRITICAL(IsLandSubclass(cbsLand(cbsOfSplay(splay)), CBSFastLandClass));
 
-  block = cbsBlockOfTree(tree);
-  maxSize = CBSBlockSize(block);
+  maxSize = CBSBlockSize(cbsBlockOfTree(tree));
 
   if (TreeHasLeft(tree)) {
-    Size size = cbsBlockOfTree(TreeLeft(tree))->maxSize;
+    Size size = cbsFastBlockOfTree(TreeLeft(tree))->maxSize;
     if (size > maxSize)
       maxSize = size;
   }
 
   if (TreeHasRight(tree)) {
-    Size size = cbsBlockOfTree(TreeRight(tree))->maxSize;
+    Size size = cbsFastBlockOfTree(TreeRight(tree))->maxSize;
     if (size > maxSize)
       maxSize = size;
   }
 
-  block->maxSize = maxSize;
+  cbsFastBlockOfTree(tree)->maxSize = maxSize;
 }
 
 
@@ -202,69 +175,57 @@ static void cbsUpdateNode(SplayTree splay, Tree tree)
 static void cbsUpdateZonedNode(SplayTree splay, Tree tree)
 {
   ZoneSet zones;
+  CBSZonedBlock zonedBlock;
   CBSBlock block;
   Arena arena;
 
   AVERT_CRITICAL(SplayTree, splay);
   AVERT_CRITICAL(Tree, tree);
-  AVER_CRITICAL(cbsOfSplay(splay)->fastFind);
-  AVER_CRITICAL(cbsOfSplay(splay)->zoned);
+  AVER_CRITICAL(IsLandSubclass(cbsLand(cbsOfSplay(splay)), CBSZonedLandClass));
 
-  cbsUpdateNode(splay, tree);
+  cbsUpdateFastNode(splay, tree);
 
-  block = cbsBlockOfTree(tree);
-  arena = cbsOfSplay(splay)->arena;
+  zonedBlock = cbsZonedBlockOfTree(tree);
+  block = &zonedBlock->cbsFastBlockStruct.cbsBlockStruct;
+  arena = LandArena(cbsLand(cbsOfSplay(splay)));
   zones = ZoneSetOfRange(arena, CBSBlockBase(block), CBSBlockLimit(block));
 
   if (TreeHasLeft(tree))
-    zones = ZoneSetUnion(zones, cbsBlockOfTree(TreeLeft(tree))->zones);
+    zones = ZoneSetUnion(zones, cbsZonedBlockOfTree(TreeLeft(tree))->zones);
 
   if (TreeHasRight(tree))
-    zones = ZoneSetUnion(zones, cbsBlockOfTree(TreeRight(tree))->zones);
+    zones = ZoneSetUnion(zones, cbsZonedBlockOfTree(TreeRight(tree))->zones);
 
-  block->zones = zones;
+  zonedBlock->zones = zones;
 }
 
 
-/* CBSInit -- Initialise a CBS structure
+/* cbsInit -- Initialise a CBS structure
  *
- * See <design/cbs/#function.cbs.init>.
+ * See <design/land/#function.init>.
  */
 
-ARG_DEFINE_KEY(cbs_extend_by, Size);
 ARG_DEFINE_KEY(cbs_block_pool, Pool);
 
-Res CBSInit(CBS cbs, Arena arena, void *owner, Align alignment,
-            Bool fastFind, Bool zoned, ArgList args)
+static Res cbsInitComm(Land land, ArgList args, SplayUpdateNodeMethod update,
+                       Size blockStructSize)
 {
-  Size extendBy = CBS_EXTEND_BY_DEFAULT;
-  Bool extendSelf = TRUE;
+  CBS cbs;
+  LandClass super;
   ArgStruct arg;
   Res res;
   Pool blockPool = NULL;
-  SplayUpdateNodeMethod update;
 
-  AVERT(Arena, arena);
-  AVER(cbs != NULL);
-  AVERT(Align, alignment);
-  AVERT(Bool, fastFind);
-  AVERT(Bool, zoned);
+  AVERT(Land, land);
+  super = LAND_SUPERCLASS(CBSLandClass);
+  res = (*super->init)(land, args);
+  if (res != ResOK)
+    return res;
 
   if (ArgPick(&arg, args, CBSBlockPool))
     blockPool = arg.val.pool;
-  if (ArgPick(&arg, args, MPS_KEY_CBS_EXTEND_BY))
-    extendBy = arg.val.size;
-  if (ArgPick(&arg, args, MFSExtendSelf))
-    extendSelf = arg.val.b;
 
-  update = SplayTrivUpdate;
-  if (fastFind)
-    update = cbsUpdateNode;
-  if (zoned) {
-    AVER(fastFind);
-    update = cbsUpdateZonedNode;
-  }
-
+  cbs = cbsOfLand(land);
   SplayTreeInit(cbsSplay(cbs), cbsCompare, cbsKey, update);
 
   if (blockPool != NULL) {
@@ -272,43 +233,57 @@ Res CBSInit(CBS cbs, Arena arena, void *owner, Align alignment,
     cbs->ownPool = FALSE;
   } else {
     MPS_ARGS_BEGIN(pcArgs) {
-      MPS_ARGS_ADD(pcArgs, MPS_KEY_MFS_UNIT_SIZE, sizeof(CBSBlockStruct));
-      MPS_ARGS_ADD(pcArgs, MPS_KEY_EXTEND_BY, extendBy);
-      MPS_ARGS_ADD(pcArgs, MFSExtendSelf, extendSelf);
-      res = PoolCreate(&cbs->blockPool, arena, PoolClassMFS(), pcArgs);
+      MPS_ARGS_ADD(pcArgs, MPS_KEY_MFS_UNIT_SIZE, blockStructSize);
+      res = PoolCreate(&cbs->blockPool, LandArena(land), PoolClassMFS(), pcArgs);
     } MPS_ARGS_END(pcArgs);
     if (res != ResOK)
       return res;
     cbs->ownPool = TRUE;
   }
   cbs->treeSize = 0;
+  cbs->size = 0;
 
-  cbs->arena = arena;
-  cbs->fastFind = fastFind;
-  cbs->zoned = zoned;
-  cbs->alignment = alignment;
-  cbs->inCBS = TRUE;
+  cbs->blockStructSize = blockStructSize;
 
   METER_INIT(cbs->treeSearch, "size of tree", (void *)cbs);
 
   cbs->sig = CBSSig;
 
   AVERT(CBS, cbs);
-  EVENT2(CBSInit, cbs, owner);
-  cbsLeave(cbs);
   return ResOK;
 }
 
+static Res cbsInit(Land land, ArgList args)
+{
+  return cbsInitComm(land, args, SplayTrivUpdate,
+                     sizeof(CBSBlockStruct));
+}
 
-/* CBSFinish -- Finish a CBS structure
+static Res cbsInitFast(Land land, ArgList args)
+{
+  return cbsInitComm(land, args, cbsUpdateFastNode,
+                     sizeof(CBSFastBlockStruct));
+}
+
+static Res cbsInitZoned(Land land, ArgList args)
+{
+  return cbsInitComm(land, args, cbsUpdateZonedNode,
+                     sizeof(CBSZonedBlockStruct));
+}
+
+
+/* cbsFinish -- Finish a CBS structure
  *
- * See <design/cbs/#function.cbs.finish>.
+ * See <design/land/#function.finish>.
  */
 
-void CBSFinish(CBS cbs)
+static void cbsFinish(Land land)
 {
+  CBS cbs;
+
+  AVERT(Land, land);
+  cbs = cbsOfLand(land);
   AVERT(CBS, cbs);
-  cbsEnter(cbs);
 
   METER_EMIT(&cbs->treeSearch);
 
@@ -317,6 +292,23 @@ void CBSFinish(CBS cbs)
   SplayTreeFinish(cbsSplay(cbs));
   if (cbs->ownPool)
     PoolDestroy(cbsBlockPool(cbs));
+}
+
+
+/* cbsSize -- total size of ranges in CBS
+ *
+ * See <design/land/#function.size>.
+ */
+
+static Size cbsSize(Land land)
+{
+  CBS cbs;
+
+  AVERT(Land, land);
+  cbs = cbsOfLand(land);
+  AVERT(CBS, cbs);
+
+  return cbs->size;
 }
 
 
@@ -330,19 +322,23 @@ void CBSFinish(CBS cbs)
 static void cbsBlockDelete(CBS cbs, CBSBlock block)
 {
   Bool b;
+  Size size;
 
   AVERT(CBS, cbs);
   AVERT(CBSBlock, block);
+  size = CBSBlockSize(block);
 
   METER_ACC(cbs->treeSearch, cbs->treeSize);
   b = SplayTreeDelete(cbsSplay(cbs), cbsBlockTree(block));
   AVER(b); /* expect block to be in the tree */
   STATISTIC(--cbs->treeSize);
+  AVER(cbs->size >= size);
+  cbs->size -= size;
 
   /* make invalid */
   block->limit = block->base;
 
-  PoolFree(cbsBlockPool(cbs), (Addr)block, sizeof(CBSBlockStruct));
+  PoolFree(cbsBlockPool(cbs), (Addr)block, cbs->blockStructSize);
 }
 
 static void cbsBlockShrunk(CBS cbs, CBSBlock block, Size oldSize)
@@ -354,11 +350,10 @@ static void cbsBlockShrunk(CBS cbs, CBSBlock block, Size oldSize)
 
   newSize = CBSBlockSize(block);
   AVER(oldSize > newSize);
+  AVER(cbs->size >= oldSize - newSize);
 
-  if (cbs->fastFind) {
-    SplayNodeRefresh(cbsSplay(cbs), cbsBlockTree(block));
-    AVER(CBSBlockSize(block) <= block->maxSize);
-  }
+  SplayNodeRefresh(cbsSplay(cbs), cbsBlockTree(block));
+  cbs->size -= oldSize - newSize;
 }
 
 static void cbsBlockGrew(CBS cbs, CBSBlock block, Size oldSize)
@@ -371,10 +366,8 @@ static void cbsBlockGrew(CBS cbs, CBSBlock block, Size oldSize)
   newSize = CBSBlockSize(block);
   AVER(oldSize < newSize);
 
-  if (cbs->fastFind) {
-    SplayNodeRefresh(cbsSplay(cbs), cbsBlockTree(block));
-    AVER(CBSBlockSize(block) <= block->maxSize);
-  }
+  SplayNodeRefresh(cbsSplay(cbs), cbsBlockTree(block));
+  cbs->size += newSize - oldSize;
 }
 
 /* cbsBlockAlloc -- allocate a new block and set its base and limit,
@@ -390,7 +383,7 @@ static Res cbsBlockAlloc(CBSBlock *blockReturn, CBS cbs, Range range)
   AVERT(CBS, cbs);
   AVERT(Range, range);
 
-  res = PoolAlloc(&p, cbsBlockPool(cbs), sizeof(CBSBlockStruct),
+  res = PoolAlloc(&p, cbsBlockPool(cbs), cbs->blockStructSize,
                   /* withReservoirPermit */ FALSE);
   if (res != ResOK)
     goto failPoolAlloc;
@@ -399,7 +392,8 @@ static Res cbsBlockAlloc(CBSBlock *blockReturn, CBS cbs, Range range)
   TreeInit(cbsBlockTree(block));
   block->base = RangeBase(range);
   block->limit = RangeLimit(range);
-  block->maxSize = CBSBlockSize(block);
+
+  SplayNodeInit(cbsSplay(cbs), cbsBlockTree(block));
 
   AVERT(CBSBlock, block);
   *blockReturn = block;
@@ -423,13 +417,21 @@ static void cbsBlockInsert(CBS cbs, CBSBlock block)
   b = SplayTreeInsert(cbsSplay(cbs), cbsBlockTree(block));
   AVER(b);
   STATISTIC(++cbs->treeSize);
+  cbs->size += CBSBlockSize(block);
 }
 
 
-/* cbsInsertIntoTree -- Insert a range into the tree */
+/* cbsInsert -- Insert a range into the CBS
+ *
+ * See <design/cbs/#functions.cbs.insert>.
+ *
+ * .insert.alloc: Will only allocate a block if the range does not
+ * abut an existing range.
+ */
 
-static Res cbsInsertIntoTree(Range rangeReturn, CBS cbs, Range range)
+static Res cbsInsert(Range rangeReturn, Land land, Range range)
 {
+  CBS cbs;
   Bool b;
   Res res;
   Addr base, limit, newBase, newLimit;
@@ -439,10 +441,11 @@ static Res cbsInsertIntoTree(Range rangeReturn, CBS cbs, Range range)
   Size oldSize;
 
   AVER(rangeReturn != NULL);
-  AVERT(CBS, cbs);
+  AVERT(Land, land);
   AVERT(Range, range);
-  AVER(RangeIsAligned(range, cbs->alignment));
+  AVER(RangeIsAligned(range, LandAlignment(land)));
 
+  cbs = cbsOfLand(land);
   base = RangeBase(range);
   limit = RangeLimit(range);
 
@@ -523,46 +526,28 @@ fail:
 }
 
 
-/* CBSInsert -- Insert a range into the CBS
+/* cbsDelete -- Remove a range from a CBS
  *
- * See <design/cbs/#functions.cbs.insert>.
+ * See <design/land/#function.delete>.
  *
- * .insert.alloc: Will only allocate a block if the range does not
- * abut an existing range.
+ * .delete.alloc: Will only allocate a block if the range splits
+ * an existing range.
  */
 
-Res CBSInsert(Range rangeReturn, CBS cbs, Range range)
+static Res cbsDelete(Range rangeReturn, Land land, Range range)
 {
-  Res res;
-
-  AVERT(CBS, cbs);
-  cbsEnter(cbs);
-
-  AVER(rangeReturn != NULL);
-  AVERT(Range, range);
-  AVER(RangeIsAligned(range, cbs->alignment));
-
-  res = cbsInsertIntoTree(rangeReturn, cbs, range);
-
-  cbsLeave(cbs);
-  return res;
-}
-
-
-/* cbsDeleteFromTree -- delete blocks from the tree */
-
-static Res cbsDeleteFromTree(Range rangeReturn, CBS cbs, Range range)
-{
+  CBS cbs;
   Res res;
   CBSBlock cbsBlock;
   Tree tree;
   Addr base, limit, oldBase, oldLimit;
   Size oldSize;
 
+  AVERT(Land, land);
+  cbs = cbsOfLand(land);
   AVER(rangeReturn != NULL);
-  AVERT(CBS, cbs);
   AVERT(Range, range);
-  AVER(RangeIsAligned(range, cbs->alignment));
+  AVER(RangeIsAligned(range, LandAlignment(land)));
 
   base = RangeBase(range);
   limit = RangeLimit(range);
@@ -627,32 +612,6 @@ failSplayTreeSearch:
 }
 
 
-/* CBSDelete -- Remove a range from a CBS
- *
- * See <design/cbs/#function.cbs.delete>.
- *
- * .delete.alloc: Will only allocate a block if the range splits
- * an existing range.
- */
-
-Res CBSDelete(Range rangeReturn, CBS cbs, Range range)
-{
-  Res res;
-
-  AVERT(CBS, cbs);
-  cbsEnter(cbs);
-
-  AVER(rangeReturn != NULL);
-  AVERT(Range, range);
-  AVER(RangeIsAligned(range, cbs->alignment));
-
-  res = cbsDeleteFromTree(rangeReturn, cbs, range);
-
-  cbsLeave(cbs);
-  return res;
-}
-
-
 static Res cbsBlockDescribe(CBSBlock block, mps_lib_FILE *stream)
 {
   Res res;
@@ -661,11 +620,9 @@ static Res cbsBlockDescribe(CBSBlock block, mps_lib_FILE *stream)
     return ResFAIL;
 
   res = WriteF(stream,
-               "[$P,$P) {$U, $B}",
+               "[$P,$P)",
                (WriteFP)block->base,
                (WriteFP)block->limit,
-               (WriteFU)block->maxSize,
-               (WriteFB)block->zones,
                NULL);
   return res;
 }
@@ -683,25 +640,74 @@ static Res cbsSplayNodeDescribe(Tree tree, mps_lib_FILE *stream)
   return res;
 }
 
+static Res cbsFastBlockDescribe(CBSFastBlock block, mps_lib_FILE *stream)
+{
+  Res res;
 
-/* CBSIterate -- iterate over all blocks in CBS
+  if (stream == NULL)
+    return ResFAIL;
+
+  res = WriteF(stream,
+               "[$P,$P) {$U}",
+               (WriteFP)block->cbsBlockStruct.base,
+               (WriteFP)block->cbsBlockStruct.limit,
+               (WriteFU)block->maxSize,
+               NULL);
+  return res;
+}
+
+static Res cbsFastSplayNodeDescribe(Tree tree, mps_lib_FILE *stream)
+{
+  Res res;
+
+  if (tree == TreeEMPTY)
+    return ResFAIL;
+  if (stream == NULL)
+    return ResFAIL;
+
+  res = cbsFastBlockDescribe(cbsFastBlockOfTree(tree), stream);
+  return res;
+}
+
+static Res cbsZonedBlockDescribe(CBSZonedBlock block, mps_lib_FILE *stream)
+{
+  Res res;
+
+  if (stream == NULL)
+    return ResFAIL;
+
+  res = WriteF(stream,
+               "[$P,$P) {$U, $B}",
+               (WriteFP)block->cbsFastBlockStruct.cbsBlockStruct.base,
+               (WriteFP)block->cbsFastBlockStruct.cbsBlockStruct.limit,
+               (WriteFU)block->cbsFastBlockStruct.maxSize,
+               (WriteFB)block->zones,
+               NULL);
+  return res;
+}
+
+static Res cbsZonedSplayNodeDescribe(Tree tree, mps_lib_FILE *stream)
+{
+  Res res;
+
+  if (tree == TreeEMPTY)
+    return ResFAIL;
+  if (stream == NULL)
+    return ResFAIL;
+
+  res = cbsZonedBlockDescribe(cbsZonedBlockOfTree(tree), stream);
+  return res;
+}
+
+
+/* cbsIterate -- iterate over all blocks in CBS
  *
- * Applies a visitor to all isolated contiguous ranges in a CBS.
- * It receives a pointer, ``Size`` closure pair to pass on to the
- * visitor function, and an visitor function to invoke on every range
- * in address order. If the visitor returns ``FALSE``, then the iteration
- * is terminated.
- *
- * The visitor function may not modify the CBS during the iteration.
- * This is because CBSIterate uses TreeTraverse, which does not permit
- * modification, for speed and to avoid perturbing the splay tree balance.
- *
- * See <design/cbs/#function.cbs.iterate>.
+ * See <design/land/#function.iterate>.
  */
 
 typedef struct CBSIterateClosure {
-  CBS cbs;
-  CBSVisitor iterate;
+  Land land;
+  LandVisitor visitor;
   void *closureP;
   Size closureS;
 } CBSIterateClosure;
@@ -711,26 +717,32 @@ static Bool cbsIterateVisit(Tree tree, void *closureP, Size closureS)
   CBSIterateClosure *closure = closureP;
   RangeStruct range;
   CBSBlock cbsBlock;
-  CBS cbs = closure->cbs;
+  Land land = closure->land;
+  CBS cbs = cbsOfLand(land);
+  Bool cont = TRUE;
 
+  AVER(closureS == UNUSED_SIZE);
   UNUSED(closureS);
 
   cbsBlock = cbsBlockOfTree(tree);
   RangeInit(&range, CBSBlockBase(cbsBlock), CBSBlockLimit(cbsBlock));
-  if (!closure->iterate(cbs, &range, closure->closureP, closure->closureS))
+  cont = (*closure->visitor)(land, &range, closure->closureP, closure->closureS);
+  if (!cont)
     return FALSE;
   METER_ACC(cbs->treeSearch, cbs->treeSize);
   return TRUE;
 }
 
-void CBSIterate(CBS cbs, CBSVisitor visitor,
-                void *closureP, Size closureS)
+static Bool cbsIterate(Land land, LandVisitor visitor,
+                       void *closureP, Size closureS)
 {
+  CBS cbs;
   SplayTree splay;
   CBSIterateClosure closure;
 
+  AVERT(Land, land);
+  cbs = cbsOfLand(land);
   AVERT(CBS, cbs);
-  cbsEnter(cbs);
   AVER(FUNCHECK(visitor));
 
   splay = cbsSplay(cbs);
@@ -738,36 +750,19 @@ void CBSIterate(CBS cbs, CBSVisitor visitor,
   /* searches and meter it. */
   METER_ACC(cbs->treeSearch, cbs->treeSize);
 
-  closure.cbs = cbs;
-  closure.iterate = visitor;
+  closure.land = land;
+  closure.visitor = visitor;
   closure.closureP = closureP;
   closure.closureS = closureS;
-  (void)TreeTraverse(SplayTreeRoot(splay), splay->compare, splay->nodeKey,
-                     cbsIterateVisit, &closure, 0);
-
-  cbsLeave(cbs);
-  return;
-}
-
-
-/* FindDeleteCheck -- check method for a FindDelete value */
-
-Bool FindDeleteCheck(FindDelete findDelete)
-{
-  CHECKL(findDelete == FindDeleteNONE
-         || findDelete == FindDeleteLOW
-         || findDelete == FindDeleteHIGH
-         || findDelete == FindDeleteENTIRE);
-  UNUSED(findDelete); /* <code/mpm.c#check.unused> */
-
-  return TRUE;
+  return TreeTraverse(SplayTreeRoot(splay), splay->compare, splay->nodeKey,
+                      cbsIterateVisit, &closure, UNUSED_SIZE);
 }
 
 
 /* cbsFindDeleteRange -- delete appropriate range of block found */
 
 static void cbsFindDeleteRange(Range rangeReturn, Range oldRangeReturn,
-                               CBS cbs, Range range, Size size,
+                               Land land, Range range, Size size,
                                FindDelete findDelete)
 {
   Bool callDelete = TRUE;
@@ -775,11 +770,11 @@ static void cbsFindDeleteRange(Range rangeReturn, Range oldRangeReturn,
 
   AVER(rangeReturn != NULL);
   AVER(oldRangeReturn != NULL);
-  AVERT(CBS, cbs);
+  AVERT(Land, land);
   AVERT(Range, range);
-  AVER(RangeIsAligned(range, cbs->alignment));
+  AVER(RangeIsAligned(range, LandAlignment(land)));
   AVER(size > 0);
-  AVER(SizeIsAligned(size, cbs->alignment));
+  AVER(SizeIsAligned(size, LandAlignment(land)));
   AVER(RangeSize(range) >= size);
   AVERT(FindDelete, findDelete);
 
@@ -813,32 +808,36 @@ static void cbsFindDeleteRange(Range rangeReturn, Range oldRangeReturn,
 
   if (callDelete) {
     Res res;
-    res = cbsDeleteFromTree(oldRangeReturn, cbs, rangeReturn);
+    res = cbsDelete(oldRangeReturn, land, rangeReturn);
     /* Can't have run out of memory, because all our callers pass in
        blocks that were just found in the tree, and we only
-       deleted from one end of the block, so cbsDeleteFromTree did not
+       deleted from one end of the block, so cbsDelete did not
        need to allocate a new block. */
     AVER(res == ResOK);
+  } else {
+    RangeCopy(oldRangeReturn, rangeReturn);
   }
 }
 
 
 /* CBSFindFirst -- find the first block of at least the given size */
 
-Bool CBSFindFirst(Range rangeReturn, Range oldRangeReturn,
-                  CBS cbs, Size size, FindDelete findDelete)
+static Bool cbsFindFirst(Range rangeReturn, Range oldRangeReturn,
+                         Land land, Size size, FindDelete findDelete)
 {
+  CBS cbs;
   Bool found;
   Tree tree;
 
+  AVERT(Land, land);
+  cbs = cbsOfLand(land);
   AVERT(CBS, cbs);
-  cbsEnter(cbs);
+  AVER(IsLandSubclass(cbsLand(cbs), CBSFastLandClass));
 
   AVER(rangeReturn != NULL);
   AVER(oldRangeReturn != NULL);
   AVER(size > 0);
-  AVER(SizeIsAligned(size, cbs->alignment));
-  AVER(cbs->fastFind);
+  AVER(SizeIsAligned(size, LandAlignment(land)));
   AVERT(FindDelete, findDelete);
 
   METER_ACC(cbs->treeSearch, cbs->treeSize);
@@ -851,16 +850,17 @@ Bool CBSFindFirst(Range rangeReturn, Range oldRangeReturn,
     AVER(CBSBlockSize(block) >= size);
     RangeInit(&range, CBSBlockBase(block), CBSBlockLimit(block));
     AVER(RangeSize(&range) >= size);
-    cbsFindDeleteRange(rangeReturn, oldRangeReturn, cbs, &range,
+    cbsFindDeleteRange(rangeReturn, oldRangeReturn, land, &range,
                        size, findDelete);
   }
 
-  cbsLeave(cbs);
   return found;
 }
 
-/* CBSFindFirstInZones -- find the first block of at least the given size
-   that lies entirely within a zone set */
+/* cbsFindInZones -- find a block of at least the given size that lies
+ * entirely within a zone set. (The first such block, if high is
+ * FALSE, or the last, if high is TRUE.)
+ */
 
 typedef struct cbsTestNodeInZonesClosureStruct {
   Size size;
@@ -872,15 +872,15 @@ typedef struct cbsTestNodeInZonesClosureStruct {
 } cbsTestNodeInZonesClosureStruct, *cbsTestNodeInZonesClosure;
 
 static Bool cbsTestNodeInZones(SplayTree splay, Tree tree,
-                               void *closureP, Size closureSize)
+                               void *closureP, Size closureS)
 {
   CBSBlock block = cbsBlockOfTree(tree);
   cbsTestNodeInZonesClosure closure = closureP;
   RangeInZoneSet search;
   
   UNUSED(splay);
-  AVER(closureSize == sizeof(cbsTestNodeInZonesClosureStruct));
-  UNUSED(closureSize);
+  AVER(closureS == UNUSED_SIZE);
+  UNUSED(closureS);
 
   search = closure->high ? RangeInZoneSetLast : RangeInZoneSetFirst;
 
@@ -890,104 +890,39 @@ static Bool cbsTestNodeInZones(SplayTree splay, Tree tree,
 }
 
 static Bool cbsTestTreeInZones(SplayTree splay, Tree tree,
-                               void *closureP, Size closureSize)
+                               void *closureP, Size closureS)
 {
-  CBSBlock block = cbsBlockOfTree(tree);
+  CBSFastBlock fastBlock = cbsFastBlockOfTree(tree);
+  CBSZonedBlock zonedBlock = cbsZonedBlockOfTree(tree);
   cbsTestNodeInZonesClosure closure = closureP;
   
   UNUSED(splay);
-  AVER(closureSize == sizeof(cbsTestNodeInZonesClosureStruct));
-  UNUSED(closureSize);
+  AVER(closureS == UNUSED_SIZE);
+  UNUSED(closureS);
   
-  return block->maxSize >= closure->size &&
-         ZoneSetInter(block->zones, closure->zoneSet) != ZoneSetEMPTY;
-}
-
-Res CBSFindInZones(Range rangeReturn, Range oldRangeReturn,
-                   CBS cbs, Size size,
-                   ZoneSet zoneSet, Bool high)
-{
-  Tree tree;
-  cbsTestNodeInZonesClosureStruct closure;
-  Res res;
-  CBSFindMethod cbsFind;
-  SplayFindMethod splayFind;
-  
-  AVER(rangeReturn != NULL);
-  AVER(oldRangeReturn != NULL);
-  AVERT(CBS, cbs);
-  /* AVERT(ZoneSet, zoneSet); */
-  AVERT(Bool, high);
-
-  cbsFind = high ? CBSFindLast : CBSFindFirst;
-  splayFind = high ? SplayFindLast : SplayFindFirst;
-  
-  if (zoneSet == ZoneSetEMPTY)
-    return ResFAIL;
-  if (zoneSet == ZoneSetUNIV) {
-    FindDelete fd = high ? FindDeleteHIGH : FindDeleteLOW;
-    if (cbsFind(rangeReturn, oldRangeReturn, cbs, size, fd))
-      return ResOK;
-    else
-      return ResFAIL;
-  }
-  if (ZoneSetIsSingle(zoneSet) && size > ArenaStripeSize(cbs->arena))
-    return ResFAIL;
-
-  /* It would be nice if there were a neat way to eliminate all runs of
-     zones in zoneSet too small for size.*/
-
-  cbsEnter(cbs);
-
-  closure.arena = cbs->arena;
-  closure.zoneSet = zoneSet;
-  closure.size = size;
-  closure.high = high;
-  if (splayFind(&tree, cbsSplay(cbs),
-                cbsTestNodeInZones,
-                cbsTestTreeInZones,
-                &closure, sizeof(closure))) {
-    CBSBlock block = cbsBlockOfTree(tree);
-    RangeStruct rangeStruct, oldRangeStruct;
-
-    AVER(CBSBlockBase(block) <= closure.base);
-    AVER(AddrOffset(closure.base, closure.limit) >= size);
-    AVER(ZoneSetSub(ZoneSetOfRange(cbs->arena, closure.base, closure.limit), zoneSet));
-    AVER(closure.limit <= CBSBlockLimit(block));
-
-    if (!high)
-      RangeInit(&rangeStruct, closure.base, AddrAdd(closure.base, size));
-    else
-      RangeInit(&rangeStruct, AddrSub(closure.limit, size), closure.limit);
-    res = cbsDeleteFromTree(&oldRangeStruct, cbs, &rangeStruct);
-    if (res == ResOK) {  /* enough memory to split block */
-      RangeCopy(rangeReturn, &rangeStruct);
-      RangeCopy(oldRangeReturn, &oldRangeStruct);
-    }
-  } else
-    res = ResFAIL;
-
-  cbsLeave(cbs);
-  return res;
+  return fastBlock->maxSize >= closure->size
+    && ZoneSetInter(zonedBlock->zones, closure->zoneSet) != ZoneSetEMPTY;
 }
 
 
-/* CBSFindLast -- find the last block of at least the given size */
+/* cbsFindLast -- find the last block of at least the given size */
 
-Bool CBSFindLast(Range rangeReturn, Range oldRangeReturn,
-                 CBS cbs, Size size, FindDelete findDelete)
+static Bool cbsFindLast(Range rangeReturn, Range oldRangeReturn,
+                        Land land, Size size, FindDelete findDelete)
 {
+  CBS cbs;
   Bool found;
   Tree tree;
 
+  AVERT(Land, land);
+  cbs = cbsOfLand(land);
   AVERT(CBS, cbs);
-  cbsEnter(cbs);
+  AVER(IsLandSubclass(cbsLand(cbs), CBSFastLandClass));
 
   AVER(rangeReturn != NULL);
   AVER(oldRangeReturn != NULL);
   AVER(size > 0);
-  AVER(SizeIsAligned(size, cbs->alignment));
-  AVER(cbs->fastFind);
+  AVER(SizeIsAligned(size, LandAlignment(land)));
   AVERT(FindDelete, findDelete);
 
   METER_ACC(cbs->treeSearch, cbs->treeSize);
@@ -1000,38 +935,40 @@ Bool CBSFindLast(Range rangeReturn, Range oldRangeReturn,
     AVER(CBSBlockSize(block) >= size);
     RangeInit(&range, CBSBlockBase(block), CBSBlockLimit(block));
     AVER(RangeSize(&range) >= size);
-    cbsFindDeleteRange(rangeReturn, oldRangeReturn, cbs, &range,
+    cbsFindDeleteRange(rangeReturn, oldRangeReturn, land, &range,
                        size, findDelete);
   }
 
-  cbsLeave(cbs);
   return found;
 }
 
 
-/* CBSFindLargest -- find the largest block in the CBS */
+/* cbsFindLargest -- find the largest block in the CBS */
 
-Bool CBSFindLargest(Range rangeReturn, Range oldRangeReturn,
-                    CBS cbs, Size size, FindDelete findDelete)
+static Bool cbsFindLargest(Range rangeReturn, Range oldRangeReturn,
+                           Land land, Size size, FindDelete findDelete)
 {
+  CBS cbs;
   Bool found = FALSE;
 
+  AVERT(Land, land);
+  cbs = cbsOfLand(land);
   AVERT(CBS, cbs);
-  cbsEnter(cbs);
+  AVER(IsLandSubclass(cbsLand(cbs), CBSFastLandClass));
 
   AVER(rangeReturn != NULL);
   AVER(oldRangeReturn != NULL);
-  AVER(cbs->fastFind);
+  AVER(size > 0);
   AVERT(FindDelete, findDelete);
 
   if (!SplayTreeIsEmpty(cbsSplay(cbs))) {
     RangeStruct range;
-    CBSBlock block;
     Tree tree = TreeEMPTY;    /* suppress "may be used uninitialized" */
     Size maxSize;
 
-    maxSize = cbsBlockOfTree(SplayTreeRoot(cbsSplay(cbs)))->maxSize;
+    maxSize = cbsFastBlockOfTree(SplayTreeRoot(cbsSplay(cbs)))->maxSize;
     if (maxSize >= size) {
+      CBSBlock block;
       METER_ACC(cbs->treeSearch, cbs->treeSize);
       found = SplayFindFirst(&tree, cbsSplay(cbs), &cbsTestNode,
                              &cbsTestTree, NULL, maxSize);
@@ -1040,25 +977,103 @@ Bool CBSFindLargest(Range rangeReturn, Range oldRangeReturn,
       AVER(CBSBlockSize(block) >= maxSize);
       RangeInit(&range, CBSBlockBase(block), CBSBlockLimit(block));
       AVER(RangeSize(&range) >= maxSize);
-      cbsFindDeleteRange(rangeReturn, oldRangeReturn, cbs, &range,
-                         maxSize, findDelete);
+      cbsFindDeleteRange(rangeReturn, oldRangeReturn, land, &range,
+                         size, findDelete);
     }
   }
 
-  cbsLeave(cbs);
   return found;
 }
 
 
-/* CBSDescribe -- describe a CBS
+static Res cbsFindInZones(Bool *foundReturn, Range rangeReturn,
+                          Range oldRangeReturn, Land land, Size size,
+                          ZoneSet zoneSet, Bool high)
+{
+  CBS cbs;
+  CBSBlock block;
+  Tree tree;
+  cbsTestNodeInZonesClosureStruct closure;
+  Res res;
+  LandFindMethod landFind;
+  SplayFindMethod splayFind;
+  RangeStruct rangeStruct, oldRangeStruct;
+  
+  AVER(foundReturn != NULL);
+  AVER(rangeReturn != NULL);
+  AVER(oldRangeReturn != NULL);
+  AVERT(Land, land);
+  cbs = cbsOfLand(land);
+  AVERT(CBS, cbs);
+  AVER(IsLandSubclass(cbsLand(cbs), CBSZonedLandClass));
+  /* AVERT(ZoneSet, zoneSet); */
+  AVER(BoolCheck(high));
+
+  landFind = high ? cbsFindLast : cbsFindFirst;
+  splayFind = high ? SplayFindLast : SplayFindFirst;
+  
+  if (zoneSet == ZoneSetEMPTY)
+    goto fail;
+  if (zoneSet == ZoneSetUNIV) {
+    FindDelete fd = high ? FindDeleteHIGH : FindDeleteLOW;
+    *foundReturn = (*landFind)(rangeReturn, oldRangeReturn, land, size, fd);
+    return ResOK;
+  }
+  if (ZoneSetIsSingle(zoneSet) && size > ArenaStripeSize(LandArena(land)))
+    goto fail;
+
+  /* It would be nice if there were a neat way to eliminate all runs of
+     zones in zoneSet too small for size.*/
+
+  closure.arena = LandArena(land);
+  closure.zoneSet = zoneSet;
+  closure.size = size;
+  closure.high = high;
+  if (!(*splayFind)(&tree, cbsSplay(cbs),
+                    cbsTestNodeInZones, cbsTestTreeInZones,
+                    &closure, UNUSED_SIZE))
+    goto fail;
+
+  block = cbsBlockOfTree(tree);
+
+  AVER(CBSBlockBase(block) <= closure.base);
+  AVER(AddrOffset(closure.base, closure.limit) >= size);
+  AVER(ZoneSetSub(ZoneSetOfRange(LandArena(land), closure.base, closure.limit), zoneSet));
+  AVER(closure.limit <= CBSBlockLimit(block));
+
+  if (!high)
+    RangeInit(&rangeStruct, closure.base, AddrAdd(closure.base, size));
+  else
+    RangeInit(&rangeStruct, AddrSub(closure.limit, size), closure.limit);
+  res = cbsDelete(&oldRangeStruct, land, &rangeStruct);
+  if (res != ResOK)
+    /* not enough memory to split block */
+    return res;
+  RangeCopy(rangeReturn, &rangeStruct);
+  RangeCopy(oldRangeReturn, &oldRangeStruct);
+  *foundReturn = TRUE;
+  return ResOK;
+
+fail:
+  *foundReturn = FALSE;
+  return ResOK;
+}
+
+
+/* cbsDescribe -- describe a CBS
  *
- * See <design/cbs/#function.cbs.describe>.
+ * See <design/land/#function.describe>.
  */
 
-Res CBSDescribe(CBS cbs, mps_lib_FILE *stream)
+static Res cbsDescribe(Land land, mps_lib_FILE *stream)
 {
+  CBS cbs;
   Res res;
+  Res (*describe)(Tree, mps_lib_FILE *);
 
+  if (!TESTT(Land, land))
+    return ResFAIL;
+  cbs = cbsOfLand(land);
   if (!TESTT(CBS, cbs))
     return ResFAIL;
   if (stream == NULL)
@@ -1066,22 +1081,61 @@ Res CBSDescribe(CBS cbs, mps_lib_FILE *stream)
 
   res = WriteF(stream,
                "CBS $P {\n", (WriteFP)cbs,
-               "  alignment: $U\n", (WriteFU)cbs->alignment,
                "  blockPool: $P\n", (WriteFP)cbsBlockPool(cbs),
-               "  fastFind: $U\n", (WriteFU)cbs->fastFind,
-               "  inCBS: $U\n", (WriteFU)cbs->inCBS,
+               "  ownPool: $U\n", (WriteFU)cbs->ownPool,
                "  treeSize: $U\n", (WriteFU)cbs->treeSize,
                NULL);
   if (res != ResOK) return res;
 
-  res = SplayTreeDescribe(cbsSplay(cbs), stream, &cbsSplayNodeDescribe);
+  if (IsLandSubclass(land, CBSZonedLandClass))
+    describe = cbsZonedSplayNodeDescribe;
+  else if (IsLandSubclass(land, CBSFastLandClass))
+    describe = cbsFastSplayNodeDescribe;
+  else
+    describe = cbsSplayNodeDescribe;
+
+  res = SplayTreeDescribe(cbsSplay(cbs), stream, describe);
   if (res != ResOK) return res;
 
-  res = METER_WRITE(cbs->treeSearch, stream);
-  if (res != ResOK) return res;
+  METER_WRITE(cbs->treeSearch, stream);
 
   res = WriteF(stream, "}\n", NULL);
   return res;
+}
+
+DEFINE_LAND_CLASS(CBSLandClass, class)
+{
+  INHERIT_CLASS(class, LandClass);
+  class->name = "CBS";
+  class->size = sizeof(CBSStruct);
+  class->init = cbsInit;
+  class->finish = cbsFinish;
+  class->sizeMethod = cbsSize;
+  class->insert = cbsInsert;
+  class->delete = cbsDelete;
+  class->iterate = cbsIterate;
+  class->findFirst = cbsFindFirst;
+  class->findLast = cbsFindLast;
+  class->findLargest = cbsFindLargest;
+  class->findInZones = cbsFindInZones;
+  class->describe = cbsDescribe;
+  AVERT(LandClass, class);
+}
+
+DEFINE_LAND_CLASS(CBSFastLandClass, class)
+{
+  INHERIT_CLASS(class, CBSLandClass);
+  class->name = "FASTCBS";
+  class->init = cbsInitFast;
+  AVERT(LandClass, class);
+}
+
+DEFINE_LAND_CLASS(CBSZonedLandClass, class)
+{
+  INHERIT_CLASS(class, CBSFastLandClass);
+  class->name = "ZONEDCBS";
+  class->init = cbsInitZoned;
+  AVERT(LandClass, class);
 }
 
 

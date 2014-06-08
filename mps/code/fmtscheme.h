@@ -168,18 +168,20 @@ typedef union obj_u {
 
 
 extern obj_t scheme_make_bool(int condition);
-extern obj_t scheme_make_pair(obj_t car, obj_t cdr);
-extern obj_t scheme_make_integer(long integer);
-extern obj_t scheme_make_symbol(size_t length, char string[]);
-extern obj_t scheme_make_string(size_t length, char string[]);
-extern obj_t scheme_make_special(char *string);
-extern obj_t scheme_make_operator(char *name, entry_t entry, obj_t arguments,
-                                  obj_t body, obj_t env, obj_t op_env);
-extern obj_t scheme_make_port(obj_t name, FILE *stream);
-extern obj_t scheme_make_character(char c);
-extern obj_t scheme_make_vector(size_t length, obj_t fill);
-extern obj_t scheme_make_buckets(size_t length);
-extern obj_t scheme_make_table(size_t length, hash_t hashf, cmp_t cmpf);
+extern obj_t scheme_make_pair(mps_ap_t ap, obj_t car, obj_t cdr);
+extern obj_t scheme_make_integer(mps_ap_t ap, long integer);
+extern obj_t scheme_make_symbol(mps_ap_t ap, size_t length, char string[]);
+extern obj_t scheme_make_string(mps_ap_t ap, size_t length, char string[]);
+extern obj_t scheme_make_special(mps_ap_t ap, char *string);
+extern obj_t scheme_make_operator(mps_ap_t ap, char *name, entry_t entry,
+                                  obj_t arguments, obj_t body, obj_t env,
+                                  obj_t op_env);
+extern obj_t scheme_make_port(mps_ap_t ap, obj_t name, FILE *stream);
+extern obj_t scheme_make_character(mps_ap_t ap, char c);
+extern obj_t scheme_make_vector(mps_ap_t ap, size_t length, obj_t fill);
+extern obj_t scheme_make_buckets(mps_ap_t ap, size_t length);
+extern obj_t scheme_make_table(mps_ap_t ap, size_t length, hash_t hashf,
+                               cmp_t cmpf);
 extern void scheme_fmt(mps_fmt_t *fmt);
 
 extern mps_arena_t scheme_arena;

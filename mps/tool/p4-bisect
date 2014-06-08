@@ -1,0 +1,175 @@
+#!/usr/bin/env python
+#
+#
+#                             Ravenbrook
+#                    <http://www.ravenbrook.com/>
+#
+#           P4-BISECT -- FIND CHANGE THAT INTRODUCED A BUG
+#
+#            Gareth Rees, Ravenbrook Limited, 2014-04-14
+#
+#
+# 1. INTRODUCTION
+#
+# This script automates (or partly automates) the process of finding,
+# by binary search, the change that introduced a bug.
+#
+# The interface is modelled closely on git-bisect(1).
+
+import argparse
+from functools import partial
+import json
+from os import unlink
+import p4
+import subprocess
+import sys
+
+BISECT_FILE = '.p4-bisect'
+
+def error(msg):
+    sys.stderr.write(msg)
+    sys.stderr.write('\n')
+    exit(1)
+
+def sync(*filespecs):
+    try:
+        p4.do('sync', *filespecs)
+    except p4.Error as e:
+        if 'file(s) up-to-date' not in e.args[0]:
+            raise
+
+class State(object):
+    def __init__(self, **d):
+        self.filespec = d['filespec']
+        self.changes = d['changes']
+        if 'current' in d:
+            self.current = d['current']
+
+    @classmethod
+    def load(cls):
+        try:
+            with open(BISECT_FILE, 'r') as f:
+                return cls(**json.load(f))
+        except FileNotFoundError:
+            error("p4-bisect not in progress here.")
+
+    def save(self):
+        with open(BISECT_FILE, 'w') as f:
+            json.dump(vars(self), f)
+
+    def update(self):
+        n = len(self.changes)
+        if n == 0:
+            print("no changes remaining.".format(**vars(self)))
+        elif n == 1:
+            print("{} change remaining: {}.".format(n, self.changes[0]))
+        elif n == 2:
+            print("{} changes remaining: [{}, {}]."
+                  .format(n, self.changes[0], self.changes[-1]))
+        else:
+            print("{} changes remaining: [{}, ..., {}]."
+                  .format(n, self.changes[0], self.changes[-1]))
+        if n > 0:
+            self.current = self.changes[n // 2]
+            print("Syncing to changelevel {current}.".format(**vars(self)))
+            sync(*['{}@{}'.format(f, self.current) for f in self.filespec])
+        self.save()
+
+def help(parser, args):
+    parser.print_help()
+
+def start(args):
+    args.filespec = args.filespec or ['...']
+    changes = sorted(int(c['change']) for c in p4.run('changes', *args.filespec))
+    if not changes:
+        error("No changes for {}".format(' '.join(args.filespec)))
+    if args.good is None:
+        args.good = changes[0]
+    if args.bad is None:
+        args.bad = changes[-1]
+    state = State(filespec=args.filespec,
+                  changes=[c for c in changes if args.good <= c <= args.bad])
+    state.update()
+
+def good(args):
+    state = State.load()
+    print("Change {current} good.".format(**vars(state)))
+    state.changes = [c for c in state.changes if c > state.current]
+    state.update()
+
+def bad(args):
+    state = State.load()
+    print("Change {current} bad.".format(**vars(state)))
+    state.changes = [c for c in state.changes if c < state.current]
+    state.update()
+
+def skip(args):
+    state = State.load()
+    print("Skipping change {current}.".format(**vars(state)))
+    state.changes.remove(state.current)
+    state.update()
+
+def reset(args):
+    state = State.load()
+    sync(*state.filespec)
+    unlink(BISECT_FILE)
+
+def run(args):
+    while True:
+        state = State.load()
+        if not state.changes:
+            break
+        result = subprocess.call([args.cmd] + args.args)
+        if result == 0:
+            good(None)
+        elif result == 125:
+            skip(None)
+        elif 0 < result < 128:
+            bad(None)
+        else:
+            exit(result)
+
+def main(argv):
+    parser = argparse.ArgumentParser(
+        prog='p4-bisect', epilog='For help on CMD, use p4-bisect CMD -h')
+    subparsers = parser.add_subparsers()
+    a = subparsers.add_parser
+
+    help_parser = a('help', help='show this help message')
+    help_parser.set_defaults(func=partial(help, parser))
+
+    start_parser = a('start', help='start a p4-bisect session')
+    aa = start_parser.add_argument
+    start_parser.add_argument('-f', '--filespec', action='append',
+                              help='filespec(s) to search')
+    start_parser.add_argument('good', nargs='?', type=int,
+                              help='known good changelevel')
+    start_parser.add_argument('bad', nargs='?', type=int,
+                              help='known bad changelevel')
+    start_parser.set_defaults(func=start)
+
+    good_parser = a('good', help='declare current revision good')
+    good_parser.set_defaults(func=good)
+
+    bad_parser = a('bad', help='declare current revision bad')
+    bad_parser.set_defaults(func=bad)
+
+    skip_parser = a('skip', help='skip current revision')
+    skip_parser.set_defaults(func=skip)
+
+    reset_parser = a('reset', help='finish p4-bisect session')
+    reset_parser.set_defaults(func=reset)
+
+    run_parser = a('run', help='run p4-bisect session automatically')
+    run_parser.add_argument('cmd',
+                            help='command that determines if current '
+                            'changelevel is good or bad')
+    run_parser.add_argument('args', nargs=argparse.REMAINDER,
+                            help='arguments to pass to cmd')
+    run_parser.set_defaults(func=run)
+
+    args = parser.parse_args(argv[1:])
+    args.func(args)
+
+if __name__ == '__main__':
+    main(sys.argv)

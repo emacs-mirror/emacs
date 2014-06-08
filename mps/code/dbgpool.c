@@ -184,7 +184,10 @@ static Res DebugPoolInit(Pool pool, ArgList args)
     /* This pool has to be like the arena control pool: the blocks */
     /* allocated must be accessible using void*. */
     MPS_ARGS_BEGIN(pcArgs) {
-      MPS_ARGS_ADD(pcArgs, MPS_KEY_EXTEND_BY, debug->tagSize); /* FIXME: Check this */
+      /* By setting EXTEND_BY to debug->tagSize we get the smallest
+         possible extensions compatible with the tags, and so the
+         least amount of wasted space. */
+      MPS_ARGS_ADD(pcArgs, MPS_KEY_EXTEND_BY, debug->tagSize);
       MPS_ARGS_ADD(pcArgs, MPS_KEY_MFS_UNIT_SIZE, debug->tagSize);
       res = PoolCreate(&debug->tagPool, PoolArena(pool), PoolClassMFS(), pcArgs);
     } MPS_ARGS_END(pcArgs);

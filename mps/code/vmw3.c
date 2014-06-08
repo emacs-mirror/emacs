@@ -1,7 +1,7 @@
 /* vmw3.c: VIRTUAL MEMORY MAPPING FOR WIN32
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
  * .design: See <design/vm/>.
  *
@@ -191,6 +191,8 @@ void VMDestroy(VM vm)
   AVERT(VM, vm);
   AVER(vm->mapped == 0);
 
+  EVENT1(VMDestroy, vm);
+
   /* This appears to be pretty pointless, since the vm descriptor page
    * is about to vanish completely.  However, the VirtualFree might
    * fail and it would be nice to have a dead sig there. */
@@ -201,7 +203,6 @@ void VMDestroy(VM vm)
 
   b = VirtualFree((LPVOID)vm, (SIZE_T)0, MEM_RELEASE);
   AVER(b != 0);
-  EVENT1(VMDestroy, vm);
 }
 
 
@@ -303,7 +304,7 @@ void VMUnmap(VM vm, Addr base, Addr limit)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

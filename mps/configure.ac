@@ -47,22 +47,30 @@ TEST_TARGET=test-make-build
 case $host/$CLANG in
   i*86-*-linux*/no)
       AC_MSG_RESULT([Linux x86])
-      MPS_TARGET_NAME=lii3gc
+      MPS_OS_NAME=li
+      MPS_ARCH_NAME=i3
+      MPS_BUILD_NAME=gc
       PFMCFLAGS="$CFLAGS_GC"
     ;;
   x86_64-*-linux*/no)
       AC_MSG_RESULT([Linux x86_64])
-      MPS_TARGET_NAME=lii6gc
+      MPS_OS_NAME=li
+      MPS_ARCH_NAME=i6
+      MPS_BUILD_NAME=gc
       PFMCFLAGS="$CFLAGS_GC"
     ;;
   x86_64-*-linux*/yes)
       AC_MSG_RESULT([Linux x86_64])
-      MPS_TARGET_NAME=lii6ll
+      MPS_OS_NAME=li
+      MPS_ARCH_NAME=i6
+      MPS_BUILD_NAME=ll
       PFMCFLAGS="$CFLAGS_LL"
     ;;
   i*86-*-darwin*/*)
       AC_MSG_RESULT([Mac OS X x86])
-      MPS_TARGET_NAME=xci3ll
+      MPS_OS_NAME=xc
+      MPS_ARCH_NAME=i3
+      MPS_BUILD_NAME=ll
       BUILD_TARGET=build-via-xcode
       CLEAN_TARGET=clean-xcode-build
       INSTALL_TARGET=install-xcode-build
@@ -71,7 +79,9 @@ case $host/$CLANG in
     ;;
   x86_64-apple-darwin*/*)
       AC_MSG_RESULT([Mac OS X x86_64])
-      MPS_TARGET_NAME=xci6ll
+      MPS_OS_NAME=xc
+      MPS_ARCH_NAME=i6
+      MPS_BUILD_NAME=ll
       BUILD_TARGET=build-via-xcode
       CLEAN_TARGET=clean-xcode-build
       INSTALL_TARGET=install-xcode-build
@@ -80,7 +90,9 @@ case $host/$CLANG in
     ;;
   i*86-*-freebsd*/no)
       AC_MSG_RESULT([FreeBSD x86])
-      MPS_TARGET_NAME=fri3gc
+      MPS_OS_NAME=fr
+      MPS_ARCH_NAME=i3
+      MPS_BUILD_NAME=gc
       # Need /usr/local/include in order to find sqlite3.h
       CFLAGS="-I/usr/local/include"
       CPP="$CC -I/usr/local/include -E"
@@ -88,7 +100,9 @@ case $host/$CLANG in
     ;;
   amd64-*-freebsd*/no | x86_64-*-freebsd*/no)
       AC_MSG_RESULT([FreeBSD x86_64])
-      MPS_TARGET_NAME=fri6gc
+      MPS_OS_NAME=fr
+      MPS_ARCH_NAME=i6
+      MPS_BUILD_NAME=gc
       # Need /usr/local/include in order to find sqlite3.h
       CFLAGS="-I/usr/local/include"
       CPP="$CC -I/usr/local/include -E"
@@ -111,7 +125,9 @@ AC_CHECK_HEADER([sqlite3.h], [EXTRA_TARGETS="$EXTRA_TARGETS mpseventsql"])
 # those flags.
 CFLAGS="$CFLAGS $PFMCFLAGS"
 
-AC_SUBST(MPS_TARGET_NAME)
+AC_SUBST(MPS_OS_NAME)
+AC_SUBST(MPS_ARCH_NAME)
+AC_SUBST(MPS_BUILD_NAME)
 AC_SUBST(BUILD_TARGET)
 AC_SUBST(CLEAN_TARGET)
 AC_SUBST(INSTALL_TARGET)
