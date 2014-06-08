@@ -33,7 +33,7 @@ typedef void (*Fun)(void);              /* <design/type/#fun> */
 typedef MPS_T_WORD Word;                /* <design/type/#word> */
 typedef unsigned char Byte;             /* <design/type/#byte> */
 typedef struct AddrStruct *Addr;        /* <design/type/#addr> */
-typedef const struct AddrStruct *ReadonlyAddr;
+typedef const struct AddrStruct *ReadonlyAddr; /* <design/type/#readonlyaddr> */
 typedef Word Size;                      /* <design/type/#size> */
 typedef Word Count;                     /* <design/type/#count> */
 typedef Word Index;                     /* <design/type/#index> */
