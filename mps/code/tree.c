@@ -528,6 +528,41 @@ void TreeBalance(Tree *treeIO)
 }
 
 
+/* TreeTraverseAndDelete -- traverse a tree while deleting nodes 
+ *
+ * The visitor function must return TRUE to delete the current node,
+ * or FALSE to keep it.
+ *
+ * See <design/arena/#chunk.delete.tricky>.
+ */
+void TreeTraverseAndDelete(Tree *treeIO, TreeVisitor visitor,
+                           void *closureP, Size closureS)
+{
+  Tree *treeref = treeIO;
+
+  AVER(treeIO != NULL);
+  AVERT(Tree, *treeIO);
+  AVER(FUNCHECK(visitor));
+  /* closureP and closureS are arbitrary */
+
+  TreeToVine(treeIO);
+
+  while (*treeref != TreeEMPTY) {
+    Tree tree = *treeref;         /* Current node. */
+    Tree *nextref = &tree->right; /* Location of pointer to next node. */
+    Tree next = *nextref;         /* Next node. */
+    if ((*visitor)(tree, closureP, closureS)) {
+      /* Delete current node. */
+      *treeref = next;
+    } else {
+      /* Keep current node. */
+      treeref = nextref;
+    }
+  }
+  TreeBalance(treeIO);
+}
+
+
 /* C. COPYRIGHT AND LICENSE
  *
  * Copyright (C) 2014 Ravenbrook Limited <http://www.ravenbrook.com/>.

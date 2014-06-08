@@ -173,15 +173,26 @@ static Res ClientChunkInit(Chunk chunk, BootBlock boot)
 
 /* clientChunkDestroy -- destroy a ClientChunk */
 
-static void clientChunkDestroy(Chunk chunk)
+static Bool clientChunkDestroy(Tree tree, void *closureP, Size closureS)
 {
+  Chunk chunk;
   ClientChunk clChunk;
 
+  AVERT(Tree, tree);
+  /* FIXME: AVER(closureP == UNUSED_POINTER); */
+  UNUSED(closureP);
+  /* FIXME: AVER(closureS == UNUSED_SIZE); */
+  UNUSED(closureS);
+  
+  chunk = ChunkOfTree(tree);
+  AVERT(Chunk, chunk);
   clChunk = Chunk2ClientChunk(chunk);
   AVERT(ClientChunk, clChunk);
 
   clChunk->sig = SigInvalid;
   ChunkFinish(chunk);
+
+  return TRUE;
 }
 
 
@@ -290,7 +301,6 @@ failChunkCreate:
 static void ClientArenaFinish(Arena arena)
 {
   ClientArena clientArena;
-  Tree *treeref, *nextref, tree, next;
 
   clientArena = Arena2ClientArena(arena);
   AVERT(ClientArena, clientArena);
@@ -298,9 +308,8 @@ static void ClientArenaFinish(Arena arena)
   /* Destroy all chunks, including the primary. See
    * <design/arena/#chunk.delete> */
   arena->primary = NULL;
-  TREE_TRAVERSE_AND_DELETE(treeref, nextref, tree, next, arena->chunkTree) {
-    clientChunkDestroy(ChunkOfTree(tree));
-  }
+  /* FIXME: use UNUSED_POINTER, UNUSED_SIZE instead of NULL, 0 */
+  TreeTraverseAndDelete(&arena->chunkTree, clientChunkDestroy, NULL, 0);
 
   clientArena->sig = SigInvalid;
 
