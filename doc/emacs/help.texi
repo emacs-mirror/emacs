@@ -55,12 +55,12 @@ This displays the available Emacs packages based on keywords.
 @xref{Package Keywords}.
 @end table
 
-  @kbd{C-h}, @key{F1}, or @kbd{?} means ``help'' in various other
-contexts as well.  For instance, you can type them after a prefix key
-to view a list of the keys that can follow the prefix key.  (A few
-prefix keys don't support @kbd{C-h} or @kbd{?} in this way, because
-they define other meanings for it, but they all support @key{F1} for
-help.)
+  @kbd{C-h} or @key{F1} mean ``help'' in various other contexts as
+well.  For instance, you can type them after a prefix key to view a
+list of the keys that can follow the prefix key.  (You can also use
+@kbd{?} in this context.  A few prefix keys don't support @kbd{C-h}
+or @kbd{?} in this way, because they define other meanings for those
+inputs, but they all support @key{F1}.)
 
 @menu
 * Help Summary::        Brief list of all Help commands.
@@ -556,10 +556,10 @@ Emacs Lisp Reference Manual}).
 typing @kbd{C-h}, @kbd{?}, or @key{F1}
 (@code{describe-prefix-bindings}) after the prefix key.  (There are a
 few prefix keys for which not all of these keys work---those that
-provide their own bindings for one of them.  One of these prefix keys
-is @key{ESC} in combination with @kbd{C-h}, because @kbd{@key{ESC} C-h} is
-actually @kbd{C-M-h}, which marks a defun.  However, @kbd{@key{ESC} @key{F1}}
-and @kbd{@key{ESC} ?} work fine.)
+provide their own bindings for that key.  One of these prefix keys
+is @key{ESC}, because @kbd{@key{ESC} C-h} is actually @kbd{C-M-h},
+which marks a defun.  However, @kbd{@key{ESC} @key{F1}} and
+@kbd{@key{ESC} ?} work fine.)
 
 @node Help Files
 @section Help Files

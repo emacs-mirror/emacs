@@ -862,7 +862,7 @@ argument @var{b} is given, the result of this operation is stored into
 
 @defun bool-vector-subsetp a b
 Return @code{t} if every @code{t} value in @var{a} is also t in
-@var{b}, nil otherwise.  All arguments should be bool vectors of the
+@var{b}, @code{nil} otherwise.  All arguments should be bool vectors of the
 same length.
 @end defun
 

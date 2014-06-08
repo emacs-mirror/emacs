@@ -1,3 +1,11 @@
+2014-06-08  Glenn Morris  <rgm@gnu.org>
+
+	* startup.el (initial-buffer-choice): Doc fix.
+	Reset :version (adding an option does not merit a :version bump).
+
+	* bookmark.el (bookmark-load):
+	* uniquify.el (uniquify-buffer-name-style): Doc fixes.
+
 2014-06-08  Juri Linkov  <juri@jurta.org>
 
 	* desktop.el: Activate auto-saving on window configuration changes.

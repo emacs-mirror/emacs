@@ -42,20 +42,21 @@
   "Buffer to show after starting Emacs.
 If the value is nil and `inhibit-startup-screen' is nil, show the
 startup screen.  If the value is a string, switch to a buffer
-visiting the file or directory specified by that string.  If the
-value is a function, switch to the buffer returned by that
-function.  If t, open the `*scratch*' buffer.
+visiting the file or directory that the string specifies.  If the
+value is a function, call it with no arguments and switch to the buffer
+that it returns.  If t, open the `*scratch*' buffer.
 
-A string value also causes emacsclient to open the specified file
-or directory when no target file is specified."
+If you use `emacsclient' with no target file, then it obeys any
+string or function value that this variable has."
   :type '(choice
 	  (const     :tag "Startup screen" nil)
 	  (directory :tag "Directory" :value "~/")
 	  (file      :tag "File" :value "~/.emacs")
-	  (const     :tag "Notes buffer" remember-notes)
+	  ;; Note sure about hard-coding this as an option...
+	  (const     :tag "Remember Mode notes buffer" remember-notes)
 	  (function  :tag "Function")
 	  (const     :tag "Lisp scratch buffer" t))
-  :version "24.4"
+  :version "23.1"
   :group 'initialization)
 
 (defcustom inhibit-startup-screen nil

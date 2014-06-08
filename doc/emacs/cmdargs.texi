@@ -901,30 +901,33 @@ the initial frame.
 @itemx --fullscreen
 @opindex --fullscreen
 @cindex fullscreen, command-line argument
-Specify that width and height shall be the size of the screen. Normally
-no window manager decorations are shown.
+Specify that width and height should be that of the screen.  Normally
+no window manager decorations are shown.  (After starting Emacs,
+you can toggle this state using @key{F11}, @code{toggle-frame-fullscreen}.)
 
 @item -mm
 @opindex -mm
 @itemx --maximized
 @opindex --maximized
 @cindex maximized, command-line argument
-Specify that the Emacs frame shall be maximized.  This normally
+Specify that the Emacs frame should be maximized.  This normally
 means that the frame has window manager decorations.
+(After starting Emacs, you can toggle this state using @kbd{M-F10},
+@code{toggle-frame-maximized}.)
 
 @item -fh
 @opindex -fh
 @itemx --fullheight
 @opindex --fullheight
 @cindex fullheight, command-line argument
-Specify that the height shall be the height of the screen.
+Specify that the height should be the height of the screen.
 
 @item -fw
 @opindex -fw
 @itemx --fullwidth
 @opindex --fullwidth
 @cindex fullwidth, command-line argument
-Specify that the width shall be the width of the screen.
+Specify that the width should be the width of the screen.
 @end table
 
 @noindent

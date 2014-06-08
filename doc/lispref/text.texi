@@ -806,7 +806,7 @@ non-whitespace character in each line in the region.
 
 If this command acts on the entire buffer (i.e. if called
 interactively with the mark inactive, or called from Lisp with
-@var{end} nil), it also deletes all trailing lines at the end of the
+@var{end} @code{nil}), it also deletes all trailing lines at the end of the
 buffer if the variable @code{delete-trailing-lines} is non-@code{nil}.
 @end deffn
 
@@ -2865,7 +2865,7 @@ adding the face @var{face} to the @code{face} text property.
 (@pxref{Special Properties}), such as a face name or an anonymous face
 (@pxref{Faces}).
 
-If any text in the region already has a non-nil @code{face} property,
+If any text in the region already has a non-@code{nil} @code{face} property,
 those face(s) are retained.  This function sets the @code{face}
 property to a list of faces, with @var{face} as the first element (by
 default) and the pre-existing faces as the remaining elements.  If the

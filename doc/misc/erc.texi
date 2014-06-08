@@ -150,7 +150,7 @@ then a bunch of other messages that describe the current IRC server.
 
 @item Join the #emacs channel
 
-In that buffer, type ``/join SPC #emacs'' and hit @kbd{RET}.  Depending
+In that buffer, type ``/join @key{SPC} #emacs'' and hit @kbd{RET}.  Depending
 on how you've set up ERC, either a new buffer for ``#emacs'' will be
 displayed, or a new buffer called ``#emacs'' will be created in the
 background.  If the latter, switch to the ``#emacs'' buffer.  You will

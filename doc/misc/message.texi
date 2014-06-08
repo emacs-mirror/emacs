@@ -2137,7 +2137,7 @@ translation process.
 @vindex message-fill-column
 @cindex auto-fill
 Local value for the column beyond which automatic line-wrapping should
-happen for message buffers.  If non-nil (the default), also turn on
+happen for message buffers.  If non-@code{nil} (the default), also turn on
 auto-fill in message buffers.
 
 @item message-signature-separator

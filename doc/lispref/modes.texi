@@ -702,7 +702,7 @@ mode and minor modes.  It uses the @code{documentation} function to
 retrieve the documentation strings of the major and minor mode
 commands (@pxref{Accessing Documentation}).
 
-If called from Lisp with a non-nil @var{buffer} argument, this
+If called from Lisp with a non-@code{nil} @var{buffer} argument, this
 function displays the documentation for that buffer's major and minor
 modes, rather than those of the current buffer.
 @end deffn
@@ -3804,8 +3804,8 @@ expressions (not separated by any token) rather than an expression.
 @end itemize
 
 When @var{arg} is a token, the function is called with point just before
-that token.  A return value of nil always means to fallback on the
-default behavior, so the function should return nil for arguments it
+that token.  A return value of @code{nil} always means to fallback on the
+default behavior, so the function should return @code{nil} for arguments it
 does not expect.
 
 @var{offset} can be:
@@ -3904,7 +3904,7 @@ A few things to note:
 @itemize
 @item
 The first case indicates the basic indentation increment to use.
-If @code{sample-indent-basic} is nil, then SMIE uses the global
+If @code{sample-indent-basic} is @code{nil}, then SMIE uses the global
 setting @code{smie-indent-basic}.  The major mode could have set
 @code{smie-indent-basic} buffer-locally instead, but that
 is discouraged.

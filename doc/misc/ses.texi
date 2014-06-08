@@ -223,7 +223,7 @@ range A1-A2.  Many @acronym{SES} commands operate only on single cells, not
 ranges.
 
 @table @kbd
-@item C-SPC
+@item C-@key{SPC}
 @itemx C-@@
 Set mark at point (@code{set-mark-command}).
 

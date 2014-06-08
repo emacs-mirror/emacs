@@ -1,5 +1,27 @@
 2014-06-08  Glenn Morris  <rgm@gnu.org>
 
+	* entering.texi (Entering Emacs): Small fix re initial-buffer-choice.
+	* misc.texi (emacsclient Options): Copyedit.
+
+	* buffers.texi (Uniquify): Copyedits.
+	* files.texi (Visiting): Update for uniquify changes.
+
+	* dired.texi (Marks vs Flags):
+	* rmail.texi (Rmail Scrolling): Markup fixes re SPC.
+
+	* help.texi (Help, Misc Help): Copyedits.
+
+	* screen.texi (Menu Bar): Copyedits.
+	* msdog.texi (Windows Keyboard): F10 menus are now a general feature.
+
+	* frames.texi (Frame Commands): Copyedits re M-F10, F11.
+	* cmdargs.texi (Window Size X): Copyedits.
+
+	* ack.texi (Acknowledgments):
+	* emacs.texi (Acknowledgments): Updates.
+
+2014-06-08  Glenn Morris  <rgm@gnu.org>
+
 	* ack.texi (Acknowledgments):
 	* emacs.texi (Acknowledgments): Updates.
 

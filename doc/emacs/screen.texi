@@ -285,10 +285,7 @@ performs various commands.  @xref{Mode Line Mouse}.
 can use to perform common operations.  There's no need to list them
 here, as you can more easily see them yourself.
 
-@kindex M-`
-@kindex F10
-@findex menu-bar-open
-  On a display that support a mouse, you can use the mouse to choose a
+  On a display that supports a mouse, you can use the mouse to choose a
 command from the menu bar.  An arrow on the right edge of a menu item
 means it leads to a subsidiary menu, or @dfn{submenu}.  A @samp{...}
 at the end of a menu item means that the command will prompt you for
@@ -300,12 +297,16 @@ itself.  To view the full command name and documentation for a menu
 item, type @kbd{C-h k}, and then select the menu bar with the mouse in
 the usual way (@pxref{Key Help}).
 
+@kindex F10
+@findex menu-bar-open
+@cindex menu bar access using keyboard
   Instead of using the mouse, you can also invoke the first menu bar
 item by pressing @key{F10} (to run the command @code{menu-bar-open}).
 You can then navigate the menus with the arrow keys.  To activate a
 selected menu item, press @key{RET}; to cancel menu navigation, press
 @kbd{C-g} or @kbd{@key{ESC} @key{ESC} @key{ESC}}.
 
+@kindex M-`
 @findex tmm-menubar
 @vindex tty-menu-open-use-tmm
   On a text terminal, you can optionally access the menu-bar menus in

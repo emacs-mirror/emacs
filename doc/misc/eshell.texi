@@ -676,8 +676,8 @@ You can, of course, define your own virtual targets.  They are defined
 by adding a list of the form @samp{("/dev/name" @var{function} @var{mode})} to
 @code{eshell-virtual-targets}.  The first element is the device name;
 @var{function} may be either a lambda or a function name.  If
-@var{mode} is nil, then the function is the output function; if it is
-non-nil, then the function is passed the redirection mode as a
+@var{mode} is @code{nil}, then the function is the output function; if it is
+non-@code{nil}, then the function is passed the redirection mode as a
 symbol--@code{overwrite} for @code{>}, @code{append} for @code{>>}, or
 @code{insert} for @code{>>>}--and the function is expected to return
 the output function.

@@ -171,9 +171,9 @@ the mode line (@pxref{Mode Line}).  Emacs normally constructs the
 buffer name from the file name, omitting the directory name.  For
 example, a file named @file{/usr/rms/emacs.tex} is visited in a buffer
 named @samp{emacs.tex}.  If there is already a buffer with that name,
-Emacs constructs a unique name; the normal method is to append
-@samp{<2>}, @samp{<3>}, and so on, but you can select other methods.
-@xref{Uniquify}.
+Emacs constructs a unique name; the normal method is to add a suffix
+based on the directory name (e.g., @samp{<rms>}, @samp{<tmp>},
+and so on), but you can select other methods.  @xref{Uniquify}.
 
 @cindex creating files
   To create a new file, just visit it using the same command, @kbd{C-x

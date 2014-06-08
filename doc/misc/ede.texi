@@ -1200,7 +1200,7 @@ until one of them returns true.  The method
 from the autoload.  If it is a string (i.e., a project file name), it
 checks to see if that exists in BUFFER's directory.  If it is a
 function, then it calls that function and expects it to return a file
-name or nil.  If the file exists, then this directory is assumed to be
+name or @code{nil}.  If the file exists, then this directory is assumed to be
 part of a project, and @code{ede-directory-project-p} returns the
 instance of @code{ede-project-autoload} that matched.
 
@@ -1275,11 +1275,11 @@ Return a string that is the name of the target used by a Make system.
 A brief description of the project or target.  This is currently used
 by the @samp{ede-speedbar} interface.
 @item ede-want-file-p
-Return non-nil if a target will accept a given file.
+Return non-@code{nil} if a target will accept a given file.
 It is generally unnecessary to override this.  See the section on source
 code.
 @item ede-buffer-mine
-Return non-nil if a buffer belongs to this target.  Used during
+Return non-@code{nil} if a buffer belongs to this target.  Used during
 association when a file is loaded.  It is generally unnecessary to
 override this unless you keep auxiliary files.
 @end table
@@ -1614,7 +1614,7 @@ Provide a speedbar description for @var{OBJ}.
 @end deffn
 
 @deffn Method ede-map-any-target-p :AFTER this proc
-For project @var{THIS}, map @var{PROC} to all targets and return if any non-nil.
+For project @var{THIS}, map @var{PROC} to all targets and return if any non-@code{nil}.
 Return the first non-@code{nil} value returned by @var{PROC}.
 @end deffn
 
@@ -1768,7 +1768,7 @@ If @var{TARGET} belongs to a subproject, return that project file.
 @end deffn
 
 @deffn Method ede-find-target :AFTER proj buffer
-Fetch the target in @var{PROJ} belonging to @var{BUFFER} or nil.
+Fetch the target in @var{PROJ} belonging to @var{BUFFER} or @code{nil}.
 @end deffn
 
 @deffn Method ede-add-subproject :AFTER proj-a proj-b
@@ -1884,8 +1884,8 @@ The function symbol must take two arguments:
   NAME - The name of the file to find.
   DIR - The directory root for this cpp-root project.
 
-It should return the fully qualified file name passed in from NAME@.  If that file does not
-exist, it should return nil.
+It should return the fully qualified file name passed in from NAME@.
+If that file does not exist, it should return @code{nil}.
 
 @end table
 
@@ -2047,7 +2047,7 @@ Default Value: @code{nil}
 Non-@code{nil} if this is a metasubproject.
 Usually, a subproject is determined by a parent project.  If multiple top level
 projects are grouped into a large project not maintained by EDE, then you need
-to set this to non-nil.  The only effect is that the @code{dist} rule will then avoid
+to set this to non-@code{nil}.  The only effect is that the @code{dist} rule will then avoid
 making a tar file.
 
 @end table
@@ -2281,7 +2281,7 @@ Default Value: @code{nil}
 Non-@code{nil} if this is a metasubproject.
 Usually, a subproject is determined by a parent project.  If multiple top level
 projects are grouped into a large project not maintained by EDE, then you need
-to set this to non-nil.  The only effect is that the @code{dist} rule will then avoid
+to set this to non-@code{nil}.  The only effect is that the @code{dist} rule will then avoid
 making a tar file.
 
 @end table

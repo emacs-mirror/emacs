@@ -114,7 +114,7 @@ Scroll to end of message (@code{rmail-end-of-message}).
 @kindex S-SPC @r{(Rmail)}
   Since the most common thing to do while reading a message is to
 scroll through it by screenfuls, Rmail makes @key{SPC} and @key{DEL}
-(or @key{S-SPC}) do the same as @kbd{C-v} (@code{scroll-up-command})
+(or @kbd{S-@key{SPC}}) do the same as @kbd{C-v} (@code{scroll-up-command})
 and @kbd{M-v} (@code{scroll-down-command}) respectively.
 
 @kindex . @r{(Rmail)}
@@ -753,7 +753,7 @@ in replies, using the variable @code{mail-dont-reply-to-names}.  Its
 value should be a regular expression; any recipients that match are
 excluded from the @samp{CC} field.  They are also excluded from the
 @samp{To} field, unless this would leave the field empty.  If this
-variable is nil, then the first time you compose a reply it is
+variable is @code{nil}, then the first time you compose a reply it is
 initialized to a default value that matches your own address.
 
   To omit the @samp{CC} field completely for a particular reply, enter
@@ -962,7 +962,7 @@ making any kind of summary discards any previous summary.
 use for the summary window.  The variable
 @code{rmail-summary-line-count-flag} controls whether the summary line
 for a message should include the line count of the message.  Setting
-this option to nil might speed up the generation of summaries.
+this option to @code{nil} might speed up the generation of summaries.
 
 @node Rmail Summary Edit
 @subsection Editing in Summaries

@@ -522,7 +522,7 @@ flags on all the files that have no marks, while unflagging all those
 that already have @samp{D} flags:
 
 @example
-* c D t  * c SPC D  * c t SPC
+* c D t  * c @key{SPC} D  * c t @key{SPC}
 @end example
 
 This assumes that no files were already marked with @samp{t}.

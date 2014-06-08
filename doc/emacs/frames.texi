@@ -457,12 +457,16 @@ Delete all frames on the current terminal, except the selected one.
 @item M-<F10>
 @kindex M-<F10>
 @findex toggle-frame-maximized
-Toggle maximization state of the current frame.
+Toggle the maximization state of the current frame.  When a frame is
+maximized, it fills the screen.
 
 @item <F11>
 @kindex <F11>
 @findex toggle-frame-fullscreen
-Toggle fullscreen mode of the current frame.
+Toggle fullscreen mode for the current frame.  (The difference
+between ``fullscreen'' and ``maximized'' is normally that the former
+hides window manager decorations, giving slightly more screen space to
+Emacs itself.)
 @end table
 
   The @kbd{C-x 5 0} (@code{delete-frame}) command deletes the selected

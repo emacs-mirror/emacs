@@ -151,19 +151,22 @@ Since your terminal has a relatively small number of lines on its
 screen, it is necessary to give you special advice at the beginning.
 
 If the entire text you are looking at fits on the screen, the text
-@samp{All} will be displayed at the bottom of the screen.  In the
-stand-alone Info reader, it is displayed at the bottom right corner of
-the screen; in Emacs, it is displayed on the modeline.  If you see the
-text @samp{Top} instead, it means that there is more text below that
-does not fit.  To move forward through the text and see another screen
-full, press @key{SPC}, the Space bar.  To move back up, press the key
+@samp{All} will be displayed near the bottom of the screen, on the
+mode line (usually, the line in inverse video).  If you see the text
+@samp{Top} instead, it means that there is more text below that does
+not fit.  To move forward through the text and see another screenful,
+press @key{SPC}, the Space bar.  To move back up, press the key
 labeled @samp{Backspace} or @samp{DEL} (on some keyboards, this key
-might be labeled @samp{Delete}), or @key{S-SPC}.
+might be labeled @samp{Delete}).  In a graphical Emacs, you can also use
+@kbd{S-@key{SPC}} (press and hold the @key{Shift} key and then press
+@key{SPC}) to move backwards, but this does not work in the
+stand-alone Info reader (nor in Emacs, if you are using it in a
+text-mode terminal).
 
 @ifinfo
-Here are 40 lines of junk, so you can try @key{SPC} and @key{DEL} (or
-@key{S-SPC}) and see what they do.  At the end are instructions of
-what you should do next.
+Here are 40 lines of junk, so you can try @key{SPC} and @key{DEL} and
+see what they do.  At the end are instructions of what you should do
+next.
 
 @format
 This is line 20
@@ -209,11 +212,11 @@ This is line 59
 @end format
 
 If you have managed to get here, go back to the beginning with
-@kbd{DEL} (or @key{S-SPC}), and come back here again, then you
-understand the about the @samp{Space} and @samp{Backspace} keys.  So
-now type an @kbd{n}---just one character; don't type the quotes and
-don't type the Return key afterward---to get to the normal start of
-the course.
+@key{DEL} (or @key{BACKSPACE}), and come back here again, then you
+understand about the @samp{Space} and @samp{Backspace} keys.  So now
+type an @kbd{n}---just one character; don't type the quotes and don't
+type the Return key afterward---to get to the normal start of the
+course.
 @end ifinfo
 
 @node Help
@@ -401,12 +404,9 @@ repeatedly.
 >> Type a @key{?} now.  Press @key{SPC} to see consecutive screenfuls of
    the list until finished.  Then type @key{SPC} several times.  If
    you are using Emacs, the help will then go away automatically.
+   If you are using the stand-alone Info reader, type @kbd{x} to
+   return here.
 @end format
-
-  (If you are using the stand-alone Info reader, type @kbd{C-x 0} to
-return here, that is---press and hold @key{CTRL}, type an @kbd{x},
-then release @key{CTRL} and @kbd{x}, and press @kbd{0}; that's a zero,
-not the letter ``o''.)
 
   From now on, you will encounter large nodes without warning, and
 will be expected to know how to use @key{SPC} and @key{BACKSPACE} to
@@ -478,10 +478,10 @@ you to the following node in the manual @emph{regardless of level}.
 If you immediately want to go to that node, without having to scroll
 to the bottom of the screen first, you can type @kbd{]}.
 
-Similarly, @kbd{@key{BACKSPACE}} (or @kbd{@key{S-SPC}}) carries you to
-the preceding node regardless of level, after you scrolled to the
-beginning of the present node.  If you want to go to the preceding
-node immediately, you can type @kbd{[}.
+Similarly, @kbd{@key{BACKSPACE}} carries you to the preceding node
+regardless of level, after you scrolled to the beginning of the
+present node.  If you want to go to the preceding node immediately,
+you can type @kbd{[}.
 
 For instance, typing this sequence will come back here in three steps:
 @kbd{[ n [}.  To do the same backward, type @kbd{] p ]}.
@@ -1214,7 +1214,7 @@ all text that could potentially be useful.
 
 @item Info-scroll-prefer-subnodes
 If set to a non-@code{nil} value, @key{SPC} and @key{BACKSPACE} (or
-@key{DEL}, or @key{S-SPC}) keys in a menu visit subnodes of the
+@key{DEL}, or @kbd{S-@key{SPC}}) keys in a menu visit subnodes of the
 current node before scrolling to its end or beginning, respectively.
 For example, if the node's menu appears on the screen, the next
 @key{SPC} moves to a subnode indicated by the following menu item.

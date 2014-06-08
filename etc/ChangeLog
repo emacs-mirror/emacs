@@ -1,3 +1,7 @@
+2014-06-08  Leo Liu  <sdl.web@gmail.com>
+
+	* themes/deeper-blue-theme.el: Use another fix.  (Bug#17695)
+
 2014-06-08  Juri Linkov  <juri@jurta.org>
 
 	* themes/deeper-blue-theme.el (diff-added, diff-changed, diff-removed):

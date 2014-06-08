@@ -21624,7 +21624,7 @@ to
 @noindent
 Every character not part of the sub-formula @samp{b} has been changed
 to a dot. (If the customizable variable
-@code{calc-highlight-selections-with-faces} is non-nil, then the characters
+@code{calc-highlight-selections-with-faces} is non-@code{nil}, then the characters
 not part of the sub-formula are de-emphasized by using a less
 noticeable face instead of using dots. @pxref{Displaying Selections}.)
 The @samp{*} next to the line number is to remind you that
@@ -21858,7 +21858,7 @@ by @samp{#} signs:
 @end group
 @end smallexample
 If the customizable variable
-@code{calc-highlight-selections-with-faces} is non-nil, then the
+@code{calc-highlight-selections-with-faces} is non-@code{nil}, then the
 non-selected portion of the formula will be de-emphasized by using a
 less noticeable face (@code{calc-nonselected-face}) instead of dots
 and the selected sub-formula will be highlighted by using a more

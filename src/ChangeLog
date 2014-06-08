@@ -1,3 +1,9 @@
+2014-06-08  Glenn Morris  <rgm@gnu.org>
+
+	* fileio.c (write-region-inhibit-fsync): Doc tweak.
+
+	* data.c (Flss, Fgtr, Fleq, Fgeq): Doc tweaks.
+
 2014-06-08  Paul Eggert  <eggert@cs.ucla.edu>
 
 	If a C name must be extern on some platforms, make it extern on all.

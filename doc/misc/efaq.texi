@@ -1944,7 +1944,7 @@ automatically scrolls the display horizontally when point moves off the
 left or right edge of the window.
 
 Note that this is overridden by the variable
-@code{truncate-partial-width-windows} if that variable is non-nil
+@code{truncate-partial-width-windows} if that variable is non-@code{nil}
 and the current buffer is not full-frame width.
 
 In Emacs 20, use @code{hscroll-mode}.

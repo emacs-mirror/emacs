@@ -306,7 +306,7 @@ or is of a subclass of @var{CLASS-NAME}.
 @end defun
 
 @defvar eieio-error-unsupported-class-tags
-If non-nil, @code{defclass} signals an error if a tag in a slot
+If non-@code{nil}, @code{defclass} signals an error if a tag in a slot
 specifier is unsupported.
 
 This option is here to support programs written with older versions of
@@ -471,7 +471,7 @@ Here are some examples:
  @item my-class-name
  An object of your class type.
  @item (or null symbol)
- A symbol, or nil.
+ A symbol, or @code{nil}.
  @end table
 
 @item :allocation
@@ -573,7 +573,7 @@ prefixed by the @code{:documentation} tag, and appears after the list
 of slots, and before the options.
 
 @item :allow-nil-initform
-If this option is non-nil, and the @code{:initform} is @code{nil}, but
+If this option is non-@code{nil}, and the @code{:initform} is @code{nil}, but
 the @code{:type} is specifies something such as @code{string} then allow
 this to pass.  The default is to have this option be off.  This is
 implemented as an alternative to unbound slots.
@@ -1264,7 +1264,7 @@ Return the list of public slots for @var{obj}.
 @defun class-slot-initarg class slot
 For the given @var{class} return the :initarg associated with
 @var{slot}.  Not all slots have initargs, so the return value can be
-nil.
+@code{nil}.
 @end defun
 
 @node Base Classes

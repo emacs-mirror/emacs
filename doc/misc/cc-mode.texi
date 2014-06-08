@@ -3915,7 +3915,7 @@ Conceptually, a line of code is always indented relative to some
 position higher up in the buffer (typically the indentation of the
 previous line).  That position is the @dfn{anchor position} in the
 syntactic element.  If there is an entry after the syntactic symbol in
-the syntactic element list then it's either nil or that anchor position.
+the syntactic element list then it's either @code{nil} or that anchor position.
 
 Here is an example.  Suppose we had the following code as the only thing
 in a C++ buffer @footnote{The line numbers in this and future examples
@@ -6067,7 +6067,7 @@ suggestion to get a consistent style):
 @defun c-lineup-assignments
 @findex lineup-assignments (c-)
 Line up the current line after the assignment operator on the first line
-in the statement.  If there isn't any, return nil to allow stacking with
+in the statement.  If there isn't any, return @code{nil} to allow stacking with
 other line-up functions.  If the current line contains an assignment
 operator too, try to align it with the first one.
 
@@ -6532,7 +6532,7 @@ Return the syntactic symbol in @var{langelem}.
 
 @defun c-langelem-pos langelem
 @findex langelem-pos (c-)
-Return the anchor position in @var{langelem}, or nil if there is none.
+Return the anchor position in @var{langelem}, or @code{nil} if there is none.
 @end defun
 
 @defun c-langelem-col langelem &optional preserve-point

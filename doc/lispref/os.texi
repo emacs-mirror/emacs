@@ -194,11 +194,16 @@ It processes any command-line options that were not handled earlier.
 It now exits if the option @code{--batch} was specified.
 
 @item
-If @code{initial-buffer-choice} is a string, it visits the file with
-that name.  If it is a function, it calls the function and selects the
-buffer returned by the function.  It it is @code{t}, it selects the
-@file{*scratch*} buffer.  If the @file{*scratch*} buffer exists and is
-empty, it inserts @code{initial-scratch-message} into that buffer.
+If @code{initial-buffer-choice} is a string, it visits the file (or
+directory) with that name.  If it is a function, it calls the function
+with no arguments and selects the buffer that it returns.
+@ignore
+@c I do not think this should be mentioned.  AFAICS it is just a dodge
+@c around inhibit-startup-screen not being settable on a site-wide basis.
+If it is @code{t}, it selects the @file{*scratch*} buffer.
+@end ignore
+If the @file{*scratch*} buffer exists and is empty, it inserts
+@code{initial-scratch-message} into that buffer.
 
 @c To make things nice and confusing, the next three items can be
 @c called from two places.  If displaying a startup screen, they are
@@ -753,7 +758,7 @@ Here is an example of how you could use these hooks:
 (add-hook 'suspend-resume-hook (lambda () (message "Resumed!")
                                  (sit-for 2)))
 @end smallexample
-@c The sit-for prevents the ``nil'' that suspend-emacs returns
+@c The sit-for prevents the @code{nil} that suspend-emacs returns
 @c hiding the message.
 
 Here is what you would see upon evaluating @code{(suspend-emacs "pwd")}:

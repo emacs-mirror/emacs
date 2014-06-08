@@ -901,9 +901,9 @@ just type @samp{vip.el} followed by @key{RET}.  If the file @file{vip.el}
 already exists in the directory, Emacs will visit that file, and if not,
 the file will be created.  Emacs will use the file name (@file{vip.el}, in
 this case) as the name of the buffer visiting the file.  In order to make
-the buffer name unique, Emacs may append @samp{<2>}, @samp{<3>} etc., to
-the buffer name.  As the @dfn{file name completion} is provided here, you
-can sometime save typing.  For instance, suppose there is only one file in the
+the buffer name unique, Emacs may add a suffix (@pxref{Uniquify,,,
+emacs, The GNU Emacs Manual}).  As @dfn{file name completion} is provided here, you
+can sometimes save typing.  For instance, suppose there is only one file in the
 default directory whose name starts with @samp{v}, that is @samp{vip.el}.
 Then if you just type @kbd{v @key{TAB}} then it will be completed to
 @samp{vip.el}.  Thus, in this case, you just have to type @kbd{v v @key{TAB}

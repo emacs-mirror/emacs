@@ -139,8 +139,7 @@ An ERT test definition equivalent to the above comments is this:
 
 If you know @code{defun}, the syntax of @code{ert-deftest} should look
 familiar: This example defines a test named @code{pp-test-quote} that
-will pass if the three calls to @code{equal} all return true
-(non-nil).
+will pass if the three calls to @code{equal} all return non-@code{nil}.
 
 @code{should} is a macro with the same meaning as @code{cl-assert} but
 better error reporting.  @xref{The @code{should} Macro}.
@@ -315,7 +314,8 @@ tests or symbols naming tests.
 @item @code{(tag TAG)} selects all tests that have TAG on their tags list.
 (Tags are optional labels you can apply to tests when you define them.)
 @item @code{(satisfies PREDICATE)} selects all tests that satisfy PREDICATE,
-a function that takes a test as argument and returns non-nil if it is selected.
+a function that takes a test as argument and returns non-@code{nil} if
+it is selected.
 @end itemize
 
 Selectors that are frequently useful when selecting tests to run
@@ -382,13 +382,13 @@ F addition-test
 @end example
 
 In this example, @code{should} recorded the fact that (= (+ 1 2) 4)
-reduced to (= 3 4) before it reduced to nil.  When debugging why the
+reduced to (= 3 4) before it reduced to @code{nil}.  When debugging why the
 test failed, it helps to know that the function @code{+} returned 3
 here.  ERT records the return value for any predicate called directly
 within @code{should}.
 
 In addition to @code{should}, ERT provides @code{should-not}, which
-checks that the predicate returns nil, and @code{should-error}, which
+checks that the predicate returns @code{nil}, and @code{should-error}, which
 checks that the form called within it signals an error.  An example
 use of @code{should-error}:
 
@@ -531,7 +531,7 @@ Instead, it is better to use lower-level mechanisms with simple and
 predictable semantics like @code{with-temp-buffer}, @code{insert} or
 @code{insert-file-contents-literally}, and to activate any desired mode
 by calling the corresponding function directly, after binding the
-hook variables to nil.  This avoids the above problems.
+hook variables to @code{nil}.  This avoids the above problems.
 
 
 @node Useful Techniques
@@ -761,7 +761,7 @@ the arguments given to the explanation function, returns the value
 that it returns.  The explanation can be any object but should have a
 comprehensible printed representation.  If the return value of the
 predicate needs no explanation for a given list of arguments, the
-explanation function should return nil.
+explanation function should return @code{nil}.
 
 To associate an explanation function with a predicate, add the
 property @code{ert-explainer} to the symbol that names the predicate.

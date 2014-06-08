@@ -872,7 +872,7 @@ more likely to conflict with other files.
 @end defun
 
 @defun url-cache-expired
-This function returns non-nil if a cache entry has expired (or is absent).
+This function returns non-@code{nil} if a cache entry has expired (or is absent).
 The arguments are a URL and optional expiration delay in seconds
 (default @var{url-cache-expire-time}).
 @end defun
