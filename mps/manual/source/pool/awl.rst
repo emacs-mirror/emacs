@@ -283,9 +283,9 @@ the format of objects allocated in it:
 
   "Aligned pointer" means a word whose numeric value (that is, its
   value when treated as an unsigned integer) is a multiple of the size
-  of a pointer. For you're using a 32-bit architecture, that means
-  that an aligned pointer is a multiple of 4 and its bottom two bits
-  are both zero.
+  of a pointer. If you're using a 64-bit architecture, that means that
+  an aligned pointer is a multiple of 8 and its bottom three bits are
+  zero.
 
   The bottom line is that references from an object in an AWL pool
   must be untagged and aligned, and integers must be tagged with a

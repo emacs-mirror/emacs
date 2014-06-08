@@ -1,3 +1,5 @@
+.. _mmref-intro:
+
 Introduction to memory management
 #################################
 
@@ -9,5 +11,3 @@ Introduction to memory management
     alloc
     recycle
     lang
-    faq
-    

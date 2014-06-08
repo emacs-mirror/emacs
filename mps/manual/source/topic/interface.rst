@@ -194,7 +194,7 @@ out parameter, like this::
     res = mps_alloc((mps_addr_t *)&fp, pool, sizeof(struct foo));
 
 This is known as :term:`type punning`, and its behaviour is not
-defined in ANSI/ISO Standard C. See :ref:`ISO/IEC 9899:1990 <ISO90>`
+defined in ANSI/ISO Standard C. See :ref:`ISO/IEC 9899:1990 <C1990>`
 §6.3.2.3, which defines the conversion of a pointer from one type to
 another: the behaviour of this cast is not covered by any of the cases
 in the standard.
@@ -209,7 +209,7 @@ Instead, we recommend this approach::
 
 This has defined behaviour because conversion from ``void *`` to any
 other :term:`object pointer` type is defined by :ref:`ISO/IEC
-9899:1990 <ISO90>` §6.3.2.3.1.
+9899:1990 <C1990>` §6.3.2.3.1.
 
 
 .. index::
@@ -219,14 +219,14 @@ Macros
 ------
 
 #.  For function-like macros, the MPS follows the same convention as
-    the Standard C library. To quote :ref:`ISO/IEC 9899:1990 <ISO90>`
+    the Standard C library. To quote :ref:`ISO/IEC 9899:1990 <C1990>`
     §7.1.7:
 
         Any function declared in a header may additionally be
         implemented as a macro defined in the header, so a library
         function should not be declared explicitly if its header is
         included. Any macro definition of a function can be suppressed
-        locally be enclosing the name of the function in parentheses,
+        locally by enclosing the name of the function in parentheses,
         because the name is then not followed by the left parenthesis
         that indicates expansion of a macro function name. [...] Any
         invocation of a library function that is implemented as a

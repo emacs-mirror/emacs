@@ -35,7 +35,7 @@
 #include "fmtscheme.h"
 
 #define OBJ_LEN (1u << 4)
-#define OBJ_COUNT 1
+#define OBJ_COUNT 10
 
 static void test_air(int interior, int stack)
 {
@@ -50,14 +50,14 @@ static void test_air(int interior, int stack)
   }
   mps_message_type_enable(scheme_arena, mps_message_type_finalization());
   for (j = 0; j < OBJ_COUNT; ++j) {
-    obj_t n = scheme_make_integer((long)j);
-    obj_t obj = scheme_make_vector(OBJ_LEN, n);
+    obj_t n = scheme_make_integer(obj_ap, (long)j);
+    obj_t obj = scheme_make_vector(obj_ap, OBJ_LEN, n);
     mps_addr_t ref = obj;
     mps_finalize(scheme_arena, &ref);
     s[j] = obj->vector.vector;
   }
   for (i = 1; i < OBJ_LEN; ++i) {
-    obj_t n = scheme_make_integer((long)i);
+    obj_t n = scheme_make_integer(obj_ap, (long)i);
     mps_message_t msg;
     for (j = 0; j + 1 < OBJ_COUNT; ++j) {
       *++s[j] = n;
@@ -90,20 +90,15 @@ static mps_gen_param_s obj_gen_params[] = {
   { 170, 0.45 }
 };
 
-static void test_main(int interior, int stack)
+static void test_main(void *marker, int interior, int stack)
 {
   mps_res_t res;
   mps_chain_t obj_chain;
   mps_fmt_t obj_fmt;
   mps_thr_t thread;
   mps_root_t reg_root = NULL;
-  void *marker = &marker;
 
-  MPS_ARGS_BEGIN(args) {
-    MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, 1 << 20);
-    MPS_ARGS_DONE(args);
-    res = mps_arena_create_k(&scheme_arena, mps_arena_class_vm(), args);
-  } MPS_ARGS_END(args);
+  res = mps_arena_create_k(&scheme_arena, mps_arena_class_vm(), mps_args_none);
   if (res != MPS_RES_OK) error("Couldn't create arena");
 
   res = mps_chain_create(&obj_chain, scheme_arena,
@@ -117,7 +112,6 @@ static void test_main(int interior, int stack)
     MPS_ARGS_ADD(args, MPS_KEY_CHAIN, obj_chain);
     MPS_ARGS_ADD(args, MPS_KEY_FORMAT, obj_fmt);
     MPS_ARGS_ADD(args, MPS_KEY_INTERIOR, interior);
-    MPS_ARGS_DONE(args);
     die(mps_pool_create_k(&obj_pool, scheme_arena, mps_class_amc(), args),
         "mps_pool_create_k");
   } MPS_ARGS_END(args);
@@ -149,12 +143,14 @@ static void test_main(int interior, int stack)
 
 int main(int argc, char *argv[])
 {
+  void *marker = &marker;
+
   testlib_init(argc, argv);
 
-  test_main(TRUE, TRUE);
-  test_main(TRUE, FALSE);
-  /* not test_main(FALSE, TRUE) -- see .fail.lii6ll. */
-  test_main(FALSE, FALSE);
+  test_main(marker, TRUE, TRUE);
+  test_main(marker, TRUE, FALSE);
+  /* not test_main(marker, FALSE, TRUE) -- see .fail.lii6ll. */
+  test_main(marker, FALSE, FALSE);
 
   printf("%s: Conclusion: Failed to find any defects.\n", argv[0]);
   return 0;

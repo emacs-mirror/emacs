@@ -57,17 +57,7 @@ typedef struct MFSHeaderStruct {
 } HeaderStruct, *Header;
 
 
-
 #define UNIT_MIN        sizeof(HeaderStruct)
-
-MFSInfo MFSGetInfo(void)
-{
-  static const struct MFSInfoStruct info =
-  {
-    /* unitSizeMin */   UNIT_MIN
-  };
-  return &info;
-}
 
 
 Pool (MFSPool)(MFS mfs)
@@ -136,7 +126,7 @@ static Res MFSInit(Pool pool, ArgList args)
   mfs->sig = MFSSig;
 
   AVERT(MFS, mfs);
-  EVENT5(PoolInitMFS, pool, arena, extendBy, extendSelf, unitSize);
+  EVENT5(PoolInitMFS, pool, arena, extendBy, BOOLOF(extendSelf), unitSize);
   return ResOK;
 }
 
@@ -161,6 +151,8 @@ void MFSFinishTracts(Pool pool, MFSTractVisitor visitor,
 static void MFSTractFreeVisitor(Pool pool, Addr base, Size size,
                                 void *closureP, Size closureS)
 {
+  AVER(closureP == UNUSED_POINTER);
+  AVER(closureS == UNUSED_SIZE);
   UNUSED(closureP);
   UNUSED(closureS);
   ArenaFree(base, size, pool);
@@ -175,7 +167,7 @@ static void MFSFinish(Pool pool)
   mfs = PoolPoolMFS(pool);
   AVERT(MFS, mfs);
 
-  MFSFinishTracts(pool, MFSTractFreeVisitor, NULL, 0);
+  MFSFinishTracts(pool, MFSTractFreeVisitor, UNUSED_POINTER, UNUSED_SIZE);
 
   mfs->sig = SigInvalid;
 }

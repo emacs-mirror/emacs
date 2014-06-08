@@ -233,18 +233,18 @@ Virtual memory arenas
     more efficient.
 
     When creating a virtual memory arena, :c:func:`mps_arena_create_k`
-    requires one :term:`keyword argument`:
+    accepts one :term:`keyword argument` on all platforms:
 
-    * :c:macro:`MPS_KEY_ARENA_SIZE` (type :c:type:`size_t`). is the
-      initial amount of virtual address space, in :term:`bytes (1)`,
-      that the arena will reserve (this space is initially reserved so
-      that the arena can subsequently use it without interference from
-      other parts of the program, but most of it is not committed, so
-      it doesn't require any RAM or backing store). The arena may
-      allocate more virtual address space beyond this initial
-      reservation as and when it deems it necessary. The MPS is most
-      efficient if you reserve an address space that is several times
-      larger than your peak memory usage.
+    * :c:macro:`MPS_KEY_ARENA_SIZE` (type :c:type:`size_t`, default
+      256\ :term:`megabytes`) is the initial amount of virtual address
+      space, in :term:`bytes (1)`, that the arena will reserve (this
+      space is initially reserved so that the arena can subsequently
+      use it without interference from other parts of the program, but
+      most of it is not committed, so it doesn't require any RAM or
+      backing store). The arena may allocate more virtual address
+      space beyond this initial reservation as and when it deems it
+      necessary. The MPS is most efficient if you reserve an address
+      space that is several times larger than your peak memory usage.
 
       .. note::
 
@@ -252,8 +252,8 @@ Virtual memory arenas
           more times it has to extend its address space, the less
           efficient garbage collection will become.
 
-    An optional :term:`keyword argument` may be passed, but is
-    only used on the Windows operating system:
+    A second optional :term:`keyword argument` may be passed, but it
+    only has any effect on the Windows operating system:
 
     * :c:macro:`MPS_KEY_VMW3_TOP_DOWN` (type :c:type:`mps_bool_t`). If
       true, the arena will allocate address space starting at the
@@ -273,8 +273,9 @@ Virtual memory arenas
 
     If the MPS fails to allocate memory for the internal arena
     structures, :c:func:`mps_arena_create_k` returns
-    :c:macro:`MPS_RES_MEMORY`. Either ``size`` was far too small or
-    the operating system refused to provide enough memory.
+    :c:macro:`MPS_RES_MEMORY`. Either :c:macro:`MPS_KEY_ARENA_SIZE`
+    was far too small or the operating system refused to provide
+    enough memory.
 
     For example::
 
@@ -395,8 +396,8 @@ Arena properties
     (over-)estimate the size of the heap.
 
     If you want to know how much memory the MPS is using then you're
-    probably interested in the value ``mps_arena_committed() -
-    mps_arena_spare_committed()``.
+    probably interested in the value :c:func:`mps_arena_committed()` −
+    :c:func:`mps_arena_spare_committed`.
 
     The amount of committed memory can be limited with the function
     :c:func:`mps_arena_commit_limit`.
@@ -456,7 +457,7 @@ Arena properties
 
     Non-virtual-memory arena classes (for example, a :term:`client
     arena`) do not have spare committed memory. For these arenas, this
-    function functions sets a value but has no other effect.
+    function sets a value but has no other effect.
 
     Initially the spare commit limit is a configuration-dependent
     value. The value of the limit can be retrieved by the function
@@ -505,7 +506,7 @@ An arena is always in one of three states.
    In the *unclamped state*, garbage collection may take place,
    objects may move in memory, references may be updated,
    :term:`location dependencies` may become stale, virtual memory may
-   be requested from or return to the operating system, and other
+   be requested from or returned to the operating system, and other
    kinds of background activity may occur. This is the normal state.
 
 #. .. index::
@@ -530,19 +531,19 @@ An arena is always in one of three states.
 
 Here's a summary:
 
-======================================== ================================== ============================= ===========================
-State                                    unclamped                          clamped                       parked
-======================================== ================================== ============================= ===========================
-Collections may be running?              yes                                yes                           no
-New collections may start?               yes                                no                            no
-Objects may move?                        yes                                no                            no
-Location dependencies may become stale?  yes                                no                            no
-Memory may be returned to the OS?        yes                                no                            no
-Functions that leave arena in this state :c:func:`mps_arena_create`,        :c:func:`mps_arena_clamp`,    :c:func:`mps_arena_park`,
-                                         :c:func:`mps_arena_release`,       :c:func:`mps_arena_step`      :c:func:`mps_arena_collect`
-                                         :c:func:`mps_arena_start_collect`, 
-                                         :c:func:`mps_arena_step`           
-======================================== ================================== ============================= ===========================
+============================================ ================================== ============================= ===========================
+State                                        unclamped                          clamped                       parked
+============================================ ================================== ============================= ===========================
+Collections may be running?                  yes                                yes                           no
+New collections may start?                   yes                                no                            no
+Objects may move?                            yes                                no                            no
+Location dependencies may become stale?      yes                                no                            no
+Memory may be returned to the OS?            yes                                no                            no
+Functions that leave the arena in this state :c:func:`mps_arena_create`,        :c:func:`mps_arena_clamp`,    :c:func:`mps_arena_park`,
+                                             :c:func:`mps_arena_release`,       :c:func:`mps_arena_step`      :c:func:`mps_arena_collect`
+                                             :c:func:`mps_arena_start_collect`, 
+                                             :c:func:`mps_arena_step`           
+============================================ ================================== ============================= ===========================
 
 The clamped and parked states are important when introspecting and
 debugging. If you are examining the contents of the heap, you don't
@@ -555,7 +556,7 @@ before inspecting memory, and::
 
     (gdb) print mps_arena_release(arena)
 
-afterward.
+afterwards.
 
 The results of introspection functions like
 :c:func:`mps_arena_has_addr` only remain valid while the arena remains
@@ -691,24 +692,7 @@ provides a function, :c:func:`mps_arena_step`, for making use of idle
 time to make memory management progress.
 
 Here's an example illustrating the use of this function in a program's
-event loop. When the program is idle (there are no client actions to
-perform), it requests that the MPS spend up to 10 milliseconds on
-incremental work, by calling ``mps_arena_step(arena, 0.010,
-0.0)``. When this returns false to indicate that there is no more work
-to do, the program blocks on the client for two seconds: if this times
-out, it predicts that the user will remain idle for at least a further
-second, so it calls ``mps_arena_step(arena, 0.010, 100.0)`` to tell
-that it's a good time to start a collection taking up to 10 ms × 100
-= 1 second, but not to pause for more than 10 ms.
-
-The program remains responsive: the MPS doesn't take control for more
-than a few milliseconds at a time (at most 10). But at the same time,
-major collection work can get done at times when the program would
-otherwise be idle. Of course the numbers here are only for
-illustration and should be chosen based on the requirements of the
-application.
-
-::
+event loop. ::
 
     for (;;) { /* event loop */
         for (;;) {
@@ -727,6 +711,23 @@ application.
             mps_arena_step(arena, 0.010, 100.0);
         }
     }
+
+When the program is idle (there are no client actions to perform), it
+requests that the MPS spend up to 10 milliseconds on incremental work,
+by calling ``mps_arena_step(arena, 0.010, 0.0)``. When this returns
+false to indicate that there is no more work to do, the program blocks
+on the client for two seconds: if this times out, it predicts that the
+user will remain idle for at least a further second, so it calls
+``mps_arena_step(arena, 0.010, 100.0)`` to tell that it's a good time
+to start a collection taking up to 10 ms × 100 = 1 second, but not to
+pause for more than 10 ms.
+
+The program remains responsive: the MPS doesn't take control for more
+than a few milliseconds at a time (at most 10). But at the same time,
+major collection work can get done at times when the program would
+otherwise be idle. Of course the numbers here are only for
+illustration; they should be chosen based on the requirements of the
+application.
 
 
 .. c:function:: mps_bool_t mps_arena_step(mps_arena_t arena, double interval, double multiplier)

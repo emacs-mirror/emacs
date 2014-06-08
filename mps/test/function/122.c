@@ -133,7 +133,7 @@ static void test(void)
  die(allocrdumb(&a[0], aplo, 64, mps_rank_exact()), "alloc");
  die(allocrdumb(&a[1], apamc, 64, mps_rank_exact()), "alloc");
  die(allocrdumb(&a[3], apawl, 64, mps_rank_exact()), "alloc");
- a[2] = (mycell *)((int)a[3] | 4);
+ a[2] = (mycell *)((mps_word_t)a[3] | 4);
 
  die(allocrdumb(&b[0], aplo, 64, mps_rank_exact()), "alloc");
  die(allocrdumb(&b[1], apamc, 64, mps_rank_exact()), "alloc");
@@ -156,6 +156,7 @@ static void test(void)
  report("count2", "%ld", rootcount);
  report("countspec", "%ld", speccount);
 
+ mps_arena_park(arena);
  mps_ap_destroy(apamc);
  mps_ap_destroy(aplo);
  mps_ap_destroy(apawl);

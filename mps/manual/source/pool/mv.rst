@@ -79,17 +79,19 @@ MV interface
       the pool. If an unaligned size is passed to :c:func:`mps_alloc` or
       :c:func:`mps_free`, it will be rounded up to the pool's alignment.
 
-    * :c:macro:`MPS_KEY_EXTEND_BY` (type :c:type:`size_t`, default 65536) is the
-      :term:`size` of segment that the pool will request from the
-      :term:`arena`.
+    * :c:macro:`MPS_KEY_EXTEND_BY` (type :c:type:`size_t`,
+      default 65536) is the :term:`size` of segment that the pool will
+      request from the :term:`arena`.
 
-    * :c:macro:`MPS_KEY_MEAN_SIZE` (type :c:type:`size_t`, default 32) is the
-      predicted mean size of blocks that will be allocated from the
-      pool.
+    * :c:macro:`MPS_KEY_MEAN_SIZE` (type :c:type:`size_t`, default 32)
+      is the predicted mean size of blocks that will be allocated from
+      the pool. This value must be smaller than, or equal to, the
+      value for :c:macro:`MPS_KEY_EXTEND_BY`.
 
-    * :c:macro:`MPS_KEY_MAX_SIZE` (type :c:type:`size_t`, default 65536) is the
-      predicted maximum size of blocks that will be allocated from the
-      pool.
+    * :c:macro:`MPS_KEY_MAX_SIZE` (type :c:type:`size_t`,
+      default 65536) is the predicted maximum size of blocks that will
+      be allocated from the pool. This value must be larger than, or
+      equal to, the value for :c:macro:`MPS_KEY_EXTEND_BY`.
 
     The mean and maximum sizes are *hints* to the MPS: the pool will be
     less efficient if these are wrong, but nothing will break.
@@ -129,12 +131,12 @@ MV interface
 
     .. deprecated:: starting with version 1.112.
 
-        When using :c:func:`mps_pool_create`, pass the debugging
-        options, segment size, mean size, and maximum size like this::
+        When using :c:func:`mps_pool_create`, pass the arguments like
+        this::
 
             mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, 
                                       mps_class_t mps_class_mv_debug(),
-                                      mps_debug_option_s debug_option,
+                                      mps_pool_debug_option_s debug_option,
                                       mps_size_t extend_size,
                                       mps_size_t average_size,
                                       mps_size_t maximum_size)

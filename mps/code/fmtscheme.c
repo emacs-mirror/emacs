@@ -12,14 +12,8 @@
 
 /* special objects */
 
-obj_t obj_empty;         /* (), the empty list */
-obj_t obj_eof;           /* end of file */
-obj_t obj_error;         /* error indicator */
-obj_t obj_true;          /* #t, boolean true */
-obj_t obj_false;         /* #f, boolean false */
-obj_t obj_undefined;     /* undefined result indicator */
-obj_t obj_tail;          /* tail recursion indicator */
-obj_t obj_deleted;       /* deleted key in hashtable */
+static obj_t obj_true;          /* #t, boolean true */
+static obj_t obj_false;         /* #f, boolean false */
 
 
 /* MPS globals */
@@ -50,86 +44,86 @@ obj_t scheme_make_bool(int condition)
   return condition ? obj_true : obj_false;
 }
 
-obj_t scheme_make_pair(obj_t car, obj_t cdr)
+obj_t scheme_make_pair(mps_ap_t ap, obj_t car, obj_t cdr)
 {
   obj_t obj;
   mps_addr_t addr;
   size_t size = ALIGN_OBJ(sizeof(pair_s));
   do {
-    mps_res_t res = mps_reserve(&addr, obj_ap, size);
+    mps_res_t res = mps_reserve(&addr, ap, size);
     if (res != MPS_RES_OK) error("out of memory in make_pair");
     obj = addr;
     obj->pair.type = TYPE_PAIR;
     CAR(obj) = car;
     CDR(obj) = cdr;
-  } while(!mps_commit(obj_ap, addr, size));
+  } while(!mps_commit(ap, addr, size));
   return obj;
 }
 
-obj_t scheme_make_integer(long integer)
+obj_t scheme_make_integer(mps_ap_t ap, long integer)
 {
   obj_t obj;
   mps_addr_t addr;
   size_t size = ALIGN_OBJ(sizeof(integer_s));
   do {
-    mps_res_t res = mps_reserve(&addr, obj_ap, size);
+    mps_res_t res = mps_reserve(&addr, ap, size);
     if (res != MPS_RES_OK) error("out of memory in make_integer");
     obj = addr;
     obj->integer.type = TYPE_INTEGER;
     obj->integer.integer = integer;
-  } while(!mps_commit(obj_ap, addr, size));
+  } while(!mps_commit(ap, addr, size));
   return obj;
 }
 
-obj_t scheme_make_symbol(size_t length, char string[])
+obj_t scheme_make_symbol(mps_ap_t ap, size_t length, char string[])
 {
   obj_t obj;
   mps_addr_t addr;
   size_t size = ALIGN_OBJ(offsetof(symbol_s, string) + length+1);
   do {
-    mps_res_t res = mps_reserve(&addr, obj_ap, size);
+    mps_res_t res = mps_reserve(&addr, ap, size);
     if (res != MPS_RES_OK) error("out of memory in make_symbol");
     obj = addr;
     obj->symbol.type = TYPE_SYMBOL;
     obj->symbol.length = length;
     memcpy(obj->symbol.string, string, length+1);
-  } while(!mps_commit(obj_ap, addr, size));
+  } while(!mps_commit(ap, addr, size));
   return obj;
 }
 
-obj_t scheme_make_string(size_t length, char string[])
+obj_t scheme_make_string(mps_ap_t ap, size_t length, char string[])
 {
   obj_t obj;
   mps_addr_t addr;
   size_t size = ALIGN_OBJ(offsetof(string_s, string) + length+1);
   do {
-    mps_res_t res = mps_reserve(&addr, obj_ap, size);
+    mps_res_t res = mps_reserve(&addr, ap, size);
     if (res != MPS_RES_OK) error("out of memory in make_string");
     obj = addr;
     obj->string.type = TYPE_STRING;
     obj->string.length = length;
     if (string) memcpy(obj->string.string, string, length+1);
     else memset(obj->string.string, 0, length+1);
-  } while(!mps_commit(obj_ap, addr, size));
+  } while(!mps_commit(ap, addr, size));
   return obj;
 }
 
-obj_t scheme_make_special(char *string)
+obj_t scheme_make_special(mps_ap_t ap, char *string)
 {
   obj_t obj;
   mps_addr_t addr;
   size_t size = ALIGN_OBJ(sizeof(special_s));
   do {
-    mps_res_t res = mps_reserve(&addr, obj_ap, size);
+    mps_res_t res = mps_reserve(&addr, ap, size);
     if (res != MPS_RES_OK) error("out of memory in make_special");
     obj = addr;
     obj->special.type = TYPE_SPECIAL;
     obj->special.name = string;
-  } while(!mps_commit(obj_ap, addr, size));
+  } while(!mps_commit(ap, addr, size));
   return obj;
 }
 
-obj_t scheme_make_operator(char *name,
+obj_t scheme_make_operator(mps_ap_t ap, char *name,
                            entry_t entry, obj_t arguments,
                            obj_t body, obj_t env, obj_t op_env)
 {
@@ -137,7 +131,7 @@ obj_t scheme_make_operator(char *name,
   mps_addr_t addr;
   size_t size = ALIGN_OBJ(sizeof(operator_s));
   do {
-    mps_res_t res = mps_reserve(&addr, obj_ap, size);
+    mps_res_t res = mps_reserve(&addr, ap, size);
     if (res != MPS_RES_OK) error("out of memory in make_operator");
     obj = addr;
     obj->operator.type = TYPE_OPERATOR;
@@ -147,70 +141,70 @@ obj_t scheme_make_operator(char *name,
     obj->operator.body = body;
     obj->operator.env = env;
     obj->operator.op_env = op_env;
-  } while(!mps_commit(obj_ap, addr, size));
+  } while(!mps_commit(ap, addr, size));
   return obj;
 }
 
-obj_t scheme_make_port(obj_t name, FILE *stream)
+obj_t scheme_make_port(mps_ap_t ap, obj_t name, FILE *stream)
 {
   mps_addr_t port_ref;
   obj_t obj;
   mps_addr_t addr;
   size_t size = ALIGN_OBJ(sizeof(port_s));
   do {
-    mps_res_t res = mps_reserve(&addr, obj_ap, size);
+    mps_res_t res = mps_reserve(&addr, ap, size);
     if (res != MPS_RES_OK) error("out of memory in make_port");
     obj = addr;
     obj->port.type = TYPE_PORT;
     obj->port.name = name;
     obj->port.stream = stream;
-  } while(!mps_commit(obj_ap, addr, size));
+  } while(!mps_commit(ap, addr, size));
   port_ref = obj;
   mps_finalize(scheme_arena, &port_ref);
   return obj;
 }
 
-obj_t scheme_make_character(char c)
+obj_t scheme_make_character(mps_ap_t ap, char c)
 {
   obj_t obj;
   mps_addr_t addr;
   size_t size = ALIGN_OBJ(sizeof(character_s));
   do {
-    mps_res_t res = mps_reserve(&addr, obj_ap, size);
+    mps_res_t res = mps_reserve(&addr, ap, size);
     if (res != MPS_RES_OK) error("out of memory in make_character");
     obj = addr;
     obj->character.type = TYPE_CHARACTER;
     obj->character.c = c;
-  } while(!mps_commit(obj_ap, addr, size));
+  } while(!mps_commit(ap, addr, size));
   return obj;
 }
 
-obj_t scheme_make_vector(size_t length, obj_t fill)
+obj_t scheme_make_vector(mps_ap_t ap, size_t length, obj_t fill)
 {
   obj_t obj;
   mps_addr_t addr;
   size_t size = ALIGN_OBJ(offsetof(vector_s, vector) + length * sizeof(obj_t));
   do {
     size_t i;
-    mps_res_t res = mps_reserve(&addr, obj_ap, size);
+    mps_res_t res = mps_reserve(&addr, ap, size);
     if (res != MPS_RES_OK) error("out of memory in make_vector");
     obj = addr;
     obj->vector.type = TYPE_VECTOR;
     obj->vector.length = length;
     for(i = 0; i < length; ++i)
       obj->vector.vector[i] = fill;
-  } while(!mps_commit(obj_ap, addr, size));
+  } while(!mps_commit(ap, addr, size));
   return obj;
 }
 
-obj_t scheme_make_buckets(size_t length)
+obj_t scheme_make_buckets(mps_ap_t ap, size_t length)
 {
   obj_t obj;
   mps_addr_t addr;
   size_t size = ALIGN_OBJ(offsetof(buckets_s, bucket) + length * sizeof(obj->buckets.bucket[0]));
   do {
     size_t i;
-    mps_res_t res = mps_reserve(&addr, obj_ap, size);
+    mps_res_t res = mps_reserve(&addr, ap, size);
     if (res != MPS_RES_OK) error("out of memory in make_buckets");
     obj = addr;
     obj->buckets.type = TYPE_BUCKETS;
@@ -221,27 +215,27 @@ obj_t scheme_make_buckets(size_t length)
       obj->buckets.bucket[i].key = NULL;
       obj->buckets.bucket[i].value = NULL;
     }
-  } while(!mps_commit(obj_ap, addr, size));
+  } while(!mps_commit(ap, addr, size));
   return obj;
 }
 
-obj_t scheme_make_table(size_t length, hash_t hashf, cmp_t cmpf)
+obj_t scheme_make_table(mps_ap_t ap, size_t length, hash_t hashf, cmp_t cmpf)
 {
   obj_t obj;
   mps_addr_t addr;
   size_t l, size = ALIGN_OBJ(sizeof(table_s));
   do {
-    mps_res_t res = mps_reserve(&addr, obj_ap, size);
+    mps_res_t res = mps_reserve(&addr, ap, size);
     if (res != MPS_RES_OK) error("out of memory in make_table");
     obj = addr;
     obj->table.type = TYPE_TABLE;
     obj->table.buckets = NULL;
-  } while(!mps_commit(obj_ap, addr, size));
+  } while(!mps_commit(ap, addr, size));
   obj->table.hash = hashf;
   obj->table.cmp = cmpf;
   /* round up to next power of 2 */
   for(l = 1; l < length; l *= 2);
-  obj->table.buckets = scheme_make_buckets(l);
+  obj->table.buckets = scheme_make_buckets(ap, l);
   mps_ld_reset(&obj->table.ld, scheme_arena);
   return obj;
 }
@@ -458,7 +452,6 @@ void scheme_fmt(mps_fmt_t *fmt)
     MPS_ARGS_ADD(args, MPS_KEY_FMT_FWD, obj_fwd);
     MPS_ARGS_ADD(args, MPS_KEY_FMT_ISFWD, obj_isfwd);
     MPS_ARGS_ADD(args, MPS_KEY_FMT_PAD, obj_pad);
-    MPS_ARGS_DONE(args);
     res = mps_fmt_create_k(fmt, scheme_arena, args);
   } MPS_ARGS_END(args);
   if (res != MPS_RES_OK) error("Couldn't create obj format");
