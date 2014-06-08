@@ -1,3 +1,8 @@
+2014-06-08  Glenn Morris  <rgm@gnu.org>
+
+	* ack.texi (Acknowledgments):
+	* emacs.texi (Acknowledgments): Updates.
+
 2014-06-07  Glenn Morris  <rgm@gnu.org>
 
 	* programs.texi (Prettifying Symbols): Remove node.
