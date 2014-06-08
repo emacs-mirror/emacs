@@ -22,10 +22,11 @@ TYPES = '''
     Arena Attr Bool BootBlock BT Buffer BufferMode Byte Chain Chunk
     Clock Compare Count Epoch FindDelete Format FrameState Fun Globals
     Index Land LD Lock Message MessageType MutatorFaultContext Page
-    Pointer Pool PThreadext Range Rank RankSet Ref Res Reservoir Ring
-    Root RootMode RootVar ScanState Seg SegBuf SegPref SegPrefKind
-    Serial Shift Sig Size Space SplayNode SplayTree StackContext
-    Thread Trace TraceId TraceSet ULongest VM Word ZoneSet
+    Pointer Pool PThreadext Range Rank RankSet ReadonlyAddr Ref Res
+    Reservoir Ring Root RootMode RootVar ScanState Seg SegBuf SegPref
+    SegPrefKind Serial Shift Sig Size Space SplayNode SplayTree
+    StackContext Thread Trace TraceId TraceSet ULongest VM Word
+    ZoneSet
 
 '''
 
