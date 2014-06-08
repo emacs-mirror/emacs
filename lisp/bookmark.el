@@ -1420,8 +1420,7 @@ explicitly.
 
 If you load a file containing bookmarks with the same names as
 bookmarks already present in your Emacs, the new bookmarks will get
-unique numeric suffixes \"<2>\", \"<3>\", ... following the same
-method buffers use to resolve name collisions."
+unique numeric suffixes \"<2>\", \"<3>\", etc."
   (interactive
    (list (read-file-name
           (format "Load bookmarks from: (%s) "

@@ -1,5 +1,7 @@
 2014-06-08  Glenn Morris  <rgm@gnu.org>
 
+	* files.texi (Subroutines of Visiting): Mention uniquify.
+
 	* numbers.texi (Comparison of Numbers): Copyedits.
 
 2014-06-06  Glenn Morris  <rgm@gnu.org>

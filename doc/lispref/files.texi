@@ -254,11 +254,16 @@ is permanent local, so it is unaffected by changes of major modes.
 which are sometimes useful in user Lisp code: @code{create-file-buffer}
 and @code{after-find-file}.  This section explains how to use them.
 
+@c FIXME This does not describe the default behavior, because
+@c uniquify is enabled by default and advises this function.
+@c This is confusing.  uniquify should be folded into the function proper.
 @defun create-file-buffer filename
 This function creates a suitably named buffer for visiting
 @var{filename}, and returns it.  It uses @var{filename} (sans directory)
 as the name if that name is free; otherwise, it appends a string such as
 @samp{<2>} to get an unused name.  See also @ref{Creating Buffers}.
+Note that the @file{uniquify} library affects the result of this
+function.  @xref{Uniquify,,, emacs, The GNU Emacs Manual}.
 
 @strong{Please note:} @code{create-file-buffer} does @emph{not}
 associate the new buffer with a file and does not select the buffer.

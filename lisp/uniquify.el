@@ -26,7 +26,7 @@
 
 ;;; Commentary:
 
-;; Emacs's standard method for making buffer names unique adds <2>, <3>,
+;; Emacs's traditional method for making buffer names unique adds <2>, <3>,
 ;; etc. to the end of (all but one of) the buffers.  This file replaces
 ;; that behavior, for buffers visiting files and dired buffers, with a
 ;; uniquification that adds parts of the file name until the buffer names
@@ -94,23 +94,27 @@
 
 
 (defcustom uniquify-buffer-name-style 'post-forward-angle-brackets
-  "If non-nil, buffer names are uniquified with parts of directory name.
-The value determines the buffer name style and is one of `forward',
-`reverse', `post-forward', or `post-forward-angle-brackets'.
-For example, files `/foo/bar/mumble/name' and `/baz/quux/mumble/name'
+  "How to construct unique buffer names for files with the same base name.
+The value can be one of: `forward', `reverse', `post-forward',
+`post-forward-angle-brackets', or nil.
+
+For example, the files `/foo/bar/mumble/name' and `/baz/quux/mumble/name'
 would have the following buffer names in the various styles:
-  forward        bar/mumble/name  quux/mumble/name
-  reverse        name\\mumble\\bar  name\\mumble\\quux
-  post-forward   name|bar/mumble  name|quux/mumble
-  post-forward-angle-brackets   name<bar/mumble>  name<quux/mumble>
-  nil            name  name<2>
-Of course, the \"mumble\" part may be stripped as well, depending on the setting
-of `uniquify-strip-common-suffix'."
+
+  forward                       bar/mumble/name    quux/mumble/name
+  reverse                       name\\mumble\\bar    name\\mumble\\quux
+  post-forward                  name|bar/mumble    name|quux/mumble
+  post-forward-angle-brackets   name<bar/mumble>   name<quux/mumble>
+  nil                           name               name<2>
+
+The \"mumble\" part may be stripped as well, depending on the
+setting of `uniquify-strip-common-suffix'.  For more options that
+you can set, browse the `uniquify' custom group."
   :type '(radio (const forward)
 		(const reverse)
 		(const post-forward)
 		(const post-forward-angle-brackets)
-		(const :tag "standard Emacs behavior (nil)" nil))
+		(const :tag "numeric suffixes" nil))
   :version "24.4"
   :require 'uniquify
   :group 'uniquify)

@@ -1,3 +1,8 @@
+2014-06-08  Glenn Morris  <rgm@gnu.org>
+
+	* bookmark.el (bookmark-load):
+	* uniquify.el (uniquify-buffer-name-style): Doc fixes.
+
 2014-06-06  Juri Linkov  <juri@jurta.org>
 
 	* desktop.el: Activate auto-saving on window configuration changes.

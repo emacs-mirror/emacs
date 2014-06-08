@@ -1,5 +1,7 @@
 2014-06-08  Glenn Morris  <rgm@gnu.org>
 
+	* vip.texi (Files): Defer to Emacs manual for uniquify details.
+
 	* info.texi (Help-Small-Screen): Clarify details of S-SPC.
 	(Help-Small-Screen, Help-]): Do not mention S-SPC.
 	(Emacs Info Variables): Markup fix.
