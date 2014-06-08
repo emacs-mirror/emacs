@@ -1,5 +1,7 @@
 2014-06-08  Glenn Morris  <rgm@gnu.org>
 
+	* help.texi (Help, Misc Help): Copyedits.
+
 	* screen.texi (Menu Bar): Copyedits.
 	* msdog.texi (Windows Keyboard): F10 menus are now a general feature.
 
