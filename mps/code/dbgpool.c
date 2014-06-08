@@ -305,10 +305,13 @@ static Bool patternCheck(Addr pattern, Size size, Addr base, Addr limit)
 }
 
 
-/* debugSegApply -- iterate over a range of segments in an arena
+/* debugPoolSegIterate -- iterate over a range of segments in an arena
  *
  * Expects to be called on a range corresponding to objects withing a
- * single pool, and that pools consistently use segments contiguously.
+ * single pool.
+ * 
+ * NOTE: This relies on pools consistently using segments
+ * contiguously.
  */
 
 static void debugPoolSegIterate(Arena arena, Addr base, Addr limit,
@@ -318,8 +321,8 @@ static void debugPoolSegIterate(Arena arena, Addr base, Addr limit,
 
   if (SegOfAddr(&seg, arena, base)) {
     do {
-      visitor(arena, seg);
       base = SegLimit(seg);
+      (*visitor)(arena, seg);
     } while (base < limit && SegOfAddr(&seg, arena, base));
     AVER(base >= limit); /* shouldn't run out of segments */
   }
@@ -334,9 +337,8 @@ static void freeSplat(PoolDebugMixin debug, Pool pool, Addr base, Addr limit)
 
   AVER(base < limit);
 
-  /* If the block is segments, make sure they're exposes so that we can write
-     in the pattern.  NOTE: Assumes that pools consistently use segments
-     contiguously. */
+  /* If the block is in one or more segments, make sure the segments
+     are exposed so that we can overwrite the block with the pattern. */
   arena = PoolArena(pool);
   debugPoolSegIterate(arena, base, limit, ShieldExpose);
   patternCopy(debug->freeTemplate, debug->freeSize, base, limit);
@@ -353,7 +355,8 @@ static Bool freeCheck(PoolDebugMixin debug, Pool pool, Addr base, Addr limit)
 
   AVER(base < limit);
 
-  /* If the block is in a segment, make sure any shield is up. */
+  /* If the block is in one or more segments, make sure the segments
+     are exposed so we can read the pattern. */
   arena = PoolArena(pool);
   debugPoolSegIterate(arena, base, limit, ShieldExpose);
   res = patternCheck(debug->freeTemplate, debug->freeSize, base, limit);
