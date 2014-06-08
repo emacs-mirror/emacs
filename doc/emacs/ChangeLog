@@ -1,5 +1,8 @@
 2014-06-08  Glenn Morris  <rgm@gnu.org>
 
+	* screen.texi (Menu Bar): Copyedits.
+	* msdog.texi (Windows Keyboard): F10 menus are now a general feature.
+
 	* frames.texi (Frame Commands): Copyedits re M-F10, F11.
 	* cmdargs.texi (Window Size X): Copyedits.
 

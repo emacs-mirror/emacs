@@ -458,13 +458,6 @@ before Microsoft was founded.)  Examples of conflicts include
 You can redefine some of them with meanings more like the MS-Windows
 meanings by enabling CUA Mode (@pxref{CUA Bindings}).
 
-@kindex F10 @r{(MS-Windows)}
-@cindex menu bar access using keyboard @r{(MS-Windows)}
-  The @key{F10} key on Windows activates the menu bar in a way that
-makes it possible to use the menus without a mouse.  In this mode, the
-arrow keys traverse the menus, @key{RET} selects a highlighted menu
-item, and @key{ESC} closes the menu.
-
 @iftex
 @inforef{Windows Keyboard, , emacs}, for information about additional
 Windows-specific variables in this category.
