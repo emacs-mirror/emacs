@@ -281,13 +281,11 @@ extern BufferClass PoolNoBufferClass(void);
 
 
 /* Abstract Pool Classes Interface -- see <code/poolabs.c> */
-extern void PoolClassMixInAllocFree(PoolClass class);
 extern void PoolClassMixInBuffer(PoolClass class);
 extern void PoolClassMixInScan(PoolClass class);
 extern void PoolClassMixInFormat(PoolClass class);
 extern void PoolClassMixInCollect(PoolClass class);
 extern AbstractPoolClass AbstractPoolClassGet(void);
-extern AbstractAllocFreePoolClass AbstractAllocFreePoolClassGet(void);
 extern AbstractBufferPoolClass AbstractBufferPoolClassGet(void);
 extern AbstractBufferPoolClass AbstractSegBufPoolClassGet(void);
 extern AbstractScanPoolClass AbstractScanPoolClassGet(void);

@@ -627,7 +627,7 @@ static Res MVFFDescribe(Pool pool, mps_lib_FILE *stream)
 
 DEFINE_POOL_CLASS(MVFFPoolClass, this)
 {
-  INHERIT_CLASS(this, AbstractAllocFreePoolClass);
+  INHERIT_CLASS(this, AbstractPoolClass);
   PoolClassMixInBuffer(this);
   this->name = "MVFF";
   this->size = sizeof(MVFFStruct);
