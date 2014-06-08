@@ -391,7 +391,11 @@ static void loSegReclaim(LOSeg loseg, Trace trace)
   SegSetWhite(seg, TraceSetDel(SegWhite(seg), trace));
 
   if (!marked)
-    PoolGenFree(&lo->pgen, seg);
+    PoolGenFree(&lo->pgen, seg,
+                LOGrainsSize(lo, loseg->freeGrains),
+                LOGrainsSize(lo, loseg->oldGrains),
+                LOGrainsSize(lo, loseg->newGrains),
+                FALSE);
 }
 
 /* This walks over _all_ objects in the heap, whether they are */
@@ -536,18 +540,12 @@ static void LOFinish(Pool pool)
   RING_FOR(node, &pool->segRing, nextNode) {
     Seg seg = SegOfPoolRing(node);
     LOSeg loseg = SegLOSeg(seg);
-
     AVERT(LOSeg, loseg);
-    UNUSED(loseg); /* <code/mpm.c#check.unused> */
-    
-    PoolGenAccountForAge(&lo->pgen, LOGrainsSize(lo, loseg->newGrains), FALSE);
-    loseg->oldGrains += loseg->newGrains;
-    loseg->newGrains = 0;
-    PoolGenAccountForReclaim(&lo->pgen, LOGrainsSize(lo, loseg->oldGrains), FALSE);
-    loseg->freeGrains += loseg->oldGrains;
-    loseg->oldGrains = 0;
-    AVER(loseg->freeGrains == loSegGrains(loseg));
-    PoolGenFree(&lo->pgen, seg);
+    PoolGenFree(&lo->pgen, seg,
+                LOGrainsSize(lo, loseg->freeGrains),
+                LOGrainsSize(lo, loseg->oldGrains),
+                LOGrainsSize(lo, loseg->newGrains),
+                FALSE);
   }
   PoolGenFinish(&lo->pgen);
 

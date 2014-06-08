@@ -609,14 +609,12 @@ static void AWLFinish(Pool pool)
   RING_FOR(node, ring, nextNode) {
     Seg seg = SegOfPoolRing(node);
     AWLSeg awlseg = Seg2AWLSeg(seg);
-    PoolGenAccountForAge(&awl->pgen, AWLGrainsSize(awl, awlseg->newGrains), FALSE);
-    awlseg->oldGrains += awlseg->newGrains;
-    awlseg->newGrains = 0;
-    PoolGenAccountForReclaim(&awl->pgen, AWLGrainsSize(awl, awlseg->oldGrains), FALSE);
-    awlseg->freeGrains += awlseg->oldGrains;
-    awlseg->oldGrains = 0;
-    AVER(awlseg->freeGrains == awlseg->grains);
-    PoolGenFree(&awl->pgen, seg);
+    AVERT(AWLSeg, awlseg);
+    PoolGenFree(&awl->pgen, seg,
+                AWLGrainsSize(awl, awlseg->freeGrains),
+                AWLGrainsSize(awl, awlseg->oldGrains),
+                AWLGrainsSize(awl, awlseg->newGrains),
+                FALSE);
   }
   awl->sig = SigInvalid;
   PoolGenFinish(&awl->pgen);
@@ -1175,7 +1173,11 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
 
   if (awlseg->freeGrains == awlseg->grains && buffer == NULL)
     /* No survivors */
-    PoolGenFree(&awl->pgen, seg);
+    PoolGenFree(&awl->pgen, seg,
+                AWLGrainsSize(awl, awlseg->freeGrains),
+                AWLGrainsSize(awl, awlseg->oldGrains),
+                AWLGrainsSize(awl, awlseg->newGrains),
+                FALSE);
 }
 
 

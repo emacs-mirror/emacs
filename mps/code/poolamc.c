@@ -953,13 +953,12 @@ static void AMCFinish(Pool pool)
     Seg seg = SegOfPoolRing(node);
     amcGen gen = amcSegGen(seg);
     amcSeg amcseg = Seg2amcSeg(seg);
-
-    if (!amcseg->old) {
-      PoolGenAccountForAge(&gen->pgen, SegSize(seg), amcseg->deferred);
-      amcseg->old = TRUE;
-    }
-    PoolGenAccountForReclaim(&gen->pgen, SegSize(seg), amcseg->deferred);
-    PoolGenFree(&gen->pgen, seg);
+    AVERT(amcSeg, amcseg);
+    PoolGenFree(&gen->pgen, seg,
+                0,
+                amcseg->old ? SegSize(seg) : 0,
+                amcseg->old ? 0 : SegSize(seg),
+                amcseg->deferred);
   }
 
   /* Disassociate forwarding buffers from gens before they are */
@@ -2004,8 +2003,7 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
     /* We may not free a buffered seg. */
     AVER(SegBuffer(seg) == NULL);
 
-    PoolGenAccountForReclaim(&gen->pgen, SegSize(seg), Seg2amcSeg(seg)->deferred);
-    PoolGenFree(&gen->pgen, seg);
+    PoolGenFree(&gen->pgen, seg, 0, SegSize(seg), 0, Seg2amcSeg(seg)->deferred);
   } else {
     /* Seg retained */
     STATISTIC_STAT( {
@@ -2083,8 +2081,7 @@ static void AMCReclaim(Pool pool, Trace trace, Seg seg)
 
   trace->reclaimSize += SegSize(seg);
 
-  PoolGenAccountForReclaim(&gen->pgen, SegSize(seg), Seg2amcSeg(seg)->deferred);
-  PoolGenFree(&gen->pgen, seg);
+  PoolGenFree(&gen->pgen, seg, 0, SegSize(seg), 0, Seg2amcSeg(seg)->deferred);
 }
 
 
