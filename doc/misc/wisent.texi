@@ -1443,7 +1443,7 @@ tokens (@pxref{Useful functions}).
 @defun wisent-skip-token
 @anchor{wisent-skip-token}
 Skip the lookahead token in order to resume parsing.
-Return nil.
+Return @code{nil}.
 Must be used in error recovery semantic actions.
 
 It typically looks like this:
@@ -1463,7 +1463,7 @@ It typically looks like this:
 @findex wisent-skip-block
 @defun wisent-skip-block
 Safely skip a block in order to resume parsing.
-Return nil.
+Return @code{nil}.
 Must be used in error recovery semantic actions.
 
 A block is data between an open-delimiter (syntax class @code{(}) and

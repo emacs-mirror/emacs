@@ -2901,7 +2901,7 @@ Documentation}).
 
 @item :key-sequence @var{keys}
 @var{keys} is a hint for speeding up Emacs's first display of the
-menu.  It should be nil if you know that the menu item has no keyboard
+menu.  It should be @code{nil} if you know that the menu item has no keyboard
 equivalent; otherwise it should be a string or vector specifying a
 keyboard equivalent for the menu item.
 
@@ -2929,7 +2929,7 @@ anything else (meaning an ordinary menu item).
 
 @item :selected @var{selected}
 @var{selected} is an expression; the checkbox or radio button is
-selected whenever the expression's value is non-nil.
+selected whenever the expression's value is non-@code{nil}.
 
 @item :help @var{help}
 @var{help} is a string describing the menu item.

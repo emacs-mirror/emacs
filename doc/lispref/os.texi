@@ -748,7 +748,7 @@ Here is an example of how you could use these hooks:
 (add-hook 'suspend-resume-hook (lambda () (message "Resumed!")
                                  (sit-for 2)))
 @end smallexample
-@c The sit-for prevents the ``nil'' that suspend-emacs returns
+@c The sit-for prevents the @code{nil} that suspend-emacs returns
 @c hiding the message.
 
 Here is what you would see upon evaluating @code{(suspend-emacs "pwd")}:

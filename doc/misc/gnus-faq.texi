@@ -377,7 +377,7 @@ but it only says "nntp (news) open error", what to do?
 
 You've got to tell Gnus where to fetch the news from. Read
 the documentation for information on how to do this. As a
-first start, put those lines in ~/.gnus.el:
+first start, put those lines in @file{~/.gnus.el}:
 
 @example
 (setq gnus-select-method '(nntp "news.yourprovider.net"))
@@ -389,7 +389,7 @@ first start, put those lines in ~/.gnus.el:
 @node FAQ 3-2
 @subsubheading Question 3.2
 
-I'm working under Windows and have no idea what ~/.gnus.el means.
+I'm working under Windows and have no idea what @file{~/.gnus.el} means.
 
 @subsubheading Answer
 
@@ -421,7 +421,7 @@ to Control Panel -> System -> Advanced). There you'll find the
 possibility to set environment variables.  Create a new one with
 name HOME and value C:\myhome.  Rebooting is not necessary.
 
-Now to create ~/.gnus.el, say
+Now to create @file{~/.gnus.el}, say
 @samp{C-x C-f ~/.gnus.el RET C-x C-s}.
 in Emacs.
 
@@ -495,7 +495,7 @@ I want Gnus to fetch news from several servers, is this possible?
 
 Of course. You can specify more sources for articles in the
 variable gnus-secondary-select-methods. Add something like
-this in ~/.gnus.el:
+this in @file{~/.gnus.el}:
 
 @example
 (add-to-list 'gnus-secondary-select-methods
@@ -566,7 +566,7 @@ commonly used one is nnml. It stores every mail in one file
 and is therefore quite fast. However you might prefer a one
 file per group approach if your file system has problems with
 many small files, the nnfolder back end is then probably the
-choice for you.  To use nnml add the following to ~/.gnus.el:
+choice for you.  To use nnml add the following to @file{~/.gnus.el}:
 
 @example
 (add-to-list 'gnus-secondary-select-methods '(nnml ""))
@@ -591,7 +591,7 @@ it's a POP3 server, then you need something like this:
 @end example
 @noindent
 
-Make sure ~/.gnus.el isn't readable to others if you store
+Make sure @file{~/.gnus.el} isn't readable to others if you store
 your password there. If you want to read your mail from a
 traditional spool file on your local machine, it's
 
@@ -630,7 +630,7 @@ OK, now you only need to tell Gnus how to send mail. If you
 want to send mail via sendmail (or whichever MTA is playing
 the role of sendmail on your system), you don't need to do
 anything. However, if you want to send your mail to an
-SMTP Server you need the following in your ~/.gnus.el
+SMTP Server you need the following in your @file{~/.gnus.el}
 
 @example
 (setq send-mail-function 'smtpmail-send-it)
@@ -650,7 +650,7 @@ There are two ways of using IMAP with Gnus. The first one is
 to use IMAP like POP3, that means Gnus fetches the mail from
 the IMAP server and stores it on disk. If you want to do
 this (you don't really want to do this) add the following to
-~/.gnus.el
+@file{~/.gnus.el}
 
 @example
 (add-to-list 'mail-sources '(imap :server "mail.mycorp.com"
@@ -765,7 +765,7 @@ Loading only unread messages can be annoying if you have threaded view enabled, 
 @end example
 @noindent
 
-in ~/.gnus.el to load enough old articles to prevent teared threads, replace 'some with t to load
+in @file{~/.gnus.el} to load enough old articles to prevent teared threads, replace 'some with @code{t} to load
 all articles (Warning: Both settings enlarge the amount of data which is
 fetched when you enter a group and slow down the process of entering a group).
 
@@ -829,7 +829,7 @@ The variable gnus-visible-headers controls which headers
 are shown, its value is a regular expression, header lines
 which match it are shown. So if you want author, subject,
 date, and if the header exists, Followup-To and MUA / NUA
-say this in ~/.gnus.el:
+say this in @file{~/.gnus.el}:
 
 @example
 (setq gnus-visible-headers
@@ -856,7 +856,7 @@ Say
 @end example
 @noindent
 
-in ~/.gnus.el. If you don't want HTML rendered, even if there's no text alternative add
+in @file{~/.gnus.el}. If you don't want HTML rendered, even if there's no text alternative add
 
 @example
 (setq mm-automatic-display (remove "text/html" mm-automatic-display))
@@ -970,7 +970,7 @@ adaptive scoring say
 @end example
 @noindent
 
-in ~/.gnus.el.
+in @file{~/.gnus.el}.
 
 @node FAQ 4-10
 @subsubheading Question 4.10
@@ -985,7 +985,7 @@ While in group buffer move point over the group and hit
 can set options for the group. At the bottom of the buffer
 you'll find an item that allows you to set variables
 locally for the group. To disable threading enter
-gnus-show-threads as name of variable and nil as
+gnus-show-threads as name of variable and @code{nil} as
 value. Hit button done at the top of the buffer when
 you're ready.
 
@@ -1147,7 +1147,7 @@ don't want that (you probably don't want), say
 @end example
 @noindent
 
-in ~/.gnus.el.
+in @file{~/.gnus.el}.
 
 An example might be better than thousand words, so here's
 my nnmail-split-methods. Note that I send duplicates in a
@@ -1269,7 +1269,7 @@ For other versions of Gnus, say
 @end example
 @noindent
 
-in ~/.gnus.el.
+in @file{~/.gnus.el}.
 
 You can reformat a paragraph by hitting @samp{M-q}
 (as usual).
@@ -1303,7 +1303,7 @@ following lists are signature, signature-file,
 organization, address, name or body.  The attribute name
 can also be a string.  In that case, this will be used as
 a header name, and the value will be inserted in the
-headers of the article; if the value is `nil', the header
+headers of the article; if the value is @code{nil}, the header
 name will be removed. You can also say (eval (foo bar)),
 then the function foo will be evaluated with argument bar
 and the result will be thrown away.
@@ -1395,7 +1395,7 @@ If you want your outgoing messages to be spell-checked, say
 @end example
 @noindent
 
-In your ~/.gnus.el, if you prefer on-the-fly spell-checking say
+In your @file{~/.gnus.el}, if you prefer on-the-fly spell-checking say
 
 @example
 (add-hook 'message-mode-hook (lambda () (flyspell-mode 1)))
@@ -1423,7 +1423,7 @@ Yes, say something like
 @end example
 @noindent
 
-in ~/.gnus.el. Change "^de\\." and "deutsch8" to something
+in @file{~/.gnus.el}. Change "^de\\." and "deutsch8" to something
 that suits your needs.
 
 @node FAQ 5-7
@@ -1452,7 +1452,7 @@ details.
 However, what you really want is the Insidious Big Brother
 Database bbdb. Get it through the XEmacs package system or from
 @uref{http://bbdb.sourceforge.net/, bbdb's homepage}.
-Now place the following in ~/.gnus.el, to activate bbdb for Gnus:
+Now place the following in @file{~/.gnus.el}, to activate bbdb for Gnus:
 
 @example
 (require 'bbdb)
@@ -1532,7 +1532,7 @@ Now you only have to tell Gnus to include the X-face in your postings by saying
 @end example
 @noindent
 
-in ~/.gnus.el.  If you use Gnus 5.10, you can simply add an entry
+in @file{~/.gnus.el}.  If you use Gnus 5.10, you can simply add an entry
 
 @example
 (x-face-file "~/.xface")
@@ -1550,7 +1550,7 @@ newsgroups?
 
 @subsubheading Answer
 
-Put this in ~/.gnus.el:
+Put this in @file{~/.gnus.el}:
 
 @example
 (setq gnus-confirm-mail-reply-to-news t)
@@ -1580,7 +1580,7 @@ How to tell Gnus not to generate a sender header?
 @subsubheading Answer
 
 Since 5.10 Gnus doesn't generate a sender header by
-default. For older Gnus' try this in ~/.gnus.el:
+default. For older Gnus' try this in @file{~/.gnus.el}:
 
 @example
 (eval-after-load "message"
@@ -1645,7 +1645,7 @@ by saying:
 @end example
 @noindent
 
-in ~/.gnus.el.  If you use Gnus 5.9 or earlier, you can use this
+in @file{~/.gnus.el}.  If you use Gnus 5.9 or earlier, you can use this
 instead (works for newer versions as well):
 
 @example
@@ -1745,7 +1745,7 @@ by saying @samp{O f}. However, wouldn't
 it be much more convenient to have more direct access to
 the archived message from Gnus? If you say yes, put this
 snippet by Frank Haun <pille3003@@fhaun.de> in
-~/.gnus.el:
+@file{~/.gnus.el}:
 
 @example
 (defun my-archive-article (&optional n)
@@ -1898,7 +1898,7 @@ to another group.
 
 @subsubheading Answer
 
-Say something like this in ~/.gnus.el:
+Say something like this in @file{~/.gnus.el}:
 
 @example
 (setq nnmail-expiry-target "nnml:expired")
@@ -1980,7 +1980,7 @@ The Gnus agent is part of Gnus, it allows you to fetch
 mail and news and store them on disk for reading them
 later when you're offline. It kind of mimics offline
 newsreaders like Forte Agent. If you want to use
-the Agent place the following in ~/.gnus.el if you are
+the Agent place the following in @file{~/.gnus.el} if you are
 still using 5.8.8 or 5.9 (it's the default since 5.10):
 
 @example
@@ -2175,13 +2175,13 @@ Starting Gnus is really slow, how to speed it up?
 The reason for this could be the way Gnus reads its
 active file, see the node "The Active File" in the Gnus
 manual for things you might try to speed the process up.
-An other idea would be to byte compile your ~/.gnus.el (say
+An other idea would be to byte compile your @file{~/.gnus.el} (say
 @samp{M-x byte-compile-file RET ~/.gnus.el
 RET} to do it). Finally, if you have require
 statements in your .gnus, you could replace them with
 eval-after-load, which loads the stuff not at startup
 time, but when it's needed. Say you've got this in your
-~/.gnus.el:
+@file{~/.gnus.el}:
 
 @example
 (require 'message)
@@ -2208,7 +2208,7 @@ How to speed up the process of entering a group?
 @subsubheading Answer
 
 A speed killer is setting the variable
-gnus-fetch-old-headers to anything different from nil,
+gnus-fetch-old-headers to anything different from @code{nil},
 so don't do this if speed is an issue. To speed up
 building of summary say
 
@@ -2217,7 +2217,7 @@ building of summary say
 @end example
 @noindent
 
-at the bottom of your ~/.gnus.el, this will make gnus
+at the bottom of your @file{~/.gnus.el}, this will make gnus
 byte-compile things like
 gnus-summary-line-format.
 then you could increase the value of gc-cons-threshold
@@ -2237,7 +2237,7 @@ recent GNU Emacs, you should say
 @end example
 @noindent
 
-in ~/.gnus.el (thanks to Jesper harder for the last
+in @file{~/.gnus.el} (thanks to Jesper harder for the last
 two suggestions). Finally if you are still using 5.8.8
 or 5.9 and experience speed problems with summary
 buffer generation, you definitely should update to
@@ -2263,8 +2263,8 @@ to normal speed.
 @table @dfn
 
 @item ~/.gnus.el
-When the term ~/.gnus.el is used it just means your Gnus
-configuration file. You might as well call it ~/.gnus or
+When the term @file{~/.gnus.el} is used it just means your Gnus
+configuration file. You might as well call it @file{~/.gnus} or
 specify another name.
 
 @item Back End

@@ -1720,10 +1720,10 @@ Properties}.
 
 @defun overlays-at pos &optional sorted
 This function returns a list of all the overlays that cover the character at
-position @var{pos} in the current buffer.  If @var{sorted} is non-nil, the list
-is in decreasing order of priority, otherwise it is in no particular order.
-An overlay contains position @var{pos} if it begins at or before @var{pos}, and
-ends after @var{pos}.
+position @var{pos} in the current buffer.  If @var{sorted} is non-@code{nil},
+the list is in decreasing order of priority, otherwise it is in no particular
+order.  An overlay contains position @var{pos} if it begins at or before
+@var{pos}, and ends after @var{pos}.
 
 To illustrate usage, here is a Lisp function that returns a list of the
 overlays that specify property @var{prop} for the character at point:

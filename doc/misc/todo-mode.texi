@@ -634,12 +634,12 @@ operations described in the next section.)
 @item
 @samp{diary} (@kbd{y}): Override the option
 @code{todo-include-in-diary}; that is, add @code{todo-nondiary-marker}
-if the option is non-nil, omit this marker if the option is nil.
+if the option is non-@code{nil}, omit this marker if the option is @code{nil}.
 
 @samp{nonmarking} (@kbd{k}): Override the option
 @code{todo-diary-nonmarking}; that is, add
-@code{diary-nonmarking-symbol} if the option is non-nil, omit this
-symbol if the option is nil.  Since this symbol only applies to diary
+@code{diary-nonmarking-symbol} if the option is non-@code{nil}, omit this
+symbol if the option is @code{nil}.  Since this symbol only applies to diary
 items, the new item is automatically marked as such, i.e., lacks
 @code{todo-nondiary-marker}.
 
@@ -658,7 +658,7 @@ a weekday name as the date header instead of a year-month-day string.
 @samp{time} (@kbd{t}): Prompt for entering a time string in
 the minibuffer instead of automatically inserting the current time;
 however, typing @key{RET} at the prompt enters the current time if
-@code{todo-always-add-time-string} is non-nil, otherwise it enters the
+@code{todo-always-add-time-string} is non-@code{nil}, otherwise it enters the
 empty string (i.e., no time string).
 
 @item
@@ -669,7 +669,7 @@ down, i.e., lowering their priority, by one.
 @samp{region} (@kbd{r}): Use the text of the selected region as the
 text of the new item, and insert this in accordance with the item
 insertion options and other parameters passed.  If the option
-@code{todo-use-only-highlighted-region} is non-nil, then use the
+@code{todo-use-only-highlighted-region} is non-@code{nil}, then use the
 region only when it is highlighted; otherwise, use the region
 regardless of highlighting.
 @end enumerate
@@ -733,14 +733,14 @@ key again will complete the sequence.
 @c @item
 @c @kbd{i y h} does the same as the preceding command, except that
 @c @code{todo-nondiary-marker} is added if @code{todo-include-in-diary} is
-@c non-nil and omitted if that option is nil; that is, the diary key @kbd{y}
-@c overrides the setting of this option.
+@c non-@code{nil} and omitted if that option is @code{nil}; that is,
+@c the diary key @kbd{y} @c overrides the setting of this option.
 @c @item
 @c @kbd{i y t h} does the same as the preceding command, except that it
 @c prompts for a time string instead of automatically inserting the
 @c current time; however, typing @key{RET} at the prompt returns the
-@c current time if @code{todo-always-add-time-string} is non-nil, otherwise
-@c the empty string (i.e., no time string).
+@c current time if @code{todo-always-add-time-string} is non-@code{nil},
+@c otherwise the empty string (i.e., no time string).
 @c @item
 @c @kbd{i y t t} does the same as the preceding command, except that it
 @c prompts for the item's priority and inserts it accordingly.
@@ -815,7 +815,7 @@ of item editing parameters to edit the current item's date string.
 
 @samp{time} (@kbd{t}): Edit the current item's time string, if
 present; otherwise, add one.  Typing @key{RET} at the prompt enters
-the current time if @code{todo-always-add-time-string} is non-nil,
+the current time if @code{todo-always-add-time-string} is non-@code{nil},
 otherwise it enters the empty string (i.e., no time string).
 @end enumerate
 
@@ -839,7 +839,7 @@ invocation.
 @samp{full} (@kbd{f}): Successively prompt for editing the year, month
 (with completion) and day number parts of the current item's date
 string, and, if the option @code{todo-always-add-time-string} is
-non-nil, also for editing its time string.
+non-@code{nil}, also for editing its time string.
 
 @samp{calendar} (@kbd{c}): This pops up the Emacs calendar, and after
 you type @key{RET} on a date in the calendar makes that date the
@@ -1174,7 +1174,7 @@ of putting the todo file out of synch with the archive file.
 
 You may find it preferable not to delete empty todo categories but to
 enable the option @code{todo-skip-archived-categories}.  When this is
-non-nil, such empty todo categories are skipped over by the sequential
+non-@code{nil}, such empty todo categories are skipped over by the sequential
 category navigation commands @kbd{f} and @kbd{b}, so they don't distract you
 while navigating and you maintain the structural correspondence between
 todo and archive files (you can also still jump to empty todo categories

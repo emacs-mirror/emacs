@@ -4078,7 +4078,7 @@ group which contains all labels.
 This may also be a function to do local parsing and identify point to be
 in a non-standard label environment.  The function must take an
 argument @var{bound} and limit backward searches to this value.  It
-should return either nil or a cons cell @code{(@var{function}
+should return either @code{nil} or a cons cell @code{(@var{function}
 . @var{position})} with the function symbol and the position where the
 special environment starts.  See the Info documentation for an
 example.
@@ -4235,7 +4235,7 @@ special packages like fancyref) are being used.  RefTeX can and by
 default does parse around each label to detect the correct label type,
 but this process can be slow when a document contains thousands of
 labels.  If you use label prefixes consistently, you may speed up
-document parsing by setting this variable to a non-nil value.  RefTeX
+document parsing by setting this variable to a non-@code{nil} value.  RefTeX
 will then compare the label prefix with the prefixes found in
 `reftex-label-alist' and derive the correct label type in this way.
 Possible values for this option are:
@@ -4822,7 +4822,7 @@ case.
 
 @defopt reftex-index-verify-function
 A function which is called at each match during global indexing.
-If the function returns nil, the current match is skipped.
+If the function returns @code{nil}, the current match is skipped.
 @end defopt
 
 @defopt reftex-index-phrases-skip-indexed-matches
@@ -4942,7 +4942,7 @@ escapes.
 
 @defopt reftex-revisit-to-echo
 Non-@code{nil} means, automatic citation display will revisit files if
-necessary.  When nil, citation display in echo area will only be active
+necessary.  When @code{nil}, citation display in echo area will only be active
 for cached echo strings (see @code{reftex-cache-cite-echo}), or for
 @BibTeX{} database files which are already visited by a live associated
 buffers.
@@ -5275,8 +5275,8 @@ will
 - supply arguments for macros like @code{\index}         (flag 5)
 @end example
 
-You may also set the variable itself to t or nil in order to turn all
-options on or off, respectively.@*
+You may also set the variable itself to @code{t} or @code{nil} in
+order to turn all options on or off, respectively.@*
 Supplying labels in new sections and environments applies when creating
 sections with @kbd{C-c C-s} and environments with @kbd{C-c C-e}.@*
 Supplying macro arguments applies when you insert such a macro
@@ -5286,7 +5286,7 @@ See the @AUCTeX{} documentation for more information.
 
 @defopt reftex-revisit-to-follow
 Non-@code{nil} means, follow-mode will revisit files if necessary.
-When nil, follow-mode will be suspended for stuff in unvisited files.
+When @code{nil}, follow-mode will be suspended for stuff in unvisited files.
 @end defopt
 
 @defopt reftex-allow-detached-macro-args
@@ -5395,8 +5395,8 @@ if you'd like RefTeX to base its classification of labels on prefixes.
 This can speed-up document parsing, but may in some cases reduce the
 quality of the context used by RefTeX to describe a label.
 @item
-Fixed bug in @code{reftex-create-bibtex-file} when @code{reftex-comment-citations}
-is non-nil.
+Fixed bug in @code{reftex-create-bibtex-file} when
+@code{reftex-comment-citations} is non-@code{nil}.
 @item
 Fixed bugs in indexing: Case-sensitive search, quotes before and/or
 after words.  Disabled indexing in comment lines.
@@ -5743,7 +5743,7 @@ New option @code{reftex-cache-cite-echo}.
 @kbd{M-x reftex-reset-mode} now also removes the file with parsing
 info.
 @item
-Default of @code{reftex-revisit-to-follow} changed to nil.
+Default of @code{reftex-revisit-to-follow} changed to @code{nil}.
 @end itemize
 
 @noindent @b{Version 3.24}

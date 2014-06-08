@@ -1175,7 +1175,7 @@ The following built-in simple arguments are available:
 
 @subsubsection Argument :indent
 
-Supplies the @code{INDENT} macro.  When @code{INDENT} is non-nil, then
+Supplies the @code{INDENT} macro.  When @code{INDENT} is non-@code{nil}, then
 each line is individually indented with
 @code{indent-according-to-mode} during macro processing.
 
@@ -1577,7 +1577,7 @@ start with the main entry point.
 @defun srecode-insert-fcn template dictionary &optional stream
 @anchor{srecode-insert-fcn}
 Insert @var{template} using @var{dictionary} into @var{stream}.
-If @var{stream} is nil, then use the current buffer.
+If @var{stream} is @code{nil}, then use the current buffer.
 @end defun
 
 @node Template Naming Conventions

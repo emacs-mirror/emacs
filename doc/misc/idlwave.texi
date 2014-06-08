@@ -1645,7 +1645,7 @@ of completed words.
 
 @defopt idlwave-completion-force-default-case (@code{nil})
 Non-@code{nil} means completion will always honor the settings in
-@code{idlwave-completion-case}.  When nil (the default), entirely lower
+@code{idlwave-completion-case}.  When @code{nil} (the default), entirely lower
 case strings will always be completed to lower case, no matter what the
 settings in @code{idlwave-completion-case}.
 @end defopt

@@ -12528,7 +12528,7 @@ you're in, you could say something like the following:
 Modify to suit your needs.
 
 @vindex gnus-message-highlight-citation
-If @code{gnus-message-highlight-citation} is t, different levels of
+If @code{gnus-message-highlight-citation} is @code{t}, different levels of
 citations are highlighted like in Gnus article buffers also in message
 mode buffers.
 
@@ -20518,7 +20518,7 @@ matches.  This takes a long time in big groups.
 You can inhibit this slow scoring on headers or body by setting the
 variable @code{gnus-inhibit-slow-scoring}.  If
 @code{gnus-inhibit-slow-scoring} is regexp, slow scoring is inhibited if
-the group matches the regexp.  If it is t, slow scoring on it is
+the group matches the regexp.  If it is @code{t}, slow scoring on it is
 inhibited for all groups.
 
 Now, there's not much you can do about the slowness for news groups, but for
@@ -21445,18 +21445,19 @@ three items unique to nnir summary buffers:
 %g    Article original short group name (string)
 @end example
 
-If nil (the default) this will use @code{gnus-summary-line-format}.
+If @code{nil} (the default) this will use @code{gnus-summary-line-format}.
 
 @item nnir-retrieve-headers-override-function
-If non-nil, a function that retrieves article headers rather than using
+If non-@code{nil}, a function that retrieves article headers rather than using
 the gnus built-in function.  This function takes an article list and
 group as arguments and populates the `nntp-server-buffer' with the
 retrieved headers.  It should then return either 'nov or 'headers
 indicating the retrieved header format.  Failure to retrieve headers
 should return @code{nil}.
 
-If this variable is nil, or if the provided function returns nil for a
-search result, @code{gnus-retrieve-headers} will be called instead."
+If this variable is @code{nil}, or if the provided function returns
+@code{nil} for a search result, @code{gnus-retrieve-headers} will be
+called instead."
 
 
 @end table
@@ -21959,7 +21960,7 @@ original article yet, @code{nnmairix} will use an additional mairix
 search for determining the file name of the article.  This, of course, is
 way slower than the registry---if you set hundreds or even thousands of
 marks this way, it might take some time.  You can avoid this situation by
-setting @code{nnmairix-only-use-registry} to t.
+setting @code{nnmairix-only-use-registry} to @code{t}.
 
 Maybe you also want to propagate marks the other way round, i.e., if you
 tick an article in a "real" mail group, you'd like to have the same
@@ -24905,7 +24906,7 @@ classified as spammers.
 While @code{spam-use-BBDB-exclusive} @emph{can} be used as an alias
 for @code{spam-use-BBDB} as far as @code{spam.el} is concerned, it is
 @emph{not} a separate back end.  If you set
-@code{spam-use-BBDB-exclusive} to t, @emph{all} your BBDB splitting
+@code{spam-use-BBDB-exclusive} to @code{t}, @emph{all} your BBDB splitting
 will be exclusive.
 
 @end defvar

@@ -307,7 +307,7 @@ options `mairix-update-options'; the default is ``-F'' and ``-Q'' to
 make updates as fast as possible.  Note that by using these options,
 absolutely no integrity checking is done.  If your database somehow gets
 corrupted, simply delete it and update.  If `mairix-synchronous-update'
-is nil (the default), mairix will be called in a subprocess so Emacs
+is @code{nil} (the default), mairix will be called in a subprocess so Emacs
 will still be usable while the update is done.
 
 @end table
