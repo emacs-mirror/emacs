@@ -329,7 +329,7 @@ static Res MFSDescribe(Pool pool, mps_lib_FILE *stream)
 
 DEFINE_POOL_CLASS(MFSPoolClass, this)
 {
-  INHERIT_CLASS(this, AbstractAllocFreePoolClass);
+  INHERIT_CLASS(this, AbstractPoolClass);
   this->name = "MFS";
   this->size = sizeof(MFSStruct);
   this->offset = offsetof(MFSStruct, poolStruct);

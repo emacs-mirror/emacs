@@ -285,7 +285,6 @@ Res PoolAlloc(Addr *pReturn, Pool pool, Size size,
 
   AVER(pReturn != NULL);
   AVERT(Pool, pool);
-  AVER(PoolHasAttr(pool, AttrALLOC));
   AVER(size > 0);
   AVERT(Bool, withReservoirPermit);
 
@@ -315,7 +314,6 @@ Res PoolAlloc(Addr *pReturn, Pool pool, Size size,
 void PoolFree(Pool pool, Addr old, Size size)
 {
   AVERT(Pool, pool);
-  AVER(PoolHasAttr(pool, AttrFREE));
   AVER(old != NULL);
   /* The pool methods should check that old is in pool. */
   AVER(size > 0);
@@ -380,7 +378,6 @@ Res PoolScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
   AVER(totalReturn != NULL);
   AVERT(ScanState, ss);
   AVERT(Pool, pool);
-  AVER(PoolHasAttr(pool, AttrSCAN));
   AVERT(Seg, seg);
   AVER(ss->arena == pool->arena);
 

@@ -791,7 +791,6 @@ static Res MVDescribe(Pool pool, mps_lib_FILE *stream)
 DEFINE_POOL_CLASS(MVPoolClass, this)
 {
   INHERIT_CLASS(this, AbstractBufferPoolClass);
-  PoolClassMixInAllocFree(this);
   this->name = "MV";
   this->size = sizeof(MVStruct);
   this->offset = offsetof(MVStruct, poolStruct);
