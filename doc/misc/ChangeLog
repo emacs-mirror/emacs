@@ -1,5 +1,9 @@
 2014-06-08  Glenn Morris  <rgm@gnu.org>
 
+	* info.texi (Help-Small-Screen): Clarify details of S-SPC.
+	(Help-Small-Screen, Help-]): Do not mention S-SPC.
+	(Emacs Info Variables): Markup fix.
+
 	* ebrowse.texi (Source Display, Finding/Viewing):
 	* erc.texi (Sample Session):
 	* ses.texi (The Basics):
