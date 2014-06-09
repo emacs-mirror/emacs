@@ -629,7 +629,7 @@ static void LOBufferEmpty(Pool pool, Buffer buffer, Addr init, Addr limit)
   Addr base, segBase;
   Seg seg;
   LOSeg loseg;
-  Index baseIndex, initIndex, limitIndex;
+  Index initIndex, limitIndex;
 
   AVERT(Pool, pool);
   lo = PARENT(LOStruct, poolStruct, pool);
@@ -654,7 +654,6 @@ static void LOBufferEmpty(Pool pool, Buffer buffer, Addr init, Addr limit)
   AVER(init <= SegLimit(seg));
 
   /* convert base, init, and limit, to quantum positions */
-  baseIndex = loIndexOfAddr(segBase, lo, base);
   initIndex = loIndexOfAddr(segBase, lo, init);
   limitIndex = loIndexOfAddr(segBase, lo, limit);
 
