@@ -346,6 +346,16 @@ static void debugPoolSegIterate(Arena arena, Addr base, Addr limit,
   }
 }
 
+static void debugPoolShieldExpose(Arena arena, Seg seg)
+{
+  ShieldExpose(arena, seg);
+}
+
+static void debugPoolShieldCover(Arena arena, Seg seg)
+{
+  ShieldCover(arena, seg);
+}
+
 
 /* freeSplat -- splat free block with splat pattern */
 
@@ -358,9 +368,9 @@ static void freeSplat(PoolDebugMixin debug, Pool pool, Addr base, Addr limit)
   /* If the block is in one or more segments, make sure the segments
      are exposed so that we can overwrite the block with the pattern. */
   arena = PoolArena(pool);
-  debugPoolSegIterate(arena, base, limit, ShieldExpose);
+  debugPoolSegIterate(arena, base, limit, debugPoolShieldExpose);
   patternCopy(debug->freeTemplate, debug->freeSize, base, limit);
-  debugPoolSegIterate(arena, base, limit, ShieldCover);
+  debugPoolSegIterate(arena, base, limit, debugPoolShieldCover);
 }
 
 
@@ -376,9 +386,9 @@ static Bool freeCheck(PoolDebugMixin debug, Pool pool, Addr base, Addr limit)
   /* If the block is in one or more segments, make sure the segments
      are exposed so we can read the pattern. */
   arena = PoolArena(pool);
-  debugPoolSegIterate(arena, base, limit, ShieldExpose);
+  debugPoolSegIterate(arena, base, limit, debugPoolShieldExpose);
   res = patternCheck(debug->freeTemplate, debug->freeSize, base, limit);
-  debugPoolSegIterate(arena, base, limit, ShieldCover);
+  debugPoolSegIterate(arena, base, limit, debugPoolShieldCover);
   return res;
 }
 
