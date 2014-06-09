@@ -3921,19 +3921,20 @@ DEFUN ("accept-process-output", Faccept_process_output, Saccept_process_output,
        0, 4, 0,
        doc: /* Allow any pending output from subprocesses to be read by Emacs.
 It is given to their filter functions.
-Non-nil arg PROCESS means do not return until some output has been received
-from PROCESS.
+Optional argument PROCESS means do not return until output has been
+received from PROCESS.
 
-Non-nil second arg SECONDS and third arg MILLISEC are number of seconds
-and milliseconds to wait; return after that much time whether or not
-there is any subprocess output.  If SECONDS is a floating point number,
+Optional second argument SECONDS and third argument MILLISEC
+specify a timeout; return after that much time even if there is
+no subprocess output.  If SECONDS is a floating point number,
 it specifies a fractional number of seconds to wait.
 The MILLISEC argument is obsolete and should be avoided.
 
-If optional fourth arg JUST-THIS-ONE is non-nil, only accept output
-from PROCESS, suspending reading output from other processes.
+If optional fourth argument JUST-THIS-ONE is non-nil, accept output
+from PROCESS only, suspending reading output from other processes.
 If JUST-THIS-ONE is an integer, don't run any timers either.
-Return non-nil if we received any output before the timeout expired.  */)
+Return non-nil if we received any output from PROCESS (or, if PROCESS
+is nil, from any process) before the timeout expired.  */)
   (register Lisp_Object process, Lisp_Object seconds, Lisp_Object millisec, Lisp_Object just_this_one)
 {
   intmax_t secs;
@@ -4255,16 +4256,14 @@ wait_reading_process_output_1 (void)
      (and gobble terminal input into the buffer if any arrives).
 
    If WAIT_PROC is specified, wait until something arrives from that
-     process.  The return value is true if we read some input from
-     that process.
+     process.
 
    If JUST_WAIT_PROC is nonzero, handle only output from WAIT_PROC
      (suspending output from other processes).  A negative value
      means don't run any timers either.
 
-   If WAIT_PROC is specified, then the function returns true if we
-     received input from that process before the timeout elapsed.
-   Otherwise, return true if we received input from any process.  */
+   Return true if we received input from WAIT_PROC, or from any
+   process if WAIT_PROC is null.  */
 
 bool
 wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,

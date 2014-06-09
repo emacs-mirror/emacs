@@ -1484,7 +1484,7 @@ The arguments @var{seconds} and @var{millisec} let you specify timeout
 periods.  The former specifies a period measured in seconds and the
 latter specifies one measured in milliseconds.  The two time periods
 thus specified are added together, and @code{accept-process-output}
-returns after that much time, whether or not there has been any
+returns after that much time, even if there is no
 subprocess output.
 
 The argument @var{millisec} is obsolete (and should not be used),
@@ -1502,7 +1502,8 @@ recommended, but may be necessary for specific applications, such as
 speech synthesis.
 
 The function @code{accept-process-output} returns non-@code{nil} if it
-did get some output, or @code{nil} if the timeout expired before output
+got output from @var{process}, or from any process if @var{process} is
+@code{nil}.  It returns @code{nil} if the timeout expired before output
 arrived.
 @end defun
 

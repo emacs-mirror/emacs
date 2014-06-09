@@ -1,3 +1,9 @@
+2014-06-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Say (accept-process-output P)'s result pertains to P if P is non-nil.
+	* processes.texi (Accepting Output): Mention that if PROCESS is non-nil,
+	the return value is about PROCESS, not about other processes.
+
 2014-06-08  Glenn Morris  <rgm@gnu.org>
 
 	* os.texi (Startup Summary): Small fix for initial-buffer-choice.
