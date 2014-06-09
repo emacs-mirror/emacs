@@ -77,7 +77,6 @@ typedef struct LockStruct *Lock;        /* <code/lock.c>* */
 typedef struct mps_pool_s *Pool;        /* <design/pool/> */
 typedef struct mps_class_s *PoolClass;  /* <code/poolclas.c> */
 typedef PoolClass AbstractPoolClass;    /* <code/poolabs.c> */
-typedef PoolClass AbstractAllocFreePoolClass; /* <code/poolabs.c> */
 typedef PoolClass AbstractBufferPoolClass; /* <code/poolabs.c> */
 typedef PoolClass AbstractSegBufPoolClass; /* <code/poolabs.c> */
 typedef PoolClass AbstractScanPoolClass; /* <code/poolabs.c> */
@@ -301,22 +300,9 @@ typedef Res (*LandDescribeMethod)(Land land, mps_lib_FILE *stream);
 #define RankSetEMPTY    BS_EMPTY(RankSet)
 #define RankSetUNIV     ((RankSet)((1u << RankLIMIT) - 1))
 #define AttrFMT         ((Attr)(1<<0))  /* <design/type/#attr> */
-#define AttrSCAN        ((Attr)(1<<1))
-#define AttrPM_NO_READ  ((Attr)(1<<2))
-#define AttrPM_NO_WRITE ((Attr)(1<<3))
-#define AttrALLOC       ((Attr)(1<<4))
-#define AttrFREE        ((Attr)(1<<5))
-#define AttrBUF         ((Attr)(1<<6))
-#define AttrBUF_RESERVE ((Attr)(1<<7))
-#define AttrBUF_ALLOC   ((Attr)(1<<8))
-#define AttrGC          ((Attr)(1<<9))
-#define AttrINCR_RB     ((Attr)(1<<10))
-#define AttrINCR_WB     ((Attr)(1<<11))
-#define AttrMOVINGGC    ((Attr)(1<<12))
-#define AttrMASK        (AttrFMT | AttrSCAN | AttrPM_NO_READ | \
-                         AttrPM_NO_WRITE | AttrALLOC | AttrFREE | \
-                         AttrBUF | AttrBUF_RESERVE | AttrBUF_ALLOC | \
-                         AttrGC | AttrINCR_RB | AttrINCR_WB | AttrMOVINGGC)
+#define AttrGC          ((Attr)(1<<1))
+#define AttrMOVINGGC    ((Attr)(1<<2))
+#define AttrMASK        (AttrFMT | AttrGC | AttrMOVINGGC)
 
 
 /* Segment preferences */

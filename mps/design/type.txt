@@ -91,28 +91,26 @@ C Interface.
 
 ``typedef unsigned Attr``
 
-_`.attr`: Pool attributes. A bitset of pool or pool class
-attributes, which are:
+_`.attr`: Pool attributes. A bitset of pool class attributes, which
+are:
 
 ===================  ===================================================
 Attribute            Description
 ===================  ===================================================
-``AttrALLOC``        Supports the ``PoolAlloc`` interface.
-``AttrBUF``          Supports the buffer interface.
 ``AttrFMT``          Contains formatted objects.
                      Used to decide which pools to walk.
-``AttrFREE``         Supports the ``PoolFree`` interface.
 ``AttrGC``           Is garbage collecting, that is, parts may be
                      reclaimed. Used to decide which segments are
                      condemned.
 ``AttrMOVINGGC``     Is moving, that is, objects may move in memory.
                      Used to update the set of zones that might have
                      moved and so implement location dependency.
-``AttrSCAN``         Contains references and must be scanned.
 ===================  ===================================================
 
 There is an attribute field in the pool class (``PoolClassStruct``)
-which declares the attributes of that class.
+which declares the attributes of that class. See `design.mps.class-interface.field.attr`_.
+
+.. _design.mps.class-interface.field.attr: class-interface
 
 
 ``typedef int Bool``

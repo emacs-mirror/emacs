@@ -139,7 +139,6 @@ DEFINE_POOL_CLASS(MVTPoolClass, this)
   this->name = "MVT";
   this->size = sizeof(MVTStruct);
   this->offset = offsetof(MVTStruct, poolStruct);
-  this->attr |= AttrFREE;
   this->varargs = MVTVarargs;
   this->init = MVTInit;
   this->finish = MVTFinish;
