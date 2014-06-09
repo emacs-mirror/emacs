@@ -1,3 +1,11 @@
+2014-06-09  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Further adjustments to mark_object and friends.
+	Now the mark_object's stack is just 32 bytes on a 64-bit
+	system, which means extra 20% off the stack usage.
+	* alloc.c (mark_save_value): As before, refactored out from ...
+	(mark_object): ... adjusted user.  Also add comment.
+
 2014-06-09  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix core dump after a dropped X connection (Bug#17704).

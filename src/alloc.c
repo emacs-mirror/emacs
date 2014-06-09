@@ -6068,6 +6068,30 @@ mark_localized_symbol (struct Lisp_Symbol *ptr)
   mark_object (blv->defcell);
 }
 
+NO_INLINE /* To reduce stack depth in mark_object.  */
+static void
+mark_save_value (struct Lisp_Save_Value *ptr)
+{
+  /* If `save_type' is zero, `data[0].pointer' is the address
+     of a memory area containing `data[1].integer' potential
+     Lisp_Objects.  */
+  if (GC_MARK_STACK && ptr->save_type == SAVE_TYPE_MEMORY)
+    {
+      Lisp_Object *p = ptr->data[0].pointer;
+      ptrdiff_t nelt;
+      for (nelt = ptr->data[1].integer; nelt > 0; nelt--, p++)
+	mark_maybe_object (*p);
+    }
+  else
+    {
+      /* Find Lisp_Objects in `data[N]' slots and mark them.  */
+      int i;
+      for (i = 0; i < SAVE_VALUE_SLOTS; i++)
+	if (save_type (ptr, i) == SAVE_OBJECT)
+	  mark_object (ptr->data[i].object);
+    }
+}
+
 /* Remove killed buffers or items whose car is a killed buffer from
    LIST, and mark other items.  Return changed LIST, which is marked.  */
 
@@ -6095,7 +6119,13 @@ mark_discard_killed_buffers (Lisp_Object list)
   return list;
 }
 
-/* Determine type of generic Lisp_Object and mark it accordingly.  */
+/* Determine type of generic Lisp_Object and mark it accordingly.
+
+   This function implements a straightforward depth-first marking
+   algorithm and so the recursion depth may be very high (a few
+   tens of thousands is not uncommon).  To minimize stack usage,
+   a few cold paths are moved out to NO_INLINE functions above.
+   In general, inlining them doesn't help you to gain more speed.  */
 
 void
 mark_object (Lisp_Object arg)
@@ -6363,27 +6393,7 @@ mark_object (Lisp_Object arg)
 
 	case Lisp_Misc_Save_Value:
 	  XMISCANY (obj)->gcmarkbit = 1;
-	  {
-	    struct Lisp_Save_Value *ptr = XSAVE_VALUE (obj);
-	    /* If `save_type' is zero, `data[0].pointer' is the address
-	       of a memory area containing `data[1].integer' potential
-	       Lisp_Objects.  */
-	    if (GC_MARK_STACK && ptr->save_type == SAVE_TYPE_MEMORY)
-	      {
-		Lisp_Object *p = ptr->data[0].pointer;
-		ptrdiff_t nelt;
-		for (nelt = ptr->data[1].integer; nelt > 0; nelt--, p++)
-		  mark_maybe_object (*p);
-	      }
-	    else
-	      {
-		/* Find Lisp_Objects in `data[N]' slots and mark them.  */
-		int i;
-		for (i = 0; i < SAVE_VALUE_SLOTS; i++)
-		  if (save_type (ptr, i) == SAVE_OBJECT)
-		    mark_object (ptr->data[i].object);
-	      }
-	  }
+	  mark_save_value (XSAVE_VALUE (obj));
 	  break;
 
 	case Lisp_Misc_Overlay:
