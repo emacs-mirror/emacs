@@ -487,7 +487,6 @@ typedef struct AMCStruct { /* <design/poolamc/#struct> */
 ATTRIBUTE_UNUSED
 static Bool amcGenCheck(amcGen gen)
 {
-  Arena arena;
   AMC amc;
 
   CHECKS(amcGen, gen);
@@ -496,7 +495,7 @@ static Bool amcGenCheck(amcGen gen)
   CHECKU(AMC, amc);
   CHECKD(Buffer, gen->forward);
   CHECKD_NOSIG(Ring, &gen->amcRing);
-  arena = amc->poolStruct.arena;
+
   return TRUE;
 }
 
