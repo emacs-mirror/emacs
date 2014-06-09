@@ -1101,7 +1101,6 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
   AWLSeg awlseg;
   Buffer buffer;
   Index i;
-  Count oldFree;
   Format format;
   Count reclaimedGrains = (Count)0;
   Count preservedInPlaceCount = (Count)0;
@@ -1122,7 +1121,6 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
   buffer = SegBuffer(seg);
 
   i = 0;
-  oldFree = awlseg->freeGrains;
   while(i < awlseg->grains) {
     Addr p, q;
     Index j;
