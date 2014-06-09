@@ -1,3 +1,9 @@
+2014-06-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix core dump after a dropped X connection (Bug#17704).
+	* sysdep.c (stuff_char): Don't abort merely because the selected frame
+	is dead, as we may be shutting down.
+
 2014-06-08  Glenn Morris  <rgm@gnu.org>
 
 	* fileio.c (write-region-inhibit-fsync): Doc tweak.

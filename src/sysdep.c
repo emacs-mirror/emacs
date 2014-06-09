@@ -222,7 +222,9 @@ discard_tty_input (void)
 void
 stuff_char (char c)
 {
-  if (! FRAME_TERMCAP_P (SELECTED_FRAME ()))
+  if (! (FRAMEP (selected_frame)
+	 && FRAME_LIVE_P (XFRAME (selected_frame))
+	 && FRAME_TERMCAP_P (XFRAME (selected_frame))))
     return;
 
 /* Should perhaps error if in batch mode */
