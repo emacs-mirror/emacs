@@ -22,6 +22,9 @@
 	* w32term.c (w32_read_socket, w32_initialize):
 	* xterm.c (handle_one_xevent, x_initialize): Adjust users.
 
+	* frame.h (window_system_available) [!HAVE_WINDOW_SYSTEM]: Always false.
+	* frame.c (window_system_available) [HAVE_WINDOW_SYSTEM]: Now here.
+
 2014-06-09  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Say (accept-process-output P)'s result pertains to P if P is non-nil.

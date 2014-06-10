@@ -997,8 +997,10 @@ extern struct frame *make_minibuffer_frame (void);
 extern struct frame *make_frame_without_minibuffer (Lisp_Object,
                                                     struct kboard *,
                                                     Lisp_Object);
-#endif /* HAVE_WINDOW_SYSTEM */
 extern bool window_system_available (struct frame *);
+#else /* not HAVE_WINDOW_SYSTEM */
+#define window_system_available(f) ((void) (f), false)
+#endif /* HAVE_WINDOW_SYSTEM */
 extern void check_window_system (struct frame *);
 extern void frame_make_pointer_invisible (struct frame *);
 extern void frame_make_pointer_visible (struct frame *);

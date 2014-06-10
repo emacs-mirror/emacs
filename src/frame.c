@@ -162,18 +162,15 @@ decode_any_frame (register Lisp_Object frame)
   return XFRAME (frame);
 }
 
+#ifdef HAVE_WINDOW_SYSTEM
+
 bool
 window_system_available (struct frame *f)
 {
-  if (f)
-    return FRAME_WINDOW_P (f) || FRAME_MSDOS_P (f);
-  else
-#ifdef HAVE_WINDOW_SYSTEM
-    return x_display_list != NULL;
-#else
-    return 0;
-#endif
+  return f ? FRAME_WINDOW_P (f) || FRAME_MSDOS_P (f) : x_display_list != NULL;
 }
+
+#endif /* HAVE_WINDOW_SYSTEM */
 
 struct frame *
 decode_window_system_frame (Lisp_Object frame)
