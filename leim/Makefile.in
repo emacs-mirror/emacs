@@ -61,8 +61,6 @@ TIT_BIG5=\
 	${leimdir}/quail/QJ-b5.el	\
 	${leimdir}/quail/ZOZY.el
 
-CHINESE_TIT=${TIT_GB} ${TIT_BIG5}
-
 MISC= \
 	${leimdir}/quail/tsang-b5.el	\
 	${leimdir}/quail/quick-b5.el	\
@@ -73,80 +71,66 @@ MISC= \
 	${leimdir}/quail/CTLau.el	\
 	${leimdir}/quail/CTLau-b5.el
 
-## The generated .el files.
-TIT_MISC=${CHINESE_TIT} ${MISC}
+## All the generated .el files.
+TIT_MISC = ${TIT_GB} ${TIT_BIG5} ${MISC}
+
 
 all: ${leimdir}/leim-list.el ${leimdir}/ja-dic/ja-dic.el
 .PHONY: all
 
-TIT_SOURCES= \
-	${srcdir}/CXTERM-DIC/4Corner.tit \
-	${srcdir}/CXTERM-DIC/ARRAY30.tit \
-	${srcdir}/CXTERM-DIC/CCDOSPY.tit \
-	${srcdir}/CXTERM-DIC/ECDICT.tit \
-	${srcdir}/CXTERM-DIC/ETZY.tit \
-	${srcdir}/CXTERM-DIC/PY-b5.tit \
-	${srcdir}/CXTERM-DIC/Punct-b5.tit \
-	${srcdir}/CXTERM-DIC/Punct.tit \
-	${srcdir}/CXTERM-DIC/QJ-b5.tit \
-	${srcdir}/CXTERM-DIC/QJ.tit \
-	${srcdir}/CXTERM-DIC/SW.tit \
-	${srcdir}/CXTERM-DIC/TONEPY.tit \
-	${srcdir}/CXTERM-DIC/ZOZY.tit
 
-${CHINESE_TIT}: changed.tit
-	@true
+## Ensure the output directory exists.
+${TIT_MISC}: | ${leimdir}/quail
 
-## The changed.* files act to serialize this part of the build.
-## A single Emacs invocation creates all the CHINESE_TIT files.
-## Otherwise in a parallel build multiple Emacs instances could
-## interfere with each other.  If we used GNU make we could probably
-## parallelize this without the need for an explicit rule for each
-## file.  Something like the pattern rule:
-## quail/%.el: CXTERM-DIC/%.tit
-## It doesn't seem possible to do this with VPATH and suffix rules.
-changed.tit: ${TIT_SOURCES}
-	@${MKDIR_P} ${leimdir}/quail
+${leimdir}/quail ${leimdir}/ja-dic:
+	${MKDIR_P} $@
+
+
+## All of TIT_GB and TIT_BIG5.
+${leimdir}/quail/%.el: ${srcdir}/CXTERM-DIC/%.tit
 	${RUN_EMACS} -l titdic-cnv \
-	  -f batch-titdic-convert -dir ${leimdir}/quail ${srcdir}/CXTERM-DIC
-	echo "changed" > $@
+	  -f batch-titdic-convert -dir ${leimdir}/quail $<
 
-MISC_SOURCES= \
-	${srcdir}/MISC-DIC/CTLau-b5.html \
-	${srcdir}/MISC-DIC/CTLau.html \
-	${srcdir}/MISC-DIC/cangjie-table.b5 \
-	${srcdir}/MISC-DIC/cangjie-table.cns \
-	${srcdir}/MISC-DIC/pinyin.map \
-	${srcdir}/MISC-DIC/ziranma.cin
 
-${MISC}: changed.misc
-	@true
+misc_convert = ${RUN_EMACS} -l titdic-cnv -f batch-miscdic-convert -dir ${leimdir}/quail
 
-changed.misc: ${MISC_SOURCES}
-	@${MKDIR_P} ${leimdir}/quail
-	${RUN_EMACS} -l titdic-cnv \
-	  -f batch-miscdic-convert -dir ${leimdir}/quail ${srcdir}/MISC-DIC
-	echo "changed" > $@
+## CTLau.el, CTLau-b5.el.
+${leimdir}/quail/CT%.el: ${srcdir}/MISC-DIC/CT%.html
+	${misc_convert} $<
+
+${leimdir}/quail/PY.el: ${srcdir}/MISC-DIC/pinyin.map
+	${misc_convert} $<
+
+${leimdir}/quail/ZIRANMA.el: ${srcdir}/MISC-DIC/ziranma.cin
+	${misc_convert} $<
+
+## Processing cangjie-table.b5 and cangjie-table.cns generates two files
+## in each case.
+${leimdir}/quail/tsang-%.el ${leimdir}/quail/quick-%.el: ${srcdir}/MISC-DIC/cangjie-table.%
+	${misc_convert} $<
+
 
 .PHONY: leim-list.el
 leim-list.el: ${leimdir}/leim-list.el
 
-${leimdir}/leim-list.el: ${TIT_MISC} ${srcdir}/leim-ext.el
+${leimdir}/leim-list.el: ${srcdir}/leim-ext.el ${TIT_MISC}
 	rm -f $@
 	${RUN_EMACS} -l international/quail \
 	  --eval "(update-leim-list-file (unmsys--file-name \"${leimdir}\"))"
-	sed -n -e '/^[^;]/p' -e 's/^;\(;*\)inc /;\1 /p' < ${srcdir}/leim-ext.el >> $@
+	sed -n -e '/^[^;]/p' -e 's/^;\(;*\)inc /;\1 /p' < $< >> $@
+
+
+${leimdir}/ja-dic/ja-dic.el: | $(leimdir)/ja-dic
 
 ${leimdir}/ja-dic/ja-dic.el: $(srcdir)/SKK-DIC/SKK-JISYO.L
-	@$(MKDIR_P) $(leimdir)/ja-dic
 	$(RUN_EMACS) -batch -l ja-dic-cnv \
-	  -f batch-skkdic-convert -dir "$(leimdir)/ja-dic" \
-	  "$(srcdir)/SKK-DIC/SKK-JISYO.L"
+	  -f batch-skkdic-convert -dir "$(leimdir)/ja-dic" "$<"
+
 
 .PHONY: bootstrap-clean distclean maintainer-clean extraclean
 
 bootstrap-clean:
-	rm -f ${TIT_MISC} ${leimdir}/leim-list.el changed.tit changed.misc
+	rm -f ${TIT_MISC} ${leimdir}/leim-list.el
 
 distclean:
 	rm -f Makefile
@@ -155,8 +139,6 @@ maintainer-clean: distclean bootstrap-clean
 
 ## We do not delete ja-dic, even in a bootstrap, because it rarely
 ## changes and is slow to regenerate.
-## TODO? Could consider doing the same with TIT_MISC, though those
-## are much faster to generate.
 extraclean:
 	rm -rf ${leimdir}/ja-dic
 

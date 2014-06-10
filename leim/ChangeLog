@@ -1,3 +1,18 @@
+2014-06-10  Glenn Morris  <rgm@gnu.org>
+
+	Use GNU Make features to simplify and parallelize.
+	* Makefile.in (CHINESE_TIT, TIT_SOURCES, MISC_SOURCES, changed.tit)
+	(changed.misc): Remove.
+	(${leimdir}/quail, ${leimdir}/ja-dic): Create using order-only prereq.
+	(misc_convert): New.
+	(${leimdir}/quail/%.el, ${leimdir}/quail/CT%.el)
+	(${leimdir}/quail/PY.el, ${leimdir}/quail/ZIRANMA.el)
+	(${leimdir}/quail/tsang-%.el, ${leimdir}/quail/quick-%.el):
+	Use pattern rules.
+	(${leimdir}/leim-list.el, ${leimdir}/ja-dic/ja-dic.el):
+	Use automatic variables.
+	(bootstrap-clean): No changed.* files to delete any more.
+
 2014-04-11  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (EMACSDATA, EMACSDOC, EMACSPATH): Unexport.
