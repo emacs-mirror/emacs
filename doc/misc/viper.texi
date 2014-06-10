@@ -4,7 +4,7 @@
 @comment Using viper.info instead of viper in setfilename breaks DOS.
 @comment @setfilename viper
 @comment @setfilename viper.info
-@setfilename ../../info/viper
+@setfilename ../../info/viper.info
 
 @documentencoding UTF-8
 

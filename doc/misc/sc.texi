@@ -1,7 +1,7 @@
 \input texinfo  @comment -*-texinfo-*-
 @comment 3.48
 @comment %**start of header (This is for running Texinfo on a region.)
-@setfilename ../../info/sc
+@setfilename ../../info/sc.info
 @settitle Supercite User's Manual
 @documentencoding UTF-8
 @iftex

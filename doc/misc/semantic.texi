@@ -1,5 +1,5 @@
 \input texinfo
-@setfilename ../../info/semantic
+@setfilename ../../info/semantic.info
 @set TITLE  Semantic Manual
 @set AUTHOR Eric M. Ludlam, David Ponce, and Richard Y. Kim
 @settitle @value{TITLE}

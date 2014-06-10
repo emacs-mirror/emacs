@@ -1,6 +1,6 @@
 \input texinfo @c -*- texinfo -*-
 @c %**start of header
-@setfilename ../../info/nxml-mode
+@setfilename ../../info/nxml-mode.info
 @settitle nXML Mode
 @documentencoding UTF-8
 @c %**end of header

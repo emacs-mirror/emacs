@@ -1,6 +1,6 @@
 \input texinfo   @c -*-texinfo-*-
 @comment %**start of header
-@setfilename ../../info/flymake
+@setfilename ../../info/flymake.info
 @set VERSION 0.3
 @set UPDATED April 2004
 @settitle GNU Flymake @value{VERSION}

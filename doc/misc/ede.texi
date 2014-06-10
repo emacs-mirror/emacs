@@ -1,5 +1,5 @@
 \input texinfo
-@setfilename ../../info/ede
+@setfilename ../../info/ede.info
 @settitle Emacs Development Environment
 @documentencoding UTF-8
 

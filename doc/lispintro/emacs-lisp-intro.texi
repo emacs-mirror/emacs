@@ -1,6 +1,6 @@
 \input texinfo                                      @c -*-texinfo-*-
 @comment %**start of header
-@setfilename ../../info/eintr
+@setfilename ../../info/eintr.info
 @c setfilename emacs-lisp-intro.info
 @c sethtmlfilename emacs-lisp-intro.html
 @settitle Programming in Emacs Lisp

@@ -1,6 +1,6 @@
 \input texinfo @c -*-texinfo-*-
 @c %**start of header
-@setfilename ../../info/eww
+@setfilename ../../info/eww.info
 @settitle Emacs Web Wowser
 @documentencoding UTF-8
 @c %**end of header

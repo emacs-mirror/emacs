@@ -1,5 +1,5 @@
 \input texinfo   @c -*-texinfo-*-
-@setfilename ../../info/tramp
+@setfilename ../../info/tramp.info
 @c %**start of header
 @settitle TRAMP User Manual
 @documentencoding UTF-8

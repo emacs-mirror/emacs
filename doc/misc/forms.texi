@@ -3,7 +3,7 @@
 @c Written by Johan Vromans, and edited by Richard Stallman
 
 @comment %**start of header (This is for running Texinfo on a region.)
-@setfilename ../../info/forms
+@setfilename ../../info/forms.info
 @settitle Forms Mode User's Manual
 @syncodeindex vr cp
 @syncodeindex fn cp

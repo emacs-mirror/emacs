@@ -1,6 +1,6 @@
 \input texinfo   @c -*-texinfo-*-
 @c %**start of header
-@setfilename ../../info/woman
+@setfilename ../../info/woman.info
 @settitle WoMan: Browse Unix Manual Pages ``W.O. (without) Man''
 @include emacsver.texi
 @afourpaper

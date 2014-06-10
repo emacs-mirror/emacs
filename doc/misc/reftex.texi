@@ -1,6 +1,6 @@
 \input texinfo  @c -*-texinfo-*-
 @c %**start of header
-@setfilename ../../info/reftex
+@setfilename ../../info/reftex.info
 @settitle RefTeX User Manual
 @documentencoding UTF-8
 @synindex ky cp

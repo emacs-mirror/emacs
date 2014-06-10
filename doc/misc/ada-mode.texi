@@ -1,5 +1,5 @@
 \input texinfo  @c -*-texinfo-*-
-@setfilename ../../info/ada-mode
+@setfilename ../../info/ada-mode.info
 @settitle Ada Mode
 @documentencoding UTF-8
 

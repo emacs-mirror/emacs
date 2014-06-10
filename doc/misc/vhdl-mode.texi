@@ -1,6 +1,6 @@
 \input texinfo   @c -*- texinfo -*-
 
-@setfilename ../../info/vhdl-mode
+@setfilename ../../info/vhdl-mode.info
 @settitle VHDL Mode, an Emacs mode for editing VHDL code
 @documentencoding UTF-8
 

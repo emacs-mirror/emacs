@@ -1,6 +1,6 @@
 \input texinfo  @c -*-texinfo-*-
 @c %**start of header
-@setfilename ../../info/idlwave
+@setfilename ../../info/idlwave.info
 @settitle IDLWAVE User Manual
 @synindex ky cp
 @syncodeindex vr cp

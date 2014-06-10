@@ -1,7 +1,7 @@
 \input texinfo
 @c This is an annex of the Emacs manual.
 @c Author: Daniel Pfeiffer <Daniel.Pfeiffer@Informatik.START.dbp.de>
-@setfilename ../../info/autotype
+@setfilename ../../info/autotype.info
 @c @node Autotypist, Picture, Abbrevs, Top
 @c @chapter Features for Automatic Typing
 @settitle Features for Automatic Typing

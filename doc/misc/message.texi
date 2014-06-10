@@ -2,7 +2,7 @@
 
 @include gnus-overrides.texi
 
-@setfilename ../../info/message
+@setfilename ../../info/message.info
 @settitle Message Manual
 @documentencoding UTF-8
 @synindex fn cp

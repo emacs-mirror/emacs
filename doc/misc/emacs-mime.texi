@@ -2,7 +2,7 @@
 
 @include gnus-overrides.texi
 
-@setfilename ../../info/emacs-mime
+@setfilename ../../info/emacs-mime.info
 @settitle Emacs MIME Manual
 @synindex fn cp
 @synindex vr cp

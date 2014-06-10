@@ -1,5 +1,5 @@
 \input texinfo
-@setfilename ../../info/vip
+@setfilename ../../info/vip.info
 @settitle VIP
 
 @documentencoding UTF-8

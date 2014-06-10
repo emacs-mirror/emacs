@@ -1,6 +1,6 @@
 \input texinfo.tex   @c -*-texinfo-*-
 @c %**start of header
-@setfilename ../../info/todo-mode
+@setfilename ../../info/todo-mode.info
 @settitle Todo Mode User Manual
 @syncodeindex fn cp
 @syncodeindex vr cp

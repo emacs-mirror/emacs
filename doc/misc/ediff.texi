@@ -7,7 +7,7 @@
 @comment Using ediff.info instead of ediff in setfilename breaks DOS.
 @comment @setfilename ediff
 @comment @setfilename ediff.info
-@setfilename ../../info/ediff
+@setfilename ../../info/ediff.info
 
 @settitle Ediff User's Manual
 @documentencoding UTF-8

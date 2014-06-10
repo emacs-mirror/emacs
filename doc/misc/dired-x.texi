@@ -7,7 +7,7 @@
 @c [Dodd's address no longer valid.]
 
 @comment %**start of header (This is for running Texinfo on a region.)
-@setfilename ../../info/dired-x
+@setfilename ../../info/dired-x.info
 @settitle Dired Extra User's Manual
 @documentencoding UTF-8
 

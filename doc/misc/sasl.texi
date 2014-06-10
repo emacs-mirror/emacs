@@ -2,7 +2,7 @@
 
 @include gnus-overrides.texi
 
-@setfilename ../../info/sasl
+@setfilename ../../info/sasl.info
 
 @set VERSION 0.2
 @settitle Emacs SASL Library @value{VERSION}

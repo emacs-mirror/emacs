@@ -1,5 +1,5 @@
 \input texinfo   @c -*-texinfo-*-
-@setfilename ../../info/dbus
+@setfilename ../../info/dbus.info
 @c %**start of header
 @settitle Using of D-Bus
 @documentencoding UTF-8

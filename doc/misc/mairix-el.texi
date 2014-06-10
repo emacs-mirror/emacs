@@ -1,6 +1,6 @@
 \input texinfo.tex
 
-@setfilename ../../info/mairix-el
+@setfilename ../../info/mairix-el.info
 @settitle Emacs Interface for Mairix
 
 @documentencoding UTF-8

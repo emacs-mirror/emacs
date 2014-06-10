@@ -2,7 +2,7 @@
 
 @include gnus-overrides.texi
 
-@setfilename ../../info/sieve
+@setfilename ../../info/sieve.info
 @settitle Emacs Sieve Manual
 @documentencoding UTF-8
 @synindex fn cp

@@ -1,7 +1,7 @@
 \input texinfo   @c -*-texinfo-*-
 
 @comment %**start of header
-@setfilename ../../info/ebrowse
+@setfilename ../../info/ebrowse.info
 @settitle A Class Browser for C++
 @documentencoding UTF-8
 @setchapternewpage odd

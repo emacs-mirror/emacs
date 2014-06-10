@@ -2,7 +2,7 @@
 
 @include gnus-overrides.texi
 
-@setfilename ../../info/gnus
+@setfilename ../../info/gnus.info
 @settitle Gnus Manual
 @syncodeindex fn cp
 @syncodeindex vr cp

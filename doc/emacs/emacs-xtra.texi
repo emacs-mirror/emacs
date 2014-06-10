@@ -1,6 +1,6 @@
 \input texinfo    @c -*-texinfo-*-
 @comment %**start of header
-@setfilename ../../info/emacs-xtra
+@setfilename ../../info/emacs-xtra.info
 @settitle Specialized Emacs Features
 @c Merge all functions, variables, and keys into the concept index.
 @syncodeindex fn cp

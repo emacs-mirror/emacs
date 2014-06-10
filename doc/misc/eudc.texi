@@ -1,6 +1,6 @@
 \input texinfo.tex
 @c %**start of header
-@setfilename ../../info/eudc
+@setfilename ../../info/eudc.info
 @settitle Emacs Unified Directory Client (EUDC) Manual
 @afourpaper
 @documentencoding UTF-8

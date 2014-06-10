@@ -1,5 +1,5 @@
 \input texinfo    @c -*-coding:utf-8 -*-
-@setfilename efaq-w32
+@setfilename ../../info/efaq-w32.info
 @settitle GNU Emacs FAQ For MS Windows
 @setchapternewpage odd
 @syncodeindex pg cp

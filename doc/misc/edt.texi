@@ -1,5 +1,5 @@
 \input texinfo
-@setfilename ../../info/edt
+@setfilename ../../info/edt.info
 @settitle EDT Emulation for Emacs
 @documentencoding UTF-8
 

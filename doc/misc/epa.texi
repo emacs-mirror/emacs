@@ -1,6 +1,6 @@
 \input texinfo                  @c -*- mode: texinfo -*-
 @c %**start of header
-@setfilename ../../info/epa
+@setfilename ../../info/epa.info
 @settitle EasyPG Assistant User's Manual
 @documentencoding UTF-8
 @c %**end of header

@@ -3,7 +3,7 @@
 @c Note: This document requires makeinfo version 4.6 or greater to build.
 @c
 @c %**start of header
-@setfilename ../../info/mh-e
+@setfilename ../../info/mh-e.info
 @settitle The MH-E Manual
 @documentencoding UTF-8
 @c %**end of header

@@ -1,6 +1,6 @@
 \input texinfo  @c -*- coding: utf-8 -*-
 
-@setfilename ../../info/emacs
+@setfilename ../../info/emacs.info
 @settitle GNU Emacs Manual
 
 @c The edition number appears in more than one place in this file

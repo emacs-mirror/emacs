@@ -1,6 +1,6 @@
 \input texinfo                  @c -*-texinfo-*-
 @c %**start of header
-@setfilename ../../info/octave-mode
+@setfilename ../../info/octave-mode.info
 @settitle Octave Mode
 @documentencoding UTF-8
 @c %**end of header

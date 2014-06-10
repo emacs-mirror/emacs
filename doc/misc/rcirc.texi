@@ -1,6 +1,6 @@
 \input texinfo
 @c %**start of header
-@setfilename ../../info/rcirc
+@setfilename ../../info/rcirc.info
 @settitle rcirc Manual
 @documentencoding UTF-8
 @c %**end of header

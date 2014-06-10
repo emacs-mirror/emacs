@@ -1,5 +1,5 @@
 \input texinfo
-@setfilename ../../info/url
+@setfilename ../../info/url.info
 @settitle URL Programmer's Manual
 
 @documentencoding UTF-8

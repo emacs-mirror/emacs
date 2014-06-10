@@ -1,6 +1,6 @@
 \input texinfo
 @comment %**start of header
-@setfilename ../../info/htmlfontify
+@setfilename ../../info/htmlfontify.info
 @settitle Htmlfontify User Manual
 @exampleindent 2
 @documentencoding UTF-8

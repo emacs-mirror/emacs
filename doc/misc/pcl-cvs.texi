@@ -1,6 +1,6 @@
 \input texinfo  @c -*-texinfo-*-
 @c %**start of header
-@setfilename ../../info/pcl-cvs
+@setfilename ../../info/pcl-cvs.info
 @settitle PCL-CVS---Emacs Front-End to CVS
 @syncodeindex vr fn
 @documentencoding UTF-8

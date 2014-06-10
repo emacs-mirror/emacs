@@ -1,6 +1,6 @@
 \input texinfo  @c -*-texinfo-*-
 @c %**start of header
-@setfilename ../../info/eshell
+@setfilename ../../info/eshell.info
 @settitle Eshell: The Emacs Shell
 @defindex cm
 @synindex vr fn

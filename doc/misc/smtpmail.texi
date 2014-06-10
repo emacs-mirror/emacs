@@ -1,5 +1,5 @@
 \input texinfo  @c -*-texinfo-*-
-@setfilename ../../info/smtpmail
+@setfilename ../../info/smtpmail.info
 @settitle Emacs SMTP Library
 @documentencoding UTF-8
 @syncodeindex vr fn

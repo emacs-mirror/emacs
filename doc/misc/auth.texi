@@ -4,7 +4,7 @@
 
 @set VERSION 0.3
 
-@setfilename ../../info/auth
+@setfilename ../../info/auth.info
 @settitle Emacs auth-source Library @value{VERSION}
 @documentencoding UTF-8
 

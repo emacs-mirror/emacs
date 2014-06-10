@@ -81,7 +81,7 @@ the second with them pointing to the XEmacs manuals.
 @comment No overfull hbox marks in the dvi file.
 @finalout
 
-@setfilename  ../../info/ccmode
+@setfilename  ../../info/ccmode.info
 @settitle     CC Mode Manual
 @documentencoding UTF-8
 @footnotestyle end
