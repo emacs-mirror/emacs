@@ -54,12 +54,11 @@ GZIP_PROG = @GZIP_PROG@
 
 HTML_OPTS = --no-split --html
 
-INFO_EXT=@INFO_EXT@
 # Options used only when making info output.
 # --no-split is only needed because of MS-DOS.
 # For a possible alternative, see
 # http://lists.gnu.org/archive/html/emacs-devel/2011-01/msg01182.html
-INFO_OPTS=@INFO_OPTS@
+INFO_OPTS= --no-split
 
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
@@ -153,7 +152,7 @@ mkinfodir = @${MKDIR_P} ${buildinfodir}
 .dvi.ps:
 	$(DVIPS) -o $@ $<
 
-info: $(buildinfodir)/emacs$(INFO_EXT)
+info: $(buildinfodir)/emacs.info
 dvi: $(DVI_TARGETS)
 html: $(HTML_TARGETS)
 pdf: $(PDF_TARGETS)
@@ -163,7 +162,7 @@ ps: $(PS_TARGETS)
 # There is no provision for Info files to exist in the build directory.
 # In a distribution of Emacs, the Info files should be up to date.
 # Note: "<" is not portable in ordinary make rules.
-$(buildinfodir)/emacs$(INFO_EXT): ${EMACSSOURCES}
+$(buildinfodir)/emacs.info: ${EMACSSOURCES}
 	$(mkinfodir)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/emacs.texi
 
@@ -200,9 +199,9 @@ distclean: clean
 ## In the standalone tarfile, the clean rule runs this.
 infoclean:
 	rm -f \
-	  $(buildinfodir)/emacs$(INFO_EXT) \
-	  $(buildinfodir)/emacs$(INFO_EXT)-[1-9] \
-	  $(buildinfodir)/emacs$(INFO_EXT)-[1-9][0-9]
+	  $(buildinfodir)/emacs.info \
+	  $(buildinfodir)/emacs.info-[1-9] \
+	  $(buildinfodir)/emacs.info-[1-9][0-9]
 
 maintainer-clean: distclean infoclean
 
@@ -220,7 +219,6 @@ dist:
 	  -e 's/^\(clean:.*\)/\1 infoclean/' \
 	  -e "s/@ver[s]ion@/${version}/" \
 	  -e 's/@MAKE[I]NFO@/makeinfo/' -e 's/@MK[D]IR_P@/mkdir -p/' \
-	  -e 's/@IN[F]O_EXT@/.info/' -e 's/@IN[F]O_OPTS@//' \
 	  ${srcdir}/Makefile.in > emacs-manual-${version}/Makefile
 	@if grep '@[a-zA-Z_]*@' emacs-manual-${version}/Makefile; then \
 	  echo "Unexpanded configure variables in Makefile?" 1>&2; exit 1; \

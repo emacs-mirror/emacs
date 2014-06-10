@@ -46,9 +46,8 @@ GZIP_PROG = @GZIP_PROG@
 
 HTML_OPTS = --no-split --html
 
-INFO_EXT=@INFO_EXT@
 # Options used only when making info output.
-INFO_OPTS=@INFO_OPTS@
+INFO_OPTS= --no-split
 
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
@@ -79,7 +78,7 @@ srcs = ${srcdir}/emacs-lisp-intro.texi ${srcdir}/doclicense.texi \
 .dvi.ps:
 	$(DVIPS) -o $@ $<
 
-info: ${buildinfodir}/eintr$(INFO_EXT)
+info: ${buildinfodir}/eintr.info
 
 dvi: $(DVI_TARGETS)
 html: $(HTML_TARGETS)
@@ -89,7 +88,7 @@ ps: $(PS_TARGETS)
 # The file name eintr must fit within 5 characters, to allow for
 # -NN extensions to fit into DOS 8+3 limits without clashing.
 # Note: "<" is not portable in ordinary make rules.
-${buildinfodir}/eintr$(INFO_EXT): ${srcs}
+${buildinfodir}/eintr.info: ${srcs}
 	$(mkinfodir)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/emacs-lisp-intro.texi
 
@@ -117,8 +116,8 @@ distclean: clean
 
 infoclean:
 	rm -f \
-	  $(buildinfodir)/eintr$(INFO_EXT) \
-	  $(buildinfodir)/eintr$(INFO_EXT)-[1-9]
+	  $(buildinfodir)/eintr.info \
+	  $(buildinfodir)/eintr.info-[1-9]
 
 maintainer-clean: distclean infoclean
 
@@ -136,7 +135,6 @@ dist:
 	  -e 's/^\(clean:.*\)/\1 infoclean/' \
 	  -e "s/@ver[s]ion@/${version}/" \
 	  -e 's/@MAKE[I]NFO@/makeinfo/' -e 's/@MK[D]IR_P@/mkdir -p/' \
-	  -e 's/@IN[F]O_EXT@/.info/' -e 's/@IN[F]O_OPTS@//' \
 	  ${srcdir}/Makefile.in > emacs-lispintro-${version}/Makefile
 	@if grep '@[a-zA-Z_]*@' emacs-lispintro-${version}/Makefile; then \
 	  echo "Unexpanded configure variables in Makefile?" 1>&2; exit 1; \

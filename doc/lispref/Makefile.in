@@ -49,9 +49,8 @@ GZIP_PROG = @GZIP_PROG@
 
 HTML_OPTS = --no-split --html
 
-INFO_EXT=@INFO_EXT@
 # Options used only when making info output.
-INFO_OPTS=@INFO_OPTS@
+INFO_OPTS= --no-split
 
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
@@ -134,14 +133,14 @@ mkinfodir = @${MKDIR_P} ${buildinfodir}
 .dvi.ps:
 	$(DVIPS) -o $@ $<
 
-info: $(buildinfodir)/elisp$(INFO_EXT)
+info: $(buildinfodir)/elisp.info
 dvi: $(DVI_TARGETS)
 html: $(HTML_TARGETS)
 pdf: $(PDF_TARGETS)
 ps: $(PS_TARGETS)
 
 ## Note: "<" is not portable in ordinary make rules.
-$(buildinfodir)/elisp$(INFO_EXT): $(srcs)
+$(buildinfodir)/elisp.info: $(srcs)
 	$(mkinfodir)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ $(srcdir)/elisp.texi
 
@@ -172,9 +171,9 @@ distclean: clean
 
 infoclean:
 	rm -f \
-	  $(buildinfodir)/elisp$(INFO_EXT) \
-	  $(buildinfodir)/elisp$(INFO_EXT)-[1-9] \
-	  $(buildinfodir)/elisp$(INFO_EXT)-[1-9][0-9]
+	  $(buildinfodir)/elisp.info \
+	  $(buildinfodir)/elisp.info-[1-9] \
+	  $(buildinfodir)/elisp.info-[1-9][0-9]
 
 maintainer-clean: distclean infoclean
 
@@ -193,7 +192,6 @@ dist:
 	  -e 's/^\(clean:.*\)/\1 infoclean/' \
 	  -e "s/@ver[s]ion@/${version}/" \
 	  -e 's/@MAKE[I]NFO@/makeinfo/' -e 's/@MK[D]IR_P@/mkdir -p/' \
-	  -e 's/@IN[F]O_EXT@/.info/' -e 's/@IN[F]O_OPTS@//' \
 	  ${srcdir}/Makefile.in > emacs-lispref-${version}/Makefile
 	@if grep '@[a-zA-Z_]*@' emacs-lispref-${version}/Makefile; then \
 	  echo "Unexpanded configure variables in Makefile?" 1>&2; exit 1; \

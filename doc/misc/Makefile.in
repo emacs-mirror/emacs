@@ -47,9 +47,8 @@ GZIP_PROG = @GZIP_PROG@
 
 HTML_OPTS = --no-split --html
 
-INFO_EXT=@INFO_EXT@
 # Options used only when making info output.
-INFO_OPTS=@INFO_OPTS@
+INFO_OPTS= --no-split
 
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
@@ -117,7 +116,7 @@ info: $(INFO_TARGETS)
 ## Base file names of output info files.
 echo-info:
 	@echo "$(INFO_INSTALL) " | \
-	  sed -e 's|[^ ]*/||g' -e 's/\.info//g' -e "s/  */$(INFO_EXT) /g"
+	  sed -e 's|[^ ]*/||g' -e 's/\.info//g' -e "s/  */.info /g"
 
 dvi: $(DVI_TARGETS)
 
@@ -134,8 +133,8 @@ ps: $(PS_TARGETS)
 # Note: "<" is not portable in ordinary make rules.
 
 ada_mode_deps = ${srcdir}/ada-mode.texi ${gfdl}
-ada-mode : $(buildinfodir)/ada-mode$(INFO_EXT)
-$(buildinfodir)/ada-mode$(INFO_EXT): $(ada_mode_deps)
+ada-mode : $(buildinfodir)/ada-mode.info
+$(buildinfodir)/ada-mode.info: $(ada_mode_deps)
 	$(mkinfodir)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/ada-mode.texi
 ada-mode.dvi: $(ada_mode_deps)
@@ -146,8 +145,8 @@ ada-mode.html: $(ada_mode_deps)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/ada-mode.texi
 
 auth_deps = ${srcdir}/auth.texi ${gfdl}
-auth : $(buildinfodir)/auth$(INFO_EXT)
-$(buildinfodir)/auth$(INFO_EXT): $(auth_deps)
+auth : $(buildinfodir)/auth.info
+$(buildinfodir)/auth.info: $(auth_deps)
 	$(mkinfodir)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/auth.texi
 auth.dvi: $(auth_deps)
@@ -158,8 +157,8 @@ auth.html: $(auth_deps)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/auth.texi
 
 autotype_deps = ${srcdir}/autotype.texi ${gfdl}
-autotype : $(buildinfodir)/autotype$(INFO_EXT)
-$(buildinfodir)/autotype$(INFO_EXT): $(autotype_deps)
+autotype : $(buildinfodir)/autotype.info
+$(buildinfodir)/autotype.info: $(autotype_deps)
 	$(mkinfodir)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/autotype.texi
 autotype.dvi: $(autotype_deps)
@@ -170,8 +169,8 @@ autotype.html: $(autotype_deps)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/autotype.texi
 
 bovine_deps = ${srcdir}/bovine.texi ${gfdl}
-bovine : $(buildinfodir)/bovine$(INFO_EXT)
-$(buildinfodir)/bovine$(INFO_EXT): $(bovine_deps)
+bovine : $(buildinfodir)/bovine.info
+$(buildinfodir)/bovine.info: $(bovine_deps)
 	$(mkinfodir)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/bovine.texi
 bovine.dvi: $(bovine_deps)
@@ -182,8 +181,8 @@ bovine.html: $(bovine_deps)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/bovine.texi
 
 calc_deps = ${srcdir}/calc.texi $(emacsdir)/emacsver.texi ${gfdl}
-calc : $(buildinfodir)/calc$(INFO_EXT)
-$(buildinfodir)/calc$(INFO_EXT): $(calc_deps)
+calc : $(buildinfodir)/calc.info
+$(buildinfodir)/calc.info: $(calc_deps)
 	$(mkinfodir)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/calc.texi
 calc.dvi: $(calc_deps)
@@ -194,8 +193,8 @@ calc.html: $(calc_deps)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/calc.texi
 
 cc_mode_deps = ${srcdir}/cc-mode.texi ${gfdl}
-ccmode : $(buildinfodir)/ccmode$(INFO_EXT)
-$(buildinfodir)/ccmode$(INFO_EXT): $(cc_mode_deps)
+ccmode : $(buildinfodir)/ccmode.info
+$(buildinfodir)/ccmode.info: $(cc_mode_deps)
 	$(mkinfodir)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/cc-mode.texi
 cc-mode.dvi: $(cc_mode_deps)
@@ -206,8 +205,8 @@ cc-mode.html: $(cc_mode_deps)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/cc-mode.texi
 
 cl_deps = ${srcdir}/cl.texi $(emacsdir)/emacsver.texi ${gfdl}
-cl : $(buildinfodir)/cl$(INFO_EXT)
-$(buildinfodir)/cl$(INFO_EXT): $(cl_deps)
+cl : $(buildinfodir)/cl.info
+$(buildinfodir)/cl.info: $(cl_deps)
 	$(mkinfodir)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/cl.texi
 cl.dvi: $(cl_deps)
@@ -218,8 +217,8 @@ cl.html: $(cl_deps)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/cl.texi
 
 dbus_deps = ${srcdir}/dbus.texi ${gfdl}
-dbus : $(buildinfodir)/dbus$(INFO_EXT)
-$(buildinfodir)/dbus$(INFO_EXT): $(dbus_deps)
+dbus : $(buildinfodir)/dbus.info
+$(buildinfodir)/dbus.info: $(dbus_deps)
 	$(mkinfodir)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/dbus.texi
 dbus.dvi: $(dbus_deps)
@@ -230,8 +229,8 @@ dbus.html: $(dbus_deps)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/dbus.texi
 
 dired_x_deps = ${srcdir}/dired-x.texi $(emacsdir)/emacsver.texi ${gfdl}
-dired-x : $(buildinfodir)/dired-x$(INFO_EXT)
-$(buildinfodir)/dired-x$(INFO_EXT): $(dired_x_deps)
+dired-x : $(buildinfodir)/dired-x.info
+$(buildinfodir)/dired-x.info: $(dired_x_deps)
 	$(mkinfodir)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/dired-x.texi
 dired-x.dvi: $(dired_x_deps)
@@ -242,8 +241,8 @@ dired-x.html: $(dired_x_deps)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/dired-x.texi
 
 ebrowse_deps = ${srcdir}/ebrowse.texi ${gfdl}
-ebrowse : $(buildinfodir)/ebrowse$(INFO_EXT)
-$(buildinfodir)/ebrowse$(INFO_EXT): $(ebrowse_deps)
+ebrowse : $(buildinfodir)/ebrowse.info
+$(buildinfodir)/ebrowse.info: $(ebrowse_deps)
 	$(mkinfodir)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/ebrowse.texi
 ebrowse.dvi: $(ebrowse_deps)
@@ -254,8 +253,8 @@ ebrowse.html: $(ebrowse_deps)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/ebrowse.texi
 
 ede_deps = ${srcdir}/ede.texi ${gfdl}
-ede : $(buildinfodir)/ede$(INFO_EXT)
-$(buildinfodir)/ede$(INFO_EXT): $(ede_deps)
+ede : $(buildinfodir)/ede.info
+$(buildinfodir)/ede.info: $(ede_deps)
 	$(mkinfodir)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/ede.texi
 ede.dvi: $(ede_deps)
@@ -266,8 +265,8 @@ ede.html: $(ede_deps)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/ede.texi
 
 ediff_deps = ${srcdir}/ediff.texi ${gfdl}
-ediff : $(buildinfodir)/ediff$(INFO_EXT)
-$(buildinfodir)/ediff$(INFO_EXT): $(ediff_deps)
+ediff : $(buildinfodir)/ediff.info
+$(buildinfodir)/ediff.info: $(ediff_deps)
 	$(mkinfodir)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/ediff.texi
 ediff.dvi: $(ediff_deps)
@@ -278,8 +277,8 @@ ediff.html: $(ediff_deps)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/ediff.texi
 
 edt_deps = ${srcdir}/edt.texi ${gfdl}
-edt : $(buildinfodir)/edt$(INFO_EXT)
-$(buildinfodir)/edt$(INFO_EXT): $(edt_deps)
+edt : $(buildinfodir)/edt.info
+$(buildinfodir)/edt.info: $(edt_deps)
 	$(mkinfodir)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/edt.texi
 edt.dvi: $(edt_deps)
@@ -291,8 +290,8 @@ edt.html: $(edt_deps)
 
 ## No gfdl dependency.
 efaq_deps = ${srcdir}/efaq.texi $(emacsdir)/emacsver.texi
-efaq : $(buildinfodir)/efaq$(INFO_EXT)
-$(buildinfodir)/efaq$(INFO_EXT): $(efaq_deps)
+efaq : $(buildinfodir)/efaq.info
+$(buildinfodir)/efaq.info: $(efaq_deps)
 	$(mkinfodir)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/efaq.texi
 efaq.dvi: $(efaq_deps)
@@ -303,8 +302,8 @@ efaq.html: $(efaq_deps)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/efaq.texi
 
 efaq_w32_deps = ${srcdir}/efaq-w32.texi $(emacsdir)/emacsver.texi
-efaq-w32 : $(buildinfodir)/efaq-w32$(INFO_EXT)
-$(buildinfodir)/efaq-w32$(INFO_EXT): $(efaq_w32_deps)
+efaq-w32 : $(buildinfodir)/efaq-w32.info
+$(buildinfodir)/efaq-w32.info: $(efaq_w32_deps)
 	$(mkinfodir)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/efaq-w32.texi
 efaq-w32.dvi: $(efaq_w32_deps)
@@ -315,8 +314,8 @@ efaq-w32.html: $(efaq_w32_deps)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/efaq-w32.texi
 
 eieio_deps = ${srcdir}/eieio.texi ${gfdl}
-eieio : $(buildinfodir)/eieio$(INFO_EXT)
-$(buildinfodir)/eieio$(INFO_EXT): $(eieio_deps)
+eieio : $(buildinfodir)/eieio.info
+$(buildinfodir)/eieio.info: $(eieio_deps)
 	$(mkinfodir)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/eieio.texi
 eieio.dvi: $(eieio_deps)
@@ -327,8 +326,8 @@ eieio.html: $(eieio_deps)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/eieio.texi
 
 emacs_gnutls_deps = ${srcdir}/emacs-gnutls.texi ${gfdl}
-emacs-gnutls : $(buildinfodir)/emacs-gnutls$(INFO_EXT)
-$(buildinfodir)/emacs-gnutls$(INFO_EXT): $(emacs_gnutls_deps)
+emacs-gnutls : $(buildinfodir)/emacs-gnutls.info
+$(buildinfodir)/emacs-gnutls.info: $(emacs_gnutls_deps)
 	$(mkinfodir)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/emacs-gnutls.texi
 emacs-gnutls.dvi: $(emacs_gnutls_deps)
@@ -339,8 +338,8 @@ emacs-gnutls.html: $(emacs_gnutls_deps)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/emacs-gnutls.texi
 
 emacs_mime_deps = ${srcdir}/emacs-mime.texi ${gfdl}
-emacs-mime : $(buildinfodir)/emacs-mime$(INFO_EXT)
-$(buildinfodir)/emacs-mime$(INFO_EXT): $(emacs_mime_deps)
+emacs-mime : $(buildinfodir)/emacs-mime.info
+$(buildinfodir)/emacs-mime.info: $(emacs_mime_deps)
 	$(mkinfodir)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) --enable-encoding -o $@ ${srcdir}/emacs-mime.texi
 emacs-mime.dvi: $(emacs_mime_deps)
@@ -351,8 +350,8 @@ emacs-mime.html: $(emacs_mime_deps)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) --enable-encoding -o $@ ${srcdir}/emacs-mime.texi
 
 epa_deps = ${srcdir}/epa.texi ${gfdl}
-epa : $(buildinfodir)/epa$(INFO_EXT)
-$(buildinfodir)/epa$(INFO_EXT): $(epa_deps)
+epa : $(buildinfodir)/epa.info
+$(buildinfodir)/epa.info: $(epa_deps)
 	$(mkinfodir)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/epa.texi
 epa.dvi: $(epa_deps)
@@ -363,8 +362,8 @@ epa.html: $(epa_deps)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/epa.texi
 
 erc_deps = ${srcdir}/erc.texi $(emacsdir)/emacsver.texi ${gfdl}
-erc : $(buildinfodir)/erc$(INFO_EXT)
-$(buildinfodir)/erc$(INFO_EXT): $(erc_deps)
+erc : $(buildinfodir)/erc.info
+$(buildinfodir)/erc.info: $(erc_deps)
 	$(mkinfodir)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/erc.texi
 erc.dvi: $(erc_deps)
@@ -375,8 +374,8 @@ erc.html: $(erc_deps)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/erc.texi
 
 ert_deps = ${srcdir}/ert.texi ${gfdl}
-ert : $(buildinfodir)/ert$(INFO_EXT)
-$(buildinfodir)/ert$(INFO_EXT): $(ert_deps)
+ert : $(buildinfodir)/ert.info
+$(buildinfodir)/ert.info: $(ert_deps)
 	$(mkinfodir)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/ert.texi
 ert.dvi: $(ert_deps)
@@ -387,8 +386,8 @@ ert.html: $(ert_deps)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/ert.texi
 
 eshell_deps = ${srcdir}/eshell.texi ${gfdl}
-eshell : $(buildinfodir)/eshell$(INFO_EXT)
-$(buildinfodir)/eshell$(INFO_EXT): $(eshell_deps)
+eshell : $(buildinfodir)/eshell.info
+$(buildinfodir)/eshell.info: $(eshell_deps)
 	$(mkinfodir)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/eshell.texi
 eshell.dvi: $(eshell_deps)
@@ -399,8 +398,8 @@ eshell.html: $(eshell_deps)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/eshell.texi
 
 eudc_deps = ${srcdir}/eudc.texi ${gfdl}
-eudc : $(buildinfodir)/eudc$(INFO_EXT)
-$(buildinfodir)/eudc$(INFO_EXT): $(eudc_deps)
+eudc : $(buildinfodir)/eudc.info
+$(buildinfodir)/eudc.info: $(eudc_deps)
 	$(mkinfodir)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/eudc.texi
 eudc.dvi: $(eudc_deps)
@@ -411,8 +410,8 @@ eudc.html: $(eudc_deps)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/eudc.texi
 
 eww_deps = ${srcdir}/eww.texi ${gfdl}
-eww : $(buildinfodir)/eww$(INFO_EXT)
-$(buildinfodir)/eww$(INFO_EXT): $(eww_deps)
+eww : $(buildinfodir)/eww.info
+$(buildinfodir)/eww.info: $(eww_deps)
 	$(mkinfodir)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/eww.texi
 eww.dvi: $(eww_deps)
@@ -423,8 +422,8 @@ eww.html: $(eww_deps)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/eww.texi
 
 flymake_deps = ${srcdir}/flymake.texi ${gfdl}
-flymake : $(buildinfodir)/flymake$(INFO_EXT)
-$(buildinfodir)/flymake$(INFO_EXT): $(flymake_deps)
+flymake : $(buildinfodir)/flymake.info
+$(buildinfodir)/flymake.info: $(flymake_deps)
 	$(mkinfodir)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/flymake.texi
 flymake.dvi: $(flymake_deps)
@@ -435,8 +434,8 @@ flymake.html: $(flymake_deps)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/flymake.texi
 
 forms_deps = ${srcdir}/forms.texi ${gfdl}
-forms : $(buildinfodir)/forms$(INFO_EXT)
-$(buildinfodir)/forms$(INFO_EXT): $(forms_deps)
+forms : $(buildinfodir)/forms.info
+$(buildinfodir)/forms.info: $(forms_deps)
 	$(mkinfodir)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/forms.texi
 forms.dvi: $(forms_deps)
@@ -448,8 +447,8 @@ forms.html: $(forms_deps)
 
 ## gnus/message/emacs-mime/sieve/pgg are part of Gnus.
 gnus_deps = ${srcdir}/gnus.texi ${srcdir}/gnus-faq.texi ${gfdl}
-gnus : $(buildinfodir)/gnus$(INFO_EXT)
-$(buildinfodir)/gnus$(INFO_EXT): $(gnus_deps)
+gnus : $(buildinfodir)/gnus.info
+$(buildinfodir)/gnus.info: $(gnus_deps)
 	$(mkinfodir)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/gnus.texi
 gnus.dvi: $(gnus_deps)
@@ -466,8 +465,8 @@ gnus.html: $(gnus_deps)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/gnus.texi
 
 htmlfontify_deps = ${srcdir}/htmlfontify.texi ${gfdl}
-htmlfontify : $(buildinfodir)/htmlfontify$(INFO_EXT)
-$(buildinfodir)/htmlfontify$(INFO_EXT): $(htmlfontify_deps)
+htmlfontify : $(buildinfodir)/htmlfontify.info
+$(buildinfodir)/htmlfontify.info: $(htmlfontify_deps)
 	$(mkinfodir)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/htmlfontify.texi
 htmlfontify.dvi: $(htmlfontify_deps)
@@ -478,9 +477,9 @@ htmlfontify.html: $(htmlfontify_deps)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/htmlfontify.texi
 
 idlwave_deps = ${srcdir}/idlwave.texi ${gfdl}
-idlwave : $(buildinfodir)/idlwave$(INFO_EXT)
+idlwave : $(buildinfodir)/idlwave.info
 # NB this one needs --no-split even without a .info extension.
-$(buildinfodir)/idlwave$(INFO_EXT): $(idlwave_deps)
+$(buildinfodir)/idlwave.info: $(idlwave_deps)
 	$(mkinfodir)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/idlwave.texi
 idlwave.dvi: $(idlwave_deps)
@@ -491,8 +490,8 @@ idlwave.html: $(idlwave_deps)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/idlwave.texi
 
 ido_deps = ${srcdir}/ido.texi $(emacsdir)/emacsver.texi ${gfdl}
-ido : $(buildinfodir)/ido$(INFO_EXT)
-$(buildinfodir)/ido$(INFO_EXT): $(ido_deps)
+ido : $(buildinfodir)/ido.info
+$(buildinfodir)/ido.info: $(ido_deps)
 	$(mkinfodir)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/ido.texi
 ido.dvi: $(ido_deps)
@@ -504,9 +503,9 @@ ido.html: $(ido_deps)
 
 info_deps = ${srcdir}/info.texi ${gfdl}
 # Avoid name clash with overall "info" target.
-info.info : $(buildinfodir)/info$(INFO_EXT)
+info.info : $(buildinfodir)/info.info
 # NB this one needs --no-split even without a .info extension.
-$(buildinfodir)/info$(INFO_EXT): $(info_deps)
+$(buildinfodir)/info.info: $(info_deps)
 	$(mkinfodir)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/info.texi
 info.dvi: $(info_deps)
@@ -517,8 +516,8 @@ info.html: $(info_deps)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/info.texi
 
 mairix_el_deps = ${srcdir}/mairix-el.texi ${gfdl}
-mairix-el : $(buildinfodir)/mairix-el$(INFO_EXT)
-$(buildinfodir)/mairix-el$(INFO_EXT): $(mairix_el_deps)
+mairix-el : $(buildinfodir)/mairix-el.info
+$(buildinfodir)/mairix-el.info: $(mairix_el_deps)
 	$(mkinfodir)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/mairix-el.texi
 mairix-el.dvi: $(mairix_el_deps)
@@ -529,8 +528,8 @@ mairix-el.html: $(mairix_el_deps)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/mairix-el.texi
 
 message_deps = ${srcdir}/message.texi ${gfdl}
-message : $(buildinfodir)/message$(INFO_EXT)
-$(buildinfodir)/message$(INFO_EXT): $(message_deps)
+message : $(buildinfodir)/message.info
+$(buildinfodir)/message.info: $(message_deps)
 	$(mkinfodir)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/message.texi
 message.dvi: $(message_deps)
@@ -541,8 +540,8 @@ message.html: $(message_deps)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/message.texi
 
 mh_e_deps = ${srcdir}/mh-e.texi ${gfdl}
-mh-e : $(buildinfodir)/mh-e$(INFO_EXT)
-$(buildinfodir)/mh-e$(INFO_EXT): $(mh_e_deps)
+mh-e : $(buildinfodir)/mh-e.info
+$(buildinfodir)/mh-e.info: $(mh_e_deps)
 	$(mkinfodir)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/mh-e.texi
 mh-e.dvi: $(mh_e_deps)
@@ -553,8 +552,8 @@ mh-e.html: $(mh_e_deps)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/mh-e.texi
 
 newsticker_deps = ${srcdir}/newsticker.texi ${gfdl}
-newsticker : $(buildinfodir)/newsticker$(INFO_EXT)
-$(buildinfodir)/newsticker$(INFO_EXT): $(newsticker_deps)
+newsticker : $(buildinfodir)/newsticker.info
+$(buildinfodir)/newsticker.info: $(newsticker_deps)
 	$(mkinfodir)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/newsticker.texi
 newsticker.dvi: $(newsticker_deps)
@@ -565,8 +564,8 @@ newsticker.html: $(newsticker_deps)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/newsticker.texi
 
 nxml_mode_deps = ${srcdir}/nxml-mode.texi ${gfdl}
-nxml-mode : $(buildinfodir)/nxml-mode$(INFO_EXT)
-$(buildinfodir)/nxml-mode$(INFO_EXT): $(nxml_mode_deps)
+nxml-mode : $(buildinfodir)/nxml-mode.info
+$(buildinfodir)/nxml-mode.info: $(nxml_mode_deps)
 	$(mkinfodir)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/nxml-mode.texi
 nxml-mode.dvi: $(nxml_mode_deps)
@@ -577,8 +576,8 @@ nxml-mode.html: $(nxml_mode_deps)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/nxml-mode.texi
 
 octave_mode_deps = ${srcdir}/octave-mode.texi ${gfdl}
-octave-mode : $(buildinfodir)/octave-mode$(INFO_EXT)
-$(buildinfodir)/octave-mode$(INFO_EXT): $(octave_mode_deps)
+octave-mode : $(buildinfodir)/octave-mode.info
+$(buildinfodir)/octave-mode.info: $(octave_mode_deps)
 	$(mkinfodir)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/octave-mode.texi
 octave-mode.dvi: $(octave_mode_deps)
@@ -589,8 +588,8 @@ octave-mode.html: $(octave_mode_deps)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/octave-mode.texi
 
 org_deps = ${srcdir}/org.texi ${gfdl}
-org : $(buildinfodir)/org$(INFO_EXT)
-$(buildinfodir)/org$(INFO_EXT): $(org_deps)
+org : $(buildinfodir)/org.info
+$(buildinfodir)/org.info: $(org_deps)
 	$(mkinfodir)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/org.texi
 org.dvi: $(org_deps)
@@ -601,8 +600,8 @@ org.html: $(org_deps)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/org.texi
 
 pcl_cvs_deps = ${srcdir}/pcl-cvs.texi ${gfdl}
-pcl-cvs : $(buildinfodir)/pcl-cvs$(INFO_EXT)
-$(buildinfodir)/pcl-cvs$(INFO_EXT): $(pcl_cvs_deps)
+pcl-cvs : $(buildinfodir)/pcl-cvs.info
+$(buildinfodir)/pcl-cvs.info: $(pcl_cvs_deps)
 	$(mkinfodir)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/pcl-cvs.texi
 pcl-cvs.dvi: $(pcl_cvs_deps)
@@ -613,8 +612,8 @@ pcl-cvs.html: $(pcl_cvs_deps)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/pcl-cvs.texi
 
 pgg_deps = ${srcdir}/pgg.texi ${gfdl}
-pgg : $(buildinfodir)/pgg$(INFO_EXT)
-$(buildinfodir)/pgg$(INFO_EXT): $(pgg_deps)
+pgg : $(buildinfodir)/pgg.info
+$(buildinfodir)/pgg.info: $(pgg_deps)
 	$(mkinfodir)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/pgg.texi
 pgg.dvi: $(pgg_deps)
@@ -625,8 +624,8 @@ pgg.html: $(pgg_deps)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/pgg.texi
 
 rcirc_deps = ${srcdir}/rcirc.texi ${gfdl}
-rcirc : $(buildinfodir)/rcirc$(INFO_EXT)
-$(buildinfodir)/rcirc$(INFO_EXT): $(rcirc_deps)
+rcirc : $(buildinfodir)/rcirc.info
+$(buildinfodir)/rcirc.info: $(rcirc_deps)
 	$(mkinfodir)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/rcirc.texi
 rcirc.dvi: $(rcirc_deps)
@@ -637,8 +636,8 @@ rcirc.html: $(rcirc_deps)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/rcirc.texi
 
 reftex_deps = ${srcdir}/reftex.texi $(emacsdir)/emacsver.texi ${gfdl}
-reftex : $(buildinfodir)/reftex$(INFO_EXT)
-$(buildinfodir)/reftex$(INFO_EXT): $(reftex_deps)
+reftex : $(buildinfodir)/reftex.info
+$(buildinfodir)/reftex.info: $(reftex_deps)
 	$(mkinfodir)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/reftex.texi
 reftex.dvi: $(reftex_deps)
@@ -649,8 +648,8 @@ reftex.html: $(reftex_deps)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/reftex.texi
 
 remember_deps = ${srcdir}/remember.texi ${gfdl}
-remember : $(buildinfodir)/remember$(INFO_EXT)
-$(buildinfodir)/remember$(INFO_EXT): $(remember_deps)
+remember : $(buildinfodir)/remember.info
+$(buildinfodir)/remember.info: $(remember_deps)
 	$(mkinfodir)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/remember.texi
 remember.dvi: $(remember_deps)
@@ -661,8 +660,8 @@ remember.html: $(remember_deps)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/remember.texi
 
 sasl_deps = ${srcdir}/sasl.texi ${gfdl}
-sasl : $(buildinfodir)/sasl$(INFO_EXT)
-$(buildinfodir)/sasl$(INFO_EXT): $(sasl_deps)
+sasl : $(buildinfodir)/sasl.info
+$(buildinfodir)/sasl.info: $(sasl_deps)
 	$(mkinfodir)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/sasl.texi
 sasl.dvi: $(sasl_deps)
@@ -673,8 +672,8 @@ sasl.html: $(sasl_deps)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/sasl.texi
 
 sc_deps = ${srcdir}/sc.texi ${gfdl}
-sc : $(buildinfodir)/sc$(INFO_EXT)
-$(buildinfodir)/sc$(INFO_EXT): $(sc_deps)
+sc : $(buildinfodir)/sc.info
+$(buildinfodir)/sc.info: $(sc_deps)
 	$(mkinfodir)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/sc.texi
 sc.dvi: $(sc_deps)
@@ -685,8 +684,8 @@ sc.html: $(sc_deps)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/sc.texi
 
 semantic_deps = ${srcdir}/semantic.texi ${srcdir}/sem-user.texi ${gfdl}
-semantic : $(buildinfodir)/semantic$(INFO_EXT)
-$(buildinfodir)/semantic$(INFO_EXT): $(semantic_deps)
+semantic : $(buildinfodir)/semantic.info
+$(buildinfodir)/semantic.info: $(semantic_deps)
 	$(mkinfodir)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/semantic.texi
 semantic.dvi: $(semantic_deps)
@@ -697,8 +696,8 @@ semantic.html: $(semantic_deps)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/semantic.texi
 
 ses_deps = ${srcdir}/ses.texi ${gfdl}
-ses : $(buildinfodir)/ses$(INFO_EXT)
-$(buildinfodir)/ses$(INFO_EXT): $(ses_deps)
+ses : $(buildinfodir)/ses.info
+$(buildinfodir)/ses.info: $(ses_deps)
 	$(mkinfodir)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/ses.texi
 ses.dvi: $(ses_deps)
@@ -709,8 +708,8 @@ ses.html: $(ses_deps)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/ses.texi
 
 sieve_deps = ${srcdir}/sieve.texi ${gfdl}
-sieve : $(buildinfodir)/sieve$(INFO_EXT)
-$(buildinfodir)/sieve$(INFO_EXT): $(sieve_deps)
+sieve : $(buildinfodir)/sieve.info
+$(buildinfodir)/sieve.info: $(sieve_deps)
 	$(mkinfodir)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/sieve.texi
 sieve.dvi: $(sieve_deps)
@@ -721,8 +720,8 @@ sieve.html: $(sieve_deps)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/sieve.texi
 
 smtpmail_deps = ${srcdir}/smtpmail.texi ${gfdl}
-smtpmail : $(buildinfodir)/smtpmail$(INFO_EXT)
-$(buildinfodir)/smtpmail$(INFO_EXT): $(smtpmail_deps)
+smtpmail : $(buildinfodir)/smtpmail.info
+$(buildinfodir)/smtpmail.info: $(smtpmail_deps)
 	$(mkinfodir)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/smtpmail.texi
 smtpmail.dvi: $(smtpmail_deps)
@@ -733,8 +732,8 @@ smtpmail.html: $(smtpmail_deps)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/smtpmail.texi
 
 speedbar_deps = ${srcdir}/speedbar.texi ${gfdl}
-speedbar : $(buildinfodir)/speedbar$(INFO_EXT)
-$(buildinfodir)/speedbar$(INFO_EXT): $(speedbar_deps)
+speedbar : $(buildinfodir)/speedbar.info
+$(buildinfodir)/speedbar.info: $(speedbar_deps)
 	$(mkinfodir)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/speedbar.texi
 speedbar.dvi: $(speedbar_deps)
@@ -745,8 +744,8 @@ speedbar.html: $(speedbar_deps)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/speedbar.texi
 
 srecode_deps = ${srcdir}/srecode.texi ${gfdl}
-srecode : $(buildinfodir)/srecode$(INFO_EXT)
-$(buildinfodir)/srecode$(INFO_EXT): $(srecode_deps)
+srecode : $(buildinfodir)/srecode.info
+$(buildinfodir)/srecode.info: $(srecode_deps)
 	$(mkinfodir)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/srecode.texi
 srecode.dvi: $(srecode_deps)
@@ -757,8 +756,8 @@ srecode.html: $(srecode_deps)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/srecode.texi
 
 todo_mode_deps = ${srcdir}/todo-mode.texi ${gfdl}
-todo-mode : $(buildinfodir)/todo-mode$(INFO_EXT)
-$(buildinfodir)/todo-mode$(INFO_EXT): $(todo_mode_deps)
+todo-mode : $(buildinfodir)/todo-mode.info
+$(buildinfodir)/todo-mode.info: $(todo_mode_deps)
 	$(mkinfodir)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/todo-mode.texi
 todo-mode.dvi: $(todo_mode_deps)
@@ -769,8 +768,8 @@ todo-mode.html: $(todo_mode_deps)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/todo-mode.texi
 
 tramp_deps = ${srcdir}/tramp.texi ${srcdir}/trampver.texi ${gfdl}
-tramp : $(buildinfodir)/tramp$(INFO_EXT)
-$(buildinfodir)/tramp$(INFO_EXT): $(tramp_deps)
+tramp : $(buildinfodir)/tramp.info
+$(buildinfodir)/tramp.info: $(tramp_deps)
 	$(mkinfodir)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ -D emacs ${srcdir}/tramp.texi
 tramp.dvi: $(tramp_deps)
@@ -781,8 +780,8 @@ tramp.html: $(tramp_deps)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ -D emacs ${srcdir}/tramp.texi
 
 url_deps = ${srcdir}/url.texi ${gfdl}
-url : $(buildinfodir)/url$(INFO_EXT)
-$(buildinfodir)/url$(INFO_EXT): $(url_deps)
+url : $(buildinfodir)/url.info
+$(buildinfodir)/url.info: $(url_deps)
 	$(mkinfodir)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/url.texi
 url.dvi: $(url_deps)
@@ -793,8 +792,8 @@ url.html: $(url_deps)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/url.texi
 
 vhdl_mode_deps = ${srcdir}/vhdl-mode.texi ${gfdl}
-vhdl-mode : $(buildinfodir)/vhdl-mode$(INFO_EXT)
-$(buildinfodir)/vhdl-mode$(INFO_EXT): $(vhdl_mode_deps)
+vhdl-mode : $(buildinfodir)/vhdl-mode.info
+$(buildinfodir)/vhdl-mode.info: $(vhdl_mode_deps)
 	$(mkinfodir)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/vhdl-mode.texi
 vhdl-mode.dvi: $(vhdl_mode_deps)
@@ -805,8 +804,8 @@ vhdl-mode.html: $(vhdl_mode_deps)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/vhdl-mode.texi
 
 vip_deps = ${srcdir}/vip.texi ${gfdl}
-vip : $(buildinfodir)/vip$(INFO_EXT)
-$(buildinfodir)/vip$(INFO_EXT): $(vip_deps)
+vip : $(buildinfodir)/vip.info
+$(buildinfodir)/vip.info: $(vip_deps)
 	$(mkinfodir)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/vip.texi
 vip.dvi: $(vip_deps)
@@ -817,8 +816,8 @@ vip.html: $(vip_deps)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/vip.texi
 
 viper_deps = ${srcdir}/viper.texi ${gfdl}
-viper : $(buildinfodir)/viper$(INFO_EXT)
-$(buildinfodir)/viper$(INFO_EXT): $(viper_deps)
+viper : $(buildinfodir)/viper.info
+$(buildinfodir)/viper.info: $(viper_deps)
 	$(mkinfodir)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/viper.texi
 viper.dvi: $(viper_deps)
@@ -829,8 +828,8 @@ viper.html: $(viper_deps)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/viper.texi
 
 widget_deps = ${srcdir}/wisent.texi ${gfdl}
-widget : $(buildinfodir)/widget$(INFO_EXT)
-$(buildinfodir)/widget$(INFO_EXT): $(widget_deps)
+widget : $(buildinfodir)/widget.info
+$(buildinfodir)/widget.info: $(widget_deps)
 	$(mkinfodir)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/widget.texi
 widget.dvi: $(widget_deps)
@@ -841,8 +840,8 @@ widget.html: $(widget_deps)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/widget.texi
 
 wisent_deps = ${srcdir}/wisent.texi ${gfdl}
-wisent : $(buildinfodir)/wisent$(INFO_EXT)
-$(buildinfodir)/wisent$(INFO_EXT): $(wisent_deps)
+wisent : $(buildinfodir)/wisent.info
+$(buildinfodir)/wisent.info: $(wisent_deps)
 	$(mkinfodir)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/wisent.texi
 wisent.dvi: $(wisent_deps)
@@ -853,8 +852,8 @@ wisent.html: $(wisent_deps)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/wisent.texi
 
 woman_deps = ${srcdir}/woman.texi $(emacsdir)/emacsver.texi ${gfdl}
-woman : $(buildinfodir)/woman$(INFO_EXT)
-$(buildinfodir)/woman$(INFO_EXT): $(woman_deps)
+woman : $(buildinfodir)/woman.info
+$(buildinfodir)/woman.info: $(woman_deps)
 	$(mkinfodir)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/woman.texi
 woman.dvi: $(woman_deps)
@@ -883,7 +882,7 @@ distclean: clean
 ## buildinfodir is relative to srcdir.
 infoclean:
 	for file in $(INFO_TARGETS); do \
-	  file=`echo $${file} | sed 's/\.info$$//'`${INFO_EXT}; \
+	  file=`echo $${file} | sed 's/\.info$$//'`.info; \
 	  rm -f \
 	    $(buildinfodir)/$${file} \
 	    $(buildinfodir)/$${file}-[1-9] \
@@ -904,7 +903,6 @@ dist:
 	  -e 's/^\(clean:.*\)/\1 infoclean/' \
 	  -e "s/@ver[s]ion@/${version}/" \
 	  -e 's/@MAKE[I]NFO@/makeinfo/' -e 's/@MK[D]IR_P@/mkdir -p/' \
-	  -e 's/@IN[F]O_EXT@/.info/' -e 's/@IN[F]O_OPTS@//' \
 	  ${srcdir}/Makefile.in > emacs-misc-${version}/Makefile
 	@if grep '@[a-zA-Z_]*@' emacs-misc-${version}/Makefile; then \
 	  echo "Unexpanded configure variables in Makefile?" 1>&2; exit 1; \

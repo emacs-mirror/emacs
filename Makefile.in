@@ -146,8 +146,7 @@ man1dir=$(mandir)/man1
 # Where to install and expect the info files describing Emacs.
 infodir=@infodir@
 # Info files not in the doc/misc directory (we get those via make echo-info).
-INFO_EXT=@INFO_EXT@
-INFO_NONMISC=emacs$(INFO_EXT) eintr$(INFO_EXT) elisp$(INFO_EXT)
+INFO_NONMISC=emacs.info eintr.info elisp.info
 
 # If no makeinfo was found and configured --without-makeinfo, "no"; else "yes".
 HAVE_MAKEINFO=@HAVE_MAKEINFO@

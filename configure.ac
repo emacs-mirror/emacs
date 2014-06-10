@@ -1113,12 +1113,6 @@ with the `--without-makeinfo' option to build without the manuals.] )
 fi
 AC_SUBST(HAVE_MAKEINFO)
 
-dnl Just so that there is only a single place we need to edit.
-INFO_EXT=.info
-INFO_OPTS=--no-split
-AC_SUBST(INFO_EXT)
-AC_SUBST(INFO_OPTS)
-
 if test $opsys = mingw32; then
    DOCMISC_W32=efaq-w32
 else
