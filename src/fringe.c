@@ -634,7 +634,7 @@ draw_fringe_bitmap_1 (struct window *w, struct glyph_row *row, int left_p, int o
       return;
     }
 
-  PREPARE_FACE_FOR_DISPLAY (f, p.face);
+  prepare_face_for_display (f, p.face);
 
   /* Clear left fringe if no bitmap to draw or if bitmap doesn't fill
      the fringe.  */

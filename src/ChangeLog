@@ -1,3 +1,10 @@
+2014-06-10  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* dispextern.h (PREPARE_FACE_FOR_DISPLAY): Remove as a duplicate of ...
+	* xfaces.c (prepare_face_for_display) [HAVE_WINDOW_SYSTEM]: ... this
+	function.  Also adjust comment.
+	* fringe.c, w32term.c, xdisp.c, xterm.c: All users changed.
+
 2014-06-09  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Say (accept-process-output P)'s result pertains to P if P is non-nil.

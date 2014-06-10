@@ -4098,15 +4098,15 @@ free_realized_face (struct frame *f, struct face *face)
     }
 }
 
+#ifdef HAVE_WINDOW_SYSTEM
 
-/* Prepare face FACE for subsequent display on frame F.  This
-   allocated GCs if they haven't been allocated yet or have been freed
-   by clearing the face cache.  */
+/* Prepare face FACE for subsequent display on frame F.  This must be called
+   before using X resources of FACE to allocate GCs if they haven't been
+   allocated yet or have been freed by clearing the face cache.  */
 
 void
 prepare_face_for_display (struct frame *f, struct face *face)
 {
-#ifdef HAVE_WINDOW_SYSTEM
   eassert (FRAME_WINDOW_P (f));
 
   if (face->gc == 0)
@@ -4134,10 +4134,10 @@ prepare_face_for_display (struct frame *f, struct face *face)
 	font_prepare_for_face (f, face);
       unblock_input ();
     }
-#endif /* HAVE_WINDOW_SYSTEM */
 }
 
-
+#endif /* HAVE_WINDOW_SYSTEM */
+
 /* Returns the `distance' between the colors X and Y.  */
 
 static int

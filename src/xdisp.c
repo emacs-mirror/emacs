@@ -23680,7 +23680,7 @@ get_char_face_and_encoding (struct frame *f, int c, int face_id,
 #endif
     {
       eassert (face != NULL);
-      PREPARE_FACE_FOR_DISPLAY (f, face);
+      prepare_face_for_display (f, face);
     }
 
   return face;
@@ -23703,7 +23703,7 @@ get_glyph_face_and_encoding (struct frame *f, struct glyph *glyph,
 
   /* Make sure X resources of the face are allocated.  */
   eassert (face != NULL);
-  PREPARE_FACE_FOR_DISPLAY (f, face);
+  prepare_face_for_display (f, face);
 
   if (two_byte_p)
     *two_byte_p = 0;
@@ -24020,7 +24020,7 @@ fill_stretch_glyph_string (struct glyph_string *s, int start, int end)
   s->ybase += voffset;
 
   /* The case that face->gc == 0 is handled when drawing the glyph
-     string by calling PREPARE_FACE_FOR_DISPLAY.  */
+     string by calling prepare_face_for_display.  */
   eassert (s->face);
   return glyph - s->row->glyphs[s->area];
 }
@@ -24969,7 +24969,7 @@ produce_image_glyph (struct it *it)
   face = FACE_FROM_ID (it->f, it->face_id);
   eassert (face);
   /* Make sure X resources of the face is loaded.  */
-  PREPARE_FACE_FOR_DISPLAY (it->f, face);
+  prepare_face_for_display (it->f, face);
 
   if (it->image_id < 0)
     {
@@ -25247,7 +25247,7 @@ produce_stretch_glyph (struct it *it)
     {
       struct face *face = FACE_FROM_ID (it->f, it->face_id);
       font = face->font ? face->font : FRAME_FONT (it->f);
-      PREPARE_FACE_FOR_DISPLAY (it->f, face);
+      prepare_face_for_display (it->f, face);
     }
 #endif
 
@@ -25711,7 +25711,7 @@ produce_glyphless_glyph (struct it *it, int for_no_font, Lisp_Object acronym)
 
       face = FACE_FROM_ID (it->f, face_id);
       font = face->font ? face->font : FRAME_FONT (it->f);
-      PREPARE_FACE_FOR_DISPLAY (it->f, face);
+      prepare_face_for_display (it->f, face);
 
       if (it->glyphless_method == GLYPHLESS_DISPLAY_ACRONYM)
 	{

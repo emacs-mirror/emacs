@@ -1795,16 +1795,6 @@ struct face_cache
   bool_bf menu_face_changed_p : 1;
 };
 
-
-/* Prepare face FACE for use on frame F.  This must be called before
-   using X resources of FACE.  */
-
-#define PREPARE_FACE_FOR_DISPLAY(F, FACE)	\
-  do {						\
-     if ((FACE)->gc == 0)			\
-       prepare_face_for_display ((F), (FACE));	\
-  } while (false)
-
 /* Return a pointer to the face with ID on frame F, or null if such a
    face doesn't exist.  */
 
@@ -3354,7 +3344,9 @@ unsigned long load_color (struct frame *, struct face *, Lisp_Object,
                           enum lface_attribute_index);
 char *choose_face_font (struct frame *, Lisp_Object *, Lisp_Object,
                         int *);
+#ifdef HAVE_WINDOW_SYSTEM
 void prepare_face_for_display (struct frame *, struct face *);
+#endif
 int lookup_named_face (struct frame *, Lisp_Object, int);
 int lookup_basic_face (struct frame *, int);
 int smaller_face (struct frame *, int, int);
