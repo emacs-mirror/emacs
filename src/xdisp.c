@@ -11806,11 +11806,6 @@ update_menu_bar (struct frame *f, int save_match_data, int hooks_run)
 
 #ifdef HAVE_WINDOW_SYSTEM
 
-/* Tool-bar item index of the item on which a mouse button was pressed
-   or -1.  */
-
-int last_tool_bar_item;
-
 /* Select `frame' temporarily without running all the code in
    do_switch_frame.
    FIXME: Maybe do_switch_frame should be trimmed down similarly
@@ -12612,7 +12607,7 @@ handle_tool_bar_click (struct frame *f, int x, int y, int down_p,
      where the button was pressed, disregarding where it was
      released.  */
   if (NILP (Vmouse_highlight) && !down_p)
-    prop_idx = last_tool_bar_item;
+    prop_idx = f->last_tool_bar_item;
 
   /* If item is disabled, do nothing.  */
   enabled_p = AREF (f->tool_bar_items, prop_idx + TOOL_BAR_ITEM_ENABLED_P);
@@ -12624,7 +12619,7 @@ handle_tool_bar_click (struct frame *f, int x, int y, int down_p,
       /* Show item in pressed state.  */
       if (!NILP (Vmouse_highlight))
 	show_mouse_face (hlinfo, DRAW_IMAGE_SUNKEN);
-      last_tool_bar_item = prop_idx;
+      f->last_tool_bar_item = prop_idx;
     }
   else
     {
@@ -12649,7 +12644,7 @@ handle_tool_bar_click (struct frame *f, int x, int y, int down_p,
       event.arg = key;
       event.modifiers = modifiers;
       kbd_buffer_store_event (&event);
-      last_tool_bar_item = -1;
+      f->last_tool_bar_item = -1;
     }
 }
 
@@ -12699,8 +12694,7 @@ note_tool_bar_highlight (struct frame *f, int x, int y)
   mouse_down_p = (x_mouse_grabbed (dpyinfo)
 		  && f == dpyinfo->last_mouse_frame);
 
-  if (mouse_down_p
-      && last_tool_bar_item != prop_idx)
+  if (mouse_down_p && f->last_tool_bar_item != prop_idx)
     return;
 
   draw = mouse_down_p ? DRAW_IMAGE_SUNKEN : DRAW_IMAGE_RAISED;

@@ -14,6 +14,14 @@
 	* xftfont.c (xftfont_prepare_face): Likewise.  Use xmalloc.
 	(xftfont_done_face): Use xfree.
 
+	* dispextern.h (last_tool_bar_item): Remove declaration.
+	* frame.h (struct frame): New member last_tool_bar_item.
+	* frame.c (make_frame): Initialize it.
+	* xdisp.c (toplevel): Remove last_tool_bar_item.
+	(handle_tool_bar_click, note_tool_bar_highlight):
+	* w32term.c (w32_read_socket, w32_initialize):
+	* xterm.c (handle_one_xevent, x_initialize): Adjust users.
+
 2014-06-09  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Say (accept-process-output P)'s result pertains to P if P is non-nil.

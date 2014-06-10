@@ -352,6 +352,9 @@ make_frame (bool mini_p)
   f->line_height = 1;  /* !FRAME_WINDOW_P value.  */
 #ifdef HAVE_WINDOW_SYSTEM
   f->want_fullscreen = FULLSCREEN_NONE;
+#if ! defined (USE_GTK) && ! defined (HAVE_NS)
+  f->last_tool_bar_item = -1;
+#endif
 #endif
 
   root_window = make_window ();

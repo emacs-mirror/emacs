@@ -4536,10 +4536,11 @@ w32_read_socket (struct terminal *terminal,
                    Emacs events should reflect only motion after
                    the ButtonPress.  */
                 if (f != 0)
-                  f->mouse_moved = 0;
-
-                if (!tool_bar_p)
-                  last_tool_bar_item = -1;
+		  {
+		    f->mouse_moved = 0;
+		    if (!tool_bar_p)
+		      f->last_tool_bar_item = -1;
+		  }
 	      }
 	    break;
 	  }
@@ -4564,9 +4565,9 @@ w32_read_socket (struct terminal *terminal,
 		   should reflect only motion after the
 		   ButtonPress.  */
 		f->mouse_moved = 0;
+		f->last_tool_bar_item = -1;
 	      }
 	    dpyinfo->last_mouse_frame = f;
-	    last_tool_bar_item = -1;
 	  }
 	  break;
 
@@ -6454,7 +6455,6 @@ w32_initialize (void)
 			     &w32_use_visible_system_caret, 0))
     w32_use_visible_system_caret = 0;
 
-  last_tool_bar_item = -1;
   any_help_event_p = 0;
 
   /* Initialize input mode: interrupt_input off, no flow control, allow

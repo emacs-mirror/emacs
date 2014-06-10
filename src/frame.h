@@ -164,6 +164,11 @@ struct frame
   /* Cache of realized faces.  */
   struct face_cache *face_cache;
 
+#if defined (HAVE_WINDOW_SYSTEM) && ! defined (USE_GTK) && ! defined (HAVE_NS)
+  /* Tool-bar item index of the item on which a mouse button was pressed.  */
+  int last_tool_bar_item;
+#endif
+
   /* Number of elements in `menu_bar_vector' that have meaningful data.  */
   int menu_bar_items_used;
 
