@@ -5483,7 +5483,6 @@ realize_non_ascii_face (struct frame *f, Lisp_Object font_object,
   face = xmalloc (sizeof *face);
   *face = *base_face;
   face->gc = 0;
-  face->extra = NULL;
   face->overstrike
     = (! NILP (font_object)
        && FONT_WEIGHT_NAME_NUMERIC (face->lface[LFACE_WEIGHT_INDEX]) > 100

@@ -3337,7 +3337,6 @@ font_done_for_face (struct frame *f, struct face *face)
 {
   if (face->font->driver->done_face)
     face->font->driver->done_face (f, face);
-  face->extra = NULL;
 }
 
 

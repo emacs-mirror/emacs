@@ -564,11 +564,9 @@ struct font_driver
   /* Close FONT.  NOTE: this can be called by GC.  */
   void (*close) (struct font *font);
 
-  /* Optional (if FACE->extra is not used).
-     Prepare FACE for displaying characters by FONT on frame F by
-     storing some data in FACE->extra.  If successful, return 0.
-     Otherwise, return -1.  */
-  int (*prepare_face) (struct frame *f, struct face *face);
+  /* Prepare FACE for displaying characters by FONT on frame F by
+     storing some data in FACE->extra.  */
+  void (*prepare_face) (struct frame *f, struct face *face);
 
   /* Optional.
      Done FACE for displaying characters by FACE->font on frame F.  */

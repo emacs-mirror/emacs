@@ -5,6 +5,15 @@
 	function.  Also adjust comment.
 	* fringe.c, w32term.c, xdisp.c, xterm.c: All users changed.
 
+	* dispextern.h (struct face) [HAVE_XFT]: Ifdef 'extra' member.
+	* font.c (font_done_for_face):
+	* xface.c (realize_non_ascii_face): Adjust user.
+	* font.h (struct font_driver): Convert 'prepare_face' to return
+	void because its return value is never used anyway.
+	* xfont.c (xfont_prepare_face): Return void.
+	* xftfont.c (xftfont_prepare_face): Likewise.  Use xmalloc.
+	(xftfont_done_face): Use xfree.
+
 2014-06-09  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Say (accept-process-output P)'s result pertains to P if P is non-nil.
