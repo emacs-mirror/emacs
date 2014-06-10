@@ -73,7 +73,7 @@ INFO_COMMON = ada-mode auth autotype bovine calc ccmode cl \
 	url vip viper widget wisent woman
 
 ## Info files to install on current platform.
-INFO_INSTALL = $(INFO_COMMON) $(DOCMISC_INFO_W32)
+INFO_INSTALL = $(INFO_COMMON) $(DOCMISC_W32)
 
 ## Info files to build on current platform.
 ## This is all of them, even though they might not all get installed,
