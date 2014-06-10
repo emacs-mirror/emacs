@@ -1,5 +1,8 @@
 2014-06-10  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (AUTOCONF, AUTOMAKE, AUTOHEADER, ACLOCAL):
+	New, set by configure.  Use throughout where appropriate.
+
 	* Makefile.in (INFO_EXT): Remove and replace by ".info" throughout.
 	* configure.ac (INFO_EXT, INFO_OPTS): Remove output variables.
 

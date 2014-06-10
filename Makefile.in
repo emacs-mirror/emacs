@@ -76,6 +76,11 @@ QUIET_SUBMAKE = MAKELEVEL=0
 cache_file = @cache_file@
 CONFIGURE_FLAGS = --cache-file=$(cache_file)
 
+AUTOCONF = @AUTOCONF@
+AUTOMAKE = @AUTOMAKE@
+AUTOHEADER = @AUTOHEADER@
+ACLOCAL = @ACLOCAL@
+
 CC=@CC@
 CFLAGS=@CFLAGS@
 LDFLAGS=@LDFLAGS@
@@ -422,17 +427,17 @@ config.status: ${srcdir}/configure ${srcdir}/lisp/version.el
 AUTOCONF_INPUTS = $(srcdir)/configure.ac $(srcdir)/aclocal.m4
 
 $(srcdir)/configure: $(AUTOCONF_INPUTS)
-	cd ${srcdir} && autoconf
+	cd ${srcdir} && ${AUTOCONF}
 
 ACLOCAL_PATH = @ACLOCAL_PATH@
 ACLOCAL_INPUTS = $(srcdir)/configure.ac $(srcdir)/m4/gnulib-comp.m4
 $(srcdir)/aclocal.m4: $(ACLOCAL_INPUTS)
-	cd $(srcdir) && ACLOCAL_PATH='$(ACLOCAL_PATH)' aclocal -I m4
+	cd $(srcdir) && ACLOCAL_PATH='$(ACLOCAL_PATH)' $(ACLOCAL) -I m4
 
 AUTOMAKE_INPUTS = $(srcdir)/aclocal.m4 $(srcdir)/lib/Makefile.am \
   $(srcdir)/lib/gnulib.mk
 $(srcdir)/lib/Makefile.in: $(AUTOMAKE_INPUTS)
-	cd $(srcdir) && automake --gnu -a -c lib/Makefile
+	cd $(srcdir) && $(AUTOMAKE) --gnu -a -c lib/Makefile
 
 # Regenerate files that this makefile would have made, if this makefile
 # had been built by Automake.  The name 'am--refresh' is for
@@ -445,9 +450,9 @@ $(srcdir)/src/config.in: $(srcdir)/src/stamp-h.in
 	@ # because stamp-h.in has changed (since building stamp-h.in
 	@ # refreshes config.in as well), but if config.in is missing
 	@ # then we really need to do something more.
-	[ -r "$@" ] || ( cd ${srcdir} && autoheader )
+	[ -r "$@" ] || ( cd ${srcdir} && ${AUTOHEADER} )
 $(srcdir)/src/stamp-h.in: $(AUTOCONF_INPUTS)
-	cd ${srcdir} && autoheader
+	cd ${srcdir} && ${AUTOHEADER}
 	rm -f $(srcdir)/src/stamp-h.in
 	echo timestamp > $(srcdir)/src/stamp-h.in
 
