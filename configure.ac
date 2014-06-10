@@ -25,22 +25,6 @@ AC_PREREQ(2.65)
 dnl Note this is parsed by (at least) make-dist and lisp/cedet/ede/emacs.el.
 AC_INIT(GNU Emacs, 24.4.50, bug-gnu-emacs@gnu.org)
 
-dnl We get MINGW64 with MSYS2
-if test "x$MSYSTEM" = "xMINGW32" -o "x$MSYSTEM" = "xMINGW64"
-then
-  . $srcdir/nt/mingw-cfg.site
-
-  case $srcdir in
-    /* | ?:*)
-      # srcdir is an absolute path.  In this case, force the format
-      # "/c/foo/bar", to simplify later conversions to native Windows
-      # format ("c:/foo/bar")
-      srcdir=`cd "${srcdir}" && pwd -W`
-      srcdir="/${srcdir:0:1}${srcdir:2}"
-      ;;
-  esac
-fi
-
 dnl Set emacs_config_options to the options of 'configure', quoted for the shell,
 dnl and then quoted again for a C string.  Separate options with spaces.
 dnl Add some environment variables, if they were passed via the environment
@@ -145,6 +129,27 @@ MAKE=$ac_cv_path_MAKE
 
 dnl Fairly arbitrary, older versions might work too.
 AM_INIT_AUTOMAKE(1.11)
+
+dnl Canonicalize the configuration name.
+AC_CANONICAL_HOST
+canonical=$host
+configuration=${host_alias-${build_alias-$host}}
+
+dnl We get MINGW64 with MSYS2.
+case $canonical in
+ *-mingw*)
+  . $srcdir/nt/mingw-cfg.site
+
+  case $srcdir in
+    /* | ?:*)
+      # srcdir is an absolute path.  In this case, force the format
+      # "/c/foo/bar", to simplify later conversions to native Windows
+      # format ("c:/foo/bar").
+      srcdir=`cd "${srcdir}" && pwd -W`
+      srcdir="/${srcdir:0:1}${srcdir:2}"
+      ;;
+  esac;;
+esac
 
 dnl Support for --program-prefix, --program-suffix and
 dnl --program-transform-name options
@@ -488,12 +493,6 @@ AC_ARG_ENABLE(gtk-deprecation-warnings,
 [AS_HELP_STRING([--enable-gtk-deprecation-warnings],
 		[Show Gtk+/Gdk deprecation warnings for Gtk+ >= 3.0])],
 [ac_enable_gtk_deprecation_warnings="${enableval}"],[])
-
-### Canonicalize the configuration name.
-
-AC_CANONICAL_HOST
-canonical=$host
-configuration=${host_alias-${build_alias-$host}}
 
 dnl This used to use changequote, but, apart from `changequote is evil'
 dnl per the autoconf manual, we can speed up autoconf somewhat by quoting
