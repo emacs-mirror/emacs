@@ -93,32 +93,35 @@ AC_DEFUN([AC_PROG_MAKE_SET],
    AC_SUBST([SET_MAKE])])
 
 dnl Check for GNU Make and possibly set MAKE before running AM_INIT_AUTOMAKE.
+[emacs_check_gnu_make ()
+{
+  emacs_makeout=`($1 --version) 2>/dev/null` &&
+  case $emacs_makeout in
+    'GNU Make '3.8[1-9]* | 'GNU Make '3.9[0-9]* | \
+    'GNU Make '3.[1-9][0-9][0-9]* | 'GNU Make '[4-9]* | 'GNU Make '[1-9][0-9]* )
+       ac_path_MAKE_found=:;;
+  esac
+}]
 AC_CACHE_CHECK([for GNU Make], [ac_cv_path_MAKE],
   [ac_path_MAKE_found=false
    if test -n "$MAKE"; then
-     emacs_makeout=`($MAKE --version) 2>/dev/null` &&
-     case $emacs_makeout in
-       'GNU Make '[[1-3]][[0-9]]* | 'GNU Make '[[4-9]]* | 'GNU Make '3.8[[1-9]]* | 'GNU Make '3.9*)
-	 ac_path_MAKE_found=:;;
-     esac
+     emacs_check_gnu_make "$MAKE"
      ac_cv_path_MAKE=$MAKE
    else
      emacs_tried_make=false
      emacs_tried_gmake=false
      emacs_tried_gnumake=false
      AC_PATH_PROGS_FEATURE_CHECK([MAKE], [make gmake gnumake],
-       [[emacs_makeout=`($ac_path_MAKE --version) 2>/dev/null` &&
-	 case $emacs_makeout in
-	   'GNU Make '[1-3][0-9]* | 'GNU Make '[4-9]* | 'GNU Make '3.8[1-9]* | 'GNU Make '3.9*)
-	      # Use the fully-qualified program name only if the basename
-	      # would not resolve to it.
-	      if eval \$emacs_tried_$ac_prog; then
-		ac_cv_path_MAKE=$ac_path_MAKE
-	      else
-		ac_cv_path_MAKE=$ac_prog
-	      fi
-	      ac_path_MAKE_found=:;;
-	 esac
+       [[emacs_check_gnu_make "$ac_path_MAKE"
+	 if $ac_path_MAKE_found; then
+	   # Use the fully-qualified program name only if the basename
+	   # would not resolve to it.
+	   if eval \$emacs_tried_$ac_prog; then
+	     ac_cv_path_MAKE=$ac_path_MAKE
+	   else
+	     ac_cv_path_MAKE=$ac_prog
+	   fi
+	 fi
 	 eval emacs_tried_$ac_prog=:]])
    fi])
 $ac_path_MAKE_found || {

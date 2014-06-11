@@ -1,3 +1,12 @@
+2014-06-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use a shell function in configure.ac to cut down on code duplication.
+	* configure.ac (emacs_check_gnu_make): New shell function.
+	Use it to avoid duplication when checking for GNU Make.
+	It's OK for 'configure' to use shell functions these days,
+	as long as we follow the advice in the 'Shell Functions'
+	section of the Autoconf manual.
+
 2014-06-11  Glenn Morris  <rgm@gnu.org>
 
 	* configure.ac: Require at least version 3.81 of GNU make.
