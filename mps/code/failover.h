@@ -13,6 +13,8 @@
 
 typedef struct FailoverStruct *Failover;
 
+#define FailoverLand(fo) (&(fo)->landStruct)
+
 extern Bool FailoverCheck(Failover failover);
 
 extern LandClass FailoverLandClassGet(void);

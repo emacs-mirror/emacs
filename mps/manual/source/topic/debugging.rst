@@ -50,9 +50,9 @@ debugging:
   for the pattern at any time by calling
   :c:func:`mps_pool_check_free_space`.
 
-The :term:`client program` may specify templates for both of these
-features via the :c:type:`mps_pool_debug_option_s` structure. This
-allows it to specify patterns:
+The :term:`client program` may optionally specify templates for both
+of these features via the :c:type:`mps_pool_debug_option_s` structure.
+This allows it to specify patterns:
 
 * that mimic illegal data values;
 
@@ -81,15 +81,15 @@ For example::
 
 .. c:type:: mps_pool_debug_option_s
 
-    The type of the structure passed as the
+    The type of the structure passed as the value for the optional
     :c:macro:`MPS_KEY_POOL_DEBUG_OPTIONS` keyword argument to
     :c:func:`mps_pool_create_k` when creating a debugging :term:`pool
     class`. ::
 
         typedef struct mps_pool_debug_option_s {
-            void *fence_template;
+            const void *fence_template;
             size_t fence_size;
-            void *free_template;
+            const void *free_template;
             size_t free_size;
         } mps_pool_debug_option_s;
 
@@ -113,6 +113,13 @@ For example::
     The MPS may not always use the whole of a template: it may use
     pieces smaller than the given size, for example to pad out part of
     a block that was left unused because of alignment requirements.
+
+    If the client omits to pass the
+    :c:macro:`MPS_KEY_POOL_DEBUG_OPTIONS` keyword argument to
+    :c:func:`mps_pool_create_k`, then the fencepost template consists
+    of the four bytes ``50 4F 53 54`` (``POST`` in ASCII), and the
+    free space template consists of the four bytes ``46 52 45 45``
+    (``FREE`` in ASCII).
 
 
 .. c:function:: void mps_pool_check_fenceposts(mps_pool_t pool)

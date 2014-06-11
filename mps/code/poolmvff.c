@@ -65,13 +65,13 @@ typedef struct MVFFStruct {     /* MVFF pool outer structure */
 
 
 #define Pool2MVFF(pool)     PARENT(MVFFStruct, poolStruct, pool)
-#define MVFF2Pool(mvff)     (&((mvff)->poolStruct))
-#define MVFFTotalCBS(mvff)  (&((mvff)->totalCBSStruct.landStruct))
-#define MVFFFreeCBS(mvff)   (&((mvff)->freeCBSStruct.landStruct))
-#define MVFFFreelist(mvff)  (&((mvff)->flStruct.landStruct))
-#define MVFFFailover(mvff)  (&((mvff)->foStruct.landStruct))
-#define MVFFSegPref(mvff)   (&((mvff)->segPrefStruct))
-#define MVFFBlockPool(mvff) (&((mvff)->cbsBlockPoolStruct.poolStruct))
+#define MVFF2Pool(mvff)     (&(mvff)->poolStruct)
+#define MVFFTotalCBS(mvff)  CBSLand(&(mvff)->totalCBSStruct)
+#define MVFFFreeCBS(mvff)   CBSLand(&(mvff)->freeCBSStruct)
+#define MVFFFreelist(mvff)  FreelistLand(&(mvff)->flStruct)
+#define MVFFFreeLand(mvff)  FailoverLand(&(mvff)->foStruct)
+#define MVFFSegPref(mvff)   (&(mvff)->segPrefStruct)
+#define MVFFBlockPool(mvff) MFSPool(&(mvff)->cbsBlockPoolStruct)
 
 static Bool MVFFCheck(MVFF mvff);
 
@@ -108,6 +108,13 @@ static void MVFFReduce(MVFF mvff)
 
   AVERT(MVFF, mvff);
   arena = PoolArena(MVFF2Pool(mvff));
+
+  /* NOTE: Memory is returned to the arena in the smallest units
+     possible (arena grains). There's a possibility that this could
+     lead to fragmentation in the arena (because allocation is in
+     multiples of mvff->extendBy). If so, try setting align =
+     mvff->extendBy here. */
+
   align = ArenaAlign(arena);
 
   /* Try to return memory when the amount of free memory exceeds a
@@ -118,9 +125,11 @@ static void MVFFReduce(MVFF mvff)
      stored at the root node. */
 
   freeLimit = (Size)(LandSize(MVFFTotalCBS(mvff)) * mvff->spare);
-  freeSize = LandSize(MVFFFailover(mvff));
+  freeSize = LandSize(MVFFFreeLand(mvff));
   if (freeSize < freeLimit)
     return;
+
+  /* For hysteresis, return only a proportion of the free memory. */
 
   targetFree = freeLimit / 2;
 
@@ -129,7 +138,7 @@ static void MVFFReduce(MVFF mvff)
      loop will terminate */
 
   while (freeSize > targetFree
-         && LandFindLargest(&freeRange, &oldFreeRange, MVFFFailover(mvff),
+         && LandFindLargest(&freeRange, &oldFreeRange, MVFFFreeLand(mvff),
                             align, FindDeleteNONE))
   {
     RangeStruct pageRange, oldRange;
@@ -168,16 +177,16 @@ static void MVFFReduce(MVFF mvff)
        to delete from the TotalCBS we add back to the free list, which
        can't fail. */
 
-    res = LandDelete(&oldRange, MVFFFailover(mvff), &pageRange);
+    res = LandDelete(&oldRange, MVFFFreeLand(mvff), &pageRange);
     if (res != ResOK)
       break;
     freeSize -= RangeSize(&pageRange);
-    AVER(freeSize == LandSize(MVFFFailover(mvff)));
+    AVER(freeSize == LandSize(MVFFFreeLand(mvff)));
 
     res = LandDelete(&oldRange, MVFFTotalCBS(mvff), &pageRange);
     if (res != ResOK) {
       RangeStruct coalescedRange;
-      res = LandInsert(&coalescedRange, MVFFFailover(mvff), &pageRange);
+      res = LandInsert(&coalescedRange, MVFFFreeLand(mvff), &pageRange);
       AVER(res == ResOK);
       break;
     }
@@ -244,7 +253,7 @@ static Res MVFFExtend(Range rangeReturn, MVFF mvff, Size size,
   }
 
   DebugPoolFreeSplat(pool, RangeBase(&range), RangeLimit(&range));
-  res = LandInsert(rangeReturn, MVFFFailover(mvff), &range);
+  res = LandInsert(rangeReturn, MVFFFreeLand(mvff), &range);
   AVER(res == ResOK);
 
   /* Don't call MVFFReduce; that would be silly. */
@@ -278,7 +287,7 @@ static Bool MVFFFindFree(Range rangeReturn, MVFF mvff, Size size)
 
   foundBlock =
     (mvff->firstFit ? LandFindFirst : LandFindLast)
-    (rangeReturn, &oldRange, MVFFFailover(mvff), size, findDelete);
+    (rangeReturn, &oldRange, MVFFFreeLand(mvff), size, findDelete);
 
   return foundBlock;
 }
@@ -343,7 +352,7 @@ static void MVFFFree(Pool pool, Addr old, Size size)
   AVER(size > 0);
 
   RangeInitSize(&range, old, SizeAlignUp(size, PoolAlignment(pool)));
-  res = LandInsert(&coalescedRange, MVFFFailover(mvff), &range);
+  res = LandInsert(&coalescedRange, MVFFFreeLand(mvff), &range);
   AVER(res == ResOK);
   MVFFReduce(mvff);
 }
@@ -372,14 +381,14 @@ static Res MVFFBufferFill(Addr *baseReturn, Addr *limitReturn,
   AVER(SizeIsAligned(size, PoolAlignment(pool)));
   AVERT(Bool, withReservoirPermit);
 
-  found = LandFindLargest(&range, &oldRange, MVFFFailover(mvff), size,
+  found = LandFindLargest(&range, &oldRange, MVFFFreeLand(mvff), size,
                           FindDeleteENTIRE);
   if (!found) {
     /* Add a new range to the free lists and try again. */
     res = MVFFExtend(&newRange, mvff, size, withReservoirPermit);
     if (res != ResOK)
       return res;
-    found = LandFindLargest(&range, &oldRange, MVFFFailover(mvff), size,
+    found = LandFindLargest(&range, &oldRange, MVFFFreeLand(mvff), size,
                             FindDeleteENTIRE);
     AVER(found && RangesOverlap(&range, &newRange));
   }
@@ -412,7 +421,7 @@ static void MVFFBufferEmpty(Pool pool, Buffer buffer,
   if (RangeIsEmpty(&range))
     return;
 
-  res = LandInsert(&coalescedRange, MVFFFailover(mvff), &range);
+  res = LandInsert(&coalescedRange, MVFFFreeLand(mvff), &range);
   AVER(res == ResOK);
   MVFFReduce(mvff);
 }
@@ -559,7 +568,7 @@ static Res MVFFInit(Pool pool, ArgList args)
   MPS_ARGS_BEGIN(foArgs) {
     MPS_ARGS_ADD(foArgs, FailoverPrimary, MVFFFreeCBS(mvff));
     MPS_ARGS_ADD(foArgs, FailoverSecondary, MVFFFreelist(mvff));
-    res = LandInit(MVFFFailover(mvff), FailoverLandClassGet(), arena, align,
+    res = LandInit(MVFFFreeLand(mvff), FailoverLandClassGet(), arena, align,
                    mvff, foArgs);
   } MPS_ARGS_END(foArgs);
   if (res != ResOK)
@@ -586,11 +595,11 @@ failBlockPoolInit:
 
 /* MVFFFinish -- finish method for MVFF */
 
-static Bool mvffFinishVisitor(Bool *deleteReturn, Land land, Range range,
+static Bool mvffFinishVisitor(Land land, Range range,
                               void *closureP, Size closureS)
 {
   Pool pool;
-  AVER(deleteReturn != NULL);
+
   AVERT(Land, land);
   AVERT(Range, range);
   AVER(closureP != NULL);
@@ -599,7 +608,6 @@ static Bool mvffFinishVisitor(Bool *deleteReturn, Land land, Range range,
   UNUSED(closureS);
 
   ArenaFree(RangeBase(range), RangeSize(range), pool);
-  *deleteReturn = FALSE;
   return TRUE;
 }
 
@@ -615,9 +623,10 @@ static void MVFFFinish(Pool pool)
   LandIterate(MVFFTotalCBS(mvff), mvffFinishVisitor, pool, 0);
 
   /* TODO: would like to check that LandSize(MVFFTotalCBS(mvff)) == 0
-   * now, but CBS doesn't support deletion while iterating. */
+   * now, but CBS doesn't support deletion while iterating. See
+   * job003826. */
 
-  LandFinish(MVFFFailover(mvff));
+  LandFinish(MVFFFreeLand(mvff));
   LandFinish(MVFFFreelist(mvff));
   LandFinish(MVFFFreeCBS(mvff));
   LandFinish(MVFFTotalCBS(mvff));
@@ -663,7 +672,7 @@ static Size MVFFFreeSize(Pool pool)
   mvff = Pool2MVFF(pool);
   AVERT(MVFF, mvff);
 
-  return LandSize(MVFFFailover(mvff));
+  return LandSize(MVFFFreeLand(mvff));
 }
 
 
@@ -711,7 +720,7 @@ static Res MVFFDescribe(Pool pool, mps_lib_FILE *stream)
 
 DEFINE_POOL_CLASS(MVFFPoolClass, this)
 {
-  INHERIT_CLASS(this, AbstractAllocFreePoolClass);
+  INHERIT_CLASS(this, AbstractPoolClass);
   PoolClassMixInBuffer(this);
   this->name = "MVFF";
   this->size = sizeof(MVFFStruct);
@@ -781,9 +790,9 @@ static Bool MVFFCheck(MVFF mvff)
   CHECKD(Land, MVFFTotalCBS(mvff));
   CHECKD(Land, MVFFFreeCBS(mvff));
   CHECKD(Land, MVFFFreelist(mvff));
-  CHECKD(Land, MVFFFailover(mvff));
-  CHECKL(LandSize(MVFFTotalCBS(mvff)) >= LandSize(MVFFFailover(mvff)));
-  CHECKL(SizeIsAligned(LandSize(MVFFFailover(mvff)), PoolAlignment(MVFF2Pool(mvff))));
+  CHECKD(Land, MVFFFreeLand(mvff));
+  CHECKL(LandSize(MVFFTotalCBS(mvff)) >= LandSize(MVFFFreeLand(mvff)));
+  CHECKL(SizeIsAligned(LandSize(MVFFFreeLand(mvff)), PoolAlignment(MVFF2Pool(mvff))));
   CHECKL(SizeIsAligned(LandSize(MVFFTotalCBS(mvff)), ArenaAlign(PoolArena(MVFF2Pool(mvff)))));
   CHECKL(BoolCheck(mvff->slotHigh));
   CHECKL(BoolCheck(mvff->firstFit));

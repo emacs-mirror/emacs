@@ -131,7 +131,7 @@ Memory Management Glossary: C
 
         A cactus stack is a :term:`stack` with branches. When
         diagrammed, its shape resembles that of a `saguaro cactus
-        <http://www.azstarnet.com/%7Efosnp/factsaboutsaguaros.html>`_.
+        <http://en.wikipedia.org/wiki/Saguaro>`_.
 
         In languages that support :term:`continuations`,
         :term:`activation records` can have :term:`indefinite extent`.
@@ -614,6 +614,12 @@ Memory Management Glossary: C
         .. similar:: :term:`moving <moving garbage collector>`.
 
         .. seealso:: :term:`broken heart`, :term:`forwarding pointer`, :term:`two-space collector`.
+
+        .. mps:specific::
+
+            The :ref:`pool-amc` pool class implements copying garbage
+            collection (more precisely, :term:`mostly-copying garbage
+            collection`).
 
     core
 

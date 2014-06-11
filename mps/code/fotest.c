@@ -43,7 +43,7 @@ extern Land _mps_mvt_cbs(Pool);
 
 
 /* "OOM" pool class -- dummy alloc/free pool class whose alloc()
- * method always fails. */
+ * method always fails and whose free method does nothing. */
 
 static Res oomAlloc(Addr *pReturn, Pool pool, Size size,
                     Bool withReservoirPermit)
@@ -52,13 +52,11 @@ static Res oomAlloc(Addr *pReturn, Pool pool, Size size,
   UNUSED(pool);
   UNUSED(size);
   UNUSED(withReservoirPermit);
-  switch (rnd() % 4) {
+  switch (rnd() % 3) {
   case 0:
     return ResRESOURCE;
   case 1:
     return ResMEMORY;
-  case 2:
-    return ResLIMIT;
   default:
     return ResCOMMIT_LIMIT;
   }
@@ -67,8 +65,9 @@ static Res oomAlloc(Addr *pReturn, Pool pool, Size size,
 extern PoolClass OOMPoolClassGet(void);
 DEFINE_POOL_CLASS(OOMPoolClass, this)
 {
-  INHERIT_CLASS(this, AbstractAllocFreePoolClass);
+  INHERIT_CLASS(this, AbstractPoolClass);
   this->alloc = oomAlloc;
+  this->free = PoolTrivFree;
   this->size = sizeof(PoolStruct);
   AVERT(PoolClass, this);
 }

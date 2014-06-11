@@ -237,7 +237,7 @@ static void test_pool(mps_pool_t pool, size_t roots_count, int mode)
   die(mps_ap_alloc_pattern_begin(busy_ap, ramp), "pattern begin (busy_ap)");
   ramping = 1;
   while (collections < collectionsCOUNT) {
-    unsigned long c;
+    mps_word_t c;
     size_t r;
 
     c = mps_collections(arena);
@@ -245,7 +245,7 @@ static void test_pool(mps_pool_t pool, size_t roots_count, int mode)
     if (collections != c) {
       collections = c;
       printf("\nCollection %lu started, %lu objects, committed=%lu.\n",
-             c, objs, (unsigned long)mps_arena_committed(arena));
+             (unsigned long)c, objs, (unsigned long)mps_arena_committed(arena));
       report(arena);
 
       for (i = 0; i < exactRootsCOUNT; ++i)

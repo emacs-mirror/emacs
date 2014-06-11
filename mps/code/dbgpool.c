@@ -123,11 +123,8 @@ Bool PoolDebugOptionsCheck(PoolDebugOptions opt)
 
 ARG_DEFINE_KEY(pool_debug_options, PoolDebugOptions);
 
-static char debugFencepostTemplate[4] = {'P', 'O', 'S', 'T'};
-static char debugFreeTemplate[4] = {'D', 'E', 'A', 'D'};
-
 static PoolDebugOptionsStruct debugPoolOptionsDefault = {
-  debugFencepostTemplate, 4, debugFreeTemplate, 4,
+  "POST", 4, "DEAD", 4,
 };
 
 static Res DebugPoolInit(Pool pool, ArgList args)
@@ -187,7 +184,10 @@ static Res DebugPoolInit(Pool pool, ArgList args)
     /* This pool has to be like the arena control pool: the blocks */
     /* allocated must be accessible using void*. */
     MPS_ARGS_BEGIN(pcArgs) {
-      MPS_ARGS_ADD(pcArgs, MPS_KEY_EXTEND_BY, debug->tagSize); /* FIXME: Check this */
+      /* By setting EXTEND_BY to debug->tagSize we get the smallest
+         possible extensions compatible with the tags, and so the
+         least amount of wasted space. */
+      MPS_ARGS_ADD(pcArgs, MPS_KEY_EXTEND_BY, debug->tagSize);
       MPS_ARGS_ADD(pcArgs, MPS_KEY_MFS_UNIT_SIZE, debug->tagSize);
       res = PoolCreate(&debug->tagPool, PoolArena(pool), PoolClassMFS(), pcArgs);
     } MPS_ARGS_END(pcArgs);
@@ -227,15 +227,24 @@ static void DebugPoolFinish(Pool pool)
 }
 
 
-/* patternCopy -- copy pattern to fill a range
+/* patternIterate -- call visitor for occurrences of pattern between
+ * base and limit
  *
- * Fill the range of addresses from base (inclusive) to limit
- * (exclusive) with copies of pattern (which is size bytes long).
+ * pattern is an arbitrary pattern that's size bytes long.
  *
- * Keep in sync with patternCheck.
+ * Imagine that the entirety of memory were covered by contiguous
+ * copies of pattern starting at address 0. Then call visitor for each
+ * copy (or part) of pattern that lies between base and limit. In each
+ * call, target is the address of the copy or part (where base <=
+ * target < limit); source is the corresponding byte of the pattern
+ * (where pattern <= source < pattern + size); and size is the length
+ * of the copy or part.
  */
 
-static void patternCopy(Addr pattern, Size size, Addr base, Addr limit)
+typedef Bool (*patternVisitor)(Addr target, ReadonlyAddr source, Size size);
+
+static Bool patternIterate(ReadonlyAddr pattern, Size size,
+                           Addr base, Addr limit, patternVisitor visitor)
 {
   Addr p;
 
@@ -254,62 +263,20 @@ static void patternCopy(Addr pattern, Size size, Addr base, Addr limit)
       break;
     } else if (p == rounded && end <= limit) {
       /* Room for a whole copy */
-      (void)AddrCopy(p, pattern, size);
-      p = end;
-    } else if (p < rounded && rounded <= end && rounded <= limit) {
-      /* Copy up to rounded */
-      (void)AddrCopy(p, (char *)pattern + offset, AddrOffset(p, rounded));
-      p = rounded;
-    } else {
-      /* Copy up to limit */
-      AVER(limit <= end && (p == rounded || limit <= rounded));
-      (void)AddrCopy(p, (char *)pattern + offset, AddrOffset(p, limit));
-      p = limit;
-    }
-  }
-}
-
-/* patternCheck -- check pattern against a range
- *
- * Compare the range of addresses from base (inclusive) to limit
- * (exclusive) with copies of pattern (which is size bytes long). The
- * copies of pattern must be arranged so that fresh copies start at
- * aligned addresses wherever possible.
- *
- * Keep in sync with patternCopy.
- */
-
-static Bool patternCheck(Addr pattern, Size size, Addr base, Addr limit)
-{
-  Addr p;
-
-  AVER(pattern != NULL);
-  AVER(0 < size);
-  AVER(base != NULL);
-  AVER(base <= limit);
-
-  p = base;
-  while (p < limit) {
-    Addr end = AddrAdd(p, size);
-    Addr rounded = AddrRoundUp(p, size);
-    Size offset = (Word)p % size;
-    if (end < p || rounded < p) {
-      /* Address range overflow */
-      break;
-    } else if (p == rounded && end <= limit) {
-      /* Room for a whole copy */
-      if (AddrComp(p, pattern, size) != 0)
+      if (!(*visitor)(p, pattern, size))
         return FALSE;
       p = end;
     } else if (p < rounded && rounded <= end && rounded <= limit) {
       /* Copy up to rounded */
-      if (AddrComp(p, (char *)pattern + offset, AddrOffset(p, rounded)) != 0)
+      if (!(*visitor)(p, ReadonlyAddrAdd(pattern, offset),
+                      AddrOffset(p, rounded)))
         return FALSE;
       p = rounded;
     } else {
       /* Copy up to limit */
       AVER(limit <= end && (p == rounded || limit <= rounded));
-      if (AddrComp(p, (char *)pattern + offset, AddrOffset(p, limit)) != 0)
+      if (!(*visitor)(p, ReadonlyAddrAdd(pattern, offset),
+                      AddrOffset(p, limit)))
         return FALSE;
       p = limit;
     }
@@ -319,28 +286,91 @@ static Bool patternCheck(Addr pattern, Size size, Addr base, Addr limit)
 }
 
 
+/* patternCopy -- copy pattern to fill a range
+ *
+ * Fill the range of addresses from base (inclusive) to limit
+ * (exclusive) with copies of pattern (which is size bytes long).
+ */
+
+static Bool patternCopyVisitor(Addr target, ReadonlyAddr source, Size size)
+{
+  (void)AddrCopy(target, source, size);
+  return TRUE;
+}
+
+static void patternCopy(ReadonlyAddr pattern, Size size, Addr base, Addr limit)
+{
+  (void)patternIterate(pattern, size, base, limit, patternCopyVisitor);
+}
+
+
+/* patternCheck -- check pattern against a range
+ *
+ * Compare the range of addresses from base (inclusive) to limit
+ * (exclusive) with copies of pattern (which is size bytes long). The
+ * copies of pattern must be arranged so that fresh copies start at
+ * aligned addresses wherever possible.
+ */
+
+static Bool patternCheckVisitor(Addr target, ReadonlyAddr source, Size size)
+{
+  return AddrComp(target, source, size) == 0;
+}
+
+static Bool patternCheck(ReadonlyAddr pattern, Size size, Addr base, Addr limit)
+{
+  return patternIterate(pattern, size, base, limit, patternCheckVisitor);
+}
+
+
+/* debugPoolSegIterate -- iterate over a range of segments in an arena
+ *
+ * Expects to be called on a range corresponding to objects withing a
+ * single pool.
+ * 
+ * NOTE: This relies on pools consistently using segments
+ * contiguously.
+ */
+
+static void debugPoolSegIterate(Arena arena, Addr base, Addr limit,
+                                void (*visitor)(Arena, Seg))
+{
+  Seg seg;
+
+  if (SegOfAddr(&seg, arena, base)) {
+    do {
+      base = SegLimit(seg);
+      (*visitor)(arena, seg);
+    } while (base < limit && SegOfAddr(&seg, arena, base));
+    AVER(base >= limit); /* shouldn't run out of segments */
+  }
+}
+
+static void debugPoolShieldExpose(Arena arena, Seg seg)
+{
+  ShieldExpose(arena, seg);
+}
+
+static void debugPoolShieldCover(Arena arena, Seg seg)
+{
+  ShieldCover(arena, seg);
+}
+
+
 /* freeSplat -- splat free block with splat pattern */
 
 static void freeSplat(PoolDebugMixin debug, Pool pool, Addr base, Addr limit)
 {
   Arena arena;
-  Seg seg;
 
   AVER(base < limit);
 
-  /* If the block is in a segment, make sure any shield is up. */
+  /* If the block is in one or more segments, make sure the segments
+     are exposed so that we can overwrite the block with the pattern. */
   arena = PoolArena(pool);
-  if (SegOfAddr(&seg, arena, base)) {
-    do {
-      ShieldExpose(arena, seg);
-    } while (SegLimit(seg) < limit && SegNext(&seg, arena, seg));
-  }
+  debugPoolSegIterate(arena, base, limit, debugPoolShieldExpose);
   patternCopy(debug->freeTemplate, debug->freeSize, base, limit);
-  if (SegOfAddr(&seg, arena, base)) {
-    do {
-      ShieldCover(arena, seg);
-    } while (SegLimit(seg) < limit && SegNext(&seg, arena, seg));
-  }
+  debugPoolSegIterate(arena, base, limit, debugPoolShieldCover);
 }
 
 
@@ -350,23 +380,15 @@ static Bool freeCheck(PoolDebugMixin debug, Pool pool, Addr base, Addr limit)
 {
   Bool res;
   Arena arena;
-  Seg seg;
 
   AVER(base < limit);
 
-  /* If the block is in a segment, make sure any shield is up. */
+  /* If the block is in one or more segments, make sure the segments
+     are exposed so we can read the pattern. */
   arena = PoolArena(pool);
-  if (SegOfAddr(&seg, arena, base)) {
-    do {
-      ShieldExpose(arena, seg);
-    } while (SegLimit(seg) < limit && SegNext(&seg, arena, seg));
-  }
+  debugPoolSegIterate(arena, base, limit, debugPoolShieldExpose);
   res = patternCheck(debug->freeTemplate, debug->freeSize, base, limit);
-  if (SegOfAddr(&seg, arena, base)) {
-    do {
-      ShieldCover(arena, seg);
-    } while (SegLimit(seg) < limit && SegNext(&seg, arena, seg));
-  }
+  debugPoolSegIterate(arena, base, limit, debugPoolShieldCover);
   return res;
 }
 

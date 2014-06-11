@@ -13,7 +13,7 @@
  * `MPS_` or `_mps_` and may use any identifiers with these prefixes in
  * future.
  *
- * .naming.internal: Any idenfitier beginning with underscore is for
+ * .naming.internal: Any identifier beginning with an underscore is for
  * internal use within the interface and may change or be withdrawn without
  * warning.
  *
@@ -762,9 +762,9 @@ extern void mps_arena_roots_walk(mps_arena_t,
 
 
 typedef struct mps_pool_debug_option_s {
-  void *fence_template;
+  const void *fence_template;
   size_t fence_size;
-  void *free_template;
+  const void *free_template;
   size_t free_size;
 } mps_pool_debug_option_s;
 

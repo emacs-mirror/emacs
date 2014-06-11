@@ -75,15 +75,13 @@ static void describe(TestState state) {
 }
 
 
-static Bool checkVisitor(Bool *deleteReturn, Land land, Range range,
-                         void *closureP, Size closureS)
+static Bool checkVisitor(Land land, Range range, void *closureP, Size closureS)
 {
   Addr base, limit;
   CheckTestClosure cl = closureP;
 
-  Insist(deleteReturn != NULL);
   testlib_unused(land);
-  testlib_unused(closureS);
+  Insist(closureS == UNUSED_SIZE);
   Insist(cl != NULL);
 
   base = RangeBase(range);
@@ -110,12 +108,14 @@ static Bool checkVisitor(Bool *deleteReturn, Land land, Range range,
 static void check(TestState state)
 {
   CheckTestClosureStruct closure;
+  Bool b;
 
   closure.state = state;
   closure.limit = addrOfIndex(state, ArraySize);
   closure.oldLimit = state->block;
 
-  LandIterate(state->land, checkVisitor, (void *)&closure, 0);
+  b = LandIterate(state->land, checkVisitor, &closure, UNUSED_SIZE);
+  Insist(b);
 
   if (closure.oldLimit == state->block)
     Insist(BTIsSetRange(state->allocTable, 0,
@@ -486,10 +486,10 @@ extern int main(int argc, char *argv[])
   CBSStruct cbsStruct;
   FreelistStruct flStruct;
   FailoverStruct foStruct;
-  Land cbs = &cbsStruct.landStruct;
-  Land fl = &flStruct.landStruct;
-  Land fo = &foStruct.landStruct;
-  Pool mfs = &blockPool.poolStruct;
+  Land cbs = CBSLand(&cbsStruct);
+  Land fl = FreelistLand(&flStruct);
+  Land fo = FailoverLand(&foStruct);
+  Pool mfs = MFSPool(&blockPool);
   Align align;
   int i;
 
