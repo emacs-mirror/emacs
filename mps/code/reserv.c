@@ -7,7 +7,7 @@
  *
  * .improve.contiguous: There should be a means of grouping contiguous
  * tracts together so that there's a likelihood of being able to meet
- * requests for regions larger than the arena alignment.  */
+ * requests for regions larger than the arena grain size.  */
 
 #include "mpm.h"
 
