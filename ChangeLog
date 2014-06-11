@@ -1,3 +1,13 @@
+2014-06-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Backport fcntl.h AIX fix from the trunk (Bug#17598).
+	This fixes a bug with the shell freezing.  See:
+	http://debbugs.gnu.org/cgi/bugreport.cgi?bug=17598#185
+	Merge from gnulib, incorporating:
+	2014-05-31 dup2, fcntl, fcntl-h: port to AIX 7.1
+	* lib/fcntl.in.h, m4/dup2.m4, m4/fcntl.m4:
+	Update from gnulib.
+
 2014-06-07  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Port better to AIX (Bug#17598).

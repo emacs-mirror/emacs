@@ -19,7 +19,7 @@ AC_DEFUN([gl_FUNC_FCNTL],
   AC_REQUIRE([gl_USE_SYSTEM_EXTENSIONS])
   AC_REQUIRE([gl_FCNTL_H_DEFAULTS])
   AC_REQUIRE([AC_CANONICAL_HOST])
-  AC_CHECK_FUNCS_ONCE([fcntl])
+  AC_CHECK_FUNCS_ONCE([fcntl getdtablesize])
   if test $ac_cv_func_fcntl = no; then
     gl_REPLACE_FCNTL
   else
@@ -28,11 +28,21 @@ AC_DEFUN([gl_FUNC_FCNTL],
     AC_CACHE_CHECK([whether fcntl handles F_DUPFD correctly],
       [gl_cv_func_fcntl_f_dupfd_works],
       [AC_RUN_IFELSE([AC_LANG_PROGRAM([[
+#ifdef HAVE_GETDTABLESIZE
+# include <unistd.h>
+#endif
 #include <fcntl.h>
 #include <errno.h>
 ]], [[int result = 0;
+#ifdef HAVE_GETDTABLESIZE
+      int bad_fd = getdtablesize ();
+#else
+      int bad_fd = 1000000;
+#endif
       if (fcntl (0, F_DUPFD, -1) != -1) result |= 1;
       if (errno != EINVAL) result |= 2;
+      if (fcntl (0, F_DUPFD, bad_fd) != -1) result |= 4;
+      if (errno != EINVAL) result |= 8;
       return result;
          ]])],
          [gl_cv_func_fcntl_f_dupfd_works=yes],
