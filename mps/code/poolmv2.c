@@ -54,7 +54,7 @@ static Bool MVTCheckFit(Addr base, Addr limit, Size min, Arena arena);
 static ABQ MVTABQ(MVT mvt);
 static Land MVTCBS(MVT mvt);
 static Land MVTFreelist(MVT mvt);
-static Land MVTFailover(MVT mvt);
+static Land MVTFreeLand(MVT mvt);
 
 
 /* Types */
@@ -176,7 +176,7 @@ static Land MVTFreelist(MVT mvt)
 }
 
 
-static Land MVTFailover(MVT mvt)
+static Land MVTFreeLand(MVT mvt)
 {
   return FailoverLand(&mvt->foStruct);
 }
@@ -289,7 +289,7 @@ static Res MVTInit(Pool pool, ArgList args)
   MPS_ARGS_BEGIN(foArgs) {
     MPS_ARGS_ADD(foArgs, FailoverPrimary, MVTCBS(mvt));
     MPS_ARGS_ADD(foArgs, FailoverSecondary, MVTFreelist(mvt));
-    res = LandInit(MVTFailover(mvt), FailoverLandClassGet(), arena, align, mvt,
+    res = LandInit(MVTFreeLand(mvt), FailoverLandClassGet(), arena, align, mvt,
                    foArgs);
   } MPS_ARGS_END(foArgs);
   if (res != ResOK)
@@ -362,7 +362,7 @@ static Res MVTInit(Pool pool, ArgList args)
   return ResOK;
 
 failABQ:
-  LandFinish(MVTFailover(mvt));
+  LandFinish(MVTFreeLand(mvt));
 failFailover:
   LandFinish(MVTFreelist(mvt));
 failFreelist:
@@ -436,7 +436,7 @@ static void MVTFinish(Pool pool)
 
   /* Finish the ABQ, Failover, Freelist and CBS structures */
   ABQFinish(arena, MVTABQ(mvt));
-  LandFinish(MVTFailover(mvt));
+  LandFinish(MVTFreeLand(mvt));
   LandFinish(MVTFreelist(mvt));
   LandFinish(MVTCBS(mvt));
 }
@@ -816,7 +816,7 @@ static Res MVTInsert(MVT mvt, Addr base, Addr limit)
   AVER(base < limit);
   
   RangeInit(&range, base, limit);
-  res = LandInsert(&newRange, MVTFailover(mvt), &range);
+  res = LandInsert(&newRange, MVTFreeLand(mvt), &range);
   if (res != ResOK)
     return res;
 
@@ -845,7 +845,7 @@ static Res MVTDelete(MVT mvt, Addr base, Addr limit)
   AVER(base < limit);
 
   RangeInit(&range, base, limit);
-  res = LandDelete(&rangeOld, MVTFailover(mvt), &range);
+  res = LandDelete(&rangeOld, MVTFreeLand(mvt), &range);
   if (res != ResOK)
     return res;
   AVER(RangesNest(&rangeOld, &range));
@@ -1023,7 +1023,7 @@ static Res MVTDescribe(Pool pool, mps_lib_FILE *stream)
   if(res != ResOK) return res;
   res = LandDescribe(MVTFreelist(mvt), stream);
   if(res != ResOK) return res;
-  res = LandDescribe(MVTFailover(mvt), stream);
+  res = LandDescribe(MVTFreeLand(mvt), stream);
   if(res != ResOK) return res;
   res = ABQDescribe(MVTABQ(mvt), (ABQDescribeElement)RangeDescribe, stream);
   if(res != ResOK) return res;
@@ -1240,7 +1240,7 @@ static void MVTRefillABQIfEmpty(MVT mvt, Size size)
     mvt->abqOverflow = FALSE;
     METER_ACC(mvt->refills, size);
     /* The iteration stops if the ABQ overflows, so may finish or not. */
-    (void)LandIterate(MVTFailover(mvt), MVTRefillVisitor, mvt, UNUSED_SIZE);
+    (void)LandIterate(MVTFreeLand(mvt), MVTRefillVisitor, mvt, UNUSED_SIZE);
   }
 }
  
@@ -1311,7 +1311,7 @@ static Bool MVTContingencySearch(Addr *baseReturn, Addr *limitReturn,
   cls.steps = 0;
   cls.hardSteps = 0;
 
-  if (LandIterate(MVTFailover(mvt), MVTContingencyVisitor, &cls, UNUSED_SIZE))
+  if (LandIterate(MVTFreeLand(mvt), MVTContingencyVisitor, &cls, UNUSED_SIZE))
     return FALSE;
 
   AVER(RangeSize(&cls.range) >= min);
