@@ -1,3 +1,13 @@
+2014-06-11  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.h (EmacsApp): Always compile in shouldKeepRunning, isFirst
+	on Cocoa.
+
+	* nsterm.m (run): Always compile for Cocoa.  Use runtime check to
+	determine 10.9 (Bug#17751).
+
+	* macfont.m (macfont_draw): positions where not freed.
+
 2014-06-10  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* dispextern.h (PREPARE_FACE_FOR_DISPLAY): Remove as a duplicate of ...

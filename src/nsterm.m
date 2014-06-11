@@ -4453,7 +4453,7 @@ ns_term_shutdown (int sig)
 {
   if (self = [super init])
     {
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_9
+#ifdef NS_IMPL_COCOA
       self->isFirst = YES;
 #endif
 #ifdef NS_IMPL_GNUSTEP
@@ -4464,30 +4464,40 @@ ns_term_shutdown (int sig)
   return self;
 }
 
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_9
+#ifdef NS_IMPL_COCOA
 - (void)run
 {
-    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+#ifndef NSAppKitVersionNumber10_8
+#define NSAppKitVersionNumber10_8 1187
+#endif
 
-    if (isFirst) [self finishLaunching];
-    isFirst = NO;
+  if (NSAppKitVersionNumber <= NSAppKitVersionNumber10_8) 
+    {
+      [super run];
+      return;
+    }
 
-    shouldKeepRunning = YES;
-    do
-      {
-        [pool release];
-        pool = [[NSAutoreleasePool alloc] init];
+  NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
-        NSEvent *event =
-          [self nextEventMatchingMask:NSAnyEventMask
-                            untilDate:[NSDate distantFuture]
-                               inMode:NSDefaultRunLoopMode
-                              dequeue:YES];
-        [self sendEvent:event];
-        [self updateWindows];
+  if (isFirst) [self finishLaunching];
+  isFirst = NO;
+
+  shouldKeepRunning = YES;
+  do
+    {
+      [pool release];
+      pool = [[NSAutoreleasePool alloc] init];
+
+      NSEvent *event =
+        [self nextEventMatchingMask:NSAnyEventMask
+                          untilDate:[NSDate distantFuture]
+                             inMode:NSDefaultRunLoopMode
+                            dequeue:YES];
+      [self sendEvent:event];
+      [self updateWindows];
     } while (shouldKeepRunning);
-
-    [pool release];
+  
+  [pool release];
 }
 
 - (void)stop: (id)sender
@@ -4497,7 +4507,7 @@ ns_term_shutdown (int sig)
     // The file dialog still leaks 7k - 10k on 10.9 though.
     [super stop:sender];
 }
-#endif
+#endif /* NS_IMPL_COCOA */
 
 - (void)logNotification: (NSNotification *)notification
 {
