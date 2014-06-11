@@ -133,6 +133,12 @@ Memory Management Glossary: I
 
         .. bibref:: :ref:`Appel et al. (1988) <AEL88>`, :ref:`Boehm et al. (1991) <BDS91>`.
 
+        .. mps:specific::
+
+            The MPS uses incremental collection, except for
+            collections started by calling
+            :c:func:`mps_arena_collect`.
+
     incremental update
 
         Incremental-update algorithms for :term:`tracing <trace>`,

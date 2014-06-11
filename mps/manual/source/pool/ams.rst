@@ -180,9 +180,11 @@ AMS interface
     class.
 
     When creating a debugging AMS pool, :c:func:`mps_pool_create_k`
-    takes three keyword arguments: :c:macro:`MPS_KEY_FORMAT` and
-    :c:macro:`MPS_KEY_CHAIN` are as described above, and
-    :c:macro:`MPS_KEY_POOL_DEBUG_OPTIONS` specifies the debugging
+    accepts the following keyword arguments:
+    :c:macro:`MPS_KEY_FORMAT`, :c:macro:`MPS_KEY_CHAIN`,
+    :c:macro:`MPS_KEY_GEN`, and
+    :c:macro:`MPS_KEY_AMS_SUPPORT_AMBIGUOUS` are as described above,
+    and :c:macro:`MPS_KEY_POOL_DEBUG_OPTIONS` specifies the debugging
     options. See :c:type:`mps_pool_debug_option_s`.
 
     .. deprecated:: starting with version 1.112.
