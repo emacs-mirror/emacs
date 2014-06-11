@@ -179,9 +179,9 @@ static Bool clientChunkDestroy(Tree tree, void *closureP, Size closureS)
   ClientChunk clChunk;
 
   AVERT(Tree, tree);
-  /* FIXME: AVER(closureP == UNUSED_POINTER); */
+  AVER(closureP == UNUSED_POINTER);
   UNUSED(closureP);
-  /* FIXME: AVER(closureS == UNUSED_SIZE); */
+  AVER(closureS == UNUSED_SIZE);
   UNUSED(closureS);
   
   chunk = ChunkOfTree(tree);
@@ -308,8 +308,8 @@ static void ClientArenaFinish(Arena arena)
   /* Destroy all chunks, including the primary. See
    * <design/arena/#chunk.delete> */
   arena->primary = NULL;
-  /* FIXME: use UNUSED_POINTER, UNUSED_SIZE instead of NULL, 0 */
-  TreeTraverseAndDelete(&arena->chunkTree, clientChunkDestroy, NULL, 0);
+  TreeTraverseAndDelete(&arena->chunkTree, clientChunkDestroy,
+                        UNUSED_POINTER, UNUSED_SIZE);
 
   clientArena->sig = SigInvalid;
 
