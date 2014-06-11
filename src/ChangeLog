@@ -1,3 +1,9 @@
+2014-06-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (set_cursor_from_row): Fix an off-by-one error when
+	matching overlay strings with 'cursor' property against buffer
+	positions traversed in the glyph row.  (Bug#17744)
+
 2014-06-11  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.h (EmacsApp): Always compile in shouldKeepRunning, isFirst

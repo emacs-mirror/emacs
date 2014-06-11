@@ -1,3 +1,7 @@
+2014-06-11  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (INFO_INSTALL): Update for 2013-08-28 DOCMISC_W32 change.
+
 2014-06-10  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (INFO_EXT): Remove and replace by ".info" throughout.
