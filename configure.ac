@@ -98,7 +98,7 @@ AC_CACHE_CHECK([for GNU Make], [ac_cv_path_MAKE],
    if test -n "$MAKE"; then
      emacs_makeout=`($MAKE --version) 2>/dev/null` &&
      case $emacs_makeout in
-       'GNU Make '*)
+       'GNU Make '[[4-9]]* | 'GNU Make '3.8[[1-9]]* | 'GNU Make '3.9*)
 	 ac_path_MAKE_found=:;;
      esac
      ac_cv_path_MAKE=$MAKE
@@ -109,7 +109,7 @@ AC_CACHE_CHECK([for GNU Make], [ac_cv_path_MAKE],
      AC_PATH_PROGS_FEATURE_CHECK([MAKE], [make gmake gnumake],
        [[emacs_makeout=`($ac_path_MAKE --version) 2>/dev/null` &&
 	 case $emacs_makeout in
-	   'GNU Make '*)
+	   'GNU Make '[4-9]* | 'GNU Make '3.8[1-9]* | 'GNU Make '3.9*)
 	      # Use the fully-qualified program name only if the basename
 	      # would not resolve to it.
 	      if eval \$emacs_tried_$ac_prog; then
@@ -121,7 +121,8 @@ AC_CACHE_CHECK([for GNU Make], [ac_cv_path_MAKE],
 	 esac
 	 eval emacs_tried_$ac_prog=:]])
    fi])
-$ac_path_MAKE_found || { AC_MSG_ERROR([[Building Emacs requires GNU Make.
+$ac_path_MAKE_found || {
+AC_MSG_ERROR([[Building Emacs requires GNU Make, at least version 3.81.
 If you have it installed under another name, configure with 'MAKE=...'.
 For example, run '$0 MAKE=gnu-make'.]])
 }

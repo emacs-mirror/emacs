@@ -27,7 +27,7 @@ otherwise leave it unmarked.
 +++
 ** Building Emacs now requires C99 or later.
 
-** Building Emacs now requires GNU make.
+** Building Emacs now requires GNU make, version 3.81 or later.
 
 ** By default, Emacs no longer works on IRIX.  We expect that Emacs
 users are not affected by this, as SGI stopped supporting IRIX in
