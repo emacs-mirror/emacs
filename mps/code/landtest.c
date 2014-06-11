@@ -1,31 +1,34 @@
-/* fbmtest.c: FREE BLOCK MANAGEMENT TEST
+/* landtest.c: LAND TEST
  *
- *  $Id$
+ * $Id$
  * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
- * The MPS contains two free block management modules:
+ * The MPS contains three land implementations:
  *
- * 1. the CBS (Coalescing Block Structure) module maintains free
- * blocks in a splay tree for fast access with a cost in storage;
+ * 1. the CBS (Coalescing Block Structure) module maintains blocks in
+ * a splay tree for fast access with a cost in storage;
  *
- * 2. the Freelist module maintains free blocks in an address-ordered
+ * 2. the Freelist module maintains blocks in an address-ordered
  * singly linked list for zero storage overhead with a cost in
  * performance.
  *
- * The two modules present identical interfaces, so we apply the same
- * test cases to both.
+ * 3. the Failover module implements a mechanism for using CBS until
+ * it fails, then falling back to a Freelist.
  */
 
 #include "cbs.h"
+#include "failover.h"
 #include "freelist.h"
 #include "mpm.h"
 #include "mps.h"
 #include "mpsavm.h"
+#include "mpstd.h"
+#include "poolmfs.h"
 #include "testlib.h"
 
 #include <stdio.h> /* printf */
 
-SRCID(fbmtest, "$Id$");
+SRCID(landtest, "$Id$");
 
 
 #define ArraySize ((Size)123456)
@@ -34,71 +37,51 @@ SRCID(fbmtest, "$Id$");
  * the former. */
 #define nCBSOperations ((Size)125000)
 #define nFLOperations ((Size)12500)
+#define nFOOperations ((Size)12500)
 
 static Count NAllocateTried, NAllocateSucceeded, NDeallocateTried,
   NDeallocateSucceeded;
 
 static int verbose = 0;
 
-typedef unsigned FBMType;
-enum {
-  FBMTypeCBS = 1,
-  FBMTypeFreelist,
-  FBMTypeLimit
-};
-
-typedef struct FBMStateStruct {
-  FBMType type;
+typedef struct TestStateStruct {
   Align align;
   BT allocTable;
   Addr block;
-  union {
-    CBS cbs;
-    Freelist fl;
-  } the;
-} FBMStateStruct, *FBMState;
+  Land land;
+} TestStateStruct, *TestState;
 
-typedef struct CheckFBMClosureStruct {
-  FBMState state;
+typedef struct CheckTestClosureStruct {
+  TestState state;
   Addr limit;
   Addr oldLimit;
-} CheckFBMClosureStruct, *CheckFBMClosure;
+} CheckTestClosureStruct, *CheckTestClosure;
 
 
-static Addr (addrOfIndex)(FBMState state, Index i)
+static Addr (addrOfIndex)(TestState state, Index i)
 {
   return AddrAdd(state->block, (i * state->align));
 }
 
 
-static Index (indexOfAddr)(FBMState state, Addr a)
+static Index (indexOfAddr)(TestState state, Addr a)
 {
   return (Index)(AddrOffset(state->block, a) / state->align);
 }
 
 
-static void describe(FBMState state) {
-  switch (state->type) {
-  case FBMTypeCBS:
-    die(CBSDescribe(state->the.cbs, mps_lib_get_stdout()), "CBSDescribe");
-    break;
-  case FBMTypeFreelist:
-    die(FreelistDescribe(state->the.fl, mps_lib_get_stdout()), "FreelistDescribe");
-    break;
-  default:
-    cdie(0, "invalid state->type");
-    break;
-  }
+static void describe(TestState state) {
+  die(LandDescribe(state->land, mps_lib_get_stdout()), "LandDescribe");
 }
 
 
-static Bool checkCallback(Range range, void *closureP, Size closureS)
+static Bool checkVisitor(Land land, Range range, void *closureP, Size closureS)
 {
   Addr base, limit;
-  CheckFBMClosure cl = (CheckFBMClosure)closureP;
+  CheckTestClosure cl = closureP;
 
-  AVER(closureS == UNUSED_SIZE);
-  UNUSED(closureS);
+  testlib_unused(land);
+  Insist(closureS == UNUSED_SIZE);
   Insist(cl != NULL);
 
   base = RangeBase(range);
@@ -122,42 +105,17 @@ static Bool checkCallback(Range range, void *closureP, Size closureS)
   return TRUE;
 }
 
-
-static Bool checkCBSCallback(CBS cbs, Range range,
-                             void *closureP, Size closureS)
+static void check(TestState state)
 {
-  UNUSED(cbs);
-  return checkCallback(range, closureP, closureS);
-}
-
-
-static Bool checkFLCallback(Bool *deleteReturn, Range range,
-                            void *closureP, Size closureS)
-{
-  *deleteReturn = FALSE;
-  return checkCallback(range, closureP, closureS);
-}
-
-
-static void check(FBMState state)
-{
-  CheckFBMClosureStruct closure;
+  CheckTestClosureStruct closure;
+  Bool b;
 
   closure.state = state;
   closure.limit = addrOfIndex(state, ArraySize);
   closure.oldLimit = state->block;
 
-  switch (state->type) {
-  case FBMTypeCBS:
-    CBSIterate(state->the.cbs, checkCBSCallback, &closure, UNUSED_SIZE);
-    break;
-  case FBMTypeFreelist:
-    FreelistIterate(state->the.fl, checkFLCallback, &closure, UNUSED_SIZE);
-    break;
-  default:
-    cdie(0, "invalid state->type");
-    return;
-  }
+  b = LandIterate(state->land, checkVisitor, &closure, UNUSED_SIZE);
+  Insist(b);
 
   if (closure.oldLimit == state->block)
     Insist(BTIsSetRange(state->allocTable, 0,
@@ -243,7 +201,7 @@ static Index lastEdge(BT bt, Size size, Index base)
  * all either set or reset.
  */
 
-static void randomRange(Addr *baseReturn, Addr *limitReturn, FBMState state)
+static void randomRange(Addr *baseReturn, Addr *limitReturn, TestState state)
 {
   Index base;   /* the start of our range */
   Index end;    /* an edge (i.e. different from its predecessor) */
@@ -265,7 +223,7 @@ static void randomRange(Addr *baseReturn, Addr *limitReturn, FBMState state)
 }
 
 
-static void allocate(FBMState state, Addr base, Addr limit)
+static void allocate(TestState state, Addr base, Addr limit)
 {
   Res res;
   Index ib, il;                  /* Indexed for base and limit */
@@ -293,25 +251,15 @@ static void allocate(FBMState state, Addr base, Addr limit)
     total = AddrOffset(outerBase, outerLimit);
 
     /* TODO: check these values */
-    UNUSED(left);
-    UNUSED(right);
-    UNUSED(total);
+    testlib_unused(left);
+    testlib_unused(right);
+    testlib_unused(total);
   } else {
     outerBase = outerLimit = NULL;
   }
 
   RangeInit(&range, base, limit);
-  switch (state->type) {
-  case FBMTypeCBS:
-    res = CBSDelete(&oldRange, state->the.cbs, &range);
-    break;
-  case FBMTypeFreelist:
-    res = FreelistDelete(&oldRange, state->the.fl, &range);
-    break;
-  default:
-    cdie(0, "invalid state->type");
-    return;
-  }
+  res = LandDelete(&oldRange, state->land, &range);
 
   if (verbose) {
     printf("allocate: [%p,%p) -- %s\n",
@@ -333,7 +281,7 @@ static void allocate(FBMState state, Addr base, Addr limit)
 }
 
 
-static void deallocate(FBMState state, Addr base, Addr limit)
+static void deallocate(TestState state, Addr base, Addr limit)
 {
   Res res;
   Index ib, il;
@@ -371,23 +319,13 @@ static void deallocate(FBMState state, Addr base, Addr limit)
     total = AddrOffset(outerBase, outerLimit);
 
     /* TODO: check these values */
-    UNUSED(left);
-    UNUSED(right);
-    UNUSED(total);
+    testlib_unused(left);
+    testlib_unused(right);
+    testlib_unused(total);
   }
 
   RangeInit(&range, base, limit);
-  switch (state->type) {
-  case FBMTypeCBS:
-    res = CBSInsert(&freeRange, state->the.cbs, &range);
-    break;
-  case FBMTypeFreelist:
-    res = FreelistInsert(&freeRange, state->the.fl, &range);
-    break;
-  default:
-    cdie(0, "invalid state->type");
-    return;
-  }
+  res = LandInsert(&freeRange, state->land, &range);
 
   if (verbose) {
     printf("deallocate: [%p,%p) -- %s\n",
@@ -410,7 +348,7 @@ static void deallocate(FBMState state, Addr base, Addr limit)
 }
 
 
-static void find(FBMState state, Size size, Bool high, FindDelete findDelete)
+static void find(TestState state, Size size, Bool high, FindDelete findDelete)
 {
   Bool expected, found;
   Index expectedBase, expectedLimit;
@@ -454,23 +392,12 @@ static void find(FBMState state, Size size, Bool high, FindDelete findDelete)
     }
 
     /* TODO: check these values */
-    UNUSED(oldSize);
-    UNUSED(newSize);
+    testlib_unused(oldSize);
+    testlib_unused(newSize);
   }
 
-  switch (state->type) {
-  case FBMTypeCBS:
-    found = (high ? CBSFindLast : CBSFindFirst)
-      (&foundRange, &oldRange, state->the.cbs, size * state->align, findDelete);
-    break;
-  case FBMTypeFreelist:
-    found = (high ? FreelistFindLast : FreelistFindFirst)
-      (&foundRange, &oldRange, state->the.fl, size * state->align, findDelete);
-    break;
-  default:
-    cdie(0, "invalid state->type");
-    return;
-  }
+  found = (high ? LandFindLast : LandFindFirst)
+    (&foundRange, &oldRange, state->land, size * state->align, findDelete);
 
   if (verbose) {
     printf("find %s %lu: ", high ? "last" : "first",
@@ -506,7 +433,7 @@ static void find(FBMState state, Size size, Bool high, FindDelete findDelete)
   return;
 }
 
-static void test(FBMState state, unsigned n) {
+static void test(TestState state, unsigned n) {
   Addr base, limit;
   unsigned i;
   Size size;
@@ -537,7 +464,7 @@ static void test(FBMState state, unsigned n) {
       find(state, size, high, findDelete);
       break;
     default:
-      cdie(0, "invalid state->type");
+      cdie(0, "invalid rnd(3)");
       return;
     }
     if ((i + 1) % 1000 == 0)
@@ -550,17 +477,24 @@ static void test(FBMState state, unsigned n) {
 extern int main(int argc, char *argv[])
 {
   mps_arena_t mpsArena;
-  Arena arena; /* the ANSI arena which we use to allocate the BT */
-  FBMStateStruct state;
+  Arena arena;
+  TestStateStruct state;
   void *p;
   Addr dummyBlock;
   BT allocTable;
-  FreelistStruct flStruct;
+  MFSStruct blockPool;
   CBSStruct cbsStruct;
+  FreelistStruct flStruct;
+  FailoverStruct foStruct;
+  Land cbs = &cbsStruct.landStruct;
+  Land fl = &flStruct.landStruct;
+  Land fo = &foStruct.landStruct;
+  Pool mfs = &blockPool.poolStruct;
   Align align;
+  int i;
 
   testlib_init(argc, argv);
-  align = sizeof(void *) << (rnd() % 4);
+  align = (1 << rnd() % 4) * MPS_PF_ALIGN;
 
   NAllocateTried = NAllocateSucceeded = NDeallocateTried =
     NDeallocateSucceeded = 0;
@@ -584,23 +518,67 @@ extern int main(int argc, char *argv[])
            (char *)dummyBlock + ArraySize);
   }
 
-  die((mps_res_t)CBSInit(&cbsStruct, arena, arena, align,
-                         /* fastFind */ TRUE, /* zoned */ FALSE, mps_args_none),
-      "failed to initialise CBS");
-  state.type = FBMTypeCBS;
+  /* 1. Test CBS */
+
+  MPS_ARGS_BEGIN(args) {
+    die((mps_res_t)LandInit(cbs, CBSFastLandClassGet(), arena, align, NULL, args),
+        "failed to initialise CBS");
+  } MPS_ARGS_END(args);
   state.align = align;
   state.block = dummyBlock;
   state.allocTable = allocTable;
-  state.the.cbs = &cbsStruct;
+  state.land = cbs;
   test(&state, nCBSOperations);
-  CBSFinish(&cbsStruct);
+  LandFinish(cbs);
 
-  die((mps_res_t)FreelistInit(&flStruct, align),
+  /* 2. Test Freelist */
+
+  die((mps_res_t)LandInit(fl, FreelistLandClassGet(), arena, align, NULL,
+                          mps_args_none),
       "failed to initialise Freelist");
-  state.type = FBMTypeFreelist;
-  state.the.fl = &flStruct;
+  state.land = fl;
   test(&state, nFLOperations);
-  FreelistFinish(&flStruct);
+  LandFinish(fl);
+
+  /* 3. Test CBS-failing-over-to-Freelist (always failing over on
+   * first iteration, never failing over on second; see fotest.c for a
+   * test case that randomly switches fail-over on and off)
+   */
+
+  for (i = 0; i < 2; ++i) {
+      MPS_ARGS_BEGIN(piArgs) {
+        MPS_ARGS_ADD(piArgs, MPS_KEY_MFS_UNIT_SIZE, sizeof(CBSFastBlockStruct));
+        MPS_ARGS_ADD(piArgs, MPS_KEY_EXTEND_BY, ArenaAlign(arena));
+        MPS_ARGS_ADD(piArgs, MFSExtendSelf, i);
+        MPS_ARGS_DONE(piArgs);
+        die(PoolInit(mfs, arena, PoolClassMFS(), piArgs), "PoolInit");
+      } MPS_ARGS_END(piArgs);
+
+      MPS_ARGS_BEGIN(args) {
+        MPS_ARGS_ADD(args, CBSBlockPool, mfs);
+        die((mps_res_t)LandInit(cbs, CBSFastLandClassGet(), arena, align, NULL,
+                                args),
+            "failed to initialise CBS");
+      } MPS_ARGS_END(args);
+
+      die((mps_res_t)LandInit(fl, FreelistLandClassGet(), arena, align, NULL,
+                              mps_args_none),
+          "failed to initialise Freelist");
+      MPS_ARGS_BEGIN(args) {
+        MPS_ARGS_ADD(args, FailoverPrimary, cbs);
+        MPS_ARGS_ADD(args, FailoverSecondary, fl);
+        die((mps_res_t)LandInit(fo, FailoverLandClassGet(), arena, align, NULL,
+                                args),
+            "failed to initialise Failover");
+      } MPS_ARGS_END(args);
+
+      state.land = fo;
+      test(&state, nFOOperations);
+      LandFinish(fo);
+      LandFinish(fl);
+      LandFinish(cbs);
+      PoolFinish(mfs);
+  }
 
   mps_arena_destroy(arena);
 

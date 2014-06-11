@@ -237,7 +237,7 @@ _`.tract.structure`: The tract structure definition looks like this::
       void *p;                    /* pointer for use of owning pool */
       Addr base;                  /* Base address of the tract */
       TraceSet white : TRACE_MAX; /* traces for which tract is white */
-      unsigned int hasSeg : 1;    /* does tract have a seg in p?  */
+      BOOLFIELD(hasSeg);          /* does tract have a seg in p? */
     } TractStruct;
 
 _`.tract.field.pool`: The pool.pool field indicates to which pool the tract
@@ -262,10 +262,9 @@ use it for any purpose.
 
 _`.tract.field.hasSeg`: The ``hasSeg`` bit-field is a Boolean which
 indicates whether the ``p`` field is being used by the segment module.
-If this field is ``TRUE``, then the value of ``p`` is a ``Seg``.
-``hasSeg`` is typed as an ``unsigned int``, rather than a ``Bool``.
-This ensures that there won't be sign conversion problems when
-converting the bit-field value.
+If this field is ``TRUE``, then the value of ``p`` is a ``Seg``. See
+design.mps.type.bool.bitfield for why this is declared using the
+``BOOLFIELD`` macro.
 
 _`.tract.field.base`: The base field contains the base address of the
 memory represented by the tract.
@@ -273,7 +272,7 @@ memory represented by the tract.
 _`.tract.field.white`: The white bit-field indicates for which traces
 the tract is white (`.req.fun.trans.white`_). This information is also
 stored in the segment, but is duplicated here for efficiency during a
-call to ``TraceFix`` (see design.mps.trace.fix).
+call to ``TraceFix()`` (see design.mps.trace.fix).
 
 _`.tract.limit`: The limit of the tract's memory may be determined by
 adding the arena alignment to the base address.

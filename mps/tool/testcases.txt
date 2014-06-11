@@ -18,11 +18,11 @@ bttest         =N                interactive
 djbench        =N                benchmark
 exposet0       =P
 expt825
-fbmtest
 finalcv        =P
 finaltest      =P
 fotest
 gcbench        =N                benchmark
+landtest
 locbwcss
 lockcov
 lockut         =T

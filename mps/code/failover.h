@@ -1,27 +1,35 @@
-/* mpscmv2.h: MEMORY POOL SYSTEM CLASS "MVT"
+/* failover.h: FAILOVER ALLOCATOR INTERFACE
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2014 Ravenbrook Limited.  See end of file for license.
+ *
+ * .source: <design/failover/>.
  */
 
-#ifndef mpscmv2_h
-#define mpscmv2_h
+#ifndef failover_h
+#define failover_h
 
-#include "mps.h"
+#include "mpmtypes.h"
 
-extern mps_class_t mps_class_mvt(void);
+typedef struct FailoverStruct *Failover;
 
-/* The mvt pool class supports two extensions to the pool protocol:
-   size and free_size. */
-extern size_t mps_mvt_free_size(mps_pool_t mps_pool);
-extern size_t mps_mvt_size(mps_pool_t mps_pool);
+extern Bool FailoverCheck(Failover failover);
 
-#endif /* mpscmv2_h */
+extern LandClass FailoverLandClassGet(void);
+
+extern const struct mps_key_s _mps_key_failover_primary;
+#define FailoverPrimary (&_mps_key_failover_primary)
+#define FailoverPrimary_FIELD p
+extern const struct mps_key_s _mps_key_failover_secondary;
+#define FailoverSecondary (&_mps_key_failover_secondary)
+#define FailoverSecondary_FIELD p
+
+#endif /* failover.h */
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

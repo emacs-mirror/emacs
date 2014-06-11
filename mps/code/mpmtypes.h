@@ -33,6 +33,7 @@ typedef void (*Fun)(void);              /* <design/type/#fun> */
 typedef MPS_T_WORD Word;                /* <design/type/#word> */
 typedef unsigned char Byte;             /* <design/type/#byte> */
 typedef struct AddrStruct *Addr;        /* <design/type/#addr> */
+typedef const struct AddrStruct *ReadonlyAddr; /* <design/type/#readonlyaddr> */
 typedef Word Size;                      /* <design/type/#size> */
 typedef Word Count;                     /* <design/type/#count> */
 typedef Word Index;                     /* <design/type/#index> */
@@ -76,7 +77,6 @@ typedef struct LockStruct *Lock;        /* <code/lock.c>* */
 typedef struct mps_pool_s *Pool;        /* <design/pool/> */
 typedef struct mps_class_s *PoolClass;  /* <code/poolclas.c> */
 typedef PoolClass AbstractPoolClass;    /* <code/poolabs.c> */
-typedef PoolClass AbstractAllocFreePoolClass; /* <code/poolabs.c> */
 typedef PoolClass AbstractBufferPoolClass; /* <code/poolabs.c> */
 typedef PoolClass AbstractSegBufPoolClass; /* <code/poolabs.c> */
 typedef PoolClass AbstractScanPoolClass; /* <code/poolabs.c> */
@@ -108,7 +108,10 @@ typedef struct AllocPatternStruct *AllocPattern;
 typedef struct AllocFrameStruct *AllocFrame; /* <design/alloc-frame/> */
 typedef struct ReservoirStruct *Reservoir;   /* <design/reservoir/> */
 typedef struct StackContextStruct *StackContext;
-typedef unsigned FindDelete;    /* <design/cbs/> */
+typedef struct RangeStruct *Range;      /* <design/range/> */
+typedef struct LandStruct *Land;        /* <design/land/> */
+typedef struct LandClassStruct *LandClass; /* <design/land/> */
+typedef unsigned FindDelete;            /* <design/land/> */
 
 
 /* Arena*Method -- see <code/mpmst.h#ArenaClassStruct> */
@@ -261,6 +264,22 @@ typedef struct TraceStartMessageStruct *TraceStartMessage;
 typedef struct TraceMessageStruct *TraceMessage;  /* trace end */
 
 
+/* Land*Method -- see <design/land/> */
+
+typedef Res (*LandInitMethod)(Land land, ArgList args);
+typedef void (*LandFinishMethod)(Land land);
+typedef Size (*LandSizeMethod)(Land land);
+typedef Res (*LandInsertMethod)(Range rangeReturn, Land land, Range range);
+typedef Res (*LandDeleteMethod)(Range rangeReturn, Land land, Range range);
+typedef Bool (*LandVisitor)(Land land, Range range, void *closureP, Size closureS);
+typedef Bool (*LandDeleteVisitor)(Bool *deleteReturn, Land land, Range range, void *closureP, Size closureS);
+typedef Bool (*LandIterateMethod)(Land land, LandVisitor visitor, void *closureP, Size closureS);
+typedef Bool (*LandIterateAndDeleteMethod)(Land land, LandDeleteVisitor visitor, void *closureP, Size closureS);
+typedef Bool (*LandFindMethod)(Range rangeReturn, Range oldRangeReturn, Land land, Size size, FindDelete findDelete);
+typedef Res (*LandFindInZonesMethod)(Bool *foundReturn, Range rangeReturn, Range oldRangeReturn, Land land, Size size, ZoneSet zoneSet, Bool high);
+typedef Res (*LandDescribeMethod)(Land land, mps_lib_FILE *stream);
+
+
 /* CONSTANTS */
 
 
@@ -281,22 +300,9 @@ typedef struct TraceMessageStruct *TraceMessage;  /* trace end */
 #define RankSetEMPTY    BS_EMPTY(RankSet)
 #define RankSetUNIV     ((RankSet)((1u << RankLIMIT) - 1))
 #define AttrFMT         ((Attr)(1<<0))  /* <design/type/#attr> */
-#define AttrSCAN        ((Attr)(1<<1))
-#define AttrPM_NO_READ  ((Attr)(1<<2))
-#define AttrPM_NO_WRITE ((Attr)(1<<3))
-#define AttrALLOC       ((Attr)(1<<4))
-#define AttrFREE        ((Attr)(1<<5))
-#define AttrBUF         ((Attr)(1<<6))
-#define AttrBUF_RESERVE ((Attr)(1<<7))
-#define AttrBUF_ALLOC   ((Attr)(1<<8))
-#define AttrGC          ((Attr)(1<<9))
-#define AttrINCR_RB     ((Attr)(1<<10))
-#define AttrINCR_WB     ((Attr)(1<<11))
-#define AttrMOVINGGC    ((Attr)(1<<12))
-#define AttrMASK        (AttrFMT | AttrSCAN | AttrPM_NO_READ | \
-                         AttrPM_NO_WRITE | AttrALLOC | AttrFREE | \
-                         AttrBUF | AttrBUF_RESERVE | AttrBUF_ALLOC | \
-                         AttrGC | AttrINCR_RB | AttrINCR_WB | AttrMOVINGGC)
+#define AttrGC          ((Attr)(1<<1))
+#define AttrMOVINGGC    ((Attr)(1<<2))
+#define AttrMASK        (AttrFMT | AttrGC | AttrMOVINGGC)
 
 
 /* Segment preferences */
@@ -407,7 +413,7 @@ enum {
 };
 
 
-/* FindDelete operations -- see <design/cbs/> and <design/freelist/> */
+/* FindDelete operations -- see <design/land/> */
 
 enum {
   FindDeleteNONE = 1, /* don't delete after finding */

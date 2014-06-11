@@ -170,9 +170,9 @@ Cache interface
 
     The size classes are described by an array of element type
     :c:type:`mps_sac_class_s`. This array is used to initialize the
-    segregated allocation cache, and is not needed
-    after:c:func:`mps_sac_create` returns. The following constraints
-    apply to the array:
+    segregated allocation cache, and is not needed after
+    :c:func:`mps_sac_create` returns. The following constraints apply
+    to the array:
 
     * You must specify at least one size class. 
 
