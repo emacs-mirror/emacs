@@ -25,7 +25,8 @@ CFLAGSCOMPILER := \
 	-Wshadow \
 	-Wstrict-aliasing=2 \
 	-Wstrict-prototypes \
-	-Wswitch-default
+	-Wswitch-default \
+	-Wwrite-strings
 CFLAGSCOMPILERSTRICT := -ansi -pedantic
 
 # A different set of compiler flags for less strict compilation, for
