@@ -450,7 +450,7 @@
 
 /* VM Configuration -- see <code/vm*.c> */
 
-#define VMANPageALIGNMENT ((Align)4096)
+#define VMAN_GRAIN_SIZE ((Align)4096)
 #define VMJunkBYTE ((unsigned char)0xA9)
 #define VMParamSize (sizeof(Word))
 
