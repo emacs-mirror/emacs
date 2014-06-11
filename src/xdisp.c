@@ -14421,7 +14421,7 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
 					      pos_after, 0);
 
 		if (prop_pos >= pos_before)
-		  bpos_max = prop_pos - 1;
+		  bpos_max = prop_pos;
 	      }
 	    if (INTEGERP (chprop))
 	      {
@@ -14495,7 +14495,7 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
 					      pos_after, 0);
 
 		if (prop_pos >= pos_before)
-		  bpos_max = prop_pos - 1;
+		  bpos_max = prop_pos;
 	      }
 	    if (INTEGERP (chprop))
 	      {
@@ -14525,7 +14525,7 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
      GLYPH_BEFORE and GLYPH_AFTER.  */
   if (!((row->reversed_p ? glyph > glyphs_end : glyph < glyphs_end)
 	&& BUFFERP (glyph->object) && glyph->charpos == pt_old)
-      && !(bpos_max < pt_old && pt_old <= bpos_covered))
+      && !(bpos_max <= pt_old && pt_old <= bpos_covered))
     {
       /* An empty line has a single glyph whose OBJECT is zero and
 	 whose CHARPOS is the position of a newline on that line.
