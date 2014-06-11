@@ -612,9 +612,9 @@ static Res AMSTBufferFill(Addr *baseReturn, Addr *limitReturn,
  * not already attached to a buffer and similar colour)
  *
  * .bsplit: Whether or not a merge happpened, a split is performed if
- * the limit of the buffered region is arena aligned, and yet does not
- * correspond to the segment limit, provided that the part of the segment
- * above the buffer is all free.
+ * the limit of the buffered region is also the limit of an arena
+ * grain, and yet does not correspond to the segment limit, provided
+ * that the part of the segment above the buffer is all free.
  */
 static void AMSTStressBufferedSeg(Seg seg, Buffer buffer)
 {

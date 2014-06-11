@@ -646,7 +646,7 @@ static Ring AMSPoolRing(AMS ams, RankSet rankSet, Size size)
 /* AMSSegSizePolicy
  *
  * Picks a segment size.  This policy simply rounds the size
- * up to the arena alignment.
+ * up to the arena grain size.
  */
 static Res AMSSegSizePolicy(Size *sizeReturn,
                             Pool pool, Size size, RankSet rankSet)
