@@ -38,8 +38,8 @@ maintained in the reservoir. The limit is the maximum amount that it
 is desired to maintain.
 
 _`.wastage`: When the reservoir limit is set by the client, the actual
-limit should be increased by an arena alignment amount for every
-active mutator buffer.
+limit should be increased by one arena grain for every active mutator
+buffer.
 
 _`.really-empty`: When the reservoir limit is set to 0, assume that
 the client really doesn't have a need for a reservoir at all. In this
@@ -103,9 +103,9 @@ memory of the specified size to the specified pool to the reservoir.
 If no suitable memory can be found it returns ``ResMEMORY``.
 
 _`.interface.withdraw.align`: Currently, ``ReservoirWithdraw()`` can
-only withdraw memory in chunks of the size of the arena alignment.
-This is because the reservoir doesn't attempt to coalesce adjacent
-memory blocks. This deficiency should be fixed in the future.
+only withdraw memory in multiples of the arena grain size. This is
+because the reservoir doesn't attempt to coalesce adjacent memory
+blocks. This deficiency should be fixed in the future.
 
 _`.pool`: The memory managed by the reservoir is owned by the
 reservoir pool. This memory is never sub-allocated. Each tract
