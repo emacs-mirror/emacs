@@ -115,7 +115,7 @@ AMC interface
       method`, a :term:`forward method`, an :term:`is-forwarded
       method` and a :term:`padding method`.
 
-    It accepts two optional keyword arguments:
+    It accepts four optional keyword arguments:
 
     * :c:macro:`MPS_KEY_CHAIN` (type :c:type:`mps_chain_t`) specifies
       the :term:`generation chain` for the pool. If not specified, the
@@ -126,6 +126,14 @@ AMC interface
       reference>` :term:`interior pointers` to blocks in the pool keep
       objects alive. If this is ``FALSE``, then only :term:`client
       pointers` keep objects alive.
+
+    * :c:macro:`MPS_KEY_EXTEND_BY` (type :c:type:`size_t`,
+      default 4096) is the default :term:`size` of segment that the pool will
+      request from the :term:`arena`.
+
+    * :c:macro:`MPS_KEY_LARGE_SIZE` (type :c:type:`size_t`,
+      default 32768) is the minimum :term:`size` of object (larger than the
+      extend by value) that will be allocated on its own segment.
 
     For example::
 
