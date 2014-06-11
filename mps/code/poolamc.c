@@ -94,8 +94,8 @@ typedef struct amcSegStruct {
   GCSegStruct gcSegStruct;  /* superclass fields must come first */
   amcGen gen;               /* generation this segment belongs to */
   Nailboard board;          /* nailboard for this segment or NULL if none */
-  unsigned old : 1;         /* .seg.old */
-  unsigned deferred : 1;    /* .seg.deferred */
+  BOOLFIELD(old);           /* .seg.old */
+  BOOLFIELD(deferred);      /* .seg.deferred */
   Sig sig;                  /* <code/misc.h#sig> */
 } amcSegStruct;
 
@@ -113,8 +113,8 @@ static Bool amcSegCheck(amcSeg amcseg)
     CHECKD(Nailboard, amcseg->board);
     CHECKL(SegNailed(amcSeg2Seg(amcseg)) != TraceSetEMPTY);
   }
-  CHECKL(BoolCheck(amcseg->old));
-  CHECKL(BoolCheck(amcseg->deferred));
+  /* CHECKL(BoolCheck(amcseg->old)); <design/type/#bool.bitfield.check> */
+  /* CHECKL(BoolCheck(amcseg->deferred)); <design/type/#bool.bitfield.check> */
   return TRUE;
 }
 
@@ -487,7 +487,6 @@ typedef struct AMCStruct { /* <design/poolamc/#struct> */
 ATTRIBUTE_UNUSED
 static Bool amcGenCheck(amcGen gen)
 {
-  Arena arena;
   AMC amc;
 
   CHECKS(amcGen, gen);
@@ -496,7 +495,7 @@ static Bool amcGenCheck(amcGen gen)
   CHECKU(AMC, amc);
   CHECKD(Buffer, gen->forward);
   CHECKD_NOSIG(Ring, &gen->amcRing);
-  arena = amc->poolStruct.arena;
+
   return TRUE;
 }
 
@@ -713,16 +712,20 @@ static void amcGenDestroy(amcGen gen)
 
 /* amcGenDescribe -- describe an AMC generation */
 
-static Res amcGenDescribe(amcGen amcgen, mps_lib_FILE *stream)
+static Res amcGenDescribe(amcGen gen, mps_lib_FILE *stream)
 {
   Res res;
 
-  if(!TESTT(amcGen, amcgen))
+  if(!TESTT(amcGen, gen))
     return ResFAIL;
 
   res = WriteF(stream,
-               "  amcGen $P {\n", (WriteFP)amcgen,
-               "   buffer $P\n", (WriteFP)amcgen->forward,
+               "  amcGen $P {\n", (WriteFP)gen,
+               "   buffer $P\n", gen->forward,
+               "   segs $U, totalSize $U, newSize $U\n",
+               (WriteFU)gen->pgen.segs,
+               (WriteFU)gen->pgen.totalSize,
+               (WriteFU)gen->pgen.newSize,
                "  } amcGen\n", NULL);
   return res;
 }
@@ -878,9 +881,6 @@ static Res amcInitComm(Pool pool, RankSet rankSet, ArgList args)
       if (res != ResOK)
         goto failGenAlloc;
     }
-    res = amcGenCreate(&amc->gen[genCount], amc, &arena->topGen);
-    if (res != ResOK)
-      goto failGenAlloc;
     /* Set up forwarding buffers. */
     for(i = 0; i < genCount; ++i) {
       amcBufSetGen(amc->gen[i]->forward, amc->gen[i+1]);
@@ -952,13 +952,12 @@ static void AMCFinish(Pool pool)
     Seg seg = SegOfPoolRing(node);
     amcGen gen = amcSegGen(seg);
     amcSeg amcseg = Seg2amcSeg(seg);
-
-    if (!amcseg->old) {
-      PoolGenAge(&gen->pgen, SegSize(seg), amcseg->deferred);
-      amcseg->old = TRUE;
-    }
-    PoolGenReclaim(&gen->pgen, SegSize(seg), amcseg->deferred);
-    PoolGenFree(&gen->pgen, seg);
+    AVERT(amcSeg, amcseg);
+    PoolGenFree(&gen->pgen, seg,
+                0,
+                amcseg->old ? SegSize(seg) : 0,
+                amcseg->old ? 0 : SegSize(seg),
+                amcseg->deferred);
   }
 
   /* Disassociate forwarding buffers from gens before they are */
@@ -1065,7 +1064,7 @@ static Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn,
     }
   }
 
-  PoolGenFill(pgen, SegSize(seg), Seg2amcSeg(seg)->deferred);
+  PoolGenAccountForFill(pgen, SegSize(seg), Seg2amcSeg(seg)->deferred);
   *baseReturn = base;
   *limitReturn = limit;
   return ResOK;
@@ -1110,7 +1109,10 @@ static void AMCBufferEmpty(Pool pool, Buffer buffer,
     ShieldCover(arena, seg);
   }
 
-  PoolGenEmpty(&amcSegGen(seg)->pgen, 0, Seg2amcSeg(seg)->deferred);
+  /* The unused part of the buffer is not reused by AMC, so we pass 0
+   * for the unused argument. This call therefore has no effect on the
+   * accounting, but we call it anyway for consistency. */
+  PoolGenAccountForEmpty(&amcSegGen(seg)->pgen, 0, Seg2amcSeg(seg)->deferred);
 }
 
 
@@ -1298,7 +1300,7 @@ static Res AMCWhiten(Pool pool, Trace trace, Seg seg)
   gen = amcSegGen(seg);
   AVERT(amcGen, gen);
   if (!amcseg->old) {
-    PoolGenAge(&gen->pgen, SegSize(seg), amcseg->deferred);
+    PoolGenAccountForAge(&gen->pgen, SegSize(seg), amcseg->deferred);
     amcseg->old = TRUE;
   }
 
@@ -2000,8 +2002,7 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
     /* We may not free a buffered seg. */
     AVER(SegBuffer(seg) == NULL);
 
-    PoolGenReclaim(&gen->pgen, SegSize(seg), Seg2amcSeg(seg)->deferred);
-    PoolGenFree(&gen->pgen, seg);
+    PoolGenFree(&gen->pgen, seg, 0, SegSize(seg), 0, Seg2amcSeg(seg)->deferred);
   } else {
     /* Seg retained */
     STATISTIC_STAT( {
@@ -2079,8 +2080,7 @@ static void AMCReclaim(Pool pool, Trace trace, Seg seg)
 
   trace->reclaimSize += SegSize(seg);
 
-  PoolGenReclaim(&gen->pgen, SegSize(seg), Seg2amcSeg(seg)->deferred);
-  PoolGenFree(&gen->pgen, seg);
+  PoolGenFree(&gen->pgen, seg, 0, SegSize(seg), 0, Seg2amcSeg(seg)->deferred);
 }
 
 

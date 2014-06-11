@@ -56,7 +56,7 @@ static Bool MVTCheckFit(Addr base, Addr limit, Size min, Arena arena);
 static ABQ MVTABQ(MVT mvt);
 static Land MVTCBS(MVT mvt);
 static Land MVTFreelist(MVT mvt);
-static Land MVTFailover(MVT mvt);
+static Land MVTFreeLand(MVT mvt);
 
 
 /* Types */
@@ -141,7 +141,6 @@ DEFINE_POOL_CLASS(MVTPoolClass, this)
   this->name = "MVT";
   this->size = sizeof(MVTStruct);
   this->offset = offsetof(MVTStruct, poolStruct);
-  this->attr |= AttrFREE;
   this->varargs = MVTVarargs;
   this->init = MVTInit;
   this->finish = MVTFinish;
@@ -155,12 +154,6 @@ DEFINE_POOL_CLASS(MVTPoolClass, this)
 }
 
 /* Macros */
-
-
-/* .trans.something: the C language sucks */
-#define unless(cond) if (!(cond))
-#define when(cond) if (cond)
-
 
 #define Pool2MVT(pool) PARENT(MVTStruct, poolStruct, pool)
 #define MVT2Pool(mvt) (&(mvt)->poolStruct)
@@ -177,19 +170,19 @@ static ABQ MVTABQ(MVT mvt)
 
 static Land MVTCBS(MVT mvt)
 {
-  return &mvt->cbsStruct.landStruct;
+  return CBSLand(&mvt->cbsStruct);
 }
 
 
 static Land MVTFreelist(MVT mvt)
 {
-  return &mvt->flStruct.landStruct;
+  return FreelistLand(&mvt->flStruct);
 }
 
 
-static Land MVTFailover(MVT mvt)
+static Land MVTFreeLand(MVT mvt)
 {
-  return &mvt->foStruct.landStruct;
+  return FailoverLand(&mvt->foStruct);
 }
 
 
@@ -300,7 +293,7 @@ static Res MVTInit(Pool pool, ArgList args)
   MPS_ARGS_BEGIN(foArgs) {
     MPS_ARGS_ADD(foArgs, FailoverPrimary, MVTCBS(mvt));
     MPS_ARGS_ADD(foArgs, FailoverSecondary, MVTFreelist(mvt));
-    res = LandInit(MVTFailover(mvt), FailoverLandClassGet(), arena, align, mvt,
+    res = LandInit(MVTFreeLand(mvt), FailoverLandClassGet(), arena, align, mvt,
                    foArgs);
   } MPS_ARGS_END(foArgs);
   if (res != ResOK)
@@ -373,7 +366,7 @@ static Res MVTInit(Pool pool, ArgList args)
   return ResOK;
 
 failABQ:
-  LandFinish(MVTFailover(mvt));
+  LandFinish(MVTFreeLand(mvt));
 failFailover:
   LandFinish(MVTFreelist(mvt));
 failFreelist:
@@ -447,7 +440,7 @@ static void MVTFinish(Pool pool)
 
   /* Finish the ABQ, Failover, Freelist and CBS structures */
   ABQFinish(arena, MVTABQ(mvt));
-  LandFinish(MVTFailover(mvt));
+  LandFinish(MVTFreeLand(mvt));
   LandFinish(MVTFreelist(mvt));
   LandFinish(MVTCBS(mvt));
 }
@@ -769,6 +762,7 @@ static Bool MVTDeleteOverlapping(Bool *deleteReturn, void *element,
   AVER(deleteReturn != NULL);
   AVER(element != NULL);
   AVER(closureP != NULL);
+  AVER(closureS == UNUSED_SIZE);
   UNUSED(closureS);
 
   oldRange = element;
@@ -826,7 +820,7 @@ static Res MVTInsert(MVT mvt, Addr base, Addr limit)
   AVER(base < limit);
   
   RangeInit(&range, base, limit);
-  res = LandInsert(&newRange, MVTFailover(mvt), &range);
+  res = LandInsert(&newRange, MVTFreeLand(mvt), &range);
   if (res != ResOK)
     return res;
 
@@ -835,7 +829,7 @@ static Res MVTInsert(MVT mvt, Addr base, Addr limit)
      * with ranges on the ABQ, so ensure that the corresponding ranges
      * are coalesced on the ABQ.
      */
-    ABQIterate(MVTABQ(mvt), MVTDeleteOverlapping, &newRange, 0);
+    ABQIterate(MVTABQ(mvt), MVTDeleteOverlapping, &newRange, UNUSED_SIZE);
     (void)MVTReserve(mvt, &newRange);
   }
 
@@ -855,7 +849,7 @@ static Res MVTDelete(MVT mvt, Addr base, Addr limit)
   AVER(base < limit);
 
   RangeInit(&range, base, limit);
-  res = LandDelete(&rangeOld, MVTFailover(mvt), &range);
+  res = LandDelete(&rangeOld, MVTFreeLand(mvt), &range);
   if (res != ResOK)
     return res;
   AVER(RangesNest(&rangeOld, &range));
@@ -864,7 +858,7 @@ static Res MVTDelete(MVT mvt, Addr base, Addr limit)
    * might be on the ABQ, so ensure it is removed.
    */
   if (RangeSize(&rangeOld) >= mvt->reuseSize)
-    ABQIterate(MVTABQ(mvt), MVTDeleteOverlapping, &rangeOld, 0);
+    ABQIterate(MVTABQ(mvt), MVTDeleteOverlapping, &rangeOld, UNUSED_SIZE);
 
   /* There might be fragments at the left or the right of the deleted
    * range, and either might be big enough to go back on the ABQ.
@@ -1061,7 +1055,7 @@ static Res MVTDescribe(Pool pool, mps_lib_FILE *stream)
   if(res != ResOK) return res;
   res = LandDescribe(MVTFreelist(mvt), stream);
   if(res != ResOK) return res;
-  res = LandDescribe(MVTFailover(mvt), stream);
+  res = LandDescribe(MVTFreeLand(mvt), stream);
   if(res != ResOK) return res;
   res = ABQDescribe(MVTABQ(mvt), (ABQDescribeElement)RangeDescribe, stream);
   if(res != ResOK) return res;
@@ -1208,15 +1202,15 @@ static Bool MVTReturnSegs(MVT mvt, Range range, Arena arena)
  * empty.
  */
 
-static Bool MVTRefillVisitor(Bool *deleteReturn, Land land, Range range,
+static Bool MVTRefillVisitor(Land land, Range range,
                              void *closureP, Size closureS)
 {
   MVT mvt;
 
-  AVER(deleteReturn != NULL);
   AVERT(Land, land);
   mvt = closureP;
   AVERT(MVT, mvt);
+  AVER(closureS == UNUSED_SIZE);
   UNUSED(closureS);
 
   if (RangeSize(range) < mvt->reuseSize)
@@ -1239,7 +1233,8 @@ static void MVTRefillABQIfEmpty(MVT mvt, Size size)
   if (mvt->abqOverflow && ABQIsEmpty(MVTABQ(mvt))) {
     mvt->abqOverflow = FALSE;
     METER_ACC(mvt->refills, size);
-    LandIterate(MVTFailover(mvt), &MVTRefillVisitor, mvt, 0);
+    /* The iteration stops if the ABQ overflows, so may finish or not. */
+    (void)LandIterate(MVTFreeLand(mvt), MVTRefillVisitor, mvt, UNUSED_SIZE);
   }
 }
  
@@ -1249,7 +1244,6 @@ static void MVTRefillABQIfEmpty(MVT mvt, Size size)
 typedef struct MVTContigencyClosureStruct
 {
   MVT mvt;
-  Bool found;
   RangeStruct range;
   Arena arena;
   Size min;
@@ -1258,7 +1252,7 @@ typedef struct MVTContigencyClosureStruct
   Count hardSteps;
 } MVTContigencyClosureStruct,  *MVTContigencyClosure;
 
-static Bool MVTContingencyVisitor(Bool *deleteReturn, Land land, Range range,
+static Bool MVTContingencyVisitor(Land land, Range range,
                                   void *closureP, Size closureS)
 {
   MVT mvt;
@@ -1266,13 +1260,13 @@ static Bool MVTContingencyVisitor(Bool *deleteReturn, Land land, Range range,
   Addr base, limit;
   MVTContigencyClosure cl;
 
-  AVER(deleteReturn != NULL);
   AVERT(Land, land);
   AVERT(Range, range);
   AVER(closureP != NULL);
   cl = closureP;
   mvt = cl->mvt;
   AVERT(MVT, mvt);
+  AVER(closureS == UNUSED_SIZE);
   UNUSED(closureS);
 
   base = RangeBase(range);
@@ -1286,7 +1280,6 @@ static Bool MVTContingencyVisitor(Bool *deleteReturn, Land land, Range range,
   /* verify that min will fit when seg-aligned */
   if (size >= 2 * cl->min) {
     RangeInit(&cl->range, base, limit);
-    cl->found = TRUE;
     return FALSE;
   }
  
@@ -1294,7 +1287,6 @@ static Bool MVTContingencyVisitor(Bool *deleteReturn, Land land, Range range,
   cl->hardSteps++;
   if (MVTCheckFit(base, limit, cl->min, cl->arena)) {
     RangeInit(&cl->range, base, limit);
-    cl->found = TRUE;
     return FALSE;
   }
  
@@ -1308,14 +1300,12 @@ static Bool MVTContingencySearch(Addr *baseReturn, Addr *limitReturn,
   MVTContigencyClosureStruct cls;
 
   cls.mvt = mvt;
-  cls.found = FALSE;
   cls.arena = PoolArena(MVT2Pool(mvt));
   cls.min = min;
   cls.steps = 0;
   cls.hardSteps = 0;
 
-  LandIterate(MVTFailover(mvt), MVTContingencyVisitor, (void *)&cls, 0);
-  if (!cls.found)
+  if (LandIterate(MVTFreeLand(mvt), MVTContingencyVisitor, &cls, UNUSED_SIZE))
     return FALSE;
 
   AVER(RangeSize(&cls.range) >= min);

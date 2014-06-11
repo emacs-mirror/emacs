@@ -333,7 +333,7 @@ Memory Management Glossary: S
 
         By overloading certain operators it is possible for the class
         to present the illusion of being a pointer, so that
-        ``operator\*``, ``operator-\>``, etc. can be used as normal.
+        ``operator*``, ``operator->``, etc. can be used as normal.
         Reference counting allows the objects that are referred to
         using the smart pointer class to have their :term:`memory (1)`
         automatically :term:`reclaimed` when they are no longer
@@ -429,7 +429,7 @@ Memory Management Glossary: S
 
         .. link::
 
-            `Class java.lang.ref.SoftReference <http://download.java.net/jdk8/docs/api/java/lang/ref/SoftReference.html>`_, `Reference Objects and Garbage Collection <http://pawlan.com/monica/articles/refobjs/>`_.
+            `Class java.lang.ref.SoftReference <http://docs.oracle.com/javase/8/docs/api/java/lang/ref/SoftReference.html>`_, `Reference Objects and Garbage Collection <http://pawlan.com/monica/articles/refobjs/>`_.
 
     softly reachable
 
@@ -453,7 +453,7 @@ Memory Management Glossary: S
 
         .. link::
 
-            `Class java.lang.ref.SoftReference <http://download.java.net/jdk8/docs/api/java/lang/ref/SoftReference.html>`_, `Reference Objects and Garbage Collection <http://pawlan.com/monica/articles/refobjs/>`_.
+            `Class java.lang.ref.SoftReference <http://docs.oracle.com/javase/8/docs/api/java/lang/ref/SoftReference.html>`_, `Reference Objects and Garbage Collection <http://pawlan.com/monica/articles/refobjs/>`_.
 
     space leak
 
@@ -785,6 +785,26 @@ Memory Management Glossary: S
 
         .. see:: :term:`memory (1)`.
 
+    stretchy vector
+
+        A :term:`vector <vector data type>` that may grow or shrink to
+        accommodate adding or removing elements. Named after the
+        ``<stretchy-vector>`` abstract class in Dylan.
+
+        .. relevance::
+
+            In the presence of an :term:`asynchronous garbage
+            collector`, the vector and its size may need to be updated
+            atomically.
+
+        .. link::
+
+            `Dylan Reference Manual: Collections <http://opendylan.org/books/drm/Collection_Classes>`_.
+
+        .. mps:specific::
+
+            See :ref:`guide-stretchy-vector`.
+
     strict segregated fit
 
         A :term:`segregated fit` :term:`allocation mechanism` which
@@ -806,7 +826,7 @@ Memory Management Glossary: S
         collection>`, a strong reference is a :term:`reference` that
         keeps the :term:`object` it refers to :term:`alive <live>`.
 
-        A strong reference is the usual sort of reference; The term is
+        A strong reference is the usual sort of reference: the term is
         usually used to draw a contrast with :term:`weak reference
         (1)`.
 
@@ -819,7 +839,7 @@ Memory Management Glossary: S
         A strong root is a :term:`root` such that all
         :term:`references` in it are :term:`strong references`.
 
-        A strong root is the usual sort of root. The term is usually
+        A strong root is the usual sort of root: the term is usually
         used to draw a contrast with :term:`weak root`.
 
         .. opposite:: :term:`weak root`.
