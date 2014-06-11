@@ -34,7 +34,7 @@ Bool VMCheck(VM vm)
   CHECKL(vm->base != (Addr)0);
   CHECKL(vm->limit != (Addr)0);
   CHECKL(vm->base < vm->limit);
-  CHECKL(GrainSizeCheck(VMAN_GRAIN_SIZE));
+  CHECKL(ArenaGrainSizeCheck(VMAN_GRAIN_SIZE));
   CHECKL(AddrIsAligned(vm->base, VMAN_GRAIN_SIZE));
   CHECKL(AddrIsAligned(vm->limit, VMAN_GRAIN_SIZE));
   CHECKL(vm->block != NULL);
