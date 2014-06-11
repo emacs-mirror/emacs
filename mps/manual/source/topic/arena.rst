@@ -236,7 +236,7 @@ Virtual memory arenas
     accepts one :term:`keyword argument` on all platforms:
 
     * :c:macro:`MPS_KEY_ARENA_SIZE` (type :c:type:`size_t`, default
-      2\ :superscript:`20`) is the initial amount of virtual address
+      256\ :term:`megabytes`) is the initial amount of virtual address
       space, in :term:`bytes (1)`, that the arena will reserve (this
       space is initially reserved so that the arena can subsequently
       use it without interference from other parts of the program, but

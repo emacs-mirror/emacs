@@ -250,7 +250,9 @@ GenDesc ChainGen(Chain chain, Index gen)
 }
 
 
-/* PoolGenAlloc -- allocate a segment in a pool generation */
+/* PoolGenAlloc -- allocate a segment in a pool generation and update
+ * accounting
+ */
 
 Res PoolGenAlloc(Seg *segReturn, PoolGen pgen, SegClass class, Size size,
                  Bool withReservoirPermit, ArgList args)
@@ -477,12 +479,17 @@ Bool PoolGenCheck(PoolGen pgen)
 }
 
 
-/* PoolGenFill -- accounting for allocation
+/* PoolGenAccountForFill -- accounting for allocation
  *
- * The memory was free, is now new (or newDeferred).
+ * Call this when the pool allocates memory to the client program via
+ * BufferFill. The deferred flag indicates whether the accounting of
+ * this memory (for the purpose of scheduling collections) should be
+ * deferred until later.
+ *
+ * See <design/strategy/#accounting.op.fill>
  */
 
-void PoolGenFill(PoolGen pgen, Size size, Bool deferred)
+void PoolGenAccountForFill(PoolGen pgen, Size size, Bool deferred)
 {
   AVERT(PoolGen, pgen);
   AVERT(Bool, deferred);
@@ -498,12 +505,16 @@ void PoolGenFill(PoolGen pgen, Size size, Bool deferred)
 }
 
 
-/* PoolGenEmpty -- accounting for emptying a buffer
+/* PoolGenAccountForEmpty -- accounting for emptying a buffer
  *
- * The unused part of the buffer was new (or newDeferred) and is now free.
+ * Call this when the client program returns memory (that was never
+ * condemned) to the pool via BufferEmpty. The deferred flag is as for
+ * PoolGenAccountForFill.
+ *
+ * See <design/strategy/#accounting.op.empty>
  */
 
-void PoolGenEmpty(PoolGen pgen, Size unused, Bool deferred)
+void PoolGenAccountForEmpty(PoolGen pgen, Size unused, Bool deferred)
 {
   AVERT(PoolGen, pgen);
   AVERT(Bool, deferred);
@@ -519,12 +530,16 @@ void PoolGenEmpty(PoolGen pgen, Size unused, Bool deferred)
 }
 
 
-/* PoolGenAge -- accounting for condemning a segment
+/* PoolGenAccountForAge -- accounting for condemning
  *
- * The memory was new (or newDeferred), is now old (or oldDeferred)
+ * Call this when memory is condemned via PoolWhiten. The size
+ * parameter should be the amount of memory that is being condemned
+ * for the first time. The deferred flag is as for PoolGenAccountForFill.
+ *
+ * See <design/strategy/#accounting.op.age>
  */
 
-void PoolGenAge(PoolGen pgen, Size size, Bool deferred)
+void PoolGenAccountForAge(PoolGen pgen, Size size, Bool deferred)
 {
   AVERT(PoolGen, pgen);
   
@@ -540,12 +555,15 @@ void PoolGenAge(PoolGen pgen, Size size, Bool deferred)
 }
 
 
-/* PoolGenReclaim -- accounting for reclaiming
+/* PoolGenAccountForReclaim -- accounting for reclaiming
  *
- * The reclaimed memory was old, and is now free.
+ * Call this when reclaiming memory, passing the amount of memory that
+ * was reclaimed. The deferred flag is as for PoolGenAccountForFill.
+ *
+ * See <design/strategy/#accounting.op.reclaim>
  */
 
-void PoolGenReclaim(PoolGen pgen, Size reclaimed, Bool deferred)
+void PoolGenAccountForReclaim(PoolGen pgen, Size reclaimed, Bool deferred)
 {
   AVERT(PoolGen, pgen);
   AVERT(Bool, deferred);
@@ -563,9 +581,13 @@ void PoolGenReclaim(PoolGen pgen, Size reclaimed, Bool deferred)
 }
 
 
-/* PoolGenUndefer -- accounting for end of ramp mode
+/* PoolGenUndefer -- finish deferring accounting
  *
- * The memory was oldDeferred or newDeferred, is now old or new.
+ * Call this when exiting ramp mode, passing the amount of old
+ * (condemned at least once) and new (never condemned) memory whose
+ * accounting was deferred (for example, during a ramp).
+ *
+ * See <design/strategy/#accounting.op.undefer>
  */
 
 void PoolGenUndefer(PoolGen pgen, Size oldSize, Size newSize)
@@ -582,22 +604,25 @@ void PoolGenUndefer(PoolGen pgen, Size oldSize, Size newSize)
 }
 
 
-/* PoolGenSegSplit -- accounting for splitting a segment */
+/* PoolGenAccountForSegSplit -- accounting for splitting a segment */
 
-void PoolGenSegSplit(PoolGen pgen)
-{
-  AVERT(PoolGen, pgen);
-  STATISTIC(++ pgen->segs);
-}
-
-
-/* PoolGenSegMerge -- accounting for merging a segment */
-
-void PoolGenSegMerge(PoolGen pgen)
+void PoolGenAccountForSegSplit(PoolGen pgen)
 {
   AVERT(PoolGen, pgen);
   STATISTIC_STAT ({
-    AVER(pgen->segs > 0);
+    AVER(pgen->segs >= 1); /* must be at least one segment to split */
+    ++ pgen->segs;
+  });
+}
+
+
+/* PoolGenAccountForSegMerge -- accounting for merging a segment */
+
+void PoolGenAccountForSegMerge(PoolGen pgen)
+{
+  AVERT(PoolGen, pgen);
+  STATISTIC_STAT ({
+    AVER(pgen->segs >= 2); /* must be at least two segments to merge */
     -- pgen->segs;
   });
 }
@@ -605,10 +630,15 @@ void PoolGenSegMerge(PoolGen pgen)
 
 /* PoolGenFree -- free a segment and update accounting
  *
- * The segment is assumed to finish free.
+ * Pass the amount of memory in the segment that is accounted as free,
+ * old, or new, respectively. The deferred flag is as for
+ * PoolGenAccountForFill.
+ *
+ * See <design/strategy/#accounting.op.free>
  */
 
-void PoolGenFree(PoolGen pgen, Seg seg)
+void PoolGenFree(PoolGen pgen, Seg seg, Size freeSize, Size oldSize,
+                 Size newSize, Bool deferred)
 {
   Size size;
 
@@ -616,6 +646,13 @@ void PoolGenFree(PoolGen pgen, Seg seg)
   AVERT(Seg, seg);
 
   size = SegSize(seg);
+  AVER(freeSize + oldSize + newSize == size);
+
+  /* Pretend to age and reclaim the contents of the segment to ensure
+   * that the entire segment is accounted as free. */
+  PoolGenAccountForAge(pgen, newSize, deferred);
+  PoolGenAccountForReclaim(pgen, oldSize + newSize, deferred);
+
   AVER(pgen->totalSize >= size);
   pgen->totalSize -= size;
   STATISTIC_STAT ({

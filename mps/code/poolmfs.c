@@ -60,13 +60,6 @@ typedef struct MFSHeaderStruct {
 #define UNIT_MIN        sizeof(HeaderStruct)
 
 
-Pool (MFSPool)(MFS mfs)
-{
-  AVERT(MFS, mfs);
-  return &mfs->poolStruct;
-}
-
-
 /* MFSVarargs -- decode obsolete varargs */
 
 static void MFSVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
@@ -153,6 +146,8 @@ void MFSFinishTracts(Pool pool, MFSTractVisitor visitor,
 static void MFSTractFreeVisitor(Pool pool, Addr base, Size size,
                                 void *closureP, Size closureS)
 {
+  AVER(closureP == UNUSED_POINTER);
+  AVER(closureS == UNUSED_SIZE);
   UNUSED(closureP);
   UNUSED(closureS);
   ArenaFree(base, size, pool);
@@ -167,7 +162,7 @@ static void MFSFinish(Pool pool)
   mfs = PoolPoolMFS(pool);
   AVERT(MFS, mfs);
 
-  MFSFinishTracts(pool, MFSTractFreeVisitor, NULL, 0);
+  MFSFinishTracts(pool, MFSTractFreeVisitor, UNUSED_POINTER, UNUSED_SIZE);
 
   mfs->sig = SigInvalid;
 }
@@ -364,7 +359,7 @@ static Res MFSDescribe(Pool pool, mps_lib_FILE *stream)
 
 DEFINE_POOL_CLASS(MFSPoolClass, this)
 {
-  INHERIT_CLASS(this, AbstractAllocFreePoolClass);
+  INHERIT_CLASS(this, AbstractPoolClass);
   this->name = "MFS";
   this->size = sizeof(MFSStruct);
   this->offset = offsetof(MFSStruct, poolStruct);

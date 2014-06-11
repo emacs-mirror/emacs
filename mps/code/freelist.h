@@ -13,6 +13,8 @@
 
 typedef struct FreelistStruct *Freelist;
 
+#define FreelistLand(fl) (&(fl)->landStruct)
+
 #define FreelistMinimumAlignment ((Align)sizeof(FreelistBlock))
 
 extern Bool FreelistCheck(Freelist freelist);

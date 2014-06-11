@@ -609,14 +609,12 @@ static void AWLFinish(Pool pool)
   RING_FOR(node, ring, nextNode) {
     Seg seg = SegOfPoolRing(node);
     AWLSeg awlseg = Seg2AWLSeg(seg);
-    PoolGenAge(&awl->pgen, AWLGrainsSize(awl, awlseg->newGrains), FALSE);
-    awlseg->oldGrains += awlseg->newGrains;
-    awlseg->newGrains = 0;
-    PoolGenReclaim(&awl->pgen, AWLGrainsSize(awl, awlseg->oldGrains), FALSE);
-    awlseg->freeGrains += awlseg->oldGrains;
-    awlseg->oldGrains = 0;
-    AVER(awlseg->freeGrains == awlseg->grains);
-    PoolGenFree(&awl->pgen, seg);
+    AVERT(AWLSeg, awlseg);
+    PoolGenFree(&awl->pgen, seg,
+                AWLGrainsSize(awl, awlseg->freeGrains),
+                AWLGrainsSize(awl, awlseg->oldGrains),
+                AWLGrainsSize(awl, awlseg->newGrains),
+                FALSE);
   }
   awl->sig = SigInvalid;
   PoolGenFinish(&awl->pgen);
@@ -686,7 +684,7 @@ found:
     AVER(awlseg->freeGrains >= j - i);
     awlseg->freeGrains -= j - i;
     awlseg->newGrains += j - i;
-    PoolGenFill(&awl->pgen, AddrOffset(base, limit), FALSE);
+    PoolGenAccountForFill(&awl->pgen, AddrOffset(base, limit), FALSE);
   }
   *baseReturn = base;
   *limitReturn = limit;
@@ -725,7 +723,7 @@ static void AWLBufferEmpty(Pool pool, Buffer buffer, Addr init, Addr limit)
     AVER(awlseg->newGrains >= j - i);
     awlseg->newGrains -= j - i;
     awlseg->freeGrains += j - i;
-    PoolGenEmpty(&awl->pgen, AddrOffset(init, limit), FALSE);
+    PoolGenAccountForEmpty(&awl->pgen, AddrOffset(init, limit), FALSE);
   }
 }
 
@@ -786,7 +784,7 @@ static Res AWLWhiten(Pool pool, Trace trace, Seg seg)
     }
   }
 
-  PoolGenAge(&awl->pgen, AWLGrainsSize(awl, awlseg->newGrains - uncondemned), FALSE);
+  PoolGenAccountForAge(&awl->pgen, AWLGrainsSize(awl, awlseg->newGrains - uncondemned), FALSE);
   awlseg->oldGrains += awlseg->newGrains - uncondemned;
   awlseg->newGrains = uncondemned;
   trace->condemned += AWLGrainsSize(awl, awlseg->oldGrains);
@@ -1103,7 +1101,6 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
   AWLSeg awlseg;
   Buffer buffer;
   Index i;
-  Count oldFree;
   Format format;
   Count reclaimedGrains = (Count)0;
   Count preservedInPlaceCount = (Count)0;
@@ -1124,7 +1121,6 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
   buffer = SegBuffer(seg);
 
   i = 0;
-  oldFree = awlseg->freeGrains;
   while(i < awlseg->grains) {
     Addr p, q;
     Index j;
@@ -1166,7 +1162,7 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
   AVER(awlseg->oldGrains >= reclaimedGrains);
   awlseg->oldGrains -= reclaimedGrains;
   awlseg->freeGrains += reclaimedGrains;
-  PoolGenReclaim(&awl->pgen, AWLGrainsSize(awl, reclaimedGrains), FALSE);
+  PoolGenAccountForReclaim(&awl->pgen, AWLGrainsSize(awl, reclaimedGrains), FALSE);
 
   trace->reclaimSize += AWLGrainsSize(awl, reclaimedGrains);
   trace->preservedInPlaceCount += preservedInPlaceCount;
@@ -1175,7 +1171,11 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
 
   if (awlseg->freeGrains == awlseg->grains && buffer == NULL)
     /* No survivors */
-    PoolGenFree(&awl->pgen, seg);
+    PoolGenFree(&awl->pgen, seg,
+                AWLGrainsSize(awl, awlseg->freeGrains),
+                AWLGrainsSize(awl, awlseg->oldGrains),
+                AWLGrainsSize(awl, awlseg->newGrains),
+                FALSE);
 }
 
 
@@ -1353,7 +1353,7 @@ static Bool AWLCheck(AWL awl)
   CHECKS(AWL, awl);
   CHECKD(Pool, &awl->poolStruct);
   CHECKL(awl->poolStruct.class == AWLPoolClassGet());
-  CHECKL(AWLGrainsSize(awl, 1) == awl->poolStruct.alignment);
+  CHECKL(AWLGrainsSize(awl, (Count)1) == awl->poolStruct.alignment);
   /* Nothing to check about succAccesses. */
   CHECKL(FUNCHECK(awl->findDependent));
   /* Don't bother to check stats. */

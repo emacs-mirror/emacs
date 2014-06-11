@@ -56,7 +56,7 @@ static mps_res_t stress(mps_arena_t arena, mps_align_t align,
     {1, 1, 1}, 
     {2, 1, 2},
     {16, 9, 5},
-    {100, 9, 4} 
+    {100, 9, 4},
   };
   size_t classes_count = sizeof classes / sizeof *classes;
   for (i = 0; i < classes_count; ++i) {
@@ -157,9 +157,9 @@ static size_t fixedSize(size_t i)
 
 
 static mps_pool_debug_option_s debugOptions = {
-  /* .fence_template = */   (void *)"post",
+  /* .fence_template = */   "post",
   /* .fence_size = */       4,
-  /* .free_template = */    (void *)"DEAD",
+  /* .free_template = */    "DEAD",
   /* .free_size = */        4
 };
 
@@ -196,14 +196,14 @@ static void testInArena(mps_arena_class_t arena_class, mps_arg_s *arena_args)
   } MPS_ARGS_END(args);
 
   MPS_ARGS_BEGIN(args) {
-    mps_align_t align = 1 << (rnd() % 6);
+    mps_align_t align = (mps_align_t)1 << (rnd() % 6);
     MPS_ARGS_ADD(args, MPS_KEY_ALIGN, align);
     die(stress(arena, align, randomSize, "MV", mps_class_mv(), args),
         "stress MV");
   } MPS_ARGS_END(args);
 
   MPS_ARGS_BEGIN(args) {
-    mps_align_t align = 1 << (rnd() % 6);
+    mps_align_t align = (mps_align_t)1 << (rnd() % 6);
     MPS_ARGS_ADD(args, MPS_KEY_ALIGN, align);
     MPS_ARGS_ADD(args, MPS_KEY_POOL_DEBUG_OPTIONS, &debugOptions);
     die(stress(arena, align, randomSize, "MV debug",
@@ -212,7 +212,7 @@ static void testInArena(mps_arena_class_t arena_class, mps_arg_s *arena_args)
   } MPS_ARGS_END(args);
 
   MPS_ARGS_BEGIN(args) {
-    fixedSizeSize = sizeof(void *) * (1 + rnd() % 100);
+    fixedSizeSize = MPS_PF_ALIGN * (1 + rnd() % 100);
     MPS_ARGS_ADD(args, MPS_KEY_MFS_UNIT_SIZE, fixedSizeSize);
     die(stress(arena, fixedSizeSize, fixedSize, "MFS", mps_class_mfs(), args),
       "stress MFS");

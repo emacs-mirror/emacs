@@ -141,14 +141,14 @@ static size_t randomSizeAligned(size_t i, mps_align_t align)
 
 
 static mps_pool_debug_option_s bothOptions = {
-  /* .fence_template = */   (void *)"post",
+  /* .fence_template = */   "post",
   /* .fence_size = */       4,
-  /* .free_template = */    (void *)"DEAD",
+  /* .free_template = */    "DEAD",
   /* .free_size = */        4
 };
 
 static mps_pool_debug_option_s fenceOptions = {
-  /* .fence_template = */   (void *)"123456789abcdef",
+  /* .fence_template = */   "123456789abcdef",
   /* .fence_size = */       15,
   /* .free_template = */    NULL,
   /* .free_size = */        0
@@ -173,14 +173,14 @@ static void testInArena(mps_arena_t arena, mps_pool_debug_option_s *options)
   /* yet (MV Debug works here, because it fakes it through PoolAlloc). */
 
   MPS_ARGS_BEGIN(args) {
-    mps_align_t align = 1 << (rnd() % 6);
+    mps_align_t align = (mps_align_t)1 << (rnd() % 6);
     MPS_ARGS_ADD(args, MPS_KEY_ALIGN, align);
     die(stress(arena, NULL, align, randomSizeAligned, "MV",
                mps_class_mv(), args), "stress MV");
   } MPS_ARGS_END(args);
 
   MPS_ARGS_BEGIN(args) {
-    mps_align_t align = 1 << (rnd() % 6);
+    mps_align_t align = (mps_align_t)1 << (rnd() % 6);
     MPS_ARGS_ADD(args, MPS_KEY_ALIGN, align);
     MPS_ARGS_ADD(args, MPS_KEY_POOL_DEBUG_OPTIONS, options);
     die(stress(arena, options, align, randomSizeAligned, "MV debug",

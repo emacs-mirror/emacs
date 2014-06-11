@@ -89,6 +89,8 @@ extern Addr (AddrAlignDown)(Addr addr, Align align);
 #define AddrAlignUp(p, a)       ((Addr)WordAlignUp((Word)(p), a))
 #define AddrRoundUp(p, r)       ((Addr)WordRoundUp((Word)(p), r))
 
+#define ReadonlyAddrAdd(p, s) ((ReadonlyAddr)((const char *)(p) + (s)))
+
 #define SizeIsAligned(s, a)     WordIsAligned((Word)(s), a)
 #define SizeAlignUp(s, a)       ((Size)WordAlignUp((Word)(s), a))
 #define SizeAlignDown(s, a)     ((Size)WordAlignDown((Word)(s), a))
@@ -286,13 +288,11 @@ extern Size PoolNoSize(Pool pool);
 
 
 /* Abstract Pool Classes Interface -- see <code/poolabs.c> */
-extern void PoolClassMixInAllocFree(PoolClass class);
 extern void PoolClassMixInBuffer(PoolClass class);
 extern void PoolClassMixInScan(PoolClass class);
 extern void PoolClassMixInFormat(PoolClass class);
 extern void PoolClassMixInCollect(PoolClass class);
 extern AbstractPoolClass AbstractPoolClassGet(void);
-extern AbstractAllocFreePoolClass AbstractAllocFreePoolClassGet(void);
 extern AbstractBufferPoolClass AbstractBufferPoolClassGet(void);
 extern AbstractBufferPoolClass AbstractSegBufPoolClassGet(void);
 extern AbstractScanPoolClass AbstractScanPoolClassGet(void);
@@ -664,7 +664,6 @@ extern Bool SegOfAddr(Seg *segReturn, Arena arena, Addr addr);
 extern Bool SegFirst(Seg *segReturn, Arena arena);
 extern Bool SegNext(Seg *segReturn, Arena arena, Seg seg);
 extern Bool SegNextOfRing(Seg *segReturn, Arena arena, Pool pool, Ring next);
-extern Bool SegFindAboveAddr(Seg *segReturn, Arena arena, Addr addr);
 extern void SegSetWhite(Seg seg, TraceSet white);
 extern void SegSetGrey(Seg seg, TraceSet grey);
 extern void SegSetRankSet(Seg seg, RankSet rankSet);
@@ -1019,13 +1018,14 @@ extern void LandDestroy(Land land);
 extern void LandFinish(Land land);
 extern Res LandInsert(Range rangeReturn, Land land, Range range);
 extern Res LandDelete(Range rangeReturn, Land land, Range range);
-extern void LandIterate(Land land, LandVisitor visitor, void *closureP, Size closureS);
+extern Bool LandIterate(Land land, LandVisitor visitor, void *closureP, Size closureS);
+extern Bool LandIterateAndDelete(Land land, LandDeleteVisitor visitor, void *closureP, Size closureS);
 extern Bool LandFindFirst(Range rangeReturn, Range oldRangeReturn, Land land, Size size, FindDelete findDelete);
 extern Bool LandFindLast(Range rangeReturn, Range oldRangeReturn, Land land, Size size, FindDelete findDelete);
 extern Bool LandFindLargest(Range rangeReturn, Range oldRangeReturn, Land land, Size size, FindDelete findDelete);
-extern Res LandFindInZones(Range rangeReturn, Range oldRangeReturn, Land land, Size size, ZoneSet zoneSet, Bool high);
+extern Res LandFindInZones(Bool *foundReturn, Range rangeReturn, Range oldRangeReturn, Land land, Size size, ZoneSet zoneSet, Bool high);
 extern Res LandDescribe(Land land, mps_lib_FILE *stream);
-extern void LandFlush(Land dest, Land src);
+extern Bool LandFlush(Land dest, Land src);
 
 extern Size LandSlowSize(Land land);
 extern Bool LandClassCheck(LandClass class);

@@ -861,7 +861,6 @@ DEFINE_POOL_CLASS(MRGPoolClass, this)
   this->name = "MRG";
   this->size = sizeof(MRGStruct);
   this->offset = offsetof(MRGStruct, poolStruct);
-  this->attr |= AttrSCAN;
   this->init = MRGInit;
   this->finish = MRGFinish;
   this->grey = PoolTrivGrey;
