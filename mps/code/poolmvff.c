@@ -507,6 +507,8 @@ static Res MVFFInit(Pool pool, ArgList args)
   AVER(extendBy > 0);           /* .arg.check */
   AVER(avgSize > 0);            /* .arg.check */
   AVER(avgSize <= extendBy);    /* .arg.check */
+  AVER(spare >= 0.0);           /* .arg.check */
+  AVER(spare <= 1.0);           /* .arg.check */
   AVERT(Align, align);
   /* This restriction on the alignment is necessary because of the use
    * of a Freelist to store the free address ranges in low-memory
