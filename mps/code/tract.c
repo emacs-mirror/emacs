@@ -216,12 +216,12 @@ Res ChunkInit(Chunk chunk, Arena arena,
 
   /* Add the chunk's free address space to the arena's freeCBS, so that
      we can allocate from it. */
-  if (arena->hasFreeCBS) {
-    res = ArenaFreeCBSInsert(arena,
-                             PageIndexBase(chunk, chunk->allocBase),
-                             chunk->limit);
+  if (arena->hasFreeLand) {
+    res = ArenaFreeLandInsert(arena,
+                              PageIndexBase(chunk, chunk->allocBase),
+                              chunk->limit);
     if (res != ResOK)
-      goto failCBSInsert;
+      goto failLandInsert;
   }
 
   TreeInit(&chunk->chunkTree);
@@ -232,13 +232,13 @@ Res ChunkInit(Chunk chunk, Arena arena,
   ArenaChunkInsert(arena, &chunk->chunkTree);
 
   /* As part of the bootstrap, the first created chunk becomes the primary
-     chunk.  This step allows AreaFreeCBSInsert to allocate pages. */
+     chunk.  This step allows AreaFreeLandInsert to allocate pages. */
   if (arena->primary == NULL)
     arena->primary = chunk;
 
   return ResOK;
 
-failCBSInsert:
+failLandInsert:
   (arena->class->chunkFinish)(chunk);
   /* .no-clean: No clean-ups needed past this point for boot, as we will
      discard the chunk. */
@@ -259,10 +259,10 @@ void ChunkFinish(Chunk chunk)
   AVER(BTIsResRange(chunk->allocTable, 0, chunk->pages));
   arena = ChunkArena(chunk);
 
-  if (arena->hasFreeCBS)
-    ArenaFreeCBSDelete(arena,
-                       PageIndexBase(chunk, chunk->allocBase),
-                       chunk->limit);
+  if (arena->hasFreeLand)
+    ArenaFreeLandDelete(arena,
+                        PageIndexBase(chunk, chunk->allocBase),
+                        chunk->limit);
 
   chunk->sig = SigInvalid;
 

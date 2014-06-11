@@ -70,7 +70,7 @@ Memory Management Glossary: W
 
         .. link::
 
-            `Class java.lang.ref.WeakReference <http://download.java.net/jdk8/docs/api/java/lang/ref/WeakReference.html>`_, `Reference Objects and Garbage Collection <http://pawlan.com/monica/articles/refobjs/>`_.
+            `Class java.lang.ref.WeakReference <http://docs.oracle.com/javase/8/docs/api/java/lang/ref/WeakReference.html>`_, `Reference Objects and Garbage Collection <http://pawlan.com/monica/articles/refobjs/>`_.
 
     weak root
 
@@ -134,7 +134,7 @@ Memory Management Glossary: W
 
         .. link::
 
-            `Class java.lang.ref.WeakReference <http://download.java.net/jdk8/docs/api/java/lang/ref/WeakReference.html>`_, `Reference Objects and Garbage Collection <http://pawlan.com/monica/articles/refobjs/>`_.
+            `Class java.lang.ref.WeakReference <http://docs.oracle.com/javase/8/docs/api/java/lang/ref/WeakReference.html>`_, `Reference Objects and Garbage Collection <http://pawlan.com/monica/articles/refobjs/>`_.
 
     weighted buddies
 

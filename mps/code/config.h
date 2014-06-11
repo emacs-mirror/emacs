@@ -292,6 +292,11 @@
 
 /* Attribute for functions that may be unused in some build configurations.
  * GCC: <http://gcc.gnu.org/onlinedocs/gcc/Function-Attributes.html>
+ *
+ * This attribute must be applied to all Check functions, otherwise
+ * the RASH variety fails to compile with -Wunused-function. (It
+ * should not be applied to functions that are unused in all build
+ * configurations: these functions should not be compiled.)
  */
 #if defined(MPS_BUILD_GC) || defined(MPS_BUILD_LL)
 #define ATTRIBUTE_UNUSED __attribute__((__unused__))
@@ -354,6 +359,7 @@
 
 /* Pool MV Configuration -- see <code/poolmv.c> */
 
+#define MV_ALIGN_DEFAULT      MPS_PF_ALIGN
 #define MV_EXTEND_BY_DEFAULT  ((Size)65536)
 #define MV_AVG_SIZE_DEFAULT   ((Size)32)
 #define MV_MAX_SIZE_DEFAULT   ((Size)65536)
@@ -419,7 +425,7 @@
    pool to be very heavily used. */
 #define CONTROL_EXTEND_BY 4096
 
-#define VM_ARENA_SIZE_DEFAULT ((Size)1 << 20)
+#define VM_ARENA_SIZE_DEFAULT ((Size)1 << 28)
 
 
 /* Stack configuration */

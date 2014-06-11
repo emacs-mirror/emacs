@@ -38,9 +38,6 @@ typedef union PagePoolUnion {
  *
  * .tract: Tracts represent the grains of memory allocation from
  * the arena.  See <design/arena/>.
- *
- * .bool: The hasSeg field is a boolean, but can't be represented
- * as type Bool. See <design/arena/#tract.field.hasSeg>.
  */
 
 typedef struct TractStruct { /* Tract structure */
@@ -48,7 +45,7 @@ typedef struct TractStruct { /* Tract structure */
   void *p;                     /* pointer for use of owning pool */
   Addr base;                   /* Base address of the tract */
   TraceSet white : TraceLIMIT; /* traces for which tract is white */
-  unsigned hasSeg : 1;         /* does tract have a seg in p? See .bool */
+  BOOLFIELD(hasSeg);           /* does tract have a seg in p? */
 } TractStruct;
 
 

@@ -25,6 +25,8 @@ typedef struct TreeStruct {
   Tree left, right;
 } TreeStruct;
 
+typedef Res (*TreeDescribeMethod)(Tree tree, mps_lib_FILE *stream);
+
 
 /* TreeKey and TreeCompare -- ordered binary trees
  *

@@ -275,11 +275,11 @@ associating their own data with each allocation grain.
 _`.tract.structure`: The tract structure definition looks like this::
 
     typedef struct TractStruct { /* Tract structure */
-      PagePoolUnion pool; /* MUST BE FIRST (<design/arena/#tract.field> pool) */
-      void *p;                     /* pointer for use of owning pool */
-      Addr base;                   /* Base address of the tract */
-      TraceSet white : TraceLIMIT; /* traces for which tract is white */
-      unsigned hasSeg : 1;         /* does tract have a seg in p? See .bool */
+      PagePoolUnion pool; /* MUST BE FIRST (design.mps.arena.tract.field.pool) */
+      void *p;                    /* pointer for use of owning pool */
+      Addr base;                  /* Base address of the tract */
+      TraceSet white : TRACE_MAX; /* traces for which tract is white */
+      BOOLFIELD(hasSeg);          /* does tract have a seg in p? */
     } TractStruct;
 
 _`.tract.field.pool`: The pool.pool field indicates to which pool the tract
@@ -304,10 +304,9 @@ use it for any purpose.
 
 _`.tract.field.hasSeg`: The ``hasSeg`` bit-field is a Boolean which
 indicates whether the ``p`` field is being used by the segment module.
-If this field is ``TRUE``, then the value of ``p`` is a ``Seg``.
-``hasSeg`` has type ``unsigned:1`` rather than ``Bool:1`` to avoid
-sign conversion problems when converting the bit-field value. See
-`design.mps.type.bool.bitfield`_.
+If this field is ``TRUE``, then the value of ``p`` is a ``Seg``. See
+`design.mps.type.bool.bitfield`_ for why this is declared using the
+``BOOLFIELD`` macro.
 
 .. _design.mps.type.bool.bitfield: type#bool.bitfield
 
@@ -317,7 +316,7 @@ memory represented by the tract.
 _`.tract.field.white`: The white bit-field indicates for which traces
 the tract is white (`.req.fun.trans.white`_). This information is also
 stored in the segment, but is duplicated here for efficiency during a
-call to ``TraceFix`` (see `design.mps.trace.fix`_).
+call to ``TraceFix()`` (see `design.mps.trace.fix`_).
 
 .. _design.mps.trace.fix: trace#fix
 
