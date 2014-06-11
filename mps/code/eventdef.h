@@ -36,7 +36,7 @@
  */
 
 #define EVENT_VERSION_MAJOR  ((unsigned)1)
-#define EVENT_VERSION_MEDIAN ((unsigned)2)
+#define EVENT_VERSION_MEDIAN ((unsigned)3)
 #define EVENT_VERSION_MINOR  ((unsigned)0)
 
 
@@ -693,7 +693,7 @@
   PARAM(X,  0, W, epoch)        /* current arena epoch */ \
   PARAM(X,  1, U, why)          /* reason trace started */ \
   PARAM(X,  2, W, align)        /* arena alignment */ \
-  PARAM(X,  3, W, large)        /* AMCLargeSegPAGES */ \
+  PARAM(X,  3, W, large)        /* AMC large size */ \
   PARAM(X,  4, W, pRetMin)      /* threshold for event */ \
   /* remaining parameters are copy of PageRetStruct, which see */ \
   PARAM(X,  5, W, pCond) \

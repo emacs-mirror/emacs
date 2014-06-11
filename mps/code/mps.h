@@ -176,6 +176,9 @@ extern const struct mps_key_s _mps_key_rank;
 extern const struct mps_key_s _mps_key_extend_by;
 #define MPS_KEY_EXTEND_BY       (&_mps_key_extend_by)
 #define MPS_KEY_EXTEND_BY_FIELD size
+extern const struct mps_key_s _mps_key_large_size;
+#define MPS_KEY_LARGE_SIZE      (&_mps_key_large_size)
+#define MPS_KEY_LARGE_SIZE_FIELD size
 extern const struct mps_key_s _mps_key_min_size;
 #define MPS_KEY_MIN_SIZE        (&_mps_key_min_size)
 #define MPS_KEY_MIN_SIZE_FIELD  size
