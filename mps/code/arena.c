@@ -388,6 +388,7 @@ void ArenaDestroy(Arena arena)
   LandFinish(ArenaFreeLand(arena));
 
   /* The CBS block pool can't free its own memory via ArenaFree because
+     that would use the ZonedCBS. */
   MFSFinishTracts(ArenaCBSBlockPool(arena), arenaMFSPageFreeVisitor,
                   UNUSED_POINTER, UNUSED_SIZE);
 
