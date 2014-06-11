@@ -74,20 +74,6 @@ Interface changes
    pools that they are used with. This makes it easier to reuse these
    structures.
 
-#. There is now a default value (currently 1 \ :term:`megabyte`) for
-   the :c:macro:`MPS_KEY_ARENA_SIZE` keyword argument to
-   :c:func:`mps_arena_create_k` when creating a virtual memory arena.
-   See :c:func:`mps_arena_class_vm`.
-
-#. The keyword argument :c:macro:`MPS_KEY_AMS_SUPPORT_AMBIGUOUS` now
-   defaults to ``TRUE`` in order to better support the general case:
-   the value ``FALSE`` is appropriate only when you know that all
-   references are exact. See :ref:`pool-ams`.
-
-#. The :ref:`pool-mvff` pool class takes a new keyword argument
-   :c:macro:`MPS_KEY_SPARE`. This specifies the maximum proportion of
-   memory that the pool will keep spare for future allocations.
-
 
 Other changes
 .............
