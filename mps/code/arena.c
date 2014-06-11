@@ -312,8 +312,8 @@ Res ArenaCreate(Arena *arenaReturn, ArenaClass class, ArgList args)
   if (res != ResOK)
     goto failInit;
 
-  /* arena->alignment must have been set up by *class->init() */
-  if (arena->grainSize > ((Size)1 << arena->zoneShift)) {
+  /* Grain size must have been set up by *class->init() */
+  if (ArenaGrainSize(arena) > ((Size)1 << arena->zoneShift)) {
     res = ResMEMORY; /* size was too small */
     goto failStripeSize;
   }
