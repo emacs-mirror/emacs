@@ -59,7 +59,7 @@ SRCID(vmw3, "$Id$");
 typedef struct VMStruct {
   Sig sig;                      /* <design/sig/> */
   Align align;                  /* page size */
-  void *reserved_base;          /* unaligned base of VirtualAlloc'd memory */
+  void *reserved_base;          /* unaligned base of VirtualAlloc'd space */
   Addr base, limit;             /* aligned boundaries of reserved space */
   Size reserved;                /* total reserved address space */
   Size mapped;                  /* total mapped memory */
@@ -151,7 +151,7 @@ Res VMCreate(VM *vmReturn, Size size, Align align, void *params)
     return ResRESOURCE;
 
   /* Allocate the vm descriptor.  This is likely to be wasteful. */
-  vbase = VirtualAlloc(NULL, SizeAlignUp(sizeof(VMStruct), align),
+  vbase = VirtualAlloc(NULL, SizeAlignUp(sizeof(VMStruct), pagealign),
                        MEM_COMMIT, PAGE_READWRITE);
   if (vbase == NULL)
     return ResMEMORY;
@@ -174,9 +174,9 @@ Res VMCreate(VM *vmReturn, Size size, Align align, void *params)
   vm->reserved_base = vbase;
   vm->base = AddrAlignUp(vbase, align);
   vm->limit = AddrAdd(vm->base, size);
-  AVER(vm->base < vm->limit);  /* .assume.not-last */
-  vm->reserved = size;
+  vm->reserved = reserved;
   vm->mapped = 0;
+  AVER(vm->base < vm->limit);  /* .assume.not-last */
 
   vm->sig = VMSig;
   AVERT(VM, vm);
