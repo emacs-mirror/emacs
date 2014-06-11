@@ -408,9 +408,9 @@ static Bool vmChunkDestroy(Tree tree, void *closureP, Size closureS)
   VMChunk vmChunk;
 
   AVERT(Tree, tree);
-  /* FIXME: AVER(closureP == UNUSED_POINTER); */
+  AVER(closureP == UNUSED_POINTER);
   UNUSED(closureP);
-  /* FIXME: AVER(closureS == UNUSED_SIZE); */
+  AVER(closureS == UNUSED_SIZE);
   UNUSED(closureS);
 
   chunk = ChunkOfTree(tree);
@@ -609,8 +609,8 @@ static void VMArenaFinish(Arena arena)
   /* Destroy all chunks, including the primary. See
    * <design/arena/#chunk.delete> */
   arena->primary = NULL;
-  /* FIXME: use UNUSED_POINTER, UNUSED_SIZE instead of NULL, 0 */
-  TreeTraverseAndDelete(&arena->chunkTree, vmChunkDestroy, NULL, 0);
+  TreeTraverseAndDelete(&arena->chunkTree, vmChunkDestroy,
+                        UNUSED_POINTER, UNUSED_SIZE);
   
   /* Destroying the chunks should have purged and removed all spare pages. */
   RingFinish(&vmArena->spareRing);
@@ -1102,7 +1102,7 @@ static Bool vmChunkCompact(Tree tree, void *closureP, Size closureS)
 
   AVERT(Tree, tree);
   AVERT(Arena, arena);
-  /* FIXME: AVER(closureS == UNUSED_SIZE); */
+  AVER(closureS == UNUSED_SIZE);
   UNUSED(closureS);
 
   vmArena = Arena2VMArena(arena);
@@ -1114,7 +1114,7 @@ static Bool vmChunkCompact(Tree tree, void *closureP, Size closureS)
   {
     Addr base = chunk->base;
     Size size = ChunkSize(chunk);
-    vmChunkDestroy(tree, closureP, closureS);
+    vmChunkDestroy(tree, UNUSED_POINTER, UNUSED_SIZE);
     vmArena->contracted(arena, base, size);
     return TRUE;
   } else {
@@ -1138,8 +1138,8 @@ static void VMCompact(Arena arena, Trace trace)
   /* Destroy chunks that are completely free, but not the primary
    * chunk. See <design/arena/#chunk.delete>
    * TODO: add hysteresis here. See job003815. */
-  /* FIXME: use UNUSED_SIZE instead of 0 */
-  TreeTraverseAndDelete(&arena->chunkTree, vmChunkCompact, arena, 0);
+  TreeTraverseAndDelete(&arena->chunkTree, vmChunkCompact, arena,
+                        UNUSED_SIZE);
 
   {
     Size vmem0 = trace->preTraceArenaReserved;
