@@ -58,20 +58,20 @@ SRCID(vmw3, "$Id$");
 
 typedef struct VMStruct {
   Sig sig;                      /* <design/sig/> */
-  Align align;                  /* page size */
+  Size grainSize;               /* grain size */
   Addr base, limit;             /* boundaries of reserved space */
   Size reserved;                /* total reserved address space */
   Size mapped;                  /* total mapped memory */
 } VMStruct;
 
 
-/* VMAlign -- return the page size */
+/* VMGrainSize -- return the page size */
 
-Align VMAlign(VM vm)
+Size VMGrainSize(VM vm)
 {
   AVERT(VM, vm);
 
-  return vm->align;
+  return vm->grainSize;
 }
 
 
@@ -84,8 +84,9 @@ Bool VMCheck(VM vm)
   CHECKL(vm->limit != 0);
   CHECKL(vm->base < vm->limit);
   CHECKL(vm->mapped <= vm->reserved);
-  CHECKL(AddrIsAligned(vm->base, vm->align));
-  CHECKL(AddrIsAligned(vm->limit, vm->align));
+  CHECKL(GrainSizeCheck(vm->grainSize));
+  CHECKL(AddrIsAligned(vm->base, vm->grainSize));
+  CHECKL(AddrIsAligned(vm->limit, vm->grainSize));
   return TRUE;
 }
 
@@ -120,7 +121,6 @@ Res VMCreate(VM *vmReturn, Size size, void *params)
 {
   LPVOID vbase;
   SYSTEM_INFO si;
-  Align align;
   VM vm;
   Res res;
   BOOL b;
@@ -133,15 +133,15 @@ Res VMCreate(VM *vmReturn, Size size, void *params)
   AVER(COMPATTYPE(SIZE_T, Size));
 
   GetSystemInfo(&si);
-  align = (Align)si.dwPageSize;
-  AVER((DWORD)align == si.dwPageSize); /* check it didn't truncate */
-  AVER(SizeIsP2(align));    /* see .assume.sysalign */
-  size = SizeAlignUp(size, align);
+  grainSize = (Align)si.dwPageSize;
+  AVER((DWORD)grainSize == si.dwPageSize); /* check it didn't truncate */
+  AVERT(GrainSize, grainSize);
+  size = SizeAlignUp(size, grainSize);
   if ((size == 0) || (size > (Size)(SIZE_T)-1))
     return ResRESOURCE;
 
   /* Allocate the vm descriptor.  This is likely to be wasteful. */
-  vbase = VirtualAlloc(NULL, SizeAlignUp(sizeof(VMStruct), align),
+  vbase = VirtualAlloc(NULL, SizeAlignUp(sizeof(VMStruct), grainSize),
                        MEM_COMMIT, PAGE_READWRITE);
   if (vbase == NULL)
     return ResMEMORY;
@@ -159,9 +159,9 @@ Res VMCreate(VM *vmReturn, Size size, void *params)
     goto failReserve;
   }
 
-  AVER(AddrIsAligned(vbase, align));
+  AVER(AddrIsAligned(vbase, grainSize));
 
-  vm->align = align;
+  vm->grainSize = grainSize;
   vm->base = (Addr)vbase;
   vm->limit = AddrAdd(vbase, size);
   vm->reserved = size;
@@ -251,12 +251,10 @@ Size VMMapped(VM vm)
 Res VMMap(VM vm, Addr base, Addr limit)
 {
   LPVOID b;
-  Align align;
 
   AVERT(VM, vm);
-  align = vm->align;
-  AVER(AddrIsAligned(base, align));
-  AVER(AddrIsAligned(limit, align));
+  AVER(AddrIsAligned(base, vm->grainSize));
+  AVER(AddrIsAligned(limit, vm->grainSize));
   AVER(vm->base <= base);
   AVER(base < limit);
   AVER(limit <= vm->limit);
@@ -281,13 +279,11 @@ Res VMMap(VM vm, Addr base, Addr limit)
 
 void VMUnmap(VM vm, Addr base, Addr limit)
 {
-  Align align;
   BOOL b;
 
   AVERT(VM, vm);
-  align = vm->align;
-  AVER(AddrIsAligned(base, align));
-  AVER(AddrIsAligned(limit, align));
+  AVER(AddrIsAligned(base, vm->grainSize));
+  AVER(AddrIsAligned(limit, vm->grainSize));
   AVER(vm->base <= base);
   AVER(base < limit);
   AVER(limit <= vm->limit);

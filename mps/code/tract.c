@@ -30,7 +30,7 @@ static void ChunkDecache(Arena arena, Chunk chunk);
 Bool TractCheck(Tract tract)
 {
   CHECKU(Pool, TractPool(tract));
-  CHECKL(AddrIsAligned(TractBase(tract), ArenaAlign(TractArena(tract))));
+  CHECKL(AddrIsArenaGrain(TractBase(tract), TractArena(tract)));
   if (TractHasSeg(tract)) {
     CHECKL(TraceSetCheck(TractWhite(tract)));
     CHECKU(Seg, (Seg)TractP(tract));
@@ -99,7 +99,7 @@ Addr TractLimit(Tract tract)
   AVERT_CRITICAL(Tract, tract); /* .tract.critical */
   arena = TractArena(tract);
   AVERT_CRITICAL(Arena, arena);
-  return AddrAdd(TractBase(tract), arena->alignment);
+  return AddrAdd(TractBase(tract), ArenaGrainSize(arena));
 }
 
 
@@ -493,7 +493,7 @@ Tract TractOfBaseAddr(Arena arena, Addr addr)
   Bool found;
 
   AVERT_CRITICAL(Arena, arena);
-  AVER_CRITICAL(AddrIsAligned(addr, arena->alignment));
+  AVER_CRITICAL(AddrIsAligned(addr, ArenaGrainSize(arena)));
 
   /* Check first in the cache, see <design/arena/#tract.cache>. */
   if (arena->lastTractBase == addr) {
@@ -606,7 +606,7 @@ Bool TractNext(Tract *tractReturn, Arena arena, Addr addr)
 {
   AVER_CRITICAL(tractReturn != NULL); /* .tract.critical */
   AVERT_CRITICAL(Arena, arena);
-  AVER_CRITICAL(AddrIsAligned(addr, arena->alignment));
+  AVER_CRITICAL(AddrIsAligned(addr, ArenaGrainSize(arena)));
 
   return tractSearch(tractReturn, arena, addr);
 }

@@ -277,7 +277,7 @@ static Bool loSegFindFree(Addr *bReturn, Addr *lReturn,
 
 /* loSegCreate -- Creates a segment of size at least size.
  *
- * Segments will be ArenaAlign aligned .
+ * Segments will be multiples of ArenaGrainSize.
  */
 
 static Res loSegCreate(LOSeg *loSegReturn, Pool pool, Size size,
@@ -295,7 +295,7 @@ static Res loSegCreate(LOSeg *loSegReturn, Pool pool, Size size,
   AVERT(LO, lo);
 
   res = PoolGenAlloc(&seg, &lo->pgen, EnsureLOSegClass(),
-                     SizeAlignUp(size, ArenaAlign(PoolArena(pool))),
+                     SizeArenaGrains(size, PoolArena(pool)),
                      withReservoirPermit, argsNone);
   if (res != ResOK)
     return res;
