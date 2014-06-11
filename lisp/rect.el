@@ -31,6 +31,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl-lib))
+
 ;; FIXME: this function should be replaced by `apply-on-rectangle'
 (defun operate-on-rectangle (function start end coerce-tabs)
   "Call FUNCTION for each line of rectangle with corners at START, END.
@@ -42,42 +44,95 @@ FUNCTION is called with three arguments:
  number of columns that belong to rectangle but are before that position,
  number of columns that belong to rectangle but are after point.
 Point is at the end of the segment of this line within the rectangle."
-  (let (startcol startlinepos endcol endlinepos)
-    (save-excursion
-     (goto-char start)
-     (setq startcol (current-column))
-     (beginning-of-line)
-     (setq startlinepos (point)))
-    (save-excursion
-     (goto-char end)
-     (setq endcol (current-column))
-     (forward-line 1)
-     (setq endlinepos (point-marker)))
-    (if (< endcol startcol)
-	(setq startcol (prog1 endcol (setq endcol startcol))))
-    (save-excursion
-     (goto-char startlinepos)
-     (while (< (point) endlinepos)
-       (let (startpos begextra endextra)
-	 (if coerce-tabs
-	     (move-to-column startcol t)
-	   (move-to-column startcol))
-	 (setq begextra (- (current-column) startcol))
-	 (setq startpos (point))
-	 (if coerce-tabs
-	     (move-to-column endcol t)
-	   (move-to-column endcol))
-	 ;; If we overshot, move back one character
-	 ;; so that endextra will be positive.
-	 (if (and (not coerce-tabs) (> (current-column) endcol))
-	     (backward-char 1))
-	 (setq endextra (- endcol (current-column)))
-	 (if (< begextra 0)
-	     (setq endextra (+ endextra begextra)
-		   begextra 0))
-	 (funcall function startpos begextra endextra))
-       (forward-line 1)))
-    (- endcol startcol)))
+  (apply-on-rectangle
+   (lambda (startcol endcol)
+     (let (startpos begextra endextra)
+       (move-to-column startcol coerce-tabs)
+       (setq begextra (- (current-column) startcol))
+       (setq startpos (point))
+       (move-to-column endcol coerce-tabs)
+       ;; If we overshot, move back one character
+       ;; so that endextra will be positive.
+       (if (and (not coerce-tabs) (> (current-column) endcol))
+           (backward-char 1))
+       (setq endextra (- endcol (current-column)))
+       (if (< begextra 0)
+           (setq endextra (+ endextra begextra)
+                 begextra 0))
+       (funcall function startpos begextra endextra)))
+   start end))
+
+;;; Crutches to let rectangle's corners be where point can't be
+;; (e.g. in the middle of a TAB, or past the EOL).
+
+(defvar-local rectangle--mark-crutches nil
+  "(POS . COL) to override the column to use for the mark.")
+
+(defun rectangle--pos-cols (start end)
+  ;; At this stage, we don't know which of start/end is point/mark :-(
+  ;; And in case start=end, it might still be that point and mark have
+  ;; different crutches!
+  (let ((cw (window-parameter nil 'rectangle--point-crutches)))
+    (cond
+     ((eq start (car cw))
+      (let ((sc (cdr cw))
+            (ec (if (eq end (car rectangle--mark-crutches))
+                    (cdr rectangle--mark-crutches)
+                  (if rectangle--mark-crutches
+                      (setq rectangle--mark-crutches nil))
+                  (goto-char end) (current-column))))
+        (if (eq start end) (cons (min sc ec) (max sc ec)) (cons sc ec))))
+     ((eq end (car cw))
+      (if (eq start (car rectangle--mark-crutches))
+          (cons (cdr rectangle--mark-crutches) (cdr cw))
+        (if rectangle--mark-crutches (setq rectangle--mark-crutches nil))
+        (cons (progn (goto-char start) (current-column)) (cdr cw))))
+     ((progn
+        (if cw (setf (window-parameter nil 'rectangle--point-crutches) nil))
+        (eq start (car rectangle--mark-crutches)))
+      (let ((sc (cdr rectangle--mark-crutches))
+            (ec (progn (goto-char end) (current-column))))
+        (if (eq start end) (cons (min sc ec) (max sc ec)) (cons sc ec))))
+     ((eq end (car rectangle--mark-crutches))
+      (cons (progn (goto-char start) (current-column))
+            (cdr rectangle--mark-crutches)))
+     (t
+      (if rectangle--mark-crutches (setq rectangle--mark-crutches nil))
+      (cons (progn (goto-char start) (current-column))
+            (progn (goto-char end) (current-column)))))))
+
+(defun rectangle--col-pos (col kind)
+  (let ((c (move-to-column col)))
+    (if (= c col)
+        (if (eq kind 'point)
+            (if (window-parameter nil 'rectangle--point-crutches)
+                (setf (window-parameter nil 'rectangle--point-crutches) nil))
+          (if rectangle--mark-crutches (setq rectangle--mark-crutches nil)))
+      ;; If move-to-column over-shooted, move back one char so we're
+      ;; at the position where rectangle--highlight-for-redisplay
+      ;; will add the overlay (so that the cursor can be drawn at the
+      ;; right place).
+      (when (> c col) (forward-char -1))
+      (setf (if (eq kind 'point)
+                (window-parameter nil 'rectangle--point-crutches)
+              rectangle--mark-crutches)
+            (cons (point) col)))))
+
+(defun rectangle--point-col (pos)
+  (let ((pc (window-parameter nil 'rectangle--point-crutches)))
+    (if (eq pos (car pc)) (cdr pc)
+      (goto-char pos)
+      (current-column))))
+
+(defun rectangle--crutches ()
+  (cons rectangle--mark-crutches
+        (window-parameter nil 'rectangle--point-crutches)))
+(defun rectangle--reset-crutches ()
+  (kill-local-variable 'rectangle--mark-crutches)
+  (if (window-parameter nil 'rectangle--point-crutches)
+      (setf (window-parameter nil 'rectangle--point-crutches) nil)))
+
+;;; Rectangle operations.
 
 (defun apply-on-rectangle (function start end &rest args)
   "Call FUNCTION for each line of rectangle with corners at START, END.
@@ -85,27 +140,27 @@ FUNCTION is called with two arguments: the start and end columns of the
 rectangle, plus ARGS extra arguments.  Point is at the beginning of line when
 the function is called.
 The final point after the last operation will be returned."
-  (let (startcol startpt endcol endpt final-point)
-    (save-excursion
-      (goto-char start)
-      (setq startcol (current-column))
-      (beginning-of-line)
-      (setq startpt (point))
-      (goto-char end)
-      (setq endcol (current-column))
-      (forward-line 1)
-      (setq endpt (point-marker))
-      ;; ensure the start column is the left one.
+  (save-excursion
+    (let* ((cols (rectangle--pos-cols start end))
+           (startcol (car cols))
+           (endcol (cdr cols))
+           (startpt (progn (goto-char start) (line-beginning-position)))
+           (endpt (progn (goto-char end)
+                         (copy-marker (line-end-position))))
+           final-point)
+      ;; Ensure the start column is the left one.
       (if (< endcol startcol)
 	  (let ((col startcol))
 	    (setq startcol endcol endcol col)))
-      ;; start looping over lines
+      ;; Start looping over lines.
       (goto-char startpt)
-      (while (< (point) endpt)
-	(apply function startcol endcol args)
-	(setq final-point (point))
-	(forward-line 1)))
-    final-point))
+      (while
+          (progn
+            (apply function startcol endcol args)
+            (setq final-point (point))
+            (and (zerop (forward-line 1))
+                 (<= (point) endpt))))
+      final-point)))
 
 (defun delete-rectangle-line (startcol endcol fill)
   (when (= (move-to-column startcol (if fill t 'coerce)) startcol)
@@ -429,8 +484,12 @@ with a prefix argument, prompt for START-AT and FORMAT."
   (let ((map (make-sparse-keymap)))
     (define-key map [?\C-o] 'open-rectangle)
     (define-key map [?\C-t] 'string-rectangle)
-    ;; (define-key map [remap open-line] 'open-rectangle)
-    ;; (define-key map [remap transpose-chars] 'string-rectangle)
+    (define-key map [remap exchange-point-and-mark]
+      'rectangle-exchange-point-and-mark)
+    (dolist (cmd '(right-char left-char forward-char backward-char
+                   next-line previous-line))
+      (define-key map (vector 'remap cmd)
+        (intern (format "rectangle-%s" cmd))))
     map)
   "Keymap used while marking a rectangular region.")
 
@@ -439,6 +498,7 @@ with a prefix argument, prompt for START-AT and FORMAT."
   "Toggle the region as rectangular.
 Activates the region if needed.  Only lasts until the region is deactivated."
   nil nil nil
+  (rectangle--reset-crutches)
   (when rectangle-mark-mode
     (add-hook 'deactivate-mark-hook
               (lambda () (rectangle-mark-mode -1)))
@@ -446,6 +506,96 @@ Activates the region if needed.  Only lasts until the region is deactivated."
       (push-mark)
       (activate-mark)
       (message "Mark set (rectangle mode)"))))
+
+(defun rectangle-exchange-point-and-mark (&optional arg)
+  "Like `exchange-point-and-mark' but cycles through the rectangle's corners."
+  (interactive "P")
+  (if arg
+      (progn
+        (setq this-command 'exchange-point-and-mark)
+        (exchange-point-and-mark arg))
+    (let* ((p (point))
+           (repeat (eq this-command last-command))
+	   (m (mark))
+           (p<m (< p m))
+           (cols (if p<m (rectangle--pos-cols p m) (rectangle--pos-cols m p)))
+           (cp (if p<m (car cols) (cdr cols)))
+           (cm (if p<m (cdr cols) (car cols))))
+      (if repeat (setq this-command 'exchange-point-and-mark))
+      (rectangle--reset-crutches)
+      (goto-char p)
+      (rectangle--col-pos (if repeat cm cp) 'mark)
+      (set-mark (point))
+      (goto-char m)
+      (rectangle--col-pos (if repeat cp cm) 'point))))
+
+(defun rectangle--*-char (cmd n &optional other-cmd)
+  ;; Part of the complexity here is that I'm trying to avoid making assumptions
+  ;; about the L2R/R2L direction of text around point, but this is largely
+  ;; useless since the rectangles implemented in this file are "logical
+  ;; rectangles" and not "visual rectangles", so in the presence of
+  ;; bidirectional text things won't work well anyway.
+  (if (< n 0) (rectangle--*-char other-cmd (- n))
+    (let ((col (rectangle--point-col (point))))
+      (while (> n 0)
+        (let* ((bol (line-beginning-position))
+               (eol (line-end-position))
+               (curcol (current-column))
+               (nextcol
+                (condition-case nil
+                    (save-excursion
+                      (funcall cmd 1)
+                      (cond
+                       ((> bol (point)) (- curcol 1))
+                       ((< eol (point)) (+ col (1+ n)))
+                       (t (current-column))))
+                  (end-of-buffer (+ col (1+ n)))
+                  (beginning-of-buffer (- curcol 1))))
+               (diff (abs (- nextcol col))))
+          (cond
+           ((and (< nextcol curcol) (< curcol col))
+            (let ((curdiff (- col curcol)))
+              (if (<= curdiff n)
+                (progn (cl-decf n curdiff) (setq col curcol))
+                (setq col (- col n) n 0))))
+           ((< nextcol 0) (ding) (setq n 0 col 0)) ;Bumping into BOL!
+           ((= nextcol curcol) (funcall cmd 1))
+           (t ;; (> nextcol curcol)
+            (if (<= diff n)
+                (progn (cl-decf n diff) (setq col nextcol))
+              (setq col (if (< col nextcol) (+ col n) (- col n)) n 0))))))
+      ;; FIXME: This rectangle--col-pos's move-to-column is wasted!
+      (rectangle--col-pos col 'point))))
+
+(defun rectangle-right-char (&optional n)
+  "Like `right-char' but steps into wide chars and moves past EOL."
+  (interactive "p") (rectangle--*-char #'right-char n #'left-char))
+(defun rectangle-left-char (&optional n)
+  "Like `left-char' but steps into wide chars and moves past EOL."
+  (interactive "p") (rectangle--*-char #'left-char n #'right-char))
+
+(defun rectangle-forward-char (&optional n)
+  "Like `forward-char' but steps into wide chars and moves past EOL."
+  (interactive "p") (rectangle--*-char #'forward-char n #'backward-char))
+(defun rectangle-backward-char (&optional n)
+  "Like `backward-char' but steps into wide chars and moves past EOL."
+  (interactive "p") (rectangle--*-char #'backward-char n #'forward-char))
+
+(defun rectangle-next-line (&optional n)
+  "Like `next-line' but steps into wide chars and moves past EOL.
+Ignores `line-move-visual'."
+  (interactive "p")
+  (let ((col (rectangle--point-col (point))))
+    (forward-line n)
+    (rectangle--col-pos col 'point)))
+(defun rectangle-previous-line (&optional n)
+  "Like `previous-line' but steps into wide chars and moves past EOL.
+Ignores `line-move-visual'."
+  (interactive "p")
+  (let ((col (rectangle--point-col (point))))
+    (forward-line (- n))
+    (rectangle--col-pos col 'point)))
+
 
 (defun rectangle--extract-region (orig &optional delete)
   (if (not rectangle-mark-mode)
@@ -476,6 +626,11 @@ Activates the region if needed.  Only lasts until the region is deactivated."
             (while (not (eq pending-undo-list (cdr undo-at-start)))
               (undo-more 1))))))
 
+(defun rectangle--place-cursor (leftcol left str)
+  (let ((pc (window-parameter nil 'rectangle--point-crutches)))
+    (if (and (eq left (car pc)) (eq leftcol (cdr pc)))
+        (put-text-property 0 1 'cursor 1 str))))
+
 (defun rectangle--highlight-for-redisplay (orig start end window rol)
   (cond
    ((not rectangle-mark-mode)
@@ -483,93 +638,88 @@ Activates the region if needed.  Only lasts until the region is deactivated."
    ((and (eq 'rectangle (car-safe rol))
          (eq (nth 1 rol) (buffer-chars-modified-tick))
          (eq start (nth 2 rol))
-         (eq end (nth 3 rol)))
+         (eq end (nth 3 rol))
+         (equal (rectangle--crutches) (nth 4 rol)))
     rol)
    (t
     (save-excursion
       (let* ((nrol nil)
              (old (if (eq 'rectangle (car-safe rol))
-                      (nthcdr 4 rol)
+                      (nthcdr 5 rol)
                     (funcall redisplay-unhighlight-region-function rol)
-                    nil))
-             (ptcol (progn (goto-char start) (current-column)))
-             (markcol (progn (goto-char end) (current-column)))
-             (leftcol  (min ptcol markcol))
-             (rightcol (max ptcol markcol)))
-        (goto-char start)
-        (while
-            (let* ((mleft (move-to-column leftcol))
-                   (left (point))
-                   (mright (move-to-column rightcol))
-                   (right (point))
-                   (ol
-                    (if (not old)
-                        (let ((ol (make-overlay left right)))
-                          (overlay-put ol 'window window)
-                          (overlay-put ol 'face 'region)
-                          ol)
-                      (let ((ol (pop old)))
-                        (move-overlay ol left right (current-buffer))
-                        ol))))
-              ;; `move-to-column' may stop before the column (if bumping into
-              ;; EOL) or overshoot it a little, when column is in the middle
-              ;; of a char.
-              (cond
-               ((< mleft leftcol)       ;`leftcol' is past EOL.
-                (overlay-put ol 'before-string
-                             (spaces-string (- leftcol mleft)))
-                (setq mright (max mright leftcol)))
-               ((and (> mleft leftcol)  ;`leftcol' is in the middle of a char.
-                     (eq (char-before left) ?\t))
-                (setq left (1- left))
-                (move-overlay ol left right)
-                (goto-char left)
-                (overlay-put ol 'before-string
-                             (spaces-string (- leftcol (current-column)))))
-               ((overlay-get ol 'before-string)
-                (overlay-put ol 'before-string nil)))
-              (cond
-               ((< mright rightcol)     ;`rightcol' is past EOL.
-                (let ((str (make-string (- rightcol mright) ?\s)))
-                  (put-text-property 0 (length str) 'face 'region str)
-                  ;; If cursor happens to be here, draw it *before* rather than
-                  ;; after this highlighted pseudo-text.
-                  (put-text-property 0 1 'cursor t str)
-                  (overlay-put ol 'after-string str)))
-               ((and (> mright rightcol) ;`rightcol's in the middle of a char.
-                     (eq (char-before right) ?\t))
-                (setq right (1- right))
-                (move-overlay ol left right)
-                (if (= rightcol leftcol)
-                    (overlay-put ol 'after-string nil)
-                  (goto-char right)
-                  (let ((str (make-string
-                              (- rightcol (max leftcol (current-column)))
-                              ?\s)))
-                    (put-text-property 0 (length str) 'face 'region str)
-                    (when (= left right)
-                      ;; If cursor happens to be here, draw it *before* rather
-                      ;; than after this highlighted pseudo-text.
-                      (put-text-property 0 1 'cursor 1 str))
-                    (overlay-put ol 'after-string str))))
-               ((overlay-get ol 'after-string)
-                (overlay-put ol 'after-string nil)))
-              (when (and (= leftcol rightcol) (display-graphic-p))
-                ;; Make zero-width rectangles visible!
-		(overlay-put ol 'after-string
-			     (concat (propertize " "
-                                                 'face '(region (:height 0.2)))
-                                     (overlay-get ol 'after-string))))
-              (push ol nrol)
-              (and (zerop (forward-line 1))
-                   (<= (point) end))))
+                    nil)))
+        (apply-on-rectangle
+         (lambda (leftcol rightcol)
+           (let* ((mleft (move-to-column leftcol))
+                  (left (point))
+                  (mright (move-to-column rightcol))
+                  (right (point))
+                  (ol
+                   (if (not old)
+                       (let ((ol (make-overlay left right)))
+                         (overlay-put ol 'window window)
+                         (overlay-put ol 'face 'region)
+                         ol)
+                     (let ((ol (pop old)))
+                       (move-overlay ol left right (current-buffer))
+                       ol))))
+             ;; `move-to-column' may stop before the column (if bumping into
+             ;; EOL) or overshoot it a little, when column is in the middle
+             ;; of a char.
+             (cond
+              ((< mleft leftcol)        ;`leftcol' is past EOL.
+               (overlay-put ol 'before-string
+                            (spaces-string (- leftcol mleft)))
+               (setq mright (max mright leftcol)))
+              ((and (> mleft leftcol)   ;`leftcol' is in the middle of a char.
+                    (eq (char-before left) ?\t))
+               (setq left (1- left))
+               (move-overlay ol left right)
+               (goto-char left)
+               (overlay-put ol 'before-string
+                            (spaces-string (- leftcol (current-column)))))
+              ((overlay-get ol 'before-string)
+               (overlay-put ol 'before-string nil)))
+             (cond
+              ((< mright rightcol)      ;`rightcol' is past EOL.
+               (let ((str (make-string (- rightcol mright) ?\s)))
+                 (put-text-property 0 (length str) 'face 'region str)
+                 ;; If cursor happens to be here, draw it at the right place.
+                 (rectangle--place-cursor leftcol left str)
+                 (overlay-put ol 'after-string str)))
+              ((and (> mright rightcol) ;`rightcol's in the middle of a char.
+                    (eq (char-before right) ?\t))
+               (setq right (1- right))
+               (move-overlay ol left right)
+               (if (= rightcol leftcol)
+                   (overlay-put ol 'after-string nil)
+                 (goto-char right)
+                 (let ((str (make-string
+                             (- rightcol (max leftcol (current-column)))
+                             ?\s)))
+                   (put-text-property 0 (length str) 'face 'region str)
+                   (when (= left right)
+                     (rectangle--place-cursor leftcol left str))
+                   (overlay-put ol 'after-string str))))
+              ((overlay-get ol 'after-string)
+               (overlay-put ol 'after-string nil)))
+             (when (and (= leftcol rightcol) (display-graphic-p))
+               ;; Make zero-width rectangles visible!
+               (overlay-put ol 'after-string
+                            (concat (propertize " "
+                                                'face '(region (:height 0.2)))
+                                    (overlay-get ol 'after-string))))
+             (push ol nrol)))
+         start end)
         (mapc #'delete-overlay old)
-        `(rectangle ,(buffer-chars-modified-tick) ,start ,end ,@nrol))))))
+        `(rectangle ,(buffer-chars-modified-tick)
+                    ,start ,end ,(rectangle--crutches)
+                    ,@nrol))))))
 
 (defun rectangle--unhighlight-for-redisplay (orig rol)
   (if (not (eq 'rectangle (car-safe rol)))
       (funcall orig rol)
-    (mapc #'delete-overlay (nthcdr 4 rol))
+    (mapc #'delete-overlay (nthcdr 5 rol))
     (setcar (cdr rol) nil)))
 
 (provide 'rect)

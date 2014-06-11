@@ -1,3 +1,22 @@
+2014-06-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* rect.el: Make it possible to move bounds past EOL or into TABs.
+	(operate-on-rectangle): Use apply-on-rectangle.
+	(rectangle--mark-crutches): New var.
+	(rectangle--pos-cols, rectangle--col-pos, rectangle--point-col)
+	(rectangle--crutches, rectangle--reset-crutches): New functions.
+	(apply-on-rectangle): Obey crutches.  Avoid setq.
+	Fix missing final iteration if end is at EOB&BOL.
+	(rectangle-mark-mode-map): Add remap bindings for
+	exchange-point-and-mark and char/line movements.
+	(rectangle--*-char): New function.
+	(rectangle-exchange-point-and-mark, rectangle-right-char)
+	(rectangle-left-char, rectangle-forward-char)
+	(rectangle-backward-char, rectangle-next-line)
+	(rectangle-previous-line): New commands.
+	(rectangle--place-cursor): New function.
+	(rectangle--highlight-for-redisplay): Use it.  Use apply-on-rectangle.
+
 2014-06-08  Glenn Morris  <rgm@gnu.org>
 
 	* startup.el (initial-buffer-choice): Doc fix.
