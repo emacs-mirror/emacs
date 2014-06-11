@@ -41,13 +41,6 @@ typedef union FreelistBlockUnion {
 #define freelistEND ((FreelistBlock)0)
 
 
-/* freelistMinimumAlignment -- the minimum allowed alignment for the
- * address ranges in a free list: see <design/freelist/#impl.grain.align>
- */
-
-#define freelistMinimumAlignment ((Align)sizeof(FreelistBlock))
-
-
 /* FreelistTag -- return the tag of word */
 
 #define FreelistTag(word) ((word) & 1)
@@ -181,7 +174,7 @@ Bool FreelistCheck(Freelist fl)
   land = &fl->landStruct;
   CHECKD(Land, land);
   /* See <design/freelist/#impl.grain.align> */
-  CHECKL(AlignIsAligned(freelistAlignment(fl), freelistMinimumAlignment));
+  CHECKL(AlignIsAligned(freelistAlignment(fl), FreelistMinimumAlignment));
   CHECKL((fl->list == freelistEND) == (fl->listSize == 0));
   CHECKL((fl->list == freelistEND) == (fl->size == 0));
   CHECKL(SizeIsAligned(fl->size, freelistAlignment(fl)));
@@ -203,7 +196,7 @@ static Res freelistInit(Land land, ArgList args)
     return res;
 
   /* See <design/freelist/#impl.grain> */
-  AVER(AlignIsAligned(LandAlignment(land), freelistMinimumAlignment));
+  AVER(AlignIsAligned(LandAlignment(land), FreelistMinimumAlignment));
 
   fl = freelistOfLand(land);
   fl->list = freelistEND;
