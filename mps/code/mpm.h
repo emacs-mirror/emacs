@@ -87,6 +87,9 @@ extern Addr (AddrAlignDown)(Addr addr, Align align);
 
 #define AddrIsAligned(p, a)     WordIsAligned((Word)(p), a)
 #define AddrAlignUp(p, a)       ((Addr)WordAlignUp((Word)(p), a))
+#define AddrRoundUp(p, r)       ((Addr)WordRoundUp((Word)(p), r))
+
+#define ReadonlyAddrAdd(p, s) ((ReadonlyAddr)((const char *)(p) + (s)))
 
 #define SizeIsAligned(s, a)     WordIsAligned((Word)(s), a)
 #define SizeAlignUp(s, a)       ((Size)WordAlignUp((Word)(s), a))
@@ -281,13 +284,11 @@ extern BufferClass PoolNoBufferClass(void);
 
 
 /* Abstract Pool Classes Interface -- see <code/poolabs.c> */
-extern void PoolClassMixInAllocFree(PoolClass class);
 extern void PoolClassMixInBuffer(PoolClass class);
 extern void PoolClassMixInScan(PoolClass class);
 extern void PoolClassMixInFormat(PoolClass class);
 extern void PoolClassMixInCollect(PoolClass class);
 extern AbstractPoolClass AbstractPoolClassGet(void);
-extern AbstractAllocFreePoolClass AbstractAllocFreePoolClassGet(void);
 extern AbstractBufferPoolClass AbstractBufferPoolClassGet(void);
 extern AbstractBufferPoolClass AbstractSegBufPoolClassGet(void);
 extern AbstractScanPoolClass AbstractScanPoolClassGet(void);

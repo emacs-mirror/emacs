@@ -217,6 +217,7 @@ static void MVDebugVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
 
 static Res MVInit(Pool pool, ArgList args)
 {
+  Align align = MV_ALIGN_DEFAULT;
   Size extendBy = MV_EXTEND_BY_DEFAULT;
   Size avgSize = MV_AVG_SIZE_DEFAULT;
   Size maxSize = MV_MAX_SIZE_DEFAULT;
@@ -226,6 +227,8 @@ static Res MVInit(Pool pool, ArgList args)
   Res res;
   ArgStruct arg;
   
+  if (ArgPick(&arg, args, MPS_KEY_ALIGN))
+    align = arg.val.align;
   if (ArgPick(&arg, args, MPS_KEY_EXTEND_BY))
     extendBy = arg.val.size;
   if (ArgPick(&arg, args, MPS_KEY_MEAN_SIZE))
@@ -233,12 +236,14 @@ static Res MVInit(Pool pool, ArgList args)
   if (ArgPick(&arg, args, MPS_KEY_MAX_SIZE))
     maxSize = arg.val.size;
 
+  AVERT(Align, align);
   AVER(extendBy > 0);
   AVER(avgSize > 0);
   AVER(avgSize <= extendBy);
   AVER(maxSize > 0);
   AVER(extendBy <= maxSize);
 
+  pool->alignment = align;
   mv = Pool2MV(pool);
   arena = PoolArena(pool);
 
@@ -626,6 +631,7 @@ static void MVFree(Pool pool, Addr old, Size size)
   AVERT(MV, mv);
 
   AVER(old != (Addr)0);
+  AVER(AddrIsAligned(old, pool->alignment));
   AVER(size > 0);
 
   size = SizeAlignUp(size, pool->alignment);
@@ -791,7 +797,6 @@ static Res MVDescribe(Pool pool, mps_lib_FILE *stream)
 DEFINE_POOL_CLASS(MVPoolClass, this)
 {
   INHERIT_CLASS(this, AbstractBufferPoolClass);
-  PoolClassMixInAllocFree(this);
   this->name = "MV";
   this->size = sizeof(MVStruct);
   this->offset = offsetof(MVStruct, poolStruct);

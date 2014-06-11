@@ -57,9 +57,10 @@ typedef struct AMSSegStruct {
   GCSegStruct gcSegStruct;  /* superclass fields must come first */
   AMS ams;               /* owning ams */
   RingStruct segRing;    /* ring that this seg belongs to */
-  Count grains;          /* number of grains */
-  Count free;            /* number of free grains */
-  Count newAlloc;        /* number of grains allocated since last GC */
+  Count grains;          /* total grains */
+  Count freeGrains;      /* free grains */
+  Count oldGrains;       /* grains allocated prior to last collection */
+  Count newGrains;       /* grains allocated since last collection */
   Bool allocTableInUse;  /* allocTable is used */
   Index firstFree;       /* 1st free grain, if allocTable is not used */
   BT allocTable;         /* set if grain is allocated */

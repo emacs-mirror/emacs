@@ -41,13 +41,6 @@ typedef union FreelistBlockUnion {
 #define freelistEND ((FreelistBlock)0)
 
 
-/* freelistMinimumAlignment -- the minimum allowed alignment for the
- * address ranges in a free list: see <design/freelist/#impl.grain.align>
- */
-
-#define freelistMinimumAlignment ((Align)sizeof(FreelistBlock))
-
-
 /* FreelistTag -- return the tag of word */
 
 #define FreelistTag(word) ((word) & 1)
@@ -181,7 +174,7 @@ Bool FreelistCheck(Freelist fl)
   land = FreelistLand(fl);
   CHECKD(Land, land);
   /* See <design/freelist/#impl.grain.align> */
-  CHECKL(AlignIsAligned(freelistAlignment(fl), freelistMinimumAlignment));
+  CHECKL(AlignIsAligned(freelistAlignment(fl), FreelistMinimumAlignment));
   CHECKL((fl->list == freelistEND) == (fl->listSize == 0));
   CHECKL((fl->list == freelistEND) == (fl->size == 0));
   CHECKL(SizeIsAligned(fl->size, freelistAlignment(fl)));
@@ -203,7 +196,7 @@ static Res freelistInit(Land land, ArgList args)
     return res;
 
   /* See <design/freelist/#impl.grain> */
-  AVER(AlignIsAligned(LandAlignment(land), freelistMinimumAlignment));
+  AVER(AlignIsAligned(LandAlignment(land), FreelistMinimumAlignment));
 
   fl = freelistOfLand(land);
   fl->list = freelistEND;
@@ -448,7 +441,7 @@ static Bool freelistIterate(Land land, LandVisitor visitor,
                             void *closureP, Size closureS)
 {
   Freelist fl;
-  FreelistBlock cur;
+  FreelistBlock cur, next;
 
   AVERT(Land, land);
   fl = freelistOfLand(land);
@@ -456,9 +449,12 @@ static Bool freelistIterate(Land land, LandVisitor visitor,
   AVER(FUNCHECK(visitor));
   /* closureP and closureS are arbitrary */
 
-  for (cur = fl->list; cur != freelistEND; cur = FreelistBlockNext(cur)) {
+  for (cur = fl->list; cur != freelistEND; cur = next) {
     RangeStruct range;
     Bool cont;
+    /* .next.first: Take next before calling the visitor, in case the
+     * visitor touches the block. */
+    next = FreelistBlockNext(cur);
     RangeInit(&range, FreelistBlockBase(cur), FreelistBlockLimit(fl, cur));
     cont = (*visitor)(land, &range, closureP, closureS);
     if (!cont)
@@ -486,20 +482,21 @@ static Bool freelistIterateAndDelete(Land land, LandDeleteVisitor visitor,
     Bool delete = FALSE;
     RangeStruct range;
     Bool cont;
+    Size size;
+    next = FreelistBlockNext(cur); /* See .next.first. */
+    size = FreelistBlockSize(fl, cur);
     RangeInit(&range, FreelistBlockBase(cur), FreelistBlockLimit(fl, cur));
     cont = (*visitor)(&delete, land, &range, closureP, closureS);
-    next = FreelistBlockNext(cur);
     if (delete) {
-      Size size = FreelistBlockSize(fl, cur);
       freelistBlockSetPrevNext(fl, prev, next, -1);
       AVER(fl->size >= size);
       fl->size -= size;
     } else {
       prev = cur;
     }
-    cur = next;
     if (!cont)
       return FALSE;
+    cur = next;
   }
   return TRUE;
 }
