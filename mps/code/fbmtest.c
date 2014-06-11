@@ -21,7 +21,6 @@
 #include "mpm.h"
 #include "mps.h"
 #include "mpsavm.h"
-#include "mpstd.h"
 #include "testlib.h"
 
 #include <stdio.h> /* printf */

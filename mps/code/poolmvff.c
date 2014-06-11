@@ -144,7 +144,7 @@ static void MVFFFreeSegs(MVFF mvff, Range range)
       mvff->total -= RangeSize(&delRange);
     }
 
-    /* Avoid calling SegNext if the next segment would fail */
+    /* Avoid calling SegFindAboveAddr if the next segment would fail */
     /* the loop test, mainly because there might not be a */
     /* next segment. */
     if (segLimit == RangeLimit(range)) /* segment ends at end of range */
@@ -436,7 +436,7 @@ static Res MVFFInit(Pool pool, ArgList args)
 {
   Size extendBy = MVFF_EXTEND_BY_DEFAULT;
   Size avgSize = MVFF_AVG_SIZE_DEFAULT;
-  Size align = MVFF_ALIGN_DEFAULT;
+  Align align = MVFF_ALIGN_DEFAULT;
   Bool slotHigh = MVFF_SLOT_HIGH_DEFAULT;
   Bool arenaHigh = MVFF_ARENA_HIGH_DEFAULT;
   Bool firstFit = MVFF_FIRST_FIT_DEFAULT;
@@ -475,7 +475,12 @@ static Res MVFFInit(Pool pool, ArgList args)
   AVER(extendBy > 0);           /* .arg.check */
   AVER(avgSize > 0);            /* .arg.check */
   AVER(avgSize <= extendBy);    /* .arg.check */
-  AVER(SizeIsAligned(align, MPS_PF_ALIGN));
+  AVERT(Align, align);
+  /* This restriction on the alignment is necessary because of the use
+   * of a Freelist to store the free address ranges in low-memory
+   * situations. <design/freelist/#impl.grain.align>.
+   */
+  AVER(AlignIsAligned(align, FreelistMinimumAlignment));
   AVERT(Bool, slotHigh);
   AVERT(Bool, arenaHigh);
   AVERT(Bool, firstFit);
