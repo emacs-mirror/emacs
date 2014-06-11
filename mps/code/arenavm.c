@@ -102,7 +102,7 @@ static Bool VMChunkCheck(VMChunk vmchunk)
   chunk = VMChunk2Chunk(vmchunk);
   CHECKD(Chunk, chunk);
   CHECKD_NOSIG(VM, vmchunk->vm); /* <design/check/#hidden-type> */
-  CHECKL(VMAlign(vmchunk->vm) == ChunkPageSize(chunk));
+  CHECKL(VMGrainSize(vmchunk->vm) == ChunkPageSize(chunk));
   CHECKL(vmchunk->overheadMappedLimit <= (Addr)chunk->pageTable);
   CHECKD(SparseArray, &vmchunk->pages);
   /* SparseArrayCheck is agnostic about where the BTs live, so VMChunkCheck
@@ -292,7 +292,7 @@ static Res VMChunkCreate(Chunk *chunkReturn, VMArena vmArena, Size size)
   if (res != ResOK)
     goto failVMCreate;
 
-  pageSize = VMAlign(vm);
+  pageSize = VMGrainSize(vm);
   /* The VM will have aligned the userSize; pick up the actual size. */
   base = VMBase(vm);
   limit = VMLimit(vm);
@@ -521,7 +521,7 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
 
   arena = VMArena2Arena(vmArena);
   /* <code/arena.c#init.caller> */
-  res = ArenaInit(arena, class, VMAlign(arenaVM), args);
+  res = ArenaInit(arena, class, VMGrainSize(arenaVM), args);
   if (res != ResOK)
     goto failArenaInit;
   arena->committed = VMMapped(arenaVM);
@@ -559,7 +559,7 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
   /* the size is not a power of 2.  See <design/arena/#class.fields>. */
   chunkSize = AddrOffset(chunk->base, chunk->limit);
   arena->zoneShift = SizeFloorLog2(chunkSize >> MPS_WORD_SHIFT);
-  AVER(chunk->pageSize == arena->alignment);
+  AVER(chunk->pageSize == ArenaGrainSize(arena));
 
   AVERT(VMArena, vmArena);
   if ((ArenaClass)mps_arena_class_vm() == class)

@@ -824,8 +824,8 @@ from the input parameters: minimum, mean, and maximum size are taked
 directly from the parameters.
 
 _`.impl.c.parameter.fill-size`: The fill size is set to the maximum
-size times the reciprocal of the fragmentation limit, aligned to the
-arena alignment.
+size times the reciprocal of the fragmentation limit, rounded up to
+the arena grain size.
 
 _`.imple.c.parameter.reuse-size`: The reuse size is set to twice the
 fill size (see `.arch.abq.return.segment`_,
