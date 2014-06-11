@@ -13,7 +13,7 @@
  * `MPS_` or `_mps_` and may use any identifiers with these prefixes in
  * future.
  *
- * .naming.internal: Any idenfitier beginning with underscore is for
+ * .naming.internal: Any identifier beginning with an underscore is for
  * internal use within the interface and may change or be withdrawn without
  * warning.
  *
@@ -323,9 +323,9 @@ typedef struct _mps_sac_s {
 
 /* .sacc: Keep in sync with <code/sac.h>. */
 typedef struct mps_sac_class_s {
-  size_t _block_size;
-  size_t _cached_count;
-  unsigned _frequency;
+  size_t mps_block_size;
+  size_t mps_cached_count;
+  unsigned mps_frequency;
 } mps_sac_class_s;
 
 #define mps_sac_classes_s mps_sac_class_s

@@ -96,6 +96,7 @@ static Bool TestDeleteCallback(Bool *deleteReturn, void *element,
 {
   TestBlock *a = (TestBlock *)element;
   TestClosure cl = (TestClosure)closureP;
+  AVER(closureS == UNUSED_SIZE);
   UNUSED(closureS);
   if (*a == cl->b) {
     *deleteReturn = TRUE;
@@ -144,7 +145,7 @@ static void step(void)
         cdie(b != NULL, "found to delete");
         cl.b = b;
         cl.res = ResFAIL;
-        ABQIterate(&abq, TestDeleteCallback, &cl, 0);
+        ABQIterate(&abq, TestDeleteCallback, &cl, UNUSED_SIZE);
         cdie(cl.res == ResOK, "ABQIterate");
       }
   }

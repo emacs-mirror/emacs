@@ -72,6 +72,8 @@ Interface. ``mps_addr_t`` is defined to be the same as ``void *``, so
 using the MPS C Interface confines the memory manager to the same
 address space as the client data.
 
+_`.addr.readonly`: For read-only addresses, see `.readonlyaddr`_.
+
 
 ``typedef Word Align``
 
@@ -89,28 +91,26 @@ C Interface.
 
 ``typedef unsigned Attr``
 
-_`.attr`: Pool attributes. A bitset of pool or pool class
-attributes, which are:
+_`.attr`: Pool attributes. A bitset of pool class attributes, which
+are:
 
 ===================  ===================================================
 Attribute            Description
 ===================  ===================================================
-``AttrALLOC``        Supports the ``PoolAlloc`` interface.
-``AttrBUF``          Supports the buffer interface.
 ``AttrFMT``          Contains formatted objects.
                      Used to decide which pools to walk.
-``AttrFREE``         Supports the ``PoolFree`` interface.
 ``AttrGC``           Is garbage collecting, that is, parts may be
                      reclaimed. Used to decide which segments are
                      condemned.
 ``AttrMOVINGGC``     Is moving, that is, objects may move in memory.
                      Used to update the set of zones that might have
                      moved and so implement location dependency.
-``AttrSCAN``         Contains references and must be scanned.
 ===================  ===================================================
 
 There is an attribute field in the pool class (``PoolClassStruct``)
-which declares the attributes of that class.
+which declares the attributes of that class. See `design.mps.class-interface.field.attr`_.
+
+.. _design.mps.class-interface.field.attr: class-interface
 
 
 ``typedef int Bool``
@@ -155,9 +155,17 @@ _`.bool.bitfield`: When a Boolean needs to be stored in a bitfield,
 the type of the bitfield must be ``unsigned:1``, not ``Bool:1``.
 (That's because the two values of the type ``Bool:1`` are ``0`` and
 ``-1``, which means that assigning ``TRUE`` would require a sign
-conversion.) To avoid warnings about loss of data from GCC with the
-``-Wconversion`` option, ``misc.h`` provides the ``BOOLOF`` macro for
-coercing a value to an unsigned single-bit field.
+conversion.) To make it clear why this is done, ``misc.h`` provides
+the ``BOOLFIELD`` macro.
+
+_`.bool.bitfield.assign`: To avoid warnings about loss of data from
+GCC with the ``-Wconversion`` option, ``misc.h`` provides the
+``BOOLOF`` macro for coercing a value to an unsigned single-bit field.
+
+_`.bool.bitfield.check`: A Boolean bitfield cannot have an incorrect
+value, and if you call ``BoolCheck()`` on such a bitfield then GCC 4.2
+issues the warning "comparison is always true due to limited range of
+data type". When avoiding such a warning, reference this tag.
 
 
 ``typedef unsigned BufferMode``
@@ -371,6 +379,13 @@ their integer values.
 ``typedef unsigned RankSet``
 
 _`.rankset`: ``RankSet`` is a set of ranks, represented as a bitset.
+
+
+``typedef const struct AddrStruct *ReadonlyAddr``
+
+_`.readonlyaddr`: ``ReadonlyAddr`` is the type used for managed
+addresses that an interface promises it will only read through, never
+write. Otherwise it is identical to ``Addr``.
 
 
 ``typedef Addr Ref``

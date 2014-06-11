@@ -21,7 +21,6 @@
 #include "mpm.h"
 #include "mps.h"
 #include "mpsavm.h"
-#include "mpstd.h"
 #include "testlib.h"
 
 #include <stdio.h> /* printf */
@@ -98,6 +97,7 @@ static Bool checkCallback(Range range, void *closureP, Size closureS)
   Addr base, limit;
   CheckFBMClosure cl = (CheckFBMClosure)closureP;
 
+  AVER(closureS == UNUSED_SIZE);
   UNUSED(closureS);
   Insist(cl != NULL);
 
@@ -149,10 +149,10 @@ static void check(FBMState state)
 
   switch (state->type) {
   case FBMTypeCBS:
-    CBSIterate(state->the.cbs, checkCBSCallback, (void *)&closure, 0);
+    CBSIterate(state->the.cbs, checkCBSCallback, &closure, UNUSED_SIZE);
     break;
   case FBMTypeFreelist:
-    FreelistIterate(state->the.fl, checkFLCallback, (void *)&closure, 0);
+    FreelistIterate(state->the.fl, checkFLCallback, &closure, UNUSED_SIZE);
     break;
   default:
     cdie(0, "invalid state->type");

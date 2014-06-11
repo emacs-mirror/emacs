@@ -24,214 +24,196 @@ the MPM and the pool class implementations.
     Pirinen, 1999-07-20.
 
 
+Fields
+------
+
+_`.field`: These fields are provided by pool classes as part of the
+``PoolClass`` object (see impl.h.mpmst.class). They form part of the
+interface which allows the MPM to treat pools in a uniform manner.
+
+_`.field.name`: The ``name`` field should be a short, pithy, cryptic
+name for the pool class. It should typically start with ``"A"`` if
+memory is managed by the garbage collector, and ``"M"`` if memory is
+managed by alloc/free. Examples are "AMC", "MV".
+
+_`.field.attr`: The ``attr`` field must be a bitset of pool class
+attributes. See `design.mps.type.attr`_.
+
+.. _design.mps.type.attr: type
+
+_`.field.size`: The ``size`` field is the size of the pool instance
+structure. For the ``PoolFoo`` class this can reasonably be expected
+to be ``sizeof(PoolFooStruct)``.
+
+_`.field.offset`: The ``offset`` field is the offset into the pool
+instance structure of the generic ``PoolStruct``. Typically this field
+is called ``poolStruct``, so something like ``offsetof(PoolFooStruct,
+poolStruct)`` is typical. If possible, arrange for this to be zero.
+
+
 Methods
 -------
 
-_`.methods`: These methods are provided by pool classes as part of the
-``PoolClass`` object (see impl.h.mpmst.class). They form the interface
-which allows the MPM to treat pools in a uniform manner.
+_`.method`: These methods are provided by pool classes as part of the
+``PoolClass`` object (see impl.h.mpmst.class). They form part of the
+interface which allows the MPM to treat pools in a uniform manner.
 
-The following description is based on the definition of the
-``PoolClassStruct`` (impl.h.mpmst.class).
+_`.method.unused`: If a pool class is not required to provide a
+certain method, the class should assign the appropriate ``PoolNo``
+method for that method to ensure that erroneous calls are detected. It
+is not acceptable to use ``NULL``.
 
-If a class is not required to provide a certain method then it should
-set the appropriate ``PoolNo*`` method for that method. It is not
-acceptable to use ``NULL``.
+_`.method.trivial`: If a pool class if required to provide a certain
+method, but the class provides no special behaviour in this case, it
+should assign the appropriate ``PoolTriv`` method.
 
-.. note::
+_`.method.init`: The ``init`` field is the pool class's init method.
+This method is called via the generic function ``PoolInit()``, which
+is in turn called by ``PoolCreate()``. The generic function allocates
+the pool's structure (using the ``size`` and ``offset`` fields),
+initializes the ``PoolStruct`` (generic part), then calls the ``init``
+method to do any class-specific initialization. Typically this means
+initializing the fields in the pool instance structure. If ``init``
+returns a non-OK result code the instance structure will be
+deallocated and the code returned to the caller of ``PoolInit()`` or
+``PoolCreate()``. Note that the ``PoolStruct`` isn't made fully valid
+until ``PoolInit()`` returns, so the ``init`` method must not call
+``PoolCheck()``.
 
-    There are also some ``PoolTriv*`` methods. David Jones, 1997-08-19.
+_`.method.finish`: The ``finish`` field is the pool class's finish
+method. This method is called via the generic function
+``PoolFinish()``, which is in turn called by ``PoolDestroy()``. It is
+expected to finalise the pool instance structure, release any
+resources allocated to the pool, and release the memory associated
+with the pool instance structure. Note that the pool is valid when it
+is passed to ``finish``. The ``PoolStruct`` (generic part) is finished
+when the pool class's ``finish`` method returns.
 
-_`.method.name`: The name field should be a short, pithy, cryptic name
-for the pool class. Examples are "AMC", "MV".
+_`.method.alloc`: The ``alloc`` field is the pool class's allocation
+method. This method is called via the generic function
+``PoolAlloc()``. It is expected to return a pointer to a fresh (that
+is, not overlapping with any other live object) object of the required
+size. Failure to allocate should be indicated by returning an
+appropriate error code, and in such a case, ``*pReturn`` should not be
+updated. Pool classes are not required to provide this method.
 
-The ``size`` field is the size of the pool instance structure. For the
-``Foo`` ``PoolClass`` this can reasonably be expected to be
-``sizeof(FooStruct)``.
-
-The ``offset`` field is the offset into the pool instance structure of
-the generic ``PoolStruct``. Typically this field is called
-``poolStruct``, so something like ``offsetof(FooStruct, poolStruct)``
-is typical. If possible, arrange for this to be zero.
-
-The ``init`` field is the class's init method. This method is called
-via the generic function ``PoolInit()``, which is in turn called by
-``PoolCreate()``. The generic function allocates the pool's structure
-(using the size and offset information), initializes the
-``PoolStruct`` (generic part) then calls the ``init`` method to do any
-class-specific initialization. Typically this means initializing the
-fields in the class instance structure. If ``init`` returns a non-OK
-result code the instance structure will be deallocated and the code
-returned to the caller of ``PoolInit()``` or ``PoolCreate()``. Note that
-the ``PoolStruct`` isn't made fully valid until ``PoolInit()`` returns.
-
-The ``finish`` field is the class's finish method. This method is
-called via the generic function ``PoolFinish()``, which is in turn
-called by ``PoolDestroy()``. It is expected to finalise the pool
-instance structure and release any resources allocated to the pool, it
-is expected to release the memory associated with the pool instance
-structure. Note that the pool is valid when it is passed to
-``finish``. The ``PoolStruct`` (generic part) is finished off when the
-class's ``finish`` method returns.
-
-The ``alloc`` field is the class's allocation method. This method is
-called via the generic function ``PoolAlloc()``. It is expected to
-return a pointer to a fresh (that is, not overlapping with any other
-live object) object of the required size. Failure to allocate should
-be indicated by returning an appropriate Error code, and in such a
-case, ``*pReturn`` should not be updated. Classes are not required to
-provide this method, but they should provide at least one of ``alloc``
-and ``bufferCreate``.
-
-.. note::
-
-    There is no ``bufferCreate``. Gareth Rees, 2013-04-14.
-
-The ``free_`` field is the class's free method. This is intended
-primarily for manual style pools. this method is called via the
-generic function ``PoolFree()``. The parameters to this method are
+_`.method.free`: The ``free`` method is the pool class's free method.
+This is intended primarily for manual style pools. This method is
+called via the generic function ``PoolFree()``. The parameters are
 required to correspond to a previous allocation request (possibly via
 a buffer). It is an assertion by the client that the indicated object
 is no longer required and the resources associated with it can be
-recycled. Pools are not required to provide this method.
+recycled. Pool classes are not required to provide this method.
 
-The ``bufferInit`` field is the class's buffer initialization method.
-It is called by the generic function ``BufferCreate()``, which allocates
-the buffer descriptor and initializes the generic fields. The pool may
-optionally adjust these fields or fill in extra values when
-``bufferInit`` is called, but often pools set ``bufferInit`` to
-``PoolTrivBufferInit()`` because they don't need to do any. If
-``bufferInit`` returns a result code other than ``ResOK``, the buffer
-structure is deallocated and the code is returned to the called of
-``BufferCreate()``. Note that the ``BufferStruct`` isn't fully valid
-until ``BufferCreate()`` returns.
+_`.method.bufferInit`: The ``bufferInit`` method is the pool class's
+buffer initialization method. It is called by the generic function
+``BufferCreate()``, which allocates the buffer descriptor and
+initializes the generic fields. The pool may optionally adjust these
+fields or fill in extra values. If ``bufferInit`` returns a result
+code other than ``ResOK``, the buffer structure is deallocated and the
+result code is returned to the caller of ``BufferCreate()``. Note that
+the ``BufferStruct`` isn't fully valid until ``BufferCreate()``
+returns. Pool classes are not required to provide this method.
 
-The ``bufferFinish`` field is the class's buffer finishing method. It
-is called by the the generic function ``BufferDestroy()``. The pool is
-expected to detach the buffer from any memory and prepare the buffer
-for destruction. The class is expected to release the resources
-associated with the buffer structure, and any unreserved memory in the
-buffer may be recycled. It is illegal for a buffer to be destroyed
-when there are pending allocations on it (that is, an allocation has
-been reserved, but not committed) and this is checked in the generic
-function. This method should be provided if and only if
-``bufferCreate`` is provided. [there is no ``bufferCreate`` -- drj
-1997-08-19]
+_`.method.bufferFinish`: The ``bufferFinish`` method is the pool
+class's buffer finishing method. It is called by the the generic
+function ``BufferDestroy()``. The pool is expected to detach the
+buffer from any memory and prepare the buffer for destruction. The
+pool is expected to release the resources associated with the buffer
+structure, and any unreserved memory in the buffer may be recycled. It
+is illegal for a buffer to be destroyed when there are pending
+allocations on it (that is, an allocation has been reserved, but not
+committed) and this is checked in the generic function. This method
+must be provided if and only if ``bufferInit`` is provided.
 
-The ``condemn`` field is used to condemn a pool. This method is called
-via the generic function ``PoolCondemn()``. The class is expected to
-condemn a subset (possible the whole set) of objects it manages and
-participate in a global trace to determine liveness. The class should
-register the refsig of the condemned set with the trace using
-``TraceCondemn()``. The class should expect fix requests (via the fix
-method below) during a global trace. Classes are not required to
-provide this method, but it is expected that automatic style classes
-will. This interface is expected to change in the future.
+_`.method.access`: The ``access`` method is used to handle client
+access. This method is called via the generic functions
+``ArenaAccess()`` and ``PoolAccess()``. It indicates that the client
+has attempted to access the specified region, but has been denied and
+the request trapped due to a protection state. The pool should perform
+any work necessary to remove the protection whilst still preserving
+appropriate invariants (typically this will be scanning work). Pool
+classes are not required to provide this method, and not doing so
+indicates they never protect any memory managed by the pool.
 
-.. note::
+_`.method.whiten`: The ``whiten`` method is used to condemn a segment
+belonging to a pool. This method is called via the generic function
+``PoolWhiten()``. The pool is expected to condemn a subset (but
+typically all) of the objects in the segment and prepare the segment
+for participation in a global trace to determine liveness. The pool
+should expect fix requests (via the ``fix`` method below) during a
+global trace. Pool classes that automatically reclaim dead objects
+must provide this method, and must additionally set the ``AttrGC``
+attribute.
 
-    ``condemn`` now takes an action and a segment and should condemn
-    the segment (turn it white) if it corresponds to the
-    interpretation of the action. David Jones, 1997-08-19.
+_`.method.grey`: The ``grey`` method is used to greyen a segment
+belonging to a pool. This method is called via the generic function
+``PoolGrey()``. The pool should set all of the objects in the segment
+(excepting any set that has been condemned in this trace) to be grey,
+that is, ready for scanning. The pool should arrange that any
+appropriate invariants are preserved, possibly by using the protection
+interface (see `design.mps.prot`_). Pool classes are not required to
+provide this method, and not doing so indicates that all instances of
+this class will have no fixable or traceable references in them.
 
-    It is now called ``whiten``. David Jones, 1998-02-02.
+.. _design.mps.prot: prot
 
-The ``mark`` field is used to mark an entire pool. This method is
-called via the generic function ``PoolMark()``. The class should
-consider all of its objects, except any set that has been condemned in
-this trace, to be marked, that is ready for scanning. The class should
-arrange that any appropriate invariants are preserved possibly by the
-Protection interface. Classes are not required to provide this method,
-and not doing so indicates that all instances of this class will have
-no fixable or traceable references in them.
+_`.method.blacken`: The ``blacken`` method is used to blacken a
+segment belonging to a pool. This method is called via the generic
+function ``PoolBlacken()`` when it is known that the segment cannot
+refer to the white set. The pool must blacken all grey objects in the
+segment. Pool classes are not required to provide this method, and not
+doing so indicates that all instances of this class will have no
+fixable or traceable references in them.
 
-.. note::
+_`.method.scan`: The ``scan`` method is used to scan a segment. This
+method is called via the generic function ``PoolScan()``. The pool
+must scan all the known grey objects on the segment and it may also
+accumulate a summary of *all* the objects on the segment. If it
+succeeds in accumulating such a summary it must indicate that it has
+done so by setting the ``totalReturn`` parameter to ``TRUE``. Pool
+classes are not required to provide this method, and not doing so
+indicates that all instances of this class will have no fixable or
+traceable reference in them.
 
-    ``mark`` is no longer present: ``grey`` turns an entire segment
-    grey. David Jones, 1997-08-19.
+_`.method.fix`: The ``fix`` method is used to perform fixing. This
+method is called via the generic function ``TraceFix()``. It indicates
+that the specified reference has been found and the pool should
+consider the object to be live. There is provision for adjusting the
+value of the reference (to allow for classes that move objects). not
+required to provide this method. Pool classes that automatically
+reclaim dead objects must provide this method, and must additionally
+set the ``AttrGC`` attribute. Pool classes that may move objects must
+also set the ``AttrMOVINGGC`` attribute.
 
-The ``scan`` field is used to perform scanning. This method is called
-via the generic function ``PoolScan()``. The class should scan the
-segment specified. It should scan all the known live (marked, that is,
-those objects on which fix has been called) on the segment and
-accumulate a summary of *all* the objects on the segment. This means
-that mark and sweep pools may have to jump through hoops a little bit
-(see design.mps.poolasm.summary for a pedagogical example). Classes
-are not required to provide this method, and not doing so indicates
-that all instances of this class will have no fixable or traceable
-reference in them.
+_`.method.fixEmergency`: The ``fixEmergency`` method is used to
+perform fixing in "emergency" situations. It must complete its work
+without allocating memory (perhaps by using some approximation, or by
+running more slowly). Pool classes must provide this method if they
+provide the ``fix`` method.
 
-.. note::
+_`.method.reclaim`: The ``reclaim`` method is used to reclaim memory
+in a segment. This method is called via the generic function
+``PoolReclaim()``. It indicates that any remaining white objects in
+the segment have now been proved unreachable, hence are dead. The pool
+should reclaim the resources associated with the dead objects. Pool
+classes are not required to provide this method. If they do, they must
+set the ``AttrGC`` attribute.
 
-    The ``scan`` method now takes an extra return parameter which
-    classes should use to indicate whether they scanned all objects in
-    segment or not. Classes should return summary only of object they
-    scanned. Caller of this method (``TraceScan()``) is responsible
-    for updating summaries correctly when not a total scan. Hence no
-    jumping through hoops required. David Jones, 1998-01-30.
+_`.method.walk`: The ``walk`` method is used by the heap walker. The
+``walk`` method should apply the visitor function (along with its
+closure parameters and the object format) to all *black* objects in
+the segment. Padding objects may or may not be included in the walk at
+the classes discretion, in any case in will be the responsibility of
+the client to do something sensible with padding objects. Forwarding
+objects are never included in the walk. Pool classes need not provide
+this method. If they do, they must set the ``AttrFMT`` attribute.
 
-The ``fix`` field is used to perform fixing. This method is called via
-the function ``TraceFix()``. It indicates that the specified reference
-has been found and the class should consider the object live. There is
-provision for adjusting the value of the reference (to allow for
-classes that move objects). Classes are not required to provide this
-method, and not doing so indicates that the class is not automatic
-style (ie it does not use global tracing to determine liveness).
-
-The ``reclaim`` field is used to reclaim memory. This method is called
-via the generic function ``PoolReclaim()``. It indicates that the trace
-has fixed all references to reachable objects.
-
-.. note::
-
-    Actually it indicates that any remaining white objects have now
-    been proved unreachable, hence are dead. David Jones, 1997-08-19.
-
-The class should consider objects that have been condemned and not
-fixed in this trace to be dead and may reclaim the resources
-associated with them. Classes are not required to provide this method.
-
-.. note::
-
-    ``reclaim`` is now called on each segment. David Jones,
-    1997-08-19.
-
-The ``access`` field is used to indicate client access. This method is
-called via the generic functions ``SpaceAccess()`` and
-``PoolAccess()``. It indicates that the client has attempted to access
-the specified region, but has been denied and the request trapped due
-to a protection state. The class should perform any work necessary to
-remove the protection whilst still preserving appropriate invariants
-(typically this will be scanning work). Classes are not required to
-provide this method, and not doing so indicates they never protect any
-memory managed by the pool.
-
-.. note::
-
-    ``access`` is no longer present. David Jones, 1997-08-19.
-
-_`.method.act`: ``act`` is called when the MPM has decided to execute
-an action that the class declared. The Class should arrange execution
-of the associated work (usually by beginning an incremental trace).
-
-_`.method.walk`: ``walk`` is used by the heap walker. ``walk`` is only
-required to be implemented by classes which specify the AttrFMT
-attribute (formatted pools). The ``walk`` method should apply the
-passed in function (along with its closure variables (which are also
-passed in) and the object format) to all *black* objects in the
-segment. Padding objects may or may not be included in the walk at the
-classes discretion, in any case in will be the responsibility of the
-client to do something sensible with padding objects.
-
-.. note::
-
-    What about broken hearts? David Jones, 1998-01-30.
-
-The ``describe`` field is used to print out a description of a pool.
-This method is called via the generic function ``PoolDescribe()``. The
-class should emit an textual description of the pool's contents onto
-the specified stream. Each line should begin with two spaces. Classes
-are not required to provide this method.
+_`.method.describe`: The ``describe`` field is used to print out a
+description of a pool. This method is called via the generic function
+``PoolDescribe()``. The class should emit an textual description of
+the pool's contents onto the specified stream. Each line should begin
+with two spaces. Classes are not required to provide this method.
 
 
 Events
@@ -268,6 +250,8 @@ Document history
 - 2002-06-07 RB_ Converted from MMInfo database design document.
 
 - 2013-03-12 GDR_ Converted to reStructuredText.
+
+- 2014-06-08 GDR_ Bring method descriptions up to date.
 
 .. _RB: http://www.ravenbrook.com/consultants/rb/
 .. _GDR: http://www.ravenbrook.com/consultants/gdr/
