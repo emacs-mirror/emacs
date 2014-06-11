@@ -139,7 +139,6 @@ DEFINE_POOL_CLASS(MVTPoolClass, this)
   this->name = "MVT";
   this->size = sizeof(MVTStruct);
   this->offset = offsetof(MVTStruct, poolStruct);
-  this->attr |= AttrFREE;
   this->varargs = MVTVarargs;
   this->init = MVTInit;
   this->finish = MVTFinish;
@@ -255,7 +254,12 @@ static Res MVTInit(Pool pool, ArgList args)
     fragLimit = (Count)(arg.val.d * 100);
   }
 
-  AVER(SizeIsAligned(align, MPS_PF_ALIGN));
+  AVERT(Align, align);
+  /* This restriction on the alignment is necessary because of the use
+   * of a Freelist to store the free address ranges in low-memory
+   * situations. See <design/freelist/#impl.grain.align>.
+   */
+  AVER(AlignIsAligned(align, FreelistMinimumAlignment));
   AVER(0 < minSize);
   AVER(minSize <= meanSize);
   AVER(meanSize <= maxSize);
