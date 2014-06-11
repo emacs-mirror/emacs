@@ -95,7 +95,7 @@
   EVENT(X, PoolFinish         , 0x0016,  TRUE, Pool) \
   EVENT(X, PoolAlloc          , 0x0017,  TRUE, Object) \
   EVENT(X, PoolFree           , 0x0018,  TRUE, Object) \
-  EVENT(X, CBSInit            , 0x0019,  TRUE, Pool) \
+  EVENT(X, LandInit           , 0x0019,  TRUE, Pool) \
   EVENT(X, Intern             , 0x001a,  TRUE, User) \
   EVENT(X, Label              , 0x001b,  TRUE, User) \
   EVENT(X, TraceStart         , 0x001c,  TRUE, Trace) \
@@ -187,7 +187,7 @@
   EVENT(X, VMCompact          , 0x0079,  TRUE, Arena) \
   EVENT(X, amcScanNailed      , 0x0080,  TRUE, Seg) \
   EVENT(X, AMCTraceEnd        , 0x0081,  TRUE, Trace) \
-  EVENT(X, TraceStartPoolGen  , 0x0082,  TRUE, Trace) \
+  EVENT(X, TraceCreatePoolGen , 0x0082,  TRUE, Trace) \
   /* new events for performance analysis of large heaps. */ \
   EVENT(X, TraceCondemnZones  , 0x0083,  TRUE, Trace) \
   EVENT(X, ArenaGenZoneAdd    , 0x0084,  TRUE, Arena) \
@@ -311,8 +311,8 @@
   PARAM(X,  1, A, old) \
   PARAM(X,  2, W, size)
 
-#define EVENT_CBSInit_PARAMS(PARAM, X) \
-  PARAM(X,  0, P, cbs) \
+#define EVENT_LandInit_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, land) \
   PARAM(X,  1, P, owner)
 
 #define EVENT_Intern_PARAMS(PARAM, X) \
@@ -714,17 +714,18 @@
   PARAM(X, 19, W, pRL) \
   PARAM(X, 20, W, pRLr)
 
-#define EVENT_TraceStartPoolGen_PARAMS(PARAM, X) \
-  PARAM(X,  0, P, chain)        /* chain (or NULL for topGen) */ \
-  PARAM(X,  1, B, top)          /* 1 for topGen, 0 otherwise */ \
-  PARAM(X,  2, W, index)        /* index of generation in the chain */ \
-  PARAM(X,  3, P, gendesc)      /* generation description */ \
-  PARAM(X,  4, W, capacity)     /* capacity of generation */ \
-  PARAM(X,  5, D, mortality)    /* mortality of generation */ \
-  PARAM(X,  6, W, zone)         /* zone set of generation */ \
-  PARAM(X,  7, P, pool)         /* pool */ \
-  PARAM(X,  8, W, totalSize)    /* total size of pool gen */ \
-  PARAM(X,  9, W, newSizeAtCreate) /* new size of pool gen at trace create */
+#define EVENT_TraceCreatePoolGen_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, gendesc)      /* generation description */ \
+  PARAM(X,  1, W, capacity)     /* capacity of generation */ \
+  PARAM(X,  2, D, mortality)    /* mortality of generation */ \
+  PARAM(X,  3, W, zone)         /* zone set of generation */ \
+  PARAM(X,  4, P, pool)         /* pool */ \
+  PARAM(X,  5, W, totalSize)    /* total size of pool gen */ \
+  PARAM(X,  6, W, freeSize)     /* free size of pool gen */ \
+  PARAM(X,  7, W, newSize)      /* new size of pool gen */ \
+  PARAM(X,  8, W, oldSize)      /* old size of pool gen */ \
+  PARAM(X,  9, W, newDeferredSize) /* new size (deferred) of pool gen */ \
+  PARAM(X, 10, W, oldDeferredSize) /* old size (deferred) of pool gen */
 
 #define EVENT_TraceCondemnZones_PARAMS(PARAM, X) \
   PARAM(X,  0, P, trace)        /* the trace */ \

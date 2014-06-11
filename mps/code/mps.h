@@ -323,9 +323,9 @@ typedef struct _mps_sac_s {
 
 /* .sacc: Keep in sync with <code/sac.h>. */
 typedef struct mps_sac_class_s {
-  size_t _block_size;
-  size_t _cached_count;
-  unsigned _frequency;
+  size_t mps_block_size;
+  size_t mps_cached_count;
+  unsigned mps_frequency;
 } mps_sac_class_s;
 
 #define mps_sac_classes_s mps_sac_class_s
