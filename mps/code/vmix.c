@@ -88,7 +88,7 @@ Bool VMCheck(VM vm)
   CHECKL(vm->limit != 0);
   CHECKL(vm->base < vm->limit);
   CHECKL(vm->mapped <= vm->reserved);
-  CHECKL(GrainSizeCheck(vm->grainSize));
+  CHECKL(ArenaGrainSizeCheck(vm->grainSize));
   CHECKL(AddrIsAligned(vm->base, vm->grainSize));
   CHECKL(AddrIsAligned(vm->limit, vm->grainSize));
   return TRUE;
@@ -126,7 +126,7 @@ Res VMCreate(VM *vmReturn, Size size, void *params)
   size = SizeAlignUp(size, grainSize);
   if((size == 0) || (size > (Size)(size_t)-1))
     return ResRESOURCE;
-  AVERT(GrainSize, grainSize);
+  AVERT(ArenaGrainSize, grainSize);
 
   /* Map in a page to store the descriptor on. */
   addr = mmap(0, (size_t)SizeAlignUp(sizeof(VMStruct), grainSize),

@@ -84,7 +84,7 @@ Bool VMCheck(VM vm)
   CHECKL(vm->limit != 0);
   CHECKL(vm->base < vm->limit);
   CHECKL(vm->mapped <= vm->reserved);
-  CHECKL(GrainSizeCheck(vm->grainSize));
+  CHECKL(ArenaGrainSizeCheck(vm->grainSize));
   CHECKL(AddrIsAligned(vm->base, vm->grainSize));
   CHECKL(AddrIsAligned(vm->limit, vm->grainSize));
   return TRUE;
@@ -135,7 +135,7 @@ Res VMCreate(VM *vmReturn, Size size, void *params)
   GetSystemInfo(&si);
   grainSize = (Align)si.dwPageSize;
   AVER((DWORD)grainSize == si.dwPageSize); /* check it didn't truncate */
-  AVERT(GrainSize, grainSize);
+  AVERT(ArenaGrainSize, grainSize);
   size = SizeAlignUp(size, grainSize);
   if ((size == 0) || (size > (Size)(SIZE_T)-1))
     return ResRESOURCE;

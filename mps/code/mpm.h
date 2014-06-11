@@ -520,7 +520,7 @@ extern Ring GlobalsRememberedSummaryRing(Globals);
 #define ArenaGreyRing(arena, rank) (&(arena)->greyRing[rank])
 #define ArenaPoolRing(arena) (&ArenaGlobals(arena)->poolRing)
 
-extern Bool GrainSizeCheck(Size size);
+extern Bool ArenaGrainSizeCheck(Size size);
 #define AddrArenaGrainUp(addr, arena) AddrAlignUp(addr, ArenaGrainSize(arena))
 #define AddrArenaGrainDown(addr, arena) AddrAlignDown(addr, ArenaGrainSize(arena))
 #define AddrIsArenaGrain(addr, arena) AddrIsAligned(addr, ArenaGrainSize(arena))

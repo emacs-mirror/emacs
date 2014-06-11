@@ -22,9 +22,9 @@ SRCID(arena, "$Id$");
 #define ArenaFreeLand(arena) (&(arena)->freeLandStruct.landStruct)
 
 
-/* GrainSizeCheck -- check that size is a valid arena grain size */
+/* ArenaGrainSizeCheck -- check that size is a valid arena grain size */
 
-Bool GrainSizeCheck(Size size)
+Bool ArenaGrainSizeCheck(Size size)
 {
   CHECKL(size > 0);
   /* <design/arena/#req.attr.block.align.min> */
@@ -146,7 +146,7 @@ Bool ArenaCheck(Arena arena)
   CHECKL(arena->spareCommitted <= arena->committed);
 
   CHECKL(ShiftCheck(arena->zoneShift));
-  CHECKL(GrainSizeCheck(arena->grainSize));
+  CHECKL(ArenaGrainSizeCheck(arena->grainSize));
 
   /* Stripes can't be smaller than grains. */
   CHECKL(((Size)1 << arena->zoneShift) >= arena->grainSize);
@@ -194,7 +194,7 @@ Res ArenaInit(Arena arena, ArenaClass class, Size grainSize, ArgList args)
 
   AVER(arena != NULL);
   AVERT(ArenaClass, class);
-  AVERT(GrainSize, grainSize);
+  AVERT(ArenaGrainSize, grainSize);
   
   if (ArgPick(&arg, args, MPS_KEY_ARENA_ZONED))
     zoned = arg.val.b;
