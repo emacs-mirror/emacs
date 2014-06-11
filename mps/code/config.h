@@ -359,6 +359,7 @@
 
 /* Pool MV Configuration -- see <code/poolmv.c> */
 
+#define MV_ALIGN_DEFAULT      MPS_PF_ALIGN
 #define MV_EXTEND_BY_DEFAULT  ((Size)65536)
 #define MV_AVG_SIZE_DEFAULT   ((Size)32)
 #define MV_MAX_SIZE_DEFAULT   ((Size)65536)
