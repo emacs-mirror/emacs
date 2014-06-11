@@ -122,6 +122,7 @@ Res VMCreate(VM *vmReturn, Size size, void *params)
   LPVOID vbase;
   SYSTEM_INFO si;
   VM vm;
+  Size grainSize;
   Res res;
   BOOL b;
   VMParams vmParams = params;
