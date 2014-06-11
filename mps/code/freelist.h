@@ -15,9 +15,10 @@ typedef struct FreelistStruct *Freelist;
 
 #define FreelistLand(fl) (&(fl)->landStruct)
 
-#define FreelistMinimumAlignment ((Align)sizeof(FreelistBlock))
-
 extern Bool FreelistCheck(Freelist freelist);
+
+/* See <design/freelist/#impl.grain.align> */
+#define FreelistMinimumAlignment ((Align)sizeof(FreelistBlock))
 
 extern LandClass FreelistLandClassGet(void);
 
