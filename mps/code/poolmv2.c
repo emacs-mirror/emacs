@@ -39,7 +39,7 @@ static Res MVTBufferFill(Addr *baseReturn, Addr *limitReturn,
                          Bool withReservoirPermit);
 static void MVTBufferEmpty(Pool pool, Buffer buffer, Addr base, Addr limit);
 static void MVTFree(Pool pool, Addr base, Size size);
-static Res MVTDescribe(Pool pool, mps_lib_FILE *stream);
+static Res MVTDescribe(Pool pool, mps_lib_FILE *stream, Count depth);
 static Res MVTSegAlloc(Seg *segReturn, MVT mvt, Size size,
                        Bool withReservoirPermit);
 
@@ -989,7 +989,7 @@ static void MVTFree(Pool pool, Addr base, Size size)
 
 /* MVTDescribe -- describe an MVT pool */
 
-static Res MVTDescribe(Pool pool, mps_lib_FILE *stream)
+static Res MVTDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
 {
   Res res;
   MVT mvt;
@@ -999,68 +999,69 @@ static Res MVTDescribe(Pool pool, mps_lib_FILE *stream)
   if (!TESTT(MVT, mvt)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
 
-  res = WriteF(stream,
-               "MVT $P\n{\n", (WriteFP)mvt,
-               "  minSize: $U \n", (WriteFU)mvt->minSize,
-               "  meanSize: $U \n", (WriteFU)mvt->meanSize,
-               "  maxSize: $U \n", (WriteFU)mvt->maxSize,
-               "  fragLimit: $U \n", (WriteFU)mvt->fragLimit,
-               "  reuseSize: $U \n", (WriteFU)mvt->reuseSize,
-               "  fillSize: $U \n", (WriteFU)mvt->fillSize,
-               "  availLimit: $U \n", (WriteFU)mvt->availLimit,
-               "  abqOverflow: $S \n", mvt->abqOverflow?"TRUE":"FALSE",
-               "  splinter: $S \n", mvt->splinter?"TRUE":"FALSE",
-               "  splinterBase: $A \n", (WriteFA)mvt->splinterBase,
-               "  splinterLimit: $A \n", (WriteFU)mvt->splinterLimit,
-               "  size: $U \n", (WriteFU)mvt->size,
-               "  allocated: $U \n", (WriteFU)mvt->allocated,
-               "  available: $U \n", (WriteFU)mvt->available,
-               "  unavailable: $U \n", (WriteFU)mvt->unavailable,
+  res = WriteF(stream, depth,
+               "MVT $P {\n", (WriteFP)mvt,
+               "  minSize: $U\n", (WriteFU)mvt->minSize,
+               "  meanSize: $U\n", (WriteFU)mvt->meanSize,
+               "  maxSize: $U\n", (WriteFU)mvt->maxSize,
+               "  fragLimit: $U\n", (WriteFU)mvt->fragLimit,
+               "  reuseSize: $U\n", (WriteFU)mvt->reuseSize,
+               "  fillSize: $U\n", (WriteFU)mvt->fillSize,
+               "  availLimit: $U\n", (WriteFU)mvt->availLimit,
+               "  abqOverflow: $S\n", mvt->abqOverflow?"TRUE":"FALSE",
+               "  splinter: $S\n", mvt->splinter?"TRUE":"FALSE",
+               "  splinterBase: $A\n", (WriteFA)mvt->splinterBase,
+               "  splinterLimit: $A\n", (WriteFU)mvt->splinterLimit,
+               "  size: $U\n", (WriteFU)mvt->size,
+               "  allocated: $U\n", (WriteFU)mvt->allocated,
+               "  available: $U\n", (WriteFU)mvt->available,
+               "  unavailable: $U\n", (WriteFU)mvt->unavailable,
                NULL);
   if(res != ResOK) return res;
 
-  res = LandDescribe(MVTCBS(mvt), stream);
+  res = LandDescribe(MVTCBS(mvt), stream, depth + 2);
   if(res != ResOK) return res;
-  res = LandDescribe(MVTFreelist(mvt), stream);
+  res = LandDescribe(MVTFreelist(mvt), stream, depth + 2);
   if(res != ResOK) return res;
-  res = LandDescribe(MVTFailover(mvt), stream);
+  res = LandDescribe(MVTFailover(mvt), stream, depth + 2);
   if(res != ResOK) return res;
-  res = ABQDescribe(MVTABQ(mvt), (ABQDescribeElement)RangeDescribe, stream);
+  res = ABQDescribe(MVTABQ(mvt), (ABQDescribeElement)RangeDescribe, stream,
+                    depth + 2);
   if(res != ResOK) return res;
 
-  METER_WRITE(mvt->segAllocs, stream);
-  METER_WRITE(mvt->segFrees, stream);
-  METER_WRITE(mvt->bufferFills, stream);
-  METER_WRITE(mvt->bufferEmpties, stream);
-  METER_WRITE(mvt->poolFrees, stream);
-  METER_WRITE(mvt->poolSize, stream);
-  METER_WRITE(mvt->poolAllocated, stream);
-  METER_WRITE(mvt->poolAvailable, stream);
-  METER_WRITE(mvt->poolUnavailable, stream);
-  METER_WRITE(mvt->poolUtilization, stream);
-  METER_WRITE(mvt->finds, stream);
-  METER_WRITE(mvt->overflows, stream);
-  METER_WRITE(mvt->underflows, stream);
-  METER_WRITE(mvt->refills, stream);
-  METER_WRITE(mvt->refillPushes, stream);
-  METER_WRITE(mvt->returns, stream);
-  METER_WRITE(mvt->perfectFits, stream);
-  METER_WRITE(mvt->firstFits, stream);
-  METER_WRITE(mvt->secondFits, stream);
-  METER_WRITE(mvt->failures, stream);
-  METER_WRITE(mvt->emergencyContingencies, stream);
-  METER_WRITE(mvt->fragLimitContingencies, stream);
-  METER_WRITE(mvt->contingencySearches, stream);
-  METER_WRITE(mvt->contingencyHardSearches, stream);
-  METER_WRITE(mvt->splinters, stream);
-  METER_WRITE(mvt->splintersUsed, stream);
-  METER_WRITE(mvt->splintersDropped, stream);
-  METER_WRITE(mvt->sawdust, stream);
-  METER_WRITE(mvt->exceptions, stream);
-  METER_WRITE(mvt->exceptionSplinters, stream);
-  METER_WRITE(mvt->exceptionReturns, stream);
+  METER_WRITE(mvt->segAllocs, stream, depth + 2);
+  METER_WRITE(mvt->segFrees, stream, depth + 2);
+  METER_WRITE(mvt->bufferFills, stream, depth + 2);
+  METER_WRITE(mvt->bufferEmpties, stream, depth + 2);
+  METER_WRITE(mvt->poolFrees, stream, depth + 2);
+  METER_WRITE(mvt->poolSize, stream, depth + 2);
+  METER_WRITE(mvt->poolAllocated, stream, depth + 2);
+  METER_WRITE(mvt->poolAvailable, stream, depth + 2);
+  METER_WRITE(mvt->poolUnavailable, stream, depth + 2);
+  METER_WRITE(mvt->poolUtilization, stream, depth + 2);
+  METER_WRITE(mvt->finds, stream, depth + 2);
+  METER_WRITE(mvt->overflows, stream, depth + 2);
+  METER_WRITE(mvt->underflows, stream, depth + 2);
+  METER_WRITE(mvt->refills, stream, depth + 2);
+  METER_WRITE(mvt->refillPushes, stream, depth + 2);
+  METER_WRITE(mvt->returns, stream, depth + 2);
+  METER_WRITE(mvt->perfectFits, stream, depth + 2);
+  METER_WRITE(mvt->firstFits, stream, depth + 2);
+  METER_WRITE(mvt->secondFits, stream, depth + 2);
+  METER_WRITE(mvt->failures, stream, depth + 2);
+  METER_WRITE(mvt->emergencyContingencies, stream, depth + 2);
+  METER_WRITE(mvt->fragLimitContingencies, stream, depth + 2);
+  METER_WRITE(mvt->contingencySearches, stream, depth + 2);
+  METER_WRITE(mvt->contingencyHardSearches, stream, depth + 2);
+  METER_WRITE(mvt->splinters, stream, depth + 2);
+  METER_WRITE(mvt->splintersUsed, stream, depth + 2);
+  METER_WRITE(mvt->splintersDropped, stream, depth + 2);
+  METER_WRITE(mvt->sawdust, stream, depth + 2);
+  METER_WRITE(mvt->exceptions, stream, depth + 2);
+  METER_WRITE(mvt->exceptionSplinters, stream, depth + 2);
+  METER_WRITE(mvt->exceptionReturns, stream, depth + 2);
  
-  res = WriteF(stream, "}\n", NULL);
+  res = WriteF(stream, depth, "} MVT $P\n", (WriteFP)mvt, NULL);
   return res;
 }
 

@@ -38,7 +38,7 @@ SRCID(fbmtest, "$Id$");
 static Count NAllocateTried, NAllocateSucceeded, NDeallocateTried,
   NDeallocateSucceeded;
 
-static int verbose = 0;
+static Bool verbose = FALSE;
 
 typedef unsigned FBMType;
 enum {
@@ -80,10 +80,12 @@ static Index (indexOfAddr)(FBMState state, Addr a)
 static void describe(FBMState state) {
   switch (state->type) {
   case FBMTypeCBS:
-    die(CBSDescribe(state->the.cbs, mps_lib_get_stdout()), "CBSDescribe");
+    die(CBSDescribe(state->the.cbs, mps_lib_get_stdout(), 0),
+        "CBSDescribe");
     break;
   case FBMTypeFreelist:
-    die(FreelistDescribe(state->the.fl, mps_lib_get_stdout()), "FreelistDescribe");
+    die(FreelistDescribe(state->the.fl, mps_lib_get_stdout(), 0),
+        "FreelistDescribe");
     break;
   default:
     cdie(0, "invalid state->type");
@@ -542,6 +544,8 @@ static void test(FBMState state, unsigned n) {
     }
     if ((i + 1) % 1000 == 0)
       check(state);
+    if (i == 100)
+      describe(state);
   }
 }
 
