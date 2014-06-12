@@ -1282,6 +1282,34 @@ static void AWLWalk(Pool pool, Seg seg, FormattedObjectsStepMethod f,
 }
 
 
+/* AWLTotalSize -- total memory allocated from the arena */
+
+static Size AWLTotalSize(Pool pool)
+{
+  AWL awl;
+
+  AVERT(Pool, pool);
+  awl = PoolAWL(pool);
+  AVERT(AWL, awl);
+
+  return awl->pgen.totalSize;
+}
+
+
+/* AWLFreeSize -- free memory (unused by client program) */
+
+static Size AWLFreeSize(Pool pool)
+{
+  AWL awl;
+
+  AVERT(Pool, pool);
+  awl = PoolAWL(pool);
+  AVERT(AWL, awl);
+
+  return awl->pgen.freeSize;
+}
+
+
 /* AWLPoolClass -- the class definition */
 
 DEFINE_POOL_CLASS(AWLPoolClass, this)
@@ -1306,6 +1334,8 @@ DEFINE_POOL_CLASS(AWLPoolClass, this)
   this->fixEmergency = AWLFix;
   this->reclaim = AWLReclaim;
   this->walk = AWLWalk;
+  this->totalSize = AWLTotalSize;
+  this->freeSize = AWLFreeSize;
   AVERT(PoolClass, this);
 }
 

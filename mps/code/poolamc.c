@@ -2272,6 +2272,50 @@ static Res AMCAddrObject(Addr *pReturn, Pool pool, Seg seg, Addr addr)
 }
 
 
+/* AMCTotalSize -- total memory allocated from the arena */
+
+static Size AMCTotalSize(Pool pool)
+{
+  AMC amc;
+  Size size = 0;
+  Ring node, nextNode;
+
+  AVERT(Pool, pool);
+  amc = PoolAMC(pool);
+  AVERT(AMC, amc);
+
+  RING_FOR(node, &amc->genRing, nextNode) {
+    amcGen gen = RING_ELT(amcGen, amcRing, node);
+    AVERT(amcGen, gen);
+    size += gen->pgen.totalSize;
+  }
+
+  return size;
+}
+
+
+/* AMCFreeSize -- free memory (unused by client program) */
+
+static Size AMCFreeSize(Pool pool)
+{
+  AMC amc;
+  Size size = 0;
+  Ring node, nextNode;
+
+  AVERT(Pool, pool);
+  amc = PoolAMC(pool);
+  AVERT(AMC, amc);
+
+  RING_FOR(node, &amc->genRing, nextNode) {
+    amcGen gen = RING_ELT(amcGen, amcRing, node);
+    AVERT(amcGen, gen);
+    size += gen->pgen.freeSize;
+  }
+
+  return size;
+}
+
+
 /* AMCDescribe -- describe the contents of the AMC pool
  *
  * See <design/poolamc/#describe>.
@@ -2367,6 +2411,8 @@ DEFINE_POOL_CLASS(AMCZPoolClass, this)
   this->addrObject = AMCAddrObject;
   this->walk = AMCWalk;
   this->bufferClass = amcBufClassGet;
+  this->totalSize = AMCTotalSize;
+  this->freeSize = AMCFreeSize;  
   this->describe = AMCDescribe;
   AVERT(PoolClass, this);
 }
