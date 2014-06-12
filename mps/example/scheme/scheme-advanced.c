@@ -4401,6 +4401,7 @@ static int start(int argc, char *argv[])
       printf("%lu, %lu> ", (unsigned long)total,
              (unsigned long)mps_collections(arena));
       fflush(stdout);
+      fflush(stderr);
       obj = read(input);
       if(obj == obj_eof) break;
       obj = eval(env, op_env, obj);
