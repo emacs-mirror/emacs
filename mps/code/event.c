@@ -494,11 +494,12 @@ Res EventDescribe(Event event, mps_lib_FILE *stream, Count depth)
 {
   UNUSED(event);
   UNUSED(stream);
+  UNUSED(depth);
   return ResUNIMPL;
 }
 
 
-Res EventWrite(Event event, mps_lib_FILE *stream, Count depth)
+Res EventWrite(Event event, mps_lib_FILE *stream)
 {
   UNUSED(event);
   UNUSED(stream);
