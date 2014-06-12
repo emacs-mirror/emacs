@@ -359,7 +359,7 @@ void SegSetBuffer(Seg seg, Buffer buffer)
 
 /* SegDescribe -- describe a segment */
 
-Res SegDescribe(Seg seg, mps_lib_FILE *stream)
+Res SegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
 {
   Res res;
   Pool pool;
@@ -369,7 +369,7 @@ Res SegDescribe(Seg seg, mps_lib_FILE *stream)
 
   pool = SegPool(seg);
 
-  res = WriteF(stream,
+  res = WriteF(stream, depth,
                "Segment $P [$A,$A) {\n", (WriteFP)seg,
                (WriteFA)SegBase(seg), (WriteFA)SegLimit(seg),
                "  class $P (\"$S\")\n",
@@ -379,11 +379,13 @@ Res SegDescribe(Seg seg, mps_lib_FILE *stream)
                NULL);
   if (res != ResOK) return res;
 
-  res = seg->class->describe(seg, stream);
+  res = seg->class->describe(seg, stream, depth + 2);
   if (res != ResOK) return res;
 
-  res = WriteF(stream, "\n",
-               "} Segment $P\n", (WriteFP)seg, NULL);
+  res = WriteF(stream, 0, "\n", NULL);
+  if (res != ResOK) return res;
+
+  res = WriteF(stream, depth, "} Segment $P\n", (WriteFP)seg, NULL);
   return res;
 }
 
@@ -523,43 +525,6 @@ Bool SegNext(Seg *segReturn, Arena arena, Seg seg)
   AVERT_CRITICAL(Seg, seg);
   return SegNextOfRing(segReturn, arena,
                        SegPool(seg), RingNext(SegPoolRing(seg)));
-}
-
-
-/* SegFindAboveAddr -- return the "next" seg in the arena
- *
- * Finds the seg with the lowest base address which is
- * greater than a specified address.  The address must be (or once
- * have been) the base address of a seg.
- */
-
-Bool SegFindAboveAddr(Seg *segReturn, Arena arena, Addr addr)
-{
-  Tract tract;
-  Addr base = addr;
-  AVER_CRITICAL(segReturn != NULL); /* .seg.critical */
-  AVERT_CRITICAL(Arena, arena);
-
-  while (TractNext(&tract, arena, base)) {
-    Seg seg;
-    if (TRACT_SEG(&seg, tract)) {
-      if (tract == seg->firstTract) {
-        *segReturn = seg;
-        return TRUE;
-      } else {
-        /* found the next tract in a large segment */
-        /* base & addr must be the base of this segment */
-        AVER_CRITICAL(TractBase(seg->firstTract) == addr);
-        AVER_CRITICAL(addr == base);
-        /* set base to the last tract in the segment */
-        base = AddrSub(seg->limit, ArenaAlign(arena));
-        AVER_CRITICAL(base > addr);
-      }
-    } else {
-      base = TractBase(tract);
-    }
-  }
-  return FALSE;
 }
 
 
@@ -1036,59 +1001,30 @@ static Res segTrivSplit(Seg seg, Seg segHi,
 
 /* segTrivDescribe -- Basic Seg description method */
 
-static Res segTrivDescribe(Seg seg, mps_lib_FILE *stream)
+static Res segTrivDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
 {
   Res res;
 
   if (!TESTT(Seg, seg)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
 
-  res = WriteF(stream,
-               "  shield depth $U\n", (WriteFU)seg->depth,
-               "  protection mode:",
-               NULL);
-  if (res != ResOK) return res;
-  if (SegPM(seg) & AccessREAD) {
-     res = WriteF(stream, " read", NULL);
-     if (res != ResOK) return res;
-  }
-  if (SegPM(seg) & AccessWRITE) {
-     res = WriteF(stream, " write", NULL);
-     if (res != ResOK) return res;
-  }
-  res = WriteF(stream, "\n  shield mode:", NULL);
-  if (res != ResOK) return res;
-  if (SegSM(seg) & AccessREAD) {
-     res = WriteF(stream, " read", NULL);
-     if (res != ResOK) return res;
-  }
-  if (SegSM(seg) & AccessWRITE) {
-     res = WriteF(stream, " write", NULL);
-     if (res != ResOK) return res;
-  }
-  res = WriteF(stream, "\n  ranks:", NULL);
-  if (res != ResOK) return res;
-  /* This bit ought to be in a RankSetDescribe in ref.c. */
-  if (RankSetIsMember(seg->rankSet, RankAMBIG)) {
-     res = WriteF(stream, " ambiguous", NULL);
-     if (res != ResOK) return res;
-  }
-  if (RankSetIsMember(seg->rankSet, RankEXACT)) {
-     res = WriteF(stream, " exact", NULL);
-     if (res != ResOK) return res;
-  }
-  if (RankSetIsMember(seg->rankSet, RankFINAL)) {
-     res = WriteF(stream, " final", NULL);
-     if (res != ResOK) return res;
-  }
-  if (RankSetIsMember(seg->rankSet, RankWEAK)) {
-     res = WriteF(stream, " weak", NULL);
-     if (res != ResOK) return res;
-  }
-  res = WriteF(stream, "\n",
-               "  white  $B\n", (WriteFB)seg->white,
-               "  grey   $B\n", (WriteFB)seg->grey,
-               "  nailed $B\n", (WriteFB)seg->nailed,
+  res = WriteF(stream, depth,
+               "shield depth $U\n", (WriteFU)seg->depth,
+               "protection mode: ",
+               (SegPM(seg) & AccessREAD) ? "" : "!", "READ", " ",
+               (SegPM(seg) & AccessWRITE) ? "" : "!", "WRITE", "\n",
+               "shield mode: ",
+               (SegSM(seg) & AccessREAD) ? "" : "!", "READ", " ",
+               (SegSM(seg) & AccessWRITE) ? "" : "!", "WRITE", "\n",
+               "ranks:",
+               RankSetIsMember(seg->rankSet, RankAMBIG) ? " ambiguous" : "",
+               RankSetIsMember(seg->rankSet, RankEXACT) ? " exact" : "",
+               RankSetIsMember(seg->rankSet, RankFINAL) ? " final" : "",
+               RankSetIsMember(seg->rankSet, RankWEAK) ? " weak" : "",
+               "\n",
+               "white  $B\n", (WriteFB)seg->white,
+               "grey   $B\n", (WriteFB)seg->grey,
+               "nailed $B\n", (WriteFB)seg->nailed,
                NULL);
   return res;
 }
@@ -1624,7 +1560,7 @@ failSuper:
 
 /* gcSegDescribe -- GCSeg  description method */
 
-static Res gcSegDescribe(Seg seg, mps_lib_FILE *stream)
+static Res gcSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
 {
   Res res;
   SegClass super;
@@ -1637,19 +1573,18 @@ static Res gcSegDescribe(Seg seg, mps_lib_FILE *stream)
 
   /* Describe the superclass fields first via next-method call */
   super = SEG_SUPERCLASS(GCSegClass);
-  res = super->describe(seg, stream);
+  res = super->describe(seg, stream, depth);
   if (res != ResOK) return res;
 
-  res = WriteF(stream,
-               "  summary $W\n", (WriteFW)gcseg->summary,
+  res = WriteF(stream, depth,
+               "summary $W\n", (WriteFW)gcseg->summary,
                NULL);
   if (res != ResOK) return res;
 
   if (gcseg->buffer == NULL) {
-    res = WriteF(stream, "  buffer: NULL\n", NULL);
-  }
-  else {
-    res = BufferDescribe(gcseg->buffer, stream);
+    res = WriteF(stream, depth, "buffer: NULL\n", NULL);
+  } else {
+    res = BufferDescribe(gcseg->buffer, stream, depth);
   }
   if (res != ResOK) return res;
 

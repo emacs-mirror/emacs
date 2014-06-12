@@ -392,7 +392,7 @@ Res ChunkNodeDescribe(Tree node, mps_lib_FILE *stream)
   chunk = ChunkOfTree(node);
   if (!TESTT(Chunk, chunk)) return ResFAIL;
 
-  return WriteF(stream, "[$P,$P)", (WriteFP)chunk->base,
+  return WriteF(stream, 0, "[$P,$P)", (WriteFP)chunk->base,
                 (WriteFP)chunk->limit, NULL);
 }
 
