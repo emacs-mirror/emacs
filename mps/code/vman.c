@@ -34,9 +34,9 @@ Bool VMCheck(VM vm)
   CHECKL(vm->base != (Addr)0);
   CHECKL(vm->limit != (Addr)0);
   CHECKL(vm->base < vm->limit);
-  CHECKL(ArenaGrainSizeCheck(VMAN_GRAIN_SIZE));
-  CHECKL(AddrIsAligned(vm->base, VMAN_GRAIN_SIZE));
-  CHECKL(AddrIsAligned(vm->limit, VMAN_GRAIN_SIZE));
+  CHECKL(ArenaGrainSizeCheck(VMAN_PAGE_SIZE));
+  CHECKL(AddrIsAligned(vm->base, VMAN_PAGE_SIZE));
+  CHECKL(AddrIsAligned(vm->limit, VMAN_PAGE_SIZE));
   CHECKL(vm->block != NULL);
   CHECKL((Addr)vm->block <= vm->base);
   CHECKL(vm->mapped <= vm->reserved);
@@ -44,12 +44,12 @@ Bool VMCheck(VM vm)
 }
 
 
-/* VMGrainSize -- return the grain size */
+/* VMPageSize -- return the page size */
 
-Size VMGrainSize(VM vm)
+Size VMPageSize(VM vm)
 {
   UNUSED(vm);
-  return VMAN_GRAIN_SIZE;
+  return VMAN_PAGE_SIZE;
 }
 
 
@@ -71,12 +71,12 @@ Res VMCreate(VM *vmReturn, Size size, void *params)
   AVER(vmReturn != NULL);
   AVER(params != NULL);
 
-  /* Note that because we add VMAN_GRAIN_SIZE rather than */
-  /* VMAN_GRAIN_SIZE-1 we are not in danger of overflowing */
+  /* Note that because we add VMAN_PAGE_SIZE rather than */
+  /* VMAN_PAGE_SIZE-1 we are not in danger of overflowing */
   /* vm->limit even if malloc were perverse enough to give us */
   /* a block at the end of memory. */
-  size = SizeRoundUp(size, VMAN_GRAIN_SIZE) + VMAN_GRAIN_SIZE;
-  if ((size < VMAN_GRAIN_SIZE) || (size > (Size)(size_t)-1))
+  size = SizeRoundUp(size, VMAN_PAGE_SIZE) + VMAN_PAGE_SIZE;
+  if ((size < VMAN_PAGE_SIZE) || (size > (Size)(size_t)-1))
     return ResRESOURCE;
 
   vm = (VM)malloc(sizeof(VMStruct));
@@ -89,15 +89,15 @@ Res VMCreate(VM *vmReturn, Size size, void *params)
     return ResMEMORY;
   }
 
-  vm->base  = AddrAlignUp((Addr)vm->block, VMAN_GRAIN_SIZE);
-  vm->limit = AddrAdd(vm->base, size - VMAN_GRAIN_SIZE);
+  vm->base  = AddrAlignUp((Addr)vm->block, VMAN_PAGE_SIZE);
+  vm->limit = AddrAdd(vm->base, size - VMAN_PAGE_SIZE);
   AVER(vm->limit < AddrAdd((Addr)vm->block, size));
 
   memset((void *)vm->block, VMJunkBYTE, size);
  
   /* Lie about the reserved address space, to simulate real */
   /* virtual memory. */
-  vm->reserved = size - VMAN_GRAIN_SIZE;
+  vm->reserved = size - VMAN_PAGE_SIZE;
   vm->mapped = (Size)0;
  
   vm->sig = VMSig;
@@ -179,8 +179,8 @@ Res VMMap(VM vm, Addr base, Addr limit)
   AVER(vm->base <= base);
   AVER(base < limit);
   AVER(limit <= vm->limit);
-  AVER(AddrIsAligned(base, VMAN_GRAIN_SIZE));
-  AVER(AddrIsAligned(limit, VMAN_GRAIN_SIZE));
+  AVER(AddrIsAligned(base, VMAN_PAGE_SIZE));
+  AVER(AddrIsAligned(limit, VMAN_PAGE_SIZE));
 
   size = AddrOffset(base, limit);
   memset((void *)base, (int)0, size);
@@ -202,8 +202,8 @@ void VMUnmap(VM vm, Addr base, Addr limit)
   AVER(vm->base <= base);
   AVER(base < limit);
   AVER(limit <= vm->limit);
-  AVER(AddrIsAligned(base, VMAN_GRAIN_SIZE));
-  AVER(AddrIsAligned(limit, VMAN_GRAIN_SIZE));
+  AVER(AddrIsAligned(base, VMAN_PAGE_SIZE));
+  AVER(AddrIsAligned(limit, VMAN_PAGE_SIZE));
  
   size = AddrOffset(base, limit);
   memset((void *)base, 0xCD, size);
