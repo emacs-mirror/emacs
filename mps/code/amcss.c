@@ -8,6 +8,7 @@
 #include "fmtdy.h"
 #include "fmtdytst.h"
 #include "testlib.h"
+#include "mpm.h"
 #include "mpslib.h"
 #include "mpscamc.h"
 #include "mpsavm.h"
@@ -20,7 +21,7 @@
 
 /* These values have been tuned in the hope of getting one dynamic collection. */
 #define testArenaSIZE     ((size_t)1000*1024)
-#define gen1SIZE          ((size_t)150)
+#define gen1SIZE          ((size_t)40)
 #define gen2SIZE          ((size_t)170)
 #define avLEN             3
 #define exactRootsCOUNT   180
@@ -135,6 +136,7 @@ static void test(mps_arena_t arena, mps_class_t pool_class, size_t roots_count)
   mps_ap_t busy_ap;
   mps_addr_t busy_init;
   mps_pool_t pool;
+  int described = 0; 
 
   die(dylan_fmt(&format, arena), "fmt_create");
   die(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
@@ -175,6 +177,10 @@ static void test(mps_arena_t arena, mps_class_t pool_class, size_t roots_count)
 
     c = mps_collections(arena);
     if (collections != c) {
+      if (!described) {
+        die(ArenaDescribe(arena, mps_lib_get_stdout(), 0), "ArenaDescribe");
+        described = TRUE;
+      }
       collections = c;
       report(arena);
 
