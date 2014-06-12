@@ -188,6 +188,9 @@ extern const struct mps_key_s _mps_key_max_size;
 extern const struct mps_key_s _mps_key_align;
 #define MPS_KEY_ALIGN           (&_mps_key_align)
 #define MPS_KEY_ALIGN_FIELD     align
+extern const struct mps_key_s _mps_key_spare;
+#define MPS_KEY_SPARE           (&_mps_key_spare)
+#define MPS_KEY_SPARE_FIELD     double
 extern const struct mps_key_s _mps_key_interior;
 #define MPS_KEY_INTERIOR        (&_mps_key_interior)
 #define MPS_KEY_INTERIOR_FIELD  b
@@ -469,6 +472,11 @@ extern mps_res_t mps_pool_create_v(mps_pool_t *, mps_arena_t,
 extern mps_res_t mps_pool_create_k(mps_pool_t *, mps_arena_t,
                                    mps_class_t, mps_arg_s []);
 extern void mps_pool_destroy(mps_pool_t);
+extern size_t mps_pool_total_size(mps_pool_t);
+extern size_t mps_pool_free_size(mps_pool_t);
+
+
+/* Chains */
 
 /* .gen-param: This structure must match <code/chain.h#gen-param>. */
 typedef struct mps_gen_param_s {
@@ -479,6 +487,9 @@ typedef struct mps_gen_param_s {
 extern mps_res_t mps_chain_create(mps_chain_t *, mps_arena_t,
                                   size_t, mps_gen_param_s *);
 extern void mps_chain_destroy(mps_chain_t);
+
+
+/* Manual Allocation */
 
 extern mps_res_t mps_alloc(mps_addr_t *, mps_pool_t, size_t);
 extern mps_res_t mps_alloc_v(mps_addr_t *, mps_pool_t, size_t, va_list);

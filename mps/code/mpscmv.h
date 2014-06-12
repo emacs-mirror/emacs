@@ -9,8 +9,9 @@
 
 #include "mps.h"
 
-extern size_t mps_mv_free_size(mps_pool_t mps_pool);
-extern size_t mps_mv_size(mps_pool_t mps_pool);
+#define mps_mv_free_size mps_pool_free_size
+#define mps_mv_size mps_pool_total_size
+
 extern mps_class_t mps_class_mv(void);
 extern mps_class_t mps_class_mv_debug(void);
 
