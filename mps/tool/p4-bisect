@@ -132,7 +132,6 @@ def run(args):
 def main(argv):
     parser = argparse.ArgumentParser(
         prog='p4-bisect', epilog='For help on CMD, use p4-bisect CMD -h')
-    parser.set_defaults(func=partial(help, parser))
     subparsers = parser.add_subparsers()
     a = subparsers.add_parser
 

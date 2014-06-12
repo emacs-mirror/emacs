@@ -199,8 +199,6 @@ static Res BufferInit(Buffer buffer, BufferClass class,
   AVER(buffer != NULL);
   AVERT(BufferClass, class);
   AVERT(Pool, pool);
-  /* The PoolClass should support buffer protocols */
-  AVER(PoolHasAttr(pool, AttrBUF));
  
   arena = PoolArena(pool);
   /* Initialize the buffer.  See <code/mpmst.h> for a definition of */
@@ -377,8 +375,6 @@ void BufferFinish(Buffer buffer)
 
   pool = BufferPool(buffer);
 
-  /* The PoolClass should support buffer protocols */
-  AVER(PoolHasAttr(pool, AttrBUF));
   AVER(BufferIsReady(buffer));
 
   /* <design/alloc-frame/#lw-frame.sync.trip> */

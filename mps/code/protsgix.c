@@ -24,9 +24,6 @@
 #if defined(MPS_OS_XC) && defined(MPS_ARCH_PP)
 #error "protsgix.c does not work on Darwin on PowerPC.  Use protxcpp.c"
 #endif
-#ifndef PROTECTION
-#error "protsgix.c implements protection, but PROTECTION is not set"
-#endif
 
 #include <signal.h>    /* for many functions */
 #include <sys/types.h> /* for getpid */

@@ -107,6 +107,7 @@ static void test(void)
  report("d", "%p", d);
 
 
+ mps_arena_park(arena);
  mps_ap_destroy(ap1);
  mps_ap_destroy(ap2);
  mps_pool_destroy(pool1);

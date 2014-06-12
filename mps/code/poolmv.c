@@ -134,9 +134,7 @@ typedef struct MVSpanStruct {
 ATTRIBUTE_UNUSED
 static Bool MVSpanCheck(MVSpan span)
 {
-  Addr addr, base, limit;
-  Arena arena;
-  Tract tract;
+  Addr base, limit;
 
   CHECKS(MVSpan, span);
 
@@ -172,13 +170,22 @@ static Bool MVSpanCheck(MVSpan span)
     CHECKL(span->largest == SpanSize(span)+1);
   }
 
-  /* Each tract of the span must refer to the span */
-  arena = PoolArena(TractPool(span->tract));
-  TRACT_FOR(tract, addr, arena, base, limit) {
-    CHECKD_NOSIG(Tract, tract);
-    CHECKL(TractP(tract) == (void *)span);
+  /* Note that even if the CHECKs are compiled away there is still a
+   * significant cost in looping over the tracts, hence this guard. */
+#if defined(AVER_AND_CHECK_ALL)
+  {
+    Addr addr;
+    Arena arena;
+    Tract tract;
+    /* Each tract of the span must refer to the span */
+    arena = PoolArena(TractPool(span->tract));
+    TRACT_FOR(tract, addr, arena, base, limit) {
+      CHECKD_NOSIG(Tract, tract);
+      CHECKL(TractP(tract) == (void *)span);
+    }
+    CHECKL(addr == limit);
   }
-  CHECKL(addr == limit);
+#endif
 
   return TRUE;
 }
@@ -210,6 +217,7 @@ static void MVDebugVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
 
 static Res MVInit(Pool pool, ArgList args)
 {
+  Align align = MV_ALIGN_DEFAULT;
   Size extendBy = MV_EXTEND_BY_DEFAULT;
   Size avgSize = MV_AVG_SIZE_DEFAULT;
   Size maxSize = MV_MAX_SIZE_DEFAULT;
@@ -219,6 +227,8 @@ static Res MVInit(Pool pool, ArgList args)
   Res res;
   ArgStruct arg;
   
+  if (ArgPick(&arg, args, MPS_KEY_ALIGN))
+    align = arg.val.align;
   if (ArgPick(&arg, args, MPS_KEY_EXTEND_BY))
     extendBy = arg.val.size;
   if (ArgPick(&arg, args, MPS_KEY_MEAN_SIZE))
@@ -226,12 +236,14 @@ static Res MVInit(Pool pool, ArgList args)
   if (ArgPick(&arg, args, MPS_KEY_MAX_SIZE))
     maxSize = arg.val.size;
 
+  AVERT(Align, align);
   AVER(extendBy > 0);
   AVER(avgSize > 0);
   AVER(avgSize <= extendBy);
   AVER(maxSize > 0);
   AVER(extendBy <= maxSize);
 
+  pool->alignment = align;
   mv = Pool2MV(pool);
   arena = PoolArena(pool);
 
@@ -619,6 +631,7 @@ static void MVFree(Pool pool, Addr old, Size size)
   AVERT(MV, mv);
 
   AVER(old != (Addr)0);
+  AVER(AddrIsAligned(old, pool->alignment));
   AVER(size > 0);
 
   size = SizeAlignUp(size, pool->alignment);
@@ -773,7 +786,6 @@ static Res MVDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
 DEFINE_POOL_CLASS(MVPoolClass, this)
 {
   INHERIT_CLASS(this, AbstractBufferPoolClass);
-  PoolClassMixInAllocFree(this);
   this->name = "MV";
   this->size = sizeof(MVStruct);
   this->offset = offsetof(MVStruct, poolStruct);

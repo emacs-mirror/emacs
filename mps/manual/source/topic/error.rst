@@ -233,6 +233,13 @@ cause), please :ref:`let us know <contact>` so that we can improve
 this documentation.
 
 
+``buffer.c: BufferIsReady(buffer)``
+
+    The client program called :c:func:`mps_reserve` twice on the same
+    :term:`allocation point` without calling :c:func:`mps_commit`. See
+    :ref:`topic-allocation-point-protocol`.
+
+
 ``dbgpool.c: fencepost check on free``
 
     The client program wrote to a location after the end, or before
@@ -262,6 +269,15 @@ this documentation.
     :term:`format methods` and :term:`stepper functions`.
 
 
+``locus.c: chain->activeTraces == TraceSetEMPTY)``
+
+    The client program called :c:func:`mps_chain_destroy`, but there
+    was a garbage collection in progress on that chain.
+
+    Park the arena before destroying the chain by calling
+    :c:func:`mps_arena_park`.
+
+
 ``mpsi.c: SizeIsAligned(size, BufferPool(buf)->alignment)``
 
     The client program reserved a block by calling
@@ -269,7 +285,7 @@ this documentation.
     alignment required by the pool's :term:`object format`.
 
 
-``pool.c: (pool->class->attr & AttrALLOC) != 0``
+``pool.c: PoolHasAttr(pool, AttrALLOC)``
 
     The client program called :c:func:`mps_alloc` on a pool that does
     not support this form of allocation. Use an :term:`allocation

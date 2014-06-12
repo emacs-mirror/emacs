@@ -106,7 +106,7 @@ static mps_addr_t make(void)
 /* test -- the actual stress test */
 
 static mps_pool_debug_option_s freecheckOptions =
-  { NULL, 0, (const void *)"Dead", 4 };
+  { NULL, 0, "Dead", 4 };
 
 static void test_pool(mps_class_t pool_class, mps_arg_s args[],
                       mps_bool_t haveAmbiguous)
@@ -234,6 +234,7 @@ int main(int argc, char *argv[])
     } MPS_ARGS_END(args);
   }
 
+  mps_arena_park(arena);
   mps_chain_destroy(chain);
   mps_fmt_destroy(format);
   mps_thread_dereg(thread);

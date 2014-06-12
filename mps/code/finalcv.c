@@ -202,6 +202,7 @@ static void *test(void *arg, size_t s)
 
   /* @@@@ <design/poolmrg/#test.promise.ut.nofinal.check> missing */
 
+  mps_arena_park(arena);
   mps_ap_destroy(ap);
   mps_root_destroy(mps_root[1]);
   mps_root_destroy(mps_root[0]);
