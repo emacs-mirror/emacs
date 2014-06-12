@@ -40,7 +40,6 @@ extern PoolClass AMSTPoolClassGet(void);
 
 typedef struct AMSTStruct {
   AMSStruct amsStruct;      /* generic AMS structure */
-  Chain chain;              /* chain to use */
   Bool failSegs;            /* fail seg splits & merges when true */
   Count splits;             /* count of successful segment splits */
   Count merges;             /* count of successful segment merges */
@@ -335,25 +334,30 @@ static Res AMSTInit(Pool pool, ArgList args)
   Format format;
   Chain chain;
   Res res;
-  static GenParamStruct genParam = { 1024, 0.2 };
+  unsigned gen = AMS_GEN_DEFAULT;
   ArgStruct arg;
 
   AVERT(Pool, pool);
-  
+  AVERT(ArgList, args);
+
+  if (ArgPick(&arg, args, MPS_KEY_CHAIN))
+    chain = arg.val.chain;
+  else {
+    chain = ArenaGlobals(PoolArena(pool))->defaultChain;
+    gen = 1; /* avoid the nursery of the default chain by default */
+  }
+  if (ArgPick(&arg, args, MPS_KEY_GEN))
+    gen = arg.val.u;
   ArgRequire(&arg, args, MPS_KEY_FORMAT);
   format = arg.val.format;
   
-  res = ChainCreate(&chain, pool->arena, 1, &genParam);
-  if (res != ResOK)
-    return res;
-  res = AMSInitInternal(Pool2AMS(pool), format, chain, 0, FALSE);
+  res = AMSInitInternal(Pool2AMS(pool), format, chain, gen, FALSE);
   if (res != ResOK)
     return res;
   amst = Pool2AMST(pool);
   ams = Pool2AMS(pool);
   ams->segSize = AMSTSegSizePolicy;
   ams->segClass = AMSTSegClassGet;
-  amst->chain = chain;
   amst->failSegs = TRUE;
   amst->splits = 0;
   amst->merges = 0;
@@ -388,7 +392,6 @@ static void AMSTFinish(Pool pool)
 
   AMSFinish(pool);
   amst->sig = SigInvalid;
-  ChainDestroy(amst->chain);
 }
 
 
@@ -399,7 +402,7 @@ static Bool AMSSegIsFree(Seg seg)
   AMSSeg amsseg;
   AVERT(Seg, seg);
   amsseg = Seg2AMSSeg(seg);
-  return(amsseg->free == amsseg->grains);
+  return amsseg->freeGrains == amsseg->grains;
 }
 
 
@@ -433,7 +436,7 @@ static Bool AMSSegRegionIsFree(Seg seg, Addr base, Addr limit)
  * Used as a means of overriding the behaviour of AMSBufferFill.
  * The code is similar to AMSBufferEmpty.
  */
-static void AMSUnallocateRange(Seg seg, Addr base, Addr limit)
+static void AMSUnallocateRange(AMS ams, Seg seg, Addr base, Addr limit)
 {
   AMSSeg amsseg;
   Index baseIndex, limitIndex;
@@ -461,8 +464,10 @@ static void AMSUnallocateRange(Seg seg, Addr base, Addr limit)
       BTResRange(amsseg->allocTable, baseIndex, limitIndex);
     }
   }
-  amsseg->free += limitIndex - baseIndex;
-  amsseg->newAlloc -= limitIndex - baseIndex;
+  amsseg->freeGrains += limitIndex - baseIndex;
+  AVER(amsseg->newGrains >= limitIndex - baseIndex);
+  amsseg->newGrains -= limitIndex - baseIndex;
+  PoolGenAccountForEmpty(&ams->pgen, AddrOffset(base, limit), FALSE);
 }
 
 
@@ -471,7 +476,7 @@ static void AMSUnallocateRange(Seg seg, Addr base, Addr limit)
  * Used as a means of overriding the behaviour of AMSBufferFill.
  * The code is similar to AMSUnallocateRange.
  */
-static void AMSAllocateRange(Seg seg, Addr base, Addr limit)
+static void AMSAllocateRange(AMS ams, Seg seg, Addr base, Addr limit)
 {
   AMSSeg amsseg;
   Index baseIndex, limitIndex;
@@ -499,9 +504,10 @@ static void AMSAllocateRange(Seg seg, Addr base, Addr limit)
       BTSetRange(amsseg->allocTable, baseIndex, limitIndex);
     }
   }
-  AVER(amsseg->free >= limitIndex - baseIndex);
-  amsseg->free -= limitIndex - baseIndex;
-  amsseg->newAlloc += limitIndex - baseIndex;
+  AVER(amsseg->freeGrains >= limitIndex - baseIndex);
+  amsseg->freeGrains -= limitIndex - baseIndex;
+  amsseg->newGrains += limitIndex - baseIndex;
+  PoolGenAccountForFill(&ams->pgen, AddrOffset(base, limit), FALSE);
 }
 
 
@@ -526,6 +532,7 @@ static Res AMSTBufferFill(Addr *baseReturn, Addr *limitReturn,
   PoolClass super;
   Addr base, limit;
   Arena arena;
+  AMS ams;
   AMST amst;
   Bool b;
   Seg seg;
@@ -537,6 +544,7 @@ static Res AMSTBufferFill(Addr *baseReturn, Addr *limitReturn,
   AVER(limitReturn != NULL);
   /* other parameters are checked by next method */
   arena = PoolArena(pool);
+  ams = Pool2AMS(pool);
   amst = Pool2AMST(pool);
 
   /* call next method */
@@ -558,14 +566,14 @@ static Res AMSTBufferFill(Addr *baseReturn, Addr *limitReturn,
         Seg mergedSeg;
         Res mres;
 
-        AMSUnallocateRange(seg, base, limit);
+        AMSUnallocateRange(ams, seg, base, limit);
         mres = SegMerge(&mergedSeg, segLo, seg, withReservoirPermit);
         if (ResOK == mres) { /* successful merge */
-          AMSAllocateRange(mergedSeg, base, limit);
+          AMSAllocateRange(ams, mergedSeg, base, limit);
           /* leave range as-is */
         } else {            /* failed to merge */
           AVER(amst->failSegs); /* deliberate fails only */
-          AMSAllocateRange(seg, base, limit);
+          AMSAllocateRange(ams, seg, base, limit);
         }
       }
 
@@ -576,13 +584,13 @@ static Res AMSTBufferFill(Addr *baseReturn, Addr *limitReturn,
         Addr mid = AddrAdd(base, half);
         Seg segLo, segHi;
         Res sres;
-        AMSUnallocateRange(seg, mid, limit);
+        AMSUnallocateRange(ams, seg, mid, limit);
         sres = SegSplit(&segLo, &segHi, seg, mid, withReservoirPermit);
         if (ResOK == sres) { /* successful split */
           limit = mid;  /* range is lower segment */
         } else {            /* failed to split */
           AVER(amst->failSegs); /* deliberate fails only */
-          AMSAllocateRange(seg, mid, limit);
+          AMSAllocateRange(ams, seg, mid, limit);
         }
 
       }
@@ -758,14 +766,19 @@ static void *test(void *arg, size_t s)
   mps_ap_t busy_ap;
   mps_addr_t busy_init;
   const char *indent = "    ";
+  mps_chain_t chain;
+  static mps_gen_param_s genParam = {1024, 0.2};
 
   arena = (mps_arena_t)arg;
   (void)s; /* unused */
 
   die(mps_fmt_create_A(&format, arena, dylan_fmt_A()), "fmt_create");
+  die(mps_chain_create(&chain, arena, 1, &genParam), "chain_create");
 
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD(args, MPS_KEY_FORMAT, format);
+    MPS_ARGS_ADD(args, MPS_KEY_CHAIN, chain);
+    MPS_ARGS_ADD(args, MPS_KEY_GEN, 0);
     die(mps_pool_create_k(&pool, arena, mps_class_amst(), args),
         "pool_create(amst)");
   } MPS_ARGS_END(args);
@@ -836,11 +849,14 @@ static void *test(void *arg, size_t s)
   }
 
   (void)mps_commit(busy_ap, busy_init, 64);
+
+  mps_arena_park(arena);
   mps_ap_destroy(busy_ap);
   mps_ap_destroy(ap);
   mps_root_destroy(exactRoot);
   mps_root_destroy(ambigRoot);
   mps_pool_destroy(pool);
+  mps_chain_destroy(chain);
   mps_fmt_destroy(format);
 
   return NULL;

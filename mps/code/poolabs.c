@@ -18,7 +18,6 @@
  *
  * .hierarchy: define the following hierarchy of abstract pool classes:
  *    AbstractPoolClass     - implements init, finish, describe
- *     AbstractAllocFreePoolClass - implements alloc & free
  *     AbstractBufferPoolClass - implements the buffer protocol
  *      AbstractSegBufPoolClass - uses SegBuf buffer class
  *       AbstractScanPoolClass - implements basic scanning
@@ -31,7 +30,6 @@ SRCID(poolabs, "$Id$");
 
 
 typedef PoolClassStruct AbstractPoolClassStruct;
-typedef PoolClassStruct AbstractAllocFreePoolClassStruct;
 typedef PoolClassStruct AbstractBufferPoolClassStruct;
 typedef PoolClassStruct AbstractSegBufPoolClassStruct;
 typedef PoolClassStruct AbstractScanPoolClassStruct;
@@ -49,23 +47,11 @@ typedef PoolClassStruct AbstractCollectPoolClassStruct;
  */
 
 
-/* PoolClassMixInAllocFree -- mix in the protocol for Alloc / Free */
-
-void PoolClassMixInAllocFree(PoolClass class)
-{
-  /* Can't check class because it's not initialized yet */
-  class->attr |= (AttrALLOC | AttrFREE);
-  class->alloc = PoolTrivAlloc;
-  class->free = PoolTrivFree;
-}
-
-
 /* PoolClassMixInBuffer -- mix in the protocol for buffer reserve / commit */
 
 void PoolClassMixInBuffer(PoolClass class)
 {
   /* Can't check class because it's not initialized yet */
-  class->attr |= AttrBUF;
   class->bufferFill = PoolTrivBufferFill;
   class->bufferEmpty = PoolTrivBufferEmpty;
   /* By default, buffered pools treat frame operations as NOOPs */
@@ -81,7 +67,6 @@ void PoolClassMixInBuffer(PoolClass class)
 void PoolClassMixInScan(PoolClass class)
 {
   /* Can't check class because it's not initialized yet */
-  class->attr |= AttrSCAN;
   class->access = PoolSegAccess;
   class->blacken = PoolTrivBlacken;
   class->grey = PoolTrivGrey;
@@ -162,12 +147,6 @@ DEFINE_CLASS(AbstractPoolClass, class)
   class->debugMixin = PoolNoDebugMixin;
   class->labelled = FALSE;
   class->sig = PoolClassSig;
-}
-
-DEFINE_CLASS(AbstractAllocFreePoolClass, class)
-{
-  INHERIT_CLASS(class, AbstractPoolClass);
-  PoolClassMixInAllocFree(class);
 }
 
 DEFINE_CLASS(AbstractBufferPoolClass, class)

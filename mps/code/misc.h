@@ -152,6 +152,19 @@ typedef const struct SrcIdStruct {
 #define UNUSED(param)   ((void)param)
 
 
+/* UNUSED_POINTER, UNUSED_SIZE -- values for unused arguments 
+ *
+ * Use these values for unused pointer, size closure arguments and
+ * check them in the callback or visitor.
+ * 
+ * We use PointerAdd rather than a cast to avoid "warning C4306: 'type
+ * cast' : conversion from 'unsigned int' to 'Pointer' of greater
+ * size" on platform w3i6mv.
+ */
+#define UNUSED_POINTER PointerAdd(0, 0xB60405ED) /* PointeR UNUSED */
+#define UNUSED_SIZE ((Size)0x520405ED) /* SiZe UNUSED */
+
+
 /* PARENT -- parent structure
  *
  * Given a pointer to a field of a structure this returns a pointer to
@@ -167,6 +180,19 @@ typedef const struct SrcIdStruct {
 
 #define PARENT(type, field, p) \
   ((type *)(void *)((char *)(p) - offsetof(type, field)))
+
+
+
+/* BOOLFIELD -- declare a Boolean bitfield
+ *
+ * A Boolean bitfield needs to be unsigned (not Bool), so that its
+ * values are 0 and 1 (not 0 and -1), in order to avoid a sign
+ * conversion (which would be a compiler error) when assigning TRUE to
+ * the field.
+ *
+ * See <design/type/#bool.bitfield>
+ */
+#define BOOLFIELD(name) unsigned name : 1
 
 
 /* BITFIELD -- coerce a value into a bitfield

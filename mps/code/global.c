@@ -37,10 +37,6 @@ static Bool arenaRingInit = FALSE;
 static RingStruct arenaRing;       /* <design/arena/#static.ring> */
 static Serial arenaSerial;         /* <design/arena/#static.serial> */
 
-/* forward declarations */
-void arenaEnterLock(Arena, int);
-void arenaLeaveLock(Arena, int);
-
 
 /* arenaClaimRingLock, arenaReleaseRingLock -- lock/release the arena ring
  *
@@ -431,6 +427,10 @@ void GlobalsPrepareToDestroy(Globals arenaGlobals)
 
   AVERT(Globals, arenaGlobals);
 
+  /* Park the arena before destroying the default chain, to ensure
+   * that there are no traces using that chain. */
+  ArenaPark(arenaGlobals);
+
   arena = GlobalsArena(arenaGlobals);
   arenaDenounce(arena);
 
@@ -520,26 +520,15 @@ Ring GlobalsRememberedSummaryRing(Globals global)
 
 /* ArenaEnter -- enter the state where you can look at the arena */
 
-/* TODO: The THREAD_SINGLE and PROTECTION_NONE build configs aren't regularly
-   tested, though they might well be useful for embedded custom targets.
-   Should test them.  RB 2012-09-03 */
-
-#if defined(THREAD_SINGLE) && defined(PROTECTION_NONE)
 void (ArenaEnter)(Arena arena)
 {
-  /* Don't need to lock, just check. */
   AVERT(Arena, arena);
+  ArenaEnter(arena);
 }
-#else
-void ArenaEnter(Arena arena)
-{
-  arenaEnterLock(arena, 0);
-}
-#endif
 
 /*  The recursive argument specifies whether to claim the lock
     recursively or not. */
-void arenaEnterLock(Arena arena, int recursive)
+void ArenaEnterLock(Arena arena, Bool recursive)
 {
   Lock lock;
 
@@ -574,25 +563,18 @@ void arenaEnterLock(Arena arena, int recursive)
 
 void ArenaEnterRecursive(Arena arena)
 {
-  arenaEnterLock(arena, 1);
+  ArenaEnterLock(arena, TRUE);
 }
 
 /* ArenaLeave -- leave the state where you can look at MPM data structures */
 
-#if defined(THREAD_SINGLE) && defined(PROTECTION_NONE)
 void (ArenaLeave)(Arena arena)
 {
-  /* Don't need to lock, just check. */
   AVERT(Arena, arena);
+  ArenaLeave(arena);
 }
-#else
-void ArenaLeave(Arena arena)
-{
-  arenaLeaveLock(arena, 0);
-}
-#endif
 
-void arenaLeaveLock(Arena arena, int recursive)
+void ArenaLeaveLock(Arena arena, Bool recursive)
 {
   Lock lock;
 
@@ -616,7 +598,7 @@ void arenaLeaveLock(Arena arena, int recursive)
 
 void ArenaLeaveRecursive(Arena arena)
 {
-  arenaLeaveLock(arena, 1);
+  ArenaLeaveLock(arena, TRUE);
 }
 
 /* mps_exception_info -- pointer to exception info
@@ -717,14 +699,7 @@ Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context)
  * series of manual steps for looking around.  This might be worthwhile
  * if we introduce background activities other than tracing.  */
 
-#ifdef MPS_PROD_EPCORE
 void (ArenaPoll)(Globals globals)
-{
-  /* Don't poll, just check. */
-  AVERT(Globals, globals);
-}
-#else
-void ArenaPoll(Globals globals)
 {
   Arena arena;
   Clock start;
@@ -779,7 +754,6 @@ void ArenaPoll(Globals globals)
 
   globals->insidePoll = FALSE;
 }
-#endif
 
 /* Work out whether we have enough time here to collect the world,
  * and whether much time has passed since the last time we did that

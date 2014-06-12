@@ -1,0 +1,150 @@
+.. mode: -*- rst -*-
+
+Fail-over allocator
+===================
+
+:Tag: design.mps.failover
+:Author: Gareth Rees
+:Date: 2014-04-01
+:Status: complete design
+:Revision: $Id$
+:Copyright: See section `Copyright and License`_.
+
+
+Introduction
+------------
+
+_`.intro`: This is the design of the fail-over allocator, a data
+structure for the management of address ranges.
+
+_`.readership`: This document is intended for any MPS developer.
+
+_`.source`: design.mps.land_, design.mps.poolmvt_, design.mps.poolmvff_.
+
+_`.overview`: The fail-over allocator combines two *land* instances.
+It stores address ranges in one of the lands (the *primary*) unless
+insertion fails, in which case it falls back to the other (the
+*secondary*). The purpose is to be able to combine two lands with
+different properties: with a CBS_ for the primary and a Freelist_ for
+the secondary, operations are fast so long as there is memory to
+allocate new nodes in the CBS, but operations can continue using the
+Freelist when memory is low.
+
+.. _CBS: cbs
+.. _Freelist: freelist
+.. _design.mps.land: land
+.. _design.mps.poolmvt: poolmvt
+.. _design.mps.poolmvff: poolmvff
+
+
+Interface
+---------
+
+_`.land`: The fail-over allocator is an implementation of the *land*
+abstract data type, so the interface consists of the generic functions
+for lands. See design.mps.land_.
+
+
+External types
+..............
+
+``typedef struct FailoverStruct *Failover``
+
+_`.type.failover`: The type of fail-over allocator structures. A
+``FailoverStruct`` may be embedded in another structure, or you can
+create it using ``LandCreate()``.
+
+
+External functions
+..................
+
+``LandClass FailoverLandClassGet(void)``
+
+_`.function.class`: The function ``FailoverLandClassGet()`` returns
+the fail-over allocator class, a subclass of ``LandClass`` suitable
+for passing to ``LandCreate()`` or ``LandInit()``.
+
+
+Keyword arguments
+.................
+
+When initializing a fail-over allocator, ``LandCreate()`` and
+``LandInit()`` require these two keyword arguments:
+
+* ``FailoverPrimary`` (type ``Land``) is the primary land.
+
+* ``FailoverSecondary`` (type ``Land``) is the secondary land.
+
+
+Implementation
+--------------
+
+_`.impl.assume`: The implementation assumes that the primary is fast
+but space-hungry (a CBS) and the secondary is slow but space-frugal (a
+Freelist). This assumption is used in the following places:
+
+_`.impl.assume.flush`: The fail-over allocator attempts to flush the
+secondary to the primary before any operation, in order to benefit
+from the speed of the primary wherever possible. In the normal case
+where the secondary is empty this is cheap.
+
+_`.impl.assume.delete`: When deletion of a range on the primary fails
+due to lack of memory, we assume that this can only happen when there
+are splinters on both sides of the deleted range, one of which needs
+to be allocated a new node (this is the case for CBS), and that
+therefore the following procedure will be effective: first, delete the
+enclosing range from the primary (leaving no splinters and thus
+requiring no allocation), and re-insert the splinters (failing over to
+the secondary if necessary).
+
+
+
+Document History
+----------------
+
+- 2014-04-03 GDR_ Created.
+
+.. _GDR: http://www.ravenbrook.com/consultants/gdr/
+
+
+Copyright and License
+---------------------
+
+Copyright © 2014 Ravenbrook Limited. All rights reserved. 
+<http://www.ravenbrook.com/>. This is an open source license. Contact
+Ravenbrook for commercial licensing options.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+#. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+#. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+
+#. Redistributions in any form must be accompanied by information on how
+   to obtain complete source code for this software and any
+   accompanying software that uses this software.  The source code must
+   either be included in the distribution or be available for no more than
+   the cost of distribution plus a nominal fee, and must be freely
+   redistributable under reasonable conditions.  For an executable file,
+   complete source code means the source code for all modules it contains.
+   It does not include source code for modules or files that typically
+   accompany the major components of the operating system on which the
+   executable file runs.
+
+**This software is provided by the copyright holders and contributors
+"as is" and any express or implied warranties, including, but not
+limited to, the implied warranties of merchantability, fitness for a
+particular purpose, or non-infringement, are disclaimed.  In no event
+shall the copyright holders and contributors be liable for any direct,
+indirect, incidental, special, exemplary, or consequential damages
+(including, but not limited to, procurement of substitute goods or
+services; loss of use, data, or profits; or business interruption)
+however caused and on any theory of liability, whether in contract,
+strict liability, or tort (including negligence or otherwise) arising in
+any way out of the use of this software, even if advised of the
+possibility of such damage.**

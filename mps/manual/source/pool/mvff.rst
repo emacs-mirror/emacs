@@ -80,7 +80,7 @@ MVFF properties
 * Allocations may be variable in size.
 
 * The :term:`alignment` of blocks is configurable, but may not be
-  smaller than the :term:`natural alignment` of the platform.
+  smaller than ``sizeof(void *)``.
 
 * Blocks do not have :term:`dependent objects`.
 
@@ -127,10 +127,10 @@ MVFF interface
     * :c:macro:`MPS_KEY_ALIGN` (type :c:type:`mps_align_t`, default is
       :c:macro:`MPS_PF_ALIGN`) is the
       :term:`alignment` of addresses for allocation (and freeing) in
-      the pool. If an unaligned size is passed to :c:func:`mps_alloc` or
-      :c:func:`mps_free`, it will be rounded up to the pool's alignment.
-      The minimum alignment supported by pools of this class is
-      ``sizeof(void *)``.
+      the pool. If an unaligned size is passed to :c:func:`mps_alloc`
+      or :c:func:`mps_free`, it will be rounded up to the pool's
+      alignment. The minimum alignment supported by pools of this
+      class is ``sizeof(void *)``.
 
     * :c:macro:`MPS_KEY_MVFF_ARENA_HIGH` (type :c:type:`mps_bool_t`,
       default false) determines whether new segments are acquired at high
@@ -201,16 +201,16 @@ MVFF interface
       :c:macro:`MPS_KEY_MVFF_SLOT_HIGH`, and
       :c:macro:`MPS_KEY_MVFF_FIRST_FIT` are as described above, and
       :c:macro:`MPS_KEY_POOL_DEBUG_OPTIONS` specifies the debugging
-      options. See :c:type:`mps_debug_option_s`.
+      options. See :c:type:`mps_pool_debug_option_s`.
 
     .. deprecated:: starting with version 1.112.
 
-        When using :c:func:`mps_pool_create`, pass the debugging
-        options, and other arguments like this::
+        When using :c:func:`mps_pool_create`, pass the arguments like
+        this::
 
             mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, 
                                       mps_class_t mps_class_mvff_debug(),
-                                      mps_debug_option_s debug_option,
+                                      mps_pool_debug_option_s debug_option,
                                       size_t extend_size,
                                       size_t average_size,
                                       mps_align_t alignment,

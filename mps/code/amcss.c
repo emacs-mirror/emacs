@@ -289,6 +289,7 @@ static void test(mps_arena_t arena, mps_class_t pool_class, size_t roots_count)
   mps_pool_destroy(pool);
   mps_chain_destroy(chain);
   mps_fmt_destroy(format);
+  mps_arena_release(arena);
 }
 
 int main(int argc, char *argv[])

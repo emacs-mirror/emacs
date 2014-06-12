@@ -90,6 +90,7 @@ static void test(void)
   setref(a[j], z, a[k]);
  }
 
+ mps_arena_park(arena);
  mps_ap_destroy(apawl);
  mps_ap_destroy(apamc);
  mps_pool_destroy(poolamc);

@@ -42,21 +42,20 @@ General debugging advice
    in production), and can generate profiling output in the form of
    the :term:`telemetry stream`.
 
-#. .. index::
-      single: ASLR
-      single: address space layout randomization
+#. If your program triggers an assertion failure in the MPS, consult
+   :ref:`topic-error-cause` for suggestions as to the possible cause.
 
-   Prepare a reproducible test case if possible. The MPS may be
+#. Prepare a reproducible test case if possible. The MPS may be
    :term:`asynchronous <asynchronous garbage collector>`, but it is
    deterministic, so in single-threaded applications you should be
-   able to get consistent results. (But you need to beware of `address
-   space layout randomization`_: if you perform computation based on
-   the addresses of objects, for example, hashing objects by their
-   address, then ASLR will cause your hash tables to be laid out
-   differently on each run, which may affect the order of memory
-   management operations.)
+   able to get consistent results.
 
-   .. _address space layout randomization: http://en.wikipedia.org/wiki/Address_space_layout_randomization
+   However, you need to beware of :term:`address space layout
+   randomization`: if you perform computation based on the addresses
+   of objects, for example, hashing objects by their address, then
+   ASLR will cause your hash tables to be laid out differently on each
+   run, which may affect the order of memory management operations.
+   See :ref:`guide-debug-aslr` below.
 
    A fact that assists with reproducibility is that the more
    frequently the collector runs, the sooner and more reliably errors
@@ -66,7 +65,10 @@ General debugging advice
    result, by having a mode for testing in which you run frequent
    collections (by calling :c:func:`mps_arena_collect` followed by
    :c:func:`mps_arena_release`), perhaps as frequently as every
-   allocation.
+   allocation. (This will of course make the system run very slowly,
+   but it ensures that if there are roots or references that are not
+   being scanned then the failure will occur close in time to the cause,
+   making it easier to diagnose.)
 
 #. .. index::
       single: debugger
@@ -86,10 +88,109 @@ General debugging advice
 
         handle SIGSEGV pass nostop noprint
 
-   On OS X barrier hits do not use signals and so do not enter the debugger.
+   On these operating systems, you can add this command to your
+   ``.gdbinit`` if you always want it to be run.
 
-   (On these operating systems, you can add these commands to your
-   ``.gdbinit`` if you always want them to be run.)
+   On OS X, barrier hits do not use signals and so do not enter the
+   debugger.
+
+
+.. index::
+      single: ASLR
+      single: address space layout randomization
+
+.. _guide-debug-aslr:
+
+Address space layout randomization
+----------------------------------
+
+:term:`Address space layout randomization` (ASLR) makes it hard to
+prepare a repeatable test case for a program that performs computation
+based on the addresses of objects, for example, hashing objects by
+their address. If this is affecting you, you'll find it useful to
+disable ASLR when testing.
+
+Here's a small program that you can use to check if ASLR is enabled on
+your system. It outputs addresses from four key memory areas in a
+program (data segment, text segment, stack and heap):
+
+.. code-block:: c
+
+    #include <stdio.h>
+    #include <stdlib.h>
+
+    int data;
+
+    int main() {
+        void *heap = malloc(4);
+        int stack = 0;
+        printf("data: %p text: %p stack: %p heap: %p\n",
+               &data, (void *)main, &stack, heap);
+        return 0;
+    }
+
+When ASLR is turned on, running this program outputs different
+addresses on each run. For example, here are four runs on OS X
+10.9.3::
+
+    data: 0x10a532020 text: 0x10a531ed0 stack: 0x7fff556ceb1c heap: 0x7f9f80c03980
+    data: 0x10d781020 text: 0x10d780ed0 stack: 0x7fff5247fb1c heap: 0x7fe498c03980
+    data: 0x10164b020 text: 0x10164aed0 stack: 0x7fff5e5b5b1c heap: 0x7fb783c03980
+    data: 0x10c7f8020 text: 0x10c7f7ed0 stack: 0x7fff53408b1c heap: 0x7f9740403980
+
+By contrast, here are four runs on FreeBSD 8.3::
+
+    data: 0x8049728 text: 0x8048470 stack: 0xbfbfebfc heap: 0x28201088
+    data: 0x8049728 text: 0x8048470 stack: 0xbfbfebfc heap: 0x28201088
+    data: 0x8049728 text: 0x8048470 stack: 0xbfbfebfc heap: 0x28201088
+    data: 0x8049728 text: 0x8048470 stack: 0xbfbfebfc heap: 0x28201088
+
+Here's the situation on each of the operating systems supported by the MPS:
+
+* **FreeBSD** (as of version 10.0) does not support ASLR, so there's
+  nothing to do.
+
+* On **Windows** (Vista or later), ASLR is a property of the
+  executable, and it can be turned off at link time using the
+  |DYNAMICBASE|_.
+
+  .. |DYNAMICBASE| replace:: ``/DYNAMICBASE:NO`` linker option
+  .. _DYNAMICBASE: http://msdn.microsoft.com/en-us/library/bb384887.aspx
+
+* On **Linux** (kernel version 2.6.12 or later), ASLR can be turned
+  off for a single process by running |setarch|_ with the ``-R``
+  option::
+
+      -R, --addr-no-randomize
+             Disables randomization of the virtual address space
+
+  .. |setarch| replace:: ``setarch``
+  .. _setarch: http://man7.org/linux/man-pages/man8/setarch.8.html
+
+  For example::
+
+      $ setarch $(uname -m) -R ./myprogram
+
+* On **OS X** (10.7 or later), ASLR can be disabled for a single
+  process by starting the process using :c:func:`posix_spawn`, passing
+  the undocumented attribute ``0x100``, like this:
+
+  .. code-block:: c
+
+      #include <spawn.h>
+
+      pid_t pid;
+      posix_spawnattr_t attr;
+
+      posix_spawnattr_init(&attr);
+      posix_spawnattr_setflags(&attr, 0x100);
+      posix_spawn(&pid, argv[0], NULL, &attr, argv, environ);
+
+  The MPS provides the source code for a command-line tool
+  implementing this (``tool/noaslr.c``). We've confirmed that this
+  works on OS X 10.9.3, but since the technique is undocumented, it
+  may well break in future releases. (If you know of a documented way
+  to achieve this, please :ref:`contact us <contact>`.)
 
 
 .. index::

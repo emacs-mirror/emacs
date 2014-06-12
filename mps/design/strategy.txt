@@ -81,140 +81,218 @@ the client to specify preferred relative object locations ("this
 object should be kept in the same cache line as that one"), to improve
 cache locality.
 
+
 Generations
 -----------
 
 The largest part of the current MPS strategy implementation is the
-support for generational GC.  Generations are only fully supported for
-AMC (and AMCZ) pools.  See under "Non-AMC Pools", below, for more
-information.
+support for generational garbage collections.
 
-Data Structures
-...............
 
-The fundamental structure of generational GC is the ``Chain``,
-which describes a set of generations.  A chain is created by client
-code calling ``mps_chain_create()``, specifying the "size" and
-"mortality" for each generation.  When creating an AMC pool, the
-client code must specify the chain which will control collections for
-that pool.  The same chain may be used for multiple pools.
+General data structures
+.......................
 
-Each generation in a chain has a ``GenDesc`` structure,
-allocated in an array pointed to from the chain.  Each AMC pool has a
-set of ``PoolGen`` structures, one per generation.  The PoolGens
-for each generation point to the GenDesc and are linked together in a
-ring on the GenDesc.  These structures are (solely?) used to gather
+The fundamental structure of generational garbage collection is the
+``Chain``, which describes a sequence of generations.
+
+A chain specifies the "capacity" and "mortality" for each generation.
+When creating an automatically collected pool, the client code may
+specify the chain which will control collections for that pool. The
+same chain may be used for multiple pools. If no chain is specified,
+the pool uses the arena's default generation chain.
+
+Each generation in a chain has a ``GenDesc`` structure, allocated in
+an array pointed to from the chain. In addition to the generations in
+the chains, the arena has a unique ``GenDesc`` structure, named
+``topGen`` and described in comments as "the dynamic generation"
+(misleadingly: in fact it is the *least* dynamic generation).
+
+Each automatically collected pool has a set of ``PoolGen`` structures,
+one for each generation that it can allocate or promote into. The
+``PoolGen`` structures for each generation point to the ``GenDesc``
+for that generation, and are linked together in a ring on the
+``GenDesc``. These structures are used to gather accounting
 information for strategy decisions.
 
-The arena has a unique ``GenDesc`` structure, named
-``topGen`` and described in comments as "the dynamic generation"
-(although in fact it is the *least* dynamic generation).  Each AMC
-pool has one more PoolGen than there are GenDescs in the chain.  The
-extra PoolGen refers to this topGen.
+The non-moving automatic pool classes (AMS, AWL and LO) do not support
+generational collection, so they allocate into a single generation.
+The moving automatic pool classes (AMC and AMCZ) have one pool
+generations for each generation in the chain, plus one pool generation
+for the arena's "top generation".
 
-AMC segments have a segment descriptor ``amcSegStruct`` which is
-a ``GCSegStruct`` with two additional fields.  One field
-``segTypeP`` is a pointer either to the per-generation per-pool
-``amcGen`` structure (a subclass of ``PoolGen``), or to a
-nailboard (which then points to an amcGen).  The other field
-``new`` is a boolean used for keeping track of memory usage for
-strategy reasons (see below under 'Accounting').  The ``amcGen``
-is used for statistics (``->segs``) and forwarding buffers
-(``->forward``).
 
-The AMC pool class only ever allocates a segment in order to fill a
-buffer: either the buffer for a client Allocation Point, or a
-forwarding buffer.  In order to support generational collection, there
-is a subclass ``amcBuf`` of ``SegBuf``, with a
-``gen`` field (pointing to a ``amcGen``).  So in
-``AMCBufferFill()`` the generation of the new segment can be
-determined.
+AMC data structures
+...................
 
-When an AMC pool is created, these ``amcGen`` and
-``amcBuf`` structures are all created, and the
-``amcBuf->gen`` fields initialized so that the forwarding buffer
-of each amcGen knows that it belongs to the next "older" amcGen (apart
-from the "oldest" amcGen - that which refers to the topGen - whose
-forwarding buffer belongs to itself).
+An AMC pool creates an array of pool generation structures of type
+``amcGen`` (a subclass of ``PoolGen``). Each pool generation points to
+the *forwarding buffer* for that generation: this is the buffer that
+surviving objects are copied into.
 
-When copying an object in ``AMCFix()``, the object's current
-generation is determined (``amcSegGen()``), and the object is
-copied to that amcGen's forwarding buffer, using the buffer protocol.
-Thus, objects are "promoted" up the chain of generations until they
-end up in the topGen, which is shared between all chains and all
-pools.
+AMC segments point to the AMC pool generation that the segment belongs
+to, and AMC buffers point to the AMC pool generation that the buffer
+will be allocating into.
 
-For statistics and reporting purposes, when ``STATISTICS`` is
-on, each AMC pool has an array of ``PageRetStruct``s, one per
-trace.  This structure has many ``Count`` fields, and is
-intended to help to assess AMC page retention code.  See job001811.
+The forwarding buffers are set up during AMC pool creation. Each
+generation forwards into the next higher generation in the chain,
+except for the top generation, which forwards to itself. Thus, objects
+are "promoted" up the chain of generations until they end up in the
+top generations, which is shared between all generational pools.
+
+
+Collections
+...........
+
+Collections in the MPS start in one of two ways:
+
+1. A collection of the world starts via ``traceCondemnAll()``. This
+   simply condemns all segments in all automatic pools.
+
+2. A collection of some set of generations starts via ``TracePoll()``.
+   This calls ``ChainDeferral()`` for each chain; this function
+   indicates if the chain needs collecting, and if so, how urgent it
+   is to collect that chain. The most urgent chain in need of
+   collection (if any) is then condemned by calling
+   ``ChainCondemnAuto()``.
+
+   This function chooses the set of generations to condemn, computes
+   the zoneset corresponding to the union those generations, and
+   condemns those zones by calling ``TraceCondemnZones()``.
+
+   Note that the condemnation is of every segment in an automatic pool
+   in any zone in the zoneset. It is not limited to the segments
+   actually associated with the condemned generations.
+ 
 
 Zones
 .....
 
-All collections in the MPS start with condemnation of a complete
-``ZoneSet``.  Each generation in each chain has a zoneset
-associated with it (``chain->gen[N].zones``); the condemned
-zoneset is the union of some number of generation's zonesets.  It is
-condemned by code in the chain system calling
-``TraceCondemnZones()``.  This is either for all chains
-(``ChainCondemnAll()`` called for every chain from
-``traceCondemnAll()``) or for some number of generations in a
-single chain (``ChainCondemnAuto()`` called from
-``TracePoll()``).  Note that the condemnation is of every
-automatic-pool segment in any zone in the zoneset.  It is not limited
-to the segments actually associated with the condemned generation(s).
+Each generation in each chain has a zoneset associated with it
+(``gen->zones``); the condemned zoneset is the union of some number of
+generation's zonesets.
 
 An attempt is made to use distinct zonesets for different generations.
-Segments are allocated from ``AMCBufferFill()`` using ``ChainAlloc()``
+Segments in automatic pools are allocated using ``PoolGenAlloc()``
 which creates a ``SegPref`` using the zoneset from the generation's
-``GenDesc``.  The zoneset for each generation number starts out
-empty.  If the zoneset is empty, an attempt is made to allocate from a
-free zone.  The ``GenDesc`` zoneset is augmented with whichever zones the
-new segment occupies.
+``GenDesc``. The zoneset for each generation starts out empty. If the
+zoneset is empty, an attempt is made to allocate from a free zone. The
+``GenDesc`` zoneset is augmented with whichever zones the new segment
+occupies.
 
 Note that this zoneset can never shrink.
+
+
+Parameters
+..........
+
+_`.param.intro`: A generation has two parameters, *capacity* and
+*mortality*, specified by the client program.
+
+_`.param.capacity`: The *capacity* of a generation is the amount of
+*new* allocation in that generation (that is, allocation since the
+last time the generation was condemned) that will cause the generation
+to be collected by ``TracePoll()``.
+
+_`.param.capacity.misnamed`: The name *capacity* is unfortunate since
+it suggests that the total amount of memory in the generation will not
+exceed this value. But that will only be the case for pool classes
+that always promote survivors to another generation. When there is
+*old* allocation in the generation (that is, prior to the last time
+the generation was condemned), as there is in the case of non-moving
+pool classes, the size of a generation is unrelated to its capacity.
+
+_`.param.mortality`: The *mortality* of a generation is the proportion
+(between 0 and 1) of memory in the generation that is expected to be
+dead when the generation is collected. It is used in ``TraceStart()``
+to estimate the amount of data that will have to be scanned in order
+to complete the trace.
+
 
 Accounting
 ..........
 
-- ``gen[N].mortality``
+_`.accounting.intro`: Pool generations maintain the sizes of various
+categories of data allocated in that generation for that pool. This
+accounting information is reported via the event system, but also used
+in two places:
 
-  - Specified by the client.
-  - TODO: fill in how this is used.
+_`.accounting.poll`: ``ChainDeferral()`` uses the *new size* of each
+generation to determine which generations in the chain are over
+capacity and so might need to be collected via ``TracePoll()``.
 
-- ``gen[N].capacity``
+_`.accounting.condemn`: ``ChainCondemnAuto()`` uses the *new size* of
+each generation to determine which generations in the chain will be
+collected; it also uses the *total size* of the generation to compute
+the mortality.
 
-  - Specified by the client.
-  - TODO: fill in how this is used.
+_`.accounting.check`: Computing the new size for a pool generation is
+far from straightforward: see job003772_ for some (former) errors in
+this code. In order to assist with checking that this has been
+computed correctly, the locus module uses a double-entry book-keeping
+system to account for every byte in each pool generation. This uses
+six accounts:
 
-- ``amcSeg->new``
+.. _job003772: http://www.ravenbrook.com/project/mps/issue/job003772/
 
-  - TODO: fill this in
+_`.account.total`: Memory acquired from the arena.
 
-- ``pgen->totalSize``:
+_`.account.total.negated`: From the point of view of the double-entry
+system, the *total* should be negative as it is owing to the arena,
+but it is inconvenient to represent negative sizes, and so the
+positive value is stored instead.
 
-  - incremented by ``AMCBufferFill()``;
-  - decremented by ``amcReclaimNailed()`` and ``AMCReclaim()``;
-  - added up by ``GenDescTotalSize(gen)``.
+_`.account.total.negated.justification`: We don't have a type for
+signed sizes; but if we represented it in two's complement using the
+unsigned ``Size`` type then Clang's unsigned integer overflow detector
+would complain.
 
-- ``pgen->newSize``:
+_`.account.free`: Memory that is not in use (free or lost to
+fragmentation).
 
-  - incremented by ``AMCBufferFill()`` (*when not ramping*) and ``AMCRampEnd()``;
-  - decremented by ``AMCWhiten()``,
-  - added up by ``GenDescNewSize(gen)``.
+_`.account.new`: Memory in use by the client program, allocated
+since the last time the generation was condemned.
 
-- ``gen[N].proflow``:
+_`.account.old`: Memory in use by the client program, allocated
+prior to the last time the generation was condemned.
 
-  - set to 1.0 by ``ChainCreate()``;
-  - ``arena->topGen.proflow`` set to 0.0 by ``LocusInit(arena)``;
-  - *The value of this field is never used*.
+_`.account.newDeferred`: Memory in use by the client program,
+allocated since the last time the generation was condemned, but which
+should not cause collections via ``TracePoll()``. (Due to ramping; see
+below.)
 
+_`.account.oldDeferred`: Memory in use by the client program,
+allocated prior to the last time the generation was condemned, but
+which should not cause collections via ``TracePoll()``. (Due to
+ramping; see below.)
 
-- ``pgen->newSizeAtCreate``:
+_`.accounting.op`: The following operations are provided:
 
-  - set by ``traceCopySizes()`` (that is its purpose);
-  - output in the ``TraceStartPoolGen`` telemetry event.
+_`.accounting.op.alloc`: Allocate a segment in a pool generation.
+Debit *total*, credit *free*. (But see `.account.total.negated`_.)
+
+_`.accounting.op.free`: Free a segment. First, ensure that the
+contents of the segment are accounted as free, by artificially ageing
+any memory accounted as *new* or *newDeferred* (see
+`.accounting.op.age`_) and then artifically reclaiming any memory
+accounted as *old* or *oldDeferred* (see `.accounting.op.reclaim`_).
+Finally, debit *free*, credit *total*. (But see
+`.account.total.negated`_.)
+
+_`.accounting.op.fill`: Allocate memory, for example by filling a
+buffer. Debit *free*, credit *new* or *newDeferred*.
+
+_`.accounting.op.empty`: Deallocate memory, for example by emptying
+the unused portion of a buffer. Debit *new* or *newDeferred*, credit
+*free*.
+
+_`.accounting.op.age`: Condemn memory. Debit *new* or *newDeferred*,
+credit *old* or *oldDeferred*.
+
+_`.accounting.op.reclaim`: Reclaim dead memory. Debit *old* or
+*oldDeferred*, credit *free*.
+
+_`.accounting.op.undefer`: Stop deferring the accounting of memory. Debit *oldDeferred*, credit *old*. Debit *newDeferred*, credit *new*.
+
 
 Ramps
 .....
@@ -289,29 +367,31 @@ Reclaiming any AMC segment:
 Now, some deductions:
 
 #. When OUTSIDE, the count is always zero, because (a) it starts that
-way, and the only ways to go OUTSIDE are (b) by leaving an outermost
-ramp (count goes to zero) or (c) by reclaiming when the count is zero.
+   way, and the only ways to go OUTSIDE are (b) by leaving an
+   outermost ramp (count goes to zero) or (c) by reclaiming when the
+   count is zero.
 
 #. When BEGIN, the count is never zero (consider the transitions to
-BEGIN and the transition to zero).
+   BEGIN and the transition to zero).
 
-#. When RAMPING, the count is never zero (again consider transitions to
-RAMPING and the transition to zero).
+#. When RAMPING, the count is never zero (again consider transitions
+   to RAMPING and the transition to zero).
 
-#. When FINISH, the count can be anything (the transition to FINISH has
-zero count, but the Enter transition when FINISH can change that and
-then it can increment to any value).
+#. When FINISH, the count can be anything (the transition to FINISH
+   has zero count, but the Enter transition when FINISH can change
+   that and then it can increment to any value).
 
 #. When COLLECTING, the count can be anything (from the previous fact,
-and the transition to COLLECTING).
+   and the transition to COLLECTING).
 
-#. *This is a bug!!* The ramp generation is not always reset (to forward
-to the after-ramp generation).  If we get into FINISH and then see
-another ramp before the next condemnation of the ramp generation, we
-will Enter followed by Leave.  The Enter will keep us in FINISH, and
-the Leave will take us back to OUTSIDE, skipping the transition to the
-COLLECTING state which is what resets the ramp generation forwarding
-buffer.  [TODO: check whether I made an issue and/or fixed it; NB 2013-06-04]
+#. *This is a bug!!* The ramp generation is not always reset (to
+   forward to the after-ramp generation). If we get into FINISH and
+   then see another ramp before the next condemnation of the ramp
+   generation, we will Enter followed by Leave. The Enter will keep us
+   in FINISH, and the Leave will take us back to OUTSIDE, skipping the
+   transition to the COLLECTING state which is what resets the ramp
+   generation forwarding buffer. [TODO: check whether I made an issue
+   and/or fixed it; NB 2013-06-04]
 
 The simplest change to fix this is to change the behaviour of the Leave
 transition, which should only take us OUTSIDE if we are in BEGIN or
@@ -349,25 +429,6 @@ other uses of that:
 - in ``AMCWhiten()``, if new is TRUE, the segment size is deducted
   from ``poolGen.newSize`` and new is set to FALSE.
 
-Non-AMC Pools 
-.............
-
-The implementations of AMS, AWL, and LO pool classes are all aware of
-generations (this is necessary because all tracing is driven by the
-generational data structures described above), but do not make use of
-them.  For LO and AWL, when a pool is created, a chain with a single
-generation is also created, with size and mortality parameters
-hard-wired into the pool-creation function (LOInit, AWLInit).  For
-AMS, a chain is passed as a pool creation parameter into
-``mps_pool_create()``, but this chain must also have only a
-single generation (otherwise ``ResPARAM`` is returned).
-
-Note that these chains are separate from any chain used by an AMC pool
-(except in the trivial case when a single-generation chain is used for
-both AMC and AMS).  Note also that these pools do not use or point to
-the ``arena->topGen``, which applies only to AMC.
-
-Non-AMC pools have no support for ramps.
 
 Starting a Trace
 ................
@@ -378,15 +439,18 @@ Trace Progress
 ..............
 TODO: When do we do some tracing work?  How much tracing work do we do?
 
+
 Document History
 ----------------
 - 2013-06-04 NB_ Checked this in although it's far from complete.
   Pasted in my 'ramping notes' from email, which mention some bugs
   which I may have fixed (TODO: check this).
-- 2014-01-29    RB_     The arena no longer manages generation zonesets.
+- 2014-01-29 RB_ The arena no longer manages generation zonesets.
+- 2014-05-17 GDR_ Bring data structures and condemn logic up to date.
 
-.. _RB: http://www.ravenbrook.com/consultants/rb
+.. _GDR: http://www.ravenbrook.com/consultants/gdr/
 .. _NB: http://www.ravenbrook.com/consultants/nb/
+.. _RB: http://www.ravenbrook.com/consultants/rb
 
 
 Copyright and License

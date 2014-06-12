@@ -134,8 +134,12 @@ For example::
 
     ``chain`` is the generation chain.
 
-    It is an error to destroy a generation chain if there exists a
-    :term:`pool` using the chain. The pool must be destroyed first.
+    It is an error to destroy a generation chain if there is a garbage
+    collection in progress on the chain, or if there are any
+    :term:`pools` using the chain. Before calling this function, the
+    arena should be parked (by calling :c:func:`mps_arena_park`) to
+    ensure that there are no collections in progress, and pools using
+    the chain must be destroyed.
 
 
 .. index::

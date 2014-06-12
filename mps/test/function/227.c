@@ -164,6 +164,7 @@ static void test(void) {
   }
  }
 
+ mps_arena_park(arena);
  mps_ap_destroy(apamc1);
  mps_ap_destroy(apamc2);
  comment("Destroyed ap.");
