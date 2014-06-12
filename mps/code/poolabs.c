@@ -681,7 +681,7 @@ Size PoolNoSize(Pool pool)
 {
   AVERT(Pool, pool);
   NOTREACHED;
-  return 0;
+  return UNUSED_SIZE;
 }
 
 
