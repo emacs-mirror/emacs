@@ -997,7 +997,7 @@ extern Res RootsIterate(Globals arena, RootIterateFn f, void *p);
 
 /* VM Interface -- see <code/vm.c>* */
 
-extern Size VMGrainSize(VM vm);
+extern Size VMPageSize(VM vm);
 extern Bool VMCheck(VM vm);
 extern Res VMParamFromArgs(void *params, size_t paramSize, ArgList args);
 extern Res VMCreate(VM *VMReturn, Size size, void *params);
