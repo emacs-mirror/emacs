@@ -147,8 +147,7 @@ Bool ArenaCheck(Arena arena)
   if (arena->primary != NULL) {
     CHECKD(Chunk, arena->primary);
   }
-  /* Can't use CHECKD_NOSIG because TreeEMPTY is NULL. */
-  CHECKL(TreeCheck(ArenaChunkTree(arena)));
+  /* Can't check chunkTree, it might be bad during ArenaChunkTreeTraverse. */
   /* nothing to check for chunkSerial */
   
   CHECKL(LocusCheck(arena));
@@ -570,8 +569,7 @@ Res ArenaDescribeTracts(Arena arena, mps_lib_FILE *stream, Count depth)
 
   cl.stream = stream;
   cl.res = ResOK;
-  (void)TreeTraverse(ArenaChunkTree(arena), ChunkCompare, ChunkKey,
-                     arenaDescribeTractsInChunk, &cl, depth);
+  (void)ArenaChunkTreeTraverse(arena, arenaDescribeTractsInChunk, &cl, depth);
   return cl.res;
 }
 
@@ -635,6 +633,34 @@ Res ControlDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
 }
 
 
+/* ArenaChunkTreeTraverse -- call visitor for each chunk */
+
+Bool ArenaChunkTreeTraverse(Arena arena, TreeVisitor visitor,
+                            void *closureP, Size closureS)
+{
+  Bool b;
+  Tree tree;
+
+  AVERT(Arena, arena);
+  AVER(FUNCHECK(visitor));
+  /* closureP and closureS are arbitrary. */
+
+  /* During TreeTraverse, the tree is invalid, so temporarily set
+   * arena->chunkTree to an invalid value, to ensure that if someone
+   * calls ChunkOfAddr while we are iterating this results in an
+   * assertion failure (in checking varieties) or a segfault, rather
+   * than a silent failure to find the chunk.
+   */
+  
+  tree = ArenaChunkTree(arena);
+  arena->chunkTree = TreeBAD;
+  b = TreeTraverse(tree, ChunkCompare, ChunkKey, visitor, closureP, closureS);
+  arena->chunkTree = tree;
+
+  return b;
+}
+
+
 /* ArenaChunkInsert -- insert chunk into arena's chunk tree */
 
 void ArenaChunkInsert(Arena arena, Tree tree) {
@@ -681,6 +707,7 @@ static Bool arenaAllocPageInChunk(Tree tree, void *closureP, Size closureS)
   AVER(closureP != NULL);
   cl = closureP;
   AVER(cl->arena == ChunkArena(chunk));
+  AVER(closureS == UNUSED_SIZE);
   UNUSED(closureS);
 
   /* Already searched in arenaAllocPage. */
@@ -725,12 +752,12 @@ static Res arenaAllocPage(Addr *baseReturn, Arena arena, Pool pool)
   /* Favour the primary chunk, because pages allocated this way aren't
      currently freed, and we don't want to prevent chunks being destroyed. */
   /* TODO: Consider how the ArenaCBSBlockPool might free pages. */
-  if (!arenaAllocPageInChunk(&arena->primary->chunkTree, &closure, 0))
+  if (!arenaAllocPageInChunk(&arena->primary->chunkTree, &closure, UNUSED_SIZE))
     goto found;
 
   closure.avoid = arena->primary;
-  if (!TreeTraverse(ArenaChunkTree(arena), ChunkCompare, ChunkKey,
-                    arenaAllocPageInChunk, &closure, 0))
+  if (!ArenaChunkTreeTraverse(arena, arenaAllocPageInChunk,
+                              &closure, UNUSED_SIZE))
     goto found;
 
   AVER(closure.res != ResOK);
