@@ -49,6 +49,8 @@ static void test(mps_arena_t arena)
            "NailboardIsResRange");
     }
   }
+
+  die(NailboardDescribe(board, mps_lib_get_stdout(), 0), "NailboardDescribe");
 }
 
 int main(int argc, char **argv)
