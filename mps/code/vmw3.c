@@ -137,7 +137,7 @@ Res VMCreate(VM *vmReturn, Size size, void *params)
   GetSystemInfo(&si);
 
   /* Check the page size will fit in a Size. */
-  AVER((unsigned long)si.dwPageSize <= (unsigned long)(Size)-1);
+  AVER(si.dwPageSize <= (Size)(SIZE_T)-1);
 
   /* Check that the page size is valid for use as an arena grain size. */
   pageSize = (Size)si.dwPageSize;
