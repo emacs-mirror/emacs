@@ -6,6 +6,9 @@
 
 2014-06-12  Matthias Meulien  <orontee@gmail.com>
 
+	* progmodes/python.el (import skeleton): New skeleton (bug#17672).
+	(python-mode-map): Bind it.
+
 	* progmodes/python.el (class skeleton): Don't erase last char of class
 	name (bug#17683).
 
