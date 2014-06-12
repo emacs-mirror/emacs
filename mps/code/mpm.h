@@ -557,6 +557,7 @@ extern Res ArenaStartCollect(Globals globals, int why);
 extern Res ArenaCollect(Globals globals, int why);
 extern Bool ArenaHasAddr(Arena arena, Addr addr);
 extern Res ArenaAddrObject(Addr *pReturn, Arena arena, Addr addr);
+extern Bool ArenaChunkTreeTraverse(Arena arena, TreeVisitor visitor, void *closureP, Size closureS);
 extern void ArenaChunkInsert(Arena arena, Tree tree);
 
 extern void ArenaSetEmergency(Arena arena, Bool emergency);

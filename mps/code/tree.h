@@ -64,6 +64,16 @@ typedef TreeKey (*TreeKeyMethod)(Tree tree);
 
 #define TreeEMPTY ((Tree)0)
 
+
+/* TreeBAD -- an invalid tree
+ *
+ * TreeBAD is a value that's not equal to any tree (not even to
+ * the empty tree).
+ */
+
+#define TreeBAD ((Tree)7)
+
+
 extern Bool TreeCheck(Tree tree);
 extern Bool TreeCheckLeaf(Tree tree);
 extern Count TreeDebugCount(Tree tree, TreeCompare compare, TreeKeyMethod key);

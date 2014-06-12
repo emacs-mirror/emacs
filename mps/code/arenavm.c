@@ -642,6 +642,7 @@ static Bool vmArenaReservedVisitor(Tree tree, void *closureP, Size closureS)
   AVERT(Chunk, chunk);
   AVER(closureP != 0);
   size = closureP;
+  AVER(closureS == UNUSED_SIZE);
   UNUSED(closureS);
 
   *size += VMReserved(Chunk2VMChunk(chunk)->vm);
@@ -655,8 +656,8 @@ static Size VMArenaReserved(Arena arena)
 
   AVERT(Arena, arena);
 
-  (void)TreeTraverse(ArenaChunkTree(arena), ChunkCompare, ChunkKey,
-                     vmArenaReservedVisitor, &size, 0);
+  (void)ArenaChunkTreeTraverse(arena, vmArenaReservedVisitor,
+                               &size, UNUSED_SIZE);
 
   return size;
 }
