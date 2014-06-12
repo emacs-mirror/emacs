@@ -119,14 +119,18 @@ Res VMCreate(VM *vmReturn, Size size, void *params)
 
   /* Find out the page size from the OS */
   pagesize = getpagesize();
-  /* check the actual returned pagesize will fit in an object of */
-  /* type Align. */
-  AVER((unsigned long)pagesize <= (unsigned long)(Align)-1);
+
+  /* Check the page size will fit in a Size. */
+  AVER((unsigned long)pagesize <= (unsigned long)(Size)-1);
+
+  /* Check that the page size is valid for use as an arena grain size. */
   grainSize = (Size)pagesize;
-  size = SizeAlignUp(size, grainSize);
-  if((size == 0) || (size > (Size)(size_t)-1))
-    return ResRESOURCE;
   AVERT(ArenaGrainSize, grainSize);
+
+  /* Check that the rounded-up size will fit in a Size. */
+  size = SizeRoundUp(size, grainSize);
+  if (size < grainSize || size > (Size)(size_t)-1)
+    return ResRESOURCE;
 
   /* Map in a page to store the descriptor on. */
   addr = mmap(0, (size_t)SizeAlignUp(sizeof(VMStruct), grainSize),

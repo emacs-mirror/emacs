@@ -175,9 +175,9 @@ use of the optional arguments; the built-in classes do not.
 _`.split.invariants`: The client must ensure some invariants are met
 before calling ``SegSplit()``:
 
-- _`.split.inv.align`: ``at`` must be aligned to the arena grain size,
-  and lie between the base and limit of ``seg``. Justification: the
-  split segments cannot be represented if this is not so.
+- _`.split.inv.align`: ``at`` must be a multiple of the arena grain
+  size, and lie between the base and limit of ``seg``. Justification:
+  the split segments cannot be represented if this is not so.
 
 - _`.split.inv.buffer`: If ``seg`` is attached to a buffer, the
   buffered region must not include address ``at``. Justification: the
