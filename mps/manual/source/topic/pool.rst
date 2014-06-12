@@ -135,6 +135,31 @@ See the :ref:`pool` for a list of pool classes.
 Pool introspection
 ------------------
 
+.. c:function:: size_t mps_pool_total_size(mps_pool_t pool)
+
+    Return the total memory allocated from the arena and managed by
+    the pool.
+
+    ``pool`` is the pool.
+
+    The result includes memory in use by the client program, memory
+    that's available for use by the client program, and memory
+    that's lost to fragmentation. It does not include memory used by
+    the pool's internal control structures.
+
+
+.. c:function:: size_t mps_pool_free_size(mps_pool_t pool)
+
+    Return the free memory: memory managed by the pool but not in use
+    by the client program.
+
+    ``pool`` is the pool.
+
+    The result includes memory that's available for use by the client
+    program, and memory that's lost to fragmentation. It does not
+    include memory used by the pool's internal control structures.
+
+
 .. c:function:: mps_bool_t mps_addr_pool(mps_pool_t *pool_o, mps_arena_t arena, mps_addr_t addr)
 
     Determine the :term:`pool` to which an address belongs.

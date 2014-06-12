@@ -678,6 +678,40 @@ void mps_pool_destroy(mps_pool_t pool)
   ArenaLeave(arena);
 }
 
+size_t mps_pool_total_size(mps_pool_t pool)
+{
+  Arena arena;
+  Size size;
+
+  AVER(TESTT(Pool, pool));
+  arena = PoolArena(pool);
+
+  ArenaEnter(arena);
+
+  size = PoolTotalSize(pool);
+
+  ArenaLeave(arena);
+
+  return (size_t)size;
+}
+
+size_t mps_pool_free_size(mps_pool_t pool)
+{
+  Arena arena;
+  Size size;
+
+  AVER(TESTT(Pool, pool));
+  arena = PoolArena(pool);
+
+  ArenaEnter(arena);
+
+  size = PoolFreeSize(pool);
+
+  ArenaLeave(arena);
+
+  return (size_t)size;
+}
+
 
 mps_res_t mps_alloc(mps_addr_t *p_o, mps_pool_t pool, size_t size)
 {

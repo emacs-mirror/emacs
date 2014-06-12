@@ -116,6 +116,8 @@ static Res MFSInit(Pool pool, ArgList args)
   mfs->unitSize = unitSize;
   mfs->freeList = NULL;
   mfs->tractList = NULL;
+  mfs->total = 0;
+  mfs->free = 0;
   mfs->sig = MFSSig;
 
   AVERT(MFS, mfs);
@@ -192,6 +194,10 @@ void MFSExtend(Pool pool, Addr base, Size size)
   TractSetP(tract, (void *)mfs->tractList);
   mfs->tractList = tract;
 
+  /* Update accounting */
+  mfs->total += size;
+  mfs->free += size;
+
   /* Sew together all the new empty units in the region, working down */
   /* from the top so that they are in ascending order of address on the */
   /* free list. */
@@ -265,6 +271,8 @@ static Res MFSAlloc(Addr *pReturn, Pool pool, Size size,
   /* Detach the first free unit from the free list and return its address. */
 
   mfs->freeList = f->next;
+  AVER(mfs->free >= mfs->unitSize);
+  mfs->free -= mfs->unitSize;
 
   *pReturn = (Addr)f;
   return ResOK;
@@ -293,6 +301,35 @@ static void MFSFree(Pool pool, Addr old, Size size)
   h = (Header)old;
   h->next = mfs->freeList;
   mfs->freeList = h;
+  mfs->free += mfs->unitSize;
+}
+
+
+/* MFSTotalSize -- total memory allocated from the arena */
+
+static Size MFSTotalSize(Pool pool)
+{
+  MFS mfs;
+
+  AVERT(Pool, pool);
+  mfs = PoolPoolMFS(pool);
+  AVERT(MFS, mfs);
+
+  return mfs->total;
+}
+
+
+/* MFSFreeSize -- free memory (unused by client program) */
+
+static Size MFSFreeSize(Pool pool)
+{
+  MFS mfs;
+
+  AVERT(Pool, pool);
+  mfs = PoolPoolMFS(pool);
+  AVERT(MFS, mfs);
+
+  return mfs->free;
 }
 
 
@@ -331,6 +368,8 @@ DEFINE_POOL_CLASS(MFSPoolClass, this)
   this->finish = MFSFinish;
   this->alloc = MFSAlloc;
   this->free = MFSFree;
+  this->totalSize = MFSTotalSize;
+  this->freeSize = MFSFreeSize;  
   this->describe = MFSDescribe;
   AVERT(PoolClass, this);
 }
@@ -365,6 +404,8 @@ Bool MFSCheck(MFS mfs)
   if(mfs->tractList != NULL) {
     CHECKD_NOSIG(Tract, mfs->tractList);
   }
+  CHECKL(mfs->free <= mfs->total);
+  CHECKL((mfs->total - mfs->free) % mfs->unitSize == 0);
   return TRUE;
 }
 

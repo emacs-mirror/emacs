@@ -19,8 +19,9 @@ extern const struct mps_key_s _mps_key_mvff_first_fit;
 #define MPS_KEY_MVFF_FIRST_FIT (&_mps_key_mvff_first_fit)
 #define MPS_KEY_MVFF_FIRST_FIT_FIELD b
 
-extern size_t mps_mvff_free_size(mps_pool_t mps_pool);
-extern size_t mps_mvff_size(mps_pool_t mps_pool);
+#define mps_mvff_free_size mps_pool_free_size
+#define mps_mvff_size mps_pool_total_size
+
 extern mps_class_t mps_class_mvff(void);
 extern mps_class_t mps_class_mvff_debug(void);
 
