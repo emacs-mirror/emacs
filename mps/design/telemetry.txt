@@ -409,7 +409,7 @@ _`.debug.dump`: The contents of all buffers can be dumped with the
 _`.debug.describe`: Individual events can be described with the
 EventDescribe function, for example::
 
-    gdb> print EventDescribe(EventLast[3], mps_lib_get_stdout())
+    gdb> print EventDescribe(EventLast[3], mps_lib_get_stdout(), 0)
 
 _`.debug.core`: The event buffers are preserved in core dumps and can
 be used to work out what the MPS was doing before a crash. Since the
