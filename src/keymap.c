@@ -1383,9 +1383,7 @@ silly_event_symbol_error (Lisp_Object c)
       c = reorder_modifiers (c);
       keystring = concat2 (build_string (new_mods), XCDR (assoc));
 
-      error ((modifiers & ~meta_modifier
-	      ? "To bind the key %s, use [?%s], not [%s]"
-	      : "To bind the key %s, use \"%s\", not [%s]"),
+      error ("To bind the key %s, use [?%s], not [%s]",
 	     SDATA (SYMBOL_NAME (c)), SDATA (keystring),
 	     SDATA (SYMBOL_NAME (c)));
     }

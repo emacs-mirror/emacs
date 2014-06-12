@@ -1,3 +1,8 @@
+2014-06-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keymap.c (silly_event_symbol_error): Don't recommend the use
+	of strings.
+
 2014-06-11  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (set_cursor_from_row): Fix an off-by-one error when
@@ -12,7 +17,7 @@
 	* nsterm.m (run): Always compile for Cocoa.  Use runtime check to
 	determine 10.9 (Bug#17751).
 
-	* macfont.m (macfont_draw): positions where not freed.
+	* macfont.m (macfont_draw): Positions were not freed.
 
 2014-06-10  Dmitry Antipov  <dmantipov@yandex.ru>
 
@@ -650,8 +655,8 @@
 	was moved to Fgarbage_collect.
 	(Fgarbage_collect): Calculate the end address of the stack portion
 	that needs to be examined by mark_stack, and pass that address to
-	garbage_collect_1, which will pass it to mark_stack.  See
-	http://lists.gnu.org/archive/html/emacs-devel/2014-05/msg00270.html
+	garbage_collect_1, which will pass it to mark_stack.
+	See http://lists.gnu.org/archive/html/emacs-devel/2014-05/msg00270.html
 	for more details about the underlying problems.  In particular,
 	this avoids dumping Emacs with the large hash-table whose value is
 	held in purify-flag for most of the time loadup.el runs.
