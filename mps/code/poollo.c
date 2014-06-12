@@ -832,10 +832,10 @@ ATTRIBUTE_UNUSED
 static Bool LOCheck(LO lo)
 {
   CHECKS(LO, lo);
-  CHECKD(Pool, &lo->poolStruct);
-  CHECKL(lo->poolStruct.class == EnsureLOPoolClass());
+  CHECKD(Pool, LOPool(lo));
+  CHECKL(LOPool(lo)->class == EnsureLOPoolClass());
   CHECKL(ShiftCheck(lo->alignShift));
-  CHECKL(LOGrainsSize(lo, (Count)1) == PoolAlignment(&lo->poolStruct));
+  CHECKL(LOGrainsSize(lo, (Count)1) == PoolAlignment(LOPool(lo)));
   CHECKD(PoolGen, &lo->pgen);
   return TRUE;
 }

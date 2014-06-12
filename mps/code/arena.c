@@ -17,7 +17,7 @@
 SRCID(arena, "$Id$");
 
 
-#define ArenaControlPool(arena) MV2Pool(&(arena)->controlPoolStruct)
+#define ArenaControlPool(arena) MVPool(&(arena)->controlPoolStruct)
 #define ArenaCBSBlockPool(arena) MFSPool(&(arena)->freeCBSBlockPoolStruct)
 #define ArenaFreeLand(arena) CBSLand(&(arena)->freeLandStruct)
 
@@ -409,7 +409,7 @@ Res ControlInit(Arena arena)
   AVERT(Arena, arena);
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD(args, MPS_KEY_EXTEND_BY, CONTROL_EXTEND_BY);
-    res = PoolInit(MV2Pool(&arena->controlPoolStruct), arena,
+    res = PoolInit(MVPool(&arena->controlPoolStruct), arena,
                    PoolClassMV(), args);
   } MPS_ARGS_END(args);
   if (res != ResOK)
@@ -425,7 +425,7 @@ void ControlFinish(Arena arena)
 {
   AVERT(Arena, arena);
   arena->poolReady = FALSE;
-  PoolFinish(MV2Pool(&arena->controlPoolStruct));
+  PoolFinish(MVPool(&arena->controlPoolStruct));
 }
 
 

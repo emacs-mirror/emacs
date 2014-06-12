@@ -353,14 +353,14 @@ Bool MFSCheck(MFS mfs)
   Arena arena;
 
   CHECKS(MFS, mfs);
-  CHECKD(Pool, &mfs->poolStruct);
-  CHECKL(mfs->poolStruct.class == EnsureMFSPoolClass());
+  CHECKD(Pool, MFSPool(mfs));
+  CHECKL(MFSPool(mfs)->class == EnsureMFSPoolClass());
   CHECKL(mfs->unitSize >= UNIT_MIN);
   CHECKL(mfs->extendBy >= UNIT_MIN);
   CHECKL(BoolCheck(mfs->extendSelf));
-  arena = PoolArena(&mfs->poolStruct);
+  arena = PoolArena(MFSPool(mfs));
   CHECKL(SizeIsAligned(mfs->extendBy, ArenaAlign(arena)));
-  CHECKL(SizeAlignUp(mfs->unroundedUnitSize, mfs->poolStruct.alignment) ==
+  CHECKL(SizeAlignUp(mfs->unroundedUnitSize, PoolAlignment(MFSPool(mfs))) ==
          mfs->unitSize);
   if(mfs->tractList != NULL) {
     CHECKD_NOSIG(Tract, mfs->tractList);
