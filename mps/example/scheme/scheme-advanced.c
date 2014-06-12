@@ -4400,6 +4400,7 @@ static int start(int argc, char *argv[])
       mps_chat();
       printf("%lu, %lu> ", (unsigned long)total,
              (unsigned long)mps_collections(arena));
+      fflush(stdout);
       obj = read(input);
       if(obj == obj_eof) break;
       obj = eval(env, op_env, obj);

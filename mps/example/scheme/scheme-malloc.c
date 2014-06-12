@@ -3617,6 +3617,7 @@ int main(int argc, char *argv[])
       if(setjmp(*error_handler) != 0)
         fprintf(stderr, "%s\n", error_message);
       printf("%lu> ", (unsigned long)total);
+      fflush(stdout);
       obj = read(input);
       if(obj == obj_eof) break;
       obj = eval(env, op_env, obj);
