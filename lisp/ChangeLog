@@ -1,3 +1,10 @@
+2014-06-12  Nicolas Richard  <theonewiththeevillook@yahoo.fr>
+
+	* help.el (help--key-binding-keymap): New function.
+	(help--binding-locus): New function.
+	(describe-key): Mention the keymap in which the binding was
+	found. (bug#13948)
+
 2014-06-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* hippie-exp.el (he--all-buffers): New function.
