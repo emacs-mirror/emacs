@@ -1,3 +1,9 @@
+2014-06-12  Ivan Andrus  <darthandrus@gmail.com>
+
+	* ffap.el (ffap-lax-url): New var (bug#17723).
+	(ffap-url-at-point): Use it.
+	(ffap-file-at-point): Avoid returning just "/".
+
 2014-06-12  Matthias Meulien  <orontee@gmail.com>
 
 	* progmodes/python.el (class skeleton): Don't erase last char of class
