@@ -239,6 +239,10 @@ Each function is called with ARG=1."
   "\n( ;Global parameters (these are read first)\n 2 ;SES file-format\n 1 ;numrows\n 1 ;numcols\n)\n\n"
   "Initial contents for the three-element list at the bottom of the data area.")
 
+(defconst ses-initial-global-parameters-re
+  "\n( ;Global parameters (these are read first)\n [23] ;SES file-format\n [0-9]+ ;numrows\n [0-9]+ ;numcols\n\\( [0-9]+ ;numlocprn\n\\)?)\n\n"
+  "Match Global parameters for .")
+
 (defconst ses-initial-file-trailer
   ";; Local Variables:\n;; mode: ses\n;; End:\n"
   "Initial contents for the file-trailer area at the bottom of the file.")
@@ -277,6 +281,12 @@ default printer and then modify its output.")
     '(ses--blank-line ses--cells ses--col-printers
       ses--col-widths ses--curcell ses--curcell-overlay
       ses--default-printer
+      (ses--local-printer-hashmap . :hashmap)
+      ;; the list is there to remember the order of local printers like there
+      ;; are written to the SES filen which service the hashmap does not
+      ;; provide.
+      ses--local-printer-list
+      (ses--numlocprn . 0); count of local printers
       ses--deferred-narrow ses--deferred-recalc
       ses--deferred-write ses--file-format
       ses--named-cell-hashmap
@@ -299,7 +309,20 @@ default printer and then modify its output.")
      ((symbolp x)
       (set (make-local-variable x) nil))
      ((consp x)
-      (set (make-local-variable (car x)) (cdr x)))
+      (cond
+       ((integerp (cdr x))
+	(set (make-local-variable (car x)) (cdr x)))
+       ((eq (cdr x) :hashmap)
+	(set (make-local-variable (car x))
+	     (if (boundp (car x))
+		 (let ((xv (symbol-value (car x))))
+		   (if (hash-table-p xv)
+		       (clrhash xv)
+		     (warn "Unexpected value of symbol %S, should be a hash table" x)
+		     (make-hash-table :test 'eq)))
+	       (make-hash-table :test 'eq))))
+       (t (error "Unexpected initializer `%S' in list `ses-localvars' for entry %S"
+		 (cdr x) (car x)) )	))
      (t (error "Unexpected elements `%S' in list `ses-localvars'" x))))))
 
 (eval-when-compile			; silence compiler
@@ -311,10 +334,21 @@ default printer and then modify its output.")
 (defconst ses-paramlines-plist
   '(ses--col-widths  -5 ses--col-printers -4 ses--default-printer -3
     ses--header-row  -2 ses--file-format   1 ses--numrows          2
-    ses--numcols      3)
+    ses--numcols      3 ses--numlocprn     4)
   "Offsets from 'Global parameters' line to various parameter lines in the
 data area of a spreadsheet.")
 
+(defconst ses-paramfmt-plist
+  '(ses--col-widths       "(ses-column-widths %S)"
+    ses--col-printers     "(ses-column-printers %S)"
+    ses--default-printer  "(ses-default-printer %S)"
+    ses--header-row       "(ses-header-row %S)"
+    ses--file-format      " %S ;SES file-format"
+    ses--numrows          " %S ;numrows"
+    ses--numcols          " %S ;numcols"
+    ses--numlocprn        " %S ;numlocprn")
+  "Formats of 'Global parameters' various parameters in the data
+area of a spreadsheet.")
 
 ;;
 ;;  "Side-effect variables".  They are set in one function, altered in
@@ -355,6 +389,30 @@ when to emit a progress message.")
 				   property-list)
   (vector symbol formula printer references property-list))
 
+(defsubst ses-make-local-printer-info (def &optional compiled-def number)
+  (let ((v  (vector def
+		    (or compiled-def (ses-local-printer-compile def))
+		    (or number ses--numlocprn)
+		     nil)))
+    (push v ses--local-printer-list)
+    (aset v 3 ses--local-printer-list)
+    v))
+
+(defmacro ses-locprn-get-compiled (locprn)
+  `(aref ,locprn 1))
+
+(defmacro ses-locprn-compiled-aset (locprn compiled)
+  `(aset ,locprn 1 ,compiled))
+
+(defmacro ses-locprn-get-def (locprn)
+  `(aref ,locprn 0))
+
+(defmacro ses-locprn-def-aset (locprn def)
+  `(aset ,locprn 0 ,def))
+
+(defmacro ses-locprn-get-number (locprn)
+  `(aref ,locprn 2))
+
 (defmacro ses-cell-symbol (row &optional col)
   "From a CELL or a pair (ROW,COL), get the symbol that names the local-variable holding its value.  (0,0) => A1."
   `(aref ,(if col `(ses-get-cell ,row ,col) row) 0))
@@ -371,6 +429,10 @@ when to emit a progress message.")
 (defmacro ses-cell-printer (row &optional col)
   "From a CELL or a pair (ROW,COL), get the function that prints its value."
   `(aref ,(if col `(ses-get-cell ,row ,col) row) 2))
+
+(defmacro ses-cell-printer-aset (cell printer)
+  "From a CELL set the printer that prints its value."
+  `(aset ,cell 2 ,printer))
 
 (defmacro ses-cell-references (row &optional col)
   "From a CELL or a pair (ROW,COL), get the list of symbols for cells whose
@@ -551,6 +613,29 @@ PRINTER are deferred until first use."
   (set sym value)
   sym)
 
+(defun ses-local-printer-compile (printer)
+  "Convert local printer function into faster printer
+definition."
+  (cond
+   ((functionp printer) printer)
+   ((stringp printer)
+    `(lambda (x) (format ,printer x)))
+   (t (error "Invalid printer %S" printer))))
+
+(defmacro ses-local-printer (printer-name printer-def)
+  "Define a local printer with name PRINTER-NAME and definition
+PRINTER-DEF. Return the printer info."
+  (or
+   (and (symbolp printer-name)
+	(ses-printer-validate printer-def))
+   (error "Invalid local printer definition"))
+  (and (gethash printer-name ses--local-printer-hashmap)
+       (error "Duplicate printer definition %S" printer-name))
+  (add-to-list 'ses-read-printer-history (symbol-name printer-name))
+  (puthash printer-name
+	   (ses-make-local-printer-info (ses-safe-printer printer-def))
+	   ses--local-printer-hashmap))
+
 (defmacro ses-column-widths (widths)
   "Load the vector of column widths from the spreadsheet file.  This is a
 macro to prevent propagate-on-load viruses."
@@ -664,6 +749,8 @@ is a vector--if a symbol, the new vector is assigned as the symbol's value."
   "Signal an error if PRINTER is not a valid SES cell printer."
   (or (not printer)
       (stringp printer)
+      ;; printer is a local printer
+      (and (symbolp printer) (gethash printer ses--local-printer-hashmap))
       (functionp printer)
       (and (stringp (car-safe printer)) (not (cdr printer)))
       (error "Invalid printer function"))
@@ -1261,7 +1348,13 @@ printer signaled one (and \"%s\" is used as the default printer), else nil."
 	    (format (car printer) value)
 	  ""))
        (t
-	(setq value (funcall printer (or value "")))
+	(setq value  (funcall
+		      (or (and (symbolp printer)
+			       (let ((locprn (gethash printer ses--local-printer-hashmap)))
+				 (and locprn
+				      (ses-locprn-get-compiled locprn))))
+			  printer)
+		      (or value "")))
 	(if (stringp value)
 	    value
 	  (or (stringp (car-safe value))
@@ -1334,6 +1427,23 @@ ses--default-printer, ses--numrows, or ses--numcols."
       (goto-char ses--params-marker)
       (forward-line def))))
 
+(defun ses-file-format-extend-paramter-list (new-file-format)
+  "Extend the global parameters list when file format is updated
+from 2 to 3. This happens when local printer function are added
+to a sheet that was created with SES version 2. This is not
+undoable. Return nil when there was no change, and non nil otherwise."  
+  (save-excursion
+    (cond
+     ((and (= ses--file-format 2) (= 3 new-file-format))
+      (ses-set-parameter 'ses--file-format 3)
+      (message "Upgrading from SES-2 to SES-3 file format")
+      (ses-widen)
+      (goto-char ses--params-marker)
+      (forward-line   (plist-get ses-paramlines-plist 'ses--numlocprn ))
+      (insert (format (plist-get ses-paramfmt-plist 'ses--numlocprn) ses--numlocprn)
+	      ?\n)
+      t) )))
+
 (defun ses-set-parameter (def value &optional elem)
   "Set parameter DEF to VALUE (with undo) and write the value to the data area.
 See `ses-goto-data' for meaning of DEF.  Newlines in the data are escaped.
@@ -1343,13 +1453,7 @@ If ELEM is specified, it is the array subscript within DEF to be set to VALUE."
     ;; in case one of them is being changed.
     (ses-goto-data def)
     (let ((inhibit-read-only t)
-	  (fmt (plist-get '(ses--col-widths      "(ses-column-widths %S)"
-			    ses--col-printers    "(ses-column-printers %S)"
-			    ses--default-printer "(ses-default-printer %S)"
-			    ses--header-row      "(ses-header-row %S)"
-			    ses--file-format     " %S ;SES file-format"
-			    ses--numrows         " %S ;numrows"
-			    ses--numcols         " %S ;numcols")
+	  (fmt (plist-get ses-paramfmt-plist
 			  def))
 	  oldval)
       (if elem
@@ -1735,29 +1839,38 @@ Does not execute cell formulas or print functions."
   (search-backward ";; Local Variables:\n" nil t)
   (backward-list 1)
   (setq ses--params-marker (point-marker))
-  (let ((params (ignore-errors (read (current-buffer)))))
-    (or (and (= (safe-length params) 3)
+  (let* ((params (ignore-errors (read (current-buffer))))
+	 (params-len (safe-length params)))
+    (or (and (>=  params-len 3)
+	     (<=  params-len 4)
 	     (numberp (car params))
 	     (numberp (cadr params))
 	     (>= (cadr params) 0)
 	     (numberp (nth 2 params))
-	     (> (nth 2 params) 0))
+	     (> (nth 2 params) 0)
+	     (or (<= params-len 3)
+		 (let ((numlocprn (nth 3 params))) 
+		   (and (integerp numlocprn) (>= numlocprn 0)))))
 	(error "Invalid SES file"))
     (setq ses--file-format (car params)
 	  ses--numrows     (cadr params)
-	  ses--numcols     (nth 2 params))
+	  ses--numcols     (nth 2 params)
+	  ses--numlocprn (or (nth 3 params) 0))
     (when (= ses--file-format 1)
       (let (buffer-undo-list) ; This is not undoable.
 	(ses-goto-data 'ses--header-row)
 	(insert "(ses-header-row 0)\n")
-	(ses-set-parameter 'ses--file-format 2)
-	(message "Upgrading from SES-1 file format")))
-    (or (= ses--file-format 2)
+	(ses-set-parameter 'ses--file-format 3)
+	(message "Upgrading from SES-1 to SES-2 file format")))
+    (or (<= ses--file-format 3)
 	(error "This file needs a newer version of the SES library code"))
     ;; Initialize cell array.
     (setq ses--cells (make-vector ses--numrows nil))
     (dotimes (row ses--numrows)
-      (aset ses--cells row (make-vector ses--numcols nil))))
+      (aset ses--cells row (make-vector ses--numcols nil)))
+    ;; initialize local printer map.
+    (clrhash ses--local-printer-hashmap))
+
   ;; Skip over print area, which we assume is correct.
   (goto-char (point-min))
   (forward-line ses--numrows)
@@ -1768,7 +1881,22 @@ Does not execute cell formulas or print functions."
   (forward-char (1- (length ses-print-data-boundary)))
   ;; Initialize printer and symbol lists.
   (mapc 'ses-printer-record ses-standard-printer-functions)
-  (setq ses--symbolic-formulas nil)
+  (setq ses--symbolic-formulas                   nil)
+
+  ;; Load local printer definitions.  
+  ;; This must be loaded *BEFORE* cells and column printers because the latters
+  ;; may call them.
+  (save-excursion
+    (forward-line (* ses--numrows (1+ ses--numcols)))
+    (let ((numlocprn ses--numlocprn))
+      (setq ses--numlocprn 0)
+      (dotimes (lp numlocprn)
+	(let ((x      (read (current-buffer))))
+	  (or (and (looking-at-p "\n")
+		   (eq (car-safe x) 'ses-local-printer)
+		   (eval x))
+	      (error "local printer-def error"))
+	  (setq ses--numlocprn (1+ ses--numlocprn))))))
   ;; Load cell definitions.
   (dotimes (row ses--numrows)
     (dotimes (col ses--numcols)
@@ -1781,6 +1909,8 @@ Does not execute cell formulas or print functions."
 	(eval x)))
     (or (looking-at-p "\n\n")
 	(error "Missing blank line between rows")))
+  ;; Skip local printer function declaration --- that were already loaded.
+  (forward-line (+ 2 ses--numlocprn))
   ;; Load global parameters.
   (let ((widths      (read (current-buffer)))
 	(n1          (char-after (point)))
@@ -1805,8 +1935,7 @@ Does not execute cell formulas or print functions."
     (1value (eval head-row)))
   ;; Should be back at global-params.
   (forward-char 1)
-  (or (looking-at-p (replace-regexp-in-string "1" "[0-9]+"
-					      ses-initial-global-parameters))
+  (or (looking-at-p ses-initial-global-parameters-re)
       (error "Problem with column-defs or global-params"))
   ;; Check for overall newline count in definitions area.
   (forward-line 3)
@@ -2390,8 +2519,10 @@ cells."
 ;;----------------------------------------------------------------------------
 
 (defun ses-read-printer (prompt default)
-  "Common code for `ses-read-cell-printer', `ses-read-column-printer', and `ses-read-default-printer'.
-PROMPT should end with \": \".  Result is t if operation was canceled."
+  "Common code for functions `ses-read-cell-printer', `ses-read-column-printer',
+`ses-read-default-printer' and `ses-define-local-printer'.
+PROMPT should end with \": \".  Result is t if operation was
+canceled."
   (barf-if-buffer-read-only)
   (if (eq default t)
       (setq default "")
@@ -2411,6 +2542,7 @@ PROMPT should end with \": \".  Result is t if operation was canceled."
       (or (not new)
 	  (stringp new)
 	  (stringp (car-safe new))
+	  (and (symbolp new) (gethash new ses--local-printer-hashmap))
 	  (ses-warn-unsafe new 'unsafep-function)
 	  (setq new t)))
     new))
@@ -3344,6 +3476,71 @@ highlighted range in the spreadsheet."
 				  (symbol-name new-name)))
     (force-mode-line-update)))
 
+(defun ses-refresh-local-printer (name compiled-value)
+  "Refresh printout of spreadsheet for all cells with printer
+  defined to local printer named NAME using the value COMPILED-VALUE for this printer"
+  (message "Refreshing cells using printer %S" name)
+  (let (new-print)
+    (dotimes (row ses--numrows)
+      (dotimes (col ses--numcols)
+	(let ((cell-printer (ses-cell-printer row col)))
+	  (when (eq cell-printer name)
+	    (unless new-print
+	      (setq new-print t)
+	      (ses-begin-change))
+	    (ses-print-cell row col)))))))
+
+(defun ses-define-local-printer (printer-name)
+  "Define a local printer with name PRINTER-NAME."
+  (interactive "*SEnter printer name: ")
+  (let* ((cur-printer (gethash printer-name ses--local-printer-hashmap))
+	 (default (and (vectorp cur-printer) (ses-locprn-get-def cur-printer)))
+	 printer-def-text
+	 create-printer
+	 (new-printer (ses-read-printer (format "Enter definition of printer %S: " printer-name) default)))
+    (cond
+     ;; cancelled operation => do nothing
+     ((eq new-printer t))
+     ;; no change => do nothing
+     ((and (vectorp cur-printer) (equal new-printer default)))
+     ;; re-defined printer
+     ((vectorp cur-printer)
+      (setq create-printer 0)
+      (ses-locprn-def-aset cur-printer new-printer)
+      (ses-refresh-local-printer
+       printer-name
+       (ses-locprn-compiled-aset cur-printer  (ses-local-printer-compile new-printer))))
+     ;; new definition
+     (t
+      (setq create-printer 1)
+      (puthash printer-name
+	       (setq cur-printer
+		     (ses-make-local-printer-info new-printer))
+	       ses--local-printer-hashmap)))
+    (when create-printer
+      (setq printer-def-text
+	    (concat
+	     "(ses-local-printer "
+	     (symbol-name printer-name)
+	     " "
+	     (prin1-to-string (ses-locprn-get-def cur-printer))
+	     ")"))
+      (save-excursion
+	(ses-goto-data ses--numrows
+		       (ses-locprn-get-number cur-printer))
+	(let ((inhibit-read-only t))
+	  ;; Special undo since it's outside the narrowed buffer.
+	  (let (buffer-undo-list)
+	    (if (= create-printer 0)
+		(delete-region (point) (line-end-position))
+	      (insert ?\n)
+	      (backward-char))
+	    (insert printer-def-text)
+	    (when (= create-printer 1)
+	      (ses-file-format-extend-paramter-list 3)
+	      (ses-set-parameter 'ses--numlocprn (+ ses--numlocprn create-printer))) )))))  )
+
+
 ;;----------------------------------------------------------------------------
 ;; Checking formulas for safety
 ;;----------------------------------------------------------------------------
@@ -3353,6 +3550,7 @@ highlighted range in the spreadsheet."
   (if (or (stringp printer)
 	  (stringp (car-safe printer))
 	  (not printer)
+	  (and (symbolp printer) (gethash printer ses--local-printer-hashmap))
 	  (ses-warn-unsafe printer 'unsafep-function))
       printer
     'ses-unsafe))
