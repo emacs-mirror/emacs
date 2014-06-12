@@ -16,7 +16,7 @@ SRCID(reserv, "$Id$");
 
 /* The reservoir pool is defined here. See <design/reservoir/> */
 
-#define Pool2Reservoir(pool) PARENT(ReservoirStruct, poolStruct, pool)
+#define PoolReservoir(pool) PARENT(ReservoirStruct, poolStruct, pool)
 
 
 /* Management of tracts
@@ -30,7 +30,7 @@ SRCID(reserv, "$Id$");
 #define resTractSetNext(tract, next) (TractSetP((tract), (void*)(next)))
 
 
-#define reservoirArena(reservoir) ((reservoir)->poolStruct.arena)
+#define reservoirArena(reservoir) (PoolArena(ReservoirPool(reservoir)))
 
 
 /* ResPoolInit -- Reservoir pool init method */
@@ -58,7 +58,7 @@ static void ResPoolFinish(Pool pool)
   Reservoir reservoir;
 
   AVERT(Pool, pool);
-  reservoir = Pool2Reservoir(pool);
+  reservoir = PoolReservoir(pool);
   AVERT(Reservoir, reservoir);
   AVER(reservoir->reserve == NULL);  /* .reservoir.finish */
 }
@@ -88,7 +88,7 @@ Bool ReservoirCheck(Reservoir reservoir)
 
   CHECKS(Reservoir, reservoir);
   CHECKD(Pool, ReservoirPool(reservoir));
-  CHECKL(reservoir->poolStruct.class == reservoircl);
+  CHECKL(ReservoirPool(reservoir)->class == reservoircl);
   UNUSED(reservoircl); /* <code/mpm.c#check.unused> */
   arena = reservoirArena(reservoir);
   CHECKU(Arena, arena);

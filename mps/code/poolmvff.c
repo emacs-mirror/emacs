@@ -64,8 +64,8 @@ typedef struct MVFFStruct {     /* MVFF pool outer structure */
 } MVFFStruct;
 
 
-#define Pool2MVFF(pool)     PARENT(MVFFStruct, poolStruct, pool)
-#define MVFF2Pool(mvff)     (&(mvff)->poolStruct)
+#define PoolMVFF(pool)     PARENT(MVFFStruct, poolStruct, pool)
+#define MVFFPool(mvff)     (&(mvff)->poolStruct)
 #define MVFFTotalCBS(mvff)  CBSLand(&(mvff)->totalCBSStruct)
 #define MVFFFreeCBS(mvff)   CBSLand(&(mvff)->freeCBSStruct)
 #define MVFFFreelist(mvff)  FreelistLand(&(mvff)->flStruct)
@@ -107,7 +107,7 @@ static void MVFFReduce(MVFF mvff)
   Align align;
 
   AVERT(MVFF, mvff);
-  arena = PoolArena(MVFF2Pool(mvff));
+  arena = PoolArena(MVFFPool(mvff));
 
   /* NOTE: Memory is returned to the arena in the smallest units
      possible (arena grains). There's a possibility that this could
@@ -191,7 +191,7 @@ static void MVFFReduce(MVFF mvff)
       break;
     }
 
-    ArenaFree(RangeBase(&pageRange), RangeSize(&pageRange), MVFF2Pool(mvff));
+    ArenaFree(RangeBase(&pageRange), RangeSize(&pageRange), MVFFPool(mvff));
   }
 }
 
@@ -218,7 +218,7 @@ static Res MVFFExtend(Range rangeReturn, MVFF mvff, Size size,
   AVER(size > 0);
   AVERT(Bool, withReservoirPermit);
 
-  pool = MVFF2Pool(mvff);
+  pool = MVFFPool(mvff);
   arena = PoolArena(pool);
   align = ArenaAlign(arena);
 
@@ -281,7 +281,7 @@ static Bool MVFFFindFree(Range rangeReturn, MVFF mvff, Size size)
   AVER(rangeReturn != NULL);
   AVERT(MVFF, mvff);
   AVER(size > 0);
-  AVER(SizeIsAligned(size, PoolAlignment(MVFF2Pool(mvff))));
+  AVER(SizeIsAligned(size, PoolAlignment(MVFFPool(mvff))));
 
   findDelete = mvff->slotHigh ? FindDeleteHIGH : FindDeleteLOW;
 
@@ -304,7 +304,7 @@ static Res MVFFAlloc(Addr *aReturn, Pool pool, Size size,
   Bool foundBlock;
 
   AVERT(Pool, pool);
-  mvff = Pool2MVFF(pool);
+  mvff = PoolMVFF(pool);
   AVERT(MVFF, mvff);
 
   AVER(aReturn != NULL);
@@ -344,7 +344,7 @@ static void MVFFFree(Pool pool, Addr old, Size size)
   MVFF mvff;
 
   AVERT(Pool, pool);
-  mvff = Pool2MVFF(pool);
+  mvff = PoolMVFF(pool);
   AVERT(MVFF, mvff);
 
   AVER(old != (Addr)0);
@@ -374,7 +374,7 @@ static Res MVFFBufferFill(Addr *baseReturn, Addr *limitReturn,
   AVER(baseReturn != NULL);
   AVER(limitReturn != NULL);
   AVERT(Pool, pool);
-  mvff = Pool2MVFF(pool);
+  mvff = PoolMVFF(pool);
   AVERT(MVFF, mvff);
   AVERT(Buffer, buffer);
   AVER(size > 0);
@@ -412,7 +412,7 @@ static void MVFFBufferEmpty(Pool pool, Buffer buffer,
   RangeStruct range, coalescedRange;
 
   AVERT(Pool, pool);
-  mvff = Pool2MVFF(pool);
+  mvff = PoolMVFF(pool);
   AVERT(MVFF, mvff);
   AVERT(Buffer, buffer);
   AVER(BufferIsReady(buffer));
@@ -519,7 +519,7 @@ static Res MVFFInit(Pool pool, ArgList args)
   AVERT(Bool, arenaHigh);
   AVERT(Bool, firstFit);
 
-  mvff = Pool2MVFF(pool);
+  mvff = PoolMVFF(pool);
 
   mvff->extendBy = extendBy;
   if (extendBy < ArenaAlign(arena))
@@ -616,7 +616,7 @@ static void MVFFFinish(Pool pool)
   MVFF mvff;
 
   AVERT(Pool, pool);
-  mvff = Pool2MVFF(pool);
+  mvff = PoolMVFF(pool);
   AVERT(MVFF, mvff);
   mvff->sig = SigInvalid;
 
@@ -641,7 +641,7 @@ static PoolDebugMixin MVFFDebugMixin(Pool pool)
   MVFF mvff;
 
   AVERT(Pool, pool);
-  mvff = Pool2MVFF(pool);
+  mvff = PoolMVFF(pool);
   AVERT(MVFF, mvff);
   /* Can't check MVFFDebug, because this is called during init */
   return &(MVFF2MVFFDebug(mvff)->debug);
@@ -656,7 +656,7 @@ static Res MVFFDescribe(Pool pool, mps_lib_FILE *stream)
   MVFF mvff;
 
   if (!TESTT(Pool, pool)) return ResFAIL;
-  mvff = Pool2MVFF(pool);
+  mvff = PoolMVFF(pool);
   if (!TESTT(MVFF, mvff)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
 
@@ -752,7 +752,7 @@ size_t mps_mvff_free_size(mps_pool_t mps_pool)
 
   pool = (Pool)mps_pool;
   AVERT(Pool, pool);
-  mvff = Pool2MVFF(pool);
+  mvff = PoolMVFF(pool);
   AVERT(MVFF, mvff);
 
   return (size_t)LandSize(MVFFFreeLand(mvff));
@@ -767,7 +767,7 @@ size_t mps_mvff_size(mps_pool_t mps_pool)
 
   pool = (Pool)mps_pool;
   AVERT(Pool, pool);
-  mvff = Pool2MVFF(pool);
+  mvff = PoolMVFF(pool);
   AVERT(MVFF, mvff);
 
   return (size_t)LandSize(MVFFTotalCBS(mvff));
@@ -780,10 +780,10 @@ ATTRIBUTE_UNUSED
 static Bool MVFFCheck(MVFF mvff)
 {
   CHECKS(MVFF, mvff);
-  CHECKD(Pool, MVFF2Pool(mvff));
-  CHECKL(IsSubclassPoly(MVFF2Pool(mvff)->class, MVFFPoolClassGet()));
+  CHECKD(Pool, MVFFPool(mvff));
+  CHECKL(IsSubclassPoly(MVFFPool(mvff)->class, MVFFPoolClassGet()));
   CHECKD(SegPref, MVFFSegPref(mvff));
-  CHECKL(mvff->extendBy >= ArenaAlign(PoolArena(MVFF2Pool(mvff))));
+  CHECKL(mvff->extendBy >= ArenaAlign(PoolArena(MVFFPool(mvff))));
   CHECKL(mvff->avgSize > 0);                    /* see .arg.check */
   CHECKL(mvff->avgSize <= mvff->extendBy);      /* see .arg.check */
   CHECKL(mvff->spare >= 0.0);                   /* see .arg.check */
@@ -793,8 +793,8 @@ static Bool MVFFCheck(MVFF mvff)
   CHECKD(Land, MVFFFreelist(mvff));
   CHECKD(Land, MVFFFreeLand(mvff));
   CHECKL(LandSize(MVFFTotalCBS(mvff)) >= LandSize(MVFFFreeLand(mvff)));
-  CHECKL(SizeIsAligned(LandSize(MVFFFreeLand(mvff)), PoolAlignment(MVFF2Pool(mvff))));
-  CHECKL(SizeIsAligned(LandSize(MVFFTotalCBS(mvff)), ArenaAlign(PoolArena(MVFF2Pool(mvff)))));
+  CHECKL(SizeIsAligned(LandSize(MVFFFreeLand(mvff)), PoolAlignment(MVFFPool(mvff))));
+  CHECKL(SizeIsAligned(LandSize(MVFFTotalCBS(mvff)), ArenaAlign(PoolArena(MVFFPool(mvff)))));
   CHECKL(BoolCheck(mvff->slotHigh));
   CHECKL(BoolCheck(mvff->firstFit));
   return TRUE;
@@ -808,7 +808,7 @@ Land _mps_mvff_cbs(Pool pool) {
   MVFF mvff;
 
   AVERT(Pool, pool);
-  mvff = Pool2MVFF(pool);
+  mvff = PoolMVFF(pool);
   AVERT(MVFF, mvff);
 
   return MVFFFreeCBS(mvff);

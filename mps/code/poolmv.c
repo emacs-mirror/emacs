@@ -38,7 +38,7 @@ SRCID(poolmv, "$Id$");
 #define mvSpanPool(mv) MFSPool(&(mv)->spanPoolStruct)
 
 
-#define Pool2MV(pool) PARENT(MVStruct, poolStruct, pool)
+#define PoolMV(pool) PARENT(MVStruct, poolStruct, pool)
 
 
 /* MVDebug -- MV Debug pool class */
@@ -244,7 +244,7 @@ static Res MVInit(Pool pool, ArgList args)
   AVER(extendBy <= maxSize);
 
   pool->alignment = align;
-  mv = Pool2MV(pool);
+  mv = PoolMV(pool);
   arena = PoolArena(pool);
 
   /* At 100% fragmentation we will need one block descriptor for every other */
@@ -296,7 +296,7 @@ static void MVFinish(Pool pool)
   MVSpan span;
 
   AVERT(Pool, pool);
-  mv = Pool2MV(pool);
+  mv = PoolMV(pool);
   AVERT(MV, mv);
 
   /* Destroy all the spans attached to the pool. */
@@ -521,7 +521,7 @@ static Res MVAlloc(Addr *pReturn, Pool pool, Size size,
 
   AVER(pReturn != NULL);
   AVERT(Pool, pool);
-  mv = Pool2MV(pool);
+  mv = PoolMV(pool);
   AVERT(MV, mv);
   AVER(size > 0);
   AVERT(Bool, withReservoirPermit);
@@ -627,7 +627,7 @@ static void MVFree(Pool pool, Addr old, Size size)
   Tract tract = NULL;           /* suppress "may be used uninitialized" */
 
   AVERT(Pool, pool);
-  mv = Pool2MV(pool);
+  mv = PoolMV(pool);
   AVERT(MV, mv);
 
   AVER(old != (Addr)0);
@@ -680,7 +680,7 @@ static PoolDebugMixin MVDebugMixin(Pool pool)
   MV mv;
 
   AVERT(Pool, pool);
-  mv = Pool2MV(pool);
+  mv = PoolMV(pool);
   AVERT(MV, mv);
   /* Can't check MVDebug, because this is called during MVDebug init */
   return &(MV2MVDebug(mv)->debug);
@@ -698,7 +698,7 @@ static Res MVDescribe(Pool pool, mps_lib_FILE *stream)
   Ring spans, node = NULL, nextNode; /* gcc whinge stop */
 
   if(!TESTT(Pool, pool)) return ResFAIL;
-  mv = Pool2MV(pool);
+  mv = PoolMV(pool);
   if(!TESTT(MV, mv)) return ResFAIL;
   if(stream == NULL) return ResFAIL;
 
@@ -859,7 +859,7 @@ size_t mps_mv_free_size(mps_pool_t mps_pool)
   pool = (Pool)mps_pool;
 
   AVERT(Pool, pool);
-  mv = Pool2MV(pool);
+  mv = PoolMV(pool);
   AVERT(MV, mv);
 
   spans = &mv->spans;
@@ -884,7 +884,7 @@ size_t mps_mv_size(mps_pool_t mps_pool)
   pool = (Pool)mps_pool;
 
   AVERT(Pool, pool);
-  mv = Pool2MV(pool);
+  mv = PoolMV(pool);
   AVERT(MV, mv);
 
   spans = &mv->spans;
@@ -903,8 +903,8 @@ size_t mps_mv_size(mps_pool_t mps_pool)
 Bool MVCheck(MV mv)
 {
   CHECKS(MV, mv);
-  CHECKD(Pool, &mv->poolStruct);
-  CHECKL(IsSubclassPoly(mv->poolStruct.class, EnsureMVPoolClass()));
+  CHECKD(Pool, MVPool(mv));
+  CHECKL(IsSubclassPoly(MVPool(mv)->class, EnsureMVPoolClass()));
   CHECKD(MFS, &mv->blockPoolStruct);
   CHECKD(MFS, &mv->spanPoolStruct);
   CHECKL(mv->extendBy > 0);
