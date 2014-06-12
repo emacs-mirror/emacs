@@ -71,7 +71,7 @@ static Index (indexOfAddr)(TestState state, Addr a)
 
 
 static void describe(TestState state) {
-  die(LandDescribe(state->land, mps_lib_get_stdout()), "LandDescribe");
+  die(LandDescribe(state->land, mps_lib_get_stdout(), 0), "LandDescribe");
 }
 
 

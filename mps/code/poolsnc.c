@@ -37,8 +37,8 @@ typedef struct SNCStruct {
   Sig sig;
 } SNCStruct, *SNC;
 
-#define Pool2SNC(pool) \
-  PARENT(SNCStruct, poolStruct, (pool))
+#define PoolSNC(pool) PARENT(SNCStruct, poolStruct, (pool))
+#define SNCPool(snc) (&(snc)->poolStruct)
 
 
 /* Forward declarations */
@@ -162,7 +162,7 @@ static void SNCBufFinish(Buffer buffer)
   AVERT(SNCBuf, sncbuf);
   pool = BufferPool(buffer);
 
-  snc = Pool2SNC(pool);
+  snc = PoolSNC(pool);
   /* Put any segments which haven't bee popped onto the free list */
   sncPopPartialSegChain(snc, buffer, NULL);
 
@@ -381,7 +381,7 @@ static Res SNCInit(Pool pool, ArgList args)
   /* weak check, as half-way through initialization */
   AVER(pool != NULL);
 
-  snc = Pool2SNC(pool);
+  snc = PoolSNC(pool);
 
   ArgRequire(&arg, args, MPS_KEY_FORMAT);
   format = arg.val.format;
@@ -405,7 +405,7 @@ static void SNCFinish(Pool pool)
   Ring ring, node, nextNode;
 
   AVERT(Pool, pool);
-  snc = Pool2SNC(pool);
+  snc = PoolSNC(pool);
   AVERT(SNC, snc);
 
   ring = &pool->segRing;
@@ -435,7 +435,7 @@ static Res SNCBufferFill(Addr *baseReturn, Addr *limitReturn,
   AVERT(Bool, withReservoirPermit);
   AVER(BufferIsReset(buffer));
 
-  snc = Pool2SNC(pool);
+  snc = PoolSNC(pool);
   AVERT(SNC, snc);
 
   /* Try to find a free segment with enough space already */
@@ -482,7 +482,7 @@ static void SNCBufferEmpty(Pool pool, Buffer buffer,
   seg = BufferSeg(buffer);
   AVER(init <= limit);
   AVER(SegLimit(seg) == limit);
-  snc = Pool2SNC(pool);
+  snc = PoolSNC(pool);
   AVERT(SNC, snc);
   AVER(BufferFrameState(buffer) == BufferFrameVALID);
   /* .lw-frame-state */
@@ -511,7 +511,7 @@ static Res SNCScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
   AVERT(ScanState, ss);
   AVERT(Seg, seg);
   AVERT(Pool, pool);
-  snc = Pool2SNC(pool);
+  snc = PoolSNC(pool);
   AVERT(SNC, snc);
 
   format = pool->format;
@@ -588,7 +588,7 @@ static void SNCFramePopPending(Pool pool, Buffer buf, AllocFrame frame)
   AVERT(Pool, pool);
   AVERT(Buffer, buf);
   /* frame is an Addr and can't be directly checked */
-  snc = Pool2SNC(pool);
+  snc = PoolSNC(pool);
   AVERT(SNC, snc);
 
   AVER(BufferFrameState(buf) == BufferFrameVALID);
@@ -641,7 +641,7 @@ static void SNCWalk(Pool pool, Seg seg, FormattedObjectsStepMethod f,
     SNC snc;
     Format format;
 
-    snc = Pool2SNC(pool);
+    snc = PoolSNC(pool);
     AVERT(SNC, snc);
     format = pool->format;
 
@@ -699,8 +699,8 @@ ATTRIBUTE_UNUSED
 static Bool SNCCheck(SNC snc)
 {
   CHECKS(SNC, snc);
-  CHECKD(Pool, &snc->poolStruct);
-  CHECKL(snc->poolStruct.class == SNCPoolClassGet());
+  CHECKD(Pool, SNCPool(snc));
+  CHECKL(SNCPool(snc)->class == SNCPoolClassGet());
   if (snc->freeSegs != NULL) {
     CHECKD(Seg, snc->freeSegs);
   }

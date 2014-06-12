@@ -156,7 +156,7 @@ Bool ABQPeek(ABQ abq, void *elementReturn)
 
 
 /* ABQDescribe -- Describe an ABQ */
-Res ABQDescribe(ABQ abq, ABQDescribeElement describeElement, mps_lib_FILE *stream)
+Res ABQDescribe(ABQ abq, ABQDescribeElement describeElement, mps_lib_FILE *stream, Count depth)
 {
   Res res;
   Index index;
@@ -164,8 +164,8 @@ Res ABQDescribe(ABQ abq, ABQDescribeElement describeElement, mps_lib_FILE *strea
   if (!TESTT(ABQ, abq)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
 
-  res = WriteF(stream,
-               "ABQ $P\n{\n", (WriteFP)abq,
+  res = WriteF(stream, depth,
+               "ABQ $P {\n", (WriteFP)abq,
                "  elements: $U \n", (WriteFU)abq->elements,
                "  in: $U \n", (WriteFU)abq->in,
                "  out: $U \n", (WriteFU)abq->out,
@@ -175,22 +175,18 @@ Res ABQDescribe(ABQ abq, ABQDescribeElement describeElement, mps_lib_FILE *strea
     return res;
 
   for (index = abq->out; index != abq->in; ) {
-    res = (*describeElement)(ABQElement(abq, index), stream);
+    res = (*describeElement)(ABQElement(abq, index), stream, depth + 2);
     if(res != ResOK)
       return res;
     index = ABQNextIndex(abq, index);
   }
 
-  res = WriteF(stream, "\n", NULL);
-  if(res != ResOK)
-    return res;
+  METER_WRITE(abq->push, stream, depth + 2);
+  METER_WRITE(abq->pop, stream, depth + 2);
+  METER_WRITE(abq->peek, stream, depth + 2);
+  METER_WRITE(abq->delete, stream, depth + 2);
 
-  METER_WRITE(abq->push, stream);
-  METER_WRITE(abq->pop, stream);
-  METER_WRITE(abq->peek, stream);
-  METER_WRITE(abq->delete, stream);
- 
-  res = WriteF(stream, "}\n", NULL);
+  res = WriteF(stream, depth, "} ABQ $P\n", (WriteFP)abq, NULL);
   if(res != ResOK)
     return res;
  
