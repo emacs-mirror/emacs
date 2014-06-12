@@ -496,45 +496,66 @@ Res ArenaDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
 }
 
 
-/* ArenaDescribeTractsInChunk -- describe the tracts in a chunk */
+/* arenaDescribeTractsInChunk -- describe the tracts in a chunk */
+
+typedef struct ArenaDescribeTractsClosureStruct {
+  mps_lib_FILE *stream;
+  Res res;
+} ArenaDescribeTractsClosureStruct, *ArenaDescribeTractsClosure;
 
 static Bool arenaDescribeTractsInChunk(Tree tree, void *closureP, Size closureS)
 {
-  mps_lib_FILE *stream = closureP;
+  ArenaDescribeTractsClosure cl = closureP;
   Count depth = closureS;
+  mps_lib_FILE *stream;
   Chunk chunk;
-  Tract tract;
-  Addr addr;
-  Res res;
+  Index pi;
+  Res res = ResFAIL;
 
+  if (closureP == NULL) return FALSE;
   chunk = ChunkOfTree(tree);
-  if (!TESTT(Chunk, chunk)) return ResFAIL;
-  if (stream == NULL) return ResFAIL;
+  if (!TESTT(Chunk, chunk)) goto fail;
+  stream = cl->stream;
+  if (stream == NULL) goto fail;
 
   res = WriteF(stream, depth, "Chunk [$P, $P) ($U) {\n",
                (WriteFP)chunk->base, (WriteFP)chunk->limit,
                (WriteFU)chunk->serial,
                NULL);
-  if (res != ResOK) return res;
-  
-  TRACT_TRACT_FOR(tract, addr, ChunkArena(chunk),
-                  PageTract(ChunkPage(chunk, chunk->allocBase)),
-                  chunk->limit)
-  {
-    res = WriteF(stream, depth + 2,
-                 "[$P, $P) $P $U ($S)\n",
-                 (WriteFP)TractBase(tract), (WriteFP)TractLimit(tract),
-                 (WriteFP)TractPool(tract),
-                 (WriteFU)(TractPool(tract)->serial),
-                 (WriteFS)(TractPool(tract)->class->name),
-                 NULL);
-    if (res != ResOK) return res;
+  if (res != ResOK) goto fail;
+
+  for (pi = chunk->allocBase; pi < chunk->pages; ++pi) {
+    if (BTGet(chunk->allocTable, pi)) {
+      Tract tract = PageTract(ChunkPage(chunk, pi));
+      res = WriteF(stream, depth + 2, "[$P, $P)",
+                   (WriteFP)TractBase(tract),
+                   (WriteFP)TractLimit(tract, ChunkArena(chunk)),
+                   NULL);
+      if (res != ResOK) goto fail;
+      if (TractHasPool(tract)) {
+        Pool pool = TractPool(tract);
+        res = WriteF(stream, 0, " $P $U ($S)",
+                     (WriteFP)pool,
+                     (WriteFU)(pool->serial),
+                     (WriteFS)(pool->class->name),
+                     NULL);
+        if (res != ResOK) goto fail;
+      }
+      res = WriteF(stream, 0, "\n", NULL);
+      if (res != ResOK) goto fail;
+    }
   }
 
   res = WriteF(stream, depth, "} Chunk [$P, $P)\n",
                (WriteFP)chunk->base, (WriteFP)chunk->limit,
                NULL);
-  return res;
+  if (res != ResOK) goto fail;
+
+  return TRUE;
+
+fail:
+  cl->res = res;
+  return FALSE;
 }
 
 
@@ -542,13 +563,16 @@ static Bool arenaDescribeTractsInChunk(Tree tree, void *closureP, Size closureS)
 
 Res ArenaDescribeTracts(Arena arena, mps_lib_FILE *stream, Count depth)
 {
+  ArenaDescribeTractsClosureStruct cl;
+
   if (!TESTT(Arena, arena)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
 
+  cl.stream = stream;
+  cl.res = ResOK;
   (void)TreeTraverse(ArenaChunkTree(arena), ChunkCompare, ChunkKey,
-                     arenaDescribeTractsInChunk, stream, depth);
-
-  return ResOK;
+                     arenaDescribeTractsInChunk, &cl, depth);
+  return cl.res;
 }
 
 
