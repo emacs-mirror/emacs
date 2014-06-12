@@ -145,6 +145,8 @@ DEFINE_CLASS(AbstractPoolClass, class)
   class->bufferClass = PoolNoBufferClass;
   class->describe = PoolTrivDescribe;
   class->debugMixin = PoolNoDebugMixin;
+  class->totalSize = PoolNoSize;
+  class->freeSize = PoolNoSize;
   class->labelled = FALSE;
   class->sig = PoolClassSig;
 }
@@ -674,6 +676,14 @@ BufferClass PoolNoBufferClass(void)
 {
   NOTREACHED;
   return NULL;
+}
+
+
+Size PoolNoSize(Pool pool)
+{
+  AVERT(Pool, pool);
+  NOTREACHED;
+  return UNUSED_SIZE;
 }
 
 
