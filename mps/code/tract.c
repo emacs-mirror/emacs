@@ -37,8 +37,10 @@ SRCID(tract, "$Id$");
 
 Bool TractCheck(Tract tract)
 {
-  CHECKU(Pool, TractPool(tract));
-  CHECKL(AddrIsAligned(TractBase(tract), ArenaAlign(TractArena(tract))));
+  if (TractHasPool(tract)) {
+    CHECKU(Pool, TractPool(tract));
+    CHECKL(AddrIsAligned(TractBase(tract), ArenaAlign(TractArena(tract))));
+  }
   if (TractHasSeg(tract)) {
     CHECKL(TraceSetCheck(TractWhite(tract)));
     CHECKU(Seg, (Seg)TractP(tract));
@@ -99,13 +101,11 @@ Addr (TractBase)(Tract tract)
 }
 
 
-/* TractLimit -- return the limit address of a segment */
+/* TractLimit -- return the limit address of a tract */
 
-Addr TractLimit(Tract tract)
+Addr TractLimit(Tract tract, Arena arena)
 {
-  Arena arena;
   AVERT_CRITICAL(Tract, tract); /* .tract.critical */
-  arena = TractArena(tract);
   AVERT_CRITICAL(Arena, arena);
   return AddrAdd(TractBase(tract), arena->alignment);
 }

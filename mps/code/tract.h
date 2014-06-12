@@ -51,8 +51,10 @@ typedef struct TractStruct { /* Tract structure */
 
 extern Addr (TractBase)(Tract tract);
 #define TractBase(tract)         ((tract)->base)
-extern Addr TractLimit(Tract tract);
+extern Addr TractLimit(Tract tract, Arena arena);
 
+#define TractHasPool(tract) \
+  ((tract)->pool.state == PageStateALLOC && TractPool(tract))
 #define TractPool(tract)         ((tract)->pool.pool)
 #define TractP(tract)            ((tract)->p)
 #define TractSetP(tract, pp)     ((void)((tract)->p = (pp)))
