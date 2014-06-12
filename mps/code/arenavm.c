@@ -968,8 +968,6 @@ static Size chunkUnmapAroundPage(Chunk chunk, Size size, Page page)
  * unmapped.
  */
 
-#define ArenaChunkRing(arena) (&(arena)->chunkRing)
-
 static Size arenaUnmapSpare(Arena arena, Size size, Chunk filter)
 {
   Ring node;
