@@ -188,6 +188,9 @@ extern const struct mps_key_s _mps_key_max_size;
 extern const struct mps_key_s _mps_key_align;
 #define MPS_KEY_ALIGN           (&_mps_key_align)
 #define MPS_KEY_ALIGN_FIELD     align
+extern const struct mps_key_s _mps_key_spare;
+#define MPS_KEY_SPARE           (&_mps_key_spare)
+#define MPS_KEY_SPARE_FIELD     double
 extern const struct mps_key_s _mps_key_interior;
 #define MPS_KEY_INTERIOR        (&_mps_key_interior)
 #define MPS_KEY_INTERIOR_FIELD  b
