@@ -3621,6 +3621,7 @@ int main(int argc, char *argv[])
         fprintf(stderr, "%s\n", error_message);
       printf("%lu> ", (unsigned long)total);
       fflush(stdout);
+      fflush(stderr);
       obj = read(input);
       if(obj == obj_eof) break;
       obj = eval(env, op_env, obj);
