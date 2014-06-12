@@ -1,27 +1,24 @@
 /* mpscmv2.h: MEMORY POOL SYSTEM CLASS "MVT"
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ *
+ * The MVT pool class used to be known as "MV2" in some places: this
+ * header provides backwards compatibility for prograns that included
+ * it under its old name.
  */
 
 #ifndef mpscmv2_h
 #define mpscmv2_h
 
-#include "mps.h"
-
-extern mps_class_t mps_class_mvt(void);
-
-/* The mvt pool class supports two extensions to the pool protocol:
-   size and free_size. */
-extern size_t mps_mvt_free_size(mps_pool_t mps_pool);
-extern size_t mps_mvt_size(mps_pool_t mps_pool);
+#include "mpscmvt.h"
 
 #endif /* mpscmv2_h */
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

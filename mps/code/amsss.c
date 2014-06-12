@@ -16,6 +16,7 @@
 #include "mpsavm.h"
 #include "mpstd.h"
 #include "mps.h"
+#include "mpm.h"
 
 #include <stdio.h> /* fflush, printf */
 
@@ -140,6 +141,8 @@ static void test_pool(mps_class_t pool_class, mps_arg_s args[],
 
   /* create an ap, and leave it busy */
   die(mps_reserve(&busy_init, busy_ap, 64), "mps_reserve busy");
+
+  die(PoolDescribe(pool, mps_lib_get_stdout(), 0), "PoolDescribe");
 
   objs = 0; totalSize = 0;
   while(totalSize < totalSizeMAX) {

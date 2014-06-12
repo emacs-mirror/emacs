@@ -210,7 +210,8 @@ extern Index IndexOfAddr(Chunk chunk, Addr addr);
     Chunk _ch = NULL; \
     \
     UNUSED(_ch); \
-    AVER(ChunkOfAddr(&_ch, arena, rangeBase) && (rangeLimit) <= _ch->limit); \
+    AVER(ChunkOfAddr(&_ch, arena, rangeBase)); \
+    AVER((rangeLimit) <= _ch->limit); \
   END
 
 

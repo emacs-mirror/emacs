@@ -72,6 +72,8 @@ Bool PoolClassCheck(PoolClass class)
   CHECKL(FUNCHECK(class->bufferClass));
   CHECKL(FUNCHECK(class->describe));
   CHECKL(FUNCHECK(class->debugMixin));
+  CHECKL(FUNCHECK(class->totalSize));
+  CHECKL(FUNCHECK(class->freeSize));
   CHECKS(PoolClass, class);
   return TRUE;
 }
@@ -114,6 +116,7 @@ ARG_DEFINE_KEY(min_size, Size);
 ARG_DEFINE_KEY(mean_size, Size);
 ARG_DEFINE_KEY(max_size, Size);
 ARG_DEFINE_KEY(align, Align);
+ARG_DEFINE_KEY(spare, double);
 ARG_DEFINE_KEY(interior, Bool);
 
 
@@ -517,9 +520,29 @@ void PoolFreeWalk(Pool pool, FreeBlockStepMethod f, void *p)
 }
 
 
+/* PoolTotalSize -- return total memory allocated from arena */
+
+Size PoolTotalSize(Pool pool)
+{
+  AVERT(Pool, pool);
+
+  return (*pool->class->totalSize)(pool);
+}
+
+
+/* PoolFreeSize -- return free memory (unused by client program) */
+
+Size PoolFreeSize(Pool pool)
+{
+  AVERT(Pool, pool);
+
+  return (*pool->class->freeSize)(pool);
+}
+
+
 /* PoolDescribe -- describe a pool */
 
-Res PoolDescribe(Pool pool, mps_lib_FILE *stream)
+Res PoolDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
 {
   Res res;
   Ring node, nextNode;
@@ -527,7 +550,7 @@ Res PoolDescribe(Pool pool, mps_lib_FILE *stream)
   if (!TESTT(Pool, pool)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
  
-  res = WriteF(stream,
+  res = WriteF(stream, depth,
                "Pool $P ($U) {\n", (WriteFP)pool, (WriteFU)pool->serial,
                "  class $P (\"$S\")\n",
                (WriteFP)pool->class, pool->class->name,
@@ -537,31 +560,31 @@ Res PoolDescribe(Pool pool, mps_lib_FILE *stream)
                NULL);
   if (res != ResOK) return res;
   if (NULL != pool->format) {
-    res = FormatDescribe(pool->format, stream);
+    res = FormatDescribe(pool->format, stream, depth + 2);
     if (res != ResOK) return res;
   }
-  res = WriteF(stream,
-               "  fillMutatorSize $UKb\n",
-                 (WriteFU)(pool->fillMutatorSize / 1024),
-               "  emptyMutatorSize $UKb\n",
-                 (WriteFU)(pool->emptyMutatorSize / 1024),
-               "  fillInternalSize $UKb\n",
-                 (WriteFU)(pool->fillInternalSize / 1024),
-               "  emptyInternalSize $UKb\n",
-                 (WriteFU)(pool->emptyInternalSize / 1024),
+  res = WriteF(stream, depth + 2,
+               "fillMutatorSize $UKb\n",
+               (WriteFU)(pool->fillMutatorSize / 1024),
+               "emptyMutatorSize $UKb\n",
+               (WriteFU)(pool->emptyMutatorSize / 1024),
+               "fillInternalSize $UKb\n",
+               (WriteFU)(pool->fillInternalSize / 1024),
+               "emptyInternalSize $UKb\n",
+               (WriteFU)(pool->emptyInternalSize / 1024),
                NULL);
   if (res != ResOK) return res;
 
-  res = (*pool->class->describe)(pool, stream);
+  res = (*pool->class->describe)(pool, stream, depth + 2);
   if (res != ResOK) return res;
 
   RING_FOR(node, &pool->bufferRing, nextNode) {
     Buffer buffer = RING_ELT(Buffer, poolRing, node);
-    res = BufferDescribe(buffer, stream);
+    res = BufferDescribe(buffer, stream, depth + 2);
     if (res != ResOK) return res;
   }
 
-  res = WriteF(stream,
+  res = WriteF(stream, depth,
                "} Pool $P ($U)\n", (WriteFP)pool, (WriteFU)pool->serial,
                NULL);
   if (res != ResOK) return res;

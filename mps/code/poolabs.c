@@ -145,6 +145,8 @@ DEFINE_CLASS(AbstractPoolClass, class)
   class->bufferClass = PoolNoBufferClass;
   class->describe = PoolTrivDescribe;
   class->debugMixin = PoolNoDebugMixin;
+  class->totalSize = PoolNoSize;
+  class->freeSize = PoolNoSize;
   class->labelled = FALSE;
   class->sig = PoolClassSig;
 }
@@ -290,11 +292,13 @@ void PoolTrivBufferEmpty(Pool pool, Buffer buffer, Addr init, Addr limit)
 }
 
 
-Res PoolTrivDescribe(Pool pool, mps_lib_FILE *stream)
+Res PoolTrivDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
 {
   AVERT(Pool, pool);
   AVER(stream != NULL);
-  return WriteF(stream, "  No class-specific description available.\n", NULL);
+  return WriteF(stream, depth,
+                "No class-specific description available.\n",
+                NULL);
 }
 
 
@@ -672,6 +676,14 @@ BufferClass PoolNoBufferClass(void)
 {
   NOTREACHED;
   return NULL;
+}
+
+
+Size PoolNoSize(Pool pool)
+{
+  AVERT(Pool, pool);
+  NOTREACHED;
+  return UNUSED_SIZE;
 }
 
 

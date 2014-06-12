@@ -147,7 +147,7 @@ static mps_addr_t test_awl_find_dependent(mps_addr_t addr)
 static void *root[rootCOUNT];
 
 static void test_trees(int mode, const char *name, mps_arena_t arena,
-                       mps_ap_t ap,
+                       mps_pool_t pool, mps_ap_t ap,
                        mps_word_t (*make)(mps_word_t, mps_ap_t),
                        void (*reg)(mps_word_t, mps_arena_t))
 {
@@ -158,7 +158,9 @@ static void test_trees(int mode, const char *name, mps_arena_t arena,
 
   object_count = 0;
 
-  printf("Making some %s finalized trees of objects.\n", name);
+  printf("---- Mode %s, pool class %s, %s trees ----\n",
+         mode == ModePARK ? "PARK" : "POLL",
+         pool->class->name, name);
   mps_arena_park(arena);
 
   /* make some trees */
@@ -167,7 +169,6 @@ static void test_trees(int mode, const char *name, mps_arena_t arena,
     (*reg)((mps_word_t)root[i], arena);
   }
 
-  printf("Losing all pointers to the trees.\n");
   /* clean out the roots */
   for(i = 0; i < rootCOUNT; ++i) {
     root[i] = 0;
@@ -190,9 +191,15 @@ static void test_trees(int mode, const char *name, mps_arena_t arena,
       object_alloc = 0;
       while (object_alloc < 1000 && !mps_message_poll(arena))
         (void)DYLAN_INT(object_alloc++);
+      printf(" Done.\n");
       break;
     }
     ++ collections;
+    {
+      size_t live_size = (object_count - finals) * sizeof(void *) * 3;
+      size_t alloc_size = mps_pool_total_size(pool) - mps_pool_free_size(pool);
+      Insist(live_size <= alloc_size);
+    }
     while (mps_message_poll(arena)) {
       mps_message_t message;
       mps_addr_t objaddr;
@@ -238,9 +245,9 @@ static void test_pool(int mode, mps_arena_t arena, mps_chain_t chain,
       "root_create\n");
   die(mps_ap_create(&ap, pool, mps_rank_exact()), "ap_create\n");
 
-  test_trees(mode, "numbered", arena, ap, make_numbered_tree,
+  test_trees(mode, "numbered", arena, pool, ap, make_numbered_tree,
              register_numbered_tree);
-  test_trees(mode, "indirect", arena, ap, make_indirect_tree,
+  test_trees(mode, "indirect", arena, pool, ap, make_indirect_tree,
              register_indirect_tree);
 
   mps_ap_destroy(ap);
