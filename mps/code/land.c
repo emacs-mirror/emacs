@@ -371,14 +371,14 @@ Res LandFindInZones(Bool *foundReturn, Range rangeReturn, Range oldRangeReturn, 
  * See <design/land/#function.describe>
  */
 
-Res LandDescribe(Land land, mps_lib_FILE *stream)
+Res LandDescribe(Land land, mps_lib_FILE *stream, Count depth)
 {
   Res res;
 
   if (!TESTT(Land, land)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
 
-  res = WriteF(stream,
+  res = WriteF(stream, depth,
                "Land $P {\n", (WriteFP)land,
                "  class $P", (WriteFP)land->class,
                " (\"$S\")\n", land->class->name,
@@ -389,11 +389,11 @@ Res LandDescribe(Land land, mps_lib_FILE *stream)
   if (res != ResOK)
     return res;
 
-  res = (*land->class->describe)(land, stream);
+  res = (*land->class->describe)(land, stream, depth + 2);
   if (res != ResOK)
     return res;
 
-  res = WriteF(stream, "} Land $P\n", (WriteFP)land, NULL);
+  res = WriteF(stream, depth, "} Land $P\n", (WriteFP)land, NULL);
   return ResOK;
 }
 
@@ -568,12 +568,13 @@ static Res landNoFindInZones(Bool *foundReturn, Range rangeReturn, Range oldRang
   return ResUNIMPL;
 }
 
-static Res landTrivDescribe(Land land, mps_lib_FILE *stream)
+static Res landTrivDescribe(Land land, mps_lib_FILE *stream, Count depth)
 {
   if (!TESTT(Land, land))
     return ResFAIL;
   if (stream == NULL)
     return ResFAIL;
+  UNUSED(depth);
   /* dispatching function does it all */
   return ResOK;
 }

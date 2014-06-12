@@ -638,7 +638,7 @@ static PoolDebugMixin MVFFDebugMixin(Pool pool)
 
 /* MVFFDescribe -- describe an MVFF pool */
 
-static Res MVFFDescribe(Pool pool, mps_lib_FILE *stream)
+static Res MVFFDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
 {
   Res res;
   MVFF mvff;
@@ -648,7 +648,7 @@ static Res MVFFDescribe(Pool pool, mps_lib_FILE *stream)
   if (!TESTT(MVFF, mvff)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
 
-  res = WriteF(stream,
+  res = WriteF(stream, depth,
                "MVFF $P {\n", (WriteFP)mvff,
                "  pool $P ($U)\n",
                (WriteFP)pool, (WriteFU)pool->serial,
@@ -656,24 +656,25 @@ static Res MVFFDescribe(Pool pool, mps_lib_FILE *stream)
                "  avgSize   $W\n",  (WriteFW)mvff->avgSize,
                "  firstFit  $U\n",  (WriteFU)mvff->firstFit,
                "  slotHigh  $U\n",  (WriteFU)mvff->slotHigh,
+               "  spare     $D\n",  (WriteFD)mvff->spare,
                NULL);
   if (res != ResOK) return res;
 
   /* TODO: SegPrefDescribe(MVFFSegPref(mvff), stream); */
 
-  res = PoolDescribe(MVFFBlockPool(mvff), stream);
+  /* Don't describe MVFFBlockPool(mvff) otherwise it'll appear twice
+   * in the output of GlobalDescribe. */
+
+  res = LandDescribe(MVFFTotalLand(mvff), stream, depth + 2);
   if (res != ResOK) return res;
 
-  res = LandDescribe(MVFFTotalLand(mvff), stream);
+  res = LandDescribe(MVFFFreePrimary(mvff), stream, depth + 2);
   if (res != ResOK) return res;
 
-  res = LandDescribe(MVFFFreePrimary(mvff), stream);
+  res = LandDescribe(MVFFFreeSecondary(mvff), stream, depth + 2);
   if (res != ResOK) return res;
 
-  res = LandDescribe(MVFFFreeSecondary(mvff), stream);
-  if (res != ResOK) return res;
-
-  res = WriteF(stream, "}\n", NULL);
+  res = WriteF(stream, depth, "} MVFF $P\n", (WriteFP)mvff, NULL);
   return res;
 }
 
