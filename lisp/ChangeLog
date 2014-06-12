@@ -1,3 +1,8 @@
+2014-06-12  Kevin Ryde  <user42_kevin@yahoo.com.au>
+
+	* files.el (auto-mode-alist): Map .ad files to xdefaults-mode
+	(bug#17745).
+
 2014-06-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* international/mule-cmds.el: Use lexical-binding.
