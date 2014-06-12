@@ -151,8 +151,8 @@ DEFINE_POOL_CLASS(MVTPoolClass, this)
 
 /* Macros */
 
-#define Pool2MVT(pool) PARENT(MVTStruct, poolStruct, pool)
-#define MVT2Pool(mvt) (&(mvt)->poolStruct)
+#define PoolMVT(pool) PARENT(MVTStruct, poolStruct, pool)
+#define MVTPool(mvt) (&(mvt)->poolStruct)
 
 
 /* Accessors */
@@ -233,7 +233,7 @@ static Res MVTInit(Pool pool, ArgList args)
   ArgStruct arg;
 
   AVERT(Pool, pool);
-  mvt = Pool2MVT(pool);
+  mvt = PoolMVT(pool);
   /* can't AVERT mvt, yet */
   arena = PoolArena(pool);
   AVERT(Arena, arena);
@@ -379,8 +379,8 @@ ATTRIBUTE_UNUSED
 static Bool MVTCheck(MVT mvt)
 {
   CHECKS(MVT, mvt);
-  CHECKD(Pool, &mvt->poolStruct);
-  CHECKL(mvt->poolStruct.class == MVTPoolClassGet());
+  CHECKD(Pool, MVTPool(mvt));
+  CHECKL(MVTPool(mvt)->class == MVTPoolClassGet());
   CHECKD(CBS, &mvt->cbsStruct);
   CHECKD(ABQ, &mvt->abqStruct);
   CHECKD(Freelist, &mvt->flStruct);
@@ -418,7 +418,7 @@ static void MVTFinish(Pool pool)
   Ring node, nextNode;
  
   AVERT(Pool, pool);
-  mvt = Pool2MVT(pool);
+  mvt = PoolMVT(pool);
   AVERT(MVT, mvt);
   arena = PoolArena(pool);
   AVERT(Arena, arena);
@@ -494,7 +494,7 @@ static Res MVTOversizeFill(Addr *baseReturn,
   Addr base, limit;
   Size alignedSize;
 
-  alignedSize = SizeAlignUp(minSize, ArenaAlign(PoolArena(MVT2Pool(mvt))));
+  alignedSize = SizeAlignUp(minSize, ArenaAlign(PoolArena(MVTPool(mvt))));
 
   res = MVTSegAlloc(&seg, mvt, alignedSize, withReservoirPermit);
   if (res != ResOK)
@@ -568,7 +568,7 @@ static void MVTOneSegOnly(Addr *baseIO, Addr *limitIO, MVT mvt, Size minSize)
   base = *baseIO;
   limit = *limitIO;
   
-  arena = PoolArena(MVT2Pool(mvt));
+  arena = PoolArena(MVTPool(mvt));
 
   SURELY(SegOfAddr(&seg, arena, base));
   segLimit = SegLimit(seg);
@@ -690,7 +690,7 @@ static Res MVTBufferFill(Addr *baseReturn, Addr *limitReturn,
   AVER(baseReturn != NULL);
   AVER(limitReturn != NULL);
   AVERT(Pool, pool);
-  mvt = Pool2MVT(pool);
+  mvt = PoolMVT(pool);
   AVERT(MVT, mvt);
   AVERT(Buffer, buffer);
   AVER(BufferIsReset(buffer));
@@ -782,7 +782,7 @@ static Bool MVTReserve(MVT mvt, Range range)
 
   /* See <design/poolmvt/#impl.c.free.merge> */
   if (!ABQPush(MVTABQ(mvt), range)) {
-    Arena arena = PoolArena(MVT2Pool(mvt));
+    Arena arena = PoolArena(MVTPool(mvt));
     RangeStruct oldRange;
     /* We just failed to push, so the ABQ must be full, and so surely
      * the peek will succeed. */
@@ -884,7 +884,7 @@ static void MVTBufferEmpty(Pool pool, Buffer buffer,
   Res res;
 
   AVERT(Pool, pool);
-  mvt = Pool2MVT(pool);
+  mvt = PoolMVT(pool);
   AVERT(MVT, mvt);
   AVERT(Buffer, buffer);
   AVER(BufferIsReady(buffer));
@@ -949,7 +949,7 @@ static void MVTFree(Pool pool, Addr base, Size size)
   Addr limit;
 
   AVERT(Pool, pool);
-  mvt = Pool2MVT(pool);
+  mvt = PoolMVT(pool);
   AVERT(MVT, mvt);
   AVER(base != (Addr)0);
   AVER(size > 0);
@@ -995,7 +995,7 @@ static Res MVTDescribe(Pool pool, mps_lib_FILE *stream)
   MVT mvt;
 
   if (!TESTT(Pool, pool)) return ResFAIL;
-  mvt = Pool2MVT(pool);
+  mvt = PoolMVT(pool);
   if (!TESTT(MVT, mvt)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
 
@@ -1100,7 +1100,7 @@ size_t mps_mvt_size(mps_pool_t mps_pool)
   pool = (Pool)mps_pool;
 
   AVERT(Pool, pool);
-  mvt = Pool2MVT(pool);
+  mvt = PoolMVT(pool);
   AVERT(MVT, mvt);
 
   return (size_t)mvt->size;
@@ -1118,7 +1118,7 @@ size_t mps_mvt_free_size(mps_pool_t mps_pool)
   pool = (Pool)mps_pool;
 
   AVERT(Pool, pool);
-  mvt = Pool2MVT(pool);
+  mvt = PoolMVT(pool);
   AVERT(MVT, mvt);
 
   return (size_t)mvt->available;
@@ -1137,7 +1137,7 @@ static Res MVTSegAlloc(Seg *segReturn, MVT mvt, Size size,
   /* Can't use plain old SegClass here because we need to call
    * SegBuffer() in MVTFree(). */
   Res res = SegAlloc(segReturn, SegClassGet(),
-                     SegPrefDefault(), size, MVT2Pool(mvt), withReservoirPermit,
+                     SegPrefDefault(), size, MVTPool(mvt), withReservoirPermit,
                      argsNone);
 
   if (res == ResOK) {
@@ -1306,7 +1306,7 @@ static Bool MVTContingencySearch(Addr *baseReturn, Addr *limitReturn,
   MVTContigencyClosureStruct cls;
 
   cls.mvt = mvt;
-  cls.arena = PoolArena(MVT2Pool(mvt));
+  cls.arena = PoolArena(MVTPool(mvt));
   cls.min = min;
   cls.steps = 0;
   cls.hardSteps = 0;
@@ -1363,7 +1363,7 @@ Land _mps_mvt_cbs(Pool pool) {
   MVT mvt;
 
   AVERT(Pool, pool);
-  mvt = Pool2MVT(pool);
+  mvt = PoolMVT(pool);
   AVERT(MVT, mvt);
 
   return MVTCBS(mvt);
