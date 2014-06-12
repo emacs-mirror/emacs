@@ -1,3 +1,18 @@
+2014-06-12  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in: Use GNU Make features to reduce duplication.
+	(mkinfodir): Remove.
+	(${buildinfodir}): Generate using an order-only prerequisite.
+	(.dvi.ps): Replace with pattern rule.
+	($INFO_TARGETS): Mark as PHONY.
+	(${buildinfodir}): New rule.
+	(EXTRA_OPTS, need_emacsver, need_emacsver_prefix): New variables.
+	(${buildinfodir}/%.info, %.dvi, %.pdf, %.html, %.ps):
+	New pattern rules, replacing numerous previous explicit rules.
+	(info_template): New definition.
+	(gnus.dvi, gnus.pdf): Use distinct intermediate files.
+	(mostlyclean): Adjust for above gnus change.
+
 2014-06-11  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (INFO_INSTALL): Update for 2013-08-28 DOCMISC_W32 change.
