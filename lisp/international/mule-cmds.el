@@ -1,4 +1,4 @@
-;;; mule-cmds.el --- commands for multilingual environment -*-coding: utf-8 -*-
+;;; mule-cmds.el --- commands for multilingual environment  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1997-2014 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
@@ -2909,16 +2909,14 @@ on encoding."
 (defun ucs-names ()
   "Return alist of (CHAR-NAME . CHAR-CODE) pairs cached in `ucs-names'."
   (or ucs-names
-      (let ((bmp-ranges
+      (let ((ranges
 	     '((#x0000 . #x33FF)
 	       ;; (#x3400 . #x4DBF) CJK Ideographs Extension A
 	       (#x4DC0 . #x4DFF)
 	       ;; (#x4E00 . #x9FFF) CJK Unified Ideographs
 	       (#xA000 . #xD7FF)
 	       ;; (#xD800 . #xFAFF) Surrogate/Private
-	       (#xFB00 . #xFFFD)))
-	    (upper-ranges
-	     '((#x10000 . #x134FF)
+	       (#xFB00 . #x134FF)
 	       ;; (#x13500 . #x167FF) unused
 	       (#x16800 . #x16A3F)
 	       ;; (#x16A40 . #x1AFFF) unused
@@ -2928,23 +2926,20 @@ on encoding."
 	       ;; (#x20000 . #xDFFFF) CJK Ideograph Extension A, B, etc, unused
 	       (#xE0000 . #xE01FF)))
 	    (gc-cons-threshold 10000000)
-	    c end name names)
-        (dolist (range bmp-ranges)
-          (setq c (car range)
-                end (cdr range))
+	    names)
+	(dolist (range ranges)
+	  (let ((c (car range))
+		(end (cdr range)))
 	  (while (<= c end)
-	    (if (setq name (get-char-code-property c 'name))
-		(push (cons name c) names))
-	    (if (setq name (get-char-code-property c 'old-name))
-		(push (cons name c) names))
-	    (setq c (1+ c))))
-        (dolist (range upper-ranges)
-          (setq c (car range)
-                end (cdr range))
-	  (while (<= c end)
-	    (if (setq name (get-char-code-property c 'name))
-		(push (cons name c) names))
-	    (setq c (1+ c))))
+	      (let ((new-name (get-char-code-property c 'name))
+		    (old-name (get-char-code-property c 'old-name)))
+		;; In theory this code could end up pushing an "old-name" that
+		;; shadows a "new-name" but in practice every time an
+		;; `old-name' conflicts with a `new-name', the newer one has a
+		;; higher code, so it gets pushed later!
+		(if new-name (push (cons new-name c) names))
+		(if old-name (push (cons old-name c) names))
+		(setq c (1+ c))))))
 	;; Special case for "BELL" which is apparently the only char which
 	;; doesn't have a new name and whose old-name is shadowed by a newer
 	;; char with that name.

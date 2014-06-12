@@ -1,3 +1,8 @@
+2014-06-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* international/mule-cmds.el: Use lexical-binding.
+	(ucs-names): Simplify.
+
 2014-05-18  Eric Hanchrow  <eric.hanchrow@gmail.com>
 
 	* progmodes/python.el (run-python): Use read-shell-command.
