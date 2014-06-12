@@ -1,3 +1,7 @@
+2014-06-12  Cameron Desautels  <camdez@gmail.com>  (tiny change)
+
+	* help.el (where-is): Use `default' arg of completing-read (bug#17705).
+
 2014-06-12  Kevin Ryde  <user42_kevin@yahoo.com.au>
 
 	* files.el (auto-mode-alist): Map .ad files to xdefaults-mode
