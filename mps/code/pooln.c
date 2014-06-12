@@ -304,8 +304,8 @@ PoolClass PoolClassN(void)
 Bool PoolNCheck(PoolN poolN)
 {
   CHECKL(poolN != NULL);
-  CHECKD(Pool, &poolN->poolStruct);
-  CHECKL(poolN->poolStruct.class == EnsureNPoolClass());
+  CHECKD(Pool, PoolNPool(poolN));
+  CHECKL(PoolNPool(poolN)->class == EnsureNPoolClass());
   UNUSED(poolN); /* <code/mpm.c#check.unused> */
 
   return TRUE;

@@ -14,7 +14,7 @@ SRCID(freelist, "$Id$");
 
 
 #define freelistOfLand(land) PARENT(FreelistStruct, landStruct, land)
-#define freelistAlignment(fl) LandAlignment(&(fl)->landStruct)
+#define freelistAlignment(fl) LandAlignment(FreelistLand(fl))
 
 
 typedef union FreelistBlockUnion {
@@ -171,7 +171,7 @@ Bool FreelistCheck(Freelist fl)
 {
   Land land;
   CHECKS(Freelist, fl);
-  land = &fl->landStruct;
+  land = FreelistLand(fl);
   CHECKD(Land, land);
   /* See <design/freelist/#impl.grain.align> */
   CHECKL(AlignIsAligned(freelistAlignment(fl), FreelistMinimumAlignment));

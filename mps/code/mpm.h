@@ -661,7 +661,6 @@ extern Bool SegOfAddr(Seg *segReturn, Arena arena, Addr addr);
 extern Bool SegFirst(Seg *segReturn, Arena arena);
 extern Bool SegNext(Seg *segReturn, Arena arena, Seg seg);
 extern Bool SegNextOfRing(Seg *segReturn, Arena arena, Pool pool, Ring next);
-extern Bool SegFindAboveAddr(Seg *segReturn, Arena arena, Addr addr);
 extern void SegSetWhite(Seg seg, TraceSet white);
 extern void SegSetGrey(Seg seg, TraceSet grey);
 extern void SegSetRankSet(Seg seg, RankSet rankSet);
