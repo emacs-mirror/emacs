@@ -333,7 +333,7 @@ static Size MFSFreeSize(Pool pool)
 }
 
 
-static Res MFSDescribe(Pool pool, mps_lib_FILE *stream)
+static Res MFSDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
 {
   MFS mfs;
   Res res;
@@ -344,12 +344,12 @@ static Res MFSDescribe(Pool pool, mps_lib_FILE *stream)
 
   AVER(stream != NULL);
 
-  res = WriteF(stream,
-               "  unrounded unit size $W\n", (WriteFW)mfs->unroundedUnitSize,
-               "  unit size $W\n",           (WriteFW)mfs->unitSize,
-               "  extent size $W\n",         (WriteFW)mfs->extendBy,
-               "  free list begins at $P\n", (WriteFP)mfs->freeList,
-               "  tract list begin at $P\n", (WriteFP)mfs->tractList,
+  res = WriteF(stream, depth,
+               "unrounded unit size $W\n", (WriteFW)mfs->unroundedUnitSize,
+               "unit size $W\n",           (WriteFW)mfs->unitSize,
+               "extent size $W\n",         (WriteFW)mfs->extendBy,
+               "free list begins at $P\n", (WriteFP)mfs->freeList,
+               "tract list begin at $P\n", (WriteFP)mfs->tractList,
                NULL);
   if(res != ResOK) return res;
 
@@ -392,14 +392,14 @@ Bool MFSCheck(MFS mfs)
   Arena arena;
 
   CHECKS(MFS, mfs);
-  CHECKD(Pool, &mfs->poolStruct);
-  CHECKL(mfs->poolStruct.class == EnsureMFSPoolClass());
+  CHECKD(Pool, MFSPool(mfs));
+  CHECKL(MFSPool(mfs)->class == EnsureMFSPoolClass());
   CHECKL(mfs->unitSize >= UNIT_MIN);
   CHECKL(mfs->extendBy >= UNIT_MIN);
   CHECKL(BoolCheck(mfs->extendSelf));
-  arena = PoolArena(&mfs->poolStruct);
+  arena = PoolArena(MFSPool(mfs));
   CHECKL(SizeIsAligned(mfs->extendBy, ArenaAlign(arena)));
-  CHECKL(SizeAlignUp(mfs->unroundedUnitSize, mfs->poolStruct.alignment) ==
+  CHECKL(SizeAlignUp(mfs->unroundedUnitSize, PoolAlignment(MFSPool(mfs))) ==
          mfs->unitSize);
   if(mfs->tractList != NULL) {
     CHECKD_NOSIG(Tract, mfs->tractList);

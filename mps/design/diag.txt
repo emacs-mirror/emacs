@@ -77,21 +77,23 @@ There are two mechanism for getting diagnostic output:
         (gdb) frame 12
         #12 0x000000010000b1fc in MVTFree (pool=0x103ffe160, base=0x101dfd000, size=5024) at poolmv2.c:711
         711	    Res res = CBSInsert(MVTCBS(mvt), base, limit);
-        (gdb) p MVTDescribe(mvt, mps_lib_get_stdout())
-        MVT 0000000103FFE160
-        {
-          minSize: 8 
-          meanSize: 42 
-          maxSize: 8192 
-          fragLimit: 30 
-          reuseSize: 16384 
-          fillSize: 8192 
-          availLimit: 1110835 
-          abqOverflow: FALSE 
-          splinter: TRUE 
-          splinterSeg: 0000000103FEE780 
-          splinterBase: 0000000101D7ABB8 
-          splinterLimit: 0000000101D7B000 
+        (gdb) p MVTDescribe(mvt, mps_lib_get_stdout(), 0)
+        MVT 0000000103FFE160 {
+          minSize: 8
+          meanSize: 42
+          maxSize: 8192
+          fragLimit: 30
+          reuseSize: 16384
+          fillSize: 8192
+          availLimit: 90931
+          abqOverflow: FALSE
+          splinter: TRUE
+          splinterBase: 0000000106192FF0
+          splinterLimit: 0000000106193000
+          size: 303104
+          allocated: 262928
+          available: 40176
+          unavailable: 0
           # ... etc ...
         }
 
