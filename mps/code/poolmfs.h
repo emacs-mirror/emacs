@@ -2,7 +2,7 @@
  *
  *  $Id$
  *
- *  Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ *  Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
  *  The MFS pool is used to manage small fixed-size chunks of memory.  It
  *  stores control structures in the memory it manages, rather than to one
@@ -39,14 +39,6 @@ extern Bool MFSCheck(MFS mfs);
 extern Pool (MFSPool)(MFS mfs);
 
 
-typedef const struct MFSInfoStruct *MFSInfo;
-
-struct MFSInfoStruct {
-  Size unitSizeMin;             /* minimum unit size */
-};
-
-extern MFSInfo MFSGetInfo(void);
-
 extern const struct mps_key_s _mps_key_MFSExtendSelf;
 #define MFSExtendSelf (&_mps_key_MFSExtendSelf)
 #define MFSExtendSelf_FIELD b
@@ -63,7 +55,7 @@ extern void MFSFinishTracts(Pool pool, MFSTractVisitor visitor,
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

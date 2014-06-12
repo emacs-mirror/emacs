@@ -149,17 +149,6 @@ static void init(void)
 }
 
 
-/* finish -- finish roots and chain */
-
-static void finish(void)
-{
-  mps_root_destroy(exactRoot);
-  mps_root_destroy(ambigRoot);
-  mps_chain_destroy(chain);
-  mps_fmt_destroy(format);
-}
-
-
 /* churn -- create an object and install into roots */
 
 static void churn(mps_ap_t ap, size_t roots_count)
@@ -218,7 +207,7 @@ static void *kid_thread(void *arg)
 
 /* test -- the body of the test */
 
-static void *test_pool(mps_class_t pool_class, size_t roots_count, int mode)
+static void test_pool(mps_pool_t pool, size_t roots_count, int mode)
 {
   size_t i;
   mps_word_t collections, rampSwitch;
@@ -226,13 +215,9 @@ static void *test_pool(mps_class_t pool_class, size_t roots_count, int mode)
   int ramping;
   mps_ap_t ap, busy_ap;
   mps_addr_t busy_init;
-  mps_pool_t pool;
   testthr_t kids[10];
   closure_s cl;
   int walked = FALSE, ramped = FALSE;
-
-  die(mps_pool_create(&pool, arena, pool_class, format, chain),
-      "pool_create(amc)");
 
   cl.pool = pool;
   cl.roots_count = roots_count;
@@ -252,7 +237,7 @@ static void *test_pool(mps_class_t pool_class, size_t roots_count, int mode)
   die(mps_ap_alloc_pattern_begin(busy_ap, ramp), "pattern begin (busy_ap)");
   ramping = 1;
   while (collections < collectionsCOUNT) {
-    unsigned long c;
+    mps_word_t c;
     size_t r;
 
     c = mps_collections(arena);
@@ -260,7 +245,7 @@ static void *test_pool(mps_class_t pool_class, size_t roots_count, int mode)
     if (collections != c) {
       collections = c;
       printf("\nCollection %lu started, %lu objects, committed=%lu.\n",
-             c, objs, (unsigned long)mps_arena_committed(arena));
+             (unsigned long)c, objs, (unsigned long)mps_arena_committed(arena));
       report(arena);
 
       for (i = 0; i < exactRootsCOUNT; ++i)
@@ -323,16 +308,13 @@ static void *test_pool(mps_class_t pool_class, size_t roots_count, int mode)
 
   for (i = 0; i < sizeof(kids)/sizeof(kids[0]); ++i)
     testthr_join(&kids[i], NULL);
-
-  mps_pool_destroy(pool);
-
-  return NULL;
 }
 
 static void test_arena(int mode)
 {
   mps_thr_t thread;
   mps_root_t reg_root;
+  mps_pool_t amc_pool, amcz_pool;
   void *marker = &marker;
 
   die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
@@ -345,12 +327,23 @@ static void test_arena(int mode)
   die(mps_root_create_reg(&reg_root, arena, mps_rank_ambig(), 0, thread,
                           mps_stack_scan_ambig, marker, 0), "root_create");
 
-  test_pool(mps_class_amc(), exactRootsCOUNT, mode);
-  test_pool(mps_class_amcz(), 0, mode);
+  die(mps_pool_create(&amc_pool, arena, mps_class_amc(), format, chain),
+      "pool_create(amc)");
+  die(mps_pool_create(&amcz_pool, arena, mps_class_amcz(), format, chain),
+      "pool_create(amcz)");
 
+  test_pool(amc_pool, exactRootsCOUNT, mode);
+  test_pool(amcz_pool, 0, mode);
+
+  mps_arena_park(arena);
+  mps_pool_destroy(amc_pool);
+  mps_pool_destroy(amcz_pool);
   mps_root_destroy(reg_root);
   mps_thread_dereg(thread);
-  finish();
+  mps_root_destroy(exactRoot);
+  mps_root_destroy(ambigRoot);
+  mps_chain_destroy(chain);
+  mps_fmt_destroy(format);
   report(arena);
   mps_arena_destroy(arena);
 }

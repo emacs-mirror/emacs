@@ -41,7 +41,7 @@ CFLAGSCOMPILERLAX :=
 # If interrupted, this is liable to leave a zero-length file behind.
 
 define gendep
-	$(SHELL) -ec "$(CC) $(CFLAGS) -MM $< | \
+	$(SHELL) -ec "$(CC) $(CFLAGSSTRICT) -MM $< | \
 		sed '/:/s!$*.o!$(@D)/& $(@D)/$*.d!' > $@"
 	[ -s $@ ] || rm -f $@
 endef

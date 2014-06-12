@@ -44,9 +44,6 @@
 #if !defined(MPS_OS_LI) && !defined(MPS_OS_FR) && !defined(MPS_OS_XC)
 #error "protix.c is Unix-specific, currently for MPS_OS_LI FR XC"
 #endif
-#ifndef PROTECTION
-#error "protix.c implements protection, but PROTECTION is not set"
-#endif
 
 #include <limits.h>
 #include <stddef.h>

@@ -309,9 +309,12 @@ void SegSetSummary(Seg seg, RefSet summary)
   AVERT(Seg, seg);
   AVER(summary == RefSetEMPTY || SegRankSet(seg) != RankSetEMPTY);
 
-#ifdef PROTECTION_NONE
+#if defined(REMEMBERED_SET_NONE)
+  /* Without protection, we can't maintain the remembered set because
+     there are writes we don't know about. */
   summary = RefSetUNIV;
 #endif
+
   if (summary != SegSummary(seg))
     seg->class->setSummary(seg, summary);
 }
@@ -324,11 +327,12 @@ void SegSetRankAndSummary(Seg seg, RankSet rankSet, RefSet summary)
   AVERT(Seg, seg); 
   AVERT(RankSet, rankSet);
 
-#ifdef PROTECTION_NONE
+#if defined(REMEMBERED_SET_NONE)
   if (rankSet != RankSetEMPTY) {
     summary = RefSetUNIV;
   }
 #endif
+
   seg->class->setRankSummary(seg, rankSet, summary);
 }
 
@@ -638,6 +642,10 @@ Res SegSplit(Seg *segLoReturn, Seg *segHiReturn, Seg seg, Addr at,
   AVER(at < limit);
   AVERT(Bool, withReservoirPermit);
 
+  /* Can only split a buffered segment if the entire buffer is below
+   * the split point. */
+  AVER(SegBuffer(seg) == NULL || BufferLimit(SegBuffer(seg)) <= at);
+
   ShieldFlush(arena);  /* see <design/seg/#split-merge.shield> */
 
   /* Allocate the new segment object from the control pool */
@@ -736,8 +744,6 @@ Bool SegCheck(Seg seg)
     CHECKL(seg->sm == AccessSetEMPTY);
     CHECKL(seg->pm == AccessSetEMPTY);
   } else {
-    /* Segments with ranks may only belong to scannable pools. */
-    CHECKL(PoolHasAttr(pool, AttrSCAN));
     /* <design/seg/#field.rankSet.single>: The Tracer only permits */
     /* one rank per segment [ref?] so this field is either empty or a */
     /* singleton. */

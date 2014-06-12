@@ -255,8 +255,8 @@ static void test_mode(int mode, mps_arena_t arena, mps_chain_t chain)
   test_pool(mode, arena, chain, mps_class_amc());
   test_pool(mode, arena, chain, mps_class_amcz());
   test_pool(mode, arena, chain, mps_class_ams());
-  /* test_pool(mode, arena, chain, mps_class_lo()); TODO: job003773 */
-  /* test_pool(mode, arena, chain, mps_class_awl()); TODO: job003772 */
+  test_pool(mode, arena, chain, mps_class_awl());
+  test_pool(mode, arena, chain, mps_class_lo());
 }
 
 
@@ -284,6 +284,7 @@ int main(int argc, char *argv[])
   test_mode(ModePOLL, arena, chain);
   test_mode(ModePARK, arena, NULL);
 
+  mps_arena_park(arena);
   mps_chain_destroy(chain);
   mps_thread_dereg(thread);
   mps_arena_destroy(arena);

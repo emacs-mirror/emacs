@@ -16,9 +16,6 @@
 #ifndef MPS_OS_LI
 #error "protli.c is Linux-specific, but MPS_OS_LI is not set"
 #endif
-#ifndef PROTECTION
-#error "protli.c implements protection, but PROTECTION is not set"
-#endif
 
 #include <limits.h>
 #include <stddef.h>

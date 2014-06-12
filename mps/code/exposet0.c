@@ -222,6 +222,7 @@ static void *test(void *arg, size_t s)
   }
 
   (void)mps_commit(busy_ap, busy_init, 64);
+  mps_arena_park(arena);
   mps_ap_destroy(busy_ap);
   mps_ap_destroy(ap);
   mps_root_destroy(exactRoot);
@@ -244,7 +245,7 @@ int main(int argc, char *argv[])
   die(mps_arena_create(&arena, mps_arena_class_vm(), 2*testArenaSIZE),
       "arena_create");
   mps_message_type_enable(arena, mps_message_type_gc());
-  die(mps_arena_commit_limit_set(arena, testArenaSIZE), "set limit");
+  die(mps_arena_commit_limit_set(arena, 2*testArenaSIZE), "set limit");
   die(mps_thread_reg(&thread, arena), "thread_reg");
   mps_tramp(&r, test, arena, 0);
   mps_thread_dereg(thread);

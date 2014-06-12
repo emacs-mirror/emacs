@@ -179,6 +179,7 @@ static void test(void)
  mps_arena_release(arena);
  comment("released.");
 
+ mps_arena_park(arena);
  mps_ap_destroy(apamc);
  mps_pool_destroy(poolamc);
  mps_chain_destroy(chain);

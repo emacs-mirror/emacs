@@ -41,7 +41,6 @@ typedef Res (*AMSSegSizePolicyFunction)(Size *sizeReturn,
 typedef struct AMSStruct {
   PoolStruct poolStruct;       /* generic pool structure */
   Shift grainShift;            /* log2 of grain size */
-  Chain chain;                 /* chain used by this pool */
   PoolGenStruct pgen;          /* generation representing the pool */
   Size size;                   /* total segment size of the pool */
   AMSSegSizePolicyFunction segSize; /* SegSize policy */
@@ -58,9 +57,10 @@ typedef struct AMSSegStruct {
   GCSegStruct gcSegStruct;  /* superclass fields must come first */
   AMS ams;               /* owning ams */
   RingStruct segRing;    /* ring that this seg belongs to */
-  Count grains;          /* number of grains */
-  Count free;            /* number of free grains */
-  Count newAlloc;        /* number of grains allocated since last GC */
+  Count grains;          /* total grains */
+  Count freeGrains;      /* free grains */
+  Count oldGrains;       /* grains allocated prior to last collection */
+  Count newGrains;       /* grains allocated since last collection */
   Bool allocTableInUse;  /* allocTable is used */
   Index firstFree;       /* 1st free grain, if allocTable is not used */
   BT allocTable;         /* set if grain is allocated */

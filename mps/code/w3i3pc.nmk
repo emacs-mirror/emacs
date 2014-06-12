@@ -7,12 +7,21 @@ PFM = w3i3pc
 
 PFMDEFS = /DCONFIG_PF_STRING="w3i3pc" /DCONFIG_PF_W3I3PC /DWIN32 /D_WINDOWS
 
+# MPM platform-specific sources.
+MPMPF = \
+    <lockw3> \
+    <mpsiw3> \
+    <prmci3w3> \
+    <proti3> \
+    <protw3> \
+    <spw3i3> \
+    <ssw3i3pc> \
+    <thw3> \
+    <thw3i3> \
+    <vmw3>
+
 !INCLUDE commpre.nmk
 !INCLUDE pc.nmk
-
-# MPM sources: core plus platform-specific.
-MPM = $(MPMCOMMON) <proti3> <prmci3w3> <spw3i3> <ssw3i3pc> <thw3i3>
-
 
 
 # Source to object file mappings and CFLAGS amalgamation
@@ -32,17 +41,11 @@ CFLAGSSQL=$(CFLAGSSQLPRE) $(CFHOT) $(CFLAGSSQLPOST)
 LINKFLAGS=$(LINKFLAGSCOMMON) $(LFHOT)
 LIBFLAGS=$(LIBFLAGSCOMMON) $(LIBFLAGSHOT)
 MPMOBJ0 = $(MPM:<=w3i3pc\hot\)
-PLINTHOBJ0 = $(PLINTH:<=w3i3pc\hot\)
-AMSOBJ0 = $(AMS:<=w3i3pc\hot\)
-AMCOBJ0 = $(AMC:<=w3i3pc\hot\)
-AWLOBJ0 = $(AWL:<=w3i3pc\hot\)
-LOOBJ0 = $(LO:<=w3i3pc\hot\)
-SNCOBJ0 = $(SNC:<=w3i3pc\hot\)
-MVFFOBJ0 = $(MVFF:<=w3i3pc\hot\)
-DWOBJ0 = $(DW:<=w3i3pc\hot\)
+FMTDYOBJ0 = $(FMTDY:<=w3i3pc\hot\)
 FMTTESTOBJ0 = $(FMTTEST:<=w3i3pc\hot\)
 POOLNOBJ0 = $(POOLN:<=w3i3pc\hot\)
 TESTLIBOBJ0 = $(TESTLIB:<=w3i3pc\hot\)
+TESTTHROBJ0 = $(TESTTHR:<=w3i3pc\hot\)
 
 !ELSEIF "$(VARIETY)" == "cool"
 CFLAGS=$(CFLAGSCOMMONPRE) $(CFCOOL) $(CFLAGSCOMMONPOST)
@@ -50,17 +53,11 @@ CFLAGSSQL=$(CFLAGSSQLPRE) $(CFCOOL) $(CFLAGSSQLPOST)
 LINKFLAGS=$(LINKFLAGSCOMMON) $(LFCOOL)
 LIBFLAGS=$(LIBFLAGSCOMMON) $(LIBFLAGSCOOL)
 MPMOBJ0 = $(MPM:<=w3i3pc\cool\)
-PLINTHOBJ0 = $(PLINTH:<=w3i3pc\cool\)
-AMSOBJ0 = $(AMS:<=w3i3pc\cool\)
-AMCOBJ0 = $(AMC:<=w3i3pc\cool\)
-AWLOBJ0 = $(AWL:<=w3i3pc\cool\)
-LOOBJ0 = $(LO:<=w3i3pc\cool\)
-SNCOBJ0 = $(SNC:<=w3i3pc\cool\)
-MVFFOBJ0 = $(MVFF:<=w3i3pc\cool\)
-DWOBJ0 = $(DW:<=w3i3pc\cool\)
+FMTDYOBJ0 = $(FMTDY:<=w3i3pc\cool\)
 FMTTESTOBJ0 = $(FMTTEST:<=w3i3pc\cool\)
 POOLNOBJ0 = $(POOLN:<=w3i3pc\cool\)
 TESTLIBOBJ0 = $(TESTLIB:<=w3i3pc\cool\)
+TESTTHROBJ0 = $(TESTTHR:<=w3i3pc\cool\)
 
 !ELSEIF "$(VARIETY)" == "rash"
 CFLAGS=$(CFLAGSCOMMONPRE) $(CFRASH) $(CFLAGSCOMMONPOST)
@@ -68,42 +65,11 @@ CFLAGSSQL=$(CFLAGSSQLPRE) $(CFRASH) $(CFLAGSSQLPOST)
 LINKFLAGS=$(LINKFLAGSCOMMON) $(LFRASH)
 LIBFLAGS=$(LIBFLAGSCOMMON) $(LIBFLAGSRASH)
 MPMOBJ0 = $(MPM:<=w3i3pc\rash\)
-PLINTHOBJ0 = $(PLINTH:<=w3i3pc\rash\)
-AMSOBJ0 = $(AMS:<=w3i3pc\rash\)
-AMCOBJ0 = $(AMC:<=w3i3pc\rash\)
-AWLOBJ0 = $(AWL:<=w3i3pc\rash\)
-LOOBJ0 = $(LO:<=w3i3pc\rash\)
-SNCOBJ0 = $(SNC:<=w3i3pc\rash\)
-MVFFOBJ0 = $(MVFF:<=w3i3pc\rash\)
-DWOBJ0 = $(DW:<=w3i3pc\rash\)
+FMTDYOBJ0 = $(FMTDY:<=w3i3pc\rash\)
 FMTTESTOBJ0 = $(FMTTEST:<=w3i3pc\rash\)
 POOLNOBJ0 = $(POOLN:<=w3i3pc\rash\)
 TESTLIBOBJ0 = $(TESTLIB:<=w3i3pc\rash\)
-
-#!ELSEIF "$(VARIETY)" == "cv"
-#CFLAGS=$(CFLAGSCOMMON) $(CFCV)
-#LINKFLAGS=$(LINKFLAGSCOMMON) $(LFCV)
-#LIBFLAGS=$(LIBFLAGSCOMMON) $(LIBFLAGSCV)
-#MPMOBJ0 = $(MPM:<=w3i3pc\cv\)
-#MPMOBJ = $(MPMOBJ0:>=.obj)
-#PLINTHOBJ0 = $(PLINTH:<=w3i3pc\cv\)
-#PLINTHOBJ = $(PLINTHOBJ0:>=.obj)
-#AMSOBJ0 = $(AMS:<=w3i3pc\cv\)
-#AMSOBJ = $(AMSOBJ0:>=.obj)
-#AMCOBJ0 = $(AMC:<=w3i3pc\cv\)
-#AMCOBJ = $(AMCOBJ0:>=.obj)
-#AWLOBJ0 = $(AWL:<=w3i3pc\cv\)
-#AWLOBJ = $(AWLOBJ0:>=.obj)
-#LOOBJ0 = $(LO:<=w3i3pc\cv\)
-#LOOBJ = $(LOOBJ0:>=.obj)
-#SNCOBJ0 = $(SNC:<=w3i3pc\cv\)
-#SNCOBJ = $(SNCOBJ0:>=.obj)
-#DWOBJ0 = $(DW:<=w3i3pc\cv\)
-#DWOBJ = $(DWOBJ0:>=.obj)
-#POOLNOBJ0 = $(POOLN:<=w3i3pc\cv\)
-#POOLNOBJ = $(POOLNOBJ0:>=.obj)
-#TESTLIBOBJ0 = $(TESTLIB:<=w3i3pc\cv\)
-#TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
+TESTTHROBJ0 = $(TESTTHR:<=w3i3pc\rash\)
 
 !ENDIF
 
@@ -111,17 +77,11 @@ TESTLIBOBJ0 = $(TESTLIB:<=w3i3pc\rash\)
 # files included in the part
 
 MPMOBJ = $(MPMOBJ0:>=.obj)
-PLINTHOBJ = $(PLINTHOBJ0:>=.obj)
-AMSOBJ = $(AMSOBJ0:>=.obj)
-AMCOBJ = $(AMCOBJ0:>=.obj)
-AWLOBJ = $(AWLOBJ0:>=.obj)
-LOOBJ = $(LOOBJ0:>=.obj)
-SNCOBJ = $(SNCOBJ0:>=.obj)
-MVFFOBJ = $(MVFFOBJ0:>=.obj)
-DWOBJ = $(DWOBJ0:>=.obj)
+FMTDYOBJ = $(FMTDYOBJ0:>=.obj)
 FMTTESTOBJ = $(FMTTESTOBJ0:>=.obj)
 POOLNOBJ = $(POOLNOBJ0:>=.obj)
 TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
+TESTTHROBJ = $(TESTTHROBJ0:>=.obj)
 
 
 !INCLUDE commpost.nmk

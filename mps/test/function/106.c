@@ -102,6 +102,7 @@ static void test(void)
   c = conc(string_ch("Hello there"), string_ch(" folks!"));
  }
 
+ mps_arena_park(arena);
  mps_ap_destroy(ap);
  mps_pool_destroy(pool);
  mps_chain_destroy(chain);
