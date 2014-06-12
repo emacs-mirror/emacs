@@ -1,3 +1,7 @@
+2014-05-18  Eric Hanchrow  <eric.hanchrow@gmail.com>
+
+	* progmodes/python.el (run-python): Use read-shell-command.
+
 2014-06-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* rect.el: Make it possible to move bounds past EOL or into TABs.
