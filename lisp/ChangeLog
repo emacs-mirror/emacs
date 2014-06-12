@@ -1,3 +1,8 @@
+2014-06-12  Matthias Meulien  <orontee@gmail.com>
+
+	* progmodes/python.el (class skeleton): Don't erase last char of class
+	name (bug#17683).
+
 2014-06-12  Cameron Desautels  <camdez@gmail.com>  (tiny change)
 
 	* help.el (where-is): Use `default' arg of completing-read (bug#17705).

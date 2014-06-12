@@ -2983,7 +2983,7 @@ The skeleton will be bound to python-skeleton-NAME."
   "class " str "(" ("Inheritance, %s: "
                     (unless (equal ?\( (char-before)) ", ")
                     str)
-  & ")" | -2
+  & ")" | -1
   ":" \n
   "\"\"\"" - "\"\"\"" \n
   > _ \n)
