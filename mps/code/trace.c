@@ -1286,7 +1286,13 @@ mps_res_t _mps_fix2(mps_ss_t mps_ss, mps_addr_t *mps_ref_io)
    * but inlined so that we can distinguish between "not pointing to
    * chunk" and "pointing to chunk but not to tract" so that we can
    * check the rank in the latter case. See
-   * <design/trace/#fix.tractofaddr.inline> */
+   * <design/trace/#fix.tractofaddr.inline>
+   *
+   * If compilers fail to do a good job of inlining ChunkOfAddr and
+   * TreeFind then it may become necessary to inline at least the
+   * comparison against the root of the tree. See
+   * <https://info.ravenbrook.com/mail/2014/06/11/13-32-08/0/>
+   */
   if (!ChunkOfAddr(&chunk, ss->arena, ref))
     /* Reference points outside MPS-managed address space: ignore. */
     goto done;
