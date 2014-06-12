@@ -30,7 +30,7 @@ static void arenaFreePage(Arena arena, Addr base, Pool pool);
 
 /* ArenaTrivDescribe -- produce trivial description of an arena */
 
-static Res ArenaTrivDescribe(Arena arena, mps_lib_FILE *stream)
+static Res ArenaTrivDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
 {
   if (!TESTT(Arena, arena)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
@@ -47,8 +47,8 @@ static Res ArenaTrivDescribe(Arena arena, mps_lib_FILE *stream)
    * subclass describe method should avoid invoking 
    * ARENA_SUPERCLASS()->describe.  RHSK 2007-04-27.
    */
-  return WriteF(stream,
-    "  No class-specific description available.\n", NULL);
+  return WriteF(stream, depth,
+                "  No class-specific description available.\n", NULL);
 }
 
 
@@ -431,7 +431,7 @@ void ControlFinish(Arena arena)
 
 /* ArenaDescribe -- describe the arena */
 
-Res ArenaDescribe(Arena arena, mps_lib_FILE *stream)
+Res ArenaDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
 {
   Res res;
   Size reserved;
@@ -439,58 +439,57 @@ Res ArenaDescribe(Arena arena, mps_lib_FILE *stream)
   if (!TESTT(Arena, arena)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
 
-  res = WriteF(stream, "Arena $P {\n", (WriteFP)arena,
+  res = WriteF(stream, depth, "Arena $P {\n", (WriteFP)arena,
                "  class $P (\"$S\")\n",
                (WriteFP)arena->class, arena->class->name,
                NULL);
   if (res != ResOK) return res;
 
   if (arena->poolReady) {
-    res = WriteF(stream,
-                 "  controlPool $P\n", (WriteFP)&arena->controlPoolStruct,
+    res = WriteF(stream, depth + 2,
+                 "controlPool $P\n", (WriteFP)&arena->controlPoolStruct,
                  NULL);
     if (res != ResOK) return res;
   }
 
   /* Note: this Describe clause calls a function */
   reserved = ArenaReserved(arena);
-  res = WriteF(stream,
-               "  reserved         $W  <-- "
+  res = WriteF(stream, depth + 2,
+               "reserved         $W  <-- "
                "total size of address-space reserved\n",
                (WriteFW)reserved,
                NULL);
   if (res != ResOK) return res;
 
-  res = WriteF(stream,
-               "  committed        $W  <-- "
+  res = WriteF(stream, depth + 2,
+               "committed        $W  <-- "
                "total bytes currently stored (in RAM or swap)\n",
                (WriteFW)arena->committed,
-               "  commitLimit      $W\n", (WriteFW)arena->commitLimit,
-               "  spareCommitted   $W\n", (WriteFW)arena->spareCommitted,
-               "  spareCommitLimit $W\n", (WriteFW)arena->spareCommitLimit,
-               "  zoneShift $U\n", (WriteFU)arena->zoneShift,
-               "  alignment $W\n", (WriteFW)arena->alignment,
+               "commitLimit      $W\n", (WriteFW)arena->commitLimit,
+               "spareCommitted   $W\n", (WriteFW)arena->spareCommitted,
+               "spareCommitLimit $W\n", (WriteFW)arena->spareCommitLimit,
+               "zoneShift $U\n", (WriteFU)arena->zoneShift,
+               "alignment $W\n", (WriteFW)arena->alignment,
                NULL);
   if (res != ResOK) return res;
 
-  res = WriteF(stream,
-               "  droppedMessages $U$S\n", (WriteFU)arena->droppedMessages,
+  res = WriteF(stream, depth + 2,
+               "droppedMessages $U$S\n", (WriteFU)arena->droppedMessages,
                (arena->droppedMessages == 0 ? "" : "  -- MESSAGES DROPPED!"),
                NULL);
   if (res != ResOK) return res;
 
-  res = (*arena->class->describe)(arena, stream);
+  res = (*arena->class->describe)(arena, stream, depth);
   if (res != ResOK) return res;
 
-  /* Do not call GlobalsDescribe: it makes too much output, thanks.
-   * RHSK 2007-04-27
-   */
-#if 0
-  res = GlobalsDescribe(ArenaGlobals(arena), stream);
+  res = WriteF(stream, depth + 2, "Globals {\n", NULL);
+  if (res != ResOK) return res;  
+  res = GlobalsDescribe(ArenaGlobals(arena), stream, depth + 4);
   if (res != ResOK) return res;
-#endif
+  res = WriteF(stream, depth + 2, "} Globals\n", NULL);
+  if (res != ResOK) return res;  
 
-  res = WriteF(stream,
+  res = WriteF(stream, depth,
                "} Arena $P ($U)\n", (WriteFP)arena,
                (WriteFU)arena->serial,
                NULL);
@@ -500,7 +499,7 @@ Res ArenaDescribe(Arena arena, mps_lib_FILE *stream)
 
 /* ArenaDescribeTracts -- describe all the tracts in the arena */
 
-Res ArenaDescribeTracts(Arena arena, mps_lib_FILE *stream)
+Res ArenaDescribeTracts(Arena arena, mps_lib_FILE *stream, Count depth)
 {
   Res res;
   Tract tract;
@@ -519,7 +518,7 @@ Res ArenaDescribeTracts(Arena arena, mps_lib_FILE *stream)
     size = ArenaAlign(arena);
 
     if (TractBase(tract) > oldLimit) {
-      res = WriteF(stream,
+      res = WriteF(stream, depth,
                    "[$P, $P) $W $U   ---\n",
                    (WriteFP)oldLimit, (WriteFP)base,
                    (WriteFW)AddrOffset(oldLimit, base),
@@ -528,7 +527,7 @@ Res ArenaDescribeTracts(Arena arena, mps_lib_FILE *stream)
       if (res != ResOK) return res;
     }
 
-    res = WriteF(stream,
+    res = WriteF(stream, depth,
                  "[$P, $P) $W $U   $P ($S)\n",
                  (WriteFP)base, (WriteFP)limit,
                  (WriteFW)size, (WriteFW)size,
@@ -589,14 +588,14 @@ void ControlFree(Arena arena, void* base, size_t size)
 
 /* ControlDescribe -- describe the arena's control pool */
 
-Res ControlDescribe(Arena arena, mps_lib_FILE *stream)
+Res ControlDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
 {
   Res res;
 
   if (!TESTT(Arena, arena)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
 
-  res = PoolDescribe(ArenaControlPool(arena), stream);
+  res = PoolDescribe(ArenaControlPool(arena), stream, depth);
 
   return res;
 }

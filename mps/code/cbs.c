@@ -619,7 +619,7 @@ static Res cbsBlockDescribe(CBSBlock block, mps_lib_FILE *stream)
   if (stream == NULL)
     return ResFAIL;
 
-  res = WriteF(stream,
+  res = WriteF(stream, 0,
                "[$P,$P)",
                (WriteFP)block->base,
                (WriteFP)block->limit,
@@ -647,7 +647,7 @@ static Res cbsFastBlockDescribe(CBSFastBlock block, mps_lib_FILE *stream)
   if (stream == NULL)
     return ResFAIL;
 
-  res = WriteF(stream,
+  res = WriteF(stream, 0,
                "[$P,$P) {$U}",
                (WriteFP)block->cbsBlockStruct.base,
                (WriteFP)block->cbsBlockStruct.limit,
@@ -676,7 +676,7 @@ static Res cbsZonedBlockDescribe(CBSZonedBlock block, mps_lib_FILE *stream)
   if (stream == NULL)
     return ResFAIL;
 
-  res = WriteF(stream,
+  res = WriteF(stream, 0,
                "[$P,$P) {$U, $B}",
                (WriteFP)block->cbsFastBlockStruct.cbsBlockStruct.base,
                (WriteFP)block->cbsFastBlockStruct.cbsBlockStruct.limit,
@@ -1065,7 +1065,7 @@ fail:
  * See <design/land/#function.describe>.
  */
 
-static Res cbsDescribe(Land land, mps_lib_FILE *stream)
+static Res cbsDescribe(Land land, mps_lib_FILE *stream, Count depth)
 {
   CBS cbs;
   Res res;
@@ -1079,13 +1079,15 @@ static Res cbsDescribe(Land land, mps_lib_FILE *stream)
   if (stream == NULL)
     return ResFAIL;
 
-  res = WriteF(stream,
+  res = WriteF(stream, depth,
                "CBS $P {\n", (WriteFP)cbs,
                "  blockPool: $P\n", (WriteFP)cbsBlockPool(cbs),
                "  ownPool: $U\n", (WriteFU)cbs->ownPool,
                "  treeSize: $U\n", (WriteFU)cbs->treeSize,
                NULL);
   if (res != ResOK) return res;
+
+  METER_WRITE(cbs->treeSearch, stream, depth + 2);
 
   if (IsLandSubclass(land, CBSZonedLandClass))
     describe = cbsZonedSplayNodeDescribe;
@@ -1094,12 +1096,12 @@ static Res cbsDescribe(Land land, mps_lib_FILE *stream)
   else
     describe = cbsSplayNodeDescribe;
 
-  res = SplayTreeDescribe(cbsSplay(cbs), stream, describe);
+  res = SplayTreeDescribe(cbsSplay(cbs), stream, depth + 2, describe);
   if (res != ResOK) return res;
 
-  METER_WRITE(cbs->treeSearch, stream);
+  res = WriteF(stream, depth, "} CBS $P\n", (WriteFP)cbs, NULL);
 
-  res = WriteF(stream, "}\n", NULL);
+  res = WriteF(stream, 0, "}\n", NULL);
   return res;
 }
 

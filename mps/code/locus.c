@@ -126,6 +126,35 @@ static Size GenDescTotalSize(GenDesc gen)
 }
 
 
+/* GenDescDescribe -- describe a generation in a chain */
+
+Res GenDescDescribe(GenDesc gen, mps_lib_FILE *stream, Count depth)
+{
+  Res res;
+  Ring node, nextNode;
+
+  if (!TESTT(GenDesc, gen)) return ResFAIL;
+  if (stream == NULL) return ResFAIL;
+
+  res = WriteF(stream, depth,
+               "GenDesc $P {\n", (WriteFP)gen,
+               "  zones $B\n", (WriteFB)gen->zones,
+               "  capacity $U\n", (WriteFU)gen->capacity,
+               "  mortality $D\n", (WriteFD)gen->mortality,
+               NULL);
+  if (res != ResOK) return res;
+
+  RING_FOR(node, &gen->locusRing, nextNode) {
+    PoolGen pgen = RING_ELT(PoolGen, genRing, node);
+    res = PoolGenDescribe(pgen, stream, depth + 2);
+    if (res != ResOK) return res;
+  }
+
+  res = WriteF(stream, depth, "} GenDesc $P\n", (WriteFP)gen, NULL);
+  return res;
+}
+
+
 /* ChainCreate -- create a generation chain */
 
 Res ChainCreate(Chain *chainReturn, Arena arena, size_t genCount,
@@ -412,6 +441,35 @@ void ChainEndGC(Chain chain, Trace trace)
 }
 
 
+/* ChainDescribe -- describe a chain */
+
+Res ChainDescribe(Chain chain, mps_lib_FILE *stream, Count depth)
+{
+  Res res;
+  size_t i;
+
+  if (!TESTT(Chain, chain)) return ResFAIL;
+  if (stream == NULL) return ResFAIL;
+
+  res = WriteF(stream, depth,
+               "Chain $P {\n", (WriteFP)chain,
+               "  arena $P\n", (WriteFP)chain->arena,
+               "  activeTraces $B\n", (WriteFB)chain->activeTraces,
+               NULL);
+  if (res != ResOK) return res;
+
+  for (i = 0; i < chain->genCount; ++i) {
+    res = GenDescDescribe(&chain->gens[i], stream, depth + 2);
+    if (res != ResOK) return res;
+  }
+
+  res = WriteF(stream, depth,
+               "} Chain $P\n", (WriteFP)chain,
+               NULL);
+  return res;
+}
+
+
 /* PoolGenInit -- initialize a PoolGen */
 
 Res PoolGenInit(PoolGen pgen, GenDesc gen, Pool pool)
@@ -662,6 +720,33 @@ void PoolGenFree(PoolGen pgen, Seg seg, Size freeSize, Size oldSize,
     pgen->freeSize -= size;
   });
   SegFree(seg);
+}
+
+
+/* PoolGenDescribe -- describe a PoolGen */
+
+Res PoolGenDescribe(PoolGen pgen, mps_lib_FILE *stream, Count depth)
+{
+  Res res;
+
+  if (!TESTT(PoolGen, pgen)) return ResFAIL;
+  if (stream == NULL) return ResFAIL;
+  
+  res = WriteF(stream, depth,
+               "PoolGen $P {\n", (WriteFP)pgen,
+               "  pool $P ($U) \"$S\"\n",
+               (WriteFP)pgen->pool, (WriteFU)pgen->pool->serial,
+               (WriteFS)pgen->pool->class->name,
+               "  segs $U\n", (WriteFU)pgen->segs,
+               "  totalSize $U\n", (WriteFU)pgen->totalSize,
+               "  freeSize $U\n", (WriteFU)pgen->freeSize,
+               "  oldSize $U\n", (WriteFU)pgen->oldSize,
+               "  oldDeferredSize $U\n", (WriteFU)pgen->oldDeferredSize,
+               "  newSize $U\n", (WriteFU)pgen->newSize,
+               "  newDeferredSize $U\n", (WriteFU)pgen->newDeferredSize,
+               "} PoolGen $P\n", (WriteFP)pgen,
+               NULL);
+  return res;
 }
 
 

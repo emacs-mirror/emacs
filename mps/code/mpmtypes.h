@@ -128,7 +128,7 @@ typedef void (*ArenaFreeMethod)(Addr base, Size size, Pool pool);
 typedef Res (*ArenaChunkInitMethod)(Chunk chunk, BootBlock boot);
 typedef void (*ArenaChunkFinishMethod)(Chunk chunk);
 typedef void (*ArenaCompactMethod)(Arena arena, Trace trace);
-typedef Res (*ArenaDescribeMethod)(Arena arena, mps_lib_FILE *stream);
+typedef Res (*ArenaDescribeMethod)(Arena arena, mps_lib_FILE *stream, Count depth);
 typedef Res (*ArenaPagesMarkAllocatedMethod)(Arena arena, Chunk chunk,
                                              Index baseIndex, Count pages,
                                              Pool pool);
@@ -168,7 +168,7 @@ typedef void (*SegSetRankSummaryMethod)(Seg seg, RankSet rankSet,
 typedef void (*SegSetSummaryMethod)(Seg seg, RefSet summary);
 typedef Buffer (*SegBufferMethod)(Seg seg);
 typedef void (*SegSetBufferMethod)(Seg seg, Buffer buffer);
-typedef Res (*SegDescribeMethod)(Seg seg, mps_lib_FILE *stream);
+typedef Res (*SegDescribeMethod)(Seg seg, mps_lib_FILE *stream, Count depth);
 typedef Res (*SegMergeMethod)(Seg seg, Seg segHi,
                               Addr base, Addr mid, Addr limit,
                               Bool withReservoirPermit);
@@ -188,7 +188,7 @@ typedef Seg (*BufferSegMethod)(Buffer buffer);
 typedef RankSet (*BufferRankSetMethod)(Buffer buffer);
 typedef void (*BufferSetRankSetMethod)(Buffer buffer, RankSet rankSet);
 typedef void (*BufferReassignSegMethod)(Buffer buffer, Seg seg);
-typedef Res (*BufferDescribeMethod)(Buffer buffer, mps_lib_FILE *stream);
+typedef Res (*BufferDescribeMethod)(Buffer buffer, mps_lib_FILE *stream, Count depth);
 
 
 /* Pool*Method -- see <design/class-interface/> */
@@ -235,7 +235,7 @@ typedef void (*PoolWalkMethod)(Pool pool, Seg seg,
                                void *v, size_t s);
 typedef void (*PoolFreeWalkMethod)(Pool pool, FreeBlockStepMethod f, void *p);
 typedef BufferClass (*PoolBufferClassMethod)(void);
-typedef Res (*PoolDescribeMethod)(Pool pool, mps_lib_FILE *stream);
+typedef Res (*PoolDescribeMethod)(Pool pool, mps_lib_FILE *stream, Count depth);
 typedef PoolDebugMixin (*PoolDebugMixinMethod)(Pool pool);
 
 
@@ -277,7 +277,7 @@ typedef Bool (*LandIterateMethod)(Land land, LandVisitor visitor, void *closureP
 typedef Bool (*LandIterateAndDeleteMethod)(Land land, LandDeleteVisitor visitor, void *closureP, Size closureS);
 typedef Bool (*LandFindMethod)(Range rangeReturn, Range oldRangeReturn, Land land, Size size, FindDelete findDelete);
 typedef Res (*LandFindInZonesMethod)(Bool *foundReturn, Range rangeReturn, Range oldRangeReturn, Land land, Size size, ZoneSet zoneSet, Bool high);
-typedef Res (*LandDescribeMethod)(Land land, mps_lib_FILE *stream);
+typedef Res (*LandDescribeMethod)(Land land, mps_lib_FILE *stream, Count depth);
 
 
 /* CONSTANTS */

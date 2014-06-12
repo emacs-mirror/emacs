@@ -595,7 +595,7 @@ static PoolDebugMixin MVFFDebugMixin(Pool pool)
 
 /* MVFFDescribe -- describe an MVFF pool */
 
-static Res MVFFDescribe(Pool pool, mps_lib_FILE *stream)
+static Res MVFFDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
 {
   Res res;
   MVFF mvff;
@@ -605,7 +605,7 @@ static Res MVFFDescribe(Pool pool, mps_lib_FILE *stream)
   if (!TESTT(MVFF, mvff)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
 
-  res = WriteF(stream,
+  res = WriteF(stream, depth,
                "MVFF $P {\n", (WriteFP)mvff,
                "  pool $P ($U)\n",
                (WriteFP)pool, (WriteFU)pool->serial,
@@ -616,15 +616,15 @@ static Res MVFFDescribe(Pool pool, mps_lib_FILE *stream)
   if (res != ResOK)
     return res;
 
-  res = LandDescribe(CBSOfMVFF(mvff), stream);
+  res = LandDescribe(CBSOfMVFF(mvff), stream, depth + 2);
   if (res != ResOK)
     return res;
 
-  res = LandDescribe(FreelistOfMVFF(mvff), stream);
+  res = LandDescribe(FreelistOfMVFF(mvff), stream, depth + 2);
   if (res != ResOK)
     return res;
 
-  res = WriteF(stream, "}\n", NULL);
+  res = WriteF(stream, depth, "} MVFF $P\n", (WriteFP)mvff, NULL);
 
   return res;
 }
