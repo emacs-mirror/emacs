@@ -29,7 +29,8 @@ Bool ArenaGrainSizeCheck(Size size)
   CHECKL(size > 0);
   /* <design/arena/#req.attr.block.align.min> */
   CHECKL(SizeIsAligned(size, MPS_PF_ALIGN));
-  /* Grain size must be power of 2 for the tract lookup to work. */
+  /* Grain size must be a power of 2 for the tract lookup and the
+   * zones to work. */
   CHECKL(SizeIsP2(size));
 
   return TRUE;

@@ -75,7 +75,7 @@ Res VMCreate(VM *vmReturn, Size size, void *params)
   /* VMAN_GRAIN_SIZE-1 we are not in danger of overflowing */
   /* vm->limit even if malloc were perverse enough to give us */
   /* a block at the end of memory. */
-  size = SizeAlignUp(size, VMAN_GRAIN_SIZE) + VMAN_GRAIN_SIZE;
+  size = SizeRoundUp(size, VMAN_GRAIN_SIZE) + VMAN_GRAIN_SIZE;
   if ((size < VMAN_GRAIN_SIZE) || (size > (Size)(size_t)-1))
     return ResRESOURCE;
 

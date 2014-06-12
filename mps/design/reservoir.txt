@@ -103,9 +103,9 @@ memory of the specified size to the specified pool to the reservoir.
 If no suitable memory can be found it returns ``ResMEMORY``.
 
 _`.interface.withdraw.align`: Currently, ``ReservoirWithdraw()`` can
-only withdraw memory in multiples of the arena grain size. This is
-because the reservoir doesn't attempt to coalesce adjacent memory
-blocks. This deficiency should be fixed in the future.
+only withdraw a single arena grain at a time. This is because the
+reservoir doesn't attempt to coalesce adjacent memory blocks. This
+deficiency should be fixed in the future.
 
 _`.pool`: The memory managed by the reservoir is owned by the
 reservoir pool. This memory is never sub-allocated. Each tract

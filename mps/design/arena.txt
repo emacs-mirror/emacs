@@ -42,11 +42,16 @@ Definitions
 _`.def.grain`: The arena manages memory in units called *arena
 grains*, whose size is returned by the macro ``ArenaGrainSize()``.
 Memory allocated by ``ArenaAlloc()`` is a contiguous sequence of arena
-grains, whose base address is a multiple of the arena grain size.
+grains, whose base address and size are multiples of the arena grain
+size.
 
 _`.def.tract`: A tract is a data structure containing information
 about a region of address space: which pool it belongs to (if any),
-for which traces the contents is white, and so on.
+for which traces the contents is white, and so on. Tracts are the hook
+on which the segment module is implemented. Pools which don't use
+segments may use tracts for associating their own data with ranges of
+address.
+
 
 
 Requirements
@@ -225,18 +230,11 @@ implementations of those methods which must be overridden. Instead
 each abstract method is initialized to ``NULL``.
 
 
-Grains and tracts
-.................
+Tracts
+......
 
-_`.grain`: The arena allocation function ``ArenaAlloc()`` allocates a
-block of memory to pools, of a size which is a multiple of the arena
-grain size.
-
-_`.tract`: The arena maintains tables of tract structures such that
-every address managed by the arena belongs to exactly one tract.
-Tracts are the hook on which the segment module is implemented. Pools
-which don't use segments may use tracts for associating their own data
-with ranges of address.
+_`.tract.table`: The arena maintains tables of tract structures such
+that every address managed by the arena belongs to exactly one tract.
 
 _`.tract.size`: Each tract covers exactly one arena grain. This is an
 implementation detail, not a requirement.

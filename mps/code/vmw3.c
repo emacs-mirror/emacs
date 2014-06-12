@@ -133,12 +133,19 @@ Res VMCreate(VM *vmReturn, Size size, void *params)
   AVER(COMPATTYPE(LPVOID, Addr));  /* .assume.lpvoid-addr */
   AVER(COMPATTYPE(SIZE_T, Size));
 
+  /* Find out the page size from the OS */
   GetSystemInfo(&si);
-  grainSize = (Align)si.dwPageSize;
-  AVER((DWORD)grainSize == si.dwPageSize); /* check it didn't truncate */
+
+  /* Check the page size will fit in a Size. */
+  grainSize = (Size)si.dwPageSize;
+  AVER((DWORD)grainSize == si.dwPageSize);
+
+  /* Check that the page size is valid for use as an arena grain size. */
   AVERT(ArenaGrainSize, grainSize);
-  size = SizeAlignUp(size, grainSize);
-  if ((size == 0) || (size > (Size)(SIZE_T)-1))
+
+  /* Check that the rounded-up size will fit in a Size. */
+  size = SizeRoundUp(size, grainSize);
+  if (size < grainSize || size > (Size)(SIZE_T)-1)
     return ResRESOURCE;
 
   /* Allocate the vm descriptor.  This is likely to be wasteful. */
