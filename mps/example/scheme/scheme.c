@@ -402,6 +402,7 @@ static void error(const char *format, ...)
   if (error_handler) {
     longjmp(*error_handler, 1);
   } else {
+    fflush(stdout);
     fprintf(stderr, "Fatal error during initialization: %s\n",
             error_message);
     abort();
@@ -3991,6 +3992,7 @@ static mps_res_t obj_scan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
         break;
       default:
         assert(0);
+        fflush(stdout);
         fprintf(stderr, "Unexpected object on the heap\n");
         abort();
       }
@@ -4067,6 +4069,7 @@ static mps_addr_t obj_skip(mps_addr_t base)
     break;
   default:
     assert(0);
+    fflush(stdout);
     fprintf(stderr, "Unexpected object on the heap\n");
     abort();
   }
@@ -4297,6 +4300,7 @@ static int start(int argc, char *argv[])
              make_operator(optab[i].name, optab[i].entry,
                            obj_empty, obj_empty, env, op_env));
   } else {
+    fflush(stdout);
     fprintf(stderr,
             "Fatal error during initialization: %s\n",
             error_message);
@@ -4305,8 +4309,10 @@ static int start(int argc, char *argv[])
 
   if (argc > 0) {
     /* Non-interactive file execution */
-    if (setjmp(*error_handler) != 0) {
+    if(setjmp(*error_handler) != 0) {
+      fflush(stdout);
       fprintf(stderr, "%s\n", error_message);
+      fflush(stderr);
       exit_code = EXIT_FAILURE;
     } else
       for (i = 0; i < argc; ++i)
@@ -4324,12 +4330,15 @@ static int start(int argc, char *argv[])
          "If you recurse too much the interpreter may crash from using too much C stack.");
     for(;;) {
       if(setjmp(*error_handler) != 0) {
+        fflush(stdout);
         fprintf(stderr, "%s\n", error_message);
+        fflush(stderr);
       }
 
       mps_chat();
       printf("%lu, %lu> ", (unsigned long)total,
              (unsigned long)mps_collections(arena));
+      fflush(stdout);
       obj = read(input);
       if(obj == obj_eof) break;
       obj = eval(env, op_env, obj);
