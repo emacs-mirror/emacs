@@ -1,10 +1,17 @@
+2014-06-12  Emilio C. Lopes  <eclig@gmx.net>
+
+	* hippie-exp.el (try-expand-line-all-buffers)
+	(try-expand-list-all-buffers, try-expand-dabbrev-all-buffers):
+	Read hippie-expand-only-buffers and hippie-expand-ignore-buffers in the
+	original buffer, in case they're buffer-local.
+
 2014-06-12  Vincent Belaïche  <vincentb1@users.sourceforge.net>
 
 	* ses.el (ses-initial-global-parameters-re): New defconst, a
 	specific regexp is needed now that ses.el can handle both
-	file-format 2 --- ie. no local printers --- and 3 --- i.e. may have local printers.
-	(ses-localvars): Add local variables needed for local printer
-	handling.
+	file-format 2 --- ie. no local printers --- and 3 --- i.e. may have
+	local printers.
+	(ses-localvars): Add local variables needed for local printer handling.
 	(ses-set-localvars): Handle hashmap initialisation.
 	(ses-paramlines-plist): Add param-line for number of local printers.
 	(ses-paramfmt-plist): New defconst, needed for code factorization
@@ -19,10 +26,11 @@
 	(ses-printer-validate, ses-call-printer): Add support for local
 	printer functions.
 	(ses-file-format-extend-paramter-list): New defun.
-	(ses-set-parameter): Use const `ses-paramfmt-plist' for code factorization.
-	(ses-load): Add support for local
-	printer functions.
-	(ses-read-printer): Update docstring and add support for local printer functions.
+	(ses-set-parameter): Use const `ses-paramfmt-plist' for code
+	factorization.
+	(ses-load): Add support for local printer functions.
+	(ses-read-printer): Update docstring and add support for local printer
+	functions.
 	(ses-refresh-local-printer, ses-define-local-printer): New defun.
 	(ses-safe-printer): Add support for local printer functions.
 
