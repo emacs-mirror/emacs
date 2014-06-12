@@ -217,10 +217,6 @@ extern Index IndexOfAddr(Chunk chunk, Addr addr);
   END
 
 
-extern Bool TractFirst(Tract *tractReturn, Arena arena);
-extern Bool TractNext(Tract *tractReturn, Arena arena, Addr addr);
-
-
 /* TRACT_TRACT_FOR -- iterate over a range of tracts in a chunk
  *
  * See <design/arena-tract-iter/#if.macro>.
