@@ -1,3 +1,9 @@
+2014-06-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* hippie-exp.el (he--all-buffers): New function.
+	(try-expand-line-all-buffers, try-expand-list-all-buffers)
+	(try-expand-dabbrev-all-buffers): Use it.
+
 2014-06-12  Emilio C. Lopes  <eclig@gmx.net>
 
 	* hippie-exp.el (try-expand-line-all-buffers)
