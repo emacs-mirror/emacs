@@ -52,8 +52,8 @@ static Res MVTContingencySearch(Addr *baseReturn, Addr *limitReturn,
                                 MVT mvt, Size min);
 static Bool MVTCheckFit(Addr base, Addr limit, Size min, Arena arena);
 static ABQ MVTABQ(MVT mvt);
-static Land MVTCBS(MVT mvt);
-static Land MVTFreelist(MVT mvt);
+static Land MVTFreePrimary(MVT mvt);
+static Land MVTFreeSecondary(MVT mvt);
 static Land MVTFreeLand(MVT mvt);
 
 
@@ -164,13 +164,13 @@ static ABQ MVTABQ(MVT mvt)
 }
 
 
-static Land MVTCBS(MVT mvt)
+static Land MVTFreePrimary(MVT mvt)
 {
   return CBSLand(&mvt->cbsStruct);
 }
 
 
-static Land MVTFreelist(MVT mvt)
+static Land MVTFreeSecondary(MVT mvt)
 {
   return FreelistLand(&mvt->flStruct);
 }
@@ -276,28 +276,28 @@ static Res MVTInit(Pool pool, ArgList args)
   if (abqDepth < 3)
     abqDepth = 3;
 
-  res = LandInit(MVTCBS(mvt), CBSFastLandClassGet(), arena, align, mvt,
+  res = LandInit(MVTFreePrimary(mvt), CBSFastLandClassGet(), arena, align, mvt,
                  mps_args_none);
   if (res != ResOK)
-    goto failCBS;
+    goto failFreePrimaryInit;
  
-  res = LandInit(MVTFreelist(mvt), FreelistLandClassGet(), arena, align, mvt,
-                 mps_args_none);
+  res = LandInit(MVTFreeSecondary(mvt), FreelistLandClassGet(), arena, align,
+                 mvt, mps_args_none);
   if (res != ResOK)
-    goto failFreelist;
+    goto failFreeSecondaryInit;
   
   MPS_ARGS_BEGIN(foArgs) {
-    MPS_ARGS_ADD(foArgs, FailoverPrimary, MVTCBS(mvt));
-    MPS_ARGS_ADD(foArgs, FailoverSecondary, MVTFreelist(mvt));
+    MPS_ARGS_ADD(foArgs, FailoverPrimary, MVTFreePrimary(mvt));
+    MPS_ARGS_ADD(foArgs, FailoverSecondary, MVTFreeSecondary(mvt));
     res = LandInit(MVTFreeLand(mvt), FailoverLandClassGet(), arena, align, mvt,
                    foArgs);
   } MPS_ARGS_END(foArgs);
   if (res != ResOK)
-    goto failFailover;
+    goto failFreeLandInit;
 
   res = ABQInit(arena, MVTABQ(mvt), (void *)mvt, abqDepth, sizeof(RangeStruct));
   if (res != ResOK)
-    goto failABQ;
+    goto failABQInit;
 
   pool->alignment = align;
   mvt->reuseSize = reuseSize;
@@ -361,13 +361,13 @@ static Res MVTInit(Pool pool, ArgList args)
                reserveDepth, fragLimit);
   return ResOK;
 
-failABQ:
+failABQInit:
   LandFinish(MVTFreeLand(mvt));
-failFailover:
-  LandFinish(MVTFreelist(mvt));
-failFreelist:
-  LandFinish(MVTCBS(mvt));
-failCBS:
+failFreeLandInit:
+  LandFinish(MVTFreeSecondary(mvt));
+failFreeSecondaryInit:
+  LandFinish(MVTFreePrimary(mvt));
+failFreePrimaryInit:
   AVER(res != ResOK);
   return res;
 }
@@ -437,8 +437,8 @@ static void MVTFinish(Pool pool)
   /* Finish the ABQ, Failover, Freelist and CBS structures */
   ABQFinish(arena, MVTABQ(mvt));
   LandFinish(MVTFreeLand(mvt));
-  LandFinish(MVTFreelist(mvt));
-  LandFinish(MVTCBS(mvt));
+  LandFinish(MVTFreeSecondary(mvt));
+  LandFinish(MVTFreePrimary(mvt));
 }
 
 
@@ -1019,9 +1019,9 @@ static Res MVTDescribe(Pool pool, mps_lib_FILE *stream)
                NULL);
   if(res != ResOK) return res;
 
-  res = LandDescribe(MVTCBS(mvt), stream);
+  res = LandDescribe(MVTFreePrimary(mvt), stream);
   if(res != ResOK) return res;
-  res = LandDescribe(MVTFreelist(mvt), stream);
+  res = LandDescribe(MVTFreeSecondary(mvt), stream);
   if(res != ResOK) return res;
   res = LandDescribe(MVTFreeLand(mvt), stream);
   if(res != ResOK) return res;
@@ -1366,7 +1366,7 @@ Land _mps_mvt_cbs(Pool pool) {
   mvt = PoolMVT(pool);
   AVERT(MVT, mvt);
 
-  return MVTCBS(mvt);
+  return MVTFreePrimary(mvt);
 }
 
 
