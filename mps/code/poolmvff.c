@@ -289,7 +289,8 @@ static Res mvffFindFree(Range rangeReturn, MVFF mvff, Size size,
 
     /* We know that the found range must intersect the newly added
      * range. But it doesn't necessarily lie entirely within it. */
-    AVER(found && RangesOverlap(rangeReturn, &newRange));
+    AVER(found);
+    AVER(RangesOverlap(rangeReturn, &newRange));
   }
   AVER(found);
 
