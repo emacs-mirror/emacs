@@ -1130,8 +1130,6 @@ mps_class_t mps_class_mvt(void)
 static Res MVTSegAlloc(Seg *segReturn, MVT mvt, Size size,
                        Bool withReservoirPermit)
 {
-  /* Can't use plain old SegClass here because we need to call
-   * SegBuffer() in MVTFree(). */
   Res res = SegAlloc(segReturn, SegClassGet(),
                      SegPrefDefault(), size, MVTPool(mvt), withReservoirPermit,
                      argsNone);
