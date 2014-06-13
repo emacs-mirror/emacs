@@ -521,7 +521,6 @@ static Res arenaDescribeTractsInChunk(Chunk chunk, mps_lib_FILE *stream, Count d
   Res res;
   Index pi;
 
-  if (stream == NULL) return ResFAIL;
   if (!TESTT(Chunk, chunk)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
 
