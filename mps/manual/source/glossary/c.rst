@@ -581,16 +581,6 @@ Memory Management Glossary: C
             valid, even functions on the :term:`critical path`. See
             :ref:`guide-build`. Compare :term:`hot` and :term:`rash`.
 
-    copy method
-
-        .. mps:specific::
-
-            A copy method is one of the methods in an :term:`object
-            format`. Formerly, the MPS called this method to copy a
-            :term:`formatted object` during :term:`moving garbage
-            collection <moving garbage collector>`. Now it just copies
-            the bytes and the copy method is ignored.
-
     copying garbage collection
 
         .. aka:: *scavenging garbage collection*.

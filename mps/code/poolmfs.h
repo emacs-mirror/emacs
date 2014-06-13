@@ -33,11 +33,11 @@
 
 typedef struct MFSStruct *MFS;
 
+#define MFSPool(mfs) (&(mfs)->poolStruct)
+
 extern PoolClass PoolClassMFS(void);
 
 extern Bool MFSCheck(MFS mfs);
-extern Pool (MFSPool)(MFS mfs);
-
 
 extern const struct mps_key_s _mps_key_MFSExtendSelf;
 #define MFSExtendSelf (&_mps_key_MFSExtendSelf)

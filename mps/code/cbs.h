@@ -37,6 +37,7 @@ typedef struct CBSZonedBlockStruct {
 typedef struct CBSStruct *CBS;
 
 extern Bool CBSCheck(CBS cbs);
+#define CBSLand(cbs) (&(cbs)->landStruct)
 
 extern LandClass CBSLandClassGet(void);
 extern LandClass CBSFastLandClassGet(void);

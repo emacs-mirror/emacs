@@ -430,34 +430,35 @@ static Res WriteDouble(mps_lib_FILE *stream, double d)
  * .writef.check: See .check.writef.
  */
 
-Res WriteF(mps_lib_FILE *stream, ...)
+Res WriteF(mps_lib_FILE *stream, Count depth, ...)
 {
   Res res;
   va_list args;
  
-  va_start(args, stream);
-  res = WriteF_v(stream, args);
+  va_start(args, depth);
+  res = WriteF_v(stream, depth, args);
   va_end(args);
   return res;
 }
 
-Res WriteF_v(mps_lib_FILE *stream, va_list args)
+Res WriteF_v(mps_lib_FILE *stream, Count depth, va_list args)
 {
   const char *firstformat;
   Res res;
 
   firstformat = va_arg(args, const char *);
-  res = WriteF_firstformat_v(stream, firstformat, args);
+  res = WriteF_firstformat_v(stream, depth, firstformat, args);
   return res;
 }
 
-Res WriteF_firstformat_v(mps_lib_FILE *stream, 
+Res WriteF_firstformat_v(mps_lib_FILE *stream, Count depth, 
                          const char *firstformat, va_list args)
 {
   const char *format;
   int r;
   size_t i;
   Res res;
+  Bool start_of_line = TRUE;
 
   AVER(stream != NULL);
 
@@ -468,9 +469,18 @@ Res WriteF_firstformat_v(mps_lib_FILE *stream,
       break;
 
     while(*format != '\0') {
+      if (start_of_line) {
+        for (i = 0; i < depth; ++i) {
+          mps_lib_fputc(' ', stream);
+        }
+        start_of_line = FALSE;
+      }
       if (*format != '$') {
         r = mps_lib_fputc(*format, stream); /* Could be more efficient */
         if (r == mps_lib_EOF) return ResIO;
+        if (*format == '\n') {
+          start_of_line = TRUE;
+        }
       } else {
         ++format;
         AVER(*format != '\0');
@@ -493,7 +503,7 @@ Res WriteF_firstformat_v(mps_lib_FILE *stream,
           case 'F': {                   /* function */
             WriteFF f = va_arg(args, WriteFF);
             Byte *b = (Byte *)&f;
-            /* ISO C forbits casting function pointers to integer, so
+            /* ISO C forbids casting function pointers to integer, so
                decode bytes (see design.writef.f). 
                TODO: Be smarter about endianness. */
             for(i=0; i < sizeof(WriteFF); i++) {
