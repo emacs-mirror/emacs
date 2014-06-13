@@ -36,7 +36,7 @@
  */
 
 #define EVENT_VERSION_MAJOR  ((unsigned)1)
-#define EVENT_VERSION_MEDIAN ((unsigned)2)
+#define EVENT_VERSION_MEDIAN ((unsigned)3)
 #define EVENT_VERSION_MINOR  ((unsigned)0)
 
 

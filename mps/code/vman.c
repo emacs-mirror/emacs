@@ -95,7 +95,7 @@ Res VMCreate(VM *vmReturn, Size size, Size grainSize, void *params)
   if (vm == NULL)
     return ResMEMORY;
 
-  vm->block = malloc((size_t)size);
+  vm->block = malloc((size_t)reserved);
   if (vm->block == NULL) {
     free(vm);
     return ResMEMORY;
@@ -103,11 +103,12 @@ Res VMCreate(VM *vmReturn, Size size, Size grainSize, void *params)
 
   vm->base  = AddrAlignUp((Addr)vm->block, grainSize);
   vm->limit = AddrAdd(vm->base, size);
-  AVER(vm->limit < AddrAdd((Addr)vm->block, size));
+  AVER(vm->base < vm->limit); /* can't overflow, as discussed above */
+  AVER(vm->limit < AddrAdd((Addr)vm->block, reserved));
 
-  memset((void *)vm->block, VMJunkBYTE, size);
+  memset((void *)vm->block, VMJunkBYTE, reserved);
  
-  vm->reserved = size;
+  vm->reserved = reserved;
   vm->mapped = (Size)0;
  
   vm->sig = VMSig;
