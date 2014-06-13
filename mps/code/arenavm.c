@@ -578,7 +578,7 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
   /* the size is not a power of 2.  See <design/arena/#class.fields>. */
   chunkSize = ChunkSize(chunk);
   arena->zoneShift = SizeFloorLog2(chunkSize >> MPS_WORD_SHIFT);
-  AVER(chunk->pageSize == ArenaGrainSize(arena));
+  AVER(ChunkPageSize(chunk) == ArenaGrainSize(arena));
 
   AVERT(VMArena, vmArena);
   if ((ArenaClass)mps_arena_class_vm() == class)
