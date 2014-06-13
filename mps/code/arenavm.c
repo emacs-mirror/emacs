@@ -272,7 +272,7 @@ static void vmArenaUnmap(VMArena vmArena, VM vm, Addr base, Addr limit)
  * chunkReturn, return parameter for the created chunk.
  * vmArena, the parent VMArena.
  * size, approximate amount of virtual address that the chunk should reserve.
- * arenaGrainSize, arena grain size
+ * arenaGrainSize, arena grain size.
  */
 static Res VMChunkCreate(Chunk *chunkReturn, VMArena vmArena, Size size, Size arenaGrainSize)
 {
@@ -295,6 +295,9 @@ static Res VMChunkCreate(Chunk *chunkReturn, VMArena vmArena, Size size, Size ar
   if (res != ResOK)
     goto failVMCreate;
 
+  /* VMCreate has rounded the grain size for this VM up to the
+   * operating system page size, but the arena grain size should
+   * already take that into account: see VMArenaInit. */
   AVER(grainSize == arenaGrainSize);
   base = VMBase(vm);
   limit = VMLimit(vm);
