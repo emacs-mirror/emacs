@@ -448,7 +448,7 @@ static Res SNCBufferFill(Addr *baseReturn, Addr *limitReturn,
 
   /* No free seg, so create a new one */
   arena = PoolArena(pool);
-  asize = SizeAlignUp(size, ArenaAlign(arena));
+  asize = SizeArenaGrains(size, arena);
   res = SegAlloc(&seg, SNCSegClassGet(), SegPrefDefault(),
                  asize, pool, withReservoirPermit, argsNone);
   if (res != ResOK)

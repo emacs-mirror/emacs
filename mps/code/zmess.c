@@ -113,7 +113,7 @@
 
 #define testArenaSIZE   ((size_t)16<<20)
 
-/* usually (ArenaAlign / sizeof(Ref)) = 1024 */
+/* usually (ArenaGrainSize / sizeof(Ref)) = 1024 */
 /* so choose 3000 to force 3 segments of guardians */
 #define myrootCOUNT 3000
 

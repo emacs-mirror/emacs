@@ -117,7 +117,7 @@ static Bool firstAsTract(AllocInfoStruct *aiReturn, Arena arena)
   res = TractFirst(&tract, arena);
   if (res) {
     aiReturn->the.tractData.base = TractBase(tract);
-    aiReturn->the.tractData.size = ArenaAlign(arena);;
+    aiReturn->the.tractData.size = ArenaGrainSize(arena);;
     aiReturn->the.tractData.pool = TractPool(tract);
   }
   return res;
@@ -131,7 +131,7 @@ static Bool nextAsTract(AllocInfoStruct *nextReturn, AllocInfo ai,
   res = TractNext(&tract, arena, ai->the.tractData.base);
   if (res) {
     nextReturn->the.tractData.base = TractBase(tract);
-    nextReturn->the.tractData.size = ArenaAlign(arena);;
+    nextReturn->the.tractData.size = ArenaGrainSize(arena);;
     nextReturn->the.tractData.pool = TractPool(tract);
   }
   return res;
@@ -351,7 +351,7 @@ static void testPageTable(ArenaClass class, Size size, Addr addr, Bool zoned)
 
   die(PoolCreate(&pool, arena, PoolClassMV(), argsNone), "PoolCreate");
 
-  pageSize = ArenaAlign(arena);
+  pageSize = ArenaGrainSize(arena);
   tractsPerPage = pageSize / sizeof(TractStruct);
   printf("%ld tracts per page in the page table.\n", (long)tractsPerPage);
 

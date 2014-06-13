@@ -471,7 +471,7 @@ static Res AWLSegCreate(AWLSeg *awlsegReturn,
   arena = PoolArena(pool);
   AVERT(Arena, arena);
 
-  size = SizeAlignUp(size, ArenaAlign(arena));
+  size = SizeArenaGrains(size, arena);
   /* beware of large sizes overflowing upon rounding */
   if (size == 0)
     return ResMEMORY;

@@ -174,7 +174,6 @@ static Res MVFFAddSeg(Seg *segReturn,
   Size segSize;
   Seg seg;
   Res res;
-  Align align;
   RangeStruct range;
 
   AVERT(MVFF, mvff);
@@ -183,7 +182,6 @@ static Res MVFFAddSeg(Seg *segReturn,
 
   pool = MVFF2Pool(mvff);
   arena = PoolArena(pool);
-  align = ArenaAlign(arena);
 
   AVER(SizeIsAligned(size, PoolAlignment(pool)));
 
@@ -194,14 +192,14 @@ static Res MVFFAddSeg(Seg *segReturn,
   else
     segSize = size;
 
-  segSize = SizeAlignUp(segSize, align);
+  segSize = SizeArenaGrains(segSize, arena);
 
   res = SegAlloc(&seg, SegClassGet(), mvff->segPref, segSize, pool,
                  withReservoirPermit, argsNone);
   if (res != ResOK) {
     /* try again for a seg just large enough for object */
     /* see <design/poolmvff/#design.seg-fail> */
-    segSize = SizeAlignUp(size, align);
+    segSize = SizeArenaGrains(size, arena);
     res = SegAlloc(&seg, SegClassGet(), mvff->segPref, segSize, pool,
                    withReservoirPermit, argsNone);
     if (res != ResOK) {
@@ -488,8 +486,8 @@ static Res MVFFInit(Pool pool, ArgList args)
   mvff = Pool2MVFF(pool);
 
   mvff->extendBy = extendBy;
-  if (extendBy < ArenaAlign(arena))
-    mvff->minSegSize = ArenaAlign(arena);
+  if (extendBy < ArenaGrainSize(arena))
+    mvff->minSegSize = ArenaGrainSize(arena);
   else
     mvff->minSegSize = extendBy;
   mvff->avgSize = avgSize;
@@ -726,10 +724,10 @@ static Bool MVFFCheck(MVFF mvff)
   CHECKL(IsSubclassPoly(MVFF2Pool(mvff)->class, MVFFPoolClassGet()));
   CHECKD(SegPref, mvff->segPref);
   CHECKL(mvff->extendBy > 0);                   /* see .arg.check */
-  CHECKL(mvff->minSegSize >= ArenaAlign(PoolArena(MVFF2Pool(mvff))));
+  CHECKL(mvff->minSegSize >= ArenaGrainSize(PoolArena(MVFF2Pool(mvff))));
   CHECKL(mvff->avgSize > 0);                    /* see .arg.check */
   CHECKL(mvff->avgSize <= mvff->extendBy);      /* see .arg.check */
-  CHECKL(SizeIsAligned(mvff->total, ArenaAlign(PoolArena(MVFF2Pool(mvff)))));
+  CHECKL(SizeIsArenaGrains(mvff->total, PoolArena(MVFF2Pool(mvff))));
   CHECKD(CBS, &mvff->cbsStruct);
   CHECKD(Freelist, &mvff->flStruct);
   CHECKD(Failover, &mvff->foStruct);

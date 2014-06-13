@@ -646,7 +646,7 @@ static Ring AMSPoolRing(AMS ams, RankSet rankSet, Size size)
 /* AMSSegSizePolicy
  *
  * Picks a segment size.  This policy simply rounds the size
- * up to the arena alignment.
+ * up to the arena grain size.
  */
 static Res AMSSegSizePolicy(Size *sizeReturn,
                             Pool pool, Size size, RankSet rankSet)
@@ -660,7 +660,7 @@ static Res AMSSegSizePolicy(Size *sizeReturn,
 
   arena = PoolArena(pool);
 
-  size = SizeAlignUp(size, ArenaAlign(arena));
+  size = SizeArenaGrains(size, arena);
   if (size == 0) {
     /* overflow */
     return ResMEMORY;
@@ -698,7 +698,7 @@ static Res AMSSegCreate(Seg *segReturn, Pool pool, Size size,
   res = PoolGenAlloc(&seg, &ams->pgen, (*ams->segClass)(), prefSize,
                      withReservoirPermit, argsNone);
   if (res != ResOK) { /* try to allocate one that's just large enough */
-    Size minSize = SizeAlignUp(size, ArenaAlign(arena));
+    Size minSize = SizeArenaGrains(size, arena);
     if (minSize == prefSize)
       goto failSeg;
     res = PoolGenAlloc(&seg, &ams->pgen, (*ams->segClass)(), prefSize,

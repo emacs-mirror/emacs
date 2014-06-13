@@ -36,7 +36,7 @@
  */
 
 #define EVENT_VERSION_MAJOR  ((unsigned)1)
-#define EVENT_VERSION_MEDIAN ((unsigned)3)
+#define EVENT_VERSION_MEDIAN ((unsigned)2)
 #define EVENT_VERSION_MINOR  ((unsigned)0)
 
 
@@ -370,9 +370,8 @@
 
 #define EVENT_VMCreate_PARAMS(PARAM, X) \
   PARAM(X,  0, P, vm) \
-  PARAM(X,  1, W, align) \
-  PARAM(X,  2, A, base) \
-  PARAM(X,  3, A, limit)
+  PARAM(X,  1, A, base) \
+  PARAM(X,  2, A, limit)
 
 #define EVENT_VMDestroy_PARAMS(PARAM, X) \
   PARAM(X,  0, P, vm)
@@ -693,7 +692,7 @@
 #define EVENT_AMCTraceEnd_PARAMS(PARAM, X) \
   PARAM(X,  0, W, epoch)        /* current arena epoch */ \
   PARAM(X,  1, U, why)          /* reason trace started */ \
-  PARAM(X,  2, W, align)        /* arena alignment */ \
+  PARAM(X,  2, W, grainSize)    /* arena grain size */ \
   PARAM(X,  3, W, large)        /* AMCLargeSegPAGES */ \
   PARAM(X,  4, W, pRetMin)      /* threshold for event */ \
   /* remaining parameters are copy of PageRetStruct, which see */ \
