@@ -126,7 +126,6 @@ Res VMParamFromArgs(void *params, size_t paramSize, ArgList args)
 Res VMCreate(VM *vmReturn, Size size, Size grainSize, void *params)
 {
   LPVOID vbase;
-  SYSTEM_INFO si;
   VM vm;
   Size pageSize, reserved;
   Res res;
@@ -179,7 +178,7 @@ Res VMCreate(VM *vmReturn, Size size, Size grainSize, void *params)
   vm->base = AddrAlignUp(vbase, grainSize);
   vm->limit = AddrAdd(vm->base, size);
   AVER(vm->base < vm->limit);  /* .assume.not-last */
-  AVER(vm->limit < AddrAdd((Addr)vm->block, reserved));
+  AVER(vm->limit <= AddrAdd((Addr)vm->block, reserved));
   vm->reserved = reserved;
   vm->mapped = 0;
 
