@@ -2217,7 +2217,8 @@ static Res amcAddrObjectSearch(Addr *pReturn, Pool pool, Addr objBase,
     Addr objLimit = AddrSub((*format->skip)(objRef), hdrSize);
     AVER(objBase < objLimit);
     if (addr < objLimit) {
-      AVER(objBase <= addr && addr < objLimit); /* the point */
+      AVER(objBase <= addr);
+      AVER(addr < objLimit); /* the point */
       if (!(*format->isMoved)(objRef)) {
         *pReturn = objRef;
         return ResOK;
@@ -2244,7 +2245,8 @@ static Res AMCAddrObject(Addr *pReturn, Pool pool, Seg seg, Addr addr)
   AVERT(Pool, pool);
   AVERT(Seg, seg);
   AVER(SegPool(seg) == pool);
-  AVER(SegBase(seg) <= addr && addr < SegLimit(seg));
+  AVER(SegBase(seg) <= addr);
+  AVER(addr < SegLimit(seg));
 
   arena = PoolArena(pool);
   base = SegBase(seg);

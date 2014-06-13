@@ -192,7 +192,8 @@ void EventInit(void)
   AVER(size_tAlignUp(sizeof(Event##name##Struct), MPS_PF_ALIGN) \
        <= EventSizeMAX); \
   AVER(Event##name##Code == code); \
-  AVER(0 <= code && code <= EventCodeMAX); \
+  AVER(0 <= code); \
+  AVER(code <= EventCodeMAX); \
   AVER(sizeof(#name) - 1 <= EventNameMAX); \
   AVER((Bool)Event##name##Always == always); \
   AVERT(Bool, always); \

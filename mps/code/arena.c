@@ -651,7 +651,8 @@ void ArenaChunkInsert(Arena arena, Chunk chunk) {
 
   inserted = TreeInsert(&updatedTree, ArenaChunkTree(arena),
                         tree, ChunkKey(tree), ChunkCompare);
-  AVER(inserted && updatedTree);
+  AVER(inserted);
+  AVER(updatedTree);
   TreeBalance(&updatedTree);
   arena->chunkTree = updatedTree;
   RingAppend(&arena->chunkRing, &chunk->chunkRing);

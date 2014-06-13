@@ -331,7 +331,8 @@ Bool ChunkOfAddr(Chunk *chunkReturn, Arena arena, Addr addr)
       == CompareEQUAL)
   {
     Chunk chunk = ChunkOfTree(tree);
-    AVER_CRITICAL(chunk->base <= addr && addr < chunk->limit);
+    AVER_CRITICAL(chunk->base <= addr);
+    AVER_CRITICAL(addr < chunk->limit);
     *chunkReturn = chunk;
     return TRUE;
   }

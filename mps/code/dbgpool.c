@@ -274,7 +274,8 @@ static Bool patternIterate(ReadonlyAddr pattern, Size size,
       p = rounded;
     } else {
       /* Copy up to limit */
-      AVER(limit <= end && (p == rounded || limit <= rounded));
+      AVER(limit <= end);
+      AVER(p == rounded || limit <= rounded);
       if (!(*visitor)(p, ReadonlyAddrAdd(pattern, offset),
                       AddrOffset(p, limit)))
         return FALSE;

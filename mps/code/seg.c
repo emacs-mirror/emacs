@@ -679,7 +679,8 @@ Bool SegCheck(Seg seg)
       Seg trseg = NULL; /* suppress compiler warning */
 
       CHECKD_NOSIG(Tract, tract);
-      CHECKL(TRACT_SEG(&trseg, tract) && (trseg == seg));
+      CHECKL(TRACT_SEG(&trseg, tract));
+      CHECKL(trseg == seg);
       CHECKL(TractWhite(tract) == seg->white);
       CHECKL(TractPool(tract) == pool);
     }
@@ -1249,7 +1250,8 @@ static void gcSegSetWhite(Seg seg, TraceSet white)
     Seg trseg = NULL; /* suppress compiler warning */
 
     AVERT_CRITICAL(Tract, tract);
-    AVER_CRITICAL(TRACT_SEG(&trseg, tract) && (trseg == seg));
+    AVER_CRITICAL(TRACT_SEG(&trseg, tract));
+    AVER_CRITICAL(trseg == seg);
     TractSetWhite(tract, BS_BITFIELD(Trace, white));
   }
   AVER(addr == limit);
