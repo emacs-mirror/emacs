@@ -152,7 +152,6 @@ All
 :term:`continuation`
 :term:`control stack`
 :term:`cool`
-:term:`copy method`
 :term:`copying garbage collection`
 :term:`core`
 :term:`creation space`

@@ -70,8 +70,6 @@ Count TreeDebugCount(Tree tree, TreeCompare compare, TreeKeyMethod key)
 }
 
 
-#if 0 /* This code is not currently in use in the MPS */
-
 /* TreeFind -- search for a node matching the key
  *
  * If a matching node is found, sets *treeReturn to that node and returns
@@ -87,9 +85,9 @@ Compare TreeFind(Tree *treeReturn, Tree root, TreeKey key, TreeCompare compare)
   Tree node, parent;
   Compare cmp = CompareEQUAL;
   
-  AVERT(Tree, root);
-  AVER(treeReturn != NULL);
-  AVER(FUNCHECK(compare));
+  AVERT_CRITICAL(Tree, root);
+  AVER_CRITICAL(treeReturn != NULL);
+  AVER_CRITICAL(FUNCHECK(compare));
   /* key is arbitrary */
 
   parent = NULL;
@@ -119,6 +117,49 @@ Compare TreeFind(Tree *treeReturn, Tree root, TreeKey key, TreeCompare compare)
 }
 
 
+/* TreeFindNext -- search for node containing key, or next node
+ *
+ * If there is a node that is greater than key, set *treeReturn to that
+ * node and return TRUE.
+ *
+ * Otherwise, key is greater than all nodes in the tree, so leave
+ * *treeReturn unchanged and return FALSE.
+ */
+
+Bool TreeFindNext(Tree *treeReturn, Tree root, TreeKey key, TreeCompare compare)
+{
+  Tree node, best = NULL;
+  Bool result = FALSE;
+
+  AVERT(Tree, root);
+  AVER(treeReturn != NULL);
+  AVER(FUNCHECK(compare));
+  /* key is arbitrary */
+
+  node = root;
+  while (node != TreeEMPTY) {
+    Compare cmp = compare(node, key);
+    switch (cmp) {
+    case CompareLESS:
+      best = node;
+      result = TRUE;
+      node = node->left;
+      break;
+    case CompareEQUAL:
+    case CompareGREATER:
+      node = node->right;
+      break;
+    default:
+      NOTREACHED;
+      return FALSE;
+    }
+  }
+  
+  *treeReturn = best;
+  return result;
+}
+
+
 /* TreeInsert -- insert a node into a tree
  *
  * If the key doesn't exist in the tree, inserts a node as a leaf of the
@@ -134,7 +175,7 @@ Bool TreeInsert(Tree *treeReturn, Tree root, Tree node,
   Compare cmp;
   
   AVER(treeReturn != NULL);
-  AVER(Tree, root);
+  AVERT(Tree, root);
   AVER(TreeCheckLeaf(node));
   AVER(FUNCHECK(compare));
   /* key is arbitrary */
@@ -165,6 +206,8 @@ Bool TreeInsert(Tree *treeReturn, Tree root, Tree node,
   return TRUE;
 }
 
+
+#if 0 /* This code is currently not in use in the MPS */
 
 /* TreeTraverseMorris -- traverse tree inorder in constant space
  *
@@ -432,9 +475,6 @@ Tree TreeReverseRightSpine(Tree tree)
 }
 
 
-#if 0 /* This code is currently not in use in the MPS */
-
-
 /* TreeToVine -- unbalance a tree into a single right spine */
 
 Count TreeToVine(Tree *link)
@@ -488,7 +528,39 @@ void TreeBalance(Tree *treeIO)
 }
 
 
-#endif /* not currently in use in the MPS */
+/* TreeTraverseAndDelete -- traverse a tree while deleting nodes 
+ *
+ * The visitor function must return TRUE to delete the current node,
+ * or FALSE to keep it.
+ *
+ * See <design/arena/#chunk.delete.tricky>.
+ */
+void TreeTraverseAndDelete(Tree *treeIO, TreeVisitor visitor,
+                           void *closureP, Size closureS)
+{
+  Tree *treeref = treeIO;
+
+  AVER(treeIO != NULL);
+  AVERT(Tree, *treeIO);
+  AVER(FUNCHECK(visitor));
+  /* closureP and closureS are arbitrary */
+
+  TreeToVine(treeIO);
+
+  while (*treeref != TreeEMPTY) {
+    Tree tree = *treeref;         /* Current node. */
+    Tree *nextref = &tree->right; /* Location of pointer to next node. */
+    Tree next = *nextref;         /* Next node. */
+    if ((*visitor)(tree, closureP, closureS)) {
+      /* Delete current node. */
+      *treeref = next;
+    } else {
+      /* Keep current node. */
+      treeref = nextref;
+    }
+  }
+  TreeBalance(treeIO);
+}
 
 
 /* C. COPYRIGHT AND LICENSE

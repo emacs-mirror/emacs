@@ -451,7 +451,7 @@ objects. Now reclaim doesn't need to check that the objects are
 allocated before skipping them. There may be a corresponding change
 for scan as well.
 
-``Res AWLDescribe(Pool pool, mps_lib_FILE *stream)``
+``Res AWLDescribe(Pool pool, mps_lib_FILE *stream, Count depth)``
 
 _`.fun.describe`:
 
