@@ -163,7 +163,7 @@ more)::
     size = SegSize(seg);
     if(size < amc->extendBy) {
       /* small */
-    } else if(pages < amc->largeSize) {
+    } else if(size < amc->largeSize) {
       /* medium */
     } else {
       /* large */
