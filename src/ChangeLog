@@ -1,3 +1,10 @@
+2014-06-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* menu.c (Fx_popup_menu): Don't call the frame's menu_show_hook if
+	the frame is the initial frame, because the hook is not set up
+	then, and Emacs crashes.
+	Reported by Fabrice Popineau <fabrice.popineau@gmail.com>.
+
 2014-06-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* keymap.c (silly_event_symbol_error): Don't recommend the use
