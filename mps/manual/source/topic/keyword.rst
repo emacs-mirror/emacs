@@ -86,10 +86,11 @@ now :c:macro:`MPS_KEY_ARGS_END`.
     Keyword                                  Type & field in ``arg.val``                            See
     ======================================== ====================================================== ==========================================================
     :c:macro:`MPS_KEY_ARGS_END`              *none*                                                 *see above*
-    :c:macro:`MPS_KEY_ALIGN`                 :c:type:`mps_align_t`           ``align``              :c:func:`mps_arena_class_cl`, :c:func:`mps_arena_class_vm`, :c:func:`mps_class_mv`, :c:func:`mps_class_mvff`, :c:func:`mps_class_mvt`
+    :c:macro:`MPS_KEY_ALIGN`                 :c:type:`mps_align_t`           ``align``              :c:func:`mps_class_mv`, :c:func:`mps_class_mvff`, :c:func:`mps_class_mvt`
     :c:macro:`MPS_KEY_AMS_SUPPORT_AMBIGUOUS` :c:type:`mps_bool_t`            ``b``                  :c:func:`mps_class_ams`
     :c:macro:`MPS_KEY_ARENA_CL_BASE`         :c:type:`mps_addr_t`            ``addr``               :c:func:`mps_arena_class_cl`
     :c:macro:`MPS_KEY_ARENA_SIZE`            :c:type:`size_t`                ``size``               :c:func:`mps_arena_class_vm`, :c:func:`mps_arena_class_cl`
+    :c:macro:`MPS_KEY_ARENA_GRAIN_SIZE`      :c:type:`size_t`                ``size``               :c:func:`mps_arena_class_vm`, :c:func:`mps_arena_class_cl`
     :c:macro:`MPS_KEY_AWL_FIND_DEPENDENT`    ``void *(*)(void *)``           ``addr_method``        :c:func:`mps_class_awl`
     :c:macro:`MPS_KEY_CHAIN`                 :c:type:`mps_chain_t`           ``chain``              :c:func:`mps_class_amc`, :c:func:`mps_class_amcz`, :c:func:`mps_class_ams`, :c:func:`mps_class_awl`, :c:func:`mps_class_lo`
     :c:macro:`MPS_KEY_EXTEND_BY`             :c:type:`size_t`                ``size``               :c:func:`mps_class_mfs`, :c:func:`mps_class_mv`, :c:func:`mps_class_mvff`
