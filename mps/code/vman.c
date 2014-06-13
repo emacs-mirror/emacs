@@ -46,9 +46,8 @@ Bool VMCheck(VM vm)
 
 /* VMPageSize -- return the page size */
 
-Size VMPageSize(VM vm)
+Size VMPageSize(void)
 {
-  UNUSED(vm);
   return VMAN_PAGE_SIZE;
 }
 

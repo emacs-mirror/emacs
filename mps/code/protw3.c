@@ -116,6 +116,15 @@ void ProtSetup(void)
 }
 
 
+/* ProtGranularity -- return the granularity of protection */
+
+Size ProtGranularity(void)
+{
+  /* Individual pages can be protected on Windows. */
+  return VMPageSize();
+}
+
+
 /* ProtSync -- synchronize protection settings with hardware
  *
  * This does nothing under Win32.  See protan.c.
