@@ -63,20 +63,19 @@ Data Structure
 The implementations are as follows::
 
     typedef struct SegStruct {      /* segment structure */
-      Sig sig;                      /* impl.h.misc.sig */
+      Sig sig;                      /* <code/misc.h#sig> */
       SegClass class;               /* segment class structure */
       Tract firstTract;             /* first tract of segment */
       RingStruct poolRing;          /* link in list of segs in pool */
       Addr limit;                   /* limit of segment */
-      unsigned depth : SHIELD_DEPTH_WIDTH; /* see impl.c.shield.def.depth */
-      AccessSet pm : AccessMAX;     /* protection mode, impl.c.shield */
-      AccessSet sm : AccessMAX;     /* shield mode, impl.c.shield */
-      TraceSet grey : TRACE_MAX;    /* traces for which seg is grey */
-      TraceSet white : TRACE_MAX;   /* traces for which seg is white */
-      TraceSet nailed : TRACE_MAX;  /* traces for which seg has nailed objects */
-      RankSet rankSet : RankMAX;    /* ranks of references in this seg */
+      unsigned depth : ShieldDepthWIDTH; /* see <code/shield.c#def.depth> */
+      AccessSet pm : AccessLIMIT;   /* protection mode, <code/shield.c> */
+      AccessSet sm : AccessLIMIT;   /* shield mode, <code/shield.c> */
+      TraceSet grey : TraceLIMIT;   /* traces for which seg is grey */
+      TraceSet white : TraceLIMIT;  /* traces for which seg is white */
+      TraceSet nailed : TraceLIMIT; /* traces for which seg has nailed objects */
+      RankSet rankSet : RankLIMIT;  /* ranks of references in this seg */
     } SegStruct;
-
 
     typedef struct GCSegStruct {    /* GC segment structure */
       SegStruct segStruct;          /* superclass fields must come first */
@@ -175,10 +174,9 @@ use of the optional arguments; the built-in classes do not.
 _`.split.invariants`: The client must ensure some invariants are met
 before calling ``SegSplit()``:
 
-- _`.split.inv.align`: ``at`` must be appropriately aligned to the
-  arena alignment, and lie between the base and limit of ``seg``.
-  Justification: the split segments cannot be represented if this is
-  not so.
+- _`.split.inv.align`: ``at`` must be a multiple of the arena grain
+  size, and lie between the base and limit of ``seg``. Justification:
+  the split segments cannot be represented if this is not so.
 
 - _`.split.inv.buffer`: If ``seg`` is attached to a buffer, the
   buffered region must not include address ``at``. Justification: the

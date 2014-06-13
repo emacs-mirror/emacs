@@ -1,43 +1,24 @@
 /* mpscmv2.h: MEMORY POOL SYSTEM CLASS "MVT"
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ *
+ * The MVT pool class used to be known as "MV2" in some places: this
+ * header provides backwards compatibility for prograns that included
+ * it under its old name.
  */
 
 #ifndef mpscmv2_h
 #define mpscmv2_h
 
-#include "mps.h"
-
-/* The mvt pool class has five extra parameters to mps_pool_create:
- *  mps_res_t mps_pool_create(mps_pool_t * pool, mps_arena_t arena,
- *                            mps_class_t mvt_class,
- *                            size_t minimum_size,
- *                            size_t mean_size,
- *                            size_t maximum_size,
- *                            mps_count_t reserve_depth
- *                            mps_count_t fragmentation_limit);
- * minimum_, mean_, and maximum_size are the mimimum, mean, and
- * maximum (typical) size of objects expected to be allocated in the
- * pool.  reserve_depth is a measure of the expected hysteresis of the
- * object population.  fragmentation_limit is a percentage (between 0
- * and 100):  if the free space managed by the pool exceeds the
- * specified percentage, the pool will resort to a "first fit"
- * allocation policy.
- */
-extern mps_class_t mps_class_mvt(void);
-
-/* The mvt pool class supports two extensions to the pool protocol:
-   size and free_size. */
-extern size_t mps_mvt_free_size(mps_pool_t mps_pool);
-extern size_t mps_mvt_size(mps_pool_t mps_pool);
+#include "mpscmvt.h"
 
 #endif /* mpscmv2_h */
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

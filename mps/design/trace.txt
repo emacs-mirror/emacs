@@ -25,15 +25,16 @@ Introduction
 Architecture
 ------------
 
-_`.instance.limit`: There will be a limit on the number of traces that
-can be created at any one time. This effectively limits the number of
-concurrent traces. This limitation is expressed in the symbol
-``TRACE_MAX``.
+_`.instance.limit`: There is a limit on the number of traces that can
+be created at any one time. This limits the number of concurrent
+traces. This limitation is expressed in the symbol ``TraceLIMIT``.
 
 .. note::
 
-    ``TRACE_MAX`` is currently set to 1, see request.mps.160020_
-    "Multiple traces would not work". David Jones, 1998-06-15.
+    ``TraceLIMIT`` is currently set to 1 as the MPS assumes in various
+    places that only a single trace is active at a time. See
+    request.mps.160020_ "Multiple traces would not work". David Jones,
+    1998-06-15.
 
 .. _request.mps.160020: https://info.ravenbrook.com/project/mps/import/2001-11-05/mmprevol/request/mps/160020
 
@@ -46,26 +47,32 @@ _`.rate`: See `mail.nickb.1997-07-31.14-37 </project/mps/mail/1997/07/31/14-37/0
 
 .. _request.epcore.160062: https://info.ravenbrook.com/project/mps/import/2001-11-05/mmprevol/request/epcore/160062
 
-_`.exact.legal`: Exact references should either point outside the
-arena (to non-managed address space) or to a tract allocated to a
-pool. Exact references that are to addresses which the arena has
-reserved but hasn't allocated memory to are illegal (the exact
-reference couldn't possibly refer to a real object). Depending on the
-future semantics of ``PoolDestroy()`` we might need to adjust our
-strategy here. See mail.dsm.1996-02-14.18-18 for a strategy of coping
-gracefully with ``PoolDestroy()``. We check that this is the case in the
-fixer. It may be sensible to make this check CRITICAL in certain
-configurations.
+_`.exact.legal`: Exact references must either point outside the arena
+(to non-managed address space) or to a tract allocated to a pool.
+Exact references that are to addresses which the arena has reserved
+but hasn't allocated memory to are illegal (such a reference cannot
+possibly refer to a real object, and so cannot be exact). We check
+that this is the case in ``TraceFix()``.
 
-_`.fix.fixed.all`: ``ss->fixedSummary`` is accumulated (in the fixer)
-for all the pointers whether or not they are genuine references. We
-could accumulate fewer pointers here; if a pointer fails the
-``TractOfAddr()`` test then we know it isn't a reference, so we needn't
-accumulate it into the fixed summary. The design allows this, but it
-breaks a useful post-condition on scanning (if the accumulation of
-``ss->fixedSummary`` was moved the accuracy of ``ss->fixedSummary``
-would vary according to the "width" of the white summary). See
-mail.pekka.1998-02-04.16-48 for improvement suggestions.
+.. note::
+
+    Depending on the future semantics of ``PoolDestroy()`` we might
+    need to adjust our strategy here. See `mail.dsm.1996-02-14.18-18`_
+    for a strategy of coping gracefully with ``PoolDestroy()``.
+
+.. _mail.dsm.1996-02-14.18-18: https://info.ravenbrook.com/project/mps/mail/1996/02/14/18-18/0.txt
+
+_`.fix.fixed.all`: ``ss->fixedSummary`` is accumulated (in
+``TraceFix()``) for all pointers, whether or not they are genuine
+references. We could accumulate fewer pointers here; if a pointer
+fails the ``TractOfAddr()`` test then we know it isn't a reference, so
+we needn't accumulate it into the fixed summary. The design allows
+this, but it breaks a useful post-condition on scanning (if the
+accumulation of ``ss->fixedSummary`` was moved the accuracy of
+``ss->fixedSummary`` would vary according to the "width" of the white
+summary). See `mail.pekka.1998-02-04.16-48`_ for improvement suggestions.
+
+.. _mail.pekka.1998-02-04.16-48: https://info.ravenbrook.com/project/mps/mail/1998/02/04/16-48/0.txt
 
 
 Analysis
@@ -80,6 +87,7 @@ more sophisticated way to proceed when you can no longer allocate
 memory for copying.
 
 .. _request.dylan.170560: https://info.ravenbrook.com/project/mps/import/2001-11-05/mmprevol/request/dylan/170560
+
 
 Ideas
 -----
@@ -96,30 +104,56 @@ Implementation
 Speed
 .....
 
-_`.fix`: The fix path is critical to garbage collection speed.
-Abstractly fix is applied to all the references in the non-white heap
-and all the references in the copied heap. Remembered sets cut down
-the number of segments we have to scan. The zone test cuts down the
-number of references we call fix on. The speed of the remainder of the
-fix path is still critical to system performance. Various
-modifications to and aspects of the system are concerned with
-maintaining the speed along this path.
+_`.fix`: The function implementing the fix operation should be called
+``TraceFix()`` and this name is pervasive in the MPS and its documents
+to describe this function. Nonethless, optimisation and strict
+aliasing rules have meant that we need to use the external name for
+it, ``_mps_fix2()``.
 
-_`.fix.tractofaddr`: ``TractOfAddr()`` is called on every reference that
-passes the zone test and is on the critical path, to determine whether
-the segment is white. There is no need to examine the segment to
-perform this test, since whiteness information is duplicated in
-tracts, specifically to optimize this test. ``TractOfAddr()`` itself is
-a simple class dispatch function (which dispatches to the arena
-class's ``TractOfAddr()`` method). Inlining the dispatch and inlining
-the functions called by ``VMTractOfAddr()`` makes a small but noticable
-difference to the speed of the dylan compiler.
+_`.fix.speed`: The fix path is critical to garbage collection speed.
+Abstractly, the fix operation is applied to all references in the
+non-white heap and all references in the copied heap. Remembered sets
+cut down the number of segments we have to scan. The zone test cuts
+down the number of references we call fix on. The speed of the
+remainder of the fix path is still critical to system performance.
+Various modifications to and aspects of the system are concerned with
+maintaining the speed along this path. See
+`design.mps.critical_path`_.
+
+.. _design.mps.critical_path: critical_path
+
+_`.fix.tractofaddr`: A reference that passes the zone test is then
+looked up to find the tract it points to, an operation equivalent to
+calling ``TractOfAddr()``.
+
+_`.fix.tractofaddr.inline`: ``TraceFix()`` doesn't actually call
+``TractOfAddr()``. Instead, it expands this operation inline (calling
+``ChunkOfAddr()``, then ``INDEX_OF_ADDR()``, checking the appropriate
+bit in the chunk's ``allocTable``, and finally looking up the tract in
+the chunk's page table). The reason for inlining this code is that we
+need to know whether the reference points to a chunk (and not just
+whether it points to a tract) in order to check the `.exact.legal`_
+condition.
+
+_`.fix.whiteseg`: The reason for looking up the tract is to determine
+whether the segment is white. There is no need to examine the segment
+to perform this test, since whiteness information is duplicated in
+tracts, specifically to optimize this test.
+
+.. note::
+
+    Nonetheless, it is likely to be more efficient to maintain a
+    separate lookup table from address to white segment, rather than
+    indirecting through the chunk and the tract. See job003796_.
+
+.. _job003796: http://www.ravenbrook.com/project/mps/issue/job003796/
 
 _`.fix.noaver`: ``AVER()`` statements in the code add bulk to the code
 (reducing I-cache efficacy) and add branches to the path (polluting
-the branch pedictors) resulting in a slow down. Removing all the
-``AVER()`` statements from the fix path improves the overall speed of
-the Dylan compiler by as much as 9%.
+the branch pedictors) resulting in a slow down. Replacing the
+``AVER()`` statements with ``AVER_CRITICAL()`` on the critical path
+improves the overall speed of the Dylan compiler by as much as 9%. See
+`design.mps.critical_path`_.
 
 _`.fix.nocopy`: ``AMCFix()`` used to copy objects by using the format's
 copy method. This involved a function call (through an indirection)
@@ -131,19 +165,15 @@ inlined by the C compiler. This change results in a 4–5% speed-up in
 the Dylan compiler.
 
 _`.reclaim`: Because the reclaim phase of the trace (implemented by
-``TraceReclaim()``) examines every segment it is fairly time intensive.
-rit's profiles presented in request.dylan.170551_ show a gap between
-the two varieties variety.hi and variety.wi.
+``TraceReclaim()``) examines every segment it is fairly time
+intensive. Richard Tucker's profiles presented in
+request.dylan.170551_ show a gap between the two varieties variety.hi
+and variety.wi.
 
 .. _request.dylan.170551: https://info.ravenbrook.com/project/mps/import/2001-11-05/mmprevol/request/dylan/170551
 
-_`.reclaim.noaver`: Converting ``AVER()`` statements in the loops of
-``TraceReclaim()``, ``PoolReclaim()``, ``AMCReclaim()`` (``LOReclaim()``?
-``AWLReclaim()``?) will result in a noticeable speed improvement.
-
-.. note::
-
-    Insert actual speed improvement here, if any.
+_`.reclaim.noaver`: Accordingly, reclaim methods use
+``AVER_CRITICAL()`` instead of ``AVER()``.
 
 
 Life cycle of a trace object

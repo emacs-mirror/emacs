@@ -39,12 +39,19 @@ by generic arena code, and some by arena class code.
 Definitions
 -----------
 
-_`.def.tract`: Pools request memory from the arena by calling
-``ArenaAlloc()``. This returns a block comprising a contiguous sequence
-of "tracts". A tract has a specific size (also known as the "arena
-alignment", which typically corresponds to the operating system page
-size) and all tracts are aligned to that size. "Tract" is also used
-for the data structure used to manage tracts.
+_`.def.grain`: The arena manages memory in units called *arena
+grains*, whose size is returned by the macro ``ArenaGrainSize()``.
+Memory allocated by ``ArenaAlloc()`` is a contiguous sequence of arena
+grains, whose base address and size are multiples of the arena grain
+size.
+
+_`.def.tract`: A tract is a data structure containing information
+about a region of address space: which pool it belongs to (if any),
+for which traces the contents is white, and so on. Tracts are the hook
+on which the segment module is implemented. Pools which don't use
+segments may use tracts for associating their own data with ranges of
+address.
+
 
 
 Requirements
@@ -69,13 +76,20 @@ _`.req.fun.block.alloc`: The arena must provide allocation of
 contiguous blocks of memory.
 
 _`.req.fun.block.free`: It must also provide freeing of contiguously
-allocated blocks owned by a pool - whether or not the block was
+allocated blocks owned by a pool, whether or not the block was
 allocated via a single request.
 
 _`.req.attr.block.size.min`: The arena must support management of
-blocks down to the size of the grain (page) provided by the virtual
-mapping interface if a virtual memory interface is being used, or a
-comparable size otherwise.
+blocks down to the larger of (i) the grain size of the virtual mapping
+interface (if a virtual memory interface is being used); and (ii) the
+grain size of the memory protection interface (if protection is used).
+
+.. note::
+
+    On all the operating systems we support, these grain sizes are the
+    same and are equal to the operating system page size. But we want
+    the MPS to remain flexible enough to be ported to operating
+    systems where these are different.
 
 _`.req.attr.block.size.max`: It must also support management of blocks
 up to the maximum size allowed by the combination of operating system
@@ -87,44 +101,38 @@ than ``MPS_PF_ALIGN`` for the architecture. This is so that pool
 classes can conveniently guarantee pool allocated blocks are aligned
 to ``MPS_PF_ALIGN``. (A trivial requirement.)
 
-_`.req.attr.block.grain.max`: The granularity of allocation shall not
-be more than the grain size provided by the virtual mapping interface.
-
 
 Address translation
 ...................
 
 _`.req.fun.trans`: The arena must provide a translation from any
-address to either an indication that the address is not in any tract
-(if that is so) or the following data associated with the tract
-containing that address:
+address to the following information:
 
-_`.req.fun.trans.pool`: The pool that allocated the tract.
+_`.req.fun.trans.arena`: Whether the address is managed by the arena.
 
-_`.req.fun.trans.arbitrary`: An arbitrary pointer value that the pool
-can associate with the tract at any time.
+_`.req.fun.trans.pool`: Whether the address is managed by a pool
+within the arena, and if it is, the pool.
 
-_`.req.fun.trans.white`: The tracer whiteness information. That is, a
-bit for each active trace that indicates whether this tract is white
-(contains white objects). This is required so that the "fix" protocol
-can run very quickly.
+_`.req.fun.trans.arbitrary`: If the address is managed by a pool, an
+arbitrary pointer value that the pool can associate with a group of
+contiguous addresses at any time.
+
+_`.req.fun.trans.white`: If the address is managed by an automatic
+pool, the set of traces for which the address is white. This is
+required so that the second-stage fix protocol can reject non-white
+addresses quickly. See `design.mps.critical-path`_.
+
+.. _design.mps.critical-path: critical-path
 
 _`.req.attr.trans.time`: The translation shall take no more than @@@@
 [something not very large -- drj 1999-06-23]
 
 
-Iteration protocol
-..................
-
-_`.req.iter`: er, there's a tract iteration protocol which is
-presumably required for some reason?
-
-
 Arena partition
 ...............
 
-_`.req.fun.set`: The arena must provide a method for approximating sets
-of addresses.
+_`.req.fun.set`: The arena must provide a method for approximating
+sets of addresses.
 
 _`.req.fun.set.time`: The determination of membership shall take no
 more than @@@@ [something very small indeed]. (the non-obvious
@@ -185,9 +193,11 @@ Arena classes
 ``typedef mps_arena_s *Arena``
 
 _`.class`: The ``Arena`` data structure is designed to be subclassable
-(see design.mps.protocol(0)). Clients can select what arena class
-they'd like when instantiating one with ``mps_arena_create()``. The
-arguments to ``mps_arena_create()`` are class-dependent.
+(see `design.mps.protocol`_). Clients can select what arena class
+they'd like when instantiating one with ``mps_arena_create_k()``. The
+arguments to ``mps_arena_create_k()`` are class-dependent.
+
+.. _design.mps.protocol: protocol
 
 _`.class.init`: However, the generic ``ArenaInit()`` is called from the
 class-specific method, rather than vice versa, because the method is
@@ -195,7 +205,7 @@ responsible for allocating the memory for the arena descriptor and the
 arena lock in the first place. Likewise, ``ArenaFinish()`` is called
 from the finish method.
 
-_`.class.fields`: The ``alignment`` (for tract allocations) and
+_`.class.fields`: The ``grainSize`` (for allocation and freeing) and
 ``zoneShift`` (for computing zone sizes and what zone an address is
 in) fields in the arena are the responsibility of the each class, and
 are initialized by the ``init`` method. The responsibility for
@@ -220,15 +230,56 @@ implementations of those methods which must be overridden. Instead
 each abstract method is initialized to ``NULL``.
 
 
+Chunks
+......
+
+_`.chunk`: Each contiguous region of address space managed by the MPS
+is represented by a *chunk*.
+
+_`.chunk.tracts`: A chunk contains a table of tracts. See `.tract`_.
+
+_`.chunk.lookup`: Looking of the chunk of an address is the first
+step in the second-stage fix operation, and so on the critical path.
+See `design.mps.critical-path`_.
+
+.. _design.mps.critical-path: critical-path
+
+_`.chunk.tree`: For efficient lookup, chunks are stored in a balanced
+tree; ``arena->chunkTree`` points to the root of the tree. Operations
+on this tree must ensure that the tree remains balanced, otherwise
+performance degrades badly with many chunks.
+
+_`.chunk.insert`: New chunks are inserted into the tree by calling
+``ArenaChunkInsert()``. This calls ``TreeInsert()``, followed by
+``TreeBalance()`` to ensure that the tree is balanced.
+
+_`.chunk.delete`: There is no corresponding function
+``ArenaChunkDelete()``. Instead, deletions from the chunk tree are
+carried out by calling ``TreeToVine()``, iterating over the vine
+(where deletion is possible, if care is taken) and then calling
+``TreeBalance()`` on the remaining tree. The function
+``TreeTraverseAndDelete()`` implements this.
+
+_`.chunk.delete.justify`: This is because we don't have a function
+that deletes an item from a balanced tree efficiently, and because all
+functions that delete chunks do so in a loop over the chunks (so the
+best we can do is O(*n*) time in any case).
+
+_`.chunk.delete.tricky`: Deleting chunks from the chunk tree is tricky
+in the virtual memory arena because ``vmChunkDestroy()`` unmaps the
+memory containing the chunk, which includes the tree node. So the next
+chunk must be looked up before deleting the current chunk. The function
+``TreeTraverseAndDelete()`` ensures that this is done.
+
+
 Tracts
 ......
 
-_`.tract`: The arena allocation function ``ArenaAlloc()`` allocates a
-block of memory to pools, of a size which is aligned to the arena
-alignment. Each alignment unit (grain) of allocation is represented by
-a tract. Tracts are the hook on which the segment module is
-implemented. Pools which don't use segments may use tracts for
-associating their own data with each allocation grain.
+_`.tract.table`: The arena maintains tables of tract structures such
+that every address managed by the arena belongs to exactly one tract.
+
+_`.tract.size`: Each tract covers exactly one arena grain. This is an
+implementation detail, not a requirement.
 
 _`.tract.structure`: The tract structure definition looks like this::
 
@@ -263,8 +314,10 @@ use it for any purpose.
 _`.tract.field.hasSeg`: The ``hasSeg`` bit-field is a Boolean which
 indicates whether the ``p`` field is being used by the segment module.
 If this field is ``TRUE``, then the value of ``p`` is a ``Seg``. See
-design.mps.type.bool.bitfield for why this is declared using the
+`design.mps.type.bool.bitfield`_ for why this is declared using the
 ``BOOLFIELD`` macro.
+
+.. _design.mps.type.bool.bitfield: type#bool.bitfield
 
 _`.tract.field.base`: The base field contains the base address of the
 memory represented by the tract.
@@ -272,29 +325,26 @@ memory represented by the tract.
 _`.tract.field.white`: The white bit-field indicates for which traces
 the tract is white (`.req.fun.trans.white`_). This information is also
 stored in the segment, but is duplicated here for efficiency during a
-call to ``TraceFix()`` (see design.mps.trace.fix).
+call to ``TraceFix()`` (see `design.mps.trace.fix`_).
+
+.. _design.mps.trace.fix: trace#fix
 
 _`.tract.limit`: The limit of the tract's memory may be determined by
-adding the arena alignment to the base address.
+adding the arena grain size to the base address.
 
 _`.tract.iteration`: Iteration over tracts is described in
 design.mps.arena.tract-iter(0).
 
 ``Bool TractOfAddr(Tract *tractReturn, Arena arena, Addr addr)``
 
-_`.tract.if.tractofaddr`: The function ``TractOfAddr()`` finds the tract
-corresponding to an address in memory. (See `.req.fun.trans`_.)
-
+_`.tract.if.tractofaddr`: The function ``TractOfAddr()`` finds the
+tract corresponding to an address in memory. (See `.req.fun.trans`_.)
 If ``addr`` is an address which has been allocated to some pool, then
 ``TractOfAddr()`` returns ``TRUE``, and sets ``*tractReturn`` to the
 tract corresponding to that address. Otherwise, it returns ``FALSE``.
 This function is similar to ``TractOfBaseAddr()`` (see
 design.mps.arena.tract-iter.if.contig-base) but serves a more general
 purpose and is less efficient.
-
-_`.tract.if.TRACT_OF_ADDR`: ``TRACT_OF_ADDR()`` is a macro version of
-``TractOfAddr()``. It's provided for efficiency during a call to
-``TraceFix()`` (see design.mps.trace.fix.tractofaddr).
 
 
 Control pool

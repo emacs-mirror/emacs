@@ -16,6 +16,7 @@
 #include "mpsavm.h"
 #include "mpstd.h"
 #include "mps.h"
+#include "mpm.h"
 
 #include <stdio.h> /* fflush, printf */
 
@@ -105,7 +106,7 @@ static mps_addr_t make(void)
 /* test -- the actual stress test */
 
 static mps_pool_debug_option_s freecheckOptions =
-  { NULL, 0, (const void *)"Dead", 4 };
+  { NULL, 0, "Dead", 4 };
 
 static void test_pool(mps_class_t pool_class, mps_arg_s args[],
                       mps_bool_t haveAmbiguous)
@@ -140,6 +141,8 @@ static void test_pool(mps_class_t pool_class, mps_arg_s args[],
 
   /* create an ap, and leave it busy */
   die(mps_reserve(&busy_init, busy_ap, 64), "mps_reserve busy");
+
+  die(PoolDescribe(pool, mps_lib_get_stdout(), 0), "PoolDescribe");
 
   objs = 0; totalSize = 0;
   while(totalSize < totalSizeMAX) {

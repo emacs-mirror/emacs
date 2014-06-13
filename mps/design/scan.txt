@@ -19,8 +19,8 @@ Scanned summary
 ...............
 
 _`.summary.subset`: The summary of reference seens by scan
-(ss.unfixedSummary) is a subset of the summary previously computed
-(SegSummary).
+(``ss.unfixedSummary``) is a subset of the summary previously computed
+(``SegSummary()``).
 
 There are two reasons that it is not an equality relation:
 
@@ -34,9 +34,11 @@ There are two reasons that it is not an equality relation:
 
 #. A write barrier hit will set the summary to ``RefSetUNIV``.
 
-The reason that ss.unfixedSummary is always a subset of the previous
-summary is due to an "optimization" which has not been made in
-``TraceFix``. See impl.c.trace.fix.fixed.all.
+The reason that ``ss.unfixedSummary`` is always a subset of the
+previous summary is due to an "optimization" which has not been made
+in ``TraceFix``. See `design.mps.trace.fix.fixed.all`_.
+
+.. _design.mps.trace.fix.fixed.all: trace#fix.fixed.all
 
 
 Partial scans
@@ -54,8 +56,8 @@ partial scans of condemned segments contribute to the segment summary.
 
 _`.clever-summary.acc`: Each time we partially scan a segment, we
 accumulate the post-scan summary of the scanned objects into a field
-in the group, called 'summarySoFar'. The post-scan summary is (summary
-\ white) U fixed.
+in the group, called ``summarySoFar``. The post-scan summary is
+(summary \ white) ∪ fixed.
 
 _`.clever-summary.acc.condemn`: The cumulative summary is only
 meaningful while the segment is condemned. Otherwise it is set to

@@ -692,7 +692,7 @@
 #define EVENT_AMCTraceEnd_PARAMS(PARAM, X) \
   PARAM(X,  0, W, epoch)        /* current arena epoch */ \
   PARAM(X,  1, U, why)          /* reason trace started */ \
-  PARAM(X,  2, W, align)        /* arena alignment */ \
+  PARAM(X,  2, W, grainSize)    /* arena grain size */ \
   PARAM(X,  3, W, large)        /* AMC large size */ \
   PARAM(X,  4, W, pRetMin)      /* threshold for event */ \
   /* remaining parameters are copy of PageRetStruct, which see */ \
