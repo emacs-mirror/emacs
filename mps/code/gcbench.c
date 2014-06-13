@@ -47,7 +47,7 @@ static double pupdate = 0.1;      /* probability of update */
 static unsigned ngen = 0;         /* number of generations specified */
 static mps_gen_param_s gen[genLIMIT]; /* generation parameters */
 static size_t arena_size = 256ul * 1024 * 1024; /* arena size */
-static mps_align_t arena_align = 1; /* arena alignment */
+static size_t arena_grain_size = 1; /* arena grain size */
 static unsigned pinleaf = FALSE;  /* are leaf objects pinned at start */
 static mps_bool_t zoned = TRUE;   /* arena allocates using zones */
 
@@ -229,7 +229,7 @@ static void arena_setup(gcthread_fn_t fn,
 {
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, arena_size);
-    MPS_ARGS_ADD(args, MPS_KEY_ALIGN, arena_align);
+    MPS_ARGS_ADD(args, MPS_KEY_ARENA_GRAIN_SIZE, arena_grain_size);
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_ZONED, zoned);
     RESMUST(mps_arena_create_k(&arena, mps_arena_class_vm(), args));
   } MPS_ARGS_END(args);
@@ -259,21 +259,21 @@ static void arena_setup(gcthread_fn_t fn,
 /* Command-line options definitions.  See getopt_long(3). */
 
 static struct option longopts[] = {
-  {"help",          no_argument,       NULL, 'h'},
-  {"nthreads",      required_argument, NULL, 't'},
-  {"niter",         required_argument, NULL, 'i'},
-  {"npass",         required_argument, NULL, 'p'},
-  {"gen",           required_argument, NULL, 'g'},
-  {"arena-size",    required_argument, NULL, 'm'},
-  {"arena-align",   required_argument, NULL, 'a'},
-  {"width",         required_argument, NULL, 'w'},
-  {"depth",         required_argument, NULL, 'd'},
-  {"preuse",        required_argument, NULL, 'r'},
-  {"pupdate",       required_argument, NULL, 'u'},
-  {"pin-leaf",      no_argument,       NULL, 'l'},
-  {"seed",          required_argument, NULL, 'x'},
-  {"arena-unzoned", no_argument,       NULL, 'z'},
-  {NULL,            0,                 NULL, 0  }
+  {"help",             no_argument,       NULL, 'h'},
+  {"nthreads",         required_argument, NULL, 't'},
+  {"niter",            required_argument, NULL, 'i'},
+  {"npass",            required_argument, NULL, 'p'},
+  {"gen",              required_argument, NULL, 'g'},
+  {"arena-size",       required_argument, NULL, 'm'},
+  {"arena-grain-size", required_argument, NULL, 'a'},
+  {"width",            required_argument, NULL, 'w'},
+  {"depth",            required_argument, NULL, 'd'},
+  {"preuse",           required_argument, NULL, 'r'},
+  {"pupdate",          required_argument, NULL, 'u'},
+  {"pin-leaf",         no_argument,       NULL, 'l'},
+  {"seed",             required_argument, NULL, 'x'},
+  {"arena-unzoned",    no_argument,       NULL, 'z'},
+  {NULL,               0,                 NULL, 0  }
 };
 
 
@@ -358,14 +358,14 @@ int main(int argc, char *argv[]) {
       break;
     case 'a': {
         char *p;
-        arena_align = (unsigned)strtoul(optarg, &p, 10);
+        arena_grain_size = (unsigned)strtoul(optarg, &p, 10);
         switch(toupper(*p)) {
-        case 'G': arena_align <<= 30; break;
-        case 'M': arena_align <<= 20; break;
-        case 'K': arena_align <<= 10; break;
+        case 'G': arena_grain_size <<= 30; break;
+        case 'M': arena_grain_size <<= 20; break;
+        case 'K': arena_grain_size <<= 10; break;
         case '\0': break;
         default:
-          fprintf(stderr, "Bad arena alignment %s\n", optarg);
+          fprintf(stderr, "Bad arena grain size %s\n", optarg);
           return EXIT_FAILURE;
         }
       }
@@ -397,8 +397,8 @@ int main(int argc, char *argv[]) {
               "Options:\n"
               "  -m n, --arena-size=n[KMG]?\n"
               "    Initial size of arena (default %lu).\n"
-              "  -a n, --arena-align=n[KMG]?\n"
-              "    Alignment of arena (default %lu).\n"
+              "  -a n, --arena-grain-size=n[KMG]?\n"
+              "    Arena grain size (default %lu).\n"
               "  -t n, --nthreads=n\n"
               "    Launch n threads each running the test (default %u).\n"
               "  -i n, --niter=n\n"
@@ -412,7 +412,7 @@ int main(int argc, char *argv[]) {
               "    Width of tree nodes made (default %lu)\n",
               argv[0],
               (unsigned long)arena_size,
-              (unsigned long)arena_align,
+              (unsigned long)arena_grain_size,
               nthreads,
               niter,
               npass,

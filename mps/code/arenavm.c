@@ -102,7 +102,7 @@ static Bool VMChunkCheck(VMChunk vmchunk)
   chunk = VMChunk2Chunk(vmchunk);
   CHECKD(Chunk, chunk);
   CHECKD_NOSIG(VM, vmchunk->vm); /* <design/check/#hidden-type> */
-  CHECKL(VMAlign(vmchunk->vm) == ChunkPageSize(chunk));
+  CHECKL(VMPageSize(vmchunk->vm) == ChunkPageSize(chunk));
   CHECKL(vmchunk->overheadMappedLimit <= (Addr)chunk->pageTable);
   CHECKD(SparseArray, &vmchunk->pages);
   /* SparseArrayCheck is agnostic about where the BTs live, so VMChunkCheck
@@ -272,13 +272,13 @@ static void vmArenaUnmap(VMArena vmArena, VM vm, Addr base, Addr limit)
  * chunkReturn, return parameter for the created chunk.
  * vmArena, the parent VMArena.
  * size, approximate amount of virtual address that the chunk should reserve.
- * align, minimum acceptable tract size
+ * arenaGrainSize, arena grain size
  */
-static Res VMChunkCreate(Chunk *chunkReturn, VMArena vmArena, Size size, Align align)
+static Res VMChunkCreate(Chunk *chunkReturn, VMArena vmArena, Size size, Size arenaGrainSize)
 {
   Res res;
+  Size grainSize;
   Addr base, limit, chunkStructLimit;
-  Align pageSize;
   VM vm;
   BootBlockStruct bootStruct;
   BootBlock boot = &bootStruct;
@@ -288,13 +288,14 @@ static Res VMChunkCreate(Chunk *chunkReturn, VMArena vmArena, Size size, Align a
   AVER(chunkReturn != NULL);
   AVERT(VMArena, vmArena);
   AVER(size > 0);
+  AVERT(ArenaGrainSize, arenaGrainSize);
 
-  res = VMCreate(&vm, size, align, vmArena->vmParams);
+  grainSize = arenaGrainSize;
+  res = VMCreate(&vm, &grainSize, size, vmArena->vmParams);
   if (res != ResOK)
     goto failVMCreate;
 
-  /* The VM will have adjusted align and size; pick up the actual values. */
-  pageSize = VMAlign(vm);
+  AVER(grainSize == arenaGrainSize);
   base = VMBase(vm);
   limit = VMLimit(vm);
 
@@ -308,8 +309,8 @@ static Res VMChunkCreate(Chunk *chunkReturn, VMArena vmArena, Size size, Align a
   if (res != ResOK)
     goto failChunkAlloc;
   vmChunk = p;
-  /* Calculate the limit of the page where the chunkStruct resides. */
-  chunkStructLimit = AddrAlignUp((Addr)(vmChunk + 1), pageSize);
+  /* Calculate the limit of the grain where the chunkStruct resides. */
+  chunkStructLimit = AddrAlignUp((Addr)(vmChunk + 1), grainSize);
   res = vmArenaMap(vmArena, vm, base, chunkStructLimit);
   if (res != ResOK)
     goto failChunkMap;
@@ -317,7 +318,7 @@ static Res VMChunkCreate(Chunk *chunkReturn, VMArena vmArena, Size size, Align a
 
   vmChunk->vm = vm;
   res = ChunkInit(VMChunk2Chunk(vmChunk), VMArena2Arena(vmArena),
-                  base, limit, pageSize, boot);
+                  base, limit, grainSize, boot);
   if (res != ResOK)
     goto failChunkInit;
 
@@ -484,7 +485,7 @@ ARG_DEFINE_KEY(arena_contracted, Fun);
 static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
 {
   Size userSize = VM_ARENA_SIZE_DEFAULT; /* size requested by user */
-  Align userAlign = MPS_PF_ALIGN; /* alignment requested by user */
+  Align userGrainSize = MPS_PF_ALIGN; /* grain size requested by user */
   Size chunkSize;       /* size actually created */
   Size vmArenaSize; /* aligned size of VMArenaStruct */
   Res res;
@@ -501,11 +502,11 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
 
   if (ArgPick(&arg, args, MPS_KEY_ARENA_SIZE))
     userSize = arg.val.size;
-  if (ArgPick(&arg, args, MPS_KEY_ALIGN))
-    userAlign = AlignAlignUp(arg.val.align, userAlign);
+  if (ArgPick(&arg, args, MPS_KEY_ARENA_GRAIN_SIZE))
+    userGrainSize = arg.val.size;
 
   AVER(userSize > 0);
-  AVERT(Align, userAlign);
+  AVERT(ArenaGrainSize, userGrainSize);
   
   /* Parse remaining arguments, if any, into VM parameters. We must do
      this into some stack-allocated memory for the moment, since we
@@ -516,7 +517,7 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
 
   /* Create a VM to hold the arena and map it. */
   vmArenaSize = SizeAlignUp(sizeof(VMArenaStruct), MPS_PF_ALIGN);
-  res = VMCreate(&arenaVM, vmArenaSize, userAlign, vmParams);
+  res = VMCreate(&arenaVM, &userGrainSize, vmArenaSize, vmParams);
   if (res != ResOK)
     goto failVMCreate;
   res = VMMap(arenaVM, VMBase(arenaVM), VMLimit(arenaVM));
@@ -526,7 +527,7 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
 
   arena = VMArena2Arena(vmArena);
   /* <code/arena.c#init.caller> */
-  res = ArenaInit(arena, class, VMAlign(arenaVM), args);
+  res = ArenaInit(arena, class, userGrainSize, args);
   if (res != ResOK)
     goto failArenaInit;
   arena->committed = VMMapped(arenaVM);
@@ -553,7 +554,7 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
 
   /* have to have a valid arena before calling ChunkCreate */
   vmArena->sig = VMArenaSig;
-  res = VMChunkCreate(&chunk, vmArena, userSize, userAlign);
+  res = VMChunkCreate(&chunk, vmArena, userSize, userGrainSize);
   if (res != ResOK)
     goto failChunkCreate;
 
@@ -564,7 +565,7 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
   /* the size is not a power of 2.  See <design/arena/#class.fields>. */
   chunkSize = AddrOffset(chunk->base, chunk->limit);
   arena->zoneShift = SizeFloorLog2(chunkSize >> MPS_WORD_SHIFT);
-  AVER(chunk->pageSize == arena->alignment);
+  AVER(chunk->pageSize == ArenaGrainSize(arena));
 
   AVERT(VMArena, vmArena);
   if ((ArenaClass)mps_arena_class_vm() == class)
@@ -720,7 +721,7 @@ static Res VMArenaGrow(Arena arena, SegPref pref, Size size)
           return res;
         }
         res = VMChunkCreate(&newChunk, vmArena, chunkSize,
-                            VMAlign(vmArena->vm));
+                            ArenaGrainSize(arena));
         if(res == ResOK)
           goto vmArenaGrow_Done;
       }

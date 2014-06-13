@@ -19,7 +19,6 @@ SRCID(vman, "$Id$");
 /* ANSI fake VM structure, see <design/vman/> */
 typedef struct VMStruct {
   Sig sig;                      /* <design/sig/> */
-  Align align;                  /* page size */
   Addr base, limit;             /* aligned boundaries of malloc'd memory */
   void *block;                  /* pointer to malloc'd block, for free() */
   Size reserved;                /* total reserved address space */
@@ -32,12 +31,12 @@ typedef struct VMStruct {
 Bool VMCheck(VM vm)
 {
   CHECKS(VM, vm);
-  CHECKD_NOSIG(Align, vm->align);
   CHECKL(vm->base != (Addr)0);
   CHECKL(vm->limit != (Addr)0);
   CHECKL(vm->base < vm->limit);
-  CHECKL(AddrIsAligned(vm->base, vm->align));
-  CHECKL(AddrIsAligned(vm->limit, vm->align));
+  CHECKL(ArenaGrainSizeCheck(VMAN_PAGE_SIZE));
+  CHECKL(AddrIsAligned(vm->base, VMAN_PAGE_SIZE));
+  CHECKL(AddrIsAligned(vm->limit, VMAN_PAGE_SIZE));
   CHECKL(vm->block != NULL);
   CHECKL((Addr)vm->block <= vm->base);
   CHECKL(vm->mapped <= vm->reserved);
@@ -45,12 +44,12 @@ Bool VMCheck(VM vm)
 }
 
 
-/* VMAlign -- return the page size */
+/* VMPageSize -- return the page size */
 
-Align VMAlign(VM vm)
+Size VMPageSize(VM vm)
 {
-  AVERT(VM, vm);
-  return vm->align;
+  UNUSED(vm);
+  return VMAN_PAGE_SIZE;
 }
 
 
@@ -65,24 +64,40 @@ Res VMParamFromArgs(void *params, size_t paramSize, ArgList args)
 
 /* VMCreate -- reserve some virtual address space, and create a VM structure */
 
-Res VMCreate(VM *vmReturn, Size size, Align align, void *params)
+Res VMCreate(VM *vmReturn, Size *grainSizeIO, Size size, void *params)
 {
   VM vm;
+  Size pageSize, grainSize;
 
   AVER(vmReturn != NULL);
+  AVER(grainSizeIO != NULL);
+  grainSize = *grainSizeIO;
+  AVERT(ArenaGrainSize, grainSize);
   AVER(size > 0);
-  AVERT(Align, align);
   AVER(params != NULL);
-  
-  align = AlignAlignUp(align, VMANPageALIGNMENT);
 
-  /* Note that because we add align rather than align-1 we are not in
-   * danger of overflowing vm->limit even if malloc were perverse
-   * enough to give us a block at the end of memory. */
-  size = SizeAlignUp(size, align) + align;
-  if ((size < align) || (size > (Size)(size_t)-1))
+  /* Arbitrary page size. */
+  pageSize = VMAN_PAGE_SIZE;
+  AVERT(ArenaGrainSize, pageSize);
+
+  /* Grains must consist of whole pages. */
+  if (grainSize < pageSize)
+    grainSize = pageSize;
+  AVER(grainSize % pageSize == 0);
+
+  /* Check that the rounded-up sizes will fit in a Size. */
+  size = SizeRoundUp(size, grainSize);
+  if (size < VMAN_PAGE_SIZE || size > (Size)(size_t)-1)
+    return ResRESOURCE;
+  /* Note that because we add a whole grainSize here (not grainSize -
+   * pageSize), we are not in danger of overflowing vm->limit even if
+   * malloc were perverse enough to give us a block at the end of
+   * memory. Compare vmix.c#.assume.not-last. */
+  reserved = size + grainSize;
+  if (reserved < grainSize || reserved > (Size)(size_t)-1)
     return ResRESOURCE;
 
+  /* Allocate space to store the descriptor. */
   vm = (VM)malloc(sizeof(VMStruct));
   if (vm == NULL)
     return ResMEMORY;
@@ -93,9 +108,8 @@ Res VMCreate(VM *vmReturn, Size size, Align align, void *params)
     return ResMEMORY;
   }
 
-  vm->align = align;
-  vm->base  = AddrAlignUp((Addr)vm->block, align);
-  vm->limit = AddrAdd(vm->base, size - align);
+  vm->base  = AddrAlignUp((Addr)vm->block, pageSize);
+  vm->limit = AddrAdd(vm->base, size);
   AVER(vm->limit < AddrAdd((Addr)vm->block, size));
 
   memset((void *)vm->block, VMJunkBYTE, size);
@@ -107,8 +121,9 @@ Res VMCreate(VM *vmReturn, Size size, Align align, void *params)
 
   AVERT(VM, vm);
  
-  EVENT4(VMCreate, vm, vm->align, vm->base, vm->limit);
+  EVENT3(VMCreate, vm, vm->base, vm->limit);
   *vmReturn = vm;
+  *grainSizeIO = grainSize;
   return ResOK;
 }
 
@@ -182,8 +197,8 @@ Res VMMap(VM vm, Addr base, Addr limit)
   AVER(vm->base <= base);
   AVER(base < limit);
   AVER(limit <= vm->limit);
-  AVER(AddrIsAligned(base, vm->align));
-  AVER(AddrIsAligned(limit, vm->align));
+  AVER(AddrIsAligned(base, VMAN_PAGE_SIZE));
+  AVER(AddrIsAligned(limit, VMAN_PAGE_SIZE));
 
   size = AddrOffset(base, limit);
   memset((void *)base, (int)0, size);
@@ -206,8 +221,8 @@ void VMUnmap(VM vm, Addr base, Addr limit)
   AVER(vm->base <= base);
   AVER(base < limit);
   AVER(limit <= vm->limit);
-  AVER(AddrIsAligned(base, vm->align));
-  AVER(AddrIsAligned(limit, vm->align));
+  AVER(AddrIsAligned(base, VMAN_PAGE_SIZE));
+  AVER(AddrIsAligned(limit, VMAN_PAGE_SIZE));
  
   size = AddrOffset(base, limit);
   memset((void *)base, 0xCD, size);

@@ -64,7 +64,7 @@ SRCID(vmix, "$Id$");
 
 typedef struct VMStruct {
   Sig sig;                      /* <design/sig/> */
-  Align align;                  /* page size */
+  Size pageSize;                /* page size */
   void *reserved_base;          /* unaligned base of mmap'd memory */
   Addr base, limit;             /* aligned boundaries of reserved space */
   Size reserved;                /* total reserved address space */
@@ -72,11 +72,11 @@ typedef struct VMStruct {
 } VMStruct;
 
 
-/* VMAlign -- return page size */
+/* VMPageSize -- return page size */
 
-Align VMAlign(VM vm)
+Size VMPageSize(VM vm)
 {
-  return vm->align;
+  return vm->pageSize;
 }
 
 
@@ -89,9 +89,9 @@ Bool VMCheck(VM vm)
   CHECKL(vm->limit != 0);
   CHECKL(vm->base < vm->limit);
   CHECKL(vm->mapped <= vm->reserved);
-  CHECKL(SizeIsP2(vm->align));
-  CHECKL(AddrIsAligned(vm->base, vm->align));
-  CHECKL(AddrIsAligned(vm->limit, vm->align));
+  CHECKL(ArenaGrainSizeCheck(vm->pageSize));
+  CHECKL(AddrIsAligned(vm->base, vm->pageSize));
+  CHECKL(AddrIsAligned(vm->limit, vm->pageSize));
   return TRUE;
 }
 
@@ -107,35 +107,46 @@ Res VMParamFromArgs(void *params, size_t paramSize, ArgList args)
 
 /* VMCreate -- reserve some virtual address space, and create a VM structure */
 
-Res VMCreate(VM *vmReturn, Size size, Align align, void *params)
+Res VMCreate(VM *vmReturn, Size *grainSizeIO, Size size, void *params)
 {
   VM vm;
-  int pagesize;
-  size_t reserved;
-  Align pagealign;
+  Size grainSize, pageSize, reserved;
+  int ospagesize;
   void *addr;
   Res res;
 
   AVER(vmReturn != NULL);
+  AVER(grainSizeIO != NULL);
+  grainSize = *grainSizeIO;
+  AVERT(ArenaGrainSize, grainSize);
+  AVER(size > 0);
   AVER(params != NULL);
 
-  /* Find out the page size from the OS */
-  pagesize = getpagesize();
+  /* Find out the operating system page size */
+  ospagesize = getpagesize();
 
-  /* Check the actual returned pagesize will fit in an object of type
-   * Align, and that it is a valid alignment. */
-  AVER(pagesize > 0);
-  AVER((unsigned long)pagesize <= (unsigned long)(Align)-1);
-  pagealign = (Align)pagesize;
-  AVERT(Align, pagealign);
+  /* Check the page size will fit in a Size. */
+  AVER((unsigned long)ospagesize <= (unsigned long)(Size)-1);
 
-  align = AlignAlignUp(align, pagealign);
-  size = SizeAlignUp(size, align);
-  if((size == 0) || (size > (Size)(size_t)-1))
+  /* Check that the page size is valid for use as an arena grain size. */
+  pageSize = (Size)ospagesize;
+  AVERT(ArenaGrainSize, pageSize);
+
+  /* Grains must consist of whole pages. */
+  if (grainSize < pageSize)
+    grainSize = pageSize;
+  AVER(grainSize % pageSize == 0);
+
+  /* Check that the rounded-up sizes will fit in a Size. */
+  size = SizeRoundUp(size, grainSize);
+  if (size < grainSize || size > (Size)(size_t)-1)
+    return ResRESOURCE;
+  reserved = size + grainSize - pageSize;
+  if (reserved < grainSize || reserved > (Size)(size_t)-1)
     return ResRESOURCE;
 
-  /* Map in some pages to store the descriptor on. */
-  addr = mmap(0, (size_t)SizeAlignUp(sizeof(VMStruct), pagealign),
+  /* Map in a page to store the descriptor. */
+  addr = mmap(0, (size_t)SizeAlignUp(sizeof(VMStruct), pageSize),
               PROT_READ | PROT_WRITE,
               MAP_ANON | MAP_PRIVATE,
               -1, 0);
@@ -149,8 +160,9 @@ Res VMCreate(VM *vmReturn, Size size, Align align, void *params)
   }
   vm = (VM)addr;
 
+  vm->pageSize = pageSize;
+
   /* See .assume.not-last. */
-  reserved = size + align - pagealign;
   addr = mmap(0, reserved, PROT_NONE, MAP_ANON | MAP_PRIVATE, -1, 0);
   if(addr == MAP_FAILED) {
     int e = errno;
@@ -159,9 +171,9 @@ Res VMCreate(VM *vmReturn, Size size, Align align, void *params)
     goto failReserve;
   }
 
-  vm->align = align;
+  vm->pageSize = pageSize;
   vm->reserved_base = addr;
-  vm->base = AddrAlignUp(addr, align);
+  vm->base = AddrAlignUp(addr, grainSize);
   vm->limit = AddrAdd(vm->base, size);
   AVER(vm->base < vm->limit);  /* .assume.not-last */
   vm->reserved = reserved;
@@ -170,13 +182,14 @@ Res VMCreate(VM *vmReturn, Size size, Align align, void *params)
   vm->sig = VMSig;
   AVERT(VM, vm);
 
-  EVENT4(VMCreate, vm, vm->align, vm->base, vm->limit);
+  EVENT3(VMCreate, vm, vm->base, vm->limit);
 
   *vmReturn = vm;
+  *grainSizeIO = grainSize;
   return ResOK;
 
 failReserve:
-  (void)munmap((void *)vm, (size_t)SizeAlignUp(sizeof(VMStruct), pagealign));
+  (void)munmap((void *)vm, (size_t)SizeAlignUp(sizeof(VMStruct), pageSize));
   return res;
 }
 
@@ -186,7 +199,6 @@ failReserve:
 void VMDestroy(VM vm)
 {
   int r;
-  Align pagealign = (Align)getpagesize();
 
   AVERT(VM, vm);
   AVER(vm->mapped == (Size)0);
@@ -201,7 +213,7 @@ void VMDestroy(VM vm)
 
   r = munmap(vm->reserved_base, vm->reserved);
   AVER(r == 0);
-  r = munmap((void *)vm, (size_t)SizeAlignUp(sizeof(VMStruct), pagealign));
+  r = munmap((void *)vm, (size_t)SizeAlignUp(sizeof(VMStruct), vm->pageSize));
   AVER(r == 0);
 }
 
@@ -257,8 +269,8 @@ Res VMMap(VM vm, Addr base, Addr limit)
   AVER(base < limit);
   AVER(base >= vm->base);
   AVER(limit <= vm->limit);
-  AVER(AddrIsAligned(base, vm->align));
-  AVER(AddrIsAligned(limit, vm->align));
+  AVER(AddrIsAligned(base, vm->pageSize));
+  AVER(AddrIsAligned(limit, vm->pageSize));
 
   size = AddrOffset(base, limit);
 
@@ -289,8 +301,8 @@ void VMUnmap(VM vm, Addr base, Addr limit)
   AVER(base < limit);
   AVER(base >= vm->base);
   AVER(limit <= vm->limit);
-  AVER(AddrIsAligned(base, vm->align));
-  AVER(AddrIsAligned(limit, vm->align));
+  AVER(AddrIsAligned(base, vm->pageSize));
+  AVER(AddrIsAligned(limit, vm->pageSize));
 
   size = AddrOffset(base, limit);
 
