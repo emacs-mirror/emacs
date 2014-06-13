@@ -62,7 +62,11 @@ Res VMParamFromArgs(void *params, size_t paramSize, ArgList args)
 }
 
 
-/* VMCreate -- reserve some virtual address space, and create a VM structure */
+/* VMCreate -- reserve some virtual address space, and create a VM structure
+ *
+ * *grainSizeIO is the minimum arena grain size: if this is too small
+ * it is rounded up to the 
+ */
 
 Res VMCreate(VM *vmReturn, Size *grainSizeIO, Size size, void *params)
 {
