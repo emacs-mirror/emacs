@@ -5,14 +5,15 @@
  * Portions copyright (C) 2002 Global Graphics Software.
  */
 
+#include "mpm.h"
+#include "mps.h"
+#include "mpsavm.h"
+#include "mpscmfs.h"
 #include "mpscmv.h"
 #include "mpscmvff.h"
-#include "mpscmfs.h"
 #include "mpslib.h"
-#include "mpsavm.h"
+#include "mpslib.h"
 #include "testlib.h"
-#include "mpslib.h"
-#include "mps.h"
 
 #include <stdio.h> /* printf */
 
@@ -23,9 +24,20 @@
 #define testLOOPS 10
 
 
+/* check_allocated_size -- check the allocated size of the pool */
+
+static void check_allocated_size(mps_pool_t pool, size_t allocated)
+{
+  size_t total_size = mps_pool_total_size(pool);
+  size_t free_size = mps_pool_free_size(pool);
+  Insist(total_size - free_size == allocated);
+}
+
+
 /* stress -- create a pool of the requested type and allocate in it */
 
-static mps_res_t stress(mps_arena_t arena, size_t (*size)(size_t i),
+static mps_res_t stress(mps_arena_t arena, mps_pool_debug_option_s *options,
+                        size_t (*size)(size_t i), mps_align_t align,
                         const char *name, mps_class_t pool_class,
                         mps_arg_s *args)
 {
@@ -34,8 +46,10 @@ static mps_res_t stress(mps_arena_t arena, size_t (*size)(size_t i),
   size_t i, k;
   int *ps[testSetSIZE];
   size_t ss[testSetSIZE];
+  size_t allocated = 0;         /* Total allocated memory */
+  size_t debugOverhead = options ? 2 * alignUp(options->fence_size, align) : 0;
 
-  printf("%s\n", name);
+  printf("Pool class %s, alignment %u\n", name, (unsigned)align);
 
   res = mps_pool_create_k(&pool, arena, pool_class, args);
   if (res != MPS_RES_OK)
@@ -48,8 +62,10 @@ static mps_res_t stress(mps_arena_t arena, size_t (*size)(size_t i),
     res = mps_alloc((mps_addr_t *)&ps[i], pool, ss[i]);
     if (res != MPS_RES_OK)
       return res;
+    allocated += alignUp(ss[i], align) + debugOverhead;
     if (ss[i] >= sizeof(ps[i]))
       *ps[i] = 1; /* Write something, so it gets swap. */
+    check_allocated_size(pool, allocated);
   }
 
   mps_pool_check_fenceposts(pool);
@@ -72,15 +88,20 @@ static mps_res_t stress(mps_arena_t arena, size_t (*size)(size_t i),
       mps_free(pool, (mps_addr_t)ps[i], ss[i]);
       /* if (i == testSetSIZE/2) */
       /*   PoolDescribe((Pool)pool, mps_lib_stdout); */
+      Insist(alignUp(ss[i], align) + debugOverhead <= allocated);
+      allocated -= alignUp(ss[i], align) + debugOverhead;
     }
     /* allocate some new objects */
     for (i=testSetSIZE/2; i<testSetSIZE; ++i) {
       ss[i] = (*size)(i);
       res = mps_alloc((mps_addr_t *)&ps[i], pool, ss[i]);
       if (res != MPS_RES_OK) return res;
+      allocated += alignUp(ss[i], align) + debugOverhead;
     }
+    check_allocated_size(pool, allocated);
   }
    
+  die(PoolDescribe(pool, mps_lib_get_stdout(), 0), "PoolDescribe");
   mps_pool_destroy(pool);
 
   return MPS_RES_OK;
@@ -150,8 +171,8 @@ static void testInArena(mps_arena_class_t arena_class, mps_arg_s *arena_args,
     MPS_ARGS_ADD(args, MPS_KEY_MVFF_ARENA_HIGH, TRUE);
     MPS_ARGS_ADD(args, MPS_KEY_MVFF_SLOT_HIGH, TRUE);
     MPS_ARGS_ADD(args, MPS_KEY_MVFF_FIRST_FIT, TRUE);
-    die(stress(arena, randomSize8, "MVFF", mps_class_mvff(), args),
-        "stress MVFF");
+    die(stress(arena, NULL, randomSize8, align, "MVFF",
+               mps_class_mvff(), args), "stress MVFF");
   } MPS_ARGS_END(args);
 
   MPS_ARGS_BEGIN(args) {
@@ -161,31 +182,31 @@ static void testInArena(mps_arena_class_t arena_class, mps_arg_s *arena_args,
     MPS_ARGS_ADD(args, MPS_KEY_MVFF_SLOT_HIGH, TRUE);
     MPS_ARGS_ADD(args, MPS_KEY_MVFF_FIRST_FIT, TRUE);
     MPS_ARGS_ADD(args, MPS_KEY_POOL_DEBUG_OPTIONS, options);
-    die(stress(arena, randomSize8, "MVFF debug", mps_class_mvff_debug(), args),
-        "stress MVFF debug");
+    die(stress(arena, options, randomSize8, align, "MVFF debug",
+               mps_class_mvff_debug(), args), "stress MVFF debug");
   } MPS_ARGS_END(args);
 
   MPS_ARGS_BEGIN(args) {
     mps_align_t align = (mps_align_t)1 << (rnd() % 6);
     MPS_ARGS_ADD(args, MPS_KEY_ALIGN, align);
-    die(stress(arena, randomSize, "MV", mps_class_mv(), args),
-        "stress MV");
+    die(stress(arena, NULL, randomSize, align, "MV",
+               mps_class_mv(), args), "stress MV");
   } MPS_ARGS_END(args);
 
   MPS_ARGS_BEGIN(args) {
     mps_align_t align = (mps_align_t)1 << (rnd() % 6);
     MPS_ARGS_ADD(args, MPS_KEY_ALIGN, align);
     MPS_ARGS_ADD(args, MPS_KEY_POOL_DEBUG_OPTIONS, options);
-    die(stress(arena, randomSize, "MV debug", mps_class_mv_debug(), args),
-        "stress MV debug");
+    die(stress(arena, options, randomSize, align, "MV debug",
+               mps_class_mv_debug(), args), "stress MV debug");
   } MPS_ARGS_END(args);
 
   MPS_ARGS_BEGIN(args) {
     fixedSizeSize = 1 + rnd() % 64;
     MPS_ARGS_ADD(args, MPS_KEY_MFS_UNIT_SIZE, fixedSizeSize);
     MPS_ARGS_ADD(args, MPS_KEY_EXTEND_BY, 100000);
-    die(stress(arena, fixedSize, "MFS", mps_class_mfs(), args),
-      "stress MFS");
+    die(stress(arena, NULL, fixedSize, MPS_PF_ALIGN, "MFS",
+               mps_class_mfs(), args), "stress MFS");
   } MPS_ARGS_END(args);
 
   mps_arena_destroy(arena);

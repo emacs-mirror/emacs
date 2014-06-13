@@ -173,15 +173,26 @@ static Res ClientChunkInit(Chunk chunk, BootBlock boot)
 
 /* clientChunkDestroy -- destroy a ClientChunk */
 
-static void clientChunkDestroy(Chunk chunk)
+static Bool clientChunkDestroy(Tree tree, void *closureP, Size closureS)
 {
+  Chunk chunk;
   ClientChunk clChunk;
 
+  AVERT(Tree, tree);
+  AVER(closureP == UNUSED_POINTER);
+  UNUSED(closureP);
+  AVER(closureS == UNUSED_SIZE);
+  UNUSED(closureS);
+  
+  chunk = ChunkOfTree(tree);
+  AVERT(Chunk, chunk);
   clChunk = Chunk2ClientChunk(chunk);
   AVERT(ClientChunk, clChunk);
 
   clChunk->sig = SigInvalid;
   ChunkFinish(chunk);
+
+  return TRUE;
 }
 
 
@@ -290,16 +301,15 @@ failChunkCreate:
 static void ClientArenaFinish(Arena arena)
 {
   ClientArena clientArena;
-  Ring node, next;
 
   clientArena = Arena2ClientArena(arena);
   AVERT(ClientArena, clientArena);
 
-  /* destroy all chunks */
-  RING_FOR(node, &arena->chunkRing, next) {
-    Chunk chunk = RING_ELT(Chunk, chunkRing, node);
-    clientChunkDestroy(chunk);
-  }
+  /* Destroy all chunks, including the primary. See
+   * <design/arena/#chunk.delete> */
+  arena->primary = NULL;
+  TreeTraverseAndDelete(&arena->chunkTree, clientChunkDestroy,
+                        UNUSED_POINTER, UNUSED_SIZE);
 
   clientArena->sig = SigInvalid;
 
@@ -341,7 +351,7 @@ static Size ClientArenaReserved(Arena arena)
   RING_FOR(node, &arena->chunkRing, nextNode) {
     Chunk chunk = RING_ELT(Chunk, chunkRing, node);
     AVERT(Chunk, chunk);
-    size += AddrOffset(chunk->base, chunk->limit);
+    size += ChunkSize(chunk);
   }
 
   return size;

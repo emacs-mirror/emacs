@@ -79,8 +79,8 @@ typedef struct AMSSegStruct {
 #define Seg2AMSSeg(seg) ((AMSSeg)(seg))
 #define AMSSeg2Seg(amsseg) ((Seg)(amsseg))
 
-#define Pool2AMS(pool) PARENT(AMSStruct, poolStruct, pool)
-#define AMS2Pool(ams) (&(ams)->poolStruct)
+#define PoolAMS(pool) PARENT(AMSStruct, poolStruct, pool)
+#define AMSPool(ams) (&(ams)->poolStruct)
 
 
 /* macros for abstracting index/address computations */

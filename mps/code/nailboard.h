@@ -45,7 +45,7 @@ extern Bool NailboardSet(Nailboard board, Addr addr);
 extern void NailboardSetRange(Nailboard board, Addr base, Addr limit);
 extern Bool NailboardIsSetRange(Nailboard board, Addr base, Addr limit);
 extern Bool NailboardIsResRange(Nailboard board, Addr base, Addr limit);
-extern Res NailboardDescribe(Nailboard board, mps_lib_FILE *stream);
+extern Res NailboardDescribe(Nailboard board, mps_lib_FILE *stream, Count depth);
 
 #endif /* nailboard.h */
 
