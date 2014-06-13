@@ -519,18 +519,6 @@ typedef struct TraceStruct {
 } TraceStruct;
 
 
-/* ChunkCacheEntryStruct -- cache entry in the chunk cache */
-
-#define ChunkCacheEntrySig ((Sig)0x519C80CE) /* SIGnature CHUnk Cache Entry */
-
-typedef struct ChunkCacheEntryStruct {
-  Sig sig;
-  Chunk chunk;
-  Addr base;
-  Addr limit;
-} ChunkCacheEntryStruct;
-
-
 /* ArenaClassStruct -- generic arena class interface */
 
 #define ArenaClassSig   ((Sig)0x519A6C1A) /* SIGnature ARena CLAss */
@@ -744,10 +732,10 @@ typedef struct mps_arena_s {
   Addr lastTractBase;           /* base address of lastTract */
 
   Chunk primary;                /* the primary chunk */
-  RingStruct chunkRing;         /* all the chunks */
+  RingStruct chunkRing;         /* all the chunks, in a ring for iteration */
+  Tree chunkTree;               /* all the chunks, in a tree for fast lookup */
   Serial chunkSerial;           /* next chunk number */
-  ChunkCacheEntryStruct chunkCache; /* just one entry */
-  
+
   Bool hasFreeLand;              /* Is freeLand available? */
   MFSStruct freeCBSBlockPoolStruct;
   CBSStruct freeLandStruct;
