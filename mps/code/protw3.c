@@ -120,7 +120,7 @@ void ProtSetup(void)
 
 Size ProtGranularity(void)
 {
-  /* Individual pages can be protected on Windows. */
+  /* Individual pages can be protected. */
   return VMPageSize();
 }
 

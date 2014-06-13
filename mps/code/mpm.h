@@ -101,7 +101,6 @@ extern Addr (AddrAlignDown)(Addr addr, Align align);
 #define IndexAlignUp(s, a)      ((Index)WordAlignUp((Word)(s), a))
 #define IndexAlignDown(s, a)    ((Index)WordAlignDown((Word)(s), a))
 
-#define AlignAlignUp(a1, a2) ((Align)WordAlignUp((Word)(a1), a2))
 #define AlignIsAligned(a1, a2)  WordIsAligned((Word)(a1), a2)
 
 

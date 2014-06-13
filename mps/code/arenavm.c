@@ -272,12 +272,12 @@ static void vmArenaUnmap(VMArena vmArena, VM vm, Addr base, Addr limit)
  * chunkReturn, return parameter for the created chunk.
  * vmArena, the parent VMArena.
  * size, approximate amount of virtual address that the chunk should reserve.
- * arenaGrainSize, arena grain size.
+ * grainSize, arena grain size.
  */
-static Res VMChunkCreate(Chunk *chunkReturn, VMArena vmArena, Size size, Size arenaGrainSize)
+static Res VMChunkCreate(Chunk *chunkReturn, VMArena vmArena, Size size,
+                         Size grainSize)
 {
   Res res;
-  Size grainSize;
   Addr base, limit, chunkStructLimit;
   VM vm;
   BootBlockStruct bootStruct;
@@ -288,9 +288,8 @@ static Res VMChunkCreate(Chunk *chunkReturn, VMArena vmArena, Size size, Size ar
   AVER(chunkReturn != NULL);
   AVERT(VMArena, vmArena);
   AVER(size > 0);
-  AVERT(ArenaGrainSize, arenaGrainSize);
+  AVERT(ArenaGrainSize, grainSize);
 
-  grainSize = arenaGrainSize;
   res = VMCreate(&vm, size, grainSize, vmArena->vmParams);
   if (res != ResOK)
     goto failVMCreate;
@@ -578,10 +577,7 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
   AVER(ChunkPageSize(chunk) == ArenaGrainSize(arena));
 
   AVERT(VMArena, vmArena);
-  if ((ArenaClass)mps_arena_class_vm() == class)
-    EVENT3(ArenaCreateVM, arena, size, chunkSize);
-  else
-    EVENT3(ArenaCreateVMNZ, arena, size, chunkSize);
+  EVENT3(ArenaCreateVM, arena, size, chunkSize);
 
   vmArena->extended(arena, chunk->base, chunkSize);
   
