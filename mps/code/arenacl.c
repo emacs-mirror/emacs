@@ -250,7 +250,7 @@ static Res ClientArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
   ArgRequire(&arg, args, MPS_KEY_ARENA_CL_BASE);
   base = arg.val.addr;
   if (ArgPick(&arg, args, MPS_KEY_ARENA_GRAIN_SIZE))
-    userGrainSize = SizeAlignUp(arg.val.size, MPS_PF_ALIGN);
+    userGrainSize = SizeAlignUp(arg.val.size, ProtGranularity());
 
   AVER(base != (Addr)0);
   AVERT(ArenaGrainSize, userGrainSize);

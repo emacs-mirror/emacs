@@ -247,8 +247,11 @@ int main(int argc, char *argv[])
 
   testlib_init(argc, argv);
 
-  die(mps_arena_create(&arena, mps_arena_class_vm(), 2*testArenaSIZE),
-      "arena_create\n");
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, 2*testArenaSIZE);
+    MPS_ARGS_ADD(args, MPS_KEY_ARENA_GRAIN_SIZE, (size_t)1 << (rnd() % 15));
+    die(mps_arena_create_k(&arena, mps_arena_class_vm(), args), "arena_create");
+  } MPS_ARGS_END(args);
   mps_message_type_enable(arena, mps_message_type_gc());
   die(mps_arena_commit_limit_set(arena, 2*testArenaSIZE), "set limit");
   die(mps_thread_reg(&thread, arena), "thread_reg");
