@@ -311,7 +311,7 @@ static Res AMSTSegSizePolicy(Size *sizeReturn,
 
   arena = PoolArena(pool);
 
-  basic = SizeAlignUp(size, ArenaAlign(arena));
+  basic = SizeArenaGrains(size, arena);
   if (basic == 0) {
     /* overflow */
     return ResMEMORY;
@@ -579,7 +579,7 @@ static Res AMSTBufferFill(Addr *baseReturn, Addr *limitReturn,
 
     } else {
       Size half = SegSize(seg) / 2;
-      if (half >= size && SizeIsAligned(half, ArenaAlign(arena))) {
+      if (half >= size && SizeIsArenaGrains(half, arena)) {
         /* .split */
         Addr mid = AddrAdd(base, half);
         Seg segLo, segHi;
@@ -612,9 +612,9 @@ static Res AMSTBufferFill(Addr *baseReturn, Addr *limitReturn,
  * not already attached to a buffer and similar colour)
  *
  * .bsplit: Whether or not a merge happpened, a split is performed if
- * the limit of the buffered region is arena aligned, and yet does not
- * correspond to the segment limit, provided that the part of the segment
- * above the buffer is all free.
+ * the limit of the buffered region is also the limit of an arena
+ * grain, and yet does not correspond to the segment limit, provided
+ * that the part of the segment above the buffer is all free.
  */
 static void AMSTStressBufferedSeg(Seg seg, Buffer buffer)
 {
@@ -651,7 +651,7 @@ static void AMSTStressBufferedSeg(Seg seg, Buffer buffer)
   }
 
   if (SegLimit(seg) != limit &&
-      AddrIsAligned(limit, ArenaAlign(arena)) &&
+      AddrIsArenaGrain(limit, arena) &&
       AMSSegRegionIsFree(seg, limit, SegLimit(seg))) {
     /* .bsplit */
     Seg segLo, segHi;

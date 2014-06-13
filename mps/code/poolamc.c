@@ -995,7 +995,7 @@ static Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn,
   Res res;
   Addr base, limit;
   Arena arena;
-  Size alignedSize;
+  Size grainsSize;
   amcGen gen;
   PoolGen pgen;
   amcBuf amcbuf;
@@ -1021,15 +1021,15 @@ static Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn,
   /* Create and attach segment.  The location of this segment is */
   /* expressed via the pool generation. We rely on the arena to */
   /* organize locations appropriately.  */
-  alignedSize = SizeAlignUp(size, ArenaAlign(arena));
+  grainsSize = SizeArenaGrains(size, arena);
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD_FIELD(args, amcKeySegGen, p, gen);
-    res = PoolGenAlloc(&seg, pgen, amcSegClassGet(), alignedSize,
+    res = PoolGenAlloc(&seg, pgen, amcSegClassGet(), grainsSize,
                        withReservoirPermit, args);
   } MPS_ARGS_END(args);
   if(res != ResOK)
     return res;
-  AVER(alignedSize == SegSize(seg));
+  AVER(grainsSize == SegSize(seg));
 
   /* <design/seg/#field.rankSet.start> */
   if(BufferRankSet(buffer) == RankSetEMPTY)
@@ -1048,9 +1048,9 @@ static Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn,
   }
 
   base = SegBase(seg);
-  if(alignedSize < AMCLargeSegPAGES * ArenaAlign(arena)) {
+  if(grainsSize < AMCLargeSegPAGES * ArenaGrainSize(arena)) {
     /* Small or Medium segment: give the buffer the entire seg. */
-    limit = AddrAdd(base, alignedSize);
+    limit = AddrAdd(base, grainsSize);
     AVER(limit == SegLimit(seg));
   } else {
     /* Large segment: ONLY give the buffer the size requested, and */
@@ -1060,7 +1060,7 @@ static Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn,
     limit = AddrAdd(base, size);
     AVER(limit <= SegLimit(seg));
     
-    padSize = alignedSize - size;
+    padSize = grainsSize - size;
     AVER(SizeIsAligned(padSize, PoolAlignment(pool)));
     AVER(AddrAdd(limit, padSize) == SegLimit(seg));
     if(padSize > 0) {
@@ -1099,7 +1099,7 @@ static void AMCBufferEmpty(Pool pool, Buffer buffer,
   AVER(init <= limit);
 
   arena = BufferArena(buffer);
-  if(SegSize(seg) < AMCLargeSegPAGES * ArenaAlign(arena)) {
+  if(SegSize(seg) < AMCLargeSegPAGES * ArenaGrainSize(arena)) {
     /* Small or Medium segment: buffer had the entire seg. */
     AVER(limit == SegLimit(seg));
   } else {
@@ -1288,8 +1288,8 @@ static Res AMCWhiten(Pool pool, Trace trace, Seg seg)
 
   STATISTIC_STAT( {
     Count pages;
-    AVER(SizeIsAligned(SegSize(seg), ArenaAlign(pool->arena)));
-    pages = SegSize(seg) / ArenaAlign(pool->arena);
+    AVER(SizeIsArenaGrains(SegSize(seg), pool->arena));
+    pages = SegSize(seg) / ArenaGrainSize(pool->arena);
     AVER(pages != 0);
     amc->pageretstruct[trace->ti].pCond += pages;
     if(pages == 1) {
@@ -2013,8 +2013,8 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
     /* Seg retained */
     STATISTIC_STAT( {
       Count pages;
-      AVER(SizeIsAligned(SegSize(seg), ArenaAlign(pool->arena)));
-      pages = SegSize(seg) / ArenaAlign(pool->arena);
+      AVER(SizeIsArenaGrains(SegSize(seg), pool->arena));
+      pages = SegSize(seg) / ArenaGrainSize(pool->arena);
       AVER(pages != 0);
       amc->pageretstruct[trace->ti].pRet += pages;
       if(pages == 1) {
@@ -2110,7 +2110,7 @@ static void AMCTraceEnd(Pool pool, Trace trace)
     PageRetStruct *pr = &amc->pageretstruct[ti];
     if(pr->pRet >= pRetMin) {
       EVENT21(AMCTraceEnd, ArenaEpoch(pool->arena), (EventFU)trace->why,
-              ArenaAlign(pool->arena), AMCLargeSegPAGES, pRetMin, pr->pCond,
+              ArenaGrainSize(pool->arena), AMCLargeSegPAGES, pRetMin, pr->pCond,
               pr->pRet, pr->pCS, pr->pRS, pr->sCM, pr->pCM, pr->sRM, pr->pRM,
               pr->pRM1, pr->pRMrr, pr->pRMr1, pr->sCL, pr->pCL, pr->sRL,
               pr->pRL, pr->pRLr);

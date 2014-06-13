@@ -562,12 +562,12 @@ static Res MVAlloc(Addr *pReturn, Pool pool, Size size,
     regionSize = size;
 
   arena = PoolArena(pool);
-  regionSize = SizeAlignUp(regionSize, ArenaAlign(arena));
+  regionSize = SizeArenaGrains(regionSize, arena);
 
   res = ArenaAlloc(&base, SegPrefDefault(), regionSize, pool,
                    withReservoirPermit);
   if(res != ResOK) { /* try again with a region big enough for this object */
-    regionSize = SizeAlignUp(size, ArenaAlign(arena));
+    regionSize = SizeArenaGrains(size, arena);
     res = ArenaAlloc(&base, SegPrefDefault(), regionSize, pool,
                      withReservoirPermit);
     if (res != ResOK) {

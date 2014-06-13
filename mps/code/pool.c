@@ -616,7 +616,7 @@ Bool PoolFormat(Format *formatReturn, Pool pool)
 
 /* PoolOfAddr -- return the pool containing the given address
  *
- * If the address points to a page assigned to a pool, this returns TRUE
+ * If the address points to a tract assigned to a pool, this returns TRUE
  * and sets *poolReturn to that pool.  Otherwise, it returns FALSE, and
  * *poolReturn is unchanged.
  */
@@ -654,8 +654,8 @@ Bool PoolOfRange(Pool *poolReturn, Arena arena, Addr base, Addr limit)
   AVERT(Arena, arena);
   AVER(base < limit);
 
-  alignedBase = AddrAlignDown(base, ArenaAlign(arena));
-  alignedLimit = AddrAlignUp(limit, ArenaAlign(arena));
+  alignedBase = AddrArenaGrainDown(base, arena);
+  alignedLimit = AddrArenaGrainUp(limit, arena);
 
   TRACT_FOR(tract, addr, arena, alignedBase, alignedLimit) {
     Pool p = TractPool(tract);

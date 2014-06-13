@@ -96,7 +96,7 @@ static void MVFFReduce(MVFF mvff)
   Arena arena;
   Size freeSize, freeLimit, targetFree;
   RangeStruct freeRange, oldFreeRange;
-  Align align;
+  Align grainSize;
 
   AVERT(MVFF, mvff);
   arena = PoolArena(MVFFPool(mvff));
@@ -104,10 +104,10 @@ static void MVFFReduce(MVFF mvff)
   /* NOTE: Memory is returned to the arena in the smallest units
      possible (arena grains). There's a possibility that this could
      lead to fragmentation in the arena (because allocation is in
-     multiples of mvff->extendBy). If so, try setting align =
+     multiples of mvff->extendBy). If so, try setting grainSize =
      mvff->extendBy here. */
 
-  align = ArenaAlign(arena);
+  grainSize = ArenaGrainSize(arena);
 
   /* Try to return memory when the amount of free memory exceeds a
      threshold fraction of the total memory. */
@@ -131,7 +131,7 @@ static void MVFFReduce(MVFF mvff)
 
   while (freeSize > targetFree
          && LandFindLargest(&freeRange, &oldFreeRange, MVFFFreeLand(mvff),
-                            align, FindDeleteNONE))
+                            grainSize, FindDeleteNONE))
   {
     RangeStruct pageRange, oldRange;
     Size size;
@@ -140,8 +140,8 @@ static void MVFFReduce(MVFF mvff)
 
     AVER(RangesEqual(&freeRange, &oldFreeRange));
 
-    base = AddrAlignUp(RangeBase(&freeRange), align);
-    limit = AddrAlignDown(RangeLimit(&freeRange), align);
+    base = AddrAlignUp(RangeBase(&freeRange), grainSize);
+    limit = AddrAlignDown(RangeLimit(&freeRange), grainSize);
     
     /* Give up if this block doesn't contain a whole aligned page,
        even though smaller better-aligned blocks might, because
@@ -153,14 +153,14 @@ static void MVFFReduce(MVFF mvff)
 
     /* Don't return (much) more than we need to. */
     if (size > freeSize - targetFree)
-      size = SizeAlignUp(freeSize - targetFree, align);
+      size = SizeAlignUp(freeSize - targetFree, grainSize);
 
     /* Calculate the range of pages we can return to the arena near the
        top end of the free memory (because we're first fit). */
     RangeInit(&pageRange, AddrSub(limit, size), limit);
     AVER(!RangeIsEmpty(&pageRange));
     AVER(RangesNest(&freeRange, &pageRange));
-    AVER(RangeIsAligned(&pageRange, align));
+    AVER(RangeIsAligned(&pageRange, grainSize));
 
     /* Delete the range from the free list before attempting to delete
        it from the total allocated memory, so that we don't have
@@ -200,7 +200,6 @@ static Res MVFFExtend(Range rangeReturn, MVFF mvff, Size size,
   Pool pool;
   Arena arena;
   Size allocSize;
-  Align align;
   RangeStruct range, coalescedRange;
   Addr base;
   Res res;
@@ -211,7 +210,6 @@ static Res MVFFExtend(Range rangeReturn, MVFF mvff, Size size,
 
   pool = MVFFPool(mvff);
   arena = PoolArena(pool);
-  align = ArenaAlign(arena);
 
   AVER(SizeIsAligned(size, PoolAlignment(pool)));
 
@@ -222,13 +220,14 @@ static Res MVFFExtend(Range rangeReturn, MVFF mvff, Size size,
   else
     allocSize = size;
 
-  allocSize = SizeAlignUp(allocSize, align);
+  allocSize = SizeArenaGrains(allocSize, arena);
 
-  res = ArenaAlloc(&base, MVFFSegPref(mvff), allocSize, pool, withReservoirPermit);
+  res = ArenaAlloc(&base, MVFFSegPref(mvff), allocSize, pool,
+                   withReservoirPermit);
   if (res != ResOK) {
     /* try again with a range just large enough for object */
     /* see <design/poolmvff/#design.seg-fail> */
-    allocSize = SizeAlignUp(size, align);
+    allocSize = SizeArenaGrains(size, arena);
     res = ArenaAlloc(&base, MVFFSegPref(mvff), allocSize, pool,
                      withReservoirPermit);
     if (res != ResOK)
@@ -510,8 +509,8 @@ static Res MVFFInit(Pool pool, ArgList args)
   mvff = PoolMVFF(pool);
 
   mvff->extendBy = extendBy;
-  if (extendBy < ArenaAlign(arena))
-    mvff->extendBy = ArenaAlign(arena);
+  if (extendBy < ArenaGrainSize(arena))
+    mvff->extendBy = ArenaGrainSize(arena);
   mvff->avgSize = avgSize;
   pool->alignment = align;
   mvff->slotHigh = slotHigh;
@@ -771,7 +770,7 @@ static Bool MVFFCheck(MVFF mvff)
   CHECKD(Pool, MVFFPool(mvff));
   CHECKL(IsSubclassPoly(MVFFPool(mvff)->class, MVFFPoolClassGet()));
   CHECKD(SegPref, MVFFSegPref(mvff));
-  CHECKL(mvff->extendBy >= ArenaAlign(PoolArena(MVFFPool(mvff))));
+  CHECKL(mvff->extendBy >= ArenaGrainSize(PoolArena(MVFFPool(mvff))));
   CHECKL(mvff->avgSize > 0);                    /* see .arg.check */
   CHECKL(mvff->avgSize <= mvff->extendBy);      /* see .arg.check */
   CHECKL(mvff->spare >= 0.0);                   /* see .arg.check */
@@ -783,7 +782,7 @@ static Bool MVFFCheck(MVFF mvff)
   CHECKD(Failover, &mvff->foStruct);
   CHECKL(LandSize(MVFFTotalLand(mvff)) >= LandSize(MVFFFreeLand(mvff)));
   CHECKL(SizeIsAligned(LandSize(MVFFFreeLand(mvff)), PoolAlignment(MVFFPool(mvff))));
-  CHECKL(SizeIsAligned(LandSize(MVFFTotalLand(mvff)), ArenaAlign(PoolArena(MVFFPool(mvff)))));
+  CHECKL(SizeIsArenaGrains(LandSize(MVFFTotalLand(mvff)), PoolArena(MVFFPool(mvff))));
   CHECKL(BoolCheck(mvff->slotHigh));
   CHECKL(BoolCheck(mvff->firstFit));
   return TRUE;

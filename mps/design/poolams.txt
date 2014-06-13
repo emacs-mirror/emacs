@@ -405,7 +405,7 @@ what segments may be split or merged:
 
 - _`.split-merge.constrain.align`: Segments may only be split or
   merged at an address which is aligned to the pool alignment as well
-  as to the arena alignment.
+  as to the arena grain size.
 
   _`.split-merge.constrain.align.justify`: This constraint is implied
   by the design of allocation and colour tables, which cannot
