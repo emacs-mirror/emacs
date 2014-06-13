@@ -602,13 +602,15 @@ static Bool mvffFinishVisitor(Land land, Range range,
 static void MVFFFinish(Pool pool)
 {
   MVFF mvff;
+  Bool b;
 
   AVERT(Pool, pool);
   mvff = PoolMVFF(pool);
   AVERT(MVFF, mvff);
   mvff->sig = SigInvalid;
 
-  LandIterate(MVFFTotalLand(mvff), mvffFinishVisitor, pool, 0);
+  b = LandIterate(MVFFTotalLand(mvff), mvffFinishVisitor, pool, 0);
+  AVER(b);
 
   /* TODO: would like to check that LandSize(MVFFTotalLand(mvff)) == 0
    * now, but CBS doesn't support deletion while iterating. See
