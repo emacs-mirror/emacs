@@ -8,7 +8,7 @@
  *  stores control structures in the memory it manages, rather than to one
  *  side.  It therefore achieves better locality for small objects, but
  *  wastes memory for large objects.  It should not be used unless you are
- *  packing a reasonable number of objects on to a page.
+ *  packing a reasonable number of objects into an arena grain.
  *
  *  Create and Init take the following arguments:
  *
@@ -33,11 +33,11 @@
 
 typedef struct MFSStruct *MFS;
 
+#define MFSPool(mfs) (&(mfs)->poolStruct)
+
 extern PoolClass PoolClassMFS(void);
 
 extern Bool MFSCheck(MFS mfs);
-extern Pool (MFSPool)(MFS mfs);
-
 
 extern const struct mps_key_s _mps_key_MFSExtendSelf;
 #define MFSExtendSelf (&_mps_key_MFSExtendSelf)

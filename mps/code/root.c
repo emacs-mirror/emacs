@@ -218,16 +218,16 @@ static Res rootCreateProtectable(Root *rootReturn, Arena arena,
   if (mode & RootModePROTECTABLE) {
     root->protectable = TRUE;
     if (mode & RootModePROTECTABLE_INNER) {
-      root->protBase = AddrAlignUp(base, ArenaAlign(arena));
-      root->protLimit = AddrAlignDown(limit, ArenaAlign(arena));
+      root->protBase = AddrArenaGrainUp(base, arena);
+      root->protLimit = AddrArenaGrainDown(limit, arena);
       if (!(root->protBase < root->protLimit)) {
         /* root had no inner pages */
         root->protectable = FALSE;
         root->mode &=~ (RootModePROTECTABLE|RootModePROTECTABLE_INNER);
       }
     } else {
-      root->protBase = AddrAlignDown(base, ArenaAlign(arena));
-      root->protLimit = AddrAlignUp(limit, ArenaAlign(arena));
+      root->protBase = AddrArenaGrainDown(base, arena);
+      root->protLimit = AddrArenaGrainUp(limit, arena);
     }
   }
 
@@ -580,14 +580,14 @@ Res RootsIterate(Globals arena, RootIterateFn f, void *p)
 
 /* RootDescribe -- describe a root */
 
-Res RootDescribe(Root root, mps_lib_FILE *stream)
+Res RootDescribe(Root root, mps_lib_FILE *stream, Count depth)
 {
   Res res;
 
   if (!TESTT(Root, root)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
 
-  res = WriteF(stream,
+  res = WriteF(stream, depth,
                "Root $P ($U) {\n", (WriteFP)root, (WriteFU)root->serial,
                "  arena $P ($U)\n", (WriteFP)root->arena,
                (WriteFU)root->arena->serial,
@@ -599,15 +599,16 @@ Res RootDescribe(Root root, mps_lib_FILE *stream)
 
   switch(root->var) {
     case RootTABLE:
-    res = WriteF(stream,
-                 "  table base $A limit $A\n",
+    res = WriteF(stream, depth + 2,
+                 "table base $A limit $A\n",
                  root->the.table.base, root->the.table.limit,
                  NULL);
     if (res != ResOK) return res;
     break;
 
     case RootTABLE_MASKED:
-    res = WriteF(stream, "  table base $A limit $A mask $B\n",
+    res = WriteF(stream, depth + 2,
+                 "table base $A limit $A mask $B\n",
                  root->the.tableMasked.base, root->the.tableMasked.limit,
                  root->the.tableMasked.mask,
                  NULL);
@@ -615,26 +616,26 @@ Res RootDescribe(Root root, mps_lib_FILE *stream)
     break;
 
     case RootFUN:
-    res = WriteF(stream,
-                 "  scan function $F\n", (WriteFF)root->the.fun.scan,
-                 "  environment p $P s $W\n",
+    res = WriteF(stream, depth + 2,
+                 "scan function $F\n", (WriteFF)root->the.fun.scan,
+                 "environment p $P s $W\n",
                  root->the.fun.p, (WriteFW)root->the.fun.s,
                  NULL);
     if (res != ResOK) return res;
     break;
 
     case RootREG:
-    res = WriteF(stream,
-                 "  thread $P\n", (WriteFP)root->the.reg.thread,
-                 "  environment p $P", root->the.reg.p,
+    res = WriteF(stream, depth + 2,
+                 "thread $P\n", (WriteFP)root->the.reg.thread,
+                 "environment p $P", root->the.reg.p,
                  NULL);
     if (res != ResOK) return res;
     break;
 
     case RootFMT:
-    res = WriteF(stream,
-                 "  scan function $F\n", (WriteFF)root->the.fmt.scan,
-                 "  format base $A limit $A\n",
+    res = WriteF(stream, depth + 2,
+                 "scan function $F\n", (WriteFF)root->the.fmt.scan,
+                 "format base $A limit $A\n",
                  root->the.fmt.base, root->the.fmt.limit,
                  NULL);
     if (res != ResOK) return res;
@@ -644,7 +645,7 @@ Res RootDescribe(Root root, mps_lib_FILE *stream)
     NOTREACHED;
   }
 
-  res = WriteF(stream,
+  res = WriteF(stream, depth,
                "} Root $P ($U)\n", (WriteFP)root, (WriteFU)root->serial,
                NULL);
   if (res != ResOK) return res;
@@ -655,14 +656,14 @@ Res RootDescribe(Root root, mps_lib_FILE *stream)
 
 /* RootsDescribe -- describe all roots */
 
-Res RootsDescribe(Globals arenaGlobals, mps_lib_FILE *stream)
+Res RootsDescribe(Globals arenaGlobals, mps_lib_FILE *stream, Count depth)
 {
   Res res = ResOK;
   Ring node, next;
 
   RING_FOR(node, &arenaGlobals->rootRing, next) {
     Root root = RING_ELT(Root, arenaRing, node);
-    res = RootDescribe(root, stream); /* this outputs too much */
+    res = RootDescribe(root, stream, depth);
     if (res != ResOK) return res;
   }
   return res;

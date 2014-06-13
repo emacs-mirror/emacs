@@ -14,7 +14,7 @@ SRCID(freelist, "$Id$");
 
 
 #define freelistOfLand(land) PARENT(FreelistStruct, landStruct, land)
-#define freelistAlignment(fl) LandAlignment(&(fl)->landStruct)
+#define freelistAlignment(fl) LandAlignment(FreelistLand(fl))
 
 
 typedef union FreelistBlockUnion {
@@ -39,13 +39,6 @@ typedef union FreelistBlockUnion {
  */
 
 #define freelistEND ((FreelistBlock)0)
-
-
-/* freelistMinimumAlignment -- the minimum allowed alignment for the
- * address ranges in a free list: see <design/freelist/#impl.grain.align>
- */
-
-#define freelistMinimumAlignment ((Align)sizeof(FreelistBlock))
 
 
 /* FreelistTag -- return the tag of word */
@@ -178,10 +171,10 @@ Bool FreelistCheck(Freelist fl)
 {
   Land land;
   CHECKS(Freelist, fl);
-  land = &fl->landStruct;
+  land = FreelistLand(fl);
   CHECKD(Land, land);
   /* See <design/freelist/#impl.grain.align> */
-  CHECKL(AlignIsAligned(freelistAlignment(fl), freelistMinimumAlignment));
+  CHECKL(AlignIsAligned(freelistAlignment(fl), FreelistMinimumAlignment));
   CHECKL((fl->list == freelistEND) == (fl->listSize == 0));
   CHECKL((fl->list == freelistEND) == (fl->size == 0));
   CHECKL(SizeIsAligned(fl->size, freelistAlignment(fl)));
@@ -203,7 +196,7 @@ static Res freelistInit(Land land, ArgList args)
     return res;
 
   /* See <design/freelist/#impl.grain> */
-  AVER(AlignIsAligned(LandAlignment(land), freelistMinimumAlignment));
+  AVER(AlignIsAligned(LandAlignment(land), FreelistMinimumAlignment));
 
   fl = freelistOfLand(land);
   fl->list = freelistEND;
@@ -755,14 +748,14 @@ static Bool freelistDescribeVisitor(Land land, Range range,
 {
   Res res;
   mps_lib_FILE *stream = closureP;
+  Count depth = closureS;
 
   if (!TESTT(Land, land)) return FALSE;
   if (!RangeCheck(range)) return FALSE;
   if (stream == NULL) return FALSE;
-  if (closureS != UNUSED_SIZE) return FALSE;
 
-  res = WriteF(stream,
-               "  [$P,", (WriteFP)RangeBase(range),
+  res = WriteF(stream, depth,
+               "[$P,", (WriteFP)RangeBase(range),
                "$P)", (WriteFP)RangeLimit(range),
                " {$U}\n", (WriteFU)RangeSize(range),
                NULL);
@@ -771,7 +764,7 @@ static Bool freelistDescribeVisitor(Land land, Range range,
 }
 
 
-static Res freelistDescribe(Land land, mps_lib_FILE *stream)
+static Res freelistDescribe(Land land, mps_lib_FILE *stream, Count depth)
 {
   Freelist fl;
   Res res;
@@ -782,15 +775,15 @@ static Res freelistDescribe(Land land, mps_lib_FILE *stream)
   if (!TESTT(Freelist, fl)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
 
-  res = WriteF(stream,
+  res = WriteF(stream, depth,
                "Freelist $P {\n", (WriteFP)fl,
                "  listSize = $U\n", (WriteFU)fl->listSize,
                NULL);
 
-  b = LandIterate(land, freelistDescribeVisitor, stream, UNUSED_SIZE);
+  b = LandIterate(land, freelistDescribeVisitor, stream, depth + 2);
   if (!b) return ResFAIL;
 
-  res = WriteF(stream, "}\n", NULL);
+  res = WriteF(stream, depth, "} Freelist $P\n", (WriteFP)fl, NULL);
   return res;
 }
 

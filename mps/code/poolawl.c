@@ -91,7 +91,8 @@ typedef struct AWLStruct {
   Sig sig;
 } AWLStruct, *AWL;
 
-#define Pool2AWL(pool) PARENT(AWLStruct, poolStruct, pool)
+#define PoolAWL(pool) PARENT(AWLStruct, poolStruct, pool)
+#define AWLPool(awl) (&(awl)->poolStruct)
 #define AWLGrainsSize(awl, grains) ((grains) << (awl)->alignShift)
 
 
@@ -198,7 +199,7 @@ static Res AWLSegInit(Seg seg, Pool pool, Addr base, Size size,
   /* AWL only accepts two ranks */
   AVER(RankSetSingle(RankEXACT) == rankSet
        || RankSetSingle(RankWEAK) == rankSet);
-  awl = Pool2AWL(pool);
+  awl = PoolAWL(pool);
   AVERT(AWL, awl);
 
   /* Initialize the superclass fields first via next-method call */
@@ -262,7 +263,7 @@ static void AWLSegFinish(Seg seg)
   AVERT(AWLSeg, awlseg);
   pool = SegPool(seg);
   AVERT(Pool, pool);
-  awl = Pool2AWL(pool);
+  awl = PoolAWL(pool);
   AVERT(AWL, awl);
   arena = PoolArena(pool);
   AVERT(Arena, arena);
@@ -465,13 +466,13 @@ static Res AWLSegCreate(AWLSeg *awlsegReturn,
   AVER(size > 0);
   AVERT(Bool, reservoirPermit);
 
-  awl = Pool2AWL(pool);
+  awl = PoolAWL(pool);
   AVERT(AWL, awl);
 
   arena = PoolArena(pool);
   AVERT(Arena, arena);
 
-  size = SizeAlignUp(size, ArenaAlign(arena));
+  size = SizeArenaGrains(size, arena);
   /* beware of large sizes overflowing upon rounding */
   if (size == 0)
     return ResMEMORY;
@@ -549,7 +550,7 @@ static Res AWLInit(Pool pool, ArgList args)
   /* Weak check, as half-way through initialization. */
   AVER(pool != NULL);
 
-  awl = Pool2AWL(pool);
+  awl = PoolAWL(pool);
   
   ArgRequire(&arg, args, MPS_KEY_FORMAT);
   format = arg.val.format;
@@ -602,7 +603,7 @@ static void AWLFinish(Pool pool)
 
   AVERT(Pool, pool);
 
-  awl = Pool2AWL(pool);
+  awl = PoolAWL(pool);
   AVERT(AWL, awl);
 
   ring = &pool->segRing;
@@ -640,7 +641,7 @@ static Res AWLBufferFill(Addr *baseReturn, Addr *limitReturn,
   AVER(size > 0);
   AVERT(Bool, reservoirPermit);
 
-  awl = Pool2AWL(pool);
+  awl = PoolAWL(pool);
   AVERT(AWL, awl);
 
   RING_FOR(node, &pool->segRing, nextNode) {
@@ -708,7 +709,7 @@ static void AWLBufferEmpty(Pool pool, Buffer buffer, Addr init, Addr limit)
   AVERT(Seg, seg);
   AVER(init <= limit);
 
-  awl = Pool2AWL(pool);
+  awl = PoolAWL(pool);
   AVERT(AWL, awl);
   awlseg = Seg2AWLSeg(seg);
   AVERT(AWLSeg, awlseg);
@@ -753,7 +754,7 @@ static Res AWLWhiten(Pool pool, Trace trace, Seg seg)
 
   /* All parameters checked by generic PoolWhiten. */
 
-  awl = Pool2AWL(pool);
+  awl = PoolAWL(pool);
   AVERT(AWL, awl);
   awlseg = Seg2AWLSeg(seg);
   AVERT(AWLSeg, awlseg);
@@ -819,7 +820,7 @@ static void AWLGrey(Pool pool, Trace trace, Seg seg)
     AWL awl;
     AWLSeg awlseg;
 
-    awl = Pool2AWL(pool);
+    awl = PoolAWL(pool);
     AVERT(AWL, awl);
     awlseg = Seg2AWLSeg(seg);
     AVERT(AWLSeg, awlseg);
@@ -853,7 +854,7 @@ static void AWLBlacken(Pool pool, TraceSet traceSet, Seg seg)
   AVERT(TraceSet, traceSet);
   AVERT(Seg, seg);
 
-  awl = Pool2AWL(pool);
+  awl = PoolAWL(pool);
   AVERT(AWL, awl);
   awlseg = Seg2AWLSeg(seg);
   AVERT(AWLSeg, awlseg);
@@ -920,7 +921,7 @@ static Res awlScanSinglePass(Bool *anyScannedReturn,
   AVERT(Seg, seg);
   AVERT(Bool, scanAllObjects);
 
-  awl = Pool2AWL(pool);
+  awl = PoolAWL(pool);
   AVERT(AWL, awl);
   arena = PoolArena(pool);
   AVERT(Arena, arena);
@@ -996,7 +997,7 @@ static Res AWLScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
   awlseg = Seg2AWLSeg(seg);
   AVERT(AWLSeg, awlseg);
 
-  awl = Pool2AWL(pool);
+  awl = PoolAWL(pool);
   AVERT(AWL, awl);
 
   /* If the scanner isn't going to scan all the objects then the */
@@ -1046,7 +1047,7 @@ static Res AWLFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   AVER(TraceSetInter(SegWhite(seg), ss->traces) != TraceSetEMPTY);
   AVER(refIO != NULL);
 
-  awl = Pool2AWL(pool);
+  awl = PoolAWL(pool);
   AVERT(AWL, awl);
   awlseg  = Seg2AWLSeg(seg);
   AVERT(AWLSeg, awlseg);
@@ -1110,7 +1111,7 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
   AVERT(Trace, trace);
   AVERT(Seg, seg);
 
-  awl = Pool2AWL(pool);
+  awl = PoolAWL(pool);
   AVERT(AWL, awl);
   awlseg = Seg2AWLSeg(seg);
   AVERT(AWLSeg, awlseg);
@@ -1188,7 +1189,7 @@ static Res AWLAccess(Pool pool, Seg seg, Addr addr,
   Res res;
 
   AVERT(Pool, pool);
-  awl = Pool2AWL(pool);
+  awl = PoolAWL(pool);
   AVERT(AWL, awl);
   AVERT(Seg, seg);
   AVER(SegBase(seg) <= addr);
@@ -1235,7 +1236,7 @@ static void AWLWalk(Pool pool, Seg seg, FormattedObjectsStepMethod f,
   AVER(FUNCHECK(f));
   /* p and s are arbitrary closures and can't be checked */
 
-  awl = Pool2AWL(pool);
+  awl = PoolAWL(pool);
   AVERT(AWL, awl);
   awlseg = Seg2AWLSeg(seg);
   AVERT(AWLSeg, awlseg);
@@ -1281,6 +1282,34 @@ static void AWLWalk(Pool pool, Seg seg, FormattedObjectsStepMethod f,
 }
 
 
+/* AWLTotalSize -- total memory allocated from the arena */
+
+static Size AWLTotalSize(Pool pool)
+{
+  AWL awl;
+
+  AVERT(Pool, pool);
+  awl = PoolAWL(pool);
+  AVERT(AWL, awl);
+
+  return awl->pgen.totalSize;
+}
+
+
+/* AWLFreeSize -- free memory (unused by client program) */
+
+static Size AWLFreeSize(Pool pool)
+{
+  AWL awl;
+
+  AVERT(Pool, pool);
+  awl = PoolAWL(pool);
+  AVERT(AWL, awl);
+
+  return awl->pgen.freeSize;
+}
+
+
 /* AWLPoolClass -- the class definition */
 
 DEFINE_POOL_CLASS(AWLPoolClass, this)
@@ -1305,6 +1334,8 @@ DEFINE_POOL_CLASS(AWLPoolClass, this)
   this->fixEmergency = AWLFix;
   this->reclaim = AWLReclaim;
   this->walk = AWLWalk;
+  this->totalSize = AWLTotalSize;
+  this->freeSize = AWLFreeSize;
   AVERT(PoolClass, this);
 }
 
@@ -1321,9 +1352,9 @@ ATTRIBUTE_UNUSED
 static Bool AWLCheck(AWL awl)
 {
   CHECKS(AWL, awl);
-  CHECKD(Pool, &awl->poolStruct);
-  CHECKL(awl->poolStruct.class == AWLPoolClassGet());
-  CHECKL(AWLGrainsSize(awl, (Count)1) == awl->poolStruct.alignment);
+  CHECKD(Pool, AWLPool(awl));
+  CHECKL(AWLPool(awl)->class == AWLPoolClassGet());
+  CHECKL(AWLGrainsSize(awl, (Count)1) == PoolAlignment(AWLPool(awl)));
   /* Nothing to check about succAccesses. */
   CHECKL(FUNCHECK(awl->findDependent));
   /* Don't bother to check stats. */

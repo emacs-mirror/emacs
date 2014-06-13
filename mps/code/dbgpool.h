@@ -26,9 +26,9 @@ typedef void (*TagInitMethod)(void* tag, va_list args);
  */
 
 typedef struct PoolDebugOptionsStruct {
-  void* fenceTemplate;
+  const void *fenceTemplate;
   Size  fenceSize;
-  void* freeTemplate;
+  const void *freeTemplate;
   Size  freeSize;
   /* TagInitMethod tagInit; */
   /* Size  tagSize; */
@@ -43,9 +43,9 @@ typedef PoolDebugOptionsStruct *PoolDebugOptions;
 
 typedef struct PoolDebugMixinStruct {
   Sig sig;
-  Addr fenceTemplate;
+  const struct AddrStruct *fenceTemplate;
   Size fenceSize;
-  Addr freeTemplate;
+  const struct AddrStruct *freeTemplate;
   Size freeSize;
   TagInitMethod tagInit;
   Size tagSize;

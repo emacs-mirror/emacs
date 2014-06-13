@@ -5,10 +5,10 @@
  */
 
 #include "mpm.h"
-#include "pooln.h"
 #include "mpsavm.h"
-#include "testlib.h"
 #include "mpslib.h"
+#include "pooln.h"
+#include "testlib.h"
 
 #include <stdio.h> /* printf */
 
@@ -28,6 +28,7 @@ static void testit(ArenaClass class, ArgList args)
     error("Error: Unexpectedly succeeded in"
           "allocating block from PoolN\n");
   }
+  PoolDescribe(pool, mps_lib_get_stdout(), 0);
   PoolDestroy(pool);
   ArenaDestroy(arena);
 }

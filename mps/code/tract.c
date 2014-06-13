@@ -7,6 +7,17 @@
  * free but never allocated as alloc starts searching after the tables.
  * TractOfAddr uses the fact that these pages are marked as free in order
  * to detect "references" to these pages as being bogus.
+ *
+ * .chunk.at.base: The chunks are stored in a balanced binary tree.
+ * Looking up an address in this tree is on the critical path, and
+ * therefore vital that it runs quickly. It is an implementation
+ * detail of chunks that they are always stored at the base of the
+ * region of address space they represent. Thus chunk happens to
+ * always be the same as chunk->base. We take advantage of this in the
+ * tree search by using chunk as its own key (instead of looking up
+ * chunk->base): this saves a dereference and perhaps a cache miss.
+ * See ChunkKey and ChunkCompare for this optimization. The necessary
+ * property is asserted in ChunkCheck.
  */
 
 #include "tract.h"
@@ -15,9 +26,6 @@
 #include "mpm.h"
 
 SRCID(tract, "$Id$");
-
-
-static void ChunkDecache(Arena arena, Chunk chunk);
 
 
 /* TractArena -- get the arena of a tract */
@@ -29,8 +37,10 @@ static void ChunkDecache(Arena arena, Chunk chunk);
 
 Bool TractCheck(Tract tract)
 {
-  CHECKU(Pool, TractPool(tract));
-  CHECKL(AddrIsAligned(TractBase(tract), ArenaAlign(TractArena(tract))));
+  if (TractHasPool(tract)) {
+    CHECKU(Pool, TractPool(tract));
+    CHECKL(AddrIsArenaGrain(TractBase(tract), TractArena(tract)));
+  }
   if (TractHasSeg(tract)) {
     CHECKL(TraceSetCheck(TractWhite(tract)));
     CHECKU(Seg, (Seg)TractP(tract));
@@ -91,15 +101,13 @@ Addr (TractBase)(Tract tract)
 }
 
 
-/* TractLimit -- return the limit address of a segment */
+/* TractLimit -- return the limit address of a tract */
 
-Addr TractLimit(Tract tract)
+Addr TractLimit(Tract tract, Arena arena)
 {
-  Arena arena;
   AVERT_CRITICAL(Tract, tract); /* .tract.critical */
-  arena = TractArena(tract);
   AVERT_CRITICAL(Arena, arena);
-  return AddrAdd(TractBase(tract), arena->alignment);
+  return AddrAdd(TractBase(tract), ArenaGrainSize(arena));
 }
 
 
@@ -113,17 +121,17 @@ Bool ChunkCheck(Chunk chunk)
   CHECKS(Chunk, chunk);
   CHECKU(Arena, chunk->arena);
   CHECKL(chunk->serial < chunk->arena->chunkSerial);
-  CHECKD_NOSIG(Ring, &chunk->chunkRing);
+  /* Can't use CHECKD_NOSIG because TreeEMPTY is NULL. */
+  CHECKL(TreeCheck(&chunk->chunkTree));
   CHECKL(ChunkPagesToSize(chunk, 1) == ChunkPageSize(chunk));
   CHECKL(ShiftCheck(ChunkPageShift(chunk)));
 
   CHECKL(chunk->base != (Addr)0);
   CHECKL(chunk->base < chunk->limit);
-  /* check chunk is in itself */
-  CHECKL(chunk->base <= (Addr)chunk);
+  /* check chunk structure is at its own base: see .chunk.at.base. */
+  CHECKL(chunk->base == (Addr)chunk);
   CHECKL((Addr)(chunk+1) <= chunk->limit);
-  CHECKL(ChunkSizeToPages(chunk, AddrOffset(chunk->base, chunk->limit))
-         == chunk->pages);
+  CHECKL(ChunkSizeToPages(chunk, ChunkSize(chunk)) == chunk->pages);
   /* check that the tables fit in the chunk */
   CHECKL(chunk->allocBase <= chunk->pages);
   CHECKL(chunk->allocBase >= chunk->pageTablePages);
@@ -177,13 +185,12 @@ Res ChunkInit(Chunk chunk, Arena arena,
   chunk->serial = (arena->chunkSerial)++;
   chunk->arena = arena;
   RingInit(&chunk->chunkRing);
-  RingAppend(&arena->chunkRing, &chunk->chunkRing);
 
   chunk->pageSize = pageSize;
   chunk->pageShift = pageShift = SizeLog2(pageSize);
   chunk->base = base;
   chunk->limit = limit;
-  size = AddrOffset(base, limit);
+  size = ChunkSize(chunk);
 
   chunk->pages = pages = size >> pageShift;
   res = BootAlloc(&p, boot, (size_t)BTSize(pages), MPS_PF_ALIGN);
@@ -215,11 +222,15 @@ Res ChunkInit(Chunk chunk, Arena arena,
                               PageIndexBase(chunk, chunk->allocBase),
                               chunk->limit);
     if (res != ResOK)
-        goto failLandInsert;
+      goto failLandInsert;
   }
+
+  TreeInit(&chunk->chunkTree);
 
   chunk->sig = ChunkSig;
   AVERT(Chunk, chunk);
+
+  ArenaChunkInsert(arena, chunk);
 
   /* As part of the bootstrap, the first created chunk becomes the primary
      chunk.  This step allows AreaFreeLandInsert to allocate pages. */
@@ -242,16 +253,22 @@ failAllocTable:
 
 void ChunkFinish(Chunk chunk)
 {
-  AVERT(Chunk, chunk);
-  AVER(BTIsResRange(chunk->allocTable, 0, chunk->pages));
-  ChunkDecache(chunk->arena, chunk);
-  chunk->sig = SigInvalid;
-  RingRemove(&chunk->chunkRing);
+  Arena arena;
 
-  if (ChunkArena(chunk)->hasFreeLand)
-    ArenaFreeLandDelete(ChunkArena(chunk),
+  AVERT(Chunk, chunk);
+
+  AVER(BTIsResRange(chunk->allocTable, 0, chunk->pages));
+  arena = ChunkArena(chunk);
+
+  if (arena->hasFreeLand)
+    ArenaFreeLandDelete(arena,
                         PageIndexBase(chunk, chunk->allocBase),
                         chunk->limit);
+
+  chunk->sig = SigInvalid;
+
+  TreeFinish(&chunk->chunkTree);
+  RingRemove(&chunk->chunkRing);
 
   if (chunk->arena->primary == chunk)
     chunk->arena->primary = NULL;
@@ -262,92 +279,40 @@ void ChunkFinish(Chunk chunk)
 }
 
 
-/* Chunk Cache
- *
- * Functions for manipulating the chunk cache in the arena.
- */
+/* ChunkCompare -- Compare key to [base,limit) */
 
-
-/* ChunkCacheEntryCheck -- check a chunk cache entry
- *
- * The cache is EITHER empty:
- *   - chunk is null; AND
- *   - base & limit are both null
- * OR full:
- *   - chunk is non-null, points to a ChunkStruct; AND
- *   - base & limit are not both null;
- *
- * .chunk.empty.fields: Fields of an empty cache are nonetheless read, 
- * and must be correct.
- */
-
-Bool ChunkCacheEntryCheck(ChunkCacheEntry entry)
+Compare ChunkCompare(Tree tree, TreeKey key)
 {
-  CHECKS(ChunkCacheEntry, entry);
-  if (entry->chunk == NULL) {
-    CHECKL(entry->base == NULL);   /* .chunk.empty.fields */
-    CHECKL(entry->limit == NULL);  /* .chunk.empty.fields */
-  } else {
-    CHECKL(!(entry->base == NULL && entry->limit == NULL));
-    CHECKD(Chunk, entry->chunk);
-    CHECKL(entry->base == entry->chunk->base);
-    CHECKL(entry->limit == entry->chunk->limit);
-  }
-  return TRUE;
-}
+  Addr base1, base2, limit2;
+  Chunk chunk;
 
+  AVERT_CRITICAL(Tree, tree);
+  AVER_CRITICAL(tree != TreeEMPTY);
 
-/* ChunkCacheEntryInit -- initialize a chunk cache entry */
-
-void ChunkCacheEntryInit(ChunkCacheEntry entry)
-{
-  entry->chunk = NULL;
-  entry->base = NULL;   /* .chunk.empty.fields */
-  entry->limit = NULL;  /* .chunk.empty.fields */
-  entry->sig = ChunkCacheEntrySig;
-  AVERT(ChunkCacheEntry, entry);
-  return;
-}
-
-
-/* ChunkEncache -- cache a chunk */
-
-static void ChunkEncache(Arena arena, Chunk chunk)
-{
-  /* [Critical path](../design/critical-path.txt); called by ChunkOfAddr */
-  AVERT_CRITICAL(Arena, arena);
+  /* See .chunk.at.base. */
+  chunk = ChunkOfTree(tree);
   AVERT_CRITICAL(Chunk, chunk);
-  AVER_CRITICAL(arena == chunk->arena);
-  AVERT_CRITICAL(ChunkCacheEntry, &arena->chunkCache);
 
-  /* check chunk already in cache first */
-  if (arena->chunkCache.chunk == chunk) {
-    return;
-  }
+  base1 = AddrOfTreeKey(key);
+  base2 = chunk->base;
+  limit2 = chunk->limit;
 
-  arena->chunkCache.chunk = chunk;
-  arena->chunkCache.base = chunk->base;
-  arena->chunkCache.limit = chunk->limit;
-
-  AVERT_CRITICAL(ChunkCacheEntry, &arena->chunkCache);
-  return;
+  if (base1 < base2)
+    return CompareLESS;
+  else if (base1 >= limit2)
+    return CompareGREATER;
+  else
+    return CompareEQUAL;
 }
 
 
-/* ChunkDecache -- make sure a chunk is not in the cache */
+/* ChunkKey -- Return the key corresponding to a chunk */
 
-static void ChunkDecache(Arena arena, Chunk chunk)
+TreeKey ChunkKey(Tree tree)
 {
-  AVERT(Arena, arena);
-  AVERT(Chunk, chunk);
-  AVER(arena == chunk->arena);
-  AVERT(ChunkCacheEntry, &arena->chunkCache);
-  if (arena->chunkCache.chunk == chunk) {
-    arena->chunkCache.chunk = NULL;
-    arena->chunkCache.base = NULL;   /* .chunk.empty.fields */
-    arena->chunkCache.limit = NULL;  /* .chunk.empty.fields */
-  }
-  AVERT(ChunkCacheEntry, &arena->chunkCache);
+  /* See .chunk.at.base. */
+  Chunk chunk = ChunkOfTree(tree);
+  return TreeKeyOfAddrVar(chunk);
 }
 
 
@@ -355,74 +320,23 @@ static void ChunkDecache(Arena arena, Chunk chunk)
 
 Bool ChunkOfAddr(Chunk *chunkReturn, Arena arena, Addr addr)
 {
-  Ring node, next;
+  Tree tree;
 
   AVER_CRITICAL(chunkReturn != NULL);
   AVERT_CRITICAL(Arena, arena);
   /* addr is arbitrary */
 
-  /* check cache first; see also .chunk.empty.fields */
-  AVERT_CRITICAL(ChunkCacheEntry, &arena->chunkCache);
-  if (arena->chunkCache.base <= addr && addr < arena->chunkCache.limit) {
-    *chunkReturn = arena->chunkCache.chunk;
-    AVER_CRITICAL(*chunkReturn != NULL);
-    return TRUE;
-  }
-  RING_FOR(node, &arena->chunkRing, next) {
-    Chunk chunk = RING_ELT(Chunk, chunkRing, node);
-    if (chunk->base <= addr && addr < chunk->limit) {
-      /* Gotcha! */
-      ChunkEncache(arena, chunk);
-      *chunkReturn = chunk;
-      return TRUE;
-    }
-  }
-  return FALSE;
-}
-
-
-/* ChunkOfNextAddr
- *
- * Finds the next higher chunk in memory which does _not_ contain addr.
- * Returns FALSE if there is none.
- *
- * [The name is misleading; it should be "NextChunkAboveAddr" -- the 
- * word "Next" applies to chunks, not to addrs.  RHSK 2010-03-20.]
- */
-
-static Bool ChunkOfNextAddr(Chunk *chunkReturn, Arena arena, Addr addr)
-{
-  Addr leastBase;
-  Chunk leastChunk;
-  Ring node, next;
-
-  leastBase = (Addr)(Word)-1;
-  leastChunk = NULL;
-  RING_FOR(node, &arena->chunkRing, next) {
-    Chunk chunk = RING_ELT(Chunk, chunkRing, node);
-    if (addr < chunk->base && chunk->base < leastBase) {
-      leastBase = chunk->base;
-      leastChunk = chunk;
-    }
-  }
-  if (leastChunk != NULL) {
-    *chunkReturn = leastChunk;
+  if (TreeFind(&tree, ArenaChunkTree(arena), TreeKeyOfAddrVar(addr),
+               ChunkCompare)
+      == CompareEQUAL)
+  {
+    Chunk chunk = ChunkOfTree(tree);
+    AVER_CRITICAL(chunk->base <= addr);
+    AVER_CRITICAL(addr < chunk->limit);
+    *chunkReturn = chunk;
     return TRUE;
   }
   return FALSE;
-}
-
-
-/* ArenaIsReservedAddr -- is address managed by this arena? */
-
-Bool ArenaIsReservedAddr(Arena arena, Addr addr)
-{
-  Chunk dummy;
-
-  AVERT(Arena, arena);
-  /* addr is arbitrary */
-
-  return ChunkOfAddr(&dummy, arena, addr);
 }
 
 
@@ -437,6 +351,24 @@ Index IndexOfAddr(Chunk chunk, Addr addr)
   /* addr is arbitrary */
 
   return INDEX_OF_ADDR(chunk, addr);
+}
+
+
+/* ChunkNodeDescribe -- describe a single node in the tree of chunks,
+ * for SplayTreeDescribe
+ */
+
+Res ChunkNodeDescribe(Tree node, mps_lib_FILE *stream)
+{
+  Chunk chunk;
+
+  if (!TreeCheck(node)) return ResFAIL;
+  if (stream == NULL) return ResFAIL;
+  chunk = ChunkOfTree(node);
+  if (!TESTT(Chunk, chunk)) return ResFAIL;
+
+  return WriteF(stream, 0, "[$P,$P)", (WriteFP)chunk->base,
+                (WriteFP)chunk->limit, NULL);
 }
 
 
@@ -493,7 +425,7 @@ Tract TractOfBaseAddr(Arena arena, Addr addr)
   Bool found;
 
   AVERT_CRITICAL(Arena, arena);
-  AVER_CRITICAL(AddrIsAligned(addr, arena->alignment));
+  AVER_CRITICAL(AddrIsAligned(addr, ArenaGrainSize(arena)));
 
   /* Check first in the cache, see <design/arena/#tract.cache>. */
   if (arena->lastTractBase == addr) {
@@ -505,110 +437,6 @@ Tract TractOfBaseAddr(Arena arena, Addr addr)
 
   AVER_CRITICAL(TractBase(tract) == addr);
   return tract;
-}
-
-
-/* tractSearchInChunk -- search for a tract
- *
- * .tract-search: Searches for a tract in the chunk starting at page
- * index i, return NULL if there is none.  .tract-search.private: This
- * function is private to this module and is used in the tract iteration
- * protocol (TractFirst and TractNext).
- */
-
-static Bool tractSearchInChunk(Tract *tractReturn, Chunk chunk, Index i)
-{
-  AVER_CRITICAL(chunk->allocBase <= i);
-  AVER_CRITICAL(i <= chunk->pages);
-
-  while (i < chunk->pages
-         && !(BTGet(chunk->allocTable, i)
-              && PageIsAllocated(ChunkPage(chunk, i)))) {
-    ++i;
-  }
-  if (i == chunk->pages)
-    return FALSE;
-  AVER(i < chunk->pages);
-  *tractReturn = PageTract(ChunkPage(chunk, i));
-  return TRUE;
-}
-
-
-/* tractSearch
- *
- * Searches for the next tract in increasing address order.
- * The tract returned is the next one along from addr (i.e.,
- * it has a base address bigger than addr and no other tract
- * with a base address bigger than addr has a smaller base address).
- *
- * Returns FALSE if there is no tract to find (end of the arena).
- */
-
-static Bool tractSearch(Tract *tractReturn, Arena arena, Addr addr)
-{
-  Bool b;
-  Chunk chunk;
-
-  b = ChunkOfAddr(&chunk, arena, addr);
-  if (b) {
-    Index i;
-
-    i = INDEX_OF_ADDR(chunk, addr);
-    /* There are fewer pages than addresses, therefore the */
-    /* page index can never wrap around */
-    AVER_CRITICAL(i+1 != 0);
-
-    if (tractSearchInChunk(tractReturn, chunk, i+1)) {
-      return TRUE;
-    }
-  }
-  while (ChunkOfNextAddr(&chunk, arena, addr)) {
-    /* If the ring was kept in address order, this could be improved. */
-    addr = chunk->base;
-    /* Start from allocBase to skip the tables. */
-    if (tractSearchInChunk(tractReturn, chunk, chunk->allocBase)) {
-      return TRUE;
-    }
-  }
-  return FALSE;
-}
-
-
-/* TractFirst -- return the first tract in the arena
- *
- * This is used to start an iteration over all tracts in the arena, not
- * including the ones used for page tables and other arena structures.
- */
-
-Bool TractFirst(Tract *tractReturn, Arena arena)
-{
-  AVER(tractReturn != NULL);
-  AVERT(Arena, arena);
-
-  /* .tractfirst.assume.nozero: We assume that there is no tract */
-  /* with base address (Addr)0.  Happily this assumption is sound */
-  /* for a number of reasons. */
-  return tractSearch(tractReturn, arena, (Addr)0);
-}
-
-
-/* TractNext -- return the "next" tract in the arena
- *
- * TractNext finds the tract with the lowest base address which is
- * greater than a specified address.  The address must be (or once
- * have been) the base address of a tract.
- *
- * This is used as the iteration step when iterating over all
- * tracts in the arena.
- */
-
-Bool TractNext(Tract *tractReturn, Arena arena, Addr addr)
-{
-  AVER_CRITICAL(tractReturn != NULL); /* .tract.critical */
-  AVERT_CRITICAL(Arena, arena);
-  AVER_CRITICAL(AddrIsAligned(addr, arena->alignment));
-
-  return tractSearch(tractReturn, arena, addr);
 }
 
 

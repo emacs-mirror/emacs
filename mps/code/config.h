@@ -360,6 +360,7 @@
 
 /* Pool MV Configuration -- see <code/poolmv.c> */
 
+#define MV_ALIGN_DEFAULT      MPS_PF_ALIGN
 #define MV_EXTEND_BY_DEFAULT  ((Size)65536)
 #define MV_AVG_SIZE_DEFAULT   ((Size)32)
 #define MV_MAX_SIZE_DEFAULT   ((Size)65536)
@@ -378,6 +379,7 @@
 #define MVFF_SLOT_HIGH_DEFAULT   FALSE
 #define MVFF_ARENA_HIGH_DEFAULT  FALSE
 #define MVFF_FIRST_FIT_DEFAULT   TRUE
+#define MVFF_SPARE_DEFAULT       0.75
 
 
 /* Pool MVT Configuration -- see <code/poolmv2.c> */
@@ -393,16 +395,16 @@
 
 /* Arena Configuration -- see <code/arena.c>
  *
- * .client.seg-size: ARENA_CLIENT_PAGE_SIZE is the size in bytes of a
- * "page" (i.e., segment granule) in the client arena.  It's set at 8192
- * with no particular justification.
+ * .client.seg-size: ARENA_CLIENT_GRAIN_SIZE is the size in bytes of a
+ * grain in the client arena. It's set at 8192 with no particular
+ * justification.
  */
 
 #define ArenaPollALLOCTIME (65536.0)
 
 #define ARENA_ZONESHIFT         ((Shift)20)
 
-#define ARENA_CLIENT_PAGE_SIZE          ((Size)8192)
+#define ARENA_CLIENT_GRAIN_SIZE          ((Size)8192)
 
 #define ARENA_DEFAULT_ZONED     TRUE
 
@@ -450,7 +452,7 @@
 
 /* VM Configuration -- see <code/vm*.c> */
 
-#define VMANPageALIGNMENT ((Align)4096)
+#define VMAN_PAGE_SIZE ((Align)4096)
 #define VMJunkBYTE ((unsigned char)0xA9)
 #define VMParamSize (sizeof(Word))
 

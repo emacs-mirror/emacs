@@ -26,7 +26,7 @@ extern PoolClass PoolClassMV(void);
 
 extern Bool MVCheck(MV mv);
 
-#define MV2Pool(mv) (&(mv)->poolStruct)
+#define MVPool(mv) (&(mv)->poolStruct)
 
 
 #endif /* poolmv_h */

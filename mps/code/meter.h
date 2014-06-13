@@ -35,7 +35,7 @@ typedef struct MeterStruct
 
 extern void MeterInit(Meter meter, const char *name, void *owner);
 extern void MeterAccumulate(Meter meter, Size amount);
-extern Res MeterWrite(Meter meter, mps_lib_FILE *stream);
+extern Res MeterWrite(Meter meter, mps_lib_FILE *stream, Count depth);
 extern void MeterEmit(Meter meter);
 
 #define METER_DECL(meter) STATISTIC_DECL(struct MeterStruct meter)
@@ -45,12 +45,12 @@ extern void MeterEmit(Meter meter);
 #define METER_ACC(meter, delta) \
   STATISTIC(MeterAccumulate(&(meter), delta))
 #if defined(STATISTICS)
-#define METER_WRITE(meter, stream) BEGIN \
-    Res _res = MeterWrite(&(meter), (stream)); \
+#define METER_WRITE(meter, stream, depth) BEGIN \
+    Res _res = MeterWrite(&(meter), (stream), (depth)); \
     if (_res != ResOK) return _res; \
   END
 #elif defined(STATISTICS_NONE)
-#define METER_WRITE(meter, stream) NOOP
+#define METER_WRITE(meter, stream, depth) NOOP
 #else
 #error "No statistics configured."
 #endif

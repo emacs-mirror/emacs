@@ -70,6 +70,11 @@ an ``AVER()`` has fired. Naturally, if the information required for
 the dump has been corrupted, it will fail, as softly as possible
 (source @@@@).
 
+_`.req.portable`: Client code that uses these features must be easily
+portable to all the supported platforms. (Source: job003749_.)
+
+.. _job003749: http://www.ravenbrook.com/project/mps/issue/job003749/
+
 .. note::
 
     There are more requirements, especially about memory dumps and
@@ -89,6 +94,11 @@ specified as a byte/word which used repeatedly to fill the fencepost.
 
 _`.fence.content.template`: The content could be given as a template
 which is of the right size and is simply copied onto the fencepost.
+
+_`.fence.content.template.repeat`: The content could be given as a
+template which is copied repeatedly until the fencepost is full. (This
+would avoid the need to specify different templates on different
+architectures, and so help meet `.req.portable`_.)
 
 _`.fence.walk`: `.req.fencepost.check`_ requires the ability to find
 all the allocated objects. In formatted pools, this is not a problem.
@@ -233,14 +243,14 @@ to pools. In particular, clients will be able to use tagging and
 fenceposting separately on each pool.
 
 _`.fence.size`: Having fenceposts of adjustable size and pattern is
-quite useful. We feel that restricting the size to an integral
-multiple of the [pool or format?] alignment is harmless and simplifies
-the implementation enormously.
+useful. Restricting the size to an integral multiple of the [pool or
+format?] alignment would simplify the implementation but breaks
+`.req.portable`_.
 
 _`.fence.template`: We use templates (`.fence.content.template`_) to
 fill in the fenceposts, but we do not give any guarantees about the
-location of the fenceposts, only that they're properly aligned. This
-leaves us the opportunity to do tail-only fenceposting, if we choose.
+location of the fenceposts. This leaves us the opportunity to do
+tail-only fenceposting, if we choose.
 
 _`.fence.slop`: [see impl.c.dbgpool.FenceAlloc @@@@]
 
@@ -415,6 +425,8 @@ Document History
 - 2002-06-07 RB_ Converted from MMInfo database design document.
 
 - 2013-04-14 GDR_ Converted to reStructuredText.
+
+- 2014-04-09 GDR_ Added newly discovered requirement `.req.portable`_.
 
 .. _RB: http://www.ravenbrook.com/consultants/rb/
 .. _GDR: http://www.ravenbrook.com/consultants/gdr/

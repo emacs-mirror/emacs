@@ -4,21 +4,18 @@
  * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  */
 
-#include <stdio.h>
+#include <math.h>
 #include <stdarg.h>
-#include "mpstd.h"
+#include <stdio.h>
 #include <time.h>
 
-#include "mpscmvt.h"
+#include "mpm.h"
 #include "mps.h"
-
-typedef mps_word_t mps_count_t;  /* machine word (target dep.) */
-
-#include "mpslib.h"
 #include "mpsavm.h"
+#include "mpscmvt.h"
+#include "mpslib.h"
+#include "mpstd.h"
 #include "testlib.h"
-
-#include <math.h>
 
 /* expdev() -- exponentially distributed random deviates
  *
@@ -71,11 +68,11 @@ static size_t randomSize(unsigned long i)
 #define TEST_SET_SIZE 1234
 #define TEST_LOOPS 27
 
-static mps_res_t make(mps_addr_t *p, mps_ap_t ap, size_t size)
+static mps_res_t make(mps_addr_t *p, mps_ap_t ap, size_t size, mps_align_t align)
 {
   mps_res_t res;
 
-  size = alignUp(size, MPS_PF_ALIGN);
+  size = alignUp(size, align);
  
   do {
     MPS_RESERVE_BLOCK(res, *p, ap, size);
@@ -87,8 +84,9 @@ static mps_res_t make(mps_addr_t *p, mps_ap_t ap, size_t size)
 }
 
 
-static mps_res_t stress(mps_class_t class, mps_arena_t arena,
-                        size_t (*size)(unsigned long i), mps_arg_s args[])
+static mps_res_t stress(mps_arena_t arena, mps_align_t align,
+                        size_t (*size)(unsigned long i),
+                        mps_class_t class, mps_arg_s args[])
 {
   mps_res_t res;
   mps_ap_t ap;
@@ -105,7 +103,7 @@ static mps_res_t stress(mps_class_t class, mps_arena_t arena,
   for(i=0; i<TEST_SET_SIZE; ++i) {
     ss[i] = (*size)(i);
 
-    res = make((mps_addr_t *)&ps[i], ap, ss[i]);
+    res = make((mps_addr_t *)&ps[i], ap, ss[i], align);
     if(res != MPS_RES_OK)
       ss[i] = 0;
     else
@@ -115,6 +113,9 @@ static mps_res_t stress(mps_class_t class, mps_arena_t arena,
       if(i && i%4==0) putchar('\n');
       printf("%"PRIwWORD PRIXLONGEST" %6"PRIXLONGEST" ",
              (ulongest_t)ps[i], (ulongest_t)ss[i]);
+    }
+    if (i == 100) {
+      PoolDescribe(pool, mps_lib_get_stdout(), 0);
     }
   }
   if (verbose) {
@@ -144,7 +145,7 @@ static mps_res_t stress(mps_class_t class, mps_arena_t arena,
     /* allocate some new objects */
     for(i=x; i<TEST_SET_SIZE; ++i) {
       size_t s = (*size)(i);
-      res = make((mps_addr_t *)&ps[i], ap, s);
+      res = make((mps_addr_t *)&ps[i], ap, s, align);
       if(res != MPS_RES_OK)
         break;
       ss[i] = s;
@@ -166,33 +167,29 @@ static mps_res_t stress(mps_class_t class, mps_arena_t arena,
 }
 
 
-static void stress_with_arena_class(mps_arena_class_t aclass, Bool zoned)
+static void test_in_arena(mps_arena_class_t arena_class, mps_arg_s *arena_args)
 {
   mps_arena_t arena;
 
-  MPS_ARGS_BEGIN(args) {
-    MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, testArenaSIZE);
-    MPS_ARGS_ADD(args, MPS_KEY_ARENA_ZONED, zoned);
-    die(mps_arena_create_k(&arena, aclass, args),
-        "mps_arena_create");
-  } MPS_ARGS_END(args);
+  die(mps_arena_create_k(&arena, arena_class, arena_args),
+      "mps_arena_create");
 
   size_min = MPS_PF_ALIGN;
   size_mean = 42;
   size_max = 8192;
 
   MPS_ARGS_BEGIN(args) {
+    mps_align_t align = sizeof(void *) << (rnd() % 4);
+    MPS_ARGS_ADD(args, MPS_KEY_ALIGN, align);
     MPS_ARGS_ADD(args, MPS_KEY_MIN_SIZE, size_min);
     MPS_ARGS_ADD(args, MPS_KEY_MEAN_SIZE, size_mean);
     MPS_ARGS_ADD(args, MPS_KEY_MAX_SIZE, size_max);
     MPS_ARGS_ADD(args, MPS_KEY_MVT_RESERVE_DEPTH, TEST_SET_SIZE/2);
     MPS_ARGS_ADD(args, MPS_KEY_MVT_FRAG_LIMIT, 0.3);
-    die(stress(mps_class_mvt(), arena, randomSize, args), "stress MVT");
+    die(stress(arena, align, randomSize, mps_class_mvt(), args), "stress MVT");
   } MPS_ARGS_END(args);
 
   mps_arena_destroy(arena);
-
-  return;
 }
 
 
@@ -200,8 +197,16 @@ int main(int argc, char *argv[])
 {
   testlib_init(argc, argv);
 
-  stress_with_arena_class(mps_arena_class_vm(), TRUE);
-  stress_with_arena_class(mps_arena_class_vm(), FALSE);
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, testArenaSIZE);
+    test_in_arena(mps_arena_class_vm(), args);
+  } MPS_ARGS_END(args);
+
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, testArenaSIZE);
+    MPS_ARGS_ADD(args, MPS_KEY_ARENA_ZONED, FALSE);
+    test_in_arena(mps_arena_class_vm(), args);
+  } MPS_ARGS_END(args);
 
   printf("%s: Conclusion: Failed to find any defects.\n", argv[0]);
   return 0;

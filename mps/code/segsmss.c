@@ -52,7 +52,7 @@ typedef struct AMSTStruct {
 
 typedef struct AMSTStruct *AMST;
 
-#define Pool2AMST(pool) PARENT(AMSTStruct, amsStruct, PARENT(AMSStruct, poolStruct, (pool)))
+#define PoolAMST(pool) PARENT(AMSTStruct, amsStruct, PARENT(AMSStruct, poolStruct, (pool)))
 #define AMST2AMS(amst)  (&(amst)->amsStruct)
 
 
@@ -122,7 +122,7 @@ static Res amstSegInit(Seg seg, Pool pool, Addr base, Size size,
   AVERT(Seg, seg);
   amstseg = Seg2AMSTSeg(seg);
   AVERT(Pool, pool);
-  amst = Pool2AMST(pool);
+  amst = PoolAMST(pool);
   AVERT(AMST, amst);
   /* no useful checks for base and size */
   AVERT(Bool, reservoirPermit);
@@ -190,7 +190,7 @@ static Res amstSegMerge(Seg seg, Seg segHi,
   amstsegHi = Seg2AMSTSeg(segHi);
   AVERT(AMSTSeg, amstseg);
   AVERT(AMSTSeg, amstsegHi);
-  amst = Pool2AMST(SegPool(seg));
+  amst = PoolAMST(SegPool(seg));
 
   /* Merge the superclass fields via direct next-method call */
   super = SEG_SUPERCLASS(AMSTSegClass);
@@ -241,7 +241,7 @@ static Res amstSegSplit(Seg seg, Seg segHi,
   amstseg = Seg2AMSTSeg(seg);
   amstsegHi = Seg2AMSTSeg(segHi);
   AVERT(AMSTSeg, amstseg);
-  amst = Pool2AMST(SegPool(seg));
+  amst = PoolAMST(SegPool(seg));
 
   /* Split the superclass fields via direct next-method call */
   super = SEG_SUPERCLASS(AMSTSegClass);
@@ -311,7 +311,7 @@ static Res AMSTSegSizePolicy(Size *sizeReturn,
 
   arena = PoolArena(pool);
 
-  basic = SizeAlignUp(size, ArenaAlign(arena));
+  basic = SizeArenaGrains(size, arena);
   if (basic == 0) {
     /* overflow */
     return ResMEMORY;
@@ -351,11 +351,11 @@ static Res AMSTInit(Pool pool, ArgList args)
   ArgRequire(&arg, args, MPS_KEY_FORMAT);
   format = arg.val.format;
   
-  res = AMSInitInternal(Pool2AMS(pool), format, chain, gen, FALSE);
+  res = AMSInitInternal(PoolAMS(pool), format, chain, gen, FALSE);
   if (res != ResOK)
     return res;
-  amst = Pool2AMST(pool);
-  ams = Pool2AMS(pool);
+  amst = PoolAMST(pool);
+  ams = PoolAMS(pool);
   ams->segSize = AMSTSegSizePolicy;
   ams->segClass = AMSTSegClassGet;
   amst->failSegs = TRUE;
@@ -378,7 +378,7 @@ static void AMSTFinish(Pool pool)
   AMST amst;
 
   AVERT(Pool, pool);
-  amst = Pool2AMST(pool);
+  amst = PoolAMST(pool);
   AVERT(AMST, amst);
 
   printf("\nDestroying pool, having performed:\n");
@@ -418,7 +418,7 @@ static Bool AMSSegRegionIsFree(Seg seg, Addr base, Addr limit)
   AVERT(Seg, seg);
   amsseg = Seg2AMSSeg(seg);
   sbase = SegBase(seg);
-  ams = Pool2AMS(SegPool(seg));
+  ams = PoolAMS(SegPool(seg));
 
   bgrain = AMSGrains(ams, AddrOffset(sbase, base));
   lgrain = AMSGrains(ams, AddrOffset(sbase, limit));
@@ -544,8 +544,8 @@ static Res AMSTBufferFill(Addr *baseReturn, Addr *limitReturn,
   AVER(limitReturn != NULL);
   /* other parameters are checked by next method */
   arena = PoolArena(pool);
-  ams = Pool2AMS(pool);
-  amst = Pool2AMST(pool);
+  ams = PoolAMS(pool);
+  amst = PoolAMST(pool);
 
   /* call next method */
   super = POOL_SUPERCLASS(AMSTPoolClass);
@@ -579,7 +579,7 @@ static Res AMSTBufferFill(Addr *baseReturn, Addr *limitReturn,
 
     } else {
       Size half = SegSize(seg) / 2;
-      if (half >= size && SizeIsAligned(half, ArenaAlign(arena))) {
+      if (half >= size && SizeIsArenaGrains(half, arena)) {
         /* .split */
         Addr mid = AddrAdd(base, half);
         Seg segLo, segHi;
@@ -612,9 +612,9 @@ static Res AMSTBufferFill(Addr *baseReturn, Addr *limitReturn,
  * not already attached to a buffer and similar colour)
  *
  * .bsplit: Whether or not a merge happpened, a split is performed if
- * the limit of the buffered region is arena aligned, and yet does not
- * correspond to the segment limit, provided that the part of the segment
- * above the buffer is all free.
+ * the limit of the buffered region is also the limit of an arena
+ * grain, and yet does not correspond to the segment limit, provided
+ * that the part of the segment above the buffer is all free.
  */
 static void AMSTStressBufferedSeg(Seg seg, Buffer buffer)
 {
@@ -630,7 +630,7 @@ static void AMSTStressBufferedSeg(Seg seg, Buffer buffer)
   AVERT(AMSTSeg, amstseg);
   limit = BufferLimit(buffer);
   arena = PoolArena(SegPool(seg));
-  amst = Pool2AMST(SegPool(seg));
+  amst = PoolAMST(SegPool(seg));
   AVERT(AMST, amst);
 
   if (amstseg->next != NULL) {
@@ -651,7 +651,7 @@ static void AMSTStressBufferedSeg(Seg seg, Buffer buffer)
   }
 
   if (SegLimit(seg) != limit &&
-      AddrIsAligned(limit, ArenaAlign(arena)) &&
+      AddrIsArenaGrain(limit, arena) &&
       AMSSegRegionIsFree(seg, limit, SegLimit(seg))) {
     /* .bsplit */
     Seg segLo, segHi;

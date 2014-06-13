@@ -9,8 +9,9 @@
 #define tract_h
 
 #include "mpmtypes.h"
-#include "ring.h"
 #include "bt.h"
+#include "ring.h"
+#include "tree.h"
 
 
 /* Page states
@@ -50,8 +51,10 @@ typedef struct TractStruct { /* Tract structure */
 
 extern Addr (TractBase)(Tract tract);
 #define TractBase(tract)         ((tract)->base)
-extern Addr TractLimit(Tract tract);
+extern Addr TractLimit(Tract tract, Arena arena);
 
+#define TractHasPool(tract) \
+  ((tract)->pool.state == PageStateALLOC && TractPool(tract))
 #define TractPool(tract)         ((tract)->pool.pool)
 #define TractP(tract)            ((tract)->p)
 #define TractSetP(tract, pp)     ((void)((tract)->p = (pp)))
@@ -134,7 +137,8 @@ typedef struct ChunkStruct {
   Sig sig;              /* <design/sig/> */
   Serial serial;        /* serial within the arena */
   Arena arena;          /* parent arena */
-  RingStruct chunkRing; /* ring of all chunks in arena */
+  RingStruct chunkRing; /* node in ring of all chunks in arena */
+  TreeStruct chunkTree; /* node in tree of all chunks in arena */
   Size pageSize;        /* size of pages */
   Shift pageShift;      /* log2 of page size, for shifts */
   Addr base;            /* base address of chunk */
@@ -148,31 +152,24 @@ typedef struct ChunkStruct {
 
 
 #define ChunkArena(chunk) RVALUE((chunk)->arena)
+#define ChunkSize(chunk) AddrOffset((chunk)->base, (chunk)->limit)
 #define ChunkPageSize(chunk) RVALUE((chunk)->pageSize)
 #define ChunkPageShift(chunk) RVALUE((chunk)->pageShift)
 #define ChunkPagesToSize(chunk, pages) ((Size)(pages) << (chunk)->pageShift)
 #define ChunkSizeToPages(chunk, size) ((Count)((size) >> (chunk)->pageShift))
 #define ChunkPage(chunk, pi) (&(chunk)->pageTable[pi])
+#define ChunkOfTree(tree) PARENT(ChunkStruct, chunkTree, tree)
 
 extern Bool ChunkCheck(Chunk chunk);
-extern Res ChunkInit(Chunk chunk, Arena arena,
-                     Addr base, Addr limit, Align pageSize, BootBlock boot);
+extern Res ChunkInit(Chunk chunk, Arena arena, Addr base, Addr limit,
+                     Align pageSize, BootBlock boot);
 extern void ChunkFinish(Chunk chunk);
-
+extern Compare ChunkCompare(Tree tree, TreeKey key);
+extern TreeKey ChunkKey(Tree tree);
 extern Bool ChunkCacheEntryCheck(ChunkCacheEntry entry);
 extern void ChunkCacheEntryInit(ChunkCacheEntry entry);
-
 extern Bool ChunkOfAddr(Chunk *chunkReturn, Arena arena, Addr addr);
-
-/* CHUNK_OF_ADDR -- return the chunk containing an address
- *
- * arena and addr are evaluated multiple times.
- */
-
-#define CHUNK_OF_ADDR(chunkReturn, arena, addr) \
-  (((arena)->chunkCache.base <= (addr) && (addr) < (arena)->chunkCache.limit) \
-   ? (*(chunkReturn) = (arena)->chunkCache.chunk, TRUE) \
-   : ChunkOfAddr(chunkReturn, arena, addr))
+extern Res ChunkNodeDescribe(Tree node, mps_lib_FILE *stream);
 
 
 /* AddrPageBase -- the base of the page this address is on */
@@ -185,25 +182,6 @@ extern Bool ChunkOfAddr(Chunk *chunkReturn, Arena arena, Addr addr);
 
 extern Tract TractOfBaseAddr(Arena arena, Addr addr);
 extern Bool TractOfAddr(Tract *tractReturn, Arena arena, Addr addr);
-
-/* TRACT_OF_ADDR -- return the tract containing an address */
-
-#define TRACT_OF_ADDR(tractReturn, arena, addr) \
-  BEGIN \
-    Arena _arena = (arena); \
-    Addr _addr = (addr); \
-    Chunk _chunk; \
-    Index _i; \
-    \
-    if (CHUNK_OF_ADDR(&_chunk, _arena, _addr)) { \
-      _i = INDEX_OF_ADDR(_chunk, _addr); \
-      if (BTGet(_chunk->allocTable, _i)) \
-        *(tractReturn) = PageTract(&_chunk->pageTable[_i]); \
-      else \
-        *(tractReturn) = NULL; \
-    } else \
-        *(tractReturn) = NULL; \
-  END
 
 
 /* INDEX_OF_ADDR -- return the index of the page containing an address
@@ -235,15 +213,12 @@ extern Index IndexOfAddr(Chunk chunk, Addr addr);
     Chunk _ch = NULL; \
     \
     UNUSED(_ch); \
-    AVER(ChunkOfAddr(&_ch, arena, rangeBase) && (rangeLimit) <= _ch->limit); \
+    AVER(ChunkOfAddr(&_ch, arena, rangeBase)); \
+    AVER((rangeLimit) <= _ch->limit); \
   END
 
 
-extern Bool TractFirst(Tract *tractReturn, Arena arena);
-extern Bool TractNext(Tract *tractReturn, Arena arena, Addr addr);
-
-
-/* TRACT_TRACT_FOR -- iterate over a range of tracts
+/* TRACT_TRACT_FOR -- iterate over a range of tracts in a chunk
  *
  * See <design/arena-tract-iter/#if.macro>.
  * Parameters arena & limit are evaluated multiple times.
@@ -254,13 +229,13 @@ extern Bool TractNext(Tract *tractReturn, Arena arena, Addr addr);
   tract = (firstTract); addr = TractBase(tract); \
   TractAverContiguousRange(arena, addr, limit); \
   for(; tract != NULL; \
-      (addr = AddrAdd(addr, (arena)->alignment)), \
+      (addr = AddrAdd(addr, ArenaGrainSize(arena))), \
       (addr < (limit) ? \
         (tract = PageTract(PageOfTract(tract) + 1)) : \
         (tract = NULL) /* terminate loop */))
 
 
-/* TRACT_FOR -- iterate over a range of tracts
+/* TRACT_FOR -- iterate over a range of tracts in a chunk
  *
  * See <design/arena/#tract.for>.
  * Parameters arena & limit are evaluated multiple times.

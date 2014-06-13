@@ -72,6 +72,8 @@ Interface. ``mps_addr_t`` is defined to be the same as ``void *``, so
 using the MPS C Interface confines the memory manager to the same
 address space as the client data.
 
+_`.addr.readonly`: For read-only addresses, see `.readonlyaddr`_.
+
 
 ``typedef Word Align``
 
@@ -379,6 +381,13 @@ their integer values.
 _`.rankset`: ``RankSet`` is a set of ranks, represented as a bitset.
 
 
+``typedef const struct AddrStruct *ReadonlyAddr``
+
+_`.readonlyaddr`: ``ReadonlyAddr`` is the type used for managed
+addresses that an interface promises it will only read through, never
+write. Otherwise it is identical to ``Addr``.
+
+
 ``typedef Addr Ref``
 
 _`.ref`: ``Ref`` is a reference to a managed object (as opposed to any
@@ -570,9 +579,11 @@ space as the client data.
 ``typedef unsigned TraceId``
 
 _`.traceid`: A ``TraceId`` is an unsigned integer which is less than
-``TRACE_MAX``. Each running trace has a different ``TraceId`` which is
-used to index into tables and bitfields used to remember the state of
-that trace.
+``TraceLIMIT``. Each running trace has a different ``TraceId`` which
+is used to index into the tables and bitfields that record the state
+of that trace. See `design.mps.trace.instance.limit`_.
+
+.. _design.mps.trace.instance.limit: trace#instance.limit
 
 
 ``typedef unsigned TraceSet``
