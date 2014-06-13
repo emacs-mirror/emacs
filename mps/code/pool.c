@@ -593,7 +593,7 @@ Bool PoolFormat(Format *formatReturn, Pool pool)
 
 /* PoolOfAddr -- return the pool containing the given address
  *
- * If the address points to a page assigned to a pool, this returns TRUE
+ * If the address points to a tract assigned to a pool, this returns TRUE
  * and sets *poolReturn to that pool.  Otherwise, it returns FALSE, and
  * *poolReturn is unchanged.
  */
