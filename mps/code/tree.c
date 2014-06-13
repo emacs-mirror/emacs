@@ -24,7 +24,6 @@ SRCID(tree, "$Id$");
 Bool TreeCheck(Tree tree)
 {
   if (tree != TreeEMPTY) {
-    CHECKL(tree != TreeBAD);
     CHECKL(tree != NULL);
     CHECKL(tree->left == TreeEMPTY || tree->left != NULL);
     CHECKL(tree->right == TreeEMPTY || tree->right != NULL);
