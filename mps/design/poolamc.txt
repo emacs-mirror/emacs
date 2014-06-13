@@ -209,8 +209,8 @@ and ignore all others; this would be extremely simple to implement.
 But AMC cannot guarantee this, because in the MPS Allocation Point
 Protocol the client is permitted to make a large buffer reserve and
 then fill it with many small objects. In such a case, AMC must honour
-all nails (if the buffer reserve request was an exact multiple of
-``ArenaAlign()``), or all nails except to the last object (if there
+all nails (if the buffer reserve request was an exact multiple of the
+arena grain size), or all nails except to the last object (if there
 was a remainder filled with an LSP pad). Because an LSP pad cannot be
 distinguished from a client object, and the requested allocation size
 is not recorded, AMC cannot distinguish these two conditions at
