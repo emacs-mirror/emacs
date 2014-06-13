@@ -1,3 +1,12 @@
+2014-06-13  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in ($(leimdir)/leim-list.el, $(srcdir)/macuvs.h)
+	($(lispsource)/international/charprop.el)
+	($(libsrc)/make-docfile$(EXEEXT), $(lwlibdir)/liblw.a)
+	($(oldXMenudir)/libXMenu11.a, ns-app, .el.elc)
+	($(lispsource)/loaddefs.el, bootstrap-emacs$(EXEEXT)):
+	GNU make automatically passes command-line arguments to sub-makes.
+
 2014-06-13  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Avoid hangs in accept-process-output (Bug#17647).

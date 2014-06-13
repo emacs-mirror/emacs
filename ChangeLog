@@ -1,3 +1,14 @@
+2014-06-13  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (CC, CFLAGS, LDFLAGS, CPPFLAGS, abs_top_srcdir):
+	Remove, no longer used.
+	(lib, lib-src, lisp, nt, src, blessmail, install-arch-dep)
+	(install-nt, install-strip, uninstall, uninstall-nt)
+	(mostlyclean, clean, distclean, bootstrap-clean)
+	(maintainer-clean, extraclean, TAGS, tags, check, $(DOCS)):
+	($(INSTALL_DOC), $(UNINSTALL_DOC), info, bootstrap, check-declare):
+	GNU make automatically passes command-line arguments to sub-makes.
+
 2014-06-11  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Use a shell function in configure.ac to cut down on code duplication.

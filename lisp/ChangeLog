@@ -1,5 +1,10 @@
 2014-06-13  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in ($(lisp)/cus-load.el, $(lisp)/finder-inf.el)
+	(autoloads, $(lisp)/subdirs.el, compile-main, leim, semantic, compile)
+	(compile-always): GNU make automatically passes
+	command-line arguments to sub-makes.
+
 	* calendar/calendar.el (calendar-generate-window):
 	Remove pointless call to font-lock-fontify-buffer.
 

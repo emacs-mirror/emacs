@@ -1,3 +1,8 @@
+2014-06-13  Glenn Morris  <rgm@gnu.org>
+
+	* unidata/Makefile.in (${DSTDIR}/charprop.el):
+	GNU make automatically passes command-line arguments to sub-makes.
+
 2014-06-02  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Include sources used to create macuvs.h.

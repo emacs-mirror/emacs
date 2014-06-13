@@ -1,3 +1,8 @@
+2014-06-13  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (../lib/libgnu.a):
+	GNU make automatically passes command-line arguments to sub-makes.
+
 2014-05-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* ntlib.h (lseek): Don't redirect to _lseek.

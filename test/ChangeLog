@@ -1,3 +1,8 @@
+2014-06-13  Glenn Morris  <rgm@gnu.org>
+
+	* automated/Makefile.in (compile-main):
+	GNU make automatically passes command-line arguments to sub-makes.
+
 2014-06-05  Michal Nazarewicz  <mina86@mina86.com>
 
 	* automated/tildify-tests.el (tildify-test--test): Optimise the test

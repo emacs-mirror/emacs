@@ -168,7 +168,7 @@ doit:
 # since they will never contain any useful information
 # (see finder-no-scan-regexp and custom-dependencies-no-scan-regexp).
 $(lisp)/cus-load.el:
-	$(MAKE) $(MFLAGS) custom-deps
+	$(MAKE) custom-deps
 custom-deps: doit
 	$(setwins_almost); \
 	echo Directories: $$wins; \
@@ -177,7 +177,7 @@ custom-deps: doit
 	  -f custom-make-dependencies $$wins
 
 $(lisp)/finder-inf.el:
-	$(MAKE) $(MFLAGS) finder-data
+	$(MAKE) finder-data
 finder-data: doit
 	$(setwins_finder); \
 	echo Directories: $$wins; \
@@ -200,7 +200,7 @@ autoloads: $(LOADDEFS) doit
 	    --eval '(setq autoload-builtin-package-versions t)' \
 	    --eval '(setq generated-autoload-file (expand-file-name (unmsys--file-name "$(srcdir)/loaddefs.el")))' \
 	    -f batch-update-autoloads $$wins
-	$(MAKE) $(MFLAGS) obsolete-autoloads
+	$(MAKE) obsolete-autoloads
 
 # The obsolete/ subdirectory is normally not scanned for autoloads.
 # Sometimes we still want to autoload something from that directory,
@@ -215,7 +215,7 @@ obsolete-autoloads: ${lisp}/obsolete/*.el
 # This is required by the bootstrap-emacs target in ../src/Makefile, so
 # we know that if we have an emacs executable, we also have a subdirs.el.
 $(lisp)/subdirs.el:
-	$(MAKE) $(MFLAGS) update-subdirs
+	$(MAKE) update-subdirs
 update-subdirs: doit
 	$(setwins_for_subdirs); \
 	for file in $$wins; do \
@@ -307,7 +307,7 @@ compile-onefile:
 compile-first: $(COMPILE_FIRST)
 
 # In `compile-main' we could directly do
-#    ... | xargs $(MAKE) $(MFLAGS) EMACS="$(EMACS)"
+#    ... | xargs $(MAKE) EMACS="$(EMACS)"
 # and it works, but it generates a lot of messages like
 #    make[2]: gnus/gnus-mlspl.elc is up to date.
 # so instead, we use "xargs echo" to split the list of file into manageable
@@ -331,7 +331,7 @@ compile-main: leim semantic compile-clean
 	  echo "$${el}c"; \
 	done | xargs $(XARGS_LIMIT) echo) | \
 	while read chunk; do \
-	  $(MAKE) $(MFLAGS) compile-targets EMACS="$(EMACS)" TARGETS="$$chunk"; \
+	  $(MAKE) compile-targets EMACS="$(EMACS)" TARGETS="$$chunk"; \
 	done
 
 .PHONY: compile-clean
@@ -348,7 +348,7 @@ compile-clean:
 
 .PHONY: leim semantic
 leim:
-	cd ../leim && $(MAKE) $(MFLAGS) all EMACS="$(EMACS)"
+	cd ../leim && $(MAKE) all EMACS="$(EMACS)"
 
 # FIXME.  Yuck.
 semantic:
@@ -356,7 +356,7 @@ semantic:
 	  .*) EMACS="../${EMACS}" ;; \
 	   *) EMACS="${EMACS}" ;; \
 	esac; \
-	cd ../admin/grammars && $(MAKE) $(MFLAGS) all EMACS="$${EMACS}"
+	cd ../admin/grammars && $(MAKE) all EMACS="$${EMACS}"
 
 # Compile all Lisp files, but don't recompile those that are up to
 # date.  Some .el files don't get compiled because they set the
@@ -365,14 +365,14 @@ semantic:
 # Explicitly pass EMACS (sometimes ../src/bootstrap-emacs) to those
 # sub-makes that run rules that use it, for the sake of some non-GNU makes.
 compile: $(LOADDEFS) autoloads compile-first
-	$(MAKE) $(MFLAGS) compile-main EMACS="$(EMACS)"
+	$(MAKE) compile-main EMACS="$(EMACS)"
 
 # Compile all Lisp files.  This is like `compile' but compiles files
 # unconditionally.  Some files don't actually get compiled because they
 # set the local variable no-byte-compile.
 compile-always: doit
 	cd $(lisp) && rm -f *.elc */*.elc */*/*.elc */*/*/*.elc
-	$(MAKE) $(MFLAGS) compile EMACS="$(EMACS)"
+	$(MAKE) compile EMACS="$(EMACS)"
 
 .PHONY: backup-compiled-files compile-after-backup
 

@@ -84,7 +84,7 @@ compile-main: compile-clean
 	  echo "$${el}c"; \
 	done | xargs $(XARGS_LIMIT) echo | \
 	while read chunk; do \
-	  $(MAKE) $(MFLAGS) compile-targets EMACS="$(EMACS)" TARGETS="$$chunk"; \
+	  $(MAKE) compile-targets EMACS="$(EMACS)" TARGETS="$$chunk"; \
 	done
 
 # Erase left-over .elc files that do not have a corresponding .el file.

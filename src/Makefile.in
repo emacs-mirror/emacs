@@ -414,11 +414,11 @@ all: emacs$(EXEEXT) $(OTHER_FILES)
 .PHONY: all
 
 $(leimdir)/leim-list.el: bootstrap-emacs$(EXEEXT)
-	cd ../leim && $(MAKE) $(MFLAGS) leim-list.el EMACS="$(bootstrap_exe)"
+	cd ../leim && $(MAKE) leim-list.el EMACS="$(bootstrap_exe)"
 
 $(srcdir)/macuvs.h $(lispsource)/international/charprop.el: \
   bootstrap-emacs$(EXEEXT)
-	cd ../admin/unidata && $(MAKE) $(MFLAGS) all EMACS="../$(bootstrap_exe)"
+	cd ../admin/unidata && $(MAKE) all EMACS="../$(bootstrap_exe)"
 
 ## The dumped Emacs is as functional and more efficient than
 ## bootstrap-emacs, so we replace the latter with the former.
@@ -459,7 +459,7 @@ $(etc)/DOC: $(libsrc)/make-docfile$(EXEEXT) $(obj) $(lisp)
 	$(libsrc)/make-docfile -a $(etc)/DOC -d $(lispsource) `sed -n -e 's| \\\\||' -e 's|^[ 	]*$$(lispsource)/||p' $(srcdir)/lisp.mk`
 
 $(libsrc)/make-docfile$(EXEEXT):
-	cd $(libsrc); $(MAKE) $(MFLAGS) make-docfile$(EXEEXT)
+	cd $(libsrc); $(MAKE) make-docfile$(EXEEXT)
 
 buildobj.h: Makefile
 	for i in $(ALLOBJS); do \
@@ -499,13 +499,9 @@ temacs$(EXEEXT): $(LIBXMENU) $(ALLOBJS) \
 ## The following oldxmenu-related rules are only (possibly) used if
 ## HAVE_X11 && !USE_GTK, but there is no harm in always defining them.
 $(lwlibdir)/liblw.a: $(config_h) globals.h lisp.h FORCE
-	cd $(lwlibdir) && \
-	  $(MAKE) $(MFLAGS) CC='$(CC)' CFLAGS='$(CFLAGS)' MAKE='$(MAKE)' \
-	    liblw.a
+	cd $(lwlibdir) && $(MAKE) liblw.a
 $(oldXMenudir)/libXMenu11.a: FORCE
-	cd $(oldXMenudir) && \
-	  $(MAKE) $(MFLAGS) CC='$(CC)' CFLAGS='$(CFLAGS)' MAKE='$(MAKE)' \
-	    libXMenu11.a
+	cd $(oldXMenudir) && $(MAKE) libXMenu11.a
 FORCE:
 .PHONY: FORCE
 
@@ -523,7 +519,7 @@ emacs.res: $(ntsource)/emacs.rc \
 	  -o $@ $(ntsource)/emacs.rc
 
 ns-app: emacs$(EXEEXT)
-	cd ../nextstep && $(MAKE) $(MFLAGS) all
+	cd ../nextstep && $(MAKE) all
 
 .PHONY: mostlyclean clean bootstrap-clean distclean maintainer-clean
 .PHONY: versionclean extraclean
@@ -621,7 +617,7 @@ tags: TAGS ../lisp/TAGS $(lwlibdir)/TAGS
 ## separately below.
 ## With GNU Make, we would just say "%.el : %.elc $(BOOTSTRAPEMACS)"
 .el.elc:
-	@cd ../lisp; $(MAKE) $(MFLAGS) compile-onefile \
+	@cd ../lisp && $(MAKE) compile-onefile \
 	                     THEFILE=$< EMACS="$(bootstrap_exe)"
 
 ## Since the .el.elc rule cannot specify an extra dependency, we do it here.
@@ -633,12 +629,12 @@ $(lisp): $(BOOTSTRAPEMACS)
 VCSWITNESS =
 
 $(lispsource)/loaddefs.el: $(BOOTSTRAPEMACS) $(VCSWITNESS)
-	cd ../lisp; $(MAKE) $(MFLAGS) autoloads EMACS="$(bootstrap_exe)"
+	cd ../lisp && $(MAKE) autoloads EMACS="$(bootstrap_exe)"
 
 ## Dump an Emacs executable named bootstrap-emacs containing the
 ## files from loadup.el in source form.
 bootstrap-emacs$(EXEEXT): temacs$(EXEEXT)
-	cd ../lisp; $(MAKE) $(MFLAGS) update-subdirs
+	cd ../lisp && $(MAKE) update-subdirs
 	if test "$(CANNOT_DUMP)" = "yes"; then \
 	  rm -f bootstrap-emacs$(EXEEXT); \
 	  ln temacs$(EXEEXT) bootstrap-emacs$(EXEEXT); \
@@ -648,7 +644,7 @@ bootstrap-emacs$(EXEEXT): temacs$(EXEEXT)
 	  mv -f emacs$(EXEEXT) bootstrap-emacs$(EXEEXT); \
 	fi
 	@: Compile some files earlier to speed up further compilation.
-	cd ../lisp; $(MAKE) $(MFLAGS) compile-first EMACS="$(bootstrap_exe)"
+	cd ../lisp && $(MAKE) compile-first EMACS="$(bootstrap_exe)"
 
 ## Insert either autodeps.mk (if AUTO_DEPEND), else deps.mk.
 @deps_frag@

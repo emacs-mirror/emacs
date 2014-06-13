@@ -52,7 +52,7 @@ compile: ${srcdir}/unidata-gen.elc
 ## uni-*.el files just because .elc is missing.
 ## Same for UnicodeData.txt v unidata.txt.
 ${DSTDIR}/charprop.el: ${srcdir}/unidata-gen.el ${srcdir}/UnicodeData.txt
-	${MAKE} ${MFLAGS} compile unidata.txt EMACS="${EMACS}"
+	${MAKE} compile unidata.txt EMACS="${EMACS}"
 	-if [ -f "$@" ]; then \
 	  cd ${DSTDIR} && chmod +w charprop.el `sed -n 's/^;; FILE: //p' < charprop.el`; \
 	fi

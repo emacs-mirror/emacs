@@ -1,3 +1,8 @@
+2014-06-13  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in ($(globals_h)):
+	GNU make automatically passes command-line arguments to sub-makes.
+
 2014-06-04  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* lwlib-widget.h (widget_value) [USE_X_TOOLKIT]: Use X toolkit
