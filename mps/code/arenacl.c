@@ -339,31 +339,20 @@ static Res ClientArenaExtend(Arena arena, Addr base, Size size)
 
 /* ClientArenaReserved -- return the amount of reserved address space */
 
-static Bool clientArenaReservedVisitor(Tree tree, void *closureP, Size closureS)
-{
-  Size *size;
-  Chunk chunk;
-
-  AVERT(Tree, tree);
-  chunk = ChunkOfTree(tree);
-  AVERT(Chunk, chunk);
-  AVER(closureP != 0);
-  size = closureP;
-  AVER(closureS == UNUSED_SIZE);
-  UNUSED(closureS);
-
-  *size += ChunkSize(chunk);
-  return TRUE;
-}
-
 static Size ClientArenaReserved(Arena arena)
 {
-  Size size = 0;
+  Size size;
+  Ring node, nextNode;
 
   AVERT(Arena, arena);
 
-  (void)ArenaChunkTreeTraverse(arena, clientArenaReservedVisitor,
-                               &size, UNUSED_SIZE);
+  size = 0;
+  /* .req.extend.slow */
+  RING_FOR(node, &arena->chunkRing, nextNode) {
+    Chunk chunk = RING_ELT(Chunk, chunkRing, node);
+    AVERT(Chunk, chunk);
+    size += ChunkSize(chunk);
+  }
 
   return size;
 }
