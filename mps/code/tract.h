@@ -229,7 +229,7 @@ extern Index IndexOfAddr(Chunk chunk, Addr addr);
   tract = (firstTract); addr = TractBase(tract); \
   TractAverContiguousRange(arena, addr, limit); \
   for(; tract != NULL; \
-      (addr = AddrAdd(addr, (arena)->alignment)), \
+      (addr = AddrAdd(addr, ArenaGrainSize(arena))), \
       (addr < (limit) ? \
         (tract = PageTract(PageOfTract(tract) + 1)) : \
         (tract = NULL) /* terminate loop */))

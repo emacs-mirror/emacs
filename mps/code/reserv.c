@@ -7,7 +7,7 @@
  *
  * .improve.contiguous: There should be a means of grouping contiguous
  * tracts together so that there's a likelihood of being able to meet
- * requests for regions larger than the arena alignment.  */
+ * requests for regions larger than the arena grain size.  */
 
 #include "mpm.h"
 
@@ -98,8 +98,8 @@ Bool ReservoirCheck(Reservoir reservoir)
     CHECKD_NOSIG(Tract, tract);
     CHECKL(TractPool(tract) == ReservoirPool(reservoir));
   }
-  CHECKL(SizeIsAligned(reservoir->reservoirLimit, ArenaAlign(arena)));
-  CHECKL(SizeIsAligned(reservoir->reservoirSize, ArenaAlign(arena)));
+  CHECKL(SizeIsArenaGrains(reservoir->reservoirLimit, arena));
+  CHECKL(SizeIsArenaGrains(reservoir->reservoirSize, arena));
 
   return TRUE;
 }
@@ -110,7 +110,7 @@ Bool ReservoirCheck(Reservoir reservoir)
 ATTRIBUTE_UNUSED
 static Bool reservoirIsConsistent(Reservoir reservoir)
 {
-  Size alignment, size = 0;
+  Size grainSize, size = 0;
   Tract tract;
   Pool pool;
   Arena arena;
@@ -119,21 +119,21 @@ static Bool reservoirIsConsistent(Reservoir reservoir)
   pool = ReservoirPool(reservoir);
 
   /* Check that the size of the tracts matches reservoirSize */
-  alignment = ArenaAlign(arena);
+  grainSize = ArenaGrainSize(arena);
   tract = reservoir->reserve;
   while (tract != NULL) {
     AVERT(Tract, tract);
     AVER(TractPool(tract) == pool);
     tract = resTractNext(tract);
-    size += alignment;
+    size += grainSize;
   }
 
   if (size != reservoir->reservoirSize)
     return FALSE;
 
   /* <design/reservoir/#align> */
-  return SizeIsAligned(reservoir->reservoirLimit, alignment)
-         && SizeIsAligned(reservoir->reservoirSize, alignment)
+  return SizeIsAligned(reservoir->reservoirLimit, grainSize)
+         && SizeIsAligned(reservoir->reservoirSize, grainSize)
          && (reservoir->reservoirLimit >= reservoir->reservoirSize);
 }
 
@@ -152,7 +152,7 @@ Res ReservoirEnsureFull(Reservoir reservoir)
   arena = reservoirArena(reservoir);
 
   AVERT(Arena, arena);
-  size = ArenaAlign(arena);
+  size = ArenaGrainSize(arena);
   limit = reservoir->reservoirLimit;
 
   /* optimize the common case of a full reservoir */
@@ -192,14 +192,14 @@ static void reservoirShrink(Reservoir reservoir, Size want)
 
   pool = ReservoirPool(reservoir);
   arena = reservoirArena(reservoir);
-  AVER(SizeIsAligned(want, ArenaAlign(arena)));
+  AVER(SizeIsArenaGrains(want, arena));
   AVER(reservoir->reservoirSize >= want);
 
   if (reservoir->reservoirSize == want)
     return;
 
   /* Iterate over tracts, freeing them while reservoir is too big */
-  size = ArenaAlign(arena);
+  size = ArenaGrainSize(arena);
   while (reservoir->reservoirSize > want) {
     Tract tract = reservoir->reserve;
     AVER(tract != NULL);
@@ -224,14 +224,14 @@ Res ReservoirWithdraw(Addr *baseReturn, Tract *baseTractReturn,
   AVERT(Reservoir, reservoir);
   arena = reservoirArena(reservoir);
   AVERT(Arena, arena);
-  AVER(SizeIsAligned(size, ArenaAlign(arena)));
+  AVER(SizeIsArenaGrains(size, arena));
   AVER(size > 0);
   AVERT(Pool, pool);
 
   /* @@@@ As a short-term measure, we only permit the reservoir to */
   /* allocate single-page regions. */
   /* See .improve.contiguous &  change.dylan.jackdaw.160125 */
-  if (size != ArenaAlign(arena))
+  if (size != ArenaGrainSize(arena))
     return ResMEMORY;
  
   if (size <= reservoir->reservoirSize) {
@@ -241,7 +241,7 @@ Res ReservoirWithdraw(Addr *baseReturn, Tract *baseTractReturn,
     AVER(tract != NULL);
     base  = TractBase(tract);
     reservoir->reserve = resTractNext(tract);
-    reservoir->reservoirSize -= ArenaAlign(arena);
+    reservoir->reservoirSize -= ArenaGrainSize(arena);
     TractFinish(tract);
     TractInit(tract, pool, base);
     AVER(reservoirIsConsistent(reservoir));
@@ -261,7 +261,7 @@ Bool ReservoirDeposit(Reservoir reservoir, Addr *baseIO, Size *sizeIO)
 {
   Pool respool;
   Addr addr, limit;
-  Size reslimit, alignment;
+  Size reslimit;
   Arena arena;
   Tract tract;
   Addr base;
@@ -271,13 +271,12 @@ Bool ReservoirDeposit(Reservoir reservoir, Addr *baseIO, Size *sizeIO)
   arena = reservoirArena(reservoir);
   AVERT(Arena, arena);
   respool = ReservoirPool(reservoir);
-  alignment = ArenaAlign(arena);
   AVER(baseIO != NULL);
   AVER(sizeIO != NULL);
   base = *baseIO;
   size = *sizeIO;
-  AVER(AddrIsAligned(base, alignment));
-  AVER(SizeIsAligned(size, alignment));
+  AVER(AddrIsArenaGrain(base, arena));
+  AVER(SizeIsArenaGrains(size, arena));
   limit = AddrAdd(base, size);
   reslimit = reservoir->reservoirLimit;
 
@@ -288,7 +287,7 @@ Bool ReservoirDeposit(Reservoir reservoir, Addr *baseIO, Size *sizeIO)
       /* Reassign the tract to the reservoir pool */
       TractFinish(tract);
       TractInit(tract, respool, addr);
-      reservoir->reservoirSize += alignment;
+      reservoir->reservoirSize += ArenaGrainSize(arena);
       resTractSetNext(tract, reservoir->reserve);
       reservoir->reserve = tract;
     } else {
@@ -342,14 +341,14 @@ void ReservoirSetLimit(Reservoir reservoir, Size size)
   if (size > 0) {
     Size wastage;
     /* <design/reservoir/#wastage> */
-    wastage = ArenaAlign(arena) * mutatorBufferCount(ArenaGlobals(arena));
+    wastage = ArenaGrainSize(arena) * mutatorBufferCount(ArenaGlobals(arena));
     /* <design/reservoir/#align> */
-    needed = SizeAlignUp(size, ArenaAlign(arena)) + wastage;
+    needed = SizeArenaGrains(size, arena) + wastage;
   } else {
     needed = 0; /* <design/reservoir/#really-empty> */
   }
 
-  AVER(SizeIsAligned(needed, ArenaAlign(arena)));
+  AVER(SizeIsArenaGrains(needed, arena));
   /* Emit event now, so subsequent change can be ascribed to it. */
   EVENT2(ReservoirLimitSet, arena, size);
 

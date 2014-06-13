@@ -39,7 +39,7 @@ Bool TractCheck(Tract tract)
 {
   if (TractHasPool(tract)) {
     CHECKU(Pool, TractPool(tract));
-    CHECKL(AddrIsAligned(TractBase(tract), ArenaAlign(TractArena(tract))));
+    CHECKL(AddrIsArenaGrain(TractBase(tract), TractArena(tract)));
   }
   if (TractHasSeg(tract)) {
     CHECKL(TraceSetCheck(TractWhite(tract)));
@@ -107,7 +107,7 @@ Addr TractLimit(Tract tract, Arena arena)
 {
   AVERT_CRITICAL(Tract, tract); /* .tract.critical */
   AVERT_CRITICAL(Arena, arena);
-  return AddrAdd(TractBase(tract), arena->alignment);
+  return AddrAdd(TractBase(tract), ArenaGrainSize(arena));
 }
 
 
@@ -424,7 +424,7 @@ Tract TractOfBaseAddr(Arena arena, Addr addr)
   Bool found;
 
   AVERT_CRITICAL(Arena, arena);
-  AVER_CRITICAL(AddrIsAligned(addr, arena->alignment));
+  AVER_CRITICAL(AddrIsAligned(addr, ArenaGrainSize(arena)));
 
   /* Check first in the cache, see <design/arena/#tract.cache>. */
   if (arena->lastTractBase == addr) {
