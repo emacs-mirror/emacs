@@ -1006,7 +1006,7 @@ extern Res RootsIterate(Globals arena, RootIterateFn f, void *p);
 extern Size VMPageSize(void);
 extern Bool VMCheck(VM vm);
 extern Res VMParamFromArgs(void *params, size_t paramSize, ArgList args);
-extern Res VMCreate(VM *VMReturn, Size *grainSizeIO, Size size, void *params);
+extern Res VMCreate(VM *VMReturn, Size size, Size grainSize, void *params);
 extern void VMDestroy(VM vm);
 extern Addr VMBase(VM vm);
 extern Addr VMLimit(VM vm);

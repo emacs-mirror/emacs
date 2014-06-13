@@ -58,8 +58,7 @@ SRCID(vmw3, "$Id$");
 
 typedef struct VMStruct {
   Sig sig;                      /* <design/sig/> */
-  Size pageSize;                /* page size */
-  void *reserved_base;          /* unaligned base of VirtualAlloc'd space */
+  void *block;                  /* unaligned base of VirtualAlloc'd space */
   Addr base, limit;             /* aligned boundaries of reserved space */
   Size reserved;                /* total reserved address space */
   Size mapped;                  /* total mapped memory */
@@ -124,19 +123,17 @@ Res VMParamFromArgs(void *params, size_t paramSize, ArgList args)
 
 /* VMCreate -- reserve some virtual address space, and create a VM structure */
 
-Res VMCreate(VM *vmReturn, Size *grainSizeIO, Size size, void *params)
+Res VMCreate(VM *vmReturn, Size size, Size grainSize, void *params)
 {
   LPVOID vbase;
   SYSTEM_INFO si;
   VM vm;
-  Size pageSize, grainSize, reserved;
+  Size pageSize, reserved;
   Res res;
   BOOL b;
   VMParams vmParams = params;
 
   AVER(vmReturn != NULL);
-  AVER(grainSizeIO != NULL);
-  grainSize = *grainSizeIO;
   AVERT(ArenaGrainSize, grainSize);
   AVER(size > 0);
   AVER(params != NULL); /* FIXME: Should have full AVERT? */
@@ -144,13 +141,9 @@ Res VMCreate(VM *vmReturn, Size *grainSizeIO, Size size, void *params)
   AVER(COMPATTYPE(LPVOID, Addr));  /* .assume.lpvoid-addr */
   AVER(COMPATTYPE(SIZE_T, Size));
 
-  /* Check that the page size is valid for use as an arena grain size. */
   pageSize = VMPageSize();
-  AVERT(ArenaGrainSize, pageSize);
 
   /* Grains must consist of whole pages. */
-  if (grainSize < pageSize)
-    grainSize = pageSize;
   AVER(grainSize % pageSize == 0);
 
   /* Check that the rounded-up sizes will fit in a Size. */
@@ -182,7 +175,7 @@ Res VMCreate(VM *vmReturn, Size *grainSizeIO, Size size, void *params)
 
   AVER(AddrIsAligned(vbase, pageSize));
 
-  vm->reserved_base = vbase;
+  vm->block = vbase;
   vm->base = AddrAlignUp(vbase, grainSize);
   vm->limit = AddrAdd(vm->base, size);
   vm->reserved = reserved;
@@ -195,7 +188,6 @@ Res VMCreate(VM *vmReturn, Size *grainSizeIO, Size size, void *params)
   EVENT3(VMCreate, vm, vm->base, vm->limit);
 
   *vmReturn = vm;
-  *grainSizeIO = grainSize;
   return ResOK;
 
 failReserve:
@@ -221,7 +213,7 @@ void VMDestroy(VM vm)
    * fail and it would be nice to have a dead sig there. */
   vm->sig = SigInvalid;
 
-  b = VirtualFree((LPVOID)vm->reserved_base, (SIZE_T)0, MEM_RELEASE);
+  b = VirtualFree((LPVOID)vm->block, (SIZE_T)0, MEM_RELEASE);
   AVER(b != 0);
 
   b = VirtualFree((LPVOID)vm, (SIZE_T)0, MEM_RELEASE);
