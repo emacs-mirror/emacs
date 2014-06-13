@@ -37,6 +37,7 @@
 #include <assert.h>
 #include <ctype.h>
 #include <errno.h>
+#include <getopt.h>
 #include <setjmp.h>
 #include <stdarg.h>
 #include <stddef.h>
@@ -409,6 +410,7 @@ static void error(const char *format, ...)
   if (error_handler) {
     longjmp(*error_handler, 1);
   } else {
+    fflush(stdout);
     fprintf(stderr, "Fatal error during initialization: %s\n",
             error_message);
     abort();
@@ -4003,6 +4005,7 @@ static mps_res_t obj_scan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
         break;
       default:
         assert(0);
+        fflush(stdout);
         fprintf(stderr, "Unexpected object on the heap\n");
         abort();
       }
@@ -4073,6 +4076,7 @@ static mps_addr_t obj_skip(mps_addr_t base)
     break;
   default:
     assert(0);
+    fflush(stdout);
     fprintf(stderr, "Unexpected object on the heap\n");
     abort();
   }
@@ -4318,7 +4322,7 @@ static int start(int argc, char *argv[])
   mps_addr_t ref;
   mps_res_t res;
   mps_root_t globals_root;
-  int exit_code;
+  int exit_code = EXIT_SUCCESS;
 
   total = (size_t)0;
   error_handler = &jb;
@@ -4366,21 +4370,23 @@ static int start(int argc, char *argv[])
              make_operator(optab[i].name, optab[i].entry,
                            obj_empty, obj_empty, env, op_env));
   } else {
+    fflush(stdout);
     fprintf(stderr,
             "Fatal error during initialization: %s\n",
             error_message);
     abort();
   }
 
-  if(argc >= 2) {
+  if (argc > 0) {
     /* Non-interactive file execution */
     if(setjmp(*error_handler) != 0) {
+      fflush(stdout);
       fprintf(stderr, "%s\n", error_message);
+      fflush(stderr);
       exit_code = EXIT_FAILURE;
-    } else {
-      load(env, op_env, make_string(strlen(argv[1]), argv[1]));
-      exit_code = EXIT_SUCCESS;
-    }
+    } else
+      for (i = 0; i < argc; ++i)
+        load(env, op_env, make_string(strlen(argv[i]), argv[i]));
   } else {
     /* Ask the MPS to tell us when it's garbage collecting so that we can
        print some messages.  Completely optional. */
@@ -4394,12 +4400,15 @@ static int start(int argc, char *argv[])
          "If you recurse too much the interpreter may crash from using too much C stack.");
     for(;;) {
       if(setjmp(*error_handler) != 0) {
+        fflush(stdout);
         fprintf(stderr, "%s\n", error_message);
+        fflush(stderr);
       }
 
       mps_chat();
       printf("%lu, %lu> ", (unsigned long)total,
              (unsigned long)mps_collections(arena));
+      fflush(stdout);
       obj = read(input);
       if(obj == obj_eof) break;
       obj = eval(env, op_env, obj);
@@ -4409,7 +4418,6 @@ static int start(int argc, char *argv[])
       }
     }
     puts("Bye.");
-    exit_code = EXIT_SUCCESS;
   }
 
   /* See comment at the end of `main` about cleaning up. */
@@ -4442,6 +4450,7 @@ static mps_gen_param_s obj_gen_params[] = {
 
 int main(int argc, char *argv[])
 {
+  size_t arenasize = 32ul * 1024 * 1024;
   mps_res_t res;
   mps_chain_t obj_chain;
   mps_fmt_t obj_fmt, buckets_fmt;
@@ -4449,11 +4458,41 @@ int main(int argc, char *argv[])
   mps_root_t reg_root;
   int exit_code;
   void *marker = &marker;
+  int ch;
   
+  while ((ch = getopt(argc, argv, "m:")) != -1)
+    switch (ch) {
+    case 'm': {
+        char *p;
+        arenasize = (unsigned)strtoul(optarg, &p, 10);
+        switch(toupper(*p)) {
+        case 'G': arenasize <<= 30; break;
+        case 'M': arenasize <<= 20; break;
+        case 'K': arenasize <<= 10; break;
+        case '\0': break;
+        default:
+          fprintf(stderr, "Bad arena size %s\n", optarg);
+          return EXIT_FAILURE;
+        }
+      }
+      break;
+    default:
+      fprintf(stderr,
+              "Usage: %s [option...] [file...]\n"
+              "Options:\n"
+              "  -m n, --arena-size=n[KMG]?\n"
+              "    Initial size of arena (default %lu).\n",
+              argv[0],
+              (unsigned long)arenasize);
+      return EXIT_FAILURE;
+    }
+  argc -= optind;
+  argv += optind;
+
   /* Create an MPS arena.  There is usually only one of these in a process.
      It holds all the MPS "global" state and is where everything happens. */
   MPS_ARGS_BEGIN(args) {
-    MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, 32 * 1024 * 1024);
+    MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, arenasize);
     res = mps_arena_create_k(&arena, mps_arena_class_vm(),  args);
   } MPS_ARGS_END(args);
   if (res != MPS_RES_OK) error("Couldn't create arena");

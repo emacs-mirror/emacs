@@ -276,7 +276,7 @@ static Bool failoverFindInZones(Bool *foundReturn, Range rangeReturn, Range oldR
 }
 
 
-static Res failoverDescribe(Land land, mps_lib_FILE *stream)
+static Res failoverDescribe(Land land, mps_lib_FILE *stream, Count depth)
 {
   Failover fo;
   Res res;
@@ -286,7 +286,7 @@ static Res failoverDescribe(Land land, mps_lib_FILE *stream)
   if (!TESTT(Failover, fo)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
 
-  res = WriteF(stream,
+  res = WriteF(stream, depth,
                "Failover $P {\n", (WriteFP)fo,
                "  primary = $P ($S)\n", (WriteFP)fo->primary,
                fo->primary->class->name,
