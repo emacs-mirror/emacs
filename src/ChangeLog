@@ -1,3 +1,8 @@
+2014-06-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* alloc.c (cleanup_vector): Don't dereference a font driver
+	pointer if it is NULL.  (Bug#17771)
+
 2014-06-11  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (set_cursor_from_row): Fix an off-by-one error when
