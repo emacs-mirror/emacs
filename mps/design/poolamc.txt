@@ -128,8 +128,8 @@ Placement pads are the BEF and LSP pads created in "to-space" when
 placing objects into segments. This wasted space is an expected
 space-cost of AMC's naive (but time-efficient) approach to placement
 of objects into segments. This is normally not a severe problem. (The
-worst case is a client that always requests ``ArenaAlign() + 1`` byte
-objects: this has a nearly 100% overhead).
+worst case is a client that always requests ``amc->extendBy + 1`` byte
+objects: this has an overhead of nearly ``ArenaAlign() / amc->extendBy``).
 
 
 Retained pads could be a problem
@@ -156,20 +156,23 @@ specially.
 Small, medium, and large segments
 ---------------------------------
 
-AMC categorises segments as **small** (one page), **medium**
-(several pages), or **large** (``AMCLargeSegPAGES`` or more)::
+AMC categorises segments as **small** (up to ``amc->extendBy``), **medium**
+(larger than small but smaller than large), or **large** (``amc->largeSize`` or
+more)::
 
-    pages = SegSize(seg) / ArenaAlign(arena);
-    if(pages == 1) {
+    size = SegSize(seg);
+    if(size < amc->extendBy) {
       /* small */
-    } else if(pages < AMCLargeSegPAGES) {
+    } else if(pages < amc->largeSize) {
       /* medium */
     } else {
       /* large */
     }</code></pre></blockquote>
 
-``AMCLargeSegPAGES`` is currently 8 -- see `The LSP payoff
-calculation`_ below.
+``amc->extendBy`` defaults to 4096 (rounded up to the arena alignment), and is
+settable by using :c:macro:`MPS_KEY_EXTEND_BY` keyword argument.
+``amc->largeSize`` is currently 32768 -- see `The LSP payoff calculation`_
+below.
 
 AMC might treat "Large" segments specially, in two ways:
 
@@ -253,15 +256,17 @@ segments smaller than eight pages long do not need to be treated as
 large: the insurance cost to "play safe" would be considerable
 (wasting up to one page of remainder per seven pages of allocation),
 and the fragmentation overhead risk is not that great (at most eight
-times worse than the unavoidable minimum). So ``AMCLargeSegPAGES`` is
-defined as 8 in config.h. As long as the assumption that most segments
+times worse than the unavoidable minimum). So ``AMC_LARGE_SIZE_DEFAULT`` is
+defined as 32768 in config.h. As long as the assumption that most segments
 are not ambiguously referenced remains correct, I expect this policy
 will be satisfactory.
 
 To verify that this threshold is acceptable for a given client,
 poolamc.c calculates metrics; see `Feedback about retained pages`_
 below. If this one-size-fits-all approach is not satisfactory,
-``AMCLargeSegPAGES`` could be made a client-tunable parameter.
+``amc->largeSize`` is a client-tunable parameter which defaults to
+``AMC_LARGE_SIZE_DEFAULT``. It can be tuned by passing an
+:c:macro:`MPS_KEY_LARGE_SIZE` keyword argument to :c:func:`mps_pool_create_k`.
 
 
 Retained pages
