@@ -28,9 +28,9 @@
 
 static void check_allocated_size(mps_pool_t pool, size_t allocated)
 {
-  size_t total = mps_pool_total_size(pool);
-  size_t free = mps_pool_free_size(pool);
-  Insist(total - free == allocated);
+  size_t total_size = mps_pool_total_size(pool);
+  size_t free_size = mps_pool_free_size(pool);
+  Insist(total_size - free_size == allocated);
 }
 
 

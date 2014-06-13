@@ -45,10 +45,10 @@ static mps_res_t make(mps_addr_t *p, mps_ap_t ap, size_t size)
 
 static void check_allocated_size(mps_pool_t pool, mps_ap_t ap, size_t allocated)
 {
-  size_t total = mps_pool_total_size(pool);
-  size_t free = mps_pool_free_size(pool);
+  size_t total_size = mps_pool_total_size(pool);
+  size_t free_size = mps_pool_free_size(pool);
   size_t ap_free = (size_t)((char *)ap->limit - (char *)ap->init);
-  Insist(total - free == allocated + ap_free);
+  Insist(total_size - free_size == allocated + ap_free);
 }
 
 
