@@ -1,3 +1,8 @@
+2014-06-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* term/xterm.el (xterm--version-handler): Work around for OSX
+	Terminal.app (bug#17607).
+
 2014-06-08  Glenn Morris  <rgm@gnu.org>
 
 	* startup.el (initial-buffer-choice): Doc fix.
