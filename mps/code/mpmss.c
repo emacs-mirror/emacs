@@ -198,11 +198,13 @@ int main(int argc, char *argv[])
 
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, testArenaSIZE);
+    MPS_ARGS_ADD(args, MPS_KEY_ARENA_GRAIN_SIZE, (size_t)1 << (rnd() % 20));
     testInArena(mps_arena_class_vm(), args, &bothOptions);
   } MPS_ARGS_END(args);
 
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, smallArenaSIZE);
+    MPS_ARGS_ADD(args, MPS_KEY_ARENA_GRAIN_SIZE, (size_t)1 << (rnd() % 20));
     testInArena(mps_arena_class_vm(), args, &fenceOptions);
   } MPS_ARGS_END(args);
 
