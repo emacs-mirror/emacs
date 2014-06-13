@@ -129,7 +129,7 @@ placing objects into segments. This wasted space is an expected
 space-cost of AMC's naive (but time-efficient) approach to placement
 of objects into segments. This is normally not a severe problem. (The
 worst case is a client that always requests ``amc->extendBy + 1`` byte
-objects: this has an overhead of nearly ``ArenaAlign() / amc->extendBy``).
+objects: this has an overhead of nearly ``ArenaGrainSize() / amc->extendBy``).
 
 
 Retained pads could be a problem

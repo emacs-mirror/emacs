@@ -28,7 +28,7 @@ extern Bool ThreadCheck(Thread thread);
 extern Bool ThreadCheckSimple(Thread thread);
 
 
-extern Res ThreadDescribe(Thread thread, mps_lib_FILE *stream);
+extern Res ThreadDescribe(Thread thread, mps_lib_FILE *stream, Count depth);
 
 
 /*  Register/Deregister

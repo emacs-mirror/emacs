@@ -71,7 +71,7 @@ static Index (indexOfAddr)(TestState state, Addr a)
 
 
 static void describe(TestState state) {
-  die(LandDescribe(state->land, mps_lib_get_stdout()), "LandDescribe");
+  die(LandDescribe(state->land, mps_lib_get_stdout(), 0), "LandDescribe");
 }
 
 
@@ -486,10 +486,10 @@ extern int main(int argc, char *argv[])
   CBSStruct cbsStruct;
   FreelistStruct flStruct;
   FailoverStruct foStruct;
-  Land cbs = &cbsStruct.landStruct;
-  Land fl = &flStruct.landStruct;
-  Land fo = &foStruct.landStruct;
-  Pool mfs = &blockPool.poolStruct;
+  Land cbs = CBSLand(&cbsStruct);
+  Land fl = FreelistLand(&flStruct);
+  Land fo = FailoverLand(&foStruct);
+  Pool mfs = MFSPool(&blockPool);
   Align align;
   int i;
 
@@ -548,7 +548,7 @@ extern int main(int argc, char *argv[])
   for (i = 0; i < 2; ++i) {
       MPS_ARGS_BEGIN(piArgs) {
         MPS_ARGS_ADD(piArgs, MPS_KEY_MFS_UNIT_SIZE, sizeof(CBSFastBlockStruct));
-        MPS_ARGS_ADD(piArgs, MPS_KEY_EXTEND_BY, ArenaAlign(arena));
+        MPS_ARGS_ADD(piArgs, MPS_KEY_EXTEND_BY, ArenaGrainSize(arena));
         MPS_ARGS_ADD(piArgs, MFSExtendSelf, i);
         MPS_ARGS_DONE(piArgs);
         die(PoolInit(mfs, arena, PoolClassMFS(), piArgs), "PoolInit");

@@ -1,7 +1,7 @@
 /* freelist.h: FREE LIST ALLOCATOR INTERFACE
  *
  * $Id$
- * Copyright (c) 2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2013-2014 Ravenbrook Limited.  See end of file for license.
  *
  * .source: <design/freelist/>.
  */
@@ -13,7 +13,12 @@
 
 typedef struct FreelistStruct *Freelist;
 
+#define FreelistLand(fl) (&(fl)->landStruct)
+
 extern Bool FreelistCheck(Freelist freelist);
+
+/* See <design/freelist/#impl.grain.align> */
+#define FreelistMinimumAlignment ((Align)sizeof(FreelistBlock))
 
 extern LandClass FreelistLandClassGet(void);
 
@@ -22,7 +27,7 @@ extern LandClass FreelistLandClassGet(void);
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2013-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

@@ -73,6 +73,8 @@ typedef struct mps_chain_s {
 } ChainStruct;
 
 
+extern Res GenDescDescribe(GenDesc gen, mps_lib_FILE *stream, Count depth);
+
 extern Res ChainCreate(Chain *chainReturn, Arena arena, size_t genCount,
                        GenParamStruct *params);
 extern void ChainDestroy(Chain chain);
@@ -84,6 +86,7 @@ extern void ChainStartGC(Chain chain, Trace trace);
 extern void ChainEndGC(Chain chain, Trace trace);
 extern size_t ChainGens(Chain chain);
 extern GenDesc ChainGen(Chain chain, Index gen);
+extern Res ChainDescribe(Chain chain, mps_lib_FILE *stream, Count depth);
 
 extern Bool PoolGenCheck(PoolGen pgen);
 extern Res PoolGenInit(PoolGen pgen, GenDesc gen, Pool pool);
@@ -99,6 +102,7 @@ extern void PoolGenAccountForReclaim(PoolGen pgen, Size reclaimed, Bool deferred
 extern void PoolGenUndefer(PoolGen pgen, Size oldSize, Size newSize);
 extern void PoolGenAccountForSegSplit(PoolGen pgen);
 extern void PoolGenAccountForSegMerge(PoolGen pgen);
+extern Res PoolGenDescribe(PoolGen gen, mps_lib_FILE *stream, Count depth);
 
 #endif /* chain_h */
 

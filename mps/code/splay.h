@@ -72,9 +72,10 @@ extern void SplayNodeRefresh(SplayTree splay, Tree node);
 extern void SplayNodeInit(SplayTree splay, Tree node);
 
 extern Res SplayTreeDescribe(SplayTree splay, mps_lib_FILE *stream,
-                             TreeDescribeMethod nodeDescribe);
+                             Count depth, TreeDescribeMethod nodeDescribe);
 
 extern void SplayDebugUpdate(SplayTree splay, Tree tree);
+extern Count SplayDebugCount(SplayTree splay);
 
 
 #endif /* splay_h */

@@ -86,7 +86,7 @@ now :c:macro:`MPS_KEY_ARGS_END`.
     Keyword                                  Type & field in ``arg.val``                            See
     ======================================== ====================================================== ==========================================================
     :c:macro:`MPS_KEY_ARGS_END`              *none*                                                 *see above*
-    :c:macro:`MPS_KEY_ALIGN`                 :c:type:`mps_align_t`           ``align``              :c:func:`mps_class_mvff`, :c:func:`mps_class_mvt`
+    :c:macro:`MPS_KEY_ALIGN`                 :c:type:`mps_align_t`           ``align``              :c:func:`mps_class_mv`, :c:func:`mps_class_mvff`, :c:func:`mps_class_mvt`
     :c:macro:`MPS_KEY_AMS_SUPPORT_AMBIGUOUS` :c:type:`mps_bool_t`            ``b``                  :c:func:`mps_class_ams`
     :c:macro:`MPS_KEY_ARENA_CL_BASE`         :c:type:`mps_addr_t`            ``addr``               :c:func:`mps_arena_class_cl`
     :c:macro:`MPS_KEY_ARENA_SIZE`            :c:type:`size_t`                ``size``               :c:func:`mps_arena_class_vm`, :c:func:`mps_arena_class_cl`
@@ -116,6 +116,7 @@ now :c:macro:`MPS_KEY_ARGS_END`.
     :c:macro:`MPS_KEY_MVT_RESERVE_DEPTH`     :c:type:`mps_count_t`           ``count``              :c:func:`mps_class_mvt`
     :c:macro:`MPS_KEY_POOL_DEBUG_OPTIONS`    ``mps_pool_debug_options_s *``  ``pool_debug_options`` :c:func:`mps_class_ams_debug`, :c:func:`mps_class_mv_debug`, :c:func:`mps_class_mvff_debug`
     :c:macro:`MPS_KEY_RANK`                  :c:type:`mps_rank_t`            ``rank``               :c:func:`mps_class_ams`, :c:func:`mps_class_awl`, :c:func:`mps_class_snc`
+    :c:macro:`MPS_KEY_SPARE`                 :c:type:`double`                ``d``                  :c:func:`mps_class_mvff`
     :c:macro:`MPS_KEY_VMW3_TOP_DOWN`         :c:type:`mps_bool_t`            ``b``                  :c:func:`mps_arena_class_vm`
     ======================================== ====================================================== ==========================================================
 

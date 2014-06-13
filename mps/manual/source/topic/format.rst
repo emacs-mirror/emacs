@@ -568,7 +568,7 @@ of.
 
     The fields of this structure correspond to the keyword arguments
     to :c:func:`mps_fmt_create_k`, except for ``copy``, which is not
-    used. In older versions of the MPS this was a :term:`copy method`
+    used. In older versions of the MPS this was a *copy method*
     that copied objects belonging to this format.
 
 

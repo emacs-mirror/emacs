@@ -1,7 +1,7 @@
 /* ss.c: STACK SCANNING
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
  *  This is part of the code that scans the stack and fixes the registers
  *  that may contain roots.  See <design/thread-manager/>
@@ -35,7 +35,8 @@ Res StackScanInner(ScanState ss,
   AVERT(ScanState, ss);
   AVER(stackTop < stackBot);
   AVER(AddrIsAligned((Addr)stackTop, sizeof(Addr)));  /* .assume.align */
-  AVER(0 < nSavedRegs && nSavedRegs < 128);     /* sanity check */
+  AVER(0 < nSavedRegs);
+  AVER(nSavedRegs < 128);       /* sanity check */
 
   arena = ss->arena;
 
@@ -66,7 +67,7 @@ Res StackScanInner(ScanState ss,
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
