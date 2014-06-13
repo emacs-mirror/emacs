@@ -472,6 +472,8 @@ typedef struct AMCStruct { /* <design/poolamc/#struct> */
   unsigned rampCount;      /* <design/poolamc/#ramp.count> */
   int rampMode;            /* <design/poolamc/#ramp.mode> */
   amcPinnedMethod pinned;  /* function determining if block is pinned */
+  Size extendBy;           /* segment size to extend pool by */
+  Size largeSize;          /* min size of "large" segments */
 
   /* page retention in an in-progress trace */
   STATISTIC_DECL(PageRetStruct pageretstruct[TraceLIMIT]);
@@ -809,6 +811,8 @@ static Res amcInitComm(Pool pool, RankSet rankSet, ArgList args)
   size_t genCount;
   Bool interior = AMC_INTERIOR_DEFAULT;
   Chain chain;
+  Size extendBy = AMC_EXTEND_BY_DEFAULT;
+  Size largeSize = AMC_LARGE_SIZE_DEFAULT;
   ArgStruct arg;
   
   /* Suppress a warning about this structure not being used when there
@@ -834,9 +838,15 @@ static Res amcInitComm(Pool pool, RankSet rankSet, ArgList args)
     chain = ArenaGlobals(arena)->defaultChain;
   if (ArgPick(&arg, args, MPS_KEY_INTERIOR))
     interior = arg.val.b;
+  if (ArgPick(&arg, args, MPS_KEY_EXTEND_BY))
+    extendBy = arg.val.size;
+  if (ArgPick(&arg, args, MPS_KEY_LARGE_SIZE))
+    largeSize = arg.val.size;
   
   AVERT(Format, pool->format);
   AVERT(Chain, chain);
+  AVER(extendBy > 0);
+  AVER(largeSize > 0);
   pool->alignment = pool->format->alignment;
   amc->rankSet = rankSet;
 
@@ -867,6 +877,9 @@ static Res amcInitComm(Pool pool, RankSet rankSet, ArgList args)
   } else {
     amc->pinned = amcPinnedBase;
   }
+  /* .extend-by.aligned: extendBy is aligned to the arena alignment. */
+  amc->extendBy = SizeArenaGrains(extendBy, arena);
+  amc->largeSize = largeSize;
 
   amc->sig = AMCSig;
   AVERT(AMC, amc);
@@ -1021,7 +1034,11 @@ static Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn,
   /* Create and attach segment.  The location of this segment is */
   /* expressed via the pool generation. We rely on the arena to */
   /* organize locations appropriately.  */
-  grainsSize = SizeArenaGrains(size, arena);
+  if (size < amc->extendBy) {
+    grainsSize = amc->extendBy; /* .extend-by.aligned */
+  } else {
+    grainsSize = SizeArenaGrains(size, arena);
+  }
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD_FIELD(args, amcKeySegGen, p, gen);
     res = PoolGenAlloc(&seg, pgen, amcSegClassGet(), grainsSize,
@@ -1048,7 +1065,7 @@ static Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn,
   }
 
   base = SegBase(seg);
-  if(grainsSize < AMCLargeSegPAGES * ArenaGrainSize(arena)) {
+  if(grainsSize < amc->largeSize) {
     /* Small or Medium segment: give the buffer the entire seg. */
     limit = AddrAdd(base, grainsSize);
     AVER(limit == SegLimit(seg));
@@ -1099,7 +1116,7 @@ static void AMCBufferEmpty(Pool pool, Buffer buffer,
   AVER(init <= limit);
 
   arena = BufferArena(buffer);
-  if(SegSize(seg) < AMCLargeSegPAGES * ArenaGrainSize(arena)) {
+  if(SegSize(seg) < amc->largeSize) {
     /* Small or Medium segment: buffer had the entire seg. */
     AVER(limit == SegLimit(seg));
   } else {
@@ -1288,13 +1305,14 @@ static Res AMCWhiten(Pool pool, Trace trace, Seg seg)
 
   STATISTIC_STAT( {
     Count pages;
-    AVER(SizeIsArenaGrains(SegSize(seg), pool->arena));
-    pages = SegSize(seg) / ArenaGrainSize(pool->arena);
+    Size size = SegSize(seg);
+    AVER(SizeIsArenaGrains(size, pool->arena));
+    pages = size / ArenaGrainSize(pool->arena);
     AVER(pages != 0);
     amc->pageretstruct[trace->ti].pCond += pages;
     if(pages == 1) {
       amc->pageretstruct[trace->ti].pCS += pages;
-    } else if(pages < AMCLargeSegPAGES) {
+    } else if(size < amc->largeSize) {
       amc->pageretstruct[trace->ti].sCM += 1;
       amc->pageretstruct[trace->ti].pCM += pages;
     } else {
@@ -2013,13 +2031,14 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
     /* Seg retained */
     STATISTIC_STAT( {
       Count pages;
-      AVER(SizeIsArenaGrains(SegSize(seg), pool->arena));
-      pages = SegSize(seg) / ArenaGrainSize(pool->arena);
+      Size size = SegSize(seg);
+      AVER(SizeIsArenaGrains(size, pool->arena));
+      pages = size / ArenaGrainSize(pool->arena);
       AVER(pages != 0);
       amc->pageretstruct[trace->ti].pRet += pages;
       if(pages == 1) {
         amc->pageretstruct[trace->ti].pRS += pages;
-      } else if(pages < AMCLargeSegPAGES) {
+      } else if(size < amc->largeSize) {
         amc->pageretstruct[trace->ti].sRM += 1;
         amc->pageretstruct[trace->ti].pRM += pages;
         if(obj1pip) {
@@ -2110,7 +2129,8 @@ static void AMCTraceEnd(Pool pool, Trace trace)
     PageRetStruct *pr = &amc->pageretstruct[ti];
     if(pr->pRet >= pRetMin) {
       EVENT21(AMCTraceEnd, ArenaEpoch(pool->arena), (EventFU)trace->why,
-              ArenaGrainSize(pool->arena), AMCLargeSegPAGES, pRetMin, pr->pCond,
+              ArenaGrainSize(pool->arena), amc->largeSize, pRetMin, pr->pCond,
+
               pr->pRet, pr->pCS, pr->pRS, pr->sCM, pr->pCM, pr->sRM, pr->pRM,
               pr->pRM1, pr->pRMrr, pr->pRMr1, pr->sCL, pr->pCL, pr->sRL,
               pr->pRL, pr->pRLr);
