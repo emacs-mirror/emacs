@@ -3842,7 +3842,7 @@ some text between BEG and END, but we're killing the region."
 	  ;; Add that string to the kill ring, one way or another.
 	  (if (eq last-command 'kill-region)
 	      (kill-append string (< end beg))
-	    (kill-new string nil)))
+	    (kill-new string)))
 	(when (or string (eq last-command 'kill-region))
 	  (setq this-command 'kill-region))
 	(setq deactivate-mark t)
@@ -4742,15 +4742,13 @@ purposes.  See the documentation of `set-mark' for more information."
 	(pop-to-mark-command)
       (push-mark-command t)))
    ((and set-mark-command-repeat-pop
-	 (eq last-command 'pop-to-mark-command))
-    (setq this-command 'pop-to-mark-command)
-    (pop-to-mark-command))
-   ((and set-mark-command-repeat-pop
 	 (eq last-command 'pop-global-mark)
 	 (not arg))
     (setq this-command 'pop-global-mark)
     (pop-global-mark))
-   (arg
+   ((or (and set-mark-command-repeat-pop
+             (eq last-command 'pop-to-mark-command))
+        arg)
     (setq this-command 'pop-to-mark-command)
     (pop-to-mark-command))
    ((eq last-command 'set-mark-command)
@@ -6977,6 +6975,8 @@ With a prefix argument, set VARIABLE to VALUE buffer-locally."
     (define-key map "\e\e\e" 'delete-completion-window)
     (define-key map [left] 'previous-completion)
     (define-key map [right] 'next-completion)
+    (define-key map [?\t] 'next-completion)
+    (define-key map [backtab] 'previous-completion)
     (define-key map "q" 'quit-window)
     (define-key map "z" 'kill-this-buffer)
     map)
