@@ -524,6 +524,7 @@ extern Ring GlobalsRememberedSummaryRing(Globals);
 #define ArenaAlign(arena)       ((arena)->alignment)
 #define ArenaGreyRing(arena, rank) (&(arena)->greyRing[rank])
 #define ArenaPoolRing(arena) (&ArenaGlobals(arena)->poolRing)
+#define ArenaChunkTree(arena) RVALUE((arena)->chunkTree)
 
 extern void ArenaEnterLock(Arena arena, Bool recursive);
 extern void ArenaLeaveLock(Arena arena, Bool recursive);
@@ -556,6 +557,7 @@ extern Res ArenaStartCollect(Globals globals, int why);
 extern Res ArenaCollect(Globals globals, int why);
 extern Bool ArenaHasAddr(Arena arena, Addr addr);
 extern Res ArenaAddrObject(Addr *pReturn, Arena arena, Addr addr);
+extern void ArenaChunkInsert(Arena arena, Chunk chunk);
 
 extern void ArenaSetEmergency(Arena arena, Bool emergency);
 extern Bool ArenaEmergency(Arena arean);
@@ -619,8 +621,6 @@ extern void ArenaCompact(Arena arena, Trace trace);
 
 extern Res ArenaFinalize(Arena arena, Ref obj);
 extern Res ArenaDefinalize(Arena arena, Ref obj);
-
-extern Bool ArenaIsReservedAddr(Arena arena, Addr addr);
 
 #define ArenaReservoir(arena) (&(arena)->reservoirStruct)
 #define ReservoirPool(reservoir) (&(reservoir)->poolStruct)

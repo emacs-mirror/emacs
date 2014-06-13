@@ -148,8 +148,10 @@ Bool ArenaCheck(Arena arena)
     CHECKD(Chunk, arena->primary);
   }
   CHECKD_NOSIG(Ring, &arena->chunkRing);
+  /* Can't use CHECKD_NOSIG because TreeEMPTY is NULL. */
+  CHECKL(TreeCheck(ArenaChunkTree(arena)));
+  /* TODO: check that the chunkRing and chunkTree have identical members */
   /* nothing to check for chunkSerial */
-  CHECKD(ChunkCacheEntry, &arena->chunkCache);
   
   CHECKL(LocusCheck(arena));
 
@@ -206,8 +208,8 @@ Res ArenaInit(Arena arena, ArenaClass class, Align alignment, ArgList args)
 
   arena->primary = NULL;
   RingInit(&arena->chunkRing);
+  arena->chunkTree = TreeEMPTY;
   arena->chunkSerial = (Serial)0;
-  ChunkCacheEntryInit(&arena->chunkCache);
   
   LocusInit(arena);
   
@@ -307,13 +309,13 @@ Res ArenaCreate(Arena *arenaReturn, ArenaClass class, ArgList args)
 
   /* With the primary chunk initialised we can add page memory to the freeLand
      that describes the free address space in the primary chunk. */
-  arena->hasFreeLand = TRUE;
   res = ArenaFreeLandInsert(arena,
                             PageIndexBase(arena->primary,
                                           arena->primary->allocBase),
                             arena->primary->limit);
   if (res != ResOK)
     goto failPrimaryLand;
+  arena->hasFreeLand = TRUE;
   
   res = ControlInit(arena);
   if (res != ResOK)
@@ -346,11 +348,13 @@ failInit:
 
 void ArenaFinish(Arena arena)
 {
+  PoolFinish(ArenaCBSBlockPool(arena));
   ReservoirFinish(ArenaReservoir(arena));
   arena->sig = SigInvalid;
   GlobalsFinish(ArenaGlobals(arena));
   LocusFinish(arena);
   RingFinish(&arena->chunkRing);
+  AVER(ArenaChunkTree(arena) == TreeEMPTY);
 }
 
 
@@ -391,7 +395,6 @@ void ArenaDestroy(Arena arena)
      that would use the freeLand. */
   MFSFinishTracts(ArenaCBSBlockPool(arena), arenaMFSPageFreeVisitor,
                   UNUSED_POINTER, UNUSED_SIZE);
-  PoolFinish(ArenaCBSBlockPool(arena));
 
   /* Call class-specific finishing.  This will call ArenaFinish. */
   (*arena->class->finish)(arena);
@@ -497,47 +500,68 @@ Res ArenaDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
 }
 
 
+/* arenaDescribeTractsInChunk -- describe the tracts in a chunk */
+
+static Res arenaDescribeTractsInChunk(Chunk chunk, mps_lib_FILE *stream, Count depth)
+{
+  Res res;
+  Index pi;
+
+  if (stream == NULL) return ResFAIL;
+  if (!TESTT(Chunk, chunk)) return ResFAIL;
+  if (stream == NULL) return ResFAIL;
+
+  res = WriteF(stream, depth, "Chunk [$P, $P) ($U) {\n",
+               (WriteFP)chunk->base, (WriteFP)chunk->limit,
+               (WriteFU)chunk->serial,
+               NULL);
+  if (res != ResOK) return res;
+
+  for (pi = chunk->allocBase; pi < chunk->pages; ++pi) {
+    if (BTGet(chunk->allocTable, pi)) {
+      Tract tract = PageTract(ChunkPage(chunk, pi));
+      res = WriteF(stream, depth + 2, "[$P, $P)",
+                   (WriteFP)TractBase(tract),
+                   (WriteFP)TractLimit(tract, ChunkArena(chunk)),
+                   NULL);
+      if (res != ResOK) return res;
+      if (TractHasPool(tract)) {
+        Pool pool = TractPool(tract);
+        res = WriteF(stream, 0, " $P $U ($S)",
+                     (WriteFP)pool,
+                     (WriteFU)(pool->serial),
+                     (WriteFS)(pool->class->name),
+                     NULL);
+        if (res != ResOK) return res;
+      }
+      res = WriteF(stream, 0, "\n", NULL);
+      if (res != ResOK) return res;
+    }
+  }
+
+  res = WriteF(stream, depth, "} Chunk [$P, $P)\n",
+               (WriteFP)chunk->base, (WriteFP)chunk->limit,
+               NULL);
+  return res;
+}
+
+
 /* ArenaDescribeTracts -- describe all the tracts in the arena */
 
 Res ArenaDescribeTracts(Arena arena, mps_lib_FILE *stream, Count depth)
 {
+  Ring node, next;
   Res res;
-  Tract tract;
-  Bool b;
-  Addr oldLimit, base, limit;
-  Size size;
 
   if (!TESTT(Arena, arena)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
 
-  b = TractFirst(&tract, arena);
-  oldLimit = TractBase(tract);
-  while (b) {
-    base = TractBase(tract);
-    limit = TractLimit(tract);
-    size = ArenaAlign(arena);
-
-    if (TractBase(tract) > oldLimit) {
-      res = WriteF(stream, depth,
-                   "[$P, $P) $W $U   ---\n",
-                   (WriteFP)oldLimit, (WriteFP)base,
-                   (WriteFW)AddrOffset(oldLimit, base),
-                   (WriteFU)AddrOffset(oldLimit, base),
-                   NULL);
-      if (res != ResOK) return res;
-    }
-
-    res = WriteF(stream, depth,
-                 "[$P, $P) $W $U   $P ($S)\n",
-                 (WriteFP)base, (WriteFP)limit,
-                 (WriteFW)size, (WriteFW)size,
-                 (WriteFP)TractPool(tract),
-                 (WriteFS)(TractPool(tract)->class->name),
-                 NULL);
+  RING_FOR(node, &arena->chunkRing, next) {
+    Chunk chunk = RING_ELT(Chunk, chunkRing, node);
+    res = arenaDescribeTractsInChunk(chunk, stream, depth);
     if (res != ResOK) return res;
-    b = TractNext(&tract, arena, TractBase(tract));
-    oldLimit = limit;
   }
+
   return ResOK;
 }
 
@@ -601,6 +625,25 @@ Res ControlDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
 }
 
 
+/* ArenaChunkInsert -- insert chunk into arena's chunk tree */
+
+void ArenaChunkInsert(Arena arena, Chunk chunk) {
+  Bool inserted;
+  Tree tree, updatedTree = NULL;
+
+  AVERT(Arena, arena);
+  AVERT(Chunk, chunk);
+  tree = &chunk->chunkTree;
+
+  inserted = TreeInsert(&updatedTree, ArenaChunkTree(arena),
+                        tree, ChunkKey(tree), ChunkCompare);
+  AVER(inserted && updatedTree);
+  TreeBalance(&updatedTree);
+  arena->chunkTree = updatedTree;
+  RingAppend(&arena->chunkRing, &chunk->chunkRing);
+}
+
+
 /* arenaAllocPage -- allocate one page from the arena
  *
  * This is a primitive allocator used to allocate pages for the arena
@@ -619,7 +662,7 @@ static Res arenaAllocPageInChunk(Addr *baseReturn, Chunk chunk, Pool pool)
   AVERT(Chunk, chunk);
   AVERT(Pool, pool);
   arena = ChunkArena(chunk);
-  
+
   if (!BTFindShortResRange(&basePageIndex, &limitPageIndex,
                            chunk->allocTable,
                            chunk->allocBase, chunk->pages, 1))
@@ -630,7 +673,7 @@ static Res arenaAllocPageInChunk(Addr *baseReturn, Chunk chunk, Pool pool)
                                             pool);
   if (res != ResOK)
     return res;
-  
+
   *baseReturn = PageIndexBase(chunk, basePageIndex);
   return ResOK;
 }
@@ -639,6 +682,10 @@ static Res arenaAllocPage(Addr *baseReturn, Arena arena, Pool pool)
 {
   Res res;
   
+  AVER(baseReturn != NULL);
+  AVERT(Arena, arena);
+  AVERT(Pool, pool);
+
   /* Favour the primary chunk, because pages allocated this way aren't
      currently freed, and we don't want to prevent chunks being destroyed. */
   /* TODO: Consider how the ArenaCBSBlockPool might free pages. */
@@ -884,7 +931,7 @@ static Res arenaAllocFromLand(Tract *tractReturn, ZoneSet zones, Bool high,
   
   /* Step 2. Make memory available in the address space range. */
 
-  b = CHUNK_OF_ADDR(&chunk, arena, RangeBase(&range));
+  b = ChunkOfAddr(&chunk, arena, RangeBase(&range));
   AVER(b);
   AVER(RangeIsAligned(&range, ChunkPageSize(chunk)));
   baseIndex = INDEX_OF_ADDR(chunk, RangeBase(&range));
