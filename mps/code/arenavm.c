@@ -291,14 +291,10 @@ static Res VMChunkCreate(Chunk *chunkReturn, VMArena vmArena, Size size, Size ar
   AVERT(ArenaGrainSize, arenaGrainSize);
 
   grainSize = arenaGrainSize;
-  res = VMCreate(&vm, &grainSize, size, vmArena->vmParams);
+  res = VMCreate(&vm, size, grainSize, vmArena->vmParams);
   if (res != ResOK)
     goto failVMCreate;
 
-  /* VMCreate has rounded the grain size for this VM up to the
-   * operating system page size, but the arena grain size should
-   * already take that into account: see VMArenaInit. */
-  AVER(grainSize == arenaGrainSize);
   base = VMBase(vm);
   limit = VMLimit(vm);
 
@@ -497,9 +493,9 @@ ARG_DEFINE_KEY(arena_contracted, Fun);
 
 static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
 {
-  Size userSize = VM_ARENA_SIZE_DEFAULT; /* size requested by user */
-  Align userGrainSize = MPS_PF_ALIGN; /* grain size requested by user */
-  Size chunkSize;       /* size actually created */
+  Size size = VM_ARENA_SIZE_DEFAULT; /* initial arena size */
+  Align grainSize = MPS_PF_ALIGN; /* arena grain size */
+  Size chunkSize; /* size actually created */
   Size vmArenaSize; /* aligned size of VMArenaStruct */
   Res res;
   VMArena vmArena;
@@ -514,12 +510,13 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
   AVERT(ArgList, args);
 
   if (ArgPick(&arg, args, MPS_KEY_ARENA_SIZE))
-    userSize = arg.val.size;
+    size = arg.val.size;
   if (ArgPick(&arg, args, MPS_KEY_ARENA_GRAIN_SIZE))
-    userGrainSize = SizeAlignUp(arg.val.size, ProtGranularity());
+    grainSize = arg.val.size;
+  grainSize = SizeAlignUp(grainSize, VMPageSize());
 
-  AVER(userSize > 0);
-  AVERT(ArenaGrainSize, userGrainSize);
+  AVER(size > 0);
+  AVERT(ArenaGrainSize, grainSize);
   
   /* Parse remaining arguments, if any, into VM parameters. We must do
      this into some stack-allocated memory for the moment, since we
@@ -530,7 +527,7 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
 
   /* Create a VM to hold the arena and map it. */
   vmArenaSize = SizeAlignUp(sizeof(VMArenaStruct), MPS_PF_ALIGN);
-  res = VMCreate(&arenaVM, &userGrainSize, vmArenaSize, vmParams);
+  res = VMCreate(&arenaVM, vmArenaSize, grainSize, vmParams);
   if (res != ResOK)
     goto failVMCreate;
   res = VMMap(arenaVM, VMBase(arenaVM), VMLimit(arenaVM));
@@ -540,7 +537,7 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
 
   arena = VMArena2Arena(vmArena);
   /* <code/arena.c#init.caller> */
-  res = ArenaInit(arena, class, userGrainSize, args);
+  res = ArenaInit(arena, class, grainSize, args);
   if (res != ResOK)
     goto failArenaInit;
   arena->committed = VMMapped(arenaVM);
@@ -554,7 +551,7 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
   (void)mps_lib_memcpy(vmArena->vmParams, vmParams, sizeof(vmArena->vmParams));
 
   /* <design/arena/#coop-vm.struct.vmarena.extendby.init> */
-  vmArena->extendBy = userSize;
+  vmArena->extendBy = size;
   vmArena->extendMin = 0;
 
   vmArena->extended = vmArenaTrivExtended;
@@ -567,7 +564,7 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
 
   /* have to have a valid arena before calling ChunkCreate */
   vmArena->sig = VMArenaSig;
-  res = VMChunkCreate(&chunk, vmArena, userSize, userGrainSize);
+  res = VMChunkCreate(&chunk, vmArena, size, grainSize);
   if (res != ResOK)
     goto failChunkCreate;
 
@@ -582,9 +579,9 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
 
   AVERT(VMArena, vmArena);
   if ((ArenaClass)mps_arena_class_vm() == class)
-    EVENT3(ArenaCreateVM, arena, userSize, chunkSize);
+    EVENT3(ArenaCreateVM, arena, size, chunkSize);
   else
-    EVENT3(ArenaCreateVMNZ, arena, userSize, chunkSize);
+    EVENT3(ArenaCreateVMNZ, arena, size, chunkSize);
 
   vmArena->extended(arena, chunk->base, chunkSize);
   

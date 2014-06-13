@@ -64,7 +64,7 @@ SRCID(vmix, "$Id$");
 
 typedef struct VMStruct {
   Sig sig;                      /* <design/sig/> */
-  void *reserved_base;          /* unaligned base of mmap'd memory */
+  void *block;                  /* unaligned base of mmap'd memory */
   Addr base, limit;             /* aligned boundaries of reserved space */
   Size reserved;                /* total reserved address space */
   Size mapped;                  /* total mapped memory */
@@ -114,27 +114,21 @@ Res VMParamFromArgs(void *params, size_t paramSize, ArgList args)
 
 /* VMCreate -- reserve some virtual address space, and create a VM structure */
 
-Res VMCreate(VM *vmReturn, Size *grainSizeIO, Size size, void *params)
+Res VMCreate(VM *vmReturn, Size size, Size grainSize, void *params)
 {
   VM vm;
-  Size grainSize, pageSize, reserved;
+  Size pageSize, reserved;
   void *addr;
   Res res;
 
   AVER(vmReturn != NULL);
-  AVER(grainSizeIO != NULL);
-  grainSize = *grainSizeIO;
   AVERT(ArenaGrainSize, grainSize);
   AVER(size > 0);
   AVER(params != NULL);
 
-  /* Check that the page size is valid for use as an arena grain size. */
   pageSize = VMPageSize();
-  AVERT(ArenaGrainSize, pageSize);
 
   /* Grains must consist of whole pages. */
-  if (grainSize < pageSize)
-    grainSize = pageSize;
   AVER(grainSize % pageSize == 0);
 
   /* Check that the rounded-up sizes will fit in a Size. */
@@ -169,7 +163,7 @@ Res VMCreate(VM *vmReturn, Size *grainSizeIO, Size size, void *params)
     goto failReserve;
   }
 
-  vm->reserved_base = addr;
+  vm->block = addr;
   vm->base = AddrAlignUp(addr, grainSize);
   vm->limit = AddrAdd(vm->base, size);
   AVER(vm->base < vm->limit);  /* .assume.not-last */
@@ -182,7 +176,6 @@ Res VMCreate(VM *vmReturn, Size *grainSizeIO, Size size, void *params)
   EVENT3(VMCreate, vm, vm->base, vm->limit);
 
   *vmReturn = vm;
-  *grainSizeIO = grainSize;
   return ResOK;
 
 failReserve:
@@ -208,7 +201,7 @@ void VMDestroy(VM vm)
   /* discovered if sigs were being checked. */
   vm->sig = SigInvalid;
 
-  r = munmap(vm->reserved_base, vm->reserved);
+  r = munmap(vm->block, vm->reserved);
   AVER(r == 0);
   r = munmap((void *)vm, (size_t)SizeAlignUp(sizeof(VMStruct), VMPageSize()));
   AVER(r == 0);
