@@ -1,3 +1,15 @@
+2014-06-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Avoid hangs in accept-process-output (Bug#17647).
+	* lisp.h, process.c (wait_reading_process_input):
+	Return int, not bool.  All uses changed.
+	* process.c (SELECT_CANT_DO_WRITE_MASK):
+	Remove macro, replacing with ...
+	(SELECT_CAN_DO_WRITE_MASK): ... new constant, with inverted sense.
+	All uses changed.
+	(status_notify): New arg WAIT_PROC.  Return int, not void.
+	All uses changed.
+
 2014-06-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* menu.c (Fx_popup_menu): Don't call the frame's menu_show_hook if
