@@ -236,7 +236,7 @@ static Res ClientArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
   Size size;
   Size clArenaSize;   /* aligned size of ClientArenaStruct */
   Addr base, limit, chunkBase;
-  Align userGrainSize = ARENA_CLIENT_GRAIN_SIZE;
+  Align grainSize = ARENA_CLIENT_GRAIN_SIZE;
   Res res;
   Chunk chunk;
   mps_arg_s arg;
@@ -250,10 +250,11 @@ static Res ClientArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
   ArgRequire(&arg, args, MPS_KEY_ARENA_CL_BASE);
   base = arg.val.addr;
   if (ArgPick(&arg, args, MPS_KEY_ARENA_GRAIN_SIZE))
-    userGrainSize = SizeAlignUp(arg.val.size, ProtGranularity());
+    grainSize = arg.val.size;
+  grainSize = SizeAlignUp(grainSize, ProtGranularity());
 
   AVER(base != (Addr)0);
-  AVERT(ArenaGrainSize, userGrainSize);
+  AVERT(ArenaGrainSize, grainSize);
 
   clArenaSize = SizeAlignUp(sizeof(ClientArenaStruct), MPS_PF_ALIGN);
   if (size < clArenaSize)
@@ -270,14 +271,14 @@ static Res ClientArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
 
   arena = ClientArena2Arena(clientArena);
   /* <code/arena.c#init.caller> */
-  res = ArenaInit(arena, class, userGrainSize, args);
+  res = ArenaInit(arena, class, grainSize, args);
   if (res != ResOK)
     return res;
 
   /* have to have a valid arena before calling ChunkCreate */
   clientArena->sig = ClientArenaSig;
 
-  res = clientChunkCreate(&chunk, chunkBase, limit, clientArena, userGrainSize);
+  res = clientChunkCreate(&chunk, chunkBase, limit, clientArena, grainSize);
   if (res != ResOK)
     goto failChunkCreate;
   arena->primary = chunk;

@@ -19,8 +19,8 @@ SRCID(vman, "$Id$");
 /* ANSI fake VM structure, see <design/vman/> */
 typedef struct VMStruct {
   Sig sig;                      /* <design/sig/> */
-  Addr base, limit;             /* aligned boundaries of malloc'd memory */
   void *block;                  /* pointer to malloc'd block, for free() */
+  Addr base, limit;             /* aligned boundaries of malloc'd memory */
   Size reserved;                /* total reserved address space */
   Size mapped;                  /* total mapped memory */
 } VMStruct;
@@ -34,9 +34,9 @@ Bool VMCheck(VM vm)
   CHECKL(vm->base != (Addr)0);
   CHECKL(vm->limit != (Addr)0);
   CHECKL(vm->base < vm->limit);
-  CHECKL(ArenaGrainSizeCheck(VMAN_PAGE_SIZE));
-  CHECKL(AddrIsAligned(vm->base, VMAN_PAGE_SIZE));
-  CHECKL(AddrIsAligned(vm->limit, VMAN_PAGE_SIZE));
+  CHECKL(ArenaGrainSizeCheck(VMPageSize()));
+  CHECKL(AddrIsAligned(vm->base, VMPageSize()));
+  CHECKL(AddrIsAligned(vm->limit, VMPageSize()));
   CHECKL(vm->block != NULL);
   CHECKL((Addr)vm->block <= vm->base);
   CHECKL(vm->mapped <= vm->reserved);
@@ -61,31 +61,21 @@ Res VMParamFromArgs(void *params, size_t paramSize, ArgList args)
 }
 
 
-/* VMCreate -- reserve some virtual address space, and create a VM structure
- *
- * *grainSizeIO is the minimum arena grain size: if this is too small
- * it is rounded up to the 
- */
+/* VMCreate -- reserve some virtual address space, and create a VM structure */
 
-Res VMCreate(VM *vmReturn, Size *grainSizeIO, Size size, void *params)
+Res VMCreate(VM *vmReturn, Size size, Size grainSize, void *params)
 {
   VM vm;
-  Size pageSize, grainSize;
+  Size pageSize;
 
   AVER(vmReturn != NULL);
-  AVER(grainSizeIO != NULL);
-  grainSize = *grainSizeIO;
   AVERT(ArenaGrainSize, grainSize);
   AVER(size > 0);
   AVER(params != NULL);
 
-  /* Arbitrary page size. */
-  pageSize = VMAN_PAGE_SIZE;
-  AVERT(ArenaGrainSize, pageSize);
+  pageSize = VMPageSize();
 
   /* Grains must consist of whole pages. */
-  if (grainSize < pageSize)
-    grainSize = pageSize;
   AVER(grainSize % pageSize == 0);
 
   /* Check that the rounded-up sizes will fit in a Size. */
@@ -111,7 +101,7 @@ Res VMCreate(VM *vmReturn, Size *grainSizeIO, Size size, void *params)
     return ResMEMORY;
   }
 
-  vm->base  = AddrAlignUp((Addr)vm->block, pageSize);
+  vm->base  = AddrAlignUp((Addr)vm->block, grainSize);
   vm->limit = AddrAdd(vm->base, size);
   AVER(vm->limit < AddrAdd((Addr)vm->block, size));
 
@@ -126,7 +116,6 @@ Res VMCreate(VM *vmReturn, Size *grainSizeIO, Size size, void *params)
  
   EVENT3(VMCreate, vm, vm->base, vm->limit);
   *vmReturn = vm;
-  *grainSizeIO = grainSize;
   return ResOK;
 }
 
