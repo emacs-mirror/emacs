@@ -128,8 +128,8 @@ Placement pads are the BEF and LSP pads created in "to-space" when
 placing objects into segments. This wasted space is an expected
 space-cost of AMC's naive (but time-efficient) approach to placement
 of objects into segments. This is normally not a severe problem. (The
-worst case is a client that always requests ``ArenaAlign() + 1`` byte
-objects: this has a nearly 100% overhead).
+worst case is a client that always requests objects that are one byte
+larger than the arena grain size: this has a nearly 100% overhead).
 
 
 Retained pads could be a problem
@@ -159,7 +159,7 @@ Small, medium, and large segments
 AMC categorises segments as **small** (one page), **medium**
 (several pages), or **large** (``AMCLargeSegPAGES`` or more)::
 
-    pages = SegSize(seg) / ArenaAlign(arena);
+    pages = SegSize(seg) / ArenaGrainSize(arena);
     if(pages == 1) {
       /* small */
     } else if(pages < AMCLargeSegPAGES) {
@@ -206,8 +206,8 @@ and ignore all others; this would be extremely simple to implement.
 But AMC cannot guarantee this, because in the MPS Allocation Point
 Protocol the client is permitted to make a large buffer reserve and
 then fill it with many small objects. In such a case, AMC must honour
-all nails (if the buffer reserve request was an exact multiple of
-``ArenaAlign()``), or all nails except to the last object (if there
+all nails (if the buffer reserve request was an exact multiple of the
+arena grain size), or all nails except to the last object (if there
 was a remainder filled with an LSP pad). Because an LSP pad cannot be
 distinguished from a client object, and the requested allocation size
 is not recorded, AMC cannot distinguish these two conditions at

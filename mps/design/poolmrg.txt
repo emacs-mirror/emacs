@@ -410,8 +410,8 @@ used to be in the object is not accidentally fixed.
 _`.init`: Initializes the entry list, the free ring, the ref ring, and
 the ``extendBy`` field.
 
-_`.init.extend`: The ``extendBy`` field is initialized to one
-``ArenaAlign()`` (usually a page).
+_`.init.extend`: The ``extendBy`` field is initialized to the arena
+grain size.
 
 _`.init.extend.justify`: This is adequate as the pool is not expected
 to grow very quickly.
