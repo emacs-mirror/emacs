@@ -62,38 +62,38 @@ for use in Emacs bug reports.
 
 * Editing Changes in Emacs 24.5
 
-Emacs now supports "bracketed paste mode" when running on a terminal
+** Emacs now supports "bracketed paste mode" when running on a terminal
 that supports it.  This facility allows Emacs to understand pasted
-chunks of text as strings to be inserted instead of interpreting each
-character in the pasted text as actual user input, resulting in a
-paste experience similar to that under a window system and significant
+chunks of text as strings to be inserted, instead of interpreting each
+character in the pasted text as actual user input.  This results in a
+paste experience similar to that under a window system, and significant
 performance improvements when pasting large amounts of text.
 
 
 * Changes in Specialized Modes and Packages in Emacs 24.5
 
-** rectangle-mark-mode can now have corners past EOL or in the middle of a TAB
+** Rectangle Mark mode can now have corners past EOL or in the middle of a TAB.
 Also C-x C-x in rectangle-mark-mode now cycles through the four corners.
 
-** font-lock
-*** New functions font-lock-ensure and font-lock-flush that should be used
-instead of font-lock-fontify-buffer when called from Elisp.
-
----
-** The Rmail commands d, C-d and u now handle repeat counts
-to delete or undelete multiple messages.
+** New font-lock functions font-lock-ensure and font-lock-flush, which
+should be used instead of font-lock-fontify-buffer when called from Elisp.
 
 ** Calendar and diary
 
 +++
 *** New commands to insert diary entries with Chinese dates:
 `diary-chinese-insert-anniversary-entry' `diary-chinese-insert-entry'
-`diary-chinese-insert-monthly-entry'
-`diary-chinese-insert-yearly-entry'
+`diary-chinese-insert-monthly-entry', `diary-chinese-insert-yearly-entry'.
 
 +++
-*** Calendar can list and mark diary entries with Chinese dates:
-`diary-chinese-list-entries' and `diary-chinese-mark-entries'.
+*** Calendar can list and mark diary entries with Chinese dates.
+See `diary-chinese-list-entries' and `diary-chinese-mark-entries'.
+
+---
+** The Rmail commands d, C-d and u now handle repeat counts to delete or
+undelete multiple messages.
+
+** SES now supports local printer functions; see `ses-define-local-printer'.
 
 ** In sh-mode, you can now use `sh-shell' as a file-local variable to
 specify the type of shell in use (bash, csh, etc).
@@ -108,12 +108,12 @@ protocols as well as for "telnet" and "ftp" are passed to Tramp.
 *** gulp.el
 
 ---
-*** vi.el, vip.el (try M-x viper instead)
-
----
 *** crisp.el, tpu-edt.el, ws-mode.el
 These emulations of old editors are believed to be no longer relevant
  - contact emacs-devel@gnu.org if you disagree.
+
+---
+*** vi.el, vip.el (try M-x viper instead)
 
 
 * New Modes and Packages in Emacs 24.5
@@ -121,14 +121,14 @@ These emulations of old editors are believed to be no longer relevant
 
 * Incompatible Lisp Changes in Emacs 24.5
 
-** window-configurations do not record the buffers's marks any more.
+** window-configurations no longer record the buffers's marks.
 
-** inhibit-modification-hooks now also inhibits lock-file checks as well as
+** inhibit-modification-hooks now also inhibits lock-file checks, as well as
 active region handling.
 
 ** deactivate-mark is now buffer-local.
 
-** cl-the now asserts that its argument is of the given type.
+** `cl-the' now asserts that its argument is of the given type.
 
 +++
 ** Mouse click events on mode line or header line no longer include
@@ -147,7 +147,7 @@ called interactively.
 
 +++
 ** New properties that can be specified with `declare':
-*** (interactive-only INSTEAD), tells to use INSTEAD for non-interactive use.
+*** (interactive-only INSTEAD), says to use INSTEAD for non-interactive use.
 *** (pure VAL), if VAL is non-nil, indicates the function is pure.
 *** (side-effect-free VAL), if VAL is non-nil, indicates the function does not
 have side effects.
