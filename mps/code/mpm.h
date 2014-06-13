@@ -941,6 +941,7 @@ extern void (ShieldFlush)(Arena arena);
 
 extern void ProtSetup(void);
 
+extern Size ProtGranularity(void);
 extern void ProtSet(Addr base, Addr limit, AccessSet mode);
 extern void ProtSync(Arena arena);
 extern Bool ProtCanStepInstruction(MutatorFaultContext context);
@@ -1000,9 +1001,9 @@ typedef Res (*RootIterateFn)(Root root, void *p);
 extern Res RootsIterate(Globals arena, RootIterateFn f, void *p);
 
 
-/* VM Interface -- see <code/vm.c>* */
+/* VM Interface -- see <code/vm*.c> */
 
-extern Size VMPageSize(VM vm);
+extern Size VMPageSize(void);
 extern Bool VMCheck(VM vm);
 extern Res VMParamFromArgs(void *params, size_t paramSize, ArgList args);
 extern Res VMCreate(VM *VMReturn, Size *grainSizeIO, Size size, void *params);

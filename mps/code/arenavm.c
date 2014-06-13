@@ -102,7 +102,7 @@ static Bool VMChunkCheck(VMChunk vmchunk)
   chunk = VMChunk2Chunk(vmchunk);
   CHECKD(Chunk, chunk);
   CHECKD_NOSIG(VM, vmchunk->vm); /* <design/check/#hidden-type> */
-  CHECKL(SizeIsAligned(ChunkPageSize(chunk), VMPageSize(vmchunk->vm)));
+  CHECKL(SizeIsAligned(ChunkPageSize(chunk), VMPageSize()));
   CHECKL(vmchunk->overheadMappedLimit <= (Addr)chunk->pageTable);
   CHECKD(SparseArray, &vmchunk->pages);
   /* SparseArrayCheck is agnostic about where the BTs live, so VMChunkCheck
@@ -516,7 +516,7 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
   if (ArgPick(&arg, args, MPS_KEY_ARENA_SIZE))
     userSize = arg.val.size;
   if (ArgPick(&arg, args, MPS_KEY_ARENA_GRAIN_SIZE))
-    userGrainSize = SizeAlignUp(arg.val.size, MPS_PF_ALIGN);
+    userGrainSize = SizeAlignUp(arg.val.size, ProtGranularity());
 
   AVER(userSize > 0);
   AVERT(ArenaGrainSize, userGrainSize);

@@ -161,8 +161,11 @@ int main(int argc, char *argv[])
 
   testlib_init(argc, argv);
 
-  die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
-      "arena_create");
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, testArenaSIZE);
+    MPS_ARGS_ADD(args, MPS_KEY_ARENA_GRAIN_SIZE, (size_t)1 << (rnd() % 14));
+    die(mps_arena_create_k(&arena, mps_arena_class_vm(), args), "arena_create");
+  } MPS_ARGS_END(args);
   die(mps_thread_reg(&thread, arena), "thread_reg");
   mps_tramp(&r, test, arena, 0);
   mps_thread_dereg(thread);
