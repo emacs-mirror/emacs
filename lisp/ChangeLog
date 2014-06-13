@@ -1,5 +1,8 @@
 2014-06-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/smie.el (smie-next-sexp): Fix up "other-end" info when
+	bumping forward into a closing paren (bug#17761).
+
 	* term/xterm.el (xterm--version-handler): Work around for OSX
 	Terminal.app (bug#17607).
 
