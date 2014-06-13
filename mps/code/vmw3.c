@@ -178,9 +178,10 @@ Res VMCreate(VM *vmReturn, Size size, Size grainSize, void *params)
   vm->block = vbase;
   vm->base = AddrAlignUp(vbase, grainSize);
   vm->limit = AddrAdd(vm->base, size);
+  AVER(vm->base < vm->limit);  /* .assume.not-last */
+  AVER(vm->limit < AddrAdd((Addr)vm->block, reserved));
   vm->reserved = reserved;
   vm->mapped = 0;
-  AVER(vm->base < vm->limit);  /* .assume.not-last */
 
   vm->sig = VMSig;
   AVERT(VM, vm);

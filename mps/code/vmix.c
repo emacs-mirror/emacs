@@ -139,7 +139,7 @@ Res VMCreate(VM *vmReturn, Size size, Size grainSize, void *params)
   if (reserved < grainSize || reserved > (Size)(size_t)-1)
     return ResRESOURCE;
 
-  /* Map in a page to store the descriptor. */
+  /* Map in a page to store the descriptor on. */
   addr = mmap(0, (size_t)SizeAlignUp(sizeof(VMStruct), pageSize),
               PROT_READ | PROT_WRITE,
               MAP_ANON | MAP_PRIVATE,
@@ -155,7 +155,9 @@ Res VMCreate(VM *vmReturn, Size size, Size grainSize, void *params)
   vm = (VM)addr;
 
   /* See .assume.not-last. */
-  addr = mmap(0, reserved, PROT_NONE, MAP_ANON | MAP_PRIVATE, -1, 0);
+  addr = mmap(0, reserved,
+              PROT_NONE, MAP_ANON | MAP_PRIVATE,
+              -1, 0);
   if(addr == MAP_FAILED) {
     int e = errno;
     AVER(e == ENOMEM); /* .assume.mmap.err */
@@ -167,6 +169,7 @@ Res VMCreate(VM *vmReturn, Size size, Size grainSize, void *params)
   vm->base = AddrAlignUp(addr, grainSize);
   vm->limit = AddrAdd(vm->base, size);
   AVER(vm->base < vm->limit);  /* .assume.not-last */
+  AVER(vm->limit < AddrAdd((Addr)vm->block, reserved));
   vm->reserved = reserved;
   vm->mapped = 0;
 
@@ -274,6 +277,7 @@ Res VMMap(VM vm, Addr base, Addr limit)
   }
 
   vm->mapped += size;
+  AVER(vm->mapped <= vm->reserved);
 
   EVENT3(VMMap, vm, base, limit);
   return ResOK;
