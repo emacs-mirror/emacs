@@ -732,7 +732,8 @@ typedef struct mps_arena_s {
   Addr lastTractBase;           /* base address of lastTract */
 
   Chunk primary;                /* the primary chunk */
-  Tree chunkTree;               /* all the chunks */
+  RingStruct chunkRing;         /* all the chunks, in a ring for iteration */
+  Tree chunkTree;               /* all the chunks, in a tree for fast lookup */
   Serial chunkSerial;           /* next chunk number */
 
   Bool hasFreeLand;              /* Is freeLand available? */

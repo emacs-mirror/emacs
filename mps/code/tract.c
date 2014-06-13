@@ -184,6 +184,7 @@ Res ChunkInit(Chunk chunk, Arena arena,
 
   chunk->serial = (arena->chunkSerial)++;
   chunk->arena = arena;
+  RingInit(&chunk->chunkRing);
 
   chunk->pageSize = pageSize;
   chunk->pageShift = pageShift = SizeLog2(pageSize);
@@ -229,7 +230,7 @@ Res ChunkInit(Chunk chunk, Arena arena,
   chunk->sig = ChunkSig;
   AVERT(Chunk, chunk);
 
-  ArenaChunkInsert(arena, &chunk->chunkTree);
+  ArenaChunkInsert(arena, chunk);
 
   /* As part of the bootstrap, the first created chunk becomes the primary
      chunk.  This step allows AreaFreeLandInsert to allocate pages. */
@@ -267,6 +268,7 @@ void ChunkFinish(Chunk chunk)
   chunk->sig = SigInvalid;
 
   TreeFinish(&chunk->chunkTree);
+  RingRemove(&chunk->chunkRing);
 
   if (chunk->arena->primary == chunk)
     chunk->arena->primary = NULL;

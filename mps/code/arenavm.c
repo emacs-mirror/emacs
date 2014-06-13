@@ -632,34 +632,17 @@ static void VMArenaFinish(Arena arena)
  * Add up the reserved space from all the chunks.
  */
 
-static Bool vmArenaReservedVisitor(Tree tree, void *closureP, Size closureS)
-{
-  Size *size;
-  Chunk chunk;
-
-  AVERT(Tree, tree);
-  chunk = ChunkOfTree(tree);
-  AVERT(Chunk, chunk);
-  AVER(closureP != 0);
-  size = closureP;
-  AVER(closureS == UNUSED_SIZE);
-  UNUSED(closureS);
-
-  *size += VMReserved(Chunk2VMChunk(chunk)->vm);
-  return TRUE;
-}
-
-
 static Size VMArenaReserved(Arena arena)
 {
-  Size size = 0;
+  Size reserved;
+  Ring node, next;
 
-  AVERT(Arena, arena);
-
-  (void)ArenaChunkTreeTraverse(arena, vmArenaReservedVisitor,
-                               &size, UNUSED_SIZE);
-
-  return size;
+  reserved = 0;
+  RING_FOR(node, &arena->chunkRing, next) {
+    VMChunk vmChunk = Chunk2VMChunk(RING_ELT(Chunk, chunkRing, node));
+    reserved += VMReserved(vmChunk->vm);
+  }
+  return reserved;
 }
 
 

@@ -137,6 +137,7 @@ typedef struct ChunkStruct {
   Sig sig;              /* <design/sig/> */
   Serial serial;        /* serial within the arena */
   Arena arena;          /* parent arena */
+  RingStruct chunkRing; /* node in ring of all chunks in arena */
   TreeStruct chunkTree; /* node in tree of all chunks in arena */
   Size pageSize;        /* size of pages */
   Shift pageShift;      /* log2 of page size, for shifts */

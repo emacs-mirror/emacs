@@ -147,7 +147,10 @@ Bool ArenaCheck(Arena arena)
   if (arena->primary != NULL) {
     CHECKD(Chunk, arena->primary);
   }
-  /* Can't check chunkTree, it might be bad during ArenaChunkTreeTraverse. */
+  CHECKD_NOSIG(Ring, &arena->chunkRing);
+  /* Can't use CHECKD_NOSIG because TreeEMPTY is NULL. */
+  CHECKL(TreeCheck(ArenaChunkTree(arena)));
+  /* TODO: check that the chunkRing and chunkTree have identical members */
   /* nothing to check for chunkSerial */
   
   CHECKL(LocusCheck(arena));
@@ -204,6 +207,7 @@ Res ArenaInit(Arena arena, ArenaClass class, Align alignment, ArgList args)
   arena->zoned = zoned;
 
   arena->primary = NULL;
+  RingInit(&arena->chunkRing);
   arena->chunkTree = TreeEMPTY;
   arena->chunkSerial = (Serial)0;
   
@@ -349,6 +353,7 @@ void ArenaFinish(Arena arena)
   arena->sig = SigInvalid;
   GlobalsFinish(ArenaGlobals(arena));
   LocusFinish(arena);
+  RingFinish(&arena->chunkRing);
   AVER(ArenaChunkTree(arena) == TreeEMPTY);
 }
 
@@ -497,31 +502,20 @@ Res ArenaDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
 
 /* arenaDescribeTractsInChunk -- describe the tracts in a chunk */
 
-typedef struct ArenaDescribeTractsClosureStruct {
-  mps_lib_FILE *stream;
-  Res res;
-} ArenaDescribeTractsClosureStruct, *ArenaDescribeTractsClosure;
-
-static Bool arenaDescribeTractsInChunk(Tree tree, void *closureP, Size closureS)
+static Res arenaDescribeTractsInChunk(Chunk chunk, mps_lib_FILE *stream, Count depth)
 {
-  ArenaDescribeTractsClosure cl = closureP;
-  Count depth = closureS;
-  mps_lib_FILE *stream;
-  Chunk chunk;
+  Res res;
   Index pi;
-  Res res = ResFAIL;
 
-  if (closureP == NULL) return FALSE;
-  chunk = ChunkOfTree(tree);
-  if (!TESTT(Chunk, chunk)) goto fail;
-  stream = cl->stream;
-  if (stream == NULL) goto fail;
+  if (stream == NULL) return ResFAIL;
+  if (!TESTT(Chunk, chunk)) return ResFAIL;
+  if (stream == NULL) return ResFAIL;
 
   res = WriteF(stream, depth, "Chunk [$P, $P) ($U) {\n",
                (WriteFP)chunk->base, (WriteFP)chunk->limit,
                (WriteFU)chunk->serial,
                NULL);
-  if (res != ResOK) goto fail;
+  if (res != ResOK) return res;
 
   for (pi = chunk->allocBase; pi < chunk->pages; ++pi) {
     if (BTGet(chunk->allocTable, pi)) {
@@ -530,7 +524,7 @@ static Bool arenaDescribeTractsInChunk(Tree tree, void *closureP, Size closureS)
                    (WriteFP)TractBase(tract),
                    (WriteFP)TractLimit(tract, ChunkArena(chunk)),
                    NULL);
-      if (res != ResOK) goto fail;
+      if (res != ResOK) return res;
       if (TractHasPool(tract)) {
         Pool pool = TractPool(tract);
         res = WriteF(stream, 0, " $P $U ($S)",
@@ -538,23 +532,17 @@ static Bool arenaDescribeTractsInChunk(Tree tree, void *closureP, Size closureS)
                      (WriteFU)(pool->serial),
                      (WriteFS)(pool->class->name),
                      NULL);
-        if (res != ResOK) goto fail;
+        if (res != ResOK) return res;
       }
       res = WriteF(stream, 0, "\n", NULL);
-      if (res != ResOK) goto fail;
+      if (res != ResOK) return res;
     }
   }
 
   res = WriteF(stream, depth, "} Chunk [$P, $P)\n",
                (WriteFP)chunk->base, (WriteFP)chunk->limit,
                NULL);
-  if (res != ResOK) goto fail;
-
-  return TRUE;
-
-fail:
-  cl->res = res;
-  return FALSE;
+  return res;
 }
 
 
@@ -562,15 +550,19 @@ fail:
 
 Res ArenaDescribeTracts(Arena arena, mps_lib_FILE *stream, Count depth)
 {
-  ArenaDescribeTractsClosureStruct cl;
+  Ring node, next;
+  Res res;
 
   if (!TESTT(Arena, arena)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
 
-  cl.stream = stream;
-  cl.res = ResOK;
-  (void)ArenaChunkTreeTraverse(arena, arenaDescribeTractsInChunk, &cl, depth);
-  return cl.res;
+  RING_FOR(node, &arena->chunkRing, next) {
+    Chunk chunk = RING_ELT(Chunk, chunkRing, node);
+    res = arenaDescribeTractsInChunk(chunk, stream, depth);
+    if (res != ResOK) return res;
+  }
+
+  return ResOK;
 }
 
 
@@ -633,48 +625,22 @@ Res ControlDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
 }
 
 
-/* ArenaChunkTreeTraverse -- call visitor for each chunk */
-
-Bool ArenaChunkTreeTraverse(Arena arena, TreeVisitor visitor,
-                            void *closureP, Size closureS)
-{
-  Bool b;
-  Tree tree;
-
-  AVERT(Arena, arena);
-  AVER(FUNCHECK(visitor));
-  /* closureP and closureS are arbitrary. */
-
-  /* During TreeTraverse, the tree is invalid, so temporarily set
-   * arena->chunkTree to an invalid value, to ensure that if someone
-   * calls ChunkOfAddr while we are iterating this results in an
-   * assertion failure (in checking varieties) or a segfault, rather
-   * than a silent failure to find the chunk.
-   */
-  
-  tree = ArenaChunkTree(arena);
-  arena->chunkTree = TreeBAD;
-  b = TreeTraverse(tree, ChunkCompare, ChunkKey, visitor, closureP, closureS);
-  arena->chunkTree = tree;
-
-  return b;
-}
-
-
 /* ArenaChunkInsert -- insert chunk into arena's chunk tree */
 
-void ArenaChunkInsert(Arena arena, Tree tree) {
+void ArenaChunkInsert(Arena arena, Chunk chunk) {
   Bool inserted;
-  Tree updatedTree = NULL;
+  Tree tree, updatedTree = NULL;
 
   AVERT(Arena, arena);
-  AVERT(Tree, tree);
+  AVERT(Chunk, chunk);
+  tree = &chunk->chunkTree;
 
   inserted = TreeInsert(&updatedTree, ArenaChunkTree(arena),
                         tree, ChunkKey(tree), ChunkCompare);
   AVER(inserted && updatedTree);
   TreeBalance(&updatedTree);
   arena->chunkTree = updatedTree;
+  RingAppend(&arena->chunkRing, &chunk->chunkRing);
 }
 
 
@@ -686,87 +652,56 @@ void ArenaChunkInsert(Arena arena, Tree tree) {
  * bootstrap.
  */
 
-typedef struct ArenaAllocPageClosureStruct {
-  Arena arena;
-  Pool pool;
-  Addr base;
-  Chunk avoid;
-  Res res;
-} ArenaAllocPageClosureStruct, *ArenaAllocPageClosure;
-
-static Bool arenaAllocPageInChunk(Tree tree, void *closureP, Size closureS)
+static Res arenaAllocPageInChunk(Addr *baseReturn, Chunk chunk, Pool pool)
 {
-  ArenaAllocPageClosure cl;
-  Chunk chunk;
-  Index basePageIndex, limitPageIndex;
   Res res;
+  Index basePageIndex, limitPageIndex;
+  Arena arena;
 
-  AVERT(Tree, tree);
-  chunk = ChunkOfTree(tree);
+  AVER(baseReturn != NULL);
   AVERT(Chunk, chunk);
-  AVER(closureP != NULL);
-  cl = closureP;
-  AVER(cl->arena == ChunkArena(chunk));
-  AVER(closureS == UNUSED_SIZE);
-  UNUSED(closureS);
+  AVERT(Pool, pool);
+  arena = ChunkArena(chunk);
 
-  /* Already searched in arenaAllocPage. */
-  if (chunk == cl->avoid) {
-    cl->res = ResRESOURCE;
-    return TRUE;
-  }
-  
   if (!BTFindShortResRange(&basePageIndex, &limitPageIndex,
                            chunk->allocTable,
                            chunk->allocBase, chunk->pages, 1))
-  {
-    cl->res = ResRESOURCE;
-    return TRUE;
-  }
+    return ResRESOURCE;
   
-  res = (*cl->arena->class->pagesMarkAllocated)(cl->arena, chunk,
-                                                basePageIndex, 1, cl->pool);
-  if (res != ResOK) {
-    cl->res = res;
-    return TRUE;
-  }
-  
-  cl->base = PageIndexBase(chunk, basePageIndex);
-  return FALSE;
+  res = (*arena->class->pagesMarkAllocated)(arena, chunk,
+                                            basePageIndex, 1,
+                                            pool);
+  if (res != ResOK)
+    return res;
+
+  *baseReturn = PageIndexBase(chunk, basePageIndex);
+  return ResOK;
 }
 
 static Res arenaAllocPage(Addr *baseReturn, Arena arena, Pool pool)
 {
-  ArenaAllocPageClosureStruct closure;
+  Res res;
   
   AVER(baseReturn != NULL);
   AVERT(Arena, arena);
   AVERT(Pool, pool);
 
-  closure.arena = arena;
-  closure.pool = pool;
-  closure.base = NULL;
-  closure.avoid = NULL;
-  closure.res = ResOK;
-
   /* Favour the primary chunk, because pages allocated this way aren't
      currently freed, and we don't want to prevent chunks being destroyed. */
   /* TODO: Consider how the ArenaCBSBlockPool might free pages. */
-  if (!arenaAllocPageInChunk(&arena->primary->chunkTree, &closure, UNUSED_SIZE))
-    goto found;
-
-  closure.avoid = arena->primary;
-  if (!ArenaChunkTreeTraverse(arena, arenaAllocPageInChunk,
-                              &closure, UNUSED_SIZE))
-    goto found;
-
-  AVER(closure.res != ResOK);
-  return closure.res;
-
-found:
-  AVER(closure.base != NULL);
-  *baseReturn = closure.base;
-  return ResOK;
+  res = arenaAllocPageInChunk(baseReturn, arena->primary, pool);
+  if (res != ResOK) {
+    Ring node, next;
+    RING_FOR(node, &arena->chunkRing, next) {
+      Chunk chunk = RING_ELT(Chunk, chunkRing, node);
+      if (chunk != arena->primary) {
+        res = arenaAllocPageInChunk(baseReturn, chunk, pool);
+        if (res == ResOK)
+          break;
+      }
+    }
+  }
+  return res;
 }
 
 
