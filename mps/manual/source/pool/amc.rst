@@ -131,10 +131,6 @@ AMC interface
       default 4096) is the default :term:`size` of segment that the pool will
       request from the :term:`arena`.
 
-    * :c:macro:`MPS_KEY_LARGE_SIZE` (type :c:type:`size_t`,
-      default 32768) is the minimum :term:`size` of object (larger than the
-      extend by value) that will be allocated on its own segment.
-
     For example::
 
         MPS_ARGS_BEGIN(args) {
