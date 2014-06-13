@@ -133,7 +133,7 @@ static void NBufferEmpty(Pool pool, Buffer buffer,
 
 /* NDescribe -- describe method for class N */
 
-static Res NDescribe(Pool pool, mps_lib_FILE *stream)
+static Res NDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
 {
   PoolN poolN;
 
@@ -142,6 +142,7 @@ static Res NDescribe(Pool pool, mps_lib_FILE *stream)
   AVERT(PoolN, poolN);
 
   UNUSED(stream); /* TODO: should output something here */
+  UNUSED(depth);
 
   return ResOK;
 }
@@ -303,8 +304,8 @@ PoolClass PoolClassN(void)
 Bool PoolNCheck(PoolN poolN)
 {
   CHECKL(poolN != NULL);
-  CHECKD(Pool, &poolN->poolStruct);
-  CHECKL(poolN->poolStruct.class == EnsureNPoolClass());
+  CHECKD(Pool, PoolNPool(poolN));
+  CHECKL(PoolNPool(poolN)->class == EnsureNPoolClass());
   UNUSED(poolN); /* <code/mpm.c#check.unused> */
 
   return TRUE;

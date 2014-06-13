@@ -39,6 +39,9 @@ New features
    was considered, and a chain was collected up to, but not including,
    the lowest generation whose new size was within its capacity.)
 
+#. New pool introspection functions :c:func:`mps_pool_total_size` and
+   :c:func:`mps_pool_free_size`.
+
 
 Interface changes
 .................
@@ -61,6 +64,10 @@ Interface changes
 #. It is now possible to configure the alignment of objects allocated
    in a :ref:`pool-mv` pool, by passing the :c:macro:`MPS_KEY_ALIGN`
    keyword argument to :c:func:`mps_pool_create_k`.
+
+#. The :ref:`pool-mvff` pool class takes a new keyword argument
+   :c:macro:`MPS_KEY_SPARE`. This specifies the maximum proportion of
+   memory that the pool will keep spare for future allocations.
 
 #. The alignment requirements for :ref:`pool-mvff` and :ref:`pool-mvt`
    pools have been relaxed on the platforms ``w3i3mv`` and ``w3i6mv``.
@@ -127,6 +134,10 @@ Other changes
    job003773_.
 
    .. _job003773: https://www.ravenbrook.com/project/mps/issue/job003773/
+
+#. The :ref:`pool-mvt` and :ref:`pool-mvff` pool classes are now
+   around 25% faster (in our benchmarks) than they were in release
+   1.113.0.
 
 
 .. _release-notes-1.113:

@@ -186,7 +186,7 @@ static Bool VMArenaCheck(VMArena vmArena)
 
 /* VMArenaDescribe -- describe the VMArena
  */
-static Res VMArenaDescribe(Arena arena, mps_lib_FILE *stream)
+static Res VMArenaDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
 {
   Res res;
   VMArena vmArena;
@@ -206,7 +206,7 @@ static Res VMArenaDescribe(Arena arena, mps_lib_FILE *stream)
    *
   */
 
-  res = WriteF(stream,
+  res = WriteF(stream, depth,
                "  spareSize:     $U\n", (WriteFU)vmArena->spareSize,
                NULL);
   if(res != ResOK)
@@ -406,11 +406,19 @@ failSaMapped:
 
 /* vmChunkDestroy -- destroy a VMChunk */
 
-static void vmChunkDestroy(Chunk chunk)
+static Bool vmChunkDestroy(Tree tree, void *closureP, Size closureS)
 {
   VM vm;
+  Chunk chunk;
   VMChunk vmChunk;
 
+  AVERT(Tree, tree);
+  AVER(closureP == UNUSED_POINTER);
+  UNUSED(closureP);
+  AVER(closureS == UNUSED_SIZE);
+  UNUSED(closureS);
+
+  chunk = ChunkOfTree(tree);
   AVERT(Chunk, chunk);
   vmChunk = Chunk2VMChunk(chunk);
   AVERT(VMChunk, vmChunk);
@@ -423,6 +431,8 @@ static void vmChunkDestroy(Chunk chunk)
   vm = vmChunk->vm;
   ChunkFinish(chunk);
   VMDestroy(vm);
+
+  return TRUE;
 }
 
 
@@ -566,7 +576,7 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
   /* bits in a word).  Fail if the chunk is so small stripes are smaller */
   /* than pages.  Note that some zones are discontiguous in the chunk if */
   /* the size is not a power of 2.  See <design/arena/#class.fields>. */
-  chunkSize = AddrOffset(chunk->base, chunk->limit);
+  chunkSize = ChunkSize(chunk);
   arena->zoneShift = SizeFloorLog2(chunkSize >> MPS_WORD_SHIFT);
   AVER(chunk->pageSize == ArenaGrainSize(arena));
 
@@ -597,7 +607,6 @@ failVMCreate:
 static void VMArenaFinish(Arena arena)
 {
   VMArena vmArena;
-  Ring node, next;
   VM arenaVM;
 
   vmArena = Arena2VMArena(arena);
@@ -606,12 +615,11 @@ static void VMArenaFinish(Arena arena)
 
   EVENT1(ArenaDestroy, vmArena);
 
-  /* destroy all chunks, including the primary */
+  /* Destroy all chunks, including the primary. See
+   * <design/arena/#chunk.delete> */
   arena->primary = NULL;
-  RING_FOR(node, &arena->chunkRing, next) {
-    Chunk chunk = RING_ELT(Chunk, chunkRing, node);
-    vmChunkDestroy(chunk);
-  }
+  TreeTraverseAndDelete(&arena->chunkTree, vmChunkDestroy,
+                        UNUSED_POINTER, UNUSED_SIZE);
   
   /* Destroying the chunks should have purged and removed all spare pages. */
   RingFinish(&vmArena->spareRing);
@@ -632,6 +640,7 @@ static void VMArenaFinish(Arena arena)
  *
  * Add up the reserved space from all the chunks.
  */
+
 static Size VMArenaReserved(Arena arena)
 {
   Size reserved;
@@ -953,8 +962,6 @@ static Size chunkUnmapAroundPage(Chunk chunk, Size size, Page page)
  * unmapped.
  */
 
-#define ArenaChunkRing(arena) (&(arena)->chunkRing)
-
 static Size arenaUnmapSpare(Arena arena, Size size, Chunk filter)
 {
   Ring node;
@@ -1006,9 +1013,7 @@ static Size VMPurgeSpare(Arena arena, Size size)
 static void chunkUnmapSpare(Chunk chunk)
 {
   AVERT(Chunk, chunk);
-  (void)arenaUnmapSpare(ChunkArena(chunk),
-                        AddrOffset(chunk->base, chunk->limit),
-                        chunk);
+  (void)arenaUnmapSpare(ChunkArena(chunk), ChunkSize(chunk), chunk);
 }
 
 
@@ -1064,8 +1069,9 @@ static void VMFree(Addr base, Size size, Pool pool)
   BTResRange(chunk->allocTable, piBase, piLimit);
 
   /* Consider returning memory to the OS. */
-  /* TODO: Chunks are only destroyed when ArenaCompact is called, and that is
-     only called from TraceReclaim.  Should consider destroying chunks here. */
+  /* TODO: Chunks are only destroyed when ArenaCompact is called, and
+     that is only called from traceReclaim. Should consider destroying
+     chunks here. See job003815. */
   if (arena->spareCommitted > arena->spareCommitLimit) {
     /* Purge half of the spare memory, not just the extra sliver, so
        that we return a reasonable amount of memory in one go, and avoid
@@ -1078,10 +1084,41 @@ static void VMFree(Addr base, Size size, Pool pool)
 }
 
 
+/* vmChunkCompact -- delete chunk if empty and not primary */
+
+static Bool vmChunkCompact(Tree tree, void *closureP, Size closureS)
+{
+  Chunk chunk;
+  Arena arena = closureP;
+  VMArena vmArena;
+
+  AVERT(Tree, tree);
+  AVERT(Arena, arena);
+  AVER(closureS == UNUSED_SIZE);
+  UNUSED(closureS);
+
+  vmArena = Arena2VMArena(arena);
+  AVERT(VMArena, vmArena);
+  chunk = ChunkOfTree(tree);
+  AVERT(Chunk, chunk);
+  if(chunk != arena->primary
+     && BTIsResRange(chunk->allocTable, 0, chunk->pages))
+  {
+    Addr base = chunk->base;
+    Size size = ChunkSize(chunk);
+    vmChunkDestroy(tree, UNUSED_POINTER, UNUSED_SIZE);
+    vmArena->contracted(arena, base, size);
+    return TRUE;
+  } else {
+    /* Keep this chunk. */
+    return FALSE;
+  }
+}
+
+
 static void VMCompact(Arena arena, Trace trace)
 {
   VMArena vmArena;
-  Ring node, next;
   Size vmem1;
 
   vmArena = Arena2VMArena(arena);
@@ -1090,23 +1127,11 @@ static void VMCompact(Arena arena, Trace trace)
 
   vmem1 = VMArenaReserved(arena);
 
-  RING_FOR(node, &arena->chunkRing, next) {
-    Chunk chunk = RING_ELT(Chunk, chunkRing, node);
-    if(chunk != arena->primary
-       && BTIsResRange(chunk->allocTable, 0, chunk->pages)) {
-      Addr base = chunk->base;
-      Size size = AddrOffset(chunk->base, chunk->limit);
-
-      /* Ensure there are no spare (mapped) pages left in the chunk.
-         This could be short-cut if we're about to destroy the chunk,
-         provided we can do the correct accounting in the arena. */
-      chunkUnmapSpare(chunk);
-
-      vmChunkDestroy(chunk);
-
-      vmArena->contracted(arena, base, size);
-    }
-  }
+  /* Destroy chunks that are completely free, but not the primary
+   * chunk. See <design/arena/#chunk.delete>
+   * TODO: add hysteresis here. See job003815. */
+  TreeTraverseAndDelete(&arena->chunkTree, vmChunkCompact, arena,
+                        UNUSED_SIZE);
 
   {
     Size vmem0 = trace->preTraceArenaReserved;

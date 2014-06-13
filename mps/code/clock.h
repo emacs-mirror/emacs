@@ -65,8 +65,8 @@ typedef union EventClockUnion {
           (*(EventClockUnion *)&(clock)).half.high, \
           (*(EventClockUnion *)&(clock)).half.low)
 
-#define EVENT_CLOCK_WRITE(stream, clock) \
-  WriteF(stream, "$W$W", \
+#define EVENT_CLOCK_WRITE(stream, depth, clock)  \
+  WriteF(stream, depth, "$W$W", \
          (*(EventClockUnion *)&(clock)).half.high, \
          (*(EventClockUnion *)&(clock)).half.low, \
          NULL)
@@ -85,8 +85,8 @@ typedef union EventClockUnion {
 
 #endif
 
-#define EVENT_CLOCK_WRITE(stream, clock) \
-  WriteF(stream, "$W", (WriteFW)(clock), NULL)
+#define EVENT_CLOCK_WRITE(stream, depth, clock) \
+  WriteF(stream, depth, "$W", (WriteFW)(clock), NULL)
 
 #endif
 
@@ -135,8 +135,8 @@ __extension__ typedef unsigned long long EventClock;
           (unsigned long)((clock) >> 32), \
           (unsigned long)((clock) & 0xffffffff))
 
-#define EVENT_CLOCK_WRITE(stream, clock) \
-  WriteF(stream, "$W$W", (WriteFW)((clock) >> 32), (WriteFW)clock, NULL)
+#define EVENT_CLOCK_WRITE(stream, depth, clock) \
+  WriteF(stream, depth, "$W$W", (WriteFW)((clock) >> 32), (WriteFW)clock, NULL)
 
 #endif /* Intel, GCC or Clang */
 
@@ -153,8 +153,8 @@ typedef mps_clock_t EventClock;
 #define EVENT_CLOCK_PRINT(stream, clock) \
   fprintf(stream, "%lu", (unsigned long)clock)
 
-#define EVENT_CLOCK_WRITE(stream, clock) \
-  WriteF(stream, "$W", (WriteFW)clock, NULL)
+#define EVENT_CLOCK_WRITE(stream, depth, clock) \
+  WriteF(stream, depth, "$W", (WriteFW)clock, NULL)
 
 #endif
 

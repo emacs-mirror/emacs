@@ -281,6 +281,7 @@ static void error(char *format, ...)
   if (error_handler) {
     longjmp(*error_handler, 1);
   } else {
+    fflush(stdout);
     fprintf(stderr, "Fatal error during initialization: %s\n",
             error_message);
     abort();
@@ -3599,6 +3600,7 @@ int main(int argc, char *argv[])
              make_operator(optab[i].name, optab[i].entry,
                            obj_empty, obj_empty, env, op_env));
   } else {
+    fflush(stdout);
     fprintf(stderr,
             "Fatal error during initialization: %s\n",
             error_message);
@@ -3608,18 +3610,24 @@ int main(int argc, char *argv[])
   if(argc >= 2) {
     /* Non-interactive file execution */
     if(setjmp(*error_handler) != 0) {
+      fflush(stdout);
       fprintf(stderr, "%s\n", error_message);
       return EXIT_FAILURE;
     }
-    load(env, op_env, argv[1]);
+    for (i = 1; i < argc; ++i)
+      load(env, op_env, argv[i]);
     return EXIT_SUCCESS;
   } else {
     /* Interactive read-eval-print loop */
     puts("Scheme Test Harness");
     for(;;) {
-      if(setjmp(*error_handler) != 0)
+      if(setjmp(*error_handler) != 0) {
+        fflush(stdout);
         fprintf(stderr, "%s\n", error_message);
+        fflush(stderr);
+      }
       printf("%lu> ", (unsigned long)total);
+      fflush(stdout);
       obj = read(input);
       if(obj == obj_eof) break;
       obj = eval(env, op_env, obj);

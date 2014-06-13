@@ -87,6 +87,73 @@ typedef struct AllocatorClassStruct {
 } AllocatorClassStruct;
 
 
+/* tractSearchInChunk -- find a tract in a chunk
+ *
+ * .tract-search: Searches for a tract in the chunk starting at page
+ * index i, return FALSE if there is none.
+ */
+
+static Bool tractSearchInChunk(Tract *tractReturn, Chunk chunk, Index i)
+{
+  AVER_CRITICAL(chunk->allocBase <= i);
+  AVER_CRITICAL(i <= chunk->pages);
+
+  while (i < chunk->pages
+         && !(BTGet(chunk->allocTable, i)
+              && PageIsAllocated(ChunkPage(chunk, i)))) {
+    ++i;
+  }
+  if (i == chunk->pages)
+    return FALSE;
+  AVER(i < chunk->pages);
+  *tractReturn = PageTract(ChunkPage(chunk, i));
+  return TRUE;
+}
+
+
+/* tractSearch -- find next tract above address
+ *
+ * Searches for the next tract in increasing address order.
+ * The tract returned is the next one along from addr (i.e.,
+ * it has a base address bigger than addr and no other tract
+ * with a base address bigger than addr has a smaller base address).
+ *
+ * Returns FALSE if there is no tract to find (end of the arena).
+ */
+
+static Bool tractSearch(Tract *tractReturn, Arena arena, Addr addr)
+{
+  Bool b;
+  Chunk chunk;
+  Tree tree;
+
+  b = ChunkOfAddr(&chunk, arena, addr);
+  if (b) {
+    Index i;
+
+    i = INDEX_OF_ADDR(chunk, addr);
+    /* There are fewer pages than addresses, therefore the */
+    /* page index can never wrap around */
+    AVER_CRITICAL(i+1 != 0);
+
+    if (tractSearchInChunk(tractReturn, chunk, i+1)) {
+      return TRUE;
+    }
+  }
+  while (TreeFindNext(&tree, ArenaChunkTree(arena), TreeKeyOfAddrVar(addr),
+                      ChunkCompare))
+  {
+    chunk = ChunkOfTree(tree);
+    addr = chunk->base;
+    /* Start from allocBase to skip the tables. */
+    if (tractSearchInChunk(tractReturn, chunk, chunk->allocBase)) {
+      return TRUE;
+    }
+  }
+  return FALSE;
+}
+
+
 /* Implementation of the tract-based interchangability interface */
 
 static Res allocAsTract(AllocInfoStruct *aiReturn, SegPref pref,
@@ -114,7 +181,7 @@ static Bool firstAsTract(AllocInfoStruct *aiReturn, Arena arena)
 {
   Bool res;
   Tract tract;
-  res = TractFirst(&tract, arena);
+  res = tractSearch(&tract, arena, 0);
   if (res) {
     aiReturn->the.tractData.base = TractBase(tract);
     aiReturn->the.tractData.size = ArenaGrainSize(arena);;
@@ -128,7 +195,7 @@ static Bool nextAsTract(AllocInfoStruct *nextReturn, AllocInfo ai,
 {
   Bool res;
   Tract tract;
-  res = TractNext(&tract, arena, ai->the.tractData.base);
+  res = tractSearch(&tract, arena, ai->the.tractData.base);
   if (res) {
     nextReturn->the.tractData.base = TractBase(tract);
     nextReturn->the.tractData.size = ArenaGrainSize(arena);;
@@ -332,7 +399,6 @@ static void testAllocAndIterate(Arena arena, Pool pool,
     }
     SegPrefExpress(&pref, SegPrefZoneSet, &zone);
   }
-
 }
 
 
@@ -362,6 +428,10 @@ static void testPageTable(ArenaClass class, Size size, Addr addr, Bool zoned)
   /* test segment allocation and iteration */
   testAllocAndIterate(arena, pool, pageSize, tractsPerPage,
                       &allocatorSegStruct);
+
+  die(ArenaDescribe(arena, mps_lib_get_stdout(), 0), "ArenaDescribe");
+  die(ArenaDescribeTracts(arena, mps_lib_get_stdout(), 0),
+      "ArenaDescribeTracts");
 
   PoolDestroy(pool);
   ArenaDestroy(arena);

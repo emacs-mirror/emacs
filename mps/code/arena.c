@@ -17,9 +17,9 @@
 SRCID(arena, "$Id$");
 
 
-#define ArenaControlPool(arena) MV2Pool(&(arena)->controlPoolStruct)
-#define ArenaCBSBlockPool(arena)  (&(arena)->freeCBSBlockPoolStruct.poolStruct)
-#define ArenaFreeLand(arena) (&(arena)->freeLandStruct.landStruct)
+#define ArenaControlPool(arena) MVPool(&(arena)->controlPoolStruct)
+#define ArenaCBSBlockPool(arena) MFSPool(&(arena)->freeCBSBlockPoolStruct)
+#define ArenaFreeLand(arena) CBSLand(&(arena)->freeLandStruct)
 
 
 /* ArenaGrainSizeCheck -- check that size is a valid arena grain size */
@@ -45,7 +45,7 @@ static void arenaFreePage(Arena arena, Addr base, Pool pool);
 
 /* ArenaTrivDescribe -- produce trivial description of an arena */
 
-static Res ArenaTrivDescribe(Arena arena, mps_lib_FILE *stream)
+static Res ArenaTrivDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
 {
   if (!TESTT(Arena, arena)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
@@ -62,8 +62,8 @@ static Res ArenaTrivDescribe(Arena arena, mps_lib_FILE *stream)
    * subclass describe method should avoid invoking 
    * ARENA_SUPERCLASS()->describe.  RHSK 2007-04-27.
    */
-  return WriteF(stream,
-    "  No class-specific description available.\n", NULL);
+  return WriteF(stream, depth,
+                "  No class-specific description available.\n", NULL);
 }
 
 
@@ -162,8 +162,10 @@ Bool ArenaCheck(Arena arena)
     CHECKD(Chunk, arena->primary);
   }
   CHECKD_NOSIG(Ring, &arena->chunkRing);
+  /* Can't use CHECKD_NOSIG because TreeEMPTY is NULL. */
+  CHECKL(TreeCheck(ArenaChunkTree(arena)));
+  /* TODO: check that the chunkRing and chunkTree have identical members */
   /* nothing to check for chunkSerial */
-  CHECKD(ChunkCacheEntry, &arena->chunkCache);
   
   CHECKL(LocusCheck(arena));
 
@@ -220,8 +222,8 @@ Res ArenaInit(Arena arena, ArenaClass class, Size grainSize, ArgList args)
 
   arena->primary = NULL;
   RingInit(&arena->chunkRing);
+  arena->chunkTree = TreeEMPTY;
   arena->chunkSerial = (Serial)0;
-  ChunkCacheEntryInit(&arena->chunkCache);
   
   LocusInit(arena);
   
@@ -322,13 +324,13 @@ Res ArenaCreate(Arena *arenaReturn, ArenaClass class, ArgList args)
 
   /* With the primary chunk initialised we can add page memory to the freeLand
      that describes the free address space in the primary chunk. */
-  arena->hasFreeLand = TRUE;
   res = ArenaFreeLandInsert(arena,
                             PageIndexBase(arena->primary,
                                           arena->primary->allocBase),
                             arena->primary->limit);
   if (res != ResOK)
     goto failPrimaryLand;
+  arena->hasFreeLand = TRUE;
   
   res = ControlInit(arena);
   if (res != ResOK)
@@ -361,11 +363,13 @@ failInit:
 
 void ArenaFinish(Arena arena)
 {
+  PoolFinish(ArenaCBSBlockPool(arena));
   ReservoirFinish(ArenaReservoir(arena));
   arena->sig = SigInvalid;
   GlobalsFinish(ArenaGlobals(arena));
   LocusFinish(arena);
   RingFinish(&arena->chunkRing);
+  AVER(ArenaChunkTree(arena) == TreeEMPTY);
 }
 
 
@@ -406,7 +410,6 @@ void ArenaDestroy(Arena arena)
      that would use the freeLand. */
   MFSFinishTracts(ArenaCBSBlockPool(arena), arenaMFSPageFreeVisitor,
                   UNUSED_POINTER, UNUSED_SIZE);
-  PoolFinish(ArenaCBSBlockPool(arena));
 
   /* Call class-specific finishing.  This will call ArenaFinish. */
   (*arena->class->finish)(arena);
@@ -424,7 +427,7 @@ Res ControlInit(Arena arena)
   AVERT(Arena, arena);
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD(args, MPS_KEY_EXTEND_BY, CONTROL_EXTEND_BY);
-    res = PoolInit(&arena->controlPoolStruct.poolStruct, arena,
+    res = PoolInit(MVPool(&arena->controlPoolStruct), arena,
                    PoolClassMV(), args);
   } MPS_ARGS_END(args);
   if (res != ResOK)
@@ -440,13 +443,13 @@ void ControlFinish(Arena arena)
 {
   AVERT(Arena, arena);
   arena->poolReady = FALSE;
-  PoolFinish(&arena->controlPoolStruct.poolStruct);
+  PoolFinish(MVPool(&arena->controlPoolStruct));
 }
 
 
 /* ArenaDescribe -- describe the arena */
 
-Res ArenaDescribe(Arena arena, mps_lib_FILE *stream)
+Res ArenaDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
 {
   Res res;
   Size reserved;
@@ -454,58 +457,57 @@ Res ArenaDescribe(Arena arena, mps_lib_FILE *stream)
   if (!TESTT(Arena, arena)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
 
-  res = WriteF(stream, "Arena $P {\n", (WriteFP)arena,
+  res = WriteF(stream, depth, "Arena $P {\n", (WriteFP)arena,
                "  class $P (\"$S\")\n",
                (WriteFP)arena->class, arena->class->name,
                NULL);
   if (res != ResOK) return res;
 
   if (arena->poolReady) {
-    res = WriteF(stream,
-                 "  controlPool $P\n", (WriteFP)&arena->controlPoolStruct,
+    res = WriteF(stream, depth + 2,
+                 "controlPool $P\n", (WriteFP)&arena->controlPoolStruct,
                  NULL);
     if (res != ResOK) return res;
   }
 
   /* Note: this Describe clause calls a function */
   reserved = ArenaReserved(arena);
-  res = WriteF(stream,
-               "  reserved         $W  <-- "
+  res = WriteF(stream, depth + 2,
+               "reserved         $W  <-- "
                "total size of address-space reserved\n",
                (WriteFW)reserved,
                NULL);
   if (res != ResOK) return res;
 
-  res = WriteF(stream,
-               "  committed        $W  <-- "
+  res = WriteF(stream, depth + 2,
+               "committed        $W  <-- "
                "total bytes currently stored (in RAM or swap)\n",
                (WriteFW)arena->committed,
-               "  commitLimit      $W\n", (WriteFW)arena->commitLimit,
-               "  spareCommitted   $W\n", (WriteFW)arena->spareCommitted,
-               "  spareCommitLimit $W\n", (WriteFW)arena->spareCommitLimit,
-               "  zoneShift $U\n", (WriteFU)arena->zoneShift,
-               "  grainSize $W\n", (WriteFW)arena->grainSize,
+               "commitLimit      $W\n", (WriteFW)arena->commitLimit,
+               "spareCommitted   $W\n", (WriteFW)arena->spareCommitted,
+               "spareCommitLimit $W\n", (WriteFW)arena->spareCommitLimit,
+               "zoneShift        $U\n", (WriteFU)arena->zoneShift,
+               "grainSize        $W\n", (WriteFW)arena->grainSize,
                NULL);
   if (res != ResOK) return res;
 
-  res = WriteF(stream,
-               "  droppedMessages $U$S\n", (WriteFU)arena->droppedMessages,
+  res = WriteF(stream, depth + 2,
+               "droppedMessages $U$S\n", (WriteFU)arena->droppedMessages,
                (arena->droppedMessages == 0 ? "" : "  -- MESSAGES DROPPED!"),
                NULL);
   if (res != ResOK) return res;
 
-  res = (*arena->class->describe)(arena, stream);
+  res = (*arena->class->describe)(arena, stream, depth);
   if (res != ResOK) return res;
 
-  /* Do not call GlobalsDescribe: it makes too much output, thanks.
-   * RHSK 2007-04-27
-   */
-#if 0
-  res = GlobalsDescribe(ArenaGlobals(arena), stream);
+  res = WriteF(stream, depth + 2, "Globals {\n", NULL);
+  if (res != ResOK) return res;  
+  res = GlobalsDescribe(ArenaGlobals(arena), stream, depth + 4);
   if (res != ResOK) return res;
-#endif
+  res = WriteF(stream, depth + 2, "} Globals\n", NULL);
+  if (res != ResOK) return res;  
 
-  res = WriteF(stream,
+  res = WriteF(stream, depth,
                "} Arena $P ($U)\n", (WriteFP)arena,
                (WriteFU)arena->serial,
                NULL);
@@ -513,47 +515,68 @@ Res ArenaDescribe(Arena arena, mps_lib_FILE *stream)
 }
 
 
-/* ArenaDescribeTracts -- describe all the tracts in the arena */
+/* arenaDescribeTractsInChunk -- describe the tracts in a chunk */
 
-Res ArenaDescribeTracts(Arena arena, mps_lib_FILE *stream)
+static Res arenaDescribeTractsInChunk(Chunk chunk, mps_lib_FILE *stream, Count depth)
 {
   Res res;
-  Tract tract;
-  Bool b;
-  Addr oldLimit, base, limit;
-  Size size;
+  Index pi;
+
+  if (stream == NULL) return ResFAIL;
+  if (!TESTT(Chunk, chunk)) return ResFAIL;
+  if (stream == NULL) return ResFAIL;
+
+  res = WriteF(stream, depth, "Chunk [$P, $P) ($U) {\n",
+               (WriteFP)chunk->base, (WriteFP)chunk->limit,
+               (WriteFU)chunk->serial,
+               NULL);
+  if (res != ResOK) return res;
+
+  for (pi = chunk->allocBase; pi < chunk->pages; ++pi) {
+    if (BTGet(chunk->allocTable, pi)) {
+      Tract tract = PageTract(ChunkPage(chunk, pi));
+      res = WriteF(stream, depth + 2, "[$P, $P)",
+                   (WriteFP)TractBase(tract),
+                   (WriteFP)TractLimit(tract, ChunkArena(chunk)),
+                   NULL);
+      if (res != ResOK) return res;
+      if (TractHasPool(tract)) {
+        Pool pool = TractPool(tract);
+        res = WriteF(stream, 0, " $P $U ($S)",
+                     (WriteFP)pool,
+                     (WriteFU)(pool->serial),
+                     (WriteFS)(pool->class->name),
+                     NULL);
+        if (res != ResOK) return res;
+      }
+      res = WriteF(stream, 0, "\n", NULL);
+      if (res != ResOK) return res;
+    }
+  }
+
+  res = WriteF(stream, depth, "} Chunk [$P, $P)\n",
+               (WriteFP)chunk->base, (WriteFP)chunk->limit,
+               NULL);
+  return res;
+}
+
+
+/* ArenaDescribeTracts -- describe all the tracts in the arena */
+
+Res ArenaDescribeTracts(Arena arena, mps_lib_FILE *stream, Count depth)
+{
+  Ring node, next;
+  Res res;
 
   if (!TESTT(Arena, arena)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
 
-  b = TractFirst(&tract, arena);
-  oldLimit = TractBase(tract);
-  while (b) {
-    base = TractBase(tract);
-    limit = TractLimit(tract);
-    size = ArenaGrainSize(arena);
-
-    if (TractBase(tract) > oldLimit) {
-      res = WriteF(stream,
-                   "[$P, $P) $W $U   ---\n",
-                   (WriteFP)oldLimit, (WriteFP)base,
-                   (WriteFW)AddrOffset(oldLimit, base),
-                   (WriteFU)AddrOffset(oldLimit, base),
-                   NULL);
-      if (res != ResOK) return res;
-    }
-
-    res = WriteF(stream,
-                 "[$P, $P) $W $U   $P ($S)\n",
-                 (WriteFP)base, (WriteFP)limit,
-                 (WriteFW)size, (WriteFW)size,
-                 (WriteFP)TractPool(tract),
-                 (WriteFS)(TractPool(tract)->class->name),
-                 NULL);
+  RING_FOR(node, &arena->chunkRing, next) {
+    Chunk chunk = RING_ELT(Chunk, chunkRing, node);
+    res = arenaDescribeTractsInChunk(chunk, stream, depth);
     if (res != ResOK) return res;
-    b = TractNext(&tract, arena, TractBase(tract));
-    oldLimit = limit;
   }
+
   return ResOK;
 }
 
@@ -604,16 +627,35 @@ void ControlFree(Arena arena, void* base, size_t size)
 
 /* ControlDescribe -- describe the arena's control pool */
 
-Res ControlDescribe(Arena arena, mps_lib_FILE *stream)
+Res ControlDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
 {
   Res res;
 
   if (!TESTT(Arena, arena)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
 
-  res = PoolDescribe(ArenaControlPool(arena), stream);
+  res = PoolDescribe(ArenaControlPool(arena), stream, depth);
 
   return res;
+}
+
+
+/* ArenaChunkInsert -- insert chunk into arena's chunk tree */
+
+void ArenaChunkInsert(Arena arena, Chunk chunk) {
+  Bool inserted;
+  Tree tree, updatedTree = NULL;
+
+  AVERT(Arena, arena);
+  AVERT(Chunk, chunk);
+  tree = &chunk->chunkTree;
+
+  inserted = TreeInsert(&updatedTree, ArenaChunkTree(arena),
+                        tree, ChunkKey(tree), ChunkCompare);
+  AVER(inserted && updatedTree);
+  TreeBalance(&updatedTree);
+  arena->chunkTree = updatedTree;
+  RingAppend(&arena->chunkRing, &chunk->chunkRing);
 }
 
 
@@ -635,7 +677,7 @@ static Res arenaAllocPageInChunk(Addr *baseReturn, Chunk chunk, Pool pool)
   AVERT(Chunk, chunk);
   AVERT(Pool, pool);
   arena = ChunkArena(chunk);
-  
+
   if (!BTFindShortResRange(&basePageIndex, &limitPageIndex,
                            chunk->allocTable,
                            chunk->allocBase, chunk->pages, 1))
@@ -646,7 +688,7 @@ static Res arenaAllocPageInChunk(Addr *baseReturn, Chunk chunk, Pool pool)
                                             pool);
   if (res != ResOK)
     return res;
-  
+
   *baseReturn = PageIndexBase(chunk, basePageIndex);
   return ResOK;
 }
@@ -655,6 +697,10 @@ static Res arenaAllocPage(Addr *baseReturn, Arena arena, Pool pool)
 {
   Res res;
   
+  AVER(baseReturn != NULL);
+  AVERT(Arena, arena);
+  AVERT(Pool, pool);
+
   /* Favour the primary chunk, because pages allocated this way aren't
      currently freed, and we don't want to prevent chunks being destroyed. */
   /* TODO: Consider how the ArenaCBSBlockPool might free pages. */
@@ -900,7 +946,7 @@ static Res arenaAllocFromLand(Tract *tractReturn, ZoneSet zones, Bool high,
   
   /* Step 2. Make memory available in the address space range. */
 
-  b = CHUNK_OF_ADDR(&chunk, arena, RangeBase(&range));
+  b = ChunkOfAddr(&chunk, arena, RangeBase(&range));
   AVER(b);
   AVER(RangeIsAligned(&range, ChunkPageSize(chunk)));
   baseIndex = INDEX_OF_ADDR(chunk, RangeBase(&range));
