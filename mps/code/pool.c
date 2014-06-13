@@ -645,29 +645,32 @@ Bool PoolOfAddr(Pool *poolReturn, Arena arena, Addr addr)
  */
 Bool PoolOfRange(Pool *poolReturn, Arena arena, Addr base, Addr limit)
 {
-  Pool pool;
+  Bool havePool = FALSE;
+  Pool pool = NULL;
   Tract tract;
+  Addr addr, alignedBase, alignedLimit;
 
   AVER(poolReturn != NULL);
   AVERT(Arena, arena);
   AVER(base < limit);
 
-  if (!TractOfAddr(&tract, arena, base)) 
-    return FALSE;
+  alignedBase = AddrAlignDown(base, ArenaAlign(arena));
+  alignedLimit = AddrAlignUp(limit, ArenaAlign(arena));
 
-  pool = TractPool(tract);
-  if (!pool)
-    return FALSE;
-
-  while (TractLimit(tract) < limit) {
-    if (!TractNext(&tract, arena, TractBase(tract)))
+  TRACT_FOR(tract, addr, arena, alignedBase, alignedLimit) {
+    Pool p = TractPool(tract);
+    if (havePool && pool != p)
       return FALSE;
-    if (TractPool(tract) != pool)
-      return FALSE;
+    pool = p;
+    havePool = TRUE;
   }
 
-  *poolReturn = pool;
-  return TRUE;
+  if (havePool) {
+    *poolReturn = pool;
+    return TRUE;
+  } else {
+    return FALSE;
+  }
 }
 
 

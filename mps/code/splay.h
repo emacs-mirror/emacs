@@ -75,6 +75,7 @@ extern Res SplayTreeDescribe(SplayTree splay, mps_lib_FILE *stream,
                              Count depth, TreeDescribeMethod nodeDescribe);
 
 extern void SplayDebugUpdate(SplayTree splay, Tree tree);
+extern Count SplayDebugCount(SplayTree splay);
 
 
 #endif /* splay_h */

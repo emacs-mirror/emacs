@@ -3614,7 +3614,8 @@ int main(int argc, char *argv[])
       fprintf(stderr, "%s\n", error_message);
       return EXIT_FAILURE;
     }
-    load(env, op_env, argv[1]);
+    for (i = 1; i < argc; ++i)
+      load(env, op_env, argv[i]);
     return EXIT_SUCCESS;
   } else {
     /* Interactive read-eval-print loop */
