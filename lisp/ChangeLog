@@ -1,3 +1,8 @@
+2014-06-13  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/calendar.el (calendar-generate-window):
+	Remove pointless call to font-lock-fontify-buffer.
+
 2014-06-13  Matthias Meulien  <orontee@gmail.com>
 
 	* simple.el (completion-list-mode-map): Navigate with tab and backtab
