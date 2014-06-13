@@ -117,7 +117,8 @@ Bool AttrCheck(Attr attr)
 
 Bool AlignCheck(Align align)
 {
-  CHECKL(align > 0 && (align & (align - 1)) == 0);
+  CHECKL(align > 0);
+  CHECKL((align & (align - 1)) == 0);
   /* .check.unused: Check methods for signatureless types don't use */
   /* their argument in hot varieties, so UNUSED is needed. */
   UNUSED(align);

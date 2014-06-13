@@ -254,7 +254,8 @@ static Res MVTInit(Pool pool, ArgList args)
     reserveDepth = arg.val.count;
   if (ArgPick(&arg, args, MPS_KEY_MVT_FRAG_LIMIT)) {
     /* pending complete fix for job003319 */
-    AVER(0 <= arg.val.d && arg.val.d <= 1);
+    AVER(0 <= arg.val.d);
+    AVER(arg.val.d <= 1);
     fragLimit = (Count)(arg.val.d * 100);
   }
 
