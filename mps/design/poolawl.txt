@@ -463,10 +463,11 @@ Internal
 
 _`.fun.awlsegcreate`: Creates a segment of class ``AWLSegClass`` of size at least ``size``.
 
-_`.fun.awlsegcreate.size.round`: ``size`` is rounded up to an
-``ArenaAlign`` before requesting the segment.
+_`.fun.awlsegcreate.size.round`: ``size`` is rounded up to the arena
+grain size before requesting the segment.
+
 _`.fun.awlsegcreate.size.round.justify`: The arena requires that all
-segment sizes are aligned to the ``ArenaAlign``.
+segment sizes are rounded up to the arena grain size.
 
 _`.fun.awlsegcreate.where`: The segment is allocated using a
 generation preference, using the generation number stored in the
