@@ -72,7 +72,7 @@ Res SegAlloc(Seg *segReturn, SegClass class, SegPref pref,
 
   arena = PoolArena(pool);
   AVERT(Arena, arena);
-  AVER(SizeIsAligned(size, arena->alignment));
+  AVER(SizeIsArenaGrains(size, arena));
 
   /* allocate the memory from the arena */
   res = ArenaAlloc(&base, pref, size, pool, withReservoirPermit);
@@ -139,7 +139,6 @@ static Res SegInit(Seg seg, Pool pool, Addr base, Size size,
 {
   Tract tract;
   Addr addr, limit;
-  Size align;
   Arena arena;
   SegClass class;
   Res res;
@@ -147,9 +146,8 @@ static Res SegInit(Seg seg, Pool pool, Addr base, Size size,
   AVER(seg != NULL);
   AVERT(Pool, pool);
   arena = PoolArena(pool);
-  align = ArenaAlign(arena);
-  AVER(AddrIsAligned(base, align));
-  AVER(SizeIsAligned(size, align));
+  AVER(AddrIsArenaGrain(base, arena));
+  AVER(SizeIsArenaGrains(size, arena));
   class = seg->class;
   AVERT(SegClass, class);
   AVERT(Bool, withReservoirPermit);
@@ -600,7 +598,7 @@ Res SegSplit(Seg *segLoReturn, Seg *segHiReturn, Seg seg, Addr at,
   base = SegBase(seg);
   limit = SegLimit(seg);
   AVERT(Arena, arena);
-  AVER(AddrIsAligned(at, arena->alignment));
+  AVER(AddrIsArenaGrain(at, arena));
   AVER(at > base);
   AVER(at < limit);
   AVERT(Bool, withReservoirPermit);
@@ -653,7 +651,6 @@ Bool SegCheck(Seg seg)
 {
   Arena arena;
   Pool pool;
-  Size align;
  
   CHECKS(Seg, seg);
   CHECKL(TraceSetCheck(seg->white));
@@ -666,9 +663,8 @@ Bool SegCheck(Seg seg)
   CHECKU(Pool, pool);
   arena = PoolArena(pool);
   CHECKU(Arena, arena);
-  align = ArenaAlign(arena);
-  CHECKL(AddrIsAligned(TractBase(seg->firstTract), align));
-  CHECKL(AddrIsAligned(seg->limit, align));
+  CHECKL(AddrIsArenaGrain(TractBase(seg->firstTract), arena));
+  CHECKL(AddrIsArenaGrain(seg->limit, arena));
   CHECKL(seg->limit > TractBase(seg->firstTract));
 
   /* Each tract of the segment must agree about white traces. Note
@@ -728,15 +724,13 @@ static Res segTrivInit(Seg seg, Pool pool, Addr base, Size size,
                        Bool reservoirPermit, ArgList args)
 {
   /* all the initialization happens in SegInit so checks are safe */
-  Size align;
   Arena arena;
 
   AVERT(Seg, seg);
   AVERT(Pool, pool);
   arena = PoolArena(pool);
-  align = ArenaAlign(arena);
-  AVER(AddrIsAligned(base, align));
-  AVER(SizeIsAligned(size, align));
+  AVER(AddrIsArenaGrain(base, arena));
+  AVER(SizeIsArenaGrains(size, arena));
   AVER(SegBase(seg) == base);
   AVER(SegSize(seg) == size);
   AVER(SegPool(seg) == pool);
@@ -859,7 +853,6 @@ static Res segTrivMerge(Seg seg, Seg segHi,
                         Bool withReservoirPermit)
 {
   Pool pool;
-  Size align;
   Arena arena;
   Tract tract;
   Addr addr;
@@ -868,10 +861,9 @@ static Res segTrivMerge(Seg seg, Seg segHi,
   AVERT(Seg, segHi);
   pool = SegPool(seg);
   arena = PoolArena(pool);
-  align = ArenaAlign(arena);
-  AVER(AddrIsAligned(base, align));
-  AVER(AddrIsAligned(mid, align));
-  AVER(AddrIsAligned(limit, align));
+  AVER(AddrIsArenaGrain(base, arena));
+  AVER(AddrIsArenaGrain(mid, arena));
+  AVER(AddrIsArenaGrain(limit, arena));
   AVER(base < mid);
   AVER(mid < limit);
   AVER(SegBase(seg) == base);
@@ -942,17 +934,15 @@ static Res segTrivSplit(Seg seg, Seg segHi,
   Tract tract;
   Pool pool;
   Addr addr;
-  Size align;
   Arena arena;
 
   AVERT(Seg, seg);
   AVER(segHi != NULL);  /* can't check fully, it's not initialized */
   pool = SegPool(seg);
   arena = PoolArena(pool);
-  align = ArenaAlign(arena);
-  AVER(AddrIsAligned(base, align));
-  AVER(AddrIsAligned(mid, align));
-  AVER(AddrIsAligned(limit, align));
+  AVER(AddrIsArenaGrain(base, arena));
+  AVER(AddrIsArenaGrain(mid, arena));
+  AVER(AddrIsArenaGrain(limit, arena));
   AVER(base < mid);
   AVER(mid < limit);
   AVER(SegBase(seg) == base);
@@ -1072,15 +1062,13 @@ static Res gcSegInit(Seg seg, Pool pool, Addr base, Size size,
   SegClass super;
   GCSeg gcseg;
   Arena arena;
-  Align align;
   Res res;
 
   AVERT(Seg, seg);
   AVERT(Pool, pool);
   arena = PoolArena(pool);
-  align = ArenaAlign(arena);
-  AVER(AddrIsAligned(base, align));
-  AVER(SizeIsAligned(size, align));
+  AVER(AddrIsArenaGrain(base, arena));
+  AVER(SizeIsArenaGrains(size, arena));
   gcseg = SegGCSeg(seg);
   AVER(&gcseg->segStruct == seg);
   AVERT(Bool, withReservoirPermit);

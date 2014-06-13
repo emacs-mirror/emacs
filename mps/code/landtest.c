@@ -548,7 +548,7 @@ extern int main(int argc, char *argv[])
   for (i = 0; i < 2; ++i) {
       MPS_ARGS_BEGIN(piArgs) {
         MPS_ARGS_ADD(piArgs, MPS_KEY_MFS_UNIT_SIZE, sizeof(CBSFastBlockStruct));
-        MPS_ARGS_ADD(piArgs, MPS_KEY_EXTEND_BY, ArenaAlign(arena));
+        MPS_ARGS_ADD(piArgs, MPS_KEY_EXTEND_BY, ArenaGrainSize(arena));
         MPS_ARGS_ADD(piArgs, MFSExtendSelf, i);
         MPS_ARGS_DONE(piArgs);
         die(PoolInit(mfs, arena, PoolClassMFS(), piArgs), "PoolInit");

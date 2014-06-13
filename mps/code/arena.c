@@ -22,6 +22,21 @@ SRCID(arena, "$Id$");
 #define ArenaFreeLand(arena) CBSLand(&(arena)->freeLandStruct)
 
 
+/* ArenaGrainSizeCheck -- check that size is a valid arena grain size */
+
+Bool ArenaGrainSizeCheck(Size size)
+{
+  CHECKL(size > 0);
+  /* <design/arena/#req.attr.block.align.min> */
+  CHECKL(SizeIsAligned(size, MPS_PF_ALIGN));
+  /* Grain size must be a power of 2 for the tract lookup and the
+   * zones to work. */
+  CHECKL(SizeIsP2(size));
+
+  return TRUE;
+}
+
+
 /* Forward declarations */
 
 static void ArenaTrivCompact(Arena arena, Trace trace);
@@ -132,11 +147,10 @@ Bool ArenaCheck(Arena arena)
   CHECKL(arena->spareCommitted <= arena->committed);
 
   CHECKL(ShiftCheck(arena->zoneShift));
-  CHECKL(AlignCheck(arena->alignment));
-  /* Tract allocation must be platform-aligned. */
-  CHECKL(arena->alignment >= MPS_PF_ALIGN);
-  /* Stripes can't be smaller than pages. */
-  CHECKL(((Size)1 << arena->zoneShift) >= arena->alignment);
+  CHECKL(ArenaGrainSizeCheck(arena->grainSize));
+
+  /* Stripes can't be smaller than grains. */
+  CHECKL(((Size)1 << arena->zoneShift) >= arena->grainSize);
 
   if (arena->lastTract == NULL) {
     CHECKL(arena->lastTractBase == (Addr)0);
@@ -175,7 +189,7 @@ Bool ArenaCheck(Arena arena)
  * it has been allocated by the arena class.
  */
 
-Res ArenaInit(Arena arena, ArenaClass class, Align alignment, ArgList args)
+Res ArenaInit(Arena arena, ArenaClass class, Size grainSize, ArgList args)
 {
   Res res;
   Bool zoned = ARENA_DEFAULT_ZONED;
@@ -183,7 +197,7 @@ Res ArenaInit(Arena arena, ArenaClass class, Align alignment, ArgList args)
 
   AVER(arena != NULL);
   AVERT(ArenaClass, class);
-  AVERT(Align, alignment);
+  AVERT(ArenaGrainSize, grainSize);
   
   if (ArgPick(&arg, args, MPS_KEY_ARENA_ZONED))
     zoned = arg.val.b;
@@ -196,7 +210,7 @@ Res ArenaInit(Arena arena, ArenaClass class, Align alignment, ArgList args)
   arena->commitLimit = (Size)-1;
   arena->spareCommitted = (Size)0;
   arena->spareCommitLimit = ARENA_INIT_SPARE_COMMIT_LIMIT;
-  arena->alignment = alignment;
+  arena->grainSize = grainSize;
   /* zoneShift is usually overridden by init */
   arena->zoneShift = ARENA_ZONESHIFT;
   arena->poolReady = FALSE;     /* <design/arena/#pool.ready> */
@@ -227,7 +241,7 @@ Res ArenaInit(Arena arena, ArenaClass class, Align alignment, ArgList args)
 
   MPS_ARGS_BEGIN(piArgs) {
     MPS_ARGS_ADD(piArgs, MPS_KEY_MFS_UNIT_SIZE, sizeof(CBSZonedBlockStruct));
-    MPS_ARGS_ADD(piArgs, MPS_KEY_EXTEND_BY, arena->alignment);
+    MPS_ARGS_ADD(piArgs, MPS_KEY_EXTEND_BY, ArenaGrainSize(arena));
     MPS_ARGS_ADD(piArgs, MFSExtendSelf, FALSE);
     res = PoolInit(ArenaCBSBlockPool(arena), arena, PoolClassMFS(), piArgs);
   } MPS_ARGS_END(piArgs);
@@ -239,7 +253,7 @@ Res ArenaInit(Arena arena, ArenaClass class, Align alignment, ArgList args)
   MPS_ARGS_BEGIN(liArgs) {
     MPS_ARGS_ADD(liArgs, CBSBlockPool, ArenaCBSBlockPool(arena));
     res = LandInit(ArenaFreeLand(arena), CBSZonedLandClassGet(), arena,
-                   alignment, arena, liArgs);
+                   ArenaGrainSize(arena), arena, liArgs);
   } MPS_ARGS_END(liArgs);
   AVER(res == ResOK); /* no allocation, no failure expected */
   if (res != ResOK)
@@ -301,8 +315,8 @@ Res ArenaCreate(Arena *arenaReturn, ArenaClass class, ArgList args)
   if (res != ResOK)
     goto failInit;
 
-  /* arena->alignment must have been set up by *class->init() */
-  if (arena->alignment > ((Size)1 << arena->zoneShift)) {
+  /* Grain size must have been set up by *class->init() */
+  if (ArenaGrainSize(arena) > ((Size)1 << arena->zoneShift)) {
     res = ResMEMORY; /* size was too small */
     goto failStripeSize;
   }
@@ -369,7 +383,7 @@ static void arenaMFSPageFreeVisitor(Pool pool, Addr base, Size size,
   UNUSED(closureP);
   UNUSED(closureS);
   UNUSED(size);
-  AVER(size == ArenaAlign(PoolArena(pool)));
+  AVER(size == ArenaGrainSize(PoolArena(pool)));
   arenaFreePage(PoolArena(pool), base, pool);
 }
 
@@ -471,8 +485,8 @@ Res ArenaDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
                "commitLimit      $W\n", (WriteFW)arena->commitLimit,
                "spareCommitted   $W\n", (WriteFW)arena->spareCommitted,
                "spareCommitLimit $W\n", (WriteFW)arena->spareCommitLimit,
-               "zoneShift $U\n", (WriteFU)arena->zoneShift,
-               "alignment $W\n", (WriteFW)arena->alignment,
+               "zoneShift        $U\n", (WriteFU)arena->zoneShift,
+               "grainSize        $W\n", (WriteFW)arena->grainSize,
                NULL);
   if (res != ResOK) return res;
 
@@ -711,7 +725,7 @@ static void arenaFreePage(Arena arena, Addr base, Pool pool)
 {
   AVERT(Arena, arena);
   AVERT(Pool, pool);
-  (*arena->class->free)(base, ArenaAlign(arena), pool);
+  (*arena->class->free)(base, ArenaGrainSize(arena), pool);
 }
 
 
@@ -729,9 +743,9 @@ static Res arenaExtendCBSBlockPool(Range pageRangeReturn, Arena arena)
   res = arenaAllocPage(&pageBase, arena, ArenaCBSBlockPool(arena));
   if (res != ResOK)
     return res;
-  MFSExtend(ArenaCBSBlockPool(arena), pageBase, ArenaAlign(arena));
+  MFSExtend(ArenaCBSBlockPool(arena), pageBase, ArenaGrainSize(arena));
 
-  RangeInit(pageRangeReturn, pageBase, AddrAdd(pageBase, ArenaAlign(arena)));
+  RangeInit(pageRangeReturn, pageBase, AddrAdd(pageBase, ArenaGrainSize(arena)));
   return ResOK;
 }
 
@@ -810,9 +824,9 @@ static void arenaLandInsertSteal(Range rangeReturn, Arena arena, Range rangeIO)
     AVER(ResIsAllocFailure(res));
 
     /* Steal a page from the memory we're about to free. */
-    AVER(RangeSize(rangeIO) >= ArenaAlign(arena));
+    AVER(RangeSize(rangeIO) >= ArenaGrainSize(arena));
     pageBase = RangeBase(rangeIO);
-    RangeInit(rangeIO, AddrAdd(pageBase, ArenaAlign(arena)),
+    RangeInit(rangeIO, AddrAdd(pageBase, ArenaGrainSize(arena)),
                        RangeLimit(rangeIO));
 
     /* Steal the tract from its owning pool. */
@@ -820,7 +834,7 @@ static void arenaLandInsertSteal(Range rangeReturn, Arena arena, Range rangeIO)
     TractFinish(tract);
     TractInit(tract, ArenaCBSBlockPool(arena), pageBase);
   
-    MFSExtend(ArenaCBSBlockPool(arena), pageBase, ArenaAlign(arena));
+    MFSExtend(ArenaCBSBlockPool(arena), pageBase, ArenaGrainSize(arena));
 
     /* Try again. */
     res = LandInsert(rangeReturn, ArenaFreeLand(arena), rangeIO);
@@ -901,7 +915,7 @@ static Res arenaAllocFromLand(Tract *tractReturn, ZoneSet zones, Bool high,
   AVER(size > (Size)0);
   AVERT(Pool, pool);
   arena = PoolArena(pool);
-  AVER(SizeIsAligned(size, arena->alignment));
+  AVER(SizeIsArenaGrains(size, arena));
   
   if (!arena->zoned)
     zones = ZoneSetUNIV;
@@ -1077,7 +1091,7 @@ Res ArenaAlloc(Addr *baseReturn, SegPref pref, Size size, Pool pool,
 
   arena = PoolArena(pool);
   AVERT(Arena, arena);
-  AVER(SizeIsAligned(size, arena->alignment));
+  AVER(SizeIsArenaGrains(size, arena));
   reservoir = ArenaReservoir(arena);
   AVERT(Reservoir, reservoir);
 
@@ -1136,8 +1150,8 @@ void ArenaFree(Addr base, Size size, Pool pool)
   AVERT(Arena, arena);
   reservoir = ArenaReservoir(arena);
   AVERT(Reservoir, reservoir);
-  AVER(AddrIsAligned(base, arena->alignment));
-  AVER(SizeIsAligned(size, arena->alignment));
+  AVER(AddrIsArenaGrain(base, arena));
+  AVER(SizeIsArenaGrains(size, arena));
 
   /* uncache the tract if in range - <design/arena/#tract.uncache> */
   limit = AddrAdd(base, size);

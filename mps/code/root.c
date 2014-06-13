@@ -218,16 +218,16 @@ static Res rootCreateProtectable(Root *rootReturn, Arena arena,
   if (mode & RootModePROTECTABLE) {
     root->protectable = TRUE;
     if (mode & RootModePROTECTABLE_INNER) {
-      root->protBase = AddrAlignUp(base, ArenaAlign(arena));
-      root->protLimit = AddrAlignDown(limit, ArenaAlign(arena));
+      root->protBase = AddrArenaGrainUp(base, arena);
+      root->protLimit = AddrArenaGrainDown(limit, arena);
       if (!(root->protBase < root->protLimit)) {
         /* root had no inner pages */
         root->protectable = FALSE;
         root->mode &=~ (RootModePROTECTABLE|RootModePROTECTABLE_INNER);
       }
     } else {
-      root->protBase = AddrAlignDown(base, ArenaAlign(arena));
-      root->protLimit = AddrAlignUp(limit, ArenaAlign(arena));
+      root->protBase = AddrArenaGrainDown(base, arena);
+      root->protLimit = AddrArenaGrainUp(limit, arena);
     }
   }
 

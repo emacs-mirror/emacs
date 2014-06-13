@@ -109,7 +109,7 @@ static Res MFSInit(Pool pool, ArgList args)
   if (unitSize < UNIT_MIN)
     unitSize = UNIT_MIN;
   unitSize = SizeAlignUp(unitSize, MPS_PF_ALIGN);
-  extendBy = SizeAlignUp(extendBy, ArenaAlign(arena));
+  extendBy = SizeArenaGrains(extendBy, arena);
 
   mfs->extendBy = extendBy;
   mfs->extendSelf = extendSelf;
@@ -398,7 +398,7 @@ Bool MFSCheck(MFS mfs)
   CHECKL(mfs->extendBy >= UNIT_MIN);
   CHECKL(BoolCheck(mfs->extendSelf));
   arena = PoolArena(MFSPool(mfs));
-  CHECKL(SizeIsAligned(mfs->extendBy, ArenaAlign(arena)));
+  CHECKL(SizeIsArenaGrains(mfs->extendBy, arena));
   CHECKL(SizeAlignUp(mfs->unroundedUnitSize, PoolAlignment(MFSPool(mfs))) ==
          mfs->unitSize);
   if(mfs->tractList != NULL) {

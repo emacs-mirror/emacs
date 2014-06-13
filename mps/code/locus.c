@@ -529,7 +529,7 @@ Bool PoolGenCheck(PoolGen pgen)
   CHECKD_NOSIG(Ring, &pgen->genRing);
   STATISTIC_STAT ({
     CHECKL((pgen->totalSize == 0) == (pgen->segs == 0));
-    CHECKL(pgen->totalSize >= pgen->segs * ArenaAlign(PoolArena(pgen->pool)));
+    CHECKL(pgen->totalSize >= pgen->segs * ArenaGrainSize(PoolArena(pgen->pool)));
     CHECKL(pgen->totalSize == pgen->freeSize + pgen->newSize + pgen->oldSize
            + pgen->newDeferredSize + pgen->oldDeferredSize);
   });
