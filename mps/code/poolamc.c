@@ -834,7 +834,6 @@ static Res amcInitComm(Pool pool, RankSet rankSet, ArgList args)
     interior = arg.val.b;
   if (ArgPick(&arg, args, MPS_KEY_EXTEND_BY)) {
     extendBy = arg.val.size;
-    AVER(SizeIsAligned(extendBy, ArenaAlign(arena)));
   }
   if (ArgPick(&arg, args, MPS_KEY_LARGE_SIZE)) {
     large = arg.val.size;
