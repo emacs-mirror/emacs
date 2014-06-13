@@ -183,8 +183,12 @@ int main(int argc, char *argv[])
 
   testlib_init(argc, argv);
 
-  die(mps_arena_create(&arena, mps_arena_class_vm(), 2*testArenaSIZE),
-      "mps_arena_create");
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, 2 * testArenaSIZE);
+    MPS_ARGS_ADD(args, MPS_KEY_ARENA_GRAIN_SIZE, (size_t)1 << (rnd() % 20));
+    die(mps_arena_create_k(&arena, mps_arena_class_vm(), args),
+        "mps_arena_create");
+  } MPS_ARGS_END(args);
   die(mps_arena_commit_limit_set(arena, testArenaSIZE), "commit limit");
   testInArena(arena, &fenceOptions);
   mps_arena_destroy(arena);
@@ -192,6 +196,7 @@ int main(int argc, char *argv[])
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, 2 * testArenaSIZE);
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_ZONED, FALSE);
+    MPS_ARGS_ADD(args, MPS_KEY_ARENA_GRAIN_SIZE, (size_t)1 << (rnd() % 20));
     die(mps_arena_create_k(&arena, mps_arena_class_vm(), args),
         "mps_arena_create");
   } MPS_ARGS_END(args);
@@ -202,6 +207,7 @@ int main(int argc, char *argv[])
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, testArenaSIZE);
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_ZONED, FALSE);
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_CL_BASE, malloc(testArenaSIZE));
+    MPS_ARGS_ADD(args, MPS_KEY_ARENA_GRAIN_SIZE, (size_t)1 << (rnd() % 20));
     die(mps_arena_create_k(&arena, mps_arena_class_cl(), args),
         "mps_arena_create");
   } MPS_ARGS_END(args);
