@@ -13,6 +13,8 @@
 
 typedef struct FreelistStruct *Freelist;
 
+#define FreelistLand(fl) (&(fl)->landStruct)
+
 extern Bool FreelistCheck(Freelist freelist);
 
 /* See <design/freelist/#impl.grain.align> */
