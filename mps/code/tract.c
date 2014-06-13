@@ -179,7 +179,7 @@ Res ChunkInit(Chunk chunk, Arena arena,
   AVER(base < limit);
   AVER(AddrIsAligned(limit, pageSize));
   AVERT(Align, pageSize);
-  AVER(pageSize > MPS_PF_ALIGN);
+  AVER(pageSize >= MPS_PF_ALIGN);
   AVERT(BootBlock, boot);
 
   chunk->serial = (arena->chunkSerial)++;
