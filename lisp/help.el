@@ -666,16 +666,16 @@ POSITION is as documented in the function `key-binding'."
                (not no-remap)
                (command-remapping found))
           ;; The user might want to know in which map the binding is
-          ;; found, or in which map the remapping is found. The
+          ;; found, or in which map the remapping is found.  The
           ;; default is to show the latter.
-          (key-binding-keymap (vector 'remap found))
+          (help--key-binding-keymap (vector 'remap found))
         map))))
 
 (defun help--binding-locus (key position)
   "Describe in which keymap KEY is defined.
 Return a symbol pointing to that keymap if one exists ; otherwise
 return nil."
-  (let ((map (key-binding-keymap key t nil position)))
+  (let ((map (help--key-binding-keymap key t nil position)))
     (when map
       (catch 'found
         (let ((advertised-syms (nconc
