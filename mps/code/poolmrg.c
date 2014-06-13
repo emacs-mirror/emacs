@@ -134,7 +134,7 @@ static Bool MRGCheck(MRG mrg)
   CHECKD_NOSIG(Ring, &mrg->entryRing);
   CHECKD_NOSIG(Ring, &mrg->freeRing);
   CHECKD_NOSIG(Ring, &mrg->refRing);
-  CHECKL(mrg->extendBy == ArenaAlign(PoolArena(MRG2Pool(mrg))));
+  CHECKL(mrg->extendBy == ArenaGrainSize(PoolArena(MRG2Pool(mrg))));
   return TRUE;
 }
 
@@ -521,7 +521,7 @@ static Res MRGSegPairCreate(MRGRefSeg *refSegReturn, MRG mrg,
 
   nGuardians = MRGGuardiansPerSeg(mrg);
   linkSegSize = nGuardians * sizeof(LinkStruct);
-  linkSegSize = SizeAlignUp(linkSegSize, ArenaAlign(arena));
+  linkSegSize = SizeArenaGrains(linkSegSize, arena);
 
   res = SegAlloc(&segLink, EnsureMRGLinkSegClass(),
                  SegPrefDefault(), linkSegSize, pool,
@@ -643,7 +643,7 @@ static Res MRGInit(Pool pool, ArgList args)
   RingInit(&mrg->entryRing);
   RingInit(&mrg->freeRing);
   RingInit(&mrg->refRing);
-  mrg->extendBy = ArenaAlign(PoolArena(pool));
+  mrg->extendBy = ArenaGrainSize(PoolArena(pool));
   mrg->sig = MRGSig;
 
   AVERT(MRG, mrg);

@@ -491,7 +491,7 @@ extern Bool ArenaClassCheck(ArenaClass class);
 extern Bool ArenaCheck(Arena arena);
 extern Res ArenaCreate(Arena *arenaReturn, ArenaClass class, ArgList args);
 extern void ArenaDestroy(Arena arena);
-extern Res ArenaInit(Arena arena, ArenaClass class, Align alignment,
+extern Res ArenaInit(Arena arena, ArenaClass class, Size grainSize,
                      ArgList args);
 extern void ArenaFinish(Arena arena);
 extern Res ArenaDescribe(Arena arena, mps_lib_FILE *stream);
@@ -517,9 +517,16 @@ extern Ring GlobalsRememberedSummaryRing(Globals);
 #define ArenaTrace(arena, ti)   (&(arena)->trace[ti])
 #define ArenaZoneShift(arena)   ((arena)->zoneShift)
 #define ArenaStripeSize(arena)  ((Size)1 << ArenaZoneShift(arena))
-#define ArenaAlign(arena)       ((arena)->alignment)
+#define ArenaGrainSize(arena)   ((arena)->grainSize)
 #define ArenaGreyRing(arena, rank) (&(arena)->greyRing[rank])
 #define ArenaPoolRing(arena) (&ArenaGlobals(arena)->poolRing)
+
+extern Bool ArenaGrainSizeCheck(Size size);
+#define AddrArenaGrainUp(addr, arena) AddrAlignUp(addr, ArenaGrainSize(arena))
+#define AddrArenaGrainDown(addr, arena) AddrAlignDown(addr, ArenaGrainSize(arena))
+#define AddrIsArenaGrain(addr, arena) AddrIsAligned(addr, ArenaGrainSize(arena))
+#define SizeArenaGrains(size, arena) SizeAlignUp(size, ArenaGrainSize(arena))
+#define SizeIsArenaGrains(size, arena) SizeIsAligned(size, ArenaGrainSize(arena))
 
 extern void ArenaEnterLock(Arena arena, Bool recursive);
 extern void ArenaLeaveLock(Arena arena, Bool recursive);
@@ -991,10 +998,10 @@ extern Res RootsIterate(Globals arena, RootIterateFn f, void *p);
 
 /* VM Interface -- see <code/vm.c>* */
 
-extern Align VMAlign(VM vm);
+extern Size VMPageSize(VM vm);
 extern Bool VMCheck(VM vm);
 extern Res VMParamFromArgs(void *params, size_t paramSize, ArgList args);
-extern Res VMCreate(VM *VMReturn, Size size, Align align, void *params);
+extern Res VMCreate(VM *VMReturn, Size *grainSizeIO, Size size, void *params);
 extern void VMDestroy(VM vm);
 extern Addr VMBase(VM vm);
 extern Addr VMLimit(VM vm);

@@ -268,7 +268,7 @@ static Res MVTInit(Pool pool, ArgList args)
   /* TODO: More sanity checks possible? */
 
   /* see <design/poolmvt/#arch.parameters> */
-  fillSize = SizeAlignUp(maxSize, ArenaAlign(arena));
+  fillSize = SizeArenaGrains(maxSize, arena);
   /* see <design/poolmvt/#arch.fragmentation.internal> */
   reuseSize = 2 * fillSize;
   abqDepth = (reserveDepth * meanSize + reuseSize - 1) / reuseSize;
@@ -494,7 +494,7 @@ static Res MVTOversizeFill(Addr *baseReturn,
   Addr base, limit;
   Size alignedSize;
 
-  alignedSize = SizeAlignUp(minSize, ArenaAlign(PoolArena(MVT2Pool(mvt))));
+  alignedSize = SizeArenaGrains(minSize, PoolArena(MVT2Pool(mvt)));
 
   res = MVTSegAlloc(&seg, mvt, alignedSize, withReservoirPermit);
   if (res != ResOK)

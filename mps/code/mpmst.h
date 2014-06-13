@@ -734,7 +734,7 @@ typedef struct mps_arena_s {
   Size spareCommitLimit;        /* Limit on spareCommitted */
 
   Shift zoneShift;              /* see also <code/ref.c> */
-  Align alignment;              /* minimum alignment of tracts */
+  Size grainSize;               /* <design/arena/#grain> */
 
   Tract lastTract;              /* most recently allocated tract */
   Addr lastTractBase;           /* base address of lastTract */
