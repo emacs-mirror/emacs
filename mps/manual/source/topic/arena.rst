@@ -167,7 +167,7 @@ Client arenas
 
     It also accepts one optional keyword argument:
 
-    * :c:macro:`MPS_KEY_ALIGN` (type :c:type:`mps_align_t`,
+    * :c:macro:`MPS_KEY_ARENA_GRAIN_SIZE` (type :c:type:`size_t`,
       default 8192) is the granularity with which the arena will
       manage memory internally. It must be a power of 2. Larger
       granularity reduces overheads, but increases
@@ -260,12 +260,13 @@ Virtual memory arenas
           more times it has to extend its address space, the less
           efficient garbage collection will become.
 
-    * :c:macro:`MPS_KEY_ALIGN` (type :c:type:`mps_align_t`) is the
-      granularity with which the arena will manage memory internally.
-      It must be a power of 2. It will be aligned up to a multiple of
-      the operating system's page size. Larger granularity reduces
-      overheads, but increases :term:`fragmentation` and
-      :term:`retention`.
+    * :c:macro:`MPS_KEY_ARENA_GRAIN_SIZE` (type :c:type:`size_t`) is
+      the granularity with which the arena will manage memory
+      internally. It must be a power of 2. It will be aligned up to a
+      multiple of the operating system's page size if necessary. If
+      not provided, the operating system's page size is used. Larger
+      granularity reduces overheads, but increases
+      :term:`fragmentation` and :term:`retention`.
 
     A second optional :term:`keyword argument` may be passed, but it
     only has any effect on the Windows operating system:
