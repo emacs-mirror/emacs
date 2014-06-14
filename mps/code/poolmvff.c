@@ -289,7 +289,8 @@ static Res mvffFindFree(Range rangeReturn, MVFF mvff, Size size,
 
     /* We know that the found range must intersect the newly added
      * range. But it doesn't necessarily lie entirely within it. */
-    AVER(found && RangesOverlap(rangeReturn, &newRange));
+    AVER(found);
+    AVER(RangesOverlap(rangeReturn, &newRange));
   }
   AVER(found);
 
@@ -582,11 +583,12 @@ failBlockPoolInit:
 
 /* MVFFFinish -- finish method for MVFF */
 
-static Bool mvffFinishVisitor(Land land, Range range,
+static Bool mvffFinishVisitor(Bool *deleteReturn, Land land, Range range,
                               void *closureP, Size closureS)
 {
   Pool pool;
 
+  AVER(deleteReturn != NULL);
   AVERT(Land, land);
   AVERT(Range, range);
   AVER(closureP != NULL);
@@ -595,23 +597,23 @@ static Bool mvffFinishVisitor(Land land, Range range,
   UNUSED(closureS);
 
   ArenaFree(RangeBase(range), RangeSize(range), pool);
+  *deleteReturn = TRUE;
   return TRUE;
 }
 
 static void MVFFFinish(Pool pool)
 {
   MVFF mvff;
+  Bool b;
 
   AVERT(Pool, pool);
   mvff = PoolMVFF(pool);
   AVERT(MVFF, mvff);
   mvff->sig = SigInvalid;
 
-  LandIterate(MVFFTotalLand(mvff), mvffFinishVisitor, pool, 0);
-
-  /* TODO: would like to check that LandSize(MVFFTotalLand(mvff)) == 0
-   * now, but CBS doesn't support deletion while iterating. See
-   * job003826. */
+  b = LandIterateAndDelete(MVFFTotalLand(mvff), mvffFinishVisitor, pool, 0);
+  AVER(b);
+  AVER(LandSize(MVFFTotalLand(mvff)) == 0);
 
   LandFinish(MVFFFreeLand(mvff));
   LandFinish(MVFFFreeSecondary(mvff));

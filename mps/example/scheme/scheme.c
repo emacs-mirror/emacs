@@ -4314,9 +4314,11 @@ static int start(int argc, char *argv[])
       fprintf(stderr, "%s\n", error_message);
       fflush(stderr);
       exit_code = EXIT_FAILURE;
-    } else
-      for (i = 0; i < argc; ++i)
-        load(env, op_env, make_string(strlen(argv[i]), argv[i]));
+    } else {
+      int a;
+      for (a = 0; a < argc; ++a)
+        load(env, op_env, make_string(strlen(argv[a]), argv[a]));
+    }
   } else {
     /* Ask the MPS to tell us when it's garbage collecting so that we can
        print some messages.  Completely optional. */

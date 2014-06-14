@@ -522,7 +522,6 @@ static Res arenaDescribeTractsInChunk(Chunk chunk, mps_lib_FILE *stream, Count d
   Res res;
   Index pi;
 
-  if (stream == NULL) return ResFAIL;
   if (!TESTT(Chunk, chunk)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
 
@@ -640,7 +639,7 @@ Res ControlDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
 }
 
 
-/* ArenaChunkInsert -- insert chunk into arena's chunk tree */
+/* ArenaChunkInsert -- insert chunk into arena's chunk tree and ring */
 
 void ArenaChunkInsert(Arena arena, Chunk chunk) {
   Bool inserted;
@@ -652,10 +651,16 @@ void ArenaChunkInsert(Arena arena, Chunk chunk) {
 
   inserted = TreeInsert(&updatedTree, ArenaChunkTree(arena),
                         tree, ChunkKey(tree), ChunkCompare);
-  AVER(inserted && updatedTree);
+  AVER(inserted);
+  AVER(updatedTree);
   TreeBalance(&updatedTree);
   arena->chunkTree = updatedTree;
   RingAppend(&arena->chunkRing, &chunk->chunkRing);
+
+  /* As part of the bootstrap, the first created chunk becomes the primary
+     chunk.  This step allows ArenaFreeLandInsert to allocate pages. */
+  if (arena->primary == NULL)
+    arena->primary = chunk;
 }
 
 
