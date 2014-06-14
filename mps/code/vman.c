@@ -8,7 +8,6 @@
 #include "vm.h"
 
 #include <stdlib.h>     /* for malloc and free */
-#include <string.h>     /* for memset */
 
 SRCID(vman, "$Id$");
 
@@ -52,6 +51,7 @@ Res VMParamFromArgs(void *params, size_t paramSize, ArgList args)
 
 Res VMCreate(VM vm, Size size, Size grainSize, void *params)
 {
+  void *vbase;
   Size pageSize, reserved;
 
   AVER(vm != NULL);
@@ -76,84 +76,84 @@ Res VMCreate(VM vm, Size size, Size grainSize, void *params)
   if (reserved < grainSize || reserved > (Size)(size_t)-1)
     return ResRESOURCE;
 
-  vm->block = malloc((size_t)reserved);
-  if (vm->block == NULL) {
+  vbase = malloc((size_t)reserved);
+  if (vbase == NULL)
     return ResMEMORY;
-  }
+  (void)mps_lib_memset(vbase, VMJunkBYTE, reserved);
 
-  vm->base  = AddrAlignUp((Addr)vm->block, grainSize);
+  vm->block = vbase;
+  vm->base  = AddrAlignUp(vbase, grainSize);
   vm->limit = AddrAdd(vm->base, size);
   AVER(vm->base < vm->limit); /* can't overflow, as discussed above */
   AVER(vm->limit < AddrAdd((Addr)vm->block, reserved));
-
-  memset((void *)vm->block, VMJunkBYTE, reserved);
- 
   vm->reserved = reserved;
   vm->mapped = (Size)0;
  
   vm->sig = VMSig;
   AVERT(VM, vm);
  
-  EVENT3(VMCreate, vm, vm->base, vm->limit);
+  EVENT3(VMCreate, vm, VMBase(vm), VMLimit(vm));
   return ResOK;
 }
 
 
-/* VMDestroy -- destroy the VM structure */
+/* VMDestroy -- release all address space and finish VM structure */
 
 void VMDestroy(VM vm)
 {
-  /* All vm areas should have been unmapped. */
   AVERT(VM, vm);
-  AVER(vm->mapped == (Size)0);
+  /* Descriptor must not be stored inside its own VM at this point. */
+  AVER(PointerAdd(vm, sizeof *vm) <= vm->block
+       || PointerAdd(vm->block, VMReserved(vm)) <= (Pointer)vm);
+  /* All address space must have been unmapped. */
+  AVER(VMMapped(vm) == (Size)0);
 
   EVENT1(VMDestroy, vm);
 
-  memset((void *)vm->base, VMJunkBYTE, AddrOffset(vm->base, vm->limit));
-  free(vm->block);
- 
   vm->sig = SigInvalid;
-  free(vm); 
+
+  (void)mps_lib_memset(vm->block, VMJunkBYTE, vm->reserved);
+  free(vm->block);
 }
 
 
 /* VMBase -- return the base address of the memory reserved */
 
-Addr VMBase(VM vm)
+Addr (VMBase)(VM vm)
 {
   AVERT(VM, vm);
 
-  return vm->base;
+  return VMBase(vm);
 }
 
 
 /* VMLimit -- return the limit address of the memory reserved */
 
-Addr VMLimit(VM vm)
+Addr (VMLimit)(VM vm)
 {
   AVERT(VM, vm);
 
-  return vm->limit;
+  return VMLimit(vm);
 }
 
 
 /* VMReserved -- return the amount of address space reserved */
 
-Size VMReserved(VM vm)
+Size (VMReserved)(VM vm)
 {
   AVERT(VM, vm);
 
-  return vm->reserved;
+  return VMReserved(vm);
 }
 
 
 /* VMMapped -- return the amount of memory actually mapped */
 
-Size VMMapped(VM vm)
+Size (VMMapped)(VM vm)
 {
   AVERT(VM, vm);
 
-  return vm->mapped;
+  return VMMapped(vm);
 }
 
 
@@ -164,17 +164,17 @@ Res VMMap(VM vm, Addr base, Addr limit)
   Size size;
 
   AVER(base != (Addr)0);
-  AVER(vm->base <= base);
+  AVER(VMBase(vm) <= base);
   AVER(base < limit);
-  AVER(limit <= vm->limit);
+  AVER(limit <= VMLimit(vm));
   AVER(AddrIsAligned(base, VMAN_PAGE_SIZE));
   AVER(AddrIsAligned(limit, VMAN_PAGE_SIZE));
 
   size = AddrOffset(base, limit);
-  memset((void *)base, (int)0, size);
+  (void)mps_lib_memset((void *)base, VMJunkByte, size);
 
   vm->mapped += size;
-  AVER(vm->mapped <= vm->reserved);
+  AVER(VMMapped(vm) <= VMReserved(vm));
 
   EVENT3(VMMap, vm, base, limit);
   return ResOK;
@@ -188,16 +188,16 @@ void VMUnmap(VM vm, Addr base, Addr limit)
   Size size;
 
   AVER(base != (Addr)0);
-  AVER(vm->base <= base);
+  AVER(VMBase(vm) <= base);
   AVER(base < limit);
-  AVER(limit <= vm->limit);
+  AVER(limit <= VMLimit(vm));
   AVER(AddrIsAligned(base, VMAN_PAGE_SIZE));
   AVER(AddrIsAligned(limit, VMAN_PAGE_SIZE));
  
   size = AddrOffset(base, limit);
-  memset((void *)base, 0xCD, size);
+  AVER(VMMapped(vm) >= size);
 
-  AVER(vm->mapped >= size);
+  (void)mps_lib_memset((void *)base, VMJunkBYTE, size);
   vm->mapped -= size;
 
   EVENT3(VMUnmap, vm, base, limit);
