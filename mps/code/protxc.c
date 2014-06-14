@@ -399,6 +399,15 @@ void ProtSetup(void)
 }
 
 
+/* ProtGranularity -- return the granularity of protection */
+
+Size ProtGranularity(void)
+{
+  /* Individual pages can be protected. */
+  return VMPageSize();
+}
+
+
 /* C. COPYRIGHT AND LICENSE
  *
  * Copyright (C) 2013-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
