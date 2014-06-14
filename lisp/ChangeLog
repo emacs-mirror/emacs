@@ -1,3 +1,10 @@
+2014-06-14  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/cc-langs.el: Require cl-lib.  (Bug#17463)
+	Replace delete-duplicates and mapcan by cl- versions throughout.
+	And cl-macroexpand-all by macroexpand-all.
+	(delete-duplicates, mapcan, cl-macroexpand-all): No need to declare.
+
 2014-06-14  Eli Zaretskii  <eliz@gnu.org>
 
 	* subr.el (posn-col-row): Doc fix.  (Bug#17768)
