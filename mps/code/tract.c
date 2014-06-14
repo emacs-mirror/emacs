@@ -232,11 +232,6 @@ Res ChunkInit(Chunk chunk, Arena arena,
 
   ArenaChunkInsert(arena, chunk);
 
-  /* As part of the bootstrap, the first created chunk becomes the primary
-     chunk.  This step allows AreaFreeLandInsert to allocate pages. */
-  if (arena->primary == NULL)
-    arena->primary = chunk;
-
   return ResOK;
 
 failLandInsert:
