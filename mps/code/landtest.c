@@ -512,7 +512,8 @@ extern int main(int argc, char *argv[])
   block = AddrAlignUp(p, align);
 
   if (verbose) {
-    printf("Allocated block [%p,%p)\n", block, AddrAdd(block, ArraySize));
+    printf("Allocated block [%p,%p)\n", (void *)block,
+           (void *)AddrAdd(block, ArraySize));
   }
 
   /* 1. Test CBS */
