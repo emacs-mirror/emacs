@@ -1,3 +1,8 @@
+2014-06-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* commands.texi (Accessing Mouse): Improve the wording of the
+	posn-col-row documentation.  (Bug#17768)
+
 2014-06-08  Glenn Morris  <rgm@gnu.org>
 
 	* os.texi (Startup Summary): Small fix for initial-buffer-choice.

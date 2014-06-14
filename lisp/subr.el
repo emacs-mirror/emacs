@@ -1117,7 +1117,7 @@ pixels.  POSITION should be a list of the form returned by
   "Return the nominal column and row in POSITION, measured in characters.
 The column and row values are approximations calculated from the x
 and y coordinates in POSITION and the frame's default character width
-and height.
+and default line height, including spacing.
 For a scroll-bar event, the result column is 0, and the row
 corresponds to the vertical position of the click in the scroll bar.
 POSITION should be a list of the form returned by the `event-start'
