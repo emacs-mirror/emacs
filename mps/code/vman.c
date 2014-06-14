@@ -5,25 +5,12 @@
  */
 
 #include "mpm.h"
+#include "vm.h"
 
 #include <stdlib.h>     /* for malloc and free */
 #include <string.h>     /* for memset */
 
 SRCID(vman, "$Id$");
-
-
-/* VMStruct -- virtual memory structure */
-
-#define VMSig           ((Sig)0x519B3999) /* SIGnature VM */
-
-/* ANSI fake VM structure, see <design/vman/> */
-typedef struct VMStruct {
-  Sig sig;                      /* <design/sig/> */
-  void *block;                  /* pointer to malloc'd block, for free() */
-  Addr base, limit;             /* aligned boundaries of malloc'd memory */
-  Size reserved;                /* total reserved address space */
-  Size mapped;                  /* total mapped memory */
-} VMStruct;
 
 
 /* VMCheck -- check a VM structure */
@@ -63,12 +50,11 @@ Res VMParamFromArgs(void *params, size_t paramSize, ArgList args)
 
 /* VMCreate -- reserve some virtual address space, and create a VM structure */
 
-Res VMCreate(VM *vmReturn, Size size, Size grainSize, void *params)
+Res VMCreate(VM vm, Size size, Size grainSize, void *params)
 {
-  VM vm;
   Size pageSize;
 
-  AVER(vmReturn != NULL);
+  AVER(vm != NULL);
   AVERT(ArenaGrainSize, grainSize);
   AVER(size > 0);
   AVER(params != NULL);
@@ -90,14 +76,8 @@ Res VMCreate(VM *vmReturn, Size size, Size grainSize, void *params)
   if (reserved < grainSize || reserved > (Size)(size_t)-1)
     return ResRESOURCE;
 
-  /* Allocate space to store the descriptor. */
-  vm = (VM)malloc(sizeof(VMStruct));
-  if (vm == NULL)
-    return ResMEMORY;
-
   vm->block = malloc((size_t)reserved);
   if (vm->block == NULL) {
-    free(vm);
     return ResMEMORY;
   }
 
@@ -112,11 +92,9 @@ Res VMCreate(VM *vmReturn, Size size, Size grainSize, void *params)
   vm->mapped = (Size)0;
  
   vm->sig = VMSig;
-
   AVERT(VM, vm);
  
   EVENT3(VMCreate, vm, vm->base, vm->limit);
-  *vmReturn = vm;
   return ResOK;
 }
 

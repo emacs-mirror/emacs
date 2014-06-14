@@ -1000,21 +1000,6 @@ typedef Res (*RootIterateFn)(Root root, void *p);
 extern Res RootsIterate(Globals arena, RootIterateFn f, void *p);
 
 
-/* VM Interface -- see <code/vm*.c> */
-
-extern Size VMPageSize(void);
-extern Bool VMCheck(VM vm);
-extern Res VMParamFromArgs(void *params, size_t paramSize, ArgList args);
-extern Res VMCreate(VM *VMReturn, Size size, Size grainSize, void *params);
-extern void VMDestroy(VM vm);
-extern Addr VMBase(VM vm);
-extern Addr VMLimit(VM vm);
-extern Res VMMap(VM vm, Addr base, Addr limit);
-extern void VMUnmap(VM vm, Addr base, Addr limit);
-extern Size VMReserved(VM vm);
-extern Size VMMapped(VM vm);
-
-
 /* Land Interface -- see <design/land/> */
 
 extern Bool LandCheck(Land land);

@@ -39,30 +39,15 @@
  */
 
 #include "mpm.h"
+#include "vm.h"
 
 #ifndef MPS_OS_W3
 #error "vmw3.c is Win32 specific, but MPS_OS_W3 is not set"
-#endif
-#ifdef VM_RM
-#error "vmw3.c compiled with VM_RM set"
 #endif
 
 #include "mpswin.h"
 
 SRCID(vmw3, "$Id$");
-
-
-/* VMStruct -- virtual memory structure */
-
-#define VMSig           ((Sig)0x519B3999) /* SIGnature VM */
-
-typedef struct VMStruct {
-  Sig sig;                      /* <design/sig/> */
-  void *block;                  /* unaligned base of VirtualAlloc'd space */
-  Addr base, limit;             /* aligned boundaries of reserved space */
-  Size reserved;                /* total reserved address space */
-  Size mapped;                  /* total mapped memory */
-} VMStruct;
 
 
 /* VMPageSize -- return the operating system page size */
@@ -123,16 +108,14 @@ Res VMParamFromArgs(void *params, size_t paramSize, ArgList args)
 
 /* VMCreate -- reserve some virtual address space, and create a VM structure */
 
-Res VMCreate(VM *vmReturn, Size size, Size grainSize, void *params)
+Res VMCreate(VM vm, Size size, Size grainSize, void *params)
 {
   LPVOID vbase;
-  VM vm;
   Size pageSize, reserved;
   Res res;
-  BOOL b;
   VMParams vmParams = params;
 
-  AVER(vmReturn != NULL);
+  AVER(vm != NULL);
   AVERT(ArenaGrainSize, grainSize);
   AVER(size > 0);
   AVER(params != NULL); /* FIXME: Should have full AVERT? */
@@ -153,13 +136,6 @@ Res VMCreate(VM *vmReturn, Size size, Size grainSize, void *params)
   if (reserved < grainSize || reserved > (Size)(SIZE_T)-1)
     return ResRESOURCE;
 
-  /* Allocate the vm descriptor.  This is likely to be wasteful. */
-  vbase = VirtualAlloc(NULL, SizeAlignUp(sizeof(VMStruct), pageSize),
-                       MEM_COMMIT, PAGE_READWRITE);
-  if (vbase == NULL)
-    return ResMEMORY;
-  vm = (VM)vbase;
-
   /* Allocate the address space. */
   vbase = VirtualAlloc(NULL,
                        reserved,
@@ -167,10 +143,8 @@ Res VMCreate(VM *vmReturn, Size size, Size grainSize, void *params)
                          MEM_RESERVE | MEM_TOP_DOWN :
                          MEM_RESERVE,
                        PAGE_NOACCESS);
-  if (vbase == NULL) {
-    res = ResRESOURCE;
-    goto failReserve;
-  }
+  if (vbase == NULL)
+    return ResRESOURCE;
 
   AVER(AddrIsAligned(vbase, pageSize));
 
@@ -186,14 +160,7 @@ Res VMCreate(VM *vmReturn, Size size, Size grainSize, void *params)
   AVERT(VM, vm);
 
   EVENT3(VMCreate, vm, vm->base, vm->limit);
-
-  *vmReturn = vm;
   return ResOK;
-
-failReserve:
-  b = VirtualFree((LPVOID)vm, (SIZE_T)0, MEM_RELEASE);
-  AVER(b != 0);
-  return res;
 }
 
 
