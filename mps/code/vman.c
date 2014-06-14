@@ -52,7 +52,7 @@ Res VMParamFromArgs(void *params, size_t paramSize, ArgList args)
 
 Res VMCreate(VM vm, Size size, Size grainSize, void *params)
 {
-  Size pageSize;
+  Size pageSize, reserved;
 
   AVER(vm != NULL);
   AVERT(ArenaGrainSize, grainSize);
@@ -106,7 +106,6 @@ void VMDestroy(VM vm)
   /* All vm areas should have been unmapped. */
   AVERT(VM, vm);
   AVER(vm->mapped == (Size)0);
-  AVER(vm->reserved == AddrOffset(vm->base, vm->limit));
 
   EVENT1(VMDestroy, vm);
 
