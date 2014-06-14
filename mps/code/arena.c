@@ -638,7 +638,7 @@ Res ControlDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
 }
 
 
-/* ArenaChunkInsert -- insert chunk into arena's chunk tree */
+/* ArenaChunkInsert -- insert chunk into arena's chunk tree and ring */
 
 void ArenaChunkInsert(Arena arena, Chunk chunk) {
   Bool inserted;
@@ -655,6 +655,11 @@ void ArenaChunkInsert(Arena arena, Chunk chunk) {
   TreeBalance(&updatedTree);
   arena->chunkTree = updatedTree;
   RingAppend(&arena->chunkRing, &chunk->chunkRing);
+
+  /* As part of the bootstrap, the first created chunk becomes the primary
+     chunk.  This step allows ArenaFreeLandInsert to allocate pages. */
+  if (arena->primary == NULL)
+    arena->primary = chunk;
 }
 
 
