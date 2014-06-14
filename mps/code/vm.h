@@ -1,4 +1,4 @@
-/* vm.h: VIRTUAL MEMOEY INTERFACE
+/* vm.h: VIRTUAL MEMORY INTERFACE
  *
  * $Id: //info.ravenbrook.com/project/mps/branch/2014-06-14/vm/code/sa.h#2 $
  * Copyright (c) 2014 Ravenbrook Limited.  See end of file for license.
@@ -23,17 +23,22 @@ typedef struct VMStruct {
 } VMStruct;
 
 
+#define VMBase(vm) RVALUE((vm)->base)
+#define VMLimit(vm) RVALUE((vm)->limit)
+#define VMReserved(vm) RVALUE((vm)->reserved)
+#define VMMapped(vm) RVALUE((vm)->mapped)
+
 extern Size VMPageSize(void);
 extern Bool VMCheck(VM vm);
 extern Res VMParamFromArgs(void *params, size_t paramSize, ArgList args);
 extern Res VMCreate(VM vmReturn, Size size, Size grainSize, void *params);
 extern void VMDestroy(VM vm);
-extern Addr VMBase(VM vm);
-extern Addr VMLimit(VM vm);
+extern Addr (VMBase)(VM vm);
+extern Addr (VMLimit)(VM vm);
 extern Res VMMap(VM vm, Addr base, Addr limit);
 extern void VMUnmap(VM vm, Addr base, Addr limit);
-extern Size VMReserved(VM vm);
-extern Size VMMapped(VM vm);
+extern Size (VMReserved)(VM vm);
+extern Size (VMMapped)(VM vm);
 
 
 #endif /* vm_h */
