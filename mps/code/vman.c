@@ -12,24 +12,6 @@
 SRCID(vman, "$Id$");
 
 
-/* VMCheck -- check a VM structure */
-
-Bool VMCheck(VM vm)
-{
-  CHECKS(VM, vm);
-  CHECKL(vm->base != (Addr)0);
-  CHECKL(vm->limit != (Addr)0);
-  CHECKL(vm->base < vm->limit);
-  CHECKL(ArenaGrainSizeCheck(VMPageSize()));
-  CHECKL(AddrIsAligned(vm->base, VMPageSize()));
-  CHECKL(AddrIsAligned(vm->limit, VMPageSize()));
-  CHECKL(vm->block != NULL);
-  CHECKL((Addr)vm->block <= vm->base);
-  CHECKL(vm->mapped <= vm->reserved);
-  return TRUE;
-}
-
-
 /* VMPageSize -- return the page size */
 
 Size VMPageSize(void)
@@ -114,46 +96,6 @@ void VMDestroy(VM vm)
 
   (void)mps_lib_memset(vm->block, VMJunkBYTE, vm->reserved);
   free(vm->block);
-}
-
-
-/* VMBase -- return the base address of the memory reserved */
-
-Addr (VMBase)(VM vm)
-{
-  AVERT(VM, vm);
-
-  return VMBase(vm);
-}
-
-
-/* VMLimit -- return the limit address of the memory reserved */
-
-Addr (VMLimit)(VM vm)
-{
-  AVERT(VM, vm);
-
-  return VMLimit(vm);
-}
-
-
-/* VMReserved -- return the amount of address space reserved */
-
-Size (VMReserved)(VM vm)
-{
-  AVERT(VM, vm);
-
-  return VMReserved(vm);
-}
-
-
-/* VMMapped -- return the amount of memory actually mapped */
-
-Size (VMMapped)(VM vm)
-{
-  AVERT(VM, vm);
-
-  return VMMapped(vm);
 }
 
 
