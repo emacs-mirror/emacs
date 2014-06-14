@@ -39,6 +39,7 @@
  */
 
 #include "mpm.h"
+#include "vm.h"
 
 /* for mmap(2), munmap(2) */
 #include <sys/types.h>
@@ -56,19 +57,6 @@
 #endif
 
 SRCID(vmix, "$Id$");
-
-
-/* VMStruct -- virtual memory structure */
-
-#define VMSig           ((Sig)0x519B3999) /* SIGnature VM */
-
-typedef struct VMStruct {
-  Sig sig;                      /* <design/sig/> */
-  void *block;                  /* unaligned base of mmap'd memory */
-  Addr base, limit;             /* aligned boundaries of reserved space */
-  Size reserved;                /* total reserved address space */
-  Size mapped;                  /* total mapped memory */
-} VMStruct;
 
 
 /* VMPageSize -- return operating system page size */
@@ -114,14 +102,12 @@ Res VMParamFromArgs(void *params, size_t paramSize, ArgList args)
 
 /* VMCreate -- reserve some virtual address space, and create a VM structure */
 
-Res VMCreate(VM *vmReturn, Size size, Size grainSize, void *params)
+Res VMCreate(VM vm, Size size, Size grainSize, void *params)
 {
-  VM vm;
   Size pageSize, reserved;
   void *addr;
-  Res res;
 
-  AVER(vmReturn != NULL);
+  AVER(vm != NULL);
   AVERT(ArenaGrainSize, grainSize);
   AVER(size > 0);
   AVER(params != NULL);
@@ -139,10 +125,9 @@ Res VMCreate(VM *vmReturn, Size size, Size grainSize, void *params)
   if (reserved < grainSize || reserved > (Size)(size_t)-1)
     return ResRESOURCE;
 
-  /* Map in a page to store the descriptor on. */
-  addr = mmap(0, (size_t)SizeAlignUp(sizeof(VMStruct), pageSize),
-              PROT_READ | PROT_WRITE,
-              MAP_ANON | MAP_PRIVATE,
+  /* See .assume.not-last. */
+  addr = mmap(0, reserved,
+              PROT_NONE, MAP_ANON | MAP_PRIVATE,
               -1, 0);
   /* On Darwin the MAP_FAILED return value is not documented, but does
    * work.  MAP_FAILED _is_ documented by POSIX.
@@ -150,19 +135,7 @@ Res VMCreate(VM *vmReturn, Size size, Size grainSize, void *params)
   if(addr == MAP_FAILED) {
     int e = errno;
     AVER(e == ENOMEM); /* .assume.mmap.err */
-    return ResMEMORY;
-  }
-  vm = (VM)addr;
-
-  /* See .assume.not-last. */
-  addr = mmap(0, reserved,
-              PROT_NONE, MAP_ANON | MAP_PRIVATE,
-              -1, 0);
-  if(addr == MAP_FAILED) {
-    int e = errno;
-    AVER(e == ENOMEM); /* .assume.mmap.err */
-    res = ResRESOURCE;
-    goto failReserve;
+    return ResRESOURCE;
   }
 
   vm->block = addr;
@@ -177,13 +150,7 @@ Res VMCreate(VM *vmReturn, Size size, Size grainSize, void *params)
   AVERT(VM, vm);
 
   EVENT3(VMCreate, vm, vm->base, vm->limit);
-
-  *vmReturn = vm;
   return ResOK;
-
-failReserve:
-  (void)munmap((void *)vm, (size_t)SizeAlignUp(sizeof(VMStruct), pageSize));
-  return res;
 }
 
 
@@ -198,15 +165,13 @@ void VMDestroy(VM vm)
 
   EVENT1(VMDestroy, vm);
 
-  /* This appears to be pretty pointless, since the descriptor */
-  /* page is about to vanish completely.  However, munmap might fail */
-  /* for some reason, and this would ensure that it was still */
-  /* discovered if sigs were being checked. */
+  /* This appears to be pretty pointless, since the VM is about to
+   * vanish completely. However, munmap might fail for some reason,
+   * and this would ensure that it was still discovered if sigs are
+   * being checked. */
   vm->sig = SigInvalid;
 
   r = munmap(vm->block, vm->reserved);
-  AVER(r == 0);
-  r = munmap((void *)vm, (size_t)SizeAlignUp(sizeof(VMStruct), VMPageSize()));
   AVER(r == 0);
 }
 

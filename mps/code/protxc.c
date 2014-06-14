@@ -58,6 +58,7 @@
 #include "mpm.h"
 #include "prmcxc.h"
 #include "protxc.h"
+#include "vm.h"
 
 #include <stdlib.h> /* see .trans.stdlib */
 #include <stdio.h> /* see .trans.stdlib */
