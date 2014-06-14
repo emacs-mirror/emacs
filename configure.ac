@@ -2079,10 +2079,14 @@ if test "$HAVE_PTHREAD" = yes; then
   # Some systems optimize for single-threaded programs by default, and
   # need special flags to disable these optimizations. For example, the
   # definition of 'errno' in <errno.h>.
-  if test "$opsys" = aix4-2; then
-    AC_DEFINE([_THREAD_SAFE], [1],
-      [Define to 1 if your system requires this in multithreaded code.])
-  fi
+  case $opsys in
+    sol*)
+      AC_DEFINE([_REENTRANT], 1,
+	[Define to 1 if your system requires this in multithreaded code.]);;
+    aix4-2)
+      AC_DEFINE([_THREAD_SAFE], 1,
+	[Define to 1 if your system requires this in multithreaded code.]);;
+  esac
 fi
 AC_SUBST([LIB_PTHREAD])
 

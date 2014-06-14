@@ -1,3 +1,11 @@
+2014-06-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port part of the AIX fix to Solaris (Bug#17598).
+	* configure.ac (_REENTRANT): Define on Solaris if HAVE_PTHREAD.
+	This ports part of the recent AIX fixes to Solaris.  It is needed
+	for the same reason that _THREAD_SAFE is needed on AIX, e.g., to
+	make sure that each thread has its own 'errno'.
+
 2014-06-11  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Backport fcntl.h AIX fix from the trunk (Bug#17598).
