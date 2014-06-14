@@ -515,6 +515,14 @@ Memory Management Glossary: R
 
         .. mps:specific:: See :ref:`topic-finalization`.
 
+    retention
+
+        The failure to :term:`recycle` :term:`floating garbage`, due
+        to some approximation or optimization in the :term:`garbage
+        collector`; also the amount of memory thus retained.
+
+        .. bibref:: :ref:`Boehm (2001) <BOEHM01>`.
+
     ROM
 
         .. aka:: *read-only memory*.
