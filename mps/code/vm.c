@@ -1,47 +1,73 @@
-/* vm.h: VIRTUAL MEMORY INTERFACE
+/* vm.c: VIRTUAL MEMORY IMPLEMENTATION
  *
  * $Id$
  * Copyright (c) 2014 Ravenbrook Limited.  See end of file for license.
+ *
+ * This is the portable part of the virtual memory implementation.
  */
 
-#ifndef vm_h
-#define vm_h
+#include "mpm.h"
+#include "vm.h"
 
-#include "mpmtypes.h"
-
-
-/* VMStruct -- virtual memory structure */
-
-#define VMSig           ((Sig)0x519B3999) /* SIGnature VM */
-
-typedef struct VMStruct {
-  Sig sig;                      /* <design/sig/> */
-  void *block;                  /* unaligned base of mmap'd memory */
-  Addr base, limit;             /* aligned boundaries of reserved space */
-  Size reserved;                /* total reserved address space */
-  Size mapped;                  /* total mapped memory */
-} VMStruct;
+SRCID(vm, "$Id$");
 
 
-#define VMBase(vm) RVALUE((vm)->base)
-#define VMLimit(vm) RVALUE((vm)->limit)
-#define VMReserved(vm) RVALUE((vm)->reserved)
-#define VMMapped(vm) RVALUE((vm)->mapped)
+/* VMCheck -- check a VM structure */
 
-extern Size VMPageSize(void);
-extern Bool VMCheck(VM vm);
-extern Res VMParamFromArgs(void *params, size_t paramSize, ArgList args);
-extern Res VMCreate(VM vmReturn, Size size, Size grainSize, void *params);
-extern void VMDestroy(VM vm);
-extern Addr (VMBase)(VM vm);
-extern Addr (VMLimit)(VM vm);
-extern Res VMMap(VM vm, Addr base, Addr limit);
-extern void VMUnmap(VM vm, Addr base, Addr limit);
-extern Size (VMReserved)(VM vm);
-extern Size (VMMapped)(VM vm);
+Bool VMCheck(VM vm)
+{
+  CHECKS(VM, vm);
+  CHECKL(vm->base != (Addr)0);
+  CHECKL(vm->limit != (Addr)0);
+  CHECKL(vm->base < vm->limit);
+  CHECKL(ArenaGrainSizeCheck(VMPageSize()));
+  CHECKL(AddrIsAligned(vm->base, VMPageSize()));
+  CHECKL(AddrIsAligned(vm->limit, VMPageSize()));
+  CHECKL(vm->block != NULL);
+  CHECKL((Addr)vm->block <= vm->base);
+  CHECKL(vm->mapped <= vm->reserved);
+  return TRUE;
+}
 
 
-#endif /* vm_h */
+/* VMBase -- return the base address of the memory reserved */
+
+Addr (VMBase)(VM vm)
+{
+  AVERT(VM, vm);
+
+  return VMBase(vm);
+}
+
+
+/* VMLimit -- return the limit address of the memory reserved */
+
+Addr (VMLimit)(VM vm)
+{
+  AVERT(VM, vm);
+
+  return VMLimit(vm);
+}
+
+
+/* VMReserved -- return the amount of address space reserved */
+
+Size (VMReserved)(VM vm)
+{
+  AVERT(VM, vm);
+
+  return VMReserved(vm);
+}
+
+
+/* VMMapped -- return the amount of memory actually mapped */
+
+Size (VMMapped)(VM vm)
+{
+  AVERT(VM, vm);
+
+  return VMMapped(vm);
+}
 
 
 /* C. COPYRIGHT AND LICENSE
