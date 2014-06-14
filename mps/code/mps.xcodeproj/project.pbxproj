@@ -1404,6 +1404,8 @@
 		2231BB6718CA97DC002D6322 /* locusss */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = locusss; sourceTree = BUILT_PRODUCTS_DIR; };
 		2231BB6818CA9834002D6322 /* locbwcss.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = locbwcss.c; sourceTree = "<group>"; };
 		2231BB6918CA983C002D6322 /* locusss.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = locusss.c; sourceTree = "<group>"; };
+		223475CB194CA09500C69128 /* vm.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = vm.c; sourceTree = "<group>"; };
+		223475CC194CA09500C69128 /* vm.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = vm.h; sourceTree = "<group>"; };
 		224CC799175E1821002FF81B /* fotest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = fotest; sourceTree = BUILT_PRODUCTS_DIR; };
 		224CC79E175E3202002FF81B /* fotest.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = fotest.c; sourceTree = "<group>"; };
 		22561A9618F4263300372C66 /* testthr.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = testthr.h; sourceTree = "<group>"; };
@@ -2456,6 +2458,8 @@
 				310F5D7118B6675F007EFCBC /* tree.c */,
 				310F5D7218B6675F007EFCBC /* tree.h */,
 				31EEAC44156AB32500714D05 /* version.c */,
+				223475CB194CA09500C69128 /* vm.c */,
+				223475CC194CA09500C69128 /* vm.h */,
 				31EEAC0E156AB27B00714D05 /* walk.c */,
 			);
 			name = "MPM Core";
