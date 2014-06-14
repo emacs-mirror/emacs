@@ -1426,15 +1426,15 @@
 		22B2BC3618B6434F00C33E63 /* scheme-advanced */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "scheme-advanced"; sourceTree = BUILT_PRODUCTS_DIR; };
 		22C2ACA018BE3FEC006B3677 /* nailboardtest.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = nailboardtest.c; sourceTree = "<group>"; };
 		22C2ACAF18BE400A006B3677 /* nailboardtest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = nailboardtest; sourceTree = BUILT_PRODUCTS_DIR; };
-		22E30E821886FF1400D98EA9 /* nailboard.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = nailboard.c; sourceTree = "<group>"; };
-		22E30E831886FF1400D98EA9 /* nailboard.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = nailboard.h; sourceTree = "<group>"; };
-		22F846AF18F4379C00982BA7 /* lockut.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = lockut.c; sourceTree = "<group>"; };
-		22F846BD18F437B900982BA7 /* lockut */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = lockut; sourceTree = BUILT_PRODUCTS_DIR; };
 		22C5C99A18EC6AEC004C63D4 /* failover.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = failover.c; sourceTree = "<group>"; };
 		22C5C99B18EC6AEC004C63D4 /* failover.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = failover.h; sourceTree = "<group>"; };
 		22C5C99C18EC6AEC004C63D4 /* land.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = land.c; sourceTree = "<group>"; };
 		22DD93E118ED815F00240DD2 /* failover.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = failover.txt; path = ../design/failover.txt; sourceTree = "<group>"; };
 		22DD93E218ED815F00240DD2 /* land.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = land.txt; path = ../design/land.txt; sourceTree = "<group>"; };
+		22E30E821886FF1400D98EA9 /* nailboard.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = nailboard.c; sourceTree = "<group>"; };
+		22E30E831886FF1400D98EA9 /* nailboard.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = nailboard.h; sourceTree = "<group>"; };
+		22F846AF18F4379C00982BA7 /* lockut.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = lockut.c; sourceTree = "<group>"; };
+		22F846BD18F437B900982BA7 /* lockut */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = lockut; sourceTree = BUILT_PRODUCTS_DIR; };
 		22FA177516E8D6FC0098B23F /* amcssth */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = amcssth; sourceTree = BUILT_PRODUCTS_DIR; };
 		22FA177616E8D7A80098B23F /* amcssth.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = amcssth.c; sourceTree = "<group>"; };
 		22FACED1188807FF000FDBC1 /* airtest.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = airtest.c; sourceTree = "<group>"; };
@@ -1599,7 +1599,6 @@
 		311F2F6717398B3B00C15B6A /* mpsio.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mpsio.h; sourceTree = "<group>"; };
 		311F2F6817398B3B00C15B6A /* mpslib.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mpslib.h; sourceTree = "<group>"; };
 		311F2F6917398B3B00C15B6A /* mpstd.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mpstd.h; sourceTree = "<group>"; };
-		311F2F6A17398B4C00C15B6A /* mpsw3.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mpsw3.h; sourceTree = "<group>"; };
 		311F2F6B17398B4C00C15B6A /* mpswin.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mpswin.h; sourceTree = "<group>"; };
 		311F2F6D17398B6300C15B6A /* prmci3.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = prmci3.h; sourceTree = "<group>"; };
 		311F2F6E17398B6300C15B6A /* prmci6.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = prmci6.h; sourceTree = "<group>"; };
@@ -2410,7 +2409,6 @@
 				311F2F6717398B3B00C15B6A /* mpsio.h */,
 				311F2F6817398B3B00C15B6A /* mpslib.h */,
 				311F2F6917398B3B00C15B6A /* mpstd.h */,
-				311F2F6A17398B4C00C15B6A /* mpsw3.h */,
 				311F2F6B17398B4C00C15B6A /* mpswin.h */,
 				22E30E821886FF1400D98EA9 /* nailboard.c */,
 				22E30E831886FF1400D98EA9 /* nailboard.h */,
@@ -3383,7 +3381,7 @@
 		31EEABDA156AAE9E00714D05 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0460;
+				LastUpgradeCheck = 0510;
 			};
 			buildConfigurationList = 31EEABDD156AAE9E00714D05 /* Build configuration list for PBXProject "mps" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -5170,6 +5168,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_IMPLICIT_SIGN_CONVERSION = YES;
 				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
@@ -5190,6 +5189,7 @@
 				GCC_WARN_PEDANTIC = YES;
 				GCC_WARN_SHADOW = YES;
 				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNKNOWN_PRAGMAS = YES;
 				GCC_WARN_UNUSED_FUNCTION = YES;
@@ -5606,6 +5606,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_IMPLICIT_SIGN_CONVERSION = YES;
 				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
@@ -5626,6 +5627,7 @@
 				GCC_WARN_PEDANTIC = YES;
 				GCC_WARN_SHADOW = YES;
 				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNKNOWN_PRAGMAS = YES;
 				GCC_WARN_UNUSED_FUNCTION = YES;
@@ -5660,6 +5662,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_IMPLICIT_SIGN_CONVERSION = YES;
 				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
@@ -5680,6 +5683,7 @@
 				GCC_WARN_PEDANTIC = YES;
 				GCC_WARN_SHADOW = YES;
 				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNKNOWN_PRAGMAS = YES;
 				GCC_WARN_UNUSED_FUNCTION = YES;

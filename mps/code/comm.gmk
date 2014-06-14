@@ -210,6 +210,7 @@ MPMCOMMON = \
     traceanc.c \
     tract.c \
     tree.c \
+    version.c \
     vm.c \
     walk.c
 MPM = $(MPMCOMMON) $(MPMPF) $(AMC) $(AMS) $(AWL) $(LO) $(MV2) $(MVFF) $(PLINTH)
@@ -635,8 +636,7 @@ endif
 $(PFM)/$(VARIETY)/%.a:
 	$(ECHO) "$(PFM): $@"
 	rm -f $@
-	$(CC) $(CFLAGSSTRICT) -c -o $(PFM)/$(VARIETY)/version.o version.c
-	$(AR) $(ARFLAGS) $@ $^ $(PFM)/$(VARIETY)/version.o
+	$(AR) $(ARFLAGS) $@ $^
 	$(RANLIB) $@
 
 # Executable

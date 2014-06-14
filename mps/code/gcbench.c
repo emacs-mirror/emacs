@@ -393,6 +393,8 @@ int main(int argc, char *argv[]) {
       zoned = FALSE;
       break;
     default:
+      /* This is printed in parts to keep within the 509 character
+         limit for string literals in portable standard C. */
       fprintf(stderr,
               "Usage: %s [option...] [test...]\n"
               "Options:\n"
@@ -405,20 +407,19 @@ int main(int argc, char *argv[]) {
               "  -i n, --niter=n\n"
               "    Iterate each test n times (default %u).\n"
               "  -p n, --npass=n\n"
-              "    Pass over the tree n times (default %u).\n"
-              "  -g c,m, --gen=c[KMG],m\n"
-              "    Generation with capacity c (in Kb) and mortality m\n"
-              "    Use multiple times for multiple generations.\n"
-              "  -w n, --width=n\n"
-              "    Width of tree nodes made (default %lu)\n",
+              "    Pass over the tree n times (default %u).\n",
               argv[0],
               (unsigned long)arena_size,
               (unsigned long)arena_grain_size,
               nthreads,
               niter,
-              npass,
-              (unsigned long)width);
+              npass);
       fprintf(stderr,
+              "  -g c,m, --gen=c[KMG],m\n"
+              "    Generation with capacity c (in Kb) and mortality m\n"
+              "    Use multiple times for multiple generations.\n"
+              "  -w n, --width=n\n"
+              "    Width of tree nodes made (default %lu)\n"
               "  -d n, --depth=n\n"
               "    Depth of tree made (default %u)\n"
               "  -r p, --preuse=p\n"
@@ -428,15 +429,17 @@ int main(int argc, char *argv[]) {
               "  -l --pin-leaf\n"
               "    Make a pinned object to use for leaves.\n"
               "  -x n, --seed=n\n"
-              "    Random number seed (default from entropy)\n"
+              "    Random number seed (default from entropy)\n",
+              (unsigned long)width,
+              depth,
+              preuse,
+              pupdate);
+      fprintf(stderr,
               "  -z, --arena-unzoned\n"
               "    Disable zoned allocation in the arena\n"
               "Tests:\n"
               "  amc   pool class AMC\n"
-              "  ams   pool class AMS\n",
-              depth,
-              preuse,
-              pupdate);
+              "  ams   pool class AMS\n");
       return EXIT_FAILURE;
     }
   argc -= optind;
