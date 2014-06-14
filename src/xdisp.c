@@ -20757,6 +20757,7 @@ Value is the new character position of point.  */)
      recorded in the glyphs, at least as long as the goal is on the
      screen.  */
   if (w->window_end_valid
+      && NILP (Vexecuting_kbd_macro)
       && !windows_or_buffers_changed
       && b
       && !b->clip_changed
