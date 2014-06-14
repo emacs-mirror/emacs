@@ -105,7 +105,7 @@ Res VMParamFromArgs(void *params, size_t paramSize, ArgList args)
 Res VMCreate(VM vm, Size size, Size grainSize, void *params)
 {
   Size pageSize, reserved;
-  void *addr;
+  void *vbase;
 
   AVER(vm != NULL);
   AVERT(ArenaGrainSize, grainSize);
@@ -126,20 +126,20 @@ Res VMCreate(VM vm, Size size, Size grainSize, void *params)
     return ResRESOURCE;
 
   /* See .assume.not-last. */
-  addr = mmap(0, reserved,
-              PROT_NONE, MAP_ANON | MAP_PRIVATE,
-              -1, 0);
+  vbase = mmap(0, reserved,
+               PROT_NONE, MAP_ANON | MAP_PRIVATE,
+               -1, 0);
   /* On Darwin the MAP_FAILED return value is not documented, but does
    * work.  MAP_FAILED _is_ documented by POSIX.
    */
-  if(addr == MAP_FAILED) {
+  if (vbase == MAP_FAILED) {
     int e = errno;
     AVER(e == ENOMEM); /* .assume.mmap.err */
     return ResRESOURCE;
   }
 
-  vm->block = addr;
-  vm->base = AddrAlignUp(addr, grainSize);
+  vm->block = vbase;
+  vm->base = AddrAlignUp(vbase, grainSize);
   vm->limit = AddrAdd(vm->base, size);
   AVER(vm->base < vm->limit);  /* .assume.not-last */
   AVER(vm->limit <= AddrAdd((Addr)vm->block, reserved));
@@ -149,26 +149,26 @@ Res VMCreate(VM vm, Size size, Size grainSize, void *params)
   vm->sig = VMSig;
   AVERT(VM, vm);
 
-  EVENT3(VMCreate, vm, vm->base, vm->limit);
+  EVENT3(VMCreate, vm, VMBase(vm), VMLimit(vm));
   return ResOK;
 }
 
 
-/* VMDestroy -- release all address space and destroy VM structure */
+/* VMDestroy -- release all address space and finish VM structure */
 
 void VMDestroy(VM vm)
 {
   int r;
 
   AVERT(VM, vm);
-  AVER(vm->mapped == (Size)0);
+  /* Descriptor must not be stored inside its own VM at this point. */
+  AVER(PointerAdd(vm, sizeof *vm) <= vm->block
+       || PointerAdd(vm->block, VMReserved(vm)) <= (Pointer)vm);
+  /* All address space must have been unmapped. */
+  AVER(VMMapped(vm) == (Size)0);
 
   EVENT1(VMDestroy, vm);
 
-  /* This appears to be pretty pointless, since the VM is about to
-   * vanish completely. However, munmap might fail for some reason,
-   * and this would ensure that it was still discovered if sigs are
-   * being checked. */
   vm->sig = SigInvalid;
 
   r = munmap(vm->block, vm->reserved);
@@ -178,41 +178,41 @@ void VMDestroy(VM vm)
 
 /* VMBase -- return the base address of the memory reserved */
 
-Addr VMBase(VM vm)
+Addr (VMBase)(VM vm)
 {
   AVERT(VM, vm);
 
-  return vm->base;
+  return VMBase(vm);
 }
 
 
 /* VMLimit -- return the limit address of the memory reserved */
 
-Addr VMLimit(VM vm)
+Addr (VMLimit)(VM vm)
 {
   AVERT(VM, vm);
 
-  return vm->limit;
+  return VMLimit(vm);
 }
 
 
 /* VMReserved -- return the amount of memory reserved */
 
-Size VMReserved(VM vm)
+Size (VMReserved)(VM vm)
 {
   AVERT(VM, vm);
 
-  return vm->reserved;
+  return VMReserved(vm);
 }
 
 
 /* VMMapped -- return the amount of memory actually mapped */
 
-Size VMMapped(VM vm)
+Size (VMMapped)(VM vm)
 {
   AVERT(VM, vm);
 
-  return vm->mapped;
+  return VMMapped(vm);
 }
 
 
@@ -225,8 +225,8 @@ Res VMMap(VM vm, Addr base, Addr limit)
   AVERT(VM, vm);
   AVER(sizeof(void *) == sizeof(Addr));
   AVER(base < limit);
-  AVER(base >= vm->base);
-  AVER(limit <= vm->limit);
+  AVER(base >= VMBase(vm));
+  AVER(limit <= VMLimit(vm));
   AVER(AddrIsAligned(base, VMPageSize()));
   AVER(AddrIsAligned(limit, VMPageSize()));
 
@@ -242,7 +242,7 @@ Res VMMap(VM vm, Addr base, Addr limit)
   }
 
   vm->mapped += size;
-  AVER(vm->mapped <= vm->reserved);
+  AVER(VMMapped(vm) <= VMReserved(vm));
 
   EVENT3(VMMap, vm, base, limit);
   return ResOK;
@@ -258,12 +258,13 @@ void VMUnmap(VM vm, Addr base, Addr limit)
 
   AVERT(VM, vm);
   AVER(base < limit);
-  AVER(base >= vm->base);
-  AVER(limit <= vm->limit);
+  AVER(base >= VMBase(vm));
+  AVER(limit <= VMLimit(vm));
   AVER(AddrIsAligned(base, VMPageSize()));
   AVER(AddrIsAligned(limit, VMPageSize()));
 
   size = AddrOffset(base, limit);
+  AVER(size <= VMMapped(vm));
 
   /* see <design/vmo1/#fun.unmap.offset> */
   addr = mmap((void *)base, (size_t)size,

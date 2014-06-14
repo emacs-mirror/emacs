@@ -159,72 +159,70 @@ Res VMCreate(VM vm, Size size, Size grainSize, void *params)
   vm->sig = VMSig;
   AVERT(VM, vm);
 
-  EVENT3(VMCreate, vm, vm->base, vm->limit);
+  EVENT3(VMCreate, vm, VMBase(vm), VMLimit(vm));
   return ResOK;
 }
 
 
-/* VMDestroy -- destroy the VM structure */
+/* VMDestroy -- release address space and finish the VM structure */
 
 void VMDestroy(VM vm)
 {
   BOOL b;
 
   AVERT(VM, vm);
-  AVER(vm->mapped == 0);
+  /* Descriptor must not be stored inside its own VM at this point. */
+  AVER(PointerAdd(vm, sizeof *vm) <= vm->block
+       || PointerAdd(vm->block, VMReserved(vm)) <= (Pointer)vm);
+  /* All address space must have been unmapped. */
+  AVER(VMMapped(vm) == (Size)0);
 
   EVENT1(VMDestroy, vm);
 
-  /* This appears to be pretty pointless, since the vm descriptor page
-   * is about to vanish completely.  However, the VirtualFree might
-   * fail and it would be nice to have a dead sig there. */
   vm->sig = SigInvalid;
 
   b = VirtualFree((LPVOID)vm->block, (SIZE_T)0, MEM_RELEASE);
-  AVER(b != 0);
-
-  b = VirtualFree((LPVOID)vm, (SIZE_T)0, MEM_RELEASE);
   AVER(b != 0);
 }
 
 
 /* VMBase -- return the base address of the memory reserved */
 
-Addr VMBase(VM vm)
+Addr (VMBase)(VM vm)
 {
   AVERT(VM, vm);
 
-  return vm->base;
+  return VMBase(vm);
 }
 
 
 /* VMLimit -- return the limit address of the memory reserved */
 
-Addr VMLimit(VM vm)
+Addr (VMLimit)(VM vm)
 {
   AVERT(VM, vm);
 
-  return vm->limit;
+  return VMLimit(vm);
 }
 
 
 /* VMReserved -- return the amount of address space reserved */
 
-Size VMReserved(VM vm)
+Size (VMReserved)(VM vm)
 {
   AVERT(VM, vm);
 
-  return vm->reserved;
+  return VMReserved(vm);
 }
 
 
 /* VMMapped -- return the amount of memory actually mapped */
 
-Size VMMapped(VM vm)
+Size (VMMapped)(VM vm)
 {
   AVERT(VM, vm);
 
-  return vm->mapped;
+  return VMMapped(vm);
 }
 
 
@@ -237,9 +235,9 @@ Res VMMap(VM vm, Addr base, Addr limit)
   AVERT(VM, vm);
   AVER(AddrIsAligned(base, VMPageSize()));
   AVER(AddrIsAligned(limit, VMPageSize()));
-  AVER(vm->base <= base);
+  AVER(VMBase(vm) <= base);
   AVER(base < limit);
-  AVER(limit <= vm->limit);
+  AVER(limit <= VMLimit(vm));
 
   /* .improve.query-map: We could check that the pages we are about to
    * map are unmapped using VirtualQuery. */
@@ -251,7 +249,7 @@ Res VMMap(VM vm, Addr base, Addr limit)
   AVER((Addr)b == base);        /* base should've been aligned */
 
   vm->mapped += AddrOffset(base, limit);
-  AVER(vm->mapped <= vm->reserved);
+  AVER(VMMapped(vm) <= VMReserved(vm));
 
   EVENT3(VMMap, vm, base, limit);
   return ResOK;
@@ -263,19 +261,23 @@ Res VMMap(VM vm, Addr base, Addr limit)
 void VMUnmap(VM vm, Addr base, Addr limit)
 {
   BOOL b;
+  Size size;
 
   AVERT(VM, vm);
   AVER(AddrIsAligned(base, VMPageSize()));
   AVER(AddrIsAligned(limit, VMPageSize()));
-  AVER(vm->base <= base);
+  AVER(VMBase(vm) <= base);
   AVER(base < limit);
-  AVER(limit <= vm->limit);
+  AVER(limit <= VMLimit(vm));
+
+  size = AddrOffset(base, limit);
+  AVER(size >= VMMapped(vm));
 
   /* .improve.query-unmap: Could check that the pages we are about */
   /* to unmap are mapped, using VirtualQuery. */
-  b = VirtualFree((LPVOID)base, (SIZE_T)AddrOffset(base, limit), MEM_DECOMMIT);
+  b = VirtualFree((LPVOID)base, (SIZE_T)size, MEM_DECOMMIT);
   AVER(b != 0);  /* .assume.free.success */
-  vm->mapped -= AddrOffset(base, limit);
+  vm->mapped -= size;
 
   EVENT3(VMUnmap, vm, base, limit);
 }
