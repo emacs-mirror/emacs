@@ -318,6 +318,25 @@ static Size cbsSize(Land land)
   return cbs->size;
 }
 
+/* cbsBlockDestroy -- destroy a block */
+
+static void cbsBlockDestroy(CBS cbs, CBSBlock block)
+{
+  Size size;
+
+  AVERT(CBS, cbs);
+  AVERT(CBSBlock, block);
+  size = CBSBlockSize(block);
+
+  STATISTIC(--cbs->treeSize);
+  AVER(cbs->size >= size);
+  cbs->size -= size;
+
+  /* make invalid */
+  block->limit = block->base;
+  PoolFree(cbsBlockPool(cbs), (Addr)block, cbs->blockStructSize);
+}
+
 
 /* Node change operators
  *
@@ -329,23 +348,14 @@ static Size cbsSize(Land land)
 static void cbsBlockDelete(CBS cbs, CBSBlock block)
 {
   Bool b;
-  Size size;
 
   AVERT(CBS, cbs);
   AVERT(CBSBlock, block);
-  size = CBSBlockSize(block);
 
   METER_ACC(cbs->treeSearch, cbs->treeSize);
   b = SplayTreeDelete(cbsSplay(cbs), cbsBlockTree(block));
   AVER(b); /* expect block to be in the tree */
-  STATISTIC(--cbs->treeSize);
-  AVER(cbs->size >= size);
-  cbs->size -= size;
-
-  /* make invalid */
-  block->limit = block->base;
-
-  PoolFree(cbsBlockPool(cbs), (Addr)block, cbs->blockStructSize);
+  cbsBlockDestroy(cbs, block);
 }
 
 static void cbsBlockShrunk(CBS cbs, CBSBlock block, Size oldSize)
@@ -716,28 +726,16 @@ typedef struct CBSIterateClosure {
   Land land;
   LandVisitor visitor;
   void *closureP;
-  Size closureS;
 } CBSIterateClosure;
 
 static Bool cbsIterateVisit(Tree tree, void *closureP, Size closureS)
 {
   CBSIterateClosure *closure = closureP;
-  RangeStruct range;
-  CBSBlock cbsBlock;
   Land land = closure->land;
-  CBS cbs = cbsOfLand(land);
-  Bool cont = TRUE;
-
-  AVER(closureS == UNUSED_SIZE);
-  UNUSED(closureS);
-
-  cbsBlock = cbsBlockOfTree(tree);
+  CBSBlock cbsBlock = cbsBlockOfTree(tree);
+  RangeStruct range;
   RangeInit(&range, CBSBlockBase(cbsBlock), CBSBlockLimit(cbsBlock));
-  cont = (*closure->visitor)(land, &range, closure->closureP, closure->closureS);
-  if (!cont)
-    return FALSE;
-  METER_ACC(cbs->treeSearch, cbs->treeSize);
-  return TRUE;
+  return (*closure->visitor)(land, &range, closure->closureP, closureS);
 }
 
 static Bool cbsIterate(Land land, LandVisitor visitor,
@@ -760,9 +758,65 @@ static Bool cbsIterate(Land land, LandVisitor visitor,
   closure.land = land;
   closure.visitor = visitor;
   closure.closureP = closureP;
-  closure.closureS = closureS;
   return TreeTraverse(SplayTreeRoot(splay), splay->compare, splay->nodeKey,
-                      cbsIterateVisit, &closure, UNUSED_SIZE);
+                      cbsIterateVisit, &closure, closureS);
+}
+
+
+/* cbsIterateAndDelete -- iterate over all blocks in CBS
+ *
+ * See <design/land/#function.iterate.and.delete>.
+ */
+
+typedef struct CBSIterateAndDeleteClosure {
+  Land land;
+  LandDeleteVisitor visitor;
+  Bool cont;
+  void *closureP;
+} CBSIterateAndDeleteClosure;
+
+static Bool cbsIterateAndDeleteVisit(Tree tree, void *closureP, Size closureS)
+{
+  CBSIterateAndDeleteClosure *closure = closureP;
+  Land land = closure->land;
+  CBS cbs = cbsOfLand(land);
+  CBSBlock cbsBlock = cbsBlockOfTree(tree);
+  Bool deleteNode = FALSE;
+  RangeStruct range;
+
+  RangeInit(&range, CBSBlockBase(cbsBlock), CBSBlockLimit(cbsBlock));
+  if (closure->cont)
+    closure->cont = (*closure->visitor)(&deleteNode, land, &range,
+                                        closure->closureP, closureS);
+  if (deleteNode)
+    cbsBlockDestroy(cbs, cbsBlock);
+  return deleteNode;
+}
+
+static Bool cbsIterateAndDelete(Land land, LandDeleteVisitor visitor,
+                                void *closureP, Size closureS)
+{
+  CBS cbs;
+  SplayTree splay;
+  CBSIterateAndDeleteClosure closure;
+
+  AVERT(Land, land);
+  cbs = cbsOfLand(land);
+  AVERT(CBS, cbs);
+  AVER(FUNCHECK(visitor));
+
+  splay = cbsSplay(cbs);
+  /* .splay-iterate.slow: We assume that splay tree iteration does */
+  /* searches and meter it. */
+  METER_ACC(cbs->treeSearch, cbs->treeSize);
+
+  closure.land = land;
+  closure.visitor = visitor;
+  closure.closureP = closureP;
+  closure.cont = TRUE;
+  TreeTraverseAndDelete(&splay->root, cbsIterateAndDeleteVisit,
+                        &closure, closureS);
+  return closure.cont;
 }
 
 
@@ -1123,6 +1177,7 @@ DEFINE_LAND_CLASS(CBSLandClass, class)
   class->insert = cbsInsert;
   class->delete = cbsDelete;
   class->iterate = cbsIterate;
+  class->iterateAndDelete = cbsIterateAndDelete;
   class->findFirst = cbsFindFirst;
   class->findLast = cbsFindLast;
   class->findLargest = cbsFindLargest;

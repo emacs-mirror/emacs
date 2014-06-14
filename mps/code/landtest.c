@@ -480,7 +480,7 @@ extern int main(int argc, char *argv[])
   Arena arena;
   TestStateStruct state;
   void *p;
-  Addr dummyBlock;
+  Addr block;
   BT allocTable;
   MFSStruct blockPool;
   CBSStruct cbsStruct;
@@ -506,16 +506,14 @@ extern int main(int argc, char *argv[])
   die((mps_res_t)BTCreate(&allocTable, arena, ArraySize),
       "failed to create alloc table");
 
-  /* We're not going to use this block, but I feel unhappy just */
-  /* inventing addresses. */
-  die((mps_res_t)ControlAlloc(&p, arena, ArraySize * align,
+  die((mps_res_t)ControlAlloc(&p, arena, (ArraySize + 1) * align, 
                               /* withReservoirPermit */ FALSE),
       "failed to allocate block");
-  dummyBlock = p; /* avoid pun */
+  block = AddrAlignUp(p, align);
 
   if (verbose) {
-    printf("Allocated block [%p,%p)\n", (void*)dummyBlock,
-           (char *)dummyBlock + ArraySize);
+    printf("Allocated block [%p,%p)\n", (void *)block,
+           (void *)AddrAdd(block, ArraySize));
   }
 
   /* 1. Test CBS */
@@ -525,7 +523,7 @@ extern int main(int argc, char *argv[])
         "failed to initialise CBS");
   } MPS_ARGS_END(args);
   state.align = align;
-  state.block = dummyBlock;
+  state.block = block;
   state.allocTable = allocTable;
   state.land = cbs;
   test(&state, nCBSOperations);
@@ -580,6 +578,7 @@ extern int main(int argc, char *argv[])
       PoolFinish(mfs);
   }
 
+  ControlFree(arena, p, (ArraySize + 1) * align);
   mps_arena_destroy(arena);
 
   printf("\nNumber of allocations attempted: %"PRIuLONGEST"\n",

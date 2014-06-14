@@ -232,11 +232,6 @@ Res ChunkInit(Chunk chunk, Arena arena,
 
   ArenaChunkInsert(arena, chunk);
 
-  /* As part of the bootstrap, the first created chunk becomes the primary
-     chunk.  This step allows AreaFreeLandInsert to allocate pages. */
-  if (arena->primary == NULL)
-    arena->primary = chunk;
-
   return ResOK;
 
 failLandInsert:
@@ -331,7 +326,8 @@ Bool ChunkOfAddr(Chunk *chunkReturn, Arena arena, Addr addr)
       == CompareEQUAL)
   {
     Chunk chunk = ChunkOfTree(tree);
-    AVER_CRITICAL(chunk->base <= addr && addr < chunk->limit);
+    AVER_CRITICAL(chunk->base <= addr);
+    AVER_CRITICAL(addr < chunk->limit);
     *chunkReturn = chunk;
     return TRUE;
   }

@@ -112,6 +112,7 @@ ARG_DEFINE_KEY(chain, Chain);
 ARG_DEFINE_KEY(gen, Cant);
 ARG_DEFINE_KEY(rank, Rank);
 ARG_DEFINE_KEY(extend_by, Size);
+ARG_DEFINE_KEY(large_size, Size);
 ARG_DEFINE_KEY(min_size, Size);
 ARG_DEFINE_KEY(mean_size, Size);
 ARG_DEFINE_KEY(max_size, Size);
@@ -486,7 +487,8 @@ Res PoolAddrObject(Addr *pReturn, Pool pool, Seg seg, Addr addr)
   AVERT(Pool, pool);
   AVERT(Seg, seg);
   AVER(pool == SegPool(seg));
-  AVER(SegBase(seg) <= addr && addr < SegLimit(seg));
+  AVER(SegBase(seg) <= addr);
+  AVER(addr < SegLimit(seg));
   return (*pool->class->addrObject)(pReturn, pool, seg, addr);
 }
 
