@@ -317,8 +317,11 @@ static void test_arena(int mode)
   mps_pool_t amc_pool, amcz_pool;
   void *marker = &marker;
 
-  die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
-      "arena_create");
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, testArenaSIZE);
+    MPS_ARGS_ADD(args, MPS_KEY_ARENA_GRAIN_SIZE, (size_t)1 << (rnd() % 14));
+    die(mps_arena_create_k(&arena, mps_arena_class_vm(), args), "arena_create");
+  } MPS_ARGS_END(args);
   if (mode == ModeCOMMIT)
     die(mps_arena_commit_limit_set(arena, 2 * testArenaSIZE), "set limit");
   mps_message_type_enable(arena, mps_message_type_gc());

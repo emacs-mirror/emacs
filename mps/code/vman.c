@@ -19,8 +19,8 @@ SRCID(vman, "$Id$");
 /* ANSI fake VM structure, see <design/vman/> */
 typedef struct VMStruct {
   Sig sig;                      /* <design/sig/> */
-  Addr base, limit;             /* boundaries of malloc'd memory */
   void *block;                  /* pointer to malloc'd block, for free() */
+  Addr base, limit;             /* aligned boundaries of malloc'd memory */
   Size reserved;                /* total reserved address space */
   Size mapped;                  /* total mapped memory */
 } VMStruct;
@@ -34,9 +34,9 @@ Bool VMCheck(VM vm)
   CHECKL(vm->base != (Addr)0);
   CHECKL(vm->limit != (Addr)0);
   CHECKL(vm->base < vm->limit);
-  CHECKL(ArenaGrainSizeCheck(VMAN_PAGE_SIZE));
-  CHECKL(AddrIsAligned(vm->base, VMAN_PAGE_SIZE));
-  CHECKL(AddrIsAligned(vm->limit, VMAN_PAGE_SIZE));
+  CHECKL(ArenaGrainSizeCheck(VMPageSize()));
+  CHECKL(AddrIsAligned(vm->base, VMPageSize()));
+  CHECKL(AddrIsAligned(vm->limit, VMPageSize()));
   CHECKL(vm->block != NULL);
   CHECKL((Addr)vm->block <= vm->base);
   CHECKL(vm->mapped <= vm->reserved);
@@ -46,9 +46,8 @@ Bool VMCheck(VM vm)
 
 /* VMPageSize -- return the page size */
 
-Size VMPageSize(VM vm)
+Size VMPageSize(void)
 {
-  UNUSED(vm);
   return VMAN_PAGE_SIZE;
 }
 
@@ -64,40 +63,52 @@ Res VMParamFromArgs(void *params, size_t paramSize, ArgList args)
 
 /* VMCreate -- reserve some virtual address space, and create a VM structure */
 
-Res VMCreate(VM *vmReturn, Size size, void *params)
+Res VMCreate(VM *vmReturn, Size size, Size grainSize, void *params)
 {
   VM vm;
+  Size pageSize;
 
   AVER(vmReturn != NULL);
+  AVERT(ArenaGrainSize, grainSize);
+  AVER(size > 0);
   AVER(params != NULL);
 
-  /* Note that because we add VMAN_PAGE_SIZE rather than */
-  /* VMAN_PAGE_SIZE-1 we are not in danger of overflowing */
-  /* vm->limit even if malloc were perverse enough to give us */
-  /* a block at the end of memory. */
-  size = SizeRoundUp(size, VMAN_PAGE_SIZE) + VMAN_PAGE_SIZE;
-  if ((size < VMAN_PAGE_SIZE) || (size > (Size)(size_t)-1))
+  pageSize = VMPageSize();
+
+  /* Grains must consist of whole pages. */
+  AVER(grainSize % pageSize == 0);
+
+  /* Check that the rounded-up sizes will fit in a Size. */
+  size = SizeRoundUp(size, grainSize);
+  if (size < VMAN_PAGE_SIZE || size > (Size)(size_t)-1)
+    return ResRESOURCE;
+  /* Note that because we add a whole grainSize here (not grainSize -
+   * pageSize), we are not in danger of overflowing vm->limit even if
+   * malloc were perverse enough to give us a block at the end of
+   * memory. Compare vmix.c#.assume.not-last. */
+  reserved = size + grainSize;
+  if (reserved < grainSize || reserved > (Size)(size_t)-1)
     return ResRESOURCE;
 
+  /* Allocate space to store the descriptor. */
   vm = (VM)malloc(sizeof(VMStruct));
   if (vm == NULL)
     return ResMEMORY;
 
-  vm->block = malloc((size_t)size);
+  vm->block = malloc((size_t)reserved);
   if (vm->block == NULL) {
     free(vm);
     return ResMEMORY;
   }
 
-  vm->base  = AddrAlignUp((Addr)vm->block, VMAN_PAGE_SIZE);
-  vm->limit = AddrAdd(vm->base, size - VMAN_PAGE_SIZE);
-  AVER(vm->limit < AddrAdd((Addr)vm->block, size));
+  vm->base  = AddrAlignUp((Addr)vm->block, grainSize);
+  vm->limit = AddrAdd(vm->base, size);
+  AVER(vm->base < vm->limit); /* can't overflow, as discussed above */
+  AVER(vm->limit < AddrAdd((Addr)vm->block, reserved));
 
-  memset((void *)vm->block, VMJunkBYTE, size);
+  memset((void *)vm->block, VMJunkBYTE, reserved);
  
-  /* Lie about the reserved address space, to simulate real */
-  /* virtual memory. */
-  vm->reserved = size - VMAN_PAGE_SIZE;
+  vm->reserved = reserved;
   vm->mapped = (Size)0;
  
   vm->sig = VMSig;
@@ -186,6 +197,7 @@ Res VMMap(VM vm, Addr base, Addr limit)
   memset((void *)base, (int)0, size);
 
   vm->mapped += size;
+  AVER(vm->mapped <= vm->reserved);
 
   EVENT3(VMMap, vm, base, limit);
   return ResOK;
