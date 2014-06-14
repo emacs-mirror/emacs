@@ -301,6 +301,8 @@ int main(int argc, char *argv[]) {
       }
       break;
     default:
+      /* This is printed in parts to keep within the 509 character
+         limit for string literals in portable standard C. */
       fprintf(stderr,
               "Usage: %s [option...] [test...]\n"
               "Options:\n"
@@ -317,18 +319,17 @@ int main(int argc, char *argv[]) {
               "  -b n, --nblocks=n\n"
               "    Length of the block array (default %u).\n"
               "  -s n, --sshift=n\n"
-              "    Log2 max block size in words (default %u).\n"
-              "  -c p, --pact=p\n"
-              "    Probability of acting on a block (default %g).\n",
+              "    Log2 max block size in words (default %u).\n",
               argv[0],
               (unsigned long)arena_size,
               (unsigned long)arena_grain_size,
               niter,
               npass,
               nblocks,
-              sshift,
-              pact);
+              sshift);
       fprintf(stderr,
+              "  -c p, --pact=p\n"
+              "    Probability of acting on a block (default %g).\n"
               "  -r n, --rinter=n\n"
               "    Recurse every n passes if n > 0 (default %u).\n"
               "  -d n, --rmax=n\n"
@@ -343,6 +344,7 @@ int main(int argc, char *argv[]) {
               "  mv    pool class MV\n"
               "  mvb   pool class MV with buffers\n"
               "  an    malloc\n",
+              pact,
               rinter,
               rmax);
       return EXIT_FAILURE;
