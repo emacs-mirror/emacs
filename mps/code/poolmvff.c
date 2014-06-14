@@ -583,11 +583,12 @@ failBlockPoolInit:
 
 /* MVFFFinish -- finish method for MVFF */
 
-static Bool mvffFinishVisitor(Land land, Range range,
+static Bool mvffFinishVisitor(Bool *deleteReturn, Land land, Range range,
                               void *closureP, Size closureS)
 {
   Pool pool;
 
+  AVER(deleteReturn != NULL);
   AVERT(Land, land);
   AVERT(Range, range);
   AVER(closureP != NULL);
@@ -596,6 +597,7 @@ static Bool mvffFinishVisitor(Land land, Range range,
   UNUSED(closureS);
 
   ArenaFree(RangeBase(range), RangeSize(range), pool);
+  *deleteReturn = TRUE;
   return TRUE;
 }
 
@@ -609,12 +611,9 @@ static void MVFFFinish(Pool pool)
   AVERT(MVFF, mvff);
   mvff->sig = SigInvalid;
 
-  b = LandIterate(MVFFTotalLand(mvff), mvffFinishVisitor, pool, 0);
+  b = LandIterateAndDelete(MVFFTotalLand(mvff), mvffFinishVisitor, pool, 0);
   AVER(b);
-
-  /* TODO: would like to check that LandSize(MVFFTotalLand(mvff)) == 0
-   * now, but CBS doesn't support deletion while iterating. See
-   * job003826. */
+  AVER(LandSize(MVFFTotalLand(mvff)) == 0);
 
   LandFinish(MVFFFreeLand(mvff));
   LandFinish(MVFFFreeSecondary(mvff));
