@@ -75,22 +75,6 @@ Size VMPageSize(void)
 }
 
 
-/* VMCheck -- check a VM */
-
-Bool VMCheck(VM vm)
-{
-  CHECKS(VM, vm);
-  CHECKL(vm->base != 0);
-  CHECKL(vm->limit != 0);
-  CHECKL(vm->base < vm->limit);
-  CHECKL(vm->mapped <= vm->reserved);
-  CHECKL(ArenaGrainSizeCheck(VMPageSize()));
-  CHECKL(AddrIsAligned(vm->base, VMPageSize()));
-  CHECKL(AddrIsAligned(vm->limit, VMPageSize()));
-  return TRUE;
-}
-
-
 Res VMParamFromArgs(void *params, size_t paramSize, ArgList args)
 {
   AVER(params != NULL);
@@ -173,46 +157,6 @@ void VMDestroy(VM vm)
 
   r = munmap(vm->block, vm->reserved);
   AVER(r == 0);
-}
-
-
-/* VMBase -- return the base address of the memory reserved */
-
-Addr (VMBase)(VM vm)
-{
-  AVERT(VM, vm);
-
-  return VMBase(vm);
-}
-
-
-/* VMLimit -- return the limit address of the memory reserved */
-
-Addr (VMLimit)(VM vm)
-{
-  AVERT(VM, vm);
-
-  return VMLimit(vm);
-}
-
-
-/* VMReserved -- return the amount of memory reserved */
-
-Size (VMReserved)(VM vm)
-{
-  AVERT(VM, vm);
-
-  return VMReserved(vm);
-}
-
-
-/* VMMapped -- return the amount of memory actually mapped */
-
-Size (VMMapped)(VM vm)
-{
-  AVERT(VM, vm);
-
-  return VMMapped(vm);
 }
 
 

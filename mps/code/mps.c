@@ -78,6 +78,7 @@
 #include "nailboard.c"
 #include "land.c"
 #include "failover.c"
+#include "vm.c"
 
 /* Additional pool classes */
 
