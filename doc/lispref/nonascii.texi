@@ -50,7 +50,7 @@ inclusive.  Emacs extends this range with codepoints in the range
 @code{#x110000..#x3FFFFF}, which it uses for representing characters
 that are not unified with Unicode and @dfn{raw 8-bit bytes} that
 cannot be interpreted as characters.  Thus, a character codepoint in
-Emacs is a 22-bit integer number.
+Emacs is a 22-bit integer.
 
 @cindex internal representation of characters
 @cindex characters, representation in buffers and strings
@@ -259,7 +259,7 @@ character data, @var{character}.  It signals an error if
 @defun multibyte-char-to-unibyte char
 This converts the multibyte character @var{char} to a unibyte
 character, and returns that character.  If @var{char} is neither
-@acronym{ASCII} nor eight-bit, the function returns -1.
+@acronym{ASCII} nor eight-bit, the function returns @minus{}1.
 @end defun
 
 @defun unibyte-char-to-multibyte char
@@ -451,7 +451,7 @@ is @code{Cn}.
 
 @item canonical-combining-class
 Corresponds to the @code{Canonical_Combining_Class} Unicode property.
-The value is an integer number.  For unassigned codepoints, the value
+The value is an integer.  For unassigned codepoints, the value
 is zero.
 
 @cindex bidirectional class of characters
@@ -479,13 +479,13 @@ unassigned codepoints, the value is the character itself.
 @item decimal-digit-value
 Corresponds to the Unicode @code{Numeric_Value} property for
 characters whose @code{Numeric_Type} is @samp{Decimal}.  The value is
-an integer number.  For unassigned codepoints, the value is
+an integer.  For unassigned codepoints, the value is
 @code{nil}, which means @acronym{NaN}, or ``not-a-number''.
 
 @item digit-value
 Corresponds to the Unicode @code{Numeric_Value} property for
 characters whose @code{Numeric_Type} is @samp{Digit}.  The value is an
-integer number.  Examples of such characters include compatibility
+integer.  Examples of such characters include compatibility
 subscript and superscript digits, for which the value is the
 corresponding number.  For unassigned codepoints, the value is
 @code{nil}, which means @acronym{NaN}.
@@ -493,7 +493,7 @@ corresponding number.  For unassigned codepoints, the value is
 @item numeric-value
 Corresponds to the Unicode @code{Numeric_Value} property for
 characters whose @code{Numeric_Type} is @samp{Numeric}.  The value of
-this property is an integer or a floating-point number.  Examples of
+this property is a number.  Examples of
 characters that have this property include fractions, subscripts,
 superscripts, Roman numerals, currency numerators, and encircled
 numbers.  For example, the value of this property for the character

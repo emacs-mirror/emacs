@@ -227,6 +227,8 @@ detected as prompt when being sent on echoing hosts, therefore.")
   '("sudo"
     (tramp-login-program        "sudo")
     (tramp-login-args           (("-u" "%u") ("-s") ("-H") ("-p" "Password:")))
+    ;; Local $SHELL could be a nasty one, like zsh or fish.  Let's override it.
+    (tramp-login-env            (("SHELL") ("/bin/sh")))
     (tramp-remote-shell         "/bin/sh")
     (tramp-remote-shell-args    ("-c"))
     (tramp-connection-timeout   10)))
@@ -423,7 +425,7 @@ as given in your `~/.profile'."
 
 ;;;###tramp-autoload
 (defcustom tramp-remote-process-environment
-  `("HISTFILE=$HOME/.tramp_history" "HISTSIZE=1" "TMOUT=0" "LC_CTYPE=''"
+  `("TMOUT=0" "LC_CTYPE=''"
     ,(format "TERM=%s" tramp-terminal-type)
     "EMACS=t" ;; Deprecated.
     ,(format "INSIDE_EMACS='%s,tramp:%s'" emacs-version tramp-version)
@@ -438,6 +440,7 @@ which might have been set in the init files like ~/.profile.
 Special handling is applied to the PATH environment, which should
 not be set here. Instead, it should be set via `tramp-remote-path'."
   :group 'tramp
+  :version "24.4"
   :type '(repeat string))
 
 (defcustom tramp-sh-extra-args '(("/bash\\'" . "-norc -noprofile"))
@@ -489,9 +492,9 @@ This list is used for copying/renaming with out-of-band methods.
 See `tramp-actions-before-shell' for more info.")
 
 (defconst tramp-uudecode
-  "(echo begin 600 /tmp/tramp.$$; tail +2) | uudecode
-cat /tmp/tramp.$$
-rm -f /tmp/tramp.$$"
+  "(echo begin 600 %t; tail -n +2) | uudecode
+cat %t
+rm -f %t"
   "Shell function to implement `uudecode' to standard output.
 Many systems support `uudecode -o /dev/stdout' or `uudecode -o -'
 for this or `uudecode -p', but some systems don't, and for them
@@ -949,12 +952,14 @@ target of the symlink differ."
 	  (cond
 	   ;; Use GNU readlink --canonicalize-missing where available.
 	   ((tramp-get-remote-readlink v)
-	    (setq result
-		  (tramp-send-command-and-read
-		   v
-		   (format "echo \"\\\"`%s --canonicalize-missing %s`\\\"\""
-			   (tramp-get-remote-readlink v)
-			   (tramp-shell-quote-argument localname)))))
+	    (tramp-send-command-and-check
+	     v
+	     (format "%s --canonicalize-missing %s"
+		     (tramp-get-remote-readlink v)
+		     (tramp-shell-quote-argument localname)))
+	    (with-current-buffer (tramp-get-connection-buffer v)
+	      (goto-char (point-min))
+	      (setq result (buffer-substring (point-min) (point-at-eol)))))
 
 	   ;; Use Perl implementation.
 	   ((and (tramp-get-remote-perl v)
@@ -1730,7 +1735,7 @@ be non-negative integers."
                        ;; wildcard.  This will return "too many" entries
                        ;; but that isn't harmful.
                        " || %s -a 2>/dev/null)"
-                       " | while read f; do"
+                       " | while IFS= read f; do"
                        " if %s -d \"$f\" 2>/dev/null;"
                        " then \\echo \"$f/\"; else \\echo \"$f\"; fi; done"
                        " && \\echo ok) || \\echo fail")
@@ -2108,6 +2113,12 @@ the uid and gid from FILENAME."
 	   ;; We can do it directly.
 	   ((let (file-name-handler-alist)
 	      (and (file-readable-p localname1)
+		   ;; No sticky bit when renaming.
+		   (or (eq op 'copy)
+		       (zerop
+			(logand
+			 (file-modes (file-name-directory localname1))
+			 (tramp-compat-octal-to-decimal "1000"))))
 		   (file-writable-p (file-name-directory localname2))
 		   (or (file-directory-p localname2)
 		       (file-writable-p localname2))))
@@ -2246,7 +2257,9 @@ The method used must be an out-of-band method."
 	(aset v 3 localname)
 
 	;; Check which ones of source and target are Tramp files.
-	(setq source (if t1 (tramp-make-copy-program-file-name v) filename)
+	(setq source (if t1
+			 (tramp-make-copy-program-file-name v)
+		       (shell-quote-argument filename))
 	      target (funcall
 		      (if (and (file-directory-p filename)
 			       (string-equal
@@ -2254,7 +2267,9 @@ The method used must be an out-of-band method."
 				(file-name-nondirectory newname)))
 			  'file-name-directory
 			'identity)
-		      (if t2 (tramp-make-copy-program-file-name v) newname)))
+		      (if t2
+			  (tramp-make-copy-program-file-name v)
+			(shell-quote-argument newname))))
 
 	;; Check for host and port number.  We cannot use
 	;; `tramp-file-name-port', because this returns also
@@ -2347,8 +2362,7 @@ The method used must be an out-of-band method."
 				  (append
 				   copy-args
 				   (list
-				    (shell-quote-argument source)
-				    (shell-quote-argument target)
+				    source target
 				    "&&" "echo" "tramp_exit_status" "0"
 				    "||" "echo" "tramp_exit_status" "1"))))))
 		  (tramp-message
@@ -2376,7 +2390,6 @@ The method used must be an out-of-band method."
 		     (buffer-substring (point-min) (point-at-eol))))))
 
 	    ;; Reset the transfer process properties.
-	    (tramp-message orig-vec 6 "\n%s" (buffer-string))
 	    (tramp-set-connection-property v "process-name" nil)
 	    (tramp-set-connection-property v "process-buffer" nil)))
 
@@ -3306,55 +3319,57 @@ the result will be a local, non-Tramp, filename."
       (with-tramp-progress-reporter
 	  v 3 (format "Checking `vc-registered' for %s" file)
 
-	(unless remote-file-name-inhibit-cache
-	  ;; There could be new files, created by the vc backend.  We
-	  ;; cannot reuse the old cache entries, therefore.
-	  (let (tramp-vc-registered-file-names
-		(remote-file-name-inhibit-cache (current-time))
-		(file-name-handler-alist
-		 `((,tramp-file-name-regexp . tramp-vc-file-name-handler))))
+	;; There could be new files, created by the vc backend.  We
+	;; cannot reuse the old cache entries, therefore.  In
+	;; `tramp-get-file-property', `remote-file-name-inhibit-cache'
+	;; could also be a timestamp as `current-time' returns.  This
+	;; means invalidate all cache entries with an older timestamp.
+	(let (tramp-vc-registered-file-names
+	      (remote-file-name-inhibit-cache (current-time))
+	      (file-name-handler-alist
+	       `((,tramp-file-name-regexp . tramp-vc-file-name-handler))))
 
-	    ;; Here we collect only file names, which need an operation.
-	    (ignore-errors (tramp-run-real-handler 'vc-registered (list file)))
-	    (tramp-message v 10 "\n%s" tramp-vc-registered-file-names)
+	  ;; Here we collect only file names, which need an operation.
+	  (ignore-errors (tramp-run-real-handler 'vc-registered (list file)))
+	  (tramp-message v 10 "\n%s" tramp-vc-registered-file-names)
 
-	    ;; Send just one command, in order to fill the cache.
-	    (when tramp-vc-registered-file-names
-	      (tramp-maybe-send-script
-	       v
-	       (format tramp-vc-registered-read-file-names
-		       (tramp-get-file-exists-command v)
-		       (format "%s -r" (tramp-get-test-command v)))
-	       "tramp_vc_registered_read_file_names")
+	  ;; Send just one command, in order to fill the cache.
+	  (when tramp-vc-registered-file-names
+	    (tramp-maybe-send-script
+	     v
+	     (format tramp-vc-registered-read-file-names
+		     (tramp-get-file-exists-command v)
+		     (format "%s -r" (tramp-get-test-command v)))
+	     "tramp_vc_registered_read_file_names")
 
-	      (dolist
-		  (elt
-		   (ignore-errors
-		     ;; We cannot use `tramp-send-command-and-read',
-		     ;; because this does not cooperate well with
-		     ;; heredoc documents.
-		     (tramp-send-command
-		      v
-		      (format
-		       "tramp_vc_registered_read_file_names <<'%s'\n%s\n%s\n"
-		       tramp-end-of-heredoc
-		       (mapconcat 'tramp-shell-quote-argument
-				  tramp-vc-registered-file-names
-				  "\n")
-		       tramp-end-of-heredoc))
-		     (with-current-buffer (tramp-get-connection-buffer v)
-		       ;; Read the expression.
-		       (goto-char (point-min))
-		       (read (current-buffer)))))
+	    (dolist
+		(elt
+		 (ignore-errors
+		   ;; We cannot use `tramp-send-command-and-read',
+		   ;; because this does not cooperate well with
+		   ;; heredoc documents.
+		   (tramp-send-command
+		    v
+		    (format
+		     "tramp_vc_registered_read_file_names <<'%s'\n%s\n%s\n"
+		     tramp-end-of-heredoc
+		     (mapconcat 'tramp-shell-quote-argument
+				tramp-vc-registered-file-names
+				"\n")
+		     tramp-end-of-heredoc))
+		   (with-current-buffer (tramp-get-connection-buffer v)
+		     ;; Read the expression.
+		     (goto-char (point-min))
+		     (read (current-buffer)))))
 
-		(tramp-set-file-property
-		 v (car elt) (cadr elt) (cadr (cdr elt)))))))
+	      (tramp-set-file-property
+	       v (car elt) (cadr elt) (cadr (cdr elt))))))
 
 	;; Second run.  Now all `file-exists-p' or `file-readable-p'
 	;; calls shall be answered from the file cache.  We unset
-	;; `process-file-side-effects' in order to keep the cache when
-	;; `process-file' calls appear.
-	(let (process-file-side-effects)
+	;; `process-file-side-effects' and `remote-file-name-inhibit-cache'
+	;; in order to keep the cache.
+	(let (remote-file-name-inhibit-cache process-file-side-effects)
 	  (ignore-errors
 	    (tramp-run-real-handler 'vc-registered (list file))))))))
 
@@ -3599,8 +3614,13 @@ This function expects to be in the right *tramp* buffer."
     (let (result)
       ;; Check whether the executable is in $PATH. "which(1)" does not
       ;; report always a correct error code; therefore we check the
-      ;; number of words it returns.
-      (unless ignore-path
+      ;; number of words it returns.  "SunOS 5.10" (and maybe "SunOS
+      ;; 5.11") have problems with this command, we disable the call
+      ;; therefore.
+      (unless (or ignore-path
+		  (string-match
+		   (regexp-opt '("SunOS 5.10" "SunOS 5.11"))
+		   (tramp-get-connection-property vec "uname" "")))
 	(tramp-send-command vec (format "which \\%s | wc -w" progname))
 	(goto-char (point-min))
 	(if (looking-at "^\\s-*1$")
@@ -3707,8 +3727,7 @@ file exists and nonzero exit status otherwise."
   (with-tramp-progress-reporter
       vec 5 (format "Opening remote shell `%s'" shell)
     ;; Find arguments for this shell.
-    (let ((tramp-end-of-output tramp-initial-end-of-output)
-	  (alist tramp-sh-extra-args)
+    (let ((alist tramp-sh-extra-args)
 	  item extra-args)
       (while (and alist (null extra-args))
 	(setq item (pop alist))
@@ -3716,18 +3735,12 @@ file exists and nonzero exit status otherwise."
 	  (setq extra-args (cdr item))))
       (tramp-send-command
        vec (format
-	    "exec env ENV='' PROMPT_COMMAND='' PS1=%s PS2='' PS3='' %s %s"
+	    "exec env ENV='' HISTFILE=/dev/null PROMPT_COMMAND='' PS1=%s PS2='' PS3='' %s %s"
 	    (tramp-shell-quote-argument tramp-end-of-output)
 	    shell (or extra-args ""))
        t))
     (tramp-set-connection-property
-     (tramp-get-connection-process vec) "remote-shell" shell)
-    ;; Setting prompts.
-    (tramp-send-command
-     vec (format "PS1=%s" (tramp-shell-quote-argument tramp-end-of-output)) t)
-    (tramp-send-command vec "PS2=''" t)
-    (tramp-send-command vec "PS3=''" t)
-    (tramp-send-command vec "PROMPT_COMMAND=''" t)))
+     (tramp-get-connection-process vec) "remote-shell" shell)))
 
 (defun tramp-find-shell (vec)
   "Opens a shell on the remote host which groks tilde expansion."
@@ -3951,7 +3964,8 @@ process to set up.  VEC specifies the connection."
   ;; Set the environment.
   (tramp-message vec 5 "Setting default environment")
 
-  (let ((env (append `(,(tramp-get-remote-locale vec))
+  (let ((env (append (when (tramp-get-remote-locale vec) ; Discard `(nil)'.
+		       `(,(tramp-get-remote-locale vec)))
 		     (copy-sequence tramp-remote-process-environment)))
 	unset item)
     (while env
@@ -4025,7 +4039,7 @@ Each item is a list that looks like this:
 
 \(FORMAT ENCODING DECODING [TEST]\)
 
-FORMAT is  symbol describing the encoding/decoding format.  It can be
+FORMAT is a symbol describing the encoding/decoding format.  It can be
 `b64' for base64 encoding, `uu' for uu encoding, or `pack' for simple packing.
 
 ENCODING and DECODING can be strings, giving commands, or symbols,
@@ -4035,9 +4049,11 @@ filename will be put into the command line at that spot.  If the
 specifier is not present, the input should be read from standard
 input.
 
-If they are variables, this variable is a string containing a Perl
-implementation for this functionality.  This Perl program will be transferred
-to the remote host, and it is available as shell function with the same name.
+If they are variables, this variable is a string containing a
+Perl or Shell implementation for this functionality.  This
+program will be transferred to the remote host, and it is
+available as shell function with the same name.  A \"%t\" format
+specifier in the variable value denotes a temporary file.
 
 The optional TEST command can be used for further tests, whether
 ENCODING and DECODING are applicable.")
@@ -4090,6 +4106,10 @@ Goes through the list `tramp-local-coding-commands' and
 		     vec 5 "Checking remote test command `%s'" rem-test)
 		    (unless (tramp-send-command-and-check vec rem-test t)
 		      (throw 'wont-work-remote nil)))
+		  ;; Check if remote perl exists when necessary.
+		  (when (and (not (stringp rem-enc))
+			     (not (tramp-get-remote-perl vec)))
+		    (throw 'wont-work-remote nil))
 		  ;; Check if remote encoding and decoding commands can be
 		  ;; called remotely with null input and output.  This makes
 		  ;; sure there are no syntax errors and the command is really
@@ -4112,10 +4132,25 @@ Goes through the list `tramp-local-coding-commands' and
 		    (throw 'wont-work-remote nil))
 
 		  (when (not (stringp rem-dec))
-		    (let ((name (symbol-name rem-dec)))
+		    (let ((name (symbol-name rem-dec))
+			  (value (symbol-value rem-dec))
+			  tmpfile)
 		      (while (string-match (regexp-quote "-") name)
 			(setq name (replace-match "_" nil t name)))
-		      (tramp-maybe-send-script vec (symbol-value rem-dec) name)
+		      (when (string-match "\\(^\\|[^%]\\)%t" value)
+			(setq tmpfile
+			      (make-temp-name
+			       (expand-file-name
+				tramp-temp-name-prefix
+				(tramp-get-remote-tmpdir vec)))
+			      value
+			      (format-spec
+			       value
+			       (format-spec-make
+				?t
+				(tramp-file-name-handler
+				 'file-remote-p tmpfile 'localname)))))
+		      (tramp-maybe-send-script vec value name)
 		      (setq rem-dec name)))
 		  (tramp-message
 		   vec 5
@@ -4432,6 +4467,7 @@ connection if a previous connection has died for some reason."
 		(delete-process p))
 	      (setenv "TERM" tramp-terminal-type)
 	      (setenv "LC_ALL" "en_US.utf8")
+	      (setenv "HISTFILE" "/dev/null")
 	      (setenv "PROMPT_COMMAND")
 	      (setenv "PS1" tramp-initial-end-of-output)
 	      (let* ((target-alist (tramp-compute-multi-hops vec))
@@ -4484,6 +4520,9 @@ connection if a previous connection has died for some reason."
 			 (login-args
 			  (tramp-get-method-parameter
 			   l-method 'tramp-login-args))
+			 (login-env
+			  (tramp-get-method-parameter
+			   l-method 'tramp-login-env))
 			 (async-args
 			  (tramp-get-method-parameter
 			   l-method 'tramp-async-args))
@@ -4540,6 +4579,24 @@ connection if a previous connection has died for some reason."
 		    (setq tramp-current-method (or g-method l-method)
 			  tramp-current-user   (or g-user   l-user)
 			  tramp-current-host   (or g-host   l-host))
+
+		    ;; Add login environment.
+		    (when login-env
+		      (setq
+		       login-env
+		       (mapcar
+			(lambda (x)
+			  (setq x (mapcar (lambda (y) (format-spec y spec)) x))
+			  (unless (member "" x) (mapconcat 'identity x " ")))
+			login-env))
+		      (while login-env
+			(setq command
+			      (format
+			       "%s=%s %s"
+			       (pop login-env)
+			       (tramp-shell-quote-argument (pop login-env))
+			       command)))
+		      (setq command (concat "env " command)))
 
 		    ;; Replace `login-args' place holders.
 		    (setq
@@ -4646,8 +4703,9 @@ function waits for output unless NOOUTPUT is set."
 (defun tramp-send-command-and-check
   (vec command &optional subshell dont-suppress-err)
   "Run COMMAND and check its exit status.
-Sends `echo $?' along with the COMMAND for checking the exit status.  If
-COMMAND is nil, just sends `echo $?'.  Returns the exit status found.
+Sends `echo $?' along with the COMMAND for checking the exit status.
+If COMMAND is nil, just sends `echo $?'.  Returns `t' if the exit
+status is 0, and `nil' otherwise.
 
 If the optional argument SUBSHELL is non-nil, the command is
 executed in a subshell, ie surrounded by parentheses.  If
@@ -4791,9 +4849,10 @@ Return ATTR."
 	(host (tramp-file-name-real-host vec))
 	(localname (tramp-shell-quote-argument
 		    (tramp-file-name-localname vec))))
-    (if (not (zerop (length user)))
-        (format "%s@%s:%s" user host localname)
-      (format "%s:%s" host localname))))
+    (shell-quote-argument
+     (if (not (zerop (length user)))
+	 (format "%s@%s:%s" user host localname)
+       (format "%s:%s" host localname)))))
 
 (defun tramp-method-out-of-band-p (vec size)
   "Return t if this is an out-of-band method, nil otherwise."
@@ -5313,6 +5372,8 @@ function cell is returned to be applied on a buffer."
 ;; * Keep a second connection open for out-of-band methods like scp or
 ;;   rsync.
 ;; * Try telnet+curl as new method.  It might be useful for busybox,
+;;   without built-in uuencode/uudecode.
+;; * Try telnet+nc as new method.  It might be useful for busybox,
 ;;   without built-in uuencode/uudecode.
 
 ;;; tramp-sh.el ends here

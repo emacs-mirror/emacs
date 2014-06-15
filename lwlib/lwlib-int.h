@@ -23,8 +23,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "lwlib.h"
 
-extern char *safe_strdup (const char *);
-
 struct widget_xft_data;
 
 typedef struct _widget_instance

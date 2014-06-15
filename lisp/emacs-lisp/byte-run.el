@@ -30,6 +30,17 @@
 
 ;;; Code:
 
+(defalias 'function-put
+  ;; We don't want people to just use `put' because we can't conveniently
+  ;; hook into `put' to remap old properties to new ones.  But for now, there's
+  ;; no such remapping, so we just call `put'.
+  #'(lambda (f prop value) (put f prop value))
+  "Set function F's property PROP to VALUE.
+The namespace for PROP is shared with symbols.
+So far, F can only be a symbol, not a lambda expression.")
+(function-put 'defmacro 'doc-string-elt 3)
+(function-put 'defmacro 'lisp-indent-function 2)
+
 ;; `macro-declaration-function' are both obsolete (as marked at the end of this
 ;; file) but used in many .elc files.
 
@@ -69,6 +80,7 @@ The return value of this function is not used."
 ;; handle declarations in macro definitions and this is the first file
 ;; loaded by loadup.el that uses declarations in macros.
 
+;; Add any new entries to info node `(elisp)Declare Form'.
 (defvar defun-declarations-alist
   (list
    ;; We can only use backquotes inside the lambdas and not for those
@@ -81,27 +93,47 @@ The return value of this function is not used."
          #'(lambda (f _args new-name when)
              (list 'make-obsolete
                    (list 'quote f) (list 'quote new-name) (list 'quote when))))
+   (list 'interactive-only
+         #'(lambda (f _args instead)
+             (list 'function-put (list 'quote f)
+                   ''interactive-only (list 'quote instead))))
+   ;; FIXME: Merge `pure' and `side-effect-free'.
+   (list 'pure
+         #'(lambda (f _args val)
+             (list 'function-put (list 'quote f)
+                   ''pure (list 'quote val)))
+         "If non-nil, the compiler can replace calls with their return value.
+This may shift errors from run-time to compile-time.")
+   (list 'side-effect-free
+         #'(lambda (f _args val)
+             (list 'function-put (list 'quote f)
+                   ''side-effect-free (list 'quote val)))
+         "If non-nil, calls can be ignored if their value is unused.
+If `error-free', drop calls even if `byte-compile-delete-errors' is nil.")
    (list 'compiler-macro
          #'(lambda (f args compiler-function)
              `(eval-and-compile
-                (put ',f 'compiler-macro
-                     ,(if (eq (car-safe compiler-function) 'lambda)
-                          `(lambda ,(append (cadr compiler-function) args)
-                             ,@(cddr compiler-function))
-                        `#',compiler-function)))))
+                (function-put ',f 'compiler-macro
+                              ,(if (eq (car-safe compiler-function) 'lambda)
+                                   `(lambda ,(append (cadr compiler-function) args)
+                                      ,@(cddr compiler-function))
+                                 `#',compiler-function)))))
    (list 'doc-string
          #'(lambda (f _args pos)
-             (list 'put (list 'quote f) ''doc-string-elt (list 'quote pos))))
+             (list 'function-put (list 'quote f)
+                   ''doc-string-elt (list 'quote pos))))
    (list 'indent
          #'(lambda (f _args val)
-             (list 'put (list 'quote f)
+             (list 'function-put (list 'quote f)
                    ''lisp-indent-function (list 'quote val)))))
   "List associating function properties to their macro expansion.
 Each element of the list takes the form (PROP FUN) where FUN is
 a function.  For each (PROP . VALUES) in a function's declaration,
 the FUN corresponding to PROP is called with the function name,
 the function's arglist, and the VALUES and should return the code to use
-to set this property.")
+to set this property.
+
+This is used by `declare'.")
 
 (defvar macro-declarations-alist
   (cons
@@ -115,10 +147,10 @@ to set this property.")
 Each element of the list takes the form (PROP FUN) where FUN is a function.
 For each (PROP . VALUES) in a macro's declaration, the FUN corresponding
 to PROP is called with the macro name, the macro's arglist, and the VALUES
-and should return the code to use to set this property.")
+and should return the code to use to set this property.
 
-(put 'defmacro 'doc-string-elt 3)
-(put 'defmacro 'lisp-indent-function 2)
+This is used by `declare'.")
+
 (defalias 'defmacro
   (cons
    'macro
@@ -218,7 +250,8 @@ The return value is undefined.
                                  (cons arglist body))))))
       (if declarations
           (cons 'prog1 (cons def declarations))
-        def))))
+          def))))
+
 
 ;; Redefined in byte-optimize.el.
 ;; This is not documented--it's not clear that we should promote it.
@@ -389,13 +422,20 @@ If you think you need this, you're probably making a mistake somewhere."
 
 (defmacro eval-when-compile (&rest body)
   "Like `progn', but evaluates the body at compile time if you're compiling.
-Thus, the result of the body appears to the compiler as a quoted constant.
-In interpreted code, this is entirely equivalent to `progn'."
+Thus, the result of the body appears to the compiler as a quoted
+constant.  In interpreted code, this is entirely equivalent to
+`progn', except that the value of the expression may be (but is
+not necessarily) computed at load time if eager macro expansion
+is enabled."
   (declare (debug (&rest def-form)) (indent 0))
   (list 'quote (eval (cons 'progn body) lexical-binding)))
 
 (defmacro eval-and-compile (&rest body)
-  "Like `progn', but evaluates the body at compile time and at load time."
+  "Like `progn', but evaluates the body at compile time and at
+load time.  In interpreted code, this is entirely equivalent to
+`progn', except that the value of the expression may be (but is
+not necessarily) computed at load time if eager macro expansion
+is enabled."
   (declare (debug t) (indent 0))
   ;; When the byte-compiler expands code, this macro is not used, so we're
   ;; either about to run `body' (plain interpretation) or we're doing eager

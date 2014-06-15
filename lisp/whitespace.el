@@ -1204,6 +1204,8 @@ SYMBOL	is a valid symbol associated with CHAR.
 (defvar whitespace-point (point)
   "Used to save locally current point value.
 Used by function `whitespace-trailing-regexp' (which see).")
+(defvar-local whitespace-point--used nil
+  "Region whose highlighting depends on `whitespace-point'.")
 
 (defvar whitespace-font-lock-refontify nil
   "Used to save locally the font-lock refontify state.
@@ -1717,43 +1719,7 @@ It is a cons of strings, where the car part is used when
 (defun whitespace-report (&optional force report-if-bogus)
   "Report some whitespace problems in buffer.
 
-Return nil if there is no whitespace problem; otherwise, return
-non-nil.
-
-If FORCE is non-nil or \\[universal-argument] was pressed just
-before calling `whitespace-report' interactively, it forces
-`whitespace-style' to have:
-
-   empty
-   trailing
-   indentation
-   space-before-tab
-   space-after-tab
-
-If REPORT-IF-BOGUS is non-nil, it reports only when there are any
-whitespace problems in buffer.
-
-Report if some of the following whitespace problems exist:
-
-* If `indent-tabs-mode' is non-nil:
-   empty		1. empty lines at beginning of buffer.
-   empty		2. empty lines at end of buffer.
-   trailing		3. SPACEs or TABs at end of line.
-   indentation		4. 8 or more SPACEs at beginning of line.
-   space-before-tab	5. SPACEs before TAB.
-   space-after-tab	6. 8 or more SPACEs after TAB.
-
-* If `indent-tabs-mode' is nil:
-   empty		1. empty lines at beginning of buffer.
-   empty		2. empty lines at end of buffer.
-   trailing		3. SPACEs or TABs at end of line.
-   indentation		4. TABS at beginning of line.
-   space-before-tab	5. SPACEs before TAB.
-   space-after-tab	6. 8 or more SPACEs after TAB.
-
-See `whitespace-style' for documentation.
-See also `whitespace-cleanup' and `whitespace-cleanup-region' for
-cleaning up these problems."
+Perform `whitespace-report-region' on the current buffer."
   (interactive (list current-prefix-arg))
   (whitespace-report-region (point-min) (point-max)
 			    force report-if-bogus))
@@ -1771,13 +1737,14 @@ before calling `whitespace-report-region' interactively, it
 forces `whitespace-style' to have:
 
    empty
+   trailing
    indentation
    space-before-tab
-   trailing
    space-after-tab
 
-If REPORT-IF-BOGUS is non-nil, it reports only when there are any
-whitespace problems in buffer.
+If REPORT-IF-BOGUS is t, it reports only when there are any
+whitespace problems in buffer; if it is `never', it does not
+report problems.
 
 Report if some of the following whitespace problems exist:
 
@@ -1832,7 +1799,7 @@ cleaning up these problems."
 		     (and (re-search-forward regexp rend t)
 			  (setq has-bogus t))))
 	       whitespace-report-list)))
-	(when (if report-if-bogus has-bogus t)
+	(when (pcase report-if-bogus (`nil t) (`never nil) (_ has-bogus))
 	  (whitespace-kill-buffer whitespace-report-buffer-name)
 	  ;; `whitespace-indent-tabs-mode' is local to current buffer
 	  ;; `whitespace-tab-width' is local to current buffer
@@ -2155,7 +2122,10 @@ resultant list will be returned."
   (when (whitespace-style-face-p)
     ;; save current point and refontify when necessary
     (set (make-local-variable 'whitespace-point)
-	 (point))
+         (point))
+    (setq whitespace-point--used
+          (let ((ol (make-overlay (point) (point) nil nil t)))
+            (delete-overlay ol) ol))
     (set (make-local-variable 'whitespace-font-lock-refontify)
 	 0)
     (set (make-local-variable 'whitespace-bob-marker)
@@ -2170,6 +2140,7 @@ resultant list will be returned."
     (setq
      whitespace-font-lock-keywords
      `(
+       (whitespace-point--flush-used)
        ,@(when (memq 'spaces whitespace-active-style)
            ;; Show SPACEs.
            `((,whitespace-space-regexp 1 whitespace-space t)
@@ -2247,26 +2218,47 @@ resultant list will be returned."
                  (whitespace-space-after-tab-regexp 'space)))
               1 whitespace-space-after-tab t)))))
     (font-lock-add-keywords nil whitespace-font-lock-keywords t)
-    (when font-lock-mode
-      (font-lock-fontify-buffer))))
+    (font-lock-flush)))
 
 
 (defun whitespace-color-off ()
   "Turn off color visualization."
   ;; turn off font lock
+  (kill-local-variable 'whitespace-point--used)
   (when (whitespace-style-face-p)
     (remove-hook 'post-command-hook #'whitespace-post-command-hook t)
     (remove-hook 'before-change-functions #'whitespace-buffer-changed t)
     (font-lock-remove-keywords nil whitespace-font-lock-keywords)
-    (when font-lock-mode
-      (font-lock-fontify-buffer))))
+    (font-lock-flush)))
 
+(defun whitespace-point--used (start end)
+  (let ((ostart (overlay-start whitespace-point--used)))
+    (if ostart
+        (move-overlay whitespace-point--used
+                      (min start ostart)
+                      (max end (overlay-end whitespace-point--used)))
+      (move-overlay whitespace-point--used start end))))
+
+(defun whitespace-point--flush-used (limit)
+  (let ((ostart (overlay-start whitespace-point--used)))
+    ;; Strip parts of whitespace-point--used we're about to refresh.
+    (when ostart
+      (let ((oend (overlay-end whitespace-point--used)))
+        (if (<= (point) ostart)
+            (if (<= oend limit)
+                (delete-overlay whitespace-point--used)
+              (move-overlay whitespace-point--used limit oend)))
+        (if (<= oend limit)
+            (move-overlay whitespace-point--used ostart (point))))))
+  nil)
 
 (defun whitespace-trailing-regexp (limit)
   "Match trailing spaces which do not contain the point at end of line."
   (let ((status t))
     (while (if (re-search-forward whitespace-trailing-regexp limit t)
-	       (= whitespace-point (match-end 1)) ;; loop if point at eol
+	       (when (= whitespace-point (match-end 1)) ; Loop if point at eol.
+                 (whitespace-point--used (match-beginning 0) (match-end 0))
+                 t)
 	     (setq status nil)))		  ;; end of buffer
     status))
 
@@ -2279,8 +2271,11 @@ beginning of buffer."
     (cond
      ;; at bob
      ((= b 1)
-      (setq r (and (/= whitespace-point 1)
-		   (looking-at whitespace-empty-at-bob-regexp)))
+      (setq r (and (looking-at whitespace-empty-at-bob-regexp)
+                   (or (/= whitespace-point 1)
+                       (progn (whitespace-point--used (match-beginning 0)
+                                                      (match-end 0))
+                              nil))))
       (set-marker whitespace-bob-marker (if r (match-end 1) b)))
      ;; inside bob empty region
      ((<= limit whitespace-bob-marker)
@@ -2318,9 +2313,11 @@ buffer."
     (cond
      ;; at eob
      ((= limit e)
-      (when (/= whitespace-point e)
-	(goto-char limit)
-	(setq r (whitespace-looking-back whitespace-empty-at-eob-regexp b)))
+      (goto-char limit)
+      (setq r (whitespace-looking-back whitespace-empty-at-eob-regexp b))
+      (when (and r (= whitespace-point e))
+        (setq r nil)
+        (whitespace-point--used (match-beginning 0) (match-end 0)))
       (if r
 	  (set-marker whitespace-eob-marker (match-beginning 1))
 	(set-marker whitespace-eob-marker limit)
@@ -2356,43 +2353,57 @@ buffer."
 (defun whitespace-post-command-hook ()
   "Save current point into `whitespace-point' variable.
 Also refontify when necessary."
-  (setq whitespace-point (point))	; current point position
-  (let ((refontify
-	 (or
-	  ;; it is at end of line ...
-	  (and (eolp)
-	       ;; ... with trailing SPACE or TAB
-	       (or (= (preceding-char) ?\ )
-		   (= (preceding-char) ?\t)))
-	  ;; it is at beginning of buffer (bob)
-	  (= whitespace-point 1)
-	  ;; the buffer was modified and ...
-	  (and whitespace-buffer-changed
-	       (or
-		;; ... or inside bob whitespace region
-		(<= whitespace-point whitespace-bob-marker)
-		;; ... or at bob whitespace region border
-		(and (= whitespace-point (1+ whitespace-bob-marker))
-		     (= (preceding-char) ?\n))))
-	  ;; it is at end of buffer (eob)
-	  (= whitespace-point (1+ (buffer-size)))
-	  ;; the buffer was modified and ...
-	  (and whitespace-buffer-changed
-	       (or
-		;; ... or inside eob whitespace region
-	        (>= whitespace-point whitespace-eob-marker)
-		;; ... or at eob whitespace region border
-		(and (= whitespace-point (1- whitespace-eob-marker))
-		     (= (following-char) ?\n)))))))
-    (when (or refontify (> whitespace-font-lock-refontify 0))
-      (setq whitespace-buffer-changed nil)
-      ;; adjust refontify counter
-      (setq whitespace-font-lock-refontify
-	    (if refontify
-		1
-	      (1- whitespace-font-lock-refontify)))
-      ;; refontify
-      (jit-lock-refontify))))
+  (unless (and (eq whitespace-point (point))
+               (not whitespace-buffer-changed))
+    (setq whitespace-point (point))	; current point position
+    (let ((refontify
+           (cond
+            ;; It is at end of buffer (eob).
+            ((= whitespace-point (1+ (buffer-size)))
+             (when (whitespace-looking-back whitespace-empty-at-eob-regexp
+                                            nil)
+               (match-beginning 0)))
+            ;; It is at end of line ...
+            ((and (eolp)
+                  ;; ... with trailing SPACE or TAB
+                  (or (memq (preceding-char) '(?\s ?\t))))
+             (line-beginning-position))
+            ;; It is at beginning of buffer (bob).
+            ((and (= whitespace-point 1)
+                  (looking-at whitespace-empty-at-bob-regexp))
+             (match-end 0))))
+          (ostart (overlay-start whitespace-point--used)))
+      (cond
+       ((not refontify)
+        ;; New point does not affect highlighting: just refresh the
+        ;; highlighting of old point, if needed.
+        (when ostart
+          (font-lock-flush ostart
+                           (overlay-end whitespace-point--used))
+          (delete-overlay whitespace-point--used)))
+       ((not ostart)
+        ;; Old point did not affect highlighting, but new one does: refresh the
+        ;; highlighting of new point.
+        (font-lock-flush (min refontify (point)) (max refontify (point))))
+       ((save-excursion
+          (goto-char ostart)
+          (setq ostart (line-beginning-position))
+          (and (<= ostart (max refontify (point)))
+               (progn
+                 (goto-char (overlay-end whitespace-point--used))
+                 (let ((oend (line-beginning-position 2)))
+                   (<= (min refontify (point)) oend)))))
+        ;; The old point highlighting and the new point highlighting
+        ;; cover a contiguous region: do a single refresh.
+        (font-lock-flush (min refontify (point) ostart)
+                         (max refontify (point)
+                              (overlay-end whitespace-point--used)))
+        (delete-overlay whitespace-point--used))
+       (t
+        (font-lock-flush (min refontify (point))
+                         (max refontify (point)))
+        (font-lock-flush ostart (overlay-end whitespace-point--used))
+        (delete-overlay whitespace-point--used))))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

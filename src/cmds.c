@@ -280,8 +280,8 @@ At the end, it runs `post-self-insert-hook'.  */)
   bool remove_boundary = 1;
   CHECK_NUMBER (n);
 
-  if (XFASTINT (n) < 1)
-    error ("Nonpositive repetition argument %"pI"d", XFASTINT (n));
+  if (XFASTINT (n) < 0)
+    error ("Negative repetition argument %"pI"d", XFASTINT (n));
 
   if (!EQ (Vthis_command, KVAR (current_kboard, Vlast_command)))
     nonundocount = 0;
@@ -315,7 +315,7 @@ At the end, it runs `post-self-insert-hook'.  */)
     int val = internal_self_insert (character, XFASTINT (n));
     if (val == 2)
       nonundocount = 0;
-    frame_make_pointer_invisible ();
+    frame_make_pointer_invisible (SELECTED_FRAME ());
   }
 
   return Qnil;

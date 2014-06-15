@@ -32,6 +32,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "xterm.h"
 #include <X11/cursorfont.h>
 
+/* If we have Xfixes extension, use it for pointer blanking.  */
+#ifdef HAVE_XFIXES
+#include <X11/extensions/Xfixes.h>
+#endif
+
 /* Load sys/types.h if not already loaded.
    In some systems loading it twice is suicidal.  */
 #ifndef makedev
@@ -70,6 +75,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "xsettings.h"
 #include "xgselect.h"
 #include "sysselect.h"
+#include "menu.h"
 
 #ifdef USE_X_TOOLKIT
 #include <X11/Shell.h>
@@ -308,7 +314,7 @@ int event_record_index;
 void
 record_event (char *locus, int type)
 {
-  if (event_record_index == sizeof (event_record) / sizeof (struct record))
+  if (event_record_index == ARRAYELTS (event_record))
     event_record_index = 0;
 
   event_record[event_record_index].locus = locus;
@@ -597,7 +603,13 @@ x_update_window_end (struct window *w, bool cursor_on_p,
   /* If a row with mouse-face was overwritten, arrange for
      XTframe_up_to_date to redisplay the mouse highlight.  */
   if (mouse_face_overwritten_p)
-    reset_mouse_highlight (MOUSE_HL_INFO (XFRAME (w->frame)));
+    {
+      Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (XFRAME (w->frame));
+
+      hlinfo->mouse_face_beg_row = hlinfo->mouse_face_beg_col = -1;
+      hlinfo->mouse_face_end_row = hlinfo->mouse_face_end_col = -1;
+      hlinfo->mouse_face_window = Qnil;
+    }
 }
 
 
@@ -891,7 +903,7 @@ x_set_mouse_face_gc (struct glyph_string *s)
   else
     face_id = FACE_FOR_CHAR (s->f, face, 0, -1, Qnil);
   s->face = FACE_FROM_ID (s->f, face_id);
-  PREPARE_FACE_FOR_DISPLAY (s->f, s->face);
+  prepare_face_for_display (s->f, s->face);
 
   if (s->font == s->face->font)
     s->gc = s->face->gc;
@@ -939,7 +951,7 @@ x_set_mode_line_face_gc (struct glyph_string *s)
 static void
 x_set_glyph_string_gc (struct glyph_string *s)
 {
-  PREPARE_FACE_FOR_DISPLAY (s->f, s->face);
+  prepare_face_for_display (s->f, s->face);
 
   if (s->hl == DRAW_NORMAL_TEXT)
     {
@@ -968,10 +980,7 @@ x_set_glyph_string_gc (struct glyph_string *s)
       s->stippled_p = s->face->stipple != 0;
     }
   else
-    {
-      s->gc = s->face->gc;
-      s->stippled_p = s->face->stipple != 0;
-    }
+    emacs_abort ();
 
   /* GC must have been set.  */
   eassert (s->gc != 0);
@@ -2162,6 +2171,7 @@ static void
 x_draw_image_relief (struct glyph_string *s)
 {
   int x1, y1, thick, raised_p, top_p, bot_p, left_p, right_p;
+  int extra_x, extra_y;
   XRectangle r;
   int x = s->x;
   int y = s->ybase - image_ascent (s->img, s->face, &s->slice);
@@ -2194,16 +2204,31 @@ x_draw_image_relief (struct glyph_string *s)
 
   x1 = x + s->slice.width - 1;
   y1 = y + s->slice.height - 1;
+
+  extra_x = extra_y = 0;
+  if (s->face->id == TOOL_BAR_FACE_ID)
+    {
+      if (CONSP (Vtool_bar_button_margin)
+	  && INTEGERP (XCAR (Vtool_bar_button_margin))
+	  && INTEGERP (XCDR (Vtool_bar_button_margin)))
+	{
+	  extra_x = XINT (XCAR (Vtool_bar_button_margin));
+	  extra_y = XINT (XCDR (Vtool_bar_button_margin));
+	}
+      else if (INTEGERP (Vtool_bar_button_margin))
+	extra_x = extra_y = XINT (Vtool_bar_button_margin);
+    }
+
   top_p = bot_p = left_p = right_p = 0;
 
   if (s->slice.x == 0)
-    x -= thick, left_p = 1;
+    x -= thick + extra_x, left_p = 1;
   if (s->slice.y == 0)
-    y -= thick, top_p = 1;
+    y -= thick + extra_y, top_p = 1;
   if (s->slice.x + s->slice.width == s->img->width)
-    x1 += thick, right_p = 1;
+    x1 += thick + extra_x, right_p = 1;
   if (s->slice.y + s->slice.height == s->img->height)
-    y1 += thick, bot_p = 1;
+    y1 += thick + extra_y, bot_p = 1;
 
   x_setup_relief_colors (s);
   get_glyph_string_clip_rect (s, &r);
@@ -2386,15 +2411,19 @@ x_draw_image_glyph_string (struct glyph_string *s)
 	{
 	  int x = s->x;
 	  int y = s->y;
+	  int width = s->background_width;
 
 	  if (s->first_glyph->left_box_line_p
 	      && s->slice.x == 0)
-	    x += box_line_hwidth;
+	    {
+	      x += box_line_hwidth;
+	      width -= box_line_hwidth;
+	    }
 
 	  if (s->slice.y == 0)
 	    y += box_line_vwidth;
 
-	  x_draw_glyph_string_bg_rect (s, x, y, s->background_width, height);
+	  x_draw_glyph_string_bg_rect (s, x, y, width, height);
 	}
 
       s->background_filled_p = 1;
@@ -3079,16 +3108,7 @@ static void
 XTtoggle_invisible_pointer (struct frame *f, int invisible)
 {
   block_input ();
-  if (invisible)
-    {
-      if (FRAME_DISPLAY_INFO (f)->invisible_cursor != 0)
-        XDefineCursor (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-                       FRAME_DISPLAY_INFO (f)->invisible_cursor);
-    }
-  else
-    XDefineCursor (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-                   f->output_data.x->current_cursor);
-  f->pointer_invisible = invisible;
+  FRAME_DISPLAY_INFO (f)->toggle_visible_pointer (f, invisible);
   unblock_input ();
 }
 
@@ -4415,14 +4435,11 @@ xg_scroll_callback (GtkRange     *range,
                     gpointer      user_data)
 {
   struct scroll_bar *bar = user_data;
-  gdouble position;
   int part = -1, whole = 0, portion = 0;
   GtkAdjustment *adj = GTK_ADJUSTMENT (gtk_range_get_adjustment (range));
   struct frame *f = g_object_get_data (G_OBJECT (range), XG_FRAME_DATA);
 
   if (xg_ignore_gtk_scrollbar) return FALSE;
-  position = gtk_adjustment_get_value (adj);
-
 
   switch (scroll)
     {
@@ -4434,7 +4451,7 @@ xg_scroll_callback (GtkRange     *range,
           part = scroll_bar_handle;
           whole = gtk_adjustment_get_upper (adj) -
             gtk_adjustment_get_page_size (adj);
-          portion = min ((int)position, whole);
+          portion = min ((int)value, whole);
           bar->dragging = portion;
         }
       break;
@@ -5607,7 +5624,7 @@ static int temp_index;
 static short temp_buffer[100];
 
 #define STORE_KEYSYM_FOR_DEBUG(keysym)				\
-  if (temp_index == sizeof temp_buffer / sizeof (short))	\
+  if (temp_index == ARRAYELTS (temp_buffer))			\
     temp_index = 0;						\
   temp_buffer[temp_index++] = (keysym)
 
@@ -5667,7 +5684,7 @@ static struct input_event *current_hold_quit;
 
 /* This is the filter function invoked by the GTK event loop.
    It is invoked before the XEvent is translated to a GdkEvent,
-   so we have a chance to act on the event before GTK. */
+   so we have a chance to act on the event before GTK.  */
 static GdkFilterReturn
 event_handler_gdk (GdkXEvent *gxev, GdkEvent *ev, gpointer data)
 {
@@ -5696,9 +5713,9 @@ event_handler_gdk (GdkXEvent *gxev, GdkEvent *ev, gpointer data)
       if (! dpyinfo)
         current_finish = X_EVENT_NORMAL;
       else
-	current_count +=
-	  handle_one_xevent (dpyinfo, xev, &current_finish,
-			     current_hold_quit);
+	current_count
+	  += handle_one_xevent (dpyinfo, xev, &current_finish,
+				current_hold_quit);
     }
   else
     current_finish = x_dispatch_event (xev, xev->xany.display);
@@ -6142,14 +6159,6 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       if (f)
         {
 	  bool iconified = FRAME_ICONIFIED_P (f);
-          /* wait_reading_process_output will notice this and update
-             the frame's display structures.
-             If we where iconified, we should not set garbaged,
-             because that stops redrawing on Expose events.  This looks
-             bad if we are called from a recursive event loop
-             (x_dispatch_event), for example when a dialog is up.  */
-          if (!iconified)
-            SET_FRAME_GARBAGED (f);
 
           /* Check if fullscreen was specified before we where mapped the
              first time, i.e. from the command line.  */
@@ -6700,7 +6709,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 #ifdef USE_GTK
           /* GTK creates windows but doesn't map them.
-             Only get real positions when mapped. */
+             Only get real positions when mapped.  */
           if (FRAME_GTK_OUTER_WIDGET (f)
               && gtk_widget_get_mapped (FRAME_GTK_OUTER_WIDGET (f)))
 #endif
@@ -6800,9 +6809,10 @@ handle_one_xevent (struct x_display_info *dpyinfo,
           {
             dpyinfo->grabbed |= (1 << event->xbutton.button);
             dpyinfo->last_mouse_frame = f;
-
-            if (!tool_bar_p)
-              last_tool_bar_item = -1;
+#if ! defined (USE_GTK)
+            if (f && !tool_bar_p)
+              f->last_tool_bar_item = -1;
+#endif /* not USE_GTK */
           }
         else
           dpyinfo->grabbed &= ~(1 << event->xbutton.button);
@@ -7345,9 +7355,13 @@ x_bitmap_icon (struct frame *f, Lisp_Object file)
 
 #ifdef USE_GTK
 
-	  if (xg_set_icon (f, xg_default_icon_file)
-	      || xg_set_icon_from_xpm_data (f, gnu_xpm_bits))
-	    return 0;
+	  if (FRAME_DISPLAY_INFO (f)->icon_bitmap_id == -2
+              || xg_set_icon (f, xg_default_icon_file)
+              || xg_set_icon_from_xpm_data (f, gnu_xpm_bits))
+            {
+              FRAME_DISPLAY_INFO (f)->icon_bitmap_id = -2;
+              return 0;
+            }
 
 #elif defined (HAVE_XPM) && defined (HAVE_X_WINDOWS)
 
@@ -7766,20 +7780,16 @@ x_new_font (struct frame *f, Lisp_Object font_object, int fontset)
 
   compute_fringe_widths (f, 1);
 
+  /* Compute character columns occupied by scrollbar.
+
+     Don't do things differently for non-toolkit scrollbars
+     (Bug#17163).  */
   unit = FRAME_COLUMN_WIDTH (f);
-#ifdef USE_TOOLKIT_SCROLL_BARS
-  /* The width of a toolkit scrollbar does not change with the new
-     font but we have to calculate the number of columns it occupies
-     anew.  */
-  FRAME_CONFIG_SCROLL_BAR_COLS (f)
-    = (FRAME_CONFIG_SCROLL_BAR_WIDTH (f) + unit - 1) / unit;
-#else
-  /* The width of a non-toolkit scrollbar is at least 14 pixels and a
-     multiple of the frame's character width.  */
-  FRAME_CONFIG_SCROLL_BAR_COLS (f) = (14 + unit - 1) / unit;
-  FRAME_CONFIG_SCROLL_BAR_WIDTH (f)
-    = FRAME_CONFIG_SCROLL_BAR_COLS (f) * unit;
-#endif  
+  if (FRAME_CONFIG_SCROLL_BAR_WIDTH (f) > 0)
+    FRAME_CONFIG_SCROLL_BAR_COLS (f)
+      = (FRAME_CONFIG_SCROLL_BAR_WIDTH (f) + unit - 1) / unit;
+  else
+    FRAME_CONFIG_SCROLL_BAR_COLS (f) = (14 + unit - 1) / unit;
 
   if (FRAME_X_WINDOW (f) != 0)
     {
@@ -7985,7 +7995,7 @@ xim_close_dpy (struct x_display_info *dpyinfo)
     {
 #ifdef HAVE_X11R6_XIM
       struct xim_inst_t *xim_inst = dpyinfo->xim_callback_data;
-      
+
       if (dpyinfo->display)
 	{
 	  Bool ret = XUnregisterIMInstantiateCallback
@@ -8730,34 +8740,11 @@ x_set_window_size (struct frame *f, int change_gravity, int width, int height, b
 
   unblock_input ();
 }
-
-/* Mouse warping.  */
-
-void
-x_set_mouse_position (struct frame *f, int x, int y)
-{
-  int pix_x, pix_y;
-
-  pix_x = FRAME_COL_TO_PIXEL_X (f, x) + FRAME_COLUMN_WIDTH (f) / 2;
-  pix_y = FRAME_LINE_TO_PIXEL_Y (f, y) + FRAME_LINE_HEIGHT (f) / 2;
-
-  if (pix_x < 0) pix_x = 0;
-  if (pix_x > FRAME_PIXEL_WIDTH (f)) pix_x = FRAME_PIXEL_WIDTH (f);
-
-  if (pix_y < 0) pix_y = 0;
-  if (pix_y > FRAME_PIXEL_HEIGHT (f)) pix_y = FRAME_PIXEL_HEIGHT (f);
-
-  block_input ();
-
-  XWarpPointer (FRAME_X_DISPLAY (f), None, FRAME_X_WINDOW (f),
-		0, 0, 0, 0, pix_x, pix_y);
-  unblock_input ();
-}
 
 /* Move the mouse to position pixel PIX_X, PIX_Y relative to frame F.  */
 
 void
-x_set_mouse_pixel_position (struct frame *f, int pix_x, int pix_y)
+frame_set_mouse_pixel_position (struct frame *f, int pix_x, int pix_y)
 {
   block_input ();
 
@@ -8891,6 +8878,7 @@ void
 x_make_frame_visible (struct frame *f)
 {
   int original_top, original_left;
+  int tries = 0;
 
   block_input ();
 
@@ -8998,7 +8986,13 @@ x_make_frame_visible (struct frame *f)
 	/* Force processing of queued events.  */
 	x_sync (f);
 
-	/* This hack is still in use at least for Cygwin.  See
+        /* If on another desktop, the deiconify/map may be ignored and the
+           frame never becomes visible.  XMonad does this.
+           Prevent an endless loop.  */
+        if (FRAME_ICONIFIED_P (f) &&  ++tries > 100)
+          break;
+
+       /* This hack is still in use at least for Cygwin.  See
 	   http://lists.gnu.org/archive/html/emacs-devel/2013-12/msg00351.html.
 
 	   Machines that do polling rather than SIGIO have been
@@ -9221,6 +9215,11 @@ x_free_frame_resources (struct frame *f)
      commands to the X server.  */
   if (dpyinfo->display)
     {
+      /* Always exit with visible pointer to avoid weird issue
+	 with Xfixes (Bug#17609).  */
+      if (f->pointer_invisible)
+	FRAME_DISPLAY_INFO (f)->toggle_visible_pointer (f, 0);
+
       /* We must free faces before destroying windows because some
 	 font-driver (e.g. xft) access a window while finishing a
 	 face.  */
@@ -9304,6 +9303,22 @@ x_free_frame_resources (struct frame *f)
 	  XFreeGC (dpyinfo->display, f->output_data.x->black_relief.gc);
 	  f->output_data.x->black_relief.gc = 0;
 	}
+
+      /* Free cursors.  */
+      if (f->output_data.x->text_cursor != 0)
+	XFreeCursor (FRAME_X_DISPLAY (f), f->output_data.x->text_cursor);
+      if (f->output_data.x->nontext_cursor != 0)
+	XFreeCursor (FRAME_X_DISPLAY (f), f->output_data.x->nontext_cursor);
+      if (f->output_data.x->modeline_cursor != 0)
+	XFreeCursor (FRAME_X_DISPLAY (f), f->output_data.x->modeline_cursor);
+      if (f->output_data.x->hand_cursor != 0)
+	XFreeCursor (FRAME_X_DISPLAY (f), f->output_data.x->hand_cursor);
+      if (f->output_data.x->hourglass_cursor != 0)
+	XFreeCursor (FRAME_X_DISPLAY (f), f->output_data.x->hourglass_cursor);
+      if (f->output_data.x->horizontal_drag_cursor != 0)
+	XFreeCursor (FRAME_X_DISPLAY (f), f->output_data.x->horizontal_drag_cursor);
+      if (f->output_data.x->vertical_drag_cursor != 0)
+	XFreeCursor (FRAME_X_DISPLAY (f), f->output_data.x->vertical_drag_cursor);
 
       XFlush (FRAME_X_DISPLAY (f));
     }
@@ -9687,6 +9702,96 @@ my_log_handler (const gchar *log_domain, GLogLevelFlags log_level,
       fprintf (stderr, "%s-WARNING **: %s\n", log_domain, msg);
 }
 #endif
+
+/* Create invisible cursor on X display referred by DPYINFO.  */
+
+static Cursor
+make_invisible_cursor (struct x_display_info *dpyinfo)
+{
+  Display *dpy = dpyinfo->display;
+  static char const no_data[] = { 0 };
+  Pixmap pix;
+  XColor col;
+  Cursor c = 0;
+
+  x_catch_errors (dpy);
+  pix = XCreateBitmapFromData (dpy, dpyinfo->root_window, no_data, 1, 1);
+  if (! x_had_errors_p (dpy) && pix != None)
+    {
+      Cursor pixc;
+      col.pixel = 0;
+      col.red = col.green = col.blue = 0;
+      col.flags = DoRed | DoGreen | DoBlue;
+      pixc = XCreatePixmapCursor (dpy, pix, pix, &col, &col, 0, 0);
+      if (! x_had_errors_p (dpy) && pixc != None)
+        c = pixc;
+      XFreePixmap (dpy, pix);
+    }
+
+  x_uncatch_errors ();
+
+  return c;
+}
+
+/* True if DPY supports Xfixes extension >= 4.  */
+
+static bool
+x_probe_xfixes_extension (Display *dpy)
+{
+#ifdef HAVE_XFIXES
+  int major, minor;
+  return XFixesQueryVersion (dpy, &major, &minor) && major >= 4;
+#else
+  return false;
+#endif /* HAVE_XFIXES */
+}
+
+/* Toggle mouse pointer visibility on frame F by using Xfixes functions.  */
+
+static void
+xfixes_toggle_visible_pointer (struct frame *f, bool invisible)
+{
+#ifdef HAVE_XFIXES
+  if (invisible)
+    XFixesHideCursor (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f));
+  else
+    XFixesShowCursor (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f));
+  f->pointer_invisible = invisible;
+#else
+  emacs_abort ();
+#endif /* HAVE_XFIXES */
+}
+
+/* Toggle mouse pointer visibility on frame F by using invisible cursor.  */
+
+static void
+x_toggle_visible_pointer (struct frame *f, bool invisible)
+{
+  eassert (FRAME_DISPLAY_INFO (f)->invisible_cursor != 0);
+  if (invisible)
+    XDefineCursor (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+		   FRAME_DISPLAY_INFO (f)->invisible_cursor);
+  else
+    XDefineCursor (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+		   f->output_data.x->current_cursor);
+  f->pointer_invisible = invisible;  
+}
+
+/* Setup pointer blanking, prefer Xfixes if available.  */
+
+static void
+x_setup_pointer_blanking (struct x_display_info *dpyinfo)
+{
+  /* FIXME: the brave tester should set EMACS_XFIXES because we're suspecting
+     X server bug, see http://debbugs.gnu.org/cgi/bugreport.cgi?bug=17609.  */
+  if (egetenv ("EMACS_XFIXES") && x_probe_xfixes_extension (dpyinfo->display))
+    dpyinfo->toggle_visible_pointer = xfixes_toggle_visible_pointer;
+  else
+    {
+      dpyinfo->toggle_visible_pointer = x_toggle_visible_pointer;
+      dpyinfo->invisible_cursor = make_invisible_cursor (dpyinfo);
+    }
+}
 
 /* Current X display connection identifier.  Incremented for each next
    connection established.  */
@@ -10078,7 +10183,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
     };
 
     int i;
-    const int atom_count = sizeof (atom_refs) / sizeof (atom_refs[0]);
+    const int atom_count = ARRAYELTS (atom_refs);
     /* 1 for _XSETTINGS_SN  */
     const int total_atom_count = 1 + atom_count;
     Atom *atoms_return = xmalloc (total_atom_count * sizeof *atoms_return);
@@ -10116,6 +10221,8 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 				   gray_bits, gray_width, gray_height,
 				   1, 0, 1);
 
+  x_setup_pointer_blanking (dpyinfo);
+  
 #ifdef HAVE_X_I18N
   xim_initialize (dpyinfo, resource_name);
 #endif
@@ -10137,6 +10244,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 
 #ifdef USE_LUCID
   {
+    XFontStruct *xfont = NULL;
     XrmValue d, fr, to;
     Font font;
 
@@ -10150,8 +10258,10 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
     x_catch_errors (dpy);
     if (!XtCallConverter (dpy, XtCvtStringToFont, &d, 1, &fr, &to, NULL))
       emacs_abort ();
-    if (x_had_errors_p (dpy) || !XQueryFont (dpy, font))
+    if (x_had_errors_p (dpy) || !((xfont = XQueryFont (dpy, font))))
       XrmPutLineResource (&xrdb, "Emacs.dialog.*.font: 9x15");
+    if (xfont)
+      XFreeFont (dpy, xfont);
     x_uncatch_errors ();
   }
 #endif
@@ -10405,9 +10515,8 @@ x_create_terminal (struct x_display_info *dpyinfo)
 {
   struct terminal *terminal;
 
-  terminal = create_terminal ();
+  terminal = create_terminal (output_x_window, &x_redisplay_interface);
 
-  terminal->type = output_x_window;
   terminal->display_info.x = dpyinfo;
   dpyinfo->terminal = terminal;
 
@@ -10418,26 +10527,25 @@ x_create_terminal (struct x_display_info *dpyinfo)
   terminal->delete_glyphs_hook = x_delete_glyphs;
   terminal->ring_bell_hook = XTring_bell;
   terminal->toggle_invisible_pointer_hook = XTtoggle_invisible_pointer;
-  terminal->reset_terminal_modes_hook = NULL;
-  terminal->set_terminal_modes_hook = NULL;
   terminal->update_begin_hook = x_update_begin;
   terminal->update_end_hook = x_update_end;
-  terminal->set_terminal_window_hook = NULL;
   terminal->read_socket_hook = XTread_socket;
   terminal->frame_up_to_date_hook = XTframe_up_to_date;
   terminal->mouse_position_hook = XTmouse_position;
   terminal->frame_rehighlight_hook = XTframe_rehighlight;
   terminal->frame_raise_lower_hook = XTframe_raise_lower;
   terminal->fullscreen_hook = XTfullscreen_hook;
+  terminal->menu_show_hook = x_menu_show;
+#if defined (USE_X_TOOLKIT) || defined (USE_GTK)
+  terminal->popup_dialog_hook = xw_popup_dialog;
+#endif  
   terminal->set_vertical_scroll_bar_hook = XTset_vertical_scroll_bar;
   terminal->condemn_scroll_bars_hook = XTcondemn_scroll_bars;
   terminal->redeem_scroll_bar_hook = XTredeem_scroll_bar;
   terminal->judge_scroll_bars_hook = XTjudge_scroll_bars;
-
   terminal->delete_frame_hook = x_destroy_window;
   terminal->delete_terminal_hook = x_delete_terminal;
-
-  terminal->rif = &x_redisplay_interface;
+  /* Other hooks are NULL by default.  */
 
   return terminal;
 }
@@ -10448,7 +10556,6 @@ x_initialize (void)
   baud_rate = 19200;
 
   x_noop_count = 0;
-  last_tool_bar_item = -1;
   any_help_event_p = 0;
   ignore_next_mouse_click_timeout = 0;
 

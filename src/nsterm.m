@@ -54,7 +54,7 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 
 #include "termhooks.h"
 #include "termchar.h"
-
+#include "menu.h"
 #include "window.h"
 #include "keyboard.h"
 #include "buffer.h"
@@ -395,6 +395,19 @@ void x_set_frame_alpha (struct frame *f);
     Utilities
 
    ========================================================================== */
+
+void
+ns_init_events (struct input_event* ev)
+{
+  EVENT_INIT (*ev);
+  emacs_event = ev;
+}
+
+void
+ns_finish_events ()
+{
+  emacs_event = NULL;
+}
 
 static void
 hold_event (struct input_event *event)
@@ -1799,12 +1812,12 @@ x_set_frame_alpha (struct frame *f)
 
 
 void
-x_set_mouse_pixel_position (struct frame *f, int pix_x, int pix_y)
+frame_set_mouse_pixel_position (struct frame *f, int pix_x, int pix_y)
 /* --------------------------------------------------------------------------
      Programmatically reposition mouse pointer in pixel coordinates
    -------------------------------------------------------------------------- */
 {
-  NSTRACE (x_set_mouse_pixel_position);
+  NSTRACE (frame_set_mouse_pixel_position);
   ns_raise_frame (f);
 #if 0
   /* FIXME: this does not work, and what about GNUstep? */
@@ -1815,28 +1828,6 @@ x_set_mouse_pixel_position (struct frame *f, int pix_x, int pix_y)
 #endif
 #endif
 }
-
-
-void
-x_set_mouse_position (struct frame *f, int h, int v)
-/* --------------------------------------------------------------------------
-     Programmatically reposition mouse pointer in character coordinates
-   -------------------------------------------------------------------------- */
-{
-  int pix_x, pix_y;
-
-  pix_x = FRAME_COL_TO_PIXEL_X (f, h) + FRAME_COLUMN_WIDTH (f) / 2;
-  pix_y = FRAME_LINE_TO_PIXEL_Y (f, v) + FRAME_LINE_HEIGHT (f) / 2;
-
-  if (pix_x < 0) pix_x = 0;
-  if (pix_x > FRAME_PIXEL_WIDTH (f)) pix_x = FRAME_PIXEL_WIDTH (f);
-
-  if (pix_y < 0) pix_y = 0;
-  if (pix_y > FRAME_PIXEL_HEIGHT (f)) pix_y = FRAME_PIXEL_HEIGHT (f);
-
-  x_set_mouse_pixel_position (f, pix_x, pix_y);
-}
-
 
 static int
 note_mouse_movement (struct frame *frame, CGFloat x, CGFloat y)
@@ -2012,8 +2003,7 @@ ns_convert_key (unsigned code)
     Internal call used by NSView-keyDown.
    -------------------------------------------------------------------------- */
 {
-  const unsigned last_keysym = (sizeof (convert_ns_to_X_keysym)
-                                / sizeof (convert_ns_to_X_keysym[0]));
+  const unsigned last_keysym = ARRAYELTS (convert_ns_to_X_keysym);
   unsigned keysym;
   /* An array would be faster, but less easy to read. */
   for (keysym = 0; keysym < last_keysym; keysym += 2)
@@ -3356,10 +3346,16 @@ ns_draw_glyph_string (struct glyph_string *s)
           NS_FACE_FOREGROUND (s->face) = tmp;
         }
 
-      font->driver->draw
-        (s, 0, s->nchars, s->x, s->y,
-         (flags == NS_DUMPGLYPH_NORMAL && !s->background_filled_p)
-         || flags == NS_DUMPGLYPH_MOUSEFACE);
+      {
+        BOOL isComposite = s->first_glyph->type == COMPOSITE_GLYPH;
+        int end = isComposite ? s->cmp_to : s->nchars;
+
+        font->driver->draw
+          (s, s->cmp_from, end, s->x, s->ybase,
+           (flags == NS_DUMPGLYPH_NORMAL && !s->background_filled_p)
+           || flags == NS_DUMPGLYPH_MOUSEFACE);
+
+      }
 
       {
         NSColor *col = (NS_FACE_FOREGROUND (s->face) != 0
@@ -3601,8 +3597,7 @@ ns_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 
   block_input ();
   n_emacs_events_pending = 0;
-  EVENT_INIT (ev);
-  emacs_event = &ev;
+  ns_init_events (&ev);
   q_event_ptr = hold_quit;
 
   /* we manage autorelease pools by allocate/reallocate each time around
@@ -3643,7 +3638,8 @@ ns_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 
   nevents = n_emacs_events_pending;
   n_emacs_events_pending = 0;
-  emacs_event = q_event_ptr = NULL;
+  ns_finish_events ();
+  q_event_ptr = NULL;
   unblock_input ();
 
   return nevents;
@@ -3738,16 +3734,15 @@ ns_select (int nfds, fd_set *readfds, fd_set *writefds,
       ns_send_appdefined (-1);
     }
 
-  EVENT_INIT (event);
   block_input ();
-  emacs_event = &event;
+  ns_init_events (&event);
   if (++apploopnr != 1)
     {
       emacs_abort ();
     }
   [NSApp run];
   --apploopnr;
-  emacs_event = NULL;
+  ns_finish_events ();
   if (nr > 0 && readfds)
     {
       c = 's';
@@ -4154,38 +4149,30 @@ ns_create_terminal (struct ns_display_info *dpyinfo)
 
   NSTRACE (ns_create_terminal);
 
-  terminal = create_terminal ();
+  terminal = create_terminal (output_ns, &ns_redisplay_interface);
 
-  terminal->type = output_ns;
   terminal->display_info.ns = dpyinfo;
   dpyinfo->terminal = terminal;
 
-  terminal->rif = &ns_redisplay_interface;
-
   terminal->clear_frame_hook = ns_clear_frame;
-  terminal->ins_del_lines_hook = 0; /* XXX vestigial? */
-  terminal->delete_glyphs_hook = 0; /* XXX vestigial? */
   terminal->ring_bell_hook = ns_ring_bell;
-  terminal->reset_terminal_modes_hook = NULL;
-  terminal->set_terminal_modes_hook = NULL;
   terminal->update_begin_hook = ns_update_begin;
   terminal->update_end_hook = ns_update_end;
-  terminal->set_terminal_window_hook = NULL; /* XXX vestigial? */
   terminal->read_socket_hook = ns_read_socket;
   terminal->frame_up_to_date_hook = ns_frame_up_to_date;
   terminal->mouse_position_hook = ns_mouse_position;
   terminal->frame_rehighlight_hook = ns_frame_rehighlight;
   terminal->frame_raise_lower_hook = ns_frame_raise_lower;
-
   terminal->fullscreen_hook = ns_fullscreen_hook;
-
+  terminal->menu_show_hook = ns_menu_show;
+  terminal->popup_dialog_hook = ns_popup_dialog;
   terminal->set_vertical_scroll_bar_hook = ns_set_vertical_scroll_bar;
   terminal->condemn_scroll_bars_hook = ns_condemn_scroll_bars;
   terminal->redeem_scroll_bar_hook = ns_redeem_scroll_bar;
   terminal->judge_scroll_bars_hook = ns_judge_scroll_bars;
-
   terminal->delete_frame_hook = x_destroy_window;
   terminal->delete_terminal_hook = ns_delete_terminal;
+  /* Other hooks are NULL by default.  */
 
   return terminal;
 }
@@ -5766,6 +5753,13 @@ not_in_argv (NSString *arg)
         + FRAME_TOOLBAR_HEIGHT (emacsframe);
     }
 
+  if (wait_for_tool_bar)
+    {
+      if (FRAME_TOOLBAR_HEIGHT (emacsframe) == 0)
+        return;
+      wait_for_tool_bar = NO;
+    }
+
   neww = (int)wr.size.width - emacsframe->border_width;
   newh = (int)wr.size.height - extra;
 
@@ -6078,6 +6072,13 @@ if (cols > 0 && rows > 0)
                                    ns_window_num]];
   [win setToolbar: toolbar];
   [toolbar setVisible: NO];
+
+  /* Don't set frame garbaged until tool bar is up to date?
+     This avoids an extra clear and redraw (flicker) at frame creation.  */
+  if (FRAME_EXTERNAL_TOOL_BAR (f)) wait_for_tool_bar = YES;
+  else wait_for_tool_bar = NO;
+
+
 #ifdef NS_IMPL_COCOA
   {
     NSButton *toggleButton;
@@ -6963,7 +6964,8 @@ if (cols > 0 && rows > 0)
 {
   /* When making the frame visible for the first time or if there is just
      one screen, we want to constrain.  Other times not.  */
-  NSUInteger nr_screens = [[NSScreen screens] count];
+  NSArray *screens = [NSScreen screens];
+  NSUInteger nr_screens = [screens count], nr_eff_screens = 0, i;
   struct frame *f = ((EmacsView *)[self delegate])->emacsframe;
   NSTRACE (constrainFrameRect);
   NSTRACE_RECT ("input", frameRect);
@@ -6971,6 +6973,31 @@ if (cols > 0 && rows > 0)
   if (ns_menu_bar_should_be_hidden ())
     return frameRect;
 
+  if (nr_screens == 1)
+    return [super constrainFrameRect:frameRect toScreen:screen];
+
+#ifdef NS_IMPL_COCOA
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_9
+  // If separate spaces is on, it is like each screen is independent.  There is
+  // no spanning of frames across screens.
+  if ([NSScreen screensHaveSeparateSpaces])
+    return [super constrainFrameRect:frameRect toScreen:screen];
+#endif
+#endif
+
+  for (i = 0; i < nr_screens; ++i) 
+    {
+      NSScreen *s = [screens objectAtIndex: i];
+      NSRect scrrect = [s frame];
+      NSRect intersect = NSIntersectionRect (frameRect, scrrect);
+
+      if (intersect.size.width > 0 || intersect.size.height > 0)
+        ++nr_eff_screens;
+    }
+
+  if (nr_eff_screens == 1)
+    return [super constrainFrameRect:frameRect toScreen:screen];
+  
   /* The default implementation does two things 1) ensure that the top
      of the rectangle is below the menu bar (or below the top of the
      screen) and 2) resizes windows larger than the screen. As we

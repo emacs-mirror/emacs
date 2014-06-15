@@ -1,7 +1,6 @@
 ;;; rmail.el --- main code of "RMAIL" mail reader for Emacs
 
-;; Copyright (C) 1985-1988, 1993-1998, 2000-2014 Free Software
-;; Foundation, Inc.
+;; Copyright (C) 1985-1988, 1993-1998, 2000-2014 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: mail
@@ -1508,8 +1507,7 @@ If so restore the actual mbox message collection."
 	'(rmail-font-lock-keywords
 	  t t nil nil
 	  (font-lock-maximum-size . nil)
-	  (font-lock-fontify-buffer-function . rmail-fontify-buffer-function)
-	  (font-lock-unfontify-buffer-function . rmail-unfontify-buffer-function)
+          (font-lock-dont-widen . t)
 	  (font-lock-inhibit-thing-lock . (lazy-lock-mode fast-lock-mode))))
   (make-local-variable 'require-final-newline)
   (setq require-final-newline nil)
@@ -1573,7 +1571,7 @@ Hook `rmail-quit-hook' is run after expunging."
   (when (boundp 'rmail-quit-hook)
     (run-hooks 'rmail-quit-hook))
   ;; Don't switch to the summary buffer even if it was recently visible.
-  (when rmail-summary-buffer
+  (when (rmail-summary-exists)
     (with-current-buffer rmail-summary-buffer
       (set-buffer-modified-p nil))
     (replace-buffer-in-windows rmail-summary-buffer)
@@ -3449,47 +3447,66 @@ STATE non-nil means mark as deleted."
   "Delete this message and stay on it."
   (interactive)
   (rmail-set-attribute rmail-deleted-attr-index t)
-  (run-hooks 'rmail-delete-message-hook))
-
-(defun rmail-undelete-previous-message ()
-  "Back up to deleted message, select it, and undelete it."
-  (interactive)
-  (set-buffer rmail-buffer)
-  (let ((msg rmail-current-message))
-    (while (and (> msg 0)
-		(not (rmail-message-deleted-p msg)))
-      (setq msg (1- msg)))
-    (if (= msg 0)
-	(error "No previous deleted message")
-      (if (/= msg rmail-current-message)
-	  (rmail-show-message msg))
-      (rmail-set-attribute rmail-deleted-attr-index nil)
-      (if (rmail-summary-exists)
-	  (with-current-buffer rmail-summary-buffer
-	    (rmail-summary-mark-undeleted msg)))
-      (rmail-maybe-display-summary))))
-
-(defun rmail-delete-forward (&optional backward)
-  "Delete this message and move to next nondeleted one.
-Deleted messages stay in the file until the \\[rmail-expunge] command is given.
-With prefix argument, delete and move backward.
-
-Returns t if a new message is displayed after the delete, or nil otherwise."
-  (interactive "P")
-  (rmail-set-attribute rmail-deleted-attr-index t)
   (run-hooks 'rmail-delete-message-hook)
   (let ((del-msg rmail-current-message))
     (if (rmail-summary-exists)
 	(rmail-select-summary
-	 (rmail-summary-mark-deleted del-msg)))
-    (prog1 (rmail-next-undeleted-message (if backward -1 1))
-      (rmail-maybe-display-summary))))
+	 (rmail-summary-mark-deleted del-msg)))))
 
-(defun rmail-delete-backward ()
+(defun rmail-undelete-previous-message (count)
+  "Back up to deleted message, select it, and undelete it."
+  (interactive "p")
+  (set-buffer rmail-buffer)
+  (let (value)
+    (dotimes (i count)
+      (let ((msg rmail-current-message))
+	(while (and (> msg 0)
+		    (not (rmail-message-deleted-p msg)))
+	  (setq msg (1- msg)))
+	(if (= msg 0)
+	    (error "No previous deleted message")
+	  (if (/= msg rmail-current-message)
+	      (rmail-show-message msg))
+	  (rmail-set-attribute rmail-deleted-attr-index nil)
+	  (if (rmail-summary-exists)
+	      (with-current-buffer rmail-summary-buffer
+		(rmail-summary-mark-undeleted msg))))))
+    (rmail-maybe-display-summary)))
+
+(defun rmail-delete-forward (&optional count)
+  "Delete this message and move to next nondeleted one.
+Deleted messages stay in the file until the \\[rmail-expunge] command is given.
+Optional argument COUNT (interactively, prefix argument) is a repeat count;
+negative argument means move backwards instead of forwards.
+
+Returns t if a new message is displayed after the delete, or nil otherwise."
+  (interactive "p")
+  (if (not count) (setq count 1))
+  (let (value backward)
+    (if (< count 0)
+	(setq count (- count) backward t))
+    (dotimes (i count)
+      (rmail-set-attribute rmail-deleted-attr-index t)
+      (run-hooks 'rmail-delete-message-hook)
+      (let ((del-msg rmail-current-message))
+	(if (rmail-summary-exists)
+	    (rmail-select-summary
+	     (rmail-summary-mark-deleted del-msg)))
+	(setq value (rmail-next-undeleted-message (if backward -1 1)))))
+    (rmail-maybe-display-summary)
+    value))
+
+(defun rmail-delete-backward (&optional count)
   "Delete this message and move to previous nondeleted one.
-Deleted messages stay in the file until the \\[rmail-expunge] command is given."
-  (interactive)
-  (rmail-delete-forward t))
+Deleted messages stay in the file until the \\[rmail-expunge] command is given.
+Optional argument COUNT (interactively, prefix argument) is a repeat count;
+negative argument means move forwards instead of backwards.
+
+Returns t if a new message is displayed after the delete, or nil otherwise."
+
+  (interactive "p")
+  (if (not count) (setq count 1))
+  (rmail-delete-forward (- count)))
 
 ;; Expunging.
 
@@ -4298,31 +4315,21 @@ This has an effect only if a summary buffer exists."
 
 (defun rmail-unfontify-buffer-function ()
   ;; This function's symbol is bound to font-lock-fontify-unbuffer-function.
-  (let ((modified (buffer-modified-p))
-	(buffer-undo-list t) (inhibit-read-only t)
-	before-change-functions after-change-functions
-	buffer-file-name buffer-file-truename)
+  (with-silent-modifications
     (save-restriction
       (widen)
       (remove-hook 'rmail-show-message-hook 'rmail-fontify-message t)
       (remove-text-properties (point-min) (point-max) '(rmail-fontified nil))
-      (font-lock-default-unfontify-buffer)
-      (and (not modified) (buffer-modified-p)
-           (restore-buffer-modified-p nil)))))
+      (font-lock-default-unfontify-buffer))))
 
 (defun rmail-fontify-message ()
   ;; Fontify the current message if it is not already fontified.
   (if (text-property-any (point-min) (point-max) 'rmail-fontified nil)
-      (let ((modified (buffer-modified-p))
-	    (buffer-undo-list t) (inhibit-read-only t)
-	    before-change-functions after-change-functions
-	    buffer-file-name buffer-file-truename)
+      (with-silent-modifications
 	(save-excursion
 	  (save-match-data
 	    (add-text-properties (point-min) (point-max) '(rmail-fontified t))
-	    (font-lock-fontify-region (point-min) (point-max))
-	    (and (not modified) (buffer-modified-p)
-                 (restore-buffer-modified-p nil)))))))
+	    (font-lock-fontify-region (point-min) (point-max)))))))
 
 ;;; Speedbar support for RMAIL files.
 (defcustom rmail-speedbar-match-folder-regexp "^[A-Z0-9]+\\(\\.[A-Z0-9]+\\)?$"
@@ -4774,7 +4781,7 @@ If prefix argument REVERSE is non-nil, sorts in reverse order.
 
 ;;;***
 
-;;;### (autoloads nil "rmailsum" "rmailsum.el" "9baf491e4facec07debcb6aa55a11b54")
+;;;### (autoloads nil "rmailsum" "rmailsum.el" "ee1fa556cd65d7ef457a97ab560e15da")
 ;;; Generated autoloads from rmailsum.el
 
 (autoload 'rmail-summary "rmailsum" "\

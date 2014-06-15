@@ -294,7 +294,7 @@ setup_cpu_timer (Lisp_Object sampling_interval)
       sigev.sigev_signo = SIGPROF;
       sigev.sigev_notify = SIGEV_SIGNAL;
 
-      for (i = 0; i < sizeof system_clock / sizeof *system_clock; i++)
+      for (i = 0; i < ARRAYELTS (system_clock); i++)
 	if (timer_create (system_clock[i], &sigev, &profiler_timer) == 0)
 	  {
 	    profiler_timer_ok = 1;
@@ -384,7 +384,7 @@ Return non-nil if the profiler was running.  */)
 DEFUN ("profiler-cpu-running-p",
        Fprofiler_cpu_running_p, Sprofiler_cpu_running_p,
        0, 0, 0,
-       doc: /* Return non-nil iff cpu profiler is running.  */)
+       doc: /* Return non-nil if cpu profiler is running.  */)
   (void)
 {
   return profiler_cpu_running ? Qt : Qnil;

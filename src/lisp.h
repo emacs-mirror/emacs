@@ -36,14 +36,30 @@ INLINE_HEADER_BEGIN
 
 /* Define a TYPE constant ID as an externally visible name.  Use like this:
 
+      #define ID_val (some integer preprocessor expression)
+      #if ENUMABLE (ID_val)
+      DEFINE_GDB_SYMBOL_ENUM (ID)
+      #else
       DEFINE_GDB_SYMBOL_BEGIN (TYPE, ID)
-      #define ID something
+      # define ID ID_val
       DEFINE_GDB_SYMBOL_END (ID)
+      #endif
 
    This hack is for the benefit of compilers that do not make macro
    definitions visible to the debugger.  It's used for symbols that
    .gdbinit needs, symbols whose values may not fit in 'int' (where an
-   enum would suffice).  */
+   enum would suffice).
+
+   Some GCC versions before GCC 4.2 omit enums in debugging output;
+   see GCC bug 23336.  So don't use enums with older GCC.  */
+
+#if !defined __GNUC__ || 4 < __GNUC__ + (2 <= __GNUC_MINOR__)
+# define ENUMABLE(val) (INT_MIN <= (val) && (val) <= INT_MAX)
+#else
+# define ENUMABLE(val) 0
+#endif
+
+#define DEFINE_GDB_SYMBOL_ENUM(id) enum { id = id##_val };
 #if defined MAIN_PROGRAM
 # define DEFINE_GDB_SYMBOL_BEGIN(type, id) type const id EXTERNALLY_VISIBLE
 # define DEFINE_GDB_SYMBOL_END(id) = id;
@@ -58,6 +74,26 @@ INLINE_HEADER_BEGIN
 #define max(a, b) ((a) > (b) ? (a) : (b))
 #define min(a, b) ((a) < (b) ? (a) : (b))
 
+/* Number of elements in an array.  */
+#define ARRAYELTS(arr) (sizeof (arr) / sizeof (arr)[0])
+
+/* Number of bits in a Lisp_Object tag.  */
+DEFINE_GDB_SYMBOL_BEGIN (int, GCTYPEBITS)
+#define GCTYPEBITS 3
+DEFINE_GDB_SYMBOL_END (GCTYPEBITS)
+
+/* The number of bits needed in an EMACS_INT over and above the number
+   of bits in a pointer.  This is 0 on systems where:
+   1.  We can specify multiple-of-8 alignment on static variables.
+   2.  We know malloc returns a multiple of 8.  */
+#if (defined alignas \
+     && (defined GNU_MALLOC || defined DOUG_LEA_MALLOC || defined __GLIBC__ \
+	 || defined DARWIN_OS || defined __sun || defined __MINGW32__))
+# define NONPOINTER_BITS 0
+#else
+# define NONPOINTER_BITS GCTYPEBITS
+#endif
+
 /* EMACS_INT - signed integer wide enough to hold an Emacs value
    EMACS_INT_MAX - maximum value of EMACS_INT; can be used in #if
    pI - printf length modifier for EMACS_INT
@@ -65,16 +101,18 @@ INLINE_HEADER_BEGIN
 #ifndef EMACS_INT_MAX
 # if INTPTR_MAX <= 0
 #  error "INTPTR_MAX misconfigured"
-# elif INTPTR_MAX <= INT_MAX && !defined WIDE_EMACS_INT
+# elif INTPTR_MAX <= INT_MAX >> NONPOINTER_BITS && !defined WIDE_EMACS_INT
 typedef int EMACS_INT;
 typedef unsigned int EMACS_UINT;
 #  define EMACS_INT_MAX INT_MAX
 #  define pI ""
-# elif INTPTR_MAX <= LONG_MAX && !defined WIDE_EMACS_INT
+# elif INTPTR_MAX <= LONG_MAX >> NONPOINTER_BITS && !defined WIDE_EMACS_INT
 typedef long int EMACS_INT;
 typedef unsigned long EMACS_UINT;
 #  define EMACS_INT_MAX LONG_MAX
 #  define pI "l"
+/* Check versus LLONG_MAX, not LLONG_MAX >> NONPOINTER_BITS.
+   In theory this is not safe, but in practice it seems to be OK.  */
 # elif INTPTR_MAX <= LLONG_MAX
 typedef long long int EMACS_INT;
 typedef unsigned long long int EMACS_UINT;
@@ -93,7 +131,7 @@ enum {  BOOL_VECTOR_BITS_PER_CHAR =
 };
 
 /* An unsigned integer type representing a fixed-length bit sequence,
-   suitable for words in a Lisp bool vector.  Normally it is size_t
+   suitable for bool vector words, GC mark bits, etc.  Normally it is size_t
    for speed, but it is unsigned char on weird platforms.  */
 #if BOOL_VECTOR_BITS_PER_CHAR == CHAR_BIT
 typedef size_t bits_word;
@@ -111,7 +149,6 @@ enum
   {
     BITS_PER_CHAR      = CHAR_BIT,
     BITS_PER_SHORT     = CHAR_BIT * sizeof (short),
-    BITS_PER_INT       = CHAR_BIT * sizeof (int),
     BITS_PER_LONG      = CHAR_BIT * sizeof (long int),
     BITS_PER_EMACS_INT = CHAR_BIT * sizeof (EMACS_INT)
   };
@@ -215,12 +252,6 @@ extern bool suppress_checking EXTERNALLY_VISIBLE;
 
 enum Lisp_Bits
   {
-    /* Number of bits in a Lisp_Object tag.  This can be used in #if,
-       and for GDB's sake also as a regular symbol.  */
-    GCTYPEBITS =
-#define GCTYPEBITS 3
-	GCTYPEBITS,
-
     /* 2**GCTYPEBITS.  This must be a macro that expands to a literal
        integer constant, for MSVC.  */
 #define GCALIGNMENT 8
@@ -244,31 +275,19 @@ enum Lisp_Bits
    This can be used in #if, e.g., '#if VAL_MAX < UINTPTR_MAX' below.  */
 #define VAL_MAX (EMACS_INT_MAX >> (GCTYPEBITS - 1))
 
-/* Unless otherwise specified, use USE_LSB_TAG on systems where:  */
-#ifndef USE_LSB_TAG
-/* 1.  We know malloc returns a multiple of 8.  */
-# if (defined GNU_MALLOC || defined DOUG_LEA_MALLOC || defined __GLIBC__ \
-      || defined DARWIN_OS || defined __sun)
-/* 2.  We can specify multiple-of-8 alignment on static variables.  */
-#  ifdef alignas
-/* 3.  Pointers-as-ints exceed VAL_MAX.
+/* Whether the least-significant bits of an EMACS_INT contain the tag.
    On hosts where pointers-as-ints do not exceed VAL_MAX, USE_LSB_TAG is:
     a. unnecessary, because the top bits of an EMACS_INT are unused, and
     b. slower, because it typically requires extra masking.
-   So, default USE_LSB_TAG to true only on hosts where it might be useful.  */
-#   if VAL_MAX < UINTPTR_MAX
-#    define USE_LSB_TAG true
-#   endif
-#  endif
-# endif
-#endif
-#ifdef USE_LSB_TAG
-# undef USE_LSB_TAG
-enum enum_USE_LSB_TAG { USE_LSB_TAG = true };
-# define USE_LSB_TAG true
-#else
-enum enum_USE_LSB_TAG { USE_LSB_TAG = false };
-# define USE_LSB_TAG false
+   So, USE_LSB_TAG is true only on hosts where it might be useful.  */
+DEFINE_GDB_SYMBOL_BEGIN (bool, USE_LSB_TAG)
+#define USE_LSB_TAG (EMACS_INT_MAX >> GCTYPEBITS < INTPTR_MAX)
+DEFINE_GDB_SYMBOL_END (USE_LSB_TAG)
+
+#if !USE_LSB_TAG && !defined WIDE_EMACS_INT
+# error "USE_LSB_TAG not supported on this platform; please report this." \
+	"Try 'configure --with-wide-int' to work around the problem."
+error !;
 #endif
 
 #ifndef alignas
@@ -343,15 +362,15 @@ enum enum_USE_LSB_TAG { USE_LSB_TAG = false };
 #define lisp_h_XCONS(a) \
    (eassert (CONSP (a)), (struct Lisp_Cons *) XUNTAG (a, Lisp_Cons))
 #define lisp_h_XHASH(a) XUINT (a)
-#define lisp_h_XPNTR(a) \
-   ((void *) (intptr_t) ((XLI (a) & VALMASK) | DATA_SEG_BITS))
+#define lisp_h_XPNTR(a) ((void *) (intptr_t) (XLI (a) & VALMASK))
 #define lisp_h_XSYMBOL(a) \
    (eassert (SYMBOLP (a)), (struct Lisp_Symbol *) XUNTAG (a, Lisp_Symbol))
 #ifndef GC_CHECK_CONS_LIST
 # define lisp_h_check_cons_list() ((void) 0)
 #endif
 #if USE_LSB_TAG
-# define lisp_h_make_number(n) XIL ((EMACS_INT) (n) << INTTYPEBITS)
+# define lisp_h_make_number(n) \
+    XIL ((EMACS_INT) ((EMACS_UINT) (n) << INTTYPEBITS))
 # define lisp_h_XFASTINT(a) XINT (a)
 # define lisp_h_XINT(a) (XLI (a) >> INTTYPEBITS)
 # define lisp_h_XTYPE(a) ((enum Lisp_Type) (XLI (a) & ~VALMASK))
@@ -571,15 +590,25 @@ LISP_MACRO_DEFUN (XIL, Lisp_Object, (EMACS_INT i), (i))
 
 /* In the size word of a vector, this bit means the vector has been marked.  */
 
+#define ARRAY_MARK_FLAG_val PTRDIFF_MIN
+#if ENUMABLE (ARRAY_MARK_FLAG_val)
+DEFINE_GDB_SYMBOL_ENUM (ARRAY_MARK_FLAG)
+#else
 DEFINE_GDB_SYMBOL_BEGIN (ptrdiff_t, ARRAY_MARK_FLAG)
-#define ARRAY_MARK_FLAG PTRDIFF_MIN
+# define ARRAY_MARK_FLAG ARRAY_MARK_FLAG_val
 DEFINE_GDB_SYMBOL_END (ARRAY_MARK_FLAG)
+#endif
 
 /* In the size word of a struct Lisp_Vector, this bit means it's really
    some other vector-like object.  */
+#define PSEUDOVECTOR_FLAG_val (PTRDIFF_MAX - PTRDIFF_MAX / 2)
+#if ENUMABLE (PSEUDOVECTOR_FLAG_val)
+DEFINE_GDB_SYMBOL_ENUM (PSEUDOVECTOR_FLAG)
+#else
 DEFINE_GDB_SYMBOL_BEGIN (ptrdiff_t, PSEUDOVECTOR_FLAG)
-#define PSEUDOVECTOR_FLAG (PTRDIFF_MAX - PTRDIFF_MAX / 2)
+# define PSEUDOVECTOR_FLAG PSEUDOVECTOR_FLAG_val
 DEFINE_GDB_SYMBOL_END (PSEUDOVECTOR_FLAG)
+#endif
 
 /* In a pseudovector, the size field actually contains a word with one
    PSEUDOVECTOR_FLAG bit set, and one of the following values extracted
@@ -605,18 +634,8 @@ enum pvec_type
   PVEC_FONT /* Should be last because it's used for range checking.  */
 };
 
-/* DATA_SEG_BITS forces extra bits to be or'd in with any pointers
-   which were stored in a Lisp_Object.  */
-#ifndef DATA_SEG_BITS
-# define DATA_SEG_BITS 0
-#endif
-enum { gdb_DATA_SEG_BITS = DATA_SEG_BITS };
-#undef DATA_SEG_BITS
-
 enum More_Lisp_Bits
   {
-    DATA_SEG_BITS = gdb_DATA_SEG_BITS,
-
     /* For convenience, we also store the number of elements in these bits.
        Note that this size is not necessarily the memory-footprint size, but
        only the number of Lisp_Object fields (that need to be traced by GC).
@@ -641,9 +660,15 @@ enum More_Lisp_Bits
    XCONS (tem) is the struct Lisp_Cons * pointing to the memory for
    that cons.  */
 
+/* Mask for the value (as opposed to the type bits) of a Lisp object.  */
+#define VALMASK_val (USE_LSB_TAG ? - (1 << GCTYPEBITS) : VAL_MAX)
+#if ENUMABLE (VALMASK_val)
+DEFINE_GDB_SYMBOL_ENUM (VALMASK)
+#else
 DEFINE_GDB_SYMBOL_BEGIN (EMACS_INT, VALMASK)
-#define VALMASK (USE_LSB_TAG ? - (1 << GCTYPEBITS) : VAL_MAX)
+# define VALMASK VALMASK_val
 DEFINE_GDB_SYMBOL_END (VALMASK)
+#endif
 
 /* Largest and smallest representable fixnum values.  These are the C
    values.  They are macros for use in static initializers.  */
@@ -672,7 +697,14 @@ LISP_MACRO_DEFUN (XUNTAG, void *, (Lisp_Object a, int type), (a, type))
 INLINE Lisp_Object
 make_number (EMACS_INT n)
 {
-  return XIL (USE_LSB_TAG ? n << INTTYPEBITS : n & INTMASK);
+  if (USE_LSB_TAG)
+    {
+      EMACS_UINT u = n;
+      n = u << INTTYPEBITS;
+    }
+  else
+    n &= INTMASK;
+  return XIL (n);
 }
 
 /* Extract A's value as a signed integer.  */
@@ -680,7 +712,12 @@ INLINE EMACS_INT
 XINT (Lisp_Object a)
 {
   EMACS_INT i = XLI (a);
-  return (USE_LSB_TAG ? i : i << INTTYPEBITS) >> INTTYPEBITS;
+  if (! USE_LSB_TAG)
+    {
+      EMACS_UINT u = i;
+      i = u << INTTYPEBITS;
+    }
+  return i >> INTTYPEBITS;
 }
 
 /* Like XINT (A), but may be faster.  A must be nonnegative.
@@ -800,6 +837,7 @@ extern _Noreturn Lisp_Object wrong_type_argument (Lisp_Object, Lisp_Object);
 
 /* Defined in emacs.c.  */
 extern bool initialized;
+extern bool might_dump;
 
 /* Defined in eval.c.  */
 extern Lisp_Object Qautoload;
@@ -1568,6 +1606,9 @@ struct Lisp_Symbol
      special (with `defvar' etc), and shouldn't be lexically bound.  */
   bool_bf declared_special : 1;
 
+  /* True if pointed to from purespace and hence can't be GC'd.  */
+  bool_bf pinned : 1;
+
   /* The symbol's name, as a Lisp string.  */
   Lisp_Object name;
 
@@ -1709,8 +1750,8 @@ struct Lisp_Hash_Table
      ratio, a float.  */
   Lisp_Object rehash_threshold;
 
-  /* Vector of hash codes.. If hash[I] is nil, this means that that
-     entry I is unused.  */
+  /* Vector of hash codes.  If hash[I] is nil, this means that the
+     I-th entry is unused.  */
   Lisp_Object hash;
 
   /* Vector used to chain entries.  If entry I is free, next[I] is the
@@ -2530,11 +2571,13 @@ CHECK_WINDOW (Lisp_Object x)
 {
   CHECK_TYPE (WINDOWP (x), Qwindowp, x);
 }
+#ifdef subprocesses
 INLINE void
 CHECK_PROCESS (Lisp_Object x)
 {
   CHECK_TYPE (PROCESSP (x), Qprocessp, x);
 }
+#endif
 INLINE void
 CHECK_NATNUM (Lisp_Object x)
 {
@@ -2643,16 +2686,11 @@ CHECK_NUMBER_CDR (Lisp_Object x)
        minargs, maxargs, lname, intspec, 0};				\
    Lisp_Object fnname
 #else  /* not _MSC_VER */
-# if __STDC_VERSION__ < 199901
-#  define DEFUN_FUNCTION_INIT(fnname, maxargs) (Lisp_Object (*) (void)) fnname
-# else
-#  define DEFUN_FUNCTION_INIT(fnname, maxargs) .a ## maxargs = fnname
-# endif
 #define DEFUN(lname, fnname, sname, minargs, maxargs, intspec, doc)	\
    Lisp_Object fnname DEFUN_ARGS_ ## maxargs ;				\
    static struct Lisp_Subr alignas (GCALIGNMENT) sname =		\
      { { PVEC_SUBR << PSEUDOVECTOR_AREA_BITS },				\
-       { DEFUN_FUNCTION_INIT (fnname, maxargs) },			\
+       { .a ## maxargs = fnname },					\
        minargs, maxargs, lname, intspec, 0};				\
    Lisp_Object fnname
 #endif
@@ -3741,6 +3779,7 @@ extern void init_alloc (void);
 extern void syms_of_alloc (void);
 extern struct buffer * allocate_buffer (void);
 extern int valid_lisp_object_p (Lisp_Object);
+extern int relocatable_string_data_p (const char *);
 #ifdef GC_CHECK_CONS_LIST
 extern void check_cons_list (void);
 #else
@@ -3749,9 +3788,9 @@ INLINE void (check_cons_list) (void) { lisp_h_check_cons_list (); }
 
 #ifdef REL_ALLOC
 /* Defined in ralloc.c.  */
-extern void *r_alloc (void **, size_t);
+extern void *r_alloc (void **, size_t) ATTRIBUTE_ALLOC_SIZE ((2));
 extern void r_alloc_free (void **);
-extern void *r_re_alloc (void **, size_t);
+extern void *r_re_alloc (void **, size_t) ATTRIBUTE_ALLOC_SIZE ((2));
 extern void r_alloc_reset_variable (void **, void **);
 extern void r_alloc_inhibit_buffer_relocation (int);
 #endif
@@ -3787,7 +3826,7 @@ extern void print_error_message (Lisp_Object, Lisp_Object, const char *,
 				 Lisp_Object);
 extern Lisp_Object internal_with_output_to_temp_buffer
         (const char *, Lisp_Object (*) (Lisp_Object), Lisp_Object);
-enum FLOAT_TO_STRING_BUFSIZE { FLOAT_TO_STRING_BUFSIZE = 350 };
+#define FLOAT_TO_STRING_BUFSIZE 350
 extern int float_to_string (char *, double);
 extern void init_print_once (void);
 extern void syms_of_print (void);
@@ -3945,7 +3984,7 @@ extern bool overlay_touches_p (ptrdiff_t);
 extern Lisp_Object other_buffer_safely (Lisp_Object);
 extern Lisp_Object get_truename_buffer (Lisp_Object);
 extern void init_buffer_once (void);
-extern void init_buffer (void);
+extern void init_buffer (int);
 extern void syms_of_buffer (void);
 extern void keys_of_buffer (void);
 
@@ -4028,6 +4067,7 @@ extern void syms_of_minibuf (void);
 /* Defined in callint.c.  */
 
 extern Lisp_Object Qminus, Qplus;
+extern Lisp_Object Qprogn;
 extern Lisp_Object Qwhen;
 extern Lisp_Object Qmouse_leave_buffer_hook;
 extern void syms_of_callint (void);
@@ -4087,9 +4127,7 @@ extern void set_frame_param (struct frame *, Lisp_Object, Lisp_Object);
 extern void store_frame_param (struct frame *, Lisp_Object, Lisp_Object);
 extern void store_in_alist (Lisp_Object *, Lisp_Object, Lisp_Object);
 extern Lisp_Object do_switch_frame (Lisp_Object, int, int, Lisp_Object);
-#if HAVE_NS || HAVE_NTGUI
 extern Lisp_Object get_frame_param (struct frame *, Lisp_Object);
-#endif
 extern void frames_discard_buffer (Lisp_Object);
 extern void syms_of_frame (void);
 
@@ -4139,7 +4177,6 @@ extern bool running_asynch_code;
 
 /* Defined in process.c.  */
 extern Lisp_Object QCtype, Qlocal;
-extern Lisp_Object Qprocessp;
 extern void kill_buffer_processes (Lisp_Object);
 extern bool wait_reading_process_output (intmax_t, int, int, bool,
 					 Lisp_Object,
@@ -4198,9 +4235,8 @@ extern void syms_of_macros (void);
 extern Lisp_Object Qapply;
 extern Lisp_Object Qinhibit_read_only;
 extern void truncate_undo_list (struct buffer *);
-extern void record_marker_adjustment (Lisp_Object, ptrdiff_t);
 extern void record_insert (ptrdiff_t, ptrdiff_t);
-extern void record_delete (ptrdiff_t, Lisp_Object);
+extern void record_delete (ptrdiff_t, Lisp_Object, bool);
 extern void record_first_change (void);
 extern void record_change (ptrdiff_t, ptrdiff_t);
 extern void record_property_change (ptrdiff_t, ptrdiff_t,
@@ -4237,8 +4273,6 @@ extern void init_sigio (int);
 extern void sys_subshell (void);
 extern void sys_suspend (void);
 extern void discard_tty_input (void);
-extern void block_tty_out_signal (void);
-extern void unblock_tty_out_signal (void);
 extern void init_sys_modes (struct tty_display_info *);
 extern void reset_sys_modes (struct tty_display_info *);
 extern void init_all_sys_modes (void);
@@ -4388,16 +4422,17 @@ extern bool initialized;
 /* True means ^G can quit instantly.  */
 extern bool immediate_quit;
 
-extern void *xmalloc (size_t);
-extern void *xzalloc (size_t);
-extern void *xrealloc (void *, size_t);
+extern void *xmalloc (size_t) ATTRIBUTE_MALLOC_SIZE ((1));
+extern void *xzalloc (size_t) ATTRIBUTE_MALLOC_SIZE ((1));
+extern void *xrealloc (void *, size_t) ATTRIBUTE_ALLOC_SIZE ((2));
 extern void xfree (void *);
-extern void *xnmalloc (ptrdiff_t, ptrdiff_t);
-extern void *xnrealloc (void *, ptrdiff_t, ptrdiff_t);
+extern void *xnmalloc (ptrdiff_t, ptrdiff_t) ATTRIBUTE_MALLOC_SIZE ((1,2));
+extern void *xnrealloc (void *, ptrdiff_t, ptrdiff_t)
+  ATTRIBUTE_ALLOC_SIZE ((2,3));
 extern void *xpalloc (void *, ptrdiff_t *, ptrdiff_t, ptrdiff_t, ptrdiff_t);
 
-extern char *xstrdup (const char *);
-extern char *xlispstrdup (Lisp_Object);
+extern char *xstrdup (const char *) ATTRIBUTE_MALLOC;
+extern char *xlispstrdup (Lisp_Object) ATTRIBUTE_MALLOC;
 extern void dupstring (char **, char const *);
 extern void xputenv (const char *);
 
@@ -4429,7 +4464,7 @@ extern void init_system_name (void);
 
 enum MAX_ALLOCA { MAX_ALLOCA = 16 * 1024 };
 
-extern void *record_xmalloc (size_t);
+extern void *record_xmalloc (size_t) ATTRIBUTE_ALLOC_SIZE ((1));
 
 #define USE_SAFE_ALLOCA			\
   ptrdiff_t sa_count = SPECPDL_INDEX (); bool sa_must_free = false

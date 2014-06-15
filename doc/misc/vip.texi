@@ -1,5 +1,5 @@
 \input texinfo
-@setfilename ../../info/vip
+@setfilename ../../info/vip.info
 @settitle VIP
 
 @documentencoding UTF-8
@@ -11,7 +11,7 @@ Copyright @copyright{} 1987, 2001--2014 Free Software Foundation, Inc.
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.3 or
 any later version published by the Free Software Foundation; with no
-Invariant Sections, with the Front-Cover texts being ``A GNU Manual'',
+Invariant Sections, with the Front-Cover Texts being ``A GNU Manual'',
 and with the Back-Cover Texts as in (a) below.  A copy of the license
 is included in the section entitled ``GNU Free Documentation License''.
 
@@ -38,7 +38,7 @@ modify this GNU manual.''
 
 @dircategory Emacs misc features
 @direntry
-* VIP: (vip).                   An older VI-emulation for Emacs.
+* VIP: (vip).                   An obsolete VI-emulation for Emacs.
 @end direntry
 
 @ifnottex
@@ -52,6 +52,9 @@ environment.  This info file describes the usage of VIP assuming that you
 are fairly accustomed to Vi but not so much with Emacs.  Also we will
 concentrate mainly on differences from Vi, especially features unique to
 VIP.
+
+VIP is obsolete since Emacs 24.5---consider using Viper instead.
+@xref{Top, Viper,, viper, The Viper VI-emulation mode for Emacs}.
 
 It is recommended that you read nodes on survey and on customization before
 you start using VIP@.  Other nodes may be visited as needed.
@@ -82,6 +85,9 @@ environment.  This manual describes the usage of VIP assuming that you are
 fairly accustomed to Vi but not so much with Emacs.  Also we will
 concentrate mainly on differences from Vi, especially features unique to
 VIP.
+
+VIP is obsolete since Emacs 24.5---consider using Viper instead.
+@xref{Top, Viper,, viper, The Viper VI-emulation mode for Emacs}.
 
 It is recommended that you read chapters on survey and on customization
 before you start using VIP@.  Other chapters may be used as future
@@ -569,7 +575,7 @@ in the current window, while @kbd{S} selects buffer in another window.
 @kindex 1300 @kbd{X} (@code{vip-ctl-x-equivalent})
 These keys will exit from vi mode and return to emacs mode temporarily.
 If you type @kbd{C} (@kbd{X}), Emacs will be in emacs mode and will believe
-that you have typed @kbd{C-c} (@kbd{C-x}, resp.) in emacs mode. Moreover,
+that you have typed @kbd{C-c} (@kbd{C-x}) in emacs mode. Moreover,
 if the following character you type is an upper-case letter, then Emacs
 will believe that you have typed the corresponding control character.
 You will be in vi mode again after the command is executed.  For example,
@@ -895,9 +901,9 @@ just type @samp{vip.el} followed by @key{RET}.  If the file @file{vip.el}
 already exists in the directory, Emacs will visit that file, and if not,
 the file will be created.  Emacs will use the file name (@file{vip.el}, in
 this case) as the name of the buffer visiting the file.  In order to make
-the buffer name unique, Emacs may append @samp{<2>}, @samp{<3>} etc., to
-the buffer name.  As the @dfn{file name completion} is provided here, you
-can sometime save typing.  For instance, suppose there is only one file in the
+the buffer name unique, Emacs may add a suffix (@pxref{Uniquify,,,
+emacs, The GNU Emacs Manual}).  As @dfn{file name completion} is provided here, you
+can sometimes save typing.  For instance, suppose there is only one file in the
 default directory whose name starts with @samp{v}, that is @samp{vip.el}.
 Then if you just type @kbd{v @key{TAB}} then it will be completed to
 @samp{vip.el}.  Thus, in this case, you just have to type @kbd{v v @key{TAB}
@@ -1568,9 +1574,8 @@ Set mark and push previous mark on mark ring (@code{set-mark-command}).
 @kindex 011 TAB (@code{indent-for-tab-command})
 Indent line for current major mode (@code{indent-for-tab-command}).
 @item C-j
-@c FIXME: This should be `electric-indent-just-newline' since GNU Emacs 24.4.
-@kindex 012 @kbd{C-j} (@code{newline-and-indent})
-Insert a newline, then indent according to mode (@code{newline-and-indent}).
+@kindex 012 @kbd{C-j} (@code{electric-newline-and-maybe-indent})
+Insert a newline, and maybe indent according to mode.
 @item C-k
 @kindex 013 @kbd{C-k} (@code{kill-line})
 Kill the rest of the current line; before a newline, kill the newline.

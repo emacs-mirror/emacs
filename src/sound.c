@@ -702,7 +702,7 @@ vox_configure (struct sound_device *sd)
 {
   int val;
 #ifdef USABLE_SIGIO
-  sigset_t blocked;
+  sigset_t oldset, blocked;
 #endif
 
   eassert (sd->fd >= 0);
@@ -714,7 +714,7 @@ vox_configure (struct sound_device *sd)
 #ifdef USABLE_SIGIO
   sigemptyset (&blocked);
   sigaddset (&blocked, SIGIO);
-  pthread_sigmask (SIG_BLOCK, &blocked, 0);
+  pthread_sigmask (SIG_BLOCK, &blocked, &oldset);
 #endif
 
   val = sd->format;
@@ -748,7 +748,7 @@ vox_configure (struct sound_device *sd)
 
   turn_on_atimers (1);
 #ifdef USABLE_SIGIO
-  pthread_sigmask (SIG_UNBLOCK, &blocked, 0);
+  pthread_sigmask (SIG_SETMASK, &oldset, 0);
 #endif
 }
 
@@ -764,10 +764,10 @@ vox_close (struct sound_device *sd)
 	 be interrupted by a signal.  Block the ones we know to cause
 	 troubles.  */
 #ifdef USABLE_SIGIO
-      sigset_t blocked;
+      sigset_t blocked, oldset;
       sigemptyset (&blocked);
       sigaddset (&blocked, SIGIO);
-      pthread_sigmask (SIG_BLOCK, &blocked, 0);
+      pthread_sigmask (SIG_BLOCK, &blocked, &oldset);
 #endif
       turn_on_atimers (0);
 
@@ -776,7 +776,7 @@ vox_close (struct sound_device *sd)
 
       turn_on_atimers (1);
 #ifdef USABLE_SIGIO
-      pthread_sigmask (SIG_UNBLOCK, &blocked, 0);
+      pthread_sigmask (SIG_SETMASK, &oldset, 0);
 #endif
 
       /* Close the device.  */

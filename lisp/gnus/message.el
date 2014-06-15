@@ -28,9 +28,6 @@
 
 ;;; Code:
 
-;; For Emacs <22.2 and XEmacs.
-(eval-and-compile
-  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
 (eval-when-compile
   (require 'cl))
 
@@ -50,6 +47,7 @@
 (require 'mml)
 (require 'rfc822)
 (require 'format-spec)
+(require 'dired)
 
 (autoload 'mailclient-send-it "mailclient") ;; Emacs 22 or contrib/
 
@@ -606,8 +604,22 @@ Done before generating the new subject of a forward."
 		 regexp))
 
 (defcustom message-forward-ignored-headers "^Content-Transfer-Encoding:\\|^X-Gnus"
-  "*All headers that match this regexp will be deleted when forwarding a message."
+  "*All headers that match this regexp will be deleted when forwarding a message.
+This may also be a list of regexps."
   :version "21.1"
+  :group 'message-forwarding
+  :type '(repeat :value-to-internal (lambda (widget value)
+				      (custom-split-regexp-maybe value))
+		 :match (lambda (widget value)
+			  (or (stringp value)
+			      (widget-editable-list-match widget value)))
+		 regexp))
+
+(defcustom message-forward-included-headers nil
+  "If non-nil, delete non-matching headers when forwarding a message.
+Only headers that match this regexp will be included.  This
+variable should be a regexp or a list of regexps."
+  :version "24.5"
   :group 'message-forwarding
   :type '(repeat :value-to-internal (lambda (widget value)
 				      (custom-split-regexp-maybe value))
@@ -970,8 +982,8 @@ configuration.  See the variable `gnus-cite-attribution-suffix'."
 (defcustom message-citation-line-format "On %a, %b %d %Y, %N wrote:\n"
   "Format of the \"Whomever writes:\" line.
 
-The string is formatted using `format-spec'.  The following
-constructs are replaced:
+The string is formatted using `format-spec'.  The following constructs
+are replaced:
 
   %f   The full From, e.g. \"John Doe <john.doe@example.invalid>\".
   %n   The mail address, e.g. \"john.doe@example.invalid\".
@@ -979,11 +991,14 @@ constructs are replaced:
        back to the mail address.
   %F   The first name if present, e.g.: \"John\".
   %L   The last name if present, e.g.: \"Doe\".
+  %Z, %z   The time zone in the numeric form, e.g.:\"+0000\".
 
 All other format specifiers are passed to `format-time-string'
-which is called using the date from the article your replying to.
-Extracting the first (%F) and last name (%L) is done
-heuristically, so you should always check it yourself.
+which is called using the date from the article your replying to, but
+the date in the formatted string will be expressed in the author's
+time zone as much as possible.
+Extracting the first (%F) and last name (%L) is done heuristically,
+so you should always check it yourself.
 
 Please also read the note in the documentation of
 `message-citation-line-function'."
@@ -2451,6 +2466,7 @@ With prefix-argument just set Follow-Up, don't cross-post."
   "Remove HEADER in the narrowed buffer.
 If IS-REGEXP, HEADER is a regular expression.
 If FIRST, only remove the first instance of the header.
+If REVERSE, remove headers that doesn't match HEADER.
 Return the number of headers removed."
   (goto-char (point-min))
   (let ((regexp (if is-regexp header (concat "^" (regexp-quote header) ":")))
@@ -3907,9 +3923,13 @@ This function uses `mail-citation-hook' if that is non-nil."
 (defvar gnus-extract-address-components)
 
 (autoload 'format-spec "format-spec")
+(autoload 'gnus-date-get-time "gnus-util")
 
-(defun message-insert-formatted-citation-line (&optional from date)
+(defun message-insert-formatted-citation-line (&optional from date tz)
   "Function that inserts a formatted citation line.
+The optional FROM, and DATE are strings containing the contents of
+the From header and the Date header respectively.  The optional TZ
+is a number of seconds, overrides the time zone of DATE.
 
 See `message-citation-line-format'."
   ;; The optional args are for testing/debugging.  They will disappear later.
@@ -3917,7 +3937,7 @@ See `message-citation-line-format'."
   ;; (with-temp-buffer
   ;;   (message-insert-formatted-citation-line
   ;;    "John Doe <john.doe@example.invalid>"
-  ;;    (current-time))
+  ;;    (message-make-date))
   ;;   (buffer-string))
   (when (or message-reply-headers (and from date))
     (unless from
@@ -3934,28 +3954,43 @@ See `message-citation-line-format'."
 	   (net (car (cdr data)))
 	   (name-or-net (or (car data)
 			    (car (cdr data)) from))
-	   (replydate
-	    (or
-	     date
-	     ;; We need Gnus functionality if the user wants date or time from
-	     ;; the original article:
-	     (when (string-match "%[^fnNFL]" message-citation-line-format)
-	       (autoload 'gnus-date-get-time "gnus-util")
-	       (gnus-date-get-time (mail-header-date message-reply-headers)))))
+	   (time
+	    (when (string-match "%[^fnNFL]" message-citation-line-format)
+	      (cond ((numberp (car-safe date)) date) ;; backward compatibility
+		    (date (gnus-date-get-time date))
+		    (t
+		     (gnus-date-get-time
+		      (setq date (mail-header-date message-reply-headers)))))))
+	   (tz (or tz
+		   (when (stringp date)
+		     (nth 8 (parse-time-string date)))))
 	   (flist
 	    (let ((i ?A) lst)
 	      (when (stringp name)
 		;; Guess first name and last name:
-                (let* ((names (delq nil (mapcar (lambda (x)
-                                                 (if (string-match "\\`\\(\\w\\|[-.]\\)+\\'" x) x nil))
-                                               (split-string name "[ \t]+"))))
-                      (count (length names)))
-                  (cond ((= count 1) (setq fname (car names)
-                                           lname ""))
-                        ((or (= count 2) (= count 3)) (setq fname (car names)
-                                                            lname (mapconcat 'identity (cdr names) " ")))
-                        ((> count 3) (setq fname (mapconcat 'identity (butlast names (- count 2)) " ")
-                                           lname (mapconcat 'identity (nthcdr 2 names) " "))) )
+		(let* ((names (delq
+			       nil
+			       (mapcar
+				(lambda (x)
+				  (if (string-match "\\`\\(\\w\\|[-.]\\)+\\'"
+						    x)
+				      x
+				    nil))
+				(split-string name "[ \t]+"))))
+		       (count (length names)))
+		  (cond ((= count 1)
+			 (setq fname (car names)
+			       lname ""))
+			((or (= count 2) (= count 3))
+			 (setq fname (car names)
+			       lname (mapconcat 'identity (cdr names) " ")))
+			((> count 3)
+			 (setq fname (mapconcat 'identity
+						(butlast names (- count 2))
+						" ")
+			       lname (mapconcat 'identity
+						(nthcdr 2 names)
+						" "))))
                   (when (string-match "\\(.*\\),\\'" fname)
                     (let ((newlname (match-string 1 fname)))
                       (setq fname lname lname newlname)))))
@@ -3985,7 +4020,7 @@ See `message-citation-line-format'."
 			       (>= i ?a)))
 		  (push i lst)
 		  (push (condition-case nil
-			    (format-time-string (format "%%%c" i) replydate)
+			    (gmm-format-time-string (format "%%%c" i) time tz)
 			  (error (format ">%c<" i)))
 			lst))
 		(setq i (1+ i)))
@@ -7374,17 +7409,25 @@ Optional DIGEST will use digest to forward."
     (message-remove-ignored-headers b e)))
 
 (defun message-remove-ignored-headers (b e)
-  (when message-forward-ignored-headers
+  (when (or message-forward-ignored-headers
+	    message-forward-included-headers)
     (save-restriction
       (narrow-to-region b e)
       (goto-char b)
       (narrow-to-region (point)
 			(or (search-forward "\n\n" nil t) (point)))
-      (let ((ignored (if (stringp message-forward-ignored-headers)
-			 (list message-forward-ignored-headers)
-		       message-forward-ignored-headers)))
-	(dolist (elem ignored)
-	  (message-remove-header elem t))))))
+      (when message-forward-ignored-headers
+	(let ((ignored (if (stringp message-forward-ignored-headers)
+			   (list message-forward-ignored-headers)
+			 message-forward-ignored-headers)))
+	  (dolist (elem ignored)
+	    (message-remove-header elem t))))
+      (when message-forward-included-headers
+	(message-remove-header
+	 (if (listp message-forward-included-headers)
+	     (regexp-opt message-forward-included-headers)
+	   message-forward-included-headers)
+	 t nil t)))))
 
 (defun message-forward-make-body-mime (forward-buffer &optional beg end)
   (let ((b (point)))
@@ -7432,8 +7475,7 @@ Optional DIGEST will use digest to forward."
 	(goto-char (point-max))))
     (setq e (point))
     (insert "<#/mml>\n")
-    (when (and (not message-forward-decoded-p)
-	       message-forward-ignored-headers)
+    (when (not message-forward-decoded-p)
       (message-remove-ignored-headers b e))))
 
 (defun message-forward-make-body-digest-plain (forward-buffer)
@@ -8420,6 +8462,17 @@ Used in `message-simplify-recipients'."
 	(mail-extract-address-components
 	 (message-fetch-field hdr) t))
       ", "))))
+
+;;; multipart/related and HTML support.
+
+(defun message-make-html-message-with-image-files (files)
+  (interactive (list (dired-get-marked-files nil current-prefix-arg)))
+  (message-mail)
+  (message-goto-body)
+  (insert "<#part type=text/html>\n\n")
+  (dolist (file files)
+    (insert (format "<img src=%S>\n\n" file)))
+  (message-goto-to))
 
 (when (featurep 'xemacs)
   (require 'messagexmas)

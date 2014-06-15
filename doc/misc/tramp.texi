@@ -1,5 +1,5 @@
 \input texinfo   @c -*-texinfo-*-
-@setfilename ../../info/tramp
+@setfilename ../../info/tramp.info
 @c %**start of header
 @settitle TRAMP User Manual
 @documentencoding UTF-8
@@ -72,7 +72,7 @@ Copyright @copyright{} 1999--2014 Free Software Foundation, Inc.
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.3 or
 any later version published by the Free Software Foundation; with no
-Invariant Sections, with the Front-Cover texts being ``A GNU Manual'',
+Invariant Sections, with the Front-Cover Texts being ``A GNU Manual'',
 and with the Back-Cover Texts as in (a) below.  A copy of the license
 is included in the section entitled ``GNU Free Documentation License''.
 
@@ -3053,13 +3053,26 @@ setting the cursor at the top of the buffer, and applying the expression
 If it fails, or the cursor is not moved at the end of the buffer, your
 prompt is not recognized correctly.
 
-A special problem is the zsh, which uses left-hand side and right-hand
-side prompts in parallel.  Therefore, it is necessary to disable the
-zsh line editor on the remote host.  You shall add to @file{~/.zshrc}
-the following command:
+A special problem is the zsh shell, which uses left-hand side and
+right-hand side prompts in parallel.  Therefore, it is necessary to
+disable the zsh line editor on the remote host.  You shall add to
+@file{~/.zshrc} the following command:
 
 @example
 [ $TERM = "dumb" ] && unsetopt zle && PS1='$ '
+@end example
+
+Similar fancy prompt settings are known from the fish shell.  Here you
+must add in @file{~/.config/fish/config.fish}:
+
+@example
+function fish_prompt
+  if test $TERM = "dumb"
+     echo "\$ "
+  else
+     @dots{}
+  end
+end
 @end example
 
 Furthermore it has been reported, that @value{tramp} (like sshfs,
@@ -3336,6 +3349,13 @@ fi
 if [ "$@{HISTSIZE-unset@}" != "unset" ] ; then
    unset HISTSIZE
 fi
+@end example
+
+Furthermore, if you use an @option{ssh}-based method, you could add
+the following line to your @file{~/.ssh/environment} file:
+
+@example
+HISTFILE=/dev/null
 @end example
 
 

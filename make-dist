@@ -160,7 +160,7 @@ fi
 
 ### Find out which version of Emacs this is.
 version=`
-  sed -n 's/^AC_INIT(emacs,[	 ]*\([^	 )]*\).*/\1/p' <configure.ac
+  sed -n 's/^AC_INIT(GNU Emacs,[	 ]*\([^	 ,)]*\).*/\1/p' <configure.ac
 ` || version=
 if [ ! "${version}" ]; then
   echo "${progname}: can't find current Emacs version in \`./src/emacs.c'" >&2
@@ -383,9 +383,10 @@ echo "Making links to \`lib'"
 echo "Making links to \`lib-src'"
 (cd lib-src
  ln [a-zA-Z]*.[ch] ../${tempdir}/lib-src
- ln ChangeLog Makefile.in README testfile ../${tempdir}/lib-src
+ ln ChangeLog Makefile.in README ../${tempdir}/lib-src
  ln grep-changelog rcs2log ../${tempdir}/lib-src
- ln makefile.w32-in ../${tempdir}/lib-src)
+ ln makefile.w32-in ../${tempdir}/lib-src
+ ln update-game-score.exe.manifest ../${tempdir}/lib-src)
 
 echo "Making links to \`m4'"
 (cd m4
@@ -451,7 +452,7 @@ echo "Making links to \`lwlib'"
 echo "Making links to \`admin' and its subdirectories"
 for f in `find admin -type f`; do
   case $f in
-    admin/unidata/Makefile) continue ;;
+    */Makefile) [ -f $f.in ] && continue ;;
   esac
   ln $f $tempdir/$f
 done

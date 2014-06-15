@@ -727,6 +727,11 @@ DEFUN ("fset", Ffset, Sfset, 2, 2, 0,
   if (AUTOLOADP (function))
     Fput (symbol, Qautoload, XCDR (function));
 
+  /* Convert to eassert or remove after GC bug is found.  In the
+     meantime, check unconditionally, at a slight perf hit.  */
+  if (valid_lisp_object_p (definition) < 1)
+    emacs_abort ();
+
   set_symbol_function (symbol, definition);
 
   return definition;
@@ -2327,7 +2332,7 @@ arithcompare_driver (ptrdiff_t nargs, Lisp_Object *args,
   ptrdiff_t argnum;
   for (argnum = 1; argnum < nargs; ++argnum)
     {
-      if (EQ (Qnil, arithcompare (args[argnum-1], args[argnum], comparison)))
+      if (EQ (Qnil, arithcompare (args[argnum - 1], args[argnum], comparison)))
         return Qnil;
     }
   return Qt;
@@ -2342,7 +2347,7 @@ usage: (= NUMBER-OR-MARKER &rest NUMBERS-OR-MARKERS)  */)
 }
 
 DEFUN ("<", Flss, Slss, 1, MANY, 0,
-       doc: /* Return t if each arg is less than the next arg.  All must be numbers or markers.
+       doc: /* Return t if each arg (a number or marker), is less than the next arg.
 usage: (< NUMBER-OR-MARKER &rest NUMBERS-OR-MARKERS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
@@ -2350,7 +2355,7 @@ usage: (< NUMBER-OR-MARKER &rest NUMBERS-OR-MARKERS)  */)
 }
 
 DEFUN (">", Fgtr, Sgtr, 1, MANY, 0,
-       doc: /* Return t if each arg is greater than the next arg.  All must be numbers or markers.
+       doc: /* Return t if each arg (a number or marker) is greater than the next arg.
 usage: (> NUMBER-OR-MARKER &rest NUMBERS-OR-MARKERS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
@@ -2358,8 +2363,7 @@ usage: (> NUMBER-OR-MARKER &rest NUMBERS-OR-MARKERS)  */)
 }
 
 DEFUN ("<=", Fleq, Sleq, 1, MANY, 0,
-       doc: /* Return t if each arg is less than or equal to the next arg.
-All must be numbers or markers.
+       doc: /* Return t if each arg (a number or marker) is less than or equal to the next.
 usage: (<= NUMBER-OR-MARKER &rest NUMBERS-OR-MARKERS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
@@ -2367,8 +2371,7 @@ usage: (<= NUMBER-OR-MARKER &rest NUMBERS-OR-MARKERS)  */)
 }
 
 DEFUN (">=", Fgeq, Sgeq, 1, MANY, 0,
-       doc: /* Return t if each arg is greater than or equal to the next arg.
-All must be numbers or markers.
+       doc: /* Return t if each arg (a number or marker) is greater than or equal to the next.
 usage: (>= NUMBER-OR-MARKER &rest NUMBERS-OR-MARKERS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
@@ -2380,24 +2383,6 @@ DEFUN ("/=", Fneq, Sneq, 2, 2, 0,
   (register Lisp_Object num1, Lisp_Object num2)
 {
   return arithcompare (num1, num2, ARITH_NOTEQUAL);
-}
-
-DEFUN ("zerop", Fzerop, Szerop, 1, 1, 0,
-       doc: /* Return t if NUMBER is zero.  */)
-  (register Lisp_Object number)
-{
-  CHECK_NUMBER_OR_FLOAT (number);
-
-  if (FLOATP (number))
-    {
-      if (XFLOAT_DATA (number) == 0.0)
-	return Qt;
-      return Qnil;
-    }
-
-  if (!XINT (number))
-    return Qt;
-  return Qnil;
 }
 
 /* Convert the cons-of-integers, integer, or float value C to an
@@ -2890,7 +2875,7 @@ In this case, the sign bit is duplicated.  */)
   if (XINT (count) >= BITS_PER_EMACS_INT)
     XSETINT (val, 0);
   else if (XINT (count) > 0)
-    XSETINT (val, XINT (value) << XFASTINT (count));
+    XSETINT (val, XUINT (value) << XFASTINT (count));
   else if (XINT (count) <= -BITS_PER_EMACS_INT)
     XSETINT (val, XINT (value) < 0 ? -1 : 0);
   else
@@ -2982,7 +2967,7 @@ bool_vector_spare_mask (EMACS_INT nr_bits)
 /* Info about unsigned long long, falling back on unsigned long
    if unsigned long long is not available.  */
 
-#if HAVE_UNSIGNED_LONG_LONG_INT
+#if HAVE_UNSIGNED_LONG_LONG_INT && defined ULLONG_MAX
 enum { BITS_PER_ULL = CHAR_BIT * sizeof (unsigned long long) };
 # define ULL_MAX ULLONG_MAX
 #else
@@ -3645,7 +3630,6 @@ syms_of_data (void)
   defsubr (&Sleq);
   defsubr (&Sgeq);
   defsubr (&Sneq);
-  defsubr (&Szerop);
   defsubr (&Splus);
   defsubr (&Sminus);
   defsubr (&Stimes);

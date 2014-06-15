@@ -478,7 +478,14 @@ struct terminal
      may do something OS dependent, like extended window manager hints on X11.  */
   void (*fullscreen_hook) (struct frame *f);
 
-  
+  /* This hook is called to display menus.  */
+  Lisp_Object (*menu_show_hook) (struct frame *f, int x, int y, int menuflags,
+				 Lisp_Object title, const char **error_name);
+
+  /* This hook is called to display popup dialog.  */
+  Lisp_Object (*popup_dialog_hook) (struct frame *f, Lisp_Object header,
+				    Lisp_Object contents);
+
   /* Scroll bar hooks.  */
 
   /* The representation of scroll bars is determined by the code which
@@ -637,16 +644,15 @@ extern struct terminal *terminal_list;
 #endif
 
 extern struct terminal *get_terminal (Lisp_Object terminal, bool);
-extern struct terminal *create_terminal (void);
+extern struct terminal *create_terminal (enum output_method,
+					 struct redisplay_interface *);
 extern void delete_terminal (struct terminal *);
 
 /* The initial terminal device, created by initial_term_init.  */
 extern struct terminal *initial_terminal;
 
-#ifdef WINDOWSNT
 extern unsigned char *encode_terminal_code (struct glyph *, int,
 					    struct coding_system *);
-#endif
 
 #ifdef HAVE_GPM
 extern void close_gpm (int gpm_fd);

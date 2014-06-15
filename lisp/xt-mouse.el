@@ -42,13 +42,12 @@
 
 (defvar xterm-mouse-debug-buffer nil)
 
-(defvar xterm-mouse-last)
-
 ;; Mouse events symbols must have an 'event-kind property with
 ;; the value 'mouse-click.
-(dolist (event-type '(mouse-1 mouse-2 mouse-3
-		      M-down-mouse-1 M-down-mouse-2 M-down-mouse-3))
-  (put event-type 'event-kind 'mouse-click))
+(dolist (event '(mouse-1 mouse-2 mouse-3 mouse-4 mouse-5))
+  (let ((M-event (intern (concat "M-" (symbol-name event)))))
+    (put event 'event-kind 'mouse-click)
+    (put M-event 'event-kind 'mouse-click)))
 
 (defun xterm-mouse-translate (_event)
   "Read a click and release event from XTerm."
@@ -63,58 +62,49 @@ http://invisible-island.net/xterm/ctlseqs/ctlseqs.html)."
 
 (defun xterm-mouse-translate-1 (&optional extension)
   (save-excursion
-    (save-window-excursion
-      (deactivate-mark)
-      (let* ((xterm-mouse-last nil)
-	     (down (xterm-mouse-event extension))
-	     (down-command (nth 0 down))
-	     (down-data    (nth 1 down))
-	     (down-where   (nth 1 down-data))
-	     (down-binding (key-binding (if (symbolp down-where)
-					    (vector down-where down-command)
-					  (vector down-command))))
-	     (is-click (string-match "^mouse" (symbol-name (car down)))))
+    (save-window-excursion              ;FIXME: Why?
+      (deactivate-mark)                 ;FIXME: Why?
+      (let* ((event (xterm-mouse-event extension))
+	     (ev-command (nth 0 event))
+	     (ev-data    (nth 1 event))
+	     (ev-where   (nth 1 ev-data))
+             (vec (if (and (symbolp ev-where) (consp ev-where))
+                      ;; FIXME: This condition can *never* be non-nil!?!
+                      (vector (list ev-where ev-data) event)
+                    (vector event)))
+	     (is-down (string-match "down-" (symbol-name ev-command))))
 
-	;; Retrieve the expected preface for the up-event.
-	(unless is-click
-	  (unless (cond ((null extension)
-			 (and (eq (read-event) ?\e)
-			      (eq (read-event) ?\[)
-			      (eq (read-event) ?M)))
-			((eq extension 1006)
-			 (and (eq (read-event) ?\e)
-			      (eq (read-event) ?\[)
-			      (eq (read-event) ?<))))
-	    (error "Unexpected escape sequence from XTerm")))
-
-	;; Process the up-event.
-	(let* ((click (if is-click down (xterm-mouse-event extension)))
-	       (click-data  (nth 1 click))
-	       (click-where (nth 1 click-data)))
-	  (if (memq down-binding '(nil ignore))
-	      (if (and (symbolp click-where)
-		       (consp click-where))
-		  (vector (list click-where click-data) click)
-		(vector click))
-	    (setq unread-command-events
-		  (append (if (eq down-where click-where)
-			      (list click)
-			    (list
-			     ;; Cheat `mouse-drag-region' with move event.
-			     (list 'mouse-movement click-data)
-			     ;; Generate a drag event.
-			     (if (symbolp down-where)
-				 0
-			       (list (intern (format "drag-mouse-%d"
-						     (1+ xterm-mouse-last)))
-				     down-data click-data))))
-			  unread-command-events))
-	    (if xterm-mouse-debug-buffer
-		(print unread-command-events xterm-mouse-debug-buffer))
-	    (if (and (symbolp down-where)
-		     (consp down-where))
-		(vector (list down-where down-data) down)
-	      (vector down))))))))
+          (cond
+         ((null event) nil)           ;Unknown/bogus byte sequence!
+         (is-down
+          (setf (terminal-parameter nil 'xterm-mouse-last-down) event)
+          vec)
+         (t
+          (let* ((down (terminal-parameter nil 'xterm-mouse-last-down))
+                 (down-data (nth 1 down))
+                 (down-where (nth 1 down-data)))
+            (setf (terminal-parameter nil 'xterm-mouse-last-down) nil)
+            (cond
+             ((null down)
+              ;; This is an "up-only" event.  Pretend there was an up-event
+              ;; right before and keep the up-event for later.
+              (push event unread-command-events)
+              (vector (cons (intern (replace-regexp-in-string
+                                     "\\`\\([ACMHSs]-\\)*" "\\&down-"
+                                     (symbol-name ev-command) t))
+                            (cdr event))))
+             ((equal ev-where down-where) vec)
+           (t
+              (let ((drag (if (symbolp ev-where)
+                                 0      ;FIXME: Why?!?
+                               (list (replace-regexp-in-string
+                                      "\\`\\([ACMHSs]-\\)*" "\\&drag-"
+                                      (symbol-name ev-command) t)
+                                     down-data ev-data))))
+                (if (null track-mouse)
+                    (vector drag)
+                  (push drag unread-command-events)
+                  (vector (list 'mouse-movement ev-data)))))))))))))
 
 ;; These two variables have been converted to terminal parameters.
 ;;
@@ -153,7 +143,8 @@ http://invisible-island.net/xterm/ctlseqs/ctlseqs.html)."
 ;; Normal terminal mouse click reporting: expect three bytes, of the
 ;; form <BUTTON+32> <X+32> <Y+32>.  Return a list (EVENT-TYPE X Y).
 (defun xterm-mouse--read-event-sequence-1000 ()
-  (list (let ((code (- (read-event) 32)))
+  (let* ((code (- (read-event) 32))
+         (type
 	  (intern
 	   ;; For buttons > 3, the release-event looks differently
 	   ;; (see xc/programs/xterm/button.c, function EditorButton),
@@ -161,21 +152,19 @@ http://invisible-island.net/xterm/ctlseqs/ctlseqs.html)."
 	   (cond ((>= code 64)
 		  (format "mouse-%d" (- code 60)))
 		 ((memq code '(8 9 10))
-		  (setq xterm-mouse-last code)
 		  (format "M-down-mouse-%d" (- code 7)))
-		 ((= code 11)
-		  (format "M-mouse-%d" (- xterm-mouse-last 7)))
-		 ((= code 3)
-		  ;; For buttons > 5 xterm only reports a
-		  ;; button-release event.  Avoid error by mapping
-		  ;; them all to mouse-1.
-		  (format "mouse-%d" (+ 1 (or xterm-mouse-last 0))))
-		 (t
-		  (setq xterm-mouse-last code)
+		 ((memq code '(3 11))
+                  (let ((down (car (terminal-parameter
+                                    nil 'xterm-mouse-last-down))))
+                    (when (and down (string-match "[0-9]" (symbol-name down)))
+                      (format (if (eq code 3) "mouse-%s" "M-mouse-%s")
+                              (match-string 0 (symbol-name down))))))
+		 ((memq code '(0 1 2))
 		  (format "down-mouse-%d" (+ 1 code))))))
-	;; x and y coordinates
-	(- (read-event) 33)
-	(- (read-event) 33)))
+         (x (- (read-event) 33))
+         (y (- (read-event) 33)))
+    (and type (wholenump x) (wholenump y)
+         (list type x y))))
 
 ;; XTerm's 1006-mode terminal mouse click reporting has the form
 ;; <BUTTON> ; <X> ; <Y> <M or m>, where the button and ordinates are
@@ -208,9 +197,19 @@ http://invisible-island.net/xterm/ctlseqs/ctlseqs.html)."
 			    (if down "down-" "")
 			    (if wheel
 				(- code 60)
-			      (1+ (setq xterm-mouse-last (mod code 4)))))))
+			      (1+ (mod code 4))))))
 	  (1- (string-to-number (apply 'string (nreverse x-bytes))))
 	  (1- (string-to-number (apply 'string (nreverse y-bytes)))))))
+
+(defun xterm-mouse--set-click-count (event click-count)
+  (setcdr (cdr event) (list click-count))
+  (let ((name (symbol-name (car event))))
+    (when (string-match "\\(.*?\\)\\(\\(?:down-\\)?mouse-.*\\)" name)
+      (setcar event
+              (intern (concat (match-string 1 name)
+                              (if (= click-count 2)
+                                  "double-" "triple-")
+                              (match-string 2 name)))))))
 
 (defun xterm-mouse-event (&optional extension)
   "Convert XTerm mouse event to Emacs mouse event.
@@ -222,32 +221,57 @@ which is the \"1006\" extension implemented in Xterm >= 277."
 		      ((eq extension 1006)
 		       (xterm-mouse--read-event-sequence-1006))
 		      (t
-		       (error "Unsupported XTerm mouse protocol"))))
-	 (type (nth 0 click))
-	 (x    (nth 1 click))
-	 (y    (nth 2 click))
-	 ;; Emulate timestamp information.  This is accurate enough
-	 ;; for default value of mouse-1-click-follows-link (450msec).
-	 (timestamp (xterm-mouse-truncate-wrap
-                     (* 1000
-                        (- (float-time)
-                           (or xt-mouse-epoch
-                               (setq xt-mouse-epoch (float-time)))))))
-	 (w (window-at x y))
-         (ltrb (window-edges w))
-         (left (nth 0 ltrb))
-         (top (nth 1 ltrb)))
-    (set-terminal-parameter nil 'xterm-mouse-x x)
-    (set-terminal-parameter nil 'xterm-mouse-y y)
-    (setq
-     last-input-event
-     (list type
-	   (let ((event (if w
-			    (posn-at-x-y (- x left) (- y top) w t)
-			  (append (list nil 'menu-bar)
-				  (nthcdr 2 (posn-at-x-y x y))))))
-	     (setcar (nthcdr 3 event) timestamp)
-	     event)))))
+		       (error "Unsupported XTerm mouse protocol")))))
+    (when click
+      (let* ((type (nth 0 click))
+             (x    (nth 1 click))
+             (y    (nth 2 click))
+             ;; Emulate timestamp information.  This is accurate enough
+             ;; for default value of mouse-1-click-follows-link (450msec).
+             (timestamp (xterm-mouse-truncate-wrap
+                         (* 1000
+                            (- (float-time)
+                               (or xt-mouse-epoch
+                                   (setq xt-mouse-epoch (float-time)))))))
+             (w (window-at x y))
+             (ltrb (window-edges w))
+             (left (nth 0 ltrb))
+             (top (nth 1 ltrb))
+             (posn (if w
+                                (posn-at-x-y (- x left) (- y top) w t)
+                              (append (list nil 'menu-bar)
+                             (nthcdr 2 (posn-at-x-y x y)))))
+             (event (list type posn)))
+        (setcar (nthcdr 3 posn) timestamp)
+
+        ;; Try to handle double/triple clicks.
+        (let* ((last-click (terminal-parameter nil 'xterm-mouse-last-click))
+               (last-type (nth 0 last-click))
+               (last-name (symbol-name last-type))
+               (last-time (nth 1 last-click))
+               (click-count (nth 2 last-click))
+               (this-time (float-time))
+               (name (symbol-name type)))
+          (cond
+           ((not (string-match "down-" name))
+            ;; For up events, make the up side match the down side.
+            (setq this-time last-time)
+            (when (and (> click-count 1)
+                       (string-match "down-" last-name)
+                       (equal name (replace-match "" t t last-name)))
+              (xterm-mouse--set-click-count event click-count)))
+           ((not last-time) nil)
+           ((and (> double-click-time (* 1000 (- this-time last-time)))
+                 (equal last-name (replace-match "" t t name)))
+            (setq click-count (1+ click-count))
+            (xterm-mouse--set-click-count event click-count))
+           (t (setq click-count 1)))
+          (set-terminal-parameter nil 'xterm-mouse-last-click
+                                  (list type this-time click-count)))
+
+        (set-terminal-parameter nil 'xterm-mouse-x x)
+        (set-terminal-parameter nil 'xterm-mouse-y y)
+        (setq last-input-event event)))))
 
 ;;;###autoload
 (define-minor-mode xterm-mouse-mode
@@ -263,36 +287,27 @@ single clicks are supported.  When turned on, the normal xterm
 mouse functionality for such clicks is still available by holding
 down the SHIFT key while pressing the mouse button."
   :global t :group 'mouse
-  (let ((do-hook (if xterm-mouse-mode 'add-hook 'remove-hook)))
-    (funcall do-hook 'terminal-init-xterm-hook
-             'turn-on-xterm-mouse-tracking-on-terminal)
-    (funcall do-hook 'delete-terminal-functions
-             'turn-off-xterm-mouse-tracking-on-terminal)
-    (funcall do-hook 'suspend-tty-functions
-             'turn-off-xterm-mouse-tracking-on-terminal)
-    (funcall do-hook 'resume-tty-functions
-             'turn-on-xterm-mouse-tracking-on-terminal)
-    (funcall do-hook 'suspend-hook 'turn-off-xterm-mouse-tracking)
-    (funcall do-hook 'suspend-resume-hook 'turn-on-xterm-mouse-tracking)
-    (funcall do-hook 'kill-emacs-hook 'turn-off-xterm-mouse-tracking))
+  (funcall (if xterm-mouse-mode 'add-hook 'remove-hook)
+           'terminal-init-xterm-hook
+           'turn-on-xterm-mouse-tracking-on-terminal)
   (if xterm-mouse-mode
       ;; Turn it on
       (progn
 	(setq mouse-position-function #'xterm-mouse-position-function)
-	(turn-on-xterm-mouse-tracking))
+        (mapc #'turn-on-xterm-mouse-tracking-on-terminal (terminal-list)))
     ;; Turn it off
-    (turn-off-xterm-mouse-tracking 'force)
+    (mapc #'turn-off-xterm-mouse-tracking-on-terminal (terminal-list))
     (setq mouse-position-function nil)))
 
-(defun turn-on-xterm-mouse-tracking ()
-  "Enable Emacs mouse tracking in xterm."
-  (dolist (terminal (terminal-list))
-    (turn-on-xterm-mouse-tracking-on-terminal terminal)))
+(defconst xterm-mouse-tracking-enable-sequence
+  "\e[?1000h\e[?1006h"
+  "Control sequence to enable xterm mouse tracking.
+Enables basic tracking, then extended tracking on
+terminals that support it.")
 
-(defun turn-off-xterm-mouse-tracking (&optional _force)
-  "Disable Emacs mouse tracking in xterm."
-  (dolist (terminal (terminal-list))
-    (turn-off-xterm-mouse-tracking-on-terminal terminal)))
+(defconst xterm-mouse-tracking-disable-sequence
+  "\e[?1006l\e[?1000l"
+  "Reset the modes set by `xterm-mouse-tracking-enable-sequence'.")
 
 (defun turn-on-xterm-mouse-tracking-on-terminal (&optional terminal)
   "Enable xterm mouse tracking on TERMINAL."
@@ -302,30 +317,36 @@ down the SHIFT key while pressing the mouse button."
 	     (not (string= (terminal-name terminal) "initial_terminal")))
     (unless (terminal-parameter terminal 'xterm-mouse-mode)
       ;; Simulate selecting a terminal by selecting one of its frames
+      ;; so that we can set the terminal-local `input-decode-map'.
       (with-selected-frame (car (frames-on-display-list terminal))
         (define-key input-decode-map "\e[M" 'xterm-mouse-translate)
         (define-key input-decode-map "\e[<" 'xterm-mouse-translate-extended))
-      (set-terminal-parameter terminal 'xterm-mouse-mode t))
-    (send-string-to-terminal "\e[?1000h" terminal)
-    ;; Request extended mouse support, if available (xterm >= 277).
-    (send-string-to-terminal "\e[?1006h" terminal)))
+      (send-string-to-terminal xterm-mouse-tracking-enable-sequence terminal)
+      (push xterm-mouse-tracking-enable-sequence
+            (terminal-parameter nil 'tty-mode-set-strings))
+      (push xterm-mouse-tracking-disable-sequence
+            (terminal-parameter nil 'tty-mode-reset-strings))
+      (set-terminal-parameter terminal 'xterm-mouse-mode t))))
 
 (defun turn-off-xterm-mouse-tracking-on-terminal (terminal)
   "Disable xterm mouse tracking on TERMINAL."
   ;; Only send the disable command to those terminals to which we've already
   ;; sent the enable command.
   (when (and (terminal-parameter terminal 'xterm-mouse-mode)
-             (eq t (terminal-live-p terminal))
-	     ;; Avoid the initial terminal which is not a termcap device.
-	     ;; FIXME: is there more elegant way to detect the initial terminal?
-	     (not (string= (terminal-name terminal) "initial_terminal")))
+             (eq t (terminal-live-p terminal)))
     ;; We could remove the key-binding and unset the `xterm-mouse-mode'
     ;; terminal parameter, but it seems less harmful to send this escape
     ;; command too many times (or to catch an unintended key sequence), than
     ;; to send it too few times (or to fail to let xterm-mouse events
     ;; pass by untranslated).
-    (send-string-to-terminal "\e[?1000l" terminal)
-    (send-string-to-terminal "\e[?1006l" terminal)))
+    (send-string-to-terminal xterm-mouse-tracking-disable-sequence terminal)
+    (setf (terminal-parameter nil 'tty-mode-set-strings)
+          (remq xterm-mouse-tracking-enable-sequence
+                (terminal-parameter nil 'tty-mode-set-strings)))
+    (setf (terminal-parameter nil 'tty-mode-reset-strings)
+          (remq xterm-mouse-tracking-disable-sequence
+                (terminal-parameter nil 'tty-mode-reset-strings)))
+    (set-terminal-parameter terminal 'xterm-mouse-mode nil)))
 
 (provide 'xt-mouse)
 

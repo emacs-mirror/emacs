@@ -336,7 +336,7 @@ of the page moves to the previous page."
       ;; Don't do it if there's a conversion is running, since in that case, it
       ;; will be done later.
       (with-selected-window (car winprops)
-        (doc-view-goto-page 1)))))
+        (doc-view-goto-page (image-mode-window-get 'page t))))))
 
 (defvar-local doc-view--current-files nil
   "Only used internally.")
@@ -654,16 +654,10 @@ at the top edge of the page moves to the previous page."
 
 (defun doc-view-make-safe-dir (dir)
   (condition-case nil
-      (let ((umask (default-file-modes)))
-	(unwind-protect
-	    (progn
-	      ;; Create temp files with strict access rights.  It's easy to
-	      ;; loosen them later, whereas it's impossible to close the
-	      ;; time-window of loose permissions otherwise.
-	      (set-default-file-modes #o0700)
-	      (make-directory dir))
-	  ;; Reset the umask.
-	  (set-default-file-modes umask)))
+      ;; Create temp files with strict access rights.  It's easy to
+      ;; loosen them later, whereas it's impossible to close the
+      ;; time-window of loose permissions otherwise.
+      (with-file-modes #o0700 (make-directory dir))
     (file-already-exists
      (when (file-symlink-p dir)
        (error "Danger: %s points to a symbolic link" dir))
@@ -1621,24 +1615,25 @@ If BACKWARD is non-nil, jump to the previous match."
   "Figure out the current document type (`doc-view-doc-type')."
   (let ((name-types
 	 (when buffer-file-name
-	   (cdr (assoc (file-name-extension buffer-file-name)
-		       '(
-			 ;; DVI
-			 ("dvi" dvi)
-			 ;; PDF
-			 ("pdf" pdf) ("epdf" pdf)
-			 ;; PostScript
-			 ("ps" ps) ("eps" ps)
-			 ;; DjVu
-			 ("djvu" djvu)
-			 ;; OpenDocument formats
-			 ("odt" odf) ("ods" odf) ("odp" odf) ("odg" odf)
-			 ("odc" odf) ("odi" odf) ("odm" odf) ("ott" odf)
-			 ("ots" odf) ("otp" odf) ("otg" odf)
-			 ;; Microsoft Office formats (also handled
-			 ;; by the odf conversion chain)
-			 ("doc" odf) ("docx" odf) ("xls" odf) ("xlsx" odf)
-			 ("ppt" odf) ("pptx" odf))))))
+	   (cdr (assoc-ignore-case
+                 (file-name-extension buffer-file-name)
+                 '(
+                   ;; DVI
+                   ("dvi" dvi)
+                   ;; PDF
+                   ("pdf" pdf) ("epdf" pdf)
+                   ;; PostScript
+                   ("ps" ps) ("eps" ps)
+                   ;; DjVu
+                   ("djvu" djvu)
+                   ;; OpenDocument formats.
+                   ("odt" odf) ("ods" odf) ("odp" odf) ("odg" odf)
+                   ("odc" odf) ("odi" odf) ("odm" odf) ("ott" odf)
+                   ("ots" odf) ("otp" odf) ("otg" odf)
+                   ;; Microsoft Office formats (also handled by the odf
+                   ;; conversion chain).
+                   ("doc" odf) ("docx" odf) ("xls" odf) ("xlsx" odf)
+                   ("ppt" odf) ("pps" odf) ("pptx" odf))))))
 	(content-types
 	 (save-excursion
 	   (goto-char (point-min))
@@ -1862,20 +1857,23 @@ See the command `doc-view-mode' for more information on this mode."
          `((page     . ,(doc-view-current-page))
            (handler  . doc-view-bookmark-jump))))
 
-
 ;;;###autoload
 (defun doc-view-bookmark-jump (bmk)
   ;; This implements the `handler' function interface for record type
   ;; returned by `doc-view-bookmark-make-record', which see.
-  (prog1 (bookmark-default-handler bmk)
-    (let ((page (bookmark-prop-get bmk 'page)))
-      (when (not (eq major-mode 'doc-view-mode))
-        (doc-view-toggle-display))
-      (with-selected-window
-       (or (get-buffer-window (current-buffer) 0)
-	   (selected-window))
-       (doc-view-goto-page page)))))
-
+  (let ((page (bookmark-prop-get bmk 'page))
+	(show-fn-sym (make-symbol "doc-view-bookmark-after-jump-hook")))
+    (fset show-fn-sym
+	  (lambda ()
+	    (remove-hook 'bookmark-after-jump-hook show-fn-sym)
+	    (when (not (eq major-mode 'doc-view-mode))
+	      (doc-view-toggle-display))
+	    (with-selected-window
+		(or (get-buffer-window (current-buffer) 0)
+		    (selected-window))
+	      (doc-view-goto-page page))))
+    (add-hook 'bookmark-after-jump-hook show-fn-sym)
+    (bookmark-default-handler bmk)))
 
 (provide 'doc-view)
 

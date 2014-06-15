@@ -2,7 +2,7 @@
 
 @include gnus-overrides.texi
 
-@setfilename ../../info/gnus
+@setfilename ../../info/gnus.info
 @settitle Gnus Manual
 @syncodeindex fn cp
 @syncodeindex vr cp
@@ -17,7 +17,7 @@ Copyright @copyright{} 1995--2014 Free Software Foundation, Inc.
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.3 or
 any later version published by the Free Software Foundation; with no
-Invariant Sections, with the Front-Cover texts being ``A GNU Manual'',
+Invariant Sections, with the Front-Cover Texts being ``A GNU Manual'',
 and with the Back-Cover Texts as in (a) below.  A copy of the license
 is included in the section entitled ``GNU Free Documentation License''.
 
@@ -704,7 +704,6 @@ Browsing the Web
 * Archiving Mail::
 * Web Searches::                Creating groups from articles that match a string.
 * RSS::                         Reading RDF site summary.
-* Customizing W3::              Doing stuff to Emacs/W3 from Gnus.
 
 Other Sources
 
@@ -998,7 +997,7 @@ terminology section (@pxref{Terminology}).
 @cindex finding news
 
 First of all, you should know that there is a special buffer called
-@code{*Server*} that lists all the servers Gnus knows about.  You can
+@file{*Server*} that lists all the servers Gnus knows about.  You can
 press @kbd{^} from the Group buffer to see it.  In the Server buffer,
 you can press @kbd{RET} on a defined server to see all the groups it
 serves (subscribed or not!).  You can also add or delete servers, edit
@@ -5888,7 +5887,7 @@ have posted almost the same article twice.
 If you have just posted the article, and change your mind right away,
 there is a trick you can use to cancel/supersede the article without
 waiting for the article to appear on your site first.  You simply return
-to the post buffer (which is called @code{*sent ...*}).  There you will
+to the post buffer (which is called @file{*sent ...*}).  There you will
 find the article you just posted, with all the headers intact.  Change
 the @code{Message-ID} header to a @code{Cancel} or @code{Supersedes}
 header by substituting one of those words for the word
@@ -9140,9 +9139,6 @@ Use Gnus simple html renderer.
 @item gnus-w3m
 Use Gnus rendered based on w3m.
 
-@item w3
-Use Emacs/W3.
-
 @item w3m
 Use @uref{http://emacs-w3m.namazu.org/, emacs-w3m}.
 
@@ -9804,6 +9800,19 @@ the group (if you want).
 Make all the @acronym{MIME} parts have buttons in front of them.  This is
 mostly useful if you wish to save (or perform other actions) on inlined
 parts.
+
+@item W M h
+@kindex W M h (Summary)
+@findex gnus-mime-buttonize-attachments-in-header
+@vindex gnus-mime-display-attachment-buttons-in-header
+Display @acronym{MIME} part buttons in the end of the header of an
+article (@code{gnus-mime-buttonize-attachments-in-header}).  This
+command toggles the display.  Note that buttons to be added to the
+header are only the ones that aren't inlined in the body.  If you want
+those buttons always to be displayed, set
+@code{gnus-mime-display-attachment-buttons-in-header} to non-@code{nil}.
+The default is @code{t}.  To change the appearance of buttons, customize
+@code{gnus-header-face-alist}.
 
 @item K m
 @kindex K m (Summary)
@@ -11139,7 +11148,7 @@ If you're in the habit of exiting groups, and then changing your mind
 about it, you might set @code{gnus-kill-summary-on-exit} to @code{nil}.
 If you do that, Gnus won't kill the summary buffer when you exit it.
 (Quelle surprise!)  Instead it will change the name of the buffer to
-something like @samp{*Dead Summary ... *} and install a minor mode
+something like @file{*Dead Summary ... *} and install a minor mode
 called @code{gnus-dead-summary-mode}.  Now, if you switch back to this
 buffer, you'll find that all keys are mapped to a function called
 @code{gnus-summary-wake-up-the-dead}.  So tapping any keys in a dead
@@ -12528,7 +12537,7 @@ you're in, you could say something like the following:
 Modify to suit your needs.
 
 @vindex gnus-message-highlight-citation
-If @code{gnus-message-highlight-citation} is t, different levels of
+If @code{gnus-message-highlight-citation} is @code{t}, different levels of
 citations are highlighted like in Gnus article buffers also in message
 mode buffers.
 
@@ -13732,7 +13741,7 @@ A hook run before attempting to connect to an @acronym{NNTP} server.
 @item nntp-record-commands
 @vindex nntp-record-commands
 If non-@code{nil}, @code{nntp} will log all commands it sends to the
-@acronym{NNTP} server (along with a timestamp) in the @samp{*nntp-log*}
+@acronym{NNTP} server (along with a timestamp) in the @file{*nntp-log*}
 buffer.  This is useful if you are debugging a Gnus/@acronym{NNTP} connection
 that doesn't seem to work.
 
@@ -16841,11 +16850,7 @@ interfaces to these sources.
 * Archiving Mail::
 * Web Searches::                Creating groups from articles that match a string.
 * RSS::                         Reading RDF site summary.
-* Customizing W3::              Doing stuff to Emacs/W3 from Gnus.
 @end menu
-
-All the web sources require Emacs/W3 and the url library or those
-alternatives to work.
 
 The main caveat with all these web sources is that they probably won't
 work for a very long time.  Gleaning information from the @acronym{HTML} data
@@ -16921,10 +16926,6 @@ providers if they were to do this---their @emph{raison d'@^etre} is to
 make money off of advertisements, not to provide services to the
 community.  Since @code{nnweb} washes the ads off all the articles, one
 might think that the providers might be somewhat miffed.  We'll see.
-
-You must have the @code{url} and @code{W3} package or those alternatives
-(try @code{customize-group} on the @samp{mm-url} variable group)
-installed to be able to use @code{nnweb}.
 
 Virtual server variables:
 
@@ -17121,38 +17122,6 @@ Parameters}) in order to display @samp{text/html} parts only in
  'gnus-parameters
  '("\\`nnrss:" (mm-discouraged-alternatives nil)))
 @end lisp
-
-
-@node Customizing W3
-@subsection Customizing W3
-@cindex W3
-@cindex html
-@cindex url
-@cindex Netscape
-
-Gnus uses the url library to fetch web pages and Emacs/W3 (or those
-alternatives) to display web pages.  Emacs/W3 is documented in its own
-manual, but there are some things that may be more relevant for Gnus
-users.
-
-For instance, a common question is how to make Emacs/W3 follow links
-using the @code{browse-url} functions (which will call some external web
-browser like Netscape).  Here's one way:
-
-@lisp
-(eval-after-load "w3"
-  '(progn
-    (fset 'w3-fetch-orig (symbol-function 'w3-fetch))
-    (defun w3-fetch (&optional url target)
-      (interactive (list (w3-read-url-with-default)))
-      (if (eq major-mode 'gnus-article-mode)
-          (browse-url url)
-        (w3-fetch-orig url target)))))
-@end lisp
-
-Put that in your @file{.emacs} file, and hitting links in W3-rendered
-@acronym{HTML} in the Gnus article buffers will use @code{browse-url} to
-follow the link.
 
 
 @node Other Sources
@@ -19438,7 +19407,7 @@ Display the score of the current article
 @kindex V t (Summary)
 @findex gnus-score-find-trace
 Display all score rules that have been used on the current article
-(@code{gnus-score-find-trace}).  In the @code{*Score Trace*} buffer, you
+(@code{gnus-score-find-trace}).  In the @file{*Score Trace*} buffer, you
 may type @kbd{e} to edit score file corresponding to the score rule on
 current line and @kbd{f} to format (@code{gnus-score-pretty-print}) the
 score file and edit it.
@@ -20518,7 +20487,7 @@ matches.  This takes a long time in big groups.
 You can inhibit this slow scoring on headers or body by setting the
 variable @code{gnus-inhibit-slow-scoring}.  If
 @code{gnus-inhibit-slow-scoring} is regexp, slow scoring is inhibited if
-the group matches the regexp.  If it is t, slow scoring on it is
+the group matches the regexp.  If it is @code{t}, slow scoring on it is
 inhibited for all groups.
 
 Now, there's not much you can do about the slowness for news groups, but for
@@ -21445,18 +21414,19 @@ three items unique to nnir summary buffers:
 %g    Article original short group name (string)
 @end example
 
-If nil (the default) this will use @code{gnus-summary-line-format}.
+If @code{nil} (the default) this will use @code{gnus-summary-line-format}.
 
 @item nnir-retrieve-headers-override-function
-If non-nil, a function that retrieves article headers rather than using
+If non-@code{nil}, a function that retrieves article headers rather than using
 the gnus built-in function.  This function takes an article list and
 group as arguments and populates the `nntp-server-buffer' with the
 retrieved headers.  It should then return either 'nov or 'headers
 indicating the retrieved header format.  Failure to retrieve headers
 should return @code{nil}.
 
-If this variable is nil, or if the provided function returns nil for a
-search result, @code{gnus-retrieve-headers} will be called instead."
+If this variable is @code{nil}, or if the provided function returns
+@code{nil} for a search result, @code{gnus-retrieve-headers} will be
+called instead."
 
 
 @end table
@@ -21959,7 +21929,7 @@ original article yet, @code{nnmairix} will use an additional mairix
 search for determining the file name of the article.  This, of course, is
 way slower than the registry---if you set hundreds or even thousands of
 marks this way, it might take some time.  You can avoid this situation by
-setting @code{nnmairix-only-use-registry} to t.
+setting @code{nnmairix-only-use-registry} to @code{t}.
 
 Maybe you also want to propagate marks the other way round, i.e., if you
 tick an article in a "real" mail group, you'd like to have the same
@@ -24905,7 +24875,7 @@ classified as spammers.
 While @code{spam-use-BBDB-exclusive} @emph{can} be used as an alias
 for @code{spam-use-BBDB} as far as @code{spam.el} is concerned, it is
 @emph{not} a separate back end.  If you set
-@code{spam-use-BBDB-exclusive} to t, @emph{all} your BBDB splitting
+@code{spam-use-BBDB-exclusive} to @code{t}, @emph{all} your BBDB splitting
 will be exclusive.
 
 @end defvar
@@ -25919,7 +25889,7 @@ Fortunately, setting up the Gnus registry is pretty easy:
 @end lisp
 
 This adds registry saves to Gnus newsrc saves (which happen on exit
-and when you press @kbd{s} from the @code{*Group*} buffer.  It also
+and when you press @kbd{s} from the @file{*Group*} buffer.  It also
 adds registry calls to article actions in Gnus (copy, move, etc.)@: so
 it's not easy to undo the initialization.  See
 @code{gnus-registry-initialize} for the gory details.
@@ -26204,8 +26174,8 @@ This variable controls whether to add timestamps to messages that are
 controlled by @code{gnus-verbose} and @code{gnus-verbose-backends} and
 are issued.  The default value is @code{nil} which means never to add
 timestamp.  If it is @code{log}, add timestamps to only the messages
-that go into the @samp{*Messages*} buffer (in XEmacs, it is the
-@w{@samp{ *Message-Log*}} buffer).  If it is neither @code{nil} nor
+that go into the @file{*Messages*} buffer (in XEmacs, it is the
+@w{@file{ *Message-Log*}} buffer).  If it is neither @code{nil} nor
 @code{log}, add timestamps not only to log messages but also to the ones
 displayed in the echo area.
 
@@ -26338,7 +26308,7 @@ XEmacs is distributed as a collection of packages.  You should install
 whatever packages the Gnus XEmacs package requires.  The current
 requirements are @samp{gnus}, @samp{mail-lib}, @samp{xemacs-base},
 @samp{eterm}, @samp{sh-script}, @samp{net-utils}, @samp{os-utils},
-@samp{dired}, @samp{mh-e}, @samp{sieve}, @samp{ps-print}, @samp{W3},
+@samp{dired}, @samp{mh-e}, @samp{sieve}, @samp{ps-print},
 @samp{pgg}, @samp{mailcrypt}, @samp{ecrypto}, and @samp{sasl}.
 
 
@@ -28414,6 +28384,19 @@ Gnus.
 New features in Ma Gnus:
 
 @itemize @bullet
+
+@item Changes in summary and article mode
+@c **************************************
+
+@itemize @bullet
+
+@item
+By default, @acronym{MIME} part buttons for attachments (if any) will
+appear in the end of the article header in addition to the bottom of the
+article body, so you can easily find them without scrolling the article
+again and again.  @xref{MIME Commands}.
+
+@end itemize
 
 @item Changes in Message mode and related Gnus features
 @c ****************************************************

@@ -220,15 +220,17 @@ the current buffer, as a string.
 @end defun
 
 @defun filter-buffer-substring start end &optional delete
-This function passes the buffer text between @var{start} and @var{end}
-through the filter functions specified by the wrapper hook
-@code{filter-buffer-substring-functions}, and returns the result.  The
-obsolete variable @code{buffer-substring-filters} is also consulted.
-If both of these variables are @code{nil}, the value is the unaltered
-text from the buffer, i.e., what @code{buffer-substring} would
-return.
+This function filters the buffer text between @var{start} and @var{end}
+using a function specified by the variable
+@code{filter-buffer-substring-function}, and returns the result.
 
-If @var{delete} is non-@code{nil}, this function deletes the text
+The default filter function consults the obsolete wrapper hook
+@code{filter-buffer-substring-functions}, and the obsolete variable
+@code{buffer-substring-filters}.  If both of these are @code{nil}, it
+returns the unaltered text from the buffer, i.e., what
+@code{buffer-substring} would return.
+
+If @var{delete} is non-@code{nil}, the function deletes the text
 between @var{start} and @var{end} after copying it, like
 @code{delete-and-extract-region}.
 
@@ -236,20 +238,29 @@ Lisp code should use this function instead of @code{buffer-substring},
 @code{buffer-substring-no-properties},
 or @code{delete-and-extract-region} when copying into user-accessible
 data structures such as the kill-ring, X clipboard, and registers.
-Major and minor modes can add functions to
-@code{filter-buffer-substring-functions} to alter such text as it is
-copied out of the buffer.
+Major and minor modes can modify @code{filter-buffer-substring-function}
+to alter such text as it is copied out of the buffer.
 @end defun
 
-@c FIXME: `filter-buffer-substring-function' should be documented.
+@defvar filter-buffer-substring-function
+The value of this variable is a function that @code{filter-buffer-substring}
+will call to do the actual work.  The function receives three
+arguments, the same as those of @code{filter-buffer-substring},
+which it should treat as per the documentation of that function.  It
+should return the filtered text (and optionally delete the source text).
+@end defvar
+
+@noindent The following two variables are obsoleted by
+@code{filter-buffer-substring-function}, but are still supported for
+backward compatibility.
+
 @defvar filter-buffer-substring-functions
-This variable is a wrapper hook (@pxref{Running Hooks}), whose members
-should be functions that accept four arguments: @var{fun},
-@var{start}, @var{end}, and @var{delete}.  @var{fun} is a function
-that takes three arguments (@var{start}, @var{end}, and @var{delete}),
-and returns a string.  In both cases, the @var{start}, @var{end}, and
-@var{delete} arguments are the same as those of
-@code{filter-buffer-substring}.
+This obsolete variable is a wrapper hook, whose members should be functions
+that accept four arguments: @var{fun}, @var{start}, @var{end}, and
+@var{delete}.  @var{fun} is a function that takes three arguments
+(@var{start}, @var{end}, and @var{delete}), and returns a string.  In
+both cases, the @var{start}, @var{end}, and @var{delete} arguments are
+the same as those of @code{filter-buffer-substring}.
 
 The first hook function is passed a @var{fun} that is equivalent to
 the default operation of @code{filter-buffer-substring}, i.e., it
@@ -263,14 +274,12 @@ hook functions acting in sequence.
 @end defvar
 
 @defvar buffer-substring-filters
-This variable is obsoleted by
-@code{filter-buffer-substring-functions}, but is still supported for
-backward compatibility.  Its value should should be a list of
-functions which accept a single string argument and return another
-string.  @code{filter-buffer-substring} passes the buffer substring to
-the first function in this list, and the return value of each function
-is passed to the next function.  The return value of the last function
-is passed to @code{filter-buffer-substring-functions}.
+The value of this obsolete variable should be a list of functions
+that accept a single string argument and return another string.
+The default @code{filter-buffer-substring} function passes the buffer
+substring to the first function in this list, and the return value of
+each function is passed to the next function.  The return value of the
+last function is passed to @code{filter-buffer-substring-functions}.
 @end defvar
 
 @defun current-word &optional strict really-word
@@ -797,7 +806,7 @@ non-whitespace character in each line in the region.
 
 If this command acts on the entire buffer (i.e. if called
 interactively with the mark inactive, or called from Lisp with
-@var{end} nil), it also deletes all trailing lines at the end of the
+@var{end} @code{nil}), it also deletes all trailing lines at the end of the
 buffer if the variable @code{delete-trailing-lines} is non-@code{nil}.
 @end deffn
 
@@ -1270,7 +1279,8 @@ This kind of element indicates how to reinsert text that was deleted.
 The deleted text itself is the string @var{text}.  The place to
 reinsert it is @code{(abs @var{position})}.  If @var{position} is
 positive, point was at the beginning of the deleted text, otherwise it
-was at the end.
+was at the end.  Zero or more (@var{marker} . @var{adjustment})
+elements follow immediately after this element.
 
 @item (t . @var{time-flag})
 This kind of element indicates that an unmodified buffer became
@@ -1296,8 +1306,10 @@ Here's how you might undo the change:
 @item (@var{marker} . @var{adjustment})
 This kind of element records the fact that the marker @var{marker} was
 relocated due to deletion of surrounding text, and that it moved
-@var{adjustment} character positions.  Undoing this element moves
-@var{marker} @minus{} @var{adjustment} characters.
+@var{adjustment} character positions.  If the marker's location is
+consistent with the (@var{text} . @var{position}) element preceding it
+in the undo list, then undoing this element moves @var{marker}
+@minus{} @var{adjustment} characters.
 
 @item (apply @var{funname} . @var{args})
 This is an extensible undo item, which is undone by calling
@@ -2202,7 +2214,7 @@ count from zero at the left margin.
 
   This section describes the primitive functions used to count and
 insert indentation.  The functions in the following sections use these
-primitives.  @xref{Width}, for related functions.
+primitives.  @xref{Size of Displayed Text}, for related functions.
 
 @defun current-indentation
 @comment !!Type Primitive Function
@@ -2853,7 +2865,7 @@ adding the face @var{face} to the @code{face} text property.
 (@pxref{Special Properties}), such as a face name or an anonymous face
 (@pxref{Faces}).
 
-If any text in the region already has a non-nil @code{face} property,
+If any text in the region already has a non-@code{nil} @code{face} property,
 those face(s) are retained.  This function sets the @code{face}
 property to a list of faces, with @var{face} as the first element (by
 default) and the pre-existing faces as the remaining elements.  If the
@@ -3269,7 +3281,7 @@ overlay and text property strings present at the current buffer
 position.  You can place the cursor on any desired character of these
 strings by giving that character a non-@code{nil} @code{cursor} text
 property.  In addition, if the value of the @code{cursor} property is
-an integer number, it specifies the number of buffer's character
+an integer, it specifies the number of buffer's character
 positions, starting with the position where the overlay or the
 @code{display} property begins, for which the cursor should be
 displayed on that character.  Specifically, if the value of the
@@ -3283,7 +3295,7 @@ text property begins in the buffer.
 In other words, the string character with the @code{cursor} property
 of any non-@code{nil} value is the character where to display the
 cursor.  The value of the property says for which buffer positions to
-display the cursor there.  If the value is an integer number @var{n},
+display the cursor there.  If the value is an integer @var{n},
 the cursor is displayed there when point is anywhere between the
 beginning of the overlay or @code{display} property and @var{n}
 positions after that.  If the value is anything else and
@@ -3946,7 +3958,7 @@ single interval.  But suppose instead that we have two adjacent
 intervals with the same properties, and we kill the text of one interval
 and yank it back.  The same interval-coalescence feature that rescues
 the other case causes trouble in this one: after yanking, we have just
-one interval.  One again, editing does not preserve the distinction
+one interval.  Once again, editing does not preserve the distinction
 between one interval and two.
 
   Insertion of text at the border between intervals also raises
@@ -4113,6 +4125,18 @@ If the register contains something other than saved text (a string) or
 a rectangle (a list), currently useless things happen.  This may be
 changed in the future.
 @end deffn
+
+@defun register-read-with-preview prompt
+@cindex register preview
+This function reads and returns a register name, prompting with
+@var{prompt} and possibly showing a preview of the existing registers
+and their contents.  The preview is shown in a temporary window, after
+the delay specified by the user option @code{register-preview-delay},
+if its value and @code{register-alist} are both non-@code{nil}.  The
+preview is also shown if the user requests help (e.g., by typing the
+help character).  We recommend that all interactive commands which
+read register names use this function.
+@end defun
 
 @node Transposition
 @section Transposition of Text

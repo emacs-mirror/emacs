@@ -2483,7 +2483,7 @@
 	string to kill-ring.
 
 	* calc/calc-aent.el (calc-alg-exp, math-toks)
-	(math-exp-pos,math-exp-old-pos, math-exp-token)
+	(math-exp-pos, math-exp-old-pos, math-exp-token)
 	(math-exp-keep-spaces, math-exp-str): New variables.
 	(calc-do-alg-entry, calcAlg-equals, calcAlg-edit)
 	(calcAlg-enter): Use declared variable calc-alg-exp.
@@ -3287,7 +3287,7 @@
 
 2004-10-26  Jay Belanger  <belanger@truman.edu>
 
-	* calc/calc.el (calc,full-calc, calc-quit, calc-keypad)
+	* calc/calc.el (calc, full-calc, calc-quit, calc-keypad)
 	(full-calc-keypad, calc-trail-display): Use an extra argument
 	instead of `interactive-p'.
 
@@ -5099,7 +5099,7 @@
 	(isearch-*-char, isearch-|-char): Now just call `isearch-fallback'
 	appropriately.
 	(isearch-mode-map): Bind `}' to `isearch-}-char'.
-	(isearch-string, isearch-message,string, isearch-point)
+	(isearch-string, isearch-message-string, isearch-point)
 	(isearch-success, isearch-forward-flag, isearch-other-end)
 	(isearch-word, isearch-invalid-regexp, isearch-wrapped)
 	(isearch-barrier, isearch-within-brackets, isearch-case-fold-search):
@@ -11315,7 +11315,7 @@
 	* emacs-lisp/shadow.el (shadow-same-file-or-nonexistent):
 	* man.el (Man-init-defvars):
 	* jka-compr.el (jka-compr-call-process):
-	* files.el (get-free-disk-space,insert-directory):
+	* files.el (get-free-disk-space, insert-directory):
 	* ediff-ptch.el (ediff-test-patch-utility):
 	* ediff-diff.el (ediff-test-utility):
 	* dired-aux.el (dired-check-process):
@@ -11830,7 +11830,7 @@
 
 2003-11-25  Stephen Eglen  <stephen@gnu.org>
 
-	* iswitchb.el (iswitchb-read-buffer,iswitchb-exit-minibuffer):
+	* iswitchb.el (iswitchb-read-buffer, iswitchb-exit-minibuffer):
 	iswitchb-exit is set to 'usefirst when user selects buffer at head
 	of list using RET.  (Selecting buffers at the head of the list was
 	broken if the substring was also a complete buffer name.)
@@ -12385,8 +12385,8 @@
 	(ediff-select-difference): Set current difference.
 	(ediff-unselect-and-select-difference): Add comment.
 
-	* ediff.el (ediff-directories,ediff-directory-revisions)
-	(ediff-directories3,ediff-merge-directories)
+	* ediff.el (ediff-directories, ediff-directory-revisions)
+	(ediff-directories3, ediff-merge-directories)
 	(ediff-merge-directories-with-ancestor)
 	(ediff-merge-directory-revisions)
 	(ediff-merge-directory-revisions-with-ancestor):
@@ -12518,7 +12518,7 @@
 
 	* gdb-ui.el (gdb-var-list, gdb-var-changed, gdb-update-flag)
 	(gdb-update-flag): New variables.
-	(gdb-var-update, gdb-var-update-handler,gdb-var-delete)
+	(gdb-var-update, gdb-var-update-handler, gdb-var-delete)
 	(gdb-speedbar-expand-node, gdb-var-evaluate-expression-handler)
 	(gud-watch, gdb-var-create-handler): New functions.
 	(gdb-var-list-children, gdb-var-list-children-handler)
@@ -12537,9 +12537,9 @@
 	(gdb-array-size, gdb-display-mode-map, gdb-expressions-mode-map):
 	(gdb-expressions-mode-menu, gdb-dive): Remove variables.
 	(gud-display, gud-display1)
-	(gdb-display-begin,gdb-display-number-end, gdb-delete-line)
+	(gdb-display-begin, gdb-display-number-end, gdb-delete-line)
 	(gdb-display-end, gdb-display-go-back, gdb-array-section-end)
-	(gdb-field-begin, gdb-field-end, gdb-elt,gdb-field-format-begin)
+	(gdb-field-begin, gdb-field-end, gdb-elt, gdb-field-format-begin)
 	(gdb-field-format-end, gdb-dive, gdb-dive-new-frame)
 	(gdb-insert-field, gdb-array-format, gdb-mouse-array-slice)
 	(gdb-array-slice, gdb-array-format1, gdb-info-display-custom)
@@ -12935,7 +12935,7 @@
 2003-09-08  David Ponce  <david@dponce.com>
 
 	Ensure that recentf correctly updates the menu bar.
-	* recentf.el (recentf-menu-path,recentf-menu-before): Doc fix.
+	* recentf.el (recentf-menu-path, recentf-menu-before): Doc fix.
 	(recentf-menu-bar): New function.
 	(recentf-clear-data): Use it.
 	(recentf-update-menu): Likewise.  Use easy-menu-add-item instead
@@ -12966,7 +12966,7 @@
 	* gdb-ui.el (gud-display1): Use gud-call to prevent extra prompt
 	being displayed in GUD buffer.
 	(gdb-idle-input-queue): Remove var.  Use just one queue.
-	(gdb-enqueue-idle-input,gdb-dequeue-idle-input):
+	(gdb-enqueue-idle-input, gdb-dequeue-idle-input):
 	Remove functions.  Use just one queue.
 	(gdb-prompt, gdb-subprompt, def-gdb-auto-update-trigger)
 	(gdb-invalidate-assembler, gdb-get-current-frame):

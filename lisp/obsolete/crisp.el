@@ -4,6 +4,7 @@
 
 ;; Author: Gary D. Foster <Gary.Foster@Corp.Sun.COM>
 ;; Keywords: emulations brief crisp
+;; Obsolete-since: 24.5
 
 ;; This file is part of GNU Emacs.
 

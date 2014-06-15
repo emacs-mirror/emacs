@@ -618,6 +618,29 @@ argument @var{pixelwise} is passed to the function called.
 @code{window-width} is an alias for @code{window-body-width}.  These
 aliases are considered obsolete and will be removed in the future.
 
+   The pixel heights of a window's mode and header line can be retrieved
+with the functions given below.  Their return value is usually accurate
+unless the window has not been displayed before: In that case, the
+return value is based on an estimate of the font used for the window's
+frame.
+
+@defun window-mode-line-height &optional window
+This function returns the height in pixels of @var{window}'s mode line.
+@var{window} must be a live window and defaults to the selected one.  If
+@var{window} has no mode line, the return value is zero.
+@end defun
+
+@defun window-header-line-height &optional window
+This function returns the height in pixels of @var{window}'s header
+line.  @var{window} must be a live window and defaults to the selected
+one.  If @var{window} has no header line, the return value is zero.
+@end defun
+
+Functions for retrieving the height and/or width of window dividers
+(@pxref{Window Dividers}), fringes (@pxref{Fringes}), scroll bars
+(@pxref{Scroll Bars}), and display margins (@pxref{Display Margins}) are
+described in the corresponding sections.
+
 @cindex fixed-size window
 @vindex window-min-height
 @vindex window-min-width
@@ -2185,7 +2208,7 @@ adjust the window's height, use an entry whose @sc{car} is
 
 @item
 A number specifies the desired height of the new window.  An integer
-number specifies the number of lines of the window.  A floating point
+specifies the number of lines of the window.  A floating-point
 number gives the fraction of the window's height with respect to the
 height of the frame's root window.
 
@@ -2206,7 +2229,7 @@ To adjust the window's width, use an entry whose @sc{car} is
 
 @item
 A number specifies the desired width of the new window.  An integer
-number specifies the number of columns of the window.  A floating point
+specifies the number of columns of the window.  A floating-point
 number gives the fraction of the window's width with respect to the
 width of the frame's root window.
 
@@ -2255,6 +2278,15 @@ selected frame.
 This function tries to display @var{buffer} by choosing an existing
 window and displaying the buffer in that window.  It can fail if all
 windows are dedicated to another buffer (@pxref{Dedicated Windows}).
+@end defun
+
+@defun display-buffer-no-window buffer alist
+If @var{alist} has a non-@code{nil} @code{allow-no-window} entry, then
+this function does not display @code{buffer}.  This allows to override
+the default action and avoid displaying the buffer.  It is assumed that
+when the caller specifies a non-@code{nil} @code{allow-no-window} value
+it can handle a @code{nil} value returned from @code{display-buffer} in
+this case.
 @end defun
 
 To illustrate the use of action functions, consider the following
@@ -3476,18 +3508,18 @@ coordinate of the topmost row, the X coordinate one column to the
 right of the rightmost column, and the Y coordinate one row down from
 the bottommost row.
 
-Note that these are the actual outer edges of the window, including
-any header line, mode line, scroll bar, fringes, and display margins.
-On a text terminal, if the window has a neighbor on its right, its
-right edge includes the separator line between the window and its
+Note that these are the actual outer edges of the window, including any
+header line, mode line, scroll bar, fringes, window divider and display
+margins.  On a text terminal, if the window has a neighbor on its right,
+its right edge includes the separator line between the window and its
 neighbor.
 @end defun
 
 @defun window-inside-edges &optional window
 This function is similar to @code{window-edges}, but the returned edge
 values are for the text area of the window.  They exclude any header
-line, mode line, scroll bar, fringes, display margins, and vertical
-separator.
+line, mode line, scroll bar, fringes, window divider, display margins,
+and vertical separator.
 @end defun
 
 @defun window-top-line &optional window
@@ -3535,6 +3567,14 @@ The coordinates are in the mode line of @var{window}.
 
 @item header-line
 The coordinates are in the header line of @var{window}.
+
+@item right-divider
+The coordinates are in the divider separating @var{window} from a
+window on the right.
+
+@item right-divider
+The coordinates are in the divider separating @var{window} from a
+window beneath.
 
 @item vertical-line
 The coordinates are in the vertical line between @var{window} and its
@@ -3597,6 +3637,17 @@ returns the edge pixel coordinates relative to the top left corner of
 the display screen.  @var{window} must specify a live window.
 @end defun
 
+@defun window-pixel-left &optional window
+This function returns the left pixel edge of window @var{window}.
+@var{window} must be a valid window and defaults to the selected one.
+@end defun
+
+@defun window-pixel-top &optional window
+This function returns the top pixel edge of window @var{window}.
+@var{window} must be a valid window and defaults to the selected one.
+@end defun
+
+
 @node Window Configurations
 @section Window Configurations
 @cindex window configurations
@@ -3604,7 +3655,7 @@ the display screen.  @var{window} must specify a live window.
 
 A @dfn{window configuration} records the entire layout of one
 frame---all windows, their sizes, which buffers they contain, how those
-buffers are scrolled, and their values of point and the mark; also their
+buffers are scrolled, and their value of point; also their
 fringes, margins, and scroll bar settings.  It also includes the value
 of @code{minibuffer-scroll-window}.  As a special exception, the window
 configuration does not record the value of point in the selected window
@@ -3680,13 +3731,13 @@ This function returns @code{t} if @var{object} is a window configuration.
 
 @defun compare-window-configurations config1 config2
 This function compares two window configurations as regards the
-structure of windows, but ignores the values of point and mark and the
+structure of windows, but ignores the values of point and the
 saved scrolling positions---it can return @code{t} even if those
 aspects differ.
 
 The function @code{equal} can also compare two window configurations; it
 regards configurations as unequal if they differ in any respect, even a
-saved point or mark.
+saved point.
 @end defun
 
 @defun window-configuration-frame config

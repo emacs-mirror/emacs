@@ -1,0 +1,29 @@
+# -sedadmin.inp-----------------------------------------------------------
+# Configuration script for admin/unidata/Makefile under DJGPP v2.x
+# ----------------------------------------------------------------------
+#
+# Copyright (C) 2014 Free Software Foundation, Inc.
+#
+# This file is part of GNU Emacs.
+#
+# This file is free software; as a special exception, the author gives
+# unlimited permission to copy and/or distribute it, with or without
+# modifications, as long as this notice is preserved.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#
+# ----------------------------------------------------------------------
+/^SHELL *=/s/^/# /
+/^srcdir *=/s/@[^@\n]*@/./
+/^top_srcdir *=/s|@[^@\n]*@|../..|
+/^top_builddir *=/s|@[^@\n]*@|../..|
+
+/^	 *-if /,/^	 *fi/d
+/^	 *if test -f charprop/,/^	 *fi/c\
+	rm -f uni-*.el
+/^	 *if test -f \${DSTDIR/,/^	 *fi/c\
+	rm -f ${DSTDIR}/uni-*.el ${DSTDIR}/charprop.el
+/^	 *cp `sed -n/c\
+	cp uni-*.el ${DSTDIR}

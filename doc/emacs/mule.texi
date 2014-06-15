@@ -9,37 +9,29 @@
 @cindex multibyte characters
 @cindex encoding of characters
 
-@cindex Celtic
+@cindex Arabic
+@cindex Bengali
 @cindex Chinese
 @cindex Cyrillic
-@cindex Czech
-@cindex Devanagari
+@cindex Han
 @cindex Hindi
-@cindex Marathi
 @cindex Ethiopic
-@cindex German
+@cindex Georgian
 @cindex Greek
+@cindex Hangul
 @cindex Hebrew
+@cindex Hindi
 @cindex IPA
 @cindex Japanese
 @cindex Korean
-@cindex Lao
 @cindex Latin
-@cindex Polish
-@cindex Romanian
-@cindex Slovak
-@cindex Slovenian
 @cindex Thai
-@cindex Tibetan
-@cindex Turkish
 @cindex Vietnamese
-@cindex Dutch
-@cindex Spanish
   Emacs supports a wide variety of international character sets,
 including European and Vietnamese variants of the Latin alphabet, as
-well as Cyrillic, Devanagari (for Hindi and Marathi), Ethiopic, Greek,
-Han (for Chinese and Japanese), Hangul (for Korean), Hebrew, IPA,
-Kannada, Lao, Malayalam, Tamil, Thai, Tibetan, and Vietnamese scripts.
+well as Arabic scripts, Brahmic scripts (for languages such as
+Bengali, Hindi, and Thai), Cyrillic, Ethiopic, Georgian, Greek, Han
+(for Chinese and Japanese), Hangul (for Korean), Hebrew and IPA@.
 Emacs also supports various encodings of these characters that are used by
 other internationalized software, such as word processors and mailers.
 
@@ -196,15 +188,15 @@ within that character set; @acronym{ASCII} characters are identified
 as belonging to the @code{ascii} character set.
 
 @item
-The character's syntax and categories.
-
-@item
-The character's encodings, both internally in the buffer, and externally
-if you were to save the file.
+The character's script, syntax and categories.
 
 @item
 What keys to type to input the character in the current input method
 (if it supports the character).
+
+@item
+The character's encodings, both internally in the buffer, and externally
+if you were to save the file.
 
 @item
 If you are running Emacs on a graphical display, the font name and
@@ -218,28 +210,29 @@ faces used to display the character, and any overlays containing it
 (@pxref{Overlays,,, elisp, the same manual}).
 @end itemize
 
-  Here's an example showing the Latin-1 character A with grave accent,
-in a buffer whose coding system is @code{utf-8-unix}:
+  Here's an example, with some lines folded to fit into this manual:
 
 @smallexample
              position: 1 of 1 (0%), column: 0
-            character: @`A (displayed as @`A) (codepoint 192, #o300, #xc0)
+            character: @^e (displayed as @^e) (codepoint 234, #o352, #xea)
     preferred charset: unicode (Unicode (ISO10646))
-code point in charset: 0xC0
-               syntax: w       which means: word
-             category: .:Base, L:Left-to-right (strong),
+code point in charset: 0xEA
+               script: latin
+               syntax: w        which means: word
+             category: .:Base, L:Left-to-right (strong), c:Chinese,
                        j:Japanese, l:Latin, v:Viet
-          buffer code: #xC3 #x80
-            file code: not encodable by coding system undecided-unix
+             to input: type "C-x 8 RET HEX-CODEPOINT" or "C-x 8 RET NAME"
+          buffer code: #xC3 #xAA
+            file code: #xC3 #xAA (encoded by coding system utf-8-unix)
               display: by this font (glyph code)
     xft:-unknown-DejaVu Sans Mono-normal-normal-
-        normal-*-13-*-*-*-m-0-iso10646-1 (#x82)
+        normal-*-15-*-*-*-m-0-iso10646-1 (#xAC)
 
 Character code properties: customize what to show
-  name: LATIN CAPITAL LETTER A WITH GRAVE
-  old-name: LATIN CAPITAL LETTER A GRAVE
-  general-category: Lu (Letter, Uppercase)
-  decomposition: (65 768) ('A' '`')
+  name: LATIN SMALL LETTER E WITH CIRCUMFLEX
+  old-name: LATIN SMALL LETTER E CIRCUMFLEX
+  general-category: Ll (Letter, Lowercase)
+  decomposition: (101 770) ('e' '^')
 @end smallexample
 
 @node Language Environments
@@ -266,25 +259,129 @@ language environment also specifies a default input method.
 @code{current-language-environment} or use the command @kbd{M-x
 set-language-environment}.  It makes no difference which buffer is
 current when you use this command, because the effects apply globally
-to the Emacs session.  The supported language environments
-(see the variable @code{language-info-alist}) include:
+to the Emacs session.  See the variable @code{language-info-alist} for
+the list of supported language environments, and use the command
+@kbd{C-h L @var{lang-env} @key{RET}} (@code{describe-language-environment})
+for more information about the language environment @var{lang-env}.
+Supported language environments include:
 
-@cindex Euro sign
-@cindex UTF-8
 @quotation
-ASCII, Belarusian, Bengali, Brazilian Portuguese, Bulgarian, Cham,
-Chinese-BIG5, Chinese-CNS, Chinese-EUC-TW, Chinese-GB, Chinese-GBK,
-Chinese-GB18030, Croatian, Cyrillic-ALT, Cyrillic-ISO, Cyrillic-KOI8,
-Czech, Devanagari, Dutch, English, Esperanto, Ethiopic, French,
-Georgian, German, Greek, Gujarati, Hebrew, IPA, Italian, Japanese,
-Kannada, Khmer, Korean, Lao, Latin-1, Latin-2, Latin-3, Latin-4,
-Latin-5, Latin-6, Latin-7, Latin-8 (Celtic), Latin-9 (updated Latin-1
-with the Euro sign), Latvian, Lithuanian, Malayalam, Oriya, Polish,
-Punjabi, Romanian, Russian, Sinhala, Slovak, Slovenian, Spanish,
-Swedish, TaiViet, Tajik, Tamil, Telugu, Thai, Tibetan, Turkish, UTF-8
-(for a setup which prefers Unicode characters and files encoded in
-UTF-8), Ukrainian, Vietnamese, Welsh, and Windows-1255 (for a setup
-which prefers Cyrillic characters and files encoded in Windows-1255).
+@cindex ASCII
+ASCII,
+@cindex Arabic
+Arabic,
+@cindex Belarusian
+Belarusian,
+@cindex Bengali
+Bengali,
+@cindex Brazilian Portuguese
+Brazilian Portuguese,
+@cindex Bulgarian
+Bulgarian,
+@cindex Burmese
+Burmese,
+@cindex Cham
+Cham,
+@cindex Chinese
+Chinese-BIG5, Chinese-CNS, Chinese-EUC-TW, Chinese-GB,
+Chinese-GB18030, Chinese-GBK,
+@cindex Croatian
+Croatian,
+@cindex Cyrillic
+Cyrillic-ALT, Cyrillic-ISO, Cyrillic-KOI8,
+@cindex Czech
+Czech,
+@cindex Devanagari
+Devanagari,
+@cindex Dutch
+Dutch,
+@cindex English
+English,
+@cindex Esperanto
+Esperanto,
+@cindex Ethiopic
+Ethiopic,
+@cindex French
+French,
+@cindex Georgian
+Georgian,
+@cindex German
+German,
+@cindex Greek
+Greek,
+@cindex Gujarati
+Gujarati,
+@cindex Hebrew
+Hebrew,
+@cindex IPA
+IPA,
+@cindex Italian
+Italian,
+@cindex Japanese
+Japanese,
+@cindex Kannada
+Kannada,
+@cindex Khmer
+Khmer,
+@cindex Korean
+Korean,
+@cindex Lao
+Lao,
+@cindex Latin
+Latin-1, Latin-2, Latin-3, Latin-4, Latin-5, Latin-6, Latin-7,
+Latin-8, Latin-9,
+@cindex Latvian
+Latvian,
+@cindex Lithuanian
+Lithuanian,
+@cindex Malayalam
+Malayalam,
+@cindex Oriya
+Oriya,
+@cindex Persian
+Persian,
+@cindex Polish
+Polish,
+@cindex Punjabi
+Punjabi,
+@cindex Romanian
+Romanian,
+@cindex Russian
+Russian,
+@cindex Sinhala
+Sinhala,
+@cindex Slovak
+Slovak,
+@cindex Slovenian
+Slovenian,
+@cindex Spanish
+Spanish,
+@cindex Swedish
+Swedish,
+@cindex TaiViet
+TaiViet,
+@cindex Tajik
+Tajik,
+@cindex Tamil
+Tamil,
+@cindex Telugu
+Telugu,
+@cindex Thai
+Thai,
+@cindex Tibetan
+Tibetan,
+@cindex Turkish
+Turkish,
+@cindex UTF-8
+UTF-8,
+@cindex Ukrainian
+Ukrainian,
+@cindex Vietnamese
+Vietnamese,
+@cindex Welsh
+Welsh, and
+@cindex Windows-1255
+Windows-1255.
 @end quotation
 
   To display the script(s) used by your language environment on a
@@ -342,7 +439,6 @@ character sets, coding systems, and input methods that go with it.  It
 also shows some sample text to illustrate scripts used in this
 language environment.  If you give an empty input for @var{lang-env},
 this command describes the chosen language environment.
-@anchor{Describe Language Environment}
 
 @vindex set-language-environment-hook
   You can customize any language environment with the normal hook
@@ -1574,11 +1670,11 @@ use these keys; they should simply work.  On a text terminal, you
 should use the command @code{M-x set-keyboard-coding-system} or customize the
 variable @code{keyboard-coding-system} to specify which coding system
 your keyboard uses (@pxref{Terminal Coding}).  Enabling this feature
-will probably require you to use @kbd{ESC} to type Meta characters;
+will probably require you to use @key{ESC} to type Meta characters;
 however, on a console terminal or in @code{xterm}, you can arrange for
-Meta to be converted to @kbd{ESC} and still be able type 8-bit
-characters present directly on the keyboard or using @kbd{Compose} or
-@kbd{AltGr} keys.  @xref{User Input}.
+Meta to be converted to @key{ESC} and still be able type 8-bit
+characters present directly on the keyboard or using @key{Compose} or
+@key{AltGr} keys.  @xref{User Input}.
 
 @kindex C-x 8
 @cindex @code{iso-transl} library
@@ -1592,8 +1688,8 @@ well as other buffers), for searching, and in any other context where
 a key sequence is allowed.
 
 @kbd{C-x 8} works by loading the @code{iso-transl} library.  Once that
-library is loaded, the @key{ALT} modifier key, if the keyboard has
-one, serves the same purpose as @kbd{C-x 8}: use @key{ALT} together
+library is loaded, the @key{Alt} modifier key, if the keyboard has
+one, serves the same purpose as @kbd{C-x 8}: use @key{Alt} together
 with an accent character to modify the following letter.  In addition,
 if the keyboard has keys for the Latin-1 ``dead accent characters'',
 they too are defined to compose with the following character, once
@@ -1718,7 +1814,7 @@ inserting special formatting characters in front of the paragraph.
 The special character @code{RIGHT-TO-LEFT MARK}, or @sc{rlm}, forces
 the right-to-left direction on the following paragraph, while
 @code{LEFT-TO-RIGHT MARK}, or @sc{lrm} forces the left-to-right
-direction.  (You can use @kbd{C-x 8 RET} to insert these characters.)
+direction.  (You can use @kbd{C-x 8 @key{RET}} to insert these characters.)
 In a GUI session, the @sc{lrm} and @sc{rlm} characters display as very
 thin blank characters; on text terminals they display as blanks.
 

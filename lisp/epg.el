@@ -1206,7 +1206,6 @@ This function is for internal use only."
 	 (coding-system-for-read 'binary)
 	 process-connection-type
 	 (process-environment process-environment)
-	 (orig-mode (default-file-modes))
 	 (buffer (generate-new-buffer " *epg*"))
 	 process
 	 terminal-name
@@ -1265,14 +1264,9 @@ This function is for internal use only."
       (setq epg-agent-file agent-file)
       (make-local-variable 'epg-agent-mtime)
       (setq epg-agent-mtime agent-mtime))
-    (unwind-protect
-	(progn
-	  (set-default-file-modes 448)
-	  (setq process
-		(apply #'start-process "epg" buffer
-		       (epg-context-program context)
-		       args)))
-      (set-default-file-modes orig-mode))
+    (with-file-modes 448
+      (setq process (apply #'start-process "epg" buffer
+			   (epg-context-program context) args)))
     (set-process-filter process #'epg--process-filter)
     (epg-context-set-process context process)))
 

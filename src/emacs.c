@@ -1,7 +1,7 @@
 /* Fully extensible Emacs, running on Unix, intended for GNU.
 
-Copyright (C) 1985-1987, 1993-1995, 1997-1999, 2001-2014 Free Software
-Foundation, Inc.
+Copyright (C) 1985-1987, 1993-1995, 1997-1999, 2001-2014
+  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -80,6 +80,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "composite.h"
 #include "dispextern.h"
 #include "syntax.h"
+#include "sysselect.h"
 #include "systime.h"
 
 #ifdef HAVE_GNUTLS
@@ -105,8 +106,9 @@ extern void moncontrol (int mode);
 #include <sys/personality.h>
 #endif
 
-static const char emacs_version[] = VERSION;
+static const char emacs_version[] = PACKAGE_VERSION;
 static const char emacs_copyright[] = COPYRIGHT;
+static const char emacs_bugreport[] = PACKAGE_BUGREPORT;
 
 /* Empty lisp strings.  To avoid having to build any others.  */
 Lisp_Object empty_unibyte_string, empty_multibyte_string;
@@ -121,6 +123,9 @@ Lisp_Object Vlibrary_cache;
    on subsequent starts.  */
 bool initialized;
 
+/* Set to true if this instance of Emacs might dump.  */
+bool might_dump;
+
 #ifdef DARWIN_OS
 extern void unexec_init_emacs_zone (void);
 #endif
@@ -132,7 +137,7 @@ static void *malloc_state_ptr;
 /* From glibc, a routine that returns a copy of the malloc internal state.  */
 extern void *malloc_get_state (void);
 /* From glibc, a routine that overwrites the malloc internal state.  */
-extern int malloc_set_state (void*);
+extern int malloc_set_state (void *);
 /* True if the MALLOC_CHECK_ environment variable was set while
    dumping.  Used to work around a bug in glibc's malloc.  */
 static bool malloc_using_checking;
@@ -210,7 +215,7 @@ int initial_argc;
 static void sort_args (int argc, char **argv);
 static void syms_of_emacs (void);
 
-/* C89 needs each string be at most 509 characters, so the usage
+/* C99 needs each string to be at most 4095 characters, and the usage
    strings below are split to not overflow this limit.  */
 static char const *const usage_message[] =
   { "\
@@ -321,7 +326,7 @@ abbreviation for a --option.\n\
 Various environment variables and window system resources also affect\n\
 the operation of Emacs.  See the main documentation.\n\
 \n\
-Report bugs to bug-gnu-emacs@gnu.org.  First, please see the Bugs\n\
+Report bugs to " PACKAGE_BUGREPORT ".  First, please see the Bugs\n\
 section of the Emacs manual or the file BUGS.\n"
   };
 
@@ -731,6 +736,10 @@ main (int argc, char **argv)
   xputenv ("G_SLICE=always-malloc");
 #endif
 
+#ifndef CANNOT_DUMP
+  might_dump = !initialized;
+#endif
+
 #ifdef GNU_LINUX
   if (!initialized)
     {
@@ -1000,7 +1009,7 @@ main (int argc, char **argv)
     {
       int i;
       printf ("Usage: %s [OPTION-OR-FILENAME]...\n", argv[0]);
-      for (i = 0; i < sizeof usage_message / sizeof *usage_message; i++)
+      for (i = 0; i < ARRAYELTS (usage_message); i++)
 	fputs (usage_message[i], stdout);
       exit (0);
     }
@@ -1368,7 +1377,8 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
   xputenv ("LANG=C");
 #endif
 
-  init_buffer ();	/* Init default directory of main buffer.  */
+  /* Init buffer storage and default directory of main buffer.  */
+  init_buffer (initialized);
 
   init_callproc_1 ();	/* Must precede init_cmdargs and init_sys_modes.  */
 
@@ -1809,7 +1819,7 @@ sort_args (int argc, char **argv)
 	    }
 
 	  /* Look for a match with a known old-fashioned option.  */
-	  for (i = 0; i < sizeof (standard_args) / sizeof (standard_args[0]); i++)
+	  for (i = 0; i < ARRAYELTS (standard_args); i++)
 	    if (!strcmp (argv[from], standard_args[i].name))
 	      {
 		options[from] = standard_args[i].nargs;
@@ -1831,8 +1841,7 @@ sort_args (int argc, char **argv)
 
 	      match = -1;
 
-	      for (i = 0;
-		   i < sizeof (standard_args) / sizeof (standard_args[0]); i++)
+	      for (i = 0; i < ARRAYELTS (standard_args); i++)
 		if (standard_args[i].longname
 		    && !strncmp (argv[from], standard_args[i].longname,
 				 thislen))
@@ -2025,9 +2034,7 @@ shut_down_emacs (int sig, Lisp_Object stuff)
   kill_buffer_processes (Qnil);
   Fdo_auto_save (Qt, Qnil);
 
-#ifdef CLASH_DETECTION
   unlock_all_files ();
-#endif
 
   /* There is a tendency for a SIGIO signal to arrive within exit,
      and cause a SIGHUP because the input descriptor is already closed.  */
@@ -2081,6 +2088,9 @@ You must run Emacs in batch mode in order to dump it.  */)
 
   if (! noninteractive)
     error ("Dumping Emacs works only in batch mode");
+
+  if (!might_dump)
+    error ("Emacs can be dumped only once");
 
 #ifdef GNU_LINUX
 
@@ -2147,13 +2157,8 @@ You must run Emacs in batch mode in order to dump it.  */)
   malloc_state_ptr = malloc_get_state ();
 #endif
 
-#ifdef USE_MMAP_FOR_BUFFERS
-  mmap_set_vars (0);
-#endif
   unexec (SSDATA (filename), !NILP (symfile) ? SSDATA (symfile) : 0);
-#ifdef USE_MMAP_FOR_BUFFERS
-  mmap_set_vars (1);
-#endif
+
 #ifdef DOUG_LEA_MALLOC
   free (malloc_state_ptr);
 #endif
@@ -2452,6 +2457,12 @@ Emacs is running.  */);
 	       doc: /* String containing the configuration options Emacs was built with.  */);
   Vsystem_configuration_options = build_string (EMACS_CONFIG_OPTIONS);
 
+  DEFVAR_LISP ("system-configuration-features", Vsystem_configuration_features,
+	       doc: /* String listing some of the main features this Emacs was compiled with.
+An element of the form \"FOO\" generally means that HAVE_FOO was
+defined during the build.  */);
+  Vsystem_configuration_features = build_string (EMACS_CONFIG_FEATURES);
+
   DEFVAR_BOOL ("noninteractive", noninteractive1,
 	       doc: /* Non-nil means Emacs is running without interactive terminal.  */);
 
@@ -2528,6 +2539,10 @@ This is nil during initialization.  */);
   DEFVAR_LISP ("emacs-version", Vemacs_version,
 	       doc: /* Version numbers of this version of Emacs.  */);
   Vemacs_version = build_string (emacs_version);
+
+  DEFVAR_LISP ("report-emacs-bug-address", Vreport_emacs_bug_address,
+	       doc: /* Address of mailing list for GNU Emacs bugs.  */);
+  Vreport_emacs_bug_address = build_string (emacs_bugreport);
 
   DEFVAR_LISP ("dynamic-library-alist", Vdynamic_library_alist,
     doc: /* Alist of dynamic libraries vs external files implementing them.

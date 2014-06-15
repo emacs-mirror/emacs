@@ -495,6 +495,13 @@ with L, LRE, or LRO Unicode bidi character type.")
 			(modify-category-entry key ?L))))
 		    table)))
 
+;; Load uni-mirrored.el if available, so that it gets dumped into
+;; Emacs.  This allows to start Emacs with force-load-messages in
+;; ~/.emacs, and avoid infinite recursion in bidi_initialize, which
+;; needs to load uni-mirrored.el in order to display the "Loading"
+;; messages.
+(unicode-property-table-internal 'mirroring)
+
 ;; Latin
 
 (modify-category-entry '(#x80 . #x024F) ?l)
@@ -783,6 +790,20 @@ with L, LRE, or LRO Unicode bidi character type.")
     (modify-category-entry c ?l)
     (modify-category-entry (+ c 26) ?l)
     (setq c (1+ c)))
+
+  ;; Coptic
+  (let ((pair-ranges '((#x2C80 . #x2CE2)
+		       (#x2CEB . #x2CF2))))
+    (dolist (elt pair-ranges)
+      (let ((from (car elt)) (to (cdr elt)))
+	(while (< from to)
+	  (set-case-syntax-pair from (1+ from) tbl)
+	  (setq from (+ from 2))))))
+  ;; There's no Coptic category.  However, Coptic letters that are
+  ;; part of the Greek block above get the Greek category, and those
+  ;; in this block are derived from Greek letters, so let's be
+  ;; consistent about their category.
+  (modify-category-entry '(#x2C80 . #x2CFF) ?g)
 
   ;; Fullwidth Latin
   (setq c #xff21)

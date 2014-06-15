@@ -1,8 +1,9 @@
-Copyright (C) 2002-2014 Free Software Foundation, Inc.
-See the end of the file for license conditions.
-
-
 	     Building and Installing Emacs from the Repository
+
+Simply run 'make'.  This should work if your files are freshly checked
+out from the repository, and if you have the proper tools installed.
+If it doesn't work, or if you have special build requirements, the
+following information may be helpful.
 
 Building Emacs from the source-code repository requires some tools
 that are not needed when building from a release.  You will need:
@@ -14,48 +15,32 @@ automake  - at least the version specified near the start of
 makeinfo  - not strictly necessary, but highly recommended, so that
   you can build the manuals.
 
-The `autogen.sh' script can help you figure out if you have the
-necessary tools.
-
-The first time you build, there are a couple of extra steps.
-First, generate the `configure' script and some related files:
+To use the autotools, run the following shell command to generate the
+'configure' script and some related files:
 
   $ ./autogen.sh
 
-(or you can just run `autoreconf -i -I m4').
-
-You can then configure your build (use `./configure --help' to see
-options you can set):
+You can then configure your build as follows:
 
   $ ./configure
 
-If you want later builds to go faster, at the expense of sometimes
-doing the wrong thing if you update the build procedure, you can
-invoke "./configure -C" instead.
-
-Some of the files that are included in the Emacs tarball, such as
-byte-compiled Lisp files, are not stored in the repository.  Therefore, to
-build from the repository you must run "make bootstrap" instead of
-just "make":
-
-  $ make bootstrap
-
-Normally, it is not necessary to use "make bootstrap" after every
-update from the repository.  "make" should work in 90% of the cases and be
-much quicker.
+The 'configure' script has many options; run './configure --help' to
+see them.  For example, if you want later builds to go faster, albeit
+sometimes doing the wrong thing if you update the build procedure, you
+can invoke './configure -C'.  After configuring, build Emacs as follows:
 
   $ make
 
-(If you want to install the Emacs binary, type "make install" instead
-of "make" in the last command.)
+If you want to install Emacs, type 'make install' instead of 'make' in
+the last command.
 
-Occasionally the file "lisp/loaddefs.el" (and similar automatically
-generated files, such as esh-groups.el, and *-loaddefs.el in some
-subdirectories of lisp/, e.g. mh-e/ and calendar/) will need to be
+Occasionally the file 'lisp/loaddefs.el' (and similar automatically
+generated files, such as 'esh-groups.el', and '*-loaddefs.el' in some
+subdirectories of 'lisp/', e.g., 'mh-e/' and 'calendar/') will need to be
 updated to reflect new autoloaded functions.  If you see errors (rather
 than warnings) about undefined lisp functions during compilation, that
 may be the reason.  Finally, sometimes there can be build failures
-related to *loaddefs.el (e.g. "required feature `esh-groups' was not
+related to '*loaddefs.el' (e.g., "required feature `esh-groups' was not
 provided").  In that case, follow the instructions below.
 
 To update loaddefs.el (and similar files), do:
@@ -63,13 +48,13 @@ To update loaddefs.el (and similar files), do:
   $ cd lisp
   $ make autoloads
 
-If either of the above partial procedures fails, try "make bootstrap".
-If CPU time is not an issue, the most thorough way to rebuild, and
-avoid any spurious problems, is always to use this method.
+If either of the above partial procedures fails, try 'make bootstrap'.
+If CPU time is not an issue, 'make bootstrap' is the most thorough way
+to rebuild, and avoid any spurious problems.
 
-Users of non-Posix systems (MS-Windows etc.) should run the
-platform-specific configuration scripts (nt/configure.bat, config.bat,
-etc.) before "make bootstrap" or "make"; the rest of the procedure is
+Users of non-Posix systems (MS-Windows, etc.) should run the
+platform-specific configuration scripts ('nt/configure.bat',
+'config.bat', etc.) before 'make'; the rest of the procedure is
 applicable to those systems as well.
 
 Because the repository version of Emacs is a work in progress, it will
@@ -82,6 +67,8 @@ never platform-specific.
 
 
 
+Copyright (C) 2002-2014 Free Software Foundation, Inc.
+
 This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify

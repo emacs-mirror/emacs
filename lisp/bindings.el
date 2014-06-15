@@ -795,7 +795,6 @@ if `inhibit-field-text-motion' is non-nil."
 ;; suspend only the relevant terminal.
 (substitute-key-definition 'suspend-emacs 'suspend-frame global-map)
 
-(define-key global-map "\C-j" 'newline-and-indent)
 (define-key global-map "\C-m" 'newline)
 (define-key global-map "\C-o" 'open-line)
 (define-key esc-map "\C-o" 'split-line)

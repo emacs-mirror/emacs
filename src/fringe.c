@@ -474,15 +474,12 @@ static struct fringe_bitmap standard_bitmaps[] =
 
 #define NO_FRINGE_BITMAP 0
 #define UNDEF_FRINGE_BITMAP 1
-#define MAX_STANDARD_FRINGE_BITMAPS (sizeof (standard_bitmaps)/sizeof (standard_bitmaps[0]))
+#define MAX_STANDARD_FRINGE_BITMAPS ARRAYELTS (standard_bitmaps)
 
 static struct fringe_bitmap **fringe_bitmaps;
 static Lisp_Object *fringe_faces;
 static int max_fringe_bitmaps;
 
-#ifndef HAVE_NS
-static
-#endif
 int max_used_fringe_bitmap = MAX_STANDARD_FRINGE_BITMAPS;
 
 
@@ -637,7 +634,7 @@ draw_fringe_bitmap_1 (struct window *w, struct glyph_row *row, int left_p, int o
       return;
     }
 
-  PREPARE_FACE_FOR_DISPLAY (f, p.face);
+  prepare_face_for_display (f, p.face);
 
   /* Clear left fringe if no bitmap to draw or if bitmap doesn't fill
      the fringe.  */

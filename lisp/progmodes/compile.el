@@ -134,7 +134,7 @@ and a string describing how the process finished.")
 ;; emacs -batch -l compile-tests.el -f ert-run-tests-batch-and-exit
 
 (defvar compilation-error-regexp-alist-alist
-  '((absoft
+  `((absoft
      "^\\(?:[Ee]rror on \\|[Ww]arning on\\( \\)\\)?[Ll]ine[ \t]+\\([0-9]+\\)[ \t]+\
 of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
 
@@ -255,16 +255,46 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
      ;; can be composed of any non-newline char, but it also rules out some
      ;; valid but unlikely cases, such as a trailing space or a space
      ;; followed by a -, or a colon followed by a space.
-
+     ;; 
      ;; The "in \\|from " exception was added to handle messages from Ruby.
-     "^\\(?:[[:alpha:]][-[:alnum:].]+: ?\\|[ \t]+\\(?:in \\|from \\)\\)?\
-\\([0-9]*[^0-9\n]\\(?:[^\n :]\\| [^-/\n]\\|:[^ \n]\\)*?\\): ?\
-\\([0-9]+\\)\\(?:-\\(?4:[0-9]+\\)\\(?:\\.\\(?5:[0-9]+\\)\\)?\
-\\|[.:]\\(?3:[0-9]+\\)\\(?:-\\(?:\\(?4:[0-9]+\\)\\.\\)?\\(?5:[0-9]+\\)\\)?\\)?:\
-\\(?: *\\(\\(?:Future\\|Runtime\\)?[Ww]arning\\|W:\\)\\|\
- *\\([Ii]nfo\\(?:\\>\\|rmationa?l?\\)\\|I:\\|\\[ skipping .+ \\]\\|\
-\\(?:instantiated\\|required\\) from\\|[Nn]ote\\)\\|\
- *[Ee]rror\\|[0-9]?\\(?:[^0-9\n]\\|$\\)\\|[0-9][0-9][0-9]\\)"
+     ,(rx
+       bol
+       (? (| (regexp "[[:alpha:]][-[:alnum:].]+: ?")
+             (regexp "[ \t]+\\(?:in \\|from\\)")))
+       (group-n 1 (: (regexp "[0-9]*[^0-9\n]")
+                     (*? (| (regexp "[^\n :]")
+                            (regexp " [^-/\n]")
+                            (regexp ":[^ \n]")))))
+       (regexp ": ?")
+       (group-n 2 (regexp "[0-9]+"))
+       (? (| (: "-"
+                (group-n 4 (regexp "[0-9]+"))
+                (? "." (group-n 5 (regexp "[0-9]+"))))
+             (: (in ".:")
+                (group-n 3 (regexp "[0-9]+"))
+                (? "-"
+                   (? (group-n 4 (regexp "[0-9]+")) ".")
+                   (group-n 5 (regexp "[0-9]+"))))))
+       ":"
+       (| (: (* " ")
+             (group-n 6 (| "FutureWarning"
+                           "RuntimeWarning"
+                           "Warning"
+                           "warning"
+                           "W:")))
+          (: (* " ")
+             (group-n 7 (| (regexp "[Ii]nfo\\(?:\\>\\|rmationa?l?\\)")
+                           "I:"
+                           (: "[ skipping " (+ ".") " ]")
+                           "instantiated from"
+                           "required from"
+                           (regexp "[Nn]ote"))))
+          (: (* " ")
+             (regexp "[Ee]rror"))
+          (: (regexp "[0-9]?")
+             (| (regexp "[^0-9\n]")
+                eol))
+          (regexp "[0-9][0-9][0-9]")))
      1 (2 . 4) (3 . 5) (6 . 7))
 
     (lcc
@@ -1430,7 +1460,7 @@ If optional second arg COMINT is t the buffer will be in Comint mode with
 `compilation-shell-minor-mode'.
 
 Interactively, prompts for the command if the variable
-`compilation-read-command' is non-nil; otherwise uses`compile-command'.
+`compilation-read-command' is non-nil; otherwise uses `compile-command'.
 With prefix arg, always prompts.
 Additionally, with universal prefix arg, compilation buffer will be in
 comint mode, i.e. interactive.
@@ -1469,12 +1499,13 @@ If the optional argument `edit-command' is non-nil, the command can be edited."
   (interactive "P")
   (save-some-buffers (not compilation-ask-about-save)
                      compilation-save-buffers-predicate)
-  (let ((default-directory (or compilation-directory default-directory)))
+  (let ((default-directory (or compilation-directory default-directory))
+	(command (eval compile-command)))
     (when edit-command
-      (setcar compilation-arguments
-              (compilation-read-command (car compilation-arguments))))
-    (apply 'compilation-start (or compilation-arguments
-				  `(,(eval compile-command))))))
+      (setq command (compilation-read-command (or (car compilation-arguments)
+						  command)))
+      (if compilation-arguments (setcar compilation-arguments command)))
+    (apply 'compilation-start (or compilation-arguments (list command)))))
 
 (defcustom compilation-scroll-output nil
   "Non-nil to scroll the *compilation* buffer window as output appears.
@@ -2038,8 +2069,7 @@ Optional argument MINOR indicates this is called from
   (if minor
       (progn
 	(font-lock-add-keywords nil (compilation-mode-font-lock-keywords))
-	(if font-lock-mode
-            (font-lock-fontify-buffer)))
+        (font-lock-flush))
     (setq font-lock-defaults '(compilation-mode-font-lock-keywords t))))
 
 (defun compilation--unsetup ()
@@ -2048,8 +2078,7 @@ Optional argument MINOR indicates this is called from
   (remove-hook 'before-change-functions 'compilation--flush-parse t)
   (kill-local-variable 'compilation--parsed)
   (compilation--remove-properties)
-  (if font-lock-mode
-      (font-lock-fontify-buffer)))
+  (font-lock-flush))
 
 ;;;###autoload
 (define-minor-mode compilation-shell-minor-mode

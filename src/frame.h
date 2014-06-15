@@ -164,6 +164,11 @@ struct frame
   /* Cache of realized faces.  */
   struct face_cache *face_cache;
 
+#if defined (HAVE_WINDOW_SYSTEM) && ! defined (USE_GTK) && ! defined (HAVE_NS)
+  /* Tool-bar item index of the item on which a mouse button was pressed.  */
+  int last_tool_bar_item;
+#endif
+
   /* Number of elements in `menu_bar_vector' that have meaningful data.  */
   int menu_bar_items_used;
 
@@ -375,7 +380,8 @@ struct frame
      set this directly, use SET_FRAME_ICONIFIED instead.  */
   bool_bf iconified : 1;
 
-  /* True if this frame should be redrawn.  */
+  /* True if this frame should be fully redisplayed.  Disables all
+     optimizations while rebuilding matrices and redrawing.  */
   bool_bf garbaged : 1;
 
   /* False means, if this frame has just one window,
@@ -439,7 +445,7 @@ struct frame
   /* The baud rate that was used to calculate costs for this frame.  */
   int cost_calculation_baud_rate;
 
-  /* frame opacity
+  /* Frame opacity
      alpha[0]: alpha transparency of the active frame
      alpha[1]: alpha transparency of inactive frames
      Negative values mean not to change alpha.  */
@@ -453,7 +459,7 @@ struct frame
   /* Additional space to put between text lines on this frame.  */
   int extra_line_spacing;
 
-  /* All display backends seem to need these two pixel values. */
+  /* All display backends seem to need these two pixel values.  */
   unsigned long background_pixel;
   unsigned long foreground_pixel;
 };
@@ -946,6 +952,9 @@ default_pixels_per_inch_y (void)
       }								\
   } while (false)
 
+/* False means there are no visible garbaged frames.  */
+extern bool frame_garbaged;
+
 /* Set visibility of frame F.
    We call redisplay_other_windows to make sure the frame gets redisplayed
    if some changes were applied to it while it wasn't visible (and hence
@@ -955,8 +964,13 @@ INLINE void
 SET_FRAME_VISIBLE (struct frame *f, int v)
 {
   eassert (0 <= v && v <= 2);
-  if (v == 1 && f->visible != 1)
-    redisplay_other_windows ();
+  if (v)
+    {
+      if (v == 1 && f->visible != 1)
+	redisplay_other_windows ();
+      if (FRAME_GARBAGED_P (f))
+	frame_garbaged = true;
+    }
   f->visible = v;
 }
 
@@ -972,9 +986,6 @@ extern Lisp_Object Qtty_color_mode;
 extern Lisp_Object Qterminal;
 extern Lisp_Object Qnoelisp;
 
-/* True means there is at least one garbaged frame.  */
-extern bool frame_garbaged;
-
 extern void set_menu_bar_lines (struct frame *, Lisp_Object, Lisp_Object);
 extern struct frame *decode_window_system_frame (Lisp_Object);
 extern struct frame *decode_live_frame (Lisp_Object);
@@ -986,11 +997,13 @@ extern struct frame *make_minibuffer_frame (void);
 extern struct frame *make_frame_without_minibuffer (Lisp_Object,
                                                     struct kboard *,
                                                     Lisp_Object);
-#endif /* HAVE_WINDOW_SYSTEM */
 extern bool window_system_available (struct frame *);
+#else /* not HAVE_WINDOW_SYSTEM */
+#define window_system_available(f) ((void) (f), false)
+#endif /* HAVE_WINDOW_SYSTEM */
 extern void check_window_system (struct frame *);
-extern void frame_make_pointer_invisible (void);
-extern void frame_make_pointer_visible (void);
+extern void frame_make_pointer_invisible (struct frame *);
+extern void frame_make_pointer_visible (struct frame *);
 extern Lisp_Object delete_frame (Lisp_Object, Lisp_Object);
 
 extern Lisp_Object Vframe_list;
@@ -1307,8 +1320,7 @@ extern void set_frame_menubar (struct frame *f, bool first_time, bool deep_p);
 extern void x_set_window_size (struct frame *f, int change_grav,
 			       int width, int height, bool pixelwise);
 extern Lisp_Object x_get_focus_frame (struct frame *);
-extern void x_set_mouse_position (struct frame *f, int h, int v);
-extern void x_set_mouse_pixel_position (struct frame *f, int pix_x, int pix_y);
+extern void frame_set_mouse_pixel_position (struct frame *f, int pix_x, int pix_y);
 extern void x_make_frame_visible (struct frame *f);
 extern void x_make_frame_invisible (struct frame *f);
 extern void x_iconify_frame (struct frame *f);
@@ -1348,7 +1360,6 @@ x_set_bitmap_icon (struct frame *f)
 }
 
 #endif /* !HAVE_NS */
-
 #endif /* HAVE_WINDOW_SYSTEM */
 
 INLINE void

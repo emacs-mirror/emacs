@@ -1326,6 +1326,8 @@ Request data types in the order specified by `x-select-request-type'."
 ;;; Window system initialization.
 
 (defun x-win-suspend-error ()
+  "Report an error when a suspend is attempted.
+This returns an error if any Emacs frames are X frames, or always under W32."
   ;; Don't allow suspending if any of the frames are X frames.
   (if (memq 'x (mapcar 'window-system (frame-list)))
       (error "Cannot suspend Emacs while running under X")))

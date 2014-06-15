@@ -1143,7 +1143,7 @@ and move point to current buffer."
     (delete-char -1)
     (bs--set-window-height)
     (bs--goto-current-buffer)
-    (font-lock-fontify-buffer)
+    (font-lock-ensure)
     (bs-apply-sort-faces)
     (set-buffer-modified-p nil)))
 

@@ -134,6 +134,29 @@ extern int sys_select (int, fd_set *, fd_set *, fd_set *,
 		       struct timespec *, void *);
 #endif
 
+/* Work around GCC 4.7.0 bug with strict overflow checking; see
+   <http://gcc.gnu.org/bugzilla/show_bug.cgi?id=52904>.
+   These lines can be removed once the GCC bug is fixed.  */
+#if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 3)
+# pragma GCC diagnostic ignored "-Wstrict-overflow"
+#endif
+
+Lisp_Object Qeuid, Qegid, Qcomm, Qstate, Qppid, Qpgrp, Qsess, Qttname, Qtpgid;
+Lisp_Object Qminflt, Qmajflt, Qcminflt, Qcmajflt, Qutime, Qstime, Qcstime;
+Lisp_Object Qcutime, Qpri, Qnice, Qthcount, Qstart, Qvsize, Qrss, Qargs;
+Lisp_Object Quser, Qgroup, Qetime, Qpcpu, Qpmem, Qtime, Qctime;
+Lisp_Object QCname, QCtype;
+
+/* True if keyboard input is on hold, zero otherwise.  */
+
+static bool kbd_is_on_hold;
+
+/* Nonzero means don't run process sentinels.  This is used
+   when exiting.  */
+bool inhibit_sentinels;
+
+#ifdef subprocesses
+
 #ifndef SOCK_CLOEXEC
 # define SOCK_CLOEXEC 0
 #endif
@@ -164,29 +187,6 @@ process_socket (int domain, int type, int protocol)
 # undef socket
 # define socket(domain, type, protocol) process_socket (domain, type, protocol)
 #endif
-
-/* Work around GCC 4.7.0 bug with strict overflow checking; see
-   <http://gcc.gnu.org/bugzilla/show_bug.cgi?id=52904>.
-   These lines can be removed once the GCC bug is fixed.  */
-#if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 3)
-# pragma GCC diagnostic ignored "-Wstrict-overflow"
-#endif
-
-Lisp_Object Qeuid, Qegid, Qcomm, Qstate, Qppid, Qpgrp, Qsess, Qttname, Qtpgid;
-Lisp_Object Qminflt, Qmajflt, Qcminflt, Qcmajflt, Qutime, Qstime, Qcstime;
-Lisp_Object Qcutime, Qpri, Qnice, Qthcount, Qstart, Qvsize, Qrss, Qargs;
-Lisp_Object Quser, Qgroup, Qetime, Qpcpu, Qpmem, Qtime, Qctime;
-Lisp_Object QCname, QCtype;
-
-/* True if keyboard input is on hold, zero otherwise.  */
-
-static bool kbd_is_on_hold;
-
-/* Nonzero means don't run process sentinels.  This is used
-   when exiting.  */
-bool inhibit_sentinels;
-
-#ifdef subprocesses
 
 Lisp_Object Qprocessp;
 static Lisp_Object Qrun, Qstop, Qsignal;
@@ -286,12 +286,6 @@ static int read_process_output (Lisp_Object, int);
 static void handle_child_signal (int);
 static void create_pty (Lisp_Object);
 
-/* If we support a window system, turn on the code to poll periodically
-   to detect C-g.  It isn't actually used when doing interrupt input.  */
-#ifdef HAVE_WINDOW_SYSTEM
-#define POLL_FOR_INPUT
-#endif
-
 static Lisp_Object get_process (register Lisp_Object name);
 static void exec_sentinel (Lisp_Object proc, Lisp_Object reason);
 
@@ -353,7 +347,10 @@ static struct sockaddr_and_len {
   int len;
 } datagram_address[FD_SETSIZE];
 #define DATAGRAM_CHAN_P(chan)	(datagram_address[chan].sa != 0)
-#define DATAGRAM_CONN_P(proc)	(PROCESSP (proc) && datagram_address[XPROCESS (proc)->infd].sa != 0)
+#define DATAGRAM_CONN_P(proc)                                           \
+  (PROCESSP (proc) &&                                                   \
+   XPROCESS (proc)->infd >= 0 &&                                        \
+   datagram_address[XPROCESS (proc)->infd].sa != 0)
 #else
 #define DATAGRAM_CHAN_P(chan)	(0)
 #define DATAGRAM_CONN_P(proc)	(0)
@@ -465,7 +462,6 @@ static struct fd_callback_data
 void
 add_read_fd (int fd, fd_callback func, void *data)
 {
-  eassert (fd < FD_SETSIZE);
   add_keyboard_wait_descriptor (fd);
 
   fd_callback_info[fd].func = func;
@@ -478,7 +474,6 @@ add_read_fd (int fd, fd_callback func, void *data)
 void
 delete_read_fd (int fd)
 {
-  eassert (fd < FD_SETSIZE);
   delete_keyboard_wait_descriptor (fd);
 
   fd_callback_info[fd].condition &= ~FOR_READ;
@@ -495,7 +490,6 @@ delete_read_fd (int fd)
 void
 add_write_fd (int fd, fd_callback func, void *data)
 {
-  eassert (fd < FD_SETSIZE);
   FD_SET (fd, &write_mask);
   if (fd > max_input_desc)
     max_input_desc = fd;
@@ -526,7 +520,6 @@ delete_input_desc (int fd)
 void
 delete_write_fd (int fd)
 {
-  eassert (fd < FD_SETSIZE);
   FD_CLR (fd, &write_mask);
   fd_callback_info[fd].condition &= ~FOR_WRITE;
   if (fd_callback_info[fd].condition == 0)
@@ -1660,6 +1653,7 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
   bool pty_flag = 0;
   char pty_name[PTY_NAME_SIZE];
   Lisp_Object lisp_pty_name = Qnil;
+  sigset_t oldset;
 
   inchannel = outchannel = -1;
 
@@ -1725,7 +1719,7 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
   setup_process_coding_systems (process);
 
   block_input ();
-  block_child_signal ();
+  block_child_signal (&oldset);
 
 #ifndef WINDOWSNT
   /* vfork, and prevent local vars from being clobbered by the vfork.  */
@@ -1849,7 +1843,7 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
       signal (SIGPIPE, SIG_DFL);
 
       /* Stop blocking SIGCHLD in the child.  */
-      unblock_child_signal ();
+      unblock_child_signal (&oldset);
 
       if (pty_flag)
 	child_setup_tty (xforkout);
@@ -1868,7 +1862,7 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
     p->alive = 1;
 
   /* Stop blocking in the parent.  */
-  unblock_child_signal ();
+  unblock_child_signal (&oldset);
   unblock_input ();
 
   if (pid < 0)
@@ -1963,9 +1957,6 @@ create_pty (Lisp_Object process)
 /* Convert an internal struct sockaddr to a lisp object (vector or string).
    The address family of sa is not included in the result.  */
 
-#ifndef WINDOWSNT
-static
-#endif
 Lisp_Object
 conv_sockaddr_to_lisp (struct sockaddr *sa, int len)
 {
@@ -2010,10 +2001,22 @@ conv_sockaddr_to_lisp (struct sockaddr *sa, int len)
     case AF_LOCAL:
       {
 	struct sockaddr_un *sockun = (struct sockaddr_un *) sa;
-	for (i = 0; i < sizeof (sockun->sun_path); i++)
-	  if (sockun->sun_path[i] == 0)
-	    break;
-	return make_unibyte_string (sockun->sun_path, i);
+        ptrdiff_t name_length = len - offsetof (struct sockaddr_un, sun_path);
+        /* If the first byte is NUL, the name is a Linux abstract
+           socket name, and the name can contain embedded NULs.  If
+           it's not, we have a NUL-terminated string.  Be careful not
+           to walk past the end of the object looking for the name
+           terminator, however.  */
+        if (name_length > 0 && sockun->sun_path[0] != '\0')
+          {
+            const char *terminator
+	      = memchr (sockun->sun_path, '\0', name_length);
+
+            if (terminator)
+              name_length = terminator - (const char *) sockun->sun_path;
+          }
+
+	return make_unibyte_string (sockun->sun_path, name_length);
       }
 #endif
     default:
@@ -3918,19 +3921,20 @@ DEFUN ("accept-process-output", Faccept_process_output, Saccept_process_output,
        0, 4, 0,
        doc: /* Allow any pending output from subprocesses to be read by Emacs.
 It is given to their filter functions.
-Non-nil arg PROCESS means do not return until some output has been received
-from PROCESS.
+Optional argument PROCESS means do not return until output has been
+received from PROCESS.
 
-Non-nil second arg SECONDS and third arg MILLISEC are number of seconds
-and milliseconds to wait; return after that much time whether or not
-there is any subprocess output.  If SECONDS is a floating point number,
+Optional second argument SECONDS and third argument MILLISEC
+specify a timeout; return after that much time even if there is
+no subprocess output.  If SECONDS is a floating point number,
 it specifies a fractional number of seconds to wait.
 The MILLISEC argument is obsolete and should be avoided.
 
-If optional fourth arg JUST-THIS-ONE is non-nil, only accept output
-from PROCESS, suspending reading output from other processes.
+If optional fourth argument JUST-THIS-ONE is non-nil, accept output
+from PROCESS only, suspending reading output from other processes.
 If JUST-THIS-ONE is an integer, don't run any timers either.
-Return non-nil if we received any output before the timeout expired.  */)
+Return non-nil if we received any output from PROCESS (or, if PROCESS
+is nil, from any process) before the timeout expired.  */)
   (register Lisp_Object process, Lisp_Object seconds, Lisp_Object millisec, Lisp_Object just_this_one)
 {
   intmax_t secs;
@@ -4252,16 +4256,14 @@ wait_reading_process_output_1 (void)
      (and gobble terminal input into the buffer if any arrives).
 
    If WAIT_PROC is specified, wait until something arrives from that
-     process.  The return value is true if we read some input from
-     that process.
+     process.
 
    If JUST_WAIT_PROC is nonzero, handle only output from WAIT_PROC
      (suspending output from other processes).  A negative value
      means don't run any timers either.
 
-   If WAIT_PROC is specified, then the function returns true if we
-     received input from that process before the timeout elapsed.
-   Otherwise, return true if we received input from any process.  */
+   Return true if we received input from WAIT_PROC, or from any
+   process if WAIT_PROC is null.  */
 
 bool
 wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
@@ -4614,12 +4616,13 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 		      {
 			struct Lisp_Process *p =
 			  XPROCESS (chan_process[channel]);
-			if (p && p->gnutls_p && p->gnutls_state && p->infd
+			if (p && p->gnutls_p && p->gnutls_state
 			    && ((emacs_gnutls_record_check_pending
 				 (p->gnutls_state))
 				> 0))
 			  {
 			    nfds++;
+			    eassert (p->infd == channel);
 			    FD_SET (p->infd, &Available);
 			  }
 		      }
@@ -5817,30 +5820,25 @@ process_send_signal (Lisp_Object process, int signo, Lisp_Object current_group,
     }
 #endif
 
+#ifdef TIOCSIGSEND
+  /* Work around a HP-UX 7.0 bug that mishandles signals to subjobs.
+     We don't know whether the bug is fixed in later HP-UX versions.  */
+  if (! NILP (current_group) && ioctl (p->infd, TIOCSIGSEND, signo) != -1)
+    return;
+#endif
+
   /* If we don't have process groups, send the signal to the immediate
      subprocess.  That isn't really right, but it's better than any
      obvious alternative.  */
-  if (no_pgrp)
-    {
-      kill (p->pid, signo);
-      return;
-    }
+  pid_t pid = no_pgrp ? gid : - gid;
 
-  /* gid may be a pid, or minus a pgrp's number */
-#ifdef TIOCSIGSEND
-  if (!NILP (current_group))
-    {
-      if (ioctl (p->infd, TIOCSIGSEND, signo) == -1)
-	kill (-gid, signo);
-    }
-  else
-    {
-      gid = - p->pid;
-      kill (gid, signo);
-    }
-#else /* ! defined (TIOCSIGSEND) */
-  kill (-gid, signo);
-#endif /* ! defined (TIOCSIGSEND) */
+  /* Do not kill an already-reaped process, as that could kill an
+     innocent bystander that happens to have the same process ID.  */
+  sigset_t oldset;
+  block_child_signal (&oldset);
+  if (p->alive)
+    kill (pid, signo);
+  unblock_child_signal (&oldset);
 }
 
 DEFUN ("interrupt-process", Finterrupt_process, Sinterrupt_process, 0, 2, 0,
@@ -7043,20 +7041,19 @@ integer or floating point values.
   return system_process_attributes (pid);
 }
 
+#ifdef subprocesses
 /* Arrange to catch SIGCHLD if this hasn't already been arranged.
    Invoke this after init_process_emacs, and after glib and/or GNUstep
    futz with the SIGCHLD handler, but before Emacs forks any children.
    This function's caller should block SIGCHLD.  */
 
-#ifndef NS_IMPL_GNUSTEP
-static
-#endif
 void
 catch_child_signal (void)
 {
   struct sigaction action, old_action;
+  sigset_t oldset;
   emacs_sigaction_init (&action, deliver_child_signal);
-  block_child_signal ();
+  block_child_signal (&oldset);
   sigaction (SIGCHLD, &action, &old_action);
   eassert (! (old_action.sa_flags & SA_SIGINFO));
 
@@ -7065,8 +7062,9 @@ catch_child_signal (void)
       = (old_action.sa_handler == SIG_DFL || old_action.sa_handler == SIG_IGN
 	 ? dummy_handler
 	 : old_action.sa_handler);
-  unblock_child_signal ();
+  unblock_child_signal (&oldset);
 }
+#endif	/* subprocesses */
 
 
 /* This is not called "init_process" because that is the name of a
@@ -7273,10 +7271,12 @@ syms_of_process (void)
   DEFSYM (Qcutime, "cutime");
   DEFSYM (Qcstime, "cstime");
   DEFSYM (Qctime, "ctime");
+#ifdef subprocesses
   DEFSYM (Qinternal_default_process_sentinel,
 	  "internal-default-process-sentinel");
   DEFSYM (Qinternal_default_process_filter,
 	  "internal-default-process-filter");
+#endif
   DEFSYM (Qpri, "pri");
   DEFSYM (Qnice, "nice");
   DEFSYM (Qthcount, "thcount");

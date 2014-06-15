@@ -47,7 +47,6 @@ typedef Widget xt_or_gtk_widget;
 
 /* Some definitions to reduce conditionals.  */
 typedef GtkWidget *xt_or_gtk_widget;
-#define XtParent(x) (gtk_widget_get_parent (x))
 #undef XSync
 #define XSync(d, b) do { gdk_window_process_all_updates (); \
                          XSync (d, b);  } while (false)
@@ -174,8 +173,12 @@ struct x_display_info
   /* The cursor to use for vertical scroll bars.  */
   Cursor vertical_scroll_bar_cursor;
 
-  /* The invisible cursor used for pointer blanking.  */
+  /* The invisible cursor used for pointer blanking.
+     Unused if this display supports Xfixes extension.  */
   Cursor invisible_cursor;
+
+  /* Function used to toggle pointer visibility on this display.  */
+  void (*toggle_visible_pointer) (struct frame *, bool);
 
 #ifdef USE_GTK
   /* The GDK cursor for scroll bars and popup menus.  */
@@ -927,8 +930,6 @@ extern bool x_had_errors_p (Display *);
 extern void x_uncatch_errors (void);
 extern void x_clear_errors (Display *);
 extern void x_set_window_size (struct frame *, int, int, int, bool);
-extern void x_set_mouse_position (struct frame *, int, int);
-extern void x_set_mouse_pixel_position (struct frame *, int, int);
 extern void xembed_request_focus (struct frame *);
 extern void x_ewmh_activate_frame (struct frame *);
 extern void x_delete_terminal (struct terminal *terminal);
@@ -996,7 +997,7 @@ extern Lisp_Object x_get_focus_frame (struct frame *);
 
 #ifdef USE_GTK
 extern int xg_set_icon (struct frame *, Lisp_Object);
-extern int xg_set_icon_from_xpm_data (struct frame *, const char**);
+extern int xg_set_icon_from_xpm_data (struct frame *, const char **);
 #endif /* USE_GTK */
 
 extern void x_implicitly_set_name (struct frame *, Lisp_Object, Lisp_Object);
@@ -1030,9 +1031,7 @@ extern Lisp_Object xw_popup_dialog (struct frame *, Lisp_Object, Lisp_Object);
 #if defined USE_GTK || defined USE_MOTIF
 extern void x_menu_set_in_use (int);
 #endif
-#ifdef USE_MOTIF
 extern void x_menu_wait_for_event (void *data);
-#endif
 extern int popup_activated (void);
 extern void initialize_frame_menubar (struct frame *);
 

@@ -902,7 +902,7 @@
 	(tmm-prompt): Use it to fix the menu order.
 	(tmm-get-keybind): Use current-active-maps.
 
-2013-02-12  Christopher Schmidt  <christopher@ch.ristopher.com>
+2013-02-13  Christopher Schmidt  <christopher@ch.ristopher.com>
 
 	Add dired-hide-details-mode.  (Bug#6799)
 

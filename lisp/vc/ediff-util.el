@@ -958,7 +958,7 @@ On a dumb terminal, switches between ASCII highlighting and no highlighting."
 	 (message "Auto-refining is OFF")
 	 (setq ediff-auto-refine 'off))
 	(t ;; nix 'em
-	 (ediff-set-fine-diff-properties ediff-current-difference 'default)
+	 (ediff-set-fine-diff-properties ediff-current-difference t)
 	 (message "Refinements are HIDDEN")
 	 (setq ediff-auto-refine 'nix))
 	))
@@ -2973,7 +2973,7 @@ Hit \\[ediff-recenter] to reset the windows afterward."
 	       ))
 
 	;; unhighlight fine diffs
-	(ediff-set-fine-diff-properties ediff-current-difference 'default)
+	(ediff-set-fine-diff-properties ediff-current-difference t)
 	(run-hooks 'ediff-unselect-hook))))
 
 
@@ -3023,8 +3023,6 @@ Hit \\[ediff-recenter] to reset the windows afterward."
 	(if (featurep 'xemacs)
 	    (ediff-move-overlay current-diff-overlay begin end-hilit)
 	  (ediff-move-overlay current-diff-overlay begin end-hilit buff))
-	(ediff-overlay-put current-diff-overlay 'priority
-			   (ediff-highest-priority begin end-hilit buff))
 	(ediff-overlay-put current-diff-overlay 'ediff-diff-num n)
 
 	;; unhighlight the background overlay for diff n so it won't
@@ -3494,7 +3492,7 @@ Ediff Control Panel to restore highlighting."
 
     (if (ediff-valid-difference-p ediff-current-difference)
 	(progn
-	  (ediff-set-fine-diff-properties ediff-current-difference 'default)
+	  (ediff-set-fine-diff-properties ediff-current-difference t)
 	  (ediff-unhighlight-diff)))
     (ediff-paint-background-regions 'unhighlight)
 

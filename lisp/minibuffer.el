@@ -519,11 +519,35 @@ for use at QPOS."
         completions))
 
      ((eq action 'completion--unquote)
-      (let ((ustring (funcall unquote string))
-            (uprefix (funcall unquote (substring string 0 pred))))
-        ;; We presume (more or less) that `concat' and `unquote' commute.
-        (cl-assert (string-prefix-p uprefix ustring))
-        (list ustring table (length uprefix)
+      ;; PRED is really a POINT in STRING.
+      ;; We should return a new set (STRING TABLE POINT REQUOTE)
+      ;; where STRING is a new (unquoted) STRING to match against the new TABLE
+      ;; using a new POINT inside it, and REQUOTE is a requoting function which
+      ;; should reverse the unquoting, (i.e. it receives the completion result
+      ;; of using the new TABLE and should turn it into the corresponding
+      ;; quoted result).
+      (let* ((qpos pred)
+	     (ustring (funcall unquote string))
+	     (uprefix (funcall unquote (substring string 0 qpos)))
+	     ;; FIXME: we really should pass `qpos' to `unquote' and have that
+	     ;; function give us the corresponding `uqpos'.  But for now we
+	     ;; presume (more or less) that `concat' and `unquote' commute.
+	     (uqpos (if (string-prefix-p uprefix ustring)
+			;; Yay!!  They do seem to commute!
+			(length uprefix)
+		      ;; They don't commute this time!  :-(
+		      ;; Maybe qpos is in some text that disappears in the
+		      ;; ustring (bug#17239).  Let's try a second chance guess.
+		      (let ((usuffix (funcall unquote (substring string qpos))))
+			(if (string-suffix-p usuffix ustring)
+			    ;; Yay!!  They still "commute" in a sense!
+			    (- (length ustring) (length usuffix))
+			  ;; Still no luck!  Let's just choose *some* position
+			  ;; within ustring.
+			  (/ (+ (min (length uprefix) (length ustring))
+				(max (- (length ustring) (length usuffix)) 0))
+			     2))))))
+        (list ustring table uqpos
               (lambda (unquoted-result op)
                 (pcase op
                   (1 ;;try
@@ -849,10 +873,12 @@ completing buffer and file names, respectively."
   ;; part of the string (e.g. substitute-in-file-name).
   (let ((requote
          (when (completion-metadata-get metadata 'completion--unquote-requote)
+           (cl-assert (functionp table))
            (let ((new (funcall table string point 'completion--unquote)))
              (setq string (pop new))
              (setq table (pop new))
              (setq point (pop new))
+	     (cl-assert (<= point (length string)))
              (pop new))))
         (result
          (completion--some (lambda (style)
@@ -1092,9 +1118,10 @@ If no characters can be completed, display a list of possible completions.
 If you repeat this command after it displayed such a list,
 scroll the window of possible completions."
   (interactive)
-  (completion-in-region (minibuffer-prompt-end) (point-max)
-                        minibuffer-completion-table
-                        minibuffer-completion-predicate))
+  (when (<= (minibuffer-prompt-end) (point))
+    (completion-in-region (minibuffer-prompt-end) (point-max)
+                          minibuffer-completion-table
+                          minibuffer-completion-predicate)))
 
 (defun completion--in-region-1 (beg end)
   ;; If the previous command was not this,
@@ -1197,12 +1224,16 @@ scroll the window of possible completions."
 (defun minibuffer-force-complete-and-exit ()
   "Complete the minibuffer with first of the matches and exit."
   (interactive)
-  (minibuffer-force-complete)
-  (completion--complete-and-exit
-   (minibuffer-prompt-end) (point-max) #'exit-minibuffer
-   ;; If the previous completion completed to an element which fails
-   ;; test-completion, then we shouldn't exit, but that should be rare.
-   (lambda () (minibuffer-message "Incomplete"))))
+  (if (and (eq (minibuffer-prompt-end) (point-max))
+           minibuffer-default)
+      ;; Use the provided default if there's one (bug#17545).
+      (minibuffer-complete-and-exit)
+    (minibuffer-force-complete)
+    (completion--complete-and-exit
+     (minibuffer-prompt-end) (point-max) #'exit-minibuffer
+     ;; If the previous completion completed to an element which fails
+     ;; test-completion, then we shouldn't exit, but that should be rare.
+     (lambda () (minibuffer-message "Incomplete")))))
 
 (defun minibuffer-force-complete (&optional start end)
   "Complete the minibuffer to an exact match.
@@ -1364,19 +1395,18 @@ appear to be a match."
         ;; instead, but it was too blunt, leading to situations where SPC
         ;; was the only insertable char at point but minibuffer-complete-word
         ;; refused inserting it.
-        (let* ((exts (mapcar (lambda (str) (propertize str 'completion-try-word t))
-			     '(" " "-")))
-	       (before (substring string 0 point))
-	       (after (substring string point))
-	       (comps
-		(delete nil
-			(mapcar (lambda (ext)
-				  (completion-try-completion
-				   (concat before ext after)
-				   table predicate (1+ point) md))
-				exts))))
-	  (when (and (null (cdr comps)) (consp (car comps)))
-	    (setq comp (car comps)))))
+        (let ((exts (mapcar (lambda (str) (propertize str 'completion-try-word t))
+                            '(" " "-")))
+              (before (substring string 0 point))
+              (after (substring string point))
+	      tem)
+          ;; If both " " and "-" lead to completions, prefer " " so SPC behaves
+          ;; a bit more like a self-inserting key (bug#17375).
+	  (while (and exts (not (consp tem)))
+            (setq tem (completion-try-completion
+		       (concat before (pop exts) after)
+		       table predicate (1+ point) md)))
+	  (if (consp tem) (setq comp tem))))
 
       ;; Completing a single word is actually more difficult than completing
       ;; as much as possible, because we first have to find the "current
@@ -1852,14 +1882,14 @@ variables.")
   (exit-minibuffer))
 
 (defvar completion-in-region-functions nil
-  "Wrapper hook around `completion-in-region'.")
+  "Wrapper hook around `completion--in-region'.")
 (make-obsolete-variable 'completion-in-region-functions
                         'completion-in-region-function "24.4")
 
 (defvar completion-in-region-function #'completion--in-region
   "Function to perform the job of `completion-in-region'.
 The function is called with 4 arguments: START END COLLECTION PREDICATE.
-The arguments and expected return value are like the ones of
+The arguments and expected return value are as specified for
 `completion-in-region'.")
 
 (defvar completion-in-region--data nil)
@@ -1877,10 +1907,12 @@ we entered `completion-in-region-mode'.")
 
 (defun completion-in-region (start end collection &optional predicate)
   "Complete the text between START and END using COLLECTION.
-Return nil if there is no valid completion, else t.
 Point needs to be somewhere between START and END.
-PREDICATE (a function called with no arguments) says when to
-exit."
+PREDICATE (a function called with no arguments) says when to exit.
+This calls the function that `completion-in-region-function' specifies
+\(passing the same four arguments that it received) to do the work,
+and returns whatever it does.  The return value should be nil
+if there was no valid completion, else t."
   (cl-assert (<= start (point)) (<= (point) end))
   (funcall completion-in-region-function start end collection predicate))
 
@@ -1892,6 +1924,9 @@ exit."
   :version "22.1")
 
 (defun completion--in-region (start end collection &optional predicate)
+  "Default function to use for `completion-in-region-function'.
+Its arguments and return value are as specified for `completion-in-region'.
+This respects the wrapper hook `completion-in-region-functions'."
   (with-wrapper-hook
       ;; FIXME: Maybe we should use this hook to provide a "display
       ;; completions" operation as well.
@@ -1917,7 +1952,7 @@ exit."
   "Keymap activated during `completion-in-region'.")
 
 ;; It is difficult to know when to exit completion-in-region-mode (i.e. hide
-;; the *Completions*).
+;; the *Completions*).  Here's how previous packages did it:
 ;; - lisp-mode: never.
 ;; - comint: only do it if you hit SPC at the right time.
 ;; - pcomplete: pop it down on SPC or after some time-delay.
@@ -2772,7 +2807,7 @@ expression (not containing character ranges like `a-z')."
 
 (defcustom completion-pcm-complete-word-inserts-delimiters nil
   "Treat the SPC or - inserted by `minibuffer-complete-word' as delimiters.
-Those chars are treated as delimiters iff this variable is non-nil.
+Those chars are treated as delimiters if this variable is non-nil.
 I.e. if non-nil, M-x SPC will just insert a \"-\" in the minibuffer, whereas
 if nil, it will list all possible commands in *Completions* because none of
 the commands start with a \"-\" or a SPC."
@@ -3032,16 +3067,9 @@ filter out additional entries (because TABLE might not obey PRED)."
       (nconc (completion-pcm--hilit-commonality pattern all)
              (length prefix)))))
 
-(defun completion--sreverse (str)
-  "Like `reverse' but for a string STR rather than a list."
-  (apply #'string (nreverse (mapcar 'identity str))))
-
 (defun completion--common-suffix (strs)
   "Return the common suffix of the strings STRS."
-  (completion--sreverse
-   (try-completion
-    ""
-    (mapcar #'completion--sreverse strs))))
+  (nreverse (try-completion "" (mapcar #'reverse strs))))
 
 (defun completion-pcm--merge-completions (strs pattern)
   "Extract the commonality in STRS, with the help of PATTERN.
@@ -3191,11 +3219,20 @@ the same set of elements."
                          ;; Not `prefix'.
                          mergedpat))
            ;; New pos from the start.
-           (newpos (length (completion-pcm--pattern->string pointpat)))
+	   (newpos (length (completion-pcm--pattern->string pointpat)))
            ;; Do it afterwards because it changes `pointpat' by side effect.
            (merged (completion-pcm--pattern->string (nreverse mergedpat))))
 
-      (setq suffix (completion--merge-suffix merged newpos suffix))
+      (setq suffix (completion--merge-suffix
+                    ;; The second arg should ideally be "the position right
+                    ;; after the last char of `merged' that comes from the text
+                    ;; to be completed".  But completion-pcm--merge-completions
+                    ;; currently doesn't give us that info.  So instead we just
+                    ;; use the "last but one" position, which tends to work
+                    ;; well in practice since `suffix' always starts
+                    ;; with a boundary and we hence mostly/only care about
+                    ;; merging this boundary (bug#15419).
+                    merged (max 0 (1- (length merged))) suffix))
       (cons (concat prefix merged suffix) (+ newpos (length prefix)))))))
 
 (defun completion-pcm-try-completion (string table pred point)

@@ -128,7 +128,7 @@ INSTALLABLE_SCRIPTS = grep-changelog
 UTILITIES = profile${EXEEXT} movemail${EXEEXT} hexl${EXEEXT} \
             update-game-score${EXEEXT}
 
-DONT_INSTALL= test-distrib${EXEEXT} make-docfile${EXEEXT}
+DONT_INSTALL= make-docfile${EXEEXT}
 
 # Like UTILITIES, but they're not system-dependent, and should not be
 #  deleted by the distclean target.
@@ -247,8 +247,8 @@ $(DESTDIR)${archlibdir}: all
 	  chown ${gameuser} "$(DESTDIR)${gamedir}"; \
 	  chmod u=rwx,g=rwx,o=rx "$(DESTDIR)${gamedir}"; \
 	fi
-	if [ "`cd \"$(DESTDIR)${archlibdir}\" && /bin/pwd`" \
-             != "`cd ${srcdir} && /bin/pwd`" ]; then \
+	exp_archlibdir=`cd "$(DESTDIR)${archlibdir}" && /bin/pwd`; \
+	if [ "$$exp_archlibdir" != "`cd ${srcdir} && /bin/pwd`" ]; then \
 	  for file in ${SCRIPTS}; do \
 	    $(INSTALL_SCRIPT) ${srcdir}/$$file "$(DESTDIR)${archlibdir}/$$file"; \
 	  done ; \
@@ -303,48 +303,43 @@ tags: TAGS
 TAGS: etags${EXEEXT}
 	etags *.[ch]
 
-## This verifies that the non-ASCII characters in the file \`testfile\'
-## have not been clobbered by whatever means were used to copy and
-## distribute Emacs.  If they were clobbered, all the .elc files were
-## clobbered too.
-test-distrib${EXEEXT}: ${srcdir}/test-distrib.c
-	$(CC) ${ALL_CFLAGS} -o test-distrib${EXEEXT} ${srcdir}/test-distrib.c
-	./test-distrib ${srcdir}/testfile
-
 ../lib/libgnu.a: $(config_h)
-	cd ../lib && $(MAKE) libgnu.a
+	cd ../lib && $(MAKE) $(MFLAGS) libgnu.a
 
 regex.o: $(srcdir)/../src/regex.c $(srcdir)/../src/regex.h $(config_h)
 	${CC} -c ${CPP_CFLAGS} ${srcdir}/../src/regex.c
 
-etags${EXEEXT}: ${srcdir}/etags.c regex.o $(NTLIB) $(config_h)
-	$(CC) ${ALL_CFLAGS} -DEMACS_NAME="\"GNU Emacs\"" \
-	  -DVERSION="\"${version}\"" ${srcdir}/etags.c \
-	  regex.o $(LOADLIBES) $(NTLIB) -o etags${EXEEXT}
+
+etags_deps = ${srcdir}/etags.c regex.o $(NTLIB) $(config_h)
+etags_cflags = -DEMACS_NAME="\"GNU Emacs\"" -DVERSION="\"${version}\"" -o $@
+etags_libs = regex.o $(LOADLIBES) $(NTLIB)
+
+etags${EXEEXT}: ${etags_deps}
+	$(CC) ${ALL_CFLAGS} $(etags_cflags) $(srcdir)/etags.c $(etags_libs)
+
+## ctags.c is distinct from etags.c so that parallel makes do not write two
+## etags.o files on top of each other.
+## FIXME?
+## Can't we use a wrapper that calls 'etags --ctags'?
+ctags${EXEEXT}: ctags.c ${etags_deps}
+	$(CC) ${ALL_CFLAGS} $(etags_cflags) $(srcdir)/ctags.c $(etags_libs)
 
 ebrowse${EXEEXT}: ${srcdir}/ebrowse.c ${srcdir}/../lib/min-max.h $(NTLIB) \
                    $(config_h)
 	$(CC) ${ALL_CFLAGS} -DVERSION="\"${version}\"" \
-	  ${srcdir}/ebrowse.c $(LOADLIBES) $(NTLIB) -o ebrowse${EXEEXT}
-
-## We depend on etags to assure that parallel makes do not write two
-## etags.o files on top of each other.
-ctags${EXEEXT}: etags${EXEEXT}
-	$(CC) ${ALL_CFLAGS} -DCTAGS -DEMACS_NAME="\"GNU Emacs\"" \
-	  -DVERSION="\"${version}\"" ${srcdir}/etags.c \
-	  regex.o $(LOADLIBES) $(NTLIB) -o ctags${EXEEXT}
+	  ${srcdir}/ebrowse.c $(LOADLIBES) $(NTLIB) -o $@
 
 profile${EXEEXT}: ${srcdir}/profile.c $(NTLIB) $(config_h)
 	$(CC) ${ALL_CFLAGS} ${srcdir}/profile.c \
-	  $(LOADLIBES) $(NTLIB) $(LIB_CLOCK_GETTIME) -o profile${EXEEXT}
+	  $(LOADLIBES) $(NTLIB) $(LIB_CLOCK_GETTIME) -o $@
 
 make-docfile${EXEEXT}: ${srcdir}/make-docfile.c $(NTLIB) $(config_h)
 	$(CC) ${ALL_CFLAGS} ${srcdir}/make-docfile.c $(LOADLIBES) $(NTLIB) \
-	  -o make-docfile${EXEEXT}
+	  -o $@
 
 movemail${EXEEXT}: ${srcdir}/movemail.c pop.o $(NTLIB) $(config_h)
 	$(CC) ${ALL_CFLAGS} ${MOVE_FLAGS} ${srcdir}/movemail.c pop.o \
-	  $(LOADLIBES) $(NTLIB) $(LIBS_MOVE) -o movemail${EXEEXT}
+	  $(LOADLIBES) $(NTLIB) $(LIBS_MOVE) -o $@
 
 pop.o: ${srcdir}/pop.c ${srcdir}/pop.h ${srcdir}/../lib/min-max.h $(config_h)
 	$(CC) -c ${CPP_CFLAGS} ${MOVE_FLAGS} ${srcdir}/pop.c
@@ -352,12 +347,12 @@ pop.o: ${srcdir}/pop.c ${srcdir}/pop.h ${srcdir}/../lib/min-max.h $(config_h)
 emacsclient${EXEEXT}: ${srcdir}/emacsclient.c $(NTLIB) $(config_h)
 	$(CC) ${ALL_CFLAGS} ${srcdir}/emacsclient.c \
 	   -DVERSION="\"${version}\"" $(NTLIB) $(LOADLIBES) $(LIB_FDATASYNC) \
-	   $(LIB_WSOCK32) $(LIBS_ECLIENT) -o emacsclient${EXEEXT}
+	   $(LIB_WSOCK32) $(LIBS_ECLIENT) -o $@
 
 emacsclientw${EXEEXT}: ${srcdir}/emacsclient.c $(NTLIB) $(CLIENTRES) $(config_h)
 	$(CC) ${ALL_CFLAGS} $(CLIENTRES) -mwindows ${srcdir}/emacsclient.c \
 	   -DVERSION="\"${version}\"" $(LOADLIBES) $(LIB_FDATASYNC) \
-	   $(LIB_WSOCK32) $(LIBS_ECLIENT) -o emacsclientw${EXEEXT}
+	   $(LIB_WSOCK32) $(LIBS_ECLIENT) -o $@
 
 NTINC = ${srcdir}/../nt/inc
 NTDEPS = $(NTINC)/ms-w32.h $(NTINC)/sys/stat.h $(NTINC)/inttypes.h \
@@ -370,15 +365,15 @@ ntlib.o: ${srcdir}/ntlib.c ${srcdir}/ntlib.h $(NTDEPS)
 	$(CC) -c ${CPP_CFLAGS} ${srcdir}/ntlib.c
 
 hexl${EXEEXT}: ${srcdir}/hexl.c $(NTLIB) $(config_h)
-	$(CC) ${ALL_CFLAGS} ${srcdir}/hexl.c $(LOADLIBES) -o hexl${EXEEXT}
+	$(CC) ${ALL_CFLAGS} ${srcdir}/hexl.c $(LOADLIBES) -o $@
 
 update-game-score${EXEEXT}: ${srcdir}/update-game-score.c $(NTLIB) $(config_h)
 	$(CC) ${ALL_CFLAGS} -DHAVE_SHARED_GAME_DIR="\"$(gamedir)\"" \
 	  ${srcdir}/update-game-score.c $(LOADLIBES) $(NTLIB) \
-	  -o update-game-score${EXEEXT}
+	  -o $@
 
 emacsclient.res: $(NTINC)/../emacsclient.rc
-	$(WINDRES) -O coff --include-dir=$(NTINC)/.. -o emacsclient.res \
+	$(WINDRES) -O coff --include-dir=$(NTINC)/.. -o $@ \
 	  $(NTINC)/../emacsclient.rc
 
 ## Makefile ends here.

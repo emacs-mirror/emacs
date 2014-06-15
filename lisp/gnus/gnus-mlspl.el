@@ -146,20 +146,27 @@ Calling (gnus-group-split-fancy nil nil \"mail.others\") returns:
       (any \"\\\\(foo@nowhere\\\\.gov\\\\|foo@localhost\\\\|foo-redist@home\\\\)\"
 	   - \"bugs-foo\" - \"rambling-foo\" \"mail.foo\"))
    \"mail.others\")"
-  (let* ((newsrc (cdr gnus-newsrc-alist))
-	 split)
-    (dolist (info newsrc)
-      (let ((group (gnus-info-group info))
-	    (params (gnus-info-params info)))
-	;; For all GROUPs that match the specified GROUPS
-	(when (or (not groups)
-		  (and (listp groups)
-		       (memq group groups))
-		  (and (stringp groups)
-		       (string-match groups group)))
-	  (let ((split-spec (assoc 'split-spec params)) group-clean)
-	    ;; Remove backend from group name
-	    (setq group-clean (string-match ":" group))
+  (let ((group-names (if (and (listp groups)
+                             (not (null groups)))
+			 groups
+		       (delete-dups
+			(delq nil
+			      (mapcar
+			       (lambda (info)
+				 (let ((group (gnus-info-group info)))
+				   (if (or (not groups)
+					   (and (stringp groups)
+						(string-match groups group)))
+				       group)))
+			       (append gnus-newsrc-alist gnus-parameters))))))
+       split)
+    (dolist (group group-names)
+      (let ((params (gnus-group-find-parameter group)))
+       ;; Skip groups without param (or nonexistent)
+       (when (not (null params))
+         (let ((split-spec (assoc 'split-spec params)) group-clean)
+           ;; Remove backend from group name
+           (setq group-clean (string-match ":" group))
 	    (setq group-clean
 		  (if group-clean
 		      (substring group (1+ group-clean))

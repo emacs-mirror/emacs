@@ -1,7 +1,7 @@
 \input texinfo   @c -*-texinfo-*-
 
 @comment %**start of header
-@setfilename ../../info/ebrowse
+@setfilename ../../info/ebrowse.info
 @settitle A Class Browser for C++
 @documentencoding UTF-8
 @setchapternewpage odd
@@ -17,7 +17,7 @@ Copyright @copyright{} 2000--2014 Free Software Foundation, Inc.
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.3 or
 any later version published by the Free Software Foundation; with no
-Invariant Sections, with the Front-Cover texts being ``A GNU Manual,''
+Invariant Sections, with the Front-Cover Texts being ``A GNU Manual,''
 and with the Back-Cover Texts as in (a) below.  A copy of the license
 is included in the section entitled ``GNU Free Documentation License''.
 
@@ -475,13 +475,13 @@ You can view or find a class declaration when the cursor is on a class
 name.
 
 @table @kbd
-@item SPC
+@item @key{SPC}
 This command views the class declaration if the database
 contains information about it.  If you don't parse the entire source
 you are working on, some classes will only be known to exist but the
 location of their declarations and definitions will not be known.
 
-@item RET
+@item @key{RET}
 Works like @kbd{SPC}, except that it finds the class
 declaration rather than viewing it, so that it is ready for
 editing.
@@ -495,7 +495,7 @@ The same functionality is available from the menu opened with
 
 @node Member Display
 @section Displaying Members
-@cindex @samp{*Members*} buffer
+@cindex @file{*Members*} buffer
 @cindex @samp{*Globals*}
 @cindex freezing a member buffer
 @cindex member lists, in tree buffers
@@ -876,7 +876,7 @@ context menu.
 @cindex declaration of a member, in member buffers
 
 @table @kbd
-@item RET
+@item @key{RET}
 This command finds the definition of the member the cursor is on.
 Finding involves roughly the same as the standard Emacs tags facility
 does---loading the file and searching for a regular expression matching
@@ -885,7 +885,7 @@ the member.
 @item f
 This command finds the declaration of the member the cursor is on.
 
-@item SPC
+@item @key{SPC}
 This is the same command as @kbd{RET}, but views the member definition
 instead of finding the member's source file.
 

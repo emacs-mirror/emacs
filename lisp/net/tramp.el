@@ -230,6 +230,9 @@ pair of the form (KEY VALUE).  The following KEYs are defined:
     `tramp-make-tramp-temp-file'.  \"%k\" indicates the keep-date
     parameter of a program, if exists.  \"%c\" adds additional
     `tramp-ssh-controlmaster-options' options for the first hop.
+  * `tramp-login-env'
+     A list of environment variables and their values, which will
+     be set when calling `tramp-login-program'.
   * `tramp-async-args'
     When an asynchronous process is started, we know already that
     the connection works.  Therefore, we can pass additional
@@ -238,10 +241,13 @@ pair of the form (KEY VALUE).  The following KEYs are defined:
   * `tramp-copy-program'
     This specifies the name of the program to use for remotely copying
     the file; this might be the absolute filename of rcp or the name of
-    a workalike program.
+    a workalike program.  It is always applied on the local host.
   * `tramp-copy-args'
     This specifies the list of parameters to pass to the above mentioned
     program, the hints for `tramp-login-args' also apply here.
+  * `tramp-copy-env'
+     A list of environment variables and their values, which will
+     be set when calling `tramp-copy-program'.
   * `tramp-copy-keep-date'
     This specifies whether the copying program when the preserves the
     timestamp of the original file.
@@ -296,18 +302,19 @@ useful only in combination with `tramp-default-proxies-alist'.")
 
 ;;;###tramp-autoload
 (defconst tramp-ssh-controlmaster-options
-  (let ((result ""))
+  (let ((result "")
+	(case-fold-search t))
     (ignore-errors
       (with-temp-buffer
 	(call-process "ssh" nil t nil "-o" "ControlMaster")
 	(goto-char (point-min))
-	(when (search-forward-regexp "Missing ControlMaster argument" nil t)
+	(when (search-forward-regexp "missing.+argument" nil t)
 	  (setq result "-o ControlPath=%t.%%r@%%h:%%p -o ControlMaster=auto")))
-      (when result
+      (unless (zerop (length result))
 	(with-temp-buffer
 	  (call-process "ssh" nil t nil "-o" "ControlPersist")
 	  (goto-char (point-min))
-	  (when (search-forward-regexp "Missing ControlPersist argument" nil t)
+	  (when (search-forward-regexp "missing.+argument" nil t)
 	    (setq result (concat result " -o ControlPersist=no"))))))
     result)
     "Call ssh to detect whether it supports the Control* arguments.
@@ -1038,7 +1045,9 @@ opening a connection to a remote host."
 
 (defcustom tramp-connection-timeout 60
   "Defines the max time to wait for establishing a connection (in seconds).
-This can be overwritten for different connection types in `tramp-methods'."
+This can be overwritten for different connection types in `tramp-methods'.
+
+The timeout does not include the time reading a password."
   :group 'tramp
   :version "24.4"
   :type 'integer)
@@ -1935,8 +1944,7 @@ coding system might not be determined.  This function repairs it."
 	(add-to-list
 	 'result (cons (regexp-quote tmpname) (cdr elt)) 'append)))))
 
-;;;###autoload
-(progn (defun tramp-run-real-handler (operation args)
+(defun tramp-run-real-handler (operation args)
   "Invoke normal file name handler for OPERATION.
 First arg specifies the OPERATION, second arg is a list of arguments to
 pass to the OPERATION."
@@ -1950,7 +1958,7 @@ pass to the OPERATION."
 	    ,(and (eq inhibit-file-name-operation operation)
 		  inhibit-file-name-handlers)))
 	 (inhibit-file-name-operation operation))
-    (apply operation args))))
+    (apply operation args)))
 
 ;;;###autoload
 (progn (defun tramp-completion-run-real-handler (operation args)
@@ -2092,7 +2100,6 @@ ARGS are the arguments OPERATION has been called with."
      (tramp-compat-condition-case-unless-debug ,var ,bodyform ,@handlers)))
 
 ;; Main function.
-;;;###autoload
 (defun tramp-file-name-handler (operation &rest args)
   "Invoke Tramp file name handler.
 Falls back to normal file name handler if no Tramp file name handler exists."
@@ -2235,15 +2242,43 @@ Falls back to normal file name handler if no Tramp file name handler exists."
       (tramp-completion-run-real-handler operation args)))))
 
 ;;;###autoload
-(progn (defun tramp-register-file-name-handlers ()
+(progn (defun tramp-autoload-file-name-handler (operation &rest args)
+  "Load Tramp file name handler, and perform OPERATION."
+  ;; Avoid recursive loading of tramp.el.
+  (let ((default-directory temporary-file-directory))
+    (load "tramp" nil t))
+  (apply operation args)))
+
+;; `tramp-autoload-file-name-handler' must be registered before
+;; evaluation of site-start and init files, because there might exist
+;; remote files already, f.e. files kept via recentf-mode.  We cannot
+;; autoload `tramp-file-name-handler', because it would result in
+;; recursive loading of tramp.el when `default-directory' is set to
+;; remote.
+;;;###autoload
+(progn (defun tramp-register-autoload-file-name-handlers ()
+  "Add Tramp file name handlers to `file-name-handler-alist' during autoload."
+  (add-to-list 'file-name-handler-alist
+	       (cons tramp-file-name-regexp
+		     'tramp-autoload-file-name-handler))
+  (put 'tramp-autoload-file-name-handler 'safe-magic t)
+  (add-to-list 'file-name-handler-alist
+	       (cons tramp-completion-file-name-regexp
+		     'tramp-completion-file-name-handler))
+  (put 'tramp-completion-file-name-handler 'safe-magic t)))
+
+;;;###autoload
+(tramp-register-autoload-file-name-handlers)
+
+(defun tramp-register-file-name-handlers ()
   "Add Tramp file name handlers to `file-name-handler-alist'."
   ;; Remove autoloaded handlers from file name handler alist.  Useful,
   ;; if `tramp-syntax' has been changed.
-  (let ((a1 (rassq 'tramp-file-name-handler file-name-handler-alist)))
-    (setq file-name-handler-alist (delq a1 file-name-handler-alist)))
-  (let ((a1 (rassq
-	     'tramp-completion-file-name-handler file-name-handler-alist)))
-    (setq file-name-handler-alist (delq a1 file-name-handler-alist)))
+  (dolist (fnh '(tramp-file-name-handler
+		 tramp-completion-file-name-handler
+		 tramp-autoload-file-name-handler))
+    (let ((a1 (rassq fnh file-name-handler-alist)))
+      (setq file-name-handler-alist (delq a1 file-name-handler-alist))))
   ;; Add the handlers.
   (add-to-list 'file-name-handler-alist
 	       (cons tramp-file-name-regexp 'tramp-file-name-handler))
@@ -2258,13 +2293,9 @@ Falls back to normal file name handler if no Tramp file name handler exists."
     (let ((entry (rassoc fnh file-name-handler-alist)))
       (when entry
 	(setq file-name-handler-alist
-	      (cons entry (delete entry file-name-handler-alist))))))))
+	      (cons entry (delete entry file-name-handler-alist)))))))
 
-;; `tramp-file-name-handler' must be registered before evaluation of
-;; site-start and init files, because there might exist remote files
-;; already, f.e. files kept via recentf-mode.
-;;;###autoload
-(tramp-register-file-name-handlers)
+(eval-after-load 'tramp (tramp-register-file-name-handlers))
 
 (defun tramp-exists-file-name-handler (operation &rest args)
   "Check, whether OPERATION runs a file name handler."
@@ -3302,8 +3333,9 @@ User is always nil."
 (defun tramp-handle-unhandled-file-name-directory (_filename)
   "Like `unhandled-file-name-directory' for Tramp files."
   ;; With Emacs 23, we could simply return `nil'.  But we must keep it
-  ;; for backward compatibility.
-  (expand-file-name "~/"))
+  ;; for backward compatibility.  "~/" cannot be returned, because
+  ;; there might be machines without a HOME directory (like hydra).
+  "/")
 
 (defun tramp-handle-set-visited-file-modtime (&optional time-list)
   "Like `set-visited-file-modtime' for Tramp files."
@@ -3468,6 +3500,8 @@ The terminal type can be configured with `tramp-terminal-type'."
 
 (defun tramp-action-out-of-band (proc vec)
   "Check, whether an out-of-band copy has finished."
+  ;; There might be pending output for the exit status.
+  (tramp-accept-process-output proc 0.1)
   (cond ((and (memq (process-status proc) '(stop exit))
 	      (zerop (process-exit-status proc)))
 	 (tramp-message	vec 3 "Process has finished.")
@@ -4090,12 +4124,24 @@ This is needed because for some Emacs flavors Tramp has
 defadvised `call-process' to behave like `process-file'.  The
 Lisp error raised when PROGRAM is nil is trapped also, returning 1.
 Furthermore, traces are written with verbosity of 6."
-  (tramp-message
-   (vector tramp-current-method tramp-current-user tramp-current-host nil nil)
-   6 "`%s %s' %s" program (mapconcat 'identity args " ") infile)
-  (if (executable-find program)
-      (apply 'call-process program infile destination display args)
-    1))
+  (let ((v (vector tramp-current-method tramp-current-user tramp-current-host
+		   nil nil))
+	result)
+    (tramp-message
+     v 6 "`%s %s' %s %s"
+     program (mapconcat 'identity args " ") infile destination)
+    (condition-case err
+	(with-temp-buffer
+	  (setq result
+		(apply
+		 'call-process program infile (or destination t) display args))
+	  (with-current-buffer
+	      (if (bufferp destination) destination (current-buffer))
+	    (tramp-message v 6 "%d\n%s" result (buffer-string))))
+      (error
+       (setq result 1)
+       (tramp-message v 6 "%d\n%s" result (error-message-string err))))
+    result))
 
 ;;;###tramp-autoload
 (defun tramp-read-passwd (proc &optional prompt)
@@ -4111,40 +4157,48 @@ Invokes `password-read' if available, `read-passwd' else."
 	      (with-current-buffer (process-buffer proc)
 		(tramp-check-for-regexp proc tramp-password-prompt-regexp)
 		(format "%s for %s " (capitalize (match-string 1)) key))))
-         auth-info auth-passwd)
-    (with-parsed-tramp-file-name key nil
-      (prog1
-	  (or
-	   ;; See if auth-sources contains something useful, if it's
-	   ;; bound.  `auth-source-user-or-password' is an obsoleted
-	   ;; function, it has been replaced by `auth-source-search'.
-	   (and (boundp 'auth-sources)
-		(tramp-get-connection-property v "first-password-request" nil)
-		;; Try with Tramp's current method.
-                (if (fboundp 'auth-source-search)
-		    (setq auth-info
-			  (tramp-compat-funcall
-			   'auth-source-search
-			   :max 1
-			   :user (or tramp-current-user t)
-			   :host tramp-current-host
-			   :port tramp-current-method)
-			  auth-passwd (plist-get (nth 0 auth-info) :secret)
-			  auth-passwd (if (functionp auth-passwd)
-					  (funcall auth-passwd)
-					auth-passwd))
-                  (tramp-compat-funcall
-                   'auth-source-user-or-password
-                   "password" tramp-current-host tramp-current-method)))
-	   ;; Try the password cache.
-	   (when (functionp 'password-read)
-	     (let ((password
-		    (tramp-compat-funcall 'password-read pw-prompt key)))
-	       (tramp-compat-funcall 'password-cache-add key password)
-	       password))
-	   ;; Else, get the password interactively.
-	   (read-passwd pw-prompt))
-	(tramp-set-connection-property v "first-password-request" nil)))))
+	 ;; We suspend the timers while reading the password.
+         (stimers (with-timeout-suspend))
+	 auth-info auth-passwd)
+
+    (unwind-protect
+	(with-parsed-tramp-file-name key nil
+	  (prog1
+	      (or
+	       ;; See if auth-sources contains something useful, if
+	       ;; it's bound.  `auth-source-user-or-password' is an
+	       ;; obsoleted function, it has been replaced by
+	       ;; `auth-source-search'.
+	       (and (boundp 'auth-sources)
+		    (tramp-get-connection-property
+		     v "first-password-request" nil)
+		    ;; Try with Tramp's current method.
+		    (if (fboundp 'auth-source-search)
+			(setq auth-info
+			      (tramp-compat-funcall
+			       'auth-source-search
+			       :max 1
+			       :user (or tramp-current-user t)
+			       :host tramp-current-host
+			       :port tramp-current-method)
+			      auth-passwd (plist-get (nth 0 auth-info) :secret)
+			      auth-passwd (if (functionp auth-passwd)
+					      (funcall auth-passwd)
+					    auth-passwd))
+		      (tramp-compat-funcall
+		       'auth-source-user-or-password
+		       "password" tramp-current-host tramp-current-method)))
+	       ;; Try the password cache.
+	       (when (functionp 'password-read)
+		 (let ((password
+			(tramp-compat-funcall 'password-read pw-prompt key)))
+		   (tramp-compat-funcall 'password-cache-add key password)
+		   password))
+	       ;; Else, get the password interactively.
+	       (read-passwd pw-prompt))
+	    (tramp-set-connection-property v "first-password-request" nil)))
+      ;; Reenable the timers.
+      (with-timeout-unsuspend stimers))))
 
 ;;;###tramp-autoload
 (defun tramp-clear-passwd (vec)
@@ -4229,7 +4283,7 @@ T1 and T2 are time values (as returned by `current-time' for example)."
 ;; This function should produce a string which is grokked by a Unix
 ;; shell, even if the Emacs is running on Windows.  Since this is the
 ;; kludges section, we bind `system-type' in such a way that
-;; `shell-quote-arguments'  behaves as if on Unix.
+;; `shell-quote-argument' behaves as if on Unix.
 ;;
 ;; Thanks to Mario DeWeerd for the hint that it is sufficient for this
 ;; function to work with Bourne-like shells.

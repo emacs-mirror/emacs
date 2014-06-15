@@ -1,5 +1,5 @@
 \input texinfo    @c -*-texinfo-*-
-@setfilename ../../info/cl
+@setfilename ../../info/cl.info
 @settitle Common Lisp Extensions
 @documentencoding UTF-8
 @include emacsver.texi
@@ -13,7 +13,7 @@ Copyright @copyright{} 1993, 2001--2014 Free Software Foundation, Inc.
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.3 or
 any later version published by the Free Software Foundation; with no
-Invariant Sections, with the Front-Cover texts being ``A GNU Manual'',
+Invariant Sections, with the Front-Cover Texts being ``A GNU Manual'',
 and with the Back-Cover Texts as in (a) below.  A copy of the license
 is included in the section entitled ``GNU Free Documentation License''.
 
@@ -2627,10 +2627,10 @@ In this package, @code{cl-locally} is no different from @code{progn}.
 @end defmac
 
 @defmac cl-the type form
-Type information provided by @code{cl-the} is ignored in this package;
-in other words, @code{(cl-the @var{type} @var{form})} is equivalent to
-@var{form}.  Future byte-compiler optimizations may make use of this
-information.
+@code{cl-the} returns the value of @code{form}, first checking (if
+optimization settings permit) that it is of type @code{type}.  Future
+byte-compiler optimizations may also make use of this information to
+improve runtime efficiency.
 
 For example, @code{mapcar} can map over both lists and arrays.  It is
 hard for the compiler to expand @code{mapcar} into an in-line loop
@@ -3679,10 +3679,8 @@ This function is a synonym for @code{(cdr @var{x})}.
 @end defun
 
 @defun cl-endp x
-Common Lisp defines this function to act like @code{null}, but
-signaling an error if @code{x} is neither a @code{nil} nor a
-cons cell.  This package simply defines @code{cl-endp} as a synonym
-for @code{null}.
+This function acts like @code{null}, but signals an error if @code{x}
+is neither a @code{nil} nor a cons cell.
 @end defun
 
 @defun cl-list-length x
@@ -4247,6 +4245,40 @@ of the included type and the first new slot.
 Except as noted, the @code{cl-defstruct} facility of this package is
 entirely compatible with that of Common Lisp.
 
+The @code{cl-defstruct} package also provides a few structure
+introspection functions.
+
+@defun cl-struct-sequence-type struct-type
+This function returns the underlying data structure for
+@code{struct-type}, which is a symbol.  It returns @code{vector} or
+@code{list}, or @code{nil} if @code{struct-type} is not actually a
+structure.
+@end defun
+
+@defun cl-struct-slot-info struct-type
+This function returns a list of slot descriptors for structure
+@code{struct-type}.  Each entry in the list is @code{(name . opts)},
+where @code{name} is the name of the slot and @code{opts} is the list
+of slot options given to @code{defstruct}.  Dummy entries represent
+the slots used for the struct name and that are skipped to implement
+@code{:initial-offset}.
+@end defun
+
+@defun cl-struct-slot-offset struct-type slot-name
+Return the offset of slot @code{slot-name} in @code{struct-type}.  The
+returned zero-based slot index is relative to the start of the
+structure data type and is adjusted for any structure name and
+:initial-offset slots.  Signal error if struct @code{struct-type} does
+not contain @code{slot-name}.
+@end defun
+
+@defun cl-struct-slot-value struct-type slot-name inst
+Return the value of slot @code{slot-name} in @code{inst} of
+@code{struct-type}.  @code{struct} and @code{slot-name} are symbols.
+@code{inst} is a structure instance.  This routine is also a
+@code{setf} place.  Can signal the same errors as @code{cl-struct-slot-offset}.
+@end defun
+
 @node Assertions
 @chapter Assertions and Errors
 
@@ -4415,12 +4447,11 @@ supposed to arise in complying programs; implementations are strongly
 encouraged but not required to signal an error in these situations.
 This package sometimes omits such error checking in the interest of
 compactness and efficiency.  For example, @code{cl-do} variable
-specifiers are supposed to be lists of one, two, or three forms;
-extra forms are ignored by this package rather than signaling a
-syntax error.  The @code{cl-endp} function is simply a synonym for
-@code{null} in this package.  Functions taking keyword arguments
-will accept an odd number of arguments, treating the trailing
-keyword as if it were followed by the value @code{nil}.
+specifiers are supposed to be lists of one, two, or three forms; extra
+forms are ignored by this package rather than signaling a syntax
+error.  Functions taking keyword arguments will accept an odd number
+of arguments, treating the trailing keyword as if it were followed by
+the value @code{nil}.
 
 Argument lists (as processed by @code{cl-defun} and friends)
 @emph{are} checked rigorously except for the minor point just

@@ -608,16 +608,16 @@ convenient to switch between buffers.
 @cindex unique buffer names
 @cindex directories in buffer names
   When several buffers visit identically-named files, Emacs must give
-the buffers distinct names.  The default method
-(@code{uniquify-buffer-name-style} set to
-@code{post-forward-angle-brackets}) for making buffer names unique
-adds @samp{<dir1>}, @samp{<dir2>}, etc. to the end of the buffer
-names.
+the buffers distinct names.  The default method adds a suffix based on
+the names of the directories that contain the files.  For example, if
+you visit files @file{/foo/bar/mumble/name} and
+@file{/baz/quux/mumble/name} at the same time, their buffers will be
+named @samp{name<bar/mumble>} and @samp{name<quux/mumble>}, respectively.
+Emacs adds as many directory parts as are needed to make a unique name.
 
 @vindex uniquify-buffer-name-style
-  There are several styles to make buffer names unique.  To select
-one, customize the variable @code{uniquify-buffer-name-style}
-(@pxref{Easy Customization}).
+  You can choose from several different styles for constructing unique
+buffer names, by customizing the option @code{uniquify-buffer-name-style}.
 
   The @code{forward} naming method includes part of the file's
 directory name at the beginning of the buffer name; using this method,
@@ -627,8 +627,8 @@ buffers visiting the files @file{/u/rms/tmp/Makefile} and
 
   In contrast, the @code{post-forward} naming method would call the
 buffers @samp{Makefile|tmp} and @samp{Makefile|zaphod}.  The default
-method @code{post-forward-angle-brackets} is like @code{post-forward}
-except that it prepends the unique path in angle brackets.  The
+method @code{post-forward-angle-brackets} is like @code{post-forward},
+except that it encloses the unique path in angle brackets.  The
 @code{reverse} naming method would call them @samp{Makefile\tmp} and
 @samp{Makefile\zaphod}.  The nontrivial difference between
 @code{post-forward} and @code{reverse} occurs when just one directory
@@ -637,8 +637,7 @@ the directory names in reverse order, so that @file{/top/middle/file}
 becomes @samp{file\middle\top}, while @code{post-forward} puts them in
 forward order after the file name, as in @samp{file|top/middle}.  If
 @code{uniquify-buffer-name-style} is set to @code{nil}, the buffer
-names simply get a @samp{<2>} etc. prepended.  This used to be the
-default behavior in Emacs versions up to 24.4.
+names simply get @samp{<2>}, @samp{<3>}, etc. appended.
 
   Which rule to follow for putting the directory names in the buffer
 name is not very important if you are going to @emph{look} at the
@@ -657,17 +656,18 @@ element among the possible completions in a minibuffer.  When enabled, typing
 in the minibuffer continuously displays a list of possible completions that
 match the string you have typed.
 
-  At any time, you can type @key{C-j} to select the first completion in
+  At any time, you can type @kbd{C-j} to select the first completion in
 the list.  So the way to select a particular completion is to make it the
 first in the list.  There are two ways to do this.  You can type more
 of the completion name and thus narrow down the list, excluding unwanted
 completions above the desired one.  Alternatively, you can use @kbd{C-.}
 and @kbd{C-,} to rotate the list until the desired buffer is first.
 
-  @key{M-TAB} will select the first completion in the list, like @key{C-j} but
-without exiting the minibuffer, so you can edit it further.  This is typically
-used when entering a file name, where @key{M-TAB} can be used a few times to
-descend in the hierarchy of directories.
+  @kbd{M-@key{TAB}} will select the first completion in the list, like
+@kbd{C-j} but without exiting the minibuffer, so you can edit it
+further.  This is typically used when entering a file name, where
+@kbd{M-@key{TAB}} can be used a few times to descend in the hierarchy
+of directories.
 
   To enable Icomplete mode, type @kbd{M-x icomplete-mode}, or customize
 the variable @code{icomplete-mode} to @code{t} (@pxref{Easy

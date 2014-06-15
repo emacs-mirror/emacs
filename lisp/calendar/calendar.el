@@ -689,6 +689,12 @@ details, see the documentation for the variable `diary-list-entries-hook'."
   :type 'string
   :group 'diary)
 
+(defcustom diary-chinese-entry-symbol "C"
+  "Symbol indicating a diary entry according to the Chinese calendar."
+  :type 'string
+  :group 'diary
+  :version "24.5")
+
 (define-obsolete-variable-alias 'hebrew-diary-entry-symbol
   'diary-hebrew-entry-symbol "23.1")
 
@@ -1469,16 +1475,16 @@ Optional integers MON and YR are used instead of today's date."
 	(set-window-vscroll nil 0))
       (sit-for 0))
     (and (bound-and-true-p font-lock-mode)
-         (font-lock-fontify-buffer))
+         (font-lock-fontify-buffer))    ;FIXME: Why?
     (and calendar-mark-holidays-flag
-;;;         (calendar-date-is-valid-p today) ; useful for BC dates
+         ;; (calendar-date-is-valid-p today) ; useful for BC dates
          (calendar-mark-holidays)
          (and in-calendar-window (sit-for 0)))
     (unwind-protect
         (if calendar-mark-diary-entries-flag (diary-mark-entries))
-      (if today-visible
-          (run-hooks 'calendar-today-visible-hook)
-        (run-hooks 'calendar-today-invisible-hook)))))
+      (run-hooks (if today-visible
+                     'calendar-today-visible-hook
+                   'calendar-today-invisible-hook)))))
 
 (defun calendar-generate (month year)
   "Generate a three-month Gregorian calendar centered around MONTH, YEAR."
@@ -1546,7 +1552,8 @@ line."
          (last (calendar-last-day-of-month month year))
          (trunc (min calendar-intermonth-spacing
                      (1- calendar-left-margin)))
-         (day 1))
+         (day 1)
+         j)
    (goto-char (point-min))
    (calendar-move-to-column indent)
    (insert
@@ -1556,11 +1563,11 @@ line."
    (calendar-insert-at-column indent calendar-intermonth-header trunc)
    ;; Use the first N characters of each day to head the columns.
    (dotimes (i 7)
+     (setq j (mod (+ calendar-week-start-day i) 7))
      (insert
       (truncate-string-to-width
-       (propertize (calendar-day-name (mod (+ calendar-week-start-day i) 7)
-                                      'header t)
-                   'font-lock-face (if (memq i '(0 6))
+       (propertize (calendar-day-name j 'header t)
+                   'font-lock-face (if (memq j '(0 6))
                                        'calendar-weekend-header
                                      'calendar-weekday-header))
        calendar-day-header-width nil ?\s)
@@ -1708,6 +1715,10 @@ line."
     (define-key map "iBd" 'diary-bahai-insert-entry)
     (define-key map "iBm" 'diary-bahai-insert-monthly-entry)
     (define-key map "iBy" 'diary-bahai-insert-yearly-entry)
+    (define-key map "iCd" 'diary-chinese-insert-entry)
+    (define-key map "iCm" 'diary-chinese-insert-monthly-entry)
+    (define-key map "iCy" 'diary-chinese-insert-yearly-entry)
+    (define-key map "iCa" 'diary-chinese-insert-anniversary-entry)
     (define-key map "?"   'calendar-goto-info-node)
     (define-key map "Hm" 'cal-html-cursor-month)
     (define-key map "Hy" 'cal-html-cursor-year)

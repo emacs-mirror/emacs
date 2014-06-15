@@ -22,8 +22,6 @@
 
 ;;; Commentary:
 
-;; Uses the Emacs 19 terminal initialization features --- won't work with 18.
-
 ;; Handles all VT100 clones, including the Apollo terminal.  Also handles
 ;; the VT200 --- its PF- and arrow- keys are different, but all those
 ;; are really set up by the terminal initialization code, which mines them

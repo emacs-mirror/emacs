@@ -266,12 +266,8 @@ ns_update_menubar (struct frame *f, bool deep_p, EmacsMenu *submenu)
 
       /* parse stage 2: insert into lucid 'widget_value' structures
          [comments in other terms say not to evaluate lisp code here] */
-      wv = xmalloc_widget_value ();
-      wv->name = "menubar";
-      wv->value = 0;
-      wv->enabled = 1;
+      wv = make_widget_value ("menubar", NULL, true, Qnil);
       wv->button_type = BUTTON_TYPE_NONE;
-      wv->help = Qnil;
       first_wv = wv;
 
       for (i = 0; i < 4*n; i += 4)
@@ -378,12 +374,8 @@ ns_update_menubar (struct frame *f, bool deep_p, EmacsMenu *submenu)
       int n;
       Lisp_Object string;
 
-      wv = xmalloc_widget_value ();
-      wv->name = "menubar";
-      wv->value = 0;
-      wv->enabled = 1;
+      wv = make_widget_value ("menubar", NULL, true, Qnil);
       wv->button_type = BUTTON_TYPE_NONE;
-      wv->help = Qnil;
       first_wv = wv;
 
       /* Make widget-value tree w/ just the top level menu bar strings */
@@ -439,12 +431,8 @@ ns_update_menubar (struct frame *f, bool deep_p, EmacsMenu *submenu)
 	    memcpy (previous_strings[i/4], SDATA (string),
                     min (10, SBYTES (string) + 1));
 
-	  wv = xmalloc_widget_value ();
-	  wv->name = SSDATA (string);
-	  wv->value = 0;
-	  wv->enabled = 1;
+	  wv = make_widget_value (SSDATA (string), NULL, true, Qnil);
 	  wv->button_type = BUTTON_TYPE_NONE;
-	  wv->help = Qnil;
 	  wv->call_data = (void *) (intptr_t) (-1);
 
 #ifdef NS_IMPL_COCOA
@@ -824,7 +812,7 @@ extern NSString *NSMenuDidBeginTrackingNotification;
    ========================================================================== */
 
 Lisp_Object
-ns_menu_show (struct frame *f, int x, int y, bool for_click, bool keymaps,
+ns_menu_show (struct frame *f, int x, int y, int menuflags,
 	      Lisp_Object title, const char **error)
 {
   EmacsMenu *pmenu;
@@ -832,18 +820,15 @@ ns_menu_show (struct frame *f, int x, int y, bool for_click, bool keymaps,
   Lisp_Object tem;
   ptrdiff_t specpdl_count = SPECPDL_INDEX ();
   widget_value *wv, *first_wv = 0;
+  bool keymaps = (menuflags & MENU_KEYMAPS);
 
   block_input ();
 
   p.x = x; p.y = y;
 
   /* now parse stage 2 as in ns_update_menubar */
-  wv = xmalloc_widget_value ();
-  wv->name = "contextmenu";
-  wv->value = 0;
-  wv->enabled = 1;
+  wv = make_widget_value ("contextmenu", NULL, true, Qnil);
   wv->button_type = BUTTON_TYPE_NONE;
-  wv->help = Qnil;
   first_wv = wv;
 
 #if 0
@@ -914,18 +899,14 @@ ns_menu_show (struct frame *f, int x, int y, bool for_click, bool keymaps,
 	     with its items as a submenu beneath it.  */
 	  if (!keymaps && strcmp (pane_string, ""))
 	    {
-	      wv = xmalloc_widget_value ();
+	      wv = make_widget_value (pane_string, NULL, true, Qnil);
 	      if (save_wv)
 		save_wv->next = wv;
 	      else
 		first_wv->contents = wv;
-	      wv->name = pane_string;
 	      if (keymaps && !NILP (prefix))
 		wv->name++;
-	      wv->value = 0;
-	      wv->enabled = 1;
 	      wv->button_type = BUTTON_TYPE_NONE;
-	      wv->help = Qnil;
 	      save_wv = wv;
 	      prev_wv = 0;
 	    }
@@ -963,20 +944,18 @@ ns_menu_show (struct frame *f, int x, int y, bool for_click, bool keymaps,
 	    }
 #endif /* not HAVE_MULTILINGUAL_MENU */
 
-	  wv = xmalloc_widget_value ();
+	  wv = make_widget_value (SSDATA (item_name), NULL, !NILP (enable),
+				  STRINGP (help) ? help : Qnil);
 	  if (prev_wv)
 	    prev_wv->next = wv;
 	  else
 	    save_wv->contents = wv;
-	  wv->name = SSDATA (item_name);
 	  if (!NILP (descrip))
 	    wv->key = SSDATA (descrip);
-	  wv->value = 0;
 	  /* If this item has a null value,
 	     make the call_data null so that it won't display a box
 	     when the mouse is on it.  */
 	  wv->call_data = !NILP (def) ? aref_addr (menu_items, i) : 0;
-	  wv->enabled = !NILP (enable);
 
 	  if (NILP (type))
 	    wv->button_type = BUTTON_TYPE_NONE;
@@ -989,11 +968,6 @@ ns_menu_show (struct frame *f, int x, int y, bool for_click, bool keymaps,
 
 	  wv->selected = !NILP (selected);
 
-          if (! STRINGP (help))
-	    help = Qnil;
-
-	  wv->help = help;
-
 	  prev_wv = wv;
 
 	  i += MENU_ITEMS_ITEM_LENGTH;
@@ -1004,24 +978,19 @@ ns_menu_show (struct frame *f, int x, int y, bool for_click, bool keymaps,
 
   if (!NILP (title))
     {
-      widget_value *wv_title = xmalloc_widget_value ();
-      widget_value *wv_sep = xmalloc_widget_value ();
+      widget_value *wv_title;
+      widget_value *wv_sep = make_widget_value ("--", NULL, false, Qnil);
 
       /* Maybe replace this separator with a bitmap or owner-draw item
 	 so that it looks better.  Having two separators looks odd.  */
-      wv_sep->name = "--";
       wv_sep->next = first_wv->contents;
-      wv_sep->help = Qnil;
 
 #ifndef HAVE_MULTILINGUAL_MENU
       if (STRING_MULTIBYTE (title))
 	title = ENCODE_MENU_STRING (title);
 #endif
-
-      wv_title->name = SSDATA (title);
-      wv_title->enabled = NO;
+      wv_title = make_widget_value (SSDATA (title), NULL, false, Qnil);
       wv_title->button_type = BUTTON_TYPE_NONE;
-      wv_title->help = Qnil;
       wv_title->next = wv_sep;
       first_wv->contents = wv_title;
     }
@@ -1054,8 +1023,10 @@ free_frame_tool_bar (struct frame *f)
     Under NS we just hide the toolbar until it might be needed again.
    -------------------------------------------------------------------------- */
 {
+  EmacsView *view = FRAME_NS_VIEW (f);
   block_input ();
-  [[FRAME_NS_VIEW (f) toolbar] setVisible: NO];
+  view->wait_for_tool_bar = NO;
+  [[view toolbar] setVisible: NO];
   FRAME_TOOLBAR_HEIGHT (f) = 0;
   unblock_input ();
 }
@@ -1071,6 +1042,7 @@ update_frame_tool_bar (struct frame *f)
   NSWindow *window = [view window];
   EmacsToolbar *toolbar = [view toolbar];
 
+  if (view == nil || toolbar == nil) return;
   block_input ();
 
 #ifdef NS_IMPL_COCOA
@@ -1176,9 +1148,13 @@ update_frame_tool_bar (struct frame *f)
   FRAME_TOOLBAR_HEIGHT (f) =
     NSHeight ([window frameRectForContentRect: NSMakeRect (0, 0, 0, 0)])
     - FRAME_NS_TITLEBAR_HEIGHT (f);
-    if (FRAME_TOOLBAR_HEIGHT (f) < 0) // happens if frame is fullscreen.
-      FRAME_TOOLBAR_HEIGHT (f) = 0;
-    unblock_input ();
+  if (FRAME_TOOLBAR_HEIGHT (f) < 0) // happens if frame is fullscreen.
+    FRAME_TOOLBAR_HEIGHT (f) = 0;
+
+  if (view->wait_for_tool_bar && FRAME_TOOLBAR_HEIGHT (f) > 0)
+      [view setNeedsDisplay: YES];
+
+  unblock_input ();
 }
 
 
@@ -1452,11 +1428,10 @@ pop_down_menu (void *arg)
 
 
 Lisp_Object
-ns_popup_dialog (Lisp_Object position, Lisp_Object header, Lisp_Object contents)
+ns_popup_dialog (struct frame *f, Lisp_Object header, Lisp_Object contents)
 {
   id dialog;
   Lisp_Object window, tem, title;
-  struct frame *f;
   NSPoint p;
   BOOL isQ;
   NSAutoreleasePool *pool;
@@ -1464,41 +1439,6 @@ ns_popup_dialog (Lisp_Object position, Lisp_Object header, Lisp_Object contents)
   NSTRACE (x-popup-dialog);
 
   isQ = NILP (header);
-
-  if (EQ (position, Qt)
-      || (CONSP (position) && (EQ (XCAR (position), Qmenu_bar)
-                               || EQ (XCAR (position), Qtool_bar))))
-    {
-      window = selected_window;
-    }
-  else if (CONSP (position))
-    {
-      Lisp_Object tem;
-      tem = Fcar (position);
-      if (XTYPE (tem) == Lisp_Cons)
-        window = Fcar (Fcdr (position));
-      else
-        {
-          tem = Fcar (Fcdr (position));  /* EVENT_START (position) */
-          window = Fcar (tem);	     /* POSN_WINDOW (tem) */
-        }
-    }
-  else if (WINDOWP (position) || FRAMEP (position))
-    {
-      window = position;
-    }
-  else
-    window = Qnil;
-
-  if (FRAMEP (window))
-    f = XFRAME (window);
-  else if (WINDOWP (window))
-    {
-      CHECK_LIVE_WINDOW (window);
-      f = XFRAME (WINDOW_FRAME (XWINDOW (window)));
-    }
-  else
-    CHECK_WINDOW (window);
 
   check_window_system (f);
 

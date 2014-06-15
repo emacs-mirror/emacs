@@ -715,7 +715,7 @@ string).  It returns t if a new completion is found, nil otherwise."
 
 (defun he-line-search-regexp (pat strip-prompt)
   (if strip-prompt
-      (concat "\\(" comint-prompt-regexp "\\|^\\s-*\\)\\("
+      (concat "\\(" comint-prompt-regexp "\\|^\\s-*\\)\\(?2:"
 	      (regexp-quote pat)
 	      "[^\n]*[^ \t\n]\\)")
       (concat "^\\(\\s-*\\)\\("

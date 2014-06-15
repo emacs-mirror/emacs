@@ -70,7 +70,7 @@
 /^#undef PACKAGE_TARNAME/s/^.*$/#define PACKAGE_TARNAME ""/
 /^#undef PACKAGE_VERSION/s/^.*$/#define PACKAGE_VERSION ""/
 /^#undef PENDING_OUTPUT_COUNT/s/^.*$/#define PENDING_OUTPUT_COUNT(FILE) ((FILE)->_ptr - (FILE)->_base)/
-/^#undef VERSION/s/^.*$/#define VERSION "24.3.50"/
+/^#undef VERSION/s/^.*$/#define VERSION "24.4.50"/
 /^#undef SYSTEM_TYPE/s/^.*$/#define SYSTEM_TYPE "ms-dos"/
 /^#undef HAVE_DECL_GETENV/s/^.*$/#define HAVE_DECL_GETENV 1/
 /^#undef SYS_SIGLIST_DECLARED/s/^.*$/#define SYS_SIGLIST_DECLARED 1/
@@ -132,6 +132,7 @@ s/^#undef HAVE_STRTOULL *$/#define HAVE_STRTOULL 1/
 #else\
 #undef HAVE_SNPRINTF\
 #endif
+s/^#undef PENDING_OUTPUT_N_BYTES *$/#define PENDING_OUTPUT_N_BYTES fp->_ptr - fp->_base/
 
 # Comment out any remaining undef directives, because some of them
 # might be defined in sys/config.h we include at the top of config.h.

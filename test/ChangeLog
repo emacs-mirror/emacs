@@ -1,3 +1,262 @@
+2014-06-05  Michal Nazarewicz  <mina86@mina86.com>
+
+	* automated/tildify-tests.el (tildify-test--test): Optimise the test
+	slightly by reusing the same temporary buffer across multiple test
+	cases.
+
+	* automated/tildify-tests.el (tildify-test-find-env-end-re-bug)
+	(tildify-test-find-env-group-index-bug): Update to support new
+	signature of the `tildify-foreach-region-outside-env' function.
+	Namely, it now takes pairs as an argument instead of looking it up in
+	`tildify-ignored-environments-alist'.
+
+	* automated/tildify-tests.el (tildify-test--example-html): Add support
+	for generating XML code, so that…
+	(tildify-test-xml) …test can be added to check handling of XML
+	documents.
+
+	* automated/tildify-tests.el (tildify-test-find-env-group-index-bug):
+	New test checking end-regex building when multiple environment pairs
+	use integers to refer to capture groups.
+
+	* automated/tildify-tests.el (tildify-test-find-env-end-re-bug): New
+	test checking end-regex building in `tildify-find-env' function when
+	integers (denoting capture groups) and strings are mixed together.
+
+2014-06-02  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/tramp-tests.el (tramp-remote-process-environment): Declare.
+	(tramp-test29-vc-registered): Set $BZR_HOME.  Remove instrumentation.
+
+2014-06-01  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/tramp-tests.el (tramp-test29-vc-registered):
+	Instrument failed test case.
+
+2014-05-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* automated/ruby-mode-tests.el (ruby-assert-face): Use font-lock-ensure.
+	(ruby-interpolation-keeps-non-quote-syntax): Use syntax-propertize.
+
+2014-05-21  Michal Nazarewicz  <mina86@mina86.com>
+
+	* automated/tildify-tests.el: New file.
+
+2014-05-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* indent/ruby.rb: Add one more test.
+
+	* indent/ps-mode.ps: New file.
+
+	* indent/octave.m: Add a few more tests.
+
+	* automated/core-elisp-tests.el
+	(core-elisp-test-window-configurations): New test.
+
+2014-05-26  Glenn Morris  <rgm@gnu.org>
+
+	* automated/package-test.el (package-test-install-single):
+	Update for changed output.
+
+2014-05-22  Glenn Morris  <rgm@gnu.org>
+
+	* automated/bytecomp-tests.el (test-byte-comp-compile-and-load):
+	Fix handling of temporary elc files.
+
+	* automated/fns-tests.el (fns-tests-nreverse):
+	Update for changed string behavior.
+
+2014-05-15  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* automated/fns-tests.el: New file.
+	* automated/fns-tests.el (fns-tests-nreverse)
+	(fns-tests-nreverse-bool-vector): New tests.
+
+2014-05-08  Glenn Morris  <rgm@gnu.org>
+
+	* automated/vc-bzr.el (vc-bzr-test-bug9726, vc-bzr-test-bug9781)
+	(vc-bzr-test-faulty-bzr-autoloads):
+	Give bzr a temporary home-directory, in case the real one is missing.
+
+2014-05-08  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* automated/ruby-mode-tests.el (ruby-interpolation-after-dollar-sign):
+	New test.
+
+2014-05-08  Glenn Morris  <rgm@gnu.org>
+
+	* automated/help-fns.el: New file.
+
+2014-05-01  Barry O'Reilly  <gundaetiapo@gmail.com>
+
+	* automated/undo-tests.el (undo-test-region-deletion): New test to
+	demonstrate bug#17235.
+	(undo-test-region-example): New test to verify example given in
+	comments for undo-make-selective-list.
+
+2014-04-25  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/tramp-tests.el (top):
+	* automated/file-notify-tests.el (top): Do not disable interactive
+	passwords in batch mode.
+	(password-cache-expiry): Set to nil.
+
+	* automated/file-notify-tests.el
+	(file-notify-test-remote-temporary-file-directory):
+	* automated/tramp-tests.el (tramp-test-temporary-file-directory):
+	Use a mock-up method as default.
+	(tramp-test00-availability): Print the used directory name.
+	(tramp-test33-recursive-load): Fix typo.
+
+2014-04-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/tramp-tests.el (tramp--test-check-files): Remove traces.
+	(tramp-test30-special-characters): Remove test for backslash.
+
+2014-04-20  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/tramp-tests.el
+	(tramp-test19-directory-files-and-attributes)
+	(tramp-test22-file-times): Check for `file-attributes' equality
+	only if there is a usable timestamp.
+	(tramp--test-check-files): Do not use `copy-sequence'.
+
+2014-04-22  Daniel Colascione  <dancol@dancol.org>
+
+	* automated/bytecomp-tests.el (test-byte-comp-compile-and-load):
+	Add compile flag.
+	(test-byte-comp-macro-expansion)
+	(test-byte-comp-macro-expansion-eval-and-compile)
+	(test-byte-comp-macro-expansion-eval-when-compile)
+	(test-byte-comp-macro-expand-lexical-override): Use it.
+	(test-eager-load-macro-expansion)
+	(test-eager-load-macro-expansion-eval-and-compile)
+	(test-eager-load-macro-expansion-eval-when-compile)
+	(test-eager-load-macro-expand-lexical-override): New tests.
+
+	* automated/cl-lib.el (cl-lib-struct-accessors): Fix test to
+	account for removal of `cl-struct-set-slot-value'. Also, move
+	the defstruct to top level.
+
+2014-04-21  Daniel Colascione  <dancol@dancol.org>
+
+	* automated/bytecomp-tests.el (test-byte-comp-compile-and-load):
+	New function.
+	(test-byte-comp-macro-expansion)
+	(test-byte-comp-macro-expansion-eval-and-compile)
+	(test-byte-comp-macro-expansion-eval-when-compile)
+	(test-byte-comp-macro-expand-lexical-override): New tests.
+
+	* automated/cl-lib.el (cl-loop-destructuring-with): New test.
+	(cl-the): Fix cl-the test.
+
+2014-04-20  Daniel Colascione  <dancol@dancol.org>
+
+	* automated/cl-lib.el (cl-lib-struct-accessors,cl-the): New tests.
+
+2014-04-19  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/tramp-tests.el (tramp--test-check-files): Extend test.
+	(tramp-test31-utf8): Let-bind also `file-name-coding-system'.
+
+2014-04-18  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/tramp-tests.el (tramp-copy-size-limit): Set to nil.
+	(tramp--test-make-temp-name): Optional argument LOCAL.
+	(tramp--instrument-test-case): Show messages.  Catch also `quit'.
+	(tramp-test10-write-region): No special test for out-of-band copy
+	needed anymore.
+	(tramp-test11-copy-file, tramp-test12-rename-file)
+	(tramp-test21-file-links): Extend tests.
+	(tramp-test20-file-modes): More robust check for user "root".
+	(tramp--test-check-files): New defun.
+	(tramp-test30-special-characters, tramp-test33-recursive-load)
+	(tramp-test34-unload): New tests.
+	(tramp-test31-utf8, tramp-test32-asynchronous-requests):  Rename.
+
+2014-04-11  Glenn Morris  <rgm@gnu.org>
+
+	* automated/Makefile.in (EMACSDATA, EMACSDOC, EMACSPATH): Unexport.
+
+2014-04-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* automated/electric-tests.el: Fix spelling error in test name.
+	(whitespace-skipping-for-quotes-not-outside):
+	Rename from whitespace-skipping-for-quotes-not-ouside.
+
+2014-04-09  Daniel Colascione  <dancol@dancol.org>
+
+	* automated/syntax-tests.el: New file.
+
+2014-04-09  Glenn Morris  <rgm@gnu.org>
+
+	* automated/python-tests.el (python-triple-quote-pairing):
+	Enable/disable electric-pair-mode as needed.
+
+	* automated/electric-tests.el (electric-pair-backspace-1):
+	Replace deleted function.
+
+2014-04-07  João Távora  <joaotavora@gmail.com>
+
+	* automated/python-tests.el (python-triple-quote-pairing): New test.
+	(python-syntax-after-python-backspace): New test.
+
+	* automated/electric-tests.el (electric-pair-define-test-form):
+	More readable test docstrings.
+	(whitespace-skipping-for-quotes-not-ouside)
+	(whitespace-skipping-for-quotes-only-inside)
+	(whitespace-skipping-quotes-not-without-proper-syntax): New tests.
+
+2014-04-04  João Távora  <joaotavora@gmail.com>
+
+	* automated/electric-tests.el (define-electric-pair-test):
+	Don't overtest.
+	(inhibit-in-mismatched-string-inside-ruby-comments): New test.
+	(inhibit-in-mismatched-string-inside-c-comments): New test.
+
+2014-04-02  João Távora  <joaotavora@gmail.com>
+
+	* automated/electric-tests.el (inhibit-if-strings-mismatched):
+	New test, change from `inhibit-only-of-next-is-mismatched'.
+
+2014-03-26  Barry O'Reilly  <gundaetiapo@gmail.com>
+
+	* automated/undo-tests.el (undo-test-marker-adjustment-nominal):
+	(undo-test-region-t-marker): New tests of marker adjustments.
+	(undo-test-marker-adjustment-moved):
+	(undo-test-region-mark-adjustment): New tests to demonstrate
+	bug#16818, which fail without the fix.
+
+2014-03-23  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* automated/package-test.el (package-test-describe-package):
+	Fix test failure in non-graphical mode.
+
+2014-03-23  Daniel Colascione  <dancol@dancol.org>
+
+	* automated/subword-tests.el (subword-tests2): More subword tests.
+
+	* automated/cl-lib.el (cl-lib-keyword-names-versus-values): New
+	test: correct parsing of keyword arguments.
+
+2014-03-22  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* automated/package-test.el (package-test-describe-package):
+	Check for the "Keywords: " line.
+
+	* automated/data/package/archive-contents: Include the :keywords
+	field in `simple-single' data form.
+
+2014-03-21  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* automated/package-test.el
+	(package-test-install-two-dependencies): New test (bug#16826).
+
+	* automated/data/package/simple-two-depend-1.1.el: New file.
+
+	* automated/data/package/archive-contents:
+	Add info about the new package.
+
 2014-03-07  Michael Albinus  <michael.albinus@gmx.de>
 
 	* automated/tramp-tests.el (tramp-copy-size-limit): Declare.

@@ -411,6 +411,19 @@ Fortsetzungszeile.
 >> Geben Sie <Return> ein, um wieder ein Zeilenvorschubzeichen
    einzufügen.
 
+Die <Return>-Taste ist insofern besonders, als dass sie mehr bewirken
+kann, als einfach ein Zeilenvorschubszeichen einzufügen.  Abhängig vom
+umgebenden Text können zusätzliche Leerzeichen eingefügt werden, damit
+der neue Zeilenanfang bündig zur vorherigen Zeile ist.  Wir nennen
+dieses Verhalten (wenn das Drücken einer Taste mehr bewirkt, als nur
+das entsprechende Zeichen einzufügen) »electric«.
+
+>> Ein Beispiel für dieses Verhalten von <Return>.
+   Drücken Sie <Return> am Ende dieser Zeile.
+
+Sie sollten sehen, dass sich nach dem Einfügen des
+Zeilenvorschubzeichen der Cursor unter dem »D« von »Drücken« befindet.
+
 Denken Sie daran, dass die meisten Emacs-Befehle mit einem
 Wiederholungszähler aufgerufen werden können.  Tun Sie das mit einem
 Textzeichen, dann wird es entsprechend dem numerischen Parameter

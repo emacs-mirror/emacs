@@ -174,7 +174,10 @@ For further details, see info node `(emacs)Saving Emacs Sessions'."
   :global t
   :group 'desktop
   (if desktop-save-mode
-      (desktop-auto-save-set-timer)
+      (when (and (integerp desktop-auto-save-timeout)
+		 (> desktop-auto-save-timeout 0))
+	(add-hook 'window-configuration-change-hook 'desktop-auto-save-set-timer))
+    (remove-hook 'window-configuration-change-hook 'desktop-auto-save-set-timer)
     (desktop-auto-save-cancel-timer)))
 
 (defun desktop-save-mode-off ()
@@ -207,13 +210,18 @@ determine where the desktop is saved."
 
 (defcustom desktop-auto-save-timeout auto-save-timeout
   "Number of seconds idle time before auto-save of the desktop.
+The idle timer activates auto-saving only when window configuration changes.
 This applies to an existing desktop file when `desktop-save-mode' is enabled.
 Zero or nil means disable auto-saving due to idleness."
   :type '(choice (const :tag "Off" nil)
                  (integer :tag "Seconds"))
   :set (lambda (symbol value)
          (set-default symbol value)
-         (ignore-errors (desktop-auto-save-set-timer)))
+         (ignore-errors
+	   (if (and (integerp value) (> value 0))
+	       (add-hook 'window-configuration-change-hook 'desktop-auto-save-set-timer)
+	     (remove-hook 'window-configuration-change-hook 'desktop-auto-save-set-timer)
+	     (desktop-auto-save-cancel-timer))))
   :group 'desktop
   :version "24.4")
 
@@ -387,15 +395,18 @@ modes are restored automatically; they should not be listed here."
   :group 'desktop)
 
 (defcustom desktop-restore-frames t
-  "When non-nil, save frames to desktop file."
+  "When non-nil, save and restore the frame and window configuration.
+See related options `desktop-restore-reuses-frames',
+`desktop-restore-in-current-display', and `desktop-restore-forces-onscreen'."
   :type 'boolean
   :group 'desktop
   :version "24.4")
 
 (defcustom desktop-restore-in-current-display nil
-  "If t, frames are restored in the current display.
-If nil, frames are restored, if possible, in their original displays.
-If `delete', frames on other displays are deleted instead of restored."
+  "Controls how restoring of frames treats displays.
+If t, restores frames into the current display.
+If nil, restores frames into their original displays (if possible).
+If `delete', deletes frames on other displays instead of restoring them."
   :type '(choice (const :tag "Restore in current display" t)
 		 (const :tag "Restore in original display" nil)
 		 (const :tag "Delete frames in other displays" delete))
@@ -403,21 +414,23 @@ If `delete', frames on other displays are deleted instead of restored."
   :version "24.4")
 
 (defcustom desktop-restore-forces-onscreen t
-  "If t, offscreen frames are restored onscreen instead.
-If `:all', frames that are partially offscreen are also forced onscreen.
-NOTE: Checking of frame boundaries is only approximate and can fail
-to reliably detect frames whose onscreen/offscreen state depends on a
-few pixels, especially near the right / bottom borders of the screen."
+  "If t, restores frames that are fully offscreen onscreen instead.
+If `all', also restores frames that are partially offscreen onscreen.
+
+Note that checking of frame boundaries is only approximate.
+It can fail to reliably detect frames whose onscreen/offscreen state
+depends on a few pixels, especially near the right / bottom borders
+of the screen."
   :type '(choice (const :tag "Only fully offscreen frames" t)
-		 (const :tag "Also partially offscreen frames" :all)
+		 (const :tag "Also partially offscreen frames" all)
 		 (const :tag "Do not force frames onscreen" nil))
   :group 'desktop
   :version "24.4")
 
 (defcustom desktop-restore-reuses-frames t
   "If t, restoring frames reuses existing frames.
-If nil, existing frames are deleted.
-If `:keep', existing frames are kept and not reused."
+If nil, deletes existing frames.
+If `keep', keeps existing frames and does not reuse them."
   :type '(choice (const :tag "Reuse existing frames" t)
 		 (const :tag "Delete existing frames" nil)
 		 (const :tag "Keep existing frames" :keep))
@@ -491,13 +504,13 @@ Handlers are called with argument list
 
 Furthermore, they may use the following variables:
 
-   desktop-file-version
-   desktop-buffer-major-mode
-   desktop-buffer-minor-modes
-   desktop-buffer-point
-   desktop-buffer-mark
-   desktop-buffer-read-only
-   desktop-buffer-locals
+   `desktop-file-version'
+   `desktop-buffer-major-mode'
+   `desktop-buffer-minor-modes'
+   `desktop-buffer-point'
+   `desktop-buffer-mark'
+   `desktop-buffer-read-only'
+   `desktop-buffer-locals'
 
 If a handler returns a buffer, then the saved mode settings
 and variable values for that buffer are copied into it.
@@ -551,15 +564,15 @@ Handlers are called with argument list
 
 Furthermore, they may use the following variables:
 
-   desktop-file-version
-   desktop-buffer-file-name
-   desktop-buffer-name
-   desktop-buffer-major-mode
-   desktop-buffer-minor-modes
-   desktop-buffer-point
-   desktop-buffer-mark
-   desktop-buffer-read-only
-   desktop-buffer-misc
+   `desktop-file-version'
+   `desktop-buffer-file-name'
+   `desktop-buffer-name'
+   `desktop-buffer-major-mode'
+   `desktop-buffer-minor-modes'
+   `desktop-buffer-point'
+   `desktop-buffer-mark'
+   `desktop-buffer-read-only'
+   `desktop-buffer-misc'
 
 When a handler is called, the buffer has been created and the major mode has
 been set, but local variables listed in desktop-buffer-locals has not yet been
@@ -692,7 +705,7 @@ if different)."
 			(frame-parameter frame 'desktop-dont-clear))
 	      (delete-frame frame))
 	  (error
-	 (delay-warning 'desktop (error-message-string err))))))))
+	   (delay-warning 'desktop (error-message-string err))))))))
 
 ;; ----------------------------------------------------------------------------
 (unless noninteractive
@@ -839,12 +852,13 @@ QUOTE may be `may' (value may be quoted),
   "Convert VALUE to a string that when read evaluates to the same value.
 Not all types of values are supported."
   (let* ((print-escape-newlines t)
+	 (print-length nil)
+	 (print-level nil)
 	 (float-output-format nil)
 	 (quote.sexp (desktop--v2s value))
 	 (quote (car quote.sexp))
-	 (txt
-          (let ((print-quoted t))
-            (prin1-to-string (cdr quote.sexp)))))
+	 (print-quoted t)
+	 (txt (prin1-to-string (cdr quote.sexp))))
     (if (eq quote 'must)
 	(concat "'" txt)
       txt)))
@@ -1058,7 +1072,8 @@ This function depends on the value of `desktop-saved-frameset'
 being set (usually, by reading it from the desktop)."
   (when (desktop-restoring-frameset-p)
     (frameset-restore desktop-saved-frameset
-		      :reuse-frames desktop-restore-reuses-frames
+		      :reuse-frames (eq desktop-restore-reuses-frames t)
+		      :cleanup-frames (not (eq desktop-restore-reuses-frames 'keep))
 		      :force-display desktop-restore-in-current-display
 		      :force-onscreen desktop-restore-forces-onscreen)))
 
@@ -1237,7 +1252,7 @@ after that many seconds of idle time."
   (when (and (integerp desktop-auto-save-timeout)
 	     (> desktop-auto-save-timeout 0))
     (setq desktop-auto-save-timer
-	  (run-with-idle-timer desktop-auto-save-timeout t
+	  (run-with-idle-timer desktop-auto-save-timeout nil
 			       'desktop-auto-save))))
 
 (defun desktop-auto-save-cancel-timer ()
@@ -1380,20 +1395,21 @@ after that many seconds of idle time."
 		 (eval desktop-buffer-point)
 	       (error (message "%s" (error-message-string err)) 1))))
 	  (when desktop-buffer-mark
-	    (if (consp desktop-buffer-mark)
-		(progn
-		  (set-mark (car desktop-buffer-mark))
-		  (setq mark-active (car (cdr desktop-buffer-mark))))
-	      (set-mark desktop-buffer-mark)))
+            (if (consp desktop-buffer-mark)
+                (progn
+                  (move-marker (mark-marker) (car desktop-buffer-mark))
+                  ;; FIXME: Should we call (de)activate-mark instead?
+                  (setq mark-active (car (cdr desktop-buffer-mark))))
+              (move-marker (mark-marker) desktop-buffer-mark)))
 	  ;; Never override file system if the file really is read-only marked.
 	  (when desktop-buffer-read-only (setq buffer-read-only desktop-buffer-read-only))
 	  (dolist (this desktop-buffer-locals)
 	    (if (consp this)
-		;; an entry of this form `(symbol . value)'
+		;; An entry of this form `(symbol . value)'.
 		(progn
 		  (make-local-variable (car this))
 		  (set (car this) (cdr this)))
-	      ;; an entry of the form `symbol'
+	      ;; An entry of the form `symbol'.
 	      (make-local-variable this)
 	      (makunbound this))))))))
 

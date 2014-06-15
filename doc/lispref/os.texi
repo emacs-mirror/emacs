@@ -194,11 +194,16 @@ It processes any command-line options that were not handled earlier.
 It now exits if the option @code{--batch} was specified.
 
 @item
-If @code{initial-buffer-choice} is a string, it visits the file with
-that name.  If it is a function, it calls the function and selects the
-buffer returned by the function.  It it is @code{t}, it selects the
-@file{*scratch*} buffer.  If the @file{*scratch*} buffer exists and is
-empty, it inserts @code{initial-scratch-message} into that buffer.
+If @code{initial-buffer-choice} is a string, it visits the file (or
+directory) with that name.  If it is a function, it calls the function
+with no arguments and selects the buffer that it returns.
+@ignore
+@c I do not think this should be mentioned.  AFAICS it is just a dodge
+@c around inhibit-startup-screen not being settable on a site-wide basis.
+If it is @code{t}, it selects the @file{*scratch*} buffer.
+@end ignore
+If the @file{*scratch*} buffer exists and is empty, it inserts
+@code{initial-scratch-message} into that buffer.
 
 @c To make things nice and confusing, the next three items can be
 @c called from two places.  If displaying a startup screen, they are
@@ -218,7 +223,9 @@ parameters of the selected frame according to whatever the init files
 specify.
 
 @item
-It runs @code{window-setup-hook}.  @xref{Window Systems}.
+It runs @code{window-setup-hook}.  The only difference between this
+hook and @code{emacs-startup-hook} is that this one runs after the
+previously mentioned modifications to the frame parameters.
 
 @item
 @cindex startup screen
@@ -411,6 +418,12 @@ This normal hook is run, once, just after handling the command line
 arguments.  In batch mode, Emacs does not run this hook.
 @end defvar
 
+@defvar window-setup-hook
+This normal hook is very similar to @code{emacs-startup-hook}.
+The only difference is that it runs slightly later, after setting
+of the frame parameters.  @xref{Startup Summary, window-setup-hook}.
+@end defvar
+
 @defvar user-init-file
 This variable holds the absolute file name of the user's init file.  If the
 actual init file loaded is a compiled file, such as @file{.emacs.elc},
@@ -430,10 +443,13 @@ This variable holds the name of the @file{.emacs.d} directory.  It is
 run on that type of terminal.  The library's name is constructed by
 concatenating the value of the variable @code{term-file-prefix} and the
 terminal type (specified by the environment variable @env{TERM}).
-Normally, @code{term-file-prefix} has the value
-@code{"term/"}; changing this is not recommended.  Emacs finds the file
-in the normal manner, by searching the @code{load-path} directories, and
-trying the @samp{.elc} and @samp{.el} suffixes.
+Normally, @code{term-file-prefix} has the value @code{"term/"};
+changing this is not recommended.  If there is an entry matching
+@env{TERM} in the @code{term-file-aliases} association list,
+Emacs uses the associated value in place of @env{TERM}.
+Emacs finds the file in the normal manner, by searching the
+@code{load-path} directories, and trying the @samp{.elc} and
+@samp{.el} suffixes.
 
 @cindex Termcap
   The usual role of a terminal-specific library is to enable special
@@ -462,7 +478,7 @@ a normal hook that Emacs runs after initializing a new text terminal.
 You could use this hook to define initializations for terminals that do not
 have their own libraries.  @xref{Hooks}.
 
-@defvar term-file-prefix
+@defopt term-file-prefix
 @cindex @env{TERM} environment variable
 If the value of this variable is non-@code{nil}, Emacs loads a
 terminal-specific initialization file as follows:
@@ -477,7 +493,14 @@ init file if you do not wish to load the
 terminal-initialization file.
 
 On MS-DOS, Emacs sets the @env{TERM} environment variable to @samp{internal}.
-@end defvar
+@end defopt
+
+@defopt term-file-aliases
+This variable is an an association list mapping terminal types to
+their aliases.  For example, an element of the form @code{("vt102"
+. "vt100")} means to treat a terminal of type @samp{vt102} like one of
+type @samp{vt100}.
+@end defopt
 
 @defvar tty-setup-hook
 This variable is a normal hook that Emacs runs after initializing a
@@ -487,7 +510,7 @@ hook runs after loading your init file (if applicable) and the
 terminal-specific Lisp file, so you can use it to adjust the
 definitions made by that file.
 
-For a related feature, @pxref{Window Systems, window-setup-hook}.
+For a related feature, @pxref{Init File, window-setup-hook}.
 @end defvar
 
 @node Command-Line Arguments
@@ -735,7 +758,7 @@ Here is an example of how you could use these hooks:
 (add-hook 'suspend-resume-hook (lambda () (message "Resumed!")
                                  (sit-for 2)))
 @end smallexample
-@c The sit-for prevents the ``nil'' that suspend-emacs returns
+@c The sit-for prevents the @code{nil} that suspend-emacs returns
 @c hiding the message.
 
 Here is what you would see upon evaluating @code{(suspend-emacs "pwd")}:
@@ -1043,7 +1066,7 @@ number of processes trying to run on the system.
 
 By default, the values are integers that are 100 times the system load
 averages, but if @var{use-float} is non-@code{nil}, then they are
-returned as floating point numbers without multiplying by 100.
+returned as floating-point numbers without multiplying by 100.
 
 If it is impossible to obtain the load average, this function signals
 an error.  On some platforms, access to load averages requires
@@ -1149,24 +1172,24 @@ Titles}).
 @cindex UID
 @defun user-real-uid
 This function returns the real @acronym{UID} of the user.
-The value may be a floating point number, in the (unlikely) event that
+The value may be floating point, in the (unlikely) event that
 the UID is too large to fit in a Lisp integer.
 @end defun
 
 @defun user-uid
 This function returns the effective @acronym{UID} of the user.
-The value may be a floating point number.
+The value may be floating point.
 @end defun
 
 @cindex GID
 @defun group-gid
 This function returns the effective @acronym{GID} of the Emacs process.
-The value may be a floating point number.
+The value may be floating point.
 @end defun
 
 @defun group-real-gid
 This function returns the real @acronym{GID} of the Emacs process.
-The value may be a floating point number.
+The value may be floating point.
 @end defun
 
 @defun system-users
@@ -1196,7 +1219,7 @@ integers, @code{(@var{sec-high} @var{sec-low} @var{microsec}
 integers, @code{(@var{sec-high} @var{sec-low} @var{microsec})}, or of
 two integers, @code{(@var{sec-high} @var{sec-low})}.  The integers
 @var{sec-high} and @var{sec-low} give the high and low bits of an
-integer number of seconds.  This integer number,
+integer number of seconds.  This integer,
 @ifnottex
 @var{high} * 2**16 + @var{low},
 @end ifnottex
@@ -1518,9 +1541,9 @@ system.
 @end defun
 
 @defun seconds-to-time seconds
-This function converts @var{seconds}, a floating point number of
-seconds since the epoch, to a time value and returns that.  To perform
-the inverse conversion, use @code{float-time} (@pxref{Time of Day}).
+This function converts @var{seconds}, the number of seconds since the
+epoch, to a time value and returns that.  To convert back, use
+@code{float-time} (@pxref{Time of Day}).
 @end defun
 
 @defun format-seconds format-string seconds
@@ -1805,9 +1828,8 @@ work just like ordinary timers.
 
 @deffn Command run-with-idle-timer secs repeat function &rest args
 Set up a timer which runs the next time Emacs is idle for @var{secs}
-seconds.  The value of @var{secs} may be an integer or a floating
-point number; a value of the type returned by @code{current-idle-time}
-is also allowed.
+seconds.  The value of @var{secs} may be a number or a value of the type
+returned by @code{current-idle-time}.
 
 If @var{repeat} is @code{nil}, the timer runs just once, the first time
 Emacs remains idle for a long enough time.  More often @var{repeat} is
@@ -1992,20 +2014,11 @@ This function opens a @dfn{dribble file} named @var{filename}.  When a
 dribble file is open, each input event from the keyboard or mouse (but
 not those from keyboard macros) is written in that file.  A
 non-character event is expressed using its printed representation
-surrounded by @samp{<@dots{}>}.
+surrounded by @samp{<@dots{}>}.  Be aware that sensitive information
+(such as passwords) may end up recorded in the dribble file.
 
 You close the dribble file by calling this function with an argument
 of @code{nil}.
-
-This function is normally used to record the input necessary to
-trigger an Emacs bug, for the sake of a bug report.
-
-@example
-@group
-(open-dribble-file "~/dribble")
-     @result{} nil
-@end group
-@end example
 @end deffn
 
   See also the @code{open-termscript} function (@pxref{Terminal Output}).
@@ -2155,7 +2168,7 @@ system-specific keysym.  Each element has the form @code{(@var{code}
 . @var{symbol})}, where @var{code} is the numeric keysym code (not
 including the ``vendor specific'' bit,
 @ifnottex
--2**28),
+@minus{}2**28),
 @end ifnottex
 @tex
 $-2^{28}$),
@@ -2165,7 +2178,7 @@ and @var{symbol} is the name for the function key.
 For example @code{(168 . mute-acute)} defines a system-specific key (used
 by HP X servers) whose numeric code is
 @ifnottex
--2**28
+@minus{}2**28
 @end ifnottex
 @tex
 $-2^{28}$
@@ -2329,10 +2342,10 @@ be anything, though implementations are free not to display it.
 
 @item :timeout @var{timeout}
 The timeout time in milliseconds since the display of the notification
-at which the notification should automatically close.  If -1, the
+at which the notification should automatically close.  If @minus{}1, the
 notification's expiration time is dependent on the notification
 server's settings, and may vary for the type of notification.  If 0,
-the notification never expires.  Default value is -1.
+the notification never expires.  Default value is @minus{}1.
 
 @item :urgency @var{urgency}
 The urgency level.  It can be @code{low}, @code{normal}, or @code{critical}.

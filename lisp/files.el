@@ -559,14 +559,6 @@ A value of nil means ignore them; anything else means query."
 		 (other :tag "Query" other))
   :group 'find-file)
 
-;; Avoid losing in versions where CLASH_DETECTION is disabled.
-(or (fboundp 'lock-buffer)
-    (defalias 'lock-buffer 'ignore))
-(or (fboundp 'unlock-buffer)
-    (defalias 'unlock-buffer 'ignore))
-(or (fboundp 'file-locked-p)
-    (defalias 'file-locked-p 'ignore))
-
 (defcustom view-read-only nil
   "Non-nil means buffers visiting files read-only do so in view mode.
 In fact, this means that all read-only buffers normally have
@@ -693,7 +685,7 @@ nil (meaning `default-directory') as the associated list element."
       (if (file-exists-p dir)
 	  (error "%s is not a directory" dir)
 	(error "%s: no such directory" dir))
-    (unless (file-executable-p dir)
+    (unless (file-accessible-directory-p dir)
       (error "Cannot cd to %s:  Permission denied" dir))
     (setq default-directory dir)
     (setq list-buffers-directory dir)))
@@ -891,7 +883,7 @@ which we're looking."
   ;;
   ;; Represent /home/luser/foo as ~/foo so that we don't try to look for
   ;; `name' in /home or in /.
-  (setq file (abbreviate-file-name file))
+  (setq file (abbreviate-file-name (expand-file-name file)))
   (let ((root nil)
         ;; `user' is not initialized outside the loop because
         ;; `file' may not exist, so we may have to walk up part of the
@@ -949,14 +941,10 @@ directory if it does not exist."
 	     (if (file-directory-p user-emacs-directory)
 		 (or (file-accessible-directory-p user-emacs-directory)
 		     (setq errtype "access"))
-	       (let ((umask (default-file-modes)))
-		 (unwind-protect
-		     (progn
-		       (set-default-file-modes ?\700)
-		       (condition-case nil
-			   (make-directory user-emacs-directory)
-			 (error (setq errtype "create"))))
-		   (set-default-file-modes umask))))
+	       (with-file-modes ?\700
+		 (condition-case nil
+		     (make-directory user-emacs-directory)
+		   (error (setq errtype "create")))))
 	     (when (and errtype
 			user-emacs-directory-warning
 			(not (get 'user-emacs-directory-warning 'this-session)))
@@ -1281,36 +1269,31 @@ You can then use `write-region' to write new data into the file.
 If DIR-FLAG is non-nil, create a new empty directory instead of a file.
 
 If SUFFIX is non-nil, add that at the end of the file name."
-  (let ((umask (default-file-modes))
-	file)
-    (unwind-protect
-	(progn
-	  ;; Create temp files with strict access rights.  It's easy to
-	  ;; loosen them later, whereas it's impossible to close the
-	  ;; time-window of loose permissions otherwise.
-	  (set-default-file-modes ?\700)
-	  (while (condition-case ()
-		     (progn
-		       (setq file
-			     (make-temp-name
-                              (if (zerop (length prefix))
-                                  (file-name-as-directory
-                                   temporary-file-directory)
-                                (expand-file-name prefix
-                                                  temporary-file-directory))))
-		       (if suffix
-			   (setq file (concat file suffix)))
-		       (if dir-flag
-			   (make-directory file)
-			 (write-region "" nil file nil 'silent nil 'excl))
-		       nil)
-		   (file-already-exists t))
-	    ;; the file was somehow created by someone else between
-	    ;; `make-temp-name' and `write-region', let's try again.
-	    nil)
-	  file)
-      ;; Reset the umask.
-      (set-default-file-modes umask))))
+  ;; Create temp files with strict access rights.  It's easy to
+  ;; loosen them later, whereas it's impossible to close the
+  ;; time-window of loose permissions otherwise.
+  (with-file-modes ?\700
+    (let (file)
+      (while (condition-case ()
+		 (progn
+		   (setq file
+			 (make-temp-name
+			  (if (zerop (length prefix))
+			      (file-name-as-directory
+			       temporary-file-directory)
+			    (expand-file-name prefix
+					      temporary-file-directory))))
+		   (if suffix
+		       (setq file (concat file suffix)))
+		   (if dir-flag
+		       (make-directory file)
+		     (write-region "" nil file nil 'silent nil 'excl))
+		   nil)
+	       (file-already-exists t))
+	;; the file was somehow created by someone else between
+	;; `make-temp-name' and `write-region', let's try again.
+	nil)
+      file)))
 
 (defun recode-file-name (file coding new-coding &optional ok-if-already-exists)
   "Change the encoding of FILE's name from CODING to NEW-CODING.
@@ -1429,7 +1412,7 @@ You can visit files on remote machines by specifying something
 like /ssh:SOME_REMOTE_MACHINE:FILE for the file name.  You can
 also visit local files as a different user by specifying
 /sudo::FILE for the file name.
-See the Info node `(tramp)Filename Syntax' in the Tramp Info
+See the Info node `(tramp)File name Syntax' in the Tramp Info
 manual, for more about this.
 
 Interactively, or if WILDCARDS is non-nil in a call from Lisp,
@@ -1654,6 +1637,8 @@ killed."
 	(let (kill-buffer-query-functions kill-buffer-hook)
 	  (kill-buffer obuf))))))
 
+;; FIXME we really need to fold the uniquify stuff in here by default,
+;; not using advice, and add it to the doc string.
 (defun create-file-buffer (filename)
   "Create a suitably named buffer for visiting FILENAME, and return it.
 FILENAME (sans directory) is used unchanged if that name is free;
@@ -2089,9 +2074,9 @@ This function ensures that none of these modifications will take place."
 This function is meant for the user to run interactively.
 Don't call it from programs!  Use `insert-file-contents-literally' instead.
 \(Its calling sequence is different; see its documentation)."
+  (declare (interactive-only insert-file-contents-literally))
   (interactive "*fInsert file literally: ")
   (insert-file-1 filename #'insert-file-contents-literally))
-(put 'insert-file-literally 'interactive-only 'insert-file-contents-literally)
 
 (defvar find-file-literally nil
   "Non-nil if this buffer was made by `find-file-literally' or equivalent.
@@ -2518,6 +2503,7 @@ and `magic-mode-alist', which determines modes based on file contents.")
      ("[acjkwz]sh" . sh-mode)
      ("r?bash2?" . sh-mode)
      ("dash" . sh-mode)
+     ("mksh" . sh-mode)
      ("\\(dt\\|pd\\|w\\)ksh" . sh-mode)
      ("es" . sh-mode)
      ("i?tcsh" . sh-mode)
@@ -4079,31 +4065,26 @@ BACKUPNAME is the backup file name, which is the old file renamed."
 	    (file-error nil))))))
 
 (defun backup-buffer-copy (from-name to-name modes extended-attributes)
-  (let ((umask (default-file-modes)))
-    (unwind-protect
-	(progn
-	  ;; Create temp files with strict access rights.  It's easy to
-	  ;; loosen them later, whereas it's impossible to close the
-	  ;; time-window of loose permissions otherwise.
-	  (set-default-file-modes ?\700)
-	  (when (condition-case nil
-		    ;; Try to overwrite old backup first.
-		    (copy-file from-name to-name t t t)
-		  (error t))
-	    (while (condition-case nil
-		       (progn
-			 (when (file-exists-p to-name)
-			   (delete-file to-name))
-			 (copy-file from-name to-name nil t t)
-			 nil)
-		     (file-already-exists t))
-	      ;; The file was somehow created by someone else between
-	      ;; `delete-file' and `copy-file', so let's try again.
-	      ;; rms says "I think there is also a possible race
-	      ;; condition for making backup files" (emacs-devel 20070821).
-	      nil)))
-      ;; Reset the umask.
-      (set-default-file-modes umask)))
+  ;; Create temp files with strict access rights.  It's easy to
+  ;; loosen them later, whereas it's impossible to close the
+  ;; time-window of loose permissions otherwise.
+  (with-file-modes ?\700
+    (when (condition-case nil
+	      ;; Try to overwrite old backup first.
+	      (copy-file from-name to-name t t t)
+	    (error t))
+      (while (condition-case nil
+		 (progn
+		   (when (file-exists-p to-name)
+		     (delete-file to-name))
+		   (copy-file from-name to-name nil t t)
+		   nil)
+	       (file-already-exists t))
+	;; The file was somehow created by someone else between
+	;; `delete-file' and `copy-file', so let's try again.
+	;; rms says "I think there is also a possible race
+	;; condition for making backup files" (emacs-devel 20070821).
+	nil)))
   ;; If set-file-extended-attributes fails, fall back on set-file-modes.
   (unless (and extended-attributes
 	       (with-demoted-errors
@@ -4215,15 +4196,22 @@ FILENAME defaults to `buffer-file-name'."
 
 (defcustom make-backup-file-name-function
   #'make-backup-file-name--default-function
-  "A function to use instead of the default `make-backup-file-name'.
+  "A function that `make-backup-file-name' uses to create backup file names.
+The function receives a single argument, the original file name.
 
-This could be buffer-local to do something special for specific
-files.  If you define it, you may need to change `backup-file-name-p'
-and `file-name-sans-versions' too.
+If you change this, you may need to change `backup-file-name-p' and
+`file-name-sans-versions' too.
+
+You could make this buffer-local to do something special for specific files.
+
+For historical reasons, a value of nil means to use the default function.
+This should not be relied upon.
 
 See also `backup-directory-alist'."
+  :version "24.4"     ; nil -> make-backup-file-name--default-function
   :group 'backup
-  :type '(function :tag "Your function"))
+  :type '(choice (const :tag "Deprecated way to get the default function" nil)
+		 (function :tag "Function")))
 
 (defcustom backup-directory-alist nil
   "Alist of filename patterns and backup directory names.
@@ -4280,20 +4268,17 @@ Checks for files in `temporary-file-directory',
 
 (defun make-backup-file-name (file)
   "Create the non-numeric backup file name for FILE.
-Normally this will just be the file's name with `~' appended.
-Customization hooks are provided as follows.
-
-The value of `make-backup-file-name-function' should be a function which
-will be called with FILE as its argument; the resulting name is used.
-
-By default, a match for FILE is sought in `backup-directory-alist'; see
-the documentation of that variable.  If the directory for the backup
-doesn't exist, it is created."
+This calls the function that `make-backup-file-name-function' specifies,
+with a single argument FILE."
   (funcall (or make-backup-file-name-function
                #'make-backup-file-name--default-function)
            file))
 
 (defun make-backup-file-name--default-function (file)
+  "Default function for `make-backup-file-name'.
+Normally this just returns FILE's name with `~' appended.
+It searches for a match for FILE in `backup-directory-alist'.
+If the directory for the backup doesn't exist, it is created."
   (if (and (eq system-type 'ms-dos)
            (not (msdos-long-file-names)))
       (let ((fn (file-name-nondirectory file)))
@@ -4305,7 +4290,8 @@ doesn't exist, it is created."
     (concat (make-backup-file-name-1 file) "~")))
 
 (defun make-backup-file-name-1 (file)
-  "Subroutine of `make-backup-file-name' and `find-backup-file-name'."
+  "Subroutine of `make-backup-file-name--default-function'.
+The function `find-backup-file-name' also uses this."
   (let ((alist backup-directory-alist)
 	elt backup-directory abs-backup-directory)
     (while alist
@@ -4382,8 +4368,8 @@ the index in the name where the version number begins."
 Value is a list whose car is the name for the backup file
 and whose cdr is a list of old versions to consider deleting now.
 If the value is nil, don't make a backup.
-Uses `backup-directory-alist' in the same way as does
-`make-backup-file-name'."
+Uses `backup-directory-alist' in the same way as
+`make-backup-file-name--default-function' does."
   (let ((handler (find-file-name-handler fn 'find-backup-file-name)))
     ;; Run a handler for this function so that ange-ftp can refuse to do it.
     (if handler
@@ -4999,6 +4985,7 @@ With prefix ARG, mark buffer as modified, so \\[save-buffer] will save.
 
 It is not a good idea to use this function in Lisp programs, because it
 prints a message in the minibuffer.  Instead, use `set-buffer-modified-p'."
+  (declare (interactive-only set-buffer-modified-p))
   (interactive "P")
   (message (if arg "Modification-flag set"
 	       "Modification-flag cleared"))
@@ -5018,9 +5005,9 @@ Set mark after the inserted text.
 This function is meant for the user to run interactively.
 Don't call it from programs!  Use `insert-file-contents' instead.
 \(Its calling sequence is different; see its documentation)."
+  (declare (interactive-only insert-file-contents))
   (interactive "*fInsert file: ")
   (insert-file-1 filename #'insert-file-contents))
-(put 'insert-file 'interactive-only 'insert-file-contents)
 
 (defun append-to-file (start end filename)
   "Append the contents of the region to the end of file FILENAME.
@@ -5319,28 +5306,41 @@ comparison."
 
 (put 'revert-buffer-function 'permanent-local t)
 (defvar revert-buffer-function #'revert-buffer--default
-  "Function to use to revert this buffer, or nil to do the default.
+  "Function to use to revert this buffer.
 The function receives two arguments IGNORE-AUTO and NOCONFIRM,
 which are the arguments that `revert-buffer' received.
 It also has access to the `preserve-modes' argument of `revert-buffer'
-via the `revert-buffer-preserve-modes' dynamic variable.")
+via the `revert-buffer-preserve-modes' dynamic variable.
+
+For historical reasons, a value of nil means to use the default function.
+This should not be relied upon.")
 
 (put 'revert-buffer-insert-file-contents-function 'permanent-local t)
 (defvar revert-buffer-insert-file-contents-function
   #'revert-buffer-insert-file-contents--default-function
   "Function to use to insert contents when reverting this buffer.
-Gets two args, first the nominal file name to use,
-and second, t if reading the auto-save file.
+The function receives two arguments: the first the nominal file name to use;
+the second is t if reading the auto-save file.
 
-The function you specify is responsible for updating (or preserving) point.")
+The function is responsible for updating (or preserving) point.
+
+For historical reasons, a value of nil means to use the default function.
+This should not be relied upon.")
 
 (defun buffer-stale--default-function (&optional _noconfirm)
+  "Default function to use for `buffer-stale-function'.
+This function ignores its argument.
+This returns non-nil if the current buffer is visiting a readable file
+whose modification time does not match that of the buffer.
+
+This function only handles buffers that are visiting files.
+Non-file buffers need a custom function"
   (and buffer-file-name
        (file-readable-p buffer-file-name)
        (not (verify-visited-file-modtime (current-buffer)))))
 
 (defvar buffer-stale-function #'buffer-stale--default-function
-  "Function to check whether a non-file buffer needs reverting.
+  "Function to check whether a buffer needs reverting.
 This should be a function with one optional argument NOCONFIRM.
 Auto Revert Mode passes t for NOCONFIRM.  The function should return
 non-nil if the buffer should be reverted.  A return value of
@@ -5353,13 +5353,16 @@ non-nil if the buffer is going to be reverted without asking the
 user.  In such situations, one has to be careful with potentially
 time consuming operations.
 
+For historical reasons, a value of nil means to use the default function.
+This should not be relied upon.
+
 For more information on how this variable is used by Auto Revert mode,
 see Info node `(emacs)Supporting additional buffers'.")
 
 (defvar before-revert-hook nil
   "Normal hook for `revert-buffer' to run before reverting.
-If `revert-buffer-function' is used to override the normal revert
-mechanism, this hook is not used.")
+The function `revert-buffer--default' runs this.
+A customized `revert-buffer-function' need not run this hook.")
 
 (defvar after-revert-hook nil
   "Normal hook for `revert-buffer' to run after reverting.
@@ -5367,12 +5370,11 @@ Note that the hook value that it runs is the value that was in effect
 before reverting; that makes a difference if you have buffer-local
 hook functions.
 
-If `revert-buffer-function' is used to override the normal revert
-mechanism, this hook is not used.")
+The function `revert-buffer--default' runs this.
+A customized `revert-buffer-function' need not run this hook.")
 
 (defvar revert-buffer-in-progress-p nil
-  "Non-nil if a `revert-buffer' operation is in progress, nil otherwise.
-This is true even if a `revert-buffer-function' is being used.")
+  "Non-nil if a `revert-buffer' operation is in progress, nil otherwise.")
 
 (defvar revert-buffer-internal-hook)
 
@@ -5409,12 +5411,10 @@ the files modes.  Normally we reinitialize them using `normal-mode'.
 
 This function binds `revert-buffer-in-progress-p' non-nil while it operates.
 
-If the value of `revert-buffer-function' is non-nil, it is called to
-do all the work for this command.  Otherwise, the hooks
-`before-revert-hook' and `after-revert-hook' are run at the beginning
-and the end, and if `revert-buffer-insert-file-contents-function' is
-non-nil, it is called instead of rereading visited file contents."
-
+This function calls the function that `revert-buffer-function' specifies
+to do the work, with arguments IGNORE-AUTO and NOCONFIRM.
+The default function runs the hooks `before-revert-hook' and
+`after-revert-hook'."
   ;; I admit it's odd to reverse the sense of the prefix argument, but
   ;; there is a lot of code out there which assumes that the first
   ;; argument should be t to avoid consulting the auto-save file, and
@@ -5426,7 +5426,19 @@ non-nil, it is called instead of rereading visited file contents."
         (revert-buffer-preserve-modes preserve-modes))
     (funcall (or revert-buffer-function #'revert-buffer--default)
              ignore-auto noconfirm)))
+
 (defun revert-buffer--default (ignore-auto noconfirm)
+  "Default function for `revert-buffer'.
+The arguments IGNORE-AUTO and NOCONFIRM are as described for `revert-buffer'.
+Runs the hooks `before-revert-hook' and `after-revert-hook' at the
+start and end.
+
+Calls `revert-buffer-insert-file-contents-function' to reread the
+contents of the visited file, with two arguments: the first is the file
+name, the second is non-nil if reading an auto-save file.
+
+This function only handles buffers that are visiting files.
+Non-file buffers need a custom function."
   (with-current-buffer (or (buffer-base-buffer (current-buffer))
                            (current-buffer))
     (let* ((auto-save-p (and (not ignore-auto)
@@ -5480,6 +5492,10 @@ non-nil, it is called instead of rereading visited file contents."
              t)))))
 
 (defun revert-buffer-insert-file-contents--default-function (file-name auto-save-p)
+  "Default function for `revert-buffer-insert-file-contents-function'.
+The function `revert-buffer--default' calls this.
+FILE-NAME is the name of the file.  AUTO-SAVE-P is non-nil if this is
+an auto-save file."
   (cond
    ((not (file-exists-p file-name))
     (error (if buffer-file-number
@@ -5960,10 +5976,9 @@ default directory.  However, if FULL is non-nil, they are absolute."
 			     (file-expand-wildcards (directory-file-name dirpart)))
 		   (list dirpart)))
 	   contents)
-      (while dirs
-	(when (or (null (car dirs))	; Possible if DIRPART is not wild.
-		  (and (file-directory-p (directory-file-name (car dirs)))
-		       (file-readable-p (car dirs))))
+      (dolist (dir dirs)
+	(when (or (null dir)	; Possible if DIRPART is not wild.
+		  (file-accessible-directory-p dir))
 	  (let ((this-dir-contents
 		 ;; Filter out "." and ".."
 		 (delq nil
@@ -5971,16 +5986,15 @@ default directory.  However, if FULL is non-nil, they are absolute."
 				   (unless (string-match "\\`\\.\\.?\\'"
 							 (file-name-nondirectory name))
 				     name))
-			       (directory-files (or (car dirs) ".") full
+			       (directory-files (or dir ".") full
 						(wildcard-to-regexp nondir))))))
 	    (setq contents
 		  (nconc
-		   (if (and (car dirs) (not full))
-		       (mapcar (function (lambda (name) (concat (car dirs) name)))
+		   (if (and dir (not full))
+		       (mapcar #'(lambda (name) (concat dir name))
 			       this-dir-contents)
 		     this-dir-contents)
-		   contents))))
-	(setq dirs (cdr dirs)))
+		   contents)))))
       contents)))
 
 ;; Let Tramp know that `file-expand-wildcards' does not need an advice.
@@ -6534,7 +6548,7 @@ if any returns nil.  If `confirm-kill-emacs' is non-nil, calls it."
 		    (setq active t))
 	       (setq processes (cdr processes)))
 	     (or (not active)
-		 (with-temp-buffer-window
+		 (with-current-buffer-window
 		  (get-buffer-create "*Process List*") nil
 		  #'(lambda (window _value)
 		      (with-selected-window window
@@ -6838,15 +6852,11 @@ Otherwise, trash FILENAME using the freedesktop.org conventions,
 		      trash-info-dir filename))
 
 	   ;; Ensure that the trash directory exists; otherwise, create it.
-	   (let ((saved-default-file-modes (default-file-modes)))
-	     (unwind-protect
-		 (progn
-		   (set-default-file-modes #o700)
-		   (unless (file-exists-p trash-files-dir)
-		     (make-directory trash-files-dir t))
-		   (unless (file-exists-p trash-info-dir)
-		     (make-directory trash-info-dir t)))
-	       (set-default-file-modes saved-default-file-modes)))
+	   (with-file-modes #o700
+	     (unless (file-exists-p trash-files-dir)
+	       (make-directory trash-files-dir t))
+	     (unless (file-exists-p trash-info-dir)
+	       (make-directory trash-info-dir t)))
 
 	   ;; Try to move to trash with .trashinfo undo information
 	   (save-excursion

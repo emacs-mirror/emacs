@@ -1,3 +1,18 @@
+2014-04-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* sedlisp.inp:
+	* sedlibmk.inp:
+	* sedleim.inp:
+	* sed3v2.inp:
+	* sed2v2.inp:
+	* sed1v2.inp: Update Sed scripts for Emacs 24.4.
+
+	* inttypes.h: Add PRIdMAX.
+
+	* INSTALL: Update for Emacs 24.4.
+
+	* sedadmin.inp: New file.
+
 2013-12-24  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* autogen/Makefile.in: Update copyright year.

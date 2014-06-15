@@ -170,8 +170,8 @@ make_destroyed_instance (char* name,
 {
   destroyed_instance* instance =
     (destroyed_instance*) xmalloc (sizeof (destroyed_instance));
-  instance->name = safe_strdup (name);
-  instance->type = safe_strdup (type);
+  instance->name = xstrdup (name);
+  instance->type = xstrdup (type);
   instance->widget = widget;
   instance->parent = parent;
   instance->pop_up_p = pop_up_p;
@@ -953,10 +953,7 @@ xm_update_one_value (widget_instance* instance,
 
 	      XtVaGetValues (toggle, XmNset, &set, NULL);
 	      if (set)
-		{
-		  xfree (val->value);
-		  val->value = safe_strdup (XtName (toggle));
-		}
+		dupstring (&val->value, XtName (toggle));
 	    }
 	  val->edited = True;
 	}
@@ -979,7 +976,7 @@ xm_update_one_value (widget_instance* instance,
 		  if (pos_list [j] == i)
 		    {
 		      cur->selected = True;
-		      val->value = safe_strdup (cur->name);
+		      val->value = xstrdup (cur->name);
 		    }
 	      }
 	  val->edited = 1;

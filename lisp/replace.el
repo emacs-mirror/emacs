@@ -523,6 +523,8 @@ What you probably want is a loop like this:
 which will run faster and will not set the mark or print anything.
 \(You may need a more complex loop if FROM-STRING can match the null string
 and TO-STRING is also null.)"
+  (declare (interactive-only
+	    "use `search-forward' and `replace-match' instead."))
   (interactive
    (let ((common
 	  (query-replace-read-args
@@ -540,8 +542,6 @@ and TO-STRING is also null.)"
 	       (region-end))
 	   (nth 3 common))))
   (perform-replace from-string to-string nil nil delimited nil nil start end backward))
-(put 'replace-string 'interactive-only
-     "use `search-forward' and `replace-match' instead.")
 
 (defun replace-regexp (regexp to-string &optional delimited start end backward)
   "Replace things after point matching REGEXP with TO-STRING.
@@ -597,6 +597,8 @@ What you probably want is a loop like this:
   (while (re-search-forward REGEXP nil t)
     (replace-match TO-STRING nil nil))
 which will run faster and will not set the mark or print anything."
+  (declare (interactive-only
+	    "use `re-search-forward' and `replace-match' instead."))
   (interactive
    (let ((common
 	  (query-replace-read-args
@@ -614,8 +616,6 @@ which will run faster and will not set the mark or print anything."
 	       (region-end))
 	   (nth 3 common))))
   (perform-replace regexp to-string nil t delimited nil nil start end backward))
-(put 'replace-regexp 'interactive-only
-     "use `re-search-forward' and `replace-match' instead.")
 
 
 (defvar regexp-history nil

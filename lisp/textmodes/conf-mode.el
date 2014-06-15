@@ -311,8 +311,7 @@ unbalanced, but hey...)"
     (when (or (not arg) (= (prefix-numeric-value arg) 2))
       (modify-syntax-entry ?\" "." table))
     (set-syntax-table table)
-    (when font-lock-mode
-      (font-lock-fontify-buffer))))
+    (font-lock-flush)))
 
 
 (defun conf-outline-level ()

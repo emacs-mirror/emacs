@@ -3,7 +3,7 @@
 ;; Copyright (C) 2003, 2007-2014 Free Software Foundation, Inc.
 
 ;; Author: James Clark
-;; Keywords: XML, RelaxNG
+;; Keywords: wp, hypermedia, languages, XML, RelaxNG
 
 ;; This file is part of GNU Emacs.
 
@@ -363,7 +363,7 @@ OVERRIDE is either nil, require or t."
 	    "*")))
 
 (defun rng-c-process-escapes ()
-  ;; Check for any nuls, since we will use nul chars
+  ;; Check for any NULs, since we will use NUL chars
   ;; for internal purposes.
   (let ((pos (search-forward "\C-@" nil t)))
     (and pos
@@ -932,4 +932,3 @@ Current token after parse is token following ]."
 (provide 'rng-cmpct)
 
 ;;; rng-cmpct.el
-

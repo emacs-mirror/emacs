@@ -2067,7 +2067,7 @@
 	* ediff-util.el: Copyright years.
 	(ediff-choose-syntax-table): New function.
 	(ediff-setup): Use ediff-choose-syntax-table.
-	(ediff-file-checked-out-p,ediff-file-checked-in-p): Check if
+	(ediff-file-checked-out-p, ediff-file-checked-in-p): Check if
 	vc-state is available.
 	(ediff-make-temp-file): Use ediff-coding-system-for-write.
 
@@ -2089,22 +2089,22 @@
 	(ediff-patch-file-internal): Use ediff-coding-system-for-write.
 
 	* ediff-diff.el (ediff-coding-system-for-read): Moved to ediff-init.el.
-	(ediff-match-diff3-line,ediff-get-diff3-group): Improved pattern.
+	(ediff-match-diff3-line, ediff-get-diff3-group): Improved pattern.
 
 	* ediff.el: Date of last update, copyright years.
 
 	* ediff-wind.el (ediff-setup-control-frame): Nill->nil.
 
-	* viper-ex.el (ex-token-list,ex-cmd-execute): Revamped, courtesy
+	* viper-ex.el (ex-token-list, ex-cmd-execute): Revamped, courtesy
 	of Scott Bronson.
-	(ex-cmd-assoc,ex-compile,ex-cmd-one-letr): New functions.
-	(viper-check-sub,viper-get-ex-command,viper-execute-ex-command):
+	(ex-cmd-assoc, ex-compile, ex-cmd-one-letr): New functions.
+	(viper-check-sub, viper-get-ex-command, viper-execute-ex-command):
 	Deleted functions.
-	(viper-get-ex-com-subr,viper-ex,ex-mark): Changed to use the new
+	(viper-get-ex-com-subr, viper-ex, ex-mark): Changed to use the new
 	ex-token-list.
 	(viper-get-ex-address-subr): Convert registers to char data type.
 
-	* viper-util.el (viper-int-to-char,viper-char-equal): New functions.
+	* viper-util.el (viper-int-to-char, viper-char-equal): New functions.
 	(viper-memq-char): Use viper-int-to-char.
 	(viper-file-checked-in-p): Use vc-locking-user, if vc doesn't have
 	vc-locking-state.
@@ -2119,18 +2119,18 @@
 	(viper-read-key-sequence): New function that replaces the
 	previously used advice to read-key-sequence.
 
-	* viper-cmd.el (viper-test-com-defun,viper-exec-change)
-	(viper-exec-Change,viper-execute-com,viper-insert,viper-append)
-	(viper-Append,viper-Insert,viper-open-line,viper-Open-line)
-	(viper-open-line-at-point,viper-substitute,viper-overwrite)
-	(viper-replace-char-subr,viper-forward-word,viper-forward-Word):
+	* viper-cmd.el (viper-test-com-defun, viper-exec-change)
+	(viper-exec-Change, viper-execute-com, viper-insert, viper-append)
+	(viper-Append, viper-Insert, viper-open-line, viper-Open-line)
+	(viper-open-line-at-point, viper-substitute, viper-overwrite)
+	(viper-replace-char-subr, viper-forward-word, viper-forward-Word):
 	Got rid of the negative character hack.
-	(viper-escape-to-state,viper-replace-state-exit-cmd):
+	(viper-escape-to-state, viper-replace-state-exit-cmd):
 	Use viper-read-key-sequence.
 	(viper-envelop-ESC-key): No need for ad-get-orig-definition.
-	(viper-minibuffer-standard-hook,viper-read-string-with-history):
+	(viper-minibuffer-standard-hook, viper-read-string-with-history):
 	Don't override existing minibuffer-setup-hook.
-	(viper-mark-point,viper-goto-mark-subr,viper-brac-function):
+	(viper-mark-point, viper-goto-mark-subr, viper-brac-function):
 	Convert registers to char data type.
 	(viper-autoindent): Use viper-indent-line.
 
@@ -4867,12 +4867,12 @@
 
 	* ediff-wind.el (ediff-setup-control-frame): Nill->nil.
 
-	* viper-ex.el (ex-token-list,ex-cmd-execute): Revamped, courtesy
+	* viper-ex.el (ex-token-list, ex-cmd-execute): Revamped, courtesy
 	of Scott Bronson.
-	(ex-cmd-assoc,ex-cmd-one-letr): New functions.
-	(viper-check-sub,viper-get-ex-command,viper-execute-ex-command):
+	(ex-cmd-assoc, ex-cmd-one-letr): New functions.
+	(viper-check-sub, viper-get-ex-command, viper-execute-ex-command):
 	Deleted functions.
-	(viper-get-ex-com-subr,viper-ex,ex-mark): Changed to use the new
+	(viper-get-ex-com-subr, viper-ex, ex-mark): Changed to use the new
 	ex-token-list.
 
 	* viper-util.el: Spaces, indentation.
@@ -6989,7 +6989,7 @@
 
 	* viper-init.el (viper-restore-cursor-type): Added condition-case guard.
 
-	* ediff-init.el (ediff-quit-hook,ediff-suspend-hook):
+	* ediff-init.el (ediff-quit-hook, ediff-suspend-hook):
 	Changed initialization; use add-hook.
 	(ediff-file-remote-p): Use file-local-copy.
 
@@ -8204,9 +8204,9 @@
 	* viper-cmd.el (viper-change-state-to-vi): Disable overwrite mode.
 	(viper-downgrade-to-insert): Protect against errors in hooks.
 
-	* viper-init.el (viper-vi-state-hook,viper-insert-state-hook)
-	(viper-replace-state-hook,viper-emacs-state-hook): Do cursor handling.
-	(viper-restore-cursor-type,viper-set-insert-cursor-type):
+	* viper-init.el (viper-vi-state-hook, viper-insert-state-hook)
+	(viper-replace-state-hook, viper-emacs-state-hook): Do cursor handling.
+	(viper-restore-cursor-type, viper-set-insert-cursor-type):
 	New functions.
 
 	* viper-util.el (viper-memq-char): Bug fixes.
@@ -9474,7 +9474,7 @@
 	Use viper-preserve-cursor-color.
 	Many functions changed to use viper= instead of = when comparing
 	characters.
-	* viper-util.el (viper-memq-char,viper=): New functions for
+	* viper-util.el (viper-memq-char, viper=): New functions for
 	working with characters.
 	(viper-change-cursor-color): Fixed buglet.
 	Many functions changed to use viper= instead of = when comparing
@@ -9489,14 +9489,14 @@
 	* ediff-util.el (ediff-setup): Run ediff-before-setup-hook.
 	(ediff-other-buffer): Use selected buffers if in Buffer-menu buffer.
 	(ediff-get-selected-buffers): New function.
-	* ediff-vers.el (ediff-vc-internal,ediff-rcs-internal)
-	(ediff-vc-merge-internal,ediff-rcs-merge-internal):
+	* ediff-vers.el (ediff-vc-internal, ediff-rcs-internal)
+	(ediff-vc-merge-internal, ediff-rcs-merge-internal):
 	Use save-window-excursion.
 	* ediff-wind.el (ediff-skip-unsuitable-frames): More robust
 	termination check in while loop.
 	* ediff.el (ediff-get-default-file-name): Better defaults when in
 	dired buffer.
-	(ediff-files,ediff-merge-files,ediff-files3)
+	(ediff-files, ediff-merge-files, ediff-files3)
 	(ediff-merge-files-with-ancestor): Use ediff-get-default-file-name.
 
 2000-10-28  Dave Love  <fx@gnu.org>
@@ -10973,8 +10973,8 @@
 
 2000-10-04  Andre Spiegel  <spiegel@gnu.org>
 
-	* vc-hooks.el (vc-before-save, vc-default-make-version-backups,
-	vc-version-backup-file-name): New functions.
+	* vc-hooks.el (vc-before-save, vc-default-make-version-backups)
+	(vc-version-backup-file-name): New functions.
 
 	* files.el (basic-save-buffer): Call vc-before-save before saving.
 
@@ -12229,8 +12229,8 @@
 	* vc.el: Require dired-aux during compilation.
 	(vc-name-assoc-file): Moved to vc-sccs.el.
 	(with-vc-properties): New macro.
-	(vc-checkin, vc-checkout, vc-revert, vc-cancel-version,
-	vc-finish-steal): Use it.
+	(vc-checkin, vc-checkout, vc-revert, vc-cancel-version)
+	(vc-finish-steal): Use it.
 	(vc-cancel-version): Moved RCS-specific code to vc-rcs.el.  The call
 	to the backend-specific function is now supposed to do the checkout,
 	too.
@@ -12844,11 +12844,10 @@
 
 2000-09-04  Stefan Monnier  <monnier@cs.yale.edu>
 
-	* vc-rcs-hooks.el (vc-rcs-templates-grabbed,
-	vc-rcs-grab-templates)
+	* vc-rcs-hooks.el (vc-rcs-templates-grabbed, vc-rcs-grab-templates)
 	(vc-rcs-registered): Remove.  The default function works as well.
-	* vc-sccs-hooks.el (vc-sccs-templates-grabbed,
-	vc-sccs-grab-templates)
+	* vc-sccs-hooks.el (vc-sccs-templates-grabbed)
+	(vc-sccs-grab-templates)
 	(vc-sccs-registered): Remove.  The default function works as well.
 
 	* vc.el (vc-version-diff): Left out a vc- in call to
@@ -13070,8 +13069,8 @@
 	(vc-rcs-trunk-p, vc-rcs-branch-part): Move to vc-rcs-hooks.
 	(vc-rcs-backend-release-p): Remove (use vc-rcs-release-p).
 	(vc-release-greater-or-equal-p): Move from vc.
-	(vc-rcs-trunk-p, vc-rcs-branch-p, vc-rcs-branch-part,
-	vc-rcs-minor-part, vc-rcs-previous-version): Remove duplicates.
+	(vc-rcs-trunk-p, vc-rcs-branch-p, vc-rcs-branch-part)
+	(vc-rcs-minor-part, vc-rcs-previous-version): Remove duplicates.
 	(vc-rcs-checkout): Add a missing `new-version' argument in the
 	call to vc-rcs-latest-on-branch-p.  Hopefully that was the right one.
 
@@ -13144,7 +13143,7 @@
 
 2000-09-04  Martin Lorentzson  <martinl@delysid.gnu.org>
 
-	* vc-cvs.el (vc-cvs-revert,vc-cvs-checkout): References to
+	* vc-cvs.el (vc-cvs-revert, vc-cvs-checkout): References to
 	`vc-checkout-model' updated to `vc-cvs-update-model'.
 
 2000-09-04  Andre Spiegel  <spiegel@inf.fu-berlin.de>
@@ -13241,7 +13240,7 @@
 
 2000-09-04  Martin Lorentzson  <martinl@gnu.org>
 
-	* vc.el (vc-workfile-unchanged-p,vc-diff,vc-version-diff):
+	* vc.el (vc-workfile-unchanged-p, vc-diff, vc-version-diff):
 	Update to use the vc-BACKEND-diff functions instead.
 	`vc-diff' is now working.
 
@@ -13261,7 +13260,7 @@
 	This checkin is made with our new VC code base for the very first time.
 	A simple `(vc-checkin (buffer-file-name))' was used to perform it.
 
-	* vc-cvs.el (vc-cvs-revert,vc-cvs-checkout): Function calls to
+	* vc-cvs.el (vc-cvs-revert, vc-cvs-checkout): Function calls to
 	`vc-checkout-required' updated to `vc-cvs-uses-locking'.
 
 	* vc-hooks.el (vc-backend-hook-functions): `vc-checkout-required'
@@ -13716,8 +13715,8 @@
 
 	* vc-rcs-hooks.el: Require vc-hooks when compiling.
 	(vc-rcs-master-templates): Improve :type.
-	(vc-rcsdiff-knows-brief, vc-rcs-lock-from-diff,
-	vc-master-workfile-version): Moved from vc-hooks.
+	(vc-rcsdiff-knows-brief, vc-rcs-lock-from-diff)
+	(vc-master-workfile-version): Moved from vc-hooks.
 
 	* vc-sccs-hooks.el: Require vc-hooks when compiling.
 	(vc-sccs-master-templates): Improve :type.
@@ -15397,9 +15396,9 @@
 
 	* progmodes/cc-cmds.el (c-indent-command): Obey c-syntactic-indentation.
 
-	* progmodes/cc-cmds.el (c-electric-brace, c-electric-slash,
-	c-electric-star, c-electric-semi&comma, c-electric-colon,
-	c-electric-lt-gt, c-electric-paren): Don't reindent old lines
+	* progmodes/cc-cmds.el (c-electric-brace, c-electric-slash)
+	(c-electric-star, c-electric-semi&comma, c-electric-colon)
+	(c-electric-lt-gt, c-electric-paren): Don't reindent old lines
 	when c-syntactic-indentation is nil.
 
 	* progmodes/cc-engine.el (c-beginning-of-statement-1): Fixed bug where
@@ -15467,8 +15466,8 @@
 	* progmodes/cc-styles.el (c-copy-tree): Obsolete.  The standard function
 	copy-alist is sufficient now.
 
-	* progmodes/cc-styles.el (c-set-style, c-set-style-1,
-	c-get-style-variables): Fixes to variable initialization so
+	* progmodes/cc-styles.el (c-set-style, c-set-style-1)
+	(c-get-style-variables): Fixes to variable initialization so
 	that duplicate entries in styles have the same effect
 	regardless of DONT-OVERRIDE.
 
@@ -16405,8 +16404,8 @@
 	Support for bibentry.
 	(reftex-compile-variables): Fixed problem with end of section-re.
 
-	* textmodes/reftex-dcr.el (reftex-view-crossref,
-	reftex-view-crossref-from-bibtex):
+	* textmodes/reftex-dcr.el (reftex-view-crossref)
+	(reftex-view-crossref-from-bibtex):
 	Deal with changed `reftex-find-citation-regexp-format'.
 	(reftex-view-regexp-match, reftex-view-crossref-from-bibtex):
 	Replaced `remprop' with `put'.
@@ -17389,8 +17388,8 @@
 
 	* international/mule-conf.el: Specify CHARSET-ID explicitly for
 	private charsets.
-	(mule-unicode-0100-24ff, japanese-jisx0213-1,
-	japanese-jisx0213-2): New charsets.
+	(mule-unicode-0100-24ff, japanese-jisx0213-1)
+	(japanese-jisx0213-2): New charsets.
 
 	* international/fontset.el: Setup default fontset for new charsets.
 
@@ -17415,7 +17414,7 @@
 
 	* ediff-diff.el (ediff-forward-word): Take syntactic word class into
 	account.
-	(ediff-test-utility,ediff-diff-mandatory-option)
+	(ediff-test-utility, ediff-diff-mandatory-option)
 	(ediff-reset-diff-options): Utilities for proper initialization of
 	ediff-diff-options and ediff-diff3-options on Windows.
 
@@ -18474,11 +18473,11 @@
 
 	* textmodes/ispell.el (ispell-cmd-args, ispell-output-buffer)
 	(ispell-session-buffer): New variables.
-	(ispell-start-process, ispell-process-status,
-	ispell-accept-output, ispell-send-string): New functions, for
+	(ispell-start-process, ispell-process-status)
+	(ispell-accept-output, ispell-send-string): New functions, for
 	Ispell invocation when async subprocesses aren't supported.
-	(ispell-word, ispell-pdict-save, ispell-command-loop,
-	ispell-process-line, ispell-buffer-local-parsing): Replace calls
+	(ispell-word, ispell-pdict-save, ispell-command-loop)
+	(ispell-process-line, ispell-buffer-local-parsing): Replace calls
 	to process-send-string with calls to ispell-send-string, and
 	accept-process-output with ispell-accept-output.
 	(ispell-init-process): Call ispell-process-status instead of

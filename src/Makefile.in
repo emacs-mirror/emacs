@@ -77,6 +77,7 @@ C_SWITCH_MACHINE=@C_SWITCH_MACHINE@
 C_SWITCH_SYSTEM=@C_SWITCH_SYSTEM@
 
 GNUSTEP_CFLAGS=@GNUSTEP_CFLAGS@
+PNG_CFLAGS=@PNG_CFLAGS@
 
 ## Define C_SWITCH_X_SITE to contain any special flags your compiler
 ## may need to deal with X Windows.  For instance, if you've defined
@@ -121,7 +122,7 @@ LIBS_SYSTEM=@LIBS_SYSTEM@
 ## -lm, or empty.
 LIB_MATH=@LIB_MATH@
 
-## -lpthreads, or empty.
+## -lpthread, or empty.
 LIB_PTHREAD=@LIB_PTHREAD@
 
 LIBIMAGE=@LIBTIFF@ @LIBJPEG@ @LIBPNG@ @LIBGIF@ @LIBXPM@
@@ -230,6 +231,9 @@ XRANDR_CFLAGS = @XRANDR_CFLAGS@
 XINERAMA_LIBS = @XINERAMA_LIBS@
 XINERAMA_CFLAGS = @XINERAMA_CFLAGS@
 
+XFIXES_LIBS = @XFIXES_LIBS@
+XFIXES_CFLAGS = @XFIXES_CFLAGS@
+
 ## widget.o if USE_X_TOOLKIT, otherwise empty.
 WIDGET_OBJ=@WIDGET_OBJ@
 
@@ -286,21 +290,14 @@ LIBSELINUX_LIBS = @LIBSELINUX_LIBS@
 LIBGNUTLS_LIBS = @LIBGNUTLS_LIBS@
 LIBGNUTLS_CFLAGS = @LIBGNUTLS_CFLAGS@
 
-LIB_PTHREAD_SIGMASK = @LIB_PTHREAD_SIGMASK@
-
 INTERVALS_H = dispextern.h intervals.h composite.h
 
 GETLOADAVG_LIBS = @GETLOADAVG_LIBS@
 
 RUN_TEMACS = ./temacs
 
-## Invoke ../nt/addsection for MinGW, ":" elsewhere.
-TEMACS_POST_LINK = @TEMACS_POST_LINK@
-ADDSECTION = @ADDSECTION@
+## Static heap size for temacs on MinGW.
 EMACS_HEAPSIZE = @EMACS_HEAPSIZE@
-MINGW_TEMACS_POST_LINK = \
- mv temacs$(EXEEXT) temacs.tmp; \
- ../nt/addsection temacs.tmp temacs$(EXEEXT) EMHEAP $(EMACS_HEAPSIZE)
 
 UNEXEC_OBJ = @UNEXEC_OBJ@
 
@@ -325,7 +322,8 @@ ALL_CFLAGS=-Demacs $(MYCPPFLAGS) -I. -I$(srcdir) \
   -I$(lib) -I$(srcdir)/../lib \
   $(C_SWITCH_MACHINE) $(C_SWITCH_SYSTEM) $(C_SWITCH_X_SITE) \
   $(GNUSTEP_CFLAGS) $(CFLAGS_SOUND) $(RSVG_CFLAGS) $(IMAGEMAGICK_CFLAGS) \
-  $(LIBXML2_CFLAGS) $(DBUS_CFLAGS) $(XRANDR_CFLAGS) $(XINERAMA_CFLAGS) \
+  $(PNG_CFLAGS) $(LIBXML2_CFLAGS) $(DBUS_CFLAGS) \
+  $(XRANDR_CFLAGS) $(XINERAMA_CFLAGS) $(XFIXES_CFLAGS) \
   $(SETTINGS_CFLAGS) $(FREETYPE_CFLAGS) $(FONTCONFIG_CFLAGS) \
   $(LIBOTF_CFLAGS) $(M17N_FLT_CFLAGS) $(DEPFLAGS) \
   $(LIBGNUTLS_CFLAGS) $(GFILENOTIFY_CFLAGS) \
@@ -405,11 +403,11 @@ LIBES = $(LIBS) $(W32_LIBS) $(LIBS_GNUSTEP) $(LIBX_BASE) $(LIBIMAGE) \
    $(LIBX_OTHER) $(LIBSOUND) \
    $(RSVG_LIBS) $(IMAGEMAGICK_LIBS) $(LIB_ACL) $(LIB_CLOCK_GETTIME) \
    $(LIB_EACCESS) $(LIB_FDATASYNC) $(LIB_TIMER_TIME) $(DBUS_LIBS) \
-   $(LIB_EXECINFO) $(XRANDR_LIBS) $(XINERAMA_LIBS) \
+   $(LIB_EXECINFO) $(XRANDR_LIBS) $(XINERAMA_LIBS) $(XFIXES_LIBS) \
    $(LIBXML2_LIBS) $(LIBGPM) $(LIBRESOLV) $(LIBS_SYSTEM) \
    $(LIBS_TERMCAP) $(GETLOADAVG_LIBS) $(SETTINGS_LIBS) $(LIBSELINUX_LIBS) \
    $(FREETYPE_LIBS) $(FONTCONFIG_LIBS) $(LIBOTF_LIBS) $(M17N_FLT_LIBS) \
-   $(LIBGNUTLS_LIBS) $(LIB_PTHREAD) $(LIB_PTHREAD_SIGMASK) \
+   $(LIBGNUTLS_LIBS) $(LIB_PTHREAD) \
    $(GFILENOTIFY_LIBS) $(LIB_MATH) $(LIBZ)
 
 all: emacs$(EXEEXT) $(OTHER_FILES)
@@ -418,7 +416,8 @@ all: emacs$(EXEEXT) $(OTHER_FILES)
 $(leimdir)/leim-list.el: bootstrap-emacs$(EXEEXT)
 	cd ../leim && $(MAKE) $(MFLAGS) leim-list.el EMACS="$(bootstrap_exe)"
 
-$(lispsource)/international/charprop.el: bootstrap-emacs$(EXEEXT)
+$(srcdir)/macuvs.h $(lispsource)/international/charprop.el: \
+  bootstrap-emacs$(EXEEXT)
 	cd ../admin/unidata && $(MAKE) $(MFLAGS) all EMACS="../$(bootstrap_exe)"
 
 ## The dumped Emacs is as functional and more efficient than
@@ -426,7 +425,7 @@ $(lispsource)/international/charprop.el: bootstrap-emacs$(EXEEXT)
 ## Strictly speaking, emacs does not depend directly on all of $lisp,
 ## since not all pieces are used on all platforms.  But DOC depends
 ## on all of $lisp, and emacs depends on DOC, so it is ok to use $lisp here.
-emacs$(EXEEXT): temacs$(EXEEXT) $(ADDSECTION) \
+emacs$(EXEEXT): temacs$(EXEEXT) \
                 $(etc)/DOC $(lisp) $(leimdir)/leim-list.el \
                 $(lispsource)/international/charprop.el
 	if test "$(CANNOT_DUMP)" = "yes"; then \
@@ -492,7 +491,6 @@ temacs$(EXEEXT): $(LIBXMENU) $(ALLOBJS) \
 	$(CC) $(ALL_CFLAGS) $(TEMACS_LDFLAGS) $(LDFLAGS) \
 	  -o temacs $(ALLOBJS) $(lib)/libgnu.a $(W32_RES_LINK) $(LIBES)
 	$(MKDIR_P) $(etc)
-	$(TEMACS_POST_LINK)
 	test "$(CANNOT_DUMP)" = "yes" || \
 	  test "X$(PAXCTL)" = X || $(PAXCTL) -r temacs$(EXEEXT)
 	test "$(CANNOT_DUMP)" = "yes" || test -z "$(SETFATTR)" || \

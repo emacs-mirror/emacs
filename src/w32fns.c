@@ -723,8 +723,7 @@ w32_default_color_map (void)
 
   cmap = Qnil;
 
-  for (i = 0; i < sizeof (w32_color_map) / sizeof (w32_color_map[0]);
-       pc++, i++)
+  for (i = 0; i < ARRAYELTS (w32_color_map); pc++, i++)
     cmap = Fcons (Fcons (build_string (pc->name),
 			 make_number (pc->colorref)),
 		  cmap);
@@ -2099,6 +2098,7 @@ reset_modifiers (void)
 
 #define CURRENT_STATE(key) ((GetAsyncKeyState (key) & 0x8000) >> 8)
 
+    memset (keystate, 0, sizeof (keystate));
     GetKeyboardState (keystate);
     keystate[VK_SHIFT] = CURRENT_STATE (VK_SHIFT);
     keystate[VK_CONTROL] = CURRENT_STATE (VK_CONTROL);
@@ -3444,6 +3444,7 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	  tme.cbSize = sizeof (tme);
 	  tme.dwFlags = TME_LEAVE;
 	  tme.hwndTrack = hwnd;
+	  tme.dwHoverTime = HOVER_DEFAULT;
 
 	  track_mouse_event_fn (&tme);
 	  track_mouse_window = hwnd;
@@ -3803,7 +3804,8 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	wp.length = sizeof (WINDOWPLACEMENT);
 	GetWindowPlacement (hwnd, &wp);
 
-	if (wp.showCmd != SW_SHOWMINIMIZED && (lppos->flags & SWP_NOSIZE) == 0)
+	if (wp.showCmd != SW_SHOWMAXIMIZED && wp.showCmd != SW_SHOWMINIMIZED
+	    && (lppos->flags & SWP_NOSIZE) == 0)
 	  {
 	    RECT rect;
 	    int wdiff;
@@ -4242,6 +4244,17 @@ unwind_create_frame (Lisp_Object frame)
     {
 #ifdef GLYPH_DEBUG
       struct w32_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
+
+      /* If the frame's image cache refcount is still the same as our
+	 private shadow variable, it means we are unwinding a frame
+	 for which we didn't yet call init_frame_faces, where the
+	 refcount is incremented.  Therefore, we increment it here, so
+	 that free_frame_faces, called in x_free_frame_resources
+	 below, will not mistakenly decrement the counter that was not
+	 incremented yet to account for this new frame.  */
+      if (FRAME_IMAGE_CACHE (f) != NULL
+	  && FRAME_IMAGE_CACHE (f)->refcount == image_cache_refcount)
+	FRAME_IMAGE_CACHE (f)->refcount++;
 #endif
 
       x_free_frame_resources (f);
@@ -4252,7 +4265,8 @@ unwind_create_frame (Lisp_Object frame)
       eassert (dpyinfo->reference_count == dpyinfo_refcount);
       eassert ((dpyinfo->terminal->image_cache == NULL
 		&& image_cache_refcount == 0)
-	       || dpyinfo->terminal->image_cache->refcount == image_cache_refcount);
+	       || (dpyinfo->terminal->image_cache != NULL
+		   && dpyinfo->terminal->image_cache->refcount == image_cache_refcount));
 #endif
       return Qt;
     }
@@ -6033,12 +6047,13 @@ Text larger than the specified size is clipped.  */)
 	  /* Put tooltip in topmost group and in position.  */
 	  SetWindowPos (FRAME_W32_WINDOW (f), HWND_TOPMOST,
 			root_x, root_y, 0, 0,
-			SWP_NOSIZE | SWP_NOACTIVATE);
+			SWP_NOSIZE | SWP_NOACTIVATE | SWP_NOOWNERZORDER);
 
 	  /* Ensure tooltip is on top of other topmost windows (eg menus).  */
 	  SetWindowPos (FRAME_W32_WINDOW (f), HWND_TOP,
 			0, 0, 0, 0,
-			SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+			SWP_NOMOVE | SWP_NOSIZE
+			| SWP_NOACTIVATE | SWP_NOOWNERZORDER);
 
 	  unblock_input ();
 	  goto start_timer;
@@ -6236,12 +6251,13 @@ Text larger than the specified size is clipped.  */)
     SetWindowPos (FRAME_W32_WINDOW (f), HWND_TOPMOST,
 		  root_x, root_y,
 		  rect.right - rect.left + FRAME_COLUMN_WIDTH (f),
-		  rect.bottom - rect.top, SWP_NOACTIVATE);
+		  rect.bottom - rect.top, SWP_NOACTIVATE | SWP_NOOWNERZORDER);
 
     /* Ensure tooltip is on top of other topmost windows (eg menus).  */
     SetWindowPos (FRAME_W32_WINDOW (f), HWND_TOP,
 		  0, 0, 0, 0,
-		  SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+		  SWP_NOMOVE | SWP_NOSIZE
+		  | SWP_NOACTIVATE | SWP_NOOWNERZORDER);
 
     /* Let redisplay know that we have made the frame visible already.  */
     SET_FRAME_VISIBLE (f, 1);
@@ -6866,24 +6882,33 @@ operations:
                specified DOCUMENT.
  \"find\"    - initiate search starting from DOCUMENT, which must specify
                a directory.
+ \"delete\"  - move DOCUMENT, a file or a directory, to Recycle Bin.
+ \"copy\"    - copy DOCUMENT, which must be a file or a directory, into
+               the clipboard.
+ \"cut\"     - move DOCUMENT, a file or a directory, into the clipboard.
+ \"paste\"   - paste the file whose name is in the clipboard into DOCUMENT,
+               which must be a directory.
+ \"pastelink\"
+           - create a shortcut in DOCUMENT (which must be a directory)
+               the file or directory whose name is in the clipboard.
  \"runas\"   - run DOCUMENT, which must be an excutable file, with
                elevated privileges (a.k.a. \"as Administrator\").
  \"properties\"
-           - open the the property sheet dialog for DOCUMENT; works
-               for *.lnk desktop shortcuts, and little or nothing else.
+           - open the the property sheet dialog for DOCUMENT.
  nil       - invoke the default OPERATION, or \"open\" if default is
                not defined or unavailable.
 
 DOCUMENT is typically the name of a document file or a URL, but can
 also be an executable program to run, or a directory to open in the
-Windows Explorer.  If it is a file, it must be a local one; this
-function does not support remote file names.
+Windows Explorer.  If it is a file or a directory, it must be a local
+one; this function does not support remote file names.
 
 If DOCUMENT is an executable program, the optional third arg PARAMETERS
-can be a string containing command line parameters that will be passed
-to the program.  Some values of OPERATION also require parameters (e.g.,
-\"printto\" requires the printer address).  Otherwise, PARAMETERS should
-be nil or unspecified.
+can be a string containing command line parameters, separated by blanks,
+that will be passed to the program.  Some values of OPERATION also require
+parameters (e.g., \"printto\" requires the printer address).  Otherwise,
+PARAMETERS should be nil or unspecified.  Note that double quote characters
+in PARAMETERS must each be enclosed in 2 additional quotes, as in \"\"\".
 
 Optional fourth argument SHOW-FLAG can be used to control how the
 application will be displayed when it is invoked.  If SHOW-FLAG is nil
@@ -6901,11 +6926,13 @@ a ShowWindow flag:
   char *errstr;
   Lisp_Object current_dir = BVAR (current_buffer, directory);;
   wchar_t *doc_w = NULL, *params_w = NULL, *ops_w = NULL;
+#ifdef CYGWIN
   intptr_t result;
-#ifndef CYGWIN
+#else
   int use_unicode = w32_unicode_filenames;
   char *doc_a = NULL, *params_a = NULL, *ops_a = NULL;
   Lisp_Object absdoc, handler;
+  BOOL success;
   struct gcpro gcpro1;
 #endif
 
@@ -6933,97 +6960,6 @@ a ShowWindow flag:
 				     GUI_SDATA (current_dir),
 				     (INTEGERP (show_flag)
 				      ? XINT (show_flag) : SW_SHOWDEFAULT));
-#else  /* !CYGWIN */
-  current_dir = ENCODE_FILE (current_dir);
-  /* We have a situation here.  If DOCUMENT is a relative file name,
-     but its name includes leading directories, i.e. it lives not in
-     CURRENT_DIR, but in its subdirectory, then ShellExecute below
-     will fail to find it.  So we need to make the file name is
-     absolute.  But DOCUMENT does not have to be a file, it can be a
-     URL, for example.  So we make it absolute only if it is an
-     existing file; if it is a file that does not exist, tough.  */
-  GCPRO1 (absdoc);
-  absdoc = Fexpand_file_name (document, Qnil);
-  /* Don't call file handlers for file-exists-p, since they might
-     attempt to access the file, which could fail or produce undesired
-     consequences, see bug#16558 for an example.  */
-  handler = Ffind_file_name_handler (absdoc, Qfile_exists_p);
-  if (NILP (handler))
-    {
-      Lisp_Object absdoc_encoded = ENCODE_FILE (absdoc);
-
-      if (faccessat (AT_FDCWD, SSDATA (absdoc_encoded), F_OK, AT_EACCESS) == 0)
-	document = absdoc_encoded;
-      else
-	document = ENCODE_FILE (document);
-    }
-  else
-    document = ENCODE_FILE (document);
-  UNGCPRO;
-  if (use_unicode)
-    {
-      wchar_t document_w[MAX_PATH], current_dir_w[MAX_PATH];
-
-      /* Encode filename, current directory and parameters, and
-	 convert operation to UTF-16.  */
-      filename_to_utf16 (SSDATA (current_dir), current_dir_w);
-      filename_to_utf16 (SSDATA (document), document_w);
-      doc_w = document_w;
-      if (STRINGP (parameters))
-	{
-	  int len;
-
-	  parameters = ENCODE_SYSTEM (parameters);
-	  len = pMultiByteToWideChar (CP_ACP, MB_ERR_INVALID_CHARS,
-				      SSDATA (parameters), -1, NULL, 0);
-	  if (len > 32768)
-	    len = 32768;
-	  params_w = alloca (len * sizeof (wchar_t));
-	  pMultiByteToWideChar (CP_ACP, MB_ERR_INVALID_CHARS,
-				SSDATA (parameters), -1, params_w, len);
-	}
-      if (STRINGP (operation))
-	{
-	  /* Assume OPERATION is pure ASCII.  */
-	  const char *s = SSDATA (operation);
-	  wchar_t *d;
-	  int len = SBYTES (operation) + 1;
-
-	  if (len > 32768)
-	    len = 32768;
-	  d = ops_w = alloca (len * sizeof (wchar_t));
-	  while (d < ops_w + len - 1)
-	    *d++ = *s++;
-	  *d = 0;
-	}
-      result = (intptr_t) ShellExecuteW (NULL, ops_w, doc_w, params_w,
-					 current_dir_w,
-					 (INTEGERP (show_flag)
-					  ? XINT (show_flag) : SW_SHOWDEFAULT));
-    }
-  else
-    {
-      char document_a[MAX_PATH], current_dir_a[MAX_PATH];
-
-      filename_to_ansi (SSDATA (current_dir), current_dir_a);
-      filename_to_ansi (SSDATA (document), document_a);
-      doc_a = document_a;
-      if (STRINGP (parameters))
-	{
-	  parameters = ENCODE_SYSTEM (parameters);
-	  params_a = SSDATA (parameters);
-	}
-      if (STRINGP (operation))
-	{
-	  /* Assume OPERATION is pure ASCII.  */
-	  ops_a = SSDATA (operation);
-	}
-      result = (intptr_t) ShellExecuteA (NULL, ops_a, doc_a, params_a,
-					 current_dir_a,
-					 (INTEGERP (show_flag)
-					  ? XINT (show_flag) : SW_SHOWDEFAULT));
-    }
-#endif /* !CYGWIN */
 
   if (result > 32)
     return Qt;
@@ -7063,6 +6999,129 @@ a ShowWindow flag:
       errstr = w32_strerror (0);
       break;
     }
+
+#else  /* !CYGWIN */
+
+  current_dir = ENCODE_FILE (current_dir);
+  /* We have a situation here.  If DOCUMENT is a relative file name,
+     but its name includes leading directories, i.e. it lives not in
+     CURRENT_DIR, but in its subdirectory, then ShellExecute below
+     will fail to find it.  So we need to make the file name is
+     absolute.  But DOCUMENT does not have to be a file, it can be a
+     URL, for example.  So we make it absolute only if it is an
+     existing file; if it is a file that does not exist, tough.  */
+  GCPRO1 (absdoc);
+  absdoc = Fexpand_file_name (document, Qnil);
+  /* Don't call file handlers for file-exists-p, since they might
+     attempt to access the file, which could fail or produce undesired
+     consequences, see bug#16558 for an example.  */
+  handler = Ffind_file_name_handler (absdoc, Qfile_exists_p);
+  if (NILP (handler))
+    {
+      Lisp_Object absdoc_encoded = ENCODE_FILE (absdoc);
+
+      if (faccessat (AT_FDCWD, SSDATA (absdoc_encoded), F_OK, AT_EACCESS) == 0)
+	document = absdoc_encoded;
+      else
+	document = ENCODE_FILE (document);
+    }
+  else
+    document = ENCODE_FILE (document);
+  UNGCPRO;
+  if (use_unicode)
+    {
+      wchar_t document_w[MAX_PATH], current_dir_w[MAX_PATH];
+      SHELLEXECUTEINFOW shexinfo_w;
+
+      /* Encode filename, current directory and parameters, and
+	 convert operation to UTF-16.  */
+      filename_to_utf16 (SSDATA (current_dir), current_dir_w);
+      filename_to_utf16 (SSDATA (document), document_w);
+      doc_w = document_w;
+      if (STRINGP (parameters))
+	{
+	  int len;
+
+	  parameters = ENCODE_SYSTEM (parameters);
+	  len = pMultiByteToWideChar (CP_ACP, MB_ERR_INVALID_CHARS,
+				      SSDATA (parameters), -1, NULL, 0);
+	  if (len > 32768)
+	    len = 32768;
+	  params_w = alloca (len * sizeof (wchar_t));
+	  pMultiByteToWideChar (CP_ACP, MB_ERR_INVALID_CHARS,
+				SSDATA (parameters), -1, params_w, len);
+	}
+      if (STRINGP (operation))
+	{
+	  /* Assume OPERATION is pure ASCII.  */
+	  const char *s = SSDATA (operation);
+	  wchar_t *d;
+	  int len = SBYTES (operation) + 1;
+
+	  if (len > 32768)
+	    len = 32768;
+	  d = ops_w = alloca (len * sizeof (wchar_t));
+	  while (d < ops_w + len - 1)
+	    *d++ = *s++;
+	  *d = 0;
+	}
+
+      /* Using ShellExecuteEx and setting the SEE_MASK_INVOKEIDLIST
+	 flag succeeds with more OPERATIONs (a.k.a. "verbs"), as it is
+	 able to invoke verbs from shortcut menu extensions, not just
+	 static verbs listed in the Registry.  */
+      memset (&shexinfo_w, 0, sizeof (shexinfo_w));
+      shexinfo_w.cbSize = sizeof (shexinfo_w);
+      shexinfo_w.fMask =
+	SEE_MASK_INVOKEIDLIST | SEE_MASK_FLAG_DDEWAIT | SEE_MASK_FLAG_NO_UI;
+      shexinfo_w.hwnd = NULL;
+      shexinfo_w.lpVerb = ops_w;
+      shexinfo_w.lpFile = doc_w;
+      shexinfo_w.lpParameters = params_w;
+      shexinfo_w.lpDirectory = current_dir_w;
+      shexinfo_w.nShow =
+	(INTEGERP (show_flag) ? XINT (show_flag) : SW_SHOWDEFAULT);
+      success = ShellExecuteExW (&shexinfo_w);
+    }
+  else
+    {
+      char document_a[MAX_PATH], current_dir_a[MAX_PATH];
+      SHELLEXECUTEINFOA shexinfo_a;
+
+      filename_to_ansi (SSDATA (current_dir), current_dir_a);
+      filename_to_ansi (SSDATA (document), document_a);
+      doc_a = document_a;
+      if (STRINGP (parameters))
+	{
+	  parameters = ENCODE_SYSTEM (parameters);
+	  params_a = SSDATA (parameters);
+	}
+      if (STRINGP (operation))
+	{
+	  /* Assume OPERATION is pure ASCII.  */
+	  ops_a = SSDATA (operation);
+	}
+      memset (&shexinfo_a, 0, sizeof (shexinfo_a));
+      shexinfo_a.cbSize = sizeof (shexinfo_a);
+      shexinfo_a.fMask =
+	SEE_MASK_INVOKEIDLIST | SEE_MASK_FLAG_DDEWAIT | SEE_MASK_FLAG_NO_UI;
+      shexinfo_a.hwnd = NULL;
+      shexinfo_a.lpVerb = ops_a;
+      shexinfo_a.lpFile = doc_a;
+      shexinfo_a.lpParameters = params_a;
+      shexinfo_a.lpDirectory = current_dir_a;
+      shexinfo_a.nShow =
+	(INTEGERP (show_flag) ? XINT (show_flag) : SW_SHOWDEFAULT);
+      success = ShellExecuteExA (&shexinfo_a);
+    }
+
+  if (success)
+    return Qt;
+
+  errstr = w32_strerror (0);
+
+#endif /* !CYGWIN */
+
   /* The error string might be encoded in the locale's encoding.  */
   if (!NILP (Vlocale_coding_system))
     {
@@ -7482,8 +7541,8 @@ If the underlying system call fails, value is nil.  */)
       (char *, PULARGE_INTEGER, PULARGE_INTEGER, PULARGE_INTEGER)
       = GetProcAddress (hKernel, "GetDiskFreeSpaceExA");
     bool have_pfn_GetDiskFreeSpaceEx =
-      (w32_unicode_filenames && pfn_GetDiskFreeSpaceExW
-       || !w32_unicode_filenames && pfn_GetDiskFreeSpaceExA);
+      ((w32_unicode_filenames && pfn_GetDiskFreeSpaceExW)
+       || (!w32_unicode_filenames && pfn_GetDiskFreeSpaceExA));
 
     /* On Windows, we may need to specify the root directory of the
        volume holding FILENAME.  */

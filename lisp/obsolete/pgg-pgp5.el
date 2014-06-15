@@ -208,15 +208,11 @@ Bourne shell or its equivalent \(not tcsh) is needed for \"2>\"."
 (defun pgg-pgp5-verify-region (start end &optional signature)
   "Verify region between START and END as the detached signature SIGNATURE."
   (let ((orig-file (pgg-make-temp-file "pgg"))
-	(args '("+verbose=1" "+batchmode=1" "+language=us"))
-	(orig-mode (default-file-modes)))
-    (unwind-protect
-	(progn
-	  (set-default-file-modes 448)
-	  (let ((coding-system-for-write 'binary)
-		jka-compr-compression-info-list jam-zcat-filename-list)
-	    (write-region start end orig-file)))
-      (set-default-file-modes orig-mode))
+	(args '("+verbose=1" "+batchmode=1" "+language=us")))
+    (with-file-modes 448
+      (let ((coding-system-for-write 'binary)
+	    jka-compr-compression-info-list jam-zcat-filename-list)
+	(write-region start end orig-file)))
     (when (stringp signature)
       (copy-file signature (setq signature (concat orig-file ".asc")))
       (setq args (append args (list signature))))

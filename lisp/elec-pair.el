@@ -166,36 +166,6 @@ return value is considered instead."
 quotes or comments.  If lookup fails here, `electric-pair-text-pairs' will
 be considered.")
 
-(defun electric-pair-backward-delete-char (n &optional killflag untabify)
-  "Delete characters backward, and maybe also two adjacent paired delimiters.
-
-Remaining behavior is given by `backward-delete-char' or, if UNTABIFY is
-non-nil, `backward-delete-char-untabify'."
-  (interactive "*p\nP")
-  (let* ((prev (char-before))
-         (next (char-after))
-         (syntax-info (and prev
-                           (electric-pair-syntax-info prev)))
-         (syntax (car syntax-info))
-         (pair (cadr syntax-info)))
-    (when (and next pair
-               (if (functionp electric-pair-delete-adjacent-pairs)
-                   (funcall electric-pair-delete-adjacent-pairs)
-                 electric-pair-delete-adjacent-pairs)
-               (memq syntax '(?\( ?\" ?\$))
-               (eq pair next))
-      (delete-char 1 killflag))
-    (if untabify
-        (backward-delete-char-untabify n killflag)
-        (backward-delete-char n killflag))))
-
-(defun electric-pair-backward-delete-char-untabify (n &optional killflag)
-  "Delete characters backward, and maybe also two adjacent paired delimiters.
-
-Remaining behavior is given by `backward-delete-char-untabify'."
-  (interactive "*p\nP")
-  (electric-pair-backward-delete-char n killflag t))
-
 (defun electric-pair-conservative-inhibit (char)
   (or
    ;; I find it more often preferable not to pair when the
@@ -256,16 +226,23 @@ WHERE is a list defaulting to '(string comment) and indicates
 when to fallback to `parse-partial-sexp'."
   (let* ((pos (or pos (point)))
          (where (or where '(string comment)))
-         (quick-ppss (syntax-ppss))
-         (quick-ppss-at-pos (syntax-ppss pos)))
-    (if (or (and (nth 3 quick-ppss) (memq 'string where))
-            (and (nth 4 quick-ppss) (memq 'comment where)))
+         (quick-ppss (syntax-ppss pos))
+         (in-string (and (nth 3 quick-ppss) (memq 'string where)))
+         (in-comment (and (nth 4 quick-ppss) (memq 'comment where)))
+         (s-or-c-start (cond (in-string
+                              (1+ (nth 8 quick-ppss)))
+                             (in-comment
+                              (goto-char (nth 8 quick-ppss))
+                              (forward-comment (- (point-max)))
+                              (skip-syntax-forward " >!")
+                              (point)))))
+    (if s-or-c-start
         (with-syntax-table electric-pair-text-syntax-table
-          (parse-partial-sexp (1+ (nth 8 quick-ppss)) pos))
+          (parse-partial-sexp s-or-c-start pos))
       ;; HACK! cc-mode apparently has some `syntax-ppss' bugs
       (if (memq major-mode '(c-mode c++ mode))
           (parse-partial-sexp (point-min) pos)
-        quick-ppss-at-pos))))
+        quick-ppss))))
 
 ;; Balancing means controlling pairing and skipping of parentheses
 ;; so that, if possible, the buffer ends up at least as balanced as
@@ -351,7 +328,7 @@ If point is not enclosed by any lists, return ((t) . (t))."
           (scan-error
            (cond ((or
                    ;; some error happened and it is not of the "ended
-                   ;; prematurely" kind"...
+                   ;; prematurely" kind...
                    (not (string-match "ends prematurely" (nth 1 err)))
                    ;; ... or we were in a comment and just came out of
                    ;; it.
@@ -364,19 +341,29 @@ If point is not enclosed by any lists, return ((t) . (t))."
                   (funcall ended-prematurely-fn)))))))
     (cons innermost outermost)))
 
-(defun electric-pair--looking-at-unterminated-string-p (char)
-  "Return non-nil if following string starts with CHAR and is unterminated."
-  ;; FIXME: ugly/naive
-  (save-excursion
-    (skip-chars-forward (format "^%c" char))
-    (while (not (zerop (% (save-excursion (skip-syntax-backward "\\")) 2)))
-      (unless (eobp)
-        (forward-char 1)
-        (skip-chars-forward (format "^%c" char))))
-    (and (not (eobp))
-         (condition-case nil
-             (progn (forward-sexp) nil)
-           (scan-error t)))))
+(defvar electric-pair-string-bound-function 'point-max
+  "Next buffer position where strings are syntactically unexpected.
+Value is a function called with no arguments and returning a
+buffer position. Major modes should set this variable
+buffer-locally if they experience slowness with
+`electric-pair-mode' when pairing quotes.")
+
+(defun electric-pair--unbalanced-strings-p (char)
+  "Return non-nil if there are unbalanced strings started by CHAR."
+  (let* ((selector-ppss (syntax-ppss))
+         (relevant-ppss (save-excursion
+                          (if (nth 4 selector-ppss) ; comment
+                              (electric-pair--syntax-ppss
+                               (progn
+                                 (goto-char (nth 8 selector-ppss))
+                                 (forward-comment (point-max))
+                                 (skip-syntax-backward " >!")
+                                 (point)))
+                            (syntax-ppss
+                             (funcall electric-pair-string-bound-function)))))
+         (string-delim (nth 3 relevant-ppss)))
+    (or (eq t string-delim)
+        (eq char string-delim))))
 
 (defun electric-pair--inside-string-p (char)
   "Return non-nil if point is inside a string started by CHAR.
@@ -409,7 +396,7 @@ happened."
                           (t
                            (eq (cdr outermost) pair)))))
                  ((eq syntax ?\")
-                  (electric-pair--looking-at-unterminated-string-p char))))
+                  (electric-pair--unbalanced-strings-p char))))
        (insert-char char)))))
 
 (defun electric-pair-skip-if-helps-balance (char)
@@ -485,10 +472,12 @@ happened."
                            (funcall electric-pair-skip-self last-command-event)
                          electric-pair-skip-self))
                    (save-excursion
-                     (when (setq skip-whitespace-info
-                                 (if (functionp electric-pair-skip-whitespace)
-                                     (funcall electric-pair-skip-whitespace)
-                                   electric-pair-skip-whitespace))
+                     (when (and (not (and unconditional
+                                          (eq syntax ?\")))
+                                (setq skip-whitespace-info
+                                      (if (functionp electric-pair-skip-whitespace)
+                                          (funcall electric-pair-skip-whitespace)
+                                        electric-pair-skip-whitespace)))
                        (electric-pair--skip-whitespace))
                      (eq (char-after) last-command-event))))
          ;; This is too late: rather than insert&delete we'd want to only
@@ -528,14 +517,34 @@ happened."
        (memq (car (electric-pair-syntax-info last-command-event))
              '(?\( ?\) ?\" ?\$))))
 
+(defun electric-pair-delete-pair (arg &optional killp)
+  "When between adjacent paired delimiters, delete both of them.
+ARG and KILLP are passed directly to
+`backward-delete-char-untabify', which see."
+  (interactive "*p\nP")
+  (delete-char 1)
+  (backward-delete-char-untabify arg killp))
+
 (defvar electric-pair-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map [remap backward-delete-char-untabify]
-      'electric-pair-backward-delete-char-untabify)
-    (define-key map [remap backward-delete-char]
-      'electric-pair-backward-delete-char)
-    (define-key map [remap delete-backward-char]
-      'electric-pair-backward-delete-char)
+    (define-key map "\177"
+      `(menu-item
+        "" electric-pair-delete-pair
+        :filter
+        ,(lambda (cmd)
+           (let* ((prev (char-before))
+                  (next (char-after))
+                  (syntax-info (and prev
+                                    (electric-pair-syntax-info prev)))
+                  (syntax (car syntax-info))
+                  (pair (cadr syntax-info)))
+             (and next pair
+                  (memq syntax '(?\( ?\" ?\$))
+                  (eq pair next)
+                  (if (functionp electric-pair-delete-adjacent-pairs)
+                      (funcall electric-pair-delete-adjacent-pairs)
+                    electric-pair-delete-adjacent-pairs)
+                  cmd)))))
     map)
   "Keymap used by `electric-pair-mode'.")
 

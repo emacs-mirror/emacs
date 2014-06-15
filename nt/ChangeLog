@@ -1,3 +1,56 @@
+2014-06-05  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* inc/ms-w32.h (POLL_FOR_INPUT): Define with HAVE_WINDOW_SYSTEM.
+
+2014-05-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (DONT_INSTALL): Now empty.
+	(addsection${EXEEXT}): Remove target.
+
+	* addsection.c: File removed.
+
+2014-05-27  Fabrice Popineau  <fabrice.popineau@gmail.com>
+
+	* inc/ms-w32.h: Switch to the system heap allocation scheme
+	instead of GNU malloc and ralloc.
+
+	* inc/sys/mman.h: New file.
+
+	* INSTALL: Update for the new build requirements.
+
+2014-05-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume C99 or later (Bug#17487).
+	* gnulib.mk: Remove stdarg and stdbool modules.
+
+2014-05-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Don't require pkg-config when building from repository.
+	* INSTALL: Remove no-longer-needed notes about pkg-config.
+
+2014-05-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* INSTALL: Update to the effect that pkg-config is now required
+	for building from the repository.
+
+2014-04-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* cmdproxy.c (make_absolute): Don't copy more characters from PATH
+	than a single directory name can hold.  (Bug#17334)
+
+2014-04-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/ms-w32.h (lseek): Define only if not already a macro.
+	Suggested by Fabrice Popineau <fabrice.popineau@gmail.com>.
+
+2014-04-11  Ken Brown  <kbrown@cornell.edu>
+
+	* emacs.rc: Revert last change.
+
+2014-04-07  Ken Brown  <kbrown@cornell.edu>
+
+	* emacs.rc: Don't use manifest on Cygwin.  (Bug#17176)
+
 2014-02-17  Juanma Barranquero  <lekktu@gmail.com>
 
 	* Makefile.in (install): Create destination directory before copying

@@ -830,7 +830,7 @@ Can be overridden by the value of `font-lock-maximum-decoration'.")
   (font-lock-mode 1)
   (setq font-lock-keywords
         (symbol-value (intern-soft (format "f90-font-lock-keywords-%d" n))))
-  (font-lock-fontify-buffer))
+  (font-lock-flush))
 
 (defun f90-font-lock-1 ()
   "Set `font-lock-keywords' to `f90-font-lock-keywords-1'."

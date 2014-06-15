@@ -97,7 +97,10 @@ each clause."
 (defun macroexp--compiler-macro (handler form)
   (condition-case err
       (apply handler form (cdr form))
-    (error (message "Compiler-macro error for %S: %S" (car form) err)
+    (error
+     (message "--------------------------------------------------")
+     (backtrace)
+     (message "Compiler-macro error for %S: %S" (car form) err)
            form)))
 
 (defun macroexp--funcall-if-compiled (_form)
@@ -402,7 +405,7 @@ symbol itself."
 (defvar macroexp--pending-eager-loads nil
   "Stack of files currently undergoing eager macro-expansion.")
 
-(defun internal-macroexpand-for-load (form)
+(defun internal-macroexpand-for-load (form full-p)
   ;; Called from the eager-macroexpansion in readevalloop.
   (cond
    ;; Don't repeat the same warning for every top-level element.
@@ -425,7 +428,9 @@ symbol itself."
     (condition-case err
         (let ((macroexp--pending-eager-loads
                (cons load-file-name macroexp--pending-eager-loads)))
-          (macroexpand-all form))
+          (if full-p
+              (macroexpand-all form)
+            (macroexpand form)))
       (error
        ;; Hopefully this shouldn't happen thanks to the cycle detection,
        ;; but in case it does happen, let's catch the error and give the

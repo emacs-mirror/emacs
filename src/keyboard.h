@@ -305,9 +305,7 @@ extern Lisp_Object menu_items;
 
 /* If non-nil, means that the global vars defined here are already in use.
    Used to detect cases where we try to re-enter this non-reentrant code.  */
-#if defined USE_GTK || defined USE_MOTIF
 extern Lisp_Object menu_items_inuse;
-#endif
 
 /* Number of slots currently allocated in menu_items.  */
 extern int menu_items_allocated;
@@ -354,57 +352,6 @@ extern void unuse_menu_items (void);
 #define ENCODE_MENU_STRING(str) (str)
 #endif
 
-#if defined (HAVE_NS) || defined (HAVE_NTGUI) || defined (USE_GTK)
-
-/* Definitions copied from lwlib.h */
-
-enum button_type
-{
-  BUTTON_TYPE_NONE,
-  BUTTON_TYPE_TOGGLE,
-  BUTTON_TYPE_RADIO
-};
-
-/* This structure is based on the one in ../lwlib/lwlib.h, with unused portions
-   removed.  No term uses these. */
-typedef struct _widget_value
-{
-  /* name of widget */
-  Lisp_Object   lname;
-  const char*	name;
-  /* value (meaning depend on widget type) */
-  const char*	value;
-  /* keyboard equivalent. no implications for XtTranslations */
-  Lisp_Object   lkey;
-  const char*	key;
-  /* Help string or nil if none.
-     GC finds this string through the frame's menu_bar_vector
-     or through menu_items.  */
-  Lisp_Object	help;
-  /* true if enabled */
-  unsigned char	enabled;
-  /* true if selected */
-  unsigned char selected;
-  /* The type of a button.  */
-  enum button_type button_type;
-#if defined (HAVE_NTGUI)
-  /* true if menu title */
-  unsigned char title;
-#endif
-  /* Contents of the sub-widgets, also selected slot for checkbox */
-  struct _widget_value*	contents;
-  /* data passed to callback */
-  void	*call_data;
-  /* next one in the list */
-  struct _widget_value*	next;
-#ifdef USE_GTK
-  struct _widget_value *free_list;
-#endif
-} widget_value;
-
-#endif /* HAVE_NS || HAVE_NTGUI */
-
-
 /* Macros for dealing with lispy events.  */
 
 /* True if EVENT has data fields describing it (i.e. a mouse click).  */
@@ -466,9 +413,7 @@ extern bool waiting_for_input;
    happens.  */
 extern struct timespec *input_available_clear_time;
 
-#if defined HAVE_WINDOW_SYSTEM && !defined USE_GTK && !defined HAVE_NS
 extern bool ignore_mouse_drag_p;
-#endif
 
 /* The primary selection.  */
 extern Lisp_Object QPRIMARY;
@@ -518,9 +463,7 @@ extern bool input_polling_used (void);
 extern void clear_input_pending (void);
 extern bool requeued_events_pending_p (void);
 extern void bind_polling_period (int);
-#if HAVE_NTGUI
 extern int make_ctrl_char (int) ATTRIBUTE_CONST;
-#endif
 extern void stuff_buffered_input (Lisp_Object);
 extern void clear_waiting_for_input (void);
 extern void swallow_events (bool);

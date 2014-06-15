@@ -662,10 +662,6 @@ static const struct
     { &QCotf, font_prop_validate_otf }
   };
 
-/* Size (number of elements) of the above table.  */
-#define FONT_PROPERTY_TABLE_SIZE \
-  ((sizeof font_property_table) / (sizeof *font_property_table))
-
 /* Return an index number of font property KEY or -1 if KEY is not an
    already known property.  */
 
@@ -674,7 +670,7 @@ get_font_prop_index (Lisp_Object key)
 {
   int i;
 
-  for (i = 0; i < FONT_PROPERTY_TABLE_SIZE; i++)
+  for (i = 0; i < ARRAYELTS (font_property_table); i++)
     if (EQ (key, *font_property_table[i].key))
       return i;
   return -1;
@@ -2753,22 +2749,21 @@ font_list_entities (struct frame *f, Lisp_Object spec)
 	  val = XCDR (val);
 	else
 	  {
-	    Lisp_Object copy;
-
 	    val = driver_list->driver->list (f, scratch_font_spec);
-	    if (NILP (val))
-	      val = zero_vector;
-	    else
-	      val = Fvconcat (1, &val);
-	    copy = copy_font_spec (scratch_font_spec);
-	    ASET (copy, FONT_TYPE_INDEX, driver_list->driver->type);
-	    XSETCDR (cache, Fcons (Fcons (copy, val), XCDR (cache)));
+	    if (!NILP (val))
+	      {
+		Lisp_Object copy = copy_font_spec (scratch_font_spec);
+
+		val = Fvconcat (1, &val);
+		ASET (copy, FONT_TYPE_INDEX, driver_list->driver->type);
+		XSETCDR (cache, Fcons (Fcons (copy, val), XCDR (cache)));
+	      }
 	  }
-	if (ASIZE (val) > 0
+	if (VECTORP (val) && ASIZE (val) > 0
 	    && (need_filtering
 		|| ! NILP (Vface_ignored_fonts)))
 	  val = font_delete_unmatched (val, need_filtering ? spec : Qnil, size);
-	if (ASIZE (val) > 0)
+	if (VECTORP (val) && ASIZE (val) > 0)
 	  list = Fcons (val, list);
       }
 
@@ -2804,18 +2799,22 @@ font_matching_entity (struct frame *f, Lisp_Object *attrs, Lisp_Object spec)
 	&& (NILP (ftype) || EQ (driver_list->driver->type, ftype)))
       {
 	Lisp_Object cache = font_get_cache (f, driver_list->driver);
-	Lisp_Object copy;
 
 	ASET (work, FONT_TYPE_INDEX, driver_list->driver->type);
 	entity = assoc_no_quit (work, XCDR (cache));
 	if (CONSP (entity))
-	  entity = XCDR (entity);
+	  entity = AREF (XCDR (entity), 0);
 	else
 	  {
 	    entity = driver_list->driver->match (f, work);
-	    copy = copy_font_spec (work);
-	    ASET (copy, FONT_TYPE_INDEX, driver_list->driver->type);
-	    XSETCDR (cache, Fcons (Fcons (copy, entity), XCDR (cache)));
+	    if (!NILP (entity))
+	      {
+		Lisp_Object copy = copy_font_spec (work);
+		Lisp_Object match = Fvector (1, &entity);
+
+		ASET (copy, FONT_TYPE_INDEX, driver_list->driver->type);
+		XSETCDR (cache, Fcons (Fcons (copy, match), XCDR (cache)));
+	      }
 	  }
 	if (! NILP (entity))
 	  break;
@@ -3338,7 +3337,6 @@ font_done_for_face (struct frame *f, struct face *face)
 {
   if (face->font->driver->done_face)
     face->font->driver->done_face (f, face);
-  face->extra = NULL;
 }
 
 
@@ -4932,8 +4930,7 @@ If the named font is not yet loaded, return nil.  */)
 #endif
 
 
-#define BUILD_STYLE_TABLE(TBL) \
-  build_style_table ((TBL), sizeof TBL / sizeof (struct table_entry))
+#define BUILD_STYLE_TABLE(TBL) build_style_table (TBL, ARRAYELTS (TBL))
 
 static Lisp_Object
 build_style_table (const struct table_entry *entry, int nelement)

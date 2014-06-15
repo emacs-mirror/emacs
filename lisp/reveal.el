@@ -83,7 +83,8 @@ Each element has the form (WINDOW . OVERLAY).")
                       (cond
                        ((eq (car x) (selected-window)) (cdr x))
                        ((not (and (window-live-p (car x))
-                                  (eq (window-buffer (car x)) (current-buffer))))
+                                  (eq (window-buffer (car x))
+                                      (current-buffer))))
                         ;; Adopt this since it's owned by a window that's
                         ;; either not live or at least not showing this
                         ;; buffer any more.
@@ -135,8 +136,9 @@ Each element has the form (WINDOW . OVERLAY).")
   old-ols)
 
 (defun reveal-close-old-overlays (old-ols)
-  (if (not (eq reveal-last-tick
-               (setq reveal-last-tick (buffer-modified-tick))))
+  (if (or track-mouse                   ;Don't close in the middle of a click.
+          (not (eq reveal-last-tick
+                   (setq reveal-last-tick (buffer-modified-tick)))))
       ;; The buffer was modified since last command: let's refrain from
       ;; closing any overlay because it tends to behave poorly when
       ;; inserting text at the end of an overlay (basically the overlay

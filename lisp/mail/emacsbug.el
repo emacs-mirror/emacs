@@ -1,7 +1,7 @@
 ;;; emacsbug.el --- command to report Emacs bugs to appropriate mailing list
 
-;; Copyright (C) 1985, 1994, 1997-1998, 2000-2014 Free Software
-;; Foundation, Inc.
+;; Copyright (C) 1985, 1994, 1997-1998, 2000-2014
+;;   Free Software Foundation, Inc.
 
 ;; Author: K. Shane Hartman
 ;; Maintainer: emacs-devel@gnu.org
@@ -42,11 +42,6 @@
 
 (define-obsolete-variable-alias 'report-emacs-bug-pretest-address
   'report-emacs-bug-address "24.1")
-
-(defcustom report-emacs-bug-address "bug-gnu-emacs@gnu.org"
-  "Address of mailing list for GNU Emacs bugs."
-  :group 'emacsbug
-  :type 'string)
 
 (defcustom report-emacs-bug-no-confirmation nil
   "If non-nil, suppress the confirmations asked for the sake of novice users."
@@ -251,6 +246,8 @@ usually do not have translators for other languages.\n\n")))
       (insert "Configured using:\n `configure "
 	      system-configuration-options "'\n\n")
       (fill-region (line-beginning-position -1) (point)))
+    (insert "Configured features:\n" system-configuration-features "\n\n")
+    (fill-region (line-beginning-position -1) (point))
     (insert "Important settings:\n")
     (mapc
      (lambda (var)
@@ -322,6 +319,10 @@ usually do not have translators for other languages.\n\n")))
                 shadows)))
     (insert (format "\nFeatures:\n%s\n" features))
     (fill-region (line-beginning-position 0) (point))
+
+    (insert (format "\nMemory information:\n"))
+    (pp (garbage-collect) (current-buffer))
+    
     ;; This is so the user has to type something in order to send easily.
     (use-local-map (nconc (make-sparse-keymap) (current-local-map)))
     (define-key (current-local-map) "\C-c\C-i" 'info-emacs-bug)

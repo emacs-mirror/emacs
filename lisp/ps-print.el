@@ -20,7 +20,7 @@ Emacs without changes to the version number.  When reporting bugs, please also
 report the version of Emacs, if any, that ps-print was distributed with.
 
 Please send all bug fixes and enhancements to
-	Vinicius Jose Latorre <viniciusjl@ig.com.br>.")
+	bug-gnu-emacs@gnu.org and Vinicius Jose Latorre <viniciusjl@ig.com.br>.")
 
 ;; This file is part of GNU Emacs.
 
@@ -6429,6 +6429,7 @@ If FACE is not a valid face name, use default face."
   (save-restriction
     (narrow-to-region from to)
     (ps-print-ensure-fontified from to)
+    (deactivate-mark)                   ;bug#16866.
     (ps-generate-postscript-with-faces1 from to)))
 
 (defun ps-generate-postscript (from to)

@@ -668,7 +668,7 @@ the new frame according to its own rules."
 	      (cdr (assq 'window-system parameters)))
              (display
               (or (window-system-for-display display)
-                  (error "Don't know how to interpret display \"%S\""
+                  (error "Don't know how to interpret display %S"
                          display)))
 	     (t window-system)))
 	 (frame-creation-function (cdr (assq w frame-creation-function-alist)))
@@ -1107,10 +1107,10 @@ number of lines and columns.
 
 If FRAMES is nil, apply the font to the selected frame only.
 If FRAMES is non-nil, it should be a list of frames to act upon,
-or t meaning all graphical frames.  Also, if FRAME is non-nil,
-alter the user's Customization settings as though the
-font-related attributes of the `default' face had been \"set in
-this session\", so that the font is applied to future frames."
+or t meaning all existing graphical frames.
+Also, if FRAMES is non-nil, alter the user's Customization settings
+as though the font-related attributes of the `default' face had been
+\"set in this session\", so that the font is applied to future frames."
   (interactive
    (let* ((completion-ignore-case t)
 	  (font (completing-read "Font name: "
@@ -1722,14 +1722,14 @@ left untouched.  FRAME nil or omitted means use the selected frame."
   :group 'cursor)
 
 (defcustom blink-cursor-blinks 10
-  "How many times to blink before using a solid cursor on NS and X.
+  "How many times to blink before using a solid cursor on NS, X, and MS-Windows.
 Use 0 or negative value to blink forever."
   :version "24.4"
   :type 'integer
   :group 'cursor)
 
 (defvar blink-cursor-blinks-done 1
-  "Number of blinks done since we started blinking on NS and X")
+  "Number of blinks done since we started blinking on NS, X, and MS-Windows.")
 
 (defvar blink-cursor-idle-timer nil
   "Timer started after `blink-cursor-delay' seconds of Emacs idle time.
@@ -1807,6 +1807,12 @@ With a prefix argument ARG, enable Blink Cursor mode if ARG is
 positive, and disable it otherwise.  If called from Lisp, enable
 the mode if ARG is omitted or nil.
 
+If the value of `blink-cursor-blinks' is positive (10 by default),
+the cursor stops blinking after that number of blinks, if Emacs
+gets no input during that time.
+
+See also `blink-cursor-interval' and `blink-cursor-delay'.
+
 This command is effective only on graphical frames.  On text-only
 terminals, cursor blinking is controlled by the terminal."
   :init-value (not (or noninteractive
@@ -1816,9 +1822,7 @@ terminals, cursor blinking is controlled by the terminal."
   :initialize 'custom-initialize-delay
   :group 'cursor
   :global t
-  (if blink-cursor-idle-timer (cancel-timer blink-cursor-idle-timer))
-  (setq blink-cursor-idle-timer nil)
-  (blink-cursor-end)
+  (blink-cursor-suspend)
   (remove-hook 'focus-in-hook #'blink-cursor-check)
   (remove-hook 'focus-out-hook #'blink-cursor-suspend)
   (when blink-cursor-mode

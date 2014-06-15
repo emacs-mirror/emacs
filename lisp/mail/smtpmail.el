@@ -733,7 +733,7 @@ Returns an error if the server cannot be contacted."
 				(plist-get (cdr result) :capabilities)
 				"\r\n")))
 		  (let ((name
-			 (with-case-table ascii-case-table
+			 (with-case-table ascii-case-table ;FIXME: Why?
 			   (mapcar (lambda (s) (intern (downcase s)))
 				   (split-string (substring line 4) "[ ]")))))
 		    (when (= (length name) 1)

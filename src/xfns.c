@@ -577,35 +577,6 @@ x_set_background_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
     }
 }
 
-static Cursor
-make_invisible_cursor (struct frame *f)
-{
-  Display *dpy = FRAME_X_DISPLAY (f);
-  static char const no_data[] = { 0 };
-  Pixmap pix;
-  XColor col;
-  Cursor c = 0;
-
-  x_catch_errors (dpy);
-  pix = XCreateBitmapFromData (dpy, FRAME_DISPLAY_INFO (f)->root_window,
-                               no_data, 1, 1);
-  if (! x_had_errors_p (dpy) && pix != None)
-    {
-      Cursor pixc;
-      col.pixel = 0;
-      col.red = col.green = col.blue = 0;
-      col.flags = DoRed | DoGreen | DoBlue;
-      pixc = XCreatePixmapCursor (dpy, pix, pix, &col, &col, 0, 0);
-      if (! x_had_errors_p (dpy) && pixc != None)
-        c = pixc;
-      XFreePixmap (dpy, pix);
-    }
-
-  x_uncatch_errors ();
-
-  return c;
-}
-
 static void
 x_set_mouse_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
@@ -716,14 +687,12 @@ x_set_mouse_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
     XRecolorCursor (dpy, hand_cursor, &fore_color, &back_color);
     XRecolorCursor (dpy, hourglass_cursor, &fore_color, &back_color);
     XRecolorCursor (dpy, horizontal_drag_cursor, &fore_color, &back_color);
+    XRecolorCursor (dpy, vertical_drag_cursor, &fore_color, &back_color);
   }
 
   if (FRAME_X_WINDOW (f) != 0)
     XDefineCursor (dpy, FRAME_X_WINDOW (f),
                    f->output_data.x->current_cursor = cursor);
-
-  if (FRAME_DISPLAY_INFO (f)->invisible_cursor == 0)
-    FRAME_DISPLAY_INFO (f)->invisible_cursor = make_invisible_cursor (f);
 
   if (cursor != x->text_cursor
       && x->text_cursor != 0)
@@ -1640,12 +1609,12 @@ hack_wm_protocols (struct frame *f, Widget widget)
 #ifdef HAVE_X_I18N
 
 static XFontSet xic_create_xfontset (struct frame *);
-static XIMStyle best_xim_style (XIMStyles *, XIMStyles *);
+static XIMStyle best_xim_style (XIMStyles *);
 
 
 /* Supported XIM styles, ordered by preference.  */
 
-static XIMStyle supported_xim_styles[] =
+static const XIMStyle supported_xim_styles[] =
 {
   XIMPreeditPosition | XIMStatusArea,
   XIMPreeditPosition | XIMStatusNothing,
@@ -1940,14 +1909,15 @@ xic_free_xfontset (struct frame *f)
    input method XIM.  */
 
 static XIMStyle
-best_xim_style (XIMStyles *user, XIMStyles *xim)
+best_xim_style (XIMStyles *xim)
 {
   int i, j;
+  int nr_supported = ARRAYELTS (supported_xim_styles);
 
-  for (i = 0; i < user->count_styles; ++i)
+  for (i = 0; i < nr_supported; ++i)
     for (j = 0; j < xim->count_styles; ++j)
-      if (user->supported_styles[i] == xim->supported_styles[j])
-	return user->supported_styles[i];
+      if (supported_xim_styles[i] == xim->supported_styles[j])
+	return supported_xim_styles[i];
 
   /* Return the default style.  */
   return XIMPreeditNothing | XIMStatusNothing;
@@ -1955,42 +1925,41 @@ best_xim_style (XIMStyles *user, XIMStyles *xim)
 
 /* Create XIC for frame F. */
 
-static XIMStyle xic_style;
-
 void
 create_frame_xic (struct frame *f)
 {
   XIM xim;
   XIC xic = NULL;
   XFontSet xfs = NULL;
+  XVaNestedList status_attr = NULL;
+  XVaNestedList preedit_attr = NULL;
+  XRectangle s_area;
+  XPoint spot;
+  XIMStyle xic_style;
 
   if (FRAME_XIC (f))
-    return;
+    goto out;
+
+  xim = FRAME_X_XIM (f);
+  if (!xim)
+    goto out;
+
+  /* Determine XIC style.  */
+  xic_style = best_xim_style (FRAME_X_XIM_STYLES (f));
 
   /* Create X fontset. */
-  xfs = xic_create_xfontset (f);
-  xim = FRAME_X_XIM (f);
-  if (xim)
+  if (xic_style & (XIMPreeditPosition | XIMStatusArea))
     {
-      XRectangle s_area;
-      XPoint spot;
-      XVaNestedList preedit_attr;
-      XVaNestedList status_attr;
+      xfs = xic_create_xfontset (f);
+      if (!xfs)
+        goto out;
 
-      s_area.x = 0; s_area.y = 0; s_area.width = 1; s_area.height = 1;
+      FRAME_XIC_FONTSET (f) = xfs;
+    }
+
+  if (xic_style & XIMPreeditPosition)
+    {
       spot.x = 0; spot.y = 1;
-
-      /* Determine XIC style.  */
-      if (xic_style == 0)
-	{
-	  XIMStyles supported_list;
-	  supported_list.count_styles = (sizeof supported_xim_styles
-					 / sizeof supported_xim_styles[0]);
-	  supported_list.supported_styles = supported_xim_styles;
-	  xic_style = best_xim_style (&supported_list,
-				      FRAME_X_XIM_STYLES (f));
-	}
-
       preedit_attr = XVaCreateNestedList (0,
 					  XNFontSet, xfs,
 					  XNForeground,
@@ -2002,31 +1971,75 @@ create_frame_xic (struct frame *f)
 					   : NULL),
 					  &spot,
 					  NULL);
-      status_attr = XVaCreateNestedList (0,
-					 XNArea,
-					 &s_area,
-					 XNFontSet,
-					 xfs,
-					 XNForeground,
-					 FRAME_FOREGROUND_PIXEL (f),
-					 XNBackground,
-					 FRAME_BACKGROUND_PIXEL (f),
-					 NULL);
 
-      xic = XCreateIC (xim,
-		       XNInputStyle, xic_style,
-		       XNClientWindow, FRAME_X_WINDOW (f),
-		       XNFocusWindow, FRAME_X_WINDOW (f),
-		       XNStatusAttributes, status_attr,
-		       XNPreeditAttributes, preedit_attr,
-		       NULL);
-      XFree (preedit_attr);
-      XFree (status_attr);
+      if (!preedit_attr)
+        goto out;
     }
+
+  if (xic_style & XIMStatusArea)
+    {
+      s_area.x = 0; s_area.y = 0; s_area.width = 1; s_area.height = 1;
+      status_attr = XVaCreateNestedList (0,
+                                         XNArea,
+                                         &s_area,
+                                         XNFontSet,
+                                         xfs,
+                                         XNForeground,
+                                         FRAME_FOREGROUND_PIXEL (f),
+                                         XNBackground,
+                                         FRAME_BACKGROUND_PIXEL (f),
+                                         NULL);
+
+      if (!status_attr)
+        goto out;
+    }
+
+  if (preedit_attr && status_attr)
+    xic = XCreateIC (xim,
+                     XNInputStyle, xic_style,
+                     XNClientWindow, FRAME_X_WINDOW (f),
+                     XNFocusWindow, FRAME_X_WINDOW (f),
+                     XNStatusAttributes, status_attr,
+                     XNPreeditAttributes, preedit_attr,
+                     NULL);
+  else if (preedit_attr)
+    xic = XCreateIC (xim,
+                     XNInputStyle, xic_style,
+                     XNClientWindow, FRAME_X_WINDOW (f),
+                     XNFocusWindow, FRAME_X_WINDOW (f),
+                     XNPreeditAttributes, preedit_attr,
+                     NULL);
+  else if (status_attr)
+    xic = XCreateIC (xim,
+                     XNInputStyle, xic_style,
+                     XNClientWindow, FRAME_X_WINDOW (f),
+                     XNFocusWindow, FRAME_X_WINDOW (f),
+                     XNStatusAttributes, status_attr,
+                     NULL);
+  else
+    xic = XCreateIC (xim,
+                     XNInputStyle, xic_style,
+                     XNClientWindow, FRAME_X_WINDOW (f),
+                     XNFocusWindow, FRAME_X_WINDOW (f),
+                     NULL);
+
+  if (!xic)
+    goto out;
 
   FRAME_XIC (f) = xic;
   FRAME_XIC_STYLE (f) = xic_style;
-  FRAME_XIC_FONTSET (f) = xfs;
+  xfs = NULL; /* Don't free below.  */
+
+ out:
+
+  if (xfs)
+    free_frame_xic (f);
+
+  if (preedit_attr)
+    XFree (preedit_attr);
+
+  if (status_attr)
+    XFree (status_attr);
 }
 
 
@@ -4537,75 +4550,43 @@ FRAME nil or omitted means use the selected frame.  Value is PROP.  */)
 }
 
 
-DEFUN ("x-window-property", Fx_window_property, Sx_window_property,
-       1, 6, 0,
-       doc: /* Value is the value of window property PROP on FRAME.
-If FRAME is nil or omitted, use the selected frame.
-
-On X Windows, the following optional arguments are also accepted:
-If TYPE is nil or omitted, get the property as a string.
-Otherwise TYPE is the name of the atom that denotes the type expected.
-If SOURCE is non-nil, get the property on that window instead of from
-FRAME.  The number 0 denotes the root window.
-If DELETE-P is non-nil, delete the property after retrieving it.
-If VECTOR-RET-P is non-nil, don't return a string but a vector of values.
-
-On MS Windows, this function accepts but ignores those optional arguments.
-
-Value is nil if FRAME hasn't a property with name PROP or if PROP has
-no value of TYPE (always string in the MS Windows case).  */)
-  (Lisp_Object prop, Lisp_Object frame, Lisp_Object type,
-   Lisp_Object source, Lisp_Object delete_p, Lisp_Object vector_ret_p)
+static Lisp_Object
+x_window_property_intern (struct frame *f,
+                          Window target_window,
+                          Atom prop_atom,
+                          Atom target_type,
+                          Lisp_Object delete_p,
+                          Lisp_Object vector_ret_p,
+                          bool *found)
 {
-  struct frame *f = decode_window_system_frame (frame);
-  Atom prop_atom;
-  int rc;
-  Lisp_Object prop_value = Qnil;
   unsigned char *tmp_data = NULL;
+  Lisp_Object prop_value = Qnil;
   Atom actual_type;
-  Atom target_type = XA_STRING;
   int actual_format;
   unsigned long actual_size, bytes_remaining;
-  Window target_window = FRAME_X_WINDOW (f);
+  int rc;
   struct gcpro gcpro1;
 
   GCPRO1 (prop_value);
-  CHECK_STRING (prop);
 
-  if (! NILP (source))
-    {
-      CONS_TO_INTEGER (source, Window, target_window);
-      if (! target_window)
-	target_window = FRAME_DISPLAY_INFO (f)->root_window;
-    }
-
-  block_input ();
-  if (STRINGP (type))
-    {
-      if (strcmp ("AnyPropertyType", SSDATA (type)) == 0)
-        target_type = AnyPropertyType;
-      else
-        target_type = XInternAtom (FRAME_X_DISPLAY (f), SSDATA (type), False);
-    }
-
-  prop_atom = XInternAtom (FRAME_X_DISPLAY (f), SSDATA (prop), False);
   rc = XGetWindowProperty (FRAME_X_DISPLAY (f), target_window,
 			   prop_atom, 0, 0, False, target_type,
 			   &actual_type, &actual_format, &actual_size,
 			   &bytes_remaining, &tmp_data);
-  if (rc == Success)
-    {
-      int size = bytes_remaining;
 
+  *found = actual_format != 0;
+
+  if (rc == Success && *found)
+    {
       XFree (tmp_data);
       tmp_data = NULL;
 
       rc = XGetWindowProperty (FRAME_X_DISPLAY (f), target_window,
-			       prop_atom, 0, bytes_remaining,
-			       ! NILP (delete_p), target_type,
-			       &actual_type, &actual_format,
-			       &actual_size, &bytes_remaining,
-			       &tmp_data);
+                               prop_atom, 0, bytes_remaining,
+                               ! NILP (delete_p), target_type,
+                               &actual_type, &actual_format,
+                               &actual_size, &bytes_remaining,
+                               &tmp_data);
       if (rc == Success && tmp_data)
         {
           /* The man page for XGetWindowProperty says:
@@ -4633,7 +4614,7 @@ no value of TYPE (always string in the MS Windows case).  */)
             }
 
           if (NILP (vector_ret_p))
-            prop_value = make_string ((char *) tmp_data, size);
+            prop_value = make_string ((char *) tmp_data, actual_size);
           else
             prop_value = x_property_data_to_lisp (f,
                                                   tmp_data,
@@ -4644,6 +4625,80 @@ no value of TYPE (always string in the MS Windows case).  */)
 
       if (tmp_data) XFree (tmp_data);
     }
+
+  UNGCPRO;
+  return prop_value;
+}
+
+DEFUN ("x-window-property", Fx_window_property, Sx_window_property,
+       1, 6, 0,
+       doc: /* Value is the value of window property PROP on FRAME.
+If FRAME is nil or omitted, use the selected frame.
+
+On X Windows, the following optional arguments are also accepted:
+If TYPE is nil or omitted, get the property as a string.
+Otherwise TYPE is the name of the atom that denotes the type expected.
+If SOURCE is non-nil, get the property on that window instead of from
+FRAME.  The number 0 denotes the root window.
+If DELETE-P is non-nil, delete the property after retrieving it.
+If VECTOR-RET-P is non-nil, don't return a string but a vector of values.
+
+On MS Windows, this function accepts but ignores those optional arguments.
+
+Value is nil if FRAME hasn't a property with name PROP or if PROP has
+no value of TYPE (always string in the MS Windows case).  */)
+  (Lisp_Object prop, Lisp_Object frame, Lisp_Object type,
+   Lisp_Object source, Lisp_Object delete_p, Lisp_Object vector_ret_p)
+{
+  struct frame *f = decode_window_system_frame (frame);
+  Atom prop_atom;
+  Lisp_Object prop_value = Qnil;
+  Atom target_type = XA_STRING;
+  Window target_window = FRAME_X_WINDOW (f);
+  struct gcpro gcpro1;
+  bool found;
+
+  GCPRO1 (prop_value);
+  CHECK_STRING (prop);
+
+  if (! NILP (source))
+    {
+      CONS_TO_INTEGER (source, Window, target_window);
+      if (! target_window)
+	target_window = FRAME_DISPLAY_INFO (f)->root_window;
+    }
+
+  block_input ();
+  if (STRINGP (type))
+    {
+      if (strcmp ("AnyPropertyType", SSDATA (type)) == 0)
+        target_type = AnyPropertyType;
+      else
+        target_type = XInternAtom (FRAME_X_DISPLAY (f), SSDATA (type), False);
+    }
+
+  prop_atom = XInternAtom (FRAME_X_DISPLAY (f), SSDATA (prop), False);
+  prop_value = x_window_property_intern (f,
+                                         target_window,
+                                         prop_atom,
+                                         target_type,
+                                         delete_p,
+                                         vector_ret_p,
+                                         &found);
+  if (NILP (prop_value)
+      && ! found
+      && NILP (source)
+      && target_window != FRAME_OUTER_WINDOW (f))
+    {
+      prop_value = x_window_property_intern (f,
+                                             FRAME_OUTER_WINDOW (f),
+                                             prop_atom,
+                                             target_type,
+                                             delete_p,
+                                             vector_ret_p,
+                                             &found);
+    }
+
 
   unblock_input ();
   UNGCPRO;

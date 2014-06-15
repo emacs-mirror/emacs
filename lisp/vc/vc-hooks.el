@@ -190,6 +190,11 @@ individually should stay local."
 (make-variable-buffer-local 'vc-mode)
 (put 'vc-mode 'permanent-local t)
 
+;;; We signal this error when we try to do something a VC backend
+;;; doesn't support.  Two arguments: the method that's not supported
+;;; and the backend
+(define-error 'vc-not-supported "VC method not implemented for backend")
+
 (defun vc-mode (&optional _arg)
   ;; Dummy function for C-h m
   "Version Control minor mode.
@@ -268,10 +273,10 @@ It is usually called via the `vc-call' macro."
       (setq f (vc-find-backend-function backend function-name))
       (push (cons function-name f) (get backend 'vc-functions)))
     (cond
-     ((null f)
-      (error "Sorry, %s is not implemented for %s" function-name backend))
-     ((consp f)	(apply (car f) (cdr f) args))
-     (t		(apply f args)))))
+      ((null f)
+       (signal 'vc-not-supported (list function-name backend)))
+      ((consp f)	(apply (car f) (cdr f) args))
+      (t		(apply f args)))))
 
 (defmacro vc-call (fun file &rest args)
   "A convenience macro for calling VC backend functions.

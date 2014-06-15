@@ -606,13 +606,12 @@ Argument E is the event deleting the frame."
 
 ;;; Utilities
 ;;
-(defun dframe-get-focus (frame-var activator &optional hook)
+(defun dframe-get-focus (frame-var activator)
   "Change frame focus to or from a dedicated frame.
 If the selected frame is not in the symbol FRAME-VAR, then FRAME-VAR
 frame is selected.  If the FRAME-VAR is active, then select the
 attached frame.  If FRAME-VAR is nil, ACTIVATOR is called to
-created it.  HOOK is an optional hook to run when
-selecting FRAME-VAR."
+created it."
   (interactive)
   (if (eq (selected-frame) (symbol-value frame-var))
       (if (frame-live-p dframe-attached-frame)
@@ -623,9 +622,7 @@ selecting FRAME-VAR."
     ;; go there
     (select-frame (symbol-value frame-var))
     )
-  (other-frame 0)
-  ;; If updates are off, then refresh the frame (they want it now...)
-  (run-hooks hook))
+  (other-frame 0))
 
 
 (defun dframe-close-frame ()

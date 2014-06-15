@@ -34,9 +34,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <stdbool.h>
 
-/* The pre-C99 <stdbool.h> emulation doesn't work for bool bitfields.
-   Nor does compiling Objective-C with standard GCC.  */
-#if __STDC_VERSION__ < 199901 || NS_IMPL_GNUSTEP
+/* The type of bool bitfields.  Needed to compile Objective-C with
+   standard GCC.  It was also needed to port to pre-C99 compilers,
+   although we don't care about that any more.  */
+#if NS_IMPL_GNUSTEP
 typedef unsigned int bool_bf;
 #else
 typedef bool bool_bf;
@@ -87,10 +88,6 @@ typedef bool bool_bf;
 #ifdef HPUX
 #undef srandom
 #undef random
-/* We try to avoid checking for random and rint on hpux in
-   configure.ac, but some other configure test might check for them as
-   a dependency, so to be safe we also undefine them here.
- */
 #undef HAVE_RANDOM
 #undef HAVE_RINT
 #endif  /* HPUX */
@@ -99,7 +96,8 @@ typedef bool bool_bf;
 #ifdef emacs
 char *_getpty();
 #endif
-
+#define INET6 /* Needed for struct sockaddr_in6.  */
+#undef HAVE_GETADDRINFO /* IRIX has getaddrinfo but not struct addrinfo.  */
 #endif /* IRIX6_5 */
 
 #ifdef MSDOS
@@ -120,6 +118,11 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 #else
 # define lstat stat
 #endif
+
+/* We must intercept 'opendir' calls to stash away the directory name,
+   so we could reuse it in readlinkat; see msdos.c.  */
+#define opendir sys_opendir
+
 /* The "portable" definition of _GL_INLINE on config.h does not work
    with DJGPP GCC 3.4.4: it causes unresolved externals in sysdep.c,
    although lib/execinfo.h is included and the inline functions there
@@ -130,6 +133,9 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 /* End of gnulib-related stuff.  */
 
 #define emacs_raise(sig) msdos_fatal_signal (sig)
+
+/* DATA_START is needed by vm-limit.c and unexcoff.c. */
+#define DATA_START (&etext + 1)
 
 /* Define one of these for easier conditionals.  */
 #ifdef HAVE_X_WINDOWS
@@ -147,7 +153,7 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
    directory tree).  Given the unknown policy of different DPMI
    hosts regarding loading of untouched pages, I'm not going to risk
    enlarging Emacs footprint by another 100+ KBytes.  */
-#define SYSTEM_PURESIZE_EXTRA (-170000+65000)
+#define SYSTEM_PURESIZE_EXTRA (-170000+90000)
 #endif
 #endif  /* MSDOS */
 
@@ -159,6 +165,10 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 #elif defined DARWIN_OS
 #  define SYSTEM_PURESIZE_EXTRA 200000
 #endif
+#endif
+
+#ifdef CYGWIN
+#define SYSTEM_PURESIZE_EXTRA 10000
 #endif
 
 #if defined HAVE_NTGUI && !defined DebPrint
@@ -215,16 +225,30 @@ extern void _DebPrint (const char *fmt, ...);
 
 #define ATTRIBUTE_CONST _GL_ATTRIBUTE_CONST
 
+#if 3 <= __GNUC__
+# define ATTRIBUTE_MALLOC __attribute__ ((__malloc__))
+#else
+# define ATTRIBUTE_MALLOC
+#endif
+
+#if 4 < __GNUC__ + (3 <= __GNUC_MINOR__)
+# define ATTRIBUTE_ALLOC_SIZE(args) __attribute__ ((__alloc_size__ args))
+#else
+# define ATTRIBUTE_ALLOC_SIZE(args)
+#endif
+
+#define ATTRIBUTE_MALLOC_SIZE(args) ATTRIBUTE_MALLOC ATTRIBUTE_ALLOC_SIZE (args)
+
 /* Work around GCC bug 59600: when a function is inlined, the inlined
    code may have its addresses sanitized even if the function has the
-   no_sanitize_address attribute.  This bug is present in GCC 4.8.2
-   and clang 3.3, the latest releases as of December 2013, and the
-   only platforms known to support address sanitization.  When the bug
-   is fixed the #if can be updated accordingly.  */
-#if ADDRESS_SANITIZER
-# define ADDRESS_SANITIZER_WORKAROUND NO_INLINE
+   no_sanitize_address attribute.  This bug is fixed in GCC 4.9.0 and
+   clang 3.4.  */
+#if (! ADDRESS_SANITIZER \
+     || ((4 < __GNUC__ + (9 <= __GNUC_MINOR__)) \
+	 || 3 < __clang_major__ + (4 <= __clang_minor__)))
+# define ADDRESS_SANITIZER_WORKAROUND /* No workaround needed.  */
 #else
-# define ADDRESS_SANITIZER_WORKAROUND
+# define ADDRESS_SANITIZER_WORKAROUND NO_INLINE
 #endif
 
 /* Attribute of functions whose code should not have addresses
@@ -284,13 +308,12 @@ extern void _DebPrint (const char *fmt, ...);
 
 /* To use the struct hack with N elements, declare the struct like this:
      struct s { ...; t name[FLEXIBLE_ARRAY_MEMBER]; };
-   and allocate (offsetof (struct s, name) + N * sizeof (t)) bytes.  */
-#if 199901 <= __STDC_VERSION__
-# define FLEXIBLE_ARRAY_MEMBER
-#elif __GNUC__ && !defined __STRICT_ANSI__
-# define FLEXIBLE_ARRAY_MEMBER 0
-#else
+   and allocate (offsetof (struct s, name) + N * sizeof (t)) bytes.
+   IBM xlc 12.1 claims to do C99 but mishandles flexible array members.  */
+#ifdef __IBMC__
 # define FLEXIBLE_ARRAY_MEMBER 1
+#else
+# define FLEXIBLE_ARRAY_MEMBER
 #endif
 
 /* Use this to suppress gcc's `...may be used before initialized' warnings. */

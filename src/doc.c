@@ -535,6 +535,9 @@ store_function_docstring (Lisp_Object obj, ptrdiff_t offset)
 	 docstring, since we've found a docstring for it.  */
       if ((ASIZE (fun) & PSEUDOVECTOR_SIZE_MASK) > COMPILED_DOC_STRING)
 	ASET (fun, COMPILED_DOC_STRING, make_number (offset));
+      else
+	message ("No docstring slot for %s",
+		 SYMBOLP (obj) ? SSDATA (SYMBOL_NAME (obj)) : "<anonymous>");
     }
 }
 
@@ -592,7 +595,7 @@ the same file name is found in the `doc-directory'.  */)
 	{
 	  #include "buildobj.h"
 	};
-      int i = sizeof buildobj / sizeof *buildobj;
+      int i = ARRAYELTS (buildobj);
       while (0 <= --i)
 	Vbuild_files = Fcons (build_string (buildobj[i]), Vbuild_files);
       Vbuild_files = Fpurecopy (Vbuild_files);
@@ -707,7 +710,7 @@ as the keymap for future \\=\\[COMMAND] substrings.
 thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ into the output.
 
 Return the original STRING if no substitutions are made.
-Otherwise, return a new string, without any text properties.  */)
+Otherwise, return a new string.  */)
   (Lisp_Object string)
 {
   char *buf;

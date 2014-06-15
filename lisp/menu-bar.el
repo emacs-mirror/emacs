@@ -149,8 +149,11 @@
                   :help "Recover edits from a crashed session"))
     (bindings--define-key menu [revert-buffer]
       '(menu-item "Revert Buffer" revert-buffer
-                  :enable (or revert-buffer-function
-                              revert-buffer-insert-file-contents-function
+                  :enable (or (not (eq revert-buffer-function
+                                       'revert-buffer--default))
+                              (not (eq
+                                    revert-buffer-insert-file-contents-function
+                                    'revert-buffer-insert-file-contents--default-function))
                               (and buffer-file-number
                                    (or (buffer-modified-p)
                                        (not (verify-visited-file-modtime
@@ -659,7 +662,7 @@ by \"Save Options\" in Custom buffers.")
 ;; Function for setting/saving default font.
 
 (defun menu-set-font ()
-  "Interactively select a font and make it the default."
+  "Interactively select a font and make it the default on all existing frames."
   (interactive)
   (set-frame-font (if (fboundp 'x-select-font)
 		      (x-select-font)
@@ -919,7 +922,7 @@ by \"Save Options\" in Custom buffers.")
       (selected-frame)))
 
 (defun menu-bar-positive-p (val)
-  "Return non-nil iff VAL is a positive number."
+  "Return non-nil if VAL is a positive number."
   (and (numberp val)
        (> val 0)))
 
@@ -2137,6 +2140,13 @@ See `menu-bar-mode' for more information."
 (declare-function x-menu-bar-open "term/x-win" (&optional frame))
 (declare-function w32-menu-bar-open "term/w32-win" (&optional frame))
 
+(defun lookup-key-ignore-too-long (map key)
+  "Call `lookup-key' and convert numeric values to nil."
+  (let ((binding (lookup-key map key)))
+    (if (numberp binding)       ; `too long'
+        nil
+      binding)))
+
 (defun popup-menu (menu &optional position prefix from-menu-bar)
   "Popup the given menu and call the selected option.
 MENU can be a keymap, an easymenu-style menu or a list of keymaps as for
@@ -2189,11 +2199,9 @@ FROM-MENU-BAR, if non-nil, means we are dropping one of menu-bar's menus."
 	      (let ((mouse-click (apply 'vector event))
 		    binding)
 		(while (and map (null binding))
-		  (setq binding (lookup-key (car map) mouse-click))
-		  (if (numberp binding)	; `too long'
-		      (setq binding nil))
+		  (setq binding (lookup-key-ignore-too-long (car map) mouse-click))
 		  (setq map (cdr map)))
-		  binding))
+                binding))
 	     (t
 	      ;; We were given a single keymap.
 	      (lookup-key map (apply 'vector event)))))
@@ -2264,11 +2272,19 @@ If FRAME is nil or not given, use the selected frame."
      ((eq type 'w32) (w32-menu-bar-open frame))
      ((and (null tty-menu-open-use-tmm)
 	   (not (zerop (or (frame-parameter nil 'menu-bar-lines) 0))))
+      ;; Make sure the menu bar is up to date.  One situation where
+      ;; this is important is when this function is invoked by name
+      ;; via M-x, in which case the menu bar includes the "Minibuf"
+      ;; menu item that should be removed when we exit the minibuffer.
+      (force-mode-line-update)
+      (redisplay)
       (let* ((x tty-menu--initial-menu-x)
 	     (menu (menu-bar-menu-at-x-y x 0 frame)))
 	(popup-menu (or
-		     (lookup-key global-map (vector 'menu-bar menu))
-		     (lookup-key (current-local-map) (vector 'menu-bar menu))
+		     (lookup-key-ignore-too-long
+                      global-map (vector 'menu-bar menu))
+		     (lookup-key-ignore-too-long
+                      (current-local-map) (vector 'menu-bar menu))
 		     (cdar (minor-mode-key-binding (vector 'menu-bar menu))))
 		    (posn-at-x-y x 0 nil t) nil t)))
      (t (with-selected-frame (or frame (selected-frame))

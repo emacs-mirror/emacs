@@ -746,11 +746,11 @@ The buffer name is made by surrounding the file name of PROGRAM with `*'s.
 The file name is used to make a symbol name, such as `comint-sh-hook', and any
 hooks on this symbol are run in the buffer.
 See `make-comint' and `comint-exec'."
+  (declare (interactive-only make-comint))
   (interactive "sRun program: ")
   (let ((name (file-name-nondirectory program)))
     (switch-to-buffer (make-comint name program))
     (run-hooks (intern-soft (concat "comint-" name "-hook")))))
-(put 'comint-run 'interactive-only 'make-comint)
 
 (defun comint-exec (buffer name command startfile switches)
   "Start up a process named NAME in buffer BUFFER for Comint modes.
@@ -1769,6 +1769,12 @@ If the Comint is Lucid Common Lisp,
 
 Similarly for Soar, Scheme, etc."
   (interactive)
+  ;; If we're currently completing, stop.  We're definitely done
+  ;; completing, and by sending the input, we might cause side effects
+  ;; that will confuse the code running in the completion
+  ;; post-command-hook.
+  (when completion-in-region-mode
+    (completion-in-region-mode -1))
   ;; Note that the input string does not include its terminal newline.
   (let ((proc (get-buffer-process (current-buffer))))
     (if (not proc) (user-error "Current buffer has no process")
@@ -3326,8 +3332,9 @@ the completions."
 	    (and (consp first) (consp (event-start first))
 		 (eq (window-buffer (posn-window (event-start first)))
 		     (get-buffer "*Completions*"))
-		 (eq (key-binding key) 'mouse-choose-completion)))
-	  ;; If the user does mouse-choose-completion with the mouse,
+		 (memq (key-binding key)
+                       '(mouse-choose-completion choose-completion))))
+	  ;; If the user does choose-completion with the mouse,
 	  ;; execute the command, then delete the completion window.
 	  (progn
 	    (choose-completion first)

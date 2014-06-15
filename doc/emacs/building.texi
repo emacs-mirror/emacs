@@ -1005,7 +1005,7 @@ non-@code{nil}, the GDB Threads buffer is the one shown by default.
   The GDB Threads buffer displays a summary of the threads in the
 debugged program.  @xref{Threads, Threads, Debugging programs with
 multiple threads, gdb, The GNU debugger}.  To select a thread, move
-point there and type @key{RET} (@code{gdb-select-thread}), or click on
+point there and press @key{RET} (@code{gdb-select-thread}), or click on
 it with @kbd{Mouse-2}.  This also displays the associated source
 buffer, and updates the contents of the other GDB buffers.
 

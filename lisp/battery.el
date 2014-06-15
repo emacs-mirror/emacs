@@ -201,19 +201,18 @@ seconds."
 
 (defun battery-update ()
   "Update battery status information in the mode line."
-  (let ((data (and battery-status-function (funcall battery-status-function))))
+  (let* ((data (and battery-status-function (funcall battery-status-function)))
+         (percentage (car (read-from-string (cdr (assq ?p data))))))
     (setq battery-mode-line-string
 	  (propertize (if (and battery-mode-line-format
-			       (<= (car (read-from-string (cdr (assq ?p data))))
-				   battery-mode-line-limit))
-			  (battery-format
-			   battery-mode-line-format
-			   data)
+			       (numberp percentage)
+                               (<= percentage battery-mode-line-limit))
+			  (battery-format battery-mode-line-format data)
 			"")
 		      'face
-		      (and (<= (car (read-from-string (cdr (assq ?p data))))
-				   battery-load-critical)
-			   'error)
+                      (and (numberp percentage)
+                           (<= percentage battery-load-critical)
+                           'error)
 		      'help-echo "Battery status information")))
   (force-mode-line-update))
 
@@ -458,12 +457,15 @@ The following %-sequences are provided:
 	  (and (re-search-forward "POWER_SUPPLY_STATUS=\\(.*\\)$" nil t)
 	       (member charging-state '("Unknown" "Full" nil))
 	       (setq charging-state (match-string 1)))
+	  (goto-char (point-min))
 	  (when (re-search-forward
                  "POWER_SUPPLY_\\(CURRENT\\|POWER\\)_NOW=\\([0-9]*\\)$"
                  nil t)
 	    (setq rate (float (string-to-number (match-string 2)))))
+	  (goto-char (point-min))
 	  (when (re-search-forward "POWER_SUPPLY_TEMP=\\([0-9]*\\)$" nil t)
 	    (setq temperature (match-string 1)))
+	  (goto-char (point-min))
 	  (let (full-string now-string)
 	    ;; Sysfs may list either charge (mAh) or energy (mWh).
 	    ;; Keep track of both, and choose which to report later.
@@ -477,7 +479,8 @@ The following %-sequences are provided:
 					(string-to-number full-string))
 			 charge-now  (+ charge-now
 					(string-to-number now-string))))
-		  ((and (re-search-forward
+		  ((and (progn (goto-char (point-min)) t)
+			(re-search-forward
 			 "POWER_SUPPLY_ENERGY_FULL=\\([0-9]*\\)$" nil t)
 			(setq full-string (match-string 1))
 			(re-search-forward

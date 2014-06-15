@@ -309,6 +309,12 @@ familiar with GNUstep and Objective C.
 
 * Other features we would like:
 
+** A more modern printing interface.  One that pops up a dialog that lets
+you choose printer, page style, etc.
+Integration with the Gtk print dialog is apparently difficult.  See eg:
+http://lists.gnu.org/archive/html/emacs-devel/2009-03/msg00501.html
+http://lists.gnu.org/archive/html/emacs-devel/2009-04/msg00034.html
+
 ** Allow frames(terminals) created by emacsclient to inherit their environment
 from the emacsclient process.
 ** Remove the default toggling behavior of minor modes when called from elisp
@@ -422,6 +428,8 @@ rather than interactively.  This a trivial one-liner in easy-mode.el.
 
 ** Save undo information in special temporary files, and reload it
   when needed for undoing.  This could extend undo capacity.
+  undo-tree, in ELPA, already does this; its saving code could be
+  integrated without requiring the use of undo-tree.
 
 ** Change the Windows NT menu code
   so that it handles the deep_p argument and avoids
@@ -651,7 +659,7 @@ rather than interactively.  This a trivial one-liner in easy-mode.el.
      [As of trunk r109635, 2012-08-15, the event loop no longer polls.]
 
 **** (mouse-avoidance-mode 'banish) then minimize Emacs, will pop window back
-up on top of all others
+up on top of all others (probably fixed in bug#17439)
 
 **** free_frame_resources, face colors
 

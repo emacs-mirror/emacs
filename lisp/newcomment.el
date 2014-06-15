@@ -120,8 +120,9 @@ Comments might be indented to a different value in order not to go beyond
 ;;;###autoload
 (defvar comment-start-skip nil
   "Regexp to match the start of a comment plus everything up to its body.
-If there are any \\(...\\) pairs, the comment delimiter text is held to begin
-at the place matched by the close of the first pair.")
+If there are any \\(...\\) pairs and `comment-use-syntax' is nil,
+the comment delimiter text is held to begin at the place matched
+by the close of the first pair.")
 ;;;###autoload
 (put 'comment-start-skip 'safe-local-variable 'stringp)
 
@@ -378,7 +379,10 @@ function should first call this function explicitly."
 		 ;; In case comment-start has changed since last time.
 		 (string-match comment-start-skip comment-start))
       (set (make-local-variable 'comment-start-skip)
-	   (concat "\\(\\(^\\|[^\\\n]\\)\\(\\\\\\\\\\)*\\)\\(\\s<+\\|"
+	   (concat (unless (eq comment-use-syntax t)
+                     ;; `syntax-ppss' will detect escaping.
+                     "\\(\\(^\\|[^\\\n]\\)\\(\\\\\\\\\\)*\\)")
+                   "\\(\\s<+\\|"
 		   (regexp-quote (comment-string-strip comment-start t t))
 		   ;; Let's not allow any \s- but only [ \t] since \n
 		   ;; might be both a comment-end marker and \s-.
@@ -523,7 +527,11 @@ the same as `comment-search-backward'."
         (when (nth 4 state)
           (goto-char (nth 8 state))
           (prog1 (point)
-            (when (looking-at comment-start-skip)
+            (when (save-restriction
+                    ;; `comment-start-skip' sometimes checks that the
+                    ;; comment char is not escaped.  (Bug#16971)
+                    (narrow-to-region (point) (point-max))
+                    (looking-at comment-start-skip))
               (goto-char (match-end 0))))))
     ;; Can't rely on the syntax table, let's guess based on font-lock.
     (unless (eq (get-text-property (point) 'face) 'font-lock-string-face)
@@ -1382,22 +1390,12 @@ unless optional argument SOFT is non-nil."
 	 ;; If we're not inside a comment, just try to indent.
 	 ((not compos) (indent-according-to-mode))
 	 (t
-	  (let* ((comment-column
-		  ;; The continuation indentation should be somewhere between
-		  ;; the current line's indentation (plus 2 for good measure)
-		  ;; and the current comment's indentation, with a preference
-		  ;; for comment-column.
-		  (save-excursion
-		    ;; FIXME: use prev line's info rather than first line's.
-		    (goto-char compos)
-		    (min (current-column) (max comment-column
-					       (+ 2 (current-indentation))))))
-		 (comstart (buffer-substring compos comin))
+	  (let* ((comstart (buffer-substring compos comin))
 		 (normalp
 		  (string-match (regexp-quote (comment-string-strip
 					       comment-start t t))
 				comstart))
-		 (comment-end
+		 (comend
 		  (if normalp comment-end
 		    ;; The comment starter is not the normal comment-start
 		    ;; so we can't just use comment-end.
@@ -1408,19 +1406,42 @@ unless optional argument SOFT is non-nil."
 			 (buffer-substring
 			  (save-excursion (comment-enter-backward) (point))
 			  (point))
-			 nil t)))))
-		 (comment-start comstart)
-		 (continuep (or comment-multi-line
-				(cadr (assoc comment-style comment-styles))))
-		 ;; Force comment-continue to be recreated from comment-start.
-		 ;; FIXME: wrong if comment-continue was set explicitly!
-		 ;; FIXME: use prev line's continuation if available.
-		 (comment-continue nil))
-	    (if (and comment-multi-line (> (length comment-end) 0))
+			 nil t))))))
+	    (if (and comment-multi-line (> (length comend) 0))
 		(indent-according-to-mode)
 	      (insert-and-inherit ?\n)
 	      (forward-char -1)
-	      (comment-indent continuep)
+              (let* ((comment-column
+                      ;; The continuation indentation should be somewhere
+                      ;; between the current line's indentation (plus 2 for
+                      ;; good measure) and the current comment's indentation,
+                      ;; with a preference for comment-column.
+                      (save-excursion
+                        ;; FIXME: use prev line's info rather than first
+                        ;; line's.
+                        (goto-char compos)
+                        (min (current-column)
+                             (max comment-column
+                                  (+ 2 (current-indentation))))))
+                     (comment-indent-function
+                      ;; If the previous comment is on its own line, then
+                      ;; reuse its indentation unconditionally.
+                      ;; Important for modes like Python/Haskell where
+                      ;; auto-indentation is unreliable.
+                      (if (save-excursion (goto-char compos)
+                                          (skip-chars-backward " \t")
+                                          (bolp))
+                          (lambda () comment-column) comment-indent-function))
+                     (comment-start comstart)
+                     (comment-end comend)
+                     (continuep (or comment-multi-line
+                                    (cadr (assoc comment-style
+                                                 comment-styles))))
+                     ;; Recreate comment-continue from comment-start.
+                     ;; FIXME: wrong if comment-continue was set explicitly!
+                     ;; FIXME: use prev line's continuation if available.
+                     (comment-continue nil))
+                (comment-indent continuep))
 	      (save-excursion
 		(let ((pt (point)))
 		  (end-of-line)

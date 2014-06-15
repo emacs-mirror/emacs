@@ -6,6 +6,10 @@ if something_wrong?             # ruby-move-to-block-skips-heredoc
   foo
 end
 
+def foo
+  %^bar^
+end
+
 # Percent literals.
 b = %Q{This is a "string"}
 c = %w!foo
@@ -15,6 +19,9 @@ d = %(hello (nested) world)
 
 # Don't propertize percent literals inside strings.
 "(%s, %s)" % [123, 456]
+
+"abc/#{def}ghi"
+"abc\#{def}ghi"
 
 # Or inside comments.
 x = # "tot %q/to"; =
@@ -146,6 +153,11 @@ if something == :==
   a = 1 ? 2 :(
     2 + 3
   )
+end
+
+# Bug#17097
+if x == :!=
+  something
 end
 
 # Example from http://www.ruby-doc.org/docs/ProgrammingRuby/html/language.html
@@ -379,3 +391,20 @@ foo(:bar =>
    'd' => %w(e f)
  }
 }
+
+# Bug#17050
+
+return render json: {
+                errors: { base: [message] },
+                copying: copying
+              },
+              status: 400
+
+top test(
+      some,
+      top,
+      test)
+
+foo bar, {
+      tee: qux
+    }

@@ -1,3 +1,96 @@
+2014-05-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* ntlib.h (lseek): Don't redirect to _lseek.
+
+2014-05-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix rcs2log problems with CVS.
+	Problem reported by Glenn Morris in
+	<http://lists.gnu.org/archive/html/emacs-devel/2014-05/msg00277.html>.
+	Plus, fix some security and filename quoting problems.
+	* rcs2log (logdir): Prefer mktemp if available.
+	(logdir, llogdir): Work even if TMPDIR begins with '-' or has spaces.
+	(output_authors, main awk script): Parse more-recent CVS output format.
+
+2014-05-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove dependencies on getline and getdelim.
+	Also, remove update-game-scores's limits on game scores and
+	simplify its file-locking code.
+	* update-game-score.c (struct score_entry): Unify the username and
+	data members to a single user_data member, since they don't need to be
+	changed independently and getdelim and getline aren't helpful.
+	Make the score member char *, not intmax_t, so that scores are not
+	limited to intmax_t.  All uses changed.
+	(lose_syserr): A zero errno stands for invalid data in score file.
+	(normalize_integer): New function.
+	(main): Use it.  Check for invalid scores.  Omit redundant stat check.
+	(read_score): First arg is now a string, not a FILE *.  All uses
+	changed.  Do not use getdelim or getline; that's way simpler.
+	(read_scores): Read the whole file, and let read_score handle each
+	line.
+	(score_compare): Compare strings representing integers, not integers.
+	(write_scores) [DOS_NT]: Eliminate unnecessary chmod.
+	(lock_file): Simplify locking code, eliminating goto.
+	Check for unlink failure.
+
+2014-05-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port ctags+etags build to Sun C 5.12.
+	* Makefile.in (etags_args): Remove, replacing with ...
+	(etags_cflags, etags_libs): New macros.  All uses changed.
+	(ctags${EXEEXT}): Don't compile etags.c, as compiling etags.c in
+	parallel (once for ctags, once for etags) breaks parallel makes
+	with compilers that use the source file name to name temporaries,
+	such as Sun C 5.12.  Instead, compile ctags.c.
+	* ctags.c: New file.
+
+2014-05-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Handle systems without WCONTINUED consistently.  (Bug#15110, 17339)
+	* emacsclient.c (WCONTINUED): Move to ../src/syswait.h.
+
+2014-04-30  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in ($(DESTDIR)${archlibdir}):
+	Avoid non-portable "`\" nesting.  (Bug#17339)
+
+2014-04-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* update-game-score.c (write_scores): Condition fchmod call on
+	DOS_NT, not WINDOWSNT.
+
+2014-03-22  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (etags_deps, etags_args): New, to reduce duplication.
+	(etags${EXEEXT}, ctags${EXEEXT}): Use etags_deps, etags_args.
+
+	* Makefile.in (etags${EXEEXT}, ebrowse${EXEEXT}, ctags${EXEEXT})
+	(profile${EXEEXT}, make-docfile${EXEEXT}, movemail${EXEEXT})
+	(emacsclient${EXEEXT}, emacsclientw${EXEEXT}, hexl${EXEEXT})
+	(update-game-score${EXEEXT}, emacsclient.res): Use $@.
+
+	* Makefile.in (../lib/libgnu.a): Explicitly pass MFLAGS.
+
+	* Makefile.in (DONT_INSTALL): Remove test-distrib.
+	(test-distrib${EXEEXT}): Remove rule.
+
+	* test-distrib.c, testfile: Remove.
+
+2014-03-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacsclient.c (main): #ifdef out previous change on Windows.
+
+2014-03-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix emacsclient terminal corruption when in background (Bug#16892).
+	* emacsclient.c (handle_sigcont): Check for tcgetpgrp failure.
+	Cancel the continue only if tty.  Send SIGTTIN to the process
+	group, not SIGSTOP to self, as this is what the glibc manual
+	recommends.
+	(main): If tty, and if started in the background, send SIGTTIN
+	to the process group.
+
 2014-02-25  Andreas Amann  <a.amann@ucc.ie>  (tiny change)
 
 	Fix emacsclient's handling of SIGCONT (Bug#16883).
@@ -659,7 +752,7 @@
 	Use _Noreturn rather than NO_RETURN.
 	No need for separate decl merely because of _Noreturn.
 
-2012-06-24  Samuel Bronson  <naesten@gmail.com>  (tiny change)
+2012-06-24  Samuel Bronson  <naesten@gmail.com>
 
 	* emacsclient.c (set_local_socket): Fix compiler warning (Bug#7838).
 

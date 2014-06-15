@@ -1183,5 +1183,9 @@ connection if a previous connection has died for some reason."
 		(read (current-buffer)))
 	      ":" 'omit-nulls))))))))
 
+(add-hook 'tramp-unload-hook
+	  (lambda ()
+	    (unload-feature 'tramp-adb 'force)))
+
 (provide 'tramp-adb)
 ;;; tramp-adb.el ends here

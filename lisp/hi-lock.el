@@ -391,7 +391,7 @@ versions before 22 use the following in your init file:
 	(font-lock-remove-keywords nil hi-lock-file-patterns)
 	(setq hi-lock-file-patterns nil))
       (remove-overlays nil nil 'hi-lock-overlay t)
-      (when font-lock-fontified (font-lock-fontify-buffer)))
+      (font-lock-flush))
     (define-key-after menu-bar-edit-menu [hi-lock] nil)
     (remove-hook 'font-lock-mode-hook 'hi-lock-font-lock-hook t)))
 
@@ -601,7 +601,7 @@ then remove all hi-lock highlighting."
             (delq keyword hi-lock-interactive-patterns))
       (remove-overlays
        nil nil 'hi-lock-overlay-regexp (hi-lock--hashcons (car keyword)))
-      (when font-lock-fontified (font-lock-fontify-buffer)))))
+      (font-lock-flush))))
 
 ;;;###autoload
 (defun hi-lock-write-interactive-patterns ()
@@ -695,7 +695,7 @@ with completion and history."
       (if (and font-lock-mode (font-lock-specified-p major-mode))
 	  (progn
 	    (font-lock-add-keywords nil (list pattern) t)
-	    (font-lock-fontify-buffer))
+	    (font-lock-flush))
         (let* ((range-min (- (point) (/ hi-lock-highlight-range 2)))
                (range-max (+ (point) (/ hi-lock-highlight-range 2)))
                (search-start
@@ -719,7 +719,7 @@ with completion and history."
     (font-lock-remove-keywords nil hi-lock-file-patterns)
     (setq hi-lock-file-patterns patterns)
     (font-lock-add-keywords nil hi-lock-file-patterns t)
-    (font-lock-fontify-buffer)))
+    (font-lock-flush)))
 
 (defun hi-lock-find-patterns ()
   "Find patterns in current buffer for hi-lock."

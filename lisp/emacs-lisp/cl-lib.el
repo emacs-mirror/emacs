@@ -152,9 +152,6 @@ an element already on the list.
 	`(setq ,place (cl-adjoin ,x ,place ,@keys)))
     `(cl-callf2 cl-adjoin ,x ,place ,@keys)))
 
-(defun cl--set-elt (seq n val)
-  (if (listp seq) (setcar (nthcdr n seq) val) (aset seq n val)))
-
 (defun cl--set-buffer-substring (start end val)
   (save-excursion (delete-region start end)
 		  (goto-char start)
@@ -361,7 +358,13 @@ SEQ, this is like `mapcar'.  With several, it is like the Common Lisp
 (cl--defalias 'cl-first 'car)
 (cl--defalias 'cl-second 'cadr)
 (cl--defalias 'cl-rest 'cdr)
-(cl--defalias 'cl-endp 'null)
+
+(defun cl-endp (x)
+  "Return true if X is the empty list; false if it is a cons.
+Signal an error if X is not a list."
+  (if (listp x)
+      (null x)
+    (signal 'wrong-type-argument (list 'listp x 'x))))
 
 (cl--defalias 'cl-third 'cl-caddr "Return the third element of the list X.")
 (cl--defalias 'cl-fourth 'cl-cadddr "Return the fourth element of the list X.")
@@ -625,7 +628,6 @@ If ALIST is non-nil, the new pairs are prepended to it."
   `(insert (prog1 ,store (erase-buffer))))
 (gv-define-simple-setter buffer-substring cl--set-buffer-substring)
 (gv-define-simple-setter current-buffer set-buffer)
-(gv-define-simple-setter current-case-table set-case-table)
 (gv-define-simple-setter current-column move-to-column t)
 (gv-define-simple-setter current-global-map use-global-map t)
 (gv-define-setter current-input-mode (store)

@@ -60,8 +60,8 @@
 
 SHELL = @SHELL@
 
-# This may not work with certain non-GNU make's.  It only matters when
-# inheriting a CDPATH not starting with the current directory.
+# This only matters when inheriting a CDPATH not starting with the
+# current directory.
 CDPATH=
 
 # If Make doesn't predefine MAKE, set it here.
@@ -75,6 +75,11 @@ QUIET_SUBMAKE = MAKELEVEL=0
 
 cache_file = @cache_file@
 CONFIGURE_FLAGS = --cache-file=$(cache_file)
+
+AUTOCONF = @AUTOCONF@
+AUTOMAKE = @AUTOMAKE@
+AUTOHEADER = @AUTOHEADER@
+ACLOCAL = @ACLOCAL@
 
 CC=@CC@
 CFLAGS=@CFLAGS@
@@ -146,8 +151,7 @@ man1dir=$(mandir)/man1
 # Where to install and expect the info files describing Emacs.
 infodir=@infodir@
 # Info files not in the doc/misc directory (we get those via make echo-info).
-INFO_EXT=@INFO_EXT@
-INFO_NONMISC=emacs$(INFO_EXT) eintr$(INFO_EXT) elisp$(INFO_EXT)
+INFO_NONMISC=emacs.info eintr.info elisp.info
 
 # If no makeinfo was found and configured --without-makeinfo, "no"; else "yes".
 HAVE_MAKEINFO=@HAVE_MAKEINFO@
@@ -288,9 +292,9 @@ SUBDIR_MAKEFILES = `echo $(SUBDIR_MAKEFILES_IN:.in=) | sed 's|$(srcdir)/||g'`
 COPYDIR = ${srcdir}/etc ${srcdir}/lisp
 COPYDESTS = "$(DESTDIR)${etcdir}" "$(DESTDIR)${lispdir}"
 
-all: ${SUBDIR}
+all: ${SUBDIR} info
 
-.PHONY: all ${SUBDIR} blessmail epaths-force epaths-force-w32 FRC
+.PHONY: all ${SUBDIR} blessmail epaths-force epaths-force-w32
 
 removenullpaths=sed -e 's/^:*//' -e 's/:*$$//g' -e 's/::*/:/g'
 
@@ -298,7 +302,7 @@ removenullpaths=sed -e 's/^:*//' -e 's/:*$$//g' -e 's/::*/:/g'
 # See comments in configure.ac for why it is done this way, as opposed
 # to just letting configure generate epaths.h from epaths.in in a
 # similar way to how Makefile is made from Makefile.in.
-epaths-force: FRC
+epaths-force:
 	@(standardlisppath=`echo "${standardlisppath}" | ${removenullpaths}` ; \
 	  locallisppath=`echo "${locallisppath}" | ${removenullpaths}` ; \
 	  buildlisppath=`echo "${buildlisppath}" | ${removenullpaths}` ; \
@@ -335,7 +339,7 @@ msys_sed_sh_escape=sed -e 's/[];$$*.^[]/\\\\&/g'
 # MS-Windows format (e.g. 'c:/foo/bar'), because temacs is a MinGW
 # program that doesn't support MSYS-style paths (e.g. '/c/foo/bar' or
 # '/foo/bar').
-epaths-force-w32: FRC
+epaths-force-w32:
 	@(w32srcdir=`${srcdir}/build-aux/msys-to-w32 "${srcdir}"`; \
 	  w32prefix=`${srcdir}/build-aux/msys-to-w32 "${prefix}" N`; \
 	  w32prefixpattern=`echo "$${w32prefix}" | ${msys_sed_sh_escape}` ; \
@@ -359,7 +363,7 @@ src: lib-src
 lisp: src
 
 # These targets should be "${SUBDIR} without `src'".
-lib lib-src lisp nt: Makefile FRC
+lib lib-src lisp nt: Makefile
 	cd $@ && $(MAKE) all $(MFLAGS)                         \
 	  CC='${CC}' CFLAGS='${CFLAGS}' CPPFLAGS='${CPPFLAGS}' \
 	  LDFLAGS='${LDFLAGS}' MAKE='${MAKE}'
@@ -378,7 +382,7 @@ lib lib-src lisp nt: Makefile FRC
 # This passes an unexpanded $srcdir to src's Makefile, which then
 # expands it using its own value of srcdir (which points to the
 # source directory of src/).
-src: Makefile FRC
+src: Makefile
 	dirstate='.bzr/checkout/dirstate';				\
 	vcswitness='$$(srcdir)/../'$$dirstate;				\
 	[ -r "$(srcdir)/$$dirstate" ] || vcswitness='';			\
@@ -390,7 +394,7 @@ src: Makefile FRC
 	  LDFLAGS='${LDFLAGS}' MAKE='${MAKE}' BOOTSTRAPEMACS="$$boot"	\
 	  VCSWITNESS="$$vcswitness"
 
-blessmail: Makefile src FRC
+blessmail: Makefile src
 	cd lib-src && $(MAKE) maybe-blessmail $(MFLAGS) \
 	  MAKE='${MAKE}' archlibdir='$(archlibdir)'
 
@@ -423,16 +427,17 @@ config.status: ${srcdir}/configure ${srcdir}/lisp/version.el
 AUTOCONF_INPUTS = $(srcdir)/configure.ac $(srcdir)/aclocal.m4
 
 $(srcdir)/configure: $(AUTOCONF_INPUTS)
-	cd ${srcdir} && autoconf
+	cd ${srcdir} && ${AUTOCONF}
 
+ACLOCAL_PATH = @ACLOCAL_PATH@
 ACLOCAL_INPUTS = $(srcdir)/configure.ac $(srcdir)/m4/gnulib-comp.m4
 $(srcdir)/aclocal.m4: $(ACLOCAL_INPUTS)
-	cd $(srcdir) && aclocal -I m4
+	cd $(srcdir) && ACLOCAL_PATH='$(ACLOCAL_PATH)' $(ACLOCAL) -I m4
 
 AUTOMAKE_INPUTS = $(srcdir)/aclocal.m4 $(srcdir)/lib/Makefile.am \
   $(srcdir)/lib/gnulib.mk
 $(srcdir)/lib/Makefile.in: $(AUTOMAKE_INPUTS)
-	cd $(srcdir) && automake --gnu -a -c lib/Makefile
+	cd $(srcdir) && $(AUTOMAKE) --gnu -a -c lib/Makefile
 
 # Regenerate files that this makefile would have made, if this makefile
 # had been built by Automake.  The name 'am--refresh' is for
@@ -445,9 +450,9 @@ $(srcdir)/src/config.in: $(srcdir)/src/stamp-h.in
 	@ # because stamp-h.in has changed (since building stamp-h.in
 	@ # refreshes config.in as well), but if config.in is missing
 	@ # then we really need to do something more.
-	[ -r "$@" ] || ( cd ${srcdir} && autoheader )
+	[ -r "$@" ] || ( cd ${srcdir} && ${AUTOHEADER} )
 $(srcdir)/src/stamp-h.in: $(AUTOCONF_INPUTS)
-	cd ${srcdir} && autoheader
+	cd ${srcdir} && ${AUTOHEADER}
 	rm -f $(srcdir)/src/stamp-h.in
 	echo timestamp > $(srcdir)/src/stamp-h.in
 
@@ -791,8 +796,6 @@ uninstall-nt:
 	    bindir="${bindir}" libexecdir="${libexecdir}" \
 	    archlibdir="${archlibdir}"
 
-FRC:
-
 # ==================== Cleaning up and miscellanea ====================
 
 .PHONY: mostlyclean clean distclean bootstrap-clean maintainer-clean extraclean
@@ -802,7 +805,7 @@ FRC:
 ###      normally don't want to recompile.  For example, the `mostlyclean'
 ###      target for GCC does not delete `libgcc.a', because recompiling it
 ###      is rarely necessary and takes a lot of time.
-mostlyclean: FRC
+mostlyclean:
 	cd src      && $(MAKE) $(MFLAGS) mostlyclean
 	cd oldXMenu && $(MAKE) $(MFLAGS) mostlyclean
 	cd lwlib    && $(MAKE) $(MFLAGS) mostlyclean
@@ -822,7 +825,7 @@ mostlyclean: FRC
 ###      with them.
 ###
 ###      Delete `.dvi' files here if they are not part of the distribution.
-clean: FRC
+clean:
 	-rm -f etc/emacs.tmpdesktop
 	cd src      && $(MAKE) $(MFLAGS) clean
 	cd oldXMenu && $(MAKE) $(MFLAGS) clean
@@ -849,7 +852,7 @@ top_bootclean=\
 top_distclean=\
 	${top_bootclean}; \
 	rm -f config.status config.log~ Makefile stamp-h1 ${SUBDIR_MAKEFILES}
-distclean: FRC
+distclean:
 	cd src      && $(MAKE) $(MFLAGS) distclean
 	cd oldXMenu && $(MAKE) $(MFLAGS) distclean
 	cd lwlib    && $(MAKE) $(MFLAGS) distclean
@@ -871,7 +874,7 @@ distclean: FRC
 ### `bootstrap-clean'
 ###      Delete everything that can be reconstructed by `make' and that
 ###      needs to be deleted in order to force a bootstrap from a clean state.
-bootstrap-clean: FRC
+bootstrap-clean:
 	cd src      && $(MAKE) $(MFLAGS) bootstrap-clean
 	cd oldXMenu && $(MAKE) $(MFLAGS) maintainer-clean
 	cd lwlib    && $(MAKE) $(MFLAGS) maintainer-clean
@@ -906,7 +909,7 @@ bootstrap-clean: FRC
 top_maintainer_clean=\
 	${top_distclean}; \
 	rm -fr autom4te.cache
-maintainer-clean: bootstrap-clean FRC
+maintainer-clean: bootstrap-clean
 	cd src  && $(MAKE) $(MFLAGS) maintainer-clean
 	cd leim && $(MAKE) $(MFLAGS) maintainer-clean
 	cd lisp && $(MAKE) $(MFLAGS) maintainer-clean
@@ -953,7 +956,7 @@ $(DOCS):
 	t=$@; IFS=-; set $$t; IFS=; cd doc/$$1 && $(MAKE) $(MFLAGS) $$2
 
 .PHONY: $(DOCS) docs pdf ps
-.PHONY: info dvi dist check html info-real info-dir force-info check-info
+.PHONY: info dvi dist check html info-real info-dir check-info
 
 ## TODO add etc/refcards.
 docs: $(DOCS)
@@ -1034,7 +1037,6 @@ uninstall-pdf: $(UNINSTALL_PDF)
 uninstall-ps: $(UNINSTALL_PS)
 
 
-force-info:
 # Note that man/Makefile knows how to put the info files in $(srcdir),
 # so we can do ok running make in the build dir.
 # This used to have a clause that exited with an error if MAKEINFO = no.
@@ -1046,7 +1048,7 @@ force-info:
 # would require changing every rule in doc/ that builds an info file,
 # and it's not worth it.  This case is only relevant if you download a
 # release, then change the .texi files.
-info: force-info
+info:
 	@if test "$(HAVE_MAKEINFO)" = "no"; then \
 	  echo "Configured --without-makeinfo, not building manuals" ; \
 	else \
@@ -1088,10 +1090,10 @@ check-info: info
 #  * Run autogen.sh.
 #  * Rebuild Makefile, to update the build procedure itself.
 #  * Do the actual build.
-bootstrap: bootstrap-clean FRC
+bootstrap: bootstrap-clean
 	cd $(srcdir) && ./autogen.sh
 	$(MAKE) $(MFLAGS) MAKEFILE_NAME=force-Makefile force-Makefile
-	$(MAKE) $(MFLAGS) info all
+	$(MAKE) $(MFLAGS) all
 
 .PHONY: check-declare
 

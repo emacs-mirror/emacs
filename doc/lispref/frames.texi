@@ -747,15 +747,15 @@ widths are negative, only the left fringe gets the specified width.
 
 @vindex right-divider-width, a frame parameter
 @item right-divider-width
-The width of the right divider (@pxref{Window Dividers}) of any window
-on the frame, in pixels.  A value of zero means to not draw right
-dividers.
+The width (thickness) reserved for the right divider (@pxref{Window
+Dividers}) of any window on the frame, in pixels.  A value of zero means
+to not draw right dividers.
 
 @vindex bottom-divider-width, a frame parameter
 @item bottom-divider-width
-The width of the bottom divider (@pxref{Window Dividers}) of any window
-on the frame, in pixels.  A value of zero means to not draw bottom
-dividers.
+The width (thickness) reserved for the bottom divider (@pxref{Window
+Dividers}) of any window on the frame, in pixels.  A value of zero means
+to not draw bottom dividers.
 
 @vindex menu-bar-lines frame parameter
 @item menu-bar-lines
@@ -998,7 +998,7 @@ used instead.
 @cindex gamma correction
 If this is a number, Emacs performs ``gamma correction'' which adjusts
 the brightness of all colors.  The value should be the screen gamma of
-your display, a floating point number.
+your display.
 
 Usual PC monitors have a screen gamma of 2.2, so color values in
 Emacs, and in X windows generally, are calibrated to display properly
@@ -1147,21 +1147,43 @@ font.  If you don't supply @var{frame}, these functions use the selected
 frame.
 @end defun
 
-@defun set-frame-size frame cols rows
-This function sets the size of @var{frame}, measured in characters;
-@var{cols} and @var{rows} specify the new width and height.
+@defopt frame-resize-pixelwise
+If this option is @code{nil}, a frame's size is usually rounded to a
+multiple of the current values of that frame's @code{frame-char-height}
+and @code{frame-char-width}.  If this is non-@code{nil}, no rounding
+occurs, hence frame sizes can increase/decrease by one pixel.
 
-To set the size based on values measured in pixels, use
-@code{frame-char-height} and @code{frame-char-width} to convert
-them to units of characters.
+Setting this causes the next resize operation to pass the corresponding
+size hints to the window manager.  This means that this variable should
+be set only in a user's initial file; applications should never bind it
+temporarily.
+
+The precise semantics of a value of @code{nil} for this option depends
+on the toolkit used: Dragging the frame border with the mouse is usually
+always done character-wise.  Calling @code{set-frame-size} (see below)
+with arguments that do not specify the frame size as an integer multiple
+of its character size may be, however, either ignored or cause a
+rounding (GTK+, Windows) or get accepted (Lucid, Motif).
+@end defopt
+
+@defun set-frame-size frame width height pixelwise
+This function sets the size of @var{frame}, measured in characters;
+@var{width} and @var{height} specify the new width in columns and the
+new height in lines.
+
+The optional argument @var{pixelwise} non-@code{nil} means to measure
+the new width and height in units of pixels instead.  Note that if
+@code{frame-resize-pixelwise} is @code{nil}, some toolkits may refuse to
+fully honor the request if it does not increase/decrease the frame size
+to a multiple of its character size.
 @end defun
 
-@defun set-frame-height frame lines &optional pretend
-This function resizes @var{frame} to a height of @var{lines} lines.  The
+@defun set-frame-height frame height &optional pretend pixelwise
+This function resizes @var{frame} to a height of @var{height} lines.  The
 sizes of existing windows in @var{frame} are altered proportionally to
 fit.
 
-If @var{pretend} is non-@code{nil}, then Emacs displays @var{lines}
+If @var{pretend} is non-@code{nil}, then Emacs displays @var{height}
 lines of output in @var{frame}, but does not change its value for the
 actual height of the frame.  This is only useful on text terminals.
 Using a smaller height than the terminal actually implements may be
@@ -1170,12 +1192,24 @@ terminal malfunctions when using its whole screen.  Setting the frame
 height ``for real'' does not always work, because knowing the correct
 actual size may be necessary for correct cursor positioning on
 text terminals.
+
+The optional fourth argument @var{pixelwise} non-@code{nil} means that
+@var{frame} should be @var{height} pixels high.  Note that if
+@code{frame-resize-pixelwise} is @code{nil}, some toolkits may refuse to
+fully honor the request if it does not increase/decrease the frame
+height to a multiple of its character height.
 @end defun
 
-@defun set-frame-width frame width &optional pretend
+@defun set-frame-width frame width &optional pretend pixelwise
 This function sets the width of @var{frame}, measured in characters.
 The argument @var{pretend} has the same meaning as in
 @code{set-frame-height}.
+
+The optional fourth argument @var{pixelwise} non-@code{nil} means that
+@var{frame} should be @var{width} pixels wide.  Note that if
+@code{frame-resize-pixelwise} is @code{nil}, some toolkits may refuse to
+fully honor the request if it does not increase/decrease the frame width
+to a multiple of its character width.
 @end defun
 
 @c FIXME?  Belongs more in Emacs manual than here?
@@ -1300,6 +1334,18 @@ terminal.  @xref{DEL Does Not Delete,,, emacs, The Emacs Manual}.
 @item terminal-initted
 After the terminal is initialized, this is set to the
 terminal-specific initialization function.
+@item tty-mode-set-strings
+When present, a list of strings containing escape sequences that Emacs
+will output while configuring a tty for rendering.  Emacs emits these
+strings only when configuring a terminal: if you want to enable a mode
+on a terminal that is already active (for example, while in
+@code{tty-setup-hook}), explicitly output the necessary escape
+sequence using @code{send-string-to-terminal} in addition to adding
+the sequence to @code{tty-mode-set-strings}.
+@item tty-mode-reset-strings
+When present, a list of strings that undo the effects of the strings
+in @code{tty-mode-set-strings}.  Emacs emits these strings when
+exiting, deleting a terminal, or suspending itself.
 @end table
 
 @node Frame Titles

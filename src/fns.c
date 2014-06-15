@@ -79,8 +79,17 @@ See Info node `(elisp)Random Numbers' for more details.  */)
     seed_random (SSDATA (limit), SBYTES (limit));
 
   val = get_random ();
-  if (NATNUMP (limit) && XFASTINT (limit) != 0)
-    val %= XFASTINT (limit);
+  if (INTEGERP (limit) && 0 < XINT (limit))
+    while (true)
+      {
+	/* Return the remainder, except reject the rare case where
+	   get_random returns a number so close to INTMASK that the
+	   remainder isn't random.  */
+	EMACS_INT remainder = val % XINT (limit);
+	if (val - remainder <= INTMASK - XINT (limit) + 1)
+	  return make_number (remainder);
+	val = get_random ();
+      }
   return make_number (val);
 }
 
@@ -1118,7 +1127,48 @@ Elements of ALIST that are not conses are also shared.  */)
   return alist;
 }
 
-DEFUN ("substring", Fsubstring, Ssubstring, 2, 3, 0,
+/* Check that ARRAY can have a valid subarray [FROM..TO),
+   given that its size is SIZE.
+   If FROM is nil, use 0; if TO is nil, use SIZE.
+   Count negative values backwards from the end.
+   Set *IFROM and *ITO to the two indexes used.  */
+
+static void
+validate_subarray (Lisp_Object array, Lisp_Object from, Lisp_Object to,
+		   ptrdiff_t size, EMACS_INT *ifrom, EMACS_INT *ito)
+{
+  EMACS_INT f, t;
+
+  if (INTEGERP (from))
+    {
+      f = XINT (from);
+      if (f < 0)
+	f += size;
+    }
+  else if (NILP (from))
+    f = 0;
+  else
+    wrong_type_argument (Qintegerp, from);
+
+  if (INTEGERP (to))
+    {
+      t = XINT (to);
+      if (t < 0)
+	t += size;
+    }
+  else if (NILP (to))
+    t = size;
+  else
+    wrong_type_argument (Qintegerp, to);
+
+  if (! (0 <= f && f <= t && t <= size))
+    args_out_of_range_3 (array, from, to);
+
+  *ifrom = f;
+  *ito = t;
+}
+
+DEFUN ("substring", Fsubstring, Ssubstring, 1, 3, 0,
        doc: /* Return a new string whose contents are a substring of STRING.
 The returned string consists of the characters between index FROM
 \(inclusive) and index TO (exclusive) of STRING.  FROM and TO are
@@ -1128,52 +1178,38 @@ to the end of STRING.
 
 The STRING argument may also be a vector.  In that case, the return
 value is a new vector that contains the elements between index FROM
-\(inclusive) and index TO (exclusive) of that vector argument.  */)
-  (Lisp_Object string, register Lisp_Object from, Lisp_Object to)
+\(inclusive) and index TO (exclusive) of that vector argument.
+
+With one argument, just copy STRING (with properties, if any).  */)
+  (Lisp_Object string, Lisp_Object from, Lisp_Object to)
 {
   Lisp_Object res;
   ptrdiff_t size;
-  EMACS_INT from_char, to_char;
-
-  CHECK_VECTOR_OR_STRING (string);
-  CHECK_NUMBER (from);
+  EMACS_INT ifrom, ito;
 
   if (STRINGP (string))
     size = SCHARS (string);
-  else
+  else if (VECTORP (string))
     size = ASIZE (string);
-
-  if (NILP (to))
-    to_char = size;
   else
-    {
-      CHECK_NUMBER (to);
+    wrong_type_argument (Qarrayp, string);
 
-      to_char = XINT (to);
-      if (to_char < 0)
-	to_char += size;
-    }
-
-  from_char = XINT (from);
-  if (from_char < 0)
-    from_char += size;
-  if (!(0 <= from_char && from_char <= to_char && to_char <= size))
-    args_out_of_range_3 (string, make_number (from_char),
-			 make_number (to_char));
+  validate_subarray (string, from, to, size, &ifrom, &ito);
 
   if (STRINGP (string))
     {
-      ptrdiff_t to_byte =
-	(NILP (to) ? SBYTES (string) : string_char_to_byte (string, to_char));
-      ptrdiff_t from_byte = string_char_to_byte (string, from_char);
+      ptrdiff_t from_byte
+	= !ifrom ? 0 : string_char_to_byte (string, ifrom);
+      ptrdiff_t to_byte
+	= ito == size ? SBYTES (string) : string_char_to_byte (string, ito);
       res = make_specified_string (SSDATA (string) + from_byte,
-				   to_char - from_char, to_byte - from_byte,
+				   ito - ifrom, to_byte - from_byte,
 				   STRING_MULTIBYTE (string));
-      copy_text_properties (make_number (from_char), make_number (to_char),
+      copy_text_properties (make_number (ifrom), make_number (ito),
 			    string, make_number (0), res, Qnil);
     }
   else
-    res = Fvector (to_char - from_char, aref_addr (string, from_char));
+    res = Fvector (ito - ifrom, aref_addr (string, ifrom));
 
   return res;
 }
@@ -1196,34 +1232,11 @@ With one argument, just copy STRING without its properties.  */)
   CHECK_STRING (string);
 
   size = SCHARS (string);
+  validate_subarray (string, from, to, size, &from_char, &to_char);
 
-  if (NILP (from))
-    from_char = 0;
-  else
-    {
-      CHECK_NUMBER (from);
-      from_char = XINT (from);
-      if (from_char < 0)
-	from_char += size;
-    }
-
-  if (NILP (to))
-    to_char = size;
-  else
-    {
-      CHECK_NUMBER (to);
-      to_char = XINT (to);
-      if (to_char < 0)
-	to_char += size;
-    }
-
-  if (!(0 <= from_char && from_char <= to_char && to_char <= size))
-    args_out_of_range_3 (string, make_number (from_char),
-			 make_number (to_char));
-
-  from_byte = NILP (from) ? 0 : string_char_to_byte (string, from_char);
+  from_byte = !from_char ? 0 : string_char_to_byte (string, from_char);
   to_byte =
-    NILP (to) ? SBYTES (string) : string_char_to_byte (string, to_char);
+    to_char == size ? SBYTES (string) : string_char_to_byte (string, to_char);
   return make_specified_string (SSDATA (string) + from_byte,
 				to_char - from_char, to_byte - from_byte,
 				STRING_MULTIBYTE (string));
@@ -1684,40 +1697,121 @@ changing the value of a sequence `foo'.  */)
 }
 
 DEFUN ("nreverse", Fnreverse, Snreverse, 1, 1, 0,
-       doc: /* Reverse LIST by modifying cdr pointers.
-Return the reversed list.  Expects a properly nil-terminated list.  */)
-  (Lisp_Object list)
+       doc: /* Reverse order of items in a list, vector or string SEQ.
+If SEQ is a list, it should be nil-terminated.
+This function may destructively modify SEQ to produce the value.  */)
+  (Lisp_Object seq)
 {
-  register Lisp_Object prev, tail, next;
-
-  if (NILP (list)) return list;
-  prev = Qnil;
-  tail = list;
-  while (!NILP (tail))
+  if (NILP (seq))
+    return seq;
+  else if (STRINGP (seq))
+    return Freverse (seq);
+  else if (CONSP (seq))
     {
-      QUIT;
-      CHECK_LIST_CONS (tail, tail);
-      next = XCDR (tail);
-      Fsetcdr (tail, prev);
-      prev = tail;
-      tail = next;
+      Lisp_Object prev, tail, next;
+
+      for (prev = Qnil, tail = seq; !NILP (tail); tail = next)
+	{
+	  QUIT;
+	  CHECK_LIST_CONS (tail, tail);
+	  next = XCDR (tail);
+	  Fsetcdr (tail, prev);
+	  prev = tail;
+	}
+      seq = prev;
     }
-  return prev;
+  else if (VECTORP (seq))
+    {
+      ptrdiff_t i, size = ASIZE (seq);
+
+      for (i = 0; i < size / 2; i++)
+	{
+	  Lisp_Object tem = AREF (seq, i);
+	  ASET (seq, i, AREF (seq, size - i - 1));
+	  ASET (seq, size - i - 1, tem);
+	}
+    }
+  else if (BOOL_VECTOR_P (seq))
+    {
+      ptrdiff_t i, size = bool_vector_size (seq);
+
+      for (i = 0; i < size / 2; i++)
+	{
+	  bool tem = bool_vector_bitref (seq, i);
+	  bool_vector_set (seq, i, bool_vector_bitref (seq, size - i - 1));
+	  bool_vector_set (seq, size - i - 1, tem);
+	}
+    }
+  else
+    wrong_type_argument (Qarrayp, seq);
+  return seq;
 }
 
 DEFUN ("reverse", Freverse, Sreverse, 1, 1, 0,
-       doc: /* Reverse LIST, copying.  Return the reversed list.
+       doc: /* Return the reversed copy of list, vector, or string SEQ.
 See also the function `nreverse', which is used more often.  */)
-  (Lisp_Object list)
+  (Lisp_Object seq)
 {
   Lisp_Object new;
 
-  for (new = Qnil; CONSP (list); list = XCDR (list))
+  if (NILP (seq))
+    return Qnil;
+  else if (CONSP (seq))
     {
-      QUIT;
-      new = Fcons (XCAR (list), new);
+      for (new = Qnil; CONSP (seq); seq = XCDR (seq))
+	{
+	  QUIT;
+	  new = Fcons (XCAR (seq), new);
+	}
+      CHECK_LIST_END (seq, seq);
     }
-  CHECK_LIST_END (list, list);
+  else if (VECTORP (seq))
+    {
+      ptrdiff_t i, size = ASIZE (seq);
+      
+      new = make_uninit_vector (size);
+      for (i = 0; i < size; i++)
+	ASET (new, i, AREF (seq, size - i - 1));
+    }
+  else if (BOOL_VECTOR_P (seq))
+    {
+      ptrdiff_t i;
+      EMACS_INT nbits = bool_vector_size (seq);
+
+      new = make_uninit_bool_vector (nbits);
+      for (i = 0; i < nbits; i++)
+	bool_vector_set (new, i, bool_vector_bitref (seq, nbits - i - 1));
+    }
+  else if (STRINGP (seq))
+    {
+      ptrdiff_t size = SCHARS (seq), bytes = SBYTES (seq);
+      
+      if (size == bytes)
+	{
+	  ptrdiff_t i;
+
+	  new = make_uninit_string (size);
+	  for (i = 0; i < size; i++)
+	    SSET (new, i, SREF (seq, size - i - 1));
+	}
+      else
+	{
+	  unsigned char *p, *q;
+
+	  new = make_uninit_multibyte_string (size, bytes);
+	  p = SDATA (seq), q = SDATA (new) + bytes;
+	  while (q > SDATA (new))
+	    {
+	      int ch, len;
+	      
+	      ch = STRING_CHAR_AND_LENGTH (p, len);
+	      p += len, q -= len;
+	      CHAR_STRING (ch, q);
+	    }
+	}
+    }
+  else
+    wrong_type_argument (Qsequencep, seq);
   return new;
 }
 
@@ -4023,6 +4117,7 @@ sweep_weak_table (struct Lisp_Hash_Table *h, bool remove_entries_p)
    current garbage collection.  Remove weak tables that don't survive
    from Vweak_hash_tables.  Called from gc_sweep.  */
 
+NO_INLINE /* For better stack traces */
 void
 sweep_weak_hash_tables (void)
 {
@@ -4603,36 +4698,12 @@ secure_hash (Lisp_Object algorithm, Lisp_Object object, Lisp_Object start, Lisp_
 	object = code_convert_string (object, coding_system, Qnil, 1, 0, 1);
 
       size = SCHARS (object);
+      validate_subarray (object, start, end, size, &start_char, &end_char);
 
-      if (!NILP (start))
-	{
-	  CHECK_NUMBER (start);
-
-	  start_char = XINT (start);
-
-	  if (start_char < 0)
-	    start_char += size;
-	}
-
-      if (NILP (end))
-	end_char = size;
-      else
-	{
-	  CHECK_NUMBER (end);
-
-	  end_char = XINT (end);
-
-	  if (end_char < 0)
-	    end_char += size;
-	}
-
-      if (!(0 <= start_char && start_char <= end_char && end_char <= size))
-	args_out_of_range_3 (object, make_number (start_char),
-			     make_number (end_char));
-
-      start_byte = NILP (start) ? 0 : string_char_to_byte (object, start_char);
-      end_byte =
-	NILP (end) ? SBYTES (object) : string_char_to_byte (object, end_char);
+      start_byte = !start_char ? 0 : string_char_to_byte (object, start_char);
+      end_byte = (end_char == size
+		  ? SBYTES (object)
+		  : string_char_to_byte (object, end_char));
     }
   else
     {

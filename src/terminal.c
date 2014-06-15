@@ -224,19 +224,19 @@ get_terminal (Lisp_Object terminal, bool throw)
   return result;
 }
 
-
-
-/* Create a new terminal object and add it to the terminal list. */
+/* Create a new terminal object of TYPE and add it to the terminal list.  RIF
+   may be NULL if this terminal type doesn't support window-based redisplay.  */
 
 struct terminal *
-create_terminal (void)
+create_terminal (enum output_method type, struct redisplay_interface *rif)
 {
   struct terminal *terminal = allocate_terminal ();
   Lisp_Object terminal_coding, keyboard_coding;
 
   terminal->next_terminal = terminal_list;
   terminal_list = terminal;
-
+  terminal->type = type;
+  terminal->rif = rif;
   terminal->id = next_terminal_id++;
 
   terminal->keyboard_coding = xmalloc (sizeof (struct coding_system));
@@ -519,13 +519,12 @@ init_initial_terminal (void)
   if (initialized || terminal_list || tty_list)
     emacs_abort ();
 
-  initial_terminal = create_terminal ();
-  initial_terminal->type = output_initial;
+  initial_terminal = create_terminal (output_initial, NULL);
   initial_terminal->name = xstrdup ("initial_terminal");
   initial_terminal->kboard = initial_kboard;
   initial_terminal->delete_terminal_hook = &delete_initial_terminal;
   initial_terminal->delete_frame_hook = &initial_free_frame_resources;
-  /* All other hooks are NULL. */
+  /* Other hooks are NULL by default.  */
 
   return initial_terminal;
 }

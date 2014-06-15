@@ -1,7 +1,7 @@
 ;;; dired.el --- directory-browsing commands -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1986, 1992-1997, 2000-2014 Free Software
-;; Foundation, Inc.
+;; Copyright (C) 1985-1986, 1992-1997, 2000-2014
+;;   Free Software Foundation, Inc.
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>
 ;; Maintainer: emacs-devel@gnu.org
@@ -222,7 +222,7 @@ with the buffer narrowed to the listing."
 
 (defcustom dired-initial-position-hook nil
   "This hook is used to position the point.
-It is run the function `dired-initial-position'."
+It is run by the function `dired-initial-position'."
   :group 'dired
   :type 'hook
   :version "24.4")
@@ -1142,10 +1142,22 @@ BEG..END is the line where the file info is located."
 
 (defvar ls-lisp-use-insert-directory-program)
 
+(defun dired-check-switches (switches short &optional long)
+  "Return non-nil if the string SWITCHES matches LONG or SHORT format."
+  (let (case-fold-search)
+    (and (stringp switches)
+	 (string-match-p (concat "\\(\\`\\| \\)-[[:alnum:]]*" short
+				 (if long (concat "\\|--" long "\\>") ""))
+			 switches))))
+
 (defun dired-switches-escape-p (switches)
   "Return non-nil if the string SWITCHES contains -b or --escape."
   ;; Do not match things like "--block-size" that happen to contain "b".
-  (string-match-p "\\(\\`\\| \\)-[[:alnum:]]*b\\|--escape\\>" switches))
+  (dired-check-switches switches "b" "escape"))
+
+(defun dired-switches-recursive-p (switches)
+  "Return non-nil if the string SWITCHES contains -R or --recursive."
+  (dired-check-switches switches "R" "recursive"))
 
 (defun dired-insert-directory (dir switches &optional file-list wildcard hdr)
   "Insert a directory listing of DIR, Dired style.
@@ -1250,9 +1262,11 @@ see `dired-use-ls-dired' for more details.")
     (while (< (point) end)
       (ignore-errors
 	(if (not (dired-move-to-filename))
-	    (put-text-property (line-beginning-position)
-			       (1+ (line-end-position))
-			       'invisible 'dired-hide-details-information)
+	    (unless (or (looking-at-p "^$")
+			(looking-at-p dired-subdir-regexp))
+	      (put-text-property (line-beginning-position)
+				 (1+ (line-end-position))
+				 'invisible 'dired-hide-details-information))
 	  (put-text-property (+ (line-beginning-position) 1) (1- (point))
 			     'invisible 'dired-hide-details-detail)
 	  (add-text-properties
@@ -1400,7 +1414,7 @@ Each element of ALIST looks like (FILE . MARKERCHAR)."
 (defun dired-insert-old-subdirs (old-subdir-alist)
   "Try to insert all subdirs that were displayed before.
 Do so according to the former subdir alist OLD-SUBDIR-ALIST."
-  (or (string-match-p "R" dired-actual-switches)
+  (or (dired-switches-recursive-p dired-actual-switches)
       (let (elt dir)
 	(while old-subdir-alist
 	  (setq elt (car old-subdir-alist)
@@ -1898,7 +1912,7 @@ Type \\[dired-mark] to Mark a file or subdirectory for later commands.
   to see why something went wrong.
 Type \\[dired-unmark] to Unmark a file or all files of an inserted subdirectory.
 Type \\[dired-unmark-backward] to back up one line and unmark or unflag.
-Type \\[dired-do-flagged-delete] to delete (eXecute) the files flagged `D'.
+Type \\[dired-do-flagged-delete] to delete (eXpunge) the files flagged `D'.
 Type \\[dired-find-file] to Find the current line's file
   (or dired it in another buffer, if it is a directory).
 Type \\[dired-find-file-other-window] to find file or Dired directory in Other window.
@@ -2136,7 +2150,8 @@ Otherwise, display it in another buffer."
 (defun dired-display-file ()
   "In Dired, display this file or directory in another window."
   (interactive)
-  (display-buffer (find-file-noselect (dired-get-file-for-visit))))
+  (display-buffer (find-file-noselect (dired-get-file-for-visit))
+		  t))
 
 ;;; Functions for extracting and manipulating file names in Dired buffers.
 
@@ -2346,9 +2361,8 @@ Return the position of the beginning of the filename, or nil if none found."
   ;; This is the UNIX version.
   (if (get-text-property (point) 'dired-filename)
       (goto-char (next-single-property-change (point) 'dired-filename))
-    (let (opoint file-type executable symlink hidden case-fold-search used-F eol)
-      ;; case-fold-search is nil now, so we can test for capital F:
-      (setq used-F (string-match-p "F" dired-actual-switches)
+    (let (opoint file-type executable symlink hidden used-F eol)
+      (setq used-F (dired-check-switches dired-actual-switches "F" "classify")
 	    opoint (point)
 	    eol (line-end-position)
 	    hidden (and selective-display
@@ -2610,7 +2624,7 @@ instead of `dired-actual-switches'."
 	   (R-ftp-base-dir-regex
 	    ;; Used to expand subdirectory names correctly in recursive
 	    ;; ange-ftp listings.
-	    (and (string-match-p "R" switches)
+	    (and (dired-switches-recursive-p switches)
 		 (string-match "\\`/.*:\\(/.*\\)" default-directory)
 		 (concat "\\`" (match-string 1 default-directory)))))
       (goto-char (point-min))
@@ -2765,7 +2779,7 @@ as returned by `dired-get-filename'.  LIMIT is the search limit."
 ;; FIXME document whatever dired-x is doing.
 (defun dired-initial-position (dirname)
   "Where point should go in a new listing of DIRNAME.
-Point assumed at beginning of new subdir line.
+Point is assumed to be at the beginning of new subdir line.
 It runs the hook `dired-initial-position-hook'."
   (end-of-line)
   (and (featurep 'dired-x) dired-find-subdir
@@ -3087,7 +3101,7 @@ argument or confirmation)."
       (apply function args)
     (let ((buffer (get-buffer-create (or buffer-or-name " *Marked Files*"))))
       (with-current-buffer buffer
-	(with-temp-buffer-window
+	(with-current-buffer-window
 	 buffer
 	 (cons 'display-buffer-below-selected
 	       '((window-height . fit-window-to-buffer)))
@@ -3285,6 +3299,7 @@ As always, hidden subdirs are not affected."
 
 (defun dired-read-regexp (prompt &optional default history)
   "Read a regexp using `read-regexp'."
+  (declare (obsolete read-regexp "24.5"))
   (read-regexp prompt default (or history 'dired-regexp-history)))
 
 (defun dired-mark-files-regexp (regexp &optional marker-char)
@@ -3295,8 +3310,9 @@ A prefix argument means to unmark them instead.
 REGEXP is an Emacs regexp, not a shell wildcard.  Thus, use `\\.o$' for
 object files--just `.o' will mark more than you might think."
   (interactive
-   (list (dired-read-regexp (concat (if current-prefix-arg "Unmark" "Mark")
-				    " files (regexp): "))
+   (list (read-regexp (concat (if current-prefix-arg "Unmark" "Mark")
+                              " files (regexp): ")
+                      nil 'dired-regexp-history)
 	 (if current-prefix-arg ?\040)))
   (let ((dired-marker-char (or marker-char dired-marker-char)))
     (dired-mark-if
@@ -3311,8 +3327,9 @@ object files--just `.o' will mark more than you might think."
 A prefix argument means to unmark them instead.
 `.' and `..' are never marked."
   (interactive
-   (list (dired-read-regexp (concat (if current-prefix-arg "Unmark" "Mark")
-				    " files containing (regexp): "))
+   (list (read-regexp (concat (if current-prefix-arg "Unmark" "Mark")
+                              " files containing (regexp): ")
+                      nil 'dired-regexp-history)
 	 (if current-prefix-arg ?\040)))
   (let ((dired-marker-char (or marker-char dired-marker-char)))
     (dired-mark-if
@@ -3342,7 +3359,8 @@ A prefix argument means to unmark them instead.
 The match is against the non-directory part of the filename.  Use `^'
   and `$' to anchor matches.  Exclude subdirs by hiding them.
 `.' and `..' are never flagged."
-  (interactive (list (dired-read-regexp "Flag for deletion (regexp): ")))
+  (interactive (list (read-regexp "Flag for deletion (regexp): "
+                                  nil 'dired-regexp-history)))
   (dired-mark-files-regexp regexp dired-del-marker))
 
 (defun dired-mark-symlinks (unflag-p)
@@ -3639,6 +3657,7 @@ With a prefix argument, edit the current listing switches instead."
 	;; Remove a switch of the form -XtY for some X and Y.
 	(setq dired-actual-switches
 	      (replace-match "" t t dired-actual-switches 3))))
+
     ;; Now, if we weren't sorting by date before, add the -t switch.
     ;; Some simple-minded ls implementations (eg ftp servers) only
     ;; allow a single option string, so try not to add " -t" if possible.
@@ -3684,12 +3703,12 @@ Saves `dired-subdir-alist' when R is set and restores saved value
 minus any directories explicitly deleted when R is cleared.
 To be called first in body of `dired-sort-other', etc."
   (cond
-   ((and (string-match-p "R" switches)
-	 (not (string-match-p "R" dired-actual-switches)))
+   ((and (dired-switches-recursive-p switches)
+	 (not (dired-switches-recursive-p dired-actual-switches)))
     ;; Adding -R to ls switches -- save `dired-subdir-alist':
     (setq dired-subdir-alist-pre-R dired-subdir-alist))
-   ((and (string-match-p "R" dired-actual-switches)
-	 (not (string-match-p "R" switches)))
+   ((and (dired-switches-recursive-p dired-actual-switches)
+	 (not (dired-switches-recursive-p switches)))
     ;; Deleting -R from ls switches -- revert to pre-R subdirs
     ;; that are still present:
     (setq dired-subdir-alist
@@ -3861,7 +3880,7 @@ Ask means pop up a menu for the user to select one of copy, move or link."
 
 ;;; Start of automatically extracted autoloads.
 
-;;;### (autoloads nil "dired-aux" "dired-aux.el" "bd357e0a0e74eb553e90e0b6d19cf611")
+;;;### (autoloads nil "dired-aux" "dired-aux.el" "1448837b5f3e2b9ad63f723361f1e32e")
 ;;; Generated autoloads from dired-aux.el
 
 (autoload 'dired-diff "dired-aux" "\
@@ -4364,7 +4383,7 @@ instead.
 
 ;;;***
 
-;;;### (autoloads nil "dired-x" "dired-x.el" "291bc6e869bf72c900604c45d40f45ed")
+;;;### (autoloads nil "dired-x" "dired-x.el" "994b5d9fc38059ab641ec271c728e56f")
 ;;; Generated autoloads from dired-x.el
 
 (autoload 'dired-jump "dired-x" "\

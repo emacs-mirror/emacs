@@ -43,9 +43,39 @@ The relevant features are:
   :type '(choice (const :tag "No" nil)
                  (const :tag "Check" check)
                  ;; NOTE: If you add entries here, make sure to update
-                 ;; `tocheck-capabilities' in `terminal-init-xterm' as well.
+                 ;; `terminal-init-xterm' as well.
                  (set (const :tag "modifyOtherKeys support" modifyOtherKeys)
                       (const :tag "report background" reportBackground))))
+
+(defconst xterm-paste-ending-sequence "\e[201~"
+  "Characters send by the terminal to end a bracketed paste.")
+
+(defun xterm-paste ()
+  "Handle the start of a terminal paste operation."
+  (interactive)
+  (let* ((end-marker-length (length xterm-paste-ending-sequence))
+         (pasted-text (with-temp-buffer
+                        (set-buffer-multibyte nil)
+                        (while (not (search-backward
+                                     xterm-paste-ending-sequence
+                                     (- (point) end-marker-length) t))
+                          (let ((event (read-event
+                                        nil nil
+                                        ;; Use finite timeout to avoid
+                                        ;; glomming the event onto
+                                        ;; this-command-keys.
+                                        most-positive-fixnum)))
+                            (when (eql event ?\r)
+                              (setf event ?\n))
+                            (insert event)))
+                        (let ((last-coding-system-used))
+                          (decode-coding-region
+                           (point-min) (point)
+                           (keyboard-coding-system) t))))
+         (interprogram-paste-function (lambda () pasted-text)))
+    (yank)))
+
+(define-key global-map [xterm-paste] #'xterm-paste)
 
 (defvar xterm-function-map
   (let ((map (make-sparse-keymap)))
@@ -248,6 +278,70 @@ The relevant features are:
     (define-key map "\eOx" [kp-8])
     (define-key map "\eOy" [kp-9])
 
+    (define-key map "\eO2j" [S-kp-multiply])
+    (define-key map "\eO2k" [S-kp-add])
+    (define-key map "\eO2l" [S-kp-separator])
+    (define-key map "\eO2m" [S-kp-subtract])
+    (define-key map "\eO2o" [S-kp-divide])
+    (define-key map "\eO2p" [S-kp-0])
+    (define-key map "\eO2q" [S-kp-1])
+    (define-key map "\eO2r" [S-kp-2])
+    (define-key map "\eO2s" [S-kp-3])
+    (define-key map "\eO2t" [S-kp-4])
+    (define-key map "\eO2u" [S-kp-5])
+    (define-key map "\eO2v" [S-kp-6])
+    (define-key map "\eO2w" [S-kp-7])
+    (define-key map "\eO2x" [S-kp-8])
+    (define-key map "\eO2y" [S-kp-9])
+
+    (define-key map "\eO4j" [M-S-kp-multiply])
+    (define-key map "\eO4k" [M-S-kp-add])
+    (define-key map "\eO4l" [M-S-kp-separator])
+    (define-key map "\eO4m" [M-S-kp-subtract])
+    (define-key map "\eO4o" [M-S-kp-divide])
+    (define-key map "\eO4p" [M-S-kp-0])
+    (define-key map "\eO4q" [M-S-kp-1])
+    (define-key map "\eO4r" [M-S-kp-2])
+    (define-key map "\eO4s" [M-S-kp-3])
+    (define-key map "\eO4t" [M-S-kp-4])
+    (define-key map "\eO4u" [M-S-kp-5])
+    (define-key map "\eO4v" [M-S-kp-6])
+    (define-key map "\eO4w" [M-S-kp-7])
+    (define-key map "\eO4x" [M-S-kp-8])
+    (define-key map "\eO4y" [M-S-kp-9])
+
+    (define-key map "\eO6j" [C-S-kp-multiply])
+    (define-key map "\eO6k" [C-S-kp-add])
+    (define-key map "\eO6l" [C-S-kp-separator])
+    (define-key map "\eO6m" [C-S-kp-subtract])
+    (define-key map "\eO6o" [C-S-kp-divide])
+    (define-key map "\eO6p" [C-S-kp-0])
+    (define-key map "\eO6q" [C-S-kp-1])
+    (define-key map "\eO6r" [C-S-kp-2])
+    (define-key map "\eO6s" [C-S-kp-3])
+    (define-key map "\eO6t" [C-S-kp-4])
+    (define-key map "\eO6u" [C-S-kp-5])
+    (define-key map "\eO6v" [C-S-kp-6])
+    (define-key map "\eO6w" [C-S-kp-7])
+    (define-key map "\eO6x" [C-S-kp-8])
+    (define-key map "\eO6y" [C-S-kp-9])
+
+    (define-key map "\eO8j" [C-M-S-kp-multiply])
+    (define-key map "\eO8k" [C-M-S-kp-add])
+    (define-key map "\eO8l" [C-M-S-kp-separator])
+    (define-key map "\eO8m" [C-M-S-kp-subtract])
+    (define-key map "\eO8o" [C-M-S-kp-divide])
+    (define-key map "\eO8p" [C-M-S-kp-0])
+    (define-key map "\eO8q" [C-M-S-kp-1])
+    (define-key map "\eO8r" [C-M-S-kp-2])
+    (define-key map "\eO8s" [C-M-S-kp-3])
+    (define-key map "\eO8t" [C-M-S-kp-4])
+    (define-key map "\eO8u" [C-M-S-kp-5])
+    (define-key map "\eO8v" [C-M-S-kp-6])
+    (define-key map "\eO8w" [C-M-S-kp-7])
+    (define-key map "\eO8x" [C-M-S-kp-8])
+    (define-key map "\eO8y" [C-M-S-kp-9])
+
     ;; These keys are available in xterm starting from version 216
     ;; if the modifyOtherKeys resource is set to 1.
     (dolist (bind '((5 9   [C-tab])
@@ -394,6 +488,11 @@ The relevant features are:
     (define-key map "\e[12~" [f2])
     (define-key map "\e[13~" [f3])
     (define-key map "\e[14~" [f4])
+
+    ;; Recognize the start of a bracketed paste sequence.  The handler
+    ;; internally recognizes the end.
+    (define-key map "\e[200~" [xterm-paste])
+    
     map)
   "Function key map overrides for xterm.")
 
@@ -463,9 +562,6 @@ The relevant features are:
     map)
   "Keymap of possible alternative meanings for some keys.")
 
-;; List of terminals for which modify-other-keys has been turned on.
-(defvar xterm-modify-other-keys-terminal-list nil)
-
 (defun xterm--report-background-handler ()
   (let ((str "")
         chr)
@@ -503,6 +599,12 @@ The relevant features are:
     ;; Since xterm-280, the terminal type (NUMBER1) is now 41 instead of 0.
     (when (string-match "\\([0-9]+\\);\\([0-9]+\\);0" str)
       (let ((version (string-to-number (match-string 2 str))))
+        (when (and (> version 2000) (equal (match-string 1 str) "1"))
+          ;; Hack attack!  bug#16988: gnome-terminal reports "1;NNNN;0"
+          ;; with a large NNNN but is based on a rather old xterm code.
+          ;; Gnome terminal 3.6.1 reports 1;3406;0
+          ;; Gnome terminal 2.32.1 reports 1;2802;0
+          (setq version 200))
         ;; If version is 242 or higher, assume the xterm supports
         ;; reporting the background color (TODO: maybe earlier
         ;; versions do too...)
@@ -595,21 +697,23 @@ We run the first FUNCTION whose STRING matches the input events."
     (when (memq 'modifyOtherKeys xterm-extra-capabilities)
       (terminal-init-xterm-modify-other-keys)))
 
+  ;; Unconditionally enable bracketed paste mode: terminals that don't
+  ;; support it just ignore the sequence.
+  (terminal-init-xterm-bracketed-paste-mode)
+
   (run-hooks 'terminal-init-xterm-hook))
 
 (defun terminal-init-xterm-modify-other-keys ()
   "Terminal initialization for xterm's modifyOtherKeys support."
-  ;; Make sure that the modifyOtherKeys state is restored when
-  ;; suspending, resuming and exiting.
-  (add-hook 'suspend-hook 'xterm-turn-off-modify-other-keys)
-  (add-hook 'suspend-resume-hook 'xterm-turn-on-modify-other-keys)
-  (add-hook 'kill-emacs-hook 'xterm-remove-modify-other-keys)
-  (add-hook 'delete-terminal-functions 'xterm-remove-modify-other-keys)
-  ;; Add the selected frame to the list of frames that
-  ;; need to deal with modify-other-keys.
-  (push (frame-terminal)
-      xterm-modify-other-keys-terminal-list)
-  (xterm-turn-on-modify-other-keys))
+  (send-string-to-terminal "\e[>4;1m")
+  (push "\e[>4m" (terminal-parameter nil 'tty-mode-reset-strings))
+  (push "\e[>4;1m" (terminal-parameter nil 'tty-mode-set-strings)))
+
+(defun terminal-init-xterm-bracketed-paste-mode ()
+  "Terminal initialization for bracketed paste mode."
+  (send-string-to-terminal "\e[?2004h")
+  (push "\e[?2004l" (terminal-parameter nil 'tty-mode-reset-strings))
+  (push "\e[?2004h" (terminal-parameter nil 'tty-mode-set-strings)))
 
 ;; Set up colors, for those versions of xterm that support it.
 (defvar xterm-standard-colors
@@ -726,29 +830,6 @@ versions of xterm."
     ;; Modifying color mappings means realized faces don't use the
     ;; right colors, so clear them.
     (clear-face-cache)))
-
-(defun xterm-turn-on-modify-other-keys ()
-  "Turn the modifyOtherKeys feature of xterm back on."
-  (let ((terminal (frame-terminal)))
-    (when (and (terminal-live-p terminal)
-	       (memq terminal xterm-modify-other-keys-terminal-list))
-      (send-string-to-terminal "\e[>4;1m" terminal))))
-
-(defun xterm-turn-off-modify-other-keys (&optional frame)
-  "Temporarily turn off the modifyOtherKeys feature of xterm."
-  (let ((terminal (when frame (frame-terminal frame))))
-    (when (and (terminal-live-p terminal)
-               (memq terminal xterm-modify-other-keys-terminal-list))
-      (send-string-to-terminal "\e[>4m" terminal))))
-
-(defun xterm-remove-modify-other-keys (&optional terminal)
-  "Turn off the modifyOtherKeys feature of xterm for good."
-  (setq terminal (or terminal (frame-terminal)))
-  (when (and (terminal-live-p terminal)
-	     (memq terminal xterm-modify-other-keys-terminal-list))
-    (setq xterm-modify-other-keys-terminal-list
-	  (delq terminal xterm-modify-other-keys-terminal-list))
-    (send-string-to-terminal "\e[>4m" terminal)))
 
 (defun xterm-maybe-set-dark-background-mode (redc greenc bluec)
   ;; Use the heuristic in `frame-set-background-mode' to decide if a

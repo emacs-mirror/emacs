@@ -42,20 +42,21 @@
   "Buffer to show after starting Emacs.
 If the value is nil and `inhibit-startup-screen' is nil, show the
 startup screen.  If the value is a string, switch to a buffer
-visiting the file or directory specified by that string.  If the
-value is a function, switch to the buffer returned by that
-function.  If t, open the `*scratch*' buffer.
+visiting the file or directory that the string specifies.  If the
+value is a function, call it with no arguments and switch to the buffer
+that it returns.  If t, open the `*scratch*' buffer.
 
-A string value also causes emacsclient to open the specified file
-or directory when no target file is specified."
+If you use `emacsclient' with no target file, then it obeys any
+string or function value that this variable has."
   :type '(choice
 	  (const     :tag "Startup screen" nil)
 	  (directory :tag "Directory" :value "~/")
 	  (file      :tag "File" :value "~/.emacs")
-	  (const     :tag "Notes buffer" remember-notes)
+	  ;; Note sure about hard-coding this as an option...
+	  (const     :tag "Remember Mode notes buffer" remember-notes)
 	  (function  :tag "Function")
 	  (const     :tag "Lisp scratch buffer" t))
-  :version "24.4"
+  :version "23.1"
   :group 'initialization)
 
 (defcustom inhibit-startup-screen nil
@@ -292,8 +293,9 @@ see `tty-setup-hook'.")
 `tty-setup-hook' instead." "24.4")
 
 (defvar inhibit-startup-hooks nil
-  "Non-nil means don't run `term-setup-hook' and `emacs-startup-hook'.
-This is because we already did so.")
+  "Non-nil means don't run some startup hooks, because we already did.
+Currently this applies to: `emacs-startup-hook', `term-setup-hook',
+and `window-setup-hook'.")
 
 (defvar keyboard-type nil
   "The brand of keyboard you are using.
@@ -302,9 +304,12 @@ keys for use under X.  It is used in a fashion analogous to the
 environment variable TERM.")
 
 (defvar window-setup-hook nil
-  "Normal hook run to initialize window system display.
-Emacs runs this hook after processing the command line arguments and loading
-the user's init file.")
+  "Normal hook run after loading init files and handling the command line.
+This is very similar to `emacs-startup-hook'.  The only difference
+is that this hook runs after frame parameters have been set up in
+response to any settings from your init file.  Unless this matters
+to you, use `emacs-startup-hook' instead.  (The name of this hook
+is due to historical reasons, and does not reflect its purpose very well.)")
 
 (defcustom initial-major-mode 'lisp-interaction-mode
   "Major mode command symbol to use for the initial `*scratch*' buffer."
@@ -644,9 +649,7 @@ It is the default value of the variable `top-level'."
 				       (emacs-pid)
 				       (system-name))))))))
 	(unless inhibit-startup-hooks
-	  (run-hooks 'emacs-startup-hook)
-	  (and term-setup-hook
-	       (run-hooks 'term-setup-hook)))
+	  (run-hooks 'emacs-startup-hook 'term-setup-hook))
 
 	;; Don't do this if we failed to create the initial frame,
 	;; for instance due to a dense colormap.
@@ -682,8 +685,8 @@ It is the default value of the variable `top-level'."
 	;; Now we know the user's default font, so add it to the menu.
 	(if (fboundp 'font-menu-add-default)
 	    (font-menu-add-default))
-	(and window-setup-hook
-	     (run-hooks 'window-setup-hook))))
+	(unless inhibit-startup-hooks
+	  (run-hooks 'window-setup-hook))))
     ;; Subprocesses of Emacs do not have direct access to the terminal, so
     ;; unless told otherwise they should only assume a dumb terminal.
     ;; We are careful to do it late (after term-setup-hook), although the
@@ -736,7 +739,6 @@ opening the first frame (e.g. open a connection to an X server).")
 (defun tty-handle-args (args)
   "Handle the X-like command-line arguments \"-fg\", \"-bg\", \"-name\", etc."
   (let (rest)
-    (message "%S" args)
     (while (and args
 		(not (equal (car args) "--")))
       (let* ((argi (pop args))
@@ -1401,8 +1403,9 @@ If this is nil, no message will be displayed."
             `("GNU/Linux"
               ,(lambda (_button) (browse-url "http://www.gnu.org/gnu/linux-and-gnu.html"))
 	     "Browse http://www.gnu.org/gnu/linux-and-gnu.html")
-          `("GNU" ,(lambda (_button) (describe-gnu-project))
-	   "Display info on the GNU project")))
+          `("GNU" ,(lambda (_button)
+		     (browse-url "http://www.gnu.org/gnu/thegnuproject.html"))
+	    "Browse http://www.gnu.org/gnu/thegnuproject.html")))
      " operating system.\n\n"
      :face variable-pitch
      :link ("Emacs Tutorial" ,(lambda (_button) (help-with-tutorial)))
@@ -2431,10 +2434,7 @@ A fancy display is used on graphic displays, normal otherwise."
       ;; If there are no switches to process, we might as well
       ;; run this hook now, and there may be some need to do it
       ;; before doing any output.
-      (run-hooks 'emacs-startup-hook)
-      (and term-setup-hook
-	   (run-hooks 'term-setup-hook))
-      (setq inhibit-startup-hooks t)
+      (run-hooks 'emacs-startup-hook 'term-setup-hook)
 
       ;; It's important to notice the user settings before we
       ;; display the startup message; otherwise, the settings
@@ -2446,10 +2446,9 @@ A fancy display is used on graphic displays, normal otherwise."
       ;; If there are no switches to process, we might as well
       ;; run this hook now, and there may be some need to do it
       ;; before doing any output.
-      (when window-setup-hook
-	(run-hooks 'window-setup-hook)
-	;; Don't let the hook be run twice.
-	(setq window-setup-hook nil))
+      (run-hooks 'window-setup-hook)
+
+      (setq inhibit-startup-hooks t)
 
       ;; ;; Do this now to avoid an annoying delay if the user
       ;; ;; clicks the menu bar during the sit-for.

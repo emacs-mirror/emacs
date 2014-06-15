@@ -457,12 +457,16 @@ Delete all frames on the current terminal, except the selected one.
 @item M-<F10>
 @kindex M-<F10>
 @findex toggle-frame-maximized
-Toggle maximization state of the current frame.
+Toggle the maximization state of the current frame.  When a frame is
+maximized, it fills the screen.
 
 @item <F11>
 @kindex <F11>
 @findex toggle-frame-fullscreen
-Toggle fullscreen mode of the current frame.
+Toggle fullscreen mode for the current frame.  (The difference
+between ``fullscreen'' and ``maximized'' is normally that the former
+hides window manager decorations, giving slightly more screen space to
+Emacs itself.)
 @end table
 
   The @kbd{C-x 5 0} (@code{delete-frame}) command deletes the selected
@@ -494,13 +498,14 @@ the mouse cursor to the chosen frame.
 @cindex fonts
 
   By default, Emacs displays text on graphical displays using a
-12-point monospace font.  There are several different ways to specify
+10-point monospace font.  There are several different ways to specify
 a different font:
 
 @itemize
 @item
-Click on @samp{Set Default Font} in the @samp{Options} menu.  To save
-this for future sessions, click on @samp{Save Options} in the
+Click on @samp{Set Default Font} in the @samp{Options} menu.  This
+makes the selected font the default on all existing graphical frames.
+To save this for future sessions, click on @samp{Save Options} in the
 @samp{Options} menu.
 
 @item
@@ -512,6 +517,10 @@ Add a line to your init file, modifying the variable
 (add-to-list 'default-frame-alist
              '(font . "DejaVu Sans Mono-10"))
 @end example
+
+@noindent
+This makes the font the default on all graphical frames created after
+restarting Emacs with that init file.
 
 @cindex X defaults file
 @cindex X resources file
@@ -802,8 +811,8 @@ When a file or directory is expanded, the @samp{[+]} changes to
 hiding its contents.
 
   You navigate through the speedbar using the keyboard, too.  Typing
-@kbd{RET} while point is on a line in the speedbar is equivalent to
-clicking the item on the current line, and @kbd{SPC} expands or
+@key{RET} while point is on a line in the speedbar is equivalent to
+clicking the item on the current line, and @key{SPC} expands or
 contracts the item.  @kbd{U} displays the parent directory of the
 current directory.  To copy, delete, or rename the file on the current
 line, type @kbd{C}, @kbd{D}, and @kbd{R} respectively.  To create a

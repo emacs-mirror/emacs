@@ -81,7 +81,7 @@ the second with them pointing to the XEmacs manuals.
 @comment No overfull hbox marks in the dvi file.
 @finalout
 
-@setfilename  ../../info/ccmode
+@setfilename  ../../info/ccmode.info
 @settitle     CC Mode Manual
 @documentencoding UTF-8
 @footnotestyle end
@@ -163,7 +163,7 @@ Copyright @copyright{} 1995--2014 Free Software Foundation, Inc.
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.3 or
 any later version published by the Free Software Foundation; with no
-Invariant Sections, with the Front-Cover texts being ``A GNU Manual'',
+Invariant Sections, with the Front-Cover Texts being ``A GNU Manual'',
 and with the Back-Cover Texts as in (a) below.  A copy of the license
 is included in the section entitled ``GNU Free Documentation License''.
 
@@ -751,13 +751,6 @@ very useful in this case.
 @end itemize
 
 @table @asis
-@c FIXME: This should be `electric-indent-just-newline' since GNU Emacs 24.4.
-@item @kbd{C-j} (@code{newline-and-indent})
-@kindex C-j
-@findex newline-and-indent
-Inserts a newline and indents the new blank line, ready to start
-typing.  This is a standard (X)Emacs command.
-
 @item @kbd{C-M-q} (@code{c-indent-exp})
 @kindex C-M-q
 @findex c-indent-exp
@@ -3922,7 +3915,7 @@ Conceptually, a line of code is always indented relative to some
 position higher up in the buffer (typically the indentation of the
 previous line).  That position is the @dfn{anchor position} in the
 syntactic element.  If there is an entry after the syntactic symbol in
-the syntactic element list then it's either nil or that anchor position.
+the syntactic element list then it's either @code{nil} or that anchor position.
 
 Here is an example.  Suppose we had the following code as the only thing
 in a C++ buffer @footnote{The line numbers in this and future examples
@@ -6074,7 +6067,7 @@ suggestion to get a consistent style):
 @defun c-lineup-assignments
 @findex lineup-assignments (c-)
 Line up the current line after the assignment operator on the first line
-in the statement.  If there isn't any, return nil to allow stacking with
+in the statement.  If there isn't any, return @code{nil} to allow stacking with
 other line-up functions.  If the current line contains an assignment
 operator too, try to align it with the first one.
 
@@ -6539,7 +6532,7 @@ Return the syntactic symbol in @var{langelem}.
 
 @defun c-langelem-pos langelem
 @findex langelem-pos (c-)
-Return the anchor position in @var{langelem}, or nil if there is none.
+Return the anchor position in @var{langelem}, or @code{nil} if there is none.
 @end defun
 
 @defun c-langelem-col langelem &optional preserve-point
@@ -7054,19 +7047,20 @@ Set the variable @code{c-basic-offset}.  @xref{Getting Started}.
 @item
 @kindex RET
 @kindex C-j
-@emph{Why doesn't the @kbd{RET} key indent the new line?}
-@c FIXME: `electric-indent-mode' is enabled by default in GNU Emacs 24.4.
+@emph{Why does/doesn't the @kbd{RET} key indent the new line?}
 
-Emacs's convention is that @kbd{RET} just adds a newline, and that
-@kbd{C-j} adds a newline and indents it.  You can make @kbd{RET} do this
-too by adding this to your @code{c-initialization-hook}:
+Emacs's convention used to be that @kbd{RET} just adds a newline, and that
+@kbd{C-j} adds a newline and indents it.  In Emacs-24.4, this convention was
+reversed.
+
+If you use an older Emacs and you want @kbd{RET} do this
+too, add this to your @code{c-initialization-hook}:
 
 @example
 (define-key c-mode-base-map "\C-m" 'c-context-line-break)
 @end example
 
-@xref{Getting Started}.  This is a very common question.  If you want
-this to be the default behavior, don't lobby us, lobby RMS@!  @t{:-)}
+@xref{Getting Started}.  This was a very common question.
 
 @item
 @emph{How do I stop my code jumping all over the place when I type?}

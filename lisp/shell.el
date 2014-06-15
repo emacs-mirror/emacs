@@ -1,7 +1,6 @@
 ;;; shell.el --- specialized comint.el for running the shell -*- lexical-binding: t -*-
 
-;; Copyright (C) 1988, 1993-1997, 2000-2014 Free Software Foundation,
-;; Inc.
+;; Copyright (C) 1988, 1993-1997, 2000-2014 Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
 ;;	Simon Marshall <simon@gnu.org>
@@ -584,6 +583,8 @@ buffer."
       (setq shell-dirstack-query
 	    (cond ((string-equal shell "sh") "pwd")
 		  ((string-equal shell "ksh") "echo $PWD ~-")
+		  ;; Bypass any aliases.  TODO all shells could use this.
+		  ((string-equal shell "bash") "command dirs")
 		  (t "dirs")))
       ;; Bypass a bug in certain versions of bash.
       (when (string-equal shell "bash")
@@ -792,8 +793,11 @@ and `shell-pushd-dunique' control the behavior of the relevant command.
 Environment variables are expanded, see function `substitute-in-file-name'."
   (if shell-dirtrackp
       ;; We fail gracefully if we think the command will fail in the shell.
-      (with-demoted-errors "Couldn't cd: %s"
-	  (let ((start (progn (string-match
+;;;      (with-demoted-errors "Directory tracker failure: %s"
+      ;; This fails so often that it seems better to just ignore errors (?).
+      ;; Eg even: foo=/tmp; cd $foo is beyond us (bug#17159).
+      (ignore-errors
+        (let ((start (progn (string-match
 			       (concat "^" shell-command-separator-regexp)
 			       str) ; skip whitespace
 			      (match-end 0)))

@@ -1,4 +1,4 @@
-;;; scheme.el --- Scheme (and DSSSL) editing mode
+;;; scheme.el --- Scheme (and DSSSL) editing mode    -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1986-1988, 1997-1998, 2001-2014 Free Software
 ;; Foundation, Inc.
@@ -99,7 +99,7 @@
     (modify-syntax-entry ?\( "()  " st)
     (modify-syntax-entry ?\) ")(  " st)
     ;; It's used for single-line comments as well as for #;(...) sexp-comments.
-    (modify-syntax-entry ?\; "< 2 " st)
+    (modify-syntax-entry ?\; "<"    st)
     (modify-syntax-entry ?\" "\"   " st)
     (modify-syntax-entry ?' "'   " st)
     (modify-syntax-entry ?` "'   " st)
@@ -140,29 +140,22 @@
   (setq-local add-log-current-defun-function #'lisp-current-defun-name)
   (setq-local comment-start ";")
   (setq-local comment-add 1)
-  ;; Look within the line for a ; following an even number of backslashes
-  ;; after either a non-backslash or the line beginning.
-  (setq-local comment-start-skip
-	      "\\(\\(^\\|[^\\\\\n]\\)\\(\\\\\\\\\\)*\\);+[ \t]*")
-  (setq-local font-lock-comment-start-skip ";+ *")
+  (setq-local comment-start-skip ";+[ \t]*")
+  (setq-local comment-use-syntax t)
   (setq-local comment-column 40)
   (setq-local parse-sexp-ignore-comments t)
   (setq-local lisp-indent-function 'scheme-indent-function)
   (setq mode-line-process '("" scheme-mode-line-process))
   (setq-local imenu-case-fold-search t)
-  (setq imenu-generic-expression scheme-imenu-generic-expression)
-  (setq-local imenu-syntax-alist
-	'(("+-*/.<>=?!$%_&~^:" . "w")))
+  (setq-local imenu-generic-expression scheme-imenu-generic-expression)
+  (setq-local imenu-syntax-alist '(("+-*/.<>=?!$%_&~^:" . "w")))
+  (setq-local syntax-propertize-function #'scheme-syntax-propertize)
   (setq font-lock-defaults
 	'((scheme-font-lock-keywords
 	   scheme-font-lock-keywords-1 scheme-font-lock-keywords-2)
 	  nil t (("+-*/.<>=!?$%_&~^:" . "w") (?#. "w 14"))
 	  beginning-of-defun
-	  (font-lock-mark-block-function . mark-defun)
-	  (font-lock-syntactic-face-function
-	   . scheme-font-lock-syntactic-face-function)
-	  (parse-sexp-lookup-properties . t)
-	  (font-lock-extra-managed-props syntax-table)))
+	  (font-lock-mark-block-function . mark-defun)))
   (setq-local lisp-doc-string-elt-property 'scheme-doc-string-elt))
 
 (defvar scheme-mode-line-process "")
@@ -287,7 +280,9 @@ See `run-hooks'."
                    "\\|-module"
 		   "\\)\\)\\>"
 		   ;; Any whitespace and declared object.
-		   "[ \t]*(?"
+		   ;; The "(*" is for curried definitions, e.g.,
+		   ;;  (define ((sum a) b) (+ a b))
+		   "[ \t]*(*"
 		   "\\(\\sw+\\)?")
 	   '(1 font-lock-keyword-face)
 	   '(6 (cond ((match-beginning 3) font-lock-function-name-face)
@@ -355,28 +350,28 @@ See `run-hooks'."
        (forward-comment (point-max))
        (if (eq (char-after) ?\() 2 0)))
 
-(defun scheme-font-lock-syntactic-face-function (state)
-  (when (and (null (nth 3 state))
-             (eq (char-after (nth 8 state)) ?#)
-             (eq (char-after (1+ (nth 8 state))) ?\;))
-    ;; It's a sexp-comment.  Tell parse-partial-sexp where it ends.
-    (save-excursion
-      (let ((pos (point))
-            (end
-             (condition-case err
-                 (let ((parse-sexp-lookup-properties nil))
-                   (goto-char (+ 2 (nth 8 state)))
-                   ;; FIXME: this doesn't handle the case where the sexp
-                   ;; itself contains a #; comment.
-                   (forward-sexp 1)
-                   (point))
-               (scan-error (nth 2 err)))))
-        (when (< pos (- end 2))
-          (put-text-property pos (- end 2)
-                             'syntax-table scheme-sexp-comment-syntax-table))
-        (put-text-property (- end 1) end 'syntax-table '(12)))))
-  ;; Choose the face to use.
-  (lisp-font-lock-syntactic-face-function state))
+(defun scheme-syntax-propertize (beg end)
+  (goto-char beg)
+  (scheme-syntax-propertize-sexp-comment (point) end)
+  (funcall
+   (syntax-propertize-rules
+    ("\\(#\\);" (1 (prog1 "< cn"
+                     (scheme-syntax-propertize-sexp-comment (point) end)))))
+   (point) end))
+
+(defun scheme-syntax-propertize-sexp-comment (_ end)
+  (let ((state (syntax-ppss)))
+    (when (eq 2 (nth 7 state))
+      ;; It's a sexp-comment.  Tell parse-partial-sexp where it ends.
+      (condition-case nil
+          (progn
+            (goto-char (+ 2 (nth 8 state)))
+            ;; FIXME: this doesn't handle the case where the sexp
+            ;; itself contains a #; comment.
+            (forward-sexp 1)
+            (put-text-property (1- (point)) (point)
+                               'syntax-table (string-to-syntax "> cn")))
+        (scan-error (goto-char end))))))
 
 ;;;###autoload
 (define-derived-mode dsssl-mode scheme-mode "DSSSL"
@@ -498,20 +493,20 @@ indentation."
 
 ;;; Let is different in Scheme
 
-(defun would-be-symbol (string)
-  (not (string-equal (substring string 0 1) "(")))
+;; (defun scheme-would-be-symbol (string)
+;;   (not (string-equal (substring string 0 1) "(")))
 
-(defun next-sexp-as-string ()
-  ;; Assumes that it is protected by a save-excursion
-  (forward-sexp 1)
-  (let ((the-end (point)))
-    (backward-sexp 1)
-    (buffer-substring (point) the-end)))
+;; (defun scheme-next-sexp-as-string ()
+;;   ;; Assumes that it is protected by a save-excursion
+;;   (forward-sexp 1)
+;;   (let ((the-end (point)))
+;;     (backward-sexp 1)
+;;     (buffer-substring (point) the-end)))
 
 ;; This is correct but too slow.
 ;; The one below works almost always.
 ;;(defun scheme-let-indent (state indent-point)
-;;  (if (would-be-symbol (next-sexp-as-string))
+;;  (if (scheme-would-be-symbol (scheme-next-sexp-as-string))
 ;;      (scheme-indent-specform 2 state indent-point)
 ;;      (scheme-indent-specform 1 state indent-point)))
 

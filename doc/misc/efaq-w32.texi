@@ -1,5 +1,5 @@
 \input texinfo    @c -*-coding:utf-8 -*-
-@setfilename efaq-w32
+@setfilename ../../info/efaq-w32.info
 @settitle GNU Emacs FAQ For MS Windows
 @setchapternewpage odd
 @syncodeindex pg cp
@@ -1176,8 +1176,8 @@ Place the following in your init file:
 @cindex font menu, adding fonts
 @vindex w32-fixed-font-alist
 
-If you have set w32-use-w32-font-dialog to nil, you can add fonts to
-the font menu by changing `w32-fixed-font-alist'.  For example:
+If you have set w32-use-w32-font-dialog to @code{nil}, you can add fonts to
+the font menu by changing @code{w32-fixed-font-alist}.  For example:
 
 @example
 (setq w32-fixed-font-alist
@@ -1664,8 +1664,8 @@ smtpmail is loaded, then you'll need to change
 @code{smtpmail-smtp-server}.
 
 If you are experiencing problems with sending large messages, check
-the value of the variable @code{smtpmail-debug-info}. If it is non-nil, you
-should set it to @code{nil}:
+the value of the variable @code{smtpmail-debug-info}. If it is
+non-@code{nil}, you should set it to @code{nil}:
 
 @node Incoming mail with Rmail
 @subsection Incoming mail with Rmail and POP3

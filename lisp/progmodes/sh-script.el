@@ -237,6 +237,7 @@
     (ksh88 . jsh)
     (oash . sh)
     (pdksh . ksh88)
+    (mksh . pdksh)
     (posix . sh)
     (tcsh . csh)
     (wksh . ksh88)
@@ -262,6 +263,7 @@ sh		Bourne Shell
       ksh	Korn Shell '93
 	dtksh	CDE Desktop Korn Shell
       pdksh	Public Domain Korn Shell
+        mksh    MirOS BSD Korn Shell
       wksh	Window Korn Shell
       zsh	Z Shell
   oash		SCO OA (curses) Shell
@@ -271,7 +273,6 @@ sh		Bourne Shell
   :version "24.4"                       ; added dash
   :group 'sh-script)
 
-
 (defcustom sh-alias-alist
   (append (if (eq system-type 'gnu/linux)
 	     '((csh . tcsh)
@@ -279,11 +280,20 @@ sh		Bourne Shell
 	 ;; for the time being
 	 '((ksh . ksh88)
            (bash2 . bash)
-	   (sh5 . sh)))
+	   (sh5 . sh)
+           ;; Android's system shell
+           ("^/system/bin/sh$" . mksh)))
   "Alist for transforming shell names to what they really are.
-Use this where the name of the executable doesn't correspond to the type of
-shell it really is."
-  :type '(repeat (cons symbol symbol))
+Use this where the name of the executable doesn't correspond to
+the type of shell it really is.  Keys are regular expressions
+matched against the full path of the interpreter.  (For backward
+compatibility, keys may also be symbols, which are matched
+against the interpreter's basename.  The values are symbols
+naming the shell."
+  :type '(repeat (cons (radio
+                        (regexp :tag "Regular expression")
+                        (symbol :tag "Basename"))
+                       (symbol :tag "Shell")))
   :group 'sh-script)
 
 
@@ -387,15 +397,20 @@ the car and cdr are the same symbol.")
   "Non-nil if `sh-shell-variables' is initialized.")
 
 (defun sh-canonicalize-shell (shell)
-  "Convert a shell name SHELL to the one we should handle it as."
-  (if (string-match "\\.exe\\'" shell)
-      (setq shell (substring shell 0 (match-beginning 0))))
-  (or (symbolp shell)
-      (setq shell (intern shell)))
-  (or (cdr (assq shell sh-alias-alist))
-      shell))
+  "Convert a shell name SHELL to the one we should handle it as.
+SHELL is a full path to the shell interpreter; return a shell
+name symbol."
+  (cl-loop
+     with shell = (cond ((string-match "\\.exe\\'" shell)
+                         (substring shell 0 (match-beginning 0)))
+                        (t shell))
+     with shell-base = (intern (file-name-nondirectory shell))
+     for (key . value) in sh-alias-alist
+     if (and (stringp key) (string-match key shell)) return value
+     if (eq key shell-base) return value
+     finally return shell-base))
 
-(defvar sh-shell (sh-canonicalize-shell (file-name-nondirectory sh-shell-file))
+(defvar sh-shell (sh-canonicalize-shell sh-shell-file)
   "The shell being programmed.  This is set by \\[sh-set-shell].")
 ;;;###autoload(put 'sh-shell 'safe-local-variable 'symbolp)
 
@@ -677,7 +692,7 @@ removed when closing the here document."
           "jobs" "kill" "let" "local" "popd" "printf" "pushd" "shopt"
           "source" "suspend" "typeset" "unalias"
           ;; bash4
-          "mapfile" "readarray")
+          "mapfile" "readarray" "coproc")
 
     ;; The next entry is only used for defining the others
     (bourne sh-append shell
@@ -1533,6 +1548,12 @@ When the region is active, send the region instead."
 
 ;; mode-command and utility functions
 
+(defun sh-after-hack-local-variables ()
+  (when (assq 'sh-shell file-local-variables-alist)
+    (sh-set-shell (if (symbolp sh-shell)
+                      (symbol-name sh-shell)
+                    sh-shell))))
+
 ;;;###autoload
 (define-derived-mode sh-mode prog-mode "Shell-script"
   "Major mode for editing shell scripts.
@@ -1643,7 +1664,9 @@ with your script for an edit-interpret-debug cycle."
          ((string-match "[.]csh\\>"    buffer-file-name) "csh")
 	 ((equal (file-name-nondirectory buffer-file-name) ".profile") "sh")
          (t sh-shell-file))
-   nil nil))
+   nil nil)
+  (add-hook 'hack-local-variables-hook
+    #'sh-after-hack-local-variables nil t))
 
 ;;;###autoload
 (defalias 'shell-script-mode 'sh-mode)
@@ -1832,9 +1855,10 @@ Does not preserve point."
 
 (defun sh-smie--sh-keyword-p (tok)
   "Non-nil if TOK (at which we're looking) really is a keyword."
-  (if (equal tok "in")
-      (sh-smie--sh-keyword-in-p)
-    (sh-smie--keyword-p)))
+  (cond
+   ((looking-at "[[:alnum:]_]+=") nil)
+   ((equal tok "in") (sh-smie--sh-keyword-in-p))
+   (t (sh-smie--keyword-p))))
 
 (defun sh-smie-sh-forward-token ()
   (if (and (looking-at "[ \t]*\\(?:#\\|\\(\\s|\\)\\|$\\)")
@@ -2252,9 +2276,7 @@ Calls the value of `sh-set-shell-hook' if set."
 		     t))
   (if (string-match "\\.exe\\'" shell)
       (setq shell (substring shell 0 (match-beginning 0))))
-  (setq sh-shell (intern (file-name-nondirectory shell))
-	sh-shell (or (cdr (assq sh-shell sh-alias-alist))
-		     sh-shell))
+  (setq sh-shell (sh-canonicalize-shell shell))
   (if insert-flag
       (setq sh-shell-file
 	    (executable-set-magic shell (sh-feature sh-shell-arg)
@@ -2301,7 +2323,7 @@ Calls the value of `sh-set-shell-hook' if set."
   (when font-lock-mode
     (setq font-lock-set-defaults nil)
     (font-lock-set-defaults)
-    (font-lock-fontify-buffer))
+    (font-lock-flush))
   (setq sh-shell-process nil)
   (run-hooks 'sh-set-shell-hook))
 
@@ -2360,7 +2382,7 @@ the value thus obtained, and the result is used instead."
 
 ;; I commented this out because nobody calls it -- rms.
 ;;(defun sh-abbrevs (ancestor &rest list)
-;;  "Iff it isn't, define the current shell as abbrev table and fill that.
+;;  "If it isn't, define the current shell as abbrev table and fill that.
 ;;Abbrev table will inherit all abbrevs from ANCESTOR, which is either an abbrev
 ;;table or a list of (NAME1 EXPANSION1 ...).  In addition it will define abbrevs
 ;;according to the remaining arguments NAMEi EXPANSIONi ...

@@ -134,6 +134,16 @@ aliqua."
 
 ;;; Font-lock and syntax
 
+(ert-deftest python-syntax-after-python-backspace ()
+  ;; `python-indent-dedent-line-backspace' garbles syntax
+  :expected-result :failed
+  (python-tests-with-temp-buffer
+      "\"\"\""
+    (goto-char (point-max))
+    (python-indent-dedent-line-backspace 1)
+    (should (string= (buffer-string) "\"\""))
+    (should (null (nth 3 (syntax-ppss))))))
+
 
 ;;; Indentation
 
@@ -2696,6 +2706,9 @@ def foo(a, b, c):
         (equal (symbol-value (car ccons)) (cdr ccons)))))
     (kill-buffer buffer)))
 
+
+;;; Electricity
+
 (ert-deftest python-util-forward-comment-1 ()
   (python-tests-with-temp-buffer
    (concat
@@ -2707,6 +2720,38 @@ def foo(a, b, c):
    (should (= (point) (point-max)))
    (python-util-forward-comment -1)
    (should (= (point) (point-min)))))
+
+(ert-deftest python-triple-quote-pairing ()
+  (require 'electric)
+  (let ((epm electric-pair-mode))
+    (unwind-protect
+        (progn
+          (python-tests-with-temp-buffer
+           "\"\"\n"
+           (or epm (electric-pair-mode 1))
+           (goto-char (1- (point-max)))
+           (let ((last-command-event ?\"))
+             (call-interactively 'self-insert-command))
+           (should (string= (buffer-string)
+                            "\"\"\"\"\"\"\n"))
+           (should (= (point) 4)))
+          (python-tests-with-temp-buffer
+           "\n"
+           (let ((last-command-event ?\"))
+             (dotimes (i 3)
+               (call-interactively 'self-insert-command)))
+           (should (string= (buffer-string)
+                            "\"\"\"\"\"\"\n"))
+           (should (= (point) 4)))
+          (python-tests-with-temp-buffer
+           "\"\n\"\"\n"
+           (goto-char (1- (point-max)))
+           (let ((last-command-event ?\"))
+             (call-interactively 'self-insert-command))
+           (should (= (point) (1- (point-max))))
+           (should (string= (buffer-string)
+                            "\"\n\"\"\"\n"))))
+      (or epm (electric-pair-mode -1)))))
 
 
 (provide 'python-tests)

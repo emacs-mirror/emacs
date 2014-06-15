@@ -261,10 +261,18 @@ Do not start with `~/' or `~USERNAME/'."
   :type 'string
   :group 'emerge)
 
+(make-obsolete-variable 'emerge-temp-file-prefix
+			"customize `temporary-file-directory' instead."
+			"24.4" 'set)
+
 (defcustom emerge-temp-file-mode 384	; u=rw only
   "Mode for Emerge temporary files."
   :type 'integer
   :group 'emerge)
+
+(make-obsolete-variable 'emerge-temp-file-mode
+			"it has no effect, temporary files are always private."
+			"24.4" 'set)
 
 (defcustom emerge-combine-versions-template
   "#ifdef NEW\n%b#else /* not NEW */\n%a#endif /* not NEW */\n"
@@ -2875,16 +2883,11 @@ keymap.  Leaves merge in fast mode."
     (setq vars (cdr vars))
     (setq values (cdr values))))
 
-;; Make a temporary file that only we have access to.
-;; PREFIX is appended to emerge-temp-file-prefix to make the filename prefix.
+;; When the pointless option emerge-temp-file-prefix goes,
+;; make this function obsolete too, and just use make-temp-file.
 (defun emerge-make-temp-file (prefix)
-  (let (f (old-modes (default-file-modes)))
-    (unwind-protect
-	(progn
-	  (set-default-file-modes emerge-temp-file-mode)
-	  (setq f (make-temp-file (concat emerge-temp-file-prefix prefix))))
-      (set-default-file-modes old-modes))
-    f))
+  "Make a private temporary file based on `emerge-temp-file-prefix'."
+  (make-temp-file (concat emerge-temp-file-prefix prefix)))
 
 ;;; Functions that query the user before he can write out the current buffer.
 

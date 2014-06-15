@@ -323,7 +323,8 @@ to the entry with the same ID element as the current line."
     (if saved-pt
 	(progn (goto-char saved-pt)
 	       (move-to-column saved-col)
-	       (recenter))
+	       (when (eq (window-buffer) (current-buffer))
+		 (recenter)))
       (goto-char (point-min)))))
 
 (defun tabulated-list-print-entry (id cols)

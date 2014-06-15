@@ -931,16 +931,14 @@ Otherwise returns the library directory name, if that is defined."
 (defun ispell-call-process (&rest args)
   "Like `call-process' but defend against bad `default-directory'."
   (let ((default-directory default-directory))
-    (unless (and (file-directory-p default-directory)
-		 (file-readable-p default-directory))
+    (unless (file-accessible-directory-p default-directory)
       (setq default-directory (expand-file-name "~/")))
     (apply 'call-process args)))
 
 (defun ispell-call-process-region (&rest args)
   "Like `call-process-region' but defend against bad `default-directory'."
   (let ((default-directory default-directory))
-    (unless (and (file-directory-p default-directory)
-		 (file-readable-p default-directory))
+    (unless (file-accessible-directory-p default-directory)
       (setq default-directory (expand-file-name "~/")))
     (apply 'call-process-region args)))
 
@@ -2939,8 +2937,7 @@ Keeps argument list for future Ispell invocations for no async support."
 	  (ispell-hunspell-fill-dictionary-entry ispell-current-dictionary)))
 
   (let* ((default-directory
-           (if (and (file-directory-p default-directory)
-                    (file-readable-p default-directory))
+           (if (file-accessible-directory-p default-directory)
                default-directory
              ;; Defend against bad `default-directory'.
              (expand-file-name "~/")))
@@ -2998,8 +2995,7 @@ Keeps argument list for future Ispell invocations for no async support."
 	   (if (or ispell-really-aspell
 		   ispell-really-hunspell
 		   ;; Protect against bad default-directory
-		   (not (and (file-directory-p default-directory)
-			     (file-readable-p default-directory)))
+		   (not (file-accessible-directory-p default-directory))
 		   ;; Ispell and per-dir personal dicts available
 		   (not (or (file-readable-p (concat default-directory
 						     ".ispell_words"))

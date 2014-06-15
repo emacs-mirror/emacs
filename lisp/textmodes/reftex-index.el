@@ -35,6 +35,7 @@
 (defvar TeX-master)
 ;; END remove for XEmacs release
 
+;;;###autoload
 (defun reftex-index-selection-or-word (&optional arg phrase)
   "Put selection or the word near point into the default index macro.
 This uses the information in `reftex-index-default-macro' to make an index
@@ -87,6 +88,7 @@ which is part of AUCTeX, the string is first processed with the
         (delete-region beg end)
         (reftex-index def-char full-entry def-tag sel)))))
 
+;;;###autoload
 (defun reftex-index (&optional char key tag sel no-insert)
   "Query for an index macro and insert it along with its arguments.
 The index macros available are those defined in `reftex-index-macro' or
@@ -156,6 +158,7 @@ will prompt for other arguments."
                (member tag tag-list)))
       (put reftex-docstruct-symbol 'default-index-tag tag)))
 
+;;;###autoload
 (defun reftex-index-complete-tag (&optional itag opt-args)
   ;; Ask the user for a tag, completing on known tags.
   ;; ITAG is the argument number which contains the tag.
@@ -180,6 +183,7 @@ will prompt for other arguments."
     (reftex-update-default-index tag)
     tag))
 
+;;;###autoload
 (defun reftex-index-select-tag ()
   ;; Have the user select an index tag.
   ;; FIXME: should we cache tag-alist, prompt and help?
@@ -249,6 +253,7 @@ will prompt for other arguments."
             (error "No index tag associated with %c" rpl)))))
      (t (error "This should not happen (reftex-index-select-tag)")))))
 
+;;;###autoload
 (defun reftex-index-complete-key (&optional tag optional initial)
   ;; Read an index key, with completion.
   ;; Restrict completion table on index tag TAG.
@@ -434,6 +439,7 @@ _ ^        Add/Remove parent key (to make this item a subitem).
 } / {      Restrict Index to a single document section / Widen.
 < / >      When restricted, move restriction to previous/next section.")
 
+;;;###autoload
 (defun reftex-index-show-entry (data &optional no-revisit)
   ;; Find an index entry associated with DATA and display it highlighted
   ;; in another window.  NO-REVISIT means we are not allowed to visit
@@ -462,6 +468,7 @@ _ ^        Add/Remove parent key (to make this item a subitem).
       (reftex-highlight 0 (match-beginning 0) (match-end 0) (current-buffer)))
     match))
 
+;;;###autoload
 (defun reftex-display-index (&optional tag overriding-restriction redo
                                        &rest locations)
   "Display a buffer with an index compiled from the current document.
@@ -1244,6 +1251,7 @@ This gets refreshed in every phrases command.")
     table)
   "Syntax table for RefTeX Index Phrases mode.")
 
+;;;###autoload
 (defun reftex-index-phrase-selection-or-word (arg)
   "Add current selection or word at point to the phrases buffer.
 When you are in transient-mark-mode and the region is active, the
@@ -1258,6 +1266,7 @@ You get a chance to edit the entry in the phrases buffer - finish with
        (substitute-command-keys
         "Return to LaTeX with \\[reftex-index-phrases-save-and-return]"))))
 
+;;;###autoload
 (defun reftex-index-visit-phrases-buffer ()
   "Switch to the phrases buffer, initialize if empty."
   (interactive)
@@ -1345,6 +1354,7 @@ If the buffer is non-empty, delete the old header first."
 (defvar reftex-index-phrases-menu)
 (defvar reftex-index-phrases-marker)
 (defvar reftex-index-phrases-restrict-file nil)
+;; NB this is a global autoload - see reftex.el.
 ;;;###autoload
 (define-derived-mode reftex-index-phrases-mode fundamental-mode "Phrases"
   "Major mode for managing the Index phrases of a LaTeX document.
@@ -2096,3 +2106,7 @@ Does not do a save-excursion."
 (provide 'reftex-index)
 
 ;;; reftex-index.el ends here
+
+;; Local Variables:
+;; generated-autoload-file: "reftex.el"
+;; End:

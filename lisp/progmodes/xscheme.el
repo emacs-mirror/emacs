@@ -1,4 +1,4 @@
-;;; xscheme.el --- run MIT Scheme under Emacs
+;;; xscheme.el --- run MIT Scheme under Emacs        -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1986-1987, 1989-1990, 2001-2014 Free Software
 ;; Foundation, Inc.
@@ -49,13 +49,13 @@
 (defvar xscheme-expressions-ring-max 30
   "Maximum length of Scheme expressions ring.")
 
-(defvar xscheme-expressions-ring nil
+(defvar-local xscheme-expressions-ring nil
   "List of expressions recently transmitted to the Scheme process.")
 
-(defvar xscheme-expressions-ring-yank-pointer nil
+(defvar-local xscheme-expressions-ring-yank-pointer nil
   "The tail of the Scheme expressions ring whose car is the last thing yanked.")
 
-(defvar xscheme-running-p nil
+(defvar-local xscheme-running-p nil
   "This variable, if nil, indicates that the scheme process is
 waiting for input.  Otherwise, it is busy evaluating something.")
 
@@ -64,7 +64,7 @@ waiting for input.  Otherwise, it is busy evaluating something.")
 control-g interrupts were signaled.  Do not allow more control-g's to be
 signaled until the scheme process acknowledges receipt.")
 
-(defvar xscheme-control-g-disabled-p nil
+(defvar-local xscheme-control-g-disabled-p nil
   "This variable, if non-nil, indicates that a control-g is being processed
 by the scheme process, so additional control-g's are to be ignored.")
 
@@ -78,37 +78,26 @@ by the scheme process, so additional control-g's are to be ignored.")
 (defvar xscheme-runlight "")
 (defvar xscheme-runlight-string nil)
 
-(defvar xscheme-process-filter-state 'idle
+(defvar-local xscheme-process-filter-state 'idle
   "State of scheme process escape reader state machine:
 idle                   waiting for an escape sequence
 reading-type           received an altmode but nothing else
 reading-string         reading prompt string")
 
-(defvar xscheme-allow-output-p t
+(defvar-local xscheme-allow-output-p t
   "This variable, if nil, prevents output from the scheme process
 from being inserted into the process-buffer.")
 
-(defvar xscheme-prompt ""
+(defvar-local xscheme-prompt ""
   "The current scheme prompt string.")
 
-(defvar xscheme-string-accumulator ""
+(defvar-local xscheme-string-accumulator ""
   "Accumulator for the string being received from the scheme process.")
 
-(defvar xscheme-mode-string nil)
-(setq-default scheme-mode-line-process
-	      '("" xscheme-runlight))
+(defvar-local xscheme-mode-string nil)
+(setq-default scheme-mode-line-process '("" xscheme-runlight))
+(make-variable-buffer-local 'scheme-mode-line-process)
 
-(mapc 'make-variable-buffer-local
-      '(xscheme-expressions-ring
-	xscheme-expressions-ring-yank-pointer
-	xscheme-process-filter-state
-	xscheme-running-p
-	xscheme-control-g-disabled-p
-	xscheme-allow-output-p
-	xscheme-prompt
-	xscheme-string-accumulator
-	xscheme-mode-string
-	scheme-mode-line-process))
 
 (defgroup xscheme nil
   "Major mode for editing Scheme and interacting with MIT's C-Scheme."

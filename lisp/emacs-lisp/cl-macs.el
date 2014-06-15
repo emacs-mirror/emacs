@@ -135,7 +135,13 @@
 	(t t)))
 
 (defun cl--const-expr-val (x)
-  (and (macroexp-const-p x) (if (consp x) (nth 1 x) x)))
+  "Return the value of X known at compile-time.
+If X is not known at compile time, return nil.  Before testing
+whether X is known at compile time, macroexpand it completely in
+`macroexpand-all-environment'."
+  (let ((x (macroexpand-all x macroexpand-all-environment)))
+    (if (macroexp-const-p x)
+        (if (consp x) (nth 1 x) x))))
 
 (defun cl--expr-contains (x y)
   "Count number of times X refers to Y.  Return nil for 0 times."
@@ -503,7 +509,7 @@ its argument list allows full Common Lisp conventions."
 		   (varg (if (consp (car arg)) (cl-cadar arg) (car arg)))
 		   (def (if (cdr arg) (cadr arg)
 			  (or (car cl--bind-defs) (cadr (assq varg cl--bind-defs)))))
-		   (look `(memq ',karg ,restarg)))
+                   (look `(plist-member ,restarg ',karg)))
 	      (and def cl--bind-enquote (setq def `',def))
 	      (if (cddr arg)
 		  (let* ((temp (or (nth 2 arg) (make-symbol "--cl-var--")))
@@ -1542,12 +1548,14 @@ If BODY is `setq', then use SPECS for assignments rather than for bindings."
               (if (and (cl--unused-var-p temp) (null expr))
                   nil ;; Don't bother declaring/setting `temp' since it won't
 		      ;; be used when `expr' is nil, anyway.
-                (when (and (eq body 'setq) (cl--unused-var-p temp))
+		(when (or (null temp)
+                          (and (eq body 'setq) (cl--unused-var-p temp)))
                   ;; Prefer a fresh uninterned symbol over "_to", to avoid
                   ;; warnings that we set an unused variable.
                   (setq temp (make-symbol "--cl-var--"))
                   ;; Make sure this temp variable is locally declared.
-                  (push (list (list temp)) cl--loop-bindings))
+                  (when (eq body 'setq)
+                    (push (list (list temp)) cl--loop-bindings)))
                 (push (list temp expr) new))
               (while (consp spec)
                 (push (list (pop spec)
@@ -1878,13 +1886,13 @@ This is like `cl-flet', but for macros instead of functions.
              cl-declarations body)))
   (if (cdr bindings)
       `(cl-macrolet (,(car bindings)) (cl-macrolet ,(cdr bindings) ,@body))
-    (if (null bindings) (cons 'progn body)
+    (if (null bindings) (macroexp-progn body)
       (let* ((name (caar bindings))
 	     (res (cl--transform-lambda (cdar bindings) name)))
 	(eval (car res))
-	(macroexpand-all (cons 'progn body)
-                         (cons (cons name `(lambda ,@(cdr res)))
-                               macroexpand-all-environment))))))
+	(macroexpand-all (macroexp-progn body)
+			 (cons (cons name `(lambda ,@(cdr res)))
+			       macroexpand-all-environment))))))
 
 (defconst cl--old-macroexpand
   (if (and (boundp 'cl--old-macroexpand)
@@ -2057,10 +2065,21 @@ values.  For compatibility, (cl-values A B C) is a synonym for (list A B C).
   (declare (debug t))
   (cons 'progn body))
 ;;;###autoload
-(defmacro cl-the (_type form)
-  "At present this ignores TYPE and is simply equivalent to FORM."
+(defmacro cl-the (type form)
+  "Return FORM.  If type-checking is enabled, assert that it is of TYPE."
   (declare (indent 1) (debug (cl-type-spec form)))
-  form)
+  (if (not (or (not (cl--compiling-file))
+               (< cl--optimize-speed 3)
+               (= cl--optimize-safety 3)))
+      form
+    (let* ((temp (if (cl--simple-expr-p form 3)
+                     form (make-symbol "--cl-var--")))
+           (body `(progn (unless ,(cl--make-type-test temp type)
+                           (signal 'wrong-type-argument
+                                   (list ',type ,temp ',form)))
+                         ,temp)))
+      (if (eq temp form) body
+        `(let ((,temp ,form)) ,body)))))
 
 (defvar cl--proclaim-history t)    ; for future compilers
 (defvar cl--declare-stack t)       ; for future compilers
@@ -2572,21 +2591,38 @@ non-nil value, that slot cannot be set via `setf'.
              (put ',name 'cl-struct-include ',include)
              (put ',name 'cl-struct-print ,print-auto)
              ,@(mapcar (lambda (x)
-                         `(put ',(car x) 'side-effect-free ',(cdr x)))
+                         `(function-put ',(car x) 'side-effect-free ',(cdr x)))
                        side-eff))
           forms)
     `(progn ,@(nreverse (cons `',name forms)))))
 
-;;; Types and assertions.
+(defun cl-struct-sequence-type (struct-type)
+  "Return the sequence used to build STRUCT-TYPE.
+STRUCT-TYPE is a symbol naming a struct type.  Return 'vector or
+'list, or nil if STRUCT-TYPE is not a struct type. "
+  (declare (side-effect-free t) (pure t))
+  (car (get struct-type 'cl-struct-type)))
 
-;;;###autoload
-(defmacro cl-deftype (name arglist &rest body)
-  "Define NAME as a new data type.
-The type name can then be used in `cl-typecase', `cl-check-type', etc."
-  (declare (debug cl-defmacro) (doc-string 3))
-  `(cl-eval-when (compile load eval)
-     (put ',name 'cl-deftype-handler
-          (cl-function (lambda (&cl-defs '('*) ,@arglist) ,@body)))))
+(defun cl-struct-slot-info (struct-type)
+  "Return a list of slot names of struct STRUCT-TYPE.
+Each entry is a list (SLOT-NAME . OPTS), where SLOT-NAME is a
+slot name symbol and OPTS is a list of slot options given to
+`cl-defstruct'.  Dummy slots that represent the struct name and
+slots skipped by :initial-offset may appear in the list."
+  (declare (side-effect-free t) (pure t))
+  (get struct-type 'cl-struct-slots))
+
+(defun cl-struct-slot-offset (struct-type slot-name)
+  "Return the offset of slot SLOT-NAME in STRUCT-TYPE.
+The returned zero-based slot index is relative to the start of
+the structure data type and is adjusted for any structure name
+and :initial-offset slots.  Signal error if struct STRUCT-TYPE
+does not contain SLOT-NAME."
+  (declare (side-effect-free t) (pure t))
+  (or (cl-position slot-name
+                   (cl-struct-slot-info struct-type)
+                   :key #'car :test #'eq)
+      (error "struct %s has no slot %s" struct-type slot-name)))
 
 (defvar byte-compile-function-environment)
 (defvar byte-compile-macro-environment)
@@ -2873,19 +2909,47 @@ The function's arguments should be treated as immutable.
 
 ;;; Things that are inline.
 (cl-proclaim '(inline cl-acons cl-map cl-concatenate cl-notany
-               cl-notevery cl--set-elt cl-revappend cl-nreconc gethash))
+               cl-notevery cl-revappend cl-nreconc gethash))
 
 ;;; Things that are side-effect-free.
-(mapc (lambda (x) (put x 'side-effect-free t))
+(mapc (lambda (x) (function-put x 'side-effect-free t))
       '(cl-oddp cl-evenp cl-signum last butlast cl-ldiff cl-pairlis cl-gcd
         cl-lcm cl-isqrt cl-floor cl-ceiling cl-truncate cl-round cl-mod cl-rem
         cl-subseq cl-list-length cl-get cl-getf))
 
 ;;; Things that are side-effect-and-error-free.
-(mapc (lambda (x) (put x 'side-effect-free 'error-free))
+(mapc (lambda (x) (function-put x 'side-effect-free 'error-free))
       '(eql cl-list* cl-subst cl-acons cl-equalp
         cl-random-state-p copy-tree cl-sublis))
 
+;;; Types and assertions.
+
+;;;###autoload
+(defmacro cl-deftype (name arglist &rest body)
+  "Define NAME as a new data type.
+The type name can then be used in `cl-typecase', `cl-check-type', etc."
+  (declare (debug cl-defmacro) (doc-string 3) (indent 2))
+  `(cl-eval-when (compile load eval)
+     (put ',name 'cl-deftype-handler
+          (cl-function (lambda (&cl-defs '('*) ,@arglist) ,@body)))))
+
+;;; Additional functions that we can now define because we've defined
+;;; `cl-defsubst' and `cl-typep'.
+
+(cl-defsubst cl-struct-slot-value (struct-type slot-name inst)
+  ;; The use of `cl-defsubst' here gives us both a compiler-macro
+  ;; and a gv-expander "for free".
+  "Return the value of slot SLOT-NAME in INST of STRUCT-TYPE.
+STRUCT and SLOT-NAME are symbols.  INST is a structure instance."
+  (declare (side-effect-free t))
+  (unless (cl-typep inst struct-type)
+    (signal 'wrong-type-argument (list struct-type inst)))
+  ;; We could use `elt', but since the byte compiler will resolve the
+  ;; branch below at compile time, it's more efficient to use the
+  ;; type-specific accessor.
+  (if (eq (cl-struct-sequence-type struct-type) 'vector)
+      (aref inst (cl-struct-slot-offset struct-type slot-name))
+    (nth (cl-struct-slot-offset struct-type slot-name) inst)))
 
 (run-hooks 'cl-macs-load-hook)
 

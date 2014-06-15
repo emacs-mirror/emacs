@@ -252,7 +252,7 @@ wciśnięcia klawisza <ESC>.
 * ZABLOKOWANE POLECENIA
 -----------------------
 
-Pewne polecenia Emacsa są ,,zablokowane'' -- po to, by początkujący
+Pewne polecenia Emacsa są „zablokowane” -- po to, by początkujący
 użytkownicy nie mogli ich wywołać przez przypadek.
 
 Jeśli wywołasz jedno z zablokowanych poleceń, to Emacs wypisze komunikat
@@ -263,7 +263,7 @@ Jeśli naprawdę chcesz wywołać to polecenie, to odpowiedz na pytanie,
 naciskając spację. Jeśli nie chcesz wywołać zablokowanego polecenia,
 to na pytanie odpowiedz, naciskając n.
 
->> Napisz `C-x C-l' (co jest zablokowanym poleceniem) i odpowiedz n
+>> Napisz „C-x C-l” (co jest zablokowanym poleceniem) i odpowiedz n
    na zadane pytanie.
 
 
@@ -271,7 +271,7 @@ to na pytanie odpowiedz, naciskając n.
 ------
 
 Emacs może mieć otwartych kilka okien, z których każde wyświetla
-własny tekst. Pojęcie ,,okna'', jeśli chodzi o Emacsa, nie odnosi
+własny tekst. Pojęcie „okna”, jeśli chodzi o Emacsa, nie odnosi
 się do osobnego okienka systemu okienkowego, lecz do pojedynczego
 panelu wewnątrz okienka systemowego. (Emacs może też pracować
 na kilku oknach systemowych (X-oknach); w terminologii Emacsa
@@ -291,10 +291,10 @@ kasując zarazem pozostałe okna Emacsa.
 >> Przesuń kursor do tej linii i naciśnij C-u 0 C-l.
 
 (C-l, jak pamiętasz odświeża zawartość ekranu. Jeśli temu poleceniu
-poda się argument liczbowy, to będzie to oznaczało ,,odśwież zawartość
-ekranu i umieść bieżąca linię o tyle linii od góry ekranu''. Tak więc,
-C-u 0 C-1 oznacza ,,odśwież ekran, umieszczając bieżąca linię na samej
-górze''.)
+poda się argument liczbowy, to będzie to oznaczało „odśwież zawartość
+ekranu i umieść bieżąca linię o tyle linii od góry ekranu”. Tak więc,
+C-u 0 C-1 oznacza „odśwież ekran, umieszczając bieżąca linię na samej
+górze”.)
 
 >> Naciśnij Control-x 2
    Zauważ, że okno się kurczy, a jednocześnie pojawia się nowe,
@@ -331,8 +331,8 @@ poprzedzający bieżącą pozycję kursora.
    Pracujesz teraz na jego kopii.
 
 Gdy linia tekstu staje się zbyt długa, by zmieścić się w jednym
-wierszu ekranu, to jest ona ,,kontynuowana'' w wierszu następnym.
-Znak ,,backslash'' (`\') (albo - jeśli pracujesz w okienkowym
+wierszu ekranu, to jest ona „kontynuowana” w wierszu następnym.
+Znak „backslash” („\”) (albo - jeśli pracujesz w okienkowym
 trybie graficznym - zagięta strzałka) umieszczony na prawym marginesie
 wskazuje, że dana linia jest kontynuowana w następnym wierszu ekranu.
 
@@ -389,19 +389,19 @@ zawarty między punktami początkowym i końcowym.
 >> Naciśnij C-SPC. Emacs wyświetli "Mark set" (znacznik ustawiony)
    na dole ekranu.
 
->> Przesuń kursor do litery o w słowie ,,kursor'' w drugim zdaniu.
+>> Przesuń kursor do litery o w słowie „kursor” w drugim zdaniu.
 
 >> Naciśnij C-w. Ta komenda wytnie cały fragment zaczynający się od O,
    a kończący tuż przed o.
 
 Gdy usuwasz więcej niż jeden znak naraz, Emacs zachowuje usunięty
 tekst po to, by mógł go z powrotem gdzieś wstawić. Wstawianie
-usuniętego tekstu nazywa się ,,wklejaniem''. Usunięty tekst
+usuniętego tekstu nazywa się „wklejaniem”. Usunięty tekst
 możesz wkleić zarówno w to samo miejsce, z którego został usunięty,
 bądź też w inne miejsca. Ten sam tekst możesz wkleić wielokrotnie,
 w celu uzyskania wielu kopii. Poleceniem wklejenia tekstu jest C-y.
 
-Zauważ różnicę między ,,wycinaniem'' i ,,usuwaniem'', polegającą na tym,
+Zauważ różnicę między „wycinaniem” i „usuwaniem”, polegającą na tym,
 że rzeczy wycięte można na nowo wklejać, usuniętych natomiast wklejać nie
 można. Na ogół polecenia Emacsa, które kasują dużo tekstu, zachowują go,
 podczas gdy polecenia, które po prostu kasują jeden znak albo puste
@@ -461,7 +461,7 @@ z którego wystartowałeś (czyli tekstu wyciętego ostatnio).
 --------
 
 Jeśli wprowadzisz zmiany do tekstu, a potem dojdziesz do wniosku, że
-to była pomyłka, to możesz cofnąć zmiany, wydając polecenie ,,cofnij''
+to była pomyłka, to możesz cofnąć zmiany, wydając polecenie „cofnij”
 (ang. undo), C-x u.
 
 C-x u cofa zmiany wprowadzone przez jedno polecenie; jeśli powtórzysz
@@ -494,21 +494,21 @@ tego polecenia.
 Aby edytowany przez Ciebie tekst został na trwałe zachowany, musisz
 umieścić go w pliku. Jeśli tego nie zrobisz, to tekst zniknie, gdy
 zamknięty zostanie Emacs, za pomocą którego go edytowałeś. Aby zachować
-tekst w pliku, najpierw musisz ten plik ,,znaleźć'', i to zanim
+tekst w pliku, najpierw musisz ten plik „znaleźć”, i to zanim
 zaczniesz wprowadzać tekst. Czynność znajdowania pliku (ang. "file
-finding") bywa też nazywana ,,odwiedzaniem pliku'' (ang. "file
+finding") bywa też nazywana „odwiedzaniem pliku” (ang. "file
 visiting").
 
 Odwiedzanie pliku w Emacsie powoduje wyświetlenie jego zawartości.
 Bardzo często jest to początek edycji pliku. Jednakże zmiany, które
-wprowadzasz do pliku, nie są w nim utrwalone, zanim go nie ,,zachowasz''
+wprowadzasz do pliku, nie są w nim utrwalone, zanim go nie „zachowasz”
 (ang. save). Ma to zapobiec pozostawieniu w systemie pliku, który został
 zmieniony tylko w połowie, a tego chcesz uniknąć. Gdy zachowujesz
 zmieniony plik, Emacs zostawia oryginał (pod inna nazwą) na wypadek,
 gdybyś doszedł do wniosku, że wprowadzone zmiany były błędne.
 
 Jeśli popatrzysz na dół ekranu, to zauważysz linię, która zaczyna się
-i kończy myślnikami, a zawiera tekst ,,TUTORIAL''. W tej
+i kończy myślnikami, a zawiera tekst „TUTORIAL”. W tej
 części ekranu zawsze możesz znaleźć nazwę pliku, który właśnie
 odwiedzasz. W tej chwili odwiedzasz plik o nazwie TUTORIAL, który
 jest Twoją własną kopią samouczka Emacsa. Obojętnie, który plik
@@ -523,14 +523,14 @@ te mają długość dwóch, trzech lub czterech znaków.
 
 Kolejną nowością odnośnie polecenia odwiedzania pliku jest to, że
 musisz mu podać nazwę pliku, który chcesz znaleźć. Mówimy o tym, że
-polecenie ,,czyta argument z terminala'' (w tym wypadku argument jest
+polecenie „czyta argument z terminala” (w tym wypadku argument jest
 nazwą pliku). Po wpisaniu polecenia
 
 	C-x C-f znajdź plik (ang. find a file)
 
 Emacs poprosi Cię o wpisanie nazwy pliku. Pojawia się ona w dolnej linii
 ekranu. Gdy ta linia jest używana do wprowadzania tego typu danych,
-nazywa się ją ,,minibuforem'' (ang. "minibuffer"). Do edycji nazwy pliku
+nazywa się ją „minibuforem” (ang. "minibuffer"). Do edycji nazwy pliku
 w minibuforze możesz używać zwykłych poleceń Emacsa.
 
 Wprowadzanie nazwy pliku (lub jakichkolwiek innych danych w
@@ -585,7 +585,7 @@ mieć w Emacsie odwiedzonych jednocześnie wiele plików.
    Wpisz w niego jakiś tekst i zachowaj "foo" za pomocą C-x C-s.
    W końcu napisz C-x C-f TUTORIAL <Return>, by wrócić do samouczka.
 
-Emacs przechowuje tekst każdego pliku w obiekcie, zwanym ,,buforem''.
+Emacs przechowuje tekst każdego pliku w obiekcie, zwanym „buforem”.
 Odwiedzenie pliku powoduje utworzenie nowego bufora wewnątrz Emacsa. By
 zobaczyć listę buforów, które istnieją w Twoim Emacsie, naciśnij
 
@@ -674,7 +674,7 @@ wrócić do niej wrócić po jakimś czasie.
 W systemach, w których jest to możliwe, C-z zawiesza proces Emacsa;
 powoduje to powrót do powłoki (ang. shell), ale nie niszczy Emacsa.
 W najpopularniejszych powłokach możesz wrócić do Emacsa za pomocą
-polecenia `fg' lub `%emacs'.
+polecenia „fg” lub „%emacs”.
 
 W systemach, w których nie ma zawieszania procesów, C-z tworzy proces
 podpowłoki (ang. "subshell"), który działa pod Emacsem i daje Ci szansę
@@ -718,7 +718,7 @@ klawisza <Return>.
    Naciśnij M-x repl s<Return>zmieni<Return>zmodyfikuje<Return>.
 
    Zwróć uwagę, jak ta linia się zmieniła: zastąpiłeś słowem
-   ,,zmodyfikuje'' każde wystąpienie słowa z-m-i-e-n-i poniżej początkowej
+   „zmodyfikuje” każde wystąpienie słowa z-m-i-e-n-i poniżej początkowej
    pozycji kursora.
 
 
@@ -781,7 +781,7 @@ nie będzie w tym miejscu gwiazdek, lecz myślniki.
 Wewnątrz nawiasów znajdziesz informacje na temat trybu edycji, w
 którym właśnie jest Emacs. Domyślnym trybem edycji nazywa się
 podstawowym (ang. fundamental); jest to tryb używanym właśnie w
-tej chwili. Jest to przykład ,,trybu głównego'' (ang. major mode).
+tej chwili. Jest to przykład „trybu głównego” (ang. major mode).
 
 Emacs może działać w wielu trybach głównych. Zostały one zaprojektowane,
 aby ułatwić edycję napisów w rozmaitych językach programowania, takich
@@ -811,7 +811,7 @@ M-f i M-b traktują apostrofy jako części słów. Poprzednio, w trybie
 podstawowym, polecenia te traktowały apostrofy jako separatory słów.
 
 Główne tryby edycji wprowadzają zwykle subtelne zmiany, takie jak
-opisana powyżej; większość poleceń nadal robi ,,to samo'', chociaż
+opisana powyżej; większość poleceń nadal robi „to samo”, chociaż
 być może w troszeczkę inny sposób.
 
 By zobaczyć dokumentację na temat bieżącego głównego trybu edycji,
@@ -825,8 +825,8 @@ naciśnij C-h m.
 
 >> Naciśnij q, by usunąć dokumentację trybu z ekranu.
 
-Główne tryby edycji nazywają się właśnie ,,głównymi'', gdyż występują
-także ,,podrzędne'' tryby edycji (ang. minor modes). Podrzędne tryby
+Główne tryby edycji nazywają się właśnie „głównymi”, gdyż występują
+także „podrzędne” tryby edycji (ang. minor modes). Podrzędne tryby
 edycji nie są alternatywą dla trybów głównych, lecz jedynie ich
 niewielką modyfikacją. Każdy podrzędny tryb edycji można włączyć lub
 wyłączyć niezależnie od pozostałych trybów podrzędnych, a także
@@ -842,10 +842,10 @@ podczas wstawiania tekstu linia robi się za szeroka.
 Tryb automatycznego wstawiania włącza się na przykład poleceniem M-x
 auto-fill-mode<Return>. Powtórzenie tego polecenie powoduje wyłączenie
 trybu, ponowne powtórzenie --- jego włączenie, i tak dalej. Mówimy, że
-polecenie ,,przełącza tryb''.
+polecenie „przełącza tryb”.
 
 >> Napisz M-x auto-fill-mode<Return>. Wstaw potem wiele napisów
-   ,,asdf '' tak długo, aż zobaczysz, że linia podzieli na dwie.
+   „asdf ” tak długo, aż zobaczysz, że linia podzieli na dwie.
    Między literami musisz wstawiać spacje, ponieważ tryb
    automatycznego wypełniania łamie linie tylko tam, gdzie są spacje.
 
@@ -902,7 +902,7 @@ przejść do miejsca wystąpienia łańcucha, który wpisałeś do tej pory,
 i podświetla go dla Twojej wygody. By znaleźć następne wystąpienie
 słowa kursor, po prostu jeszcze raz naciśnij C-s. Jeśli takiego
 wystąpienia nie ma, to Emacs zapiszczy i napisze, że szukanie
-,,skończyło się porażką''.
+„skończyło się porażką”.
 
 Kombinacja C-g przerywa proces szukania, podobnie jak to czyni
 z innymi poleceniami.
@@ -958,7 +958,7 @@ jednego okna na raz.
 Każde okno pamięta położenie swojego kursora, lecz w danej chwili
 tylko jedno z okien wyświetla kursor. Wszystkie polecenia edycyjne
 stosują się do okna, w którym jest kursor. To okno nazywane jest
-,,oknem wybranym''.
+„oknem wybranym”.
 
 Polecenie C-M-v przyda Ci się, gdy będziesz chciał edytować tekst w
 jednym oknie, a drugiego używał jako punktu odniesienia. Dzięki niemu
@@ -980,8 +980,8 @@ Wynika to z tego, że ESC jest znakiem, a nie modyfikatorem.
 >> Naciśnij C-x 1 (w górnym oknie), by pozbyć się okna dolnego.
 
 (Jeśli nacisnąłbyś C-x 1 w dolnym oknie, to górne by znikło. Możesz
-sobie to polecenie tłumaczyć jako ,,pozostaw tylko jedno okno --- to w
-którym właśnie jestem''.)
+sobie to polecenie tłumaczyć jako „pozostaw tylko jedno okno --- to w
+którym właśnie jestem”.)
 
 Nie musi być tak, że obydwa okna pokazują ten sam bufor. Jeśli użyjesz
 C-x C-f, by odwiedzić jakiś plik w jednym z nich, to zawartość drugiego
@@ -1009,7 +1009,7 @@ trybu edycji. Mógłbyś na przykład zobaczyć [(Fundamental)] zamiast
 (Fundamental).
 
 By wyjść z rekursywnego poziomu edycji, naciśnij ESC ESC ESC. Jest to
-ogólnego przeznaczenia polecenie ,,wychodzimy''. Możesz go użyć także,
+ogólnego przeznaczenia polecenie „wychodzimy”. Możesz go użyć także,
 by pozbyć się nadmiaru okien albo wyjść z minibufora.
 
 >> Naciśnij M-x by wejść do minibufora, potem naciśnij ESC ESC ESC, by
@@ -1048,7 +1048,7 @@ Powinno to przywołać komunikat, o treści podobnej do
 
 	C-p runs the command previous-line
 
-W ten sposób możesz uzyskać ,,nazwę funkcji'' przypisanej kombinacji
+W ten sposób możesz uzyskać „nazwę funkcji” przypisanej kombinacji
 klawiszy. Przydaje się to podczas pisania kodu w Lispie, w którym
 zapisane są rozszerzenia Emacsa; wystarcza to także do przypomnienia
 Ci, co dane polecenie robi, jeśli widziałeś je już wcześniej, lecz
@@ -1183,7 +1183,7 @@ PODSUMOWANIE
 Pamiętaj, że by wyjść z Emacsa na stałe, trzeba wydać polecenie C-x C-c.
 By wyjść do powłoki na chwilę tak, by jeszcze Do Emacsa wrócić, trzeba
 użyć C-z. (To nie działa pod X-Windows, ponieważ tam nie ma prawdziwego
-konceptu przejścia na chwilę do powłoki. Zamiast tego C-z ,,ikonizuje''
+konceptu przejścia na chwilę do powłoki. Zamiast tego C-z „ikonizuje”
 okno Emacsa.)
 
 Ten samouczek był pisany tak, by wszyscy nowi użytkownicy mogli go

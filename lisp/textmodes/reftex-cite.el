@@ -58,6 +58,7 @@
            ,@body)
        (set-syntax-table saved-syntax))))
 
+;;;###autoload
 (defun reftex-default-bibliography ()
   "Return the expanded value of variable `reftex-default-bibliography'.
 The expanded value is cached."
@@ -70,6 +71,7 @@ The expanded value is cached."
          reftex-default-bibliography))
   (get 'reftex-default-bibliography :reftex-expanded))
 
+;;;###autoload
 (defun reftex-bib-or-thebib ()
   "Test if BibTeX or \begin{thebibliography} should be used for the citation.
 Find the bof of the current file"
@@ -89,6 +91,7 @@ Find the bof of the current file"
         (if bib 'bib nil)
       (if thebib 'thebib nil))))
 
+;;;###autoload
 (defun reftex-get-bibfile-list ()
   "Return list of bibfiles for current document.
 When using the chapterbib or bibunits package you should either
@@ -112,6 +115,7 @@ Then this function will return the applicable database files."
    (error "\\bibliography statement missing or .bib files not found")))
 
 ;;; Find a certain reference in any of the BibTeX files.
+;;;###autoload
 (defun reftex-pop-to-bibtex-entry (key file-list &optional mark-to-kill
                                        highlight item return)
   "Find BibTeX KEY in any file in FILE-LIST in another window.
@@ -161,6 +165,7 @@ If RETURN is non-nil, just return the entry and restore point."
           (error "No \\bibitem with citation key %s" key)
         (error "No BibTeX entry with citation key %s" key)))))
 
+;;;###autoload
 (defun reftex-end-of-bib-entry (item)
   (save-excursion
     (condition-case nil
@@ -452,6 +457,7 @@ If FIELD is empty try \"editor\" field."
       (setq names (replace-match " " nil t names)))
     (split-string names "\n")))
 
+;;;###autoload
 (defun reftex-parse-bibtex-entry (entry &optional from to raw)
   "Parse BibTeX ENTRY.
 If ENTRY is nil then parse the entry in current buffer between FROM and TO.
@@ -604,6 +610,7 @@ If FORMAT is non-nil `format' entry accordingly."
 
 ;;; Make a citation
 
+;; NB this is a global autoload - see reftex.el.
 ;;;###autoload
 (defun reftex-citation (&optional no-insert format-key)
   "Make a citation using BibTeX database files.
@@ -787,11 +794,13 @@ in order to only add another reference in the same cite command."
           (error "No citation format associated with key `%c'" key)))))
     format))
 
+;;;###autoload
 (defun reftex-citep ()
   "Call `reftex-citation' with a format selector `?p'."
   (interactive)
   (reftex-citation nil ?p))
 
+;;;###autoload
 (defun reftex-citet ()
   "Call `reftex-citation' with a format selector `?t'."
   (interactive)
@@ -1058,6 +1067,7 @@ in order to only add another reference in the same cite command."
     (setq format (replace-match "" t t format)))
   format)
 
+;;;###autoload
 (defun reftex-make-cite-echo-string (entry docstruct-symbol)
   "Format a bibtex ENTRY for the echo area and cache the result."
   (let* ((key (reftex-get-bib-field "&key" entry))
@@ -1151,6 +1161,7 @@ recommended for follow mode.  It works OK for individual lookups."
 						(string-match "^&" (car pair)))
 					      alist))))
 
+;;;###autoload
 (defun reftex-create-bibtex-file (bibfile)
   "Create a new BibTeX database BIBFILE with all entries referenced in document.
 The command prompts for a filename and writes the collected
@@ -1244,3 +1255,7 @@ created files in the variables `reftex-create-bibtex-header' or
 
 (provide 'reftex-cite)
 ;;; reftex-cite.el ends here
+
+;; Local Variables:
+;; generated-autoload-file: "reftex.el"
+;; End:

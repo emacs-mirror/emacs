@@ -265,7 +265,9 @@ information about the function or macro; these go into effect
 during the evaluation of the `defun' or `defmacro' form.
 
 The possible values of SPECS are specified by
-`defun-declarations-alist' and `macro-declarations-alist'."
+`defun-declarations-alist' and `macro-declarations-alist'.
+
+For more information, see info node `(elisp)Declare Form'."
   ;; FIXME: edebug spec should pay attention to defun-declarations-alist.
   nil)
 
@@ -332,6 +334,7 @@ Any list whose car is `frame-configuration' is assumed to be a frame
 configuration."
   (and (consp object)
        (eq (car object) 'frame-configuration)))
+
 
 ;;;; List functions.
 
@@ -379,6 +382,13 @@ If N is omitted or nil, remove the last element."
 	 (progn
 	   (if (> n 0) (setcdr (nthcdr (- (1- m) n) list) nil))
 	   list))))
+
+(defun zerop (number)
+  "Return t if NUMBER is zero."
+  ;; Used to be in C, but it's pointless since (= 0 n) is faster anyway because
+  ;; = has a byte-code.
+  (declare (compiler-macro (lambda (_) `(= 0 ,number))))
+  (= 0 number))
 
 (defun delete-dups (list)
   "Destructively remove `equal' duplicates from LIST.
@@ -2151,6 +2161,10 @@ where the optional arg MILLISECONDS specifies an additional wait period,
 in milliseconds; this was useful when Emacs was built without
 floating point support."
   (declare (advertised-calling-convention (seconds &optional nodisp) "22.1"))
+  ;; This used to be implemented in C until the following discussion:
+  ;; http://lists.gnu.org/archive/html/emacs-devel/2006-07/msg00401.html
+  ;; Then it was moved to C using an implementation based on an idle timer,
+  ;; which was then replaced by the use of read-event.
   (if (numberp nodisp)
       (setq seconds (+ seconds (* 1e-3 nodisp))
             nodisp obsolete)
@@ -2168,15 +2182,24 @@ floating point support."
     ;; FIXME: we should not read-event here at all, because it's much too
     ;; difficult to reliably "undo" a read-event by pushing it onto
     ;; unread-command-events.
-    (let ((read (read-event nil t seconds)))
+    ;; For bug#14782, we need read-event to do the keyboard-coding-system
+    ;; decoding (hence non-nil as second arg under POSIX ttys).
+    ;; For bug#15614, we need read-event not to inherit-input-method.
+    ;; So we temporarily suspend input-method-function.
+    (let ((read (let ((input-method-function nil))
+                  (read-event nil t seconds))))
       (or (null read)
 	  (progn
-	    ;; If last command was a prefix arg, e.g. C-u, push this event onto
-	    ;; unread-command-events as (t . EVENT) so it will be added to
-	    ;; this-command-keys by read-key-sequence.
-	    (if (eq overriding-terminal-local-map universal-argument-map)
-		(setq read (cons t read)))
-	    (push read unread-command-events)
+            ;; https://lists.gnu.org/archive/html/emacs-devel/2006-10/msg00394.html
+            ;; We want `read' appear in the next command's this-command-event
+            ;; but not in the current one.
+            ;; By pushing (cons t read), we indicate that `read' has not
+            ;; yet been recorded in this-command-keys, so it will be recorded
+            ;; next time it's read.
+            ;; And indeed the `seconds' argument to read-event correctly
+            ;; prevented recording this event in the current command's
+            ;; this-command-keys.
+	    (push (cons t read) unread-command-events)
 	    nil))))))
 
 ;; Behind display-popup-menus-p test.
@@ -3172,12 +3195,7 @@ not really affect the buffer's content."
     `(let* ((,modified (buffer-modified-p))
             (buffer-undo-list t)
             (inhibit-read-only t)
-            (inhibit-modification-hooks t)
-            deactivate-mark
-            ;; Avoid setting and removing file locks and checking
-            ;; buffer's uptodate-ness w.r.t the underlying file.
-            buffer-file-name
-            buffer-file-truename)
+            (inhibit-modification-hooks t))
        (unwind-protect
            (progn
              ,@body)
@@ -3295,6 +3313,19 @@ The value returned is the value of the last form in BODY."
 		  ,@body)
 	 (with-current-buffer ,old-buffer
 	   (set-case-table ,old-case-table))))))
+
+(defmacro with-file-modes (modes &rest body)
+  "Execute BODY with default file permissions temporarily set to MODES.
+MODES is as for `set-default-file-modes'."
+  (declare (indent 1) (debug t))
+  (let ((umask (make-symbol "umask")))
+    `(let ((,umask (default-file-modes)))
+       (unwind-protect
+           (progn
+             (set-default-file-modes ,modes)
+             ,@body)
+         (set-default-file-modes ,umask)))))
+
 
 ;;; Matching and match data.
 
@@ -3835,7 +3866,8 @@ This function is called directly from the C code."
 	    (byte-compile-log-warning msg))
 	(run-with-timer 0 nil
 			(lambda (msg)
-			  (message "%s" msg)) msg))))
+			  (message "%s" msg))
+                        msg))))
 
   ;; Finally, run any other hook.
   (run-hook-with-args 'after-load-functions abs-file))
@@ -4152,7 +4184,8 @@ I is the index of the frame after FRAME2.  It should return nil
 if those frames don't seem special and otherwise, it should return
 the number of frames to skip (minus 1).")
 
-(defconst internal--call-interactively (symbol-function 'call-interactively))
+(defconst internal--funcall-interactively
+  (symbol-function 'funcall-interactively))
 
 (defun called-interactively-p (&optional kind)
   "Return t if the containing function was called by `call-interactively'.
@@ -4226,10 +4259,13 @@ command is called from a keyboard macro?"
       (pcase (cons frame nextframe)
         ;; No subr calls `interactive-p', so we can rule that out.
         (`((,_ ,(pred (lambda (f) (subrp (indirect-function f)))) . ,_) . ,_) nil)
-        ;; In case #<subr call-interactively> without going through the
-        ;; `call-interactively' symbol (bug#3984).
-        (`(,_ . (t ,(pred (eq internal--call-interactively)) . ,_)) t)
-        (`(,_ . (t call-interactively . ,_)) t)))))
+        ;; In case #<subr funcall-interactively> without going through the
+        ;; `funcall-interactively' symbol (bug#3984).
+        (`(,_ . (t ,(pred (lambda (f)
+                            (eq internal--funcall-interactively
+                                (indirect-function f))))
+                   . ,_))
+         t)))))
 
 (defun interactive-p ()
   "Return t if the containing function was run directly by user input.
@@ -4290,9 +4326,11 @@ lookup sequence then continues."
     ;; Don't use letrec, because equal (in add/remove-hook) would get trapped
     ;; in a cycle.
     (fset clearfun
+          (suspicious-object
           (lambda ()
             (with-demoted-errors "set-transient-map PCH: %S"
               (unless (cond
+                       ((null keep-pred) nil)
                        ((not (eq map (cadr overriding-terminal-local-map)))
                         ;; There's presumably some other transient-map in
                         ;; effect.  Wait for that one to terminate before we
@@ -4305,14 +4343,17 @@ lookup sequence then continues."
                         ;; C-u and that 1 exits isearch whereas it doesn't
                         ;; exit C-u.
                         t)
-                       ((null keep-pred) nil)
                        ((eq t keep-pred)
                         (eq this-command
                             (lookup-key map (this-command-keys-vector))))
                        (t (funcall keep-pred)))
                 (internal-pop-keymap map 'overriding-terminal-local-map)
                 (remove-hook 'pre-command-hook clearfun)
-                (when on-exit (funcall on-exit))))))
+                 (when on-exit (funcall on-exit))
+                 ;; Comment out the fset if you want to debug the GC bug.
+;;;		(fset clearfun nil)
+;;;             (set clearfun nil)
+                 )))))
     (add-hook 'pre-command-hook clearfun)
     (internal-push-keymap map 'overriding-terminal-local-map)))
 

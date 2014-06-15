@@ -80,8 +80,7 @@ and `gnutls-cli' (version 2.0.1) output."
   "List of strings containing commands to start TLS stream to a host.
 Each entry in the list is tried until a connection is successful.
 %h is replaced with server hostname, %p with port to connect to.
-The program should read input on stdin and write output to
-stdout.
+The program should read input on stdin and write output to stdout.
 
 See `tls-checktrust' on how to check trusted root certs.
 

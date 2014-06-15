@@ -55,6 +55,7 @@ static Lisp_Object Qwindow_pixel_to_total;
 static Lisp_Object Qscroll_up, Qscroll_down, Qscroll_command;
 static Lisp_Object Qsafe, Qabove, Qbelow, Qwindow_size, Qclone_of;
 static Lisp_Object Qfloor, Qceiling;
+static Lisp_Object Qwindow_point_insertion_type;
 
 static int displayed_window_lines (struct window *);
 static int count_windows (struct window *);
@@ -118,13 +119,10 @@ static Lisp_Object Qtemp_buffer_show_hook;
 /* Incremented for each window created.  */
 static int sequence_number;
 
-/* Nonzero after init_window_once has finished.  */
-static int window_initialized;
-
 /* Hook to run when window config changes.  */
 static Lisp_Object Qwindow_configuration_change_hook;
 
-/* Used by the function window_scroll_pixel_based */
+/* Used by the function window_scroll_pixel_based.  */
 static int window_scroll_pixel_based_preserve_x;
 static int window_scroll_pixel_based_preserve_y;
 
@@ -3438,14 +3436,10 @@ set_window_buffer (Lisp_Object window, Lisp_Object buffer,
   wset_redisplay (w);
   w->update_mode_line = true;
 
-  /* We must select BUFFER for running the window-scroll-functions.  */
-  /* We can't check ! NILP (Vwindow_scroll_functions) here
-     because that might itself be a local variable.  */
-  if (window_initialized)
-    {
-      record_unwind_current_buffer ();
-      Fset_buffer (buffer);
-    }
+  /* We must select BUFFER to run the window-scroll-functions and to look up
+     the buffer-local value of Vwindow_point_insertion_type.  */
+  record_unwind_current_buffer ();
+  Fset_buffer (buffer);
 
   XMARKER (w->pointm)->insertion_type = !NILP (Vwindow_point_insertion_type);
 
@@ -4873,7 +4867,7 @@ window_scroll_pixel_based (Lisp_Object window, int n, bool whole, int noerror)
   /* If PT is not visible in WINDOW, move back one half of
      the screen.  Allow PT to be partially visible, otherwise
      something like (scroll-down 1) with PT in the line before
-     the partially visible one would recenter. */
+     the partially visible one would recenter.  */
 
   if (!pos_visible_p (w, PT, &x, &y, &rtop, &rbot, &rowh, &vpos))
     {
@@ -4902,7 +4896,7 @@ window_scroll_pixel_based (Lisp_Object window, int n, bool whole, int noerror)
     }
   else if (auto_window_vscroll_p)
     {
-      if (rtop || rbot)		/* partially visible */
+      if (rtop || rbot)		/* Partially visible.  */
 	{
 	  int px;
 	  int dy = frame_line_height;
@@ -5649,14 +5643,16 @@ and redisplay normally--don't erase and redraw the frame.  */)
 {
   struct window *w = XWINDOW (selected_window);
   struct buffer *buf = XBUFFER (w->contents);
-  struct buffer *obuf = current_buffer;
   bool center_p = 0;
   ptrdiff_t charpos, bytepos;
   EMACS_INT iarg IF_LINT (= 0);
   int this_scroll_margin;
 
+  if (buf != current_buffer)
+    error ("`recenter'ing a window that does not display current-buffer.");
+  
   /* If redisplay is suppressed due to an error, try again.  */
-  obuf->display_error_modiff = 0;
+  buf->display_error_modiff = 0;
 
   if (NILP (arg))
     {
@@ -5678,7 +5674,7 @@ and redisplay normally--don't erase and redraw the frame.  */)
 
       center_p = 1;
     }
-  else if (CONSP (arg)) /* Just C-u. */
+  else if (CONSP (arg)) /* Just C-u.  */
     center_p = 1;
   else
     {
@@ -5687,12 +5683,10 @@ and redisplay normally--don't erase and redraw the frame.  */)
       iarg = XINT (arg);
     }
 
-  set_buffer_internal (buf);
-
   /* Do this after making BUF current
      in case scroll_margin is buffer-local.  */
-  this_scroll_margin =
-    max (0, min (scroll_margin, w->total_lines / 4));
+  this_scroll_margin
+    = max (0, min (scroll_margin, w->total_lines / 4));
 
   /* Handle centering on a graphical frame specially.  Such frames can
      have variable-height lines and centering point on the basis of
@@ -5740,7 +5734,7 @@ and redisplay normally--don't erase and redraw the frame.  */)
 	    h -= it.current_y;
 	  else
 	    {
-	      /* Last line has no newline */
+	      /* Last line has no newline.  */
 	      h -= line_bottom_y (&it);
 	      it.vpos++;
 	    }
@@ -5819,10 +5813,9 @@ and redisplay normally--don't erase and redraw the frame.  */)
 
   w->optional_new_start = 1;
 
-  w->start_at_line_beg = (bytepos == BEGV_BYTE ||
-			  FETCH_BYTE (bytepos - 1) == '\n');
+  w->start_at_line_beg = (bytepos == BEGV_BYTE
+			  || FETCH_BYTE (bytepos - 1) == '\n');
 
-  set_buffer_internal (obuf);
   return Qnil;
 }
 
@@ -5959,12 +5952,12 @@ struct save_window_data
     int frame_menu_bar_height, frame_tool_bar_height;
   };
 
-/* This is saved as a Lisp_Vector  */
+/* This is saved as a Lisp_Vector.  */
 struct saved_window
 {
   struct vectorlike_header header;
 
-  Lisp_Object window, buffer, start, pointm, mark;
+  Lisp_Object window, buffer, start, pointm;
   Lisp_Object pixel_left, pixel_top, pixel_height, pixel_width;
   Lisp_Object left_col, top_line, total_cols, total_lines;
   Lisp_Object normal_cols, normal_lines;
@@ -6266,8 +6259,6 @@ the return value is nil.  Otherwise the value is t.  */)
 	      set_marker_restricted (w->start, p->start, w->contents);
 	      set_marker_restricted (w->pointm, p->pointm,
 				     w->contents);
-	      Fset_marker (BVAR (XBUFFER (w->contents), mark),
-			   p->mark, w->contents);
 
 	      /* As documented in Fcurrent_window_configuration, don't
 		 restore the location of point in the buffer which was
@@ -6618,31 +6609,21 @@ save_window_save (Lisp_Object window, struct Lisp_Vector *vector, int i)
 	  else
 	    p->pointm = Fcopy_marker (w->pointm, Qnil);
 	  XMARKER (p->pointm)->insertion_type
-	    = !NILP (Vwindow_point_insertion_type);
+	    = !NILP (buffer_local_value /* Don't signal error if void.  */
+		     (Qwindow_point_insertion_type, w->contents));
 
 	  p->start = Fcopy_marker (w->start, Qnil);
 	  p->start_at_line_beg = w->start_at_line_beg ? Qt : Qnil;
-
-	  tem = BVAR (XBUFFER (w->contents), mark);
-	  p->mark = Fcopy_marker (tem, Qnil);
 	}
       else
 	{
 	  p->pointm = Qnil;
 	  p->start = Qnil;
-	  p->mark = Qnil;
 	  p->start_at_line_beg = Qnil;
 	}
 
-      if (NILP (w->parent))
-	p->parent = Qnil;
-      else
-	p->parent = XWINDOW (w->parent)->temslot;
-
-      if (NILP (w->prev))
-	p->prev = Qnil;
-      else
-	p->prev = XWINDOW (w->prev)->temslot;
+      p->parent = NILP (w->parent) ? Qnil : XWINDOW (w->parent)->temslot;
+      p->prev = NILP (w->prev) ? Qnil : XWINDOW (w->prev)->temslot;
 
       if (WINDOWP (w->contents))
 	i = save_window_save (w->contents, vector, i);
@@ -6656,8 +6637,8 @@ DEFUN ("current-window-configuration", Fcurrent_window_configuration,
        doc: /* Return an object representing the current window configuration of FRAME.
 If FRAME is nil or omitted, use the selected frame.
 This describes the number of windows, their sizes and current buffers,
-and for each displayed buffer, where display starts, and the positions of
-point and mark.  An exception is made for point in the current buffer:
+and for each displayed buffer, where display starts, and the position of
+point.  An exception is made for point in the current buffer:
 its value is -not- saved.
 This also records the currently selected frame, and FRAME's focus
 redirection (see `redirect-frame-focus').  The variable
@@ -7101,8 +7082,7 @@ compare_window_configurations (Lisp_Object configuration1,
 		  || !EQ (sw1->min_hscroll, sw2->min_hscroll)
 		  || !EQ (sw1->start_at_line_beg, sw2->start_at_line_beg)
 		  || NILP (Fequal (sw1->start, sw2->start))
-		  || NILP (Fequal (sw1->pointm, sw2->pointm))
-		  || NILP (Fequal (sw1->mark, sw2->mark))))
+		  || NILP (Fequal (sw1->pointm, sw2->pointm))))
 	  || !EQ (sw1->left_margin_cols, sw2->left_margin_cols)
 	  || !EQ (sw1->right_margin_cols, sw2->right_margin_cols)
 	  || !EQ (sw1->left_fringe_width, sw2->left_fringe_width)
@@ -7119,7 +7099,7 @@ compare_window_configurations (Lisp_Object configuration1,
 DEFUN ("compare-window-configurations", Fcompare_window_configurations,
        Scompare_window_configurations, 2, 2, 0,
        doc: /* Compare two window configurations as regards the structure of windows.
-This function ignores details such as the values of point and mark
+This function ignores details such as the values of point
 and scrolling positions.  */)
   (Lisp_Object x, Lisp_Object y)
 {
@@ -7136,8 +7116,6 @@ init_window_once (void)
   Vterminal_frame = selected_frame;
   minibuf_window = f->minibuffer_window;
   selected_window = f->selected_window;
-
-  window_initialized = 1;
 }
 
 void
@@ -7235,6 +7213,7 @@ on their symbols to be controlled by this variable.  */);
   DEFVAR_LISP ("window-point-insertion-type", Vwindow_point_insertion_type,
 	       doc: /* Type of marker to use for `window-point'.  */);
   Vwindow_point_insertion_type = Qnil;
+  DEFSYM (Qwindow_point_insertion_type, "window_point_insertion_type");
 
   DEFVAR_LISP ("window-configuration-change-hook",
 	       Vwindow_configuration_change_hook,

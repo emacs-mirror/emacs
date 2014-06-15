@@ -74,7 +74,7 @@ It has `lisp-mode-abbrev-table' as its parent."
     (modify-syntax-entry ?` "'   " table)
     (modify-syntax-entry ?' "'   " table)
     (modify-syntax-entry ?, "'   " table)
-    (modify-syntax-entry ?@ "'   " table)
+    (modify-syntax-entry ?@ "_ p" table)
     ;; Used to be singlequote; changed for flonums.
     (modify-syntax-entry ?. "_   " table)
     (modify-syntax-entry ?# "'   " table)
@@ -104,7 +104,8 @@ It has `lisp-mode-abbrev-table' as its parent."
 			     (regexp-opt
 			      '("defun" "defun*" "defsubst" "defmacro"
 				"defadvice" "define-skeleton"
-				"define-minor-mode" "define-global-minor-mode"
+				"define-compilation-mode" "define-minor-mode"
+				"define-global-minor-mode"
 				"define-globalized-minor-mode"
 				"define-derived-mode" "define-generic-mode"
 				"define-compiler-macro" "define-modify-macro"
@@ -156,6 +157,24 @@ It has `lisp-mode-abbrev-table' as its parent."
 
 ;;;; Font-lock support.
 
+(defun lisp--match-hidden-arg (limit)
+  (let ((res nil))
+    (while
+        (let ((ppss (parse-partial-sexp (line-beginning-position)
+                                        (line-end-position)
+                                        -1)))
+          (skip-syntax-forward " )")
+          (if (or (>= (car ppss) 0)
+                  (looking-at ";\\|$"))
+              (progn
+                (forward-line 1)
+                (< (point) limit))
+            (looking-at ".*")           ;Set the match-data.
+	    (forward-line 1)
+            (setq res (point))
+            nil)))
+    res))
+
 (pcase-let
     ((`(,vdefs ,tdefs
         ,el-defs-re ,cl-defs-re
@@ -189,6 +208,7 @@ It has `lisp-mode-abbrev-table' as its parent."
                        "with-category-table" "with-coding-priority"
                        "with-current-buffer" "with-demoted-errors"
                        "with-electric-help" "with-eval-after-load"
+                       "with-file-modes"
                        "with-local-quit" "with-no-warnings"
                        "with-output-to-temp-buffer" "with-selected-window"
                        "with-selected-frame" "with-silent-modifications"
@@ -347,6 +367,9 @@ It has `lisp-mode-abbrev-table' as its parent."
        ;; and that they get the wrong color.
        ;; ;; CL `with-' and `do-' constructs
        ;;("(\\(\\(do-\\|with-\\)\\(\\s_\\|\\w\\)*\\)" 1 font-lock-keyword-face)
+       (lisp--match-hidden-arg
+        (0 '(face font-lock-warning-face
+             help-echo "Hidden behind deeper element; move to another line?")))
        ))
     "Gaudy level highlighting for Emacs Lisp mode.")
 
@@ -377,6 +400,9 @@ It has `lisp-mode-abbrev-table' as its parent."
        ;; and that they get the wrong color.
        ;; ;; CL `with-' and `do-' constructs
        ;;("(\\(\\(do-\\|with-\\)\\(\\s_\\|\\w\\)*\\)" 1 font-lock-keyword-face)
+       (lisp--match-hidden-arg
+        (0 '(face font-lock-warning-face
+             help-echo "Hidden behind deeper element; move to another line?")))
        ))
     "Gaudy level highlighting for Lisp modes."))
 
@@ -449,15 +475,10 @@ font-lock keywords will not be case sensitive."
   (setq-local outline-level 'lisp-outline-level)
   (setq-local add-log-current-defun-function #'lisp-current-defun-name)
   (setq-local comment-start ";")
-  ;; Look within the line for a ; following an even number of backslashes
-  ;; after either a non-backslash or the line beginning.
-  (setq-local comment-start-skip "\\(\\(^\\|[^\\\\\n]\\)\\(\\\\\\\\\\)*\\);+ *")
-  ;; Font lock mode uses this only when it KNOWS a comment is starting.
-  (setq-local font-lock-comment-start-skip ";+ *")
+  (setq-local comment-start-skip ";+ *")
   (setq-local comment-add 1)		;default to `;;' in comment-region
   (setq-local comment-column 40)
-  ;; Don't get confused by `;' in doc strings when paragraph-filling.
-  (setq-local comment-use-global-state t)
+  (setq-local comment-use-syntax t)
   (setq-local imenu-generic-expression lisp-imenu-generic-expression)
   (setq-local multibyte-syntax-as-symbol t)
   ;; (setq-local syntax-begin-function 'beginning-of-defun)  ;;Bug#16247.
@@ -470,10 +491,10 @@ font-lock keywords will not be case sensitive."
                lisp-cl-font-lock-keywords-2))
 	  nil ,keywords-case-insensitive nil nil
 	  (font-lock-mark-block-function . mark-defun)
+          (font-lock-extra-managed-props help-echo)
 	  (font-lock-syntactic-face-function
 	   . lisp-font-lock-syntactic-face-function)))
   (setq-local prettify-symbols-alist lisp--prettify-symbols-alist)
-  ;; electric
   (when elisp
     (setq-local electric-pair-text-pairs
                 (cons '(?\` . ?\') electric-pair-text-pairs)))
@@ -997,26 +1018,20 @@ If CHAR is not a character, return nil."
 	      (forward-sexp -1))))
 
 	(save-restriction
-	  ;; vladimir@cs.ualberta.ca 30-Jul-1997: skip ` in
-	  ;; `variable' so that the value is returned, not the
-	  ;; name
-	  (if (and ignore-quotes
-		   (eq (following-char) ?`))
+	  (if (and ignore-quotes (eq (following-char) ?`))
+              ;; vladimir@cs.ualberta.ca 30-Jul-1997: Skip ` in `variable' so
+              ;; that the value is returned, not the name.
 	      (forward-char))
+          (when (looking-at ",@?") (goto-char (match-end 0)))
 	  (narrow-to-region (point-min) opoint)
 	  (setq expr (read (current-buffer)))
-	  ;; If it's an (interactive ...) form, it's more
-	  ;; useful to show how an interactive call would
-	  ;; use it.
-	  (and (consp expr)
-	       (eq (car expr) 'interactive)
+          ;; If it's an (interactive ...) form, it's more useful to show how an
+          ;; interactive call would use it.
+          ;; FIXME: Is it really the right place for this?
+          (when (eq (car-safe expr) 'interactive)
 	       (setq expr
-		     (list 'call-interactively
-			   (list 'quote
-				 (list 'lambda
-				       '(&rest args)
-				       expr
-				       'args)))))
+                  `(call-interactively
+                    (lambda (&rest args) ,expr args))))
 	  expr)))))
 
 

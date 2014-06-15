@@ -84,9 +84,10 @@ ignored on MS-Windows and MS-DOS."
   (get 'x-selections (or type 'PRIMARY)))
 
 ;; x-selection-owner-p is used in simple.el
-(defun x-selection-owner-p (&optional type)
-  (and (memq type '(nil PRIMARY SECONDARY))
-       (get 'x-selections (or type 'PRIMARY))))
+(defun x-selection-owner-p (&optional selection _terminal)
+  "" ; placeholder for doc.c
+  (and (memq selection '(nil PRIMARY SECONDARY))
+       (get 'x-selections (or selection 'PRIMARY))))
 
 ;; The "Windows" keys on newer keyboards bring up the Start menu
 ;; whether you want it or not - make Emacs ignore these keystrokes

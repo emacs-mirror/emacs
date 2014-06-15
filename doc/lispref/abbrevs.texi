@@ -257,13 +257,16 @@ as in @code{abbrev-symbol}.
 
 @deffn Command expand-abbrev
 This command expands the abbrev before point, if any.  If point does not
-follow an abbrev, this command does nothing.  The command returns the
-abbrev symbol if it did expansion, @code{nil} otherwise.
+follow an abbrev, this command does nothing.  To do the expansion, it
+calls the function that is the value of the @code{abbrev-expand-function}
+variable, with no arguments, and returns whatever that function does.
 
-If the abbrev symbol has a hook function that is a symbol whose
-@code{no-self-insert} property is non-@code{nil}, and if the hook
-function returns @code{nil} as its value, then @code{expand-abbrev}
-returns @code{nil} even though expansion did occur.
+The default expansion function returns the abbrev symbol if it did
+expansion, and @code{nil} otherwise.  If the abbrev symbol has a hook
+function that is a symbol whose @code{no-self-insert} property is
+non-@code{nil}, and if the hook function returns @code{nil} as its
+value, then the default expansion function returns @code{nil},
+even though expansion did occur.
 @end deffn
 
 @defun abbrev-insert abbrev &optional name start end
@@ -331,24 +334,21 @@ has already been unexpanded.  This contains information left by
 @code{expand-abbrev} for the sake of the @code{unexpand-abbrev} command.
 @end defvar
 
-@defvar abbrev-expand-functions
-This is a wrapper hook (@pxref{Running Hooks}) run around the
-@code{expand-abbrev} function.  Each function on this hook is called
-with a single argument: a function that performs the normal abbrev
-expansion.  The hook function can hence do anything it wants before
-and after performing the expansion.  It can also choose not to call
-its argument, thus overriding the default behavior; or it may even
-call it several times.  The function should return the abbrev symbol
-if expansion took place.
+@defvar abbrev-expand-function
+The value of this variable is a function that @code{expand-abbrev}
+will call with no arguments to do the expansion.  The function can do
+anything it wants before and after performing the expansion.
+It should return the abbrev symbol if expansion took place.
 @end defvar
 
   The following sample code shows a simple use of
-@code{abbrev-expand-functions}.  It assumes that @code{foo-mode} is a
+@code{abbrev-expand-function}.  It assumes that @code{foo-mode} is a
 mode for editing certain files in which lines that start with @samp{#}
 are comments.  You want to use Text mode abbrevs for those lines.  The
 regular local abbrev table, @code{foo-mode-abbrev-table} is
 appropriate for all other lines.  @xref{Standard Abbrev Tables}, for the
 definitions of @code{local-abbrev-table} and @code{text-mode-abbrev-table}.
+@xref{Advising Functions}, for details of @code{add-function}.
 
 @smallexample
 (defun foo-mode-abbrev-expand-function (expand)
@@ -361,9 +361,8 @@ definitions of @code{local-abbrev-table} and @code{text-mode-abbrev-table}.
 
 (add-hook 'foo-mode-hook
           #'(lambda ()
-              (add-hook 'abbrev-expand-functions
-                        'foo-mode-abbrev-expand-function
-                        nil t)))
+              (add-function :around (local 'abbrev-expand-function)
+                            #'foo-mode-abbrev-expand-function)))
 @end smallexample
 
 @node Standard Abbrev Tables

@@ -23,7 +23,6 @@
 
 ;;; Commentary:
 
-;; Uses the Emacs 19 terminal initialization features --- won't work with 18.
 ;; Rewritten for Emacs 19 by jimb,  January 1992
 ;; Cleaned up for new terminal package conventions by esr, March 1993
 ;; Should work well for Televideo TVI 925 although it's overkill.

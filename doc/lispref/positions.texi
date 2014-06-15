@@ -647,9 +647,19 @@ parentheses.  (Other syntactic entities such as words or paired string
 quotes are ignored.)
 @end deffn
 
-@deffn Command up-list &optional arg
-This function moves forward out of @var{arg} (default 1) levels of parentheses.
-A negative argument means move backward but still to a less deep spot.
+@deffn Command up-list &optional arg escape-strings no-syntax-crossing
+This function moves forward out of @var{arg} (default 1) levels of
+parentheses.  A negative argument means move backward but still to a
+less deep spot.  If @var{escape-strings} is non-nil (as it is
+interactively), move out of enclosing strings as well. If
+@var{no-syntax-crossing} is non-nil (as it is interactively), prefer
+to break out of any enclosing string instead of moving to the start of
+a list broken across multiple strings.  On error, location of point is
+unspecified.
+@end deffn
+
+@deffn Command backward-up-list &optional arg escape-strings no-syntax-crossing
+This function is just like @code{up-list}, but with a negated argument.
 @end deffn
 
 @deffn Command down-list &optional arg

@@ -5,19 +5,19 @@
   See the end of the file for license conditions.
 
 The MSYS/MinGW build described here is supported on versions of
-Windows starting with Windows 2000 and newer.  Windows 9X are not
-supported (but the Emacs binary produced by this build will run on
-Windows 9X as well).
+Windows starting with Windows XP and newer.  Building on Windows 2000
+and Windows 9X is not supported (but the Emacs binary produced by this
+build will run on Windows 9X and newer systems).
+
+  Do not use this recipe with Cygwin.  For building on Cygwin, use the
+  normal installation instructions, ../INSTALL.
 
 * For the brave (a.k.a. "impatient"):
 
   For those who have a working MSYS/MinGW development environment and
   are comfortable with running Posix configure scripts, here are the
   concise instructions for configuring and building the native Windows
-  binary of Emacs with these tools.
-
-  Do not use this recipe with Cygwin.  For building on Cygwin, use the
-  normal installation instructions, ../INSTALL.
+  binary of Emacs with these tools:
 
   0. Start the MSYS Bash window.  Everything else below is done from
      that window's Bash prompt.
@@ -49,7 +49,7 @@ Windows 9X as well).
      You can pass other options to the configure script.  Here's a
      typical example (for an in-place debug build):
 
-       CPPFLAGS='-DGLYPH_DEBUG=1' CFLAGS='-O0 -g3' ./configure --prefix=/d/usr/emacs --enable-checking
+       CFLAGS='-O0 -g3' ./configure --prefix=/d/usr/emacs --enable-checking='yes,glyphs'
 
   3. After the configure script finishes, it should display the
      resulting configuration.  After that, type
@@ -82,7 +82,7 @@ Windows 9X as well).
   A correct installation makes all the rest almost trivial; a botched
   installation will likely make you miserable for quite some time.
 
-  There are two alternative to installing MinGW + MSYS: using the GUI
+  There are two alternatives to installing MinGW + MSYS: using the GUI
   installer, called mingw-get, provided by the MinGW project, or
   manual installation.  The next two sections describe each one of
   these.
@@ -169,18 +169,18 @@ Windows 9X as well).
   you are building from the repository:
 
    . Texinfo (needed to produce the Info manuals when building from
-     bzr, and for "make install")
+     bzr/git, and for "make install")
 
      Available from http://sourceforge.net/projects/ezwinports/files/.
+
+   . pkg-config (invoked by the configure script to look for optional
+     packages)
+
+     Available from http://www.gtk.org/download/win32.php
 
    . gzip (needed to compress files during "make install")
 
      Available from http://gnuwin32.sourceforge.net/packages/gzip.htm.
-
-   . pkg-config (needed for building with some optional libraries,
-     such as GnuTLS and libxml2)
-
-     Available from http://www.gtk.org/download/win32.php
 
   Each package might list other packages as prerequisites on its
   download page (under "Runtime requirements"); download those as
@@ -231,6 +231,16 @@ Windows 9X as well).
   install the packages manually, we recommend to use the Windows port
   of the 'bsdtar' program, already mentioned above.
 
+  MSYS packages should be installed in a separate tree from MinGW.
+  For example, use D:\MSYS or D:\usr\MSYS as the top-level directory
+  from which you unpack all of the MSYS packages.
+
+  After installing Automake and Autoconf, make sure any of the *.m4
+  files you might have in your MinGW installation also exist in the
+  MSYS installation tree, in the share/aclocal directory.  Those *.m4
+  files which exist in the MinGW tree, but not in the MSYS tree should
+  be copied there.
+
   If/when you are confident in your MinGW/MSYS installation, and want
   to speed up the builds, we recommend installing a pre-release
   version of Make from here:
@@ -258,10 +268,6 @@ Windows 9X as well).
   states the missing or incompatible DLL; be sure to find and install
   these missing DLLs.
 
-  MSYS packages should be installed in a separate tree from MinGW.
-  For example, use D:\MSYS or D:\usr\MSYS as the top-level directory
-  from which you unpack all of the MSYS packages.
-
   Do NOT add the MSYS bin directory to your Windows Path!  Only the
   MinGW bin directory should be on Path.  When you install MSYS, it
   creates a shortcut on your desktop that invokes the MSYS Bash shell
@@ -269,6 +275,19 @@ Windows 9X as well).
   MSYS bin directory is on PATH ahead of any other directory.  Thus,
   Bash will find MSYS executables first, which is exactly what you
   need.
+
+* Starting the MSYS Bash shell
+
+  For most reliable and predictable results, we recommend to start
+  Bash by clicking the "MSYS" icon on your desktop.  That icon is
+  created when you install MSYS, and using it is the official way of
+  running the MSYS tools.
+
+  For other methods of starting the shell, make sure Bash is invoked
+  with the "--login" command-line switch.
+
+  When the shell window opens and you get the shell prompt, change to
+  the directory where you intend to build Emacs.
 
   At this point, you are ready to build Emacs in its basic
   configuration.  If you want to build it with image support and other
@@ -284,7 +303,7 @@ Windows 9X as well).
   auto-generated files.
 
   To generate the configure script, type this at the MSYS Bash prompt
-  from the top-level directory of the Emacs tree:
+  from the top-level directory of the Emacs source tree:
 
      ./autogen.sh
 
@@ -373,19 +392,20 @@ Windows 9X as well).
   A few frequently used options are needed when you want to produce an
   unoptimized binary with runtime checks enabled:
 
-     CPPFLAGS='-DGLYPH_DEBUG=1' CFLAGS='-O0 -g3' ./configure --prefix=PREFIX --enable-checking
+     CFLAGS='-O0 -g3' ./configure --prefix=PREFIX --enable-checking='yes,glyphs'
 
   Once invoked, the configure script will run for some time, and, if
   successful, will eventually produce a summary of the configuration
-  like this:
+  similar to this:
 
      Configured for `i686-pc-mingw32'.
 
        Where should the build process find the source code?    /path/to/emacs/sources
        What compiler should emacs be built with?               gcc  -std=gnu99 -O0 -g3
-       Should Emacs use the GNU version of malloc?             yes
-       Should Emacs use a relocating allocator for buffers?    yes
-       Should Emacs use mmap(2) for buffer allocation?         no
+       Should Emacs use the GNU version of malloc?             no
+	 (The GNU allocators don't work with this system configuration.)
+       Should Emacs use a relocating allocator for buffers?    no
+       Should Emacs use mmap(2) for buffer allocation?         yes
        What window system should Emacs use?                    w32
        What toolkit should Emacs use?                          none
        Where do we find X Windows header files?                NONE
@@ -395,13 +415,16 @@ Windows 9X as well).
        Does Emacs use -ljpeg?                                  yes
        Does Emacs use -ltiff?                                  yes
        Does Emacs use a gif library?                           yes
-       Does Emacs use -lpng?                                   yes
-       Does Emacs use -lrsvg-2?                                no
+       Does Emacs use a png library?                           yes
+       Does Emacs use -lrsvg-2?                                yes
        Does Emacs use imagemagick?                             no
+       Does Emacs support sound?                               no
        Does Emacs use -lgpm?                                   no
        Does Emacs use -ldbus?                                  no
        Does Emacs use -lgconf?                                 no
        Does Emacs use GSettings?                               no
+       Does Emacs use a file notification library?             yes (w32)
+       Does Emacs use access control lists?                    yes
        Does Emacs use -lselinux?                               no
        Does Emacs use -lgnutls?                                yes
        Does Emacs use -lxml2?                                  yes
@@ -409,6 +432,7 @@ Windows 9X as well).
        Does Emacs use -lm17n-flt?                              no
        Does Emacs use -lotf?                                   no
        Does Emacs use -lxft?                                   no
+       Does Emacs directly use zlib?                           yes
        Does Emacs use toolkit scroll bars?                     yes
 
   You are almost there, hang on.
@@ -723,43 +747,6 @@ Windows 9X as well).
 
   You need the libiconv-X.Y.Z-N-mingw32-dev.tar.lzma tarball from that
   site.
-
-* Experimental SVG support
-
-  To compile with SVG, you will need pkg-config to be installed, as
-  the configure script invokes pkg-config to find out which compiler
-  switches to use for SVG.  See above for the URL where you can find
-  pkg-config for Windows.
-
-  SVG support is currently experimental, and not built by default.
-  Specify --with-rsvg and ensure you have all the dependencies in your
-  include path.  Unless you have built a minimalist librsvg yourself
-  (untested), librsvg depends on a significant chunk of GTK+ to build,
-  plus a few Gnome libraries, libxml2, libbz2 and zlib at runtime.  The
-  easiest way to obtain the dependencies required for building is to
-  download a pre-bundled GTK+ development environment for Windows.
-
-  To use librsvg at runtime, ensure that librsvg and its dependencies
-  are on your PATH.  If you didn't build librsvg yourself, you will
-  need to check with where you downloaded it from for the
-  dependencies, as there are different build options.  If it is a
-  short list, then it most likely only lists the immediate
-  dependencies of librsvg, but the dependencies themselves have
-  dependencies - so don't download individual libraries from GTK+,
-  download and install the whole thing.  If you think you've got all
-  the dependencies and SVG support is still not working, check your
-  PATH for other libraries that shadow the ones you downloaded.
-  Libraries of the same name from different sources may not be
-  compatible, this problem was encountered with libbzip2 from GnuWin32
-  with libcroco from gnome.org.
-
-  If you can see etc/images/splash.svg, then you have managed to get
-  SVG support working.  Congratulations for making it through DLL hell
-  to this point.  You'll probably find that some SVG images crash
-  Emacs.  Problems have been observed in some images that contain
-  text, they seem to be a problem in the Windows port of Pango, or
-  maybe a problem with the way Cairo or librsvg is using it that
-  doesn't show up on other platforms.
 
 
 This file is part of GNU Emacs.

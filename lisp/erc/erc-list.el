@@ -4,7 +4,7 @@
 
 ;; Author: Tom Tromey <tromey@redhat.com>
 ;; Maintainer: emacs-devel@gnu.org
-;; Version: 0.1
+;; Old-Version: 0.1
 ;; Keywords: comm
 
 ;; This file is part of GNU Emacs.

@@ -73,9 +73,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <grp.h>
 
 /* MinGW64 (_W64) defines these in its _mingw.h.  */
-#if defined(__GNUC__) && !defined(_W64)
-#define _ANONYMOUS_UNION
-#define _ANONYMOUS_STRUCT
+#ifndef _ANONYMOUS_UNION
+# define _ANONYMOUS_UNION
+#endif
+#ifndef _ANONYMOUS_STRUCT
+# define _ANONYMOUS_STRUCT
 #endif
 #include <windows.h>
 /* Some versions of compiler define MEMORYSTATUSEX, some don't, so we
@@ -1707,7 +1709,7 @@ static unsigned num_of_processors;
 /* We maintain 1-sec samples for the last 16 minutes in a circular buffer.  */
 static struct load_sample samples[16*60];
 static int first_idx = -1, last_idx = -1;
-static int max_idx = sizeof (samples) / sizeof (samples[0]);
+static int max_idx = ARRAYELTS (samples);
 
 static int
 buf_next (int from)
@@ -2413,7 +2415,6 @@ unsetenv (const char *name)
 {
   char *var;
   size_t name_len;
-  int retval;
 
   if (name == NULL || *name == '\0' || strchr (name, '=') != NULL)
     {
@@ -2512,7 +2513,7 @@ init_environment (char ** argv)
 
   int i;
 
-  const int imax = sizeof (tempdirs) / sizeof (tempdirs[0]);
+  const int imax = ARRAYELTS (tempdirs);
 
   /* Implementation note: This function explicitly works with ANSI
      file names, not with UTF-8 encoded file names.  This is because
@@ -2585,7 +2586,7 @@ init_environment (char ** argv)
       {"LANG", NULL},
     };
 
-#define N_ENV_VARS sizeof (dflt_envvars)/sizeof (dflt_envvars[0])
+#define N_ENV_VARS ARRAYELTS (dflt_envvars)
 
     /* We need to copy dflt_envvars[] and work on the copy because we
        don't want the dumped Emacs to inherit the values of
@@ -4745,10 +4746,9 @@ stat_worker (const char * path, struct stat * buf, int follow_symlinks)
       return -1;
     }
 
-  /* Remove trailing directory separator, unless name is the root
-     directory of a drive or UNC volume in which case ensure there
-     is a trailing separator. */
   len = strlen (name);
+  /* Allocate 1 extra byte so that we could append a slash to a root
+     directory, down below.  */
   name = strcpy (alloca (len + 2), name);
 
   /* Avoid a somewhat costly call to is_symlink if the filesystem
@@ -4963,6 +4963,7 @@ stat_worker (const char * path, struct stat * buf, int follow_symlinks)
 	}
       else if (rootdir)
 	{
+	  /* Make sure root directories end in a slash.  */
 	  if (!IS_DIRECTORY_SEP (name[len-1]))
 	    strcat (name, "\\");
 	  if (GetDriveType (name) < 2)
@@ -4978,6 +4979,8 @@ stat_worker (const char * path, struct stat * buf, int follow_symlinks)
 	{
 	  int have_wfd = -1;
 
+	  /* Make sure non-root directories do NOT end in a slash,
+	     otherwise FindFirstFile might fail.  */
 	  if (IS_DIRECTORY_SEP (name[len-1]))
 	    name[len - 1] = 0;
 
@@ -5138,7 +5141,10 @@ fstatat (int fd, char const *name, struct stat *st, int flags)
 
   if (fd != AT_FDCWD)
     {
-      if (_snprintf (fullname, sizeof fullname, "%s/%s", dir_pathname, name)
+      char lastc = dir_pathname[strlen (dir_pathname) - 1];
+
+      if (_snprintf (fullname, sizeof fullname, "%s%s%s",
+		     dir_pathname, IS_DIRECTORY_SEP (lastc) ? "" : "/", name)
 	  < 0)
 	{
 	  errno = ENAMETOOLONG;
@@ -5349,11 +5355,6 @@ utime (const char *name, struct utimbuf *times)
   return 0;
 }
 
-/* Emacs expects us to support the traditional octal form of the mode
-   bits, which is not what msvcrt.dll wants.  */
-
-#define WRITE_USER 00200
-
 int
 sys_umask (int mode)
 {
@@ -5365,14 +5366,14 @@ sys_umask (int mode)
      at all.  */
   /* FIXME: if the GROUP and OTHER bits are reset, we should use ACLs
      to prevent access by other users on NTFS.  */
-  if ((mode & WRITE_USER) != 0)
+  if ((mode & S_IWRITE) != 0)
     arg |= S_IWRITE;
 
   retval = _umask (arg);
   /* Merge into the return value the bits they've set the last time,
      which msvcrt.dll ignores and never returns.  Emacs insists on its
      notion of mask being identical to what we return.  */
-  retval |= (current_mask & ~WRITE_USER);
+  retval |= (current_mask & ~S_IWRITE);
   current_mask = mode;
 
   return retval;
@@ -8697,6 +8698,13 @@ w32_delayed_load (Lisp_Object library_id)
 			       /* Possibly truncated */
 			       ? make_specified_string (name, -1, len, 1)
 			       : Qnil);
+		/* This prevents thread start and end notifications
+		   from being sent to the DLL, for every thread we
+		   start.  We don't need those notifications because
+		   threads we create never use any of these DLLs, only
+		   the main thread uses them.  This is supposed to
+		   speed up thread creation.  */
+		DisableThreadLibraryCalls (dll_handle);
 		break;
 	      }
 	  }
@@ -9249,8 +9257,6 @@ ssize_t
 emacs_gnutls_pull (gnutls_transport_ptr_t p, void* buf, size_t sz)
 {
   int n, err;
-  SELECT_TYPE fdset;
-  struct timespec timeout;
   struct Lisp_Process *process = (struct Lisp_Process *)p;
   int fd = process->infd;
 

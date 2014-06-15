@@ -30,7 +30,7 @@ minimum of fuss.  But @xref{Dynamic Binding Tips}, for tips to avoid
 making your programs hard to understand.
 
 @item
-Calling a minor mode function from Lisp with a nil or omitted argument
+Calling a minor mode function from Lisp with a @code{nil} or omitted argument
 does not enable the minor mode unconditionally; instead, it toggles
 the minor mode---which is the straightforward thing to do, since that
 is the behavior when invoked interactively.  One downside is that it

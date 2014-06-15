@@ -216,10 +216,6 @@ This is a compatibility function for different Emacsen."
       (test   . (fboundp 'vm-mode))
       (type   . "message/rfc822"))
      ("rfc-*822"
-      (viewer . w3-mode)
-      (test   . (fboundp 'w3-mode))
-      (type   . "message/rfc822"))
-     ("rfc-*822"
       (viewer . view-mode)
       (type   . "message/rfc822")))
     ("image"
@@ -253,10 +249,6 @@ This is a compatibility function for different Emacsen."
       ("needsx11")))
     ("text"
      ("plain"
-      (viewer  . w3-mode)
-      (test    . (fboundp 'w3-mode))
-      (type    . "text/plain"))
-     ("plain"
       (viewer  . view-mode)
       (test    . (fboundp 'view-mode))
       (type    . "text/plain"))
@@ -267,10 +259,6 @@ This is a compatibility function for different Emacsen."
       (viewer . enriched-decode)
       (test   . (fboundp 'enriched-decode))
       (type   . "text/enriched"))
-     ("html"
-      (viewer . mm-w3-prepare-buffer)
-      (test   . (fboundp 'w3-prepare-buffer))
-      (type   . "text/html"))
      ("dns"
       (viewer . dns-mode)
       (test   . (fboundp 'dns-mode))

@@ -1,6 +1,6 @@
 \input texinfo                  @c -*-texinfo-*-
 @c %**start of header
-@setfilename ../../info/octave-mode
+@setfilename ../../info/octave-mode.info
 @settitle Octave Mode
 @documentencoding UTF-8
 @c %**end of header
@@ -12,7 +12,7 @@ Copyright @copyright{} 1996--2014 Free Software Foundation, Inc.
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.3 or
 any later version published by the Free Software Foundation; with no
-Invariant Sections, with the Front-Cover texts being ``A GNU Manual,''
+Invariant Sections, with the Front-Cover Texts being ``A GNU Manual,''
 and with the Back-Cover Texts as in (a) below.  A copy of the license
 is included in the section entitled ``GNU Free Documentation License.''
 
@@ -147,39 +147,6 @@ and return values which have to be entered without parentheses
 @noindent
 in one of your Emacs startup files.
 @end table
-
-@c FIXME: `electric-indent-mode' is enabled by default in GNU Emacs 24.4.
-A common problem is that the @key{RET} key does @emph{not} indent the
-line to where the new text should go after inserting the newline.  This
-is because the standard Emacs convention is that @key{RET} (aka
-@kbd{C-m}) just adds a newline, whereas @key{LFD} (aka @kbd{C-j}) adds a
-newline and indents it.  This is particularly inconvenient for users with
-keyboards which do not have a special @key{LFD} key at all; in such
-cases, it is typically more convenient to use @key{RET} as the @key{LFD}
-key (rather than typing @kbd{C-j}).
-
-You can make @key{RET} do this by adding
-@lisp
-(define-key octave-mode-map "\C-m"
-  'octave-reindent-then-newline-and-indent)
-@end lisp
-@noindent
-to one of your Emacs startup files.  Another, more generally applicable
-solution is
-@lisp
-(defun RET-behaves-as-LFD ()
-  (let ((x (key-binding "\C-j")))
-    (local-set-key "\C-m" x)))
-(add-hook 'octave-mode-hook 'RET-behaves-as-LFD)
-@end lisp
-@noindent
-(this works for all modes by adding to the startup hooks, without
-having to know the particular binding of @key{RET} in that mode!).
-Similar considerations apply for using @key{M-RET} as @key{M-LFD}.  As
-@email{bwarsaw@@cnri.reston.va.us, Barry A. Warsaw} says in the
-documentation for his @code{cc-mode}, ``This is a very common
-question.  @code{:-)} If you want this to be the default behavior,
-don't lobby me, lobby RMS!''
 
 The following variables can be used to customize Octave mode.
 

@@ -157,7 +157,10 @@ The message is @samp{Attempt to modify a protected file}.
 @item scan-error
 The message is @samp{Scan error}.  This happens when certain
 syntax-parsing functions find invalid syntax or mismatched
-parentheses.  @xref{List Motion}, and @xref{Parsing Expressions}.
+parentheses.  Conventionally raised with three argument: a
+human-readable error message, the start of the obstacle that cannot be
+moved over, and the end of the obstacle.  @xref{List Motion}, and
+@xref{Parsing Expressions}.
 
 @item search-failed
 The message is @samp{Search failed}.  @xref{Searching and Matching}.

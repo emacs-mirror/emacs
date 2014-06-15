@@ -4,7 +4,7 @@
 @comment Using viper.info instead of viper in setfilename breaks DOS.
 @comment @setfilename viper
 @comment @setfilename viper.info
-@setfilename ../../info/viper
+@setfilename ../../info/viper.info
 
 @documentencoding UTF-8
 
@@ -15,7 +15,7 @@ Copyright @copyright{} 1995--1997, 2001--2014 Free Software Foundation, Inc.
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.3 or
 any later version published by the Free Software Foundation; with no
-Invariant Sections, with the Front-Cover texts being ``A GNU Manual'',
+Invariant Sections, with the Front-Cover Texts being ``A GNU Manual'',
 and with the Back-Cover Texts as in (a) below.  A copy of the license
 is included in the section entitled ``GNU Free Documentation License''.
 
@@ -354,7 +354,7 @@ M-x viper-mode
 @end lisp
 
 When Emacs first comes up, if you have not specified a file on the
-command line, it will show the @samp{*scratch*} buffer, in the
+command line, it will show the @file{*scratch*} buffer, in the
 @samp{Lisp Interaction} mode.  After you invoke Viper, you can start
 editing files by using @kbd{:e}, @kbd{:vi}, or @kbd{v} commands.
 (@xref{File and Buffer Handling}, for more information on @kbd{v} and other
@@ -1840,7 +1840,7 @@ usually most effective:
 (set-face-background viper-replace-overlay-face "yellow")
 @end smallexample
 For a complete list of colors available to you, evaluate the expression
-@code{(x-defined-colors)}.  (Type it in the buffer @code{*scratch*} and then
+@code{(x-defined-colors)}.  (Type it in the buffer @file{*scratch*} and then
 hit the @kbd{C-j} key.
 
 @item viper-replace-overlay-cursor-color  "Red"

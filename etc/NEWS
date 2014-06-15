@@ -22,6 +22,151 @@ When you add a new item, use the appropriate mark if you are sure it applies,
 otherwise leave it unmarked.
 
 
+* Installation Changes in Emacs 24.5
+
++++
+** Building Emacs now requires C99 or later.
+
+** Building Emacs now requires GNU make, version 3.81 or later.
+
+** By default, Emacs no longer works on IRIX.  We expect that Emacs
+users are not affected by this, as SGI stopped supporting IRIX in
+December 2013.  If you are affected, please send a bug report.  You
+should be able to work around the problem either by porting the Emacs
+undumping code to GCC under IRIX, or by configuring --with-wide-int,
+or by sticking with Emacs 24.4.
+
+---
+** The configure option `--with-pkg-config-prog' has been removed.
+Use './configure PKG_CONFIG=/full/name/of/pkg-config' if you need to.
+
+---
+** Building Emacs for MS-Windows requires at least Windows XP
+or Windows Server 2003.  The built binaries still run on all versions
+of Windows starting with Windows 9X.
+
+
+* Startup Changes in Emacs 24.5
+
+
+* Changes in Emacs 24.5
+
+---
+** The default value of `history-length' has increased to 100.
+
++++
+** The new variable `term-file-aliases' replaces some files from lisp/term.
+The function `tty-run-terminal-initialization' consults this variable
+when deciding what terminal-specific initialization code to run.
+
+---
+** New variable `system-configuration-features', listing some of the
+main features that Emacs was compiled with.  This is mainly intended
+for use in Emacs bug reports.
+
+
+* Editing Changes in Emacs 24.5
+
+Emacs now supports "bracketed paste mode" when running on a terminal
+that supports it.  This facility allows Emacs to understand pasted
+chunks of text as strings to be inserted instead of interpreting each
+character in the pasted text as actual user input, resulting in a
+paste experience similar to that under a window system and significant
+performance improvements when pasting large amounts of text.
+
+
+* Changes in Specialized Modes and Packages in Emacs 24.5
+
+** font-lock
+*** New functions font-lock-ensure and font-lock-flush that should be used
+instead of font-lock-fontify-buffer when called from Elisp.
+
+---
+** The Rmail commands d, C-d and u now handle repeat counts
+to delete or undelete multiple messages.
+
+** Calendar and diary
+
++++
+*** New commands to insert diary entries with Chinese dates:
+`diary-chinese-insert-anniversary-entry' `diary-chinese-insert-entry'
+`diary-chinese-insert-monthly-entry'
+`diary-chinese-insert-yearly-entry'
+
++++
+*** Calendar can list and mark diary entries with Chinese dates:
+`diary-chinese-list-entries' and `diary-chinese-mark-entries'.
+
+** In sh-mode, you can now use `sh-shell' as a file-local variable to
+specify the type of shell in use (bash, csh, etc).
+
+** The URL package accepts now the protocols "ssh", "scp" and "rsync".
+When `url-handler-mode' is enabled, file operations for these
+protocols as well as for "telnet" and "ftp" are passed to Tramp.
+
+** Obsolete packages
+
+---
+*** gulp.el
+
+---
+*** vi.el, vip.el (try M-x viper instead)
+
+---
+*** crisp.el, tpu-edt.el, ws-mode.el
+These emulations of old editors are believed to be no longer relevant
+ - contact emacs-devel@gnu.org if you disagree.
+
+
+* New Modes and Packages in Emacs 24.5
+
+
+* Incompatible Lisp Changes in Emacs 24.5
+
+** window-configurations do not record the buffers's marks any more.
+
+** inhibit-modification-hooks now also inhibits lock-file checks as well as
+active region handling.
+
+** deactivate-mark is now buffer-local.
+
+** cl-the now asserts that its argument is of the given type.
+
++++
+** Mouse click events on mode line or header line no longer include
+any reference to a buffer position.  The 6th member of the mouse
+position list returned for such events is now nil.
+
+
+
+* Lisp Changes in Emacs 24.5
+
+** New function `funcall-interactively', which works like `funcall'
+but makes `called-interactively-p' treat the function as (you guessed it)
+called interactively.
+
+** New function `function-put' to use instead of `put' for function properties.
+
++++
+** New properties that can be specified with `declare':
+*** (interactive-only INSTEAD), tells to use INSTEAD for non-interactive use.
+*** (pure VAL), if VAL is non-nil, indicates the function is pure.
+*** (side-effect-free VAL), if VAL is non-nil, indicates the function does not
+have side effects.
+
++++
+** New macro `with-file-modes', for evaluating expressions with default file
+permissions set to temporary values (e.g., for creating private files).
+
+** You can access the slots of structures using `cl-struct-slot-value'.
+
+** Functions `rmail-delete-forward' and `rmail-delete-backward' take an
+optional repeat-count argument.
+
+
+* Changes in Emacs 24.5 on Non-Free Operating Systems
+
+
 * Installation Changes in Emacs 24.4
 
 ---
@@ -159,6 +304,10 @@ You can change the default by customizing `blink-cursor-blinks'.
 ** In keymaps where SPC scrolls forward, S-SPC now scrolls backward.
 This affects View mode, etc.
 
++++
+** The default value of `make-backup-file-name-function' is no longer nil.
+Instead it defaults to a function that does what the nil value used to.
+
 ** Help changes
 
 +++
@@ -210,6 +359,7 @@ bound to <f11> and M-<f10>, respectively.
 *** New hooks `focus-in-hook', `focus-out-hook'.
 These are normal hooks run when an Emacs frame gains or loses input focus.
 
++++
 *** Emacs can now change frame sizes in units of pixels, rather than
 text rows or columns.  When maximizing a frame or making it fullscreen,
 remaining extra pixels are no longer given to the minibuffer, the rightmost
@@ -218,6 +368,7 @@ areas of the frame's windows.  If the new option `frame-resize-pixelwise'
 is non-nil, all frame size changes happen pixelwise and set the
 corresponding size hints for the window manager.
 
++++
 *** Emacs can now change window sizes in units of pixels.
 Mouse-dragging a mode line or window divider now changes the size of
 adjacent windows pixelwise.  If the new option `window-resize-pixelwise'
@@ -231,6 +382,7 @@ or values to be returned, in pixels instead of lines/columns.
 count partially visible lines or columns if called with a nil PIXELWISE
 argument.
 
++++
 *** Emacs can now draw dividers between adjacent windows.  To put
 dividers between side-by-side/vertically stacked windows customize the
 frame parameters `right-divider-width' and `bottom-divider-width' to
@@ -241,25 +393,30 @@ the appearance of dividers by customizing the faces `window-divider',
 two are useful to provide a 3D effect, or to better distinguish dividers
 from surrounding display objects.
 
++++
 *** New functions are provided to return the pixel sizes of window
 components, namely `window-scroll-bar-width', `window-mode-line-height'
 `window-header-line-height', `window-right-divider-width' and
 `window-bottom-divider-width'.
 
++++
 *** The new function `window-text-pixel-size' returns the size of the
 text of a window's buffer in pixels.  This allows functions like
 `fit-frame-to-buffer' and `fit-window-to-buffer' to accurately fit a
 window to its buffer as it will be displayed.
 
++++
 *** `fit-window-to-buffer' can now resize windows in both dimensions.
 This behavior is controlled by the new option
 `fit-window-to-buffer-horizontally'.  The new option
 `fit-frame-to-buffer' allows to fit the window's frame to its buffer.
 
++++
 *** `fit-frame-to-buffer' now fits frames in both dimensions.  The new
 options `fit-frame-to-buffer-margins' and `fit-frame-to-buffer-sizes'
 control the size of the frame and its position on screen.
 
+---
 *** Temp Buffer Resize Mode can now adjust height and width of windows
 and frames.  `temp-buffer-resize-mode' is now able to adjust the height
 and the width of a window displaying a temporary buffer.  The new option
@@ -298,9 +455,11 @@ buffer.
 `display-buffer' choose or make a window at the bottom of the selected
 frame.
 
++++
 *** New display action function `display-buffer-no-window' to not
 display the buffer in a window.
 
++++
 *** New display action alist entry `allow-no-window' to indicate the
 caller of `display-buffer' is ready to handle the case of not
 displaying the buffer in a window.
@@ -355,9 +514,14 @@ means to always load the .elc file.
 
 ** Indentation changes
 
++++
 *** `electric-indent-mode' is now enabled by default.
-E.g., typing RET reindents the current line and indents the new line.
-`C-j' inserts a newline but does not indent.
+Typing RET reindents the current line and indents the new line.
+`C-j' inserts a newline but does not indent.  In some programming modes,
+additional characters are electric (eg `{').
+
++++
+*** New buffer-local `electric-indent-local-mode'.
 
 +++
 *** The behavior of `C-x TAB' (`indent-rigidly') has changed.
@@ -383,6 +547,10 @@ conventions.  To use it, add it to the `fill-nobreak-predicate' hook.
 
 +++
 ** Uniquify is enabled by default, with `post-forward-angle-brackets' style.
+In other words, if you visit two files that have the same base name,
+then rather than creating buffers basename and basename<2>,
+Emacs uses basename<dirA> and basename<dirB>.  To change this,
+customize `uniquify-buffer-name-style'.  Set it to nil for the old behavior.
 
 +++
 ** New command `C-x SPC' (`rectangle-mark-mode') makes a rectangular region.
@@ -419,6 +587,11 @@ macros in registers.
 ** New command `delete-duplicate-lines'.
 This searches the region for identical lines, and removes all but one
 copy of each repeated line.  The lines need not be sorted.
+
++++
+** `blink-matching-paren' now only highlights the matching open-paren
+by default, instead of moving cursor.  Set this variable to `jump' to
+enable the old behavior.
 
 
 * Changes in Specialized Modes and Packages in Emacs 24.4
@@ -501,14 +674,17 @@ consistent with Calendar's calendrical system and day numbering.
 
 *** EDE
 
++++
 **** The cpp-root project now supports executing a compile command.
 It can be set through the new :compile-command slot or the
 buffer-local variable `compile-command'.
 
++++
 **** Better selection of include directories for the 'linux' project.
 Include directories now support out-of-tree build directories and
 target architecture auto-detection.
 
+---
 *** Semantic
 
 **** Improved detection of used namespaces in current scope in C++.
@@ -569,14 +745,16 @@ after `desktop-auto-save-timeout'.  To disable this, customize that option
 to nil (or zero).
 
 +++
-*** `desktop-restore-frames', enabled by default, allows saving and
-restoring the frame/window configuration (frameset).  Additional options
-`desktop-restore-in-current-display', `desktop-restore-reuses-frames'
-and `desktop-restore-forces-onscreen' offer further customization.
+*** Desktop now saves and restores the frame/window configuration.
+To disable this, set `desktop-restore-frames' to nil.
+See also related options `desktop-restore-reuses-frames',
+`desktop-restore-in-current-display', and `desktop-restore-forces-onscreen'.
 
 +++
 ** New Dired minor mode `dired-hide-details-mode' toggles whether details,
-such as file ownership or permissions, are visible.
+such as file ownership or permissions, are visible in Dired buffers.
+See the new options `dired-hide-details-hide-symlink-targets' and
+`dired-hide-details-hide-information-lines' for customizing what to hide.
 
 ---
 ** You can enable ElDoc inside the `eval-expression' minibuffer with:
@@ -786,6 +964,24 @@ Use `electric-indent-mode' instead.
 *** The TAB key runs the standard `indent-for-tab-command', not `delphi-tab'.
 
 ** Package
+
++++
+*** The package library now supports digital signing of packages.
+Maintainers of package archives should consider signing their packages
+to enhance security.
+
++++
+**** If the user option `package-check-signature' is non-nil,
+Emacs tries to check package signatures at install time.
+The value `allow-unsigned' allows installation of unsigned packages.
+
++++
+**** The user option `package-unsigned-archives' lists archives where
+Emacs will not try to check signatures.
+
++++
+*** New option `package-pinned-packages'.  This is useful if you have multiple
+archives enabled, with more than one offering a package that you want.
 
 +++
 *** In the `list-packages' buffer, you can use `f' (`package-menu-filter')
@@ -1102,6 +1298,12 @@ low-level libraries gfilenotify.c, inotify.c or w32notify.c.
 
 * Incompatible Lisp Changes in Emacs 24.4
 
++++
+** Do not assume that the priority of all overlays will be numeric.
+(You should still only specify integer priorities on overlays you create.)
+If you need to sort arbitrary overlays into priority order, `overlays-at'
+can now optionally do this.
+
 ---
 ** `kill-region' has lost its `yank-handler' optional argument.
 
@@ -1188,6 +1390,15 @@ in the presence of files with negative time stamps.
 +++
 ** The cars of the elements in `interpreter-mode-alist' are now
 treated as regexps rather than literal strings.
+
+---
+** Overlay priority does not have to be nil or a non-negative integer.
+Overlay priority can be other kinds of Lisp objects.  We didn't yet
+decide whether other types of values are stable enough, and therefore
+don't feel it's right to document them.  For now, don't assume in your
+code that the values of overlay priority can only be either nil or an
+integer, always test them with an appropriate predicate to be one or
+the other.
 
 
 * Lisp Changes in Emacs 24.4
@@ -1372,19 +1583,26 @@ used in place of the 9th element of `file-attributes'.
 argument, with the same interpretation as the returned value of
 `visited-file-modtime'.
 
-** Autorevert changes
+** Revert and Autorevert changes
+
++++
+*** The default values of `buffer-stale-function', `revert-buffer-function',
+and `revert-buffer-insert-file-contents-function' are no longer nil.
+Instead they default to functions that do what the nil value used to.
+
++++
+*** `buffer-stale-function' is now used for buffers visiting files too.
 
 ---
-*** If Emacs is compiled with file notification support, notifications
-are used instead of checking the time stamp of the files.  You can
-disable this by setting the user option `auto-revert-use-notify' to
-nil.  Alternatively, a regular expression of directories to be
-excluded from file notifications can be specified by
+*** If Emacs is compiled with file notification support, it uses notifications
+instead of checking file time stamps.  To disable this, set the user option
+`auto-revert-use-notify' to nil.  Alternatively, you can specify a regular
+expression matching directories to be excluded from file notifications via
 `auto-revert-notify-exclude-dir-regexp'.
 
 ---
 *** The new user option `auto-revert-remote-files' enables reversion
-of remote files when set to non-nil.
+of remote files, if set to non-nil.
 
 ** Face changes
 
@@ -1552,19 +1770,21 @@ edited in another Emacs session or by another user.  See the node
 "Interlocking" in the Emacs User Manual for the details.  To disable
 file locking, customize `create-lockfiles' to nil.
 
++++
 ** New Core Text based font backend for Mac OS X 10.5 and newer.
+To use the old font backend, use the following on the command line:
+  % defaults write org.gnu.Emacs FontBackend ns
 GNUstep and Mac OS X 10.4 use the old font backend.
-To use the old backend by default, do on the command line:
-% defaults write org.gnu.Emacs FontBackend ns
 
-** Improved fullscreen support on Mac OS X.
-Emacs supports both native (Mac OS X 10.7 and newer) and "old style" fullscreen.
-Customize `ns-use-native-fullscreen' to change the style.
-For Mac OS X 10.7 and newer, native is the default.
+---
+** Improved fullscreen support on Mac OS X 10.7 and newer, where the
+default fullscreen method is now "native" fullscreen.  To use the
+old style fullscreen, customize `ns-use-native-fullscreen' to nil.
 
-** On Mac OS X 10.7 and newer, Emacs uses sRGB colorspace by default.
-Customize `ns-use-srgb-colorspace' to disable this.  Note that this
-does not apply to images.
+---
+** On Mac OS X 10.7 and newer, Emacs can use sRGB colorspace, and does so
+by default.  Customize `ns-use-srgb-colorspace' to go back to the old method.
+Note that this does not apply to images.
 
 
 * Installation Changes in Emacs 24.3
@@ -4025,6 +4245,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 
 Local variables:
+coding: utf-8
 mode: outline
 paragraph-separate: "[ 	]*$"
 end:

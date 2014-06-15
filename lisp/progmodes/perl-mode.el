@@ -66,22 +66,7 @@
 ;; a rich language; writing a more suitable parser would be a big job):
 ;; 2)  The globbing syntax <pattern> is not recognized, so special
 ;;       characters in the pattern string must be backslashed.
-;; 3)  The << quoting operators are not recognized; see below.
-;; 5)  To make '$' work correctly, $' is not recognized as a variable.
-;;     Use "$'" or $POSTMATCH instead.
 ;;
-;; If you don't use font-lock, additional problems will appear:
-;; 1)  Regular expression delimiters do not act as quotes, so special
-;;       characters such as `'"#:;[](){} may need to be backslashed
-;;       in regular expressions and in both parts of s/// and tr///.
-;; 4)  The q and qq quoting operators are not recognized; see below.
-;; 5)  To make variables such a $' and $#array work, perl-mode treats
-;;       $ just like backslash, so '$' is not treated correctly.
-;; 6)  Unfortunately, treating $ like \ makes ${var} be treated as an
-;;       unmatched }.  See below.
-;; 7)  When ' (quote) is used as a package name separator, perl-mode
-;;       doesn't understand, and thinks it is seeing a quoted string.
-
 ;; Here are some ugly tricks to bypass some of these problems:  the perl
 ;; expression /`/ (that's a back-tick) usually evaluates harmlessly,
 ;; but will trick perl-mode into starting a quoted string, which
@@ -218,6 +203,13 @@
 (defvar perl-quote-like-pairs
   '((?\( . ?\)) (?\[ . ?\]) (?\{ . ?\}) (?\< . ?\>)))
 
+(eval-and-compile
+  (defconst perl--syntax-exp-intro-regexp
+    (concat "\\(?:\\(?:^\\|[^$@&%[:word:]]\\)"
+            (regexp-opt '("split" "if" "unless" "until" "while" "print"
+                          "grep" "map" "not" "or" "and" "for" "foreach"))
+            "\\|[-?:.,;|&+*=!~({[]\\|\\(^\\)\\)[ \t\n]*")))
+
 ;; FIXME: handle here-docs and regexps.
 ;; <<EOF <<"EOF" <<'EOF' (no space)
 ;; see `man perlop'
@@ -250,7 +242,11 @@
       ;; Catch ${ so that ${var} doesn't screw up indentation.
       ;; This also catches $' to handle 'foo$', although it should really
       ;; check that it occurs inside a '..' string.
-      ("\\(\\$\\)[{']" (1 ". p"))
+      ("\\(\\$\\)[{']" (1 (unless (and (eq ?\' (char-after (match-end 1)))
+                                       (save-excursion
+                                         (not (nth 3 (syntax-ppss
+                                                      (match-beginning 0))))))
+                            (string-to-syntax ". p"))))
       ;; Handle funny names like $DB'stop.
       ("\\$ ?{?^?[_[:alpha:]][_[:alnum:]]*\\('\\)[_[:alpha:]]" (1 "_"))
       ;; format statements
@@ -274,10 +270,7 @@
       ;; *opening* slash.  We can afford to mis-match the closing ones
       ;; here, because they will be re-treated separately later in
       ;; perl-font-lock-special-syntactic-constructs.
-      ((concat "\\(?:\\(?:^\\|[^$@&%[:word:]]\\)"
-               (regexp-opt '("split" "if" "unless" "until" "while" "split"
-                             "grep" "map" "not" "or" "and"))
-               "\\|[?:.,;=!~({[]\\|\\(^\\)\\)[ \t\n]*\\(/\\)")
+      ((concat perl--syntax-exp-intro-regexp "\\(/\\)")
        (2 (ignore
            (if (and (match-end 1)       ; / at BOL.
                     (save-excursion
@@ -312,10 +305,15 @@
                                   (string-to-syntax "\"")))
              (perl-syntax-propertize-special-constructs end)))))
       ;; Here documents.
-      ;; TODO: Handle <<WORD.  These are trickier because you need to
-      ;; disambiguate with the shift operator.
-      ("<<[ \t]*\\('[^'\n]*'\\|\"[^\"\n]*\"\\|\\\\[[:alpha:]][[:alnum:]]*\\).*\\(\n\\)"
-       (2 (let* ((st (get-text-property (match-beginning 2) 'syntax-table))
+      ((concat
+        "\\(?:"
+        ;; << "EOF", << 'EOF', or << \EOF
+        "<<[ \t]*\\('[^'\n]*'\\|\"[^\"\n]*\"\\|\\\\[[:alpha:]][[:alnum:]]*\\)"
+        ;; The <<EOF case which needs perl--syntax-exp-intro-regexp, to
+        ;; disambiguate with the left-bitshift operator.
+        "\\|" perl--syntax-exp-intro-regexp "<<\\(?1:\\sw+\\)\\)"
+        ".*\\(\n\\)")
+       (3 (let* ((st (get-text-property (match-beginning 3) 'syntax-table))
                  (name (match-string 1)))
             (goto-char (match-end 1))
             (if (save-excursion (nth 8 (syntax-ppss (match-beginning 0))))
@@ -325,7 +323,8 @@
                     ;; Remember the names of heredocs found on this line.
                     (cons (pcase (aref name 0)
                             (`?\\ (substring name 1))
-                            (_ (substring name 1 -1)))
+                            ((or `?\" `?\' `?\`) (substring name 1 -1))
+                            (_ name))
                           (cdr st)))))))
       ;; We don't call perl-syntax-propertize-special-constructs directly
       ;; from the << rule, because there might be other elements (between
@@ -854,11 +853,12 @@ changed by, or (parse-state) if line starts in a quoted string."
    (and (= (char-syntax (following-char)) ?\))
 	(save-excursion
 	  (forward-char 1)
-	  (forward-sexp -1)
-	  (perl-indent-new-calculate
-           ;; Recalculate the parsing-start, since we may have jumped
-           ;; dangerously close (typically in the case of nested functions).
-           'virtual nil (save-excursion (perl-beginning-of-function)))))
+          (when (condition-case nil (progn (forward-sexp -1) t)
+                  (scan-error nil))
+            (perl-indent-new-calculate
+             ;; Recalculate the parsing-start, since we may have jumped
+             ;; dangerously close (typically in the case of nested functions).
+             'virtual nil (save-excursion (perl-beginning-of-function))))))
    (and (and (= (following-char) ?{)
 	     (save-excursion (forward-char) (perl-hanging-paren-p)))
 	(+ (or default (perl-calculate-indent parse-start))
@@ -898,7 +898,9 @@ Optional argument PARSE-START should be the position of `beginning-of-defun'."
 	;;          following_quotep minimum_paren-depth_this_scan)
 	;; Parsing stops if depth in parentheses becomes equal to third arg.
 	(setq containing-sexp (nth 1 state)))
-      (cond ((nth 3 state) 'noindent)	; In a quoted string?
+      (cond
+       ;; Don't auto-indent in a quoted string or a here-document.
+       ((or (nth 3 state) (eq 2 (nth 7 state))) 'noindent)
 	    ((null containing-sexp)	; Line is at top level.
 	     (skip-chars-forward " \t\f")
 	     (if (memq (following-char)

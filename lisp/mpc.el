@@ -491,9 +491,13 @@ to call FUN for any change whatsoever.")
     (cancel-timer mpc--status-timer)
     (setq mpc--status-timer nil)))
 (defun mpc--status-timer-run ()
-  (with-demoted-errors "MPC: %s"
+  (with-demoted-errors "MPC: %S"
     (when (process-get (mpc-proc) 'ready)
-      (with-local-quit (mpc-status-refresh)))))
+      (let* ((buf (mpc-proc-buffer (mpc-proc) 'status))
+             (win (get-buffer-window buf t)))
+        (if (not win)
+            (mpc--status-timer-stop)
+          (with-local-quit (mpc-status-refresh)))))))
 
 (defvar mpc--status-idle-timer nil)
 (defun mpc--status-idle-timer-start ()
@@ -518,10 +522,8 @@ to call FUN for any change whatsoever.")
           ;; client starts playback, we may get a chance to notice it.
           (run-with-idle-timer 10 t 'mpc--status-idle-timer-run))))
 (defun mpc--status-idle-timer-run ()
-  (when (process-get (mpc-proc) 'ready)
-    (with-demoted-errors "MPC: %s"
-        (with-local-quit (mpc-status-refresh))))
-  (mpc--status-timer-start))
+  (mpc--status-timer-start)
+  (mpc--status-timer-run))
 
 (defun mpc--status-timers-refresh ()
   "Start/stop the timers according to whether a song is playing."
@@ -1022,7 +1024,12 @@ If PLAYLIST is t or nil or missing, use the main playlist."
                          (when (and (null val) (eq tag 'Title))
                            (setq val (cdr (assq 'file info))))
                          (push `(equal ',val (cdr (assq ',tag info))) pred)
-                         val)))))
+                         (cond
+                          ((not (and (eq tag 'Date) (stringp val))) val)
+                          ;; For "date", only keep the year!
+                          ((string-match "[0-9]\\{4\\}" val)
+                           (match-string 0 val))
+                          (t val)))))))
                (space (when size
                         (setq size (string-to-number size))
                         (propertize " " 'display
@@ -1809,9 +1816,14 @@ A value of t means the main playlist.")
                         (char-after (posn-point posn))))
                     '(?◁ ?<))
               (- mpc-volume-step) mpc-volume-step))
-         (newvol (+ (string-to-number (cdr (assq 'volume mpc-status))) diff)))
-    (mpc-proc-cmd (list "setvol" newvol) 'mpc-status-refresh)
-    (message "Set MPD volume to %s%%" newvol)))
+         (curvol (string-to-number (cdr (assq 'volume mpc-status))))
+         (newvol (max 0 (min 100 (+ curvol diff)))))
+    (if (= newvol curvol)
+        (progn
+          (message "MPD volume already at %s%%" newvol)
+          (ding))
+      (mpc-proc-cmd (list "setvol" newvol) 'mpc-status-refresh)
+      (message "Set MPD volume to %s%%" newvol))))
 
 (defun mpc-volume-widget (vol &optional size)
   (unless size (setq size 12.5))
@@ -1859,7 +1871,7 @@ This is used so that they can be compared with `eq', which is needed for
 `text-property-any'.")
 (defun mpc-songs-hashcons (name)
   (or (gethash name mpc-songs-hashcons) (puthash name name mpc-songs-hashcons)))
-(defcustom mpc-songs-format "%2{Disc--}%3{Track} %-5{Time} %25{Title} %20{Album} %20{Artist} %10{Date}"
+(defcustom mpc-songs-format "%2{Disc--}%3{Track} %-5{Time} %25{Title} %20{Album} %20{Artist} %5{Date}"
   "Format used to display each song in the list of songs."
   :type 'string)
 

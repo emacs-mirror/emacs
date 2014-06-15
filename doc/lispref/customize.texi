@@ -353,8 +353,9 @@ option when using the Customize interface.  The function
 @var{setfunction} should take two arguments, a symbol (the option
 name) and the new value, and should do whatever is necessary to update
 the value properly for this option (which may not mean simply setting
-the option as a Lisp variable).  The default for @var{setfunction} is
-@code{set-default}.
+the option as a Lisp variable); preferably, though, it should not
+modify its value argument destructively.  The default for
+@var{setfunction} is @code{set-default}.
 
 If you specify this keyword, the variable's documentation string
 should describe how to do the same job in hand-written Lisp code.
@@ -571,7 +572,7 @@ The value must be an integer.
 The value must be a number (floating point or integer).
 
 @item float
-The value must be a floating point number.
+The value must be floating point.
 
 @item string
 The value must be a string.  The customization buffer shows the string

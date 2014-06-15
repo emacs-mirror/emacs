@@ -226,7 +226,7 @@
             (should-not (buffer-modified-p))))
       (delete-file tempfile))))
 
-(ert-deftest undo-test-in-region-not-most-recent ()
+(ert-deftest undo-test-region-not-most-recent ()
   "Test undo in region of an edit not the most recent."
   (with-temp-buffer
     (buffer-enable-undo)
@@ -247,7 +247,78 @@
     (should (string= (buffer-string)
                      "11131"))))
 
-(ert-deftest undo-test-in-region-eob ()
+(ert-deftest undo-test-region-deletion ()
+  "Test undoing a deletion to demonstrate bug 17235."
+  (with-temp-buffer
+    (buffer-enable-undo)
+    (transient-mark-mode 1)
+    (insert "12345")
+    (search-backward "4")
+    (undo-boundary)
+    (delete-forward-char 1)
+    (search-backward "1")
+    (undo-boundary)
+    (insert "xxxx")
+    (undo-boundary)
+    (insert "yy")
+    (search-forward "35")
+    (undo-boundary)
+    ;; Select "35"
+    (push-mark (point) t t)
+    (setq mark-active t)
+    (forward-char -2)
+    (undo) ; Expect "4" to come back
+    (should (string= (buffer-string)
+                     "xxxxyy12345"))))
+
+(ert-deftest undo-test-region-example ()
+  "The same example test case described in comments for
+undo-make-selective-list."
+  ;; buf pos:
+  ;; 123456789 buffer-undo-list  undo-deltas
+  ;; --------- ----------------  -----------
+  ;; aaa       (1 . 4)           (1 . -3)
+  ;; aaba      (3 . 4)           N/A (in region)
+  ;; ccaaba    (1 . 3)           (1 . -2)
+  ;; ccaabaddd (7 . 10)          (7 . -3)
+  ;; ccaabdd   ("ad" . 6)        (6 . 2)
+  ;; ccaabaddd (6 . 8)           (6 . -2)
+  ;;  |   |<-- region: "caab", from 2 to 6
+  (with-temp-buffer
+    (buffer-enable-undo)
+    (transient-mark-mode 1)
+    (insert "aaa")
+    (goto-char 3)
+    (undo-boundary)
+    (insert "b")
+    (goto-char 1)
+    (undo-boundary)
+    (insert "cc")
+    (goto-char 7)
+    (undo-boundary)
+    (insert "ddd")
+    (search-backward "ad")
+    (undo-boundary)
+    (delete-forward-char 2)
+    (undo-boundary)
+    ;; Select "dd"
+    (push-mark (point) t t)
+    (setq mark-active t)
+    (goto-char (point-max))
+    (undo)
+    (undo-boundary)
+    (should (string= (buffer-string)
+                     "ccaabaddd"))
+    ;; Select "caab"
+    (push-mark 2 t t)
+    (setq mark-active t)
+    (goto-char 6)
+    (undo)
+    (undo-boundary)
+    (should (string= (buffer-string)
+                     "ccaaaddd"))))
+
+(ert-deftest undo-test-region-eob ()
   "Test undo in region of a deletion at EOB, demonstrating bug 16411."
   (with-temp-buffer
     (buffer-enable-undo)
@@ -267,6 +338,104 @@
     (undo)
     (should (string= (buffer-string)
                      "This sentence corrupted?aaa"))))
+
+(ert-deftest undo-test-marker-adjustment-nominal ()
+  "Test nominal behavior of marker adjustments."
+  (with-temp-buffer
+    (buffer-enable-undo)
+    (insert "abcdefg")
+    (undo-boundary)
+    (let ((m (make-marker)))
+      (set-marker m 2 (current-buffer))
+      (goto-char (point-min))
+      (delete-forward-char 3)
+      (undo-boundary)
+      (should (= (point-min) (marker-position m)))
+      (undo)
+      (undo-boundary)
+      (should (= 2 (marker-position m))))))
+
+(ert-deftest undo-test-region-t-marker ()
+  "Test undo in region containing marker with t insertion-type."
+  (with-temp-buffer
+    (buffer-enable-undo)
+    (transient-mark-mode 1)
+    (insert "abcdefg")
+    (undo-boundary)
+    (let ((m (make-marker)))
+      (set-marker-insertion-type m t)
+      (set-marker m (point-min) (current-buffer)) ; m at a
+      (goto-char (+ 2 (point-min)))
+      (push-mark (point) t t)
+      (setq mark-active t)
+      (goto-char (point-min))
+      (delete-forward-char 1) ;; delete region covering "ab"
+      (undo-boundary)
+      (should (= (point-min) (marker-position m)))
+      ;; Resurrect "ab". m's insertion type means the reinsertion
+      ;; moves it forward 2, and then the marker adjustment returns it
+      ;; to its rightful place.
+      (undo)
+      (undo-boundary)
+      (should (= (point-min) (marker-position m))))))
+
+(ert-deftest undo-test-marker-adjustment-moved ()
+  "Test marker adjustment behavior when the marker moves.
+Demonstrates bug 16818."
+  (with-temp-buffer
+    (buffer-enable-undo)
+    (insert "abcdefghijk")
+    (undo-boundary)
+    (let ((m (make-marker)))
+      (set-marker m 2 (current-buffer)) ; m at b
+      (goto-char (point-min))
+      (delete-forward-char 3) ; m at d
+      (undo-boundary)
+      (set-marker m 4) ; m at g
+      (undo)
+      (undo-boundary)
+      ;; m still at g, but shifted 3 because deletion undone
+      (should (= 7 (marker-position m))))))
+
+(ert-deftest undo-test-region-mark-adjustment ()
+  "Test that the mark's marker adjustment in undo history doesn't
+obstruct undo in region from finding the correct change group.
+Demonstrates bug 16818."
+  (with-temp-buffer
+    (buffer-enable-undo)
+    (transient-mark-mode 1)
+    (insert "First line\n")
+    (insert "Second line\n")
+    (undo-boundary)
+
+    (goto-char (point-min))
+    (insert "aaa")
+    (undo-boundary)
+
+    (undo)
+    (undo-boundary)
+
+    (goto-char (point-max))
+    (insert "bbb")
+    (undo-boundary)
+
+    (push-mark (point) t t)
+    (setq mark-active t)
+    (goto-char (- (point) 3))
+    (delete-forward-char 1)
+    (undo-boundary)
+
+    (insert "bbb")
+    (undo-boundary)
+
+    (goto-char (point-min))
+    (push-mark (point) t t)
+    (setq mark-active t)
+    (goto-char (+ (point) 3))
+    (undo)
+    (undo-boundary)
+
+    (should (string= (buffer-string) "aaaFirst line\nSecond line\nbbb"))))
 
 (defun undo-test-all (&optional interactive)
   "Run all tests for \\[undo]."

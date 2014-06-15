@@ -1,3 +1,1623 @@
+2014-06-10  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* dispextern.h (PREPARE_FACE_FOR_DISPLAY): Remove as a duplicate of ...
+	* xfaces.c (prepare_face_for_display) [HAVE_WINDOW_SYSTEM]: ... this
+	function.  Also adjust comment.
+	* fringe.c, w32term.c, xdisp.c, xterm.c: All users changed.
+
+	* dispextern.h (struct face) [HAVE_XFT]: Ifdef 'extra' member.
+	* font.c (font_done_for_face):
+	* xface.c (realize_non_ascii_face): Adjust user.
+	* font.h (struct font_driver): Convert 'prepare_face' to return
+	void because its return value is never used anyway.
+	* xfont.c (xfont_prepare_face): Return void.
+	* xftfont.c (xftfont_prepare_face): Likewise.  Use xmalloc.
+	(xftfont_done_face): Use xfree.
+
+	* dispextern.h (last_tool_bar_item): Remove declaration.
+	* frame.h (struct frame): New member last_tool_bar_item.
+	* frame.c (make_frame): Initialize it.
+	* xdisp.c (toplevel): Remove last_tool_bar_item.
+	(handle_tool_bar_click, note_tool_bar_highlight):
+	* w32term.c (w32_read_socket, w32_initialize):
+	* xterm.c (handle_one_xevent, x_initialize): Adjust users.
+
+	* frame.h (window_system_available) [!HAVE_WINDOW_SYSTEM]: Always false.
+	* frame.c (window_system_available) [HAVE_WINDOW_SYSTEM]: Now here.
+
+2014-06-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Say (accept-process-output P)'s result pertains to P if P is non-nil.
+	* process.c (Faccept_process_output)
+	(wait_reading_process_output): Mention that if PROCESS is non-nil,
+	the return value is about PROCESS, not about other processes.
+
+2014-06-09  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Further adjustments to mark_object and friends.
+	Now the mark_object's stack is just 32 bytes on a 64-bit
+	system, which means extra 20% off the stack usage.
+	* alloc.c (mark_save_value): As before, refactored out from ...
+	(mark_object): ... adjusted user.  Also add comment.
+
+2014-06-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix core dump after a dropped X connection (Bug#17704).
+	* sysdep.c (stuff_char): Don't abort merely because the selected frame
+	is dead, as we may be shutting down.
+
+2014-06-08  Glenn Morris  <rgm@gnu.org>
+
+	* fileio.c (write-region-inhibit-fsync): Doc tweak.
+
+	* data.c (Flss, Fgtr, Fleq, Fgeq): Doc tweaks.
+
+2014-06-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	If a C name must be extern on some platforms, make it extern on all.
+	* dispextern.h (set_vertical_scroll_bar, erase_phys_cursor)
+	(load_color):
+	* font.h (ftxfont_driver) [HAVE_XFT]:
+	* keyboard.h (menu_items_inuse, ignore_mouse_drag_p, make_ctrl_char):
+	* lisp.h (get_frame_param):
+	* menu.h (tty_menu_show):
+	* process.h (conv_sockaddr_to_lisp, catch_child_signal):
+	* termhooks.h (encode_terminal_code):
+	* xterm.h (x_menu_wait_for_event):
+	Always declare.
+	* frame.c (get_frame_param):
+	* fringe.c (max_used_fringe_bitmap):
+	* ftxfont.c (ftxfont_driver):
+	* keyboard.c (ignore_mouse_drag_p, make_ctrl_char):
+	* menu.c (menu_items_inuse):
+	* process.c (conv_sockaddr_to_lisp, catch_child_signal):
+	* term.c (encode_terminal_code, tty_menu_show):
+	* xdisp.c (set_vertical_scroll_bar, erase_phys_cursor):
+	* xfaces.c (load_color):
+	* xmenu.c (x_menu_wait_for_event):
+	Now always extern.
+
+2014-06-08  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Change object marking routines to minimize stack usage.
+	This change moves a few cold paths from mark_object to NO_INLINE
+	functions and adjusts symbol marking loop.  According to GCC 4.8.2
+	-Wstack-usage, this reduces mark_object's stack usage from 80 to
+	48 bytes on a 64-bit system.  For a long byte-force-recompile runs,
+	stack usage at the mark phase is reduced up to 28%.  Surprisingly,
+	it also gains up to 3% in speed (with default '-O2 -g3' flags).
+	* alloc.c (mark_compiled, mark_localized_symbol): New functions,
+	refactored out from ...
+	(mark_object): ... adjusted user.  Also mark symbols in a tight
+	inner loop.
+	(mark_face_cache): Add NO_INLINE.
+
+2014-06-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* sysdep.c (reset_sys_modes): Use cursorX, not curX, as the latter
+	contains garbage on WINDOWSNT (which could potentially infloop at
+	exit).
+
+	Minimize cursor motion during TTY menu updates.
+	* term.c (tty_menu_display): Don't position cursor here.
+	Instead, pass the cursor coordinates to update_frame_with_menu.
+	(tty_menu_activate): Send the hide cursor command only once in an
+	iteration through the outer 'while' loop.
+
+	* dispnew.c (update_frame_1): Accept an additional argument
+	SET_CURSOR_P, and position the cursor at the end of the frame
+	update only if that argument is non-zero.  All callers changed to
+	provide the additional argument as non-zero, except for
+	update_frame_with_menu.
+	(update_frame_with_menu): Accept 2 additional arguments ROW and
+	COL; if they are non-negative, instruct update_frame_1 not to
+	position the cursor, and instead position it according to ROW and COL.
+
+	* dispextern.h (update_frame_with_menu): Update prototype.
+
+2014-06-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* callproc.c (call_process): Don't check read-only if we don't insert
+	anything (bug#17666).
+
+2014-06-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* dispnew.c (update_frame_with_menu): Set display_completed.
+
+2014-06-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* term.c (tty_menu_show) [WINDOWSNT]: Make tty_menu_show extern
+	only for WINDOWSNT.
+	* menu.h (tty_menu_show) [WINDOWSNT]: Declare extern only for WINDOWSNT.
+
+2014-06-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* term.c (tty_menu_show) [!HAVE_NTGUI]: Now static.
+	* menu.h (tty_menu_show) [!HAVE_NTGUI]: Omit extern decl.
+
+2014-06-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.c (Frecenter): Signal an error if window-buffer is not
+	current-buffer.
+
+	* keyboard.c (make_lispy_position): Don't include a buffer position in
+	mode/header-line mouse events.
+
+	* keyboard.c (read_char): Handle (t . <event>) in the second use of
+	Vunread_command_events (bug#17650).
+
+2014-06-06  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xterm.c (x_setup_pointer_blanking):
+	Conditionally probe Xfixes until this stuff is stabilized (Bug#17609).
+
+2014-06-05  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* keyboard.c, process.c: Do not define POLL_FOR_INPUT here
+	because it will be defined in generated config.h if needed.
+
+2014-06-04  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Use terminal-specific hooks to display popup dialogs.
+	* termhooks.h (struct terminal): New field popup_dialog_hook.
+	* menu.c (emulate_dialog_with_menu): New function, refactored from ...
+	(Fx_popup_dialog): ... adjusted user.  Also remove old #if 0
+	code and use popup_dialog_hook.
+	* nsmenu.m (ns_popup_dialog): Make hook-compatible.
+	* nsterm.h (ns_popup_dialog): Adjust prototype.
+	* nsterm.m (ns_create_terminal):
+	* w32term.c (w32_create_terminal):
+	* xterm.c (x_create_terminal) [USE_X_TOOLKIT || USE_GTK]:
+	Setup popup_dialog_hook.
+
+2014-06-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32heap.c (report_temacs_memory_usage): Improve the report by
+	reporting the large blocks that are actually occupied at dump time.
+
+	* w32console.c (initialize_w32_display): Set the console
+	menu_show_hook, otherwise TTY menus are broken on w32.
+
+2014-06-04  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Use terminal-specific hooks to display menus.
+	* termhooks.h (struct terminal): New field menu_show_hook.
+	* menu.h (<anonymous enum>): Bit flags for menu hooks.
+	(x_menu_show, w32_menu_show, ns_menu_show, tty_menu_show):
+	Adjust prototypes.
+	* menu.c (Fx_popup_menu): Use bit flags and menu_show_hook.
+	* nsmenu.m (ns_menu_show):
+	* w32menu.c (w32_menu_show):
+	* xmenu.c (x_menu_show):
+	* term.c (tty_menu_show): Adjust to use bit flags.
+	(set_tty_hooks): Set menu_show_hook.
+	* xterm.c (x_create_terminal):
+	* nsterm.m (ns_create_terminal):
+	* msdos.c (initialize_msdos_display):
+	* w32term.c (w32_create_terminal): Likewise.
+
+2014-06-03  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32heap.c (DUMPED_HEAP_SIZE) [!_WIN64]: Reduce to 11 MB.
+
+2014-06-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* sysselect.h (fd_CLR, fd_ISSET, fd_SET, FD_CLR, FD_ISSET)
+	(FD_SET): Don't define on WINDOWSNT.
+
+2014-06-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* emacs.c: Include "sysselect.h", to define its inline functions.
+	Problem reported by Glenn Morris in:
+	http://lists.gnu.org/archive/html/emacs-devel/2014-06/msg00077.html
+
+	Do not require libXt-devel when building with gtk.
+	* gtkutil.h, menu.h: Include lwlib-widget.h, not lwlib-h, to avoid
+	dependency on libXt-devel.
+	* menu.h [HAVE_NTGUI]: Include lwlib-widget.h in this case too.
+	(enum button_type, widget_value) [HAVE_NTGUI]: Remove, as
+	lwlib-widget.h now does this.
+	* nsmenu.m (ns_menu_show): "enabled" -> "enable" to fix typo.
+
+2014-06-03  Paul Eggert  <eggert@penguin.cs.ucla.edu>
+
+	If ENABLE_CHECKING, range-check args of FD_CLR, FD_ISSET, FD_SET.
+	* process.c (add_read_fd, delete_read_fd, add_write_fd)
+	(delete_write_fd, wait_reading_process_output):
+	Remove now-redundant easserts.
+	* sysselect.h (SYSSELECT_H): New macro, to avoid double-inclusion woes.
+	Use INLINE_HEADER_BEGIN, INLINE_HEADER_END.
+	(fd_CLR, fd_ISSET, fd_SET): New inline functions.
+	(FD_CLR, FD_ISSET, FD_SET): Redefine in terms of these functions.
+
+2014-06-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32heap.c (DUMPED_HEAP_SIZE): Move from w32heap.h.  Don't use
+	HEAPSIZE; instead, define separate values for the 32- and 64-bit builds.
+	(calloc): Don't undef, it is never defined.
+	(HEAP_ENTRY_SHIFT): Remove unused macro.
+
+	* Makefile.in (C_HEAP_SWITCH): Remove.
+	(ALL_CFLAGS): Don't use $(C_HEAP_SWITCH).
+
+	Fix MS-Windows build broken by menu changes on 2014-06-02.
+	* w32menu.c (w32_menu_show): Fix a typo that broke compilation.
+
+	* menu.h (enum button_type, struct _widget_value) [HAVE_NTGUI]:
+	Define instead of including ../lwlib/lwlib.h, which causes
+	compilation errors due to missing X11 headers.
+
+2014-06-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* process.c (wait_reading_process_output): Omit incorrect test of
+	p->infd against zero.  Add easserts for infd having a plausible value.
+
+2014-06-02  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Adjust to match recent lwlib changes.
+	* menu.h (xmalloc_widget_value): Replace by ...
+	(make_widget_value): ... new prototype.
+	* menu.c (xmalloc_widget_value): Replace by ...
+	(make_widget_value): ... new function.
+	(free_menubar_widget_value_tree, digest_single_submenu): Adjust users.
+	* gtkutil.c (malloc_widget_value, free_widget_value):
+	(widget_value_free_list, malloc_cpt): Remove old lwlib-compatible code.
+	* keyboard.h (enum button_type, struct _widget_value):
+	* gtkutil.h, nsgui.h, w32gui.h (malloc_widget_value, free_widget_value):
+	Likewise.
+	* nsmenu.m (ns_update_menubar, ns_menu_show):
+	* w32menu.c (set_frame_menubar, w32_menu_show, w32_dialog_show):
+	* xmenu.c (set_frame_menubar, xmenu_show, x_dialog_show): Adjust users.
+	* xterm.h (XtParent) [USE_GTK]: Remove unused macro.
+
+2014-06-02  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* image.c (x_query_frame_background_color)
+	[HAVE_PNG || HAVE_NS || HAVE_IMAGEMAGICK || HAVE_RSVG]:
+	Fix --enable-gcc-warnings compilation without image libraries.
+
+2014-06-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32heap.c (malloc_after_dump, realloc_after_dump): Update the
+	emulated break value only if it goes up.
+	(sbrk): Add assertion that the INCREMENT argument is strictly
+	zero.  Improve and correct the commentary.
+
+2014-06-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Improve AIX-related merge from emacs-24.
+	* conf_post.h (FLEXIBLE_ARRAY_MEMBER): Fix comment.
+	* lisp.h (ENUMABLE) [!_AIX]: Don't define to 0 merely because we're
+	not on AIX; since we're on the trunk we can use enums more broadly.
+
+	* frame.c (x_set_frame_parameters): Don't read uninitialized storage.
+
+2014-06-02  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.c (xg_scroll_callback): Remove position, for jump set portion
+	to min(value, whole).
+
+2014-06-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Bring back the changes to GDB-visible symbols, but only on AIX.
+	And only if it's not pre-4.2 GCC.
+	* lisp.h (ENUMABLE, DEFINE_GDB_SYMBOL_ENUM): New macros.
+	(ARRAY_MARK_FLAG, PSEUDOVECTOR_FLAG, VALMASK): Use them.
+	(ARRAY_MARK_FLAG_val, PSEUDOVECTOR_FLAG_val, VALMASK_val):
+	New macros.
+
+2014-06-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* fileio.c (Finsert_file_contents): Call prepare_to_modify_buffer
+	with PT, not GPT.  (Bug#16433)
+
+	Revert last changes to GDB-visible symbols.
+	* lisp.h (ENUMABLE, DEFINE_GDB_SYMBOL_ENUM): Delete macros.
+	(ARRAY_MARK_FLAG, PSEUDOVECTOR_FLAG, VALMASK): Don't use them.
+	(ARRAY_MARK_FLAG_val, PSEUDOVECTOR_FLAG_val, VALMASK_val):
+	Delete macros.
+
+2014-06-02  Glenn Morris  <rgm@gnu.org>
+
+	* cmds.c (Fself_insert_command): Allow zero repeat count.  (Bug#17649)
+
+2014-06-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix port to 32-bit AIX with xlc (Bug#17598).
+	* alloc.c (gdb_make_enums_visible): Remove FLOAT_TO_STRING_BUFSIZE.
+	* conf_post.h (FLEXIBLE_ARRAY_MEMBER) [__IBMC__]: Don't define to empty.
+	* lisp.h (FLOAT_TO_STRING_BUFSIZE): Make it a macro, instead of an enum,
+	to work around a compiler bug in IBM xlc 12.1.
+
+2014-06-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* xterm.c (x_update_window_end): Don't invalidate the entire
+	mouse-highlight info, just signal frame_up_to_date_hook that mouse
+	highlight needs to be redisplayed.  (Bug#17588)
+
+2014-06-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port the GDB-visible symbols to AIX.
+	Without them, GDB doesn't work to debug Emacs, since the AIX linker
+	optimizes away the relevant external symbols.  Use enums instead;
+	this suffices for the AIX port, which is 32-bit-only anyway.
+	* lisp.h (ENUMABLE, DEFINE_GDB_SYMBOL_ENUM): New macros.
+	(ARRAY_MARK_FLAG, PSEUDOVECTOR_FLAG, VALMASK): Use them.
+	(ARRAY_MARK_FLAG_val, PSEUDOVECTOR_FLAG_val, VALMASK_val):
+	New macros.
+
+	Include sources used to create macuvs.h.
+	* Makefile.in ($(srcdir)/macuvs.h): New rule.
+	* macuvs.h: Use automatically-generated header.
+
+2014-06-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port signal-handling to DragonFly BSD (Bug#17646).
+	* callproc.c, sysdep.c (block_child_signal, unblock_child_signal):
+	Move implementations from callproc.c to sysdep.c.
+	* process.h, syssignal.h (block_child_signal, unblock_child_signal):
+	Move declarations from process.h to syssignal.h.
+
+2014-06-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* callint.c (Ffuncall_interactively): Add usage.
+
+2014-06-01  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsfns.m (ns_appkit_version_str): Add os version for Cocoa.
+
+2014-05-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32heap.c (malloc_before_dump, malloc_after_dump)
+	(malloc_before_dump, realloc_after_dump, realloc_before_dump)
+	(mmap_alloc, mmap_realloc): Check for errors more thoroughly and
+	set errno where appropriate to emulate CRT functions.
+
+2014-05-30  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Debugging facility to check whether 'const char *' points to
+	relocatable data of non-pure Lisp string.
+	* alloc.c (maybe_lisp_pointer): New function, refactored out of ...
+	(mark_maybe_pointer): ... adjusted user.
+	(relocatable_string_data_p): New function.
+	* lisp.h (relocatable_string_data_p): Add prototype.
+	* xdisp.c (message_with_string): If ENABLE_CHECKING, make sure
+	the pointer to relocatable Lisp data is not used.
+
+2014-05-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Don't let SIGINT handling block SIGCHLD indefinitely (Bug#17561).
+	* atimer.c (block_atimers):
+	* callproc.c (block_child_signal): Block SIGINT too;
+	otherwise, its handler might now unblock signals that it shouldn't.
+	* keyboard.c (read_char): Clear signal mask, since we may
+	be in a SIGINT handler, and many signals may be masked.
+	* keyboard.c (handle_interrupt):
+	* sysdep.c (handle_arith_signal):
+	Clear signal mask instead of just unblocking the signal that
+	was received, since several signals may be blocked at this point.
+
+2014-05-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (TEMACS_POST_LINK): Remove target.
+	(emacs$(EXEEXT)): Remove $(ADDSECTION) from prerequisites.
+	(temacs$(EXEEXT)): Remove $(TEMACS_POST_LINK) from the recipe.
+
+2014-05-29  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xmenu.c (xdialog_show): Remove prototype, rename to
+	x_dialog_show, remove 2nd arg because it's always zero
+	and simplify accordingly.
+	(xw_popup_dialog): Adjust user.
+	* w32menu.c (w32_dialog_show): Adjust prototype, remove
+	2nd arg because it's always zero and simplify accordingly.
+	(w32_popup_dialog): Adjust user.
+
+2014-05-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32heap.c (report_temacs_memory_usage): New function.
+
+	* unexw32.c (unexec) [ENABLE_CHECKING]:
+	Call report_temacs_memory_usage.
+
+	* w32heap.h (report_temacs_memory_usage): Add prototype.
+
+2014-05-29  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Don't substitute sigprocmask for pthread_sigmask (Bug#17561).
+	* Makefile.in (LIB_PTHREAD_SIGMASK): Remove; all uses removed.
+
+2014-05-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* buffer.c (init_buffer): Accept an argument 'initialized'.
+	[USE_MMAP_FOR_BUFFERS]: If 'initialized' is non-zero, reset
+	mmap_regions and mmap_fd, to avoid referencing stale data from the
+	dump phase.  Add an assertion for buffer text of buffers created
+	in temacs before this function is called.  (Bug#17622)
+	(mmap_regions_1, mmap_fd_1): Remove unused variables.
+
+	* lisp.h (init_buffer): Update prototype.
+
+	* emacs.c (main): Pass 'initialized' as the argument to init_buffer.
+
+2014-05-29  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* alloc.c (Fgarbage_collect): Fix compilation with
+	GC_MARK_STACK == GC_USE_GCPROS_AS_BEFORE.
+
+2014-05-29  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* frame.c, frame.h (frame_char_to_pixel_position)
+	(frame_set_mouse_position): Now static, and made private in
+	frame.c rather than public in frame.h.
+
+2014-05-28  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Refactor mouse positioning stuff to avoid code duplication.
+	* frame.h (frame_char_to_pixel_position): New function.
+	(x_set_mouse_position): Rename to...
+	(frame_set_mouse_position): ...new function.
+	(frame_set_mouse_pixel_position): Add prototype.
+	* nsterm.m, w32term.c, xterm.c (x_set_mouse_pixel_position):
+	Rename to frame_set_mouse_pixel_position.
+	* frame.c (Fset_mouse_pixel_position, Fset_mouse_position):
+	Adjust users.
+	* xterm.h, w32term.h ( x_set_mouse_position)
+	(x_set_mouse_pixel_position): Remove prototypes.
+
+2014-05-28  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	On X, always make pointer visible when deleting frame (Bug#17609).
+	* frame.c (frame_make_pointer_visible, frame_make_pointer_invisible):
+	Pass frame as arg.
+	* frame.h (frame_make_pointer_visible, frame_make_pointer_invisible):
+	Adjust prototypes.
+	* cmds.c (Fself_insert_command): Use SELECTED_FRAME.
+	* keyboard.c (gobble_input): If there is no terminal input error,
+	make sure the pointer is visible for all frames on this terminal.
+	* xterm.c (x_free_frame_resources): Enable pointer visibility if
+	it was previously disabled.
+
+2014-05-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* data.c (Fzerop): Move to Elisp.
+	(syms_of_data): Don't defsubr it.
+	* keyboard.c (echo_keystrokes_p): New function.
+	(read_char, record_menu_key, read_key_sequence): Use it.
+
+	* callint.c (Qfuncall_interactively): New var.
+	(Qcall_interactively): Remove.
+	(Ffuncall_interactively): New function.
+	(Fcall_interactively): Use it.
+	(syms_of_callint): Defsubr it.
+
+2014-05-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* bytecode.c (FETCH) [BYTE_CODE_SAFE]: Check the bytecode wasn't
+	relocated from under us.
+
+2014-05-27  Fabrice Popineau  <fabrice.popineau@gmail.com>
+
+	Use mmap(2) emulation for allocating buffer text on MS-Windows.
+	* Makefile.in (C_HEAP_SWITCH): Get the predefined heap size from
+	configure.
+	(ADDSECTION, MINGW_TEMACS_POST_LINK): Remove, no longer used.
+
+	* lisp.h (NONPOINTER_BITS): Modify the condition to define to zero
+	for MinGW, since it no longer uses gmalloc.
+
+	* buffer.c: Do not define mmap allocations functions for Windows.
+	Remove mmap_find which is unused. Remove mmap_set_vars which does
+	nothing useful.
+	[WINDOWSNT]: Include w32heap.h.
+	(init_buffer): Always allocate new memory for buffers.
+
+	* emacs.c: Remove mmap_set_vars calls.
+
+	* image.c (free_image): Undef free for Windows because it is
+	redirected to our private version.
+
+	* unexw32.c (COPY_PROC_CHUNK): Use %p format for 64bits compatibility.
+	(copy_executable_and_dump_data): Remove dumping the heap section.
+	(unexec): Restore using_dynamic_heap after dumping.
+
+	* w32heap.c (dumped_data_commit, malloc_after_dump)
+	(malloc_before_dump, realloc_after_dump, realloc_before_dump)
+	(free_after_dump, free_before_dump, mmap_alloc, mmap_realloc)
+	(mmap_free): New functions.
+
+	* w32heap.h: Declare dumped_data and mmap_* function prototypes.
+
+2014-05-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* image.c (imagemagick_load_image): Use MagickRealType for local
+	'color_scale', instead of double, to avoid a GCC warning about
+	double promotion.
+
+	* xfns.c (Fx_window_property): Remove unused local.
+
+	Don't kill already-reaped process (Bug#17561).
+	* process.c (process_send_signal): Fix race condition where a
+	subprocess was reaped by a signal handler between the check for
+	liveness and calling 'kill', which meant that Emacs could in
+	theory kill an innocent bystander process.  Do the fix by blocking
+	SIGCHLD in a critical section that checks liveness before killing.
+
+2014-05-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (_ANONYMOUS_UNION, _ANONYMOUS_STRUCT): Define only if undefined.
+
+2014-05-26  Ken Brown  <kbrown@cornell.edu>
+
+	* w32term.c (x_delete_display): Don't free dpyinfo->w32_id_name,
+	even if !CYGWIN (see bug#17510).
+
+2014-05-26  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsfns.m (Fns_do_applescript): Surround NSApp run
+	with calls to ns_init_events, ns_finish_events (Bug#17424).
+
+	* nsterm.h (ns_init_events, ns_finish_events): Declare.
+
+	* nsterm.m (ns_init_events, ns_finish_events): New functions.
+	(ns_read_socket, ns_select): Call ns_init_events, ns_finish_events.
+
+	* nsfns.m (ns_do_applescript): Surround executeAndReturnError
+	with calls to ns_init_events, ns_finish_events (Bug#17424).
+
+2014-05-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (move_it_in_display_line_to): Don't record wrap position
+	if we are iterating over an object that generates glyphs for
+	marginal areas.  (Bug#17585)
+
+2014-05-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* xdisp.c (safe__call1, safe__eval): Now static.
+
+2014-05-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (safe__call): Accept va_list argument instead of '...'.
+	(safe_call, safe__call1): Construct a va_list argument for safe_call.
+	(safe_call1): Call safe_call instead of safe__call directly.
+
+2014-05-26  Ken Brown  <kbrown@cornell.edu>
+
+	* w32term.c (x_delete_display) [CYGWIN]: Don't free
+	dpyinfo->w32_id_name, to make sure it doesn't get freed more than
+	once.  (Bug#17510)
+
+2014-05-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xdisp.c: Bind inhibit-quit during pre-redisplay-function.
+	(safe__call, safe__call1, safe__eval): New functions.
+	(safe_call): Use it.
+	(prepare_menu_bars): Use it for pre-redisplay-function (bug#17577).
+	(display_mode_element): Same for `:eval'.
+
+2014-05-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix port to 32-bit AIX (Bug#17540).
+	* unexaix.c (copy_text_and_data): Don't add text_scnptr to ptr
+	twice.  _text already includes this offset.
+	(unrelocate_symbols): Don't cast 64-bit integer to pointer.
+
+2014-05-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (move_it_in_display_line_to): Avoid infinite recursion:
+	when closest_pos is identical to to_charpos, don't recurse, since
+	we already tried that, and failed.  (Bug#17539)
+
+	* w32fns.c (unwind_create_frame) [GLYPH_DEBUG]: If we are
+	unwinding when frame's faces were not initialized yet, increment
+	the frame's image-cache reference count before calling
+	x_free_frame_resources.  Don't dereference
+	dpyinfo->terminal->image_cache if it is NULL.  (Bug#17524)
+
+2014-05-25  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsfont.m (nsfont_draw): Simplify as arguments are adjusted in
+	nsterm.m now.
+
+	* nsterm.m (ns_draw_glyph_string): Move isComposite and end from
+	macfont.m, call draw with adjusted arguments so font drivers
+	don't need to do that.
+
+	* macfont.m (macfont_draw): Merge changes from Macport.
+
+2014-05-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* alloc.c (garbage_collect_1): New function, with all of the guts
+	of Fgarbage_collect.
+	(mark_stack): Accept an argument END and don't mark Lisp objects
+	on the stack beyond the address given by END.  Calculation of END
+	was moved to Fgarbage_collect.
+	(Fgarbage_collect): Calculate the end address of the stack portion
+	that needs to be examined by mark_stack, and pass that address to
+	garbage_collect_1, which will pass it to mark_stack.  See
+	http://lists.gnu.org/archive/html/emacs-devel/2014-05/msg00270.html
+	for more details about the underlying problems.  In particular,
+	this avoids dumping Emacs with the large hash-table whose value is
+	held in purify-flag for most of the time loadup.el runs.
+
+2014-05-24  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xfns.c (x_window_property_intern): New function (code from
+	x_window_property).
+	(Fx_window_property): Call x_window_property_intern.  If property
+	not found and NILP (source) and outer window != inner window,
+	check outer window for property (Bug#17537).
+
+2014-05-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Supply malloc and alloc_size attributes for extern allocators.
+	This documents the C API, and helps GCC generate a bit better code.
+	* conf_post.h (ATTRIBUTE_MALLOC, ATTRIBUTE_ALLOC_SIZE)
+	(ATTRIBUTE_MALLOC_SIZE): New macros.
+	* gmalloc.c (malloc, realloc, calloc):
+	* gtkutil.h (malloc_widget_value):
+	* lisp.h (ralloc, r_re_alloc, xmalloc, xzalloc, xrealloc, xnmalloc)
+	(xnrealloc, xstrdup, xlispstrdup, record_xmalloc):
+	Use them.
+
+2014-05-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Don't assume that ImageMagick uses a 16-bit quantum (Bug#17519).
+	* image.c (imagemagick_load_image): Port to hosts that do not use
+	a 16-bit quantum, i.e., QuantumRange does not equal 65535.
+
+2014-05-21  Leo Liu  <sdl.web@gmail.com>
+
+	* fns.c (Fnreverse): Accept strings for SEQ and update doc-string.
+
+2014-05-20  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (xd_signature): Revert last 2 patches.
+
+2014-05-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Allow any non-nil value to count as true in bool-vector.
+	Likewise for xd_signature in dbusbind.c.
+	This is more consistent with the usual practice in Emacs, which is
+	that any non-nil value counts as true.
+	* alloc.c (Fbool_vector): Don't require args to be t or nil.
+	* dbusbind.c (xd_signature): Likewise, for booleans.
+	* data.c, lisp.h (Qbooleanp):
+	* lisp.h (CHECK_BOOLEAN): Remove.  All uses removed.
+
+2014-05-19  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* lisp.h (CHECK_BOOLEAN): New function.
+	* alloc.c (Fbool_vector): New function.
+	(syms_of_alloc): Defsubr it.
+	* data.c (Qbooleanp): New symbol.
+	(syms_of_data): DEFSYM it.
+	* dbusbind.c (xd_signature): Use CHECK_BOOLEAN.
+
+	* font.c (font_matching_entity): Extract font-entity object
+	from the vector of matching entities (Bug#17486).
+
+2014-05-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume C99 or later (Bug#17487).
+	* bytecode.c (B__dummy__): Remove.
+	* conf_post.h (bool_bf) [!NS_IMPL_GNUSTEP]: Use bool.
+	(FLEXIBLE_ARRAY_MEMBER): Now always empty.
+	* dbusbind.c (XD_DEBUG_MESSAGE) [!DBUS_DEBUG]:
+	* regex.c (DEBUG_PRINT): Assume varargs macros.
+	* lisp.h (DEFUN_FUNCTION_INIT): Remove.  All uses now assume C99.
+
+2014-05-17  Fabrice Popineau  <fabrice.popineau@gmail.com>
+
+	* buffer.c (init_buffer) [USE_MMAP_FOR_BUFFERS]: Always map new
+	memory for every buffer that was dumped.
+
+2014-05-15  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* fns.c (Freverse): Allow vectors, bool vectors and strings.
+	(Fnreverse): Allow vectors and bool vectors.
+
+2014-05-14  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Minor cleanup for terminal setup.
+	* termhooks.h (create_terminal): Adjust prototype.
+	* terminal.c (create_terminal): Pass output method and RIF as args.
+	(init_initial_terminal):
+	* nsterm.m (ns_create_terminal):
+	* term.c (init_tty):
+	* w32term.c (w32_create_terminal):
+	* xterm.c (x_create_terminal): Adjust users.
+	Avoid redundant NULL initializers and add comments.
+
+2014-05-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* keyboard.c (Qdeactivate_mark): Now static.
+
+2014-05-13  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	If available, use Xfixes extension to do pointer blanking.
+	* Makefile.in (XFIXES_CFLAGS, XFIXES_LIBS): New var.
+	* xfns.c (x_set_mouse_color): Do not call make_invisible_cursor here.
+	(make_invisible_cursor): Move to...
+	* xterm.c (make_invisible_cursor): ...here.
+	(x_probe_xfixes_extension, xfixes_toggle_visible_pointer)
+	(x_toggle_visible_pointer, x_setup_pointer_blanking): New functions.
+	(x_term_init): Call to x_setup_pointer_blanking.
+	(XTtoggle_invisible_pointer): Use blanking specific to this display.
+	* xterm.h (struct x_display_info): New member toggle_visible_pointer.
+
+2014-05-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* xdisp.c (draw_glyphs): Set clipping to highlight boundaries.
+
+2014-05-12  Glenn Morris  <rgm@gnu.org>
+
+	* fileio.c (Ffile_executable_p): Doc tweak.
+
+2014-05-12  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xsettings.c (init_gsettings): Use g_settings_schema_source_lookup
+	instead of deprecated g_settings_list_schemas if possible (Bug#17434).
+
+2014-05-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* minibuf.c (read_minibuf): Avoid C99ism in previous patch (Bug#17430).
+
+2014-05-08  Jarek Czekalski  <jarekczek@poczta.onet.pl>
+
+	Fix initialization of minibuffer history variable (Bug#17430).
+	* minibuf.c (read_minibuf): Initialize histval to Qnil if unbound.
+	Move the initialization up to prevent any "value void" message.
+
+2014-05-08  Samuel Bronson  <naesten@gmail.com>
+
+	* keyboard.c (Frecursive_edit): Ensure inc&dec of command_loop_level
+	are matched (bug#17413).
+
+2014-05-08  Jarek Czekalski  <jarekczek@poczta.onet.pl>
+
+	Stop tooltips pulling Emacs window to front (Bug#17408).
+	* w32fns.c (Fx_show_tip): Add SWP_NOOWNERZORDER flag to
+	SetWindowPos invocations.
+
+2014-05-08  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsselect.m (Fx_selection_exists_p): Just return Qnil if window system
+	not initialized (Bug#17398).
+
+2014-05-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* image.c: Include <png.h> before <setjmp.h> (Bug#17429).
+
+2014-05-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* image.c: Do not use libpng if HAVE_NS, as NS does its own thing.
+	[HAVE_NS]: Do not include png.h.
+	(x_query_frame_background_color): New function.
+	(png_load_body, imagemagick_load_image, svg_load_image): Use it.
+	(png_load_body): Coalesce duplicate code.
+
+2014-05-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Consult libpng-config more consistently (Bug#17339).
+	* Makefile.in (PNG_CFLAGS): New var.
+	(ALL_CFLAGS): Use it.
+	* image.c [HAVE_PNG]: Don't worry about <libpng/png.h>, as
+	CFLAGS now handles this.
+
+2014-05-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Handle systems without WCONTINUED consistently.  (Bug#15110, 17339)
+	* process.c (handle_child_signal): Remove WCONTINUED ifdef,
+	because WCONTINUED is always defined now.
+	* syswait.h (WCONTINUED): Move here from ../lib-src/emacsclient.c.
+
+2014-05-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* buffer.c (overlay_strings): Fix the wording of the commentary.
+
+2014-05-01  Glenn Morris  <rgm@gnu.org>
+
+	* floatfns.c (Fisnan):
+	* profiler.c (Fprofiler_cpu_running_p): Doc fix (replace `iff').
+
+2014-05-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* term.c (tty_menu_activate): A better initialization for cursor
+	coordinates.
+
+2014-05-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* intervals.c: Tighten assertions.
+	(create_root_interval): Make sure the interval is not empty.
+	(intervals_equal): Use booleans.
+	(rotate_right, rotate_left): Check LENGTHs rather than TOTAL_LENGTH.
+	(balance_an_interval): Sanity check LENGTHs and TOTAL_LENGTHs.
+	(balance_possible_root_interval): Simplify and use booleans.
+	(split_interval_right, split_interval_left): Check LENGTH, and remove
+	now redundant assertion.
+	(adjust_intervals_for_insertion): Remove now redundant assertions.
+	(delete_node, interval_deletion_adjustment)
+	(adjust_intervals_for_deletion, merge_interval_right)
+	(merge_interval_left): Check LENGTH rather than TOTAL_LENGTH.
+	(reproduce_interval): Make sure the interval is not empty.
+
+2014-04-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* term.c (tty_menu_activate): Don't assume row and col are initialized.
+	GCC 4.9.0 warned about this, and I couldn't easily prove to my own
+	satisfaction that they would always be initialized.
+
+2014-04-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* term.c (tty_menu_display): Move the cursor to the active menu item.
+	(tty_menu_activate): Return the cursor to the active menu item
+	after displaying the menu and after displaying help-echo.
+	See http://lists.gnu.org/archive/html/emacs-devel/2014-04/msg00402.html
+	for the details of why this is needed by screen readers and
+	Braille displays.
+
+2014-04-30  Glenn Morris  <rgm@gnu.org>
+
+	* process.c (handle_child_signal):
+	Handle systems without WCONTINUED.  (Bug#15110, 17339)
+
+2014-04-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.c (struct saved_window): Remove mark.
+	(Fset_window_configuration, save_window_save)
+	(compare_window_configurations): Don't touch marks any more.
+
+2014-04-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use bits_word for gcmarkbits.
+	* alloc.c (struct cons_block, struct float_block): On 64-bit hosts,
+	bits_word is typically a tad more efficient for mark bits than
+	unsigned is, so use bits_word.  All uses changed.
+	* lisp.h (BITS_PER_INT): Remove; no longer used.
+
+	Avoid undefined behavior in signed left shift.
+	This ports to GCC 4.9.0 with -fsanitize=undefined.
+	* alloc.c (bool_vector_fill, SETMARKBIT, UNSETMARKBIT):
+	* data.c (Fash):
+	* regex.c (extract_number):
+	* lisp.h (make_number, XINT):
+	Do not shift a 1 bit left into a sign bit.
+	* alloc.c (struct cons_block, struct float_block): Use unsigned,
+	not int, for gcmarkbits.  All uses changed.
+
+2014-04-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* search.c (Fnewline_cache_check): Don't try to count newlines
+	outside the buffer's restriction, as find_newline doesn't support that.
+
+2014-04-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.c (Fset_window_configuration): Deactivate the mark before
+	unsetting the mark.
+	(set_window_buffer): Ignore window_initialized.
+	(window_initialized): Remove.
+	* keyboard.c (Qdeactivate_mark): Not static any more.
+	* buffer.c (buffer_local_value): Rename from buffer_local_value_1.
+	Update all callers.
+
+2014-04-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* conf_post.h (ADDRESS_SANITIZER_WORKAROUND): Port to GCC 4.9.0
+	and to clang 3.4, which have fixed the bug.  This should let us
+	run a bit faster on these platforms when address sanitization is
+	in effect.
+
+2014-04-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port to GCC 4.9.0 with --enable-gcc-warnings.
+	* image.c (struct my_jpeg_error_mgr) [lint]: Remove member fp.
+	All uses removed.
+	(jpeg_load_body) [lint]: Add a 'volatile' to pacify a buggy GCC in
+	a way that also works with GCC 4.9.0.
+
+	* search.c (Fnewline_cache_check): Remove unused locals.
+
+2014-04-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* search.c (find_newline1): New subroutine.
+	(Fnewline_cache_check): New function.
+	(syms_of_search): Defsubr it.
+
+2014-04-22  Jarek Czekalski  <jarekczek@poczta.onet.pl>
+
+	Fix freezing with scroll bars of GTK3 Toolkit (bug#15801).
+	* keyboard.c (unblock_input): Add comment.
+	* xgselect.c (xg_select): Prevent Glib main loop recursion.
+
+2014-04-22  Daniel Colascione  <dancol@dancol.org>
+
+	* lread.c (readevalloop_eager_expand_eval): New function
+	that can recurse into toplevel forms.
+	(readevalloop): Call it.
+	* lisp.h: Declare Qprogn.
+	* callint.c (Qprogn): No longer static.
+
+2014-04-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* intervals.c (rotate_right, rotate_left): Fix up length computation.
+	Also change identifiers to match the comments, and add more assertions
+	(bug#16234).
+
+2014-04-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* emacs.c (close_output_streams): Don't clear and restore errno.
+
+2014-04-18  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.c (x_make_frame_visible): Prevent endless loop when frame
+	never becomes visible, i.e. using XMonad  (Bug#17237).
+
+2014-04-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (insert_left_trunc_glyphs): Ensure the left truncation
+	glyph is written to TEXT_AREA of the temporary glyph_row.  (Bug#17288)
+	(Fline_pixel_height): Don't assume that the current buffer and the
+	selected window's buffer are one and the same.  (Bug#17281)
+
+	* insdel.c (invalidate_buffer_caches): Invalidate the bidi
+	paragraph-start cache before the newline cache.  (Bug#17269)
+
+2014-04-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* term.c (tty_send_additional_strings): No need to fflush here,
+	as callers fflush.
+	(tty_set_terminal_modes): fflush after sending additional strings,
+	not before.
+
+2014-04-17  Daniel Colascione  <dancol@dancol.org>
+
+	* term.c (Qtty_mode_set_strings, Qtty_mode_reset_strings):
+	New symbols.
+	(tty_send_additional_strings): New function.
+	(tty_set_terminal_modes, tty_reset_terminal_modes): Use it.
+	(syms_of_term): Intern tty-mode-set-strings and
+	tty-mode-reset-strings.
+
+2014-04-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.c (save_window_save): Lookup window_point_insertion_type in
+	the right buffer (bug#15457).
+	(Qwindow_point_insertion_type): New var.
+	(syms_of_window): Initialize it.
+
+2014-04-16  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix the MSDOS build.
+	* unexcoff.c [MSDOS]: Include libc/atexit.h.
+	(copy_text_and_data): Zero out the atexit chain pointer before
+	dumping Emacs.
+
+	* termhooks.h (encode_terminal_code): Update prototype.
+
+	* term.c (encode_terminal_code) [DOS_NT]: Make it externally
+	visible for all DOS_NT ports, not just WINDOWSNT.
+	(syms_of_term) [!MSDOS]: Don't define 'tty-menu-*' symbols on MSDOS.
+
+	* sysdep.c (emacs_sigaction_init, init_signals): Don't use SIGCHLD
+	unless it is defined.
+	(emacs_pipe) [MSDOS]: Redirect to 'pipe'.
+
+	* process.c (close_on_exec, accept4, process_socket): Move into
+	the "ifdef subprocesses" part.
+	(catch_child_signal): Condition by "ifdef subprocesses".
+	(syms_of_process) <Qinternal_default_process_sentinel>
+	<Qinternal_default_process_filter>: Condition by "ifdef subprocesses".
+
+	* msdos.h: Add prototypes for new functions.
+	(EINPROGRESS): Define.
+	(O_CLOEXEC): Define to zero.
+
+	* msdos.c (check_window_system): Remove unnecessary an
+	incompatible duplicate function.
+	(sys_opendir, readlinkat, faccessat, fstatat, unsetenv):
+	New functions in support of new functionality.
+
+	* menu.c (single_menu_item): Add visual indication  of submenu
+	also for menus on MSDOS frames.
+	(Fx_popup_menu) [!MSDOS]: Do not call tty_menu_show on MSDOS.
+
+	* lisp.h (CHECK_PROCESS) [!subprocesses]: Do not define
+	when async subprocesses aren't supported.
+
+	* font.h (FONT_WIDTH) [MSDOS]: MSDOS-specific definition.
+
+	* emacs.c (close_output_streams): Zero out errno before calling
+	close_stream.
+
+	* dired.c [MSDOS]: Include msdos.h.
+
+	* conf_post.h (opendir) [MSDOS]: Redirect to sys_opendir.
+	(DATA_START) [MSDOS]: Define.
+	(SYSTEM_PURESIZE_EXTRA) [MSDOS]: Enlarge by 25K.
+
+	* callproc.c (block_child_signal, unblock_child_signal) [MSDOS]:
+	Ifdef away for MSDOS.
+	(record_kill_process) [MSDOS]: Ifdef away the entire body for MSDOS.
+	(call_process_cleanup) [MSDOS]: Ifdef away portions not relevant
+	for MSDOS.
+	(call_process) [MSDOS]: Fix call sequence of dostounix_filename.
+	Use temporary file template that is compatible with mkostemp.
+	Move vfork-related portions under #ifndef MSDOS.
+	(syms_of_callproc): Unify templates of MSDOS and WINDOWSNT.
+
+2014-04-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* buffer.c (Foverlays_at): Add argument `sorted'.
+
+2014-04-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* insdel.c (invalidate_buffer_caches): When deleting or replacing
+	text, invalidate the bidi_paragraph_cache upto and including the
+	preceding newline.
+
+2014-04-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port to IRIX 6.5 (Bug#9684).
+	* conf_post.h (INET6) [IRIX6_5]: Define.
+	(HAVE_GETADDRINFO) [IRIX6_5]: Undef.
+	* data.c (BITS_PER_ULL): Don't assume ULLONG_MAX is defined.
+
+2014-04-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* keyboard.c (Fopen_dribble_file): Encode the dribble file-name
+	before passing it to system APIs.
+
+2014-04-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* bytecode.c (exec_byte_code): Rework the volatiles.  Most importantly,
+	make sure stack.byte_string_start is not de-adjusted by pushhandler.
+
+2014-04-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* keyboard.c (Fopen_dribble_file): Avoid some races.  (Bug#17187)
+
+2014-04-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove DATA_SEG_BITS.
+	The DATA_SEG_BITS hack was needed for older 32 bit platforms.
+	As a result of this change, Emacs won't work on IRIX 6.5 with IRIX
+	cc, but that platform is so old that SGI itself stopped supporting
+	it in December 2013.  If you still need Emacs on IRIX, please
+	either compile with GCC and port the undumping code, or run
+	'./configure --with-wide-int'.
+	* alloc.c (gdb_make_enums_visible): Update to match lisp.h.
+	* lisp.h (GCTYPEBITS): Move definition up, and switch to the
+	DEFINE_GDB_SYMBOL_START way to define it.
+	(NONPOINTER_BITS): New macro.
+	(EMACS_INT): Use it.
+	[!USE_LSB_TAG && !WIDE_EMACS_INT]: Fail, and suggest reporting
+	the problem and/or configuring --with-wide-int.
+	(USE_LSB_TAG): Simplify, based on above changes.
+	(gdb_DATA_SEG_BITS): Remove.  All uses removed.
+	* vm-limit.c (exceeds_lisp_ptr): Remove.  All uses removed.
+
+2014-04-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (move_it_by_lines): If a large portion of buffer text is
+	covered by a display string that ends in a newline, and that cases
+	going back by DVPOS lines to hit the search limit, lift the limit
+	and go back until DVPOS is reached.  (Bug#17244)
+
+	* indent.c (Fvertical_motion): Handle correctly the case when the
+	display string is preceded by an empty line.
+
+	* w32.c (sys_umask) <WRITE_USER>: Remove redundant constant, and
+	use S_IWRITE instead.
+
+2014-04-11  Glenn Morris  <rgm@gnu.org>
+
+	* keyboard.c (Fopen_dribble_file): Make file private.  (Bug#17187)
+
+2014-04-11  Ken Brown  <kbrown@cornell.edu>
+
+	* Makefile.in (EMACS_MANIFEST): Revert last change.
+
+2014-04-10  Daniel Colascione  <dancol@dancol.org>
+
+	* puresize.h (BASE_PURESIZE): Increase.
+
+2014-04-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c (syms_of_keyboard): Make deactivate-mark buffer-local.
+
+	* insdel.c (prepare_to_modify_buffer_1): Cancel lock-file checks and
+	region handling (and don't call signal_before_change) if
+	inhibit_modification_hooks is set.
+	(signal_before_change): Don't check inhibit_modification_hooks any more.
+
+2014-04-08  Daniel Colascione  <dancol@dancol.org>
+
+	* alloc.c (sweep_symbols, mark_object): Assert that symbol
+	function cells contain valid lisp objects.  (Modified version of
+	patch from Dmitry).
+
+	* alloc.c (detect_suspicious_free): Split actual stack capturing
+	out into new function for easier breakpoint setting.
+	(note_suspicious_free): New function.
+
+2014-04-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp.h (struct Lisp_Symbol): New bitfield `pinned'.
+
+	* alloc.c: Keep track of symbols referenced from pure space (bug#17168).
+	(symbol_block_pinned): New var.
+	(Fmake_symbol): Initialize `pinned'.
+	(purecopy): New function, extracted from Fpurecopy.  Mark symbols as
+	pinned and signal an error for un-purifiable objects.
+	(pure_cons): Use it.
+	(Fpurecopy): Use it, except for objects that can't be purified.
+	(mark_pinned_symbols): New function.
+	(Fgarbage_collect): Use it.
+	(gc_sweep): Remove hack made unnecessary.
+
+2014-04-07  Glenn Morris  <rgm@gnu.org>
+
+	* keyboard.c (Fopen_dribble_file): Doc tweak.
+
+2014-04-07  Ken Brown  <kbrown@cornell.edu>
+
+	* Makefile.in (EMACS_MANIFEST): Update comment.  (Bug#17176)
+
+2014-04-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* alloc.c: Simplify by removing use of HAVE_EXECINFO_H.
+	We have a substitute execinfo.h on hosts that lack it.
+	(suspicious_free_history): Make it EXTERNALLY_VISIBLE so it
+	isn't optimized away.
+
+2014-04-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Prefer 'ARRAYELTS (x)' to 'sizeof x / sizeof *x'.
+	* alloc.c (memory_full):
+	* charset.c (syms_of_charset):
+	* doc.c (Fsnarf_documentation):
+	* emacs.c (main):
+	* font.c (BUILD_STYLE_TABLE):
+	* keyboard.c (make_lispy_event):
+	* profiler.c (setup_cpu_timer):
+	* xgselect.c (xg_select):
+	* xterm.c (record_event, STORE_KEYSYM_FOR_DEBUG):
+	Use ARRAYELTS.
+	* font.c (FONT_PROPERTY_TABLE_SIZE): Remove.
+	Replace the only use with ARRAYELTS (font_property_table).
+	* xfaces.c (DIM): Remove.  All uses replaced by ARRAYELTS.
+
+2014-04-03  Daniel Colascione  <dancol@dancol.org>
+
+	* xterm.c (x_term_init):
+	* xfns.c (best_xim_style):
+	* xfaces.c (Fdump_colors):
+	* w32fns.c (w32_default_color_map):
+	* w32.c (init_environment, N_ENV_VARS):
+	* unexcw.c (read_exe_header):
+	* term.c (term_get_fkeys_1):
+	* sysdep.c (init_baud_rate):
+	* nsterm.m (ns_convert_key):
+	* nsfns.m (get_geometry_from_preferences):
+	* msdos.c (dos_set_window_size, init_environment):
+	* macfont.m (mac_font_get_glyph_for_cid)
+	(macfont_store_descriptor_attributes)
+	(macfont_create_attributes_with_spec, mac_ctfont_get_glyph_for_cid):
+	* keyboard.c (command_loop_1, read_menu_command, make_lispy_event)
+	(NUM_MOD_NAMES, read_key_sequence_vs, Fcurrent_input_mode)
+	(syms_of_keyboard):
+	* image.c (xpm_str_to_color_key):
+	* fringe.c (MAX_STANDARD_FRINGE_BITMAPS):
+	* frame.c (x_set_frame_parameters):
+	* fileio.c (Ffile_selinux_context):
+	* emacs.c (sort_args):
+	* dosfns.c (msdos_stdcolor_name):
+	* dired.c (file_attributes):
+	* chartab.c (uniprop_decoder_count, uniprop_encode_count):
+	Change expressions of the form sizeof(arr) / sizeof(arr[0])
+	to ARRAYELTS (arr).
+
+2014-04-02  Daniel Colascione  <dancol@dancol.org>
+
+	* data.c (Ffset): Abort if we're trying to set a function call to
+	a dead lisp object.
+
+	* lisp.h (ARRAYELTS): New macro.
+
+	* alloc.c: Include execinfo.h if available.
+	(SUSPICIOUS_OBJECT_CHECKING): New macro; define unconditionally.
+	(suspicious_free_record): New structure.
+	(suspicious_objects, suspicious_object_index)
+	(suspicious_free_history, suspicious_free_history_index):
+	New variables.
+	(find_suspicious_object_in_range, detect_suspicious_free)
+	(Fsuspicious_object): New functions.
+	(cleanup_vector): Call find_suspicious_object_in_range.
+
+2014-04-02  Martin Rudalics  <rudalics@gmx.at>
+
+	* xterm.c (x_new_font): Don't calculate non-toolkit scrollbar
+	width from font width (Bug#17163).
+
+	* frame.c (x_set_frame_parameters): Calculate default values of
+	new frame sizes only after all other frame parameters have been
+	processed (Bug#17142).
+
+2014-04-02  Ken Brown  <kbrown@cornell.edu>
+
+	* conf_post.h (SYSTEM_PURESIZE_EXTRA) [CYGWIN]: Set to 10000.
+	(Bug#17112)
+
+2014-04-02  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* xterm.c (x_draw_image_glyph_string): Adjust image background
+	width accordingly when its x position is adjusted.  (Bug#17115)
+
+2014-04-02  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* font.c (font_list_entities): Do not add empty vector to font cache.
+	(font_matching_entity): Likewise.  If matching entity is found, insert
+	1-item vector with this entity instead of entity itself (Bug#17125).
+
+	* xterm.c (x_term_init) [USE_LUCID]: Fix minor memory leak.
+
+2014-04-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* fns.c (validate_subarray): Rename from validate_substring,
+	since it works for vectors too.  New arg ARRAY.  Optimize for the
+	non-nil case.  Instead of returning bool, throw an error if out of
+	range, so that the caller needn't do that.  All uses changed.
+	Report original values if out of range.
+	(Fsubstring, Fsubstring_no_properties, secure_hash):
+	Also optimize the case where FROM is 0 or TO is the size.
+
+2014-03-31  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* search.c (Freplace_match): Use make_specified_string.
+	* xterm.c, w32term.c (x_set_glyph_string_gc): Use emacs_abort
+	to catch bogus override face of glyph strings.
+	* fns.c (Fsubstring, Fsubstring_no_properties, secure_hash):
+	Move common substring range checking code to...
+	(validate_substring): ...this function.
+
+2014-03-31  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsmenu.m (free_frame_tool_bar): Set wait_for_tool_bar = NO (Bug#16976)
+
+2014-03-30  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (updateFrameSize:): If waiting for the tool bar and tool
+	bar is zero height, just return (Bug#16976).
+	(initFrameFromEmacs:): Initialize wait_for_tool_bar.
+
+	* nsterm.h (EmacsView): Add wait_for_tool_bar.
+
+	* nsmenu.m (update_frame_tool_bar): Return early if view or toolbar
+	is nil.  If waiting for toolbar to complete, force a redraw.
+
+2014-03-28  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.c (emacs_version): Use PACKAGE_VERSION rather than VERSION.
+	(emacs_bugreport): New variable.
+	(usage_message): Use PACKAGE_BUGREPORT.
+	(syms_of_emacs) <report-emacs-bug-address>: New variable.
+
+	* emacs.c (syms_of_emacs) <system-configuration-features>: New var.
+
+2014-03-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port recent signal-related changes to FreeBSD.
+	Problem reported by Herbert J. Skuhra.
+	* lisp.h (block_tty_out_signal, unblock_tty_out_signal):
+	Move decls from here ...
+	* syssignal.h: ... to here, so that lisp.h doesn't depend on signal.h.
+
+2014-03-27  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* w32term.c (x_draw_image_glyph_string): Fix computation of height
+	and width of image background when it is displayed with a 'box'
+	face.  (Bug#17115)
+
+2014-03-27  Paul Eggert  <eggert@penguin.cs.ucla.edu>
+
+	More backward-compatible fix to char-equal core dump (Bug#17011).
+	* editfns.c (Fchar_equal): In unibyte buffers, assume values in
+	range 128-255 are raw bytes.  Suggested by Eli Zaretskii.
+
+2014-03-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* image.c (init_svg_functions): When loading SVG-related libraries,
+	free already loaded libraries if the initialization fails.
+	(rsvg_handle_set_size_callback): Remove declaration, unused.
+
+2014-03-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix core dump in char-equal (Bug#17011).
+	* editfns.c (Fchar_equal): Do not use MAKE_CHAR_MULTIBYTE in
+	unibyte buffers, as we can't tell whether the characters are
+	actually unibyte.
+
+	* insdel.c (adjust_markers_for_delete): Remove unused local.
+
+2014-03-26  Barry O'Reilly  <gundaetiapo@gmail.com>
+
+	Have (MARKER . ADJUSTMENT) undo records always be immediately
+	after their corresponding (TEXT . POS) record in undo list.
+	(Bug#16818)
+	* lisp.h (record-delete): New arg record_markers.
+	(record_marker_adjustment): No longer needed outside undo.c.
+	* insdel.c (adjust_markers_for_delete): Move calculation of marker
+	adjustments to undo.c's record_marker_adjustments.  Note that
+	fileio.c's decide_coding_unwind is another caller to
+	adjust_markers_for_delete.  Because it has undo list bound to t,
+	it does not rely on adjust_markers_for_delete to record marker
+	adjustments.
+	(del_range_2): Swap call to record_delete and
+	adjust_markers_for_delete so as undo marker adjustments are
+	recorded before current deletion's adjustments, as before.
+	(adjust_after_replace):
+	(replace_range): Pass value for new record_markers arg to
+	delete_record.
+	* undo.c (record_marker_adjustment): Rename to
+	record_marker_adjustments and made static.
+	(record_delete): Check record_markers arg and call
+	record_marker_adjustments.
+	(record_change): Pass value for new record_markers arg to
+	delete_record.
+	(record_point): at_boundary calculation no longer needs to account
+	for marker adjustments.
+
+2014-03-26  Martin Rudalics  <rudalics@gmx.at>
+
+	* w32term.c (x_set_window_size): Refine fix from 2014-03-14
+	(Bug#17077).
+
+2014-03-26  Glenn Morris  <rgm@gnu.org>
+
+	* fileio.c (Ffile_symlink_p): Doc fix. (Bug#17073)
+
+2014-03-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* buffer.c (struct sortvec): Add field `spriority'.
+	(compare_overlays): Use it.
+	(sort_overlays): Set it.
+
+2014-03-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (redisplay_window): If all previous attempts to find the
+	cursor row failed, try a few alternatives before falling back to
+	the top-most row of the window.  Use row_containing_pos.  (Bug#17047)
+
+2014-03-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* image.c (x_bitmap_height, x_bitmap_width) [HAVE_X_WINDOWS]:
+	* sysdep.c (reset_sigio) [!DOS_NT]: Declare conditionally.
+
+	* keyboard.c (read_decoded_event_from_main_queue): #ifdef out
+	variables on Windows.
+
+	* w32fns.c (Ffile_system_info): Use parenthesis in and/or expression.
+
+	* w32.c (unsetenv): Remove unused var `retval'.
+	(emacs_gnutls_pull): Remove unused vars `fdset' and `timeout'.
+
+	* w32notify.c (watch_worker): Remove unnecesary var sleep_result.
+	(start_watching): Remove unused var `thr'.
+
+	* w32proc.c (sys_spawnve): Comment out unused vars `first', `last'.
+	(find_child_console): Remove unnecesary var `thread_id'.
+
+	* w32term.c (w32_read_socket): Comment out unused vars `row', `columns'.
+	(x_focus_frame): #ifdef 0 unused variable `dpyinfo'.
+
+2014-03-26  Glenn Morris  <rgm@gnu.org>
+
+	* filelock.c (Flock_buffer): Doc tweak.
+
+	* buffer.c (Frestore_buffer_modified_p, Fkill_buffer):
+	* emacs.c (shut_down_emacs):
+	* fileio.c (Finsert_file_contents, write_region):
+	* filelock.c (top-level, syms_of_filelock):
+	* insdel.c (prepare_to_modify_buffer_1):
+	CLASH_DETECTION is always defined now.
+
+2014-03-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (w32_delayed_load): Call DisableThreadLibraryCalls on the
+	DLL handle, to speed up thread startup.
+
+2014-03-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Handle sigmask better with nested signal handlers  (Bug#15561).
+	* atimer.c (sigmask_atimers): Remove.
+	Remaining use rewritten to use body of this function.
+	* atimer.c (block_atimers, unblock_atimers):
+	* callproc.c (block_child_signal, unblock_child_signal):
+	* sysdep.c (block_tty_out_signal, unblock_tty_out_signal):
+	New arg OLDSET.  All callers changed.
+	* atimer.c (block_atimers, unblock_atimers):
+	* callproc.c (block_child_signal, unblock_child_signal):
+	* keyboard.c (handle_interrupt):
+	* sound.c (vox_configure, vox_close):
+	Restore the old signal mask rather than unilaterally clearing bits
+	from the mask, in case a handler is running within another
+	handler.  All callers changed.
+	* lisp.h, process.c, process.h, term.c:
+	Adjust decls and callers to match new API.
+	* sysdep.c (emacs_sigaction_init): Don't worry about masking SIGFPE;
+	signal handlers aren't supposed to use floating point anyway.
+	(handle_arith_signal): Unblock just SIGFPE rather than clearing mask.
+
+2014-03-23  Daniel Colascione  <dancol@dancol.org>
+
+	Split gc_sweep into discrete functions for legibility and better
+	stack traces.
+
+	* alloc.c (sweep_strings, sweep_vectors): Add NO_INLINE
+	(sweep_vectors): Fix typo in comment.
+	(sweep_conses, sweep_floats, sweep_intervals)
+	(sweep_symbols, sweep_misc, sweep_buffers): New functions.
+	(gc_sweep): Call new functions, to which existing functionality is
+	moved.
+	* fns.c (sweep_weak_hash_tables): Add NO_INLINE.
+
+2014-03-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32fns.c (Fw32_shell_execute): Declare `result' only on Cygwin.
+
+2014-03-23  Daniel Colascione  <dancol@dancol.org>
+
+	* xfns.c (create_frame_xic): Pass XNStatusAttributes to XCreateIC
+	only if xic_style calls for it.  This change allows Emacs to work
+	with ibus.  Also, don't leak resources if create_frame_xic fails,
+	and stop caching xic_style across different displays.
+	(supported_xim_styles): Make const.
+	(best_xim_style): Remove first parameter: it's always just
+	supported_xim_styles.  Change to look at supported_xim_styles
+	directly.
+
+2014-03-23  Daniel Colascione  <dancol@dancol.org>
+
+	* term.c (init_tty): Rearrange condition for clarity; print
+	appropriate diagnostic.
+
+2014-03-23  Daniel Colascione  <dancol@dancol.org>
+
+	* process.c (DATAGRAM_CONN_P): Don't underflow datagram_address
+	array.  (ASAN caught.)
+
+2014-03-22  Glenn Morris  <rgm@gnu.org>
+
+	* callproc.c (init_callproc): In etc, look for NEWS rather than GNU.
+
+2014-03-22  Daniel Colascione  <dancol@dancol.org>
+
+	* process.c (conv_sockaddr_to_lisp): When extracting the string
+	names of AF_LOCAL sockets, stop before reading uninitialized memory.
+
+2014-03-21  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	Fix regression introduced by patch for Bug#10500.
+	* xterm.c (x_draw_image_relief): Respect Vtool_bar_button_margin.
+	* w32term.c (x_draw_image_relief): Likewise.
+
+2014-03-21  Martin Rudalics  <rudalics@gmx.at>
+
+	* w32fns.c (w32_wnd_proc): For WM_WINDOWPOSCHANGING don't
+	constrain frame size in SW_SHOWMAXIMIZED case so we can truly
+	maximize a frame for odd default fonts.
+
+2014-03-21  Glenn Morris  <rgm@gnu.org>
+
+	* minibuf.c (history-length): Increase default from 30 to 100.
+
+2014-03-21  Daniel Colascione  <dancol@dancol.org>
+
+	* xterm.c (x_bitmap_icon): Stop reading the icon bitmap from disk
+	every time we switch to minibuffer.
+
+	* alloc.c (lisp_align_malloc, allocate_string_data)
+	(allocate_vectorlike): Allow mmap allocation of lisp objects.
+	(pointers_fit_in_lispobj_p, mmap_lisp_allowed_p): New functions.
+
+2014-03-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32fns.c (Fw32_shell_execute) [!CYGWIN]: Use ShellExecuteEx, to
+	support more "verbs".
+
+2014-03-21  Daniel Colascione  <dancol@dancol.org>
+
+	Always prohibit dumping a dumped Emacs.
+
+	* emacs.c (might_dump): New variable.
+	(Fdump_emacs): Always prohibit dumping of dumped Emacs.
+	* lisp.h (might_dump): Declare.
+	* unexcw.c (unexec): Remove now-redundant multiple-dump detection code.
+
+2014-03-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* doc.c (store_function_docstring): Fix pointer signedness mismatch.
+
+2014-03-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* doc.c (store_function_docstring): Warn when we don't know where to
+	put a docstring.
+	(Fsubstitute_command_keys): Don't advertise the fact that
+	text-properties are dropped, since we think it's a bug that we'll fix
+	in 24.5.
+
+	* frame.h (SET_FRAME_VISIBLE): Keep frame_garbaged up to date.
+	* xterm.c (handle_one_xevent) <MapNotify>: Don't garbage the frame.
+	* frame.c (frame_garbaged): Make "docstring" more precise.
+
+2014-03-20  Glenn Morris  <rgm@gnu.org>
+
+	* charset.c (init_charset): When we cannot find the charsets directory,
+	mention if EMACSDATA is set.
+
+2014-03-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* fns.c (Frandom): Fix rare bug where the result isn't random.
+
+	Fix porting inconsistency about rounding to even.
+	* floatfns.c (emacs_rint) [!HAVE_RINT]: Round to even.
+	This way, the unusual !HAVE_RINT case acts like the usual
+	HAVE_RINT case, and we can fix the documentation accordingly.
+
+2014-03-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32fns.c (reset_modifiers): Zero out keystate[] before using it.
+	(w32_wnd_proc): Initialize the dwHoverTime member of
+	TRACKMOUSEEVENT structure.
+
+2014-03-17  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnutls.c (Fgnutls_boot): Fix case of :verify-error = t.
+
+2014-03-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* search.c (find_newline): Speed up the function when using the
+	newline cache, by halving the number of calls to
+	region_cache_forward and region_cache_backward.  (Bug#16830)
+
+2014-03-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* buffer.c (Fset_buffer): Document return value (bug#17015).
+
+2014-03-14  Martin Rudalics  <rudalics@gmx.at>
+
+	* w32term.c (x_set_window_size): When frame-resize-pixelwise is
+	nil, always resize character wise to avoid potential loss of the
+	mode line (Bug#16923 related).
+
+2014-03-12  Martin Rudalics  <rudalics@gmx.at>
+
+	* frame.c (x_set_frame_parameters): Always calculate new sizes
+	pixelwise to avoid potential loss when rounding.
+
+2014-03-11  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xfns.c (x_set_mouse_color): Recolor vertical_drag_cursor.
+	* xterm.c (x_free_frame_resources): Free all allocated cursors.
+
+2014-03-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (fstatat): Don't add an extra slash if the argument ends
+	with a slash: this fails the subsequent call to stat_worker on
+	Windows 9X.  Reported by oslsachem <oslsachem@gmail.com>.
+
+2014-03-09  Martin Rudalics  <rudalics@gmx.at>
+
+	* xdisp.c (Fwindow_text_pixel_size): Adjust doc-string.
+
+2014-03-08  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.h (MAC_OS_X_VERSION_10_9): Add.
+
+	* nsterm.m (constrainFrameRect:toScreen:): Constrain normally
+	when frame is only on one screen (Bug#14713).
+
 2014-03-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (move_it_in_display_line_to): If word-wrap is ON, and
@@ -7,8 +1627,8 @@
 	we eventually back up the iterator to the wrap point.  This avoids
 	delusional behavior of move_it_to, whereby it proceeds to the next
 	display line, but sets current_x to zero for all the glyphs that
-	without word-wrap would fit on the previous display line.  One
-	result was that visual-order cursor movement behaved erratically
+	without word-wrap would fit on the previous display line.
+	One result was that visual-order cursor movement behaved erratically
 	under word-wrap.
 	(Fmove_point_visually): Add code to find the x coordinate of the
 	last character before wrap point, under word-wrap on a TTY.
@@ -40,8 +1660,8 @@
 	SSDATA (Vx_resource_name), which may be changed from Lisp.
 	(xim_close_display): For XUnregisterIMInstantiateCallback,
 	always eassert return value and pass exactly the same values
-	as were used for XRegisterIMInstantiateCallback.  Otherwise
-	XUnregisterIMInstantiateCallback will always fail.  See Xlib
+	as were used for XRegisterIMInstantiateCallback.
+	Otherwise XUnregisterIMInstantiateCallback will always fail.  See Xlib
 	sources to check why if you are interested.
 
 2014-03-05  Martin Rudalics  <rudalics@gmx.at>
@@ -4036,7 +5656,7 @@
 	* frame.c (delete_frame): Block/unblock input to overcome race
 	condition (Bug#15475).
 
-2013-09-29  Andreas Politz  <politza@hochschule-trier.de>  (tiny change)
+2013-09-29  Andreas Politz  <politza@hochschule-trier.de>
 
 	* frame.c (delete_frame): Record selected frame only after
 	calling Qdelete_frame_functions (Bug#15477).

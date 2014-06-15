@@ -1298,8 +1298,8 @@ is greater than `bookmark-alist-modification-count'."
 
 ;;;###autoload
 (defun bookmark-write ()
-  "Write bookmarks to a file (reading the file name with the minibuffer).
-Don't use this in Lisp programs; use `bookmark-save' instead."
+  "Write bookmarks to a file (reading the file name with the minibuffer)."
+  (declare (interactive-only bookmark-save))
   (interactive)
   (bookmark-maybe-load-default-file)
   (bookmark-save t))
@@ -1420,8 +1420,7 @@ explicitly.
 
 If you load a file containing bookmarks with the same names as
 bookmarks already present in your Emacs, the new bookmarks will get
-unique numeric suffixes \"<2>\", \"<3>\", ... following the same
-method buffers use to resolve name collisions."
+unique numeric suffixes \"<2>\", \"<3>\", etc."
   (interactive
    (list (read-file-name
           (format "Load bookmarks from: (%s) "

@@ -21,12 +21,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "sysstdio.h"
 #include <unistd.h>
 
-#ifdef HAVE_PNG
-#if defined HAVE_LIBPNG_PNG_H
-# include <libpng/png.h>
-#else
+/* Include this before including <setjmp.h> to work around bugs with
+   older libpng; see Bug#17429.  */
+#if defined HAVE_PNG && !defined HAVE_NS
 # include <png.h>
-#endif
 #endif
 
 #include <setjmp.h>
@@ -160,6 +158,7 @@ XPutPixel (XImagePtr ximage, int x, int y, unsigned long pixel)
 
 /* Functions to access the contents of a bitmap, given an id.  */
 
+#ifdef HAVE_X_WINDOWS
 static int
 x_bitmap_height (struct frame *f, ptrdiff_t id)
 {
@@ -171,6 +170,7 @@ x_bitmap_width (struct frame *f, ptrdiff_t id)
 {
   return FRAME_DISPLAY_INFO (f)->bitmaps[id - 1].width;
 }
+#endif
 
 #if defined (HAVE_X_WINDOWS) || defined (HAVE_NTGUI)
 ptrdiff_t
@@ -998,6 +998,11 @@ free_image (struct frame *f, struct image *img)
 
       c->images[img->id] = NULL;
 
+      /* Windows NT redefines 'free', but in this file, we need to
+         avoid the redefinition.  */
+#ifdef WINDOWSNT
+#undef free
+#endif
       /* Free resources, then free IMG.  */
       img->type->free (f, img);
       xfree (img);
@@ -1231,7 +1236,23 @@ image_background_transparent (struct image *img, struct frame *f, XImagePtr_or_D
   return img->background_transparent;
 }
 
-
+#if defined (HAVE_PNG) || defined (HAVE_NS) \
+  || defined (HAVE_IMAGEMAGICK) || defined (HAVE_RSVG)
+
+/* Store F's background color into *BGCOLOR.  */
+static void
+x_query_frame_background_color (struct frame *f, XColor *bgcolor)
+{
+#ifndef HAVE_NS
+  bgcolor->pixel = FRAME_BACKGROUND_PIXEL (f);
+  x_query_color (f, bgcolor);
+#else
+  ns_query_color (FRAME_BACKGROUND_COLOR (f), bgcolor, 1);
+#endif
+}
+
+#endif /* HAVE_PNG || HAVE_NS || HAVE_IMAGEMAGICK || HAVE_RSVG */
+
 /***********************************************************************
 		  Helper functions for X image types
  ***********************************************************************/
@@ -3953,9 +3974,7 @@ xpm_str_to_color_key (const char *s)
 {
   int i;
 
-  for (i = 0;
-       i < sizeof xpm_color_key_strings / sizeof xpm_color_key_strings[0];
-       i++)
+  for (i = 0; i < ARRAYELTS (xpm_color_key_strings); i++)
     if (strcmp (xpm_color_key_strings[i], s) == 0)
       return i;
   return -1;
@@ -5506,7 +5525,7 @@ png_image_p (Lisp_Object object)
 #endif /* HAVE_PNG || HAVE_NS */
 
 
-#ifdef HAVE_PNG
+#if defined HAVE_PNG && !defined HAVE_NS
 
 #ifdef WINDOWSNT
 /* PNG library details.  */
@@ -5884,43 +5903,23 @@ png_load_body (struct frame *f, struct image *img, struct png_load_context *c)
       /* png_color_16 *image_bg; */
       Lisp_Object specified_bg
 	= image_spec_value (img->spec, QCbackground, NULL);
-      int shift = (bit_depth == 16) ? 0 : 8;
+      XColor color;
 
-      if (STRINGP (specified_bg))
+      /* If the user specified a color, try to use it; if not, use the
+	 current frame background, ignoring any default background
+	 color set by the image.  */
+      if (STRINGP (specified_bg)
+	  ? x_defined_color (f, SSDATA (specified_bg), &color, false)
+	  : (x_query_frame_background_color (f, &color), true))
 	/* The user specified `:background', use that.  */
 	{
-	  XColor color;
-	  if (x_defined_color (f, SSDATA (specified_bg), &color, 0))
-	    {
-	      png_color_16 user_bg;
+	  int shift = bit_depth == 16 ? 0 : 8;
+	  png_color_16 bg = { 0 };
+	  bg.red = color.red >> shift;
+	  bg.green = color.green >> shift;
+	  bg.blue = color.blue >> shift;
 
-	      memset (&user_bg, 0, sizeof user_bg);
-	      user_bg.red = color.red >> shift;
-	      user_bg.green = color.green >> shift;
-	      user_bg.blue = color.blue >> shift;
-
-	      fn_png_set_background (png_ptr, &user_bg,
-				     PNG_BACKGROUND_GAMMA_SCREEN, 0, 1.0);
-	    }
-	}
-      else
-	{
-	  /* We use the current frame background, ignoring any default
-	     background color set by the image.  */
-#if defined (HAVE_X_WINDOWS) || defined (HAVE_NTGUI)
-	  XColor color;
-	  png_color_16 frame_background;
-
-	  color.pixel = FRAME_BACKGROUND_PIXEL (f);
-	  x_query_color (f, &color);
-
-	  memset (&frame_background, 0, sizeof frame_background);
-	  frame_background.red = color.red >> shift;
-	  frame_background.green = color.green >> shift;
-	  frame_background.blue = color.blue >> shift;
-#endif /* HAVE_X_WINDOWS */
-
-	  fn_png_set_background (png_ptr, &frame_background,
+	  fn_png_set_background (png_ptr, &bg,
 				 PNG_BACKGROUND_GAMMA_SCREEN, 0, 1.0);
 	}
     }
@@ -6062,9 +6061,8 @@ png_load (struct frame *f, struct image *img)
   return png_load_body (f, img, &c);
 }
 
-#else /* HAVE_PNG */
+#elif defined HAVE_NS
 
-#ifdef HAVE_NS
 static bool
 png_load (struct frame *f, struct image *img)
 {
@@ -6072,10 +6070,8 @@ png_load (struct frame *f, struct image *img)
                         image_spec_value (img->spec, QCfile, NULL),
                         image_spec_value (img->spec, QCdata, NULL));
 }
-#endif  /* HAVE_NS */
 
-
-#endif /* !HAVE_PNG */
+#endif /* HAVE_NS */
 
 
 
@@ -6262,9 +6258,6 @@ struct my_jpeg_error_mgr
       MY_JPEG_INVALID_IMAGE_SIZE,
       MY_JPEG_CANNOT_CREATE_X
     } failure_code;
-#ifdef lint
-  FILE *fp;
-#endif
 };
 
 
@@ -6469,7 +6462,6 @@ jpeg_file_src (j_decompress_ptr cinfo, FILE *fp)
   src->mgr.next_input_byte = NULL;
 }
 
-
 /* Load image IMG for use on frame F.  Patterned after example.c
    from the JPEG lib.  */
 
@@ -6479,7 +6471,8 @@ jpeg_load_body (struct frame *f, struct image *img,
 {
   Lisp_Object file, specified_file;
   Lisp_Object specified_data;
-  FILE *fp = NULL;
+  /* The 'volatile' silences a bogus diagnostic; see GCC bug 54561.  */
+  FILE * IF_LINT (volatile) fp = NULL;
   JSAMPARRAY buffer;
   int row_stride, x, y;
   XImagePtr ximg = NULL;
@@ -6511,8 +6504,6 @@ jpeg_load_body (struct frame *f, struct image *img,
       image_error ("Invalid image data `%s'", specified_data, Qnil);
       return 0;
     }
-
-  IF_LINT (mgr->fp = fp);
 
   /* Customize libjpeg's error handling to call my_error_exit when an
      error is detected.  This function will perform a longjmp.  */
@@ -6551,9 +6542,6 @@ jpeg_load_body (struct frame *f, struct image *img,
       x_clear_image (f, img);
       return 0;
     }
-
-  /* Silence a bogus diagnostic; see GCC bug 54561.  */
-  IF_LINT (fp = mgr->fp);
 
   /* Create the JPEG decompression object.  Let it read from fp.
 	 Read the JPEG image header.  */
@@ -8236,14 +8224,7 @@ imagemagick_load_image (struct frame *f, struct image *img,
     specified_bg = image_spec_value (img->spec, QCbackground, NULL);
     if (!STRINGP (specified_bg)
 	|| !x_defined_color (f, SSDATA (specified_bg), &bgcolor, 0))
-      {
-#ifndef HAVE_NS
-	bgcolor.pixel = FRAME_BACKGROUND_PIXEL (f);
-	x_query_color (f, &bgcolor);
-#else
-	ns_query_color (FRAME_BACKGROUND_COLOR (f), &bgcolor, 1);
-#endif
-      }
+      x_query_frame_background_color (f, &bgcolor);
 
     bg_wand = NewPixelWand ();
     PixelSetRed   (bg_wand, (double) bgcolor.red   / 65535);
@@ -8395,6 +8376,7 @@ imagemagick_load_image (struct frame *f, struct image *img,
 #endif /* HAVE_MAGICKEXPORTIMAGEPIXELS */
     {
       size_t image_height;
+      MagickRealType color_scale = 65535.0 / QuantumRange;
 
       /* Try to create a x pixmap to hold the imagemagick pixmap.  */
       if (!image_create_x_image_and_pixmap (f, img, width, height, 0,
@@ -8435,9 +8417,9 @@ imagemagick_load_image (struct frame *f, struct image *img,
               PixelGetMagickColor (pixels[x], &pixel);
               XPutPixel (ximg, x, y,
                          lookup_rgb_color (f,
-                                           pixel.red,
-                                           pixel.green,
-                                           pixel.blue));
+					   color_scale * pixel.red,
+					   color_scale * pixel.green,
+					   color_scale * pixel.blue));
             }
         }
       DestroyPixelIterator (iterator);
@@ -8659,7 +8641,6 @@ DEF_IMGLIB_FN (void, rsvg_handle_get_dimensions, (RsvgHandle *, RsvgDimensionDat
 DEF_IMGLIB_FN (gboolean, rsvg_handle_write, (RsvgHandle *, const guchar *, gsize, GError **));
 DEF_IMGLIB_FN (gboolean, rsvg_handle_close, (RsvgHandle *, GError **));
 DEF_IMGLIB_FN (GdkPixbuf *, rsvg_handle_get_pixbuf, (RsvgHandle *));
-DEF_IMGLIB_FN (void *, rsvg_handle_set_size_callback, (RsvgHandle *, RsvgSizeFunc, gpointer, GDestroyNotify));
 
 DEF_IMGLIB_FN (int, gdk_pixbuf_get_width, (const GdkPixbuf *));
 DEF_IMGLIB_FN (int, gdk_pixbuf_get_height, (const GdkPixbuf *));
@@ -8681,13 +8662,18 @@ Lisp_Object Qgdk_pixbuf, Qglib, Qgobject;
 static bool
 init_svg_functions (void)
 {
-  HMODULE library, gdklib, glib, gobject;
+  HMODULE library, gdklib = NULL, glib = NULL, gobject = NULL;
 
   if (!(glib = w32_delayed_load (Qglib))
       || !(gobject = w32_delayed_load (Qgobject))
       || !(gdklib = w32_delayed_load (Qgdk_pixbuf))
       || !(library = w32_delayed_load (Qsvg)))
-    return 0;
+    {
+      if (gdklib)  FreeLibrary (gdklib);
+      if (gobject) FreeLibrary (gobject);
+      if (glib)    FreeLibrary (glib);
+      return 0;
+    }
 
   LOAD_IMGLIB_FN (library, rsvg_handle_new);
   LOAD_IMGLIB_FN (library, rsvg_handle_get_dimensions);
@@ -8875,14 +8861,7 @@ svg_load_image (struct frame *f,         /* Pointer to emacs frame structure.  *
   specified_bg = image_spec_value (img->spec, QCbackground, NULL);
   if (!STRINGP (specified_bg)
       || !x_defined_color (f, SSDATA (specified_bg), &background, 0))
-    {
-#ifndef HAVE_NS
-      background.pixel = FRAME_BACKGROUND_PIXEL (f);
-      x_query_color (f, &background);
-#else
-      ns_query_color (FRAME_BACKGROUND_COLOR (f), &background, 1);
-#endif
-    }
+    x_query_frame_background_color (f, &background);
 
   /* SVG pixmaps specify transparency in the last byte, so right
      shift 8 bits to get rid of it, since emacs doesn't support

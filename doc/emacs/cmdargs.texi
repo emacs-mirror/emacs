@@ -439,7 +439,7 @@ special meanings in Emacs.  Most of these variables are also used by
 some other programs.  Emacs does not require any of these environment
 variables to be set, but it uses their values if they are set.
 
-@table @env
+@vtable @env
 @item CDPATH
 Used by the @code{cd} command to search for the directory you specify,
 when you specify a relative directory name.
@@ -464,7 +464,9 @@ Emacs Lisp files.  If set, it modifies the usual initial value of the
 @code{load-path} variable (@pxref{Lisp Libraries}).  An empty element
 stands for the default value of @code{load-path}; e.g., using
 @samp{EMACSLOADPATH="/tmp:"} adds @file{/tmp} to the front of
-the default @code{load-path}.
+the default @code{load-path}.  To specify an empty element in the
+middle of the list, use 2 colons in a row, as in
+@samp{EMACSLOADPATH="/tmp::/foo"}.
 @item EMACSPATH
 A colon-separated list of directories to search for executable files.
 If set, Emacs uses this in addition to @env{PATH} (see below) when
@@ -495,9 +497,12 @@ compatibility @file{C:/} will be used instead if a @file{.emacs} file
 is found there.
 @item HOSTNAME
 The name of the machine that Emacs is running on.
+@c complete.el is obsolete since 24.1.
+@ignore
 @item INCPATH
 A colon-separated list of directories.  Used by the @code{complete} package
 to search for files.
+@end ignore
 @item INFOPATH
 A colon-separated list of directories in which to search for Info files.
 @item LC_ALL
@@ -595,14 +600,14 @@ defaults to @samp{root}.
 @item VERSION_CONTROL
 Used to initialize the @code{version-control} variable (@pxref{Backup
 Names}).
-@end table
+@end vtable
 
 @node Misc Variables
 @appendixsubsec Miscellaneous Variables
 
 These variables are used only on particular configurations:
 
-@table @env
+@vtable @env
 @item COMSPEC
 On MS-DOS and MS-Windows, the name of the command interpreter to use
 when invoking batch files and commands internal to the shell.  On MS-DOS
@@ -654,7 +659,7 @@ rather than hard-coding an absolute path.  This allows multiple
 versions of Emacs to share the same environment variable settings, and
 it allows you to move the Emacs installation directory, without
 changing any environment or registry settings.
-@end table
+@end vtable
 
 @node MS-Windows Registry
 @appendixsubsec The MS-Windows System Registry
@@ -896,30 +901,33 @@ the initial frame.
 @itemx --fullscreen
 @opindex --fullscreen
 @cindex fullscreen, command-line argument
-Specify that width and height shall be the size of the screen. Normally
-no window manager decorations are shown.
+Specify that width and height should be that of the screen.  Normally
+no window manager decorations are shown.  (After starting Emacs,
+you can toggle this state using @key{F11}, @code{toggle-frame-fullscreen}.)
 
 @item -mm
 @opindex -mm
 @itemx --maximized
 @opindex --maximized
 @cindex maximized, command-line argument
-Specify that the Emacs frame shall be maximized.  This normally
+Specify that the Emacs frame should be maximized.  This normally
 means that the frame has window manager decorations.
+(After starting Emacs, you can toggle this state using @kbd{M-F10},
+@code{toggle-frame-maximized}.)
 
 @item -fh
 @opindex -fh
 @itemx --fullheight
 @opindex --fullheight
 @cindex fullheight, command-line argument
-Specify that the height shall be the height of the screen.
+Specify that the height should be the height of the screen.
 
 @item -fw
 @opindex -fw
 @itemx --fullwidth
 @opindex --fullwidth
 @cindex fullwidth, command-line argument
-Specify that the width shall be the width of the screen.
+Specify that the width should be the width of the screen.
 @end table
 
 @noindent

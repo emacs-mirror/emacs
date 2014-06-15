@@ -507,7 +507,7 @@ xftfont_close (struct font *font)
     }
 }
 
-static int
+static void
 xftfont_prepare_face (struct frame *f, struct face *face)
 {
   struct xftface_info *xftface_info;
@@ -517,17 +517,14 @@ xftfont_prepare_face (struct frame *f, struct face *face)
   if (face != face->ascii_face)
     {
       face->extra = face->ascii_face->extra;
-      return 0;
+      return;
     }
 #endif
 
-  xftface_info = malloc (sizeof *xftface_info);
-  if (! xftface_info)
-    return -1;
+  xftface_info = xmalloc (sizeof *xftface_info);
   xftfont_get_colors (f, face, face->gc, NULL,
 		      &xftface_info->xft_fg, &xftface_info->xft_bg);
   face->extra = xftface_info;
-  return 0;
 }
 
 static void
@@ -545,7 +542,7 @@ xftfont_done_face (struct frame *f, struct face *face)
   xftface_info = (struct xftface_info *) face->extra;
   if (xftface_info)
     {
-      free (xftface_info);
+      xfree (xftface_info);
       face->extra = NULL;
     }
 }

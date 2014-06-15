@@ -1,3 +1,65 @@
+2014-06-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Include sources used to create macuvs.h.
+	* unidata/IVD_Sequences.txt: New file.
+	* unidata/Makefile.in (${top_srcdir}/src/macuvs.h): New rule.
+	(all): Build it.
+	(extraclean): Remove it.
+	* unidata/README: Mention BidiMirroring.txt and IVD_Sequences.txt.
+	* unidata/copyright.html: Update to current version from Unicode
+	Consortium.
+	* unidata/uvs.el: Rename from ../mac/uvs.el.
+	(uvs-print-table-ivd): Output a header in the form that
+	unidata-gen.el generates.
+
+2014-05-25  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* mac/uvs.el: New file from Mac port.  Generates src/macuvs.h.
+
+2014-05-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume C99 or later (Bug#17487).
+	* merge-gnulib (GNULIB_MODULES): Remove stdarg, stdbool.
+	(GNULIB_TOOL_FLAGS): Avoid stdarg, stdbool.
+
+2014-05-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Don't require pkg-config when building from repository.
+	* merge-pkg-config: New script.
+	* notes/copyright: Update for m4/*.m4, in particular m4/pkg.m4.
+
+2014-05-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* merge-gnulib: Defer to autogen.sh for ACLOCAL_PATH computation.
+
+2014-05-12  Glenn Morris  <rgm@gnu.org>
+
+	* find-gc.el: Move here from ../lisp/emacs-lisp.
+
+	* admin.el (set-version-in-file): Don't set identical version.
+	(set-version): Provide default version number.
+	(set-version, set-copyright): Give start/end messages.
+
+2014-04-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* notes/bzr: Update instructions for merging from gnulib.
+	Remove obsolete note about tramp.el and tramp-sh.el.
+	Change "emacs-23" to "emacs-24".
+
+2014-04-11  Glenn Morris  <rgm@gnu.org>
+
+	* grammars/Makefile.in (EMACSDATA, EMACSDOC, EMACSPATH): Unexport.
+
+2014-03-22  Glenn Morris  <rgm@gnu.org>
+
+	* quick-install-emacs (AVOID): Remove testfile and test-distrib.
+
+2014-03-21  Glenn Morris  <rgm@gnu.org>
+
+	* update_autogen: Auto-detect VCS in use.
+	(vcs): New variable.
+	(status, commit, main): Handle git.
+
 2014-03-07  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix oversight preventing lib/sys/types.h from being generated.

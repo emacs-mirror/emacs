@@ -102,6 +102,9 @@ Return a notification id if any, or t on success."
     ;; Don't return an id
     t))
 
+(declare-function gravatar-retrieve-synchronously "gravatar.el"
+		  (mail-address))
+
 (defun gnus-notifications-get-photo (mail-address)
   "Get photo for mail address."
   (let ((google-photo (when (and gnus-notifications-use-google-contacts

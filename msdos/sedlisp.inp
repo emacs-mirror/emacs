@@ -19,8 +19,9 @@
 /^SHELL *=/i\
 export FNCASE=y
 
+/^SHELL *=/s|@SHELL@|/bin/sh|
 /^lisp *=/s|\$(srcdir)|$(CURDIR)|
 /^srcdir *=/s|@srcdir@|.|
 /^top_srcdir *=/s|@top_srcdir@|./..|
-/^abs_top_builddir *=/s|@abs_top_builddir@|$(CURDIR)/..|
+/^XARGS_LIMIT *=/s|@XARGS_LIMIT@||
 

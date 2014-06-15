@@ -33,6 +33,7 @@
 (autoload 'url-expand-file-name "url-expand" "Convert url to a fully specified url, and canonicalize it.")
 (autoload 'mm-dissect-buffer "mm-decode" "Dissect the current buffer and return a list of MIME handles.")
 (autoload 'url-scheme-get-property "url-methods" "Get property of a URL SCHEME.")
+(autoload 'url-http-parse-response "url-http" "Parse just the response code.")
 
 ;; Always used after mm-dissect-buffer and defined in the same file.
 (declare-function mm-save-part-to-file "mm-decode" (handle file))
@@ -111,7 +112,7 @@ the mode if ARG is omitted or nil."
       (push (cons url-handler-regexp 'url-file-handler)
 	    file-name-handler-alist)))
 
-(defcustom url-handler-regexp "\\`\\(https?\\|ftp\\|file\\|nfs\\)://"
+(defcustom url-handler-regexp "\\`\\(https?\\|ftp\\|file\\|nfs\\|ssh\\|scp\\|rsync\\|telnet\\)://"
   "Regular expression for URLs handled by `url-handler-mode'.
 When URL Handler mode is enabled, this regular expression is
 added to `file-name-handler-alist'.
@@ -122,6 +123,7 @@ regular expression avoids conflicts with local files that look
 like URLs \(Gnus is particularly bad at this\)."
   :group 'url
   :type 'regexp
+  :version "24.5"
   :set (lambda (symbol value)
 	 (let ((enable url-handler-mode))
 	   (url-handler-mode 0)
@@ -136,25 +138,41 @@ like URLs \(Gnus is particularly bad at this\)."
 	(inhibit-file-name-operation operation))
     (apply operation args)))
 
+(defvar url-file-handler-load-in-progress nil
+  "Check for recursive load.")
+
 ;;;###autoload
 (defun url-file-handler (operation &rest args)
   "Function called from the `file-name-handler-alist' routines.
 OPERATION is what needs to be done (`file-exists-p', etc).  ARGS are
 the arguments that would have been passed to OPERATION."
-  (let ((fn (get operation 'url-file-handlers))
-	(val nil)
-	(hooked nil))
-    (if (and (not fn) (intern-soft (format "url-%s" operation))
-             (fboundp (intern-soft (format "url-%s" operation))))
-        (error "Missing URL handler mapping for %s" operation))
-    (if fn
-	(setq hooked t
-	      val (save-match-data (apply fn args)))
-      (setq hooked nil
-	    val (url-run-real-handler operation args)))
-    (url-debug 'handlers "%s %S%S => %S" (if hooked "Hooked" "Real")
-	       operation args val)
-    val))
+  ;; Avoid recursive load.
+  (if (and load-in-progress url-file-handler-load-in-progress)
+      (url-run-real-handler operation args)
+    (let ((url-file-handler-load-in-progress load-in-progress))
+      ;; Check, whether there are arguments we want pass to Tramp.
+      (if (catch :do
+            (dolist (url (cons default-directory args))
+              (and (member
+                    (url-type (url-generic-parse-url (and (stringp url) url)))
+                    url-tramp-protocols)
+                   (throw :do t))))
+          (apply 'url-tramp-file-handler operation args)
+        ;; Otherwise, let's do the job.
+        (let ((fn (get operation 'url-file-handlers))
+              (val nil)
+              (hooked nil))
+          (if (and (not fn) (intern-soft (format "url-%s" operation))
+                   (fboundp (intern-soft (format "url-%s" operation))))
+              (error "Missing URL handler mapping for %s" operation))
+          (if fn
+              (setq hooked t
+                    val (save-match-data (apply fn args)))
+            (setq hooked nil
+                  val (url-run-real-handler operation args)))
+          (url-debug 'handlers "%s %S%S => %S" (if hooked "Hooked" "Real")
+                     operation args val)
+          val)))))
 
 (defun url-file-handler-identity (&rest args)
   ;; Identity function
@@ -293,8 +311,15 @@ They count bytes from the beginning of the body."
 ;;;###autoload
 (defun url-insert-file-contents (url &optional visit beg end replace)
   (let ((buffer (url-retrieve-synchronously url)))
-    (if (not buffer)
-	(error "Opening input file: No such file or directory, %s" url))
+    (unless buffer (signal 'file-error (list url "No Data")))
+    (with-current-buffer buffer
+      (let ((response (url-http-parse-response)))
+        (if (and (>= response 200) (< response 300))
+            (goto-char (point-min))
+          (let ((desc (buffer-substring-no-properties (1+ (point))
+                                                      (line-end-position))))
+            (kill-buffer buffer)
+            (signal 'file-error (list url desc))))))
     (if visit (setq buffer-file-name url))
     (save-excursion
       (let* ((start (point))

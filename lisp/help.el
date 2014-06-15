@@ -1,7 +1,6 @@
 ;;; help.el --- help commands for Emacs
 
-;; Copyright (C) 1985-1986, 1993-1994, 1998-2014 Free Software
-;; Foundation, Inc.
+;; Copyright (C) 1985-1986, 1993-1994, 1998-2014 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: help, internal
@@ -32,10 +31,6 @@
 ;; Get the macro make-help-screen when this is compiled,
 ;; or run interpreted, but not when the compiled code is loaded.
 (eval-when-compile (require 'help-macro))
-
-;; This makes `with-output-to-temp-buffer' buffers use `help-mode'.
-(add-hook 'temp-buffer-setup-hook 'help-mode-setup)
-(add-hook 'temp-buffer-show-hook 'help-mode-finish)
 
 ;; `help-window-point-marker' is a marker you can move to a valid
 ;; position of the buffer shown in the help window in order to override
@@ -133,7 +128,9 @@ This function assumes that `standard-output' is the help buffer.
 It computes a message, and applies the optional argument FUNCTION to it.
 If FUNCTION is nil, it applies `message', thus displaying the message.
 In addition, this function sets up `help-return-method', which see, that
-specifies what to do when the user exits the help buffer."
+specifies what to do when the user exits the help buffer.
+
+Do not call this in the scope of `with-help-window'."
   (and (not (get-buffer-window standard-output))
        (let ((first-message
 	      (cond ((or
@@ -295,10 +292,11 @@ If that doesn't give a function, return nil."
   (interactive)
   (view-help-file "COPYING"))
 
+;; Maybe this command should just be removed.
 (defun describe-gnu-project ()
-  "Display info on the GNU project."
+  "Browse online information on the GNU project."
   (interactive)
-  (view-help-file "THE-GNU-PROJECT"))
+  (browse-url "http://www.gnu.org/gnu/thegnuproject.html"))
 
 (define-obsolete-function-alias 'describe-project 'describe-gnu-project "22.2")
 
@@ -448,7 +446,7 @@ is specified by the variable `message-log-max'."
 (defun view-lossage ()
   "Display last 300 input keystrokes.
 
-To record all your input on a file, use `open-dribble-file'."
+To record all your input, use `open-dribble-file'."
   (interactive)
   (help-setup-xref (list #'view-lossage)
 		   (called-interactively-p 'interactive))
@@ -484,8 +482,11 @@ or a buffer name."
   (or buffer (setq buffer (current-buffer)))
   (help-setup-xref (list #'describe-bindings prefix buffer)
 		   (called-interactively-p 'interactive))
-  (with-current-buffer buffer
-    (describe-bindings-internal nil prefix)))
+  (with-help-window (help-buffer)
+    ;; Be aware that `describe-buffer-bindings' puts its output into
+    ;; the current buffer.
+    (with-current-buffer (help-buffer)
+      (describe-buffer-bindings buffer prefix))))
 
 ;; This function used to be in keymap.c.
 (defun describe-bindings-internal (&optional menus prefix)
@@ -496,9 +497,13 @@ The optional argument MENUS, if non-nil, says to mention menu bindings.
 \(Ordinarily these are omitted from the output.)
 The optional argument PREFIX, if non-nil, should be a key sequence;
 then we display only bindings that start with that prefix."
+  (declare (obsolete describe-buffer-bindings "24.4"))
   (let ((buf (current-buffer)))
     (with-help-window (help-buffer)
-      (describe-buffer-bindings buf prefix menus))))
+      ;; Be aware that `describe-buffer-bindings' puts its output into
+      ;; the current buffer.
+      (with-current-buffer (help-buffer)
+	(describe-buffer-bindings buf prefix menus)))))
 
 (defun where-is (definition &optional insert)
   "Print message listing key sequences that invoke the command DEFINITION.
@@ -1180,28 +1185,25 @@ Return VALUE."
 ;; providing the following additional twists:
 
 ;; (1) It puts the buffer in `help-mode' (via `help-mode-setup') and
-;; adds cross references (via `help-mode-finish').
+;;     adds cross references (via `help-mode-finish').
 
 ;; (2) It issues a message telling how to scroll and quit the help
-;; window (via `help-window-setup').
+;;     window (via `help-window-setup').
 
 ;; (3) An option (customizable via `help-window-select') to select the
-;; help window automatically.
+;;     help window automatically.
 
 ;; (4) A marker (`help-window-point-marker') to move point in the help
-;; window to an arbitrary buffer position.
-
-;; Note: It's usually always wrong to use `help-print-return-message' in
-;; the body of `with-help-window'.
+;;     window to an arbitrary buffer position.
 (defmacro with-help-window (buffer-name &rest body)
-  "Display buffer with name BUFFER-NAME in a help window.
-Evaluate the forms in BODY with the buffer specified by
-BUFFER-NAME current, put that buffer in `help-mode', display the
-buffer in a window (see `with-temp-buffer-window' for details)
-and issue a message how to deal with that \"help\" window when
-it's no more needed.  Select the help window if the current value
-of the user option `help-window-select' says so.  Return last
-value in BODY."
+  "Display buffer named BUFFER-NAME in a help window.
+Evaluate the forms in BODY with standard output bound to a buffer
+called BUFFER-NAME (creating it if it does not exist), put that
+buffer in `help-mode', display the buffer in a window (see
+`with-temp-buffer-window' for details) and issue a message how to
+deal with that \"help\" window when it's no more needed.  Select
+the help window if the current value of the user option
+`help-window-select' says so.  Return last value in BODY."
   (declare (indent 1) (debug t))
   `(progn
      ;; Make `help-window-point-marker' point nowhere.  The only place
@@ -1222,6 +1224,113 @@ value in BODY."
     (if (stringp msg)
 	(with-output-to-temp-buffer " *Char Help*"
 	  (princ msg)))))
+
+
+;; The following functions used to be in help-fns.el, which is not preloaded.
+;; But for various reasons, they are more widely needed, so they were
+;; moved to this file, which is preloaded.  http://debbugs.gnu.org/17001
+
+(defun help-split-fundoc (docstring def)
+  "Split a function DOCSTRING into the actual doc and the usage info.
+Return (USAGE . DOC) or nil if there's no usage info, where USAGE info
+is a string describing the argument list of DEF, such as
+\"(apply FUNCTION &rest ARGUMENTS)\".
+DEF is the function whose usage we're looking for in DOCSTRING."
+  ;; Functions can get the calling sequence at the end of the doc string.
+  ;; In cases where `function' has been fset to a subr we can't search for
+  ;; function's name in the doc string so we use `fn' as the anonymous
+  ;; function name instead.
+  (when (and docstring (string-match "\n\n(fn\\(\\( .*\\)?)\\)\\'" docstring))
+    (cons (format "(%s%s"
+		  ;; Replace `fn' with the actual function name.
+		  (if (symbolp def) def "anonymous")
+		  (match-string 1 docstring))
+	  (unless (zerop (match-beginning 0))
+            (substring docstring 0 (match-beginning 0))))))
+
+(defun help-add-fundoc-usage (docstring arglist)
+  "Add the usage info to DOCSTRING.
+If DOCSTRING already has a usage info, then just return it unchanged.
+The usage info is built from ARGLIST.  DOCSTRING can be nil.
+ARGLIST can also be t or a string of the form \"(FUN ARG1 ARG2 ...)\"."
+  (unless (stringp docstring) (setq docstring ""))
+  (if (or (string-match "\n\n(fn\\(\\( .*\\)?)\\)\\'" docstring)
+          (eq arglist t))
+      docstring
+    (concat docstring
+	    (if (string-match "\n?\n\\'" docstring)
+		(if (< (- (match-end 0) (match-beginning 0)) 2) "\n" "")
+	      "\n\n")
+	    (if (and (stringp arglist)
+		     (string-match "\\`([^ ]+\\(.*\\))\\'" arglist))
+		(concat "(fn" (match-string 1 arglist) ")")
+	      (format "%S" (help-make-usage 'fn arglist))))))
+
+(defun help-function-arglist (def &optional preserve-names)
+  "Return a formal argument list for the function DEF.
+IF PRESERVE-NAMES is non-nil, return a formal arglist that uses
+the same names as used in the original source code, when possible."
+  ;; Handle symbols aliased to other symbols.
+  (if (and (symbolp def) (fboundp def)) (setq def (indirect-function def)))
+  ;; If definition is a macro, find the function inside it.
+  (if (eq (car-safe def) 'macro) (setq def (cdr def)))
+  (cond
+   ((and (byte-code-function-p def) (listp (aref def 0))) (aref def 0))
+   ((eq (car-safe def) 'lambda) (nth 1 def))
+   ((eq (car-safe def) 'closure) (nth 2 def))
+   ((or (and (byte-code-function-p def) (integerp (aref def 0)))
+        (subrp def))
+    (or (when preserve-names
+          (let* ((doc (condition-case nil (documentation def) (error nil)))
+                 (docargs (if doc (car (help-split-fundoc doc nil))))
+                 (arglist (if docargs
+                              (cdar (read-from-string (downcase docargs)))))
+                 (valid t))
+            ;; Check validity.
+            (dolist (arg arglist)
+              (unless (and (symbolp arg)
+                           (let ((name (symbol-name arg)))
+                             (if (eq (aref name 0) ?&)
+                                 (memq arg '(&rest &optional))
+                               (not (string-match "\\." name)))))
+                (setq valid nil)))
+            (when valid arglist)))
+        (let* ((args-desc (if (not (subrp def))
+                              (aref def 0)
+                            (let ((a (subr-arity def)))
+                              (logior (car a)
+                                      (if (numberp (cdr a))
+                                          (lsh (cdr a) 8)
+                                        (lsh 1 7))))))
+               (max (lsh args-desc -8))
+               (min (logand args-desc 127))
+               (rest (logand args-desc 128))
+               (arglist ()))
+          (dotimes (i min)
+            (push (intern (concat "arg" (number-to-string (1+ i)))) arglist))
+          (when (> max min)
+            (push '&optional arglist)
+            (dotimes (i (- max min))
+              (push (intern (concat "arg" (number-to-string (+ 1 i min))))
+                    arglist)))
+          (unless (zerop rest) (push '&rest arglist) (push 'rest arglist))
+          (nreverse arglist))))
+   ((and (autoloadp def) (not (eq (nth 4 def) 'keymap)))
+    "[Arg list not available until function definition is loaded.]")
+   (t t)))
+
+(defun help-make-usage (function arglist)
+  (cons (if (symbolp function) function 'anonymous)
+	(mapcar (lambda (arg)
+		  (if (not (symbolp arg)) arg
+		    (let ((name (symbol-name arg)))
+		      (cond
+                       ((string-match "\\`&" name) arg)
+                       ((string-match "\\`_" name)
+                        (intern (upcase (substring name 1))))
+                       (t (intern (upcase name)))))))
+		arglist)))
+
 
 (provide 'help)
 

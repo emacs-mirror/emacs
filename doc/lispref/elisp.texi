@@ -1,6 +1,6 @@
 \input texinfo  @c -*-texinfo-*-
 @c %**start of header
-@setfilename elisp
+@setfilename ../../info/elisp.info
 
 @ifset VOL1
 @set volflag
@@ -105,7 +105,7 @@ Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.3 or
 any later version published by the Free Software Foundation; with the
 Invariant Sections being ``GNU General Public License,'' with the
-Front-Cover texts being ``A GNU Manual,'' and with the Back-Cover
+Front-Cover Texts being ``A GNU Manual,'' and with the Back-Cover
 Texts as in (a) below.  A copy of the license is included in the
 section entitled ``GNU Free Documentation License.''
 
@@ -296,7 +296,7 @@ Lisp Data Types
 Programming Types
 
 * Integer Type::        Numbers without fractional parts.
-* Floating Point Type:: Numbers with fractional parts and with a large range.
+* Floating-Point Type:: Numbers with fractional parts and with a large range.
 * Character Type::      The representation of letters, numbers and
                           control characters.
 * Symbol Type::         A multi-use object that refers to a function,
@@ -361,7 +361,7 @@ Numbers
 * Comparison of Numbers::   Equality and inequality predicates.
 * Numeric Conversions::     Converting float to integer and vice versa.
 * Arithmetic Operations::   How to add, subtract, multiply and divide.
-* Rounding Operations::     Explicitly rounding floating point numbers.
+* Rounding Operations::     Explicitly rounding floating-point numbers.
 * Bitwise Operations::      Logical and, or, not, shifting.
 * Math Functions::          Trig, exponential and logarithmic functions.
 * Random Numbers::          Obtaining random integers, predictable or not.
@@ -1338,7 +1338,7 @@ Emacs Display
 * Selective Display::       Hiding part of the buffer text (the old way).
 * Temporary Displays::      Displays that go away automatically.
 * Overlays::                Use overlays to highlight parts of the buffer.
-* Width::                   How wide a character or string is on the screen.
+* Size of Displayed Text::  How large displayed text is.
 * Line Height::             Controlling the height of lines.
 * Faces::                   A face defines a graphics style
                               for text characters: font, colors, etc.

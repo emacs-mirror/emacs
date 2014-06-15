@@ -1416,10 +1416,7 @@ See the variable `iswitchb-case' for details."
 	  (isearch-no-upper-case-p iswitchb-text)
 	(isearch-no-upper-case-p iswitchb-text t))))
 
-;; NB obsolete/ is not scanned for autoloads.
-;; If you change any of the following doc, copy the changes to simple.el.
-
-;;;###autoload
+;;;###obsolete-autoload
 (define-minor-mode iswitchb-mode
   "Toggle Iswitchb mode.
 With a prefix argument ARG, enable Iswitchb mode if ARG is
@@ -1433,7 +1430,7 @@ between buffers using substrings.  See `iswitchb' for details."
       (add-hook 'minibuffer-setup-hook 'iswitchb-minibuffer-setup)
     (remove-hook 'minibuffer-setup-hook 'iswitchb-minibuffer-setup)))
 
-;;;###autoload
+;;;###obsolete-autoload
 (make-obsolete 'iswitchb-mode
                "use `icomplete-mode' or `ido-mode' instead." "24.4")
 

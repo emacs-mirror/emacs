@@ -1,6 +1,6 @@
 \input texinfo   @c -*- mode: texinfo; -*-
 @c %**start of header
-@setfilename ../../info/efaq
+@setfilename ../../info/efaq.info
 @settitle GNU Emacs FAQ
 @documentencoding UTF-8
 @c %**end of header
@@ -861,7 +861,6 @@ You can get Tkinfo at
 @cindex Files included with Emacs
 @cindex @file{COPYING}, description of file
 @cindex @file{DISTRIB}, description of file
-@cindex @file{GNU}, description of file
 @cindex @file{MACHINES}, description of file
 @cindex @file{NEWS}, description of file
 
@@ -882,9 +881,6 @@ GNU General Public License
 
 @item DISTRIB
 Emacs Availability Information
-
-@item GNU
-The GNU Manifesto
 
 @item MACHINES
 Status of Emacs on Various Machines and Systems
@@ -1948,7 +1944,7 @@ automatically scrolls the display horizontally when point moves off the
 left or right edge of the window.
 
 Note that this is overridden by the variable
-@code{truncate-partial-width-windows} if that variable is non-nil
+@code{truncate-partial-width-windows} if that variable is non-@code{nil}
 and the current buffer is not full-frame width.
 
 In Emacs 20, use @code{hscroll-mode}.
@@ -2410,12 +2406,12 @@ printed an error message?  If so, compiling from within Emacs using the
 @kbd{M-x compile} and @kbd{M-x recompile} commands is a much more
 effective way of doing that.  Emacs automatically intercepts the compile
 error messages, inserts them into a special buffer called
-@code{*compilation*}, and lets you visit the locus of each message in
+@file{*compilation*}, and lets you visit the locus of each message in
 the source.  Type @kbd{C-x `} to step through the offending lines one by
 one (starting with Emacs 22, you can also use @kbd{M-g M-p} and
 @kbd{M-g M-n} to go to the previous and next matches directly).  Click
 @kbd{Mouse-2} or press @key{RET} on a message text in the
-@code{*compilation*} buffer to go to the line whose number is mentioned
+@file{*compilation*} buffer to go to the line whose number is mentioned
 in that message.
 
 But if you indeed need to go to a certain text line, type @kbd{M-g M-g}
@@ -3268,8 +3264,8 @@ archive sites that make GNU software available.
 
 First of all, you should check to make sure that the package isn't
 already available.  For example, typing @kbd{M-x apropos @key{RET}
-wordstar @key{RET}} lists all functions and variables containing the
-string @samp{wordstar}.
+python @key{RET}} lists all functions and variables containing the
+string @samp{python}.
 
 It is also possible that the package is on your system, but has not been
 loaded.  To see which packages are available for loading, look through

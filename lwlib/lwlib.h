@@ -42,22 +42,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 ** main:     ("name")
 */
 
+#include "lwlib-widget.h"
+
 typedef unsigned long LWLIB_ID;
-
-typedef enum _change_type
-{
-  NO_CHANGE = 0,
-  INVISIBLE_CHANGE = 1,
-  VISIBLE_CHANGE = 2,
-  STRUCTURAL_CHANGE = 3
-} change_type;
-
-enum button_type
-{
-  BUTTON_TYPE_NONE,
-  BUTTON_TYPE_TOGGLE,
-  BUTTON_TYPE_RADIO
-};
 
 /* Menu separator types.  */
 
@@ -80,51 +67,6 @@ enum menu_separator
   SEPARATOR_SHADOW_DOUBLE_ETCHED_IN_DASH,
   SEPARATOR_SHADOW_DOUBLE_ETCHED_OUT_DASH
 };
-
-typedef struct _widget_value
-{
-  /* name of widget */
-  Lisp_Object   lname;
-  char*		name;
-  /* value (meaning depend on widget type) */
-  char*		value;
-  /* keyboard equivalent. no implications for XtTranslations */
-  Lisp_Object   lkey;
-  char*		key;
-  /* Help string or nil if none.
-     GC finds this string through the frame's menu_bar_vector
-     or through menu_items.  */
-  Lisp_Object	help;
-  /* true if enabled */
-  Boolean	enabled;
-  /* true if selected */
-  Boolean	selected;
-  /* true if was edited (maintained by get_value) */
-  Boolean	edited;
-  /* The type of a button.  */
-  enum button_type button_type;
-  /* true if has changed (maintained by lw library) */
-  change_type	change;
-  /* true if this widget itself has changed,
-     but not counting the other widgets found in the `next' field.  */
-  change_type   this_one_change;
-  /* Contents of the sub-widgets, also selected slot for checkbox */
-  struct _widget_value*	contents;
-  /* data passed to callback */
-  XtPointer	call_data;
-  /* next one in the list */
-  struct _widget_value*	next;
-  /* slot for the toolkit dependent part.  Always initialize to NULL. */
-  void* toolkit_data;
-  /* tell us if we should free the toolkit data slot when freeing the
-     widget_value itself. */
-  Boolean free_toolkit_data;
-
-  /* we resource the widget_value structures; this points to the next
-     one on the free list if this one has been deallocated.
-   */
-  struct _widget_value *free_list;
-} widget_value;
 
 
 typedef void (*lw_callback) (Widget w, LWLIB_ID id, void* data);
@@ -153,8 +95,6 @@ widget_value* lw_get_all_values (LWLIB_ID id);
 Boolean lw_get_some_values (LWLIB_ID id, widget_value* val);
 void lw_pop_up_all_widgets (LWLIB_ID id);
 void lw_pop_down_all_widgets (LWLIB_ID id);
-widget_value *malloc_widget_value (void);
-void free_widget_value (widget_value *);
 void lw_popup_menu (Widget, XEvent *);
 
 /* Toolkit independent way of focusing on a Widget at the Xt level. */

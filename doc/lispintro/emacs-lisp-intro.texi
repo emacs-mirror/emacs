@@ -1,6 +1,6 @@
 \input texinfo                                      @c -*-texinfo-*-
 @comment %**start of header
-@setfilename ../../info/eintr
+@setfilename ../../info/eintr.info
 @c setfilename emacs-lisp-intro.info
 @c sethtmlfilename emacs-lisp-intro.html
 @settitle Programming in Emacs Lisp
@@ -17548,8 +17548,8 @@ are not loaded right away; but you need to wait a moment when you
 first use such a function, while its containing file is evaluated.
 
 Rarely used functions are frequently autoloaded.  The
-@file{loaddefs.el} library contains hundreds of autoloaded functions,
-from @code{bookmark-set} to @code{wordstar-mode}.  Of course, you may
+@file{loaddefs.el} library contains thousands of autoloaded functions,
+from @code{5x5} to @code{zone}.  Of course, you may
 come to use a `rare' function frequently.  When you do, you should
 load that function's file with a @code{load} expression in your
 @file{.emacs} file.

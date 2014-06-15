@@ -221,13 +221,18 @@ Python does not lend itself to fully automatic indentation.")
 (defvar electric-indent-functions-without-reindent
   '(indent-relative indent-to-left-margin indent-relative-maybe
     py-indent-line coffee-indent-line org-indent-line yaml-indent-line
-    haskell-indentation-indent-line haskell-indent-cycle haskell-simple-indent)
+    haskell-indentation-indent-line haskell-indent-cycle haskell-simple-indent
+    yaml-indent-line)
   "List of indent functions that can't reindent.
 If `line-indent-function' is one of those, then `electric-indent-mode' will
 not try to reindent lines.  It is normally better to make the major
 mode set `electric-indent-inhibit', but this can be used as a workaround.")
 
 (defun electric-indent-post-self-insert-function ()
+  "Function that `electric-indent-mode' adds to `post-self-insert-hook'.
+This indents if the hook `electric-indent-functions' returns non-nil,
+or if a member of `electric-indent-chars' was typed; but not in a string
+or comment."
   ;; FIXME: This reindents the current line, but what we really want instead is
   ;; to reindent the whole affected text.  That's the current line for simple
   ;; cases, but not all cases.  We do take care of the newline case in an
@@ -254,29 +259,30 @@ mode set `electric-indent-inhibit', but this can be used as a workaround.")
                     (unless (eq act 'do-indent) (nth 8 (syntax-ppss))))))))
       ;; For newline, we want to reindent both lines and basically behave like
       ;; reindent-then-newline-and-indent (whose code we hence copied).
-      (when (<= pos (line-beginning-position))
-        (let ((before (copy-marker (1- pos) t)))
-          (save-excursion
-            (unless (or (memq indent-line-function
-                              electric-indent-functions-without-reindent)
-                        electric-indent-inhibit)
-              ;; Don't reindent the previous line if the indentation function
-              ;; is not a real one.
+      (let ((at-newline (<= pos (line-beginning-position))))
+        (when at-newline
+          (let ((before (copy-marker (1- pos) t)))
+            (save-excursion
+              (unless (or (memq indent-line-function
+                                electric-indent-functions-without-reindent)
+                          electric-indent-inhibit)
+                ;; Don't reindent the previous line if the indentation function
+                ;; is not a real one.
+                (goto-char before)
+                (indent-according-to-mode))
+              ;; We are at EOL before the call to indent-according-to-mode, and
+              ;; after it we usually are as well, but not always.  We tried to
+              ;; address it with `save-excursion' but that uses a normal marker
+              ;; whereas we need `move after insertion', so we do the
+              ;; save/restore by hand.
               (goto-char before)
-              (indent-according-to-mode))
-            ;; We are at EOL before the call to indent-according-to-mode, and
-            ;; after it we usually are as well, but not always.  We tried to
-            ;; address it with `save-excursion' but that uses a normal marker
-            ;; whereas we need `move after insertion', so we do the
-            ;; save/restore by hand.
-            (goto-char before)
-	    (when (eolp)
-	      ;; Remove the trailing whitespace after indentation because
-	      ;; indentation may (re)introduce the whitespace.
-	      (delete-horizontal-space t)))))
-      (unless (and electric-indent-inhibit
-                   (> pos (line-beginning-position)))
-        (indent-according-to-mode)))))
+              (when (eolp)
+                ;; Remove the trailing whitespace after indentation because
+                ;; indentation may (re)introduce the whitespace.
+                (delete-horizontal-space t)))))
+        (unless (and electric-indent-inhibit
+                     (not at-newline))
+          (indent-according-to-mode))))))
 
 (put 'electric-indent-post-self-insert-function 'priority  60)
 
@@ -286,6 +292,21 @@ mode set `electric-indent-inhibit', but this can be used as a workaround.")
   (let ((electric-indent-mode nil))
     (newline arg 'interactive)))
 
+;;;###autoload
+(define-key global-map "\C-j" 'electric-newline-and-maybe-indent)
+;;;###autoload
+(defun electric-newline-and-maybe-indent ()
+  "Insert a newline.
+If `electric-indent-mode' is enabled, that's that, but if it
+is *disabled* then additionally indent according to major mode.
+Indentation is done using the value of `indent-line-function'.
+In programming language modes, this is the same as TAB.
+In some text modes, where TAB inserts a tab, this command indents to the
+column specified by the function `current-left-margin'."
+  (interactive "*")
+  (if electric-indent-mode
+      (electric-indent-just-newline nil)
+    (newline-and-indent)))
 
 ;;;###autoload
 (define-minor-mode electric-indent-mode
@@ -294,21 +315,21 @@ With a prefix argument ARG, enable Electric Indent mode if ARG is
 positive, and disable it otherwise.  If called from Lisp, enable
 the mode if ARG is omitted or nil.
 
-This is a global minor mode.  When enabled, it reindents whenever
-the hook `electric-indent-functions' returns non-nil, or you
-insert a character from `electric-indent-chars'."
+When enabled, this reindents whenever the hook `electric-indent-functions'
+returns non-nil, or if you insert a character from `electric-indent-chars'.
+
+This is a global minor mode.  To toggle the mode in a single buffer,
+use `electric-indent-local-mode'."
   :global t :group 'electricity
   :initialize 'custom-initialize-delay
   :init-value t
   (if (not electric-indent-mode)
-      (progn
-        (when (eq (lookup-key global-map [?\C-j])
-                  'electric-indent-just-newline)
-          (define-key global-map [?\C-j] 'newline-and-indent))
+      (unless (catch 'found
+                (dolist (buf (buffer-list))
+                  (with-current-buffer buf
+                    (if electric-indent-mode (throw 'found t)))))
         (remove-hook 'post-self-insert-hook
                      #'electric-indent-post-self-insert-function))
-    (when (eq (lookup-key global-map [?\C-j]) 'newline-and-indent)
-      (define-key global-map [?\C-j] 'electric-indent-just-newline))
     (add-hook 'post-self-insert-hook
               #'electric-indent-post-self-insert-function)
     (electric--sort-post-self-insertion-hook)))

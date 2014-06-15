@@ -73,7 +73,7 @@ end;"
 (define-obsolete-variable-alias
   'delphi-compound-block-indent 'opascal-compound-block-indent "24.4")
 (defcustom opascal-compound-block-indent 0
-  "Extra indentation for blocks in compound statements. E.g.
+  "Extra indentation for blocks in compound statements.  E.g.
 
 // block indent = 0     vs      // block indent = 2
 if b then                       if b then
@@ -87,7 +87,7 @@ end;                            else
 (define-obsolete-variable-alias
   'delphi-case-label-indent 'opascal-case-label-indent "24.4")
 (defcustom opascal-case-label-indent opascal-indent-level
-  "Extra indentation for case statement labels. E.g.
+  "Extra indentation for case statement labels.  E.g.
 
 // case indent = 0      vs      // case indent = 3
 case value of                   case value of
@@ -1744,7 +1744,7 @@ comment block.  If not in a // comment, just does a normal newline."
 (define-obsolete-function-alias 'delphi-mode 'opascal-mode "24.4")
 ;;;###autoload
 (define-derived-mode opascal-mode prog-mode "OPascal"
-  "Major mode for editing OPascal code. \\<opascal-mode-map>
+  "Major mode for editing OPascal code.\\<opascal-mode-map>
 \\[opascal-find-unit]\t- Search for a OPascal source file.
 \\[opascal-fill-comment]\t- Fill the current comment.
 \\[opascal-new-comment-line]\t- If in a // comment, do a new comment line.
@@ -1766,11 +1766,8 @@ Customization:
 
 Coloring:
 
- `opascal-keyword-face'                (default font-lock-keyword-face)
-    Face used to color OPascal keywords.
-
-Turning on OPascal mode calls the value of the variable `opascal-mode-hook'
-with no args, if that value is non-nil."
+ `opascal-keyword-face'                (default `font-lock-keyword-face')
+    Face used to color OPascal keywords."
 
   ;; Buffer locals:
   (setq-local indent-line-function #'opascal-indent-line)

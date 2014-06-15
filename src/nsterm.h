@@ -42,6 +42,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef MAC_OS_X_VERSION_10_8
 #define MAC_OS_X_VERSION_10_8 1080
 #endif
+#ifndef MAC_OS_X_VERSION_10_9
+#define MAC_OS_X_VERSION_10_9 1090
+#endif
 
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
 #define HAVE_NATIVE_FS
@@ -159,6 +162,7 @@ typedef float EmacsCGFloat;
    int scrollbarsNeedingUpdate;
    EmacsToolbar *toolbar;
    NSRect ns_userRect;
+   BOOL wait_for_tool_bar;
    }
 
 /* AppKit-side interface */
@@ -851,7 +855,7 @@ extern void find_and_call_menu_selection (struct frame *f,
 extern Lisp_Object find_and_return_menu_selection (struct frame *f,
                                                    bool keymaps,
                                                    void *client_data);
-extern Lisp_Object ns_popup_dialog (Lisp_Object position, Lisp_Object header,
+extern Lisp_Object ns_popup_dialog (struct frame *, Lisp_Object header,
                                     Lisp_Object contents);
 
 #define NSAPP_DATA2_RUNASSCRIPT 10
@@ -891,6 +895,9 @@ extern int ns_select (int nfds, fd_set *readfds, fd_set *writefds,
 		      sigset_t const *sigmask);
 extern unsigned long ns_get_rgb_color (struct frame *f,
                                        float r, float g, float b, float a);
+
+extern void ns_init_events ();
+extern void ns_finish_events ();
 
 /* From nsterm.m, needed in nsfont.m. */
 #ifdef __OBJC__

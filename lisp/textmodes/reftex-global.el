@@ -29,6 +29,7 @@
 (require 'reftex)
 ;;;
 
+;;;###autoload
 (defun reftex-create-tags-file ()
   "Create TAGS file by running `etags' on the current document.
 The TAGS file is also immediately visited with `visit-tags-table'."
@@ -48,6 +49,7 @@ The TAGS file is also immediately visited with `visit-tags-table'."
 (defvar reftex-grep-command "grep -n "
   "Last grep command used in \\[reftex-grep-document]; default for next grep.")
 
+;;;###autoload
 (defun reftex-grep-document (grep-cmd)
   "Run grep query through all files related to this document.
 With prefix arg, force to rescan document.
@@ -64,6 +66,7 @@ No active TAGS table is required."
                   (mapconcat 'identity files " "))))
     (grep cmd)))
 
+;;;###autoload
 (defun reftex-search-document (&optional regexp)
   "Regexp search through all files of the current document.
 Starts always in the master file.  Stops when a match is found.
@@ -79,6 +82,7 @@ No active TAGS table is required."
     (reftex-access-scan-info current-prefix-arg)
     (tags-search regexp (list 'reftex-all-document-files))))
 
+;;;###autoload
 (defun reftex-query-replace-document (&optional from to delimited)
   "Do `query-replace-regexp' of FROM with TO over the entire document.
 Third arg DELIMITED (prefix arg) means replace only word-delimited matches.
@@ -100,6 +104,7 @@ No active TAGS table is required."
 (defvar TeX-master)
 (defvar isearch-next-buffer-function)
 
+;;;###autoload
 (defun reftex-find-duplicate-labels ()
   "Produce a list of all duplicate labels in the document."
 
@@ -158,6 +163,7 @@ No active TAGS table is required."
       (delete-window)
       (message "Document does not contain duplicate labels."))))
 
+;;;###autoload
 (defun reftex-change-label (&optional from to)
   "Run `query-replace-regexp' of FROM with TO in all macro arguments.
 Works on the entire multifile document.
@@ -177,6 +183,7 @@ No active TAGS table is required."
      (concat "{" (regexp-quote from) "}")
      (format "{%s}" to))))
 
+;;;###autoload
 (defun reftex-renumber-simple-labels ()
   "Renumber all simple labels in the document to make them sequentially.
 Simple labels are the ones created by RefTeX, consisting only of the
@@ -304,6 +311,7 @@ one with the `xr' package."
                  (t nil))))))))
     n))
 
+;;;###autoload
 (defun reftex-save-all-document-buffers ()
   "Save all documents associated with the current document.
 The function is useful after a global action like replacing or renumbering
@@ -414,6 +422,7 @@ Also checks if buffers visiting the files are in read-only mode."
       (when flist
 	(find-file-noselect (car flist))))))
 
+;; NB this is a global autoload - see reftex.el.
 ;;;###autoload
 (defun reftex-isearch-minor-mode (&optional arg)
   "When on, isearch searches the whole document, not only the current file.
@@ -466,3 +475,7 @@ With no argument, this command toggles
 		'reftex-isearch-minor-mode)
 
 ;;; reftex-global.el ends here
+
+;; Local Variables:
+;; generated-autoload-file: "reftex.el"
+;; End:

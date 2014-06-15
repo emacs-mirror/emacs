@@ -36,8 +36,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "termhooks.h"
 #include "termchar.h"
 #include "dispextern.h"
+#include "menu.h"	/* for tty_menu_show */
 #include "w32term.h"
-#include "w32common.h" /* for os_subtype */
+#include "w32common.h"	/* for os_subtype */
 #include "w32inevt.h"
 
 /* from window.c */
@@ -650,6 +651,7 @@ initialize_w32_display (struct terminal *term, int *width, int *height)
 
   term->read_socket_hook = w32_console_read_socket;
   term->mouse_position_hook = w32_console_mouse_position;
+  term->menu_show_hook = tty_menu_show;
 
   /* The following are not used on the console.  */
   term->frame_rehighlight_hook = 0;

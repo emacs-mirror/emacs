@@ -46,7 +46,7 @@ extern void syms_of_keymap (void);
 extern void keys_of_keymap (void);
 
 typedef void (*map_keymap_function_t)
-     (Lisp_Object key, Lisp_Object val, Lisp_Object args, void* data);
+     (Lisp_Object key, Lisp_Object val, Lisp_Object args, void *data);
 extern void map_keymap (Lisp_Object, map_keymap_function_t, Lisp_Object,
 			void *, bool);
 extern void map_keymap_canonical (Lisp_Object map,

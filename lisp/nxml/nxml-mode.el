@@ -3,7 +3,7 @@
 ;; Copyright (C) 2003-2004, 2007-2014 Free Software Foundation, Inc.
 
 ;; Author: James Clark
-;; Keywords: XML
+;; Keywords: wp, hypermedia, languages, XML
 
 ;; This file is part of GNU Emacs.
 
@@ -872,7 +872,7 @@ Called with `font-lock-beg' and `font-lock-end' dynamically bound."
 
 (defun nxml-fontify-matcher (bound)
   "Called as font-lock keyword matcher."
-
+  (syntax-propertize bound)
   (unless nxml-degraded
     (nxml-debug-change "nxml-fontify-matcher" (point) bound)
 
@@ -2567,7 +2567,7 @@ With a prefix argument, inserts the character directly."
 	       (> (prefix-numeric-value arg) 0))))
     (when (not (eq new nxml-char-ref-extra-display))
       (setq nxml-char-ref-extra-display new)
-      (font-lock-fontify-buffer))))
+      (font-lock-flush))))
 
 (put 'nxml-char-ref 'evaporate t)
 
@@ -2630,8 +2630,9 @@ With a prefix argument, inserts the character directly."
 (put 'entity-ref 'nxml-friendly-name "entity reference")
 (put 'char-ref 'nxml-friendly-name "character reference")
 
-;;;###autoload
-(defalias 'xml-mode 'nxml-mode)
+;; Only do this in loaddefs, so that if someone defines a different
+;; alias in .emacs, loading this file afterwards does not clobber it.
+;;;###autoload(defalias 'xml-mode 'nxml-mode)
 
 (provide 'nxml-mode)
 

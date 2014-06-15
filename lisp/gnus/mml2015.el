@@ -28,9 +28,6 @@
 ;;; Code:
 
 (eval-and-compile
-  ;; For Emacs <22.2 and XEmacs.
-  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r)))
-
   (if (locate-library "password-cache")
       (require 'password-cache)
     (require 'password)))
@@ -51,12 +48,10 @@
 ;; Then mml1991 would not need to require mml2015, and mml1991-use
 ;; could be removed.
 (defvar mml2015-use (or
-		     (condition-case nil
-			 (progn
-			   (require 'epg-config)
-			   (epg-check-configuration (epg-configuration))
-			   'epg)
-		       (error))
+		     (progn
+		       (ignore-errors (require 'epg-config))
+		       (and (fboundp 'epg-check-configuration)
+			   'epg))
 		     (progn
 		       (let ((abs-file (locate-library "pgg")))
 			 ;; Don't load PGG if it is marked as obsolete
@@ -151,6 +146,12 @@ If set, it overrides the setting of `mml2015-sign-with-sender'."
   :version "24.4"
   :group 'mime-security
   :type 'integer)
+
+(defcustom mml2015-display-key-image t
+  "If t, try to display key images."
+  :version "24.5"
+  :group 'mime-security
+  :type 'boolean)
 
 ;; Extract plaintext from cleartext signature.  IMO, this kind of task
 ;; should be done by GnuPG rather than Elisp, but older PGP backends
@@ -903,7 +904,8 @@ If set, it overrides the setting of `mml2015-sign-with-sender'."
 
 (defun mml2015-epg-signature-to-string (signature)
   (concat (epg-signature-to-string signature)
-	  (mml2015-epg-key-image-to-string (epg-signature-key-id signature))))
+          (when mml2015-display-key-image
+            (mml2015-epg-key-image-to-string (epg-signature-key-id signature)))))
 
 (defun mml2015-epg-verify-result-to-string (verify-result)
   (mapconcat #'mml2015-epg-signature-to-string verify-result "\n"))

@@ -506,7 +506,7 @@ keyboard input that you would use to invoke the macro---@kbd{C-x e} or
 @findex kmacro-step-edit-macro
 @kindex C-x C-k SPC
   You can interactively replay and edit the last keyboard
-macro, one command at a time, by typing @kbd{C-x C-k SPC}
+macro, one command at a time, by typing @kbd{C-x C-k @key{SPC}}
 (@code{kmacro-step-edit-macro}).  Unless you quit the macro using
 @kbd{q} or @kbd{C-g}, the edited macro replaces the last macro on the
 macro ring.
@@ -518,15 +518,15 @@ options.  These actions are available:
 
 @itemize @bullet{}
 @item
-@kbd{SPC} and @kbd{y} execute the current command, and advance to the
+@key{SPC} and @kbd{y} execute the current command, and advance to the
 next command in the keyboard macro.
 @item
-@kbd{n}, @kbd{d}, and @kbd{DEL} skip and delete the current command.
+@kbd{n}, @kbd{d}, and @key{DEL} skip and delete the current command.
 @item
 @kbd{f} skips the current command in this execution of the keyboard
 macro, but doesn't delete it from the macro.
 @item
-@kbd{@key{TAB}} executes the current command, as well as all similar
+@key{TAB} executes the current command, as well as all similar
 commands immediately following the current command; for example, @key{TAB}
 may be used to insert a sequence of characters (corresponding to a
 sequence of @code{self-insert-command} commands).
@@ -542,31 +542,31 @@ with the edited macro.
 @kbd{q} and @kbd{C-g} cancels the step-editing of the keyboard macro;
 discarding any changes made to the keyboard macro.
 @item
-@kbd{i KEY... C-j} reads and executes a series of key sequences (not
+@kbd{i @var{key}@dots{} C-j} reads and executes a series of key sequences (not
 including the final @kbd{C-j}), and inserts them before the current
 command in the keyboard macro, without advancing over the current
 command.
 @item
-@kbd{I KEY...} reads one key sequence, executes it, and inserts it
+@kbd{I @var{key}@dots{}} reads one key sequence, executes it, and inserts it
 before the current command in the keyboard macro, without advancing
 over the current command.
 @item
-@kbd{r KEY... C-j} reads and executes a series of key sequences (not
+@kbd{r @var{key}@dots{} C-j} reads and executes a series of key sequences (not
 including the final @kbd{C-j}), and replaces the current command in
 the keyboard macro with them, advancing over the inserted key
 sequences.
 @item
-@kbd{R KEY...} reads one key sequence, executes it, and replaces the
+@kbd{R @var{key}@dots{}} reads one key sequence, executes it, and replaces the
 current command in the keyboard macro with that key sequence,
 advancing over the inserted key sequence.
 @item
-@kbd{a KEY... C-j} executes the current command, then reads and
+@kbd{a @var{key}@dots{} C-j} executes the current command, then reads and
 executes a series of key sequences (not including the final
 @kbd{C-j}), and inserts them after the current command in the keyboard
 macro; it then advances over the current command and the inserted key
 sequences.
 @item
-@kbd{A KEY... C-j} executes the rest of the commands in the keyboard
+@kbd{A @var{key}@dots{} C-j} executes the rest of the commands in the keyboard
 macro, then reads and executes a series of key sequences (not
 including the final @kbd{C-j}), and appends them at the end of the
 keyboard macro; it then terminates the step-editing and replaces the

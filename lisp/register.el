@@ -27,7 +27,7 @@
 ;; This package of functions emulates and somewhat extends the venerable
 ;; TECO's `register' feature, which permits you to save various useful
 ;; pieces of buffer state to named variables.  The entry points are
-;; documented in the Emacs user's manual.
+;; documented in the Emacs user's manual: (info "(emacs) Registers").
 
 (eval-when-compile (require 'cl-lib))
 
@@ -81,10 +81,9 @@ A list of the form (FRAME-CONFIGURATION POSITION)
 (defcustom register-separator nil
   "Register containing the text to put between collected texts, or nil if none.
 
-When collecting text with
-`append-to-register' (resp. `prepend-to-register') contents of
-this register is added to the beginning (resp. end) of the marked
-text."
+When collecting text with \\[append-to-register] (or \\[prepend-to-register]),
+contents of this register is added to the beginning (or end, respectively)
+of the marked text."
   :group 'register
   :type '(choice (const :tag "None" nil)
 		 (character :tag "Use register" :value ?+)))
@@ -121,8 +120,8 @@ See the documentation of the variable `register-alist' for possible VALUEs."
 
 (defun register-preview-default (r)
   "Default function for the variable `register-preview-function'."
-  (format "%s %s\n"
-	  (concat (single-key-description (car r)) ":")
+  (format "%s: %s\n"
+	  (single-key-description (car r))
 	  (register-describe-oneline (car r))))
 
 (defvar register-preview-function #'register-preview-default
@@ -135,7 +134,7 @@ Returns a string.")
 If SHOW-EMPTY is non-nil show the window even if no registers.
 Format of each entry is controlled by the variable `register-preview-function'."
   (when (or show-empty (consp register-alist))
-    (with-temp-buffer-window
+    (with-current-buffer-window
      buffer
      (cons 'display-buffer-below-selected
 	   '((window-height . fit-window-to-buffer)))
@@ -162,7 +161,7 @@ display such a window regardless."
 			      collect c)))
     (unwind-protect
 	(progn
-	  (while (memq (read-event (propertize prompt 'face 'minibuffer-prompt))
+	  (while (memq (read-key (propertize prompt 'face 'minibuffer-prompt))
 		       help-chars)
 	    (unless (get-buffer-window buffer)
 	      (register-preview buffer 'show-empty)))
@@ -456,10 +455,10 @@ Interactively, reads the register using `register-read-with-preview'."
 (defun copy-to-register (register start end &optional delete-flag region)
   "Copy region into register REGISTER.
 With prefix arg, delete as well.
-Called from program, takes four args: REGISTER, START, END and DELETE-FLAG.
-START and END are buffer positions indicating what to copy.
-The optional argument REGION if non-nil, indicates that we're not just copying
-some text between START and END, but we're copying the region.
+Called from program, takes five args: REGISTER, START, END, DELETE-FLAG,
+and REGION.  START and END are buffer positions indicating what to copy.
+The optional argument REGION if non-nil, indicates that we're not just
+copying some text between START and END, but we're copying the region.
 
 Interactively, reads the register using `register-read-with-preview'."
   (interactive (list (register-read-with-preview "Copy to register: ")

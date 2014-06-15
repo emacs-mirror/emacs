@@ -847,8 +847,8 @@ struct buffer
   struct region_cache *width_run_cache;
   struct region_cache *bidi_paragraph_cache;
 
-  /* Non-zero means don't use redisplay optimizations for
-     displaying this buffer.  */
+  /* Non-zero means disable redisplay optimizations when rebuilding the glyph
+     matrices (but not when redrawing).  */
   bool_bf prevent_redisplay_optimizations_p : 1;
 
   /* Non-zero whenever the narrowing is changed in this buffer.  */
@@ -1079,7 +1079,7 @@ extern ptrdiff_t overlay_strings (ptrdiff_t, struct window *, unsigned char **);
 extern void validate_region (Lisp_Object *, Lisp_Object *);
 extern void set_buffer_internal_1 (struct buffer *);
 extern void set_buffer_temp (struct buffer *);
-extern Lisp_Object buffer_local_value_1 (Lisp_Object, Lisp_Object);
+extern Lisp_Object buffer_local_value (Lisp_Object, Lisp_Object);
 extern void record_buffer (Lisp_Object);
 extern void fix_overlays_before (struct buffer *, ptrdiff_t, ptrdiff_t);
 extern void mmap_set_vars (bool);

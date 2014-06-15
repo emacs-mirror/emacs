@@ -42,5 +42,5 @@ export MAKEINFO := $(MAKEINFO) $(MAKEINFO_OPTS)
   s/^	for file in $(INFO_TARGETS)\; do rm -f.*$/	rm -f $(INFO_TARGETS)/
 }
 
-/^mkinfodir *=/s| @.*$|@command.com /c if not exist ..\\..\\info\\emacs mkdir ..\\..\\info|
+/^mkinfodir *=/s| @.*$|@command.com /c if not exist ..\\..\\info\\emacs$(INFO_EXT) mkdir ..\\..\\info|
 

@@ -165,6 +165,27 @@ created."
 
 ;; From src/xfns.c
 (defun x-list-fonts (_pattern &optional _face _frame _maximum width)
+  "Return a list of the names of available fonts matching PATTERN.
+If optional arguments FACE and FRAME are specified, return only fonts
+the same size as FACE on FRAME.
+
+PATTERN should be a string containing a font name in the XLFD,
+Fontconfig, or GTK format.  A font name given in the XLFD format may
+contain wildcard characters:
+  the * character matches any substring, and
+  the ? character matches any single character.
+  PATTERN is case-insensitive.
+
+The return value is a list of strings, suitable as arguments to
+\`set-face-font'.
+
+Fonts Emacs can't use may or may not be excluded
+even if they match PATTERN and FACE.
+The optional fourth argument MAXIMUM sets a limit on how many
+fonts to match.  The first MAXIMUM fonts are reported.
+The optional fifth argument WIDTH, if specified, is a number of columns
+occupied by a character of a font.  In that case, return only fonts
+the WIDTH times as wide as FACE on FRAME."
   (if (or (null width) (and (numberp width) (= width 1)))
       (list "ms-dos")
     (list "no-such-font")))
@@ -232,9 +253,9 @@ is not used)."
       (w16-set-clipboard-data text))
   (setq x-last-selected-text text))
 
-;;; Return the value of the current selection.
-;;; Consult the selection.  Treat empty strings as if they were unset.
 (defun x-get-selection-value ()
+  "Return the value of the current selection.
+Consult the selection.  Treat empty strings as if they were unset."
   (if x-select-enable-clipboard
       (let (text)
 	;; Don't die if x-get-selection signals an error.

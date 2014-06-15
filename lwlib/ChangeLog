@@ -1,3 +1,41 @@
+2014-06-04  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* lwlib-widget.h (widget_value) [USE_X_TOOLKIT]: Use X toolkit
+	fields conditionally.
+
+2014-06-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Do not require libXt-devel when building with gtk.
+	* lwlib-widget.h: New file, with contents taken from lwlib.h.
+	(widget_value) [HAVE_NTGUI]: New member 'title'.
+	* lwlib.h: Include lwlib-widget.h.
+	(change_type, enum button_type, widget_value):
+	Move to lwlib-widget.h.
+
+2014-06-03  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xlwmenu.c (openXftFont): Do not load regular X font here.
+	(XlwMenuInitialize): Remove ancient #if 0 code.
+	(XlwMenuDestroy): Likewise.  Free regular X font here.
+
+2014-06-02  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Use common memory management functions for widgets.
+	* lwlib.h (widget_value): Do not maintain a free list any more.
+	(malloc_widget_value, free_widget_value): Remove prototypes.
+	* lwlib.c (malloc_widget_value, free_widget_value):
+	(widget_value_free_list, malloc_cpt): Remove.
+	(free_widget_value_tree, copy_widget_value_tree): Adjust users.
+
+2014-05-30  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Use common string allocation and freeing functions where applicable.
+	* lwlib.h (safe_strdup): Remove prototype.
+	* lwlib.c (safe_strdup, safe_free_str): Remove.
+	(copy_widget_value_tree, allocate_widget_info, free_widget_info):
+	(merge_widget_value): Prefer xstrdup, xfree and dupstring.
+	* lwlib-Xm.c (make_destroyed_instance, xm_update_one_value): Ditto.
+
 2013-12-14  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Use bool for boolean, focusing on headers.

@@ -5,6 +5,11 @@ Instructions to create pretest or release tarballs. -*- coding: utf-8 -*-
 
 Steps to take before starting on the first pretest in any release sequence:
 
+0.  The release branch (e.g. emacs-24) should already have been made
+    and you should use it for all that follows.  Diffs from this
+    branch should be going to the emacs-diffs mailing list (see
+    admin/notes/bzr section on bzr-email plugin).
+
 1.  Decide on versions of automake and autoconf, and ensure you will
     have them available for the duration of the release process.
 
@@ -14,17 +19,15 @@ Steps to take before starting on the first pretest in any release sequence:
     when preparing the first pretest for a major Emacs release.)
     Commit cus-edit.el if changed.
 
+3.  Remove any old pretests from ftp://alpha.gnu.org/gnu/emacs/pretest.
+    You can use `gnupload --delete' (see below for more gnupload details).
 
 General steps (for each step, check for possible errors):
 
 1.  `bzr update' (for a bound branch), or `bzr pull'.
      bzr status   # check for locally modified files
 
-2.  Bootstrap to make 100% sure all elc files are up-to-date, and to
-    make sure that the later tagged version will bootstrap, should it be
-    necessary to check it out.
-
-3.  Regenerate the etc/AUTHORS file:
+2.  Regenerate the etc/AUTHORS file:
       M-: (require 'authors) RET
       M-x authors RET
 
@@ -39,7 +42,7 @@ General steps (for each step, check for possible errors):
     authors-ambiguous-files or authors-aliases, and repeat.
     Commit any fixes to ChangeLogs or authors.el.
 
-4.  Set the version number (M-x load-file RET admin/admin.el RET, then
+3.  Set the version number (M-x load-file RET admin/admin.el RET, then
     M-x set-version RET).  For a release, add released ChangeLog
     entries (M-x add-release-logs RET).
 
@@ -54,31 +57,37 @@ General steps (for each step, check for possible errors):
     emacs-XX.Y-rc1.tar.  If all goes well in the following week, you
     can simply rename the file and use it for the actual release.
 
-5.   autoreconf -i -I m4 --force
+4.   autoreconf -i -I m4 --force
      make bootstrap
 
      make -C etc/refcards
      make -C etc/refcards clean
 
-6.  Copy lisp/loaddefs.el to lisp/ldefs-boot.el.
+5.  Copy lisp/loaddefs.el to lisp/ldefs-boot.el.
 
     Commit etc/AUTHORS, lisp/ldefs-boot.el, and the files changed
-    by M-x set-version.
+    by M-x set-version.  Use a commit log message that bzrmerge.el
+    will ignore (eg "Bump version...").
     For a release, also commit the ChangeLog files in all directories.
 
-7.  ./make-dist --snapshot --no-compress
+    If someone else made a commit between step 1 and now,
+    you need to repeat from step 4 onwards.  (You can commit the files
+    from step 2 and 3 earlier to reduce the chance of this.)
 
-    Check the contents of the new tar with
-    admin/diff-tar-files against an older tar file.  Some old pretest
-    tarballs may be found at <ftp://alpha.gnu.org/gnu/emacs/pretest>;
-    old release tarballs are at <ftp://ftp.gnu.org/pub/gnu/emacs/>.
+6.  ./make-dist --snapshot --no-compress
+
+    Check the contents of the new tar with admin/diff-tar-files
+    against the previous release (if this is the first pretest) or the
+    previous pretest.  If you did not make the previous pretest
+    yourself, find it at <ftp://alpha.gnu.org/gnu/emacs/pretest>.
+    Releases are of course at <ftp://ftp.gnu.org/pub/gnu/emacs/>.
 
     If this is the first pretest of a major release, just comparing
     with the previous release may overlook many new files.  You can try
     something like `find . | sort' in a clean bzr tree, and compare the
     results against the new tar contents.
 
-8.   tar -xf emacs-NEW.tar; cd emacs-NEW
+7.   tar -xf emacs-NEW.tar; cd emacs-NEW
      ./configure --prefix=/tmp/emacs && make && make install
     Use `script' or M-x compile to save the compilation log in
     compile-NEW.log and compare it against an old one.  The easiest way
@@ -87,25 +96,21 @@ General steps (for each step, check for possible errors):
     M-x ediff.  Especially check that Info files aren't built, and that
     no autotools (autoconf etc) run.
 
-9.  cd EMACS_ROOT_DIR && bzr tag TAG
+8.  cd EMACS_ROOT_DIR && bzr tag TAG
     TAG is emacs-XX.Y.ZZ for a pretest, emacs-XX.Y for a release.
 
-    Shortly before the release, cut the version branch also, and open
-    a Savannah support request asking for commits to the new branch to
-    be sent to the emacs-diffs mailing list (by default, the list
-    normally only gets commits to the trunk).
-
-10. Decide what compression schemes to offer.
+9. Decide what compression schemes to offer.
     For a release, at least gz and xz:
       gzip --best -c emacs-NEW.tar > emacs-NEW.tar.gz
       xz -c emacs-NEW.tar > emacs-NEW.tar.xz
+    For pretests, just xz is probably fine (saves bandwidth).
 
     Now you should upload the files to the GNU ftp server.  In order to
     do that, you must be registered as an Emacs maintainer and have your
     GPG key acknowledged by the ftp people.  For instructions, see
     http://www.gnu.org/prep/maintain/html_node/Automated-Upload-Registration.html
-    The simplest method is to use the gnulib <http://www.gnu.org/s/gnulib/>
-    script "build-aux/gnupload" to upload each FILE, like this:
+    The simplest method to upload is to use the gnulib
+    <http://www.gnu.org/s/gnulib/> script "build-aux/gnupload":
 
     For a pretest:
      gnupload [--user your@gpg.key.email] --to alpha.gnu.org:emacs/pretest \
@@ -136,19 +141,21 @@ General steps (for each step, check for possible errors):
     For a pretest, place the files in /incoming/alpha instead, so that
     they appear on ftp://alpha.gnu.org/.
 
-11. After five minutes, verify that the files are visible at
+10. After five minutes, verify that the files are visible at
     ftp://alpha.gnu.org/gnu/emacs/pretest/ for a pretest, or
     ftp://ftp.gnu.org/gnu/emacs/ for a release.
 
     Download them and check the signatures.  Check they build.
 
-12. For a pretest, announce it on emacs-devel and info-gnu-emacs@gnu.org.
-    Probably should also include the platform-testers list:
-    https://lists.gnu.org/mailman/listinfo/platform-testers
-    For a release, also announce it on info-gnu@gnu.org.  (Probably
-    bcc the info- addresses to make it less likely that people will
-    followup on those lists.)
+11. Send an announcement to: emacs-devel, and bcc: info-gnu-emacs@gnu.org.
+    For a pretest, also bcc: platform-testers@gnu.org.
+    (The reason for using bcc: is to make it less likely that people
+    will followup on the wrong list.)
+    See the info-gnu-emacs mailing list archives for the form
+    of past announcements.  The first pretest announcement, and the
+    release announcement, should have more detail.
 
-13. For a release, update the Emacs homepage in the web repository.
-    Also add the new NEWS file as NEWS.xx.y.
-    Maybe regenerate the html manuals, update the FAQ, etc, etc.
+12. For a release, update the Emacs homepage in the web repository.
+    Also update history.html, and add the new NEWS file as NEWS.xx.y.
+    Regenerate the html manuals (use make-manuals from admin.el).
+    If there are new manuals, add appropriate index pages.

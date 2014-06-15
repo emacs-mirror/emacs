@@ -82,9 +82,6 @@ etc/emacs.tmpdesktop
 !etc/refcards/Makefile
 etc/refcards/*.aux
 etc/refcards/*.log
-# FIXME this ignores info and everything in it.
-# It would be better to only ignore:
-# info/ (i.e., just the directory) and info/*.info.
 info/
 admin/unidata/unidata.txt
 build-aux/compile
@@ -93,8 +90,6 @@ build-aux/config.sub
 build-aux/depcomp
 build-aux/install-sh
 build-aux/missing
-leim/changed.misc
-leim/changed.tit
 lib/.deps
 lib/Makefile.in
 lib/deps
@@ -134,7 +129,6 @@ lib/unistd.in-h
 lib/cxxdefs.h
 lib-src/blessmail
 lib-src/ctags
-lib-src/ctags.c
 lib-src/ebrowse
 lib-src/emacsclient
 lib-src/etags
@@ -232,3 +226,4 @@ admin/charsets/*.map
 admin/charsets/cp51932.el
 admin/charsets/eucjp-ms.el
 admin/charsets/jisx2131-filter
+test/automated/flymake/warnpred/a.out

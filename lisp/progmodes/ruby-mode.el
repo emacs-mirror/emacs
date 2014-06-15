@@ -106,7 +106,7 @@
   "Regexp to match the beginning of a heredoc.")
 
   (defconst ruby-expression-expansion-re
-    "\\(?:[^\\]\\|\\=\\)\\(\\\\\\\\\\)*\\(#\\({[^}\n\\\\]*\\(\\\\.[^}\n\\\\]*\\)*}\\|\\(\\$\\|@\\|@@\\)\\(\\w\\|_\\)+\\)\\)"))
+    "\\(?:[^\\]\\|\\=\\)\\(\\\\\\\\\\)*\\(#\\({[^}\n\\\\]*\\(\\\\.[^}\n\\\\]*\\)*}\\|\\(\\$\\|@\\|@@\\)\\(\\w\\|_\\)+\\|\\$[^a-zA-Z \n]\\)\\)"))
 
 (defun ruby-here-doc-end-match ()
   "Return a regexp to find the end of a heredoc.
@@ -650,6 +650,10 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
        ;; because we want to reject hanging tokens at bol, too.
        (unless (or (eolp) (forward-comment 1))
          (cons 'column (current-column)))))
+    (`(:before . " @ ")
+     (save-excursion
+       (skip-chars-forward " \t")
+       (cons 'column (current-column))))
     (`(:before . "do") (ruby-smie--indent-to-stmt))
     (`(:before . ".")
      (if (smie-rule-sibling-p)
@@ -1800,14 +1804,16 @@ It will be properly highlighted even when the call omits parens.")
       ;; $' $" $` .... are variables.
       ;; ?' ?" ?` are character literals (one-char strings in 1.9+).
       ("\\([?$]\\)[#\"'`]"
-       (1 (unless (save-excursion
-                    ;; Not within a string.
-                    (nth 3 (syntax-ppss (match-beginning 0))))
+       (1 (if (save-excursion
+                (nth 3 (syntax-ppss (match-beginning 0))))
+              ;; Within a string, skip.
+              (goto-char (match-end 1))
             (string-to-syntax "\\"))))
       ;; Part of symbol when at the end of a method name.
       ("[!?]"
        (0 (unless (save-excursion
                     (or (nth 8 (syntax-ppss (match-beginning 0)))
+                        (eq (char-before) ?:)
                         (let (parse-sexp-lookup-properties)
                           (zerop (skip-syntax-backward "w_")))
                         (memq (preceding-char) '(?@ ?$))))
@@ -2060,6 +2066,10 @@ See `font-lock-syntax-table'.")
           "include"
           "module_function"
           "prepend"
+          "private_class_method"
+          "private_constant"
+          "public_class_method"
+          "public_constant"
           "refine"
           "using")
         'symbols))
@@ -2104,13 +2114,28 @@ See `font-lock-syntax-table'.")
      1 font-lock-variable-name-face)
     ;; Keywords that evaluate to certain values.
     ("\\_<__\\(?:LINE\\|ENCODING\\|FILE\\)__\\_>"
-     (0 font-lock-variable-name-face))
+     (0 font-lock-builtin-face))
     ;; Symbols.
     ("\\(^\\|[^:]\\)\\(:\\([-+~]@?\\|[/%&|^`]\\|\\*\\*?\\|<\\(<\\|=>?\\)?\\|>[>=]?\\|===?\\|=~\\|![~=]?\\|\\[\\]=?\\|@?\\(\\w\\|_\\)+\\([!?=]\\|\\b_*\\)\\|#{[^}\n\\\\]*\\(\\\\.[^}\n\\\\]*\\)*}\\)\\)"
      2 font-lock-constant-face)
-    ;; Variables.
-    ("\\(\\$\\([^a-zA-Z0-9 \n]\\|[0-9]\\)\\)\\W"
-     1 font-lock-variable-name-face)
+    ;; Special globals.
+    (,(concat "\\$\\(?:[:\"!@;,/\\._><\\$?~=*&`'+0-9]\\|-[0adFiIlpvw]\\|"
+              (regexp-opt '("LOAD_PATH" "LOADED_FEATURES" "PROGRAM_NAME"
+                            "ERROR_INFO" "ERROR_POSITION"
+                            "FS" "FIELD_SEPARATOR"
+                            "OFS" "OUTPUT_FIELD_SEPARATOR"
+                            "RS" "INPUT_RECORD_SEPARATOR"
+                            "ORS" "OUTPUT_RECORD_SEPARATOR"
+                            "NR" "INPUT_LINE_NUMBER"
+                            "LAST_READ_LINE" "DEFAULT_OUTPUT" "DEFAULT_INPUT"
+                            "PID" "PROCESS_ID" "CHILD_STATUS"
+                            "LAST_MATCH_INFO" "IGNORECASE"
+                            "ARGV" "MATCH" "PREMATCH" "POSTMATCH"
+                            "LAST_PAREN_MATCH" "stdin" "stdout" "stderr"
+                            "DEBUG" "FILENAME" "VERBOSE" "SAFE" "CLASSPATH"
+                            "JRUBY_VERSION" "JRUBY_REVISION" "ENV_JAVA"))
+              "\\_>\\)")
+     0 font-lock-builtin-face)
     ("\\(\\$\\|@\\|@@\\)\\(\\w\\|_\\)+"
      0 font-lock-variable-name-face)
     ;; Constants.
@@ -2127,7 +2152,7 @@ See `font-lock-syntax-table'.")
     (ruby-match-expression-expansion
      2 font-lock-variable-name-face t)
     ;; Negation char.
-    ("[^[:alnum:]_]\\(!\\)[^=]"
+    ("\\(?:^\\|[^[:alnum:]_]\\)\\(!+\\)[^=]"
      1 font-lock-negation-char-face)
     ;; Character literals.
     ;; FIXME: Support longer escape sequences.

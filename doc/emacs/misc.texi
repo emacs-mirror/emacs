@@ -1,18 +1,17 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2014 Free Software
-@c Foundation, Inc.
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2014
+@c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @iftex
 @chapter Miscellaneous Commands
 
   This chapter contains several brief topics that do not fit anywhere
-else: viewing ``document files'', reading Usenet news, running shell
-commands and shell subprocesses, using a single shared Emacs for
-utilities that expect to run an editor as a subprocess, printing
-hardcopy, sorting text, narrowing display to part of the buffer,
-editing binary files, saving an Emacs session for later resumption,
-following hyperlinks, browsing images, emulating other editors, and
-various diversions and amusements.
+else: reading Usenet news, viewing PDFs and other such documents, web
+browsing, running shell commands and shell subprocesses, using a
+single shared Emacs for utilities that expect to run an editor as a
+subprocess, printing, sorting text, editing binary files, saving an
+Emacs session for later resumption, recursive editing level, following
+hyperlinks, and various diversions and amusements.
 
 @end iftex
 
@@ -999,8 +998,8 @@ can reexecute several successive commands by typing @kbd{C-c C-x
 @key{RET}} over and over.
 
   The command @kbd{C-c .}@: (@code{comint-input-previous-argument})
-copies an individual argument from a previous command, like @kbd{ESC
-.} in Bash.  The simplest use copies the last argument from the
+copies an individual argument from a previous command, like
+@kbd{@key{ESC} .} in Bash.  The simplest use copies the last argument from the
 previous shell command.  With a prefix argument @var{n}, it copies the
 @var{n}th argument instead.  Repeating @kbd{C-c .} copies from an
 earlier shell command instead, always using the same value of @var{n}
@@ -1561,9 +1560,9 @@ option, like the @samp{-t} option, creates a new frame in the server's
 current text terminal.  @xref{Windows Startup}.
 
 If you omit a filename argument while supplying the @samp{-c} option,
-the new frame displays the @file{*scratch*} buffer by default.  This
-behavior can be customized using the variable
-@code{initial-buffer-choice} (@pxref{Entering Emacs}).
+the new frame displays the @file{*scratch*} buffer by default.  You
+can customize this behavior with the variable @code{initial-buffer-choice}
+(@pxref{Entering Emacs}).
 
 @item -F @var{alist}
 @itemx --frame-parameters=@var{alist}
@@ -1918,11 +1917,11 @@ used.
 init file (@pxref{Init File}), followed by @code{(pr-update-menus)}.
 This function replaces the usual printing commands in the menu bar
 with a @samp{Printing} submenu that contains various printing options.
-You can also type @kbd{M-x pr-interface RET}; this creates a
+You can also type @kbd{M-x pr-interface @key{RET}}; this creates a
 @file{*Printing Interface*} buffer, similar to a customization buffer,
 where you can set the printing options.  After selecting what and how
 to print, you start the print job using the @samp{Print} button (click
-@kbd{mouse-2} on it, or move point over it and type @kbd{RET}).  For
+@kbd{Mouse-2} on it, or move point over it and type @key{RET}).  For
 further information on the various options, use the @samp{Interface
 Help} button.
 
@@ -2132,10 +2131,15 @@ hexl-@key{RET}} for details.
 @cindex reload files
 @cindex desktop
 
+@vindex desktop-restore-frames
    Use the desktop library to save the state of Emacs from one session
 to another.  Once you save the Emacs @dfn{desktop}---the buffers,
 their file names, major modes, buffer positions, and so on---then
-subsequent Emacs sessions reload the saved desktop.
+subsequent Emacs sessions reload the saved desktop.  By default,
+the desktop also tries to save the frame and window configuration.
+To disable this, set @code{desktop-restore-frames} to @code{nil}.
+(See that variable's documentation for some related options
+that you can customize to fine-tune this behavior.)
 
 @findex desktop-save
 @vindex desktop-save-mode
@@ -2192,32 +2196,6 @@ listed in @code{desktop-globals-to-clear}.  If you want this to
 preserve certain buffers, customize the variable
 @code{desktop-clear-preserve-buffers-regexp}, whose value is a regular
 expression matching the names of buffers not to kill.
-
-@vindex desktop-restore-frames
-@code{desktop-restore-frames}, enabled by default, a non-@code{nil}
-means save frames (@pxref{Frames}) to desktop file.
-
-@vindex desktop-restore-in-current-display
-If the value of @code{desktop-restore-in-current-display} is @code{t},
-frames are restored in the current display.  If @code{nil} (the
-default), frames are restored in their original displays if possible.
-If @samp{delete}, frames on other displays are deleted instead of
-restored.
-
-@vindex desktop-restore-reuses-frames
-If the value of @code{desktop-restore-reuses-frames} is @code{t} (the
-default), restoring frames will reuse existing frames.  If @code{nil},
-existing frames are deleted.  If @samp{:keep}, existing frames are
-kept but not reused.
-
-@vindex desktop-restore-forces-onscreen
-If the value of @code{desktop-restore-forces-onscreen} is @code{t}
-(the default), offscreen frames are restored onscreen.  If
-@samp{:all}, frames that are partially offscreen are also forced
-onscreen.  @strong{Notice:} Checking of frame boundaries is
-approximate.  It may not reliably detect frames whose
-onscreen/offscreen state depends on a few pixels, especially near the
-right and/or bottom borders of the screen.
 
   If you want to save minibuffer history from one session to
 another, use the @code{savehist} library.
@@ -2290,17 +2268,17 @@ new major mode which provides a command to switch back.  These
 approaches give you more flexibility to go back to unfinished tasks in
 the order you choose.
 
+@ignore
+@c Apart from edt and viper, this is all obsolete.
+@c (Can't believe we were saying ``most other editors'' into 2014!)
+@c There seems no point having a node just for those, which both have
+@c their own manuals.
 @node Emulation
 @section Emulation
 @cindex emulating other editors
 @cindex other editors
 @cindex EDT
 @cindex vi
-@cindex PC key bindings
-@cindex scrolling all windows
-@cindex PC selection
-@cindex Motif key bindings
-@cindex Macintosh key bindings
 @cindex WordStar
 
   GNU Emacs can be programmed to emulate (more or less) most other
@@ -2340,7 +2318,7 @@ buffers or major modes while in EDT emulation.
 
 @item vi (Berkeley editor)
 @findex viper-mode
-Viper is the newest emulator for vi.  It implements several levels of
+Viper is an emulator for vi.  It implements several levels of
 emulation; level 1 is closest to vi itself, while level 5 departs
 somewhat from strict emulation to take advantage of the capabilities of
 Emacs.  To invoke Viper, type @kbd{M-x viper-mode}; it will guide you
@@ -2381,6 +2359,8 @@ not use it.
 @kbd{M-x wordstar-mode} provides a major mode with WordStar-like
 key bindings.
 @end table
+@end ignore
+
 
 @node Hyperlinking
 @section Hyperlinking and Navigation Features

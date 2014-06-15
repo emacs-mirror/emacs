@@ -23,8 +23,6 @@
 
 ;;; Commentary:
 
-;; Uses the Emacs 19 terminal initialization features --- won't work with 18.
-
 ;;; Code:
 
 (defvar tvi970-terminal-map

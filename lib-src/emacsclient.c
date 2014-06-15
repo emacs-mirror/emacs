@@ -65,10 +65,6 @@ char *w32_getenv (char *);
 # define CLOSE_SOCKET close
 # define INITIALIZE()
 
-# ifndef WCONTINUED
-#  define WCONTINUED 8
-# endif
-
 #define egetenv(VAR) getenv(VAR)
 
 #endif /* !WINDOWSNT */
@@ -1105,16 +1101,18 @@ static void
 handle_sigcont (int signalnum)
 {
   int old_errno = errno;
+  pid_t pgrp = getpgrp ();
+  pid_t tcpgrp = tcgetpgrp (1);
 
-  if (tcgetpgrp (1) == getpgrp ())
+  if (tcpgrp == pgrp)
     {
       /* We are in the foreground.  */
       send_to_emacs (emacs_socket, "-resume \n");
     }
-  else if (tty)
+  else if (0 <= tcpgrp && tty)
     {
       /* We are in the background; cancel the continue.  */
-      raise (SIGSTOP);
+      kill (-pgrp, SIGTTIN);
     }
 
   signal (signalnum, handle_sigcont);
@@ -1553,6 +1551,16 @@ main (int argc, char **argv)
 	       progname, progname);
       exit (EXIT_FAILURE);
     }
+
+#ifndef WINDOWSNT
+  if (tty)
+    {
+      pid_t pgrp = getpgrp ();
+      pid_t tcpgrp = tcgetpgrp (1);
+      if (0 <= tcpgrp && tcpgrp != pgrp)
+	kill (-pgrp, SIGTTIN);
+    }
+#endif /* !WINDOWSNT */
 
   /* If alternate_editor is the empty string, start the emacs daemon
      in case of failure to connect.  */

@@ -9,13 +9,14 @@
 @cindex numbers
 
   GNU Emacs supports two numeric data types: @dfn{integers} and
-@dfn{floating point numbers}.  Integers are whole numbers such as
-@minus{}3, 0, 7, 13, and 511.  Their values are exact.  Floating point
-numbers are numbers with fractional parts, such as @minus{}4.5, 0.0, or
-2.71828.  They can also be expressed in exponential notation: 1.5e2
-equals 150; in this example, @samp{e2} stands for ten to the second
-power, and that is multiplied by 1.5.  Floating point values are not
-exact; they have a fixed, limited amount of precision.
+@dfn{floating-point numbers}.  Integers are whole numbers such as
+@minus{}3, 0, 7, 13, and 511.  Floating-point numbers are numbers with
+fractional parts, such as @minus{}4.5, 0.0, and 2.71828.  They can
+also be expressed in exponential notation: @samp{1.5e2} is the same as
+@samp{150.0}; here, @samp{e2} stands for ten to the second power, and
+that is multiplied by 1.5.  Integer computations are exact, though
+they may overflow.  Floating-point computations often involve rounding
+errors, as the numbers have a fixed amount of precision.
 
 @menu
 * Integer Basics::            Representation and range of integers.
@@ -24,7 +25,7 @@ exact; they have a fixed, limited amount of precision.
 * Comparison of Numbers::     Equality and inequality predicates.
 * Numeric Conversions::       Converting float to integer and vice versa.
 * Arithmetic Operations::     How to add, subtract, multiply and divide.
-* Rounding Operations::       Explicitly rounding floating point numbers.
+* Rounding Operations::       Explicitly rounding floating-point numbers.
 * Bitwise Operations::        Logical and, or, not, shifting.
 * Math Functions::            Trig, exponential and logarithmic functions.
 * Random Numbers::            Obtaining random integers, predictable or not.
@@ -34,9 +35,9 @@ exact; they have a fixed, limited amount of precision.
 @section Integer Basics
 
   The range of values for an integer depends on the machine.  The
-minimum range is @minus{}536870912 to 536870911 (30 bits; i.e.,
+minimum range is @minus{}536,870,912 to 536,870,911 (30 bits; i.e.,
 @ifnottex
--2**29
+@minus{}2**29
 @end ifnottex
 @tex
 @math{-2^{29}}
@@ -61,7 +62,8 @@ Emacs range is treated as a floating-point number.
  1.              ; @r{The integer 1.}
 +1               ; @r{Also the integer 1.}
 -1               ; @r{The integer @minus{}1.}
- 1073741825      ; @r{The floating point number 1073741825.0.}
+ 9000000000000000000
+                 ; @r{The floating-point number 9e18.}
  0               ; @r{The integer 0.}
 -0               ; @r{The integer 0.}
 @end example
@@ -114,15 +116,15 @@ use the @samp{...} notation to make binary integers easier to read.)
 @minus{}1 is represented as 30 ones.  (This is called @dfn{two's
 complement} notation.)
 
-  The negative integer, @minus{}5, is creating by subtracting 4 from
-@minus{}1.  In binary, the decimal integer 4 is 100.  Consequently,
+  Subtracting 4 from @minus{}1 returns the negative integer @minus{}5.
+In binary, the decimal integer 4 is 100.  Consequently,
 @minus{}5 looks like this:
 
 @example
 1111...111011 (30 bits total)
 @end example
 
-  In this implementation, the largest 30-bit binary integer value is
+  In this implementation, the largest 30-bit binary integer is
 536,870,911 in decimal.  In binary, it looks like this:
 
 @example
@@ -145,111 +147,137 @@ arguments to such functions may be either numbers or markers, we often
 give these arguments the name @var{number-or-marker}.  When the argument
 value is a marker, its position value is used and its buffer is ignored.
 
-@cindex largest Lisp integer number
-@cindex maximum Lisp integer number
+@cindex largest Lisp integer
+@cindex maximum Lisp integer
 @defvar most-positive-fixnum
-The value of this variable is the largest integer that Emacs Lisp
-can handle.
+The value of this variable is the largest integer that Emacs Lisp can
+handle.  Typical values are
+@ifnottex
+2**29 @minus{} 1
+@end ifnottex
+@tex
+@math{2^{29}-1}
+@end tex
+on 32-bit and
+@ifnottex
+2**61 @minus{} 1
+@end ifnottex
+@tex
+@math{2^{61}-1}
+@end tex
+on 64-bit platforms.
 @end defvar
 
-@cindex smallest Lisp integer number
-@cindex minimum Lisp integer number
+@cindex smallest Lisp integer
+@cindex minimum Lisp integer
 @defvar most-negative-fixnum
 The value of this variable is the smallest integer that Emacs Lisp can
-handle.  It is negative.
+handle.  It is negative.  Typical values are
+@ifnottex
+@minus{}2**29
+@end ifnottex
+@tex
+@math{-2^{29}}
+@end tex
+on 32-bit and
+@ifnottex
+@minus{}2**61
+@end ifnottex
+@tex
+@math{-2^{61}}
+@end tex
+on 64-bit platforms.
 @end defvar
 
   In Emacs Lisp, text characters are represented by integers.  Any
-integer between zero and the value of @code{max-char}, inclusive, is
-considered to be valid as a character.  @xref{String Basics}.
+integer between zero and the value of @code{(max-char)}, inclusive, is
+considered to be valid as a character.  @xref{Character Codes}.
 
 @node Float Basics
-@section Floating Point Basics
+@section Floating-Point Basics
 
 @cindex @acronym{IEEE} floating point
-  Floating point numbers are useful for representing numbers that are
-not integral.  The precise range of floating point numbers is
-machine-specific; it is the same as the range of the C data type
-@code{double} on the machine you are using.  Emacs uses the
-@acronym{IEEE} floating point standard, which is supported by all
-modern computers.
+  Floating-point numbers are useful for representing numbers that are
+not integral.  The range of floating-point numbers is
+the same as the range of the C data type @code{double} on the machine
+you are using.  On all computers currently supported by Emacs, this is
+double-precision @acronym{IEEE} floating point.
 
-  The read syntax for floating point numbers requires either a decimal
-point (with at least one digit following), an exponent, or both.  For
-example, @samp{1500.0}, @samp{15e2}, @samp{15.0e2}, @samp{1.5e3}, and
-@samp{.15e4} are five ways of writing a floating point number whose
-value is 1500.  They are all equivalent.  You can also use a minus
-sign to write negative floating point numbers, as in @samp{-1.0}.
+  The read syntax for floating-point numbers requires either a decimal
+point, an exponent, or both.  Optional signs (@samp{+} or @samp{-})
+precede the number and its exponent.  For example, @samp{1500.0},
+@samp{+15e2}, @samp{15.0e+2}, @samp{+1500000e-3}, and @samp{.15e4} are
+five ways of writing a floating-point number whose value is 1500.
+They are all equivalent.  Like Common Lisp, Emacs Lisp requires at
+least one digit after any decimal point in a floating-point number;
+@samp{1500.} is an integer, not a floating-point number.
 
-  Emacs Lisp treats @code{-0.0} as equal to ordinary zero (with
-respect to @code{equal} and @code{=}), even though the two are
-distinguishable in the @acronym{IEEE} floating point standard.
+  Emacs Lisp treats @code{-0.0} as numerically equal to ordinary zero
+with respect to @code{equal} and @code{=}.  This follows the
+@acronym{IEEE} floating-point standard, which says @code{-0.0} and
+@code{0.0} are numerically equal even though other operations can
+distinguish them.
 
 @cindex positive infinity
 @cindex negative infinity
 @cindex infinity
 @cindex NaN
-  The @acronym{IEEE} floating point standard supports positive
-infinity and negative infinity as floating point values.  It also
+  The @acronym{IEEE} floating-point standard supports positive
+infinity and negative infinity as floating-point values.  It also
 provides for a class of values called NaN or ``not-a-number'';
 numerical functions return such values in cases where there is no
-correct answer.  For example, @code{(/ 0.0 0.0)} returns a NaN@.  (NaN
-values can also carry a sign, but for practical purposes there's no
-significant difference between different NaN values in Emacs Lisp.)
+correct answer.  For example, @code{(/ 0.0 0.0)} returns a NaN@.
+Although NaN values carry a sign, for practical purposes there is no other
+significant difference between different NaN values in Emacs Lisp.
 
-When a function is documented to return a NaN, it returns an
-implementation-defined value when Emacs is running on one of the
-now-rare platforms that do not use @acronym{IEEE} floating point.  For
-example, @code{(log -1.0)} typically returns a NaN, but on
-non-@acronym{IEEE} platforms it returns an implementation-defined
-value.
-
-Here are the read syntaxes for these special floating point values:
+Here are read syntaxes for these special floating-point values:
 
 @table @asis
-@item positive infinity
-@samp{1.0e+INF}
-@item negative infinity
-@samp{-1.0e+INF}
-@item Not-a-number
-@samp{0.0e+NaN} or @samp{-0.0e+NaN}.
+@item infinity
+@samp{1.0e+INF} and @samp{-1.0e+INF}
+@item not-a-number
+@samp{0.0e+NaN} and @samp{-0.0e+NaN}
 @end table
 
-@defun isnan number
-This predicate tests whether its argument is NaN, and returns @code{t}
-if so, @code{nil} otherwise.  The argument must be a number.
-@end defun
-
-  The following functions are specialized for handling floating point
+  The following functions are specialized for handling floating-point
 numbers:
 
+@defun isnan x
+This predicate returns @code{t} if its floating-point argument is a NaN,
+@code{nil} otherwise.
+@end defun
+
 @defun frexp x
-This function returns a cons cell @code{(@var{sig} . @var{exp})},
-where @var{sig} and @var{exp} are respectively the significand and
-exponent of the floating point number @var{x}:
+This function returns a cons cell @code{(@var{s} . @var{e})},
+where @var{s} and @var{e} are respectively the significand and
+exponent of the floating-point number @var{x}.
 
-@smallexample
-@var{x} = @var{sig} * 2^@var{exp}
-@end smallexample
-
-@var{sig} is a floating point number between 0.5 (inclusive) and 1.0
-(exclusive).  If @var{x} is zero, the return value is @code{(0 . 0)}.
+If @var{x} is finite, then @var{s} is a floating-point number between 0.5
+(inclusive) and 1.0 (exclusive), @var{e} is an integer, and
+@ifnottex
+@var{x} = @var{s} * 2**@var{e}.
+@end ifnottex
+@tex
+@math{x = s 2^e}.
+@end tex
+If @var{x} is zero or infinity, then @var{s} is the same as @var{x}.
+If @var{x} is a NaN, then @var{s} is also a NaN.
+If @var{x} is zero, then @var{e} is 0.
 @end defun
 
 @defun ldexp sig &optional exp
-This function returns a floating point number corresponding to the
+This function returns a floating-point number corresponding to the
 significand @var{sig} and exponent @var{exp}.
 @end defun
 
 @defun copysign x1 x2
 This function copies the sign of @var{x2} to the value of @var{x1},
-and returns the result.  @var{x1} and @var{x2} must be floating point
-numbers.
+and returns the result.  @var{x1} and @var{x2} must be floating point.
 @end defun
 
-@defun logb number
-This function returns the binary exponent of @var{number}.  More
-precisely, the value is the logarithm of |@var{number}| base 2, rounded
+@defun logb x
+This function returns the binary exponent of @var{x}.  More
+precisely, the value is the logarithm base 2 of @math{|x|}, rounded
 down to an integer.
 
 @example
@@ -272,8 +300,8 @@ its argument.  See also @code{integer-or-marker-p} and
 @code{number-or-marker-p}, in @ref{Predicates on Markers}.
 
 @defun floatp object
-This predicate tests whether its argument is a floating point
-number and returns @code{t} if so, @code{nil} otherwise.
+This predicate tests whether its argument is floating point
+and returns @code{t} if so, @code{nil} otherwise.
 @end defun
 
 @defun integerp object
@@ -293,8 +321,8 @@ tests to see whether its argument is a nonnegative integer, and
 returns @code{t} if so, @code{nil} otherwise.  0 is considered
 non-negative.
 
-@findex wholenump number
-This is a synonym for @code{natnump}.
+@findex wholenump
+@code{wholenump} is a synonym for @code{natnump}.
 @end defun
 
 @defun zerop number
@@ -310,13 +338,13 @@ if so, @code{nil} otherwise.  The argument must be a number.
 @cindex comparing numbers
 
   To test numbers for numerical equality, you should normally use
-@code{=}, not @code{eq}.  There can be many distinct floating point
-number objects with the same numeric value.  If you use @code{eq} to
+@code{=}, not @code{eq}.  There can be many distinct floating-point
+objects with the same numeric value.  If you use @code{eq} to
 compare them, then you test whether two values are the same
 @emph{object}.  By contrast, @code{=} compares only the numeric values
 of the objects.
 
-  In Emacs Lisp, each integer value is a unique Lisp object.
+  In Emacs Lisp, each integer is a unique Lisp object.
 Therefore, @code{eq} is equivalent to @code{=} where integers are
 concerned.  It is sometimes convenient to use @code{eq} for comparing
 an unknown value with an integer, because @code{eq} does not report an
@@ -328,18 +356,18 @@ use @code{=} if you can, even for comparing integers.
   Sometimes it is useful to compare numbers with @code{equal}, which
 treats two numbers as equal if they have the same data type (both
 integers, or both floating point) and the same value.  By contrast,
-@code{=} can treat an integer and a floating point number as equal.
+@code{=} can treat an integer and a floating-point number as equal.
 @xref{Equality Predicates}.
 
-  There is another wrinkle: because floating point arithmetic is not
-exact, it is often a bad idea to check for equality of two floating
-point values.  Usually it is better to test for approximate equality.
+  There is another wrinkle: because floating-point arithmetic is not
+exact, it is often a bad idea to check for equality of floating-point
+values.  Usually it is better to test for approximate equality.
 Here's a function to do this:
 
 @example
 (defvar fuzz-factor 1.0e-6)
 (defun approx-equal (x y)
-  (or (and (= x 0) (= y 0))
+  (or (= x y)
       (< (/ (abs (- x y))
             (max (abs x) (abs y)))
          fuzz-factor)))
@@ -351,7 +379,7 @@ Here's a function to do this:
 @code{=} because Common Lisp implements multi-word integers, and two
 distinct integer objects can have the same numeric value.  Emacs Lisp
 can have just one integer object for any given value because it has a
-limited range of integer values.
+limited range of integers.
 @end quotation
 
 @defun = number-or-marker &rest number-or-markers
@@ -372,32 +400,28 @@ returns @code{t} if they are not, and @code{nil} if they are.
 @end defun
 
 @defun <  number-or-marker &rest number-or-markers
-This function tests whether every argument is strictly less than the
-respective next argument.  It returns @code{t} if so, @code{nil}
-otherwise.
+This function tests whether each argument is strictly less than the
+following argument.  It returns @code{t} if so, @code{nil} otherwise.
 @end defun
 
 @defun <= number-or-marker &rest number-or-markers
-This function tests whether every argument is less than or equal to
-the respective next argument.  It returns @code{t} if so, @code{nil}
-otherwise.
+This function tests whether each argument is less than or equal to
+the following argument.  It returns @code{t} if so, @code{nil} otherwise.
 @end defun
 
 @defun > number-or-marker &rest number-or-markers
-This function tests whether every argument is strictly greater than
-the respective next argument.  It returns @code{t} if so, @code{nil}
-otherwise.
+This function tests whether each argument is strictly greater than
+the following argument.  It returns @code{t} if so, @code{nil} otherwise.
 @end defun
 
 @defun >= number-or-marker &rest number-or-markers
-This function tests whether every argument is greater than or equal to
-the respective next argument.  It returns @code{t} if so, @code{nil}
-otherwise.
+This function tests whether each argument is greater than or equal to
+the following argument.  It returns @code{t} if so, @code{nil} otherwise.
 @end defun
 
 @defun max number-or-marker &rest numbers-or-markers
 This function returns the largest of its arguments.
-If any of the arguments is floating-point, the value is returned
+If any of the arguments is floating point, the value is returned
 as floating point, even if it was given as an integer.
 
 @example
@@ -412,7 +436,7 @@ as floating point, even if it was given as an integer.
 
 @defun min number-or-marker &rest numbers-or-markers
 This function returns the smallest of its arguments.
-If any of the arguments is floating-point, the value is returned
+If any of the arguments is floating point, the value is returned
 as floating point, even if it was given as an integer.
 
 @example
@@ -435,20 +459,20 @@ To convert an integer to floating point, use the function @code{float}.
 
 @defun float number
 This returns @var{number} converted to floating point.
-If @var{number} is already a floating point number, @code{float} returns
+If @var{number} is already floating point, @code{float} returns
 it unchanged.
 @end defun
 
-  There are four functions to convert floating point numbers to
+  There are four functions to convert floating-point numbers to
 integers; they differ in how they round.  All accept an argument
 @var{number} and an optional argument @var{divisor}.  Both arguments
-may be integers or floating point numbers.  @var{divisor} may also be
+may be integers or floating-point numbers.  @var{divisor} may also be
 @code{nil}.  If @var{divisor} is @code{nil} or omitted, these
 functions convert @var{number} to an integer, or return it unchanged
 if it already is an integer.  If @var{divisor} is non-@code{nil}, they
 divide @var{number} by @var{divisor} and convert the result to an
 integer.  If @var{divisor} is zero (whether integer or
-floating-point), Emacs signals an @code{arith-error} error.
+floating point), Emacs signals an @code{arith-error} error.
 
 @defun truncate number &optional divisor
 This returns @var{number}, converted to an integer by rounding towards
@@ -506,8 +530,7 @@ This returns @var{number}, converted to an integer by rounding upward
 @defun round number &optional divisor
 This returns @var{number}, converted to an integer by rounding towards the
 nearest integer.  Rounding a value equidistant between two integers
-may choose the integer closer to zero, or it may prefer an even integer,
-depending on your machine.
+returns the even integer.
 
 @example
 (round 1.2)
@@ -529,11 +552,11 @@ depending on your machine.
 (addition, subtraction, multiplication, and division), as well as
 remainder and modulus functions, and functions to add or subtract 1.
 Except for @code{%}, each of these functions accepts both integer and
-floating point arguments, and returns a floating point number if any
-argument is a floating point number.
+floating-point arguments, and returns a floating-point number if any
+argument is floating point.
 
-  It is important to note that in Emacs Lisp, arithmetic functions
-do not check for overflow.  Thus @code{(1+ 536870911)} may evaluate to
+  Emacs Lisp arithmetic functions do not check for integer overflow.
+Thus @code{(1+ 536870911)} may evaluate to
 @minus{}536870912, depending on your hardware.
 
 @defun 1+ number-or-marker
@@ -621,10 +644,6 @@ number or a marker.
 
 If all the arguments are integers, the result is an integer, obtained
 by rounding the quotient towards zero after each division.
-(Hypothetically, some machines may have different rounding behavior
-for negative arguments, because @code{/} is implemented using the C
-division operator, which permits machine-dependent rounding; but this
-does not happen in practice.)
 
 @example
 @group
@@ -659,9 +678,9 @@ does not happen in practice.)
 
 @cindex @code{arith-error} in division
 If you divide an integer by the integer 0, Emacs signals an
-@code{arith-error} error (@pxref{Errors}).  If you divide a floating
-point number by 0, or divide by the floating point number 0.0, the
-result is either positive or negative infinity (@pxref{Float Basics}).
+@code{arith-error} error (@pxref{Errors}).  Floating-point division of
+a nonzero number by zero yields either positive or negative infinity
+(@pxref{Float Basics}).
 @end defun
 
 @defun % dividend divisor
@@ -679,8 +698,7 @@ For any two integers @var{dividend} and @var{divisor},
 @end example
 
 @noindent
-always equals @var{dividend}.  If @var{divisor} is zero, Emacs signals
-an @code{arith-error} error.
+always equals @var{dividend} if @var{divisor} is nonzero.
 
 @example
 (% 9 4)
@@ -701,7 +719,7 @@ in other words, the remainder after division of @var{dividend}
 by @var{divisor}, but with the same sign as @var{divisor}.
 The arguments must be numbers or markers.
 
-Unlike @code{%}, @code{mod} permits floating point arguments; it
+Unlike @code{%}, @code{mod} permits floating-point arguments; it
 rounds the quotient downward (towards minus infinity) to an integer,
 and uses that quotient to compute the remainder.
 
@@ -742,7 +760,8 @@ For any two numbers @var{dividend} and @var{divisor},
 
 @noindent
 always equals @var{dividend}, subject to rounding error if either
-argument is floating point.  For @code{floor}, see @ref{Numeric
+argument is floating point and to an @code{arith-error} if @var{dividend} is an
+integer and @var{divisor} is 0.  For @code{floor}, see @ref{Numeric
 Conversions}.
 @end defun
 
@@ -751,30 +770,31 @@ Conversions}.
 @cindex rounding without conversion
 
 The functions @code{ffloor}, @code{fceiling}, @code{fround}, and
-@code{ftruncate} take a floating point argument and return a floating
-point result whose value is a nearby integer.  @code{ffloor} returns the
+@code{ftruncate} take a floating-point argument and return a floating-point
+result whose value is a nearby integer.  @code{ffloor} returns the
 nearest integer below; @code{fceiling}, the nearest integer above;
 @code{ftruncate}, the nearest integer in the direction towards zero;
 @code{fround}, the nearest integer.
 
 @defun ffloor float
 This function rounds @var{float} to the next lower integral value, and
-returns that value as a floating point number.
+returns that value as a floating-point number.
 @end defun
 
 @defun fceiling float
 This function rounds @var{float} to the next higher integral value, and
-returns that value as a floating point number.
+returns that value as a floating-point number.
 @end defun
 
 @defun ftruncate float
 This function rounds @var{float} towards zero to an integral value, and
-returns that value as a floating point number.
+returns that value as a floating-point number.
 @end defun
 
 @defun fround float
 This function rounds @var{float} to the nearest integral value,
-and returns that value as a floating point number.
+and returns that value as a floating-point number.
+Rounding a value equidistant between two integers returns the even integer.
 @end defun
 
 @node Bitwise Operations
@@ -1083,7 +1103,7 @@ bit is one in the result if, and only if, the @var{n}th bit is zero in
 @cindex mathematical functions
 @cindex floating-point functions
 
-  These mathematical functions allow integers as well as floating point
+  These mathematical functions allow integers as well as floating-point
 numbers as arguments.
 
 @defun sin arg
@@ -1166,8 +1186,8 @@ non-integer, @code{expt} returns a NaN.
 @end defun
 
 @defun sqrt arg
-This returns the square root of @var{arg}.  If @var{arg} is negative,
-@code{sqrt} returns a NaN.
+This returns the square root of @var{arg}.  If @var{arg} is finite
+and less than zero, @code{sqrt} returns a NaN.
 @end defun
 
 In addition, Emacs defines the following common mathematical
@@ -1216,8 +1236,8 @@ any integer representable in Lisp, i.e., an integer between
 @code{most-negative-fixnum} and @code{most-positive-fixnum}
 (@pxref{Integer Basics}).
 
-If @var{limit} is @code{t}, it means to choose a new seed based on the
-current time of day and on Emacs's process @acronym{ID} number.
+If @var{limit} is @code{t}, it means to choose a new seed as if Emacs
+were restarting.
 
 If @var{limit} is a string, it means to choose a new seed based on the
 string's contents.

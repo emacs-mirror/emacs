@@ -1716,8 +1716,10 @@ struct face
      attributes except the font.  */
   struct face *ascii_face;
 
+#ifdef HAVE_XFT
   /* Extra member that a font-driver uses privately.  */
   void *extra;
+#endif  
 };
 
 
@@ -1794,16 +1796,6 @@ struct face_cache
      changed.  */
   bool_bf menu_face_changed_p : 1;
 };
-
-
-/* Prepare face FACE for use on frame F.  This must be called before
-   using X resources of FACE.  */
-
-#define PREPARE_FACE_FOR_DISPLAY(F, FACE)	\
-  do {						\
-     if ((FACE)->gc == 0)			\
-       prepare_face_for_display ((F), (FACE));	\
-  } while (false)
 
 /* Return a pointer to the face with ID on frame F, or null if such a
    face doesn't exist.  */
@@ -3163,9 +3155,7 @@ int default_line_pixel_height (struct window *);
 int display_prop_intangible_p (Lisp_Object, Lisp_Object, ptrdiff_t, ptrdiff_t);
 void resize_echo_area_exactly (void);
 int resize_mini_window (struct window *, int);
-#if defined USE_TOOLKIT_SCROLL_BARS && !defined USE_GTK
 void set_vertical_scroll_bar (struct window *);
-#endif
 int try_window (Lisp_Object, struct text_pos, int);
 void window_box (struct window *, enum glyph_row_area,
 		 int *, int *, int *, int *);
@@ -3204,7 +3194,6 @@ extern bool help_echo_showing_p;
 extern Lisp_Object help_echo_string, help_echo_window;
 extern Lisp_Object help_echo_object, previous_help_echo_string;
 extern ptrdiff_t help_echo_pos;
-extern int last_tool_bar_item;
 extern void reseat_at_previous_visible_line_start (struct it *);
 extern Lisp_Object lookup_glyphless_char_display (int, struct it *);
 extern ptrdiff_t compute_display_string_pos (struct text_pos *,
@@ -3238,9 +3227,7 @@ extern void draw_phys_cursor_glyph (struct window *,
                                     enum draw_glyphs_face);
 extern void get_phys_cursor_geometry (struct window *, struct glyph_row *,
                                       struct glyph *, int *, int *, int *);
-#if HAVE_NTGUI
 extern void erase_phys_cursor (struct window *);
-#endif
 extern void display_and_set_cursor (struct window *, bool, int, int, int, int);
 extern void x_update_cursor (struct frame *, bool);
 extern void x_clear_cursor (struct window *);
@@ -3354,13 +3341,13 @@ void update_face_from_frame_parameter (struct frame *, Lisp_Object,
                                        Lisp_Object);
 Lisp_Object tty_color_name (struct frame *, int);
 void clear_face_cache (int);
-#ifdef MSDOS
 unsigned long load_color (struct frame *, struct face *, Lisp_Object,
                           enum lface_attribute_index);
-#endif
 char *choose_face_font (struct frame *, Lisp_Object *, Lisp_Object,
                         int *);
+#ifdef HAVE_WINDOW_SYSTEM
 void prepare_face_for_display (struct frame *, struct face *);
+#endif
 int lookup_named_face (struct frame *, Lisp_Object, int);
 int lookup_basic_face (struct frame *, int);
 int smaller_face (struct frame *, int, int);
@@ -3454,7 +3441,7 @@ extern Lisp_Object marginal_area_string (struct window *, enum window_part,
                                          int *, int *, int *, int *);
 extern void redraw_frame (struct frame *);
 extern bool update_frame (struct frame *, bool, bool);
-extern void update_frame_with_menu (struct frame *);
+extern void update_frame_with_menu (struct frame *, int, int);
 extern void bitch_at_user (void);
 extern void adjust_frame_glyphs (struct frame *);
 void free_glyphs (struct frame *);

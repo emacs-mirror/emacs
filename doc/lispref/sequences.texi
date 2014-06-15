@@ -107,9 +107,9 @@ Emacs character code.
 @noindent
 See also @code{string-bytes}, in @ref{Text Representations}.
 
-If you need to compute the width of a string on display, you should
-use @code{string-width} (@pxref{Width}), not @code{length}, since
-@code{length} only counts the number of characters, but does not
+If you need to compute the width of a string on display, you should use
+@code{string-width} (@pxref{Size of Displayed Text}), not @code{length},
+since @code{length} only counts the number of characters, but does not
 account for the display width of each character.
 
 @defun elt sequence index
@@ -215,6 +215,116 @@ x @result{} [quux (69 2)]
 y @result{} [foo (69 2)]
 @end group
 @end example
+@end defun
+
+@defun reverse seq
+@cindex string reverse
+@cindex list reverse
+@cindex vector reverse
+@cindex sequence reverse
+This function creates a new sequence whose elements are the elements
+of @var{seq}, but in reverse order.  The original argument @var{seq}
+is @emph{not} altered.   Note that char-table cannot be reversed.
+
+@example
+@group
+(setq x '(1 2 3 4))
+     @result{} (1 2 3 4)
+@end group
+@group
+(reverse x)
+     @result{} (4 3 2 1)
+x
+     @result{} (1 2 3 4)
+@end group
+@group
+(setq x [1 2 3 4])
+     @result{} [1 2 3 4]
+@end group
+@group
+(reverse x)
+     @result{} [4 3 2 1]
+x
+     @result{} [1 2 3 4]
+@end group
+@group
+(setq x "xyzzy")
+     @result{} "xyzzy"
+@end group
+@group
+(reverse x)
+     @result{} "yzzyx"
+x
+     @result{} "xyzzy"
+@end group
+@end example
+@end defun
+
+@defun nreverse seq
+@cindex reversing a string
+@cindex reversing a list
+@cindex reversing a vector
+  This function reverses the order of the elements of @var{seq}.
+Unlike @code{reverse} the original @var{seq} may be modified.
+
+  For example:
+
+@example
+@group
+(setq x '(a b c))
+     @result{} (a b c)
+@end group
+@group
+x
+     @result{} (a b c)
+(nreverse x)
+     @result{} (c b a)
+@end group
+@group
+;; @r{The cons cell that was first is now last.}
+x
+     @result{} (a)
+@end group
+@end example
+
+  To avoid confusion, we usually store the result of @code{nreverse}
+back in the same variable which held the original list:
+
+@example
+(setq x (nreverse x))
+@end example
+
+  Here is the @code{nreverse} of our favorite example, @code{(a b c)},
+presented graphically:
+
+@smallexample
+@group
+@r{Original list head:}                       @r{Reversed list:}
+ -------------        -------------        ------------
+| car  | cdr  |      | car  | cdr  |      | car | cdr  |
+|   a  |  nil |<--   |   b  |   o  |<--   |   c |   o  |
+|      |      |   |  |      |   |  |   |  |     |   |  |
+ -------------    |   --------- | -    |   -------- | -
+                  |             |      |            |
+                   -------------        ------------
+@end group
+@end smallexample
+
+  For the vector, it is even simpler because you don't need setq:
+
+@example
+(setq x [1 2 3 4])
+     @result{} [1 2 3 4]
+(nreverse x)
+     @result{} [4 3 2 1]
+x
+     @result{} [4 3 2 1]
+@end example
+
+Note that unlike @code{reverse}, this function doesn't work with strings.
+Although you can alter string data by using @code{aset}, it is strongly
+encouraged to treat strings as immutable.
+
 @end defun
 
 @node Arrays
@@ -699,13 +809,18 @@ value into an element of the bool-vector, the effect is to store
 and the length cannot be changed once the bool-vector is created.
 Bool-vectors are constants when evaluated.
 
-  There are two special functions for working with bool-vectors; aside
+  Several functions work specifically with bool-vectors; aside
 from that, you manipulate them with same functions used for other kinds
 of arrays.
 
 @defun make-bool-vector length initial
 Return a new bool-vector of @var{length} elements,
 each one initialized to @var{initial}.
+@end defun
+
+@defun bool-vector &rest objects
+This function creates and returns a bool-vector whose elements are the
+arguments, @var{objects}.
 @end defun
 
 @defun bool-vector-p object
@@ -747,7 +862,7 @@ argument @var{b} is given, the result of this operation is stored into
 
 @defun bool-vector-subsetp a b
 Return @code{t} if every @code{t} value in @var{a} is also t in
-@var{b}, nil otherwise.  All arguments should be bool vectors of the
+@var{b}, @code{nil} otherwise.  All arguments should be bool vectors of the
 same length.
 @end defun
 
@@ -761,9 +876,29 @@ or @code{nil}, and @var{i} is an index into @code{a}.
 Return the number of elements that are @code{t} in bool vector @var{a}.
 @end defun
 
-  Here is an example of creating, examining, and updating a
-bool-vector.  Note that the printed form represents up to 8 boolean
-values as a single character.
+  The printed form represents up to 8 boolean values as a single
+character:
+
+@example
+@group
+(bool-vector t nil t nil)
+     @result{} #&4"^E"
+(bool-vector)
+     @result{} #&0""
+@end group
+@end example
+
+You can use @code{vconcat} to print a bool-vector like other vectors:
+
+@example
+@group
+(vconcat (bool-vector nil t nil t))
+     @result{} [nil t nil t]
+@end group
+@end example
+
+  Here is another example of creating, examining, and updating a
+bool-vector:
 
 @example
 (setq bv (make-bool-vector 5 t))

@@ -873,12 +873,16 @@ x_set_mouse_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 static Lisp_Object
 ns_appkit_version_str (void)
 {
-  char tmp[80];
+  char tmp[256];
 
 #ifdef NS_IMPL_GNUSTEP
   sprintf(tmp, "gnustep-gui-%s", Xstr(GNUSTEP_GUI_VERSION));
 #elif defined (NS_IMPL_COCOA)
-  sprintf(tmp, "apple-appkit-%.2f", NSAppKitVersionNumber);
+  NSString *osversion
+    = [[NSProcessInfo processInfo] operatingSystemVersionString];
+  sprintf(tmp, "appkit-%.2f %s",
+          NSAppKitVersionNumber,
+          [osversion UTF8String]);
 #else
   tmp = "ns-unknown";
 #endif
@@ -1024,7 +1028,7 @@ get_geometry_from_preferences (struct ns_display_info *dpyinfo,
   };
 
   int i;
-  for (i = 0; i < sizeof (r)/sizeof (r[0]); ++i)
+  for (i = 0; i < ARRAYELTS (r); ++i)
     {
       if (NILP (Fassq (r[i].tem, parms)))
         {
@@ -2096,7 +2100,6 @@ ns_do_applescript (Lisp_Object script, Lisp_Object *result)
 
   returnDescriptor = [scriptObject executeAndReturnError: &errorDict];
   [scriptObject release];
-
   *result = Qnil;
 
   if (returnDescriptor != NULL)
@@ -2157,6 +2160,7 @@ In case the execution fails, an error is signaled. */)
   Lisp_Object result;
   int status;
   NSEvent *nxev;
+  struct input_event ev;
 
   CHECK_STRING (script);
   check_window_system (NULL);
@@ -2184,8 +2188,10 @@ In case the execution fails, an error is signaled. */)
 
   // If there are other events, the event loop may exit.  Keep running
   // until the script has been handled.  */
+  ns_init_events (&ev);
   while (! NILP (as_script))
     [NSApp run];
+  ns_finish_events ();
 
   status = as_status;
   as_status = 0;

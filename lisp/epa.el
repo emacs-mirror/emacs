@@ -834,6 +834,7 @@ For example:
 
 Don't use this command in Lisp programs!
 See the reason described in the `epa-decrypt-region' documentation."
+  (declare (interactive-only t))
   (interactive "r")
   (save-excursion
     (save-restriction
@@ -873,6 +874,7 @@ For example:
   (decode-coding-string
     (epg-verify-string context (buffer-substring start end))
     'utf-8))"
+  (declare (interactive-only t))
   (interactive "r")
   (let ((context (epg-make-context epa-protocol))
 	plain)
@@ -914,6 +916,7 @@ between START and END.
 
 Don't use this command in Lisp programs!
 See the reason described in the `epa-verify-region' documentation."
+  (declare (interactive-only t))
   (interactive "r")
   (save-excursion
     (save-restriction
@@ -956,6 +959,7 @@ For example:
   (epg-sign-string
     context
     (encode-coding-string (buffer-substring start end) 'utf-8)))"
+  (declare (interactive-only t))
   (interactive
    (let ((verbose current-prefix-arg))
      (setq epa-last-coding-system-specified
@@ -1037,6 +1041,7 @@ For example:
     context
     (encode-coding-string (buffer-substring start end) 'utf-8)
     nil))"
+  (declare (interactive-only t))
   (interactive
    (let ((verbose current-prefix-arg)
 	 (context (epg-make-context epa-protocol))
@@ -1205,6 +1210,7 @@ If no one is selected, default public key is exported.  ")))
 ;; If a prefix-arg is specified, the signature is marked as non exportable.
 
 ;; Don't use this command in Lisp programs!"
+;;   (declare (interactive-only t))
 ;;   (interactive
 ;;    (let ((keys (epa--marked-keys)))
 ;;      (unless keys

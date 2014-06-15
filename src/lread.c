@@ -1763,6 +1763,29 @@ end_of_file_error (void)
   xsignal0 (Qend_of_file);
 }
 
+static Lisp_Object
+readevalloop_eager_expand_eval (Lisp_Object val, Lisp_Object macroexpand)
+{
+  /* If we macroexpand the toplevel form non-recursively and it ends
+     up being a `progn' (or if it was a progn to start), treat each
+     form in the progn as a top-level form.  This way, if one form in
+     the progn defines a macro, that macro is in effect when we expand
+     the remaining forms.  See similar code in bytecomp.el.  */
+  val = call2 (macroexpand, val, Qnil);
+  if (EQ (CAR_SAFE (val), Qprogn))
+    {
+      Lisp_Object subforms = XCDR (val);
+      val = Qnil;
+      for (; CONSP (subforms); subforms = XCDR (subforms))
+          val = readevalloop_eager_expand_eval (XCAR (subforms),
+                                                macroexpand);
+    }
+  else
+      val = eval_sub (call2 (macroexpand, val, Qt));
+
+  return val;
+}
+
 /* UNIBYTE specifies how to set load_convert_to_unibyte
    for this invocation.
    READFUN, if non-nil, is used instead of `read'.
@@ -1930,8 +1953,9 @@ readevalloop (Lisp_Object readcharfun,
 
       /* Now eval what we just read.  */
       if (!NILP (macroexpand))
-	val = call1 (macroexpand, val);
-      val = eval_sub (val);
+        val = readevalloop_eager_expand_eval (val, macroexpand);
+      else
+        val = eval_sub (val);
 
       if (printflag)
 	{

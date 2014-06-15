@@ -121,7 +121,7 @@ static Lisp_Object xfont_match (struct frame *, Lisp_Object);
 static Lisp_Object xfont_list_family (struct frame *);
 static Lisp_Object xfont_open (struct frame *, Lisp_Object, int);
 static void xfont_close (struct font *);
-static int xfont_prepare_face (struct frame *, struct face *);
+static void xfont_prepare_face (struct frame *, struct face *);
 static int xfont_has_char (Lisp_Object, int);
 static unsigned xfont_encode_char (struct font *, int);
 static int xfont_text_extents (struct font *, unsigned *, int,
@@ -916,15 +916,13 @@ xfont_close (struct font *font)
     }
 }
 
-static int
+static void
 xfont_prepare_face (struct frame *f, struct face *face)
 {
   block_input ();
   XSetFont (FRAME_X_DISPLAY (f), face->gc,
 	    ((struct xfont_info *) face->font)->xfont->fid);
   unblock_input ();
-
-  return 0;
 }
 
 static int

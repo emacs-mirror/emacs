@@ -254,11 +254,16 @@ is permanent local, so it is unaffected by changes of major modes.
 which are sometimes useful in user Lisp code: @code{create-file-buffer}
 and @code{after-find-file}.  This section explains how to use them.
 
+@c FIXME This does not describe the default behavior, because
+@c uniquify is enabled by default and advises this function.
+@c This is confusing.  uniquify should be folded into the function proper.
 @defun create-file-buffer filename
 This function creates a suitably named buffer for visiting
 @var{filename}, and returns it.  It uses @var{filename} (sans directory)
 as the name if that name is free; otherwise, it appends a string such as
 @samp{<2>} to get an unused name.  See also @ref{Creating Buffers}.
+Note that the @file{uniquify} library affects the result of this
+function.  @xref{Uniquify,,, emacs, The GNU Emacs Manual}.
 
 @strong{Please note:} @code{create-file-buffer} does @emph{not}
 associate the new buffer with a file and does not select the buffer.
@@ -709,15 +714,15 @@ some other job.
 This function locks the file @var{filename}, if the current buffer is
 modified.  The argument @var{filename} defaults to the current buffer's
 visited file.  Nothing is done if the current buffer is not visiting a
-file, or is not modified, or if the system does not support locking.
+file, or is not modified, or if the option @code{create-lockfiles} is
+@code{nil}.
 @end defun
 
 @defun unlock-buffer
 This function unlocks the file being visited in the current buffer,
 if the buffer is modified.  If the buffer is not modified, then
 the file should not be locked, so this function does nothing.  It also
-does nothing if the current buffer is not visiting a file, or if the
-system does not support locking.
+does nothing if the current buffer is not visiting a file, or is not locked.
 @end defun
 
 @defopt create-lockfiles
@@ -950,22 +955,26 @@ as directories, symbolic links, and ordinary files.
 @defun file-symlink-p filename
 @cindex file symbolic links
 If the file @var{filename} is a symbolic link, the
-@code{file-symlink-p} function returns the (non-recursive) link target
-as a string.  (Determining the file name that the link points to from
-the target is nontrivial.)  First, this function recursively follows
-symbolic links at all levels of parent directories.
+@code{file-symlink-p} function returns its (non-recursive) link target
+as a string.  (The link target string is not necessarily the full
+absolute file name of the target; determining the full file name that
+the link points to is nontrivial, see below.)  If the leading
+directories of @var{filename} include symbolic links, this function
+recursively follows them.
 
-If the file @var{filename} is not a symbolic link (or there is no such file),
+If the file @var{filename} is not a symbolic link, or does not exist,
 @code{file-symlink-p} returns @code{nil}.
+
+Here are a few examples of using this function:
 
 @example
 @group
-(file-symlink-p "foo")
+(file-symlink-p "not-a-symlink")
      @result{} nil
 @end group
 @group
 (file-symlink-p "sym-link")
-     @result{} "foo"
+     @result{} "not-a-symlink"
 @end group
 @group
 (file-symlink-p "sym-link2")
@@ -976,6 +985,40 @@ If the file @var{filename} is not a symbolic link (or there is no such file),
      @result{} "/pub/bin"
 @end group
 @end example
+
+Note that in the third example, the function returned @file{sym-link},
+but did not proceed to resolve it, although that file is itself a
+symbolic link.  This is what we meant by ``non-recursive'' above---the
+process of following the symbolic links does not recurse if the link
+target is itself a link.
+
+The string that this function returns is what is recorded in the
+symbolic link; it may or may not include any leading directories.
+This function does @emph{not} expand the link target to produce a
+fully-qualified file name, and in particular does not use the leading
+directories, if any, of the @var{filename} argument if the link target
+is not an absolute file name.  Here's an example:
+
+@example
+@group
+(file-symlink-p "/foo/bar/baz")
+     @result{} "some-file"
+@end group
+@end example
+
+@noindent
+Here, although @file{/foo/bar/baz} was given as a fully-qualified file
+name, the result is not, and in fact does not have any leading
+directories at all.  And since @file{some-file} might itself be a
+symbolic link, you cannot simply prepend leading directories to it,
+nor even naively use @code{expand-file-name} (@pxref{File Name
+Expansion}) to produce its absolute file name.
+
+For this reason, this function is seldom useful if you need to
+determine more than just the fact that a file is or isn't a symbolic
+link.  If you actually need the file name of the link target, use
+@code{file-chase-links} or @code{file-truename}, described in
+@ref{Truenames}.
 @end defun
 
 The next two functions recursively follow symbolic links at
@@ -1162,8 +1205,7 @@ links, can be created by using the @code{add-name-to-file} function
 
 @item
 The file's @acronym{UID}, normally as a string.  However, if it does
-not correspond to a named user, the value is an integer or a floating
-point number.
+not correspond to a named user, the value is a number.
 
 @item
 The file's @acronym{GID}, likewise.
@@ -1187,8 +1229,8 @@ its owner and group, and other information recorded in the filesystem
 for the file, beyond the file's contents.
 
 @item
-The size of the file in bytes.  If the size is too large to fit in a
-Lisp integer, this is a floating point number.
+The size of the file in bytes.  This is floating point if the size is
+too large to fit in a Lisp integer.
 
 @item
 The file's modes, as a string of ten letters or dashes,
@@ -1651,6 +1693,16 @@ version of an existing file; saving a file preserves its existing
 permissions.
 @end defun
 
+@defmac with-file-modes mode body@dots{}
+This macro evaluates the @var{body} forms with the default
+permissions for new files temporarily set to @var{modes} (whose value
+is as for @code{set-file-modes} above).  When finished, it restores
+the original default file permissions, and returns the value of the
+last form in @var{body}.
+
+This is useful for creating private files, for example.
+@end defmac
+
 @defun default-file-modes
 This function returns the default file permissions, as an integer.
 @end defun
@@ -1679,7 +1731,7 @@ specifications.
 
 @defun file-modes-symbolic-to-number modes &optional base-modes
 This function converts a symbolic file mode specification in
-@var{modes} into the equivalent integer value.  If the symbolic
+@var{modes} into the equivalent integer.  If the symbolic
 specification is based on an existing file, that file's mode bits are
 taken from the optional argument @var{base-modes}; if that argument is
 omitted or @code{nil}, it defaults to 0, i.e., no access rights at

@@ -181,13 +181,6 @@ nontrivial changes to the build process.
 
 	admin/charsets/mapfiles/cns2ucsdkw.txt
 
- * no-conversion
-
-     This file purposely contains arbitrary bytes interspersed within text,
-     to test whether the Emacs distribution is corrupted.
-
-	lib-src/testfile
-
  * iso-2022-7bit
 
      This file switches between CJK charsets, which is not encoded in UTF-8.

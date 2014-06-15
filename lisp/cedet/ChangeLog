@@ -1,3 +1,23 @@
+2014-05-01  Glenn Morris  <rgm@gnu.org>
+
+	* ede.el (ede-project-directories, ede-check-project-directory):
+	* semantic/ia-sb.el (semantic-ia-sb-show-doc):
+	* semantic/tag.el (semantic-tag-in-buffer-p):
+	* semantic/bovine/c.el (semantic-tag-abstract-p):
+	Doc fixes (replace `iff').
+
+2014-04-01  Glenn Morris  <rgm@gnu.org>
+
+	* ede/emacs.el (ede-emacs-version): Update AC_INIT regexp.  (Bug#17160)
+
+2014-03-29  Glenn Morris  <rgm@gnu.org>
+
+	* ede/dired.el (ede-dired-minor-mode): Add autoload cookie.
+	(generated-autoload-file, generated-autoload-load-name):
+	Set file-local values.
+	* ede.el: Load ede/loaddefs at compile time too.
+	(ede-dired-minor-mode): Remove hand-written autoload.
+
 2014-03-04  Glenn Morris  <rgm@gnu.org>
 
 	* semantic/util.el (semantic-complete-symbol):

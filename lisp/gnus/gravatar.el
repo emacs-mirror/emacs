@@ -138,9 +138,7 @@ You can provide a list of argument to pass to CB in CBARGS."
   "Retrieve MAIL-ADDRESS gravatar and returns it."
   (let ((url (gravatar-build-url mail-address)))
     (if (gravatar-cache-expired url)
-        (with-current-buffer (if (featurep 'xemacs)
-				 (url-retrieve url)
-			       (url-retrieve-synchronously url))
+        (with-current-buffer (url-retrieve-synchronously url)
 	  (when gravatar-automatic-caching
             (url-store-in-cache (current-buffer)))
           (let ((data (gravatar-data->image)))

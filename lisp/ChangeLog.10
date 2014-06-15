@@ -1729,7 +1729,7 @@
 	(bibtex-pop): Simplify.
 	(bibtex-mode): Move setting of bibtex-string to bibtex-parse-strings.
 	Set choose-completion-string-functions.
-	(bibtex-print-help-message,bibtex-make-field, bibtex-end-of-entry)
+	(bibtex-print-help-message, bibtex-make-field, bibtex-end-of-entry)
 	(bibtex-count-entries): Simplify.
 	(bibtex-entry-index, bibtex-lessp): New funs for generalized sorting
 	scheme of indices, see bibtex-maintain-sorted-entries.
@@ -2564,9 +2564,9 @@
 	* ediff-util.el (ediff-maybe-save-and-delete-merge): Change in a
 	message.
 
-	* ediff.el (ediff-directories,ediff-directory-revisions)
-	(ediff-directories3,ediff-merge-directories)
-	(ediff-merge-directories-with-ancestor,ediff-merge-directory-revisions)
+	* ediff.el (ediff-directories, ediff-directory-revisions)
+	(ediff-directories3, ediff-merge-directories)
+	(ediff-merge-directories-with-ancestor, ediff-merge-directory-revisions)
 	(ediff-merge-directory-revisions-with-ancestor): Make use of the new
 	ediff-default-filtering-regexp variable.
 
@@ -8035,7 +8035,7 @@
 	scroll event where a click on the mouse wheel button is ignored.
 	(mouse-wheel-click-event, mouse-wheel-inhibit-click-time): New customs.
 	(mouse-wheel-click-button, mwheel-inhibit-click-event-timer): New vars.
-	(mwheel-inhibit-click-timeout,mwheel-filter-click-events): New defuns.
+	(mwheel-inhibit-click-timeout, mwheel-filter-click-events): New defuns.
 	(mwheel-scroll): Add mwheel-filter-click-events as pre-command-hook.
 	Start mwheel-inhibit-click-event-timer with timeout handler
 	mwheel-inhibit-click-timeout.
@@ -13751,8 +13751,8 @@
 	(cvs-addto-collection): Use it to preserve point.
 	(cvs-vc-command-advice): Ad-hoc workaround for `cvs -q add'.
 
-	* mwheel.el (mouse-wheel-scroll-amount,mwheel-scroll,mouse-wheel-mode):
-	Don't require the first element to be modifier-free.
+	* mwheel.el (mouse-wheel-scroll-amount, mwheel-scroll)
+	(mouse-wheel-mode): Don't require the first element to be modifier-free.
 
 	* pcvs-parse.el (cvs-parse-table):
 	Handle `nothing known about' with more care.
@@ -17879,8 +17879,8 @@
 
 	* ediff-diff.el (ediff-install-fine-diff-if-necessary):
 	Take the current highlighting style into account.
-	(ediff-forward-word-function,ediff-whitespace,ediff-word-1)
-	(ediff-word-2,ediff-word-3,ediff-word-4): Make them buffer local.
+	(ediff-forward-word-function, ediff-whitespace, ediff-word-1)
+	(ediff-word-2, ediff-word-3, ediff-word-4): Make them buffer local.
 
 	* ediff-init.el (ediff-patch-job): New macro.
 
@@ -18358,7 +18358,7 @@
 	is loaded.
 
 	* ediff-mult.el (ediff-intersect-directories)
-	(ediff-prepare-meta-buffer,ediff-get-directory-files-under-revision):
+	(ediff-prepare-meta-buffer, ediff-get-directory-files-under-revision):
 	Cleanup.
 	(ediff-draw-dir-diffs): Now supports the "C" command in directory
 	difference buffer.
@@ -23163,7 +23163,7 @@
 	* textmodes/texnfo-upd.el: Use `when', `dolist', `push', ...
 	(texinfo-update-node, texinfo-sequential-node-update):
 	Don't bind the obsolete `auto-fill-hook'.
-	(texinfo-multi-file-included-list,texinfo-multi-file-master-menu-list):
+	(texinfo-multi-file-included-list, texinfo-multi-file-master-menu-list):
 	Use `set-buffer' rather than `switch-to-buffer'.
 	(texinfo-multi-file-update): Use "Top" rather than `up-node-name'.
 	Use `set-buffer' rather than `switch-to-buffer'.

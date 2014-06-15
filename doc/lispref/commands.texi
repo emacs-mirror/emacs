@@ -122,12 +122,19 @@ function symbol's @code{interactive-form} property.  A non-@code{nil}
 value for this property takes precedence over any @code{interactive}
 form in the function body itself.  This feature is seldom used.
 
+@anchor{The interactive-only property}
 @cindex @code{interactive-only} property
-  Sometimes, a named command is only intended to be called
-interactively, never directly from Lisp.  In that case, give it a
-non-@code{nil} @code{interactive-only} property.  In that case, the
-byte compiler will print a warning message if the command is called
-from Lisp.
+  Sometimes, a function is only intended to be called interactively,
+never directly from Lisp.  In that case, give the function a
+non-@code{nil} @code{interactive-only} property, either directly
+or via @code{declare} (@pxref{Declare Form}).  This causes the
+byte compiler to warn if the command is called from Lisp.  The output
+of @code{describe-function} will include similar information.
+The value of the property can be: a string, which the byte-compiler
+will use directly in its warning (it should end with a period, and not
+start with a capital, e.g. ``use @dots{} instead.''); @code{t}; any
+other symbol, which should be an alternative function to use in Lisp
+code.
 
 @menu
 * Using Interactive::     General rules for @code{interactive}.
@@ -1389,8 +1396,9 @@ The position in the string where the click occurred.
 @item @var{text-pos}
 For clicks on a marginal area or on a fringe, this is the buffer
 position of the first visible character in the corresponding line in
-the window.  For other events, it is the current buffer position in
-the window.
+the window.  For clicks on the mode line or the header line, this is
+@code{nil}.  For other events, it is the buffer position closest to
+the click.
 
 @item @var{col}, @var{row}
 These are the actual column and row coordinate numbers of the glyph
@@ -2471,7 +2479,7 @@ displayed there.  Otherwise @code{read-event} does not move the cursor.
 If @var{seconds} is non-@code{nil}, it should be a number specifying
 the maximum time to wait for input, in seconds.  If no input arrives
 within that time, @code{read-event} stops waiting and returns
-@code{nil}.  A floating-point value for @var{seconds} means to wait
+@code{nil}.  A floating point @var{seconds} means to wait
 for a fractional number of seconds.  Some systems support only a whole
 number of seconds; on these systems, @var{seconds} is rounded down.
 If @var{seconds} is @code{nil}, @code{read-event} waits as long as
@@ -2915,8 +2923,8 @@ time to read text that you display.  The value is @code{t} if
 @code{sit-for} waited the full time with no input arriving
 (@pxref{Event Input Misc}).  Otherwise, the value is @code{nil}.
 
-The argument @var{seconds} need not be an integer.  If it is a floating
-point number, @code{sit-for} waits for a fractional number of seconds.
+The argument @var{seconds} need not be an integer.  If it is floating
+point, @code{sit-for} waits for a fractional number of seconds.
 Some systems support only a whole number of seconds; on these systems,
 @var{seconds} is rounded down.
 
@@ -2942,8 +2950,8 @@ This function simply pauses for @var{seconds} seconds without updating
 the display.  It pays no attention to available input.  It returns
 @code{nil}.
 
-The argument @var{seconds} need not be an integer.  If it is a floating
-point number, @code{sleep-for} waits for a fractional number of seconds.
+The argument @var{seconds} need not be an integer.  If it is floating
+point, @code{sleep-for} waits for a fractional number of seconds.
 Some systems support only a whole number of seconds; on these systems,
 @var{seconds} is rounded down.
 

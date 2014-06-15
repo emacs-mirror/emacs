@@ -388,6 +388,23 @@ This function does not work for SECONDS greater than `most-positive-fixnum'."
                  t t string))))))
   (replace-regexp-in-string "%%" "%" string))
 
+(defvar seconds-to-string
+  (list (list 1 "ms" 0.001)
+        (list 100 "s" 1)
+        (list (* 60 100) "m" 60.0)
+        (list (* 3600 30) "h" 3600.0)
+        (list (* 3600 24 400) "d" (* 3600.0 24.0))
+        (list nil "y" (* 365.25 24 3600)))
+  "Formatting used by the function `seconds-to-string'.")
+;;;###autoload
+(defun seconds-to-string (delay)
+  "Convert the time interval in seconds to a short string."
+  (cond ((> 0 delay) (concat "-" (seconds-to-string (- delay))))
+        ((= 0 delay) "0s")
+        (t (let ((sts seconds-to-string) here)
+             (while (and (car (setq here (pop sts)))
+                         (<= (car here) delay)))
+             (concat (format "%.2f" (/ delay (car (cddr here)))) (cadr here))))))
 
 (provide 'time-date)
 

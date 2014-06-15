@@ -5542,12 +5542,11 @@ This command is sent even if excess flood is detected."
   (interactive "P")
   (erc-set-active-buffer (current-buffer))
   (let ((tgt (erc-default-target)))
-    (cond ((or (not tgt) (not (erc-channel-p tgt)))
-	   (erc-display-message nil 'error (current-buffer) 'no-target))
-	  (arg (erc-load-irc-script-lines (list (concat "/mode " tgt " -i"))
-					  t))
-	  (t (erc-load-irc-script-lines (list (concat "/mode " tgt " +i"))
-					t)))))
+    (if (or (not tgt) (not (erc-channel-p tgt)))
+	(erc-display-message nil 'error (current-buffer) 'no-target)
+      (erc-load-irc-script-lines
+       (list (concat "/mode " tgt (if arg " -i" " +i")))
+       t))))
 
 (defun erc-get-channel-mode-from-keypress (key)
   "Read a key sequence and call the corresponding channel mode function.
@@ -5579,15 +5578,14 @@ If CHANNEL is non-nil, toggle MODE for that channel, otherwise use
   (interactive "P")
   (erc-set-active-buffer (current-buffer))
   (let ((tgt (or channel (erc-default-target))))
-    (cond ((or (null tgt) (null (erc-channel-p tgt)))
-	   (erc-display-message nil 'error 'active 'no-target))
-	  ((member mode erc-channel-modes)
-	   (erc-log (format "%s: Toggle mode %s OFF" tgt mode))
-	   (message "Toggle channel mode %s OFF" mode)
-	   (erc-server-send (format "MODE %s -%s" tgt mode)))
-	  (t (erc-log (format "%s: Toggle channel mode %s ON" tgt mode))
-	     (message "Toggle channel mode %s ON" mode)
-	     (erc-server-send (format "MODE %s +%s" tgt mode))))))
+    (if (or (null tgt) (null (erc-channel-p tgt)))
+	(erc-display-message nil 'error 'active 'no-target)
+      (let* ((active (member mode erc-channel-modes))
+	     (newstate (if active "OFF" "ON")))
+	(erc-log (format "%s: Toggle mode %s %s" tgt mode newstate))
+	(message "Toggle channel mode %s %s" mode newstate)
+	(erc-server-send (format "MODE %s %s%s"
+				 tgt (if active "-" "+") mode))))))
 
 (defun erc-insert-mode-command ()
   "Insert the line \"/mode <current target> \" at `point'."
@@ -5650,7 +5648,7 @@ as an Emacs Lisp program.  Otherwise, treat it as a regular IRC
 script."
   (erc-log (concat "erc-load-script: " file))
   (cond
-   ((string-match "\\.el$" file)
+   ((string-match "\\.el\\'" file)
     (load file))
    (t
     (erc-load-irc-script file))))

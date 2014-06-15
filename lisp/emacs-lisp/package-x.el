@@ -114,18 +114,12 @@ inserted after its first occurrence in the file."
 (defun package--archive-contents-from-url (archive-url)
   "Parse archive-contents file at ARCHIVE-URL.
 Return the file contents, as a string, or nil if unsuccessful."
-  (ignore-errors
-    (when archive-url
-      (let* ((buffer (url-retrieve-synchronously
-		      (concat archive-url "archive-contents"))))
-	(set-buffer buffer)
-	(package-handle-response)
-	(re-search-forward "^$" nil 'move)
-	(forward-char)
-	(delete-region (point-min) (point))
-	(prog1 (package-read-from-string
-		(buffer-substring-no-properties (point-min) (point-max)))
-	  (kill-buffer buffer))))))
+  (when archive-url
+    (with-temp-buffer
+      (ignore-errors
+	(url-insert-file-contents (concat archive-url "archive-contents"))
+	(package-read-from-string
+	 (buffer-substring-no-properties (point-min) (point-max)))))))
 
 (defun package--archive-contents-from-file ()
   "Parse the archive-contents at `package-archive-upload-base'"

@@ -206,8 +206,9 @@ to turn on Abbrev mode first.  It may also be useful together with a
 special set of abbrev definitions for making several global replacements at
 once.  This command is effective even if Abbrev mode is not enabled.
 
-  Expanding any abbrev runs @code{abbrev-expand-functions}, a special
-hook.  Functions in this special hook can make arbitrary changes to
+  The function @code{expand-abbrev} performs the expansion by calling
+the function that @code{abbrev-expand-function} specifies.  By
+changing this function you can make arbitrary changes to
 the abbrev expansion.  @xref{Abbrev Expansion,,, elisp, The Emacs Lisp
 Reference Manual}.
 

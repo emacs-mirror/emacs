@@ -37,9 +37,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 static Lisp_Object Qftx;
 
-#if defined HAVE_XFT || !defined HAVE_FREETYPE
-static
-#endif
 struct font_driver ftxfont_driver;
 
 struct ftxfont_frame_data

@@ -70,27 +70,24 @@ USAGE would be `sign' or `encrypt'."
 ;;;###autoload
 (defun epa-mail-decrypt ()
   "Decrypt OpenPGP armors in the current buffer.
-The buffer is expected to contain a mail message.
-
-Don't use this command in Lisp programs!"
+The buffer is expected to contain a mail message."
+  (declare (interactive-only t))
   (interactive)
   (epa-decrypt-armor-in-region (point-min) (point-max)))
 
 ;;;###autoload
 (defun epa-mail-verify ()
   "Verify OpenPGP cleartext signed messages in the current buffer.
-The buffer is expected to contain a mail message.
-
-Don't use this command in Lisp programs!"
+The buffer is expected to contain a mail message."
+  (declare (interactive-only t))
   (interactive)
   (epa-verify-cleartext-in-region (point-min) (point-max)))
 
 ;;;###autoload
 (defun epa-mail-sign (start end signers mode)
   "Sign the current buffer.
-The buffer is expected to contain a mail message.
-
-Don't use this command in Lisp programs!"
+The buffer is expected to contain a mail message."
+  (declare (interactive-only t))
   (interactive
    (save-excursion
      (goto-char (point-min))
@@ -234,9 +231,8 @@ If no one is selected, symmetric encryption will be performed.  "
 ;;;###autoload
 (defun epa-mail-import-keys ()
   "Import keys in the OpenPGP armor format in the current buffer.
-The buffer is expected to contain a mail message.
-
-Don't use this command in Lisp programs!"
+The buffer is expected to contain a mail message."
+  (declare (interactive-only t))
   (interactive)
   (epa-import-armor-in-region (point-min) (point-max)))
 

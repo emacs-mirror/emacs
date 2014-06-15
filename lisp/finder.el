@@ -135,10 +135,21 @@ Keywords and package names both should be symbols.")
 ;; http://lists.gnu.org/archive/html/emacs-pretest-bug/2007-01/msg00469.html
 ;; ldefs-boot is not auto-generated, but has nothing useful.
 (defvar finder-no-scan-regexp "\\(^\\.#\\|\\(loaddefs\\|ldefs-boot\\|\
-cus-load\\|finder-inf\\|esh-groups\\|subdirs\\)\\.el$\\)"
+cus-load\\|finder-inf\\|esh-groups\\|subdirs\\|leim-list\\)\\.el$\\)"
   "Regexp matching file names not to scan for keywords.")
 
 (autoload 'autoload-rubric "autoload")
+
+(defconst finder--builtins-descriptions
+  ;; I have no idea whether these are supposed to be capitalized
+  ;; and/or end in a full-stop.  Existing file headers are inconsistent,
+  ;; but mainly seem to not do so.
+  '((emacs . "the extensible text editor")
+    (nxml . "a new XML mode"))
+  "Alist of built-in package descriptions.
+Entries have the form (PACKAGE-SYMBOL . DESCRIPTION).
+When generating `package--builtins', this overrides what the description
+would otherwise be.")
 
 (defvar finder--builtins-alist
   '(("calc" . calc)
@@ -155,6 +166,10 @@ cus-load\\|finder-inf\\|esh-groups\\|subdirs\\)\\.el$\\)"
     ("decorate" . semantic)
     ("symref" . semantic)
     ("wisent" . semantic)
+    ;; This should really be ("nxml" . nxml-mode), because nxml-mode.el
+    ;; is the main file for the package.  Then we would not need an
+    ;; entry in finder--builtins-descriptions.  But I do not know if
+    ;; it is safe to change this, in case it is already in use.
     ("nxml" . nxml)
     ("org"  . org)
     ("srecode" . srecode)
@@ -177,7 +192,7 @@ from; the default is `load-path'."
   (setq package--builtins nil)
   (setq finder-keywords-hash (make-hash-table :test 'eq))
   (let ((el-file-regexp "^\\([^=].*\\)\\.el\\(\\.\\(gz\\|Z\\)\\)?$")
-	package-override files base-name processed
+	package-override files base-name ; processed
 	summary keywords package version entry desc)
     (dolist (d (or dirs load-path))
       (when (file-exists-p (directory-file-name d))
@@ -192,17 +207,29 @@ from; the default is `load-path'."
 	  (unless (or (string-match finder-no-scan-regexp f)
 		      (null (setq base-name
 				  (and (string-match el-file-regexp f)
-				       (intern (match-string 1 f)))))
-		      (memq base-name processed))
-	    (push base-name processed)
+				       (intern (match-string 1 f))))))
+;;		      (memq base-name processed))
+;; There are multiple files in the tree with the same basename.
+;; So skipping files based on basename means you randomly (depending
+;; on which order the files are traversed in) miss some packages.
+;; http://debbugs.gnu.org/14010
+;; You might think this could lead to two files providing the same package,
+;; but it does not, because the duplicates are (at time of writing)
+;; all due to files in cedet, which end up with package-override set.
+;; FIXME this is obviously fragile.
+;; Make the (eq base-name package) case below issue a warning if
+;; package-override is nil?
+;;	    (push base-name processed)
 	    (with-temp-buffer
 	      (insert-file-contents (expand-file-name f d))
-	      (setq summary  (lm-synopsis)
-		    keywords (mapcar 'intern (lm-keywords-list))
+	      (setq keywords (mapcar 'intern (lm-keywords-list))
 		    package  (or package-override
 				 (let ((str (lm-header "package")))
 				   (if str (intern str)))
 				 base-name)
+		    summary  (or (cdr
+				  (assq package finder--builtins-descriptions))
+				 (lm-synopsis))
 		    version  (lm-header "version")))
 	    (when summary
 	      (setq version (ignore-errors (version-to-list version)))
@@ -211,6 +238,9 @@ from; the default is `load-path'."
 		     (push (cons package
                                  (package-make-builtin version summary))
 			   package--builtins))
+		    ;; The idea here is that eg calc.el gets to define
+		    ;; the description of the calc package.
+		    ;; This does not work for eg nxml-mode.el.
 		    ((eq base-name package)
 		     (setq desc (cdr entry))
 		     (aset desc 0 version)
@@ -323,7 +353,8 @@ not `finder-known-keywords'."
 	 (packages (gethash id finder-keywords-hash)))
     (unless packages
       (error "No packages matching key `%s'" key))
-    (package-show-package-list packages)))
+    (let ((package-list-unversioned t))
+      (package-show-package-list packages))))
 
 (define-button-type 'finder-xref 'action #'finder-goto-xref)
 

@@ -55,6 +55,7 @@ not exactly a hook, but does a similar job.
 @item after-init-hook
 @itemx before-init-hook
 @itemx emacs-startup-hook
+@itemx window-setup-hook
 @xref{Init File}.
 
 @item after-insert-file-functions
@@ -220,9 +221,6 @@ Hook run when about to switch windows with a mouse command.
 @itemx window-size-change-functions
 @xref{Window Hooks}.
 
-@item window-setup-hook
-@xref{Window Systems}.
-
 @item window-text-change-functions
 @vindex window-text-change-functions
 Functions to call in redisplay when text in the window might change.
@@ -240,11 +238,9 @@ choose-completion-string-functions
 completing-read-function
 completion-annotate-function
 completion-at-point-functions
-completion-in-region-functions
 completion-list-insert-choice-function
 deactivate-current-input-method-function
 describe-current-input-method-function
-filter-buffer-substring-functions
 font-lock-function
 menu-bar-select-buffer-function
 read-file-name-function

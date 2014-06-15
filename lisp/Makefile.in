@@ -74,12 +74,13 @@ AUTOGENEL = loaddefs.el \
 # Note that update_loaddefs parses this.
 AUTOGEN_VCS = \
 	ps-print.el \
-	emulation/tpu-edt.el \
+	obsolete/tpu-edt.el \
 	mail/rmail.el \
 	dired.el \
 	ibuffer.el \
 	htmlfontify.el \
-	emacs-lisp/eieio.el
+	emacs-lisp/eieio.el \
+	textmodes/reftex.el
 
 # Value of max-lisp-eval-depth when compiling initially.
 # During bootstrapping the byte-compiler is run interpreted when compiling
@@ -106,6 +107,9 @@ COMPILE_FIRST = \
 	$(lisp)/emacs-lisp/bytecomp.elc \
 	$(lisp)/emacs-lisp/autoload.elc
 
+# Prevent any settings in the user environment causing problems.
+unexport EMACSDATA EMACSDOC EMACSPATH
+
 # The actual Emacs command run in the targets below.
 # Prevent any setting of EMACSLOADPATH in user environment causing problems.
 emacs = EMACSLOADPATH= '$(EMACS)' $(EMACSOPT)
@@ -120,6 +124,15 @@ setwins=for file in `find . -type d -print`; do \
 # Find all subdirectories except `obsolete' and `term'.
 setwins_almost=for file in `find ${srcdir} -type d -print`; do \
 	   case $$file in ${srcdir}*/obsolete | ${srcdir}*/term ) ;; \
+	     *) wins="$$wins$${wins:+ }$$file" ;; \
+	   esac; \
+        done
+
+# Find all subdirectories except `obsolete', `term', and `leim' (and subdirs).
+# We don't want the leim files listed as packages, especially
+# since many share basenames with files in language/.
+setwins_finder=for file in `find ${srcdir} -type d -print`; do \
+	   case $$file in ${srcdir}*/obsolete | ${srcdir}*/term | ${srcdir}*/leim* ) ;; \
 	     *) wins="$$wins$${wins:+ }$$file" ;; \
 	   esac; \
         done
@@ -166,7 +179,7 @@ custom-deps: doit
 $(lisp)/finder-inf.el:
 	$(MAKE) $(MFLAGS) finder-data
 finder-data: doit
-	$(setwins_almost); \
+	$(setwins_finder); \
 	echo Directories: $$wins; \
 	$(emacs) -l finder \
 	  --eval '(setq generated-finder-keywords-file (unmsys--file-name "$(srcdir)/finder-inf.el"))' \
@@ -187,6 +200,17 @@ autoloads: $(LOADDEFS) doit
 	    --eval '(setq autoload-builtin-package-versions t)' \
 	    --eval '(setq generated-autoload-file (expand-file-name (unmsys--file-name "$(srcdir)/loaddefs.el")))' \
 	    -f batch-update-autoloads $$wins
+	$(MAKE) $(MFLAGS) obsolete-autoloads
+
+# The obsolete/ subdirectory is normally not scanned for autoloads.
+# Sometimes we still want to autoload something from that directory,
+# eg iswitchb.
+.PHONY: obsolete-autoloads
+obsolete-autoloads: ${lisp}/obsolete/*.el
+	$(emacs) -l autoload \
+	    --eval '(setq generate-autoload-cookie ";;;###obsolete-autoload")' \
+	    --eval '(setq generated-autoload-file (expand-file-name (unmsys--file-name "$(srcdir)/loaddefs.el")))' \
+	    -f batch-update-autoloads ${lisp}/obsolete
 
 # This is required by the bootstrap-emacs target in ../src/Makefile, so
 # we know that if we have an emacs executable, we also have a subdirs.el.
@@ -407,7 +431,6 @@ $(MH_E_DIR)/mh-loaddefs.el: $(MH_E_SRC)
 	$(emacs) -l autoload \
 	   --eval "(setq generate-autoload-cookie \";;;###mh-autoload\")" \
 	   --eval "(setq generated-autoload-file (expand-file-name (unmsys--file-name \"$@\")))" \
-	   --eval "(setq make-backup-files nil)" \
 	   -f batch-update-autoloads $(MH_E_DIR)
 
 # Update TRAMP internal autoloads. Maybe we could move tramp*.el into
@@ -425,7 +448,6 @@ $(TRAMP_DIR)/tramp-loaddefs.el: $(TRAMP_SRC)
 	$(emacs) -l autoload \
 	   --eval "(setq generate-autoload-cookie \";;;###tramp-autoload\")" \
 	   --eval "(setq generated-autoload-file (expand-file-name (unmsys--file-name \"$@\")))" \
-	   --eval "(setq make-backup-files nil)" \
 	   -f batch-update-autoloads $(TRAMP_DIR)
 
 CAL_DIR = $(lisp)/calendar
@@ -447,21 +469,18 @@ $(CAL_DIR)/cal-loaddefs.el: $(CAL_SRC)
 	$(emacs) -l autoload \
 	   --eval "(setq generate-autoload-cookie \";;;###cal-autoload\")" \
 	   --eval "(setq generated-autoload-file (expand-file-name (unmsys--file-name \"$@\")))" \
-	   --eval "(setq make-backup-files nil)" \
 	   -f batch-update-autoloads $(CAL_DIR)
 
 $(CAL_DIR)/diary-loaddefs.el: $(CAL_SRC)
 	$(emacs) -l autoload \
 	   --eval "(setq generate-autoload-cookie \";;;###diary-autoload\")" \
 	   --eval "(setq generated-autoload-file (expand-file-name (unmsys--file-name \"$@\")))" \
-	   --eval "(setq make-backup-files nil)" \
 	   -f batch-update-autoloads $(CAL_DIR)
 
 $(CAL_DIR)/hol-loaddefs.el: $(CAL_SRC)
 	$(emacs) -l autoload \
 	   --eval "(setq generate-autoload-cookie \";;;###holiday-autoload\")" \
 	   --eval "(setq generated-autoload-file (expand-file-name (unmsys--file-name \"$@\")))" \
-	   --eval "(setq make-backup-files nil)" \
 	   -f batch-update-autoloads $(CAL_DIR)
 
 .PHONY: bootstrap-clean distclean maintainer-clean

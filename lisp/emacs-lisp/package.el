@@ -113,8 +113,6 @@
 
 ;;; ToDo:
 
-;; - a trust mechanism, since compiling a package can run arbitrary code.
-;;   For example, download package signatures and check that they match.
 ;; - putting info dirs at the start of the info path means
 ;;   users see a weird ordering of categories.  OTOH we want to
 ;;   override later entries.  maybe emacs needs to enforce
@@ -205,13 +203,9 @@ If VERSION is nil, the package is not loaded (it is \"disabled\")."
 
 (defvar Info-directory-list)
 (declare-function info-initialize "info" ())
-(declare-function url-http-parse-response "url-http" ())
 (declare-function url-http-file-exists-p "url-http" (url))
 (declare-function lm-header "lisp-mnt" (header))
 (declare-function lm-commentary "lisp-mnt" (&optional file))
-(defvar url-http-end-of-headers)
-(declare-function url-recreate-url "url-parse" (urlobj))
-(defvar url-http-target-url)
 
 (defcustom package-archives '(("gnu" . "http://elpa.gnu.org/packages/"))
   "An alist of archives from which to fetch.
@@ -233,18 +227,25 @@ a package can run arbitrary code."
   :version "24.1")
 
 (defcustom package-pinned-packages nil
-  "An alist of packages that are pinned to a specific archive
+  "An alist of packages that are pinned to specific archives.
+This can be useful if you have multiple package archives enabled,
+and want to control which archive a given package gets installed from.
 
-Each element has the form (SYM . ID).
- SYM is a package, as a symbol.
- ID is an archive name. This should correspond to an
- entry in `package-archives'.
+Each element of the alist has the form (PACKAGE . ARCHIVE), where:
+ PACKAGE is a symbol representing a package
+ ARCHIVE is a string representing an archive (it should be the car of
+an element in `package-archives', e.g. \"gnu\").
 
-If the archive of name ID does not contain the package SYM, no
-other location will be considered, which will make the
-package unavailable."
+Adding an entry to this variable means that only ARCHIVE will be
+considered as a source for PACKAGE.  If other archives provide PACKAGE,
+they are ignored (for this package).  If ARCHIVE does not contain PACKAGE,
+the package will be unavailable."
   :type '(alist :key-type (symbol :tag "Package")
                 :value-type (string :tag "Archive name"))
+  ;; I don't really see why this is risky...
+  ;; I suppose it could prevent you receiving updates for a package,
+  ;; via an entry (PACKAGE . NON-EXISTING).  Which could be an issue
+  ;; if PACKAGE has a known vulnerability that is fixed in newer versions.
   :risky t
   :group 'package
   :version "24.4")
@@ -289,20 +290,25 @@ contrast, `package-user-dir' contains packages for personal use."
   :version "24.1")
 
 (defcustom package-check-signature 'allow-unsigned
-  "Whether to check package signatures when installing."
+  "Non-nil means to check package signatures when installing.
+The value `allow-unsigned' means to still install a package even if
+it is unsigned.
+
+This also applies to the \"archive-contents\" file that lists the
+contents of the archive."
   :type '(choice (const nil :tag "Never")
 		 (const allow-unsigned :tag "Allow unsigned")
 		 (const t :tag "Check always"))
   :risky t
   :group 'package
-  :version "24.1")
+  :version "24.4")
 
 (defcustom package-unsigned-archives nil
-  "A list of archives which do not use package signature."
+  "List of archives where we do not check for package signatures."
   :type '(repeat (string :tag "Archive name"))
   :risky t
   :group 'package
-  :version "24.1")
+  :version "24.4")
 
 (defvar package--default-summary "No description available.")
 
@@ -334,7 +340,7 @@ contrast, `package-user-dir' contains packages for personal use."
                                  (when value
                                    (push (cons (car rest-plist)
                                                (if (eq (car-safe value) 'quote)
-                                                   (cdr value)
+                                                   (cadr value)
                                                  value))
                                          alist))))
                              (setq rest-plist (cddr rest-plist)))
@@ -540,7 +546,7 @@ specifying the minimum acceptable version."
     (let ((bi (assq package package--builtin-versions)))
       (cond
        (bi (version-list-<= min-version (cdr bi)))
-       (min-version nil)
+       ((remove 0 min-version) nil)
        (t
         (require 'finder-inf nil t) ; For `package--builtins'.
         (assq package package--builtins))))))
@@ -651,6 +657,7 @@ EXTRA-PROPERTIES is currently unused."
   (let* ((auto-name (format "%s-autoloads.el" name))
 	 ;;(ignore-name (concat name "-pkg.el"))
 	 (generated-autoload-file (expand-file-name auto-name pkg-dir))
+         (backup-inhibited t)
 	 (version-control 'never))
     (package-autoload-ensure-default-file generated-autoload-file)
     (update-directory-autoloads pkg-dir)
@@ -692,6 +699,7 @@ untar into a directory named DIR; otherwise, signal an error."
           (print-length nil))
       (write-region
        (concat
+        ";;; -*- no-byte-compile: t -*-\n"
         (prin1-to-string
          (nconc
           (list 'define-package
@@ -706,13 +714,24 @@ untar into a directory named DIR; otherwise, signal an error."
                            (list (car elt)
                                  (package-version-join (cadr elt))))
                          requires))))
-          (package--alist-to-plist
-           (package-desc-extras pkg-desc))))
+          (let ((alist (package-desc-extras pkg-desc))
+                flat)
+            (while alist
+              (let* ((pair (pop alist))
+                     (key (car pair))
+                     (val (cdr pair)))
+                ;; Don't bother ‘quote’ing ‘key’; it is always a keyword.
+                (push key flat)
+                (push (if (and (not (consp val))
+                               (or (keywordp val)
+                                   (not (symbolp val))
+                                   (memq val '(nil t))))
+                          val
+                        `',val)
+                      flat)))
+            (nreverse flat))))
         "\n")
        nil pkg-file nil 'silent))))
-
-(defun package--alist-to-plist (alist)
-  (apply #'nconc (mapcar (lambda (pair) (list (car pair) (cdr pair))) alist)))
 
 (defun package-unpack (pkg-desc)
   "Install the contents of the current buffer as a package."
@@ -770,38 +789,14 @@ This macro retrieves FILE from LOCATION into a temporary buffer,
 and evaluates BODY while that buffer is current.  This work
 buffer is killed afterwards.  Return the last value in BODY."
   (declare (indent 2) (debug t))
-  `(let* ((http (string-match "\\`https?:" ,location))
-	  (buffer
-	   (if http
-	       (url-retrieve-synchronously (concat ,location ,file))
-	     (generate-new-buffer "*package work buffer*"))))
-     (prog1
-	 (with-current-buffer buffer
-	   (if http
-	       (progn (package-handle-response)
-		      (re-search-forward "^$" nil 'move)
-		      (forward-char)
-		      (delete-region (point-min) (point)))
-	     (unless (file-name-absolute-p ,location)
-	       (error "Archive location %s is not an absolute file name"
-		      ,location))
-	     (insert-file-contents (expand-file-name ,file ,location)))
-	   ,@body)
-       (kill-buffer buffer))))
-
-(defun package-handle-response ()
-  "Handle the response from a `url-retrieve-synchronously' call.
-Parse the HTTP response and throw if an error occurred.
-The url package seems to require extra processing for this.
-This should be called in a `save-excursion', in the download buffer.
-It will move point to somewhere in the headers."
-  ;; We assume HTTP here.
-  (require 'url-http)
-  (let ((response (url-http-parse-response)))
-    (when (or (< response 200) (>= response 300))
-      (error "Error downloading %s:%s"
-	     (url-recreate-url url-http-target-url)
-	     (buffer-substring-no-properties (point) (line-end-position))))))
+  `(with-temp-buffer
+     (if (string-match-p "\\`https?:" ,location)
+	 (url-insert-file-contents (concat ,location ,file))
+       (unless (file-name-absolute-p ,location)
+	 (error "Archive location %s is not an absolute file name"
+		,location))
+       (insert-file-contents (expand-file-name ,file ,location)))
+     ,@body))
 
 (defun package--archive-file-exists-p (location file)
   (let ((http (string-match "\\`https?:" location)))
@@ -896,7 +891,7 @@ MIN-VERSION should be a version list."
    ;; Also check built-in packages.
    (package-built-in-p package min-version)))
 
-(defun package-compute-transaction (packages requirements)
+(defun package-compute-transaction (packages requirements &optional seen)
   "Return a list of packages to be installed, including PACKAGES.
 PACKAGES should be a list of `package-desc'.
 
@@ -908,7 +903,9 @@ version of that package.
 This function recursively computes the requirements of the
 packages in REQUIREMENTS, and returns a list of all the packages
 that must be installed.  Packages that are already installed are
-not included in this list."
+not included in this list.
+
+SEEN is used internally to detect infinite recursion."
   ;; FIXME: We really should use backtracking to explore the whole
   ;; search space (e.g. if foo require bar-1.3, and bar-1.4 requires toto-1.1
   ;; whereas bar-1.3 requires toto-1.0 and the user has put a hold on toto-1.0:
@@ -921,15 +918,22 @@ not included in this list."
       (dolist (pkg packages)
         (if (eq next-pkg (package-desc-name pkg))
             (setq already pkg)))
-      (cond
-       (already
-        (if (version-list-< next-version (package-desc-version already))
-            ;; Move to front, so it gets installed early enough (bug#14082).
-            (setq packages (cons already (delq already packages)))
-          (error "Need package `%s-%s', but only %s is available"
+      (when already
+        (if (version-list-<= next-version (package-desc-version already))
+            ;; `next-pkg' is already in `packages', but its position there
+            ;; means it might be installed too late: remove it from there, so
+            ;; we re-add it (along with its dependencies) at an earlier place
+            ;; below (bug#16994).
+            (if (memq already seen)     ;Avoid inf-loop on dependency cycles.
+                (message "Dependency cycle going through %S"
+                         (package-desc-full-name already))
+              (setq packages (delq already packages))
+              (setq already nil))
+          (error "Need package `%s-%s', but only %s is being installed"
                  next-pkg (package-version-join next-version)
                  (package-version-join (package-desc-version already)))))
-
+      (cond
+       (already nil)
        ((package-installed-p next-pkg next-version) nil)
 
        (t
@@ -961,12 +965,13 @@ but version %s required"
                (t (setq found pkg-desc)))))
 	  (unless found
             (if problem
-                (error problem)
+                (error "%s" problem)
               (error "Package `%s-%s' is unavailable"
                      next-pkg (package-version-join next-version))))
 	  (setq packages
 		(package-compute-transaction (cons found packages)
-					     (package-desc-reqs found))))))))
+					     (package-desc-reqs found)
+                                             (cons found seen))))))))
   packages)
 
 (defun package-read-from-string (str)
@@ -1047,14 +1052,9 @@ Also, add the originating archive to the `package-desc' structure."
          (existing-packages (assq name package-archive-contents))
          (pinned-to-archive (assoc name package-pinned-packages)))
     (cond
-     ;; Skip entirely if pinned to another archive or already installed.
-     ((or (and pinned-to-archive
-               (not (equal (cdr pinned-to-archive) archive)))
-          (let ((bi (assq name package--builtin-versions)))
-            (and bi (version-list-= version (cdr bi))))
-          (let ((ins (cdr (assq name package-alist))))
-            (and ins (version-list-= version
-                                     (package-desc-version (car ins))))))
+     ;; Skip entirely if pinned to another archive.
+     ((and pinned-to-archive
+           (not (equal (cdr pinned-to-archive) archive)))
       nil)
      ((not existing-packages)
       (push (list name pkg-desc) package-archive-contents))
@@ -1090,8 +1090,11 @@ in an archive in `package-archives'.  Interactively, prompt for its name."
        (package-refresh-contents))
      (list (intern (completing-read
                     "Install package: "
-                    (mapcar (lambda (elt) (symbol-name (car elt)))
-                            package-archive-contents)
+                    (delq nil
+                          (mapcar (lambda (elt)
+                                    (unless (package-installed-p (car elt))
+                                      (symbol-name (car elt))))
+                                  package-archive-contents))
                     nil t)))))
   (package-download-transaction
    (if (package-desc-p pkg)
@@ -1128,6 +1131,8 @@ is wrapped around any parts requiring it."
                  ((symbolp dep) `(,dep "0"))
                  ((stringp dep)
                   (error "Invalid requirement specifier: %S" dep))
+                 ((and (listp dep) (null (cdr dep)))
+                  (list (car dep) "0"))
                  (t dep)))
               deps))))
 
@@ -1270,12 +1275,9 @@ similar to an entry in `package-alist'.  Save the cached copy to
 		     (car archive)))))
       ;; Read the retrieved buffer to make sure it is valid (e.g. it
       ;; may fetch a URL redirect page).
-      (when (listp (read buffer))
+      (when (listp (read (current-buffer)))
 	(make-directory dir t)
-	(setq buffer-file-name (expand-file-name file dir))
-	(let ((version-control 'never)
-              (require-final-newline nil))
-	  (save-buffer))))
+        (write-region nil nil (expand-file-name file dir) nil 'silent)))
     (when good-signatures
       ;; Write out good signatures into archive-contents.signed file.
       (write-region (mapconcat #'epg-signature-to-string good-signatures "\n")
@@ -1521,11 +1523,13 @@ If optional arg NO-ACTIVATE is non-nil, don't activate packages."
                      (package--with-work-buffer
                          (package-archive-base desc)
                          (format "%s-readme.txt" name)
-                       (setq buffer-file-name
-                             (expand-file-name readme package-user-dir))
-                       (let ((version-control 'never)
-                             (require-final-newline t))
-                         (save-buffer))
+                       (save-excursion
+                         (goto-char (point-max))
+                         (unless (bolp)
+                           (insert ?\n)))
+                       (write-region nil nil
+                                     (expand-file-name readme package-user-dir)
+                                     nil 'silent)
                        (setq readme-string (buffer-string))
                        t))
 		 (error nil))
@@ -1624,7 +1628,7 @@ If optional arg NO-ACTIVATE is non-nil, don't activate packages."
       '(menu-item "Help" package-menu-quick-help
 		  :help "Show short key binding help for package-menu-mode"))
     (define-key menu-map [mc]
-      '(menu-item "View Commentary" package-menu-view-commentary
+      '(menu-item "Describe Package" package-menu-describe-package
 		  :help "Display information about this package"))
     map)
   "Local keymap for `package-menu-mode' buffers.")
@@ -2114,11 +2118,14 @@ When KEYWORDS are given, only packages with those KEYWORDS are
 shown."
   (interactive)
   (require 'finder-inf nil t)
-  (let ((buf (get-buffer-create "*Packages*")))
+  (let* ((buf (get-buffer-create "*Packages*"))
+         (win (get-buffer-window buf)))
     (with-current-buffer buf
       (package-menu-mode)
       (package-menu--generate nil packages keywords))
-    (switch-to-buffer buf)))
+    (if win
+        (select-window win)
+      (switch-to-buffer buf))))
 
 ;; package-menu--generate rebinds "q" on the fly, so we have to
 ;; hard-code the binding in the doc-string here.

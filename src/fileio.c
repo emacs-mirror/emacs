@@ -2546,7 +2546,9 @@ Use `file-symlink-p' to test for such links.  */)
 
 DEFUN ("file-executable-p", Ffile_executable_p, Sfile_executable_p, 1, 1, 0,
        doc: /* Return t if FILENAME can be executed by you.
-For a directory, this means you can access files in that directory.  */)
+For a directory, this means you can access files in that directory.
+\(It is generally better to use `file-accessible-directory-p' for that
+purpose, though.)  */)
   (Lisp_Object filename)
 {
   Lisp_Object absname;
@@ -2682,8 +2684,7 @@ DEFUN ("file-symlink-p", Ffile_symlink_p, Sfile_symlink_p, 1, 1, 0,
 The value is the link target, as a string.
 Otherwise it returns nil.
 
-This function returns t when given the name of a symlink that
-points to a nonexistent file.  */)
+This function does not check whether the link target exists.  */)
   (Lisp_Object filename)
 {
   Lisp_Object handler;
@@ -2910,7 +2911,7 @@ or if SELinux is disabled, or if Emacs lacks SELinux support.  */)
     }
 #endif
 
-  return Flist (sizeof (values) / sizeof (values[0]), values);
+  return Flist (ARRAYELTS (values), values);
 }
 
 DEFUN ("set-file-selinux-context", Fset_file_selinux_context,
@@ -4079,14 +4080,12 @@ by calling `format-decode', which see.  */)
 
   if (NILP (visit) && total > 0)
     {
-#ifdef CLASH_DETECTION
       if (!NILP (BVAR (current_buffer, file_truename))
 	  /* Make binding buffer-file-name to nil effective.  */
 	  && !NILP (BVAR (current_buffer, filename))
 	  && SAVE_MODIFF >= MODIFF)
 	we_locked_file = 1;
-#endif /* CLASH_DETECTION */
-      prepare_to_modify_buffer (GPT, GPT, NULL);
+      prepare_to_modify_buffer (PT, PT, NULL);
     }
 
   move_gap_both (PT, PT_BYTE);
@@ -4185,10 +4184,8 @@ by calling `format-decode', which see.  */)
 
   if (inserted == 0)
     {
-#ifdef CLASH_DETECTION
       if (we_locked_file)
 	unlock_file (BVAR (current_buffer, file_truename));
-#endif
       Vdeactivate_mark = old_Vdeactivate_mark;
     }
   else
@@ -4337,14 +4334,12 @@ by calling `format-decode', which see.  */)
       SAVE_MODIFF = MODIFF;
       BUF_AUTOSAVE_MODIFF (current_buffer) = MODIFF;
       XSETFASTINT (BVAR (current_buffer, save_length), Z - BEG);
-#ifdef CLASH_DETECTION
       if (NILP (handler))
 	{
 	  if (!NILP (BVAR (current_buffer, file_truename)))
 	    unlock_file (BVAR (current_buffer, file_truename));
 	  unlock_file (filename);
 	}
-#endif /* CLASH_DETECTION */
       if (not_regular)
 	xsignal2 (Qfile_error,
 		  build_string ("not a regular file"), orig_filename);
@@ -4814,13 +4809,11 @@ write_region (Lisp_Object start, Lisp_Object end, Lisp_Object filename,
   if (!STRINGP (start) && !NILP (BVAR (current_buffer, selective_display)))
     coding.mode |= CODING_MODE_SELECTIVE_DISPLAY;
 
-#ifdef CLASH_DETECTION
   if (open_and_close_file && !auto_saving)
     {
       lock_file (lockname);
       file_locked = 1;
     }
-#endif /* CLASH_DETECTION */
 
   encoded_filename = ENCODE_FILE (filename);
   fn = SSDATA (encoded_filename);
@@ -4842,10 +4835,8 @@ write_region (Lisp_Object start, Lisp_Object end, Lisp_Object filename,
       if (desc < 0)
 	{
 	  int open_errno = errno;
-#ifdef CLASH_DETECTION
 	  if (file_locked)
 	    unlock_file (lockname);
-#endif /* CLASH_DETECTION */
 	  UNGCPRO;
 	  report_file_errno ("Opening output file", filename, open_errno);
 	}
@@ -4860,10 +4851,8 @@ write_region (Lisp_Object start, Lisp_Object end, Lisp_Object filename,
       if (ret < 0)
 	{
 	  int lseek_errno = errno;
-#ifdef CLASH_DETECTION
 	  if (file_locked)
 	    unlock_file (lockname);
-#endif /* CLASH_DETECTION */
 	  UNGCPRO;
 	  report_file_errno ("Lseek error", filename, lseek_errno);
 	}
@@ -5006,10 +4995,8 @@ write_region (Lisp_Object start, Lisp_Object end, Lisp_Object filename,
 
   unbind_to (count, Qnil);
 
-#ifdef CLASH_DETECTION
   if (file_locked)
     unlock_file (lockname);
-#endif /* CLASH_DETECTION */
 
   /* Do this before reporting IO error
      to avoid a "file has changed on disk" warning on
@@ -6042,7 +6029,7 @@ file is usually more useful if it contains the deleted text.  */);
 	       doc: /* Non-nil means don't call fsync in `write-region'.
 This variable affects calls to `write-region' as well as save commands.
 Setting this to nil may avoid data loss if the system loses power or
-the operating system crashes.  */);
+the operating system crashes.  By default, it is non-nil in batch mode.  */);
   write_region_inhibit_fsync = 0; /* See also `init_fileio' above.  */
 
   DEFVAR_BOOL ("delete-by-moving-to-trash", delete_by_moving_to_trash,

@@ -1,10 +1,11 @@
 ;;; vip.el --- a VI Package for GNU Emacs
 
-;; Copyright (C) 1986-1988, 1992-1993, 1998, 2001-2014 Free Software
-;; Foundation, Inc.
+;; Copyright (C) 1986-1988, 1992-1993, 1998, 2001-2014
+;;   Free Software Foundation, Inc.
 
 ;; Author: Masahiko Sato <ms@sail.stanford.edu>
 ;; Keywords: emulations
+;; Obsolete-since: 24.5
 
 ;; This file is part of GNU Emacs.
 
@@ -22,6 +23,8 @@
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
+
+;; This file is obsolete.  Consider using viper instead.
 
 ;; A full-featured vi(1) emulator.
 ;;

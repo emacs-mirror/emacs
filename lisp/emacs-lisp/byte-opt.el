@@ -859,14 +859,16 @@
 
 
 (defun byte-optimize-binary-predicate (form)
-  (if (macroexp-const-p (nth 1 form))
-      (if (macroexp-const-p (nth 2 form))
-	  (condition-case ()
-	      (list 'quote (eval form))
-	    (error form))
-	;; This can enable some lapcode optimizations.
-	(list (car form) (nth 2 form) (nth 1 form)))
-    form))
+  (cond
+   ((or (not (macroexp-const-p (nth 1 form)))
+        (nthcdr 3 form)) ;; In case there are more than 2 args.
+    form)
+   ((macroexp-const-p (nth 2 form))
+    (condition-case ()
+        (list 'quote (eval form))
+      (error form)))
+   (t ;; This can enable some lapcode optimizations.
+    (list (car form) (nth 2 form) (nth 1 form)))))
 
 (defun byte-optimize-predicate (form)
   (let ((ok t)
@@ -941,15 +943,6 @@
 	       (not (macroexp--const-symbol-p form))))
       form
     (nth 1 form)))
-
-(defun byte-optimize-zerop (form)
-  (cond ((numberp (nth 1 form))
-	 (eval form))
-	(byte-compile-delete-errors
-	 (list '= (nth 1 form) 0))
-	(form)))
-
-(put 'zerop 'byte-optimizer 'byte-optimize-zerop)
 
 (defun byte-optimize-and (form)
   ;; Simplify if less than 2 args.

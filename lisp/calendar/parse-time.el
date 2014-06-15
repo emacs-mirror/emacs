@@ -218,6 +218,68 @@ unknown are returned as nil."
 		  (rplaca (nthcdr (pop slots) time) new-val))))))))
     time))
 
+(defconst parse-time-iso8601-regexp
+  (let* ((dash "-?")
+	 (colon ":?")
+	 (4digit "\\([0-9][0-9][0-9][0-9]\\)")
+	 (2digit "\\([0-9][0-9]\\)")
+	 (date-fullyear 4digit)
+	 (date-month 2digit)
+	 (date-mday 2digit)
+	 (time-hour 2digit)
+	 (time-minute 2digit)
+	 (time-second 2digit)
+	 (time-secfrac "\\(\\.[0-9]+\\)?")
+	 (time-numoffset (concat "[-+]\\(" time-hour "\\):" time-minute))
+	 (time-offset (concat "Z" time-numoffset))
+	 (partial-time (concat time-hour colon time-minute colon time-second
+			       time-secfrac))
+	 (full-date (concat date-fullyear dash date-month dash date-mday))
+	 (full-time (concat partial-time time-offset))
+	 (date-time (concat full-date "T" full-time)))
+    (list (concat "^" full-date)
+	  (concat "T" partial-time)
+	  (concat "Z" time-numoffset)))
+  "List of regular expressions matching ISO 8601 dates.
+1st regular expression matches the date.
+2nd regular expression matches the time.
+3rd regular expression matches the (optional) timezone specification.")
+
+(defun parse-iso8601-time-string (date-string)
+  (let* ((date-re (nth 0 parse-time-iso8601-regexp))
+	 (time-re (nth 1 parse-time-iso8601-regexp))
+	 (tz-re (nth 2 parse-time-iso8601-regexp))
+	 re-start
+	 time seconds minute hour fractional-seconds
+	 day month year day-of-week dst tz)
+    ;; We need to populate 'time' with
+    ;; (SEC MIN HOUR DAY MON YEAR DOW DST TZ)
+
+    ;; Nobody else handles iso8601 correctly, let's do it ourselves.
+    (when (string-match date-re date-string re-start)
+      (setq year (string-to-number (match-string 1 date-string))
+	    month (string-to-number (match-string 2 date-string))
+	    day (string-to-number (match-string 3 date-string))
+	    re-start (match-end 0))
+      (when (string-match time-re date-string re-start)
+	(setq hour (string-to-number (match-string 1 date-string))
+	      minute (string-to-number (match-string 2 date-string))
+	      seconds (string-to-number (match-string 3 date-string))
+	      fractional-seconds (string-to-number (or
+                                                    (match-string 4 date-string)
+                                                    "0"))
+	      re-start (match-end 0))
+	(when (string-match tz-re date-string re-start)
+	  (setq tz (match-string 1 date-string)))
+	(setq time (list seconds minute hour day month year day-of-week dst tz))))
+
+    ;; Fall back to having Gnus do fancy things for us.
+    (when (not time)
+      (setq time (parse-time-string date-string)))
+
+    (and time
+	 (apply 'encode-time time))))
+
 (provide 'parse-time)
 
 ;;; parse-time.el ends here

@@ -117,7 +117,7 @@ map.  This color map is stored in the variable `ansi-color-map'."
   :group 'ansi-colors)
 
 (defcustom ansi-color-names-vector
-  ["black" "red" "green" "yellow" "blue" "magenta" "cyan" "white"]
+  ["black" "red3" "green3" "yellow3" "blue2" "magenta3" "cyan3" "gray90"]
   "Colors used for SGR control sequences determining a color.
 This vector holds the colors used for SGR control sequences parameters
 30 to 37 (foreground colors) and 40 to 47 (background colors).
@@ -147,6 +147,7 @@ foreground and background colors, respectively."
                  (choice color (cons color color)))
   :set 'ansi-color-map-update
   :initialize 'custom-initialize-default
+  :version "24.4" ; default colors copied from `xterm-standard-colors'
   :group 'ansi-colors)
 
 (defconst ansi-color-regexp "\033\\[\\([0-9;]*m\\)"

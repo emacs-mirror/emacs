@@ -1,6 +1,6 @@
 \input texinfo @c -*-texinfo-*-
 @c %**start of header
-@setfilename ../../info/eww
+@setfilename ../../info/eww.info
 @settitle Emacs Web Wowser
 @documentencoding UTF-8
 @c %**end of header
@@ -14,7 +14,7 @@ Copyright @copyright{} 2014 Free Software Foundation, Inc.
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.3 or
 any later version published by the Free Software Foundation; with no
-Invariant Sections, with the Front-Cover texts being ``A GNU Manual,''
+Invariant Sections, with the Front-Cover Texts being ``A GNU Manual,''
 and with the Back-Cover Texts as in (a) below.  A copy of the license
 is included in the section entitled ``GNU Free Documentation License.''
 
@@ -91,7 +91,7 @@ either prefix the file name with @code{file://} or use the command
 @kindex q
 @kindex w
 @kindex g
-  If loading the URL was successful the buffer @code{*eww*} is opened
+  If loading the URL was successful the buffer @file{*eww*} is opened
 and the web page is rendered in it.  You can leave EWW by pressing
 @kbd{q} or exit the browser by calling @kbd{eww-quit}.  To reload the
 web page hit @kbd{g} (@code{eww-reload}).  Pressing @kbd{w}
@@ -117,7 +117,7 @@ forth between them.  By pressing @kbd{l} (@code{eww-back-url}) you go
 to the previous URL.  You can go forward again with @kbd{r}
 (@code{eww-forward-url}).  If you want an overview of your browsing
 history press @kbd{H} (@code{eww-list-histories}) to open the history
-buffer @code{*eww history*}.  The history is lost when EWW is quit.
+buffer @file{*eww history*}.  The history is lost when EWW is quit.
 If you want to remember websites you can use bookmarks.
 
 @findex eww-add-bookmark
@@ -129,7 +129,7 @@ If you want to remember websites you can use bookmarks.
 (@code{eww-add-bookmark}) to store a bookmark for the current website.
 You can view stored bookmarks with @kbd{B}
 (@code{eww-list-bookmarks}).  This will open the bookmark buffer
-@code{*eww bookmarks*}.
+@file{*eww bookmarks*}.
 
 @findex eww-browse-with-external-browser
 @vindex shr-external-browser
@@ -156,7 +156,7 @@ browser by customizing
 @cindex Viewing Source
   You can view the source of a website with @kbd{v}
 (@code{eww-view-source}).  This will open a new buffer
-@code{*eww-source*} and insert the source.  The buffer will be set to
+@file{*eww-source*} and insert the source.  The buffer will be set to
 @code{html-mode} if available.
 
 @findex url-cookie-list
@@ -206,24 +206,7 @@ Emacs Web Wowser.  EWW was announced on 16 June 2013:
 @url{http://lars.ingebrigtsen.no/2013/06/16/eww/}.
 
 EWW was then moved from the Gnus repository to GNU Emacs and several
-developers started contributing to it as well.  A list of contributors
-at the time of writing this manual:
-
-@itemize @bullet
-@item Daniel Hackney
-@item Eli Zaretskii
-@item Glenn Morris
-@item Ivan Kanis
-@item Juri Linkov
-@item Katsumi Yamaoka
-@item Kenjiro NAKAYAMA
-@item Lars Magne Ingebrigtsen
-@item Leo Liu
-@item Paul Eggert
-@item Rüdiger Sonderfeld
-@item Stefan Monnier
-@item Ted Zlatanov
-@end itemize
+developers started contributing to it as well.
 
 @node GNU Free Documentation License
 @chapter GNU Free Documentation License

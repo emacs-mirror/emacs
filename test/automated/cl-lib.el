@@ -195,4 +195,35 @@
   (should (eql (cl-mismatch "Aa" "aA") 0))
   (should (eql (cl-mismatch '(a b c) '(a b d)) 2)))
 
+(ert-deftest cl-lib-test-loop ()
+  (should (eql (cl-loop with (a b c) = '(1 2 3) return (+ a b c)) 6)))
+
+(ert-deftest cl-lib-keyword-names-versus-values ()
+  (should (equal
+           (funcall (cl-function (lambda (&key a b) (list a b)))
+                    :b :a :a 42)
+           '(42 :a))))
+
+(cl-defstruct mystruct (abc :readonly t) def)
+(ert-deftest cl-lib-struct-accessors ()
+  (let ((x (make-mystruct :abc 1 :def 2)))
+    (should (eql (cl-struct-slot-value 'mystruct 'abc x) 1))
+    (should (eql (cl-struct-slot-value 'mystruct 'def x) 2))
+    (setf (cl-struct-slot-value 'mystruct 'def x) -1)
+    (should (eql (cl-struct-slot-value 'mystruct 'def x) -1))
+    (should (eql (cl-struct-slot-offset 'mystruct 'abc) 1))
+    (should-error (cl-struct-slot-offset 'mystruct 'marypoppins))
+    (should (equal (cl-struct-slot-info 'mystruct)
+                   '((cl-tag-slot) (abc :readonly t) (def))))))
+
+(ert-deftest cl-the ()
+  (should (eql (cl-the integer 42) 42))
+  (should-error (cl-the integer "abc"))
+  (let ((side-effect 0))
+    (should (= (cl-the integer (cl-incf side-effect)) 1))
+    (should (= side-effect 1))))
+
+(ert-deftest cl-loop-destructuring-with ()
+  (should (equal (cl-loop with (a b c) = '(1 2 3) return (+ a b c)) 6)))
+
 ;;; cl-lib.el ends here

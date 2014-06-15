@@ -1,6 +1,6 @@
 \input texinfo
 @c %**start of header
-@setfilename ../../info/erc
+@setfilename ../../info/erc.info
 @settitle ERC Manual
 @syncodeindex fn cp
 @include emacsver.texi
@@ -16,7 +16,7 @@ Copyright @copyright{} 2005--2014 Free Software Foundation, Inc.
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.3 or
 any later version published by the Free Software Foundation; with no
-Invariant Sections, with the Front-Cover texts being ``A GNU Manual,''
+Invariant Sections, with the Front-Cover Texts being ``A GNU Manual,''
 and with the Back-Cover Texts as in (a) below.  A copy of the license
 is included in the section entitled ``GNU Free Documentation License''.
 
@@ -150,7 +150,7 @@ then a bunch of other messages that describe the current IRC server.
 
 @item Join the #emacs channel
 
-In that buffer, type ``/join SPC #emacs'' and hit @kbd{RET}.  Depending
+In that buffer, type ``/join @key{SPC} #emacs'' and hit @kbd{RET}.  Depending
 on how you've set up ERC, either a new buffer for ``#emacs'' will be
 displayed, or a new buffer called ``#emacs'' will be created in the
 background.  If the latter, switch to the ``#emacs'' buffer.  You will

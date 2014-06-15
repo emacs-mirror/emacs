@@ -539,20 +539,17 @@ Unless optional argument INPLACE is non-nil, return a new string."
 
 (defmacro eshell-with-file-modes (modes &rest forms)
   "Evaluate, with file-modes set to MODES, the given FORMS."
-  `(let ((modes (default-file-modes)))
-     (set-default-file-modes ,modes)
-     (unwind-protect
-	 (progn ,@forms)
-       (set-default-file-modes modes))))
+  (declare (obsolete with-file-modes "24.5"))
+  `(with-file-modes ,modes ,@forms))
 
 (defmacro eshell-with-private-file-modes (&rest forms)
   "Evaluate FORMS with private file modes set."
-  `(eshell-with-file-modes ,eshell-private-file-modes ,@forms))
+  `(with-file-modes ,eshell-private-file-modes ,@forms))
 
 (defsubst eshell-make-private-directory (dir &optional parents)
   "Make DIR with file-modes set to `eshell-private-directory-modes'."
-  (eshell-with-file-modes eshell-private-directory-modes
-			  (make-directory dir parents)))
+  (with-file-modes eshell-private-directory-modes
+    (make-directory dir parents)))
 
 (defsubst eshell-substring (string sublen)
   "Return the beginning of STRING, up to SUBLEN bytes."

@@ -1,7 +1,6 @@
 ;;; man.el --- browse UNIX manual pages  -*- coding: utf-8 -*-
 
-;; Copyright (C) 1993-1994, 1996-1997, 2001-2014 Free Software
-;; Foundation, Inc.
+;; Copyright (C) 1993-1994, 1996-1997, 2001-2014 Free Software Foundation, Inc.
 
 ;; Author: Barry A. Warsaw <bwarsaw@cen.com>
 ;; Maintainer: emacs-devel@gnu.org
@@ -695,9 +694,8 @@ a \"/\" as a local filename.  The function returns either `man-db'
             (with-temp-buffer
               (let ((default-directory
                       ;; Ensure that `default-directory' exists and is readable.
-                      (if (and (file-directory-p default-directory)
-                               (file-readable-p default-directory))
-                        default-directory
+                      (if (file-accessible-directory-p default-directory)
+                          default-directory
                         (expand-file-name "~/"))))
                 (ignore-errors
                   (call-process manual-program nil t nil "--help")))

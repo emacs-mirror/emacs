@@ -81,8 +81,7 @@ read_exe_header (int fd, exe_header_t * exe_header_buffer)
 #endif
   assert (exe_header_buffer->file_header.f_nscns > 0);
   assert (exe_header_buffer->file_header.f_nscns <=
-	  sizeof (exe_header_buffer->section_header) /
-	  sizeof (exe_header_buffer->section_header[0]));
+          ARRAYELTS (exe_header_buffer->section_header));
   assert (exe_header_buffer->file_header.f_opthdr > 0);
 
   ret =
@@ -285,13 +284,6 @@ unexec (const char *outfile, const char *infile)
   int fd_out;
   int ret;
   int ret2;
-
-  if (bss_sbrk_did_unexec)
-    {
-      /* can only dump once */
-      printf ("You can only dump Emacs once on this platform.\n");
-      return;
-    }
 
   report_sheap_usage (1);
 

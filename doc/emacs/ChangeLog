@@ -1,3 +1,233 @@
+2014-06-10  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (INFO_EXT): Remove and replace by ".info" throughout.
+	(INFO_OPTS): Set directly rather than with configure.
+
+2014-06-08  Glenn Morris  <rgm@gnu.org>
+
+	* entering.texi (Entering Emacs): Small fix re initial-buffer-choice.
+	* misc.texi (emacsclient Options): Copyedit.
+
+	* buffers.texi (Uniquify): Copyedits.
+	* files.texi (Visiting): Update for uniquify changes.
+
+	* dired.texi (Marks vs Flags):
+	* rmail.texi (Rmail Scrolling): Markup fixes re SPC.
+
+	* help.texi (Help, Misc Help): Copyedits.
+
+	* screen.texi (Menu Bar): Copyedits.
+	* msdog.texi (Windows Keyboard): F10 menus are now a general feature.
+
+	* frames.texi (Frame Commands): Copyedits re M-F10, F11.
+	* cmdargs.texi (Window Size X): Copyedits.
+
+	* ack.texi (Acknowledgments):
+	* emacs.texi (Acknowledgments): Updates.
+
+2014-06-08  Glenn Morris  <rgm@gnu.org>
+
+	* ack.texi (Acknowledgments):
+	* emacs.texi (Acknowledgments): Updates.
+
+	* programs.texi (Prettifying Symbols): Remove node.
+	(Misc for Programs): Mention more briefly here.
+	* emacs.texi (Top): Update menu.
+
+	* package.texi (Package Menu, Package Installation):
+	Mention signed packages.
+	(Package Installation): Mention package-pinned-packages.
+
+2014-06-02  Glenn Morris  <rgm@gnu.org>
+
+	* ack.texi (Acknowledgments): Remove some obsolete items.
+	* misc.texi [iftex]: Update chapter summary.
+	(Emulation): Remove section.
+
+	* macos.texi (Mac / GNUstep Customization): Mention ns custom group.
+	(Customization options specific to Mac OS / GNUstep): Remove section.
+
+	* abbrevs.texi (Expanding Abbrevs): Update re abbrev-expand-function.
+
+2014-05-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* frames.texi (Fonts): Clarify which frames are affected by
+	setting font from the menu and in default-frame-alist.
+	(Bug#17532)
+
+2014-05-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* mule.texi (Language Environments): Remove unused @anchor.  (Bug#17479)
+
+2014-05-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* trouble.texi (Lossage, DEL Does Not Delete, Stuck Recursive)
+	(Screen Garbled, Text Garbled, After a Crash, Emergency Escape)
+	(Bug Criteria, Understanding Bug Reporting, Checklist, Service):
+	Improve indexing.
+
+2014-05-04  Leo Liu  <sdl.web@gmail.com>
+
+	* cal-xtra.texi (Non-Gregorian Diary): Document new features for
+	Chinese calendar and diary.
+
+2014-04-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* trouble.texi (Quitting, DEL Does Not Delete, Emergency Escape)
+	(Bug Criteria): Fix usage of @kbd and @key.  (Bug#17362)
+
+	* text.texi (Words, Pages, Foldout, HTML Mode): Fix usage of @kbd
+	and @key.
+
+	* search.texi (Special Isearch, Regexp Search): Fix usage of @kbd
+	and @key.
+
+	* screen.texi (Echo Area, Menu Bar): Fix usage of @kbd and @key.
+
+	* rmail.texi (Rmail Scrolling): Fix usage of @kbd and @key.
+
+	* programs.texi (Hungry Delete, Other C Commands): Fix usage of
+	@kbd and @key.
+
+	* picture-xtra.texi (Insert in Picture): Fix usage of @kbd and
+	@key.
+
+	* mule.texi (Unibyte Mode, Bidirectional Editing): Fix usage of
+	@kbd and @key.
+
+	* msdog.texi (Windows Keyboard, Windows Processes): Fix usage of
+	@kbd and @key.
+
+	* msdog-xtra.texi (MS-DOS Keyboard, MS-DOS Printing)
+	(MS-DOS Processes): Fix usage of @kbd and @key.
+
+	* misc.texi (Shell Ring, Printing Package): Fix usage of @kbd and
+	@key.
+
+	* mini.texi (Completion Commands, Minibuffer History): Fix usage
+	of @kbd and @key.
+
+	* kmacro.texi (Keyboard Macro Step-Edit): Fix usage of @kbd and
+	@key.
+
+	* killing.texi (Deletion, Rectangles, CUA Bindings): Fix usage of
+	@kbd and @key.
+
+	* indent.texi (Indentation Commands): Fix usage of @kbd and @key.
+
+	* help.texi (Help Mode, Misc Help): Fix usage of @kbd and @key.
+
+	* glossary.texi (Glossary): Fix usage of @kbd and @key.
+
+	* frames.texi (Speedbar): Fix usage of @kbd and @key.
+
+	* files.texi (Misc File Ops, File Name Cache, File Conveniences)
+	(Filesets): Fix usage of @kbd and @key.
+
+	* display.texi (View Mode): Fix usage of @kbd and @key.
+
+	* dired.texi (Image-Dired): Fix usage of @kbd and @key.
+
+	* custom.texi (Modifier Keys, Function Keys, Named ASCII Chars)
+	(Init Syntax): Fix usage of @kbd and @key.
+
+	* commands.texi (User Input): Fix usage of @kbd and @key.
+
+	* calendar.texi (Counting Days, General Calendar): Fix usage of
+	@kbd and @key.
+
+	* building.texi (Threads Buffer): Fix usage of @kbd and @key.
+
+	* buffers.texi (Select Buffer, Icomplete): Fix usage of @kbd and
+	@key.
+
+	* basic.texi (Inserting Text, Erasing, Arguments): Fix usage of
+	@kbd and @key.
+
+	* anti.texi (Antinews): Fix usage of @kbd and @key.
+
+	* sending.texi (Mail Signature): Document signature variables used
+	by Message mode.  (Bug#17308)
+
+2014-04-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* buffers.texi (Uniquify): Clarify the default uniquification.
+
+	* indent.texi (Tab Stops): Improve wording.
+
+	* cmdargs.texi (General Variables): Improve docs of
+	EMACSLOADPATH.  Index all the environment variables.
+	(Misc Variables): Index all the environment variables.
+
+2014-04-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* Makefile.in (infoclean): Be consistent about reporting failures.
+	Do not fail merely because the info directory does not exist,
+	but do fail if it exists and can't be cleaned.
+
+2014-04-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* display.texi (Cursor Display): Explain better how to customize
+	'blink-cursor-blinks'.
+
+2014-04-07  Glenn Morris  <rgm@gnu.org>
+
+	* trouble.texi (Checklist): Dribble files may contain passwords.
+
+	* files.texi (Backup Names):
+	* arevert-xtra.texi (Supporting additional buffers):
+	Update for default values of some -function vars no longer being nil.
+	(Supporting additional buffers):
+	Update for buffer-stale-function also applying to file-buffers.
+
+2014-03-28  Glenn Morris  <rgm@gnu.org>
+
+	* custom.texi (Terminal Init): Mention term-file-aliases.
+
+2014-03-26  Glenn Morris  <rgm@gnu.org>
+
+	* ack.texi (Acknowledgments): Remove reference to obsolete file.
+
+2014-03-22  Glenn Morris  <rgm@gnu.org>
+
+	* help.texi (Help Files): Update C-h g description.
+
+2014-03-16  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* programs.texi (Matching): Update the missed spot.  (Bug#17008)
+
+2014-03-15  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* programs.texi (Matching): Update WRT to the new
+	`blink-matching-paren' behavior.
+
+2014-03-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* mule.texi (International, Language Environments): Update
+	the list of language environments to what Emacs currently
+	supports.  Add the full list to the index.  Suggest C-h L for
+	details rather than trying to give very brief details here.
+
+2014-03-12  Glenn Morris  <rgm@gnu.org>
+
+	* cmdargs.texi (General Variables): Don't mention INCPATH,
+	from the obsolete complete.el.
+
+2014-03-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* mule.texi (International Chars): Adjust C-u C-x = description.
+	Change it to match Emacs's current behavior.  Also, change the
+	example to use ê instead of À, as the isolated grave accent in the
+	latter's decomposition listing was confusingly transliterated to
+	left single quote in the PDF version of the manual.
+
+2014-03-12  Glenn Morris  <rgm@gnu.org>
+
+	* misc.texi (Saving Emacs Sessions): Be briefer about desktop's
+	handling of frames.
+
+	* indent.texi (Indent Convenience): Mention electric-indent-local-mode.
+
 2014-03-02  Xue Fuqiao  <xfq@gnu.org>
 
 	* mark.texi (Mark):
@@ -288,7 +518,7 @@
 
 	* display.texi (Cursor Display): Document `blink-cursor-blinks'.
 
-	* buffers.texi: Update list-buffers "screeshot" to show Messages
+	* buffers.texi: Update list-buffers "screenshot" to show Messages
 	as major-mode.
 
 	* entering.texi: Document `initial-buffer-choice' changes.
@@ -454,8 +684,8 @@
 	(emacs.ps, emacs-xtra.ps): Remove explicit rules.
 	(emacs.html): Use HTML_OPTS.
 	(clean): Use DVI_TARGETS, HTML_TARGETS, PDF_TARGETS, PS_TARGETS.
-	(.PHONY): install-dvi, install-html, install-pdf, install-ps
-	,install-doc, uninstall-dvi, uninstall-html, uninstall-pdf,
+	(.PHONY): install-dvi, install-html, install-pdf, install-ps,
+	install-doc, uninstall-dvi, uninstall-html, uninstall-pdf,
 	uninstall-ps, and uninstall-doc.
 	(install-dvi, install-html, install-pdf, install-ps, install-doc)
 	(uninstall-dvi, uninstall-html, uninstall-ps, uninstall-pdf)

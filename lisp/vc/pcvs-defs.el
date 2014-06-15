@@ -92,17 +92,17 @@ There is no need to set this if $CVSROOT is set to a correct value.")
 
 (defcustom cvs-auto-remove-handled nil
   "If up-to-date files should be acknowledged automatically.
-If T, they will be removed from the *cvs* buffer after every command.
-If DELAYED, they will be removed from the *cvs* buffer before every command.
-If STATUS, they will only be removed after a `cvs-mode-status' command.
+If t, they will be removed from the *cvs* buffer after every command.
+If `delayed', they will be removed from the *cvs* buffer before every command.
+If `status', they will only be removed after a `cvs-mode-status' command.
 Else, they will never be automatically removed from the *cvs* buffer."
   :group 'pcl-cvs
   :type '(choice (const nil) (const status) (const delayed) (const t)))
 
 (defcustom cvs-auto-remove-directories 'handled
-  "If ALL, directory entries will never be shown.
-If HANDLED, only non-handled directories will be shown.
-If EMPTY, only non-empty directories will be shown."
+  "If `all', directory entries will never be shown.
+If `handled', only non-handled directories will be shown.
+If `empty', only non-empty directories will be shown."
   :group 'pcl-cvs
   :type '(choice (const :tag "No" nil) (const all) (const handled) (const empty)))
 
@@ -129,7 +129,7 @@ useful to be able to tag a single file.  The normal way to do that is to use
 Normally they run on the files that are marked (with `cvs-mode-mark'),
 or the file under the cursor if no files are marked.  If this variable
 is set to a non-nil value they will by default run on the file on the
-current line.  See also `cvs-invert-ignore-marks'"
+current line.  See also `cvs-invert-ignore-marks'."
   :group 'pcl-cvs
   :type '(boolean))
 
@@ -235,7 +235,7 @@ Output from cvs is placed here for asynchronous commands.")
   (if (fboundp 'ediff)
       '(cvs-ediff-diff . cvs-ediff-merge)
     '(cvs-emerge-diff . cvs-emerge-merge))
-  "Pair of functions to be used for resp.  diff'ing and merg'ing interactively."
+  "Pair of functions to be used for resp. diff'ing and merg'ing interactively."
   :group 'pcl-cvs
   :type '(choice (const :tag "Ediff" (cvs-ediff-diff . cvs-ediff-merge))
 		 (const :tag "Emerge" (cvs-emerge-diff . cvs-emerge-merge))))
@@ -251,10 +251,10 @@ Output from cvs is placed here for asynchronous commands.")
 (defcustom cvs-reuse-cvs-buffer 'subdir
   "When to reuse an existing cvs buffer.
 Alternatives are:
- CURRENT: just reuse the current buffer if it is a cvs buffer
- SAMEDIR: reuse any cvs buffer displaying the same directory
- SUBDIR:  or reuse any cvs buffer displaying any sub- or super- directory
- ALWAYS:  reuse any cvs buffer."
+ `current': just reuse the current buffer if it is a cvs buffer
+ `samedir': reuse any cvs buffer displaying the same directory
+ `subdir':  or reuse any cvs buffer displaying any sub- or super- directory
+ `always':  reuse any cvs buffer."
   :group 'pcl-cvs
   :type '(choice (const always) (const subdir) (const samedir) (const current)))
 
@@ -488,16 +488,16 @@ It is expected to call the function.")
     t)
   "Whether cvs commands should be executed a directory at a time.
 If a list, specifies for which commands the single-dir mode should be used.
-If T, single-dir mode should be used for all operations.
+If t, single-dir mode should be used for all operations.
 
 CVS versions before 1.10 did not allow passing them arguments in different
-directories, so pcl-cvs checks what version you're using to determine
+directories, so PCL-CVS checks what version you're using to determine
 whether to use the new feature or not.
 Sadly, even with a new cvs executable, if you connect to an older cvs server
 \(typically a cvs-1.9 on the server), the old restriction applies.  In such
-a case the sanity check made by pcl-cvs fails and you will have to manually
+a case the sanity check made by PCL-CVS fails and you will have to manually
 set this variable to t (until the cvs server is upgraded).
-When the above problem occurs, pcl-cvs should (hopefully) catch cvs' error
+When the above problem occurs, PCL-CVS should (hopefully) catch cvs' error
 message and replace it with a message telling you to change this variable.")
 
 ;;

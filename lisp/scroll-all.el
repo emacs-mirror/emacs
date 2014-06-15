@@ -3,7 +3,7 @@
 ;; Copyright (C) 1997, 2001-2014 Free Software Foundation, Inc.
 
 ;; Author: Gary D. Foster <Gary.Foster@corp.sun.com>
-;; Keywords: scroll crisp brief lock
+;; Keywords: convenience scroll lock
 
 ;; This file is part of GNU Emacs.
 

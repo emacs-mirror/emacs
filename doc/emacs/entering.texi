@@ -76,12 +76,17 @@ information about @file{site-start.el}.}
   You can also force Emacs to display a file or directory at startup
 by setting the variable @code{initial-buffer-choice} to a string
 naming that file or directory.  The value of
-@code{initial-buffer-choice} may also be a function which should
-return a buffer which is then displayed.  @code{initial-buffer-choice}
-may also be @code{t} in which case the @file{*scratch*} buffer will be
-shown.  In any case, even if you specify one or more files on the
-command line, Emacs opens but does not display them if
-@code{initial-buffer-choice} is non-nil.
+@code{initial-buffer-choice} may also be a function (of no arguments)
+that should return a buffer which is then displayed.
+@ignore
+@c I do not think this should be mentioned.  AFAICS it is just a dodge
+@c around inhibit-startup-screen not being settable on a site-wide basis.
+@code{initial-buffer-choice} may also be @code{t} in which case the
+@file{*scratch*} buffer will be shown.
+@end ignore
+If @code{initial-buffer-choice} is non-@code{nil}, then if you specify
+any files on the command line, Emacs still visits them, but does not
+display them initially.
 
 @node Exiting
 @section Exiting Emacs

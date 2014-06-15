@@ -1,7 +1,6 @@
 /* Buffer manipulation primitives for GNU Emacs.
 
-Copyright (C) 1985-1989, 1993-1995, 1997-2014 Free Software Foundation,
-Inc.
+Copyright (C) 1985-1989, 1993-1995, 1997-2014 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -41,6 +40,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "keyboard.h"
 #include "keymap.h"
 #include "frame.h"
+
+#ifdef WINDOWSNT
+#include "w32heap.h"		/* for mmap_* */
+#endif
 
 struct buffer *current_buffer;		/* The current buffer.  */
 
@@ -1159,10 +1162,10 @@ DEFUN ("buffer-local-value", Fbuffer_local_value,
        Sbuffer_local_value, 2, 2, 0,
        doc: /* Return the value of VARIABLE in BUFFER.
 If VARIABLE does not have a buffer-local binding in BUFFER, the value
-is the default binding of the variable. */)
+is the default binding of the variable.  */)
   (register Lisp_Object variable, register Lisp_Object buffer)
 {
-  register Lisp_Object result = buffer_local_value_1 (variable, buffer);
+  register Lisp_Object result = buffer_local_value (variable, buffer);
 
   if (EQ (result, Qunbound))
     xsignal1 (Qvoid_variable, variable);
@@ -1175,7 +1178,7 @@ is the default binding of the variable. */)
    locally unbound.  */
 
 Lisp_Object
-buffer_local_value_1 (Lisp_Object variable, Lisp_Object buffer)
+buffer_local_value (Lisp_Object variable, Lisp_Object buffer)
 {
   register struct buffer *buf;
   register Lisp_Object result;
@@ -1380,7 +1383,6 @@ It is not ensured that mode lines will be updated to show the modified
 state of the current buffer.  Use with care.  */)
   (Lisp_Object flag)
 {
-#ifdef CLASH_DETECTION
   Lisp_Object fn;
 
   /* If buffer becoming modified, lock the file.
@@ -1400,7 +1402,6 @@ state of the current buffer.  Use with care.  */)
       else if (already && NILP (flag))
 	unlock_file (fn);
     }
-#endif /* CLASH_DETECTION */
 
   /* Here we have a problem.  SAVE_MODIFF is used here to encode
      buffer-modified-p (as SAVE_MODIFF<MODIFF) as well as
@@ -1820,10 +1821,8 @@ cleaning up all windows currently displaying the buffer to be killed. */)
 
   /* Now there is no question: we can kill the buffer.  */
 
-#ifdef CLASH_DETECTION
   /* Unlock this buffer's file, if it is locked.  */
   unlock_buffer (b);
-#endif /* CLASH_DETECTION */
 
   GCPRO1 (buffer);
   kill_buffer_processes (buffer);
@@ -2187,11 +2186,12 @@ set_buffer_temp (struct buffer *b)
 
 DEFUN ("set-buffer", Fset_buffer, Sset_buffer, 1, 1, 0,
        doc: /* Make buffer BUFFER-OR-NAME current for editing operations.
-BUFFER-OR-NAME may be a buffer or the name of an existing buffer.  See
-also `with-current-buffer' when you want to make a buffer current
+BUFFER-OR-NAME may be a buffer or the name of an existing buffer.
+See also `with-current-buffer' when you want to make a buffer current
 temporarily.  This function does not display the buffer, so its effect
 ends when the current command terminates.  Use `switch-to-buffer' or
-`pop-to-buffer' to switch buffers permanently.  */)
+`pop-to-buffer' to switch buffers permanently.
+The return value is the buffer made current.  */)
   (register Lisp_Object buffer_or_name)
 {
   register Lisp_Object buffer;
@@ -3146,6 +3146,7 @@ struct sortvec
   Lisp_Object overlay;
   ptrdiff_t beg, end;
   EMACS_INT priority;
+  EMACS_INT spriority;		/* Secondary priority.  */
 };
 
 static int
@@ -3153,19 +3154,28 @@ compare_overlays (const void *v1, const void *v2)
 {
   const struct sortvec *s1 = v1;
   const struct sortvec *s2 = v2;
+  /* Return 1 if s1 should take precedence, -1 if v2 should take precedence,
+     and 0 if they're equal.  */
   if (s1->priority != s2->priority)
     return s1->priority < s2->priority ? -1 : 1;
-  if (s1->beg != s2->beg)
-    return s1->beg < s2->beg ? -1 : 1;
-  if (s1->end != s2->end)
+  /* If the priority is equal, give precedence to the one not covered by the
+     other.  If neither covers the other, obey spriority.  */
+  else if (s1->beg < s2->beg)
+    return (s1->end < s2->end && s1->spriority > s2->spriority ? 1 : -1);
+  else if (s1->beg > s2->beg)
+    return (s1->end > s2->end && s1->spriority < s2->spriority ? -1 : 1);
+  else if (s1->end != s2->end)
     return s2->end < s1->end ? -1 : 1;
-  /* Avoid the non-determinism of qsort by choosing an arbitrary ordering
-     between "equal" overlays.  The result can still change between
-     invocations of Emacs, but it won't change in the middle of
-     `find_field' (bug#6830).  */
-  if (!EQ (s1->overlay, s2->overlay))
+  else if (s1->spriority != s2->spriority)
+    return (s1->spriority < s2->spriority ? -1 : 1);
+  else if (EQ (s1->overlay, s2->overlay))
+    return 0;
+  else
+    /* Avoid the non-determinism of qsort by choosing an arbitrary ordering
+       between "equal" overlays.  The result can still change between
+       invocations of Emacs, but it won't change in the middle of
+       `find_field' (bug#6830).  */
     return XLI (s1->overlay) < XLI (s2->overlay) ? -1 : 1;
-  return 0;
 }
 
 /* Sort an array of overlays by priority.  The array is modified in place.
@@ -3208,10 +3218,23 @@ sort_overlays (Lisp_Object *overlay_vec, ptrdiff_t noverlays, struct window *w)
 	  sortvec[j].beg = OVERLAY_POSITION (OVERLAY_START (overlay));
 	  sortvec[j].end = OVERLAY_POSITION (OVERLAY_END (overlay));
 	  tem = Foverlay_get (overlay, Qpriority);
-	  if (INTEGERP (tem))
-	    sortvec[j].priority = XINT (tem);
-	  else
-	    sortvec[j].priority = 0;
+	  if (NILP (tem))
+	    {
+	      sortvec[j].priority = 0;
+	      sortvec[j].spriority = 0;
+	    }
+	  else if (INTEGERP (tem))
+	    {
+	      sortvec[j].priority = XINT (tem);
+	      sortvec[j].spriority = 0;
+	    }
+	  else if (CONSP (tem))
+	    {
+	      Lisp_Object car = XCAR (tem);
+	      Lisp_Object cdr = XCDR (tem);
+	      sortvec[j].priority  = INTEGERP (car) ? XINT (car) : 0;
+	      sortvec[j].spriority = INTEGERP (cdr) ? XINT (cdr) : 0;
+	    }
 	  j++;
 	}
     }
@@ -3309,17 +3332,18 @@ record_overlay_string (struct sortstrlist *ssl, Lisp_Object str,
     }
 }
 
-/* Return the concatenation of the strings associated with overlays that
-   begin or end at POS, ignoring overlays that are specific to a window
-   other than W.  The strings are concatenated in the appropriate order:
-   shorter overlays nest inside longer ones, and higher priority inside
-   lower.  Normally all of the after-strings come first, but zero-sized
-   overlays have their after-strings ride along with the before-strings
-   because it would look strange to print them inside-out.
+/* Concatenate the strings associated with overlays that begin or end
+   at POS, ignoring overlays that are specific to windows other than W.
+   The strings are concatenated in the appropriate order: shorter
+   overlays nest inside longer ones, and higher priority inside lower.
+   Normally all of the after-strings come first, but zero-sized
+   overlays have their after-strings ride along with the
+   before-strings because it would look strange to print them
+   inside-out.
 
-   Returns the string length, and stores the contents indirectly through
-   PSTR, if that variable is non-null.  The string may be overwritten by
-   subsequent calls.  */
+   Returns the concatenated string's length, and return the pointer to
+   that string via PSTR, if that variable is non-NULL.  The storage of
+   the concatenated strings may be overwritten by subsequent calls.  */
 
 ptrdiff_t
 overlay_strings (ptrdiff_t pos, struct window *w, unsigned char **pstr)
@@ -4144,9 +4168,10 @@ OVERLAY.  */)
 }
 
 
-DEFUN ("overlays-at", Foverlays_at, Soverlays_at, 1, 1, 0,
-       doc: /* Return a list of the overlays that contain the character at POS.  */)
-  (Lisp_Object pos)
+DEFUN ("overlays-at", Foverlays_at, Soverlays_at, 1, 2, 0,
+       doc: /* Return a list of the overlays that contain the character at POS.
+If SORTED is non-nil, then sort them by decreasing priority.  */)
+  (Lisp_Object pos, Lisp_Object sorted)
 {
   ptrdiff_t len, noverlays;
   Lisp_Object *overlay_vec;
@@ -4165,6 +4190,10 @@ DEFUN ("overlays-at", Foverlays_at, Soverlays_at, 1, 1, 0,
      Store the length in len.  */
   noverlays = overlays_at (XINT (pos), 1, &overlay_vec, &len,
 			   NULL, NULL, 0);
+
+  if (!NILP (sorted))
+    noverlays = sort_overlays (overlay_vec, noverlays,
+			       WINDOWP (sorted) ? XWINDOW (sorted) : NULL);
 
   /* Make a list of them all.  */
   result = Flist (noverlays, overlay_vec);
@@ -4607,7 +4636,8 @@ evaporate_overlays (ptrdiff_t pos)
 			 Allocation with mmap
  ***********************************************************************/
 
-#ifdef USE_MMAP_FOR_BUFFERS
+/* Note: WINDOWSNT implements this stuff on w32heap.c.  */
+#if defined USE_MMAP_FOR_BUFFERS && !defined WINDOWSNT
 
 #include <sys/mman.h>
 
@@ -4672,11 +4702,6 @@ static struct mmap_region *mmap_regions;
    /dev/zero will be opened on it.  */
 
 static int mmap_fd;
-
-/* Temporary storage for mmap_set_vars, see there.  */
-
-static struct mmap_region *mmap_regions_1;
-static int mmap_fd_1;
 
 /* Page size on this system.  */
 
@@ -4748,36 +4773,6 @@ mmap_init (void)
 
   mmap_page_size = getpagesize ();
 }
-
-/* Return a region overlapping address range START...END, or null if
-   none.  END is not including, i.e. the last byte in the range
-   is at END - 1.  */
-
-static struct mmap_region *
-mmap_find (void *start, void *end)
-{
-  struct mmap_region *r;
-  char *s = start, *e = end;
-
-  for (r = mmap_regions; r; r = r->next)
-    {
-      char *rstart = (char *) r;
-      char *rend   = rstart + r->nbytes_mapped;
-
-      if (/* First byte of range, i.e. START, in this region?  */
-	  (s >= rstart && s < rend)
-	  /* Last byte of range, i.e. END - 1, in this region?  */
-	  || (e > rstart && e <= rend)
-	  /* First byte of this region in the range?  */
-	  || (rstart >= s && rstart < e)
-	  /* Last byte of this region in the range?  */
-	  || (rend > s && rend <= e))
-	break;
-    }
-
-  return r;
-}
-
 
 /* Unmap a region.  P is a pointer to the start of the user-araa of
    the region.  */
@@ -4852,38 +4847,6 @@ mmap_enlarge (struct mmap_region *r, int npages)
     }
 
   return success;
-}
-
-
-/* Set or reset variables holding references to mapped regions.
-   If not RESTORE_P, set all variables to null.  If RESTORE_P, set all
-   variables to the start of the user-areas of mapped regions.
-
-   This function is called from Fdump_emacs to ensure that the dumped
-   Emacs doesn't contain references to memory that won't be mapped
-   when Emacs starts.  */
-
-void
-mmap_set_vars (bool restore_p)
-{
-  struct mmap_region *r;
-
-  if (restore_p)
-    {
-      mmap_regions = mmap_regions_1;
-      mmap_fd = mmap_fd_1;
-      for (r = mmap_regions; r; r = r->next)
-	*r->var = MMAP_USER_AREA (r);
-    }
-  else
-    {
-      for (r = mmap_regions; r; r = r->next)
-	*r->var = NULL;
-      mmap_regions_1 = mmap_regions;
-      mmap_regions = NULL;
-      mmap_fd_1 = mmap_fd;
-      mmap_fd = -1;
-    }
 }
 
 
@@ -5304,23 +5267,57 @@ init_buffer_once (void)
 }
 
 void
-init_buffer (void)
+init_buffer (int initialized)
 {
   char *pwd;
   Lisp_Object temp;
   ptrdiff_t len;
 
 #ifdef USE_MMAP_FOR_BUFFERS
- {
-   /* When using the ralloc implementation based on mmap(2), buffer
-      text pointers will have been set to null in the dumped Emacs.
-      Map new memory.  */
-   struct buffer *b;
+  if (initialized)
+    {
+      struct buffer *b;
 
-   FOR_EACH_BUFFER (b)
-     if (b->text->beg == NULL)
-       enlarge_buffer_text (b, 0);
- }
+#ifndef WINDOWSNT
+      /* These must be reset in the dumped Emacs, to avoid stale
+	 references to mmap'ed memory from before the dump.
+
+	 WINDOWSNT doesn't need this because it doesn't track mmap'ed
+	 regions by hand (see w32heap.c, which uses system APIs for
+	 that purpose), and thus doesn't use mmap_regions.  */
+      mmap_regions = NULL;
+      mmap_fd = -1;
+#endif
+
+      /* The dumped buffers reference addresses of buffer text
+	 recorded by temacs, that cannot be used by the dumped Emacs.
+	 We map new memory for their text here.
+
+	 Implementation note: the buffers we carry from temacs are:
+	 " prin1", "*scratch*", " *Minibuf-0*", "*Messages*", and
+	 " *code-conversion-work*".  They are created by
+	 init_buffer_once and init_window_once (which are not called
+	 in the dumped Emacs), and by the first call to coding.c routines.  */
+      FOR_EACH_BUFFER (b)
+        {
+	  b->text->beg = NULL;
+	  enlarge_buffer_text (b, 0);
+	}
+    }
+  else
+    {
+      struct buffer *b;
+
+      /* Only buffers with allocated buffer text should be present at
+	 this point in temacs.  */
+      FOR_EACH_BUFFER (b)
+        {
+	  eassert (b->text->beg != NULL);
+	}
+    }
+#else  /* not USE_MMAP_FOR_BUFFERS */
+  /* Avoid compiler warnings.  */
+  initialized = initialized;
 #endif /* USE_MMAP_FOR_BUFFERS */
 
   Fset_buffer (Fget_buffer_create (build_string ("*scratch*")));

@@ -3,6 +3,7 @@
 ;; Copyright (C) 1999, 2001, 2004-2014 Free Software Foundation, Inc.
 
 ;; Author: Bill Perry <wmperry@gnu.org>
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: comm, data, processes
 
 ;; This file is part of GNU Emacs.
@@ -414,7 +415,7 @@ Return the number of characters removed."
 	  (goto-char (point-max))
 	  (insert "<hr>Sorry, but I do not know how to handle " type
 		  " authentication.  If you'd like to write it,"
-		  " send it to " url-bug-address ".<hr>")
+		  " please use M-x report-emacs-bug RET.<hr>")
           ;; We used to set a `status' var (declared "special") but I can't
           ;; find the corresponding let-binding, so it's probably an error.
           ;; FIXME: Maybe it was supposed to set `success', i.e. to return t?

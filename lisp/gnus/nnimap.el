@@ -26,10 +26,6 @@
 
 ;;; Code:
 
-;; For Emacs <22.2 and XEmacs.
-(eval-and-compile
-  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
-
 (eval-and-compile
   (require 'nnheader)
   ;; In Emacs 24, `open-protocol-stream' is an autoloaded alias for
@@ -627,6 +623,26 @@ textual parts.")
 	    (insert-buffer-substring buffer)
 	    (nnheader-ms-strip-cr)
 	    (cons group article)))))))
+
+(deffoo nnimap-request-articles (articles &optional group server)
+  (when group
+    (setq group (nnimap-decode-gnus-group group)))
+  (with-current-buffer nntp-server-buffer
+    (let ((result (nnimap-change-group group server)))
+      (when result
+	(erase-buffer)
+	(with-current-buffer (nnimap-buffer)
+	  (erase-buffer)
+	  (when (nnimap-command
+		 (if (nnimap-ver4-p)
+		     "UID FETCH %s BODY.PEEK[]"
+		   "UID FETCH %s RFC822.PEEK")
+		 (nnimap-article-ranges (gnus-compress-sequence articles)))
+	    (let ((buffer (current-buffer)))
+	      (with-current-buffer nntp-server-buffer
+		(nnheader-insert-buffer-substring buffer)
+		(nnheader-ms-strip-cr)))
+	    t))))))
 
 (defun nnimap-get-whole-article (article &optional command)
   (let ((result

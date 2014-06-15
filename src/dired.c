@@ -47,6 +47,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "regex.h"
 #include "blockinput.h"
 
+#ifdef MSDOS
+#include "msdos.h"	/* for fstatat */
+#endif
+
 static Lisp_Object Qdirectory_files;
 static Lisp_Object Qdirectory_files_and_attributes;
 static Lisp_Object Qfile_name_completion;
@@ -984,7 +988,7 @@ file_attributes (int fd, char const *name, Lisp_Object id_format)
   values[10] = INTEGER_TO_CONS (s.st_ino);
   values[11] = INTEGER_TO_CONS (s.st_dev);
 
-  return Flist (sizeof (values) / sizeof (values[0]), values);
+  return Flist (ARRAYELTS (values), values);
 }
 
 DEFUN ("file-attributes-lessp", Ffile_attributes_lessp, Sfile_attributes_lessp, 2, 2, 0,

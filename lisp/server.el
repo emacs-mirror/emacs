@@ -104,10 +104,10 @@
   "The name or IP address to use as host address of the server process.
 If set, the server accepts remote connections; otherwise it is local.
 
-DO NOT give this a non-nil value unless you know what you are
-doing!  On unsecured networks, accepting remote connections is
-very dangerous, because server-client communication (including
-session authentication) is not encrypted."
+DO NOT give this a non-nil value unless you know what you are doing!
+On unsecured networks, accepting remote connections is very dangerous,
+because server-client communication (including session authentication)
+is not encrypted."
   :group 'server
   :type '(choice
           (string :tag "Name or IP address")
@@ -642,8 +642,6 @@ server or call `M-x server-force-delete' to forcibly disconnect it.")
 	(cl-letf (((default-file-modes) ?\700))
 	  (add-hook 'suspend-tty-functions 'server-handle-suspend-tty)
 	  (add-hook 'delete-frame-functions 'server-handle-delete-frame)
-	  (add-hook 'kill-buffer-query-functions
-                    'server-kill-buffer-query-function)
 	  (add-hook 'kill-emacs-query-functions
                     'server-kill-emacs-query-function)
 	  (add-hook 'kill-emacs-hook 'server-force-stop) ;Cleanup upon exit.
@@ -1472,22 +1470,6 @@ specifically for the clients and did not exist before their request for it."
 	(save-buffer)))
     (server-buffer-done (current-buffer))))
 
-;; Ask before killing a server buffer.
-;; It was suggested to release its client instead,
-;; but I think that is dangerous--the client would proceed
-;; using whatever is on disk in that file. -- rms.
-(defun server-kill-buffer-query-function ()
-  "Ask before killing a server buffer."
-  (or (not server-buffer-clients)
-      (let ((res t))
-	(dolist (proc server-buffer-clients)
-          (when (and (memq proc server-clients)
-                     (eq (process-status proc) 'open))
-            (setq res nil)))
-         res)
-      (yes-or-no-p (format "Buffer `%s' still has clients; kill it? "
-			   (buffer-name (current-buffer))))))
-
 (defun server-kill-emacs-query-function ()
   "Ask before exiting Emacs if it has live clients."
   (or (not server-clients)
@@ -1634,7 +1616,7 @@ only these files will be asked to be saved."
 (define-key ctl-x-map "#" 'server-edit)
 
 (defun server-unload-function ()
-  "Unload the server library."
+  "Unload the Server library."
   (server-mode -1)
   (substitute-key-definition 'server-edit nil ctl-x-map)
   (save-current-buffer
@@ -1648,7 +1630,7 @@ only these files will be asked to be saved."
   "Contact the Emacs server named SERVER and evaluate FORM there.
 Returns the result of the evaluation, or signals an error if it
 cannot contact the specified server.  For example:
-  \(server-eval-at \"server\" '(emacs-pid))
+  (server-eval-at \"server\" '(emacs-pid))
 returns the process ID of the Emacs instance running \"server\"."
   (let* ((server-dir (if server-use-tcp server-auth-dir server-socket-dir))
 	 (server-file (expand-file-name server server-dir))

@@ -273,10 +273,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define IGNORE_DEFFACE_P(ATTR) EQ ((ATTR), QCignore_defface)
 
-/* Value is the number of elements of VECTOR.  */
-
-#define DIM(VECTOR) (sizeof (VECTOR) / sizeof *(VECTOR))
-
 /* Size of hash table of realized faces in face caches (should be a
    prime number).  */
 
@@ -515,7 +511,7 @@ DEFUN ("dump-colors", Fdump_colors, Sdump_colors, 0, 0, 0,
 
   fputc ('\n', stderr);
 
-  for (i = n = 0; i < sizeof color_count / sizeof color_count[0]; ++i)
+  for (i = n = 0; i < ARRAYELTS (color_count); ++i)
     if (color_count[i])
       {
 	fprintf (stderr, "%3d: %5d", i, color_count[i]);
@@ -1252,9 +1248,6 @@ load_color2 (struct frame *f, struct face *face, Lisp_Object name,
    record that fact in flags of the face so that we don't try to free
    these colors.  */
 
-#ifndef MSDOS
-static
-#endif
 unsigned long
 load_color (struct frame *f, struct face *face, Lisp_Object name,
 	    enum lface_attribute_index target_index)
@@ -4105,15 +4098,15 @@ free_realized_face (struct frame *f, struct face *face)
     }
 }
 
+#ifdef HAVE_WINDOW_SYSTEM
 
-/* Prepare face FACE for subsequent display on frame F.  This
-   allocated GCs if they haven't been allocated yet or have been freed
-   by clearing the face cache.  */
+/* Prepare face FACE for subsequent display on frame F.  This must be called
+   before using X resources of FACE to allocate GCs if they haven't been
+   allocated yet or have been freed by clearing the face cache.  */
 
 void
 prepare_face_for_display (struct frame *f, struct face *face)
 {
-#ifdef HAVE_WINDOW_SYSTEM
   eassert (FRAME_WINDOW_P (f));
 
   if (face->gc == 0)
@@ -4141,10 +4134,10 @@ prepare_face_for_display (struct frame *f, struct face *face)
 	font_prepare_for_face (f, face);
       unblock_input ();
     }
-#endif /* HAVE_WINDOW_SYSTEM */
 }
 
-
+#endif /* HAVE_WINDOW_SYSTEM */
+
 /* Returns the `distance' between the colors X and Y.  */
 
 static int
@@ -5093,14 +5086,14 @@ Value is ORDER.  */)
 {
   Lisp_Object list;
   int i;
-  int indices[DIM (font_sort_order)];
+  int indices[ARRAYELTS (font_sort_order)];
 
   CHECK_LIST (order);
   memset (indices, 0, sizeof indices);
   i = 0;
 
   for (list = order;
-       CONSP (list) && i < DIM (indices);
+       CONSP (list) && i < ARRAYELTS (indices);
        list = XCDR (list), ++i)
     {
       Lisp_Object attr = XCAR (list);
@@ -5122,9 +5115,9 @@ Value is ORDER.  */)
       indices[i] = xlfd;
     }
 
-  if (!NILP (list) || i != DIM (indices))
+  if (!NILP (list) || i != ARRAYELTS (indices))
     signal_error ("Invalid font sort order", order);
-  for (i = 0; i < DIM (font_sort_order); ++i)
+  for (i = 0; i < ARRAYELTS (font_sort_order); ++i)
     if (indices[i] == 0)
       signal_error ("Invalid font sort order", order);
 
@@ -5490,7 +5483,6 @@ realize_non_ascii_face (struct frame *f, Lisp_Object font_object,
   face = xmalloc (sizeof *face);
   *face = *base_face;
   face->gc = 0;
-  face->extra = NULL;
   face->overstrike
     = (! NILP (font_object)
        && FONT_WEIGHT_NAME_NUMERIC (face->lface[LFACE_WEIGHT_INDEX]) > 100
@@ -6348,7 +6340,7 @@ DEFUN ("dump-face", Fdump_face, Sdump_face, 0, 1, 0, doc: /* */)
       int i;
 
       fprintf (stderr, "font selection order: ");
-      for (i = 0; i < DIM (font_sort_order); ++i)
+      for (i = 0; i < ARRAYELTS (font_sort_order); ++i)
 	fprintf (stderr, "%d ", font_sort_order[i]);
       fprintf (stderr, "\n");
 

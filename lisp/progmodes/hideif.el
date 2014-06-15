@@ -327,7 +327,7 @@ that form should be displayed.")
 
 
 (defun hif-set-var (var value)
-  "Prepend (var value) pair to hide-ifdef-env."
+  "Prepend (var value) pair to `hide-ifdef-env'."
   (setq hide-ifdef-env (cons (cons var value) hide-ifdef-env)))
 
 (declare-function semantic-c-hideif-lookup  "semantic/bovine/c" (var))
@@ -407,6 +407,14 @@ that form should be displayed.")
 
 (defconst hif-string-literal-regexp  "\\(\"\\(?:[^\"\\]\\|\\\\.\\)*\"\\)")
 
+(defun hif-string-to-number (string &optional base)
+  "Like `string-to-number', but it understands non-decimal floats."
+  (if (or (not base) (= base 10))
+      (string-to-number string base)
+    (let* ((parts (split-string string "\\." t "[ \t]+"))
+	   (frac (cadr parts))
+	   (quot (expt (* base 1.0) (length frac))))
+      (/ (string-to-number (concat (car parts) frac) base) quot))))
 
 (defun hif-tokenize (start end)
   "Separate string between START and END into a list of tokens."
@@ -433,15 +441,12 @@ that form should be displayed.")
                    ;; TODO:
                    ;; 1. postfix 'l', 'll', 'ul' and 'ull'
                    ;; 2. floating number formats
-                   ;; 3. hexadecimal/octal floats
-                   ;; 4. 098 is interpreted as octal conversion error
-                   ;; FIXME: string-to-number does not convert hex floats
+                   ;; 3. 098 is interpreted as octal conversion error
                    (if (string-match "0x\\([0-9a-fA-F]+\\.?[0-9a-fA-F]*\\)"
                                      token)
-                       (string-to-number (match-string 1 token) 16)) ;; hex
-                   ;; FIXME: string-to-number does not convert octal floats
+                       (hif-string-to-number (match-string 1 token) 16)) ;; hex
                    (if (string-match "\\`0[0-9]+\\(\\.[0-9]+\\)?\\'" token)
-                       (string-to-number token 8)) ;; octal
+                       (hif-string-to-number token 8)) ;; octal
                    (if (string-match "\\`[1-9][0-9]*\\(\\.[0-9]+\\)?\\'"
                                      token)
                        (string-to-number token)) ;; decimal
@@ -479,7 +484,7 @@ that form should be displayed.")
 ;;  | Comma                | ,                           | left-to-right |
 
 (defsubst hif-nexttoken ()
-  "Pop the next token from token-list into the let variable \"hif-token\"."
+  "Pop the next token from token-list into the let variable `hif-token'."
   (setq hif-token (pop hif-token-list)))
 
 (defun hif-parse-if-exp (token-list)
@@ -712,7 +717,7 @@ that form should be displayed.")
 
 
 (defun hif-comma (&rest expr)
-  "Evaluate a list of expr, return the result of the last item"
+  "Evaluate a list of expr, return the result of the last item."
   (let ((result nil))
     (dolist (e expr)
       (ignore-errors
@@ -1118,7 +1123,7 @@ Turn off hiding by calling `show-ifdefs'."
 
 
 (defun hif-find-ifdef-block ()
-  "Utility for hide and show `ifdef-block'.
+  "Utility to hide and show ifdef block.
 Return as (TOP . BOTTOM) the extent of ifdef block."
   (let (max-bottom)
     (cons (save-excursion

@@ -681,24 +681,44 @@ strftime_case_ (bool upcase, STREAM_OR_CHAR_T *s,
       switch (format_char)
         {
 #define DO_NUMBER(d, v) \
-          digits = d;                                                         \
-          number_value = v; goto do_number
+          do                                                                  \
+            {                                                                 \
+              digits = d;                                                     \
+              number_value = v;                                               \
+              goto do_number;                                                 \
+            }                                                                 \
+          while (0)
 #define DO_SIGNED_NUMBER(d, negative, v) \
-          digits = d;                                                         \
-          negative_number = negative;                                         \
-          u_number_value = v; goto do_signed_number
+          do                                                                  \
+            {                                                                 \
+              digits = d;                                                     \
+              negative_number = negative;                                     \
+              u_number_value = v;                                             \
+              goto do_signed_number;                                          \
+            }                                                                 \
+          while (0)
 
           /* The mask is not what you might think.
              When the ordinal i'th bit is set, insert a colon
              before the i'th digit of the time zone representation.  */
 #define DO_TZ_OFFSET(d, negative, mask, v) \
-          digits = d;                                                         \
-          negative_number = negative;                                         \
-          tz_colon_mask = mask;                                               \
-          u_number_value = v; goto do_tz_offset
+          do                                                                  \
+            {                                                                 \
+              digits = d;                                                     \
+              negative_number = negative;                                     \
+              tz_colon_mask = mask;                                           \
+              u_number_value = v;                                             \
+              goto do_tz_offset;                                              \
+            }                                                                 \
+          while (0)
 #define DO_NUMBER_SPACEPAD(d, v) \
-          digits = d;                                                         \
-          number_value = v; goto do_number_spacepad
+          do                                                                  \
+            {                                                                 \
+              digits = d;                                                     \
+              number_value = v;                                               \
+              goto do_number_spacepad;                                        \
+            }                                                                 \
+          while (0)
 
         case L_('%'):
           if (modifier != 0)
@@ -1265,9 +1285,9 @@ strftime_case_ (bool upcase, STREAM_OR_CHAR_T *s,
             }
           if (modifier == L_('O'))
             goto bad_format;
-          else
-            DO_SIGNED_NUMBER (4, tp->tm_year < -TM_YEAR_BASE,
-                              tp->tm_year + (unsigned int) TM_YEAR_BASE);
+
+          DO_SIGNED_NUMBER (4, tp->tm_year < -TM_YEAR_BASE,
+                            tp->tm_year + (unsigned int) TM_YEAR_BASE);
 
         case L_('y'):
           if (modifier == L_('E'))

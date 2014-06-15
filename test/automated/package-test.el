@@ -186,7 +186,8 @@ Must called from within a `tar-mode' buffer."
         (insert-file-contents (expand-file-name "simple-single-pkg.el"
                                                 simple-pkg-dir))
         (should (string= (buffer-string)
-                         (concat "(define-package \"simple-single\" \"1.3\" "
+                         (concat ";;; -*- no-byte-compile: t -*-\n"
+                                 "(define-package \"simple-single\" \"1.3\" "
                                  "\"A single-file package "
                                  "with no dependencies\" 'nil "
                                  ":url \"http://doodles.au\""
@@ -203,12 +204,22 @@ Must called from within a `tar-mode' buffer."
     (should (package-installed-p 'simple-single))
     (should (package-installed-p 'simple-depend))))
 
+(ert-deftest package-test-install-two-dependencies ()
+  "Install a package which includes a dependency."
+  (with-package-test ()
+    (package-initialize)
+    (package-refresh-contents)
+    (package-install 'simple-two-depend)
+    (should (package-installed-p 'simple-single))
+    (should (package-installed-p 'simple-depend))
+    (should (package-installed-p 'simple-two-depend))))
+
 (ert-deftest package-test-refresh-contents ()
   "Parse an \"archive-contents\" file."
   (with-package-test ()
     (package-initialize)
     (package-refresh-contents)
-    (should (eq 3 (length package-archive-contents)))))
+    (should (eq 4 (length package-archive-contents)))))
 
 (ert-deftest package-test-install-single-from-archive ()
   "Install a single package from a package archive."
@@ -316,6 +327,7 @@ Must called from within a `tar-mode' buffer."
      (should (search-forward "Summary: A single-file package with no dependencies"
                              nil t))
      (should (search-forward "Homepage: http://doodles.au" nil t))
+     (should (re-search-forward "Keywords: \\[?frobnicate\\]?" nil t))
      ;; No description, though. Because at this point we don't know
      ;; what archive the package originated from, and we don't have
      ;; its readme file saved.

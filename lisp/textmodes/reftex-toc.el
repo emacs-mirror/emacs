@@ -190,6 +190,7 @@ M-%        Global search and replace to rename label at point.
 x          Switch to TOC of external document (with LaTeX package `xr').
 z          Jump to a specific section (e.g. '3 z' goes to section 3).")
 
+;;;###autoload
 (defun reftex-toc (&optional rebuild reuse)
   "Show the table of contents for the current document.
 When called with a raw C-u prefix, rescan the document first."
@@ -240,13 +241,13 @@ When called with a raw C-u prefix, rescan the document first."
                 (< (window-height) (* 2 window-min-height)))
         (delete-other-windows))
 
-      (setq reftex-last-window-width (window-width)
+      (setq reftex-last-window-width (window-total-width)
             reftex-last-window-height (window-height))  ; remember
 
       (unless unsplittable
         (if reftex-toc-split-windows-horizontally
             (split-window-right
-             (floor (* (window-width)
+             (floor (* (window-total-width)
                        reftex-toc-split-windows-fraction)))
           (split-window-below
            (floor (* (window-height)
@@ -319,6 +320,7 @@ SPC=view TAB=goto RET=goto+hide [q]uit [r]escan [l]abels [f]ollow [x]r [?]Help
     (reftex-find-start-point (point) offset (get 'reftex-toc :reftex-line))
     (setq reftex-last-follow-point (point))))
 
+;;;###autoload
 (defun reftex-toc-recenter (&optional arg)
   "Display the TOC window and highlight line corresponding to current position."
   (interactive "P")
@@ -372,8 +374,8 @@ SPC=view TAB=goto RET=goto+hide [q]uit [r]escan [l]abels [f]ollow [x]r [?]Help
 (defun reftex-re-enlarge ()
   "Enlarge window to a remembered size."
   (let ((count (if reftex-toc-split-windows-horizontally
-		   (- (or reftex-last-window-width (window-width))
-		      (window-width))
+		   (- (or reftex-last-window-width (window-total-width))
+		      (window-total-width))
 		 (- (or reftex-last-window-height (window-height))
 		    (window-height)))))
     (when (> count 0)
@@ -1009,6 +1011,7 @@ label prefix determines the wording of a reference."
        (let (current-prefix-arg)
          (reftex-toc-recenter))))
 
+;;;###autoload
 (defun reftex-toggle-auto-toc-recenter ()
   "Toggle the automatic recentering of the TOC window.
 When active, leaving point idle will make the TOC window jump to the correct
@@ -1088,3 +1091,7 @@ always show the current section in connection with the option
       (reftex-toggle-auto-toc-recenter))))
 
 ;;; reftex-toc.el ends here
+
+;; Local Variables:
+;; generated-autoload-file: "reftex.el"
+;; End:

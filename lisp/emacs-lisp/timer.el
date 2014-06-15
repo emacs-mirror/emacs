@@ -290,42 +290,50 @@ This function is called, by name, directly by the C code."
           (cell
            ;; Delete from queue.  Record the cons cell that was used.
            (cancel-timer-internal timer)))
-      ;; Re-schedule if requested.
-      (if (timer--repeat-delay timer)
-          (if (timer--idle-delay timer)
-              (timer-activate-when-idle timer nil cell)
-            (timer-inc-time timer (timer--repeat-delay timer) 0)
-            ;; If real time has jumped forward,
-            ;; perhaps because Emacs was suspended for a long time,
-            ;; limit how many times things get repeated.
-            (if (and (numberp timer-max-repeats)
-                     (< 0 (timer-until timer (current-time))))
-                (let ((repeats (/ (timer-until timer (current-time))
-                                  (timer--repeat-delay timer))))
-                  (if (> repeats timer-max-repeats)
-                      (timer-inc-time timer (* (timer--repeat-delay timer)
-                                               repeats)))))
-            ;; Place it back on the timer-list before running
-            ;; timer--function, so it can cancel-timer itself.
-            (timer-activate timer t cell)
-            (setq retrigger t)))
-      ;; Run handler.
-      (condition-case-unless-debug err
-          ;; Timer functions should not change the current buffer.
-          ;; If they do, all kinds of nasty surprises can happen,
-          ;; and it can be hellish to track down their source.
-          (save-current-buffer
-            (apply (timer--function timer) (timer--args timer)))
-        (error (message "Error running timer%s: %S"
-                        (if (symbolp (timer--function timer))
-                            (format " `%s'" (timer--function timer)) "")
-                        err)))
-      (when (and retrigger
-                 ;; If the timer's been canceled, don't "retrigger" it
-                 ;; since it might still be in the copy of timer-list kept
-                 ;; by keyboard.c:timer_check (bug#14156).
-                 (memq timer timer-list))
-        (setf (timer--triggered timer) nil)))))
+      ;; If `cell' is nil, it means the timer was already canceled, so we
+      ;; shouldn't be running it at all.  This can happen for example with the
+      ;; following scenario (bug#17392):
+      ;; - we run timers, starting with A (and remembering the rest as (B C)).
+      ;; - A runs and a does a sit-for.
+      ;; - during sit-for we run timer D which cancels timer B.
+      ;; - timer A finally finishes, so we move on to timers B and C.
+      (when cell
+        ;; Re-schedule if requested.
+        (if (timer--repeat-delay timer)
+            (if (timer--idle-delay timer)
+                (timer-activate-when-idle timer nil cell)
+              (timer-inc-time timer (timer--repeat-delay timer) 0)
+              ;; If real time has jumped forward,
+              ;; perhaps because Emacs was suspended for a long time,
+              ;; limit how many times things get repeated.
+              (if (and (numberp timer-max-repeats)
+                       (< 0 (timer-until timer (current-time))))
+                  (let ((repeats (/ (timer-until timer (current-time))
+                                    (timer--repeat-delay timer))))
+                    (if (> repeats timer-max-repeats)
+                        (timer-inc-time timer (* (timer--repeat-delay timer)
+                                                 repeats)))))
+              ;; Place it back on the timer-list before running
+              ;; timer--function, so it can cancel-timer itself.
+              (timer-activate timer t cell)
+              (setq retrigger t)))
+        ;; Run handler.
+        (condition-case-unless-debug err
+            ;; Timer functions should not change the current buffer.
+            ;; If they do, all kinds of nasty surprises can happen,
+            ;; and it can be hellish to track down their source.
+            (save-current-buffer
+              (apply (timer--function timer) (timer--args timer)))
+          (error (message "Error running timer%s: %S"
+                          (if (symbolp (timer--function timer))
+                              (format " `%s'" (timer--function timer)) "")
+                          err)))
+        (when (and retrigger
+                   ;; If the timer's been canceled, don't "retrigger" it
+                   ;; since it might still be in the copy of timer-list kept
+                   ;; by keyboard.c:timer_check (bug#14156).
+                   (memq timer timer-list))
+          (setf (timer--triggered timer) nil))))))
 
 ;; This function is incompatible with the one in levents.el.
 (defun timeout-event-p (event)

@@ -1328,9 +1328,7 @@ return a `defface' style list of face properties instead of a face symbol."
 (defun hfy-overlay-props-at (p)
   "Grab overlay properties at point P.
 The plists are returned in descending priority order."
-  (sort (mapcar #'overlay-properties (overlays-at p))
-        (lambda (A B) (> (or (cadr (memq 'priority A)) 0) ;FIXME: plist-get?
-                    (or (cadr (memq 'priority B)) 0)))))
+ (mapcar #'overlay-properties (overlays-at p 'sorted)))
 
 ;; construct an assoc of (face-name . (css-name . "{ css-style }")) elements:
 (defun hfy-compile-stylesheet ()
@@ -1642,7 +1640,6 @@ FILE, if set, is the file name."
           (css-map                     nil)
           (invis-ranges                nil)
           (rovl                        nil)
-          (orig-ovls      (overlays-in (point-min) (point-max)))
           (rmin           (when mark-active (region-beginning)))
           (rmax           (when mark-active (region-end      ))) )
     (when (and mark-active
@@ -1664,12 +1661,6 @@ FILE, if set, is the file name."
     (set-buffer     html-buffer)
     ;; rip out props that could interfere with our htmlization of the buffer:
     (remove-text-properties (point-min) (point-max) hfy-ignored-properties)
-    ;; Apply overlay invisible spec
-    (setq orig-ovls
-          (sort orig-ovls
-                (lambda (A B)
-                  (> (or (cadr (memq 'priority (overlay-properties A))) 0)
-                     (or (cadr (memq 'priority (overlay-properties B))) 0)))))
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     ;; at this point, html-buffer retains the fontification of the parent:
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1818,17 +1809,25 @@ fontified.  This is a simple convenience wrapper around
   (eval-and-compile (require 'font-lock))
   (if (boundp 'font-lock-cache-position)
       (or font-lock-cache-position
-          (set 'font-lock-cache-position (make-marker))))
-  (if (not noninteractive)
-      (progn
-        (message "hfy interactive mode (%S %S)" window-system major-mode)
-        (when (and font-lock-defaults
-                   font-lock-mode)
-          (font-lock-fontify-region (point-min) (point-max) nil)))
+          (setq font-lock-cache-position (make-marker))))
+  (cond
+   (noninteractive
     (message "hfy batch mode (%s:%S)"
              (or (buffer-file-name) (buffer-name)) major-mode)
-    (when font-lock-defaults
-      (font-lock-fontify-buffer)) ))
+    (if (fboundp 'font-lock-ensure)
+        (font-lock-ensure)
+      (when font-lock-defaults
+        (font-lock-fontify-buffer))))
+   ((fboundp #'jit-lock-fontify-now)
+    (message "hfy jit-lock mode (%S %S)" window-system major-mode)
+    (jit-lock-fontify-now))
+   (t
+    (message "hfy interactive mode (%S %S)" window-system major-mode)
+    ;; If jit-lock is not in use, then the buffer is already fontified!
+    ;; (when (and font-lock-defaults
+    ;;            font-lock-mode)
+    ;;   (font-lock-fontify-region (point-min) (point-max) nil))
+    )))
 
 ;;;###autoload
 (defun htmlfontify-buffer (&optional srcdir file)

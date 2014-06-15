@@ -205,11 +205,19 @@ month_data='
 	m[9]="Oct"; m[10]="Nov"; m[11]="Dec"
 '
 
-logdir=$TMPDIR/rcs2log$$
-llogout=$logdir/l
+if type mktemp >/dev/null 2>&1; then
+	logdir=`mktemp -d`
+else
+	logdir=$TMPDIR/rcs2log$$
+	(umask 077 && mkdir "$logdir")
+fi || exit
+case $logdir in
+-*) logdir=./$logdir;;
+esac
 trap exit 1 2 13 15
-trap "rm -fr $logdir 2>/dev/null" 0
-(umask 077 && exec mkdir $logdir) || exit
+trap "rm -fr \"$logdir\" 2>/dev/null" 0
+
+llogout=$logdir/l
 
 # If no rlog-format log file is given, generate one into $rlogfile.
 case $rlogfile in
@@ -417,10 +425,10 @@ case $loginFullnameMailaddrs in
 ?*)
 	case $loginFullnameMailaddrs in
 	*\"* | *\\*)
-		sed 's/["\\]/\\&/g' >$llogout <<EOF || exit
+		sed 's/["\\]/\\&/g' >"$llogout" <<EOF || exit
 $loginFullnameMailaddrs
 EOF
-		loginFullnameMailaddrs=`cat $llogout`;;
+		loginFullnameMailaddrs=`cat "$llogout"`;;
 	esac
 
 	oldIFS=$IFS
@@ -442,29 +450,33 @@ esac
 
 case $logins in
 ?*)
-	sort -u -o $llogout <<EOF
+	sort -u -o "$llogout" <<EOF
 $logins
 EOF
 	;;
 '')
 	: ;;
-esac >$llogout || exit
+esac >"$llogout" || exit
 
 output_authors='/^date: / {
-	if ($2 ~ /^[0-9]*[-\/][0-9][0-9][-\/][0-9][0-9]$/ && $3 ~ /^[0-9][0-9]:[0-9][0-9]:[0-9][0-9][-+0-9:]*;$/ && $4 == "author:" && $5 ~ /^[^;]*;$/) {
-		print substr($5, 1, length($5)-1)
+	cvsformat = $5 == "author:"
+	if ($2 ~ /^[0-9]*[-\/][0-9][0-9][-\/][0-9][0-9]$/ && (cvsformat ? $3 ~ /^[0-9][0-9]:[0-9][0-9]:[0-9][0-9]/ && $4 ~ /^[-+][0-9:]*;$/ : $3 ~ /^[0-9][0-9]:[0-9][0-9]:[0-9][0-9][-+0-9:]*;$/)) {
+		author = $(5 + cvsformat)
+		if ($(4 + cvsformat) == "author:" && author ~ /^[^;]*;$/) {
+			print substr(author, 1, length(author)-1)
+		}
 	}
 }'
 authors=`
-	$AWK "$output_authors" <"$rlogfile" | sort -u | comm -23 - $llogout
+	$AWK "$output_authors" <"$rlogfile" | sort -u | comm -23 - "$llogout"
 `
 case $authors in
 ?*)
-	cat >$llogout <<EOF || exit
+	cat >"$llogout" <<EOF || exit
 $authors
 EOF
 	initialize_author_script='s/["\\]/\\&/g; s/.*/author[\"&\"] = 1/'
-	initialize_author=`sed -e "$initialize_author_script" <$llogout`
+	initialize_author=`sed -e "$initialize_author_script" <"$llogout"`
 	awkscript='
 		BEGIN {
 			alphabet = "abcdefghijklmnopqrstuvwxyz"
@@ -644,8 +656,23 @@ $AWK '
 				}
 				date = newdate date
 			}
-			time = substr($3, 1, length($3) - 1)
-			author = substr($5, 1, length($5)-1)
+			time = ""
+			for (i = 3; i <= NF; i++) {
+				time = time $i
+				if (time ~ /;$/) {
+					time = substr(time, 1, length(time) - 1)
+					break
+				}
+			}
+			i++
+			if ($i == "author:") {
+				author = $(i + 1)
+				if (author ~ /;$/) {
+					author = substr(author, 1, length(author) - 1)
+				}
+			} else {
+				author = ""
+			}
 			printf "%s%s%s%s%s%s%s%s%s%s", filename, SOH, rev, SOH, date, SOH, time, SOH, author, SOH
 			rev = "?"
 			next
@@ -769,7 +796,7 @@ $AWK -F"$SOH" '
 
 # Exit successfully.
 
-exec rm -fr $logdir
+exec rm -fr "$logdir"
 
 # Local Variables:
 # tab-width:4

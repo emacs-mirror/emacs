@@ -292,8 +292,6 @@ enum byte_code_op
     Bscan_buffer = 0153, /* No longer generated as of v18.  */
     Bset_mark = 0163, /* this loser is no longer generated as of v18 */
 #endif
-
-    B__dummy__ = 0  /* Pacify C89.  */
 };
 
 /* Whether to maintain a `top' and `bottom' field in the stack frame.  */
@@ -390,7 +388,11 @@ unmark_byte_stack (void)
 
 /* Fetch the next byte from the bytecode stream.  */
 
+#ifdef BYTE_CODE_SAFE
+#define FETCH (eassert (stack.byte_string_start == SDATA (stack.byte_string)), *stack.pc++)
+#else
 #define FETCH *stack.pc++
+#endif
 
 /* Fetch two bytes from the bytecode stream and make a 16-bit number
    out of them.  */
@@ -501,7 +503,6 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 		Lisp_Object args_template, ptrdiff_t nargs, Lisp_Object *args)
 {
   ptrdiff_t count = SPECPDL_INDEX ();
-  ptrdiff_t volatile count_volatile;
 #ifdef BYTE_CODE_METER
   int volatile this_op = 0;
   int prev_op;
@@ -509,14 +510,12 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
   int op;
   /* Lisp_Object v1, v2; */
   Lisp_Object *vectorp;
-  Lisp_Object *volatile vectorp_volatile;
 #ifdef BYTE_CODE_SAFE
-  ptrdiff_t volatile const_length;
-  Lisp_Object *volatile stacke;
-  ptrdiff_t volatile bytestr_length;
+  ptrdiff_t const_length;
+  Lisp_Object *stacke;
+  ptrdiff_t bytestr_length;
 #endif
   struct byte_stack stack;
-  struct byte_stack volatile stack_volatile;
   Lisp_Object *top;
   Lisp_Object result;
   enum handlertype type;
@@ -1122,9 +1121,6 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	    PUSH_HANDLER (c, tag, type);
 	    c->bytecode_dest = dest;
 	    c->bytecode_top = top;
-	    count_volatile = count;
-	    stack_volatile = stack;
-	    vectorp_volatile = vectorp;
 
 	    if (sys_setjmp (c->jmp))
 	      {
@@ -1135,12 +1131,11 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 		handlerlist = c->next;
 		PUSH (c->val);
 		CHECK_RANGE (dest);
-		stack = stack_volatile;
+		/* Might have been re-set by longjmp!  */
+		stack.byte_string_start = SDATA (stack.byte_string);
 		stack.pc = stack.byte_string_start + dest;
 	      }
 
-	    count = count_volatile;
-	    vectorp = vectorp_volatile;
 	    NEXT;
 	  }
 

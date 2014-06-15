@@ -24,6 +24,9 @@ find some things, or what options to use.
 `src/config.h' file containing system-dependent definitions.
 Running the `make' utility then builds the package for your system.
 
+Building Emacs requires GNU make, <http://www.gnu.org/software/make/>.
+On most systems that Emacs supports, this is the default `make' program.
+
 Here's the procedure to build Emacs using `configure' on systems which
 are supported by it.  In some cases, if the simplified procedure fails,
 you might need to use various non-default options, and maybe perform
@@ -49,7 +52,6 @@ sections if you need to.
 		 SOURCE-DIR/configure
 
       where SOURCE-DIR is the top-level Emacs source directory.
-      This may not work unless you use GNU make.
 
   3. When `configure' finishes, it prints several lines of details
      about the system configuration.  Read those details carefully
@@ -167,6 +169,7 @@ X11 is being used.
   X libjpeg for JPEG: http://www.ijg.org/
   X libtiff for TIFF: http://www.remotesensing.org/libtiff/
   X libgif for GIF:   http://sourceforge.net/projects/giflib/
+    librsvg2 for SVG: http://wiki.gnome.org/action/show/Projects/LibRsvg
 
 If you supply the appropriate --without-LIB option, 'configure' will
 omit the corresponding library from Emacs, even if that makes for a
@@ -260,9 +263,9 @@ with the mouse.  You can get fancy 3D-style scroll bars, even without
 Gtk or Motif, if you have the Xaw3d library installed (see
 "Image support libraries" above for Xaw3d availability).
 
-You can tell configure where to search for GTK by specifying
-`--with-pkg-config-prog=PATH' where PATH is the pathname to
-pkg-config.  Note that GTK version 2.6 or newer is required for Emacs.
+You can tell configure where to search for GTK by giving it the
+argument PKG_CONFIG='/full/name/of/pkg-config'.  GTK version 2.6 or
+newer is required for Emacs.
 
 Emacs will autolaunch a D-Bus session bus, when the environment
 variable DISPLAY is set, but no session bus is running.  This might be
@@ -291,6 +294,7 @@ or more of these options:
   --without-tiff       for TIFF image support
   --without-gif        for GIF image support
   --without-png        for PNG image support
+  --without-rsvg       for SVG image support
 
 Use --without-toolkit-scroll-bars to disable Motif or Xaw3d scroll bars.
 
@@ -302,22 +306,17 @@ systems which support that.
 
 Use --without-sound to disable sound support.
 
-Use --without-all if you want to build a small executable with the minimal
-dependencies on external libraries, at the cost of disabling most of the
-features that are normally enabled by default.  Using --without-all is
-equivalent to --without-sound --without-dbus --without-libotf
---without-selinux --without-xft --without-gsettings --without-gnutls
---without-rsvg --without-xml2 --without-gconf --without-imagemagick
---without-m17n-flt --without-jpeg --without-tiff --without-gif
---without-png --without-gpm --without-file-notification.  Note that
---without-all leaves X support enabled, and using the GTK2 or GTK3
+Use --without-all for a smaller executable with fewer dependencies on
+external libraries, at the cost of disabling many features.  Although
+--without-all disables libraries not needed for ordinary Emacs
+operation, it does enable X support, and using the GTK2 or GTK3
 toolkit creates a lot of library dependencies.  So if you want to
 build a small executable with very basic X support, use --without-all
 --with-x-toolkit=no.  For the smallest possible executable without X,
 use --without-all --without-x.  If you want to build with just a few
 features enabled, you can combine --without-all with --with-FEATURE.
-For example, you can use --without-all --with-dbus to build with DBus
-support and nothing more.
+For example, you can use --without-all --without-x --with-dbus to
+build with DBus support and nothing more.
 
 Use --with-wide-int to implement Emacs values with the type 'long long',
 even on hosts where a narrower type would do.  With this option, on a
@@ -329,12 +328,17 @@ and is useful with GNU-compatible compilers.  On a recent GNU system
 there should be no warnings; on older and on non-GNU systems the
 generated warnings may still be useful.
 
-Use --enable-link-time-optimization to enable link-time optimizer, which
-is available in GNU compiler since version 4.5.0.  If your compiler is not
-GNU or older than version 4.5.0, this option does nothing.  If `configure'
-can determine number of online CPUS on your system, final link-time
-optimization and code generation is executed in parallel using one job
-per each available online CPU.
+Use --enable-link-time-optimization to enable link-time optimizer.  If
+you're using GNU compiler, this feature is supported since version 4.5.0.
+If `configure' can determine number of online CPUS on your system, final
+link-time optimization and code generation is executed in parallel using
+one job per each available online CPU.
+
+This option is also supported for clang.  You should have GNU binutils
+with `gold' linker and plugin support, and clang with LLVMgold.so plugin.
+Read http://llvm.org/docs/GoldPlugin.html for details.  Also note that
+this feature is still experimental, so prepare to build binutils and
+clang from the corresponding source code repositories.
 
 The `--prefix=PREFIXDIR' option specifies where the installation process
 should put emacs and its data files.  This defaults to `/usr/local'.
@@ -401,10 +405,11 @@ compiler.  By default, gcc is used if available.
 Here's an example of a `configure' invocation, assuming a Bourne-like
 shell such as Bash, which uses these variables:
 
- CPPFLAGS='-I/foo/myinclude' LDFLAGS='-L/bar/mylib' \
-  CFLAGS='-O3' LIBS='-lfoo -lbar' ./configure
+  ./configure \
+    CPPFLAGS='-I/foo/myinclude' LDFLAGS='-L/bar/mylib' \
+    CFLAGS='-O3' LIBS='-lfoo -lbar'
 
-(this is all one long line).  This tells `configure' to instruct the
+(this is all one shell command).  This tells `configure' to instruct the
 preprocessor to look in the `/foo/myinclude' directory for header
 files (in addition to the standard directories), instruct the linker
 to look in `/bar/mylib' for libraries, pass the -O3 optimization
@@ -414,12 +419,11 @@ libraries in addition to the standard ones.
 For some libraries, like Gtk+, fontconfig and ALSA, `configure' uses
 pkg-config to find where those libraries are installed.
 If you want pkg-config to look in special directories, you have to set
-the environment variable PKG_CONFIG_PATH to point to the directories
-where the .pc-files for those libraries are.
-For example:
+PKG_CONFIG_PATH to point to the directories where the .pc-files for
+those libraries are.  For example:
 
- PKG_CONFIG_PATH='/usr/local/alsa/lib/pkgconfig:/opt/gtk+-2.8/lib/pkgconfig' \
-   ./configure
+  ./configure \
+    PKG_CONFIG_PATH='/usr/local/alsa/lib/pkgconfig:/opt/gtk+-2.8/lib/pkgconfig'
 
 The work of `configure' can be done by editing various files in the
 distribution, but using `configure' is easier.  See the section called
@@ -435,12 +439,8 @@ SOURCE-DIR refers to the top-level Emacs source directory which is
 where Emacs's configure script is located.  `configure' looks for the
 Emacs source code in the directory that `configure' is in.
 
-To build in a separate directory, you must use a version of `make'
-that supports the `VPATH' variable, such as GNU `make'.
-
-(Do not try to build in a separate directory by creating many links
-to the real source directory--there is no need, and installation will
-fail.)
+(Do not try to build in a separate directory by creating many links to
+the real source directory--there is no need, and installation will fail.)
 
 4) Put into `./lisp/site-init.el' or `./lisp/site-load.el' any Emacs
 Lisp code you want Emacs to load before it is dumped out.  Use
@@ -726,8 +726,8 @@ Strictly speaking, not all of the executables in `./lib-src' need be copied.
     are used by Emacs; they do need to be copied.
 - The programs `etags', `ctags', and `emacsclient' are intended to be
     run by users; they are handled below.
-- The programs `make-docfile' and `test-distrib' were
-    used in building Emacs, and are not needed any more.
+- The program `make-docfile' was used in building Emacs, and is
+    not needed any more.
 
 2) Copy the files in `./info' to the place specified in
 `./lisp/site-init.el' or `./lisp/info.el'.  Note that if the

@@ -2051,8 +2051,15 @@ whether or not it is currently displayed in some window.  */)
 	   string, move_it_to will overshoot it, while vertical-motion
 	   wants to put the cursor _before_ the display string.  So in
 	   that case, we move to buffer position before the display
-	   string, and avoid overshooting.  */
-	move_it_to (&it, disp_string_at_start_p ? PT - 1 : PT,
+	   string, and avoid overshooting.  But if the position before
+	   the display string is a newline, we don't do this, because
+	   otherwise we will end up in a screen line that is one too
+	   far back.  */
+	move_it_to (&it,
+		    (!disp_string_at_start_p
+		     || FETCH_BYTE (IT_BYTEPOS (it)) == '\n')
+		    ? PT
+		    : PT - 1,
 		    -1, -1, -1, MOVE_TO_POS);
 
       /* IT may move too far if truncate-lines is on and PT lies

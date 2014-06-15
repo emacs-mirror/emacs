@@ -60,7 +60,7 @@
 ;; - responsible-p (file)                      OK
 ;; - could-register (file)                     OK
 ;; - receive-file (file rev)                   ?? PROBABLY NOT NEEDED
-;; - unregister (file)                         COMMENTED OUT, MAY BE INCORRECT
+;; - unregister (file)                         OK
 ;; * checkin (files rev comment)               OK
 ;; * find-revision (file rev buffer)           OK
 ;; * checkout (file &optional editable rev)    OK
@@ -82,8 +82,8 @@
 ;; - annotate-current-time ()                  NOT NEEDED
 ;; - annotate-extract-revision-at-line ()      OK
 ;; TAG SYSTEM
-;; - create-tag (dir name branchp)             NEEDED
-;; - retrieve-tag (dir name update)            NEEDED
+;; - create-tag (dir name branchp)             OK
+;; - retrieve-tag (dir name update)            OK FIXME UPDATE BUFFERS
 ;; MISCELLANEOUS
 ;; - make-version-backups-p (file)             ??
 ;; - repository-hostname (dirname)             ??
@@ -146,12 +146,19 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
   :group 'vc-hg)
 
 (defcustom vc-hg-root-log-format
-  '("{rev}:{tags}: {author|person} {date|shortdate} {desc|firstline}\\n"
-    "^\\([0-9]+\\):\\([^:]*\\): \\(.*?\\)[ \t]+\\([0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}\\)"
+  `(,(concat "{rev}:{ifeq(branch, 'default','', '{branch}')}"
+             ":{bookmarks}:{tags}:{author|person}"
+             " {date|shortdate} {desc|firstline}\\n")
+    ,(concat "^\\(?:[+@o x|-]*\\)"      ;Graph data.
+             "\\([0-9]+\\):\\([^:]*\\)"
+             ":\\([^:]*\\):\\([^:]*\\):\\(.*?\\)"
+             "[ \t]+\\([0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}\\)")
     ((1 'log-view-message-face)
-     (2 'change-log-list)
-     (3 'change-log-name)
-     (4 'change-log-date)))
+     (2 'change-log-file)
+     (3 'change-log-list)
+     (4 'change-log-conditionals)
+     (5 'change-log-name)
+     (6 'change-log-date)))
   "Mercurial log template for `vc-hg-print-log' short format.
 This should be a list (TEMPLATE REGEXP KEYWORDS), where TEMPLATE
 is the \"--template\" argument string to pass to Mercurial,
@@ -160,7 +167,7 @@ output, and KEYWORDS is a list of `font-lock-keywords' for
 highlighting the Log View buffer."
   :type '(list string string (repeat sexp))
   :group 'vc-hg
-  :version "24.1")
+  :version "24.5")
 
 
 ;;; Properties of the backend
@@ -227,14 +234,11 @@ highlighting the Log View buffer."
 
 (defun vc-hg-working-revision (file)
   "Hg-specific version of `vc-working-revision'."
-  (let ((default-directory (if (file-directory-p file)
-                               (file-name-as-directory file)
-                             (file-name-directory file))))
-    (ignore-errors
-      (with-output-to-string
-        (process-file vc-hg-program nil standard-output nil
-                      "log" "-l" "1" "--template" "{rev}"
-                      (file-relative-name file))))))
+  (or (ignore-errors
+        (with-output-to-string
+          (vc-hg-command standard-output 0 file
+                         "parent" "--template" "{rev}")))
+      "0"))
 
 ;;; History functions
 
@@ -246,6 +250,9 @@ highlighting the Log View buffer."
   :group 'vc-hg)
 
 (autoload 'vc-setup-buffer "vc-dispatcher")
+
+(defvar vc-hg-log-graph nil
+  "If non-nil, use `--graph' in the short log output.")
 
 (defun vc-hg-print-log (files buffer &optional shortlog start-revision limit)
   "Print commit log associated with FILES into specified BUFFER.
@@ -264,7 +271,9 @@ If LIMIT is non-nil, show no more than this many entries."
 	     (nconc
 	      (when start-revision (list (format "-r%s:0" start-revision)))
 	      (when limit (list "-l" (format "%s" limit)))
-	      (when shortlog (list "--template" (car vc-hg-root-log-format)))
+	      (when shortlog `(,@(if vc-hg-log-graph '("--graph"))
+                               "--template"
+                               ,(car vc-hg-root-log-format)))
 	      vc-hg-log-switches)))))
 
 (defvar log-view-message-re)
@@ -379,8 +388,26 @@ Optional arg REVISION is a revision to annotate from."
       (if (match-beginning 3)
 	  (match-string-no-properties 1)
 	(cons (match-string-no-properties 1)
-	      (expand-file-name (match-string-no-properties 4)
-				(vc-hg-root default-directory)))))))
+      (expand-file-name (match-string-no-properties 4)
+ (vc-hg-root default-directory)))))))
+
+;;; Tag system
+
+(defun vc-hg-create-tag (dir name branchp)
+  "Attach the tag NAME to the state of the working copy."
+  (let ((default-directory dir))
+    (and (vc-hg-command nil 0 nil "status")
+         (vc-hg-command nil 0 nil (if branchp "bookmark" "tag") name))))
+
+(defun vc-hg-retrieve-tag (dir name update)
+  "Retrieve the version tagged by NAME of all registered files at or below DIR."
+  (let ((default-directory dir))
+    (vc-hg-command nil 0 nil "update" name)
+    ;; FIXME: update buffers if `update' is true
+    ;; TODO: update *vc-change-log* buffer so can see @ if --graph
+    ))
+
+;;; Miscellaneous
 
 (defun vc-hg-previous-revision (_file rev)
   (let ((newrev (1- (string-to-number rev))))
@@ -436,10 +463,9 @@ COMMENT is ignored."
              ;; registered.
          (error))))
 
-;; FIXME: This would remove the file. Is that correct?
-;; (defun vc-hg-unregister (file)
-;;   "Unregister FILE from hg."
-;;   (vc-hg-command nil nil file "remove"))
+(defun vc-hg-unregister (file)
+  "Unregister FILE from hg."
+  (vc-hg-command nil 0 file "forget"))
 
 (declare-function log-edit-extract-headers "log-edit" (headers string))
 

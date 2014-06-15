@@ -233,7 +233,7 @@ search string to a regular expression specified by the variable
 sequences of newlines as well as spaces, set it to
 @samp{"[[:space:]\n]+"}.
 
-  To toggle lax space matching, type @kbd{M-s SPC}
+  To toggle lax space matching, type @kbd{M-s @key{SPC}}
 (@code{isearch-toggle-lax-whitespace}).  To disable this feature
 entirely, change @code{search-whitespace-regexp} to @code{nil}; then
 each space in the search string matches exactly one space.
@@ -261,7 +261,7 @@ Type @kbd{C-q}, followed by a non-graphic character or a sequence of
 octal digits.  This adds a character to the search string, similar to
 inserting into a buffer using @kbd{C-q} (@pxref{Inserting Text}).  For
 example, @kbd{C-q C-s} during incremental search adds the
-@key{control-S} character to the search string.
+@samp{control-S} character to the search string.
 
 @item
 Type @kbd{C-x 8 @key{RET}}, followed by a Unicode name or code-point.
@@ -605,7 +605,7 @@ They also have separate search rings, which you can access with
   Just as in ordinary incremental search, any @key{SPC} typed in
 incremental regexp search matches any sequence of one or more
 whitespace characters.  The variable @code{search-whitespace-regexp}
-specifies the regexp for the lax space matching, and @kbd{M-s SPC}
+specifies the regexp for the lax space matching, and @kbd{M-s @key{SPC}}
 (@code{isearch-toggle-lax-whitespace}) toggles the feature.
 @xref{Special Isearch}.
 

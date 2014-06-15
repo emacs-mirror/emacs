@@ -6,6 +6,7 @@
 ;; Maintainer: Rob Riepel <riepel@networking.stanford.edu>
 ;; Version: 4.5
 ;; Keywords: emulations
+;; Obsolete-since: 24.5
 
 ;; This file is part of GNU Emacs.
 

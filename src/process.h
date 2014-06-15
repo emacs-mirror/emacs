@@ -213,8 +213,6 @@ enum
 
 /* Defined in callproc.c.  */
 
-extern void block_child_signal (void);
-extern void unblock_child_signal (void);
 extern Lisp_Object encode_current_directory (void);
 extern void record_kill_process (struct Lisp_Process *, Lisp_Object);
 
@@ -227,9 +225,7 @@ extern Lisp_Object system_process_attributes (Lisp_Object);
 
 extern void record_deleted_pid (pid_t, Lisp_Object);
 struct sockaddr;
-#ifdef WINDOWSNT
 extern Lisp_Object conv_sockaddr_to_lisp (struct sockaddr *, int);
-#endif
 extern void hold_keyboard_input (void);
 extern void unhold_keyboard_input (void);
 extern bool kbd_on_hold_p (void);
@@ -240,9 +236,7 @@ extern void add_read_fd (int fd, fd_callback func, void *data);
 extern void delete_read_fd (int fd);
 extern void add_write_fd (int fd, fd_callback func, void *data);
 extern void delete_write_fd (int fd);
-#ifdef NS_IMPL_GNUSTEP
 extern void catch_child_signal (void);
-#endif
 
 #ifdef WINDOWSNT
 extern Lisp_Object network_interface_list (void);

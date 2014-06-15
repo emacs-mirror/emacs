@@ -71,10 +71,6 @@
 
 ;;; Code:
 
-;; For Emacs <22.2 and XEmacs.
-(eval-and-compile
-  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
-
 (if (locate-library "password-cache")
     (require 'password-cache)
   (require 'password))

@@ -715,18 +715,61 @@ find_newline (ptrdiff_t start, ptrdiff_t start_byte, ptrdiff_t end,
            examine.  */
 	ptrdiff_t tem, ceiling_byte = end_byte - 1;
 
-        /* If we're looking for a newline, consult the newline cache
-           to see where we can avoid some scanning.  */
+        /* If we're using the newline cache, consult it to see whether
+           we can avoid some scanning.  */
         if (newline_cache)
           {
             ptrdiff_t next_change;
-            immediate_quit = 0;
-            while (region_cache_forward
-                   (cache_buffer, newline_cache, start, &next_change))
-              start = next_change;
-            immediate_quit = allow_quit;
+	    int result = 1;
 
-	    start_byte = CHAR_TO_BYTE (start);
+            immediate_quit = 0;
+            while (start < end && result)
+	      {
+		ptrdiff_t lim1;
+
+		result = region_cache_forward (cache_buffer, newline_cache,
+					       start, &next_change);
+		if (result)
+		  {
+		    start = next_change;
+		    lim1 = next_change = end;
+		  }
+		else
+		  lim1 = min (next_change, end);
+
+		/* The cache returned zero for this region; see if
+		   this is because the region is known and includes
+		   only newlines.  While at that, count any newlines
+		   we bump into, and exit if we found enough off them.  */
+		start_byte = CHAR_TO_BYTE (start);
+		while (start < lim1
+		       && FETCH_BYTE (start_byte) == '\n')
+		  {
+		    start_byte++;
+		    start++;
+		    if (--count == 0)
+		      {
+			if (bytepos)
+			  *bytepos = start_byte;
+			return start;
+		      }
+		  }
+		/* If we found a non-newline character before hitting
+		   position where the cache will again return non-zero
+		   (i.e. no newlines beyond that position), it means
+		   this region is not yet known to the cache, and we
+		   must resort to the "dumb loop" method.  */
+		if (start < next_change && !result)
+		  break;
+		result = 1;
+	      }
+	    if (start >= end)
+	      {
+		start = end;
+		start_byte = end_byte;
+		break;
+	      }
+            immediate_quit = allow_quit;
 
             /* START should never be after END.  */
             if (start_byte > ceiling_byte)
@@ -762,9 +805,9 @@ find_newline (ptrdiff_t start, ptrdiff_t start_byte, ptrdiff_t end,
 	      unsigned char *nl = memchr (lim_addr + cursor, '\n', - cursor);
 	      next = nl ? nl - lim_addr : 0;
 
-              /* If we're looking for newlines, cache the fact that
-                 this line's region is free of them. */
-              if (newline_cache)
+              /* If we're using the newline cache, cache the fact that
+                 the region we just traversed is free of newlines. */
+              if (newline_cache && cursor != next)
 		{
 		  know_region_cache (cache_buffer, newline_cache,
 				     BYTE_TO_CHAR (lim_byte + cursor),
@@ -800,13 +843,46 @@ find_newline (ptrdiff_t start, ptrdiff_t start_byte, ptrdiff_t end,
         if (newline_cache)
           {
             ptrdiff_t next_change;
-            immediate_quit = 0;
-            while (region_cache_backward
-                   (cache_buffer, newline_cache, start, &next_change))
-              start = next_change;
-            immediate_quit = allow_quit;
+	    int result = 1;
 
-	    start_byte = CHAR_TO_BYTE (start);
+            immediate_quit = 0;
+            while (start > end && result)
+	      {
+		ptrdiff_t lim1;
+
+		result = region_cache_backward (cache_buffer, newline_cache,
+						start, &next_change);
+		if (result)
+		  {
+		    start = next_change;
+		    lim1 = next_change = end;
+		  }
+		else
+		  lim1 = max (next_change, end);
+		start_byte = CHAR_TO_BYTE (start);
+		while (start > lim1
+		       && FETCH_BYTE (start_byte - 1) == '\n')
+		  {
+		    if (++count == 0)
+		      {
+			if (bytepos)
+			  *bytepos = start_byte;
+			return start;
+		      }
+		    start_byte--;
+		    start--;
+		  }
+		if (start > next_change && !result)
+		  break;
+		result = 1;
+	      }
+	    if (start <= end)
+	      {
+		start = end;
+		start_byte = end_byte;
+		break;
+	      }
+            immediate_quit = allow_quit;
 
             /* Start should never be at or before end.  */
             if (start_byte <= ceiling_byte)
@@ -840,7 +916,7 @@ find_newline (ptrdiff_t start, ptrdiff_t start_byte, ptrdiff_t end,
 
               /* If we're looking for newlines, cache the fact that
                  this line's region is free of them. */
-              if (newline_cache)
+              if (newline_cache && cursor != prev + 1)
 		{
 		  know_region_cache (cache_buffer, newline_cache,
 				     BYTE_TO_CHAR (ceiling_byte + prev + 1),
@@ -2603,18 +2679,8 @@ since only regular expressions have distinguished subexpressions.  */)
 	}
 
       if (really_changed)
-	{
-	  if (buf_multibyte)
-	    {
-	      ptrdiff_t nchars =
-		multibyte_chars_in_text (substed, substed_len);
-
-	      newtext = make_multibyte_string ((char *) substed, nchars,
-					       substed_len);
-	    }
-	  else
-	    newtext = make_unibyte_string ((char *) substed, substed_len);
-	}
+	newtext = make_specified_string ((const char *) substed, -1,
+					 substed_len, buf_multibyte);
       xfree (substed);
     }
 
@@ -3032,6 +3098,187 @@ DEFUN ("regexp-quote", Fregexp_quote, Sregexp_quote, 1, 1, 0,
 				out - temp,
 				STRING_MULTIBYTE (string));
 }
+
+/* Like find_newline, but doesn't use the cache, and only searches forward.  */
+static ptrdiff_t
+find_newline1 (ptrdiff_t start, ptrdiff_t start_byte, ptrdiff_t end,
+	       ptrdiff_t end_byte, ptrdiff_t count, ptrdiff_t *shortage,
+	       ptrdiff_t *bytepos, bool allow_quit)
+{
+  if (count > 0)
+    {
+      if (!end)
+	end = ZV, end_byte = ZV_BYTE;
+    }
+  else
+    {
+      if (!end)
+	end = BEGV, end_byte = BEGV_BYTE;
+    }
+  if (end_byte == -1)
+    end_byte = CHAR_TO_BYTE (end);
+
+  if (shortage != 0)
+    *shortage = 0;
+
+  immediate_quit = allow_quit;
+
+  if (count > 0)
+    while (start != end)
+      {
+        /* Our innermost scanning loop is very simple; it doesn't know
+           about gaps, buffer ends, or the newline cache.  ceiling is
+           the position of the last character before the next such
+           obstacle --- the last character the dumb search loop should
+           examine.  */
+	ptrdiff_t tem, ceiling_byte = end_byte - 1;
+
+	if (start_byte == -1)
+	  start_byte = CHAR_TO_BYTE (start);
+
+        /* The dumb loop can only scan text stored in contiguous
+           bytes. BUFFER_CEILING_OF returns the last character
+           position that is contiguous, so the ceiling is the
+           position after that.  */
+	tem = BUFFER_CEILING_OF (start_byte);
+	ceiling_byte = min (tem, ceiling_byte);
+
+        {
+          /* The termination address of the dumb loop.  */
+	  unsigned char *lim_addr = BYTE_POS_ADDR (ceiling_byte) + 1;
+	  ptrdiff_t lim_byte = ceiling_byte + 1;
+
+	  /* Nonpositive offsets (relative to LIM_ADDR and LIM_BYTE)
+	     of the base, the cursor, and the next line.  */
+	  ptrdiff_t base = start_byte - lim_byte;
+	  ptrdiff_t cursor, next;
+
+	  for (cursor = base; cursor < 0; cursor = next)
+	    {
+              /* The dumb loop.  */
+	      unsigned char *nl = memchr (lim_addr + cursor, '\n', - cursor);
+	      next = nl ? nl - lim_addr : 0;
+
+              if (! nl)
+		break;
+	      next++;
+
+	      if (--count == 0)
+		{
+		  immediate_quit = 0;
+		  if (bytepos)
+		    *bytepos = lim_byte + next;
+		  return BYTE_TO_CHAR (lim_byte + next);
+		}
+            }
+
+	  start_byte = lim_byte;
+	  start = BYTE_TO_CHAR (start_byte);
+        }
+      }
+
+  immediate_quit = 0;
+  if (shortage)
+    *shortage = count;
+  if (bytepos)
+    {
+      *bytepos = start_byte == -1 ? CHAR_TO_BYTE (start) : start_byte;
+      eassert (*bytepos == CHAR_TO_BYTE (start));
+    }
+  return start;
+}
+
+DEFUN ("newline-cache-check", Fnewline_cache_check, Snewline_cache_check,
+       0, 1, 0,
+       doc: /* Check the newline cache of BUFFER against buffer contents.
+
+BUFFER defaults to the current buffer.
+
+Value is an array of 2 sub-arrays of buffer positions for newlines,
+the first based on the cache, the second based on actually scanning
+the buffer.  If the buffer doesn't have a cache, the value is nil.  */)
+  (Lisp_Object buffer)
+{
+  struct buffer *buf, *old = NULL;
+  ptrdiff_t shortage, nl_count_cache, nl_count_buf;
+  Lisp_Object cache_newlines, buf_newlines, val;
+  ptrdiff_t from, found, i;
+
+  if (NILP (buffer))
+    buf = current_buffer;
+  else
+    {
+      CHECK_BUFFER (buffer);
+      buf = XBUFFER (buffer);
+      old = current_buffer;
+    }
+  if (buf->base_buffer)
+    buf = buf->base_buffer;
+
+  /* If the buffer doesn't have a newline cache, return nil.  */
+  if (NILP (BVAR (buf, cache_long_scans))
+      || buf->newline_cache == NULL)
+    return Qnil;
+
+  /* find_newline can only work on the current buffer.  */
+  if (old != NULL)
+    set_buffer_internal_1 (buf);
+
+  /* How many newlines are there according to the cache?  */
+  find_newline (BEGV, BEGV_BYTE, ZV, ZV_BYTE,
+		TYPE_MAXIMUM (ptrdiff_t), &shortage, NULL, true);
+  nl_count_cache = TYPE_MAXIMUM (ptrdiff_t) - shortage;
+
+  /* Create vector and populate it.  */
+  cache_newlines = make_uninit_vector (nl_count_cache);
+
+  if (nl_count_cache)
+    {
+      for (from = BEGV, found = from, i = 0; from < ZV; from = found, i++)
+	{
+	  ptrdiff_t from_byte = CHAR_TO_BYTE (from);
+
+	  found = find_newline (from, from_byte, 0, -1, 1, &shortage,
+				NULL, true);
+	  if (shortage != 0 || i >= nl_count_cache)
+	    break;
+	  ASET (cache_newlines, i, make_number (found - 1));
+	}
+      /* Fill the rest of slots with an invalid position.  */
+      for ( ; i < nl_count_cache; i++)
+	ASET (cache_newlines, i, make_number (-1));
+    }
+
+  /* Now do the same, but without using the cache.  */
+  find_newline1 (BEGV, BEGV_BYTE, ZV, ZV_BYTE,
+		 TYPE_MAXIMUM (ptrdiff_t), &shortage, NULL, true);
+  nl_count_buf = TYPE_MAXIMUM (ptrdiff_t) - shortage;
+  buf_newlines = make_uninit_vector (nl_count_buf);
+  if (nl_count_buf)
+    {
+      for (from = BEGV, found = from, i = 0; from < ZV; from = found, i++)
+	{
+	  ptrdiff_t from_byte = CHAR_TO_BYTE (from);
+
+	  found = find_newline1 (from, from_byte, 0, -1, 1, &shortage,
+				 NULL, true);
+	  if (shortage != 0 || i >= nl_count_buf)
+	    break;
+	  ASET (buf_newlines, i, make_number (found - 1));
+	}
+      for ( ; i < nl_count_buf; i++)
+	ASET (buf_newlines, i, make_number (-1));
+    }
+
+  /* Construct the value and return it.  */
+  val = make_uninit_vector (2);
+  ASET (val, 0, cache_newlines);
+  ASET (val, 1, buf_newlines);
+
+  if (old != NULL)
+    set_buffer_internal_1 (old);
+  return val;
+}
 
 void
 syms_of_search (void)
@@ -3104,4 +3351,5 @@ is to bind it with `let' around a small expression.  */);
   defsubr (&Smatch_data);
   defsubr (&Sset_match_data);
   defsubr (&Sregexp_quote);
+  defsubr (&Snewline_cache_check);
 }

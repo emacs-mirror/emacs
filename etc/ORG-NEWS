@@ -1,4 +1,4 @@
-ORG NEWS -- history of user-visible changes.           -*- org -*-
+ORG NEWS -- history of user-visible changes.   -*- mode: org; coding: utf-8 -*-
 
 #+LINK: doc http://orgmode.org/worg/doc.html#%s
 #+LINK: git http://orgmode.org/w/?p=org-mode.git;a=commit;h=%s

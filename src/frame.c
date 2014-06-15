@@ -125,8 +125,7 @@ Lisp_Object selected_frame;
 
 static struct frame *last_nonminibuf_frame;
 
-/* Nonzero means there is at least one garbaged frame.  */
-
+/* False means there are no visible garbaged frames.  */
 bool frame_garbaged;
 
 #ifdef HAVE_WINDOW_SYSTEM
@@ -163,18 +162,15 @@ decode_any_frame (register Lisp_Object frame)
   return XFRAME (frame);
 }
 
+#ifdef HAVE_WINDOW_SYSTEM
+
 bool
 window_system_available (struct frame *f)
 {
-  if (f)
-    return FRAME_WINDOW_P (f) || FRAME_MSDOS_P (f);
-  else
-#ifdef HAVE_WINDOW_SYSTEM
-    return x_display_list != NULL;
-#else
-    return 0;
-#endif
+  return f ? FRAME_WINDOW_P (f) || FRAME_MSDOS_P (f) : x_display_list != NULL;
 }
+
+#endif /* HAVE_WINDOW_SYSTEM */
 
 struct frame *
 decode_window_system_frame (Lisp_Object frame)
@@ -353,6 +349,9 @@ make_frame (bool mini_p)
   f->line_height = 1;  /* !FRAME_WINDOW_P value.  */
 #ifdef HAVE_WINDOW_SYSTEM
   f->want_fullscreen = FULLSCREEN_NONE;
+#if ! defined (USE_GTK) && ! defined (HAVE_NS)
+  f->last_tool_bar_item = -1;
+#endif
 #endif
 
   root_window = make_window ();
@@ -621,7 +620,7 @@ make_terminal_frame (struct terminal *terminal)
   FRAME_MENU_BAR_LINES (f) = NILP (Vmenu_bar_mode) ? 0 : 1;
   FRAME_MENU_BAR_HEIGHT (f) = FRAME_MENU_BAR_LINES (f) * FRAME_LINE_HEIGHT (f);
 
-  /* Set the top frame to the newly created frame. */
+  /* Set the top frame to the newly created frame.  */
   if (FRAMEP (FRAME_TTY (f)->top_frame)
       && FRAME_LIVE_P (XFRAME (FRAME_TTY (f)->top_frame)))
     SET_FRAME_VISIBLE (XFRAME (FRAME_TTY (f)->top_frame), 2); /* obscured */
@@ -1594,6 +1593,42 @@ and nil for X and Y.  */)
   return Fcons (lispy_dummy, Fcons (x, y));
 }
 
+#ifdef HAVE_WINDOW_SYSTEM
+
+/* On frame F, convert character coordinates X and Y to pixel
+   coordinates *PIX_X and *PIX_Y.  */
+
+static void
+frame_char_to_pixel_position (struct frame *f, int x, int y,
+			      int *pix_x, int *pix_y)
+{
+  *pix_x = FRAME_COL_TO_PIXEL_X (f, x) + FRAME_COLUMN_WIDTH (f) / 2;
+  *pix_y = FRAME_LINE_TO_PIXEL_Y (f, y) + FRAME_LINE_HEIGHT (f) / 2;
+
+  if (*pix_x < 0)
+    *pix_x = 0;
+  if (*pix_x > FRAME_PIXEL_WIDTH (f))
+    *pix_x = FRAME_PIXEL_WIDTH (f);
+
+  if (*pix_y < 0)
+    *pix_y = 0;
+  if (*pix_y > FRAME_PIXEL_HEIGHT (f))
+    *pix_y = FRAME_PIXEL_HEIGHT (f);
+}
+
+/* On frame F, reposition mouse pointer to character coordinates X and Y.  */
+
+static void
+frame_set_mouse_position (struct frame *f, int x, int y)
+{
+  int pix_x, pix_y;
+
+  frame_char_to_pixel_position (f, x, y, &pix_x, &pix_y);
+  frame_set_mouse_pixel_position (f, pix_x, pix_y);
+}
+
+#endif /* HAVE_WINDOW_SYSTEM */
+
 DEFUN ("set-mouse-position", Fset_mouse_position, Sset_mouse_position, 3, 3, 0,
        doc: /* Move the mouse pointer to the center of character cell (X,Y) in FRAME.
 Coordinates are relative to the frame, not a window,
@@ -1618,7 +1653,7 @@ before calling this function on it, like this.
 #ifdef HAVE_WINDOW_SYSTEM
   if (FRAME_WINDOW_P (XFRAME (frame)))
     /* Warping the mouse will cause enternotify and focus events.  */
-    x_set_mouse_position (XFRAME (frame), XINT (x), XINT (y));
+    frame_set_mouse_position (XFRAME (frame), XINT (x), XINT (y));
 #else
 #if defined (MSDOS)
   if (FRAME_MSDOS_P (XFRAME (frame)))
@@ -1659,7 +1694,7 @@ before calling this function on it, like this.
 #ifdef HAVE_WINDOW_SYSTEM
   if (FRAME_WINDOW_P (XFRAME (frame)))
     /* Warping the mouse will cause enternotify and focus events.  */
-    x_set_mouse_pixel_position (XFRAME (frame), XINT (x), XINT (y));
+    frame_set_mouse_pixel_position (XFRAME (frame), XINT (x), XINT (y));
 #else
 #if defined (MSDOS)
   if (FRAME_MSDOS_P (XFRAME (frame)))
@@ -1930,9 +1965,6 @@ If there is no window system support, this function does nothing.  */)
 /* Return the value of frame parameter PROP in frame FRAME.  */
 
 #ifdef HAVE_WINDOW_SYSTEM
-#if !HAVE_NS && !HAVE_NTGUI
-static
-#endif
 Lisp_Object
 get_frame_param (register struct frame *frame, Lisp_Object prop)
 {
@@ -2795,7 +2827,8 @@ x_set_frame_parameters (struct frame *f, Lisp_Object alist)
   /* If both of these parameters are present, it's more efficient to
      set them both at once.  So we wait until we've looked at the
      entire list before we set them.  */
-  int width, height;
+  int width = 0, height = 0;
+  bool width_change = 0, height_change = 0;
 
   /* Same here.  */
   Lisp_Object left, top;
@@ -2811,7 +2844,6 @@ x_set_frame_parameters (struct frame *f, Lisp_Object alist)
 #ifdef HAVE_X_WINDOWS
   bool icon_left_no_change = 0, icon_top_no_change = 0;
 #endif
-  bool size_changed = 0;
   struct gcpro gcpro1, gcpro2;
 
   i = 0;
@@ -2845,18 +2877,6 @@ x_set_frame_parameters (struct frame *f, Lisp_Object alist)
   top = left = Qunbound;
   icon_left = icon_top = Qunbound;
 
-  /* Provide default values for HEIGHT and WIDTH.  */
-  width = (f->new_width
-	   ? (f->new_pixelwise
-	      ? (f->new_width / FRAME_COLUMN_WIDTH (f))
-	      : f->new_width)
-	   : FRAME_COLS (f));
-  height = (f->new_height
-	    ? (f->new_pixelwise
-	       ? (f->new_height / FRAME_LINE_HEIGHT (f))
-	       : f->new_height)
-	    : FRAME_LINES (f));
-
   /* Process foreground_color and background_color before anything else.
      They are independent of other properties, but other properties (e.g.,
      cursor_color) are dependent upon them.  */
@@ -2880,8 +2900,7 @@ x_set_frame_parameters (struct frame *f, Lisp_Object alist)
 
 	      param_index = Fget (prop, Qx_frame_parameter);
 	      if (NATNUMP (param_index)
-		  && (XFASTINT (param_index)
-		      < sizeof (frame_parms)/sizeof (frame_parms[0]))
+		  && XFASTINT (param_index) < ARRAYELTS (frame_parms)
                   && FRAME_RIF (f)->frame_parm_handlers[XINT (param_index)])
                 (*(FRAME_RIF (f)->frame_parm_handlers[XINT (param_index)])) (f, val, old_value);
 	    }
@@ -2898,13 +2917,13 @@ x_set_frame_parameters (struct frame *f, Lisp_Object alist)
 
       if (EQ (prop, Qwidth) && RANGED_INTEGERP (0, val, INT_MAX))
         {
-          size_changed = 1;
-          width = XFASTINT (val);
+	  width_change = 1;
+          width = XFASTINT (val) * FRAME_COLUMN_WIDTH (f) ;
         }
       else if (EQ (prop, Qheight) && RANGED_INTEGERP (0, val, INT_MAX))
         {
-          size_changed = 1;
-          height = XFASTINT (val);
+	  height_change = 1;
+          height = XFASTINT (val) * FRAME_LINE_HEIGHT (f);
         }
       else if (EQ (prop, Qtop))
 	top = val;
@@ -2929,8 +2948,7 @@ x_set_frame_parameters (struct frame *f, Lisp_Object alist)
 
 	  param_index = Fget (prop, Qx_frame_parameter);
 	  if (NATNUMP (param_index)
-	      && (XFASTINT (param_index)
-		  < sizeof (frame_parms)/sizeof (frame_parms[0]))
+	      && XFASTINT (param_index) < ARRAYELTS (frame_parms)
 	      && FRAME_RIF (f)->frame_parm_handlers[XINT (param_index)])
 	    (*(FRAME_RIF (f)->frame_parm_handlers[XINT (param_index)])) (f, val, old_value);
 	}
@@ -2986,15 +3004,34 @@ x_set_frame_parameters (struct frame *f, Lisp_Object alist)
     Lisp_Object frame;
 
     /* Make this 1, eventually.  */
-    check_frame_size (f, &width, &height, 0);
+    check_frame_size (f, &width, &height, 1);
 
     XSETFRAME (frame, f);
 
-    if (size_changed
-        && (width != FRAME_COLS (f)
-            || height != FRAME_LINES (f)
+    if ((width_change || height_change)
+        && (width != FRAME_TEXT_WIDTH (f)
+            || height != FRAME_TEXT_HEIGHT (f)
             || f->new_height || f->new_width))
-      Fset_frame_size (frame, make_number (width), make_number (height), Qnil);
+      {
+	/* If necessary provide default values for HEIGHT and WIDTH.  Do
+	   that here since otherwise a size change implied by an
+	   intermittent font change may get lost as in Bug#17142.  */
+	if (!width_change)
+	  width = (f->new_width
+		   ? (f->new_pixelwise
+		      ? f->new_width
+		      : (f->new_width * FRAME_COLUMN_WIDTH (f)))
+		   : FRAME_TEXT_WIDTH (f));
+
+	if (!height_change)
+	  height = (f->new_height
+		    ? (f->new_pixelwise
+		       ? f->new_height
+		       : (f->new_height * FRAME_LINE_HEIGHT (f)))
+		    : FRAME_TEXT_HEIGHT (f));
+
+	Fset_frame_size (frame, make_number (width), make_number (height), Qt);
+      }
 
     if ((!NILP (left) || !NILP (top))
 	&& ! (left_no_change && top_no_change)
@@ -3222,8 +3259,7 @@ x_set_screen_gamma (struct frame *f, Lisp_Object new_value, Lisp_Object old_valu
     {
       Lisp_Object parm_index = Fget (Qbackground_color, Qx_frame_parameter);
       if (NATNUMP (parm_index)
-	  && (XFASTINT (parm_index)
-	      < sizeof (frame_parms)/sizeof (frame_parms[0]))
+	  && XFASTINT (parm_index) < ARRAYELTS (frame_parms)
 	  && FRAME_RIF (f)->frame_parm_handlers[XFASTINT (parm_index)])
 	  (*FRAME_RIF (f)->frame_parm_handlers[XFASTINT (parm_index)])
 	    (f, bgcolor, Qnil);
@@ -4370,16 +4406,11 @@ x_figure_window_size (struct frame *f, Lisp_Object parms, bool toolbar_p)
 #endif /* HAVE_WINDOW_SYSTEM */
 
 void
-frame_make_pointer_invisible (void)
+frame_make_pointer_invisible (struct frame *f)
 {
   if (! NILP (Vmake_pointer_invisible))
     {
-      struct frame *f;
-      if (!FRAMEP (selected_frame) || !FRAME_LIVE_P (XFRAME (selected_frame)))
-        return;
-
-      f = SELECTED_FRAME ();
-      if (f && !f->pointer_invisible
+      if (f && FRAME_LIVE_P (f) && !f->pointer_invisible
           && FRAME_TERMINAL (f)->toggle_invisible_pointer_hook)
         {
           f->mouse_moved = 0;
@@ -4390,17 +4421,11 @@ frame_make_pointer_invisible (void)
 }
 
 void
-frame_make_pointer_visible (void)
+frame_make_pointer_visible (struct frame *f)
 {
   /* We don't check Vmake_pointer_invisible here in case the
      pointer was invisible when Vmake_pointer_invisible was set to nil.  */
-  struct frame *f;
-
-  if (!FRAMEP (selected_frame) || !FRAME_LIVE_P (XFRAME (selected_frame)))
-    return;
-
-  f = SELECTED_FRAME ();
-  if (f && f->pointer_invisible && f->mouse_moved
+  if (f && FRAME_LIVE_P (f) && f->pointer_invisible && f->mouse_moved
       && FRAME_TERMINAL (f)->toggle_invisible_pointer_hook)
     {
       FRAME_TERMINAL (f)->toggle_invisible_pointer_hook (f, 0);
@@ -4557,7 +4582,7 @@ syms_of_frame (void)
   {
     int i;
 
-    for (i = 0; i < sizeof (frame_parms) / sizeof (frame_parms[0]); i++)
+    for (i = 0; i < ARRAYELTS (frame_parms); i++)
       {
 	Lisp_Object v = intern_c_string (frame_parms[i].name);
 	if (frame_parms[i].variable)

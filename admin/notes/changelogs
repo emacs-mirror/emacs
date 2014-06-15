@@ -1,3 +1,12 @@
+Emacs generally follows the GNU coding standards when it comes to ChangeLogs:
+http://www.gnu.org/prep/standards/html_node/Change-Logs.html
+
+One exception is that we still sometimes quote `like-this' (as the
+standards used to recommend) rather than 'like-this' (as they do now),
+because `...' is so widely used elsewhere in Emacs.
+http://lists.gnu.org/archive/html/emacs-devel/2014-05/msg00514.html
+
+
 If installing changes written by someone else, make the ChangeLog
 entry in their name, not yours.
 

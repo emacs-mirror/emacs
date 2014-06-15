@@ -18,7 +18,7 @@ that Emacs presents to the user.
 * Selective Display::   Hiding part of the buffer text (the old way).
 * Temporary Displays::  Displays that go away automatically.
 * Overlays::            Use overlays to highlight parts of the buffer.
-* Width::               How wide a character or string is on the screen.
+* Size of Displayed Text::  How large displayed text is.
 * Line Height::         Controlling the height of lines.
 * Faces::               A face defines a graphics style for text characters:
                           font, colors, etc.
@@ -554,8 +554,7 @@ This normal hook is run whenever the echo area is cleared---either by
 
 @defopt echo-keystrokes
 This variable determines how much time should elapse before command
-characters echo.  Its value must be an integer or floating point number,
-which specifies the
+characters echo.  Its value must be a number, and specifies the
 number of seconds to wait before echoing.  If the user types a prefix
 key (such as @kbd{C-x}) and then delays this many seconds before
 continuing, the prefix key is echoed in the echo area.  (Once echoing
@@ -931,12 +930,14 @@ current value of @code{buffer-invisibility-spec}.
 
 @vindex line-move-ignore-invisible
   Ordinarily, functions that operate on text or move point do not care
-whether the text is invisible.  The user-level line motion commands
-ignore invisible newlines if @code{line-move-ignore-invisible} is
-non-@code{nil} (the default), but only because they are explicitly
-programmed to do so.
+whether the text is invisible, they process invisible characters and
+visible characters alike.  The user-level line motion commands,
+such as @code{next-line}, @code{previous-line}, ignore invisible
+newlines if @code{line-move-ignore-invisible} is non-@code{nil} (the
+default), i.e., behave like these invisible newlines didn't exist in
+the buffer, but only because they are explicitly programmed to do so.
 
-  However, if a command ends with point inside or at the boundary of
+  If a command ends with point inside or at the boundary of
 invisible text, the main editing loop relocates point to one of the
 two ends of the invisible text.  Emacs chooses the direction of
 relocation so that it is the same as the overall movement direction of
@@ -952,6 +953,10 @@ stickiness), Emacs moves point back to the beginning of that range.  If the
 command moved point forward into an invisible range, Emacs moves point forward
 to the first visible character that follows the invisible text and then forward
 one more character.
+
+  These @dfn{adjustments} of point that ended up in the middle of
+invisible text can be disabled by setting @code{disable-point-adjustment}
+to a non-@code{nil} value.  @xref{Adjusting Point}.
 
   Incremental search can make invisible overlays visible temporarily
 and/or permanently when a match includes invisible text.  To enable
@@ -1094,29 +1099,29 @@ You can use a display table to substitute other text for the ellipsis
 buffer and then present it to the user for perusal rather than for
 editing.  Many help commands use this feature.
 
-@defmac with-output-to-temp-buffer buffer-name forms@dots{}
-This function executes @var{forms} while arranging to insert any output
-they print into the buffer named @var{buffer-name}, which is first
-created if necessary, and put into Help mode.  Finally, the buffer is
-displayed in some window, but not selected.  (See the similar
-form @code{with-temp-buffer-window} below.)
+@defmac with-output-to-temp-buffer buffer-name body@dots{}
+This function executes the forms in @var{body} while arranging to insert
+any output they print into the buffer named @var{buffer-name}, which is
+first created if necessary, and put into Help mode.  (See the similar
+form @code{with-temp-buffer-window} below.)  Finally, the buffer is
+displayed in some window, but that window is not selected.
 
-If the @var{forms} do not change the major mode in the output buffer,
-so that it is still Help mode at the end of their execution, then
-@code{with-output-to-temp-buffer} makes this buffer read-only at the
-end, and also scans it for function and variable names to make them
-into clickable cross-references.  @xref{Docstring hyperlinks, , Tips
-for Documentation Strings}, in particular the item on hyperlinks in
+If the forms in @var{body} do not change the major mode in the output
+buffer, so that it is still Help mode at the end of their execution,
+then @code{with-output-to-temp-buffer} makes this buffer read-only at
+the end, and also scans it for function and variable names to make them
+into clickable cross-references.  @xref{Docstring hyperlinks, , Tips for
+Documentation Strings}, in particular the item on hyperlinks in
 documentation strings, for more details.
 
-The string @var{buffer-name} specifies the temporary buffer, which
-need not already exist.  The argument must be a string, not a buffer.
-The buffer is erased initially (with no questions asked), and it is
-marked as unmodified after @code{with-output-to-temp-buffer} exits.
+The string @var{buffer-name} specifies the temporary buffer, which need
+not already exist.  The argument must be a string, not a buffer.  The
+buffer is erased initially (with no questions asked), and it is marked
+as unmodified after @code{with-output-to-temp-buffer} exits.
 
 @code{with-output-to-temp-buffer} binds @code{standard-output} to the
-temporary buffer, then it evaluates the forms in @var{forms}.  Output
-using the Lisp output functions within @var{forms} goes by default to
+temporary buffer, then it evaluates the forms in @var{body}.  Output
+using the Lisp output functions within @var{body} goes by default to
 that buffer (but screen display and messages in the echo area, although
 they are ``output'' in the general sense of the word, are not affected).
 @xref{Output Functions}.
@@ -1124,7 +1129,7 @@ they are ``output'' in the general sense of the word, are not affected).
 Several hooks are available for customizing the behavior
 of this construct; they are listed below.
 
-The value of the last form in @var{forms} is returned.
+The value of the last form in @var{body} is returned.
 
 @example
 @group
@@ -1174,29 +1179,34 @@ displaying the temporary buffer.  When the hook runs, the temporary buffer
 is current, and the window it was displayed in is selected.
 @end defvar
 
-@defmac with-temp-buffer-window buffer-or-name action quit-function forms@dots{}
-This macro is similar to @code{with-output-to-temp-buffer}.
-Like that construct, it executes @var{forms} while arranging to insert
-any output they print into the buffer named @var{buffer-or-name}.
-Finally, the buffer is displayed in some window, but not selected.
-Unlike @code{with-output-to-temp-buffer}, this does not switch to Help
-mode.
+@defmac with-temp-buffer-window buffer-or-name action quit-function body@dots{}
+This macro is similar to @code{with-output-to-temp-buffer}.  Like that
+construct, it executes @var{body} while arranging to insert any output
+it prints into the buffer named @var{buffer-or-name} and displays that
+buffer in some window.  Unlike @code{with-output-to-temp-buffer},
+however, it does not automatically switch that buffer to Help mode.
 
-The argument @var{buffer-or-name} specifies the temporary buffer.
-It can be either a buffer, which must already exist, or a string,
-in which case a buffer of that name is created if necessary.
-The buffer is marked as unmodified and read-only when
-@code{with-temp-buffer-window} exits.
+Like @code{with-output-to-temp-buffer} it neither makes the buffer
+specified by @var{buffer-or-name} current when executing @var{body}.
+@findex with-current-buffer-window
+The otherwise identical macro @code{with-current-buffer-window} can be
+used to execute @var{body} with that buffer current.
+
+The argument @var{buffer-or-name} specifies the temporary buffer.  It
+can be either a buffer, which must already exist, or a string, in which
+case a buffer of that name is created, if necessary.  The buffer is
+marked as unmodified and read-only when @code{with-temp-buffer-window}
+exits.
 
 This macro does not call @code{temp-buffer-show-function}.  Rather, it
 passes the @var{action} argument to @code{display-buffer} in order to
 display the buffer.
 
-The value of the last form in @var{forms} is returned, unless the
-argument @var{quit-function} is specified.  In that case,
-it is called with two arguments: the window showing the buffer
-and the result of @var{forms}.  The final return value is then
-whatever @var{quit-function} returns.
+The value of the last form in @var{body} is returned, unless the
+argument @var{quit-function} is specified.  In that case, it is called
+with two arguments: the window showing the buffer and the result of
+@var{body}.  The final return value is then whatever
+@var{quit-function} returns.
 
 @vindex temp-buffer-window-setup-hook
 @vindex temp-buffer-window-show-hook
@@ -1471,8 +1481,10 @@ the buffer's undo list.
 
   Since more than one overlay can specify a property value for the
 same character, Emacs lets you specify a priority value of each
-overlay.  You should not make assumptions about which overlay will
-prevail when there is a conflict and they have the same priority.
+overlay.  In case two overlays have the same priority value, and one
+is nested in the other, then the inner one will have priority over the
+outer one.  If neither is nested in the other then you should not make
+assumptions about which overlay will prevail.
 
   These functions read and set the properties of an overlay:
 
@@ -1503,9 +1515,9 @@ of them:
 @table @code
 @item priority
 @kindex priority @r{(overlay property)}
-This property's value (which should be a non-negative integer number)
-determines the priority of the overlay.  No priority, or @code{nil},
-means zero.
+This property's value determines the priority of the overlay.
+If you want to specify a priority value, use either @code{nil}
+(or zero), or a positive integer.  Any other value has undefined behavior.
 
 The priority matters when two or more overlays cover the same
 character and both specify the same property; the one whose
@@ -1515,9 +1527,13 @@ completely override the other value; instead, its face attributes
 override the face attributes of the lower priority @code{face}
 property.
 
-Currently, all overlays take priority over text properties.  Please
-avoid using negative priority values, as we have not yet decided just
-what they should mean.
+Currently, all overlays take priority over text properties.
+
+Note that Emacs sometimes uses non-numeric priority values for some of
+its internal overlays, so do not try to do arithmetic on the
+priority of an overlay (unless it is one that you created).  If you
+need to put overlays in priority order, use the @var{sorted} argument
+of @code{overlays-at}.  @xref{Finding Overlays}.
 
 @item window
 @kindex window @r{(overlay property)}
@@ -1702,11 +1718,12 @@ Properties}.
 @node Finding Overlays
 @subsection Searching for Overlays
 
-@defun overlays-at pos
-This function returns a list of all the overlays that cover the
-character at position @var{pos} in the current buffer.  The list is in
-no particular order.  An overlay contains position @var{pos} if it
-begins at or before @var{pos}, and ends after @var{pos}.
+@defun overlays-at pos &optional sorted
+This function returns a list of all the overlays that cover the character at
+position @var{pos} in the current buffer.  If @var{sorted} is non-@code{nil},
+the list is in decreasing order of priority, otherwise it is in no particular
+order.  An overlay contains position @var{pos} if it begins at or before
+@var{pos}, and ends after @var{pos}.
 
 To illustrate usage, here is a Lisp function that returns a list of the
 overlays that specify property @var{prop} for the character at point:
@@ -1765,8 +1782,8 @@ changes.
     (point)))
 @end smallexample
 
-@node Width
-@section Width
+@node Size of Displayed Text
+@section Size of Displayed Text
 
 Since not all characters have the same width, these functions let you
 check the width of a character.  @xref{Primitive Indent}, and
@@ -1822,6 +1839,54 @@ to or less than the display width of @var{ellipsis}.  If
      @result{} "    ab  "
 @end example
 @end defun
+
+The following function returns the size in pixels of text as if it were
+displayed in a given window.  This function is used by
+@code{fit-window-to-buffer} (@pxref{Resizing Windows}) and
+@code{fit-frame-to-buffer} (@pxref{Size and Position}) to make a window
+exactly as large as the text it contains.
+
+@defun window-text-pixel-size &optional window from to x-limit y-limit mode-and-header-line
+This function returns the size of the text of @var{window}'s buffer in
+pixels.  @var{window} must be a live window and defaults to the selected
+one.  The return value is a cons of the maximum pixel-width of any text
+line and the maximum pixel-height of all text lines.
+
+The optional argument @var{from}, if non-@code{nil}, specifies the first
+text position to consider and defaults to the minimum accessible
+position of the buffer.  If @var{from} is @code{t}, it uses the minimum
+accessible position that is not a newline character.  The optional
+argument @var{to}, if non-@code{nil}, specifies the last text position
+to consider and defaults to the maximum accessible position of the
+buffer.  If @var{to} is @code{t}, it uses the maximum accessible
+position that is not a newline character.
+
+The optional argument @var{x-limit}, if non-@code{nil}, specifies the
+maximum pixel-width that can be returned.  @var{x-limit} @code{nil} or
+omitted, means to use the pixel-width of @var{window}'s body
+(@pxref{Window Sizes}); this is useful when the caller does not intend
+to change the width of @var{window}.  Otherwise, the caller should
+specify here the maximum width @var{window}'s body may assume.  Text
+whose x-coordinate is beyond @var{x-limit} is ignored.  Since
+calculating the width of long lines can take some time, it's always a
+good idea to make this argument as small as needed; in particular, if
+the buffer might contain long lines that will be truncated anyway.
+
+The optional argument @var{y-limit}, if non-@code{nil}, specifies the
+maximum pixel-height that can be returned.  Text lines whose
+y-coordinate is beyond @var{y-limit} are ignored.  Since calculating the
+pixel-height of a large buffer can take some time, it makes sense to
+specify this argument; in particular, if the caller does not know the
+size of the buffer.
+
+The optional argument @var{mode-and-header-line} @code{nil} or omitted
+means to not include the height of the mode- or header-line of
+@var{window} in the return value.  If it is either the symbol
+@code{mode-line} or @code{header-line}, include only the height of that
+line, if present, in the return value.  If it is @code{t}, include the
+height of both, if present, in the return value.
+@end defun
+
 
 @node Line Height
 @section Line Height
@@ -1896,14 +1961,14 @@ parts of Emacs text.
 lines in a frame, using the @code{line-spacing} frame parameter
 (@pxref{Layout Parameters}).  However, if the default value of
 @code{line-spacing} is non-@code{nil}, it overrides the
-frame's @code{line-spacing} parameter.  An integer value specifies the
-number of pixels put below lines.  A floating point number specifies
+frame's @code{line-spacing} parameter.  An integer specifies the
+number of pixels put below lines.  A floating-point number specifies
 the spacing relative to the frame's default line height.
 
 @vindex line-spacing
   You can specify the line spacing for all lines in a buffer via the
-buffer-local @code{line-spacing} variable.  An integer value specifies
-the number of pixels put below lines.  A floating point number
+buffer-local @code{line-spacing} variable.  An integer specifies
+the number of pixels put below lines.  A floating-point number
 specifies the spacing relative to the default frame line height.  This
 overrides line spacings specified for the frame.
 
@@ -2017,11 +2082,11 @@ Relative character width.  This should be one of the symbols
 The height of the font.  In the simplest case, this is an integer in
 units of 1/10 point.
 
-The value can also be a floating point number or a function, which
+The value can also be floating point or a function, which
 specifies the height relative to an @dfn{underlying face}
-(@pxref{Displaying Faces}).  If the value is a floating point number,
-that specifies the amount by which to scale the height of the
-underlying face.  If the value is a function, that function is called
+(@pxref{Displaying Faces}).  A floating-point value
+specifies the amount by which to scale the height of the
+underlying face.  A function value is called
 with one argument, the height of the underlying face, and returns the
 height of the new face.  If the function is passed an integer
 argument, it must return an integer.
@@ -3267,7 +3332,7 @@ These have the same meanings as the face attributes of the same name.
 
 @item :size
 The font size---either a non-negative integer that specifies the pixel
-size, or a floating point number that specifies the point size.
+size, or a floating-point number that specifies the point size.
 
 @item :adstyle
 Additional typographic style information for the font, such as
@@ -3904,28 +3969,28 @@ to use the value specified by the frame.
 @cindex bottom dividers
 
 Window dividers are bars drawn between a frame's windows.  A ``right''
-divider is drawn between a window and its sibling(s) on the right.  Its
-width is specified by the frame parameter @code{right-divider-width}.  A
-``bottom'' divider is drawn between a window and its sibling(s) on the
-bottom or the echo area.  Its width is specified by the frame parameter
-@code{bottom-divider-width}.  In either case, specifying a width of zero
-means to not draw such dividers.  @xref{Layout Parameters}.
+divider is drawn between a window and any adjacent windows on the right.
+Its width (thickness) is specified by the frame parameter
+@code{right-divider-width}.  A ``bottom'' divider is drawn between a
+window and adjacent windows on the bottom or the echo area.  Its width
+is specified by the frame parameter @code{bottom-divider-width}.  In
+either case, specifying a width of zero means to not draw such dividers.
+@xref{Layout Parameters}.
 
    Technically, a right divider ``belongs'' to the window on its left,
-which means that its width is part of the total width of that window.  A
-bottom divider ``belongs'' to the window above it, which means that its
-height is part of the total height of that window.  @xref{Window Sizes}.
-When a window has both, a right and a bottom divider, the bottom divider
-``prevails''.  This means that the width of the bottom divider equals
-the total width of the window while the height of the right divider
-equals the total height of the window minus the height of the bottom
-divider.
+which means that its width contributes to the total width of that
+window.  A bottom divider ``belongs'' to the window above it, which
+means that its width contributes to the total height of that window.
+@xref{Window Sizes}.  When a window has both, a right and a bottom
+divider, the bottom divider ``prevails''.  This means that a bottom
+divider is drawn over the full total width of its window while the right
+divider ends above the bottom divider.
 
    Dividers can be dragged with the mouse and are therefore useful for
 adjusting the sizes of adjacent windows with the mouse.  They also serve
-to set windows visually apart from their siblings when no scroll bars or
-mode lines are present.  The following three faces allow to customize
-the appearance of dividers:
+to visually set apart adjacent windows when no scroll bars or mode lines
+are present.  The following three faces allow to customize the
+appearance of dividers:
 
 @table @code
 @item window-divider
@@ -3943,6 +4008,23 @@ This is the face used for drawing the last pixel of a divider that is at
 least three pixels wide.  To obtain a solid appearance, set this to the
 same value used for the @code{window-divider} face.
 @end table
+
+You can get the sizes of the dividers of a specific window with the
+following two functions.
+
+@defun window-right-divider-width &optional window
+Return the width (thickness) in pixels of @var{window}'s right divider.
+@var{window} must be a live window and defaults to the selected one.
+The return value is always zero for a rightmost window.
+@end defun
+
+@defun window-bottom-divider-width &optional window
+Return the width (thickness) in pixels of @var{window}'s bottom divider.
+@var{window} must be a live window and defaults to the selected one.
+The return value is zero for the minibuffer window or a bottommost
+window on a minibuffer-less frame.
+@end defun
+
 
 @node Display Property
 @section The @code{display} Property
@@ -4034,7 +4116,7 @@ can use in @var{props} to specify the weight of the space:
 
 @table @code
 @item :width @var{width}
-If @var{width} is an integer or floating point number, it specifies
+If @var{width} is a number, it specifies
 that the space width should be @var{width} times the normal character
 width.  @var{width} can also be a @dfn{pixel width} specification
 (@pxref{Pixel Specification}).
@@ -4058,7 +4140,7 @@ also specify the height of the space, with these properties:
 @table @code
 @item :height @var{height}
 Specifies the height of the space.
-If @var{height} is an integer or floating point number, it specifies
+If @var{height} is a number, it specifies
 that the space height should be @var{height} times the normal character
 height.  The @var{height} may also be a @dfn{pixel height} specification
 (@pxref{Pixel Specification}).
@@ -4181,7 +4263,7 @@ This specification together with @code{image} specifies a @dfn{slice}
 (a partial area) of the image to display.  The elements @var{y} and
 @var{x} specify the top left corner of the slice, within the image;
 @var{width} and @var{height} specify the width and height of the
-slice.  Integer values are numbers of pixels.  A floating point number
+slice.  Integers are numbers of pixels.  A floating-point number
 in the range 0.0--1.0 stands for that fraction of the width or height
 of the entire image.
 
@@ -5002,7 +5084,7 @@ The argument @var{slice} specifies a slice of the image to insert.  If
 Otherwise, @var{slice} is a list @code{(@var{x} @var{y} @var{width}
 @var{height})} which specifies the @var{x} and @var{y} positions and
 @var{width} and @var{height} of the image area to insert.  Integer
-values are in units of pixels.  A floating point number in the range
+values are in units of pixels.  A floating-point number in the range
 0.0--1.0 stands for that fraction of the width or height of the entire
 image.
 
@@ -5073,8 +5155,8 @@ will load.  Emacs will refuse to load (and display) any image that is
 larger than this limit.
 
 If the value is an integer, it directly specifies the maximum
-image height and width, measured in pixels.  If it is a floating
-point number, it specifies the maximum image height and width
+image height and width, measured in pixels.  If it is floating
+point, it specifies the maximum image height and width
 as a ratio to the frame height and width.  If the value is
 non-numeric, there is no explicit limit on the size of images.
 
@@ -5893,18 +5975,19 @@ parenthesis before giving up.
 @end defopt
 
 @defopt blink-matching-delay
-This variable specifies the number of seconds for the cursor to remain
-at the matching parenthesis.  A fraction of a second often gives
-good results, but the default is 1, which works on all systems.
+This variable specifies the number of seconds to keep indicating the
+matching parenthesis.  A fraction of a second often gives good
+results, but the default is 1, which works on all systems.
 @end defopt
 
 @deffn Command blink-matching-open
 This function is the default value of @code{blink-paren-function}.  It
-assumes that point follows a character with close parenthesis syntax and
-moves the cursor momentarily to the matching opening character.  If that
-character is not already on the screen, it displays the character's
-context in the echo area.  To avoid long delays, this function does not
-search farther than @code{blink-matching-paren-distance} characters.
+assumes that point follows a character with close parenthesis syntax
+and applies the appropriate effect momentarily to the matching opening
+character.  If that character is not already on the screen, it
+displays the character's context in the echo area.  To avoid long
+delays, this function does not search farther than
+@code{blink-matching-paren-distance} characters.
 
 Here is an example of calling this function explicitly.
 
@@ -6435,18 +6518,6 @@ graphic displays.  That is because @code{window-system} is not a good
 indicator of Emacs capabilities on a given display type.  Instead, use
 @code{display-graphic-p} or any of the other @code{display-*-p}
 predicates described in @ref{Display Feature Testing}.
-
-@defvar window-setup-hook
-This variable is a normal hook which Emacs runs after handling the
-initialization files.  Emacs runs this hook after it has completed
-loading your init file, the default initialization file (if
-any), and the terminal-specific Lisp code, and running the hook
-@code{emacs-startup-hook}.
-
-This hook is used for internal purposes: setting up communication with
-the window system, and creating the initial window.  Users should not
-interfere with it.
-@end defvar
 
 @node Bidirectional Display
 @section Bidirectional Display

@@ -1,3 +1,222 @@
+2014-06-10  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (INFO_EXT): Remove and replace by ".info" throughout.
+	(INFO_OPTS): Set directly rather than with configure.
+
+2014-06-08  Karl Berry  <karl@gnu.org>
+
+	* doc/info.texi (Help-^L): "mode line", "screenful",
+	stand-alone and Emacs Info both use the mode line.
+	Use x instead of weird C-x 0 to get rid of help msg
+	in standalone Info.
+
+2014-06-08  Glenn Morris  <rgm@gnu.org>
+
+	* vip.texi (Files): Defer to Emacs manual for uniquify details.
+
+	* info.texi (Help-Small-Screen): Clarify details of S-SPC.
+	(Help-Small-Screen, Help-]): Do not mention S-SPC.
+	(Emacs Info Variables): Markup fix.
+
+	* ebrowse.texi (Source Display, Finding/Viewing):
+	* erc.texi (Sample Session):
+	* ses.texi (The Basics):
+	* todo-mode.texi (Moving and Deleting Items):
+	* woman.texi (Navigation): Markup fixes re SPC, RET.
+
+2014-06-02  Glenn Morris  <rgm@gnu.org>
+
+	* efaq.texi (Finding a package with particular functionality):
+	Update example.
+	* vip.texi: Mention this is obsolete.
+
+2014-05-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* texinfo.tex: Update from gnulib.
+
+2014-05-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Specify coding if Latin-1 Emacs would misinterpret (Bug#17575).
+	* htmlfontify.texi, org.texi: Add "coding: utf-8".
+
+2014-05-26  Stephen Berman  <stephen.berman@gmx.net>
+
+	* todo-mode.texi: Update in light of changes due to bug#17482.
+	Replace numerous mistaken uses of literal quotes with proper
+	Texinfo markup.
+	(Todo Mode Entry Points): Comment out reference to using find-file
+	or Dired to visit Todo files, since this has been disabled (bug#17482).
+
+2014-05-20  Leo Liu  <sdl.web@gmail.com>
+
+	* cl.texi (List Functions, Efficiency Concerns): Update cl-endp.
+
+2014-05-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* texinfo.tex: Update from gnulib.
+
+2014-05-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Frequently Asked Questions): Mention HISTFILE
+	setting in ~/.ssh/environment.
+
+2014-05-04  Stephen Berman  <stephen.berman@gmx.net>
+
+	* todo-mode.texi: Update, improve exposition, add cross
+	references, fix typos.
+	(Inserting New Items, Editing Item Headers and Text): Rewrite to
+	document new user interface.
+
+2014-05-04  Glenn Morris  <rgm@gnu.org>
+
+	* autotype.texi (Skeleton Language):
+	* message.texi (Header Commands): Replace `iff'.
+
+2014-05-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* vhdl-mode.texi: Add "@documentencoding UTF-8",
+	since this is a toplevel .texi file.
+
+2014-04-22  Bastien Guerry  <bzg@gnu.org>
+
+	* org.texi (Installation): Be more clear on why installing Org
+	through ELPA should be done without loading any Org file.
+
+	* org.texi (Emphasis and monospace): Document the use of
+	=verbatim= and ~code~ to be consistent with
+	`org-element-text-markup-successor'.
+
+	* org.texi (In-buffer settings, Radio tables): Tiny fixes.
+
+	* org.texi (Initial visibility):
+	* org.texi (Literal examples): Fix typos.
+
+2014-04-22  Michael Brand  <michael.ch.brand@gmail.com>
+
+	* org.texi (Column attributes): Add a sentence to point out
+	the dependency on the format specifier.
+
+2014-04-22  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org.texi (The Export Dispatcher): Reformulation.
+
+	* org.texi (@LaTeX{} specific attributes): Update manual.
+
+	* org.texi (Top, Exporting): Org has its own documentation and
+	should therefore be removed from "Other build-in back-ends".
+
+2014-04-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* cl.texi (Structures): Remove cl-struct-set-slot-value.
+
+2014-04-20  Daniel Colascione  <dancol@dancol.org>
+
+	* cl.texi (Declarations): Document changes to `cl-the' and defstruct functions.
+
+2014-04-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* Makefile.in (infoclean): Be consistent about reporting failures.
+
+2014-03-27  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (INFO_COMMON): Add vhdl-mode.
+	(vhdl_mode_deps, vhdl-mode, $(buildinfodir)/vhdl-mode$(INFO_EXT))
+	(vhdl-mode.dvi, vhdl-mode.pdf, vhdl-mode.html): New rules/variables.
+
+	* vhdl-mode.texi: General clean-up.  Set copyright to FSF, add license.
+	Remove hand-written node pointers.  Remove info re old Emacs versions.
+	Markup fixes.
+	(Getting Connected): Remove irrelevant info.
+	(Indentation Commands, Requirements): Remove empty/irrelevant nodes.
+	(Frequently Asked Questions): Electric indent is now enabled.
+
+2014-03-27  Reto Zimmermann  <reto@gnu.org>
+	    Rod Whitby  <software.vhdl-mode@rwhitby.net>
+
+	* vhdl-mode.texi: New file, imported from upstream vhdl-mode.
+
+2014-03-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* texinfo.tex: Update from gnulib.
+
+2014-03-26  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Frequently Asked Questions): Add fish shell settings.
+
+2014-03-23  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Ma Gnus): Mention header attachment buttons.
+
+2014-03-23  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* emacs-mime.texi (MML Definition): Document recipient-filename.
+
+2014-03-23  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (MIME Commands): Mention
+	gnus-mime-buttonize-attachments-in-header and
+	gnus-mime-display-attachment-buttons-in-header.
+
+2014-03-23  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* message.texi (Forwarding): Mention
+	`message-forward-included-headers'.
+
+2014-03-23  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi: w3 is no longer supported by Gnus.
+
+2014-03-22  Glenn Morris  <rgm@gnu.org>
+
+	* efaq.texi (Informational files for Emacs): Do not mention etc/GNU.
+
+2014-03-21  Glenn Morris  <rgm@gnu.org>
+
+	* ede.texi (ede-linux):
+	* vip.texi (New Bindings): Tiny copyedits.
+
+2014-03-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vip.texi (Other Vi Commands): Adjust doc of C-j.
+
+	* cc-mode.texi (Indentation Commands): Remove C-j, since it's not
+	defined by CC-mode but globally.
+	(FAQ): Tweak text about RET and auto-indentation.
+
+2014-03-18  David Engster  <deng@randomsample.de>
+
+	* ede.texi (Project Local Variables): Remove reference to
+	`ede-java-root' and the example using it.
+	(Android projects, ede-java-root): Remove nodes since they are
+	only in CEDET upstream (Bug#17030).  All nodes updated.
+	(ede-cpp-root): Document the :compile-command slot.
+	(ede-linux): Document new variables
+	`project-linux-build-directory-default' and
+	`project-linux-architecture-default'.
+
+2014-03-12  Glenn Morris  <rgm@gnu.org>
+
+	* eww.texi (History and Acknowledgments):
+	Don't list everyone who changed the code.
+
+	* ada-mode.texi, auth.texi, calc.texi, ebrowse.texi, efaq.texi:
+	* emacs-gnutls.texi, epa.texi, ert.texi, eshell.texi, eww.texi:
+	* flymake.texi, gnus.texi, info.texi, message.texi, mh-e.texi:
+	* newsticker.texi, pcl-cvs.texi, rcirc.texi, sem-user.texi:
+	* smtpmail.texi, url.texi, viper.texi, wisent.texi, woman.texi:
+	Use @file for buffers, per the Texinfo manual.
+
+2014-03-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* org.texi: Don't set txicodequoteundirected and txicodequotebacktick
+	so that the Org Manual's style for ` and ' in code is consistent
+	with the other Emacs manuals.  This affects PDF, not .info files.
+
+2014-03-12  Glenn Morris  <rgm@gnu.org>
+
+	* octave-mode.texi (Using Octave Mode): Remove outdated stuff
+	about RET and indentation.
+
 2014-03-03  Juanma Barranquero  <lekktu@gmail.com>
 
 	* gnus.texi:
@@ -1502,7 +1721,7 @@
 	* ede.texi (Top): Rename from top, all uses changed.
 	* eshell.texi: Add missing argument to @sp.
 	* forms.texi (Top): Reorder menu to match structure.
-	* htmlfontify.texi (Customisation): Add missing @item in
+	* htmlfontify.texi (Customization): Add missing @item in
 	@enumerate.
 	* org.texi (Advanced features): Add missing argument for @item.
 	(Property searches): Use @backslashchar{} in macro argument.
@@ -11171,7 +11390,7 @@
 
 1998-03-01  Kim-Minh Kaplan  <KimMinh.Kaplan@utopia.eunet.fr>
 
-	* gnus.texi (Easy Picons): Removed references to
+	* gnus.texi (Easy Picons): Remove references to
 	`gnus-group-display-picons'.
 	(Hard Picons): Ditto.
 
