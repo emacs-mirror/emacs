@@ -15806,7 +15806,7 @@ set_vertical_scroll_bar (struct window *w)
       redisplay itself, when it decides that the previous window start
       point is fine and should be kept.  Search for "goto force_start"
       below to see the details.  Like the values of window-start
-      specified outside of redisply, these internally deduced values
+      specified outside of redisplay, these internally-deduced values
       are tested for feasibility, and ignored if found to be
       unfeasible.
 
