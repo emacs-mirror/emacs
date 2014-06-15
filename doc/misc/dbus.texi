@@ -1060,11 +1060,11 @@ elements of this array.  Example:
   ""                          ;; No icon.
   "Notification summary"      ;; Summary.
   (format                     ;; Body.
-    "This is a test notification, raised from %s" (emacs-version))
+    "This is a test notification, raised from\n%S" (emacs-version))
   '(:array)                   ;; No actions (empty array of strings).
   '(:array :signature "@{sv@}") ;; No hints
                               ;; (empty array of dictionary entries).
-  :int32 -1)                 ;; Default timeout.
+  :int32 -1)                  ;; Default timeout.
 
 @result{} 3
 @end lisp

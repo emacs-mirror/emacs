@@ -1,3 +1,7 @@
+2014-06-15  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbus.texi (Type Conversion): Formatting edits in example.
+
 2014-06-10  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (INFO_INSTALL): Update for 2013-08-28 DOCMISC_W32 change.
