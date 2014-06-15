@@ -1,3 +1,8 @@
+2014-06-15  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/dbus.el (dbus-call-method): Push only non D-Bus events into
+	`unread-command-events'.
+
 2014-06-14  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/cc-langs.el: Require cl-lib.  (Bug#17463)

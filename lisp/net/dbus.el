@@ -318,10 +318,12 @@ object is returned instead of a list containing this single Lisp object.
              (while (eq (car result) :pending)
                (let ((event (let ((inhibit-redisplay t) unread-command-events)
                               (read-event nil nil check-interval))))
-                 (when event
-                   (setf unread-command-events
-                         (nconc unread-command-events
-                                (cons event nil))))
+		 (when event
+		   (if (ignore-errors (dbus-check-event event))
+		       (setf result (gethash key dbus-return-values-table))
+		     (setf unread-command-events
+			   (nconc unread-command-events
+				  (cons event nil)))))
                  (when (< check-interval 1)
                    (setf check-interval (* check-interval 1.05))))))
            (when (eq (car result) :error)
