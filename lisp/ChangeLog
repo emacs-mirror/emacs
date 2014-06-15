@@ -129,7 +129,8 @@
 
 2014-06-14  Ron Schnell  <ronnie@driver-aces.com>
 
-	* play/dunnet.el If a lamp is in the room, you won't be eaten by a grue.
+	* play/dunnet.el (dun-describe-room, dun-mode):
+	If a lamp is in the room, you won't be eaten by a grue.
 
 2014-06-13  Glenn Morris  <rgm@gnu.org>
 

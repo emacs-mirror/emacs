@@ -25,7 +25,9 @@ SHELL = /bin/sh
 
 CC=@CC@
 CFLAGS=@CFLAGS@
-CPPFLAGS=@CPPFLAGS@
+CPPFLAGS = @CPPFLAGS@
+LDFLAGS = @LDFLAGS@
+
 version=@version@
 ## Used in $archlibdir.
 configuration=@configuration@
@@ -141,6 +143,7 @@ BASE_CFLAGS = $(C_SWITCH_SYSTEM) $(C_SWITCH_MACHINE) \
 	      $(WARN_CFLAGS) $(WERROR_CFLAGS) \
 	      -I. -I${srcdir}
 
+## FIXME?  What is LDFLAGS doing here?
 ALL_CFLAGS = ${BASE_CFLAGS} ${PROFILING_CFLAGS} ${LDFLAGS} ${CPPFLAGS} ${CFLAGS}
 LINK_CFLAGS = ${BASE_CFLAGS} ${LDFLAGS} ${CFLAGS}
 CPP_CFLAGS = ${BASE_CFLAGS} ${PROFILING_CFLAGS} ${CPPFLAGS} ${CFLAGS}
