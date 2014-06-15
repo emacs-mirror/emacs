@@ -1,5 +1,7 @@
 2014-06-15  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in: Use `make -C' rather than `cd && make' throughout.
+
 	* Makefile.in: Parallelize clean rules using GNU make features.
 	(submake_template): New definition.
 	(mostlyclean_dirs, clean_dirs, distclean_dirs, maintainer_clean_dirs):

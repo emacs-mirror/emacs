@@ -1,5 +1,7 @@
 2014-06-15  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (leim, semantic): Use `make -C' rather than `cd && make'.
+
 	* progmodes/cc-langs.el: Require cl-lib.  (Bug#17463)
 	Replace delete-duplicates and mapcan by cl- versions throughout.
 	And cl-macroexpand-all by macroexpand-all.

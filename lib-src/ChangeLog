@@ -1,5 +1,8 @@
 2014-06-15  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (../lib/libgnu.a):
+	Use `make -C' rather than `cd && make'.
+
 	* Makefile.in (bootstrap-clean): New.
 
 2014-06-13  Glenn Morris  <rgm@gnu.org>

@@ -80,7 +80,7 @@ globals_h = ../src/globals.h
 src_h = $(config_h) $(lisp_h) $(globals_h)
 
 $(globals_h):
-	cd ../src && $(MAKE) globals.h
+	$(MAKE) -C ../src globals.h
 
 lwlib-utils.o: $(src_h) lwlib-utils.c lwlib-utils.h lwlib.h
 lwlib.o:       $(src_h) lwlib.c lwlib.h lwlib-int.h lwlib-utils.h \

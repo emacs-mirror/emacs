@@ -358,7 +358,7 @@ lisp: src
 
 # These targets should be "${SUBDIR} without `src'".
 lib lib-src lisp nt: Makefile
-	cd $@ && $(MAKE) all
+	$(MAKE) -C $@ all
 
 # Pass to src/Makefile.in an additional BOOTSTRAPEMACS variable which
 # is either set to bootstrap-emacs (in case bootstrap-emacs has not been
@@ -384,7 +384,7 @@ src: Makefile
 	$(MAKE) all BOOTSTRAPEMACS="$$boot" VCSWITNESS="$$vcswitness"
 
 blessmail: Makefile src
-	cd lib-src && $(MAKE) maybe-blessmail
+	$(MAKE) -C lib-src maybe-blessmail
 
 # We used to have one rule per */Makefile.in, but that leads to race
 # conditions with parallel makes, so let's assume that the time stamp on
@@ -477,7 +477,7 @@ write_subdir=if [ -f "$${subdir}/subdirs.el" ]; \
 ### Lisp files and DOC file to work properly.
 install-arch-dep: src install-arch-indep install-etcdoc install-$(NTDIR)
 	umask 022; ${MKDIR_P} "$(DESTDIR)${bindir}"
-	cd lib-src && $(MAKE) install
+	$(MAKE) -C lib-src install
 	if test "${ns_self_contained}" = "no"; then \
 	  ${INSTALL_PROGRAM} $(INSTALL_STRIP) src/emacs${EXEEXT} "$(DESTDIR)${bindir}/$(EMACSFULL)" || exit 1 ; \
 	  chmod 1755 "$(DESTDIR)${bindir}/$(EMACSFULL)" || true; \
@@ -495,7 +495,7 @@ install-arch-dep: src install-arch-indep install-etcdoc install-$(NTDIR)
 ### in nt/, and its Posix do-nothing shadow.
 install-:
 install-nt:
-	cd $(NTDIR) && $(MAKE) install
+	$(MAKE) -C $(NTDIR) install
 
 ## In the share directory, we are deleting:
 ## applications (with emacs.desktop, also found in etc/)
@@ -641,7 +641,7 @@ install-info: info
 	   [ -f "$(DESTDIR)${infodir}/dir" ] || \
 	      [ ! -f ${srcdir}/info/dir ] || \
 	      ${INSTALL_DATA} ${srcdir}/info/dir "$(DESTDIR)${infodir}/dir"; \
-	   info_misc=`cd doc/misc && $(QUIET_SUBMAKE) $(MAKE) -s echo-info`; \
+	   info_misc=`$(QUIET_SUBMAKE) $(MAKE) -s -C doc/misc echo-info`; \
 	   cd ${srcdir}/info ; \
 	   for elt in ${INFO_NONMISC} $${info_misc}; do \
 	      test "$(HAVE_MAKEINFO)" = "no" && test ! -f $$elt && continue; \
@@ -715,7 +715,7 @@ install-strip:
 ###
 ### Don't delete the lisp and etc directories if they're in the source tree.
 uninstall: uninstall-$(NTDIR) uninstall-doc
-	cd lib-src && $(MAKE) uninstall
+	$(MAKE) -C lib-src uninstall
 	-unset CDPATH; \
 	for dir in "$(DESTDIR)${lispdir}" "$(DESTDIR)${etcdir}" ; do 	\
 	  if [ -d "$${dir}" ]; then			\
@@ -732,7 +732,7 @@ uninstall: uninstall-$(NTDIR) uninstall-doc
 	done
 	-rm -rf "$(DESTDIR)${libexecdir}/emacs/${version}"
 	thisdir=`/bin/pwd`; \
-	(info_misc=`cd doc/misc && $(QUIET_SUBMAKE) $(MAKE) -s echo-info`; \
+	(info_misc=`$(QUIET_SUBMAKE) $(MAKE) -s -C doc/misc echo-info`; \
 	 if cd "$(DESTDIR)${infodir}"; then \
 	   for elt in ${INFO_NONMISC} $${info_misc}; do \
 	     (cd "$${thisdir}"; \
@@ -764,7 +764,7 @@ uninstall: uninstall-$(NTDIR) uninstall-doc
 ### in nt/, and its Posix do-nothing shadow.
 uninstall-:
 uninstall-nt:
-	cd $(NTDIR) && $(MAKE) uninstall
+	$(MAKE) -C $(NTDIR) uninstall
 
 # ==================== Cleaning up and miscellanea ====================
 
@@ -888,14 +888,14 @@ extraclean: $(SUBDIR:=_extraclean)
 # even when the build directory and source dir are different.
 .PHONY: TAGS tags
 TAGS tags: lib lib-src src
-	cd src && $(MAKE) tags
+	$(MAKE) -C src tags
 
 check: all
 	@if test ! -d test/automated; then \
 	  echo "You do not seem to have the test/ directory."; \
 	  echo "Maybe you are using a release tarfile, rather than a repository checkout."; \
 	else \
-	  cd test/automated && $(MAKE) check; \
+	  $(MAKE) -C test/automated check; \
 	fi
 
 dist:
@@ -909,7 +909,7 @@ PSS   = lispref-ps   lispintro-ps   emacs-ps   misc-ps
 
 DOCS = $(DVIS) $(HTMLS) $(INFOS) $(PDFS) $(PSS)
 $(DOCS):
-	t=$@; IFS=-; set $$t; IFS=; cd doc/$$1 && $(MAKE) $$2
+	t=$@; IFS=-; set $$t; IFS=; $(MAKE) -C doc/$$1 $$2
 
 .PHONY: $(DOCS) docs pdf ps
 .PHONY: info dvi dist check html info-real info-dir check-info
@@ -958,7 +958,7 @@ INSTALL_DOC = $(INSTALL_DVI) $(INSTALL_HTML) $(INSTALL_PDF) $(INSTALL_PS)
 ## Install non .info forms of the documentation.
 ## TODO add etc/refcards.
 $(INSTALL_DOC):
-	t=$@; IFS=-; set $$t; IFS=; cd doc/$$2 && $(MAKE) $$1-$$3
+	t=$@; IFS=-; set $$t; IFS=; $(MAKE) -C doc/$$2 $$1-$$3
 
 .PHONY: $(INSTALL_DOC) install-doc
 .PHONY: install-dvi install-html install-pdf install-ps
@@ -981,7 +981,7 @@ UNINSTALL_PS = uninstall-emacs-ps uninstall-lispref-ps \
 UNINSTALL_DOC = $(UNINSTALL_DVI) $(UNINSTALL_HTML) $(UNINSTALL_PDF) $(UNINSTALL_PS)
 
 $(UNINSTALL_DOC):
-	t=$@; IFS=-; set $$t; IFS=; cd doc/$$2 && $(MAKE) $$1-$$3
+	t=$@; IFS=-; set $$t; IFS=; $(MAKE) -C doc/$$2 $$1-$$3
 
 .PHONY: $(UNINSTALL_DOC) uninstall-doc
 .PHONY: uninstall-dvi uninstall-html uninstall-pdf uninstall-ps
@@ -1058,4 +1058,4 @@ check-declare:
 	  echo "You must build Emacs to use this command"; \
 	  exit 1; \
 	fi
-	cd lisp && $(MAKE) $@
+	$(MAKE) -C lisp $@

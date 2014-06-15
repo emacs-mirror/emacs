@@ -1,5 +1,7 @@
 2014-06-15  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in ($(globals_h)): Use `make -C' rather than `cd && make'.
+
 	* Makefile.in (mostlyclean, clean, distclean, maintainer-clean):
 	Declare as PHONY.
 	(bootstrap-clean): New.

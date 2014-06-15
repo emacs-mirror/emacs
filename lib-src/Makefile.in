@@ -304,7 +304,7 @@ TAGS: etags${EXEEXT}
 	etags *.[ch]
 
 ../lib/libgnu.a: $(config_h)
-	cd ../lib && $(MAKE) libgnu.a
+	$(MAKE) -C ../lib libgnu.a
 
 regex.o: $(srcdir)/../src/regex.c $(srcdir)/../src/regex.h $(config_h)
 	${CC} -c ${CPP_CFLAGS} ${srcdir}/../src/regex.c

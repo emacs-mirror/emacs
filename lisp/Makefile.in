@@ -348,7 +348,7 @@ compile-clean:
 
 .PHONY: leim semantic
 leim:
-	cd ../leim && $(MAKE) all EMACS="$(EMACS)"
+	$(MAKE) -C ../leim all EMACS="$(EMACS)"
 
 # FIXME.  Yuck.
 semantic:
@@ -356,7 +356,7 @@ semantic:
 	  .*) EMACS="../${EMACS}" ;; \
 	   *) EMACS="${EMACS}" ;; \
 	esac; \
-	cd ../admin/grammars && $(MAKE) all EMACS="$${EMACS}"
+	$(MAKE) -C ../admin/grammars all EMACS="$${EMACS}"
 
 # Compile all Lisp files, but don't recompile those that are up to
 # date.  Some .el files don't get compiled because they set the
