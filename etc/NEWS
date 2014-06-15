@@ -309,16 +309,7 @@ removed.
 *** The function `quail-help' is no longer an interactive command.
 Use `C-h C-\' (`describe-input-method') instead.
 
-** ImageMagick
-
-*** ImageMagick images now support the :max-width and :max-height keywords.
-
-*** When using `create-image' with image data, you can pass a :format
-attribute (via the property-list argument) in order to help
-ImageMagick detect the image type.  The value should be a MIME
-content-type that is found in the new variable `image-format-suffixes'.
-
-** Frame and window changes
+** Frame and window handling
 
 *** New commands `toggle-frame-fullscreen' and `toggle-frame-maximized',
 bound to <f11> and M-<f10>, respectively.
@@ -416,7 +407,7 @@ bottom of the selected frame.
 caller of `display-buffer' is ready to handle the case of not displaying
 the buffer in a window.
 
-** Lisp evaluation changes
+** Lisp evaluation
 
 *** `eval-defun' on an already defined defcustom calls the :set function,
 if there is one.
@@ -450,7 +441,7 @@ simply disabling Transient Mark mode does the same thing.
 
 * Editing Changes in Emacs 24.4
 
-** Indentation changes
+** Indentation
 
 *** `electric-indent-mode' is now enabled by default.
 Typing RET reindents the current line and indents the new line.
@@ -708,8 +699,7 @@ the symbol near point.
 *** New option `hi-lock-auto-select-face'.  When non-nil, hi-lock commands
 will cycle through faces in `hi-lock-face-defaults' without prompting.
 
-** Icomplete
-Icomplete is now more similar to Ido.
+** Icomplete is now more similar to Ido.
 
 *** Icomplete by default now applies to all forms of minibuffer completion.
 The variable `icomplete-with-completion-tables' (now a user option)
@@ -1066,8 +1056,8 @@ Also the following files used by the now obsolete otodo-mode.el:
 
 * New Modes and Packages in Emacs 24.4
 
-** New package `eww' is a built-in web browser.
-(It is only available if Emacs is compiled with libxml2 support.)
+** New package eww.el provides a built-in web browser.
+This requires Emacs to have been compiled with libxml2 support.
 
 ** New package nadvice.el offers lighter-weight advice facilities.
 It is layered as:
@@ -1078,11 +1068,10 @@ any function-carrying place, such as process filters or `<foo>-function' hooks.
 *** `advice-add'/`advice-remove' to add/remove a piece of advice on a named
 function, much like `defadvice' does.
 
-** New package frameset.el.
-It provides a set of operations to save a frameset (the state of all
-or a subset of the existing frames and windows, somewhat similar to a
-frame configuration), both in-session and persistently, and restore it
-at some point in the future.
+** New package frameset.el provides a set of operations to save a frameset
+(the state of all or a subset of the existing frames and windows, somewhat
+similar to a frame configuration), both in-session and persistently, and
+restore it at some point in the future.
 
 ** New package filenotify.el provides an interface for file system
 notifications.  It requires that Emacs be compiled with one of the
@@ -1092,9 +1081,9 @@ low-level libraries gfilenotify.c, inotify.c or w32notify.c.
 display specified symbols as composed characters.  E.g., in Emacs Lisp mode,
 this replaces the string "lambda" with the Greek lambda character.
 
-** New minor mode `superword-mode'.
-This overrides the default word motion commands to treat "symbol_words"
-as a single word, similar to what `subword-mode' does.
+** New minor mode `superword-mode', which overrides the default word motion
+commands to treat "symbol_words" as a single word, similar to what
+`subword-mode' does.
 
 
 * Incompatible Lisp Changes in Emacs 24.4
@@ -1331,6 +1320,15 @@ animated images which do not specify a frame delay.
 
 *** New functions `image-current-frame' and `image-show-frame' for getting
 and setting the current frame of a multi-frame image.
+
+** ImageMagick
+
+*** ImageMagick images now support the :max-width and :max-height keywords.
+
+*** When using `create-image' with image data, you can pass a :format
+attribute (via the property-list argument) in order to help
+ImageMagick detect the image type.  The value should be a MIME
+content-type that is found in the new variable `image-format-suffixes'.
 
 ** Revert and Autorevert
 

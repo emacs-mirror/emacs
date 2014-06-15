@@ -1,3 +1,13 @@
+2014-06-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (Fmove_point_visually): Don't use the glyph matrix
+	information if we are in the middle of executing a keyboard macro,
+	since redisplay doesn't update the screen until the macro is
+	finished.  (Bug#17777)
+
+	* alloc.c (cleanup_vector): Don't dereference a font driver
+	pointer if it is NULL.  (Bug#17771)
+
 2014-06-13  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in ($(leimdir)/leim-list.el, $(srcdir)/macuvs.h)
