@@ -1,3 +1,64 @@
+2014-06-15  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.2.10.
+
+	* net/tramp.el (tramp-methods): Tweak docstring.
+	(tramp-handle-file-accessible-directory-p): Check for
+	`file-readable-p' instead of `file-executable-p'.
+	(tramp-check-cached-permissions): Use
+	`tramp-compat-file-attributes'.
+	(tramp-call-process): Add new argument VEC.  Adapt callees in all
+	tramp*.el files.
+
+	* net/tramp-adb.el (tramp-adb-handle-write-region): Improve messages.
+	(tramp-adb-maybe-open-connection): Don't set
+	`tramp-current-*' variables.
+
+	* net/tramp-cache.el (tramp-flush-file-function): Do not flush
+	file properties of temporary buffers.
+
+	* net/tramp-ftp.el (top): Remove special handling for URL syntax.
+
+	* net/tramp-gvfs.el (tramp-gvfs-methods) <sftp>: Add.
+	(tramp-gvfs-handle-delete-file): Flush file
+	properties, not directory properties.
+	(tramp-gvfs-handle-file-attributes): Use `string-to-number' when
+	reading "unix::mode".
+	(tramp-gvfs-handle-file-name-all-completions):
+	Use "-h" option for "gvfs-ls".
+	(tramp-gvfs-url-file-name): `user' and `localname' could be nil.
+	(tramp-gvfs-send-command): Simplify traces.
+
+	* net/tramp-sh.el (vc-handled-backends, vc-bzr-program)
+	(vc-git-program, vc-hg-program): Declare.
+	(tramp-methods) <sftp>: Remove.  It has never worked satisfactorily.
+	(tramp-methods) <nc>: Add new method.
+	(tramp-methods) <telnet>: Redirect stderr to "/dev/null".
+	(tramp-methods) <plink, plinkx, pscp, psftp>: Improve
+	`tramp-login-args'.
+	(tramp-default-user-alist): Add "nc".
+	(top): Remove completion function for "sftp".  Add completion
+	functions for "nc" and "psftp".
+	(tramp-do-copy-or-rename-file-out-of-band): Tweak docstring.
+	Implement support for "nc" method.
+	(tramp-sh-handle-expand-file-name, tramp-local-coding-commands)
+	(tramp-remote-coding-commands, tramp-call-local-coding-command):
+	Tweak docstring.
+	(tramp-sh-handle-write-region): Tweak error message.
+	(tramp-sh-handle-vc-registered): Remove backends when the remote
+	binary does not exist.
+	(tramp-find-inline-encoding): Do not raise an error.
+	(tramp-make-copy-program-file-name): Tweak docstring.  Handle also
+	the "nc" case.  Quote result also locally.
+
+	* net/tramp-smb.el (tramp-smb-handle-copy-directory)
+	(tramp-smb-handle-set-file-acl): Use `start-process'.
+	(tramp-smb-handle-insert-directory): Use progress reporter.
+	(tramp-smb-handle-rename-file): Flush also file properties of
+	FILENAME.
+
+	* net/trampver.el: Update release number.
+
 2014-06-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* ses.el: Miscellaneous cleanups; use lexical-binding; avoid
