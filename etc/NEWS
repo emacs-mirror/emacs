@@ -102,6 +102,10 @@ specify the type of shell in use (bash, csh, etc).
 When `url-handler-mode' is enabled, file operations for these
 protocols as well as for "telnet" and "ftp" are passed to Tramp.
 
+** Tramp
+
+*** New connection method "nc", which allows to access dumb busyboxes.
+
 ** Obsolete packages
 
 ---
