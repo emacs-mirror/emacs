@@ -155,15 +155,13 @@
 ;; the shell completion in background so you should run
 ;; `python-shell-send-buffer' from time to time to get better results.
 
-;; Skeletons: 6 skeletons are provided for simple inserting of class,
-;; def, for, if, try and while.  These skeletons are integrated with
-;; abbrev.  If you have `abbrev-mode' activated and
+;; Skeletons: skeletons are provided for simple inserting of things like class,
+;; def, for, import, if, try, and while.  These skeletons are
+;; integrated with abbrev.  If you have `abbrev-mode' activated and
 ;; `python-skeleton-autoinsert' is set to t, then whenever you type
 ;; the name of any of those defined and hit SPC, they will be
 ;; automatically expanded.  As an alternative you can use the defined
-;; skeleton commands: `python-skeleton-class', `python-skeleton-def'
-;; `python-skeleton-for', `python-skeleton-if', `python-skeleton-try'
-;; and `python-skeleton-while'.
+;; skeleton commands: `python-skeleton-<foo>'.
 
 ;; FFAP: You can find the filename for a given module when using ffap
 ;; out of the box.  This feature needs an inferior python shell
@@ -253,6 +251,7 @@
     (define-key map "\C-c\C-td" 'python-skeleton-def)
     (define-key map "\C-c\C-tf" 'python-skeleton-for)
     (define-key map "\C-c\C-ti" 'python-skeleton-if)
+    (define-key map "\C-c\C-tm" 'python-skeleton-import)
     (define-key map "\C-c\C-tt" 'python-skeleton-try)
     (define-key map "\C-c\C-tw" 'python-skeleton-while)
     ;; Shell interaction
@@ -2005,7 +2004,7 @@ process buffer for a list of commands.)"
   (interactive
    (if current-prefix-arg
        (list
-        (read-string "Run Python: " (python-shell-parse-command))
+        (read-shell-command "Run Python: " (python-shell-parse-command))
         (y-or-n-p "Make dedicated process? ")
         (= (prefix-numeric-value current-prefix-arg) 4))
      (list (python-shell-parse-command) nil t)))
@@ -2957,6 +2956,12 @@ The skeleton will be bound to python-skeleton-NAME."
   > _ \n
   '(python-skeleton--else) | ^)
 
+(python-skeleton-define import nil
+  "Import from module: "
+  "from " str & " " | -5
+  "import "
+  ("Identifier: " str ", ") -2 \n _)
+
 (python-skeleton-define try nil
   nil
   "try:" \n
@@ -2983,7 +2988,7 @@ The skeleton will be bound to python-skeleton-NAME."
   "class " str "(" ("Inheritance, %s: "
                     (unless (equal ?\( (char-before)) ", ")
                     str)
-  & ")" | -2
+  & ")" | -1
   ":" \n
   "\"\"\"" - "\"\"\"" \n
   > _ \n)

@@ -2053,23 +2053,24 @@ POSITION is assumed to lie in a window text area."
 @defun posn-col-row position
 This function returns a cons cell @code{(@var{col} .  @var{row})},
 containing the estimated column and row corresponding to buffer
-position @var{position}.  The return value is given in units of the
-frame's default character width and height, as computed from the
-@var{x} and @var{y} values corresponding to @var{position}.  (So, if
-the actual characters have non-default sizes, the actual row and
-column may differ from these computed values.)
+position in @var{position}.  The return value is given in units of the
+frame's default character width and default line height (including
+spacing), as computed from the @var{x} and @var{y} values
+corresponding to @var{position}.  (So, if the actual characters have
+non-default sizes, the actual row and column may differ from these
+computed values.)
 
 Note that @var{row} is counted from the top of the text area.  If the
-window possesses a header line (@pxref{Header Lines}), it is
-@emph{not} counted as the first line.
+window given by @var{position} possesses a header line (@pxref{Header
+Lines}), it is @emph{not} included in the @var{row} count.
 @end defun
 
 @defun posn-actual-col-row position
 Return the actual row and column in @var{position}, as a cons cell
 @code{(@var{col} . @var{row})}.  The values are the actual row and
-column numbers in the window.  @xref{Click Events}, for details.  It
-returns @code{nil} if @var{position} does not include actual positions
-values.
+column numbers in the window given by @var{position}.  @xref{Click
+Events}, for details.  The function returns @code{nil} if
+@var{position} does not include actual position values.
 @end defun
 
 @defun posn-string position

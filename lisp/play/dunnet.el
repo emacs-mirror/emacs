@@ -100,7 +100,8 @@
 
 (defun dun-describe-room (room)
   (if (and (not (member (abs room) dun-light-rooms))
-	   (not (member obj-lamp dun-inventory)))
+	   (not (member obj-lamp dun-inventory))
+	   (not (member obj-lamp (nth dun-current-room dun-room-objects))))
       (dun-mprincl "It is pitch dark.  You are likely to be eaten by a grue.")
     (dun-mprincl (cadr (nth (abs room) dun-rooms)))
     (if (and (and (or (member room dun-visited)
@@ -615,7 +616,8 @@ just try dropping it.")
 
 (defun dun-move (dir)
   (if (and (not (member dun-current-room dun-light-rooms))
-	   (not (member obj-lamp dun-inventory)))
+	   (not (member obj-lamp dun-inventory))
+	   (not (member obj-lamp (nth dun-current-room dun-room-objects))))
       (progn
 	(dun-mprinc
 "You trip over a grue and fall into a pit and break every bone in your

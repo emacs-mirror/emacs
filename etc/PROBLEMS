@@ -159,7 +159,6 @@ This is due to a bug introduced in ImageMagick 6.8.2-3.  The bug should
 be fixed in ImageMagick 6.8.3-10.  See <URL:http://debbugs.gnu.org/13867>.
 
 ** Crashes when displaying GIF images in Emacs built with version
-
 libungif-4.1.0 are resolved by using version libungif-4.1.0b1.
 Configure checks for the correct version, but this problem could occur
 if a binary built against a shared libungif is run on a system with an

@@ -1,3 +1,66 @@
+2014-06-15  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in: Use `make -C' rather than `cd && make' throughout.
+
+2014-06-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (Fmove_point_visually): Don't use the glyph matrix
+	information if we are in the middle of executing a keyboard macro,
+	since redisplay doesn't update the screen until the macro is
+	finished.  (Bug#17777)
+
+	* alloc.c (cleanup_vector): Don't dereference a font driver
+	pointer if it is NULL.  (Bug#17771)
+
+2014-06-13  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in ($(leimdir)/leim-list.el, $(srcdir)/macuvs.h)
+	($(lispsource)/international/charprop.el)
+	($(libsrc)/make-docfile$(EXEEXT), $(lwlibdir)/liblw.a)
+	($(oldXMenudir)/libXMenu11.a, ns-app, .el.elc)
+	($(lispsource)/loaddefs.el, bootstrap-emacs$(EXEEXT)):
+	GNU make automatically passes command-line arguments to sub-makes.
+
+2014-06-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Avoid hangs in accept-process-output (Bug#17647).
+	* lisp.h, process.c (wait_reading_process_input):
+	Return int, not bool.  All uses changed.
+	* process.c (SELECT_CANT_DO_WRITE_MASK):
+	Remove macro, replacing with ...
+	(SELECT_CAN_DO_WRITE_MASK): ... new constant, with inverted sense.
+	All uses changed.
+	(status_notify): New arg WAIT_PROC.  Return int, not void.
+	All uses changed.
+
+2014-06-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* menu.c (Fx_popup_menu): Don't call the frame's menu_show_hook if
+	the frame is the initial frame, because the hook is not set up
+	then, and Emacs crashes.
+	Reported by Fabrice Popineau <fabrice.popineau@gmail.com>.
+
+2014-06-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keymap.c (silly_event_symbol_error): Don't recommend the use
+	of strings.
+
+2014-06-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (set_cursor_from_row): Fix an off-by-one error when
+	matching overlay strings with 'cursor' property against buffer
+	positions traversed in the glyph row.  (Bug#17744)
+
+2014-06-11  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.h (EmacsApp): Always compile in shouldKeepRunning, isFirst
+	on Cocoa.
+
+	* nsterm.m (run): Always compile for Cocoa.  Use runtime check to
+	determine 10.9 (Bug#17751).
+
+	* macfont.m (macfont_draw): Positions were not freed.
+
 2014-06-10  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* dispextern.h (PREPARE_FACE_FOR_DISPLAY): Remove as a duplicate of ...
@@ -634,8 +697,8 @@
 	was moved to Fgarbage_collect.
 	(Fgarbage_collect): Calculate the end address of the stack portion
 	that needs to be examined by mark_stack, and pass that address to
-	garbage_collect_1, which will pass it to mark_stack.  See
-	http://lists.gnu.org/archive/html/emacs-devel/2014-05/msg00270.html
+	garbage_collect_1, which will pass it to mark_stack.
+	See http://lists.gnu.org/archive/html/emacs-devel/2014-05/msg00270.html
 	for more details about the underlying problems.  In particular,
 	this avoids dumping Emacs with the large hash-table whose value is
 	held in purify-flag for most of the time loadup.el runs.

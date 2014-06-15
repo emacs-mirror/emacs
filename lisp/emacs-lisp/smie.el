@@ -709,7 +709,8 @@ Possible return values:
                 (condition-case err
                     (progn (funcall next-sexp 1) nil)
                   (scan-error
-                   (let ((epos (nth 2 err)))
+                   (let* ((epos1 (nth 2 err))
+                          (epos (if (<= (point) epos1) (nth 3 err) epos1)))
                      (goto-char pos)
                      (throw 'return
                             (list t epos
@@ -1831,6 +1832,8 @@ KEYWORDS are additional arguments, which can use the following keywords:
         (setq-local smie-blink-matching-triggers
                     (append smie-blink-matching-triggers
                             (delete-dups triggers)))))))
+
+(declare-function edebug-instrument-function "edebug" (func))
 
 (defun smie-edebug ()
   "Instrument the `smie-rules-function' for Edebug."

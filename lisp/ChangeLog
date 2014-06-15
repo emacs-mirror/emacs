@@ -1,3 +1,194 @@
+2014-06-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* ses.el: Miscellaneous cleanups; use lexical-binding; avoid
+	add-to-list.
+	(ses-localvars): Remove ses--local-printer-list, unused.
+	(ses--metaprogramming): New macro.  Use it to defvar variables.
+	(ses-set-localvars): Simplify.
+	(ses--locprn, ses-cell): Use defstruct.  Change ses-cell's
+	property-list into an alist.
+	(ses-locprn-get-compiled, ses-locprn-compiled-aset)
+	(ses-locprn-get-def, ses-locprn-def-aset, ses-locprn-get-number):
+	Remove; use defstruct accessors/setters instead.
+	(ses-cell-formula-aset, ses-cell-printer-aset)
+	(ses-cell-references-aset): Remove, use setf instead.
+	(ses--alist-get): New function.
+	(ses-cell-property): Rename from ses-cell-property-get and rewrite.
+	Use an alist instead of a plist and don't do move-to-front since the
+	list is always short.
+	(ses-cell-property-get-fun, ses-cell-property-delq-fun)
+	(ses-cell-property-set-fun, ses-cell-property-set)
+	(ses-cell-property-pop-fun, ses-cell-property-get-handle)
+	(ses-cell-property-handle-car, ses-cell-property-handle-setcar): Remove.
+	(ses--letref): New macro.
+	(ses-cell-property-pop): Rewrite.
+	(ses--cell): Rename from ses-cell and make it into a function.
+	Make `formula' fallback on `value' if nil.
+	(ses--local-printer): Rename from ses-local-printer and make it into
+	a function.
+	(ses-set-cell): Turn it into a macro so finding the accessor from the
+	field name is done at compile time.
+	(ses-repair-cell-reference-all): Test presence of `sym' rather than
+	`ref' before adding `sym' to :ses-repair-reference.
+	(ses-calculate-cell): Use ses--letref rather than
+	ses-cell-property-get-handle.
+	(ses-write-cells): Use a single prin1-to-string.
+	(ses-setter-with-undo): New function.
+	(ses-aset-with-undo, ses-set-with-undo): Rewrite using it.
+	(ses-unset-with-undo): Remove.
+	(ses-load): Prefer apply' over `eval'.
+	(ses-read-printer, ses-set-column-width): Use standard "(default
+	foo)" format.
+
+2014-06-15  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (leim, semantic): Use `make -C' rather than `cd && make'.
+
+	* progmodes/cc-langs.el: Require cl-lib.  (Bug#17463)
+	Replace delete-duplicates and mapcan by cl- versions throughout.
+	And cl-macroexpand-all by macroexpand-all.
+	(delete-duplicates, mapcan, cl-macroexpand-all): No need to declare.
+
+2014-06-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* subr.el (posn-col-row): Doc fix.  (Bug#17768)
+
+2014-06-15  Juri Linkov  <juri@jurta.org>
+
+	* bindings.el: Put `ascii-character' property on keypad keys
+	mapped to characters.  (Bug#17759)
+
+2014-06-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/smie.el (smie-next-sexp): Fix up "other-end" info when
+	bumping forward into a closing paren (bug#17761).
+
+	* term/xterm.el (xterm--version-handler): Work around for OSX
+	Terminal.app (bug#17607).
+
+2014-06-14  Ron Schnell  <ronnie@driver-aces.com>
+
+	* play/dunnet.el If a lamp is in the room, you won't be eaten by a grue.
+
+2014-06-13  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in ($(lisp)/cus-load.el, $(lisp)/finder-inf.el)
+	(autoloads, $(lisp)/subdirs.el, compile-main, leim, semantic, compile)
+	(compile-always): GNU make automatically passes
+	command-line arguments to sub-makes.
+
+	* calendar/calendar.el (calendar-generate-window):
+	Remove pointless call to font-lock-fontify-buffer.
+
+2014-06-13  Matthias Meulien  <orontee@gmail.com>
+
+	* simple.el (completion-list-mode-map): Navigate with tab and backtab
+	(bug#17767).
+
+2014-06-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (set-mark-command): Simplify a bit.
+
+2014-06-12  Nicolas Richard  <theonewiththeevillook@yahoo.fr>
+
+	* help.el (help--key-binding-keymap): New function.
+	(help--binding-locus): New function.
+	(describe-key): Mention the keymap in which the binding was
+	found. (bug#13948)
+
+2014-06-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* hippie-exp.el (he--all-buffers): New function.
+	(try-expand-line-all-buffers, try-expand-list-all-buffers)
+	(try-expand-dabbrev-all-buffers): Use it.
+
+2014-06-12  Emilio C. Lopes  <eclig@gmx.net>
+
+	* hippie-exp.el (try-expand-line-all-buffers)
+	(try-expand-list-all-buffers, try-expand-dabbrev-all-buffers):
+	Read hippie-expand-only-buffers and hippie-expand-ignore-buffers in the
+	original buffer, in case they're buffer-local.
+
+2014-06-12  Vincent Belaïche  <vincentb1@users.sourceforge.net>
+
+	* ses.el (ses-initial-global-parameters-re): New defconst, a
+	specific regexp is needed now that ses.el can handle both
+	file-format 2 --- ie. no local printers --- and 3 --- i.e. may have
+	local printers.
+	(ses-localvars): Add local variables needed for local printer handling.
+	(ses-set-localvars): Handle hashmap initialisation.
+	(ses-paramlines-plist): Add param-line for number of local printers.
+	(ses-paramfmt-plist): New defconst, needed for code factorization
+	between functions `ses-set-parameter' and
+	`ses-file-format-extend-paramter-list'
+	(ses-make-local-printer-info): New defsubst.
+	(ses-locprn-get-compiled, ses-locprn-compiled-aset)
+	(ses-locprn-get-def, ses-locprn-def-aset, ses-locprn-get-number)
+	(ses-cell-printer-aset): New defmacro.
+	(ses-local-printer-compile): New defun.
+	(ses-local-printer): New defmacro.
+	(ses-printer-validate, ses-call-printer): Add support for local
+	printer functions.
+	(ses-file-format-extend-paramter-list): New defun.
+	(ses-set-parameter): Use const `ses-paramfmt-plist' for code
+	factorization.
+	(ses-load): Add support for local printer functions.
+	(ses-read-printer): Update docstring and add support for local printer
+	functions.
+	(ses-refresh-local-printer, ses-define-local-printer): New defun.
+	(ses-safe-printer): Add support for local printer functions.
+
+2014-06-12  Ivan Andrus  <darthandrus@gmail.com>
+
+	* ffap.el (ffap-lax-url): New var (bug#17723).
+	(ffap-url-at-point): Use it.
+	(ffap-file-at-point): Avoid returning just "/".
+
+2014-06-12  Matthias Meulien  <orontee@gmail.com>
+
+	* progmodes/python.el (import skeleton): New skeleton (bug#17672).
+	(python-mode-map): Bind it.
+
+	* progmodes/python.el (class skeleton): Don't erase last char of class
+	name (bug#17683).
+
+2014-06-12  Cameron Desautels  <camdez@gmail.com>  (tiny change)
+
+	* help.el (where-is): Use `default' arg of completing-read (bug#17705).
+
+2014-06-12  Kevin Ryde  <user42_kevin@yahoo.com.au>
+
+	* files.el (auto-mode-alist): Map .ad files to xdefaults-mode
+	(bug#17745).
+
+2014-06-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* international/mule-cmds.el: Use lexical-binding.
+	(ucs-names): Simplify.
+
+2014-05-18  Eric Hanchrow  <eric.hanchrow@gmail.com>
+
+	* progmodes/python.el (run-python): Use read-shell-command.
+
+2014-06-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* rect.el: Make it possible to move bounds past EOL or into TABs.
+	(operate-on-rectangle): Use apply-on-rectangle.
+	(rectangle--mark-crutches): New var.
+	(rectangle--pos-cols, rectangle--col-pos, rectangle--point-col)
+	(rectangle--crutches, rectangle--reset-crutches): New functions.
+	(apply-on-rectangle): Obey crutches.  Avoid setq.
+	Fix missing final iteration if end is at EOB&BOL.
+	(rectangle-mark-mode-map): Add remap bindings for
+	exchange-point-and-mark and char/line movements.
+	(rectangle--*-char): New function.
+	(rectangle-exchange-point-and-mark, rectangle-right-char)
+	(rectangle-left-char, rectangle-forward-char)
+	(rectangle-backward-char, rectangle-next-line)
+	(rectangle-previous-line): New commands.
+	(rectangle--place-cursor): New function.
+	(rectangle--highlight-for-redisplay): Use it.  Use apply-on-rectangle.
+
 2014-06-08  Glenn Morris  <rgm@gnu.org>
 
 	* startup.el (initial-buffer-choice): Doc fix.

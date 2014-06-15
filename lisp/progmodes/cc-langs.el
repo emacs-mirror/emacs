@@ -130,7 +130,9 @@
 
 
 ;; This file is not always loaded.  See note above.
-(cc-external-require 'cl)
+;; Except it is always loaded - see bug#17463.
+;;;(cc-external-require 'cl)
+(require 'cl-lib)
 
 
 ;;; Setup for the `c-lang-defvar' system.
@@ -209,9 +211,9 @@ the evaluated constant value at compile time."
 ;; Suppress "might not be defined at runtime" warning.
 ;; This file is only used when compiling other cc files.
 ;; These are defined in cl as aliases to the cl- versions.
-(declare-function delete-duplicates "cl-seq" (cl-seq &rest cl-keys) t)
-(declare-function mapcan "cl-extra" (cl-func cl-seq &rest cl-rest) t)
-(declare-function cl-macroexpand-all "cl" (form &optional env))
+;(declare-function delete-duplicates "cl-seq" (cl-seq &rest cl-keys) t)
+;(declare-function mapcan "cl-extra" (cl-func cl-seq &rest cl-rest) t)
+;(declare-function cl-macroexpand-all "cl" (form &optional env))
 
 (eval-and-compile
   ;; Some helper functions used when building the language constants.
@@ -252,14 +254,14 @@ the evaluated constant value at compile time."
     (unless xlate
       (setq xlate 'identity))
     (c-with-syntax-table (c-lang-const c-mode-syntax-table)
-      (delete-duplicates
-       (mapcan (lambda (opgroup)
+      (cl-delete-duplicates
+       (cl-mapcan (lambda (opgroup)
 		 (when (if (symbolp (car opgroup))
 			   (when (funcall opgroup-filter (car opgroup))
 			     (setq opgroup (cdr opgroup))
 			     t)
 			 t)
-		   (mapcan (lambda (op)
+		   (cl-mapcan (lambda (op)
 			     (when (funcall op-filter op)
 			       (let ((res (funcall xlate op)))
 				 (if (listp res) res (list res)))))
@@ -1147,7 +1149,7 @@ operators."
 (c-lang-defconst c-all-op-syntax-tokens
   ;; List of all tokens in the punctuation and parenthesis syntax
   ;; classes.
-  t (delete-duplicates (append (c-lang-const c-other-op-syntax-tokens)
+  t (cl-delete-duplicates (append (c-lang-const c-other-op-syntax-tokens)
 			       (c-lang-const c-operator-list))
 		       :test 'string-equal))
 
@@ -1700,7 +1702,7 @@ not the type face."
 (c-lang-defconst c-type-start-kwds
   ;; All keywords that can start a type (i.e. are either a type prefix
   ;; or a complete type).
-  t (delete-duplicates (append (c-lang-const c-primitive-type-kwds)
+  t (cl-delete-duplicates (append (c-lang-const c-primitive-type-kwds)
 			       (c-lang-const c-type-prefix-kwds)
 			       (c-lang-const c-type-modifier-kwds))
 		       :test 'string-equal))
@@ -1943,7 +1945,7 @@ one of `c-type-list-kwds', `c-ref-list-kwds',
   ;; something is a type or just some sort of macro in front of the
   ;; declaration.  They might be ambiguous with types or type
   ;; prefixes.
-  t (delete-duplicates (append (c-lang-const c-class-decl-kwds)
+  t (cl-delete-duplicates (append (c-lang-const c-class-decl-kwds)
 			       (c-lang-const c-brace-list-decl-kwds)
 			       (c-lang-const c-other-block-decl-kwds)
 			       (c-lang-const c-typedef-decl-kwds)
@@ -2136,7 +2138,7 @@ type identifiers separated by arbitrary tokens."
   pike '("array" "function" "int" "mapping" "multiset" "object" "program"))
 
 (c-lang-defconst c-paren-any-kwds
-  t (delete-duplicates (append (c-lang-const c-paren-nontype-kwds)
+  t (cl-delete-duplicates (append (c-lang-const c-paren-nontype-kwds)
 			       (c-lang-const c-paren-type-kwds))
 		       :test 'string-equal))
 
@@ -2162,7 +2164,7 @@ assumed to be set if this isn't nil."
 
 (c-lang-defconst c-<>-sexp-kwds
   ;; All keywords that can be followed by an angle bracket sexp.
-  t (delete-duplicates (append (c-lang-const c-<>-type-kwds)
+  t (cl-delete-duplicates (append (c-lang-const c-<>-type-kwds)
 			       (c-lang-const c-<>-arglist-kwds))
 		       :test 'string-equal))
 
@@ -2222,7 +2224,7 @@ Keywords here should also be in `c-block-stmt-1-kwds'."
 
 (c-lang-defconst c-block-stmt-kwds
   ;; Union of `c-block-stmt-1-kwds' and `c-block-stmt-2-kwds'.
-  t (delete-duplicates (append (c-lang-const c-block-stmt-1-kwds)
+  t (cl-delete-duplicates (append (c-lang-const c-block-stmt-1-kwds)
 			       (c-lang-const c-block-stmt-2-kwds))
 		       :test 'string-equal))
 
@@ -2326,7 +2328,7 @@ This construct is \"<keyword> <expression> :\"."
 (c-lang-defconst c-expr-kwds
   ;; Keywords that can occur anywhere in expressions.  Built from
   ;; `c-primary-expr-kwds' and all keyword operators in `c-operators'.
-  t (delete-duplicates
+  t (cl-delete-duplicates
      (append (c-lang-const c-primary-expr-kwds)
 	     (c-filter-ops (c-lang-const c-operator-list)
 			   t
@@ -2430,7 +2432,7 @@ Note that Java specific rules are currently applied to tell this from
 
 (c-lang-defconst c-keywords
   ;; All keywords as a list.
-  t (delete-duplicates
+  t (cl-delete-duplicates
      (c-lang-defconst-eval-immediately
       `(append ,@(mapcar (lambda (kwds-lang-const)
 			   `(c-lang-const ,kwds-lang-const))
@@ -3193,10 +3195,10 @@ accomplish that conveniently."
 			     ;; `c-lang-const' will expand to the evaluated
 			     ;; constant immediately in `cl-macroexpand-all'
 			     ;; below.
-			      (mapcan
+			      (cl-mapcan
 			       (lambda (init)
 				 `(current-var ',(car init)
-				   ,(car init) ,(cl-macroexpand-all
+				   ,(car init) ,(macroexpand-all
 						 (elt init 1))))
 			       ;; Note: The following `append' copies the
 			       ;; first argument.  That list is small, so

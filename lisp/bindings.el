@@ -1075,10 +1075,14 @@ if `inhibit-field-text-motion' is non-nil."
 	      (kp-5 ?5) (kp-6 ?6) (kp-7 ?7) (kp-8 ?8) (kp-9 ?9)
 	      (kp-add ?+) (kp-subtract ?-) (kp-multiply ?*) (kp-divide ?/))))
   (dolist (pair keys)
-    (dolist (mod modifiers)
-      (define-key function-key-map
-	(vector (append mod (list (nth 0 pair))))
-	(vector (append mod (list (nth 1 pair))))))))
+    (let ((keypad (nth 0 pair))
+	  (normal (nth 1 pair)))
+      (when (characterp normal)
+	(put keypad 'ascii-character normal))
+      (dolist (mod modifiers)
+	(define-key function-key-map
+	  (vector (append mod (list keypad)))
+	  (vector (append mod (list normal))))))))
 
 (define-key function-key-map [backspace] [?\C-?])
 (define-key function-key-map [delete] [?\C-?])

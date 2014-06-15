@@ -1,7 +1,6 @@
 ;;; calendar.el --- calendar functions
 
-;; Copyright (C) 1988-1995, 1997, 2000-2014 Free Software Foundation,
-;; Inc.
+;; Copyright (C) 1988-1995, 1997, 2000-2014 Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Maintainer: Glenn Morris <rgm@gnu.org>
@@ -1474,8 +1473,6 @@ Optional integers MON and YR are used instead of today's date."
 	;; combined don't fit height to that of its buffer.
 	(set-window-vscroll nil 0))
       (sit-for 0))
-    (and (bound-and-true-p font-lock-mode)
-         (font-lock-fontify-buffer))    ;FIXME: Why?
     (and calendar-mark-holidays-flag
          ;; (calendar-date-is-valid-p today) ; useful for BC dates
          (calendar-mark-holidays)

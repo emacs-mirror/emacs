@@ -4178,10 +4178,8 @@ extern bool running_asynch_code;
 /* Defined in process.c.  */
 extern Lisp_Object QCtype, Qlocal;
 extern void kill_buffer_processes (Lisp_Object);
-extern bool wait_reading_process_output (intmax_t, int, int, bool,
-					 Lisp_Object,
-					 struct Lisp_Process *,
-					 int);
+extern int wait_reading_process_output (intmax_t, int, int, bool, Lisp_Object,
+					struct Lisp_Process *, int);
 /* Max value for the first argument of wait_reading_process_output.  */
 #if __GNUC__ == 3 || (__GNUC__ == 4 && __GNUC_MINOR__ <= 5)
 /* Work around a bug in GCC 3.4.2, known to be fixed in GCC 4.6.3.

@@ -605,6 +605,10 @@ The relevant features are:
           ;; Gnome terminal 3.6.1 reports 1;3406;0
           ;; Gnome terminal 2.32.1 reports 1;2802;0
           (setq version 200))
+        (when (equal (match-string 1 str) "83")
+          ;; OSX's Terminal.app (version 2.3 (309), which returns 83;40003;0)
+          ;; seems to also lack support for some of these (bug#17607).
+          (setq version 240))
         ;; If version is 242 or higher, assume the xterm supports
         ;; reporting the background color (TODO: maybe earlier
         ;; versions do too...)

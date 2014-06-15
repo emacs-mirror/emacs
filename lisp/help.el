@@ -517,8 +517,10 @@ If INSERT (the prefix arg) is non-nil, insert the message in the buffer."
 		(if fn
 		    (format "Where is command (default %s): " fn)
 		  "Where is command: ")
-		obarray 'commandp t))
-     (list (if (equal val "") fn (intern val)) current-prefix-arg)))
+		obarray 'commandp t nil nil
+		(and fn (symbol-name fn))))
+     (list (unless (equal val "") (intern val))
+	   current-prefix-arg)))
   (unless definition (error "No command"))
   (let ((func (indirect-function definition))
         (defs nil)
@@ -644,6 +646,68 @@ temporarily enables it to allow getting help on disabled items and buttons."
 	(princ (format "%s%s is undefined" key-desc mouse-msg))
       (princ (format "%s%s runs the command %S" key-desc mouse-msg defn)))))
 
+(defun help--key-binding-keymap (key &optional accept-default no-remap position)
+  "Return a keymap holding a binding for KEY within current keymaps.
+The effect of the arguments KEY, ACCEPT-DEFAULT, NO-REMAP and
+POSITION is as documented in the function `key-binding'."
+  (let* ((active-maps (current-active-maps t position))
+         map found)
+    ;; We loop over active maps like key-binding does.
+    (while (and
+            (not found)
+            (setq map (pop active-maps)))
+      (setq found (lookup-key map key accept-default))
+      (when (integerp found)
+        ;; The first `found' characters of KEY were found but not the
+        ;; whole sequence.
+        (setq found nil)))
+    (when found
+      (if (and (symbolp found)
+               (not no-remap)
+               (command-remapping found))
+          ;; The user might want to know in which map the binding is
+          ;; found, or in which map the remapping is found.  The
+          ;; default is to show the latter.
+          (help--key-binding-keymap (vector 'remap found))
+        map))))
+
+(defun help--binding-locus (key position)
+  "Describe in which keymap KEY is defined.
+Return a symbol pointing to that keymap if one exists ; otherwise
+return nil."
+  (let ((map (help--key-binding-keymap key t nil position)))
+    (when map
+      (catch 'found
+        (let ((advertised-syms (nconc
+                                (list 'overriding-terminal-local-map
+                                      'overriding-local-map)
+                                (delq nil
+                                      (mapcar
+                                       (lambda (mode-and-map)
+                                         (let ((mode (car mode-and-map)))
+                                           (when (symbol-value mode)
+                                             (intern-soft
+                                              (format "%s-map" mode)))))
+                                       minor-mode-map-alist))
+                                (list 'global-map
+                                      (intern-soft (format "%s-map" major-mode)))))
+              found)
+          ;; Look into these advertised symbols first.
+          (dolist (sym advertised-syms)
+            (when (and
+                   (boundp sym)
+                   (eq map (symbol-value sym)))
+              (throw 'found sym)))
+          ;; Only look in other symbols otherwise.
+          (mapatoms
+           (lambda (x)
+             (when (and (boundp x)
+                        ;; Avoid let-bound symbols.
+                        (special-variable-p x)
+                        (eq (symbol-value x) map))
+               (throw 'found x))))
+          nil)))))
+
 (defun describe-key (&optional key untranslated up-event)
   "Display documentation of the function invoked by KEY.
 KEY can be any kind of a key sequence; it can include keyboard events,
@@ -706,6 +770,7 @@ temporarily enables it to allow getting help on disabled items and buttons."
 	 (mouse-msg (if (or (memq 'click modifiers) (memq 'down modifiers)
 			    (memq 'drag modifiers)) " at that spot" ""))
 	 (defn (key-binding key t))
+         key-locus key-locus-up key-locus-up-tricky
 	 defn-up defn-up-tricky ev-type
 	 mouse-1-remapped mouse-1-tricky)
 
@@ -744,15 +809,19 @@ temporarily enables it to allow getting help on disabled items and buttons."
 		   (setcar up-event (elt mouse-1-remapped 0)))
 		  (t (setcar up-event 'mouse-2))))
 	  (setq defn-up (key-binding sequence nil nil (event-start up-event)))
+          (setq key-locus-up (help--binding-locus sequence (event-start up-event)))
 	  (when mouse-1-tricky
 	    (setq sequence (vector up-event))
 	    (aset sequence 0 'mouse-1)
-	    (setq defn-up-tricky (key-binding sequence nil nil (event-start up-event))))))
+	    (setq defn-up-tricky (key-binding sequence nil nil (event-start up-event)))
+            (setq key-locus-up-tricky (help--binding-locus sequence (event-start up-event))))))
+      (setq key-locus (help--binding-locus key (event-start event)))
       (with-help-window (help-buffer)
 	(princ (help-key-description key untranslated))
-	(princ (format "\
-%s runs the command %S, which is "
-		       mouse-msg defn))
+	(princ (format "%s runs the command %S%s, which is "
+		       mouse-msg defn (if key-locus
+                                          (format " (found in %s)" key-locus)
+                                        "")))
 	(describe-function-1 defn)
 	(when up-event
 	  (unless (or (null defn-up)
@@ -762,13 +831,15 @@ temporarily enables it to allow getting help on disabled items and buttons."
 
 ----------------- up-event %s----------------
 
-%s%s%s runs the command %S, which is "
+%s%s%s runs the command %S%s, which is "
 			   (if mouse-1-tricky "(short click) " "")
 			   (key-description (vector up-event))
 			   mouse-msg
 			   (if mouse-1-remapped
                                " is remapped to <mouse-2>, which" "")
-			   defn-up))
+			   defn-up (if key-locus-up
+                                       (format " (found in %s)" key-locus-up)
+                                     "")))
 	    (describe-function-1 defn-up))
 	  (unless (or (null defn-up-tricky)
 		      (integerp defn-up-tricky)
@@ -778,10 +849,12 @@ temporarily enables it to allow getting help on disabled items and buttons."
 ----------------- up-event (long click) ----------------
 
 Pressing <%S>%s for longer than %d milli-seconds
-runs the command %S, which is "
+runs the command %S%s, which is "
 			   ev-type mouse-msg
 			   mouse-1-click-follows-link
-			   defn-up-tricky))
+			   defn-up-tricky (if key-locus-up-tricky
+                                              (format " (found in %s)" key-locus-up-tricky)
+                                            "")))
 	    (describe-function-1 defn-up-tricky)))))))
 
 (defun describe-mode (&optional buffer)

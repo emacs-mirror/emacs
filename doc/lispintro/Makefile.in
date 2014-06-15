@@ -101,7 +101,7 @@ emacs-lisp-intro.pdf: ${srcs}
 emacs-lisp-intro.html: ${srcs}
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/emacs-lisp-intro.texi
 
-.PHONY: mostlyclean clean distclean maintainer-clean infoclean
+.PHONY: mostlyclean clean distclean bootstrap-clean maintainer-clean infoclean
 
 mostlyclean:
 	rm -f *.aux *.log *.toc *.cp *.cps *.fn *.fns *.ky *.kys \
@@ -119,7 +119,7 @@ infoclean:
 	  $(buildinfodir)/eintr.info \
 	  $(buildinfodir)/eintr.info-[1-9]
 
-maintainer-clean: distclean infoclean
+bootstrap-clean maintainer-clean: distclean infoclean
 
 .PHONY: dist
 

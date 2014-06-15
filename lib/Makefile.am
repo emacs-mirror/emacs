@@ -16,3 +16,7 @@ include gnulib.mk
 
 libgnu_a_SOURCES += openat-die.c save-cwd.c
 endif
+
+.PHONY: bootstrap-clean
+
+bootstrap-clean: maintainer-clean

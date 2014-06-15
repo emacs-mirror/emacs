@@ -81,10 +81,6 @@ AUTOMAKE = @AUTOMAKE@
 AUTOHEADER = @AUTOHEADER@
 ACLOCAL = @ACLOCAL@
 
-CC=@CC@
-CFLAGS=@CFLAGS@
-LDFLAGS=@LDFLAGS@
-CPPFLAGS=@CPPFLAGS@
 EXEEXT=@EXEEXT@
 
 ### These help us choose version- and architecture-specific directories
@@ -170,8 +166,6 @@ bitmapdir=@bitmapdir@
 # We use $(srcdir) explicitly in dependencies so as not to depend on VPATH.
 srcdir=@srcdir@
 abs_srcdir=@abs_srcdir@
-# MinGW CPPFLAGS may use this.
-abs_top_srcdir=@abs_top_srcdir@
 
 # Where the manpage source files are kept.
 mansrcdir=$(srcdir)/doc/man
@@ -364,9 +358,7 @@ lisp: src
 
 # These targets should be "${SUBDIR} without `src'".
 lib lib-src lisp nt: Makefile
-	cd $@ && $(MAKE) all $(MFLAGS)                         \
-	  CC='${CC}' CFLAGS='${CFLAGS}' CPPFLAGS='${CPPFLAGS}' \
-	  LDFLAGS='${LDFLAGS}' MAKE='${MAKE}'
+	$(MAKE) -C $@ all
 
 # Pass to src/Makefile.in an additional BOOTSTRAPEMACS variable which
 # is either set to bootstrap-emacs (in case bootstrap-emacs has not been
@@ -389,14 +381,10 @@ src: Makefile
 	cd $@ || exit;							\
 	boot=bootstrap-emacs$(EXEEXT);					\
 	[ ! -x "$$boot" ] || boot='';					\
-	$(MAKE) all $(MFLAGS)						\
-	  CC='${CC}' CFLAGS='${CFLAGS}' CPPFLAGS='${CPPFLAGS}'		\
-	  LDFLAGS='${LDFLAGS}' MAKE='${MAKE}' BOOTSTRAPEMACS="$$boot"	\
-	  VCSWITNESS="$$vcswitness"
+	$(MAKE) all BOOTSTRAPEMACS="$$boot" VCSWITNESS="$$vcswitness"
 
 blessmail: Makefile src
-	cd lib-src && $(MAKE) maybe-blessmail $(MFLAGS) \
-	  MAKE='${MAKE}' archlibdir='$(archlibdir)'
+	$(MAKE) -C lib-src maybe-blessmail
 
 # We used to have one rule per */Makefile.in, but that leads to race
 # conditions with parallel makes, so let's assume that the time stamp on
@@ -489,11 +477,7 @@ write_subdir=if [ -f "$${subdir}/subdirs.el" ]; \
 ### Lisp files and DOC file to work properly.
 install-arch-dep: src install-arch-indep install-etcdoc install-$(NTDIR)
 	umask 022; ${MKDIR_P} "$(DESTDIR)${bindir}"
-	cd lib-src && \
-	  $(MAKE) install $(MFLAGS) prefix="${prefix}" \
-	    exec_prefix="${exec_prefix}" bindir="${bindir}" \
-	    libexecdir="${libexecdir}" archlibdir="${archlibdir}" \
-	    INSTALL_STRIP=${INSTALL_STRIP}
+	$(MAKE) -C lib-src install
 	if test "${ns_self_contained}" = "no"; then \
 	  ${INSTALL_PROGRAM} $(INSTALL_STRIP) src/emacs${EXEEXT} "$(DESTDIR)${bindir}/$(EMACSFULL)" || exit 1 ; \
 	  chmod 1755 "$(DESTDIR)${bindir}/$(EMACSFULL)" || true; \
@@ -511,12 +495,7 @@ install-arch-dep: src install-arch-indep install-etcdoc install-$(NTDIR)
 ### in nt/, and its Posix do-nothing shadow.
 install-:
 install-nt:
-	cd $(NTDIR) && \
-	  $(MAKE) install $(MFLAGS) prefix="${prefix}" \
-	    exec_prefix="${exec_prefix}" bindir="${bindir}" \
-	    libexecdir="${libexecdir}" archlibdir="${archlibdir}" \
-	    datadir="${datadir}" \
-	    INSTALL_STRIP=${INSTALL_STRIP}
+	$(MAKE) -C $(NTDIR) install
 
 ## In the share directory, we are deleting:
 ## applications (with emacs.desktop, also found in etc/)
@@ -662,7 +641,7 @@ install-info: info
 	   [ -f "$(DESTDIR)${infodir}/dir" ] || \
 	      [ ! -f ${srcdir}/info/dir ] || \
 	      ${INSTALL_DATA} ${srcdir}/info/dir "$(DESTDIR)${infodir}/dir"; \
-	   info_misc=`cd doc/misc && $(QUIET_SUBMAKE) $(MAKE) -s echo-info`; \
+	   info_misc=`$(QUIET_SUBMAKE) $(MAKE) -s -C doc/misc echo-info`; \
 	   cd ${srcdir}/info ; \
 	   for elt in ${INFO_NONMISC} $${info_misc}; do \
 	      test "$(HAVE_MAKEINFO)" = "no" && test ! -f $$elt && continue; \
@@ -729,19 +708,14 @@ install-etc:
 
 ### Build Emacs and install it, stripping binaries while installing them.
 install-strip:
-	$(MAKE) $(MFLAGS) INSTALL_STRIP=-s install
+	$(MAKE) INSTALL_STRIP=-s install
 
 ### Delete all the installed files that the `install' target would
 ### create (but not the noninstalled files such as `make all' would create).
 ###
 ### Don't delete the lisp and etc directories if they're in the source tree.
 uninstall: uninstall-$(NTDIR) uninstall-doc
-	cd lib-src && 					\
-	 $(MAKE) $(MFLAGS) uninstall			\
-	    prefix="${prefix}" exec_prefix="${exec_prefix}" \
-	    bindir="${bindir}" libexecdir="${libexecdir}" \
-	    archlibdir="${archlibdir}"
-
+	$(MAKE) -C lib-src uninstall
 	-unset CDPATH; \
 	for dir in "$(DESTDIR)${lispdir}" "$(DESTDIR)${etcdir}" ; do 	\
 	  if [ -d "$${dir}" ]; then			\
@@ -758,7 +732,7 @@ uninstall: uninstall-$(NTDIR) uninstall-doc
 	done
 	-rm -rf "$(DESTDIR)${libexecdir}/emacs/${version}"
 	thisdir=`/bin/pwd`; \
-	(info_misc=`cd doc/misc && $(QUIET_SUBMAKE) $(MAKE) -s echo-info`; \
+	(info_misc=`$(QUIET_SUBMAKE) $(MAKE) -s -C doc/misc echo-info`; \
 	 if cd "$(DESTDIR)${infodir}"; then \
 	   for elt in ${INFO_NONMISC} $${info_misc}; do \
 	     (cd "$${thisdir}"; \
@@ -790,32 +764,33 @@ uninstall: uninstall-$(NTDIR) uninstall-doc
 ### in nt/, and its Posix do-nothing shadow.
 uninstall-:
 uninstall-nt:
-	cd $(NTDIR) && 					\
-	 $(MAKE) $(MFLAGS) uninstall			\
-	    prefix="${prefix}" exec_prefix="${exec_prefix}" \
-	    bindir="${bindir}" libexecdir="${libexecdir}" \
-	    archlibdir="${archlibdir}"
+	$(MAKE) -C $(NTDIR) uninstall
 
 # ==================== Cleaning up and miscellanea ====================
 
 .PHONY: mostlyclean clean distclean bootstrap-clean maintainer-clean extraclean
+
+## Eg:
+## src_clean:
+##     make -C src clean
+define submake_template
+.PHONY: $(1)_$(2)
+$(1)_$(2):
+	$$(MAKE) -C $(1) $(2)
+endef
 
 ### `mostlyclean'
 ###      Like `clean', but may refrain from deleting a few files that people
 ###      normally don't want to recompile.  For example, the `mostlyclean'
 ###      target for GCC does not delete `libgcc.a', because recompiling it
 ###      is rarely necessary and takes a lot of time.
-mostlyclean:
-	cd src      && $(MAKE) $(MFLAGS) mostlyclean
-	cd oldXMenu && $(MAKE) $(MFLAGS) mostlyclean
-	cd lwlib    && $(MAKE) $(MFLAGS) mostlyclean
-	cd lib      && $(MAKE) $(MFLAGS) mostlyclean
-	cd lib-src  && $(MAKE) $(MFLAGS) mostlyclean
-	cd nt       && $(MAKE) $(MFLAGS) mostlyclean
-	-cd doc/emacs     && $(MAKE) $(MFLAGS) mostlyclean
-	-cd doc/misc      && $(MAKE) $(MFLAGS) mostlyclean
-	-cd doc/lispref   && $(MAKE) $(MFLAGS) mostlyclean
-	-cd doc/lispintro && $(MAKE) $(MFLAGS) mostlyclean
+mostlyclean_dirs = src oldXMenu lwlib lib lib-src nt doc/emacs doc/misc \
+  doc/lispref doc/lispintro
+
+$(foreach dir,$(mostlyclean_dirs),$(eval $(call submake_template,$(dir),mostlyclean)))
+
+mostlyclean: $(mostlyclean_dirs:=_mostlyclean)
+
 
 ### `clean'
 ###      Delete all files from the current directory that are normally
@@ -825,24 +800,18 @@ mostlyclean:
 ###      with them.
 ###
 ###      Delete `.dvi' files here if they are not part of the distribution.
-clean:
+clean_dirs = $(mostlyclean_dirs) nextstep
+
+$(foreach dir,$(clean_dirs),$(eval $(call submake_template,$(dir),clean)))
+
+clean: $(clean_dirs:=_clean)
 	-rm -f etc/emacs.tmpdesktop
-	cd src      && $(MAKE) $(MFLAGS) clean
-	cd oldXMenu && $(MAKE) $(MFLAGS) clean
-	cd lwlib    && $(MAKE) $(MFLAGS) clean
-	cd lib      && $(MAKE) $(MFLAGS) clean
-	cd lib-src  && $(MAKE) $(MFLAGS) clean
-	cd nt       && $(MAKE) $(MFLAGS) clean
-	-cd doc/emacs     && $(MAKE) $(MFLAGS) clean
-	-cd doc/misc      && $(MAKE) $(MFLAGS) clean
-	-cd doc/lispref   && $(MAKE) $(MFLAGS) clean
-	-cd doc/lispintro && $(MAKE) $(MFLAGS) clean
-	cd nextstep && $(MAKE) $(MFLAGS) clean
 
 ### `bootclean'
 ###      Delete all files that need to be remade for a clean bootstrap.
 top_bootclean=\
 	rm -f config.cache config.log
+
 ### `distclean'
 ###      Delete all files from the current directory that are created by
 ###      configuring or building the program.  If you have unpacked the
@@ -852,44 +821,25 @@ top_bootclean=\
 top_distclean=\
 	${top_bootclean}; \
 	rm -f config.status config.log~ Makefile stamp-h1 ${SUBDIR_MAKEFILES}
-distclean:
-	cd src      && $(MAKE) $(MFLAGS) distclean
-	cd oldXMenu && $(MAKE) $(MFLAGS) distclean
-	cd lwlib    && $(MAKE) $(MFLAGS) distclean
-	cd lib      && $(MAKE) $(MFLAGS) distclean
-	cd lib-src  && $(MAKE) $(MFLAGS) distclean
-	cd nt       && $(MAKE) $(MFLAGS) distclean
-	cd doc/emacs     && $(MAKE) $(MFLAGS) distclean
-	cd doc/misc      && $(MAKE) $(MFLAGS) distclean
-	cd doc/lispref   && $(MAKE) $(MFLAGS) distclean
-	cd doc/lispintro && $(MAKE) $(MFLAGS) distclean
-	cd leim     && $(MAKE) $(MFLAGS) distclean
-	cd lisp     && $(MAKE) $(MFLAGS) distclean
-	cd nextstep && $(MAKE) $(MFLAGS) distclean
+
+distclean_dirs = $(clean_dirs) leim lisp
+
+$(foreach dir,$(distclean_dirs),$(eval $(call submake_template,$(dir),distclean)))
+
+distclean: $(distclean_dirs:=_distclean)
 	for dir in test/automated admin/grammars admin/unidata; do \
-	  [ ! -d $$dir ] || (cd $$dir && $(MAKE) $(MFLAGS) distclean); \
+	  [ ! -d $$dir ] || $(MAKE) -C $$dir distclean; \
 	done
 	${top_distclean}
 
 ### `bootstrap-clean'
 ###      Delete everything that can be reconstructed by `make' and that
 ###      needs to be deleted in order to force a bootstrap from a clean state.
-bootstrap-clean:
-	cd src      && $(MAKE) $(MFLAGS) bootstrap-clean
-	cd oldXMenu && $(MAKE) $(MFLAGS) maintainer-clean
-	cd lwlib    && $(MAKE) $(MFLAGS) maintainer-clean
-	cd lib      && $(MAKE) $(MFLAGS) maintainer-clean
-	cd lib-src  && $(MAKE) $(MFLAGS) maintainer-clean
-	cd nt       && $(MAKE) $(MFLAGS) maintainer-clean
-	-cd doc/emacs     && $(MAKE) $(MFLAGS) maintainer-clean
-	-cd doc/misc      && $(MAKE) $(MFLAGS) maintainer-clean
-	-cd doc/lispref   && $(MAKE) $(MFLAGS) maintainer-clean
-	-cd doc/lispintro && $(MAKE) $(MFLAGS) maintainer-clean
-	cd leim     && $(MAKE) $(MFLAGS) bootstrap-clean
-	cd lisp     && $(MAKE) $(MFLAGS) bootstrap-clean
-	cd nextstep && $(MAKE) $(MFLAGS) maintainer-clean
+$(foreach dir,$(distclean_dirs),$(eval $(call submake_template,$(dir),bootstrap-clean)))
+
+bootstrap-clean: $(distclean_dirs:=_bootstrap-clean)
 	for dir in test/automated admin/grammars admin/unidata; do \
-	  [ ! -d $$dir ] || (cd $$dir && $(MAKE) $(MFLAGS) bootstrap-clean); \
+	  [ ! -d $$dir ] || $(MAKE) -C $$dir bootstrap-clean; \
 	done
 	[ ! -f config.log ] || mv -f config.log config.log~
 	rm -rf ${srcdir}/info
@@ -909,12 +859,14 @@ bootstrap-clean:
 top_maintainer_clean=\
 	${top_distclean}; \
 	rm -fr autom4te.cache
-maintainer-clean: bootstrap-clean
-	cd src  && $(MAKE) $(MFLAGS) maintainer-clean
-	cd leim && $(MAKE) $(MFLAGS) maintainer-clean
-	cd lisp && $(MAKE) $(MFLAGS) maintainer-clean
+
+maintainer_clean_dirs = src leim lisp
+
+$(foreach dir,$(maintainer_clean_dirs),$(eval $(call submake_template,$(dir),maintainer-clean)))
+
+maintainer-clean: bootstrap-clean $(maintainer_clean_dirs:=_maintainer-clean)
 	for dir in test/automated admin/grammars admin/unidata; do \
-	  [ ! -d $$dir ] || (cd $$dir && $(MAKE) $(MFLAGS) maintainer-clean); \
+	  [ ! -d $$dir ] || $(MAKE) -C $$dir maintainer-clean; \
 	done
 	${top_maintainer_clean}
 
@@ -922,8 +874,12 @@ maintainer-clean: bootstrap-clean
 ### says GCC supports it, and that's where the configuration part of
 ### the coding standards seem to come from.  It's like distclean, but
 ### it deletes backup and autosave files too.
-extraclean:
-	for i in ${SUBDIR}; do (cd $$i; $(MAKE) $(MFLAGS) extraclean); done
+### Note that we abuse this in some subdirectories (eg leim),
+### to delete some generated files that are slow to rebuild.
+$(foreach dir,$(SUBDIR),$(eval $(call submake_template,$(dir),extraclean)))
+
+## FIXME this is busted because most of these do not have extraclean rules.
+extraclean: $(SUBDIR:=_extraclean)
 	${top_maintainer_clean}
 	-rm -f config-tmp-*
 	-rm -f *~ \#*
@@ -932,14 +888,14 @@ extraclean:
 # even when the build directory and source dir are different.
 .PHONY: TAGS tags
 TAGS tags: lib lib-src src
-	cd src; $(MAKE) $(MFLAGS) tags
+	$(MAKE) -C src tags
 
 check: all
 	@if test ! -d test/automated; then \
 	  echo "You do not seem to have the test/ directory."; \
 	  echo "Maybe you are using a release tarfile, rather than a repository checkout."; \
 	else \
-	  cd test/automated && $(MAKE) $(MFLAGS) check; \
+	  $(MAKE) -C test/automated check; \
 	fi
 
 dist:
@@ -953,7 +909,7 @@ PSS   = lispref-ps   lispintro-ps   emacs-ps   misc-ps
 
 DOCS = $(DVIS) $(HTMLS) $(INFOS) $(PDFS) $(PSS)
 $(DOCS):
-	t=$@; IFS=-; set $$t; IFS=; cd doc/$$1 && $(MAKE) $(MFLAGS) $$2
+	t=$@; IFS=-; set $$t; IFS=; $(MAKE) -C doc/$$1 $$2
 
 .PHONY: $(DOCS) docs pdf ps
 .PHONY: info dvi dist check html info-real info-dir check-info
@@ -1002,7 +958,7 @@ INSTALL_DOC = $(INSTALL_DVI) $(INSTALL_HTML) $(INSTALL_PDF) $(INSTALL_PS)
 ## Install non .info forms of the documentation.
 ## TODO add etc/refcards.
 $(INSTALL_DOC):
-	t=$@; IFS=-; set $$t; IFS=; cd doc/$$2 && $(MAKE) $(MFLAGS) $$1-$$3
+	t=$@; IFS=-; set $$t; IFS=; $(MAKE) -C doc/$$2 $$1-$$3
 
 .PHONY: $(INSTALL_DOC) install-doc
 .PHONY: install-dvi install-html install-pdf install-ps
@@ -1025,7 +981,7 @@ UNINSTALL_PS = uninstall-emacs-ps uninstall-lispref-ps \
 UNINSTALL_DOC = $(UNINSTALL_DVI) $(UNINSTALL_HTML) $(UNINSTALL_PDF) $(UNINSTALL_PS)
 
 $(UNINSTALL_DOC):
-	t=$@; IFS=-; set $$t; IFS=; cd doc/$$2 && $(MAKE) $(MFLAGS) $$1-$$3
+	t=$@; IFS=-; set $$t; IFS=; $(MAKE) -C doc/$$2 $$1-$$3
 
 .PHONY: $(UNINSTALL_DOC) uninstall-doc
 .PHONY: uninstall-dvi uninstall-html uninstall-pdf uninstall-ps
@@ -1052,7 +1008,7 @@ info:
 	@if test "$(HAVE_MAKEINFO)" = "no"; then \
 	  echo "Configured --without-makeinfo, not building manuals" ; \
 	else \
-	  $(MAKE) $(MFLAGS) info-real info-dir; \
+	  $(MAKE) info-real info-dir; \
 	fi
 
 ## build-aux/make-info-dir expects only certain dircategories.
@@ -1092,8 +1048,8 @@ check-info: info
 #  * Do the actual build.
 bootstrap: bootstrap-clean
 	cd $(srcdir) && ./autogen.sh
-	$(MAKE) $(MFLAGS) MAKEFILE_NAME=force-Makefile force-Makefile
-	$(MAKE) $(MFLAGS) all
+	$(MAKE) MAKEFILE_NAME=force-Makefile force-Makefile
+	$(MAKE) all
 
 .PHONY: check-declare
 
@@ -1102,4 +1058,4 @@ check-declare:
 	  echo "You must build Emacs to use this command"; \
 	  exit 1; \
 	fi
-	cd lisp && $(MAKE) $(MFLAGS) $@
+	$(MAKE) -C lisp $@

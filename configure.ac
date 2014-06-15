@@ -93,32 +93,35 @@ AC_DEFUN([AC_PROG_MAKE_SET],
    AC_SUBST([SET_MAKE])])
 
 dnl Check for GNU Make and possibly set MAKE before running AM_INIT_AUTOMAKE.
+[emacs_check_gnu_make ()
+{
+  emacs_makeout=`($1 --version) 2>/dev/null` &&
+  case $emacs_makeout in
+    'GNU Make '3.8[1-9]* | 'GNU Make '3.9[0-9]* | \
+    'GNU Make '3.[1-9][0-9][0-9]* | 'GNU Make '[4-9]* | 'GNU Make '[1-9][0-9]* )
+       ac_path_MAKE_found=:;;
+  esac
+}]
 AC_CACHE_CHECK([for GNU Make], [ac_cv_path_MAKE],
   [ac_path_MAKE_found=false
    if test -n "$MAKE"; then
-     emacs_makeout=`($MAKE --version) 2>/dev/null` &&
-     case $emacs_makeout in
-       'GNU Make '[[1-3]][[0-9]]* | 'GNU Make '[[4-9]]* | 'GNU Make '3.8[[1-9]]* | 'GNU Make '3.9*)
-	 ac_path_MAKE_found=:;;
-     esac
+     emacs_check_gnu_make "$MAKE"
      ac_cv_path_MAKE=$MAKE
    else
      emacs_tried_make=false
      emacs_tried_gmake=false
      emacs_tried_gnumake=false
      AC_PATH_PROGS_FEATURE_CHECK([MAKE], [make gmake gnumake],
-       [[emacs_makeout=`($ac_path_MAKE --version) 2>/dev/null` &&
-	 case $emacs_makeout in
-	   'GNU Make '[1-3][0-9]* | 'GNU Make '[4-9]* | 'GNU Make '3.8[1-9]* | 'GNU Make '3.9*)
-	      # Use the fully-qualified program name only if the basename
-	      # would not resolve to it.
-	      if eval \$emacs_tried_$ac_prog; then
-		ac_cv_path_MAKE=$ac_path_MAKE
-	      else
-		ac_cv_path_MAKE=$ac_prog
-	      fi
-	      ac_path_MAKE_found=:;;
-	 esac
+       [[emacs_check_gnu_make "$ac_path_MAKE"
+	 if $ac_path_MAKE_found; then
+	   # Use the fully-qualified program name only if the basename
+	   # would not resolve to it.
+	   if eval \$emacs_tried_$ac_prog; then
+	     ac_cv_path_MAKE=$ac_path_MAKE
+	   else
+	     ac_cv_path_MAKE=$ac_prog
+	   fi
+	 fi
 	 eval emacs_tried_$ac_prog=:]])
    fi])
 $ac_path_MAKE_found || {
@@ -2088,11 +2091,15 @@ if test "$ac_cv_header_pthread_h"; then
      # Some systems optimize for single-threaded programs by default, and
      # need special flags to disable these optimizations. For example, the
      # definition of 'errno' in <errno.h>.
-     if test "$opsys" = aix4-2; then
-       AC_DEFINE([_THREAD_SAFE], [1],
-         [Define to 1 if your system requires this in multithreaded code.])
-     fi])
-  if test "X$LIBS" != "X$OLD_LIBS"; then
+     case $opsys in
+       sol*)
+         AC_DEFINE([_REENTRANT], 1,
+   	[Define to 1 if your system requires this in multithreaded code.]);;
+       aix4-2)
+         AC_DEFINE([_THREAD_SAFE], 1,
+   	[Define to 1 if your system requires this in multithreaded code.]);;
+     esac])
+ if test "X$LIBS" != "X$OLD_LIBS"; then
     eval LIB_PTHREAD=\$ac_cv_search_$emacs_pthread_function
   fi
   LIBS=$OLD_LIBS

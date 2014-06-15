@@ -80,7 +80,7 @@ globals_h = ../src/globals.h
 src_h = $(config_h) $(lisp_h) $(globals_h)
 
 $(globals_h):
-	cd ../src && $(MAKE) $(MFLAGS) globals.h
+	$(MAKE) -C ../src globals.h
 
 lwlib-utils.o: $(src_h) lwlib-utils.c lwlib-utils.h lwlib.h
 lwlib.o:       $(src_h) lwlib.c lwlib.h lwlib-int.h lwlib-utils.h \
@@ -91,13 +91,16 @@ lwlib-Xm.o:    $(src_h) lwlib-Xm.c lwlib-Xm.h lwlib.h lwlib-int.h lwlib-utils.h
 xlwmenu.o:     $(src_h) xlwmenu.c xlwmenu.h lwlib.h xlwmenuP.h \
   $(srcdir)/../src/xterm.h
 
-mostlyclean:
+
+.PHONY: mostlyclean clean distclean bootstrap-clean maintainer-clean
+
+clean mostlyclean:
 	rm -f *.o liblw.a \#*
 
-clean: mostlyclean
 distclean: clean
 	rm -f Makefile
-maintainer-clean: distclean
+
+bootstrap-clean maintainer-clean: distclean
 	rm -f TAGS
 
 

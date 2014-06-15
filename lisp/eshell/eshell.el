@@ -170,56 +170,7 @@
 ;; @ 4nt
 ;; @ csh
 
-;;;_* Speeding up load time
-;;
-;; If you find that Eshell loads too slowly, there is something you
-;; can do to speed it up.
-;;
-;; Create a file, named /tmp/elc, containing this filelist:
-;;
-;;   esh-util.elc
-;;   eshell.elc
-;;   esh-module.elc
-;;   esh-var.elc
-;;   esh-proc.elc
-;;   esh-arg.elc
-;;   esh-io.elc
-;;   esh-ext.elc
-;;   esh-cmd.elc
-;;   esh-mode.elc
-;;   esh-opt.elc
-;;   em-alias.elc
-;;   em-banner.elc
-;;   em-basic.elc
-;;   em-cmpl.elc
-;;   em-dirs.elc
-;;   em-pred.elc
-;;   em-glob.elc
-;;   em-hist.elc
-;;   em-ls.elc
-;;   em-prompt.elc
-;;   em-rebind.elc
-;;   em-script.elc
-;;   em-smart.elc
-;;   em-term.elc
-;;   em-unix.elc
-;;   em-xtra.elc
-;;
-;; The order is very important.  Remove from the filelist any features
-;; you don't use.  These all begin with "em-".  If you don't use
-;; Eshell's key rebinding module, you can remove "em-rebind.elc" from
-;; the filelist.  The modules you are currently using are listed in
-;; `eshell-modules-list'.
-;;
-;; Now, concatenating all of the above mentioned .elc files, in that
-;; order, to another file.  Here is how to do this on UNIX:
-;;
-;;   cat `cat /tmp/elc` > tmp.elc ; mv tmp.elc eshell.elc
-;;
-;; Now your eshell.elc file contains all of the .elc files that make
-;; up Eshell, in the right load order.  When you next load Eshell, it
-;; will only have to read in this one file, which will greatly speed
-;; things up.
+;;; Code:
 
 (eval-when-compile
   (require 'cl-lib))

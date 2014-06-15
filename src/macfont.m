@@ -2810,6 +2810,7 @@ macfont_draw (struct glyph_string *s, int from, int to, int x, int y,
 
 
   xfree (glyphs);
+  xfree (positions);
   CGContextRestoreGState (context);
 
   unblock_input ();

@@ -2974,9 +2974,16 @@ cleanup_vector (struct Lisp_Vector *vector)
       && ((vector->header.size & PSEUDOVECTOR_SIZE_MASK)
 	  == FONT_OBJECT_MAX))
     {
-      /* Attempt to catch subtle bugs like Bug#16140.  */
-      eassert (valid_font_driver (((struct font *) vector)->driver));
-      ((struct font *) vector)->driver->close ((struct font *) vector);
+      struct font_driver *drv = ((struct font *) vector)->driver;
+
+      /* The font driver might sometimes be NULL, e.g. if Emacs was
+	 interrupted before it had time to set it up.  */
+      if (drv)
+	{
+	  /* Attempt to catch subtle bugs like Bug#16140.  */
+	  eassert (valid_font_driver (drv));
+	  drv->close ((struct font *) vector);
+	}
     }
 }
 
@@ -4556,7 +4563,7 @@ maybe_lisp_pointer (void *p)
 {
   return !((intptr_t) p % (USE_LSB_TAG ? GCALIGNMENT : 2));
 }
-  
+
 /* If P points to Lisp data, mark that as live if it isn't already
    marked.  */
 
@@ -5023,7 +5030,7 @@ relocatable_string_data_p (const char *str)
 {
   if (PURE_POINTER_P (str))
     return 0;
-#if GC_MARK_STACK  
+#if GC_MARK_STACK
   if (str)
     {
       struct sdata *sdata
@@ -5037,7 +5044,7 @@ relocatable_string_data_p (const char *str)
 		&& (const char *) sdata->string->data == str);
     }
   return 0;
-#endif /* GC_MARK_STACK */  
+#endif /* GC_MARK_STACK */
   return -1;
 }
 
@@ -5882,9 +5889,9 @@ See Info node `(elisp)Garbage Collection'.  */)
 #elif (GC_MARK_STACK == GC_USE_GCPROS_AS_BEFORE)
   /* Old GCPROs-based method without stack marking.  */
   return garbage_collect_1 (NULL);
-#else  
+#else
   emacs_abort ();
-#endif /* GC_MARK_STACK */  
+#endif /* GC_MARK_STACK */
 }
 
 /* Mark Lisp objects in glyph matrix MATRIX.  Currently the
@@ -5979,7 +5986,7 @@ static Lisp_Object
 mark_compiled (struct Lisp_Vector *ptr)
 {
   int i, size = ptr->header.size & PSEUDOVECTOR_SIZE_MASK;
-  
+
   VECTOR_MARK (ptr);
   for (i = 0; i < size; i++)
     if (i != COMPILED_CONSTANTS)
@@ -6057,7 +6064,7 @@ mark_localized_symbol (struct Lisp_Symbol *ptr)
   struct Lisp_Buffer_Local_Value *blv = SYMBOL_BLV (ptr);
   Lisp_Object where = blv->where;
   /* If the value is set up for a killed buffer or deleted
-     frame, restore it's global binding.  If the value is
+     frame, restore its global binding.  If the value is
      forwarded to a C variable, either it's not a Lisp_Object
      var, or it's staticpro'd already.  */
   if ((BUFFERP (where) && !BUFFER_LIVE_P (XBUFFER (where)))

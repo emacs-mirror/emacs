@@ -637,15 +637,27 @@ string).  It returns t if a new completion is found, nil otherwise."
 The argument OLD has to be nil the first call of this function, and t
 for subsequent calls (for further possible completions of the same
 string).  It returns t if a new completion is found, nil otherwise."
+  (he--all-buffers
+   old
+   (lambda () (he-line-beg (and (get-buffer-process (current-buffer))
+                           comint-use-prompt-regexp
+                           comint-prompt-regexp)))
+   (lambda (string)
+     (he-line-search string
+                     (and (get-buffer-process (current-buffer))
+                          comint-use-prompt-regexp
+                          comint-prompt-regexp)
+                     nil))))
+
+(defun he--all-buffers (old beg-function search-function)
   (let ((expansion ())
-	(strip-prompt (and (get-buffer-process (current-buffer))
-			   comint-use-prompt-regexp
-			   comint-prompt-regexp))
-	(buf (current-buffer))
-	(orig-case-fold-search case-fold-search))
+        (buf (current-buffer))
+        (only-buffers hippie-expand-only-buffers)
+        (ignore-buffers hippie-expand-ignore-buffers)
+        (orig-case-fold-search case-fold-search))
     (if (not old)
-	(progn
-	  (he-init-string (he-line-beg strip-prompt) (point))
+        (progn
+	  (he-init-string (funcall beg-function) (point))
 	  (setq he-search-bufs (buffer-list))
 	  (setq he-searched-n-bufs 0)
 	  (set-marker he-search-loc 1 (car he-search-bufs))))
@@ -654,24 +666,20 @@ string).  It returns t if a new completion is found, nil otherwise."
 	(while (and he-search-bufs
 		    (not expansion)
 		    (or (not hippie-expand-max-buffers)
-			(< he-searched-n-bufs hippie-expand-max-buffers)))
-	  (set-buffer (car he-search-bufs))
-	  (if (and (not (eq (current-buffer) buf))
-		   (if hippie-expand-only-buffers
-		       (he-buffer-member hippie-expand-only-buffers)
-		     (not (he-buffer-member hippie-expand-ignore-buffers))))
-	      (save-excursion
-		(save-restriction
-		  (if hippie-expand-no-restriction
+                        (< he-searched-n-bufs hippie-expand-max-buffers)))
+          (set-buffer (car he-search-bufs))
+          (if (and (not (eq (current-buffer) buf))
+                   (if only-buffers
+                       (he-buffer-member only-buffers)
+                     (not (he-buffer-member ignore-buffers))))
+              (save-excursion
+                (save-restriction
+                  (if hippie-expand-no-restriction
 		      (widen))
 		  (goto-char he-search-loc)
-		  (setq strip-prompt (and (get-buffer-process (current-buffer))
-					  comint-use-prompt-regexp
-					  comint-prompt-regexp))
 		  (setq expansion
 			(let ((case-fold-search orig-case-fold-search))
-			  (he-line-search he-search-string
-					  strip-prompt nil)))
+			  (funcall search-function he-search-string)))
 		  (set-marker he-search-loc (point))
 		  (if (not expansion)
 		      (progn
@@ -686,9 +694,9 @@ string).  It returns t if a new completion is found, nil otherwise."
 	(progn
 	  (if old (he-reset-string))
 	  ())
-	(progn
-	  (he-substitute-string expansion t)
-	  t))))
+      (progn
+        (he-substitute-string expansion t)
+        t))))
 
 (defun he-line-search (str strip-prompt reverse)
   (let ((result ()))
@@ -769,53 +777,9 @@ string).  It returns t if a new completion is found, nil otherwise."
 The argument OLD has to be nil the first call of this function, and t
 for subsequent calls (for further possible completions of the same
 string).  It returns t if a new completion is found, nil otherwise."
-  (let ((expansion ())
-	(buf (current-buffer))
-	(orig-case-fold-search case-fold-search))
-    (if (not old)
-	(progn
-	  (he-init-string (he-list-beg) (point))
-	  (setq he-search-bufs (buffer-list))
-	  (setq he-searched-n-bufs 0)
-	  (set-marker he-search-loc 1 (car he-search-bufs))))
+  (he--all-buffers old #'he-list-beg #'he-list-search))
 
-    (if (not (equal he-search-string ""))
-	(while (and he-search-bufs
-		    (not expansion)
-		    (or (not hippie-expand-max-buffers)
-			(< he-searched-n-bufs hippie-expand-max-buffers)))
-	  (set-buffer (car he-search-bufs))
-	  (if (and (not (eq (current-buffer) buf))
-		   (if hippie-expand-only-buffers
-		       (he-buffer-member hippie-expand-only-buffers)
-		     (not (he-buffer-member hippie-expand-ignore-buffers))))
-	      (save-excursion
-		(save-restriction
-		  (if hippie-expand-no-restriction
-		      (widen))
-		  (goto-char he-search-loc)
-		  (setq expansion
-			(let ((case-fold-search orig-case-fold-search))
-			  (he-list-search he-search-string nil)))
-		  (set-marker he-search-loc (point))
-		  (if (not expansion)
-		      (progn
-			(setq he-search-bufs (cdr he-search-bufs))
-			(setq he-searched-n-bufs (1+ he-searched-n-bufs))
-			(set-marker he-search-loc 1 (car he-search-bufs))))))
-	    (setq he-search-bufs (cdr he-search-bufs))
-	    (set-marker he-search-loc 1 (car he-search-bufs)))))
-
-    (set-buffer buf)
-    (if (not expansion)
-	(progn
-	  (if old (he-reset-string))
-	  ())
-	(progn
-	  (he-substitute-string expansion t)
-	  t))))
-
-(defun he-list-search (str reverse)
+(defun he-list-search (str &optional reverse)
   (let ((result ())
 	beg pos err)
     (while (and (not result)
@@ -924,51 +888,7 @@ string).  It returns t if a new expansion is found, nil otherwise."
 The argument OLD has to be nil the first call of this function, and t
 for subsequent calls (for further possible expansions of the same
 string).  It returns t if a new expansion is found, nil otherwise."
-  (let ((expansion ())
-	(buf (current-buffer))
-	(orig-case-fold-search case-fold-search))
-    (if (not old)
-	(progn
-	  (he-init-string (he-dabbrev-beg) (point))
-	  (setq he-search-bufs (buffer-list))
-	  (setq he-searched-n-bufs 0)
-	  (set-marker he-search-loc 1 (car he-search-bufs))))
-
-    (if (not (equal he-search-string ""))
-	(while (and he-search-bufs
-		    (not expansion)
-		    (or (not hippie-expand-max-buffers)
-			(< he-searched-n-bufs hippie-expand-max-buffers)))
-	  (set-buffer (car he-search-bufs))
-	  (if (and (not (eq (current-buffer) buf))
-		   (if hippie-expand-only-buffers
-		       (he-buffer-member hippie-expand-only-buffers)
-		     (not (he-buffer-member hippie-expand-ignore-buffers))))
-	      (save-excursion
-		(save-restriction
-		  (if hippie-expand-no-restriction
-		      (widen))
-		  (goto-char he-search-loc)
-		  (setq expansion
-			(let ((case-fold-search orig-case-fold-search))
-			  (he-dabbrev-search he-search-string nil)))
-		  (set-marker he-search-loc (point))
-		  (if (not expansion)
-		      (progn
-			(setq he-search-bufs (cdr he-search-bufs))
-			(setq he-searched-n-bufs (1+ he-searched-n-bufs))
-			(set-marker he-search-loc 1 (car he-search-bufs))))))
-	    (setq he-search-bufs (cdr he-search-bufs))
-	    (set-marker he-search-loc 1 (car he-search-bufs)))))
-
-    (set-buffer buf)
-    (if (not expansion)
-	(progn
-	  (if old (he-reset-string))
-	  ())
-	(progn
-	  (he-substitute-string expansion t)
-	  t))))
+  (he--all-buffers old #'he-dabbrev-beg #'he-dabbrev-search))
 
 ;; Thanks go to Jeff Dairiki <dairiki@faraday.apl.washington.edu> who
 ;; suggested this one.

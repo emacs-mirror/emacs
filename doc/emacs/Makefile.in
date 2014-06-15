@@ -181,7 +181,7 @@ emacs-xtra.dvi: $(EMACS_XTRA)
 emacs-xtra.pdf: $(EMACS_XTRA)
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/emacs-xtra.texi
 
-.PHONY: mostlyclean clean distclean maintainer-clean infoclean
+.PHONY: mostlyclean clean distclean bootstrap-clean maintainer-clean infoclean
 
 ## Temp files.
 mostlyclean:
@@ -203,7 +203,7 @@ infoclean:
 	  $(buildinfodir)/emacs.info-[1-9] \
 	  $(buildinfodir)/emacs.info-[1-9][0-9]
 
-maintainer-clean: distclean infoclean
+bootstrap-clean maintainer-clean: distclean infoclean
 
 .PHONY: dist
 

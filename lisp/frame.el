@@ -1,7 +1,6 @@
 ;;; frame.el --- multi-frame management independent of window systems
 
-;; Copyright (C) 1993-1994, 1996-1997, 2000-2014 Free Software
-;; Foundation, Inc.
+;; Copyright (C) 1993-1994, 1996-1997, 2000-2014 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: internal
@@ -148,12 +147,6 @@ This function runs the hook `focus-out-hook'."
 ;;
 ;; 3) Once the init file is done, we apply any newly set parameters
 ;; in initial-frame-alist to the frame.
-
-;; These are now called explicitly at the proper times,
-;; since that is easier to understand.
-;; Actually using hooks within Emacs is bad for future maintenance. --rms.
-;; (add-hook 'before-init-hook 'frame-initialize)
-;; (add-hook 'window-setup-hook 'frame-notice-user-settings)
 
 ;; If we create the initial frame, this is it.
 (defvar frame-initial-frame nil)
