@@ -25,6 +25,7 @@ SHELL = /bin/sh
 
 CC=@CC@
 CFLAGS=@CFLAGS@
+CPPFLAGS=@CPPFLAGS@
 version=@version@
 ## Used in $archlibdir.
 configuration=@configuration@

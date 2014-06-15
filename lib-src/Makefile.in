@@ -28,6 +28,7 @@ EMACSOPT = -batch --no-site-file --no-site-lisp
 
 CC=@CC@
 CFLAGS=@CFLAGS@
+CPPFLAGS=@CPPFLAGS@
 version=@version@
 ## Used in $archlibdir.
 configuration=@configuration@
