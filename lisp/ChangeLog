@@ -1,3 +1,45 @@
+2014-06-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* ses.el: Miscellaneous cleanups; use lexical-binding; avoid
+	add-to-list.
+	(ses-localvars): Remove ses--local-printer-list, unused.
+	(ses--metaprogramming): New macro.  Use it to defvar variables.
+	(ses-set-localvars): Simplify.
+	(ses--locprn, ses-cell): Use defstruct.  Change ses-cell's
+	property-list into an alist.
+	(ses-locprn-get-compiled, ses-locprn-compiled-aset)
+	(ses-locprn-get-def, ses-locprn-def-aset, ses-locprn-get-number):
+	Remove; use defstruct accessors/setters instead.
+	(ses-cell-formula-aset, ses-cell-printer-aset)
+	(ses-cell-references-aset): Remove, use setf instead.
+	(ses--alist-get): New function.
+	(ses-cell-property): Rename from ses-cell-property-get and rewrite.
+	Use an alist instead of a plist and don't do move-to-front since the
+	list is always short.
+	(ses-cell-property-get-fun, ses-cell-property-delq-fun)
+	(ses-cell-property-set-fun, ses-cell-property-set)
+	(ses-cell-property-pop-fun, ses-cell-property-get-handle)
+	(ses-cell-property-handle-car, ses-cell-property-handle-setcar): Remove.
+	(ses--letref): New macro.
+	(ses-cell-property-pop): Rewrite.
+	(ses--cell): Rename from ses-cell and make it into a function.
+	Make `formula' fallback on `value' if nil.
+	(ses--local-printer): Rename from ses-local-printer and make it into
+	a function.
+	(ses-set-cell): Turn it into a macro so finding the accessor from the
+	field name is done at compile time.
+	(ses-repair-cell-reference-all): Test presence of `sym' rather than
+	`ref' before adding `sym' to :ses-repair-reference.
+	(ses-calculate-cell): Use ses--letref rather than
+	ses-cell-property-get-handle.
+	(ses-write-cells): Use a single prin1-to-string.
+	(ses-setter-with-undo): New function.
+	(ses-aset-with-undo, ses-set-with-undo): Rewrite using it.
+	(ses-unset-with-undo): Remove.
+	(ses-load): Prefer apply' over `eval'.
+	(ses-read-printer, ses-set-column-width): Use standard "(default
+	foo)" format.
+
 2014-06-15  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (leim, semantic): Use `make -C' rather than `cd && make'.
