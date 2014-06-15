@@ -141,7 +141,7 @@ mostlyclean:
 
 clean: mostlyclean
 
-boostrap-clean maintainer-clean distclean: clean
+bootstrap-clean maintainer-clean distclean: clean
 	rm -f Makefile
 
 .PHONY: tags
