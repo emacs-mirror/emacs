@@ -1,3 +1,17 @@
+2014-06-15  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.2.10.
+
+	* automated/tramp-tests.el (tramp--test-enabled): Ignore errors.
+	(tramp--instrument-test-case): Extend docstring.
+	(tramp-test15-copy-directory): Skip for tramp-smb.el.
+	(tramp-test21-file-links): Use `file-truename' for directories.
+	(tramp-test27-start-file-process, tramp-test28-shell-command):
+	Retrieve process output more robustly.
+	(tramp--test-check-files): Extend test.
+	(tramp-test30-special-characters): Skip for tramp-adb.el,
+	tramp-gvfs.el and tramp-smb.el.  Add further file names.
+
 2014-06-13  Glenn Morris  <rgm@gnu.org>
 
 	* automated/Makefile.in (compile-main):
