@@ -1,3 +1,17 @@
+2014-06-15  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.2.10.
+
+	* tramp.texi (Inline methods): Remove restriction on "telnet".
+	Recommend sharing ssh connections for "plink".
+	(External methods): Remove "sftp".  Merge "pscp" and "psftp"
+	descriptions.  Recommend sharing ssh connections.  Add "nc" method.
+	(GVFS based methods): Add "sftp".
+	(Customizing Completion, External packages, Issues):
+	Use @dots{}.
+
+	* trampver.texi: Update release number.
+
 2014-06-15  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (bootstrap-clean): New.

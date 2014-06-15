@@ -605,11 +605,10 @@ action.
 @cindex methods, inline
 
 The inline methods in @value{tramp} are quite powerful and can work in
-situations where you cannot use an external transfer program to connect.
-Inline methods are the only methods that work when connecting to the
-remote host via telnet.  (There are also strange inline methods which
-allow you to transfer files between @emph{user identities} rather than
-hosts, see below.)
+situations where you cannot use an external transfer program to
+connect.  There are also strange inline methods which allow you to
+transfer files between @emph{user identities} rather than hosts, see
+below.
 
 These methods depend on the existence of a suitable encoding and
 decoding command on remote host.  Locally, @value{tramp} may be able to
@@ -748,7 +747,10 @@ This method is mostly interesting for Windows users using the PuTTY
 implementation of SSH@.  It uses @samp{plink -ssh} to log in to the
 remote host.
 
-This supports the @samp{-P} argument.
+With a recent PuTTY, it is recommended to check the @samp{Share SSH
+connections if possible} control for that session.
+
+This method supports the @samp{-P} argument.
 
 
 @item @option{plinkx}
@@ -757,9 +759,10 @@ This supports the @samp{-P} argument.
 
 Another method using PuTTY on Windows.  Instead of host names, it
 expects PuTTY session names, calling @samp{plink -load @var{session}
--t"}.  User names are relevant only in case the corresponding session
-hasn't defined a user name.  Different port numbers must be defined in
-the session.
+-t}.  User names and port numbers must be defined in the session.
+
+With a recent PuTTY, it is recommended to check the @samp{Share SSH
+connections if possible} control for that session.
 
 @end table
 
@@ -820,22 +823,6 @@ specify @samp{-p 42} in the argument list for @command{ssh}, and to
 specify @samp{-P 42} in the argument list for @command{scp}.
 
 
-@item @option{sftp}---@command{ssh} and @command{sftp}
-@cindex method sftp
-@cindex sftp method
-@cindex sftp (with sftp method)
-@cindex ssh (with sftp method)
-
-That is mostly the same method as @option{scp}, but using
-@command{sftp} as transfer command.  So the same remarks are valid.
-
-This command does not work like @value{ftppackagename}, where
-@command{ftp} is called interactively, and all commands are send from
-within this session.  Instead of, @command{ssh} is used for login.
-
-This method supports the @samp{-p} argument.
-
-
 @item @option{rsync}---@command{ssh} and @command{rsync}
 @cindex method rsync
 @cindex rsync method
@@ -881,33 +868,27 @@ This method supports the @samp{-p} argument.
 
 
 @item @option{pscp}---@command{plink} and @command{pscp}
+@item @option{psftp}---@command{plink} and @command{psftp}
 @cindex method pscp
 @cindex pscp method
 @cindex pscp (with pscp method)
 @cindex plink (with pscp method)
 @cindex PuTTY (with pscp method)
-
-This method is similar to @option{scp}, but it uses the
-@command{plink} command to connect to the remote host, and it uses
-@command{pscp} for transferring the files.  These programs are part
-of PuTTY, an SSH implementation for Windows.
-
-This method supports the @samp{-P} argument.
-
-
-@item @option{psftp}---@command{plink} and @command{psftp}
 @cindex method psftp
 @cindex psftp method
-@cindex psftp (with psftp method)
+@cindex pscp (with psftp method)
 @cindex plink (with psftp method)
 @cindex PuTTY (with psftp method)
 
-As you would expect, this method is similar to @option{sftp}, but it
-uses the @command{plink} command to connect to the remote host, and it
-uses @command{psftp} for transferring the files.  These programs are
-part of PuTTY, an SSH implementation for Windows.
+These methods are similar to @option{scp} or @option{sftp}, but they
+use the @command{plink} command to connect to the remote host, and
+they use @command{pscp} or @command{psftp} for transferring the files.
+These programs are part of PuTTY, an SSH implementation for Windows.
 
-This method supports the @samp{-P} argument.
+With a recent PuTTY, it is recommended to configure the @samp{Share
+SSH connections if possible} control for that session.
+
+These methods support the @samp{-P} argument.
 
 
 @item @option{fcp}---@command{fsh} and @command{fcp}
@@ -936,6 +917,19 @@ There is no inline method using @command{fsh} as the multiplexing
 provided by the program is not very useful in our context.  @value{tramp}
 opens just one connection to the remote host and then keeps it open,
 anyway.
+
+
+@item @option{nc}---@command{telnet} and @command{nc}
+@cindex method nc
+@cindex nc method
+@cindex nc (with nc method)
+@cindex telnet (with nc method)
+
+Using @command{telnet} to connect to the remote host and @command{nc}
+for file transfer is often the only possibility to access dumb
+devices, like routers or NAS hosts.  Those hosts have just a
+restricted @command{busybox} as local shell, and there is no program
+to encode and decode files for transfer.
 
 
 @item @option{ftp}
@@ -1066,6 +1060,17 @@ OBEX is an FTP-like access protocol for simple devices, like cell
 phones.  For the time being, @value{tramp} only supports OBEX over Bluetooth.
 
 
+@item @option{sftp}
+@cindex method sftp
+@cindex sftp method
+
+As you might expect, this method uses @command{sftp} in order to
+access the remote host.  Contrary to the @option{ssh} and @option{scp}
+methods, it doesn't open an @command{ssh} session for login.
+Therefore, it could be used to access to remote hosts which refuse
+@command{ssh} for security reasons.
+
+
 @item @option{synce}
 @cindex method synce
 @cindex synce method
@@ -1077,10 +1082,10 @@ FUSE, it also needs the SYNCE-GVFS plugin.
 @end table
 
 @defopt tramp-gvfs-methods
-This customer option, a list, defines the external methods which
-shall be used with GVFS@.  Per default, these are @option{dav},
-@option{davs}, @option{obex} and @option{synce}.  Other possible
-values are @option{ftp}, @option{sftp} and @option{smb}.
+This customer option, a list, defines the external methods which shall
+be used with GVFS@.  Per default, these are @option{dav},
+@option{davs}, @option{obex}, @option{sftp} and @option{synce}.  Other
+possible values are @option{ftp} and @option{smb}.
 @end defopt
 @end ifset
 
@@ -1503,7 +1508,7 @@ customize which files are taken into account for user and host name
 completion (@pxref{File name completion}).  For every method, it keeps
 a set of configuration files, accompanied by a Lisp function able to
 parse that file.  Entries in @code{tramp-completion-function-alist}
-have the form (@var{method} @var{pair1} @var{pair2} ...).
+have the form (@var{method} @var{pair1} @var{pair2} @dots{}).
 
 Each @var{pair} is composed of (@var{function} @var{file}).
 @var{function} is responsible to extract user names and host names
@@ -3774,7 +3779,7 @@ a non-@code{nil} value.
 
 @lisp
 (let ((non-essential t))
-  ...)
+  @dots{})
 @end lisp
 
 
@@ -3793,7 +3798,7 @@ should let-bind the variable @code{process-file-side-effects} to
 
 @lisp
 (let (process-file-side-effects)
-  ...)
+  @dots{})
 @end lisp
 
 For asynchronous processes, @value{tramp} flushes the file attributes
@@ -3934,7 +3939,7 @@ file:
 
 The autoload of the @value{emacsname} @value{tramp} package must be
 disabled.  This can be achieved by setting file permissions @code{000}
-to the files @file{.../xemacs-packages/lisp/tramp/auto-autoloads.el*}.
+to the files @file{@dots{}/xemacs-packages/lisp/tramp/auto-autoloads.el*}.
 
 In case of unified file names, all @value{emacsname} download sites are
 added to @code{tramp-default-method-alist} with default method
