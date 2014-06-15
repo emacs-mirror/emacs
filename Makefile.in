@@ -770,22 +770,27 @@ uninstall-nt:
 
 .PHONY: mostlyclean clean distclean bootstrap-clean maintainer-clean extraclean
 
+## Eg:
+## src_clean:
+##     make -C src clean
+define submake_template
+.PHONY: $(1)_$(2)
+$(1)_$(2):
+	$$(MAKE) -C $(1) $(2)
+endef
+
 ### `mostlyclean'
 ###      Like `clean', but may refrain from deleting a few files that people
 ###      normally don't want to recompile.  For example, the `mostlyclean'
 ###      target for GCC does not delete `libgcc.a', because recompiling it
 ###      is rarely necessary and takes a lot of time.
-mostlyclean:
-	cd src      && $(MAKE) mostlyclean
-	cd oldXMenu && $(MAKE) mostlyclean
-	cd lwlib    && $(MAKE) mostlyclean
-	cd lib      && $(MAKE) mostlyclean
-	cd lib-src  && $(MAKE) mostlyclean
-	cd nt       && $(MAKE) mostlyclean
-	-cd doc/emacs     && $(MAKE) mostlyclean
-	-cd doc/misc      && $(MAKE) mostlyclean
-	-cd doc/lispref   && $(MAKE) mostlyclean
-	-cd doc/lispintro && $(MAKE) mostlyclean
+mostlyclean_dirs = src oldXMenu lwlib lib lib-src nt doc/emacs doc/misc \
+  doc/lispref doc/lispintro
+
+$(foreach dir,$(mostlyclean_dirs),$(eval $(call submake_template,$(dir),mostlyclean)))
+
+mostlyclean: $(mostlyclean_dirs:=_mostlyclean)
+
 
 ### `clean'
 ###      Delete all files from the current directory that are normally
@@ -795,24 +800,18 @@ mostlyclean:
 ###      with them.
 ###
 ###      Delete `.dvi' files here if they are not part of the distribution.
-clean:
+clean_dirs = $(mostlyclean_dirs) nextstep
+
+$(foreach dir,$(clean_dirs),$(eval $(call submake_template,$(dir),clean)))
+
+clean: $(clean_dirs:=_clean)
 	-rm -f etc/emacs.tmpdesktop
-	cd src      && $(MAKE) clean
-	cd oldXMenu && $(MAKE) clean
-	cd lwlib    && $(MAKE) clean
-	cd lib      && $(MAKE) clean
-	cd lib-src  && $(MAKE) clean
-	cd nt       && $(MAKE) clean
-	-cd doc/emacs     && $(MAKE) clean
-	-cd doc/misc      && $(MAKE) clean
-	-cd doc/lispref   && $(MAKE) clean
-	-cd doc/lispintro && $(MAKE) clean
-	cd nextstep && $(MAKE) clean
 
 ### `bootclean'
 ###      Delete all files that need to be remade for a clean bootstrap.
 top_bootclean=\
 	rm -f config.cache config.log
+
 ### `distclean'
 ###      Delete all files from the current directory that are created by
 ###      configuring or building the program.  If you have unpacked the
@@ -822,44 +821,25 @@ top_bootclean=\
 top_distclean=\
 	${top_bootclean}; \
 	rm -f config.status config.log~ Makefile stamp-h1 ${SUBDIR_MAKEFILES}
-distclean:
-	cd src      && $(MAKE) distclean
-	cd oldXMenu && $(MAKE) distclean
-	cd lwlib    && $(MAKE) distclean
-	cd lib      && $(MAKE) distclean
-	cd lib-src  && $(MAKE) distclean
-	cd nt       && $(MAKE) distclean
-	cd doc/emacs     && $(MAKE) distclean
-	cd doc/misc      && $(MAKE) distclean
-	cd doc/lispref   && $(MAKE) distclean
-	cd doc/lispintro && $(MAKE) distclean
-	cd leim     && $(MAKE) distclean
-	cd lisp     && $(MAKE) distclean
-	cd nextstep && $(MAKE) distclean
+
+distclean_dirs = $(clean_dirs) leim lisp
+
+$(foreach dir,$(distclean_dirs),$(eval $(call submake_template,$(dir),distclean)))
+
+distclean: $(distclean_dirs:=_distclean)
 	for dir in test/automated admin/grammars admin/unidata; do \
-	  [ ! -d $$dir ] || (cd $$dir && $(MAKE) distclean); \
+	  [ ! -d $$dir ] || $(MAKE) -C $$dir distclean; \
 	done
 	${top_distclean}
 
 ### `bootstrap-clean'
 ###      Delete everything that can be reconstructed by `make' and that
 ###      needs to be deleted in order to force a bootstrap from a clean state.
-bootstrap-clean:
-	cd src      && $(MAKE) bootstrap-clean
-	cd oldXMenu && $(MAKE) maintainer-clean
-	cd lwlib    && $(MAKE) maintainer-clean
-	cd lib      && $(MAKE) maintainer-clean
-	cd lib-src  && $(MAKE) maintainer-clean
-	cd nt       && $(MAKE) maintainer-clean
-	-cd doc/emacs     && $(MAKE) maintainer-clean
-	-cd doc/misc      && $(MAKE) maintainer-clean
-	-cd doc/lispref   && $(MAKE) maintainer-clean
-	-cd doc/lispintro && $(MAKE) maintainer-clean
-	cd leim     && $(MAKE) bootstrap-clean
-	cd lisp     && $(MAKE) bootstrap-clean
-	cd nextstep && $(MAKE) maintainer-clean
+$(foreach dir,$(distclean_dirs),$(eval $(call submake_template,$(dir),bootstrap-clean)))
+
+bootstrap-clean: $(distclean_dirs:=_bootstrap-clean)
 	for dir in test/automated admin/grammars admin/unidata; do \
-	  [ ! -d $$dir ] || (cd $$dir && $(MAKE) bootstrap-clean); \
+	  [ ! -d $$dir ] || $(MAKE) -C $$dir bootstrap-clean; \
 	done
 	[ ! -f config.log ] || mv -f config.log config.log~
 	rm -rf ${srcdir}/info
@@ -879,12 +859,14 @@ bootstrap-clean:
 top_maintainer_clean=\
 	${top_distclean}; \
 	rm -fr autom4te.cache
-maintainer-clean: bootstrap-clean
-	cd src  && $(MAKE) maintainer-clean
-	cd leim && $(MAKE) maintainer-clean
-	cd lisp && $(MAKE) maintainer-clean
+
+maintainer_clean_dirs = src leim lisp
+
+$(foreach dir,$(maintainer_clean_dirs),$(eval $(call submake_template,$(dir),maintainer-clean)))
+
+maintainer-clean: bootstrap-clean $(maintainer_clean_dirs:=_maintainer-clean)
 	for dir in test/automated admin/grammars admin/unidata; do \
-	  [ ! -d $$dir ] || (cd $$dir && $(MAKE) maintainer-clean); \
+	  [ ! -d $$dir ] || $(MAKE) -C $$dir maintainer-clean; \
 	done
 	${top_maintainer_clean}
 
@@ -892,8 +874,12 @@ maintainer-clean: bootstrap-clean
 ### says GCC supports it, and that's where the configuration part of
 ### the coding standards seem to come from.  It's like distclean, but
 ### it deletes backup and autosave files too.
-extraclean:
-	for i in ${SUBDIR}; do (cd $$i; $(MAKE) extraclean); done
+### Note that we abuse this in some subdirectories (eg leim),
+### to delete some generated files that are slow to rebuild.
+$(foreach dir,$(SUBDIR),$(eval $(call submake_template,$(dir),extraclean)))
+
+## FIXME this is busted because most of these do not have extraclean rules.
+extraclean: $(SUBDIR:=_extraclean)
 	${top_maintainer_clean}
 	-rm -f config-tmp-*
 	-rm -f *~ \#*

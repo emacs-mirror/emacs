@@ -134,14 +134,17 @@ XDestAssoc.o: XDestAssoc.c X10.h
 XMakeAssoc.o: XMakeAssoc.c X10.h
 insque.o: insque.c
 
-FRC.mostlyclean:
-mostlyclean: FRC.mostlyclean
-	rm -f libXMenu11.a ${OBJS} ${EXTRA}
-clean: mostlyclean
-distclean: clean
-	rm -f Makefile
-maintainer-clean: distclean
+.PHONY: mostlyclean clean distclean bootstrap-clean maintainer-clean
 
+mostlyclean:
+	rm -f libXMenu11.a ${OBJS} ${EXTRA}
+
+clean: mostlyclean
+
+boostrap-clean maintainer-clean distclean: clean
+	rm -f Makefile
+
+.PHONY: tags
 tags:
 	$(TAGS) -t *.[ch]
-.PHONY: tags
+

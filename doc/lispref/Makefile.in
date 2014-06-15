@@ -153,7 +153,7 @@ elisp.html: $(srcs)
 elisp.pdf: $(srcs)
 	$(ENVADD) $(TEXI2PDF) $(srcdir)/elisp.texi
 
-.PHONY: mostlyclean clean distclean maintainer-clean infoclean
+.PHONY: mostlyclean clean distclean bootstrap-clean maintainer-clean infoclean
 
 ## [12] stuff is from two-volume.make.
 mostlyclean:
@@ -175,7 +175,7 @@ infoclean:
 	  $(buildinfodir)/elisp.info-[1-9] \
 	  $(buildinfodir)/elisp.info-[1-9][0-9]
 
-maintainer-clean: distclean infoclean
+bootstrap-clean maintainer-clean: distclean infoclean
 
 .PHONY: dist
 

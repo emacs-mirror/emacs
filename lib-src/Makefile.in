@@ -255,7 +255,7 @@ $(DESTDIR)${archlibdir}: all
 	fi
 
 .PHONY: install uninstall mostlyclean clean distclean maintainer-clean
-.PHONY: extraclean check tags
+.PHONY: bootstrap-clean extraclean check tags
 
 install: $(DESTDIR)${archlibdir}
 	@echo
@@ -289,7 +289,7 @@ distclean: clean
 	-rm -f TAGS
 	-rm -f Makefile blessmail
 
-maintainer-clean: distclean
+bootstrap-clean maintainer-clean: distclean
 	true
 
 extraclean: maintainer-clean

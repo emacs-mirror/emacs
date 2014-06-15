@@ -1,3 +1,7 @@
+2014-06-15  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (bootstrap-clean): New.
+
 2014-06-12  Vincent Belaïche  <vincentb1@users.sourceforge.net>
 
 	* ses.texi: Adding documentation for SES local printer functions.

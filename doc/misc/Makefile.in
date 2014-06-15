@@ -209,7 +209,7 @@ ${buildinfodir}/tramp.info tramp.html: EXTRA_OPTS = -D emacs
 ${buildinfodir}/tramp.info tramp.html: ${srcdir}/trampver.texi
 
 
-.PHONY: mostlyclean clean distclean maintainer-clean
+.PHONY: mostlyclean clean distclean bootstrap-clean maintainer-clean
 
 mostlyclean:
 	rm -f *.aux *.log *.toc *.c[mp] *.c[mp]s *.fn *.fns \
@@ -235,7 +235,7 @@ infoclean:
 	    $(buildinfodir)/$${file}-[1-9][0-9]; \
 	done
 
-maintainer-clean: distclean infoclean
+bootstrap-clean maintainer-clean: distclean infoclean
 
 dist:
 	rm -rf emacs-misc-${version}

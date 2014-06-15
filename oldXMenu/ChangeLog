@@ -1,3 +1,9 @@
+2014-06-15  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (mostlyclean, clean, distclean, maintainer-clean, tags):
+	Declare as PHONY.
+	(boostrap-clean): New.
+
 2013-10-24  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (abs_top_srcdir): New, set by configure.
