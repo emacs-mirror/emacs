@@ -1,3 +1,10 @@
+2014-06-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (Fmove_point_visually): Instead of testing for keyboard
+	macro execution, make sure point didn't move since last complete
+	redisplay, as the condition for using the glyph matrix
+	information.  (Bug#17777)
+
 2014-06-14  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (Fmove_point_visually): Don't use the glyph matrix
