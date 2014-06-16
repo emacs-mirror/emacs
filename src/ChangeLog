@@ -1,3 +1,9 @@
+2014-06-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* Makefile.in (ns-app): Fix typo that broke build on OS X.
+	Reported by David Caldwell in:
+	http://lists.gnu.org/archive/html/emacs-devel/2014-06/msg00251.html
+
 2014-06-16  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Do not ask for XRender extension each time XFT font is opened.

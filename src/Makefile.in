@@ -519,7 +519,7 @@ emacs.res: $(ntsource)/emacs.rc \
 	  -o $@ $(ntsource)/emacs.rc
 
 ns-app: emacs$(EXEEXT)
-	$(MAKE) -C ./nextstep all
+	$(MAKE) -C ../nextstep all
 
 .PHONY: mostlyclean clean bootstrap-clean distclean maintainer-clean
 .PHONY: versionclean extraclean
