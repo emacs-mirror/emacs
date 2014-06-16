@@ -18,8 +18,8 @@ Introduction
 _`.intro`: This the design of the VM interface. The VM interface
 provides a simple, low-level, operating-system independent interface
 to address-space. Each call to ``VMCreate()`` reserves (from the
-operating-system) a single contiguous range of addresses, and returns
-a VMStruct thereafter used to manage this address-space. The VM
+operating-system) a single contiguous range of addresses, and updates
+a ``VMStruct`` thereafter used to manage this address-space. The VM
 interface has separate implementations for each platform that supports
 it (at least conceptually, in practice some of them may be the same).
 The VM module provides a mechanism to reserve large (relative to the
@@ -39,7 +39,7 @@ particular segment in).
 Definitions
 -----------
 
-_`.def.reserve`: The "reserve" operation: Exclusively reserve a
+_`.def.reserve`: The *reserve* operation: exclusively reserve a
 portion of the virtual address space without arranging RAM or backing
 store for the virtual addresses. The intention is that no other
 component in the process will make use of the reserved virtual
@@ -49,23 +49,23 @@ asks for a particular size, not a particular range of virtual
 addresses. Accessing (read/write/execute) reserved addresses is
 illegal unless those addresses have been mapped.
 
-_`.def.map`: The "map" operation: Arrange that a specified portion of
+_`.def.map`: The *map* operation: arrange that a specified portion of
 the virtual address space is mapped from the swap, effectively
 allocating RAM and/or swap space for a particular range of addresses.
 If successful, accessing the addresses is now legal. Only reserved
 addresses should be mapped.
 
-_`.def.unmap`: The "unmap" operation: The inverse of the map
+_`.def.unmap`: The *unmap* operation: the inverse of the map
 operation. Arrange that a specified portion of the virtual address
 space is no longer mapped, effectively freeing up the RAM and swap
 space that was in use. Accessing the addresses is now illegal. The
 addresses return to the reserved state.
 
-_`.def.vm`: "VM" stands for Virtual Memory. Various meanings: A
-processor architecture's virtual space and structure; The generic idea
-/ interface / implementation of the MPS VM module; The C structure
-(struct VMStruct) used to encapsulate the functionality of the MPS VM
-module; An instance of such a structure.
+_`.def.vm`: "VM" stands for Virtual Memory. Various meanings: a
+processor architecture's virtual space and structure; the generic
+idea, interface, or implementation of the MPS VM module; the C
+structure (``struct VMStruct``) used to encapsulate the functionality
+of the MPS VM module; an instance of such a structure.
 
 _`.def.vm.mps`: In the MPS, a "VM" is a ``VMStruct``, providing access
 to the single contiguous range of address-space that was reserved
@@ -75,26 +75,75 @@ to the single contiguous range of address-space that was reserved
 Interface
 ---------
 
-``Res VMCreate(VM *VMReturn, Size size)``
+``Size VMPageSize(void)``
 
-_`.if.create`: ``VMCreate()`` is responsible both for allocating a
-``VMStruct`` and for reserving an amount of virtual address space. A
-VM is created and a pointer to it is returned in the return parameter
-``VMReturn``. This VM has at least size bytes of virtual memory
-reserved. If there's not enough space to allocate the VM,
-``ResMEMORY`` is returned. If there's not enough address space to
-reserve a block of the given size, ``ResRESOURCE`` is returned. The
-reserved virtual memory can be mapped and unmapped using ``VMMap()``
-and ``VMUnmap()``.
+_`.if.page.size`: Return the operating system's "page size", that is,
+the granularity with which the operating system can map and unmap
+virtual memory.
+
+``Res VMParamFromArgs(void *params, size_t paramSize, ArgList args)``
+
+_`.if.param.from.args`: This function processes the keyword arguments
+(the ones that are relevant to the VM implementation) in the ``args``
+parameter and stores a description of them in the buffer pointed to by
+``params`` (which is ``paramSize`` bytes long). It is an error if the
+buffer is not big enough store the parameters for this VM
+implementation.
+
+``Res VMCreate(VM vmReturn, Size size, Size grainSize, void *params)``
+
+_`.if.create`: ``VMCreate()`` is responsible for reserving an amount
+of virtual address space. The ``params`` argument points to a
+parameter block initialized by a call to ``VMParamFromArgs()``. If
+successful, the VM descriptor given by the parameter ``vmReturn`` is
+updated to describe the address space, and ``ResOK`` is returned. The
+created VM has at least ``size`` bytes of virtual memory reserved
+starting at an address which is a multiple of ``grainSize``.
+
+If there's not enough address space to reserve a block of the given
+size, ``ResRESOURCE`` is returned. The reserved virtual memory can be
+mapped and unmapped by calling ``VMMap()`` and ``VMUnmap()``.
 
 ``void VMDestroy(VM vm)``
 
 _`.if.destroy`: A VM is destroyed by calling ``VMDestroy()``. Any
 address space that was mapped through this VM is unmapped.
 
-.. note::
+``Res VMMap(VM vm, Addr base, Addr limit)``
 
-    Lots of interfaces are missing here.
+_`.if.map`: Map the range of addresses from ``base`` (inclusive) to
+``limit`` (exclusive) into memory. It is an error if the range does
+not lie between ``VMBase(vm)`` and ``VMLimit(vm)``, or if ``base`` and
+``limit`` are not multiples of ``VMPageSize()``. Return ``ResOK``
+if successful, ``ResMEMORY`` if not.
+
+``void VMUnmap(VM vm, Addr base, Addr limit)``
+
+_`.if.unmap`: Unmap the range of addresses from ``base`` (inclusive)
+to ``limit`` (exclusive). The conditions are the same as for
+``VMMap()``.
+
+``Addr VMBase(VM vm)``
+
+_`.if.base`: Return the base address of the VM (the lowest address in
+the VM that is a multiple of the grain size).
+
+``Addr VMLimit(VM vm)``
+
+_`.if.limit`: Return the limit address of the VM (the limit of the
+last grain that is wholly inside the VM).
+
+``Size VMReserved(VM vm)``
+
+_`.if.reserved`: Return the total number of bytes of address space
+reserved by the VM. (This may include addresses that are not available
+for mapping because of the requirement for ``VMBase(vm)`` and
+``VMLimit(vm)`` to be multiples of the grain size.)
+
+``Size VMMapped(VM vm)``
+
+_`.if.mapped`: Return the total number of bytes of address space
+currently mapped into memory by the VM.
 
 
 Notes
@@ -130,6 +179,8 @@ Document History
 - 2002-06-07 RB_ Converted from MMInfo database design document.
 
 - 2013-05-23 GDR_ Converted to reStructuredText.
+
+- 2014-06-16 GDR_ Document the whole interface.
 
 .. _RB: http://www.ravenbrook.com/consultants/rb/
 .. _GDR: http://www.ravenbrook.com/consultants/gdr/
