@@ -1,3 +1,9 @@
+2014-06-16  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Do not ask for XRender extension each time XFT font is opened.
+	* xftfont.c (xftfont_open): Move call to XRenderQueryExtension ...
+	* xterm.c (x_term_init) [HAVE_XFT]: ... to here.  Adjust comment.
+
 2014-06-15  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in: Use `make -C' rather than `cd && make' throughout.

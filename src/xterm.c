@@ -37,6 +37,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <X11/extensions/Xfixes.h>
 #endif
 
+/* Using Xft implies that XRender is available.  */
+#ifdef HAVE_XFT
+#include <X11/extensions/Xrender.h>
+#endif
+
 /* Load sys/types.h if not already loaded.
    In some systems loading it twice is suicidal.  */
 #ifndef makedev
@@ -10086,14 +10091,27 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 
 #ifdef HAVE_XFT
   {
-    /* If we are using Xft, check dpi value in X resources.
-       It is better we use it as well, since Xft will use it, as will all
-       Gnome applications.  If our real DPI is smaller or larger than the
-       one Xft uses, our font will look smaller or larger than other
-       for other applications, even if it is the same font name (monospace-10
-       for example).  */
-    char *v = XGetDefault (dpyinfo->display, "Xft", "dpi");
+    /* If we are using Xft, the following precautions should be made:
+
+       1. Make sure that the Xrender extension is added before the Xft one.
+       Otherwise, the close-display hook set by Xft is called after the one
+       for Xrender, and the former tries to re-add the latter.  This results
+       in inconsistency of internal states and leads to X protocol error when
+       one reconnects to the same X server (Bug#1696).
+
+       2. Check dpi value in X resources.  It is better we use it as well,
+       since Xft will use it, as will all Gnome applications.  If our real DPI
+       is smaller or larger than the one Xft uses, our font will look smaller
+       or larger than other for other applications, even if it is the same
+       font name (monospace-10 for example).  */
+
+    int event_base, error_base;
+    char *v;
     double d;
+
+    XRenderQueryExtension (dpyinfo->display, &event_base, &error_base);
+
+    v = XGetDefault (dpyinfo->display, "Xft", "dpi");    
     if (v != NULL && sscanf (v, "%lf", &d) == 1)
       dpyinfo->resy = dpyinfo->resx = d;
   }
