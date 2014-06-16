@@ -306,7 +306,6 @@ or remove a tab stop.  \\[ruler-mode-toggle-show-tab-stops] or
   "Return a column number relative to the selected window.
 N is a column number relative to selected frame."
   (- n
-     (car (window-edges))
      (or (car (window-margins)) 0)
      (fringe-columns 'left)
      (scroll-bar-columns 'left)))
@@ -321,7 +320,7 @@ START-EVENT is the mouse click event."
     (when (eq start end) ;; mouse click
       (save-selected-window
         (select-window (posn-window start))
-        (setq col (- (car (posn-col-row start)) (car (window-edges))
+        (setq col (- (car (posn-col-row start))
                      (scroll-bar-columns 'left))
               w   (- (ruler-mode-full-window-width)
                      (scroll-bar-columns 'left)
@@ -343,7 +342,7 @@ START-EVENT is the mouse click event."
     (when (eq start end) ;; mouse click
       (save-selected-window
         (select-window (posn-window start))
-        (setq col (- (car (posn-col-row start)) (car (window-edges))
+        (setq col (- (car (posn-col-row start))
                      (scroll-bar-columns 'left))
               w   (- (ruler-mode-full-window-width)
                      (scroll-bar-columns 'left)

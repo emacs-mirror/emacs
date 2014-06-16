@@ -1,4 +1,9 @@
-<<<<<<< TREE
+2014-06-16  Andrea Rossetti  <andrea.rossetti@gmail.com>  (tiny change)
+
+	* ruler-mode.el (ruler-mode-window-col)
+	(ruler-mode-mouse-set-left-margin)
+	(ruler-mode-mouse-set-right-margin): Fix calculation of column
+	from mouse position (Bug#17768).
 
 2014-06-16  Ron Schnell  <ronnie@driver-aces.com>
 
@@ -7,10 +12,6 @@
 	* play/dunnet.el (dun-unix-verbs): Added ssh as alias to rlogin, because nobody knows what rlogin is anymore.
 	* play/dunnet.el (dun-help): Bumped version number, updated contact info.
 
-2014-06-14  Ron Schnell  <ronnie@driver-aces.com>	
-	* play/dunnet.el If a lamp is in the room, you won't be eaten by a grue.
-	
-=======
 2014-06-15  Michael Albinus  <michael.albinus@gmx.de>
 
 	Sync with Tramp 2.2.10.
@@ -145,7 +146,6 @@
 	* play/dunnet.el (dun-describe-room, dun-mode):
 	If a lamp is in the room, you won't be eaten by a grue.
 
->>>>>>> MERGE-SOURCE
 2014-06-13  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in ($(lisp)/cus-load.el, $(lisp)/finder-inf.el)
