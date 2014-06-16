@@ -1,3 +1,8 @@
+2014-06-16  Dmitry  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-font-lock-keywords): Don't fontify
+	`!' in `!~' with `font-lock-negation-char-face'.  (Bug#17732)
+
 2014-06-15  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/dbus.el (dbus-call-method): Push only non D-Bus events into
