@@ -2160,11 +2160,8 @@ usage: (ccl-execute-on-string CCL-PROGRAM STATUS STRING &optional CONTINUE UNIBY
     ASET (status, i, make_number (ccl.reg[i]));
   ASET (status, 8, make_number (ccl.ic));
 
-  if (NILP (unibyte_p))
-    val = make_multibyte_string ((char *) outbuf, produced_chars,
-				 outp - outbuf);
-  else
-    val = make_unibyte_string ((char *) outbuf, produced_chars);
+  val = make_specified_string ((const char *) outbuf, produced_chars,
+			       outp - outbuf, NILP (unibyte_p));
   xfree (outbuf);
 
   return val;

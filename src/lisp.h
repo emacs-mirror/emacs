@@ -1197,12 +1197,6 @@ STRING_SET_CHARS (Lisp_Object string, ptrdiff_t newsize)
 {
   XSTRING (string)->size = newsize;
 }
-INLINE void
-STRING_COPYIN (Lisp_Object string, ptrdiff_t index, char const *new,
-	       ptrdiff_t count)
-{
-  memcpy (SDATA (string) + index, new, count);
-}
 
 /* Header of vector-like objects.  This documents the layout constraints on
    vectors and pseudovectors (objects of PVEC_xxx subtype).  It also prevents

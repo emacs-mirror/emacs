@@ -279,10 +279,8 @@ font_intern_prop (const char *str, ptrdiff_t len, bool force_symbol)
 
   if (SYMBOLP (tem))
     return tem;
-  if (len == nchars || len != nbytes)
-    tem = make_unibyte_string (str, len);
-  else
-    tem = make_multibyte_string (str, nchars, len);
+  tem = make_specified_string (str, nchars, len,
+			       len != nchars && len == nbytes);
   return Fintern (tem, obarray);
 }
 
