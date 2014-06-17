@@ -162,7 +162,7 @@ typedef struct ChunkStruct {
 
 extern Bool ChunkCheck(Chunk chunk);
 extern Res ChunkInit(Chunk chunk, Arena arena, Addr base, Addr limit,
-                     Align pageSize, BootBlock boot);
+                     BootBlock boot);
 extern void ChunkFinish(Chunk chunk);
 extern Compare ChunkCompare(Tree tree, TreeKey key);
 extern TreeKey ChunkKey(Tree tree);

@@ -19,6 +19,7 @@ SRCID(vman, "$Id$");
 /* ANSI fake VM structure, see <design/vman/> */
 typedef struct VMStruct {
   Sig sig;                      /* <design/sig/> */
+  Size pageSize;                /* VMAN_PAGE_SIZE */
   void *block;                  /* pointer to malloc'd block, for free() */
   Addr base, limit;             /* aligned boundaries of malloc'd memory */
   Size reserved;                /* total reserved address space */
@@ -34,9 +35,9 @@ Bool VMCheck(VM vm)
   CHECKL(vm->base != (Addr)0);
   CHECKL(vm->limit != (Addr)0);
   CHECKL(vm->base < vm->limit);
-  CHECKL(ArenaGrainSizeCheck(VMPageSize()));
-  CHECKL(AddrIsAligned(vm->base, VMPageSize()));
-  CHECKL(AddrIsAligned(vm->limit, VMPageSize()));
+  CHECKL(ArenaGrainSizeCheck(vm->pageSize));
+  CHECKL(AddrIsAligned(vm->base, vm->pageSize));
+  CHECKL(AddrIsAligned(vm->limit, vm->pageSize));
   CHECKL(vm->block != NULL);
   CHECKL((Addr)vm->block <= vm->base);
   CHECKL(vm->mapped <= vm->reserved);
@@ -44,11 +45,21 @@ Bool VMCheck(VM vm)
 }
 
 
-/* VMPageSize -- return the page size */
+/* PageSize -- return the page size */
 
-Size VMPageSize(void)
+Size PageSize(void)
 {
   return VMAN_PAGE_SIZE;
+}
+
+
+/* VMPageSize -- return the page size cached in the VM */
+
+Size VMPageSize(VM vm)
+{
+  AVERT(VM, vm);
+
+  return vm->pageSize;
 }
 
 
@@ -73,14 +84,14 @@ Res VMCreate(VM *vmReturn, Size size, Size grainSize, void *params)
   AVER(size > 0);
   AVER(params != NULL);
 
-  pageSize = VMPageSize();
+  pageSize = PageSize();
 
   /* Grains must consist of whole pages. */
   AVER(grainSize % pageSize == 0);
 
   /* Check that the rounded-up sizes will fit in a Size. */
   size = SizeRoundUp(size, grainSize);
-  if (size < VMAN_PAGE_SIZE || size > (Size)(size_t)-1)
+  if (size < grainSize || size > (Size)(size_t)-1)
     return ResRESOURCE;
   /* Note that because we add a whole grainSize here (not grainSize -
    * pageSize), we are not in danger of overflowing vm->limit even if
@@ -101,6 +112,7 @@ Res VMCreate(VM *vmReturn, Size size, Size grainSize, void *params)
     return ResMEMORY;
   }
 
+  vm->pageSize = pageSize;
   vm->base  = AddrAlignUp((Addr)vm->block, grainSize);
   vm->limit = AddrAdd(vm->base, size);
   AVER(vm->base < vm->limit); /* can't overflow, as discussed above */
@@ -189,8 +201,8 @@ Res VMMap(VM vm, Addr base, Addr limit)
   AVER(vm->base <= base);
   AVER(base < limit);
   AVER(limit <= vm->limit);
-  AVER(AddrIsAligned(base, VMAN_PAGE_SIZE));
-  AVER(AddrIsAligned(limit, VMAN_PAGE_SIZE));
+  AVER(AddrIsAligned(base, vm->pageSize));
+  AVER(AddrIsAligned(limit, vm->pageSize));
 
   size = AddrOffset(base, limit);
   memset((void *)base, (int)0, size);
@@ -213,8 +225,8 @@ void VMUnmap(VM vm, Addr base, Addr limit)
   AVER(vm->base <= base);
   AVER(base < limit);
   AVER(limit <= vm->limit);
-  AVER(AddrIsAligned(base, VMAN_PAGE_SIZE));
-  AVER(AddrIsAligned(limit, VMAN_PAGE_SIZE));
+  AVER(AddrIsAligned(base, vm->pageSize));
+  AVER(AddrIsAligned(limit, vm->pageSize));
  
   size = AddrOffset(base, limit);
   memset((void *)base, 0xCD, size);

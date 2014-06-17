@@ -10,7 +10,7 @@
 
 static Index pagesLength(SparseArray sa)
 {
-  return (sa->length * sa->elementSize + VMPageSize() - 1) >> sa->shift;
+  return (sa->length * sa->elementSize + VMPageSize(sa->vm) - 1) >> sa->shift;
 }
 
 void SparseArrayInit(SparseArray sa,
@@ -25,8 +25,8 @@ void SparseArrayInit(SparseArray sa,
   sa->mapped = mapped;
   sa->pages = pages;
   sa->vm = vm;
-  AVER(SizeIsP2(VMPageSize()));
-  sa->shift = SizeLog2(VMPageSize());
+  AVER(SizeIsP2(VMPageSize(sa->vm)));
+  sa->shift = SizeLog2(VMPageSize(sa->vm));
   BTResRange(mapped, 0, length);
   BTResRange(pages, 0, pagesLength(sa));
 
@@ -49,11 +49,11 @@ Bool SparseArrayCheck(SparseArray sa)
   CHECKL(sa->base != NULL);
   CHECKL(sa->elementSize >= 1);
   CHECKD_NOSIG(VM, sa->vm); /* <design/check/#hidden-type> */
-  CHECKL(sa->elementSize <= VMPageSize());
+  CHECKL(sa->elementSize <= VMPageSize(sa->vm));
   CHECKL(sa->length > 0);
   CHECKD_NOSIG(BT, sa->mapped);
   CHECKD_NOSIG(BT, sa->pages);
-  CHECKL(sa->shift == SizeLog2(VMPageSize()));
+  CHECKL(sa->shift == SizeLog2(VMPageSize(sa->vm)));
   return TRUE;
 }
   
@@ -139,7 +139,7 @@ void SparseArrayUnmap(SparseArray sa, Index baseEI, Index limitEI)
      the page on which the base element resides.  If any elements between
      there and baseMI are defined, we can't unmap that page, so bump up. */
   baseMI = (baseEI * sa->elementSize) >> sa->shift;
-  i = SizeAlignDown(baseEI * sa->elementSize, VMPageSize()) / sa->elementSize;
+  i = SizeAlignDown(baseEI * sa->elementSize, VMPageSize(sa->vm)) / sa->elementSize;
   if (i < baseEI && !BTIsResRange(sa->mapped, i, baseEI))
     ++baseMI;
 
@@ -147,7 +147,7 @@ void SparseArrayUnmap(SparseArray sa, Index baseEI, Index limitEI)
      the page on which the last element resides.  If any elements between
      limitMI and there are defined, we can't unmap that page, so bump down. */
   limitMI = ((limitEI * sa->elementSize - 1) >> sa->shift) + 1;
-  i = (SizeAlignUp(limitEI * sa->elementSize, VMPageSize()) +
+  i = (SizeAlignUp(limitEI * sa->elementSize, VMPageSize(sa->vm)) +
        sa->elementSize - 1) / sa->elementSize;
   if (i > sa->length)
     i = sa->length;
