@@ -12,9 +12,9 @@
 SRCID(vman, "$Id$");
 
 
-/* VMPageSize -- return the page size */
+/* PageSize -- return the page size */
 
-Size VMPageSize(void)
+Size PageSize(void)
 {
   return VMAN_PAGE_SIZE;
 }
@@ -41,14 +41,14 @@ Res VMCreate(VM vm, Size size, Size grainSize, void *params)
   AVER(size > 0);
   AVER(params != NULL);
 
-  pageSize = VMPageSize();
+  pageSize = PageSize();
 
   /* Grains must consist of whole pages. */
   AVER(grainSize % pageSize == 0);
 
   /* Check that the rounded-up sizes will fit in a Size. */
   size = SizeRoundUp(size, grainSize);
-  if (size < VMAN_PAGE_SIZE || size > (Size)(size_t)-1)
+  if (size < grainSize || size > (Size)(size_t)-1)
     return ResRESOURCE;
   /* Note that because we add a whole grainSize here (not grainSize -
    * pageSize), we are not in danger of overflowing vm->limit even if
@@ -63,6 +63,7 @@ Res VMCreate(VM vm, Size size, Size grainSize, void *params)
     return ResMEMORY;
   (void)mps_lib_memset(vbase, VMJunkBYTE, reserved);
 
+  vm->pageSize = pageSize;
   vm->block = vbase;
   vm->base  = AddrAlignUp(vbase, grainSize);
   vm->limit = AddrAdd(vm->base, size);
@@ -109,8 +110,8 @@ Res VMMap(VM vm, Addr base, Addr limit)
   AVER(VMBase(vm) <= base);
   AVER(base < limit);
   AVER(limit <= VMLimit(vm));
-  AVER(AddrIsAligned(base, VMAN_PAGE_SIZE));
-  AVER(AddrIsAligned(limit, VMAN_PAGE_SIZE));
+  AVER(AddrIsAligned(base, vm->pageSize));
+  AVER(AddrIsAligned(limit, vm->pageSize));
 
   size = AddrOffset(base, limit);
   (void)mps_lib_memset((void *)base, VMJunkByte, size);
@@ -133,8 +134,8 @@ void VMUnmap(VM vm, Addr base, Addr limit)
   AVER(VMBase(vm) <= base);
   AVER(base < limit);
   AVER(limit <= VMLimit(vm));
-  AVER(AddrIsAligned(base, VMAN_PAGE_SIZE));
-  AVER(AddrIsAligned(limit, VMAN_PAGE_SIZE));
+  AVER(AddrIsAligned(base, vm->pageSize));
+  AVER(AddrIsAligned(limit, vm->pageSize));
  
   size = AddrOffset(base, limit);
   AVER(VMMapped(vm) >= size);
