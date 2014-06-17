@@ -5,6 +5,8 @@
 	* lisp.h (Fread_file_name): Do not EXFUN it.
 	* composite.c (CHAR_COMPOSABLE_P): Replace unsafe macro with ...
 	(char_composable_p): ... static function.  All users changed.
+	* eval.c (toplevel): Remove redundant #include directives.
+	* xterm.c (x_initialize): Add static to match prototype.
 
 2014-06-16  Paul Eggert  <eggert@cs.ucla.edu>
 

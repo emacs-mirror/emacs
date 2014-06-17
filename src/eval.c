@@ -27,11 +27,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "commands.h"
 #include "keyboard.h"
 #include "dispextern.h"
-#include "frame.h"		/* For XFRAME.  */
-
-#if HAVE_X_WINDOWS
-#include "xterm.h"
-#endif
 
 /* Chain of condition and catch handlers currently in effect.  */
 

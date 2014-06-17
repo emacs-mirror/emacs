@@ -10568,7 +10568,7 @@ x_create_terminal (struct x_display_info *dpyinfo)
   return terminal;
 }
 
-void
+static void
 x_initialize (void)
 {
   baud_rate = 19200;
