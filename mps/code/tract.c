@@ -162,8 +162,7 @@ Bool ChunkCheck(Chunk chunk)
 
 /* ChunkInit -- initialize generic part of chunk */
 
-Res ChunkInit(Chunk chunk, Arena arena,
-              Addr base, Addr limit, Align pageSize, BootBlock boot)
+Res ChunkInit(Chunk chunk, Arena arena, Addr base, Addr limit, BootBlock boot)
 {
   Size size;
   Count pages;
@@ -175,19 +174,17 @@ Res ChunkInit(Chunk chunk, Arena arena,
   /* chunk is supposed to be uninitialized, so don't check it. */
   AVERT(Arena, arena);
   AVER(base != NULL);
-  AVER(AddrIsAligned(base, pageSize));
+  AVER(AddrIsAligned(base, ArenaGrainSize(arena)));
   AVER(base < limit);
-  AVER(AddrIsAligned(limit, pageSize));
-  AVERT(Align, pageSize);
-  AVER(pageSize >= MPS_PF_ALIGN);
+  AVER(AddrIsAligned(limit, ArenaGrainSize(arena)));
   AVERT(BootBlock, boot);
 
   chunk->serial = (arena->chunkSerial)++;
   chunk->arena = arena;
   RingInit(&chunk->chunkRing);
 
-  chunk->pageSize = pageSize;
-  chunk->pageShift = pageShift = SizeLog2(pageSize);
+  chunk->pageSize = ArenaGrainSize(arena);
+  chunk->pageShift = pageShift = SizeLog2(chunk->pageSize);
   chunk->base = base;
   chunk->limit = limit;
   size = ChunkSize(chunk);
@@ -198,7 +195,7 @@ Res ChunkInit(Chunk chunk, Arena arena,
     goto failAllocTable;
   chunk->allocTable = p;
 
-  pageTableSize = SizeAlignUp(pages * sizeof(PageUnion), pageSize);
+  pageTableSize = SizeAlignUp(pages * sizeof(PageUnion), chunk->pageSize);
   chunk->pageTablePages = pageTableSize >> pageShift;
 
   res = (arena->class->chunkInit)(chunk, boot);
@@ -209,7 +206,7 @@ Res ChunkInit(Chunk chunk, Arena arena,
   /* Last thing we BootAlloc'd is pageTable.  We requested pageSize */
   /* alignment, and pageTableSize is itself pageSize aligned, so */
   /* BootAllocated should also be pageSize aligned. */
-  AVER(AddrIsAligned(BootAllocated(boot), pageSize));
+  AVER(AddrIsAligned(BootAllocated(boot), chunk->pageSize));
   chunk->allocBase = (Index)(BootAllocated(boot) >> pageShift);
 
   /* Init allocTable after class init, because it might be mapped there. */
