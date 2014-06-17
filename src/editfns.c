@@ -3600,7 +3600,7 @@ specifier truncates the string to the given width.
 usage: (format STRING &rest OBJECTS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
-  ptrdiff_t n;		/* The number of the next arg to substitute */
+  ptrdiff_t n;		/* The number of the next arg to substitute.  */
   char initial_buffer[4000];
   char *buf = initial_buffer;
   ptrdiff_t bufsize = sizeof initial_buffer;

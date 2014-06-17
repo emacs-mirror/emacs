@@ -3654,7 +3654,8 @@ kbd_buffer_store_event_hold (register struct input_event *event,
       *kbd_store_ptr = *event;
       ++kbd_store_ptr;
 #ifdef subprocesses
-      if (kbd_buffer_nr_stored () > KBD_BUFFER_SIZE/2 && ! kbd_on_hold_p ())
+      if (kbd_buffer_nr_stored () > KBD_BUFFER_SIZE / 2
+	  && ! kbd_on_hold_p ())
         {
           /* Don't read keyboard input until we have processed kbd_buffer.
              This happens when pasting text longer than KBD_BUFFER_SIZE/2.  */
@@ -7481,8 +7482,8 @@ menu_bar_items (Lisp_Object old)
   {
     int i = menu_bar_items_index;
     if (i + 4 > ASIZE (menu_bar_items_vector))
-      menu_bar_items_vector =
-	larger_vector (menu_bar_items_vector, 4, -1);
+      menu_bar_items_vector
+	= larger_vector (menu_bar_items_vector, 4, -1);
     /* Add this item.  */
     ASET (menu_bar_items_vector, i, Qnil); i++;
     ASET (menu_bar_items_vector, i, Qnil); i++;

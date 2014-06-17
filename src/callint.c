@@ -535,7 +535,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
     {
       visargs[1] = make_string (tem + 1, strcspn (tem + 1, "\n"));
       if (strchr (SSDATA (visargs[1]), '%'))
-	callint_message = Fformat (i, visargs);
+	callint_message = Fformat (i - 1, visargs + 1);
       else
 	callint_message = visargs[1];
 

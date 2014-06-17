@@ -3850,7 +3850,7 @@ it defaults to the value of `obarray'.  */)
       SET_SYMBOL_VAL (XSYMBOL (sym), sym);
     }
 
-  ptr = aref_addr (obarray, XINT(tem));
+  ptr = aref_addr (obarray, XINT (tem));
   if (SYMBOLP (*ptr))
     set_symbol_next (sym, XSYMBOL (*ptr));
   else
