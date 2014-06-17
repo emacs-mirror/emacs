@@ -1,3 +1,8 @@
+2014-06-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* delsel.el (electric-newline-and-maybe-indent): Mark it as well
+	(bug#17737).
+
 2014-06-16  Dmitry  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el (ruby-font-lock-keywords): Don't fontify

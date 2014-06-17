@@ -188,6 +188,7 @@ See `delete-selection-helper'."
 (put 'reindent-then-newline-and-indent 'delete-selection t)
 (put 'newline-and-indent 'delete-selection t)
 (put 'newline 'delete-selection t)
+(put 'electric-newline-and-maybe-indent 'delete-selection t)
 (put 'open-line 'delete-selection 'kill)
 
 ;; This is very useful for canceling a selection in the minibuffer without
