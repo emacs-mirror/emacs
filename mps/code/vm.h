@@ -16,6 +16,7 @@
 
 typedef struct VMStruct {
   Sig sig;                      /* <design/sig/> */
+  Size pageSize;                /* operating system page size */
   void *block;                  /* unaligned base of mmap'd memory */
   Addr base, limit;             /* aligned boundaries of reserved space */
   Size reserved;                /* total reserved address space */
@@ -23,12 +24,14 @@ typedef struct VMStruct {
 } VMStruct;
 
 
+#define VMPageSize(vm) RVALUE((vm)->pageSize)
 #define VMBase(vm) RVALUE((vm)->base)
 #define VMLimit(vm) RVALUE((vm)->limit)
 #define VMReserved(vm) RVALUE((vm)->reserved)
 #define VMMapped(vm) RVALUE((vm)->mapped)
 
-extern Size VMPageSize(void);
+extern Size PageSize(void);
+extern Size (VMPageSize)(VM vm);
 extern Bool VMCheck(VM vm);
 extern Res VMParamFromArgs(void *params, size_t paramSize, ArgList args);
 extern Res VMCreate(VM vmReturn, Size size, Size grainSize, void *params);

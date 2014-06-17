@@ -59,9 +59,9 @@
 SRCID(vmix, "$Id$");
 
 
-/* VMPageSize -- return operating system page size */
+/* PageSize -- return operating system page size */
 
-Size VMPageSize(void)
+Size PageSize(void)
 {
   int pageSize;
 
@@ -96,7 +96,7 @@ Res VMCreate(VM vm, Size size, Size grainSize, void *params)
   AVER(size > 0);
   AVER(params != NULL);
 
-  pageSize = VMPageSize();
+  pageSize = PageSize();
 
   /* Grains must consist of whole pages. */
   AVER(grainSize % pageSize == 0);
@@ -122,6 +122,7 @@ Res VMCreate(VM vm, Size size, Size grainSize, void *params)
     return ResRESOURCE;
   }
 
+  vm->pageSize = pageSize;
   vm->block = vbase;
   vm->base = AddrAlignUp(vbase, grainSize);
   vm->limit = AddrAdd(vm->base, size);
@@ -171,8 +172,8 @@ Res VMMap(VM vm, Addr base, Addr limit)
   AVER(base < limit);
   AVER(base >= VMBase(vm));
   AVER(limit <= VMLimit(vm));
-  AVER(AddrIsAligned(base, VMPageSize()));
-  AVER(AddrIsAligned(limit, VMPageSize()));
+  AVER(AddrIsAligned(base, vm->pageSize));
+  AVER(AddrIsAligned(limit, vm->pageSize));
 
   size = AddrOffset(base, limit);
 
@@ -204,8 +205,8 @@ void VMUnmap(VM vm, Addr base, Addr limit)
   AVER(base < limit);
   AVER(base >= VMBase(vm));
   AVER(limit <= VMLimit(vm));
-  AVER(AddrIsAligned(base, VMPageSize()));
-  AVER(AddrIsAligned(limit, VMPageSize()));
+  AVER(AddrIsAligned(base, vm->pageSize));
+  AVER(AddrIsAligned(limit, vm->pageSize));
 
   size = AddrOffset(base, limit);
   AVER(size <= VMMapped(vm));
