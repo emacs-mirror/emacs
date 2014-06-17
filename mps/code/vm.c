@@ -20,13 +20,23 @@ Bool VMCheck(VM vm)
   CHECKL(vm->base != (Addr)0);
   CHECKL(vm->limit != (Addr)0);
   CHECKL(vm->base < vm->limit);
-  CHECKL(ArenaGrainSizeCheck(VMPageSize()));
-  CHECKL(AddrIsAligned(vm->base, VMPageSize()));
-  CHECKL(AddrIsAligned(vm->limit, VMPageSize()));
+  CHECKL(ArenaGrainSizeCheck(vm->pageSize));
+  CHECKL(AddrIsAligned(vm->base, vm->pageSize));
+  CHECKL(AddrIsAligned(vm->limit, vm->pageSize));
   CHECKL(vm->block != NULL);
   CHECKL((Addr)vm->block <= vm->base);
   CHECKL(vm->mapped <= vm->reserved);
   return TRUE;
+}
+
+
+/* VMPageSize -- return the page size cached in the VM */
+
+Size (VMPageSize)(VM vm)
+{
+  AVERT(VM, vm);
+
+  return VMPageSize(vm);
 }
 
 

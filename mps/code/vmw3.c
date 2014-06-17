@@ -50,9 +50,9 @@
 SRCID(vmw3, "$Id$");
 
 
-/* VMPageSize -- return the operating system page size */
+/* PageSize -- return the operating system page size */
 
-Size VMPageSize(void)
+Size PageSize(void)
 {
   SYSTEM_INFO si;
 
@@ -107,7 +107,7 @@ Res VMCreate(VM vm, Size size, Size grainSize, void *params)
   AVER(COMPATTYPE(LPVOID, Addr));  /* .assume.lpvoid-addr */
   AVER(COMPATTYPE(SIZE_T, Size));
 
-  pageSize = VMPageSize();
+  pageSize = PageSize();
 
   /* Grains must consist of whole pages. */
   AVER(grainSize % pageSize == 0);
@@ -132,6 +132,7 @@ Res VMCreate(VM vm, Size size, Size grainSize, void *params)
 
   AVER(AddrIsAligned(vbase, pageSize));
 
+  vm->pageSize = pageSize;
   vm->block = vbase;
   vm->base = AddrAlignUp(vbase, grainSize);
   vm->limit = AddrAdd(vm->base, size);
@@ -177,8 +178,8 @@ Res VMMap(VM vm, Addr base, Addr limit)
   LPVOID b;
 
   AVERT(VM, vm);
-  AVER(AddrIsAligned(base, VMPageSize()));
-  AVER(AddrIsAligned(limit, VMPageSize()));
+  AVER(AddrIsAligned(base, vm->pageSize));
+  AVER(AddrIsAligned(limit, vm->pageSize));
   AVER(VMBase(vm) <= base);
   AVER(base < limit);
   AVER(limit <= VMLimit(vm));
@@ -208,8 +209,8 @@ void VMUnmap(VM vm, Addr base, Addr limit)
   Size size;
 
   AVERT(VM, vm);
-  AVER(AddrIsAligned(base, VMPageSize()));
-  AVER(AddrIsAligned(limit, VMPageSize()));
+  AVER(AddrIsAligned(base, vm->pageSize));
+  AVER(AddrIsAligned(limit, vm->pageSize));
   AVER(VMBase(vm) <= base);
   AVER(base < limit);
   AVER(limit <= VMLimit(vm));

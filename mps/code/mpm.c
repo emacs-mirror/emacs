@@ -82,7 +82,7 @@ Bool MPMCheck(void)
   /* The granularity of memory mapping must be a multiple of the
    * granularity of protection (or we might not be able to protect an
    * arena grain). */
-  CHECKL(VMPageSize() % ProtGranularity() == 0);
+  CHECKL(PageSize() % ProtGranularity() == 0);
 
   return TRUE; 
 }
