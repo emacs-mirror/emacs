@@ -1,3 +1,18 @@
+2014-06-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* rect.el (rectangle-preview): New custom.
+	(rectangle): New group.
+	(rectangle--pos-cols): Add `window' argument.
+	(rectangle--string-preview-state, rectangle--string-preview-window):
+	New vars.
+	(rectangle--string-flush-preview, rectangle--string-erase-preview)
+	(rectangle--space-to, rectangle--string-preview): New functions.
+	(string-rectangle): Use them.
+	(rectangle--inhibit-region-highlight): New var.
+	(rectangle--highlight-for-redisplay): Obey it.  Make sure
+	`apply-on-region' uses the point-crutches of the right window.
+	Use :align-to rather than multiple spaces.
+
 2014-06-16  Andrea Rossetti  <andrea.rossetti@gmail.com>  (tiny change)
 
 	* ruler-mode.el (ruler-mode-window-col)
@@ -7,10 +22,13 @@
 
 2014-06-16  Ron Schnell  <ronnie@driver-aces.com>
 
-	* play/dunnet.el (dun-doassign): Fixed bug where UNIX variable assignment without varname or rhs causes crash.
-	* play/dunnet.el (dun-ftp): Fixed bug where blank ftp password is allowed, making it impossible to win endgame.
-	* play/dunnet.el (dun-unix-verbs): Added ssh as alias to rlogin, because nobody knows what rlogin is anymore.
-	* play/dunnet.el (dun-help): Bumped version number, updated contact info.
+	* play/dunnet.el (dun-doassign): Fix bug where UNIX variable assignment
+	without varname or rhs causes crash.
+	(dun-ftp): Fix bug where blank ftp password is allowed, making it
+	impossible to win endgame.
+	(dun-unix-verbs): Add ssh as alias to rlogin, because nobody knows what
+	rlogin is anymore.
+	(dun-help): Bump version number; update contact info.
 
 2014-06-15  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -19,8 +37,8 @@
 	* net/tramp.el (tramp-methods): Tweak docstring.
 	(tramp-handle-file-accessible-directory-p): Check for
 	`file-readable-p' instead of `file-executable-p'.
-	(tramp-check-cached-permissions): Use
-	`tramp-compat-file-attributes'.
+	(tramp-check-cached-permissions):
+	Use `tramp-compat-file-attributes'.
 	(tramp-call-process): Add new argument VEC.  Adapt callees in all
 	tramp*.el files.
 

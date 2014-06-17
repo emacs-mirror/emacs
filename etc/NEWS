@@ -72,8 +72,10 @@ performance improvements when pasting large amounts of text.
 
 * Changes in Specialized Modes and Packages in Emacs 24.5
 
-** Rectangle Mark mode can now have corners past EOL or in the middle of a TAB.
-Also C-x C-x in rectangle-mark-mode now cycles through the four corners.
+** Rectangle editing
+*** Rectangle Mark mode can have corners past EOL or in the middle of a TAB.
+*** C-x C-x in rectangle-mark-mode now cycles through the four corners.
+*** `string-rectangle' provides on-the-fly preview of the result.
 
 ** New font-lock functions font-lock-ensure and font-lock-flush, which
 should be used instead of font-lock-fontify-buffer when called from Elisp.
