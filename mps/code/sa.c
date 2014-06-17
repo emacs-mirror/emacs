@@ -25,8 +25,8 @@ void SparseArrayInit(SparseArray sa,
   sa->mapped = mapped;
   sa->pages = pages;
   sa->vm = vm;
-  AVER(SizeIsP2(VMPageSize(sa->vm)));
-  sa->shift = SizeLog2(VMPageSize(sa->vm));
+  AVER(SizeIsP2(VMPageSize(vm)));
+  sa->shift = SizeLog2(VMPageSize(vm));
   BTResRange(mapped, 0, length);
   BTResRange(pages, 0, pagesLength(sa));
 
