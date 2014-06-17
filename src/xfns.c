@@ -24,6 +24,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "lisp.h"
 #include "xterm.h"
+#include "menu.h"
 #include "frame.h"
 #include "window.h"
 #include "character.h"

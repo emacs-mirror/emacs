@@ -278,10 +278,8 @@ extern Lisp_Object Qpoint_entered;
 extern Lisp_Object Qmodification_hooks;
 extern Lisp_Object Qcategory;
 extern Lisp_Object Qlocal_map;
-extern Lisp_Object Qkeymap;
 
 /* Visual properties text (including strings) may have.  */
-extern Lisp_Object Qfont;
 extern Lisp_Object Qinvisible, Qintangible;
 
 /* Sticky properties.  */

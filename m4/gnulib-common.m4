@@ -50,7 +50,8 @@ AC_DEFUN([gl_COMMON_BODY], [
 #define _UNUSED_PARAMETER_ _GL_UNUSED
 
 /* gcc supports the "unused" attribute on possibly unused labels, and
-   g++ has since version 4.5.  */
+   g++ has since version 4.5.  Note to support C++ as well as C,
+   _GL_UNUSED_LABEL should be used with a trailing ;  */
 #if !defined __cplusplus || __GNUC__ > 4 \
     || (__GNUC__ == 4 && __GNUC_MINOR__ >= 5)
 # define _GL_UNUSED_LABEL _GL_UNUSED

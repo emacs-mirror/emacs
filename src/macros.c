@@ -45,8 +45,6 @@ EMACS_INT executing_kbd_macro_iterations;
 
 Lisp_Object executing_kbd_macro;
 
-Lisp_Object Fexecute_kbd_macro (Lisp_Object macro, Lisp_Object count, Lisp_Object loopfunc);
-
 DEFUN ("start-kbd-macro", Fstart_kbd_macro, Sstart_kbd_macro, 1, 2, "P",
        doc: /* Record subsequent keyboard input, defining a keyboard macro.
 The commands are recorded even as they are executed.

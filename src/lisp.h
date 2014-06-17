@@ -832,12 +832,13 @@ extern Lisp_Object Qnumberp, Qstringp, Qsymbolp, Qt, Qvectorp;
 extern Lisp_Object Qbool_vector_p;
 extern Lisp_Object Qvector_or_char_table_p, Qwholenump;
 extern Lisp_Object Qwindow;
-extern Lisp_Object Ffboundp (Lisp_Object);
 extern _Noreturn Lisp_Object wrong_type_argument (Lisp_Object, Lisp_Object);
 
 /* Defined in emacs.c.  */
-extern bool initialized;
 extern bool might_dump;
+/* True means Emacs has already been initialized.
+   Used during startup to detect startup of dumped Emacs.  */
+extern bool initialized;
 
 /* Defined in eval.c.  */
 extern Lisp_Object Qautoload;
@@ -2681,7 +2682,6 @@ CHECK_NUMBER_CDR (Lisp_Object x)
    Lisp_Object fnname
 #else  /* not _MSC_VER */
 #define DEFUN(lname, fnname, sname, minargs, maxargs, intspec, doc)	\
-   Lisp_Object fnname DEFUN_ARGS_ ## maxargs ;				\
    static struct Lisp_Subr alignas (GCALIGNMENT) sname =		\
      { { PVEC_SUBR << PSEUDOVECTOR_AREA_BITS },				\
        { .a ## maxargs = fnname },					\
@@ -3344,7 +3344,7 @@ set_sub_char_table_contents (Lisp_Object table, ptrdiff_t idx, Lisp_Object val)
 }
 
 /* Defined in data.c.  */
-extern Lisp_Object Qnil, Qt, Qquote, Qlambda, Qunbound;
+extern Lisp_Object Qquote, Qunbound;
 extern Lisp_Object Qerror_conditions, Qerror_message, Qtop_level;
 extern Lisp_Object Qerror, Qquit, Qargs_out_of_range;
 extern Lisp_Object Qvoid_variable, Qvoid_function;
@@ -3355,25 +3355,17 @@ extern Lisp_Object Qbeginning_of_buffer, Qend_of_buffer, Qbuffer_read_only;
 extern Lisp_Object Qtext_read_only;
 extern Lisp_Object Qinteractive_form;
 extern Lisp_Object Qcircular_list;
-extern Lisp_Object Qintegerp, Qwholenump, Qsymbolp, Qlistp, Qconsp;
-extern Lisp_Object Qstringp, Qarrayp, Qsequencep, Qbufferp;
-extern Lisp_Object Qchar_or_string_p, Qmarkerp, Qinteger_or_marker_p, Qvectorp;
-extern Lisp_Object Qbuffer_or_string_p;
+extern Lisp_Object Qsequencep;
+extern Lisp_Object Qchar_or_string_p, Qinteger_or_marker_p;
 extern Lisp_Object Qfboundp;
-extern Lisp_Object Qchar_table_p, Qvector_or_char_table_p;
 
 extern Lisp_Object Qcdr;
 
 extern Lisp_Object Qrange_error, Qoverflow_error;
 
-extern Lisp_Object Qfloatp;
-extern Lisp_Object Qnumberp, Qnumber_or_marker_p;
+extern Lisp_Object Qnumber_or_marker_p;
 
 extern Lisp_Object Qbuffer, Qinteger, Qsymbol;
-
-extern Lisp_Object Qfont_spec, Qfont_entity, Qfont_object;
-
-EXFUN (Fbyteorder, 0) ATTRIBUTE_CONST;
 
 /* Defined in data.c.  */
 extern Lisp_Object indirect_function (Lisp_Object);
@@ -3421,7 +3413,6 @@ extern struct Lisp_Symbol *indirect_variable (struct Lisp_Symbol *);
 extern _Noreturn void args_out_of_range (Lisp_Object, Lisp_Object);
 extern _Noreturn void args_out_of_range_3 (Lisp_Object, Lisp_Object,
 					   Lisp_Object);
-extern _Noreturn Lisp_Object wrong_type_argument (Lisp_Object, Lisp_Object);
 extern Lisp_Object do_symval_forwarding (union Lisp_Fwd *);
 extern void set_internal (Lisp_Object, Lisp_Object, Lisp_Object, bool);
 extern void syms_of_data (void);
@@ -3440,7 +3431,6 @@ extern void init_coding_once (void);
 extern void syms_of_coding (void);
 
 /* Defined in character.c.  */
-EXFUN (Fmax_char, 0) ATTRIBUTE_CONST;
 extern ptrdiff_t chars_in_text (const unsigned char *, ptrdiff_t);
 extern ptrdiff_t multibyte_chars_in_text (const unsigned char *, ptrdiff_t);
 extern int multibyte_char_to_unibyte (int) ATTRIBUTE_CONST;
@@ -3454,9 +3444,6 @@ extern void syms_of_charset (void);
 /* Structure forward declarations.  */
 struct charset;
 
-/* Defined in composite.c.  */
-extern void syms_of_composite (void);
-
 /* Defined in syntax.c.  */
 extern void init_syntax_once (void);
 extern void syms_of_syntax (void);
@@ -3464,7 +3451,6 @@ extern void syms_of_syntax (void);
 /* Defined in fns.c.  */
 extern Lisp_Object QCrehash_size, QCrehash_threshold;
 enum { NEXT_ALMOST_PRIME_LIMIT = 11 };
-EXFUN (Fidentity, 1) ATTRIBUTE_CONST;
 extern EMACS_INT next_almost_prime (EMACS_INT) ATTRIBUTE_CONST;
 extern Lisp_Object larger_vector (Lisp_Object, ptrdiff_t, ptrdiff_t);
 extern void sweep_weak_hash_tables (void);
@@ -3497,7 +3483,6 @@ extern Lisp_Object string_make_unibyte (Lisp_Object);
 extern void syms_of_fns (void);
 
 /* Defined in floatfns.c.  */
-extern double extract_float (Lisp_Object);
 extern void syms_of_floatfns (void);
 extern Lisp_Object fmod_float (Lisp_Object x, Lisp_Object y);
 
@@ -3518,6 +3503,7 @@ extern void syms_of_image (void);
 
 /* Defined in insdel.c.  */
 extern Lisp_Object Qinhibit_modification_hooks;
+extern Lisp_Object Qregion_extract_function;
 extern void move_gap_both (ptrdiff_t, ptrdiff_t);
 extern _Noreturn void buffer_overflow (void);
 extern void make_gap (ptrdiff_t);
@@ -3570,18 +3556,16 @@ _Noreturn void __executable_start (void);
 #endif
 extern Lisp_Object Vwindow_system;
 extern Lisp_Object sit_for (Lisp_Object, bool, int);
-extern void init_display (void);
-extern void syms_of_display (void);
 
 /* Defined in xdisp.c.  */
 extern Lisp_Object Qinhibit_point_motion_hooks;
-extern Lisp_Object Qinhibit_redisplay, Qdisplay;
+extern Lisp_Object Qinhibit_redisplay;
 extern Lisp_Object Qmenu_bar_update_hook;
 extern Lisp_Object Qwindow_scroll_functions;
 extern Lisp_Object Qoverriding_local_map, Qoverriding_terminal_local_map;
-extern Lisp_Object Qimage, Qtext, Qboth, Qboth_horiz, Qtext_image_horiz;
+extern Lisp_Object Qtext, Qboth, Qboth_horiz, Qtext_image_horiz;
 extern Lisp_Object Qspace, Qcenter, QCalign_to;
-extern Lisp_Object Qbar, Qhbar, Qbox, Qhollow;
+extern Lisp_Object Qbar, Qhbar, Qhollow;
 extern Lisp_Object Qleft_margin, Qright_margin;
 extern Lisp_Object QCdata, QCfile;
 extern Lisp_Object QCmap;
@@ -3608,7 +3592,6 @@ extern void message_log_maybe_newline (void);
 extern void update_echo_area (void);
 extern void truncate_echo_area (ptrdiff_t);
 extern void redisplay (void);
-extern void redisplay_preserve_echo_area (int);
 
 void set_frame_cursor_types (struct frame *, Lisp_Object);
 extern void syms_of_xdisp (void);
@@ -3791,12 +3774,9 @@ extern void r_alloc_inhibit_buffer_relocation (int);
 
 /* Defined in chartab.c.  */
 extern Lisp_Object copy_char_table (Lisp_Object);
-extern Lisp_Object char_table_ref (Lisp_Object, int);
 extern Lisp_Object char_table_ref_and_range (Lisp_Object, int,
                                              int *, int *);
-extern void char_table_set (Lisp_Object, int, Lisp_Object);
 extern void char_table_set_range (Lisp_Object, int, int, Lisp_Object);
-extern int char_table_translate (Lisp_Object, int);
 extern void map_char_table (void (*) (Lisp_Object, Lisp_Object,
                             Lisp_Object),
                             Lisp_Object, Lisp_Object, Lisp_Object);
@@ -3874,7 +3854,7 @@ intern_c_string (const char *str)
 }
 
 /* Defined in eval.c.  */
-extern Lisp_Object Qautoload, Qexit, Qinteractive, Qcommandp, Qmacro;
+extern Lisp_Object Qexit, Qinteractive, Qcommandp, Qmacro;
 extern Lisp_Object Qinhibit_quit, Qinternal_interpreter_environment, Qclosure;
 extern Lisp_Object Qand_rest;
 extern Lisp_Object Vautoload_queue;
@@ -4082,8 +4062,7 @@ extern Lisp_Object echo_message_buffer;
 extern struct kboard *echo_kboard;
 extern void cancel_echoing (void);
 extern Lisp_Object Qdisabled, QCfilter;
-extern Lisp_Object Qup, Qdown, Qbottom;
-extern Lisp_Object Qtop;
+extern Lisp_Object Qup, Qdown;
 extern Lisp_Object last_undo_boundary;
 extern bool input_pending;
 extern Lisp_Object menu_bar_items (Lisp_Object);
@@ -4115,7 +4094,6 @@ extern void syms_of_indent (void);
 
 /* Defined in frame.c.  */
 extern Lisp_Object Qonly, Qnone;
-extern Lisp_Object Qvisible;
 extern void set_frame_param (struct frame *, Lisp_Object, Lisp_Object);
 extern void store_frame_param (struct frame *, Lisp_Object, Lisp_Object);
 extern void store_in_alist (Lisp_Object *, Lisp_Object, Lisp_Object);
@@ -4235,9 +4213,8 @@ extern void record_property_change (ptrdiff_t, ptrdiff_t,
                                     Lisp_Object);
 extern void syms_of_undo (void);
 /* Defined in textprop.c.  */
-extern Lisp_Object Qfont, Qmouse_face;
+extern Lisp_Object Qmouse_face;
 extern Lisp_Object Qinsert_in_front_hooks, Qinsert_behind_hooks;
-extern Lisp_Object Qfront_sticky, Qrear_nonsticky;
 extern Lisp_Object Qminibuffer_prompt;
 
 extern void report_interval_modification (Lisp_Object, Lisp_Object);
@@ -4260,7 +4237,6 @@ extern char *get_current_dir_name (void);
 #endif
 extern void stuff_char (char c);
 extern void init_foreground_group (void);
-extern void init_sigio (int);
 extern void sys_subshell (void);
 extern void sys_suspend (void);
 extern void discard_tty_input (void);
@@ -4345,8 +4321,8 @@ extern void syms_of_w32notify (void);
 #endif
 
 /* Defined in xfaces.c.  */
-extern Lisp_Object Qdefault, Qtool_bar, Qfringe;
-extern Lisp_Object Qheader_line, Qscroll_bar, Qcursor;
+extern Lisp_Object Qdefault, Qfringe;
+extern Lisp_Object Qscroll_bar, Qcursor;
 extern Lisp_Object Qmode_line_inactive;
 extern Lisp_Object Qface;
 extern Lisp_Object Qnormal;
@@ -4405,10 +4381,6 @@ extern void syms_of_profiler (void);
 /* Defined in msdos.c, w32.c.  */
 extern char *emacs_root_dir (void);
 #endif /* DOS_NT */
-
-/* True means Emacs has already been initialized.
-   Used during startup to detect startup of dumped Emacs.  */
-extern bool initialized;
 
 /* True means ^G can quit instantly.  */
 extern bool immediate_quit;

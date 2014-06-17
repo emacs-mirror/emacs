@@ -1,3 +1,10 @@
+2014-06-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Omit redundant extern decls.
+	* emacsclient.c (getenv): Remove decl.
+	* make-docfile.c (write_globals): Add ATTRIBUTE_CONST for
+	Fbyteorder, Ftool_bar_height, Fmax_char, Fidentity.
+
 2014-06-15  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (LDFLAGS): Explicitly set via configure.

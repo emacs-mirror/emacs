@@ -665,6 +665,7 @@ write_globals (void)
 	      || strcmp (globals[i].name, "Fexit_recursive_edit") == 0
 	      || strcmp (globals[i].name, "Fabort_recursive_edit") == 0)
 	    fprintf (outfile, "_Noreturn ");
+
 	  fprintf (outfile, "EXFUN (%s, ", globals[i].name);
 	  if (globals[i].value == -1)
 	    fprintf (outfile, "MANY");
@@ -672,7 +673,17 @@ write_globals (void)
 	    fprintf (outfile, "UNEVALLED");
 	  else
 	    fprintf (outfile, "%d", globals[i].value);
-	  fprintf (outfile, ");\n");
+	  fprintf (outfile, ")");
+
+	  /* It would be nice to have a cleaner way to deal with these
+	     special hacks, too.  */
+	  if (strcmp (globals[i].name, "Fbyteorder") == 0
+	      || strcmp (globals[i].name, "Ftool_bar_height") == 0
+	      || strcmp (globals[i].name, "Fmax_char") == 0
+	      || strcmp (globals[i].name, "Fidentity") == 0)
+	    fprintf (outfile, " ATTRIBUTE_CONST");
+
+	  fprintf (outfile, ";\n");
 	}
 
       while (i + 1 < num_globals

@@ -12279,11 +12279,6 @@ tool_bar_height (struct frame *f, int *n_rows, bool pixelwise)
 
 #endif /* !USE_GTK && !HAVE_NS */
 
-#if defined USE_GTK || defined HAVE_NS
-EXFUN (Ftool_bar_height, 2) ATTRIBUTE_CONST;
-EXFUN (Ftool_bar_lines_needed, 1) ATTRIBUTE_CONST;
-#endif
-
 DEFUN ("tool-bar-height", Ftool_bar_height, Stool_bar_height,
        0, 2, 0,
        doc: /* Return the number of lines occupied by the tool bar of FRAME.

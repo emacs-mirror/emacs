@@ -17,6 +17,9 @@
 
    Written by Paul Eggert.  */
 
+#ifndef _GL_ACL_H
+#define _GL_ACL_H 1
+
 #include <stdbool.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -28,3 +31,5 @@ int set_acl (char const *, int, mode_t);
 int qcopy_acl (char const *, int, char const *, int, mode_t);
 int copy_acl (char const *, int, char const *, int, mode_t);
 int chmod_or_fchmod (char const *, int, mode_t);
+
+#endif

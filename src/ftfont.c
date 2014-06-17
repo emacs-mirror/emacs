@@ -87,8 +87,6 @@ static Lisp_Object ftfont_lookup_cache (Lisp_Object,
 
 static void ftfont_filter_properties (Lisp_Object font, Lisp_Object alist);
 
-Lisp_Object ftfont_font_format (FcPattern *, Lisp_Object);
-
 #define SYMBOL_FcChar8(SYM) (FcChar8 *) SDATA (SYMBOL_NAME (SYM))
 
 static struct

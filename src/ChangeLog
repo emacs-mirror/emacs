@@ -1,3 +1,38 @@
+2014-06-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Omit redundant extern decls.
+	Most of this patch is from Dmitry Antipov, in:
+	http://lists.gnu.org/archive/html/emacs-devel/2014-06/msg00263.html
+	* commands.h (update_mode_lines):
+	* frame.h (Qbackground_color, Qforeground_color)
+	(x_set_menu_bar_lines):
+	* ftfont.c (ftfont_font_format):
+	* intervals.h (Qkeymap, Qfont):
+	* keyboard.c (timer_check, safe_run_hooks, Qregion_extract_function):
+	* lisp.h (Ffboundp, Qnil, Qt, Qlambda, Qintegerp, Qwholenump)
+	(Qsymbolp, Qlisp, Qconsp, Qstringp, Qarrayp, Qbufferp, Qmarkerp)
+	(Qvectorp, Qbuffer_or_string_p, Qchar_table_p, Qvector_or_char_table_p)
+	(Qfloatp, Qnumberp, Qfont_spec, Qfont_entity, Qfont_object)
+	(Fbyteorder, wrong_type_argument, Fmax_char, syms_of_composite)
+	(Fidentity, extract_float, init_display, syms_of_display, Qdisplay):
+	(Qimage, Qbox, redisplay_preserve_echo_area, char_table_ref)
+	(char_table_set, char_table_translate, Qautoload, Qbottom, Qtop)
+	(Qvisible, Qfont, Qfront_sticky, Qrear_nonsticky, init_sigio)
+	(Qtool_bar, Qheader_line):
+	* macros.c (Fexecute_kbd_macro):
+	* xdisp.c (Ftool_bar_height, Ftool_bar_height):
+	* xterm.c (x_delete_terminal, XSetIMValues):
+	* xterm.h (x_set_window_size, x_query_color, x_get_focus_frame)
+	(x_implicitly_set_name, popup_activated)
+	(widget_store_internal_border):
+	Remove redundant decls.
+	* frame.c [USE_X_TOOLKIT]: Include widget.h.
+	* keyboard.c (Fexit_recursive_edit, Fabort_recursive_edit):
+	Remove _Noreturn, as make-docfile now does that for us.
+	* lisp.h (DEFUN): Don't declare fnname here; rely on make-docfile.
+	(Qregion_extract_function): New decl.
+	* window.c, xfns.c: Include menu.h.
+
 2014-06-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* callint.c (Fcall_interactively): Fix up last change (bug#17701).

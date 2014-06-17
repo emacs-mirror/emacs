@@ -226,7 +226,6 @@ static void x_lower_frame (struct frame *);
 static const XColor *x_color_cells (Display *, int *);
 static int x_io_error_quitter (Display *);
 static struct terminal *x_create_terminal (struct x_display_info *);
-void x_delete_terminal (struct terminal *);
 static void x_update_end (struct frame *);
 static void XTframe_up_to_date (struct frame *);
 static void x_clear_frame (struct frame *);
@@ -7859,11 +7858,6 @@ xim_destroy_callback (XIM xim, XPointer client_data, XPointer call_data)
 
 #endif /* HAVE_X11R6 */
 
-#ifdef HAVE_X11R6
-/* This isn't prototyped in OSF 5.0 or 5.1a.  */
-extern char *XSetIMValues (XIM, ...);
-#endif
-
 /* Open the connection to the XIM server on display DPYINFO.
    RESOURCE_NAME is the resource name Emacs uses.  */
 
@@ -9779,7 +9773,7 @@ x_toggle_visible_pointer (struct frame *f, bool invisible)
   else
     XDefineCursor (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		   f->output_data.x->current_cursor);
-  f->pointer_invisible = invisible;  
+  f->pointer_invisible = invisible;
 }
 
 /* Setup pointer blanking, prefer Xfixes if available.  */
@@ -10111,7 +10105,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 
     XRenderQueryExtension (dpyinfo->display, &event_base, &error_base);
 
-    v = XGetDefault (dpyinfo->display, "Xft", "dpi");    
+    v = XGetDefault (dpyinfo->display, "Xft", "dpi");
     if (v != NULL && sscanf (v, "%lf", &d) == 1)
       dpyinfo->resy = dpyinfo->resx = d;
   }
@@ -10240,7 +10234,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 				   1, 0, 1);
 
   x_setup_pointer_blanking (dpyinfo);
-  
+
 #ifdef HAVE_X_I18N
   xim_initialize (dpyinfo, resource_name);
 #endif
@@ -10556,7 +10550,7 @@ x_create_terminal (struct x_display_info *dpyinfo)
   terminal->menu_show_hook = x_menu_show;
 #if defined (USE_X_TOOLKIT) || defined (USE_GTK)
   terminal->popup_dialog_hook = xw_popup_dialog;
-#endif  
+#endif
   terminal->set_vertical_scroll_bar_hook = XTset_vertical_scroll_bar;
   terminal->condemn_scroll_bars_hook = XTcondemn_scroll_bars;
   terminal->redeem_scroll_bar_hook = XTredeem_scroll_bar;
