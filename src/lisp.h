@@ -4015,7 +4015,6 @@ extern Lisp_Object expand_and_dir_to_file (Lisp_Object, Lisp_Object);
 extern Lisp_Object write_region (Lisp_Object, Lisp_Object, Lisp_Object,
 				 Lisp_Object, Lisp_Object, Lisp_Object,
 				 Lisp_Object, int);
-EXFUN (Fread_file_name, 6);     /* Not a normal DEFUN.  */
 extern void close_file_unwind (int);
 extern void fclose_unwind (void *);
 extern void restore_point_unwind (Lisp_Object);

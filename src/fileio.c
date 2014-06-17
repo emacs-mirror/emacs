@@ -5762,24 +5762,6 @@ before any other event (mouse or keypress) is handled.  */)
   return Qnil;
 }
 
-Lisp_Object
-Fread_file_name (Lisp_Object prompt, Lisp_Object dir, Lisp_Object default_filename, Lisp_Object mustmatch, Lisp_Object initial, Lisp_Object predicate)
-{
-  struct gcpro gcpro1;
-  Lisp_Object args[7];
-
-  GCPRO1 (default_filename);
-  args[0] = intern ("read-file-name");
-  args[1] = prompt;
-  args[2] = dir;
-  args[3] = default_filename;
-  args[4] = mustmatch;
-  args[5] = initial;
-  args[6] = predicate;
-  RETURN_UNGCPRO (Ffuncall (7, args));
-}
-
-
 void
 init_fileio (void)
 {

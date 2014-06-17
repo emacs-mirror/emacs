@@ -1,3 +1,11 @@
+2014-06-17  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* fileio.c (Fread_file_name): Do not pass redundant args and ...
+	* callint.c (read_file_name): ... convert to static here.
+	* lisp.h (Fread_file_name): Do not EXFUN it.
+	* composite.c (CHAR_COMPOSABLE_P): Replace unsafe macro with ...
+	(char_composable_p): ... static function.  All users changed.
+
 2014-06-16  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* Makefile.in (ns-app): Fix typo that broke build on OS X.
