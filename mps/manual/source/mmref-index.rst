@@ -6,7 +6,7 @@ Welcome to the **Memory Management Reference**!  This is a resource for programm
 
 .. admonition:: :ref:`glossary`
 
-    A glossary of more than 500 memory management terms, from
+    A glossary of more than 500 :term:`memory management` terms, from
     :term:`absolute address` to :term:`zero count table`.
 
     .. image:: diagrams/treadmill.svg
@@ -17,7 +17,8 @@ Welcome to the **Memory Management Reference**!  This is a resource for programm
 
 .. admonition:: :ref:`mmref-intro`
 
-    Articles giving a beginner's overview of memory management.
+    Articles giving a beginner's overview of :term:`memory
+    management`.
 
     .. image:: diagrams/address.svg
         :target: intro_
@@ -27,7 +28,7 @@ Welcome to the **Memory Management Reference**!  This is a resource for programm
 
 .. admonition:: :ref:`bibliography`
 
-    Books and research papers related to memory management.
+    Books and research papers related to :term:`memory management`.
 
     .. image:: diagrams/copying.svg
         :target: bib_
@@ -37,7 +38,7 @@ Welcome to the **Memory Management Reference**!  This is a resource for programm
 
 .. admonition:: :ref:`mmref-faq`
 
-    Frequently asked questions about memory management.
+    Frequently asked questions about :term:`memory management`.
 
     .. image:: diagrams/snap-out.svg
         :target: faq_
@@ -46,9 +47,9 @@ Welcome to the **Memory Management Reference**!  This is a resource for programm
 
 The Memory Management Reference is maintained by `Ravenbrook
 Limited`_. We also maintain the `Memory Pool System`_ (an open-source,
-thread-safe, :term:`incremental <incremental garbage collection>`
-garbage collector), and we are happy to provide advanced memory
-management solutions to language and application developers through
+thread-safe, :term:`incremental garbage collector <incremental garbage
+collection>`), and we are happy to provide advanced :term:`memory
+management` solutions to language and application developers through
 our `consulting service`_.
 
 .. _Ravenbrook Limited: http://www.ravenbrook.com/
