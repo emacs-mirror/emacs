@@ -75,11 +75,13 @@ to the single contiguous range of address-space that was reserved
 Interface
 ---------
 
-``Size VMPageSize(void)``
+``Size PageSize(void)``
 
 _`.if.page.size`: Return the operating system's "page size", that is,
 the granularity with which the operating system can map and unmap
-virtual memory.
+virtual memory. For speed (on systems like Windows where determining
+the page size involves a system call), this is cached in each VM
+descriptor and accessible via the ``VMPageSize()`` function.
 
 ``Res VMParamFromArgs(void *params, size_t paramSize, ArgList args)``
 
