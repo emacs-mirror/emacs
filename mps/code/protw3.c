@@ -8,6 +8,7 @@
 /* prmcw3.h needed to share MutatorFaultContextStruct declation */
 /* with <code/prmcw3i3.c> */
 #include "prmcw3.h"
+#include "vm.h"
 
 #ifndef MPS_OS_W3
 #error "protw3.c is Win32-specific, but MPS_OS_W3 is not set"

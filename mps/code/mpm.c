@@ -10,6 +10,8 @@
 
 #include "check.h"
 #include "mpm.h"
+#include "vm.h"
+
 #include <stdarg.h>
 /* Get some floating constants for WriteDouble */
 #include <float.h>

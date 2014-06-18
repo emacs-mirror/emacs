@@ -13,16 +13,20 @@ ANSI fake VM
 
 
 _`.intro`: The ANSI fake VM is an implementation of the MPS VM
-interface (see design.mps.vm) using services provided by the ANSI C
-Library (standard.ansic.7) -- ``malloc()`` and ``free()``, as it
-happens.
+interface (see `design.mps.vm`_) using only services provided by the
+ANSI C Library (standard.ansic.7).
 
-_`.align`: The VM is aligned to ``VMAN_ALIGN`` (defined in
-impl.h.mpmconf) by adding ``VMAN_ALIGN`` to the requested size,
-allocating a block that large using ``malloc()``, then rounding the
-pointer to the base of the block. ``vm->base`` is the aligned pointer,
-``vm->block`` is the pointer returned by ``malloc()``, which is used
-in ``VMDestroy()``.
+.. _design.mps.vm: vm
+
+_`.page.size`: The VM uses a fake page size, given by the constant
+``VMAN_PAGE_SIZE`` in ``config.h``.
+
+_`.align`: The VM is aligned to the arena grain size by adding the
+grain size to the requested size, allocating a block that large using
+``malloc()``, then rounding the pointer to the block up to a multiple
+of the grain size and storing the result in ``vm->base``. The block is
+stored in ``vm->block``, which is passed to ``free()`` in
+``VMFinish()``.
 
 
 Document History
@@ -32,6 +36,8 @@ Document History
 - 2002-06-07 RB_ Converted from MMInfo database design document.
 
 - 2013-05-23 GDR_ Converted to reStructuredText.
+
+- 2014-06-18 GDR_ Bring up to date.
 
 .. _RB: http://www.ravenbrook.com/consultants/rb/
 .. _GDR: http://www.ravenbrook.com/consultants/gdr/

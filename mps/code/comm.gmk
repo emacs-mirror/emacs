@@ -211,6 +211,7 @@ MPMCOMMON = \
     tract.c \
     tree.c \
     version.c \
+    vm.c \
     walk.c
 MPM = $(MPMCOMMON) $(MPMPF) $(AMC) $(AMS) $(AWL) $(LO) $(MV2) $(MVFF) $(PLINTH)
 

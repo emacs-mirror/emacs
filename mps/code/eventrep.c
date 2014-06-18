@@ -565,7 +565,7 @@ void EventReplay(Event event, Word etime)
     mps_reservoir_limit_set((mps_arena_t)entry, (size_t)event->pw.w1);
   } break;
   case EventVMMap: case EventVMUnmap:
-  case EventVMCreate: case EventVMDestroy:
+  case EventVMInit: case EventVMFinish:
   case EventArenaWriteFaults:
   case EventArenaAlloc: case EventArenaAllocFail: case EventArenaFree:
   case EventSegAlloc: case EventSegAllocFail: case EventSegFree:
