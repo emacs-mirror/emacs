@@ -96,7 +96,6 @@ Res VMInit(VM vm, Size size, Size grainSize, void *params)
 {
   LPVOID vbase;
   Size pageSize, reserved;
-  Res res;
   VMParams vmParams = params;
 
   AVER(vm != NULL);
