@@ -1,3 +1,13 @@
+2014-06-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* image.c [5 < GIFLIB_MAJOR + (1 <= GIFLIB_MINOR)]: Declare the
+	prototype of DGifCloseFile as appropriate for older and newer
+	versions of giflib.
+	(gif_close): New function, encapsulates the differences in the
+	calling sequence of DGifCloseFile before v5.1.0 and after it.
+	(gif_load): Call gif_close instead of DGifCloseFile.  Divulge the
+	error string where appropriate.  (Bug#17790)
+
 2014-06-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (Fmove_point_visually): Instead of testing for keyboard

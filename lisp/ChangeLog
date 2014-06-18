@@ -1,3 +1,8 @@
+2014-06-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* term/w32-win.el (dynamic-library-alist): Support giflib 5.1.0
+	and later.  (Bug#17790)
+
 2014-06-18  Juri Linkov  <juri@jurta.org>
 
 	* dired.el (dired-mark-pop-up): Let-bind display-buffer-mark-dedicated
