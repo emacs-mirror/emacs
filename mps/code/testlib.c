@@ -12,7 +12,7 @@
 #include "mps.h"
 #include "misc.h" /* for NOOP */
 
-#include <math.h> /* fmod */
+#include <math.h> /* fmod, log2 */
 #include <stdio.h> /* fflush, printf, stderr, sscanf, vfprintf */
 #include <stdlib.h> /* abort, exit, getenv */
 #include <time.h> /* time */
@@ -220,6 +220,14 @@ double rnd_double(void)
   return rnd() / R_m_float;
 }
 
+size_t rnd_grain(size_t arena_size)
+{
+  /* The grain size must be small enough to allow for a complete set
+   * of zones in the initial chunk. */
+  size_t s = (size_t)log2((double)arena_size);
+  Insist(s > MPS_WORD_SHIFT);
+  return (size_t)1 << (rnd() % (s - MPS_WORD_SHIFT));
+}
 
 rnd_state_t rnd_seed(void)
 {
