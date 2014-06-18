@@ -1,5 +1,12 @@
 2014-06-18  Juri Linkov  <juri@jurta.org>
 
+	* vc/diff-mode.el (diff-changed): Empty face definition to use
+	`diff-removed' and `diff-added' on tty as well.  (Bug#10181)
+	(diff-context): Use darker color on light background and
+	lighter color on dark background.
+
+2014-06-18  Juri Linkov  <juri@jurta.org>
+
 	* vc/diff-mode.el (diff-refine-changed): Rename from
 	`diff-refine-change' for consistency with `diff-changed'.
 	(diff-refine-change): Add obsolete face alias.  (Bug#10181)
