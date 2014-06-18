@@ -31,6 +31,7 @@ static void test(mps_arena_t arena)
   limit = AddrAdd(base, nails * align);
 
   die(BTCreate(&bt, arena, nails), "BTCreate");
+  BTResRange(bt, 0, nails);
   die(NailboardCreate(&board, arena, align, base, limit), "NailboardCreate");
 
   for (i = 0; i <= nails / 8; ++i) {
