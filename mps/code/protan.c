@@ -22,6 +22,15 @@ void ProtSetup(void)
 }
 
 
+/* ProtGranularity -- return the granularity of protection */
+
+Size ProtGranularity(void)
+{
+  /* Any range of addresses can be "protected" since ProtSet does nothing. */
+  return (Size)MPS_PF_ALIGN;
+}
+
+
 /* ProtSet -- set the protection for a page */
 
 void ProtSet(Addr base, Addr limit, AccessSet pm)

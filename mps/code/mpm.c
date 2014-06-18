@@ -77,6 +77,11 @@ Bool MPMCheck(void)
     CHECKL(-(DBL_MIN_10_EXP) <= DBL_MAX_10_EXP);
   }
 
+  /* The granularity of memory mapping must be a multiple of the
+   * granularity of protection (or we might not be able to protect an
+   * arena grain). */
+  CHECKL(PageSize() % ProtGranularity() == 0);
+
   return TRUE; 
 }
 

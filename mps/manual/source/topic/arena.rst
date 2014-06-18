@@ -165,6 +165,14 @@ Client arenas
     * :c:macro:`MPS_KEY_ARENA_SIZE` (type :c:type:`size_t`) is its
       size.
 
+    It also accepts one optional keyword argument:
+
+    * :c:macro:`MPS_KEY_ARENA_GRAIN_SIZE` (type :c:type:`size_t`,
+      default 8192) is the granularity with which the arena will
+      manage memory internally. It must be a power of 2. Larger
+      granularity reduces overheads, but increases
+      :term:`fragmentation` and :term:`retention`.
+
     For example::
 
         MPS_ARGS_BEGIN(args) {
@@ -233,7 +241,7 @@ Virtual memory arenas
     more efficient.
 
     When creating a virtual memory arena, :c:func:`mps_arena_create_k`
-    accepts one :term:`keyword argument` on all platforms:
+    accepts two optional :term:`keyword arguments` on all platforms:
 
     * :c:macro:`MPS_KEY_ARENA_SIZE` (type :c:type:`size_t`, default
       256\ :term:`megabytes`) is the initial amount of virtual address
@@ -251,6 +259,14 @@ Virtual memory arenas
           The MPS asks for more address space if it runs out, but the
           more times it has to extend its address space, the less
           efficient garbage collection will become.
+
+    * :c:macro:`MPS_KEY_ARENA_GRAIN_SIZE` (type :c:type:`size_t`) is
+      the granularity with which the arena will manage memory
+      internally. It must be a power of 2. It will be aligned up to a
+      multiple of the operating system's page size if necessary. If
+      not provided, the operating system's page size is used. Larger
+      granularity reduces overheads, but increases
+      :term:`fragmentation` and :term:`retention`.
 
     A second optional :term:`keyword argument` may be passed, but it
     only has any effect on the Windows operating system:
