@@ -293,9 +293,9 @@ static Res VMChunkCreate(Chunk *chunkReturn, VMArena vmArena, Size size)
   arena = VMArena2Arena(vmArena);
   AVER(size > 0);
 
-  res = VMCreate(vm, size, ArenaGrainSize(arena), vmArena->vmParams);
+  res = VMInit(vm, size, ArenaGrainSize(arena), vmArena->vmParams);
   if (res != ResOK)
-    goto failVMCreate;
+    goto failVMInit;
 
   base = VMBase(vm);
   limit = VMLimit(vm);
@@ -318,7 +318,7 @@ static Res VMChunkCreate(Chunk *chunkReturn, VMArena vmArena, Size size)
   vmChunk->overheadMappedLimit = chunkStructLimit;
 
   /* Copy VM descriptor into its place in the chunk. */
-  (void)mps_lib_memcpy(VMChunkVM(vmChunk), vm, sizeof vmStruct);
+  VMCopy(VMChunkVM(vmChunk), vm);
   res = ChunkInit(VMChunk2Chunk(vmChunk), arena, base, limit, boot);
   if (res != ResOK)
     goto failChunkInit;
@@ -336,8 +336,8 @@ failChunkInit:
 failChunkMap:
 failChunkAlloc:
 failBootInit:
-  VMDestroy(vm);
-failVMCreate:
+  VMFinish(vm);
+failVMInit:
   return res;
 }
 
@@ -441,14 +441,14 @@ static void VMChunkFinish(Chunk chunk)
 
   /* Copy VM descriptor to stack-local storage so that we can continue
    * using the descriptor after the VM has been unmapped. */
-  (void)mps_lib_memcpy(vm, VMChunkVM(vmChunk), sizeof *vm);
+  VMCopy(vm, VMChunkVM(vmChunk));
 
   vmArenaUnmap(VMChunkVMArena(vmChunk), vm,
                VMBase(vm), vmChunk->overheadMappedLimit);
 
   /* No point in finishing the other fields, since they are unmapped. */
 
-  VMDestroy(vm);
+  VMFinish(vm);
 }
 
 
@@ -532,14 +532,14 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
      don't have anywhere else to put it. It gets copied later. */
   res = VMParamFromArgs(vmParams, sizeof(vmParams), args);
   if (res != ResOK)
-    goto failVMCreate;
+    goto failVMInit;
 
   /* Create a VM to hold the arena and map it. Store descriptor on the
      stack until we have the arena to put it in. */
   vmArenaSize = SizeAlignUp(sizeof(VMArenaStruct), MPS_PF_ALIGN);
-  res = VMCreate(vm, vmArenaSize, grainSize, vmParams);
+  res = VMInit(vm, vmArenaSize, grainSize, vmParams);
   if (res != ResOK)
-    goto failVMCreate;
+    goto failVMInit;
   res = VMMap(vm, VMBase(vm), VMLimit(vm));
   if (res != ResOK)
     goto failVMMap;
@@ -553,7 +553,7 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
   arena->committed = VMMapped(vm);
 
   /* Copy VM descriptor into its place in the arena. */
-  (void)mps_lib_memcpy(VMArenaVM(vmArena), vm, sizeof *vm);
+  VMCopy(VMArenaVM(vmArena), vm);
   vmArena->spareSize = 0;
   RingInit(&vmArena->spareRing);
 
@@ -601,8 +601,8 @@ failChunkCreate:
 failArenaInit:
   VMUnmap(vm, VMBase(vm), VMLimit(vm));
 failVMMap:
-  VMDestroy(vm);
-failVMCreate:
+  VMFinish(vm);
+failVMInit:
   return res;
 }
 
@@ -638,9 +638,9 @@ static void VMArenaFinish(Arena arena)
 
   /* Copy VM descriptor to stack-local storage so that we can continue
    * using the descriptor after the VM has been unmapped. */
-  (void)mps_lib_memcpy(vm, VMArenaVM(vmArena), sizeof *vm);
+  VMCopy(vm, VMArenaVM(vmArena));
   VMUnmap(vm, VMBase(vm), VMLimit(vm));
-  VMDestroy(vm);
+  VMFinish(vm);
 }
 
 
