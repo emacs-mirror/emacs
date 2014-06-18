@@ -1,79 +1,61 @@
-/* nailboardtest.c: NAILBOARD TEST
+/* vm.h: VIRTUAL MEMORY INTERFACE
  *
- * $Id: //info.ravenbrook.com/project/mps/branch/2014-01-15/nailboard/code/fotest.c#1 $
+ * $Id$
  * Copyright (c) 2014 Ravenbrook Limited.  See end of file for license.
- *
  */
 
-#include "mpm.h"
-#include "mps.h"
-#include "mpsavm.h"
-#include "testlib.h"
-#include "bt.h"
-#include "nailboard.h"
+#ifndef vm_h
+#define vm_h
 
-#include <stdio.h> /* printf */
+#include "mpmtypes.h"
 
 
-static void test(mps_arena_t arena)
-{
-  BT bt;
-  Nailboard board;
-  Align align;
-  Count nails;
-  Addr base, limit;
-  Index i, j, k;
+/* VMStruct -- virtual memory structure
+ *
+ * Unlike most other datatypes we permit this structure to be moved
+ * around in memory, and in particular, allocated temporarily on the
+ * stack, to help with bootstrapping. Look for uses of VMCopy.
+ */
 
-  align = (Align)1 << (rnd() % 10);
-  nails = (Count)1 << (rnd() % 16);
-  nails += rnd() % nails;
-  base = AddrAlignUp(0, align);
-  limit = AddrAdd(base, nails * align);
+#define VMSig           ((Sig)0x519B3999) /* SIGnature VM */
 
-  die(BTCreate(&bt, arena, nails), "BTCreate");
-  BTResRange(bt, 0, nails);
-  die(NailboardCreate(&board, arena, align, base, limit), "NailboardCreate");
+typedef struct VMStruct {
+  Sig sig;                      /* <design/sig/> */
+  Size pageSize;                /* operating system page size */
+  void *block;                  /* unaligned base of mmap'd memory */
+  Addr base, limit;             /* aligned boundaries of reserved space */
+  Size reserved;                /* total reserved address space */
+  Size mapped;                  /* total mapped memory */
+} VMStruct;
 
-  for (i = 0; i <= nails / 8; ++i) {
-    Bool old;
-    j = rnd() % nails;
-    old = BTGet(bt, j);
-    BTSet(bt, j);
-    cdie(NailboardSet(board, AddrAdd(base, j * align)) == old, "NailboardSet");
-    for (k = 0; k < nails / 8; ++k) {
-      Index b, l;
-      b = rnd() % nails;
-      l = b + rnd() % (nails - b) + 1;
-      cdie(BTIsResRange(bt, b, l)
-           == NailboardIsResRange(board, AddrAdd(base, b * align),
-                                  AddrAdd(base, l * align)),
-           "NailboardIsResRange");
-    }
-  }
 
-  die(NailboardDescribe(board, mps_lib_get_stdout(), 0), "NailboardDescribe");
-}
+#define VMPageSize(vm) RVALUE((vm)->pageSize)
+#define VMBase(vm) RVALUE((vm)->base)
+#define VMLimit(vm) RVALUE((vm)->limit)
+#define VMReserved(vm) RVALUE((vm)->reserved)
+#define VMMapped(vm) RVALUE((vm)->mapped)
 
-int main(int argc, char **argv)
-{
-  mps_arena_t arena;
+extern Size PageSize(void);
+extern Size (VMPageSize)(VM vm);
+extern Bool VMCheck(VM vm);
+extern Res VMParamFromArgs(void *params, size_t paramSize, ArgList args);
+extern Res VMInit(VM vmReturn, Size size, Size grainSize, void *params);
+extern void VMFinish(VM vm);
+extern Addr (VMBase)(VM vm);
+extern Addr (VMLimit)(VM vm);
+extern Res VMMap(VM vm, Addr base, Addr limit);
+extern void VMUnmap(VM vm, Addr base, Addr limit);
+extern Size (VMReserved)(VM vm);
+extern Size (VMMapped)(VM vm);
+extern void VMCopy(VM dest, VM src);
 
-  testlib_init(argc, argv);
 
-  die(mps_arena_create(&arena, mps_arena_class_vm(), 1024 * 1024),
-      "mps_arena_create");
-
-  test(arena);
-
-  mps_arena_destroy(arena);
-  printf("%s: Conclusion: Failed to find any defects.\n", argv[0]);
-  return 0;
-}
+#endif /* vm_h */
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (c) 2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
@@ -111,4 +93,3 @@ int main(int argc, char **argv)
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-

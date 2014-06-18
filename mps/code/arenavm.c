@@ -22,13 +22,14 @@
  */
 
 #include "boot.h"
-#include "tract.h"
 #include "bt.h"
-#include "sa.h"
+#include "cbs.h"
 #include "mpm.h"
 #include "mpsavm.h"
-#include "cbs.h"
 #include "poolmfs.h"
+#include "sa.h"
+#include "tract.h"
+#include "vm.h"
 
 SRCID(arenavm, "$Id$");
 
@@ -41,13 +42,14 @@ typedef struct VMChunkStruct *VMChunk;
 
 typedef struct VMChunkStruct {
   ChunkStruct chunkStruct;      /* generic chunk */
-  VM vm;                        /* virtual memory handle */
+  VMStruct vmStruct;            /* virtual memory descriptor */
   Addr overheadMappedLimit;     /* limit of pages mapped for overhead */
   SparseArrayStruct pages;      /* to manage backing store of page table */
   Sig sig;                      /* <design/sig/> */
 } VMChunkStruct;
 
 #define VMChunk2Chunk(vmchunk) (&(vmchunk)->chunkStruct)
+#define VMChunkVM(vmchunk) (&(vmchunk)->vmStruct)
 #define Chunk2VMChunk(chunk) PARENT(VMChunkStruct, chunkStruct, chunk)
 
 
@@ -68,9 +70,9 @@ typedef struct VMArenaStruct *VMArena;
 
 typedef struct VMArenaStruct {  /* VM arena structure */
   ArenaStruct arenaStruct;
-  VM vm;                        /* VM where the arena itself is stored */
+  VMStruct vmStruct;            /* VM descriptor for VM containing arena */
   char vmParams[VMParamSize];   /* VM parameter block */
-  Size spareSize;              /* total size of spare pages */
+  Size spareSize;               /* total size of spare pages */
   Size extendBy;                /* desired arena increment */
   Size extendMin;               /* minimum arena increment */
   ArenaVMExtendedCallback extended;
@@ -81,6 +83,7 @@ typedef struct VMArenaStruct {  /* VM arena structure */
 
 #define Arena2VMArena(arena) PARENT(VMArenaStruct, arenaStruct, arena)
 #define VMArena2Arena(vmarena) (&(vmarena)->arenaStruct)
+#define VMArenaVM(vmarena) (&(vmarena)->vmStruct)
 
 
 /* Forward declarations */
@@ -101,8 +104,8 @@ static Bool VMChunkCheck(VMChunk vmchunk)
   CHECKS(VMChunk, vmchunk);
   chunk = VMChunk2Chunk(vmchunk);
   CHECKD(Chunk, chunk);
-  CHECKD_NOSIG(VM, vmchunk->vm); /* <design/check/#hidden-type> */
-  CHECKL(SizeIsAligned(ChunkPageSize(chunk), VMPageSize(vmchunk->vm)));
+  CHECKD(VM, VMChunkVM(vmchunk));
+  CHECKL(SizeIsAligned(ChunkPageSize(chunk), VMPageSize(VMChunkVM(vmchunk))));
   CHECKL(vmchunk->overheadMappedLimit <= (Addr)chunk->pageTable);
   CHECKD(SparseArray, &vmchunk->pages);
   /* SparseArrayCheck is agnostic about where the BTs live, so VMChunkCheck
@@ -173,7 +176,7 @@ static Bool VMArenaCheck(VMArena vmArena)
     CHECKD(VMChunk, primary);
     /* We could iterate over all chunks accumulating an accurate */
     /* count of committed, but we don't have all day. */
-    CHECKL(VMMapped(primary->vm) <= arena->committed);
+    CHECKL(VMMapped(VMChunkVM(primary)) <= arena->committed);
   }
   
   CHECKD_NOSIG(Ring, &vmArena->spareRing);
@@ -278,7 +281,8 @@ static Res VMChunkCreate(Chunk *chunkReturn, VMArena vmArena, Size size)
   Arena arena;
   Res res;
   Addr base, limit, chunkStructLimit;
-  VM vm;
+  VMStruct vmStruct;
+  VM vm = &vmStruct;
   BootBlockStruct bootStruct;
   BootBlock boot = &bootStruct;
   VMChunk vmChunk;
@@ -289,9 +293,9 @@ static Res VMChunkCreate(Chunk *chunkReturn, VMArena vmArena, Size size)
   arena = VMArena2Arena(vmArena);
   AVER(size > 0);
 
-  res = VMCreate(&vm, size, ArenaGrainSize(arena), vmArena->vmParams);
+  res = VMInit(vm, size, ArenaGrainSize(arena), vmArena->vmParams);
   if (res != ResOK)
-    goto failVMCreate;
+    goto failVMInit;
 
   base = VMBase(vm);
   limit = VMLimit(vm);
@@ -313,7 +317,8 @@ static Res VMChunkCreate(Chunk *chunkReturn, VMArena vmArena, Size size)
     goto failChunkMap;
   vmChunk->overheadMappedLimit = chunkStructLimit;
 
-  vmChunk->vm = vm;
+  /* Copy VM descriptor into its place in the chunk. */
+  VMCopy(VMChunkVM(vmChunk), vm);
   res = ChunkInit(VMChunk2Chunk(vmChunk), arena, base, limit, boot);
   if (res != ResOK)
     goto failChunkInit;
@@ -327,12 +332,12 @@ static Res VMChunkCreate(Chunk *chunkReturn, VMArena vmArena, Size size)
   return ResOK;
 
 failChunkInit:
-  /* No need to unmap, as we're destroying the VM. */
+  VMUnmap(vm, VMBase(vm), chunkStructLimit);
 failChunkMap:
 failChunkAlloc:
 failBootInit:
-  VMDestroy(vm);
-failVMCreate:
+  VMFinish(vm);
+failVMInit:
   return res;
 }
 
@@ -373,7 +378,7 @@ static Res VMChunkInit(Chunk chunk, BootBlock boot)
   /* Map memory for the bit tables. */
   if (vmChunk->overheadMappedLimit < overheadLimit) {
     overheadLimit = AddrAlignUp(overheadLimit, ChunkPageSize(chunk));
-    res = vmArenaMap(VMChunkVMArena(vmChunk), vmChunk->vm,
+    res = vmArenaMap(VMChunkVMArena(vmChunk), VMChunkVM(vmChunk),
                      vmChunk->overheadMappedLimit, overheadLimit);
     if (res != ResOK)
       goto failTableMap;
@@ -384,7 +389,7 @@ static Res VMChunkInit(Chunk chunk, BootBlock boot)
                   chunk->pageTable,
                   sizeof(PageUnion),
                   chunk->pages,
-                  saMapped, saPages, vmChunk->vm);
+                  saMapped, saPages, VMChunkVM(vmChunk));
 
   return ResOK;
 
@@ -401,7 +406,6 @@ failSaMapped:
 
 static Bool vmChunkDestroy(Tree tree, void *closureP, Size closureS)
 {
-  VM vm;
   Chunk chunk;
   VMChunk vmChunk;
 
@@ -421,9 +425,7 @@ static Bool vmChunkDestroy(Tree tree, void *closureP, Size closureS)
   SparseArrayFinish(&vmChunk->pages);
   
   vmChunk->sig = SigInvalid;
-  vm = vmChunk->vm;
   ChunkFinish(chunk);
-  VMDestroy(vm);
 
   return TRUE;
 }
@@ -433,11 +435,20 @@ static Bool vmChunkDestroy(Tree tree, void *closureP, Size closureS)
 
 static void VMChunkFinish(Chunk chunk)
 {
+  VMStruct vmStruct;
+  VM vm = &vmStruct;
   VMChunk vmChunk = Chunk2VMChunk(chunk);
 
-  vmArenaUnmap(VMChunkVMArena(vmChunk), vmChunk->vm,
-               VMBase(vmChunk->vm), vmChunk->overheadMappedLimit);
+  /* Copy VM descriptor to stack-local storage so that we can continue
+   * using the descriptor after the VM has been unmapped. */
+  VMCopy(vm, VMChunkVM(vmChunk));
+
+  vmArenaUnmap(VMChunkVMArena(vmChunk), vm,
+               VMBase(vm), vmChunk->overheadMappedLimit);
+
   /* No point in finishing the other fields, since they are unmapped. */
+
+  VMFinish(vm);
 }
 
 
@@ -497,7 +508,8 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
   Res res;
   VMArena vmArena;
   Arena arena;
-  VM arenaVM;
+  VMStruct vmStruct;
+  VM vm = &vmStruct;
   Chunk chunk;
   mps_arg_s arg;
   char vmParams[VMParamSize];
@@ -520,26 +532,28 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
      don't have anywhere else to put it. It gets copied later. */
   res = VMParamFromArgs(vmParams, sizeof(vmParams), args);
   if (res != ResOK)
-    goto failVMCreate;
+    goto failVMInit;
 
-  /* Create a VM to hold the arena and map it. */
+  /* Create a VM to hold the arena and map it. Store descriptor on the
+     stack until we have the arena to put it in. */
   vmArenaSize = SizeAlignUp(sizeof(VMArenaStruct), MPS_PF_ALIGN);
-  res = VMCreate(&arenaVM, vmArenaSize, grainSize, vmParams);
+  res = VMInit(vm, vmArenaSize, grainSize, vmParams);
   if (res != ResOK)
-    goto failVMCreate;
-  res = VMMap(arenaVM, VMBase(arenaVM), VMLimit(arenaVM));
+    goto failVMInit;
+  res = VMMap(vm, VMBase(vm), VMLimit(vm));
   if (res != ResOK)
     goto failVMMap;
-  vmArena = (VMArena)VMBase(arenaVM);
+  vmArena = (VMArena)VMBase(vm);
 
   arena = VMArena2Arena(vmArena);
   /* <code/arena.c#init.caller> */
   res = ArenaInit(arena, class, grainSize, args);
   if (res != ResOK)
     goto failArenaInit;
-  arena->committed = VMMapped(arenaVM);
+  arena->committed = VMMapped(vm);
 
-  vmArena->vm = arenaVM;
+  /* Copy VM descriptor into its place in the arena. */
+  VMCopy(VMArenaVM(vmArena), vm);
   vmArena->spareSize = 0;
   RingInit(&vmArena->spareRing);
 
@@ -585,10 +599,10 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
 failChunkCreate:
   ArenaFinish(arena);
 failArenaInit:
-  VMUnmap(arenaVM, VMBase(arenaVM), VMLimit(arenaVM));
+  VMUnmap(vm, VMBase(vm), VMLimit(vm));
 failVMMap:
-  VMDestroy(arenaVM);
-failVMCreate:
+  VMFinish(vm);
+failVMInit:
   return res;
 }
 
@@ -597,12 +611,12 @@ failVMCreate:
 
 static void VMArenaFinish(Arena arena)
 {
+  VMStruct vmStruct;
+  VM vm = &vmStruct;
   VMArena vmArena;
-  VM arenaVM;
 
   vmArena = Arena2VMArena(arena);
   AVERT(VMArena, vmArena);
-  arenaVM = vmArena->vm;
 
   EVENT1(ArenaDestroy, vmArena);
 
@@ -616,14 +630,17 @@ static void VMArenaFinish(Arena arena)
   RingFinish(&vmArena->spareRing);
 
   /* Destroying the chunks should leave only the arena's own VM. */
-  AVER(arena->committed == VMMapped(arenaVM));
+  AVER(arena->committed == VMMapped(VMArenaVM(vmArena)));
 
   vmArena->sig = SigInvalid;
 
   ArenaFinish(arena); /* <code/global.c#finish.caller> */
 
-  VMUnmap(arenaVM, VMBase(arenaVM), VMLimit(arenaVM));
-  VMDestroy(arenaVM);
+  /* Copy VM descriptor to stack-local storage so that we can continue
+   * using the descriptor after the VM has been unmapped. */
+  VMCopy(vm, VMArenaVM(vmArena));
+  VMUnmap(vm, VMBase(vm), VMLimit(vm));
+  VMFinish(vm);
 }
 
 
@@ -640,7 +657,7 @@ static Size VMArenaReserved(Arena arena)
   reserved = 0;
   RING_FOR(node, &arena->chunkRing, next) {
     VMChunk vmChunk = Chunk2VMChunk(RING_ELT(Chunk, chunkRing, node));
-    reserved += VMReserved(vmChunk->vm);
+    reserved += VMReserved(VMChunkVM(vmChunk));
   }
   return reserved;
 }
@@ -776,19 +793,19 @@ static void sparePageRelease(VMChunk vmChunk, Index pi)
 
 static Res pageDescMap(VMChunk vmChunk, Index basePI, Index limitPI)
 {
-  Size before = VMMapped(vmChunk->vm);
+  Size before = VMMapped(VMChunkVM(vmChunk));
   Arena arena = VMArena2Arena(VMChunkVMArena(vmChunk));
   Res res = SparseArrayMap(&vmChunk->pages, basePI, limitPI);
-  arena->committed += VMMapped(vmChunk->vm) - before;
+  arena->committed += VMMapped(VMChunkVM(vmChunk)) - before;
   return res;
 }
 
 static void pageDescUnmap(VMChunk vmChunk, Index basePI, Index limitPI)
 {
-  Size before = VMMapped(vmChunk->vm);
+  Size before = VMMapped(VMChunkVM(vmChunk));
   Arena arena = VMArena2Arena(VMChunkVMArena(vmChunk));
   SparseArrayUnmap(&vmChunk->pages, basePI, limitPI);
-  arena->committed += VMMapped(vmChunk->vm) - before;
+  arena->committed += VMMapped(VMChunkVM(vmChunk)) - before;
 }
 
 
@@ -818,7 +835,7 @@ static Res pagesMarkAllocated(VMArena vmArena, VMChunk vmChunk,
     res = pageDescMap(vmChunk, j, k);
     if (res != ResOK)
       goto failSAMap;
-    res = vmArenaMap(vmArena, vmChunk->vm,
+    res = vmArenaMap(vmArena, VMChunkVM(vmChunk),
                      PageIndexBase(chunk, j), PageIndexBase(chunk, k));
     if (res != ResOK)
       goto failVMMap;
@@ -842,7 +859,7 @@ failSAMap:
   /* region from basePI to j needs deallocating */
   /* TODO: Consider making pages spare instead, then purging. */
   if (basePI < j) {
-    vmArenaUnmap(vmArena, vmChunk->vm,
+    vmArenaUnmap(vmArena, VMChunkVM(vmChunk),
                  PageIndexBase(chunk, basePI),
                  PageIndexBase(chunk, j));
     for (i = basePI; i < j; ++i)
@@ -935,7 +952,7 @@ static Size chunkUnmapAroundPage(Chunk chunk, Size size, Page page)
   }
 
   vmArenaUnmap(VMChunkVMArena(vmChunk),
-               vmChunk->vm,
+               VMChunkVM(vmChunk),
                PageIndexBase(chunk, basePI),
                PageIndexBase(chunk, limitPI));
 

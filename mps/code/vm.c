@@ -1,79 +1,99 @@
-/* nailboardtest.c: NAILBOARD TEST
+/* vm.c: VIRTUAL MEMORY IMPLEMENTATION
  *
- * $Id: //info.ravenbrook.com/project/mps/branch/2014-01-15/nailboard/code/fotest.c#1 $
+ * $Id$
  * Copyright (c) 2014 Ravenbrook Limited.  See end of file for license.
  *
+ * This is the portable part of the virtual memory implementation.
  */
 
 #include "mpm.h"
-#include "mps.h"
-#include "mpsavm.h"
-#include "testlib.h"
-#include "bt.h"
-#include "nailboard.h"
+#include "vm.h"
 
-#include <stdio.h> /* printf */
+SRCID(vm, "$Id$");
 
 
-static void test(mps_arena_t arena)
+/* VMCheck -- check a VM structure */
+
+Bool VMCheck(VM vm)
 {
-  BT bt;
-  Nailboard board;
-  Align align;
-  Count nails;
-  Addr base, limit;
-  Index i, j, k;
-
-  align = (Align)1 << (rnd() % 10);
-  nails = (Count)1 << (rnd() % 16);
-  nails += rnd() % nails;
-  base = AddrAlignUp(0, align);
-  limit = AddrAdd(base, nails * align);
-
-  die(BTCreate(&bt, arena, nails), "BTCreate");
-  BTResRange(bt, 0, nails);
-  die(NailboardCreate(&board, arena, align, base, limit), "NailboardCreate");
-
-  for (i = 0; i <= nails / 8; ++i) {
-    Bool old;
-    j = rnd() % nails;
-    old = BTGet(bt, j);
-    BTSet(bt, j);
-    cdie(NailboardSet(board, AddrAdd(base, j * align)) == old, "NailboardSet");
-    for (k = 0; k < nails / 8; ++k) {
-      Index b, l;
-      b = rnd() % nails;
-      l = b + rnd() % (nails - b) + 1;
-      cdie(BTIsResRange(bt, b, l)
-           == NailboardIsResRange(board, AddrAdd(base, b * align),
-                                  AddrAdd(base, l * align)),
-           "NailboardIsResRange");
-    }
-  }
-
-  die(NailboardDescribe(board, mps_lib_get_stdout(), 0), "NailboardDescribe");
+  CHECKS(VM, vm);
+  CHECKL(vm->base != (Addr)0);
+  CHECKL(vm->limit != (Addr)0);
+  CHECKL(vm->base < vm->limit);
+  CHECKL(ArenaGrainSizeCheck(vm->pageSize));
+  CHECKL(AddrIsAligned(vm->base, vm->pageSize));
+  CHECKL(AddrIsAligned(vm->limit, vm->pageSize));
+  CHECKL(vm->block != NULL);
+  CHECKL((Addr)vm->block <= vm->base);
+  CHECKL(vm->mapped <= vm->reserved);
+  return TRUE;
 }
 
-int main(int argc, char **argv)
+
+/* VMPageSize -- return the page size cached in the VM */
+
+Size (VMPageSize)(VM vm)
 {
-  mps_arena_t arena;
+  AVERT(VM, vm);
 
-  testlib_init(argc, argv);
+  return VMPageSize(vm);
+}
 
-  die(mps_arena_create(&arena, mps_arena_class_vm(), 1024 * 1024),
-      "mps_arena_create");
 
-  test(arena);
+/* VMBase -- return the base address of the memory reserved */
 
-  mps_arena_destroy(arena);
-  printf("%s: Conclusion: Failed to find any defects.\n", argv[0]);
-  return 0;
+Addr (VMBase)(VM vm)
+{
+  AVERT(VM, vm);
+
+  return VMBase(vm);
+}
+
+
+/* VMLimit -- return the limit address of the memory reserved */
+
+Addr (VMLimit)(VM vm)
+{
+  AVERT(VM, vm);
+
+  return VMLimit(vm);
+}
+
+
+/* VMReserved -- return the amount of address space reserved */
+
+Size (VMReserved)(VM vm)
+{
+  AVERT(VM, vm);
+
+  return VMReserved(vm);
+}
+
+
+/* VMMapped -- return the amount of memory actually mapped */
+
+Size (VMMapped)(VM vm)
+{
+  AVERT(VM, vm);
+
+  return VMMapped(vm);
+}
+
+
+/* VMCopy -- copy VM descriptor */
+
+void VMCopy(VM dest, VM src)
+{
+  AVER(dest != NULL);
+  AVERT(VM, src);
+
+  (void)mps_lib_memcpy(dest, src, sizeof(VMStruct));
 }
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (c) 2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
@@ -111,4 +131,3 @@ int main(int argc, char **argv)
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-

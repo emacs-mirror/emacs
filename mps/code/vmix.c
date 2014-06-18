@@ -24,7 +24,7 @@
  * a definition of MAP_ANON requires a _BSD_SOURCE to be defined prior
  * to <sys/mman.h>; see config.h.
  *
- * .assume.not-last: The implementation of VMCreate assumes that
+ * .assume.not-last: The implementation of VMInit assumes that
  * mmap() will not choose a region which contains the last page
  * in the address space, so that the limit of the mapped area
  * is representable.
@@ -39,6 +39,7 @@
  */
 
 #include "mpm.h"
+#include "vm.h"
 
 /* for mmap(2), munmap(2) */
 #include <sys/types.h>
@@ -58,20 +59,6 @@
 SRCID(vmix, "$Id$");
 
 
-/* VMStruct -- virtual memory structure */
-
-#define VMSig           ((Sig)0x519B3999) /* SIGnature VM */
-
-typedef struct VMStruct {
-  Sig sig;                      /* <design/sig/> */
-  Size pageSize;                /* operating system page size */  
-  void *block;                  /* unaligned base of mmap'd memory */
-  Addr base, limit;             /* aligned boundaries of reserved space */
-  Size reserved;                /* total reserved address space */
-  Size mapped;                  /* total mapped memory */
-} VMStruct;
-
-
 /* PageSize -- return operating system page size */
 
 Size PageSize(void)
@@ -88,32 +75,6 @@ Size PageSize(void)
 }
 
 
-/* VMPageSize -- return the page size cached in the VM */
-
-Size VMPageSize(VM vm)
-{
-  AVERT(VM, vm);
-
-  return vm->pageSize;
-}
-
-
-/* VMCheck -- check a VM */
-
-Bool VMCheck(VM vm)
-{
-  CHECKS(VM, vm);
-  CHECKL(vm->base != 0);
-  CHECKL(vm->limit != 0);
-  CHECKL(vm->base < vm->limit);
-  CHECKL(vm->mapped <= vm->reserved);
-  CHECKL(ArenaGrainSizeCheck(vm->pageSize));
-  CHECKL(AddrIsAligned(vm->base, vm->pageSize));
-  CHECKL(AddrIsAligned(vm->limit, vm->pageSize));
-  return TRUE;
-}
-
-
 Res VMParamFromArgs(void *params, size_t paramSize, ArgList args)
 {
   AVER(params != NULL);
@@ -123,16 +84,14 @@ Res VMParamFromArgs(void *params, size_t paramSize, ArgList args)
 }
 
 
-/* VMCreate -- reserve some virtual address space, and create a VM structure */
+/* VMInit -- reserve some virtual address space, and create a VM structure */
 
-Res VMCreate(VM *vmReturn, Size size, Size grainSize, void *params)
+Res VMInit(VM vm, Size size, Size grainSize, void *params)
 {
-  VM vm;
   Size pageSize, reserved;
-  void *addr;
-  Res res;
+  void *vbase;
 
-  AVER(vmReturn != NULL);
+  AVER(vm != NULL);
   AVERT(ArenaGrainSize, grainSize);
   AVER(size > 0);
   AVER(params != NULL);
@@ -150,35 +109,22 @@ Res VMCreate(VM *vmReturn, Size size, Size grainSize, void *params)
   if (reserved < grainSize || reserved > (Size)(size_t)-1)
     return ResRESOURCE;
 
-  /* Map in a page to store the descriptor on. */
-  addr = mmap(0, (size_t)SizeAlignUp(sizeof(VMStruct), pageSize),
-              PROT_READ | PROT_WRITE,
-              MAP_ANON | MAP_PRIVATE,
-              -1, 0);
+  /* See .assume.not-last. */
+  vbase = mmap(0, reserved,
+               PROT_NONE, MAP_ANON | MAP_PRIVATE,
+               -1, 0);
   /* On Darwin the MAP_FAILED return value is not documented, but does
    * work.  MAP_FAILED _is_ documented by POSIX.
    */
-  if(addr == MAP_FAILED) {
+  if (vbase == MAP_FAILED) {
     int e = errno;
     AVER(e == ENOMEM); /* .assume.mmap.err */
-    return ResMEMORY;
-  }
-  vm = (VM)addr;
-
-  /* See .assume.not-last. */
-  addr = mmap(0, reserved,
-              PROT_NONE, MAP_ANON | MAP_PRIVATE,
-              -1, 0);
-  if(addr == MAP_FAILED) {
-    int e = errno;
-    AVER(e == ENOMEM); /* .assume.mmap.err */
-    res = ResRESOURCE;
-    goto failReserve;
+    return ResRESOURCE;
   }
 
   vm->pageSize = pageSize;
-  vm->block = addr;
-  vm->base = AddrAlignUp(addr, grainSize);
+  vm->block = vbase;
+  vm->base = AddrAlignUp(vbase, grainSize);
   vm->limit = AddrAdd(vm->base, size);
   AVER(vm->base < vm->limit);  /* .assume.not-last */
   AVER(vm->limit <= AddrAdd((Addr)vm->block, reserved));
@@ -188,78 +134,30 @@ Res VMCreate(VM *vmReturn, Size size, Size grainSize, void *params)
   vm->sig = VMSig;
   AVERT(VM, vm);
 
-  EVENT3(VMCreate, vm, vm->base, vm->limit);
-
-  *vmReturn = vm;
+  EVENT3(VMInit, vm, VMBase(vm), VMLimit(vm));
   return ResOK;
-
-failReserve:
-  (void)munmap((void *)vm, (size_t)SizeAlignUp(sizeof(VMStruct), pageSize));
-  return res;
 }
 
 
-/* VMDestroy -- release all address space and destroy VM structure */
+/* VMFinish -- release all address space and finish VM structure */
 
-void VMDestroy(VM vm)
+void VMFinish(VM vm)
 {
   int r;
 
   AVERT(VM, vm);
-  AVER(vm->mapped == (Size)0);
+  /* Descriptor must not be stored inside its own VM at this point. */
+  AVER(PointerAdd(vm, sizeof *vm) <= vm->block
+       || PointerAdd(vm->block, VMReserved(vm)) <= (Pointer)vm);
+  /* All address space must have been unmapped. */
+  AVER(VMMapped(vm) == (Size)0);
 
-  EVENT1(VMDestroy, vm);
+  EVENT1(VMFinish, vm);
 
-  /* This appears to be pretty pointless, since the descriptor */
-  /* page is about to vanish completely.  However, munmap might fail */
-  /* for some reason, and this would ensure that it was still */
-  /* discovered if sigs were being checked. */
   vm->sig = SigInvalid;
 
   r = munmap(vm->block, vm->reserved);
   AVER(r == 0);
-  r = munmap((void *)vm, (size_t)SizeAlignUp(sizeof(VMStruct), vm->pageSize));
-  AVER(r == 0);
-}
-
-
-/* VMBase -- return the base address of the memory reserved */
-
-Addr VMBase(VM vm)
-{
-  AVERT(VM, vm);
-
-  return vm->base;
-}
-
-
-/* VMLimit -- return the limit address of the memory reserved */
-
-Addr VMLimit(VM vm)
-{
-  AVERT(VM, vm);
-
-  return vm->limit;
-}
-
-
-/* VMReserved -- return the amount of memory reserved */
-
-Size VMReserved(VM vm)
-{
-  AVERT(VM, vm);
-
-  return vm->reserved;
-}
-
-
-/* VMMapped -- return the amount of memory actually mapped */
-
-Size VMMapped(VM vm)
-{
-  AVERT(VM, vm);
-
-  return vm->mapped;
 }
 
 
@@ -272,8 +170,8 @@ Res VMMap(VM vm, Addr base, Addr limit)
   AVERT(VM, vm);
   AVER(sizeof(void *) == sizeof(Addr));
   AVER(base < limit);
-  AVER(base >= vm->base);
-  AVER(limit <= vm->limit);
+  AVER(base >= VMBase(vm));
+  AVER(limit <= VMLimit(vm));
   AVER(AddrIsAligned(base, vm->pageSize));
   AVER(AddrIsAligned(limit, vm->pageSize));
 
@@ -289,7 +187,7 @@ Res VMMap(VM vm, Addr base, Addr limit)
   }
 
   vm->mapped += size;
-  AVER(vm->mapped <= vm->reserved);
+  AVER(VMMapped(vm) <= VMReserved(vm));
 
   EVENT3(VMMap, vm, base, limit);
   return ResOK;
@@ -305,12 +203,13 @@ void VMUnmap(VM vm, Addr base, Addr limit)
 
   AVERT(VM, vm);
   AVER(base < limit);
-  AVER(base >= vm->base);
-  AVER(limit <= vm->limit);
+  AVER(base >= VMBase(vm));
+  AVER(limit <= VMLimit(vm));
   AVER(AddrIsAligned(base, vm->pageSize));
   AVER(AddrIsAligned(limit, vm->pageSize));
 
   size = AddrOffset(base, limit);
+  AVER(size <= VMMapped(vm));
 
   /* see <design/vmo1/#fun.unmap.offset> */
   addr = mmap((void *)base, (size_t)size,
