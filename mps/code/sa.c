@@ -7,6 +7,7 @@
 #include "sa.h"
 #include "mpm.h"
 #include "bt.h"
+#include "vm.h"
 
 static Index pagesLength(SparseArray sa)
 {

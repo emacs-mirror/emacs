@@ -167,6 +167,7 @@ MPMCOMMON=\
     <tract> \
     <tree> \
     <version> \
+    <vm> \
     <walk>
 PLINTH = <mpsliban> <mpsioan>
 AMC = <poolamc>
