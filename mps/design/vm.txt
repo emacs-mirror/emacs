@@ -17,7 +17,7 @@ Introduction
 
 _`.intro`: This the design of the VM interface. The VM interface
 provides a simple, low-level, operating-system independent interface
-to address-space. Each call to ``VMCreate()`` reserves (from the
+to address-space. Each call to ``VMInit()`` reserves (from the
 operating-system) a single contiguous range of addresses, and updates
 a ``VMStruct`` thereafter used to manage this address-space. The VM
 interface has separate implementations for each platform that supports
@@ -69,7 +69,7 @@ of the MPS VM module; an instance of such a structure.
 
 _`.def.vm.mps`: In the MPS, a "VM" is a ``VMStruct``, providing access
 to the single contiguous range of address-space that was reserved
-(from the operating-system) when ``VMCreate()`` was called.
+(from the operating-system) when ``VMInit()`` was called.
 
 
 Interface
@@ -92,12 +92,12 @@ parameter and stores a description of them in the buffer pointed to by
 buffer is not big enough store the parameters for this VM
 implementation.
 
-``Res VMCreate(VM vmReturn, Size size, Size grainSize, void *params)``
+``Res VMInit(VM vm, Size size, Size grainSize, void *params)``
 
-_`.if.create`: ``VMCreate()`` is responsible for reserving an amount
+_`.if.init`: ``VMInit()`` is responsible for reserving an amount
 of virtual address space. The ``params`` argument points to a
 parameter block initialized by a call to ``VMParamFromArgs()``. If
-successful, the VM descriptor given by the parameter ``vmReturn`` is
+successful, the VM descriptor given by the parameter ``vm`` is
 updated to describe the address space, and ``ResOK`` is returned. The
 created VM has at least ``size`` bytes of virtual memory reserved
 starting at an address which is a multiple of ``grainSize``.
@@ -106,9 +106,9 @@ If there's not enough address space to reserve a block of the given
 size, ``ResRESOURCE`` is returned. The reserved virtual memory can be
 mapped and unmapped by calling ``VMMap()`` and ``VMUnmap()``.
 
-``void VMDestroy(VM vm)``
+``void VMFinish(VM vm)``
 
-_`.if.destroy`: A VM is destroyed by calling ``VMDestroy()``. Any
+_`.if.finish`: A VM is destroyed by calling ``VMFinish()``. Any
 address space that was mapped through this VM is unmapped.
 
 ``Res VMMap(VM vm, Addr base, Addr limit)``
@@ -116,7 +116,7 @@ address space that was mapped through this VM is unmapped.
 _`.if.map`: Map the range of addresses from ``base`` (inclusive) to
 ``limit`` (exclusive) into memory. It is an error if the range does
 not lie between ``VMBase(vm)`` and ``VMLimit(vm)``, or if ``base`` and
-``limit`` are not multiples of ``VMPageSize()``. Return ``ResOK``
+``limit`` are not multiples of ``VMPageSize(vm)``. Return ``ResOK``
 if successful, ``ResMEMORY`` if not.
 
 ``void VMUnmap(VM vm, Addr base, Addr limit)``
@@ -157,7 +157,7 @@ work in extreme cases.
 _`.testing.large`: It must be able to reserve a large address space.
 Clients will want multi-GB spaces, more than that OSs will allow. If
 they ask for too much, ``mps_arena_create()`` (and hence
-``VMCreate()``) must fail in a predictable way.
+``VMInit()``) must fail in a predictable way.
 
 _`.testing.larger`: It must be possible to allocate in a large space;
 sometimes commiting will fail, because there's not enough space to
