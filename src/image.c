@@ -7681,7 +7681,7 @@ gif_load (struct frame *f, struct image *img)
 	image_error ("Error closing `%s': %s",
 		     img->spec, build_string (error_text));
 #else
-      image_error ("Error closing `%s'", img->spec);
+      image_error ("Error closing `%s'", img->spec, Qnil);
 #endif
     }
 
