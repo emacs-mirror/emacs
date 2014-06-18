@@ -248,6 +248,12 @@ extern mps_addr_t rnd_addr(void);
 extern double rnd_double(void);
 
 
+/* rnd_grain -- return a random grain size that's not too big for the
+ * given arena size */
+
+extern size_t rnd_grain(size_t arena_size);
+
+
 /* randomize -- randomize the generator, or initialize to replay
  *
  * randomize(argc, argv) randomizes the rnd generator (using time(3))
