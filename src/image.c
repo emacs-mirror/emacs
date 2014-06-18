@@ -7338,8 +7338,10 @@ gif_close (GifFileType *gif, int *err)
   retval = fn_DGifCloseFile (gif, err);
 #else
   retval = fn_DGifCloseFile (gif);
+#if GIFLIB_MAJOR >= 5
   if (err)
     *err = gif->Error;
+#endif
 #endif
 }
 
@@ -7366,9 +7368,7 @@ gif_load (struct frame *f, struct image *img)
   Lisp_Object specified_data = image_spec_value (img->spec, QCdata, NULL);
   unsigned long bgcolor = 0;
   EMACS_INT idx;
-#if GIFLIB_MAJOR >= 5
   int gif_err;
-#endif
 
   if (NILP (specified_data))
     {
