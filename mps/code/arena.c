@@ -294,6 +294,7 @@ ARG_DEFINE_KEY(vmw3_top_down, Bool);
 /* ArenaCreate -- create the arena and call initializers */
 
 ARG_DEFINE_KEY(arena_size, Size);
+ARG_DEFINE_KEY(arena_grain_size, Size);
 ARG_DEFINE_KEY(arena_zoned, Bool);
 
 Res ArenaCreate(Arena *arenaReturn, ArenaClass class, ArgList args)

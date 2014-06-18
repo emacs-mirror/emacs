@@ -91,14 +91,9 @@ static Res MFSInit(Pool pool, ArgList args)
   unitSize = arg.val.size;
   if (ArgPick(&arg, args, MPS_KEY_EXTEND_BY))
     extendBy = arg.val.size;
-  else {
-    if (extendBy < unitSize)
-      extendBy = unitSize;
-  }
   if (ArgPick(&arg, args, MFSExtendSelf))
     extendSelf = arg.val.b;
 
-  AVER(extendBy >= unitSize);
   AVERT(Bool, extendSelf);
  
   mfs = PoolPoolMFS(pool);
@@ -109,6 +104,8 @@ static Res MFSInit(Pool pool, ArgList args)
   if (unitSize < UNIT_MIN)
     unitSize = UNIT_MIN;
   unitSize = SizeAlignUp(unitSize, MPS_PF_ALIGN);
+  if (extendBy < unitSize)
+    extendBy = unitSize;
   extendBy = SizeArenaGrains(extendBy, arena);
 
   mfs->extendBy = extendBy;
