@@ -7343,6 +7343,7 @@ gif_close (GifFileType *gif, int *err)
     *err = gif->Error;
 #endif
 #endif
+  return retval;
 }
 
 /* Load GIF image IMG for use on frame F.  Value is true if
