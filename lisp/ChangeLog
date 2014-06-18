@@ -1,3 +1,8 @@
+2014-06-18  Juri Linkov  <juri@jurta.org>
+
+	* dired.el (dired-mark-pop-up): Let-bind display-buffer-mark-dedicated
+	to `soft'.  (Bug#17554)
+
 2014-06-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* delsel.el (electric-newline-and-maybe-indent): Mark it as well
