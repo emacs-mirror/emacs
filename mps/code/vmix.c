@@ -24,7 +24,7 @@
  * a definition of MAP_ANON requires a _BSD_SOURCE to be defined prior
  * to <sys/mman.h>; see config.h.
  *
- * .assume.not-last: The implementation of VMCreate assumes that
+ * .assume.not-last: The implementation of VMInit assumes that
  * mmap() will not choose a region which contains the last page
  * in the address space, so that the limit of the mapped area
  * is representable.
@@ -84,9 +84,9 @@ Res VMParamFromArgs(void *params, size_t paramSize, ArgList args)
 }
 
 
-/* VMCreate -- reserve some virtual address space, and create a VM structure */
+/* VMInit -- reserve some virtual address space, and create a VM structure */
 
-Res VMCreate(VM vm, Size size, Size grainSize, void *params)
+Res VMInit(VM vm, Size size, Size grainSize, void *params)
 {
   Size pageSize, reserved;
   void *vbase;
@@ -134,14 +134,14 @@ Res VMCreate(VM vm, Size size, Size grainSize, void *params)
   vm->sig = VMSig;
   AVERT(VM, vm);
 
-  EVENT3(VMCreate, vm, VMBase(vm), VMLimit(vm));
+  EVENT3(VMInit, vm, VMBase(vm), VMLimit(vm));
   return ResOK;
 }
 
 
-/* VMDestroy -- release all address space and finish VM structure */
+/* VMFinish -- release all address space and finish VM structure */
 
-void VMDestroy(VM vm)
+void VMFinish(VM vm)
 {
   int r;
 
@@ -152,7 +152,7 @@ void VMDestroy(VM vm)
   /* All address space must have been unmapped. */
   AVER(VMMapped(vm) == (Size)0);
 
-  EVENT1(VMDestroy, vm);
+  EVENT1(VMFinish, vm);
 
   vm->sig = SigInvalid;
 

@@ -80,6 +80,17 @@ Size (VMMapped)(VM vm)
 }
 
 
+/* VMCopy -- copy VM descriptor */
+
+void VMCopy(VM dest, VM src)
+{
+  AVER(dest != NULL);
+  AVERT(VM, src);
+
+  (void)mps_lib_memcpy(dest, src, sizeof(VMStruct));
+}
+
+
 /* C. COPYRIGHT AND LICENSE
  *
  * Copyright (C) 2014 Ravenbrook Limited <http://www.ravenbrook.com/>.

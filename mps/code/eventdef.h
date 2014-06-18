@@ -36,7 +36,7 @@
  */
 
 #define EVENT_VERSION_MAJOR  ((unsigned)1)
-#define EVENT_VERSION_MEDIAN ((unsigned)3)
+#define EVENT_VERSION_MEDIAN ((unsigned)4)
 #define EVENT_VERSION_MINOR  ((unsigned)0)
 
 
@@ -115,8 +115,8 @@
   /* TraceScanArea{Tagged} abuses kind, see .kind.abuse */ \
   EVENT(X, TraceScanArea      , 0x0029,  TRUE, Seg) \
   EVENT(X, TraceScanAreaTagged, 0x002a,  TRUE, Seg) \
-  EVENT(X, VMCreate           , 0x002b,  TRUE, Arena) \
-  EVENT(X, VMDestroy          , 0x002c,  TRUE, Arena) \
+  EVENT(X, VMInit             , 0x002b,  TRUE, Arena) \
+  EVENT(X, VMFinish           , 0x002c,  TRUE, Arena) \
   EVENT(X, VMMap              , 0x002d,  TRUE, Seg) \
   EVENT(X, VMUnmap            , 0x002e,  TRUE, Seg) \
   EVENT(X, ArenaExtend        , 0x002f,  TRUE, Arena) \
@@ -368,12 +368,12 @@
   PARAM(X,  1, P, base) \
   PARAM(X,  2, P, limit)
 
-#define EVENT_VMCreate_PARAMS(PARAM, X) \
+#define EVENT_VMInit_PARAMS(PARAM, X) \
   PARAM(X,  0, P, vm) \
   PARAM(X,  1, A, base) \
   PARAM(X,  2, A, limit)
 
-#define EVENT_VMDestroy_PARAMS(PARAM, X) \
+#define EVENT_VMFinish_PARAMS(PARAM, X) \
   PARAM(X,  0, P, vm)
 
 #define EVENT_VMMap_PARAMS(PARAM, X) \
