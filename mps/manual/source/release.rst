@@ -47,9 +47,9 @@ Interface changes
 .................
 
 #. The granularity with which the arena manages memory can now be
-   specified using the :c:macro:`MPS_KEY_ARENA_SIZE` keyword argument
-   to :c:func:`mps_arena_create_k`. See :c:func:`mps_arena_class_cl`
-   and :c:func:`mps_arena_class_vm`.
+   specified using the :c:macro:`MPS_KEY_ARENA_GRAIN_SIZE` keyword
+   argument to :c:func:`mps_arena_create_k`. See
+   :c:func:`mps_arena_class_cl` and :c:func:`mps_arena_class_vm`.
 
 #. There is now a default value (currently 256 \ :term:`megabytes`)
    for the :c:macro:`MPS_KEY_ARENA_SIZE` keyword argument to
