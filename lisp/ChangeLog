@@ -1,3 +1,9 @@
+2014-06-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* play/bubbles.el (bubbles--initialize, bubbles--show-scores)
+	(bubbles--game-over): Don't add `intangible' properties since they
+	didn't work anyway.
+
 2014-06-18  Juri Linkov  <juri@jurta.org>
 
 	* vc/ediff-init.el (ediff-current-diff-Ancestor)

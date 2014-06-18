@@ -1005,20 +1005,17 @@ Set `bubbles--col-offset' and `bubbles--row-offset'."
     (set-buffer-modified-p nil)
     (erase-buffer)
     (insert " ")
-    (add-text-properties
-     (point-min) (point) (list 'intangible t 'display
-                               (cons 'space
-                                     (list :height bubbles--row-offset))))
+    (put-text-property (point-min) (point)
+                       'display
+                       (cons 'space (list :height bubbles--row-offset)))
     (insert "\n")
     (let ((max-char (length (bubbles--colors))))
       (dotimes (i (bubbles--grid-height))
         (let ((p (point)))
           (insert " ")
-          (add-text-properties
-           p (point) (list 'intangible t
-                           'display (cons 'space
-                                          (list :width
-                                                bubbles--col-offset)))))
+          (put-text-property p (point)
+                             'display
+                             (cons 'space (list :width bubbles--col-offset))))
         (dotimes (j (bubbles--grid-width))
           (let* ((index (random max-char))
                  (char (nth index bubbles-chars)))
@@ -1026,10 +1023,9 @@ Set `bubbles--col-offset' and `bubbles--row-offset'."
             (add-text-properties (1- (point)) (point) (list 'index index))))
         (insert "\n"))
       (insert "\n ")
-      (add-text-properties
-       (1- (point)) (point) (list 'intangible t 'display
-                                  (cons 'space
-                                        (list :width bubbles--col-offset)))))
+      (put-text-property (1- (point)) (point)
+                         'display
+                         (cons 'space (list :width bubbles--col-offset))))
     (put-text-property (point-min) (point-max) 'pointer 'arrow))
   (bubbles-mode)
   (bubbles--reset-score)
@@ -1179,10 +1175,9 @@ Use optional parameter POS instead of point if given."
       (delete-region (point) (point-max))
       (insert (format "Selected: %4d\n" bubbles--neighborhood-score))
       (insert " ")
-      (add-text-properties (1- (point)) (point)
-                           (list 'intangible t 'display
-                                 (cons 'space
-                                       (list :width bubbles--col-offset))))
+      (put-text-property (1- (point)) (point)
+                         'display
+                         (cons 'space (list :width bubbles--col-offset)))
       (insert (format "Score:    %4d" bubbles--score))
       (put-text-property pos (point) 'status t))))
 
@@ -1200,10 +1195,9 @@ Use optional parameter POS instead of point if given."
   (goto-char (point-max))
   (let* ((inhibit-read-only t))
     (insert "\n ")
-    (add-text-properties (1- (point)) (point)
-                         (list 'intangible t 'display
-                               (cons 'space
-                                     (list :width bubbles--col-offset))))
+    (put-text-property (1- (point)) (point)
+                       'display
+                       (cons 'space (list :width bubbles--col-offset)))
     (insert "Game Over!"))
   ;; save score
   (gamegrid-add-score (format "bubbles-%s-%d-%d-%d-scores"
