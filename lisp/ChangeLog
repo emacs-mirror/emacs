@@ -1,5 +1,14 @@
 2014-06-18  Juri Linkov  <juri@jurta.org>
 
+	* vc/ediff-init.el (ediff-current-diff-Ancestor)
+	(ediff-fine-diff-Ancestor, ediff-even-diff-A, ediff-even-diff-B)
+	(ediff-even-diff-C, ediff-even-diff-Ancestor, ediff-odd-diff-A)
+	(ediff-odd-diff-B, ediff-odd-diff-C, ediff-odd-diff-Ancestor):
+	Add `min-colors 88' version with removed black/white foregrounds.
+	(Bug#10181)
+
+2014-06-18  Juri Linkov  <juri@jurta.org>
+
 	* vc/diff-mode.el (diff-changed): Empty face definition to use
 	`diff-removed' and `diff-added' on tty as well.  (Bug#10181)
 	(diff-context): Use darker color on light background and
