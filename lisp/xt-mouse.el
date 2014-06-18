@@ -76,7 +76,7 @@ http://invisible-island.net/xterm/ctlseqs/ctlseqs.html)."
 	     (is-down (string-match "down" (symbol-name (car down)))))
 
 	;; Retrieve the expected preface for the up-event.
-	(unless is-down
+	(when is-down
 	  (unless (cond ((null extension)
 			 (and (eq (read-event) ?\e)
 			      (eq (read-event) ?\[)
@@ -158,28 +158,27 @@ http://invisible-island.net/xterm/ctlseqs/ctlseqs.html)."
 (defun xterm-mouse--read-event-sequence-1000 ()
   (let* ((code (- (read-event) 32))
          (type
-	  (intern
-	   ;; For buttons > 3, the release-event looks differently
-	   ;; (see xc/programs/xterm/button.c, function EditorButton),
-	   ;; and come in a release-event only, no down-event.
-	   (cond ((>= code 64)
-		  (format "mouse-%d" (- code 60)))
-		 ((memq code '(8 9 10))
-		  (setq xterm-mouse-last (- code 8))
-		  (format "M-down-mouse-%d" (- code 7)))
-		 ((and (= code 11) xterm-mouse-last)
-		  (format "M-mouse-%d" (1+ xterm-mouse-last)))
-		 ((and (= code 3) xterm-mouse-last)
-		  ;; For buttons > 5 xterm only reports a button-release event.
-		  ;; Drop them since they're not usable and can be spurious.
-		  (format "mouse-%d" (1+ xterm-mouse-last)))
-		 ((memq code '(0 1 2))
-		  (setq xterm-mouse-last code)
-		  (format "down-mouse-%d" (+ 1 code))))))
+          ;; For buttons > 3, the release-event looks differently
+          ;; (see xc/programs/xterm/button.c, function EditorButton),
+          ;; and come in a release-event only, no down-event.
+          (cond ((>= code 64)
+                 (format "mouse-%d" (- code 60)))
+                ((memq code '(8 9 10))
+                 (setq xterm-mouse-last (- code 8))
+                 (format "M-down-mouse-%d" (- code 7)))
+                ((and (= code 11) xterm-mouse-last)
+                 (format "M-mouse-%d" (1+ xterm-mouse-last)))
+                ((and (= code 3) xterm-mouse-last)
+                 ;; For buttons > 5 xterm only reports a button-release event.
+                 ;; Drop them since they're not usable and can be spurious.
+                 (format "mouse-%d" (1+ xterm-mouse-last)))
+                ((memq code '(0 1 2))
+                 (setq xterm-mouse-last code)
+                 (format "down-mouse-%d" (+ 1 code)))))
          (x (- (read-event) 33))
          (y (- (read-event) 33)))
     (and type (wholenump x) (wholenump y)
-         (list type x y))))
+         (list (intern type) x y))))
 
 ;; XTerm's 1006-mode terminal mouse click reporting has the form
 ;; <BUTTON> ; <X> ; <Y> <M or m>, where the button and ordinates are
