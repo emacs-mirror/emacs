@@ -114,7 +114,7 @@ Res VMMap(VM vm, Addr base, Addr limit)
   AVER(AddrIsAligned(limit, vm->pageSize));
 
   size = AddrOffset(base, limit);
-  (void)mps_lib_memset((void *)base, VMJunkByte, size);
+  (void)mps_lib_memset((void *)base, VMJunkBYTE, size);
 
   vm->mapped += size;
   AVER(VMMapped(vm) <= VMReserved(vm));
