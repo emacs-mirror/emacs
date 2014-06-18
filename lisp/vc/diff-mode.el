@@ -1916,7 +1916,7 @@ For use in `add-log-current-defun-function'."
 
 ;;; Fine change highlighting.
 
-(defface diff-refine-change
+(defface diff-refine-changed
   '((((class color) (min-colors 88) (background light))
      :background "#ffff55")
     (((class color) (min-colors 88) (background dark))
@@ -1924,6 +1924,7 @@ For use in `add-log-current-defun-function'."
     (t :inverse-video t))
   "Face used for char-based changes shown by `diff-refine-hunk'."
   :group 'diff-mode)
+(define-obsolete-face-alias 'diff-refine-change 'diff-refine-changed "24.5")
 
 (defface diff-refine-removed
   '((default

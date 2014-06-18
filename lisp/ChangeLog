@@ -1,3 +1,13 @@
+2014-06-18  Juri Linkov  <juri@jurta.org>
+
+	* vc/diff-mode.el (diff-refine-changed): Rename from
+	`diff-refine-change' for consistency with `diff-changed'.
+	(diff-refine-change): Add obsolete face alias.  (Bug#10181)
+
+	* vc/smerge-mode.el (smerge-refined-changed): Rename from
+	`smerge-refined-change'.
+	(smerge-refined-change): Add obsolete face alias.
+
 2014-06-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* rect.el (rectangle-preview): New custom.
