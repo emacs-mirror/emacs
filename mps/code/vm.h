@@ -10,7 +10,12 @@
 #include "mpmtypes.h"
 
 
-/* VMStruct -- virtual memory structure */
+/* VMStruct -- virtual memory structure
+ *
+ * Unlike most other datatypes we permit this structure to be moved
+ * around in memory, and in particular, allocated temporarily on the
+ * stack, to help with bootstrapping. Look for uses of VMCopy.
+ */
 
 #define VMSig           ((Sig)0x519B3999) /* SIGnature VM */
 
@@ -34,14 +39,15 @@ extern Size PageSize(void);
 extern Size (VMPageSize)(VM vm);
 extern Bool VMCheck(VM vm);
 extern Res VMParamFromArgs(void *params, size_t paramSize, ArgList args);
-extern Res VMCreate(VM vmReturn, Size size, Size grainSize, void *params);
-extern void VMDestroy(VM vm);
+extern Res VMInit(VM vmReturn, Size size, Size grainSize, void *params);
+extern void VMFinish(VM vm);
 extern Addr (VMBase)(VM vm);
 extern Addr (VMLimit)(VM vm);
 extern Res VMMap(VM vm, Addr base, Addr limit);
 extern void VMUnmap(VM vm, Addr base, Addr limit);
 extern Size (VMReserved)(VM vm);
 extern Size (VMMapped)(VM vm);
+extern void VMCopy(VM dest, VM src);
 
 
 #endif /* vm_h */
