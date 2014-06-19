@@ -679,7 +679,7 @@ Conditionally try to reconnect and take appropriate action."
     (when (buffer-live-p buf)
       (with-current-buffer buf
         (erc-log (format
-                  "SENTINEL: proc: %S	 status: %S  event: %S (quitting: %S)"
+                  "SENTINEL: proc: %S    status: %S  event: %S (quitting: %S)"
                   cproc (process-status cproc) event erc-server-quitting))
         (if (string-match "^open" event)
             ;; newly opened connection (no wait)
@@ -1208,7 +1208,6 @@ add things to `%s' instead."
          parsed 'notice 'active
          'INVITE ?n nick ?u login ?h host ?c chnl)))))
 
-
 (define-erc-response-handler (JOIN)
   "Handle join messages."
   nil
@@ -1244,7 +1243,7 @@ add things to `%s' instead."
                        (erc-format-message
                         'JOIN ?n nick ?u login ?h host ?c chnl))))))
           (when buffer (set-buffer buffer))
-          (erc-update-channel-member chnl nick nick t nil nil host login)
+          (erc-update-channel-member chnl nick nick t nil nil nil nil nil host login)
           ;; on join, we want to stay in the new channel buffer
           ;;(set-buffer ob)
           (erc-display-message parsed nil buffer str))))))
@@ -1413,7 +1412,7 @@ add things to `%s' instead."
             ;; message.  We will accumulate private identities indefinitely
             ;; at this point.
             (erc-update-channel-member (if privp nick tgt) nick nick
-                                       privp nil nil host login nil nil t)
+                                       privp nil nil nil nil nil host login nil nil t)
             (let ((cdata (erc-get-channel-user nick)))
               (setq fnick (funcall erc-format-nick-function
                                    (car cdata) (cdr cdata))))))
@@ -1470,7 +1469,7 @@ add things to `%s' instead."
                                    (current-time))))
     (pcase-let ((`(,nick ,login ,host)
                  (erc-parse-user (erc-response.sender parsed))))
-      (erc-update-channel-member ch nick nick nil nil nil host login)
+      (erc-update-channel-member ch nick nick nil nil nil nil nil nil host login)
       (erc-update-channel-topic ch (format "%s\C-o (%s, %s)" topic nick time))
       (erc-display-message parsed 'notice (erc-get-buffer ch proc)
                            'TOPIC ?n nick ?u login ?h host
@@ -1800,8 +1799,7 @@ See `erc-display-server-message'." nil
       (when (string-match "\\(^[0-9]+ \\)\\(.*\\)$" full-name)
         (setq hopcount (match-string 1 full-name))
         (setq full-name (match-string 2 full-name)))
-      (erc-update-channel-member channel nick nick nil nil nil host
-                                 user full-name)
+      (erc-update-channel-member channel nick nick nil nil nil nil nil nil host user full-name)
       (erc-display-message parsed 'notice 'active 's352
                            ?c channel ?n nick ?a away-flag
                            ?u user ?h host ?f full-name))))
