@@ -46,6 +46,8 @@ Use './configure PKG_CONFIG=/full/name/of/pkg-config' if you need to.
 
 * Changes in Emacs 24.5
 
+** New var `truncate-string-ellipsis' to choose how to indicate truncation.
+
 ---
 ** The default value of `history-length' has increased to 100.
 

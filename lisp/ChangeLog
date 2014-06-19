@@ -1,3 +1,8 @@
+2014-06-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* international/mule-util.el (truncate-string-ellipsis): New var.
+	(truncate-string-to-width): Use it.
+
 2014-06-19  Robert Brown  <robert.brown@gmail.com>  (tiny change)
 
 	* emacs-lisp/lisp-mode.el (lisp-string-after-doc-keyword-p): New fun.
