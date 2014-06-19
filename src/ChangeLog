@@ -1,3 +1,8 @@
+2014-06-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c (read_key_sequence): Don't invoke Vprefix_help_command
+	before checking key-translation-map (bug#17659).
+
 2014-06-19  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* font.c (font_make_object): Avoid dangling pointer which may
