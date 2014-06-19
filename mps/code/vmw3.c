@@ -215,7 +215,7 @@ void VMUnmap(VM vm, Addr base, Addr limit)
   AVER(limit <= VMLimit(vm));
 
   size = AddrOffset(base, limit);
-  AVER(size >= VMMapped(vm));
+  AVER(size <= VMMapped(vm));
 
   /* .improve.query-unmap: Could check that the pages we are about */
   /* to unmap are mapped, using VirtualQuery. */
