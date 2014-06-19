@@ -74,8 +74,8 @@ The MPS is currently supported for deployment on:
 
 - Windows XP or later on IA-32 and x86-64, using Microsoft Visual C/C++;
 
-- Linux (Ubuntu 11 and RHEL 6.3 known good, otherwise YMMV) on IA-32
-  using GCC and on x86-64 using GCC or Clang/LLVM;
+- Linux (Ubuntu 12 and 13 known good, otherwise YMMV) on IA-32 using
+  GCC and on x86-64 using GCC or Clang/LLVM;
 
 - FreeBSD 7 or later, on IA-32 and x86-64, using GCC;
 
