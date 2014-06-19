@@ -236,7 +236,7 @@ static Res ClientArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
   Size size;
   Size clArenaSize;   /* aligned size of ClientArenaStruct */
   Addr base, limit, chunkBase;
-  Align grainSize = ARENA_CLIENT_GRAIN_SIZE;
+  Align grainSize = 1;
   Res res;
   Chunk chunk;
   mps_arg_s arg;
@@ -251,6 +251,7 @@ static Res ClientArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
   base = arg.val.addr;
   if (ArgPick(&arg, args, MPS_KEY_ARENA_GRAIN_SIZE))
     grainSize = arg.val.size;
+  grainSize = SizeAlignUp(grainSize, ARENA_CLIENT_GRAIN_SIZE);
   grainSize = SizeAlignUp(grainSize, ProtGranularity());
 
   AVER(base != (Addr)0);

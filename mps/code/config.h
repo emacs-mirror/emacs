@@ -395,9 +395,9 @@
 
 /* Arena Configuration -- see <code/arena.c>
  *
- * .client.seg-size: ARENA_CLIENT_GRAIN_SIZE is the size in bytes of a
- * grain in the client arena. It's set at 8192 with no particular
- * justification.
+ * .client.seg-size: ARENA_CLIENT_GRAIN_SIZE is the minimum size, in
+ * bytes, of a grain in the client arena. It's set at 8192 with no
+ * particular justification.
  */
 
 #define ArenaPollALLOCTIME (65536.0)
