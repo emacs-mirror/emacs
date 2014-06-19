@@ -4243,10 +4243,11 @@ See also `erc-format-nick-function'."
           (t ""))))
 
 (defun erc-format-@nick (&optional user channel-data)
-  "Format the nickname of USER showing if USER is an operator or has voice.
-Operators have \"@\" and users with voice have \"+\" as a prefix.
-Use CHANNEL-DATA to determine op and voice status.
-See also `erc-format-nick-function'."
+  "Format the nickname of USER showing if USER has a voice, is an
+operator, half-op, admin or owner. Owners have \"~\", admins have
+\"&\", operators have \"@\" and users with voice have \"+\" as a
+prefix.  Use CHANNEL-DATA to determine op and voice status.  See
+also `erc-format-nick-function'."
   (when user
     (let ((nick (erc-server-user-nickname user)))
       (concat (erc-propertize
