@@ -413,6 +413,41 @@ It has `lisp-mode-abbrev-table' as its parent."
 (defvar lisp-cl-font-lock-keywords lisp-cl-font-lock-keywords-1
   "Default expressions to highlight in Lisp modes.")
 
+(defun lisp-string-in-doc-position-p (listbeg startpos)
+  (let* ((firstsym (and listbeg
+                        (save-excursion
+                          (goto-char listbeg)
+                          (and (looking-at "([ \t\n]*\\(\\(\\sw\\|\\s_\\)+\\)")
+                               (match-string 1)))))
+         (docelt (and firstsym
+                      (function-get (intern-soft firstsym)
+                                    lisp-doc-string-elt-property))))
+    (and docelt
+         ;; It's a string in a form that can have a docstring.
+         ;; Check whether it's in docstring position.
+         (save-excursion
+           (when (functionp docelt)
+             (goto-char (match-end 1))
+             (setq docelt (funcall docelt)))
+           (goto-char listbeg)
+           (forward-char 1)
+           (condition-case nil
+               (while (and (> docelt 0) (< (point) startpos)
+                           (progn (forward-sexp 1) t))
+                 (setq docelt (1- docelt)))
+             (error nil))
+           (and (zerop docelt) (<= (point) startpos)
+                (progn (forward-comment (point-max)) t)
+                (= (point) startpos))))))
+
+(defun lisp-string-after-doc-keyword-p (listbeg startpos)
+  (and listbeg                          ; We are inside a Lisp form.
+       (save-excursion
+         (goto-char startpos)
+         (ignore-errors
+           (progn (backward-sexp 1)
+                  (looking-at ":documentation\\_>"))))))
+
 (defun lisp-font-lock-syntactic-face-function (state)
   (if (nth 3 state)
       ;; This might be a (doc)string or a |...| symbol.
@@ -420,32 +455,9 @@ It has `lisp-mode-abbrev-table' as its parent."
         (if (eq (char-after startpos) ?|)
             ;; This is not a string, but a |...| symbol.
             nil
-          (let* ((listbeg (nth 1 state))
-                 (firstsym (and listbeg
-                                (save-excursion
-                                  (goto-char listbeg)
-                                  (and (looking-at "([ \t\n]*\\(\\(\\sw\\|\\s_\\)+\\)")
-                                       (match-string 1)))))
-                 (docelt (and firstsym
-                              (function-get (intern-soft firstsym)
-                                            lisp-doc-string-elt-property))))
-            (if (and docelt
-                     ;; It's a string in a form that can have a docstring.
-                     ;; Check whether it's in docstring position.
-                     (save-excursion
-                       (when (functionp docelt)
-                         (goto-char (match-end 1))
-                         (setq docelt (funcall docelt)))
-                       (goto-char listbeg)
-                       (forward-char 1)
-                       (condition-case nil
-                           (while (and (> docelt 0) (< (point) startpos)
-                                       (progn (forward-sexp 1) t))
-                             (setq docelt (1- docelt)))
-                         (error nil))
-                       (and (zerop docelt) (<= (point) startpos)
-                            (progn (forward-comment (point-max)) t)
-                            (= (point) (nth 8 state)))))
+          (let ((listbeg (nth 1 state)))
+            (if (or (lisp-string-in-doc-position-p listbeg startpos)
+                    (lisp-string-after-doc-keyword-p listbeg startpos))
                 font-lock-doc-face
               font-lock-string-face))))
     font-lock-comment-face))
