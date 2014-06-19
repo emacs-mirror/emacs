@@ -1,3 +1,17 @@
+2014-06-19  Kelvin White  <kelvin.white77@gmail.com>
+
+	* erc-backend.el: Handle user modes in relevant server responses
+	* erc.el: Better user mode support.
+	(erc-channel-user): Add members for new modes.
+	(erc-channel-member-halfop-p, erc-channel-user-admin-p)
+	(erc-channel-user-owner-p): Use new struct members.
+	(erc-format-nick, erc-format-@nick): Display user modes as nick	prefix.
+	(erc-nick-prefix-face, erc-my-nick-prefix-face): Add new faces
+	(erc-get-user-mode-prefix): Return symbol for mode prefix.
+	(erc-update-channel-member, erc-update-current-channel-member)
+	(erc-channel-receive-names): Update channel users.
+	(erc-nick-at-point): Return correct user info.
+
 2014-04-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* erc.el (erc-invite-only-mode, erc-toggle-channel-mode): Simplify.
@@ -615,4 +629,3 @@ See ChangeLog.08 for earlier changes.
 ;; coding: utf-8
 ;; add-log-time-zone-rule: t
 ;; End:
-
