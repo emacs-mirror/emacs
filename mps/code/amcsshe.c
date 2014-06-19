@@ -20,7 +20,7 @@
 /* These values have been tuned in the hope of getting one dynamic collection. */
 #define headerFACTOR      ((float)(20 + headerSIZE) / 20)
 /* headerFACTOR measures how much larger objects are compared to fmtdy. */
-#define testArenaSIZE     ((size_t)(8000*headerFACTOR)*1024)
+#define testArenaSIZE     ((size_t)(2000*headerFACTOR)*1024)
 #define gen1SIZE          ((size_t)(150*headerFACTOR))
 #define gen2SIZE          ((size_t)(170*headerFACTOR))
 #define avLEN             3
