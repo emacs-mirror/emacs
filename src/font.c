@@ -207,6 +207,9 @@ font_make_object (int size, Lisp_Object entity, int pixelsize)
     = (struct font *) allocate_pseudovector (size, FONT_OBJECT_MAX, PVEC_FONT);
   int i;
 
+  /* GC can happen before the driver is set up,
+     so avoid dangling pointer here (Bug#17771).  */
+  font->driver = NULL;
   XSETFONT (font_object, font);
 
   if (! NILP (entity))

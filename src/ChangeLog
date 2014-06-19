@@ -1,3 +1,8 @@
+2014-06-19  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* font.c (font_make_object): Avoid dangling pointer which may
+	crash GC (Bug#17771).
+
 2014-06-18  Eli Zaretskii  <eliz@gnu.org>
 
 	* image.c [5 < GIFLIB_MAJOR + (1 <= GIFLIB_MINOR)]: Declare the
