@@ -1,3 +1,16 @@
+2014-06-19  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Minor cleanup of fonset code.
+	* fontset.c (FONTSET_ID, set_fontset_id, FONTSET_NAME)
+	(set_fontset_name, FONTSET_ASCII, set_fontset_ascii)
+	(FONTSET_BASE, set_fontset_base, FONTSET_FRAME)
+	(set_fontset_frame, FONTSET_NOFONT_FACE, set_fontset_nofont_face)
+	(FONTSET_DEFAULT, set_fontset_default, FONTSET_FALLBACK)
+	(set_fontset_fallback): Reorder extra slots and avoid unused slots.
+	(free_realized_fontset): Remove because a no-op since 2008.
+	(free_face_fontset): Adjust user.
+	(syms_of_fontset): Shrink fontset by one extra slot.
+
 2014-06-17  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Omit redundant extern decls.

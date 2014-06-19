@@ -209,27 +209,27 @@ set_fontset_name (Lisp_Object fontset, Lisp_Object name)
   set_char_table_extras (fontset, 1, name);
 }
 
-#define FONTSET_ASCII(fontset) XCHAR_TABLE (fontset)->extras[4]
+#define FONTSET_ASCII(fontset) XCHAR_TABLE (fontset)->extras[2]
 static void
 set_fontset_ascii (Lisp_Object fontset, Lisp_Object ascii)
 {
-  set_char_table_extras (fontset, 4, ascii);
+  set_char_table_extras (fontset, 2, ascii);
 }
 
 /* Access special values of (realized) FONTSET.  */
 
-#define FONTSET_BASE(fontset) XCHAR_TABLE (fontset)->extras[2]
+#define FONTSET_BASE(fontset) XCHAR_TABLE (fontset)->extras[3]
 static void
 set_fontset_base (Lisp_Object fontset, Lisp_Object base)
 {
-  set_char_table_extras (fontset, 2, base);
+  set_char_table_extras (fontset, 3, base);
 }
 
-#define FONTSET_FRAME(fontset) XCHAR_TABLE (fontset)->extras[3]
+#define FONTSET_FRAME(fontset) XCHAR_TABLE (fontset)->extras[4]
 static void
 set_fontset_frame (Lisp_Object fontset, Lisp_Object frame)
 {
-  set_char_table_extras (fontset, 3, frame);
+  set_char_table_extras (fontset, 4, frame);
 }
 
 #define FONTSET_NOFONT_FACE(fontset) XCHAR_TABLE (fontset)->extras[5]
@@ -239,20 +239,20 @@ set_fontset_nofont_face (Lisp_Object fontset, Lisp_Object face)
   set_char_table_extras (fontset, 5, face);
 }
 
-#define FONTSET_DEFAULT(fontset) XCHAR_TABLE (fontset)->extras[7]
+#define FONTSET_DEFAULT(fontset) XCHAR_TABLE (fontset)->extras[6]
 static void
 set_fontset_default (Lisp_Object fontset, Lisp_Object def)
 {
-  set_char_table_extras (fontset, 7, def);
+  set_char_table_extras (fontset, 6, def);
 }
 
 /* For both base and realized fontset.  */
 
-#define FONTSET_FALLBACK(fontset) XCHAR_TABLE (fontset)->extras[8]
+#define FONTSET_FALLBACK(fontset) XCHAR_TABLE (fontset)->extras[7]
 static void
 set_fontset_fallback (Lisp_Object fontset, Lisp_Object fallback)
 {
-  set_char_table_extras (fontset, 8, fallback);
+  set_char_table_extras (fontset, 7, fallback);
 }
 
 #define BASE_FONTSET_P(fontset) (NILP (FONTSET_BASE (fontset)))
@@ -852,21 +852,6 @@ fontset_ascii (int id)
   return elt;
 }
 
-static void
-free_realized_fontset (struct frame *f, Lisp_Object fontset)
-{
-#if 0
-  Lisp_Object tail;
-
-  if (0)
-    for (tail = FONTSET_OBJLIST (fontset); CONSP (tail); tail = XCDR (tail))
-      {
-	eassert (FONT_OBJECT_P (XCAR (tail)));
-	font_close_object (f, XCAR (tail));
-      }
-#endif
-}
-
 /* Free fontset of FACE defined on frame F.  Called from
    free_realized_face.  */
 
@@ -880,7 +865,6 @@ free_face_fontset (struct frame *f, struct face *face)
     return;
   eassert (! BASE_FONTSET_P (fontset));
   eassert (f == XFRAME (FONTSET_FRAME (fontset)));
-  free_realized_fontset (f, fontset);
   ASET (Vfontset_table, face->fontset, Qnil);
   if (face->fontset < next_fontset_id)
     next_fontset_id = face->fontset;
@@ -891,7 +875,6 @@ free_face_fontset (struct frame *f, struct face *face)
       fontset = AREF (Vfontset_table, id);
       eassert (!NILP (fontset) && ! BASE_FONTSET_P (fontset));
       eassert (f == XFRAME (FONTSET_FRAME (fontset)));
-      free_realized_fontset (f, fontset);
       ASET (Vfontset_table, id, Qnil);
       if (id < next_fontset_id)
 	next_fontset_id = face->fontset;
@@ -2159,7 +2142,7 @@ void
 syms_of_fontset (void)
 {
   DEFSYM (Qfontset, "fontset");
-  Fput (Qfontset, Qchar_table_extra_slots, make_number (9));
+  Fput (Qfontset, Qchar_table_extra_slots, make_number (8));
   DEFSYM (Qfontset_info, "fontset-info");
   Fput (Qfontset_info, Qchar_table_extra_slots, make_number (1));
 
