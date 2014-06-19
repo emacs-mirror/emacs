@@ -1,3 +1,8 @@
+2014-06-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/sh-script.el (sh-smie-sh-rules): Use same rule for && as
+	for | (bug#17621).
+
 2014-06-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* xt-mouse.el (xterm-mouse-translate-1): Fix last change (bug#17776).

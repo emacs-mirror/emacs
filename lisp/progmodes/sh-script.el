@@ -1970,7 +1970,7 @@ May return nil if the line should not be treated as continued."
                             (smie-rule-bolp))))
                  (current-column)
                (smie-indent-calculate)))))
-    (`(:after . "|") (if (smie-rule-parent-p "|") nil 4))
+    (`(:after . ,(or `"|" `"&&" `"||")) (if (smie-rule-parent-p token) nil 4))
     ;; Attempt at backward compatibility with the old config variables.
     (`(:before . "fi") (sh-var-value 'sh-indent-for-fi))
     (`(:before . "done") (sh-var-value 'sh-indent-for-done))

@@ -23,6 +23,12 @@ case $X in
         ;;
 esac
 
+{				# bug#17621
+    foo1 &&
+        foo2 &&
+        bar
+}
+
 echo -n $(( 5 << 2 ))
 # This should not be treated as a heredoc (bug#12770).
 2
