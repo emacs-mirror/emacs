@@ -1,3 +1,8 @@
+2014-06-19  William Xu  <william.xwl@gmail.com>
+
+	* progmodes/hideif.el (hif-string-to-number): Don't return float for
+	hex integer constants (bug#17807).
+
 2014-06-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* international/mule-util.el (truncate-string-ellipsis): New var.
