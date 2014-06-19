@@ -20,7 +20,7 @@
 /* These values have been tuned in the hope of getting one dynamic collection. */
 #define headerFACTOR      ((float)(20 + headerSIZE) / 20)
 /* headerFACTOR measures how much larger objects are compared to fmtdy. */
-#define testArenaSIZE     ((size_t)(1000*headerFACTOR)*1024)
+#define testArenaSIZE     ((size_t)(8000*headerFACTOR)*1024)
 #define gen1SIZE          ((size_t)(150*headerFACTOR))
 #define gen2SIZE          ((size_t)(170*headerFACTOR))
 #define avLEN             3
@@ -248,12 +248,12 @@ int main(int argc, char *argv[])
   testlib_init(argc, argv);
 
   MPS_ARGS_BEGIN(args) {
-    MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, 2*testArenaSIZE);
-    MPS_ARGS_ADD(args, MPS_KEY_ARENA_GRAIN_SIZE, rnd_grain(2*testArenaSIZE));
+    MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, testArenaSIZE);
+    MPS_ARGS_ADD(args, MPS_KEY_ARENA_GRAIN_SIZE, rnd_grain(testArenaSIZE));
     die(mps_arena_create_k(&arena, mps_arena_class_vm(), args), "arena_create");
   } MPS_ARGS_END(args);
   mps_message_type_enable(arena, mps_message_type_gc());
-  die(mps_arena_commit_limit_set(arena, 2*testArenaSIZE), "set limit");
+  die(mps_arena_commit_limit_set(arena, testArenaSIZE), "set limit");
   die(mps_thread_reg(&thread, arena), "thread_reg");
   test(arena, mps_class_amc(), exactRootsCOUNT);
   test(arena, mps_class_amcz(), 0);
