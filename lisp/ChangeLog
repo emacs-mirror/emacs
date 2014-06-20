@@ -1,3 +1,8 @@
+2014-06-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/sh-script.el (sh-smie-sh-rules): For { after &&, don't
+	align with the surrounding parent (bug#17721).
+
 2014-06-20  Eli Zaretskii  <eliz@gnu.org>
 
 	* textmodes/texinfo.el (texinfo-mode): Set skeleton-end-newline

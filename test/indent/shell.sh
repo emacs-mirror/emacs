@@ -33,6 +33,14 @@ esac
         bar
 }
 
+for foo in bar; do              #  bug#17721
+    [ -e $foo ] && {
+        echo t
+    } && {
+	echo r
+    }
+done
+
 echo -n $(( 5 << 2 ))
 # This should not be treated as a heredoc (bug#12770).
 2

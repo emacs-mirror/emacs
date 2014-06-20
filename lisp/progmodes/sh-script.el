@@ -1952,7 +1952,11 @@ May return nil if the line should not be treated as continued."
                   (<= indent initial))
          `(column . ,(+ initial sh-indentation)))))
     (`(:before . ,(or `"(" `"{" `"["))
-     (if (smie-rule-hanging-p) (smie-rule-parent)))
+     (when (smie-rule-hanging-p)
+       (if (not (smie-rule-prev-p "&&" "||" "|"))
+	   (smie-rule-parent)
+	 (smie-backward-sexp 'halfexp)
+	 `(column . ,(smie-indent-virtual)))))
     ;; FIXME: Maybe this handling of ;; should be made into
     ;; a smie-rule-terminator function that takes the substitute ";" as arg.
     (`(:before . ,(or `";;" `";&" `";;&"))
