@@ -555,7 +555,7 @@ New collections may start?                   yes                                
 Objects may move?                            yes                                no                            no
 Location dependencies may become stale?      yes                                no                            no
 Memory may be returned to the OS?            yes                                no                            no
-Functions that leave the arena in this state :c:func:`mps_arena_create`,        :c:func:`mps_arena_clamp`,    :c:func:`mps_arena_park`,
+Functions that leave the arena in this state :c:func:`mps_arena_create_k`,      :c:func:`mps_arena_clamp`,    :c:func:`mps_arena_park`,
                                              :c:func:`mps_arena_release`,       :c:func:`mps_arena_step`      :c:func:`mps_arena_collect`
                                              :c:func:`mps_arena_start_collect`, 
                                              :c:func:`mps_arena_step`           
