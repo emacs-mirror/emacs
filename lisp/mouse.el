@@ -485,10 +485,7 @@ must be one of the symbols `header', `mode', or `vertical'."
 	  (unless (zerop growth)
 	    (setq dragged t)
 	    (adjust-window-trailing-edge
-	     window (if (eq line 'mode) growth (- growth)) nil t))))))
-    ;; Process the terminating event.
-    (unless dragged
-      (push event unread-command-events))))
+	     window (if (eq line 'mode) growth (- growth)) nil t))))))))
 
 (defun mouse-drag-mode-line (start-event)
   "Change the height of a window by dragging on the mode line."
