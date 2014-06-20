@@ -1,5 +1,8 @@
 2014-06-20  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* configure.ac: Warn about --enable-link-time-optimization's issues
+	in --help message (Bug#17806).
+
 	Port to GCC 4.9.0 with link time optimization (Bug#17806).
 	* configure.ac (CFLAGS): With link time optimization,
 	use -ffat-lto-objects if supported; otherwise Emacs won't

@@ -757,7 +757,10 @@ AC_ARG_ENABLE([gcc-warnings],
 AC_ARG_ENABLE(link-time-optimization,
 [AS_HELP_STRING([--enable-link-time-optimization],
                 [build emacs with link-time optimization.
-                 This is supported only for GCC since 4.5.0.])],
+		 This requires GCC 4.5.0 or later.
+		 It also makes Emacs harder to debug, and when we tried it
+		 with GCC 4.9.0 x86-64 it made Emacs slower, so it's not
+		 recommended for typical use.])],
 if test "${enableval}" != "no"; then
    AC_MSG_CHECKING([whether link-time optimization is supported])
    ac_lto_supported=no
