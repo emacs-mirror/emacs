@@ -118,8 +118,9 @@ deletion of keys in a :term:`weak-value hash table`), an AWL pool
 allows each object to have a :dfn:`dependent object`. (This is where
 the "Linked" in the name of the pool class comes from.)
 
-The dependent object is specified by the ``find_dependent`` argument
-to :c:func:`mps_pool_create` when creating an AWL pool. This is a
+The dependent object is specified by the
+:c:macro:`MPS_KEY_AWL_FIND_DEPENDENT` keyword argument to
+:c:func:`mps_pool_create_k` when creating an AWL pool. This is a
 function of type :c:type:`mps_awl_find_dependent_t` that takes the
 address of an object in the pool and returns the address of its
 dependent object (or a null pointer if there is no corresponding
@@ -327,7 +328,7 @@ AWL interface
 
     It accepts two optional keyword arguments:
 
-    * :c:macro:`MPS_KEY_CHAIN` (type :c:type:`mps_chain_t`) specifies
+    * :c:macro:`MPS_KEY_CHAIN` (type :c:type:`mps_chain_t`) specifies]
       the :term:`generation chain` for the pool. If not specified, the
       pool will use the arena's default chain.
 

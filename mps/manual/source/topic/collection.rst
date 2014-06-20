@@ -40,17 +40,18 @@ and die together, then it is efficient for them to share a chain.
 
 Typically blocks are allocated in the first generation in the chain,
 the :term:`nursery generation` (though you can change this using the
-:c:macro:`MPS_KEY_GEN` keyword argument to :c:func:`mps_pool_create`),
-and each time a block survives one collection then it is
-:term:`promoted <promotion>` to the next generation. Thus a generation
-contains a set of blocks of similar ages.
+:c:macro:`MPS_KEY_GEN` keyword argument to
+:c:func:`mps_pool_create_k`), and each time a block survives one
+collection then it is :term:`promoted <promotion>` to the next
+generation. Thus a generation contains a set of blocks of similar
+ages.
 
 By default, all pools in an arena share the same generation chain
 ("the arena's default generation chain"), but if this doesn't meet
 your requirements, then when creating an automatically managed pool,
 you can choose which chain it should use by passing the
 :c:macro:`MPS_KEY_CHAIN` keyword argument to
-:c:func:`mps_pool_create`.
+:c:func:`mps_pool_create_k`.
 
 Create a generation chain by preparing an array of
 :c:type:`mps_gen_param_s` structures giving the *capacity* (in
