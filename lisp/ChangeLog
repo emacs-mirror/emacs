@@ -1,3 +1,9 @@
+2014-06-20  Martin Rudalics  <rudalics@gmx.at>
+
+	* mouse.el (mouse-drag-line): Re-remove code initially removed
+	on 2013-03-09 and inadvertently reintroduced on 2013-11-30
+	(Bug#17819).
+
 2014-06-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/sh-script.el (sh-smie-sh-rules): For { after &&, don't
