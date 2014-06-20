@@ -1,3 +1,8 @@
+2014-06-20  Leo Liu  <sdl.web@gmail.com>
+
+	* simple.el (read-quoted-char): Don't let help chars pop up help
+	buffer.  (Bug#16617)
+
 2014-06-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/sh-script.el (sh-smie-sh-rules): Use same rule for && as
