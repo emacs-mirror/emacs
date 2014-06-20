@@ -1,3 +1,10 @@
+2014-06-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port to GCC 4.9.0 with link time optimization (Bug#17806).
+	* configure.ac (CFLAGS): With link time optimization,
+	use -ffat-lto-objects if supported; otherwise Emacs won't
+	build with GCC 4.9.0.
+
 2014-06-14  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Port part of the AIX fix to Solaris (Bug#17598).

@@ -777,6 +777,12 @@ if test "${enableval}" != "no"; then
    AC_MSG_RESULT([$ac_lto_supported])
    if test "$ac_lto_supported" = "yes"; then
       CFLAGS="$CFLAGS $LTO"
+      dnl The following is needed for GCC 4.9.0.  The GCC 4.9.0 release notes
+      dnl suggest that instead of -ffat-lto-objects we should use gcc-ar and
+      dnl gcc-ranlib in place of ar and ranlib, but gcc-ar makes /usr/bin/ar
+      dnl dump core on Fedora 20, so play it safe for now.
+      gl_COMPILER_OPTION_IF([-ffat-lto-objects],
+	[CFLAGS="$CFLAGS -ffat-lto-objects"])
    fi
 fi)
 
