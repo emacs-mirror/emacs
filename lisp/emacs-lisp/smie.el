@@ -1155,6 +1155,15 @@ NUMBER				offset by NUMBER, relative to a base token
 The functions whose name starts with \"smie-rule-\" are helper functions
 designed specifically for use in this function.")
 
+(defvar smie--hanging-eolp-function
+  ;; FIXME: This is a quick hack for 24.4.  Don't document it and replace with
+  ;; a well-defined function with a cleaner interface instead!
+  (lambda ()
+    (skip-chars-forward " \t")
+    (or (eolp)
+	(and ;; (looking-at comment-start-skip) ;(bug#16041).
+	 (forward-comment (point-max))))))
+
 (defalias 'smie-rule-hanging-p 'smie-indent--hanging-p)
 (defun smie-indent--hanging-p ()
   "Return non-nil if the current token is \"hanging\".
@@ -1168,10 +1177,7 @@ the beginning of a line."
 		    (not (eobp))
 		    ;; Could be an open-paren.
 		    (forward-char 1))
-               (skip-chars-forward " \t")
-               (or (eolp)
-                   (and ;; (looking-at comment-start-skip) ;(bug#16041).
-                        (forward-comment (point-max))))
+	       (funcall smie--hanging-eolp-function)
                (point))))))
 
 (defalias 'smie-rule-bolp 'smie-indent--bolp)

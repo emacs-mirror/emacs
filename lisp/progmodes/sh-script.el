@@ -2279,6 +2279,11 @@ Calls the value of `sh-set-shell-hook' if set."
         (let ((mksym (lambda (name)
                        (intern (format "sh-smie-%s-%s"
                                        sh-indent-supported-here name)))))
+	  (add-function :around (local 'smie--hanging-eolp-function)
+			(lambda (orig)
+			  (if (looking-at "[ \t]*\\\\\n")
+			      (goto-char (match-end 0))
+			    (funcall orig))))
           (smie-setup (symbol-value (funcall mksym "grammar"))
                       (funcall mksym "rules")
                       :forward-token  (funcall mksym "forward-token")

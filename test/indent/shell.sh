@@ -25,7 +25,11 @@ esac
 
 {				# bug#17621
     foo1 &&
-        foo2 &&
+	foo2 &&
+        bar
+
+    foo1 &&     \
+        foo2 && \
         bar
 }
 
