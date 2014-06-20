@@ -297,6 +297,14 @@ removenullpaths=sed -e 's/^:*//' -e 's/:*$$//g' -e 's/::*/:/g'
 # to just letting configure generate epaths.h from epaths.in in a
 # similar way to how Makefile is made from Makefile.in.
 epaths-force:
+	@for dir in '$(abs_srcdir)' '$(lispdir)' '$(archlibdir)'; do \
+	  case $$dir in \
+	    *:*) \
+	      echo >&2 "Build or installation directory '$$dir'"; \
+	      echo >&2 "cannot contain ':'."; \
+	      exit 1;; \
+	  esac; \
+	done
 	@(standardlisppath=`echo "${standardlisppath}" | ${removenullpaths}` ; \
 	  locallisppath=`echo "${locallisppath}" | ${removenullpaths}` ; \
 	  buildlisppath=`echo "${buildlisppath}" | ${removenullpaths}` ; \

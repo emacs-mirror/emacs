@@ -1,3 +1,10 @@
+2014-06-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Diagnose failures due to colons in directory names (Bug#17278).
+	* Makefile.in (epaths-force): Don't allow ':' in directories whose
+	names go into a colon-separated path.
+	* configure.ac: Fail if submake fails.
+
 2014-06-17  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Omit redundant extern decls.

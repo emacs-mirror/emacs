@@ -5121,7 +5121,7 @@ if test "${opsys}" = "mingw32"; then
   ${MAKE-make} MAKEFILE_NAME=do-not-make-Makefile epaths-force-w32
 else
   ${MAKE-make} MAKEFILE_NAME=do-not-make-Makefile epaths-force
-fi
+fi || AC_MSG_ERROR(['src/epaths.h' could not be made.])
 ], [GCC="$GCC" CPPFLAGS="$CPPFLAGS" opsys="$opsys"])
 
 dnl NB we have to cheat and use the ac_... version because abs_top_srcdir
