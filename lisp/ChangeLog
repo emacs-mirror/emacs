@@ -1,3 +1,12 @@
+2014-06-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* textmodes/texinfo.el (texinfo-mode): Set skeleton-end-newline
+	locally to nil.
+	(texinfo-insert-block, texinfo-insert-@end)
+	(texinfo-insert-@example, texinfo-insert-@quotation): Adjust to
+	local setting of skeleton-end-newline by adding an explicit \n to
+	the skeletons where appropriate.  (Bug#17801)
+
 2014-06-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/smie.el (smie--hanging-eolp-function): New var.

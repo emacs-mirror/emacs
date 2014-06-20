@@ -44,6 +44,8 @@
 
 (defvar outline-heading-alist)
 
+(defvar skeleton-end-newline)
+
 (defgroup texinfo nil
   "Texinfo Mode."
   :link '(custom-group-link :tag "Font Lock Faces group" font-lock-faces)
@@ -626,6 +628,11 @@ value of `texinfo-mode-hook'."
   (setq-local tex-first-line-header-regexp "^\\\\input")
   (setq-local tex-trailer "@bye\n")
 
+  ;; Prevent skeleton.el from adding a newline to each inserted
+  ;; skeleton.  Those which do want a newline do that explicitly in
+  ;; their define-skeleton form.
+  (setq-local skeleton-end-newline nil)
+
   ;; Prevent filling certain lines, in addition to ones specified by
   ;; the user.
   (setq-local auto-fill-inhibit-regexp
@@ -653,7 +660,7 @@ Puts point on a blank line between them."
   (if (or (string-match "\\`def" str)
           (member str '("table" "ftable" "vtable")))
       '(nil " " -))
-  \n _ \n "@end " str \n)
+  \n _ \n "@end " str \n \n)
 
 (defun texinfo-inside-macro-p (macro &optional bound)
   "Non-nil if inside a macro matching the regexp MACRO."
@@ -732,7 +739,7 @@ With prefix argument or inside @code or @example, inserts a plain \"."
       (backward-word 1)
 	     (texinfo-last-unended-begin)
       (or (match-string 1) '-)))
-  \n "@end " str \n)
+  \n "@end " str \n \n)
 
 (define-skeleton texinfo-insert-braces
   "Make a pair of braces and be poised to type inside of them.
@@ -771,7 +778,7 @@ The default is not to surround any existing words with the braces."
 (define-skeleton texinfo-insert-@example
   "Insert the string `@example' in a Texinfo buffer."
   nil
-  \n "@example" \n)
+  \n "@example" \n \n)
 
 (define-skeleton texinfo-insert-@file
   "Insert a `@file{...}' command in a Texinfo buffer.
@@ -816,7 +823,7 @@ Leave point after `@node'."
 
 (define-skeleton texinfo-insert-@quotation
   "Insert the string `@quotation' in a Texinfo buffer."
-  \n "@quotation" \n)
+  \n "@quotation" \n _ \n)
 
 (define-skeleton texinfo-insert-@samp
   "Insert a `@samp{...}' command in a Texinfo buffer.
