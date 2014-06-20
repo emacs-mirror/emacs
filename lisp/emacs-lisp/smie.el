@@ -2138,7 +2138,7 @@ position corresponding to each rule."
                   nil
                 (push (cons (+ offset (nth 2 sig)) sig) rules)
                 ;; Adjust the rest of the data.
-                (pcase-dolist ((and cotrace `(,count ,toffset ,trace))
+                (pcase-dolist ((and cotrace `(,count ,toffset . ,trace))
                                cotraces)
                   (setf (nth 1 cotrace) (- toffset offset))
                   (dolist (sig trace)
@@ -2167,15 +2167,14 @@ To save the result for future sessions, use `smie-config-save'."
     (cond
      ((null config) (message "Nothing to change"))
      ((null smie-config--buffer-local)
-      (message "Local rules set")
-      (setq smie-config--buffer-local config))
+      (smie-config-local config)
+      (message "Local rules set"))
      ((y-or-n-p "Replace existing local config? ")
       (message "Local rules replaced")
-      (setq smie-config--buffer-local config))
+      (smie-config-local config))
      ((y-or-n-p "Merge with existing local config? ")
       (message "Local rules adjusted")
-      (setq smie-config--buffer-local
-            (append config smie-config--buffer-local)))
+      (smie-config-local (append config smie-config--buffer-local)))
      (t
       (message "Rules guessed: %S" config)))))
 

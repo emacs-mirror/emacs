@@ -1,5 +1,9 @@
 2014-06-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/smie.el (smie-config--guess): Fix typo.
+	(smie-config-guess): Use smie-config-local so the rules are obeyed
+	(bug#17818).
+
 	* mouse.el (mouse-drag-line): Don't re-add to unread-comment-events,
 	since it's already done inside the loop	(bug#17819).
 
@@ -10,9 +14,6 @@
 	(Bug#17819).
 
 2014-06-20  Stefan Monnier  <monnier@iro.umontreal.ca>
-
-	* mouse.el (mouse-drag-line): Remove left-over code made redundant by
-	mouse--down-1-maybe-follows-link (bug#17819).
 
 	* progmodes/sh-script.el (sh-smie-sh-rules): For { after &&, don't
 	align with the surrounding parent (bug#17721).
