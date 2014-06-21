@@ -1944,9 +1944,12 @@ The optional second argument WINDOW specifies the window to use for
 parameters such as width, horizontal scrolling, and so on.
 The default is to use the selected window's parameters.
 
-LINES can optionally take the form (COLS . LINES), in which case
-the motion will not stop at the start of a screen line but on
-its column COLS (if such exists on that line, that is).
+LINES can optionally take the form (COLS . LINES), in which case the
+motion will not stop at the start of a screen line but COLS column
+from the visual start of the line (if such exists on that line, that
+is).  If the line is scrolled horizontally, COLS is interpreted
+visually, i.e., as addition to the columns of text beyond the left
+edge of the window.
 
 `vertical-motion' always uses the current buffer,
 regardless of which buffer is displayed in WINDOW.

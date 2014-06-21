@@ -1,3 +1,7 @@
+2014-06-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* indent.c (Fvertical_motion): Doc fix.
+
 2014-06-21  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Port to OS X ACLs (Bug#17810).
