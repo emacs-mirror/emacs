@@ -1,3 +1,7 @@
+2014-06-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* skeleton.el (skeleton-insert): Doc fix.
+
 2014-06-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/smie.el (smie-config--guess): Fix typo.
