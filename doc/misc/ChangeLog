@@ -1,3 +1,8 @@
+2014-06-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* autotype.texi (Skeleton Language): Document the feature of \n
+	when at eol.
+
 2014-06-15  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbus.texi (Type Conversion): Formatting edits in example.

@@ -232,8 +232,9 @@ Insert string or character.  Literal strings and characters are passed through
 @code{skeleton-transformation} when that is non-@code{nil}.
 @item @code{?\n}
 @c ??? something seems very wrong here.
-Insert a newline and align under current line.  Use newline character
-@code{?\n} to prevent alignment.
+If not at end of line, insert a newline and align under current line.
+Use newline character @code{?\n} to prevent alignment.  Use
+@code{"\n"} as a string to insert a newline unconditionally.
 @item @code{_}
 Interesting point.  When wrapping skeletons around successive regions, they are
 put at these places.  Point is left at first @code{_} where nothing is wrapped.
