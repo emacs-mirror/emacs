@@ -1040,13 +1040,17 @@ mouse-1: get robot moving, mouse-2: play on this square")))
   "Move point down one row on the Landmark board."
   (interactive)
   (if (< (landmark-point-y) landmark-board-height)
-      (forward-line 1)));;; landmark-square-height)))
+      (let ((col (current-column)))
+	(forward-line 1) ;;; landmark-square-height
+	(move-to-column col))))
 
 (defun landmark-move-up ()
   "Move point up one row on the Landmark board."
   (interactive)
   (if (> (landmark-point-y) 1)
-      (forward-line (- landmark-square-height))))
+      (let ((col (current-column)))
+	(forward-line (- landmark-square-height))
+	(move-to-column col))))
 
 (defun landmark-move-ne ()
   "Move point North East on the Landmark board."
