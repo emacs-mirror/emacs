@@ -1,3 +1,10 @@
+2014-06-21  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	Enhancements for outline integration (bug#17796).
+	* progmodes/python.el (python-mode): Properly set
+	outline-heading-end-regexp so that comments after colons for
+	defuns are supported.
+
 2014-06-21  Eli Zaretskii  <eliz@gnu.org>
 
 	* skeleton.el (skeleton-insert): Doc fix.

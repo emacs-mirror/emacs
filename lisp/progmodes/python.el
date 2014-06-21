@@ -3732,7 +3732,7 @@ returned as is."
 
   (set (make-local-variable 'outline-regexp)
        (python-rx (* space) block-start))
-  (set (make-local-variable 'outline-heading-end-regexp) ":\\s-*\n")
+  (set (make-local-variable 'outline-heading-end-regexp) ":[^\n]*\n")
   (set (make-local-variable 'outline-level)
        #'(lambda ()
            "`outline-level' function for Python mode."
