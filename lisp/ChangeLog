@@ -1,3 +1,7 @@
+2014-06-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* skeleton.el (skeleton-insert): Fix last change.
+
 2014-06-21  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
 	Enhancements for outline integration (bug#17796).
