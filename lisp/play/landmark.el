@@ -4,13 +4,7 @@
 
 ;; Author: Terrence Brannon (was: <brannon@rana.usc.edu>)
 ;; Created: December 16, 1996 - first release to usenet
-;; Keywords: games, gomoku, neural network, adaptive search, chemotaxis
-
-;;;_* Usage
-;;; Just type
-;;;   M-x eval-buffer
-;;;   M-x landmark-test-run
-
+;; Keywords: games, neural network, adaptive search, chemotaxis
 
 ;; This file is part of GNU Emacs.
 
@@ -29,6 +23,9 @@
 
 
 ;;; Commentary:
+
+;; To try this, just type: M-x landmark-test-run
+
 ;; Landmark is a relatively non-participatory game in which a robot
 ;; attempts to maneuver towards a tree at the center of the window
 ;; based on unique olfactory cues from each of the 4 directions. If
