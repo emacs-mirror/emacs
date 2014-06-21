@@ -1,3 +1,9 @@
+2014-06-21  Glenn Morris  <rgm@gnu.org>
+
+	* unidata/BidiMirroring.txt: Update to 7.0.0 (only comment changes).
+	* unidata/UnicodeData.txt: Update to 7.0.0.
+	* unidata/IVD_Sequences.txt: Update to 2014-05-16 version.
+
 2014-06-21  Stephen Berman  <Stephen.Berman@gmx.net>
 
 	* notes/elpa: Use "git" instead of "bzr" in the name of machine to
