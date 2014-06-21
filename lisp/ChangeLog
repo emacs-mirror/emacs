@@ -1,3 +1,10 @@
+2014-06-21  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	Fix completion retrieval parsing (bug#17209).
+	* progmodes/python.el (python-mode):
+	(python-util-strip-string): New function.
+	(python-shell-completion-get-completions): Use it.
+
 2014-06-21  Eli Zaretskii  <eliz@gnu.org>
 
 	* skeleton.el (skeleton-insert): Fix last change.
