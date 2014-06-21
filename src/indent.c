@@ -2129,20 +2129,14 @@ whether or not it is currently displayed in some window.  */)
 	    }
 	}
 
-      /* Move to the goal column, if one was specified.  */
+      /* Move to the goal column, if one was specified.  If the window
+	 was originally hscrolled, the goal column is interpreted as
+	 an addition to the hscroll amount.  */
       if (!NILP (lcols))
 	{
-	  /* If the window was originally hscrolled, move forward by
-	     the hscrolled amount first.  */
-	  if (first_x > 0)
-	    {
-	      move_it_in_display_line (&it, ZV, first_x, MOVE_TO_X);
-	      it.current_x = 0;
-	    }
-	  move_it_in_display_line
-	    (&it, ZV,
-	     (int)(cols * FRAME_COLUMN_WIDTH (XFRAME (w->frame)) + 0.5),
-	     MOVE_TO_X);
+	  int to_x = (int)(cols * FRAME_COLUMN_WIDTH (XFRAME (w->frame)) + 0.5);
+
+	  move_it_in_display_line (&it, ZV, first_x + to_x, MOVE_TO_X);
 	}
 
       SET_PT_BOTH (IT_CHARPOS (it), IT_BYTEPOS (it));

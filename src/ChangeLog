@@ -1,6 +1,10 @@
 2014-06-21  Eli Zaretskii  <eliz@gnu.org>
 
 	* indent.c (Fvertical_motion): Doc fix.
+	Move to the goal column, if any, with a single call to
+	move_it_in_display_line, not in two calls.  Doing this with two
+	calls causes move_it_in_display_line apply the line-prefix
+	handling twice instead of just once.  (Bug#17823)
 
 2014-06-21  Paul Eggert  <eggert@cs.ucla.edu>
 
