@@ -1,3 +1,9 @@
+2014-06-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port to OS X ACLs (Bug#17810).
+	* fileio.c (Ffile_acl): Port to OS X, where acl_get_file (...,
+	ACL_TYPE_ACCESS) doesn't work.
+
 2014-06-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* keyboard.c (read_key_sequence): Don't invoke Vprefix_help_command
