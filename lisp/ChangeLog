@@ -86,7 +86,7 @@
 	* delsel.el (electric-newline-and-maybe-indent): Mark it as well
 	(bug#17737).
 
-2014-06-16  Dmitry  <dgutov@yandex.ru>
+2014-06-16  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el (ruby-font-lock-keywords): Don't fontify
 	`!' in `!~' with `font-lock-negation-char-face'.  (Bug#17732)
