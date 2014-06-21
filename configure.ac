@@ -931,8 +931,11 @@ edit_cflags="
 AC_ARG_ENABLE(link-time-optimization,
 [AS_HELP_STRING([--enable-link-time-optimization],
                 [build emacs with link-time optimization.
-		 This is supported for gcc since 4.5.0 and clang.
-		 Note that clang support is experimental - see INSTALL])],
+		 This requires GCC 4.5.0 or later, or clang.
+		 (Note that clang support is experimental - see INSTALL.)
+		 It also makes Emacs harder to debug, and when we tried it
+		 with GCC 4.9.0 x86-64 it made Emacs slower, so it's not
+		 recommended for typical use.])],
 if test "${enableval}" != "no"; then
    ac_lto_supported=no
    if test $emacs_cv_clang = yes; then
@@ -970,6 +973,13 @@ if test "${enableval}" != "no"; then
 	 # command, so plugin name is appended to ARFLAGS.
 	 ARFLAGS="cru --plugin $GOLD_PLUGIN"
 	 RANLIB="$RANLIB --plugin $GOLD_PLUGIN"
+      else
+        dnl The following is needed for GCC 4.9.0.  The GCC 4.9.0 release notes
+        dnl suggest that instead of -ffat-lto-objects we should use gcc-ar and
+        dnl gcc-ranlib in place of ar and ranlib, but gcc-ar makes /usr/bin/ar
+        dnl dump core on Fedora 20, so play it safe for now.
+        gl_COMPILER_OPTION_IF([-ffat-lto-objects],
+          [CFLAGS="$CFLAGS -ffat-lto-objects"])
       fi
    fi
 fi)

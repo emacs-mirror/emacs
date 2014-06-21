@@ -1,3 +1,98 @@
+2014-06-21  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	Fix completion retrieval parsing (bug#17209).
+	* progmodes/python.el (python-mode):
+	(python-util-strip-string): New function.
+	(python-shell-completion-get-completions): Use it.
+
+2014-06-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* skeleton.el (skeleton-insert): Fix last change.
+
+2014-06-21  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	Enhancements for outline integration (bug#17796).
+	* progmodes/python.el (python-mode): Properly set
+	outline-heading-end-regexp so that comments after colons for
+	defuns are supported.
+
+2014-06-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* skeleton.el (skeleton-insert): Doc fix.
+
+2014-06-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/smie.el (smie-config--guess): Fix typo.
+	(smie-config-guess): Use smie-config-local so the rules are obeyed
+	(bug#17818).
+
+	* mouse.el (mouse-drag-line): Don't re-add to unread-comment-events,
+	since it's already done inside the loop	(bug#17819).
+
+2014-06-21  Martin Rudalics  <rudalics@gmx.at>
+
+	* mouse.el (mouse-drag-line): Re-remove code initially removed
+	on 2013-03-09 and inadvertently reintroduced on 2013-11-30
+	(Bug#17819).
+
+2014-06-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/sh-script.el (sh-smie-sh-rules): For { after &&, don't
+	align with the surrounding parent (bug#17721).
+
+2014-06-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* textmodes/texinfo.el (texinfo-mode): Set skeleton-end-newline
+	locally to nil.
+	(texinfo-insert-block, texinfo-insert-@end)
+	(texinfo-insert-@example, texinfo-insert-@quotation): Adjust to
+	local setting of skeleton-end-newline by adding an explicit \n to
+	the skeletons where appropriate.  (Bug#17801)
+
+2014-06-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/smie.el (smie--hanging-eolp-function): New var.
+	(smie-indent--hanging-p): Use it.
+	* progmodes/sh-script.el (sh-set-shell): Set it (bug#17621).
+
+2014-06-21  Leo Liu  <sdl.web@gmail.com>
+
+	* simple.el (read-quoted-char): Don't let help chars pop up help
+	buffer.  (Bug#16617)
+
+2014-06-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/sh-script.el (sh-smie-sh-rules): Use same rule for && as
+	for | (bug#17621).
+
+	* xt-mouse.el (xterm-mouse--read-event-sequence-1000):
+	Drop unknown events instead of burping.
+
+2014-06-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* term/w32-win.el (dynamic-library-alist): Support giflib 5.1.0
+	and later.  (Bug#17790)
+
+2014-06-21  Juri Linkov  <juri@jurta.org>
+
+	* dired.el (dired-mark-pop-up): Let-bind display-buffer-mark-dedicated
+	to `soft'.  (Bug#17554)
+
+2014-06-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* delsel.el (electric-newline-and-maybe-indent): Mark it as well
+	(bug#17737).
+
+2014-06-21  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-font-lock-keywords): Don't fontify
+	`!' in `!~' with `font-lock-negation-char-face'.  (Bug#17732)
+
+2014-06-21  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/dbus.el (dbus-call-method): Push only non D-Bus events into
+	`unread-command-events'.
+
 2014-06-19  William Xu  <william.xwl@gmail.com>
 
 	* progmodes/hideif.el (hif-string-to-number): Don't return float for

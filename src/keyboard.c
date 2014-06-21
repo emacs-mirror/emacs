@@ -2181,7 +2181,7 @@ show_help_echo (Lisp_Object help, Lisp_Object window, Lisp_Object object,
 
 
 
-/* Input of single characters from keyboard */
+/* Input of single characters from keyboard.  */
 
 static Lisp_Object kbd_buffer_get_event (KBOARD **kbp, bool *used_mouse_menu,
 					 struct timespec *end_time);
@@ -9382,16 +9382,6 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 	  first_unbound = min (t, first_unbound);
 
 	  head = EVENT_HEAD (key);
-	  if (help_char_p (head) && t > 0)
-	    {
-	      read_key_sequence_cmd = Vprefix_help_command;
-	      keybuf[t++] = key;
-	      last_nonmenu_event = key;
-	      /* The Microsoft C compiler can't handle the goto that
-		 would go here.  */
-	      dummyflag = 1;
-	      break;
-	    }
 
 	  if (SYMBOLP (head))
 	    {
@@ -9649,6 +9639,17 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 
 	  goto replay_sequence;
 	}
+
+      if (NILP (current_binding)
+	  && help_char_p (EVENT_HEAD (key)) && t > 1)
+	    {
+	      read_key_sequence_cmd = Vprefix_help_command;
+	      /* The Microsoft C compiler can't handle the goto that
+		 would go here.  */
+	      dummyflag = 1;
+	      break;
+	    }
+
       /* If KEY is not defined in any of the keymaps,
 	 and cannot be part of a function key or translation,
 	 and is a shifted function key,

@@ -2461,8 +2461,10 @@ LINE is used to detect the context on how to complete given INPUT."
     (and completion-code
          (> (length input) 0)
          (with-current-buffer (process-buffer process)
-           (let ((completions (python-shell-send-string-no-output
-                               (format completion-code input) process)))
+           (let ((completions
+                  (python-util-strip-string
+                   (python-shell-send-string-no-output
+                    (format completion-code input) process))))
              (and (> (length completions) 2)
                   (split-string completions
                                 "^'\\|^\"\\|;\\|'$\\|\"$" t)))))))
@@ -3648,6 +3650,14 @@ returned as is."
               n (1- n)))
       (reverse acc))))
 
+(defun python-util-strip-string (string)
+  "Strip STRING whitespace and newlines from end and beginning."
+  (replace-regexp-in-string
+   (rx (or (: string-start (* (any whitespace ?\r ?\n)))
+           (: (* (any whitespace ?\r ?\n)) string-end)))
+   ""
+   string))
+
 
 (defun python-electric-pair-string-delimiter ()
   (when (and electric-pair-mode
@@ -3736,7 +3746,7 @@ returned as is."
 
   (set (make-local-variable 'outline-regexp)
        (python-rx (* space) block-start))
-  (set (make-local-variable 'outline-heading-end-regexp) ":\\s-*\n")
+  (set (make-local-variable 'outline-heading-end-regexp) ":[^\n]*\n")
   (set (make-local-variable 'outline-level)
        #'(lambda ()
            "`outline-level' function for Python mode."

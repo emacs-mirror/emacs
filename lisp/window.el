@@ -5966,7 +5966,7 @@ live."
 ;; FIXME: By the way, there could be more levels of dedication:
 ;; - `barely' dedicated doesn't prevent reuse of the window, only records that
 ;;   the window hasn't been used for something else yet.
-;; - `softly' dedicated only allows reuse when asked explicitly.
+;; - `soft' (`softly') dedicated only allows reuse when asked explicitly.
 ;; - `strongly' never allows reuse.
 (defvar display-buffer-mark-dedicated nil
   "If non-nil, `display-buffer' marks the windows it creates as dedicated.

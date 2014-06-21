@@ -658,11 +658,16 @@ any other terminator is used itself as input.
 The optional argument PROMPT specifies a string to use to prompt the user.
 The variable `read-quoted-char-radix' controls which radix to use
 for numeric input."
-  (let ((message-log-max nil) done (first t) (code 0) translated)
+  (let ((message-log-max nil)
+	(help-events (delq nil (mapcar (lambda (c) (unless (characterp c) c))
+				       help-event-list)))
+	done (first t) (code 0) translated)
     (while (not done)
       (let ((inhibit-quit first)
-	    ;; Don't let C-h get the help message--only help function keys.
+	    ;; Don't let C-h or other help chars get the help
+	    ;; message--only help function keys.  See bug#16617.
 	    (help-char nil)
+	    (help-event-list help-events)
 	    (help-form
 	     "Type the special character you want to use,
 or the octal character code.

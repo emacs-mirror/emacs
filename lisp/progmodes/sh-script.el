@@ -1975,7 +1975,11 @@ May return nil if the line should not be treated as continued."
                   (<= indent initial))
          `(column . ,(+ initial sh-indentation)))))
     (`(:before . ,(or `"(" `"{" `"["))
-     (if (smie-rule-hanging-p) (smie-rule-parent)))
+     (when (smie-rule-hanging-p)
+       (if (not (smie-rule-prev-p "&&" "||" "|"))
+	   (smie-rule-parent)
+	 (smie-backward-sexp 'halfexp)
+	 `(column . ,(smie-indent-virtual)))))
     ;; FIXME: Maybe this handling of ;; should be made into
     ;; a smie-rule-terminator function that takes the substitute ";" as arg.
     (`(:before . ,(or `";;" `";&" `";;&"))
@@ -1993,7 +1997,7 @@ May return nil if the line should not be treated as continued."
                             (smie-rule-bolp))))
                  (current-column)
                (smie-indent-calculate)))))
-    (`(:after . "|") (if (smie-rule-parent-p "|") nil 4))
+    (`(:after . ,(or `"|" `"&&" `"||")) (if (smie-rule-parent-p token) nil 4))
     ;; Attempt at backward compatibility with the old config variables.
     (`(:before . "fi") (sh-var-value 'sh-indent-for-fi))
     (`(:before . "done") (sh-var-value 'sh-indent-for-done))
@@ -2300,6 +2304,11 @@ Calls the value of `sh-set-shell-hook' if set."
         (let ((mksym (lambda (name)
                        (intern (format "sh-smie-%s-%s"
                                        sh-indent-supported-here name)))))
+	  (add-function :around (local 'smie--hanging-eolp-function)
+			(lambda (orig)
+			  (if (looking-at "[ \t]*\\\\\n")
+			      (goto-char (match-end 0))
+			    (funcall orig))))
           (smie-setup (symbol-value (funcall mksym "grammar"))
                       (funcall mksym "rules")
                       :forward-token  (funcall mksym "forward-token")

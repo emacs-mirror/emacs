@@ -3013,6 +3013,9 @@ was unable to determine the ACL entries.  */)
   acl_t acl;
   Lisp_Object acl_string;
   char *str;
+# ifndef HAVE_ACL_TYPE_EXTENDED
+  acl_type_t ACL_TYPE_EXTENDED = ACL_TYPE_ACCESS;
+# endif
 #endif
 
   absname = expand_and_dir_to_file (filename,
@@ -3027,7 +3030,7 @@ was unable to determine the ACL entries.  */)
 #ifdef HAVE_ACL_SET_FILE
   absname = ENCODE_FILE (absname);
 
-  acl = acl_get_file (SSDATA (absname), ACL_TYPE_ACCESS);
+  acl = acl_get_file (SSDATA (absname), ACL_TYPE_EXTENDED);
   if (acl == NULL)
     return Qnil;
 

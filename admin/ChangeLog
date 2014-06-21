@@ -1,3 +1,8 @@
+2014-06-21  Stephen Berman  <Stephen.Berman@gmx.net>
+
+	* notes/elpa: Use "git" instead of "bzr" in the name of machine to
+	clone the repository from.
+
 2014-06-13  Glenn Morris  <rgm@gnu.org>
 
 	* unidata/Makefile.in (${DSTDIR}/charprop.el):

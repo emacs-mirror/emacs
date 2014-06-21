@@ -1155,6 +1155,15 @@ NUMBER				offset by NUMBER, relative to a base token
 The functions whose name starts with \"smie-rule-\" are helper functions
 designed specifically for use in this function.")
 
+(defvar smie--hanging-eolp-function
+  ;; FIXME: This is a quick hack for 24.4.  Don't document it and replace with
+  ;; a well-defined function with a cleaner interface instead!
+  (lambda ()
+    (skip-chars-forward " \t")
+    (or (eolp)
+	(and ;; (looking-at comment-start-skip) ;(bug#16041).
+	 (forward-comment (point-max))))))
+
 (defalias 'smie-rule-hanging-p 'smie-indent--hanging-p)
 (defun smie-indent--hanging-p ()
   "Return non-nil if the current token is \"hanging\".
@@ -1168,10 +1177,7 @@ the beginning of a line."
 		    (not (eobp))
 		    ;; Could be an open-paren.
 		    (forward-char 1))
-               (skip-chars-forward " \t")
-               (or (eolp)
-                   (and ;; (looking-at comment-start-skip) ;(bug#16041).
-                        (forward-comment (point-max))))
+	       (funcall smie--hanging-eolp-function)
                (point))))))
 
 (defalias 'smie-rule-bolp 'smie-indent--bolp)
@@ -2132,7 +2138,7 @@ position corresponding to each rule."
                   nil
                 (push (cons (+ offset (nth 2 sig)) sig) rules)
                 ;; Adjust the rest of the data.
-                (pcase-dolist ((and cotrace `(,count ,toffset ,trace))
+                (pcase-dolist ((and cotrace `(,count ,toffset . ,trace))
                                cotraces)
                   (setf (nth 1 cotrace) (- toffset offset))
                   (dolist (sig trace)
@@ -2161,15 +2167,14 @@ To save the result for future sessions, use `smie-config-save'."
     (cond
      ((null config) (message "Nothing to change"))
      ((null smie-config--buffer-local)
-      (message "Local rules set")
-      (setq smie-config--buffer-local config))
+      (smie-config-local config)
+      (message "Local rules set"))
      ((y-or-n-p "Replace existing local config? ")
       (message "Local rules replaced")
-      (setq smie-config--buffer-local config))
+      (smie-config-local config))
      ((y-or-n-p "Merge with existing local config? ")
       (message "Local rules adjusted")
-      (setq smie-config--buffer-local
-            (append config smie-config--buffer-local)))
+      (smie-config-local (append config smie-config--buffer-local)))
      (t
       (message "Rules guessed: %S" config)))))
 

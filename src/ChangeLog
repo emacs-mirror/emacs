@@ -1,3 +1,42 @@
+2014-06-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* indent.c (Fvertical_motion): Doc fix.
+	Move to the goal column, if any, with a single call to
+	move_it_in_display_line, not in two calls.  Doing this with two
+	calls causes move_it_in_display_line apply the line-prefix
+	handling twice instead of just once.  (Bug#17823)
+
+2014-06-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port to OS X ACLs (Bug#17810).
+	* fileio.c (Ffile_acl): Port to OS X, where acl_get_file (...,
+	ACL_TYPE_ACCESS) doesn't work.
+
+2014-06-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c (read_key_sequence): Don't invoke Vprefix_help_command
+	before checking key-translation-map (bug#17659).
+
+2014-06-21  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* font.c (font_make_object): Avoid dangling pointer which may
+	crash GC (Bug#17771).
+
+2014-06-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* image.c [5 < GIFLIB_MAJOR + (1 <= GIFLIB_MINOR)]: Declare the
+	prototype of DGifCloseFile as appropriate for older and newer
+	versions of giflib.
+	(gif_close): New function, encapsulates the differences in the
+	calling sequence of DGifCloseFile before v5.1.0 and after it.
+	(gif_load): Call gif_close instead of DGifCloseFile.  Divulge the
+	error string where appropriate.  (Bug#17790)
+
+	* xdisp.c (Fmove_point_visually): Instead of testing for keyboard
+	macro execution, make sure point didn't move since last complete
+	redisplay, as the condition for using the glyph matrix
+	information.  (Bug#17777)
+
 2014-06-19  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Minor cleanup of fonset code.

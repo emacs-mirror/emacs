@@ -1,3 +1,7 @@
+2014-06-21  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	* automated/python-tests.el (python-util-strip-string-1): New test.
+
 2014-06-15  Michael Albinus  <michael.albinus@gmx.de>
 
 	Sync with Tramp 2.2.10.

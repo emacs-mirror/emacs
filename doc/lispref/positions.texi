@@ -500,7 +500,11 @@ is negative, it moves up instead.
 The @var{count} argument can be a cons cell, @code{(@var{cols}
 . @var{lines})}, instead of an integer.  Then the function moves by
 @var{lines} screen lines, and puts point @var{cols} columns from the
-start of that screen line.
+visual start of that screen line.  Note that @var{cols} are counted
+from the @emph{visual} start of the line; if the window is scrolled
+horizontally (@pxref{Horizontal Scrolling}), the column on which point
+will end is in addition to the number of columns by which the text is
+scrolled.
 
 The return value is the number of screen lines over which point was
 moved.  The value may be less in absolute value than @var{count} if
