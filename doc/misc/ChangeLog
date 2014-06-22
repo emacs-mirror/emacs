@@ -1,3 +1,8 @@
+2014-06-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* autotype.texi (Skeleton Language): Document the \n feature
+	better.
+
 2014-06-21  Eli Zaretskii  <eliz@gnu.org>
 
 	* autotype.texi (Skeleton Language): Document the feature of \n

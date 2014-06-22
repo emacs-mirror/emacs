@@ -1,3 +1,8 @@
+2014-06-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* skeleton.el (skeleton-insert): Yet another fix of the doc string
+	wrt behavior of \n as the first/last element of a skeleton.
+
 2014-06-22  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-adb.el (tramp-adb-handle-process-file):

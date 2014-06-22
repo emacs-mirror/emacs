@@ -200,8 +200,9 @@ not needed, a prompt-string or an expression for complex read functions.
 If ELEMENT is a string or a character it gets inserted (see also
 `skeleton-transformation-function').  Other possibilities are:
 
-	\\n	if not the last element of the skeleton, or not at eol,
-                go to next line and indent according to mode
+	\\n	go to next line and indent according to mode, unless
+                this is the first/last element of a skeleton and point
+                is at bol/eol
 	_	interesting point, interregion here
 	-	interesting point, no interregion interaction, overrides
 		interesting point set by _
@@ -218,7 +219,8 @@ or at the first occurrence of _ or at the end of the inserted text.
 
 Note that \\n as the last element of the skeleton only inserts a
 newline if not at eol.  If you want to unconditionally insert a newline
-at the end of the skeleton, use \"\\n\" instead.
+at the end of the skeleton, use \"\\n\" instead.  Likewise with \\n
+as the first element when at bol.
 
 Further elements can be defined via `skeleton-further-elements'.
 ELEMENT may itself be a SKELETON with an INTERACTOR.  The user is prompted
