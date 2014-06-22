@@ -1,3 +1,10 @@
+2014-06-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-adb.el (tramp-adb-handle-process-file):
+	* net/tramp-sh.el (tramp-sh-handle-process-file):
+	* net/tramp-smb.el (tramp-smb-handle-process-file): Do not raise
+	the output buffer when DISPLAY is non-nil.  (Bug#17815)
+
 2014-06-21  Glenn Morris  <rgm@gnu.org>
 
 	* play/landmark.el (landmark-move-down, landmark-move-up):
