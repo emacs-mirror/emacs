@@ -1,3 +1,8 @@
+2013-06-22  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* gnus-sum.el (gnus-summary-edit-article-done):
+	Prefer point-marker to copy-marker of point.
+
 2014-06-05  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art.el (gnus-article-edit-part): Don't modifiy markers.

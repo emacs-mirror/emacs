@@ -1320,7 +1320,7 @@ RESULT must be an `ert-test-result-with-condition'."
         (unwind-protect
             (progn
               (insert message "\n")
-              (setq end (copy-marker (point)))
+              (setq end (point-marker))
               (goto-char begin)
               (insert "    " prefix)
               (forward-line 1)

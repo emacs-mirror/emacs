@@ -10613,7 +10613,7 @@ groups."
       (let ((lines (count-lines (point) (point-max)))
 	    (length (- (point-max) (point)))
 	    (case-fold-search t)
-	    (body (copy-marker (point))))
+	    (body (point-marker)))
 	(goto-char (point-min))
 	(when (re-search-forward "^content-length:[ \t]\\([0-9]+\\)" body t)
 	  (delete-region (match-beginning 1) (match-end 1))

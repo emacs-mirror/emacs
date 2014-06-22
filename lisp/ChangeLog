@@ -1,3 +1,13 @@
+2013-06-22  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* electric.el (electric-layout-post-self-insert-function):
+	* emacs-lisp/ert.el (ert--insert-infos):
+	* obsolete/vi.el (vi-set-mark):
+	* term.el (term-handle-scroll):
+	* textmodes/bibtex.el (bibtex-fill-field, bibtex-fill-entry):
+	* wid-edit.el (widget-editable-list-value-create): Prefer
+	point-marker to copy-marker of point.
+
 2014-06-21  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
 	Fix completion retrieval parsing (bug#17209).

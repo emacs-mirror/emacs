@@ -4840,7 +4840,7 @@ If optional arg MOVE is non-nil move point to end of field."
 If optional prefix JUSTIFY is non-nil justify as well.
 In BibTeX mode this function is bound to `fill-paragraph-function'."
   (interactive "*P")
-  (let ((pnt (copy-marker (point)))
+  (let ((pnt (point-marker))
         (bounds (bibtex-enclosing-field t)))
     (bibtex-fill-field-bounds bounds justify)
     (goto-char pnt)))
@@ -4852,7 +4852,7 @@ names appear in column `bibtex-field-indentation', field text starts in
 column `bibtex-text-indentation' and continuation lines start here, too.
 If `bibtex-align-at-equal-sign' is non-nil, align equal signs, too."
   (interactive "*")
-  (let ((pnt (copy-marker (point)))
+  (let ((pnt (point-marker))
         (beg (bibtex-beginning-of-entry)) ; move point
         bounds)
     (bibtex-delete-whitespace)
