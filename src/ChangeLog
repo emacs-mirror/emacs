@@ -1,3 +1,15 @@
+2014-06-22  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xmenu.c (mouse_position_for_popup):
+	* xselect.c (mouse_position_for_drop): Do not duplicate ...
+	* xfns.c (x_relative_mouse_position): ... and prefer this function.
+	* menu.c (Fx_popup_menu):
+	* xselect.c (x_handle_dnd_message): Adjust users.
+	* menu.h (mouse_position_for_popup): Remove prototype.
+	* xterm.h (x_relative_mouse_position): Add prototype.
+	* xterm.c (x_find_topmost_parent): Break from the loop and do not
+	call XFree if XQueryTree returns zero.
+
 2014-06-21  Eli Zaretskii  <eliz@gnu.org>
 
 	* indent.c (Fvertical_motion): Doc fix.

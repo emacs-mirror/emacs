@@ -54,9 +54,6 @@ extern widget_value *make_widget_value (const char *, char *, bool, Lisp_Object)
 extern widget_value *digest_single_submenu (int, int, bool);
 #endif
 
-#ifdef HAVE_X_WINDOWS
-extern void mouse_position_for_popup (struct frame *f, int *x, int *y);
-#endif
 #if defined (HAVE_X_WINDOWS) || defined (MSDOS)
 extern Lisp_Object x_menu_show (struct frame *, int, int, int,
 				Lisp_Object, const char **);

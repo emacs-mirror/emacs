@@ -139,53 +139,6 @@ menubar_id_to_frame (LWLIB_ID id)
 }
 
 #endif
-
-#ifdef HAVE_X_WINDOWS
-/* Return the mouse position in *X and *Y.  The coordinates are window
-   relative for the edit window in frame F.
-   This is for Fx_popup_menu.  The mouse_position_hook can not
-   be used for X, as it returns window relative coordinates
-   for the window where the mouse is in.  This could be the menu bar,
-   the scroll bar or the edit window.  Fx_popup_menu needs to be
-   sure it is the edit window.  */
-void
-mouse_position_for_popup (struct frame *f, int *x, int *y)
-{
-  Window root, dummy_window;
-  int dummy;
-
-  eassert (FRAME_X_P (f));
-
-  block_input ();
-
-  XQueryPointer (FRAME_X_DISPLAY (f),
-                 DefaultRootWindow (FRAME_X_DISPLAY (f)),
-
-                 /* The root window which contains the pointer.  */
-                 &root,
-
-                 /* Window pointer is on, not used  */
-                 &dummy_window,
-
-                 /* The position on that root window.  */
-                 x, y,
-
-                 /* x/y in dummy_window coordinates, not used.  */
-                 &dummy, &dummy,
-
-                 /* Modifier keys and pointer buttons, about which
-                    we don't care.  */
-                 (unsigned int *) &dummy);
-
-  unblock_input ();
-
-  /* x_menu_show expects window coordinates, not root window
-     coordinates.  Translate.  */
-  *x -= f->left_pos + FRAME_OUTER_TO_INNER_DIFF_X (f);
-  *y -= f->top_pos + FRAME_OUTER_TO_INNER_DIFF_Y (f);
-}
-
-#endif /* HAVE_X_WINDOWS */
 
 #ifndef MSDOS
 

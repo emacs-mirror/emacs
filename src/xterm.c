@@ -358,8 +358,10 @@ x_find_topmost_parent (struct frame *f)
       unsigned int nchildren;
 
       win = wi;
-      XQueryTree (dpy, win, &root, &wi, &children, &nchildren);
-      XFree (children);
+      if (XQueryTree (dpy, win, &root, &wi, &children, &nchildren))
+	XFree (children);
+      else
+	break;
     }
 
   return win;

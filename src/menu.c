@@ -1233,7 +1233,7 @@ no quit occurs and `x-popup-menu' returns nil.  */)
 	  {
 	    int cur_x, cur_y;
 
-	    mouse_position_for_popup (new_f, &cur_x, &cur_y);
+	    x_relative_mouse_position (new_f, &cur_x, &cur_y);
 	    /* cur_x/y may be negative, so use make_number.  */
 	    x = make_number (cur_x);
 	    y = make_number (cur_y);

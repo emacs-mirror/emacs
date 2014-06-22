@@ -914,6 +914,7 @@ struct selection_input_event
 /* From xfns.c.  */
 
 extern void x_free_gcs (struct frame *);
+extern void x_relative_mouse_position (struct frame *, int *, int *);
 
 /* From xrdb.c.  */
 
