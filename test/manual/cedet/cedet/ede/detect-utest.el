@@ -54,7 +54,6 @@ It is passed the root project found.")
    ;; state variables.
    (init-state :initform nil)
    (init-opt-data)
-   (found-state :initform nil)
    (classp-state :initform nil)
    (optp-state :initform nil)
    (doubledetect-state :initform nil)
@@ -120,6 +119,9 @@ It is passed the root project found.")
     (cedet-utest-log "%40s %s   %s   %s  %s     %s    %s"
 			   (oref entry file)
 			   found class opt ddets rescans inits)
+    (when (stringp init)
+      ;; A string is an error with some details.
+      (cedet-utest-log "%40s %s" "--init msg-- "init))
     ))
 
 (defmethod ede-detect-show-progress ((entry ede-detect-entry))
@@ -148,6 +150,8 @@ It is passed the root project found.")
 		     :classp 'ede-emacs-project-p)
    (ede-detect-entry "emacs sub" :file "src/emacs/src/emacs.c"
 		     :classp 'ede-emacs-project-p)
+   (ede-detect-entry "linux driver" :file "src/linux/drivers/block/ub.c"
+		     :classp 'ede-linux-project-p)
    (ede-detect-entry "linux" :file "src/linux/Makefile"
 		     :classp 'ede-linux-project-p)
    (ede-detect-entry "linux sub" :file "src/linux/scripts/ver_linux"
@@ -243,6 +247,11 @@ It is passed the root project found.")
     ;; Create a fake VC style project that we can detect.
     (ede-generic-new-autoloader "generic-VC" "FAKE VC"
 				"VC" 'ede-generic-vc-project)
+
+    ;; Initial State Dump
+    ;;(message "Dump Autoload State.")
+    ;;(dolist (pc ede-project-class-files)
+    ;;  (message (eieio-object-name pc) ))
 
     ;; Start Logging
     (cedet-utest-log-setup "EDE DETECT")
@@ -358,7 +367,9 @@ It is passed the root project found.")
 			;;			 (substring default-directory baselen)
 			;;			 (eieio-object-name (cdr projdetect))
 			;;			 (eieio-object-name fle))
-			(oset fle init-state "Failed to load project of correct type.")
+			(oset fle init-state
+			      (format "Failed to load project of correct type. Found %S"
+				      (oref (cdr projdetect) class-sym)))
 			(oset fle init-opt-data (eieio-object-name (cdr projdetect)))
 			(push fle errlog))))
 
