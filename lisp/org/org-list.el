@@ -1254,7 +1254,7 @@ some heuristics to guess the result."
 If POS is before first character after bullet of the item, the
 new item will be created before the current one.
 
-STRUCT is the list structure.  PREVS is the the alist of previous
+STRUCT is the list structure.  PREVS is the alist of previous
 items, as returned by `org-list-prevs-alist'.
 
 Insert a checkbox if CHECKBOX is non-nil, and string AFTER-BULLET

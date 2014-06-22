@@ -1032,7 +1032,7 @@ This happens for Android >= 4.0."
 
 (defun tramp-adb-send-command-and-check
   (vec command)
-  "Run COMMAND and and check its exit status.
+  "Run COMMAND and check its exit status.
 Sends `echo $?' along with the COMMAND for checking the exit status.  If
 COMMAND is nil, just sends `echo $?'.  Returns the exit status found."
   (tramp-adb-send-command

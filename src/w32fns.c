@@ -6894,7 +6894,7 @@ operations:
  \"runas\"   - run DOCUMENT, which must be an excutable file, with
                elevated privileges (a.k.a. \"as Administrator\").
  \"properties\"
-           - open the the property sheet dialog for DOCUMENT.
+           - open the property sheet dialog for DOCUMENT.
  nil       - invoke the default OPERATION, or \"open\" if default is
                not defined or unavailable.
 

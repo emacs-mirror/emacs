@@ -1,3 +1,9 @@
+2014-06-22  Mario Lang  <mlang@delysid.org>
+
+	* textmodes/rst.el (rst-comment-region): From from -> from.
+
+	* net/tramp-adb.el (tramp-adb-send-command-and-check): And and -> and.
+
 2013-06-22  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* electric.el (electric-layout-post-self-insert-function):

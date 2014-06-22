@@ -1,3 +1,9 @@
+2014-06-22  Mario Lang  <mlang@delysid.org>
+
+	* srecode.texi (Base Arguments): The the -> to the.
+
+	* org.texi (Images in ODT export): The the -> the.
+
 2014-06-21  Eli Zaretskii  <eliz@gnu.org>
 
 	* autotype.texi (Skeleton Language): Document the feature of \n
