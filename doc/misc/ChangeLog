@@ -1,3 +1,8 @@
+2014-06-23  Leo Liu  <sdl.web@gmail.com>
+
+	* dired-x.texi (Omitting Files in Dired, Omitting Variables): Fix
+	key binding to dired-omit-mode.  (Bug#16354)
+
 2014-06-22  Eli Zaretskii  <eliz@gnu.org>
 
 	* autotype.texi (Skeleton Language): Document the \n feature

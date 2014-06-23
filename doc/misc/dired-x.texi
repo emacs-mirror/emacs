@@ -283,8 +283,8 @@ Marked files are never omitted.
 @end itemize
 
 @table @kbd
-@item M-o
-@kindex M-o
+@item C-x M-o
+@kindex C-x M-o
 @findex dired-omit-mode
 (@code{dired-omit-mode}) Toggle between displaying and omitting
 ``uninteresting'' files.
@@ -324,7 +324,7 @@ Default: @code{nil}
 If non-@code{nil}, ``uninteresting'' files are not listed.
 Uninteresting files are those whose files whose names match regexp
 @code{dired-omit-files}, plus those ending with extensions in
-@code{dired-omit-extensions}.  @kbd{M-o} (@code{dired-omit-mode})
+@code{dired-omit-extensions}.  @kbd{C-x M-o} (@code{dired-omit-mode})
 toggles its value, which is buffer-local.  Put
 
 @example
@@ -333,8 +333,8 @@ toggles its value, which is buffer-local.  Put
 
 @noindent
 inside your @code{dired-mode-hook} to have omitting initially turned on in
-@emph{every} Dired buffer (@pxref{Installation}).  You can then use @kbd{M-o} to
-unomit in that buffer.
+@emph{every} Dired buffer (@pxref{Installation}).  You can then use
+@kbd{C-x M-o} to unomit in that buffer.
 
 To enable omitting automatically only in certain directories you can add
 a directory local setting
