@@ -142,18 +142,10 @@ EMACSSOURCES= \
 	${srcdir}/kmacro.texi \
 	$(EMACS_XTRA)
 
-## The info/ directory exists in release tarfiles but not the repository.
-mkinfodir = @${MKDIR_P} ${buildinfodir}
-
 ## Disable implicit rules.
 %.texi: ;
 
 .PHONY: info dvi html pdf ps
-
-.SUFFIXES: .ps .dvi
-
-.dvi.ps:
-	$(DVIPS) -o $@ $<
 
 info: $(buildinfodir)/emacs.info
 dvi: $(DVI_TARGETS)
@@ -161,28 +153,33 @@ html: $(HTML_TARGETS)
 pdf: $(PDF_TARGETS)
 ps: $(PS_TARGETS)
 
+## The info/ directory exists in release tarfiles but not the repository.
+${buildinfodir}:
+	${MKDIR_P} $@
+
 # Note that all the Info targets build the Info files in srcdir.
 # There is no provision for Info files to exist in the build directory.
 # In a distribution of Emacs, the Info files should be up to date.
-# Note: "<" is not portable in ordinary make rules.
-$(buildinfodir)/emacs.info: ${EMACSSOURCES}
-	$(mkinfodir)
-	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/emacs.texi
+$(buildinfodir)/emacs.info: ${EMACSSOURCES} | ${buildinfodir}
+	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ $<
 
 emacs.dvi: ${EMACSSOURCES}
-	$(ENVADD) $(TEXI2DVI) ${srcdir}/emacs.texi
+	$(ENVADD) $(TEXI2DVI) $<
 
 emacs.pdf: ${EMACSSOURCES}
-	$(ENVADD) $(TEXI2PDF) ${srcdir}/emacs.texi
+	$(ENVADD) $(TEXI2PDF) $<
 
 emacs.html: ${EMACSSOURCES}
-	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/emacs.texi
+	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ $<
 
 emacs-xtra.dvi: $(EMACS_XTRA)
-	$(ENVADD) $(TEXI2DVI) ${srcdir}/emacs-xtra.texi
+	$(ENVADD) $(TEXI2DVI) $<
 
 emacs-xtra.pdf: $(EMACS_XTRA)
-	$(ENVADD) $(TEXI2PDF) ${srcdir}/emacs-xtra.texi
+	$(ENVADD) $(TEXI2PDF) $<
+
+%.ps: %.dvi
+	$(DVIPS) -o $@ $<
 
 .PHONY: mostlyclean clean distclean bootstrap-clean maintainer-clean infoclean
 

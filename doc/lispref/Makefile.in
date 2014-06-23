@@ -124,17 +124,10 @@ srcs = \
   $(srcdir)/gpl.texi \
   $(srcdir)/doclicense.texi
 
-mkinfodir = @${MKDIR_P} ${buildinfodir}
-
 ## Disable implicit rules.
 %.texi: ;
 
-.PHONY: info dvi pdf ps
-
-.SUFFIXES: .ps .dvi
-
-.dvi.ps:
-	$(DVIPS) -o $@ $<
+.PHONY: info dvi html pdf ps
 
 info: $(buildinfodir)/elisp.info
 dvi: $(DVI_TARGETS)
@@ -142,19 +135,23 @@ html: $(HTML_TARGETS)
 pdf: $(PDF_TARGETS)
 ps: $(PS_TARGETS)
 
-## Note: "<" is not portable in ordinary make rules.
-$(buildinfodir)/elisp.info: $(srcs)
-	$(mkinfodir)
-	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ $(srcdir)/elisp.texi
+${buildinfodir}:
+	${MKDIR_P} $@
+
+$(buildinfodir)/elisp.info: $(srcs) | ${buildinfodir}
+	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ $<
 
 elisp.dvi: $(srcs)
-	$(ENVADD) $(TEXI2DVI) $(srcdir)/elisp.texi
+	$(ENVADD) $(TEXI2DVI) $<
 
 elisp.html: $(srcs)
-	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ $(srcdir)/elisp.texi
+	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ $<
 
 elisp.pdf: $(srcs)
-	$(ENVADD) $(TEXI2PDF) $(srcdir)/elisp.texi
+	$(ENVADD) $(TEXI2PDF) $<
+
+elisp.ps: elisp.dvi
+	$(DVIPS) -o $@ $<
 
 .PHONY: mostlyclean clean distclean bootstrap-clean maintainer-clean infoclean
 
