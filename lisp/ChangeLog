@@ -1,3 +1,8 @@
+2014-06-23  Sam Steingold  <sds@gnu.org>
+
+	* simple.el (kill-append): Remove undo boundary depending on ...
+	(kill-append-merge-undo): New user option.
+
 2014-06-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* simple.el (handle-shift-selection, exchange-point-and-mark)
