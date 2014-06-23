@@ -2084,7 +2084,7 @@ make_ctrl_char (int c)
   /* Save the upper bits here.  */
   int upper = c & ~0177;
 
-  if (! ASCII_BYTE_P (c))
+  if (! ASCII_CHAR_P (c))
     return c |= ctrl_modifier;
 
   c &= 0177;

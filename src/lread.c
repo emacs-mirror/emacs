@@ -213,7 +213,7 @@ readchar (Lisp_Object readcharfun, bool *multibyte)
       else
 	{
 	  c = BUF_FETCH_BYTE (inbuffer, pt_byte);
-	  if (! ASCII_BYTE_P (c))
+	  if (! ASCII_CHAR_P (c))
 	    c = BYTE8_TO_CHAR (c);
 	  pt_byte++;
 	}
@@ -242,7 +242,7 @@ readchar (Lisp_Object readcharfun, bool *multibyte)
       else
 	{
 	  c = BUF_FETCH_BYTE (inbuffer, bytepos);
-	  if (! ASCII_BYTE_P (c))
+	  if (! ASCII_CHAR_P (c))
 	    c = BYTE8_TO_CHAR (c);
 	  bytepos++;
 	}
@@ -324,7 +324,7 @@ readchar (Lisp_Object readcharfun, bool *multibyte)
     return c;
   if (multibyte)
     *multibyte = 1;
-  if (ASCII_BYTE_P (c))
+  if (ASCII_CHAR_P (c))
     return c;
   if (emacs_mule_encoding)
     return read_emacs_mule_char (c, readbyte, readcharfun);

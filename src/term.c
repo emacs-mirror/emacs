@@ -1861,7 +1861,7 @@ produce_glyphless_glyph (struct it *it, Lisp_Object acronym)
 	    acronym = XCDR (acronym);
 	  buf[0] = '[';
 	  str = STRINGP (acronym) ? SSDATA (acronym) : "";
-	  for (len = 0; len < 6 && str[len] && ASCII_BYTE_P (str[len]); len++)
+	  for (len = 0; len < 6 && str[len] && ASCII_CHAR_P (str[len]); len++)
 	    buf[1 + len] = str[len];
 	  buf[1 + len] = ']';
 	  len += 2;

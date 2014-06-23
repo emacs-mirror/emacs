@@ -403,7 +403,7 @@ extern Lisp_Object Vchar_charset_set;
    Try some optimization before calling decode_char.  */
 
 #define DECODE_CHAR(charset, code)					\
-  ((ASCII_BYTE_P (code) && (charset)->ascii_compatible_p)		\
+  ((ASCII_CHAR_P (code) && (charset)->ascii_compatible_p)		\
    ? (code)								\
    : ((code) < (charset)->min_code || (code) > (charset)->max_code)	\
    ? -1									\

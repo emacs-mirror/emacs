@@ -990,7 +990,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	{
 	  unsigned char *p = SDATA (name);
 
-	  while (*p && ASCII_BYTE_P (*p))
+	  while (*p && ASCII_CHAR_P (*p))
 	    p++;
 	  if (*p == '\0')
 	    {

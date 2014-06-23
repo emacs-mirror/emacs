@@ -1,3 +1,17 @@
+2014-06-23  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Simplify and cleanup character conversion stuff.
+	* lisp.h (multibyte_char_to_unibyte, multibyte_char_to_unibyte_safe):
+	Remove prototypes.
+	* character.c (multibyte_char_to_unibyte)
+	(multibyte_char_to_unibyte_safe): Remove; no longer used.
+	* character.h (make_char): Remove; unused.
+	(CHAR_TO_BYTE8, CHAR_TO_BYTE_SAFE): Simplify.
+	(ASCII_BYTE_P): Remove; ASCII_CHAR_P does the same thing.
+	* buffer.c, charset.c, charset.h, cmds.c, coding.c, editfns.c:
+	* fileio.c, indent.c, insdel.c, keyboard.c, lread.c, print.c:
+	* search.c, term.c, xdisp.c, xterm.c: Related users changed.
+
 2014-06-22  Mario Lang  <mlang@delysid.org>
 
 	* w32fns.c (Fw32_shell_execute): The the -> the.

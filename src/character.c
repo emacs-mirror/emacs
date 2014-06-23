@@ -233,32 +233,6 @@ translate_char (Lisp_Object table, int c)
   return c;
 }
 
-/* Convert ASCII or 8-bit character C to unibyte.  If C is none of
-   them, return (C & 0xFF).  */
-
-int
-multibyte_char_to_unibyte (int c)
-{
-  if (c < 0x80)
-    return c;
-  if (CHAR_BYTE8_P (c))
-    return CHAR_TO_BYTE8 (c);
-  return (c & 0xFF);
-}
-
-/* Like multibyte_char_to_unibyte, but return -1 if C is not supported
-   by charset_unibyte.  */
-
-int
-multibyte_char_to_unibyte_safe (int c)
-{
-  if (c < 0x80)
-    return c;
-  if (CHAR_BYTE8_P (c))
-    return CHAR_TO_BYTE8 (c);
-  return -1;
-}
-
 DEFUN ("characterp", Fcharacterp, Scharacterp, 1, 2, 0,
        doc: /* Return non-nil if OBJECT is a character.
 In Emacs Lisp, characters are represented by character codes, which

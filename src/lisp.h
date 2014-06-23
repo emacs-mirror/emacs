@@ -3433,8 +3433,6 @@ extern void syms_of_coding (void);
 /* Defined in character.c.  */
 extern ptrdiff_t chars_in_text (const unsigned char *, ptrdiff_t);
 extern ptrdiff_t multibyte_chars_in_text (const unsigned char *, ptrdiff_t);
-extern int multibyte_char_to_unibyte (int) ATTRIBUTE_CONST;
-extern int multibyte_char_to_unibyte_safe (int) ATTRIBUTE_CONST;
 extern void syms_of_character (void);
 
 /* Defined in charset.c.  */

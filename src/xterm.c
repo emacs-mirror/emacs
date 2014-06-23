@@ -6460,7 +6460,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	    for (i = 0, nchars = 0; i < nbytes; i++)
 	      {
-		if (ASCII_BYTE_P (copy_bufptr[i]))
+		if (ASCII_CHAR_P (copy_bufptr[i]))
 		  nchars++;
 		STORE_KEYSYM_FOR_DEBUG (copy_bufptr[i]);
 	      }

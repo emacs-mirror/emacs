@@ -1485,7 +1485,7 @@ decode_coding_utf_8 (struct coding_system *coding)
       src = src_base;
       consumed_chars = consumed_chars_base;
       ONE_MORE_BYTE (c);
-      *charbuf++ = ASCII_BYTE_P (c) ? c : BYTE8_TO_CHAR (c);
+      *charbuf++ = ASCII_CHAR_P (c) ? c : BYTE8_TO_CHAR (c);
       coding->errors++;
     }
 
@@ -1725,7 +1725,7 @@ decode_coding_utf_16 (struct coding_system *coding)
 	ONE_MORE_BYTE (c2);
       if (c2 < 0)
 	{
-	  *charbuf++ = ASCII_BYTE_P (c1) ? c1 : BYTE8_TO_CHAR (c1);
+	  *charbuf++ = ASCII_CHAR_P (c1) ? c1 : BYTE8_TO_CHAR (c1);
 	  *charbuf++ = -c2;
 	  continue;
 	}
@@ -2108,7 +2108,7 @@ emacs_mule_char (struct coding_system *coding, const unsigned char *src,
 
 	case 1:
 	  code = c;
-	  charset_ID = ASCII_BYTE_P (code) ? charset_ascii : charset_eight_bit;
+	  charset_ID = ASCII_CHAR_P (code) ? charset_ascii : charset_eight_bit;
 	  break;
 
 	default:
@@ -2596,7 +2596,7 @@ decode_coding_emacs_mule (struct coding_system *coding)
       src = src_base;
       consumed_chars = consumed_chars_base;
       ONE_MORE_BYTE (c);
-      *charbuf++ = ASCII_BYTE_P (c) ? c : BYTE8_TO_CHAR (c);
+      *charbuf++ = ASCII_CHAR_P (c) ? c : BYTE8_TO_CHAR (c);
       char_offset++;
       coding->errors++;
     }
@@ -3573,7 +3573,7 @@ decode_coding_iso_2022 (struct coding_system *coding)
 
       if (CODING_ISO_EXTSEGMENT_LEN (coding) > 0)
 	{
-	  *charbuf++ = ASCII_BYTE_P (c1) ? c1 : BYTE8_TO_CHAR (c1);
+	  *charbuf++ = ASCII_CHAR_P (c1) ? c1 : BYTE8_TO_CHAR (c1);
 	  char_offset++;
 	  CODING_ISO_EXTSEGMENT_LEN (coding)--;
 	  continue;
@@ -3600,7 +3600,7 @@ decode_coding_iso_2022 (struct coding_system *coding)
 	    }
 	  else
 	    {
-	      *charbuf++ = ASCII_BYTE_P (c1) ? c1 : BYTE8_TO_CHAR (c1);
+	      *charbuf++ = ASCII_CHAR_P (c1) ? c1 : BYTE8_TO_CHAR (c1);
 	      char_offset++;
 	    }
 	  continue;
@@ -3974,7 +3974,7 @@ decode_coding_iso_2022 (struct coding_system *coding)
 	  MAYBE_FINISH_COMPOSITION ();
 	  for (; src_base < src; src_base++, char_offset++)
 	    {
-	      if (ASCII_BYTE_P (*src_base))
+	      if (ASCII_CHAR_P (*src_base))
 		*charbuf++ = *src_base;
 	      else
 		*charbuf++ = BYTE8_TO_CHAR (*src_base);
@@ -4004,7 +4004,7 @@ decode_coding_iso_2022 (struct coding_system *coding)
       src = src_base;
       consumed_chars = consumed_chars_base;
       ONE_MORE_BYTE (c);
-      *charbuf++ = c < 0 ? -c : ASCII_BYTE_P (c) ? c : BYTE8_TO_CHAR (c);
+      *charbuf++ = c < 0 ? -c : ASCII_CHAR_P (c) ? c : BYTE8_TO_CHAR (c);
       char_offset++;
       coding->errors++;
       /* Reset the invocation and designation status to the safest
@@ -5640,7 +5640,7 @@ decode_coding_charset (struct coding_system *coding)
       src = src_base;
       consumed_chars = consumed_chars_base;
       ONE_MORE_BYTE (c);
-      *charbuf++ = c < 0 ? -c : ASCII_BYTE_P (c) ? c : BYTE8_TO_CHAR (c);
+      *charbuf++ = c < 0 ? -c : ASCII_CHAR_P (c) ? c : BYTE8_TO_CHAR (c);
       char_offset++;
       coding->errors++;
     }
@@ -9031,13 +9031,13 @@ DEFUN ("find-coding-systems-region-internal",
     p = pbeg = BYTE_POS_ADDR (start_byte);
   pend = p + (end_byte - start_byte);
 
-  while (p < pend && ASCII_BYTE_P (*p)) p++;
-  while (p < pend && ASCII_BYTE_P (*(pend - 1))) pend--;
+  while (p < pend && ASCII_CHAR_P (*p)) p++;
+  while (p < pend && ASCII_CHAR_P (*(pend - 1))) pend--;
 
   work_table = Fmake_char_table (Qnil, Qnil);
   while (p < pend)
     {
-      if (ASCII_BYTE_P (*p))
+      if (ASCII_CHAR_P (*p))
 	p++;
       else
 	{
@@ -9169,7 +9169,7 @@ to the string.  */)
       int c;
 
       if (ascii_compatible)
-	while (p < stop && ASCII_BYTE_P (*p))
+	while (p < stop && ASCII_CHAR_P (*p))
 	  p++, from++;
       if (p >= stop)
 	{
@@ -9285,12 +9285,12 @@ is nil.  */)
     p = pbeg = BYTE_POS_ADDR (start_byte);
   pend = p + (end_byte - start_byte);
 
-  while (p < pend && ASCII_BYTE_P (*p)) p++, pos++;
-  while (p < pend && ASCII_BYTE_P (*(pend - 1))) pend--;
+  while (p < pend && ASCII_CHAR_P (*p)) p++, pos++;
+  while (p < pend && ASCII_CHAR_P (*(pend - 1))) pend--;
 
   while (p < pend)
     {
-      if (ASCII_BYTE_P (*p))
+      if (ASCII_CHAR_P (*p))
 	p++;
       else
 	{
@@ -9598,7 +9598,7 @@ Return the corresponding character.  */)
   CHECK_CODING_SYSTEM_GET_SPEC (Vsjis_coding_system, spec);
   attrs = AREF (spec, 0);
 
-  if (ASCII_BYTE_P (ch)
+  if (ASCII_CHAR_P (ch)
       && ! NILP (CODING_ATTR_ASCII_COMPAT (attrs)))
     return code;
 
@@ -9679,7 +9679,7 @@ Return the corresponding character.  */)
   CHECK_CODING_SYSTEM_GET_SPEC (Vbig5_coding_system, spec);
   attrs = AREF (spec, 0);
 
-  if (ASCII_BYTE_P (ch)
+  if (ASCII_CHAR_P (ch)
       && ! NILP (CODING_ATTR_ASCII_COMPAT (attrs)))
     return code;
 

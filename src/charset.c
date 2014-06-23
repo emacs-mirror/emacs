@@ -389,12 +389,12 @@ load_charset_map (struct charset *charset, struct charset_map_entries *entries, 
 	{
 	  if (ascii_compatible_p)
 	    {
-	      if (! ASCII_BYTE_P (from_c))
+	      if (! ASCII_CHAR_P (from_c))
 		{
 		  if (from_c < nonascii_min_char)
 		    nonascii_min_char = from_c;
 		}
-	      else if (! ASCII_BYTE_P (to_c))
+	      else if (! ASCII_CHAR_P (to_c))
 		{
 		  nonascii_min_char = 0x80;
 		}
@@ -1522,7 +1522,7 @@ find_charsets_in_text (const unsigned char *ptr, ptrdiff_t nchars,
 
 	    if (!NILP (table))
 	      c = translate_char (table, c);
-	    if (ASCII_BYTE_P (c))
+	    if (ASCII_CHAR_P (c))
 	      ASET (charsets, charset_ascii, Qt);
 	    else
 	      ASET (charsets, charset_eight_bit, Qt);

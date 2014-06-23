@@ -920,7 +920,7 @@ position_indentation (ptrdiff_t pos_byte)
 	  column += tab_width - column % tab_width;
 	  break;
 	default:
-	  if (ASCII_BYTE_P (p[-1])
+	  if (ASCII_CHAR_P (p[-1])
 	      || NILP (BVAR (current_buffer, enable_multibyte_characters)))
 	    return column;
 	  {
