@@ -1,3 +1,13 @@
+2014-06-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* international/fontset.el (script-representative-chars): Add
+	representative characters for scripts added in Unicode 7.0.
+	(otf-script-alist): Synchronize with the latest registry of OTF
+	script tags.
+
+	* international/characters.el (char-script-table): Update for
+	scripts added and codepoint ranges changed in Unicode 7.0.
+
 2014-06-23  Eli Barzilay  <eli@barzilay.org>
 
 	* calculator.el (calculator-standard-displayer): Fix bug in use of

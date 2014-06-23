@@ -1176,8 +1176,8 @@ Setup char-width-table appropriate for non-CJK language environment."
       (elt
        '((#x0000 #x007F latin)
 	 (#x00A0 #x024F latin)
-	 (#x0250 #x02AF phonetic)
-	 (#x02B0 #x036F latin)
+	 (#x0250 #x02AF phonetic)	; IPA Extensions
+	 (#x02B0 #x036F latin)		; Spacing Modifiers and Diacriticals
 	 (#x0370 #x03E1 greek)
 	 (#x03E2 #x03EF coptic)
 	 (#x03F0 #x03F3 greek)
@@ -1186,12 +1186,12 @@ Setup char-width-table appropriate for non-CJK language environment."
 	 (#x0590 #x05FF hebrew)
 	 (#x0600 #x06FF arabic)
 	 (#x0700 #x074F syriac)
-	 (#x0750 #x077F arabic)
+	 (#x0750 #x077F arabic)		; Arabic Supplement
 	 (#x0780 #x07BF thaana)
 	 (#x07C0 #x07FF nko)
 	 (#x0800 #x083F samaritan)
 	 (#x0840 #x085F mandaic)
-	 (#x08A0 #x08FF arabic)
+	 (#x08A0 #x08FF arabic)		; Arabic Extended-A
 	 (#x0900 #x097F devanagari)
 	 (#x0980 #x09FF bengali)
 	 (#x0A00 #x0A7F gurmukhi)
@@ -1205,10 +1205,10 @@ Setup char-width-table appropriate for non-CJK language environment."
 	 (#x0E00 #x0E7F thai)
 	 (#x0E80 #x0EFF lao)
 	 (#x0F00 #x0FFF tibetan)
-	 (#x1000 #x109F burmese) ; according to Unicode 6.1, should be "myanmar"
+	 (#x1000 #x109F burmese)	; Myanmar
 	 (#x10A0 #x10FF georgian)
 	 (#x1100 #x11FF hangul)
-	 (#x1200 #x139F ethiopic)
+	 (#x1200 #x139F ethiopic)	; Ethiopic and Ethiopic Supplement
 	 (#x13A0 #x13FF cherokee)
 	 (#x1400 #x167F canadian-aboriginal)
 	 (#x1680 #x169F ogham)
@@ -1219,13 +1219,14 @@ Setup char-width-table appropriate for non-CJK language environment."
 	 (#x1760 #x177F tagbanwa)
 	 (#x1780 #x17FF khmer)
 	 (#x1800 #x18AF mongolian)
-	 (#x18B0 #x18FF canadian-aboriginal)
+	 (#x18B0 #x18FF canadian-aboriginal) ; Canadian Aboriginal Syllabics Extended
 	 (#x1900 #x194F limbu)
 	 (#x1950 #x197F tai-le)
-	 (#x1980 #x19DF tai-lue)
-	 (#x19E0 #x19FF khmer)
+	 (#x1980 #x19DF tai-lue)	; New Tai Lue
+	 (#x19E0 #x19FF khmer)		; Khmer Symbols
 	 (#x1A00 #x1A00 buginese)
 	 (#x1A20 #x1AAF tai-tham)
+	 (#x1AB0 #x1AFF latin)		; Combining Diacritical Marks Extended
 	 (#x1B00 #x1B7F balinese)
 	 (#x1B80 #x1BBF sundanese)
 	 (#x1BC0 #x1BFF batak)
@@ -1233,58 +1234,63 @@ Setup char-width-table appropriate for non-CJK language environment."
 	 (#x1C50 #x1C7F ol-chiki)
 	 (#x1CC0 #x1CCF sundanese)
 	 (#x1CD0 #x1CFF vedic)
-	 (#x1D00 #x1DBF phonetic)
-	 (#x1DC0 #x1EFF latin)
-	 (#x1F00 #x1FFF greek)
+	 (#x1D00 #x1DBF phonetic)	; Phonetic Extensions & Supplement
+	 (#x1DC0 #x1EFF latin)		; Latin Extended Additional
+	 (#x1F00 #x1FFF greek)		; Greek Extended
 	 (#x2000 #x27FF symbol)
 	 (#x2800 #x28FF braille)
 	 (#x2900 #x2BFF symbol)
 	 (#x2C00 #x2C5F glagolitic)
-	 (#x2C60 #x2C7F latin)
+	 (#x2C60 #x2C7F latin)		; Latin Extended-C
 	 (#x2C80 #x2CFF coptic)
-	 (#x2D00 #x2D2F georgian)
+	 (#x2D00 #x2D2F georgian)	; Georgian Supplement
 	 (#x2D30 #x2D7F tifinagh)
-	 (#x2D80 #x2DDF ethiopic)
-	 (#x2DE0 #x2DFF cyrillic)
+	 (#x2D80 #x2DDF ethiopic)	; Ethiopic Extended
+	 (#x2DE0 #x2DFF cyrillic)	; Cyrillic Extended-A
 	 (#x2E00 #x2E7F symbol)
 	 (#x2E80 #x2FDF han)
 	 (#x2FF0 #x2FFF ideographic-description)
 	 (#x3000 #x303F cjk-misc)
-	 (#x3040 #x30FF kana)
+	 (#x3040 #x30FF kana)		; Hiragana and Katakana
 	 (#x3100 #x312F bopomofo)
-	 (#x3130 #x318F hangul)
+	 (#x3130 #x318F hangul)		; Hangul Compatibility Jamo
 	 (#x3190 #x319F kanbun)
-	 (#x31A0 #x31BF bopomofo)
-	 (#x31C0 #x31EF cjk-misc)
-	 (#x31F0 #x31FF kana)
+	 (#x31A0 #x31BF bopomofo)	; Bopomofo Extended
+	 (#x31C0 #x31EF cjk-misc)	; CJK Strokes
+	 (#x31F0 #x31FF kana)		; Katakana Phonetic Extensions
 	 (#x3200 #x9FAF han)
 	 (#xA000 #xA4CF yi)
 	 (#xA4D0 #xA4FF lisu)
 	 (#xA500 #xA63F vai)
-	 (#xA640 #xA69F cyrillic)
+	 (#xA640 #xA69F cyrillic)	; Cyrillic Extended-B
 	 (#xA6A0 #xA6FF bamum)
 	 (#xA700 #xA7FF latin)
 	 (#xA800 #xA82F syloti-nagri)
 	 (#xA830 #xA83F north-indic-number)
 	 (#xA840 #xA87F phags-pa)
 	 (#xA880 #xA8DF saurashtra)
-	 (#xA8E0 #xA8FF devanagari)
+	 (#xA8E0 #xA8FF devanagari)	; Devanagari Extended
 	 (#xA900 #xA92F kayah-li)
 	 (#xA930 #xA95F rejang)
-	 (#xA960 #xA97F hangul)
+	 (#xA960 #xA97F hangul)		; Hangul Jamo Extended
 	 (#xA980 #xA9DF javanese)
+	 (#xA9E0 #xA9FF burmese)	; Myanmar Extended-B
 	 (#xAA00 #xAA5F cham)
-	 (#xAA60 #xAA7B burmese)	; Unicode 6.1: "myanmar"
+	 (#xAA60 #xAA7F burmese)	; Myanmar Extended-A
 	 (#xAA80 #xAADF tai-viet)
-	 (#xAAE0 #xAAFF meetei-mayek)
-	 (#xAB00 #xAB2F ethiopic)
+	 (#xAAE0 #xAAFF meetei-mayek)	; Meetei Mayek Extensions
+	 (#xAB00 #xAB2F ethiopic)	; Ethiopic Extended-A
+	 (#xAB30 #xAB6F latin)		; Latin Extended-E
 	 (#xABC0 #xABFF meetei-mayek)
 	 (#xAC00 #xD7FF hangul)
 	 (#xF900 #xFAFF han)
-	 (#xFB1D #xFB4F hebrew)
-	 (#xFB50 #xFDFF arabic)
+	 (#xFB00 #xFB06 latin)	        ; Latin ligatures
+	 (#xFB13 #xFB17 armenian)	; Armenian ligatures
+	 (#xFB1D #xFB4F hebrew)	        ; Alphabetic Presentation Forms
+	 (#xFB50 #xFDFF arabic)		; Arabic Presentation Forms-A
+	 (#xFE20 #xFE2F latin)		; Combining Half Marks
 	 (#xFE30 #xFE4F han)
-	 (#xFE70 #xFEFF arabic)
+	 (#xFE70 #xFEFF arabic)		; Arabic Presentation Forms-B
 	 (#xFF00 #xFF5F cjk-misc)
 	 (#xFF61 #xFF9F kana)
 	 (#xFFE0 #xFFE6 cjk-misc)
@@ -1295,51 +1301,75 @@ Setup char-width-table appropriate for non-CJK language environment."
 	 (#x101D0 #x101FF phaistos-disc)
 	 (#x10280 #x1029F lycian)
 	 (#x102A0 #x102DF carian)
+	 (#x102E0 #x102FF coptic)	; Coptic Epact Numbers
 	 (#x10300 #x1032F olt-italic)
 	 (#x10330 #x1034F gothic)
+	 (#x10350 #x1037F old-permic)
 	 (#x10380 #x1039F ugaritic)
 	 (#x103A0 #x103DF old-persian)
 	 (#x10400 #x1044F deseret)
 	 (#x10450 #x1047F shavian)
 	 (#x10480 #x104AF osmanya)
+	 (#x10500 #x1052F elbasan)
+	 (#x10530 #x1056F caucasian-albanian)
+	 (#x10600 #x106BF linear-a)
 	 (#x10800 #x1083F cypriot-syllabary)
 	 (#x10840 #x1085F aramaic)
+	 (#x10860 #x1087F palmyrene)
+	 (#x10880 #x108AF nabataean)
 	 (#x10900 #x1091F phoenician)
 	 (#x10920 #x1093F lydian)
 	 (#x10980 #x109FF meroitic)
 	 (#x10A00 #x10A5F kharoshthi)
 	 (#x10A60 #x10A7F old-south-arabian)
+	 (#x10A80 #x10A9F old-north-arabian)
+	 (#x10AC0 #x10AFF manichaean)
 	 (#x10B00 #x10B3F avestan)
 	 (#x10B40 #x10B5F inscriptional-parthian)
 	 (#x10B60 #x10B7F inscriptional-pahlavi)
+	 (#x10B80 #x10BAF psalter-pahlavi)
 	 (#x10C00 #x10C4F old-turkic)
 	 (#x10E60 #x10E7F rumi-number)
 	 (#x11000 #x1107F brahmi)
 	 (#x11080 #x110CF kaithi)
 	 (#x110D0 #x110FF sora-sompeng)
 	 (#x11100 #x1114F chakma)
+	 (#x11150 #x1117F mahajani)
 	 (#x11180 #x111DF sharada)
+	 (#x111E0 #x111FF sinhala-archaic-number)
+	 (#x11200 #x1124F khojki)
+	 (#x112B0 #x112FF khudawadi)
+	 (#x11300 #x1137F grantha)
+	 (#x11480 #x114DF tirhuta)
+	 (#x11580 #x115FF siddham)
+	 (#x11600 #x1165F modi)
 	 (#x11680 #x116CF takri)
+	 (#x118A0 #x118FF warang-citi)
+	 (#x11AC0 #x11AFF pau-cin-hau)
 	 (#x12000 #x123FF cuneiform)
 	 (#x12400 #x1247F cuneiform-numbers-and-punctuation)
 	 (#x13000 #x1342F egyptian)
 	 (#x16800 #x16A3F bamum)
+	 (#x16A40 #x16A6F mro)
+	 (#x16AD0 #x16AFF bassa-vah)
+	 (#x16B00 #x16B8F pahawh-hmong)
 	 (#x16F00 #x16F9F miao)
-	 (#x1B000 #x1B0FF kana)
+	 (#x1B000 #x1B0FF kana)		; Kana Supplement
+	 (#x1BC00 #x1BCAF duployan-shorthand)
 	 (#x1D000 #x1D0FF byzantine-musical-symbol)
 	 (#x1D100 #x1D1FF musical-symbol)
 	 (#x1D200 #x1D24F ancient-greek-musical-notation)
 	 (#x1D300 #x1D35F tai-xuan-jing-symbol)
 	 (#x1D360 #x1D37F counting-rod-numeral)
 	 (#x1D400 #x1D7FF mathematical)
-	 (#x1EE00 #x1EEFF arabic)
+	 (#x1E800 #x1E8DF mende-kikakui)
+	 (#x1EE00 #x1EEFF arabic)	; Arabic Mathematical Alphabetic Symbols
 	 (#x1F000 #x1F02F mahjong-tile)
 	 (#x1F030 #x1F09F domino-tile)
 	 (#x1F0A0 #x1F0FF playing-cards)
-	 (#x1F100 #x1F1FF symbol)
-	 (#x1F200 #x1F2FF han)
-	 (#x1F300 #x1F64F symbol)
-	 (#x1F680 #x1F77F symbol)
+	 (#x1F100 #x1F1FF symbol)	; Enclosed Alphanumeric Supplement
+	 (#x1F200 #x1F2FF han)		; Enclosed Ideographic Supplement
+	 (#x1F300 #x1F8FF symbol)
 	 (#x20000 #x2B81F han)
 	 (#x2F800 #x2FFFF han)))
     (set-char-table-range char-script-table
