@@ -145,6 +145,9 @@ EMACSSOURCES= \
 ## The info/ directory exists in release tarfiles but not the repository.
 mkinfodir = @${MKDIR_P} ${buildinfodir}
 
+## Disable implicit rules.
+%.texi: ;
+
 .PHONY: info dvi html pdf ps
 
 .SUFFIXES: .ps .dvi

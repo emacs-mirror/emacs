@@ -126,6 +126,9 @@ srcs = \
 
 mkinfodir = @${MKDIR_P} ${buildinfodir}
 
+## Disable implicit rules.
+%.texi: ;
+
 .PHONY: info dvi pdf ps
 
 .SUFFIXES: .ps .dvi

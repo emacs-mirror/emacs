@@ -71,6 +71,9 @@ mkinfodir = @${MKDIR_P} ${buildinfodir}
 srcs = ${srcdir}/emacs-lisp-intro.texi ${srcdir}/doclicense.texi \
   ${emacsdir}/emacsver.texi
 
+## Disable implicit rules.
+%.texi: ;
+
 .PHONY: info dvi html pdf ps
 
 .SUFFIXES: .ps .dvi
