@@ -1,3 +1,7 @@
+2014-06-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* org-compat.el (activate-mark): Set transient-mark-mode buffer-locally.
+
 2014-06-22  Mario Lang  <mlang@delysid.org>
 
 	* org-list.el (org-list-insert-item): The the -> the.

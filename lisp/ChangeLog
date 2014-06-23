@@ -1,7 +1,18 @@
+2014-06-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (handle-shift-selection, exchange-point-and-mark)
+	(activate-mark): Set transient-mark-mode buffer-locally (bug#6316).
+	(transient-mark-mode): Use&set the global value.
+	* mouse.el (mouse-set-region-1, mouse-drag-track): Idem.
+	* emulation/edt.el (edt-emulation-off): Save&restore the global
+	transient-mark-mode setting.
+	* obsolete/pc-select.el (pc-selection-mode): Use the
+	transient-mark-mode function.
+
 2014-06-23  Eli Zaretskii  <eliz@gnu.org>
 
-	* international/fontset.el (script-representative-chars): Add
-	representative characters for scripts added in Unicode 7.0.
+	* international/fontset.el (script-representative-chars):
+	Add representative characters for scripts added in Unicode 7.0.
 	(otf-script-alist): Synchronize with the latest registry of OTF
 	script tags.
 
@@ -29,8 +40,8 @@
 	* obsolete/vi.el (vi-set-mark):
 	* term.el (term-handle-scroll):
 	* textmodes/bibtex.el (bibtex-fill-field, bibtex-fill-entry):
-	* wid-edit.el (widget-editable-list-value-create): Prefer
-	point-marker to copy-marker of point.
+	* wid-edit.el (widget-editable-list-value-create):
+	Prefer point-marker to copy-marker of point.
 
 2014-06-21  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
@@ -233,9 +244,9 @@
 	(calculator-expt, calculator-truncate): Minor code improvements.
 	(calculator-need-3-lines): New function pulling out code from
 	`calculator'.
-	(calculator-get-display): Renamed from `calculator-get-prompt', and
+	(calculator-get-display): Rename from `calculator-get-prompt', and
 	improved.
-	(calculator-push-curnum): Renamed from `calculator-curnum-value', and
+	(calculator-push-curnum): Rename from `calculator-curnum-value', and
 	extended for all uses of it.  All callers changed.
 	(calculator-groupize-number): New utility for splitting a number into
 	groups.
@@ -247,11 +258,11 @@
 	`pcase' for conciseness and clarity).
 	(calculator-reduce-stack): Now doing just the reduction loop using
 	`calculator-reduce-stack-once'.
-	(calculator-funcall): Improved code, make it work in v24.3.1 too.
-	(calculator-last-input): Improved code, remove some old cruft.
+	(calculator-funcall): Improve code, make it work in v24.3.1 too.
+	(calculator-last-input): Improve code, remove some old cruft.
 	(calculator-quit): Kill `calculator-buffer' in electric mode too.
-	(calculator-integer-p): Removed.
-	(calculator-fact): Improved code, make it work on non-integer values
+	(calculator-integer-p): Remove.
+	(calculator-fact): Improve code, make it work on non-integer values
 	too (using truncated numbers).
 
 2014-06-15  Michael Albinus  <michael.albinus@gmx.de>

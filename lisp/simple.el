@@ -4522,7 +4522,7 @@ If NO-TMM is non-nil, leave `transient-mark-mode' alone."
       (force-mode-line-update) ;Refresh toolbar (bug#16382).
       (setq mark-active t)
       (unless (or transient-mark-mode no-tmm)
-        (setq transient-mark-mode 'lambda))
+        (setq-local transient-mark-mode 'lambda))
       (run-hooks 'activate-mark-hook))))
 
 (defun set-mark (pos)
@@ -4828,7 +4828,7 @@ mode temporarily."
     (set-mark (point))
     (goto-char omark)
     (cond (temp-highlight
-	   (setq transient-mark-mode (cons 'only transient-mark-mode)))
+	   (setq-local transient-mark-mode (cons 'only transient-mark-mode)))
 	  ((or (and arg (region-active-p)) ; (xor arg (not (region-active-p)))
 	       (not (or arg (region-active-p))))
 	   (deactivate-mark))
@@ -4867,10 +4867,10 @@ its earlier value."
   (cond ((and shift-select-mode this-command-keys-shift-translated)
          (unless (and mark-active
 		      (eq (car-safe transient-mark-mode) 'only))
-	   (setq transient-mark-mode
-                 (cons 'only
-                       (unless (eq transient-mark-mode 'lambda)
-                         transient-mark-mode)))
+	   (setq-local transient-mark-mode
+                       (cons 'only
+                             (unless (eq transient-mark-mode 'lambda)
+                               transient-mark-mode)))
            (push-mark nil nil t)))
         ((eq (car-safe transient-mark-mode) 'only)
          (setq transient-mark-mode (cdr transient-mark-mode))
@@ -4901,7 +4901,7 @@ Transient Mark mode, invoke \\[apropos-documentation] and type \"transient\"
 or \"mark.*active\" at the prompt."
   :global t
   ;; It's defined in C/cus-start, this stops the d-m-m macro defining it again.
-  :variable transient-mark-mode)
+  :variable (default-value 'transient-mark-mode))
 
 (defvar widen-automatically t
   "Non-nil means it is ok for commands to call `widen' when they want to.

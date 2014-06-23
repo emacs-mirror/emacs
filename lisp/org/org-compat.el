@@ -295,7 +295,7 @@ Works on both Emacs and XEmacs."
       (setq mark-active t)
       (when (and (boundp 'transient-mark-mode)
 		 (not transient-mark-mode))
-	(setq transient-mark-mode 'lambda))
+	(set (make-local-variable 'transient-mark-mode) 'lambda))
       (when (boundp 'zmacs-regions)
 	(setq zmacs-regions t)))))
 

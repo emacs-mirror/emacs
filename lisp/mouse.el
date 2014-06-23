@@ -579,10 +579,10 @@ command alters the kill ring or not."
 (defun mouse-set-region-1 ()
   ;; Set transient-mark-mode for a little while.
   (unless (eq (car-safe transient-mark-mode) 'only)
-    (setq transient-mark-mode
-	  (cons 'only
-		(unless (eq transient-mark-mode 'lambda)
-		  transient-mark-mode))))
+    (setq-local transient-mark-mode
+                (cons 'only
+                      (unless (eq transient-mark-mode 'lambda)
+                        transient-mark-mode))))
   (setq mouse-last-region-beg (region-beginning))
   (setq mouse-last-region-end (region-end))
   (setq mouse-last-region-tick (buffer-modified-tick)))
@@ -801,10 +801,10 @@ The region will be defined with mark and point."
 
     ;; Activate the region, using `mouse-start-end' to determine where
     ;; to put point and mark (e.g., double-click will select a word).
-    (setq transient-mark-mode
-	  (if (eq transient-mark-mode 'lambda)
-	      '(only)
-	    (cons 'only transient-mark-mode)))
+    (setq-local transient-mark-mode
+                (if (eq transient-mark-mode 'lambda)
+                    '(only)
+                  (cons 'only transient-mark-mode)))
     (let ((range (mouse-start-end start-point start-point click-count)))
       (push-mark (nth 0 range) t t)
       (goto-char (nth 1 range)))
