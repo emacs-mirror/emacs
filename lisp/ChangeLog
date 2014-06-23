@@ -1,3 +1,11 @@
+2014-06-23  Eli Barzilay  <eli@barzilay.org>
+
+	* calculator.el (calculator-standard-displayer): Fix bug in use of
+	`calculator-groupize-number'.
+	(calculator-funcall): Fix broken `cl-flet' use by moving it into the
+	`eval' code, so it works in v24.3.1 too.
+	(calculator-last-input): Comment to clarify purpose.
+
 2014-06-22  Mario Lang  <mlang@delysid.org>
 
 	* textmodes/rst.el (rst-comment-region): From from -> from.
@@ -193,6 +201,48 @@
 	(dun-unix-verbs): Add ssh as alias to rlogin, because nobody knows what
 	rlogin is anymore.
 	(dun-help): Bump version number; update contact info.
+
+2014-06-15  Eli Barzilay  <eli@barzilay.org>
+
+	* calculator.el (calculator-prompt, calculator-remove-zeros)
+	(calculator-mode-hook, calculator-operators, calculator-stack)
+	(calculator-mode): Tweak docstring.
+	(calculator-user-operators): Tweak docstring, fix a bug in the last
+	example.
+	(calculator-displayer): `std' case has an optional boolean.
+	(calculator-displayers): Use the new boolean to group in decimal mode.
+	(calculator-mode-map, calculator, calculator-message)
+	(calculator-op-arity, calculator-add-operators)
+	(calculator-string-to-number, calculator-displayer-prev)
+	(calculator-displayer-next, calculator-remove-zeros)
+	(calculator-eng-display, calculator-number-to-string)
+	(calculator-update-display, calculator-last-input)
+	(calculator-clear-fragile, calculator-digit, calculator-decimal)
+	(calculator-exp, calculator-saved-move, calculator-clear)
+	(calculator-copy, calculator-put-value, calculator-help)
+	(calculator-expt, calculator-truncate): Minor code improvements.
+	(calculator-need-3-lines): New function pulling out code from
+	`calculator'.
+	(calculator-get-display): Renamed from `calculator-get-prompt', and
+	improved.
+	(calculator-push-curnum): Renamed from `calculator-curnum-value', and
+	extended for all uses of it.  All callers changed.
+	(calculator-groupize-number): New utility for splitting a number into
+	groups.
+	(calculator-standard-displayer): Improve code, new optional argument to
+	use comma-split groups, make second argument optional too to use with
+	'left/'right inputs.  All callers changed.
+	(calculator-reduce-stack-once): New utility, doing the meat of what
+	`calculator-reduce-stack' used to do, much improved (mostly using
+	`pcase' for conciseness and clarity).
+	(calculator-reduce-stack): Now doing just the reduction loop using
+	`calculator-reduce-stack-once'.
+	(calculator-funcall): Improved code, make it work in v24.3.1 too.
+	(calculator-last-input): Improved code, remove some old cruft.
+	(calculator-quit): Kill `calculator-buffer' in electric mode too.
+	(calculator-integer-p): Removed.
+	(calculator-fact): Improved code, make it work on non-integer values
+	too (using truncated numbers).
 
 2014-06-15  Michael Albinus  <michael.albinus@gmx.de>
 
