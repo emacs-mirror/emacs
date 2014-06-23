@@ -249,7 +249,7 @@ indentation by specifying a large negative ARG."
   (indent-rigidly--pop-undo)
   (let* ((current (indent-rigidly--current-indentation beg end))
 	 (rtl (eq (current-bidi-paragraph-direction) 'right-to-left))
-	 (next (indent--next-tab-stop current (if rtl nil 'prev))))
+	 (next (indent-next-tab-stop current (if rtl nil 'prev))))
     (indent-rigidly beg end (- next current))))
 
 (defun indent-rigidly-right-to-tab-stop (beg end)
@@ -258,7 +258,7 @@ indentation by specifying a large negative ARG."
   (indent-rigidly--pop-undo)
   (let* ((current (indent-rigidly--current-indentation beg end))
 	 (rtl (eq (current-bidi-paragraph-direction) 'right-to-left))
-	 (next (indent--next-tab-stop current (if rtl 'prev))))
+	 (next (indent-next-tab-stop current (if rtl 'prev))))
     (indent-rigidly beg end (- next current))))
 
 (defun indent-line-to (column)
@@ -654,7 +654,7 @@ You can add or remove colons and then do \\<edit-tab-stops-map>\\[edit-tab-stops
       (setq tab-stop-list tabs))
   (message "Tab stops installed"))
 
-(defun indent--next-tab-stop (column &optional prev)
+(defun indent-next-tab-stop (column &optional prev)
   "Return the next tab stop after COLUMN.
 If PREV is non-nil, return the previous one instead."
   (let ((tabs tab-stop-list))
@@ -684,7 +684,7 @@ Use \\[edit-tab-stops] to edit them interactively."
   (interactive)
   (and abbrev-mode (= (char-syntax (preceding-char)) ?w)
        (expand-abbrev))
-  (let ((nexttab (indent--next-tab-stop (current-column))))
+  (let ((nexttab (indent-next-tab-stop (current-column))))
     (delete-horizontal-space t)
     (indent-to nexttab)))
 
@@ -693,7 +693,7 @@ Use \\[edit-tab-stops] to edit them interactively."
 The variable `tab-stop-list' is a list of columns at which there are tab stops.
 Use \\[edit-tab-stops] to edit them interactively."
   (interactive)
-  (let ((nexttab (indent--next-tab-stop (current-column))))
+  (let ((nexttab (indent-next-tab-stop (current-column))))
     (let ((before (point)))
       (move-to-column nexttab t)
       (save-excursion

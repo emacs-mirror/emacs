@@ -1,3 +1,13 @@
+2014-06-23  Leo Liu  <sdl.web@gmail.com>
+
+	* align.el (align-adjust-col-for-rule): Unbreak due to defaulting
+	tab-stop-list to nil.  (Bug#16381)
+
+	* indent.el (indent-next-tab-stop): Rename from indent--next-tab-stop.
+	(indent-rigidly-left-to-tab-stop)
+	(indent-rigidly-right-to-tab-stop, tab-to-tab-stop)
+	(move-to-tab-stop): Change callers.
+
 2014-06-22  Eli Zaretskii  <eliz@gnu.org>
 
 	* skeleton.el (skeleton-insert): Yet another fix of the doc string
