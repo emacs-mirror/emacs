@@ -1246,9 +1246,10 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
      (tramp-find-foreign-file-name-handler tramp-test-temporary-file-directory)
      '(tramp-gvfs-file-name-handler tramp-smb-file-name-handler))))
 
-  (let ((tmp-name (tramp--test-make-temp-name))
-	(default-directory tramp-test-temporary-file-directory)
-	kill-buffer-query-functions)
+  (let* ((tmp-name (tramp--test-make-temp-name))
+	 (fnnd (file-name-nondirectory tmp-name))
+	 (default-directory tramp-test-temporary-file-directory)
+	 kill-buffer-query-functions)
     (unwind-protect
 	(progn
 	  ;; We cannot use "/bin/true" and "/bin/false"; those paths
@@ -1259,17 +1260,25 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	  (with-temp-buffer
 	    (write-region "foo" nil tmp-name)
 	    (should (file-exists-p tmp-name))
-	    (should
-	     (zerop
-	      (process-file "ls" nil t nil (file-name-nondirectory tmp-name))))
+	    (should (zerop (process-file "ls" nil t nil fnnd)))
+	    ;; `ls' could produce colorized output.
+	    (goto-char (point-min))
+	    (while (re-search-forward tramp-color-escape-sequence-regexp nil t)
+	      (replace-match "" nil nil))
+	    (should (string-equal (format "%s\n" fnnd) (buffer-string)))
+	    (should-not (get-buffer-window (current-buffer) t))
+
+	    ;; Second run. The output must be appended.
+	    (should (zerop (process-file "ls" nil t t fnnd)))
 	    ;; `ls' could produce colorized output.
 	    (goto-char (point-min))
 	    (while (re-search-forward tramp-color-escape-sequence-regexp nil t)
 	      (replace-match "" nil nil))
 	    (should
-	     (string-equal
-	      (format "%s\n" (file-name-nondirectory tmp-name))
-	      (buffer-string)))))
+	     (string-equal (format "%s\n%s\n" fnnd fnnd) (buffer-string)))
+	    ;; A non-nil DISPLAY must not raise the buffer.
+	    (should-not (get-buffer-window (current-buffer) t))))
+
       (ignore-errors (delete-file tmp-name)))))
 
 (ert-deftest tramp-test27-start-file-process ()
