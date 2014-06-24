@@ -1,3 +1,8 @@
+2014-06-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* notes/unicode: Some notes about what to do when a new Unicode
+	version is imported.
+
 2014-06-24  Glenn Morris  <rgm@gnu.org>
 
 	* unidata/BidiMirroring.txt: Update to 7.0.0 (only comment changes).

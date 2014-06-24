@@ -3,6 +3,39 @@
 Copyright (C) 2002-2014 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
+Importing a new Unicode Standard version into Emacs
+-------------------------------------------------------------
+
+Emacs uses the following files from the Unicode Character Database
+(a.k.a. "UCD):
+
+  . UnicodeData.txt
+  . BidiMirroring.txt
+  . IVD_Sequences.txt
+
+First, these files need to be copied into admin/unidata/, and then
+Emacs should be rebuilt for them to take effect.  Rebuilding Emacs
+updates several derived files elsewhere in the Emacs source tree,
+mainly in lisp/international/.
+
+When Emacs is rebuilt for the first time after importing the new
+files, pay attention to any warning or error messages.  In particular,
+admin/unidata/unidata-gen.el will complain if UnicodeData.txt defines
+new bidirectional attributes of characters, because unidata-gen.el,
+bidi.c and dispextern.h need to be updated in that case; failure to do
+so will cause aborts in redisplay.
+
+Next, review the changes in UnicodeData.txt vs the previous version
+used by Emacs.  Any changes, be it introduction of new scripts or
+addition of codepoints to existing scripts, need corresponding changes
+in the data used for filling char-script-table, see characters.el
+around line 1300.  Other databases and settings in characters.el, such
+as the data for char-width-table, might also need changes.
+
+Any new scripts added by UnicodeData.txt will also need updates to
+script-representative-chars defined in fontset.el.  Other databases in
+fontset.el might also need to be updated as needed.
+
 Problems, fixmes and other unicode-related issues
 -------------------------------------------------------------
 
