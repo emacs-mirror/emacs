@@ -1217,13 +1217,11 @@ Use KEYS if given, otherwise use `this-command-keys'."
       inp
       ;; Translates kp-x to x and [tries to] create a string to lookup
       ;; operators; assume all symbols are translatable via
-      ;; `function-key-map' or with an 'ascii-character property.  This
-      ;; is needed because we have key bindings for kp-* (which might be
-      ;; the wrong thing to do) so they don't get translated in
-      ;; `this-command-keys'.
+      ;; `function-key-map'.  This is needed because we have key
+      ;; bindings for kp-* (which might be the wrong thing to do) so
+      ;; they don't get translated in `this-command-keys'.
       (concat (mapcar (lambda (k)
-                        (if (numberp k) k (or (get k 'ascii-character)
-                                              (error "??bad key??"))))
+                        (if (numberp k) k (error "??bad key?? (%S)" k)))
                       (or (lookup-key function-key-map inp) inp))))))
 
 (defun calculator-clear-fragile (&optional op)

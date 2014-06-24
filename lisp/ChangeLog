@@ -1,3 +1,8 @@
+2014-06-24  Eli Barzilay  <eli@barzilay.org>
+
+	* calculator.el (calculator-last-input): drop 'ascii-character property
+	lookup.
+
 2014-06-24  Leo Liu  <sdl.web@gmail.com>
 
 	* align.el (align-adjust-col-for-rule): Unbreak due to defaulting
