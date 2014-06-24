@@ -1,3 +1,11 @@
+2014-06-24  Juri Linkov  <juri@jurta.org>
+
+	* desktop.el (desktop-auto-save-enable)
+	(desktop-auto-save-disable): New functions.
+	(desktop-save-mode, desktop-auto-save-timeout): Use them.
+	(desktop-read): Disable the autosave before loading the desktop,
+	and enable afterwards.  (Bug#17351)
+
 2014-06-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Fix some indentation problem with \; and pipes (bug#17842).
