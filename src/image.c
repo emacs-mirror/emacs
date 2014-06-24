@@ -8549,7 +8549,6 @@ and `imagemagick-types-inhibit'.  */)
   ExceptionInfo ex;
   char **imtypes;
   size_t i;
-  Lisp_Object Qimagemagicktype;
 
   GetExceptionInfo(&ex);
   imtypes = GetMagickList ("*", &numf, &ex);
@@ -8557,8 +8556,8 @@ and `imagemagick-types-inhibit'.  */)
 
   for (i = 0; i < numf; i++)
     {
-      Qimagemagicktype = intern (imtypes[i]);
-      typelist = Fcons (Qimagemagicktype, typelist);
+      Lisp_Object imagemagicktype = intern (imtypes[i]);
+      typelist = Fcons (imagemagicktype, typelist);
       imtypes[i] = MagickRelinquishMemory (imtypes[i]);
     }
 

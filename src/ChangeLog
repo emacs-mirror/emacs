@@ -1,3 +1,12 @@
+2014-06-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Be more consistent about the 'Qfoo' naming convention.
+	* image.c (Fimagemagick_types):
+	* lisp.h (lisp_h_CHECK_TYPE, CHECK_TYPE, CHECK_ARRAY):
+	* process.c (Fmake_network_process):
+	Rename C local identifier 'Qfoo to avoid giving the false
+	impression that it stands for the symbol 'foo'.
+
 2014-06-23  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Simplify and cleanup character conversion stuff.

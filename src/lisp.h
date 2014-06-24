@@ -341,8 +341,8 @@ error !;
 #define lisp_h_CHECK_LIST_CONS(x, y) CHECK_TYPE (CONSP (x), Qlistp, y)
 #define lisp_h_CHECK_NUMBER(x) CHECK_TYPE (INTEGERP (x), Qintegerp, x)
 #define lisp_h_CHECK_SYMBOL(x) CHECK_TYPE (SYMBOLP (x), Qsymbolp, x)
-#define lisp_h_CHECK_TYPE(ok, Qxxxp, x) \
-   ((ok) ? (void) 0 : (void) wrong_type_argument (Qxxxp, x))
+#define lisp_h_CHECK_TYPE(ok, predicate, x) \
+   ((ok) ? (void) 0 : (void) wrong_type_argument (predicate, x))
 #define lisp_h_CONSP(x) (XTYPE (x) == Lisp_Cons)
 #define lisp_h_EQ(x, y) (XLI (x) == XLI (y))
 #define lisp_h_FLOATP(x) (XTYPE (x) == Lisp_Float)
@@ -388,7 +388,7 @@ error !;
 # define CHECK_LIST_CONS(x, y) lisp_h_CHECK_LIST_CONS (x, y)
 # define CHECK_NUMBER(x) lisp_h_CHECK_NUMBER (x)
 # define CHECK_SYMBOL(x) lisp_h_CHECK_SYMBOL (x)
-# define CHECK_TYPE(ok, Qxxxp, x) lisp_h_CHECK_TYPE (ok, Qxxxp, x)
+# define CHECK_TYPE(ok, predicate, x) lisp_h_CHECK_TYPE (ok, predicate, x)
 # define CONSP(x) lisp_h_CONSP (x)
 # define EQ(x, y) lisp_h_EQ (x, y)
 # define FLOATP(x) lisp_h_FLOATP (x)
@@ -1003,8 +1003,9 @@ make_lisp_proc (struct Lisp_Process *p)
 
 /* Type checking.  */
 
-LISP_MACRO_DEFUN_VOID (CHECK_TYPE, (int ok, Lisp_Object Qxxxp, Lisp_Object x),
-		       (ok, Qxxxp, x))
+LISP_MACRO_DEFUN_VOID (CHECK_TYPE,
+		       (int ok, Lisp_Object predicate, Lisp_Object x),
+		       (ok, predicate, x))
 
 /* Deprecated and will be removed soon.  */
 
@@ -2552,9 +2553,9 @@ CHECK_VECTOR_OR_STRING (Lisp_Object x)
   CHECK_TYPE (VECTORP (x) || STRINGP (x), Qarrayp, x);
 }
 INLINE void
-CHECK_ARRAY (Lisp_Object x, Lisp_Object Qxxxp)
+CHECK_ARRAY (Lisp_Object x, Lisp_Object predicate)
 {
-  CHECK_TYPE (ARRAYP (x), Qxxxp, x);
+  CHECK_TYPE (ARRAYP (x), predicate, x);
 }
 INLINE void
 CHECK_BUFFER (Lisp_Object x)
