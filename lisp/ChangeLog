@@ -1,3 +1,9 @@
+2014-06-24  Leonard Randall  <leonard.a.randall@gmail.com>
+
+	* textmodes/reftex-parse.el (reftex-using-biblatex-p): Make search
+	for comment lines non-greedy and stopping at newlines to fix stack
+	overflows with large files.
+
 2014-06-24  Eli Barzilay  <eli@barzilay.org>
 
 	* calculator.el (calculator-last-input): drop 'ascii-character property
