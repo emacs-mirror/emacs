@@ -1,3 +1,30 @@
+2014-06-24  Leo Liu  <sdl.web@gmail.com>
+
+	* align.el (align-adjust-col-for-rule): Unbreak due to defaulting
+	tab-stop-list to nil.  (Bug#16381)
+
+	* indent.el (indent-next-tab-stop): Rename from indent--next-tab-stop.
+	(indent-rigidly-left-to-tab-stop)
+	(indent-rigidly-right-to-tab-stop, tab-to-tab-stop)
+	(move-to-tab-stop): Change callers.
+
+2014-06-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* skeleton.el (skeleton-insert): Yet another fix of the doc string
+	wrt behavior of \n as the first/last element of a skeleton.
+
+2014-06-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-adb.el (tramp-adb-handle-process-file):
+	* net/tramp-sh.el (tramp-sh-handle-process-file):
+	* net/tramp-smb.el (tramp-smb-handle-process-file): Do not raise
+	the output buffer when DISPLAY is non-nil.  (Bug#17815)
+
+2014-06-24  Glenn Morris  <rgm@gnu.org>
+
+	* play/landmark.el (landmark-move-down, landmark-move-up):
+	Fix 2007-10-20 change - preserve horizontal position.
+
 2014-06-23  Sam Steingold  <sds@gnu.org>
 
 	* simple.el (kill-append): Remove undo boundary depending on ...

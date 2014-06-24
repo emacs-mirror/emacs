@@ -1225,8 +1225,8 @@ target of the symlink differ."
 	(error
 	 (setq ret 1)))
 
-      ;; We should show the output anyway.
-      (when (and outbuf display) (display-buffer outbuf))
+      ;; We should redisplay the output.
+      (when (and display outbuf (get-buffer-window outbuf t)) (redisplay))
 
       ;; Cleanup.  We remove all file cache values for the connection,
       ;; because the remote process could have changed them.

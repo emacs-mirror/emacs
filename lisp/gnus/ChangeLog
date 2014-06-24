@@ -1,3 +1,8 @@
+2014-06-24  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* html2text.el (html2text-get-attr): Rewrite to handle spaces in quoted
+	attribute values.  (Bug#17834)
+
 2013-06-22  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* gnus-sum.el (gnus-summary-edit-article-done):

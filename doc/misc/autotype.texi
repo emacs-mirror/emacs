@@ -234,9 +234,10 @@ Insert string or character.  Literal strings and characters are passed through
 @c ??? something seems very wrong here.
 Insert a newline and align under current line, but not if this is the
 last element of a skeleton and the newline would be inserted at end of
-line.  Use newline character @code{?\n} to prevent alignment.  Use
-@code{"\n"} as the last string element of a skeleton to insert a
-newline after the skeleton unconditionally.
+line, or this is the first element and the newline would be inserted
+at beginning of line.  Use newline character @code{?\n} to prevent
+alignment.  Use @code{"\n"} as the first or last string element of a
+skeleton to insert a newline unconditionally.
 @item @code{_}
 Interesting point.  When wrapping skeletons around successive regions, they are
 put at these places.  Point is left at first @code{_} where nothing is wrapped.

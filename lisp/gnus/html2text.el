@@ -179,72 +179,20 @@ formatting, and then moved afterward.")
 
 (defun html2text-get-attr (p1 p2)
   (goto-char p1)
-  (re-search-forward " +[^ ]" p2 t)
-  (let* ((attr-string (buffer-substring-no-properties (1- (point)) (1- p2)))
-	 (tmp-list (split-string attr-string))
-	 (attr-list)
-	 (counter 0)
-	 (prev (car tmp-list))
-	 (this (nth 1 tmp-list))
-	 (next (nth 2 tmp-list))
-	 (index 1))
-
-    (cond
-     ;; size=3
-     ((string-match "[^ ]=[^ ]" prev)
-      (let ((attr  (nth 0 (split-string prev "=")))
-	    (value (substring prev (1+ (string-match "=" prev)))))
-	(setq attr-list (cons (list attr value) attr-list))))
-     ;; size= 3
-     ((string-match "[^ ]=\\'" prev)
-      (setq attr-list (cons (list (substring prev 0 -1) this) attr-list))))
-
-    (while (< index (length tmp-list))
-      (cond
-       ;; size=3
-       ((string-match "[^ ]=[^ ]" this)
-	(let ((attr  (nth 0 (split-string this "=")))
-	      (value (substring this (1+ (string-match "=" this)))))
-	  (setq attr-list (cons (list attr value) attr-list))))
-       ;; size =3
-       ((string-match "\\`=[^ ]" this)
-	(setq attr-list (cons (list prev (substring this 1)) attr-list)))
-       ;; size= 3
-       ((string-match "[^ ]=\\'" this)
-	(setq attr-list (cons (list (substring this 0 -1) next) attr-list)))
-       ;; size = 3
-       ((string= "=" this)
-	(setq attr-list (cons (list prev next) attr-list))))
-      (setq index (1+ index))
-      (setq prev this)
-      (setq this next)
-      (setq next (nth (1+ index) tmp-list)))
-    ;;
-    ;; Tags with no accompanying "=" i.e. value=nil
-    ;;
-    (setq prev (car tmp-list))
-    (setq this (nth 1 tmp-list))
-    (setq next (nth 2 tmp-list))
-    (setq index 1)
-
-    (when (and (not (string-match "=" prev))
-	       (not (string= (substring this 0 1) "=")))
-      (setq attr-list (cons (list prev nil) attr-list)))
-    (while (< index (1- (length tmp-list)))
-      (when (and (not (string-match "=" this))
-		 (not (or (string= (substring next 0 1) "=")
-			  (string= (substring prev -1) "="))))
-	(setq attr-list (cons (list this nil) attr-list)))
-      (setq index (1+ index))
-      (setq prev this)
-      (setq this next)
-      (setq next (nth (1+ index) tmp-list)))
-
-    (when (and this
-	       (not (string-match "=" this))
-	       (not (string= (substring prev -1) "=")))
-      (setq attr-list (cons (list this nil) attr-list)))
-    ;; return - value
+  (re-search-forward "\\s-+" p2 t)
+  (let (attr-list)
+    (while (re-search-forward "[-a-z0-9._]+" p2 t)
+      (setq attr-list
+	    (cons
+	     (list (match-string 0)
+		   (when (looking-at "\\s-*=")
+		     (goto-char (match-end 0))
+		     (skip-chars-forward "[:space:]")
+		     (when (or (looking-at "\"[^\"]*\"\\|'[^']*'")
+			       (looking-at "[-a-z0-9._:]+"))
+		       (goto-char (match-end 0))
+		       (match-string 0))))
+	     attr-list)))
     attr-list))
 
 ;;

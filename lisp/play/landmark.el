@@ -4,13 +4,7 @@
 
 ;; Author: Terrence Brannon (was: <brannon@rana.usc.edu>)
 ;; Created: December 16, 1996 - first release to usenet
-;; Keywords: games, gomoku, neural network, adaptive search, chemotaxis
-
-;;;_* Usage
-;;; Just type
-;;;   M-x eval-buffer
-;;;   M-x landmark-test-run
-
+;; Keywords: games, neural network, adaptive search, chemotaxis
 
 ;; This file is part of GNU Emacs.
 
@@ -29,6 +23,9 @@
 
 
 ;;; Commentary:
+
+;; To try this, just type: M-x landmark-test-run
+
 ;; Landmark is a relatively non-participatory game in which a robot
 ;; attempts to maneuver towards a tree at the center of the window
 ;; based on unique olfactory cues from each of the 4 directions. If
@@ -1040,13 +1037,17 @@ mouse-1: get robot moving, mouse-2: play on this square")))
   "Move point down one row on the Landmark board."
   (interactive)
   (if (< (landmark-point-y) landmark-board-height)
-      (forward-line 1)));;; landmark-square-height)))
+      (let ((col (current-column)))
+	(forward-line 1) ;;; landmark-square-height
+	(move-to-column col))))
 
 (defun landmark-move-up ()
   "Move point up one row on the Landmark board."
   (interactive)
   (if (> (landmark-point-y) 1)
-      (forward-line (- landmark-square-height))))
+      (let ((col (current-column)))
+	(forward-line (- landmark-square-height))
+	(move-to-column col))))
 
 (defun landmark-move-ne ()
   "Move point North East on the Landmark board."
