@@ -41,6 +41,13 @@ for foo in bar; do              #  bug#17721
     }
 done
 
+filter_3 ()                     # bug#17842
+{
+    tr -d '"`' | tr '	' ' ' | \
+        awk -F\; -f filter.awk | \
+	grep -v "^," | sort -t, -k2,2
+}
+
 echo -n $(( 5 << 2 ))
 # This should not be treated as a heredoc (bug#12770).
 2

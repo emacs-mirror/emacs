@@ -1,3 +1,13 @@
+2014-06-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Fix some indentation problem with \; and pipes (bug#17842).
+	* progmodes/sh-script.el (sh-mode-syntax-table): Set syntax of ;|&.
+	(sh-smie--default-forward-token, sh-smie--default-backward-token):
+	New functions.
+	(sh-smie-sh-forward-token, sh-smie-sh-backward-token)
+	(sh-smie-rc-forward-token, sh-smie-rc-backward-token): Use them.
+	(sh-smie-sh-rules): Fix indentation of a pipe at BOL.
+
 2014-06-24  Eli Zaretskii  <eliz@gnu.org>
 
 	* international/fontset.el (script-representative-chars):
