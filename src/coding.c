@@ -9091,8 +9091,7 @@ DEFUN ("find-coding-systems-region-internal",
 
 DEFUN ("unencodable-char-position", Funencodable_char_position,
        Sunencodable_char_position, 3, 5, 0,
-       doc: /*
-Return position of first un-encodable character in a region.
+       doc: /* Return position of first un-encodable character in a region.
 START and END specify the region and CODING-SYSTEM specifies the
 encoding to check.  Return nil if CODING-SYSTEM does encode the region.
 
@@ -9102,8 +9101,9 @@ list of positions.
 
 If optional 5th argument STRING is non-nil, it is a string to search
 for un-encodable characters.  In that case, START and END are indexes
-to the string.  */)
-  (Lisp_Object start, Lisp_Object end, Lisp_Object coding_system, Lisp_Object count, Lisp_Object string)
+to the string and treated as in `substring'.  */)
+  (Lisp_Object start, Lisp_Object end, Lisp_Object coding_system,
+   Lisp_Object count, Lisp_Object string)
 {
   EMACS_INT n;
   struct coding_system coding;
@@ -9140,12 +9140,7 @@ to the string.  */)
   else
     {
       CHECK_STRING (string);
-      CHECK_NATNUM (start);
-      CHECK_NATNUM (end);
-      if (! (XINT (start) <= XINT (end) && XINT (end) <= SCHARS (string)))
-	args_out_of_range_3 (string, start, end);
-      from = XINT (start);
-      to = XINT (end);
+      validate_subarray (string, start, end, SCHARS (string), &from, &to);
       if (! STRING_MULTIBYTE (string))
 	return Qnil;
       p = SDATA (string) + string_char_to_byte (string, from);

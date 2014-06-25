@@ -1684,9 +1684,10 @@ Otherwise (for terminal display), FONT-OBJECT must be a terminal ID, a
 frame, or nil for the selected frame's terminal device.
 
 If the optional 4th argument STRING is not nil, it is a string
-containing the target characters between indices FROM and TO.
-Otherwise FROM and TO are character positions in current buffer;
-they can be in either order, and can be integers or markers.
+containing the target characters between indices FROM and TO,
+which are treated as in `substring'.  Otherwise FROM and TO are
+character positions in current buffer; they can be in either order,
+and can be integers or markers.
 
 A glyph-string is a vector containing information about how to display
 a specific character sequence.  The format is:
@@ -1742,15 +1743,10 @@ should be ignored.  */)
     }
   else
     {
-      CHECK_NATNUM (from);
-      CHECK_NATNUM (to);
       CHECK_STRING (string);
+      validate_subarray (string, from, to, SCHARS (string), &frompos, &topos);
       if (! STRING_MULTIBYTE (string))
 	error ("Attempt to shape unibyte text");
-      if (! (XINT (from) <= XINT (to) && XINT (to) <= SCHARS (string)))
-	args_out_of_range_3 (string, from, to);
-      frompos = XFASTINT (from);
-      topos = XFASTINT (to);
       frombyte = string_char_to_byte (string, frompos);
     }
 
@@ -1795,21 +1791,18 @@ DEFUN ("compose-string-internal", Fcompose_string_internal,
        Scompose_string_internal, 3, 5, 0,
        doc: /* Internal use only.
 
-Compose text between indices START and END of STRING.
-Optional 4th and 5th arguments are COMPONENTS and MODIFICATION-FUNC
+Compose text between indices START and END of STRING, where
+START and END are treated as in `substring'.  Optional 4th
+and 5th arguments are COMPONENTS and MODIFICATION-FUNC
 for the composition.  See `compose-string' for more details.  */)
-  (Lisp_Object string, Lisp_Object start, Lisp_Object end, Lisp_Object components, Lisp_Object modification_func)
+  (Lisp_Object string, Lisp_Object start, Lisp_Object end,
+   Lisp_Object components, Lisp_Object modification_func)
 {
+  ptrdiff_t from, to;
+
   CHECK_STRING (string);
-  CHECK_NUMBER (start);
-  CHECK_NUMBER (end);
-
-  if (XINT (start) < 0 ||
-      XINT (start) > XINT (end)
-      || XINT (end) > SCHARS (string))
-    args_out_of_range (start, end);
-
-  compose_text (XINT (start), XINT (end), components, modification_func, string);
+  validate_subarray (string, start, end, SCHARS (string), &from, &to);
+  compose_text (from, to, components, modification_func, string);
   return string;
 }
 

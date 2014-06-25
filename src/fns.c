@@ -50,8 +50,6 @@ static Lisp_Object Qcodeset, Qdays, Qmonths, Qpaper;
 static Lisp_Object Qmd5, Qsha1, Qsha224, Qsha256, Qsha384, Qsha512;
 
 static bool internal_equal (Lisp_Object, Lisp_Object, int, bool, Lisp_Object);
-static void validate_subarray (Lisp_Object, Lisp_Object, Lisp_Object,
-			       ptrdiff_t, EMACS_INT *, EMACS_INT *);
 
 DEFUN ("identity", Fidentity, Sidentity, 1, 1, 0,
        doc: /* Return the argument unchanged.  */)
@@ -250,8 +248,7 @@ If string STR1 is greater, the value is a positive number N;
   (Lisp_Object str1, Lisp_Object start1, Lisp_Object end1, Lisp_Object str2,
    Lisp_Object start2, Lisp_Object end2, Lisp_Object ignore_case)
 {
-  EMACS_INT from1, to1, from2, to2;
-  ptrdiff_t i1, i1_byte, i2, i2_byte;
+  ptrdiff_t from1, to1, from2, to2, i1, i1_byte, i2, i2_byte;
 
   CHECK_STRING (str1);
   CHECK_STRING (str2);
@@ -1114,9 +1111,9 @@ Elements of ALIST that are not conses are also shared.  */)
    Count negative values backwards from the end.
    Set *IFROM and *ITO to the two indexes used.  */
 
-static void
+void
 validate_subarray (Lisp_Object array, Lisp_Object from, Lisp_Object to,
-		   ptrdiff_t size, EMACS_INT *ifrom, EMACS_INT *ito)
+		   ptrdiff_t size, ptrdiff_t *ifrom, ptrdiff_t *ito)
 {
   EMACS_INT f, t;
 
@@ -1165,8 +1162,7 @@ With one argument, just copy STRING (with properties, if any).  */)
   (Lisp_Object string, Lisp_Object from, Lisp_Object to)
 {
   Lisp_Object res;
-  ptrdiff_t size;
-  EMACS_INT ifrom, ito;
+  ptrdiff_t size, ifrom, ito;
 
   if (STRINGP (string))
     size = SCHARS (string);
@@ -1206,9 +1202,7 @@ If FROM or TO is negative, it counts from the end.
 With one argument, just copy STRING without its properties.  */)
   (Lisp_Object string, register Lisp_Object from, Lisp_Object to)
 {
-  ptrdiff_t size;
-  EMACS_INT from_char, to_char;
-  ptrdiff_t from_byte, to_byte;
+  ptrdiff_t from_char, to_char, from_byte, to_byte, size;
 
   CHECK_STRING (string);
 
@@ -4637,12 +4631,12 @@ returns nil, then (funcall TEST x1 x2) also returns nil.  */)
 /* ALGORITHM is a symbol: md5, sha1, sha224 and so on. */
 
 static Lisp_Object
-secure_hash (Lisp_Object algorithm, Lisp_Object object, Lisp_Object start, Lisp_Object end, Lisp_Object coding_system, Lisp_Object noerror, Lisp_Object binary)
+secure_hash (Lisp_Object algorithm, Lisp_Object object, Lisp_Object start,
+	     Lisp_Object end, Lisp_Object coding_system, Lisp_Object noerror,
+	     Lisp_Object binary)
 {
   int i;
-  ptrdiff_t size;
-  EMACS_INT start_char = 0, end_char = 0;
-  ptrdiff_t start_byte, end_byte;
+  ptrdiff_t size, start_char = 0, start_byte, end_char = 0, end_byte;
   register EMACS_INT b, e;
   register struct buffer *bp;
   EMACS_INT temp;
