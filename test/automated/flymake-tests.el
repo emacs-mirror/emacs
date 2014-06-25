@@ -33,19 +33,16 @@
 ;; Warning predicate
 (defun flymake-tests--current-face (file predicate)
   (let ((buffer (find-file-noselect
-                 (expand-file-name file flymake-tests-data-directory))))
+                 (expand-file-name file flymake-tests-data-directory)))
+        (i 0))
     (unwind-protect
         (with-current-buffer buffer
           (setq-local flymake-warning-predicate predicate)
           (goto-char (point-min))
           (flymake-mode 1)
-          ;; XXX: is this reliable enough?
-          ;; By experiment, no it is not!
-          ;; For some reason, a single (sleep-for 1.0) does nothing here,
-          ;; but 2 * (sleep-for 0.5) works.
-          ;; FIXME what is going on...?
-          (sleep-for (+ 0.5 flymake-no-changes-timeout))
-          (sleep-for (+ 0.5 flymake-no-changes-timeout))
+          ;; Weirdness here...  http://debbugs.gnu.org/17647#25
+          (while (and flymake-is-running (< (setq i (1+ i)) 10))
+            (sleep-for (+ 0.5 flymake-no-changes-timeout)))
           (flymake-goto-next-error)
           (face-at-point))
       (and buffer (let (kill-buffer-query-functions) (kill-buffer buffer))))))
