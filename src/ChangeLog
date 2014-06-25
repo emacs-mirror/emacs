@@ -2,8 +2,10 @@
 
 	Consistently use validate_subarray to verify substring.
 	* fns.c (validate_substring): Not static any more.  Adjust to
-	use ptrdiff_t, not EMACS_INT, becase string and vector limits
+	use ptrdiff_t, not EMACS_INT, because string and vector limits
 	can't exceed ptrdiff_t even if EMACS_INT is wider.
+	(Fcompare_strings, Fsubstring, Fsubstring_no_properties)
+	(secure_hash): Adjust user.
 	* lisp.h (validate_subarray): Add prototype.
 	* coding.c (Fundecodable_char_position):
 	* composite.c (Fcomposition_get_gstring, Fcompose_string_internal):
