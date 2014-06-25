@@ -43,9 +43,12 @@ ${ns_check_file} ${ns_appdir}: ${srcdir}/${ns_appsrc} ${ns_appsrc}
 	    ( cd ${ns_appdir} ; umask 022; tar xf - )
 	touch ${ns_appdir}
 
-${ns_appbindir}/Emacs: ${ns_appdir} ${ns_check_file} ../src/emacs${EXEEXT}
-	${MKDIR_P} ${ns_appbindir}
-	cp -f ../src/emacs${EXEEXT} ${ns_appbindir}/Emacs
+${ns_appbindir}:
+	${MKDIR_P} $@
+
+${ns_appbindir}/Emacs: ${ns_appdir} ${ns_check_file} ../src/emacs${EXEEXT} | \
+  ${ns_appbindir}
+	cp -f ../src/emacs${EXEEXT} $@
 
 .PHONY: all
 
