@@ -1,3 +1,11 @@
+2014-06-25  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in ($(lisp)/progmodes/cc-defs.elc)
+	($(lisp)/progmodes/cc-fonts.elc, $(lisp)/progmodes/cc-langs.elc)
+	($(lisp)/progmodes/cc-vars.elc): Drop hand-written deps on non-cc
+	files.  They are not relevant to the original issue (bug#1004),
+	and cause unnecessary recompilation (bug#2151).
+
 2014-06-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* play/landmark.el: Use lexical-binding and avoid `intangible'.

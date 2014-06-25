@@ -519,28 +519,22 @@ $(lisp)/progmodes/cc-align.elc $(lisp)/progmodes/cc-awk.elc\
  $(lisp)/progmodes/cc-vars.elc: \
    $(lisp)/progmodes/cc-bytecomp.elc $(lisp)/progmodes/cc-defs.elc
 
-$(lisp)/progmodes/cc-align.elc: \
-   $(lisp)/progmodes/cc-vars.elc $(lisp)/progmodes/cc-engine.elc
-
-$(lisp)/progmodes/cc-cmds.elc: \
+$(lisp)/progmodes/cc-align.elc $(lisp)/progmodes/cc-cmds.elc: \
    $(lisp)/progmodes/cc-vars.elc $(lisp)/progmodes/cc-engine.elc
 
 $(lisp)/progmodes/cc-compat.elc: \
    $(lisp)/progmodes/cc-vars.elc $(lisp)/progmodes/cc-styles.elc \
    $(lisp)/progmodes/cc-engine.elc
 
-$(lisp)/progmodes/cc-defs.elc: $(lisp)/progmodes/cc-bytecomp.elc \
-   $(lisp)/emacs-lisp/cl.elc $(lisp)/emacs-lisp/regexp-opt.elc
+$(lisp)/progmodes/cc-defs.elc: $(lisp)/progmodes/cc-bytecomp.elc
 
 $(lisp)/progmodes/cc-engine.elc: $(lisp)/progmodes/cc-langs.elc \
    $(lisp)/progmodes/cc-vars.elc
 
 $(lisp)/progmodes/cc-fonts.elc: $(lisp)/progmodes/cc-langs.elc \
-   $(lisp)/progmodes/cc-vars.elc $(lisp)/progmodes/cc-engine.elc \
-   $(lisp)/font-lock.elc
+   $(lisp)/progmodes/cc-vars.elc $(lisp)/progmodes/cc-engine.elc
 
-$(lisp)/progmodes/cc-langs.elc: $(lisp)/progmodes/cc-vars.elc \
-   $(lisp)/emacs-lisp/cl.elc
+$(lisp)/progmodes/cc-langs.elc: $(lisp)/progmodes/cc-vars.elc
 
 $(lisp)/progmodes/cc-mode.elc: $(lisp)/progmodes/cc-langs.elc \
    $(lisp)/progmodes/cc-vars.elc $(lisp)/progmodes/cc-engine.elc \
@@ -549,7 +543,5 @@ $(lisp)/progmodes/cc-mode.elc: $(lisp)/progmodes/cc-langs.elc \
 
 $(lisp)/progmodes/cc-styles.elc: $(lisp)/progmodes/cc-vars.elc \
    $(lisp)/progmodes/cc-align.elc
-
-$(lisp)/progmodes/cc-vars.elc: $(lisp)/custom.elc $(lisp)/widget.elc
 
 # Makefile ends here.
