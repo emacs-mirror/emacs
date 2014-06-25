@@ -1,3 +1,7 @@
+2014-06-25  Glenn Morris  <rgm@gnu.org>
+
+	* puresize.h (BASE_PURESIZE): Bump by another 1K.  (Bug#17846)
+
 2014-06-21  Eli Zaretskii  <eliz@gnu.org>
 
 	* indent.c (Fvertical_motion): Doc fix.
