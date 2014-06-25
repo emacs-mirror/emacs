@@ -40,10 +40,15 @@
           (goto-char (point-min))
           (flymake-mode 1)
           ;; XXX: is this reliable enough?
+          ;; By experiment, no it is not!
+          ;; For some reason, a single (sleep-for 1.0) does nothing here,
+          ;; but 2 * (sleep-for 0.5) works.
+          ;; FIXME what is going on...?
+          (sleep-for (+ 0.5 flymake-no-changes-timeout))
           (sleep-for (+ 0.5 flymake-no-changes-timeout))
           (flymake-goto-next-error)
           (face-at-point))
-      (and buffer (kill-buffer buffer)))))
+      (and buffer (let (kill-buffer-query-functions) (kill-buffer buffer))))))
 
 (ert-deftest warning-predicate-rx-gcc ()
   "Test GCC warning via regexp predicate."

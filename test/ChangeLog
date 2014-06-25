@@ -1,3 +1,8 @@
+2014-06-25  Glenn Morris  <rgm@gnu.org>
+
+	* automated/flymake-tests.el (flymake-tests--current-face):
+	Sleep for longer.  Avoid querying.
+
 2014-06-25  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* automated/fns-tests.el (fns-tests-compare-string): New test.
