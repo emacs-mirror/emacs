@@ -1962,13 +1962,12 @@ their associated keys and their effects."
 	    ;; If user cancels before setting priority, restore
 	    ;; display.
 	    (unless item-added
-	      (if ocat
-		  (progn
-		    (unless (equal cat ocat)
-		      (todo-category-number ocat)
-		      (todo-category-select))
-		    (and done-only (todo-toggle-view-done-only)))
-		(set-window-buffer (selected-window) (set-buffer obuf)))
+	      (set-window-buffer (selected-window) (set-buffer obuf))
+	      (when ocat
+		(unless (equal cat ocat)
+		  (todo-category-number ocat)
+		  (todo-category-select))
+		(and done-only (todo-toggle-view-done-only)))
 	      (goto-char opoint))
 	    ;; If the todo items section is not visible when the
 	    ;; insertion command is called (either because only done
@@ -2553,9 +2552,9 @@ meaning to raise or lower the item's priority by one."
 		(goto-char (point-min))
 		(setq done (re-search-forward todo-done-string-start nil t))))
 	    (let ((todo-show-with-done done))
-	      (todo-category-select)
-	      ;; Keep top of category in view while setting priority.
-	      (goto-char (point-min)))))
+	      ;; Keep current item or top of moved to category in view
+	      ;; while setting priority.
+	      (save-excursion (todo-category-select)))))
 	;; Prompt for priority only when the category has at least one
 	;; todo item.
 	(when (> maxnum 1)

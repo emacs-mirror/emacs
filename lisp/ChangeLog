@@ -1,3 +1,12 @@
+2014-06-25  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todo-mode.el: Fix two bugs.
+	(todo-insert-item--basic): If user cancels item insertion to
+	another category before setting priority, show original category
+	whether it is in the same or a different file.
+	(todo-set-item-priority): After selecting category, instead of
+	moving point to top, which extends an active region, restore it.
+
 2014-06-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* help-fns.el (describe-function-1): Check file-name is a string before
