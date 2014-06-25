@@ -1,3 +1,22 @@
+2014-06-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* play/landmark.el: Use lexical-binding and avoid `intangible'.
+	(landmark--last-pos): New var.
+	(landmark--intangible-chars): New const.
+	(landmark--intangible): New function.
+	(landmark-mode, landmark-move): Use it.
+	(landmark-mode): Remove properties.
+	(landmark-plot-square, landmark-point-square, landmark-goto-xy)
+	(landmark-cross-qtuple):
+	Don't worry about `intangible' any more.
+	(landmark-click, landmark-point-y): Same; and don't assume point-min==1.
+	(landmark-init-display): Don't set `intangible' and `point-entered'.
+	(square): Remove.  Inline it instead.
+	(landmark--distance): Rename from `distance'.
+	(landmark-calc-distance-of-robot-from): Rename from
+	calc-distance-of-robot-from.
+	(landmark-calc-smell-internal): Rename from calc-smell-internal.
+
 2014-06-25  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* files.el (dir-locals-find-file, file-relative-name):
