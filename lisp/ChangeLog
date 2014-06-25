@@ -1,3 +1,14 @@
+2014-06-25  Leo Liu  <sdl.web@gmail.com>
+
+	* textmodes/picture.el (picture-set-tab-stops):
+	* ruler-mode.el (ruler-mode-mouse-add-tab-stop)
+	(ruler-mode-ruler): Fix to work with nil tab-stop-list.
+
+	* progmodes/asm-mode.el (asm-calculate-indentation): Use
+	indent-next-tab-stop.
+
+	* indent.el (indent-accumulate-tab-stops): New function.
+
 2014-06-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/package.el (package-list-unsigned): New var (bug#17625).

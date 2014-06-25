@@ -418,7 +418,8 @@ stops computed are displayed in the minibuffer with `:' at each stop."
   (save-excursion
     (let (tabs)
       (if arg
-	  (setq tabs (default-value 'tab-stop-list))
+	  (setq tabs (or (default-value 'tab-stop-list)
+			 (indent-accumulate-tab-stops (window-width))))
 	(let ((regexp (concat "[ \t]+[" (regexp-quote picture-tab-chars) "]")))
 	  (beginning-of-line)
 	  (let ((bol (point)))
