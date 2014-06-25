@@ -1,5 +1,12 @@
 2014-06-25  Glenn Morris  <rgm@gnu.org>
 
+	* unidata/Makefile.in (${top_srcdir}/src/macuvs.h): Make and load .elc.
+	(.el.elc): Replace with pattern rule.
+	(%.elc): New.
+	(unidata.txt): Use $<.
+	(compile): Remove.
+	(${DSTDIR}/charprop.el): Use order-only prereqs rather than a sub-make.
+
 	* unidata/uvs.el (uvs-print-table-ivd): Fix free variable typo.
 
 2014-06-21  Glenn Morris  <rgm@gnu.org>
