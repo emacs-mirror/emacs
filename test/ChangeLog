@@ -1,3 +1,7 @@
+2014-06-25  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* automated/fns-tests.el (fns-tests-compare-string): New test.
+
 2014-06-24  Michael Albinus  <michael.albinus@gmx.de>
 
 	* automated/tramp-tests.el (tramp-test26-process-file): Extend test

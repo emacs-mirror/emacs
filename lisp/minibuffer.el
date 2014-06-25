@@ -244,8 +244,7 @@ The result is a completion table which completes strings of the
 form (concat S1 S) in the same way as TABLE completes strings of
 the form (concat S2 S)."
   (lambda (string pred action)
-    (let* ((str (if (eq t (compare-strings string 0 (length s1) s1 nil nil
-                                           completion-ignore-case))
+    (let* ((str (if (string-prefix-p s1 string completion-ignore-case)
                     (concat s2 (substring string (length s1)))))
            (res (if str (complete-with-action action table str pred))))
       (when res
@@ -257,8 +256,7 @@ the form (concat S2 S)."
                     (+ beg (- (length s1) (length s2))))
               . ,(and (eq (car-safe res) 'boundaries) (cddr res)))))
          ((stringp res)
-          (if (eq t (compare-strings res 0 (length s2) s2 nil nil
-                                     completion-ignore-case))
+          (if (string-prefix-p s2 string completion-ignore-case)
               (concat s1 (substring res (length s2)))))
          ((eq action t)
           (let ((bounds (completion-boundaries str table pred "")))

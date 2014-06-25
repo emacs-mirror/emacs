@@ -3659,10 +3659,9 @@ of no valid cache entry."
 ;;;	 (setq locals-file nil))
     ;; Find the best cached value in `dir-locals-directory-cache'.
     (dolist (elt dir-locals-directory-cache)
-      (when (and (eq t (compare-strings file nil (length (car elt))
-					(car elt) nil nil
-					(memq system-type
-					      '(windows-nt cygwin ms-dos))))
+      (when (and (string-prefix-p (car elt) file
+				  (memq system-type
+					'(windows-nt cygwin ms-dos)))
 		 (> (length (car elt)) (length (car dir-elt))))
 	(setq dir-elt elt)))
     (if (and dir-elt
@@ -4507,18 +4506,14 @@ on a DOS/Windows machine, it returns FILENAME in expanded form."
         (let ((ancestor ".")
 	      (filename-dir (file-name-as-directory filename)))
           (while (not
-		  (or
-		   (eq t (compare-strings filename-dir nil (length directory)
-					  directory nil nil fold-case))
-		   (eq t (compare-strings filename nil (length directory)
-					  directory nil nil fold-case))))
+		  (or (string-prefix-p directory filename-dir fold-case)
+		      (string-prefix-p directory filename fold-case)))
             (setq directory (file-name-directory (substring directory 0 -1))
 		  ancestor (if (equal ancestor ".")
 			       ".."
 			     (concat "../" ancestor))))
           ;; Now ancestor is empty, or .., or ../.., etc.
-          (if (eq t (compare-strings filename nil (length directory)
-				     directory nil nil fold-case))
+          (if (string-prefix-p directory filename fold-case)
 	      ;; We matched within FILENAME's directory part.
 	      ;; Add the rest of FILENAME onto ANCESTOR.
 	      (let ((rest (substring filename (length directory))))

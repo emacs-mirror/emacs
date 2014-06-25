@@ -2691,9 +2691,7 @@ Because of ambiguities, this should be concatenated with something like
                      (equal (nth 1 Info-complete-cache) Info-current-node)
                      (equal (nth 2 Info-complete-cache) Info-complete-next-re)
                      (equal (nth 5 Info-complete-cache) Info-complete-nodes)
-                     (let ((prev (nth 3 Info-complete-cache)))
-                       (eq t (compare-strings string 0 (length prev)
-                                              prev 0 nil t))))
+                     (string-prefix-p (nth 3 Info-complete-cache) string) t)
                 ;; We can reuse the previous list.
                 (setq completions (nth 4 Info-complete-cache))
               ;; The cache can't be used.

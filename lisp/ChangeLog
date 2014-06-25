@@ -1,3 +1,12 @@
+2014-06-25  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* files.el (dir-locals-find-file, file-relative-name):
+	* info.el (Info-complete-menu-item):
+	* minibuffer.el (completion-table-subvert): Prefer string-prefix-p
+	to compare-strings to avoid out-of-range errors.
+	* subr.el (string-prefix-p): Adjust to match strict range
+	checking in compare-strings.
+
 2014-06-24  Leonard Randall  <leonard.a.randall@gmail.com>  (tiny change)
 
 	* textmodes/reftex-parse.el (reftex-using-biblatex-p): Make search
