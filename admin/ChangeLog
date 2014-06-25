@@ -1,3 +1,7 @@
+2014-06-25  Glenn Morris  <rgm@gnu.org>
+
+	* unidata/uvs.el (uvs-print-table-ivd): Fix free variable typo.
+
 2014-06-21  Glenn Morris  <rgm@gnu.org>
 
 	* unidata/BidiMirroring.txt: Update to 7.0.0 (only comment changes).
