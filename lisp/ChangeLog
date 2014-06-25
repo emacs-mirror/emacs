@@ -1,3 +1,8 @@
+2014-06-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/package.el (package-list-unsigned): New var (bug#17625).
+	(package-desc-status): Obey it.
+
 2014-06-25  Stephen Berman  <stephen.berman@gmx.net>
 
 	* calendar/todo-mode.el: Fix two bugs.
