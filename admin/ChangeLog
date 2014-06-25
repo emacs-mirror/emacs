@@ -1,5 +1,11 @@
 2014-06-25  Glenn Morris  <rgm@gnu.org>
 
+	* grammars/Makefile.in (${bovinedir}/c-by.el, ${bovinedir}/make-by.el):
+	(${wisentdir}/js-wy.el, ${wisentdir}/python-wy.el):
+	Replace with pattern rules.
+	(${bovinedir}/scm-by.el, ${wisentdir}/javat-wy.el)
+	(${cedetdir}/srecode/srt-wy.el): Use $<.
+
 	* unidata/Makefile.in (${top_srcdir}/src/macuvs.h): Make and load .elc.
 	(.el.elc): Replace with pattern rule.
 	(%.elc): New.
