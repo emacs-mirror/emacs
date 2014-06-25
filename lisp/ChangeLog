@@ -1,4 +1,4 @@
-2014-06-24  Leonard Randall  <leonard.a.randall@gmail.com>
+2014-06-24  Leonard Randall  <leonard.a.randall@gmail.com>  (tiny change)
 
 	* textmodes/reftex-parse.el (reftex-using-biblatex-p): Make search
 	for comment lines non-greedy and stopping at newlines to fix stack
@@ -6,7 +6,7 @@
 
 2014-06-24  Eli Barzilay  <eli@barzilay.org>
 
-	* calculator.el (calculator-last-input): drop 'ascii-character property
+	* calculator.el (calculator-last-input): Drop 'ascii-character property
 	lookup.
 
 2014-06-24  Leo Liu  <sdl.web@gmail.com>
