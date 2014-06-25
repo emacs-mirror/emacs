@@ -1,3 +1,9 @@
+2014-06-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* automated/package-test.el (package-test-update-listing)
+	(package-test-update-archives, package-test-describe-package):
+	Adjust tests according to new package-list-unsigned.
+
 2014-06-21  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
 	* automated/python-tests.el (python-util-strip-string-1): New test.
