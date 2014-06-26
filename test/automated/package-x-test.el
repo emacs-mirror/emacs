@@ -22,27 +22,12 @@
 
 ;;; Commentary:
 
-;; You may want to run this from a separate Emacs instance from your
-;; main one, because a bug in the code below could mess with your
-;; installed packages.
-
-;; Run this in a clean Emacs session using:
-;;
-;;     $ emacs -Q --batch -L . -l package-x-test.el -f ert-run-tests-batch-and-exit
-
 ;;; Code:
 
 (require 'package-x)
 (require 'ert)
 (require 'cl-lib)
-(eval-when-compile (require 'package-test))
-
-;; package-test is not normally in `load-path', so temporarily set
-;; `load-path' to contain the current directory.
-(let ((load-path (append (list (file-name-directory (or load-file-name
-                                                        buffer-file-name)))
-                         load-path)))
-  (require 'package-test))
+(require 'package-test)
 
 (defvar package-x-test--single-archive-entry-1-3
   (cons 'simple-single
