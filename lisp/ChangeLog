@@ -1,5 +1,15 @@
 2014-06-26  Glenn Morris  <rgm@gnu.org>
 
+	* ps-samp.el: Make it slightly less awful.
+	(ps-rmail-mode-hook, ps-gnus-article-prepare-hook, ps-vm-mode-hook):
+	(ps-gnus-summary-setup, ps-info-mode-hook): Use [print] key.
+	Only set local values.
+	(ps-article-subject, ps-article-author): Use standard functions
+	like mail-fetch-field.
+	(ps-info-file, ps-info-node): Use match-string.
+	(ps-jts-ps-setup, ps-jack-setup): Remove, merging into...
+	(ps-samp-ps-setup): ... new function.
+
 	* progmodes/idlw-shell.el (idlwave-shell-make-temp-file):
 	Optimize away code unneeded on any modern Emacs.
 
