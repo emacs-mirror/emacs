@@ -8501,7 +8501,7 @@
 
 2012-07-25  Jay Belanger  <jay.p.belanger@gmail.com>
 
-	* calc-alg.el (math-simplify-divide): Don't cross multiply
+	* calc/calc-alg.el (math-simplify-divide): Don't cross multiply
 	in an equation when the lhs is a variable.
 
 2012-07-24  Julien Danjou  <julien@danjou.info>

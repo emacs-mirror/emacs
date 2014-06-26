@@ -10686,7 +10686,7 @@
 
 2013-07-07  Michael Kifer  <kifer@cs.stonybrook.edu>
 
-	* ediff.el (ediff-version): Version update.
+	* vc/ediff.el (ediff-version): Version update.
 	(ediff-files-command, ediff3-files-command, ediff-merge-command)
 	(ediff-merge-with-ancestor-command, ediff-directories-command)
 	(ediff-directories3-command, ediff-merge-directories-command)
@@ -10694,19 +10694,21 @@
 	All are command-line interfaces to ediff: to facilitate calling
 	Emacs with the appropriate ediff functions invoked.
 
-	* viper-cmd.el (viper-del-forward-char-in-insert): New function.
+	* emulation/viper-cmd.el (viper-del-forward-char-in-insert):
+	New function.
 	(viper-save-kill-buffer): Check if buffer is modified.
 
-	* viper.el (viper-version): Version update.
+	* emulation/viper.el (viper-version): Version update.
 	(viper-emacs-state-mode-list): Add egg-status-buffer-mode.
 
 2013-07-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* faces.el (tty-run-terminal-initialization): Run new tty-setup-hook.
-	* viper-cmd.el (viper-envelop-ESC-key): Remove function.
+	* emulation/viper-cmd.el (viper-envelop-ESC-key): Remove function.
 	(viper-intercept-ESC-key): Simplify.
-	* viper-keym.el (viper-ESC-key): Make it a constant, don't use kbd.
-	* viper.el (viper--tty-ESC-filter, viper--lookup-key)
+	* emulation/viper-keym.el (viper-ESC-key): Make it a constant,
+	don't use kbd.
+	* emulation/viper.el (viper--tty-ESC-filter, viper--lookup-key)
 	(viper-catch-tty-ESC, viper-uncatch-tty-ESC)
 	(viper-setup-ESC-to-escape): New functions.
 	(viper-go-away, viper-set-hooks): Call viper-setup-ESC-to-escape.
