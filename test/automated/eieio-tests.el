@@ -1,7 +1,6 @@
 ;;; eieio-tests.el -- eieio tests routines
 
-;; Copyright (C) 1999-2003, 2005-2010, 2012-2014 Free Software
-;; Foundation, Inc.
+;; Copyright (C) 1999-2003, 2005-2010, 2012-2014 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -888,3 +887,7 @@ Subclasses to override slot attributes.")
 (provide 'eieio-tests)
 
 ;;; eieio-tests.el ends here
+
+;; Local Variables:
+;; no-byte-compile: t
+;; End:
