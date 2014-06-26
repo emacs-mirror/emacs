@@ -238,7 +238,8 @@ bzr-update: compile finder-data custom-deps
 # Update the AUTHORS file.
 
 update-authors:
-	$(emacs) -l authors -f batch-update-authors $(top_srcdir)/etc/AUTHORS $(top_srcdir)
+	$(emacs) -L "$(top_srcdir)/admin" -l authors \
+	  -f batch-update-authors "$(top_srcdir)/etc/AUTHORS" "$(top_srcdir)"
 
 
 ETAGS = ../lib-src/etags
