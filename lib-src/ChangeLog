@@ -1,3 +1,13 @@
+2014-06-26  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (blessmail): Depend on lisp/mail/blessmail.el.
+	Use $<, $@.
+	(regex.o, etags${EXEEXT}, ctags${EXEEXT}, ebrowse${EXEEXT})
+	(profile${EXEEXT}, make-docfile${EXEEXT}, movemail${EXEEXT})
+	(pop.o, emacsclient${EXEEXT}, emacsclientw${EXEEXT}, ntlib.o)
+	(hexl${EXEEXT}, update-game-score${EXEEXT}, emacsclient.res): Use $<.
+	(ctags${EXEEXT}): Add $srcdir to dependency rather than using VPATH.
+
 2014-06-17  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Omit redundant extern decls.

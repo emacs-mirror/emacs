@@ -1,7 +1,7 @@
 ### @configure_input@
 
-# Copyright (C) 1985, 1987-1988, 1993-1994, 2001-2014 Free Software
-# Foundation, Inc.
+# Copyright (C) 1985, 1987-1988, 1993-1994, 2001-2014
+#   Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -211,9 +211,9 @@ $(EXE_FILES): ../lib/libgnu.a
 
 ## Only used if we need blessmail, but no harm in always defining.
 ## This makes the actual blessmail executable.
-blessmail:
-	$(EMACS) $(EMACSOPT) -l $(srcdir)/../lisp/mail/blessmail.el
-	chmod +x blessmail
+blessmail: $(srcdir)/../lisp/mail/blessmail.el
+	$(EMACS) $(EMACSOPT) -l $<
+	chmod +x $@
 
 ## This checks if we need to run blessmail.
 ## Do not charge ahead and do it!  Let the installer decide.
@@ -311,7 +311,7 @@ TAGS: etags${EXEEXT}
 	$(MAKE) -C ../lib libgnu.a
 
 regex.o: $(srcdir)/../src/regex.c $(srcdir)/../src/regex.h $(config_h)
-	${CC} -c ${CPP_CFLAGS} ${srcdir}/../src/regex.c
+	${CC} -c ${CPP_CFLAGS} $<
 
 
 etags_deps = ${srcdir}/etags.c regex.o $(NTLIB) $(config_h)
@@ -319,42 +319,41 @@ etags_cflags = -DEMACS_NAME="\"GNU Emacs\"" -DVERSION="\"${version}\"" -o $@
 etags_libs = regex.o $(LOADLIBES) $(NTLIB)
 
 etags${EXEEXT}: ${etags_deps}
-	$(CC) ${ALL_CFLAGS} $(etags_cflags) $(srcdir)/etags.c $(etags_libs)
+	$(CC) ${ALL_CFLAGS} $(etags_cflags) $< $(etags_libs)
 
 ## ctags.c is distinct from etags.c so that parallel makes do not write two
 ## etags.o files on top of each other.
 ## FIXME?
 ## Can't we use a wrapper that calls 'etags --ctags'?
-ctags${EXEEXT}: ctags.c ${etags_deps}
-	$(CC) ${ALL_CFLAGS} $(etags_cflags) $(srcdir)/ctags.c $(etags_libs)
+ctags${EXEEXT}: ${srcdir}/ctags.c ${etags_deps}
+	$(CC) ${ALL_CFLAGS} $(etags_cflags) $< $(etags_libs)
 
 ebrowse${EXEEXT}: ${srcdir}/ebrowse.c ${srcdir}/../lib/min-max.h $(NTLIB) \
                    $(config_h)
 	$(CC) ${ALL_CFLAGS} -DVERSION="\"${version}\"" \
-	  ${srcdir}/ebrowse.c $(LOADLIBES) $(NTLIB) -o $@
+	  $< $(LOADLIBES) $(NTLIB) -o $@
 
 profile${EXEEXT}: ${srcdir}/profile.c $(NTLIB) $(config_h)
-	$(CC) ${ALL_CFLAGS} ${srcdir}/profile.c \
+	$(CC) ${ALL_CFLAGS} $< \
 	  $(LOADLIBES) $(NTLIB) $(LIB_CLOCK_GETTIME) -o $@
 
 make-docfile${EXEEXT}: ${srcdir}/make-docfile.c $(NTLIB) $(config_h)
-	$(CC) ${ALL_CFLAGS} ${srcdir}/make-docfile.c $(LOADLIBES) $(NTLIB) \
-	  -o $@
+	$(CC) ${ALL_CFLAGS} $< $(LOADLIBES) $(NTLIB) -o $@
 
 movemail${EXEEXT}: ${srcdir}/movemail.c pop.o $(NTLIB) $(config_h)
-	$(CC) ${ALL_CFLAGS} ${MOVE_FLAGS} ${srcdir}/movemail.c pop.o \
+	$(CC) ${ALL_CFLAGS} ${MOVE_FLAGS} $< pop.o \
 	  $(LOADLIBES) $(NTLIB) $(LIBS_MOVE) -o $@
 
 pop.o: ${srcdir}/pop.c ${srcdir}/pop.h ${srcdir}/../lib/min-max.h $(config_h)
-	$(CC) -c ${CPP_CFLAGS} ${MOVE_FLAGS} ${srcdir}/pop.c
+	$(CC) -c ${CPP_CFLAGS} ${MOVE_FLAGS} $<
 
 emacsclient${EXEEXT}: ${srcdir}/emacsclient.c $(NTLIB) $(config_h)
-	$(CC) ${ALL_CFLAGS} ${srcdir}/emacsclient.c \
+	$(CC) ${ALL_CFLAGS} $< \
 	   -DVERSION="\"${version}\"" $(NTLIB) $(LOADLIBES) $(LIB_FDATASYNC) \
 	   $(LIB_WSOCK32) $(LIBS_ECLIENT) -o $@
 
 emacsclientw${EXEEXT}: ${srcdir}/emacsclient.c $(NTLIB) $(CLIENTRES) $(config_h)
-	$(CC) ${ALL_CFLAGS} $(CLIENTRES) -mwindows ${srcdir}/emacsclient.c \
+	$(CC) ${ALL_CFLAGS} $(CLIENTRES) -mwindows $< \
 	   -DVERSION="\"${version}\"" $(LOADLIBES) $(LIB_FDATASYNC) \
 	   $(LIB_WSOCK32) $(LIBS_ECLIENT) -o $@
 
@@ -366,18 +365,16 @@ NTDEPS = $(NTINC)/ms-w32.h $(NTINC)/sys/stat.h $(NTINC)/inttypes.h \
 # The dependency on $(NTDEPS) is a trick intended to cause recompile of
 # programs on MinGW whenever some private header in nt/inc is modified.
 ntlib.o: ${srcdir}/ntlib.c ${srcdir}/ntlib.h $(NTDEPS)
-	$(CC) -c ${CPP_CFLAGS} ${srcdir}/ntlib.c
+	$(CC) -c ${CPP_CFLAGS} $<
 
 hexl${EXEEXT}: ${srcdir}/hexl.c $(NTLIB) $(config_h)
-	$(CC) ${ALL_CFLAGS} ${srcdir}/hexl.c $(LOADLIBES) -o $@
+	$(CC) ${ALL_CFLAGS} $< $(LOADLIBES) -o $@
 
 update-game-score${EXEEXT}: ${srcdir}/update-game-score.c $(NTLIB) $(config_h)
 	$(CC) ${ALL_CFLAGS} -DHAVE_SHARED_GAME_DIR="\"$(gamedir)\"" \
-	  ${srcdir}/update-game-score.c $(LOADLIBES) $(NTLIB) \
-	  -o $@
+	  $< $(LOADLIBES) $(NTLIB) -o $@
 
 emacsclient.res: $(NTINC)/../emacsclient.rc
-	$(WINDRES) -O coff --include-dir=$(NTINC)/.. -o $@ \
-	  $(NTINC)/../emacsclient.rc
+	$(WINDRES) -O coff --include-dir=$(NTINC)/.. -o $@ $<
 
 ## Makefile ends here.
