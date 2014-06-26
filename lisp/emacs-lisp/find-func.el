@@ -178,8 +178,7 @@ LIBRARY should be a string (the name of the library)."
 
 (defvar find-function-C-source-directory
   (let ((dir (expand-file-name "src" source-directory)))
-    (when (and (file-directory-p dir) (file-readable-p dir))
-      dir))
+    (if (file-accessible-directory-p dir) dir))
   "Directory where the C source files of Emacs can be found.
 If nil, do not try to find the source code of functions and variables
 defined in C.")
