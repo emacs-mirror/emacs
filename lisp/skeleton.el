@@ -62,12 +62,8 @@ region.")
   "If non-nil, make sure that the skeleton inserted ends with a newline.
 This just influences the way the default `skeleton-end-hook' behaves.")
 
-(defvar skeleton-end-hook
-  (lambda ()
-    (or (eolp) (not skeleton-end-newline) (newline-and-indent)))
+(defvar skeleton-end-hook nil
   "Hook called at end of skeleton but before going to point of interest.
-By default this moves out anything following to next line,
-  unless `skeleton-end-newline' is set to nil.
 The variables `v1' and `v2' are still set when calling this.")
 
 
@@ -268,6 +264,7 @@ When done with skeleton, but before going back to `_'-point call
               (mapcar #'car skeleton-further-elements)
               (mapcar (lambda (x) (eval (cadr x))) skeleton-further-elements)
             (skeleton-internal-list skeleton str))
+	(or (eolp) (not skeleton-end-newline) (newline-and-indent))
 	(run-hooks 'skeleton-end-hook)
 	(sit-for 0)
 	(or (pos-visible-in-window-p beg)
