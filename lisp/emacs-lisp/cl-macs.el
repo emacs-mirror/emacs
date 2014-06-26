@@ -382,8 +382,6 @@ its argument list allows full Common Lisp conventions."
 	(if (car res) `(progn ,(car res) ,form) form))
     `(function ,func)))
 
-(declare-function help-add-fundoc-usage "help-fns" (docstring arglist))
-
 (defun cl--make-usage-var (x)
   "X can be a var or a (destructuring) lambda-list."
   (cond

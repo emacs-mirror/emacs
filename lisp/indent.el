@@ -677,6 +677,13 @@ If PREV is non-nil, return the previous one instead."
                             (if (<= column last) -1 (/ (- column last 1) step))
                           (1+ (/ (- column last) step)))))))))
 
+(defun indent-accumulate-tab-stops (limit)
+  "Get a list of tab stops before LIMIT (inclusive)."
+  (let ((tab 0) (tab-stops))
+    (while (<= (setq tab (indent-next-tab-stop tab)) limit)
+      (push tab tab-stops))
+    (nreverse tab-stops)))
+
 (defun tab-to-tab-stop ()
   "Insert spaces or tabs to next defined tab-stop column.
 The variable `tab-stop-list' is a list of columns at which there are tab stops.

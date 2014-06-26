@@ -1,3 +1,9 @@
+2014-06-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* automated/package-test.el (package-test-update-listing)
+	(package-test-update-archives, package-test-describe-package):
+	Adjust tests according to new package-list-unsigned.
+
 2014-06-26  Glenn Morris  <rgm@gnu.org>
 
 	* automated/ert-tests.el (no-byte-compile): Set it.  (Bug#17851)

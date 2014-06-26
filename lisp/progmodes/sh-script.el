@@ -481,6 +481,9 @@ name symbol."
 	?~ "_"
 	?, "_"
 	?= "."
+	?\; "."
+	?| "."
+	?& "."
 	?< "."
 	?> ".")
   "The syntax table to use for Shell-Script mode.
@@ -1860,6 +1863,40 @@ Does not preserve point."
    ((equal tok "in") (sh-smie--sh-keyword-in-p))
    (t (sh-smie--keyword-p))))
 
+(defun sh-smie--default-forward-token ()
+  (forward-comment (point-max))
+  (buffer-substring-no-properties
+   (point)
+   (progn (if (zerop (skip-syntax-forward "."))
+              (while (progn (skip-syntax-forward "w_'")
+                            (looking-at "\\\\"))
+                (forward-char 2)))
+          (point))))
+
+(defun sh-smie--default-backward-token ()
+  (forward-comment (- (point)))
+  (let ((pos (point))
+        (n (skip-syntax-backward ".")))
+    (if (or (zerop n)
+            (and (eq n -1)
+                 (let ((p (point)))
+                   (if (eq -1 (% (skip-syntax-backward "\\") 2))
+                       t
+                     (goto-char p)
+                     nil))))
+        (while
+            (progn (skip-syntax-backward "w_'")
+                   (or (not (zerop (skip-syntax-backward "\\")))
+                       (when (eq ?\\ (char-before (1- (point))))
+                         (let ((p (point)))
+                           (forward-char -1)
+                           (if (eq -1 (% (skip-syntax-backward "\\") 2))
+                               t
+                             (goto-char p)
+                             nil))))))
+      (goto-char (- (point) (% (skip-syntax-backward "\\") 2))))
+    (buffer-substring-no-properties (point) pos)))
+
 (defun sh-smie-sh-forward-token ()
   (if (and (looking-at "[ \t]*\\(?:#\\|\\(\\s|\\)\\|$\\)")
            (save-excursion
@@ -1888,7 +1925,7 @@ Does not preserve point."
         tok))
      (t
       (let* ((pos (point))
-             (tok (smie-default-forward-token)))
+             (tok (sh-smie--default-forward-token)))
         (cond
          ((equal tok ")") "case-)")
          ((equal tok "(") "case-(")
@@ -1932,7 +1969,7 @@ Does not preserve point."
       (goto-char (match-beginning 1))
       (match-string-no-properties 1))
      (t
-      (let ((tok (smie-default-backward-token)))
+      (let ((tok (sh-smie--default-backward-token)))
         (cond
          ((equal tok ")") "case-)")
          ((equal tok "(") "case-(")
@@ -1962,18 +1999,18 @@ May return nil if the line should not be treated as continued."
     (`(:after . "case-)") (- (sh-var-value 'sh-indent-for-case-alt)
                              (sh-var-value 'sh-indent-for-case-label)))
     ((and `(:before . ,_)
-          (guard (when sh-indent-after-continuation
-                   (save-excursion
-                     (ignore-errors
-                       (skip-chars-backward " \t")
-                       (sh-smie--looking-back-at-continuation-p))))))
-     ;; After a line-continuation, make sure the rest is indented.
-     (let* ((sh-indent-after-continuation nil)
-            (indent (smie-indent-calculate))
-            (initial (sh-smie--continuation-start-indent)))
-       (when (and (numberp indent) (numberp initial)
-                  (<= indent initial))
-         `(column . ,(+ initial sh-indentation)))))
+          ;; After a line-continuation, make sure the rest is indented.
+          (guard sh-indent-after-continuation)
+          (guard (save-excursion
+                   (ignore-errors
+                     (skip-chars-backward " \t")
+                     (sh-smie--looking-back-at-continuation-p))))
+          (let initial (sh-smie--continuation-start-indent))
+          (guard (let* ((sh-indent-after-continuation nil)
+                        (indent (smie-indent-calculate)))
+                   (and (numberp indent) (numberp initial)
+                        (<= indent initial)))))
+     `(column . ,(+ initial sh-indentation)))
     (`(:before . ,(or `"(" `"{" `"["))
      (when (smie-rule-hanging-p)
        (if (not (smie-rule-prev-p "&&" "||" "|"))
@@ -1997,7 +2034,12 @@ May return nil if the line should not be treated as continued."
                             (smie-rule-bolp))))
                  (current-column)
                (smie-indent-calculate)))))
-    (`(:after . ,(or `"|" `"&&" `"||")) (if (smie-rule-parent-p token) nil 4))
+    (`(:before . ,(or `"|" `"&&" `"||"))
+     (unless (smie-rule-parent-p token)
+       (smie-backward-sexp token)
+       `(column . ,(+ (funcall smie-rules-function :elem 'basic)
+                      (smie-indent-virtual)))))
+
     ;; Attempt at backward compatibility with the old config variables.
     (`(:before . "fi") (sh-var-value 'sh-indent-for-fi))
     (`(:before . "done") (sh-var-value 'sh-indent-for-done))
@@ -2118,7 +2160,7 @@ Point should be before the newline."
      ;;    tok))
      (t
       (let* ((pos (point))
-             (tok (smie-default-forward-token)))
+             (tok (sh-smie--default-forward-token)))
         (cond
          ;; ((equal tok ")") "case-)")
          ((and tok (string-match "\\`[a-z]" tok)
@@ -2159,7 +2201,7 @@ Point should be before the newline."
      ;;  (goto-char (match-beginning 1))
      ;;  (match-string-no-properties 1))
      (t
-      (let ((tok (smie-default-backward-token)))
+      (let ((tok (sh-smie--default-backward-token)))
         (cond
          ;; ((equal tok ")") "case-)")
          ((and tok (string-match "\\`[a-z]" tok)

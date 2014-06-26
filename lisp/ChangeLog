@@ -1,5 +1,61 @@
 2014-06-26  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/cl-macs.el (help-add-fundoc-usage):
+	Remove outdated declaration.
+
+	* emacs-lisp/authors.el (authors-valid-file-names)
+	(authors-renamed-files-alist): Additions.
+
+2014-06-26  Leo Liu  <sdl.web@gmail.com>
+
+	* textmodes/picture.el (picture-set-tab-stops):
+	* ruler-mode.el (ruler-mode-mouse-add-tab-stop)
+	(ruler-mode-ruler): Fix to work with nil tab-stop-list.
+
+	* progmodes/asm-mode.el (asm-calculate-indentation): Use
+	indent-next-tab-stop.
+
+	* indent.el (indent-accumulate-tab-stops): New function.
+
+2014-06-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/package.el (package-list-unsigned): New var (bug#17625).
+	(package-desc-status): Obey it.
+
+2014-06-26  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todo-mode.el: Fix two bugs.
+	(todo-insert-item--basic): If user cancels item insertion to
+	another category before setting priority, show original category
+	whether it is in the same or a different file.
+	(todo-set-item-priority): After selecting category, instead of
+	moving point to top, which extends an active region, restore it.
+
+2014-06-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* help-fns.el (describe-function-1): Check file-name is a string before
+	calling help-fns--autoloaded-p (bug#17564).
+
+2014-06-26  Juri Linkov  <juri@jurta.org>
+
+	* desktop.el (desktop-auto-save-enable)
+	(desktop-auto-save-disable): New functions.
+	(desktop-save-mode, desktop-auto-save-timeout): Use them.
+	(desktop-read): Disable the autosave before loading the desktop,
+	and enable afterwards.  (Bug#17351)
+
+2014-06-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Fix some indentation problem with \; and pipes (bug#17842).
+	* progmodes/sh-script.el (sh-mode-syntax-table): Set syntax of ;|&.
+	(sh-smie--default-forward-token, sh-smie--default-backward-token):
+	New functions.
+	(sh-smie-sh-forward-token, sh-smie-sh-backward-token)
+	(sh-smie-rc-forward-token, sh-smie-rc-backward-token): Use them.
+	(sh-smie-sh-rules): Fix indentation of a pipe at BOL.
+
+2014-06-26  Glenn Morris  <rgm@gnu.org>
+
 	* emacs-lisp/find-func.el (find-function-C-source-directory):
 	Use file-accessible-directory-p.
 
@@ -12194,7 +12250,7 @@
 
 2013-07-07  Michael Kifer  <kifer@cs.stonybrook.edu>
 
-	* ediff.el (ediff-version): Version update.
+	* vc/ediff.el (ediff-version): Version update.
 	(ediff-files-command, ediff3-files-command, ediff-merge-command)
 	(ediff-merge-with-ancestor-command, ediff-directories-command)
 	(ediff-directories3-command, ediff-merge-directories-command)
@@ -12202,19 +12258,21 @@
 	All are command-line interfaces to ediff: to facilitate calling
 	Emacs with the appropriate ediff functions invoked.
 
-	* viper-cmd.el (viper-del-forward-char-in-insert): New function.
+	* emulation/viper-cmd.el (viper-del-forward-char-in-insert):
+	New function.
 	(viper-save-kill-buffer): Check if buffer is modified.
 
-	* viper.el (viper-version): Version update.
+	* emulation/viper.el (viper-version): Version update.
 	(viper-emacs-state-mode-list): Add egg-status-buffer-mode.
 
 2013-07-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* faces.el (tty-run-terminal-initialization): Run new tty-setup-hook.
-	* viper-cmd.el (viper-envelop-ESC-key): Remove function.
+	* emulation/viper-cmd.el (viper-envelop-ESC-key): Remove function.
 	(viper-intercept-ESC-key): Simplify.
-	* viper-keym.el (viper-ESC-key): Make it a constant, don't use kbd.
-	* viper.el (viper--tty-ESC-filter, viper--lookup-key)
+	* emulation/viper-keym.el (viper-ESC-key): Make it a constant,
+	don't use kbd.
+	* emulation/viper.el (viper--tty-ESC-filter, viper--lookup-key)
 	(viper-catch-tty-ESC, viper-uncatch-tty-ESC)
 	(viper-setup-ESC-to-escape): New functions.
 	(viper-go-away, viper-set-hooks): Call viper-setup-ESC-to-escape.
