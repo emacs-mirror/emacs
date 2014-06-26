@@ -590,27 +590,28 @@ TYPE is either 'pro' or 'rinfo', and `idlwave-shell-temp-pro-file' or
 
 (defun idlwave-shell-make-temp-file (prefix)
   "Create a temporary file."
-  ; Hard coded make-temp-file for Emacs<21
-  (if (fboundp 'make-temp-file)
+  (if (featurep 'emacs)
       (make-temp-file prefix)
-    (let (file
-	  (temp-file-dir (if (boundp 'temporary-file-directory)
-			     temporary-file-directory
-			   "/tmp")))
-      (while (condition-case ()
-		 (progn
-		   (setq file
-			 (make-temp-name
-			  (expand-file-name prefix temp-file-dir)))
-                   (if (featurep 'xemacs)
-		       (write-region "" nil file nil 'silent nil)
-		     (write-region "" nil file nil 'silent nil 'excl))
-		   nil)
-	       (file-already-exists t))
-	;; the file was somehow created by someone else between
-	;; `make-temp-name' and `write-region', let's try again.
-	nil)
-      file)))
+    (if (fboundp 'make-temp-file)
+	(make-temp-file prefix)
+      (let (file
+	    (temp-file-dir (if (boundp 'temporary-file-directory)
+			       temporary-file-directory
+			     "/tmp")))
+	(while (condition-case ()
+		   (progn
+		     (setq file
+			   (make-temp-name
+			    (expand-file-name prefix temp-file-dir)))
+		     (if (featurep 'xemacs)
+			 (write-region "" nil file nil 'silent nil)
+		       (write-region "" nil file nil 'silent nil 'excl))
+		     nil)
+		 (file-already-exists t))
+	  ;; the file was somehow created by someone else between
+	  ;; `make-temp-name' and `write-region', let's try again.
+	  nil)
+	file))))
 
 
 (defvar idlwave-shell-dirstack-query "cd,current=___cur & print,___cur"

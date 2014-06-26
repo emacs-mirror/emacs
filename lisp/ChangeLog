@@ -1,5 +1,8 @@
 2014-06-26  Glenn Morris  <rgm@gnu.org>
 
+	* progmodes/idlw-shell.el (idlwave-shell-make-temp-file):
+	Optimize away code unneeded on any modern Emacs.
+
 	* emacs-lisp/authors.el: Move to ../admin.
 
 	* emacs-lisp/ert.el (ert-summarize-tests-batch-and-exit): New.
