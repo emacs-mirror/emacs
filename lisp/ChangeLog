@@ -1,5 +1,8 @@
 2014-06-26  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/cl-macs.el (help-add-fundoc-usage):
+	Remove outdated declaration.
+
 	* emacs-lisp/authors.el (authors-valid-file-names)
 	(authors-renamed-files-alist): Additions.
 
