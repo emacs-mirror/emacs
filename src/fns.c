@@ -268,21 +268,8 @@ If string STR1 is greater, the value is a positive number N;
 	 characters, not just the bytes.  */
       int c1, c2;
 
-      if (STRING_MULTIBYTE (str1))
-	FETCH_STRING_CHAR_ADVANCE_NO_CHECK (c1, str1, i1, i1_byte);
-      else
-	{
-	  c1 = SREF (str1, i1++);
-	  MAKE_CHAR_MULTIBYTE (c1);
-	}
-
-      if (STRING_MULTIBYTE (str2))
-	FETCH_STRING_CHAR_ADVANCE_NO_CHECK (c2, str2, i2, i2_byte);
-      else
-	{
-	  c2 = SREF (str2, i2++);
-	  MAKE_CHAR_MULTIBYTE (c2);
-	}
+      FETCH_STRING_CHAR_AS_MULTIBYTE_ADVANCE (c1, str1, i1, i1_byte);
+      FETCH_STRING_CHAR_AS_MULTIBYTE_ADVANCE (c2, str2, i2, i2_byte);
 
       if (c1 == c2)
 	continue;

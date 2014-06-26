@@ -1,3 +1,9 @@
+2014-06-26  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* calc/calc-alg.el (math-beforep):
+	* progmodes/cc-guess.el (c-guess-view-reorder-offsets-alist-in-style):
+	Simplify because string-lessp can accept symbols as args.
+
 2014-06-26  Daiki Ueno  <ueno@gnu.org>
 
 	* emacs-lisp/package.el (package--check-signature): If

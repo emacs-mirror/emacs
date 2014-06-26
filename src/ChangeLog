@@ -1,3 +1,7 @@
+2014-06-26  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* fns.c (Fcompare_strings): Use FETCH_STRING_CHAR_AS_MULTIBYTE_ADVANCE.
+
 2014-06-25  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Consistently use validate_subarray to verify substring.

@@ -504,8 +504,7 @@ is called with one argument, the guessed style."
 		      (cond
 		       ((or (and a-guessed? b-guessed?)
 			    (not (or a-guessed? b-guessed?)))
-			(string-lessp (symbol-name (car a))
-				      (symbol-name (car b))))
+			(string-lessp (car a) (car b)))
 		       (a-guessed? t)
 		       (b-guessed? nil)))))))
   style)

@@ -293,7 +293,7 @@
 	 (Math-objectp a))
 	((eq (car a) 'var)
 	 (if (eq (car b) 'var)
-	     (string-lessp (symbol-name (nth 1 a)) (symbol-name (nth 1 b)))
+	     (string-lessp (nth 1 a) (nth 1 b))
 	   (not (Math-numberp b))))
 	((eq (car b) 'var) (Math-numberp a))
 	((eq (car a) (car b))
@@ -302,7 +302,7 @@
 	 (and b
 	      (or (null a)
 		  (math-beforep (car a) (car b)))))
-	(t (string-lessp (symbol-name (car a)) (symbol-name (car b))))))
+	(t (string-lessp (car a) (car b)))))
 
 
 (defsubst math-simplify-extended (a)
