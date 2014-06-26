@@ -1,3 +1,8 @@
+2014-06-26  Glenn Morris  <rgm@gnu.org>
+
+	* minibuf.texi (Intro to Minibuffers): Batch mode is basic.
+	(Reading a Password): Mention batch mode.  (Bug#17839)
+
 2014-06-21  Eli Zaretskii  <eliz@gnu.org>
 
 	* positions.texi (Screen Lines): Clarify how columns are counted

@@ -2006,6 +2006,7 @@ If optional CONFIRM is non-nil, read the password twice to make sure.
 Optional DEFAULT is a default password to use instead of empty input.
 
 This function echoes `.' for each character that the user types.
+Note that in batch mode, the input is not hidden!
 
 Once the caller uses the password, it can erase the password
 by doing (clear-string STRING)."
@@ -2045,7 +2046,11 @@ by doing (clear-string STRING)."
             (add-hook 'after-change-functions hide-chars-fun nil 'local))
         (unwind-protect
             (let ((enable-recursive-minibuffers t))
-              (read-string prompt nil t default)) ; t = "no history"
+              (read-string
+               (if noninteractive
+                   (format "%s[INPUT WILL NOT BE HIDDEN!] " prompt) ; bug#17839
+                 prompt)
+               nil t default)) ; t = "no history"
           (when (buffer-live-p minibuf)
             (with-current-buffer minibuf
               ;; Not sure why but it seems that there might be cases where the

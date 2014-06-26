@@ -1,3 +1,7 @@
+2014-06-26  Glenn Morris  <rgm@gnu.org>
+
+	* subr.el (read-passwd): Warn about batch mode.  (Bug#17839)
+
 2014-06-26  Daiki Ueno  <ueno@gnu.org>
 
 	* emacs-lisp/package.el (package--check-signature):
