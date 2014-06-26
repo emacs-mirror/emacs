@@ -47,7 +47,6 @@
 (defvar url-http-response-version)
 (defvar url-http-target-url)
 (defvar url-http-transfer-encoding)
-(defvar url-http-end-of-headers)
 (defvar url-show-status)
 
 (require 'url-gw)
