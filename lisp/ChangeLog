@@ -1,3 +1,10 @@
+2014-06-26  Daiki Ueno  <ueno@gnu.org>
+
+	* emacs-lisp/package.el (package--check-signature):
+	If package-check-signature is allow-unsigned, don't signal error when
+	we can't verify signature because of missing public key
+	(backport for bug#17625).
+
 2014-06-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/hideif.el: Undo last change which should only go to trunk
@@ -17,8 +24,8 @@
 	* ruler-mode.el (ruler-mode-mouse-add-tab-stop)
 	(ruler-mode-ruler): Fix to work with nil tab-stop-list.
 
-	* progmodes/asm-mode.el (asm-calculate-indentation): Use
-	indent-next-tab-stop.
+	* progmodes/asm-mode.el (asm-calculate-indentation):
+	Use indent-next-tab-stop.
 
 	* indent.el (indent-accumulate-tab-stops): New function.
 

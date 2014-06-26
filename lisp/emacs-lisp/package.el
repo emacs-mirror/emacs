@@ -815,16 +815,20 @@ GnuPG keyring is located under \"gnupg\" in `package-user-dir'."
 			(buffer-string))))
     (epg-context-set-home-directory context homedir)
     (epg-verify-string context sig-content (buffer-string))
-    ;; The .sig file may contain multiple signatures.  Success if one
-    ;; of the signatures is good.
-    (let ((good-signatures
-           (delq nil (mapcar (lambda (sig)
-                               (if (eq (epg-signature-status sig) 'good)
-                                   sig))
-                             (epg-context-result-for context 'verify)))))
-      (if (null good-signatures)
-          ;; FIXME: Only signal an error if the signature is invalid, not if we
-          ;; simply lack the key needed to check the sig!
+    (let (good-signatures had-fatal-error)
+      ;; The .sig file may contain multiple signatures.  Success if one
+      ;; of the signatures is good.
+      (dolist (sig (epg-context-result-for context 'verify))
+	(if (eq (epg-signature-status sig) 'good)
+	    (push sig good-signatures)
+	  ;; If package-check-signature is allow-unsigned, don't
+	  ;; signal error when we can't verify signature because of
+	  ;; missing public key.  Other errors are still treated as
+	  ;; fatal (bug#17625).
+	  (unless (and (eq package-check-signature 'allow-unsigned)
+		       (eq (epg-signature-status sig) 'no-pubkey))
+	    (setq had-fatal-error t))))
+      (if (and (null good-signatures) had-fatal-error)
           (error "Failed to verify signature %s: %S"
                  sig-file
                  (mapcar #'epg-signature-to-string
