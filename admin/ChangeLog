@@ -1,3 +1,7 @@
+2014-06-26  Glenn Morris  <rgm@gnu.org>
+
+	* authors.el: Move here from ../lisp/emacs-lisp.
+
 2014-06-25  Glenn Morris  <rgm@gnu.org>
 
 	* grammars/Makefile.in (${bovinedir}/c-by.el, ${bovinedir}/make-by.el):

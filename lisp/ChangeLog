@@ -1,5 +1,7 @@
 2014-06-26  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/authors.el: Move to ../admin.
+
 	* emacs-lisp/ert.el (ert-summarize-tests-batch-and-exit): New.
 
 2014-06-25  Glenn Morris  <rgm@gnu.org>
