@@ -1,3 +1,7 @@
+2014-06-26  Glenn Morris  <rgm@gnu.org>
+
+	* automated/Makefile.in (%.log): If error, dump log to stdout.
+
 2014-06-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* automated/package-test.el (package-test-update-listing)

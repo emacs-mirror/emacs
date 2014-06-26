@@ -77,7 +77,9 @@ all: check
 	echo Testing $$loadfile; \
 	stat=OK ; \
 	$(emacs) -l ert -l $$loadfile \
-	  -f ert-run-tests-batch-and-exit >& $@ || stat=ERROR; \
+	  -f ert-run-tests-batch-and-exit >& $@ || { \
+	    stat=ERROR; \
+	    cat $@; }; \
 	echo $$stat: $@
 
 ELFILES = $(wildcard ${srcdir}/*.el)
