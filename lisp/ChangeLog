@@ -1,3 +1,8 @@
+2014-06-26  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/authors.el (authors-valid-file-names)
+	(authors-renamed-files-alist): Additions.
+
 2014-06-25  Leo Liu  <sdl.web@gmail.com>
 
 	* textmodes/picture.el (picture-set-tab-stops):
