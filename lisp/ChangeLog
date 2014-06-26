@@ -1,3 +1,9 @@
+2014-06-26  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todo-mode.el (todo-prefix-overlays): If there is no
+	category-wide setting of todo-top-priorities-overrides, check for
+	a file-wide setting and fontify accordingly.
+
 2014-06-26  Glenn Morris  <rgm@gnu.org>
 
 	* subr.el (read-passwd): Warn about batch mode.  (Bug#17839)

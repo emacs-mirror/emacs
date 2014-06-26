@@ -5303,6 +5303,8 @@ of each other."
 			  (todo-current-category)
 			  (nth 2 (assoc-string todo-current-todo-file
 					       todo-top-priorities-overrides))))
+		    (nth 1 (assoc-string todo-current-todo-file
+					 todo-top-priorities-overrides))
 		    todo-top-priorities))
 	done prefix)
     (save-excursion
