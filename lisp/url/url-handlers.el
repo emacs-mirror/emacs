@@ -297,7 +297,7 @@ They count bytes from the beginning of the body."
       (insert data))
     (list (length data) charset)))
 
-(defconst url-http-codes)
+(defvar url-http-codes)
 
 ;;;###autoload
 (defun url-insert-file-contents (url &optional visit beg end replace)
