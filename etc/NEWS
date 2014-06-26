@@ -96,6 +96,8 @@ should be used instead of font-lock-fontify-buffer when called from Elisp.
 *** Calendar can list and mark diary entries with Chinese dates.
 See `diary-chinese-list-entries' and `diary-chinese-mark-entries'.
 
+** New ERT function `ert-summarize-tests-batch-and-exit'.
+
 ---
 ** The Rmail commands d, C-d and u now handle repeat counts to delete or
 undelete multiple messages.
