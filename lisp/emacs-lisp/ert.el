@@ -1463,6 +1463,65 @@ the tests)."
       (kill-emacs 2))))
 
 
+(defun ert-summarize-tests-batch-and-exit ()
+  "Summarize the results of testing.
+Expects to be called in batch mode, with logfiles as command-line arguments.
+The logfiles should have the `ert-run-tests-batch' format.  When finished,
+this exits Emacs, with status as per `ert-run-tests-batch-and-exit'."
+  (or noninteractive
+      (user-error "This function is only for use in batch mode"))
+  (let ((nlogs (length command-line-args-left))
+        (ntests 0) (nrun 0) (nexpected 0) (nunexpected 0) (nskipped 0)
+        nnotrun logfile notests badtests unexpected)
+    (with-temp-buffer
+      (while (setq logfile (pop command-line-args-left))
+        (erase-buffer)
+        (insert-file-contents logfile)
+        (if (not (re-search-forward "^Running \\([0-9]+\\) tests" nil t))
+            (push logfile notests)
+          (setq ntests (+ ntests (string-to-number (match-string 1))))
+          (if (not (re-search-forward "^\\(Aborted: \\)?\
+Ran \\([0-9]+\\) tests, \\([0-9]+\\) results as expected\
+\\(?:, \\([0-9]+\\) unexpected\\)?\
+\\(?:, \\([0-9]+\\) skipped\\)?" nil t))
+              (push logfile badtests)
+            (if (match-string 1) (push logfile badtests))
+            (setq nrun (+ nrun (string-to-number (match-string 2)))
+                  nexpected (+ nexpected (string-to-number (match-string 3))))
+            (when (match-string 4)
+              (push logfile unexpected)
+              (setq nunexpected (+ nunexpected
+                                   (string-to-number (match-string 4)))))
+            (if (match-string 5)
+                (setq nskipped (+ nskipped
+                                  (string-to-number (match-string 5)))))))))
+    (setq nnotrun (- ntests nrun))
+    (message "\nSUMMARY OF TEST RESULTS")
+    (message "-----------------------")
+    (message "Files examined: %d" nlogs)
+    (message "Ran %d tests%s, %d results as expected%s%s"
+             nrun
+             (if (zerop nnotrun) "" (format ", %d failed to run" nnotrun))
+             nexpected
+             (if (zerop nunexpected)
+                 ""
+               (format ", %d unexpected" nunexpected))
+             (if (zerop nskipped)
+                 ""
+               (format ", %d skipped" nskipped)))
+    (when notests
+      (message "%d files did not contain any tests:" (length notests))
+      (mapc (lambda (l) (message "  %s" l)) notests))
+    (when badtests
+      (message "%d files did not finish:" (length badtests))
+      (mapc (lambda (l) (message "  %s" l)) badtests))
+    (when unexpected
+      (message "%d files contained unexpected results:" (length unexpected))
+      (mapc (lambda (l) (message "  %s" l)) unexpected))
+    (kill-emacs (cond ((or notests badtests (not (zerop nnotrun))) 2)
+                      (unexpected 1)
+                      (t 0)))))
+
 ;;; Utility functions for load/unload actions.
 
 (defun ert--activate-font-lock-keywords ()

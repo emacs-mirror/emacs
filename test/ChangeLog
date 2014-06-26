@@ -1,3 +1,17 @@
+2014-06-26  Glenn Morris  <rgm@gnu.org>
+
+	* automated/Makefile.in: Simplify and parallelize.  (Bug#15991)
+	(XARGS_LIMIT, BYTE_COMPILE_EXTRA_FLAGS)
+	(setwins, compile-targets, compile-main, compile-clean): Remove.
+	(GREP_OPTIONS): Unexport.
+	(.el.elc): Replace with pattern rule.
+	(%.elc, %.log): New pattern rules.
+	(ELFILES, LOGFILES): New variables.
+	(check): Depend on LOGFILES.  Call ert-summarize-tests-batch-and-exit.
+	(clean, mostlyclean): New rules.
+	(bootstrap-clean): Simplify.
+	(bootstrap-clean, distclean): Depend on clean.
+
 2014-06-25  Glenn Morris  <rgm@gnu.org>
 
 	* automated/flymake-tests.el (flymake-tests--current-face):

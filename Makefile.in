@@ -798,7 +798,9 @@ mostlyclean_dirs = src oldXMenu lwlib lib lib-src nt doc/emacs doc/misc \
 $(foreach dir,$(mostlyclean_dirs),$(eval $(call submake_template,$(dir),mostlyclean)))
 
 mostlyclean: $(mostlyclean_dirs:=_mostlyclean)
-
+	for dir in test/automated; do \
+	  [ ! -d $$dir ] || $(MAKE) -C $$dir mostlyclean; \
+	done
 
 ### `clean'
 ###      Delete all files from the current directory that are normally
@@ -813,6 +815,9 @@ clean_dirs = $(mostlyclean_dirs) nextstep
 $(foreach dir,$(clean_dirs),$(eval $(call submake_template,$(dir),clean)))
 
 clean: $(clean_dirs:=_clean)
+	for dir in test/automated; do \
+	  [ ! -d $$dir ] || $(MAKE) -C $$dir clean; \
+	done
 	-rm -f etc/emacs.tmpdesktop
 
 ### `bootclean'
