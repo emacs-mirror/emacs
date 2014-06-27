@@ -15,11 +15,6 @@
 	we can't verify signature because of missing public key
 	(backport for bug#17625).
 
-2014-06-26  Stefan Monnier  <monnier@iro.umontreal.ca>
-
-	* progmodes/hideif.el: Undo last change which should only go to trunk
-	(do not merge).
-
 2014-06-26  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/cl-macs.el (help-add-fundoc-usage):
