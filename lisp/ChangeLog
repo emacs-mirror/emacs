@@ -1,3 +1,7 @@
+2014-06-27  Glenn Morris  <rgm@gnu.org>
+
+	* net/eww.el (eww-mode) <eww-current-title>: Make local.  (Bug#17860)
+
 2014-06-26  Stephen Berman  <stephen.berman@gmx.net>
 
 	* calendar/todo-mode.el (todo-prefix-overlays): If there is no
