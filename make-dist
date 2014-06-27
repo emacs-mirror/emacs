@@ -1,8 +1,7 @@
 #!/bin/sh
 ### make-dist: create an Emacs distribution tar file from current srcdir
 
-## Copyright (C) 1995, 1997-1998, 2000-2014 Free Software Foundation,
-## Inc.
+## Copyright (C) 1995, 1997-1998, 2000-2014 Free Software Foundation, Inc.
 
 ## This file is part of GNU Emacs.
 
@@ -461,6 +460,7 @@ if [ "$with_tests" = "yes" ]; then
   echo "Making links to \`test' and its subdirectories"
   for f in `find test -type f`; do
     case $f in
+      test/automated/*.log) continue ;;
       test/automated/flymake/warnpred/a.out) continue ;;
       test/automated/Makefile) continue ;;
     esac

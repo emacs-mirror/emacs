@@ -1,3 +1,7 @@
+2014-06-27  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist: Exclude test/automated/*.log.
+
 2014-06-26  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (mostlyclean, clean): Maybe clean test/automated.
