@@ -2773,9 +2773,18 @@ largest Emacs integer.")
 
 ;; Coerce integer A to be a bignum.  [B S]
 (defun math-bignum (a)
-  (if (>= a 0)
-      (cons 'bigpos (math-bignum-big a))
-    (cons 'bigneg (math-bignum-big (- a)))))
+  (cond
+   ((>= a 0)
+    (cons 'bigpos (math-bignum-big a)))
+   ((= a most-negative-fixnum)
+    ;; Note: cannot get the negation directly because
+    ;; (- most-negative-fixnum) is most-negative-fixnum.
+    ;;
+    ;; most-negative-fixnum := -most-positive-fixnum - 1
+    (math-sub (cons 'bigneg (math-bignum-big most-positive-fixnum))
+	      1))
+   (t
+    (cons 'bigneg (math-bignum-big (- a))))))
 
 (defun math-bignum-big (a)   ; [L s]
   (if (= a 0)

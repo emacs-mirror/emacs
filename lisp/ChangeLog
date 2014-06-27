@@ -1,3 +1,7 @@
+2014-06-27  Leo Liu  <sdl.web@gmail.com>
+
+	* calc/calc.el (math-bignum): Handle most-negative-fixnum.  (Bug#17556)
+
 2014-06-27  Glenn Morris  <rgm@gnu.org>
 
 	* net/eww.el (eww-mode) <eww-current-title>: Make local.  (Bug#17860)
