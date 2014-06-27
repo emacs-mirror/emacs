@@ -1,3 +1,9 @@
+2014-06-27  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todo-mode.el (todo-set-top-priorities): Fix logic to
+	account for file-wide setting of todo-top-priorities-overrides.
+	Make code a bit cleaner.
+
 2014-06-27  Leo Liu  <sdl.web@gmail.com>
 
 	* calc/calc.el (math-bignum): Handle most-negative-fixnum.  (Bug#17556)

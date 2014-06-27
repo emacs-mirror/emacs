@@ -4292,30 +4292,30 @@ set the user customizable option `todo-top-priorities-overrides'."
 	 (file todo-current-todo-file)
 	 (rules todo-top-priorities-overrides)
 	 (frule (assoc-string file rules))
-	 (crule (assoc-string cat (nth 2 frule)))
 	 (crules (nth 2 frule))
-	 (cur (or (if arg (cdr crule) (nth 1 frule))
+	 (crule (assoc-string cat crules))
+	 (cur (or (and arg (cdr crule))
+		  (nth 1 frule)
 		  todo-top-priorities))
 	 (prompt (if arg (concat "Number of top priorities in this category"
 				 " (currently %d): ")
 		   (concat "Default number of top priorities per category"
 				 " in this file (currently %d): ")))
-	 (new -1)
-	 nrule)
+	 (new -1))
     (while (< new 0)
       (let ((cur0 cur))
 	(setq new (read-number (format prompt cur0))
 	      prompt "Enter a non-negative number: "
 	      cur0 nil)))
-    (setq nrule (if arg
-		    (append (delete crule crules) (list (cons cat new)))
-		  (append (list file new) (list crules))))
-    (setq rules (cons (if arg
-			  (list file cur nrule)
-			nrule)
-		      (delete frule rules)))
-    (customize-save-variable 'todo-top-priorities-overrides rules)
-    (todo-prefix-overlays)))
+    (let ((nrule (if arg
+		     (append (delete crule crules) (list (cons cat new)))
+		   (append (list file new) (list crules)))))
+      (setq rules (cons (if arg
+			    (list file cur nrule)
+			  nrule)
+			(delete frule rules)))
+      (customize-save-variable 'todo-top-priorities-overrides rules)
+      (todo-prefix-overlays))))
 
 (defun todo-find-item (str)
   "Search for filtered item STR in its saved todo file.
