@@ -1,7 +1,7 @@
 ### @configure_input@
 
-# Copyright (C) 1985, 1987-1988, 1993-1995, 1999-2014 Free Software
-# Foundation, Inc.
+# Copyright (C) 1985, 1987-1988, 1993-1995, 1999-2014
+#   Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -594,40 +594,28 @@ tags: TAGS ../lisp/TAGS $(lwlibdir)/TAGS
 ## such as loaddefs.el or *.elc can typically be produced by any old
 ## Emacs executable, so we would like to avoid rebuilding them whenever
 ## we build a new Emacs executable.
+##
+## (In other words, changing a single file src/foo.c would force
+## dumping a new bootstrap-emacs, then re-byte-compiling all preloaded
+## elisp files, and only then dump the actual src/emacs, which is not
+## wrong, but is overkill in 99.99% of the cases.)
+##
 ## To solve the circularity, we use 2 different Emacs executables,
 ## "emacs" is the main target and "bootstrap-emacs" is the one used
 ## to build the *.elc and loaddefs.el files.
-## To solve the freshness issue, we used to use a third file "witness-emacs"
-## which was used to witness the fact that there is a bootstrap-emacs
-## executable, and then have dependencies on witness-emacs rather than
-## bootstrap-emacs, but that lead to problems in parallel builds (because
-## witness-emacs needed to be free from dependencies (to avoid rebuilding
-## it), so it was compiled in parallel, leading typically to having 2
-## processes dumping bootstrap-emacs at the same time).
-## So instead, we replace the witness-emacs dependencies by conditional
-## bootstrap-dependencies (via $(BOOTSTRAPEMACS)).  Of course, since we do
-## not want to rely on GNU Make features, we have to rely on an external
-## script to do the conditional part of the dependency
-## (i.e. see the $(SUBDIR) rule ../Makefile.in).
+## To solve the freshness issue, in the past we tried various clever tricks,
+## but now that we require GNU make, we can simply specify
+## bootstrap-emacs$(EXEEXT) as an order-only prerequisite.
 
-.SUFFIXES: .elc .el
-
-## These suffix rules do not allow additional dependencies, sadly, so
-## instead of adding a $(BOOTSTRAPEMACS) dependency here, we add it
-## separately below.
-## With GNU Make, we would just say "%.el : %.elc $(BOOTSTRAPEMACS)"
-.el.elc:
+%.elc: %.el | bootstrap-emacs$(EXEEXT)
 	@$(MAKE) -C ../lisp compile-onefile THEFILE=$< EMACS="$(bootstrap_exe)"
-
-## Since the .el.elc rule cannot specify an extra dependency, we do it here.
-$(lisp): $(BOOTSTRAPEMACS)
 
 ## VCSWITNESS points to the file that holds info about the current checkout.
 ## We use it as a heuristic to decide when to rebuild loaddefs.el.
 ## If empty it is ignored; the parent makefile can set it to some other value.
 VCSWITNESS =
 
-$(lispsource)/loaddefs.el: $(BOOTSTRAPEMACS) $(VCSWITNESS)
+$(lispsource)/loaddefs.el: $(VCSWITNESS) | bootstrap-emacs$(EXEEXT)
 	$(MAKE) -C ../lisp autoloads EMACS="$(bootstrap_exe)"
 
 ## Dump an Emacs executable named bootstrap-emacs containing the
