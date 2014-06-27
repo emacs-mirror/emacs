@@ -72,11 +72,11 @@
        ((and (null modifier)
 	     (string= domain entry))
 	(setq allowedp nil))
-       ;; "!pref.hokkaido.jp"
+       ;; "!city.yokohama.jp"
        ((and (eq modifier t)
 	     (string= domain entry))
 	(setq allowedp t))
-       ;; "*.ar"
+       ;; "*.bd"
        ((and (numberp modifier)
 	     (= length modifier)
 	     (string= entry upper-domain))
@@ -85,13 +85,14 @@
 
 ;; Tests:
 
+;; TODO convert to a proper test/automated test.
 ;; (url-domsuf-cookie-allowed-p "com") => nil
-;; (url-domsuf-cookie-allowed-p "foo.bar.ar") => t
-;; (url-domsuf-cookie-allowed-p "bar.ar") => nil
+;; (url-domsuf-cookie-allowed-p "foo.bar.bd") => t
+;; (url-domsuf-cookie-allowed-p "bar.bd") => nil
 ;; (url-domsuf-cookie-allowed-p "co.uk") => nil
 ;; (url-domsuf-cookie-allowed-p "foo.bar.hokkaido.jo") => t
-;; (url-domsuf-cookie-allowed-p "bar.hokkaido.jp") => nil
-;; (url-domsuf-cookie-allowed-p "pref.hokkaido.jp") => t
+;; (url-domsuf-cookie-allowed-p "bar.yokohama.jp") => nil
+;; (url-domsuf-cookie-allowed-p "city.yokohama.jp") => t
 
 (provide 'url-domsuf)
 
