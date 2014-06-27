@@ -89,13 +89,20 @@ LOGFILES = $(patsubst %.el,%.log,$(notdir ${ELFILES}))
 ## see what the problem was.
 .PRECIOUS: %.log
 
-check: ${LOGFILES}
+## Re-run all the tests every time.
+check:
+	-@for f in *.log; do test ! -f $$f || mv $$f $$f~; done
+	@${MAKE} check-maybe
+
+## Only re-run tests whose .log is older than the test.
+.PHONY: check-maybe
+check-maybe: ${LOGFILES}
 	$(emacs) -l ert -f ert-summarize-tests-batch-and-exit $^
 
 .PHONY: mostlyclean clean bootstrap-clean distclean maintainer-clean
 
 clean mostlyclean:
-	-rm -f *.log
+	-rm -f *.log *.log~
 
 bootstrap-clean: clean
 	-rm -f ${srcdir}/*.elc

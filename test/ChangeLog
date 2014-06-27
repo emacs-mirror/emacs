@@ -1,3 +1,9 @@
+2014-06-27  Glenn Morris  <rgm@gnu.org>
+
+	* automated/Makefile.in (check-maybe): Rename from check.
+	(check): Re-run all the tests, every time.
+	(clean, mostlyclean): Also delete *.log~.
+
 2014-06-26  Glenn Morris  <rgm@gnu.org>
 
 	* automated/package-x-test.el: Do not mess with load-path.
