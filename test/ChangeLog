@@ -1,3 +1,9 @@
+2014-06-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/dbus-tests.el (dbus--test-register-service)
+	(dbus-test02-register-service-session): Replace `dbus-ping' calls
+	by `dbus-list-known-names'.  (Bug#17858)
+
 2014-06-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* automated/package-test.el (package-test-update-listing)
