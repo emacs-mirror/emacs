@@ -363,7 +363,7 @@ of master file."
       (member "biblatex" TeX-active-styles)
     ;; poor-man's check...
     (save-excursion
-      (re-search-forward "^[^%]*\\\\usepackage.*{biblatex}" nil t))))
+      (re-search-forward "^[^%\n]*?\\\\usepackage.*{biblatex}" nil t))))
 
 ;;;###autoload
 (defun reftex-locate-bibliography-files (master-dir &optional files)

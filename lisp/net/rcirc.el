@@ -1903,7 +1903,9 @@ Uninteresting lines are those whose responses are listed in
 	(message "Rcirc-Omit mode enabled"))
     (remove-from-invisibility-spec '(rcirc-omit . nil))
     (message "Rcirc-Omit mode disabled"))
-    (recenter (when (> (point) rcirc-prompt-start-marker) -1)))
+  (dolist (window (get-buffer-window-list (current-buffer)))
+    (with-selected-window window
+      (recenter (when (> (point) rcirc-prompt-start-marker) -1)))))
 
 (defun rcirc-switch-to-server-buffer ()
   "Switch to the server buffer associated with current channel buffer."

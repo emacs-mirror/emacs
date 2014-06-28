@@ -1,3 +1,11 @@
+2014-06-24  Eli Barzilay  <eli@barzilay.org>
+
+	* NEWS: calculator.el user-visible changes.
+
+2014-06-15  Michael Albinus  <michael.albinus@gmx.de>
+
+	* NEWS: New Tramp method "nc".
+
 2014-06-08  Leo Liu  <sdl.web@gmail.com>
 
 	* themes/deeper-blue-theme.el: Use another fix.  (Bug#17695)

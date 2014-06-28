@@ -37,6 +37,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <X11/extensions/Xfixes.h>
 #endif
 
+/* Using Xft implies that XRender is available.  */
+#ifdef HAVE_XFT
+#include <X11/extensions/Xrender.h>
+#endif
+
 /* Load sys/types.h if not already loaded.
    In some systems loading it twice is suicidal.  */
 #ifndef makedev
@@ -221,7 +226,6 @@ static void x_lower_frame (struct frame *);
 static const XColor *x_color_cells (Display *, int *);
 static int x_io_error_quitter (Display *);
 static struct terminal *x_create_terminal (struct x_display_info *);
-void x_delete_terminal (struct terminal *);
 static void x_update_end (struct frame *);
 static void XTframe_up_to_date (struct frame *);
 static void x_clear_frame (struct frame *);
@@ -354,8 +358,10 @@ x_find_topmost_parent (struct frame *f)
       unsigned int nchildren;
 
       win = wi;
-      XQueryTree (dpy, win, &root, &wi, &children, &nchildren);
-      XFree (children);
+      if (XQueryTree (dpy, win, &root, &wi, &children, &nchildren))
+	XFree (children);
+      else
+	break;
     }
 
   return win;
@@ -6454,7 +6460,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	    for (i = 0, nchars = 0; i < nbytes; i++)
 	      {
-		if (ASCII_BYTE_P (copy_bufptr[i]))
+		if (ASCII_CHAR_P (copy_bufptr[i]))
 		  nchars++;
 		STORE_KEYSYM_FOR_DEBUG (copy_bufptr[i]);
 	      }
@@ -7853,11 +7859,6 @@ xim_destroy_callback (XIM xim, XPointer client_data, XPointer call_data)
 }
 
 #endif /* HAVE_X11R6 */
-
-#ifdef HAVE_X11R6
-/* This isn't prototyped in OSF 5.0 or 5.1a.  */
-extern char *XSetIMValues (XIM, ...);
-#endif
 
 /* Open the connection to the XIM server on display DPYINFO.
    RESOURCE_NAME is the resource name Emacs uses.  */
@@ -9774,7 +9775,7 @@ x_toggle_visible_pointer (struct frame *f, bool invisible)
   else
     XDefineCursor (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		   f->output_data.x->current_cursor);
-  f->pointer_invisible = invisible;  
+  f->pointer_invisible = invisible;
 }
 
 /* Setup pointer blanking, prefer Xfixes if available.  */
@@ -10086,14 +10087,27 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 
 #ifdef HAVE_XFT
   {
-    /* If we are using Xft, check dpi value in X resources.
-       It is better we use it as well, since Xft will use it, as will all
-       Gnome applications.  If our real DPI is smaller or larger than the
-       one Xft uses, our font will look smaller or larger than other
-       for other applications, even if it is the same font name (monospace-10
-       for example).  */
-    char *v = XGetDefault (dpyinfo->display, "Xft", "dpi");
+    /* If we are using Xft, the following precautions should be made:
+
+       1. Make sure that the Xrender extension is added before the Xft one.
+       Otherwise, the close-display hook set by Xft is called after the one
+       for Xrender, and the former tries to re-add the latter.  This results
+       in inconsistency of internal states and leads to X protocol error when
+       one reconnects to the same X server (Bug#1696).
+
+       2. Check dpi value in X resources.  It is better we use it as well,
+       since Xft will use it, as will all Gnome applications.  If our real DPI
+       is smaller or larger than the one Xft uses, our font will look smaller
+       or larger than other for other applications, even if it is the same
+       font name (monospace-10 for example).  */
+
+    int event_base, error_base;
+    char *v;
     double d;
+
+    XRenderQueryExtension (dpyinfo->display, &event_base, &error_base);
+
+    v = XGetDefault (dpyinfo->display, "Xft", "dpi");
     if (v != NULL && sscanf (v, "%lf", &d) == 1)
       dpyinfo->resy = dpyinfo->resx = d;
   }
@@ -10222,7 +10236,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 				   1, 0, 1);
 
   x_setup_pointer_blanking (dpyinfo);
-  
+
 #ifdef HAVE_X_I18N
   xim_initialize (dpyinfo, resource_name);
 #endif
@@ -10538,7 +10552,7 @@ x_create_terminal (struct x_display_info *dpyinfo)
   terminal->menu_show_hook = x_menu_show;
 #if defined (USE_X_TOOLKIT) || defined (USE_GTK)
   terminal->popup_dialog_hook = xw_popup_dialog;
-#endif  
+#endif
   terminal->set_vertical_scroll_bar_hook = XTset_vertical_scroll_bar;
   terminal->condemn_scroll_bars_hook = XTcondemn_scroll_bars;
   terminal->redeem_scroll_bar_hook = XTredeem_scroll_bar;
@@ -10550,7 +10564,7 @@ x_create_terminal (struct x_display_info *dpyinfo)
   return terminal;
 }
 
-void
+static void
 x_initialize (void)
 {
   baud_rate = 19200;

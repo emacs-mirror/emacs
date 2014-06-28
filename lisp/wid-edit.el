@@ -2626,7 +2626,7 @@ Return an alist of (TYPE MATCH)."
   (let* ((value (widget-get widget :value))
 	 (type (nth 0 (widget-get widget :args)))
 	 children)
-    (widget-put widget :value-pos (copy-marker (point)))
+    (widget-put widget :value-pos (point-marker))
     (set-marker-insertion-type (widget-get widget :value-pos) t)
     (while value
       (let ((answer (widget-match-inline type value)))

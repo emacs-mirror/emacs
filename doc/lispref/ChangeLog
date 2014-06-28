@@ -1,3 +1,20 @@
+2014-06-23  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (%.texi): Disable implicit rules.
+	(mkinfodir): Remove.
+	(.dvi.ps): Replace with explicit rule.
+	(html): Declare as PHONY.
+	(${buildinfodir}): New rule.
+	($(buildinfodir)/elisp.info): Use order-only prereq for output dir.
+	Use $<.
+	(elisp.dvi, elisp.html, elisp.pdf): Use $<.
+	(elisp.ps): New rule.
+
+2014-06-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* positions.texi (Screen Lines): Clarify how columns are counted
+	by vertical-motion.
+
 2014-06-15  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (bootstrap-clean): New.

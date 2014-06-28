@@ -1130,13 +1130,8 @@ TAB-STOP specifies whether SPACING refers to tab-stop boundaries."
       column
     (if (not tab-stop)
 	(+ column spacing)
-      (let ((stops tab-stop-list))
-	(while stops
-	  (if (and (> (car stops) column)
-		   (= (setq spacing (1- spacing)) 0))
-	      (setq column (car stops)
-		    stops nil)
-	    (setq stops (cdr stops)))))
+      (dotimes (_ spacing)
+	(setq column (indent-next-tab-stop column)))
       column)))
 
 (defsubst align-column (pos)

@@ -1,3 +1,9 @@
+2014-06-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* semantic/ia.el (semantic-ia-complete-symbol-menu): Use posn-at-point
+	instead of senator-completion-menu-point-as-event; un-comment, tho keep
+	the "no smart completion" fallback commented since it still doesn't work.
+
 2014-05-01  Glenn Morris  <rgm@gnu.org>
 
 	* ede.el (ede-project-directories, ede-check-project-directory):

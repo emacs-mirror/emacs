@@ -12228,7 +12228,7 @@ height:width ratio, do the following
 @cindex #+ATTR_ODT
 You can control the manner in which an image is anchored by setting the
 @code{:anchor} property of it's @code{#+ATTR_ODT} line.  You can specify one
-of the the following three values for the @code{:anchor} property:
+of the following three values for the @code{:anchor} property:
 @samp{"as-char"}, @samp{"paragraph"} and @samp{"page"}.
 
 To create an image that is anchored to a page, do the following:

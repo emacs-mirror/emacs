@@ -149,9 +149,7 @@ setwins_for_subdirs=for file in `find ${srcdir} -type d -print`; do \
 # we add them here to make sure they get built.
 all: compile-main $(lisp)/cus-load.el $(lisp)/finder-inf.el
 
-doit:
-
-.PHONY: all doit custom-deps finder-data autoloads update-subdirs
+.PHONY: all custom-deps finder-data autoloads update-subdirs
 
 # custom-deps and finder-data both used to scan _all_ the *.el files.
 # This could lead to problems in parallel builds if automatically
@@ -169,7 +167,7 @@ doit:
 # (see finder-no-scan-regexp and custom-dependencies-no-scan-regexp).
 $(lisp)/cus-load.el:
 	$(MAKE) custom-deps
-custom-deps: doit
+custom-deps:
 	$(setwins_almost); \
 	echo Directories: $$wins; \
 	$(emacs) -l cus-dep \
@@ -178,7 +176,7 @@ custom-deps: doit
 
 $(lisp)/finder-inf.el:
 	$(MAKE) finder-data
-finder-data: doit
+finder-data:
 	$(setwins_finder); \
 	echo Directories: $$wins; \
 	$(emacs) -l finder \
@@ -192,7 +190,7 @@ finder-data: doit
 # Note that we set no-update-autoloads in _generated_ leim files.
 # If you want to allow autoloads in such files, remove that,
 # and make this depend on leim.
-autoloads: $(LOADDEFS) doit
+autoloads: $(LOADDEFS)
 	cd $(lisp) && chmod +w $(AUTOGEN_VCS)
 	$(setwins_almost); \
 	echo Directories: $$wins; \
@@ -216,7 +214,7 @@ obsolete-autoloads: ${lisp}/obsolete/*.el
 # we know that if we have an emacs executable, we also have a subdirs.el.
 $(lisp)/subdirs.el:
 	$(MAKE) update-subdirs
-update-subdirs: doit
+update-subdirs:
 	$(setwins_for_subdirs); \
 	for file in $$wins; do \
 	   $(srcdir)/../build-aux/update-subdirs $$file; \
@@ -238,7 +236,8 @@ bzr-update: compile finder-data custom-deps
 # Update the AUTHORS file.
 
 update-authors:
-	$(emacs) -l authors -f batch-update-authors $(top_srcdir)/etc/AUTHORS $(top_srcdir)
+	$(emacs) -L "$(top_srcdir)/admin" -l authors \
+	  -f batch-update-authors "$(top_srcdir)/etc/AUTHORS" "$(top_srcdir)"
 
 
 ETAGS = ../lib-src/etags
@@ -307,7 +306,7 @@ compile-onefile:
 compile-first: $(COMPILE_FIRST)
 
 # In `compile-main' we could directly do
-#    ... | xargs $(MAKE) EMACS="$(EMACS)"
+#    ... | xargs $(MAKE)
 # and it works, but it generates a lot of messages like
 #    make[2]: gnus/gnus-mlspl.elc is up to date.
 # so instead, we use "xargs echo" to split the list of file into manageable
@@ -331,7 +330,7 @@ compile-main: leim semantic compile-clean
 	  echo "$${el}c"; \
 	done | xargs $(XARGS_LIMIT) echo) | \
 	while read chunk; do \
-	  $(MAKE) compile-targets EMACS="$(EMACS)" TARGETS="$$chunk"; \
+	  $(MAKE) compile-targets TARGETS="$$chunk"; \
 	done
 
 .PHONY: compile-clean
@@ -362,17 +361,15 @@ semantic:
 # date.  Some .el files don't get compiled because they set the
 # local variable no-byte-compile.
 # Calling make recursively because suffix rule cannot have prerequisites.
-# Explicitly pass EMACS (sometimes ../src/bootstrap-emacs) to those
-# sub-makes that run rules that use it, for the sake of some non-GNU makes.
 compile: $(LOADDEFS) autoloads compile-first
-	$(MAKE) compile-main EMACS="$(EMACS)"
+	$(MAKE) compile-main
 
 # Compile all Lisp files.  This is like `compile' but compiles files
 # unconditionally.  Some files don't actually get compiled because they
 # set the local variable no-byte-compile.
-compile-always: doit
+compile-always:
 	cd $(lisp) && rm -f *.elc */*.elc */*/*.elc */*/*/*.elc
-	$(MAKE) compile EMACS="$(EMACS)"
+	$(MAKE) compile
 
 .PHONY: backup-compiled-files compile-after-backup
 
@@ -403,7 +400,7 @@ compile-after-backup: backup-compiled-files compile-always
 # There is no reason to use this rule unless you only have a single
 # core and CPU time is an issue.
 .PHONY: compile-one-process
-compile-one-process: doit $(LOADDEFS) compile-first $(lisp)/progmodes/cc-mode.elc
+compile-one-process: $(LOADDEFS) compile-first $(lisp)/progmodes/cc-mode.elc
 	$(emacs) $(BYTE_COMPILE_FLAGS) \
 	    --eval "(batch-byte-recompile-directory 0)" $(lisp)
 
@@ -519,28 +516,22 @@ $(lisp)/progmodes/cc-align.elc $(lisp)/progmodes/cc-awk.elc\
  $(lisp)/progmodes/cc-vars.elc: \
    $(lisp)/progmodes/cc-bytecomp.elc $(lisp)/progmodes/cc-defs.elc
 
-$(lisp)/progmodes/cc-align.elc: \
-   $(lisp)/progmodes/cc-vars.elc $(lisp)/progmodes/cc-engine.elc
-
-$(lisp)/progmodes/cc-cmds.elc: \
+$(lisp)/progmodes/cc-align.elc $(lisp)/progmodes/cc-cmds.elc: \
    $(lisp)/progmodes/cc-vars.elc $(lisp)/progmodes/cc-engine.elc
 
 $(lisp)/progmodes/cc-compat.elc: \
    $(lisp)/progmodes/cc-vars.elc $(lisp)/progmodes/cc-styles.elc \
    $(lisp)/progmodes/cc-engine.elc
 
-$(lisp)/progmodes/cc-defs.elc: $(lisp)/progmodes/cc-bytecomp.elc \
-   $(lisp)/emacs-lisp/cl.elc $(lisp)/emacs-lisp/regexp-opt.elc
+$(lisp)/progmodes/cc-defs.elc: $(lisp)/progmodes/cc-bytecomp.elc
 
 $(lisp)/progmodes/cc-engine.elc: $(lisp)/progmodes/cc-langs.elc \
    $(lisp)/progmodes/cc-vars.elc
 
 $(lisp)/progmodes/cc-fonts.elc: $(lisp)/progmodes/cc-langs.elc \
-   $(lisp)/progmodes/cc-vars.elc $(lisp)/progmodes/cc-engine.elc \
-   $(lisp)/font-lock.elc
+   $(lisp)/progmodes/cc-vars.elc $(lisp)/progmodes/cc-engine.elc
 
-$(lisp)/progmodes/cc-langs.elc: $(lisp)/progmodes/cc-vars.elc \
-   $(lisp)/emacs-lisp/cl.elc
+$(lisp)/progmodes/cc-langs.elc: $(lisp)/progmodes/cc-vars.elc
 
 $(lisp)/progmodes/cc-mode.elc: $(lisp)/progmodes/cc-langs.elc \
    $(lisp)/progmodes/cc-vars.elc $(lisp)/progmodes/cc-engine.elc \
@@ -549,7 +540,5 @@ $(lisp)/progmodes/cc-mode.elc: $(lisp)/progmodes/cc-langs.elc \
 
 $(lisp)/progmodes/cc-styles.elc: $(lisp)/progmodes/cc-vars.elc \
    $(lisp)/progmodes/cc-align.elc
-
-$(lisp)/progmodes/cc-vars.elc: $(lisp)/custom.elc $(lisp)/widget.elc
 
 # Makefile ends here.

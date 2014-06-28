@@ -306,7 +306,6 @@ or remove a tab stop.  \\[ruler-mode-toggle-show-tab-stops] or
   "Return a column number relative to the selected window.
 N is a column number relative to selected frame."
   (- n
-     (car (window-edges))
      (or (car (window-margins)) 0)
      (fringe-columns 'left)
      (scroll-bar-columns 'left)))
@@ -321,7 +320,7 @@ START-EVENT is the mouse click event."
     (when (eq start end) ;; mouse click
       (save-selected-window
         (select-window (posn-window start))
-        (setq col (- (car (posn-col-row start)) (car (window-edges))
+        (setq col (- (car (posn-col-row start))
                      (scroll-bar-columns 'left))
               w   (- (ruler-mode-full-window-width)
                      (scroll-bar-columns 'left)
@@ -343,7 +342,7 @@ START-EVENT is the mouse click event."
     (when (eq start end) ;; mouse click
       (save-selected-window
         (select-window (posn-window start))
-        (setq col (- (car (posn-col-row start)) (car (window-edges))
+        (setq col (- (car (posn-col-row start))
                      (scroll-bar-columns 'left))
               w   (- (ruler-mode-full-window-width)
                      (scroll-bar-columns 'left)
@@ -477,8 +476,9 @@ START-EVENT is the mouse click event."
                (not (member ts tab-stop-list))
                (progn
                  (message "Tab stop set to %d" ts)
-                 (setq tab-stop-list (sort (cons ts tab-stop-list)
-                                           #'<)))))))))
+                 (when (null tab-stop-list)
+                   (setq tab-stop-list (indent-accumulate-tab-stops (1- ts))))
+                 (setq tab-stop-list (sort (cons ts tab-stop-list) #'<)))))))))
 
 (defun ruler-mode-mouse-del-tab-stop (start-event)
   "Delete tab stop at the graduation where the mouse pointer is on.
@@ -754,7 +754,7 @@ Optional argument PROPS specifies other text properties to apply."
          i (1+ i) 'help-echo ruler-mode-fill-column-help-echo
          ruler))
        ;; Show the `tab-stop-list' markers.
-       ((and ruler-mode-show-tab-stops (member j tab-stop-list))
+       ((and ruler-mode-show-tab-stops (= j (indent-next-tab-stop (1- j))))
         (aset ruler i ruler-mode-tab-stop-char)
         (put-text-property
          i (1+ i) 'face 'ruler-mode-tab-stop

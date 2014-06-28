@@ -368,7 +368,7 @@ newline after CHAR but stay in the same place.")
                (setq pos (electric--after-char-pos))
                ;; Not in a string or comment.
                (not (nth 8 (save-excursion (syntax-ppss pos)))))
-      (let ((end (copy-marker (point)))
+      (let ((end (point-marker))
             (sym (if (functionp rule) (funcall rule) rule)))
         (set-marker-insertion-type end (not (eq sym 'after-stay)))
         (goto-char pos)

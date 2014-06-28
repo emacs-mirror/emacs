@@ -1,3 +1,42 @@
+2014-06-27  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (src): No more need to pass BOOTSTRAPEMACS.
+
+	* make-dist: Exclude test/automated/*.log.
+
+2014-06-26  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (mostlyclean, clean): Maybe clean test/automated.
+
+2014-06-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure.ac: Warn about --enable-link-time-optimization's issues
+	in --help message (Bug#17806).
+
+	Port to GCC 4.9.0 with link time optimization (Bug#17806).
+	* configure.ac (CFLAGS): With link time optimization,
+	use -ffat-lto-objects if supported; otherwise Emacs won't
+	build with GCC 4.9.0.
+
+2014-06-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Diagnose failures due to colons in directory names (Bug#17278).
+	* Makefile.in (epaths-force): Don't allow ':' in directories whose
+	names go into a colon-separated path.
+	* configure.ac: Fail if submake fails.
+
+2014-06-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Omit redundant extern decls.
+	Most of this patch is from Dmitry Antipov, in:
+	http://lists.gnu.org/archive/html/emacs-devel/2014-06/msg00263.html
+	* configure.ac (WERROR_CFLAGS): Add -Wredundant-decls.
+
+	Merge from gnulib, incorporating:
+	2014-06-17 acl: port to gcc -Wredundant-decls
+	2014-06-01 gnulib-common.m4: Fix typo in _GL_UNUSED_LABEL.
+	* lib/acl.h, m4/gnulib-common.m4: Update from gnulib.
+
 2014-06-15  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in: Use `make -C' rather than `cd && make' throughout.

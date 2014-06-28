@@ -23,6 +23,31 @@ case $X in
         ;;
 esac
 
+{				# bug#17621
+    foo1 &&
+	foo2 &&
+        bar
+
+    foo1 &&     \
+        foo2 && \
+        bar
+}
+
+for foo in bar; do              #  bug#17721
+    [ -e $foo ] && {
+        echo t
+    } && {
+	echo r
+    }
+done
+
+filter_3 ()                     # bug#17842
+{
+    tr -d '"`' | tr '	' ' ' | \
+        awk -F\; -f filter.awk | \
+	grep -v "^," | sort -t, -k2,2
+}
+
 echo -n $(( 5 << 2 ))
 # This should not be treated as a heredoc (bug#12770).
 2

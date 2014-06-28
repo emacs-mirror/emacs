@@ -39,7 +39,3 @@ extern Lisp_Object unread_switch_frame;
 /* Nonzero if input is coming from the keyboard.  */
 
 #define INTERACTIVE (NILP (Vexecuting_kbd_macro) && !noninteractive)
-
-/* Set this nonzero to force reconsideration of mode line.  */
-
-extern int update_mode_lines;

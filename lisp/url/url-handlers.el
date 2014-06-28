@@ -33,7 +33,6 @@
 (autoload 'url-expand-file-name "url-expand" "Convert url to a fully specified url, and canonicalize it.")
 (autoload 'mm-dissect-buffer "mm-decode" "Dissect the current buffer and return a list of MIME handles.")
 (autoload 'url-scheme-get-property "url-methods" "Get property of a URL SCHEME.")
-(autoload 'url-http-parse-response "url-http" "Parse just the response code.")
 
 ;; Always used after mm-dissect-buffer and defined in the same file.
 (declare-function mm-save-part-to-file "mm-decode" (handle file))
@@ -308,17 +307,21 @@ They count bytes from the beginning of the body."
       (insert data))
     (list (length data) charset)))
 
+(defvar url-http-codes)
+
 ;;;###autoload
 (defun url-insert-file-contents (url &optional visit beg end replace)
   (let ((buffer (url-retrieve-synchronously url)))
     (unless buffer (signal 'file-error (list url "No Data")))
     (with-current-buffer buffer
-      (let ((response (url-http-parse-response)))
-        (if (and (>= response 200) (< response 300))
-            (goto-char (point-min))
-          (let ((desc (buffer-substring-no-properties (1+ (point))
-                                                      (line-end-position))))
+      ;; XXX: This is HTTP/S specific and should be moved to url-http
+      ;; instead.  See http://debbugs.gnu.org/17549.
+      (when (bound-and-true-p url-http-response-status)
+        (unless (and (>= url-http-response-status 200)
+                     (< url-http-response-status 300))
+          (let ((desc (nth 2 (assq url-http-response-status url-http-codes))))
             (kill-buffer buffer)
+            ;; Signal file-error per http://debbugs.gnu.org/16733.
             (signal 'file-error (list url desc))))))
     (if visit (setq buffer-file-name url))
     (save-excursion
@@ -333,6 +336,7 @@ They count bytes from the beginning of the body."
           ;; usual heuristic/rules that we apply to files.
           (decode-coding-inserted-region start (point) url visit beg end replace))
         (list url (car size-and-charset))))))
+
 (put 'insert-file-contents 'url-file-handlers 'url-insert-file-contents)
 
 (defun url-file-name-completion (url directory &optional predicate)

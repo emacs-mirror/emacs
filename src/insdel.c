@@ -701,7 +701,7 @@ count_combining_after (const unsigned char *string,
 	(2) POS is the last of the current buffer.
 	(3) A character at POS can't be a following byte of multibyte
 	    character.  */
-  if (length > 0 && ASCII_BYTE_P (string[length - 1])) /* case (1) */
+  if (length > 0 && ASCII_CHAR_P (string[length - 1])) /* case (1) */
     return 0;
   if (pos_byte == Z_BYTE)	/* case (2) */
     return 0;

@@ -1374,8 +1374,6 @@ If INHIBIT is non-nil, inhibit `mm-inhibit-file-name-handlers'."
     (write-region start end filename append visit lockname)))
 
 (autoload 'gmm-write-region "gmm-utils")
-(declare-function help-function-arglist "help-fns"
-		  (def &optional preserve-names))
 
 ;; It is not a MIME function, but some MIME functions use it.
 (if (and (fboundp 'make-temp-file)

@@ -1,3 +1,76 @@
+2014-06-28  Glenn Morris  <rgm@gnu.org>
+
+	* automated/Makefile.in (TESTS): New list of short PHONY aliases.
+	(test_template): New definition.  Apply to TESTS.
+
+2014-06-27  Glenn Morris  <rgm@gnu.org>
+
+	* automated/Makefile.in (check-maybe): Rename from check.
+	(check): Re-run all the tests, every time.
+	(clean, mostlyclean): Also delete *.log~.
+
+2014-06-26  Glenn Morris  <rgm@gnu.org>
+
+	* automated/package-x-test.el: Do not mess with load-path.
+
+	* automated/Makefile.in (%.log): If error, dump log to stdout.
+
+2014-06-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* automated/package-test.el (package-test-update-listing)
+	(package-test-update-archives, package-test-describe-package):
+	Adjust tests according to new package-list-unsigned.
+
+2014-06-26  Glenn Morris  <rgm@gnu.org>
+
+	* automated/ert-tests.el (no-byte-compile): Set it.  (Bug#17851)
+
+	* automated/eieio-tests.el (no-byte-compile): Set it.  (Bug#17852)
+
+	* automated/Makefile.in: Simplify and parallelize.  (Bug#15991)
+	(XARGS_LIMIT, BYTE_COMPILE_EXTRA_FLAGS)
+	(setwins, compile-targets, compile-main, compile-clean): Remove.
+	(GREP_OPTIONS): Unexport.
+	(.el.elc): Replace with pattern rule.
+	(%.elc, %.log): New pattern rules.
+	(ELFILES, LOGFILES): New variables.
+	(check): Depend on LOGFILES.  Call ert-summarize-tests-batch-and-exit.
+	(clean, mostlyclean): New rules.
+	(bootstrap-clean): Simplify.
+	(bootstrap-clean, distclean): Depend on clean.
+
+2014-06-25  Glenn Morris  <rgm@gnu.org>
+
+	* automated/flymake-tests.el (flymake-tests--current-face):
+	Sleep for longer.  Avoid querying.
+
+2014-06-25  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* automated/fns-tests.el (fns-tests-compare-string): New test.
+
+2014-06-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/tramp-tests.el (tramp-test26-process-file): Extend test
+	according to Bug#17815.
+
+2014-06-21  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	* automated/python-tests.el (python-util-strip-string-1): New test.
+
+2014-06-15  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.2.10.
+
+	* automated/tramp-tests.el (tramp--test-enabled): Ignore errors.
+	(tramp--instrument-test-case): Extend docstring.
+	(tramp-test15-copy-directory): Skip for tramp-smb.el.
+	(tramp-test21-file-links): Use `file-truename' for directories.
+	(tramp-test27-start-file-process, tramp-test28-shell-command):
+	Retrieve process output more robustly.
+	(tramp--test-check-files): Extend test.
+	(tramp-test30-special-characters): Skip for tramp-adb.el,
+	tramp-gvfs.el and tramp-smb.el.  Add further file names.
+
 2014-06-13  Glenn Morris  <rgm@gnu.org>
 
 	* automated/Makefile.in (compile-main):

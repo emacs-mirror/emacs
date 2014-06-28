@@ -25,6 +25,9 @@ SHELL = /bin/sh
 
 CC=@CC@
 CFLAGS=@CFLAGS@
+CPPFLAGS = @CPPFLAGS@
+LDFLAGS = @LDFLAGS@
+
 version=@version@
 ## Used in $archlibdir.
 configuration=@configuration@
@@ -141,7 +144,9 @@ BASE_CFLAGS = $(C_SWITCH_SYSTEM) $(C_SWITCH_MACHINE) \
 	      -I. -I${srcdir}
 
 ALL_CFLAGS = ${BASE_CFLAGS} ${PROFILING_CFLAGS} ${LDFLAGS} ${CPPFLAGS} ${CFLAGS}
+## Unused.
 LINK_CFLAGS = ${BASE_CFLAGS} ${LDFLAGS} ${CFLAGS}
+## Unused.
 CPP_CFLAGS = ${BASE_CFLAGS} ${PROFILING_CFLAGS} ${CPPFLAGS} ${CFLAGS}
 
 all: ${EXE_FILES}

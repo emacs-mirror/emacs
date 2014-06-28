@@ -3632,7 +3632,7 @@ all pending output has been dealt with."))
 	    (if (< down 0) term-scroll-start term-scroll-end))))
     (when (or (and (< down 0) (< scroll-needed 0))
 	      (and (> down 0) (> scroll-needed 0)))
-      (let ((save-point (copy-marker (point))) (save-top))
+      (let ((save-point (point-marker)) (save-top))
 	(goto-char term-home-marker)
 	(cond (term-scroll-with-delete
 	       (if (< down 0)

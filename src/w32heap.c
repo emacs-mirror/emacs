@@ -200,12 +200,11 @@ dumped_data_commit (PVOID Base, PVOID *CommitAddress, PSIZE_T CommitSize)
      as requests arrive.  */
   *CommitAddress = data_region_base + committed;
   committed += *CommitSize;
+  /* Check that the private heap area does not overlap the big chunks area.  */
   if (((unsigned char *)(*CommitAddress)) + *CommitSize >= bc_limit)
     {
-      /* Check that the private heap area does not overlap the big
-	 chunks area.  */
-      fprintf(stderr,
-	      "dumped_data_commit: memory exhausted.\nEnlarge dumped_data[]!\n");
+      fprintf (stderr,
+	       "dumped_data_commit: memory exhausted.\nEnlarge dumped_data[]!\n");
       exit (-1);
     }
   return 0;
@@ -243,18 +242,20 @@ init_heap (void)
       data_region_end = data_region_base;
 
       /* Create the private heap.  */
-      heap = HeapCreate(0, 0, 0);
+      heap = HeapCreate (0, 0, 0);
 
 #ifndef _W64
       /* Set the low-fragmentation heap for OS before Vista.  */
-      HMODULE hm_kernel32dll = LoadLibrary("kernel32.dll");
-      HeapSetInformation_Proc s_pfn_Heap_Set_Information = (HeapSetInformation_Proc) GetProcAddress(hm_kernel32dll, "HeapSetInformation");
+      HMODULE hm_kernel32dll = LoadLibrary ("kernel32.dll");
+      HeapSetInformation_Proc s_pfn_Heap_Set_Information = (HeapSetInformation_Proc) GetProcAddress (hm_kernel32dll, "HeapSetInformation");
       if (s_pfn_Heap_Set_Information != NULL)
-        if (s_pfn_Heap_Set_Information ((PVOID) heap,
-                                        HeapCompatibilityInformation,
-                                        &enable_lfh, sizeof(enable_lfh)) == 0)
-          DebPrint (("Enabling Low Fragmentation Heap failed: error %ld\n",
-		     GetLastError ()));
+	{
+	  if (s_pfn_Heap_Set_Information ((PVOID) heap,
+					  HeapCompatibilityInformation,
+					  &enable_lfh, sizeof(enable_lfh)) == 0)
+	    DebPrint (("Enabling Low Fragmentation Heap failed: error %ld\n",
+		       GetLastError ()));
+	}
 #endif
 
       the_malloc_fn = malloc_after_dump;
@@ -271,7 +272,7 @@ init_heap (void)
 	= (RtlCreateHeap_Proc) GetProcAddress (hm_ntdll, "RtlCreateHeap");
       /* Specific parameters for the private heap.  */
       RTL_HEAP_PARAMETERS params;
-      ZeroMemory(&params, sizeof(params));
+      ZeroMemory (&params, sizeof(params));
       params.Length = sizeof(RTL_HEAP_PARAMETERS);
 
       data_region_base = (unsigned char *)ROUND_UP (dumped_data, 0x1000);
@@ -284,6 +285,11 @@ init_heap (void)
       params.CommitRoutine = &dumped_data_commit;
 
       /* Create the private heap.  */
+      if (s_pfn_Rtl_Create_Heap == NULL)
+	{
+	  fprintf (stderr, "Cannot build Emacs without RtlCreateHeap being available; exiting.\n");
+	  exit (-1);
+	}
       heap = s_pfn_Rtl_Create_Heap (0, data_region_base, 0, 0, NULL, &params);
       the_malloc_fn = malloc_before_dump;
       the_realloc_fn = realloc_before_dump;
@@ -358,8 +364,8 @@ malloc_before_dump (size_t size)
 	     array.  */
 	  if (blocks_number >= MAX_BLOCKS)
 	    {
-	      fprintf(stderr,
-		      "malloc_before_dump: no more big chunks available.\nEnlarge MAX_BLOCKS!\n");
+	      fprintf (stderr,
+		       "malloc_before_dump: no more big chunks available.\nEnlarge MAX_BLOCKS!\n");
 	      exit (-1);
 	    }
 	  bc_limit -= size;
@@ -369,11 +375,11 @@ malloc_before_dump (size_t size)
 	  blocks[blocks_number].size = size;
 	  blocks[blocks_number].occupied = TRUE;
 	  blocks_number++;
+	  /* Check that areas do not overlap.  */
 	  if (bc_limit < dumped_data + committed)
 	    {
-	      /* Check that areas do not overlap.  */
-	      fprintf(stderr,
-		      "malloc_before_dump: memory exhausted.\nEnlarge dumped_data[]!\n");
+	      fprintf (stderr,
+		       "malloc_before_dump: memory exhausted.\nEnlarge dumped_data[]!\n");
 	      exit (-1);
 	    }
 	}

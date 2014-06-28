@@ -1416,7 +1416,7 @@ search_buffer (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
 
 		      while (boyer_moore_ok)
 			{
-			  if (ASCII_BYTE_P (inverse))
+			  if (ASCII_CHAR_P (inverse))
 			    {
 			      if (this_char_base > 0)
 				boyer_moore_ok = 0;
@@ -1827,7 +1827,7 @@ boyer_moore (EMACS_INT n, unsigned char *base_pat,
 	     matching with CHAR_BASE are to be checked.  */
 	  int ch = -1;
 
-	  if (ASCII_BYTE_P (*ptr) || ! multibyte)
+	  if (ASCII_CHAR_P (*ptr) || ! multibyte)
 	    ch = *ptr;
 	  else if (char_base
 		   && ((pat_end - ptr) == 1 || CHAR_HEAD_P (ptr[1])))
@@ -2596,7 +2596,7 @@ since only regular expressions have distinguished subexpressions.  */)
 	    {
 	      FETCH_STRING_CHAR_ADVANCE_NO_CHECK (c, newtext, pos, pos_byte);
 	      if (!buf_multibyte)
-		c = multibyte_char_to_unibyte (c);
+		c = CHAR_TO_BYTE8 (c);
 	    }
 	  else
 	    {
@@ -2619,7 +2619,7 @@ since only regular expressions have distinguished subexpressions.  */)
 		  FETCH_STRING_CHAR_ADVANCE_NO_CHECK (c, newtext,
 						      pos, pos_byte);
 		  if (!buf_multibyte && !ASCII_CHAR_P (c))
-		    c = multibyte_char_to_unibyte (c);
+		    c = CHAR_TO_BYTE8 (c);
 		}
 	      else
 		{

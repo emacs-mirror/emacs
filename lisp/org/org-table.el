@@ -3182,9 +3182,9 @@ with the prefix ARG."
     (save-excursion
       ;; Insert a temporary formula at right after the table
       (goto-char (org-table-TBLFM-begin))
-      (setq s (set-marker (make-marker) (point)))
+      (setq s (point-marker))
       (insert (concat formula "\n"))
-      (setq e (set-marker (make-marker) (point)))
+      (setq e (point-marker))
       ;; Recalculate the table
       (beginning-of-line 0)		; move to the inserted line
       (skip-chars-backward " \r\n\t")

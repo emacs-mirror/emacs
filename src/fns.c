@@ -50,7 +50,7 @@ static Lisp_Object Qcodeset, Qdays, Qmonths, Qpaper;
 static Lisp_Object Qmd5, Qsha1, Qsha224, Qsha256, Qsha384, Qsha512;
 
 static bool internal_equal (Lisp_Object, Lisp_Object, int, bool, Lisp_Object);
-
+
 DEFUN ("identity", Fidentity, Sidentity, 1, 1, 0,
        doc: /* Return the argument unchanged.  */)
   (Lisp_Object arg)
@@ -232,6 +232,7 @@ string STR1, compare the part between START1 (inclusive) and END1
 \(exclusive).  If START1 is nil, it defaults to 0, the beginning of
 the string; if END1 is nil, it defaults to the length of the string.
 Likewise, in string STR2, compare the part between START2 and END2.
+Like in `substring', negative values are counted from the end.
 
 The strings are compared by the numeric values of their characters.
 For instance, STR1 is "less than" STR2 if its first differing
@@ -244,75 +245,39 @@ If string STR1 is less, the value is a negative number N;
   - 1 - N is the number of characters that match at the beginning.
 If string STR1 is greater, the value is a positive number N;
   N - 1 is the number of characters that match at the beginning.  */)
-  (Lisp_Object str1, Lisp_Object start1, Lisp_Object end1, Lisp_Object str2, Lisp_Object start2, Lisp_Object end2, Lisp_Object ignore_case)
+  (Lisp_Object str1, Lisp_Object start1, Lisp_Object end1, Lisp_Object str2,
+   Lisp_Object start2, Lisp_Object end2, Lisp_Object ignore_case)
 {
-  register ptrdiff_t end1_char, end2_char;
-  register ptrdiff_t i1, i1_byte, i2, i2_byte;
+  ptrdiff_t from1, to1, from2, to2, i1, i1_byte, i2, i2_byte;
 
   CHECK_STRING (str1);
   CHECK_STRING (str2);
-  if (NILP (start1))
-    start1 = make_number (0);
-  if (NILP (start2))
-    start2 = make_number (0);
-  CHECK_NATNUM (start1);
-  CHECK_NATNUM (start2);
-  if (! NILP (end1))
-    CHECK_NATNUM (end1);
-  if (! NILP (end2))
-    CHECK_NATNUM (end2);
 
-  end1_char = SCHARS (str1);
-  if (! NILP (end1) && end1_char > XINT (end1))
-    end1_char = XINT (end1);
-  if (end1_char < XINT (start1))
-    args_out_of_range (str1, start1);
+  validate_subarray (str1, start1, end1, SCHARS (str1), &from1, &to1);
+  validate_subarray (str2, start2, end2, SCHARS (str2), &from2, &to2);
 
-  end2_char = SCHARS (str2);
-  if (! NILP (end2) && end2_char > XINT (end2))
-    end2_char = XINT (end2);
-  if (end2_char < XINT (start2))
-    args_out_of_range (str2, start2);
-
-  i1 = XINT (start1);
-  i2 = XINT (start2);
+  i1 = from1;
+  i2 = from2;
 
   i1_byte = string_char_to_byte (str1, i1);
   i2_byte = string_char_to_byte (str2, i2);
 
-  while (i1 < end1_char && i2 < end2_char)
+  while (i1 < to1 && i2 < to2)
     {
       /* When we find a mismatch, we must compare the
 	 characters, not just the bytes.  */
       int c1, c2;
 
-      if (STRING_MULTIBYTE (str1))
-	FETCH_STRING_CHAR_ADVANCE_NO_CHECK (c1, str1, i1, i1_byte);
-      else
-	{
-	  c1 = SREF (str1, i1++);
-	  MAKE_CHAR_MULTIBYTE (c1);
-	}
-
-      if (STRING_MULTIBYTE (str2))
-	FETCH_STRING_CHAR_ADVANCE_NO_CHECK (c2, str2, i2, i2_byte);
-      else
-	{
-	  c2 = SREF (str2, i2++);
-	  MAKE_CHAR_MULTIBYTE (c2);
-	}
+      FETCH_STRING_CHAR_AS_MULTIBYTE_ADVANCE (c1, str1, i1, i1_byte);
+      FETCH_STRING_CHAR_AS_MULTIBYTE_ADVANCE (c2, str2, i2, i2_byte);
 
       if (c1 == c2)
 	continue;
 
       if (! NILP (ignore_case))
 	{
-	  Lisp_Object tem;
-
-	  tem = Fupcase (make_number (c1));
-	  c1 = XINT (tem);
-	  tem = Fupcase (make_number (c2));
-	  c2 = XINT (tem);
+	  c1 = XINT (Fupcase (make_number (c1)));
+	  c2 = XINT (Fupcase (make_number (c2)));
 	}
 
       if (c1 == c2)
@@ -322,15 +287,15 @@ If string STR1 is greater, the value is a positive number N;
 	 past the character that we are comparing;
 	 hence we don't add or subtract 1 here.  */
       if (c1 < c2)
-	return make_number (- i1 + XINT (start1));
+	return make_number (- i1 + from1);
       else
-	return make_number (i1 - XINT (start1));
+	return make_number (i1 - from1);
     }
 
-  if (i1 < end1_char)
-    return make_number (i1 - XINT (start1) + 1);
-  if (i2 < end2_char)
-    return make_number (- i1 + XINT (start1) - 1);
+  if (i1 < to1)
+    return make_number (i1 - from1 + 1);
+  if (i2 < to2)
+    return make_number (- i1 + from1 - 1);
 
   return Qt;
 }
@@ -1133,9 +1098,9 @@ Elements of ALIST that are not conses are also shared.  */)
    Count negative values backwards from the end.
    Set *IFROM and *ITO to the two indexes used.  */
 
-static void
+void
 validate_subarray (Lisp_Object array, Lisp_Object from, Lisp_Object to,
-		   ptrdiff_t size, EMACS_INT *ifrom, EMACS_INT *ito)
+		   ptrdiff_t size, ptrdiff_t *ifrom, ptrdiff_t *ito)
 {
   EMACS_INT f, t;
 
@@ -1184,8 +1149,7 @@ With one argument, just copy STRING (with properties, if any).  */)
   (Lisp_Object string, Lisp_Object from, Lisp_Object to)
 {
   Lisp_Object res;
-  ptrdiff_t size;
-  EMACS_INT ifrom, ito;
+  ptrdiff_t size, ifrom, ito;
 
   if (STRINGP (string))
     size = SCHARS (string);
@@ -1225,9 +1189,7 @@ If FROM or TO is negative, it counts from the end.
 With one argument, just copy STRING without its properties.  */)
   (Lisp_Object string, register Lisp_Object from, Lisp_Object to)
 {
-  ptrdiff_t size;
-  EMACS_INT from_char, to_char;
-  ptrdiff_t from_byte, to_byte;
+  ptrdiff_t from_char, to_char, from_byte, to_byte, size;
 
   CHECK_STRING (string);
 
@@ -4656,12 +4618,12 @@ returns nil, then (funcall TEST x1 x2) also returns nil.  */)
 /* ALGORITHM is a symbol: md5, sha1, sha224 and so on. */
 
 static Lisp_Object
-secure_hash (Lisp_Object algorithm, Lisp_Object object, Lisp_Object start, Lisp_Object end, Lisp_Object coding_system, Lisp_Object noerror, Lisp_Object binary)
+secure_hash (Lisp_Object algorithm, Lisp_Object object, Lisp_Object start,
+	     Lisp_Object end, Lisp_Object coding_system, Lisp_Object noerror,
+	     Lisp_Object binary)
 {
   int i;
-  ptrdiff_t size;
-  EMACS_INT start_char = 0, end_char = 0;
-  ptrdiff_t start_byte, end_byte;
+  ptrdiff_t size, start_char = 0, start_byte, end_char = 0, end_byte;
   register EMACS_INT b, e;
   register struct buffer *bp;
   EMACS_INT temp;

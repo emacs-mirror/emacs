@@ -2591,7 +2591,8 @@ struct it
   int vpos;
 
   /* Horizontal matrix position reached in move_it_in_display_line.
-     Only set there, not in display_line.  */
+     Only set there, not in display_line, and only when the X
+     coordinate is past first_visible_x.  */
   int hpos;
 
   /* Left fringe bitmap number (enum fringe_bitmap_type).  */

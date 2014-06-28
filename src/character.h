@@ -67,20 +67,15 @@ INLINE_HEADER_BEGIN
 #define BYTE8_TO_CHAR(byte) ((byte) + 0x3FFF00)
 
 #define UNIBYTE_TO_CHAR(byte) \
-  (ASCII_BYTE_P (byte) ? (byte) : BYTE8_TO_CHAR (byte))
+  (ASCII_CHAR_P (byte) ? (byte) : BYTE8_TO_CHAR (byte))
 
 /* Return the raw 8-bit byte for character C.  */
-#define CHAR_TO_BYTE8(c)	\
-  (CHAR_BYTE8_P (c)		\
-   ? (c) - 0x3FFF00		\
-   : multibyte_char_to_unibyte (c))
+#define CHAR_TO_BYTE8(c) (CHAR_BYTE8_P (c) ? (c) - 0x3FFF00 : (c & 0xFF))
 
 /* Return the raw 8-bit byte for character C,
    or -1 if C doesn't correspond to a byte.  */
-#define CHAR_TO_BYTE_SAFE(c)	\
-  (CHAR_BYTE8_P (c)		\
-   ? (c) - 0x3FFF00		\
-   : multibyte_char_to_unibyte_safe (c))
+#define CHAR_TO_BYTE_SAFE(c)						\
+  (ASCII_CHAR_P (c) ? c : (CHAR_BYTE8_P (c) ? (c) - 0x3FFF00 : -1))
 
 /* Nonzero iff BYTE is the 1st byte of a multibyte form of a character
    that corresponds to a raw 8-bit byte.  */
@@ -100,13 +95,6 @@ INLINE_HEADER_BEGIN
 
 /* This is the maximum byte length of multibyte form.  */
 #define MAX_MULTIBYTE_LENGTH 5
-
-/* Return a Lisp character whose character code is C.  Assumes C is
-   a valid character code.  */
-#define make_char(c) make_number (c)
-
-/* Nonzero iff C is an ASCII byte.  */
-#define ASCII_BYTE_P(c) UNSIGNED_CMP (c, <, 0x80)
 
 /* Nonzero iff X is a character.  */
 #define CHARACTERP(x) (NATNUMP (x) && XFASTINT (x) <= MAX_CHAR)
@@ -222,7 +210,7 @@ INLINE_HEADER_BEGIN
 
 /* Nonzero iff BYTE starts a character in a multibyte form.
    This is equivalent to:
-	(ASCII_BYTE_P (byte) || LEADING_CODE_P (byte))  */
+	(ASCII_CHAR_P (byte) || LEADING_CODE_P (byte))  */
 #define CHAR_HEAD_P(byte) (((byte) & 0xC0) != 0x80)
 
 /* How many bytes a character that starts with BYTE occupies in a

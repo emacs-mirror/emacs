@@ -1,3 +1,193 @@
+2014-06-27  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in: Replace BOOTSTRAPEMACS sleight-of-hand
+	with an order-only dependence on bootstrap-emacs.  (Bug#2151)
+	(.el.elc): Replace suffix rule with pattern rule.
+	(%.elc): New pattern rule, with order-only prerequisite.
+	($(lisp)): No more need to depend on BOOTSTRAPEMACS.
+	($(lispsource)/loaddefs.el): Use an order-only prerequisite
+	in place of BOOTSTRAPEMACS.
+
+2014-06-26  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* fns.c (Fcompare_strings): Use FETCH_STRING_CHAR_AS_MULTIBYTE_ADVANCE.
+
+2014-06-25  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Consistently use validate_subarray to verify substring.
+	* fns.c (validate_substring): Not static any more.  Adjust to
+	use ptrdiff_t, not EMACS_INT, because string and vector limits
+	can't exceed ptrdiff_t even if EMACS_INT is wider.
+	(Fcompare_strings, Fsubstring, Fsubstring_no_properties)
+	(secure_hash): Adjust user.
+	* lisp.h (validate_subarray): Add prototype.
+	* coding.c (Fundecodable_char_position):
+	* composite.c (Fcomposition_get_gstring, Fcompose_string_internal):
+	Use validate_subarray.  Adjust comment to mention substring.
+
+2014-06-25  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Do not allow out-of-range character position in Fcompare_strings.
+	* fns.c (validate_subarray): Add prototype.
+	(Fcompare_substring): Use validate_subarray to check ranges.
+	Adjust comment to mention that the semantics was changed.  Also see
+	http://lists.gnu.org/archive/html/emacs-devel/2014-06/msg00447.html.
+
+2014-06-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Be more consistent about the 'Qfoo' naming convention.
+	* image.c (Fimagemagick_types):
+	* lisp.h (lisp_h_CHECK_TYPE, CHECK_TYPE, CHECK_ARRAY):
+	* process.c (Fmake_network_process):
+	Rename C local identifier 'Qfoo to avoid giving the false
+	impression that it stands for the symbol 'foo'.
+
+2014-06-23  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Simplify and cleanup character conversion stuff.
+	* lisp.h (multibyte_char_to_unibyte, multibyte_char_to_unibyte_safe):
+	Remove prototypes.
+	* character.c (multibyte_char_to_unibyte)
+	(multibyte_char_to_unibyte_safe): Remove; no longer used.
+	* character.h (make_char): Remove; unused.
+	(CHAR_TO_BYTE8, CHAR_TO_BYTE_SAFE): Simplify.
+	(ASCII_BYTE_P): Remove; ASCII_CHAR_P does the same thing.
+	* buffer.c, charset.c, charset.h, cmds.c, coding.c, editfns.c:
+	* fileio.c, indent.c, insdel.c, keyboard.c, lread.c, print.c:
+	* search.c, term.c, xdisp.c, xterm.c: Related users changed.
+
+2014-06-22  Mario Lang  <mlang@delysid.org>
+
+	* w32fns.c (Fw32_shell_execute): The the -> the.
+
+2014-06-22  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xmenu.c (mouse_position_for_popup):
+	* xselect.c (mouse_position_for_drop): Do not duplicate ...
+	* xfns.c (x_relative_mouse_position): ... and prefer this function.
+	* menu.c (Fx_popup_menu):
+	* xselect.c (x_handle_dnd_message): Adjust users.
+	* menu.h (mouse_position_for_popup): Remove prototype.
+	* xterm.h (x_relative_mouse_position): Add prototype.
+	* xterm.c (x_find_topmost_parent): Break from the loop and do not
+	call XFree if XQueryTree returns zero.
+
+2014-06-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* indent.c (Fvertical_motion): Doc fix.
+	Move to the goal column, if any, with a single call to
+	move_it_in_display_line, not in two calls.  Doing this with two
+	calls causes move_it_in_display_line apply the line-prefix
+	handling twice instead of just once.  (Bug#17823)
+
+2014-06-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port to OS X ACLs (Bug#17810).
+	* fileio.c (Ffile_acl): Port to OS X, where acl_get_file (...,
+	ACL_TYPE_ACCESS) doesn't work.
+
+2014-06-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c (read_key_sequence): Don't invoke Vprefix_help_command
+	before checking key-translation-map (bug#17659).
+
+2014-06-21  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* font.c (font_make_object): Avoid dangling pointer which may
+	crash GC (Bug#17771).
+
+2014-06-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* image.c [5 < GIFLIB_MAJOR + (1 <= GIFLIB_MINOR)]: Declare the
+	prototype of DGifCloseFile as appropriate for older and newer
+	versions of giflib.
+	(gif_close): New function, encapsulates the differences in the
+	calling sequence of DGifCloseFile before v5.1.0 and after it.
+	(gif_load): Call gif_close instead of DGifCloseFile.  Divulge the
+	error string where appropriate.  (Bug#17790)
+
+	* xdisp.c (Fmove_point_visually): Instead of testing for keyboard
+	macro execution, make sure point didn't move since last complete
+	redisplay, as the condition for using the glyph matrix
+	information.  (Bug#17777)
+
+2014-06-19  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Minor cleanup of fonset code.
+	* fontset.c (FONTSET_ID, set_fontset_id, FONTSET_NAME)
+	(set_fontset_name, FONTSET_ASCII, set_fontset_ascii)
+	(FONTSET_BASE, set_fontset_base, FONTSET_FRAME)
+	(set_fontset_frame, FONTSET_NOFONT_FACE, set_fontset_nofont_face)
+	(FONTSET_DEFAULT, set_fontset_default, FONTSET_FALLBACK)
+	(set_fontset_fallback): Reorder extra slots and avoid unused slots.
+	(free_realized_fontset): Remove because a no-op since 2008.
+	(free_face_fontset): Adjust user.
+	(syms_of_fontset): Shrink fontset by one extra slot.
+
+2014-06-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Omit redundant extern decls.
+	Most of this patch is from Dmitry Antipov, in:
+	http://lists.gnu.org/archive/html/emacs-devel/2014-06/msg00263.html
+	* commands.h (update_mode_lines):
+	* frame.h (Qbackground_color, Qforeground_color)
+	(x_set_menu_bar_lines):
+	* ftfont.c (ftfont_font_format):
+	* intervals.h (Qkeymap, Qfont):
+	* keyboard.c (timer_check, safe_run_hooks, Qregion_extract_function):
+	* lisp.h (Ffboundp, Qnil, Qt, Qlambda, Qintegerp, Qwholenump)
+	(Qsymbolp, Qlisp, Qconsp, Qstringp, Qarrayp, Qbufferp, Qmarkerp)
+	(Qvectorp, Qbuffer_or_string_p, Qchar_table_p, Qvector_or_char_table_p)
+	(Qfloatp, Qnumberp, Qfont_spec, Qfont_entity, Qfont_object)
+	(Fbyteorder, wrong_type_argument, Fmax_char, syms_of_composite)
+	(Fidentity, extract_float, init_display, syms_of_display, Qdisplay):
+	(Qimage, Qbox, redisplay_preserve_echo_area, char_table_ref)
+	(char_table_set, char_table_translate, Qautoload, Qbottom, Qtop)
+	(Qvisible, Qfont, Qfront_sticky, Qrear_nonsticky, init_sigio)
+	(Qtool_bar, Qheader_line):
+	* macros.c (Fexecute_kbd_macro):
+	* xdisp.c (Ftool_bar_height, Ftool_bar_height):
+	* xterm.c (x_delete_terminal, XSetIMValues):
+	* xterm.h (x_set_window_size, x_query_color, x_get_focus_frame)
+	(x_implicitly_set_name, popup_activated)
+	(widget_store_internal_border):
+	Remove redundant decls.
+	* frame.c [USE_X_TOOLKIT]: Include widget.h.
+	* keyboard.c (Fexit_recursive_edit, Fabort_recursive_edit):
+	Remove _Noreturn, as make-docfile now does that for us.
+	* lisp.h (DEFUN): Don't declare fnname here; rely on make-docfile.
+	(Qregion_extract_function): New decl.
+	* window.c, xfns.c: Include menu.h.
+
+2014-06-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* callint.c (Fcall_interactively): Fix up last change (bug#17701).
+
+2014-06-17  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* fileio.c (Fread_file_name): Do not pass redundant args and ...
+	* callint.c (read_file_name): ... convert to static here.
+	* lisp.h (Fread_file_name): Do not EXFUN it.
+	(STRING_COPYIN): Remove; unused.
+	* composite.c (CHAR_COMPOSABLE_P): Replace unsafe macro with ...
+	(char_composable_p): ... static function.  All users changed.
+	* eval.c (toplevel): Remove redundant #include directives.
+	* xterm.c (x_initialize): Add static to match prototype.
+	* ccl.c (Fccl_execute_on_string):
+	* font.c (fon_intern_prop): Use make_specified_string.
+
+2014-06-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* Makefile.in (ns-app): Fix typo that broke build on OS X.
+	Reported by David Caldwell in:
+	http://lists.gnu.org/archive/html/emacs-devel/2014-06/msg00251.html
+
+2014-06-16  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Do not ask for XRender extension each time XFT font is opened.
+	* xftfont.c (xftfont_open): Move call to XRenderQueryExtension ...
+	* xterm.c (x_term_init) [HAVE_XFT]: ... to here.  Adjust comment.
+
 2014-06-15  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in: Use `make -C' rather than `cd && make' throughout.

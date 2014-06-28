@@ -322,16 +322,6 @@ xftfont_open (struct frame *f, Lisp_Object entity, int pixel_size)
 
 
   block_input ();
-  /* Make sure that the Xrender extension is added before the Xft one.
-     Otherwise, the close-display hook set by Xft is called after the
-     one for Xrender, and the former tries to re-add the latter.  This
-     results in inconsistency of internal states and leads to X
-     protocol error when one reconnects to the same X server.
-     (Bug#1696)  */
-  {
-    int event_base, error_base;
-    XRenderQueryExtension (display, &event_base, &error_base);
-  }
 
   /* Substitute in values from X resources and XftDefaultSet.  */
   XftDefaultSubstitute (display, FRAME_X_SCREEN_NUMBER (f), pat);

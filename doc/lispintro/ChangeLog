@@ -1,3 +1,15 @@
+2014-06-23  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (%.texi): Disable implicit rules.
+	(mkinfodir): Remove.
+	(.dvi.ps): Replace with explicit rule.
+	(${buildinfodir}): New rule.
+	(${buildinfodir}/eintr.info): Use order-only prereq for output dir.
+	Use $<.
+	(emacs-lisp-intro.dvi, emacs-lisp-intro.pdf, emacs-lisp-intro.html):
+	Use $<.
+	(emacs-lisp-intro.ps): New rule.
+
 2014-06-15  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (bootstrap-clean): New.

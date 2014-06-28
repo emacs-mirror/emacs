@@ -831,3 +831,7 @@ This macro is used to test if macroexpansion in `should' works."
 (provide 'ert-tests)
 
 ;;; ert-tests.el ends here
+
+;; Local Variables:
+;; no-byte-compile: t
+;; End:

@@ -483,7 +483,7 @@ FILE is the file where FUNCTION was probably defined."
 	 (beg (if (and (or (byte-code-function-p def)
 			   (keymapp def)
 			   (memq (car-safe def) '(macro lambda closure)))
-		       file-name
+		       (stringp file-name)
 		       (help-fns--autoloaded-p function file-name))
 		  (if (commandp def)
 		      "an interactive autoloaded "

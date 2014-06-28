@@ -2706,6 +2706,15 @@ def foo(a, b, c):
         (equal (symbol-value (car ccons)) (cdr ccons)))))
     (kill-buffer buffer)))
 
+(ert-deftest python-util-strip-string-1 ()
+  (should (string= (python-util-strip-string "\t\r\n    str") "str"))
+  (should (string= (python-util-strip-string "str \n\r") "str"))
+  (should (string= (python-util-strip-string "\t\r\n    str \n\r ") "str"))
+  (should
+   (string= (python-util-strip-string "\n str \nin \tg \n\r") "str \nin \tg"))
+  (should (string= (python-util-strip-string "\n \t \n\r ") ""))
+  (should (string= (python-util-strip-string "") "")))
+
 
 ;;; Electricity
 

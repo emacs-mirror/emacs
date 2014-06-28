@@ -8269,7 +8269,7 @@ next_element_from_buffer (struct it *it)
 
       /* Get the next character, maybe multibyte.  */
       p = BYTE_POS_ADDR (IT_BYTEPOS (*it));
-      if (it->multibyte_p && !ASCII_BYTE_P (*p))
+      if (it->multibyte_p && !ASCII_CHAR_P (*p))
 	it->c = STRING_CHAR_AND_LENGTH (p, it->len);
       else
 	it->c = *p, it->len = 1;
@@ -9932,9 +9932,7 @@ message_dolog (const char *m, ptrdiff_t nbytes, bool nlflag, bool multibyte)
 	  for (i = 0; i < nbytes; i += char_bytes)
 	    {
 	      c = string_char_and_length (msg + i, &char_bytes);
-	      work[0] = (ASCII_CHAR_P (c)
-			 ? c
-			 : multibyte_char_to_unibyte (c));
+	      work[0] = CHAR_TO_BYTE8 (c);
 	      insert_1_both (work, 1, 1, 1, 0, 0);
 	    }
 	}
@@ -12278,11 +12276,6 @@ tool_bar_height (struct frame *f, int *n_rows, bool pixelwise)
 }
 
 #endif /* !USE_GTK && !HAVE_NS */
-
-#if defined USE_GTK || defined HAVE_NS
-EXFUN (Ftool_bar_height, 2) ATTRIBUTE_CONST;
-EXFUN (Ftool_bar_lines_needed, 1) ATTRIBUTE_CONST;
-#endif
 
 DEFUN ("tool-bar-height", Ftool_bar_height, Stool_bar_height,
        0, 2, 0,
@@ -15795,7 +15788,7 @@ set_vertical_scroll_bar (struct window *w)
       redisplay itself, when it decides that the previous window start
       point is fine and should be kept.  Search for "goto force_start"
       below to see the details.  Like the values of window-start
-      specified outside of redisply, these internally deduced values
+      specified outside of redisplay, these internally-deduced values
       are tested for feasibility, and ignored if found to be
       unfeasible.
 
@@ -20746,12 +20739,15 @@ Value is the new character position of point.  */)
      recorded in the glyphs, at least as long as the goal is on the
      screen.  */
   if (w->window_end_valid
-      && NILP (Vexecuting_kbd_macro)
       && !windows_or_buffers_changed
       && b
       && !b->clip_changed
       && !b->prevent_redisplay_optimizations_p
       && !window_outdated (w)
+      /* We rely below on the cursor coordinates to be up to date, but
+	 we cannot trust them if some command moved point since the
+	 last complete redisplay.  */
+      && w->last_point == BUF_PT (b)
       && w->cursor.vpos >= 0
       && w->cursor.vpos < w->current_matrix->nrows
       && (row = MATRIX_ROW (w->current_matrix, w->cursor.vpos))->enabled_p)
@@ -25783,7 +25779,7 @@ produce_glyphless_glyph (struct it *it, int for_no_font, Lisp_Object acronym)
 	  sprintf (buf, "%0*X", it->c < 0x10000 ? 4 : 6, it->c);
 	  str = buf;
 	}
-      for (len = 0; str[len] && ASCII_BYTE_P (str[len]) && len < 6; len++)
+      for (len = 0; str[len] && ASCII_CHAR_P (str[len]) && len < 6; len++)
 	code[len] = font->driver->encode_char (font, str[len]);
       upper_len = (len + 1) / 2;
       font->driver->text_extents (font, code, upper_len,

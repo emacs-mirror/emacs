@@ -2373,43 +2373,6 @@ x_property_data_to_lisp (struct frame *f, const unsigned char *data,
 				      data, size * format_bytes, type, format);
 }
 
-/* Get the mouse position in frame relative coordinates.  */
-
-static void
-mouse_position_for_drop (struct frame *f, int *x, int *y)
-{
-  Window root, dummy_window;
-  int dummy;
-
-  block_input ();
-
-  XQueryPointer (FRAME_X_DISPLAY (f),
-                 DefaultRootWindow (FRAME_X_DISPLAY (f)),
-
-                 /* The root window which contains the pointer.  */
-                 &root,
-
-                 /* Window pointer is on, not used  */
-                 &dummy_window,
-
-                 /* The position on that root window.  */
-                 x, y,
-
-                 /* x/y in dummy_window coordinates, not used.  */
-                 &dummy, &dummy,
-
-                 /* Modifier keys and pointer buttons, about which
-                    we don't care.  */
-                 (unsigned int *) &dummy);
-
-
-  /* Absolute to relative.  */
-  *x -= f->left_pos + FRAME_OUTER_TO_INNER_DIFF_X (f);
-  *y -= f->top_pos + FRAME_OUTER_TO_INNER_DIFF_Y (f);
-
-  unblock_input ();
-}
-
 DEFUN ("x-get-atom-name", Fx_get_atom_name,
        Sx_get_atom_name, 1, 2, 0,
        doc: /* Return the X atom name for VALUE as a string.
@@ -2529,7 +2492,7 @@ x_handle_dnd_message (struct frame *f, const XClientMessageEvent *event,
 					 event->format,
 					 size));
 
-  mouse_position_for_drop (f, &x, &y);
+  x_relative_mouse_position (f, &x, &y);
   bufp->kind = DRAG_N_DROP_EVENT;
   bufp->frame_or_window = frame;
   bufp->timestamp = CurrentTime;

@@ -66,40 +66,39 @@ HTML_TARGETS = emacs-lisp-intro.html
 PDF_TARGETS = emacs-lisp-intro.pdf
 PS_TARGETS = emacs-lisp-intro.ps
 
-mkinfodir = @${MKDIR_P} ${buildinfodir}
-
 srcs = ${srcdir}/emacs-lisp-intro.texi ${srcdir}/doclicense.texi \
   ${emacsdir}/emacsver.texi
 
+## Disable implicit rules.
+%.texi: ;
+
 .PHONY: info dvi html pdf ps
 
-.SUFFIXES: .ps .dvi
-
-.dvi.ps:
-	$(DVIPS) -o $@ $<
-
 info: ${buildinfodir}/eintr.info
-
 dvi: $(DVI_TARGETS)
 html: $(HTML_TARGETS)
 pdf: $(PDF_TARGETS)
 ps: $(PS_TARGETS)
 
+${buildinfodir}:
+	${MKDIR_P} $@
+
 # The file name eintr must fit within 5 characters, to allow for
 # -NN extensions to fit into DOS 8+3 limits without clashing.
-# Note: "<" is not portable in ordinary make rules.
-${buildinfodir}/eintr.info: ${srcs}
-	$(mkinfodir)
-	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/emacs-lisp-intro.texi
+${buildinfodir}/eintr.info: ${srcs} | ${buildinfodir}
+	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ $<
 
 emacs-lisp-intro.dvi: ${srcs}
-	$(ENVADD) $(TEXI2DVI) ${srcdir}/emacs-lisp-intro.texi
+	$(ENVADD) $(TEXI2DVI) $<
 
 emacs-lisp-intro.pdf: ${srcs}
-	$(ENVADD) $(TEXI2PDF) ${srcdir}/emacs-lisp-intro.texi
+	$(ENVADD) $(TEXI2PDF) $<
 
 emacs-lisp-intro.html: ${srcs}
-	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/emacs-lisp-intro.texi
+	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ $<
+
+emacs-lisp-intro.ps: emacs-lisp-intro.dvi
+	$(DVIPS) -o $@ $<
 
 .PHONY: mostlyclean clean distclean bootstrap-clean maintainer-clean infoclean
 

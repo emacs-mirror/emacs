@@ -1019,8 +1019,9 @@ number of digits displayed (`calculator-number-digits')."
            (s (calculator-remove-zeros (format s num)))
            (s (if (or (not group-p) (string-match-p "[eE]" s)) s
                   (replace-regexp-in-string
-                   "\\([0-9]+\\)\\(?:\\.\\|$\\)"
-                   (lambda (s) (calculator-groupize-number s 3 ","))
+                   "\\([0-9]+\\)\\(?:\\..*\\|$\\)"
+                   (lambda (_) (calculator-groupize-number
+                                (match-string 1 s) 3 ","))
                    s nil nil 1))))
       s)))
 
@@ -1197,12 +1198,13 @@ arguments."
     (let ((TX (and X (calculator-truncate X)))
           (TY (and Y (calculator-truncate Y)))
           (DX (if (and X calculator-deg) (/ (* X pi) 180) X))
-          (L  calculator-saved-list))
-      (cl-flet ((F (&optional x y) (calculator-funcall f x y))
-                (D (x) (if calculator-deg (/ (* x 180) float-pi) x)))
-        (eval `(let ((X ,X) (Y ,Y) (DX ,DX) (TX ,TX) (TY ,TY) (L ',L))
-                 ,f)
-              t)))))
+          (L  calculator-saved-list)
+          (fF `(calculator-funcall ',f x y))
+          (fD `(if calculator-deg (/ (* x 180) float-pi) x)))
+      (eval `(cl-flet ((F (&optional x y) ,fF) (D (x) ,fD))
+               (let ((X ,X) (Y ,Y) (DX ,DX) (TX ,TX) (TY ,TY) (L ',L))
+                 ,f))
+            t))))
 
 ;;;---------------------------------------------------------------------
 ;;; Input interaction
@@ -1213,12 +1215,13 @@ Use KEYS if given, otherwise use `this-command-keys'."
   (let ((inp (or keys (this-command-keys))))
     (if (or (stringp inp) (not (arrayp inp)))
       inp
-      ;; translates kp-x to x and [tries to] create a string to lookup
+      ;; Translates kp-x to x and [tries to] create a string to lookup
       ;; operators; assume all symbols are translatable via
-      ;; `function-key-map' or with an 'ascii-character property
+      ;; `function-key-map'.  This is needed because we have key
+      ;; bindings for kp-* (which might be the wrong thing to do) so
+      ;; they don't get translated in `this-command-keys'.
       (concat (mapcar (lambda (k)
-                        (if (numberp k) k (or (get k 'ascii-character)
-                                              (error "??bad key??"))))
+                        (if (numberp k) k (error "??bad key?? (%S)" k)))
                       (or (lookup-key function-key-map inp) inp))))))
 
 (defun calculator-clear-fragile (&optional op)

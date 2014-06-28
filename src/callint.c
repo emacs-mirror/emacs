@@ -233,6 +233,26 @@ fix_command (Lisp_Object input, Lisp_Object values)
     }
 }
 
+/* Helper function to call `read-file-name' from C.  */
+
+static Lisp_Object
+read_file_name (Lisp_Object default_filename, Lisp_Object mustmatch,
+		Lisp_Object initial, Lisp_Object predicate)
+{
+  struct gcpro gcpro1;
+  Lisp_Object args[7];
+
+  GCPRO1 (default_filename);
+  args[0] = intern ("read-file-name");
+  args[1] = callint_message;
+  args[2] = Qnil;
+  args[3] = default_filename;
+  args[4] = mustmatch;
+  args[5] = initial;
+  args[6] = predicate;
+  RETURN_UNGCPRO (Ffuncall (7, args));
+}
+
 /* BEWARE: Calling this directly from C would defeat the purpose!  */
 DEFUN ("funcall-interactively", Ffuncall_interactively, Sfuncall_interactively,
        1, MANY, 0, doc: /* Like `funcall' but marks the call as interactive.
@@ -515,7 +535,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
     {
       visargs[1] = make_string (tem + 1, strcspn (tem + 1, "\n"));
       if (strchr (SSDATA (visargs[1]), '%'))
-	callint_message = Fformat (i, visargs);
+	callint_message = Fformat (i - 1, visargs + 1);
       else
 	callint_message = visargs[1];
 
@@ -574,25 +594,21 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	  break;
 
 	case 'D':		/* Directory name.  */
-	  args[i] = Fread_file_name (callint_message, Qnil,
-				     BVAR (current_buffer, directory), Qlambda, Qnil,
-				     Qfile_directory_p);
+	  args[i] = read_file_name (BVAR (current_buffer, directory), Qlambda, Qnil,
+				    Qfile_directory_p);
 	  break;
 
 	case 'f':		/* Existing file name.  */
-	  args[i] = Fread_file_name (callint_message,
-				     Qnil, Qnil, Qlambda, Qnil, Qnil);
+	  args[i] = read_file_name (Qnil, Qlambda, Qnil, Qnil);
 	  break;
 
 	case 'F':		/* Possibly nonexistent file name.  */
-	  args[i] = Fread_file_name (callint_message,
-				     Qnil, Qnil, Qnil, Qnil, Qnil);
+	  args[i] = read_file_name (Qnil, Qnil, Qnil, Qnil);
 	  break;
 
 	case 'G':		/* Possibly nonexistent file name,
 				   default to directory alone.  */
-	  args[i] = Fread_file_name (callint_message,
-				     Qnil, Qnil, Qnil, empty_unibyte_string, Qnil);
+	  args[i] = read_file_name (Qnil, Qnil, empty_unibyte_string, Qnil);
 	  break;
 
 	case 'i':		/* Ignore an argument -- Does not do I/O.  */

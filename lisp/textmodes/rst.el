@@ -3121,7 +3121,7 @@ newlines as mandated by `comment-line-break-function'."
 
 (defun rst-comment-region (beg end &optional arg)
   "Comment or uncomment the current region.
-Region is from from BEG to END.  Uncomment if ARG."
+Region is from BEG to END.  Uncomment if ARG."
   (save-excursion
     (if (consp arg)
 	(rst-uncomment-region beg end arg)

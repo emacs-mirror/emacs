@@ -174,11 +174,8 @@ For further details, see info node `(emacs)Saving Emacs Sessions'."
   :global t
   :group 'desktop
   (if desktop-save-mode
-      (when (and (integerp desktop-auto-save-timeout)
-		 (> desktop-auto-save-timeout 0))
-	(add-hook 'window-configuration-change-hook 'desktop-auto-save-set-timer))
-    (remove-hook 'window-configuration-change-hook 'desktop-auto-save-set-timer)
-    (desktop-auto-save-cancel-timer)))
+      (desktop-auto-save-enable)
+    (desktop-auto-save-disable)))
 
 (defun desktop-save-mode-off ()
   "Disable `desktop-save-mode'.  Provided for use in hooks."
@@ -219,9 +216,8 @@ Zero or nil means disable auto-saving due to idleness."
          (set-default symbol value)
          (ignore-errors
 	   (if (and (integerp value) (> value 0))
-	       (add-hook 'window-configuration-change-hook 'desktop-auto-save-set-timer)
-	     (remove-hook 'window-configuration-change-hook 'desktop-auto-save-set-timer)
-	     (desktop-auto-save-cancel-timer))))
+	       (desktop-auto-save-enable value)
+	     (desktop-auto-save-disable))))
   :group 'desktop
   :version "24.4")
 
@@ -1132,6 +1128,10 @@ Using it may cause conflicts.  Use it anyway? " owner)))))
 		(unless desktop-dirname
 		  (message "Desktop file in use; not loaded.")))
 	    (desktop-lazy-abort)
+	    ;; Temporarily disable the autosave that will leave it
+	    ;; disabled when loading the desktop fails with errors,
+	    ;; thus not overwriting the desktop with broken contents.
+	    (desktop-auto-save-disable)
 	    ;; Evaluate desktop buffer and remember when it was modified.
 	    (load (desktop-full-file-name) t t t)
 	    (setq desktop-file-modtime (nth 5 (file-attributes (desktop-full-file-name))))
@@ -1184,6 +1184,7 @@ Using it may cause conflicts.  Use it anyway? " owner)))))
 				  (set-window-prev-buffers window nil)
 				  (set-window-next-buffers window nil))))
  	    (setq desktop-saved-frameset nil)
+	    (desktop-auto-save-enable)
 	    t))
       ;; No desktop file found.
       (desktop-clear)
@@ -1229,6 +1230,15 @@ directory DIRNAME."
 ;; ----------------------------------------------------------------------------
 ;; Auto-Saving.
 (defvar desktop-auto-save-timer nil)
+
+(defun desktop-auto-save-enable (&optional timeout)
+  (when (and (integerp (or timeout desktop-auto-save-timeout))
+	     (> (or timeout desktop-auto-save-timeout) 0))
+    (add-hook 'window-configuration-change-hook 'desktop-auto-save-set-timer)))
+
+(defun desktop-auto-save-disable ()
+  (remove-hook 'window-configuration-change-hook 'desktop-auto-save-set-timer)
+  (desktop-auto-save-cancel-timer))
 
 (defun desktop-auto-save ()
   "Save the desktop periodically.

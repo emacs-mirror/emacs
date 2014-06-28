@@ -1200,7 +1200,7 @@ SPECIAL FEATURE: char argument can be used to specify shift amount(1-9)."
     (let ((aelt (assq char vi-mark-alist)))
       (if aelt
 	  (move-marker (cdr aelt) (point)) ; fixed 6/12/86
-	(setq aelt (cons char (copy-marker (point))))
+	(setq aelt (cons char (point-marker)))
 	(setq vi-mark-alist (cons aelt vi-mark-alist))))))
 
 (defun vi-find-matching-paren ()

@@ -66,39 +66,32 @@ bovine: ${BOVINE}
 
 wisent: ${WISENT}
 
-
-${bovinedir}/c-by.el: ${srcdir}/c.by
+## c-by.el, make-by.el.
+${bovinedir}/%-by.el: ${srcdir}/%.by
 	[ ! -f "$@" ] || chmod +w "$@"
-	${make_bovine} -o "$@" ${srcdir}/c.by
-
-${bovinedir}/make-by.el: ${srcdir}/make.by
-	[ ! -f "$@" ] || chmod +w "$@"
-	${make_bovine} -o "$@" ${srcdir}/make.by
+	${make_bovine} -o "$@" $<
 
 ${bovinedir}/scm-by.el: ${srcdir}/scheme.by
 	[ ! -f "$@" ] || chmod +w "$@"
-	${make_bovine} -o "$@" ${srcdir}/scheme.by
+	${make_bovine} -o "$@" $<
 
-
-${cedetdir}/semantic/grammar-wy.el: ${srcdir}/grammar.wy
+## grammar-wy.el
+${cedetdir}/semantic/%-wy.el: ${srcdir}/%.wy
 	[ ! -f "$@" ] || chmod +w "$@"
-	${make_wisent} -o "$@" ${srcdir}/grammar.wy
+	${make_wisent} -o "$@" $<
+
+## js-wy.el, python-wy.el
+${wisentdir}/%-wy.el: ${srcdir}/%.wy
+	[ ! -f "$@" ] || chmod +w "$@"
+	${make_wisent} -o "$@" $<
 
 ${wisentdir}/javat-wy.el: ${srcdir}/java-tags.wy
 	[ ! -f "$@" ] || chmod +w "$@"
-	${make_wisent} -o "$@" ${srcdir}/java-tags.wy
-
-${wisentdir}/js-wy.el: ${srcdir}/js.wy
-	[ ! -f "$@" ] || chmod +w "$@"
-	${make_wisent} -o "$@" ${srcdir}/js.wy
-
-${wisentdir}/python-wy.el: ${srcdir}/python.wy
-	[ ! -f "$@" ] || chmod +w "$@"
-	${make_wisent} -o "$@" ${srcdir}/python.wy
+	${make_wisent} -o "$@" $<
 
 ${cedetdir}/srecode/srt-wy.el: ${srcdir}/srecode-template.wy
 	[ ! -f "$@" ] || chmod +w "$@"
-	${make_wisent} -o "$@" ${srcdir}/srecode-template.wy
+	${make_wisent} -o "$@" $<
 
 
 .PHONY: distclean bootstrap-clean maintainer-clean extraclean

@@ -35,24 +35,23 @@ emacs = "${EMACS}" -batch --no-site-file --no-site-lisp
 
 all: ${top_srcdir}/src/macuvs.h ${DSTDIR}/charprop.el
 
-${top_srcdir}/src/macuvs.h: ${srcdir}/uvs.el ${srcdir}/IVD_Sequences.txt
-	${EMACS} -batch -l "${srcdir}/uvs.el" \
+## Specify .elc as an order-only prereq so as to not needlessly rebuild
+## target just because the .elc is missing.
+## Same with charprop.el below.
+${top_srcdir}/src/macuvs.h: ${srcdir}/uvs.el ${srcdir}/IVD_Sequences.txt | \
+  ${srcdir}/uvs.elc
+	${emacs} -L ${srcdir} -l uvs \
 	  --eval '(uvs-print-table-ivd "${srcdir}/IVD_Sequences.txt" "Adobe-Japan1")' \
 	  > $@
 
-.el.elc:
+%.elc: %.el
 	${emacs} -f batch-byte-compile $<
 
 unidata.txt: ${srcdir}/UnicodeData.txt
-	sed -e 's/\([^;]*\);\(.*\)/(#x\1 "\2")/' -e 's/;/" "/g' < ${srcdir}/UnicodeData.txt > $@
+	sed -e 's/\([^;]*\);\(.*\)/(#x\1 "\2")/' -e 's/;/" "/g' < $< > $@
 
-compile: ${srcdir}/unidata-gen.elc
-
-## Depend on .el rather than .elc so as not to needlessly rebuild
-## uni-*.el files just because .elc is missing.
-## Same for UnicodeData.txt v unidata.txt.
-${DSTDIR}/charprop.el: ${srcdir}/unidata-gen.el ${srcdir}/UnicodeData.txt
-	${MAKE} compile unidata.txt EMACS="${EMACS}"
+${DSTDIR}/charprop.el: ${srcdir}/unidata-gen.el ${srcdir}/UnicodeData.txt | \
+  ${srcdir}/unidata-gen.elc unidata.txt
 	-if [ -f "$@" ]; then \
 	  cd ${DSTDIR} && chmod +w charprop.el `sed -n 's/^;; FILE: //p' < charprop.el`; \
 	fi

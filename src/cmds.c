@@ -359,9 +359,7 @@ internal_self_insert (int c, EMACS_INT n)
     }
   else
     {
-      str[0] = (SINGLE_BYTE_CHAR_P (c)
-		? c
-		: multibyte_char_to_unibyte (c));
+      str[0] = SINGLE_BYTE_CHAR_P (c) ? c : CHAR_TO_BYTE8 (c);
       len = 1;
     }
   if (!NILP (overwrite)

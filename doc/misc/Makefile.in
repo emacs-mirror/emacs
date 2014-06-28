@@ -107,6 +107,9 @@ gfdl = ${srcdir}/doclicense.texi
 ## Prevent implicit rule triggering for foo.info.
 .SUFFIXES:
 
+## Disable implicit rules.
+%.texi: ;
+
 # Default.
 info: $(INFO_TARGETS)
 

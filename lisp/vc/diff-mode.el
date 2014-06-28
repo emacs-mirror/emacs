@@ -302,14 +302,9 @@ well."
 (defvar diff-added-face 'diff-added)
 
 (defface diff-changed
-  ;; We normally apply a `shadow'-based face on the `diff-context'
-  ;; face, and keep `diff-changed' the default.
-  '((((class color grayscale) (min-colors 88)))
-    ;; If the terminal lacks sufficient colors for shadowing,
-    ;; highlight changed lines explicitly.
-    (((class color))
-     :foreground "yellow"))
+  '((t nil))
   "`diff-mode' face used to highlight changed lines."
+  :version "24.5"
   :group 'diff-mode)
 (define-obsolete-face-alias 'diff-changed-face 'diff-changed "22.1")
 (defvar diff-changed-face 'diff-changed)
@@ -343,8 +338,12 @@ well."
 (defvar diff-function-face 'diff-function)
 
 (defface diff-context
-  '((((class color grayscale) (min-colors 88)) :inherit shadow))
+  '((((class color grayscale) (min-colors 88) (background light))
+     :foreground "#333333")
+    (((class color grayscale) (min-colors 88) (background dark))
+     :foreground "#dddddd"))
   "`diff-mode' face used to highlight context and other side-information."
+  :version "24.5"
   :group 'diff-mode)
 (define-obsolete-face-alias 'diff-context-face 'diff-context "22.1")
 (defvar diff-context-face 'diff-context)
@@ -1916,7 +1915,7 @@ For use in `add-log-current-defun-function'."
 
 ;;; Fine change highlighting.
 
-(defface diff-refine-change
+(defface diff-refine-changed
   '((((class color) (min-colors 88) (background light))
      :background "#ffff55")
     (((class color) (min-colors 88) (background dark))
@@ -1924,6 +1923,7 @@ For use in `add-log-current-defun-function'."
     (t :inverse-video t))
   "Face used for char-based changes shown by `diff-refine-hunk'."
   :group 'diff-mode)
+(define-obsolete-face-alias 'diff-refine-change 'diff-refine-changed "24.5")
 
 (defface diff-refine-removed
   '((default

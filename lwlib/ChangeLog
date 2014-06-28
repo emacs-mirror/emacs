@@ -1,3 +1,11 @@
+2014-06-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Omit redundant extern decls.
+	From Dmitry Antipov.
+	* lwlib-Xm.c (lw_motif_widget_p, xm_update_one_value)
+	(xm_create_dialog, xm_destroy_instance, xm_popup_menu)
+	(xm_set_keyboard_focus, xm_set_main_areas): Remove decls.
+
 2014-06-15  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in ($(globals_h)): Use `make -C' rather than `cd && make'.

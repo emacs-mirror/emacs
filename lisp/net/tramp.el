@@ -240,7 +240,7 @@ pair of the form (KEY VALUE).  The following KEYs are defined:
     tamper the process output.
   * `tramp-copy-program'
     This specifies the name of the program to use for remotely copying
-    the file; this might be the absolute filename of rcp or the name of
+    the file; this might be the absolute filename of scp or the name of
     a workalike program.  It is always applied on the local host.
   * `tramp-copy-args'
     This specifies the list of parameters to pass to the above mentioned
@@ -248,6 +248,13 @@ pair of the form (KEY VALUE).  The following KEYs are defined:
   * `tramp-copy-env'
      A list of environment variables and their values, which will
      be set when calling `tramp-copy-program'.
+  * `tramp-remote-copy-program'
+    The listener program to be applied on remote side, if needed.
+  * `tramp-remote-copy-args'
+    The list of parameters to pass to the listener program, the hints
+    for `tramp-login-args' also apply here.  Additionally, \"%r\" could
+    be used here and in `tramp-copy-args'.  It denotes a randomly
+    chosen port for the remote listener.
   * `tramp-copy-keep-date'
     This specifies whether the copying program when the preserves the
     timestamp of the original file.
@@ -275,7 +282,7 @@ pair of the form (KEY VALUE).  The following KEYs are defined:
 What does all this mean?  Well, you should specify `tramp-login-program'
 for all methods; this program is used to log in to the remote site.  Then,
 there are two ways to actually transfer the files between the local and the
-remote side.  One way is using an additional rcp-like program.  If you want
+remote side.  One way is using an additional scp-like program.  If you want
 to do this, set `tramp-copy-program' in the method.
 
 Another possibility for file transfer is inline transfer, i.e. the
@@ -1762,7 +1769,7 @@ Example:
 		       (and (memq system-type '(cygwin windows-nt))
 			    (zerop
 			     (tramp-call-process
-			      "reg" nil nil nil "query" (nth 1 (car v)))))
+			      v "reg" nil nil nil "query" (nth 1 (car v)))))
 		     ;; Configuration file.
 		     (file-exists-p (nth 1 (car v)))))
 	(setq r (delete (car v) r)))
@@ -2816,7 +2823,7 @@ User is always nil."
   (if (memq system-type '(windows-nt))
       (with-temp-buffer
 	(when (zerop (tramp-call-process
-		      "reg" nil t nil "query" registry-or-dirname))
+		      nil "reg" nil t nil "query" registry-or-dirname))
 	  (goto-char (point-min))
 	  (loop while (not (eobp)) collect
 		(tramp-parse-putty-group registry-or-dirname))))
@@ -2895,7 +2902,7 @@ User is always nil."
 (defun tramp-handle-file-accessible-directory-p (filename)
   "Like `file-accessible-directory-p' for Tramp files."
   (and (file-directory-p filename)
-       (file-executable-p filename)))
+       (file-readable-p filename)))
 
 (defun tramp-handle-file-exists-p (filename)
   "Like `file-exists-p' for Tramp files."
@@ -3906,7 +3913,7 @@ be granted."
 		(tramp-get-file-property
 		 vec (tramp-file-name-localname vec)
 		 (concat "file-attributes-" suffix) nil)
-		(file-attributes
+		(tramp-compat-file-attributes
 		 (tramp-make-tramp-file-name
 		  (tramp-file-name-method vec)
 		  (tramp-file-name-user vec)
@@ -4118,14 +4125,16 @@ ALIST is of the form ((FROM . TO) ...)."
 ;;; Compatibility functions section:
 
 (defun tramp-call-process
-  (program &optional infile destination display &rest args)
+  (vec program &optional infile destination display &rest args)
   "Calls `call-process' on the local host.
 This is needed because for some Emacs flavors Tramp has
 defadvised `call-process' to behave like `process-file'.  The
 Lisp error raised when PROGRAM is nil is trapped also, returning 1.
 Furthermore, traces are written with verbosity of 6."
-  (let ((v (vector tramp-current-method tramp-current-user tramp-current-host
-		   nil nil))
+  (let ((v (or vec
+	       (vector tramp-current-method tramp-current-user
+		       tramp-current-host nil nil)))
+	(destination (if (eq destination t) (current-buffer) destination))
 	result)
     (tramp-message
      v 6 "`%s %s' %s %s"

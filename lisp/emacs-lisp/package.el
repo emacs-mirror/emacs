@@ -828,14 +828,20 @@ GnuPG keyring is located under \"gnupg\" in `package-user-dir'."
 			(buffer-string))))
     (epg-context-set-home-directory context homedir)
     (epg-verify-string context sig-content (buffer-string))
-    ;; The .sig file may contain multiple signatures.  Success if one
-    ;; of the signatures is good.
-    (let ((good-signatures
-           (delq nil (mapcar (lambda (sig)
-                               (if (eq (epg-signature-status sig) 'good)
-                                   sig))
-                             (epg-context-result-for context 'verify)))))
-      (if (null good-signatures)
+    (let (good-signatures had-fatal-error)
+      ;; The .sig file may contain multiple signatures.  Success if one
+      ;; of the signatures is good.
+      (dolist (sig (epg-context-result-for context 'verify))
+	(if (eq (epg-signature-status sig) 'good)
+	    (push sig good-signatures)
+	  ;; If package-check-signature is allow-unsigned, don't
+	  ;; signal error when we can't verify signature because of
+	  ;; missing public key.  Other errors are still treated as
+	  ;; fatal (bug#17625).
+	  (unless (and (eq package-check-signature 'allow-unsigned)
+		       (eq (epg-signature-status sig) 'no-pubkey))
+	    (setq had-fatal-error t))))
+      (if (and (null good-signatures) had-fatal-error)
           (error "Failed to verify signature %s: %S"
                  sig-file
                  (mapcar #'epg-signature-to-string
@@ -1664,6 +1670,9 @@ package PKG-DESC, add one.  The alist is keyed with PKG-DESC."
 (defvar package-list-unversioned nil
   "If non-nil include packages that don't have a version in `list-package'.")
 
+(defvar package-list-unsigned nil
+  "If non-nil, mention in the list which packages were installed w/o signature.")
+
 (defun package-desc-status (pkg-desc)
   (let* ((name (package-desc-name pkg-desc))
          (dir (package-desc-dir pkg-desc))
@@ -1684,9 +1693,8 @@ package PKG-DESC, add one.  The alist is keyed with PKG-DESC."
      (dir                               ;One of the installed packages.
       (cond
        ((not (file-exists-p (package-desc-dir pkg-desc))) "deleted")
-       ((eq pkg-desc (cadr (assq name package-alist))) (if signed
-							   "installed"
-							 "unsigned"))
+       ((eq pkg-desc (cadr (assq name package-alist)))
+        (if (or (not package-list-unsigned) signed) "installed" "unsigned"))
        (t "obsolete")))
      (t
       (let* ((ins (cadr (assq name package-alist)))
@@ -1696,9 +1704,9 @@ package PKG-DESC, add one.  The alist is keyed with PKG-DESC."
           (if (memq name package-menu--new-package-list)
               "new" "available"))
          ((version-list-< version ins-v) "obsolete")
-         ((version-list-= version ins-v) (if signed
-					     "installed"
-					   "unsigned"))))))))
+         ((version-list-= version ins-v)
+          (if (or (not package-list-unsigned) signed)
+              "installed" "unsigned"))))))))
 
 (defun package-menu--refresh (&optional packages keywords)
   "Re-populate the `tabulated-list-entries'.

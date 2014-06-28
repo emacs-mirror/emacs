@@ -27,6 +27,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "buffer.h"
 #include "keyboard.h"
 #include "keymap.h"
+#include "menu.h"
 #include "frame.h"
 #include "window.h"
 #include "commands.h"

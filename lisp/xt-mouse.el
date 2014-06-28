@@ -145,26 +145,25 @@ http://invisible-island.net/xterm/ctlseqs/ctlseqs.html)."
 (defun xterm-mouse--read-event-sequence-1000 ()
   (let* ((code (- (read-event) 32))
          (type
-	  (intern
-	   ;; For buttons > 3, the release-event looks differently
-	   ;; (see xc/programs/xterm/button.c, function EditorButton),
-	   ;; and come in a release-event only, no down-event.
-	   (cond ((>= code 64)
-		  (format "mouse-%d" (- code 60)))
-		 ((memq code '(8 9 10))
-		  (format "M-down-mouse-%d" (- code 7)))
-		 ((memq code '(3 11))
-                  (let ((down (car (terminal-parameter
-                                    nil 'xterm-mouse-last-down))))
-                    (when (and down (string-match "[0-9]" (symbol-name down)))
-                      (format (if (eq code 3) "mouse-%s" "M-mouse-%s")
-                              (match-string 0 (symbol-name down))))))
-		 ((memq code '(0 1 2))
-		  (format "down-mouse-%d" (+ 1 code))))))
+	  ;; For buttons > 3, the release-event looks differently
+	  ;; (see xc/programs/xterm/button.c, function EditorButton),
+	  ;; and come in a release-event only, no down-event.
+	  (cond ((>= code 64)
+		 (format "mouse-%d" (- code 60)))
+		((memq code '(8 9 10))
+		 (format "M-down-mouse-%d" (- code 7)))
+		((memq code '(3 11))
+                 (let ((down (car (terminal-parameter
+                                   nil 'xterm-mouse-last-down))))
+                   (when (and down (string-match "[0-9]" (symbol-name down)))
+                     (format (if (eq code 3) "mouse-%s" "M-mouse-%s")
+                             (match-string 0 (symbol-name down))))))
+		((memq code '(0 1 2))
+		 (format "down-mouse-%d" (+ 1 code)))))
          (x (- (read-event) 33))
          (y (- (read-event) 33)))
     (and type (wholenump x) (wholenump y)
-         (list type x y))))
+         (list (intern type) x y))))
 
 ;; XTerm's 1006-mode terminal mouse click reporting has the form
 ;; <BUTTON> ; <X> ; <Y> <M or m>, where the button and ordinates are

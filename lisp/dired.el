@@ -3099,7 +3099,10 @@ argument or confirmation)."
 	  ;; If FILES defaulted to the current line's file.
 	  (= (length files) 1))
       (apply function args)
-    (let ((buffer (get-buffer-create (or buffer-or-name " *Marked Files*"))))
+    (let ((buffer (get-buffer-create (or buffer-or-name " *Marked Files*")))
+	  ;; Mark *Marked Files* window as softly-dedicated, to prevent
+	  ;; other buffers e.g. *Completions* from reusing it (bug#17554).
+	  (display-buffer-mark-dedicated 'soft))
       (with-current-buffer buffer
 	(with-current-buffer-window
 	 buffer

@@ -2039,8 +2039,8 @@ code ---- the results are extracted in the syntax of the source
 				 t info hash indent)))
 	     (results-switches
 	      (cdr (assoc :results_switches (nth 2 info))))
-	     (visible-beg (copy-marker (point-min)))
-	     (visible-end (copy-marker (point-max)))
+	     (visible-beg (point-min-marker))
+	     (visible-end (point-max-marker))
 	     ;; When results exist outside of the current visible
 	     ;; region of the buffer, be sure to widen buffer to
 	     ;; update them.

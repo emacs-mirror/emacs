@@ -914,6 +914,7 @@ struct selection_input_event
 /* From xfns.c.  */
 
 extern void x_free_gcs (struct frame *);
+extern void x_relative_mouse_position (struct frame *, int *, int *);
 
 /* From xrdb.c.  */
 
@@ -929,7 +930,6 @@ extern void x_check_errors (Display *, const char *)
 extern bool x_had_errors_p (Display *);
 extern void x_uncatch_errors (void);
 extern void x_clear_errors (Display *);
-extern void x_set_window_size (struct frame *, int, int, int, bool);
 extern void xembed_request_focus (struct frame *);
 extern void x_ewmh_activate_frame (struct frame *);
 extern void x_delete_terminal (struct terminal *terminal);
@@ -944,7 +944,6 @@ extern bool x_alloc_lighter_color_for_widget (Widget, Display *, Colormap,
 					      double, int);
 #endif
 extern bool x_alloc_nearest_color (struct frame *, Colormap, XColor *);
-extern void x_query_color (struct frame *f, XColor *);
 extern void x_clear_area (Display *, Window, int, int, int, int);
 #if !defined USE_X_TOOLKIT && !defined USE_GTK
 extern void x_mouse_leave (struct x_display_info *);
@@ -991,16 +990,11 @@ extern Lisp_Object x_property_data_to_lisp (struct frame *,
 extern void x_clipboard_manager_save_frame (Lisp_Object);
 extern void x_clipboard_manager_save_all (void);
 
-/* Defined in xfns.c */
-
-extern Lisp_Object x_get_focus_frame (struct frame *);
-
 #ifdef USE_GTK
 extern int xg_set_icon (struct frame *, Lisp_Object);
 extern int xg_set_icon_from_xpm_data (struct frame *, const char **);
 #endif /* USE_GTK */
 
-extern void x_implicitly_set_name (struct frame *, Lisp_Object, Lisp_Object);
 extern void xic_free_xfontset (struct frame *);
 extern void create_frame_xic (struct frame *);
 extern void destroy_frame_xic (struct frame *);
@@ -1032,14 +1026,7 @@ extern Lisp_Object xw_popup_dialog (struct frame *, Lisp_Object, Lisp_Object);
 extern void x_menu_set_in_use (int);
 #endif
 extern void x_menu_wait_for_event (void *data);
-extern int popup_activated (void);
 extern void initialize_frame_menubar (struct frame *);
-
-/* Defined in widget.c */
-
-#ifdef USE_X_TOOLKIT
-extern void widget_store_internal_border (Widget);
-#endif
 
 /* Defined in xsmfns.c */
 #ifdef HAVE_X_SM

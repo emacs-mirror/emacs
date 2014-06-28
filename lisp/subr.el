@@ -3677,12 +3677,14 @@ and replace a sub-expression, e.g.
       (setq matches (cons (substring string start l) matches)) ; leftover
       (apply #'concat (nreverse matches)))))
 
-(defun string-prefix-p (str1 str2 &optional ignore-case)
-  "Return non-nil if STR1 is a prefix of STR2.
+(defun string-prefix-p (prefix string &optional ignore-case)
+  "Return non-nil if PREFIX is a prefix of STRING.
 If IGNORE-CASE is non-nil, the comparison is done without paying attention
 to case differences."
-  (eq t (compare-strings str1 nil nil
-                         str2 0 (length str1) ignore-case)))
+  (let ((prefix-length (length prefix)))
+    (if (> prefix-length (length string)) nil
+      (eq t (compare-strings prefix 0 prefix-length string
+			     0 prefix-length ignore-case)))))
 
 (defun string-suffix-p (suffix string  &optional ignore-case)
   "Return non-nil if SUFFIX is a suffix of STRING.

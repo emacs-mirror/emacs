@@ -1,3 +1,17 @@
+2014-06-26  Glenn Morris  <rgm@gnu.org>
+
+	* mm-util.el (help-function-arglist): Remove outdated declaration.
+
+2014-06-24  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* html2text.el (html2text-get-attr): Rewrite to handle spaces in quoted
+	attribute values.  (Bug#17834)
+
+2013-06-22  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* gnus-sum.el (gnus-summary-edit-article-done):
+	Prefer point-marker to copy-marker of point.
+
 2014-06-05  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art.el (gnus-article-edit-part): Don't modifiy markers.

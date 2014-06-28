@@ -390,8 +390,6 @@ must be one of the symbols `header', `mode', or `vertical'."
 	 (window (posn-window start))
 	 (frame (window-frame window))
 	 (minibuffer-window (minibuffer-window frame))
-         (on-link (and mouse-1-click-follows-link
-		       (mouse-on-link-p start)))
 	 (side (and (eq line 'vertical)
 		    (or (cdr (assq 'vertical-scroll-bars
 				   (frame-parameters frame)))
@@ -487,15 +485,7 @@ must be one of the symbols `header', `mode', or `vertical'."
 	  (unless (zerop growth)
 	    (setq dragged t)
 	    (adjust-window-trailing-edge
-	     window (if (eq line 'mode) growth (- growth)) nil t))))))
-    ;; Process the terminating event.
-    (when (and (mouse-event-p event) on-link (not dragged)
-	       (mouse--remap-link-click-p start-event event))
-      ;; If mouse-2 has never been done by the user, it doesn't have
-      ;; the necessary property to be interpreted correctly.
-      (put 'mouse-2 'event-kind 'mouse-click)
-      (setcar event 'mouse-2)
-      (push event unread-command-events))))
+	     window (if (eq line 'mode) growth (- growth)) nil t))))))))
 
 (defun mouse-drag-mode-line (start-event)
   "Change the height of a window by dragging on the mode line."
@@ -589,10 +579,10 @@ command alters the kill ring or not."
 (defun mouse-set-region-1 ()
   ;; Set transient-mark-mode for a little while.
   (unless (eq (car-safe transient-mark-mode) 'only)
-    (setq transient-mark-mode
-	  (cons 'only
-		(unless (eq transient-mark-mode 'lambda)
-		  transient-mark-mode))))
+    (setq-local transient-mark-mode
+                (cons 'only
+                      (unless (eq transient-mark-mode 'lambda)
+                        transient-mark-mode))))
   (setq mouse-last-region-beg (region-beginning))
   (setq mouse-last-region-end (region-end))
   (setq mouse-last-region-tick (buffer-modified-tick)))
@@ -811,10 +801,10 @@ The region will be defined with mark and point."
 
     ;; Activate the region, using `mouse-start-end' to determine where
     ;; to put point and mark (e.g., double-click will select a word).
-    (setq transient-mark-mode
-	  (if (eq transient-mark-mode 'lambda)
-	      '(only)
-	    (cons 'only transient-mark-mode)))
+    (setq-local transient-mark-mode
+                (if (eq transient-mark-mode 'lambda)
+                    '(only)
+                  (cons 'only transient-mark-mode)))
     (let ((range (mouse-start-end start-point start-point click-count)))
       (push-mark (nth 0 range) t t)
       (goto-char (nth 1 range)))

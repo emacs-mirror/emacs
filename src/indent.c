@@ -920,7 +920,7 @@ position_indentation (ptrdiff_t pos_byte)
 	  column += tab_width - column % tab_width;
 	  break;
 	default:
-	  if (ASCII_BYTE_P (p[-1])
+	  if (ASCII_CHAR_P (p[-1])
 	      || NILP (BVAR (current_buffer, enable_multibyte_characters)))
 	    return column;
 	  {
@@ -1944,9 +1944,12 @@ The optional second argument WINDOW specifies the window to use for
 parameters such as width, horizontal scrolling, and so on.
 The default is to use the selected window's parameters.
 
-LINES can optionally take the form (COLS . LINES), in which case
-the motion will not stop at the start of a screen line but on
-its column COLS (if such exists on that line, that is).
+LINES can optionally take the form (COLS . LINES), in which case the
+motion will not stop at the start of a screen line but COLS column
+from the visual start of the line (if such exists on that line, that
+is).  If the line is scrolled horizontally, COLS is interpreted
+visually, i.e., as addition to the columns of text beyond the left
+edge of the window.
 
 `vertical-motion' always uses the current buffer,
 regardless of which buffer is displayed in WINDOW.
@@ -2126,20 +2129,14 @@ whether or not it is currently displayed in some window.  */)
 	    }
 	}
 
-      /* Move to the goal column, if one was specified.  */
+      /* Move to the goal column, if one was specified.  If the window
+	 was originally hscrolled, the goal column is interpreted as
+	 an addition to the hscroll amount.  */
       if (!NILP (lcols))
 	{
-	  /* If the window was originally hscrolled, move forward by
-	     the hscrolled amount first.  */
-	  if (first_x > 0)
-	    {
-	      move_it_in_display_line (&it, ZV, first_x, MOVE_TO_X);
-	      it.current_x = 0;
-	    }
-	  move_it_in_display_line
-	    (&it, ZV,
-	     (int)(cols * FRAME_COLUMN_WIDTH (XFRAME (w->frame)) + 0.5),
-	     MOVE_TO_X);
+	  int to_x = (int)(cols * FRAME_COLUMN_WIDTH (XFRAME (w->frame)) + 0.5);
+
+	  move_it_in_display_line (&it, ZV, first_x + to_x, MOVE_TO_X);
 	}
 
       SET_PT_BOTH (IT_CHARPOS (it), IT_BYTEPOS (it));

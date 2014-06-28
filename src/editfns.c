@@ -2238,7 +2238,7 @@ general_insert_function (void (*insert_func)
 	    len = CHAR_STRING (c, str);
 	  else
 	    {
-	      str[0] = ASCII_CHAR_P (c) ? c : multibyte_char_to_unibyte (c);
+	      str[0] = CHAR_TO_BYTE8 (c);
 	      len = 1;
 	    }
 	  (*insert_func) ((char *) str, len);
@@ -2852,7 +2852,7 @@ Both characters must have the same length of multi-byte form.  */)
       len = CHAR_STRING (fromc, fromstr);
       if (CHAR_STRING (toc, tostr) != len)
 	error ("Characters in `subst-char-in-region' have different byte-lengths");
-      if (!ASCII_BYTE_P (*tostr))
+      if (!ASCII_CHAR_P (*tostr))
 	{
 	  /* If *TOSTR is in the range 0x80..0x9F and TOCHAR is not a
 	     complete multibyte character, it may be combined with the
@@ -2945,7 +2945,7 @@ Both characters must have the same length of multi-byte form.  */)
 		  : ((pos_byte_next < Z_BYTE
 		      && ! CHAR_HEAD_P (FETCH_BYTE (pos_byte_next)))
 		     || (pos_byte > BEG_BYTE
-			 && ! ASCII_BYTE_P (FETCH_BYTE (pos_byte - 1))))))
+			 && ! ASCII_CHAR_P (FETCH_BYTE (pos_byte - 1))))))
 	    {
 	      Lisp_Object tem, string;
 
@@ -3126,7 +3126,7 @@ It returns the number of characters changed.  */)
 	      else
 		{
 		  nc = tt[oc];
-		  if (! ASCII_BYTE_P (nc) && multibyte)
+		  if (! ASCII_CHAR_P (nc) && multibyte)
 		    {
 		      str_len = BYTE8_STRING (nc, buf);
 		      str = buf;
@@ -3600,7 +3600,7 @@ specifier truncates the string to the given width.
 usage: (format STRING &rest OBJECTS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
-  ptrdiff_t n;		/* The number of the next arg to substitute */
+  ptrdiff_t n;		/* The number of the next arg to substitute.  */
   char initial_buffer[4000];
   char *buf = initial_buffer;
   ptrdiff_t bufsize = sizeof initial_buffer;
@@ -3877,7 +3877,7 @@ usage: (format STRING &rest OBJECTS)  */)
 
 		  if (p > buf
 		      && multibyte
-		      && !ASCII_BYTE_P (*((unsigned char *) p - 1))
+		      && !ASCII_CHAR_P (*((unsigned char *) p - 1))
 		      && STRING_MULTIBYTE (args[n])
 		      && !CHAR_HEAD_P (SREF (args[n], 0)))
 		    maybe_combine_byte = 1;
@@ -4167,7 +4167,7 @@ usage: (format STRING &rest OBJECTS)  */)
 	    {
 	      /* Copy a whole multibyte character.  */
 	      if (p > buf
-		  && !ASCII_BYTE_P (*((unsigned char *) p - 1))
+		  && !ASCII_CHAR_P (*((unsigned char *) p - 1))
 		  && !CHAR_HEAD_P (*format))
 		maybe_combine_byte = 1;
 
@@ -4181,7 +4181,7 @@ usage: (format STRING &rest OBJECTS)  */)
 	  else
 	    {
 	      unsigned char uc = *format++;
-	      if (! multibyte || ASCII_BYTE_P (uc))
+	      if (! multibyte || ASCII_CHAR_P (uc))
 		convbytes = 1;
 	      else
 		{

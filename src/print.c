@@ -1472,7 +1472,7 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 		  strout (outbuf, len, len, printcharfun);
 		}
 	      else if (! multibyte
-		       && SINGLE_BYTE_CHAR_P (c) && ! ASCII_BYTE_P (c)
+		       && SINGLE_BYTE_CHAR_P (c) && ! ASCII_CHAR_P (c)
 		       && print_escape_nonascii)
 		{
 		  /* When printing in a multibyte buffer

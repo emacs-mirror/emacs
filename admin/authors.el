@@ -622,11 +622,12 @@ Changes to files in this list are not listed.")
     "temacs.opt" "descrip.mms" "compile.com" "link.com"
     "compact.el" "fadr.el"
     "calc/calc-maint.el"
+    "emacs-lisp/cl-specs.el"
     "emacs-lisp/eieio-comp.el"
     "erc-hecomplete.el"
     "eshell/esh-maint.el"
     "language/persian.el"
-    "meese.el" "iswitchb.el"
+    "ledit.el" "meese.el" "iswitchb.el" "longlines.el"
     "mh-exec.el" "mh-init.el" "mh-customize.el"
     "net/zone-mode.el" "xesam.el"
     "term/mac-win.el" "sup-mouse.el"
@@ -647,6 +648,7 @@ Changes to files in this list are not listed.")
     "dns-mode.el" "run-at-time.el" "gnus-encrypt.el" "sha1-el.el"
     "gnus-gl.el" "gnus.sum.el" "proto-stream.el" "color.el" "color-lab.el"
     "eww.el" "shr-color.el" "shr.el" "earcon.el" "gnus-audio.el" "encrypt.el"
+    "format-spec.el" "gnus-move.el"
     ;; doc
     "getopt.c" "texindex.c" "news.texi" "vc.texi" "vc2-xtra.texi"
     "back.texi" "vol1.texi" "vol2.texi" "elisp-covers.texi" "two.el"
@@ -752,7 +754,11 @@ in the repository.")
     ("progmodes/octave-inf.el" . "octave.el")
     ("progmodes/octave-mod.el" . "octave.el")
     ;; Obsolete.
+    ("emacs-lisp/assoc.el" . "assoc.el")
+    ("emacs-lisp/cust-print.el" . "cust-print.el")
+    ("mail/mailpost.el" . "mailpost.el")
     ("play/bruce.el" . "bruce.el")
+    ("play/yow.el" . "yow.el")
     ("patcomp.el" . "patcomp.el")
     ;; From lisp to etc/forms.
     ("forms-d2.el" . "forms-d2.el")
@@ -771,6 +777,7 @@ in the repository.")
     ("build-install" . "build-ins.in")
     ("build-install.in" . "build-ins.in")
     ("unidata/Makefile" . "unidata/Makefile.in")
+    ("mac/uvs.el" . "unidata/uvs.el")
     ;; Moved from top to etc/
     ("CONTRIBUTE" . "CONTRIBUTE")
     ("FTP" . "FTP")

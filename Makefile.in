@@ -297,6 +297,14 @@ removenullpaths=sed -e 's/^:*//' -e 's/:*$$//g' -e 's/::*/:/g'
 # to just letting configure generate epaths.h from epaths.in in a
 # similar way to how Makefile is made from Makefile.in.
 epaths-force:
+	@for dir in '$(abs_srcdir)' '$(lispdir)' '$(archlibdir)'; do \
+	  case $$dir in \
+	    *:*) \
+	      echo >&2 "Build or installation directory '$$dir'"; \
+	      echo >&2 "cannot contain ':'."; \
+	      exit 1;; \
+	  esac; \
+	done
 	@(standardlisppath=`echo "${standardlisppath}" | ${removenullpaths}` ; \
 	  locallisppath=`echo "${locallisppath}" | ${removenullpaths}` ; \
 	  buildlisppath=`echo "${buildlisppath}" | ${removenullpaths}` ; \
@@ -360,16 +368,6 @@ lisp: src
 lib lib-src lisp nt: Makefile
 	$(MAKE) -C $@ all
 
-# Pass to src/Makefile.in an additional BOOTSTRAPEMACS variable which
-# is either set to bootstrap-emacs (in case bootstrap-emacs has not been
-# constructed yet) or the empty string (otherwise).
-# src/Makefile.in uses it to implement conditional dependencies, so that
-# files that need bootstrap-emacs to be built do not additionally need
-# to be kept fresher than bootstrap-emacs.  Otherwise changing a single
-# file src/foo.c forces dumping a new bootstrap-emacs, then re-byte-compiling
-# all preloaded elisp files, and only then dump the actual src/emacs, which
-# is not wrong, but is overkill in 99.99% of the cases.
-#
 # Note the use of single quotes in the value of vcswitness.
 # This passes an unexpanded $srcdir to src's Makefile, which then
 # expands it using its own value of srcdir (which points to the
@@ -378,10 +376,7 @@ src: Makefile
 	dirstate='.bzr/checkout/dirstate';				\
 	vcswitness='$$(srcdir)/../'$$dirstate;				\
 	[ -r "$(srcdir)/$$dirstate" ] || vcswitness='';			\
-	cd $@ || exit;							\
-	boot=bootstrap-emacs$(EXEEXT);					\
-	[ ! -x "$$boot" ] || boot='';					\
-	$(MAKE) all BOOTSTRAPEMACS="$$boot" VCSWITNESS="$$vcswitness"
+	$(MAKE) -C $@ all VCSWITNESS="$$vcswitness"
 
 blessmail: Makefile src
 	$(MAKE) -C lib-src maybe-blessmail
@@ -790,7 +785,9 @@ mostlyclean_dirs = src oldXMenu lwlib lib lib-src nt doc/emacs doc/misc \
 $(foreach dir,$(mostlyclean_dirs),$(eval $(call submake_template,$(dir),mostlyclean)))
 
 mostlyclean: $(mostlyclean_dirs:=_mostlyclean)
-
+	for dir in test/automated; do \
+	  [ ! -d $$dir ] || $(MAKE) -C $$dir mostlyclean; \
+	done
 
 ### `clean'
 ###      Delete all files from the current directory that are normally
@@ -805,6 +802,9 @@ clean_dirs = $(mostlyclean_dirs) nextstep
 $(foreach dir,$(clean_dirs),$(eval $(call submake_template,$(dir),clean)))
 
 clean: $(clean_dirs:=_clean)
+	for dir in test/automated; do \
+	  [ ! -d $$dir ] || $(MAKE) -C $$dir clean; \
+	done
 	-rm -f etc/emacs.tmpdesktop
 
 ### `bootclean'

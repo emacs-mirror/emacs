@@ -265,7 +265,7 @@ Must called from within a `tar-mode' buffer."
       (should (package-installed-p 'simple-single))
       (switch-to-buffer "*Packages*")
       (goto-char (point-min))
-      (should (re-search-forward "^\\s-+simple-single\\s-+1.3\\s-+unsigned" nil t))
+      (should (re-search-forward "^\\s-+simple-single\\s-+1.3\\s-+installed" nil t))
       (goto-char (point-min))
       (should-not (re-search-forward "^\\s-+simple-single\\s-+1.3\\s-+\\(available\\|new\\)" nil t))
       (kill-buffer buf))))
@@ -287,7 +287,7 @@ Must called from within a `tar-mode' buffer."
         ;; New version should be available and old version should be installed
         (goto-char (point-min))
         (should (re-search-forward "^\\s-+simple-single\\s-+1.4\\s-+new" nil t))
-        (should (re-search-forward "^\\s-+simple-single\\s-+1.3\\s-+unsigned" nil t))
+        (should (re-search-forward "^\\s-+simple-single\\s-+1.3\\s-+installed" nil t))
 
         (goto-char (point-min))
         (should (re-search-forward "^\\s-+new-pkg\\s-+1.0\\s-+\\(available\\|new\\)" nil t))
@@ -318,7 +318,7 @@ Must called from within a `tar-mode' buffer."
     (with-fake-help-buffer
      (describe-package 'simple-single)
      (goto-char (point-min))
-     (should (search-forward "simple-single is an unsigned package." nil t))
+     (should (search-forward "simple-single is an installed package." nil t))
      (should (search-forward
               (format "Status: Installed in `%s/' (unsigned)."
                       (expand-file-name "simple-single-1.3" package-user-dir))

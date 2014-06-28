@@ -388,7 +388,7 @@ but before calling PC Selection mode):
 		   (fboundp 'normal-erase-is-backspace-mode))
 	  (normal-erase-is-backspace-mode 1))
 	(setq highlight-nonselected-windows nil)
-	(setq transient-mark-mode t)
+	(transient-mark-mode 1)
 	(setq mark-even-if-inactive t)
 	(delete-selection-mode 1))
     ;;else

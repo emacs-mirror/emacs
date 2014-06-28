@@ -2844,7 +2844,7 @@ usage: (make-network-process &rest ARGS)  */)
   struct gcpro gcpro1;
   ptrdiff_t count = SPECPDL_INDEX ();
   ptrdiff_t count1;
-  Lisp_Object QCaddress;  /* one of QClocal or QCremote */
+  Lisp_Object colon_address;  /* Either QClocal or QCremote.  */
   Lisp_Object tem;
   Lisp_Object name, buffer, host, service, address;
   Lisp_Object filter, sentinel;
@@ -2892,8 +2892,8 @@ usage: (make-network-process &rest ARGS)  */)
 	backlog = XINT (tem);
     }
 
-  /* Make QCaddress an alias for :local (server) or :remote (client).  */
-  QCaddress = is_server ? QClocal : QCremote;
+  /* Make colon_address an alias for :local (server) or :remote (client).  */
+  colon_address = is_server ? QClocal : QCremote;
 
   /* :nowait BOOL */
   if (!is_server && socktype != SOCK_DGRAM
@@ -2920,7 +2920,7 @@ usage: (make-network-process &rest ARGS)  */)
   res = &ai;
 
   /* :local ADDRESS or :remote ADDRESS */
-  address = Fplist_get (contact, QCaddress);
+  address = Fplist_get (contact, colon_address);
   if (!NILP (address))
     {
       host = service = Qnil;
@@ -3307,7 +3307,7 @@ usage: (make-network-process &rest ARGS)  */)
 	    memcpy (datagram_address[s].sa, lres->ai_addr, lres->ai_addrlen);
 	}
 #endif
-      contact = Fplist_put (contact, QCaddress,
+      contact = Fplist_put (contact, colon_address,
 			    conv_sockaddr_to_lisp (lres->ai_addr, lres->ai_addrlen));
 #ifdef HAVE_GETSOCKNAME
       if (!is_server)

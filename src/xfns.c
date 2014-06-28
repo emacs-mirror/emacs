@@ -24,6 +24,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "lisp.h"
 #include "xterm.h"
+#include "menu.h"
 #include "frame.h"
 #include "window.h"
 #include "character.h"
@@ -329,8 +330,43 @@ x_real_positions (struct frame *f, int *xptr, int *yptr)
   *yptr = real_y;
 }
 
-
+/* Get the mouse position in frame relative coordinates.  */
 
+void
+x_relative_mouse_position (struct frame *f, int *x, int *y)
+{
+  Window root, dummy_window;
+  int dummy;
+
+  eassert (FRAME_X_P (f));
+
+  block_input ();
+
+  XQueryPointer (FRAME_X_DISPLAY (f),
+                 DefaultRootWindow (FRAME_X_DISPLAY (f)),
+
+                 /* The root window which contains the pointer.  */
+                 &root,
+
+                 /* Window pointer is on, not used  */
+                 &dummy_window,
+
+                 /* The position on that root window.  */
+                 x, y,
+
+                 /* x/y in dummy_window coordinates, not used.  */
+                 &dummy, &dummy,
+
+                 /* Modifier keys and pointer buttons, about which
+                    we don't care.  */
+                 (unsigned int *) &dummy);
+
+  unblock_input ();
+
+  /* Translate root window coordinates to window coordinates.  */
+  *x -= f->left_pos + FRAME_OUTER_TO_INNER_DIFF_X (f);
+  *y -= f->top_pos + FRAME_OUTER_TO_INNER_DIFF_Y (f);
+}
 
 /* Gamma-correct COLOR on frame F.  */
 

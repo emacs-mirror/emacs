@@ -46,6 +46,8 @@ Use './configure PKG_CONFIG=/full/name/of/pkg-config' if you need to.
 
 * Changes in Emacs 24.5
 
+** New var `truncate-string-ellipsis' to choose how to indicate truncation.
+
 ---
 ** The default value of `history-length' has increased to 100.
 
@@ -72,8 +74,13 @@ performance improvements when pasting large amounts of text.
 
 * Changes in Specialized Modes and Packages in Emacs 24.5
 
-** Rectangle Mark mode can now have corners past EOL or in the middle of a TAB.
-Also C-x C-x in rectangle-mark-mode now cycles through the four corners.
+** Lisp mode
+*** Strings after `:documentation' are highlighted as docstrings.
+
+** Rectangle editing
+*** Rectangle Mark mode can have corners past EOL or in the middle of a TAB.
+*** C-x C-x in rectangle-mark-mode now cycles through the four corners.
+*** `string-rectangle' provides on-the-fly preview of the result.
 
 ** New font-lock functions font-lock-ensure and font-lock-flush, which
 should be used instead of font-lock-fontify-buffer when called from Elisp.
@@ -89,6 +96,8 @@ should be used instead of font-lock-fontify-buffer when called from Elisp.
 *** Calendar can list and mark diary entries with Chinese dates.
 See `diary-chinese-list-entries' and `diary-chinese-mark-entries'.
 
+** New ERT function `ert-summarize-tests-batch-and-exit'.
+
 ---
 ** The Rmail commands d, C-d and u now handle repeat counts to delete or
 undelete multiple messages.
@@ -101,6 +110,14 @@ specify the type of shell in use (bash, csh, etc).
 ** The URL package accepts now the protocols "ssh", "scp" and "rsync".
 When `url-handler-mode' is enabled, file operations for these
 protocols as well as for "telnet" and "ftp" are passed to Tramp.
+
+** Tramp
+
+*** New connection method "nc", which allows to access dumb busyboxes.
+
+** Calculator: decimal display mode uses "," groups, so it's more
+fitting for use in money calculations; factorial works with
+non-integer inputs.
 
 ** Obsolete packages
 

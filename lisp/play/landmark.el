@@ -1,16 +1,11 @@
-;;; landmark.el --- neural-network robot that learns landmarks
+;;; landmark.el --- Neural-network robot that learns landmarks  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1996-1997, 2000-2014 Free Software Foundation, Inc.
 
 ;; Author: Terrence Brannon (was: <brannon@rana.usc.edu>)
 ;; Created: December 16, 1996 - first release to usenet
-;; Keywords: games, gomoku, neural network, adaptive search, chemotaxis
-
-;;;_* Usage
-;;; Just type
-;;;   M-x eval-buffer
-;;;   M-x landmark-test-run
-
+;; Keywords: games, neural network, adaptive search, chemotaxis
+;; Version: 1.0
 
 ;; This file is part of GNU Emacs.
 
@@ -29,6 +24,9 @@
 
 
 ;;; Commentary:
+
+;; To try this, just type: M-x landmark-test-run
+
 ;; Landmark is a relatively non-participatory game in which a robot
 ;; attempts to maneuver towards a tree at the center of the window
 ;; based on unique olfactory cues from each of the 4 directions. If
@@ -228,9 +226,6 @@
 		   'landmark-font-lock-face-X)))
   "Font lock rules for Landmark.")
 
-(put 'landmark-mode 'front-sticky
-     (put 'landmark-mode 'rear-nonsticky '(intangible)))
-(put 'landmark-mode 'intangible 1)
 ;; This one is for when they set view-read-only to t: Landmark cannot
 ;; allow View Mode to be activated in its buffer.
 (define-derived-mode landmark-mode special-mode "Lm"
@@ -247,7 +242,8 @@ Entry to this mode calls the value of `landmark-mode-hook' if that value
 is non-nil.  One interesting value is `turn-on-font-lock'."
   (landmark-display-statistics)
   (setq-local font-lock-defaults '(landmark-font-lock-keywords t))
-  (setq buffer-read-only t))
+  (setq buffer-read-only t)
+  (add-hook 'post-command-hook #'landmark--intangible nil t))
 
 
 ;;;_ +  THE SCORE TABLE.
@@ -682,8 +678,8 @@ along the DX, DY direction, considering that DVAL has been added on SQUARE."
     (landmark-prompt-for-other-game))
    (t
     (message "Let me think...")
-    (let (square score)
-      (setq square (landmark-strongest-square))
+    (let ((square (landmark-strongest-square))
+          score)
       (cond ((null square)
 	     (landmark-terminate-game 'nobody-won))
 	    (t
@@ -725,8 +721,7 @@ along the DX, DY direction, considering that DVAL has been added on SQUARE."
 	(min (max (/ (+ (- (cdr click)
 			   landmark-y-offset
 			   1)
-			(let ((inhibit-point-motion-hooks t))
-			  (count-lines 1 (window-start)))
+                        (count-lines (point-min) (window-start))
 			landmark-square-height
 			(% landmark-square-height 2)
 			(/ landmark-square-height 2))
@@ -752,8 +747,8 @@ If the game is finished, this command requests for another game."
    ((not landmark-game-in-progress)
     (landmark-prompt-for-other-game))
    (t
-    (let (square score)
-      (setq square (landmark-point-square))
+    (let ((square (landmark-point-square))
+          score)
       (cond ((null square)
 	     (error "Your point is not on a square. Retry!"))
 	    ((not (zerop (aref landmark-board square)))
@@ -847,16 +842,15 @@ If the game is finished, this command requests for another game."
 
 (defun landmark-point-y ()
   "Return the board row where point is."
-  (let ((inhibit-point-motion-hooks t))
-    (1+ (/ (- (count-lines 1 (point)) landmark-y-offset (if (bolp) 0 1))
-	   landmark-square-height))))
+  (1+ (/ (- (count-lines (point-min) (point))
+            landmark-y-offset (if (bolp) 0 1))
+         landmark-square-height)))
 
 (defun landmark-point-square ()
   "Return the index of the square point is on."
-  (let ((inhibit-point-motion-hooks t))
     (landmark-xy-to-index (1+ (/ (- (current-column) landmark-x-offset)
 			       landmark-square-width))
-			(landmark-point-y))))
+                      (landmark-point-y)))
 
 (defun landmark-goto-square (index)
   "Move point to square number INDEX."
@@ -864,23 +858,21 @@ If the game is finished, this command requests for another game."
 
 (defun landmark-goto-xy (x y)
   "Move point to square at X, Y coords."
-  (let ((inhibit-point-motion-hooks t))
     (goto-char (point-min))
-    (forward-line (+ landmark-y-offset (* landmark-square-height (1- y)))))
+  (forward-line (+ landmark-y-offset (* landmark-square-height (1- y))))
   (move-to-column (+ landmark-x-offset (* landmark-square-width (1- x)))))
 
 (defun landmark-plot-square (square value)
   "Draw 'X', 'O' or '.' on SQUARE depending on VALUE, leave point there."
   (or (= value 1)
       (landmark-goto-square square))
-  (let ((inhibit-read-only t)
-	(inhibit-point-motion-hooks t))
-    (insert-and-inherit (cond ((= value 1) ?.)
-			      ((= value 2) ?N)
-			      ((= value 3) ?S)
-			      ((= value 4) ?E)
-			      ((= value 5) ?W)
-			      ((= value 6) ?^)))
+  (let ((inhibit-read-only t))
+    (insert (cond ((= value 1) ?.)
+                  ((= value 2) ?N)
+                  ((= value 3) ?S)
+                  ((= value 4) ?E)
+                  ((= value 5) ?W)
+                  ((= value 6) ?^)))
 
     (and (zerop value)
 	 (add-text-properties (1- (point)) (point)
@@ -895,8 +887,7 @@ mouse-1: get robot moving, mouse-2: play on this square")))
   "Display an N by M Landmark board."
   (buffer-disable-undo (current-buffer))
   (let ((inhibit-read-only t)
-	(point 1) opoint
-	(intangible t)
+	(point (point-min)) opoint
 	(i m) j x)
     ;; Try to minimize number of chars (because of text properties)
     (setq tab-width
@@ -905,7 +896,7 @@ mouse-1: get robot moving, mouse-2: play on this square")))
 	    (max (/ (+ (% landmark-x-offset landmark-square-width)
 		       landmark-square-width 1) 2) 2)))
     (erase-buffer)
-    (newline landmark-y-offset)
+    (insert-char ?\n landmark-y-offset)
     (while (progn
 	     (setq j n
 		   x (- landmark-x-offset landmark-square-width))
@@ -913,9 +904,7 @@ mouse-1: get robot moving, mouse-2: play on this square")))
 	       (insert-char ?\t (/ (- (setq x (+ x landmark-square-width))
 				      (current-column))
 				   tab-width))
-	       (insert-char ?  (- x (current-column)))
-	       (if (setq intangible (not intangible))
-		   (put-text-property point (point) 'intangible 2))
+               (insert-char ?\s (- x (current-column)))
 	       (and (zerop j)
 		    (= i (- m 2))
 		    (progn
@@ -932,14 +921,7 @@ mouse-1: get robot moving, mouse-2: play on this square")))
       (if (= i (1- m))
 	  (setq opoint point))
       (insert-char ?\n landmark-square-height))
-    (or (eq (char-after 1) ?.)
-	(put-text-property 1 2 'point-entered
-			   (lambda (_x _y) (if (bobp) (forward-char)))))
-    (or intangible
-	(put-text-property point (point) 'intangible 2))
-    (put-text-property point (point) 'point-entered
-		       (lambda (_x _y) (if (eobp) (backward-char))))
-    (put-text-property (point-min) (point) 'category 'landmark-mode))
+    (insert-char ?\n))
   (landmark-goto-xy (/ (1+ n) 2) (/ (1+ m) 2)) ; center of the board
   (sit-for 0))				; Display NOW
 
@@ -1001,8 +983,7 @@ mouse-1: get robot moving, mouse-2: play on this square")))
   "Cross every square between SQUARE1 and SQUARE2 in the DX, DY direction."
   (save-excursion			; Not moving point from last square
     (let ((depl (landmark-xy-to-index dx dy))
-	  (inhibit-read-only t)
-	  (inhibit-point-motion-hooks t))
+	  (inhibit-read-only t))
       ;; WARNING: this function assumes DEPL > 0 and SQUARE2 > SQUARE1
       (while (/= square1 square2)
 	(landmark-goto-square square1)
@@ -1021,32 +1002,56 @@ mouse-1: get robot moving, mouse-2: play on this square")))
 	       (setq landmark-n (1+ landmark-n))
 	       (forward-line 1)
 	       (indent-to column)
-	       (insert-and-inherit ?|))))
+	       (insert ?|))))
 	  ((= dx -1)			; 1st Diagonal
 	   (indent-to (prog1 (- (current-column) (/ landmark-square-width 2))
 			(forward-line (/ landmark-square-height 2))))
-	   (insert-and-inherit ?/))
+	   (insert ?/))
 	  (t				; 2nd Diagonal
 	   (indent-to (prog1 (+ (current-column) (/ landmark-square-width 2))
 			(forward-line (/ landmark-square-height 2))))
-	   (insert-and-inherit ?\\))))))
+	   (insert ?\\))))))
   (sit-for 0))				; Display NOW
 
 
 ;;;_ + CURSOR MOTION.
+
+(defvar-local landmark--last-pos 0)
+
+(defconst landmark--intangible-chars "- \t\n|/\\\\")
+
+(defun landmark--intangible ()
+  (when (or (eobp)
+            (save-excursion
+              (not (zerop (skip-chars-forward landmark--intangible-chars)))))
+    (if (<= landmark--last-pos (point))   ;Moving forward.
+        (progn
+          (skip-chars-forward landmark--intangible-chars)
+          (when (eobp)
+            (skip-chars-backward landmark--intangible-chars)
+            (forward-char -1)))
+      (skip-chars-backward landmark--intangible-chars)
+      (if (bobp)
+          (skip-chars-forward landmark--intangible-chars)
+        (forward-char -1))))
+  (setq landmark--last-pos (point)))
 
 ;; previous-line and next-line don't work right with intangible newlines
 (defun landmark-move-down ()
   "Move point down one row on the Landmark board."
   (interactive)
   (if (< (landmark-point-y) landmark-board-height)
-      (forward-line 1)));;; landmark-square-height)))
+      (let ((col (current-column)))
+	(forward-line 1) ;;; landmark-square-height
+	(move-to-column col))))
 
 (defun landmark-move-up ()
   "Move point up one row on the Landmark board."
   (interactive)
   (if (> (landmark-point-y) 1)
-      (forward-line (- landmark-square-height))))
+      (let ((col (current-column)))
+	(forward-line (- landmark-square-height))
+	(move-to-column col))))
 
 (defun landmark-move-ne ()
   "Move point North East on the Landmark board."
@@ -1137,7 +1142,7 @@ because it is overwritten by \"One moment please\"."
 
 
 (defun landmark-print-distance ()
-  (insert (format "tree: %S \n" (calc-distance-of-robot-from 'landmark-tree)))
+  (insert (format "tree: %S \n" (landmark-calc-distance-of-robot-from 'landmark-tree)))
   (mapc 'landmark-print-distance-int landmark-directions))
 
 
@@ -1302,9 +1307,9 @@ After this limit is reached, landmark-random-move is called to push him out of i
 ;;;_  - landmark-plot-internal (sym)
 (defun landmark-plot-internal (sym)
   (landmark-plot-square (landmark-xy-to-index
-		   (get sym 'x)
-		   (get sym 'y))
-		   (get sym 'sym)))
+                         (get sym 'x)
+                         (get sym 'y))
+                        (get sym 'sym)))
 ;;;_  - landmark-plot-landmarks ()
 (defun landmark-plot-landmarks ()
   (setq landmark-cx (/ landmark-board-width  2))
@@ -1335,26 +1340,24 @@ After this limit is reached, landmark-random-move is called to push him out of i
 
 
 ;;;_ + Distance-calculation functions
-;;;_  - square (a)
-(defun square (a)
-  (* a a))
 
 ;;;_  - distance (x x0 y y0)
-(defun distance (x x0 y y0)
-  (sqrt (+ (square (- x x0)) (square (- y y0)))))
+(defun landmark--distance (x x0 y y0)
+  (let ((dx (- x x0)) (dy (- y y0)))
+    (sqrt (+ (* dx dx) (* dy dy)))))
 
-;;;_  - calc-distance-of-robot-from (direction)
-(defun calc-distance-of-robot-from (direction)
+;;;_  - landmark-calc-distance-of-robot-from (direction)
+(defun landmark-calc-distance-of-robot-from (direction)
   (put direction 'distance
-       (distance (get direction 'x)
-		 (landmark-index-to-x (landmark-point-square))
-		 (get direction 'y)
-		 (landmark-index-to-y (landmark-point-square)))))
+       (landmark--distance (get direction 'x)
+                           (landmark-index-to-x (landmark-point-square))
+                           (get direction 'y)
+                           (landmark-index-to-y (landmark-point-square)))))
 
-;;;_  - calc-smell-internal (sym)
-(defun calc-smell-internal (sym)
+;;;_  - landmark-calc-smell-internal (sym)
+(defun landmark-calc-smell-internal (sym)
   (let ((r (get sym 'r))
-	(d (calc-distance-of-robot-from sym)))
+	(d (landmark-calc-distance-of-robot-from sym)))
     (if (> (* 0.5 (- 1 (/ d r))) 0)
 	(* 0.5 (- 1 (/ d r)))
       0)))
@@ -1401,12 +1404,12 @@ After this limit is reached, landmark-random-move is called to push him out of i
 
 (defun landmark-calc-current-smells ()
   (mapc (lambda (direction)
-	     (put direction 'smell (calc-smell-internal direction)))
+	     (put direction 'smell (landmark-calc-smell-internal direction)))
 	  landmark-directions))
 
 (defun landmark-calc-payoff ()
   (put 'z 't-1 (get 'z 't))
-  (put 'z 't (calc-smell-internal 'landmark-tree))
+  (put 'z 't (landmark-calc-smell-internal 'landmark-tree))
   (if (= (- (get 'z 't) (get 'z 't-1)) 0.0)
       (cl-incf landmark-no-payoff)
     (setf landmark-no-payoff 0)))
@@ -1447,8 +1450,9 @@ After this limit is reached, landmark-random-move is called to push him out of i
 	    (message "e-w normalization"))))
 
   (mapc (lambda (pair)
-	     (if (> (get (car pair) 'y_t) 0)
-		 (funcall (car (cdr pair)))))
+	     (when (> (get (car pair) 'y_t) 0)
+               (funcall (car (cdr pair)))
+               (landmark--intangible)))
 	  '(
 	    (landmark-n landmark-move-up)
 	    (landmark-s landmark-move-down)
@@ -1470,7 +1474,7 @@ After this limit is reached, landmark-random-move is called to push him out of i
 
 (defun landmark-amble-robot ()
   (interactive)
-  (while (> (calc-distance-of-robot-from 'landmark-tree) 0)
+  (while (> (landmark-calc-distance-of-robot-from 'landmark-tree) 0)
 
     (landmark-store-old-y_t)
     (landmark-calc-current-smells)
@@ -1504,8 +1508,7 @@ If the game is finished, this command requests for another game."
    ((not landmark-game-in-progress)
     (landmark-prompt-for-other-game))
    (t
-    (let (square)
-      (setq square (landmark-point-square))
+    (let ((square (landmark-point-square)))
       (cond ((null square)
 	     (error "Your point is not on a square. Retry!"))
 	    ((not (zerop (aref landmark-board square)))
@@ -1516,7 +1519,7 @@ If the game is finished, this command requests for another game."
 
 	       (landmark-store-old-y_t)
 	       (landmark-calc-current-smells)
-	       (put 'z 't (calc-smell-internal 'landmark-tree))
+	       (put 'z 't (landmark-calc-smell-internal 'landmark-tree))
 
 	       (landmark-random-move)
 
@@ -1589,7 +1592,9 @@ If the game is finished, this command requests for another game."
 ;; distance on scent.
 
 (defun landmark-set-landmark-signal-strengths ()
-  (setq landmark-tree-r (* (sqrt (+ (square landmark-cx) (square landmark-cy))) 1.5))
+  (setq landmark-tree-r (* (sqrt (+ (* landmark-cx landmark-cx)
+                                    (* landmark-cy landmark-cy)))
+                           1.5))
   (mapc (lambda (direction)
 	     (put direction 'r (* landmark-cx 1.1)))
 	landmark-ew)
@@ -1608,7 +1613,7 @@ If the game is finished, this command requests for another game."
   "Run 100 Landmark games, each time saving the weights from the previous game."
   (interactive)
   (landmark 1)
-  (dotimes (scratch-var 100)
+  (dotimes (_ 100)
     (landmark 2)))
 
 ;;;###autoload

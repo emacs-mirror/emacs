@@ -50,6 +50,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "msdos.h"
 #include "dosfns.h"
 #endif
+#ifdef USE_X_TOOLKIT
+#include "widget.h"
+#endif
 
 #ifdef HAVE_NS
 Lisp_Object Qns_parse_geometry;

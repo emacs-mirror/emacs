@@ -1,19 +1,19 @@
-# BidiMirroring-6.3.0.txt
-# Date: 2013-02-12, 08:20:00 GMT [KW, LI]
+# BidiMirroring-7.0.0.txt
+# Date: 2013-12-17, 00:00:00 GMT [KW, LI]
 #
 # Bidi_Mirroring_Glyph Property
 # 
 # This file is an informative contributory data file in the
 # Unicode Character Database.
 #
-# Copyright (c) 1991-2013 Unicode, Inc.
+# Copyright (c) 1991-2014 Unicode, Inc.
 # For terms of use, see http://www.unicode.org/terms_of_use.html
 #
 # This data file lists characters that have the Bidi_Mirrored=Yes property
 # value, for which there is another Unicode character that typically has a glyph
 # that is the mirror image of the original character's glyph.
 #
-# The repertoire covered by the file is Unicode 6.3.0.
+# The repertoire covered by the file is Unicode 7.0.0.
 # 
 # The file contains a list of lines with mappings from one code point
 # to another one for character-based mirroring.
@@ -37,12 +37,12 @@
 # that means that no other character exists whose glyph is suitable
 # for character-based mirroring.
 # 
-# For information on bidi mirroring, see UAX #9: Bidirectional Algorithm,
+# For information on bidi mirroring, see UAX #9: Unicode Bidirectional Algorithm,
 # at http://www.unicode.org/unicode/reports/tr9/
 # 
 # This file was originally created by Markus Scherer.
 # Extended for Unicode 3.2, 4.0, 4.1, 5.0, 5.1, 5.2, and 6.0 by Ken Whistler,
-# and for Unicode 6.1, 6.2, and 6.3 by Ken Whistler and Laurentiu Iancu.
+# and for Unicode 6.1, 6.2, 6.3, and 7.0 by Ken Whistler and Laurentiu Iancu.
 # 
 # ############################################################
 #

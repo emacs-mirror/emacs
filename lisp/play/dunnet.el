@@ -898,7 +898,7 @@ to swim.")
 
 (defun dun-help (args)
   (dun-mprincl
-"Welcome to dunnet (2.01), by Ron Schnell (ronnie@driver-aces.com).
+"Welcome to dunnet (2.02), by Ron Schnell (ronnie@driver-aces.com - @RonnieSchnell).
 Here is some useful information (read carefully because there are one
 or more clues in here):
 - If you have a key that can open a door, you do not need to explicitly
@@ -1387,8 +1387,8 @@ for a moment, then straighten yourself up.
 (setq dungeon-mode 'dungeon)
 (setq dun-unix-verbs '((ls . dun-ls) (ftp . dun-ftp) (echo . dun-echo)
 		       (exit . dun-uexit) (cd . dun-cd) (pwd . dun-pwd)
-		       (rlogin . dun-rlogin) (uncompress . dun-uncompress)
-		       (cat . dun-cat)))
+		       (rlogin . dun-rlogin) (ssh . dun-rlogin)
+		       (uncompress . dun-uncompress) (cat . dun-cat)))
 
 (setq dun-dos-verbs '((dir . dun-dos-dir) (type . dun-dos-type)
 		      (exit . dun-dos-exit) (command . dun-dos-spawn)
@@ -2539,25 +2539,31 @@ treasures for points?" "4" "four")
 	  (dun-mprincl "Incorrect.")))
 
     (let (varname epoint afterq i value)
-      (setq varname (substring line 0 esign))
-      (if (not (setq epoint (string-match ")" line)))
-	  (if (string= (substring line (1+ esign) (+ esign 2))
-		       "\"")
-	      (progn
-		(setq afterq (substring line (+ esign 2)))
-		(setq epoint (+
-			      (string-match "\"" afterq)
-			      (+ esign 3))))
+      (setq varname (replace-regexp-in-string " " "" (substring line 0 esign)))
 
-	    (if (not (setq epoint (string-match " " line)))
-		(setq epoint (length line))))
-	(setq epoint (1+ epoint))
-	(while (and
-		(not (= epoint (length line)))
-		(setq i (string-match ")" (substring line epoint))))
-	  (setq epoint (+ epoint i 1))))
-      (setq value (substring line (1+ esign) epoint))
-      (dun-eval varname value))))
+      (if (or (= (length varname) 0) (< (- (length line) esign) 2))
+	  (progn
+	    (dun-mprinc line)
+	    (dun-mprincl " : not found."))
+
+	(if (not (setq epoint (string-match ")" line)))
+	    (if (string= (substring line (1+ esign) (+ esign 2))
+			 "\"")
+		(progn
+		  (setq afterq (substring line (+ esign 2)))
+		  (setq epoint (+
+				(string-match "\"" afterq)
+				(+ esign 3))))
+
+	      (if (not (setq epoint (string-match " " line)))
+		  (setq epoint (length line))))
+	  (setq epoint (1+ epoint))
+	  (while (and
+		  (not (= epoint (length line)))
+		  (setq i (string-match ")" (substring line epoint))))
+	    (setq epoint (+ epoint i 1))))
+	(setq value (substring line (1+ esign) epoint))
+	(dun-eval varname value)))))
 
 (defun dun-eval (varname value)
   (let (eval-error)
@@ -2741,16 +2747,20 @@ drwxr-xr-x  3 root     staff          2048 Jan 1 1970 ..")
 		  (if dun-batch-mode
 		      (dun-mprincl "Login failed.")
 		    (dun-mprincl "\nLogin failed."))
-		(if dun-batch-mode
-		   (dun-mprincl
-		    "Guest login okay, user access restrictions apply.")
-		  (dun-mprincl
-		   "\nGuest login okay, user access restrictions apply."))
-		(dun-ftp-commands)
-		(setq newlist
+		(if (= (length ident) 0)
+		    (if dun-batch-mode
+			(dun-mprincl "Password is required.")
+		      (dun-mprincl "\nPassword is required."))
+		  (if dun-batch-mode
+		      (dun-mprincl
+		       "Guest login okay, user access restrictions apply.")
+		    (dun-mprincl
+		     "\nGuest login okay, user access restrictions apply."))
+		  (dun-ftp-commands)
+		  (setq newlist
 '("What password did you use during anonymous ftp to gamma?"))
-		(setq newlist (append newlist (list ident)))
-		(rplaca (nthcdr 1 dun-endgame-questions) newlist)))))))))
+		  (setq newlist (append newlist (list ident)))
+		  (rplaca (nthcdr 1 dun-endgame-questions) newlist))))))))))
 
 (defun dun-ftp-commands ()
     (setq dun-exitf nil)

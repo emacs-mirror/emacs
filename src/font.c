@@ -207,6 +207,9 @@ font_make_object (int size, Lisp_Object entity, int pixelsize)
     = (struct font *) allocate_pseudovector (size, FONT_OBJECT_MAX, PVEC_FONT);
   int i;
 
+  /* GC can happen before the driver is set up,
+     so avoid dangling pointer here (Bug#17771).  */
+  font->driver = NULL;
   XSETFONT (font_object, font);
 
   if (! NILP (entity))
@@ -279,10 +282,8 @@ font_intern_prop (const char *str, ptrdiff_t len, bool force_symbol)
 
   if (SYMBOLP (tem))
     return tem;
-  if (len == nchars || len != nbytes)
-    tem = make_unibyte_string (str, len);
-  else
-    tem = make_multibyte_string (str, nchars, len);
+  tem = make_specified_string (str, nchars, len,
+			       len != nchars && len == nbytes);
   return Fintern (tem, obarray);
 }
 

@@ -1,5 +1,13 @@
 2014-06-15  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (LDFLAGS): Explicitly set via configure.
+
+2014-06-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (CPPFLAGS): Define.
+
+2014-06-15  Glenn Morris  <rgm@gnu.org>
+
 	* Makefile.in (bootstrap-clean): New.
 
 2014-06-05  Dmitry Antipov  <dmantipov@yandex.ru>

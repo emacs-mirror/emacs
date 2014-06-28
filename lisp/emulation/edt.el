@@ -2033,7 +2033,8 @@ created."
   ;; Make highlighting of selected text work properly for EDT commands.
   (if (featurep 'emacs)
       (progn
-	(setq edt-orig-transient-mark-mode transient-mark-mode)
+	(setq edt-orig-transient-mark-mode
+              (default-value 'transient-mark-mode))
 	(add-hook 'activate-mark-hook
 		  (function
 		   (lambda ()
@@ -2068,7 +2069,7 @@ created."
   (edt-reset)
   (force-mode-line-update t)
   (if (featurep 'emacs)
-    (setq transient-mark-mode edt-orig-transient-mark-mode))
+      (setq-default transient-mark-mode edt-orig-transient-mark-mode))
   (message "Original key bindings restored; EDT Emulation disabled"))
 
 (defun edt-default-menu-bar-update-buffers ()

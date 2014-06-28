@@ -1,3 +1,40 @@
+2014-06-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* notes/unicode: Some notes about what to do when a new Unicode
+	version is imported.
+
+2014-06-26  Glenn Morris  <rgm@gnu.org>
+
+	* authors.el: Move here from ../lisp/emacs-lisp.
+
+2014-06-25  Glenn Morris  <rgm@gnu.org>
+
+	* grammars/Makefile.in (${bovinedir}/c-by.el, ${bovinedir}/make-by.el):
+	(${wisentdir}/js-wy.el, ${wisentdir}/python-wy.el):
+	Replace with pattern rules.
+	(${bovinedir}/scm-by.el, ${wisentdir}/javat-wy.el)
+	(${cedetdir}/srecode/srt-wy.el): Use $<.
+
+	* unidata/Makefile.in (${top_srcdir}/src/macuvs.h): Make and load .elc.
+	(.el.elc): Replace with pattern rule.
+	(%.elc): New.
+	(unidata.txt): Use $<.
+	(compile): Remove.
+	(${DSTDIR}/charprop.el): Use order-only prereqs rather than a sub-make.
+
+	* unidata/uvs.el (uvs-print-table-ivd): Fix free variable typo.
+
+2014-06-21  Glenn Morris  <rgm@gnu.org>
+
+	* unidata/BidiMirroring.txt: Update to 7.0.0 (only comment changes).
+	* unidata/UnicodeData.txt: Update to 7.0.0.
+	* unidata/IVD_Sequences.txt: Update to 2014-05-16 version.
+
+2014-06-21  Stephen Berman  <Stephen.Berman@gmx.net>
+
+	* notes/elpa: Use "git" instead of "bzr" in the name of machine to
+	clone the repository from.
+
 2014-06-13  Glenn Morris  <rgm@gnu.org>
 
 	* unidata/Makefile.in (${DSTDIR}/charprop.el):

@@ -921,17 +921,18 @@ autocmp_chars (Lisp_Object rule, ptrdiff_t charpos, ptrdiff_t bytepos,
   return unbind_to (count, lgstring);
 }
 
-static Lisp_Object _work_val;
-
 /* 1 iff the character C is composable.  Characters of general
    category Z? or C? are not composable except for ZWNJ and ZWJ. */
 
-#define CHAR_COMPOSABLE_P(C)						\
-  ((C) > ' '								\
-   && ((C) == 0x200C || (C) == 0x200D					\
-       || (_work_val = CHAR_TABLE_REF (Vunicode_category_table, (C)),	\
-	   (INTEGERP (_work_val)					\
-	    && (XINT (_work_val) <= UNICODE_CATEGORY_So)))))
+static bool
+char_composable_p (int c)
+{
+  Lisp_Object val;
+  return (c > ' '			
+	  && (c == 0x200C || c == 0x200D
+	      || (val = CHAR_TABLE_REF (Vunicode_category_table, c),
+		  (INTEGERP (val) && (XINT (val) <= UNICODE_CATEGORY_So)))));
+}
 
 /* Update cmp_it->stop_pos to the next position after CHARPOS (and
    BYTEPOS) where character composition may happen.  If BYTEPOS is
@@ -1067,7 +1068,7 @@ composition_compute_stop_pos (struct composition_it *cmp_it, ptrdiff_t charpos, 
 	p = SDATA (string) + bytepos;
       c = STRING_CHAR_AND_LENGTH (p, len);
       limit = bytepos + len;
-      while (CHAR_COMPOSABLE_P (c))
+      while (char_composable_p (c))
 	{
 	  val = CHAR_TABLE_REF (Vcomposition_function_table, c);
 	  if (! NILP (val))
@@ -1144,7 +1145,7 @@ composition_compute_stop_pos (struct composition_it *cmp_it, ptrdiff_t charpos, 
       /* Skip all uncomposable characters.  */
       if (NILP (string))
 	{
-	  while (charpos - 1 > endpos && ! CHAR_COMPOSABLE_P (c))
+	  while (charpos - 1 > endpos && ! char_composable_p (c))
 	    {
 	      DEC_BOTH (charpos, bytepos);
 	      c = FETCH_MULTIBYTE_CHAR (bytepos);
@@ -1152,7 +1153,7 @@ composition_compute_stop_pos (struct composition_it *cmp_it, ptrdiff_t charpos, 
 	}
       else
 	{
-	  while (charpos - 1 > endpos && ! CHAR_COMPOSABLE_P (c))
+	  while (charpos - 1 > endpos && ! char_composable_p (c))
 	    {
 	      p--;
 	      while (! CHAR_HEAD_P (*p))
@@ -1486,7 +1487,7 @@ find_automatic_composition (ptrdiff_t pos, ptrdiff_t limit,
 		  |-B-|-C-|--D--|
 
      Here, it is known that characters after positions 1 and 9 can
-     never be composed (i.e. ! CHAR_COMPOSABLE_P (CH)), and
+     never be composed (i.e. ! char_composable_p (CH)), and
      composition A is an invalid one because it's partially covered by
      the valid composition C.  And to know whether a composition is
      valid or not, the only way is to start searching forward from a
@@ -1510,7 +1511,7 @@ find_automatic_composition (ptrdiff_t pos, ptrdiff_t limit,
   while (1)
     {
       c = STRING_CHAR (cur.p);
-      if (! CHAR_COMPOSABLE_P (c))
+      if (! char_composable_p (c))
 	{
 	  if (limit <= pos)	/* case (1)  */
 	    {
@@ -1519,7 +1520,7 @@ find_automatic_composition (ptrdiff_t pos, ptrdiff_t limit,
 		  return 0;
 		BACKWARD_CHAR (cur, stop);
 		c = STRING_CHAR (cur.p);
-	      } while (! CHAR_COMPOSABLE_P (c));
+	      } while (! char_composable_p (c));
 	      fore_check_limit = cur.pos + 1;
 	    }
 	  else			/* case (2) */
@@ -1535,7 +1536,7 @@ find_automatic_composition (ptrdiff_t pos, ptrdiff_t limit,
 	  prev = cur;
 	  BACKWARD_CHAR (cur, stop);
 	  c = STRING_CHAR (cur.p);
-	  if (! CHAR_COMPOSABLE_P (c))
+	  if (! char_composable_p (c))
 	    {
 	      cur = prev;
 	      break;
@@ -1683,9 +1684,10 @@ Otherwise (for terminal display), FONT-OBJECT must be a terminal ID, a
 frame, or nil for the selected frame's terminal device.
 
 If the optional 4th argument STRING is not nil, it is a string
-containing the target characters between indices FROM and TO.
-Otherwise FROM and TO are character positions in current buffer;
-they can be in either order, and can be integers or markers.
+containing the target characters between indices FROM and TO,
+which are treated as in `substring'.  Otherwise FROM and TO are
+character positions in current buffer; they can be in either order,
+and can be integers or markers.
 
 A glyph-string is a vector containing information about how to display
 a specific character sequence.  The format is:
@@ -1741,15 +1743,10 @@ should be ignored.  */)
     }
   else
     {
-      CHECK_NATNUM (from);
-      CHECK_NATNUM (to);
       CHECK_STRING (string);
+      validate_subarray (string, from, to, SCHARS (string), &frompos, &topos);
       if (! STRING_MULTIBYTE (string))
 	error ("Attempt to shape unibyte text");
-      if (! (XINT (from) <= XINT (to) && XINT (to) <= SCHARS (string)))
-	args_out_of_range_3 (string, from, to);
-      frompos = XFASTINT (from);
-      topos = XFASTINT (to);
       frombyte = string_char_to_byte (string, frompos);
     }
 
@@ -1794,21 +1791,18 @@ DEFUN ("compose-string-internal", Fcompose_string_internal,
        Scompose_string_internal, 3, 5, 0,
        doc: /* Internal use only.
 
-Compose text between indices START and END of STRING.
-Optional 4th and 5th arguments are COMPONENTS and MODIFICATION-FUNC
+Compose text between indices START and END of STRING, where
+START and END are treated as in `substring'.  Optional 4th
+and 5th arguments are COMPONENTS and MODIFICATION-FUNC
 for the composition.  See `compose-string' for more details.  */)
-  (Lisp_Object string, Lisp_Object start, Lisp_Object end, Lisp_Object components, Lisp_Object modification_func)
+  (Lisp_Object string, Lisp_Object start, Lisp_Object end,
+   Lisp_Object components, Lisp_Object modification_func)
 {
+  ptrdiff_t from, to;
+
   CHECK_STRING (string);
-  CHECK_NUMBER (start);
-  CHECK_NUMBER (end);
-
-  if (XINT (start) < 0 ||
-      XINT (start) > XINT (end)
-      || XINT (end) > SCHARS (string))
-    args_out_of_range (start, end);
-
-  compose_text (XINT (start), XINT (end), components, modification_func, string);
+  validate_subarray (string, start, end, SCHARS (string), &from, &to);
+  compose_text (from, to, components, modification_func, string);
   return string;
 }
 

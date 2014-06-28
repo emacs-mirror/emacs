@@ -1,3 +1,20 @@
+2014-06-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* org-compat.el (activate-mark): Set transient-mark-mode buffer-locally.
+
+2014-06-22  Mario Lang  <mlang@delysid.org>
+
+	* org-list.el (org-list-insert-item): The the -> the.
+
+	* org-bibtex.el (org-bibtex-fields): The the -> the.
+
+2013-06-22  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* ob-core.el (org-babel-insert-result): Prefer point-min-marker
+	and point-max-marker.
+	* org-mouse.el (org-mouse-do-remotely): Prefer point-marker
+	to copy-marker of point.
+
 2014-05-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* org-compat.el (org-font-lock-ensure): New function.

@@ -1191,7 +1191,7 @@ If there is an active region via @code{transient-mark-mode}, or
 @code{mouse-drag-region}, then the @code{REGION} section will be
 enabled.
 
-In addition, @code{REGIONTEXT} will be set the the text in the region,
+In addition, @code{REGIONTEXT} will be set to the text in the region,
 and that region of text will be ``killed'' from the current buffer.
 
 If standard-output is NOT the current buffer, then the region will not

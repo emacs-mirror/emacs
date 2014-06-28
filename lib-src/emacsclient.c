@@ -82,10 +82,6 @@ char *w32_getenv (char *);
 #include <signal.h>
 #include <errno.h>
 
-
-
-char *getenv (const char *);
-
 #ifndef VERSION
 #define VERSION "unspecified"
 #endif

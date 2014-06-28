@@ -1,5 +1,7 @@
 2014-06-15  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (CPPFLAGS): Explicitly set via configure.
+
 	* Makefile.in (mostlyclean, clean, distclean, maintainer-clean, tags):
 	Declare as PHONY.
 	(boostrap-clean): New.

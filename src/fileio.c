@@ -990,7 +990,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	{
 	  unsigned char *p = SDATA (name);
 
-	  while (*p && ASCII_BYTE_P (*p))
+	  while (*p && ASCII_CHAR_P (*p))
 	    p++;
 	  if (*p == '\0')
 	    {
@@ -3013,6 +3013,9 @@ was unable to determine the ACL entries.  */)
   acl_t acl;
   Lisp_Object acl_string;
   char *str;
+# ifndef HAVE_ACL_TYPE_EXTENDED
+  acl_type_t ACL_TYPE_EXTENDED = ACL_TYPE_ACCESS;
+# endif
 #endif
 
   absname = expand_and_dir_to_file (filename,
@@ -3027,7 +3030,7 @@ was unable to determine the ACL entries.  */)
 #ifdef HAVE_ACL_SET_FILE
   absname = ENCODE_FILE (absname);
 
-  acl = acl_get_file (SSDATA (absname), ACL_TYPE_ACCESS);
+  acl = acl_get_file (SSDATA (absname), ACL_TYPE_EXTENDED);
   if (acl == NULL)
     return Qnil;
 
@@ -5762,24 +5765,6 @@ before any other event (mouse or keypress) is handled.  */)
   return Qnil;
 }
 
-Lisp_Object
-Fread_file_name (Lisp_Object prompt, Lisp_Object dir, Lisp_Object default_filename, Lisp_Object mustmatch, Lisp_Object initial, Lisp_Object predicate)
-{
-  struct gcpro gcpro1;
-  Lisp_Object args[7];
-
-  GCPRO1 (default_filename);
-  args[0] = intern ("read-file-name");
-  args[1] = prompt;
-  args[2] = dir;
-  args[3] = default_filename;
-  args[4] = mustmatch;
-  args[5] = initial;
-  args[6] = predicate;
-  RETURN_UNGCPRO (Ffuncall (7, args));
-}
-
-
 void
 init_fileio (void)
 {
