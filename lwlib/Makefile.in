@@ -41,6 +41,7 @@ RANLIB=@RANLIB@
 
 AR = @AR@
 ARFLAGS = @ARFLAGS@
+MKDIR_P = @MKDIR_P@
 
 LUCID_OBJS = lwlib-Xlw.o xlwmenu.o lwlib-Xaw.o
 MOTIF_OBJS = lwlib-Xm.o
@@ -50,13 +51,19 @@ TOOLKIT_OBJS = $(@X_TOOLKIT_TYPE@_OBJS)
 
 OBJS = lwlib.o $(TOOLKIT_OBJS) lwlib-utils.o
 
+DEPDIR = deps
+## -MMD -MF $(DEPDIR)/$*.d if AUTO_DEPEND; else empty.
+DEPFLAGS = @DEPFLAGS@
+## ${MKDIR_P} ${DEPDIR} (if AUTO_DEPEND); else ':'.
+MKDEPDIR = @MKDEPDIR@
+
 ## ../src is where the generated file (config.h, globals.h) are.
 ## $(srcdir)/../src is where the non-generated files (lisp.h) are.
 ## (In an out-of-tree build, these two are not the same.)
 ## $(srcdir) is where the lwlib sources are.
 ## There are no generated lwlib files, hence no need for -I.
 ALL_CFLAGS= $(C_SWITCH_SYSTEM) $(C_SWITCH_X_SITE) \
-  $(C_SWITCH_MACHINE) \
+  $(C_SWITCH_MACHINE) $(DEPFLAGS) \
   $(WARN_CFLAGS) $(WERROR_CFLAGS) $(PROFILING_CFLAGS) $(CFLAGS) \
   -Demacs -I../src \
   -I$(srcdir) -I$(srcdir)/../src -I../lib -I$(srcdir)/../lib
@@ -65,6 +72,7 @@ all: liblw.a
 .PHONY: all
 
 .c.o:
+	@$(MKDEPDIR)
 	$(CC) -c $(CPPFLAGS) $(ALL_CFLAGS) $<
 
 liblw.a: $(OBJS)
@@ -72,30 +80,18 @@ liblw.a: $(OBJS)
 	$(AR) $(ARFLAGS) $@ $(OBJS)
 	$(RANLIB) $@
 
-## Generated files in ../src, non-generated in $(srcdir)/../src.
-config_h = ../src/config.h $(srcdir)/../src/conf_post.h
-lisp_h = $(srcdir)/../src/lisp.h
-## lisp.h includes this.
 globals_h = ../src/globals.h
-src_h = $(config_h) $(lisp_h) $(globals_h)
-
 $(globals_h):
 	$(MAKE) -C ../src globals.h
 
-lwlib-utils.o: $(src_h) lwlib-utils.c lwlib-utils.h lwlib.h
-lwlib.o:       $(src_h) lwlib.c lwlib.h lwlib-int.h lwlib-utils.h \
-  lwlib-Xlw.h lwlib-Xm.h lwlib-Xaw.h
-lwlib-Xlw.o:   $(src_h) lwlib-Xlw.c lwlib.h lwlib-int.h lwlib-Xlw.h xlwmenu.h
-lwlib-Xaw.o:   $(src_h) lwlib-Xaw.c lwlib-Xaw.h lwlib.h lwlib-int.h
-lwlib-Xm.o:    $(src_h) lwlib-Xm.c lwlib-Xm.h lwlib.h lwlib-int.h lwlib-utils.h
-xlwmenu.o:     $(src_h) xlwmenu.c xlwmenu.h lwlib.h xlwmenuP.h \
-  $(srcdir)/../src/xterm.h
-
+## Insert either autodeps.mk (if AUTO_DEPEND), else deps.mk.
+@lwlib_deps_frag@
 
 .PHONY: mostlyclean clean distclean bootstrap-clean maintainer-clean
 
 clean mostlyclean:
 	rm -f *.o liblw.a \#*
+	-rm -rf ${DEPDIR}
 
 distclean: clean
 	rm -f Makefile

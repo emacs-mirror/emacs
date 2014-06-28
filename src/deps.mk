@@ -1,7 +1,7 @@
 ### deps.mk --- src/Makefile fragment for GNU Emacs
 
-## Copyright (C) 1985, 1987-1988, 1993-1995, 1999-2014 Free Software
-## Foundation, Inc.
+## Copyright (C) 1985, 1987-1988, 1993-1995, 1999-2014
+##   Free Software Foundation, Inc.
 
 ## This file is part of GNU Emacs.
 
@@ -27,8 +27,6 @@
 ## Eg callproc.c only depends on w32.h for WINDOWSNT builds.
 ## One way to fix this would be to replace w32.h (etc) by $(W32_H),
 ## a variable set by configure.  Does not seem worth the trouble.
-## Since the w32 build does not even use this file, you might ask
-## why these dependencies are here at all...
 
 ## nsgui.h: In fact, every .o file depends directly or indirectly on
 ## dispextern.h and hence nsgui.h under NS.  But the ones that actually

@@ -438,12 +438,12 @@ echo "Making links to \`nextstep/GNUstep/Emacs.base/Resources'"
 
 echo "Making links to \`oldXMenu'"
 (cd oldXMenu
- ln *.[ch] *.in ../${tempdir}/oldXMenu
+ ln *.[ch] *.in *.mk ../${tempdir}/oldXMenu
  ln README ChangeLog ../${tempdir}/oldXMenu)
 
 echo "Making links to \`lwlib'"
 (cd lwlib
- ln *.[ch] *.in ../${tempdir}/lwlib
+ ln *.[ch] *.in *.mk ../${tempdir}/lwlib
  ln README ChangeLog ../${tempdir}/lwlib)
 
 ## It is important to distribute admin/ because it contains sources

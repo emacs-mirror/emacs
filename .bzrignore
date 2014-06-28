@@ -193,12 +193,14 @@ lisp/leim/quail/quick-b5.el
 lisp/leim/quail/quick-cns.el
 lisp/leim/quail/tsang-b5.el
 lisp/leim/quail/tsang-cns.el
+lwlib/deps
 nextstep/Emacs.app
 nextstep/Cocoa/Emacs.base/Contents/Info.plist
 nextstep/Cocoa/Emacs.base/Contents/Resources/English.lproj
 nextstep/GNUstep/Emacs.base/Resources/Emacs.desktop
 nextstep/GNUstep/Emacs.base/Resources/Info-gnustep.plist
 nt/config.log
+oldXMenu/deps
 src/_dbxinit
 src/_gdbinit
 src/bootstrap-emacs
