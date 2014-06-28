@@ -1,4 +1,4 @@
-;;; hideif.el --- hides selected code within ifdef
+;;; hideif.el --- hides selected code within ifdef  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1988, 1994, 2001-2014 Free Software Foundation, Inc.
 
@@ -550,8 +550,8 @@ that form should be displayed.")
              (setq tok (cadr tokens))
              (if (eq (car tokens) 'hif-lparen)
                  (if (and (hif-if-valid-identifier-p tok)
-                          (eq (caddr tokens) 'hif-rparen))
-                     (setq tokens (cdddr tokens))
+                          (eq (cl-caddr tokens) 'hif-rparen))
+                     (setq tokens (cl-cdddr tokens))
                    (error "#define followed by non-identifier: %S" tok))
                (setq tok (car tokens)
                      tokens (cdr tokens))
@@ -607,9 +607,8 @@ detecting self-reference."
                      ;; for hif-macro-supply-arguments
                      (let* ((hif-token-list (cdr remains))
                             (hif-token nil)
-                            (parmlist (mapcar 'hif-expand-token-list
-                                              (hif-get-argument-list
-                                               tok)))
+                            (parmlist (mapcar #'hif-expand-token-list
+                                              (hif-get-argument-list)))
                             (result
                              (hif-expand-token-list
                               (hif-macro-supply-arguments tok parmlist)
@@ -618,10 +617,10 @@ detecting self-reference."
                        result))
                  ;; Argument list is nil, direct expansion
                  (setq rep (hif-expand-token-list
-                            (caddr rep) ; Macro's token list
+                            (cl-caddr rep) ; Macro's token list
                             tok expand_list))
                  ;; Replace all remaining references immediately
-                 (setq remains (substitute tok rep remains))
+                 (setq remains (cl-substitute tok rep remains))
                  rep)
              ;; Lookup tok returns an atom
              rep))
@@ -824,7 +823,7 @@ factor : '!' factor | '~' factor | '(' expr ')' | 'defined(' id ')' |
           (hif-place-macro-invocation ident)
         `(hif-lookup (quote ,ident)))))))
 
-(defun hif-get-argument-list (ident)
+(defun hif-get-argument-list ()
   (let ((nest 0)
         (parmlist nil) ; A "token" list of parameters, will later be parsed
         (parm nil))
@@ -849,7 +848,7 @@ factor : '!' factor | '~' factor | '(' expr ')' | 'defined(' id ')' |
     (nreverse parmlist)))
 
 (defun hif-place-macro-invocation (ident)
-  (let ((parmlist (hif-get-argument-list ident)))
+  (let ((parmlist (hif-get-argument-list)))
     `(hif-invoke (quote ,ident) (quote ,parmlist))))
 
 (defun hif-string-concatenation ()
@@ -861,7 +860,7 @@ factor : '!' factor | '~' factor | '(' expr ')' | 'defined(' id ')' |
                     (substring hif-token 1)))) ; remove leading  '"'
     result))
 
-(defun hif-define-macro (parmlist token-body)
+(defun hif-define-macro (_parmlist _token-body)
   "A marker for defined macro with arguments.
 This macro cannot be evaluated alone without parameters inputed."
   ;;TODO: input arguments at run time, use minibuffer to query all arguments
@@ -1002,8 +1001,8 @@ preprocessing token"
       result)))
 
 (defun hif-delimit (lis atom)
-  (nconc (mapcan (lambda (l) (list l atom))
-                 (butlast lis))
+  (nconc (cl-mapcan (lambda (l) (list l atom))
+                    (butlast lis))
          (last lis)))
 
 ;; Perform token replacement:
@@ -1018,7 +1017,6 @@ preprocessing token"
          (macro-body           (and macro (cadr macro)))
          actual-count
          formal-count
-         actual
          formal
          etc)
 
@@ -1055,10 +1053,10 @@ preprocessing token"
               ;; Unlike `subst', `substitute' replace only the top level
               ;; instead of the whole tree; more importantly, it's not
               ;; destructive.
-              (substitute (if (and etc (null formal-parms))
-                              (hif-delimit actual-parms 'hif-comma)
-                            (car actual-parms))
-                          formal macro-body))
+              (cl-substitute (if (and etc (null formal-parms))
+                                 (hif-delimit actual-parms 'hif-comma)
+                               (car actual-parms))
+                             formal macro-body))
         (setq actual-parms (cdr actual-parms)))
 
       ;; Replacement completed, flatten the whole token list
@@ -1462,7 +1460,6 @@ first arg will be `hif-etc'."
         (let* ((defining (string= "define" (match-string 2)))
                (name (and (re-search-forward hif-macroref-regexp max t)
                           (match-string 1)))
-               (parsed nil)
                (parmlist (and (match-string 3) ; First arg id found
                               (hif-parse-macro-arglist (match-string 2)))))
           (if defining
@@ -1534,15 +1531,15 @@ It does not do the work that's pointless to redo on a recursive entry."
   (save-excursion
     (let ((case-fold-search nil)
           min max)
-    (goto-char (point-min))
+      (goto-char (point-min))
       (setf min (point))
-      (loop do
-            (setf max (hif-find-any-ifX))
-            (hif-add-new-defines min max)
-            (if max
-                (hif-possibly-hide))
-            (setf min (point))
-            while max))))
+      (cl-loop do
+               (setf max (hif-find-any-ifX))
+               (hif-add-new-defines min max)
+               (if max
+                   (hif-possibly-hide))
+               (setf min (point))
+               while max))))
 
 ;;===%%SF%% hide-ifdef-hiding (End)  ===
 

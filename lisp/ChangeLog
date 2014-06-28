@@ -1,3 +1,7 @@
+2014-06-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/hideif.el: Use lexical-binding.  Fix up cl-lib usage.
+
 2014-06-28  K. Handa  <handa@gnu.org>
 
 	Fix Bug#17739.
@@ -553,7 +557,6 @@
 	FILENAME.
 
 	* net/trampver.el: Update release number.
->>>>>>> MERGE-SOURCE
 
 2014-06-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
