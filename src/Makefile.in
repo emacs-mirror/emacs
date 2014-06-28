@@ -498,7 +498,9 @@ temacs$(EXEEXT): $(LIBXMENU) $(ALLOBJS) \
 
 ## The following oldxmenu-related rules are only (possibly) used if
 ## HAVE_X11 && !USE_GTK, but there is no harm in always defining them.
-$(lwlibdir)/liblw.a:
+
+## This one needs globals.h to exist, eg for Vinstallation_directory.
+$(lwlibdir)/liblw.a: globals.h
 	$(MAKE) -C $(lwlibdir) liblw.a
 $(oldXMenudir)/libXMenu11.a:
 	$(MAKE) -C $(oldXMenudir) libXMenu11.a
