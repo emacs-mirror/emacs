@@ -671,6 +671,49 @@ All non-spacing characters have this function in
 	      (setq i (1+ i))))
 	  gstring))))))
 
+(defun compose-gstring-for-dotted-circle (gstring)
+  (let* ((dc (lgstring-glyph gstring 0)) ; glyph of dotted-circle
+	 (dc-id (lglyph-code dc))
+	 (fc (lgstring-glyph gstring 1)) ; glyph of the following char
+	 (fc-id (lglyph-code fc))
+	 (gstr (and nil (font-shape-gstring gstring))))
+    (if (and gstr
+	     (or (= (lgstring-glyph-len gstr) 1)
+		 (and (= (lgstring-glyph-len gstr) 2)
+		      (= (lglyph-to (lgstring-glyph gstr 0))
+			 (lglyph-to (lgstring-glyph gstr 1))))))
+	;; It seems that font-shape-gstring has composed glyphs.
+	gstr
+      ;; Artificially compose the following glyph with the preceding
+      ;; dotted-circle.
+      (setq dc (lgstring-glyph gstring 0)
+	    fc (lgstring-glyph gstring 1))
+      (let ((dc-width (lglyph-width dc))
+	    (fc-width (- (lglyph-rbearing fc) (lglyph-lbearing fc)))
+	    (from (lglyph-from dc))
+	    (to (lglyph-to fc))
+	    (xoff 0) (yoff 0) (width 0))
+	(if (and (< (lglyph-descent fc) 0)
+		 (> (lglyph-ascent dc) (- (lglyph-descent fc))))
+	    ;; Set YOFF so that the following glyph is put on top of
+	    ;; the dotted-circle.
+	    (setq yoff (- (- (lglyph-descent fc)) (lglyph-ascent dc))))
+	(if (> (lglyph-width fc) 0)
+	    (setq xoff (- (lglyph-rbearing fc))))
+	(if (< dc-width fc-width)
+	    ;; The following glyph is wider, but we don't know how to
+	    ;; align both glyphs.  So, try the easiet method;
+	    ;; i.e. align left edges of the glyphs.
+	    (setq xoff (- xoff (- dc-width) (- (lglyph-lbearing fc )))
+		  width (- fc-width dc-width)))
+	(if (or (/= xoff 0) (/= yoff 0) (/= width 0) (/= (lglyph-width fc) 0))
+	    (lglyph-set-adjustment fc xoff yoff width))
+	(lglyph-set-from-to dc from to)
+	(lglyph-set-from-to fc from to))
+      (if (> (lgstring-glyph-len gstring) 2)
+	  (lgstring-set-glyph gstring 2 nil))
+      gstring)))
+
 ;; Allow for bootstrapping without uni-*.el.
 (when unicode-category-table
   (let ((elt `([,(purecopy "\\c.\\c^+") 1 compose-gstring-for-graphic]
@@ -679,7 +722,10 @@ All non-spacing characters have this function in
      #'(lambda (key val)
 	 (if (memq val '(Mn Mc Me))
 	     (set-char-table-range composition-function-table key elt)))
-     unicode-category-table)))
+     unicode-category-table))
+  ;; for dotted-circle
+  (aset composition-function-table #x25CC
+	`([,(purecopy ".\\c^") 0 compose-gstring-for-dotted-circle])))
 
 (defun compose-gstring-for-terminal (gstring)
   "Compose glyph-string GSTRING for terminal display.
