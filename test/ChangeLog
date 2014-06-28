@@ -1,3 +1,8 @@
+2014-06-28  Glenn Morris  <rgm@gnu.org>
+
+	* automated/Makefile.in (TESTS): New list of short PHONY aliases.
+	(test_template): New definition.  Apply to TESTS.
+
 2014-06-27  Glenn Morris  <rgm@gnu.org>
 
 	* automated/Makefile.in (check-maybe): Rename from check.

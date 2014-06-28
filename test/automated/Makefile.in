@@ -17,6 +17,16 @@
 # You should have received a copy of the GNU General Public License
 # along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
+### Commentary:
+
+## Some targets:
+## check: re-run all tests
+## check-maybe: run all tests whose .log file needs updating
+## filename.log: run tests from filename.el(c) if .log file needs updating
+## filename: re-run tests from filename.el(c)
+
+### Code:
+
 SHELL = @SHELL@
 
 srcdir = @srcdir@
@@ -84,10 +94,23 @@ all: check
 
 ELFILES = $(wildcard ${srcdir}/*.el)
 LOGFILES = $(patsubst %.el,%.log,$(notdir ${ELFILES}))
+TESTS = ${LOGFILES:.log=}
 
 ## If we have to interrupt a hanging test, preserve the log so we can
 ## see what the problem was.
 .PRECIOUS: %.log
+
+.PHONY: ${TESTS}
+
+## The short aliases that always re-run the tests.
+define test_template
+$(1):
+	@test ! -f $(1).log || mv $(1).log $(1).log~
+	@${MAKE} $(1).log
+endef
+
+$(foreach test,${TESTS},$(eval $(call test_template,${test})))
+
 
 ## Re-run all the tests every time.
 check:
