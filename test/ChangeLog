@@ -1,5 +1,8 @@
 2014-06-28  Glenn Morris  <rgm@gnu.org>
 
+	* automated/Makefile.in (GDB): New variable.
+	(emacs): Use $GDB.  (Bug#15991)
+
 	* automated/Makefile.in (WRITE_LOG): New variable.
 	(%.log): Use WRITE_LOG.
 	(test_template): Disable logging.
