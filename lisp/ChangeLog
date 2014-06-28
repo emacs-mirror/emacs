@@ -1,3 +1,13 @@
+2014-06-28  K. Handa  <handa@gnu.org>
+
+	Fix Bug#17739.
+
+	* composite.el: Setup composition-function-table for dotted circle.
+	(compose-gstring-for-dotted-circle): New function.
+
+	* international/characters.el: Add category "^" to all
+	non-spacing characters.
+
 2014-06-28  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (doit): Remove force rule.
@@ -543,6 +553,7 @@
 	FILENAME.
 
 	* net/trampver.el: Update release number.
+>>>>>>> MERGE-SOURCE
 
 2014-06-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 

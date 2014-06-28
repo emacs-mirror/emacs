@@ -1389,11 +1389,13 @@ Setup char-width-table appropriate for non-CJK language environment."
 (when (setq unicode-category-table
 	    (unicode-property-table-internal 'general-category))
   (map-char-table #'(lambda (key val)
-		      (if (and val
-			       (or (and (/= (aref (symbol-name val) 0) ?M)
-					(/= (aref (symbol-name val) 0) ?C))
-				   (eq val 'Zs)))
-			  (modify-category-entry key ?.)))
+		      (if val
+			  (cond ((or (and (/= (aref (symbol-name val) 0) ?M)
+					  (/= (aref (symbol-name val) 0) ?C))
+				     (eq val 'Zs))
+				 (modify-category-entry key ?.))
+				((eq val 'Mn)
+				 (modify-category-entry key ?^)))))
 		  unicode-category-table))
 
 (optimize-char-table (standard-category-table))
