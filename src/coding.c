@@ -1549,8 +1549,8 @@ encode_coding_utf_8 (struct coding_system *coding)
 	    *dst++ = CHAR_TO_BYTE8 (c);
 	  else
 	    CHAR_STRING_ADVANCE_NO_UNIFY (c, dst);
-	  produced_chars++;
 	}
+      produced_chars = dst - (coding->destination + coding->produced);
     }
   record_conversion_result (coding, CODING_RESULT_SUCCESS);
   coding->produced_char += produced_chars;
