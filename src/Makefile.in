@@ -498,12 +498,12 @@ temacs$(EXEEXT): $(LIBXMENU) $(ALLOBJS) \
 
 ## The following oldxmenu-related rules are only (possibly) used if
 ## HAVE_X11 && !USE_GTK, but there is no harm in always defining them.
-
-## This one needs globals.h to exist, eg for Vinstallation_directory.
-$(lwlibdir)/liblw.a: globals.h
+$(lwlibdir)/liblw.a: $(config_h) globals.h lisp.h FORCE
 	$(MAKE) -C $(lwlibdir) liblw.a
-$(oldXMenudir)/libXMenu11.a:
+$(oldXMenudir)/libXMenu11.a: FORCE
 	$(MAKE) -C $(oldXMenudir) libXMenu11.a
+FORCE:
+.PHONY: FORCE
 
 ../config.status: config.in epaths.in
 	@echo "The file ${?:.in=.h} needs to be set up from $?."
