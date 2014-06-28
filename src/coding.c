@@ -7265,13 +7265,16 @@ produce_charset (struct coding_system *coding, int *charbuf, ptrdiff_t pos)
 		      coding->dst_object);
 }
 
+#define MAX_CHARBUF_SIZE 0x4000
+#define MIN_CHARBUF_SIZE 0x10
 
-#define CHARBUF_SIZE 0x4000
-
-#define ALLOC_CONVERSION_WORK_AREA(coding)				\
-  do {									\
-    coding->charbuf = SAFE_ALLOCA (CHARBUF_SIZE * sizeof (int));	\
-    coding->charbuf_size = CHARBUF_SIZE;				\
+#define ALLOC_CONVERSION_WORK_AREA(coding, size)		\
+  do {								\
+    int units = ((size) > MAX_CHARBUF_SIZE ? MAX_CHARBUF_SIZE	\
+		 : (size) < MIN_CHARBUF_SIZE ? MIN_CHARBUF_SIZE	\
+		 : size);					\
+    coding->charbuf = SAFE_ALLOCA ((units) * sizeof (int));	\
+    coding->charbuf_size = (units);				\
   } while (0)
 
 
@@ -7373,7 +7376,7 @@ decode_coding (struct coding_system *coding)
   record_conversion_result (coding, CODING_RESULT_SUCCESS);
   coding->errors = 0;
 
-  ALLOC_CONVERSION_WORK_AREA (coding);
+  ALLOC_CONVERSION_WORK_AREA (coding, coding->src_bytes);
 
   attrs = CODING_ID_ATTRS (coding->id);
   translation_table = get_translation_table (attrs, 0, NULL);
@@ -7769,7 +7772,7 @@ encode_coding (struct coding_system *coding)
   record_conversion_result (coding, CODING_RESULT_SUCCESS);
   coding->errors = 0;
 
-  ALLOC_CONVERSION_WORK_AREA (coding);
+  ALLOC_CONVERSION_WORK_AREA (coding, coding->src_chars);
 
   if (coding->encoder == encode_coding_ccl)
     {
