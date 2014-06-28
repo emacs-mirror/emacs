@@ -149,9 +149,7 @@ setwins_for_subdirs=for file in `find ${srcdir} -type d -print`; do \
 # we add them here to make sure they get built.
 all: compile-main $(lisp)/cus-load.el $(lisp)/finder-inf.el
 
-doit:
-
-.PHONY: all doit custom-deps finder-data autoloads update-subdirs
+.PHONY: all custom-deps finder-data autoloads update-subdirs
 
 # custom-deps and finder-data both used to scan _all_ the *.el files.
 # This could lead to problems in parallel builds if automatically
@@ -169,7 +167,7 @@ doit:
 # (see finder-no-scan-regexp and custom-dependencies-no-scan-regexp).
 $(lisp)/cus-load.el:
 	$(MAKE) custom-deps
-custom-deps: doit
+custom-deps:
 	$(setwins_almost); \
 	echo Directories: $$wins; \
 	$(emacs) -l cus-dep \
@@ -178,7 +176,7 @@ custom-deps: doit
 
 $(lisp)/finder-inf.el:
 	$(MAKE) finder-data
-finder-data: doit
+finder-data:
 	$(setwins_finder); \
 	echo Directories: $$wins; \
 	$(emacs) -l finder \
@@ -192,7 +190,7 @@ finder-data: doit
 # Note that we set no-update-autoloads in _generated_ leim files.
 # If you want to allow autoloads in such files, remove that,
 # and make this depend on leim.
-autoloads: $(LOADDEFS) doit
+autoloads: $(LOADDEFS)
 	cd $(lisp) && chmod +w $(AUTOGEN_VCS)
 	$(setwins_almost); \
 	echo Directories: $$wins; \
@@ -216,7 +214,7 @@ obsolete-autoloads: ${lisp}/obsolete/*.el
 # we know that if we have an emacs executable, we also have a subdirs.el.
 $(lisp)/subdirs.el:
 	$(MAKE) update-subdirs
-update-subdirs: doit
+update-subdirs:
 	$(setwins_for_subdirs); \
 	for file in $$wins; do \
 	   $(srcdir)/../build-aux/update-subdirs $$file; \
@@ -369,7 +367,7 @@ compile: $(LOADDEFS) autoloads compile-first
 # Compile all Lisp files.  This is like `compile' but compiles files
 # unconditionally.  Some files don't actually get compiled because they
 # set the local variable no-byte-compile.
-compile-always: doit
+compile-always:
 	cd $(lisp) && rm -f *.elc */*.elc */*/*.elc */*/*/*.elc
 	$(MAKE) compile
 
@@ -402,7 +400,7 @@ compile-after-backup: backup-compiled-files compile-always
 # There is no reason to use this rule unless you only have a single
 # core and CPU time is an issue.
 .PHONY: compile-one-process
-compile-one-process: doit $(LOADDEFS) compile-first $(lisp)/progmodes/cc-mode.elc
+compile-one-process: $(LOADDEFS) compile-first $(lisp)/progmodes/cc-mode.elc
 	$(emacs) $(BYTE_COMPILE_FLAGS) \
 	    --eval "(batch-byte-recompile-directory 0)" $(lisp)
 

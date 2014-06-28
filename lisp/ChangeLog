@@ -1,5 +1,9 @@
 2014-06-28  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (doit): Remove force rule.
+	(custom-deps, finder-data, autoloads, update-subdirs)
+	(compile-one-process): PHONY targets do not need force rules.
+
 	* Makefile.in (compile-main, compile, compile-always):
 	No need to explicitly pass variables to ourself in recursive calls.
 
