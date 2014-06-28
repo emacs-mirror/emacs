@@ -557,7 +557,6 @@
 	FILENAME.
 
 	* net/trampver.el: Update release number.
->>>>>>> MERGE-SOURCE
 
 2014-06-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
