@@ -1,5 +1,9 @@
 2014-06-28  Glenn Morris  <rgm@gnu.org>
 
+	* automated/Makefile.in (WRITE_LOG): New variable.
+	(%.log): Use WRITE_LOG.
+	(test_template): Disable logging.
+
 	* automated/Makefile.in (TESTS): New list of short PHONY aliases.
 	(test_template): New definition.  Apply to TESTS.
 
