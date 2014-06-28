@@ -1382,14 +1382,16 @@ called additional times).
 This macro actually adds an auxiliary function that calls FUN,
 rather than FUN itself, to `minibuffer-setup-hook'."
   (declare (indent 1) (debug t))
-  (let ((hook (make-symbol "setup-hook")))
-    `(let (,hook)
+  (let ((hook (make-symbol "setup-hook"))
+        (funsym (make-symbol "fun")))
+    `(let ((,funsym ,fun)
+           ,hook)
        (setq ,hook
 	     (lambda ()
 	       ;; Clear out this hook so it does not interfere
 	       ;; with any recursive minibuffer usage.
 	       (remove-hook 'minibuffer-setup-hook ,hook)
-	       (funcall ,fun)))
+	       (funcall ,funsym)))
        (unwind-protect
 	   (progn
 	     (add-hook 'minibuffer-setup-hook ,hook)
