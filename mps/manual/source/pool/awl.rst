@@ -328,7 +328,7 @@ AWL interface
 
     It accepts two optional keyword arguments:
 
-    * :c:macro:`MPS_KEY_CHAIN` (type :c:type:`mps_chain_t`) specifies]
+    * :c:macro:`MPS_KEY_CHAIN` (type :c:type:`mps_chain_t`) specifies
       the :term:`generation chain` for the pool. If not specified, the
       pool will use the arena's default chain.
 
