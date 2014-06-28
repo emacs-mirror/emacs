@@ -1,3 +1,10 @@
+2014-06-28  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in ($(lwlibdir)/liblw.a, $(oldXMenudir)/libXMenu11.a):
+	Remove prerequisites, sub-makes will figure it out.
+	(FORCE): Remove.
+	(mostlyclean): There are no libXMenu11.a, liblw.a in this directory.
+
 2014-06-28  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* coding.c (encode_coding_utf_8): Correctly count produced_chars

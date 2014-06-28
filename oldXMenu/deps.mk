@@ -67,4 +67,6 @@ XDestAssoc.o: XDestAssoc.c X10.h
 XMakeAssoc.o: XMakeAssoc.c X10.h
 insque.o: insque.c
 
+${OBJS}: ../src/config.h
+
 ### deps.mk ends here

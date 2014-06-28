@@ -498,12 +498,10 @@ temacs$(EXEEXT): $(LIBXMENU) $(ALLOBJS) \
 
 ## The following oldxmenu-related rules are only (possibly) used if
 ## HAVE_X11 && !USE_GTK, but there is no harm in always defining them.
-$(lwlibdir)/liblw.a: $(config_h) globals.h lisp.h FORCE
+$(lwlibdir)/liblw.a:
 	$(MAKE) -C $(lwlibdir) liblw.a
-$(oldXMenudir)/libXMenu11.a: FORCE
+$(oldXMenudir)/libXMenu11.a:
 	$(MAKE) -C $(oldXMenudir) libXMenu11.a
-FORCE:
-.PHONY: FORCE
 
 ../config.status: config.in epaths.in
 	@echo "The file ${?:.in=.h} needs to be set up from $?."
@@ -525,7 +523,7 @@ ns-app: emacs$(EXEEXT)
 .PHONY: versionclean extraclean
 
 mostlyclean:
-	rm -f temacs$(EXEEXT) core *.core \#* *.o libXMenu11.a liblw.a
+	rm -f temacs$(EXEEXT) core *.core \#* *.o
 	rm -f ../etc/DOC
 	rm -f bootstrap-emacs$(EXEEXT) emacs-$(version)$(EXEEXT)
 	rm -f buildobj.h
