@@ -1,3 +1,23 @@
+2014-06-28  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todo-mode.el (todo-set-top-priorities): Fix logic to
+	account for file-wide setting of todo-top-priorities-overrides.
+	Make code a bit cleaner.
+
+2014-06-28  Glenn Morris  <rgm@gnu.org>
+
+	* net/eww.el (eww-mode) <eww-current-title>: Make local.  (Bug#17860)
+
+2014-06-28  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todo-mode.el (todo-prefix-overlays): If there is no
+	category-wide setting of todo-top-priorities-overrides, check for
+	a file-wide setting and fontify accordingly.
+
+2014-06-28  Glenn Morris  <rgm@gnu.org>
+
+	* subr.el (read-passwd): Warn about batch mode.  (Bug#17839)
+
 2014-06-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/hideif.el: Use lexical-binding.  Fix up cl-lib usage.

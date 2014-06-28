@@ -88,15 +88,15 @@
 
   ;; Register an own service.
   (should (eq (dbus-register-service bus dbus-service-emacs) :primary-owner))
-  (should (dbus-ping bus dbus-service-emacs 100))
+  (should (member dbus-service-emacs (dbus-list-known-names bus)))
   (should (eq (dbus-register-service bus dbus-service-emacs) :already-owner))
-  (should (dbus-ping bus dbus-service-emacs 100))
+  (should (member dbus-service-emacs (dbus-list-known-names bus)))
 
   ;; Unregister the service.
   (should (eq (dbus-unregister-service bus dbus-service-emacs) :released))
-  (should-not (dbus-ping bus dbus-service-emacs 100))
+  (should-not (member dbus-service-emacs (dbus-list-known-names bus)))
   (should (eq (dbus-unregister-service bus dbus-service-emacs) :non-existent))
-  (should-not (dbus-ping bus dbus-service-emacs 100))
+  (should-not (member dbus-service-emacs (dbus-list-known-names bus)))
 
   ;; `dbus-service-dbus' is reserved for the BUS itself.
   (should-error (dbus-register-service bus dbus-service-dbus))
@@ -109,7 +109,7 @@
   (dbus--test-register-service :session)
 
   (let ((service "org.freedesktop.Notifications"))
-    (when (dbus-ping :session service 100)
+    (when (member service (dbus-list-known-names :session))
       ;; Cleanup.
       (dbus-ignore-errors (dbus-unregister-service :session service))
 
