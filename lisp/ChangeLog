@@ -1,3 +1,8 @@
+2014-06-28  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (compile-main, compile, compile-always):
+	No need to explicitly pass variables to ourself in recursive calls.
+
 2014-06-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* files.el (minibuffer-with-setup-hook): Evaluate the first arg eagerly.

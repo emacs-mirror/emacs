@@ -308,7 +308,7 @@ compile-onefile:
 compile-first: $(COMPILE_FIRST)
 
 # In `compile-main' we could directly do
-#    ... | xargs $(MAKE) EMACS="$(EMACS)"
+#    ... | xargs $(MAKE)
 # and it works, but it generates a lot of messages like
 #    make[2]: gnus/gnus-mlspl.elc is up to date.
 # so instead, we use "xargs echo" to split the list of file into manageable
@@ -332,7 +332,7 @@ compile-main: leim semantic compile-clean
 	  echo "$${el}c"; \
 	done | xargs $(XARGS_LIMIT) echo) | \
 	while read chunk; do \
-	  $(MAKE) compile-targets EMACS="$(EMACS)" TARGETS="$$chunk"; \
+	  $(MAKE) compile-targets TARGETS="$$chunk"; \
 	done
 
 .PHONY: compile-clean
@@ -363,17 +363,15 @@ semantic:
 # date.  Some .el files don't get compiled because they set the
 # local variable no-byte-compile.
 # Calling make recursively because suffix rule cannot have prerequisites.
-# Explicitly pass EMACS (sometimes ../src/bootstrap-emacs) to those
-# sub-makes that run rules that use it, for the sake of some non-GNU makes.
 compile: $(LOADDEFS) autoloads compile-first
-	$(MAKE) compile-main EMACS="$(EMACS)"
+	$(MAKE) compile-main
 
 # Compile all Lisp files.  This is like `compile' but compiles files
 # unconditionally.  Some files don't actually get compiled because they
 # set the local variable no-byte-compile.
 compile-always: doit
 	cd $(lisp) && rm -f *.elc */*.elc */*/*.elc */*/*/*.elc
-	$(MAKE) compile EMACS="$(EMACS)"
+	$(MAKE) compile
 
 .PHONY: backup-compiled-files compile-after-backup
 
