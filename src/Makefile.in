@@ -518,6 +518,7 @@ emacs.res: $(ntsource)/emacs.rc \
 	$(WINDRES) -O COFF --include-dir=$(srcdir)/../nt \
 	  -o $@ $(ntsource)/emacs.rc
 
+.PHONY: ns-app
 ns-app: emacs$(EXEEXT)
 	$(MAKE) -C ../nextstep all
 
