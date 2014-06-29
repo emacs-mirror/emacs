@@ -1,3 +1,8 @@
+2014-06-29  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/idlwave.el (idlwave): Update url-link for custom group.
+	(idlwave-mode): Doc URL update.
+
 2014-06-27  Stephen Berman  <stephen.berman@gmx.net>
 
 	* calendar/todo-mode.el (todo-set-top-priorities): Fix logic to

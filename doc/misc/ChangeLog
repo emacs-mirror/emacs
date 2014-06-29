@@ -1,3 +1,7 @@
+2014-06-29  Glenn Morris  <rgm@gnu.org>
+
+	* idlwave.texi (Introduction): Comment out dead http screenshot links.
+
 2014-06-23  Leo Liu  <sdl.web@gmail.com>
 
 	* dired-x.texi (Omitting Files in Dired, Omitting Variables): Fix
