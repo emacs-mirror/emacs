@@ -99,7 +99,10 @@ ${cedetdir}/srecode/srt-wy.el: ${srcdir}/srecode-template.wy
 distclean:
 	rm -f Makefile
 
-bootstrap-clean maintainer-clean: distclean
+## Perhaps this should do what extraclean (qv) does.
+bootstrap-clean:
+
+maintainer-clean: distclean
 
 ## We do not normally delete the generated files, even in bootstrap.
 ## Creating them does not take long, so we could easily change this.

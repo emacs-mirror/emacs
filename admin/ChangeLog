@@ -1,3 +1,8 @@
+2014-06-29  Glenn Morris  <rgm@gnu.org>
+
+	* grammars/Makefile.in (bootstrap-clean): Don't delete Makefile,
+	for sake of top-level maintainer-clean rule.
+
 2014-06-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* notes/unicode: Some notes about what to do when a new Unicode
