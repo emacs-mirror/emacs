@@ -823,6 +823,8 @@ be after it."
 (defmacro c-with-syntax-table (table &rest code)
   ;; Temporarily switches to the specified syntax table in a failsafe
   ;; way to execute code.
+  ;; Maintainers' note: If TABLE is `c++-template-syntax-table', DON'T call
+  ;; any forms inside this that call `c-parse-state'.  !!!!
   `(let ((c-with-syntax-table-orig-table (syntax-table)))
      (unwind-protect
 	 (progn
