@@ -508,7 +508,7 @@ non-@code{nil}, the return value is always a vector.
 @node Help Functions
 @section Help Functions
 
-  Emacs provides a variety of on-line help functions, all accessible to
+  Emacs provides a variety of built-in help functions, all accessible to
 the user as subcommands of the prefix @kbd{C-h}.  For more information
 about them, see @ref{Help, , Help, emacs, The GNU Emacs Manual}.  Here
 we describe some program-level interfaces to the same information.

@@ -1,3 +1,8 @@
+2014-06-29  Glenn Morris  <rgm@gnu.org>
+
+	* help.texi (Help Functions): "Online" help doesn't mean what it
+	used to any more.
+
 2014-06-26  Glenn Morris  <rgm@gnu.org>
 
 	* minibuf.texi (Intro to Minibuffers): Batch mode is basic.

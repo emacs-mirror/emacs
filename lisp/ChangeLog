@@ -1,5 +1,13 @@
 2014-06-29  Glenn Morris  <rgm@gnu.org>
 
+	* cus-edit.el (help):
+	* finder.el (finder-known-keywords):
+	* help.el (help-for-help-internal):
+	* vc/ediff-mult.el (ediff-meta-buffer-verbose-message)
+	(ediff-redraw-registry-buffer):
+	* vc/ediff-ptch.el (ediff-patch-file-internal):
+	Doc fixes re "online" help.  (Bug#17803)
+
 	* progmodes/idlwave.el (idlwave): Update url-link for custom group.
 	(idlwave-mode): Doc URL update.
 

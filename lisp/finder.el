@@ -52,7 +52,7 @@
     (frames     . "Emacs frames and window systems")
     (games	. "games, jokes and amusements")
     (hardware	. "interfacing with system hardware")
-    (help	. "on-line help systems")
+    (help	. "Emacs help systems")
     (hypermedia . "links between text or other media types")
     (i18n	. "internationalization and character-set support")
     (internal	. "code for Emacs internals, build process, defaults")

@@ -1,3 +1,8 @@
+2014-06-29  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp-intro.texi (Note for Novices, Finding More, Conclusion):
+	"Online" help doesn't mean what it used to any more.
+
 2014-02-25  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp-intro.texi (X11 Colors): Don't use setq with hooks.

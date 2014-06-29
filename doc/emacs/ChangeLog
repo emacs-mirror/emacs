@@ -1,3 +1,9 @@
+2014-06-29  Glenn Morris  <rgm@gnu.org>
+
+	* help.texi (Misc Help):
+	* trouble.texi (Checklist): "Online" help doesn't mean what it
+	used to any more.
+
 2014-06-08  Glenn Morris  <rgm@gnu.org>
 
 	* entering.texi (Entering Emacs): Small fix re initial-buffer-choice.

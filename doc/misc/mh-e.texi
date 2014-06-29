@@ -227,7 +227,7 @@ have, see @ref{Getting Started}.
 @kindex C-h t
 
 If you don't already use GNU Emacs but want to learn more, you can
-read an online tutorial by starting GNU Emacs and typing @kbd{C-h t}
+read a built-in tutorial by starting GNU Emacs and typing @kbd{C-h t}
 (@code{help-with-tutorial}). (To learn about this notation, see
 @ref{Conventions}.) If you want to take the plunge, consult the
 @iftex
@@ -1066,9 +1066,9 @@ This chapter begins the meat of the manual which goes into more detail
 about every MH-E command and option.
 
 @cindex Emacs, info
-@cindex Emacs, online help
+@cindex Emacs, built-in help
 @cindex info
-@cindex online help
+@cindex built-in help
 @findex describe-mode
 @findex mh-help
 @kindex ?
@@ -1083,12 +1083,12 @@ summaries at the beginning of each chapter. In case you have or would
 like to rebind the keys, the command summaries also list the
 associated Emacs Lisp function. Furthermore, even if you're stranded
 on a desert island with a laptop and are without your manuals, you can
-get a summary of all these commands with GNU Emacs online help: use
+get a summary of all these commands with GNU Emacs built-in help: use
 @kbd{C-h m} (@code{describe-mode}) for a brief summary of commands,
 @kbd{?} (@code{mh-help}) for an even briefer summary@footnote{This
 help appears in a buffer called @file{*MH-E Help*}
 (@pxref{Miscellaneous}).} (@kbd{C-c ?} in MH-Letter mode), or @kbd{C-h
-i} to read this manual via Info. The online help is quite good; try
+i} to read this manual via Info. The built-in help is quite good; try
 running @kbd{C-h C-h}. This brings up a list of available help topics,
 one of which displays the documentation for a given key (like @kbd{C-h
 k C-n}). Another useful help feature is to view the manual section
@@ -1120,21 +1120,21 @@ exist,
 @c Yes, some of the stuff in the following sections is redundant, but
 @c TeX barfs if the @ifs are inside the @footnote.
 @iftex
-@footnote{The @cite{GNU Emacs Lisp Reference Manual} may be available
-online in the Info system by typing @kbd{C-h i m Emacs Lisp
+@footnote{The @cite{GNU Emacs Lisp Reference Manual} should be available
+via the Info system by typing @kbd{C-h i m Emacs Lisp
 @key{RET}}. It is also available online at @*
 @uref{http://www.gnu.org/software/emacs/manual/elisp.html}.}
 @end iftex
 @ifinfo
 @footnote{@xref{Top, The GNU Emacs Lisp Reference Manual, , elisp, GNU
-Emacs Lisp Reference Manual}, which may be available online in the
+Emacs Lisp Reference Manual}, which should be available via the
 Info system. It is also available online at
 @uref{http://www.gnu.org/software/emacs/manual/elisp.html}.}
 @end ifinfo
 @ifhtml
 @footnote{The
 @uref{http://www.gnu.org/software/emacs/manual/elisp.html,
-The GNU Emacs Lisp Reference Manual} may also be available online in
+The GNU Emacs Lisp Reference Manual} should be available via
 the Info system by typing @kbd{C-h i m Emacs Lisp @key{RET}}.}
 @end ifhtml
 and you can look at the code itself for examples. Look in the Emacs
@@ -1142,7 +1142,7 @@ Lisp directory on your system (such as
 @file{/usr/local/share/emacs/lisp/mh-e}) and find all the @file{mh-*.el}
 files there. When calling MH-E and other Emacs Lisp functions directly
 from Emacs Lisp code, you'll need to know the correct arguments. Use
-the online help for this. For example, try @kbd{C-h f
+the built-in help for this. For example, try @kbd{C-h f
 mh-execute-commands @key{RET}}. If you write your own functions,
 please do not prefix your symbols (variables and functions) with
 @samp{mh-}. This prefix is reserved for the MH-E package. To avoid
@@ -6405,7 +6405,7 @@ see the section
 The Menu Bar} in @cite{The GNU Emacs Manual}.
 @end ifhtml
 
-The Emacs manual describes how to get online help for a particular
+The Emacs manual describes how to get help for a particular
 menu item. You can also look up a menu item in the index of this
 manual in two ways: all of the menu items are listed alphabetically,
 and you can also browse all of the items under the index entry

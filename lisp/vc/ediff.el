@@ -64,7 +64,7 @@
 ;; compressed files.  Details are given below.
 
 ;; Finally, Ediff supports directory-level comparison, merging and patching.
-;; See the on-line manual for details.
+;; See the Ediff manual for details.
 
 ;; This package builds upon the ideas borrowed from emerge.el and several
 ;; Ediff's functions are adaptations from emerge.el.  Much of the functionality
