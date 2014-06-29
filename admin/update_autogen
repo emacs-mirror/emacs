@@ -330,7 +330,8 @@ genfiles=
 
 while read genfile; do
 
-    [ -r lisp/$genfile ] || die "Unable to read $genfile"
+    genfile=lisp/$genfile
+    [ -r $genfile ] || die "Unable to read $genfile"
 
     genfiles="$genfiles $genfile"
 done < $tempfile
@@ -369,18 +370,12 @@ make -C lisp "$@" autoloads EMACS=../src/bootstrap-emacs || die "make src error"
     cp $ldefs_in $ldefs_out || die "cp ldefs_boot error"
 
 
-cd lisp
-
 echo "Checking status of loaddef files..."
 
 ## It probably would be fine to just check+commit lisp/, since
 ## making autoloads should not effect any other files.  But better
 ## safe than sorry.
-modified=$(status $genfiles ${ldefs_out#lisp/}) || die
-
-
-## bzr status output is always relative to top-level, not PWD.
-[ "$vcs" = "bzr" ] && cd ../
+modified=$(status $genfiles $ldefs_out) || die
 
 
 commit "loaddefs" $modified || die "commit error"
