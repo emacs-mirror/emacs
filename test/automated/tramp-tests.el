@@ -116,18 +116,15 @@ shall not contain a timeout."
   `(let ((tramp-verbose ,verbose)
 	 (tramp-message-show-message t)
 	 (tramp-debug-on-error t))
-     (condition-case err
+     (unwind-protect
 	 (progn ,@body)
-       (ert-test-skipped
-	(signal (car err) (cdr err)))
-       ((error quit)
-	(with-parsed-tramp-file-name tramp-test-temporary-file-directory nil
-	  (with-current-buffer (tramp-get-connection-buffer v)
-	    (message "%s" (buffer-string)))
-	  (with-current-buffer (tramp-get-debug-buffer v)
-	    (message "%s" (buffer-string))))
-	(message "%s" err)
-	(signal (car err) (cdr err))))))
+       (when (> tramp-verbose 3)
+	 (with-parsed-tramp-file-name tramp-test-temporary-file-directory nil
+	   (with-current-buffer (tramp-get-connection-buffer v)
+	     (message "%s" (buffer-string)))
+	   (with-current-buffer
+	       (tramp-get-debug-buffer v)
+	     (message "%s" (buffer-string))))))))
 
 (ert-deftest tramp-test00-availability ()
   "Test availability of Tramp functions."
