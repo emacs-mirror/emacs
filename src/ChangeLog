@@ -1,3 +1,10 @@
+2014-06-29  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xfns.c (Qsuppress_icon): Remove; no real users.
+	(syms_of_xfns): Don't DEFSYM it.  Remove ancient comments.
+	* w32fns.c (Qsuppress_icon): Remove, for the same reason.
+	(syms_of_w32fns): Don't DEFSYM it.
+
 2014-06-29  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (ns-app): Mark as PHONY.
