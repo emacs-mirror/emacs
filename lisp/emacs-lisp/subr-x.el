@@ -161,7 +161,7 @@ to bind a single value, BINDINGS can just be a plain tuple."
 
 (defsubst string-reverse (str)
   "Reverse the string STR."
-  (apply 'string (nreverse (string-to-list str))))
+  (reverse str))
 
 (defsubst string-trim-left (string)
   "Remove leading whitespace from STRING."

@@ -1,5 +1,9 @@
 2014-06-30  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
+	* emacs-lisp/subr-x.el (string-reverse): Use `reverse'.
+
+2014-06-30  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
 	New if-let, when-let, thread-first and thread-last macros.
 
 	* emacs-lisp/subr-x.el
