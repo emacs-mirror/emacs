@@ -7266,7 +7266,8 @@ produce_charset (struct coding_system *coding, int *charbuf, ptrdiff_t pos)
 }
 
 #define MAX_CHARBUF_SIZE 0x4000
-#define MIN_CHARBUF_SIZE 0x10
+/* emacs-mule decoding requires more than 16 bytes.  */
+#define MIN_CHARBUF_SIZE 0x20
 
 #define ALLOC_CONVERSION_WORK_AREA(coding, size)		\
   do {								\

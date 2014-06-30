@@ -1,3 +1,7 @@
+2014-06-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* coding.c (MIN_CHARBUF_SIZE): Enlarge to 32.  (Bug#17881)
+
 2014-06-30  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsmenu.m (update_frame_tool_bar): Set wait_for_tool_bar to NO
