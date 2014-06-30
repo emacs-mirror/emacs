@@ -1,3 +1,10 @@
+2014-06-30  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/autoload.el (autoload-ensure-writable): New variable.
+	(autoload-ensure-default-file): Maybe make existing output writable.
+	* Makefile.in (AUTOGEN_VCS): Remove.
+	(autoloads): Use autoload-ensure-writable rather than AUTOGEN_VCS.
+
 2014-06-30  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
 	* emacs-lisp/subr-x.el (string-reverse): Use `reverse'.

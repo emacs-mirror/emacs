@@ -70,17 +70,6 @@ AUTOGENEL = loaddefs.el \
 	cedet/srecode/loaddefs.el \
 	org/org-loaddefs.el
 
-# Versioned files that are the value of someone's `generated-autoload-file'.
-AUTOGEN_VCS = \
-	ps-print.el \
-	obsolete/tpu-edt.el \
-	mail/rmail.el \
-	dired.el \
-	ibuffer.el \
-	htmlfontify.el \
-	emacs-lisp/eieio.el \
-	textmodes/reftex.el
-
 # Value of max-lisp-eval-depth when compiling initially.
 # During bootstrapping the byte-compiler is run interpreted when compiling
 # itself, and uses more stack than usual.
@@ -182,7 +171,6 @@ finder-data:
 	  --eval '(setq generated-finder-keywords-file (unmsys--file-name "$(srcdir)/finder-inf.el"))' \
 	  -f finder-compile-keywords-make-dist $$wins
 
-# The chmod +w is to handle env var CVSREAD=1.
 # Use expand-file-name rather than $abs_scrdir so that Emacs does not
 # get confused when it compares file-names for equality.
 #
@@ -190,10 +178,10 @@ finder-data:
 # If you want to allow autoloads in such files, remove that,
 # and make this depend on leim.
 autoloads: $(LOADDEFS)
-	cd $(lisp) && chmod +w $(AUTOGEN_VCS)
 	$(setwins_almost); \
 	echo Directories: $$wins; \
 	$(emacs) -l autoload \
+	    --eval '(setq autoload-ensure-writable t)' \
 	    --eval '(setq autoload-builtin-package-versions t)' \
 	    --eval '(setq generated-autoload-file (expand-file-name (unmsys--file-name "$(srcdir)/loaddefs.el")))' \
 	    -f batch-update-autoloads $$wins
