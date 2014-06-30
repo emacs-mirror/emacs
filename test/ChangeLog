@@ -1,3 +1,27 @@
+2014-06-30  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	* automated/subr-x-tests.el
+	(subr-x-test-if-let-single-binding-expansion)
+	(subr-x-test-if-let-single-symbol-expansion)
+	(subr-x-test-if-let-nil-related-expansion)
+	(subr-x-test-if-let-malformed-binding, subr-x-test-if-let-true)
+	(subr-x-test-if-let-false, subr-x-test-if-let-bound-references)
+	(subr-x-test-if-let-and-lazyness-is-preserved)
+	(subr-x-test-when-let-body-expansion)
+	(subr-x-test-when-let-single-binding-expansion)
+	(subr-x-test-when-let-single-symbol-expansion)
+	(subr-x-test-when-let-nil-related-expansion)
+	(subr-x-test-when-let-malformed-binding)
+	(subr-x-test-when-let-true, subr-x-test-when-let-false)
+	(subr-x-test-when-let-bound-references)
+	(subr-x-test-when-let-and-lazyness-is-preserved)
+	(subr-x-test-thread-first-no-forms)
+	(subr-x-test-thread-first-function-names-are-threaded)
+	(subr-x-test-thread-first-expansion)
+	(subr-x-test-thread-last-no-forms)
+	(subr-x-test-thread-last-function-names-are-threaded)
+	(subr-x-test-thread-last-expansion): New tests.
+
 2014-06-29  Michael Albinus  <michael.albinus@gmx.de>
 
 	* automated/tramp-tests.el (tramp--instrument-test-case):

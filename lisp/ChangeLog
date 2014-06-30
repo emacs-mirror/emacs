@@ -1,3 +1,14 @@
+2014-06-30  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	New if-let, when-let, thread-first and thread-last macros.
+
+	* emacs-lisp/subr-x.el
+	(internal--listify, internal--check-binding)
+	(internal--build-binding-value-form, internal--build-binding)
+	(internal--build-bindings): New functions.
+	(internal--thread-argument, thread-first, thread-last)
+	(if-let, when-let): New macros.
+
 2014-06-30  Grégoire Jadi  <daimrod@gmail.com>
 
 	* net/rcirc.el (rcirc-buffer-process): Restore previous
