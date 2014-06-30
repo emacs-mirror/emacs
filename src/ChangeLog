@@ -1,3 +1,16 @@
+2014-06-30  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsmenu.m (update_frame_tool_bar): Set wait_for_tool_bar to NO
+	when setNeedsDisplay is called so we don't trigger redisplay for every
+	tool bar update.
+
+	* nsterm.m (any_help_event_p): New variable.
+	(mouseMoved:): Set any_help_event_p to YES if help event is
+	generated.  Remove else with empty help event that triggered redisplay
+	for every mouse move.
+	(windowDidResignKey:): If any_help_event_p, generate empty help
+	event.
+
 2014-06-29  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* xfns.c (Qsuppress_icon): Remove; no real users.
