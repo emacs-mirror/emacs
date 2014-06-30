@@ -179,12 +179,11 @@ permissions set to temporary values (e.g., for creating private files).
 optional repeat-count argument.
 
 ---
-** New macros `if-let' and `when-let' allow defining bindings and to
-   execute code depending whether all values are a true.
-
----
-** New macros `thread-first' and `thread-last' allow threading a form
-   as the first or last argument of subsequent forms.
+** New utilities in subr-x.el:
+*** New macros `if-let' and `when-let' allow defining bindings and to
+    execute code depending whether all values are true.
+*** New macros `thread-first' and `thread-last' allow threading a form
+    as the first or last argument of subsequent forms.
 
 
 * Changes in Emacs 24.5 on Non-Free Operating Systems
