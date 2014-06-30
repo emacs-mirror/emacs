@@ -1,3 +1,8 @@
+2014-06-30  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	* emacs-lisp/subr-x.el (string-reverse): Define as obsolete alias
+	for `reverse'.
+
 2014-06-30  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/autoload.el (autoload-ensure-writable): New variable.
