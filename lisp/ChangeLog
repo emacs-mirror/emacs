@@ -1,3 +1,8 @@
+2014-06-30  Grégoire Jadi  <daimrod@gmail.com>
+
+	* net/rcirc.el (rcirc-buffer-process): Restore previous
+	behaviour.  (Bug#17772)
+
 2014-06-29  Alan Mackenzie  <acm@muc.de>
 
 	Don't call c-parse-state when c++-template-syntax-table is active.
