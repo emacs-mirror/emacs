@@ -847,6 +847,11 @@ static Res amcInitComm(Pool pool, RankSet rankSet, ArgList args)
   AVERT(Chain, chain);
   AVER(extendBy > 0);
   AVER(largeSize > 0);
+  /* TODO: it would be nice to be able to manage large objects that
+   * are smaller than the extendBy, but currently this results in
+   * unacceptable fragmentation due to the padding objects. This
+   * assertion catches this bad case. */
+  AVER(largeSize >= extendBy);
   pool->alignment = pool->format->alignment;
   amc->rankSet = rankSet;
 
@@ -1065,7 +1070,7 @@ static Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn,
   }
 
   base = SegBase(seg);
-  if(grainsSize < amc->largeSize) {
+  if (size < amc->largeSize) {
     /* Small or Medium segment: give the buffer the entire seg. */
     limit = AddrAdd(base, grainsSize);
     AVER(limit == SegLimit(seg));

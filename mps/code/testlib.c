@@ -223,10 +223,9 @@ double rnd_double(void)
 size_t rnd_grain(size_t arena_size)
 {
   /* The grain size must be small enough to allow for a complete set
-   * of zones in the initial chunk. But having fewer larger grains
-   * leads to fragmentation, so add 4 to account for this. */
+   * of zones in the initial chunk. */
   size_t s = (size_t)(log((double)arena_size) / log(2.0));
-  size_t shift = MPS_WORD_SHIFT + 4;
+  size_t shift = MPS_WORD_SHIFT;
   Insist(s > shift);
   return (size_t)1 << (rnd() % (s - shift));
 }
