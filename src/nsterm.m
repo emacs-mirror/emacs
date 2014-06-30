@@ -7144,15 +7144,6 @@ if (cols > 0 && rows > 0)
 }
 
 
-- (void)dealloc
-{
-  NSTRACE (EmacsScroller_dealloc);
-  if (!NILP (win))
-    wset_vertical_scroll_bar (XWINDOW (win), Qnil);
-  [super dealloc];
-}
-
-
 - condemn
 {
   NSTRACE (condemn);
@@ -7180,6 +7171,9 @@ if (cols > 0 && rows > 0)
       view = (EmacsView *)FRAME_NS_VIEW (frame);
       if (view != nil)
         view->scrollbarsNeedingUpdate++;
+      if (!NILP (win))
+        wset_vertical_scroll_bar (XWINDOW (win), Qnil);
+      win = Qnil;
       [self removeFromSuperview];
       [self release];
       unblock_input ();

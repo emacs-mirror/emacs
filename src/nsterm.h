@@ -412,7 +412,6 @@ typedef float EmacsCGFloat;
 
 - initFrame: (NSRect )r window: (Lisp_Object)win;
 - (void)setFrame: (NSRect)r;
-- (void)dealloc;
 
 - setPosition: (int) position portion: (int) portion whole: (int) whole;
 - (int) checkSamePosition: (int)position portion: (int)portion

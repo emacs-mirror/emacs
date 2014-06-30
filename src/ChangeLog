@@ -1,3 +1,10 @@
+2014-06-30  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (judge): EmacsScroller: Move dealloc code here.
+	(dealloc): Remove for EmacsScroller.
+
+	* nsterm.h (EmacsScroller): Remove dealloc.
+
 2014-06-30  Eli Zaretskii  <eliz@gnu.org>
 
 	* coding.c (MIN_CHARBUF_SIZE): Enlarge to 32.  (Bug#17881)
