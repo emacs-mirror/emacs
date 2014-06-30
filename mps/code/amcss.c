@@ -21,8 +21,8 @@
 
 /* These values have been tuned in the hope of getting one dynamic collection. */
 #define testArenaSIZE     ((size_t)1000*1024)
-#define gen1SIZE          ((size_t)40)
-#define gen2SIZE          ((size_t)170)
+#define gen1SIZE          ((size_t)20)
+#define gen2SIZE          ((size_t)85)
 #define avLEN             3
 #define exactRootsCOUNT   180
 #define ambigRootsCOUNT   50
@@ -44,6 +44,7 @@ static mps_gen_param_s testChain[genCOUNT] = {
 static mps_ap_t ap;
 static mps_addr_t exactRoots[exactRootsCOUNT];
 static mps_addr_t ambigRoots[ambigRootsCOUNT];
+static size_t scale;            /* Overall scale factor. */
 
 
 /* report -- report statistics from any messages */
@@ -93,7 +94,7 @@ static void report(mps_arena_t arena)
 
 static mps_addr_t make(size_t rootsCount)
 {
-  size_t length = rnd() % (2*avLEN);
+  size_t length = rnd() % (scale * avLEN);
   size_t size = (length+2) * sizeof(mps_word_t);
   mps_addr_t p;
   mps_res_t res;
@@ -294,19 +295,25 @@ static void test(mps_arena_t arena, mps_class_t pool_class, size_t roots_count)
 
 int main(int argc, char *argv[])
 {
+  size_t i, grainSize;
   mps_arena_t arena;
   mps_thr_t thread;
 
   testlib_init(argc, argv);
 
+  scale = (size_t)1 << (rnd() % 6);
+  for (i = 0; i < genCOUNT; ++i) testChain[i].mps_capacity *= scale;
+  grainSize = rnd_grain(scale * testArenaSIZE);
+  printf("Picked scale=%lu grainSize=%lu\n", (unsigned long)scale, (unsigned long)grainSize);
+
   MPS_ARGS_BEGIN(args) {
-    MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, 2*testArenaSIZE);
-    MPS_ARGS_ADD(args, MPS_KEY_ARENA_GRAIN_SIZE, rnd_grain(2*testArenaSIZE));
+    MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, scale * testArenaSIZE);
+    MPS_ARGS_ADD(args, MPS_KEY_ARENA_GRAIN_SIZE, grainSize);
     die(mps_arena_create_k(&arena, mps_arena_class_vm(), args), "arena_create");
   } MPS_ARGS_END(args);
   mps_message_type_enable(arena, mps_message_type_gc());
   mps_message_type_enable(arena, mps_message_type_gc_start());
-  die(mps_arena_commit_limit_set(arena, 2*testArenaSIZE), "set limit");
+  die(mps_arena_commit_limit_set(arena, scale * testArenaSIZE), "set limit");
   die(mps_thread_reg(&thread, arena), "thread_reg");
   test(arena, mps_class_amc(), exactRootsCOUNT);
   test(arena, mps_class_amcz(), 0);
