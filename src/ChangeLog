@@ -1,3 +1,9 @@
+2014-06-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* frame.c (do_switch_frame): When switching to another TTY frame,
+	make sure FrameCols and FrameRows are in sync with the new frame's
+	data.  (Bug#17875)
+
 2014-06-28  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* coding.c (encode_coding_utf_8): Correctly count produced_chars

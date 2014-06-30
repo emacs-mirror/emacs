@@ -46,6 +46,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef HAVE_WINDOW_SYSTEM
 #include "fontset.h"
 #endif
+#include "cm.h"
 #ifdef MSDOS
 #include "msdos.h"
 #include "dosfns.h"
@@ -851,7 +852,9 @@ do_switch_frame (Lisp_Object frame, int track, int for_deletion, Lisp_Object nor
 
   if (FRAME_TERMCAP_P (XFRAME (frame)) || FRAME_MSDOS_P (XFRAME (frame)))
     {
-      Lisp_Object top_frame = FRAME_TTY (XFRAME (frame))->top_frame;
+      struct frame *f = XFRAME (frame);
+      struct tty_display_info *tty = FRAME_TTY (f);
+      Lisp_Object top_frame = tty->top_frame;
 
       /* Don't mark the frame garbaged and/or obscured if we are
 	 switching to the frame that is already the top frame of that
@@ -861,9 +864,16 @@ do_switch_frame (Lisp_Object frame, int track, int for_deletion, Lisp_Object nor
 	  if (FRAMEP (top_frame))
 	    /* Mark previously displayed frame as now obscured.  */
 	    SET_FRAME_VISIBLE (XFRAME (top_frame), 2);
-	  SET_FRAME_VISIBLE (XFRAME (frame), 1);
+	  SET_FRAME_VISIBLE (f, 1);
+	  /* If the new TTY frame changed dimensions, we need to
+	     resync term.c's idea of the frame size with the new
+	     frame's data.  */
+	  if (FRAME_COLS (f) != FrameCols (tty))
+	    FrameCols (tty) = FRAME_COLS (f);
+	  if (FRAME_LINES (f) != FrameRows (tty))
+	    FrameRows (tty) = FRAME_LINES (f);
 	}
-      FRAME_TTY (XFRAME (frame))->top_frame = frame;
+      tty->top_frame = frame;
     }
 
   selected_frame = frame;
