@@ -71,7 +71,6 @@ AUTOGENEL = loaddefs.el \
 	org/org-loaddefs.el
 
 # Versioned files that are the value of someone's `generated-autoload-file'.
-# Note that update_loaddefs parses this.
 AUTOGEN_VCS = \
 	ps-print.el \
 	obsolete/tpu-edt.el \
