@@ -17,6 +17,7 @@
  */
 
 #include "mpm.h"
+#include "vm.h"
 
 #if !defined(MPS_OS_XC) && !defined(MPS_OS_FR)
 #error "protsgix.c is Unix-specific, currently for MPS_OS_FR or XC"
@@ -135,6 +136,15 @@ void ProtSetup(void)
 
   result = sigaction(PROT_SIGNAL, &sa, &sigNext);
   AVER(result == 0);
+}
+
+
+/* ProtGranularity -- return the granularity of protection */
+
+Size ProtGranularity(void)
+{
+  /* Individual pages can be protected. */
+  return PageSize();
 }
 
 
