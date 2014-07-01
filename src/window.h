@@ -271,8 +271,10 @@ struct window
     int left_fringe_width;
     int right_fringe_width;
 
-    /* Width of left and right marginal areas in columns.
-       A value of 0 means no margin.  */
+    /* Requested width of left and right marginal areas in columns.  A
+       value of 0 means no margin.  The actual values are recorded in
+       the window's glyph matrix, in the left_margin_glyphs and
+       right_margin_glyphs members.  */
     int left_margin_cols;
     int right_margin_cols;
 

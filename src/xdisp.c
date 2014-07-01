@@ -19896,7 +19896,7 @@ display_line (struct it *it)
     }
 
   /* Clear the result glyph row and enable it.  */
-  prepare_desired_row (row);
+  prepare_desired_row (it->w, row, false);
 
   row->y = it->current_y;
   row->start = it->start;
@@ -21535,7 +21535,7 @@ display_mode_line (struct window *w, enum face_id face_id, Lisp_Object format)
   /* Don't extend on a previously drawn mode-line.
      This may happen if called from pos_visible_p.  */
   it.glyph_row->enabled_p = false;
-  prepare_desired_row (it.glyph_row);
+  prepare_desired_row (w, it.glyph_row, true);
 
   it.glyph_row->mode_line_p = 1;
 

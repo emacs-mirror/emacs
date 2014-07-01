@@ -1,3 +1,16 @@
+2014-07-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* dispnew.c (prepare_desired_row): Accept 2 additional arguments:
+	the window whose glyph row is being prepared and a flag whether it
+	is for mode/header line.  Make sure the glyph row's marginal areas
+	are in sync with what the window wants.
+	(Bug#17892)
+
+	* xdisp.c (display_line, display_mode_line): Call
+	prepare_desired_row with additional arguments, as appropriate.
+
+	* dispextern.h (prepare_desired_row): Adjust prototype.
+
 2014-07-01  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* xfaces.c (init_frame_faces): Always realize basic faces (Bug#17889).
