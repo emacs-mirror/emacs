@@ -1,7 +1,7 @@
 /* protsgix.c: PROTECTION (SIGNAL HANDLER) FOR UNIX
  *
  *  $Id$
- *  Copyright (c) 2001-2007 Ravenbrook Limited.  See end of file for license.
+ *  Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
  * Would ordinarily be part of protix.c (as the code is common to more
  * than one Unix-like operating system), but PowerPC Darwin requires a
@@ -17,7 +17,6 @@
  */
 
 #include "mpm.h"
-#include "vm.h"
 
 #if !defined(MPS_OS_XC) && !defined(MPS_OS_FR)
 #error "protsgix.c is Unix-specific, currently for MPS_OS_FR or XC"
@@ -139,18 +138,9 @@ void ProtSetup(void)
 }
 
 
-/* ProtGranularity -- return the granularity of protection */
-
-Size ProtGranularity(void)
-{
-  /* Individual pages can be protected. */
-  return PageSize();
-}
-
-
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2007 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

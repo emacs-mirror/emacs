@@ -12,7 +12,6 @@
  */
 
 #include "prmcix.h"
-#include "vm.h"
 
 #ifndef MPS_OS_LI
 #error "protli.c is Linux-specific, but MPS_OS_LI is not set"
@@ -136,15 +135,6 @@ void ProtSetup(void)
 
   result = sigaction(PROT_SIGNAL, &sa, &sigNext);
   AVER(result == 0);
-}
-
-
-/* ProtGranularity -- return the granularity of protection */
-
-Size ProtGranularity(void)
-{
-  /* Individual pages can be protected. */
-  return PageSize();
 }
 
 
