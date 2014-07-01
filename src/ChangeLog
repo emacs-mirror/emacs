@@ -1,3 +1,9 @@
+2014-07-01  K. Handa  <handa@gnu.org>
+
+	* coding.c (MIN_CHARBUF_SIZE): Delete it.
+	(MAX_CHARBUF_EXTRA_SIZE): New macro.
+	(ALLOC_CONVERSION_WORK_AREA): Use MAX_CHARBUF_EXTRA_SIZE.
+
 2014-06-28  K. Handa  <handa@gnu.org>
 
 	* coding.c (MAX_CHARBUF_SIZE): Renamed from CHARBUF_SIZE.

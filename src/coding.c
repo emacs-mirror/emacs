@@ -7266,13 +7266,17 @@ produce_charset (struct coding_system *coding, int *charbuf, ptrdiff_t pos)
 }
 
 #define MAX_CHARBUF_SIZE 0x4000
-#define MIN_CHARBUF_SIZE 0x10
+/* How many units decoding functions expect in coding->charbuf at
+   most.  Currently, decode_coding_emacs_mule expects the following
+   size, and that is the largest value.  */
+#define MAX_CHARBUF_EXTRA_SIZE ((MAX_ANNOTATION_LENGTH * 3) + 1)
 
 #define ALLOC_CONVERSION_WORK_AREA(coding, size)		\
   do {								\
-    int units = ((size) > MAX_CHARBUF_SIZE ? MAX_CHARBUF_SIZE	\
-		 : (size) < MIN_CHARBUF_SIZE ? MIN_CHARBUF_SIZE	\
-		 : size);					\
+    int units = (size) + MAX_CHARBUF_EXTRA_SIZE;		\
+								\
+    if (units > MAX_CHARBUF_SIZE)				\
+      units = MAX_CHARBUF_SIZE;					\
     coding->charbuf = SAFE_ALLOCA ((units) * sizeof (int));	\
     coding->charbuf_size = (units);				\
   } while (0)
