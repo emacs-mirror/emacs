@@ -40,6 +40,7 @@
  */
 
 #include "mpm.h"
+#include "vm.h"
 
 #if !defined(MPS_OS_LI) && !defined(MPS_OS_FR) && !defined(MPS_OS_XC)
 #error "protix.c is Unix-specific, currently for MPS_OS_LI FR XC"
@@ -108,6 +109,15 @@ void ProtSync(Arena arena)
 {
   UNUSED(arena);
   NOOP;
+}
+
+
+/* ProtGranularity -- return the granularity of protection */
+
+Size ProtGranularity(void)
+{
+  /* Individual pages can be protected. */
+  return PageSize();
 }
 
 

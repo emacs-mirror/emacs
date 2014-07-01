@@ -58,7 +58,6 @@
 #include "mpm.h"
 #include "prmcxc.h"
 #include "protxc.h"
-#include "vm.h"
 
 #include <stdlib.h> /* see .trans.stdlib */
 #include <stdio.h> /* see .trans.stdlib */
@@ -397,15 +396,6 @@ void ProtSetup(void)
   AVER(pr == 0);
   if (pr != 0)
     fprintf(stderr, "ERROR: MPS pthread_once: %d\n", pr); /* .trans.must */
-}
-
-
-/* ProtGranularity -- return the granularity of protection */
-
-Size ProtGranularity(void)
-{
-  /* Individual pages can be protected. */
-  return PageSize();
 }
 
 
