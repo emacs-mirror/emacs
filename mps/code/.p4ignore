@@ -1,6 +1,9 @@
 # code/.p4ignore -- Perforce files to ignore list
 # $Id$
 # Make output
+anangc
+ananll
+ananmv
 fri3gc
 fri6gc
 lii3gc
