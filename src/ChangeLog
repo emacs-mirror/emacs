@@ -1,6 +1,8 @@
 2014-07-01  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* xfaces.c (init_frame_faces): Always realize basic faces (#Bug17889).
+	* menu.c (Fx_popup_dialog): Set Vmenu_updating_frame to avoid crash
+	caused by xw_popup_dialog in daemon mode (Bug#17891).
 
 2014-06-30  Eli Zaretskii  <eliz@gnu.org>
 
