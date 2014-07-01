@@ -1074,7 +1074,7 @@ prepare_desired_row (struct window *w, struct glyph_row *row, bool mode_line_p)
     {
       /* Mode and header lines, if displayed, never have marginal
 	 areas.  If we are called with MODE_LINE_P non-zero, we are
-	 displaying the mode/header line in this widnow, and so the
+	 displaying the mode/header line in this window, and so the
 	 marginal areas of this glyph row should be eliminated.  This
 	 is needed when the mode/header line is switched on in a
 	 window that has display margins.  */
