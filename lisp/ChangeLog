@@ -1,3 +1,8 @@
+2014-07-01  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-open-connection-setup-interactive-shell):
+	Prefer utf-8 coding.  (Bug#17859)
+
 2014-06-30  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
 	* emacs-lisp/subr-x.el (string-reverse): Define as obsolete alias
