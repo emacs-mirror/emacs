@@ -1,3 +1,8 @@
+2014-07-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* ps-def.el (ps-generate-postscript-with-faces1): Don't mess with
+	buffer-invisibility-spec (bug#17867).
+
 2014-06-29  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* vc/vc-git.el (vc-git-checkin): When operating on the whole tree

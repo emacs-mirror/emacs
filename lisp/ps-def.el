@@ -325,8 +325,6 @@
 	  ;; Emacs
 	  (property-change from)
 	  (overlay-change from)
-	  (save-buffer-invisibility-spec buffer-invisibility-spec)
-	  (buffer-invisibility-spec nil)
 	  before-string after-string)
       (while (< from to)
 	(and (< property-change to)	; Don't search for property change
