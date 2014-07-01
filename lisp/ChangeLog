@@ -1,3 +1,8 @@
+2014-07-01  Mario Lang  <mlang@delysid.org>
+
+	* net/gnutls.el (gnutls-negotiate): Prevent destructive modification of
+	cosutomization option `gnutls-verify-error'.
+
 2014-07-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* simple.el (deactivate-mark, set-mark-command, handle-shift-selection):

@@ -214,7 +214,7 @@ defaults to GNUTLS_VERIFY_ALLOW_X509_V1_CA_CRT."
                              (cl-mapcan
                               (lambda (check)
                                 (when (string-match (car check) hostname)
-                                  (cdr check)))
+                                  (copy-sequence (cdr check))))
                               gnutls-verify-error))
                             ;; else it's nil
                             (t nil))))
