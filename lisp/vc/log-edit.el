@@ -132,6 +132,8 @@ This applies when its SETUP argument is non-nil."
 			   log-edit-insert-changelog
 			   log-edit-show-files)
   "Hook run at the end of `log-edit'."
+  ;; Added log-edit-insert-message-template, moved log-edit-show-files.
+  :version "24.4"
   :group 'log-edit
   :type '(hook :options (log-edit-insert-message-template
 			 log-edit-insert-cvs-rcstemplate
