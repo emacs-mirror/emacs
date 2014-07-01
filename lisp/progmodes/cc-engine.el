@@ -9355,16 +9355,16 @@ comment at the start of cc-engine.el for more info."
 		    (not (looking-at c-<-op-cont-regexp))))))
       (c-with-syntax-table c++-template-syntax-table
 	(goto-char placeholder)
-	(c-beginning-of-statement-1 containing-sexp t)
-	(if (save-excursion
-	      (c-backward-syntactic-ws containing-sexp)
-	      (eq (char-before) ?<))
-	    ;; In a nested template arglist.
-	    (progn
-	      (goto-char placeholder)
-	      (c-syntactic-skip-backward "^,;" containing-sexp t)
-	      (c-forward-syntactic-ws))
-	  (back-to-indentation)))
+	(c-beginning-of-statement-1 containing-sexp t))
+      (if (save-excursion
+	    (c-backward-syntactic-ws containing-sexp)
+	    (eq (char-before) ?<))
+	  ;; In a nested template arglist.
+	  (progn
+	    (goto-char placeholder)
+	    (c-syntactic-skip-backward "^,;" containing-sexp t)
+	    (c-forward-syntactic-ws))
+	(back-to-indentation))
       ;; FIXME: Should use c-add-stmt-syntax, but it's not yet
       ;; template aware.
       (c-add-syntax 'template-args-cont (point) placeholder))
@@ -10022,16 +10022,16 @@ comment at the start of cc-engine.el for more info."
 			    (eq (char-after placeholder) ?<))))))
 	    (c-with-syntax-table c++-template-syntax-table
 	      (goto-char placeholder)
-	      (c-beginning-of-statement-1 lim t)
-	      (if (save-excursion
-		    (c-backward-syntactic-ws lim)
-		    (eq (char-before) ?<))
-		  ;; In a nested template arglist.
-		  (progn
-		    (goto-char placeholder)
-		    (c-syntactic-skip-backward "^,;" lim t)
-		    (c-forward-syntactic-ws))
-		(back-to-indentation)))
+	      (c-beginning-of-statement-1 lim t))
+	    (if (save-excursion
+		  (c-backward-syntactic-ws lim)
+		  (eq (char-before) ?<))
+		;; In a nested template arglist.
+		(progn
+		  (goto-char placeholder)
+		  (c-syntactic-skip-backward "^,;" lim t)
+		  (c-forward-syntactic-ws))
+	      (back-to-indentation))
 	    ;; FIXME: Should use c-add-stmt-syntax, but it's not yet
 	    ;; template aware.
 	    (c-add-syntax 'template-args-cont (point) placeholder))

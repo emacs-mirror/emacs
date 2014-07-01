@@ -351,9 +351,26 @@ not be relied upon."
 	    ";;; " basename
 	    " ends here\n")))
 
+(defvar autoload-ensure-writable nil
+  "Non-nil means `autoload-ensure-default-file' makes existing file writable.")
+;; Just in case someone tries to get you to overwrite a file that you
+;; don't want to.
+;;;###autoload
+(put 'autoload-ensure-writable 'risky-local-variable t)
+
 (defun autoload-ensure-default-file (file)
-  "Make sure that the autoload file FILE exists and if not create it."
-  (unless (file-exists-p file)
+  "Make sure that the autoload file FILE exists, creating it if needed.
+If the file already exists and `autoload-ensure-writable' is non-nil,
+make it writable."
+  (if (file-exists-p file)
+      ;; Probably pointless, but replaces the old AUTOGEN_VCS in lisp/Makefile,
+      ;; which was designed to handle CVSREAD=1 and equivalent.
+      (and autoload-ensure-writable
+	   (let ((modes (file-modes file)))
+	     (if (zerop (logand modes #o0200))
+		 ;; Ignore any errors here, and let subsequent attempts
+		 ;; to write the file raise any real error.
+		 (ignore-errors (set-file-modes file (logior modes #o0200))))))
     (write-region (autoload-rubric file) nil file))
   file)
 

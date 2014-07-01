@@ -322,15 +322,20 @@ EOF
 
 echo "Finding loaddef targets..."
 
-sed -n -e '/^AUTOGEN_VCS/,/^$/p' lisp/Makefile.in | \
-    sed -e '/AUTOGEN_VCS/d' -e '/^$/d' -e 's/\\//' \
-    >| $tempfile || die "sed error"
+find lisp -name '*.el' -exec grep '^;.*generated-autoload-file:' {} + | \
+    sed -e '/loaddefs\|esh-groups/d' -e 's|/[^/]*: "|/|' -e 's/"//g' \
+    >| $tempfile || die "Error finding targets"
 
 genfiles=
 
 while read genfile; do
 
-    [ -r lisp/$genfile ] || die "Unable to read $genfile"
+    ## Or we can just use sort -u when making tempfile...
+    case " $genfiles " in
+        *" $genfile "*) continue ;;
+    esac
+
+    [ -r $genfile ] || die "Unable to read $genfile"
 
     genfiles="$genfiles $genfile"
 done < $tempfile
@@ -369,18 +374,12 @@ make -C lisp "$@" autoloads EMACS=../src/bootstrap-emacs || die "make src error"
     cp $ldefs_in $ldefs_out || die "cp ldefs_boot error"
 
 
-cd lisp
-
 echo "Checking status of loaddef files..."
 
 ## It probably would be fine to just check+commit lisp/, since
 ## making autoloads should not effect any other files.  But better
 ## safe than sorry.
-modified=$(status $genfiles ${ldefs_out#lisp/}) || die
-
-
-## bzr status output is always relative to top-level, not PWD.
-[ "$vcs" = "bzr" ] && cd ../
+modified=$(status $genfiles $ldefs_out) || die
 
 
 commit "loaddefs" $modified || die "commit error"

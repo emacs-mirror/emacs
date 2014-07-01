@@ -1,3 +1,17 @@
+2014-06-28  Glenn Morris  <rgm@gnu.org>
+
+	* deps.mk (${OBJS}): Depend on ../src/config.h.
+
+	* Makefile.in: Use gcc auto-dependency information.
+	Move old dependency information to new file deps.mk.
+	(MKDIR_P, DEPFLAGS, MKDEPDIR, oldxmenu_deps_frag):
+	New, set by configure.
+	(DEPDIR): New variable.
+	(ALL_CFLAGS): Add DEPFLAGS.
+	(.c.o): Add MKDEPDIR.
+	(clean, mostlyclean): Delete DEPDIR.
+	* deps.mk, autodeps.mk: New files.
+
 2014-06-15  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (CPPFLAGS): Explicitly set via configure.

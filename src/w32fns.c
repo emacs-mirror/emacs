@@ -96,7 +96,6 @@ static HWND hourglass_hwnd = NULL;
 #define IDC_HAND MAKEINTRESOURCE(32649)
 #endif
 
-Lisp_Object Qsuppress_icon;
 Lisp_Object Qundefined_color;
 Lisp_Object Qcancel_timer;
 Lisp_Object Qfont_param;
@@ -8091,7 +8090,6 @@ syms_of_w32fns (void)
 
   w32_visible_system_caret_hwnd = NULL;
 
-  DEFSYM (Qsuppress_icon, "suppress-icon");
   DEFSYM (Qundefined_color, "undefined-color");
   DEFSYM (Qcancel_timer, "cancel-timer");
   DEFSYM (Qhyper, "hyper");
@@ -8106,8 +8104,6 @@ syms_of_w32fns (void)
   DEFSYM (Qworkarea, "workarea");
   DEFSYM (Qmm_size, "mm-size");
   DEFSYM (Qframes, "frames");
-  /* This is the end of symbol initialization.  */
-
 
   Fput (Qundefined_color, Qerror_conditions,
 	listn (CONSTYPE_PURE, 2, Qundefined_color, Qerror));

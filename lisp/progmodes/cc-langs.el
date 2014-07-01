@@ -394,7 +394,9 @@ The syntax tables aren't stored directly since they're quite large."
   ;; lists are parsed.  Note that this encourages incorrect parsing of
   ;; templates since they might contain normal operators that uses the
   ;; '<' and '>' characters.  Therefore this syntax table might go
-  ;; away when CC Mode handles templates correctly everywhere.
+  ;; away when CC Mode handles templates correctly everywhere.  WHILE
+  ;; THIS SYNTAX TABLE IS CURRENT, `c-parse-state' MUST _NOT_ BE
+  ;; CALLED!!!
   t   nil
   (java c++) `(lambda ()
 	 (let ((table (funcall ,(c-lang-const c-make-mode-syntax-table))))

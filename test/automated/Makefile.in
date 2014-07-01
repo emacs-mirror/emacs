@@ -20,10 +20,10 @@
 ### Commentary:
 
 ## Some targets:
-## check: re-run all tests
+## check: re-run all tests, writing to .log files.
 ## check-maybe: run all tests whose .log file needs updating
 ## filename.log: run tests from filename.el(c) if .log file needs updating
-## filename: re-run tests from filename.el(c)
+## filename: re-run tests from filename.el(c), with no logging
 
 ### Code:
 
@@ -47,9 +47,12 @@ EMACSOPT = -batch --no-site-file --no-site-lisp -L "$(SEPCHAR)$(srcdir)"
 # Prevent any settings in the user environment causing problems.
 unexport EMACSDATA EMACSDOC EMACSPATH GREP_OPTIONS
 
+## To run tests under a debugger, set this to eg: "gdb --args".
+GDB =
+
 # The actual Emacs command run in the targets below.
 # Prevent any setting of EMACSLOADPATH in user environment causing problems.
-emacs = EMACSLOADPATH= LC_ALL=C EMACS_TEST_DIRECTORY=$(srcdir) "$(EMACS)" $(EMACSOPT)
+emacs = EMACSLOADPATH= LC_ALL=C EMACS_TEST_DIRECTORY=$(srcdir) $(GDB) "$(EMACS)" $(EMACSOPT)
 
 .PHONY: all check
 
@@ -60,10 +63,9 @@ all: check
 	@$(emacs) -f batch-byte-compile $<
 
 ## Ignore any test errors so we can continue to test other files.
-## (It would be nice if we could get an error when running an
-## individual test, but not when running check.)
 ## But compilation errors are always fatal.
-##
+WRITE_LOG = >& $@ || { stat=ERROR; cat $@; }; echo $$stat: $@
+
 ## I'd prefer to use -emacs -f ert-run-tests-batch-and-exit rather
 ## than || true, since the former makes problems more obvious.
 ## I'd also prefer to @-hide the grep part and not the
@@ -74,7 +76,7 @@ all: check
 ## basename duplicates a file in lisp/ (eg eshell.el).
 ## ii) Although -l basename will automatically load .el or .elc,
 ## -l ./basename treats basename as a literal file (it would be nice
-## to change this).
+## to change this; bug#17848 - if that gets done, this can be simplified).
 ##
 ## Beware: it approximates `no-byte-compile', so watch out for false-positives!
 %.log: ${srcdir}/%.el
@@ -87,10 +89,7 @@ all: check
 	echo Testing $$loadfile; \
 	stat=OK ; \
 	$(emacs) -l ert -l $$loadfile \
-	  -f ert-run-tests-batch-and-exit >& $@ || { \
-	    stat=ERROR; \
-	    cat $@; }; \
-	echo $$stat: $@
+	  -f ert-run-tests-batch-and-exit ${WRITE_LOG}
 
 ELFILES = $(wildcard ${srcdir}/*.el)
 LOGFILES = $(patsubst %.el,%.log,$(notdir ${ELFILES}))
@@ -102,11 +101,11 @@ TESTS = ${LOGFILES:.log=}
 
 .PHONY: ${TESTS}
 
-## The short aliases that always re-run the tests.
+## The short aliases that always re-run the tests, with no logging.
 define test_template
 $(1):
 	@test ! -f $(1).log || mv $(1).log $(1).log~
-	@${MAKE} $(1).log
+	@${MAKE} $(1).log WRITE_LOG=
 endef
 
 $(foreach test,${TESTS},$(eval $(call test_template,${test})))

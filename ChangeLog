@@ -1,3 +1,8 @@
+2014-06-28  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac (lwlib_deps_frag, oldxmenu_deps_frag): New output files.
+	* make-dist (lwlib, oldXMenu): Distribute *.mk.
+
 2014-06-27  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (src): No more need to pass BOOTSTRAPEMACS.

@@ -518,6 +518,7 @@ emacs.res: $(ntsource)/emacs.rc \
 	$(WINDRES) -O COFF --include-dir=$(srcdir)/../nt \
 	  -o $@ $(ntsource)/emacs.rc
 
+.PHONY: ns-app
 ns-app: emacs$(EXEEXT)
 	$(MAKE) -C ../nextstep all
 
@@ -525,7 +526,7 @@ ns-app: emacs$(EXEEXT)
 .PHONY: versionclean extraclean
 
 mostlyclean:
-	rm -f temacs$(EXEEXT) core *.core \#* *.o libXMenu11.a liblw.a
+	rm -f temacs$(EXEEXT) core *.core \#* *.o
 	rm -f ../etc/DOC
 	rm -f bootstrap-emacs$(EXEEXT) emacs-$(version)$(EXEEXT)
 	rm -f buildobj.h

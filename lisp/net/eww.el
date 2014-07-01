@@ -478,6 +478,7 @@ word(s) will be searched for via `eww-search-prefix'."
   (setq-local eww-current-url 'author)
   (setq-local eww-current-dom nil)
   (setq-local eww-current-source nil)
+  (setq-local eww-current-title "")
   (setq-local browse-url-browser-function 'eww-browse-url)
   (setq-local after-change-functions 'eww-process-text-input)
   (setq-local eww-history nil)

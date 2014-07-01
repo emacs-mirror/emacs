@@ -32,6 +32,113 @@
 
 ;;; Code:
 
+(require 'pcase)
+
+
+(defmacro internal--thread-argument (first? &rest forms)
+  "Internal implementation for `thread-first' and `thread-last'.
+When Argument FIRST? is non-nil argument is threaded first, else
+last.  FORMS are the expressions to be threaded."
+  (pcase forms
+    (`(,x (,f . ,args) . ,rest)
+     `(internal--thread-argument
+       ,first? ,(if first? `(,f ,x ,@args) `(,f ,@args ,x)) ,@rest))
+    (`(,x ,f . ,rest) `(internal--thread-argument ,first? (,f ,x) ,@rest))
+    (_ (car forms))))
+
+(defmacro thread-first (&rest forms)
+  "Thread FORMS elements as the first argument of their succesor.
+Example:
+    (thread-first
+      5
+      (+ 20)
+      (/ 25)
+      -
+      (+ 40))
+Is equivalent to:
+    (+ (- (/ (+ 5 20) 25)) 40)
+Note how the single `-' got converted into a list before
+threading."
+  (declare (indent 1)
+           (debug (form &rest [&or symbolp (sexp &rest form)])))
+  `(internal--thread-argument t ,@forms))
+
+(defmacro thread-last (&rest forms)
+  "Thread FORMS elements as the last argument of their succesor.
+Example:
+    (thread-last
+      5
+      (+ 20)
+      (/ 25)
+      -
+      (+ 40))
+Is equivalent to:
+    (+ 40 (- (/ 25 (+ 20 5))))
+Note how the single `-' got converted into a list before
+threading."
+  (declare (indent 1) (debug thread-first))
+  `(internal--thread-argument nil ,@forms))
+
+(defsubst internal--listify (elt)
+  "Wrap ELT in a list if it is not one."
+  (if (not (listp elt))
+      (list elt)
+    elt))
+
+(defsubst internal--check-binding (binding)
+  "Check BINDING is properly formed."
+  (when (> (length binding) 2)
+    (signal
+     'error
+     (cons "`let' bindings can have only one value-form" binding)))
+  binding)
+
+(defsubst internal--build-binding-value-form (binding prev-var)
+  "Build the conditional value form for BINDING using PREV-VAR."
+  `(,(car binding) (and ,prev-var ,(cadr binding))))
+
+(defun internal--build-binding (binding prev-var)
+  "Check and build a single BINDING with PREV-VAR."
+  (thread-first
+      binding
+    internal--listify
+    internal--check-binding
+    (internal--build-binding-value-form prev-var)))
+
+(defun internal--build-bindings (bindings)
+  "Check and build conditional value forms for BINDINGS."
+  (let ((prev-var t))
+    (mapcar (lambda (binding)
+              (let ((binding (internal--build-binding binding prev-var)))
+                (setq prev-var (car binding))
+                binding))
+            bindings)))
+
+(defmacro if-let (bindings then &rest else)
+  "Process BINDINGS and if all values are non-nil eval THEN, else ELSE.
+Argument BINDINGS is a list of tuples whose car is a symbol to be
+bound and (optionally) used in THEN, and its cadr is a sexp to be
+evaled to set symbol's value.  In the special case you only want
+to bind a single value, BINDINGS can just be a plain tuple."
+  (declare (indent 2) (debug ((&rest (symbolp form)) form body)))
+  (when (and (<= (length bindings) 2)
+             (not (listp (car bindings))))
+    ;; Adjust the single binding case
+    (setq bindings (list bindings)))
+  `(let* ,(internal--build-bindings bindings)
+     (if ,(car (internal--listify (car (last bindings))))
+         ,then
+       ,@else)))
+
+(defmacro when-let (bindings &rest body)
+  "Process BINDINGS and if all values are non-nil eval BODY.
+Argument BINDINGS is a list of tuples whose car is a symbol to be
+bound and (optionally) used in BODY, and its cadr is a sexp to be
+evaled to set symbol's value.  In the special case you only want
+to bind a single value, BINDINGS can just be a plain tuple."
+  (declare (indent 1) (debug if-let))
+  (list 'if-let bindings (macroexp-progn body)))
+
 (defsubst hash-table-keys (hash-table)
   "Return a list of keys in HASH-TABLE."
   (let ((keys '()))
@@ -52,9 +159,7 @@
   "Join all STRINGS using SEPARATOR."
   (mapconcat 'identity strings separator))
 
-(defsubst string-reverse (str)
-  "Reverse the string STR."
-  (apply 'string (nreverse (string-to-list str))))
+(define-obsolete-function-alias 'string-reverse 'reverse "24.5")
 
 (defsubst string-trim-left (string)
   "Remove leading whitespace from STRING."

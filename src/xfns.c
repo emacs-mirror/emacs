@@ -125,7 +125,6 @@ extern LWLIB_ID widget_id_tick;
 
 #define MAXREQUEST(dpy) (XMaxRequestSize (dpy))
 
-static Lisp_Object Qsuppress_icon;
 static Lisp_Object Qundefined_color;
 static Lisp_Object Qcompound_text, Qcancel_timer;
 Lisp_Object Qfont_param;
@@ -6137,15 +6136,10 @@ frame_parm_handler x_frame_parm_handlers[] =
 void
 syms_of_xfns (void)
 {
-  /* The section below is built by the lisp expression at the top of the file,
-     just above where these variables are declared.  */
-  /*&&& init symbols here &&&*/
-  DEFSYM (Qsuppress_icon, "suppress-icon");
   DEFSYM (Qundefined_color, "undefined-color");
   DEFSYM (Qcompound_text, "compound-text");
   DEFSYM (Qcancel_timer, "cancel-timer");
   DEFSYM (Qfont_param, "font-parameter");
-  /* This is the end of symbol initialization.  */
 
   Fput (Qundefined_color, Qerror_conditions,
 	listn (CONSTYPE_PURE, 2, Qundefined_color, Qerror));

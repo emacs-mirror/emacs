@@ -1,3 +1,63 @@
+2014-06-30  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	* emacs-lisp/subr-x.el (string-reverse): Define as obsolete alias
+	for `reverse'.
+
+2014-06-30  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/autoload.el (autoload-ensure-writable): New variable.
+	(autoload-ensure-default-file): Maybe make existing output writable.
+	* Makefile.in (AUTOGEN_VCS): Remove.
+	(autoloads): Use autoload-ensure-writable rather than AUTOGEN_VCS.
+
+2014-06-30  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	* emacs-lisp/subr-x.el (string-reverse): Use `reverse'.
+
+2014-06-30  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	New if-let, when-let, thread-first and thread-last macros.
+
+	* emacs-lisp/subr-x.el
+	(internal--listify, internal--check-binding)
+	(internal--build-binding-value-form, internal--build-binding)
+	(internal--build-bindings): New functions.
+	(internal--thread-argument, thread-first, thread-last)
+	(if-let, when-let): New macros.
+
+2014-06-30  Grégoire Jadi  <daimrod@gmail.com>
+
+	* net/rcirc.el (rcirc-buffer-process): Restore previous
+	behaviour.  (Bug#17772)
+
+2014-06-29  Alan Mackenzie  <acm@muc.de>
+
+	Don't call c-parse-state when c++-template-syntax-table is active.
+	* progmodes/cc-engine.el (c-guess-continued-construct CASE G)
+	(c-guess-basic-syntax CASE 5D.3): Rearrange so that
+	c-syntactic-skip-backwards isn't called with the pertinent syntax
+	table.
+
+2014-06-28  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todo-mode.el (todo-set-top-priorities): Fix logic to
+	account for file-wide setting of todo-top-priorities-overrides.
+	Make code a bit cleaner.
+
+2014-06-28  Glenn Morris  <rgm@gnu.org>
+
+	* net/eww.el (eww-mode) <eww-current-title>: Make local.  (Bug#17860)
+
+2014-06-28  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todo-mode.el (todo-prefix-overlays): If there is no
+	category-wide setting of todo-top-priorities-overrides, check for
+	a file-wide setting and fontify accordingly.
+
+2014-06-28  Glenn Morris  <rgm@gnu.org>
+
+	* subr.el (read-passwd): Warn about batch mode.  (Bug#17839)
+
 2014-06-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/hideif.el: Use lexical-binding.  Fix up cl-lib usage.

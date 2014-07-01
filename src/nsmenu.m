@@ -1152,7 +1152,10 @@ update_frame_tool_bar (struct frame *f)
     FRAME_TOOLBAR_HEIGHT (f) = 0;
 
   if (view->wait_for_tool_bar && FRAME_TOOLBAR_HEIGHT (f) > 0)
+    {
+      view->wait_for_tool_bar = NO;
       [view setNeedsDisplay: YES];
+    }
 
   unblock_input ();
 }

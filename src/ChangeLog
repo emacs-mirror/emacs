@@ -4,6 +4,51 @@
 	(MAX_CHARBUF_EXTRA_SIZE): New macro.
 	(ALLOC_CONVERSION_WORK_AREA): Use MAX_CHARBUF_EXTRA_SIZE.
 
+2014-06-30  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (judge): EmacsScroller: Move dealloc code here.
+	(dealloc): Remove for EmacsScroller.
+
+	* nsterm.h (EmacsScroller): Remove dealloc.
+
+2014-06-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* coding.c (MIN_CHARBUF_SIZE): Enlarge to 32.  (Bug#17881)
+
+2014-06-30  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsmenu.m (update_frame_tool_bar): Set wait_for_tool_bar to NO
+	when setNeedsDisplay is called so we don't trigger redisplay for every
+	tool bar update.
+
+	* nsterm.m (any_help_event_p): New variable.
+	(mouseMoved:): Set any_help_event_p to YES if help event is
+	generated.  Remove else with empty help event that triggered redisplay
+	for every mouse move.
+	(windowDidResignKey:): If any_help_event_p, generate empty help
+	event.
+
+2014-06-29  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xfns.c (Qsuppress_icon): Remove; no real users.
+	(syms_of_xfns): Don't DEFSYM it.  Remove ancient comments.
+	* w32fns.c (Qsuppress_icon): Remove, for the same reason.
+	(syms_of_w32fns): Don't DEFSYM it.
+
+2014-06-29  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (ns-app): Mark as PHONY.
+
+2014-06-28  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (mostlyclean): There are no libXMenu11.a,
+	liblw.a in this directory.
+
+2014-06-28  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* coding.c (encode_coding_utf_8): Correctly count produced_chars
+	also in unibyte case.  (Bug#17865)
+
 2014-06-28  K. Handa  <handa@gnu.org>
 
 	* coding.c (MAX_CHARBUF_SIZE): Renamed from CHARBUF_SIZE.

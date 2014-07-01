@@ -1590,11 +1590,14 @@ if test "$GCC" = yes && test "$ac_enable_autodepend" = yes; then
       deps_frag=autodeps.mk
    fi
 fi
+lwlib_deps_frag=$srcdir/lwlib/$deps_frag
+oldxmenu_deps_frag=$srcdir/oldXMenu/$deps_frag
 deps_frag=$srcdir/src/$deps_frag
 AC_SUBST(MKDEPDIR)
 AC_SUBST(DEPFLAGS)
 AC_SUBST_FILE(deps_frag)
-
+AC_SUBST_FILE(lwlib_deps_frag)
+AC_SUBST_FILE(oldxmenu_deps_frag)
 
 lisp_frag=$srcdir/src/lisp.mk
 AC_SUBST_FILE(lisp_frag)
