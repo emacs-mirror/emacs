@@ -1,3 +1,10 @@
+2014-07-01  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	* automated/python-tests.el
+	(python-tests-self-insert): New function.
+	(python-triple-quote-pairing): Use it.
+	(python-util-forward-comment-1): New test. (Bug#17658)
+
 2014-06-28  Leo Liu  <sdl.web@gmail.com>
 
 	* automated/calc-tests.el: New file and add tests for math-bignum.

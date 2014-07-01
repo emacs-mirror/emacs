@@ -86,6 +86,24 @@ STRING, it is skipped so the next STRING occurrence is selected."
         found-point
       (and restore-point (goto-char starting-point)))))
 
+(defun python-tests-self-insert (char-or-str)
+  "Call `self-insert-command' for chars in CHAR-OR-STR."
+  (let ((chars
+         (cond
+          ((characterp char-or-str)
+           (list char-or-str))
+          ((stringp char-or-str)
+           (string-to-list char-or-str))
+          ((not
+            (cl-remove-if #'characterp char-or-str))
+           char-or-str)
+          (t (error "CHAR-OR-STR must be a char, string, or list of char")))))
+    (mapc
+     (lambda (char)
+       (let ((last-command-event char))
+         (call-interactively 'self-insert-command)))
+     chars)))
+
 
 ;;; Tests for your tests, so you can test while you test.
 
@@ -2715,9 +2733,6 @@ def foo(a, b, c):
   (should (string= (python-util-strip-string "\n \t \n\r ") ""))
   (should (string= (python-util-strip-string "") "")))
 
-
-;;; Electricity
-
 (ert-deftest python-util-forward-comment-1 ()
   (python-tests-with-temp-buffer
    (concat
@@ -2730,36 +2745,85 @@ def foo(a, b, c):
    (python-util-forward-comment -1)
    (should (= (point) (point-min)))))
 
+
+;;; Electricity
+
+(ert-deftest python-parens-electric-indent-1 ()
+  (require 'electric)
+  (let ((eim electric-indent-mode))
+    (unwind-protect
+        (progn
+          (python-tests-with-temp-buffer
+              "
+from django.conf.urls import patterns, include, url
+
+from django.contrib import admin
+
+from myapp import views
+
+
+urlpatterns = patterns('',
+    url(r'^$', views.index
+)
+"
+            (electric-indent-mode 1)
+            (python-tests-look-at "views.index")
+            (end-of-line)
+
+            ;; Inserting commas within the same line should leave
+            ;; indentation unchanged.
+            (python-tests-self-insert ",")
+            (should (= (current-indentation) 4))
+
+            ;; As well as any other input happening within the same
+            ;; set of parens.
+            (python-tests-self-insert " name='index')")
+            (should (= (current-indentation) 4))
+
+            ;; But a comma outside it, should trigger indentation.
+            (python-tests-self-insert ",")
+            (should (= (current-indentation) 23))
+
+            ;; Newline indents to the first argument column
+            (python-tests-self-insert "\n")
+            (should (= (current-indentation) 23))
+
+            ;; All this input must not change indentation
+            (indent-line-to 4)
+            (python-tests-self-insert "url(r'^/login$', views.login)")
+            (should (= (current-indentation) 4))
+
+            ;; But this comma does
+            (python-tests-self-insert ",")
+            (should (= (current-indentation) 23))))
+      (or eim (electric-indent-mode -1)))))
+
 (ert-deftest python-triple-quote-pairing ()
   (require 'electric)
   (let ((epm electric-pair-mode))
     (unwind-protect
         (progn
           (python-tests-with-temp-buffer
-           "\"\"\n"
-           (or epm (electric-pair-mode 1))
-           (goto-char (1- (point-max)))
-           (let ((last-command-event ?\"))
-             (call-interactively 'self-insert-command))
-           (should (string= (buffer-string)
-                            "\"\"\"\"\"\"\n"))
-           (should (= (point) 4)))
+              "\"\"\n"
+            (or epm (electric-pair-mode 1))
+            (goto-char (1- (point-max)))
+            (python-tests-self-insert ?\")
+            (should (string= (buffer-string)
+                             "\"\"\"\"\"\"\n"))
+            (should (= (point) 4)))
           (python-tests-with-temp-buffer
-           "\n"
-           (let ((last-command-event ?\"))
-             (dotimes (i 3)
-               (call-interactively 'self-insert-command)))
-           (should (string= (buffer-string)
-                            "\"\"\"\"\"\"\n"))
-           (should (= (point) 4)))
+              "\n"
+            (python-tests-self-insert (list ?\" ?\" ?\"))
+            (should (string= (buffer-string)
+                             "\"\"\"\"\"\"\n"))
+            (should (= (point) 4)))
           (python-tests-with-temp-buffer
-           "\"\n\"\"\n"
-           (goto-char (1- (point-max)))
-           (let ((last-command-event ?\"))
-             (call-interactively 'self-insert-command))
-           (should (= (point) (1- (point-max))))
-           (should (string= (buffer-string)
-                            "\"\n\"\"\"\n"))))
+              "\"\n\"\"\n"
+            (goto-char (1- (point-max)))
+            (python-tests-self-insert ?\")
+            (should (= (point) (1- (point-max))))
+            (should (string= (buffer-string)
+                             "\"\n\"\"\"\n"))))
       (or epm (electric-pair-mode -1)))))
 
 
