@@ -4527,9 +4527,11 @@ run `deactivate-mark-hook'."
     (when mark-active (force-mode-line-update)) ;Refresh toolbar (bug#16382).
     (cond
      ((eq (car-safe transient-mark-mode) 'only)
-      (setq transient-mark-mode (cdr transient-mark-mode)))
+      (setq transient-mark-mode (cdr transient-mark-mode))
+      (if (eq transient-mark-mode (default-value 'transient-mark-mode))
+          (kill-local-variable 'transient-mark-mode)))
      ((eq transient-mark-mode 'lambda)
-      (setq transient-mark-mode nil)))
+      (kill-local-variable 'transient-mark-mode)))
     (setq mark-active nil)
     (run-hooks 'deactivate-mark-hook)
     (redisplay--update-region-highlight (selected-window))))
@@ -4756,7 +4758,7 @@ Novice Emacs Lisp programmers often try to use the mark for the wrong
 purposes.  See the documentation of `set-mark' for more information."
   (interactive "P")
   (cond ((eq transient-mark-mode 'lambda)
-	 (setq transient-mark-mode nil))
+	 (kill-local-variable 'transient-mark-mode))
 	((eq (car-safe transient-mark-mode) 'only)
 	 (deactivate-mark)))
   (cond
@@ -4894,6 +4896,8 @@ its earlier value."
            (push-mark nil nil t)))
         ((eq (car-safe transient-mark-mode) 'only)
          (setq transient-mark-mode (cdr transient-mark-mode))
+         (if (eq transient-mark-mode (default-value 'transient-mark-mode))
+             (kill-local-variable 'transient-mark-mode))
          (deactivate-mark))))
 
 (define-minor-mode transient-mark-mode

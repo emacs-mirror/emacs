@@ -1,5 +1,8 @@
 2014-07-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* simple.el (deactivate-mark, set-mark-command, handle-shift-selection):
+	Don't keep transient-mark-mode buffer-local when not needed (bug#6316).
+
 	* xt-mouse.el (turn-on-xterm-mouse-tracking-on-terminal)
 	(turn-off-xterm-mouse-tracking-on-terminal): Don't burp if the terminal
 	is suspended (bug#17857).
