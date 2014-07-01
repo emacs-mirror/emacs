@@ -357,9 +357,15 @@ The first subexpression is the actual text of the field.")
       (set-match-data (list start (point)))
       (point))))
 
+(defun log-edit-goto-eoh ()             ;FIXME: Almost rfc822-goto-eoh!
+  (goto-char (point-min))
+  (when (re-search-forward
+	 "^\\([^[:alpha:]]\\|[[:alnum:]-]+[^[:alnum:]-:]\\)" nil 'move)
+    (goto-char (match-beginning 0))))
+
 (defun log-edit--match-first-line (limit)
   (let ((start (point)))
-    (rfc822-goto-eoh)
+    (log-edit-goto-eoh)
     (skip-chars-forward "\n")
     (and (< start (line-end-position))
          (< (point) limit)

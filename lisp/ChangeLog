@@ -1,3 +1,8 @@
+2014-07-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc/log-edit.el (log-edit-goto-eoh): New function.
+	(log-edit--match-first-line): Use it (bug#17861).
+
 2014-07-01  Glenn Morris  <rgm@gnu.org>
 
 	* vc/log-edit.el (log-edit-hook): Add missing :version.
