@@ -1,3 +1,9 @@
+2014-07-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xt-mouse.el (turn-on-xterm-mouse-tracking-on-terminal)
+	(turn-off-xterm-mouse-tracking-on-terminal): Don't burp if the terminal
+	is suspended (bug#17857).
+
 2014-07-01  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-sh.el (tramp-open-connection-setup-interactive-shell):
@@ -40,8 +46,7 @@
 	Don't call c-parse-state when c++-template-syntax-table is active.
 	* progmodes/cc-engine.el (c-guess-continued-construct CASE G)
 	(c-guess-basic-syntax CASE 5D.3): Rearrange so that
-	c-syntactic-skip-backwards isn't called with the pertinent syntax
-	table.
+	c-syntactic-skip-backwards isn't called with the pertinent syntax table.
 
 2014-06-28  Stephen Berman  <stephen.berman@gmx.net>
 

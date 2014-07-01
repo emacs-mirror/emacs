@@ -312,7 +312,8 @@ terminals that support it.")
   "Enable xterm mouse tracking on TERMINAL."
   (when (and xterm-mouse-mode (eq t (terminal-live-p terminal))
 	     ;; Avoid the initial terminal which is not a termcap device.
-	     ;; FIXME: is there more elegant way to detect the initial terminal?
+	     ;; FIXME: is there more elegant way to detect the initial
+             ;; terminal?
 	     (not (string= (terminal-name terminal) "initial_terminal")))
     (unless (terminal-parameter terminal 'xterm-mouse-mode)
       ;; Simulate selecting a terminal by selecting one of its frames
@@ -320,7 +321,13 @@ terminals that support it.")
       (with-selected-frame (car (frames-on-display-list terminal))
         (define-key input-decode-map "\e[M" 'xterm-mouse-translate)
         (define-key input-decode-map "\e[<" 'xterm-mouse-translate-extended))
-      (send-string-to-terminal xterm-mouse-tracking-enable-sequence terminal)
+      (condition-case err
+          (send-string-to-terminal xterm-mouse-tracking-enable-sequence
+                                   terminal)
+        ;; FIXME: This should use a dedicated error signal.
+        (error (if (equal (cadr err) "Terminal is currently suspended")
+                   nil                  ;The sequence will be sent upon resume.
+                 (signal (car err) (cdr err)))))
       (push xterm-mouse-tracking-enable-sequence
             (terminal-parameter nil 'tty-mode-set-strings))
       (push xterm-mouse-tracking-disable-sequence
@@ -338,7 +345,13 @@ terminals that support it.")
     ;; command too many times (or to catch an unintended key sequence), than
     ;; to send it too few times (or to fail to let xterm-mouse events
     ;; pass by untranslated).
-    (send-string-to-terminal xterm-mouse-tracking-disable-sequence terminal)
+    (condition-case err
+        (send-string-to-terminal xterm-mouse-tracking-disable-sequence
+                                 terminal)
+      ;; FIXME: This should use a dedicated error signal.
+      (error (if (equal (cadr err) "Terminal is currently suspended")
+                 nil
+               (signal (car err) (cdr err)))))
     (setf (terminal-parameter nil 'tty-mode-set-strings)
           (remq xterm-mouse-tracking-enable-sequence
                 (terminal-parameter nil 'tty-mode-set-strings)))
