@@ -1,3 +1,31 @@
+2014-07-01  Juri Linkov  <juri@jurta.org>
+
+	* man.el: Display man pages immediately and use process-filter
+	to format them asynchronously.
+	(Man-width): Doc fix.
+	(man): Doc fix.
+	(Man-start-calling): Use `with-selected-window' to get
+	`frame-width' and `window-width'.
+	(Man-getpage-in-background): Call `Man-notify-when-ready'
+	immediately after creating a new buffer.  Call `Man-mode' and set
+	`mode-line-process' in the created buffer.  Set process-filter to
+	`Man-bgproc-filter' in start-process branch.  In call-process branch
+	call either `Man-fontify-manpage' or `Man-cleanup-manpage'.
+	Use `Man-start-calling' inside `with-current-buffer'.
+	(Man-fontify-manpage): Don't print messages.  Fix boundary condition.
+	(Man-cleanup-manpage): Don't print messages.
+	(Man-bgproc-filter): New function.
+	(Man-bgproc-sentinel): Add `save-excursion' to keep point when
+	user moved it during asynchronous formatting.  Move calls of
+	`Man-fontify-manpage' and `Man-cleanup-manpage' to
+	`Man-bgproc-filter'.  Move the call of `Man-mode' to
+	`Man-getpage-in-background'.  Use `quit-restore-window'
+	instead of `kill-buffer'.  Use `message' instead of `error'
+	because errors are catched by process sentinel.
+	(Man-mode): Move calls of `Man-build-page-list',
+	`Man-strip-page-headers', `Man-unindent', `Man-goto-page' to
+	`Man-bgproc-sentinel'.  Doc fix.  (Bug#2588, bug#5054, bug#9084, bug#17831)
+
 2014-07-01  Mario Lang  <mlang@delysid.org>
 
 	* net/gnutls.el (gnutls-negotiate): Prevent destructive modification of
