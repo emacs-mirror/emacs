@@ -15,6 +15,7 @@
 	(map_sub_char_table_for_charset, uniprop_table_uncompress):
 	All related users changed.
 	* lread.c (read1): Adjust to match new layout of sub char-table.
+	* print.c (print_object): Likewise (Bug#17898).
 
 2014-07-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
