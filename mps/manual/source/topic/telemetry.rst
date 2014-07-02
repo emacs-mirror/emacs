@@ -431,8 +431,7 @@ Telemetry interface
     stream itself. This ensures that even the latest events are now
     properly recorded, should the :term:`client program` terminate
     (uncontrollably as a result of a bug, for example) or some
-    interactive tool require access to the telemetry stream. You could
-    even try calling this from a debugger after a problem.
+    interactive tool require access to the telemetry stream.
 
     .. note::
 

@@ -139,6 +139,10 @@ Other changes
    around 25% faster (in our benchmarks) than they were in release
    1.113.0.
 
+#. The default assertion handler in the ANSI plinth now flushes the
+   telemetry stream before aborting. See
+   :c:func:`mps_lib_assert_fail`.
+
 
 .. _release-notes-1.113:
 

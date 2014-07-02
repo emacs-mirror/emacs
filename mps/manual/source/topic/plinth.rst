@@ -247,9 +247,11 @@ Library module
     .. note::
 
         In the ANSI Library module, ``mpsliban.c``, this reports the
-        failure using ``fprintf(stderr, "...%s...", message)`` and, in
-        the :term:`cool` :term:`variety`, terminates the program by
-        calling :c:func:`abort`. You can change this behaviour with
+        failure by calling ``fprintf(stderr, "...%s...", message)``,
+        flushes the :term:`telemetry` stream by calling
+        :c:func:`mps_telemetry_flush`, and, in the :term:`cool`
+        :term:`variety`, terminates the program by calling
+        :c:func:`abort`. You can change this behaviour with
         :c:func:`mps_lib_assert_fail_install`. For a discussion of the
         default behaviour, see :ref:`topic-error-assertion-handling`.
 
