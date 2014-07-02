@@ -138,7 +138,8 @@
 
 (defcustom hide-ifdef-exclude-define-regexp nil
   "Ignore #define names if those names match this exclusion pattern."
-  :type 'string)
+  :type 'string
+  :version "24.5")
 
 (defvar hide-ifdef-mode-submap
   ;; Set up the submap that goes after the prefix key.
