@@ -1,3 +1,8 @@
+2014-07-02  Leo Liu  <sdl.web@gmail.com>
+
+	* emacs-lisp/pp.el (pp-eval-expression, pp-eval-last-sexp):
+	Support lexical-binding.
+
 2014-07-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc/log-edit.el (log-edit-goto-eoh): New function.
