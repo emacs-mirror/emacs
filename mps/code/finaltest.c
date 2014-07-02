@@ -138,12 +138,6 @@ static void register_indirect_tree(mps_word_t tree, mps_arena_t arena)
     }
 }
 
-static mps_addr_t test_awl_find_dependent(mps_addr_t addr)
-{
-  testlib_unused(addr);
-  return NULL;
-}
-
 static void *root[rootCOUNT];
 
 static void test_trees(int mode, const char *name, mps_arena_t arena,
@@ -235,8 +229,6 @@ static void test_pool(int mode, mps_arena_t arena, mps_chain_t chain,
       MPS_ARGS_ADD(args, MPS_KEY_CHAIN, chain);
       MPS_ARGS_ADD(args, MPS_KEY_GEN, 1);
     }
-    if (pool_class == mps_class_awl())
-      MPS_ARGS_ADD(args, MPS_KEY_AWL_FIND_DEPENDENT, test_awl_find_dependent);
     die(mps_pool_create_k(&pool, arena, pool_class, args),
         "pool_create\n");
   } MPS_ARGS_END(args);

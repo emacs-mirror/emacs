@@ -125,12 +125,6 @@ static void stepper(mps_addr_t object, mps_fmt_t format,
     return;
 }
 
-static mps_addr_t test_awl_find_dependent(mps_addr_t addr)
-{
-    testlib_unused(addr);
-    return NULL;
-}
-
 /* test -- the body of the test */
 
 static void *test(mps_arena_t arena, mps_class_t pool_class)
@@ -149,7 +143,6 @@ static void *test(mps_arena_t arena, mps_class_t pool_class)
     MPS_ARGS_BEGIN(args) {
         MPS_ARGS_ADD(args, MPS_KEY_FORMAT, format);
         MPS_ARGS_ADD(args, MPS_KEY_CHAIN, chain);
-        MPS_ARGS_ADD(args, MPS_KEY_AWL_FIND_DEPENDENT, test_awl_find_dependent);
         die(mps_pool_create_k(&pool, arena, pool_class, args), "pool_create");
     } MPS_ARGS_END(args);
 

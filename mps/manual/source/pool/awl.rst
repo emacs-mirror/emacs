@@ -314,19 +314,21 @@ AWL interface
     :term:`pool`.
 
     When creating an AWL pool, :c:func:`mps_pool_create_k` requires
-    two :term:`keyword arguments`:
+    one :term:`keyword argument`:
 
     * :c:macro:`MPS_KEY_FORMAT` (type :c:type:`mps_fmt_t`) specifies
       the :term:`object format` for the objects allocated in the pool.
       The format must provide a :term:`scan method` and a :term:`skip
       method`.
 
+    It accepts three optional keyword arguments:
+
     * :c:macro:`MPS_KEY_AWL_FIND_DEPENDENT` (type
+
       :c:type:`mps_awl_find_dependent_t`) is a function that specifies
       how to find the :term:`dependent object` for an object in the
-      pool.
-
-    It accepts two optional keyword arguments:
+      pool. This defaults to a function that always returns ``NULL``
+      (meaning that there is no dependent object).
 
     * :c:macro:`MPS_KEY_CHAIN` (type :c:type:`mps_chain_t`) specifies
       the :term:`generation chain` for the pool. If not specified, the
