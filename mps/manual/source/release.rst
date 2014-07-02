@@ -61,6 +61,12 @@ Interface changes
    the value ``FALSE`` is appropriate only when you know that all
    references are exact. See :ref:`pool-ams`.
 
+#. There is now a default value for the
+   :c:macro:`MPS_KEY_AWL_FIND_DEPENDENT` keyword argument to
+   :c:func:`mps_pool_create_k` when creating an :ref:`pool-awl` pool.
+   The default value is a function that always returns ``NULL``
+   (meaning that there is no dependent object).
+
 #. It is now possible to configure the alignment of objects allocated
    in a :ref:`pool-mv` pool, by passing the :c:macro:`MPS_KEY_ALIGN`
    keyword argument to :c:func:`mps_pool_create_k`.

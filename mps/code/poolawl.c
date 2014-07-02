@@ -533,6 +533,15 @@ static void AWLVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
 }
 
 
+/* awlNoDependent -- no dependent object */
+
+static Addr awlNoDependent(Addr addr)
+{
+  UNUSED(addr);
+  return NULL;
+}
+
+
 /* AWLInit -- initialize an AWL pool */
 
 ARG_DEFINE_KEY(awl_find_dependent, Fun);
@@ -541,7 +550,7 @@ static Res AWLInit(Pool pool, ArgList args)
 {
   AWL awl;
   Format format;
-  FindDependentMethod findDependent;
+  FindDependentMethod findDependent = awlNoDependent;
   Chain chain;
   Res res;
   ArgStruct arg;
@@ -554,8 +563,8 @@ static Res AWLInit(Pool pool, ArgList args)
   
   ArgRequire(&arg, args, MPS_KEY_FORMAT);
   format = arg.val.format;
-  ArgRequire(&arg, args, MPS_KEY_AWL_FIND_DEPENDENT);
-  findDependent = (FindDependentMethod)arg.val.addr_method;
+  if (ArgPick(&arg, args, MPS_KEY_AWL_FIND_DEPENDENT))
+    findDependent = (FindDependentMethod)arg.val.addr_method;
   if (ArgPick(&arg, args, MPS_KEY_CHAIN))
     chain = arg.val.chain;
   else {
