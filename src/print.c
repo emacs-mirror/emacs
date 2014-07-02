@@ -1968,7 +1968,7 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 		 Otherwise we'll make a line extremely long, which
 		 results in slow redisplay.  */
 	      if (SUB_CHAR_TABLE_P (obj)
-		  && XINT (XSUB_CHAR_TABLE (obj)->depth) == 3)
+		  && XSUB_CHAR_TABLE (obj)->depth == 3)
 		PRINTCHAR ('\n');
 	      PRINTCHAR ('#');
 	      PRINTCHAR ('^');

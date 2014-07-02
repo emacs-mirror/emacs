@@ -1,3 +1,21 @@
+2014-07-02  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Shrink Lisp_Sub_Char_Table by preferring C integers to Lisp_Objects.
+	* lisp.h (struct Lisp_Sub_Char_Table): Use C integers for depth and
+	min_char slots.  Adjust comment.
+	(enum char_table_specials): Rename from CHAR_TABLE_STANDARD_SLOTS.
+	Add SUB_CHAR_TABLE_OFFSET member.
+	(make_uninit_sub_char_table): New function.
+	* alloc.c (mark_char_table): Add extra argument to denote char table
+	subtype.  Adjust to match new layout of sub char-table.
+	(mark_object): Always mark sub char-tables with mark_char_table.
+	* chartab.c (make_sub_char_table, copy_sub_char_table)
+	(sub_char_table_ref, sub_char_table_ref_and_range, sub_char_table_set)
+	(sub_char_table_set_range, optimize_sub_char_table, map_sub_char_table)
+	(map_sub_char_table_for_charset, uniprop_table_uncompress):
+	All related users changed.
+	* lread.c (read1): Adjust to match new layout of sub char-table.
+
 2014-07-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* keymap.c (get_keyelt): Simplify.

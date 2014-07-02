@@ -5958,14 +5958,15 @@ mark_vectorlike (struct Lisp_Vector *ptr)
    symbols.  */
 
 static void
-mark_char_table (struct Lisp_Vector *ptr)
+mark_char_table (struct Lisp_Vector *ptr, enum pvec_type pvectype)
 {
   int size = ptr->header.size & PSEUDOVECTOR_SIZE_MASK;
-  int i;
+  /* Consult the Lisp_Sub_Char_Table layout before changing this.  */
+  int i, idx = (pvectype == PVEC_SUB_CHAR_TABLE ? SUB_CHAR_TABLE_OFFSET : 0);
 
   eassert (!VECTOR_MARKED_P (ptr));
   VECTOR_MARK (ptr);
-  for (i = 0; i < size; i++)
+  for (i = idx; i < size; i++)
     {
       Lisp_Object val = ptr->contents[i];
 
@@ -5974,7 +5975,7 @@ mark_char_table (struct Lisp_Vector *ptr)
       if (SUB_CHAR_TABLE_P (val))
 	{
 	  if (! VECTOR_MARKED_P (XVECTOR (val)))
-	    mark_char_table (XVECTOR (val));
+	    mark_char_table (XVECTOR (val), PVEC_SUB_CHAR_TABLE);
 	}
       else
 	mark_object (val);
@@ -6320,7 +6321,8 @@ mark_object (Lisp_Object arg)
 	    break;
 
 	  case PVEC_CHAR_TABLE:
-	    mark_char_table (ptr);
+	  case PVEC_SUB_CHAR_TABLE:
+	    mark_char_table (ptr, (enum pvec_type) pvectype);
 	    break;
 
 	  case PVEC_BOOL_VECTOR:
@@ -7218,7 +7220,7 @@ The time is in seconds as a floating point value.  */);
 union
 {
   enum CHARTAB_SIZE_BITS CHARTAB_SIZE_BITS;
-  enum CHAR_TABLE_STANDARD_SLOTS CHAR_TABLE_STANDARD_SLOTS;
+  enum char_table_specials char_table_specials;
   enum char_bits char_bits;
   enum CHECK_LISP_OBJECT_TYPE CHECK_LISP_OBJECT_TYPE;
   enum DEFAULT_HASH_SIZE DEFAULT_HASH_SIZE;
