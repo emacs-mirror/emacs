@@ -1101,7 +1101,7 @@ regardless of where you click."
     (unless primary
       (error "No selection is available"))
     (push-mark (point))
-    (insert primary)))
+    (insert-for-yank primary)))
 
 (defun mouse-kill-ring-save (click)
   "Copy the region between point and the mouse click in the kill ring.
@@ -1383,7 +1383,7 @@ regardless of where you click."
   (or mouse-yank-at-point (mouse-set-point click))
   (let ((secondary (x-get-selection 'SECONDARY)))
     (if secondary
-        (insert secondary)
+        (insert-for-yank secondary)
       (error "No secondary selection"))))
 
 (defun mouse-kill-secondary ()
