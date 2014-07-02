@@ -1,3 +1,8 @@
+2014-07-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keymaps.texi (Key Lookup): Remove mention of indirect entries.
+	(Scanning Keymaps): Reword the `noindirect' argument.
+
 2014-06-28  Glenn Morris  <rgm@gnu.org>
 
 	* minibuf.texi (Intro to Minibuffers): Batch mode is basic.

@@ -1,3 +1,9 @@
+2014-07-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keymap.c (get_keyelt): Simplify.
+	(copy_keymap_item): Remove left-over code for when we had
+	key-shortcut caches.
+
 2014-06-30  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (judge): EmacsScroller: Move dealloc code here.
@@ -19,8 +25,7 @@
 	(mouseMoved:): Set any_help_event_p to YES if help event is
 	generated.  Remove else with empty help event that triggered redisplay
 	for every mouse move.
-	(windowDidResignKey:): If any_help_event_p, generate empty help
-	event.
+	(windowDidResignKey:): If any_help_event_p, generate empty help event.
 
 2014-06-29  Dmitry Antipov  <dmantipov@yandex.ru>
 

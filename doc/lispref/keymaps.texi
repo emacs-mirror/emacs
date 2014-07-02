@@ -1043,22 +1043,6 @@ lambda expression.  This is presumed to be a function, and is treated
 as such (see above).  In order to execute properly as a key binding,
 this function must be a command---it must have an @code{interactive}
 specification.  @xref{Defining Commands}.
-
-@item
-If the @sc{car} of @var{list} is a keymap and the @sc{cdr} is an event
-type, then this is an @dfn{indirect entry}:
-
-@example
-(@var{othermap} . @var{othertype})
-@end example
-
-When key lookup encounters an indirect entry, it looks up instead the
-binding of @var{othertype} in @var{othermap} and uses that.
-
-This feature permits you to define one key as an alias for another key.
-For example, an entry whose @sc{car} is the keymap called @code{esc-map}
-and whose @sc{cdr} is 32 (the code for @key{SPC}) means, ``Use the global
-binding of @kbd{Meta-@key{SPC}}, whatever that may be''.
 @end itemize
 
 @item @var{symbol}
@@ -1066,9 +1050,7 @@ binding of @kbd{Meta-@key{SPC}}, whatever that may be''.
 The function definition of @var{symbol} is used in place of
 @var{symbol}.  If that too is a symbol, then this process is repeated,
 any number of times.  Ultimately this should lead to an object that is
-a keymap, a command, or a keyboard macro.  A list is allowed if it is a
-keymap or a command, but indirect entries are not understood when found
-via symbols.
+a keymap, a command, or a keyboard macro.
 
 Note that keymaps and keyboard macros (strings and vectors) are not
 valid functions, so a symbol with a keymap, string, or vector as its
@@ -1097,8 +1079,7 @@ binding is not executable as a command.
 @end table
 
   In short, a keymap entry may be a keymap, a command, a keyboard
-macro, a symbol that leads to one of them, or an indirection or
-@code{nil}.
+macro, a symbol that leads to one of them, or @code{nil}.
 
 @node Functions for Key Lookup
 @section Functions for Key Lookup
@@ -1945,9 +1926,9 @@ entirely of @acronym{ASCII} characters (or meta variants of @acronym{ASCII}
 characters) are preferred to all other key sequences and that the
 return value can never be a menu binding.
 
-If @var{noindirect} is non-@code{nil}, @code{where-is-internal} doesn't
-follow indirect keymap bindings.  This makes it possible to search for
-an indirect definition itself.
+If @var{noindirect} is non-@code{nil}, @code{where-is-internal} doesn't look
+inside menu-items to find their commands.  This makes it possible to search for
+a menu-item itself.
 
 The fifth argument, @var{no-remap}, determines how this function
 treats command remappings (@pxref{Remapping Commands}).  There are two
