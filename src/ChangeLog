@@ -6,6 +6,8 @@
 	(enum char_table_specials): Rename from CHAR_TABLE_STANDARD_SLOTS.
 	Add SUB_CHAR_TABLE_OFFSET member.
 	(make_uninit_sub_char_table): New function.
+	(toplevel): Add compile-time assert to verify suitable member layout
+	in Lisp_Sub_Char_Table.
 	* alloc.c (mark_char_table): Add extra argument to denote char table
 	subtype.  Adjust to match new layout of sub char-table.
 	(mark_object): Always mark sub char-tables with mark_char_table.
