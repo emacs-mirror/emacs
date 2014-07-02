@@ -455,6 +455,7 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "unknown pool test \"%s\"\n", argv[0]);
     return EXIT_FAILURE;
   found:
+    (void)mps_lib_assert_fail_install(assert_die);
     rnd_state_set(seed);
     arena_setup(pools[i].fn, pools[i].pool_class(), pools[i].name);
     --argc;
