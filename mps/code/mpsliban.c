@@ -74,6 +74,7 @@ static void mps_lib_assert_fail_default(const char *file, unsigned line,
                 file, line, condition);
   /* Ensure the message is output even if stderr is buffered. */
   (void)fflush(stderr);
+  mps_telemetry_flush();
   ASSERT_ABORT(); /* see config.h */
 }
 
