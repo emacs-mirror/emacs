@@ -340,6 +340,7 @@ void verror(const char *format, va_list args)
   (void)vfprintf(stderr, format, args);
   (void)fprintf(stderr, "\n");
   (void)fflush(stderr); /* make sure the message is output */
+  mps_telemetry_flush();
   /* On Windows, the abort signal pops up a dialog box. This suspends
    * the test suite until a button is pressed, which is not acceptable
    * for offline testing, so if the MPS_TESTLIB_NOABORT environment
