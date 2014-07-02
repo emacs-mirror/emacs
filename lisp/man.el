@@ -1432,7 +1432,8 @@ manpage command."
 		(if Man-fontify-manpage-flag
 		    (message "%s man page formatted"
 			     (Man-page-from-arguments Man-arguments))
-		  (message "%s man page cleaned up" Man-arguments))
+		  (message "%s man page cleaned up"
+			   (Man-page-from-arguments Man-arguments)))
 		(unless (and (processp process)
 			     (not (eq (process-status process) 'exit)))
 		  (setq mode-line-process nil))
