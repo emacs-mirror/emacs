@@ -942,12 +942,13 @@ Frames with a non-nil `desktop-dont-save' parameter are not saved."
 			    :predicate #'desktop--check-dont-save))))
 
 ;;;###autoload
-(defun desktop-save (dirname &optional release auto-save)
+(defun desktop-save (dirname &optional release only-if-changed)
   "Save the desktop in a desktop file.
 Parameter DIRNAME specifies where to save the desktop file.
 Optional parameter RELEASE says whether we're done with this desktop.
-If AUTO-SAVE is non-nil, compare the saved contents to the one last saved,
-and don't save the buffer if they are the same."
+If ONLY-IF-CHANGED is non-nil, compare the current desktop information
+to that in the desktop file, and if the desktop information has not
+changed since it was last saved then do not rewrite the file."
   (interactive (list
                 ;; Or should we just use (car desktop-path)?
                 (let ((default (if (member "." desktop-path)
@@ -1020,7 +1021,7 @@ and don't save the buffer if they are the same."
 
 	  (setq default-directory desktop-dirname)
 	  ;; When auto-saving, avoid writing if nothing has changed since the last write.
-	  (let* ((beg (and auto-save
+	  (let* ((beg (and only-if-changed
 			   (save-excursion
 			     (goto-char (point-min))
 			     ;; Don't check the header with changing timestamp

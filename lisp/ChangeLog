@@ -1,3 +1,8 @@
+2014-07-02  Juri Linkov  <juri@jurta.org>
+
+	* desktop.el (desktop-save): Rename arg `auto-save' to
+	`only-if-changed'.  Doc fix.  (Bug#17873)
+
 2014-07-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mouse.el (mouse-yank-primary, mouse-yank-secondary):
