@@ -159,6 +159,11 @@ struct frame
      tool bar only supports top.  */
   Lisp_Object tool_bar_position;
 
+#if defined (HAVE_XFT) || defined (HAVE_FREETYPE)
+  /* List of data specific to font-driver and frame, but common to faces.  */
+  Lisp_Object font_data;
+#endif
+
   /* Beyond here, there should be no more Lisp_Object components.  */
 
   /* Cache of realized faces.  */
@@ -328,9 +333,6 @@ struct frame
 
   /* List of font-drivers available on the frame.  */
   struct font_driver_list *font_driver_list;
-  /* List of data specific to font-driver and frame, but common to
-     faces.  */
-  struct font_data_list *font_data_list;
 
   /* Total width of fringes reserved for drawing truncation bitmaps,
      continuation bitmaps and alike.  The width is in canonical char

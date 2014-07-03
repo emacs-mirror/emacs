@@ -1,3 +1,20 @@
+2014-07-03  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Use convenient alists to manage per-frame font driver-specific data.
+	* frame.h (struct frame): Rename font_data_list to...
+	[HAVE_XFT || HAVE_FREETYPE]: ... font_data, which is a Lisp_Object now.
+	* font.h (struct font_data_list): Remove; no longer need a special
+	data type.
+	(font_put_frame_data, font_get_frame_data) [HAVE_XFT || HAVE_FREETYPE]:
+	Adjust prototypes.
+	* font.c (font_put_frame_data, font_get_frame_data)
+	[HAVE_XFT || HAVE_FREETYPE]: Prefer alist functions to ad-hoc list
+	management.
+	* xftfont.c (xftfont_get_xft_draw, xftfont_end_for_frame):
+	Related users changed.
+	* ftxfont.c (ftxfont_get_gcs, ftxfont_end_for_frame): Likewise.
+	Prefer convenient xmalloc and xfree.
+
 2014-07-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* dispnew.c (prepare_desired_row): Accept 2 additional arguments:
