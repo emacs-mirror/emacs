@@ -4127,10 +4127,9 @@ ALIST is of the form ((FROM . TO) ...)."
 (defun tramp-call-process
   (vec program &optional infile destination display &rest args)
   "Calls `call-process' on the local host.
-This is needed because for some Emacs flavors Tramp has
-defadvised `call-process' to behave like `process-file'.  The
-Lisp error raised when PROGRAM is nil is trapped also, returning 1.
-Furthermore, traces are written with verbosity of 6."
+It always returns a return code.  The Lisp error raised when
+PROGRAM is nil is trapped also, returning 1.  Furthermore, traces
+are written with verbosity of 6."
   (let ((v (or vec
 	       (vector tramp-current-method tramp-current-user
 		       tramp-current-host nil nil)))
@@ -4144,6 +4143,9 @@ Furthermore, traces are written with verbosity of 6."
 	  (setq result
 		(apply
 		 'call-process program infile (or destination t) display args))
+	  ;; `result' could also be an error string.
+	  (when (stringp result)
+	    (signal 'file-error (list result)))
 	  (with-current-buffer
 	      (if (bufferp destination) destination (current-buffer))
 	    (tramp-message v 6 "%d\n%s" result (buffer-string))))

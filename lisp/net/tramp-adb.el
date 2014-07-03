@@ -458,9 +458,7 @@ Emacs dired can't find files."
       (insert "  " (mapconcat 'identity sorted-lines "\n  ")))
     ;; Add final newline.
     (goto-char (point-max))
-    (unless (= (point) (line-beginning-position))
-      (insert "\n"))))
-
+    (unless (bolp) (insert "\n"))))
 
 (defun tramp-adb-ls-output-time-less-p (a b)
   "Sort \"ls\" output by time, descending."

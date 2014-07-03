@@ -24,14 +24,14 @@
 
 ;;; Code:
 
-;; In the Tramp CVS repository, the version number and the bug report
+;; In the Tramp GIT repository, the version number and the bug report
 ;; address are auto-frobbed from configure.ac, so you should edit that
 ;; file and run "autoconf && ./configure" to change them.  (X)Emacs
 ;; version check is defined in macro AC_EMACS_INFO of aclocal.m4;
 ;; should be changed only there.
 
 ;;;###tramp-autoload
-(defconst tramp-version "2.2.10"
+(defconst tramp-version "2.2.11-pre"
   "This version of Tramp.")
 
 ;;;###tramp-autoload
@@ -44,7 +44,7 @@
 		      (= emacs-major-version 21)
 		      (>= emacs-minor-version 4)))
 	     "ok"
-	   (format "Tramp 2.2.10 is not fit for %s"
+	   (format "Tramp 2.2.11-pre is not fit for %s"
 		   (when (string-match "^.*$" (emacs-version))
 		     (match-string 0 (emacs-version)))))))
   (unless (string-match "\\`ok\\'" x) (error "%s" x)))

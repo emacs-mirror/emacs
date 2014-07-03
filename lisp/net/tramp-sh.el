@@ -1265,8 +1265,7 @@ target of the symlink differ."
 	       (format "%s -ild %s"
 		       (tramp-get-ls-command v)
 		       (tramp-shell-quote-argument localname)))
-	      (setq attr (buffer-substring (point)
-					   (progn (end-of-line) (point)))))
+	      (setq attr (buffer-substring (point) (point-at-eol))))
 	    (tramp-set-file-property
 	     v localname "visited-file-modtime-ild" attr))
 	  (when (boundp 'last-coding-system-used)
@@ -1317,8 +1316,7 @@ of."
 		       (tramp-get-ls-command v)
 		       (tramp-shell-quote-argument localname)))
 	      (with-current-buffer (tramp-get-buffer v)
-		(setq attr (buffer-substring
-			    (point) (progn (end-of-line) (point)))))
+		(setq attr (buffer-substring (point) (point-at-eol))))
 	      (equal
 	       attr
 	       (tramp-get-file-property

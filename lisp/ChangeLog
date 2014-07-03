@@ -1,3 +1,14 @@
+2014-07-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-call-process): Handle error strings.
+
+	* net/tramp-adb.el (tramp-adb-sh-fix-ls-output): Use `bolp'.
+
+	* net/tramp-sh.el (tramp-sh-handle-set-visited-file-modtime)
+	(tramp-sh-handle-verify-visited-file-modtime): Use `point-at-eol'.
+
+	* net/trampver.el: Update release number.
+
 2014-07-03  Juri Linkov  <juri@jurta.org>
 
 	* desktop.el (desktop-save): Rename arg `auto-save' to
