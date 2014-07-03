@@ -1,3 +1,8 @@
+2014-07-03  Juri Linkov  <juri@jurta.org>
+
+	* desktop.el (desktop-minor-mode-table): Add `defining-kbd-macro'
+	and `isearch-mode' associated with nil.  (Bug#17849)
+
 2014-07-02  Juri Linkov  <juri@jurta.org>
 
 	* desktop.el (desktop-save): Rename arg `auto-save' to
