@@ -379,6 +379,11 @@ Format methods
     indicate references within the objects by calling
     :c:func:`MPS_FIX1` and :c:func:`MPS_FIX2`.
 
+    If the object format is capable of creating forwarding objects or
+    padding objects, the scan method must be able to scan these
+    objects. (In the case of the forwarding object, the scan method
+    should not fix the pointer to the new location.)
+
     .. seealso::
 
         :ref:`topic-scanning`.
@@ -400,6 +405,10 @@ Format methods
 
         In either case, the result is the sum of ``addr`` and the size
         of the block containing the object.
+
+    If the object format is capable of creating forwarding objects or
+    padding objects, the skip method must be able to skip these
+    objects.
 
     A skip method is not allowed to fail.
 
