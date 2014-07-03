@@ -517,10 +517,13 @@ static mps_res_t dylan_scan(mps_ss_t mps_ss,
                             mps_addr_t base, mps_addr_t limit)
 {
   mps_res_t res;
+  mps_addr_t prev = base;
 
   while(base < limit) {
+    prev = base;
     res = dylan_scan1(mps_ss, &base);
     if(res) return res;
+    assert(prev < base);
   }
 
   assert(base == limit);
@@ -717,6 +720,7 @@ static void dylan_fwd(mps_addr_t old, mps_addr_t new)
   mps_addr_t limit;
 
   assert(dylan_isfwd(old) == NULL);
+  assert((*(mps_word_t *)old & 3) == 0); /* mustn't forward padding objects */
   assert(((mps_word_t)new & 3) == 0);
 
   p = (mps_word_t *)old;
