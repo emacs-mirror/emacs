@@ -971,11 +971,11 @@ The new optional CHECK-TIMERS parameter allows for the prior behavior.
 Some languages match those as »...«, and others as «...», so it is
 better for Emacs to stay neutral by default.
 
-** `read-event' does not return decoded chars in ttys any more.
-As was the case in Emacs 22 and before, the decoding of terminal
-input, according to `keyboard-coding-system', is not performed in
-`read-event' any more.  But unlike in Emacs 22, this decoding is still
-done before `input-decode-map', `function-key-map', etc.
+** `read-event' does not always decode chars in ttys any more.  As was the case
+in Emacs 22 and before, `read-event' (and `read-char') by default read raw
+bytes from the terminal.  If you want to read decoded chars instead (as was
+always the case in Emacs-23, for example), pass a non-nil
+`inherit-input-method' argument.
 
 ** In `symbol-function', nil and "unbound" are indistinguishable.
 `symbol-function' does not signal a `void-function' error any more.
