@@ -267,7 +267,7 @@ CFLAGSSQLPOST =
 CFLAGSCOMMONPOST = $(CFLAGSTARGETPOST)
 
 # Flags for use in the variety combinations
-CFLAGSHOT = /O2    /DNDEBUG
+CFLAGSHOT = /O2
 # (above /O2 (maximise speed) used to be set to /Ox
 # (maximise optimisations) in for tool versions before VS 9)
 # We used to have /GZ here (stack probe).
