@@ -674,7 +674,7 @@ It is based on `log-edit-mode', and has Git-specific extensions.")
     (cl-flet ((boolean-arg-fn
                (argument)
                (lambda (value) (when (equal value "yes") (list argument)))))
-      ;; When operating on the whole tree, better pass nil than ".", since "."
+      ;; When operating on the whole tree, better pass "-a" than ".", since "."
       ;; fails when we're committing a merge.
       (apply 'vc-git-command nil 0 (if only files)
              (nconc (list "commit" "-m")
@@ -684,7 +684,7 @@ It is based on `log-edit-mode', and has Git-specific extensions.")
                        ("Amend" . ,(boolean-arg-fn "--amend"))
                        ("Sign-Off" . ,(boolean-arg-fn "--signoff")))
                      comment)
-                    (if only (list "--only" "--")))))))
+		    (if only (list "--only" "--") '("-a")))))))
 
 (defun vc-git-find-revision (file rev buffer)
   (let* (process-file-side-effects

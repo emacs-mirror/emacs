@@ -25,7 +25,7 @@
 ;;; Commentary:
 
 ;; This package provides a pre-packaged `Electric Help Mode' for
-;; browsing on-line help screens.  There is one entry point,
+;; browsing Emacs help screens.  There is one entry point,
 ;; `with-electric-help'; all you have to give it is a no-argument
 ;; function that generates the actual text of the help into the current
 ;; buffer.

@@ -676,19 +676,9 @@ init_frame_faces (struct frame *f)
     }
 #endif /* HAVE_WINDOW_SYSTEM */
 
-  /* Realize basic faces.  Must have enough information in frame
-     parameters to realize basic faces at this point.  */
-#ifdef HAVE_X_WINDOWS
-  if (!FRAME_X_P (f) || FRAME_X_WINDOW (f))
-#endif
-#ifdef HAVE_NTGUI
-  if (!FRAME_WINDOW_P (f) || FRAME_W32_WINDOW (f))
-#endif
-#ifdef HAVE_NS
-  if (!FRAME_NS_P (f) || FRAME_NS_WINDOW (f))
-#endif
-    if (!realize_basic_faces (f))
-	emacs_abort ();
+  /* Realize faces early (Bug#17889).  */
+  if (!realize_basic_faces (f))
+    emacs_abort ();
 }
 
 

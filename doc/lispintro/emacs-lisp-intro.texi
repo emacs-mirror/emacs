@@ -903,7 +903,7 @@ file, @file{cl.el}, that adds many Common Lisp features to Emacs Lisp.)
 If you don't know GNU Emacs, you can still read this document
 profitably.  However, I recommend you learn Emacs, if only to learn to
 move around your computer screen.  You can teach yourself how to use
-Emacs with the on-line tutorial.  To use it, type @kbd{C-h t}.  (This
+Emacs with the built-in tutorial.  To use it, type @kbd{C-h t}.  (This
 means you press and release the @key{CTRL} key and the @kbd{h} at the
 same time, and then press and release @kbd{t}.)
 
@@ -4657,7 +4657,7 @@ specialized library, such as a law library or an engineering library,
 rather than a general library.  Each library, or file, contains
 functions that relate to a particular topic or activity, such as
 @file{abbrev.el} for handling abbreviations and other typing
-shortcuts, and @file{help.el} for on-line help.  (Sometimes several
+shortcuts, and @file{help.el} for help.  (Sometimes several
 libraries provide code for a single activity, as the various
 @file{rmail@dots{}} files provide code for reading electronic mail.)
 In @cite{The GNU Emacs Manual}, you will see sentences such as ``The
@@ -18685,9 +18685,9 @@ easy-to-read description of Emacs Lisp.  It is written not only for
 experts, but for people who know what you know.  (The @cite{Reference
 Manual} comes with the standard GNU Emacs distribution.  Like this
 introduction, it comes as a Texinfo source file, so you can read it
-on-line and as a typeset, printed book.)
+on your computer and as a typeset, printed book.)
 
-Go to the other on-line help that is part of GNU Emacs: the on-line
+Go to the other built-in help that is part of GNU Emacs: the built-in
 documentation for all functions and variables, and @code{find-tag},
 the program that takes you to sources.
 

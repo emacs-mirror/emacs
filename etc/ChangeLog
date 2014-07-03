@@ -1,3 +1,8 @@
+2014-07-03  Glenn Morris  <rgm@gnu.org>
+
+	* refcards/calccard.tex (section{Getting Help}):
+	Meaning of "on-line" has changed.
+
 2014-06-28  Glenn Morris  <rgm@gnu.org>
 
 	* publicsuffix.txt: Update from source.

@@ -1,3 +1,28 @@
+2014-07-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* dispnew.c (prepare_desired_row): Accept 2 additional arguments:
+	the window whose glyph row is being prepared and a flag whether it
+	is for mode/header line.  Make sure the glyph row's marginal areas
+	are in sync with what the window wants.
+	(Bug#17892)
+
+	* xdisp.c (display_line, display_mode_line): Call
+	prepare_desired_row with additional arguments, as appropriate.
+
+	* dispextern.h (prepare_desired_row): Adjust prototype.
+
+2014-07-03  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xfaces.c (init_frame_faces): Always realize basic faces (Bug#17889).
+	* menu.c (Fx_popup_dialog): Set Vmenu_updating_frame to avoid crash
+	caused by xw_popup_dialog in daemon mode (Bug#17891).
+
+2014-07-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* frame.c (do_switch_frame): When switching to another TTY frame,
+	make sure FrameCols and FrameRows are in sync with the new frame's
+	data.  (Bug#17875)
+
 2014-07-02  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Shrink Lisp_Sub_Char_Table by preferring C integers to Lisp_Objects.

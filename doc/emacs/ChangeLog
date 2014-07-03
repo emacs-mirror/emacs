@@ -1,3 +1,9 @@
+2014-07-03  Glenn Morris  <rgm@gnu.org>
+
+	* help.texi (Misc Help):
+	* trouble.texi (Checklist): "Online" help doesn't mean what it
+	used to any more.
+
 2014-06-23  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (%.texi): Disable implicit rules.

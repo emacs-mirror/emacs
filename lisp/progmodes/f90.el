@@ -71,8 +71,8 @@
 ;; For example:
 ;; (add-to-list 'auto-mode-alist '("\\.f\\'" . f90-mode))
 
-;; Once you have entered f90-mode, you may get more info by using
-;; the command describe-mode (C-h m). For online help use
+;; Once you have entered f90-mode, you can get more info by using
+;; the command describe-mode (C-h m).  For help use
 ;; C-h f <Name of function you want described>, or
 ;; C-h v <Name of variable you want described>.
 

@@ -140,7 +140,7 @@ Useful commands (type ? to hide them and free up screen):
  uh/um:\tunmark all sessions marked for hiding/operation
  n,SPC:\tnext session
  p,DEL:\tprevious session
-     E:\tbrowse Ediff on-line manual
+     E:\tbrowse Ediff manual
      T:\ttoggle truncation of long file names
      q:\tquit this session group
 ")
@@ -1464,7 +1464,7 @@ Useful commands:
      R in any Ediff session:   display session registry
      n,SPC: next session
      p,DEL: previous session
-         E: browse Ediff on-line manual
+         E: browse Ediff manual
          q: bury registry
 
 

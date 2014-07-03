@@ -1,3 +1,10 @@
+2014-07-03  Glenn Morris  <rgm@gnu.org>
+
+	* info.texi, mh-e.texi: "Online help" doesn't mean what it
+	used to any more.
+
+	* idlwave.texi (Introduction): Comment out dead http screenshot links.
+
 2014-06-24  Leo Liu  <sdl.web@gmail.com>
 
 	* dired-x.texi (Omitting Files in Dired, Omitting Variables):

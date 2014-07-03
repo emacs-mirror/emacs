@@ -1,3 +1,8 @@
+2014-07-03  Glenn Morris  <rgm@gnu.org>
+
+	* help.texi (Help Functions): "Online" help doesn't mean what it
+	used to any more.
+
 2014-07-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* keymaps.texi (Key Lookup): Remove mention of indirect entries.

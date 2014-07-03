@@ -1,3 +1,56 @@
+2014-07-03  Juri Linkov  <juri@jurta.org>
+
+	* desktop.el (desktop-save): Rename arg `auto-save' to
+	`only-if-changed'.  Doc fix.  (Bug#17873)
+
+2014-07-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mouse.el (mouse-yank-primary, mouse-yank-secondary):
+	Use insert-for-yank (bug#17271).
+
+2014-07-03  Leo Liu  <sdl.web@gmail.com>
+
+	* emacs-lisp/pp.el (pp-eval-expression, pp-eval-last-sexp):
+	Support lexical-binding.
+
+2014-07-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc/log-edit.el (log-edit-goto-eoh): New function.
+	(log-edit--match-first-line): Use it (bug#17861).
+
+2014-07-03  Glenn Morris  <rgm@gnu.org>
+
+	* vc/log-edit.el (log-edit-hook): Add missing :version.
+
+2014-07-03  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	* progmodes/python.el (python-indent-post-self-insert-function):
+	Enhancements to electric indentation behavior inside
+	parens. (Bug#17658)
+
+2014-07-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* ps-def.el (ps-generate-postscript-with-faces1): Don't mess with
+	buffer-invisibility-spec (bug#17867).
+
+2014-07-03  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* vc/vc-git.el (vc-git-checkin): When operating on the whole tree
+	pass "-a".
+
+2014-07-03  Glenn Morris  <rgm@gnu.org>
+
+	* cus-edit.el (help):
+	* finder.el (finder-known-keywords):
+	* help.el (help-for-help-internal):
+	* vc/ediff-mult.el (ediff-meta-buffer-verbose-message)
+	(ediff-redraw-registry-buffer):
+	* vc/ediff-ptch.el (ediff-patch-file-internal):
+	Doc fixes re "online" help.  (Bug#17803)
+
+	* progmodes/idlwave.el (idlwave): Update url-link for custom group.
+	(idlwave-mode): Doc URL update.
+
 2014-07-01  Juri Linkov  <juri@jurta.org>
 
 	* man.el: Display man pages immediately and use process-filter
