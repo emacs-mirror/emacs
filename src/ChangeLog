@@ -1,5 +1,15 @@
 2014-07-03  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	On MS-Windows, display busy cursor on all GUI frames.
+	This is similar to what we have on X.  Quickly tested by Dani Moncayo.
+	* w32fns.c (toplevel): Remove hourglass_hwnd; no longer used.
+	(w32_show_hourglass, w32_hide_hourglass, w32_note_current_window):
+	Likewise.
+	(hide_hourglass, show_hourglass): Redesign to match X counterparts.
+	* xdisp.c (start_hourglass): Remove Windows-specific bits.
+
+2014-07-03  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	Use convenient alists to manage per-frame font driver-specific data.
 	* frame.h (struct frame): Rename font_data_list to...
 	[HAVE_XFT || HAVE_FREETYPE]: ... font_data, which is a Lisp_Object now.
