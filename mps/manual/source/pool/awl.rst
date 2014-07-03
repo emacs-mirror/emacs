@@ -324,7 +324,6 @@ AWL interface
     It accepts three optional keyword arguments:
 
     * :c:macro:`MPS_KEY_AWL_FIND_DEPENDENT` (type
-
       :c:type:`mps_awl_find_dependent_t`) is a function that specifies
       how to find the :term:`dependent object` for an object in the
       pool. This defaults to a function that always returns ``NULL``
