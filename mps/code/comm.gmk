@@ -115,9 +115,9 @@ CFLAGSCOMMONLAX = $(PFMDEFS) $(CFLAGSCOMPILER) $(CFLAGSCOMPILERLAX)
 # of flags for the new variety.
 
 # These flags are added to compilations for the indicated variety.
-CFRASH = -DCONFIG_VAR_RASH -DNDEBUG $(CFLAGSOPT)
-CFHOT  = -DCONFIG_VAR_HOT  -DNDEBUG $(CFLAGSOPT)
-CFCOOL = -DCONFIG_VAR_COOL          $(CFLAGSDEBUG)
+CFRASH = -DCONFIG_VAR_RASH $(CFLAGSOPT)
+CFHOT  = -DCONFIG_VAR_HOT  $(CFLAGSOPT)
+CFCOOL = -DCONFIG_VAR_COOL $(CFLAGSDEBUG)
 
 # Bind CFLAGSVARIETY to the appropriate set of flags for the variety.
 # %%VARIETY: When adding a new variety, add a test for the variety and
