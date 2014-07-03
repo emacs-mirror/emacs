@@ -1960,6 +1960,8 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
   Size headerSize;
   Addr p1;  /* first obj in seg */
   Bool obj1pip = FALSE;  /* first obj was preserved in place */
+  Addr padBase;          /* base of next padding object */
+  Size padLength;        /* length of next padding object */
 
   /* All arguments AVERed by AMCReclaim */
 
@@ -1980,6 +1982,8 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
     limit = SegLimit(seg);
   }
   p1 = p;
+  padBase = p;
+  padLength = 0;
   while(p < limit) {
     Addr clientP, q, clientQ;
     Size length;
@@ -2001,16 +2005,29 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
       preservedInPlaceSize += length;
       if(p == p1)
         obj1pip = TRUE;
+      if (padLength > 0) {
+        /* Replace run of forwarding pointers and unreachable objects
+         * with a padding object. */
+        (*format->pad)(padBase, padLength);
+        bytesReclaimed += padLength;
+        padLength = 0;
+      }
+      padBase = q;
     } else {
-      /* Replace forwarding pointer / unreachable object with pad. */
-      (*format->pad)(p, length);
-      bytesReclaimed += length;
+      padLength += length;
     }
     
     AVER(p < q);
     p = q;
   }
   AVER(p == limit);
+  AVER(AddrAdd(padBase, padLength) == limit);
+  if (padLength > 0) {
+    /* Replace final run of forwarding pointers and unreachable
+     * objects with a padding object. */
+    (*format->pad)(padBase, padLength);
+    bytesReclaimed += padLength;
+  }
   ShieldCover(arena, seg);
 
   SegSetNailed(seg, TraceSetDel(SegNailed(seg), trace));
