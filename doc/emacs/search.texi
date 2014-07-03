@@ -602,12 +602,13 @@ Incremental regexp and non-regexp searches have independent defaults.
 They also have separate search rings, which you can access with
 @kbd{M-p} and @kbd{M-n}.
 
-  Just as in ordinary incremental search, any @key{SPC} typed in
-incremental regexp search matches any sequence of one or more
-whitespace characters.  The variable @code{search-whitespace-regexp}
-specifies the regexp for the lax space matching, and @kbd{M-s @key{SPC}}
-(@code{isearch-toggle-lax-whitespace}) toggles the feature.
-@xref{Special Isearch}.
+  Unlike ordinary incremental search, incremental regexp search
+do not use lax space matching by default.  To toggle this feature
+use @kbd{M-s @key{SPC}} (@code{isearch-toggle-lax-whitespace}).
+Then any @key{SPC} typed in incremental regexp search will match
+any sequence of one or more whitespace characters.  The variable
+@code{search-whitespace-regexp} specifies the regexp for the lax
+space matching.  @xref{Special Isearch}.
 
   In some cases, adding characters to the regexp in an incremental
 regexp search can make the cursor move back and start again.  For

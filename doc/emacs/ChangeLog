@@ -1,3 +1,8 @@
+2014-07-03  Juri Linkov  <juri@jurta.org>
+
+	* search.texi (Regexp Search): Update lax space matching that is
+	not active in regexp search by default now.  (Bug#17901)
+
 2014-06-29  Glenn Morris  <rgm@gnu.org>
 
 	* help.texi (Misc Help):
