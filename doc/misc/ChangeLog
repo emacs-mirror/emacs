@@ -1,3 +1,7 @@
+2014-07-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* trampver.texi: Update release number.
+
 2014-07-03  Glenn Morris  <rgm@gnu.org>
 
 	* info.texi, mh-e.texi: "Online help" doesn't mean what it
