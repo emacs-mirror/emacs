@@ -29,6 +29,12 @@ typedef union EventClockUnion {
   unsigned __int64 whole;
 } EventClockUnion;
 
+#define EVENT_CLOCK_MAKE(lvalue, low, high) \
+  BEGIN \
+  (EventClockUnion*)&(lvalue)->half.low = (low); \
+  (EventClockUnion*)&(lvalue)->half.high = (high); \
+  END
+
 #if _MSC_VER >= 1400
 
 #pragma intrinsic(__rdtsc)
@@ -101,6 +107,9 @@ typedef union EventClockUnion {
    GCC or Clang. */
 __extension__ typedef unsigned long long EventClock;
 
+#define EVENT_CLOCK_MAKE(lvalue, low, high) \
+  ((lvalue) = ((EventClock)(high) << 32) + ((EventClock)(low) & (0xfffffffful)))
+
 /* Clang provides a cross-platform builtin for a fast timer, but it
    was not available on Mac OS X 10.8 until the release of XCode 4.6.
    <http://clang.llvm.org/docs/LanguageExtensions.html#builtins> */
@@ -144,6 +153,9 @@ __extension__ typedef unsigned long long EventClock;
 #ifndef EVENT_CLOCK
 
 typedef mps_clock_t EventClock;
+
+#define EVENT_CLOCK_MAKE(lvalue, low, high) \
+  ((lvalue) = ((EventClock)(high) << 32) + ((EventClock)(low) & (0xfffffffful)))
 
 #define EVENT_CLOCK(lvalue) \
   BEGIN \
