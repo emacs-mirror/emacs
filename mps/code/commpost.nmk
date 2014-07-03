@@ -24,10 +24,13 @@ $(ALL_TARGETS) $(OPTIONAL_TARGETS):
 
 # "clean" removes the directory containing the build results.
 # Depends on there being no file called "clean".
+# Note that we suspend error processing on the if line because rmdir
+# sometimes exits with an error and the message "The directory is not
+# empty" even if the /s option is given. See job003854.
 
 clean:
 	$(ECHO) $(PFM): $@
-	if exist $(PFM) rmdir /q /s $(PFM)
+	-if exist $(PFM) rmdir /q /s $(PFM)
 
 # target target
 # %%VARIETY: When adding a new variety, optionally, add a recursive make
