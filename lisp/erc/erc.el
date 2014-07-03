@@ -9,7 +9,7 @@
 ;;               Andreas Fuchs (afs@void.at)
 ;;               Gergely Nagy (algernon@midgard.debian.net)
 ;;               David Edmondson (dme@dme.org)
-;;               Kelvin White <kelvin.white77@gmail.com>
+;;               Kelvin White (kwhite@gnu.org)
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: IRC, chat, client, Internet
 ;; Version: 5.3
@@ -4252,7 +4252,7 @@ also `erc-format-nick-function'."
     (let ((nick (erc-server-user-nickname user)))
       (concat (erc-propertize
                (erc-get-user-mode-prefix nick)
-               'face 'erc-nick-prefix-face) nick nick))))
+               'face 'erc-nick-prefix-face) nick))))
 
 (defun erc-format-my-nick ()
   "Return the beginning of this user's message, correctly propertized."
