@@ -1734,7 +1734,7 @@ static Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
     }
     /* Object is not preserved yet (neither moved, nor nailed) */
     /* so should be preserved by forwarding. */
-    EVENT1(AMCFixForward, newRef);
+
     /* <design/fix/#protocol.was-marked> */
     ss->wasMarked = FALSE;
 
@@ -1773,6 +1773,8 @@ static Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
     ss->copiedSize += length;
 
     (*format->move)(ref, newRef);  /* .exposed.seg */
+
+    EVENT1(AMCFixForward, newRef);
   } else {
     /* reference to broken heart (which should be snapped out -- */
     /* consider adding to (non-existant) snap-out cache here) */
@@ -1884,7 +1886,7 @@ static Res AMCHeaderFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
     }
     /* Object is not preserved yet (neither moved, nor nailed) */
     /* so should be preserved by forwarding. */
-    EVENT1(AMCFixForward, newRef);
+
     /* <design/fix/#protocol.was-marked> */
     ss->wasMarked = FALSE;
 
@@ -1924,6 +1926,8 @@ static Res AMCHeaderFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
     ss->copiedSize += length;
 
     (*format->move)(ref, newRef);  /* .exposed.seg */
+
+    EVENT1(AMCFixForward, newRef);
   } else {
     /* reference to broken heart (which should be snapped out -- */
     /* consider adding to (non-existent) snap-out cache here) */
