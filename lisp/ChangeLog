@@ -1,3 +1,8 @@
+2014-07-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* rect.el (rectangle--highlight-for-redisplay): Don't pass `orig' with
+	different calling convention to rectangle--unhighlight-for-redisplay.
+
 2014-07-03  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-call-process): Handle error strings.
