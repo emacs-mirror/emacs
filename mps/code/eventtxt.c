@@ -145,8 +145,24 @@ static void printStr(const char *str)
 }
 
 
-/* Reading hex numbers, and doubles, and quoted-and-escaped
+/* Reading clocks, hex numbers, and doubles, and quoted-and-escaped
  * strings. */
+
+static EventClock parseClock(char **pInOut)
+{
+  EventClock val;
+  int i, l;
+  unsigned long low, high;
+  char *p = *pInOut;
+  
+  i = sscanf(p, "%08lX%08lX%n", &high, &low, &l);
+  if (i != 2)
+    everror("Couldn't read a clock from '%s'", p);
+  EVENT_CLOCK_MAKE(val, low, high);
+
+  *pInOut = p + l;
+  return val;  
+}
 
 static ulongest_t parseHex(char **pInOut)
 {
@@ -468,7 +484,7 @@ static void readLog(mps_pool_t pool, FILE *input)
   while (TRUE) { /* loop for each event */
     char line[MAX_LOG_LINE_LENGTH];
     char *p, *q;
-    ulongest_t clock;
+    EventClock clock;
     int code;
     ulongest_t val_hex;
     double val_float;
@@ -482,15 +498,15 @@ static void readLog(mps_pool_t pool, FILE *input)
         everror("Couldn't read line from input.");
     }
 
-    clock = parseHex(&p);
-    code = (int)parseHex(&p);
+    clock = parseClock(&p);
+    EVENT_CLOCK_PRINT(stdout, clock);
 
+    code = (int)parseHex(&p);
+    printf(" %04X ", code);
     if (eventName[code])
-      printf("%0*" PRIXLONGEST " %04X %-19s ", hexWordWidth, clock, code,
-             eventName[code]);
+      printf("%-19s ", eventName[code]);
     else 
-      printf("%0*" PRIXLONGEST " %04X %-19s ", hexWordWidth, clock, code,
-             "[Unknown]");
+      printf("%-19s ", "[Unknown]");
 
     q = p;
 
