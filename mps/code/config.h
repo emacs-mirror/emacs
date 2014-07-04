@@ -626,13 +626,13 @@
 /* Default chain for GC pools
  *
  * TODO: The default should be to measure liveness and make sensible
- * decisions.
+ * decisions. See job003794.
  */
 
 #define ChainDEFAULT \
   { \
-    {  8 * 1024, 0.85 }, /* 8MiB nursery */ \
-    { 36 * 1024, 0.45 }  /* 32MiB second gen, after which dynamic */ \
+    {  8 * 1024, 0.85 }, /* nursery */ \
+    { 36 * 1024, 0.45 }  /* second gen, after which dynamic */ \
   }
 
 
