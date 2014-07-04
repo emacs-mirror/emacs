@@ -1,3 +1,9 @@
+2014-07-04  Phil Sainty  <psainty@orcon.net.nz>  (tiny change)
+
+	* emacs-lisp/lisp.el (narrow-to-defun-include-comments): New var.
+	(narrow-to-defun): New arg include-comments, defaulting to it
+	(bug#16328).
+
 2014-07-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* rect.el (rectangle--highlight-for-redisplay): Don't pass `orig' with

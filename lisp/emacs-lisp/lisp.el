@@ -522,11 +522,15 @@ it marks the next defun after the ones already marked."
 	     (beginning-of-defun))
 	   (re-search-backward "^\n" (- (point) 1) t)))))
 
-(defun narrow-to-defun (&optional _arg)
+(defvar narrow-to-defun-include-comments nil
+  "If non-nil, `narrow-to-defun' will also show comments preceding the defun.")
+
+(defun narrow-to-defun (&optional include-comments)
   "Make text outside current defun invisible.
-The defun visible is the one that contains point or follows point.
-Optional ARG is ignored."
-  (interactive)
+The current defun is the one that contains point or follows point.
+Preceding comments are included if INCLUDE-COMMENTS is non-nil.
+Interactively, the behavior depends on `narrow-to-defun-include-comments'."
+  (interactive (list narrow-to-defun-include-comments))
   (save-excursion
     (widen)
     (let ((opoint (point))
@@ -562,6 +566,18 @@ Optional ARG is ignored."
 	(setq end (point))
 	(beginning-of-defun)
 	(setq beg (point)))
+      (when include-comments
+	(goto-char beg)
+	;; Move back past all preceding comments (and whitespace).
+	(when (forward-comment -1)
+	  (while (forward-comment -1))
+	  ;; Move forwards past any page breaks within these comments.
+	  (when (and page-delimiter (not (string= page-delimiter "")))
+	    (while (re-search-forward page-delimiter beg t)))
+	  ;; Lastly, move past any empty lines.
+	  (skip-chars-forward "[:space:]\n")
+	  (beginning-of-line)
+	  (setq beg (point))))
       (goto-char end)
       (re-search-backward "^\n" (- (point) 1) t)
       (narrow-to-region beg end))))
