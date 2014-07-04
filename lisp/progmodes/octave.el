@@ -747,9 +747,10 @@ Key bindings:
   (setq-local info-lookup-mode 'octave-mode)
   (setq-local eldoc-documentation-function 'octave-eldoc-function)
 
-  (setq comint-input-ring-file-name
-        (or (getenv "OCTAVE_HISTFILE") "~/.octave_hist")
-        comint-input-ring-size (or (getenv "OCTAVE_HISTSIZE") 1024))
+  (setq-local comint-input-ring-file-name
+              (or (getenv "OCTAVE_HISTFILE") "~/.octave_hist"))
+  (setq-local comint-input-ring-size
+              (string-to-number (or (getenv "OCTAVE_HISTSIZE") "1024")))
   (comint-read-input-ring t)
   (setq-local comint-dynamic-complete-functions
               inferior-octave-dynamic-complete-functions)

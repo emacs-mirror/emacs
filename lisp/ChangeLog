@@ -1,3 +1,8 @@
+2014-07-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/octave.el (inferior-octave-mode):
+	Set comint-input-ring-size to a number (bug#17912).
+
 2014-07-03  Juri Linkov  <juri@jurta.org>
 
 	* desktop.el (desktop-minor-mode-table): Add `defining-kbd-macro'
