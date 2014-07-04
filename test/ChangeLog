@@ -1,3 +1,10 @@
+2014-07-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/dbus-tests.el (dbus-test02-register-service-session)
+	(dbus-test02-register-service-system): Fix docstring.
+	(dbus-test02-register-service-own-bus)
+	(dbus-test03-peer-interface): New tests.
+
 2014-07-03  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
 	* automated/python-tests.el (python-tests-self-insert): New function.

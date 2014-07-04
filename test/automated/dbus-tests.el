@@ -103,7 +103,7 @@
   (should-error (dbus-unregister-service bus dbus-service-dbus)))
 
 (ert-deftest dbus-test02-register-service-session ()
-  "Check service registration at `:session'."
+  "Check service registration at `:session' bus."
   (skip-unless (and dbus--test-enabled-session-bus
 		    (dbus-register-service :session dbus-service-emacs)))
   (dbus--test-register-service :session)
@@ -121,10 +121,56 @@
       (should (eq (dbus-unregister-service :session service) :not-owner)))))
 
 (ert-deftest dbus-test02-register-service-system ()
-  "Check service registration at `:system'."
+  "Check service registration at `:system' bus."
   (skip-unless (and dbus--test-enabled-system-bus
 		    (dbus-register-service :system dbus-service-emacs)))
   (dbus--test-register-service :system))
+
+(ert-deftest dbus-test02-register-service-own-bus ()
+  "Check service registration with an own bus.
+This includes initialization and closing the bus."
+  ;; Start bus.
+  (let ((output
+	 (ignore-errors
+	   (shell-command-to-string "dbus-launch --sh-syntax")))
+	bus pid)
+    (skip-unless (stringp output))
+    (when (string-match "DBUS_SESSION_BUS_ADDRESS='\\(.+\\)';" output)
+      (setq bus (match-string 1 output)))
+    (when (string-match "DBUS_SESSION_BUS_PID=\\([[:digit:]]+\\);" output)
+      (setq pid (match-string 1 output)))
+    (unwind-protect
+	(progn
+	  (skip-unless
+	   (dbus-ignore-errors
+	     (and bus pid
+		  (featurep 'dbusbind)
+		  (dbus-init-bus bus)
+		  (dbus-get-unique-name bus)
+		  (dbus-register-service bus dbus-service-emacs))))
+	  ;; Run the test.
+	  (dbus--test-register-service bus))
+
+      ;; Save exit.
+      (when pid (call-process "kill" nil nil nil pid)))))
+
+(ert-deftest dbus-test03-peer-interface ()
+  "Check `dbus-interface-peer' methods."
+  (skip-unless
+   (and dbus--test-enabled-session-bus
+	(dbus-register-service :session dbus-service-emacs)
+	;; "GetMachineId" is not implemented (yet).  When it returns a
+	;; value, another D-Bus client like dbus-monitor is reacting
+	;; on `dbus-interface-peer'.  We cannot test then.
+	(not
+	 (dbus-ignore-errors
+	   (dbus-call-method
+	    :session dbus-service-emacs dbus-path-dbus
+	    dbus-interface-peer "GetMachineId" :timeout 100)))))
+
+  (should (dbus-ping :session dbus-service-emacs 100))
+  (dbus-unregister-service :session dbus-service-emacs)
+  (should-not (dbus-ping :session dbus-service-emacs 100)))
 
 (defun dbus-test-all (&optional interactive)
   "Run all tests for \\[dbus]."
