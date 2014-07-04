@@ -31,8 +31,8 @@ typedef union EventClockUnion {
 
 #define EVENT_CLOCK_MAKE(lvalue, low, high) \
   BEGIN \
-  (EventClockUnion*)&(lvalue)->half.low = (low); \
-  (EventClockUnion*)&(lvalue)->half.high = (high); \
+  ((EventClockUnion*)&(lvalue))->half.low = (low); \
+  ((EventClockUnion*)&(lvalue))->half.high = (high); \
   END
 
 #if _MSC_VER >= 1400
