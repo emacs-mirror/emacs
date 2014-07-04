@@ -1,3 +1,12 @@
+2014-07-04  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todo-mode.el: Fix two bugs.  Shorten Commentary and
+	refer to the Todo mode Info manual.  Update the comment on
+	requiring cl-lib.
+	(todo-find-filtered-items-file): Add todo-prefix overlays.
+	(todo-filter-items): Reorder a let-bound variable to avoid a
+	wrong-type-argument error on canceling the file choice dialog.
+
 2014-07-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/octave.el (inferior-octave-mode):
