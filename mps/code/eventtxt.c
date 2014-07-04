@@ -292,7 +292,7 @@ static void recordIntern(mps_pool_t pool, char *p)
 
 typedef struct LabelStruct *Label;
 typedef struct LabelStruct {
-  ulongest_t clock;             /* clock of this label */
+  EventClock clock;             /* clock of this label */
   ulongest_t id;                /* string id of this label */
 } LabelStruct;
 
@@ -307,7 +307,7 @@ typedef struct LabelListStruct {
  * label. The list is assumed to be sorted.
  */
 
-static size_t labelFind(LabelList list, ulongest_t clock)
+static size_t labelFind(LabelList list, EventClock clock)
 {
   size_t low = 0, high = list->n;
   while (low < high) {
@@ -343,7 +343,7 @@ static size_t labelFind(LabelList list, ulongest_t clock)
  * probably a bad idea and maybe doomed to failure.
  */
 
-static void recordLabel(mps_pool_t pool, ulongest_t clock, char *p)
+static void recordLabel(mps_pool_t pool, EventClock clock, char *p)
 {
   ulongest_t address;
   LabelList list;
@@ -402,7 +402,7 @@ static int hexWordWidth = (MPS_WORD_WIDTH+3)/4;
 /* printAddr -- output a ulongest_t in hex, with the interned string
  * if the value is in the label table */
 
-static void printAddr(ulongest_t clock, ulongest_t addr, const char *ident)
+static void printAddr(EventClock clock, ulongest_t addr, const char *ident)
 {
   void *tmp;
         
