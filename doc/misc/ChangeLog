@@ -1,3 +1,9 @@
+2014-07-04  Stephen Berman  <stephen.berman@gmx.net>
+
+	* todo-mode.texi (Levels of Organization): Comment out statement
+	that Emacs recognizes todo files by their extension, since this
+	feature has been removed due to bug#17482.
+
 2014-06-29  Glenn Morris  <rgm@gnu.org>
 
 	* info.texi, mh-e.texi: "Online help" doesn't mean what it
