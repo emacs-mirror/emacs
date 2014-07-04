@@ -39,12 +39,9 @@ New features
    was considered, and a chain was collected up to, but not including,
    the lowest generation whose new size was within its capacity.)
 
-#. Retuning of generation sizes is now recommended, but not necessary. This is
-   because the logic for collections has now changed. It may make sense to try
-   generation sizes for generation one onwards larger by half the size of the
-   previous generation. For example if there was a chain with two generations
-   of size 6000 and 36000, it may be best to change the sizes to 6000 and
-   39000.
+   As a result of this change, we recommend that you retune your
+   generation sizes. (This is not necessary, but may improve
+   performance.)
 
 #. New pool introspection functions :c:func:`mps_pool_total_size` and
    :c:func:`mps_pool_free_size`.
