@@ -335,7 +335,7 @@
 #define AMC_INTERIOR_DEFAULT TRUE
 /* AMC treats objects larger than or equal to this as "Large" */
 #define AMC_LARGE_SIZE_DEFAULT ((Size)32768)
-#define AMC_EXTEND_BY_DEFAULT  ((Size)4096)
+#define AMC_EXTEND_BY_DEFAULT  ((Size)8192)
 
 
 /* Pool AMS Configuration -- see <code/poolams.c> */
@@ -422,10 +422,8 @@
 
 #define LDHistoryLENGTH ((Size)4)
 
-/* Value of MPS_KEY_EXTEND_BY for the arena control pool.
-   Deliberately smaller than the default, because we don't expect the control
-   pool to be very heavily used. */
-#define CONTROL_EXTEND_BY 4096
+/* Value of MPS_KEY_EXTEND_BY for the arena control pool. */
+#define CONTROL_EXTEND_BY ((Size)32768)
 
 #define VM_ARENA_SIZE_DEFAULT ((Size)1 << 28)
 
