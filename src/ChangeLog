@@ -1,3 +1,8 @@
+2014-07-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (network_interface_info): Make sure the argument is a
+	Lisp string.
+
 2014-07-01  Eli Zaretskii  <eliz@gnu.org>
 
 	* dispnew.c (prepare_desired_row): Accept 2 additional arguments:
