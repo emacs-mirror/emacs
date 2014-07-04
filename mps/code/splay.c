@@ -1026,7 +1026,7 @@ static Res SplayNodeDescribe(Tree node, mps_lib_FILE *stream,
 
   if (!TreeCheck(node)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
-  if (!FUNCHECK(nodeDescribe)) return ResFAIL;
+  if (nodeDescribe == NULL) return ResFAIL;
 
   res = WriteF(stream, 0, "( ", NULL);
   if (res != ResOK) return res;
@@ -1358,7 +1358,7 @@ Res SplayTreeDescribe(SplayTree splay, mps_lib_FILE *stream, Count depth,
 
   if (!TESTT(SplayTree, splay)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
-  if (!FUNCHECK(nodeDescribe)) return ResFAIL;
+  if (nodeDescribe == NULL) return ResFAIL;
 
   res = WriteF(stream, depth,
                "Splay $P {\n", (WriteFP)splay,
