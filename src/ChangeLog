@@ -1,3 +1,16 @@
+2014-07-04  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* font.h (struct font_driver): Remove get_outline and free_outline;
+	not used by any font driver.
+	* ftfont.c (ftfont_driver):
+	* macfont.m (macfont_driver):
+	* nsfont.m (nsfont_driver):
+	* w32font.c (w32font_driver):
+	* w32uniscribe.c (uniscribe_font_driver):
+	* xfont.c (xfont_driver): Related users changed.
+	* xselect.c (x_get_window_property): Use convenient xmalloc.
+	Call to xfree only if some data was really allocated.
+
 2014-07-03  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	On MS-Windows, display busy cursor on all GUI frames.

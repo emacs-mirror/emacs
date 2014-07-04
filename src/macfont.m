@@ -1580,8 +1580,6 @@ static struct font_driver macfont_driver =
     macfont_draw,
     NULL,			/* get_bitmap */
     NULL,			/* free_bitmap */
-    NULL,			/* get_outline */
-    NULL,			/* free_outline */
     NULL,			/* anchor_point */
     NULL,			/* otf_capability */
     NULL,			/* otf_drive */

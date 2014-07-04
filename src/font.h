@@ -614,15 +614,6 @@ struct font_driver
 #endif /* HAVE_WINDOW_SYSTEM */
 
   /* Optional.
-     Return an outline data for glyph-code CODE of FONT.  The format
-     of the outline data depends on the font-driver.  */
-  void *(*get_outline) (struct font *font, unsigned code);
-
-  /* Optional.
-     Free OUTLINE (that is obtained by the above method).  */
-  void (*free_outline) (struct font *font, void *outline);
-
-  /* Optional.
      Get coordinates of the INDEXth anchor point of the glyph whose
      code is CODE.  Store the coordinates in *X and *Y.  Return 0 if
      the operations was successful.  Otherwise return -1.  */

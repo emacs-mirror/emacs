@@ -538,8 +538,6 @@ struct font_driver ftfont_driver =
     NULL,			/* draw */
     ftfont_get_bitmap,
     NULL,			/* free_bitmap */
-    NULL,			/* get_outline */
-    NULL,			/* free_outline */
     ftfont_anchor_point,
 #ifdef HAVE_LIBOTF
     ftfont_otf_capability,

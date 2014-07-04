@@ -146,7 +146,7 @@ struct font_driver xfont_driver =
     xfont_encode_char,
     xfont_text_extents,
     xfont_draw,
-    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
     xfont_check,
     NULL, /* get_variation_glyphs */
     NULL, /* filter_properties */
