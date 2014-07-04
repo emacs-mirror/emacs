@@ -167,14 +167,6 @@ http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg00782.html
 ** Find a proper fix for rcirc multiline nick adding.
 http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg00684.html
 
-** Implement `network-interface-list' and `network-interface-info'
-on MS-Windows.  Hint: the information is present in the Registry,
-under the keys
-HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Tcpip\Linkage\
-and
-HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\<device>\
-where <device> is the network device found under the first key.
-
 ** Check for any included packages that define obsolete bug-reporting commands.
 Change them to use report-emacs-bug.
 *** Related functions:
@@ -232,8 +224,15 @@ Perspectives also need to interact with the tabs.
 ** FFI (foreign function interface)
 See eg http://lists.gnu.org/archive/html/emacs-devel/2013-10/msg00246.html
 
+One way of doing this is to start with fx's dynamic loading, and use it
+to implement things like auto-loaded buffer parsers and database
+access in cases which need more than Lisp.
+
 ** Replace unexec with a more portable form of dumping
 See eg http://lists.gnu.org/archive/html/emacs-devel/2014-01/msg01034.html
+       http://lists.gnu.org/archive/html/emacs-devel/2014-06/msg00452.html
+
+One way is to provide portable undumping using mmap (per gerd design).
 
 ** Imenu could be extended into a file-structure browsing mechanism
 using code like that of customize-groups.
@@ -260,12 +259,14 @@ scroll bars are extensible.
   by http://savannah.nongnu.org/projects/emacs-rtf/, which is still in
   very early stages.
 
+  Another place to look is the Wikipedia article at
+  http://en.wikipedia.org/wiki/Rich_Text_Format
+
+  It currently points to the latest spec of RTF v1.9.1 at
+  http://www.microsoft.com/en-us/download/details.aspx?id=10725
+
 ** Implement primitive and higher-level functions to allow filling
   properly with variable-pitch faces.
-
-** Implement a smoother vertical scroll facility, one that allows
-  C-v to scroll through a tall image.  The primitive operations
-  posn-at-point and posn-at-x-y should now make it doable in elisp.
 
 ** Implement intelligent search/replace, going beyond query-replace
   (see http://groups.csail.mit.edu/uid/projects/clustering/chi04.pdf).
@@ -301,9 +302,6 @@ specified filters, specified timers, and specified hooks.
   Maybe making Lucid menus work like Gtk's (i.e. just force utf-8) is good
   enough now that Emacs can encode most chars into utf-8.
 
-** Remove the limitation that window and frame widths and heights can
-  be only full columns/lines.
-
 ** The GNUstep port needs some serious attention, ideally from someone
 familiar with GNUstep and Objective C.
 
@@ -311,6 +309,7 @@ familiar with GNUstep and Objective C.
 
 ** Allow frames(terminals) created by emacsclient to inherit their environment
 from the emacsclient process.
+
 ** Remove the default toggling behavior of minor modes when called from elisp
 rather than interactively.  This a trivial one-liner in easy-mode.el.
 
@@ -382,23 +381,6 @@ rather than interactively.  This a trivial one-liner in easy-mode.el.
   user-selected input method, with the default being the union of
   latin-1-prefix and latin-1-postfix.
 
-** Switch the Windows port to using Unicode keyboard input (maybe).
-  Based on http://msdn2.microsoft.com/en-us/library/ms633586.aspx,
-  this boils down to (1) calling RegisterClassW function to register
-  Emacs windows, and (2) modifying ALL system messages to use Unicode.
-  In particular, WM_CHAR messages, which result from keyboard input,
-  will then come in encoded in UTF-16.
-
-  One advantage of switching to Unicode is to toss encoded-kbd usage,
-  which will solve the problem with binding non-ASCII keys with modifiers.
-
-  Problem: using this on Windows 9x/ME requires installing the
-  Microsoft Layer for Unicode (MSLU), which might not implement all
-  the required functionality that is available built-in on Windows XP
-  and later.  We should not make this change if it would pressure
-  users of unauthorized copies of older versions of Windows to
-  downgrade to versions that require activation.
-
 ** Implement a clean way to use different major modes for
   different parts of a buffer.  This could be useful in editing
   Bison input files, for instance, or other kinds of text
@@ -443,9 +425,6 @@ rather than interactively.  This a trivial one-liner in easy-mode.el.
   keymap.c).  What should it do apart from being opaque ?
   multiple inheritance ?  faster where-is ?  no more fix_submap_inheritance ?
   what else ?
-
-** Provide real menus on ttys.  The MS-DOS implementation can serve as
-  an example how to do part of this; see the XMenu* functions on msdos.c.
 
 ** Implement popular parts of the rest of the CL functions as compiler
   macros in cl-macs.  [Is this still relevant now that cl-lib exists?]
@@ -510,14 +489,8 @@ rather than interactively.  This a trivial one-liner in easy-mode.el.
   tree displays generally, mode-line mail indicator.  [See work done
   already for Emacs 23 and consult fx.]
 
-** Do something to make rms happy with fx's dynamic loading, and use it
-  to implement things like auto-loaded buffer parsers and database
-  access in cases which need more than Lisp.
-
 ** Extend ps-print to deal with multiple font sizes, images, and extra
   encodings.
-
-** Provide portable undumping using mmap (per gerd design).
 
 ** Make byte-compile avoid binding an expanded defsubst's args
   when the body only calls primitives.
@@ -727,7 +700,7 @@ preferring the ImageMagick loader?  The user might like zooming etc in jpegs.
 Try (setq image-type-header-regexps nil) for a quick hack to prefer
 ImageMagick over the jpg loader.
 
-*** For some reason its unbearably slow to look at a page in a large
+*** For some reason it's unbearably slow to look at a page in a large
 image bundle using the :index feature.  The ImageMagick "display"
 command is also a bit slow, but nowhere near as slow as the Emacs
 code.  It seems ImageMagick tries to unpack every page when loading the

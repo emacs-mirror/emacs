@@ -1,3 +1,12 @@
+2014-07-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* TODO: Remove items that were already done.  Rearrange a few
+	items that are closely related.  Update a couple of items with new
+	information.
+
+	* NEWS: Mention 'network-interface-list' and 'network-interface-info'
+	being available on MS-Windows.
+
 2014-06-29  Glenn Morris  <rgm@gnu.org>
 
 	* refcards/calccard.tex (section{Getting Help}):

@@ -1324,9 +1324,12 @@ edited in another Emacs session or by another user.  See the node
 "Interlocking" in the Emacs User Manual for the details.  To disable
 file locking, customize `create-lockfiles' to nil.
 
-** The "generate a backtrace on fatal error" feature now works on MS Windows.
+** The "generate a backtrace on fatal error" feature now works on MS-Windows.
 The backtrace is written to the 'emacs_backtrace.txt' file in the
 directory where Emacs was running.
+
+** The `network-interface-list' and `network-interface-info' functions
+are now available on MS-Windows.
 
 ** The variable `buffer-file-type' is no longer supported.
 Setting it has no effect, and %t in the mode-line format is ignored.
