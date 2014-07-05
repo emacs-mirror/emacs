@@ -1,3 +1,10 @@
+2014-07-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* syntax.c (find_defun_start): Try the cache even
+	if !open_paren_in_column_0_is_defun_start.
+	(back_comment): If find_defun_start was pessimistic, use the
+	scan_sexps_forward result to improve the cache (bug#16526).
+
 2014-07-04  Daniel Colascione  <dancol@dancol.org>
 
 	Backport from trunk.
@@ -7,8 +14,7 @@
 	and stop caching xic_style across different displays (Bug#17928).
 	(supported_xim_styles): Make const.
 	(best_xim_style): Remove first parameter: it's always just
-	supported_xim_styles.  Change to look at supported_xim_styles
-	directly.
+	supported_xim_styles.  Change to look at supported_xim_styles directly.
 
 2014-07-04  Eli Zaretskii  <eliz@gnu.org>
 
