@@ -1,5 +1,8 @@
 2014-07-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/edebug.el (edebug-eval-defun): Print result using
+	proper Lisp quoting (bug#17934).
+
 	* progmodes/ruby-mode.el (ruby-mode-variables): Don't meddle with
 	require-final-newline since prog-mode already took care of it (bug#17947).
 
