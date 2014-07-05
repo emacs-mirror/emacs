@@ -449,7 +449,8 @@ adjust_glyph_matrix (struct window *w, struct glyph_matrix *matrix, int x, int y
 	       + x);
 
 	  if (w == NULL
-	      || row == matrix->rows + dim.height - 1
+	      || (row == matrix->rows + dim.height - 1
+		  && WINDOW_WANTS_MODELINE_P (w))
 	      || (row == matrix->rows && matrix->header_line_p))
 	    {
 	      row->glyphs[TEXT_AREA]
@@ -492,8 +493,9 @@ adjust_glyph_matrix (struct window *w, struct glyph_matrix *matrix, int x, int y
 		= xnrealloc (row->glyphs[LEFT_MARGIN_AREA],
 			     dim.width, sizeof (struct glyph));
 
-	      /* The mode line never has marginal areas.  */
-	      if (row == matrix->rows + dim.height - 1
+	      /* The mode line, if displayed, never has marginal areas.  */
+	      if ((row == matrix->rows + dim.height - 1
+		   && !(w && WINDOW_WANTS_MODELINE_P (w)))
 		  || (row == matrix->rows && matrix->header_line_p))
 		{
 		  row->glyphs[TEXT_AREA]
@@ -1049,13 +1051,16 @@ find_glyph_row_slice (struct glyph_matrix *window_matrix,
 
 #endif /* 0 */
 
-/* Prepare ROW for display.  Desired rows are cleared lazily,
-   i.e. they are only marked as to be cleared by setting their
+/* Prepare ROW for display in windows W.  Desired rows are cleared
+   lazily, i.e. they are only marked as to be cleared by setting their
    enabled_p flag to zero.  When a row is to be displayed, a prior
-   call to this function really clears it.  */
+   call to this function really clears it.  In addition, this function
+   makes sure the marginal areas of ROW are in sync with the window's
+   display margins.  MODE_LINE_P non-zero means we are preparing a
+   glyph row for header line or mode line.  */
 
 void
-prepare_desired_row (struct glyph_row *row)
+prepare_desired_row (struct window *w, struct glyph_row *row, bool mode_line_p)
 {
   if (!row->enabled_p)
     {
@@ -1064,6 +1069,39 @@ prepare_desired_row (struct glyph_row *row)
       clear_glyph_row (row);
       row->enabled_p = true;
       row->reversed_p = rp;
+    }
+  if (mode_line_p)
+    {
+      /* Mode and header lines, if displayed, never have marginal
+	 areas.  If we are called with MODE_LINE_P non-zero, we are
+	 displaying the mode/header line in this window, and so the
+	 marginal areas of this glyph row should be eliminated.  This
+	 is needed when the mode/header line is switched on in a
+	 window that has display margins.  */
+      if (w->left_margin_cols > 0)
+	row->glyphs[TEXT_AREA] = row->glyphs[LEFT_MARGIN_AREA];
+      if (w->right_margin_cols > 0)
+	row->glyphs[RIGHT_MARGIN_AREA] = row->glyphs[LAST_AREA];
+    }
+  else if (row == MATRIX_MODE_LINE_ROW (w->desired_matrix)
+	   || row == MATRIX_HEADER_LINE_ROW (w->desired_matrix))
+    {
+      /* The real number of glyphs reserved for the margins is
+	 recorded in the glyph matrix, and can be different from
+	 window's left_margin_cols and right_margin_cols; see
+	 margin_glyphs_to_reserve for when that happens.  */
+      int left = w->desired_matrix->left_margin_glyphs;
+      int right = w->desired_matrix->right_margin_glyphs;
+
+      /* Make sure the marginal areas of this row are in sync with
+	 what the window wants, when the 1st/last row of the matrix
+	 actually displays text and not header/mode line.  */
+      if (w->left_margin_cols > 0
+	  && (left != row->glyphs[TEXT_AREA] - row->glyphs[LEFT_MARGIN_AREA]))
+	row->glyphs[TEXT_AREA] = row->glyphs[LEFT_MARGIN_AREA] + left;
+      if (w->right_margin_cols > 0
+	  && (right != row->glyphs[LAST_AREA] - row->glyphs[RIGHT_MARGIN_AREA]))
+	row->glyphs[RIGHT_MARGIN_AREA] = row->glyphs[LAST_AREA] - right;
     }
 }
 

@@ -1,3 +1,134 @@
+2014-07-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/dbus.el (dbus-peer-handler): New defun.
+	(dbus-register-service): Register it.  (Bug#17858)
+	(dbus-managed-objects-handler): Fix docstring.
+
+2014-07-04  Phil Sainty  <psainty@orcon.net.nz>  (tiny change)
+
+	* emacs-lisp/lisp.el (narrow-to-defun-include-comments): New var.
+	(narrow-to-defun): New arg include-comments, defaulting to it
+	(bug#16328).
+
+2014-07-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* rect.el (rectangle--highlight-for-redisplay): Don't pass `orig' with
+	different calling convention to rectangle--unhighlight-for-redisplay.
+
+2014-07-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-call-process): Handle error strings.
+
+	* net/tramp-adb.el (tramp-adb-sh-fix-ls-output): Use `bolp'.
+
+	* net/tramp-sh.el (tramp-sh-handle-set-visited-file-modtime)
+	(tramp-sh-handle-verify-visited-file-modtime): Use `point-at-eol'.
+
+	* net/trampver.el: Update release number.
+
+2014-07-03  Juri Linkov  <juri@jurta.org>
+
+	* desktop.el (desktop-save): Rename arg `auto-save' to
+	`only-if-changed'.  Doc fix.  (Bug#17873)
+
+2014-07-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mouse.el (mouse-yank-primary, mouse-yank-secondary):
+	Use insert-for-yank (bug#17271).
+
+2014-07-03  Leo Liu  <sdl.web@gmail.com>
+
+	* emacs-lisp/pp.el (pp-eval-expression, pp-eval-last-sexp):
+	Support lexical-binding.
+
+2014-07-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc/log-edit.el (log-edit-goto-eoh): New function.
+	(log-edit--match-first-line): Use it (bug#17861).
+
+2014-07-03  Glenn Morris  <rgm@gnu.org>
+
+	* vc/log-edit.el (log-edit-hook): Add missing :version.
+
+2014-07-03  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	* progmodes/python.el (python-indent-post-self-insert-function):
+	Enhancements to electric indentation behavior inside
+	parens. (Bug#17658)
+
+2014-07-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* ps-def.el (ps-generate-postscript-with-faces1): Don't mess with
+	buffer-invisibility-spec (bug#17867).
+
+2014-07-03  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* vc/vc-git.el (vc-git-checkin): When operating on the whole tree
+	pass "-a".
+
+2014-07-03  Glenn Morris  <rgm@gnu.org>
+
+	* cus-edit.el (help):
+	* finder.el (finder-known-keywords):
+	* help.el (help-for-help-internal):
+	* vc/ediff-mult.el (ediff-meta-buffer-verbose-message)
+	(ediff-redraw-registry-buffer):
+	* vc/ediff-ptch.el (ediff-patch-file-internal):
+	Doc fixes re "online" help.  (Bug#17803)
+
+	* progmodes/idlwave.el (idlwave): Update url-link for custom group.
+	(idlwave-mode): Doc URL update.
+
+2014-07-01  Juri Linkov  <juri@jurta.org>
+
+	* man.el: Display man pages immediately and use process-filter
+	to format them asynchronously.
+	(Man-width): Doc fix.
+	(man): Doc fix.
+	(Man-start-calling): Use `with-selected-window' to get
+	`frame-width' and `window-width'.
+	(Man-getpage-in-background): Call `Man-notify-when-ready'
+	immediately after creating a new buffer.  Call `Man-mode' and set
+	`mode-line-process' in the created buffer.  Set process-filter to
+	`Man-bgproc-filter' in start-process branch.  In call-process branch
+	call either `Man-fontify-manpage' or `Man-cleanup-manpage'.
+	Use `Man-start-calling' inside `with-current-buffer'.
+	(Man-fontify-manpage): Don't print messages.  Fix boundary condition.
+	(Man-cleanup-manpage): Don't print messages.
+	(Man-bgproc-filter): New function.
+	(Man-bgproc-sentinel): Add `save-excursion' to keep point when
+	user moved it during asynchronous formatting.  Move calls of
+	`Man-fontify-manpage' and `Man-cleanup-manpage' to
+	`Man-bgproc-filter'.  Move the call of `Man-mode' to
+	`Man-getpage-in-background'.  Use `quit-restore-window'
+	instead of `kill-buffer'.  Use `message' instead of `error'
+	because errors are caught by process sentinel.
+	(Man-mode): Move calls of `Man-build-page-list',
+	`Man-strip-page-headers', `Man-unindent', `Man-goto-page' to
+	`Man-bgproc-sentinel'.  Doc fix.  (Bug#2588, bug#5054, bug#9084, bug#17831)
+
+	* man.el (Man-bgproc-sentinel): Use `Man-page-from-arguments'
+	for the message about the man page cleaned up.
+
+2014-07-01  Mario Lang  <mlang@delysid.org>
+
+	* net/gnutls.el (gnutls-negotiate): Prevent destructive modification of
+	cosutomization option `gnutls-verify-error'.
+
+2014-07-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (deactivate-mark, set-mark-command, handle-shift-selection):
+	Don't keep transient-mark-mode buffer-local when not needed (bug#6316).
+
+	* xt-mouse.el (turn-on-xterm-mouse-tracking-on-terminal)
+	(turn-off-xterm-mouse-tracking-on-terminal): Don't burp if the terminal
+	is suspended (bug#17857).
+
+2014-07-01  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-open-connection-setup-interactive-shell):
+	Prefer utf-8 coding.  (Bug#17859)
+
 2014-06-30  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
 	* emacs-lisp/subr-x.el (string-reverse): Define as obsolete alias
@@ -35,8 +166,7 @@
 	Don't call c-parse-state when c++-template-syntax-table is active.
 	* progmodes/cc-engine.el (c-guess-continued-construct CASE G)
 	(c-guess-basic-syntax CASE 5D.3): Rearrange so that
-	c-syntactic-skip-backwards isn't called with the pertinent syntax
-	table.
+	c-syntactic-skip-backwards isn't called with the pertinent syntax table.
 
 2014-06-28  Stephen Berman  <stephen.berman@gmx.net>
 
@@ -1638,7 +1768,7 @@
 	Remove HISTFILE and HISTSIZE; it's too late to set them here.
 	Add :version entry.
 	(tramp-open-shell): Do not let-bind `tramp-end-of-output'.
-	Add "HISTSIZE=/dev/null" to the shell's env arguments.  Do not send
+	Add "HISTFILE=/dev/null" to the shell's env arguments.  Do not send
 	extra "PSx=..." commands.
 	(tramp-maybe-open-connection): Setenv HISTFILE to /dev/null.
 	(Bug#17295)
@@ -3338,7 +3468,7 @@
 2014-03-10  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-sh.el (tramp-open-connection-setup-interactive-shell):
-	Do not add `nil' to the environment, when there's no remote `locale'.
+	Do not add nil to the environment, when there's no remote `locale'.
 	(tramp-find-inline-encoding): Check, that the remote host has
 	installed perl, before sending scripts.
 

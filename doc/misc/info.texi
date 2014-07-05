@@ -12,7 +12,7 @@
 @comment %**end of header
 
 @copying
-This file describes how to use Info, the on-line, menu-driven GNU
+This file describes how to use Info, the menu-driven GNU
 documentation system.
 
 Copyright @copyright{} 1989, 1992, 1996--2014 Free Software Foundation, Inc.
@@ -51,7 +51,7 @@ modify this GNU manual.''
 @node Top
 @top Info: An Introduction
 
-The GNU Project distributes most of its on-line manuals in the
+The GNU Project distributes most of its manuals in the
 @dfn{Info format}, which you read using an @dfn{Info reader}.  You are
 probably using an Info reader to read this now.
 
@@ -98,7 +98,7 @@ program on a computer, so that you can try Info commands while reading
 about them.  Reading it on paper or with an HTML browser is less
 effective, since you must take it on faith that the commands described
 really do what the manual says.  By all means go through this manual
-now that you have it; but please try going through the on-line version
+now that you have it; but please try going through the Info version
 as well.
 
 @cindex Info reader, how to invoke

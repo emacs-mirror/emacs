@@ -1265,8 +1265,7 @@ target of the symlink differ."
 	       (format "%s -ild %s"
 		       (tramp-get-ls-command v)
 		       (tramp-shell-quote-argument localname)))
-	      (setq attr (buffer-substring (point)
-					   (progn (end-of-line) (point)))))
+	      (setq attr (buffer-substring (point) (point-at-eol))))
 	    (tramp-set-file-property
 	     v localname "visited-file-modtime-ild" attr))
 	  (when (boundp 'last-coding-system-used)
@@ -1317,8 +1316,7 @@ of."
 		       (tramp-get-ls-command v)
 		       (tramp-shell-quote-argument localname)))
 	      (with-current-buffer (tramp-get-buffer v)
-		(setq attr (buffer-substring
-			    (point) (progn (end-of-line) (point)))))
+		(setq attr (buffer-substring (point) (point-at-eol))))
 	      (equal
 	       attr
 	       (tramp-get-file-property
@@ -3964,15 +3962,16 @@ process to set up.  VEC specifies the connection."
   ;; Try to set up the coding system correctly.
   ;; CCC this can't be the right way to do it.  Hm.
   (tramp-message vec 5 "Determining coding system")
-  (tramp-send-command vec "echo foo ; echo bar" t)
   (with-current-buffer (process-buffer proc)
-    (goto-char (point-min))
     (if (featurep 'mule)
 	;; Use MULE to select the right EOL convention for communicating
 	;; with the process.
-	(let* ((cs (or (tramp-compat-funcall 'process-coding-system proc)
-		       (cons 'undecided 'undecided)))
-	       cs-decode cs-encode)
+	(let ((cs (or (when (string-match
+			     "utf8" (or (tramp-get-remote-locale vec) ""))
+			(cons 'utf-8 'utf-8))
+		      (tramp-compat-funcall 'process-coding-system proc)
+		      (cons 'undecided 'undecided)))
+	      cs-decode cs-encode)
 	  (when (symbolp cs) (setq cs (cons cs cs)))
 	  (setq cs-decode (car cs))
 	  (setq cs-encode (cdr cs))
@@ -3980,6 +3979,8 @@ process to set up.  VEC specifies the connection."
 	  (unless cs-encode (setq cs-encode 'undecided))
 	  (setq cs-encode (tramp-compat-coding-system-change-eol-conversion
 			   cs-encode 'unix))
+	  (tramp-send-command vec "echo foo ; echo bar" t)
+	  (goto-char (point-min))
 	  (when (search-forward "\r" nil t)
 	    (setq cs-decode (tramp-compat-coding-system-change-eol-conversion
 			     cs-decode 'dos)))

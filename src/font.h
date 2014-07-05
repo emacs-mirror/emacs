@@ -614,15 +614,6 @@ struct font_driver
 #endif /* HAVE_WINDOW_SYSTEM */
 
   /* Optional.
-     Return an outline data for glyph-code CODE of FONT.  The format
-     of the outline data depends on the font-driver.  */
-  void *(*get_outline) (struct font *font, unsigned code);
-
-  /* Optional.
-     Free OUTLINE (that is obtained by the above method).  */
-  void (*free_outline) (struct font *font, void *outline);
-
-  /* Optional.
      Get coordinates of the INDEXth anchor point of the glyph whose
      code is CODE.  Store the coordinates in *X and *Y.  Return 0 if
      the operations was successful.  Otherwise return -1.  */
@@ -723,20 +714,6 @@ struct font_driver_list
   struct font_driver_list *next;
 };
 
-
-/* Chain of arbitrary data specific to each font driver.
-   Each frame has its own font data list at F->font_data_list.  */
-
-struct font_data_list
-{
-  /* Pointer to the font driver.  */
-  struct font_driver *driver;
-  /* Data specific to the font driver.  */
-  void *data;
-  /* Pointer to the next element of the chain.  */
-  struct font_data_list *next;
-};
-
 extern Lisp_Object copy_font_spec (Lisp_Object);
 extern Lisp_Object merge_font_spec (Lisp_Object, Lisp_Object);
 
@@ -809,11 +786,10 @@ extern void font_fill_lglyph_metrics (Lisp_Object, Lisp_Object);
 extern Lisp_Object font_put_extra (Lisp_Object font, Lisp_Object prop,
                                    Lisp_Object val);
 
-extern int font_put_frame_data (struct frame *f,
-                                struct font_driver *driver,
-                                void *data);
-extern void *font_get_frame_data (struct frame *f,
-                                  struct font_driver *driver);
+#if defined (HAVE_XFT) || defined (HAVE_FREETYPE)
+extern void font_put_frame_data (struct frame *, Lisp_Object, void *);
+extern void *font_get_frame_data (struct frame *f, Lisp_Object);
+#endif /* HAVE_XFT || HAVE_FREETYPE */
 
 extern void font_filter_properties (Lisp_Object font,
 				    Lisp_Object alist,

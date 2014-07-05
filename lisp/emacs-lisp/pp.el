@@ -129,7 +129,7 @@ Also add the value to the front of the list in the variable `values'."
   (interactive
    (list (read--expression "Eval: ")))
   (message "Evaluating...")
-  (setq values (cons (eval expression) values))
+  (setq values (cons (eval expression lexical-binding) values))
   (pp-display-expression (car values) "*Pp Eval Output*"))
 
 ;;;###autoload
@@ -165,7 +165,7 @@ With argument, pretty-print output into current buffer.
 Ignores leading comment characters."
   (interactive "P")
   (if arg
-      (insert (pp-to-string (eval (pp-last-sexp))))
+      (insert (pp-to-string (eval (pp-last-sexp) lexical-binding)))
     (pp-eval-expression (pp-last-sexp))))
 
 ;;;###autoload

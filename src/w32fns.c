@@ -89,9 +89,6 @@ extern void w32_free_menu_strings (HWND);
 extern const char *map_w32_filename (const char *, const char **);
 extern char * w32_strerror (int error_no);
 
-/* If non-NULL, a handle to a frame where to display the hourglass cursor.  */
-static HWND hourglass_hwnd = NULL;
-
 #ifndef IDC_HAND
 #define IDC_HAND MAKEINTRESOURCE(32649)
 #endif
@@ -232,10 +229,6 @@ static int menubar_in_use = 0;
 /* From w32uniscribe.c  */
 extern void syms_of_w32uniscribe (void);
 extern int uniscribe_available;
-
-/* Function prototypes for hourglass support.  */
-static void w32_show_hourglass (struct frame *);
-static void w32_hide_hourglass (void);
 
 #ifdef WINDOWSNT
 /* From w32inevt.c */
@@ -5500,95 +5493,62 @@ no value of TYPE (always string in the MS Windows case).  */)
 				Busy cursor
  ***********************************************************************/
 
-void
-w32_note_current_window (void)
-{
-  struct frame * f = SELECTED_FRAME ();
-
-  if (!FRAME_W32_P (f))
-    return;
-
-  hourglass_hwnd = FRAME_W32_WINDOW (f);
-}
+/* Display an hourglass cursor.  Set the hourglass_p flag in display info
+   to indicate that an hourglass cursor is shown.  */
 
 void
 show_hourglass (struct atimer *timer)
 {
-  struct frame *f;
-
   hourglass_atimer = NULL;
 
-  block_input ();
-  f = x_window_to_frame (&one_w32_display_info,
-				       hourglass_hwnd);
-
-  if (f)
-    f->output_data.w32->hourglass_p = 0;
-  else
-    f = SELECTED_FRAME ();
-
-  if (!FRAME_W32_P (f))
-    {
-      unblock_input ();
-      return;
-    }
-
-  w32_show_hourglass (f);
-  unblock_input ();
-}
-
-void
-hide_hourglass (void)
-{
-  block_input ();
-  w32_hide_hourglass ();
-  unblock_input ();
-}
-
-
-/* Display an hourglass cursor.  Set the hourglass_p flag in display info
-   to indicate that an hourglass cursor is shown.  */
-
-static void
-w32_show_hourglass (struct frame *f)
-{
   if (!hourglass_shown_p)
     {
-      f->output_data.w32->hourglass_p = 1;
-      if (!menubar_in_use && !current_popup_menu)
-	SetCursor (f->output_data.w32->hourglass_cursor);
+      Lisp_Object tail, frame;
+
+      block_input ();
+      FOR_EACH_FRAME (tail, frame)
+	{
+	  struct frame *f = XFRAME (frame);
+
+	  if (FRAME_W32_P (f) && !menubar_in_use && !current_popup_menu)
+	    {
+	      f->output_data.w32->hourglass_p = 1;
+	      SetCursor (f->output_data.w32->hourglass_cursor);
+	    }
+	}
+      unblock_input ();
       hourglass_shown_p = 1;
     }
 }
 
-
 /* Hide the hourglass cursor on all frames, if it is currently shown.  */
 
-static void
-w32_hide_hourglass (void)
+void
+hide_hourglass (void)
 {
   if (hourglass_shown_p)
     {
-      struct frame *f = x_window_to_frame (&one_w32_display_info,
-					   hourglass_hwnd);
-      if (f)
-	f->output_data.w32->hourglass_p = 0;
-      else
-	/* If frame was deleted, restore to selected frame's cursor.  */
-	f = SELECTED_FRAME ();
+      Lisp_Object tail, frame;
 
-      if (FRAME_W32_P (f))
-	SetCursor (f->output_data.w32->current_cursor);
-      else
-	/* No cursors on non GUI frames - restore to stock arrow cursor.  */
-	SetCursor (w32_load_cursor (IDC_ARROW));
+      block_input ();
+      FOR_EACH_FRAME (tail, frame)
+	{
+	  struct frame *f = XFRAME (frame);
 
+	  if (FRAME_W32_P (f))
+	    {
+	      f->output_data.w32->hourglass_p = 0;
+	      SetCursor (f->output_data.w32->current_cursor);
+	    }
+	  else
+	    /* No cursors on non GUI frames - restore to stock arrow cursor.  */
+	    SetCursor (w32_load_cursor (IDC_ARROW));
+	}
+      unblock_input ();
       hourglass_shown_p = 0;
     }
 }
 
-
-
 /***********************************************************************
 				Tool tips
  ***********************************************************************/
@@ -8415,9 +8375,6 @@ only be necessary if the default setting causes problems.  */);
 #endif
 
   defsubr (&Sset_message_beep);
-
-  hourglass_hwnd = NULL;
-
   defsubr (&Sx_show_tip);
   defsubr (&Sx_hide_tip);
   tip_timer = Qnil;

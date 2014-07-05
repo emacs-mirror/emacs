@@ -1407,10 +1407,11 @@ gc_aset (Lisp_Object array, ptrdiff_t idx, Lisp_Object val)
    sense to handle a char-table with type struct Lisp_Vector.  An
    element of a char table can be any Lisp objects, but if it is a sub
    char-table, we treat it a table that contains information of a
-   specific range of characters.  A sub char-table has the same
-   structure as a vector.  A sub char table appears only in an element
-   of a char-table, and there's no way to access it directly from
-   Emacs Lisp program.  */
+   specific range of characters.  A sub char-table is like a vector but
+   with two integer fields between the header and Lisp data, which means
+   that it has to be marked with some precautions (see mark_char_table
+   in alloc.c).  A sub char-table appears only in an element of a char-table,
+   and there's no way to access it directly from Emacs Lisp program.  */
 
 enum CHARTAB_SIZE_BITS
   {
@@ -1465,10 +1466,10 @@ struct Lisp_Sub_Char_Table
        contains 32 elements, and each element covers 128 characters.  A
        sub char-table of depth 3 contains 128 elements, and each element
        is for one character.  */
-    Lisp_Object depth;
+    int depth;
 
     /* Minimum character covered by the sub char-table.  */
-    Lisp_Object min_char;
+    int min_char;
 
     /* Use set_sub_char_table_contents to set this.  */
     Lisp_Object contents[FLEXIBLE_ARRAY_MEMBER];
@@ -1539,12 +1540,16 @@ struct Lisp_Subr
     const char *doc;
   };
 
-/* This is the number of slots that every char table must have.  This
-   counts the ordinary slots and the top, defalt, parent, and purpose
-   slots.  */
-enum CHAR_TABLE_STANDARD_SLOTS
+enum char_table_specials
   {
-    CHAR_TABLE_STANDARD_SLOTS = PSEUDOVECSIZE (struct Lisp_Char_Table, extras)
+    /* This is the number of slots that every char table must have.  This
+       counts the ordinary slots and the top, defalt, parent, and purpose
+       slots.  */
+    CHAR_TABLE_STANDARD_SLOTS = PSEUDOVECSIZE (struct Lisp_Char_Table, extras),
+
+    /* This is an index of first Lisp_Object field in Lisp_Sub_Char_Table
+       when the latter is treated as an ordinary Lisp_Vector.  */
+    SUB_CHAR_TABLE_OFFSET = PSEUDOVECSIZE (struct Lisp_Sub_Char_Table, contents)
   };
 
 /* Return the number of "extra" slots in the char table CT.  */
@@ -1556,7 +1561,11 @@ CHAR_TABLE_EXTRA_SLOTS (struct Lisp_Char_Table *ct)
 	  - CHAR_TABLE_STANDARD_SLOTS);
 }
 
-
+/* Make sure that sub char-table contents slot
+   is aligned on a multiple of Lisp_Objects.  */
+verify ((offsetof (struct Lisp_Sub_Char_Table, contents)
+	 - offsetof (struct Lisp_Sub_Char_Table, depth)) % word_size == 0);
+
 /***********************************************************************
 			       Symbols
  ***********************************************************************/
@@ -3720,6 +3729,20 @@ make_uninit_vector (ptrdiff_t size)
 
   p = allocate_vector (size);
   XSETVECTOR (v, p);
+  return v;
+}
+
+/* Like above, but special for sub char-tables.  */
+
+INLINE Lisp_Object
+make_uninit_sub_char_table (int depth, int min_char)
+{
+  int slots = SUB_CHAR_TABLE_OFFSET + chartab_size[depth];
+  Lisp_Object v = make_uninit_vector (slots);
+
+  XSETPVECTYPE (XVECTOR (v), PVEC_SUB_CHAR_TABLE);
+  XSUB_CHAR_TABLE (v)->depth = depth;
+  XSUB_CHAR_TABLE (v)->min_char = min_char;
   return v;
 }
 

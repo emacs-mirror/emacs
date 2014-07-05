@@ -3539,53 +3539,34 @@ font_update_drivers (struct frame *f, Lisp_Object new_drivers)
   return active_drivers;
 }
 
-int
-font_put_frame_data (struct frame *f, struct font_driver *driver, void *data)
+#if defined (HAVE_XFT) || defined (HAVE_FREETYPE)
+
+void
+font_put_frame_data (struct frame *f, Lisp_Object driver, void *data)
 {
-  struct font_data_list *list, *prev;
+  Lisp_Object val = assq_no_quit (driver, f->font_data);
 
-  for (prev = NULL, list = f->font_data_list; list;
-       prev = list, list = list->next)
-    if (list->driver == driver)
-      break;
-  if (! data)
+  if (!data)
+    f->font_data = Fdelq (val, f->font_data);
+  else
     {
-      if (list)
-	{
-	  if (prev)
-	    prev->next = list->next;
-	  else
-	    f->font_data_list = list->next;
-	  xfree (list);
-	}
-      return 0;
+      if (NILP (val))
+	f->font_data = Fcons (Fcons (driver, make_save_ptr (data)),
+			      f->font_data);
+      else
+	XSETCDR (val, make_save_ptr (data));
     }
-
-  if (! list)
-    {
-      list = xmalloc (sizeof *list);
-      list->driver = driver;
-      list->next = f->font_data_list;
-      f->font_data_list = list;
-    }
-  list->data = data;
-  return 0;
 }
-
 
 void *
-font_get_frame_data (struct frame *f, struct font_driver *driver)
+font_get_frame_data (struct frame *f, Lisp_Object driver)
 {
-  struct font_data_list *list;
+  Lisp_Object val = assq_no_quit (driver, f->font_data);
 
-  for (list = f->font_data_list; list; list = list->next)
-    if (list->driver == driver)
-      break;
-  if (! list)
-    return NULL;
-  return list->data;
+  return NILP (val) ? NULL : XSAVE_POINTER (XCDR (val), 0);
 }
 
+#endif /* HAVE_XFT || HAVE_FREETYPE */
 
 /* Sets attributes on a font.  Any properties that appear in ALIST and
    BOOLEAN_PROPERTIES or NON_BOOLEAN_PROPERTIES are set on the font.

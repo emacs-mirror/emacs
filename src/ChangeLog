@@ -1,8 +1,100 @@
-2014-07-01  K. Handa  <handa@gnu.org>
+2014-07-04  K. Handa  <handa@gnu.org>
 
 	* coding.c (MIN_CHARBUF_SIZE): Delete it.
 	(MAX_CHARBUF_EXTRA_SIZE): New macro.
 	(ALLOC_CONVERSION_WORK_AREA): Use MAX_CHARBUF_EXTRA_SIZE.
+
+2014-07-04  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* font.h (struct font_driver): Remove get_outline and free_outline;
+	not used by any font driver.
+	* ftfont.c (ftfont_driver):
+	* macfont.m (macfont_driver):
+	* nsfont.m (nsfont_driver):
+	* w32font.c (w32font_driver):
+	* w32uniscribe.c (uniscribe_font_driver):
+	* xfont.c (xfont_driver): Related users changed.
+	* xselect.c (x_get_window_property): Use convenient xmalloc.
+	Call to xfree only if some data was really allocated.
+
+2014-07-03  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	On MS-Windows, display busy cursor on all GUI frames.
+	This is similar to what we have on X.  Quickly tested by Dani Moncayo.
+	* w32fns.c (toplevel): Remove hourglass_hwnd; no longer used.
+	(w32_show_hourglass, w32_hide_hourglass, w32_note_current_window):
+	Likewise.
+	(hide_hourglass, show_hourglass): Redesign to match X counterparts.
+	* xdisp.c (start_hourglass): Remove Windows-specific bits.
+
+2014-07-03  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Use convenient alists to manage per-frame font driver-specific data.
+	* frame.h (struct frame): Rename font_data_list to...
+	[HAVE_XFT || HAVE_FREETYPE]: ... font_data, which is a Lisp_Object now.
+	* font.h (struct font_data_list): Remove; no longer need a special
+	data type.
+	(font_put_frame_data, font_get_frame_data) [HAVE_XFT || HAVE_FREETYPE]:
+	Adjust prototypes.
+	* font.c (font_put_frame_data, font_get_frame_data)
+	[HAVE_XFT || HAVE_FREETYPE]: Prefer alist functions to ad-hoc list
+	management.
+	* xftfont.c (xftfont_get_xft_draw, xftfont_end_for_frame):
+	Related users changed.
+	* ftxfont.c (ftxfont_get_gcs, ftxfont_end_for_frame): Likewise.
+	Prefer convenient xmalloc and xfree.
+
+2014-07-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* dispnew.c (prepare_desired_row): Accept 2 additional arguments:
+	the window whose glyph row is being prepared and a flag whether it
+	is for mode/header line.  Make sure the glyph row's marginal areas
+	are in sync with what the window wants.
+	(Bug#17892)
+
+	* xdisp.c (display_line, display_mode_line): Call
+	prepare_desired_row with additional arguments, as appropriate.
+
+	* dispextern.h (prepare_desired_row): Adjust prototype.
+
+2014-07-03  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xfaces.c (init_frame_faces): Always realize basic faces (Bug#17889).
+	* menu.c (Fx_popup_dialog): Set Vmenu_updating_frame to avoid crash
+	caused by xw_popup_dialog in daemon mode (Bug#17891).
+
+2014-07-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* frame.c (do_switch_frame): When switching to another TTY frame,
+	make sure FrameCols and FrameRows are in sync with the new frame's
+	data.  (Bug#17875)
+
+2014-07-02  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Shrink Lisp_Sub_Char_Table by preferring C integers to Lisp_Objects.
+	* lisp.h (struct Lisp_Sub_Char_Table): Use C integers for depth and
+	min_char slots.  Adjust comment.
+	(enum char_table_specials): Rename from CHAR_TABLE_STANDARD_SLOTS.
+	Add SUB_CHAR_TABLE_OFFSET member.
+	(make_uninit_sub_char_table): New function.
+	(toplevel): Add compile-time assert to verify suitable member layout
+	in Lisp_Sub_Char_Table.
+	* alloc.c (mark_char_table): Add extra argument to denote char table
+	subtype.  Adjust to match new layout of sub char-table.
+	(mark_object): Always mark sub char-tables with mark_char_table.
+	* chartab.c (make_sub_char_table, copy_sub_char_table)
+	(sub_char_table_ref, sub_char_table_ref_and_range, sub_char_table_set)
+	(sub_char_table_set_range, optimize_sub_char_table, map_sub_char_table)
+	(map_sub_char_table_for_charset, uniprop_table_uncompress):
+	All related users changed.
+	* lread.c (read1): Adjust to match new layout of sub char-table.
+	* print.c (print_object): Likewise (Bug#17898).
+
+2014-07-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keymap.c (get_keyelt): Simplify.
+	(copy_keymap_item): Remove left-over code for when we had
+	key-shortcut caches.
 
 2014-06-30  Jan Djärv  <jan.h.d@swipnet.se>
 
@@ -25,8 +117,7 @@
 	(mouseMoved:): Set any_help_event_p to YES if help event is
 	generated.  Remove else with empty help event that triggered redisplay
 	for every mouse move.
-	(windowDidResignKey:): If any_help_event_p, generate empty help
-	event.
+	(windowDidResignKey:): If any_help_event_p, generate empty help event.
 
 2014-06-29  Dmitry Antipov  <dmantipov@yandex.ru>
 

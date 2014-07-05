@@ -324,7 +324,7 @@
   :group 'emacs)
 
 (defgroup help nil
-  "Support for on-line help systems."
+  "Support for Emacs help systems."
   :group 'emacs)
 
 (defgroup multimedia nil

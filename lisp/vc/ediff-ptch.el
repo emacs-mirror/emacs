@@ -735,7 +735,7 @@ The second problem might be due to an incompatibility among these settings:
     ediff-patch-program    = %S             ediff-patch-options    = %S
     ediff-backup-extension = %S             ediff-backup-specs     = %S
 
-See Ediff on-line manual for more details on these variables.
+See Ediff manual for more details on these variables.
 In particular, check the documentation for `ediff-backup-specs'.
 
 In any of the above cases, Ediff doesn't compare files automatically.

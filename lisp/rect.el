@@ -719,7 +719,7 @@ Ignores `line-move-visual'."
    ((not rectangle-mark-mode)
     (funcall orig start end window rol))
    (rectangle--inhibit-region-highlight
-    (rectangle--unhighlight-for-redisplay orig rol)
+    (funcall redisplay-unhighlight-region-function rol)
     nil)
    ((and (eq 'rectangle (car-safe rol))
          (eq (nth 1 rol) (buffer-chars-modified-tick))

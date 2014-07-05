@@ -490,8 +490,7 @@ currently in use.  @xref{Coding Systems}.
 @kindex C-h i
 @findex info
 @cindex Info
-@cindex manuals, on-line
-@cindex on-line manuals
+@cindex manuals, included
   @kbd{C-h i} (@code{info}) runs the Info program, which browses
 structured documentation files.  The entire Emacs manual is available
 within Info, along with many other manuals for the GNU system.  Type

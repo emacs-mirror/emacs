@@ -544,6 +544,10 @@ placed in the queue.
 
 `:already-owner': Service is already the primary owner."
 
+  ;; Add Peer handler.
+  (dbus-register-method
+   bus service nil dbus-interface-peer "Ping" 'dbus-peer-handler 'dont-register)
+
   ;; Add ObjectManager handler.
   (dbus-register-method
    bus service nil dbus-interface-objectmanager "GetManagedObjects"
@@ -1151,6 +1155,22 @@ apply
 	  bus service dbus-path-dbus dbus-interface-peer "Ping")))
     (dbus-error nil)))
 
+(defun dbus-peer-handler ()
+  "Default handler for the \"org.freedesktop.DBus.Peer\" interface.
+It will be registered for all objects created by `dbus-register-service'."
+  (let* ((last-input-event last-input-event)
+	 (method (dbus-event-member-name last-input-event)))
+    (cond
+     ;; "Ping" does not return an output parameter.
+     ((string-equal method "Ping")
+      :ignore)
+     ;; "GetMachineId" returns "s".
+     ((string-equal method "GetMachineId")
+      (signal
+       'dbus-error
+       (list
+	(format "%s.GetMachineId not implemented" dbus-interface-peer)))))))
+
 
 ;;; D-Bus introspection.
 
@@ -1672,7 +1692,7 @@ and \"org.freedesktop.DBus.Properties.GetAll\", which is slow."
 
 (defun dbus-managed-objects-handler ()
   "Default handler for the \"org.freedesktop.DBus.ObjectManager\" interface.
-It will be registered for all objects created by `dbus-register-method'."
+It will be registered for all objects created by `dbus-register-service'."
   (let* ((last-input-event last-input-event)
 	 (bus (dbus-event-bus-name last-input-event))
 	 (path (dbus-event-path-name last-input-event)))

@@ -59,7 +59,7 @@ ftxfont_get_gcs (struct frame *f, unsigned long foreground, unsigned long backgr
   XColor color;
   XGCValues xgcv;
   int i;
-  struct ftxfont_frame_data *data = font_get_frame_data (f, &ftxfont_driver);
+  struct ftxfont_frame_data *data = font_get_frame_data (f, Qftx);
   struct ftxfont_frame_data *prev = NULL, *this = NULL, *new;
 
   if (data)
@@ -78,19 +78,11 @@ ftxfont_get_gcs (struct frame *f, unsigned long foreground, unsigned long backgr
 	}
     }
 
-  new = malloc (sizeof *new);
-  if (! new)
-    return NULL;
+  new = xmalloc (sizeof *new);
   new->next = this;
   if (prev)
-    {
       prev->next = new;
-    }
-  else if (font_put_frame_data (f, &ftxfont_driver, new) < 0)
-    {
-      free (new);
-      return NULL;
-    }
+  font_put_frame_data (f, Qftx, new);
 
   new->colors[0].pixel = background;
   new->colors[1].pixel = foreground;
@@ -123,8 +115,8 @@ ftxfont_get_gcs (struct frame *f, unsigned long foreground, unsigned long backgr
       if (prev)
 	prev->next = new->next;
       else if (data)
-	font_put_frame_data (f, &ftxfont_driver, new->next);
-      free (new);
+	font_put_frame_data (f, Qftx, new->next);
+      xfree (new);
       return NULL;
     }
   return new->gcs;
@@ -337,7 +329,7 @@ ftxfont_draw (struct glyph_string *s, int from, int to, int x, int y,
 static int
 ftxfont_end_for_frame (struct frame *f)
 {
-  struct ftxfont_frame_data *data = font_get_frame_data (f, &ftxfont_driver);
+  struct ftxfont_frame_data *data = font_get_frame_data (f, Qftx);
 
   block_input ();
   while (data)
@@ -347,11 +339,11 @@ ftxfont_end_for_frame (struct frame *f)
 
       for (i = 0; i < 6; i++)
 	XFreeGC (FRAME_X_DISPLAY (f), data->gcs[i]);
-      free (data);
+      xfree (data);
       data = next;
     }
   unblock_input ();
-  font_put_frame_data (f, &ftxfont_driver, NULL);
+  font_put_frame_data (f, Qftx, NULL);
   return 0;
 }
 

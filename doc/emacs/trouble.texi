@@ -847,7 +847,7 @@ conclusion from our observations.
 @item
 If the bug is that the Emacs Manual or the Emacs Lisp Reference Manual
 fails to describe the actual behavior of Emacs, or that the text is
-confusing, copy in the text from the online manual which you think is
+confusing, copy in the text from the manual which you think is
 at fault.  If the section is small, just the section name is enough.
 
 @item

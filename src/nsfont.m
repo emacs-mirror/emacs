@@ -649,7 +649,7 @@ struct font_driver nsfont_driver =
     nsfont_encode_char,
     nsfont_text_extents,
     nsfont_draw,
-    /* excluded: get_bitmap, free_bitmap, get_outline, free_outline,
+    /* excluded: get_bitmap, free_bitmap,
                  anchor_point, otf_capability, otf_driver,
       		 start_for_frame, end_for_frame, shape */
   };

@@ -23,7 +23,7 @@
 
 ;;; Commentary:
 
-;; This code implements GNU Emacs's on-line help system, the one invoked by
+;; This code implements GNU Emacs's built-in help system, the one invoked by
 ;; `M-x help-for-help'.
 
 ;;; Code:
@@ -198,13 +198,13 @@ d PATTERN   Show a list of functions, variables, and other items whose
               documentation matches the PATTERN (a list of words or a regexp).
 e           Go to the *Messages* buffer which logs echo-area messages.
 f FUNCTION  Display documentation for the given function.
-F COMMAND   Show the on-line manual's section that describes the command.
+F COMMAND   Show the Emacs manual's section that describes the command.
 g           Display information about the GNU project.
 h           Display the HELLO file which illustrates various scripts.
-i           Start the Info documentation reader: read on-line manuals.
+i           Start the Info documentation reader: read included manuals.
 I METHOD    Describe a specific input method, or RET for current.
 k KEYS      Display the full documentation for the key sequence.
-K KEYS      Show the on-line manual's section for the command bound to KEYS.
+K KEYS      Show the Emacs manual's section for the command bound to KEYS.
 l           Show last 300 input keystrokes (lossage).
 L LANG-ENV  Describes a specific language environment, or RET for current.
 m           Display documentation of current minor modes and current major mode,
@@ -214,7 +214,7 @@ p TOPIC     Find packages matching a given topic keyword.
 P PACKAGE   Describe the given Emacs Lisp package.
 r           Display the Emacs manual in Info mode.
 s           Display contents of current syntax table, plus explanations.
-S SYMBOL    Show the section for the given symbol in the on-line manual
+S SYMBOL    Show the section for the given symbol in the Info manual
               for the programming language used in this buffer.
 t           Start the Emacs learn-by-doing tutorial.
 v VARIABLE  Display the given variable's documentation and value.

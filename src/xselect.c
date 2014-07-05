@@ -1299,9 +1299,7 @@ x_get_window_property (Display *display, Window window, Atom property,
   if (total_size_max < bytes_remaining)
     goto size_overflow;
   total_size = bytes_remaining;
-  data = malloc (total_size + 1);
-  if (! data)
-    goto memory_exhausted;
+  data = xmalloc (total_size + 1);
 
   /* Now read, until we've gotten it all.  */
   while (bytes_remaining)
@@ -1352,9 +1350,7 @@ x_get_window_property (Display *display, Window window, Atom property,
 	  if (remaining_lim < 0 || remaining_lim < bytes_remaining)
 	    goto size_overflow;
 	  total_size = offset + bytes_gotten + bytes_remaining;
-	  data1 = realloc (data, total_size + 1);
-	  if (! data1)
-	    goto memory_exhausted;
+	  data1 = xrealloc (data, total_size + 1);
 	  data = data1;
 	}
 
@@ -1386,14 +1382,10 @@ x_get_window_property (Display *display, Window window, Atom property,
   return;
 
  size_overflow:
-  free (data);
+  if (data)
+    xfree (data);
   unblock_input ();
   memory_full (SIZE_MAX);
-
- memory_exhausted:
-  free (data);
-  unblock_input ();
-  memory_full (total_size + 1);
 }
 
 /* Use xfree, not XFree, to free the data obtained with this function.  */

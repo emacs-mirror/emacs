@@ -1096,16 +1096,28 @@ the line will be re-indented automatically if needed."
   (when (and electric-indent-mode
              (eq (char-before) last-command-event))
     (cond
-     ((and (not (bolp))
-           (memq (char-after) '(?\) ?\] ?\})))
+     ;; Electric indent inside parens
+     ((and
+       (not (bolp))
+       (let ((paren-start (python-syntax-context 'paren)))
+         ;; Check that point is inside parens.
+         (when paren-start
+           (not
+            ;; Filter the case where input is happening in the same
+            ;; line where the open paren is.
+            (= (line-number-at-pos)
+               (line-number-at-pos paren-start)))))
+       ;; When content has been added before the closing paren or a
+       ;; comma has been inserted, it's ok to do the trick.
+       (or
+        (memq (char-after) '(?\) ?\] ?\}))
+        (eq (char-before) ?,)))
       (save-excursion
         (goto-char (line-beginning-position))
-        ;; If after going to the beginning of line the point
-        ;; is still inside a paren it's ok to do the trick
-        (when (python-syntax-context 'paren)
-          (let ((indentation (python-indent-calculate-indentation)))
-            (when (< (current-indentation) indentation)
-              (indent-line-to indentation))))))
+        (let ((indentation (python-indent-calculate-indentation)))
+          (when (< (current-indentation) indentation)
+            (indent-line-to indentation)))))
+     ;; Electric colon
      ((and (eq ?: last-command-event)
            (memq ?: electric-indent-chars)
            (not current-prefix-arg)

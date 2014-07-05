@@ -757,19 +757,6 @@ w32font_get_bitmap (struct font *font, unsigned code,
 static void
 w32font_free_bitmap (struct font *font, struct font_bitmap *bitmap);
   */
-/* w32 implementation of get_outline for font backend.
-   Optional.
-   Return an outline data for glyph-code CODE of FONT.  The format
-   of the outline data depends on the font-driver.
-static void *
-w32font_get_outline (struct font *font, unsigned code);
-  */
-/* w32 implementation of free_outline for font backend.
-   Optional.
-   Free OUTLINE (that is obtained by the above method).
-static void
-w32font_free_outline (struct font *font, void *outline);
-  */
 /* w32 implementation of anchor_point for font backend.
    Optional.
    Get coordinates of the INDEXth anchor point of the glyph whose
@@ -2557,8 +2544,6 @@ struct font_driver w32font_driver =
     w32font_draw,
     NULL, /* get_bitmap */
     NULL, /* free_bitmap */
-    NULL, /* get_outline */
-    NULL, /* free_outline */
     NULL, /* anchor_point */
     NULL, /* otf_capability */
     NULL, /* otf_drive */

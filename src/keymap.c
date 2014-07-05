@@ -727,11 +727,6 @@ get_keyelt (Lisp_Object object, bool autoload)
 	/* This is really the value.  */
 	return object;
 
-      /* If the keymap contents looks like (keymap ...) or (lambda ...)
-	 then use itself. */
-      else if (EQ (XCAR (object), Qkeymap) || EQ (XCAR (object), Qlambda))
-	return object;
-
       /* If the keymap contents looks like (menu-item name . DEFN)
 	 or (menu-item name DEFN ...) then use DEFN.
 	 This is a new format menu item.  */
@@ -768,25 +763,8 @@ get_keyelt (Lisp_Object object, bool autoload)
 	 Keymap alist elements like (CHAR MENUSTRING . DEFN)
 	 will be used by HierarKey menus.  */
       else if (STRINGP (XCAR (object)))
-	{
-	  object = XCDR (object);
-	  /* Also remove a menu help string, if any,
-	     following the menu item name.  */
-	  if (CONSP (object) && STRINGP (XCAR (object)))
-	    object = XCDR (object);
-	  /* Also remove the sublist that caches key equivalences, if any.  */
-	  if (CONSP (object) && CONSP (XCAR (object)))
-	    {
-	      Lisp_Object carcar;
-	      carcar = XCAR (XCAR (object));
-	      if (NILP (carcar) || VECTORP (carcar))
-		object = XCDR (object);
-	    }
-	}
+	object = XCDR (object);
 
-      /* If the contents are (KEYMAP . ELEMENT), go indirect.  */
-      else if (KEYMAPP (XCAR (object)))
-	error ("Wow, indirect keymap entry!!");
       else
 	return object;
     }
@@ -990,9 +968,6 @@ copy_keymap_item (Lisp_Object elt)
 	  if (CONSP (tem) && EQ (XCAR (tem), Qkeymap))
 	    XSETCAR (elt, Fcopy_keymap (tem));
 	  tem = XCDR (elt);
-	  if (CONSP (tem) && CONSP (XCAR (tem)))
-	    /* Delete cache for key equivalences.  */
-	    XSETCDR (elt, XCDR (tem));
 	}
     }
   else
@@ -1010,16 +985,6 @@ copy_keymap_item (Lisp_Object elt)
 	      XSETCDR (elt, Fcons (XCAR (tem), XCDR (tem)));
 	      elt = XCDR (elt);
 	      tem = XCDR (elt);
-	    }
-	  /* There may also be a list that caches key equivalences.
-	     Just delete it for the new keymap.  */
-	  if (CONSP (tem)
-	      && CONSP (XCAR (tem))
-	      && (NILP (XCAR (XCAR (tem)))
-		  || VECTORP (XCAR (XCAR (tem)))))
-	    {
-	      XSETCDR (elt, XCDR (tem));
-	      tem = XCDR (tem);
 	    }
 	  if (CONSP (tem) && EQ (XCAR (tem), Qkeymap))
 	    XSETCDR (elt, Fcopy_keymap (tem));
@@ -2572,9 +2537,8 @@ If FIRSTONLY has another non-nil value, prefer bindings
 that use the modifier key specified in `where-is-preferred-modifier'
 \(or their meta variants) and entirely reject menu bindings.
 
-If optional 4th arg NOINDIRECT is non-nil, don't follow indirections
-to other keymaps or slots.  This makes it possible to search for an
-indirect definition itself.
+If optional 4th arg NOINDIRECT is non-nil, don't extract the commands inside
+menu-items.  This makes it possible to search for a menu-item itself.
 
 The optional 5th arg NO-REMAP alters how command remapping is handled:
 

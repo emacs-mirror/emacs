@@ -19878,7 +19878,7 @@ display_line (struct it *it)
     }
 
   /* Clear the result glyph row and enable it.  */
-  prepare_desired_row (row);
+  prepare_desired_row (it->w, row, false);
 
   row->y = it->current_y;
   row->start = it->start;
@@ -21517,7 +21517,7 @@ display_mode_line (struct window *w, enum face_id face_id, Lisp_Object format)
   /* Don't extend on a previously drawn mode-line.
      This may happen if called from pos_visible_p.  */
   it.glyph_row->enabled_p = false;
-  prepare_desired_row (it.glyph_row);
+  prepare_desired_row (w, it.glyph_row, true);
 
   it.glyph_row->mode_line_p = 1;
 
@@ -30682,13 +30682,6 @@ start_hourglass (void)
     delay = dtotimespec (XFLOAT_DATA (Vhourglass_delay));
   else
     delay = make_timespec (DEFAULT_HOURGLASS_DELAY, 0);
-
-#ifdef HAVE_NTGUI
-  {
-    extern void w32_note_current_window (void);
-    w32_note_current_window ();
-  }
-#endif /* HAVE_NTGUI */
 
   hourglass_atimer = start_atimer (ATIMER_RELATIVE, delay,
 				   show_hourglass, NULL);

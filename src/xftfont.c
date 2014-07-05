@@ -593,7 +593,7 @@ xftfont_text_extents (struct font *font, unsigned int *code, int nglyphs, struct
 static XftDraw *
 xftfont_get_xft_draw (struct frame *f)
 {
-  XftDraw *xft_draw = font_get_frame_data (f, &xftfont_driver);
+  XftDraw *xft_draw = font_get_frame_data (f, Qxft);
 
   if (! xft_draw)
     {
@@ -604,7 +604,7 @@ xftfont_get_xft_draw (struct frame *f)
 			       FRAME_X_COLORMAP (f));
       unblock_input ();
       eassert (xft_draw != NULL);
-      font_put_frame_data (f, &xftfont_driver, xft_draw);
+      font_put_frame_data (f, Qxft, xft_draw);
     }
   return xft_draw;
 }
@@ -680,14 +680,14 @@ xftfont_end_for_frame (struct frame *f)
   /* Don't do anything if display is dead */
   if (FRAME_X_DISPLAY (f) == NULL) return 0;
 
-  xft_draw = font_get_frame_data (f, &xftfont_driver);
+  xft_draw = font_get_frame_data (f, Qxft);
 
   if (xft_draw)
     {
       block_input ();
       XftDrawDestroy (xft_draw);
       unblock_input ();
-      font_put_frame_data (f, &xftfont_driver, NULL);
+      font_put_frame_data (f, Qxft, NULL);
     }
   return 0;
 }

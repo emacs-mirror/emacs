@@ -2619,21 +2619,38 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
 	      c = READCHAR;
 	      if (c == '[')
 		{
-		  Lisp_Object tmp;
-		  int depth;
-		  ptrdiff_t size;
+		  /* Sub char-table can't be read as a regular
+		     vector because of a two C integer fields.  */
+		  Lisp_Object tbl, tmp = read_list (1, readcharfun);
+		  ptrdiff_t size = XINT (Flength (tmp));
+		  int i, depth, min_char;
+		  struct Lisp_Cons *cell;
 
-		  tmp = read_vector (readcharfun, 0);
-		  size = ASIZE (tmp);
 		  if (size == 0)
-		    error ("Invalid size char-table");
-		  if (! RANGED_INTEGERP (1, AREF (tmp, 0), 3))
-		    error ("Invalid depth in char-table");
-		  depth = XINT (AREF (tmp, 0));
+		    error ("Zero-sized sub char-table");
+
+		  if (! RANGED_INTEGERP (1, XCAR (tmp), 3))
+		    error ("Invalid depth in sub char-table");
+		  depth = XINT (XCAR (tmp));
 		  if (chartab_size[depth] != size - 2)
-		    error ("Invalid size char-table");
-		  XSETPVECTYPE (XVECTOR (tmp), PVEC_SUB_CHAR_TABLE);
-		  return tmp;
+		    error ("Invalid size in sub char-table");
+		  cell = XCONS (tmp), tmp = XCDR (tmp), size--;
+		  free_cons (cell);
+
+		  if (! RANGED_INTEGERP (0, XCAR (tmp), MAX_CHAR))
+		    error ("Invalid minimum character in sub-char-table");
+		  min_char = XINT (XCAR (tmp));
+		  cell = XCONS (tmp), tmp = XCDR (tmp), size--;
+		  free_cons (cell);
+
+		  tbl = make_uninit_sub_char_table (depth, min_char);
+		  for (i = 0; i < size; i++)
+		    {
+		      XSUB_CHAR_TABLE (tbl)->contents[i] = XCAR (tmp);
+		      cell = XCONS (tmp), tmp = XCDR (tmp);
+		      free_cons (cell);
+		    }
+		  return tbl;
 		}
 	      invalid_syntax ("#^^");
 	    }
