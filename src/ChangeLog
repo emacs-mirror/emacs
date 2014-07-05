@@ -1,3 +1,9 @@
+2014-07-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (pos_visible_p): If CHARPOS is at BEGV, and there is a
+	display property at BEGV, don't call move_it_to to move to a
+	position before BEGV.  (Bug#17942)
+
 2014-07-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* syntax.c (find_defun_start): Try the cache even
