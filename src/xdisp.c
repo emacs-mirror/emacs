@@ -1689,7 +1689,9 @@ pos_visible_p (struct window *w, ptrdiff_t charpos, int *x, int *y,
     }
   else
     {
-      /* We were asked to provide info about WINDOW_END.  */
+      /* Either we were asked to provide info about WINDOW_END, or
+	 CHARPOS is in the partially visible glyph row at end of
+	 window.  */
       struct it it2;
       void *it2data = NULL;
 
