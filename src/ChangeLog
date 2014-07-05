@@ -3,6 +3,8 @@
 	* xdisp.c (pos_visible_p): If CHARPOS is at beginning of window,
 	and there is a display property at that position, don't call
 	move_it_to to move to a position before window start.  (Bug#17942)
+	Fix condition for finding CHARPOS by the first call to move_it_to.
+	(Bug#17944)
 
 2014-07-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 

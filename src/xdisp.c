@@ -1436,7 +1436,7 @@ pos_visible_p (struct window *w, ptrdiff_t charpos, int *x, int *y,
 	      (charpos >= 0 ? MOVE_TO_POS : 0) | MOVE_TO_Y);
 
   if (charpos >= 0
-      && (((!it.bidi_p || it.bidi_it.scan_dir == 1)
+      && (((!it.bidi_p || it.bidi_it.scan_dir != -1)
 	   && IT_CHARPOS (it) >= charpos)
 	  /* When scanning backwards under bidi iteration, move_it_to
 	     stops at or _before_ CHARPOS, because it stops at or to
