@@ -1,3 +1,8 @@
+2014-07-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/ruby-mode.el (ruby-mode-variables): Don't meddle with
+	require-final-newline since prog-mode already took care of it (bug#17947).
+
 2014-07-04  Stephen Berman  <stephen.berman@gmx.net>
 
 	* calendar/todo-mode.el: Fix two bugs.  Shorten Commentary and
