@@ -1,3 +1,14 @@
+2014-07-06  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todo-mode.el: Fix wrong-type-argument error when
+	marking multiple consecutive items.
+	(todo-toggle-mark-item): Don't try to mark the empty lines at the
+	end of the todo and done items sections.  Note in doc string that
+	items marked by passing a numeric prefix argument can include the
+	last todo and first done items.
+	(todo-mark-category): Don't try to mark the empty line between the
+	todo and done items sections.
+
 2014-07-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/edebug.el (edebug-eval-defun): Print result using

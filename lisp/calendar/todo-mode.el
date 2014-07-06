@@ -1710,31 +1710,40 @@ means prompt user and omit comment only on confirmation."
 
 (defun todo-toggle-mark-item (&optional n)
   "Mark item with `todo-item-mark' if unmarked, otherwise unmark it.
-With a positive numerical prefix argument N, change the
-marking of the next N items."
+With positive numerical prefix argument N, change the marking of
+the next N items in the current category.  If both the todo and
+done items sections are visible, the sequence of N items can
+consist of the the last todo items and the first done items."
   (interactive "p")
   (when (todo-item-string)
     (unless (> n 1) (setq n 1))
-    (dotimes (i n)
-      (let* ((cat (todo-current-category))
-	     (marks (assoc cat todo-categories-with-marks))
-	     (ov (progn
-		   (unless (looking-at todo-item-start)
-		     (todo-item-start))
-		   (todo-get-overlay 'prefix)))
-	     (pref (overlay-get ov 'before-string)))
-	(if (todo-marked-item-p)
-	    (progn
-	      (overlay-put ov 'before-string (substring pref 1))
-	      (if (= (cdr marks) 1)	; Deleted last mark in this category.
-		  (setq todo-categories-with-marks
-			(assq-delete-all cat todo-categories-with-marks))
-		(setcdr marks (1- (cdr marks)))))
-	  (overlay-put ov 'before-string (concat todo-item-mark pref))
-	  (if marks
-	      (setcdr marks (1+ (cdr marks)))
-	    (push (cons cat 1) todo-categories-with-marks))))
-      (todo-forward-item))))
+    (catch 'end
+      (dotimes (i n)
+	(let* ((cat (todo-current-category))
+	       (marks (assoc cat todo-categories-with-marks))
+	       (ov (progn
+		     (unless (looking-at todo-item-start)
+		       (todo-item-start))
+		     (todo-get-overlay 'prefix)))
+	       (pref (overlay-get ov 'before-string)))
+	  (if (todo-marked-item-p)
+	      (progn
+		(overlay-put ov 'before-string (substring pref 1))
+		(if (= (cdr marks) 1)	; Deleted last mark in this category.
+		    (setq todo-categories-with-marks
+			  (assq-delete-all cat todo-categories-with-marks))
+		  (setcdr marks (1- (cdr marks)))))
+	    (overlay-put ov 'before-string (concat todo-item-mark pref))
+	    (if marks
+		(setcdr marks (1+ (cdr marks)))
+	      (push (cons cat 1) todo-categories-with-marks))))
+	(todo-forward-item)
+	;; Don't try to mark the empty lines at the end of the todo
+	;; and done items sections.
+	(when (looking-at "^$")
+	  (if (eobp)
+	      (throw 'end nil)
+	    (todo-forward-item)))))))
 
 (defun todo-mark-category ()
   "Mark all visible items in this category with `todo-item-mark'."
@@ -1751,7 +1760,12 @@ marking of the next N items."
 	    (if marks
 		(setcdr marks (1+ (cdr marks)))
 	      (push (cons cat 1) todo-categories-with-marks))))
-	(todo-forward-item)))))
+	(todo-forward-item)
+	;; Don't try to mark the empty line between the todo and done
+	;; items sections.
+	(when (looking-at "^$")
+	  (unless (eobp)
+	    (todo-forward-item)))))))
 
 (defun todo-unmark-category ()
   "Remove `todo-item-mark' from all visible items in this category."
