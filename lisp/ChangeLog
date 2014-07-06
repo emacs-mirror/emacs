@@ -1,3 +1,8 @@
+2014-07-06  Glenn Morris  <rgm@gnu.org>
+
+	* emulation/cua-rect.el (cua--activate-rectangle):
+	Avoid setting cua--rectangle to nil.  (Bug#17877)
+
 2014-07-06  Stephen Berman  <stephen.berman@gmx.net>
 
 	* calendar/todo-mode.el: Fix wrong-type-argument error when
