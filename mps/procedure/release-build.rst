@@ -220,6 +220,11 @@ On a Unix (including OS X) machine:
         END
         git push --tags git@github.com:Ravenbrook/mps-temporary.git
 
+#. Go to the `list of releases on Github
+   <https://github.com/Ravenbrook/mps-temporary/releases>`__ and
+   select "Draft a new release". Select the tag you just pushed, and
+   set the title and description to match the other releases.
+
 #. Inform the project manager and staff by e-mail to
    mps-staff@ravenbrook.com.
 
