@@ -889,6 +889,11 @@ If REGEXP is given, lines that match it will be deleted."
       (setq buffer-save-without-query t)
       (erase-buffer)
       (setq buffer-file-name dribble-file)
+      ;; The buffer may be shrunk a lot when deleting old entries.
+      ;; It caused the auto-saving to stop.
+      (if (featurep 'emacs)
+	  (set (make-local-variable 'auto-save-include-big-deletions) t)
+	(set (make-local-variable 'disable-auto-save-when-buffer-shrinks) nil))
       (auto-save-mode t)
       (buffer-disable-undo)
       (bury-buffer (current-buffer))
