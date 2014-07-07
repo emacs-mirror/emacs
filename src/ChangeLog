@@ -1,5 +1,20 @@
 2014-07-07  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Minor fixups related to usage of the 'long' type.
+	* gnutls.c (emacs_gnutls_handshake):
+	* xfaces.c (dump_realized_face):
+	Work even if 'long' is narrower than 'void *'.
+	* termcap.c (scan_file):
+	* xselect.c (x_decline_selection_request)
+	(x_reply_selection_request, x_get_window_property):
+	* xterm.c (x_set_frame_alpha):
+	Remove unnecessary 'L' suffixes of integer constants.
+	* xfns.c (hack_wm_protocols):
+	* xselect.c (x_fill_property_data):
+	* xterm.c (x_set_offset, x_set_window_size_1, x_make_frame_invisible):
+	Remove unnecessary casts to 'long'.
+	(set_machine_and_pid_properties): Don't assume pid_t fits in 32 bits.
+
 	Minor ImageMagick safety fixes.
 	* image.c (imagemagick_compute_animated_image):
 	Remove useless assignment to local.  Avoid problems if dest_width is 0.

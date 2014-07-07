@@ -336,8 +336,8 @@ emacs_gnutls_handshake (struct Lisp_Process *proc)
 	 in.  For an Emacs process socket, infd and outfd are the
 	 same but we use this two-argument version for clarity.  */
       fn_gnutls_transport_set_ptr2 (state,
-				    (gnutls_transport_ptr_t) (long) proc->infd,
-				    (gnutls_transport_ptr_t) (long) proc->outfd);
+				    (void *) (intptr_t) proc->infd,
+				    (void *) (intptr_t) proc->outfd);
 #endif
 
       proc->gnutls_initstage = GNUTLS_STAGE_TRANSPORT_POINTERS_SET;
