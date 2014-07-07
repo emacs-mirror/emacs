@@ -119,6 +119,16 @@ protocols as well as for "telnet" and "ftp" are passed to Tramp.
 fitting for use in money calculations; factorial works with
 non-integer inputs.
 
+** HideIfDef mode now support full C/C++ expressions, argumented macro expansions
+, interactive macro evaluation and automatic scanning of #defined symbols.
+
+*** New custom variable `hide-ifdef-header-regexp' to define C/C++ header file
+name patterns. Default case-insensitive .h, .hh, .hpp and .hxx.
+*** New custom variable `hide-ifdef-expand-reinclusion-protection' to prevent
+reinclusion protected header files from being fully hidden.
+*** New custom variable `hide-ifdef-exclude-define-regexp' to define symbol
+name patterns (e.x. all "FOR_DOXYGEN_ONLY_*") to be excluded.
+
 ** Obsolete packages
 
 ---

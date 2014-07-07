@@ -1,3 +1,23 @@
+2014-07-07  Luke Lee  <luke.yx.lee@gmail.com>
+
+	* lisp/progmodes/hideif.el (hide-ifdef-env): Change to global.
+	(hide-ifdef-env-backup): New variable.
+	(hide-ifdef-expand-reinclusion-protection, hide-ifdef-header-regexp):
+	New customizable variables.
+	(hif-clear-all-ifdef-defined): New defun.
+	(hif-merge-ifdef-region, hide-ifdef-region-internal, hide-ifdef-region)
+	(hif-show-ifdef-region): Merge hidden regions to prevent continuous "...".
+	(hif-tokenize): Fix for MS-DOS/Win EOL style.
+	(hif-endif-to-ifdef, hif-make-range, hif-find-range, hif-possibly-hide):
+	Fix bug to hide the correct #elif region(s).
+	(hif-range-elif): New defun.
+	(hif-recurse-level): New var.
+	(hif-evaluate-region, hif-evaluate-macro): New defun.
+	(hide-ifdef-guts): Prevent reinclusion protected C/C++ headers from
+	fully hidden.
+	(hide-ifdef-define, hide-ifdefs, hide-ifdef-block, show-ifdef-block):
+	Better interaction.
+
 2014-07-04  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/dbus.el (dbus-peer-handler): New defun.
