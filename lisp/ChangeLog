@@ -1,5 +1,12 @@
 2014-07-08  Juri Linkov  <juri@jurta.org>
 
+	* faces.el (face-name): Return input arg `face' as is
+	when it's not a symbol.
+	(x-resolve-font-name): Don't check if the face is a symbol.
+	(Bug#17956)
+
+2014-07-08  Juri Linkov  <juri@jurta.org>
+
 	* facemenu.el (list-colors-print): In help-echo format use %.2f
 	instead of %d because now HSV values are floating-point components
 	between 0.0 and 1.0.
