@@ -41,6 +41,12 @@ for foo in bar; do              #  bug#17721
     }
 done
 
+for foo in bar; do              # bug#17896
+    [ -e $foo ] && [ -e $bar ] && {
+        echo just fine thanks
+    }
+done
+
 filter_3 ()                     # bug#17842
 {
     tr -d '"`' | tr '	' ' ' | \

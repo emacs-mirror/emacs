@@ -1,3 +1,8 @@
+2014-07-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/sh-script.el (sh-smie-sh-rules): Don't align with a && in
+	the middle of a line (bug#17896).
+
 2014-07-08  Juri Linkov  <juri@jurta.org>
 
 	* startup.el (command-line): Append displaying the warning about
