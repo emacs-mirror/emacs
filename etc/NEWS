@@ -115,6 +115,12 @@ protocols as well as for "telnet" and "ftp" are passed to Tramp.
 
 *** New connection method "nc", which allows to access dumb busyboxes.
 
+** VC and related modes
+
+*** New option `vc-annotate-background-mode' controls whether
+the color range from `vc-annotate-color-map' is applied to the
+background or to the foreground.
+
 ** Calculator: decimal display mode uses "," groups, so it's more
 fitting for use in money calculations; factorial works with
 non-integer inputs.

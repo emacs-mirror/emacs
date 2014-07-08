@@ -40,6 +40,23 @@
 			 :value "20.5"))
   :group 'vc)
 
+(defcustom vc-annotate-background-mode
+  (not (or (eq (or frame-background-mode
+		   (frame-parameter nil 'background-mode))
+	       'dark)
+	   (and (tty-display-color-p) (<= (display-color-cells) 8))))
+  "Non-nil means `vc-annotate-color-map' is applied to the background.
+
+When non-nil, the color range from `vc-annotate-color-map' is applied
+to the background, while the foreground remains default.
+
+When nil, the color range from `vc-annotate-color-map' is applied
+to the foreground, and the color from the option `vc-annotate-background'
+is applied to the background."
+  :type 'boolean
+  :version "24.5"
+  :group 'vc)
+
 (defcustom vc-annotate-color-map
   (if (and (tty-display-color-p) (<= (display-color-cells) 8))
       ;; A custom sorted TTY colormap
@@ -71,25 +88,49 @@
 		  (prog1
 		      (cons date x)
 		    (setq date (+ date delta)))) colors))
-    ;; Normal colormap: hue stepped from 0-240deg, value=1., saturation=0.75
-    '(( 20. . "#FF3F3F")
-      ( 40. . "#FF6C3F")
-      ( 60. . "#FF993F")
-      ( 80. . "#FFC63F")
-      (100. . "#FFF33F")
-      (120. . "#DDFF3F")
-      (140. . "#B0FF3F")
-      (160. . "#83FF3F")
-      (180. . "#56FF3F")
-      (200. . "#3FFF56")
-      (220. . "#3FFF83")
-      (240. . "#3FFFB0")
-      (260. . "#3FFFDD")
-      (280. . "#3FF3FF")
-      (300. . "#3FC6FF")
-      (320. . "#3F99FF")
-      (340. . "#3F6CFF")
-      (360. . "#3F3FFF")))
+    (cond
+     ;; Normal colormap for background colors with dark foreground:
+     ;; hue stepped from 0-240deg, value=1., saturation=0.20
+     (vc-annotate-background-mode
+      '(( 20. . "#FFCCCC")
+	( 40. . "#FFD8CC")
+	( 60. . "#FFE4CC")
+	( 80. . "#FFF0CC")
+	(100. . "#FFFCCC")
+	(120. . "#F6FFCC")
+	(140. . "#EAFFCC")
+	(160. . "#DEFFCC")
+	(180. . "#D2FFCC")
+	(200. . "#CCFFD2")
+	(220. . "#CCFFDE")
+	(240. . "#CCFFEA")
+	(260. . "#CCFFF6")
+	(280. . "#CCFCFF")
+	(300. . "#CCF0FF")
+	(320. . "#CCE4FF")
+	(340. . "#CCD8FF")
+	(360. . "#CCCCFF")))
+     ;; Normal colormap for foreground colors on dark background:
+     ;; hue stepped from 0-240deg, value=1., saturation=0.75
+     (t
+      '(( 20. . "#FF3F3F")
+	( 40. . "#FF6C3F")
+	( 60. . "#FF993F")
+	( 80. . "#FFC63F")
+	(100. . "#FFF33F")
+	(120. . "#DDFF3F")
+	(140. . "#B0FF3F")
+	(160. . "#83FF3F")
+	(180. . "#56FF3F")
+	(200. . "#3FFF56")
+	(220. . "#3FFF83")
+	(240. . "#3FFFB0")
+	(260. . "#3FFFDD")
+	(280. . "#3FF3FF")
+	(300. . "#3FC6FF")
+	(320. . "#3F99FF")
+	(340. . "#3F6CFF")
+	(360. . "#3F3FFF")))))
   "Association list of age versus color, for \\[vc-annotate].
 Ages are given in units of fractional days.  Default is eighteen
 steps using a twenty day increment, from red to blue.  For TTY
@@ -98,12 +139,12 @@ all other colors between (excluding black and white)."
   :type 'alist
   :group 'vc)
 
-(defcustom vc-annotate-very-old-color "#3F3FFF"
+(defcustom vc-annotate-very-old-color (if vc-annotate-background-mode "#CCCCFF" "#3F3FFF")
   "Color for lines older than the current color range in \\[vc-annotate]."
   :type 'string
   :group 'vc)
 
-(defcustom vc-annotate-background "black"
+(defcustom vc-annotate-background nil
   "Background color for \\[vc-annotate].
 Default color is used if nil."
   :type '(choice (const :tag "Default background" nil) (color))
@@ -347,7 +388,9 @@ Customization variables:
 `vc-annotate-menu-elements' customizes the menu elements of the
 mode-specific menu.  `vc-annotate-color-map' and
 `vc-annotate-very-old-color' define the mapping of time to colors.
-`vc-annotate-background' specifies the background color."
+`vc-annotate-background' specifies the background color.
+`vc-annotate-background-mode' specifies whether the color map
+should be applied to the background or to the foreground."
   (interactive
    (save-current-buffer
      (vc-ensure-vc-buffer)
@@ -666,10 +709,13 @@ The annotations are relative to the current time, unless overridden by OFFSET."
                ;; Make the face if not done.
                (face (or (intern-soft face-name)
                          (let ((tmp-face (make-face (intern face-name))))
-                           (set-face-foreground tmp-face (cdr color))
-                           (when vc-annotate-background
-			     (set-face-background tmp-face
-						  vc-annotate-background))
+                           (cond
+                            (vc-annotate-background-mode
+                             (set-face-background tmp-face (cdr color)))
+                            (t
+                             (set-face-foreground tmp-face (cdr color))
+                             (when vc-annotate-background
+			       (set-face-background tmp-face vc-annotate-background))))
                            tmp-face))))	; Return the face
           (put-text-property start end 'face face)))))
   ;; Pretend to font-lock there were no matches.

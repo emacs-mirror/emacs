@@ -1,5 +1,16 @@
 2014-07-08  Juri Linkov  <juri@jurta.org>
 
+	* vc/vc-annotate.el (vc-annotate-background-mode): New defcustom.
+	(vc-annotate-color-map): Use less saturated colors (20%) for
+	background-mode.
+	(vc-annotate-very-old-color): Add default value for background-mode.
+	(vc-annotate-background): Set default value to nil since now text on
+	the default backgrounds should be legible in light and dark modes.
+	(vc-annotate-lines): Use `vc-annotate-background-mode'.  Doc fix.
+	(Bug#17808)
+
+2014-07-08  Juri Linkov  <juri@jurta.org>
+
 	* simple.el (transpose-chars): Don't move point into read-only area.
 	(Bug#17829)
 
