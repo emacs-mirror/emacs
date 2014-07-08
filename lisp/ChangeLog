@@ -1,3 +1,9 @@
+2014-07-08  Juri Linkov  <juri@jurta.org>
+
+	* facemenu.el (list-colors-print): In help-echo format use %.2f
+	instead of %d because now HSV values are floating-point components
+	between 0.0 and 1.0.
+
 2014-07-06  Glenn Morris  <rgm@gnu.org>
 
 	* emulation/cua-rect.el (cua--activate-rectangle):
