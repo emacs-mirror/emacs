@@ -1,3 +1,22 @@
+2014-07-08  Juri Linkov  <juri@jurta.org>
+
+	* window.el (with-displayed-buffer-window): New macro.
+	(with-temp-buffer-window, with-current-buffer-window):
+	Use `macroexp-let2' to evaluate and bind variables
+	in the same order as macro arguments.
+	(display-buffer--action-function-custom-type): Add
+	`display-buffer-below-selected' and `display-buffer-at-bottom'.
+
+	* minibuffer.el (minibuffer-completion-help): Replace
+	`with-output-to-temp-buffer' with `with-displayed-buffer-window'
+	with actions that display *Completions* at-bottom when called
+	from the minibuffer, or below-selected in a normal buffer.
+	Associate `window-height' with `fit-window-to-buffer'.
+	Let-bind `pop-up-windows' to nil.
+
+	* dired.el (dired-mark-pop-up): Use `with-displayed-buffer-window'
+	instead of `with-current-buffer-window'.  (Bug#17809)
+
 2014-07-07  Luke Lee  <luke.yx.lee@gmail.com>
 
 	* progmodes/hideif.el (hide-ifdef-env): Change to global.
