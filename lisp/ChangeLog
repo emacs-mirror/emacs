@@ -1,3 +1,15 @@
+2014-07-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/perl-mode.el: Use syntax-ppss; fix one indentation case.
+	(perl-indent-line): Use syntax-ppss to detect we're in a doc-section.
+	(perl-continuation-line-p): Don't skip over anything else than labels.
+	Return the previous char.
+	(perl-calculate-indent): Use syntax-ppss instead of parse-start
+	and update callers accordingly.  For continuation lines, check the
+	the case of array hashes.
+	(perl-backward-to-noncomment): Make it non-interactive.
+	(perl-backward-to-start-of-continued-exp): Rewrite.
+
 2014-07-08  Sam Steingold  <sds@gnu.org>
 
 	* progmodes/inf-lisp.el (lisp-eval-paragraph, lisp-eval-form-and-next):
@@ -25,8 +37,8 @@
 	(with-temp-buffer-window, with-current-buffer-window):
 	Use `macroexp-let2' to evaluate and bind variables
 	in the same order as macro arguments.
-	(display-buffer--action-function-custom-type): Add
-	`display-buffer-below-selected' and `display-buffer-at-bottom'.
+	(display-buffer--action-function-custom-type):
+	Add `display-buffer-below-selected' and `display-buffer-at-bottom'.
 
 	* minibuffer.el (minibuffer-completion-help): Replace
 	`with-output-to-temp-buffer' with `with-displayed-buffer-window'

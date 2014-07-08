@@ -24,6 +24,13 @@ EOF2
 bar
 EOF1
 
+$config = {
+    b  =>
+        [
+         "123",
+        ],
+    c => "123",
+};
 
 print <<"EOF1" . <<\EOF2 . s/he"llo/th'ere/;
 foo
