@@ -823,7 +823,6 @@ INLINE struct Lisp_Save_Value *XSAVE_VALUE (Lisp_Object);
 /* Defined in chartab.c.  */
 extern Lisp_Object char_table_ref (Lisp_Object, int);
 extern void char_table_set (Lisp_Object, int, Lisp_Object);
-extern int char_table_translate (Lisp_Object, int);
 
 /* Defined in data.c.  */
 extern Lisp_Object Qarrayp, Qbufferp, Qbuffer_or_string_p, Qchar_table_p;

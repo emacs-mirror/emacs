@@ -667,6 +667,20 @@ extern Lisp_Object string_escape_byte8 (Lisp_Object);
 #define GET_TRANSLATION_TABLE(id) \
   (XCDR (XVECTOR (Vtranslation_table_vector)->contents[(id)]))
 
+/* Look up the element in char table OBJ at index CH, and return it as
+   an integer.  If the element is not a character, return CH itself.  */
+
+INLINE int
+char_table_translate (Lisp_Object obj, int ch)
+{
+  /* This internal function is expected to be called with valid arguments,
+     so there is a eassert instead of CHECK_xxx for the sake of speed.  */
+  eassert (CHAR_VALID_P (ch));
+  eassert (CHAR_TABLE_P (obj));
+  obj = CHAR_TABLE_REF (obj, ch);
+  return CHARACTERP (obj) ? XINT (obj) : ch;
+}
+
 INLINE_HEADER_END
 
 #endif /* EMACS_CHARACTER_H */

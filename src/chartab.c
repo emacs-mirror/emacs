@@ -663,19 +663,6 @@ or a character code.  Return VALUE.  */)
   return value;
 }
 
-/* Look up the element in TABLE at index CH, and return it as an
-   integer.  If the element is not a character, return CH itself.  */
-
-int
-char_table_translate (Lisp_Object table, int ch)
-{
-  Lisp_Object value;
-  value = Faref (table, make_number (ch));
-  if (! CHARACTERP (value))
-    return ch;
-  return XINT (value);
-}
-
 static Lisp_Object
 optimize_sub_char_table (Lisp_Object table, Lisp_Object test)
 {
