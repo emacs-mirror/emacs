@@ -242,7 +242,7 @@ def main(argv):
     elif args.version and not args.customer:
         # Public version branch
         register('{depot}/project/{project}/version/index.html',
-                 '(?=</table>\n)', VERSION_BRANCH_ENTRY)
+                 '(?<=<tbody>\n)', VERSION_BRANCH_ENTRY)
         args.github = True
         args.git_name = fmt('{project}-version-{version}')
         args.git_branch = fmt('version/{version}')
