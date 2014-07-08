@@ -1,5 +1,11 @@
 2014-07-08  Juri Linkov  <juri@jurta.org>
 
+	* startup.el (command-line): Append displaying the warning about
+	the errors in the init file to the end of `after-init-hook'.
+	(Bug#17927)
+
+2014-07-08  Juri Linkov  <juri@jurta.org>
+
 	* faces.el (face-name): Return input arg `face' as is
 	when it's not a symbol.
 	(x-resolve-font-name): Don't check if the face is a symbol.
