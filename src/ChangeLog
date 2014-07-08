@@ -1,3 +1,12 @@
+2014-07-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* process.c: Add sanity checks for file descriptors (Bug#17844).
+	(wait_reading_process_output, Fprocess_filter_multibyte_p):
+	Check that infd is nonnegative before using it as an fd.
+	(read_and_dispose_of_process_output, Fprocess_send_eof):
+	Likewise, for outfd.
+	(wait_reading_process_output): Omit unnecessary check of infd.
+
 2014-07-07  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Minor fixups related to usage of the 'long' type.
