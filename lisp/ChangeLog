@@ -1,5 +1,8 @@
 2014-07-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* xt-mouse.el (xterm-mouse-translate-1): Intern drag event (bug#17894).
+	Remove also pointless window&mark manipulation.
+
 	* progmodes/perl-mode.el: Use syntax-ppss; fix one indentation case.
 	(perl-indent-line): Use syntax-ppss to detect we're in a doc-section.
 	(perl-continuation-line-p): Don't skip over anything else than labels.

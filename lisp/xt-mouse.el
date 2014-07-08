@@ -62,49 +62,44 @@ http://invisible-island.net/xterm/ctlseqs/ctlseqs.html)."
 
 (defun xterm-mouse-translate-1 (&optional extension)
   (save-excursion
-    (save-window-excursion              ;FIXME: Why?
-      (deactivate-mark)                 ;FIXME: Why?
-      (let* ((event (xterm-mouse-event extension))
-	     (ev-command (nth 0 event))
-	     (ev-data    (nth 1 event))
-	     (ev-where   (nth 1 ev-data))
-             (vec (if (and (symbolp ev-where) (consp ev-where))
-                      ;; FIXME: This condition can *never* be non-nil!?!
-                      (vector (list ev-where ev-data) event)
-                    (vector event)))
-	     (is-down (string-match "down-" (symbol-name ev-command))))
+    (let* ((event (xterm-mouse-event extension))
+	   (ev-command (nth 0 event))
+	   (ev-data    (nth 1 event))
+	   (ev-where   (nth 1 ev-data))
+	   (vec (vector event))
+	   (is-down (string-match "down-" (symbol-name ev-command))))
 
-          (cond
-         ((null event) nil)           ;Unknown/bogus byte sequence!
-         (is-down
-          (setf (terminal-parameter nil 'xterm-mouse-last-down) event)
-          vec)
-         (t
-          (let* ((down (terminal-parameter nil 'xterm-mouse-last-down))
-                 (down-data (nth 1 down))
-                 (down-where (nth 1 down-data)))
-            (setf (terminal-parameter nil 'xterm-mouse-last-down) nil)
-            (cond
-             ((null down)
-              ;; This is an "up-only" event.  Pretend there was an up-event
-              ;; right before and keep the up-event for later.
-              (push event unread-command-events)
-              (vector (cons (intern (replace-regexp-in-string
-                                     "\\`\\([ACMHSs]-\\)*" "\\&down-"
-                                     (symbol-name ev-command) t))
-                            (cdr event))))
-             ((equal ev-where down-where) vec)
+      (cond
+       ((null event) nil)		;Unknown/bogus byte sequence!
+       (is-down
+	(setf (terminal-parameter nil 'xterm-mouse-last-down) event)
+	vec)
+       (t
+	(let* ((down (terminal-parameter nil 'xterm-mouse-last-down))
+	       (down-data (nth 1 down))
+	       (down-where (nth 1 down-data)))
+	  (setf (terminal-parameter nil 'xterm-mouse-last-down) nil)
+	  (cond
+	   ((null down)
+	    ;; This is an "up-only" event.  Pretend there was an up-event
+	    ;; right before and keep the up-event for later.
+	    (push event unread-command-events)
+	    (vector (cons (intern (replace-regexp-in-string
+				   "\\`\\([ACMHSs]-\\)*" "\\&down-"
+				   (symbol-name ev-command) t))
+			  (cdr event))))
+	   ((equal ev-where down-where) vec)
            (t
-              (let ((drag (if (symbolp ev-where)
-                                 0      ;FIXME: Why?!?
-                               (list (replace-regexp-in-string
-                                      "\\`\\([ACMHSs]-\\)*" "\\&drag-"
-                                      (symbol-name ev-command) t)
-                                     down-data ev-data))))
-                (if (null track-mouse)
-                    (vector drag)
-                  (push drag unread-command-events)
-                  (vector (list 'mouse-movement ev-data)))))))))))))
+	    (let ((drag (if (symbolp ev-where)
+			    0		;FIXME: Why?!?
+			  (list (intern (replace-regexp-in-string
+					 "\\`\\([ACMHSs]-\\)*" "\\&drag-"
+					 (symbol-name ev-command) t))
+				down-data ev-data))))
+	      (if (null track-mouse)
+		  (vector drag)
+		(push drag unread-command-events)
+		(vector (list 'mouse-movement ev-data))))))))))))
 
 ;; These two variables have been converted to terminal parameters.
 ;;
