@@ -1,5 +1,10 @@
 2014-07-08  Juri Linkov  <juri@jurta.org>
 
+	* simple.el (transpose-chars): Don't move point into read-only area.
+	(Bug#17829)
+
+2014-07-08  Juri Linkov  <juri@jurta.org>
+
 	* window.el (with-displayed-buffer-window): New macro.
 	(with-temp-buffer-window, with-current-buffer-window):
 	Use `macroexp-let2' to evaluate and bind variables

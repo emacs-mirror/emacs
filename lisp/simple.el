@@ -5934,7 +5934,9 @@ With prefix arg ARG, effect is to take character before point
 and drag it forward past ARG other characters (backward if ARG negative).
 If no argument and at end of line, the previous two chars are exchanged."
   (interactive "*P")
-  (and (null arg) (eolp) (forward-char -1))
+  (when (and (null arg) (eolp) (not (bobp))
+	     (not (get-text-property (1- (point)) 'read-only)))
+    (forward-char -1))
   (transpose-subr 'forward-char (prefix-numeric-value arg)))
 
 (defun transpose-words (arg)
