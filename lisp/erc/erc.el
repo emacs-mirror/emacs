@@ -2797,7 +2797,8 @@ VALUE is computed by evaluating the rest of LINE in Lisp."
                                (concat "\n" (pp-to-string val))
                              (format " %S\n" val)))))
                (apropos-internal "^erc-" 'custom-variable-p))))
-     (current-buffer)) t)
+     (current-buffer))
+    t)
    (t nil)))
 (defalias 'erc-cmd-VAR 'erc-cmd-SET)
 (defalias 'erc-cmd-VARIABLE 'erc-cmd-SET)
@@ -3874,7 +3875,8 @@ If FACE is non-nil, it will be used to propertize the prompt.  If it is nil,
     (insert (read-from-minibuffer "Message: "
                                   (string (if (featurep 'xemacs)
                                               last-command-char
-                                            last-command-event)) read-map))
+                                            last-command-event))
+				  read-map))
     (erc-send-current-line)))
 
 (defvar erc-action-history-list ()
@@ -4106,10 +4108,12 @@ E.g. \"Read error to Nick [user@some.host]: 110\" would be shortened to
         host (regexp-quote host))
   (or (when (string-match (concat "^\\(Read error\\) to "
                                   nick "\\[" host "\\]: "
-                                  "\\(.+\\)$") reason)
+                                  "\\(.+\\)$")
+			  reason)
         (concat (match-string 1 reason) ": " (match-string 2 reason)))
       (when (string-match (concat "^\\(Ping timeout\\) for "
-                                  nick "\\[" host "\\]$") reason)
+                                  nick "\\[" host "\\]$")
+			  reason)
         (match-string 1 reason))
       reason))
 
@@ -4226,7 +4230,8 @@ See also `erc-format-nick-function'."
   (let ((nick (erc-server-user-nickname user)))
     (concat (erc-propertize
              (erc-get-user-mode-prefix nick)
-             'face 'erc-nick-prefix-face) nick)))
+             'face 'erc-nick-prefix-face)
+	    nick)))
 
 (defun erc-get-user-mode-prefix (user)
   (when user
@@ -4252,7 +4257,8 @@ also `erc-format-nick-function'."
     (let ((nick (erc-server-user-nickname user)))
       (concat (erc-propertize
                (erc-get-user-mode-prefix nick)
-               'face 'erc-nick-prefix-face) nick))))
+               'face 'erc-nick-prefix-face)
+	      nick))))
 
 (defun erc-format-my-nick ()
   "Return the beginning of this user's message, correctly propertized."
@@ -4772,24 +4778,16 @@ channel."
         (let ((updatep t))
           (setq name item op 'off voice 'off halfop 'off admin 'off owner 'off)
           (if (rassq (elt item 0) prefix)
-              (cond ((= (length item) 1)
-                     (setq updatep nil))
-                    ((eq (elt item 0) voice-ch)
-                     (setq name (substring item 1)
-                           voice 'on))
-                    ((eq (elt item 0) hop-ch)
-                     (setq name (substring item 1)
-                           halfop 'on))
-                    ((eq (elt item 0) op-ch)
-                     (setq name (substring item 1)
-                           op 'on))
-                    ((eq (elt item 0) adm-ch)
-                     (setq name (substring item 1)
-                           admin 'on))
-                    ((eq (elt item 0) own-ch)
-                     (setq name (substring item 1)
-                           owner 'on))
-                    (t (setq name (substring item 1)))))
+              (if (= (length item) 1)
+		  (setq updatep nil)
+		(setq name (substring item 1))
+		(setf (pcase (aref item 0)
+			((pred (eq voice-ch)) voice)
+			((pred (eq hop-ch))   hop)
+			((pred (eq op-ch))    op)
+			((pred (eq adm-ch))   adm)
+			((pred (eq own-ch))   own))
+		      'on)))
           (when updatep
             (puthash (erc-downcase name) t
                      erc-channel-new-member-names)
