@@ -1183,8 +1183,7 @@ ftfont_open (struct frame *f, Lisp_Object entity, int pixel_size)
   Lisp_Object val, filename, idx, cache, font_object;
   bool scalable;
   int spacing;
-  char name[256];
-  int i, len;
+  int i;
   int upEM;
 
   val = assq_no_quit (QCfont_entity, AREF (entity, FONT_EXTRA_INDEX));
@@ -1221,17 +1220,8 @@ ftfont_open (struct frame *f, Lisp_Object entity, int pixel_size)
       return Qnil;
     }
 
-  font_object = font_make_object (VECSIZE (struct ftfont_info), entity, size);
-  ASET (font_object, FONT_TYPE_INDEX, Qfreetype);
-  len = font_unparse_xlfd (entity, size, name, 256);
-  if (len > 0)
-    ASET (font_object, FONT_NAME_INDEX, make_string (name, len));
-  len = font_unparse_fcname (entity, size, name, 256);
-  if (len > 0)
-    ASET (font_object, FONT_FULLNAME_INDEX, make_string (name, len));
-  else
-    ASET (font_object, FONT_FULLNAME_INDEX,
-	  AREF (font_object, FONT_NAME_INDEX));
+  font_object = font_build_object (VECSIZE (struct ftfont_info),
+				   Qfreetype, entity, size);
   ASET (font_object, FONT_FILE_INDEX, filename);
   ASET (font_object, FONT_FORMAT_INDEX, ftfont_font_format (NULL, filename));
   font = XFONT_OBJECT (font_object);

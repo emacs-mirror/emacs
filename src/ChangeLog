@@ -5,7 +5,16 @@
 	Avoid Faref and assume that args are always valid.  This helps to
 	speedup search, which is especially important for a huge buffers.
 	* lisp.h (char_table_translate): Remove prototype.
+
 	* nsfont.m (nsfont_close): Free glyphs and metrics arrays as well.
+	* font.c (font_build_object) [HAVE_XFT || HAVE_FREETYPE || HAVE_NS]:
+	New function, with an intention to avoid code duplication between
+	a few font drivers.
+	* font.h (font_build_object) [HAVE_XFT || HAVE_FREETYPE || HAVE_NS]:
+	Add prototype.
+	* ftfont.c (ftfont_open):
+	* macfont.m (macfont_open):
+	* xftfont.c (xftfont_open): Use it.
 
 2014-07-08  Paul Eggert  <eggert@cs.ucla.edu>
 

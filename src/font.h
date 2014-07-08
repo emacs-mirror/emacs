@@ -719,6 +719,9 @@ extern Lisp_Object merge_font_spec (Lisp_Object, Lisp_Object);
 
 extern Lisp_Object font_make_entity (void);
 extern Lisp_Object font_make_object (int, Lisp_Object, int);
+#if defined (HAVE_XFT) || defined (HAVE_FREETYPE) || defined (HAVE_NS)
+extern Lisp_Object font_build_object (int, Lisp_Object, Lisp_Object, double);
+#endif
 
 extern Lisp_Object find_font_encoding (Lisp_Object);
 extern int font_registry_charsets (Lisp_Object, struct charset **,

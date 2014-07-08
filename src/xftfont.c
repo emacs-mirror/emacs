@@ -270,8 +270,7 @@ xftfont_open (struct frame *f, Lisp_Object entity, int pixel_size)
   double size = 0;
   XftFont *xftfont = NULL;
   int spacing;
-  char name[256];
-  int len, i;
+  int i;
   XGlyphInfo extents;
   FT_Face ft_face;
   FcMatrix *matrix;
@@ -341,17 +340,8 @@ xftfont_open (struct frame *f, Lisp_Object entity, int pixel_size)
 
   /* We should not destroy PAT here because it is kept in XFTFONT and
      destroyed automatically when XFTFONT is closed.  */
-  font_object = font_make_object (VECSIZE (struct xftfont_info), entity, size);
-  ASET (font_object, FONT_TYPE_INDEX, Qxft);
-  len = font_unparse_xlfd (entity, size, name, 256);
-  if (len > 0)
-    ASET (font_object, FONT_NAME_INDEX, make_string (name, len));
-  len = font_unparse_fcname (entity, size, name, 256);
-  if (len > 0)
-    ASET (font_object, FONT_FULLNAME_INDEX, make_string (name, len));
-  else
-    ASET (font_object, FONT_FULLNAME_INDEX,
-	  AREF (font_object, FONT_NAME_INDEX));
+  font_object = font_build_object (VECSIZE (struct xftfont_info),
+				   Qxft, entity, size);
   ASET (font_object, FONT_FILE_INDEX, filename);
   ASET (font_object, FONT_FORMAT_INDEX,
 	ftfont_font_format (xftfont->pattern, filename));
