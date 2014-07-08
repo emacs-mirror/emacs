@@ -1,5 +1,8 @@
 2014-07-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* linum.el (linum--face-height): New function (bug#17813).
+	(linum-update-window): Use it to adjust margin to linum's width.
+
 	* leim/quail/sisheng.el (sisheng-list): Don't bother with-case-table.
 	* eshell/em-smart.el (eshell-smart-scroll-window): Use
 	with-selected-window.
