@@ -5134,7 +5134,7 @@ read_and_dispose_of_process_output (struct Lisp_Process *p, char *chars,
 	 proc_encode_coding_system[p->outfd] surely points to a
 	 valid memory because p->outfd will be changed once EOF is
 	 sent to the process.  */
-      if (NILP (p->encode_coding_system) && p->outfd
+      if (NILP (p->encode_coding_system) && p->outfd >= 0
 	  && proc_encode_coding_system[p->outfd])
 	{
 	  pset_encode_coding_system
