@@ -1,3 +1,8 @@
+2014-07-08  Sam Steingold  <sds@gnu.org>
+
+	* progmodes/inf-lisp.el (lisp-eval-paragraph, lisp-eval-form-and-next):
+	New user commands.
+
 2014-07-08  Juri Linkov  <juri@jurta.org>
 
 	* vc/vc-annotate.el (vc-annotate-background-mode): New defcustom.
