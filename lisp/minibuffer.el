@@ -3306,6 +3306,7 @@ the same set of elements."
                 (string-match completion-pcm--delim-wild-regex str
                               (car bounds)))
       (if (zerop (car bounds))
+          ;; FIXME: Don't hardcode "-" (bug#17559).
           (mapconcat 'string str "-")
         ;; If there's a boundary, it's trickier.  The main use-case
         ;; we consider here is file-name completion.  We'd like

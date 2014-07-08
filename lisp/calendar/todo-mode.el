@@ -2117,7 +2117,8 @@ the item at point."
       (save-excursion
 	(todo-item-start)
 	(if (re-search-forward (concat " \\[" (regexp-quote todo-comment-string)
-				       ": \\([^]]+\\)\\]") end t)
+				       ": \\([^]]+\\)\\]")
+                               end t)
 	    (if comment-delete
 		(when (todo-y-or-n-p "Delete comment? ")
 		  (delete-region (match-beginning 0) (match-end 0)))
@@ -2148,7 +2149,8 @@ the item at point."
 						  (cons item 0))))))
 	 (when include-header
 	   (while (not (string-match (concat todo-date-string-start
-					     todo-date-pattern) new))
+					     todo-date-pattern)
+                                     new))
 	     (setq new (read-from-minibuffer
 			"Item must start with a date: " new))))
 	 ;; Ensure lines following hard newlines are indented.

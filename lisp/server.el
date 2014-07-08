@@ -794,32 +794,33 @@ This handles splitting the command if it would be bigger than
     (error "Invalid terminal type"))
   (add-to-list 'frame-inherited-parameters 'client)
   (let ((frame
-         (server-with-environment (process-get proc 'env)
-				  '("LANG" "LC_CTYPE" "LC_ALL"
-				    ;; For tgetent(3); list according to ncurses(3).
-				    "BAUDRATE" "COLUMNS" "ESCDELAY" "HOME" "LINES"
-				    "NCURSES_ASSUMED_COLORS" "NCURSES_NO_PADDING"
-				    "NCURSES_NO_SETBUF" "TERM" "TERMCAP" "TERMINFO"
-				    "TERMINFO_DIRS" "TERMPATH"
-				    ;; rxvt wants these
-				    "COLORFGBG" "COLORTERM")
-				  (make-frame `((window-system . nil)
-						(tty . ,tty)
-						(tty-type . ,type)
-						;; Ignore nowait here; we always need to
-						;; clean up opened ttys when the client dies.
-						(client . ,proc)
-						;; This is a leftover from an earlier
-						;; attempt at making it possible for process
-						;; run in the server process to use the
-						;; environment of the client process.
-						;; It has no effect now and to make it work
-						;; we'd need to decide how to make
-						;; process-environment interact with client
-						;; envvars, and then to change the
-						;; C functions `child_setup' and
-						;; `getenv_internal' accordingly.
-						(environment . ,(process-get proc 'env)))))))
+         (server-with-environment
+             (process-get proc 'env)
+             '("LANG" "LC_CTYPE" "LC_ALL"
+               ;; For tgetent(3); list according to ncurses(3).
+               "BAUDRATE" "COLUMNS" "ESCDELAY" "HOME" "LINES"
+               "NCURSES_ASSUMED_COLORS" "NCURSES_NO_PADDING"
+               "NCURSES_NO_SETBUF" "TERM" "TERMCAP" "TERMINFO"
+               "TERMINFO_DIRS" "TERMPATH"
+               ;; rxvt wants these
+               "COLORFGBG" "COLORTERM")
+           (make-frame `((window-system . nil)
+                         (tty . ,tty)
+                         (tty-type . ,type)
+                         ;; Ignore nowait here; we always need to
+                         ;; clean up opened ttys when the client dies.
+                         (client . ,proc)
+                         ;; This is a leftover from an earlier
+                         ;; attempt at making it possible for process
+                         ;; run in the server process to use the
+                         ;; environment of the client process.
+                         ;; It has no effect now and to make it work
+                         ;; we'd need to decide how to make
+                         ;; process-environment interact with client
+                         ;; envvars, and then to change the
+                         ;; C functions `child_setup' and
+                         ;; `getenv_internal' accordingly.
+                         (environment . ,(process-get proc 'env)))))))
 
     ;; ttys don't use the `display' parameter, but callproc.c does to set
     ;; the DISPLAY environment on subprocesses.
