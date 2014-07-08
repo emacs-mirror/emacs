@@ -945,6 +945,8 @@ nsfont_close (struct font *font)
 	  xfree (font_info->glyphs[i]);
 	  xfree (font_info->metrics[i]);
 	}
+      xfree (font_info->glyphs);
+      xfree (font_info->metrics);
       [font_info->nsfont release];
 #ifdef NS_IMPL_COCOA
       CGFontRelease (font_info->cgfont);

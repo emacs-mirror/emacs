@@ -5,6 +5,7 @@
 	Avoid Faref and assume that args are always valid.  This helps to
 	speedup search, which is especially important for a huge buffers.
 	* lisp.h (char_table_translate): Remove prototype.
+	* nsfont.m (nsfont_close): Free glyphs and metrics arrays as well.
 
 2014-07-08  Paul Eggert  <eggert@cs.ucla.edu>
 
