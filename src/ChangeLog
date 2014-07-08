@@ -1,3 +1,9 @@
+2014-07-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (move_it_to): Adjust calculation of line_start_x to what
+	x_produce_glyphs does when it generates a stretch glyph that
+	represents a TAB.  (Bug#17969)
+
 2014-07-05  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (pos_visible_p): If CHARPOS is at beginning of window,
