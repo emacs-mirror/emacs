@@ -1,6 +1,6 @@
 2014-07-07  Luke Lee  <luke.yx.lee@gmail.com>
 
-	* lisp/progmodes/hideif.el (hide-ifdef-env): Change to global.
+	* progmodes/hideif.el (hide-ifdef-env): Change to global.
 	(hide-ifdef-env-backup): New variable.
 	(hide-ifdef-expand-reinclusion-protection, hide-ifdef-header-regexp):
 	New customizable variables.
