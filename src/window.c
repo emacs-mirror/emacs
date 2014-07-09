@@ -5161,6 +5161,32 @@ window_scroll_pixel_based (Lisp_Object window, int n, bool whole, int noerror)
       charpos = IT_CHARPOS (it);
       bytepos = IT_BYTEPOS (it);
 
+      /* If PT is in the screen line at the last fully visible line,
+	 move_it_to will stop at X = 0 in that line, because the
+	 required Y coordinate is reached there.  See if we can get to
+	 PT without descending lower in Y, and if we can, it means we
+	 reached PT before the scroll margin.  */
+      if (charpos != PT)
+	{
+	  struct it it2;
+	  void *it_data;
+
+	  it2 = it;
+	  it_data = bidi_shelve_cache ();
+	  move_it_to (&it, PT, -1, -1, -1, MOVE_TO_POS);
+	  if (IT_CHARPOS (it) == PT && it.current_y == it2.current_y)
+	    {
+	      charpos = IT_CHARPOS (it);
+	      bytepos = IT_BYTEPOS (it);
+	      bidi_unshelve_cache (it_data, 1);
+	    }
+	  else
+	    {
+	      it = it2;
+	      bidi_unshelve_cache (it_data, 0);
+	    }
+	}
+
       /* See if point is on a partially visible line at the end.  */
       if (it.what == IT_EOB)
 	partial_p = it.current_y + it.ascent + it.descent > it.last_visible_y;

@@ -158,11 +158,10 @@ you want.
 All todo files reside in a single directory, whose location is specified
 by the user option @code{todo-directory}.  This directory may also
 contain other types of Todo files, which are discussed later
-(@pxref{Todo Archive Mode} and @ref{Todo Filtered Items Mode}).  Emacs
-recognizes Todo files by their extension, so when you visit the files
-the buffer is in the appropriate mode and the current category is
-correctly displayed.
-
+(@pxref{Todo Archive Mode} and @ref{Todo Filtered Items Mode}).
+@c Emacs recognizes Todo files by their extension, so when you visit
+@c the files the buffer is in the appropriate mode and the current
+@c category is correctly displayed.
 When you use a Todo mode command to create a todo file, the extension
 @samp{.todo} is automatically added to the base name you choose (as a
 rule, this name is also used for the other types of Todo files, which

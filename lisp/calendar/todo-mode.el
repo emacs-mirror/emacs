@@ -24,63 +24,37 @@
 
 ;;; Commentary:
 
-;; This package provides facilities for making, displaying, navigating
-;; and editing todo lists, which are prioritized lists of todo items.
-;; Todo lists are identified with named categories, so you can group
-;; together and separately prioritize thematically related todo items.
-;; Each category is stored in a file, which thus provides a further
-;; level of organization.  You can create as many todo files, and in
-;; each as many categories, as you want.
+;; This package provides facilities for making and maintaining
+;; prioritized lists of things to do.  These todo lists are identified
+;; with named categories, so you can group together thematically
+;; related todo items.  Each category is stored in a file, providing a
+;; further level of organization.  You can create as many todo files,
+;; and in each as many categories, as you want.
 
 ;; With Todo mode you can navigate among the items of a category, and
 ;; between categories in the same and in different todo files.  You
-;; can edit todo items, reprioritize them within their category, move
-;; them to another category, delete them, or mark items as done and
-;; store them separately from the not yet done items in a category.
-;; You can add new todo files, edit and delete them.  You can add new
-;; categories, rename and delete them, move categories to another file
-;; and merge the items of two categories.  You can also reorder the
-;; sequence of categories in a todo file for the purpose of
-;; navigation.  You can display summary tables of the categories in a
-;; file and the types of items they contain.  And you can compile
-;; lists of existing items from multiple categories in one or more
-;; todo files, which are filtered by various criteria.
+;; can add and edit todo items, reprioritize them, move them to
+;; another category, or delete them.  You can also mark items as done
+;; and store them within their category or in separate archive files.
+;; You can include todo items in the Emacs Fancy Diary display and
+;; treat them as appointments.  You can add new todo files, and rename
+;; or delete them.  You can add new categories to a file, rename or
+;; delete them, move a category to another file and merge the items of
+;; two categories.  You can also reorder the sequence of categories in
+;; a todo file for the purpose of navigation.  You can display
+;; sortable summary tables of the categories in a file and the types
+;; of items they contain.  And you can filter items by various
+;; criteria from multiple categories in one or more todo files to
+;; create prioritizable cross-category overviews of your todo items.
 
-;; To get started, load this package and type `M-x todo-show'.  This
-;; will prompt you for the name of the first todo file, its first
-;; category and the category's first item, create these and display
-;; them in Todo mode.  Now you can insert further items into the list
-;; (i.e., the category) and assign them priorities by typing `i i'.
-
-;; You will probably find it convenient to give `todo-show' a global
-;; key binding in your init file, since it is one of the entry points
-;; to Todo mode; a good choice is `C-c t', since `todo-show' is
-;; bound to `t' in Todo mode.
-
-;; To see a list of all Todo mode commands and their key bindings,
-;; including other entry points, type `C-h m' in Todo mode.  Consult
-;; the documentation strings of the commands for details of their use.
-;; The `todo' customization group and its subgroups list the options
-;; you can set to alter the behavior of many commands and various
-;; aspects of the display.
-
-;; This package is a new version of Oliver Seidel's todo-mode.el.
-;; While it retains the same basic organization and handling of todo
-;; lists and the basic UI, it significantly extends these and adds
-;; many features.  This required also making changes to the internals,
-;; including the file format.  If you have a todo file in old format,
-;; then the first time you invoke `todo-show' (i.e., before you have
-;; created any todo file in the current format), it will ask you
-;; whether to convert that file and show it.  If you choose not to
-;; convert the old-style file at this time, you can do so later by
-;; calling the command `todo-convert-legacy-files'.
+;; To get started, type `M-x todo-show'.  For full details of the user
+;; interface, commands and options, consult the Todo mode user manual,
+;; which is included in the Info documentation.
 
 ;;; Code:
 
 (require 'diary-lib)
-;; For cl-remove-duplicates (in todo-insertion-commands-args) and
-;; cl-oddp.
-(require 'cl-lib)
+(require 'cl-lib)			; For cl-oddp and cl-assert.
 
 ;; -----------------------------------------------------------------------------
 ;;; Setting up todo files, categories, and items
@@ -1736,31 +1710,40 @@ means prompt user and omit comment only on confirmation."
 
 (defun todo-toggle-mark-item (&optional n)
   "Mark item with `todo-item-mark' if unmarked, otherwise unmark it.
-With a positive numerical prefix argument N, change the
-marking of the next N items."
+With positive numerical prefix argument N, change the marking of
+the next N items in the current category.  If both the todo and
+done items sections are visible, the sequence of N items can
+consist of the the last todo items and the first done items."
   (interactive "p")
   (when (todo-item-string)
     (unless (> n 1) (setq n 1))
-    (dotimes (i n)
-      (let* ((cat (todo-current-category))
-	     (marks (assoc cat todo-categories-with-marks))
-	     (ov (progn
-		   (unless (looking-at todo-item-start)
-		     (todo-item-start))
-		   (todo-get-overlay 'prefix)))
-	     (pref (overlay-get ov 'before-string)))
-	(if (todo-marked-item-p)
-	    (progn
-	      (overlay-put ov 'before-string (substring pref 1))
-	      (if (= (cdr marks) 1)	; Deleted last mark in this category.
-		  (setq todo-categories-with-marks
-			(assq-delete-all cat todo-categories-with-marks))
-		(setcdr marks (1- (cdr marks)))))
-	  (overlay-put ov 'before-string (concat todo-item-mark pref))
-	  (if marks
-	      (setcdr marks (1+ (cdr marks)))
-	    (push (cons cat 1) todo-categories-with-marks))))
-      (todo-forward-item))))
+    (catch 'end
+      (dotimes (i n)
+	(let* ((cat (todo-current-category))
+	       (marks (assoc cat todo-categories-with-marks))
+	       (ov (progn
+		     (unless (looking-at todo-item-start)
+		       (todo-item-start))
+		     (todo-get-overlay 'prefix)))
+	       (pref (overlay-get ov 'before-string)))
+	  (if (todo-marked-item-p)
+	      (progn
+		(overlay-put ov 'before-string (substring pref 1))
+		(if (= (cdr marks) 1)	; Deleted last mark in this category.
+		    (setq todo-categories-with-marks
+			  (assq-delete-all cat todo-categories-with-marks))
+		  (setcdr marks (1- (cdr marks)))))
+	    (overlay-put ov 'before-string (concat todo-item-mark pref))
+	    (if marks
+		(setcdr marks (1+ (cdr marks)))
+	      (push (cons cat 1) todo-categories-with-marks))))
+	(todo-forward-item)
+	;; Don't try to mark the empty lines at the end of the todo
+	;; and done items sections.
+	(when (looking-at "^$")
+	  (if (eobp)
+	      (throw 'end nil)
+	    (todo-forward-item)))))))
 
 (defun todo-mark-category ()
   "Mark all visible items in this category with `todo-item-mark'."
@@ -1777,7 +1760,12 @@ marking of the next N items."
 	    (if marks
 		(setcdr marks (1+ (cdr marks)))
 	      (push (cons cat 1) todo-categories-with-marks))))
-	(todo-forward-item)))))
+	(todo-forward-item)
+	;; Don't try to mark the empty line between the todo and done
+	;; items sections.
+	(when (looking-at "^$")
+	  (unless (eobp)
+	    (todo-forward-item)))))))
 
 (defun todo-unmark-category ()
   "Remove `todo-item-mark' from all visible items in this category."
@@ -3973,7 +3961,8 @@ regexp items."
     (setq file (cdr (assoc-string file falist)))
     (find-file file)
     (unless (derived-mode-p 'todo-filtered-items-mode)
-      (todo-filtered-items-mode))))
+      (todo-filtered-items-mode))
+    (todo-prefix-overlays)))
 
 (defun todo-go-to-source-item ()
   "Display the file and category of the filtered item at point."
@@ -4082,7 +4071,6 @@ multifile commands for further details."
 			(progn (todo-multiple-filter-files)
 			       todo-multiple-filter-files))
 		  (list todo-current-todo-file)))
-	 (multi (> (length flist) 1))
 	 (fname (if (equal flist 'quit)
 		    ;; Pressed `cancel' in t-m-f-f file selection dialog.
 		    (keyboard-quit)
@@ -4091,6 +4079,7 @@ multifile commands for further details."
 			  (cond (top ".todt")
 				(diary ".tody")
 				(regexp ".todr")))))
+	 (multi (> (length flist) 1))
 	 (rxfiles (when regexp
 		    (directory-files todo-directory t ".*\\.todr$" t)))
 	 (file-exists (or (file-exists-p fname) rxfiles))

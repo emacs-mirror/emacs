@@ -530,17 +530,6 @@ find_defun_start (ptrdiff_t pos, ptrdiff_t pos_byte)
 {
   ptrdiff_t opoint = PT, opoint_byte = PT_BYTE;
 
-  if (!open_paren_in_column_0_is_defun_start)
-    {
-      find_start_value = BEGV;
-      find_start_value_byte = BEGV_BYTE;
-      find_start_buffer = current_buffer;
-      find_start_modiff = MODIFF;
-      find_start_begv = BEGV;
-      find_start_pos = pos;
-      return BEGV;
-    }
-
   /* Use previous finding, if it's valid and applies to this inquiry.  */
   if (current_buffer == find_start_buffer
       /* Reuse the defun-start even if POS is a little farther on.
@@ -551,6 +540,13 @@ find_defun_start (ptrdiff_t pos, ptrdiff_t pos_byte)
       && BEGV == find_start_begv
       && MODIFF == find_start_modiff)
     return find_start_value;
+
+  if (!open_paren_in_column_0_is_defun_start)
+    {
+      find_start_value = BEGV;
+      find_start_value_byte = BEGV_BYTE;
+      goto found;
+    }
 
   /* Back up to start of line.  */
   scan_newline (pos, pos_byte, BEGV, BEGV_BYTE, -1, 1);
@@ -582,12 +578,13 @@ find_defun_start (ptrdiff_t pos, ptrdiff_t pos_byte)
   /* Record what we found, for the next try.  */
   find_start_value = PT;
   find_start_value_byte = PT_BYTE;
+  TEMP_SET_PT_BOTH (opoint, opoint_byte);
+
+ found:
   find_start_buffer = current_buffer;
   find_start_modiff = MODIFF;
   find_start_begv = BEGV;
   find_start_pos = pos;
-
-  TEMP_SET_PT_BOTH (opoint, opoint_byte);
 
   return find_start_value;
 }
@@ -841,7 +838,9 @@ back_comment (ptrdiff_t from, ptrdiff_t from_byte, ptrdiff_t stop,
   else
     {
       struct lisp_parse_state state;
+      bool adjusted;
     lossage:
+      adjusted = true;
       /* We had two kinds of string delimiters mixed up
 	 together.  Decode this going forwards.
 	 Scan fwd from a known safe place (beginning-of-defun)
@@ -852,6 +851,7 @@ back_comment (ptrdiff_t from, ptrdiff_t from_byte, ptrdiff_t stop,
 	{
 	  defun_start = find_defun_start (comment_end, comment_end_byte);
 	  defun_start_byte = find_start_value_byte;
+	  adjusted = (defun_start > BEGV);
 	}
       do
 	{
@@ -860,6 +860,16 @@ back_comment (ptrdiff_t from, ptrdiff_t from_byte, ptrdiff_t stop,
 			      comment_end, TYPE_MINIMUM (EMACS_INT),
 			      0, Qnil, 0);
 	  defun_start = comment_end;
+	  if (!adjusted)
+	    {
+	      adjusted = true;
+	      find_start_value
+		= CONSP (state.levelstarts) ? XINT (XCAR (state.levelstarts))
+		: state.thislevelstart >= 0 ? state.thislevelstart
+		: find_start_value;
+	      find_start_value_byte = CHAR_TO_BYTE (find_start_value);
+	    }
+
 	  if (state.incomment == (comnested ? 1 : -1)
 	      && state.comstyle == comstyle)
 	    from = state.comstr_start;

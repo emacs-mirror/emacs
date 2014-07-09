@@ -1436,7 +1436,7 @@ pos_visible_p (struct window *w, ptrdiff_t charpos, int *x, int *y,
 	      (charpos >= 0 ? MOVE_TO_POS : 0) | MOVE_TO_Y);
 
   if (charpos >= 0
-      && (((!it.bidi_p || it.bidi_it.scan_dir == 1)
+      && (((!it.bidi_p || it.bidi_it.scan_dir != -1)
 	   && IT_CHARPOS (it) >= charpos)
 	  /* When scanning backwards under bidi iteration, move_it_to
 	     stops at or _before_ CHARPOS, because it stops at or to
@@ -1585,7 +1585,8 @@ pos_visible_p (struct window *w, ptrdiff_t charpos, int *x, int *y,
 		  /* Move to the last buffer position before the
 		     display property.  */
 		  start_display (&it3, w, top);
-		  move_it_to (&it3, start - 1, -1, -1, -1, MOVE_TO_POS);
+		  if (start > CHARPOS (top))
+		    move_it_to (&it3, start - 1, -1, -1, -1, MOVE_TO_POS);
 		  /* Move forward one more line if the position before
 		     the display string is a newline or if it is the
 		     rightmost character on a line that is
@@ -1688,7 +1689,9 @@ pos_visible_p (struct window *w, ptrdiff_t charpos, int *x, int *y,
     }
   else
     {
-      /* We were asked to provide info about WINDOW_END.  */
+      /* Either we were asked to provide info about WINDOW_END, or
+	 CHARPOS is in the partially visible glyph row at end of
+	 window.  */
       struct it it2;
       void *it2data = NULL;
 
@@ -9247,6 +9250,25 @@ move_it_to (struct it *it, ptrdiff_t to_charpos, int to_x, int to_y, int to_vpos
 		{
 		  line_start_x = it->current_x + it->pixel_width
 		    - it->last_visible_x;
+		  if (FRAME_WINDOW_P (it->f))
+		    {
+		      struct face *face = FACE_FROM_ID (it->f, it->face_id);
+		      struct font *face_font = face->font;
+
+		      /* When display_line produces a continued line
+			 that ends in a TAB, it skips a tab stop that
+			 is closer than the font's space character
+			 width (see x_produce_glyphs where it produces
+			 the stretch glyph which represents a TAB).
+			 We need to reproduce the same logic here.  */
+		      eassert (face_font);
+		      if (face_font)
+			{
+			  if (line_start_x < face_font->space_width)
+			    line_start_x
+			      += it->tab_width * face_font->space_width;
+			}
+		    }
 		  set_iterator_to_next (it, 0);
 		}
 	    }
@@ -16088,6 +16110,18 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
 	  /* Point does appear, but on a line partly visible at end of window.
 	     Move it back to a fully-visible line.  */
 	  new_vpos = window_box_height (w);
+	  /* But if window_box_height suggests a Y coordinate that is
+	     not less than we already have, that line will clearly not
+	     be fully visible, so give up and scroll the display.
+	     This can happen when the default face uses a font whose
+	     dimensions are different from the frame's default
+	     font.  */
+	  if (new_vpos >= w->cursor.y)
+	    {
+	      w->cursor.vpos = -1;
+	      clear_glyph_matrix (w->desired_matrix);
+	      goto try_to_scroll;
+	    }
 	}
       else if (w->cursor.vpos >= 0)
 	{

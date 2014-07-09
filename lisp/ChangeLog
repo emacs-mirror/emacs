@@ -1,3 +1,66 @@
+2014-07-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/sh-script.el (sh-smie-sh-rules): Don't align with a && in
+	the middle of a line (bug#17896).
+
+2014-07-09  Juri Linkov  <juri@jurta.org>
+
+	* startup.el (command-line): Append displaying the warning about
+	the errors in the init file to the end of `after-init-hook'.
+	(Bug#17927)
+
+	* faces.el (face-name): Return input arg `face' as-is
+	when it's not a symbol.
+	(x-resolve-font-name): Don't check if the face is a symbol.
+	(Bug#17956)
+
+	* facemenu.el (list-colors-print): In help-echo format use %.2f
+	instead of %d because now HSV values are floating-point components
+	between 0.0 and 1.0.
+
+2014-07-09  Glenn Morris  <rgm@gnu.org>
+
+	* emulation/cua-rect.el (cua--activate-rectangle):
+	Avoid setting cua--rectangle to nil.  (Bug#17877)
+
+2014-07-09  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todo-mode.el: Fix wrong-type-argument error when
+	marking multiple consecutive items.
+	(todo-toggle-mark-item): Don't try to mark the empty lines at the
+	end of the todo and done items sections.  Note in doc string that
+	items marked by passing a numeric prefix argument can include the
+	last todo and first done items.
+	(todo-mark-category): Don't try to mark the empty line between the
+	todo and done items sections.
+
+2014-07-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/edebug.el (edebug-eval-defun): Print result using
+	proper Lisp quoting (bug#17934).
+
+	* progmodes/ruby-mode.el (ruby-mode-variables): Don't meddle with
+	require-final-newline since prog-mode already took care of it (bug#17947).
+
+2014-07-09  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todo-mode.el: Fix two bugs.  Shorten Commentary and
+	refer to the Todo mode Info manual.  Update the comment on
+	requiring cl-lib.
+	(todo-find-filtered-items-file): Add todo-prefix overlays.
+	(todo-filter-items): Reorder a let-bound variable to avoid a
+	wrong-type-argument error on canceling the file choice dialog.
+
+2014-07-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/octave.el (inferior-octave-mode):
+	Set comint-input-ring-size to a number (bug#17912).
+
+2014-07-09  Juri Linkov  <juri@jurta.org>
+
+	* desktop.el (desktop-minor-mode-table): Add `defining-kbd-macro'
+	and `isearch-mode' associated with nil.  (Bug#17849)
+
 2014-07-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* linum.el (linum--face-height): New function (bug#17813).

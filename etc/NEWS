@@ -1166,11 +1166,11 @@ The new optional CHECK-TIMERS parameter allows for the prior behavior.
 Some languages match those as »...«, and others as «...», so it is
 better for Emacs to stay neutral by default.
 
-** `read-event' does not return decoded chars in ttys any more.
-As was the case in Emacs 22 and before, the decoding of terminal
-input, according to `keyboard-coding-system', is not performed in
-`read-event' any more.  But unlike in Emacs 22, this decoding is still
-done before `input-decode-map', `function-key-map', etc.
+** `read-event' does not always decode chars in ttys any more.  As was the case
+in Emacs 22 and before, `read-event' (and `read-char') by default read raw
+bytes from the terminal.  If you want to read decoded chars instead (as was
+always the case in Emacs-23, for example), pass a non-nil
+`inherit-input-method' argument.
 
 ** In `symbol-function', nil and "unbound" are indistinguishable.
 `symbol-function' does not signal a `void-function' error any more.
@@ -1519,9 +1519,12 @@ edited in another Emacs session or by another user.  See the node
 "Interlocking" in the Emacs User Manual for the details.  To disable
 file locking, customize `create-lockfiles' to nil.
 
-** The "generate a backtrace on fatal error" feature now works on MS Windows.
+** The "generate a backtrace on fatal error" feature now works on MS-Windows.
 The backtrace is written to the 'emacs_backtrace.txt' file in the
 directory where Emacs was running.
+
+** The `network-interface-list' and `network-interface-info' functions
+are now available on MS-Windows.
 
 ** The variable `buffer-file-type' is no longer supported.
 Setting it has no effect, and %t in the mode-line format is ignored.

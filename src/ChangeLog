@@ -1,3 +1,37 @@
+2014-07-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (move_it_to): Adjust calculation of line_start_x to what
+	x_produce_glyphs does when it generates a stretch glyph that
+	represents a TAB.  (Bug#17969)
+
+	* xdisp.c (pos_visible_p): If CHARPOS is at beginning of window,
+	and there is a display property at that position, don't call
+	move_it_to to move to a position before window start.  (Bug#17942)
+	Fix condition for finding CHARPOS by the first call to move_it_to.
+	(Bug#17944)
+
+2014-07-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* syntax.c (find_defun_start): Try the cache even
+	if !open_paren_in_column_0_is_defun_start.
+	(back_comment): If find_defun_start was pessimistic, use the
+	scan_sexps_forward result to improve the cache (bug#16526).
+
+2014-07-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (redisplay_window): If redisplay of a window ends up
+	with point in a partially visible line at end of the window, make
+	sure the amended position of point actually has smaller Y
+	coordinate; if not, give up and scroll the display.  (Bug#17905)
+
+	* window.c (window_scroll_pixel_based): When point ends up at the
+	last fully visible line, don't let move_it_to stop at the left
+	edge of the line and dupe us into thinking point is inside the
+	scroll margin.
+
+	* w32.c (network_interface_info): Make sure the argument is a
+	Lisp string.
+
 2014-07-08  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* process.c (read_and_dispose_of_process_output): Fix typo

@@ -1,3 +1,9 @@
+2014-07-09  Stephen Berman  <stephen.berman@gmx.net>
+
+	* todo-mode.texi (Levels of Organization): Comment out statement
+	that Emacs recognizes todo files by their extension, since this
+	feature has been removed due to bug#17482.
+
 2014-07-03  Michael Albinus  <michael.albinus@gmx.de>
 
 	* trampver.texi: Update release number.
