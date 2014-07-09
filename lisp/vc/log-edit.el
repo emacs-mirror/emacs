@@ -905,44 +905,45 @@ where LOGBUFFER is the name of the ChangeLog buffer, and each
              ;; that memoizing which is undesired here.
              (setq change-log-default-name nil)
              (find-change-log)))))
-    (with-current-buffer (find-file-noselect changelog-file-name)
-      (unless (eq major-mode 'change-log-mode) (change-log-mode))
-      (goto-char (point-min))
-      (if (looking-at "\\s-*\n") (goto-char (match-end 0)))
-      (if (not (log-edit-changelog-ours-p))
-	  (list (current-buffer))
-	(save-restriction
-	  (log-edit-narrow-changelog)
-	  (goto-char (point-min))
+    (when (file-exists-p changelog-file-name)
+      (with-current-buffer (find-file-noselect changelog-file-name)
+        (unless (eq major-mode 'change-log-mode) (change-log-mode))
+        (goto-char (point-min))
+        (if (looking-at "\\s-*\n") (goto-char (match-end 0)))
+        (if (not (log-edit-changelog-ours-p))
+            (list (current-buffer))
+          (save-restriction
+            (log-edit-narrow-changelog)
+            (goto-char (point-min))
 
-	  ;; Search for the name of FILE relative to the ChangeLog.  If that
-	  ;; doesn't occur anywhere, they're not using full relative
-	  ;; filenames in the ChangeLog, so just look for FILE; we'll accept
-	  ;; some false positives.
-	  (let ((pattern (file-relative-name
-			  file (file-name-directory changelog-file-name))))
-	    (if (or (string= pattern "")
-		    (not (save-excursion
-			   (search-forward pattern nil t))))
-		(setq pattern (file-name-nondirectory file)))
+            ;; Search for the name of FILE relative to the ChangeLog.  If that
+            ;; doesn't occur anywhere, they're not using full relative
+            ;; filenames in the ChangeLog, so just look for FILE; we'll accept
+            ;; some false positives.
+            (let ((pattern (file-relative-name
+                            file (file-name-directory changelog-file-name))))
+              (if (or (string= pattern "")
+                      (not (save-excursion
+                             (search-forward pattern nil t))))
+                  (setq pattern (file-name-nondirectory file)))
 
-            (setq pattern (concat "\\(^\\|[^[:alnum:]]\\)"
-                                  (regexp-quote pattern)
-                                  "\\($\\|[^[:alnum:]]\\)"))
+              (setq pattern (concat "\\(^\\|[^[:alnum:]]\\)"
+                                    (regexp-quote pattern)
+                                    "\\($\\|[^[:alnum:]]\\)"))
 
-	    (let (texts
-                  (pos (point)))
-	      (while (and (not (eobp)) (re-search-forward pattern nil t))
-		(let ((entry (log-edit-changelog-entry)))
-                  (if (< (elt entry 1) (max (1+ pos) (point)))
-                      ;; This is not relevant, actually.
-                      nil
-                    (push entry texts))
-                  ;; Make sure we make progress.
-                  (setq pos (max (1+ pos) (elt entry 1)))
-		  (goto-char pos)))
+              (let (texts
+                    (pos (point)))
+                (while (and (not (eobp)) (re-search-forward pattern nil t))
+                  (let ((entry (log-edit-changelog-entry)))
+                    (if (< (elt entry 1) (max (1+ pos) (point)))
+                        ;; This is not relevant, actually.
+                        nil
+                      (push entry texts))
+                    ;; Make sure we make progress.
+                    (setq pos (max (1+ pos) (elt entry 1)))
+                    (goto-char pos)))
 
-	      (cons (current-buffer) texts))))))))
+                (cons (current-buffer) texts)))))))))
 
 (defun log-edit-changelog-insert-entries (buffer beg end &rest files)
   "Insert the text from BUFFER between BEG and END.
