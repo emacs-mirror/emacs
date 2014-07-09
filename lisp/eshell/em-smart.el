@@ -188,7 +188,8 @@ The options are `begin', `after' or `end'."
     (add-hook 'eshell-post-command-hook
 	      (function
 	       (lambda ()
-		 (setq eshell-smart-command-done t))) t t)
+		 (setq eshell-smart-command-done t)))
+              t t)
 
     (unless (eq eshell-review-quick-commands t)
       (add-hook 'eshell-post-command-hook
@@ -200,8 +201,7 @@ The options are `begin', `after' or `end'."
   (unless eshell-currently-handling-window
     (let ((inhibit-point-motion-hooks t)
 	  (eshell-currently-handling-window t))
-      (save-selected-window
-	(select-window wind)
+      (with-selected-window wind
 	(eshell-smart-redisplay)))))
 
 (defun eshell-refresh-windows (&optional frame)
@@ -212,12 +212,12 @@ The options are `begin', `after' or `end'."
       (lambda (wind)
 	(with-current-buffer (window-buffer wind)
 	  (if eshell-mode
-	      (let (window-scroll-functions)
+	      (let (window-scroll-functions) ;;FIXME: Why?
 		(eshell-smart-scroll-window wind (window-start))
 		(setq affected t))))))
      0 frame)
     (if affected
-	(let (window-scroll-functions)
+	(let (window-scroll-functions) ;;FIXME: Why?
 	  (eshell-redisplay)))))
 
 (defun eshell-smart-display-setup ()

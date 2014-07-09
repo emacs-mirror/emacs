@@ -749,7 +749,6 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
                   :forward-token  #'ruby-smie--forward-token
                   :backward-token #'ruby-smie--backward-token)
     (setq-local indent-line-function 'ruby-indent-line))
-  (setq-local require-final-newline t)
   (setq-local comment-start "# ")
   (setq-local comment-end "")
   (setq-local comment-column ruby-comment-column)

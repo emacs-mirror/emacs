@@ -112,6 +112,8 @@ mode.  Default is whitespace followed by 0 or 1 single-letter colon-keyword
 (define-key lisp-mode-map "\C-x\C-e" 'lisp-eval-last-sexp) ; Gnu convention
 (define-key lisp-mode-map "\C-c\C-e" 'lisp-eval-defun)
 (define-key lisp-mode-map "\C-c\C-r" 'lisp-eval-region)
+(define-key lisp-mode-map "\C-c\C-n" 'lisp-eval-form-and-next)
+(define-key lisp-mode-map "\C-c\C-p" 'lisp-eval-paragraph)
 (define-key lisp-mode-map "\C-c\C-c" 'lisp-compile-defun)
 (define-key lisp-mode-map "\C-c\C-z" 'switch-to-lisp)
 (define-key lisp-mode-map "\C-c\C-l" 'lisp-load-file)
@@ -311,6 +313,14 @@ of `inferior-lisp-program').  Runs the hooks from
 ;;;###autoload
 (defalias 'run-lisp 'inferior-lisp)
 
+(defun lisp-eval-paragraph (&optional and-go)
+  "Send the current paragraph to the inferior Lisp process.
+Prefix argument means switch to the Lisp buffer afterwards."
+  (interactive "P")
+  (save-excursion
+    (mark-paragraph)
+    (lisp-eval-region (point) (mark) and-go)))
+
 (defun lisp-eval-region (start end &optional and-go)
   "Send the current region to the inferior Lisp process.
 Prefix argument means switch to the Lisp buffer afterwards."
@@ -360,6 +370,14 @@ Prefix argument means switch to the Lisp buffer afterwards."
 Prefix argument means switch to the Lisp buffer afterwards."
   (interactive "P")
   (lisp-eval-region (save-excursion (backward-sexp) (point)) (point) and-go))
+
+(defun lisp-eval-form-and-next ()
+  "Send the previous sexp to the inferior Lisp process and move to the next one."
+  (interactive "")
+  (while (not (zerop (car (syntax-ppss))))
+    (up-list))
+  (lisp-eval-last-sexp)
+  (forward-sexp))
 
 (defun lisp-compile-region (start end &optional and-go)
   "Compile the current region in the inferior Lisp process.

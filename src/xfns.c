@@ -1595,7 +1595,7 @@ hack_wm_protocols (struct frame *f, Widget widget)
 
     if ((XGetWindowProperty (dpy, w,
 			     FRAME_DISPLAY_INFO (f)->Xatom_wm_protocols,
-			     (long)0, (long)100, False, XA_ATOM,
+			     0, 100, False, XA_ATOM,
 			     &type, &format, &nitems, &bytes_after,
 			     &catoms)
 	 == Success)
@@ -2853,18 +2853,21 @@ Signal error if FRAME is not an X frame.  */)
 static void
 set_machine_and_pid_properties (struct frame *f)
 {
-  long pid = (long) getpid ();
-
   /* This will set WM_CLIENT_MACHINE and WM_LOCALE_NAME.  */
   XSetWMProperties (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f), NULL, NULL,
                     NULL, 0, NULL, NULL, NULL);
-  XChangeProperty (FRAME_X_DISPLAY (f),
-                   FRAME_OUTER_WINDOW (f),
-                   XInternAtom (FRAME_X_DISPLAY (f),
-                                "_NET_WM_PID",
-                                False),
-                   XA_CARDINAL, 32, PropModeReplace,
-                   (unsigned char *) &pid, 1);
+  pid_t pid = getpid ();
+  if (pid <= 0xffffffffu)
+    {
+      unsigned long xpid = pid;
+      XChangeProperty (FRAME_X_DISPLAY (f),
+		       FRAME_OUTER_WINDOW (f),
+		       XInternAtom (FRAME_X_DISPLAY (f),
+				    "_NET_WM_PID",
+				    False),
+		       XA_CARDINAL, 32, PropModeReplace,
+		       (unsigned char *) &xpid, 1);
+    }
 }
 
 DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,

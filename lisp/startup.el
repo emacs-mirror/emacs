@@ -1182,18 +1182,25 @@ please check its value")
 		(funcall inner)
 		(setq init-file-had-error nil))
 	    (error
-	     (display-warning
-	      'initialization
-	      (format "An error occurred while loading `%s':\n\n%s%s%s\n\n\
+	     ;; Postpone displaying the warning until all hooks
+	     ;; in `after-init-hook' like `desktop-read' will finalize
+	     ;; possible changes in the window configuration.
+	     (add-hook
+	      'after-init-hook
+	      (lambda ()
+		(display-warning
+		 'initialization
+		 (format "An error occurred while loading `%s':\n\n%s%s%s\n\n\
 To ensure normal operation, you should investigate and remove the
 cause of the error in your initialization file.  Start Emacs with
 the `--debug-init' option to view a complete error backtrace."
-		      user-init-file
-		      (get (car error) 'error-message)
-		      (if (cdr error) ": " "")
-		      (mapconcat (lambda (s) (prin1-to-string s t))
-                                 (cdr error) ", "))
-	      :warning)
+			 user-init-file
+			 (get (car error) 'error-message)
+			 (if (cdr error) ": " "")
+			 (mapconcat (lambda (s) (prin1-to-string s t))
+				    (cdr error) ", "))
+		 :warning))
+	      t)
 	     (setq init-file-had-error t))))
 
       (if (and deactivate-mark transient-mark-mode)

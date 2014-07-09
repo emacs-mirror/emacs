@@ -163,7 +163,7 @@ The final point after the last operation will be returned."
           (progn
             (apply function startcol endcol args)
             (setq final-point (point))
-            (and (zerop (forward-line 1))
+            (and (zerop (forward-line 1)) (bolp)
                  (<= (point) endpt))))
       final-point)))
 

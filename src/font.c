@@ -225,7 +225,33 @@ font_make_object (int size, Lisp_Object entity, int pixelsize)
   return font_object;
 }
 
-
+#if defined (HAVE_XFT) || defined (HAVE_FREETYPE) || defined (HAVE_NS)
+
+/* Like above, but also set `type', `name' and `fullname' properties
+   of font-object.  */
+
+Lisp_Object
+font_build_object (int vectorsize, Lisp_Object type,
+		   Lisp_Object entity, double pixelsize)
+{
+  int len;
+  char name[256];
+  Lisp_Object font_object = font_make_object (vectorsize, entity, pixelsize);
+
+  ASET (font_object, FONT_TYPE_INDEX, type);
+  len = font_unparse_xlfd (entity, pixelsize, name, sizeof name);
+  if (len > 0)
+    ASET (font_object, FONT_NAME_INDEX, make_string (name, len));
+  len = font_unparse_fcname (entity, pixelsize, name, sizeof name);
+  if (len > 0)
+    ASET (font_object, FONT_FULLNAME_INDEX, make_string (name, len));
+  else
+    ASET (font_object, FONT_FULLNAME_INDEX,
+	  AREF (font_object, FONT_NAME_INDEX));
+  return font_object;
+}
+
+#endif /* HAVE_XFT || HAVE_FREETYPE || HAVE_NS */
 
 static int font_pixel_size (struct frame *f, Lisp_Object);
 static Lisp_Object font_open_entity (struct frame *, Lisp_Object, int);

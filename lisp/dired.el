@@ -3103,20 +3103,20 @@ argument or confirmation)."
 	  ;; Mark *Marked Files* window as softly-dedicated, to prevent
 	  ;; other buffers e.g. *Completions* from reusing it (bug#17554).
 	  (display-buffer-mark-dedicated 'soft))
-      (with-current-buffer buffer
-	(with-current-buffer-window
-	 buffer
-	 (cons 'display-buffer-below-selected
-	       '((window-height . fit-window-to-buffer)))
-	 #'(lambda (window _value)
-	     (with-selected-window window
-	       (unwind-protect
-		   (apply function args)
-		 (when (window-live-p window)
-		   (quit-restore-window window 'kill)))))
-	 ;; Handle (t FILE) just like (FILE), here.  That value is
-	 ;; used (only in some cases), to mean just one file that was
-	 ;; marked, rather than the current line file.
+      (with-displayed-buffer-window
+       buffer
+       (cons 'display-buffer-below-selected
+	     '((window-height . fit-window-to-buffer)))
+       #'(lambda (window _value)
+	   (with-selected-window window
+	     (unwind-protect
+		 (apply function args)
+	       (when (window-live-p window)
+		 (quit-restore-window window 'kill)))))
+       ;; Handle (t FILE) just like (FILE), here.  That value is
+       ;; used (only in some cases), to mean just one file that was
+       ;; marked, rather than the current line file.
+       (with-current-buffer buffer
 	 (dired-format-columns-of-files
 	  (if (eq (car files) t) (cdr files) files))
 	 (remove-text-properties (point-min) (point-max)

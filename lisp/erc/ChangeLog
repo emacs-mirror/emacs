@@ -1,3 +1,7 @@
+2014-07-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* erc.el (erc-channel-receive-names): Reduce redundancy.
+
 2014-06-19  Kelvin White  <kelvin.white77@gmail.com>
 
 	* erc-backend.el: Handle user modes in relevant server responses

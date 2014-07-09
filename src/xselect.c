@@ -458,7 +458,7 @@ x_decline_selection_request (struct input_event *event)
      died in the meantime.  Handle that case.  */
   block_input ();
   x_catch_errors (reply->display);
-  XSendEvent (reply->display, reply->requestor, False, 0L, &reply_base);
+  XSendEvent (reply->display, reply->requestor, False, 0, &reply_base);
   XFlush (reply->display);
   x_uncatch_errors ();
   unblock_input ();
@@ -632,7 +632,7 @@ x_reply_selection_request (struct input_event *event,
     }
 
   /* Now issue the SelectionNotify event.  */
-  XSendEvent (display, window, False, 0L, &reply_base);
+  XSendEvent (display, window, False, 0, &reply_base);
   XFlush (display);
 
 #ifdef TRACE_SELECTION
@@ -710,7 +710,7 @@ x_reply_selection_request (struct input_event *event,
 	   requestor that we're done.  */
 	block_input ();
 	if (! waiting_for_other_props_on_window (display, window))
-	  XSelectInput (display, window, 0L);
+	  XSelectInput (display, window, 0);
 
 	TRACE1 ("Set %s to a 0-length chunk to indicate EOF",
 		XGetAtomName (display, cs->property));
@@ -1283,7 +1283,7 @@ x_get_window_property (Display *display, Window window, Atom property,
 
   /* First probe the thing to find out how big it is.  */
   result = XGetWindowProperty (display, window, property,
-			       0L, 0L, False, AnyPropertyType,
+			       0, 0, False, AnyPropertyType,
 			       actual_type_ret, actual_format_ret,
 			       actual_size_ret,
 			       &bytes_remaining, &tmp_data);
@@ -2314,7 +2314,7 @@ x_fill_property_data (Display *dpy, Lisp_Object data, void *ret, int format)
       else if (STRINGP (o))
         {
           block_input ();
-          val = (long) XInternAtom (dpy, SSDATA (o), False);
+          val = XInternAtom (dpy, SSDATA (o), False);
           unblock_input ();
         }
       else

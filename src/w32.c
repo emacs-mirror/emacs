@@ -8612,6 +8612,7 @@ network_interface_list (void)
 Lisp_Object
 network_interface_info (Lisp_Object ifname)
 {
+  CHECK_STRING (ifname);
   return network_interface_get_info (ifname);
 }
 

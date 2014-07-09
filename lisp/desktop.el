@@ -528,6 +528,8 @@ Furthermore the major mode function must be autoloaded.")
 
 (defcustom desktop-minor-mode-table
   '((auto-fill-function auto-fill-mode)
+    (defining-kbd-macro nil)
+    (isearch-mode nil)
     (vc-mode nil)
     (vc-dired-mode nil)
     (erc-track-minor-mode nil)

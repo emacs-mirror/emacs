@@ -185,16 +185,19 @@ argument replaces this)."
   (let ((buffer (make-symbol "buffer"))
 	(window (make-symbol "window"))
 	(value (make-symbol "value")))
-    `(let* ((,buffer (temp-buffer-window-setup ,buffer-or-name))
-	    (standard-output ,buffer)
-	    ,window ,value)
-       (setq ,value (progn ,@body))
-       (with-current-buffer ,buffer
-	 (setq ,window (temp-buffer-window-show ,buffer ,action)))
+    (macroexp-let2 nil vbuffer-or-name buffer-or-name
+      (macroexp-let2 nil vaction action
+	(macroexp-let2 nil vquit-function quit-function
+	  `(let* ((,buffer (temp-buffer-window-setup ,vbuffer-or-name))
+		  (standard-output ,buffer)
+		  ,window ,value)
+	     (setq ,value (progn ,@body))
+	     (with-current-buffer ,buffer
+	       (setq ,window (temp-buffer-window-show ,buffer ,vaction)))
 
-       (if (functionp ,quit-function)
-	   (funcall ,quit-function ,window ,value)
-	 ,value))))
+	     (if (functionp ,vquit-function)
+		 (funcall ,vquit-function ,window ,value)
+	       ,value)))))))
 
 (defmacro with-current-buffer-window (buffer-or-name action quit-function &rest body)
   "Evaluate BODY with a buffer BUFFER-OR-NAME current and show that buffer.
@@ -205,16 +208,50 @@ BODY."
   (let ((buffer (make-symbol "buffer"))
 	(window (make-symbol "window"))
 	(value (make-symbol "value")))
-    `(let* ((,buffer (temp-buffer-window-setup ,buffer-or-name))
-	    (standard-output ,buffer)
-	    ,window ,value)
-       (with-current-buffer ,buffer
-	 (setq ,value (progn ,@body))
-	 (setq ,window (temp-buffer-window-show ,buffer ,action)))
+    (macroexp-let2 nil vbuffer-or-name buffer-or-name
+      (macroexp-let2 nil vaction action
+	(macroexp-let2 nil vquit-function quit-function
+	  `(let* ((,buffer (temp-buffer-window-setup ,vbuffer-or-name))
+		  (standard-output ,buffer)
+		  ,window ,value)
+	     (with-current-buffer ,buffer
+	       (setq ,value (progn ,@body))
+	       (setq ,window (temp-buffer-window-show ,buffer ,vaction)))
 
-       (if (functionp ,quit-function)
-	   (funcall ,quit-function ,window ,value)
-	 ,value))))
+	     (if (functionp ,vquit-function)
+		 (funcall ,vquit-function ,window ,value)
+	       ,value)))))))
+
+(defmacro with-displayed-buffer-window (buffer-or-name action quit-function &rest body)
+  "Show a buffer BUFFER-OR-NAME and evaluate BODY in that buffer.
+This construct is like `with-current-buffer-window' but unlike that
+displays the buffer specified by BUFFER-OR-NAME before running BODY."
+  (declare (debug t))
+  (let ((buffer (make-symbol "buffer"))
+	(window (make-symbol "window"))
+	(value (make-symbol "value")))
+    (macroexp-let2 nil vbuffer-or-name buffer-or-name
+      (macroexp-let2 nil vaction action
+	(macroexp-let2 nil vquit-function quit-function
+	  `(let* ((,buffer (temp-buffer-window-setup ,vbuffer-or-name))
+		  (standard-output ,buffer)
+		  ,window ,value)
+	     (with-current-buffer ,buffer
+	       (setq ,window (temp-buffer-window-show ,buffer ,vaction)))
+
+	     (let ((inhibit-read-only t)
+		   (inhibit-modification-hooks t))
+	       (setq ,value (progn ,@body)))
+
+	     (set-window-point ,window (point-min))
+
+	     (when (functionp (cdr (assq 'window-height (cdr ,vaction))))
+	       (ignore-errors
+		 (funcall (cdr (assq 'window-height (cdr ,vaction))) ,window)))
+
+	     (if (functionp ,vquit-function)
+		 (funcall ,vquit-function ,window ,value)
+	       ,value)))))))
 
 ;; The following two functions are like `window-next-sibling' and
 ;; `window-prev-sibling' but the WINDOW argument is _not_ optional (so
@@ -5980,6 +6017,8 @@ The actual non-nil value of this variable will be copied to the
 	   (const display-buffer-pop-up-window)
 	   (const display-buffer-same-window)
 	   (const display-buffer-pop-up-frame)
+	   (const display-buffer-below-selected)
+	   (const display-buffer-at-bottom)
 	   (const display-buffer-in-previous-window)
 	   (const display-buffer-use-some-window)
 	   (function :tag "Other function"))

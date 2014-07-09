@@ -138,6 +138,9 @@ Linum mode is a buffer-local minor mode."
       (mapc #'delete-overlay linum-available)
       (setq linum-available nil))))
 
+(defun linum--face-height (face)
+  (aref (font-info (face-font face)) 2))
+
 (defun linum-update-window (win)
   "Update line numbers for the portion visible in window WIN."
   (goto-char (window-start win))
@@ -178,6 +181,12 @@ Linum mode is a buffer-local minor mode."
       (let ((inhibit-point-motion-hooks t))
         (forward-line))
       (setq line (1+ line)))
+    (when (display-graphic-p)
+      (setq width (ceiling
+                   ;; We'd really want to check the widths rather than the
+                   ;; heights, but it's a start.
+                   (/ (* width 1.0 (linum--face-height 'linum))
+                      (frame-char-height)))))
     (set-window-margins win width (cdr (window-margins win)))))
 
 (defun linum-after-change (beg end _len)

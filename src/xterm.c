@@ -410,7 +410,7 @@ x_set_frame_alpha (struct frame *f)
   if (parent != None)
     XChangeProperty (dpy, parent, dpyinfo->Xatom_net_wm_window_opacity,
                      XA_CARDINAL, 32, PropModeReplace,
-                     (unsigned char *) &opac, 1L);
+                     (unsigned char *) &opac, 1);
 
   /* return unless necessary */
   {
@@ -420,7 +420,7 @@ x_set_frame_alpha (struct frame *f)
     unsigned long n, left;
 
     rc = XGetWindowProperty (dpy, win, dpyinfo->Xatom_net_wm_window_opacity,
-			     0L, 1L, False, XA_CARDINAL,
+			     0, 1, False, XA_CARDINAL,
 			     &actual, &format, &n, &left,
 			     &data);
 
@@ -438,7 +438,7 @@ x_set_frame_alpha (struct frame *f)
 
   XChangeProperty (dpy, win, dpyinfo->Xatom_net_wm_window_opacity,
 		   XA_CARDINAL, 32, PropModeReplace,
-		   (unsigned char *) &opac, 1L);
+		   (unsigned char *) &opac, 1);
   x_uncatch_errors ();
 }
 
@@ -8094,7 +8094,7 @@ x_set_offset (struct frame *f, register int xoff, register int yoff, int change_
   x_calc_absolute_position (f);
 
   block_input ();
-  x_wm_set_size_hint (f, (long) 0, 0);
+  x_wm_set_size_hint (f, 0, 0);
 
   modified_left = f->left_pos;
   modified_top = f->top_pos;
@@ -8639,7 +8639,7 @@ x_set_window_size_1 (struct frame *f, int change_gravity, int width, int height,
 		 + FRAME_MENUBAR_HEIGHT (f)
 		 + FRAME_TOOLBAR_HEIGHT (f));
   if (change_gravity) f->win_gravity = NorthWestGravity;
-  x_wm_set_size_hint (f, (long) 0, 0);
+  x_wm_set_size_hint (f, 0, 0);
   XResizeWindow (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
 		 pixelwidth, pixelheight);
 
@@ -9046,7 +9046,7 @@ x_make_frame_invisible (struct frame *f)
      program-specified, so that when the window is mapped again, it will be
      placed at the same location, without forcing the user to position it
      by hand again (they have already done that once for this window.)  */
-  x_wm_set_size_hint (f, (long) 0, 1);
+  x_wm_set_size_hint (f, 0, 1);
 
 #ifdef USE_GTK
   if (FRAME_GTK_OUTER_WIDGET (f))

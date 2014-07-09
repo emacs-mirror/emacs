@@ -748,7 +748,7 @@ following list:
 		(bof (perl-beginning-of-function))
 		(delta (progn
 			 (goto-char oldpnt)
-			 (perl-indent-line "\f\\|;?#" bof))))
+			 (perl-indent-line "\f\\|;?#"))))
 	   (and perl-tab-to-comment
 		(= oldpnt (point))   ; done if point moved
 		(if (listp delta)    ; if line starts in a quoted string
@@ -786,28 +786,23 @@ following list:
 			 (ding t)))))))))
 (make-obsolete 'perl-indent-command 'indent-according-to-mode "24.4")
 
-(defun perl-indent-line (&optional nochange parse-start)
+(defun perl-indent-line (&optional nochange)
   "Indent current line as Perl code.
 Return the amount the indentation
 changed by, or (parse-state) if line starts in a quoted string."
   (let ((case-fold-search nil)
 	(pos (- (point-max) (point)))
-	(bof (or parse-start (save-excursion
-                               ;; Don't consider text on this line as a
-                               ;; valid BOF from which to indent.
-			       (goto-char (line-end-position 0))
-			       (perl-beginning-of-function))))
 	beg indent shift-amt)
     (beginning-of-line)
     (setq beg (point))
     (setq shift-amt
-	  (cond ((eq (char-after bof) ?=) 0)
-		((listp (setq indent (perl-calculate-indent bof))) indent)
+	  (cond ((eq 1 (nth 7 (syntax-ppss))) 0) ;For doc sections!
+		((listp (setq indent (perl-calculate-indent))) indent)
                 ((eq 'noindent indent) indent)
 		((looking-at (or nochange perl-nochange)) 0)
 		(t
 		 (skip-chars-forward " \t\f")
-		 (setq indent (perl-indent-new-calculate nil indent bof))
+		 (setq indent (perl-indent-new-calculate nil indent))
 		 (- indent (current-column)))))
     (skip-chars-forward " \t\f")
     (if (and (numberp shift-amt) (/= 0 shift-amt))
@@ -819,23 +814,21 @@ changed by, or (parse-state) if line starts in a quoted string."
 	(goto-char (- (point-max) pos)))
     shift-amt))
 
-(defun perl-continuation-line-p (limit)
+(defun perl-continuation-line-p ()
   "Move to end of previous line and return non-nil if continued."
   ;; Statement level.  Is it a continuation or a new statement?
   ;; Find previous non-comment character.
   (perl-backward-to-noncomment)
   ;; Back up over label lines, since they don't
   ;; affect whether our line is a continuation.
-  (while (or (eq (preceding-char) ?\,)
-	     (and (eq (preceding-char) ?:)
-		  (memq (char-syntax (char-after (- (point) 2)))
-			'(?w ?_))))
-    (if (eq (preceding-char) ?\,)
-	(perl-backward-to-start-of-continued-exp limit)
-      (beginning-of-line))
+  (while (and (eq (preceding-char) ?:)
+              (memq (char-syntax (char-after (- (point) 2)))
+                    '(?w ?_)))
+    (beginning-of-line)
     (perl-backward-to-noncomment))
   ;; Now we get the answer.
-  (not (memq (preceding-char) '(?\; ?\} ?\{))))
+  (unless (memq (preceding-char) '(?\; ?\} ?\{))
+    (preceding-char)))
 
 (defun perl-hanging-paren-p ()
   "Non-nil if we are right after a hanging parenthesis-like char."
@@ -843,173 +836,151 @@ changed by, or (parse-state) if line starts in a quoted string."
        (save-excursion
 	 (skip-syntax-backward " (") (not (bolp)))))
 
-(defun perl-indent-new-calculate (&optional virtual default parse-start)
+(defun perl-indent-new-calculate (&optional virtual default)
   (or
    (and virtual (save-excursion (skip-chars-backward " \t") (bolp))
 	(current-column))
    (and (looking-at "\\(\\w\\|\\s_\\)+:[^:]")
-	(max 1 (+ (or default (perl-calculate-indent parse-start))
+	(max 1 (+ (or default (perl-calculate-indent))
 		  perl-label-offset)))
    (and (= (char-syntax (following-char)) ?\))
 	(save-excursion
 	  (forward-char 1)
           (when (condition-case nil (progn (forward-sexp -1) t)
                   (scan-error nil))
-            (perl-indent-new-calculate
-             ;; Recalculate the parsing-start, since we may have jumped
-             ;; dangerously close (typically in the case of nested functions).
-             'virtual nil (save-excursion (perl-beginning-of-function))))))
+            (perl-indent-new-calculate 'virtual))))
    (and (and (= (following-char) ?{)
 	     (save-excursion (forward-char) (perl-hanging-paren-p)))
-	(+ (or default (perl-calculate-indent parse-start))
+	(+ (or default (perl-calculate-indent))
 	   perl-brace-offset))
-   (or default (perl-calculate-indent parse-start))))
+   (or default (perl-calculate-indent))))
 
-(defun perl-calculate-indent (&optional parse-start)
+(defun perl-calculate-indent ()
   "Return appropriate indentation for current line as Perl code.
 In usual case returns an integer: the column to indent to.
-Returns (parse-state) if line starts inside a string.
-Optional argument PARSE-START should be the position of `beginning-of-defun'."
+Returns (parse-state) if line starts inside a string."
   (save-excursion
     (let ((indent-point (point))
 	  (case-fold-search nil)
 	  (colon-line-end 0)
+          prev-char
 	  state containing-sexp)
-      (if parse-start			;used to avoid searching
-	  (goto-char parse-start)
-	(perl-beginning-of-function))
-      ;; We might be now looking at a local function that has nothing to
-      ;; do with us because `indent-point' is past it.  In this case
-      ;; look further back up for another `perl-beginning-of-function'.
-      (while (and (looking-at "{")
-		  (save-excursion
-		    (beginning-of-line)
-		    (looking-at "\\s-+sub\\>"))
-		  (> indent-point (save-excursion
-				    (condition-case nil
-					(forward-sexp 1)
-				      (scan-error nil))
-				    (point))))
-	(perl-beginning-of-function))
-      (while (< (point) indent-point)	;repeat until right sexp
-	(setq state (parse-partial-sexp (point) indent-point 0))
-	;; state = (depth_in_parens innermost_containing_list
-	;;          last_complete_sexp string_terminator_or_nil inside_commentp
-	;;          following_quotep minimum_paren-depth_this_scan)
-	;; Parsing stops if depth in parentheses becomes equal to third arg.
-	(setq containing-sexp (nth 1 state)))
+      (setq containing-sexp (nth 1 (syntax-ppss indent-point)))
       (cond
        ;; Don't auto-indent in a quoted string or a here-document.
        ((or (nth 3 state) (eq 2 (nth 7 state))) 'noindent)
-	    ((null containing-sexp)	; Line is at top level.
-	     (skip-chars-forward " \t\f")
-	     (if (memq (following-char)
-		       (if perl-indent-parens-as-block '(?\{ ?\( ?\[) '(?\{)))
-		 0  ; move to beginning of line if it starts a function body
-	       ;; indent a little if this is a continuation line
-	       (perl-backward-to-noncomment)
-	       (if (or (bobp)
-		       (memq (preceding-char) '(?\; ?\})))
-		   0 perl-continued-statement-offset)))
-	    ((/= (char-after containing-sexp) ?{)
-	     ;; line is expression, not statement:
-	     ;; indent to just after the surrounding open.
-	     (goto-char (1+ containing-sexp))
-	     (if (perl-hanging-paren-p)
-		 ;; We're indenting an arg of a call like:
-		 ;;    $a = foobarlongnamefun (
-		 ;;             arg1
-		 ;;             arg2
-		 ;;         );
-		 (progn
-		   (skip-syntax-backward "(")
-		   (condition-case nil
-		       (while (save-excursion
-				(skip-syntax-backward " ") (not (bolp)))
-			 (forward-sexp -1))
-		     (scan-error nil))
-		   (+ (current-column) perl-indent-level))
-	       (if perl-indent-continued-arguments
-		   (+ perl-indent-continued-arguments (current-indentation))
-		 (skip-chars-forward " \t")
-		 (current-column))))
-	    (t
-	     ;; Statement level.  Is it a continuation or a new statement?
-	     (if (perl-continuation-line-p containing-sexp)
-		 ;; This line is continuation of preceding line's statement;
-		 ;; indent  perl-continued-statement-offset  more than the
-		 ;; previous line of the statement.
-		 (progn
-		   (perl-backward-to-start-of-continued-exp containing-sexp)
-		   (+ (if (save-excursion
-			    (perl-continuation-line-p containing-sexp))
-			  ;; If the continued line is itself a continuation
-			  ;; line, then align, otherwise add an offset.
-			  0 perl-continued-statement-offset)
-		      (current-column)
-		      (if (save-excursion (goto-char indent-point)
-					  (looking-at
-					   (if perl-indent-parens-as-block
-					       "[ \t]*[{(\[]" "[ \t]*{")))
-			  perl-continued-brace-offset 0)))
-	       ;; This line starts a new statement.
-	       ;; Position at last unclosed open.
-	       (goto-char containing-sexp)
-	       (or
-		;; Is line first statement after an open-brace?
-		;; If no, find that first statement and indent like it.
-		(save-excursion
-		  (forward-char 1)
-		  ;; Skip over comments and labels following openbrace.
-		  (while (progn
-			   (skip-chars-forward " \t\f\n")
-			   (cond ((looking-at ";?#")
-				  (forward-line 1) t)
-				 ((looking-at "\\(\\w\\|\\s_\\)+:[^:]")
-				  (setq colon-line-end (line-end-position))
-				  (search-forward ":")))))
-		  ;; The first following code counts
-		  ;; if it is before the line we want to indent.
-		  (and (< (point) indent-point)
-		       (if (> colon-line-end (point))
-			   (- (current-indentation) perl-label-offset)
-			 (current-column))))
-		;; If no previous statement,
-		;; indent it relative to line brace is on.
-		;; For open paren in column zero, don't let statement
-		;; start there too.  If perl-indent-level is zero,
-		;; use perl-brace-offset + perl-continued-statement-offset
-		;; For open-braces not the first thing in a line,
-		;; add in perl-brace-imaginary-offset.
-		(+ (if (and (bolp) (zerop perl-indent-level))
-		       (+ perl-brace-offset perl-continued-statement-offset)
-		     perl-indent-level)
-		   ;; Move back over whitespace before the openbrace.
-		   ;; If openbrace is not first nonwhite thing on the line,
-		   ;; add the perl-brace-imaginary-offset.
-		   (progn (skip-chars-backward " \t")
-			  (if (bolp) 0 perl-brace-imaginary-offset))
-		   ;; If the openbrace is preceded by a parenthesized exp,
-		   ;; move to the beginning of that;
-		   ;; possibly a different line
-		   (progn
-		     (if (eq (preceding-char) ?\))
-			 (forward-sexp -1))
-		     ;; Get initial indentation of the line we are on.
-		     (current-indentation))))))))))
+       ((null containing-sexp)          ; Line is at top level.
+        (skip-chars-forward " \t\f")
+        (if (memq (following-char)
+                  (if perl-indent-parens-as-block '(?\{ ?\( ?\[) '(?\{)))
+            0          ; move to beginning of line if it starts a function body
+          ;; indent a little if this is a continuation line
+          (perl-backward-to-noncomment)
+          (if (or (bobp)
+                  (memq (preceding-char) '(?\; ?\})))
+              0 perl-continued-statement-offset)))
+       ((/= (char-after containing-sexp) ?{)
+        ;; line is expression, not statement:
+        ;; indent to just after the surrounding open.
+        (goto-char (1+ containing-sexp))
+        (if (perl-hanging-paren-p)
+            ;; We're indenting an arg of a call like:
+            ;;    $a = foobarlongnamefun (
+            ;;             arg1
+            ;;             arg2
+            ;;         );
+            (progn
+              (skip-syntax-backward "(")
+              (condition-case nil
+                  (while (save-excursion
+                           (skip-syntax-backward " ") (not (bolp)))
+                    (forward-sexp -1))
+                (scan-error nil))
+              (+ (current-column) perl-indent-level))
+          (if perl-indent-continued-arguments
+              (+ perl-indent-continued-arguments (current-indentation))
+            (skip-chars-forward " \t")
+            (current-column))))
+       ;; Statement level.  Is it a continuation or a new statement?
+       ((setq prev-char (perl-continuation-line-p))
+        ;; This line is continuation of preceding line's statement;
+        ;; indent  perl-continued-statement-offset  more than the
+        ;; previous line of the statement.
+        (perl-backward-to-start-of-continued-exp)
+        (+ (if (or (save-excursion
+                     (perl-continuation-line-p))
+                   (and (eq prev-char ?\,)
+                        (looking-at "[[:alnum:]_]+[ \t\n]*=>")))
+               ;; If the continued line is itself a continuation
+               ;; line, then align, otherwise add an offset.
+               0 perl-continued-statement-offset)
+           (current-column)
+           (if (save-excursion (goto-char indent-point)
+                               (looking-at
+                                (if perl-indent-parens-as-block
+                                    "[ \t]*[{(\[]" "[ \t]*{")))
+               perl-continued-brace-offset 0)))
+       (t
+        ;; This line starts a new statement.
+        ;; Position at last unclosed open.
+        (goto-char containing-sexp)
+        (or
+         ;; Is line first statement after an open-brace?
+         ;; If no, find that first statement and indent like it.
+         (save-excursion
+           (forward-char 1)
+           ;; Skip over comments and labels following openbrace.
+           (while (progn
+                    (skip-chars-forward " \t\f\n")
+                    (cond ((looking-at ";?#")
+                           (forward-line 1) t)
+                          ((looking-at "\\(\\w\\|\\s_\\)+:[^:]")
+                           (setq colon-line-end (line-end-position))
+                           (search-forward ":")))))
+           ;; The first following code counts
+           ;; if it is before the line we want to indent.
+           (and (< (point) indent-point)
+                (if (> colon-line-end (point))
+                    (- (current-indentation) perl-label-offset)
+                  (current-column))))
+         ;; If no previous statement,
+         ;; indent it relative to line brace is on.
+         ;; For open paren in column zero, don't let statement
+         ;; start there too.  If perl-indent-level is zero,
+         ;; use perl-brace-offset + perl-continued-statement-offset
+         ;; For open-braces not the first thing in a line,
+         ;; add in perl-brace-imaginary-offset.
+         (+ (if (and (bolp) (zerop perl-indent-level))
+                (+ perl-brace-offset perl-continued-statement-offset)
+              perl-indent-level)
+            ;; Move back over whitespace before the openbrace.
+            ;; If openbrace is not first nonwhite thing on the line,
+            ;; add the perl-brace-imaginary-offset.
+            (progn (skip-chars-backward " \t")
+                   (if (bolp) 0 perl-brace-imaginary-offset))
+            ;; If the openbrace is preceded by a parenthesized exp,
+            ;; move to the beginning of that;
+            ;; possibly a different line
+            (progn
+              (if (eq (preceding-char) ?\))
+                  (forward-sexp -1))
+              ;; Get initial indentation of the line we are on.
+              (current-indentation)))))))))
 
 (defun perl-backward-to-noncomment ()
   "Move point backward to after the first non-white-space, skipping comments."
-  (interactive)
   (forward-comment (- (point-max))))
 
-(defun perl-backward-to-start-of-continued-exp (lim)
-  (if (= (preceding-char) ?\))
-      (forward-sexp -1))
-  (beginning-of-line)
-  (if (<= (point) lim)
-      (goto-char (1+ lim)))
-  (skip-chars-forward " \t\f"))
+(defun perl-backward-to-start-of-continued-exp ()
+  (while
+      (let ((c (preceding-char)))
+      (cond
+        ((memq c '(?\; ?\{ ?\[ ?\()) (forward-comment (point-max)) nil)
+        ((memq c '(?\) ?\] ?\} ?\"))
+         (forward-sexp -1) (forward-comment (- (point))) t)
+        ((eq ?w (char-syntax c))
+         (forward-word -1) (forward-comment (- (point))) t)
+        (t (forward-char -1) (forward-comment (- (point))) t)))))
 
 ;; note: this may be slower than the c-mode version, but I can understand it.
 (defalias 'indent-perl-exp 'perl-indent-exp)
@@ -1034,7 +1005,7 @@ Optional argument PARSE-START should be the position of `beginning-of-defun'."
       (setq lsexp-mark bof-mark)
       (beginning-of-line)
       (while (< (point) (marker-position last-mark))
-	(setq delta (perl-indent-line nil (marker-position bof-mark)))
+	(setq delta (perl-indent-line nil))
 	(if (numberp delta)		; unquoted start-of-line?
 	    (progn
 	      (if (eolp)

@@ -2012,9 +2012,10 @@ May return nil if the line should not be treated as continued."
                         (<= indent initial)))))
      `(column . ,(+ initial sh-indentation)))
     (`(:before . ,(or `"(" `"{" `"["))
-     (when (smie-rule-hanging-p)
-       (if (not (smie-rule-prev-p "&&" "||" "|"))
-	   (smie-rule-parent)
+     (if (not (smie-rule-prev-p "&&" "||" "|"))
+         (when (smie-rule-hanging-p)
+           (smie-rule-parent))
+       (unless (smie-rule-bolp)
 	 (smie-backward-sexp 'halfexp)
 	 `(column . ,(smie-indent-virtual)))))
     ;; FIXME: Maybe this handling of ;; should be made into

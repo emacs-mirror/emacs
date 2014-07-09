@@ -8059,7 +8059,6 @@ imagemagick_compute_animated_image (MagickWand *super_wand, int ino)
   else
     composite_wand = cache->wand;
 
-  dest_width = MagickGetImageWidth (composite_wand);
   dest_height = MagickGetImageHeight (composite_wand);
 
   for (i = max (1, cache->index + 1); i <= ino; i++)
@@ -8128,13 +8127,12 @@ imagemagick_compute_animated_image (MagickWand *super_wand, int ino)
 	    {
 	      /* Sanity check.  This shouldn't happen, but apparently
 		 also does in some pictures.  */
-	      if (x + source_left > dest_width - 1)
+	      if (x + source_left >= dest_width)
 		break;
 	      /* Normally we only copy over non-transparent pixels,
 		 but if the disposal method is "Background", then we
 		 copy over all pixels.  */
-	      if (dispose == BackgroundDispose ||
-		  PixelGetAlpha (source[x]))
+	      if (dispose == BackgroundDispose || PixelGetAlpha (source[x]))
 		{
 		  PixelGetMagickColor (source[x], &pixel);
 		  PixelSetMagickColor (dest[x + source_left], &pixel);
@@ -8174,7 +8172,8 @@ imagemagick_load_image (struct frame *f, struct image *img,
 			unsigned char *contents, unsigned int size,
 			char *filename)
 {
-  size_t width, height;
+  int width, height;
+  size_t image_width, image_height;
   MagickBooleanType status;
   XImagePtr ximg;
   int x, y;
@@ -8344,15 +8343,18 @@ imagemagick_load_image (struct frame *f, struct image *img,
 
   /* Finally we are done manipulating the image.  Figure out the
      resulting width/height and transfer ownership to Emacs.  */
-  height = MagickGetImageHeight (image_wand);
-  width = MagickGetImageWidth (image_wand);
+  image_height = MagickGetImageHeight (image_wand);
+  image_width = MagickGetImageWidth (image_wand);
 
-  if (! (width <= INT_MAX && height <= INT_MAX
-	 && check_image_size (f, width, height)))
+  if (! (image_width <= INT_MAX && image_height <= INT_MAX
+	 && check_image_size (f, image_width, image_height)))
     {
       image_error ("Invalid image size (see `max-image-size')", Qnil, Qnil);
       goto imagemagick_error;
     }
+
+  width = image_width;
+  height = image_height;
 
   /* We can now get a valid pixel buffer from the imagemagick file, if all
      went ok.  */
@@ -8438,10 +8440,12 @@ imagemagick_load_image (struct frame *f, struct image *img,
       image_height = MagickGetImageHeight (image_wand);
       for (y = 0; y < image_height; y++)
         {
-          pixels = PixelGetNextIteratorRow (iterator, &width);
+	  size_t row_width;
+	  pixels = PixelGetNextIteratorRow (iterator, &row_width);
           if (! pixels)
             break;
-          for (x = 0; x < (long) width; x++)
+	  int xlim = min (row_width, width);
+	  for (x = 0; x < xlim; x++)
             {
               PixelGetMagickColor (pixels[x], &pixel);
               XPutPixel (ximg, x, y,

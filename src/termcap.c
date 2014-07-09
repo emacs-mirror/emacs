@@ -520,7 +520,7 @@ scan_file (char *str, int fd, struct termcap_buffer *bufp)
   bufp->ateof = 0;
   *bufp->ptr = '\0';
 
-  lseek (fd, 0L, 0);
+  lseek (fd, 0, 0);
 
   while (!bufp->ateof)
     {

@@ -1,3 +1,153 @@
+2014-07-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* rect.el (apply-on-rectangle): Check forward-line really moved to the
+	next line.
+
+2014-07-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/sh-script.el (sh-smie-sh-rules): Don't align with a && in
+	the middle of a line (bug#17896).
+
+2014-07-09  Juri Linkov  <juri@jurta.org>
+
+	* startup.el (command-line): Append displaying the warning about
+	the errors in the init file to the end of `after-init-hook'.
+	(Bug#17927)
+
+	* faces.el (face-name): Return input arg `face' as-is
+	when it's not a symbol.
+	(x-resolve-font-name): Don't check if the face is a symbol.
+	(Bug#17956)
+
+	* facemenu.el (list-colors-print): In help-echo format use %.2f
+	instead of %d because now HSV values are floating-point components
+	between 0.0 and 1.0.
+
+2014-07-09  Glenn Morris  <rgm@gnu.org>
+
+	* emulation/cua-rect.el (cua--activate-rectangle):
+	Avoid setting cua--rectangle to nil.  (Bug#17877)
+
+2014-07-09  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todo-mode.el: Fix wrong-type-argument error when
+	marking multiple consecutive items.
+	(todo-toggle-mark-item): Don't try to mark the empty lines at the
+	end of the todo and done items sections.  Note in doc string that
+	items marked by passing a numeric prefix argument can include the
+	last todo and first done items.
+	(todo-mark-category): Don't try to mark the empty line between the
+	todo and done items sections.
+
+2014-07-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/edebug.el (edebug-eval-defun): Print result using
+	proper Lisp quoting (bug#17934).
+
+	* progmodes/ruby-mode.el (ruby-mode-variables): Don't meddle with
+	require-final-newline since prog-mode already took care of it (bug#17947).
+
+2014-07-09  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todo-mode.el: Fix two bugs.  Shorten Commentary and
+	refer to the Todo mode Info manual.  Update the comment on
+	requiring cl-lib.
+	(todo-find-filtered-items-file): Add todo-prefix overlays.
+	(todo-filter-items): Reorder a let-bound variable to avoid a
+	wrong-type-argument error on canceling the file choice dialog.
+
+2014-07-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/octave.el (inferior-octave-mode):
+	Set comint-input-ring-size to a number (bug#17912).
+
+2014-07-09  Juri Linkov  <juri@jurta.org>
+
+	* desktop.el (desktop-minor-mode-table): Add `defining-kbd-macro'
+	and `isearch-mode' associated with nil.  (Bug#17849)
+
+2014-07-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* linum.el (linum--face-height): New function (bug#17813).
+	(linum-update-window): Use it to adjust margin to linum's width.
+
+	* leim/quail/sisheng.el (sisheng-list): Don't bother with-case-table.
+	* eshell/em-smart.el (eshell-smart-scroll-window): Use
+	with-selected-window.
+
+	* xt-mouse.el (xterm-mouse-translate-1): Intern drag event (bug#17894).
+	Remove also pointless window&mark manipulation.
+
+	* progmodes/perl-mode.el: Use syntax-ppss; fix one indentation case.
+	(perl-indent-line): Use syntax-ppss to detect we're in a doc-section.
+	(perl-continuation-line-p): Don't skip over anything else than labels.
+	Return the previous char.
+	(perl-calculate-indent): Use syntax-ppss instead of parse-start
+	and update callers accordingly.  For continuation lines, check the
+	the case of array hashes.
+	(perl-backward-to-noncomment): Make it non-interactive.
+	(perl-backward-to-start-of-continued-exp): Rewrite.
+
+2014-07-08  Sam Steingold  <sds@gnu.org>
+
+	* progmodes/inf-lisp.el (lisp-eval-paragraph, lisp-eval-form-and-next):
+	New user commands.
+
+2014-07-08  Juri Linkov  <juri@jurta.org>
+
+	* vc/vc-annotate.el (vc-annotate-background-mode): New defcustom.
+	(vc-annotate-color-map): Use less saturated colors (20%) for
+	background-mode.
+	(vc-annotate-very-old-color): Add default value for background-mode.
+	(vc-annotate-background): Set default value to nil since now text on
+	the default backgrounds should be legible in light and dark modes.
+	(vc-annotate-lines): Use `vc-annotate-background-mode'.  Doc fix.
+	(Bug#17808)
+
+2014-07-08  Juri Linkov  <juri@jurta.org>
+
+	* simple.el (transpose-chars): Don't move point into read-only area.
+	(Bug#17829)
+
+2014-07-08  Juri Linkov  <juri@jurta.org>
+
+	* window.el (with-displayed-buffer-window): New macro.
+	(with-temp-buffer-window, with-current-buffer-window):
+	Use `macroexp-let2' to evaluate and bind variables
+	in the same order as macro arguments.
+	(display-buffer--action-function-custom-type):
+	Add `display-buffer-below-selected' and `display-buffer-at-bottom'.
+
+	* minibuffer.el (minibuffer-completion-help): Replace
+	`with-output-to-temp-buffer' with `with-displayed-buffer-window'
+	with actions that display *Completions* at-bottom when called
+	from the minibuffer, or below-selected in a normal buffer.
+	Associate `window-height' with `fit-window-to-buffer'.
+	Let-bind `pop-up-windows' to nil.
+
+	* dired.el (dired-mark-pop-up): Use `with-displayed-buffer-window'
+	instead of `with-current-buffer-window'.  (Bug#17809)
+
+2014-07-07  Luke Lee  <luke.yx.lee@gmail.com>
+
+	* progmodes/hideif.el (hide-ifdef-env): Change to global.
+	(hide-ifdef-env-backup): New variable.
+	(hide-ifdef-expand-reinclusion-protection, hide-ifdef-header-regexp):
+	New customizable variables.
+	(hif-clear-all-ifdef-defined): New defun.
+	(hif-merge-ifdef-region, hide-ifdef-region-internal, hide-ifdef-region)
+	(hif-show-ifdef-region): Merge hidden regions to prevent continuous "...".
+	(hif-tokenize): Fix for MS-DOS/Win EOL style.
+	(hif-endif-to-ifdef, hif-make-range, hif-find-range, hif-possibly-hide):
+	Fix bug to hide the correct #elif region(s).
+	(hif-range-elif): New defun.
+	(hif-recurse-level): New var.
+	(hif-evaluate-region, hif-evaluate-macro): New defun.
+	(hide-ifdef-guts): Prevent reinclusion protected C/C++ headers from
+	fully hidden.
+	(hide-ifdef-define, hide-ifdefs, hide-ifdef-block, show-ifdef-block):
+	Better interaction.
+
 2014-07-04  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/dbus.el (dbus-peer-handler): New defun.

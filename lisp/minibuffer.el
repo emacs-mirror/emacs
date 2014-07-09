@@ -1794,8 +1794,29 @@ variables.")
              ;; window, mark it as softly-dedicated, so bury-buffer in
              ;; minibuffer-hide-completions will know whether to
              ;; delete the window or not.
-             (display-buffer-mark-dedicated 'soft))
-        (with-output-to-temp-buffer "*Completions*"
+             (display-buffer-mark-dedicated 'soft)
+             ;; Disable `pop-up-windows' temporarily to allow
+             ;; `display-buffer--maybe-pop-up-frame-or-window'
+             ;; in the display actions below to pop up a frame
+             ;; if `pop-up-frames' is non-nil, but not to pop up a window.
+             (pop-up-windows nil))
+        (with-displayed-buffer-window
+          "*Completions*"
+          ;; This is a copy of `display-buffer-fallback-action'
+          ;; where `display-buffer-use-some-window' is replaced
+          ;; with `display-buffer-at-bottom'.
+          `((display-buffer--maybe-same-window
+             display-buffer-reuse-window
+             display-buffer--maybe-pop-up-frame-or-window
+             ;; Use `display-buffer-below-selected' for inline completions,
+             ;; but not in the minibuffer (e.g. in `eval-expression')
+             ;; for which `display-buffer-at-bottom' is used.
+             ,(if (and completion-in-region-mode-predicate
+                       (not (minibuffer-selected-window)))
+                  'display-buffer-below-selected
+                'display-buffer-at-bottom))
+            (window-height . fit-window-to-buffer))
+          nil
           ;; Remove the base-size tail because `sort' requires a properly
           ;; nil-terminated list.
           (when last (setcdr last nil))
@@ -3285,6 +3306,7 @@ the same set of elements."
                 (string-match completion-pcm--delim-wild-regex str
                               (car bounds)))
       (if (zerop (car bounds))
+          ;; FIXME: Don't hardcode "-" (bug#17559).
           (mapconcat 'string str "-")
         ;; If there's a boundary, it's trickier.  The main use-case
         ;; we consider here is file-name completion.  We'd like

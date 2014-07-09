@@ -7273,14 +7273,11 @@ produce_charset (struct coding_system *coding, int *charbuf, ptrdiff_t pos)
 
 #define ALLOC_CONVERSION_WORK_AREA(coding, size)		\
   do {								\
-    int units = (size) + MAX_CHARBUF_EXTRA_SIZE;		\
-								\
-    if (units > MAX_CHARBUF_SIZE)				\
-      units = MAX_CHARBUF_SIZE;					\
-    coding->charbuf = SAFE_ALLOCA ((units) * sizeof (int));	\
-    coding->charbuf_size = (units);				\
+    ptrdiff_t units = min ((size) + MAX_CHARBUF_EXTRA_SIZE,	\
+			   MAX_CHARBUF_SIZE);			\
+    coding->charbuf = SAFE_ALLOCA (units * sizeof (int));	\
+    coding->charbuf_size = units;				\
   } while (0)
-
 
 static void
 produce_annotation (struct coding_system *coding, ptrdiff_t pos)

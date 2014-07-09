@@ -1,3 +1,7 @@
+2014-07-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* indent/perl.perl: Add indentation pattern for hash-table entries.
+
 2014-07-04  Michael Albinus  <michael.albinus@gmx.de>
 
 	* automated/dbus-tests.el (dbus-test02-register-service-session)
