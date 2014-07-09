@@ -435,79 +435,6 @@ def foo(a, b, c={
    (should (eq (car (python-indent-context)) 'after-beginning-of-block))
    (should (= (python-indent-calculate-indentation) 4))))
 
-(ert-deftest python-indent-dedenters-1 ()
-  "Check all dedenters."
-  (python-tests-with-temp-buffer
-   "
-def foo(a, b, c):
-    if a:
-        print (a)
-    elif b:
-        print (b)
-    else:
-        try:
-            print (c.pop())
-        except (IndexError, AttributeError):
-            print (c)
-        finally:
-            print ('nor a, nor b are true')
-"
-   (python-tests-look-at "if a:")
-   (should (eq (car (python-indent-context)) 'after-beginning-of-block))
-   (should (= (python-indent-calculate-indentation) 4))
-   (python-tests-look-at "print (a)")
-   (should (eq (car (python-indent-context)) 'after-beginning-of-block))
-   (should (= (python-indent-calculate-indentation) 8))
-   (python-tests-look-at "elif b:")
-   (should (eq (car (python-indent-context)) 'after-line))
-   (should (= (python-indent-calculate-indentation) 4))
-   (python-tests-look-at "print (b)")
-   (should (eq (car (python-indent-context)) 'after-beginning-of-block))
-   (should (= (python-indent-calculate-indentation) 8))
-   (python-tests-look-at "else:")
-   (should (eq (car (python-indent-context)) 'after-line))
-   (should (= (python-indent-calculate-indentation) 4))
-   (python-tests-look-at "try:")
-   (should (eq (car (python-indent-context)) 'after-beginning-of-block))
-   (should (= (python-indent-calculate-indentation) 8))
-   (python-tests-look-at "print (c.pop())")
-   (should (eq (car (python-indent-context)) 'after-beginning-of-block))
-   (should (= (python-indent-calculate-indentation) 12))
-   (python-tests-look-at "except (IndexError, AttributeError):")
-   (should (eq (car (python-indent-context)) 'after-line))
-   (should (= (python-indent-calculate-indentation) 8))
-   (python-tests-look-at "print (c)")
-   (should (eq (car (python-indent-context)) 'after-beginning-of-block))
-   (should (= (python-indent-calculate-indentation) 12))
-   (python-tests-look-at "finally:")
-   (should (eq (car (python-indent-context)) 'after-line))
-   (should (= (python-indent-calculate-indentation) 8))
-   (python-tests-look-at "print ('nor a, nor b are true')")
-   (should (eq (car (python-indent-context)) 'after-beginning-of-block))
-   (should (= (python-indent-calculate-indentation) 12))))
-
-(ert-deftest python-indent-dedenters-2 ()
-  "Check one-liner block special case.."
-  (python-tests-with-temp-buffer
-   "
-cond = True
-if cond:
-
-    if cond: print 'True'
-else: print 'False'
-
-else:
-    return
-"
-   (python-tests-look-at "else: print 'False'")
-   ;; When a block has code after ":" it's just considered a simple
-   ;; line as that's a common thing to happen in one-liners.
-   (should (eq (car (python-indent-context)) 'after-line))
-   (should (= (python-indent-calculate-indentation) 4))
-   (python-tests-look-at "else:")
-   (should (eq (car (python-indent-context)) 'after-line))
-   (should (= (python-indent-calculate-indentation) 0))))
-
 (ert-deftest python-indent-after-backslash-1 ()
   "The most common case."
   (python-tests-with-temp-buffer
@@ -575,9 +502,9 @@ objects = Thing.objects.all() \\\\
    (should (= (python-indent-calculate-indentation) 0))))
 
 (ert-deftest python-indent-block-enders-1 ()
-  "Test `python-indent-block-enders' value honoring."
+  "Test de-indentation for pass keyword."
   (python-tests-with-temp-buffer
-   "
+      "
 Class foo(object):
 
     def bar(self):
@@ -589,17 +516,17 @@ Class foo(object):
         else:
             pass
 "
-   (python-tests-look-at "3)")
-   (forward-line 1)
-   (should (= (python-indent-calculate-indentation) 8))
-   (python-tests-look-at "pass")
-   (forward-line 1)
-   (should (= (python-indent-calculate-indentation) 8))))
+    (python-tests-look-at "3)")
+    (forward-line 1)
+    (should (= (python-indent-calculate-indentation) 8))
+    (python-tests-look-at "pass")
+    (forward-line 1)
+    (should (= (python-indent-calculate-indentation) 8))))
 
 (ert-deftest python-indent-block-enders-2 ()
-  "Test `python-indent-block-enders' value honoring."
+  "Test de-indentation for return keyword."
   (python-tests-with-temp-buffer
-   "
+      "
 Class foo(object):
     '''raise lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do
 
@@ -612,10 +539,177 @@ Class foo(object):
                     2,
                     3)
 "
-   (python-tests-look-at "def")
-   (should (= (python-indent-calculate-indentation) 4))
-   (python-tests-look-at "if")
-   (should (= (python-indent-calculate-indentation) 8))))
+    (python-tests-look-at "def")
+    (should (= (python-indent-calculate-indentation) 4))
+    (python-tests-look-at "if")
+    (should (= (python-indent-calculate-indentation) 8))
+    (python-tests-look-at "return")
+    (should (= (python-indent-calculate-indentation) 12))
+    (goto-char (point-max))
+    (should (= (python-indent-calculate-indentation) 8))))
+
+(ert-deftest python-indent-block-enders-3 ()
+  "Test de-indentation for continue keyword."
+  (python-tests-with-temp-buffer
+      "
+for element in lst:
+    if element is None:
+        continue
+"
+    (python-tests-look-at "if")
+    (should (= (python-indent-calculate-indentation) 4))
+    (python-tests-look-at "continue")
+    (should (= (python-indent-calculate-indentation) 8))
+    (forward-line 1)
+    (should (= (python-indent-calculate-indentation) 4))))
+
+(ert-deftest python-indent-block-enders-4 ()
+  "Test de-indentation for break keyword."
+  (python-tests-with-temp-buffer
+      "
+for element in lst:
+    if element is None:
+        break
+"
+    (python-tests-look-at "if")
+    (should (= (python-indent-calculate-indentation) 4))
+    (python-tests-look-at "break")
+    (should (= (python-indent-calculate-indentation) 8))
+    (forward-line 1)
+    (should (= (python-indent-calculate-indentation) 4))))
+
+(ert-deftest python-indent-block-enders-5 ()
+  "Test de-indentation for raise keyword."
+  (python-tests-with-temp-buffer
+      "
+for element in lst:
+    if element is None:
+        raise ValueError('Element cannot be None')
+"
+    (python-tests-look-at "if")
+    (should (= (python-indent-calculate-indentation) 4))
+    (python-tests-look-at "raise")
+    (should (= (python-indent-calculate-indentation) 8))
+    (forward-line 1)
+    (should (= (python-indent-calculate-indentation) 4))))
+
+(ert-deftest python-indent-dedenters-1 ()
+  "Test de-indentation for the elif keyword."
+  (python-tests-with-temp-buffer
+      "
+if save:
+    try:
+        write_to_disk(data)
+    finally:
+        cleanup()
+        elif
+"
+    (python-tests-look-at "elif\n")
+    (should (eq (car (python-indent-context)) 'dedenter-statement))
+    (should (= (python-indent-calculate-indentation) 0))
+    (should (equal (python-indent-calculate-levels) '(0)))))
+
+(ert-deftest python-indent-dedenters-2 ()
+  "Test de-indentation for the else keyword."
+  (python-tests-with-temp-buffer
+      "
+if save:
+    try:
+        write_to_disk(data)
+    except IOError:
+        msg = 'Error saving to disk'
+        message(msg)
+        logger.exception(msg)
+    except Exception:
+        if hide_details:
+            logger.exception('Unhandled exception')
+            else
+    finally:
+        data.free()
+"
+    (python-tests-look-at "else\n")
+    (should (eq (car (python-indent-context)) 'dedenter-statement))
+    (should (= (python-indent-calculate-indentation) 8))
+    (should (equal (python-indent-calculate-levels) '(0 4 8)))))
+
+(ert-deftest python-indent-dedenters-3 ()
+  "Test de-indentation for the except keyword."
+  (python-tests-with-temp-buffer
+      "
+if save:
+    try:
+        write_to_disk(data)
+        except
+"
+    (python-tests-look-at "except\n")
+    (should (eq (car (python-indent-context)) 'dedenter-statement))
+    (should (= (python-indent-calculate-indentation) 4))
+    (should (equal (python-indent-calculate-levels) '(4)))))
+
+(ert-deftest python-indent-dedenters-4 ()
+  "Test de-indentation for the finally keyword."
+  (python-tests-with-temp-buffer
+      "
+if save:
+    try:
+        write_to_disk(data)
+        finally
+"
+    (python-tests-look-at "finally\n")
+    (should (eq (car (python-indent-context)) 'dedenter-statement))
+    (should (= (python-indent-calculate-indentation) 4))
+    (should (equal (python-indent-calculate-levels) '(4)))))
+
+(ert-deftest python-indent-dedenters-5 ()
+  "Test invalid levels are skipped in a complex example."
+  (python-tests-with-temp-buffer
+      "
+if save:
+    try:
+        write_to_disk(data)
+    except IOError:
+        msg = 'Error saving to disk'
+        message(msg)
+        logger.exception(msg)
+    finally:
+        if cleanup:
+            do_cleanup()
+        else
+"
+    (python-tests-look-at "else\n")
+    (should (eq (car (python-indent-context)) 'dedenter-statement))
+    (should (= (python-indent-calculate-indentation) 8))
+    (should (equal (python-indent-calculate-levels) '(0 8)))))
+
+(ert-deftest python-indent-dedenters-6 ()
+  "Test indentation is zero when no opening block for dedenter."
+  (python-tests-with-temp-buffer
+      "
+try:
+    # if save:
+        write_to_disk(data)
+        else
+"
+    (python-tests-look-at "else\n")
+    (should (eq (car (python-indent-context)) 'dedenter-statement))
+    (should (= (python-indent-calculate-indentation) 0))
+    (should (equal (python-indent-calculate-levels) '(0)))))
+
+(ert-deftest python-indent-dedenters-7 ()
+  "Test indentation case from Bug#15163."
+  (python-tests-with-temp-buffer
+      "
+if a:
+    if b:
+        pass
+    else:
+        pass
+        else:
+"
+    (python-tests-look-at "else:" 2)
+    (should (eq (car (python-indent-context)) 'dedenter-statement))
+    (should (= (python-indent-calculate-indentation) 0))
+    (should (equal (python-indent-calculate-levels) '(0)))))
 
 
 ;;; Navigation
@@ -2428,9 +2522,9 @@ if width == 0 and height == 0 and \\\\
    (python-util-forward-comment -1)
    (should (python-info-end-of-block-p))))
 
-(ert-deftest python-info-closing-block-1 ()
+(ert-deftest python-info-dedenter-opening-block-position-1 ()
   (python-tests-with-temp-buffer
-   "
+      "
 if request.user.is_authenticated():
     try:
         profile = request.user.get_profile()
@@ -2445,26 +2539,26 @@ if request.user.is_authenticated():
         profile.views += 1
         profile.save()
 "
-   (python-tests-look-at "try:")
-   (should (not (python-info-closing-block)))
-   (python-tests-look-at "except Profile.DoesNotExist:")
-   (should (= (python-tests-look-at "try:" -1 t)
-              (python-info-closing-block)))
-   (python-tests-look-at "else:")
-   (should (= (python-tests-look-at "except Profile.DoesNotExist:" -1 t)
-              (python-info-closing-block)))
-   (python-tests-look-at "if profile.stats:")
-   (should (not (python-info-closing-block)))
-   (python-tests-look-at "else:")
-   (should (= (python-tests-look-at "if profile.stats:" -1 t)
-              (python-info-closing-block)))
-   (python-tests-look-at "finally:")
-   (should (= (python-tests-look-at "else:" -2 t)
-              (python-info-closing-block)))))
+    (python-tests-look-at "try:")
+    (should (not (python-info-dedenter-opening-block-position)))
+    (python-tests-look-at "except Profile.DoesNotExist:")
+    (should (= (python-tests-look-at "try:" -1 t)
+               (python-info-dedenter-opening-block-position)))
+    (python-tests-look-at "else:")
+    (should (= (python-tests-look-at "except Profile.DoesNotExist:" -1 t)
+               (python-info-dedenter-opening-block-position)))
+    (python-tests-look-at "if profile.stats:")
+    (should (not (python-info-dedenter-opening-block-position)))
+    (python-tests-look-at "else:")
+    (should (= (python-tests-look-at "if profile.stats:" -1 t)
+               (python-info-dedenter-opening-block-position)))
+    (python-tests-look-at "finally:")
+    (should (= (python-tests-look-at "else:" -2 t)
+               (python-info-dedenter-opening-block-position)))))
 
-(ert-deftest python-info-closing-block-2 ()
+(ert-deftest python-info-dedenter-opening-block-position-2 ()
   (python-tests-with-temp-buffer
-   "
+      "
 if request.user.is_authenticated():
     profile = Profile.objects.get_or_create(user=request.user)
     if profile.stats:
@@ -2475,10 +2569,440 @@ data = {
 }
     'else'
 "
-   (python-tests-look-at "'else': 'do it'")
-   (should (not (python-info-closing-block)))
-   (python-tests-look-at "'else'")
-   (should (not (python-info-closing-block)))))
+    (python-tests-look-at "'else': 'do it'")
+    (should (not (python-info-dedenter-opening-block-position)))
+    (python-tests-look-at "'else'")
+    (should (not (python-info-dedenter-opening-block-position)))))
+
+(ert-deftest python-info-dedenter-opening-block-position-3 ()
+  (python-tests-with-temp-buffer
+      "
+if save:
+    try:
+        write_to_disk(data)
+    except IOError:
+        msg = 'Error saving to disk'
+        message(msg)
+        logger.exception(msg)
+    except Exception:
+        if hide_details:
+            logger.exception('Unhandled exception')
+            else
+    finally:
+        data.free()
+"
+    (python-tests-look-at "try:")
+    (should (not (python-info-dedenter-opening-block-position)))
+
+    (python-tests-look-at "except IOError:")
+    (should (= (python-tests-look-at "try:" -1 t)
+               (python-info-dedenter-opening-block-position)))
+
+    (python-tests-look-at "except Exception:")
+    (should (= (python-tests-look-at "except IOError:" -1 t)
+               (python-info-dedenter-opening-block-position)))
+
+    (python-tests-look-at "if hide_details:")
+    (should (not (python-info-dedenter-opening-block-position)))
+
+    ;; check indentation modifies the detected opening block
+    (python-tests-look-at "else")
+    (should (= (python-tests-look-at "if hide_details:" -1 t)
+               (python-info-dedenter-opening-block-position)))
+
+    (indent-line-to 8)
+    (should (= (python-tests-look-at "if hide_details:" -1 t)
+               (python-info-dedenter-opening-block-position)))
+
+    (indent-line-to 4)
+    (should (= (python-tests-look-at "except Exception:" -1 t)
+               (python-info-dedenter-opening-block-position)))
+
+    (indent-line-to 0)
+    (should (= (python-tests-look-at "if save:" -1 t)
+               (python-info-dedenter-opening-block-position)))))
+
+(ert-deftest python-info-dedenter-opening-block-positions-1 ()
+  (python-tests-with-temp-buffer
+      "
+if save:
+    try:
+        write_to_disk(data)
+    except IOError:
+        msg = 'Error saving to disk'
+        message(msg)
+        logger.exception(msg)
+    except Exception:
+        if hide_details:
+            logger.exception('Unhandled exception')
+            else
+    finally:
+        data.free()
+"
+    (python-tests-look-at "try:")
+    (should (not (python-info-dedenter-opening-block-positions)))
+
+    (python-tests-look-at "except IOError:")
+    (should
+     (equal (list
+             (python-tests-look-at "try:" -1 t))
+            (python-info-dedenter-opening-block-positions)))
+
+    (python-tests-look-at "except Exception:")
+    (should
+     (equal (list
+             (python-tests-look-at "except IOError:" -1 t))
+            (python-info-dedenter-opening-block-positions)))
+
+    (python-tests-look-at "if hide_details:")
+    (should (not (python-info-dedenter-opening-block-positions)))
+
+    ;; check indentation does not modify the detected opening blocks
+    (python-tests-look-at "else")
+    (should
+     (equal (list
+             (python-tests-look-at "if hide_details:" -1 t)
+             (python-tests-look-at "except Exception:" -1 t)
+             (python-tests-look-at "if save:" -1 t))
+            (python-info-dedenter-opening-block-positions)))
+
+    (indent-line-to 8)
+    (should
+     (equal (list
+             (python-tests-look-at "if hide_details:" -1 t)
+             (python-tests-look-at "except Exception:" -1 t)
+             (python-tests-look-at "if save:" -1 t))
+            (python-info-dedenter-opening-block-positions)))
+
+    (indent-line-to 4)
+    (should
+     (equal (list
+             (python-tests-look-at "if hide_details:" -1 t)
+             (python-tests-look-at "except Exception:" -1 t)
+             (python-tests-look-at "if save:" -1 t))
+            (python-info-dedenter-opening-block-positions)))
+
+    (indent-line-to 0)
+    (should
+     (equal (list
+             (python-tests-look-at "if hide_details:" -1 t)
+             (python-tests-look-at "except Exception:" -1 t)
+             (python-tests-look-at "if save:" -1 t))
+            (python-info-dedenter-opening-block-positions)))))
+
+(ert-deftest python-info-dedenter-opening-block-positions-2 ()
+  "Test detection of opening blocks for elif."
+  (python-tests-with-temp-buffer
+      "
+if var:
+    if var2:
+        something()
+    elif var3:
+        something_else()
+        elif
+"
+    (python-tests-look-at "elif var3:")
+    (should
+     (equal (list
+             (python-tests-look-at "if var2:" -1 t)
+             (python-tests-look-at "if var:" -1 t))
+            (python-info-dedenter-opening-block-positions)))
+
+    (python-tests-look-at "elif\n")
+    (should
+     (equal (list
+             (python-tests-look-at "elif var3:" -1 t)
+             (python-tests-look-at "if var:" -1 t))
+            (python-info-dedenter-opening-block-positions)))))
+
+(ert-deftest python-info-dedenter-opening-block-positions-3 ()
+  "Test detection of opening blocks for else."
+  (python-tests-with-temp-buffer
+      "
+try:
+    something()
+except:
+    if var:
+        if var2:
+            something()
+        elif var3:
+            something_else()
+            else
+
+if var4:
+    while var5:
+        var4.pop()
+        else
+
+    for value in var6:
+        if value > 0:
+            print value
+            else
+"
+    (python-tests-look-at "else\n")
+    (should
+     (equal (list
+             (python-tests-look-at "elif var3:" -1 t)
+             (python-tests-look-at "if var:" -1 t)
+             (python-tests-look-at "except:" -1 t))
+            (python-info-dedenter-opening-block-positions)))
+
+    (python-tests-look-at "else\n")
+    (should
+     (equal (list
+             (python-tests-look-at "while var5:" -1 t)
+             (python-tests-look-at "if var4:" -1 t))
+            (python-info-dedenter-opening-block-positions)))
+
+    (python-tests-look-at "else\n")
+    (should
+     (equal (list
+             (python-tests-look-at "if value > 0:" -1 t)
+             (python-tests-look-at "for value in var6:" -1 t)
+             (python-tests-look-at "if var4:" -1 t))
+            (python-info-dedenter-opening-block-positions)))))
+
+(ert-deftest python-info-dedenter-opening-block-positions-4 ()
+  "Test detection of opening blocks for except."
+  (python-tests-with-temp-buffer
+      "
+try:
+    something()
+except ValueError:
+    something_else()
+    except
+"
+    (python-tests-look-at "except ValueError:")
+    (should
+     (equal (list (python-tests-look-at "try:" -1 t))
+            (python-info-dedenter-opening-block-positions)))
+
+    (python-tests-look-at "except\n")
+    (should
+     (equal (list (python-tests-look-at "except ValueError:" -1 t))
+            (python-info-dedenter-opening-block-positions)))))
+
+(ert-deftest python-info-dedenter-opening-block-positions-5 ()
+  "Test detection of opening blocks for finally."
+  (python-tests-with-temp-buffer
+      "
+try:
+    something()
+    finally
+
+try:
+    something_else()
+except:
+    logger.exception('something went wrong')
+    finally
+
+try:
+    something_else_else()
+except Exception:
+    logger.exception('something else went wrong')
+else:
+    print ('all good')
+    finally
+"
+    (python-tests-look-at "finally\n")
+    (should
+     (equal (list (python-tests-look-at "try:" -1 t))
+            (python-info-dedenter-opening-block-positions)))
+
+    (python-tests-look-at "finally\n")
+    (should
+     (equal (list (python-tests-look-at "except:" -1 t))
+            (python-info-dedenter-opening-block-positions)))
+
+    (python-tests-look-at "finally\n")
+    (should
+     (equal (list (python-tests-look-at "else:" -1 t))
+            (python-info-dedenter-opening-block-positions)))))
+
+(ert-deftest python-info-dedenter-opening-block-message-1 ()
+  "Test dedenters inside strings are ignored."
+  (python-tests-with-temp-buffer
+      "'''
+try:
+    something()
+except:
+    logger.exception('something went wrong')
+'''
+"
+    (python-tests-look-at "except\n")
+    (should (not (python-info-dedenter-opening-block-message)))))
+
+(ert-deftest python-info-dedenter-opening-block-message-2 ()
+  "Test except keyword."
+  (python-tests-with-temp-buffer
+      "
+try:
+    something()
+except:
+    logger.exception('something went wrong')
+"
+    (python-tests-look-at "except:")
+    (should (string=
+             "Closes try:"
+             (substring-no-properties
+              (python-info-dedenter-opening-block-message))))
+    (end-of-line)
+    (should (string=
+             "Closes try:"
+             (substring-no-properties
+              (python-info-dedenter-opening-block-message))))))
+
+(ert-deftest python-info-dedenter-opening-block-message-3 ()
+  "Test else keyword."
+  (python-tests-with-temp-buffer
+      "
+try:
+    something()
+except:
+    logger.exception('something went wrong')
+else:
+    logger.debug('all good')
+"
+    (python-tests-look-at "else:")
+    (should (string=
+             "Closes except:"
+             (substring-no-properties
+              (python-info-dedenter-opening-block-message))))
+    (end-of-line)
+    (should (string=
+             "Closes except:"
+             (substring-no-properties
+              (python-info-dedenter-opening-block-message))))))
+
+(ert-deftest python-info-dedenter-opening-block-message-4 ()
+  "Test finally keyword."
+  (python-tests-with-temp-buffer
+      "
+try:
+    something()
+except:
+    logger.exception('something went wrong')
+else:
+    logger.debug('all good')
+finally:
+    clean()
+"
+    (python-tests-look-at "finally:")
+    (should (string=
+             "Closes else:"
+             (substring-no-properties
+              (python-info-dedenter-opening-block-message))))
+    (end-of-line)
+    (should (string=
+             "Closes else:"
+             (substring-no-properties
+              (python-info-dedenter-opening-block-message))))))
+
+(ert-deftest python-info-dedenter-opening-block-message-5 ()
+  "Test elif keyword."
+  (python-tests-with-temp-buffer
+      "
+if a:
+    something()
+elif b:
+"
+    (python-tests-look-at "elif b:")
+    (should (string=
+             "Closes if a:"
+             (substring-no-properties
+              (python-info-dedenter-opening-block-message))))
+    (end-of-line)
+    (should (string=
+             "Closes if a:"
+             (substring-no-properties
+              (python-info-dedenter-opening-block-message))))))
+
+
+(ert-deftest python-info-dedenter-statement-p-1 ()
+  "Test dedenters inside strings are ignored."
+  (python-tests-with-temp-buffer
+      "'''
+try:
+    something()
+except:
+    logger.exception('something went wrong')
+'''
+"
+    (python-tests-look-at "except\n")
+    (should (not (python-info-dedenter-statement-p)))))
+
+(ert-deftest python-info-dedenter-statement-p-2 ()
+  "Test except keyword."
+  (python-tests-with-temp-buffer
+      "
+try:
+    something()
+except:
+    logger.exception('something went wrong')
+"
+    (python-tests-look-at "except:")
+    (should (= (point) (python-info-dedenter-statement-p)))
+    (end-of-line)
+    (should (= (save-excursion
+                 (back-to-indentation)
+                 (point))
+               (python-info-dedenter-statement-p)))))
+
+(ert-deftest python-info-dedenter-statement-p-3 ()
+  "Test else keyword."
+  (python-tests-with-temp-buffer
+      "
+try:
+    something()
+except:
+    logger.exception('something went wrong')
+else:
+    logger.debug('all good')
+"
+    (python-tests-look-at "else:")
+    (should (= (point) (python-info-dedenter-statement-p)))
+    (end-of-line)
+    (should (= (save-excursion
+                 (back-to-indentation)
+                 (point))
+               (python-info-dedenter-statement-p)))))
+
+(ert-deftest python-info-dedenter-statement-p-4 ()
+  "Test finally keyword."
+  (python-tests-with-temp-buffer
+      "
+try:
+    something()
+except:
+    logger.exception('something went wrong')
+else:
+    logger.debug('all good')
+finally:
+    clean()
+"
+    (python-tests-look-at "finally:")
+    (should (= (point) (python-info-dedenter-statement-p)))
+    (end-of-line)
+    (should (= (save-excursion
+                 (back-to-indentation)
+                 (point))
+               (python-info-dedenter-statement-p)))))
+
+(ert-deftest python-info-dedenter-statement-p-5 ()
+  "Test elif keyword."
+  (python-tests-with-temp-buffer
+      "
+if a:
+    something()
+elif b:
+"
+    (python-tests-look-at "elif b:")
+    (should (= (point) (python-info-dedenter-statement-p)))
+    (end-of-line)
+    (should (= (save-excursion
+                 (back-to-indentation)
+                 (point))
+               (python-info-dedenter-statement-p)))))
 
 (ert-deftest python-info-line-ends-backslash-p-1 ()
   (python-tests-with-temp-buffer

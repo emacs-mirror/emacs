@@ -1,3 +1,23 @@
+2014-07-09  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	Fix dedenters and electric colon handling. (Bug#15163)
+
+	* progmodes/python.el
+	(python-rx-constituents): Add dedenter and block-ender.
+	(python-indent-dedenters, python-indent-block-enders): Delete.
+	(python-indent-context): Return new case for dedenter-statement.
+	(python-indent-calculate-indentation): Handle new case.
+	(python-indent-calculate-levels): Fix levels calculation for
+	dedenter statements.
+	(python-indent-post-self-insert-function): Fix colon handling.
+	(python-info-dedenter-opening-block-message): New function.
+	(python-indent-line): Use it.
+	(python-info-closing-block)
+	(python-info-closing-block-message): Remove.
+	(python-info-dedenter-opening-block-position)
+	(python-info-dedenter-opening-block-positions)
+	(python-info-dedenter-statement-p): New functions.
+
 2014-07-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/sh-script.el (sh-smie-sh-rules): Don't align with a && in

@@ -1,3 +1,40 @@
+2014-07-09  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	* automated/python-tests.el
+	(python-indent-block-enders-1)
+	(python-indent-block-enders-2): Fix tests.
+	(python-indent-block-enders-3)
+	(python-indent-block-enders-4)
+	(python-indent-block-enders-5)
+	(python-indent-dedenters-1)
+	(python-indent-dedenters-2): Remove tests.
+	(python-indent-dedenters-1)
+	(python-indent-dedenters-2)
+	(python-indent-dedenters-3)
+	(python-indent-dedenters-4)
+	(python-indent-dedenters-5)
+	(python-indent-dedenters-6)
+	(python-indent-dedenters-7)
+	(python-info-dedenter-opening-block-position-1)
+	(python-info-dedenter-opening-block-position-2)
+	(python-info-dedenter-opening-block-position-3)
+	(python-info-dedenter-opening-block-positions-1)
+	(python-info-dedenter-opening-block-positions-2)
+	(python-info-dedenter-opening-block-positions-3)
+	(python-info-dedenter-opening-block-positions-4)
+	(python-info-dedenter-opening-block-positions-5)
+	(python-info-dedenter-opening-block-message-1)
+	(python-info-dedenter-opening-block-message-2)
+	(python-info-dedenter-opening-block-message-3)
+	(python-info-dedenter-opening-block-message-4)
+	(python-info-dedenter-opening-block-message-5)
+	(python-info-dedenter-statement-p-1)
+	(python-info-dedenter-statement-p-2)
+	(python-info-dedenter-statement-p-3)
+	(python-info-dedenter-statement-p-4)
+	(python-info-dedenter-statement-p-5): New tests.
+
+
 2014-07-01  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
 	* automated/python-tests.el
