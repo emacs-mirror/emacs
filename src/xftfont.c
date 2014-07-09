@@ -343,8 +343,6 @@ xftfont_open (struct frame *f, Lisp_Object entity, int pixel_size)
   font_object = font_build_object (VECSIZE (struct xftfont_info),
 				   Qxft, entity, size);
   ASET (font_object, FONT_FILE_INDEX, filename);
-  ASET (font_object, FONT_FORMAT_INDEX,
-	ftfont_font_format (xftfont->pattern, filename));
   font = XFONT_OBJECT (font_object);
   font->pixel_size = size;
   font->driver = &xftfont_driver;

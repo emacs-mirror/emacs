@@ -127,8 +127,6 @@ uniscribe_open (struct frame *f, Lisp_Object font_entity, int pixel_size)
   /* Uniscribe backend uses glyph indices.  */
   uniscribe_font->w32_font.glyph_idx = ETO_GLYPH_INDEX;
 
-  /* Mark the format as opentype  */
-  uniscribe_font->w32_font.font.props[FONT_FORMAT_INDEX] = Qopentype;
   uniscribe_font->w32_font.font.driver = &uniscribe_font_driver;
 
   return font_object;

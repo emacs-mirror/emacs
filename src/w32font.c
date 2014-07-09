@@ -886,7 +886,7 @@ w32font_open_internal (struct frame *f, Lisp_Object font_entity,
   LOGFONT logfont;
   HDC dc;
   HFONT hfont, old_font;
-  Lisp_Object val, extra;
+  Lisp_Object val;
   struct w32font_info *w32_font;
   struct font * font;
   OUTLINETEXTMETRICW* metrics = NULL;
@@ -979,21 +979,6 @@ w32font_open_internal (struct frame *f, Lisp_Object font_entity,
   font->default_ascent = w32_font->metrics.tmAscent;
   font->pixel_size = size;
   font->driver = &w32font_driver;
-  /* Use format cached during list, as the information we have access to
-     here is incomplete.  */
-  extra = AREF (font_entity, FONT_EXTRA_INDEX);
-  if (CONSP (extra))
-    {
-      val = assq_no_quit (QCformat, extra);
-      if (CONSP (val))
-        font->props[FONT_FORMAT_INDEX] = XCDR (val);
-      else
-        font->props[FONT_FORMAT_INDEX] = Qunknown;
-    }
-  else
-    font->props[FONT_FORMAT_INDEX] = Qunknown;
-
-  font->props[FONT_FILE_INDEX] = Qnil;
   font->encoding_charset = -1;
   font->repertory_charset = -1;
   /* TODO: do we really want the minimum width here, which could be negative? */

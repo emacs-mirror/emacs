@@ -804,8 +804,6 @@ xfont_open (struct frame *f, Lisp_Object entity, int pixel_size)
       ASET (font_object, FONT_NAME_INDEX, make_string (buf, len));
     }
   ASET (font_object, FONT_FULLNAME_INDEX, fullname);
-  ASET (font_object, FONT_FILE_INDEX, Qnil);
-  ASET (font_object, FONT_FORMAT_INDEX, Qx);
   font = XFONT_OBJECT (font_object);
   ((struct xfont_info *) font)->xfont = xfont;
   ((struct xfont_info *) font)->display = FRAME_X_DISPLAY (f);

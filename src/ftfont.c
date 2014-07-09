@@ -1223,7 +1223,6 @@ ftfont_open (struct frame *f, Lisp_Object entity, int pixel_size)
   font_object = font_build_object (VECSIZE (struct ftfont_info),
 				   Qfreetype, entity, size);
   ASET (font_object, FONT_FILE_INDEX, filename);
-  ASET (font_object, FONT_FORMAT_INDEX, ftfont_font_format (NULL, filename));
   font = XFONT_OBJECT (font_object);
   ftfont_info = (struct ftfont_info *) font;
   ftfont_info->ft_size = ft_face->size;
@@ -2586,46 +2585,6 @@ ftfont_variation_glyphs (struct font *font, int c, unsigned variations[256])
 
 #endif	/* HAVE_OTF_GET_VARIATION_GLYPHS */
 #endif	/* HAVE_LIBOTF */
-
-Lisp_Object
-ftfont_font_format (FcPattern *pattern, Lisp_Object filename)
-{
-  FcChar8 *str;
-
-#ifdef FC_FONTFORMAT
-  if (pattern)
-    {
-      if (FcPatternGetString (pattern, FC_FONTFORMAT, 0, &str) != FcResultMatch)
-	return Qnil;
-      if (strcmp ((char *) str, "TrueType") == 0)
-	return intern ("truetype");
-      if (strcmp ((char *) str, "Type 1") == 0)
-	return intern ("type1");
-      if (strcmp ((char *) str, "PCF") == 0)
-	return intern ("pcf");
-      if (strcmp ((char *) str, "BDF") == 0)
-	return intern ("bdf");
-    }
-#endif  /* FC_FONTFORMAT */
-  if (STRINGP (filename))
-    {
-      int len = SBYTES (filename);
-
-      if (len >= 4)
-	{
-	  str = (FcChar8 *) (SDATA (filename) + len - 4);
-	  if (xstrcasecmp ((char *) str, ".ttf") == 0)
-	    return intern ("truetype");
-	  if (xstrcasecmp ((char *) str, ".pfb") == 0)
-	    return intern ("type1");
-	  if (xstrcasecmp ((char *) str, ".pcf") == 0)
-	    return intern ("pcf");
-	  if (xstrcasecmp ((char *) str, ".bdf") == 0)
-	    return intern ("bdf");
-	}
-    }
-  return intern ("unknown");
-}
 
 static const char *const ftfont_booleans [] = {
   ":antialias",

@@ -1,3 +1,20 @@
+2014-07-09  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Next minor cleanup of font subsystem.
+	* font.h (enum font_property_index): Remove FONT_ENTITY_INDEX (no
+	users) and FONT_FORMAT_INDEX (set by a few font drivers but never
+	really used).
+	(FONT_ENTITY_NOT_LOADABLE, FONT_ENTITY_SET_NOT_LOADABLE): Remove;
+	unused.
+	* ftfont.h (ftfont_font_format): Remove prototype.
+	* ftfont.c (ftfont_font_format): Remove; now unused.
+	(ftfont_open):
+	* nsfont.m (nsfont_open):
+	* w32font.c (w32font_open_internal):
+	* w32uniscribe.c (uniscribe_open):
+	* xfont.c (xfont_open):
+	* xftfont.c (xftfont_open): All users changed.
+
 2014-07-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (move_it_to): Adjust calculation of line_start_x to what

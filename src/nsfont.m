@@ -830,9 +830,6 @@ nsfont_open (struct frame *f, Lisp_Object font_entity, int pixel_size)
   font->baseline_offset = 0;
   font->relative_compose = 0;
 
-  font->props[FONT_FORMAT_INDEX] = Qns;
-  font->props[FONT_FILE_INDEX] = Qnil;
-
   {
     const char *fontName = [[nsfont fontName] UTF8String];
 

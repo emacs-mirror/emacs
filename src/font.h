@@ -162,9 +162,6 @@ enum font_property_index
     /* List of font-objects opened from the font-entity.  */
     FONT_OBJLIST_INDEX = FONT_SPEC_MAX,
 
-    /* Font-entity from which the font-object is opened.  */
-    FONT_ENTITY_INDEX = FONT_SPEC_MAX,
-
     /* This value is the length of font-entity vector.  */
     FONT_ENTITY_MAX,
 
@@ -181,9 +178,6 @@ enum font_property_index
     /* File name of the font or nil if a file associated with the font
        is not available.  */
     FONT_FILE_INDEX,
-
-    /* Format of the font (symbol) or nil if unknown.  */
-    FONT_FORMAT_INDEX,
 
     /* This value is the length of font-object vector.  */
     FONT_OBJECT_MAX
@@ -441,15 +435,6 @@ struct font_bitmap
 /* True iff X is font-object.  */
 #define FONT_OBJECT_P(x)	\
   (FONTP (x) && (ASIZE (x) & PSEUDOVECTOR_SIZE_MASK) == FONT_OBJECT_MAX)
-
-/* True iff ENTITY can't be loaded.  */
-#define FONT_ENTITY_NOT_LOADABLE(entity)	\
-  EQ (AREF (entity, FONT_OBJLIST_INDEX), Qt)
-
-/* Flag ENTITY not loadable.  */
-#define FONT_ENTITY_SET_NOT_LOADABLE(entity)	\
-  ASET (entity, FONT_OBJLIST_INDEX, Qt)
-
 
 /* Check macros for various font-related objects.  */
 
