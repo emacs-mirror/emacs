@@ -1,3 +1,8 @@
+2014-07-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* font.c, font.h (font_unparse_fcname): Now static.
+	Define only if HAVE_XFT || HAVE_FREETYPE || HAVE_NS.
+
 2014-07-09  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Next minor cleanup of font subsystem.
