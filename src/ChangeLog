@@ -15,6 +15,9 @@
 	* xfont.c (xfont_open):
 	* xftfont.c (xftfont_open): All users changed.
 
+	* coding.c (ALLOC_CONVERSION_WORK_AREA): Prefer ptrdiff_t to int and
+	so avoid integer overflow if decoded gap size exceeds INT_MAX bytes.
+
 2014-07-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (move_it_to): Adjust calculation of line_start_x to what
