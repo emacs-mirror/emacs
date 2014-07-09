@@ -835,12 +835,10 @@ back_comment (ptrdiff_t from, ptrdiff_t from_byte, ptrdiff_t stop,
       from_byte = comstart_byte;
       UPDATE_SYNTAX_TABLE_FORWARD (from - 1);
     }
-  else
+  else lossage:
     {
       struct lisp_parse_state state;
-      bool adjusted;
-    lossage:
-      adjusted = true;
+      bool adjusted = true;
       /* We had two kinds of string delimiters mixed up
 	 together.  Decode this going forwards.
 	 Scan fwd from a known safe place (beginning-of-defun)

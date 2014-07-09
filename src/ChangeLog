@@ -1,5 +1,7 @@
 2014-07-09  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* syntax.c (back_comment): Use more-natural location for label.
+
 	* font.c, font.h (font_unparse_fcname): Now static.
 	Define only if HAVE_XFT || HAVE_FREETYPE || HAVE_NS.
 
