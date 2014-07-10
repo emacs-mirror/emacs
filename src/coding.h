@@ -434,11 +434,37 @@ struct coding_system
 
   /* Flag bits of the coding system.  The meaning of each bit is common
      to all types of coding systems.  */
-  int common_flags;
+  unsigned common_flags : 14;
 
   /* Mode bits of the coding system.  See the comments of the macros
      CODING_MODE_XXX.  */
-  unsigned int mode;
+  unsigned mode : 5;
+
+  /* The following two members specify how binary 8-bit code 128..255
+     are represented in source and destination text respectively.  True
+     means they are represented by 2-byte sequence, false means they are
+     represented by 1-byte as is (see the comment in character.h).  */
+  bool_bf src_multibyte : 1;
+  bool_bf dst_multibyte : 1;
+
+  /* True if the source of conversion is not in the member
+     `charbuf', but at `src_object'.  */
+  bool_bf chars_at_source : 1;
+
+  /* Nonzero if the result of conversion is in `destination'
+     buffer rather than in `dst_object'.  */
+  bool_bf raw_destination : 1;
+
+  /* Set to true if charbuf contains an annotation.  */
+  bool_bf annotated : 1;
+
+  /* Used internally in coding.c.  See the comment of detect_ascii.  */
+  unsigned eol_seen : 3;
+
+  /* Finish status of code conversion.  */
+  ENUM_BF (coding_result_code) result : 3;
+
+  int max_charset_id;
 
   /* Detailed information specific to each type of coding system.  */
   union
@@ -451,15 +477,7 @@ struct coding_system
       struct undecided_spec undecided;
     } spec;
 
-  int max_charset_id;
   unsigned char *safe_charsets;
-
-  /* The following two members specify how binary 8-bit code 128..255
-     are represented in source and destination text respectively.  True
-     means they are represented by 2-byte sequence, false means they are
-     represented by 1-byte as is (see the comment in character.h).  */
-  bool_bf src_multibyte : 1;
-  bool_bf dst_multibyte : 1;
 
   /* How may heading bytes we can skip for decoding.  This is set to
      -1 in setup_coding_system, and updated by detect_coding.  So,
@@ -472,20 +490,8 @@ struct coding_system
      sequence.  Set by detect_coding_utf_8.  */
   ptrdiff_t detected_utf8_bytes, detected_utf8_chars;
 
-  /* Used internally in coding.c.  See the comment of detect_ascii.  */
-  int eol_seen;
-
   /* The following members are set by encoding/decoding routine.  */
   ptrdiff_t produced, produced_char, consumed, consumed_char;
-
-  /* Number of error source data found in a decoding routine.  */
-  ptrdiff_t errors;
-
-  /* Store the positions of error source data.  */
-  ptrdiff_t *error_positions;
-
-  /* Finish status of code conversion.  */
-  enum coding_result_code result;
 
   ptrdiff_t src_pos, src_pos_byte, src_chars, src_bytes;
   Lisp_Object src_object;
@@ -509,17 +515,6 @@ struct coding_system
      handle the following data..  */
   int *charbuf;
   int charbuf_size, charbuf_used;
-
-  /* True if the source of conversion is not in the member
-     `charbuf', but at `src_object'.  */
-  bool_bf chars_at_source : 1;
-
-  /* Nonzero if the result of conversion is in `destination'
-     buffer rather than in `dst_object'.  */
-  bool_bf raw_destination : 1;
-
-  /* Set to true if charbuf contains an annotation.  */
-  bool_bf annotated : 1;
 
   unsigned char carryover[64];
   int carryover_bytes;

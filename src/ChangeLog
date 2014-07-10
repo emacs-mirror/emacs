@@ -1,3 +1,14 @@
+2014-07-10  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* coding.h (struct coding_system): Remove 'error_positions' (unused)
+	and 'errors' (set but unused) fields.  Use bitfields for 'eol_seen',
+	'mode', 'common_flags' and 'result' fields, adjust layout to avoid
+	extra padding and shrink struct coding_system by 56 bytes (x86_64).
+	* coding.c (decode_coding_utf_8, decode_coding_utf_16)
+	(decode_coding_emacs_mule, decode_coding_iso_2022, decode_coding_sjis)
+	(decode_coding_big5, decode_coding_charset, decode_coding)
+	(encode_coding): Adjust users.
+
 2014-07-09  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* syntax.c (back_comment): Use more-natural location for label.
