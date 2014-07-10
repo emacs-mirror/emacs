@@ -1798,19 +1798,19 @@ OP-TYPE specifies the file operation being performed (for message to user)."
 
 (defun warn-maybe-out-of-memory (size)
   "Warn if an attempt to open file of SIZE bytes may run out of memory."
-  (let ((meminfo (memory-info)))
-    (when (consp meminfo)
-      (let ((total-free-memory (+ (nth 1 meminfo) (nth 3 meminfo))))
-	(when (and (not (zerop size))
-		   (> (/ size 1024) total-free-memory))
-	  (warn
-	   "You are trying to open file which size (%s)
+  (when (and (numberp size) (not (zerop size)))
+    (let ((meminfo (memory-info)))
+      (when (consp meminfo)
+	(let ((total-free-memory (+ (nth 1 meminfo) (nth 3 meminfo))))
+	  (when (> (/ size 1024) total-free-memory)
+	    (warn
+	     "You are trying to open file which size (%s)
 exceeds an amount of available free memory (%s).  If that
 fails, try to open it with `find-file-literally' (but note
 that some characters may be displayed incorrectly)."
-	   (file-size-human-readable size)
-	   (file-size-human-readable
-	    (* (float total-free-memory) 1024))))))))
+	     (file-size-human-readable size)
+	     (file-size-human-readable
+	      (* (float total-free-memory) 1024)))))))))
 
 (defun find-file-noselect (filename &optional nowarn rawfile wildcards)
   "Read file FILENAME into a buffer and return the buffer.
