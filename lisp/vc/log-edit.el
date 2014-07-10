@@ -905,7 +905,8 @@ where LOGBUFFER is the name of the ChangeLog buffer, and each
              ;; that memoizing which is undesired here.
              (setq change-log-default-name nil)
              (find-change-log)))))
-    (when (file-exists-p changelog-file-name)
+    (when (or (find-buffer-visiting changelog-file-name)
+              (file-exists-p changelog-file-name))
       (with-current-buffer (find-file-noselect changelog-file-name)
         (unless (eq major-mode 'change-log-mode) (change-log-mode))
         (goto-char (point-min))
