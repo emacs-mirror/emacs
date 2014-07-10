@@ -6955,6 +6955,35 @@ system_process_attributes (Lisp_Object pid)
   return attrs;
 }
 
+int
+w32_memory_info (unsigned long long *totalram, unsigned long long *freeram,
+		 unsigned long long *totalswap, unsigned long long *freeswap)
+{
+  MEMORYSTATUS memst;
+  MEMORY_STATUS_EX memstex;
+
+  /* Use GlobalMemoryStatusEx if available, as it can report more than
+     2GB of memory.  */
+  if (global_memory_status_ex (&memstex))
+    {
+      *totalram  = memstex.ullTotalPhys;
+      *freeram   = memstex.ullAvailPhys;
+      *totalswap = memstex.ullTotalPageFile;
+      *freeswap  = memstex.ullAvailPageFile;
+      return 0;
+    }
+  else if (global_memory_status (&memst))
+    {
+      *totalram = memst.dwTotalPhys;
+      *freeram   = memst.dwAvailPhys;
+      *totalswap = memst.dwTotalPageFile;
+      *freeswap  = memst.dwAvailPageFile;
+      return 0;
+    }
+  else
+    return -1;
+}
+
 
 /* Wrappers for  winsock functions to map between our file descriptors
    and winsock's handles; also set h_errno for convenience.

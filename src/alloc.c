@@ -6875,7 +6875,7 @@ All values are in Kbytes.  If there is no swap space, last two
 values are zero.  If the system is not supported, return nil.  */)
   (void)
 {
-#ifdef HAVE_LINUX_SYSINFO
+#if defined HAVE_LINUX_SYSINFO
   struct sysinfo si;
   uintmax_t units;
 
@@ -6885,12 +6885,22 @@ values are zero.  If the system is not supported, return nil.  */)
   units = si.mem_unit;
 #else
   units = 1;
-#endif  
+#endif
   return list4i ((uintmax_t) si.totalram * units / 1024,
 		 (uintmax_t) si.freeram * units / 1024,
 		 (uintmax_t) si.totalswap * units / 1024,
 		 (uintmax_t) si.freeswap * units / 1024);
-#else /* not HAVE_LINUX_SYSINFO */
+#elif defined WINDOWSNT
+  unsigned long long totalram, freeram, totalswap, freeswap;
+
+  if (w32_memory_info (&totalram, &freeram, &totalswap, &freeswap) == 0)
+    return list4i ((uintmax_t) totalram / 1024,
+		   (uintmax_t) freeram / 1024,
+		   (uintmax_t) totalswap / 1024,
+		   (uintmax_t) freeswap / 1024);
+  else
+    return Qnil;
+#else /* not HAVE_LINUX_SYSINFO, not WINDOWSNT */
   /* FIXME: add more systems.  */
   return Qnil;
 #endif /* HAVE_LINUX_SYSINFO */

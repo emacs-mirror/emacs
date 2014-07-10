@@ -1,3 +1,10 @@
+2014-07-10  Eli Zaretskii  <eliz@gnu.org>
+
+	Implement memory-info for MS-Windows.
+	* w32.c (w32_memory_info): New function.
+	* w32.h (w32_memory_info): Prototype it.
+	* alloc.c (Fmemory_info) [WINDOWSNT]: Call it.
+
 2014-07-10  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* coding.h (struct coding_system): Remove 'error_positions' (unused)
