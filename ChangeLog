@@ -1,3 +1,8 @@
+2014-07-10  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* configure.ac: Check whether sys/sysinfo.h provides
+	Linux 'sysinfo' function and 'struct sysinfo' type.
+
 2014-06-28  Glenn Morris  <rgm@gnu.org>
 
 	* configure.ac (lwlib_deps_frag, oldxmenu_deps_frag): New output files.

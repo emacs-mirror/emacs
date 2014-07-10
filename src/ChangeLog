@@ -9,6 +9,8 @@
 	(decode_coding_big5, decode_coding_charset, decode_coding)
 	(encode_coding): Adjust users.
 
+	* alloc.c (Fmemory_info): New function.
+
 2014-07-09  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* syntax.c (back_comment): Use more-natural location for label.

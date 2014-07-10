@@ -1,3 +1,8 @@
+2014-07-10  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* files.el (warn-maybe-out-of-memory): New function.
+	(find-file-noselect): Use it.
+
 2014-07-09  Sam Steingold  <sds@gnu.org>
 
 	* progmodes/cperl-mode.el (cperl-block-p): Treat the perl keyword
