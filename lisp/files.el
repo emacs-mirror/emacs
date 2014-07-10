@@ -1804,10 +1804,10 @@ OP-TYPE specifies the file operation being performed (for message to user)."
 	(let ((total-free-memory (+ (nth 1 meminfo) (nth 3 meminfo))))
 	  (when (> (/ size 1024) total-free-memory)
 	    (warn
-	     "You are trying to open file which size (%s)
-exceeds an amount of available free memory (%s).  If that
-fails, try to open it with `find-file-literally' (but note
-that some characters may be displayed incorrectly)."
+	     "You are trying to open a file whose size (%s)
+exceeds the amount of currently available free memory (%s).
+If that fails, try to open it with `find-file-literally'
+\(but note that some characters might be displayed incorrectly)."
 	     (file-size-human-readable size)
 	     (file-size-human-readable
 	      (* (float total-free-memory) 1024)))))))))
