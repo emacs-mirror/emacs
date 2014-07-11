@@ -1786,6 +1786,14 @@ When nil, never request confirmation."
   :version "22.1"
   :type '(choice integer (const :tag "Never request confirmation" nil)))
 
+(defcustom out-of-memory-warning-percentage 50
+  "Warn if file size exceeds this percentage of available free memory.
+When nil, never issue warning."
+  :group 'files
+  :group 'find-file
+  :version "24.4"
+  :type '(choice integer (const :tag "Never issue warning" nil)))
+
 (defun abort-if-file-too-large (size op-type filename)
   "If file SIZE larger than `large-file-warning-threshold', allow user to abort.
 OP-TYPE specifies the file operation being performed (for message to user)."
@@ -1798,19 +1806,22 @@ OP-TYPE specifies the file operation being performed (for message to user)."
 
 (defun warn-maybe-out-of-memory (size)
   "Warn if an attempt to open file of SIZE bytes may run out of memory."
-  (when (and (numberp size) (not (zerop size)))
+  (when (and (numberp size) (not (zerop size))
+	     (integerp out-of-memory-warning-percentage))
     (let ((meminfo (memory-info)))
       (when (consp meminfo)
-	(let ((total-free-memory (+ (nth 1 meminfo) (nth 3 meminfo))))
-	  (when (> (/ size 1024) total-free-memory)
+	(let ((total-free-memory (float (+ (nth 1 meminfo) (nth 3 meminfo)))))
+	  (when (> (/ size 1024)
+		   (/ (* total-free-memory out-of-memory-warning-percentage)
+		      100.0))
 	    (warn
 	     "You are trying to open a file whose size (%s)
-exceeds the amount of currently available free memory (%s).
+exceeds the %S%% of currently available free memory (%s).
 If that fails, try to open it with `find-file-literally'
 \(but note that some characters might be displayed incorrectly)."
 	     (file-size-human-readable size)
-	     (file-size-human-readable
-	      (* (float total-free-memory) 1024)))))))))
+	     out-of-memory-warning-percentage
+	     (file-size-human-readable (* total-free-memory 1024)))))))))
 
 (defun find-file-noselect (filename &optional nowarn rawfile wildcards)
   "Read file FILENAME into a buffer and return the buffer.

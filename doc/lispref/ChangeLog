@@ -1,3 +1,7 @@
+2014-07-11  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* internals.texi (Garbage Collection): Mention memory-info.
+
 2014-07-11  Michael Albinus  <michael.albinus@gmx.de>
 
 	* minibuf.texi (Intro to Minibuffers, Reading a Password):

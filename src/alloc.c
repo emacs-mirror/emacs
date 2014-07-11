@@ -6875,8 +6875,9 @@ gc_sweep (void)
 
 DEFUN ("memory-info", Fmemory_info, Smemory_info, 0, 0, 0,
        doc: /* Return a list of (TOTAL-RAM FREE-RAM TOTAL-SWAP FREE-SWAP).
-All values are in Kbytes.  If there is no swap space, last two
-values are zero.  If the system is not supported, return nil.  */)
+All values are in Kbytes.  If there is no swap space,
+last two values are zero.  If the system is not supported
+or memory information can't be obtained, return nil.  */)
   (void)
 {
 #if defined HAVE_LINUX_SYSINFO
@@ -6884,7 +6885,7 @@ values are zero.  If the system is not supported, return nil.  */)
   uintmax_t units;
 
   if (sysinfo (&si))
-    emacs_abort ();
+    return Qnil;
 #ifdef LINUX_SYSINFO_UNIT
   units = si.mem_unit;
 #else

@@ -1,3 +1,8 @@
+2014-07-11  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* files.el (out-of-memory-warning-percentage): New defcustom.
+	(warn-maybe-out-of-memory): Use it.
+
 2014-07-11  Michael Albinus  <michael.albinus@gmx.de>
 
 	* subr.el (read-passwd): Use `read-hide-char' if non-nil.  Bind it
