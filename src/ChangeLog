@@ -2,6 +2,7 @@
 
 	* minibuf.c (read_minibuf_noninteractive): Finish reading on '\r',
 	not only on '\n'.
+	[WINDOWSNT]: Switch stdin to binary mode when not echoing input.
 
 	* sysdep.c (emacs_get_tty, emacs_set_tty, suppress_echo_on_tty)
 	[DOS_NT]: Implement for WINDOWSNT.
