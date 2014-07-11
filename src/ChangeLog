@@ -1,5 +1,12 @@
 2014-07-11  Eli Zaretskii  <eliz@gnu.org>
 
+	Implement memory-info for MS-DOS.
+	* dosfns.c (dos_memory_info): New function.
+	* dosfns.h (dos_memory_info): Add prototype.
+	* alloc.c (Fmemory_info) [MSDOS]: Call dos_memory_info.
+	* vm-limit.c (get_lim_data) [MSDOS]: Call dos_memory_info, instead
+	of doing some of its job.
+
 	* minibuf.c (read_minibuf_noninteractive) [WINDOWSNT]: Don't
 	reference termios structure members.
 
