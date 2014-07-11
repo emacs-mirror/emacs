@@ -1140,6 +1140,21 @@ tabs_safe_p (int fd)
   return 0;
 #endif /* DOS_NT */
 }
+
+/* Discard echoing.  */
+
+void
+suppress_echo_on_tty (int fd)
+{
+  struct emacs_tty etty;
+
+  emacs_get_tty (fd, &etty);
+#ifndef WINDOWSNT
+  etty.main.c_lflag &= ~ICANON;	/* Disable buffering */
+  etty.main.c_lflag &= ~ECHO;	/* Disable echoing */
+#endif /* ! WINDOWSNT */
+  emacs_set_tty (fd, &etty, 0);
+}
 
 /* Get terminal size from system.
    Store number of lines into *HEIGHTP and width into *WIDTHP.

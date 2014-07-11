@@ -1,3 +1,8 @@
+2014-07-11  Michael Albinus  <michael.albinus@gmx.de>
+
+	* sysdep.c (suppress_echo_on_tty): New function.
+	* minibuf.c (read_minibuf_noninteractive): Use it.
+
 2014-07-11  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* alloc.c (Fmemory_info) [HAVE_LINUX_SYSINFO]: Return nil if

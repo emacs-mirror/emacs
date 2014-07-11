@@ -38,6 +38,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "systty.h"
 extern void emacs_get_tty (int, struct emacs_tty *);
 extern int emacs_set_tty (int, struct emacs_tty *, bool);
+extern void suppress_echo_on_tty (int);
 
 /* List of buffers for use as minibuffers.
    The first element of the list is used for the outermost minibuffer
@@ -229,7 +230,7 @@ read_minibuf_noninteractive (Lisp_Object map, Lisp_Object initial,
   Lisp_Object val;
   int c;
   unsigned char hide_char = 0;
-  struct emacs_tty old, new;
+  struct emacs_tty etty;
 
   /* Check, whether we need to suppress echoing.  */
   if (CHARACTERP (Vread_hide_char))
@@ -238,13 +239,8 @@ read_minibuf_noninteractive (Lisp_Object map, Lisp_Object initial,
   /* Manipulate tty.  */
   if (hide_char)
     {
-      emacs_get_tty (fileno (stdin), &old);
-      new = old;
-#ifndef WINDOWSNT
-      new.main.c_lflag &= ~ICANON;	/* Disable buffering */
-      new.main.c_lflag &= ~ECHO;	/* Disable echoing */
-#endif
-      emacs_set_tty (fileno (stdin), &new, 0);
+      emacs_get_tty (fileno (stdin), &etty);
+      suppress_echo_on_tty (fileno (stdin));
     }
 
   fprintf (stdout, "%s", SDATA (prompt));
@@ -281,7 +277,7 @@ read_minibuf_noninteractive (Lisp_Object map, Lisp_Object initial,
   if (hide_char)
     {
       fprintf (stdout, "\n");
-      emacs_set_tty (fileno (stdin), &old, 0);
+      emacs_set_tty (fileno (stdin), &etty, 0);
     }
 
   if (len || c == '\n')
