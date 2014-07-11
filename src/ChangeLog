@@ -1,3 +1,14 @@
+2014-07-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* minibuf.c (read_minibuf_noninteractive): Finish reading on '\r',
+	not only on '\n'.
+
+	* sysdep.c (emacs_get_tty, emacs_set_tty, suppress_echo_on_tty)
+	[DOS_NT]: Implement for WINDOWSNT.
+
+	* systty.h (struct emacs_tty) [DOS_NT]: The struct member is now
+	unsigned.
+
 2014-07-11  Michael Albinus  <michael.albinus@gmx.de>
 
 	* sysdep.c (suppress_echo_on_tty): New function.

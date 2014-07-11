@@ -74,7 +74,7 @@ struct emacs_tty {
 #ifndef DOS_NT
   struct termios main;
 #else /* DOS_NT */
-  int main;
+  unsigned main;
 #endif /* DOS_NT */
 };
 

@@ -251,7 +251,7 @@ read_minibuf_noninteractive (Lisp_Object map, Lisp_Object initial,
   len = 0;
   line = xmalloc (size);
 
-  while ((c = getchar ()) != '\n')
+  while ((c = getchar ()) != '\n' && c != '\r')
     {
       if (c == EOF)
 	{
@@ -280,7 +280,7 @@ read_minibuf_noninteractive (Lisp_Object map, Lisp_Object initial,
       emacs_set_tty (fileno (stdin), &etty, 0);
     }
 
-  if (len || c == '\n')
+  if (len || c == '\n' || c == '\r')
     {
       val = make_string (line, len);
       xfree (line);

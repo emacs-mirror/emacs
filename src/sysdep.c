@@ -783,9 +783,20 @@ void
 emacs_get_tty (int fd, struct emacs_tty *settings)
 {
   /* Retrieve the primary parameters - baud rate, character size, etcetera.  */
-#ifndef DOS_NT
-  /* We have those nifty POSIX tcmumbleattr functions.  */
   memset (&settings->main, 0, sizeof (settings->main));
+#ifdef DOS_NT
+#ifdef WINDOWSNT
+  HANDLE h = (HANDLE)_get_osfhandle (fd);
+  DWORD console_mode;
+
+  if (h && h != INVALID_HANDLE_VALUE)
+    {
+      if (GetConsoleMode (h, &console_mode))
+	settings->main = console_mode;
+    }
+#endif	/* WINDOWSNT */
+#else	/* !DOS_NT */
+  /* We have those nifty POSIX tcmumbleattr functions.  */
   tcgetattr (fd, &settings->main);
 #endif
 }
@@ -799,7 +810,22 @@ int
 emacs_set_tty (int fd, struct emacs_tty *settings, bool flushp)
 {
   /* Set the primary parameters - baud rate, character size, etcetera.  */
-#ifndef DOS_NT
+#ifdef DOS_NT
+#ifdef WINDOWSNT
+  HANDLE h = (HANDLE)_get_osfhandle (fd);
+
+  if (h && h != INVALID_HANDLE_VALUE)
+    {
+      DWORD new_mode;
+
+      /* Assume the handle is open for input.  */
+      if (flushp)
+	FlushConsoleInputBuffer (h);
+      new_mode = settings->main;
+      SetConsoleMode (h, new_mode);
+    }
+#endif	/* WINDOWSNT */
+#else  /* !DOS_NT */
   int i;
   /* We have those nifty POSIX tcmumbleattr functions.
      William J. Smith <wjs@wiis.wang.com> writes:
@@ -1149,7 +1175,10 @@ suppress_echo_on_tty (int fd)
   struct emacs_tty etty;
 
   emacs_get_tty (fd, &etty);
-#ifndef WINDOWSNT
+#ifdef DOS_NT
+  /* Set raw input mode.  */
+  etty.main = 0;
+#else
   etty.main.c_lflag &= ~ICANON;	/* Disable buffering */
   etty.main.c_lflag &= ~ECHO;	/* Disable echoing */
 #endif /* ! WINDOWSNT */
