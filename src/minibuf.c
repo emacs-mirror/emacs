@@ -38,11 +38,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "intervals.h"
 #include "keymap.h"
 #include "termhooks.h"
-
 #include "systty.h"
-extern void emacs_get_tty (int, struct emacs_tty *);
-extern int emacs_set_tty (int, struct emacs_tty *, bool);
-extern void suppress_echo_on_tty (int);
 
 /* List of buffers for use as minibuffers.
    The first element of the list is used for the outermost minibuffer

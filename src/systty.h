@@ -23,6 +23,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <fcntl.h>
 #endif /* not DOS_NT */
 
+#include <stdbool.h>
 #include <sys/ioctl.h>
 
 #ifdef HPUX
@@ -79,5 +80,8 @@ struct emacs_tty {
 };
 
 /* From sysdep.c or w32.c  */
+extern void emacs_get_tty (int, struct emacs_tty *) EXTERNALLY_VISIBLE;
+extern int emacs_set_tty (int, struct emacs_tty *, bool) EXTERNALLY_VISIBLE;
+extern void suppress_echo_on_tty (int);
 extern int serial_open (Lisp_Object);
 extern void serial_configure (struct Lisp_Process *, Lisp_Object);

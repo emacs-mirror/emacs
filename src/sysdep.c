@@ -105,9 +105,6 @@ int _cdecl _getpid (void);
 #include "syssignal.h"
 #include "systime.h"
 
-void emacs_get_tty (int, struct emacs_tty *) EXTERNALLY_VISIBLE;
-int emacs_set_tty (int, struct emacs_tty *, bool) EXTERNALLY_VISIBLE;
-
 /* ULLONG_MAX is missing on Red Hat Linux 7.3; see Bug#11781.  */
 #ifndef ULLONG_MAX
 #define ULLONG_MAX TYPE_MAXIMUM (unsigned long long int)

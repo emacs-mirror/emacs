@@ -1,3 +1,11 @@
+2014-07-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Coalesce extern decls.
+	* minibuf.c (emacs_get_tty, emacs_set_tty, suppress_echo_on_tty):
+	* sysdep.c (emacs_get_tty, emacs_set_tty):
+	Move duplicate extern decls from here ...
+	* systty.h: ... to here, so that there's just one copy.
+
 2014-07-11  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (changeFont:): Add ifdef NS_IMPL_COCOA.
