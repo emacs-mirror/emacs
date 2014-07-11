@@ -1,3 +1,8 @@
+2014-07-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* minibuf.c (read_minibuf_noninteractive) [WINDOWSNT]: Don't
+	reference termios structure members.
+
 2014-07-11  Michael Albinus  <michael.albinus@gmx.de>
 
 	* sysdep.c (emacs_get_tty, emacs_set_tty): Make them externally visible.

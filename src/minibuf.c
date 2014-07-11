@@ -240,8 +240,10 @@ read_minibuf_noninteractive (Lisp_Object map, Lisp_Object initial,
     {
       emacs_get_tty (fileno (stdin), &old);
       new = old;
+#ifndef WINDOWSNT
       new.main.c_lflag &= ~ICANON;	/* Disable buffering */
       new.main.c_lflag &= ~ECHO;	/* Disable echoing */
+#endif
       emacs_set_tty (fileno (stdin), &new, 0);
     }
 
