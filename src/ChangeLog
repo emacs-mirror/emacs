@@ -1,3 +1,13 @@
+2014-07-11  Michael Albinus  <michael.albinus@gmx.de>
+
+	* sysdep.c (emacs_get_tty, emacs_set_tty): Make them externally visible.
+
+	* minibuf.c (top): Include systty.h.  Declare external
+	emacs_get_tty and emacs_set_tty.
+	(Vread_hide_char): New lisp variable.
+	(read_minibuf_noninteractive): Hide characters with
+	Vread_hide_char if it is a character.  (Bug#17839)
+
 2014-07-10  Eli Zaretskii  <eliz@gnu.org>
 
 	Implement memory-info for MS-Windows.

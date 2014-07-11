@@ -102,8 +102,8 @@ the minibuffer is in a separate frame.  @xref{Minibuffers and Frames}.
   When Emacs is running in batch mode, any request to read from the
 minibuffer actually reads a line from the standard input descriptor that
 was supplied when Emacs was started.  This supports only basic input:
-none of the special minibuffer features (history, completion,
-password hiding, etc.) are available in batch mode.
+none of the special minibuffer features (history, completion, etc.)
+are available in batch mode.
 
 @node Text from Minibuffer
 @section Reading Text Strings with the Minibuffer
@@ -2147,9 +2147,10 @@ function @code{read-passwd}.
 
 @defun read-passwd prompt &optional confirm default
 This function reads a password, prompting with @var{prompt}.  It does
-not echo the password as the user types it; instead, it echoes @samp{.}
-for each character in the password.  (Note that in batch mode, the
-input is not hidden.)
+not echo the password as the user types it; instead, it echoes
+@samp{.}  for each character in the password.  If you want to apply
+another character to hide the password, let-bind the variable
+@code{read-hide-char} with that character.
 
 The optional argument @var{confirm}, if non-@code{nil}, says to read the
 password twice and insist it must be the same both times.  If it isn't

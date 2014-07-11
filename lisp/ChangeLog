@@ -1,3 +1,8 @@
+2014-07-11  Michael Albinus  <michael.albinus@gmx.de>
+
+	* subr.el (read-passwd): Use `read-hide-char' if non-nil.  Bind it
+	when calling `read-string'.  (Bug#17839)
+
 2014-07-10  Eli Zaretskii  <eliz@gnu.org>
 
 	* files.el (warn-maybe-out-of-memory): Fix the wording of the

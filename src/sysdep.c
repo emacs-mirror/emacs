@@ -105,8 +105,8 @@ int _cdecl _getpid (void);
 #include "syssignal.h"
 #include "systime.h"
 
-static void emacs_get_tty (int, struct emacs_tty *);
-static int emacs_set_tty (int, struct emacs_tty *, bool);
+void emacs_get_tty (int, struct emacs_tty *) EXTERNALLY_VISIBLE;
+int emacs_set_tty (int, struct emacs_tty *, bool) EXTERNALLY_VISIBLE;
 
 /* ULLONG_MAX is missing on Red Hat Linux 7.3; see Bug#11781.  */
 #ifndef ULLONG_MAX
@@ -779,7 +779,7 @@ widen_foreground_group (int fd)
 
 /* Set *TC to the parameters associated with the terminal FD,
    or clear it if the parameters are not available.  */
-static void
+void
 emacs_get_tty (int fd, struct emacs_tty *settings)
 {
   /* Retrieve the primary parameters - baud rate, character size, etcetera.  */
@@ -795,7 +795,7 @@ emacs_get_tty (int fd, struct emacs_tty *settings)
    *SETTINGS.  If FLUSHP, discard input.
    Return 0 if all went well, and -1 (setting errno) if anything failed.  */
 
-static int
+int
 emacs_set_tty (int fd, struct emacs_tty *settings, bool flushp)
 {
   /* Set the primary parameters - baud rate, character size, etcetera.  */
