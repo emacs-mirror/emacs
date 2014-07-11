@@ -1,3 +1,7 @@
+2014-07-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* Makefile.in (install-arch-indep): Avoid readdir race (Bug#17971).
+
 2014-06-20  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* configure.ac: Warn about --enable-link-time-optimization's issues

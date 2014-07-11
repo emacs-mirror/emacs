@@ -615,8 +615,9 @@ install-arch-indep: lisp install-info install-man ${INSTALL_ARCH_INDEP_EXTRA}
 	[ -z "${GZIP_PROG}" ] || { \
 	  echo "Compressing *.el ..." && \
 	  cd "$(DESTDIR)${lispdir}" && \
-	  find . -name '*.elc' -exec $(SHELL) -c \
-	    '${GZIP_PROG} -9n `expr "$$1" : "\\(.*\\)c"`' dummy '{}' ';'; \
+	  for f in `find . -name "*.elc" -print | sed 's/.elc$$/.el/'`; do \
+	    ${GZIP_PROG} -9n "$$f"; \
+	  done; \
 	}
 	-chmod -R a+r "$(DESTDIR)${datadir}/emacs/${version}" ${COPYDESTS}
 
