@@ -1,3 +1,9 @@
+2014-07-11  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (changeFont:): Add ifdef NS_IMPL_COCOA.
+
+	* nsfns.m (Fns_popup_font_panel): Ditto.
+
 2014-07-11  Eli Zaretskii  <eliz@gnu.org>
 
 	* minibuf.c (read_minibuf_noninteractive): Finish reading on '\r',

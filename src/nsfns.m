@@ -1390,9 +1390,11 @@ DEFUN ("ns-popup-font-panel", Fns_popup_font_panel, Sns_popup_font_panel,
   NSFont *nsfont;
   if (EQ (font->driver->type, Qns))
     nsfont = ((struct nsfont_info *)font)->nsfont;
+#ifdef NS_IMPL_COCOA
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5
   else
     nsfont = (NSFont *) macfont_get_nsctfont (font);
+#endif
 #endif
   [fm setSelectedFont: nsfont isMultiple: NO];
   [fm orderFrontFontPanel: NSApp];

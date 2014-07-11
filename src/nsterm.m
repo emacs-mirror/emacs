@@ -5012,9 +5012,11 @@ not_in_argv (NSString *arg)
 
   if (EQ (font->driver->type, Qns))
     nsfont = ((struct nsfont_info *)font)->nsfont;
+#ifdef NS_IMPL_COCOA
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5
   else
     nsfont = (NSFont *) macfont_get_nsctfont (font);
+#endif
 #endif
 
   if ((newFont = [sender convertFont: nsfont]))
