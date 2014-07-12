@@ -241,7 +241,8 @@ read_minibuf_noninteractive (Lisp_Object map, Lisp_Object initial,
     {
       emacs_get_tty (fileno (stdin), &etty);
 #ifdef WINDOWSNT
-      _setmode (fileno (stdin), O_BINARY);
+      if (isatty (fileno (stdin)))
+	_setmode (fileno (stdin), O_BINARY);
 #endif
       suppress_echo_on_tty (fileno (stdin));
     }
@@ -282,7 +283,8 @@ read_minibuf_noninteractive (Lisp_Object map, Lisp_Object initial,
       fprintf (stdout, "\n");
       emacs_set_tty (fileno (stdin), &etty, 0);
 #ifdef WINDOWSNT
-      _setmode (fileno (stdin), O_TEXT);
+      if (isatty (fileno (stdin)))
+	_setmode (fileno (stdin), O_TEXT);
 #endif
     }
 

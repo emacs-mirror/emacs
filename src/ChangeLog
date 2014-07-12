@@ -1,3 +1,8 @@
+2014-07-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* minibuf.c (read_minibuf_noninteractive) [WINDOWSNT]: Switch
+	stdin to binary mode only if it is connected to a terminal.
+
 2014-07-11  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Coalesce extern decls.
