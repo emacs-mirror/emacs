@@ -1,5 +1,9 @@
 2014-07-12  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Merge from gnulib, incorporating:
+	2014-06-27 mktime: merge #if/#ifdef usage from glibc
+	* lib/mktime.c: Update from gnulib.
+
 	* Makefile.in (install-arch-indep): Avoid readdir race (Bug#17971).
 
 2014-07-10  Dmitry Antipov  <dmantipov@yandex.ru>
