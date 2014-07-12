@@ -1,3 +1,7 @@
+2014-07-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* PROBLEMS: Mention the problem from bug #17950.
+
 2014-07-04  Eli Zaretskii  <eliz@gnu.org>
 
 	* TODO: Remove items that were already done.  Rearrange a few

@@ -1961,6 +1961,26 @@ Another possibility is to rebuild Emacs with the -shared-libgcc
 switch, which will force Emacs to load libgcc_s_dw2-1.dll on startup,
 ahead of any optional DLLs loaded on-demand later in the session.
 
+** File selection dialog opens in incorrect directories
+
+Invoking the file selection dialog on Windows 7 or later shows a
+directory that is different from what was passed to `read-file-name'
+or `x-file-dialog' via their arguments.
+
+This is due to a deliberate change in behavior of the file selection
+dialogs introduced in Windows 7.  It is explicitly described in the
+MSDN documentation of the GetOpenFileName API used by Emacs to pop up
+the file selection dialog.  For the details, see
+
+  http://msdn.microsoft.com/en-us/library/windows/desktop/ms646839%28v=vs.85%29.aspx
+
+The dialog shows the last directory in which the user selected a file
+in a previous invocation of the dialog with the same initial
+directory.
+
+You can reset this "memory" of that directory by invoking the file
+selection dialog with a different initial directory.
+
 ** PATH can contain unexpanded environment variables
 
 Old releases of TCC (version 9) and 4NT (up to version 8) do not correctly

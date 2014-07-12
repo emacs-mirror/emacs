@@ -1,3 +1,12 @@
+2014-07-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32fns.c (Fx_file_dialog): Mention in the doc string the
+	behavior on Windows 7 and later when the function is repeatedly
+	invoked with the same value of DIR.  (Bug#17950)
+
+	* xfns.c (Fx_file_dialog) [USE_MOTIF, USE_GTK]: Update the doc
+	string to match the one in w32fns.c.
+
 2014-07-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (move_it_to): Adjust calculation of line_start_x to what
