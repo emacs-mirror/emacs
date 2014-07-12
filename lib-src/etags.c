@@ -4747,6 +4747,9 @@ Lisp_functions (FILE *inf)
 	    }
 	}
 
+      if (strneq (dbp + 1, "cl-", 3) || strneq (dbp + 1, "CL-", 3))
+	dbp += 3;
+
       if (strneq (dbp+1, "def", 3) || strneq (dbp+1, "DEF", 3))
 	{
 	  dbp = skip_non_spaces (dbp);
