@@ -370,10 +370,7 @@ If `inhibit-x-resources' is non-nil, this function does nothing."
 
 (defun face-name (face)
   "Return the name of face FACE."
-  (check-face face)
-  (if (symbolp face)
-      (symbol-name face)
-    face))
+  (symbol-name (check-face face)))
 
 
 (defun face-all-attributes (face &optional frame)
@@ -2749,8 +2746,6 @@ If PATTERN is nil, return the name of the frame's base font, which never
 contains wildcards.
 Given optional arguments FACE and FRAME, return a font which is
 also the same size as FACE on FRAME, or fail."
-  (when face
-    (setq face (face-name face)))
   (and (eq frame t)
        (setq frame nil))
   (if pattern

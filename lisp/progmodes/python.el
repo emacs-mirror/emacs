@@ -321,6 +321,13 @@
                                    (or "def" "class" "if" "elif" "else" "try"
                                        "except" "finally" "for" "while" "with")
                                    symbol-end))
+      (dedenter            . ,(rx symbol-start
+                                   (or "elif" "else" "except" "finally")
+                                   symbol-end))
+      (block-ender         . ,(rx symbol-start
+                                  (or
+                                   "break" "continue" "pass" "raise" "return")
+                                  symbol-end))
       (decorator            . ,(rx line-start (* space) ?@ (any letter ?_)
                                    (* (any word ?_))))
       (defun                . ,(rx symbol-start (or "def" "class") symbol-end))
@@ -630,18 +637,6 @@ It makes underscores and dots word constituent chars.")
 (defvar python-indent-levels '(0)
   "Levels of indentation available for `python-indent-line-function'.")
 
-(defvar python-indent-dedenters '("else" "elif" "except" "finally")
-  "List of words that should be dedented.
-These make `python-indent-calculate-indentation' subtract the value of
-`python-indent-offset'.")
-
-(defvar python-indent-block-enders
-  '("break" "continue" "pass" "raise" "return")
-  "List of words that mark the end of a block.
-These make `python-indent-calculate-indentation' subtract the
-value of `python-indent-offset' when `python-indent-context' is
-AFTER-LINE.")
-
 (defun python-indent-guess-indent-offset ()
   "Guess and set `python-indent-offset' for the current buffer."
   (interactive)
@@ -692,6 +687,7 @@ Where status can be any of the following symbols:
  * after-backslash: Previous line ends in a backslash
  * after-beginning-of-block: Point is after beginning of block
  * after-line: Point is after normal line
+ * dedenter-statement: Point is on a dedenter statement.
  * no-indent: Point is at beginning of buffer or other special case
 START is the buffer position where the sexp starts."
   (save-restriction
@@ -746,6 +742,8 @@ START is the buffer position where the sexp starts."
                          (when (looking-at (python-rx block-start))
                            (point-marker)))))
          'after-beginning-of-block)
+        ((when (setq start (python-info-dedenter-statement-p))
+           'dedenter-statement))
         ;; After normal line
         ((setq start (save-excursion
                        (back-to-indentation)
@@ -776,8 +774,7 @@ START is the buffer position where the sexp starts."
            (goto-char context-start)
            (+ (current-indentation) python-indent-offset))
           ;; When after a simple line just use previous line
-          ;; indentation, in the case current line starts with a
-          ;; `python-indent-dedenters' de-indent one level.
+          ;; indentation.
           (`after-line
            (let* ((pair (save-excursion
                           (goto-char context-start)
@@ -785,25 +782,27 @@ START is the buffer position where the sexp starts."
                            (current-indentation)
                            (python-info-beginning-of-block-p))))
                   (context-indentation (car pair))
-                  (after-block-start-p (cdr pair))
+                  ;; TODO: Separate block enders into its own case.
                   (adjustment
-                   (if (or (save-excursion
-                             (back-to-indentation)
-                             (and
-                              ;; De-indent only when dedenters are not
-                              ;; next to a block start. This allows
-                              ;; one-liner constructs such as:
-                              ;;     if condition: print "yay"
-                              ;;     else: print "wry"
-                              (not after-block-start-p)
-                              (looking-at (regexp-opt python-indent-dedenters))))
-                           (save-excursion
-                             (python-util-forward-comment -1)
-                             (python-nav-beginning-of-statement)
-                             (looking-at (regexp-opt python-indent-block-enders))))
+                   (if (save-excursion
+                         (python-util-forward-comment -1)
+                         (python-nav-beginning-of-statement)
+                         (looking-at (python-rx block-ender)))
                        python-indent-offset
                      0)))
              (- context-indentation adjustment)))
+          ;; When point is on a dedenter statement, search for the
+          ;; opening block that corresponds to it and use its
+          ;; indentation.  If no opening block is found just remove
+          ;; indentation as this is an invalid python file.
+          (`dedenter-statement
+           (let ((block-start-point
+                  (python-info-dedenter-opening-block-position)))
+             (save-excursion
+               (if (not block-start-point)
+                   0
+                 (goto-char block-start-point)
+                 (current-indentation)))))
           ;; When inside of a string, do nothing. just use the current
           ;; indentation.  XXX: perhaps it would be a good idea to
           ;; invoke standard text indentation here
@@ -930,16 +929,25 @@ START is the buffer position where the sexp starts."
 
 (defun python-indent-calculate-levels ()
   "Calculate `python-indent-levels' and reset `python-indent-current-level'."
-  (let* ((indentation (python-indent-calculate-indentation))
-         (remainder (% indentation python-indent-offset))
-         (steps (/ (- indentation remainder) python-indent-offset)))
-    (setq python-indent-levels (list 0))
-    (dotimes (step steps)
-      (push (* python-indent-offset (1+ step)) python-indent-levels))
-    (when (not (eq 0 remainder))
-      (push (+ (* python-indent-offset steps) remainder) python-indent-levels))
-    (setq python-indent-levels (nreverse python-indent-levels))
-    (setq python-indent-current-level (1- (length python-indent-levels)))))
+  (if (not (python-info-dedenter-statement-p))
+      (let* ((indentation (python-indent-calculate-indentation))
+             (remainder (% indentation python-indent-offset))
+             (steps (/ (- indentation remainder) python-indent-offset)))
+        (setq python-indent-levels (list 0))
+        (dotimes (step steps)
+          (push (* python-indent-offset (1+ step)) python-indent-levels))
+        (when (not (eq 0 remainder))
+          (push (+ (* python-indent-offset steps) remainder) python-indent-levels)))
+    (setq python-indent-levels
+          (or
+           (mapcar (lambda (pos)
+                     (save-excursion
+                       (goto-char pos)
+                       (current-indentation)))
+                   (python-info-dedenter-opening-block-positions))
+           (list 0))))
+  (setq python-indent-current-level (1- (length python-indent-levels))
+        python-indent-levels (nreverse python-indent-levels)))
 
 (defun python-indent-toggle-levels ()
   "Toggle `python-indent-current-level' over `python-indent-levels'."
@@ -988,7 +996,7 @@ equal to
       (indent-to next-indent)
       (goto-char starting-pos))
     (and follow-indentation-p (back-to-indentation)))
-  (python-info-closing-block-message))
+  (python-info-dedenter-opening-block-message))
 
 (defun python-indent-line-function ()
   "`indent-line-function' for Python mode.
@@ -1124,14 +1132,7 @@ the line will be re-indented automatically if needed."
            (eolp)
            (not (equal ?: (char-before (1- (point)))))
            (not (python-syntax-comment-or-string-p)))
-      (let ((indentation (current-indentation))
-            (calculated-indentation (python-indent-calculate-indentation)))
-        (python-info-closing-block-message)
-        (when (> indentation calculated-indentation)
-          (save-excursion
-            (indent-line-to calculated-indentation)
-            (when (not (python-info-closing-block-message))
-              (indent-line-to indentation)))))))))
+      (python-indent-line)))))
 
 
 ;;; Navigation
@@ -3454,48 +3455,87 @@ parent defun name."
   (and (python-info-end-of-statement-p)
        (python-info-statement-ends-block-p)))
 
-(defun python-info-closing-block ()
-  "Return the point of the block the current line closes."
-  (let ((closing-word (save-excursion
-                        (back-to-indentation)
-                        (current-word)))
-        (indentation (current-indentation)))
-    (when (member closing-word python-indent-dedenters)
-      (save-excursion
-        (forward-line -1)
-        (while (and (> (current-indentation) indentation)
-                    (not (bobp))
-                    (not (back-to-indentation))
-                    (forward-line -1)))
-        (back-to-indentation)
-        (cond
-         ((not (equal indentation (current-indentation))) nil)
-         ((string= closing-word "elif")
-          (when (member (current-word) '("if" "elif"))
-            (point-marker)))
-         ((string= closing-word "else")
-          (when (member (current-word) '("if" "elif" "except" "for" "while"))
-            (point-marker)))
-         ((string= closing-word "except")
-          (when (member (current-word) '("try"))
-            (point-marker)))
-         ((string= closing-word "finally")
-          (when (member (current-word) '("except" "else"))
-            (point-marker))))))))
+(define-obsolete-function-alias
+  'python-info-closing-block
+  'python-info-dedenter-opening-block-position "24.4")
 
-(defun python-info-closing-block-message (&optional closing-block-point)
-  "Message the contents of the block the current line closes.
-With optional argument CLOSING-BLOCK-POINT use that instead of
-recalculating it calling `python-info-closing-block'."
-  (let ((point (or closing-block-point (python-info-closing-block))))
+(defun python-info-dedenter-opening-block-position ()
+  "Return the point of the closest block the current line closes.
+Returns nil if point is not on a dedenter statement or no opening
+block can be detected.  The latter case meaning current file is
+likely an invalid python file."
+  (let ((positions (python-info-dedenter-opening-block-positions))
+        (indentation (current-indentation))
+        (position))
+    (while (and (not position)
+                positions)
+      (save-excursion
+        (goto-char (car positions))
+        (if (<= (current-indentation) indentation)
+            (setq position (car positions))
+          (setq positions (cdr positions)))))
+    position))
+
+(defun python-info-dedenter-opening-block-positions ()
+  "Return points of blocks the current line may close sorted by closer.
+Returns nil if point is not on a dedenter statement or no opening
+block can be detected.  The latter case meaning current file is
+likely an invalid python file."
+  (save-excursion
+    (let ((dedenter-pos (python-info-dedenter-statement-p)))
+      (when dedenter-pos
+        (goto-char dedenter-pos)
+        (let* ((pairs '(("elif" "elif" "if")
+                        ("else" "if" "elif" "except" "for" "while")
+                        ("except" "except" "try")
+                        ("finally" "else" "except" "try")))
+               (dedenter (match-string-no-properties 0))
+               (possible-opening-blocks (cdr (assoc-string dedenter pairs)))
+               (collected-indentations)
+               (opening-blocks))
+          (catch 'exit
+            (while (python-nav--syntactically
+                    (lambda ()
+                      (re-search-backward (python-rx block-start) nil t))
+                    #'<)
+              (let ((indentation (current-indentation)))
+                (when (and (not (memq indentation collected-indentations))
+                           (or (not collected-indentations)
+                               (< indentation (apply #'min collected-indentations))))
+                  (setq collected-indentations
+                        (cons indentation collected-indentations))
+                  (when (member (match-string-no-properties 0)
+                                possible-opening-blocks)
+                    (setq opening-blocks (cons (point) opening-blocks))))
+                (when (zerop indentation)
+                  (throw 'exit nil)))))
+          ;; sort by closer
+          (nreverse opening-blocks))))))
+
+(define-obsolete-function-alias
+  'python-info-closing-block-message
+  'python-info-dedenter-opening-block-message "24.4")
+
+(defun python-info-dedenter-opening-block-message  ()
+  "Message the first line of the block the current statement closes."
+  (let ((point (python-info-dedenter-opening-block-position)))
     (when point
       (save-restriction
         (widen)
         (message "Closes %s" (save-excursion
                                (goto-char point)
-                               (back-to-indentation)
                                (buffer-substring
                                 (point) (line-end-position))))))))
+
+(defun python-info-dedenter-statement-p ()
+  "Return point if current statement is a dedenter.
+Sets `match-data' to the keyword that starts the dedenter
+statement."
+  (save-excursion
+    (python-nav-beginning-of-statement)
+    (when (and (not (python-syntax-context-type))
+               (looking-at (python-rx dedenter)))
+      (point))))
 
 (defun python-info-line-ends-backslash-p (&optional line-number)
   "Return non-nil if current line ends with backslash.

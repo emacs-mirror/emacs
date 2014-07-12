@@ -1,3 +1,41 @@
+2014-07-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix bug: C-x v v discarded existing log message (Bug#17884).
+	* vc/vc-dispatcher.el (vc-log-edit):
+	Don't clobber an already-existing log message.
+
+2014-07-12  Glenn Morris  <rgm@gnu.org>
+
+	* vc/log-edit.el (log-edit-changelog-entries):
+	Check for a visited-but-never-saved ChangeLog.
+
+2014-07-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc/log-edit.el (log-edit-changelog-entries): Don't both visiting
+	a non-existing file (bug#17970).
+
+	* faces.el (face-name): Undo last change.
+	(x-resolve-font-name): Don't call face-name (bug#17956).
+
+2014-07-12  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	Fix dedenters and electric colon handling. (Bug#15163)
+	* progmodes/python.el
+	(python-rx-constituents): Add dedenter and block-ender.
+	(python-indent-dedenters, python-indent-block-enders): Delete.
+	(python-indent-context): Return new case for dedenter-statement.
+	(python-indent-calculate-indentation): Handle new case.
+	(python-indent-calculate-levels): Fix levels calculation for
+	dedenter statements.
+	(python-indent-post-self-insert-function): Fix colon handling.
+	(python-info-dedenter-opening-block-message): New function.
+	(python-indent-line): Use it.
+	(python-info-closing-block)
+	(python-info-closing-block-message): Remove.
+	(python-info-dedenter-opening-block-position)
+	(python-info-dedenter-opening-block-positions)
+	(python-info-dedenter-statement-p): New functions.
+
 2014-07-11  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* files.el (out-of-memory-warning-percentage): New defcustom.

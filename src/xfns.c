@@ -5705,7 +5705,11 @@ or directory must exist.
 
 This function is only defined on NS, MS Windows, and X Windows with the
 Motif or Gtk toolkits.  With the Motif toolkit, ONLY-DIR-P is ignored.
-Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
+Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.
+On Windows 7 and later, the file selection dialog "remembers" the last
+directory where the user selected a file, and will open that directory
+instead of DIR on subsequent invocations of this function with the same
+value of DIR as in previous invocations; this is standard Windows behavior.  */)
   (Lisp_Object prompt, Lisp_Object dir, Lisp_Object default_filename,
    Lisp_Object mustmatch, Lisp_Object only_dir_p)
 {
@@ -5877,7 +5881,11 @@ or directory must exist.
 
 This function is only defined on NS, MS Windows, and X Windows with the
 Motif or Gtk toolkits.  With the Motif toolkit, ONLY-DIR-P is ignored.
-Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
+Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.
+On Windows 7 and later, the file selection dialog "remembers" the last
+directory where the user selected a file, and will open that directory
+instead of DIR on subsequent invocations of this function with the same
+value of DIR as in previous invocations; this is standard Windows behavior.  */)
   (Lisp_Object prompt, Lisp_Object dir, Lisp_Object default_filename, Lisp_Object mustmatch, Lisp_Object only_dir_p)
 {
   struct frame *f = SELECTED_FRAME ();

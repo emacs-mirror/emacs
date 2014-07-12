@@ -20494,7 +20494,10 @@ display_line (struct it *it)
 	  row->truncated_on_right_p = 1;
 	  it->continuation_lines_width = 0;
 	  reseat_at_next_visible_line_start (it, 0);
-	  row->ends_at_zv_p = FETCH_BYTE (IT_BYTEPOS (*it) - 1) != '\n';
+	  if (IT_BYTEPOS (*it) <= BEG_BYTE)
+	    row->ends_at_zv_p = true;
+	  else
+	    row->ends_at_zv_p = FETCH_BYTE (IT_BYTEPOS (*it) - 1) != '\n';
 	  break;
 	}
     }

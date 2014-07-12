@@ -1,3 +1,7 @@
+2014-07-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* etags.c (Lisp_functions): Also record cl-defun etc. (Bug#17965)
+
 2014-06-26  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (blessmail): Depend on lisp/mail/blessmail.el.

@@ -596,7 +596,7 @@ NOT-URGENT means it is ok to continue if the user says not to save."
   (setq default-directory
 	(buffer-local-value 'default-directory vc-parent-buffer))
   (log-edit 'vc-finish-logentry
-	    t
+	    (= (point-min) (point-max))
 	    `((log-edit-listfun . (lambda ()
                                     ;; FIXME: Should expand the list
                                     ;; for directories.
