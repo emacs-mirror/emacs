@@ -1,3 +1,9 @@
+2014-07-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix bug: C-x v v discarded existing log message (Bug#17884).
+	* vc/vc-dispatcher.el (vc-log-edit):
+	Don't clobber an already-existing log message.
+
 2014-07-10  Glenn Morris  <rgm@gnu.org>
 
 	* vc/log-edit.el (log-edit-changelog-entries):
