@@ -1,5 +1,8 @@
 2014-07-12  Eli Zaretskii  <eliz@gnu.org>
 
+	* xdisp.c (display_line): Don't call FETCH_BYTE with argument less
+	than 1.  (Bug#17962)
+
 	* w32fns.c (Fx_file_dialog): Mention in the doc string the
 	behavior on Windows 7 and later when the function is repeatedly
 	invoked with the same value of DIR.  (Bug#17950)
