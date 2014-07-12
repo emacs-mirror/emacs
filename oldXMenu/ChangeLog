@@ -1,3 +1,8 @@
+2014-07-12  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* XMenuInt.h (XDeleteAssoc): Remove duplicated prototype to
+	pacify -Wredundant-decls.
+
 2014-06-28  Glenn Morris  <rgm@gnu.org>
 
 	* deps.mk (${OBJS}): Depend on ../src/config.h.

@@ -62,7 +62,6 @@ void _XMRefreshPane(Display *display, XMenu *menu, XMPane *pane);
 void _XMRefreshSelection(Display *display, XMenu *menu, XMSelect *select);
 void emacs_insque (void *elem, void *prev);
 void emacs_remque (void *elem);
-void XDeleteAssoc(Display *dpy, XAssocTable *table, XID x_id);
 void XDestroyAssocTable(XAssocTable *table);
 void XMakeAssoc(Display *dpy, XAssocTable *table, XID x_id, void *data);
 void XDeleteAssoc(Display *dpy, XAssocTable *table, XID x_id);
