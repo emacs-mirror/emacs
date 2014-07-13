@@ -1,3 +1,8 @@
+2014-07-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (decode_mode_spec): Call file-remote-p on the current
+	buffer's default-directory only if it is a string.  (Bug#17986)
+
 2014-07-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (display_line): Don't call FETCH_BYTE with argument less

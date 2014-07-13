@@ -1,3 +1,9 @@
+2014-07-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* bindings.el (mode-line-remote): If default-directory is not a
+	string, don't call file-remote-p on it; instead state in the
+	help-echo that it is nil.  (Bug#17986)
+
 2014-07-12  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix bug: C-x v v discarded existing log message (Bug#17884).
