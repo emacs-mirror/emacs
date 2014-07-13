@@ -1,3 +1,20 @@
+2014-07-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Improve behavior of 'bzr up; cd src; make -k'.
+	* Makefile.in (top_srcdir): New var.
+	(ntsource, lispsource, ALL_CFLAGS, gl-stamp, emacs.res):
+	Use '$(top_srcdir)' instead of '$(srcdir)/..';
+	its expansion is a bit shorter.
+	(../config.status): Actually build config.status instead of
+	just complaining.
+	(ACLOCAL_INPUTS, AUTOCONF_INPUTS):
+	New macros, copied and relocated from ../Makefile.in.
+	($(top_srcdir)/aclocal.m4, $(top_srcdir)/configure, config.in)
+	(../config.status, Makefile): New dependencies and rules,
+	copied with relocation from ../Makefile.in.  This should be more
+	likely to rebuild the build machinery properly if you do a 'make'
+	in the src directory.
+
 2014-07-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (display_line): Don't call FETCH_BYTE with argument less

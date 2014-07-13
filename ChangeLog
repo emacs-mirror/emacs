@@ -1,3 +1,8 @@
+2014-07-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Improve behavior of 'bzr up; cd src; make -k'.
+	* Makefile.in (ACLOCAL_INPUTS): Add all m4/*.m4 files.
+
 2014-07-12  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Merge from gnulib, incorporating:

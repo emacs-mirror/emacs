@@ -28,9 +28,10 @@ SHELL = @SHELL@
 # Here are the things that we expect ../configure to edit.
 # We use $(srcdir) explicitly in dependencies so as not to depend on VPATH.
 srcdir = @srcdir@
+top_srcdir = @top_srcdir@
 # MinGW CPPFLAGS may use this.
 abs_top_srcdir=@abs_top_srcdir@
-ntsource = $(srcdir)/../nt
+ntsource = $(top_srcdir)/nt
 VPATH = $(srcdir)
 CC = @CC@
 WINDRES = @WINDRES@
@@ -48,7 +49,7 @@ MKDIR_P = @MKDIR_P@
 # LIBS = @LIBS@
 LIBOBJS = @LIBOBJS@
 
-lispsource = $(srcdir)/../lisp
+lispsource = $(top_srcdir)/lisp
 lib = ../lib
 libsrc = ../lib-src
 etc = ../etc
@@ -319,7 +320,7 @@ MKDEPDIR=@MKDEPDIR@
 ##
 ## FIXME? MYCPPFLAGS only referenced in etc/DEBUG.
 ALL_CFLAGS=-Demacs $(MYCPPFLAGS) -I. -I$(srcdir) \
-  -I$(lib) -I$(srcdir)/../lib \
+  -I$(lib) -I$(top_srcdir)/lib \
   $(C_SWITCH_MACHINE) $(C_SWITCH_SYSTEM) $(C_SWITCH_X_SITE) \
   $(GNUSTEP_CFLAGS) $(CFLAGS_SOUND) $(RSVG_CFLAGS) $(IMAGEMAGICK_CFLAGS) \
   $(PNG_CFLAGS) $(LIBXML2_CFLAGS) $(DBUS_CFLAGS) \
@@ -474,7 +475,7 @@ GLOBAL_SOURCES = $(base_obj:.o=.c) $(NS_OBJC_OBJ:.o=.m)
 
 gl-stamp: $(libsrc)/make-docfile$(EXEEXT) $(GLOBAL_SOURCES)
 	$(libsrc)/make-docfile -d $(srcdir) -g $(obj) > gl.tmp
-	$(srcdir)/../build-aux/move-if-change gl.tmp globals.h
+	$(top_srcdir)/build-aux/move-if-change gl.tmp globals.h
 	echo timestamp > $@
 
 $(ALLOBJS): globals.h
@@ -505,17 +506,23 @@ $(oldXMenudir)/libXMenu11.a: FORCE
 FORCE:
 .PHONY: FORCE
 
-../config.status: config.in epaths.in
-	@echo "The file ${?:.in=.h} needs to be set up from $?."
-	@echo "Please run the 'configure' script again."
-	exit 1
+ACLOCAL_INPUTS = $(top_srcdir)/configure.ac $(wildcard $(top_srcdir)/m4/*.m4)
+AUTOCONF_INPUTS = $(top_srcdir)/configure.ac $(top_srcdir)/aclocal.m4
+$(top_srcdir)/aclocal.m4: $(ACLOCAL_INPUTS)
+$(top_srcdir)/configure config.in: $(AUTOCONF_INPUTS)
+.PRECIOUS: ../config.status Makefile
+../config.status: $(top_srcdir)/configure $(top_srcdir)/lisp/version.el
+Makefile: ../config.status $(srcdir)/Makefile.in
+$(top_srcdir)/aclocal.m4 $(top_srcdir)/configure config.in ../config.status \
+  Makefile:
+	$(MAKE) -C .. am--refresh
 
 doc.o: buildobj.h
 
 emacs.res: $(ntsource)/emacs.rc \
 	   $(ntsource)/icons/emacs.ico \
 	   $(ntsource)/$(EMACS_MANIFEST)
-	$(WINDRES) -O COFF --include-dir=$(srcdir)/../nt \
+	$(WINDRES) -O COFF --include-dir=$(top_srcdir)/nt \
 	  -o $@ $(ntsource)/emacs.rc
 
 .PHONY: ns-app
