@@ -1,3 +1,11 @@
+2014-07-14  Daniel Colascione  <dancol@dancol.org>
+
+	* progmodes/cc-langs.el: Change comments from `cl-macroexpand-all'
+	to `macroexpand-all'
+
+	* progmodes/cc-defs.el (c-lang-defconst-eval-immediately):
+	Use `macroexpand-all' instead of `cl-macroexpand-all'.
+
 2014-07-12  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix bug: C-x v v discarded existing log message (Bug#17884).
