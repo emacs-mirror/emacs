@@ -1,3 +1,15 @@
+2014-07-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* make-docfile.c: Simplify a bit, to simplify further refactoring.
+	(outfile): Remove static var.  All uses changed to use stdout,
+	since it's always stdout anyway.  While we're at it, prefer
+	putchar/puts/fputs to printf when there are no format strings.
+	(main): Use freopen rather than fopen, so that stdout is reused.
+	Move O_BINARY stuff after the freopen, so it affects the
+	reopened file.
+	(write_c_args): Omit first arg, since it's always stdout now.
+	All uses changed.
+
 2014-07-12  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* etags.c (Lisp_functions): Also record cl-defun etc. (Bug#17965)
