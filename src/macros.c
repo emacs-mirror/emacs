@@ -80,7 +80,7 @@ macro before appending to it.  */)
     }
   else
     {
-      const ptrdiff_t incr = 30;
+      int incr = 30;
       ptrdiff_t i, len;
       bool cvt;
 

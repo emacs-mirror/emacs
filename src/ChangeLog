@@ -1,3 +1,9 @@
+2014-07-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* macros.c (Fstart_kbd_macro): Simplify.
+	This works around a GCC compiler bug when Emacs is configured with
+	--enable-gcc-warnings.
+
 2014-07-14  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* lisp.h (CHECK_VECTOR_OR_STRING): Return number of elements
