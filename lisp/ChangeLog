@@ -1,3 +1,8 @@
+2014-07-14  Glenn Morris  <rgm@gnu.org>
+
+	* vc/vc-dispatcher.el (vc-log-edit): Do set up the log buffer
+	if it was "empty", or used for a different set of files.  (Bug#17884)
+
 2014-07-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* bindings.el (mode-line-remote): If default-directory is not a
