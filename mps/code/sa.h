@@ -36,7 +36,7 @@ typedef struct SparseArrayStruct {
 
 extern void SparseArrayInit(SparseArray sa,
                             void *base, Size elementSize, Index length,
-                            BT defined, BT mapped, VM vm);
+                            BT mapped, BT pages, VM vm);
 extern void SparseArrayFinish(SparseArray sa);
 extern Bool SparseArrayCheck(SparseArray sa);
 
