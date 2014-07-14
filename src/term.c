@@ -2942,7 +2942,6 @@ static int
 tty_menu_add_pane (tty_menu *menu, const char *txt)
 {
   int len;
-  const unsigned char *p;
 
   tty_menu_make_room (menu);
   menu->submenu[menu->count] = tty_menu_create ();
@@ -2952,15 +2951,7 @@ tty_menu_add_pane (tty_menu *menu, const char *txt)
   menu->count++;
 
   /* Update the menu width, if necessary.  */
-  for (len = 0, p = (unsigned char *) txt; *p; )
-    {
-      int ch_len;
-      int ch = STRING_CHAR_AND_LENGTH (p, ch_len);
-
-      len += CHAR_WIDTH (ch);
-      p += ch_len;
-    }
-
+  len = menu_item_width ((const unsigned char *) txt);
   if (len > menu->width)
     menu->width = len;
 
@@ -2974,7 +2965,6 @@ tty_menu_add_selection (tty_menu *menu, int pane,
 			char *txt, bool enable, char const *help_text)
 {
   int len;
-  unsigned char *p;
 
   if (pane)
     {
@@ -2990,15 +2980,7 @@ tty_menu_add_selection (tty_menu *menu, int pane,
   menu->count++;
 
   /* Update the menu width, if necessary.  */
-  for (len = 0, p = (unsigned char *) txt; *p; )
-    {
-      int ch_len;
-      int ch = STRING_CHAR_AND_LENGTH (p, ch_len);
-
-      len += CHAR_WIDTH (ch);
-      p += ch_len;
-    }
-
+  len = menu_item_width ((const unsigned char *) txt);
   if (len > menu->width)
     menu->width = len;
 
@@ -3609,11 +3591,6 @@ tty_menu_show (struct frame *f, int x, int y, int menuflags,
 
   /* Make the menu on that window.  */
   menu = tty_menu_create ();
-  if (menu == NULL)
-    {
-      *error_name = "Can't create menu";
-      return Qnil;
-    }
 
   /* Don't GC while we prepare and show the menu, because we give the
      menu functions pointers to the contents of strings.  */
