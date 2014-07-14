@@ -87,16 +87,13 @@ macro before appending to it.  */)
       /* Check the type of last-kbd-macro in case Lisp code changed it.  */
       len = CHECK_VECTOR_OR_STRING (KVAR (current_kboard, Vlast_kbd_macro));
 
-      if (INT_ADD_OVERFLOW (len, incr))
-	memory_full (SIZE_MAX);
-
       /* Copy last-kbd-macro into the buffer, in case the Lisp code
 	 has put another macro there.  */
-      if (current_kboard->kbd_macro_bufsize < len + incr)
+      if (current_kboard->kbd_macro_bufsize - incr < len)
 	current_kboard->kbd_macro_buffer =
 	  xpalloc (current_kboard->kbd_macro_buffer,
 		   &current_kboard->kbd_macro_bufsize,
-		   len + incr - current_kboard->kbd_macro_bufsize, -1,
+		   len - current_kboard->kbd_macro_bufsize + incr, -1,
 		   sizeof *current_kboard->kbd_macro_buffer);
 
       /* Must convert meta modifier when copying string to vector.  */

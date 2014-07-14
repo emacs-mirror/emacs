@@ -1,6 +1,6 @@
 2014-07-14  Paul Eggert  <eggert@cs.ucla.edu>
 
-	* macros.c (Fstart_kbd_macro): Simplify.
+	* macros.c (Fstart_kbd_macro): Avoid need for overflow check.
 	This works around a GCC compiler bug when Emacs is configured with
 	--enable-gcc-warnings.
 
