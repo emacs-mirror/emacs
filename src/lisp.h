@@ -2555,10 +2555,15 @@ CHECK_BOOL_VECTOR (Lisp_Object x)
 {
   CHECK_TYPE (BOOL_VECTOR_P (x), Qbool_vector_p, x);
 }
-INLINE void
+/* This is a bit special because we always need size afterwards.  */
+INLINE ptrdiff_t
 CHECK_VECTOR_OR_STRING (Lisp_Object x)
 {
-  CHECK_TYPE (VECTORP (x) || STRINGP (x), Qarrayp, x);
+  if (VECTORP (x))
+    return ASIZE (x);
+  if (STRINGP (x))
+    return SCHARS (x);
+  wrong_type_argument (Qarrayp, x);
 }
 INLINE void
 CHECK_ARRAY (Lisp_Object x, Lisp_Object predicate)

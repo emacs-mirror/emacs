@@ -1,3 +1,12 @@
+2014-07-14  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* lisp.h (CHECK_VECTOR_OR_STRING): Return number of elements
+	or characters in string, respectively.  Add comment.
+	* fringe.c (Fdefine_fringe_bitmap):
+	* fns.c (Fsubstring, substring_both): Use it.
+	* keymap.c (Fdefine_key, Flookup_key):
+	* macros.c (Fstart_kbd_macro): Likewise.  Avoid call to Flength.
+
 2014-07-13  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Improve behavior of 'bzr up; cd src; make -k'.
