@@ -9,7 +9,7 @@
 
 	* term.c (tty_menu_add_pane, tty_menu_add_selection):
 	Use menu_item_width.
-	(tty_menu_show): Simplify because ty_menu_create never return NULL.
+	(tty_menu_show): Simplify because tty_menu_create never return NULL.
 
 2014-07-13  Paul Eggert  <eggert@cs.ucla.edu>
 
