@@ -1,3 +1,9 @@
+2014-07-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use binary-io module, O_BINARY, and "b" flag (Bug#18006).
+	* merge-gnulib (GNULIB_MODULES): Add binary-io.  It was already
+	present implicitly; this just makes the dependence explicit.
+
 2014-06-30  Glenn Morris  <rgm@gnu.org>
 
 	* update_autogen: Find loaddefs targets rather than

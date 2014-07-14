@@ -882,7 +882,7 @@ set_named_security_info (LPCTSTR lpObjectName,
 	  g_b_init_set_named_security_info_a = 1;
 	  hm_advapi32 = LoadLibrary ("Advapi32.dll");
 	  s_pfn_Set_Named_Security_InfoA =
-	    (SetNamedSecurityInfoA_Proc) GetProcAddress (hm_advapi32, 
+	    (SetNamedSecurityInfoA_Proc) GetProcAddress (hm_advapi32,
 							 "SetNamedSecurityInfoA");
 	}
       if (s_pfn_Set_Named_Security_InfoA == NULL)
@@ -7865,7 +7865,7 @@ pipe2 (int * phandles, int pipe2_flags)
   int rc;
   unsigned flags;
 
-  eassert (pipe2_flags == O_CLOEXEC);
+  eassert (pipe2_flags == (O_BINARY | O_CLOEXEC));
 
   /* make pipe handles non-inheritable; when we spawn a child, we
      replace the relevant handle with an inheritable one.  Also put

@@ -38,16 +38,15 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <stdio.h>
 #include <stdlib.h>   /* config.h unconditionally includes this anyway */
-#ifdef MSDOS
-#include <fcntl.h>
-#endif /* MSDOS */
+
 #ifdef WINDOWSNT
 /* Defined to be sys_fopen in ms-w32.h, but only #ifdef emacs, so this
    is really just insurance.  */
 #undef fopen
-#include <fcntl.h>
 #include <direct.h>
 #endif /* WINDOWSNT */
+
+#include <binary-io.h>
 
 #ifdef DOS_NT
 /* Defined to be sys_chdir in ms-w32.h, but only #ifdef emacs, so this
@@ -167,19 +166,7 @@ main (int argc, char **argv)
       ++i;
     }
 
-  /* Don't put CRs in the output file.  */
-#ifdef MSDOS
-  _fmode = O_BINARY;
-#if 0  /* Suspicion is that this causes hanging.
-	  So instead we require people to use -o on MSDOS.  */
-  (stdout)->_flag &= ~_IOTEXT;
-  _setmode (fileno (stdout), O_BINARY);
-#endif
-#endif /* MSDOS */
-#ifdef WINDOWSNT
-  _fmode = O_BINARY;
-  _setmode (fileno (stdout), O_BINARY);
-#endif /* WINDOWSNT */
+  set_binary_mode (fileno (stdout), O_BINARY);
 
   if (generate_globals)
     start_globals ();

@@ -775,8 +775,9 @@ widen_foreground_group (int fd)
 /* Getting and setting emacs_tty structures.  */
 
 /* Set *TC to the parameters associated with the terminal FD,
-   or clear it if the parameters are not available.  */
-void
+   or clear it if the parameters are not available.
+   Return 0 on success, -1 on failure.  */
+int
 emacs_get_tty (int fd, struct emacs_tty *settings)
 {
   /* Retrieve the primary parameters - baud rate, character size, etcetera.  */
@@ -786,15 +787,16 @@ emacs_get_tty (int fd, struct emacs_tty *settings)
   HANDLE h = (HANDLE)_get_osfhandle (fd);
   DWORD console_mode;
 
-  if (h && h != INVALID_HANDLE_VALUE)
+  if (h && h != INVALID_HANDLE_VALUE && GetConsoleMode (h, &console_mode))
     {
-      if (GetConsoleMode (h, &console_mode))
-	settings->main = console_mode;
+      settings->main = console_mode;
+      return 0;
     }
 #endif	/* WINDOWSNT */
+  return -1;
 #else	/* !DOS_NT */
   /* We have those nifty POSIX tcmumbleattr functions.  */
-  tcgetattr (fd, &settings->main);
+  return tcgetattr (fd, &settings->main);
 #endif
 }
 
@@ -2198,6 +2200,7 @@ emacs_abort (void)
 #endif
 
 /* Open FILE for Emacs use, using open flags OFLAG and mode MODE.
+   Use binary I/O on systems that care about text vs binary I/O.
    Arrange for subprograms to not inherit the file descriptor.
    Prefer a method that is multithread-safe, if available.
    Do not fail merely because the open was interrupted by a signal.
@@ -2207,6 +2210,8 @@ int
 emacs_open (const char *file, int oflags, int mode)
 {
   int fd;
+  if (! (oflags & O_TEXT))
+    oflags |= O_BINARY;
   oflags |= O_CLOEXEC;
   while ((fd = open (file, oflags, mode)) < 0 && errno == EINTR)
     QUIT;
@@ -2254,7 +2259,7 @@ emacs_pipe (int fd[2])
 #ifdef MSDOS
   return pipe (fd);
 #else  /* !MSDOS */
-  int result = pipe2 (fd, O_CLOEXEC);
+  int result = pipe2 (fd, O_BINARY | O_CLOEXEC);
   if (! O_CLOEXEC && result == 0)
     {
       fcntl (fd[0], F_SETFD, FD_CLOEXEC);

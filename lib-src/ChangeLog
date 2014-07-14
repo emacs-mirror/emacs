@@ -1,3 +1,18 @@
+2014-07-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use binary-io module, O_BINARY, and "b" flag (Bug#18006).
+	* etags.c, hexl.c, make-docfile.c:
+	Include binary-io.h instead of fcntl.h and/or io.h.
+	(main): Use set_binary_mode or SET_BINARY
+	in place of handcrafted code.
+	* etags.c (main) [DOS_NT]:
+	* movemail.c (main) [WINDOWSNT]:
+	Don't mess with _fmode.
+	* etags.c (main, process_file_name, analyse_regex):
+	Use fopen/popen's "b" flag instead.
+	* movemail.c (main, popmail): Use open/lk_open/mkostemp's O_BINARY
+	instead.
+
 2014-07-13  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* make-docfile.c: Simplify a bit, to simplify further refactoring.

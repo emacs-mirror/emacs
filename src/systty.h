@@ -80,7 +80,7 @@ struct emacs_tty {
 };
 
 /* From sysdep.c or w32.c  */
-extern void emacs_get_tty (int, struct emacs_tty *) EXTERNALLY_VISIBLE;
+extern int emacs_get_tty (int, struct emacs_tty *) EXTERNALLY_VISIBLE;
 extern int emacs_set_tty (int, struct emacs_tty *, bool) EXTERNALLY_VISIBLE;
 extern void suppress_echo_on_tty (int);
 extern int serial_open (Lisp_Object);

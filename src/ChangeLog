@@ -1,5 +1,18 @@
 2014-07-14  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Use binary-io module, O_BINARY, and "b" flag (Bug#18006).
+	* callproc.c (create_temp_file): Use mkostemp's O_BINARY flag.
+	* emacs.c [MSDOS]:
+	* emacs.c (main) [DOS_NT]: Don't mess with _fmode.
+	(main) [MSDOS]: Use SET_BINARY instead of setmode.
+	* minibuf.c: Include binary-io.h instead of fcntl.h.
+	(read_minibuf_noninteractive):
+	Use set_binary_mode instead of handcrafted code.
+	Don't call emacs_set_tty if emacs_get_tty failed.
+	* sysdep.c, systty.h (emacs_get_tty): Return int, not void.
+	* sysdep.c (emacs_open, emacs_pipe): Use O_BINARY.
+	* w32.c (pipe2): Adjust eassert to include O_BINARY.
+
 	* macros.c (Fstart_kbd_macro): Avoid need for overflow check.
 	This works around a GCC compiler bug when Emacs is configured with
 	--enable-gcc-warnings.

@@ -22,9 +22,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <errno.h>
 #include <stdio.h>
 
-#ifdef WINDOWSNT
-#include <fcntl.h>	/* For O_BINARY, O_TEXT. */
-#endif
+#include <binary-io.h>
 
 #include "lisp.h"
 #include "commands.h"
@@ -231,6 +229,7 @@ read_minibuf_noninteractive (Lisp_Object map, Lisp_Object initial,
   int c;
   unsigned char hide_char = 0;
   struct emacs_tty etty;
+  bool etty_valid;
 
   /* Check, whether we need to suppress echoing.  */
   if (CHARACTERP (Vread_hide_char))
@@ -239,11 +238,9 @@ read_minibuf_noninteractive (Lisp_Object map, Lisp_Object initial,
   /* Manipulate tty.  */
   if (hide_char)
     {
-      emacs_get_tty (fileno (stdin), &etty);
-#ifdef WINDOWSNT
-      if (isatty (fileno (stdin)))
-	_setmode (fileno (stdin), O_BINARY);
-#endif
+      etty_valid = emacs_get_tty (fileno (stdin), &etty) == 0;
+      if (etty_valid)
+	set_binary_mode (fileno (stdin), O_BINARY);
       suppress_echo_on_tty (fileno (stdin));
     }
 
@@ -281,11 +278,11 @@ read_minibuf_noninteractive (Lisp_Object map, Lisp_Object initial,
   if (hide_char)
     {
       fprintf (stdout, "\n");
-      emacs_set_tty (fileno (stdin), &etty, 0);
-#ifdef WINDOWSNT
-      if (isatty (fileno (stdin)))
-	_setmode (fileno (stdin), O_TEXT);
-#endif
+      if (etty_valid)
+	{
+	  emacs_set_tty (fileno (stdin), &etty, 0);
+	  set_binary_mode (fileno (stdin), O_TEXT);
+	}
     }
 
   if (len || c == '\n' || c == '\r')
