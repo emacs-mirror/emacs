@@ -1,3 +1,9 @@
+2014-07-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use "b" flag more consistently; avoid "t" (Bug#18006).
+	* make-docfile.c (READ_TEXT): Remove; all uses replaced by "r".
+	(READ_BINARY): Remove; all uses replaced by "rb".
+
 2014-07-14  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Use binary-io module, O_BINARY, and "b" flag (Bug#18006).

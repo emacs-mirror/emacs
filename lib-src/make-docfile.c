@@ -55,12 +55,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    Similarly, msdos defines this as sys_chdir, but we're not linking with the
    file where that function is defined.  */
 #undef chdir
-#define READ_TEXT "rt"
-#define READ_BINARY "rb"
 #define IS_SLASH(c)  ((c) == '/' || (c) == '\\' || (c) == ':')
 #else  /* not DOS_NT */
-#define READ_TEXT "r"
-#define READ_BINARY "r"
 #define IS_SLASH(c)  ((c) == '/')
 #endif /* not DOS_NT */
 
@@ -216,11 +212,11 @@ scan_file (char *filename)
   if (!generate_globals)
     put_filename (filename);
   if (len > 4 && !strcmp (filename + len - 4, ".elc"))
-    return scan_lisp_file (filename, READ_BINARY);
+    return scan_lisp_file (filename, "rb");
   else if (len > 3 && !strcmp (filename + len - 3, ".el"))
-    return scan_lisp_file (filename, READ_TEXT);
+    return scan_lisp_file (filename, "r");
   else
-    return scan_c_file (filename, READ_TEXT);
+    return scan_c_file (filename, "r");
 }
 
 static void
