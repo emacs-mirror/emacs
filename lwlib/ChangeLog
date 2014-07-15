@@ -1,3 +1,7 @@
+2014-07-15  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* lwlib.h (toplevel): Use unsigned int for LWLIB_ID.
+
 2014-06-28  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in: Use gcc auto-dependency information.
