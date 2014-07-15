@@ -6,6 +6,8 @@
 	Use record_unwind_protect_int and avoid consing.
 	(syms_of_xmenu) [USE_X_TOOLKIT]: Declare WIDGET_ID_TICK_START.
 
+	* regex.c (re_search_2): Use ssize_t to avoid integer overflow.
+
 2014-07-14  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Use binary-io module, O_BINARY, and "b" flag (Bug#18006).
