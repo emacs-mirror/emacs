@@ -1700,7 +1700,7 @@ Another way to think about this is to imagine a symbol as being a chest
 of drawers.  The function definition is put in one drawer, the value in
 another, and so on.  What is put in the drawer holding the value can be
 changed without affecting the contents of the drawer holding the
-function definition, and vice-verse.
+function definition, and vice versa.
 
 @menu
 * fill-column Example::
@@ -2653,7 +2653,7 @@ functions; without the parentheses, the interpreter would attempt to
 evaluate the symbols as variables.  @xref{Variables}.)
 
 In spite of the distinction between files and buffers, you will often
-find that people refer to a file when they mean a buffer and vice-verse.
+find that people refer to a file when they mean a buffer and vice versa.
 Indeed, most people say, ``I am editing a file,'' rather than saying,
 ``I am editing a buffer which I will soon save to a file.''  It is
 almost always clear from context what people mean.  When dealing with
@@ -5756,7 +5756,7 @@ so the true-or-false-test looks like this:
 @noindent
 @code{not} is a function that returns true if its argument is false
 and false if its argument is true.  So if @code{(bufferp buffer)}
-returns true, the @code{not} expression returns false and vice-verse:
+returns true, the @code{not} expression returns false and vice versa:
 what is ``not true'' is false and what is ``not false'' is true.
 
 Using this test, the @code{if} expression works as follows: when the
@@ -9805,7 +9805,7 @@ In an earlier section, I suggested that you might imagine a symbol as
 being a chest of drawers.  The function definition is put in one
 drawer, the value in another, and so on.  What is put in the drawer
 holding the value can be changed without affecting the contents of the
-drawer holding the function definition, and vice-verse.
+drawer holding the function definition, and vice versa.
 
 Actually, what is put in each drawer is the address of the value or
 function definition.  It is as if you found an old chest in the attic,
@@ -13235,7 +13235,7 @@ Consider what happens when there is no fill prefix.
 @noindent
 This @code{while} loop has us searching forward for
 @code{sp-parstart}, which is the combination of possible whitespace
-with a the local value of the start of a paragraph or of a paragraph
+with the local value of the start of a paragraph or of a paragraph
 separator.  (The latter two are within an expression starting
 @code{\(?:} so that they are not referenced by the
 @code{match-beginning} function.)
