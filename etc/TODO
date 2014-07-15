@@ -62,8 +62,7 @@ suitable for anyone from beginners to experts.
 
 ** Convert modes that use view-mode to be derived from special-mode instead.
 
-** Major modes should have a menu entry.  Examples of modes that do
-not have one at the moment and probably should: text-mode, inferior-lisp-mode.
+** Major modes should have a menu entry.
 
 ** Check if all items on the mode-line have a suitable tooltip for all modes.
 
@@ -141,7 +140,9 @@ for users to customize.
   using a heuristic of some kind?
 
 ** Define recompute-arg and recompute-arg-if for fix_command to use.
-  See rms message of 11 Dec 05.
+  See rms message of 11 Dec 05 in
+  http://lists.gnu.org/archive/html/emacs-pretest-bug/2005-12/msg00165.html,
+  and the rest of that discussion.
 
 ** Height returned by frame-parameter ... and height given to
    make-frame does not mean the same thing.  The former includes menu and
