@@ -1,3 +1,9 @@
+2014-07-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (move_it_vertically_backward, move_it_by_lines): Prevent
+	infinite looping in redisplay when display lines don't have enough
+	space to display even a single character.  (Bug#18036)
+
 2014-07-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (decode_mode_spec): Call file-remote-p on the current
