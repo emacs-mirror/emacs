@@ -1,3 +1,16 @@
+2014-07-16  Daiki Ueno  <ueno@gnu.org>
+
+	Consolidate XChar2b macros for the X, W32, and NS
+	Suggested by Jan Djärv in:
+	https://lists.gnu.org/archive/html/emacs-devel/2014-07/msg00203.html
+	* w32gui.h (XChar2b, STORE_XCHAR2B, XCHAR2B_BYTE1, XCHAR2B_BYTE2):
+	Move the fallback definitions to dispextern.h.
+	* nsgui.h (XChar2b, STORE_XCHAR2B, XCHAR2B_BYTE1, XCHAR2B_BYTE2):
+	Likewise.  Share the same definition with W32.
+	* xterm.h (STORE_XCHAR2B, XCHAR2B_BYTE1, XCHAR2B_BYTE2): Move to ...
+	* dispextern.h (STORE_XCHAR2B, XCHAR2B_BYTE1, XCHAR2B_BYTE2):
+	... here for the consistency with W32 and NS.
+
 2014-07-15  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* xmenu.c (toplevel): Use LWLIB_ID for next_menubar_widget_id.

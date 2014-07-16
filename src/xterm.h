@@ -1047,15 +1047,6 @@ extern void x_clear_under_internal_border (struct frame *f);
 
 #define FRAME_X_EMBEDDED_P(f) (FRAME_X_OUTPUT(f)->explicit_parent != 0)
 
-#define STORE_XCHAR2B(chp, b1, b2) \
-  ((chp)->byte1 = (b1), (chp)->byte2 = (b2))
-
-#define XCHAR2B_BYTE1(chp) \
-  ((chp)->byte1)
-
-#define XCHAR2B_BYTE2(chp) \
-  ((chp)->byte2)
-
 #define STORE_NATIVE_RECT(nr,rx,ry,rwidth,rheight)	\
   ((nr).x = (rx),					\
    (nr).y = (ry),					\
