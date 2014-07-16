@@ -18,6 +18,21 @@
 	(store_symval_forwarding): Handle special properties of buffer-local
 	variables and use functions from the above to signal error, if any.
 
+	* frame.h (enum fullscreen_type) [HAVE_WINDOW_SYSTEM]: Use more natural
+	values.  Add comment.
+	(struct frame): Re-arrange layout to avoid extra padding and use bit
+	fields for output_method, want_fullscreen and vertical_scroll_bar_type.
+	(FRAME_VERTICAL_SCROLL_BAR_TYPE, FRAME_HAS_VERTICAL_SCROLL_BARS)
+	(FRAME_HAS_VERTICAL_SCROLL_BARS_ON_LEFT)
+	(FRAME_HAS_VERTICAL_SCROLL_BARS_ON_RIGHT) [!HAVE_WINDOW_SYSTEM]:
+	Define as no-ops because there are no scroll bars anyway.
+	* frame.c (make_frame, make_terminal_frame, make_initial_frame):
+	Adjust users.
+
+	* font.c (fset_font_data) [HAVE_XFT || HAVE_FREETYPE]:
+	Add convenient setter.
+	(font_put_frame_data, font_get_frame_data): Use it.
+
 2014-07-15  Daiki Ueno  <ueno@gnu.org>
 
 	* nsgui.h (XCHAR2B_BYTE1): Add missing parentheses around

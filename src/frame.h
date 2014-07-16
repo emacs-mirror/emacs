@@ -36,15 +36,21 @@ enum vertical_scroll_bar_type
   vertical_scroll_bar_right
 };
 
+#ifdef HAVE_WINDOW_SYSTEM
+
 enum fullscreen_type
 {
   FULLSCREEN_NONE,
-  FULLSCREEN_WIDTH     = 0x001,
-  FULLSCREEN_HEIGHT    = 0x002,
-  FULLSCREEN_BOTH      = 0x003,
-  FULLSCREEN_MAXIMIZED = 0x013,
-  FULLSCREEN_WAIT      = 0x100
+  FULLSCREEN_WIDTH     = 0x1,
+  FULLSCREEN_HEIGHT    = 0x2,
+  FULLSCREEN_BOTH      = 0x3, /* Not a typo but means "width and height".  */
+  FULLSCREEN_MAXIMIZED = 0x4,
+#ifdef HAVE_NTGUI  
+  FULLSCREEN_WAIT      = 0x8
+#endif  
 };
+
+#endif /* HAVE_WINDOW_SYSTEM */
 
 /* The structure representing a frame.  */
 
@@ -187,6 +193,8 @@ struct frame
   struct glyph_matrix *desired_matrix;
   struct glyph_matrix *current_matrix;
 
+  /* Bitfield area begins here.  Keep them together to avoid extra padding.  */
+
   /* True means that glyphs on this frame have been initialized so it can
      be used for output.  */
   bool_bf glyphs_initialized_p : 1;
@@ -227,6 +235,85 @@ struct frame
 
   /* True if it needs to be redisplayed.  */
   bool_bf redisplay : 1;
+
+#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI)	\
+    || defined (HAVE_NS) || defined (USE_GTK)
+  /* True means using a menu bar that comes from the X toolkit.  */
+  bool_bf external_menu_bar : 1;
+#endif
+
+  /* Next two bitfields are mutually exclusive.  They might both be
+     zero if the frame has been made invisible without an icon.  */
+
+  /* Nonzero if the frame is currently displayed; we check
+     it to see if we should bother updating the frame's contents.
+
+     On ttys and on Windows NT/9X, to avoid wasting effort updating
+     visible frames that are actually completely obscured by other
+     windows on the display, we bend the meaning of visible slightly:
+     if equal to 2, then the frame is obscured - we still consider
+     it to be "visible" as seen from lisp, but we don't bother
+     updating it.  */
+  unsigned visible : 2;
+
+  /* True if the frame is currently iconified.  Do not
+     set this directly, use SET_FRAME_ICONIFIED instead.  */
+  bool_bf iconified : 1;
+
+  /* True if this frame should be fully redisplayed.  Disables all
+     optimizations while rebuilding matrices and redrawing.  */
+  bool_bf garbaged : 1;
+
+  /* False means, if this frame has just one window,
+     show no modeline for that window.  */
+  bool_bf wants_modeline : 1;
+
+  /* True means raise this frame to the top of the heap when selected.  */
+  bool_bf auto_raise : 1;
+
+  /* True means lower this frame to the bottom of the stack when left.  */
+  bool_bf auto_lower : 1;
+
+  /* True if frame's root window can't be split.  */
+  bool_bf no_split : 1;
+
+  /* If this is set, then Emacs won't change the frame name to indicate
+     the current buffer, etcetera.  If the user explicitly sets the frame
+     name, this gets set.  If the user sets the name to Qnil, this is
+     cleared.  */
+  bool_bf explicit_name : 1;
+
+  /* True if size of some window on this frame has changed.  */
+  bool_bf window_sizes_changed : 1;
+
+  /* True if the mouse has moved on this display device
+     since the last time we checked.  */
+  bool_bf mouse_moved : 1;
+
+  /* True means that the pointer is invisible.  */
+  bool_bf pointer_invisible : 1;
+
+  /* True means that all windows except mini-window and
+     selected window on this frame have frozen window starts.  */
+  bool_bf frozen_window_starts : 1;
+
+  /* The output method says how the contents of this frame are
+     displayed.  It could be using termcap, or using an X window.
+     This must be the same as the terminal->type. */
+  ENUM_BF (output_method) output_method : 3;
+
+#ifdef HAVE_WINDOW_SYSTEM
+
+  /* See FULLSCREEN_ enum on top.  */
+  ENUM_BF (fullscreen_type) want_fullscreen : 4;
+
+  /* If not vertical_scroll_bar_none, we should actually
+     display the scroll bars of this type on this frame.  */
+  ENUM_BF (vertical_scroll_bar_type) vertical_scroll_bar_type : 2;
+
+#endif /* HAVE_WINDOW_SYSTEM */
+
+  /* Bitfield area ends here.  */
 
   /* Margin at the top of the frame.  Used to display the tool-bar.  */
   int tool_bar_lines;
@@ -309,11 +396,6 @@ struct frame
   /* Canonical Y unit.  Height of a line, in pixels.  */
   int line_height;
 
-  /* The output method says how the contents of this frame are
-     displayed.  It could be using termcap, or using an X window.
-     This must be the same as the terminal->type. */
-  enum output_method output_method;
-
   /* The terminal device that this frame uses.  If this is NULL, then
      the frame has been deleted.  */
   struct terminal *terminal;
@@ -344,9 +426,6 @@ struct frame
   /* The extra width (in pixels) currently allotted for fringes.  */
   int left_fringe_width, right_fringe_width;
 
-  /* See FULLSCREEN_ enum below.  */
-  enum fullscreen_type want_fullscreen;
-
   /* Number of lines of menu bar.  */
   int menu_bar_lines;
 
@@ -357,70 +436,6 @@ struct frame
   /* Used by x_wait_for_event when watching for an X event on this frame.  */
   int wait_event_type;
 #endif
-
-#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) \
-    || defined (HAVE_NS) || defined (USE_GTK)
-  /* True means using a menu bar that comes from the X toolkit.  */
-  bool_bf external_menu_bar : 1;
-#endif
-
-  /* Next two bitfields are mutually exclusive.  They might both be
-     zero if the frame has been made invisible without an icon.  */
-
-  /* Nonzero if the frame is currently displayed; we check
-     it to see if we should bother updating the frame's contents.
-
-     On ttys and on Windows NT/9X, to avoid wasting effort updating
-     visible frames that are actually completely obscured by other
-     windows on the display, we bend the meaning of visible slightly:
-     if equal to 2, then the frame is obscured - we still consider
-     it to be "visible" as seen from lisp, but we don't bother
-     updating it.  */
-  unsigned visible : 2;
-
-  /* True if the frame is currently iconified.  Do not
-     set this directly, use SET_FRAME_ICONIFIED instead.  */
-  bool_bf iconified : 1;
-
-  /* True if this frame should be fully redisplayed.  Disables all
-     optimizations while rebuilding matrices and redrawing.  */
-  bool_bf garbaged : 1;
-
-  /* False means, if this frame has just one window,
-     show no modeline for that window.  */
-  bool_bf wants_modeline : 1;
-
-  /* True means raise this frame to the top of the heap when selected.  */
-  bool_bf auto_raise : 1;
-
-  /* True means lower this frame to the bottom of the stack when left.  */
-  bool_bf auto_lower : 1;
-
-  /* True if frame's root window can't be split.  */
-  bool_bf no_split : 1;
-
-  /* If this is set, then Emacs won't change the frame name to indicate
-     the current buffer, etcetera.  If the user explicitly sets the frame
-     name, this gets set.  If the user sets the name to Qnil, this is
-     cleared.  */
-  bool_bf explicit_name : 1;
-
-  /* True if size of some window on this frame has changed.  */
-  bool_bf window_sizes_changed : 1;
-
-  /* True if the mouse has moved on this display device
-     since the last time we checked.  */
-  bool_bf mouse_moved : 1;
-
-  /* True means that the pointer is invisible.  */
-  bool_bf pointer_invisible : 1;
-
-  /* True means that all windows except mini-window and
-     selected window on this frame have frozen window starts.  */
-  bool_bf frozen_window_starts : 1;
-
-  /* Nonzero if we should actually display the scroll bars on this frame.  */
-  enum vertical_scroll_bar_type vertical_scroll_bar_type;
 
   /* What kind of text cursor should we draw in the future?
      This should always be filled_box_cursor or bar_cursor.  */
@@ -793,6 +808,8 @@ default_pixels_per_inch_y (void)
 #define FRAME_DELETEN_COST(f) (f)->delete_n_lines_cost
 #define FRAME_FOCUS_FRAME(f) f->focus_frame
 
+#ifdef HAVE_WINDOW_SYSTEM
+  
 /* This frame slot says whether scroll bars are currently enabled for frame F,
    and which side they are on.  */
 #define FRAME_VERTICAL_SCROLL_BAR_TYPE(f) ((f)->vertical_scroll_bar_type)
@@ -802,6 +819,16 @@ default_pixels_per_inch_y (void)
   ((f)->vertical_scroll_bar_type == vertical_scroll_bar_left)
 #define FRAME_HAS_VERTICAL_SCROLL_BARS_ON_RIGHT(f) \
   ((f)->vertical_scroll_bar_type == vertical_scroll_bar_right)
+
+#else /* not HAVE_WINDOW_SYSTEM */
+
+/* If there is no window system, there are no scroll bars.  */
+#define FRAME_VERTICAL_SCROLL_BAR_TYPE(f) ((void) f, vertical_scroll_bar_none)
+#define FRAME_HAS_VERTICAL_SCROLL_BARS(f) ((void) f, 0)
+#define FRAME_HAS_VERTICAL_SCROLL_BARS_ON_LEFT(f) ((void) f, 0)
+#define FRAME_HAS_VERTICAL_SCROLL_BARS_ON_RIGHT(f) ((void) f, 0)
+
+#endif /* HAVE_WINDOW_SYSTEM */
 
 /* Width that a scroll bar in frame F should have, if there is one.
    Measured in pixels.

@@ -3574,18 +3574,24 @@ font_update_drivers (struct frame *f, Lisp_Object new_drivers)
 
 #if defined (HAVE_XFT) || defined (HAVE_FREETYPE)
 
+static void
+fset_font_data (struct frame *f, Lisp_Object val)
+{
+  f->font_data = val;
+}
+
 void
 font_put_frame_data (struct frame *f, Lisp_Object driver, void *data)
 {
   Lisp_Object val = assq_no_quit (driver, f->font_data);
 
   if (!data)
-    f->font_data = Fdelq (val, f->font_data);
+    fset_font_data (f, Fdelq (val, f->font_data));
   else
     {
       if (NILP (val))
-	f->font_data = Fcons (Fcons (driver, make_save_ptr (data)),
-			      f->font_data);
+	fset_font_data (f, Fcons (Fcons (driver, make_save_ptr (data)),
+				  f->font_data));
       else
 	XSETCDR (val, make_save_ptr (data));
     }
