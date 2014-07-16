@@ -31,15 +31,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <X11/Intrinsic.h>
 #endif /* USE_X_TOOLKIT */
 
-#define STORE_XCHAR2B(chp, b1, b2) \
-  ((chp)->byte1 = (b1), (chp)->byte2 = (b2))
-
-#define XCHAR2B_BYTE1(chp) \
-  ((chp)->byte1)
-
-#define XCHAR2B_BYTE2(chp) \
-  ((chp)->byte2)
-
 #else /* !HAVE_X_WINDOWS */
 
 /* X-related stuff used by non-X gui code.  */
@@ -50,15 +41,6 @@ typedef struct {
   char flags;
   char pad;
 } XColor;
-
-#define STORE_XCHAR2B(chp, b1, b2) \
-  (*(chp) = ((XChar2b)((((b1) & 0x00ff) << 8) | ((b2) & 0x00ff))))
-
-#define XCHAR2B_BYTE1(chp) \
-  ((*(chp) & 0xff00) >> 8)
-
-#define XCHAR2B_BYTE2(chp) \
-  (*(chp) & 0x00ff)
 
 #endif /* HAVE_X_WINDOWS */
 
