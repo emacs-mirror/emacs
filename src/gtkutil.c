@@ -30,6 +30,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "blockinput.h"
 #include "syssignal.h"
 #include "window.h"
+#include "buffer.h"
 #include "gtkutil.h"
 #include "termhooks.h"
 #include "keyboard.h"

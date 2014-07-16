@@ -73,8 +73,6 @@ extern Lisp_Object Qicon_type;
 extern Lisp_Object Qicon_name;
 extern Lisp_Object Qicon_left;
 extern Lisp_Object Qicon_top;
-extern Lisp_Object Qleft;
-extern Lisp_Object Qright;
 extern Lisp_Object Qtop;
 extern Lisp_Object Qdisplay;
 extern Lisp_Object Qvertical_scroll_bars;

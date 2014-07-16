@@ -1255,7 +1255,7 @@ extern Lisp_Object Qdisplay_type;
 
 extern Lisp_Object Qx_resource_name;
 
-extern Lisp_Object Qleft, Qright, Qtop, Qbox, Qbottom;
+extern Lisp_Object Qtop, Qbox, Qbottom;
 extern Lisp_Object Qdisplay;
 
 extern Lisp_Object Qrun_hook_with_args;

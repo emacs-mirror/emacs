@@ -1,3 +1,23 @@
+2014-07-16  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	More precise control over values of some buffer-local variables.
+	* keyboard.c (Qvertical_scroll_bar):
+	* frame.c (Qleft, Qright): Move to ...
+	* buffer.c (Qleft, Qright, Qvertical_scroll_bar): ... here.
+	* buffer.c (Qchoice, Qrange, Qoverwrite_mode, Qfraction): New symbols.
+	(syms_of_buffer): DEFSYM all of the above, attach special properties.
+	Use special symbols to DEFVAR_PER_BUFFER overwrite-mode,
+	vertical-scroll-bar, scroll-up-aggressively
+	and scroll-down-aggressively.
+	* buffer.h (Qchoice, Qrange, Qleft, Qright, Qvertical_scroll_bar):
+	Add declarations.
+	* nsfns.m, frame.h (Qleft, Qright):
+	* nsterm.m (Qleft): Remove declarations.
+	* gtkutil.c (toplevel): Include buffer.h.
+	* data.c (wrong_choice, wrong_range): New functions.
+	(store_symval_forwarding): Handle special properties of buffer-local
+	variables and use functions from the above to signal error, if any.
+
 2014-07-15  Daiki Ueno  <ueno@gnu.org>
 
 	* nsgui.h (XCHAR2B_BYTE1): Add missing parentheses around

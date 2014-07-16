@@ -348,7 +348,6 @@ static Lisp_Object Qmodifier_cache;
 Lisp_Object Qmode_line;
 Lisp_Object Qvertical_line;
 Lisp_Object Qright_divider, Qbottom_divider;
-static Lisp_Object Qvertical_scroll_bar;
 Lisp_Object Qmenu_bar;
 
 static Lisp_Object Qecho_keystrokes;
@@ -11012,7 +11011,6 @@ syms_of_keyboard (void)
 
   DEFSYM (Qmode_line, "mode-line");
   DEFSYM (Qvertical_line, "vertical-line");
-  DEFSYM (Qvertical_scroll_bar, "vertical-scroll-bar");
   DEFSYM (Qmenu_bar, "menu-bar");
   DEFSYM (Qright_divider, "right-divider");
   DEFSYM (Qbottom_divider, "bottom-divider");

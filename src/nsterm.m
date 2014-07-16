@@ -229,7 +229,7 @@ static unsigned convert_ns_to_X_keysym[] =
 
 static Lisp_Object Qmodifier_value;
 Lisp_Object Qalt, Qcontrol, Qhyper, Qmeta, Qsuper;
-extern Lisp_Object Qcursor_color, Qcursor_type, Qns, Qleft;
+extern Lisp_Object Qcursor_color, Qcursor_type, Qns;
 
 static Lisp_Object QUTF8_STRING;
 static Lisp_Object Qcocoa, Qgnustep;

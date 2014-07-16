@@ -78,7 +78,6 @@ Lisp_Object Qauto_raise, Qauto_lower;
 Lisp_Object Qborder_color, Qborder_width;
 Lisp_Object Qcursor_color, Qcursor_type;
 Lisp_Object Qheight, Qwidth;
-Lisp_Object Qleft, Qright;
 Lisp_Object Qicon_left, Qicon_top, Qicon_type, Qicon_name;
 Lisp_Object Qtooltip;
 Lisp_Object Qinternal_border_width;
@@ -4547,8 +4546,6 @@ syms_of_frame (void)
   DEFSYM (Qicon_left, "icon-left");
   DEFSYM (Qicon_top, "icon-top");
   DEFSYM (Qtooltip, "tooltip");
-  DEFSYM (Qleft, "left");
-  DEFSYM (Qright, "right");
   DEFSYM (Quser_position, "user-position");
   DEFSYM (Quser_size, "user-size");
   DEFSYM (Qwindow_id, "window-id");
