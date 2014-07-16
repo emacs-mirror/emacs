@@ -51,8 +51,6 @@ typedef struct {
   char pad;
 } XColor;
 
-typedef unsigned short XChar2b;
-
 #define STORE_XCHAR2B(chp, b1, b2) \
   (*(chp) = ((XChar2b)((((b1) & 0x00ff) << 8) | ((b2) & 0x00ff))))
 

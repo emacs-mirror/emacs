@@ -52,6 +52,8 @@ typedef HCURSOR Cursor;
 
 #define No_Cursor (0)
 
+#define XChar2b wchar_t
+
 
 /* Windows equivalent of XImage.  */
 typedef struct _XImage
