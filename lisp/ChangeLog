@@ -1,3 +1,17 @@
+2014-07-16  Glenn Morris  <rgm@gnu.org>
+
+	* desktop.el (after-init-hook): Disable startup frame restoration
+	in non-graphical situations.  (Bug#17693)
+
+	* vc/vc-dispatcher.el (vc-log-edit): Do set up the log buffer
+	if it was "empty", or used for a different set of files.  (Bug#17884)
+
+2014-07-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* bindings.el (mode-line-remote): If default-directory is not a
+	string, don't call file-remote-p on it; instead state in the
+	help-echo that it is nil.  (Bug#17986)
+
 2014-07-14  Daniel Colascione  <dancol@dancol.org>
 
 	* progmodes/cc-langs.el: Change comments from `cl-macroexpand-all'
