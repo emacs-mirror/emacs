@@ -59,12 +59,10 @@ typedef struct _XCharStruct
 } XCharStruct;
 
 /* Fake structure from Xlib.h to represent two-byte characters.  */
-#ifdef HAVE_NS
 #ifndef __OBJC__
 typedef unsigned short unichar;
 #endif
 typedef unichar XChar2b;
-#endif
 
 
 /* XXX: xfaces requires these structures, but the question is are we
