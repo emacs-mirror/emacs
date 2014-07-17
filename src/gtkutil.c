@@ -4865,7 +4865,7 @@ update_frame_tool_bar (struct frame *f)
   if (f->n_tool_bar_items != 0)
     {
       if (! x->toolbar_is_packed)
-        xg_pack_tool_bar (f, f->tool_bar_position);
+        xg_pack_tool_bar (f, FRAME_TOOL_BAR_POSITION (f));
       gtk_widget_show_all (TOOLBAR_TOP_WIDGET (x));
       if (xg_update_tool_bar_sizes (f))
         xg_height_or_width_changed (f);

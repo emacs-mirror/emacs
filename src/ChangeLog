@@ -3,6 +3,18 @@
 	* print.c (print_preprocess): Adjust to match changed
 	sub char-table structure and avoid crash (Bug#18038).
 
+	* data.c (wrong_choice): Not static any more.
+	* lisp.h (wrong_choice): Add prototype.
+	* frame.h (struct frame) [USE_X_TOOLKIT || HAVE_NTGUI]:
+	Declare namebuf as such.  Tweak comment.
+	[USE_GTK]: Likewise for tool_bar_position.
+	(fset_tool_bar_position) [USE_GTK]: Ditto.
+	(FRAME_TOOL_BAR_POSITION): New macro.
+	* frame.c (x_report_frame_params):
+	* gtkutil.c (update_frame_tool_bar):
+	* xfns.c (Fx_create_frame): Use it.
+	(x_set_tool_bar_position): Add meaningful diagnostic messages.
+
 2014-07-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (decode_mode_spec): Call file-remote-p on the current

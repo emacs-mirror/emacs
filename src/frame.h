@@ -161,9 +161,11 @@ struct frame
   /* Desired and current tool-bar items.  */
   Lisp_Object tool_bar_items;
 
-  /* Where tool bar is, can be left, right, top or bottom.  The native
-     tool bar only supports top.  */
+#ifdef USE_GTK  
+  /* Where tool bar is, can be left, right, top or bottom.
+     Except with GTK, the only supported position is `top'.  */
   Lisp_Object tool_bar_position;
+#endif
 
 #if defined (HAVE_XFT) || defined (HAVE_FREETYPE)
   /* List of data specific to font-driver and frame, but common to faces.  */
@@ -183,9 +185,12 @@ struct frame
   /* Number of elements in `menu_bar_vector' that have meaningful data.  */
   int menu_bar_items_used;
 
-  /* A buffer to hold the frame's name.  We can't use the Lisp
-     string's pointer (`name', above) because it might get relocated.  */
+#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI)  
+  /* A buffer to hold the frame's name.  Since this is used by the
+     window system toolkit, we can't use the Lisp string's pointer
+     (`name', above) because it might get relocated.  */
   char *namebuf;
+#endif
 
   /* Glyph pool and matrix.  */
   struct glyph_pool *current_pool;
@@ -565,11 +570,13 @@ fset_tool_bar_items (struct frame *f, Lisp_Object val)
 {
   f->tool_bar_items = val;
 }
+#ifdef USE_GTK
 INLINE void
 fset_tool_bar_position (struct frame *f, Lisp_Object val)
 {
   f->tool_bar_position = val;
 }
+#endif /* USE_GTK */
 #if defined (HAVE_WINDOW_SYSTEM) && ! defined (USE_GTK) && ! defined (HAVE_NS)
 INLINE void
 fset_tool_bar_window (struct frame *f, Lisp_Object val)
@@ -739,6 +746,13 @@ default_pixels_per_inch_y (void)
 #define FRAME_EXTERNAL_TOOL_BAR(f) (f)->external_tool_bar
 #else
 #define FRAME_EXTERNAL_TOOL_BAR(f) false
+#endif
+
+/* This is really supported only with GTK.  */
+#ifdef USE_GTK
+#define FRAME_TOOL_BAR_POSITION(f) (f)->tool_bar_position
+#else
+#define FRAME_TOOL_BAR_POSITION(f) ((void) f, Qtop)
 #endif
 
 /* Number of lines of frame F used for the tool-bar.  */

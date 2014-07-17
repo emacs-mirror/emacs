@@ -832,6 +832,7 @@ extern Lisp_Object Qbool_vector_p;
 extern Lisp_Object Qvector_or_char_table_p, Qwholenump;
 extern Lisp_Object Qwindow;
 extern _Noreturn Lisp_Object wrong_type_argument (Lisp_Object, Lisp_Object);
+extern _Noreturn void wrong_choice (Lisp_Object, Lisp_Object);
 
 /* Defined in emacs.c.  */
 extern bool might_dump;

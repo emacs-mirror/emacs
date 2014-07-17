@@ -974,7 +974,7 @@ do_symval_forwarding (register union Lisp_Fwd *valcontents)
 /* Used to signal a user-friendly error when symbol WRONG is
    not a member of CHOICE, which should be a list of symbols.  */
 
-static void
+void
 wrong_choice (Lisp_Object choice, Lisp_Object wrong)
 {
   ptrdiff_t i = 0, len = XINT (Flength (choice));

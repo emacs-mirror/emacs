@@ -336,9 +336,11 @@ make_frame (bool mini_p)
   f = allocate_frame ();
   XSETFRAME (frame, f);
 
+#ifdef USE_GTK
   /* Initialize Lisp data.  Note that allocate_frame initializes all
      Lisp data to nil, so do it only for slots which should not be nil.  */
   fset_tool_bar_position (f, Qtop);
+#endif
 
   /* Initialize non-Lisp data.  Note that allocate_frame zeroes out all
      non-Lisp data, so do it only for slots which should not be zero.
@@ -1372,7 +1374,9 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
   fset_buried_buffer_list (f, Qnil);
 
   free_font_driver_list (f);
+#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI)  
   xfree (f->namebuf);
+#endif  
   xfree (f->decode_mode_spec_buffer);
   xfree (FRAME_INSERT_COST (f));
   xfree (FRAME_DELETEN_COST (f));
@@ -3202,7 +3206,7 @@ x_report_frame_params (struct frame *f, Lisp_Object *alistptr)
     tem = make_natnum ((uintptr_t) FRAME_X_OUTPUT (f)->parent_desc);
   store_in_alist (alistptr, Qexplicit_name, (f->explicit_name ? Qt : Qnil));
   store_in_alist (alistptr, Qparent_id, tem);
-  store_in_alist (alistptr, Qtool_bar_position, f->tool_bar_position);
+  store_in_alist (alistptr, Qtool_bar_position, FRAME_TOOL_BAR_POSITION (f));
 }
 
 

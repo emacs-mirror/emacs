@@ -457,15 +457,23 @@ x_set_tool_bar_position (struct frame *f,
                          Lisp_Object new_value,
                          Lisp_Object old_value)
 {
-  if (! EQ (new_value, Qleft) && ! EQ (new_value, Qright)
-      && ! EQ (new_value, Qbottom) && ! EQ (new_value, Qtop))
-    return;
-  if (EQ (new_value, old_value)) return;
+  Lisp_Object choice = list4 (Qleft, Qright, Qtop, Qbottom);
 
+  if (!NILP (Fmemq (new_value, choice)))
+    {
 #ifdef USE_GTK
-  xg_change_toolbar_position (f, new_value);
-  fset_tool_bar_position (f, new_value);
+      if (!EQ (new_value, old_value))
+	{
+	  xg_change_toolbar_position (f, new_value);
+	  fset_tool_bar_position (f, new_value);
+	}
+#else
+      if (!EQ (new_value, Qtop))
+	error ("The only supported tool bar position is top");
 #endif
+    }
+  else
+    wrong_choice (choice, new_value);
 }
 
 #ifdef USE_GTK
@@ -3182,7 +3190,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   x_default_parameter (f, parms, Qfullscreen, Qnil,
                        "fullscreen", "Fullscreen", RES_TYPE_SYMBOL);
   x_default_parameter (f, parms, Qtool_bar_position,
-                       f->tool_bar_position, 0, 0, RES_TYPE_SYMBOL);
+                       FRAME_TOOL_BAR_POSITION (f), 0, 0, RES_TYPE_SYMBOL);
 
   /* Compute the size of the X window.  */
   window_prompting = x_figure_window_size (f, parms, 1);
