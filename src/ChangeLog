@@ -1,3 +1,10 @@
+2014-07-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (init_iterator): Initialize it->stop_charpos to the
+	buffer position where we are to start the iteration.
+	(handle_invisible_prop): Record in it->stop_charpos the position
+	where the invisible text ends.  (Bug#18035)
+
 2014-07-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (move_it_vertically_backward, move_it_by_lines): Prevent

@@ -3034,6 +3034,7 @@ init_iterator (struct it *it, struct window *w,
      getting overlays and face properties from that position.  */
   if (charpos >= BUF_BEG (current_buffer))
     {
+      it->stop_charpos = charpos;
       it->end_charpos = ZV;
       eassert (charpos == BYTE_TO_CHAR (bytepos));
       IT_CHARPOS (*it) = charpos;
@@ -4546,7 +4547,24 @@ handle_invisible_prop (struct it *it)
 	      && get_overlay_strings (it, it->stop_charpos))
 	    {
 	      handled = HANDLED_RECOMPUTE_PROPS;
-	      it->stack[it->sp - 1].display_ellipsis_p = display_ellipsis_p;
+	      if (it->sp > 0)
+		{
+		  it->stack[it->sp - 1].display_ellipsis_p = display_ellipsis_p;
+		  /* The call to get_overlay_strings above recomputes
+		     it->stop_charpos, but it only considers changes
+		     in properties and overlays beyond iterator's
+		     current position.  This causes us to miss changes
+		     that happen exactly where the invisible property
+		     ended.  So we play it safe here and force the
+		     iterator to check for potential stop positions
+		     immediately after the invisible text.  Note that
+		     if get_overlay_strings returns non-zero, it
+		     normally also pushed the iterator stack, so we
+		     need to update the stop position in the slot
+		     below the current one.  */
+		  it->stack[it->sp - 1].stop_charpos
+		    = CHARPOS (it->stack[it->sp - 1].current.pos);
+		}
 	    }
 	  else if (display_ellipsis_p)
             {
