@@ -1,3 +1,8 @@
+2014-07-17  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* print.c (print_preprocess): Adjust to match changed
+	sub char-table structure and avoid crash (Bug#18038).
+
 2014-07-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (decode_mode_spec): Call file-remote-p on the current

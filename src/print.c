@@ -1228,7 +1228,8 @@ print_preprocess (Lisp_Object obj)
 	  size = ASIZE (obj);
 	  if (size & PSEUDOVECTOR_FLAG)
 	    size &= PSEUDOVECTOR_SIZE_MASK;
-	  for (i = 0; i < size; i++)
+	  for (i = (SUB_CHAR_TABLE_P (obj)
+		    ? SUB_CHAR_TABLE_OFFSET : 0); i < size; i++)
 	    print_preprocess (AREF (obj, i));
 	  if (HASH_TABLE_P (obj))
 	    { /* For hash tables, the key_and_value slot is past
