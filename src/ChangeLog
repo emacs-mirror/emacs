@@ -1,5 +1,14 @@
 2014-07-17  Eli Zaretskii  <eliz@gnu.org>
 
+	* w32select.c (setup_windows_coding_system): Apply
+	CODING_ANNOTATION_MASK to the common_flags member of struct
+	coding_system.  Reported by martin rudalics <rudalics@gmx.at>.
+
+	* w16select.c (Fw16_get_clipboard_data): Apply
+	CODING_ANNOTATION_MASK to the common_flags member of struct
+	coding_system.
+
+
 	* xdisp.c (init_iterator): Initialize it->stop_charpos to the
 	buffer position where we are to start the iteration.
 	(handle_invisible_prop): Record in it->stop_charpos the position
