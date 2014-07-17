@@ -4,6 +4,9 @@
 	buffer position where we are to start the iteration.
 	(handle_invisible_prop): Record in it->stop_charpos the position
 	where the invisible text ends.  (Bug#18035)
+	(hscroll_window_tree): Don't try hscrolling windows whose cursor
+	row has zero buffer position as their start position.  Reported by
+	martin rudalics <rudalics@gmx.at>.
 
 2014-07-16  Eli Zaretskii  <eliz@gnu.org>
 

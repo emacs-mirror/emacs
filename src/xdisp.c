@@ -12880,6 +12880,13 @@ hscroll_window_tree (Lisp_Object window)
 	  h_margin = hscroll_margin * WINDOW_FRAME_COLUMN_WIDTH (w);
 
 	  if (!NILP (Fbuffer_local_value (Qauto_hscroll_mode, w->contents))
+	      /* In some pathological cases, like restoring a window
+		 configuration into a frame that is much smaller than
+		 the one from which the configuration was saved, we
+		 get glyph rows whose start and end have zero buffer
+		 positions, which we cannot handle below.  Just skip
+		 such windows.  */
+	      && CHARPOS (cursor_row->start.pos) >= BUF_BEG (w->contents)
 	      /* For left-to-right rows, hscroll when cursor is either
 		 (i) inside the right hscroll margin, or (ii) if it is
 		 inside the left margin and the window is already
