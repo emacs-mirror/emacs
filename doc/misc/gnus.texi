@@ -12813,10 +12813,12 @@ variable, which is a vector of the following headers: number subject
 from date id references chars lines xref extra.
 
 In the case of a string value, if the @code{match} is a regular
-expression, a @samp{gnus-match-substitute-replacement} is proceed on
-the value to replace the positional parameters @samp{\@var{n}} by the
-corresponding parenthetical matches (see @xref{Replacing Match,,
-Replacing the Text that Matched, elisp, The Emacs Lisp Reference Manual}.)
+expression, or if it takes the form @code{(header @var{match}
+@var{regexp})}, a @samp{gnus-match-substitute-replacement} is proceed
+on the value to replace the positional parameters @samp{\@var{n}} by
+the corresponding parenthetical matches (see @xref{Replacing Match,,
+Replacing the Text that Matched, elisp, The Emacs Lisp Reference
+Manual}.)
 
 @vindex message-reply-headers
 
@@ -12848,6 +12850,10 @@ So here's a new example:
         ;; @r{If I'm replying to Larsi, set the Organization header.}
         ((header "from" "larsi.*org")
          (Organization "Somewhere, Inc."))
+        ;; @r{Reply to a message from the same subaddress the message}
+        ;; @r{was sent to.}
+        ((header "x-original-to" "me\\(\\+.+\\)@@example.org")
+         (address "me\\1@@example.org"))
         ((posting-from-work-p) ;; @r{A user defined function}
          (signature-file "~/.work-signature")
          (address "user@@bar.foo")

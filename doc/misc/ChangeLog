@@ -1,3 +1,8 @@
+2014-07-18  Albert Krewinkel  <albert+gnus@zeitkraut.de>
+
+	* gnus.texi (Posting Styles): Document the possibility to perform
+	string replacements when matching against headers.
+
 2014-07-09  Stephen Berman  <stephen.berman@gmx.net>
 
 	* todo-mode.texi (Levels of Organization): Comment out statement
