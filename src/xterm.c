@@ -5966,7 +5966,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
         const XSelectionClearEvent *eventp = &event->xselectionclear;
 
         inev.ie.kind = SELECTION_CLEAR_EVENT;
-        SELECTION_EVENT_DISPLAY (&inev.sie) = eventp->display;
+        SELECTION_EVENT_DPYINFO (&inev.sie) = dpyinfo;
         SELECTION_EVENT_SELECTION (&inev.sie) = eventp->selection;
         SELECTION_EVENT_TIME (&inev.sie) = eventp->time;
       }
@@ -5982,7 +5982,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	const XSelectionRequestEvent *eventp = &event->xselectionrequest;
 
 	inev.ie.kind = SELECTION_REQUEST_EVENT;
-	SELECTION_EVENT_DISPLAY (&inev.sie) = eventp->display;
+	SELECTION_EVENT_DPYINFO (&inev.sie) = dpyinfo;
 	SELECTION_EVENT_REQUESTOR (&inev.sie) = eventp->requestor;
 	SELECTION_EVENT_SELECTION (&inev.sie) = eventp->selection;
 	SELECTION_EVENT_TARGET (&inev.sie) = eventp->target;

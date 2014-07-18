@@ -892,15 +892,21 @@ struct scroll_bar
 struct selection_input_event
 {
   int kind;
-  Display *display;
+  struct x_display_info *dpyinfo;
   /* We spell it with an "o" here because X does.  */
   Window requestor;
   Atom selection, target, property;
   Time time;
 };
 
-#define SELECTION_EVENT_DISPLAY(eventp)	\
-  (((struct selection_input_event *) (eventp))->display)
+/* Unlike macros below, this can't be used as an lvalue.  */
+INLINE Display *
+SELECTION_EVENT_DISPLAY (struct input_event *ev)
+{
+  return ((struct selection_input_event *) ev)->dpyinfo->display;
+}
+#define SELECTION_EVENT_DPYINFO(eventp) \
+  (((struct selection_input_event *) (eventp))->dpyinfo)
 /* We spell it with an "o" here because X does.  */
 #define SELECTION_EVENT_REQUESTOR(eventp)	\
   (((struct selection_input_event *) (eventp))->requestor)

@@ -12,6 +12,21 @@
 	* xterm.h (x_display_pixel_width, x_display_pixel_height): ...
 	inlined from here.
 
+	Prefer 'x_display_info *' to 'Display *' in X selection code.
+	This helps to avoid unneeded calls to x_display_info_for_display.
+	* xterm.h (struct selection_input_event): Record 'x_display_info *'
+	instead of 'Display *'.
+	(SELECTION_EVENT_DPYINFO): New macro.
+	(SELECTION_EVENT_DISPLAY): Now inline function to prohibit using
+	it as an lvalue.  Mention this in comment.
+	* xterm.c (handle_one_xevent): Use SELECTION_EVENT_DPYINFO.
+	* xselect.c (x_get_window_property_as_lisp_data, x_atom_to_symbol)
+	(selection_data_to_lisp_data, receive_incremental_selection):
+	Convert to use 'x_display_info *'.  Adjust users where appropriate.
+	(lisp_data_to_selection_data): Likewise.  Also pass 'struct
+	selection data *' as last arg to not return values in args.
+	(unexpect_property_change): Use common removal technique.
+
 2014-07-17  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* print.c (print_preprocess): Adjust to match changed
