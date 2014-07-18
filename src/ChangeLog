@@ -1,3 +1,17 @@
+2014-07-18  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* frame.c (frame_unspecified_color): New function
+	refactored out from ...
+	(Fframe_parameters, Fframe_parameter): ... adjusted users.
+	(x_fullscreen_adjust, set_frame_param): Move Windows-specific
+	function to ...
+	* w32term.c (x_fullscreen_adjust, set_frame_param): ... static here.
+	* frame.h (x_fullscreen_adjust) [HAVE_NTGUI]:
+	* lisp.h (set_frame_param): Remove prototype.
+	* xterm.c (x_display_pixel_width, x_display_pixel_height): Now ...
+	* xterm.h (x_display_pixel_width, x_display_pixel_height): ...
+	inlined from here.
+
 2014-07-17  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* print.c (print_preprocess): Adjust to match changed

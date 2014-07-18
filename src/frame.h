@@ -1317,11 +1317,6 @@ extern Lisp_Object x_new_font (struct frame *, Lisp_Object, int);
 
 extern Lisp_Object Qface_set_after_frame_default;
 
-#ifdef HAVE_NTGUI
-extern void x_fullscreen_adjust (struct frame *f, int *, int *,
-                                 int *, int *);
-#endif
-
 extern void x_set_frame_parameters (struct frame *, Lisp_Object);
 
 extern void x_set_fullscreen (struct frame *, Lisp_Object, Lisp_Object);

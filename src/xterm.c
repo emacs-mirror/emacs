@@ -442,19 +442,6 @@ x_set_frame_alpha (struct frame *f)
   x_uncatch_errors ();
 }
 
-int
-x_display_pixel_height (struct x_display_info *dpyinfo)
-{
-  return HeightOfScreen (dpyinfo->screen);
-}
-
-int
-x_display_pixel_width (struct x_display_info *dpyinfo)
-{
-  return WidthOfScreen (dpyinfo->screen);
-}
-
-
 /***********************************************************************
 		    Starting and ending an update
  ***********************************************************************/

@@ -4135,7 +4135,18 @@ x_scroll_bar_clear (struct frame *f)
       }
 }
 
-
+static void
+set_frame_param (struct frame *f, Lisp_Object prop, Lisp_Object val)
+{
+  register Lisp_Object old_alist_elt;
+
+  old_alist_elt = Fassq (prop, f->param_alist);
+  if (EQ (old_alist_elt, Qnil))
+    fset_param_alist (f, Fcons (Fcons (prop, val), f->param_alist));
+  else
+    Fsetcdr (old_alist_elt, val);
+}
+
 /* The main W32 event-reading loop - w32_read_socket.  */
 
 /* Record the last 100 characters stored
@@ -5561,6 +5572,47 @@ x_set_offset (struct frame *f, register int xoff, register int yoff,
   unblock_input ();
 }
 
+/* Calculate fullscreen size.  Return in *TOP_POS and *LEFT_POS the
+   wanted positions of the WM window (not Emacs window).
+   Return in *WIDTH and *HEIGHT the wanted width and height of Emacs
+   window (FRAME_X_WINDOW).
+ */
+
+static void
+x_fullscreen_adjust (struct frame *f, int *width, int *height, int *top_pos, int *left_pos)
+{
+  int newwidth = FRAME_COLS (f);
+  int newheight = FRAME_LINES (f);
+  Display_Info *dpyinfo = FRAME_DISPLAY_INFO (f);
+
+  *top_pos = f->top_pos;
+  *left_pos = f->left_pos;
+
+  if (f->want_fullscreen & FULLSCREEN_HEIGHT)
+    {
+      int ph;
+
+      ph = x_display_pixel_height (dpyinfo);
+      newheight = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, ph);
+      ph = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, newheight) - f->y_pixels_diff;
+      newheight = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, ph);
+      *top_pos = 0;
+    }
+
+  if (f->want_fullscreen & FULLSCREEN_WIDTH)
+    {
+      int pw;
+
+      pw = x_display_pixel_width (dpyinfo);
+      newwidth = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, pw);
+      pw = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, newwidth) - f->x_pixels_diff;
+      newwidth = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, pw);
+      *left_pos = 0;
+    }
+
+  *width = newwidth;
+  *height = newheight;
+}
 
 /* Check if we need to resize the frame due to a fullscreen request.
    If so needed, resize the frame.  */

@@ -77,6 +77,8 @@ typedef GtkWidget *xt_or_gtk_widget;
 #include "dispextern.h"
 #include "termhooks.h"
 
+INLINE_HEADER_BEGIN
+
 /* Black and white pixel values for the screen which frame F is on.  */
 #define BLACK_PIX_DEFAULT(f)					\
   BlackPixel (FRAME_X_DISPLAY (f), FRAME_X_SCREEN_NUMBER (f))
@@ -953,8 +955,18 @@ extern void x_mouse_leave (struct x_display_info *);
 extern int x_dispatch_event (XEvent *, Display *);
 #endif
 extern int x_x_to_emacs_modifiers (struct x_display_info *, int);
-extern int x_display_pixel_height (struct x_display_info *);
-extern int x_display_pixel_width (struct x_display_info *);
+
+INLINE int
+x_display_pixel_height (struct x_display_info *dpyinfo)
+{
+  return HeightOfScreen (dpyinfo->screen);
+}
+
+INLINE int
+x_display_pixel_width (struct x_display_info *dpyinfo)
+{
+  return WidthOfScreen (dpyinfo->screen);
+}
 
 extern void x_set_sticky (struct frame *, Lisp_Object, Lisp_Object);
 extern void x_wait_for_event (struct frame *, int);
@@ -1061,5 +1073,7 @@ extern void x_clear_under_internal_border (struct frame *f);
    (nr).y = (ry),					\
    (nr).width = (rwidth),				\
    (nr).height = (rheight))
+
+INLINE_HEADER_END
 
 #endif /* XTERM_H */

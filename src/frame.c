@@ -2081,20 +2081,6 @@ set_term_frame_name (struct frame *f, Lisp_Object name)
   update_mode_lines = 16;
 }
 
-#ifdef HAVE_NTGUI
-void
-set_frame_param (struct frame *f, Lisp_Object prop, Lisp_Object val)
-{
-  register Lisp_Object old_alist_elt;
-
-  old_alist_elt = Fassq (prop, f->param_alist);
-  if (EQ (old_alist_elt, Qnil))
-    fset_param_alist (f, Fcons (Fcons (prop, val), f->param_alist));
-  else
-    Fsetcdr (old_alist_elt, val);
-}
-#endif
-
 void
 store_frame_param (struct frame *f, Lisp_Object prop, Lisp_Object val)
 {
@@ -2186,6 +2172,18 @@ store_frame_param (struct frame *f, Lisp_Object prop, Lisp_Object val)
     }
 }
 
+/* Return color matches UNSPEC on frame F or nil if UNSPEC
+   is not an unspecified foreground or background color.  */
+
+static Lisp_Object
+frame_unspecified_color (struct frame *f, Lisp_Object unspec)
+{
+  return (!strncmp (SSDATA (unspec), unspecified_bg, SBYTES (unspec))
+	  ? tty_color_name (f, FRAME_BACKGROUND_PIXEL (f))
+	  : (!strncmp (SSDATA (unspec), unspecified_fg, SBYTES (unspec))
+	     ? tty_color_name (f, FRAME_FOREGROUND_PIXEL (f)) : Qnil));
+}
+
 DEFUN ("frame-parameters", Fframe_parameters, Sframe_parameters, 0, 1, 0,
        doc: /* Return the parameters-alist of frame FRAME.
 It is a list of elements of the form (PARM . VALUE), where PARM is a symbol.
@@ -2206,8 +2204,6 @@ If FRAME is omitted or nil, return information on the currently selected frame. 
 
   if (!FRAME_WINDOW_P (f))
     {
-      int fg = FRAME_FOREGROUND_PIXEL (f);
-      int bg = FRAME_BACKGROUND_PIXEL (f);
       Lisp_Object elt;
 
       /* If the frame's parameter alist says the colors are
@@ -2216,31 +2212,23 @@ If FRAME is omitted or nil, return information on the currently selected frame. 
       elt = Fassq (Qforeground_color, alist);
       if (CONSP (elt) && STRINGP (XCDR (elt)))
 	{
-	  if (strncmp (SSDATA (XCDR (elt)),
-		       unspecified_bg,
-		       SCHARS (XCDR (elt))) == 0)
-	    store_in_alist (&alist, Qforeground_color, tty_color_name (f, bg));
-	  else if (strncmp (SSDATA (XCDR (elt)),
-			    unspecified_fg,
-			    SCHARS (XCDR (elt))) == 0)
-	    store_in_alist (&alist, Qforeground_color, tty_color_name (f, fg));
+	  elt = frame_unspecified_color (f, XCDR (elt));
+	  if (!NILP (elt))
+	    store_in_alist (&alist, Qforeground_color, elt);
 	}
       else
-	store_in_alist (&alist, Qforeground_color, tty_color_name (f, fg));
+	store_in_alist (&alist, Qforeground_color,
+			tty_color_name (f, FRAME_FOREGROUND_PIXEL (f)));
       elt = Fassq (Qbackground_color, alist);
       if (CONSP (elt) && STRINGP (XCDR (elt)))
 	{
-	  if (strncmp (SSDATA (XCDR (elt)),
-		       unspecified_fg,
-		       SCHARS (XCDR (elt))) == 0)
-	    store_in_alist (&alist, Qbackground_color, tty_color_name (f, fg));
-	  else if (strncmp (SSDATA (XCDR (elt)),
-			    unspecified_bg,
-			    SCHARS (XCDR (elt))) == 0)
-	    store_in_alist (&alist, Qbackground_color, tty_color_name (f, bg));
+	  elt = frame_unspecified_color (f, XCDR (elt));
+	  if (!NILP (elt))
+	    store_in_alist (&alist, Qbackground_color, elt);
 	}
       else
-	store_in_alist (&alist, Qbackground_color, tty_color_name (f, bg));
+	store_in_alist (&alist, Qbackground_color,
+			tty_color_name (f, FRAME_BACKGROUND_PIXEL (f)));
       store_in_alist (&alist, intern ("font"),
 		      build_string (FRAME_MSDOS_P (f)
 				    ? "ms-dos"
@@ -2320,29 +2308,7 @@ If FRAME is nil, describe the currently selected frame.  */)
 		 important when param_alist's notion of colors is
 		 "unspecified".  We need to do the same here.  */
 	      if (STRINGP (value) && !FRAME_WINDOW_P (f))
-		{
-		  const char *color_name;
-		  ptrdiff_t csz;
-
-		  if (EQ (parameter, Qbackground_color))
-		    {
-		      color_name = SSDATA (value);
-		      csz = SCHARS (value);
-		      if (strncmp (color_name, unspecified_bg, csz) == 0)
-			value = tty_color_name (f, FRAME_BACKGROUND_PIXEL (f));
-		      else if (strncmp (color_name, unspecified_fg, csz) == 0)
-			value = tty_color_name (f, FRAME_FOREGROUND_PIXEL (f));
-		    }
-		  else if (EQ (parameter, Qforeground_color))
-		    {
-		      color_name = SSDATA (value);
-		      csz = SCHARS (value);
-		      if (strncmp (color_name, unspecified_fg, csz) == 0)
-			value = tty_color_name (f, FRAME_FOREGROUND_PIXEL (f));
-		      else if (strncmp (color_name, unspecified_bg, csz) == 0)
-			value = tty_color_name (f, FRAME_BACKGROUND_PIXEL (f));
-		    }
-		}
+		value = frame_unspecified_color (f, value);
 	    }
 	  else
 	    value = Fcdr (Fassq (parameter, Fframe_parameters (frame)));
@@ -2785,52 +2751,6 @@ static const struct frame_parm_table frame_parms[] =
   {"sticky",			&Qsticky},
   {"tool-bar-position",		&Qtool_bar_position},
 };
-
-#ifdef HAVE_NTGUI
-
-/* Calculate fullscreen size.  Return in *TOP_POS and *LEFT_POS the
-   wanted positions of the WM window (not Emacs window).
-   Return in *WIDTH and *HEIGHT the wanted width and height of Emacs
-   window (FRAME_X_WINDOW).
- */
-
-void
-x_fullscreen_adjust (struct frame *f, int *width, int *height, int *top_pos, int *left_pos)
-{
-  int newwidth = FRAME_COLS (f);
-  int newheight = FRAME_LINES (f);
-  Display_Info *dpyinfo = FRAME_DISPLAY_INFO (f);
-
-  *top_pos = f->top_pos;
-  *left_pos = f->left_pos;
-
-  if (f->want_fullscreen & FULLSCREEN_HEIGHT)
-    {
-      int ph;
-
-      ph = x_display_pixel_height (dpyinfo);
-      newheight = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, ph);
-      ph = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, newheight) - f->y_pixels_diff;
-      newheight = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, ph);
-      *top_pos = 0;
-    }
-
-  if (f->want_fullscreen & FULLSCREEN_WIDTH)
-    {
-      int pw;
-
-      pw = x_display_pixel_width (dpyinfo);
-      newwidth = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, pw);
-      pw = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, newwidth) - f->x_pixels_diff;
-      newwidth = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, pw);
-      *left_pos = 0;
-    }
-
-  *width = newwidth;
-  *height = newheight;
-}
-
-#endif /* HAVE_NTGUI */
 
 #ifdef HAVE_WINDOW_SYSTEM
 
