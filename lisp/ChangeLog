@@ -1,3 +1,9 @@
+2014-07-19  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	Fix Python shell prompts detection for remote hosts.
+	* progmodes/python.el (python-shell-prompt-detect): Replace
+	call-process with process-file and make it more robust.
+
 2014-07-17  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
 	Autodetect Python shell prompts.  (Bug#17370)

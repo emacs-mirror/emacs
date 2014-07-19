@@ -1864,24 +1864,29 @@ detection and just returns nil."
   (when python-shell-prompt-detect-enabled
     (let* ((process-environment (python-shell-calculate-process-environment))
            (exec-path (python-shell-calculate-exec-path))
-           (python-code-file
-            (python-shell--save-temp-file
-             (concat
-              "import sys\n"
-              "ps = [getattr(sys, 'ps%s' % i, '') for i in range(1,4)]\n"
-              ;; JSON is built manually for compatibility
-              "ps_json = '\\n[\"%s\", \"%s\", \"%s\"]\\n' % tuple(ps)\n"
-              "print (ps_json)\n"
-              "sys.exit(0)\n")))
+           (code (concat
+                  "import sys\n"
+                  "ps = [getattr(sys, 'ps%s' % i, '') for i in range(1,4)]\n"
+                  ;; JSON is built manually for compatibility
+                  "ps_json = '\\n[\"%s\", \"%s\", \"%s\"]\\n' % tuple(ps)\n"
+                  "print (ps_json)\n"
+                  "sys.exit(0)\n"))
            (output
             (with-temp-buffer
-              (call-process
-               (executable-find python-shell-interpreter)
-               python-code-file
-               '(t nil)
-               nil
-               python-shell-interpreter-interactive-arg)
-              (ignore-errors (delete-file python-code-file))
+              ;; TODO: improve error handling by using
+              ;; `condition-case' and displaying the error message to
+              ;; the user in the no-prompts warning.
+              (ignore-errors
+                (let ((code-file (python-shell--save-temp-file code)))
+                  ;; Use `process-file' as it is remote-host friendly.
+                  (process-file
+                   (executable-find python-shell-interpreter)
+                   code-file
+                   '(t nil)
+                   nil
+                   python-shell-interpreter-interactive-arg)
+                  ;; Try to cleanup
+                  (delete-file code-file)))
               (buffer-string)))
            (prompts
             (catch 'prompts
