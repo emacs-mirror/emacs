@@ -1,5 +1,8 @@
 2014-07-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* xt-mouse.el (xterm-mouse-event): Don't assume last-click is non-nil
+	(bug#18015).
+
 	* rect.el (rectangle--string-preview): Don't assume there
 	a non-nil default (bug#17984).
 

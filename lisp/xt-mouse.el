@@ -250,7 +250,7 @@ which is the \"1006\" extension implemented in Xterm >= 277."
            ((not (string-match "down-" name))
             ;; For up events, make the up side match the down side.
             (setq this-time last-time)
-            (when (and (> click-count 1)
+            (when (and click-count (> click-count 1)
                        (string-match "down-" last-name)
                        (equal name (replace-match "" t t last-name)))
               (xterm-mouse--set-click-count event click-count)))
