@@ -1,3 +1,13 @@
+2014-07-19  K. Handa  <handa@gnu.org>
+
+	* xfaces.c (realize_x_face): Call font_load_for_lface with no
+	mandatory font spec (Bug#17973).
+
+2014-07-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* font.c (font_score): Return the worst score if the size of
+	ENTITY is wrong by more than a factor 2 (Bug#17973).
+
 2014-07-18  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* frame.c (frame_unspecified_color): New function

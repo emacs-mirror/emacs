@@ -5547,7 +5547,7 @@ realize_x_face (struct face_cache *cache, Lisp_Object attrs[LFACE_VECTOR_SIZE])
 	}
       if (! FONT_OBJECT_P (attrs[LFACE_FONT_INDEX]))
 	attrs[LFACE_FONT_INDEX]
-	  = font_load_for_lface (f, attrs, attrs[LFACE_FONT_INDEX]);
+	  = font_load_for_lface (f, attrs, Ffont_spec (0, NULL));
       if (FONT_OBJECT_P (attrs[LFACE_FONT_INDEX]))
 	{
 	  face->font = XFONT_OBJECT (attrs[LFACE_FONT_INDEX]);
