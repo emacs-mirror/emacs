@@ -1510,6 +1510,7 @@ fi
 dnl checks for header files
 AC_CHECK_HEADERS_ONCE(
   sys/systeminfo.h
+  sys/sysinfo.h
   coff.h pty.h
   sys/resource.h
   sys/utsname.h pwd.h utmp.h util.h)
@@ -1524,6 +1525,21 @@ if test $emacs_cv_personality_linux32 = yes; then
   AC_DEFINE(HAVE_PERSONALITY_LINUX32, 1,
             [Define to 1 if personality LINUX32 can be set.])
 fi
+
+if test "$ac_cv_header_sys_sysinfo_h" = yes; then
+  AC_MSG_CHECKING([if Linux sysinfo may be used])
+  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <sys/sysinfo.h>]],
+                                     [[struct sysinfo si; sysinfo (&si)]])],
+    emacs_cv_linux_sysinfo=yes, emacs_cv_linux_sysinfo=no)
+  AC_MSG_RESULT($emacs_cv_linux_sysinfo)
+  if test $emacs_cv_linux_sysinfo = yes; then
+    AC_DEFINE([HAVE_LINUX_SYSINFO], 1, [Define to 1 if you have Linux sysinfo function.])
+    AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <sys/sysinfo.h>]],
+                                       [[struct sysinfo si; return si.mem_unit]])],
+      AC_DEFINE(LINUX_SYSINFO_UNIT, 1,
+                [Define to 1 if Linux sysinfo sizes are in multiples of mem_unit bytes.]))
+  fi
+fi  
 
 dnl On Solaris 8 there's a compilation warning for term.h because
 dnl it doesn't define `bool'.

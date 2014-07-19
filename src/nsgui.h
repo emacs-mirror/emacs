@@ -68,10 +68,10 @@ typedef unichar XChar2b;
   (*(chp) = ((XChar2b)((((b1) & 0x00ff) << 8) | ((b2) & 0x00ff))))
 
 #define XCHAR2B_BYTE1(chp) \
- (((*chp) & 0xff00) >> 8)
+  ((*(chp) & 0xff00) >> 8)
 
 #define XCHAR2B_BYTE2(chp) \
- ((*chp) & 0x00ff)
+  (*(chp) & 0x00ff)
 
 
 /* XXX: xfaces requires these structures, but the question is are we

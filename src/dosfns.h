@@ -22,7 +22,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define DOS_COUNTRY_INFO 34	/* no of bytes returned by dos int 38h */
 extern unsigned char dos_country_info[DOS_COUNTRY_INFO];
-
+extern int dos_memory_info (unsigned long *, unsigned long *,
+			    unsigned long *, unsigned long *);
 #ifndef HAVE_X_WINDOWS
 extern int         msdos_stdcolor_idx  (const char *);
 extern Lisp_Object msdos_stdcolor_name (int);

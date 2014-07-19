@@ -1,3 +1,7 @@
+2014-07-11  Michael Albinus  <michael.albinus@gmx.de>
+
+	* NEWS: Passwords in batch mode are hidden.
+
 2014-07-03  Glenn Morris  <rgm@gnu.org>
 
 	* refcards/calccard.tex (section{Getting Help}):

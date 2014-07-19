@@ -413,7 +413,7 @@ $(srcdir)/configure: $(AUTOCONF_INPUTS)
 	cd ${srcdir} && ${AUTOCONF}
 
 ACLOCAL_PATH = @ACLOCAL_PATH@
-ACLOCAL_INPUTS = $(srcdir)/configure.ac $(srcdir)/m4/gnulib-comp.m4
+ACLOCAL_INPUTS = $(srcdir)/configure.ac $(wildcard $(srcdir)/m4/*.m4)
 $(srcdir)/aclocal.m4: $(ACLOCAL_INPUTS)
 	cd $(srcdir) && ACLOCAL_PATH='$(ACLOCAL_PATH)' $(ACLOCAL) -I m4
 
@@ -594,8 +594,9 @@ install-arch-indep: lisp install-info install-man ${INSTALL_ARCH_INDEP_EXTRA}
 	[ -z "${GZIP_PROG}" ] || { \
 	  echo "Compressing *.el ..." && \
 	  cd "$(DESTDIR)${lispdir}" && \
-	  find . -name '*.elc' -exec $(SHELL) -c \
-	    '${GZIP_PROG} -9n `expr "$$1" : "\\(.*\\)c"`' dummy '{}' ';'; \
+	  for f in `find . -name "*.elc" -print | sed 's/.elc$$/.el/'`; do \
+	    ${GZIP_PROG} -9n "$$f"; \
+	  done; \
 	}
 	-chmod -R a+r "$(DESTDIR)${datadir}/emacs/${version}" ${COPYDESTS}
 

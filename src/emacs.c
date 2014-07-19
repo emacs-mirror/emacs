@@ -51,6 +51,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "cygw32.h"
 #endif
 
+#ifdef MSDOS
+#include <binary-io.h>
+#endif
+
 #ifdef HAVE_WINDOW_SYSTEM
 #include TERM_HEADER
 #endif /* HAVE_WINDOW_SYSTEM */
@@ -918,20 +922,10 @@ main (int argc, char **argv)
 
 #endif	/* not SYSTEM_MALLOC */
 
-#if defined (MSDOS) || defined (WINDOWSNT)
-  /* We do all file input/output as binary files.  When we need to translate
-     newlines, we do that manually.  */
-  _fmode = O_BINARY;
-#endif /* MSDOS || WINDOWSNT */
-
 #ifdef MSDOS
-  if (!isatty (fileno (stdin)))
-    setmode (fileno (stdin), O_BINARY);
-  if (!isatty (fileno (stdout)))
-    {
-      fflush (stdout);
-      setmode (fileno (stdout), O_BINARY);
-    }
+  SET_BINARY (fileno (stdin));
+  fflush (stdout);
+  SET_BINARY (fileno (stdout));
 #endif /* MSDOS */
 
   /* Skip initial setlocale if LC_ALL is "C", as it's not needed in that case.

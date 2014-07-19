@@ -24,15 +24,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <stdio.h>
 #include <ctype.h>
-#ifdef DOS_NT
-#include <fcntl.h>
-#if __DJGPP__ >= 2
-#include <io.h>
-#endif
-#endif
-#ifdef WINDOWSNT
-#include <io.h>
-#endif
+
+#include <binary-io.h>
 
 #define DEFAULT_GROUPING	0x01
 #define DEFAULT_BASE		16
@@ -155,20 +148,12 @@ main (int argc, char **argv)
 
       if (un_flag)
 	{
-	  char buf[18];
+	  SET_BINARY (fileno (stdout));
 
-#ifdef DOS_NT
-#if (__DJGPP__ >= 2) || (defined WINDOWSNT)
-          if (!isatty (fileno (stdout)))
-	    setmode (fileno (stdout), O_BINARY);
-#else
-	  (stdout)->_flag &= ~_IOTEXT; /* print binary */
-	  _setmode (fileno (stdout), O_BINARY);
-#endif
-#endif
 	  for (;;)
 	    {
-	      register int i, c = 0, d;
+	      int i, c = 0, d;
+	      char buf[18];
 
 #define hexchar(x) (isdigit (x) ? x - '0' : x - 'a' + 10)
 
@@ -210,15 +195,7 @@ main (int argc, char **argv)
 	}
       else
 	{
-#ifdef DOS_NT
-#if (__DJGPP__ >= 2) || (defined WINDOWSNT)
-          if (!isatty (fileno (fp)))
-	    setmode (fileno (fp), O_BINARY);
-#else
-	  (fp)->_flag &= ~_IOTEXT; /* read binary */
-	  _setmode (fileno (fp), O_BINARY);
-#endif
-#endif
+	  SET_BINARY (fileno (fp));
 	  address = 0;
 	  string[0] = ' ';
 	  string[17] = '\0';

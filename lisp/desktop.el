@@ -1516,8 +1516,15 @@ If there are no buffers left to create, kill the timer."
         (setq command-line-args (delete key command-line-args))
         (desktop-save-mode 0)))
     (when desktop-save-mode
-      (desktop-read)
-      (setq inhibit-startup-screen t))))
+      ;; People don't expect emacs -nw, or --daemon,
+      ;; to create graphical frames (bug#17693).
+      ;; TODO perhaps there should be a separate value
+      ;; for desktop-restore-frames to control this startup behavior?
+      (let ((desktop-restore-frames (and desktop-restore-frames
+                                         initial-window-system
+                                         (not (daemonp)))))
+        (desktop-read)
+        (setq inhibit-startup-screen t)))))
 
 ;; So we can restore vc-dir buffers.
 (autoload 'vc-dir-mode "vc-dir" nil t)

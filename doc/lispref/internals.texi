@@ -513,6 +513,11 @@ created in this Emacs session.  Each of these counters increments for
 a certain kind of object.  See the documentation string for details.
 @end defun
 
+@defun memory-info
+This functions returns an amount of total system memory and how much
+of it is free.  On an unsupported system, the value may be @code{nil}.
+@end defun
+
 @defvar gcs-done
 This variable contains the total number of garbage collections
 done so far in this Emacs session.

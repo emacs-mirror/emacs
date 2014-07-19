@@ -1151,13 +1151,7 @@ With one argument, just copy STRING (with properties, if any).  */)
   Lisp_Object res;
   ptrdiff_t size, ifrom, ito;
 
-  if (STRINGP (string))
-    size = SCHARS (string);
-  else if (VECTORP (string))
-    size = ASIZE (string);
-  else
-    wrong_type_argument (Qarrayp, string);
-
+  size = CHECK_VECTOR_OR_STRING (string);
   validate_subarray (string, from, to, size, &ifrom, &ito);
 
   if (STRINGP (string))
@@ -1212,11 +1206,7 @@ substring_both (Lisp_Object string, ptrdiff_t from, ptrdiff_t from_byte,
 		ptrdiff_t to, ptrdiff_t to_byte)
 {
   Lisp_Object res;
-  ptrdiff_t size;
-
-  CHECK_VECTOR_OR_STRING (string);
-
-  size = STRINGP (string) ? SCHARS (string) : ASIZE (string);
+  ptrdiff_t size = CHECK_VECTOR_OR_STRING (string);
 
   if (!(0 <= from && from <= to && to <= size))
     args_out_of_range_3 (string, make_number (from), make_number (to));

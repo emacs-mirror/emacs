@@ -1,3 +1,254 @@
+2014-07-18  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* frame.c (frame_unspecified_color): New function
+	refactored out from ...
+	(Fframe_parameters, Fframe_parameter): ... adjusted users.
+	(x_fullscreen_adjust, set_frame_param): Move Windows-specific
+	function to ...
+	* w32term.c (x_fullscreen_adjust, set_frame_param): ... static here.
+	* frame.h (x_fullscreen_adjust) [HAVE_NTGUI]:
+	* lisp.h (set_frame_param): Remove prototype.
+	* xterm.c (x_display_pixel_width, x_display_pixel_height): Now ...
+	* xterm.h (x_display_pixel_width, x_display_pixel_height): ...
+	inlined from here.
+
+	Prefer 'x_display_info *' to 'Display *' in X selection code.
+	This helps to avoid unneeded calls to x_display_info_for_display.
+	* xterm.h (struct selection_input_event): Record 'x_display_info *'
+	instead of 'Display *'.
+	(SELECTION_EVENT_DPYINFO): New macro.
+	(SELECTION_EVENT_DISPLAY): Now inline function to prohibit using
+	it as an lvalue.  Mention this in comment.
+	* xterm.c (handle_one_xevent): Use SELECTION_EVENT_DPYINFO.
+	* xselect.c (x_get_window_property_as_lisp_data, x_atom_to_symbol)
+	(selection_data_to_lisp_data, receive_incremental_selection):
+	Convert to use 'x_display_info *'.  Adjust users where appropriate.
+	(lisp_data_to_selection_data): Likewise.  Also pass 'struct
+	selection data *' as last arg to not return values in args.
+	(unexpect_property_change): Use common removal technique.
+
+2014-07-17  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* print.c (print_preprocess): Adjust to match changed
+	sub char-table structure and avoid crash (Bug#18038).
+
+	* data.c (wrong_choice): Not static any more.
+	* lisp.h (wrong_choice): Add prototype.
+	* frame.h (struct frame) [USE_X_TOOLKIT || HAVE_NTGUI]:
+	Declare namebuf as such.  Tweak comment.
+	[USE_GTK]: Likewise for tool_bar_position.
+	(fset_tool_bar_position) [USE_GTK]: Ditto.
+	(FRAME_TOOL_BAR_POSITION): New macro.
+	* frame.c (x_report_frame_params):
+	* gtkutil.c (update_frame_tool_bar):
+	* xfns.c (Fx_create_frame): Use it.
+	(x_set_tool_bar_position): Add meaningful diagnostic messages.
+
+2014-07-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (decode_mode_spec): Call file-remote-p on the current
+	buffer's default-directory only if it is a string.  (Bug#17986)
+
+2014-07-16  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	More precise control over values of some buffer-local variables.
+	* keyboard.c (Qvertical_scroll_bar):
+	* frame.c (Qleft, Qright): Move to ...
+	* buffer.c (Qleft, Qright, Qvertical_scroll_bar): ... here.
+	* buffer.c (Qchoice, Qrange, Qoverwrite_mode, Qfraction): New symbols.
+	(syms_of_buffer): DEFSYM all of the above, attach special properties.
+	Use special symbols to DEFVAR_PER_BUFFER overwrite-mode,
+	vertical-scroll-bar, scroll-up-aggressively
+	and scroll-down-aggressively.
+	* buffer.h (Qchoice, Qrange, Qleft, Qright, Qvertical_scroll_bar):
+	Add declarations.
+	* nsfns.m, frame.h (Qleft, Qright):
+	* nsterm.m (Qleft): Remove declarations.
+	* gtkutil.c (toplevel): Include buffer.h.
+	* data.c (wrong_choice, wrong_range): New functions.
+	(store_symval_forwarding): Handle special properties of buffer-local
+	variables and use functions from the above to signal error, if any.
+
+	* frame.h (enum fullscreen_type) [HAVE_WINDOW_SYSTEM]: Use more natural
+	values.  Add comment.
+	(struct frame): Re-arrange layout to avoid extra padding and use bit
+	fields for output_method, want_fullscreen and vertical_scroll_bar_type.
+	(FRAME_VERTICAL_SCROLL_BAR_TYPE, FRAME_HAS_VERTICAL_SCROLL_BARS)
+	(FRAME_HAS_VERTICAL_SCROLL_BARS_ON_LEFT)
+	(FRAME_HAS_VERTICAL_SCROLL_BARS_ON_RIGHT) [!HAVE_WINDOW_SYSTEM]:
+	Define as no-ops because there are no scroll bars anyway.
+	* frame.c (make_frame, make_terminal_frame, make_initial_frame):
+	Adjust users.
+
+	* font.c (fset_font_data) [HAVE_XFT || HAVE_FREETYPE]:
+	Add convenient setter.
+	(font_put_frame_data, font_get_frame_data): Use it.
+
+2014-07-15  Daiki Ueno  <ueno@gnu.org>
+
+	* nsgui.h (XCHAR2B_BYTE1): Add missing parentheses around
+	pointer argument, before dereferencing.
+	(XCHAR2B_BYTE2): Likewise.
+
+2014-07-15  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xmenu.c (toplevel): Use LWLIB_ID for next_menubar_widget_id.
+	(pop_down_menu) [USE_X_TOOLKIT]: Accept integer arg.
+	(create_and_show_popup_menu, create_and_show_dialog) [USE_X_TOOLKIT]:
+	Use record_unwind_protect_int and avoid consing.
+	(syms_of_xmenu) [USE_X_TOOLKIT]: Declare WIDGET_ID_TICK_START.
+
+	* regex.c (re_search_2): Use ssize_t to avoid integer overflow.
+
+2014-07-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use binary-io module, O_BINARY, and "b" flag (Bug#18006).
+	* callproc.c (create_temp_file): Use mkostemp's O_BINARY flag.
+	* emacs.c [MSDOS]:
+	* emacs.c (main) [DOS_NT]: Don't mess with _fmode.
+	(main) [MSDOS]: Use SET_BINARY instead of setmode.
+	* minibuf.c: Include binary-io.h instead of fcntl.h.
+	(read_minibuf_noninteractive):
+	Use set_binary_mode instead of handcrafted code.
+	Don't call emacs_set_tty if emacs_get_tty failed.
+	* sysdep.c, systty.h (emacs_get_tty): Return int, not void.
+	* sysdep.c (emacs_open, emacs_pipe): Use O_BINARY.
+	* w32.c (pipe2): Adjust eassert to include O_BINARY.
+
+	* macros.c (Fstart_kbd_macro): Avoid need for overflow check.
+	This works around a GCC compiler bug when Emacs is configured with
+	--enable-gcc-warnings.
+
+2014-07-14  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* lisp.h (CHECK_VECTOR_OR_STRING): Return number of elements
+	or characters in string, respectively.  Add comment.
+	* fringe.c (Fdefine_fringe_bitmap):
+	* fns.c (Fsubstring, substring_both): Use it.
+	* keymap.c (Fdefine_key, Flookup_key):
+	* macros.c (Fstart_kbd_macro): Likewise.  Avoid call to Flength.
+
+	* term.c (tty_menu_add_pane, tty_menu_add_selection):
+	Use menu_item_width.
+	(tty_menu_show): Simplify because tty_menu_create never return NULL.
+
+2014-07-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Improve behavior of 'bzr up; cd src; make -k'.
+	* Makefile.in (top_srcdir): New var.
+	(ntsource, lispsource, ALL_CFLAGS, gl-stamp, emacs.res):
+	Use '$(top_srcdir)' instead of '$(srcdir)/..';
+	its expansion is a bit shorter.
+	(../config.status): Actually build config.status instead of
+	just complaining.
+	(ACLOCAL_INPUTS, AUTOCONF_INPUTS):
+	New macros, copied and relocated from ../Makefile.in.
+	($(top_srcdir)/aclocal.m4, $(top_srcdir)/configure, config.in)
+	(../config.status, Makefile): New dependencies and rules,
+	copied with relocation from ../Makefile.in.  This should be more
+	likely to rebuild the build machinery properly if you do a 'make'
+	in the src directory.
+
+2014-07-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (display_line): Don't call FETCH_BYTE with argument less
+	than 1.  (Bug#17962)
+
+	* w32fns.c (Fx_file_dialog): Mention in the doc string the
+	behavior on Windows 7 and later when the function is repeatedly
+	invoked with the same value of DIR.  (Bug#17950)
+
+	* xfns.c (Fx_file_dialog) [USE_MOTIF, USE_GTK]: Update the doc
+	string to match the one in w32fns.c.
+
+	* minibuf.c (read_minibuf_noninteractive) [WINDOWSNT]: Switch
+	stdin to binary mode only if it is connected to a terminal.
+
+2014-07-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Coalesce extern decls.
+	* minibuf.c (emacs_get_tty, emacs_set_tty, suppress_echo_on_tty):
+	* sysdep.c (emacs_get_tty, emacs_set_tty):
+	Move duplicate extern decls from here ...
+	* systty.h: ... to here, so that there's just one copy.
+
+2014-07-11  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (changeFont:): Add ifdef NS_IMPL_COCOA.
+
+	* nsfns.m (Fns_popup_font_panel): Ditto.
+
+2014-07-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* minibuf.c (read_minibuf_noninteractive): Finish reading on '\r',
+	not only on '\n'.
+	[WINDOWSNT]: Switch stdin to binary mode when not echoing input.
+
+	* sysdep.c (emacs_get_tty, emacs_set_tty, suppress_echo_on_tty)
+	[DOS_NT]: Implement for WINDOWSNT.
+
+	* systty.h (struct emacs_tty) [DOS_NT]: The struct member is now
+	unsigned.
+
+2014-07-11  Michael Albinus  <michael.albinus@gmx.de>
+
+	* sysdep.c (suppress_echo_on_tty): New function.
+	* minibuf.c (read_minibuf_noninteractive): Use it.
+
+2014-07-11  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* alloc.c (Fmemory_info) [HAVE_LINUX_SYSINFO]: Return nil if
+	sysinfo failed.  Adjust docstring.
+
+2014-07-11  Eli Zaretskii  <eliz@gnu.org>
+
+	Implement memory-info for MS-DOS.
+	* dosfns.c (dos_memory_info): New function.
+	* dosfns.h (dos_memory_info): Add prototype.
+	* alloc.c (Fmemory_info) [MSDOS]: Call dos_memory_info.
+	* vm-limit.c (get_lim_data) [MSDOS]: Call dos_memory_info, instead
+	of doing some of its job.
+
+	* minibuf.c (read_minibuf_noninteractive) [WINDOWSNT]: Don't
+	reference termios structure members.
+
+2014-07-11  Michael Albinus  <michael.albinus@gmx.de>
+
+	* sysdep.c (emacs_get_tty, emacs_set_tty): Make them externally visible.
+
+	* minibuf.c (top): Include systty.h.  Declare external
+	emacs_get_tty and emacs_set_tty.
+	(Vread_hide_char): New lisp variable.
+	(read_minibuf_noninteractive): Hide characters with
+	Vread_hide_char if it is a character.  (Bug#17839)
+
+2014-07-10  Eli Zaretskii  <eliz@gnu.org>
+
+	Implement memory-info for MS-Windows.
+	* w32.c (w32_memory_info): New function.
+	* w32.h (w32_memory_info): Prototype it.
+	* alloc.c (Fmemory_info) [WINDOWSNT]: Call it.
+
+2014-07-10  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* coding.h (struct coding_system): Remove 'error_positions' (unused)
+	and 'errors' (set but unused) fields.  Use bitfields for 'eol_seen',
+	'mode', 'common_flags' and 'result' fields, adjust layout to avoid
+	extra padding and shrink struct coding_system by 56 bytes (x86_64).
+	* coding.c (decode_coding_utf_8, decode_coding_utf_16)
+	(decode_coding_emacs_mule, decode_coding_iso_2022, decode_coding_sjis)
+	(decode_coding_big5, decode_coding_charset, decode_coding)
+	(encode_coding): Adjust users.
+
+	* alloc.c (Fmemory_info): New function.
+
+2014-07-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* syntax.c (back_comment): Use more-natural location for label.
+
+	* font.c, font.h (font_unparse_fcname): Now static.
+	Define only if HAVE_XFT || HAVE_FREETYPE || HAVE_NS.
+
 2014-07-09  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Next minor cleanup of font subsystem.

@@ -396,7 +396,7 @@ With a prefix (or a FILL) argument, also fill too short lines."
     (when (equal str "")
       (setq str (or (car-safe minibuffer-default)
                     (if (stringp minibuffer-default) minibuffer-default))))
-    (setq str (propertize str 'face 'region))
+    (when str (setq str (propertize str 'face 'region)))
     (with-selected-window rectangle--string-preview-window
       (unless (or (null rectangle--string-preview-state)
                   (equal str (car rectangle--string-preview-state)))

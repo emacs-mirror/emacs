@@ -1,3 +1,8 @@
+2014-07-16  Álvar Jesús Ibeas Martín  <alvar.ibeas@unican.es>  (tiny change)
+
+	* emacs-lisp-intro.texi (Variables, Buffer Names, if & or)
+	(Symbols as Chest, fwd-para while): Fix typos.
+
 2014-07-03  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp-intro.texi (Note for Novices, Finding More, Conclusion):

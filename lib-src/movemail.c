@@ -191,11 +191,6 @@ main (int argc, char **argv)
   uid_t real_gid = getgid ();
   uid_t priv_gid = getegid ();
 
-#ifdef WINDOWSNT
-  /* Ensure all file i/o is in binary mode. */
-  _fmode = _O_BINARY;
-#endif
-
   delete_lockname = 0;
 
   while ((c = getopt (argc, argv, ARGSTR)) != EOF)
@@ -304,7 +299,7 @@ main (int argc, char **argv)
 
 	  memcpy (tempname, inname, inname_dirlen);
 	  strcpy (tempname + inname_dirlen, "EXXXXXX");
-	  desc = mkostemp (tempname, 0);
+	  desc = mkostemp (tempname, O_BINARY);
 	  if (desc < 0)
 	    {
 	      int mkostemp_errno = errno;
@@ -358,12 +353,12 @@ main (int argc, char **argv)
 
 #ifndef MAIL_USE_MMDF
 #ifdef MAIL_USE_SYSTEM_LOCK
-      indesc = open (inname, O_RDWR);
+      indesc = open (inname, O_RDWR | O_BINARY);
 #else  /* if not MAIL_USE_SYSTEM_LOCK */
-      indesc = open (inname, O_RDONLY);
+      indesc = open (inname, O_RDONLY | O_BINARY);
 #endif /* not MAIL_USE_SYSTEM_LOCK */
 #else  /* MAIL_USE_MMDF */
-      indesc = lk_open (inname, O_RDONLY, 0, 0, 10);
+      indesc = lk_open (inname, O_RDONLY | O_BINARY, 0, 0, 10);
 #endif /* MAIL_USE_MMDF */
 
       if (indesc < 0)
@@ -372,7 +367,7 @@ main (int argc, char **argv)
       /* Make sure the user can read the output file.  */
       umask (umask (0) & 0377);
 
-      outdesc = open (outname, O_WRONLY | O_CREAT | O_EXCL, 0666);
+      outdesc = open (outname, O_WRONLY | O_BINARY | O_CREAT | O_EXCL, 0666);
       if (outdesc < 0)
 	pfatal_with_name (outname);
 
@@ -675,7 +670,7 @@ popmail (char *mailbox, char *outfile, int preserve, char *password, int reverse
       return EXIT_SUCCESS;
     }
 
-  mbfi = open (outfile, O_WRONLY | O_CREAT | O_EXCL, 0666);
+  mbfi = open (outfile, O_WRONLY | O_BINARY | O_CREAT | O_EXCL, 0666);
   if (mbfi < 0)
     {
       pop_close (server);

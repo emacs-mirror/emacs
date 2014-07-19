@@ -1,3 +1,40 @@
+2014-07-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use "b" flag more consistently; avoid "t" (Bug#18006).
+	* make-docfile.c (READ_TEXT): Remove; all uses replaced by "r".
+	(READ_BINARY): Remove; all uses replaced by "rb".
+
+2014-07-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use binary-io module, O_BINARY, and "b" flag (Bug#18006).
+	* etags.c, hexl.c, make-docfile.c:
+	Include binary-io.h instead of fcntl.h and/or io.h.
+	(main): Use set_binary_mode or SET_BINARY
+	in place of handcrafted code.
+	* etags.c (main) [DOS_NT]:
+	* movemail.c (main) [WINDOWSNT]:
+	Don't mess with _fmode.
+	* etags.c (main, process_file_name, analyse_regex):
+	Use fopen/popen's "b" flag instead.
+	* movemail.c (main, popmail): Use open/lk_open/mkostemp's O_BINARY
+	instead.
+
+2014-07-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* make-docfile.c: Simplify a bit, to simplify further refactoring.
+	(outfile): Remove static var.  All uses changed to use stdout,
+	since it's always stdout anyway.  While we're at it, prefer
+	putchar/puts/fputs to printf when there are no format strings.
+	(main): Use freopen rather than fopen, so that stdout is reused.
+	Move O_BINARY stuff after the freopen, so it affects the
+	reopened file.
+	(write_c_args): Omit first arg, since it's always stdout now.
+	All uses changed.
+
+2014-07-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* etags.c (Lisp_functions): Also record cl-defun etc. (Bug#17965)
+
 2014-06-26  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (blessmail): Depend on lisp/mail/blessmail.el.

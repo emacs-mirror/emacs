@@ -832,6 +832,7 @@ extern Lisp_Object Qbool_vector_p;
 extern Lisp_Object Qvector_or_char_table_p, Qwholenump;
 extern Lisp_Object Qwindow;
 extern _Noreturn Lisp_Object wrong_type_argument (Lisp_Object, Lisp_Object);
+extern _Noreturn void wrong_choice (Lisp_Object, Lisp_Object);
 
 /* Defined in emacs.c.  */
 extern bool might_dump;
@@ -2555,10 +2556,15 @@ CHECK_BOOL_VECTOR (Lisp_Object x)
 {
   CHECK_TYPE (BOOL_VECTOR_P (x), Qbool_vector_p, x);
 }
-INLINE void
+/* This is a bit special because we always need size afterwards.  */
+INLINE ptrdiff_t
 CHECK_VECTOR_OR_STRING (Lisp_Object x)
 {
-  CHECK_TYPE (VECTORP (x) || STRINGP (x), Qarrayp, x);
+  if (VECTORP (x))
+    return ASIZE (x);
+  if (STRINGP (x))
+    return SCHARS (x);
+  wrong_type_argument (Qarrayp, x);
 }
 INLINE void
 CHECK_ARRAY (Lisp_Object x, Lisp_Object predicate)
@@ -4116,7 +4122,6 @@ extern void syms_of_indent (void);
 
 /* Defined in frame.c.  */
 extern Lisp_Object Qonly, Qnone;
-extern void set_frame_param (struct frame *, Lisp_Object, Lisp_Object);
 extern void store_frame_param (struct frame *, Lisp_Object, Lisp_Object);
 extern void store_in_alist (Lisp_Object *, Lisp_Object, Lisp_Object);
 extern Lisp_Object do_switch_frame (Lisp_Object, int, int, Lisp_Object);

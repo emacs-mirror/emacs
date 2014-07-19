@@ -1,3 +1,8 @@
+2013-07-17  Albert Krewinkel  <albert@zeitkraut.de>
+
+	* gnus-msg.el (gnus-configure-posting-style):
+	Allow string replacements in values when matching against a header.
+
 2014-07-07  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-start.el (gnus-dribble-read-file): Don't stop the auto-saving of

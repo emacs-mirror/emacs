@@ -641,6 +641,48 @@ system_process_attributes (Lisp_Object pid)
   return attrs;
 }
 
+/* Support for memory-info.  */
+int
+dos_memory_info (unsigned long *totalram, unsigned long *freeram,
+		 unsigned long *totalswap, unsigned long *freeswap)
+{
+  _go32_dpmi_meminfo info;
+  unsigned long mem1, mem2, freemem;
+
+  _go32_dpmi_get_free_memory_information (&info);
+  /* DPMI server of Windows NT and its descendants reports in
+     info.available_memory a much lower amount that is really
+     available, which causes bogus "past 95% of memory limit"
+     warnings.  Try to overcome that via circumstantial evidence.  */
+  mem1 = info.available_memory;
+  mem2 = info.available_physical_pages;
+  /* DPMI Spec: "Fields that are unavailable will hold -1."  */
+  if ((long)mem1 == -1L)
+    mem1 = 0;
+  if ((long)mem2 == -1L)
+    mem2 = 0;
+  else
+    mem2 *= 4096;
+  /* Surely, the available memory is at least what we have physically
+     available, right?  */
+  if (mem1 >= mem2)
+    freemem = mem1;
+  else
+    freemem = mem2;
+  *freeram = freemem;
+  *totalswap =
+    ((long)info.max_pages_in_paging_file == -1L)
+    ? 0
+    : info.max_pages_in_paging_file * 4096;
+  *totalram =
+    ((long)info.total_physical_pages == -1L)
+    ? (freemem + (unsigned long)sbrk (0) + *totalswap)
+    : info.total_physical_pages * 4096;
+  *freeswap = 0;
+  return 0;
+}
+
+
 void
 dos_cleanup (void)
 {

@@ -1571,13 +1571,7 @@ If BITMAP already exists, the existing definition is replaced.  */)
   int fill1 = 0, fill2 = 0;
 
   CHECK_SYMBOL (bitmap);
-
-  if (STRINGP (bits))
-    h = SCHARS (bits);
-  else if (VECTORP (bits))
-    h = ASIZE (bits);
-  else
-    wrong_type_argument (Qsequencep, bits);
+  h = CHECK_VECTOR_OR_STRING (bits);
 
   if (NILP (height))
     fb.height = h;

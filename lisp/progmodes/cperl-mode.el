@@ -4828,9 +4828,9 @@ the sections using `cperl-pod-head-face', `cperl-pod-face',
       (and (memq (char-syntax (preceding-char)) '(?w ?_))
 	   (progn
 	     (backward-sexp)
-	     ;; sub {BLK}, print {BLK} $data, but NOT `bless', `return', `tr'
+	     ;; sub {BLK}, print {BLK} $data, but NOT `bless', `return', `tr', `constant'
 	     (or (and (looking-at "[a-zA-Z0-9_:]+[ \t\n\f]*[{#]") ; Method call syntax
-		      (not (looking-at "\\(bless\\|return\\|q[wqrx]?\\|tr\\|[smy]\\)\\>")))
+		      (not (looking-at "\\(bless\\|return\\|q[wqrx]?\\|tr\\|[smy]\\|constant\\)\\>")))
 		 ;; sub bless::foo {}
 		 (progn
 		   (cperl-backward-to-noncomment (point-min))

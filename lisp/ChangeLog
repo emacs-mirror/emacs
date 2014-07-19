@@ -1,3 +1,93 @@
+2014-07-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* rect.el (rectangle--string-preview): Don't assume there
+	a non-nil default (bug#17984).
+
+2014-07-16  Glenn Morris  <rgm@gnu.org>
+
+	* desktop.el (after-init-hook): Disable startup frame restoration
+	in non-graphical situations.  (Bug#17693)
+
+	* vc/vc-dispatcher.el (vc-log-edit): Do set up the log buffer
+	if it was "empty", or used for a different set of files.  (Bug#17884)
+
+2014-07-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* bindings.el (mode-line-remote): If default-directory is not a
+	string, don't call file-remote-p on it; instead state in the
+	help-echo that it is nil.  (Bug#17986)
+
+2014-07-14  Daniel Colascione  <dancol@dancol.org>
+
+	* progmodes/cc-langs.el: Change comments from `cl-macroexpand-all'
+	to `macroexpand-all'
+
+	* progmodes/cc-defs.el (c-lang-defconst-eval-immediately):
+	Use `macroexpand-all' instead of `cl-macroexpand-all'.
+
+2014-07-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix bug: C-x v v discarded existing log message (Bug#17884).
+	* vc/vc-dispatcher.el (vc-log-edit):
+	Don't clobber an already-existing log message.
+
+2014-07-12  Glenn Morris  <rgm@gnu.org>
+
+	* vc/log-edit.el (log-edit-changelog-entries):
+	Check for a visited-but-never-saved ChangeLog.
+
+2014-07-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc/log-edit.el (log-edit-changelog-entries): Don't both visiting
+	a non-existing file (bug#17970).
+
+	* faces.el (face-name): Undo last change.
+	(x-resolve-font-name): Don't call face-name (bug#17956).
+
+2014-07-12  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	Fix dedenters and electric colon handling. (Bug#15163)
+	* progmodes/python.el
+	(python-rx-constituents): Add dedenter and block-ender.
+	(python-indent-dedenters, python-indent-block-enders): Delete.
+	(python-indent-context): Return new case for dedenter-statement.
+	(python-indent-calculate-indentation): Handle new case.
+	(python-indent-calculate-levels): Fix levels calculation for
+	dedenter statements.
+	(python-indent-post-self-insert-function): Fix colon handling.
+	(python-info-dedenter-opening-block-message): New function.
+	(python-indent-line): Use it.
+	(python-info-closing-block)
+	(python-info-closing-block-message): Remove.
+	(python-info-dedenter-opening-block-position)
+	(python-info-dedenter-opening-block-positions)
+	(python-info-dedenter-statement-p): New functions.
+
+2014-07-11  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* files.el (out-of-memory-warning-percentage): New defcustom.
+	(warn-maybe-out-of-memory): Use it.
+
+2014-07-11  Michael Albinus  <michael.albinus@gmx.de>
+
+	* subr.el (read-passwd): Use `read-hide-char' if non-nil.  Bind it
+	when calling `read-string'.  (Bug#17839)
+
+2014-07-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.el (warn-maybe-out-of-memory): Fix the wording of the
+	warning.
+
+2014-07-10  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* files.el (warn-maybe-out-of-memory): New function.
+	(find-file-noselect): Use it.
+
+2014-07-09  Sam Steingold  <sds@gnu.org>
+
+	* progmodes/cperl-mode.el (cperl-block-p): Treat the perl keyword
+	`constant' like `bless', `return' &c
+
 2014-07-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* rect.el (apply-on-rectangle): Check forward-line really moved to the

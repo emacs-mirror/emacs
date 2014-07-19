@@ -49,6 +49,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <verify.h>
 #include <execinfo.h>           /* For backtrace.  */
 
+#ifdef HAVE_LINUX_SYSINFO
+#include <sys/sysinfo.h>
+#endif
+
+#ifdef MSDOS
+#include "dosfns.h"		/* For dos_memory_info.  */
+#endif
+
 #if (defined ENABLE_CHECKING			\
      && defined HAVE_VALGRIND_VALGRIND_H	\
      && !defined USE_VALGRIND)
@@ -6865,7 +6873,55 @@ gc_sweep (void)
   check_string_bytes (!noninteractive);
 }
 
-
+DEFUN ("memory-info", Fmemory_info, Smemory_info, 0, 0, 0,
+       doc: /* Return a list of (TOTAL-RAM FREE-RAM TOTAL-SWAP FREE-SWAP).
+All values are in Kbytes.  If there is no swap space,
+last two values are zero.  If the system is not supported
+or memory information can't be obtained, return nil.  */)
+  (void)
+{
+#if defined HAVE_LINUX_SYSINFO
+  struct sysinfo si;
+  uintmax_t units;
+
+  if (sysinfo (&si))
+    return Qnil;
+#ifdef LINUX_SYSINFO_UNIT
+  units = si.mem_unit;
+#else
+  units = 1;
+#endif
+  return list4i ((uintmax_t) si.totalram * units / 1024,
+		 (uintmax_t) si.freeram * units / 1024,
+		 (uintmax_t) si.totalswap * units / 1024,
+		 (uintmax_t) si.freeswap * units / 1024);
+#elif defined WINDOWSNT
+  unsigned long long totalram, freeram, totalswap, freeswap;
+
+  if (w32_memory_info (&totalram, &freeram, &totalswap, &freeswap) == 0)
+    return list4i ((uintmax_t) totalram / 1024,
+		   (uintmax_t) freeram / 1024,
+		   (uintmax_t) totalswap / 1024,
+		   (uintmax_t) freeswap / 1024);
+  else
+    return Qnil;
+#elif defined MSDOS
+  unsigned long totalram, freeram, totalswap, freeswap;
+
+  if (dos_memory_info (&totalram, &freeram, &totalswap, &freeswap) == 0)
+    return list4i ((uintmax_t) totalram / 1024,
+		   (uintmax_t) freeram / 1024,
+		   (uintmax_t) totalswap / 1024,
+		   (uintmax_t) freeswap / 1024);
+  else
+    return Qnil;
+}
+#else /* not HAVE_LINUX_SYSINFO, not WINDOWSNT, not MSDOS */
+  /* FIXME: add more systems.  */
+  return Qnil;
+#endif /* HAVE_LINUX_SYSINFO, not WINDOWSNT, not MSDOS */
+}
+
 /* Debugging aids.  */
 
 DEFUN ("memory-limit", Fmemory_limit, Smemory_limit, 0, 0, 0,
@@ -7204,6 +7260,7 @@ The time is in seconds as a floating point value.  */);
   defsubr (&Spurecopy);
   defsubr (&Sgarbage_collect);
   defsubr (&Smemory_limit);
+  defsubr (&Smemory_info);
   defsubr (&Smemory_use_counts);
   defsubr (&Ssuspicious_object);
 

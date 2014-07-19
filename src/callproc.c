@@ -982,7 +982,7 @@ create_temp_file (ptrdiff_t nargs, Lisp_Object *args,
 
     count = SPECPDL_INDEX ();
     record_unwind_protect_nothing ();
-    fd = mkostemp (tempfile, O_CLOEXEC);
+    fd = mkostemp (tempfile, O_BINARY | O_CLOEXEC);
     if (fd < 0)
       report_file_error ("Failed to open temporary file using pattern",
 			 pattern);

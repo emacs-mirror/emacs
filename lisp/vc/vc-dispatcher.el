@@ -591,12 +591,19 @@ NOT-URGENT means it is ok to continue if the user says not to save."
 
 ;; Set up key bindings for use while editing log messages
 
+(declare-function log-edit-empty-buffer-p "log-edit" ())
+
 (defun vc-log-edit (fileset mode backend)
   "Set up `log-edit' for use on FILE."
   (setq default-directory
 	(buffer-local-value 'default-directory vc-parent-buffer))
+  (require 'log-edit)
   (log-edit 'vc-finish-logentry
-	    t
+	    ;; Setup a new log message if the log buffer is "empty",
+	    ;; or was previously used for a different set of files.
+	    (or (log-edit-empty-buffer-p)
+		(and (local-variable-p 'vc-log-fileset)
+		     (not (equal vc-log-fileset fileset))))
 	    `((log-edit-listfun . (lambda ()
                                     ;; FIXME: Should expand the list
                                     ;; for directories.

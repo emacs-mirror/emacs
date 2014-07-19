@@ -4342,8 +4342,7 @@ re_search_2 (struct re_pattern_buffer *bufp, const char *str1, size_t size1,
 
 	  if (range > 0)	/* Searching forwards.  */
 	    {
-	      register int lim = 0;
-	      ssize_t irange = range;
+	      ssize_t irange = range, lim = 0;
 
 	      if (startpos < size1 && startpos + range >= size1)
 		lim = range - (size1 - startpos);

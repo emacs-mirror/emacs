@@ -145,6 +145,9 @@ Lisp_Object Qmodification_hooks;
 Lisp_Object Qinsert_in_front_hooks;
 Lisp_Object Qinsert_behind_hooks;
 
+Lisp_Object Qchoice, Qrange, Qleft, Qright, Qvertical_scroll_bar;
+static Lisp_Object Qoverwrite_mode, Qfraction;
+
 static void alloc_buffer_text (struct buffer *, ptrdiff_t);
 static void free_buffer_text (struct buffer *b);
 static struct Lisp_Overlay * copy_overlays (struct buffer *, struct Lisp_Overlay *);
@@ -5422,6 +5425,10 @@ syms_of_buffer (void)
   staticpro (&Qpermanent_local);
   staticpro (&Qkill_buffer_hook);
 
+  DEFSYM (Qleft, "left");
+  DEFSYM (Qright, "right");
+  DEFSYM (Qrange, "range");
+
   DEFSYM (Qpermanent_local_hook, "permanent-local-hook");
   DEFSYM (Qoverlayp, "overlayp");
   DEFSYM (Qevaporate, "evaporate");
@@ -5436,6 +5443,17 @@ syms_of_buffer (void)
   DEFSYM (Qbefore_change_functions, "before-change-functions");
   DEFSYM (Qafter_change_functions, "after-change-functions");
   DEFSYM (Qkill_buffer_query_functions, "kill-buffer-query-functions");
+
+  DEFSYM (Qvertical_scroll_bar, "vertical-scroll-bar");
+  Fput (Qvertical_scroll_bar, Qchoice, list4 (Qnil, Qt, Qleft, Qright));
+
+  DEFSYM (Qfraction, "fraction");
+  Fput (Qfraction, Qrange, Fcons (make_float (0.0), make_float (1.0)));
+
+  DEFSYM (Qoverwrite_mode, "overwrite-mode");
+  Fput (Qoverwrite_mode, Qchoice,
+	list3 (Qnil, intern ("overwrite-mode-textual"),
+	       intern ("overwrite-mode-binary")));
 
   Fput (Qprotected_field, Qerror_conditions,
 	listn (CONSTYPE_PURE, 2, Qprotected_field, Qerror));
@@ -5842,7 +5860,8 @@ in a file, save the ^M as a newline.  */);
 		     Qnil,
 		     doc: /* Non-nil means display ... on previous line when a line is invisible.  */);
 
-  DEFVAR_PER_BUFFER ("overwrite-mode", &BVAR (current_buffer, overwrite_mode), Qnil,
+  DEFVAR_PER_BUFFER ("overwrite-mode", &BVAR (current_buffer, overwrite_mode),
+		     Qoverwrite_mode,
 		     doc: /* Non-nil if self-insertion should replace existing text.
 The value should be one of `overwrite-mode-textual',
 `overwrite-mode-binary', or nil.
@@ -5936,7 +5955,7 @@ in a window.  To make the change take effect, call `set-window-buffer'.  */);
 A value of nil means to use the scroll bar width from the window's frame.  */);
 
   DEFVAR_PER_BUFFER ("vertical-scroll-bar", &BVAR (current_buffer, vertical_scroll_bar_type),
-		     Qnil,
+		     Qvertical_scroll_bar,
 		     doc: /* Position of this buffer's vertical scroll bar.
 The value takes effect whenever you tell a window to display this buffer;
 for instance, with `set-window-buffer' or when `display-buffer' displays it.
@@ -6011,7 +6030,7 @@ BITMAP is the corresponding fringe bitmap shown for the logical
 cursor type.  */);
 
   DEFVAR_PER_BUFFER ("scroll-up-aggressively",
-		     &BVAR (current_buffer, scroll_up_aggressively), Qfloatp,
+		     &BVAR (current_buffer, scroll_up_aggressively), Qfraction,
 		     doc: /* How far to scroll windows upward.
 If you move point off the bottom, the window scrolls automatically.
 This variable controls how far it scrolls.  The value nil, the default,
@@ -6024,7 +6043,7 @@ window scrolls by a full window height.  Meaningful values are
 between 0.0 and 1.0, inclusive.  */);
 
   DEFVAR_PER_BUFFER ("scroll-down-aggressively",
-		     &BVAR (current_buffer, scroll_down_aggressively), Qfloatp,
+		     &BVAR (current_buffer, scroll_down_aggressively), Qfraction,
 		     doc: /* How far to scroll windows downward.
 If you move point off the top, the window scrolls automatically.
 This variable controls how far it scrolls.  The value nil, the default,

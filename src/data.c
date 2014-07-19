@@ -971,6 +971,48 @@ do_symval_forwarding (register union Lisp_Fwd *valcontents)
     }
 }
 
+/* Used to signal a user-friendly error when symbol WRONG is
+   not a member of CHOICE, which should be a list of symbols.  */
+
+void
+wrong_choice (Lisp_Object choice, Lisp_Object wrong)
+{
+  ptrdiff_t i = 0, len = XINT (Flength (choice));
+  Lisp_Object obj, *args;
+
+  USE_SAFE_ALLOCA;
+  SAFE_ALLOCA_LISP (args, len * 2 + 1);
+
+  args[i++] = build_string ("One of ");
+
+  for (obj = choice; !NILP (obj); obj = XCDR (obj))
+    {
+      args[i++] = SYMBOL_NAME (XCAR (obj));
+      args[i++] = build_string (NILP (XCDR (obj)) ? " should be specified"
+				: (NILP (XCDR (XCDR (obj))) ? " or " : ", "));
+    }
+
+  obj = Fconcat (i, args);
+  SAFE_FREE ();
+  xsignal2 (Qerror, obj, wrong);
+}
+
+/* Used to signal a user-friendly error if WRONG is not a number or
+   integer/floating-point number outsize of inclusive MIN..MAX range.  */
+
+static void
+wrong_range (Lisp_Object min, Lisp_Object max, Lisp_Object wrong)
+{
+  Lisp_Object args[4];
+
+  args[0] = build_string ("Value should be from ");
+  args[1] = Fnumber_to_string (min);
+  args[2] = build_string (" to ");
+  args[3] = Fnumber_to_string (max);
+
+  xsignal2 (Qerror, Fconcat (4, args), wrong);
+}
+
 /* Store NEWVAL into SYMBOL, where VALCONTENTS is found in the value cell
    of SYMBOL.  If SYMBOL is buffer-local, VALCONTENTS should be the
    buffer-independent contents of the value cell: forwarded just one
@@ -1027,10 +1069,33 @@ store_symval_forwarding (union Lisp_Fwd *valcontents, register Lisp_Object newva
 	int offset = XBUFFER_OBJFWD (valcontents)->offset;
 	Lisp_Object predicate = XBUFFER_OBJFWD (valcontents)->predicate;
 
-	if (!NILP (predicate) && !NILP (newval)
-	    && NILP (call1 (predicate, newval)))
-	  wrong_type_argument (predicate, newval);
+	if (!NILP (newval))
+	  {
+	    if (SYMBOLP (predicate))
+	      {
+		Lisp_Object prop;
 
+		if ((prop = Fget (predicate, Qchoice), !NILP (prop)))
+		  {
+		    if (NILP (Fmemq (newval, prop)))
+		      wrong_choice (prop, newval);
+		  }
+		else if ((prop = Fget (predicate, Qrange), !NILP (prop)))
+		  {
+		    Lisp_Object min = XCAR (prop), max = XCDR (prop);
+
+		    if (!NUMBERP (newval)
+			|| !NILP (arithcompare (newval, min, ARITH_LESS))
+			|| !NILP (arithcompare (newval, max, ARITH_GRTR)))
+		      wrong_range (min, max, newval);
+		  }
+		else if (FUNCTIONP (predicate))
+		  {
+		    if (NILP (call1 (predicate, newval)))
+		      wrong_type_argument (predicate, newval);
+		  }
+	      }
+	  }
 	if (buf == NULL)
 	  buf = current_buffer;
 	set_per_buffer_value (buf, offset, newval);

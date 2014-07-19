@@ -61,6 +61,11 @@ when deciding what terminal-specific initialization code to run.
 main features that Emacs was compiled with.  This is mainly intended
 for use in Emacs bug reports.
 
++++
+** A password is now hidden also when typed in batch mode.  Another
+hiding character but the default `.' can be used by let-binding the
+variable `read-hide-char'.
+
 
 * Editing Changes in Emacs 24.5
 

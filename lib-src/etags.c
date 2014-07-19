@@ -105,17 +105,13 @@ char pot_etags_version[] = "@(#) pot revision number is 17.38.1.4";
 #ifdef MSDOS
 # undef MSDOS
 # define MSDOS true
-# include <fcntl.h>
 # include <sys/param.h>
-# include <io.h>
 #else
 # define MSDOS false
 #endif /* MSDOS */
 
 #ifdef WINDOWSNT
-# include <fcntl.h>
 # include <direct.h>
-# include <io.h>
 # define MAXPATHLEN _MAX_PATH
 # undef HAVE_NTGUI
 # undef  DOS_NT
@@ -131,6 +127,7 @@ char pot_etags_version[] = "@(#) pot revision number is 17.38.1.4";
 #include <errno.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <binary-io.h>
 #include <c-strcase.h>
 
 #include <assert.h>
@@ -1002,13 +999,8 @@ main (int argc, char **argv)
   linebuffer filename_lb;
   bool help_asked = false;
   ptrdiff_t len;
- char *optstring;
- int opt;
-
-
-#ifdef DOS_NT
-  _fmode = O_BINARY;   /* all of files are treated as binary files */
-#endif /* DOS_NT */
+  char *optstring;
+  int opt;
 
   progname = argv[0];
   nincluded_files = 0;
@@ -1195,15 +1187,10 @@ main (int argc, char **argv)
       if (streq (tagfile, "-"))
 	{
 	  tagf = stdout;
-#ifdef DOS_NT
-	  /* Switch redirected `stdout' to binary mode (setting `_fmode'
-	     doesn't take effect until after `stdout' is already open). */
-	  if (!isatty (fileno (stdout)))
-	    setmode (fileno (stdout), O_BINARY);
-#endif /* DOS_NT */
+	  SET_BINARY (fileno (stdout));
 	}
       else
-	tagf = fopen (tagfile, append_to_tagfile ? "a" : "w");
+	tagf = fopen (tagfile, append_to_tagfile ? "ab" : "wb");
       if (tagf == NULL)
 	pfatal (tagfile);
     }
@@ -1306,7 +1293,7 @@ main (int argc, char **argv)
       append_to_tagfile = true;
     }
 
-  tagf = fopen (tagfile, append_to_tagfile ? "a" : "w");
+  tagf = fopen (tagfile, append_to_tagfile ? "ab" : "wb");
   if (tagf == NULL)
     pfatal (tagfile);
   put_entries (nodehead);	/* write all the tags (CTAGS) */
@@ -1547,11 +1534,11 @@ process_file_name (char *file, language *lang)
   if (real_name == compressed_name)
     {
       char *cmd = concat (compr->command, " ", real_name);
-      inf = (FILE *) popen (cmd, "r");
+      inf = popen (cmd, "rb");
       free (cmd);
     }
   else
-    inf = fopen (real_name, "r");
+    inf = fopen (real_name, "rb");
   if (inf == NULL)
     {
       perror (real_name);
@@ -4747,6 +4734,9 @@ Lisp_functions (FILE *inf)
 	    }
 	}
 
+      if (strneq (dbp + 1, "cl-", 3) || strneq (dbp + 1, "CL-", 3))
+	dbp += 3;
+
       if (strneq (dbp+1, "def", 3) || strneq (dbp+1, "DEF", 3))
 	{
 	  dbp = skip_non_spaces (dbp);
@@ -5611,7 +5601,7 @@ analyse_regex (char *regex_arg)
 	char *regexfile = regex_arg + 1;
 
 	/* regexfile is a file containing regexps, one per line. */
-	regexfp = fopen (regexfile, "r");
+	regexfp = fopen (regexfile, "rb");
 	if (regexfp == NULL)
 	  pfatal (regexfile);
 	linebuffer_init (&regexbuf);

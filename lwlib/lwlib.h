@@ -44,7 +44,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "lwlib-widget.h"
 
-typedef unsigned long LWLIB_ID;
+typedef unsigned int LWLIB_ID;
 
 /* Menu separator types.  */
 

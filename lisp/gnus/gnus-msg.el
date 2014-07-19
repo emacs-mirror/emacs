@@ -1826,7 +1826,7 @@ this is a reply."
 		      (with-current-buffer gnus-summary-buffer
 			gnus-posting-styles)
 		    gnus-posting-styles))
-	  style match attribute value v results
+	  style match attribute value v results matched-string
 	  filep name address element)
       ;; If the group has a posting-style parameter, add it at the end with a
       ;; regexp matching everything, to be sure it takes precedence over all
@@ -1846,7 +1846,9 @@ this is a reply."
 	(when (cond
 	       ((stringp match)
 		;; Regexp string match on the group name.
-		(string-match match group))
+		(when (string-match match group)
+                  (setq matched-string group)
+                  t))
 	       ((eq match 'header)
 		;; Obsolete format of header match.
 		(and (gnus-buffer-live-p gnus-article-copy)
@@ -1875,7 +1877,8 @@ this is a reply."
 			   (nnheader-narrow-to-headers)
 			   (let ((header (message-fetch-field (nth 1 match))))
 			     (and header
-				  (string-match (nth 2 match) header)))))))
+				  (string-match (nth 2 match) header)
+				  (setq matched-string header)))))))
 		 (t
 		  ;; This is a form to be evalled.
 		  (eval match)))))
@@ -1896,10 +1899,11 @@ this is a reply."
 	    (setq v
 		  (cond
 		   ((stringp value)
-		    (if (and (stringp match)
+		    (if (and matched-string
 			     (gnus-string-match-p "\\\\[&[:digit:]]" value)
 			     (match-beginning 1))
-			(gnus-match-substitute-replacement value nil nil group)
+			(gnus-match-substitute-replacement value nil nil
+							   matched-string)
 		      value))
 		   ((or (symbolp value)
 			(functionp value))

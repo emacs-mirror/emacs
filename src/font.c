@@ -227,6 +227,8 @@ font_make_object (int size, Lisp_Object entity, int pixelsize)
 
 #if defined (HAVE_XFT) || defined (HAVE_FREETYPE) || defined (HAVE_NS)
 
+static int font_unparse_fcname (Lisp_Object, int, char *, int);
+
 /* Like above, but also set `type', `name' and `fullname' properties
    of font-object.  */
 
@@ -1599,11 +1601,14 @@ font_parse_fcname (char *name, ptrdiff_t len, Lisp_Object font)
   return 0;
 }
 
+#if defined HAVE_XFT || defined HAVE_FREETYPE || defined HAVE_NS
+
 /* Store fontconfig's font name of FONT (font-spec or font-entity) in
    NAME (NBYTES length), and return the name length.  If
-   FONT_SIZE_INDEX of FONT is 0, use PIXEL_SIZE instead.  */
+   FONT_SIZE_INDEX of FONT is 0, use PIXEL_SIZE instead.
+   Return a negative value on error.  */
 
-int
+static int
 font_unparse_fcname (Lisp_Object font, int pixel_size, char *name, int nbytes)
 {
   Lisp_Object family, foundry;
@@ -1723,6 +1728,8 @@ font_unparse_fcname (Lisp_Object font, int pixel_size, char *name, int nbytes)
 
   return (p - name);
 }
+
+#endif
 
 /* Parse NAME (null terminated) and store information in FONT
    (font-spec or font-entity).  If NAME is successfully parsed, return
@@ -3567,18 +3574,24 @@ font_update_drivers (struct frame *f, Lisp_Object new_drivers)
 
 #if defined (HAVE_XFT) || defined (HAVE_FREETYPE)
 
+static void
+fset_font_data (struct frame *f, Lisp_Object val)
+{
+  f->font_data = val;
+}
+
 void
 font_put_frame_data (struct frame *f, Lisp_Object driver, void *data)
 {
   Lisp_Object val = assq_no_quit (driver, f->font_data);
 
   if (!data)
-    f->font_data = Fdelq (val, f->font_data);
+    fset_font_data (f, Fdelq (val, f->font_data));
   else
     {
       if (NILP (val))
-	f->font_data = Fcons (Fcons (driver, make_save_ptr (data)),
-			      f->font_data);
+	fset_font_data (f, Fcons (Fcons (driver, make_save_ptr (data)),
+				  f->font_data));
       else
 	XSETCDR (val, make_save_ptr (data));
     }

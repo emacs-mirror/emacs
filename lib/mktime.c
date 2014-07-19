@@ -38,7 +38,7 @@
 
 #include <string.h>		/* For the real memcpy prototype.  */
 
-#if DEBUG
+#if defined DEBUG && DEBUG
 # include <stdio.h>
 # include <stdlib.h>
 /* Make it work even if the system's libc has its own mktime routine.  */
@@ -600,7 +600,7 @@ libc_hidden_def (mktime)
 libc_hidden_weak (timelocal)
 #endif
 
-#if DEBUG
+#if defined DEBUG && DEBUG
 
 static int
 not_equal_tm (const struct tm *a, const struct tm *b)

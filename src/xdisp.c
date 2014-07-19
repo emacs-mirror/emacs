@@ -20494,7 +20494,10 @@ display_line (struct it *it)
 	  row->truncated_on_right_p = 1;
 	  it->continuation_lines_width = 0;
 	  reseat_at_next_visible_line_start (it, 0);
-	  row->ends_at_zv_p = FETCH_BYTE (IT_BYTEPOS (*it) - 1) != '\n';
+	  if (IT_BYTEPOS (*it) <= BEG_BYTE)
+	    row->ends_at_zv_p = true;
+	  else
+	    row->ends_at_zv_p = FETCH_BYTE (IT_BYTEPOS (*it) - 1) != '\n';
 	  break;
 	}
     }
@@ -22886,8 +22889,12 @@ decode_mode_spec (struct window *w, register int c, int field_width,
     case '@':
       {
 	ptrdiff_t count = inhibit_garbage_collection ();
-	Lisp_Object val = call1 (intern ("file-remote-p"),
-				 BVAR (current_buffer, directory));
+	Lisp_Object curdir = BVAR (current_buffer, directory);
+	Lisp_Object val = Qnil;
+
+	if (STRINGP (curdir))
+	  val = call1 (intern ("file-remote-p"), curdir);
+
 	unbind_to (count, Qnil);
 
 	if (NILP (val))

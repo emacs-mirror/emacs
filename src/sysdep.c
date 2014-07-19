@@ -105,9 +105,6 @@ int _cdecl _getpid (void);
 #include "syssignal.h"
 #include "systime.h"
 
-static void emacs_get_tty (int, struct emacs_tty *);
-static int emacs_set_tty (int, struct emacs_tty *, bool);
-
 /* ULLONG_MAX is missing on Red Hat Linux 7.3; see Bug#11781.  */
 #ifndef ULLONG_MAX
 #define ULLONG_MAX TYPE_MAXIMUM (unsigned long long int)
@@ -778,15 +775,28 @@ widen_foreground_group (int fd)
 /* Getting and setting emacs_tty structures.  */
 
 /* Set *TC to the parameters associated with the terminal FD,
-   or clear it if the parameters are not available.  */
-static void
+   or clear it if the parameters are not available.
+   Return 0 on success, -1 on failure.  */
+int
 emacs_get_tty (int fd, struct emacs_tty *settings)
 {
   /* Retrieve the primary parameters - baud rate, character size, etcetera.  */
-#ifndef DOS_NT
-  /* We have those nifty POSIX tcmumbleattr functions.  */
   memset (&settings->main, 0, sizeof (settings->main));
-  tcgetattr (fd, &settings->main);
+#ifdef DOS_NT
+#ifdef WINDOWSNT
+  HANDLE h = (HANDLE)_get_osfhandle (fd);
+  DWORD console_mode;
+
+  if (h && h != INVALID_HANDLE_VALUE && GetConsoleMode (h, &console_mode))
+    {
+      settings->main = console_mode;
+      return 0;
+    }
+#endif	/* WINDOWSNT */
+  return -1;
+#else	/* !DOS_NT */
+  /* We have those nifty POSIX tcmumbleattr functions.  */
+  return tcgetattr (fd, &settings->main);
 #endif
 }
 
@@ -795,11 +805,26 @@ emacs_get_tty (int fd, struct emacs_tty *settings)
    *SETTINGS.  If FLUSHP, discard input.
    Return 0 if all went well, and -1 (setting errno) if anything failed.  */
 
-static int
+int
 emacs_set_tty (int fd, struct emacs_tty *settings, bool flushp)
 {
   /* Set the primary parameters - baud rate, character size, etcetera.  */
-#ifndef DOS_NT
+#ifdef DOS_NT
+#ifdef WINDOWSNT
+  HANDLE h = (HANDLE)_get_osfhandle (fd);
+
+  if (h && h != INVALID_HANDLE_VALUE)
+    {
+      DWORD new_mode;
+
+      /* Assume the handle is open for input.  */
+      if (flushp)
+	FlushConsoleInputBuffer (h);
+      new_mode = settings->main;
+      SetConsoleMode (h, new_mode);
+    }
+#endif	/* WINDOWSNT */
+#else  /* !DOS_NT */
   int i;
   /* We have those nifty POSIX tcmumbleattr functions.
      William J. Smith <wjs@wiis.wang.com> writes:
@@ -1139,6 +1164,24 @@ tabs_safe_p (int fd)
 #else /* DOS_NT */
   return 0;
 #endif /* DOS_NT */
+}
+
+/* Discard echoing.  */
+
+void
+suppress_echo_on_tty (int fd)
+{
+  struct emacs_tty etty;
+
+  emacs_get_tty (fd, &etty);
+#ifdef DOS_NT
+  /* Set raw input mode.  */
+  etty.main = 0;
+#else
+  etty.main.c_lflag &= ~ICANON;	/* Disable buffering */
+  etty.main.c_lflag &= ~ECHO;	/* Disable echoing */
+#endif /* ! WINDOWSNT */
+  emacs_set_tty (fd, &etty, 0);
 }
 
 /* Get terminal size from system.
@@ -2157,6 +2200,7 @@ emacs_abort (void)
 #endif
 
 /* Open FILE for Emacs use, using open flags OFLAG and mode MODE.
+   Use binary I/O on systems that care about text vs binary I/O.
    Arrange for subprograms to not inherit the file descriptor.
    Prefer a method that is multithread-safe, if available.
    Do not fail merely because the open was interrupted by a signal.
@@ -2166,6 +2210,8 @@ int
 emacs_open (const char *file, int oflags, int mode)
 {
   int fd;
+  if (! (oflags & O_TEXT))
+    oflags |= O_BINARY;
   oflags |= O_CLOEXEC;
   while ((fd = open (file, oflags, mode)) < 0 && errno == EINTR)
     QUIT;
@@ -2213,7 +2259,7 @@ emacs_pipe (int fd[2])
 #ifdef MSDOS
   return pipe (fd);
 #else  /* !MSDOS */
-  int result = pipe2 (fd, O_CLOEXEC);
+  int result = pipe2 (fd, O_BINARY | O_CLOEXEC);
   if (! O_CLOEXEC && result == 0)
     {
       fcntl (fd[0], F_SETFD, FD_CLOEXEC);

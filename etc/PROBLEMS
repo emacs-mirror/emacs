@@ -1931,6 +1931,16 @@ MSDN:
 includes a short description of MSLU and a link where it can be
 downloaded.
 
+** Emacs refuses to start on Windows 9X because ctime64 function is missing
+
+This is a sign that Emacs was compiled with MinGW runtime version
+4.0.x or later.  These versions of runtime call in their startup code
+the ctime64 function, which does not exist in MSVCRT.DLL, the C
+runtime shared library, distributed with Windows 9X.
+
+A workaround is to build Emacs with MinGW runtime 3.x (the latest
+version is 3.20).
+
 ** A few seconds delay is seen at startup and for many file operations
 
 This happens when the Net Logon service is enabled.  During Emacs
@@ -1964,6 +1974,26 @@ same optional library that does not depend on the libgcc DLL.
 Another possibility is to rebuild Emacs with the -shared-libgcc
 switch, which will force Emacs to load libgcc_s_dw2-1.dll on startup,
 ahead of any optional DLLs loaded on-demand later in the session.
+
+** File selection dialog opens in incorrect directories
+
+Invoking the file selection dialog on Windows 7 or later shows a
+directory that is different from what was passed to `read-file-name'
+or `x-file-dialog' via their arguments.
+
+This is due to a deliberate change in behavior of the file selection
+dialogs introduced in Windows 7.  It is explicitly described in the
+MSDN documentation of the GetOpenFileName API used by Emacs to pop up
+the file selection dialog.  For the details, see
+
+  http://msdn.microsoft.com/en-us/library/windows/desktop/ms646839%28v=vs.85%29.aspx
+
+The dialog shows the last directory in which the user selected a file
+in a previous invocation of the dialog with the same initial
+directory.
+
+You can reset this "memory" of that directory by invoking the file
+selection dialog with a different initial directory.
 
 ** PATH can contain unexpanded environment variables
 
@@ -2098,7 +2128,7 @@ The function set-time-zone-rule gives incorrect results for many
 non-US timezones.  This is due to over-simplistic handling of
 daylight savings switchovers by the Windows libraries.
 
-** Files larger than 4GB report wrong size
+** Files larger than 4GB report wrong size in a 32-bit Windows build
 
 Files larger than 4GB cause overflow in the size (represented as a
 32-bit integer) reported by `file-attributes'.  This affects Dired as

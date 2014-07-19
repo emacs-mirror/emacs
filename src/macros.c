@@ -80,28 +80,21 @@ macro before appending to it.  */)
     }
   else
     {
-      ptrdiff_t i;
-      EMACS_INT len;
+      int incr = 30;
+      ptrdiff_t i, len;
       bool cvt;
 
       /* Check the type of last-kbd-macro in case Lisp code changed it.  */
-      CHECK_VECTOR_OR_STRING (KVAR (current_kboard, Vlast_kbd_macro));
-
-      len = XINT (Flength (KVAR (current_kboard, Vlast_kbd_macro)));
+      len = CHECK_VECTOR_OR_STRING (KVAR (current_kboard, Vlast_kbd_macro));
 
       /* Copy last-kbd-macro into the buffer, in case the Lisp code
 	 has put another macro there.  */
-      if (current_kboard->kbd_macro_bufsize < len + 30)
-	{
-	  if (PTRDIFF_MAX < MOST_POSITIVE_FIXNUM + 30
-	      && PTRDIFF_MAX < len + 30)
-	    memory_full (SIZE_MAX);
-	  current_kboard->kbd_macro_buffer =
-	    xpalloc (current_kboard->kbd_macro_buffer,
-		     &current_kboard->kbd_macro_bufsize,
-		     len + 30 - current_kboard->kbd_macro_bufsize, -1,
-		     sizeof *current_kboard->kbd_macro_buffer);
-	}
+      if (current_kboard->kbd_macro_bufsize - incr < len)
+	current_kboard->kbd_macro_buffer =
+	  xpalloc (current_kboard->kbd_macro_buffer,
+		   &current_kboard->kbd_macro_bufsize,
+		   len - current_kboard->kbd_macro_bufsize + incr, -1,
+		   sizeof *current_kboard->kbd_macro_buffer);
 
       /* Must convert meta modifier when copying string to vector.  */
       cvt = STRINGP (KVAR (current_kboard, Vlast_kbd_macro));
