@@ -2158,10 +2158,14 @@ font_score (Lisp_Object entity, Lisp_Object *spec_prop)
 	 lowest bit is set if the DPI is different.  */
       EMACS_INT diff;
       EMACS_INT pixel_size = XINT (spec_prop[FONT_SIZE_INDEX]);
+      EMACS_INT entity_size = XINT (AREF (entity, FONT_SIZE_INDEX));
 
       if (CONSP (Vface_font_rescale_alist))
 	pixel_size *= font_rescale_ratio (entity);
-      diff = eabs (pixel_size - XINT (AREF (entity, FONT_SIZE_INDEX))) << 1;
+      if (pixel_size * 2 < entity_size || entity_size * 2 < pixel_size)
+	/* This size is wrong by more than a factor 2: reject it!  */
+	return 0xFFFFFFFF;
+      diff = eabs (pixel_size - entity_size) << 1;
       if (! NILP (spec_prop[FONT_DPI_INDEX])
 	  && ! EQ (spec_prop[FONT_DPI_INDEX], AREF (entity, FONT_DPI_INDEX)))
 	diff |= 1;
