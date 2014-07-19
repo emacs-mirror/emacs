@@ -1,3 +1,8 @@
+2014-07-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* rect.el (rectangle--string-preview): Don't assume there
+	a non-nil default (bug#17984).
+
 2014-07-16  Glenn Morris  <rgm@gnu.org>
 
 	* desktop.el (after-init-hook): Disable startup frame restoration
