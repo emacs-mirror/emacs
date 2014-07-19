@@ -1,3 +1,32 @@
+2014-07-17  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	Autodetect Python shell prompts.  (Bug#17370)
+	* progmodes/python.el:
+	(python-shell-interpreter-interactive-arg)
+	(python-shell-prompt-detect-enabled)
+	(python-shell-prompt-detect-failure-warning)
+	(python-shell-prompt-input-regexps)
+	(python-shell-prompt-output-regexps): New vars.
+	(python-shell-prompt-calculated-input-regexp)
+	(python-shell-prompt-calculated-output-regexp): New vars.
+	(python-shell-get-process-name)
+	(python-shell-internal-get-process-name)
+	(python-shell-output-filter)
+	(python-shell-completion-get-completions): Use them.
+	(python-shell-prompt-detect)
+	(python-shell-prompt-validate-regexps): New functions.
+	(python-shell-prompt-set-calculated-regexps): New function.
+	(inferior-python-mode): Use it.  Also honor overriden
+	python-shell-interpreter and python-shell-interpreter-args.
+	(python-shell-make-comint): Honor overriden
+	python-shell-interpreter and python-shell-interpreter-args.
+	(python-shell-get-or-create-process): Make it testable by allowing
+	to call run-python non-interactively.
+	(python-util-valid-regexp-p): New function.
+	(python-shell-prompt-regexp, python-shell-prompt-block-regexp)
+	(python-shell-prompt-output-regexp)
+	(python-shell-prompt-pdb-regexp): Use it as defcustom :safe.
+
 2014-07-16  Glenn Morris  <rgm@gnu.org>
 
 	* desktop.el (after-init-hook): Disable startup frame restoration
