@@ -1,5 +1,10 @@
 2014-07-20  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
+	* progmodes/python.el (python-mode): Don't set
+	mode-require-final-newline.  (Bug#17990)
+
+2014-07-20  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
 	Make python.el work with IPython automatically.  (Bug#15510)
 	* progmodes/python.el:
 	(python-shell-completion-setup-code): New value supporting iPython.
