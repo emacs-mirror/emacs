@@ -62,16 +62,46 @@
 ;; (add-hook 'python-mode-hook
 ;;           (lambda () (setq forward-sexp-function nil)))
 
-;; Shell interaction: is provided and allows you to easily execute any
-;; block of code of your current buffer in an inferior Python process.
-;; This relies upon having prompts for input (e.g. ">>> " and "... "
-;; in standard Python shell) and output (e.g. "Out[1]: " in iPython)
-;; detected properly.  Failing that Emacs may hang but, in the case
-;; that happens, you can recover with \\[keyboard-quit].  To avoid
-;; this issue, a two-step prompt autodetection mechanism is provided:
-;; the first step is manual and consists of a collection of regular
-;; expressions matching common prompts for Python shells stored in
-;; `python-shell-prompt-input-regexps' and
+;; Shell interaction: is provided and allows opening Python shells
+;; inside Emacs and executing any block of code of your current buffer
+;; in that inferior Python process.
+
+;; Besides that only the standard CPython (2.x and 3.x) shell and
+;; IPython are officially supported out of the box, the interaction
+;; should support any other readline based Python shells as well
+;; (e.g. Jython and Pypy have been reported to work).  You can change
+;; your default interpreter and commandline arguments by setting the
+;; `python-shell-interpreter' and `python-shell-interpreter-args'
+;; variables.  This example enables IPython globally:
+
+;; (setq python-shell-interpreter "ipython"
+;;       python-shell-interpreter-args "-i")
+
+;; Using the "console" subcommand to start IPython in server-client
+;; mode is known to fail intermittently due a bug on IPython itself
+;; (see URL `http://debbugs.gnu.org/cgi/bugreport.cgi?bug=18052#27').
+;; There seems to be a race condition in the IPython server (A.K.A
+;; kernel) when code is sent while it is still initializing, sometimes
+;; causing the shell to get stalled.  With that said, if an IPython
+;; kernel is already running, "console --existing" seems to work fine.
+
+;; Running IPython on Windows needs more tweaking.  The way you should
+;; set `python-shell-interpreter' and `python-shell-interpreter-args'
+;; is as follows (of course you need to modify the paths according to
+;; your system):
+
+;; (setq python-shell-interpreter "C:\\Python27\\python.exe"
+;;       python-shell-interpreter-args
+;;       "-i C:\\Python27\\Scripts\\ipython-script.py")
+
+;; The interaction relies upon having prompts for input (e.g. ">>> "
+;; and "... " in standard Python shell) and output (e.g. "Out[1]: " in
+;; IPython) detected properly.  Failing that Emacs may hang but, in
+;; the case that happens, you can recover with \\[keyboard-quit].  To
+;; avoid this issue, a two-step prompt autodetection mechanism is
+;; provided: the first step is manual and consists of a collection of
+;; regular expressions matching common prompts for Python shells
+;; stored in `python-shell-prompt-input-regexps' and
 ;; `python-shell-prompt-output-regexps', and dir-local friendly vars
 ;; `python-shell-prompt-regexp', `python-shell-prompt-block-regexp',
 ;; `python-shell-prompt-output-regexp' which are appended to the
@@ -81,51 +111,23 @@
 ;; modify its behavior.
 
 ;; Shell completion: hitting tab will try to complete the current
-;; word.  Shell completion is implemented in a way that if you change
-;; the `python-shell-interpreter' to any other (for example IPython)
-;; it should be easy to integrate another way to calculate
-;; completions.  You just need to specify your custom
-;; `python-shell-completion-setup-code' and
-;; `python-shell-completion-string-code'.
-
-;; Here is a complete example of the settings you would use for
-;; iPython 0.11:
-
-;; (setq
-;;  python-shell-interpreter "ipython"
-;;  python-shell-interpreter-args ""
-;;  python-shell-completion-setup-code
-;;    "from IPython.core.completerlib import module_completion"
-;;  python-shell-completion-module-string-code
-;;    "';'.join(module_completion('''%s'''))\n"
-;;  python-shell-completion-string-code
-;;    "';'.join(get_ipython().Completer.all_completions('''%s'''))\n")
-
-;; For iPython 0.10 everything would be the same except for
-;; `python-shell-completion-string-code' and
-;; `python-shell-completion-module-string-code':
-
-;; (setq python-shell-completion-string-code
-;;       "';'.join(__IP.complete('''%s'''))\n"
-;;       python-shell-completion-module-string-code "")
-
-;; Unfortunately running iPython on Windows needs some more tweaking.
-;; The way you must set `python-shell-interpreter' and
-;; `python-shell-interpreter-args' is as follows:
-
-;; (setq
-;;  python-shell-interpreter "C:\\Python27\\python.exe"
-;;  python-shell-interpreter-args
-;;  "-i C:\\Python27\\Scripts\\ipython-script.py")
-
-;; That will spawn the iPython process correctly (Of course you need
-;; to modify the paths according to your system).
-
-;; Please note that the default completion system depends on the
+;; word.  Shell completion is implemented in such way that if you
+;; change the `python-shell-interpreter' it should be possible to
+;; integrate custom logic to calculate completions.  To achieve this
+;; you just need to set `python-shell-completion-setup-code' and
+;; `python-shell-completion-string-code'.  The default provided code,
+;; enables autocompletion for both CPython and IPython (and ideally
+;; any readline based Python shell).  This code depends on the
 ;; readline module, so if you are using some Operating System that
-;; bundles Python without it (like Windows) just install the
-;; pyreadline from http://ipython.scipy.org/moin/PyReadline/Intro and
-;; you should be good to go.
+;; bundles Python without it (like Windows), installing pyreadline
+;; from URL `http://ipython.scipy.org/moin/PyReadline/Intro' should
+;; suffice.  To troubleshoot why you are not getting any completions
+;; you can try the following in your Python shell:
+
+;; >>> import readline, rlcompleter
+
+;; If you see an error, then you need to either install pyreadline or
+;; setup custom code that avoids that dependency.
 
 ;; Shell virtualenv support: The shell also contains support for
 ;; virtualenvs and other special environment modifications thanks to
@@ -1740,14 +1742,18 @@ position, else returns nil."
 
 (defcustom python-shell-prompt-input-regexps
   '(">>> " "\\.\\.\\. "                 ; Python
-    "In \\[[0-9]+\\]: ")                ; iPython
+    "In \\[[0-9]+\\]: "                 ; IPython
+    ;; Using ipdb outside IPython may fail to cleanup and leave static
+    ;; IPython prompts activated, this adds some safeguard for that.
+    "In : " "\\.\\.\\.: ")
   "List of regular expressions matching input prompts."
   :type '(repeat string)
   :version "24.4")
 
 (defcustom python-shell-prompt-output-regexps
   '(""                                  ; Python
-    "Out\\[[0-9]+\\]: ")                ; iPython
+    "Out\\[[0-9]+\\]: "                 ; IPython
+    "Out :")                            ; ipdb safeguard
   "List of regular expressions matching output prompts."
   :type '(repeat string)
   :version "24.4")
@@ -2398,7 +2404,7 @@ detecting a prompt at the end of the buffer."
     (when (string-match
            python-shell--prompt-calculated-output-regexp
            python-shell-output-filter-buffer)
-      ;; Some shells, like iPython might append a prompt before the
+      ;; Some shells, like IPython might append a prompt before the
       ;; output, clean that.
       (setq python-shell-output-filter-buffer
             (substring python-shell-output-filter-buffer (match-end 0)))))
@@ -2608,23 +2614,35 @@ This function takes the list of setup code to send from the
 
 (defcustom python-shell-completion-setup-code
   "try:
-    import readline
+    import readline, rlcompleter
 except ImportError:
-    def __COMPLETER_all_completions(text): []
+    def __PYTHON_EL_get_completions(text):
+        return []
 else:
-    import rlcompleter
-    readline.set_completer(rlcompleter.Completer().complete)
-    def __COMPLETER_all_completions(text):
-        import sys
+    def __PYTHON_EL_get_completions(text):
         completions = []
         try:
-            i = 0
-            while True:
-                res = readline.get_completer()(text, i)
-                if not res: break
-                i += 1
-                completions.append(res)
-        except NameError:
+            splits = text.split()
+            is_module = splits and splits[0] in ('from', 'import')
+            is_ipython = getattr(
+                __builtins__, '__IPYTHON__',
+                getattr(__builtins__, '__IPYTHON__active', False))
+            if is_module:
+                from IPython.core.completerlib import module_completion
+                completions = module_completion(text.strip())
+            elif is_ipython and getattr(__builtins__, '__IP', None):
+                completions = __IP.complete(text)
+            elif is_ipython and getattr(__builtins__, 'get_ipython', None):
+                completions = get_ipython().Completer.all_completions(text)
+            else:
+                i = 0
+                while True:
+                    res = readline.get_completer()(text, i)
+                    if not res:
+                        break
+                    i += 1
+                    completions.append(res)
+        except:
             pass
         return completions"
   "Code used to setup completion in inferior Python processes."
@@ -2632,24 +2650,18 @@ else:
   :group 'python)
 
 (defcustom python-shell-completion-string-code
-  "';'.join(__COMPLETER_all_completions('''%s'''))\n"
-  "Python code used to get a string of completions separated by semicolons."
+  "';'.join(__PYTHON_EL_get_completions('''%s'''))\n"
+  "Python code used to get a string of completions separated by semicolons.
+The string passed to the function is the current python name or
+the full statement in the case of imports."
   :type 'string
   :group 'python)
 
-(defcustom python-shell-completion-module-string-code ""
-  "Python code used to get completions separated by semicolons for imports.
-
-For IPython v0.11, add the following line to
-`python-shell-completion-setup-code':
-
-from IPython.core.completerlib import module_completion
-
-and use the following as the value of this variable:
-
-';'.join(module_completion('''%s'''))\n"
-  :type 'string
-  :group 'python)
+(define-obsolete-variable-alias
+  'python-shell-completion-module-string-code
+  'python-shell-completion-string-code
+  "24.4"
+  "Completion string code must also autocomplete modules.")
 
 (defcustom python-shell-completion-pdb-string-code
   "';'.join(globals().keys() + locals().keys())"
@@ -2672,33 +2684,23 @@ LINE is used to detect the context on how to complete given INPUT."
                  (re-search-backward "^")
                  (python-util-forward-comment)
                  (point))))))
-         (completion-context
+         (completion-code
           ;; Check whether a prompt matches a pdb string, an import
           ;; statement or just the standard prompt and use the
           ;; correct python-shell-completion-*-code string
           (cond ((and (> (length python-shell-completion-pdb-string-code) 0)
                       (string-match
                        (concat "^" python-shell-prompt-pdb-regexp) prompt))
-                 'pdb)
-                ((and (>
-                       (length python-shell-completion-module-string-code) 0)
-                      (string-match
-                       python-shell--prompt-calculated-input-regexp prompt)
-                      (string-match "^[ \t]*\\(from\\|import\\)[ \t]" line))
-                 'import)
+                 python-shell-completion-pdb-string-code)
                 ((string-match
                   python-shell--prompt-calculated-input-regexp prompt)
-                 'default)
+                 python-shell-completion-string-code)
                 (t nil)))
-         (completion-code
-          (pcase completion-context
-            (`pdb python-shell-completion-pdb-string-code)
-            (`import python-shell-completion-module-string-code)
-            (`default python-shell-completion-string-code)
-            (_ nil)))
          (input
-          (if (eq completion-context 'import)
-              (replace-regexp-in-string "^[ \t]+" "" line)
+          (if (string-match
+               (python-rx (+ space) (or "from" "import") space)
+               line)
+              line
             input)))
     (and completion-code
          (> (length input) 0)

@@ -1,3 +1,15 @@
+2014-07-20  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	Make python.el work with IPython automatically.  (Bug#15510)
+	* progmodes/python.el:
+	(python-shell-completion-setup-code): New value supporting iPython.
+	(python-shell-completion-string-code): New value supporting iPython.
+	(python-shell-completion-get-completions): Use them.
+	(python-shell-completion-module-string-code): Make obsolete.
+	(python-shell-prompt-input-regexps)
+	(python-shell-prompt-output-regexps): Add safeguard for ipdb.
+	(python-shell-output-filter): Fix comment typo.
+
 2014-07-19  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
 	Fix Python shell prompts detection for remote hosts.
