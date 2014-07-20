@@ -1,5 +1,11 @@
 2014-07-20  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
+	* progmodes/python.el: Add comment about pipe buffering and
+	solutions for missing/delayed output in inferior Python shells.
+	(Bug#17304)
+
+2014-07-20  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
 	* progmodes/python.el (python-mode): Don't set
 	mode-require-final-newline.  (Bug#17990)
 

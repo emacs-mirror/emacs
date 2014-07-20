@@ -94,6 +94,14 @@
 ;;       python-shell-interpreter-args
 ;;       "-i C:\\Python27\\Scripts\\ipython-script.py")
 
+;; If you are experiencing missing or delayed output in your shells,
+;; that's likely caused by your Operating System's pipe buffering
+;; (e.g. this is known to happen running CPython 3.3.4 in Windows 7.
+;; See URL `http://debbugs.gnu.org/cgi/bugreport.cgi?bug=17304').  To
+;; fix this, using CPython's "-u" commandline argument or setting the
+;; "PYTHONUNBUFFERED" environment variable should help: See URL
+;; `https://docs.python.org/3/using/cmdline.html#cmdoption-u'.
+
 ;; The interaction relies upon having prompts for input (e.g. ">>> "
 ;; and "... " in standard Python shell) and output (e.g. "Out[1]: " in
 ;; IPython) detected properly.  Failing that Emacs may hang but, in
