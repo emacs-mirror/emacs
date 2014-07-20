@@ -729,7 +729,7 @@ static const struct
 
 static CGFloat macfont_antialias_threshold;
 
-static void
+void
 macfont_update_antialias_threshold (void)
 {
   int threshold;
