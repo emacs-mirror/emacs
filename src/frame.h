@@ -192,6 +192,11 @@ struct frame
   char *namebuf;
 #endif
 
+#ifdef USE_X_TOOLKIT
+  /* Used to pass geometry parameters to toolkit functions.  */
+  char *shell_position;
+#endif
+
   /* Glyph pool and matrix.  */
   struct glyph_pool *current_pool;
   struct glyph_pool *desired_pool;

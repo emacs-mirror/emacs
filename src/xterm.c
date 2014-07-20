@@ -9245,6 +9245,9 @@ x_free_frame_resources (struct frame *f)
 	XDestroyWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f));
 
       free_frame_menubar (f);
+
+      if (f->shell_position)
+	xfree (f->shell_position);
 #else  /* !USE_X_TOOLKIT */
 
 #ifdef USE_GTK

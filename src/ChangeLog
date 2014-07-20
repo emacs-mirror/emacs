@@ -1,3 +1,12 @@
+2014-07-20  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* frame.h (struct frame) [USE_X_TOOLKIT]: New member shell_position.
+	* xfns.c (x_window): Use it to allow xfree later.
+	(x_encode_text): Drop 3rd arg; unused.  Tweak comment and adjust users
+	where appropriate.  Use bool for booleans and remove redundant checks.
+	(Fx_backspace_delete_keys_p): Use XkbFreeKeyboard; explain why.
+	* xterm.c (x_free_frame_resources): Free shell_position.
+
 2014-07-19  K. Handa  <handa@gnu.org>
 
 	* xfaces.c (realize_x_face): Call font_load_for_lface with no

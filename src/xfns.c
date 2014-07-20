@@ -1260,10 +1260,6 @@ x_set_scroll_bar_background (struct frame *f, Lisp_Object value, Lisp_Object old
    CODING_SYSTEM, and return a newly allocated memory area which
    should be freed by `xfree' by a caller.
 
-   SELECTIONP non-zero means the string is being encoded for an X
-   selection, so it is safe to run pre-write conversions (which
-   may run Lisp code).
-
    Store the byte length of resulting text in *TEXT_BYTES.
 
    If the text contains only ASCII and Latin-1, store 1 in *STRING_P,
@@ -1272,8 +1268,8 @@ x_set_scroll_bar_background (struct frame *f, Lisp_Object value, Lisp_Object old
    the result should be `COMPOUND_TEXT'.  */
 
 static unsigned char *
-x_encode_text (Lisp_Object string, Lisp_Object coding_system, int selectionp,
-	       ptrdiff_t *text_bytes, int *stringp, int *freep)
+x_encode_text (Lisp_Object string, Lisp_Object coding_system,
+	       ptrdiff_t *text_bytes, int *stringp, bool *freep)
 {
   int result = string_xstring_p (string);
   struct coding_system coding;
@@ -1316,7 +1312,7 @@ x_set_name_internal (struct frame *f, Lisp_Object name)
 	XTextProperty text, icon;
 	ptrdiff_t bytes;
 	int stringp;
-        int do_free_icon_value = 0, do_free_text_value = 0;
+	bool do_free_icon_value = 0, do_free_text_value = 0;
 	Lisp_Object coding_system;
 	Lisp_Object encoded_name;
 	Lisp_Object encoded_icon_name;
@@ -1348,14 +1344,12 @@ x_set_name_internal (struct frame *f, Lisp_Object name)
 	   properties.  Per the EWMH specification, those two properties
 	   are always UTF8_STRING.  This matches what gtk_window_set_title()
 	   does in the USE_GTK case. */
-	text.value = x_encode_text (name, coding_system, 0, &bytes, &stringp,
-				    &do_free_text_value);
+	text.value = x_encode_text (name, coding_system, &bytes,
+				    &stringp, &do_free_text_value);
 	text.encoding = (stringp ? XA_STRING
 			 : FRAME_DISPLAY_INFO (f)->Xatom_COMPOUND_TEXT);
 	text.format = 8;
 	text.nitems = bytes;
-	if (text.nitems != bytes)
-	  error ("Window name too large");
 
 	if (!STRINGP (f->icon_name))
 	  {
@@ -1365,14 +1359,12 @@ x_set_name_internal (struct frame *f, Lisp_Object name)
 	else
 	  {
 	    /* See the above comment "Note: Encoding strategy".  */
-	    icon.value = x_encode_text (f->icon_name, coding_system, 0,
-					&bytes, &stringp, &do_free_icon_value);
+	    icon.value = x_encode_text (f->icon_name, coding_system, &bytes,
+					&stringp, &do_free_icon_value);
 	    icon.encoding = (stringp ? XA_STRING
 			     : FRAME_DISPLAY_INFO (f)->Xatom_COMPOUND_TEXT);
 	    icon.format = 8;
 	    icon.nitems = bytes;
-	    if (icon.nitems != bytes)
-	      error ("Icon name too large");
 
 	    encoded_icon_name = ENCODE_UTF_8 (f->icon_name);
 	  }
@@ -1410,16 +1402,16 @@ x_set_name_internal (struct frame *f, Lisp_Object name)
 /* Change the name of frame F to NAME.  If NAME is nil, set F's name to
        x_id_name.
 
-   If EXPLICIT is non-zero, that indicates that lisp code is setting the
+   If EXPLICIT is true, that indicates that lisp code is setting the
        name; if NAME is a string, set F's name to NAME and set
        F->explicit_name; if NAME is Qnil, then clear F->explicit_name.
 
-   If EXPLICIT is zero, that indicates that Emacs redisplay code is
+   If EXPLICIT is false, that indicates that Emacs redisplay code is
        suggesting a new name, which lisp code should override; if
        F->explicit_name is set, ignore the new name; otherwise, set it.  */
 
 static void
-x_set_name (struct frame *f, Lisp_Object name, int explicit)
+x_set_name (struct frame *f, Lisp_Object name, bool explicit)
 {
   /* Make sure that requests from lisp code override requests from
      Emacs redisplay code.  */
@@ -2263,8 +2255,7 @@ x_window (struct frame *f, long window_prompting, int minibuffer_only)
 
   /* Do some needed geometry management.  */
   {
-    char *tem, shell_position[sizeof "=x++" + 4 * INT_STRLEN_BOUND (int)];
-    Arg gal[10];
+    Arg gal[3];
     int gac = 0;
     int extra_borders = 0;
     int menubar_size
@@ -2294,6 +2285,8 @@ x_window (struct frame *f, long window_prompting, int minibuffer_only)
     extra_borders *= 2;
 #endif
 
+    f->shell_position = xmalloc (sizeof "=x++" + 4 * INT_STRLEN_BOUND (int));
+
     /* Convert our geometry parameters into a geometry string
        and specify it.
        Note that we do not specify here whether the position
@@ -2310,14 +2303,14 @@ x_window (struct frame *f, long window_prompting, int minibuffer_only)
 	top = -top;
 
       if (window_prompting & USPosition)
-	sprintf (shell_position, "=%dx%d%c%d%c%d",
+	sprintf (f->shell_position, "=%dx%d%c%d%c%d",
 		 FRAME_PIXEL_WIDTH (f) + extra_borders,
 		 FRAME_PIXEL_HEIGHT (f) + menubar_size + extra_borders,
 		 (xneg ? '-' : '+'), left,
 		 (yneg ? '-' : '+'), top);
       else
         {
-          sprintf (shell_position, "=%dx%d",
+          sprintf (f->shell_position, "=%dx%d",
                    FRAME_PIXEL_WIDTH (f) + extra_borders,
                    FRAME_PIXEL_HEIGHT (f) + menubar_size + extra_borders);
 
@@ -2331,12 +2324,7 @@ x_window (struct frame *f, long window_prompting, int minibuffer_only)
         }
     }
 
-    /* We don't free this because we don't know whether
-       it is safe to free it while the frame exists.
-       It isn't worth the trouble of arranging to free it
-       when the frame is deleted.  */
-    tem = xstrdup (shell_position);
-    XtSetArg (gal[gac], XtNgeometry, tem); gac++;
+    XtSetArg (gal[gac], XtNgeometry, f->shell_position); gac++;
     XtSetValues (shell_widget, gal, gac);
   }
 
@@ -2405,7 +2393,7 @@ x_window (struct frame *f, long window_prompting, int minibuffer_only)
      the X server hasn't been told.  */
   {
     Lisp_Object name;
-    int explicit = f->explicit_name;
+    bool explicit = f->explicit_name;
 
     f->explicit_name = 0;
     name = f->name;
@@ -2548,7 +2536,7 @@ x_window (struct frame *f)
      the X server hasn't been told.  */
   {
     Lisp_Object name;
-    int explicit = f->explicit_name;
+    bool explicit = f->explicit_name;
 
     f->explicit_name = 0;
     name = f->name;
@@ -6091,7 +6079,11 @@ present and mapped to the usual X keysyms.  */)
 	  XkbFreeNames (kb, 0, True);
 	}
 
-      XkbFreeClientMap (kb, 0, True);
+      /* As of libX11-1.6.2, XkbGetMap manual says that you should use
+	 XkbFreeClientMap to free the data returned by XkbGetMap.  But
+	 this function just frees the data referenced from KB and not
+	 KB itself.  To free KB as well, call XkbFreeKeyboard.  */
+      XkbFreeKeyboard (kb, XkbAllMapComponentsMask, True);
 
       if (delete_keycode
 	  && backspace_keycode
