@@ -1132,11 +1132,12 @@ stream.  Standard error output is discarded."
                   (file &optional keep noquery reset-vc-info))
 
 (defun vc-bzr-shelve (name)
-  "Create a shelve."
+  "Shelve the changes of the selected files."
   (interactive "sShelf name: ")
-  (let ((root (vc-bzr-root default-directory)))
+  (let ((root (vc-bzr-root default-directory))
+        (fileset (vc-deduce-fileset)))
     (when root
-      (vc-bzr-command "shelve" nil 0 nil "--all" "-m" name)
+      (vc-bzr-command "shelve" nil 0 (nth 1 fileset) "--all" "-m" name)
       (vc-resynch-buffer root t t))))
 
 (defun vc-bzr-shelve-show (name)
