@@ -410,12 +410,7 @@ Return the result of the last expression in BODY."
 ;; read is redefined to maybe instrument forms.
 ;; eval-defun is redefined to check edebug-all-forms and edebug-all-defs.
 
-;; Save the original read function
-(defalias 'edebug-original-read
-  (symbol-function (if (fboundp 'edebug-original-read)
-                       'edebug-original-read 'read)))
-
-(defun edebug-read (&optional stream)
+(defun edebug--read (orig &optional stream)
   "Read one Lisp expression as text from STREAM, return as Lisp object.
 If STREAM is nil, use the value of `standard-input' (which see).
 STREAM or the value of `standard-input' may be:
@@ -433,10 +428,7 @@ the option `edebug-all-forms'."
   (or stream (setq stream standard-input))
   (if (eq stream (current-buffer))
       (edebug-read-and-maybe-wrap-form)
-    (edebug-original-read stream)))
-
-(or (fboundp 'edebug-original-eval-defun)
-    (defalias 'edebug-original-eval-defun (symbol-function 'eval-defun)))
+    (funcall (or orig #'read) stream)))
 
 (defvar edebug-result) ; The result of the function call returned by body.
 
@@ -567,16 +559,13 @@ already is one.)"
 
 (defun edebug-install-read-eval-functions ()
   (interactive)
-  ;; Don't install if already installed.
-  (unless load-read-function
-    (setq load-read-function 'edebug-read)
-    (defalias 'eval-defun 'edebug-eval-defun)))
+  (add-function :around load-read-function #'edebug--read)
+  (advice-add 'eval-defun :override 'edebug-eval-defun))
 
 (defun edebug-uninstall-read-eval-functions ()
   (interactive)
-  (setq load-read-function nil)
-  (defalias 'eval-defun (symbol-function 'edebug-original-eval-defun)))
-
+  (remove-function load-read-function #'edebug--read)
+  (advice-remove 'eval-defun 'edebug-eval-defun))
 
 ;;; Edebug internal data
 
@@ -721,8 +710,8 @@ Maybe clear the markers and delete the symbol's edebug property?"
     (cond
      ;; read goes one too far if a (possibly quoted) string or symbol
      ;; is immediately followed by non-whitespace.
-     ((eq class 'symbol) (edebug-original-read (current-buffer)))
-     ((eq class 'string) (edebug-original-read (current-buffer)))
+     ((eq class 'symbol) (read (current-buffer)))
+     ((eq class 'string) (read (current-buffer)))
      ((eq class 'quote) (forward-char 1)
       (list 'quote (edebug-read-sexp)))
      ((eq class 'backquote)
@@ -730,7 +719,7 @@ Maybe clear the markers and delete the symbol's edebug property?"
      ((eq class 'comma)
       (list '\, (edebug-read-sexp)))
      (t ; anything else, just read it.
-      (edebug-original-read (current-buffer))))))
+      (read (current-buffer))))))
 
 ;;; Offsets for reader
 
@@ -826,14 +815,11 @@ Maybe clear the markers and delete the symbol's edebug property?"
       (funcall
        (or (cdr (assq (edebug-next-token-class) edebug-read-alist))
 	   ;; anything else, just read it.
-	   'edebug-original-read)
+	   #'read)
        stream))))
 
-(defun edebug-read-symbol (stream)
-  (edebug-original-read stream))
-
-(defun edebug-read-string (stream)
-  (edebug-original-read stream))
+(defalias 'edebug-read-symbol #'read)
+(defalias 'edebug-read-string #'read)
 
 (defun edebug-read-quote (stream)
   ;; Turn 'thing into (quote thing)
@@ -877,7 +863,7 @@ Maybe clear the markers and delete the symbol's edebug property?"
 	((memq (following-char) '(?: ?B ?O ?X ?b ?o ?x ?1 ?2 ?3 ?4 ?5 ?6
 				  ?7 ?8 ?9 ?0))
 	 (backward-char 1)
-	 (edebug-original-read stream))
+	 (read stream))
 	(t (edebug-syntax-error "Bad char after #"))))
 
 (defun edebug-read-list (stream)
@@ -1048,16 +1034,15 @@ Maybe clear the markers and delete the symbol's edebug property?"
 	edebug-gate
 	edebug-best-error
 	edebug-error-point
-	no-match
 	;; Do this once here instead of several times.
 	(max-lisp-eval-depth (+ 800 max-lisp-eval-depth))
 	(max-specpdl-size (+ 2000 max-specpdl-size)))
-    (setq no-match
-	  (catch 'no-match
-	    (setq result (edebug-read-and-maybe-wrap-form1))
-	    nil))
-    (if no-match
-	(apply 'edebug-syntax-error no-match))
+    (let ((no-match
+           (catch 'no-match
+             (setq result (edebug-read-and-maybe-wrap-form1))
+             nil)))
+      (if no-match
+          (apply 'edebug-syntax-error no-match)))
     result))
 
 
@@ -1076,7 +1061,7 @@ Maybe clear the markers and delete the symbol's edebug property?"
       (if (and (eq 'lparen (edebug-next-token-class))
 	       (eq 'symbol (progn (forward-char 1) (edebug-next-token-class))))
 	  ;; Find out if this is a defining form from first symbol
-	  (setq def-kind (edebug-original-read (current-buffer))
+	  (setq def-kind (read (current-buffer))
 		spec (and (symbolp def-kind) (get-edebug-spec def-kind))
 		defining-form-p (and (listp spec)
 				     (eq '&define (car spec)))
@@ -1084,7 +1069,7 @@ Maybe clear the markers and delete the symbol's edebug property?"
 		def-name (if (and defining-form-p
 				  (eq 'name (car (cdr spec)))
 				  (eq 'symbol (edebug-next-token-class)))
-			     (edebug-original-read (current-buffer))))))
+			     (read (current-buffer))))))
 ;;;(message "all defs: %s   all forms: %s"  edebug-all-defs edebug-all-forms)
     (cond
      (defining-form-p
@@ -3209,7 +3194,7 @@ function or macro is called, Edebug will be called there as well."
 	     (if (looking-at "\(")
 		 (edebug--form-data-name
 		  (edebug-get-form-data-entry (point)))
-	       (edebug-original-read (current-buffer))))))
+	       (read (current-buffer))))))
       (edebug-instrument-function func))))
 
 
@@ -3237,25 +3222,14 @@ canceled the first time the function is entered."
   (put function 'edebug-on-entry nil))
 
 
-(if (not (fboundp 'edebug-original-debug-on-entry))
-    (fset 'edebug-original-debug-on-entry (symbol-function 'debug-on-entry)))
-'(fset 'debug-on-entry 'edebug-debug-on-entry)  ;; Should we do this?
+'(advice-add 'debug-on-entry :around 'edebug--debug-on-entry)  ;; Should we do this?
 ;; Also need edebug-cancel-debug-on-entry
 
-'(defun edebug-debug-on-entry (function)
-  "Request FUNCTION to invoke debugger each time it is called.
-If the user continues, FUNCTION's execution proceeds.
-Works by modifying the definition of FUNCTION,
-which must be written in Lisp, not predefined.
-Use `cancel-debug-on-entry' to cancel the effect of this command.
-Redefining FUNCTION also does that.
-
-This version is from Edebug.  If the function is instrumented for
-Edebug, it calls `edebug-on-entry'."
-  (interactive "aDebug on entry (to function): ")
+'(defun edebug--debug-on-entry (orig function)
+  "If the function is instrumented for Edebug, call `edebug-on-entry'."
   (let ((func-data (get function 'edebug)))
     (if (or (null func-data) (markerp func-data))
-	(edebug-original-debug-on-entry function)
+	(funcall orig function)
       (edebug-on-entry function))))
 
 
@@ -4136,9 +4110,8 @@ With prefix argument, make it a temporary breakpoint."
                'edebug--called-interactively-skip)
   (remove-hook 'cl-read-load-hooks 'edebug--require-cl-read)
   (edebug-uninstall-read-eval-functions)
-  ;; continue standard unloading
+  ;; Continue standard unloading.
   nil)
 
 (provide 'edebug)
-
 ;;; edebug.el ends here

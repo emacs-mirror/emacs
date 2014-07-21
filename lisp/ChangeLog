@@ -1,5 +1,18 @@
 2014-07-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/edebug.el: Use nadvice.
+	(edebug-original-read): Remove.
+	(edebug--read): Rename from edebug-read and add `orig' arg.
+	(edebug-uninstall-read-eval-functions)
+	(edebug-install-read-eval-functions): Use nadvice.
+	(edebug-read-sexp, edebug-read-storing-offsets, edebug-read-symbol)
+	(edebug-read-and-maybe-wrap-form1, edebug-instrument-callee)
+	(edebug-read-string, edebug-read-function): Use just `read'.
+	(edebug-original-debug-on-entry): Remove.
+	(edebug--debug-on-entry): Rename from edebug-debug-on-entry and add
+	`orig' arg.
+	(debug-on-entry): Override with nadvice.
+
 	* mouse.el (tear-off-window): Rename from mouse-tear-off-window since
 	it also makes sense to bind it to a non-mouse event.
 
