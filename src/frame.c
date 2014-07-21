@@ -2240,7 +2240,7 @@ If FRAME is omitted or nil, return information on the currently selected frame. 
 	    ? (f->new_pixelwise
 	       ? (f->new_height / FRAME_LINE_HEIGHT (f))
 	       : f->new_height)
-	    : FRAME_LINES (f));
+	    : FRAME_LINES (f)) - FRAME_TOP_MARGIN (f);
   store_in_alist (&alist, Qheight, make_number (height));
   width = (f->new_width
 	   ? (f->new_pixelwise

@@ -1,3 +1,8 @@
+2014-07-21  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* frame.c (Fframe_parameters): Always report frame height without
+	menu and tool bar lines.
+
 2014-07-21  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (applicationDidFinishLaunching:): Call

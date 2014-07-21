@@ -1,3 +1,7 @@
+2014-07-21  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* TODO: remove frame height remark.
+
 2014-07-11  Michael Albinus  <michael.albinus@gmx.de>
 
 	* NEWS: Passwords in batch mode are hidden.

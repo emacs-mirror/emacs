@@ -144,11 +144,6 @@ for users to customize.
   http://lists.gnu.org/archive/html/emacs-pretest-bug/2005-12/msg00165.html,
   and the rest of that discussion.
 
-** Height returned by frame-parameter ... and height given to
-   make-frame does not mean the same thing.  The former includes menu and
-   tool bar lines, the latter don't.  frame-parameter should return height
-   without menu and tool bar lines.
-
 ** In Emacs Info, examples of using Customize should be clickable
    and they should create Custom buffers.
 
