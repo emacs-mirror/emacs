@@ -2252,8 +2252,10 @@ to are recalculated first."
 	       (eq (ses-cell-value row (1+ col)) '*skip*))
       ;; This cell has spill-over.  We'll momentarily pretend the following cell
       ;; has a `t' in it.
-      (eval `(let ((,(ses-cell-symbol row (1+ col)) t))
-	       (ses-print-cell row col)))
+      (cl-progv
+	  (list (ses-cell-symbol row (1+ col)))
+	  '(t)
+	       (ses-print-cell row col))
       ;; Now remove the *skip*.  ses-print-cell is always nil here.
       (ses-set-cell row (1+ col) 'value nil)
       (1value (ses-print-cell row (1+ col))))))

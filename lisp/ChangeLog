@@ -1,3 +1,9 @@
+2014-07-21  Vincent Belaïche  <vincentb1@users.sourceforge.net>
+
+	* ses.el (ses-truncate-cell): Use cl-progv instead of eval in
+	order to ensure that row and col are lexically bound inside the
+	evaluated sexp.
+
 2014-07-21  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/hideif.el (hide-ifdef-mode-submap):
