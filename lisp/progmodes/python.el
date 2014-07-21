@@ -2215,7 +2215,7 @@ killed."
                               interpreter nil args))
                (python-shell--parent-buffer (current-buffer))
                (process (get-buffer-process buffer))
-               ;; As the user may have overriden default values for
+               ;; As the user may have overridden default values for
                ;; these vars on `run-python', let-binding them allows
                ;; to have the new right values in all setup code
                ;; that's is done in `inferior-python-mode', which is
