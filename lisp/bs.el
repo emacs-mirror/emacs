@@ -954,7 +954,7 @@ Default is `bs--current-sort-function'."
 
 (defun bs-toggle-readonly ()
   "Toggle read-only status for buffer on current line.
-Uses function `toggle-read-only'."
+Uses function `read-only-mode'."
   (interactive)
   (with-current-buffer (bs--current-buffer)
     (read-only-mode 'toggle))

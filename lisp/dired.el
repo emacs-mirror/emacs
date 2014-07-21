@@ -2015,7 +2015,7 @@ Actual changes in files cannot be undone by Emacs."))
   "Edit Dired buffer with Wdired, or make it read-only.
 If the current buffer can be edited with Wdired, (i.e. the major
 mode is `dired-mode'), call `wdired-change-to-wdired-mode'.
-Otherwise, call `toggle-read-only'."
+Otherwise, toggle `read-only-mode'."
   (interactive)
   (if (derived-mode-p 'dired-mode)
       (wdired-change-to-wdired-mode)

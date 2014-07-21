@@ -539,7 +539,7 @@ The current window remains selected."
 
 (defun Buffer-menu-toggle-read-only ()
   "Toggle read-only status of buffer on this line.
-This behaves like invoking \\[toggle-read-only] in that buffer."
+This behaves like invoking \\[read-only-mode] in that buffer."
   (interactive)
   (let ((read-only
          (with-current-buffer (Buffer-menu-buffer t)

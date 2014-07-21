@@ -491,12 +491,12 @@ Entry to view-mode runs the normal hook `view-mode-hook'."
 (defun view--disable ()
   (remove-hook 'change-major-mode-hook 'view--disable t)
   (and view-overlay (delete-overlay view-overlay))
-  ;; Calling toggle-read-only while View mode is enabled
+  ;; Calling read-only-mode while View mode is enabled
   ;; sets view-read-only to t as a buffer-local variable
-  ;; after exiting View mode.  That arranges that the next toggle-read-only
+  ;; after exiting View mode.  That arranges that the next read-only-mode
   ;; will reenable View mode.
   ;; Canceling View mode in any other way should cancel that, too,
-  ;; so that View mode stays off if toggle-read-only is called.
+  ;; so that View mode stays off if read-only-mode is called.
   (if (local-variable-p 'view-read-only)
       (kill-local-variable 'view-read-only))
   (if (boundp 'Helper-return-blurb)

@@ -1,3 +1,17 @@
+2014-07-21  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/hideif.el (hide-ifdef-mode-submap):
+	Also substitute read-only-mode.
+	* bindings.el (mode-line-toggle-read-only):
+	* bs.el (bs-toggle-readonly):
+	* buff-menu.el (Buffer-menu-toggle-read-only):
+	* dired.el (dired-toggle-read-only):
+	* files.el (view-read-only, find-file-read-only)
+	(find-file-read-only-other-window)
+	(find-file-read-only-other-frame):
+	* progmodes/hideif.el (hide-ifdef-toggle-outside-read-only):
+	Doc fixes re toggle-read-only.
+
 2014-07-20  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
 	* progmodes/python.el: Add comment about pipe buffering and
