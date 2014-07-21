@@ -673,7 +673,7 @@ along with the non-SMIE indentation code.
 ** Python mode
 
 *** Out of the box support for CPython, iPython and readline based shells.
-**** `python-shell-completion-module-string-code` is no longer used.
+**** `python-shell-completion-module-string-code' is no longer used.
 
 *** Automatic shell prompt detection.  New user options:
 **** `python-shell-interpreter-interactive-arg'.
