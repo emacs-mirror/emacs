@@ -1,5 +1,8 @@
 2014-07-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* mouse.el (tear-off-window): Rename from mouse-tear-off-window since
+	it also makes sense to bind it to a non-mouse event.
+
 	* vc/vc-bzr.el (vc-bzr-shelve): Make it operate on fileset.
 
 2014-07-19  Stefan Monnier  <monnier@iro.umontreal.ca>
