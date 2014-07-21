@@ -2514,7 +2514,8 @@ non-nil value, that slot cannot be set via `setf'.
                                                 ',accessor ',name))))
                        ,(if (eq type 'vector) `(aref cl-x ,pos)
                           (if (= pos 0) '(car cl-x)
-                            `(nth ,pos cl-x)))) forms)
+                            `(nth ,pos cl-x))))
+                    forms)
 	      (push (cons accessor t) side-eff)
               (if (cadr (memq :read-only (cddr desc)))
                   (push `(gv-define-expander ,accessor

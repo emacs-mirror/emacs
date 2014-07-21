@@ -679,7 +679,8 @@ When 0, do not auto-reconnect."
 		       (format "%s: %s (%S)"
 			       (process-name process)
 			       sentinel
-			       (process-status process)) (not rcirc-target))
+			       (process-status process))
+                       (not rcirc-target))
 	  (rcirc-disconnect-buffer)))
       (when (and (string= sentinel "deleted")
                  (< 0 rcirc-reconnect-delay))

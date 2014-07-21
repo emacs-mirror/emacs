@@ -28,13 +28,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "coding.h"
 #include "keyboard.h"
 
-/* Chain of all terminals currently in use. */
+/* Chain of all terminals currently in use.  */
 struct terminal *terminal_list;
 
-/* The first unallocated terminal id. */
+/* The first unallocated terminal id.  */
 static int next_terminal_id;
 
-/* The initial terminal device, created by initial_term_init. */
+/* The initial terminal device, created by initial_term_init.  */
 struct terminal *initial_terminal;
 
 static Lisp_Object Qterminal_live_p;
@@ -121,9 +121,9 @@ raw_cursor_to (struct frame *f, int row, int col)
     (*FRAME_TERMINAL (f)->raw_cursor_to_hook) (f, row, col);
 }
 
-/* Erase operations */
+/* Erase operations.  */
 
-/* Clear from cursor to end of frame. */
+/* Clear from cursor to end of frame.  */
 void
 clear_to_end (struct frame *f)
 {
@@ -131,7 +131,7 @@ clear_to_end (struct frame *f)
     (*FRAME_TERMINAL (f)->clear_to_end_hook) (f);
 }
 
-/* Clear entire frame */
+/* Clear entire frame.  */
 
 void
 clear_frame (struct frame *f)

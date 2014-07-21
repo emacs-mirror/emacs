@@ -910,7 +910,7 @@ See `sh-feature'.")
      (:foreground "tan1" ))
     (t
      (:weight bold)))
-  "Face to show a here-document"
+  "Face to show a here-document."
   :group 'sh-indentation)
 
 ;; These colors are probably icky.  It's just a placeholder though.
@@ -921,7 +921,7 @@ See `sh-feature'.")
      (:foreground "magenta"))
     (t
      (:weight bold)))
-  "Face to show quoted execs like ``"
+  "Face to show quoted execs like `blabla`."
   :group 'sh-indentation)
 (define-obsolete-face-alias 'sh-heredoc-face 'sh-heredoc "22.1")
 (defvar sh-heredoc-face 'sh-heredoc)

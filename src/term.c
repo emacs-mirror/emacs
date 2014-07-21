@@ -105,9 +105,9 @@ static _Noreturn void vfatal (const char *str, va_list ap)
 
 #define OUTPUT1_IF(tty, a) do { if (a) emacs_tputs ((tty), a, 1, cmputc); } while (0)
 
-/* Display space properties */
+/* Display space properties.  */
 
-/* Chain of all tty device parameters. */
+/* Chain of all tty device parameters.  */
 struct tty_display_info *tty_list;
 
 /* Meaning of bits in no_color_video.  Each bit set means that the
@@ -4042,10 +4042,10 @@ init_tty (const char *name, const char *terminal_type, bool must_succeed)
        open a frame on the same terminal.  */
     int flags = O_RDWR | O_NOCTTY | (ctty ? 0 : O_IGNORE_CTTY);
     int fd = emacs_open (name, flags, 0);
-    tty->input = tty->output =
-      ((fd < 0 || ! isatty (fd))
-       ? NULL
-       : fdopen (fd, "w+"));
+    tty->input = tty->output
+      = ((fd < 0 || ! isatty (fd))
+	 ? NULL
+	 : fdopen (fd, "w+"));
 
     if (! tty->input)
       {
@@ -4460,7 +4460,7 @@ fatal (const char *str, ...)
 
 
 
-/* Delete the given tty terminal, closing all frames on it. */
+/* Delete the given tty terminal, closing all frames on it.  */
 
 static void
 delete_tty (struct terminal *terminal)
@@ -4485,7 +4485,7 @@ delete_tty (struct terminal *terminal)
         ;
 
       if (! p)
-        /* This should not happen. */
+        /* This should not happen.  */
         emacs_abort ();
 
       p->next = tty->next;
@@ -4493,7 +4493,7 @@ delete_tty (struct terminal *terminal)
     }
 
   /* reset_sys_modes needs a valid device, so this call needs to be
-     before delete_terminal. */
+     before delete_terminal.  */
   reset_sys_modes (tty);
 
   delete_terminal (terminal);
