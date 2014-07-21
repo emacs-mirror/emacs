@@ -675,13 +675,12 @@ along with the non-SMIE indentation code.
 *** Out of the box support for CPython, iPython and readline based shells.
 **** `python-shell-completion-module-string-code` is no longer used.
 
-*** Automatic shell prompt detection.
-**** New user options:
-***** `python-shell-interpreter-interactive-arg`.
-***** `python-shell-prompt-detect-enabled`.
-***** `python-shell-prompt-detect-failure-warning`.
-***** `python-shell-prompt-input-regexps`.
-***** `python-shell-prompt-output-regexps`.
+*** Automatic shell prompt detection.  New user options:
+**** `python-shell-interpreter-interactive-arg'.
+**** `python-shell-prompt-detect-enabled'.
+**** `python-shell-prompt-detect-failure-warning'.
+**** `python-shell-prompt-input-regexps'.
+**** `python-shell-prompt-output-regexps'.
 
 *** Python shell support for remote hosts via tramp.
 
