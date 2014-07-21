@@ -4,7 +4,7 @@
 
 ;; Author: Fabián E. Gallina <fabian@anue.biz>
 ;; URL: https://github.com/fgallina/python.el
-;; Version: 0.24.2
+;; Version: 0.24.4
 ;; Maintainer: emacs-devel@gnu.org
 ;; Created: Jul 2010
 ;; Keywords: languages
@@ -62,57 +62,80 @@
 ;; (add-hook 'python-mode-hook
 ;;           (lambda () (setq forward-sexp-function nil)))
 
-;; Shell interaction: is provided and allows you to execute easily any
-;; block of code of your current buffer in an inferior Python process.
+;; Shell interaction: is provided and allows opening Python shells
+;; inside Emacs and executing any block of code of your current buffer
+;; in that inferior Python process.
+
+;; Besides that only the standard CPython (2.x and 3.x) shell and
+;; IPython are officially supported out of the box, the interaction
+;; should support any other readline based Python shells as well
+;; (e.g. Jython and Pypy have been reported to work).  You can change
+;; your default interpreter and commandline arguments by setting the
+;; `python-shell-interpreter' and `python-shell-interpreter-args'
+;; variables.  This example enables IPython globally:
+
+;; (setq python-shell-interpreter "ipython"
+;;       python-shell-interpreter-args "-i")
+
+;; Using the "console" subcommand to start IPython in server-client
+;; mode is known to fail intermittently due a bug on IPython itself
+;; (see URL `http://debbugs.gnu.org/cgi/bugreport.cgi?bug=18052#27').
+;; There seems to be a race condition in the IPython server (A.K.A
+;; kernel) when code is sent while it is still initializing, sometimes
+;; causing the shell to get stalled.  With that said, if an IPython
+;; kernel is already running, "console --existing" seems to work fine.
+
+;; Running IPython on Windows needs more tweaking.  The way you should
+;; set `python-shell-interpreter' and `python-shell-interpreter-args'
+;; is as follows (of course you need to modify the paths according to
+;; your system):
+
+;; (setq python-shell-interpreter "C:\\Python27\\python.exe"
+;;       python-shell-interpreter-args
+;;       "-i C:\\Python27\\Scripts\\ipython-script.py")
+
+;; If you are experiencing missing or delayed output in your shells,
+;; that's likely caused by your Operating System's pipe buffering
+;; (e.g. this is known to happen running CPython 3.3.4 in Windows 7.
+;; See URL `http://debbugs.gnu.org/cgi/bugreport.cgi?bug=17304').  To
+;; fix this, using CPython's "-u" commandline argument or setting the
+;; "PYTHONUNBUFFERED" environment variable should help: See URL
+;; `https://docs.python.org/3/using/cmdline.html#cmdoption-u'.
+
+;; The interaction relies upon having prompts for input (e.g. ">>> "
+;; and "... " in standard Python shell) and output (e.g. "Out[1]: " in
+;; IPython) detected properly.  Failing that Emacs may hang but, in
+;; the case that happens, you can recover with \\[keyboard-quit].  To
+;; avoid this issue, a two-step prompt autodetection mechanism is
+;; provided: the first step is manual and consists of a collection of
+;; regular expressions matching common prompts for Python shells
+;; stored in `python-shell-prompt-input-regexps' and
+;; `python-shell-prompt-output-regexps', and dir-local friendly vars
+;; `python-shell-prompt-regexp', `python-shell-prompt-block-regexp',
+;; `python-shell-prompt-output-regexp' which are appended to the
+;; former automatically when a shell spawns; the second step is
+;; automatic and depends on the `python-shell-prompt-detect' helper
+;; function.  See its docstring for details on global variables that
+;; modify its behavior.
 
 ;; Shell completion: hitting tab will try to complete the current
-;; word.  Shell completion is implemented in a manner that if you
-;; change the `python-shell-interpreter' to any other (for example
-;; IPython) it should be easy to integrate another way to calculate
-;; completions.  You just need to specify your custom
-;; `python-shell-completion-setup-code' and
-;; `python-shell-completion-string-code'.
-
-;; Here is a complete example of the settings you would use for
-;; iPython 0.11:
-
-;; (setq
-;;  python-shell-interpreter "ipython"
-;;  python-shell-interpreter-args ""
-;;  python-shell-prompt-regexp "In \\[[0-9]+\\]: "
-;;  python-shell-prompt-output-regexp "Out\\[[0-9]+\\]: "
-;;  python-shell-completion-setup-code
-;;    "from IPython.core.completerlib import module_completion"
-;;  python-shell-completion-module-string-code
-;;    "';'.join(module_completion('''%s'''))\n"
-;;  python-shell-completion-string-code
-;;    "';'.join(get_ipython().Completer.all_completions('''%s'''))\n")
-
-;; For iPython 0.10 everything would be the same except for
-;; `python-shell-completion-string-code' and
-;; `python-shell-completion-module-string-code':
-
-;; (setq python-shell-completion-string-code
-;;       "';'.join(__IP.complete('''%s'''))\n"
-;;       python-shell-completion-module-string-code "")
-
-;; Unfortunately running iPython on Windows needs some more tweaking.
-;; The way you must set `python-shell-interpreter' and
-;; `python-shell-interpreter-args' is as follows:
-
-;; (setq
-;;  python-shell-interpreter "C:\\Python27\\python.exe"
-;;  python-shell-interpreter-args
-;;  "-i C:\\Python27\\Scripts\\ipython-script.py")
-
-;; That will spawn the iPython process correctly (Of course you need
-;; to modify the paths according to your system).
-
-;; Please note that the default completion system depends on the
+;; word.  Shell completion is implemented in such way that if you
+;; change the `python-shell-interpreter' it should be possible to
+;; integrate custom logic to calculate completions.  To achieve this
+;; you just need to set `python-shell-completion-setup-code' and
+;; `python-shell-completion-string-code'.  The default provided code,
+;; enables autocompletion for both CPython and IPython (and ideally
+;; any readline based Python shell).  This code depends on the
 ;; readline module, so if you are using some Operating System that
-;; bundles Python without it (like Windows) just install the
-;; pyreadline from http://ipython.scipy.org/moin/PyReadline/Intro and
-;; you should be good to go.
+;; bundles Python without it (like Windows), installing pyreadline
+;; from URL `http://ipython.scipy.org/moin/PyReadline/Intro' should
+;; suffice.  To troubleshoot why you are not getting any completions
+;; you can try the following in your Python shell:
+
+;; >>> import readline, rlcompleter
+
+;; If you see an error, then you need to either install pyreadline or
+;; setup custom code that avoids that dependency.
 
 ;; Shell virtualenv support: The shell also contains support for
 ;; virtualenvs and other special environment modifications thanks to
@@ -211,7 +234,9 @@
 ;;; Code:
 
 (require 'ansi-color)
+(require 'cl-lib)
 (require 'comint)
+(require 'json)
 
 ;; Avoid compiler warnings
 (defvar view-return-to-alist)
@@ -1705,33 +1730,60 @@ position, else returns nil."
   :type 'string
   :group 'python)
 
-(defcustom python-shell-prompt-regexp ">>> "
-  "Regular expression matching top-level input prompt of Python shell.
-It should not contain a caret (^) at the beginning."
+(defcustom python-shell-interpreter-interactive-arg "-i"
+  "Interpreter argument to force it to run interactively."
   :type 'string
-  :group 'python
-  :safe 'stringp)
+  :version "24.4")
 
-(defcustom python-shell-prompt-block-regexp "[.][.][.] "
+(defcustom python-shell-prompt-detect-enabled t
+  "Non-nil enables autodetection of interpreter prompts."
+  :type 'boolean
+  :safe 'booleanp
+  :version "24.4")
+
+(defcustom python-shell-prompt-detect-failure-warning t
+  "Non-nil enables warnings when detection of prompts fail."
+  :type 'boolean
+  :safe 'booleanp
+  :version "24.4")
+
+(defcustom python-shell-prompt-input-regexps
+  '(">>> " "\\.\\.\\. "                 ; Python
+    "In \\[[0-9]+\\]: "                 ; IPython
+    ;; Using ipdb outside IPython may fail to cleanup and leave static
+    ;; IPython prompts activated, this adds some safeguard for that.
+    "In : " "\\.\\.\\.: ")
+  "List of regular expressions matching input prompts."
+  :type '(repeat string)
+  :version "24.4")
+
+(defcustom python-shell-prompt-output-regexps
+  '(""                                  ; Python
+    "Out\\[[0-9]+\\]: "                 ; IPython
+    "Out :")                            ; ipdb safeguard
+  "List of regular expressions matching output prompts."
+  :type '(repeat string)
+  :version "24.4")
+
+(defcustom python-shell-prompt-regexp ">>> "
+  "Regular expression matching top level input prompt of Python shell.
+It should not contain a caret (^) at the beginning."
+  :type 'string)
+
+(defcustom python-shell-prompt-block-regexp "\\.\\.\\. "
   "Regular expression matching block input prompt of Python shell.
 It should not contain a caret (^) at the beginning."
-  :type 'string
-  :group 'python
-  :safe 'stringp)
+  :type 'string)
 
 (defcustom python-shell-prompt-output-regexp ""
   "Regular expression matching output prompt of Python shell.
 It should not contain a caret (^) at the beginning."
-  :type 'string
-  :group 'python
-  :safe 'stringp)
+  :type 'string)
 
 (defcustom python-shell-prompt-pdb-regexp "[(<]*[Ii]?[Pp]db[>)]+ "
   "Regular expression matching pdb input prompt of Python shell.
 It should not contain a caret (^) at the beginning."
-  :type 'string
-  :group 'python
-  :safe 'stringp)
+  :type 'string)
 
 (defcustom python-shell-enable-font-lock t
   "Should syntax highlighting be enabled in the Python shell buffer?
@@ -1801,6 +1853,167 @@ virtualenv."
   :type '(alist string)
   :group 'python)
 
+(defvar python-shell--prompt-calculated-input-regexp nil
+  "Calculated input prompt regexp for inferior python shell.
+Do not set this variable directly, instead use
+`python-shell-prompt-set-calculated-regexps'.")
+
+(defvar python-shell--prompt-calculated-output-regexp nil
+  "Calculated output prompt regexp for inferior python shell.
+Do not set this variable directly, instead use
+`python-shell-set-prompt-regexp'.")
+
+(defun python-shell-prompt-detect ()
+  "Detect prompts for the current `python-shell-interpreter'.
+When prompts can be retrieved successfully from the
+`python-shell-interpreter' run with
+`python-shell-interpreter-interactive-arg', returns a list of
+three elements, where the first two are input prompts and the
+last one is an output prompt.  When no prompts can be detected
+and `python-shell-prompt-detect-failure-warning' is non-nil,
+shows a warning with instructions to avoid hangs and returns nil.
+When `python-shell-prompt-detect-enabled' is nil avoids any
+detection and just returns nil."
+  (when python-shell-prompt-detect-enabled
+    (let* ((process-environment (python-shell-calculate-process-environment))
+           (exec-path (python-shell-calculate-exec-path))
+           (code (concat
+                  "import sys\n"
+                  "ps = [getattr(sys, 'ps%s' % i, '') for i in range(1,4)]\n"
+                  ;; JSON is built manually for compatibility
+                  "ps_json = '\\n[\"%s\", \"%s\", \"%s\"]\\n' % tuple(ps)\n"
+                  "print (ps_json)\n"
+                  "sys.exit(0)\n"))
+           (output
+            (with-temp-buffer
+              ;; TODO: improve error handling by using
+              ;; `condition-case' and displaying the error message to
+              ;; the user in the no-prompts warning.
+              (ignore-errors
+                (let ((code-file (python-shell--save-temp-file code)))
+                  ;; Use `process-file' as it is remote-host friendly.
+                  (process-file
+                   (executable-find python-shell-interpreter)
+                   code-file
+                   '(t nil)
+                   nil
+                   python-shell-interpreter-interactive-arg)
+                  ;; Try to cleanup
+                  (delete-file code-file)))
+              (buffer-string)))
+           (prompts
+            (catch 'prompts
+              (dolist (line (split-string output "\n" t))
+                (let ((res
+                       ;; Check if current line is a valid JSON array
+                       (and (string= (substring line 0 2) "[\"")
+                            (ignore-errors
+                              ;; Return prompts as a list, not vector
+                              (append (json-read-from-string line) nil)))))
+                  ;; The list must contain 3 strings, where the first
+                  ;; is the input prompt, the second is the block
+                  ;; prompt and the last one is the output prompt.  The
+                  ;; input prompt is the only one that can't be empty.
+                  (when (and (= (length res) 3)
+                             (cl-every #'stringp res)
+                             (not (string= (car res) "")))
+                    (throw 'prompts res))))
+              nil)))
+      (when (and (not prompts)
+                 python-shell-prompt-detect-failure-warning)
+        (warn
+         (concat
+          "Python shell prompts cannot be detected.\n"
+          "If your emacs session hangs when starting python shells\n"
+          "recover with `keyboard-quit' and then try fixing the\n"
+          "interactive flag for your interpreter by adjusting the\n"
+          "`python-shell-interpreter-interactive-arg' or add regexps\n"
+          "matching shell prompts in the directory-local friendly vars:\n"
+          "  + `python-shell-prompt-regexp'\n"
+          "  + `python-shell-prompt-block-regexp'\n"
+          "  + `python-shell-prompt-output-regexp'\n"
+          "Or alternatively in:\n"
+          "  + `python-shell-prompt-input-regexps'\n"
+          "  + `python-shell-prompt-output-regexps'")))
+      prompts)))
+
+(defun python-shell-prompt-validate-regexps ()
+  "Validate all user provided regexps for prompts.
+Signals `user-error' if any of these vars contain invalid
+regexps: `python-shell-prompt-regexp',
+`python-shell-prompt-block-regexp',
+`python-shell-prompt-pdb-regexp',
+`python-shell-prompt-output-regexp',
+`python-shell-prompt-input-regexps',
+`python-shell-prompt-output-regexps'."
+  (dolist (symbol (list 'python-shell-prompt-input-regexps
+                        'python-shell-prompt-output-regexps
+                        'python-shell-prompt-regexp
+                        'python-shell-prompt-block-regexp
+                        'python-shell-prompt-pdb-regexp
+                        'python-shell-prompt-output-regexp))
+    (dolist (regexp (let ((regexps (symbol-value symbol)))
+                      (if (listp regexps)
+                          regexps
+                        (list regexps))))
+      (when (not (python-util-valid-regexp-p regexp))
+        (user-error "Invalid regexp %s in `%s'"
+                    regexp symbol)))))
+
+(defun python-shell-prompt-set-calculated-regexps ()
+  "Detect and set input and output prompt regexps.
+Build and set the values for `python-shell-input-prompt-regexp'
+and `python-shell-output-prompt-regexp' using the values from
+`python-shell-prompt-regexp', `python-shell-prompt-block-regexp',
+`python-shell-prompt-pdb-regexp',
+`python-shell-prompt-output-regexp',
+`python-shell-prompt-input-regexps',
+`python-shell-prompt-output-regexps' and detected prompts from
+`python-shell-prompt-detect'."
+  (when (not (and python-shell--prompt-calculated-input-regexp
+                  python-shell--prompt-calculated-output-regexp))
+    (let* ((detected-prompts (python-shell-prompt-detect))
+           (input-prompts nil)
+           (output-prompts nil)
+           (build-regexp
+            (lambda (prompts)
+              (concat "^\\("
+                      (mapconcat #'identity
+                                 (sort prompts
+                                       (lambda (a b)
+                                         (let ((length-a (length a))
+                                               (length-b (length b)))
+                                           (if (= length-a length-b)
+                                               (string< a b)
+                                             (> (length a) (length b))))))
+                                 "\\|")
+                      "\\)"))))
+      ;; Validate ALL regexps
+      (python-shell-prompt-validate-regexps)
+      ;; Collect all user defined input prompts
+      (dolist (prompt (append python-shell-prompt-input-regexps
+                              (list python-shell-prompt-regexp
+                                    python-shell-prompt-block-regexp
+                                    python-shell-prompt-pdb-regexp)))
+        (cl-pushnew prompt input-prompts :test #'string=))
+      ;; Collect all user defined output prompts
+      (dolist (prompt (cons python-shell-prompt-output-regexp
+                            python-shell-prompt-output-regexps))
+        (cl-pushnew prompt output-prompts :test #'string=))
+      ;; Collect detected prompts if any
+      (when detected-prompts
+        (dolist (prompt (butlast detected-prompts))
+          (setq prompt (regexp-quote prompt))
+          (cl-pushnew prompt input-prompts :test #'string=))
+        (cl-pushnew (regexp-quote
+                     (car (last detected-prompts)))
+                    output-prompts :test #'string=))
+      ;; Set input and output prompt regexps from collected prompts
+      (setq python-shell--prompt-calculated-input-regexp
+            (funcall build-regexp input-prompts)
+            python-shell--prompt-calculated-output-regexp
+            (funcall build-regexp output-prompts)))))
+
 (defun python-shell-get-process-name (dedicated)
   "Calculate the appropriate process name for inferior Python process.
 If DEDICATED is t and the variable `buffer-file-name' is non-nil
@@ -1823,10 +2036,10 @@ uniqueness for different types of configurations."
           python-shell-internal-buffer-name
           (md5
            (concat
-            (python-shell-parse-command)
-            python-shell-prompt-regexp
-            python-shell-prompt-block-regexp
-            python-shell-prompt-output-regexp
+            python-shell-interpreter
+            python-shell-interpreter-args
+            python-shell--prompt-calculated-input-regexp
+            python-shell--prompt-calculated-output-regexp
             (mapconcat #'symbol-value python-shell-setup-codes "")
             (mapconcat #'identity python-shell-process-environment "")
             (mapconcat #'identity python-shell-extra-pythonpaths "")
@@ -1920,12 +2133,19 @@ initialization of the interpreter via `python-shell-setup-codes'
 variable.
 
 \(Type \\[describe-mode] in the process buffer for a list of commands.)"
-  (and python-shell--parent-buffer
-       (python-util-clone-local-variables python-shell--parent-buffer))
-  (setq comint-prompt-regexp (format "^\\(?:%s\\|%s\\|%s\\)"
-                                     python-shell-prompt-regexp
-                                     python-shell-prompt-block-regexp
-                                     python-shell-prompt-pdb-regexp))
+  (let ((interpreter python-shell-interpreter)
+        (args python-shell-interpreter-args))
+    (when python-shell--parent-buffer
+      (python-util-clone-local-variables python-shell--parent-buffer))
+    ;; Users can override default values for these vars when calling
+    ;; `run-python'.  This ensures new values let-bound in
+    ;; `python-shell-make-comint' are locally set.
+    (set (make-local-variable 'python-shell-interpreter) interpreter)
+    (set (make-local-variable 'python-shell-interpreter-args) args))
+  (set (make-local-variable 'python-shell--prompt-calculated-input-regexp) nil)
+  (set (make-local-variable 'python-shell--prompt-calculated-output-regexp) nil)
+  (python-shell-prompt-set-calculated-regexps)
+  (setq comint-prompt-regexp python-shell--prompt-calculated-input-regexp)
   (setq mode-line-process '(":%s"))
   (make-local-variable 'comint-output-filter-functions)
   (add-hook 'comint-output-filter-functions
@@ -1988,10 +2208,20 @@ killed."
            (exec-path (python-shell-calculate-exec-path)))
       (when (not (comint-check-proc proc-buffer-name))
         (let* ((cmdlist (split-string-and-unquote cmd))
+               (interpreter (car cmdlist))
+               (args (cdr cmdlist))
                (buffer (apply #'make-comint-in-buffer proc-name proc-buffer-name
-                              (car cmdlist) nil (cdr cmdlist)))
+                              interpreter nil args))
                (python-shell--parent-buffer (current-buffer))
-               (process (get-buffer-process buffer)))
+               (process (get-buffer-process buffer))
+               ;; As the user may have overriden default values for
+               ;; these vars on `run-python', let-binding them allows
+               ;; to have the new right values in all setup code
+               ;; that's is done in `inferior-python-mode', which is
+               ;; important, especially for prompt detection.
+               (python-shell-interpreter interpreter)
+               (python-shell-interpreter-args
+                (mapconcat #'identity args " ")))
           (with-current-buffer buffer
             (inferior-python-mode))
           (accept-process-output process)
@@ -2063,8 +2293,12 @@ startup."
   "Return inferior Python process for current buffer."
   (get-buffer-process (python-shell-get-buffer)))
 
-(defun python-shell-get-or-create-process ()
-  "Get or create an inferior Python process for current buffer and return it."
+(defun python-shell-get-or-create-process (&optional cmd dedicated show)
+  "Get or create an inferior Python process for current buffer and return it.
+Arguments CMD, DEDICATED and SHOW are those of `run-python' and
+are used to start the shell.  If those arguments are not
+provided, `run-python' is called interactively and the user will
+be asked for their values."
   (let* ((dedicated-proc-name (python-shell-get-process-name t))
          (dedicated-proc-buffer-name (format "*%s*" dedicated-proc-name))
          (global-proc-name  (python-shell-get-process-name nil))
@@ -2072,7 +2306,11 @@ startup."
          (dedicated-running (comint-check-proc dedicated-proc-buffer-name))
          (global-running (comint-check-proc global-proc-buffer-name)))
     (when (and (not dedicated-running) (not global-running))
-      (if (call-interactively 'run-python)
+      (if (if (not cmd)
+              ;; XXX: Refactor code such that calling `run-python'
+              ;; interactively is not needed anymore.
+              (call-interactively 'run-python)
+            (run-python cmd dedicated show))
           (setq dedicated-running t)
         (setq global-running t)))
     ;; Always prefer dedicated
@@ -2155,10 +2393,13 @@ detecting a prompt at the end of the buffer."
   (when (string-match
          ;; XXX: It seems on OSX an extra carriage return is attached
          ;; at the end of output, this handles that too.
-         (format "\r?\n\\(?:%s\\|%s\\|%s\\)$"
-                 python-shell-prompt-regexp
-                 python-shell-prompt-block-regexp
-                 python-shell-prompt-pdb-regexp)
+         (concat
+          "\r?\n"
+          ;; Remove initial caret from calculated regexp
+          (replace-regexp-in-string
+           (rx string-start ?^) ""
+           python-shell--prompt-calculated-input-regexp)
+          "$")
          python-shell-output-filter-buffer)
     ;; Output ends when `python-shell-output-filter-buffer' contains
     ;; the prompt attached at the end of it.
@@ -2166,10 +2407,10 @@ detecting a prompt at the end of the buffer."
           python-shell-output-filter-buffer
           (substring python-shell-output-filter-buffer
                      0 (match-beginning 0)))
-    (when (and (> (length python-shell-prompt-output-regexp) 0)
-               (string-match (concat "^" python-shell-prompt-output-regexp)
-                             python-shell-output-filter-buffer))
-      ;; Some shells, like iPython might append a prompt before the
+    (when (string-match
+           python-shell--prompt-calculated-output-regexp
+           python-shell-output-filter-buffer)
+      ;; Some shells, like IPython might append a prompt before the
       ;; output, clean that.
       (setq python-shell-output-filter-buffer
             (substring python-shell-output-filter-buffer (match-end 0)))))
@@ -2379,23 +2620,35 @@ This function takes the list of setup code to send from the
 
 (defcustom python-shell-completion-setup-code
   "try:
-    import readline
+    import readline, rlcompleter
 except ImportError:
-    def __COMPLETER_all_completions(text): []
+    def __PYTHON_EL_get_completions(text):
+        return []
 else:
-    import rlcompleter
-    readline.set_completer(rlcompleter.Completer().complete)
-    def __COMPLETER_all_completions(text):
-        import sys
+    def __PYTHON_EL_get_completions(text):
         completions = []
         try:
-            i = 0
-            while True:
-                res = readline.get_completer()(text, i)
-                if not res: break
-                i += 1
-                completions.append(res)
-        except NameError:
+            splits = text.split()
+            is_module = splits and splits[0] in ('from', 'import')
+            is_ipython = getattr(
+                __builtins__, '__IPYTHON__',
+                getattr(__builtins__, '__IPYTHON__active', False))
+            if is_module:
+                from IPython.core.completerlib import module_completion
+                completions = module_completion(text.strip())
+            elif is_ipython and getattr(__builtins__, '__IP', None):
+                completions = __IP.complete(text)
+            elif is_ipython and getattr(__builtins__, 'get_ipython', None):
+                completions = get_ipython().Completer.all_completions(text)
+            else:
+                i = 0
+                while True:
+                    res = readline.get_completer()(text, i)
+                    if not res:
+                        break
+                    i += 1
+                    completions.append(res)
+        except:
             pass
         return completions"
   "Code used to setup completion in inferior Python processes."
@@ -2403,24 +2656,18 @@ else:
   :group 'python)
 
 (defcustom python-shell-completion-string-code
-  "';'.join(__COMPLETER_all_completions('''%s'''))\n"
-  "Python code used to get a string of completions separated by semicolons."
+  "';'.join(__PYTHON_EL_get_completions('''%s'''))\n"
+  "Python code used to get a string of completions separated by semicolons.
+The string passed to the function is the current python name or
+the full statement in the case of imports."
   :type 'string
   :group 'python)
 
-(defcustom python-shell-completion-module-string-code ""
-  "Python code used to get completions separated by semicolons for imports.
-
-For IPython v0.11, add the following line to
-`python-shell-completion-setup-code':
-
-from IPython.core.completerlib import module_completion
-
-and use the following as the value of this variable:
-
-';'.join(module_completion('''%s'''))\n"
-  :type 'string
-  :group 'python)
+(define-obsolete-variable-alias
+  'python-shell-completion-module-string-code
+  'python-shell-completion-string-code
+  "24.4"
+  "Completion string code must also autocomplete modules.")
 
 (defcustom python-shell-completion-pdb-string-code
   "';'.join(globals().keys() + locals().keys())"
@@ -2443,33 +2690,23 @@ LINE is used to detect the context on how to complete given INPUT."
                  (re-search-backward "^")
                  (python-util-forward-comment)
                  (point))))))
-         (completion-context
+         (completion-code
           ;; Check whether a prompt matches a pdb string, an import
           ;; statement or just the standard prompt and use the
           ;; correct python-shell-completion-*-code string
           (cond ((and (> (length python-shell-completion-pdb-string-code) 0)
                       (string-match
                        (concat "^" python-shell-prompt-pdb-regexp) prompt))
-                 'pdb)
-                ((and (>
-                       (length python-shell-completion-module-string-code) 0)
-                      (string-match
-                       (concat "^" python-shell-prompt-regexp) prompt)
-                      (string-match "^[ \t]*\\(from\\|import\\)[ \t]" line))
-                 'import)
+                 python-shell-completion-pdb-string-code)
                 ((string-match
-                  (concat "^" python-shell-prompt-regexp) prompt)
-                 'default)
+                  python-shell--prompt-calculated-input-regexp prompt)
+                 python-shell-completion-string-code)
                 (t nil)))
-         (completion-code
-          (pcase completion-context
-            (`pdb python-shell-completion-pdb-string-code)
-            (`import python-shell-completion-module-string-code)
-            (`default python-shell-completion-string-code)
-            (_ nil)))
          (input
-          (if (eq completion-context 'import)
-              (replace-regexp-in-string "^[ \t]+" "" line)
+          (if (string-match
+               (python-rx (+ space) (or "from" "import") space)
+               line)
+              line
             input)))
     (and completion-code
          (> (length input) 0)
@@ -3710,6 +3947,10 @@ returned as is."
    ""
    string))
 
+(defun python-util-valid-regexp-p (regexp)
+  "Return non-nil if REGEXP is valid."
+  (ignore-errors (string-match regexp "") t))
+
 
 (defun python-electric-pair-string-delimiter ()
   (when (and electric-pair-mode
@@ -3793,8 +4034,6 @@ returned as is."
                `(python-mode "^\\s-*\\(?:def\\|class\\)\\>" nil "#"
                              ,(lambda (_arg)
                                 (python-nav-end-of-defun)) nil))
-
-  (set (make-local-variable 'mode-require-final-newline) t)
 
   (set (make-local-variable 'outline-regexp)
        (python-rx (* space) block-start))

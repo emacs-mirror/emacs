@@ -189,6 +189,9 @@ Effective only if `hide-ifdef-expand-reinclusion-protection' is t."
     (define-key map "\C-q" 'hide-ifdef-toggle-read-only)
     (define-key map "\C-w" 'hide-ifdef-toggle-shadowing)
     (substitute-key-definition
+     'read-only-mode 'hide-ifdef-toggle-outside-read-only map)
+    ;; `toggle-read-only' is obsoleted by `read-only-mode'.
+    (substitute-key-definition
      'toggle-read-only 'hide-ifdef-toggle-outside-read-only map)
     map)
   "Keymap used by `hide-ifdef-mode' under `hide-ifdef-mode-prefix-key'.")
@@ -1789,7 +1792,7 @@ It does not do the work that's pointless to redo on a recursive entry."
   (force-mode-line-update))
 
 (defun hide-ifdef-toggle-outside-read-only ()
-  "Replacement for `toggle-read-only' within Hide-Ifdef mode."
+  "Replacement for `read-only-mode' within Hide-Ifdef mode."
   (interactive)
   (setq hif-outside-read-only (not hif-outside-read-only))
   (message "Read only %s"

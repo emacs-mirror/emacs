@@ -1,3 +1,37 @@
+2014-07-21  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	* automated/python-tests.el:
+	(python-util-clone-local-variables-1): Fix test.
+
+	* automated/python-tests.el (python-shell-make-comint-1):
+	(python-shell-make-comint-2): Fix indentation.
+	(python-shell-make-comint-3)
+	(python-shell-make-comint-4): New tests.
+	(python-shell-get-or-create-process-1): Fix test.
+	(python-shell-get-or-create-process-2)
+	(python-shell-get-or-create-process-3): New tests.
+	(python-shell-internal-get-or-create-process-1): Fix test.
+	(python-shell-prompt-detect-1): New test.
+	(python-shell-prompt-detect-2): New test.  (Bug#17370)
+	(python-shell-prompt-detect-3)
+	(python-shell-prompt-detect-4)
+	(python-shell-prompt-detect-5)
+	(python-shell-prompt-detect-6)
+	(python-shell-prompt-validate-regexps-1)
+	(python-shell-prompt-validate-regexps-2)
+	(python-shell-prompt-validate-regexps-3)
+	(python-shell-prompt-validate-regexps-4)
+	(python-shell-prompt-validate-regexps-5)
+	(python-shell-prompt-validate-regexps-6)
+	(python-shell-prompt-validate-regexps-7)
+	(python-shell-prompt-set-calculated-regexps-1)
+	(python-shell-prompt-set-calculated-regexps-2)
+	(python-shell-prompt-set-calculated-regexps-3)
+	(python-shell-prompt-set-calculated-regexps-4)
+	(python-shell-prompt-set-calculated-regexps-5)
+	(python-shell-prompt-set-calculated-regexps-6)
+	(python-util-valid-regexp-p-1): New tests.
+
 2014-07-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* automated/advice-tests.el (advice-test-call-interactively): Make sure
@@ -48,7 +82,7 @@
 
 	* automated/python-tests.el (python-tests-self-insert): New function.
 	(python-triple-quote-pairing): Use it.
-	(python-util-forward-comment-1): New test. (Bug#17658)
+	(python-parens-electric-indent-1): New test. (Bug#17658)
 
 2014-06-30  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 

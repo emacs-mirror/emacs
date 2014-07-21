@@ -1,3 +1,37 @@
+2014-07-21  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (applicationDidFinishLaunching:): Call
+	antialiasThresholdDidChange, register for antialias changes (Bug#17534).
+	(antialiasThresholdDidChange:): New method for EmacsApp.
+
+	* nsterm.h (EmacsApp): Add antialiasThresholdDidChange.
+
+	* macfont.m (macfont_update_antialias_threshold): Remove static.
+
+	* macfont.h (macfont_update_antialias_threshold): Declare.
+
+2014-07-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32select.c (setup_windows_coding_system): Apply
+	CODING_ANNOTATION_MASK to the common_flags member of struct
+	coding_system.  Reported by martin rudalics <rudalics@gmx.at>.
+
+	* w16select.c (Fw16_get_clipboard_data): Apply
+	CODING_ANNOTATION_MASK to the common_flags member of struct
+	coding_system.
+
+	* xdisp.c (init_iterator): Initialize it->stop_charpos to the
+	buffer position where we are to start the iteration.
+	(handle_invisible_prop): Record in it->stop_charpos the position
+	where the invisible text ends.  (Bug#18035)
+	(hscroll_window_tree): Don't try hscrolling windows whose cursor
+	row has zero buffer position as their start position.  Reported by
+	martin rudalics <rudalics@gmx.at>.
+
+	* xdisp.c (move_it_vertically_backward, move_it_by_lines): Prevent
+	infinite looping in redisplay when display lines don't have enough
+	space to display even a single character.  (Bug#18036)
+
 2014-07-20  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* frame.h (struct frame) [USE_X_TOOLKIT]: New member shell_position.

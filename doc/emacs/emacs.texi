@@ -1476,7 +1476,16 @@ Neal Ziring, Teodor Zlatanov, and Detlev Zundel.
 
   You are reading about GNU Emacs, the GNU incarnation of the
 advanced, self-documenting, customizable, extensible editor Emacs.
-(The @samp{G} in @acronym{GNU, @acronym{GNU}'s Not Unix} is not silent.)
+(The @samp{G} in
+@c Workaround makeinfo 4 bug.
+@c http://lists.gnu.org/archive/html/bug-texinfo/2004-08/msg00009.html
+@iftex
+@acronym{GNU, @acronym{GNU}'s Not Unix}
+@end iftex
+@ifnottex
+@acronym{GNU, GNU's Not Unix}
+@end ifnottex
+is not silent.)
 
   We call Emacs @dfn{advanced} because it can do much more than simple
 insertion and deletion of text.  It can control subprocesses, indent

@@ -600,7 +600,7 @@ DEFUN ("w16-get-clipboard-data", Fw16_get_clipboard_data, Sw16_get_clipboard_dat
       coding.mode |= CODING_MODE_LAST_BLOCK;
       /* We explicitly disable composition handling because selection
 	 data should not contain any composition sequence.  */
-      coding.mode &= CODING_ANNOTATION_MASK;
+      coding.common_flags &= ~CODING_ANNOTATION_MASK;
       decode_coding_object (&coding, Qnil, 0, 0, truelen, truelen, Qt);
       ret = coding.dst_object;
       Vlast_coding_system_used = CODING_ID_NAME (coding.id);

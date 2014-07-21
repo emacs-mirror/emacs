@@ -36,7 +36,7 @@ corresponding to the mode line clicked."
 
 
 (defun mode-line-toggle-read-only (event)
-  "Like `toggle-read-only', for the mode-line."
+  "Like toggling `read-only-mode', for the mode-line."
   (interactive "e")
   (with-selected-window (posn-window (event-start event))
     (read-only-mode 'toggle)))

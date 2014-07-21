@@ -1,3 +1,67 @@
+2014-07-21  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/hideif.el (hide-ifdef-mode-submap):
+	Also substitute read-only-mode.
+	* bindings.el (mode-line-toggle-read-only):
+	* bs.el (bs-toggle-readonly):
+	* buff-menu.el (Buffer-menu-toggle-read-only):
+	* dired.el (dired-toggle-read-only):
+	* files.el (view-read-only, find-file-read-only)
+	(find-file-read-only-other-window)
+	(find-file-read-only-other-frame):
+	* progmodes/hideif.el (hide-ifdef-toggle-outside-read-only):
+	Doc fixes re toggle-read-only.
+
+2014-07-21  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	* progmodes/python.el: Add comment about pipe buffering and
+	solutions for missing/delayed output in inferior Python shells.
+	(Bug#17304)
+
+	* progmodes/python.el (python-mode): Don't set
+	mode-require-final-newline.  (Bug#17990)
+
+	Make python.el work with IPython automatically.  (Bug#15510)
+	* progmodes/python.el:
+	(python-shell-completion-setup-code): New value supporting iPython.
+	(python-shell-completion-string-code): New value supporting iPython.
+	(python-shell-completion-get-completions): Use them.
+	(python-shell-completion-module-string-code): Make obsolete.
+	(python-shell-prompt-input-regexps)
+	(python-shell-prompt-output-regexps): Add safeguard for ipdb.
+	(python-shell-output-filter): Fix comment typo.
+
+	Fix Python shell prompts detection for remote hosts.
+	* progmodes/python.el (python-shell-prompt-detect): Replace
+	call-process with process-file and make it more robust.
+
+	Autodetect Python shell prompts.  (Bug#17370)
+	* progmodes/python.el:
+	(python-shell-interpreter-interactive-arg)
+	(python-shell-prompt-detect-enabled)
+	(python-shell-prompt-detect-failure-warning)
+	(python-shell-prompt-input-regexps)
+	(python-shell-prompt-output-regexps): New vars.
+	(python-shell-prompt-calculated-input-regexp)
+	(python-shell-prompt-calculated-output-regexp): New vars.
+	(python-shell-get-process-name)
+	(python-shell-internal-get-process-name)
+	(python-shell-output-filter)
+	(python-shell-completion-get-completions): Use them.
+	(python-shell-prompt-detect)
+	(python-shell-prompt-validate-regexps): New functions.
+	(python-shell-prompt-set-calculated-regexps): New function.
+	(inferior-python-mode): Use it.  Also honor overriden
+	python-shell-interpreter and python-shell-interpreter-args.
+	(python-shell-make-comint): Honor overriden
+	python-shell-interpreter and python-shell-interpreter-args.
+	(python-shell-get-or-create-process): Make it testable by allowing
+	to call run-python non-interactively.
+	(python-util-valid-regexp-p): New function.
+	(python-shell-prompt-regexp, python-shell-prompt-block-regexp)
+	(python-shell-prompt-output-regexp)
+	(python-shell-prompt-pdb-regexp): Use it as defcustom :safe.
+
 2014-07-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/smie.el (smie-config--guess-1): Split from

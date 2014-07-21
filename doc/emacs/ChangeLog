@@ -1,3 +1,7 @@
+2014-07-21  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.texi (Intro): Workaround makeinfo 4 @acronym bug.  (Bug#18040)
+
 2014-07-09  Juri Linkov  <juri@jurta.org>
 
 	* search.texi (Regexp Search): Update lax space matching that is

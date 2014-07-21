@@ -670,7 +670,7 @@ setup_windows_coding_system (Lisp_Object coding_system,
      which both apply to ISO6429 only.  We don't know if these really
      need to be unset on Windows, but it probably doesn't hurt
      either.  */
-  coding->mode &= ~CODING_ANNOTATION_MASK;
+  coding->common_flags &= ~CODING_ANNOTATION_MASK;
   coding->mode |= CODING_MODE_LAST_BLOCK | CODING_MODE_SAFE_ENCODING;
 }
 
