@@ -1,5 +1,9 @@
 2014-07-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/smie.el (smie-config--guess-1): Split from
+	smie-config--guess.
+	(smie-config--guess): Use it.
+
 	* emacs-lisp/edebug.el: Use nadvice.
 	(edebug-original-read): Remove.
 	(edebug--read): Rename from edebug-read and add `orig' arg.
