@@ -160,7 +160,8 @@ function being an around advice."
           (advice-add 'call-interactively :before #'ignore)
           (should (equal (sm-test7.4) '(1 . nil)))
           (should (equal (call-interactively 'sm-test7.4) '(1 . t))))
-      (fset 'call-interactively old))))
+      (advice-remove 'call-interactively #'ignore)
+      (should (eq (symbol-function 'call-interactively) old)))))
 
 (ert-deftest advice-test-interactive ()
   "Check handling of interactive spec."
