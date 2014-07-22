@@ -428,11 +428,11 @@ extern void select_visual (struct x_display_info *);
 
 struct x_output
 {
-  /* Height of menu bar widget, in pixels.
-     Zero if not using the X toolkit.
-     When using the toolkit, this value is not meaningful
-     if the menubar is turned off.  */
+#if defined (USE_X_TOOLKIT) || defined (USE_GTK)  
+  /* Height of menu bar widget, in pixels.  This value
+     is not meaningful if the menubar is turned off.  */
   int menubar_height;
+#endif
 
   /* Height of tool bar widget, in pixels.  top_height is used if tool bar
      at top, bottom_height if tool bar is at the bottom.
@@ -714,10 +714,14 @@ enum
 #endif /* !USE_GTK */
 #endif
 
+#if defined (USE_X_TOOLKIT) || defined (USE_GTK)
+#define FRAME_MENUBAR_HEIGHT(f) ((f)->output_data.x->menubar_height)
+#else
+#define FRAME_MENUBAR_HEIGHT(f) ((void) f, 0)
+#endif /* USE_X_TOOLKIT || USE_GTK */
 
 #define FRAME_FONT(f) ((f)->output_data.x->font)
 #define FRAME_FONTSET(f) ((f)->output_data.x->fontset)
-#define FRAME_MENUBAR_HEIGHT(f) ((f)->output_data.x->menubar_height)
 #define FRAME_TOOLBAR_TOP_HEIGHT(f) ((f)->output_data.x->toolbar_top_height)
 #define FRAME_TOOLBAR_BOTTOM_HEIGHT(f) \
   ((f)->output_data.x->toolbar_bottom_height)

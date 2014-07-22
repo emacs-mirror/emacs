@@ -1023,7 +1023,7 @@ set_frame_menubar (struct frame *f, bool first_time, bool deep_p)
 #endif /* USE_LUCID */
 #endif /* 1 */
 
-    f->output_data.x->menubar_height = menubar_size;
+    FRAME_MENUBAR_HEIGHT (f) = menubar_size;
   }
 #endif /* not USE_GTK */
 
@@ -1066,7 +1066,7 @@ free_frame_menubar (struct frame *f)
 
   menubar_widget = f->output_data.x->menubar_widget;
 
-  f->output_data.x->menubar_height = 0;
+  FRAME_MENUBAR_HEIGHT (f) = 0;
 
   if (menubar_widget)
     {

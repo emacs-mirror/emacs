@@ -1,3 +1,14 @@
+2014-07-22  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xterm.h (struct x_output) [USE_X_TOOLKIT || USE_GTK]: Define
+	menubar_height as such.  Tweak comment.
+	(FRAME_MENUBAR_HEIGHT) [!USE_X_TOOLKIT && !USE_GTK]: No-op.
+	* xterm.c (handle_one_xevent):
+	* gtkutil.c (xg_event_is_for_menubar):
+	* xfns.c (x_window) [USE_X_TOOLKIT]:
+	* xmenu.c (set_frame_menubar, free_frame_menubar): Prefer
+	to use FRAME_MENUBAR_HEIGHT.
+
 2014-07-21  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* frame.c (Fframe_parameters): Always report frame height without

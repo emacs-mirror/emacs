@@ -2274,7 +2274,7 @@ x_window (struct frame *f, long window_prompting, int minibuffer_only)
       }
 #endif
 
-    f->output_data.x->menubar_height = menubar_size;
+    FRAME_MENUBAR_HEIGHT (f) = menubar_size;
 
 #ifndef USE_LUCID
     /* Motif seems to need this amount added to the sizes
@@ -2506,10 +2506,6 @@ x_window (struct frame *f)
   class_hints.res_name = SSDATA (Vx_resource_name);
   class_hints.res_class = SSDATA (Vx_resource_class);
   XSetClassHint (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), &class_hints);
-
-  /* The menubar is part of the ordinary display;
-     it does not count in addition to the height of the window.  */
-  f->output_data.x->menubar_height = 0;
 
   /* This indicates that we use the "Passive Input" input model.
      Unless we do this, we don't get the Focus{In,Out} events that we

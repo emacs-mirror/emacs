@@ -6834,7 +6834,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
             && event->xbutton.x >= 0
             && event->xbutton.x < FRAME_PIXEL_WIDTH (f)
             && event->xbutton.y >= 0
-            && event->xbutton.y < f->output_data.x->menubar_height
+            && event->xbutton.y < FRAME_MENUBAR_HEIGHT (f)
             && event->xbutton.same_screen)
           {
 	    if (!f->output_data.x->saved_menu_event)
