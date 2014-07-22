@@ -1910,17 +1910,25 @@ Sizes are in pixels."
                    image)))
       image)))
 
+(eval-when-compile (require 'gmm-utils))
 (defun gnus-recursive-directory-files (dir)
-  "Return all regular files below DIR."
-  (let (files)
-    (dolist (file (directory-files dir t))
-      (when (and (not (member (file-name-nondirectory file) '("." "..")))
-		 (file-readable-p file))
-	(cond
-	 ((file-regular-p file)
-	  (push file files))
-	 ((file-directory-p file)
-	  (setq files (append (gnus-recursive-directory-files file) files))))))
+  "Return all regular files below DIR.
+The first found will be returned if a file has hard or symbolic links."
+  (let (files attr attrs)
+    (gmm-labels
+	((fn (directory)
+	     (dolist (file (directory-files directory t))
+	       (setq attr (file-attributes (file-truename file)))
+	       (when (and (not (member attr attrs))
+			  (not (member (file-name-nondirectory file)
+				       '("." "..")))
+			  (file-readable-p file))
+		 (push attr attrs)
+		 (cond ((file-regular-p file)
+			(push file files))
+		       ((file-directory-p file)
+			(fn file)))))))
+      (fn dir))
     files))
 
 (defun gnus-list-memq-of-list (elements list)

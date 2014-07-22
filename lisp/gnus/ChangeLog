@@ -1,3 +1,8 @@
+2014-07-22  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-utils.el (gnus-recursive-directory-files):
+	Unify hard or symbolic links (bug#18063).
+
 2013-07-17  Albert Krewinkel  <albert@zeitkraut.de>
 
 	* gnus-msg.el (gnus-configure-posting-style):
