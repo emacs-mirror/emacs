@@ -4283,24 +4283,25 @@ set the user customizable option `todo-top-priorities-overrides'."
 	 (frule (assoc-string file rules))
 	 (crules (nth 2 frule))
 	 (crule (assoc-string cat crules))
-	 (cur (or (and arg (cdr crule))
-		  (nth 1 frule)
-		  todo-top-priorities))
+	 (fcur (or (nth 1 frule)
+		   todo-top-priorities))
+	 (ccur (or (and arg (cdr crule))
+		   fcur))
 	 (prompt (if arg (concat "Number of top priorities in this category"
 				 " (currently %d): ")
 		   (concat "Default number of top priorities per category"
 				 " in this file (currently %d): ")))
 	 (new -1))
     (while (< new 0)
-      (let ((cur0 cur))
-	(setq new (read-number (format prompt cur0))
+      (let ((cur (if arg ccur fcur)))
+	(setq new (read-number (format prompt cur))
 	      prompt "Enter a non-negative number: "
-	      cur0 nil)))
+	      cur nil)))
     (let ((nrule (if arg
 		     (append (delete crule crules) (list (cons cat new)))
 		   (append (list file new) (list crules)))))
       (setq rules (cons (if arg
-			    (list file cur nrule)
+			    (list file fcur nrule)
 			  nrule)
 			(delete frule rules)))
       (customize-save-variable 'todo-top-priorities-overrides rules)
