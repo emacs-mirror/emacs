@@ -9269,13 +9269,13 @@ x_free_frame_resources (struct frame *f)
 	unload_color (f, f->output_data.x->scroll_bar_background_pixel);
       if (f->output_data.x->scroll_bar_foreground_pixel != -1)
 	unload_color (f, f->output_data.x->scroll_bar_foreground_pixel);
-#ifdef USE_TOOLKIT_SCROLL_BARS
+#if defined (USE_LUCID) && defined (USE_TOOLKIT_SCROLL_BARS)
       /* Scrollbar shadow colors.  */
       if (f->output_data.x->scroll_bar_top_shadow_pixel != -1)
 	unload_color (f, f->output_data.x->scroll_bar_top_shadow_pixel);
       if (f->output_data.x->scroll_bar_bottom_shadow_pixel != -1)
 	unload_color (f, f->output_data.x->scroll_bar_bottom_shadow_pixel);
-#endif /* USE_TOOLKIT_SCROLL_BARS */
+#endif /* USE_LUCID && USE_TOOLKIT_SCROLL_BARS */
       if (f->output_data.x->white_relief.pixel != -1)
 	unload_color (f, f->output_data.x->white_relief.pixel);
       if (f->output_data.x->black_relief.pixel != -1)

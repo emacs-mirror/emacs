@@ -1221,7 +1221,7 @@ x_set_scroll_bar_background (struct frame *f, Lisp_Object value, Lisp_Object old
   if (f->output_data.x->scroll_bar_background_pixel != -1)
     unload_color (f, f->output_data.x->scroll_bar_background_pixel);
 
-#ifdef USE_TOOLKIT_SCROLL_BARS
+#if defined (USE_LUCID) && defined (USE_TOOLKIT_SCROLL_BARS)
   /* Scrollbar shadow colors.  */
   if (f->output_data.x->scroll_bar_top_shadow_pixel != -1)
     {
@@ -1233,7 +1233,7 @@ x_set_scroll_bar_background (struct frame *f, Lisp_Object value, Lisp_Object old
       unload_color (f, f->output_data.x->scroll_bar_bottom_shadow_pixel);
       f->output_data.x->scroll_bar_bottom_shadow_pixel = -1;
     }
-#endif /* USE_TOOLKIT_SCROLL_BARS */
+#endif /* USE_LUCID && USE_TOOLKIT_SCROLL_BARS */
 
   f->output_data.x->scroll_bar_background_pixel = pixel;
   if (FRAME_X_WINDOW (f) && FRAME_VISIBLE_P (f))
@@ -2950,10 +2950,10 @@ This function is an internal primitive--use `make-frame' instead.  */)
   FRAME_FONTSET (f) = -1;
   f->output_data.x->scroll_bar_foreground_pixel = -1;
   f->output_data.x->scroll_bar_background_pixel = -1;
-#ifdef USE_TOOLKIT_SCROLL_BARS
+#if defined (USE_LUCID) && defined (USE_TOOLKIT_SCROLL_BARS)
   f->output_data.x->scroll_bar_top_shadow_pixel = -1;
   f->output_data.x->scroll_bar_bottom_shadow_pixel = -1;
-#endif /* USE_TOOLKIT_SCROLL_BARS */
+#endif /* USE_LUCID && USE_TOOLKIT_SCROLL_BARS */
   f->output_data.x->white_relief.pixel = -1;
   f->output_data.x->black_relief.pixel = -1;
 
@@ -4952,10 +4952,10 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
   FRAME_FONTSET (f) = -1;
   f->output_data.x->scroll_bar_foreground_pixel = -1;
   f->output_data.x->scroll_bar_background_pixel = -1;
-#ifdef USE_TOOLKIT_SCROLL_BARS
+#if defined (USE_LUCID) && defined (USE_TOOLKIT_SCROLL_BARS)
   f->output_data.x->scroll_bar_top_shadow_pixel = -1;
   f->output_data.x->scroll_bar_bottom_shadow_pixel = -1;
-#endif /* USE_TOOLKIT_SCROLL_BARS */
+#endif /* USE_LUCID && USE_TOOLKIT_SCROLL_BARS */
   f->output_data.x->white_relief.pixel = -1;
   f->output_data.x->black_relief.pixel = -1;
 

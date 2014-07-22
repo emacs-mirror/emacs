@@ -541,10 +541,12 @@ struct x_output
      bars).  */
   unsigned long scroll_bar_background_pixel;
 
-  /* Top and bottom shadow colors for 3d toolkit scrollbars.  -1 means
-     let the scroll compute them itself.  */
+#if defined (USE_LUCID) && defined (USE_TOOLKIT_SCROLL_BARS)
+  /* Top and bottom shadow colors for 3D Lucid scrollbars.
+     -1 means let the scroll compute them itself.  */
   unsigned long scroll_bar_top_shadow_pixel;
   unsigned long scroll_bar_bottom_shadow_pixel;
+#endif
 
   /* Descriptor for the cursor in use for this window.  */
   Cursor text_cursor;

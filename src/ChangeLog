@@ -2,6 +2,9 @@
 
 	* xterm.h (struct x_output) [USE_X_TOOLKIT || USE_GTK]: Define
 	menubar_height as such.  Tweak comment.
+	[USE_LUCID && USE_TOOLKIT_SCROLL_BARS]: Likewise for
+	scroll_bar_top_shadow_pixel and scroll_bar_bottom_shadow_pixel.
+	All related users changed.
 	(FRAME_MENUBAR_HEIGHT) [!USE_X_TOOLKIT && !USE_GTK]: No-op.
 	* xterm.c (handle_one_xevent):
 	* gtkutil.c (xg_event_is_for_menubar):
