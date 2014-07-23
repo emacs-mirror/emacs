@@ -2584,8 +2584,9 @@ FRAME should be HEIGHT pixels high.  */)
     {
       if (NILP (pixelwise))
 	{
-	  if (XINT (height) != FRAME_LINES (f))
-	    x_set_window_size (f, 1, FRAME_COLS (f), XINT (height), 0);
+	  if (FRAME_LINES (f) - FRAME_TOP_MARGIN (f) != XINT (height))
+	    x_set_window_size (f, 1, FRAME_COLS (f),
+			       XINT (height) + FRAME_TOP_MARGIN (f), 0);
 
 	  do_pending_window_change (0);
 	}

@@ -1,3 +1,9 @@
+2014-07-23  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* frame.c (Fset_frame_height): Take frame top margin into account.
+	Incorrect behavior was reported by Martin Rudalics <rudalics@gmx.at> in
+	<http://lists.gnu.org/archive/html/emacs-devel/2014-07/msg00258.html>
+
 2014-07-22  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* xterm.h (struct x_output) [USE_X_TOOLKIT || USE_GTK]: Define
