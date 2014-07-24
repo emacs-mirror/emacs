@@ -201,17 +201,19 @@ Remove also properties of all files in subdirectories."
 ;; Reverting or killing a buffer should also flush file properties.
 ;; They could have been changed outside Tramp.  In eshell, "ls" would
 ;; not show proper directory contents when a file has been copied or
-;; deleted before.
+;; deleted before.  We must apply `save-match-data', because it would
+;; corrupt other packages otherwise (reported from org).
 (defun tramp-flush-file-function ()
   "Flush all Tramp cache properties from `buffer-file-name'.
 This is suppressed for temporary buffers."
-  (unless (string-match "^ \\*temp\\*" (or (buffer-name) ""))
-    (let ((bfn (if (stringp (buffer-file-name))
-		   (buffer-file-name)
-		 default-directory)))
-      (when (tramp-tramp-file-p bfn)
-	(with-parsed-tramp-file-name bfn nil
-	  (tramp-flush-file-property v localname))))))
+  (save-match-data
+    (unless (string-match "^ \\*temp\\*" (or (buffer-name) ""))
+      (let ((bfn (if (stringp (buffer-file-name))
+		     (buffer-file-name)
+		   default-directory)))
+	(when (tramp-tramp-file-p bfn)
+	  (with-parsed-tramp-file-name bfn nil
+	    (tramp-flush-file-property v localname)))))))
 
 (add-hook 'before-revert-hook 'tramp-flush-file-function)
 (add-hook 'eshell-pre-command-hook 'tramp-flush-file-function)

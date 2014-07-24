@@ -1,3 +1,8 @@
+2014-07-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-cache.el (tramp-flush-file-function): Wrap the code
+	with `save-match-data'.  (Bug#18095)
+
 2014-07-21  Vincent Belaïche  <vincentb1@users.sourceforge.net>
 
 	* ses.el (ses-truncate-cell): Use cl-progv instead of eval in
