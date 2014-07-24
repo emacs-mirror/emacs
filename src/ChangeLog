@@ -1,3 +1,12 @@
+2014-07-24  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Fix error reported by Angelo Graziosi <angelo.graziosi@alice.it> in
+	<http://lists.gnu.org/archive/html/emacs-devel/2014-07/msg00274.html>
+	and complete previous change.
+	* frame.c (adjust_frame_height): New function.
+	(Fset_frame_height, Fset_frame_size): Use it.
+	(x_set_frame_parameters): Take frame top margin into account.
+
 2014-07-23  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* frame.c (Fset_frame_height): Take frame top margin into account.

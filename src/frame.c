@@ -2565,7 +2565,21 @@ DEFUN ("frame-bottom-divider-width", Fbottom_divider_width, Sbottom_divider_widt
 {
   return make_number (FRAME_BOTTOM_DIVIDER_WIDTH (decode_any_frame (frame)));
 }
-
+
+/* For requested height in *HEIGHTP, calculate new height of frame F in
+   character units and return true if actual height should be changed.  */
+
+static bool
+adjust_frame_height (struct frame *f, int *heightp)
+{
+  if (FRAME_LINES (f) - FRAME_TOP_MARGIN (f) != *heightp)
+    {
+      *heightp += FRAME_TOP_MARGIN (f);
+      return 1;
+    }
+  return 0;
+}
+
 DEFUN ("set-frame-height", Fset_frame_height, Sset_frame_height, 2, 4, 0,
        doc: /* Specify that the frame FRAME has HEIGHT text lines.
 Optional third arg PRETEND non-nil means that redisplay should use
@@ -2584,9 +2598,10 @@ FRAME should be HEIGHT pixels high.  */)
     {
       if (NILP (pixelwise))
 	{
-	  if (FRAME_LINES (f) - FRAME_TOP_MARGIN (f) != XINT (height))
-	    x_set_window_size (f, 1, FRAME_COLS (f),
-			       XINT (height) + FRAME_TOP_MARGIN (f), 0);
+	  int h = XINT (height);
+
+	  if (adjust_frame_height (f, &h))
+	    x_set_window_size (f, 1, FRAME_COLS (f), h, 0);
 
 	  do_pending_window_change (0);
 	}
@@ -2653,15 +2668,17 @@ Optional argument PIXELWISE non-nil means to measure in pixels.  */)
 #ifdef HAVE_WINDOW_SYSTEM
   if (FRAME_WINDOW_P (f))
     {
+      int h = XINT (height);
+
       if (!NILP (pixelwise)
 	  ? (XINT (width) != FRAME_TEXT_WIDTH (f)
-	     || XINT (height) != FRAME_TEXT_HEIGHT (f)
+	     || h != FRAME_TEXT_HEIGHT (f)
 	     || f->new_height || f->new_width)
-	  : (XINT (width) != FRAME_COLS (f)
-	     || XINT (height) != FRAME_LINES (f)
+	  : (adjust_frame_height (f, &h)
+	     || XINT (width) != FRAME_COLS (f)
 	     || f->new_height || f->new_width))
 	{
-	  x_set_window_size (f, 1, XINT (width), XINT (height),
+	  x_set_window_size (f, 1, XINT (width), h,
 			     NILP (pixelwise) ? 0 : 1);
 	  do_pending_window_change (0);
 	}
@@ -2865,7 +2882,9 @@ x_set_frame_parameters (struct frame *f, Lisp_Object alist)
       else if (EQ (prop, Qheight) && RANGED_INTEGERP (0, val, INT_MAX))
         {
 	  height_change = 1;
-          height = XFASTINT (val) * FRAME_LINE_HEIGHT (f);
+	  /* Add menu and tool bar lines to correctly resize F pixelwise.  */
+          height
+	    = (XFASTINT (val) + FRAME_TOP_MARGIN (f)) * FRAME_LINE_HEIGHT (f);
         }
       else if (EQ (prop, Qtop))
 	top = val;
