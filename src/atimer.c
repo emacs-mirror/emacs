@@ -291,7 +291,7 @@ set_alarm (void)
 	  struct itimerspec ispec;
 	  ispec.it_value = atimers->expiration;
 	  ispec.it_interval.tv_sec = ispec.it_interval.tv_nsec = 0;
-	  if (timer_settime (alarm_timer, 0, &ispec, 0) == 0)
+	  if (timer_settime (alarm_timer, TIMER_ABSTIME, &ispec, 0) == 0)
 	    return;
 	}
 #endif

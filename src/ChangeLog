@@ -1,3 +1,8 @@
+2014-07-26  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* atimer.c (set_alarm) [HAVE_ITIMERSPEC]: Use TIMER_ABSTIME
+	because atimer expiration is absolute rather than relative.
+
 2014-07-25  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32term.h (current_popup_menu, menubar_in_use): Move
