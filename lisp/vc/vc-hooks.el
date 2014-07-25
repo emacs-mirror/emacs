@@ -635,7 +635,7 @@ this function."
 ;; an alias for read-only-mode, since that is not 100% the same.
 (defalias 'vc-toggle-read-only 'toggle-read-only)
 (make-obsolete 'vc-toggle-read-only
-               "use `read-only-mode' instead (or `toggle-read-only' in older version of Emacs)."
+               "use `read-only-mode' instead (or `toggle-read-only' in older versions of Emacs)."
                "24.1")
 
 (defun vc-default-make-version-backups-p (_backend _file)
