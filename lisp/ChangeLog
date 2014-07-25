@@ -1,5 +1,10 @@
 2014-07-25  Stephen Berman  <stephen.berman@gmx.net>
 
+	* calendar/todo-mode.el (todo-edit-item--next-key): If next key is
+	not a character, ignore it instead of raising an error.
+
+2014-07-25  Stephen Berman  <stephen.berman@gmx.net>
+
 	* calendar/todo-mode.el: Fix handling of marked items and make
 	minor code improvements.
 	(todo-edit-item): If there are marked items, ensure user can only

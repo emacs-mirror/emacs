@@ -5551,8 +5551,8 @@ already entered and those still available."
 							'(add/edit delete))
 					      " comment"))))
 			  params " "))
-	 (this-key (char-to-string
-		    (read-key (concat todo-edit-item--prompt p->k))))
+	 (this-key (let ((key (read-key (concat todo-edit-item--prompt p->k))))
+		     (and (characterp key) (char-to-string key))))
 	 (this-param (car (rassoc this-key params))))
     (pcase this-param
       (`edit (todo-edit-item--text))
