@@ -1,5 +1,8 @@
 2014-07-25  Glenn Morris  <rgm@gnu.org>
 
+	* files.el (toggle-read-only): Re-add basic doc-string.
+	* vc/vc-hooks.el (vc-toggle-read-only): Tweak obsolescence mesage.
+
 	* progmodes/prolog.el (prolog-mode-keybindings-edit):
 	Replace missing `switch-to-prolog' with `run-prolog'.
 	(switch-to-prolog): Define as (obsolete) alias, as in 23.4.
