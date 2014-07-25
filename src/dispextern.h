@@ -1719,7 +1719,7 @@ struct face
 #ifdef HAVE_XFT
   /* Extra member that a font-driver uses privately.  */
   void *extra;
-#endif  
+#endif
 };
 
 
@@ -3397,10 +3397,6 @@ extern frame_parm_handler x_frame_parm_handlers[];
 
 extern void start_hourglass (void);
 extern void cancel_hourglass (void);
-extern bool hourglass_shown_p;
-/* If non-null, an asynchronous timer that, when it expires, displays
-   an hourglass cursor on all frames.  */
-extern struct atimer *hourglass_atimer;
 
 /* Returns the background color of IMG, calculating one heuristically if
    necessary.  If non-zero, XIMG is an existing XImage object to use for

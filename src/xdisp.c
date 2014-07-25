@@ -816,11 +816,11 @@ Lisp_Object previous_help_echo_string;
 #ifdef HAVE_WINDOW_SYSTEM
 
 /* Non-zero means an hourglass cursor is currently shown.  */
-bool hourglass_shown_p;
+static bool hourglass_shown_p;
 
 /* If non-null, an asynchronous timer that, when it expires, displays
    an hourglass cursor on all frames.  */
-struct atimer *hourglass_atimer;
+static struct atimer *hourglass_atimer;
 
 #endif /* HAVE_WINDOW_SYSTEM */
 

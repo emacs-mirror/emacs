@@ -1,3 +1,8 @@
+2014-07-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* dispextern.h, xdisp.c (hourglass_shown_p, hourglass_atimer):
+	Now static.
+
 2014-07-26  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* atimer.c (set_alarm) [HAVE_ITIMERSPEC]: Use TIMER_ABSTIME
