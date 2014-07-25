@@ -224,7 +224,7 @@ static int w32_unicode_gui;
 
 /* From w32menu.c  */
 extern HMENU current_popup_menu;
-static int menubar_in_use = 0;
+int menubar_in_use = 0;
 
 /* From w32uniscribe.c  */
 extern void syms_of_w32uniscribe (void);

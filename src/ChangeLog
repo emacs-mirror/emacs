@@ -1,3 +1,8 @@
+2014-07-25  Martin Rudalics  <rudalics@gmx.at>
+
+	* w32fns.c (menubar_in_use): No more static.
+	* w32term.c (current_popup_menu, menubar_in_use): Declare.
+
 2014-07-25  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Move hourglass machinery to RIF.

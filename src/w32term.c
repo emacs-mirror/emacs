@@ -93,6 +93,9 @@ extern void free_frame_menubar (struct frame *);
 extern int w32_codepage_for_font (char *fontname);
 extern Cursor w32_load_cursor (LPCTSTR name);
 
+extern HMENU current_popup_menu;
+extern int menubar_in_use;
+
 #define x_any_window_to_frame x_window_to_frame
 #define x_top_window_to_frame x_window_to_frame
 
