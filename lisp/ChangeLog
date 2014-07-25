@@ -1,3 +1,18 @@
+2014-07-25  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todo-mode.el: Fix handling of marked items and make
+	minor code improvements.
+	(todo-edit-item): If there are marked items, ensure user can only
+	invoke editing commands that work with marked items.
+	(todo-edit-item--text): When there are marked items, make it a
+	noop if invoked with point not on an item; otherwise, ensure it
+	applies only to item at point.
+	(todo-item-undone): If there are marked not-done items, return
+	point to its original position before signaling user error.
+	(todo--user-error-if-marked-done-item): New function.
+	(todo-edit-item--header, todo-edit-item--diary-inclusion)
+	(todo-item-done): Use it.
+
 2014-07-25  Glenn Morris  <rgm@gnu.org>
 
 	* files.el (toggle-read-only): Re-add basic doc-string.

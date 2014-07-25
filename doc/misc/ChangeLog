@@ -1,3 +1,8 @@
+2014-07-25  Stephen Berman  <stephen.berman@gmx.net>
+
+	* todo-mode.texi (Marked Items): Correct omission of item deletion
+	from commands applying to both todo and done items.
+
 2014-07-04  Stephen Berman  <stephen.berman@gmx.net>
 
 	* todo-mode.texi (Levels of Organization): Comment out statement

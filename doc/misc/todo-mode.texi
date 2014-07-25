@@ -1323,10 +1323,11 @@ If you use @kbd{m}, @kbd{d}, @kbd{A d} or @kbd{u} on multiple
 noncontiguous marked items, the relocated items retain their relative
 order but are now listed consecutively en bloc.
 
-You can mark both todo and done items, but note that only @kbd{m} can apply
-to both; other commands only affect either marked todo or marked done
-items, so if both types of items are marked, invoking these commands
-has no effect and informs you of your erroneous attempt.
+You can mark both todo and done items, but note that only @kbd{m} and
+@kbd{k} can apply to both; other commands only affect either marked
+todo or marked done items, so if both types of items are marked,
+invoking these commands has no effect and informs you of your
+erroneous attempt.
 
 @node Todo Categories Mode, Searching for Items, Marked Items, Top
 @chapter Todo Categories Mode
