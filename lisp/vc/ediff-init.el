@@ -1346,7 +1346,7 @@ this variable represents.")
 (ediff-defvar-local ediff-current-diff-overlay-Ancestor nil
   "Overlay for the current difference region in the ancestor buffer.")
 
-(defvar ediff-toggle-read-only-function 'toggle-read-only
+(defvar ediff-toggle-read-only-function 'read-only-mode
   "Function to be used to toggle read-only status of the buffer.
 If nil, Ediff tries using the command bound to C-x C-q.")
 

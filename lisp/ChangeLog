@@ -1,3 +1,9 @@
+2014-07-25  Glenn Morris  <rgm@gnu.org>
+
+	* vc/ediff-init.el (ediff-toggle-read-only-function):
+	* vc/ediff-util.el (ediff-toggle-read-only):
+	Replace obsolete toggle-read-only with read-only-mode.
+
 2014-07-24  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-cache.el (tramp-flush-file-function): Wrap the code

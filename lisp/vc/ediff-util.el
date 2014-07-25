@@ -1027,8 +1027,8 @@ of the current buffer."
 				 (file-writable-p file)))
 	     (toggle-ro-cmd (cond (ediff-toggle-read-only-function)
 				  ((ediff-file-checked-out-p file)
-				   'toggle-read-only)
-				  (file-writable 'toggle-read-only)
+				   'read-only-mode)
+				  (file-writable 'read-only-mode)
 				  (t (key-binding "\C-x\C-q")))))
 	;; If the file is checked in, make sure we don't make buffer modifiable
 	;; without warning the user.  The user can fool our checks by making the
@@ -1039,7 +1039,7 @@ of the current buffer."
 		 ;; non-interactively, in which case don't ask questions
 		 ctl-buf)
 	    (cond ((not buffer-read-only)
-		   (setq toggle-ro-cmd 'toggle-read-only))
+		   (setq toggle-ro-cmd 'read-only-mode))
 		  ((and (or (beep 1) t) ; always beep
 			(y-or-n-p
 			 (format
@@ -1054,13 +1054,13 @@ of the current buffer."
 		     (ediff-change-saved-variable
 		      'buffer-read-only nil buf-type)))
 		  (t
-		   (setq toggle-ro-cmd 'toggle-read-only)
+		   (setq toggle-ro-cmd 'read-only-mode)
 		   (beep 1) (beep 1)
 		   (message
 		    "Boy, this is risky! Don't modify this file...")
 		   (sit-for 3)))) ; let the user see the warning
 	(if (and toggle-ro-cmd
-		 (string-match "toggle-read-only" (symbol-name toggle-ro-cmd)))
+		 (string-match "read-only-mode" (symbol-name toggle-ro-cmd)))
 	    (save-excursion
 	      (save-window-excursion
 		(select-window (ediff-get-visible-buffer-window buf))
