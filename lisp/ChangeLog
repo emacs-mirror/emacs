@@ -1,3 +1,9 @@
+2014-07-25  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/prolog.el (prolog-mode-keybindings-edit):
+	Replace missing `switch-to-prolog' with `run-prolog'.
+	(switch-to-prolog): Define as (obsolete) alias, as in 23.4.
+
 2014-07-22  Stephen Berman  <stephen.berman@gmx.net>
 
 	* calendar/todo-mode.el (todo-set-top-priorities): Fix overwriting
