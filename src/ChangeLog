@@ -1,3 +1,8 @@
+2014-07-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32term.h (current_popup_menu, menubar_in_use): Move
+	declarations from w32term.c.
+
 2014-07-25  Martin Rudalics  <rudalics@gmx.at>
 
 	* w32fns.c (menubar_in_use): No more static.

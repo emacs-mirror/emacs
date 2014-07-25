@@ -200,6 +200,10 @@ struct w32_display_info
 extern struct w32_display_info *x_display_list;
 extern struct w32_display_info one_w32_display_info;
 
+/* These 2 are set by w32fns.c and examined in w32term.c.  */
+extern HMENU current_popup_menu;
+extern int menubar_in_use;
+
 extern struct frame *x_window_to_frame (struct w32_display_info *, HWND);
 
 struct w32_display_info *x_display_info_for_name (Lisp_Object);
