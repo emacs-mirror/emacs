@@ -2952,8 +2952,64 @@ x_clear_frame (struct frame *f)
   unblock_input ();
 }
 
+/* RIF: Show hourglass cursor on frame F.  */
 
-
+static void
+x_show_hourglass (struct frame *f)
+{
+  Display *dpy = FRAME_X_DISPLAY (f);
+
+  if (dpy)
+    {
+      struct x_output *x = FRAME_X_OUTPUT (f);
+#ifdef USE_X_TOOLKIT
+      if (x->widget)
+#else
+      if (FRAME_OUTER_WINDOW (f))
+#endif
+       {
+         x->hourglass_p = 1;
+
+         if (!x->hourglass_window)
+           {
+	     unsigned long mask = CWCursor;
+	     XSetWindowAttributes attrs;
+#ifdef USE_GTK
+             Window parent = FRAME_X_WINDOW (f);
+#else
+             Window parent = FRAME_OUTER_WINDOW (f);
+#endif
+	     attrs.cursor = x->hourglass_cursor;
+
+             x->hourglass_window = XCreateWindow
+               (dpy, parent, 0, 0, 32000, 32000, 0, 0,
+                InputOnly, CopyFromParent, mask, &attrs);
+           }
+
+         XMapRaised (dpy, x->hourglass_window);
+         XFlush (dpy);
+       }
+    }
+}
+
+/* RIF: Cancel hourglass cursor on frame F.  */
+
+static void
+x_hide_hourglass (struct frame *f)
+{
+  struct x_output *x = FRAME_X_OUTPUT (f);
+
+  /* Watch out for newly created frames.  */
+  if (x->hourglass_window)
+    {
+      XUnmapWindow (FRAME_X_DISPLAY (f), x->hourglass_window);
+      /* Sync here because XTread_socket looks at the
+	 hourglass_p flag that is reset to zero below.  */
+      XSync (FRAME_X_DISPLAY (f), False);
+      x->hourglass_p = 0;
+    }
+}
+
 /* Invert the middle quarter of the frame for .15 sec.  */
 
 static void
@@ -10431,7 +10487,9 @@ static struct redisplay_interface x_redisplay_interface =
     x_draw_window_cursor,
     x_draw_vertical_window_border,
     x_draw_window_divider,
-    x_shift_glyphs_for_insert
+    x_shift_glyphs_for_insert,
+    x_show_hourglass,
+    x_hide_hourglass
   };
 
 

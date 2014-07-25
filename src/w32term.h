@@ -780,6 +780,7 @@ typedef char guichar_t;
 #define GUI_SDATA(x) ((guichar_t*) SDATA (x))
 
 extern Lisp_Object w32_popup_dialog (struct frame *, Lisp_Object, Lisp_Object);
+extern void w32_arrow_cursor (void);
 
 extern void syms_of_w32term (void);
 extern void syms_of_w32menu (void);

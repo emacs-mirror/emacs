@@ -30730,7 +30730,38 @@ init_xdisp (void)
 
 /* Platform-independent portion of hourglass implementation.  */
 
+/* Timer function of hourglass_atimer.  */
+
+static void
+show_hourglass (struct atimer *timer)
+{
+  /* The timer implementation will cancel this timer automatically
+     after this function has run.  Set hourglass_atimer to null
+     so that we know the timer doesn't have to be canceled.  */
+  hourglass_atimer = NULL;
+
+  if (!hourglass_shown_p)
+    {
+      Lisp_Object tail, frame;
+
+      block_input ();
+
+      FOR_EACH_FRAME (tail, frame)
+	{
+	  struct frame *f = XFRAME (frame);
+
+	  if (FRAME_LIVE_P (f) && FRAME_WINDOW_P (f)
+	      && FRAME_RIF (f)->show_hourglass)
+	    FRAME_RIF (f)->show_hourglass (f);
+	}
+
+      hourglass_shown_p = 1;
+      unblock_input ();
+    }
+}
+
 /* Cancel a currently active hourglass timer, and start a new one.  */
+
 void
 start_hourglass (void)
 {
@@ -30753,9 +30784,9 @@ start_hourglass (void)
 				   show_hourglass, NULL);
 }
 
-
 /* Cancel the hourglass cursor timer if active, hide a busy cursor if
    shown.  */
+
 void
 cancel_hourglass (void)
 {
@@ -30766,7 +30797,28 @@ cancel_hourglass (void)
     }
 
   if (hourglass_shown_p)
-    hide_hourglass ();
+    {
+      Lisp_Object tail, frame;
+
+      block_input ();
+
+      FOR_EACH_FRAME (tail, frame)
+	{
+	  struct frame *f = XFRAME (frame);
+
+	  if (FRAME_LIVE_P (f) && FRAME_WINDOW_P (f)
+	      && FRAME_RIF (f)->hide_hourglass)
+	    FRAME_RIF (f)->hide_hourglass (f);
+#ifdef HAVE_NTGUI
+	  /* No cursors on non GUI frames - restore to stock arrow cursor.  */
+	  else if (!FRAME_W32_P (f))
+	    w32_arrow_cursor ();
+#endif
+	}
+
+      hourglass_shown_p = 0;
+      unblock_input ();
+    }
 }
 
 #endif /* HAVE_WINDOW_SYSTEM */

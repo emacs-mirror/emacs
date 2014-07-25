@@ -2594,37 +2594,17 @@ ns_draw_window_divider (struct window *w, int x0, int x1, int y0, int y1)
   ns_unfocus (f);
 }
 
-
-void
-show_hourglass (struct atimer *timer)
+static void
+ns_show_hourglass (struct frame *f)
 {
-  if (hourglass_shown_p)
-    return;
-
-  block_input ();
-
-  /* TODO: add NSProgressIndicator to selected frame (see macfns.c) */
-
-  hourglass_shown_p = 1;
-  unblock_input ();
+  /* TODO: add NSProgressIndicator to all frames.  */
 }
 
-
-void
-hide_hourglass (void)
+static void
+ns_hide_hourglass (struct frame *f)
 {
-  if (!hourglass_shown_p)
-    return;
-
-  block_input ();
-
-  /* TODO: remove NSProgressIndicator from all frames */
-
-  hourglass_shown_p = 0;
-  unblock_input ();
+  /* TODO: remove NSProgressIndicator from all frames.  */
 }
-
-
 
 /* ==========================================================================
 
@@ -4114,7 +4094,9 @@ static struct redisplay_interface ns_redisplay_interface =
   ns_draw_window_cursor,
   ns_draw_vertical_window_border,
   ns_draw_window_divider,
-  ns_shift_glyphs_for_insert
+  ns_shift_glyphs_for_insert,
+  ns_show_hourglass,
+  ns_hide_hourglass
 };
 
 

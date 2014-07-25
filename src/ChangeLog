@@ -1,3 +1,24 @@
+2014-07-25  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Move hourglass machinery to RIF.
+	* dispextern.h (struct redisplay_interface): New members
+	show_hourglass and hide_hourglass.  Indent comments.
+	(show_hourglass, hide_hourglass): Remove prototypes.
+	* nsterm.m (show_hourgass, hide_hourglass): Refactor to ...
+	(ns_show_hourglass, ns_hide_hourglass): ... new no-ops.
+	(ns_redisplay_interface): Add them.
+	* w32fns.c (show_hourglass, hide_hourglass): Refactor to ...
+	* w32term.c (w32_show_hourglass, w32_hide_hourglass): ... these.
+	(w32_arrow_cursor): New function to hack around non-GUI frames.
+	(w32_redisplay_interface): Add new functions.
+	* w32term.h (w32_arror_cursor): Add prototype.
+	* xdisp.c (show_hourglass): New function, refactored out from
+	platform-dependend code.
+	(cancel_hourglass): Now call to RIF function.
+	* xfns.c (show_hourglass, hide_hourglass): Refactor to ...
+	* xterm.c (x_show_hourglass, x_hide_hourglass): ... these.
+	(x_redisplay_interface): Add new functions.
+
 2014-07-24  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Fix error reported by Angelo Graziosi <angelo.graziosi@alice.it> in

@@ -6180,8 +6180,40 @@ x_check_font (struct frame *f, struct font *font)
 
 #endif /* GLYPH_DEBUG */
 
+/* Show hourglass cursor on frame F.  */
 
-
+static void
+w32_show_hourglass (struct frame *f)
+{
+  if (!menubar_in_use && !current_popup_menu)
+    {
+      struct w32_output *w32 = FRAME_X_OUTPUT (f);
+
+      w32->hourglass_p = 1;
+      SetCursor (w32->hourglass_cursor);
+    }
+}
+
+/* Hide hourglass cursor on frame F.  */
+
+static void
+w32_hide_hourglass (struct frame *f)
+{
+  struct w32_output *w32 = FRAME_X_OUTPUT (f);
+
+  w32->hourglass_p = 0;
+  SetCursor (w32->current_cursor);
+}
+
+/* FIXME: old code did that, but I don't know why.  Anyway,
+   this is used for non-GUI frames (see cancel_hourglass).  */
+
+void
+w32_arrow_cursor (void)
+{
+  SetCursor (w32_load_cursor (IDC_ARROW));
+}
+
 /***********************************************************************
 			    Initialization
  ***********************************************************************/
@@ -6297,7 +6329,9 @@ static struct redisplay_interface w32_redisplay_interface =
   w32_draw_window_cursor,
   w32_draw_vertical_window_border,
   w32_draw_window_divider,
-  w32_shift_glyphs_for_insert
+  w32_shift_glyphs_for_insert,
+  w32_show_hourglass,
+  w32_hide_hourglass
 };
 
 static void x_delete_terminal (struct terminal *term);

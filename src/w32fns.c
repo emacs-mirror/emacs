@@ -5488,67 +5488,6 @@ no value of TYPE (always string in the MS Windows case).  */)
 
 #endif /* TODO */
 
-
-/***********************************************************************
-				Busy cursor
- ***********************************************************************/
-
-/* Display an hourglass cursor.  Set the hourglass_p flag in display info
-   to indicate that an hourglass cursor is shown.  */
-
-void
-show_hourglass (struct atimer *timer)
-{
-  hourglass_atimer = NULL;
-
-  if (!hourglass_shown_p)
-    {
-      Lisp_Object tail, frame;
-
-      block_input ();
-      FOR_EACH_FRAME (tail, frame)
-	{
-	  struct frame *f = XFRAME (frame);
-
-	  if (FRAME_W32_P (f) && !menubar_in_use && !current_popup_menu)
-	    {
-	      f->output_data.w32->hourglass_p = 1;
-	      SetCursor (f->output_data.w32->hourglass_cursor);
-	    }
-	}
-      unblock_input ();
-      hourglass_shown_p = 1;
-    }
-}
-
-/* Hide the hourglass cursor on all frames, if it is currently shown.  */
-
-void
-hide_hourglass (void)
-{
-  if (hourglass_shown_p)
-    {
-      Lisp_Object tail, frame;
-
-      block_input ();
-      FOR_EACH_FRAME (tail, frame)
-	{
-	  struct frame *f = XFRAME (frame);
-
-	  if (FRAME_W32_P (f))
-	    {
-	      f->output_data.w32->hourglass_p = 0;
-	      SetCursor (f->output_data.w32->current_cursor);
-	    }
-	  else
-	    /* No cursors on non GUI frames - restore to stock arrow cursor.  */
-	    SetCursor (w32_load_cursor (IDC_ARROW));
-	}
-      unblock_input ();
-      hourglass_shown_p = 0;
-    }
-}
-
 /***********************************************************************
 				Tool tips
  ***********************************************************************/
