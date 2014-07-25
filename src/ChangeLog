@@ -13,7 +13,7 @@
 	(w32_redisplay_interface): Add new functions.
 	* w32term.h (w32_arror_cursor): Add prototype.
 	* xdisp.c (show_hourglass): New function, refactored out from
-	platform-dependend code.
+	platform-dependent code.
 	(cancel_hourglass): Now call to RIF function.
 	* xfns.c (show_hourglass, hide_hourglass): Refactor to ...
 	* xterm.c (x_show_hourglass, x_hide_hourglass): ... these.
