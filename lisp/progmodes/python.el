@@ -31,9 +31,9 @@
 ;; found in GNU/Emacs.
 
 ;; Implements Syntax highlighting, Indentation, Movement, Shell
-;; interaction, Shell completion, Shell virtualenv support, Pdb
-;; tracking, Symbol completion, Skeletons, FFAP, Code Check, Eldoc,
-;; Imenu.
+;; interaction, Shell completion, Shell virtualenv support, Shell
+;; syntax highlighting, Pdb tracking, Symbol completion, Skeletons,
+;; FFAP, Code Check, Eldoc, Imenu.
 
 ;; Syntax highlighting: Fontification of code is provided and supports
 ;; python's triple quoted strings properly.
@@ -169,6 +169,12 @@
 ;; Also the `python-shell-extra-pythonpaths' variable have been
 ;; introduced as simple way of adding paths to the PYTHONPATH without
 ;; affecting existing values.
+
+;; Shell syntax highlighting: when enabled current input in shell is
+;; highlighted.  The variable `python-shell-font-lock-enable' controls
+;; activation of this feature globally when shells are started.
+;; Activation/deactivation can be also controlled on the fly via the
+;; `python-shell-font-lock-toggle' command.
 
 ;; Pdb tracking: when you execute a block of code that contains some
 ;; call to pdb (or ipdb) it will prompt the block of code and will
@@ -1750,6 +1756,7 @@ position, else returns nil."
 (defcustom python-shell-prompt-input-regexps
   '(">>> " "\\.\\.\\. "                 ; Python
     "In \\[[0-9]+\\]: "                 ; IPython
+    "   \\.\\.\\.: "                    ; IPython
     ;; Using ipdb outside IPython may fail to cleanup and leave static
     ;; IPython prompts activated, this adds some safeguard for that.
     "In : " "\\.\\.\\.: ")
@@ -1785,12 +1792,15 @@ It should not contain a caret (^) at the beginning."
 It should not contain a caret (^) at the beginning."
   :type 'string)
 
-(defcustom python-shell-enable-font-lock t
+(defcustom python-shell-font-lock-enable t
   "Should syntax highlighting be enabled in the Python shell buffer?
 Restart the Python shell after changing this variable for it to take effect."
   :type 'boolean
   :group 'python
   :safe 'booleanp)
+
+(define-obsolete-variable-alias
+  'python-shell-enable-font-lock python-shell-font-lock-enable "24.4")
 
 (defcustom python-shell-process-environment nil
   "List of environment variables for Python shell.
@@ -2090,6 +2100,20 @@ uniqueness for different types of configurations."
                     (directory-file-name python-shell-virtualenv-path))
             path))))
 
+(defun python-shell-comint-end-of-output-p (output)
+  "Return non-nil if OUTPUT is ends with input prompt."
+  (string-match
+   ;; XXX: It seems on OSX an extra carriage return is attached
+   ;; at the end of output, this handles that too.
+   (concat
+    "\r?\n?"
+    ;; Remove initial caret from calculated regexp
+    (replace-regexp-in-string
+     (rx string-start ?^) ""
+     python-shell--prompt-calculated-input-regexp)
+    (rx eos))
+   output))
+
 (defun python-comint-output-filter-function (output)
   "Hook run after content is put into comint buffer.
 OUTPUT is a string with the contents of the buffer."
@@ -2097,19 +2121,140 @@ OUTPUT is a string with the contents of the buffer."
 
 (defvar python-shell--parent-buffer nil)
 
-(defvar python-shell-output-syntax-table
-  (let ((table (make-syntax-table python-dotty-syntax-table)))
-    (modify-syntax-entry ?\' "." table)
-    (modify-syntax-entry ?\" "." table)
-    (modify-syntax-entry ?\( "." table)
-    (modify-syntax-entry ?\[ "." table)
-    (modify-syntax-entry ?\{ "." table)
-    (modify-syntax-entry ?\) "." table)
-    (modify-syntax-entry ?\] "." table)
-    (modify-syntax-entry ?\} "." table)
-    table)
-  "Syntax table for shell output.
-It makes parens and quotes be treated as punctuation chars.")
+(defvar python-shell--font-lock-buffer nil)
+
+(defun python-shell-font-lock-get-or-create-buffer ()
+  "Get or create a font-lock buffer for current inferior process."
+  (if python-shell--font-lock-buffer
+      python-shell--font-lock-buffer
+    (let ((process-name
+           (process-name (get-buffer-process (current-buffer)))))
+      (generate-new-buffer
+       (format "*%s-font-lock*" process-name)))))
+
+(defun python-shell-font-lock-kill-buffer ()
+  "Kill the font-lock buffer safely."
+  (when (and python-shell--font-lock-buffer
+             (buffer-live-p python-shell--font-lock-buffer))
+    (kill-buffer python-shell--font-lock-buffer)
+    (when (eq major-mode 'inferior-python-mode)
+      (setq python-shell--font-lock-buffer nil))))
+
+(defmacro python-shell-font-lock-with-font-lock-buffer (&rest body)
+  "Execute the forms in BODY in the font-lock buffer.
+The value returned is the value of the last form in BODY.  See
+also `with-current-buffer'."
+  (declare (indent 0) (debug t))
+  `(save-current-buffer
+     (when (not (eq major-mode 'inferior-python-mode))
+       (error "Current buffer is not in `inferior-python-mode'."))
+     (when (not (and python-shell--font-lock-buffer
+                     (get-buffer python-shell--font-lock-buffer)))
+       (setq python-shell--font-lock-buffer
+             (python-shell-font-lock-get-or-create-buffer)))
+     (set-buffer python-shell--font-lock-buffer)
+     (set (make-local-variable 'delay-mode-hooks) t)
+     (let ((python-indent-guess-indent-offset nil))
+       (when (not (eq major-mode 'python-mode))
+         (python-mode))
+       ,@body)))
+
+(defun python-shell-font-lock-cleanup-buffer ()
+  "Cleanup the font-lock buffer.
+Provided as a command because this might be handy if something
+goes wrong and syntax highlighting in the shell gets messed up."
+  (interactive)
+  (python-shell-font-lock-with-font-lock-buffer
+    (delete-region (point-min) (point-max))))
+
+(defun python-shell-font-lock-comint-output-filter-function (output)
+  "Clean up the font-lock buffer after any OUTPUT."
+  (when (and (not (string= "" output))
+             ;; Is end of output and is not just a prompt.
+             (not (member
+                   (python-shell-comint-end-of-output-p
+                    (ansi-color-filter-apply output))
+                   '(nil 0))))
+    ;; If output is other than an input prompt then "real" output has
+    ;; been received and the font-lock buffer must be cleaned up.
+    (python-shell-font-lock-cleanup-buffer))
+  output)
+
+(defun python-shell-font-lock-post-command-hook ()
+  "Fontifies current line in shell buffer."
+  (if (eq this-command 'comint-send-input)
+      ;; Add a newline when user sends input as this may be a block.
+      (python-shell-font-lock-with-font-lock-buffer
+        (goto-char (line-end-position))
+        (newline))
+    (when (and (python-util-comint-last-prompt)
+               (> (point) (cdr (python-util-comint-last-prompt))))
+      (let ((input (buffer-substring-no-properties
+                    (cdr (python-util-comint-last-prompt)) (point-max))))
+        (delete-region (cdr (python-util-comint-last-prompt)) (point-max))
+        (insert
+         (python-shell-font-lock-with-font-lock-buffer
+           (delete-region (line-beginning-position)
+                          (line-end-position))
+           (insert input)
+           ;; Ensure buffer is fontified, keeping it
+           ;; compatible with Emacs < 24.4.
+           (if (fboundp 'font-lock-ensure)
+               (funcall 'font-lock-ensure)
+             (font-lock-default-fontify-buffer))
+           ;; Replace FACE text properties with FONT-LOCK-FACE so they
+           ;; are not overwritten by current buffer's font-lock
+           (python-util-text-properties-replace-name
+            'face 'font-lock-face)
+           (buffer-substring (line-beginning-position)
+                             (line-end-position))))))))
+
+(defun python-shell-font-lock-turn-on (&optional msg)
+  "Turn on shell font-lock.
+With argument MSG show activation message."
+  (python-shell-font-lock-kill-buffer)
+  (set (make-local-variable 'python-shell--font-lock-buffer) nil)
+  (add-hook 'post-command-hook
+            #'python-shell-font-lock-post-command-hook nil 'local)
+  (add-hook 'kill-buffer-hook
+            #'python-shell-font-lock-kill-buffer nil 'local)
+  (add-hook 'comint-output-filter-functions
+            #'python-shell-font-lock-comint-output-filter-function
+            'append 'local)
+  (when msg
+    (message "Shell font-lock is enabled")))
+
+(defun python-shell-font-lock-turn-off (&optional msg)
+  "Turn off shell font-lock.
+With argument MSG show deactivation message."
+  (python-shell-font-lock-kill-buffer)
+  (when (python-util-comint-last-prompt)
+    ;; Cleanup current fontification
+    (remove-text-properties
+     (cdr (python-util-comint-last-prompt))
+     (line-end-position)
+     '(face nil font-lock-face nil)))
+  (set (make-local-variable 'python-shell--font-lock-buffer) nil)
+  (remove-hook 'post-command-hook
+               #'python-shell-font-lock-post-command-hook'local)
+  (remove-hook 'kill-buffer-hook
+               #'python-shell-font-lock-kill-buffer 'local)
+  (remove-hook 'comint-output-filter-functions
+               #'python-shell-font-lock-comint-output-filter-function
+               'local)
+  (when msg
+    (message "Shell font-lock is disabled")))
+
+(defun python-shell-font-lock-toggle (&optional msg)
+  "Toggle font-lock for shell.
+With argument MSG show activation/deactivation message."
+  (interactive "p")
+  (set (make-local-variable 'python-shell-font-lock-enable)
+       (not python-shell-font-lock-enable))
+  (if python-shell-font-lock-enable
+      (python-shell-font-lock-turn-on msg)
+    (python-shell-font-lock-turn-off msg))
+  python-shell-font-lock-enable)
 
 (define-derived-mode inferior-python-mode comint-mode "Inferior Python"
   "Major mode for Python inferior process.
@@ -2120,7 +2265,7 @@ interpreter is run.  Variables
 `python-shell-prompt-regexp',
 `python-shell-prompt-output-regexp',
 `python-shell-prompt-block-regexp',
-`python-shell-enable-font-lock',
+`python-shell-font-lock-enable',
 `python-shell-completion-setup-code',
 `python-shell-completion-string-code',
 `python-shell-completion-module-string-code',
@@ -2165,29 +2310,8 @@ variable.
   (make-local-variable 'python-pdbtrack-buffers-to-kill)
   (make-local-variable 'python-pdbtrack-tracked-buffer)
   (make-local-variable 'python-shell-internal-last-output)
-  (when python-shell-enable-font-lock
-    (set-syntax-table python-mode-syntax-table)
-    (set (make-local-variable 'font-lock-defaults)
-         '(python-font-lock-keywords nil nil nil nil))
-    (set (make-local-variable 'syntax-propertize-function)
-         (eval
-          ;; XXX: Unfortunately eval is needed here to make use of the
-          ;; dynamic value of `comint-prompt-regexp'.
-          `(syntax-propertize-rules
-            (,comint-prompt-regexp
-             (0 (ignore
-                 (put-text-property
-                  comint-last-input-start end 'syntax-table
-                  python-shell-output-syntax-table)
-                 ;; XXX: This might look weird, but it is the easiest
-                 ;; way to ensure font lock gets cleaned up before the
-                 ;; current prompt, which is needed for unclosed
-                 ;; strings to not mess up with current input.
-                 (font-lock-unfontify-region comint-last-input-start end))))
-            (,(python-rx string-delimiter)
-             (0 (ignore
-                 (and (not (eq (get-text-property start 'field) 'output))
-                      (python-syntax-stringify)))))))))
+  (when python-shell-font-lock-enable
+    (python-shell-font-lock-turn-on))
   (compilation-shell-minor-mode 1))
 
 (defun python-shell-make-comint (cmd proc-name &optional pop internal)
@@ -2267,10 +2391,10 @@ difference with global or dedicated shells is that these ones are
 attached to a configuration, not a buffer.  This means that can
 be used for example to retrieve the sys.path and other stuff,
 without messing with user shells.  Note that
-`python-shell-enable-font-lock' and `inferior-python-mode-hook'
+`python-shell-font-lock-enable' and `inferior-python-mode-hook'
 are set to nil for these shells, so setup codes are not sent at
 startup."
-  (let ((python-shell-enable-font-lock nil)
+  (let ((python-shell-font-lock-enable nil)
         (inferior-python-mode-hook nil))
     (get-buffer-process
      (python-shell-make-comint
@@ -2390,16 +2514,7 @@ detecting a prompt at the end of the buffer."
    string (ansi-color-filter-apply string)
    python-shell-output-filter-buffer
    (concat python-shell-output-filter-buffer string))
-  (when (string-match
-         ;; XXX: It seems on OSX an extra carriage return is attached
-         ;; at the end of output, this handles that too.
-         (concat
-          "\r?\n"
-          ;; Remove initial caret from calculated regexp
-          (replace-regexp-in-string
-           (rx string-start ?^) ""
-           python-shell--prompt-calculated-input-regexp)
-          "$")
+  (when (python-shell-comint-end-of-output-p
          python-shell-output-filter-buffer)
     ;; Output ends when `python-shell-output-filter-buffer' contains
     ;; the prompt attached at the end of it.
@@ -3912,6 +4027,18 @@ to \"^python-\"."
                (cdr pair))))
    (buffer-local-variables from-buffer)))
 
+(defvar comint-last-prompt-overlay)     ; Shut up, bytecompiler
+
+(defun python-util-comint-last-prompt ()
+  "Return comint last prompt overlay start and end.
+This is for compatibility with Emacs < 24.4."
+  (cond ((bound-and-true-p comint-last-prompt-overlay)
+         (cons (overlay-start comint-last-prompt-overlay)
+               (overlay-end comint-last-prompt-overlay)))
+        ((bound-and-true-p comint-last-prompt)
+         comint-last-prompt)
+        (t nil)))
+
 (defun python-util-forward-comment (&optional direction)
   "Python mode specific version of `forward-comment'.
 Optional argument DIRECTION defines the direction to move to."
@@ -3938,6 +4065,23 @@ returned as is."
               lst (cdr lst)
               n (1- n)))
       (reverse acc))))
+
+(defun python-util-text-properties-replace-name
+  (from to &optional start end)
+  "Replace properties named FROM to TO, keeping its value.
+Arguments START and END narrow the buffer region to work on."
+  (save-excursion
+    (goto-char (or start (point-min)))
+    (while (not (eobp))
+      (let ((plist (text-properties-at (point)))
+            (next-change (or (next-property-change (point) (current-buffer))
+                             (or end (point-max)))))
+        (when (plist-get plist from)
+          (let* ((face (plist-get plist from))
+                 (plist (plist-put plist from nil))
+                 (plist (plist-put plist to face)))
+            (set-text-properties (point) next-change plist (current-buffer))))
+        (goto-char next-change)))))
 
 (defun python-util-strip-string (string)
   "Strip STRING whitespace and newlines from end and beginning."

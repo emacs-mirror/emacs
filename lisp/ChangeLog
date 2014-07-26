@@ -1,3 +1,27 @@
+2014-07-26  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	Robust shell syntax highlighting.  (Bug#18084, Bug#16875)
+	* progmodes/python.el:
+	(python-shell-prompt-input-regexps): Add iPython block prompt.
+	(python-shell-output-syntax-table): Delete var.
+	(python-shell-font-lock-with-font-lock-buffer): New macro.
+	(python-shell-font-lock-get-or-create-buffer)
+	(python-shell-font-lock-kill-buffer)
+	(python-shell-font-lock-cleanup-buffer)
+	(python-shell-font-lock-post-command-hook)
+	(python-shell-font-lock-turn-off): New functions.
+	(python-shell-font-lock-turn-on): New function.
+	(inferior-python-mode): Use it.
+	(python-shell-font-lock-toggle): New command.
+	(python-shell-font-lock-enable): Rename from
+	python-shell-enable-font-lock.
+	(run-python-internal): Use it.
+	(python-shell-font-lock-comint-output-filter-function): New function.
+	(python-shell-comint-end-of-output-p): New function.
+	(python-shell-output-filter): Use it.
+	(python-util-comint-last-prompt): New function.
+	(python-util-text-properties-replace-name): New function.
+
 2014-07-25  Glenn Morris  <rgm@gnu.org>
 
 	* vc/ediff-init.el (ediff-toggle-read-only-function):
