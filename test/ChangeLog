@@ -1,3 +1,9 @@
+2014-07-26  Ulf Jasper  <ulf.jasper@web.de>
+
+	* automated/icalendar-tests.el (icalendar-tests--do-test-import):
+	Work around the failures in icalendar-tests which occasionally occur on
+	hydra.nixos.org.
+
 2014-07-21  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
 	* automated/python-tests.el:

@@ -718,11 +718,34 @@ Argument EXPECTED-AMERICAN expected american style diary string."
 Argument INPUT input icalendar string.
 Argument EXPECTED-OUTPUT expected diary string."
   (let ((temp-file (make-temp-file "icalendar-test-diary")))
+    ;; Test the Catch-the-mysterious-coding-header logic below.
+    ;; Ruby-mode adds an after-save-hook which inserts the header!
+    ;; (save-excursion
+    ;;   (find-file temp-file)
+    ;;   (ruby-mode))
     (icalendar-import-buffer temp-file t t)
     (save-excursion
       (find-file temp-file)
+      ;; Check for the mysterious "# coding: ..." header, remove it
+      ;; and give a shout
+      (goto-char (point-min))
+      (when (re-search-forward "# coding: .*?\n" nil t)
+        (message (concat "%s\n"
+                         "Found mysterious \"# coding ...\" header!  Removing it.\n"
+                         "Current Modes: %s, %s\n"
+                         "Current test: %s\n"
+                         "%s")
+                 (make-string 70 ?*)
+                 major-mode
+                 minor-mode-list
+                 (ert-running-test)
+                 (make-string 70 ?*))
+        (buffer-disable-undo)
+        (replace-match "")
+        (set-buffer-modified-p nil))
+
       (let ((result (buffer-substring-no-properties (point-min) (point-max))))
-	(should (string= expected-output result)))
+        (should (string= expected-output result)))
       (kill-buffer (find-buffer-visiting temp-file))
       (delete-file temp-file))))
 
