@@ -265,7 +265,7 @@ read_minibuf_noninteractive (Lisp_Object map, Lisp_Object initial,
 	    fprintf (stdout, "%c", hide_char);
 	  if (len == size)
 	    {
-	      if (size > STRING_BYTES_BOUND / 2)
+	      if (STRING_BYTES_BOUND / 2 < size)
 		memory_full (SIZE_MAX);
 	      size *= 2;
 	      line = xrealloc (line, size);

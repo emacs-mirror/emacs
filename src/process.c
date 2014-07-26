@@ -4303,7 +4303,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
       time_limit = 0;
       nsecs = -1;
     }
-  else if (time_limit > TYPE_MAXIMUM (time_t))
+  else if (TYPE_MAXIMUM (time_t) < time_limit)
     time_limit = TYPE_MAXIMUM (time_t);
 
   /* Since we may need to wait several times,
@@ -4580,7 +4580,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 			continue;
 		      FD_CLR (channel, &Available);
 		      XPROCESS (proc)->read_output_skip = 0;
-		      if (nsecs > XPROCESS (proc)->read_output_delay)
+		      if (XPROCESS (proc)->read_output_delay < nsecs)
 			nsecs = XPROCESS (proc)->read_output_delay;
 		    }
 		}
@@ -4696,7 +4696,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	  if (timers_run != old_timers_run
 	      && waiting_for_user_input_p == -1
 	      && (old_buffer != current_buffer
-		  || !EQ (old_window, selected_window)))
+	      || !EQ (old_window, selected_window)))
 	    record_asynch_buffer_change ();
 
 	  if (leave)

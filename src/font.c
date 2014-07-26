@@ -280,7 +280,7 @@ font_intern_prop (const char *str, ptrdiff_t len, bool force_symbol)
 
   if (len == 1 && *str == '*')
     return Qnil;
-  if (!force_symbol && len > 0 && '0' <= *str && *str <= '9')
+  if (!force_symbol && 0 < len && '0' <= *str && *str <= '9')
     {
       for (i = 1; i < len; i++)
 	if (! ('0' <= str[i] && str[i] <= '9'))
@@ -445,10 +445,10 @@ font_style_symbolic (Lisp_Object font, enum font_property_index prop,
   table = AREF (font_style_table, prop - FONT_WEIGHT_INDEX);
   CHECK_VECTOR (table);
   i = XINT (val) & 0xFF;
-  eassert (ASIZE (table) > ((i >> 4) & 0xF));
+  eassert (((i >> 4) & 0xF) < ASIZE (table));
   elt = AREF (table, ((i >> 4) & 0xF));
   CHECK_VECTOR (elt);
-  eassert (ASIZE (elt) > (i & 0xF) + 1);
+  eassert ((i & 0xF) + 1 < ASIZE (elt));
   elt = (for_face ? AREF (elt, 1) : AREF (elt, (i & 0xF) + 1));
   CHECK_SYMBOL (elt);
   return elt;

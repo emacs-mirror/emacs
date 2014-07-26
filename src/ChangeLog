@@ -1,3 +1,12 @@
+2014-07-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Revert previous change.
+	There is certainly nothing wrong with writing code like 'lo <= i
+	&& i <= hi', even if LO happens to a constant.  There isn't even
+	anything wrong in general with writing 'a <= b' if A happens to
+	be a constant.  At any rate stylistic changes shouldn't
+	be done like this without discussion.
+
 2014-07-26  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* alloc.c (xnmalloc, xnrealloc, xpalloc, make_save_value)

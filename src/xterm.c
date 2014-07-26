@@ -394,7 +394,7 @@ x_set_frame_alpha (struct frame *f)
     return;
   else if (alpha > 1.0)
     alpha = 1.0;
-  else if (alpha >= 0.0 && alpha < alpha_min && alpha_min <= 1.0)
+  else if (0.0 <= alpha && alpha < alpha_min && alpha_min <= 1.0)
     alpha = alpha_min;
 
   opac = alpha * OPAQUE;
