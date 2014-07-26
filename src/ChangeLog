@@ -1,3 +1,22 @@
+2014-07-26  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* alloc.c (xnmalloc, xnrealloc, xpalloc, make_save_value)
+	(Fgarbage_collect): Reorder conditions that are written backwards.
+	* data.c (cons_to_unsigned): Likewise.
+	* dispnew.c (update_frame_1, sit_for): Likewise.
+	* fileio.c (file_offset): Likewise.
+	* filelock.c (read_lock_data, lock_file): Likewise.
+	* fns.c (larger_vector, make_hash_table, Fmake_hash_table):
+	Likewise.
+	* font.c (font_intern_prop, font_style_symbolic): Likewise.
+	* lisp.h (FIXNUM_OVERFLOW_P): Likewise.
+	* lread.c (read1): Likewise.
+	* minibuf.c (read_minibuf_noninteractive): Likewise.
+	* nsterm.m (x_set_frame_alpha): Likewise.
+	* process.c (wait_reading_process_output): Likewise.
+	* region-cache.c (delete_cache_boundaries): Likewise.
+	* xterm.c (x_set_frame_alpha): Likewise.
+
 2014-07-25  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* dispextern.h, xdisp.c (hourglass_shown_p, hourglass_atimer):
