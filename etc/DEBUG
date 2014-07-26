@@ -7,9 +7,9 @@ See the end of the file for license conditions.
 [People who debug Emacs on Windows using Microsoft debuggers should
 read the Windows-specific section near the end of this document.]
 
-** When you debug Emacs with GDB, you should start it in the directory
-where the executable was made (the 'src' directory in the Emacs source
-tree).  That directory has a .gdbinit file that defines various
+** When you debug Emacs with GDB, you should start GDB in the directory
+where the Emacs executable was made (the 'src' directory in the Emacs
+source tree).  That directory has a .gdbinit file that defines various
 "user-defined" commands for debugging Emacs.  (These commands are
 described below under "Examining Lisp object values" and "Debugging
 Emacs Redisplay problems".)
@@ -21,7 +21,9 @@ you will see a warning when GDB starts, like this:
   warning: File ".../src/.gdbinit" auto-loading has been declined by your `auto-load safe-path' set to "$debugdir:$datadir/auto-load".
 
 There are several ways to overcome that difficulty, they are all
-described in the node "Auto-loading safe path" in the GDB user manual.
+described in the node "Auto-loading safe path" in the GDB user
+manual.  If nothing else helps, type "source /path/to/.gdbinit RET" at
+the GDB prompt, to unconditionally load the GDB init file.
 
 ** When you are trying to analyze failed assertions or backtraces, it
 is essential to compile Emacs with flags suitable for debugging.
