@@ -315,7 +315,7 @@ delete_cache_boundaries (struct region_cache *c,
   ptrdiff_t len = end - start;
 
   /* Gotta be in range.  */
-  eassert (0 <= start && end <= c->cache_len);
+  eassert (start >= 0 && end <= c->cache_len);
 
   /* Gotta be in order.  */
   eassert (start <= end);

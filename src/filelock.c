@@ -504,7 +504,7 @@ read_lock_data (char *lfname, char lfinfo[MAX_LFINFO + 1])
 	 && errno == EINVAL)
     {
       int fd = emacs_open (lfname, O_RDONLY | O_BINARY | O_NOFOLLOW, 0);
-      if (0 <= fd)
+      if (fd >= 0)
 	{
 	  /* Use read, not emacs_read, since FD isn't unwind-protected.  */
 	  ptrdiff_t read_bytes = read (fd, lfinfo, MAX_LFINFO + 1);
@@ -713,7 +713,7 @@ lock_file (Lisp_Object fn)
   }
 
   /* Try to lock the lock.  */
-  if (0 < lock_if_free (&lock_info, lfname))
+  if (lock_if_free (&lock_info, lfname) > 0)
     {
       /* Someone else has the lock.  Consider breaking it.  */
       Lisp_Object attack;

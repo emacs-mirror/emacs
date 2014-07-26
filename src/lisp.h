@@ -782,7 +782,7 @@ LISP_MACRO_DEFUN (EQ, bool, (Lisp_Object x, Lisp_Object y), (x, y))
    type or if I is a NaN.  */
 
 #define FIXNUM_OVERFLOW_P(i) \
-  (! ((0 <= (i) || MOST_NEGATIVE_FIXNUM <= (i)) && (i) <= MOST_POSITIVE_FIXNUM))
+  (! (((i) >= 0 || (i) >= MOST_NEGATIVE_FIXNUM) && (i) <= MOST_POSITIVE_FIXNUM))
 
 INLINE ptrdiff_t
 clip_to_bounds (ptrdiff_t lower, EMACS_INT num, ptrdiff_t upper)

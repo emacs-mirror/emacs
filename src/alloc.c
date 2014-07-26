@@ -806,8 +806,8 @@ verify (INT_MAX <= PTRDIFF_MAX);
 void *
 xnmalloc (ptrdiff_t nitems, ptrdiff_t item_size)
 {
-  eassert (0 <= nitems && 0 < item_size);
-  if (min (PTRDIFF_MAX, SIZE_MAX) / item_size < nitems)
+  eassert (nitems >= 0 && item_size > 0);
+  if (nitems > min (PTRDIFF_MAX, SIZE_MAX) / item_size)
     memory_full (SIZE_MAX);
   return xmalloc (nitems * item_size);
 }
@@ -819,8 +819,8 @@ xnmalloc (ptrdiff_t nitems, ptrdiff_t item_size)
 void *
 xnrealloc (void *pa, ptrdiff_t nitems, ptrdiff_t item_size)
 {
-  eassert (0 <= nitems && 0 < item_size);
-  if (min (PTRDIFF_MAX, SIZE_MAX) / item_size < nitems)
+  eassert (nitems >= 0 && item_size > 0);
+  if (nitems > min (PTRDIFF_MAX, SIZE_MAX) / item_size)
     memory_full (SIZE_MAX);
   return xrealloc (pa, nitems * item_size);
 }
@@ -873,10 +873,10 @@ xpalloc (void *pa, ptrdiff_t *nitems, ptrdiff_t nitems_incr_min,
   ptrdiff_t nitems_incr_max = n_max - n;
   ptrdiff_t incr = max (nitems_incr_min, min (incr_estimate, nitems_incr_max));
 
-  eassert (0 < item_size && 0 < nitems_incr_min && 0 <= n && -1 <= nitems_max);
+  eassert (item_size > 0 && nitems_incr_min > 0 && n >= 0 && nitems_max >= -1);
   if (! pa)
     *nitems = 0;
-  if (nitems_incr_max < incr)
+  if (incr > nitems_incr_max)
     memory_full (SIZE_MAX);
   n += incr;
   pa = xrealloc (pa, n * item_size);
@@ -1183,7 +1183,7 @@ lisp_align_malloc (size_t nbytes, enum mem_type type)
 	}
       ABLOCKS_BUSY (abase) = (struct ablocks *) aligned;
 
-      eassert (0 == ((uintptr_t) abase) % BLOCK_ALIGN);
+      eassert ((uintptr_t) abase % BLOCK_ALIGN == 0);
       eassert (ABLOCK_ABASE (&abase->blocks[3]) == abase); /* 3 is arbitrary */
       eassert (ABLOCK_ABASE (&abase->blocks[0]) == abase);
       eassert (ABLOCKS_BASE (abase) == base);
@@ -1205,7 +1205,7 @@ lisp_align_malloc (size_t nbytes, enum mem_type type)
 
   MALLOC_PROBE (nbytes);
 
-  eassert (0 == ((uintptr_t) val) % BLOCK_ALIGN);
+  eassert ((uintptr_t) val % BLOCK_ALIGN == 0);
   return val;
 }
 
@@ -5706,7 +5706,7 @@ garbage_collect_1 (void *end)
       double tot = total_bytes_of_live_objects ();
 
       tot *= XFLOAT_DATA (Vgc_cons_percentage);
-      if (0 < tot)
+      if (tot > 0)
 	{
 	  if (tot < TYPE_MAXIMUM (EMACS_INT))
 	    gc_relative_threshold = tot;

@@ -5829,7 +5829,7 @@ sit_for (Lisp_Object timeout, bool reading, int display_option)
   else if (FLOATP (timeout))
     {
       double seconds = XFLOAT_DATA (timeout);
-      if (! (0 < seconds))
+      if (! (seconds > 0))
 	return Qt;
       else
 	{
