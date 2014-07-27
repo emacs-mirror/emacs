@@ -3864,7 +3864,7 @@ window_resize_check (struct window *w, bool horflag)
 }
 
 
-/* Set w->pixel_height (w->pixel_height if HORIZONTAL is non-zero) to
+/* Set w->pixel_height (w->pixel_width if HORFLAG is non-zero) to
    w->new_pixel for window W and recursively all child windows of W.
    Also calculate and assign the new vertical (horizontal) pixel start
    positions of each of these windows.
@@ -3957,7 +3957,7 @@ window_resize_apply (struct window *w, bool horflag)
 }
 
 
-/* Set w->total_lines (w->total_cols if HORIZONTAL is non-zero) to
+/* Set w->total_lines (w->total_cols if HORFLAG is non-zero) to
    w->new_total for window W and recursively all child windows of W.
    Also calculate and assign the new vertical (horizontal) start
    positions of each of these windows.  */
