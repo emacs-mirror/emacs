@@ -1,3 +1,8 @@
+2014-07-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* window.el (window--pixel-to-total): Use FRAME's root window, not
+	that of the selected frame.  (Bug#18112, Bug#16674)
+
 2014-07-27  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* textmodes/tex-mode.el (tex-font-lock-verb): Doc fix.
