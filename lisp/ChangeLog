@@ -1,5 +1,14 @@
 2014-07-27  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
+	Cleanup error signals.  (Bug#18067)
+	* progmodes/python.el
+	(python-indent-shift-left): Use user-error instead.
+	(python-shell-prompt-detect): Use lwarn with python group.
+	(python-completion-complete-at-point)
+	(python-eldoc--get-doc-at-point): Don't signal error.
+
+2014-07-27  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
 	Support for packages in Python shell.  (Bug#13570)
 	* progmodes/python.el (python-shell--package-depth): New var.
 	(python-shell-package-enable): New command.

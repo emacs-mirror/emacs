@@ -1111,11 +1111,9 @@ any lines in the region are indented less than COUNT columns."
         (while (< (point) end)
           (if (and (< (current-indentation) count)
                    (not (looking-at "[ \t]*$")))
-              (error "Can't shift all lines enough"))
+              (user-error "Can't shift all lines enough"))
           (forward-line))
         (indent-rigidly start end (- count))))))
-
-(add-to-list 'debug-ignored-errors "^Can't shift all lines enough")
 
 (defun python-indent-shift-right (start end &optional count)
   "Shift lines contained in region START END by COUNT columns to the right.
@@ -1935,7 +1933,9 @@ detection and just returns nil."
               nil)))
       (when (and (not prompts)
                  python-shell-prompt-detect-failure-warning)
-        (warn
+        (lwarn
+         '(python python-shell-prompt-regexp)
+         :warning
          (concat
           "Python shell prompts cannot be detected.\n"
           "If your emacs session hangs when starting python shells\n"
@@ -3029,12 +3029,8 @@ For this to work as best as possible you should call
 `python-shell-send-buffer' from time to time so context in
 inferior Python process is updated properly."
   (let ((process (python-shell-get-process)))
-    (if (not process)
-        (error "Completion needs an inferior Python process running")
+    (when process
       (python-shell-completion-complete-at-point process))))
-
-(add-to-list 'debug-ignored-errors
-             "^Completion needs an inferior Python process running.")
 
 
 ;;; Fill paragraph
@@ -3552,8 +3548,7 @@ If not FORCE-INPUT is passed then what `python-info-current-symbol'
 returns will be used.  If not FORCE-PROCESS is passed what
 `python-shell-get-process' returns is used."
   (let ((process (or force-process (python-shell-get-process))))
-    (if (not process)
-        (error "Eldoc needs an inferior Python process running")
+    (when process
       (let ((input (or force-input
                        (python-info-current-symbol t))))
         (and input
@@ -3579,9 +3574,6 @@ Interactively, prompt for symbol."
                           "Describe symbol: ")
                         nil nil symbol))))
   (message (python-eldoc--get-doc-at-point symbol)))
-
-(add-to-list 'debug-ignored-errors
-             "^Eldoc needs an inferior Python process running.")
 
 
 ;;; Imenu
