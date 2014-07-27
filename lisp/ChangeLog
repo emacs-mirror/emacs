@@ -1,3 +1,7 @@
+2014-07-27  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	* progmodes/python.el (inferior-python-mode): Doc fix.
+
 2014-07-25  Stephen Berman  <stephen.berman@gmx.net>
 
 	* calendar/todo-mode.el (todo-edit-item--next-key): If next key is

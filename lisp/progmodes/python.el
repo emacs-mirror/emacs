@@ -2124,7 +2124,6 @@ interpreter is run.  Variables
 `python-shell-enable-font-lock',
 `python-shell-completion-setup-code',
 `python-shell-completion-string-code',
-`python-shell-completion-module-string-code',
 `python-eldoc-setup-code', `python-eldoc-string-code',
 `python-ffap-setup-code' and `python-ffap-string-code' can
 customize this mode for different Python interpreters.
