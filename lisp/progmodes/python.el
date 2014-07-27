@@ -32,8 +32,8 @@
 
 ;; Implements Syntax highlighting, Indentation, Movement, Shell
 ;; interaction, Shell completion, Shell virtualenv support, Shell
-;; syntax highlighting, Pdb tracking, Symbol completion, Skeletons,
-;; FFAP, Code Check, Eldoc, Imenu.
+;; package support, Shell syntax highlighting, Pdb tracking, Symbol
+;; completion, Skeletons, FFAP, Code Check, Eldoc, Imenu.
 
 ;; Syntax highlighting: Fontification of code is provided and supports
 ;; python's triple quoted strings properly.
@@ -169,6 +169,10 @@
 ;; Also the `python-shell-extra-pythonpaths' variable have been
 ;; introduced as simple way of adding paths to the PYTHONPATH without
 ;; affecting existing values.
+
+;; Shell package support: you can enable a package in the current
+;; shell so that relative imports work properly using the
+;; `python-shell-package-enable' command.
 
 ;; Shell syntax highlighting: when enabled current input in shell is
 ;; highlighted.  The variable `python-shell-font-lock-enable' controls
@@ -2099,6 +2103,31 @@ uniqueness for different types of configurations."
       (cons (format "%s/bin"
                     (directory-file-name python-shell-virtualenv-path))
             path))))
+
+(defvar python-shell--package-depth 10)
+
+(defun python-shell-package-enable (directory package)
+  "Add DIRECTORY parent to $PYTHONPATH and enable PACKAGE."
+  (interactive
+   (let* ((dir (expand-file-name
+                (read-directory-name
+                 "Package root: "
+                 (file-name-directory
+                  (or (buffer-file-name) default-directory)))))
+          (name (completing-read
+                 "Package: "
+                 (python-util-list-packages
+                  dir python-shell--package-depth))))
+     (list dir name)))
+  (python-shell-send-string
+   (format
+    (concat
+     "import os.path;import sys;"
+     "sys.path.append(os.path.dirname(os.path.dirname('''%s''')));"
+     "__package__ = '''%s''';"
+     "import %s")
+    directory package package)
+   (python-shell-get-process)))
 
 (defun python-shell-comint-end-of-output-p (output)
   "Return non-nil if OUTPUT is ends with input prompt."
@@ -4069,6 +4098,68 @@ Optional argument DIRECTION defines the direction to move to."
     (when comment-start
       (goto-char comment-start))
     (forward-comment factor)))
+
+(defun python-util-list-directories (directory &optional predicate max-depth)
+  "List DIRECTORY subdirs, filtered by PREDICATE and limited by MAX-DEPTH.
+Argument PREDICATE defaults to `identity' and must be a function
+that takes one argument (a full path) and returns non-nil for
+allowed files.  When optional argument MAX-DEPTH is non-nil, stop
+searching when depth is reached, else don't limit."
+  (let* ((dir (expand-file-name directory))
+         (dir-length (length dir))
+         (predicate (or predicate #'identity))
+         (to-scan (list dir))
+         (tally nil))
+    (while to-scan
+      (let ((current-dir (car to-scan)))
+        (when (funcall predicate current-dir)
+          (setq tally (cons current-dir tally)))
+        (setq to-scan (append (cdr to-scan)
+                              (python-util-list-files
+                               current-dir #'file-directory-p)
+                              nil))
+        (when (and max-depth
+                   (<= max-depth
+                       (length (split-string
+                                (substring current-dir dir-length)
+                                "/\\|\\\\" t))))
+          (setq to-scan nil))))
+    (nreverse tally)))
+
+(defun python-util-list-files (dir &optional predicate)
+  "List files in DIR, filtering with PREDICATE.
+Argument PREDICATE defaults to `identity' and must be a function
+that takes one argument (a full path) and returns non-nil for
+allowed files."
+  (let ((dir-name (file-name-as-directory dir)))
+    (apply #'nconc
+           (mapcar (lambda (file-name)
+                     (let ((full-file-name (expand-file-name file-name dir-name)))
+                       (when (and
+                              (not (member file-name '("." "..")))
+                              (funcall (or predicate #'identity) full-file-name))
+                         (list full-file-name))))
+                   (directory-files dir-name)))))
+
+(defun python-util-list-packages (dir &optional max-depth)
+  "List packages in DIR, limited by MAX-DEPTH.
+When optional argument MAX-DEPTH is non-nil, stop searching when
+depth is reached, else don't limit."
+  (let* ((dir (expand-file-name dir))
+         (parent-dir (file-name-directory
+                      (directory-file-name
+                       (file-name-directory
+                        (file-name-as-directory dir)))))
+         (subpath-length (length parent-dir)))
+    (mapcar
+     (lambda (file-name)
+       (replace-regexp-in-string
+        (rx (or ?\\ ?/)) "." (substring file-name subpath-length)))
+     (python-util-list-directories
+      (directory-file-name dir)
+      (lambda (dir)
+        (file-exists-p (expand-file-name "__init__.py" dir)))
+      max-depth))))
 
 (defun python-util-popn (lst n)
   "Return LST first N elements.
