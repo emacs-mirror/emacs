@@ -1792,15 +1792,15 @@ It should not contain a caret (^) at the beginning."
 It should not contain a caret (^) at the beginning."
   :type 'string)
 
+(define-obsolete-variable-alias
+  'python-shell-enable-font-lock 'python-shell-font-lock-enable "24.5")
+
 (defcustom python-shell-font-lock-enable t
   "Should syntax highlighting be enabled in the Python shell buffer?
 Restart the Python shell after changing this variable for it to take effect."
   :type 'boolean
   :group 'python
   :safe 'booleanp)
-
-(define-obsolete-variable-alias
-  'python-shell-enable-font-lock python-shell-font-lock-enable "24.4")
 
 (defcustom python-shell-process-environment nil
   "List of environment variables for Python shell.
