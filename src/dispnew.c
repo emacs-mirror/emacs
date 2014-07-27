@@ -1639,7 +1639,7 @@ allocate_matrices_for_frame_redisplay (Lisp_Object window, int x, int y,
 
 	  /* Actually change matrices, if allowed.  Do not consider
 	     CHANGED_LEAF_MATRIX computed above here because the pool
-	     may have been changed which we don't now here.  We trust
+	     may have been changed which we don't know here.  We trust
 	     that we only will be called with DIM_ONLY_P when
 	     necessary.  */
 	  if (!dim_only_p)
