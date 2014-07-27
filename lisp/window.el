@@ -378,9 +378,9 @@ Anything less might crash Emacs.")
 (defcustom window-min-height 4
   "The minimum total height, in lines, of any window.
 The value has to accommodate one text line, a mode and header
-line, and a bottom divider, if present.  A value less than
-`window-safe-min-height' is ignored.  The value of this variable
-is honored when windows are resized or split.
+line, a horizontal scroll bar and a bottom divider, if present.
+A value less than `window-safe-min-height' is ignored.  The value
+of this variable is honored when windows are resized or split.
 
 Applications should never rebind this variable.  To resize a
 window to a height less than the one specified here, an
@@ -1137,11 +1137,12 @@ dumping to it."
        (format "frame text pixel: %s x %s   cols/lines: %s x %s\n"
 	       (frame-text-width frame) (frame-text-height frame)
 	       (frame-text-cols frame) (frame-text-lines frame))
-       (format "tool: %s  scroll: %s  fringe: %s  border: %s  right: %s  bottom: %s\n\n"
+       (format "tool: %s  scroll: %s/%s  fringe: %s  border: %s  right: %s  bottom: %s\n\n"
 	       (if (fboundp 'tool-bar-height)
 		   (tool-bar-height frame t)
 		 "0")
 	       (frame-scroll-bar-width frame)
+	       (frame-scroll-bar-height frame)
 	       (frame-fringe-width frame)
 	       (frame-border-width frame)
 	       (frame-right-divider-width frame)
@@ -1262,12 +1263,14 @@ of WINDOW."
 	  value)
       (with-current-buffer (window-buffer window)
 	(cond
+	 ((window-minibuffer-p window)
+	  (if pixelwise (frame-char-height (window-frame window)) 1))
 	 ((and (not (window--size-ignore-p window ignore))
 	       (window-size-fixed-p window horizontal))
 	  ;; The minimum size of a fixed size window is its size.
 	  (window-size window horizontal pixelwise))
-	 ((or (eq ignore 'safe) (eq ignore window))
-	  ;; If IGNORE equals `safe' or WINDOW return the safe values.
+	 ((eq ignore 'safe)
+	  ;; If IGNORE equals `safe' return the safe value.
 	  (window-safe-min-size window horizontal pixelwise))
 	 (horizontal
 	  ;; For the minimum width of a window take fringes and
@@ -1278,8 +1281,11 @@ of WINDOW."
 	  ;; `window-min-width'.
 	  (let* ((char-size (frame-char-size window t))
 		 (fringes (window-fringes window))
+		 (margins (window-margins window))
 		 (pixel-width
 		  (+ (window-safe-min-size window t t)
+		     (* (or (car margins) 0) char-size)
+		     (* (or (cdr margins) 0) char-size)
 		     (car fringes) (cadr fringes)
 		     (window-scroll-bar-width window)
 		     (window-right-divider-width window))))
@@ -1301,6 +1307,7 @@ of WINDOW."
 		(pixel-height
 		 (+ (window-safe-min-size window nil t)
 		    (window-header-line-height window)
+		    (window-scroll-bar-height window)
 		    (window-mode-line-height window)
 		    (window-bottom-divider-width window))))
 	    (if pixelwise
@@ -1507,6 +1514,18 @@ by which WINDOW can be shrunk."
       ;; minimum size.
       (window--min-delta-1
        window (- size minimum) horizontal ignore trail noup pixelwise)))))
+
+(defun frame-windows-min-size (&optional frame horizontal pixelwise)
+  "Return minimum number of lines of FRAME's windows.
+HORIZONTAL non-nil means return number of columns of FRAME's
+windows.  PIXELWISE non-nil means return sizes in pixels."
+  (setq frame (window-normalize-frame frame))
+  (let* ((root (frame-root-window frame))
+	 (mini (window-next-sibling root)))
+    (+ (window-min-size root horizontal nil pixelwise)
+       (if (and mini (not horizontal))
+	   (window-min-size mini horizontal nil pixelwise)
+	 0))))
 
 (defun window--max-delta-1 (window delta &optional horizontal ignore trail noup pixelwise)
   "Internal function of `window-max-delta'."
@@ -2984,6 +3003,28 @@ routines."
 	 pixel-delta
        (/ pixel-delta (frame-char-height frame)))))
 
+(defun window--sanitize-window-sizes (frame horizontal)
+  "Assert that all windows on FRAME are large enough.
+If necessary and possible, make sure that every window on frame
+FRAME has its minimum height.  Optional argument HORIZONTAL
+non-nil means to make sure that every window on frame FRAME has
+its minimum width.  The minimumm height/width of a window is the
+respective value returned by `window-min-size' for that window.
+
+Return t if all windows were resized appropriately.  Return nil
+if at least one window could not be resized as requested, which
+may happen when the FRAME is not large enough to accomodate it."
+  (let ((value t))
+    (walk-window-tree
+     (lambda (window)
+       (let  ((delta (- (window-min-size window horizontal nil t)
+			(window-size window horizontal t))))
+	 (when (> delta 0)
+	   (if (window-resizable-p window delta horizontal nil t)
+	       (window-resize window delta horizontal nil t)
+	     (setq value nil))))))
+    value))
+
 (defun adjust-window-trailing-edge (window delta &optional horizontal pixelwise)
   "Move WINDOW's bottom edge by DELTA lines.
 Optional argument HORIZONTAL non-nil means move WINDOW's right
@@ -4241,20 +4282,6 @@ showing BUFFER-OR-NAME."
 	;; If a window doesn't show BUFFER, unrecord BUFFER in it.
 	(unrecord-window-buffer window buffer)))))
 
-;;; Splitting windows.
-(defun window-split-min-size (&optional horizontal pixelwise)
-  "Return minimum height of any window when splitting windows.
-Optional argument HORIZONTAL non-nil means return minimum width."
-  (cond
-   (pixelwise
-    (if horizontal
-	(window-min-pixel-width)
-      (window-min-pixel-height)))
-   (horizontal
-    (max window-min-width window-safe-min-width))
-   (t
-    (max window-min-height window-safe-min-height))))
-
 (defun split-window (&optional window size side pixelwise)
   "Make a new window adjacent to WINDOW.
 WINDOW must be a valid window and defaults to the selected one.
@@ -4318,6 +4345,9 @@ frame.  The selected window is not changed by this function."
 	 (pixel-size
 	  (when (numberp size)
 	    (window--size-to-pixel window size horizontal pixelwise t)))
+	 (divider-width (if horizontal
+			    (frame-right-divider-width frame)
+			  (frame-bottom-divider-width frame)))
 	 atom-root)
     (window--check frame)
     (catch 'done
@@ -4419,19 +4449,14 @@ frame.  The selected window is not changed by this function."
 	  (cond
 	   (resize
 	    ;; SIZE unspecified, resizing.
-	    (when (and (not (window-sizable-p
-			     parent (- new-pixel-size) horizontal nil t))
-		       ;; Try again with minimum split size.
-		       (setq new-pixel-size
-			     (max new-pixel-size
-				  (window-split-min-size horizontal t)))
-		       (not (window-sizable-p
-			     parent (- new-pixel-size) horizontal nil t)))
-	      (error "Window %s too small for splitting 1" parent)))
-	   ((> (+ new-pixel-size (window-min-size window horizontal nil t))
+	    (unless (window-sizable-p
+		     parent (- new-pixel-size divider-width) horizontal nil t)
+	      (error "Window %s too small for splitting (1)" parent)))
+	   ((> (+ new-pixel-size divider-width
+		  (window-min-size window horizontal nil t))
 	       old-pixel-size)
 	    ;; SIZE unspecified, no resizing.
-	    (error "Window %s too small for splitting 2" window))))
+	    (error "Window %s too small for splitting (2)" window))))
 	 ((and (>= pixel-size 0)
 	       (or (>= pixel-size old-pixel-size)
 		   (< new-pixel-size
@@ -4439,19 +4464,19 @@ frame.  The selected window is not changed by this function."
 	  ;; SIZE specified as new size of old window.  If the new size
 	  ;; is larger than the old size or the size of the new window
 	  ;; would be less than the safe minimum, signal an error.
-	  (error "Window %s too small for splitting 3" window))
+	  (error "Window %s too small for splitting (3)" window))
 	 (resize
 	  ;; SIZE specified, resizing.
 	  (unless (window-sizable-p
-		   parent (- new-pixel-size) horizontal nil t)
+		   parent (- new-pixel-size divider-width) horizontal nil t)
 	    ;; If we cannot resize the parent give up.
-	    (error "Window %s too small for splitting 4" parent)))
+	    (error "Window %s too small for splitting (4)" parent)))
 	 ((or (< new-pixel-size
 		 (window-safe-min-pixel-size window horizontal))
 	      (< (- old-pixel-size new-pixel-size)
 		 (window-safe-min-pixel-size window horizontal)))
 	  ;; SIZE specification violates minimum size restrictions.
-	  (error "Window %s too small for splitting 5" window)))
+	  (error "Window %s too small for splitting (5)" window)))
 
 	(window--resize-reset frame horizontal)
 
@@ -4521,6 +4546,9 @@ frame.  The selected window is not changed by this function."
 	    (when new-parent
 	      (set-window-parameter (window-parent new) 'window-atom t))
 	    (set-window-parameter new 'window-atom t)))
+
+	  ;; Sanitize sizes.
+	  (window--sanitize-window-sizes frame horizontal)
 
 	  (run-window-configuration-change-hook frame)
 	  (run-window-scroll-functions new)
@@ -7116,7 +7144,10 @@ FRAME."
 	     (value (window-text-pixel-size
 		     nil t t workarea-width workarea-height t))
 	     (width (+ (car value) (window-right-divider-width)))
-	     (height (+ (cdr value) (window-bottom-divider-width))))
+	     (height
+	      (+ (cdr value)
+		 (window-bottom-divider-width)
+		 (nth 3 (window-scroll-bars)))))
 	;; Don't change height or width when the window's size is fixed
 	;; in either direction or ONLY forbids it.
 	(cond
@@ -7275,6 +7306,7 @@ accessible position."
 	  ;; height.  Its width remains fixed.
 	  (setq height (+ (cdr (window-text-pixel-size
 				nil nil t nil (frame-pixel-height) t))
+			  (nth 3 (window-scroll-bars window))
 			  (window-bottom-divider-width)))
 	  ;; Round height.
 	  (unless pixelwise

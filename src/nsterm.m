@@ -1342,10 +1342,6 @@ x_set_window_size (struct frame *f,
 
   block_input ();
 
-  check_frame_size (f, &width, &height, pixelwise);
-
-  compute_fringe_widths (f, 0);
-
   if (pixelwise)
     {
       pixelwidth = FRAME_TEXT_TO_PIXEL_WIDTH (f, width);
@@ -1417,6 +1413,8 @@ x_set_window_size (struct frame *f,
   cancel_mouse_face (f);
 
   unblock_input ();
+
+  do_pending_window_change (0);
 }
 
 
@@ -2314,52 +2312,6 @@ ns_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
   if (!p->overlay_p)
     {
       int bx = p->bx, by = p->by, nx = p->nx, ny = p->ny;
-
-      /* If the fringe is adjacent to the left (right) scroll bar of a
-	 leftmost (rightmost, respectively) window, then extend its
-	 background to the gap between the fringe and the bar.  */
-      if ((WINDOW_LEFTMOST_P (w)
-	   && WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_LEFT (w))
-	  || (WINDOW_RIGHTMOST_P (w)
-	      && WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_RIGHT (w)))
-	{
-	  int sb_width = WINDOW_CONFIG_SCROLL_BAR_WIDTH (w);
-
-	  if (sb_width > 0)
-	    {
-	      int bar_area_x = WINDOW_SCROLL_BAR_AREA_X (w);
-	      int bar_area_width = (WINDOW_CONFIG_SCROLL_BAR_COLS (w)
-				    * FRAME_COLUMN_WIDTH (f));
-
-	      if (bx < 0)
-		{
-		  /* Bitmap fills the fringe.  */
-		  if (bar_area_x + bar_area_width == p->x)
-		    bx = bar_area_x + sb_width;
-		  else if (p->x + p->wd == bar_area_x)
-		    bx = bar_area_x;
-		  if (bx >= 0)
-		    {
-		      int header_line_height = WINDOW_HEADER_LINE_HEIGHT (w);
-
-		      nx = bar_area_width - sb_width;
-		      by = WINDOW_TO_FRAME_PIXEL_Y (w, max (header_line_height,
-							    row->y));
-		      ny = row->visible_height;
-		    }
-		}
-	      else
-		{
-		  if (bar_area_x + bar_area_width == bx)
-		    {
-		      bx = bar_area_x + sb_width;
-		      nx += bar_area_width - sb_width;
-		    }
-		  else if (bx + nx == bar_area_x)
-		    nx += bar_area_width - sb_width;
-		}
-	    }
-	}
 
       if (bx >= 0 && nx > 0)
         {
@@ -3792,10 +3744,9 @@ ns_set_vertical_scroll_bar (struct window *window,
   NSRect r, v;
   struct frame *f = XFRAME (WINDOW_FRAME (window));
   EmacsView *view = FRAME_NS_VIEW (f);
-  int window_y, window_height;
-  int top, left, height, width, sb_width, sb_left;
   EmacsScroller *bar;
-  BOOL fringe_extended_p;
+  int window_y, window_height;
+  int top, left, height, width;
 
   /* optimization; display engine sends WAY too many of these.. */
   if (!NILP (window->vertical_scroll_bar))
@@ -3822,17 +3773,10 @@ ns_set_vertical_scroll_bar (struct window *window,
   width = WINDOW_CONFIG_SCROLL_BAR_COLS (window) * FRAME_COLUMN_WIDTH (f);
   left = WINDOW_SCROLL_BAR_AREA_X (window);
 
-  /* allow for displaying a skinnier scrollbar than char area allotted */
-  sb_width = (WINDOW_CONFIG_SCROLL_BAR_WIDTH (window) > 0) ?
-    WINDOW_CONFIG_SCROLL_BAR_WIDTH (window) : width;
-  sb_left = left;
-
-  r = NSMakeRect (sb_left, top, sb_width, height);
+  r = NSMakeRect (left, top, width, height);
   /* the parent view is flipped, so we need to flip y value */
   v = [view frame];
   r.origin.y = (v.size.height - r.size.height - r.origin.y);
-
-  fringe_extended_p = WINDOW_FRINGE_EXTENDED_P (window);
 
   XSETWINDOW (win, window);
   block_input ();
@@ -3846,7 +3790,7 @@ ns_set_vertical_scroll_bar (struct window *window,
           [bar removeFromSuperview];
           wset_vertical_scroll_bar (window, Qnil);
         }
-      ns_clear_frame_area (f, sb_left, top, width, height);
+      ns_clear_frame_area (f, left, top, width, height);
       unblock_input ();
       return;
     }
@@ -3854,12 +3798,7 @@ ns_set_vertical_scroll_bar (struct window *window,
   if (NILP (window->vertical_scroll_bar))
     {
       if (width > 0 && height > 0)
-	{
-	  if (fringe_extended_p)
-	    ns_clear_frame_area (f, sb_left, top, sb_width, height);
-	  else
-	    ns_clear_frame_area (f, left, top, width, height);
-        }
+	ns_clear_frame_area (f, left, top, width, height);
 
       bar = [[EmacsScroller alloc] initFrame: r window: win];
       wset_vertical_scroll_bar (window, make_save_ptr (bar));
@@ -3873,7 +3812,97 @@ ns_set_vertical_scroll_bar (struct window *window,
       if (FRAME_LIVE_P (f) && !NSEqualRects (oldRect, r))
         {
           if (oldRect.origin.x != r.origin.x)
-              ns_clear_frame_area (f, sb_left, top, width, height);
+              ns_clear_frame_area (f, left, top, width, height);
+          [bar setFrame: r];
+        }
+    }
+
+  [bar setPosition: position portion: portion whole: whole];
+  unblock_input ();
+}
+
+
+static void
+ns_set_horizontal_scroll_bar (struct window *window,
+			      int portion, int whole, int position)
+/* --------------------------------------------------------------------------
+      External (hook): Update or add scrollbar
+   -------------------------------------------------------------------------- */
+{
+  Lisp_Object win;
+  NSRect r, v;
+  struct frame *f = XFRAME (WINDOW_FRAME (window));
+  EmacsView *view = FRAME_NS_VIEW (f);
+  EmacsScroller *bar;
+  int top, height, left, width;
+  int window_x, window_width;
+  int pixel_width = WINDOW_PIXEL_WIDTH (window);
+
+  /* optimization; display engine sends WAY too many of these.. */
+  if (!NILP (window->horizontal_scroll_bar))
+    {
+      bar = XNS_SCROLL_BAR (window->horizontal_scroll_bar);
+      if ([bar checkSamePosition: position portion: portion whole: whole])
+        {
+          if (view->scrollbarsNeedingUpdate == 0)
+            {
+              if (!windows_or_buffers_changed)
+                  return;
+            }
+          else
+            view->scrollbarsNeedingUpdate--;
+        }
+    }
+
+  NSTRACE (ns_set_horizontal_scroll_bar);
+
+  /* Get dimensions.  */
+  window_box (window, ANY_AREA, 0, &window_x, &window_width, 0);
+  left = window_x;
+  width = window_width;
+  height = WINDOW_CONFIG_SCROLL_BAR_LINES (window) * FRAME_LINE_HEIGHT (f);
+  top = WINDOW_SCROLL_BAR_AREA_Y (window);
+
+  r = NSMakeRect (left, top, width, height);
+  /* the parent view is flipped, so we need to flip y value */
+  v = [view frame];
+  /* ??????? PXW/scrollbars !!!!!!!!!!!!!!!!!!!! */
+  r.origin.y = (v.size.height - r.size.height - r.origin.y);
+
+  XSETWINDOW (win, window);
+  block_input ();
+
+  if (WINDOW_TOTAL_COLS (window) < 5)
+    {
+      if (!NILP (window->horizontal_scroll_bar))
+        {
+          bar = XNS_SCROLL_BAR (window->horizontal_scroll_bar);
+          [bar removeFromSuperview];
+          wset_horizontal_scroll_bar (window, Qnil);
+        }
+      ns_clear_frame_area (f, left, top, width, height);
+      unblock_input ();
+      return;
+    }
+
+  if (NILP (window->horizontal_scroll_bar))
+    {
+      if (width > 0 && height > 0)
+	ns_clear_frame_area (f, left, top, width, height);
+
+      bar = [[EmacsScroller alloc] initFrame: r window: win];
+      wset_horizontal_scroll_bar (window, make_save_ptr (bar));
+    }
+  else
+    {
+      NSRect oldRect;
+      bar = XNS_SCROLL_BAR (window->horizontal_scroll_bar);
+      oldRect = [bar frame];
+      r.size.width = oldRect.size.width;
+      if (FRAME_LIVE_P (f) && !NSEqualRects (oldRect, r))
+        {
+          if (oldRect.origin.x != r.origin.x)
+              ns_clear_frame_area (f, left, top, width, height);
           [bar setFrame: r];
         }
     }
@@ -3917,6 +3946,12 @@ ns_redeem_scroll_bar (struct window *window)
   if (!NILP (window->vertical_scroll_bar))
     {
       bar = XNS_SCROLL_BAR (window->vertical_scroll_bar);
+      [bar reprieve];
+    }
+
+  if (!NILP (window->horizontal_scroll_bar))
+    {
+      bar = XNS_SCROLL_BAR (window->horizontal_scroll_bar);
       [bar reprieve];
     }
 }
@@ -4483,7 +4518,7 @@ ns_term_shutdown (int sig)
       [self sendEvent:event];
       [self updateWindows];
     } while (shouldKeepRunning);
-  
+
   [pool release];
 }
 
@@ -4652,28 +4687,7 @@ ns_term_shutdown (int sig)
   ((EmacsApp *)self)->applicationDidFinishLaunchingCalled = YES;
 #endif
   [NSApp setServicesProvider: NSApp];
-
-  [self antialiasThresholdDidChange:nil];
-#ifdef NS_IMPL_COCOA
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5
-  [[NSNotificationCenter defaultCenter]
-    addObserver:self
-       selector:@selector(antialiasThresholdDidChange:)
-	   name:NSAntialiasThresholdChangedNotification
-	 object:nil];
-#endif
-#endif
-
   ns_send_appdefined (-2);
-}
-
-- (void)antialiasThresholdDidChange:(NSNotification *)notification
-{
-#ifdef NS_IMPL_COCOA
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5
-  macfont_update_antialias_threshold ();
-#endif
-#endif
 }
 
 
@@ -7021,7 +7035,7 @@ if (cols > 0 && rows > 0)
 
   if (nr_eff_screens == 1)
     return [super constrainFrameRect:frameRect toScreen:screen];
-  
+
   /* The default implementation does two things 1) ensure that the top
      of the rectangle is below the menu bar (or below the top of the
      screen) and 2) resizes windows larger than the screen. As we
@@ -7506,8 +7520,6 @@ x_new_font (struct frame *f, Lisp_Object font_object, int fontset)
   FRAME_COLUMN_WIDTH (f) = font->average_width;
   FRAME_LINE_HEIGHT (f) = font->height;
 
-  compute_fringe_widths (f, 1);
-
   /* Compute the scroll bar width in character columns.  */
   if (FRAME_CONFIG_SCROLL_BAR_WIDTH (f) > 0)
     {
@@ -7519,6 +7531,19 @@ x_new_font (struct frame *f, Lisp_Object font_object, int fontset)
     {
       int wid = FRAME_COLUMN_WIDTH (f);
       FRAME_CONFIG_SCROLL_BAR_COLS (f) = (14 + wid - 1) / wid;
+    }
+
+  /* Compute the scroll bar height in character lines.  */
+  if (FRAME_CONFIG_SCROLL_BAR_HEIGHT (f) > 0)
+    {
+      int height = FRAME_LINE_HEIGHT (f);
+      FRAME_CONFIG_SCROLL_BAR_LINES (f)
+	= (FRAME_CONFIG_SCROLL_BAR_HEIGHT (f) + height - 1) / height;
+    }
+  else
+    {
+      int height = FRAME_LINE_HEIGHT (f);
+      FRAME_CONFIG_SCROLL_BAR_LINES (f) = (14 + height - 1) / height;
     }
 
   /* Now make the frame display the given font.  */

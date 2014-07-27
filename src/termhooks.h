@@ -37,7 +37,14 @@ enum scroll_bar_part {
   scroll_bar_to_top,
   scroll_bar_to_bottom,
   scroll_bar_end_scroll,
-  scroll_bar_move_ratio
+  scroll_bar_move_ratio,
+  scroll_bar_before_handle,
+  scroll_bar_horizontal_handle,
+  scroll_bar_after_handle,
+  scroll_bar_left_arrow,
+  scroll_bar_right_arrow,
+  scroll_bar_to_leftmost,
+  scroll_bar_to_rightmost
 };
 
 /* Output method of a terminal (and frames on this terminal, respectively).  */
@@ -118,6 +125,19 @@ enum event_kind
 				   user.  */
 #endif
   SCROLL_BAR_CLICK_EVENT,	/* .code gives the number of the mouse button
+				   that was clicked.
+				   .modifiers holds the state of the modifier
+				   keys.
+				   .part is a lisp symbol indicating which
+				   part of the scroll bar got clicked.
+				   .x gives the distance from the start of the
+				   scroll bar of the click; .y gives the total
+				   length of the scroll bar.
+				   .frame_or_window gives the window
+				   whose scroll bar was clicked in.
+				   .timestamp gives a timestamp (in
+				   milliseconds) for the click.  */
+  HORIZONTAL_SCROLL_BAR_CLICK_EVENT,	/* .code gives the number of the mouse button
 				   that was clicked.
 				   .modifiers holds the state of the modifier
 				   keys.
@@ -516,6 +536,16 @@ struct terminal
   void (*set_vertical_scroll_bar_hook) (struct window *window,
                                         int portion, int whole,
                                         int position);
+
+
+  /* Set the horizontal scroll bar for WINDOW to have its upper left
+     corner at (TOP, LEFT), and be LENGTH rows high.  Set its handle to
+     indicate that we are displaying PORTION characters out of a total
+     of WHOLE characters, starting at POSITION.  If WINDOW doesn't yet
+     have a scroll bar, create one for it.  */
+  void (*set_horizontal_scroll_bar_hook) (struct window *window,
+					  int portion, int whole,
+					  int position);
 
 
   /* The following three hooks are used when we're doing a thorough

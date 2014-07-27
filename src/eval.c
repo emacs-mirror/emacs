@@ -92,10 +92,8 @@ static EMACS_INT when_entered_debugger;
 /* FIXME: We should probably get rid of this!  */
 Lisp_Object Vsignaling_function;
 
-/* If non-nil, Lisp code must not be run since some part of Emacs is
-   in an inconsistent state.  Currently, x-create-frame uses this to
-   avoid triggering window-configuration-change-hook while the new
-   frame is half-initialized.  */
+/* If non-nil, Lisp code must not be run since some part of Emacs is in
+   an inconsistent state.  Currently unused.  */
 Lisp_Object inhibit_lisp_code;
 
 /* These would ordinarily be static, but they need to be visible to GDB.  */

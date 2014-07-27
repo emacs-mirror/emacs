@@ -203,6 +203,25 @@ gap_right (ptrdiff_t charpos, ptrdiff_t bytepos)
   QUIT;
 }
 
+/* If the selected window's old pointm is adjacent or covered by the
+   region from FROM to TO, unsuspend auto hscroll in that window.  */
+
+static void
+adjust_suspend_auto_hscroll (ptrdiff_t from, ptrdiff_t to)
+{
+  if (WINDOWP (selected_window))
+    {
+      struct window *w = XWINDOW (selected_window);
+
+      if (BUFFERP (w->contents)
+	  && XBUFFER (w->contents) == current_buffer
+	  && XMARKER (w->old_pointm)->charpos >= from
+	  && XMARKER (w->old_pointm)->charpos <= to)
+	w->suspend_auto_hscroll = 0;
+    }
+}
+
+
 /* Adjust all markers for a deletion
    whose range in bytes is FROM_BYTE to TO_BYTE.
    The range in charpos is FROM to TO.
@@ -217,6 +236,7 @@ adjust_markers_for_delete (ptrdiff_t from, ptrdiff_t from_byte,
   struct Lisp_Marker *m;
   ptrdiff_t charpos;
 
+  adjust_suspend_auto_hscroll (from, to);
   for (m = BUF_MARKERS (current_buffer); m; m = m->next)
     {
       charpos = m->charpos;
@@ -256,6 +276,7 @@ adjust_markers_for_insert (ptrdiff_t from, ptrdiff_t from_byte,
   ptrdiff_t nchars = to - from;
   ptrdiff_t nbytes = to_byte - from_byte;
 
+  adjust_suspend_auto_hscroll (from, to);
   for (m = BUF_MARKERS (current_buffer); m; m = m->next)
     {
       eassert (m->bytepos >= m->charpos
@@ -321,6 +342,7 @@ adjust_markers_for_replace (ptrdiff_t from, ptrdiff_t from_byte,
   ptrdiff_t diff_chars = new_chars - old_chars;
   ptrdiff_t diff_bytes = new_bytes - old_bytes;
 
+  adjust_suspend_auto_hscroll (from, from + old_chars);
   for (m = BUF_MARKERS (current_buffer); m; m = m->next)
     {
       if (m->bytepos >= prev_to_byte)

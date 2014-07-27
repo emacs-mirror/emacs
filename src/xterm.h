@@ -175,6 +175,9 @@ struct x_display_info
   /* The cursor to use for vertical scroll bars.  */
   Cursor vertical_scroll_bar_cursor;
 
+  /* The cursor to use for horizontal scroll bars.  */
+  Cursor horizontal_scroll_bar_cursor;
+
   /* The invisible cursor used for pointer blanking.
      Unused if this display supports Xfixes extension.  */
   Cursor invisible_cursor;
@@ -279,8 +282,8 @@ struct x_display_info
   /* More atoms for Ghostscript support.  */
   Atom Xatom_DONE, Xatom_PAGE;
 
-  /* Atom used in toolkit scroll bar client messages.  */
-  Atom Xatom_Scrollbar;
+  /* Atoms used in toolkit scroll bar client messages.  */
+  Atom Xatom_Scrollbar, Xatom_Horizontal_Scrollbar;
 
   /* Atom used in XEmbed client messages.  */
   Atom Xatom_XEMBED, Xatom_XEMBED_INFO;
@@ -822,6 +825,14 @@ struct scroll_bar
   /* Last scroll bar part seen in xaw_jump_callback and xaw_scroll_callback.  */
   enum scroll_bar_part last_seen_part;
 #endif
+
+#if defined (USE_TOOLKIT_SCROLL_BARS) && !defined (USE_GTK)
+  /* Last value of whole for horizontal scrollbars.  */
+  int whole;
+#endif
+
+  /* 1 if the scroll bar is horizontal.  */
+  bool horizontal;
 };
 
 /* Turning a lisp vector value into a pointer to a struct scroll_bar.  */
@@ -868,6 +879,28 @@ struct scroll_bar
 #define VERTICAL_SCROLL_BAR_INSIDE_HEIGHT(f, height) \
   ((height) - VERTICAL_SCROLL_BAR_TOP_BORDER - VERTICAL_SCROLL_BAR_BOTTOM_BORDER)
 
+/* Return the inside height of a horizontal scroll bar, given the outside
+   height.  */
+#define HORIZONTAL_SCROLL_BAR_INSIDE_HEIGHT(f, height)	\
+  ((height) \
+   - HORIZONTAL_SCROLL_BAR_TOP_BORDER \
+   - HORIZONTAL_SCROLL_BAR_BOTTOM_BORDER)
+
+/* Return the length of the rectangle within which the left part of the
+   handle must stay.  This isn't equivalent to the inside width, because
+   the scroll bar handle has a minimum width.
+
+   This is the real range of motion for the scroll bar, so when we're
+   scaling buffer positions to scroll bar positions, we use this, not
+   HORIZONTAL_SCROLL_BAR_INSIDE_WIDTH.  */
+#define HORIZONTAL_SCROLL_BAR_LEFT_RANGE(f, width) \
+  (HORIZONTAL_SCROLL_BAR_INSIDE_WIDTH (f, width) - HORIZONTAL_SCROLL_BAR_MIN_HANDLE)
+
+/* Return the inside width of horizontal scroll bar, given the outside
+   width.  See HORIZONTAL_SCROLL_BAR_LEFT_RANGE too.  */
+#define HORIZONTAL_SCROLL_BAR_INSIDE_WIDTH(f, width) \
+  ((width) - HORIZONTAL_SCROLL_BAR_LEFT_BORDER - HORIZONTAL_SCROLL_BAR_LEFT_BORDER)
+
 
 /* Border widths for scroll bars.
 
@@ -885,8 +918,14 @@ struct scroll_bar
 #define VERTICAL_SCROLL_BAR_TOP_BORDER (2)
 #define VERTICAL_SCROLL_BAR_BOTTOM_BORDER (2)
 
+#define HORIZONTAL_SCROLL_BAR_LEFT_BORDER (2)
+#define HORIZONTAL_SCROLL_BAR_RIGHT_BORDER (2)
+#define HORIZONTAL_SCROLL_BAR_TOP_BORDER (2)
+#define HORIZONTAL_SCROLL_BAR_BOTTOM_BORDER (2)
+
 /* Minimum lengths for scroll bar handles, in pixels.  */
 #define VERTICAL_SCROLL_BAR_MIN_HANDLE (5)
+#define HORIZONTAL_SCROLL_BAR_MIN_HANDLE (5)
 
 /* If a struct input_event has a kind which is SELECTION_REQUEST_EVENT
    or SELECTION_CLEAR_EVENT, then its contents are really described
@@ -982,6 +1021,7 @@ x_display_pixel_width (struct x_display_info *dpyinfo)
 
 extern void x_set_sticky (struct frame *, Lisp_Object, Lisp_Object);
 extern void x_wait_for_event (struct frame *, int);
+extern void x_clear_under_internal_border (struct frame *f);
 
 /* Defined in xselect.c.  */
 
@@ -1062,10 +1102,6 @@ extern void x_session_close (void);
 /* Defined in xterm.c */
 
 extern Lisp_Object Qx_gtk_map_stock;
-
-#if !defined USE_X_TOOLKIT && !defined USE_GTK
-extern void x_clear_under_internal_border (struct frame *f);
-#endif
 
 /* Is the frame embedded into another application? */
 

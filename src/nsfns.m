@@ -76,10 +76,12 @@ extern Lisp_Object Qicon_top;
 extern Lisp_Object Qtop;
 extern Lisp_Object Qdisplay;
 extern Lisp_Object Qvertical_scroll_bars;
+extern Lisp_Object Qhorizontal_scroll_bars;
 extern Lisp_Object Qauto_raise;
 extern Lisp_Object Qauto_lower;
 extern Lisp_Object Qbox;
 extern Lisp_Object Qscroll_bar_width;
+extern Lisp_Object Qscroll_bar_height;
 extern Lisp_Object Qx_resource_name;
 extern Lisp_Object Qface_set_after_frame_default;
 extern Lisp_Object Qunderline, Qundefined;
@@ -705,6 +707,26 @@ x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 }
 
 
+void
+x_set_internal_border_width (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
+{
+  int old_width = FRAME_INTERNAL_BORDER_WIDTH (f);
+
+  CHECK_TYPE_RANGED_INTEGER (int, arg);
+  FRAME_INTERNAL_BORDER_WIDTH (f) = XINT (arg);
+  if (FRAME_INTERNAL_BORDER_WIDTH (f) < 0)
+    FRAME_INTERNAL_BORDER_WIDTH (f) = 0;
+
+  if (FRAME_INTERNAL_BORDER_WIDTH (f) == old_width)
+    return;
+
+  if (FRAME_X_WINDOW (f) != 0)
+    adjust_frame_size (f, -1, -1, 3, 0);
+
+  SET_FRAME_GARBAGED (f);
+}
+
+
 static void
 ns_implicitly_set_icon_type (struct frame *f)
 {
@@ -954,17 +976,19 @@ frame_parm_handler ns_frame_parm_handlers[] =
   x_set_mouse_color,
   x_explicitly_set_name,
   x_set_scroll_bar_width, /* generic OK */
+  x_set_scroll_bar_height, /* generic OK */
   x_set_title,
   x_set_unsplittable, /* generic OK */
   x_set_vertical_scroll_bars, /* generic OK */
+  x_set_horizontal_scroll_bars, /* generic OK */
   x_set_visibility, /* generic OK */
   x_set_tool_bar_lines,
   0, /* x_set_scroll_bar_foreground, will ignore (not possible on NS) */
   0, /* x_set_scroll_bar_background,  will ignore (not possible on NS) */
   x_set_screen_gamma, /* generic OK */
   x_set_line_spacing, /* generic OK, sets f->extra_line_spacing to int */
-  x_set_fringe_width, /* generic OK */
-  x_set_fringe_width, /* generic OK */
+  x_set_left_fringe, /* generic OK */
+  x_set_right_fringe, /* generic OK */
   0, /* x_set_wait_for_wm, will ignore */
   x_set_fullscreen, /* generic OK */
   x_set_font_backend, /* generic OK */
@@ -1208,7 +1232,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
                       "internalBorderWidth", "InternalBorderWidth",
                       RES_TYPE_NUMBER);
 
-  /* default scrollbars on right on Mac */
+  /* default vertical scrollbars on right on Mac */
   {
       Lisp_Object spos
 #ifdef NS_IMPL_GNUSTEP
@@ -1220,6 +1244,9 @@ This function is an internal primitive--use `make-frame' instead.  */)
 			   "verticalScrollBars", "VerticalScrollBars",
 			   RES_TYPE_SYMBOL);
   }
+  x_default_parameter (f, parms, Qhorizontal_scroll_bars, Qt,
+		       "horizontalScrollBars", "HorizontalScrollBars",
+		       RES_TYPE_SYMBOL);
   x_default_parameter (f, parms, Qforeground_color, build_string ("Black"),
                       "foreground", "Foreground", RES_TYPE_STRING);
   x_default_parameter (f, parms, Qbackground_color, build_string ("White"),
@@ -1280,6 +1307,8 @@ This function is an internal primitive--use `make-frame' instead.  */)
   f->output_data.ns->vertical_drag_cursor = [NSCursor resizeUpDownCursor];
   FRAME_DISPLAY_INFO (f)->vertical_scroll_bar_cursor
      = [NSCursor arrowCursor];
+  FRAME_DISPLAY_INFO (f)->horizontal_scroll_bar_cursor
+     = [NSCursor arrowCursor];
   f->output_data.ns->current_pointer = f->output_data.ns->text_cursor;
 
   [[EmacsView alloc] initFrameFromEmacs: f];
@@ -1304,6 +1333,9 @@ This function is an internal primitive--use `make-frame' instead.  */)
                        "cursorType", "CursorType", RES_TYPE_SYMBOL);
   x_default_parameter (f, parms, Qscroll_bar_width, Qnil,
                        "scrollBarWidth", "ScrollBarWidth",
+                       RES_TYPE_NUMBER);
+  x_default_parameter (f, parms, Qscroll_bar_height, Qnil,
+                       "scrollBarHeight", "ScrollBarHeight",
                        RES_TYPE_NUMBER);
   x_default_parameter (f, parms, Qalpha, Qnil,
                        "alpha", "Alpha", RES_TYPE_NUMBER);
@@ -2229,6 +2261,15 @@ x_set_scroll_bar_default_width (struct frame *f)
   FRAME_CONFIG_SCROLL_BAR_WIDTH (f) = NS_SCROLL_BAR_WIDTH_DEFAULT;
   FRAME_CONFIG_SCROLL_BAR_COLS (f) = (FRAME_CONFIG_SCROLL_BAR_WIDTH (f) +
                                       wid - 1) / wid;
+}
+
+void
+x_set_scroll_bar_default_height (struct frame *f)
+{
+  int height = FRAME_LINE_HEIGHT (f);
+  FRAME_CONFIG_SCROLL_BAR_HEIGHT (f) = NS_SCROLL_BAR_WIDTH_DEFAULT;
+  FRAME_CONFIG_SCROLL_BAR_LINES (f) = (FRAME_CONFIG_SCROLL_BAR_HEIGHT (f) +
+				       height - 1) / height;
 }
 
 /* terms impl this instead of x-get-resource directly */

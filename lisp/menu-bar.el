@@ -887,8 +887,35 @@ by \"Save Options\" in Custom buffers.")
   (interactive)
   (customize-set-variable 'scroll-bar-mode nil))
 
+(defun menu-bar-horizontal-scroll-bar ()
+  "Display horizontal scroll bars on each window."
+  (interactive)
+  (customize-set-variable 'horizontal-scroll-bar-mode t))
+
+(defun menu-bar-no-horizontal-scroll-bar ()
+  "Turn off horizontal scroll bars."
+  (interactive)
+  (customize-set-variable 'horizontal-scroll-bar-mode nil))
+
 (defvar menu-bar-showhide-scroll-bar-menu
   (let ((menu (make-sparse-keymap "Scroll-bar")))
+    (bindings--define-key menu [horizontal]
+      '(menu-item "Horizontal"
+                  menu-bar-horizontal-scroll-bar
+                  :help "Horizontal scroll bar"
+                  :visible (display-graphic-p)
+                  :button (:radio . (eq (cdr (assq 'horizontal-scroll-bars
+                                                   (frame-parameters)))
+					t))))
+
+    (bindings--define-key menu [none-horizontal]
+      '(menu-item "None-horizontal"
+                  menu-bar-no-horizontal-scroll-bar
+                  :help "Turn off horizontal scroll bars"
+                  :visible (display-graphic-p)
+                  :button (:radio . (eq (cdr (assq 'horizontal-scroll-bars
+                                                   (frame-parameters)))
+					nil))))
 
     (bindings--define-key menu [right]
       '(menu-item "On the Right"
@@ -896,7 +923,8 @@ by \"Save Options\" in Custom buffers.")
                   :help "Scroll-bar on the right side"
                   :visible (display-graphic-p)
                   :button (:radio . (eq (cdr (assq 'vertical-scroll-bars
-                                                   (frame-parameters))) 'right))))
+                                                   (frame-parameters)))
+					'right))))
 
     (bindings--define-key menu [left]
       '(menu-item "On the Left"
@@ -904,7 +932,8 @@ by \"Save Options\" in Custom buffers.")
                   :help "Scroll-bar on the left side"
                   :visible (display-graphic-p)
                   :button (:radio . (eq (cdr (assq 'vertical-scroll-bars
-                                                   (frame-parameters))) 'left))))
+                                                   (frame-parameters)))
+					'left))))
 
     (bindings--define-key menu [none]
       '(menu-item "None"
@@ -912,7 +941,8 @@ by \"Save Options\" in Custom buffers.")
                   :help "Turn off scroll-bar"
                   :visible (display-graphic-p)
                   :button (:radio . (eq (cdr (assq 'vertical-scroll-bars
-                                                   (frame-parameters))) nil))))
+                                                   (frame-parameters)))
+					nil))))
     menu))
 
 (defun menu-bar-frame-for-menubar ()

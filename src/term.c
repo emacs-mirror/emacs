@@ -2411,7 +2411,7 @@ frame's terminal). */)
 	     was suspended.  */
 	  get_tty_size (fileno (t->display_info.tty->input), &width, &height);
 	  if (width != old_width || height != old_height)
-	    change_frame_size (f, width, height, 0, 0, 0, 0);
+	    change_frame_size (f, width, height - FRAME_MENU_BAR_LINES (f), 0, 0, 0, 0);
 	  SET_FRAME_VISIBLE (XFRAME (t->display_info.tty->top_frame), 1);
 	}
 
@@ -3904,6 +3904,7 @@ clear_tty_hooks (struct terminal *terminal)
   terminal->fullscreen_hook = 0;
   terminal->menu_show_hook = 0;
   terminal->set_vertical_scroll_bar_hook = 0;
+  terminal->set_horizontal_scroll_bar_hook = 0;
   terminal->condemn_scroll_bars_hook = 0;
   terminal->redeem_scroll_bar_hook = 0;
   terminal->judge_scroll_bars_hook = 0;
@@ -4225,6 +4226,7 @@ use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
     tty->specified_window = height;
 
     FRAME_VERTICAL_SCROLL_BAR_TYPE (f) = vertical_scroll_bar_none;
+    FRAME_HAS_HORIZONTAL_SCROLL_BARS (f) = 0;
     tty->char_ins_del_ok = 1;
     baud_rate = 19200;
   }

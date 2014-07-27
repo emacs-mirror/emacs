@@ -503,7 +503,8 @@ set_frame_menubar (struct frame *f, bool first_time, bool deep_p)
     /* Force the window size to be recomputed so that the frame's text
        area remains the same, if menubar has just been created.  */
     if (old_widget == NULL)
-      x_set_window_size (f, 0, FRAME_TEXT_WIDTH (f), FRAME_TEXT_HEIGHT (f), 1);
+      adjust_frame_size (f, FRAME_TEXT_WIDTH (f),
+			 FRAME_TEXT_HEIGHT (f), 2, 0);
   }
 
   unblock_input ();

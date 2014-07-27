@@ -1,3 +1,366 @@
+2014-07-27  Martin Rudalics  <rudalics@gmx.at>
+
+	* buffer.h (struct buffer): New fields scroll_bar_height and
+	horizontal_scroll_bar_type.
+	* buffer.c (bset_scroll_bar_height)
+	(bset_horizontal_scroll_bar_type): New functions.
+	(Fbuffer_swap_text): Handle old_pointm field.
+	(init_buffer_once): Set defaults for scroll_bar_height and
+	horizontal_scroll_bar_type.
+	(syms_of_buffer): New variables scroll_bar_height and
+	horizontal_scroll_bar_type.
+	* dispextern.h (window_part): Rename ON_SCROLL_BAR to
+	ON_VERTICAL_SCROLL_BAR.  Add ON_HORIZONTAL_SCROLL_BAR.
+	(set_vertical_scroll_bar): Remove prototype.
+	(x_change_tool_bar_height): Add prototype.
+	* dispnew.c (adjust_frame_glyphs_for_frame_redisplay)
+	(window_to_frame_vpos, update_frame_1, scrolling, init_display):
+	Use FRAME_TOTAL_COLS and FRAME_TOTAL_LINES instead of FRAME_COLS
+	and FRAME_LINES.
+	(adjust_frame_glyphs_for_window_redisplay): Rearrange lines.
+	(update_window): Start mode_line_row->y after horizontal scroll
+	bar.
+	(change_frame_size_1): Call adjust_frame_size.
+	(init_display): When changing the size of a tty frame do not
+	pass height of menu bar.
+	(Qframe_windows_min_size): New symbol.
+	* frame.h (struct frame): List tool bar fields after menu bar
+	fields.  Add official, total_lines, horizontal_scroll_bars,
+	config_scroll_bar_height and config_scroll_bar_lines fields.
+	(FRAME_HAS_HORIZONTAL_SCROLL_BARS)
+	(FRAME_CONFIG_SCROLL_BAR_HEIGHT, FRAME_CONFIG_SCROLL_BAR_LINES)
+	(FRAME_SCROLL_BAR_AREA_HEIGHT, FRAME_SCROLL_BAR_COLS)
+	(FRAME_SCROLL_BAR_LINES, FRAME_TOTAL_LINES, SET_FRAME_LINES)
+	(FRAME_WINDOWS_HEIGHT): New macros.
+	(SET_FRAME_HEIGHT, FRAME_TEXT_LINES_TO_PIXEL_HEIGHT)
+	(FRAME_PIXEL_Y_TO_LINE, FRAME_PIXEL_HEIGHT_TO_TEXT_LINES)
+	(FRAME_TEXT_TO_PIXEL_HEIGHT): Separately count top margin and
+	horizontal scroll bar.
+	(frame_inhibit_resize, adjust_frame_size)
+	(frame_windows_min_size): Add declarations.
+	(Qscroll_bar_height, Qhorizontal_scroll_bars)
+	(x_set_scroll_bar_default_height, x_set_left_fringe)
+	(x_set_right_fringe, x_set_vertical_scroll_bars)
+	(x_set_horizontal_scroll_bars, x_set_scroll_bar_width)
+	(x_set_scroll_bar_height): Add external declarations.
+	* frame.c: (frame_inhibit_resize, frame_windows_min_size)
+	(adjust_frame_size): New functions.
+	(make_frame): Initial horizontal_scroll_bars field.  Use
+	SET_FRAME_LINES.  Don't allow horizontal scroll bar in
+	minibuffer window.
+	(make_initial_frame, make_terminal_frame): No horizontal scroll
+	bar in initial and terminal frames.  Use adjust_frame_size.
+	(Fframe_total_cols): Fix doc-string.
+	(Fframe_total_lines, Fscroll_bar_height): New Lisp functions.
+	(Fset_frame_height, Fset_frame_width, Fset_frame_size): Rewrite
+	using adjust_frame_size.
+	(Qscroll_bar_height, Qhorizontal_scroll_bars)
+	(Qframe_windows_min_size): New symbols.
+	(x_set_frame_parameters): Remove call of check_frame_size.
+	(x_report_frame_params): Return scroll_bar_height value.
+	(x_set_left_fringe, x_set_right_fringe): New functions.
+	(adjust_frame_height, x_set_internal_border_width)
+	(x_set_fringe_width): Remove.
+	(x_set_internal_border_width, x_set_vertical_scroll_bars)
+	(x_set_scroll_bar_width, x_set_right_divider_width)
+	(x_set_bottom_divider_width): Rewrite using adjust_frame_size.
+	(x_set_horizontal_scroll_bars, x_set_scroll_bar_height): New
+	functions.
+	(x_figure_window_size): Rewrite to make frame display the
+	expected number of lines.
+	(Vdefault_frame_scroll_bars): Rewrite doc-string.
+	(Vdefault_frame_horizontal_scroll_bars)
+	(Vframe_initial_frame_tool_bar_height)
+	(frame_inhibit_implied_resize): New variables.
+	* fringe.c (compute_fringe_widths): Remove.
+	* gtkutil.h (YG_SB_MIN, YG_SB_MAX, YG_SB_RANGE): Define.
+	(xg_create_horizontal_scroll_bar)
+	(xg_update_horizontal_scrollbar_pos)
+	(xg_set_toolkit_horizontal_scroll_bar_thumb)
+	(xg_get_default_scrollbar_height)
+	(xg_clear_under_internal_border): Extern.
+	* gtkutil.c (xg_frame_resized): Don't call
+	do_pending_window_change.
+	(xg_frame_set_char_size): Use adjust_frame_size.
+	(style_changed_cb): Call update_theme_scrollbar_height and
+	x_set_scroll_bar_default_height.
+	(x_wm_set_size_hint): Don't call check_frame_size.
+	(update_theme_scrollbar_height)
+	(xg_get_default_scrollbar_height)
+	(xg_create_horizontal_scroll_bar)
+	(xg_update_horizontal_scrollbar_pos)
+	(xg_set_toolkit_horizontal_scroll_bar_thumb): New functions.
+	(xg_create_scroll_bar): Set horizontal slot of bar.
+	(xg_initialize): Call update_theme_scrollbar_height.
+	(xg_clear_under_internal_border): No more static.
+	* insdel.c (adjust_suspend_auto_hscroll): New function.
+	(adjust_markers_for_delete, adjust_markers_for_insert)
+	(adjust_markers_for_replace): Call adjust_suspend_auto_hscroll.
+	* keyboard.c (readable_events, discard_mouse_events)
+	(make_lispy_event): Handle horizontal scroll bar click events.
+	(Fsuspend_emacs): When changing the size of a tty frame do not
+	pass height of menu bar.
+	(Qbefore_handle, Qhorizontal_handle, Qafter_handle, Qleft)
+	(Qright, Qleftmost, Qrightmost): New symbols.
+	* menu.c (Fx_popup_dialog): Use FRAME_TOTAL_LINES instead of
+	FRAME_LINES.
+	* minibuf.c (read_minibuf): Initialize suspend_auto_hscroll.
+	* nsfns.m (x_set_internal_border_width): New function.
+	* nsterm.m (ns_draw_fringe_bitmap, ns_set_vertical_scroll_bar):
+	Remove extended fringe code.
+	(x_set_window_size, x_new_font): Don't call
+	compute_fringe_widths.
+	* term.c (Fresume_tty): When changing the size of a tty frame do
+	not pass height of menu bar.
+	(clear_tty_hooks, set_tty_hooks): Clear
+	horizontal_scroll_bar_hook.
+	(init_tty): Frame has no horizontal scroll bars.
+	* termhooks.h (enum scroll_bar_part): Add scroll_bar_move_ratio,
+	scroll_bar_before_handle, scroll_bar_horizontal_handle,
+	scroll_bar_after_handle, scroll_bar_left_arrow,
+	scroll_bar_right_arrow, scroll_bar_to_leftmost and
+	scroll_bar_to_rightmost entries.
+	(enum event_kind): Add HORIZONTAL_SCROLL_BAR_CLICK_EVENT
+	(struct terminal): Add set_horizontal_scroll_bar_hook.
+	* w32console.c (initialize_w32_display): Clear
+	horizontal_scroll_bar_hook.
+	* w32fns.c (x_set_mouse_color): Use FRAME_W32_DISPLAY instead of
+	FRAME_X_DISPLAY.
+	(x_clear_under_internal_border, x_set_internal_border_width):
+	New functions.
+	(x_set_menu_bar_lines): Rewrite using frame_inhibit_resize.  Set
+	windows_or_buffers_changed when adding the menu bar.
+	(x_set_tool_bar_lines): Rewrite using adjust_frame_size.
+	(x_change_tool_bar_height, x_set_scroll_bar_default_height)
+	(w32_createhscrollbar): New functions.
+	(w32_createscrollbar): Rename to w32_createvscrollbar.
+	(w32_createwindow): Init WND_HSCROLLBAR_INDEX.
+	(w32_name_of_message): Replace WM_EMACS_CREATESCROLLBAR by
+	WM_EMACS_CREATEVSCROLLBAR and WM_EMACS_CREATEHSCROLLBAR.  Add
+	WM_EMACS_SHOWCURSOR.
+	(w32_wnd_proc): Handle WM_HSCROLL case.  In WM_WINDOWPOSCHANGING
+	case do not artificially impose WM size hints.  Handle
+	WM_EMACS_SHOWCURSOR case.  Replace WM_EMACS_CREATESCROLLBAR case
+	by WM_EMACS_CREATEVSCROLLBAR and WM_EMACS_CREATEHSCROLLBAR
+	cases.
+	(my_create_tip_window): Replace WND_SCROLLBAR_INDEX by
+	WND_VSCROLLBAR_INDEX and WND_HSCROLLBAR_INDEX.
+	(unwind_create_frame_1): Remove.
+	(Fx_create_frame): Make both scrollbars the system standard
+	width and height.  Use official field of frame structure to
+	inhibit running window-configuration-change-hook.
+	(x_create_tip_frame): Call SET_FRAME_LINES and change_frame_size
+	pixelwise.  Handle frame's official field.
+	(w32_frame_parm_handlers): Remove x_set_fringe_width
+	entries. Add x_set_scroll_bar_height,
+	x_set_horizontal_scroll_bars, x_set_left_fringe and
+	x_set_right_fringe.
+	* w32inevt.c (resize_event, maybe_generate_resize_event): Do not
+	pass height of menu bar to change_frame_size.
+	* w32menu.c (set_frame_menubar): Rewrite using
+	frame_inhibit_resize.
+	* w32term.h (struct w32_display_info): Add
+	horizontal_scroll_bar_cursor and cursor_display_counter.
+	(struct scroll_bar): Add horizontal.
+	(HORIZONTAL_SCROLL_BAR_INSIDE_HEIGHT)
+	(HORIZONTAL_SCROLL_BAR_LEFT_RANGE)
+	(HORIZONTAL_SCROLL_BAR_INSIDE_WIDTH)
+	(HORIZONTAL_SCROLL_BAR_LEFT_BORDER)
+	(HORIZONTAL_SCROLL_BAR_RIGHT_BORDER)
+	(HORIZONTAL_SCROLL_BAR_TOP_BORDER)
+	(HORIZONTAL_SCROLL_BAR_BOTTOM_BORDER)
+	(HORIZONTAL_SCROLL_BAR_MIN_HANDLE): New macros.
+	(WM_EMACS_CREATEVSCROLLBAR, WM_EMACS_CREATEHSCROLLBAR): Define
+	instead of WM_EMACS_CREATESCROLLBAR.
+	(WND_VSCROLLBAR_INDEX, WND_HSCROLLBAR_INDEX): Define instead of
+	WND_SCROLLBAR_INDEX.
+	* w32term.c (horizontal_scroll_bar_min_handle)
+	(horizontal_scroll_bar_left_border)
+	(horizontal_scroll_bar_right_border): New integers.
+	(x_set_frame_alpha): Replace x_highlight_frame by
+	w32_focus_frame.
+	(x_window_to_scroll_bar): New argument "type".  Update callers
+	accordingly.
+	(w32_set_horizontal_scroll_bar_thumb)
+	(x_horizontal_scroll_bar_report_motion)
+	(w32_set_horizontal_scroll_bar)
+	(w32_horizontal_scroll_bar_handle_click)
+	(x_horizontal_scroll_bar_report_motion): New functions.
+	(w32_mouse_position): Discriminate horizontal and vertical
+	scrollbar cases.
+	(my_create_scrollbar): Replace with two new functions
+	my_create_vscrollbar and my_create_hscrollbar.
+	(x_scroll_bar_create): New argument "horizontal".  Update
+	callers accordingly.
+	(x_scroll_bar_remove, w32_condemn_scroll_bars)
+	(w32_redeem_scroll_bar, x_scroll_bar_clear): Handle horizontal
+	scroll bar case.
+	(w32_read_socket): Handle WM_HSCROLL cae.
+	(x_new_font): Don't recompute fringe widths.  Use
+	frame_inhibit_resize.  Calculate new menu bar height iff we
+	build without toolkit.  Always clear under internal border.
+	(x_set_window_size): Don't check frame size or recompute
+	fringes.  Reset fullscreen status before applying sizes.  Always
+	resize as requested by pixelwise argument.  Don't call
+	do_pending_window_change.
+	(x_wm_set_size_hint): Add call for FRAME_SCROLL_BAR_AREA_HEIGHT.
+	(w32_initialize_display_info): Initialize dpyinfo's
+	horizontal_scroll_bar_cursor entry.
+	(w32_create_terminal): Add set_horizontal_scroll_bar_hook.
+	(w32_initialize): Init horizontal_scroll_bar_min_handle and
+	horizontal_scroll_bar_left_border.
+	(w32fullscreen_hook): Intermittently resize window to normal
+	when switching from fullscreen to maximized state.
+	(run_window_configuration_change_hook): Don't run it if frame is
+	not official yet.
+	(unwind_change_frame): Remove.
+	(Fset_window_configuration): Rewrite using frame's official field.
+	* widget.c (set_frame_size): Don't call compute_fringe_widths.
+	(EmacsFrameSetCharSize): Obey frame_inhibit_resize.
+	* window.h (struct window): New fields old_pointm,
+	horizontal_scroll_bar, horizontal_scroll_bar_type, hscroll_whole,
+	scroll_bar_height and suspend_auto_hscroll.
+	(wset_horizontal_scroll_bar, wset_horizontal_scroll_bar_type):
+	New functions.
+	(sanitize_window_sizes): Extern.
+	(MINI_NON_ONLY_WINDOW_P, MINI_ONLY_WINDOW_P, WINDOW_PSEUDO_P)
+	(WINDOW_TOPMOST_P, WINDOW_HAS_HORIZONTAL_SCROLL_BAR)
+	(WINDOW_CONFIG_SCROLL_BAR_HEIGHT)
+	(WINDOW_CONFIG_SCROLL_BAR_LINES)
+	(WINDOW_SCROLL_BAR_LINES, WINDOW_SCROLL_BAR_AREA_HEIGHT): New
+	macros.
+	(WINDOW_LEFT_FRINGE_COLS, WINDOW_RIGHT_FRINGE_COLS)
+	(WINDOW_FRINGE_COLS, WINDOW_FRINGE_EXTENDED_P): Remove macros.
+	(WINDOW_VERTICAL_SCROLL_BAR_TYPE)
+	(WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_LEFT)
+	(WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_RIGHT)
+	(WINDOW_HAS_VERTICAL_SCROLL_BAR): Minor rewrite.
+	(WINDOW_BOX_HEIGHT_NO_MODE_LINE, WINDOW_BOX_TEXT_HEIGHT)
+	(WINDOW_SCROLL_BAR_AREA_Y): Count in scroll bar height.
+	* window.c (wset_old_pointm, Fwindow_scroll_bar_height)
+	(Fwindow_old_point, sanitize_window_sizes): New functions.
+	(Qwindow_sanitize_window_sizes): New symbol.
+	(window_body_height): Count in horizontal scroll bar.
+	(set_window_hscroll, Fscroll_left, Fscroll_right): Set
+	suspend_auto_hscroll slot.
+	(Fwindow_inside_edges): Count fringes pixelwise.
+	(coordinates_in_window, Fcoordinates_in_window_p): Consider
+	horizontal scroll bar.
+	(check_frame_size, adjust_window_margins): Remove functions and
+	corresponding calls.
+	(set_window_buffer): Initialize old_pointm and horizontal scroll
+	bars.
+	(temp_output_buffer_show): Reset hscroll related fields.
+	Initialize old_pointm.
+	(make_parent_window): Initialize old_pointm.
+	(make_window): Initialize old_pointm, horizontal scroll bar type,
+	and scroll bar height.
+	(resize_frame_windows): Don't count top margin in new sizes.
+	Don't use safe sizes when shrinking a frame; let the window
+	manager do the clipping.
+	(Fsplit_window_internal): Inherit horizontal scroll bar type and
+	height.
+	(Fdelete_window_internal): Unchain old_pointm marker.
+	(window_scroll_pixel_based, Fscroll_other_window): Adjust
+	old_pointm.
+	(Fwindow_text_width, Fwindow_text_height): New argument
+	"pixelwise".
+	(struct saved_window): New fields, old_pointm, hscroll_whole,
+	suspend_auto_hscroll, scroll_bar_height and
+	horizontal_scroll_bar_type.
+	(Fset_window_configuration, save_window_save): Set new fields of
+	saved_window.
+	(apply_window_adjustment): Don't call adjust_window_margins.
+	(set_window_margins): Don't change margins if new sizes don't
+	fit into window.
+	(set_window_scroll_bars): New argument "horizontal_type".
+	Handle horizontal scroll bars.  Don't change scroll bars if they
+	don't fit into window.
+	(Fset_window_scroll_bars): New argument "horizontal_type".
+	(Fwindow_scroll_bars): Return values for horizontal scroll bars.
+	(compare_window_configurations): Compare horizontal scroll bar
+	settings.
+	* xdisp.c (window_text_bottom_y, window_box_height): Count in
+	horizontal scroll bar height.
+	(pixel_to_glyph_coords, init_xdisp): Use FRAME_TOTAL_LINES
+	instead of FRAME_LINES.
+	(remember_mouse_glyph): Case ON_SCROLL_BAR changed to
+	ON_VERTICAL_SCROLL_BAR.
+	(with_echo_area_buffer): Initialize old_pointm.
+	(with_echo_area_buffer_unwind_data): Store old_pointm values in
+	vector.
+	(unwind_with_echo_area_buffer): Handle old_pointm.
+	(update_tool_bar): Set do_update when the tool bar window has at
+	least one line (since this is what the user sets).
+	(MAX_FRAME_TOOL_BAR_HEIGHT): Remove macro.
+	(redisplay_tool_bar): Return early when toolbar has zero lines.
+	Call x_change_tool_bar_height.  Don't use max_tool_bar_height.
+	(hscroll_window_tree): Handle suspension of auto_hscroll and
+	old_pointm.
+	(set_horizontal_scroll_bar): New function.
+	(redisplay_window): Set ignore_mouse_drag_p when tool bar has
+	more than one line.  Handle horizontal scroll bars.
+	(note_mouse_highlight): Handle horizontal scrol bars.
+	(expose_frame): Set dimensions of XRectangle from frame's text
+	sizes.
+	(Vvoid_text_area_pointer): Update doc-string.
+	* xfns.c (x_set_menu_bar_lines): Use adjust_frame_size.
+	(x_change_tool_bar_height, x_set_scroll_bar_default_height)
+	(x_set_internal_border_width): New functions.
+	(x_set_tool_bar_lines): Call x_change_tool_bar_height.
+	(unwind_create_frame_1): Remove.
+	(Fx_create_frame): Handle horizontal scroll bars.  Use official
+	field of frame structure to inhibit running
+	window-configuration-change-hook.
+	(x_create_tip_frame): Call SET_FRAME_LINES and change_frame_size
+	pixelwise.  Handle frame's official field.
+	(x_frame_parm_handlers): Add x_set_scroll_bar_height,
+	x_set_horizontal_scroll_bars, x_set_left_fringe,
+	x_set_right_fringe.
+	* xmenu.c (update_frame_menubar, free_frame_menubar): Use
+	adjust_frame_size.
+	* xterm.h (struct x_display_info): Add
+	horizontal_scroll_bar_cursor and Xatom_Horizontal_Scrollbar
+	slots.
+	(struct scroll_bar): Add horizontal slot.
+	(HORIZONTAL_SCROLL_BAR_INSIDE_HEIGHT)
+	(HORIZONTAL_SCROLL_BAR_LEFT_RANGE)
+	(HORIZONTAL_SCROLL_BAR_INSIDE_WIDTH): New macros.
+	(HORIZONTAL_SCROLL_BAR_LEFT_BORDER)
+	(HORIZONTAL_SCROLL_BAR_RIGHT_BORDER)
+	(HORIZONTAL_SCROLL_BAR_TOP_BORDER)
+	(HORIZONTAL_SCROLL_BAR_BOTTOM_BORDER)
+	(HORIZONTAL_SCROLL_BAR_MIN_HANDLE): Define.
+	(x_clear_under_internal_border): Remove.
+	* xterm.c (XTmouse_position): Handle horizontal scroll bars.
+	(x_window_to_scroll_bar): New argument TYPE.  Update callers.
+	(x_send_scroll_bar_event, x_scroll_bar_create): New arguments
+	HORIZONTAL.  Update callers.
+	(horizontal_action_hook_id): New action hook id.
+	(x_horizontal_scroll_bar_to_input_event)
+	(x_create_horizontal_toolkit_scroll_bar)
+	(xt_horizontal_action_hook)
+	(x_set_toolkit_horizontal_scroll_bar_thumb)
+	(XTset_horizontal_scroll_bar, x_net_wm_state)
+	(x_horizontal_scroll_bar_report_motion): New functions.
+	(xg_scroll_callback, x_scroll_bar_handle_click): Handle
+	horizontal scroll bars.
+	(SCROLL_BAR_HORIZONTAL_NAME): Define.
+	(XTset_vertical_scroll_bar): Attempt to clear areas not covered
+	by scroll bar.
+	(XTcondemn_scroll_bars, XTredeem_scroll_bar): Rewrite.  Handle
+	horizontal scroll bars.
+	(handle_one_xevent): Handle horizontal scroll bar events.  Call
+	x_net_wm_state.
+	(x_set_window_size_1, x_wm_set_size_hint): Don't call
+	check_frame_size.
+	(x_set_window_size): Don't call check_frame_size and
+	do_pending_window_change.
+	(x_term_init): Init horizontal_scroll_bar_cursor display info.
+	(x_create_terminal): Add set_horizontal_scroll_bar_hook.
+	(x_scroll_bar_set_handle): Add some checks when calling
+	x_clear_area.
+
 2014-07-26  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Revert previous change.

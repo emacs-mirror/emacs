@@ -657,6 +657,7 @@ initialize_w32_display (struct terminal *term, int *width, int *height)
   term->frame_rehighlight_hook = 0;
   term->frame_raise_lower_hook = 0;
   term->set_vertical_scroll_bar_hook = 0;
+  term->set_horizontal_scroll_bar_hook = 0;
   term->condemn_scroll_bars_hook = 0;
   term->redeem_scroll_bar_hook = 0;
   term->judge_scroll_bars_hook = 0;

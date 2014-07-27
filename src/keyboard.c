@@ -3464,7 +3464,8 @@ readable_events (int flags)
 		    event->kind == FOCUS_IN_EVENT)
 #ifdef USE_TOOLKIT_SCROLL_BARS
 		  && !((flags & READABLE_EVENTS_IGNORE_SQUEEZABLES)
-		       && event->kind == SCROLL_BAR_CLICK_EVENT
+		       && (event->kind == SCROLL_BAR_CLICK_EVENT
+			   || event->kind == HORIZONTAL_SCROLL_BAR_CLICK_EVENT)
 		       && event->part == scroll_bar_handle
 		       && event->modifiers == 0)
 #endif
@@ -3761,7 +3762,8 @@ discard_mouse_events (void)
 #ifdef HAVE_GPM
 	  || sp->kind == GPM_CLICK_EVENT
 #endif
-	  || sp->kind == SCROLL_BAR_CLICK_EVENT)
+	  || sp->kind == SCROLL_BAR_CLICK_EVENT
+	  || sp->kind == HORIZONTAL_SCROLL_BAR_CLICK_EVENT)
 	{
 	  sp->kind = NO_EVENT;
 	}
@@ -5160,15 +5162,18 @@ static const char *const lispy_drag_n_drop_names[] =
 
 /* Scroll bar parts.  */
 static Lisp_Object Qabove_handle, Qhandle, Qbelow_handle;
-Lisp_Object Qup, Qdown, Qbottom;
+static Lisp_Object Qbefore_handle, Qhorizontal_handle, Qafter_handle;
+Lisp_Object Qup, Qdown, Qtop, Qbottom;
+Lisp_Object Qleft, Qright, Qleftmost, Qrightmost;
 static Lisp_Object Qend_scroll;
-Lisp_Object Qtop;
 static Lisp_Object Qratio;
 
 /* An array of scroll bar parts, indexed by an enum scroll_bar_part value.  */
 static Lisp_Object *const scroll_bar_parts[] = {
   &Qabove_handle, &Qhandle, &Qbelow_handle,
-  &Qup, &Qdown, &Qtop, &Qbottom, &Qend_scroll, &Qratio
+  &Qup, &Qdown, &Qtop, &Qbottom, &Qend_scroll, &Qratio,
+  &Qbefore_handle, &Qhorizontal_handle, &Qafter_handle,
+  &Qleft, &Qright, &Qleftmost, &Qrightmost, &Qend_scroll, &Qratio
 };
 
 /* A vector, indexed by button number, giving the down-going location
@@ -5546,6 +5551,7 @@ make_lispy_event (struct input_event *event)
 #endif
 #ifndef USE_TOOLKIT_SCROLL_BARS
     case SCROLL_BAR_CLICK_EVENT:
+    case HORIZONTAL_SCROLL_BAR_CLICK_EVENT:
 #endif
       {
 	int button = event->code;
@@ -5925,6 +5931,36 @@ make_lispy_event (struct input_event *event)
 	part = *scroll_bar_parts[(int) event->part];
 
 	position = list5 (window, Qvertical_scroll_bar, portion_whole,
+			  make_number (event->timestamp), part);
+
+	/* Always treat scroll bar events as clicks.  */
+	event->modifiers |= click_modifier;
+	event->modifiers &= ~up_modifier;
+
+	if (event->code >= ASIZE (mouse_syms))
+          mouse_syms = larger_vector (mouse_syms,
+				      event->code - ASIZE (mouse_syms) + 1,
+				      -1);
+
+	/* Get the symbol we should use for the mouse click.  */
+	head = modify_event_symbol (event->code,
+				    event->modifiers,
+				    Qmouse_click,
+				    Vlispy_mouse_stem,
+				    NULL, &mouse_syms,
+				    ASIZE (mouse_syms));
+	return list2 (head, position);
+      }
+
+    case HORIZONTAL_SCROLL_BAR_CLICK_EVENT:
+      {
+	Lisp_Object position, head, window, portion_whole, part;
+
+	window = event->frame_or_window;
+	portion_whole = Fcons (event->x, event->y);
+	part = *scroll_bar_parts[(int) event->part];
+
+	position = list5 (window, Qhorizontal_scroll_bar, portion_whole,
 			  make_number (event->timestamp), part);
 
 	/* Always treat scroll bar events as clicks.  */
@@ -10177,7 +10213,8 @@ On such systems, Emacs starts a subshell instead of suspending.  */)
      with a window system; but suspend should be disabled in that case.  */
   get_tty_size (fileno (CURTTY ()->input), &width, &height);
   if (width != old_width || height != old_height)
-    change_frame_size (SELECTED_FRAME (), width, height, 0, 0, 0, 0);
+    change_frame_size (SELECTED_FRAME (), width, height
+		       - FRAME_MENU_BAR_LINES (SELECTED_FRAME ()), 0, 0, 0, 0);
 
   /* Run suspend-resume-hook.  */
   hook = intern ("suspend-resume-hook");
@@ -11026,6 +11063,13 @@ syms_of_keyboard (void)
   DEFSYM (Qbottom, "bottom");
   DEFSYM (Qend_scroll, "end-scroll");
   DEFSYM (Qratio, "ratio");
+  DEFSYM (Qbefore_handle, "before-handle");
+  DEFSYM (Qhorizontal_handle, "horizontal-handle");
+  DEFSYM (Qafter_handle, "after-handle");
+  DEFSYM (Qleft, "left");
+  DEFSYM (Qright, "right");
+  DEFSYM (Qleftmost, "leftmost");
+  DEFSYM (Qrightmost, "rightmost");
 
   DEFSYM (Qevent_kind, "event-kind");
   DEFSYM (Qevent_symbol_elements, "event-symbol-elements");

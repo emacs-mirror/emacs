@@ -1,3 +1,39 @@
+2014-07-27  Martin Rudalics  <rudalics@gmx.at>
+
+	* frame.el (frame-notice-user-settings): Rewrite using
+	frame-initial-frame-tool-bar-height.
+	* menu-bar.el (menu-bar-horizontal-scroll-bar)
+	(menu-bar-no-horizontal-scroll-bar): New functions.
+	(menu-bar-showhide-scroll-bar-menu): Add bindings for horizontal
+	scroll bars.
+	* scroll-bar.el (scroll-bar-lines)
+	(set-horizontal-scroll-bar-mode)
+	(get-horizontal-scroll-bar-mode, horizontal-scroll-bar-mode)
+	(scroll-bar-horizontal-drag-1, scroll-bar-horizontal-drag)
+	(scroll-bar-toolkit-horizontal-scroll): New functions.
+	(horizontal-scroll-bar-mode)
+	(previous-horizontal-scroll-bar-mode)
+	(horizontal-scroll-bar-mode-explicit): New variables.
+	(horizontal-scroll-bar-mode): New option.
+	(toggle-horizontal-scroll-bar): Do something.
+	(top-level): Bind horizontal-scroll-bar mouse-1.
+	* startup.el (tool-bar-originally-present): Remove variable.
+	(command-line): Don't set tool-bar-originally-present.
+	* window.el (window-min-height): Update doc-string.
+	(window--dump-frame): Dump horizontal scroll bar values.
+	(window--min-size-1): Handle minibuffer window separately.
+	Count in margins and horizontal scroll bar.  Return safe value
+	iff IGNORE equals 'safe.
+	(frame-windows-min-size): New function (used by frame resizing
+	routines).
+	(fit-frame-to-buffer, fit-window-to-buffer): Count in horizontal
+	scroll bars.
+	(window--sanitize-window-sizes): New function.
+	(window-split-min-size): Remove.
+	(split-window): Count divider-width.  Don't use
+	`window-split-min-size' any more.  Reword error messages.
+	Sanitize windows sizes after splitting.
+
 2014-07-27  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	Use `defvar-local' more.

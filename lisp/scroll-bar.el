@@ -70,14 +70,34 @@ SIDE must be the symbol `left' or `right'."
                (frame-char-width)))
      (0))))
 
+(defun scroll-bar-lines ()
+  "Return the height, measured in lines, of the horizontal scrollbar."
+  (let* ((wsb   (window-scroll-bars))
+         (htype (nth 5 wsb))
+         (lines  (nth 4 wsb)))
+    (cond
+     (htype lines)
+     ((frame-parameter nil 'horizontal-scroll-bars)
+      ;; nil means it's a non-toolkit scroll bar (which is currently
+      ;; impossible), and its width in columns is 14 pixels rounded up.
+      (ceiling (or (frame-parameter nil 'scroll-bar-height) 14)
+               (frame-char-width)))
+     (0))))
+
 
 ;;;; Helpful functions for enabling and disabling scroll bars.
 
 (defvar scroll-bar-mode)
+(defvar horizontal-scroll-bar-mode)
 (defvar previous-scroll-bar-mode nil)
+(defvar previous-horizontal-scroll-bar-mode nil)
 
 (defvar scroll-bar-mode-explicit nil
   "Non-nil means `set-scroll-bar-mode' should really do something.
+This is nil while loading `scroll-bar.el', and t afterward.")
+
+(defvar horizontal-scroll-bar-mode-explicit nil
+  "Non-nil means `set-horizontal-scroll-bar-mode' should really do something.
 This is nil while loading `scroll-bar.el', and t afterward.")
 
 (defun set-scroll-bar-mode (value)
@@ -91,6 +111,18 @@ See the `scroll-bar-mode' variable for possible values to use."
   (when scroll-bar-mode-explicit
     (modify-all-frames-parameters (list (cons 'vertical-scroll-bars
 					      scroll-bar-mode)))))
+
+(defun set-horizontal-scroll-bar-mode (value)
+  "Set the horizontal scroll bar mode to VALUE and put the new value into effect.
+See the `horizontal-scroll-bar-mode' variable for possible values to use."
+  (if horizontal-scroll-bar-mode
+      (setq previous-horizontal-scroll-bar-mode horizontal-scroll-bar-mode))
+
+  (setq horizontal-scroll-bar-mode value)
+
+  (when horizontal-scroll-bar-mode-explicit
+    (modify-all-frames-parameters (list (cons 'horizontal-scroll-bars
+					      horizontal-scroll-bar-mode)))))
 
 (defcustom scroll-bar-mode default-frame-scroll-bars
   "Specify whether to have vertical scroll bars, and on which side.
@@ -108,13 +140,31 @@ Setting the variable with a customization buffer also takes effect."
   :initialize 'custom-initialize-default
   :set (lambda (_sym val) (set-scroll-bar-mode val)))
 
+(defcustom horizontal-scroll-bar-mode default-frame-horizontal-scroll-bars
+  "Specify whether to have horizontal scroll bars, and on which side.
+To set this variable in a Lisp program, use `set-horizontal-scroll-bar-mode'
+to make it take real effect.
+Setting the variable with a customization buffer also takes effect."
+  :type '(choice (const :tag "none (nil)" nil)
+		 (const t))
+  :group 'frames
+  ;; The default value for :initialize would try to use :set
+  ;; when processing the file in cus-dep.el.
+  :initialize 'custom-initialize-default
+  :set (lambda (_sym val) (set-horizontal-scroll-bar-mode val)))
+
 ;; We just set scroll-bar-mode, but that was the default.
 ;; If it is set again, that is for real.
 (setq scroll-bar-mode-explicit t)
+(setq horizontal-scroll-bar-mode-explicit t)
 
 (defun get-scroll-bar-mode ()
   (declare (gv-setter set-scroll-bar-mode))
   scroll-bar-mode)
+
+(defun get-horizontal-scroll-bar-mode ()
+  (declare (gv-setter set-horizontal-scroll-bar-mode))
+  horizontal-scroll-bar-mode)
 
 (define-minor-mode scroll-bar-mode
   "Toggle vertical scroll bars on all frames (Scroll Bar mode).
@@ -126,8 +176,21 @@ This command applies to all frames that exist and frames to be
 created in the future."
   :variable ((get-scroll-bar-mode)
              . (lambda (v) (set-scroll-bar-mode
-                       (if v (or previous-scroll-bar-mode
-                                 default-frame-scroll-bars))))))
+			    (if v (or previous-scroll-bar-mode
+				      default-frame-scroll-bars))))))
+
+(define-minor-mode horizontal-scroll-bar-mode
+  "Toggle horizontal scroll bars on all frames (Horizontal Scroll Bar mode).
+With a prefix argument ARG, enable Horizontal Scroll Bar mode if
+ARG is positive, and disable it otherwise.  If called from Lisp,
+enable the mode if ARG is omitted or nil.
+
+This command applies to all frames that exist and frames to be
+created in the future."
+  :variable ((get-horizontal-scroll-bar-mode)
+             . (lambda (v) (set-horizontal-scroll-bar-mode
+			    (if v (or previous-scroll-bar-mode
+				      default-frame-horizontal-scroll-bars))))))
 
 (defun toggle-scroll-bar (arg)
   "Toggle whether or not the selected frame has vertical scroll bars.
@@ -147,12 +210,21 @@ when they are turned on; if it is nil, they go on the left."
 	       (if (> arg 0)
 		   (or scroll-bar-mode default-frame-scroll-bars))))))
 
-(defun toggle-horizontal-scroll-bar (_arg)
+(defun toggle-horizontal-scroll-bar (arg)
   "Toggle whether or not the selected frame has horizontal scroll bars.
-With arg, turn horizontal scroll bars on if and only if arg is positive.
-Horizontal scroll bars aren't implemented yet."
+With arg, turn horizontal scroll bars on if and only if arg is positive."
   (interactive "P")
-  (error "Horizontal scroll bars aren't implemented yet"))
+  (if (null arg)
+      (setq arg
+	    (if (cdr (assq 'horizontal-scroll-bars
+			   (frame-parameters (selected-frame))))
+		-1 1))
+    (setq arg (prefix-numeric-value arg)))
+  (modify-frame-parameters
+   (selected-frame)
+   (list (cons 'horizontal-scroll-bars
+	       (if (> arg 0)
+		   (or horizontal-scroll-bar-mode default-frame-horizontal-scroll-bars))))))
 
 ;;;; Buffer navigation using the scroll bar.
 
@@ -249,6 +321,45 @@ If you click outside the slider, the window scrolls to bring the slider there."
     (with-current-buffer (window-buffer window)
       (setq point-before-scroll before-scroll))))
 
+;; Scroll the window to the proper position for EVENT.
+(defun scroll-bar-horizontal-drag-1 (event)
+  (let* ((start-position (event-start event))
+	 (window (nth 0 start-position))
+	 (portion-whole (nth 2 start-position))
+	 (unit (frame-char-width (window-frame window))))
+    (set-window-hscroll
+     window (/ (1- (+ (car portion-whole) unit)) unit))))
+
+(defun scroll-bar-horizontal-drag (event)
+  "Scroll the window horizontally by dragging the scroll bar slider.
+If you click outside the slider, the window scrolls to bring the slider there."
+  (interactive "e")
+  (let* (done
+	 (echo-keystrokes 0)
+	 (end-position (event-end event))
+	 (window (nth 0 end-position))
+	 (before-scroll))
+    (with-current-buffer (window-buffer window)
+      (setq before-scroll point-before-scroll))
+    (save-selected-window
+      (select-window window)
+      (setq before-scroll
+	    (or before-scroll (point))))
+    (scroll-bar-horizontal-drag-1 event)
+    (track-mouse
+      (while (not done)
+	(setq event (read-event))
+	(if (eq (car-safe event) 'mouse-movement)
+	    (setq event (read-event)))
+	(cond ((eq (car-safe event) 'scroll-bar-movement)
+	       (scroll-bar-horizontal-drag-1 event))
+	      (t
+	       ;; Exit when we get the drag event; ignore that event.
+	       (setq done t)))))
+    (sit-for 0)
+    (with-current-buffer (window-buffer window)
+      (setq point-before-scroll before-scroll))))
+
 (defun scroll-bar-scroll-down (event)
   "Scroll the window's top line down to the location of the scroll bar click.
 EVENT should be a scroll bar click."
@@ -300,47 +411,92 @@ EVENT should be a scroll bar click."
 	 (window (nth 0 end-position))
 	 (part (nth 4 end-position))
 	 before-scroll)
-    (cond ((eq part 'end-scroll))
-	  (t
-	   (with-current-buffer (window-buffer window)
-	     (setq before-scroll point-before-scroll))
-	   (save-selected-window
-	     (select-window window)
-	     (setq before-scroll (or before-scroll (point)))
-	     (cond ((eq part 'above-handle)
-		    (scroll-up '-))
-		   ((eq part 'below-handle)
-		    (scroll-up nil))
-		   ((eq part 'ratio)
-		    (let* ((portion-whole (nth 2 end-position))
-			   (lines (scroll-bar-scale portion-whole
-						    (1- (window-height)))))
-		      (scroll-up (cond ((not (zerop lines)) lines)
-				       ((< (car portion-whole) 0) -1)
-				       (t 1)))))
-		   ((eq part 'up)
-		    (scroll-up -1))
-		   ((eq part 'down)
-		    (scroll-up 1))
-		   ((eq part 'top)
-		    (set-window-start window (point-min)))
-		   ((eq part 'bottom)
-		    (goto-char (point-max))
-		    (recenter))
-		   ((eq part 'handle)
-		    (scroll-bar-drag-1 event))))
-	   (sit-for 0)
-	   (with-current-buffer (window-buffer window)
-	     (setq point-before-scroll before-scroll))))))
+    (cond
+     ((eq part 'end-scroll))
+     (t
+      (with-current-buffer (window-buffer window)
+	(setq before-scroll point-before-scroll))
+      (save-selected-window
+	(select-window window)
+	(setq before-scroll (or before-scroll (point)))
+	(cond
+	 ((eq part 'above-handle)
+	  (scroll-up '-))
+	 ((eq part 'below-handle)
+	  (scroll-up nil))
+	 ((eq part 'ratio)
+	  (let* ((portion-whole (nth 2 end-position))
+		 (lines (scroll-bar-scale portion-whole
+					  (1- (window-height)))))
+	    (scroll-up (cond ((not (zerop lines)) lines)
+			     ((< (car portion-whole) 0) -1)
+			     (t 1)))))
+	 ((eq part 'up)
+	  (scroll-up -1))
+	 ((eq part 'down)
+	  (scroll-up 1))
+	 ((eq part 'top)
+	  (set-window-start window (point-min)))
+	 ((eq part 'bottom)
+	  (goto-char (point-max))
+	  (recenter))
+	 ((eq part 'handle)
+	  (scroll-bar-drag-1 event))))
+      (sit-for 0)
+      (with-current-buffer (window-buffer window)
+	(setq point-before-scroll before-scroll))))))
 
-
+(defun scroll-bar-toolkit-horizontal-scroll (event)
+  (interactive "e")
+  (let* ((end-position (event-end event))
+	 (window (nth 0 end-position))
+	 (part (nth 4 end-position))
+	 before-scroll)
+    (cond
+     ((eq part 'end-scroll))
+     (t
+      (with-current-buffer (window-buffer window)
+	(setq before-scroll point-before-scroll))
+      (save-selected-window
+	(select-window window)
+	(setq before-scroll (or before-scroll (point)))
+	(cond
+	 ((eq part 'before-handle)
+	  (scroll-right 4))
+	 ((eq part 'after-handle)
+	  (scroll-left 4))
+	 ((eq part 'ratio)
+	  (let* ((portion-whole (nth 2 end-position))
+		 (columns (scroll-bar-scale portion-whole
+					    (1- (window-width)))))
+	    (scroll-right
+	     (cond
+	      ((not (zerop columns))
+	       columns)
+	      ((< (car portion-whole) 0) -1)
+	      (t 1)))))
+	 ((eq part 'left)
+	  (scroll-right 1))
+	 ((eq part 'right)
+	  (scroll-left 1))
+	 ((eq part 'leftmost)
+	  (goto-char (line-beginning-position)))
+	 ((eq part 'rightmost)
+	  (goto-char (line-end-position)))
+	 ((eq part 'horizontal-handle)
+	  (scroll-bar-horizontal-drag-1 event))))
+      (sit-for 0)
+      (with-current-buffer (window-buffer window)
+	(setq point-before-scroll before-scroll))))))
 
 ;;;; Bindings.
 
 ;; For now, we'll set things up to work like xterm.
 (cond ((and (boundp 'x-toolkit-scroll-bars) x-toolkit-scroll-bars)
        (global-set-key [vertical-scroll-bar mouse-1]
-		       'scroll-bar-toolkit-scroll))
+		       'scroll-bar-toolkit-scroll)
+       (global-set-key [horizontal-scroll-bar mouse-1]
+		       'scroll-bar-toolkit-horizontal-scroll))
       (t
        (global-set-key [vertical-scroll-bar mouse-1]
 		       'scroll-bar-scroll-up)

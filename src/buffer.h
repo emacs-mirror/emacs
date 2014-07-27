@@ -694,10 +694,12 @@ struct buffer
      othersize draw them between margin areas and text.  */
   Lisp_Object INTERNAL_FIELD (fringes_outside_margins);
 
-  /* Width and type of scroll bar areas for windows displaying
+  /* Width, height and types of scroll bar areas for windows displaying
      this buffer.  */
   Lisp_Object INTERNAL_FIELD (scroll_bar_width);
+  Lisp_Object INTERNAL_FIELD (scroll_bar_height);
   Lisp_Object INTERNAL_FIELD (vertical_scroll_bar_type);
+  Lisp_Object INTERNAL_FIELD (horizontal_scroll_bar_type);
 
   /* Non-nil means indicate lines not displaying text (in a style
      like vi).  */
@@ -1135,7 +1137,8 @@ extern Lisp_Object Qbefore_change_functions;
 extern Lisp_Object Qafter_change_functions;
 extern Lisp_Object Qfirst_change_hook;
 extern Lisp_Object Qpriority, Qbefore_string, Qafter_string;
-extern Lisp_Object Qchoice, Qrange, Qleft, Qright, Qvertical_scroll_bar;
+extern Lisp_Object Qchoice, Qrange, Qleft, Qright;
+extern Lisp_Object Qvertical_scroll_bar, Qhorizontal_scroll_bar;
 
 /* FOR_EACH_LIVE_BUFFER (LIST_VAR, BUF_VAR) followed by a statement is
    a `for' loop which iterates over the buffers from Vbuffer_alist.  */

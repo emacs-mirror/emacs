@@ -651,6 +651,7 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
   set_window_buffer (minibuf_window, Fcurrent_buffer (), 0, 0);
   Fselect_window (minibuf_window, Qnil);
   XWINDOW (minibuf_window)->hscroll = 0;
+  XWINDOW (minibuf_window)->suspend_auto_hscroll = 0;
 
   Fmake_local_variable (Qprint_escape_newlines);
   print_escape_newlines = 1;

@@ -115,6 +115,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define XG_BIN_CHILD(x) gtk_bin_get_child (GTK_BIN (x))
 
 static void update_theme_scrollbar_width (void);
+static void update_theme_scrollbar_height (void);
 
 #define TB_INFO_KEY "xg_frame_tb_info"
 struct xg_frame_tb_info
@@ -821,7 +822,7 @@ xg_set_geometry (struct frame *f)
 /* Clear under internal border if any.  As we use a mix of Gtk+ and X calls
    and use a GtkFixed widget, this doesn't happen automatically.  */
 
-static void
+void
 xg_clear_under_internal_border (struct frame *f)
 {
   if (FRAME_INTERNAL_BORDER_WIDTH (f) > 0)
@@ -883,6 +884,8 @@ xg_frame_resized (struct frame *f, int pixelwidth, int pixelheight)
       change_frame_size (f, width, height, 0, 1, 0, 1);
       SET_FRAME_GARBAGED (f);
       cancel_mouse_face (f);
+
+      do_pending_window_change (0);
     }
 }
 
@@ -927,7 +930,7 @@ xg_frame_set_char_size (struct frame *f, int width, int height)
       x_wait_for_event (f, ConfigureNotify);
     }
   else
-    change_frame_size (f, width, height, 0, 1, 0, 1);
+    adjust_frame_size (f, -1, -1, 5, 0);
 }
 
 /* Handle height/width changes (i.e. add/remove/move menu/toolbar).
@@ -1017,6 +1020,7 @@ style_changed_cb (GObject *go,
   kbd_buffer_store_event (&event);
 
   update_theme_scrollbar_width ();
+  update_theme_scrollbar_height ();
 
   /* If scroll bar width changed, we need set the new size on all frames
      on this display.  */
@@ -1031,6 +1035,7 @@ style_changed_cb (GObject *go,
               && FRAME_X_DISPLAY (f) == dpy)
             {
               x_set_scroll_bar_default_width (f);
+              x_set_scroll_bar_default_height (f);
               xg_frame_set_char_size (f, FRAME_TEXT_WIDTH (f), FRAME_TEXT_HEIGHT (f));
             }
         }
@@ -1314,7 +1319,6 @@ x_wm_set_size_hint (struct frame *f, long int flags, bool user_position)
   base_height = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, 1)
     + FRAME_MENUBAR_HEIGHT (f) + FRAME_TOOLBAR_HEIGHT (f);
 
-  check_frame_size (f, &min_cols, &min_rows, 0);
   if (min_cols > 0) --min_cols; /* We used one col in base_width = ... 1); */
   if (min_rows > 0) --min_rows; /* We used one row in base_height = ... 1); */
 
@@ -3419,9 +3423,9 @@ xg_event_is_for_menubar (struct frame *f, const XEvent *event)
 
 bool xg_ignore_gtk_scrollbar;
 
-/* The width of the scroll bar for the current theme.  */
-
+/* Width and height of scroll bars for the current theme.  */
 static int scroll_bar_width_for_theme;
+static int scroll_bar_height_for_theme;
 
 /* Xlib's `Window' fits in 32 bits.  But we want to store pointers, and they
    may be larger than 32 bits.  Keep a mapping from integer index to widget
@@ -3524,9 +3528,38 @@ update_theme_scrollbar_width (void)
   scroll_bar_width_for_theme = w;
 }
 
+static void
+update_theme_scrollbar_height (void)
+{
+#ifdef HAVE_GTK3
+  GtkAdjustment *hadj;
+#else
+  GtkObject *hadj;
+#endif
+  GtkWidget *wscroll;
+  int w = 0, b = 0;
+
+  hadj = gtk_adjustment_new (YG_SB_MIN, YG_SB_MIN, YG_SB_MAX, 0.1, 0.1, 0.1);
+  wscroll = gtk_scrollbar_new (GTK_ORIENTATION_HORIZONTAL, GTK_ADJUSTMENT (hadj));
+  g_object_ref_sink (G_OBJECT (wscroll));
+  gtk_widget_style_get (wscroll, "slider-width", &w, "trough-border", &b, NULL);
+  gtk_widget_destroy (wscroll);
+  g_object_unref (G_OBJECT (wscroll));
+  w += 2*b;
+  if (w < 12) w = 12;
+  scroll_bar_height_for_theme = w;
+}
+
 int
 xg_get_default_scrollbar_width (void)
 {
+  return scroll_bar_width_for_theme;
+}
+
+int
+xg_get_default_scrollbar_height (void)
+{
+  /* Apparently there's no default height for themes.  */
   return scroll_bar_width_for_theme;
 }
 
@@ -3628,6 +3661,74 @@ xg_create_scroll_bar (struct frame *f,
   xg_set_cursor (webox, FRAME_DISPLAY_INFO (f)->xg_cursor);
 
   bar->x_window = scroll_id;
+  bar->horizontal = 0;
+}
+
+/* Create a horizontal scroll bar widget for frame F.  Store the scroll
+   bar in BAR.  SCROLL_CALLBACK is the callback to invoke when the value
+   of the bar changes.  END_CALLBACK is the callback to invoke when
+   scrolling ends.  SCROLL_BAR_NAME is the name we use for the scroll
+   bar.  Can be used to set resources for the widget.  */
+
+void
+xg_create_horizontal_scroll_bar (struct frame *f,
+				 struct scroll_bar *bar,
+				 GCallback scroll_callback,
+				 GCallback end_callback,
+				 const char *scroll_bar_name)
+{
+  GtkWidget *wscroll;
+  GtkWidget *webox;
+  intptr_t scroll_id;
+#ifdef HAVE_GTK3
+  GtkAdjustment *hadj;
+#else
+  GtkObject *hadj;
+#endif
+
+  /* Page, step increment values are not so important here, they
+     will be corrected in x_set_toolkit_scroll_bar_thumb. */
+  hadj = gtk_adjustment_new (YG_SB_MIN, YG_SB_MIN, YG_SB_MAX,
+                             0.1, 0.1, 0.1);
+
+  wscroll = gtk_scrollbar_new (GTK_ORIENTATION_HORIZONTAL, GTK_ADJUSTMENT (hadj));
+  webox = gtk_event_box_new ();
+  gtk_widget_set_name (wscroll, scroll_bar_name);
+#ifndef HAVE_GTK3
+  gtk_range_set_update_policy (GTK_RANGE (wscroll), GTK_UPDATE_CONTINUOUS);
+#endif
+  g_object_set_data (G_OBJECT (wscroll), XG_FRAME_DATA, (gpointer)f);
+
+  scroll_id = xg_store_widget_in_map (wscroll);
+
+  g_signal_connect (G_OBJECT (wscroll),
+                    "destroy",
+                    G_CALLBACK (xg_gtk_scroll_destroy),
+                    (gpointer) scroll_id);
+  g_signal_connect (G_OBJECT (wscroll),
+                    "change-value",
+                    scroll_callback,
+                    (gpointer) bar);
+  g_signal_connect (G_OBJECT (wscroll),
+                    "button-release-event",
+                    end_callback,
+                    (gpointer) bar);
+
+  /* The scroll bar widget does not draw on a window of its own.  Instead
+     it draws on the parent window, in this case the edit widget.  So
+     whenever the edit widget is cleared, the scroll bar needs to redraw
+     also, which causes flicker.  Put an event box between the edit widget
+     and the scroll bar, so the scroll bar instead draws itself on the
+     event box window.  */
+  gtk_fixed_put (GTK_FIXED (f->output_data.x->edit_widget), webox, -1, -1);
+  gtk_container_add (GTK_CONTAINER (webox), wscroll);
+
+
+  /* Set the cursor to an arrow.  */
+  xg_set_cursor (webox, FRAME_DISPLAY_INFO (f)->xg_cursor);
+
+  bar->x_window = scroll_id;
+  bar->horizontal = 1;
 }
 
 /* Remove the scroll bar represented by SCROLLBAR_ID from the frame F.  */
@@ -3709,6 +3810,73 @@ xg_update_scrollbar_pos (struct frame *f,
       cancel_mouse_face (f);
     }
 }
+
+
+/* Update the position of the horizontal scroll bar represented by SCROLLBAR_ID
+   in frame F.
+   TOP/LEFT are the new pixel positions where the bar shall appear.
+   WIDTH, HEIGHT is the size in pixels the bar shall have.  */
+
+void
+xg_update_horizontal_scrollbar_pos (struct frame *f,
+				    ptrdiff_t scrollbar_id,
+				    int top,
+				    int left,
+				    int width,
+				    int height)
+{
+
+  GtkWidget *wscroll = xg_get_widget_from_map (scrollbar_id);
+
+  if (wscroll)
+    {
+      GtkWidget *wfixed = f->output_data.x->edit_widget;
+      GtkWidget *wparent = gtk_widget_get_parent (wscroll);
+      gint msl;
+
+      /* Clear out old position.  */
+      int oldx = -1, oldy = -1, oldw, oldh;
+      if (gtk_widget_get_parent (wparent) == wfixed)
+        {
+          gtk_container_child_get (GTK_CONTAINER (wfixed), wparent,
+                                   "x", &oldx, "y", &oldy, NULL);
+          gtk_widget_get_size_request (wscroll, &oldw, &oldh);
+        }
+
+      /* Move and resize to new values.  */
+      gtk_fixed_move (GTK_FIXED (wfixed), wparent, left, top);
+      gtk_widget_style_get (wscroll, "min-slider-length", &msl, NULL);
+      if (msl > width)
+        {
+          /* No room.  Hide scroll bar as some themes output a warning if
+             the width is less than the min size.  */
+          gtk_widget_hide (wparent);
+          gtk_widget_hide (wscroll);
+        }
+      else
+        {
+          gtk_widget_show_all (wparent);
+          gtk_widget_set_size_request (wscroll, width, height);
+        }
+      gtk_widget_queue_draw (wfixed);
+      gdk_window_process_all_updates ();
+      if (oldx != -1 && oldw > 0 && oldh > 0)
+	/* Clear under old scroll bar position.  This must be done after
+	   the gtk_widget_queue_draw and gdk_window_process_all_updates
+	   above.  */
+	x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+		      oldx, oldy, oldw, oldh);
+
+      /* GTK does not redraw until the main loop is entered again, but
+         if there are no X events pending we will not enter it.  So we sync
+         here to get some events.  */
+
+      x_sync (f);
+      SET_FRAME_GARBAGED (f);
+      cancel_mouse_face (f);
+    }
+}
+
 
 /* Get the current value of the range, truncated to an integer.  */
 
@@ -3801,6 +3969,47 @@ xg_set_toolkit_scroll_bar_thumb (struct scroll_bar *bar,
 
         unblock_input ();
       }
+    }
+}
+
+/* Set the thumb size and position of horizontal scroll bar BAR.  We are
+   currently displaying PORTION out of a whole WHOLE, and our position
+   POSITION.  */
+void
+xg_set_toolkit_horizontal_scroll_bar_thumb (struct scroll_bar *bar,
+					    int portion,
+					    int position,
+					    int whole)
+{
+  GtkWidget *wscroll = xg_get_widget_from_map (bar->x_window);
+
+  if (wscroll && bar->dragging == -1)
+    {
+      GtkAdjustment *adj;
+      int lower = 0;
+      int upper = max (whole - 1, 0);
+      int pagesize = min (upper, max (portion, 0));
+      int value = max (0, min (position, upper - pagesize));
+      /* These should be set to something more <portion, whole>
+	 related.  */
+      int page_increment = 4;
+      int step_increment = 1;
+
+      block_input ();
+      adj = gtk_range_get_adjustment (GTK_RANGE (wscroll));
+
+      /*      gtk_adjustment_set_lower (adj, (gdouble) lower);
+      gtk_adjustment_set_upper (adj, (gdouble) upper);
+      gtk_adjustment_set_page_size (adj, (gdouble) pagesize);
+      gtk_adjustment_set_value (adj, (gdouble) value);
+      gtk_adjustment_set_page_increment (adj, (gdouble) page_increment);
+      gtk_adjustment_set_step_increment (adj, (gdouble)
+      step_increment); */
+      gtk_adjustment_configure (adj, (gdouble) value, (gdouble) lower,
+				(gdouble) upper, (gdouble) step_increment,
+				(gdouble) page_increment, (gdouble) pagesize);
+      gtk_adjustment_changed (adj);
+      unblock_input ();
     }
 }
 
@@ -5010,6 +5219,7 @@ xg_initialize (void)
   gtk_binding_entry_add_signal (binding_set, GDK_KEY_g, GDK_CONTROL_MASK,
                                 "cancel", 0);
   update_theme_scrollbar_width ();
+  update_theme_scrollbar_height ();
 
 #ifdef HAVE_FREETYPE
   x_last_font_name = NULL;

@@ -118,7 +118,8 @@ enum window_part
   ON_RIGHT_FRINGE,
   ON_LEFT_MARGIN,
   ON_RIGHT_MARGIN,
-  ON_SCROLL_BAR,
+  ON_VERTICAL_SCROLL_BAR,
+  ON_HORIZONTAL_SCROLL_BAR,
   ON_RIGHT_DIVIDER,
   ON_BOTTOM_DIVIDER
 };
@@ -3163,6 +3164,7 @@ int display_prop_intangible_p (Lisp_Object, Lisp_Object, ptrdiff_t, ptrdiff_t);
 void resize_echo_area_exactly (void);
 int resize_mini_window (struct window *, int);
 void set_vertical_scroll_bar (struct window *);
+void set_horizontal_scroll_bar (struct window *);
 int try_window (Lisp_Object, struct text_pos, int);
 void window_box (struct window *, enum glyph_row_area,
 		 int *, int *, int *, int *);
@@ -3201,6 +3203,7 @@ extern bool help_echo_showing_p;
 extern Lisp_Object help_echo_string, help_echo_window;
 extern Lisp_Object help_echo_object, previous_help_echo_string;
 extern ptrdiff_t help_echo_pos;
+extern int last_tool_bar_item;
 extern void reseat_at_previous_visible_line_start (struct it *);
 extern Lisp_Object lookup_glyphless_char_display (int, struct it *);
 extern ptrdiff_t compute_display_string_pos (struct text_pos *,
@@ -3273,7 +3276,6 @@ void draw_fringe_bitmap (struct window *, struct glyph_row *, int);
 void draw_row_fringe_bitmaps (struct window *, struct glyph_row *);
 bool draw_window_fringes (struct window *, bool);
 bool update_window_fringes (struct window *, bool);
-void compute_fringe_widths (struct frame *, bool);
 
 #ifdef HAVE_NTGUI
 void w32_init_fringe (struct redisplay_interface *);
@@ -3390,6 +3392,7 @@ void gamma_correct (struct frame *, COLORREF *);
 #ifdef HAVE_WINDOW_SYSTEM
 
 void x_implicitly_set_name (struct frame *, Lisp_Object, Lisp_Object);
+void x_change_tool_bar_height (struct frame *f, int);
 
 extern Lisp_Object tip_frame;
 extern Window tip_window;

@@ -145,7 +145,8 @@ Lisp_Object Qmodification_hooks;
 Lisp_Object Qinsert_in_front_hooks;
 Lisp_Object Qinsert_behind_hooks;
 
-Lisp_Object Qchoice, Qrange, Qleft, Qright, Qvertical_scroll_bar;
+Lisp_Object Qchoice, Qrange, Qleft, Qright;
+Lisp_Object Qvertical_scroll_bar, Qhorizontal_scroll_bar;
 static Lisp_Object Qoverwrite_mode, Qfraction;
 
 static void alloc_buffer_text (struct buffer *, ptrdiff_t);
@@ -343,6 +344,11 @@ bset_scroll_bar_width (struct buffer *b, Lisp_Object val)
   b->INTERNAL_FIELD (scroll_bar_width) = val;
 }
 static void
+bset_scroll_bar_height (struct buffer *b, Lisp_Object val)
+{
+  b->INTERNAL_FIELD (scroll_bar_height) = val;
+}
+static void
 bset_scroll_down_aggressively (struct buffer *b, Lisp_Object val)
 {
   b->INTERNAL_FIELD (scroll_down_aggressively) = val;
@@ -366,6 +372,11 @@ static void
 bset_vertical_scroll_bar_type (struct buffer *b, Lisp_Object val)
 {
   b->INTERNAL_FIELD (vertical_scroll_bar_type) = val;
+}
+static void
+bset_horizontal_scroll_bar_type (struct buffer *b, Lisp_Object val)
+{
+  b->INTERNAL_FIELD (horizontal_scroll_bar_type) = val;
 }
 static void
 bset_word_wrap (struct buffer *b, Lisp_Object val)
@@ -2426,6 +2437,14 @@ DEFUN ("buffer-swap-text", Fbuffer_swap_text, Sbuffer_swap_text,
 	    && (EQ (XWINDOW (w)->contents, buf1)
 		|| EQ (XWINDOW (w)->contents, buf2)))
 	  Fset_marker (XWINDOW (w)->pointm,
+		       make_number
+		       (BUF_BEGV (XBUFFER (XWINDOW (w)->contents))),
+		       XWINDOW (w)->contents);
+	/* Blindly copied from pointm part.  */
+	if (MARKERP (XWINDOW (w)->old_pointm)
+	    && (EQ (XWINDOW (w)->contents, buf1)
+		|| EQ (XWINDOW (w)->contents, buf2)))
+	  Fset_marker (XWINDOW (w)->old_pointm,
 		       make_number
 		       (BUF_BEGV (XBUFFER (XWINDOW (w)->contents))),
 		       XWINDOW (w)->contents);
@@ -5157,7 +5176,9 @@ init_buffer_once (void)
   bset_right_fringe_width (&buffer_defaults, Qnil);
   bset_fringes_outside_margins (&buffer_defaults, Qnil);
   bset_scroll_bar_width (&buffer_defaults, Qnil);
+  bset_scroll_bar_height (&buffer_defaults, Qnil);
   bset_vertical_scroll_bar_type (&buffer_defaults, Qt);
+  bset_horizontal_scroll_bar_type (&buffer_defaults, Qt);
   bset_indicate_empty_lines (&buffer_defaults, Qnil);
   bset_indicate_buffer_boundaries (&buffer_defaults, Qnil);
   bset_fringe_indicator_alist (&buffer_defaults, Qnil);
@@ -5225,7 +5246,9 @@ init_buffer_once (void)
   XSETFASTINT (BVAR (&buffer_local_flags, right_fringe_width), idx); ++idx;
   XSETFASTINT (BVAR (&buffer_local_flags, fringes_outside_margins), idx); ++idx;
   XSETFASTINT (BVAR (&buffer_local_flags, scroll_bar_width), idx); ++idx;
+  XSETFASTINT (BVAR (&buffer_local_flags, scroll_bar_height), idx); ++idx;
   XSETFASTINT (BVAR (&buffer_local_flags, vertical_scroll_bar_type), idx); ++idx;
+  XSETFASTINT (BVAR (&buffer_local_flags, horizontal_scroll_bar_type), idx); ++idx;
   XSETFASTINT (BVAR (&buffer_local_flags, indicate_empty_lines), idx); ++idx;
   XSETFASTINT (BVAR (&buffer_local_flags, indicate_buffer_boundaries), idx); ++idx;
   XSETFASTINT (BVAR (&buffer_local_flags, fringe_indicator_alist), idx); ++idx;
@@ -5446,6 +5469,7 @@ syms_of_buffer (void)
 
   DEFSYM (Qvertical_scroll_bar, "vertical-scroll-bar");
   Fput (Qvertical_scroll_bar, Qchoice, list4 (Qnil, Qt, Qleft, Qright));
+  DEFSYM (Qhorizontal_scroll_bar, "horizontal-scroll-bar");
 
   DEFSYM (Qfraction, "fraction");
   Fput (Qfraction, Qrange, Fcons (make_float (0.0), make_float (1.0)));
@@ -5954,6 +5978,11 @@ in a window.  To make the change take effect, call `set-window-buffer'.  */);
 		     doc: /* Width of this buffer's scroll bars in pixels.
 A value of nil means to use the scroll bar width from the window's frame.  */);
 
+  DEFVAR_PER_BUFFER ("scroll-bar-height", &BVAR (current_buffer, scroll_bar_height),
+		     Qintegerp,
+		     doc: /* Height of this buffer's scroll bars in pixels.
+A value of nil means to use the scroll bar heiht from the window's frame.  */);
+
   DEFVAR_PER_BUFFER ("vertical-scroll-bar", &BVAR (current_buffer, vertical_scroll_bar_type),
 		     Qvertical_scroll_bar,
 		     doc: /* Position of this buffer's vertical scroll bar.
@@ -5963,6 +5992,17 @@ for instance, with `set-window-buffer' or when `display-buffer' displays it.
 A value of `left' or `right' means put the vertical scroll bar at that side
 of the window; a value of nil means don't show any vertical scroll bars.
 A value of t (the default) means do whatever the window's frame specifies.  */);
+
+  DEFVAR_PER_BUFFER ("horizontal-scroll-bar", &BVAR (current_buffer, horizontal_scroll_bar_type),
+		     Qnil,
+		     doc: /* Position of this buffer's horizontal scroll bar.
+The value takes effect whenever you tell a window to display this buffer;
+for instance, with `set-window-buffer' or when `display-buffer' displays it.
+
+A value of `bottom' means put the horizontal scroll bar at the bottom of
+the window; a value of nil means don't show any horizonal scroll bars.
+A value of t (the default) means do whatever the window's frame
+specifies.  */);
 
   DEFVAR_PER_BUFFER ("indicate-empty-lines",
 		     &BVAR (current_buffer, indicate_empty_lines), Qnil,

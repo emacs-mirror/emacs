@@ -404,7 +404,6 @@ set_frame_size (EmacsFrame ew)
     }
 #endif /* 0 */
   {
-    struct frame *f = ew->emacs_frame.frame;
     Dimension pixel_width, pixel_height;
 
     /* Take into account the size of the scrollbar.  Always use the
@@ -412,8 +411,6 @@ set_frame_size (EmacsFrame ew)
        might end up with a frame width that is not a multiple of the
        frame's character width which is bad for vertically split
        windows.  */
-
-    compute_fringe_widths (f, 0);
 
 #if 0 /* This can run Lisp code, and it is dangerous to give
 	 out the frame to Lisp code before it officially exists.
@@ -471,10 +468,6 @@ update_wm_hints (EmacsFrame ew)
 
   /* This happens when the frame is just created.  */
   if (! wmshell) return;
-
-#if 0
-  check_frame_size (ew->emacs_frame.frame, &min_cols, &min_rows, 0);
-#endif
 
   pixel_to_char_size (ew, ew->core.width, ew->core.height,
 		      &char_width, &char_height);
@@ -690,6 +683,15 @@ EmacsFrameResize (Widget widget)
   if (true || frame_resize_pixelwise)
     {
       int width, height;
+/**       int width = (ew->core.width **/
+/** 		   - FRAME_SCROLL_BAR_AREA_WIDTH (f) **/
+/** 		   - FRAME_TOTAL_FRINGE_WIDTH (f) **/
+/** 		   - 2 * FRAME_INTERNAL_BORDER_WIDTH (f)); **/
+
+/**       int height  = (ew->core.height **/
+/** 		     - FRAME_TOOLBAR_HEIGHT (f) **/
+/** 		     - FRAME_SCROLL_BAR_AREA_HEIGHT (f) **/
+/** 		     - 2 * FRAME_INTERNAL_BORDER_WIDTH (f)); **/
 
       pixel_to_text_size (ew, ew->core.width, ew->core.height, &width, &height);
       change_frame_size (f, width, height, 0, 1, 0, 1);
@@ -829,7 +831,8 @@ EmacsFrameSetCharSize (Widget widget, int columns, int rows)
   EmacsFrame ew = (EmacsFrame) widget;
   struct frame *f = ew->emacs_frame.frame;
 
-  x_set_window_size (f, 0, columns, rows, 0);
+  if (!frame_inhibit_resize (f, 0) && !frame_inhibit_resize (f, 1))
+    x_set_window_size (f, 0, columns, rows, 0);
 }
 
 

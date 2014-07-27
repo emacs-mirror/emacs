@@ -1009,7 +1009,7 @@ x_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 #else /* not USE_X_TOOLKIT && not USE_GTK */
   FRAME_MENU_BAR_LINES (f) = nlines;
   FRAME_MENU_BAR_HEIGHT (f) = nlines * FRAME_LINE_HEIGHT (f);
-  resize_frame_windows (f, FRAME_TEXT_HEIGHT (f), 0, 1);
+  adjust_frame_size (f, -1, -1, 2, 1);
   if (FRAME_X_WINDOW (f))
     x_clear_under_internal_border (f);
 
@@ -1064,10 +1064,6 @@ void
 x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 {
   int nlines;
-#if ! defined (USE_GTK)
-  int delta, root_height;
-  int unit = FRAME_LINE_HEIGHT (f);
-#endif
 
   /* Treat tool bars like menu bars.  */
   if (FRAME_MINIBUF_ONLY_P (f))
@@ -1079,11 +1075,18 @@ x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
   else
     nlines = 0;
 
-#ifdef USE_GTK
+  x_change_tool_bar_height (f, nlines * FRAME_LINE_HEIGHT (f));
+}
 
+
+/* Set the pixel height of the tool bar of frame F to HEIGHT.  */
+void
+x_change_tool_bar_height (struct frame *f, int height)
+{
+#ifdef USE_GTK
   FRAME_TOOL_BAR_LINES (f) = 0;
   FRAME_TOOL_BAR_HEIGHT (f) = 0;
-  if (nlines)
+  if (height)
     {
       FRAME_EXTERNAL_TOOL_BAR (f) = 1;
       if (FRAME_X_P (f) && f->output_data.x->toolbar_widget == 0)
@@ -1097,39 +1100,25 @@ x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
         free_frame_tool_bar (f);
       FRAME_EXTERNAL_TOOL_BAR (f) = 0;
     }
-
 #else /* !USE_GTK */
+  int unit = FRAME_LINE_HEIGHT (f);
+  int old_height = FRAME_TOOL_BAR_HEIGHT (f);
+  int lines = (height + unit - 1) / unit;
 
   /* Make sure we redisplay all windows in this frame.  */
   windows_or_buffers_changed = 60;
 
-  /* DELTA is in pixels now.  */
-  delta = (nlines - FRAME_TOOL_BAR_LINES (f)) * unit;
 
-  /* Don't resize the tool-bar to more than we have room for.  Note: The
-     calculations below and the subsequent call to resize_frame_windows
-     are inherently flawed because they can make the toolbar higher than
-     the containing frame.  */
-  if (delta > 0)
-    {
-      root_height = WINDOW_PIXEL_HEIGHT (XWINDOW (FRAME_ROOT_WINDOW (f)));
-      if (root_height - delta < unit)
-	{
-	  delta = root_height - unit;
-	  /* When creating a new frame and toolbar mode is enabled, we
-	     need at least one toolbar line.  */
-	  nlines = max (FRAME_TOOL_BAR_LINES (f) + delta / unit, 1);
-	}
-    }
-
-  FRAME_TOOL_BAR_LINES (f) = nlines;
-  FRAME_TOOL_BAR_HEIGHT (f) = nlines * FRAME_LINE_HEIGHT (f);
-  resize_frame_windows (f, FRAME_TEXT_HEIGHT (f), 0, 1);
-#if !defined USE_X_TOOLKIT && !defined USE_GTK
-  if (FRAME_X_WINDOW (f))
-    x_clear_under_internal_border (f);
-#endif
-  adjust_frame_glyphs (f);
+  /* Recalculate tool bar and frame text sizes.  */
+  FRAME_TOOL_BAR_HEIGHT (f) = height;
+  FRAME_TOOL_BAR_LINES (f) = lines;
+  FRAME_TEXT_HEIGHT (f)
+    = FRAME_PIXEL_TO_TEXT_HEIGHT (f, FRAME_PIXEL_HEIGHT (f));
+  FRAME_LINES (f)
+    = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, FRAME_PIXEL_HEIGHT (f));
+  /* Store the `tool-bar-lines' and `height' frame parameters.  */
+  store_frame_param (f, Qtool_bar_lines, make_number (lines));
+  store_frame_param (f, Qheight, make_number (FRAME_LINES (f)));
 
   /* We also have to make sure that the internal border at the top of
      the frame, below the menu bar or tool bar, is redrawn when the
@@ -1143,30 +1132,52 @@ x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
       clear_current_matrices (f);
     }
 
-  /* If the tool bar gets smaller, the internal border below it
-     has to be cleared.  It was formerly part of the display
-     of the larger tool bar, and updating windows won't clear it.  */
-  if (delta < 0)
+  if ((height < old_height) && WINDOWP (f->tool_bar_window))
+    clear_glyph_matrix (XWINDOW (f->tool_bar_window)->current_matrix);
+
+  /* Recalculate toolbar height.  */
+  f->n_tool_bar_rows = 0;
+
+  adjust_frame_size (f, -1, -1, 4, 0);
+
+/** #if !defined USE_X_TOOLKIT **/
+  if (FRAME_X_WINDOW (f))
+    x_clear_under_internal_border (f);
+/** #endif **/
+
+#endif /* USE_GTK */
+}
+
+
+void
+x_set_internal_border_width (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
+{
+  int border;
+
+  CHECK_TYPE_RANGED_INTEGER (int, arg);
+  border = max (XINT (arg), 0);
+
+  if (border != FRAME_INTERNAL_BORDER_WIDTH (f))
     {
-      int height = FRAME_INTERNAL_BORDER_WIDTH (f);
-      int width = FRAME_PIXEL_WIDTH (f);
-      int y = nlines * unit;
+      FRAME_INTERNAL_BORDER_WIDTH (f) = border;
 
-      /* height can be zero here. */
-      if (height > 0 && width > 0)
+#ifdef USE_X_TOOLKIT
+      if (FRAME_X_OUTPUT (f)->edit_widget)
+	widget_store_internal_border (FRAME_X_OUTPUT (f)->edit_widget);
+#endif
+
+      if (FRAME_X_WINDOW (f) != 0)
 	{
-          block_input ();
-	  x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-			0, y, width, height);
-          unblock_input ();
-        }
+	  adjust_frame_size (f, -1, -1, 3, 0);
 
-      if (WINDOWP (f->tool_bar_window))
-	clear_glyph_matrix (XWINDOW (f->tool_bar_window)->current_matrix);
+#ifdef USE_GTK
+	  xg_clear_under_internal_border (f);
+#else	  
+	  x_clear_under_internal_border (f);
+#endif
+	}
     }
 
-  run_window_configuration_change_hook (f);
-#endif /* USE_GTK */
 }
 
 
@@ -1508,11 +1519,33 @@ x_set_scroll_bar_default_width (struct frame *f)
   FRAME_CONFIG_SCROLL_BAR_COLS (f) = (minw + unit - 1) / unit;
   FRAME_CONFIG_SCROLL_BAR_WIDTH (f) = minw;
 #else
-  /* The width of a non-toolkit scrollbar is at least 14 pixels and a
-     multiple of the frame's character width.  */
+  /* The width of a non-toolkit scrollbar is 14 pixels.  */
   FRAME_CONFIG_SCROLL_BAR_COLS (f) = (14 + unit - 1) / unit;
   FRAME_CONFIG_SCROLL_BAR_WIDTH (f)
     = FRAME_CONFIG_SCROLL_BAR_COLS (f) * unit;
+#endif
+}
+
+void
+x_set_scroll_bar_default_height (struct frame *f)
+{
+  int height = FRAME_LINE_HEIGHT (f);
+#ifdef USE_TOOLKIT_SCROLL_BARS
+#ifdef USE_GTK
+  int min_height = xg_get_default_scrollbar_height ();
+#else
+  int min_height = 16;
+#endif
+  /* A minimum height of 14 doesn't look good for toolkit scroll bars.  */
+  FRAME_CONFIG_SCROLL_BAR_HEIGHT (f) = min_height;
+  FRAME_CONFIG_SCROLL_BAR_LINES (f) = (min_height + height - 1) / height;
+#else
+  /* The height of a non-toolkit scrollbar is 14 pixels.  */
+  FRAME_CONFIG_SCROLL_BAR_LINES (f) = (14 + height - 1) / height;
+
+  /* Use all of that space (aside from required margins) for the
+     scroll bar.  */
+  FRAME_CONFIG_SCROLL_BAR_HEIGHT (f) = 14;
 #endif
 }
 
@@ -2756,12 +2789,6 @@ do_unwind_create_frame (Lisp_Object frame)
 }
 
 static void
-unwind_create_frame_1 (Lisp_Object val)
-{
-  inhibit_lisp_code = val;
-}
-
-static void
 x_default_font_parameter (struct frame *f, Lisp_Object parms)
 {
   struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
@@ -2865,12 +2892,11 @@ set_machine_and_pid_properties (struct frame *f)
 DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
        1, 1, 0,
        doc: /* Make a new X window, which is called a "frame" in Emacs terms.
-Return an Emacs frame object.
-PARMS is an alist of frame parameters.
+Return an Emacs frame object.  PARMS is an alist of frame parameters.
 If the parameters specify that the frame should not have a minibuffer,
-and do not specify a specific minibuffer window to use,
-then `default-minibuffer-frame' must be a frame whose minibuffer can
-be shared by the new frame.
+and do not specify a specific minibuffer window to use, then
+`default-minibuffer-frame' must be a frame whose minibuffer can be
+shared by the new frame.
 
 This function is an internal primitive--use `make-frame' instead.  */)
   (Lisp_Object parms)
@@ -2880,7 +2906,6 @@ This function is an internal primitive--use `make-frame' instead.  */)
   Lisp_Object name;
   int minibuffer_only = 0;
   long window_prompting = 0;
-  int width, height;
   ptrdiff_t count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
   Lisp_Object display;
@@ -3002,7 +3027,6 @@ This function is an internal primitive--use `make-frame' instead.  */)
   }
 
   /* Specify the parent under which to make this X window.  */
-
   if (!NILP (parent))
     {
       f->output_data.x->parent_desc = (Window) XFASTINT (parent);
@@ -3025,7 +3049,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
     {
       fset_name (f, name);
       f->explicit_name = 1;
-      /* use the frame's title when getting resources for this frame.  */
+      /* Use the frame's title when getting resources for this frame.  */
       specbind (Qx_resource_name, name);
     }
 
@@ -3088,6 +3112,14 @@ This function is an internal primitive--use `make-frame' instead.  */)
 #endif
 		       "verticalScrollBars", "ScrollBars",
 		       RES_TYPE_SYMBOL);
+  x_default_parameter (f, parms, Qhorizontal_scroll_bars,
+#if defined (USE_GTK) && defined (USE_TOOLKIT_SCROLL_BARS)
+		       Qt,
+#else
+		       Qnil,
+#endif
+		       "horizontalScrollBars", "ScrollBars",
+		       RES_TYPE_SYMBOL);
 
   /* Also do the stuff which must be set before the window exists.  */
   x_default_parameter (f, parms, Qforeground_color, build_string ("black"),
@@ -3120,49 +3152,36 @@ This function is an internal primitive--use `make-frame' instead.  */)
   dpyinfo_refcount = dpyinfo->reference_count;
 #endif /* GLYPH_DEBUG */
 
-  /* Init faces before x_default_parameter is called for scroll-bar
-     parameters because that function calls x_set_scroll_bar_width,
-     which calls change_frame_size, which calls Fset_window_buffer,
-     which runs hooks, which call Fvertical_motion.  At the end, we
-     end up in init_iterator with a null face cache, which should not
-     happen.  */
+  /* Init faces before x_default_parameter is called for the
+     scroll-bar-width parameter because otherwise we end up in
+     init_iterator with a null face cache, which should not happen.  */
   init_frame_faces (f);
 
-  /* PXW: This is a duplicate from below.  We have to do it here since
-     otherwise x_set_tool_bar_lines will work with the character sizes
-     installed by init_frame_faces while the frame's pixel size is still
-     calculated from a character size of 1 and we subsequently hit the
-     eassert (height >= 0) assertion in window_box_height.  The
-     non-pixelwise code apparently worked around this because it had one
-     frame line vs one toolbar line which left us with a zero root
-     window height which was obviously wrong as well ...  */
-  change_frame_size (f, FRAME_COLS (f) * FRAME_COLUMN_WIDTH (f),
-		     FRAME_LINES (f) * FRAME_LINE_HEIGHT (f), 1, 0, 0, 1);
+  /* The following call of change_frame_size is needed since otherwise
+     x_set_tool_bar_lines will already work with the character sizes
+     installed by init_frame_faces while the frame's pixel size is
+     still calculated from a character size of 1 and we subsequently
+     hit the (height >= 0) assertion in window_box_height.
+
+     The non-pixelwise code apparently worked around this because it
+     had one frame line vs one toolbar line which left us with a zero
+     root window height which was obviously wrong as well ...  */
+  adjust_frame_size (f, FRAME_COLS (f) * FRAME_COLUMN_WIDTH (f),
+		     FRAME_LINES (f) * FRAME_LINE_HEIGHT (f), 5, 1);
 
   /* Set the menu-bar-lines and tool-bar-lines parameters.  We don't
      look up the X resources controlling the menu-bar and tool-bar
      here; they are processed specially at startup, and reflected in
-     the values of the mode variables.
+     the values of the mode variables.  */
 
-     Avoid calling window-configuration-change-hook; otherwise we
-     could get an infloop in next_frame since the frame is not yet in
-     Vframe_list.  */
-  {
-    ptrdiff_t count2 = SPECPDL_INDEX ();
-    record_unwind_protect (unwind_create_frame_1, inhibit_lisp_code);
-    inhibit_lisp_code = Qt;
-
-    x_default_parameter (f, parms, Qmenu_bar_lines,
-			 NILP (Vmenu_bar_mode)
-			 ? make_number (0) : make_number (1),
-			 NULL, NULL, RES_TYPE_NUMBER);
-    x_default_parameter (f, parms, Qtool_bar_lines,
-			 NILP (Vtool_bar_mode)
-			 ? make_number (0) : make_number (1),
-			 NULL, NULL, RES_TYPE_NUMBER);
-
-    unbind_to (count2, Qnil);
-  }
+  x_default_parameter (f, parms, Qmenu_bar_lines,
+		       NILP (Vmenu_bar_mode)
+		       ? make_number (0) : make_number (1),
+		       NULL, NULL, RES_TYPE_NUMBER);
+  x_default_parameter (f, parms, Qtool_bar_lines,
+		       NILP (Vtool_bar_mode)
+		       ? make_number (0) : make_number (1),
+		       NULL, NULL, RES_TYPE_NUMBER);
 
   x_default_parameter (f, parms, Qbuffer_predicate, Qnil,
 		       "bufferPredicate", "BufferPredicate",
@@ -3172,7 +3191,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   x_default_parameter (f, parms, Qwait_for_wm, Qt,
 		       "waitForWM", "WaitForWM", RES_TYPE_BOOLEAN);
   x_default_parameter (f, parms, Qfullscreen, Qnil,
-                       "fullscreen", "Fullscreen", RES_TYPE_SYMBOL);
+		       "fullscreen", "Fullscreen", RES_TYPE_SYMBOL);
   x_default_parameter (f, parms, Qtool_bar_position,
                        FRAME_TOOL_BAR_POSITION (f), 0, 0, RES_TYPE_SYMBOL);
 
@@ -3213,17 +3232,16 @@ This function is an internal primitive--use `make-frame' instead.  */)
   x_default_parameter (f, parms, Qscroll_bar_width, Qnil,
 		       "scrollBarWidth", "ScrollBarWidth",
 		       RES_TYPE_NUMBER);
+  x_default_parameter (f, parms, Qscroll_bar_height, Qnil,
+		       "scrollBarHeight", "ScrollBarHeight",
+		       RES_TYPE_NUMBER);
   x_default_parameter (f, parms, Qalpha, Qnil,
 		       "alpha", "Alpha", RES_TYPE_NUMBER);
 
-  /* Dimensions, especially FRAME_LINES (f), must be done via change_frame_size.
-     Change will not be effected unless different from the current
-     FRAME_LINES (f).  */
-  width = FRAME_TEXT_WIDTH (f);
-  height = FRAME_TEXT_HEIGHT (f);
-  FRAME_TEXT_HEIGHT (f) = 0;
-  SET_FRAME_WIDTH (f, 0);
-  change_frame_size (f, width, height, 1, 0, 0, 1);
+  /* Consider frame official, now.  */
+  f->official = true;
+
+  adjust_frame_size (f, FRAME_TEXT_WIDTH (f), FRAME_TEXT_HEIGHT (f), 0, 1);
 
 #if defined (USE_X_TOOLKIT) || defined (USE_GTK)
   /* Create the menu bar.  */
@@ -4961,12 +4979,9 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
   dpyinfo_refcount = dpyinfo->reference_count;
 #endif /* GLYPH_DEBUG */
 
-  /* Init faces before x_default_parameter is called for scroll-bar
-     parameters because that function calls x_set_scroll_bar_width,
-     which calls change_frame_size, which calls Fset_window_buffer,
-     which runs hooks, which call Fvertical_motion.  At the end, we
-     end up in init_iterator with a null face cache, which should not
-     happen.  */
+  /* Init faces before x_default_parameter is called for the
+     scroll-bar-width parameter because otherwise we end up in
+     init_iterator with a null face cache, which should not happen.  */
   init_frame_faces (f);
 
   f->output_data.x->parent_desc = FRAME_DISPLAY_INFO (f)->root_window;
@@ -5023,7 +5038,7 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
   width = FRAME_COLS (f);
   height = FRAME_LINES (f);
   SET_FRAME_COLS (f, 0);
-  FRAME_LINES (f) = 0;
+  SET_FRAME_LINES (f, 0);
   change_frame_size (f, width, height, 1, 0, 0, 0);
 
   /* Add `tooltip' frame parameter's default value. */
@@ -5081,7 +5096,7 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
      below.  And the frame needs to be on Vframe_list or making it
      visible won't work.  */
   Vframe_list = Fcons (frame, Vframe_list);
-
+  f->official = true;
 
   /* Setting attributes of faces of the tooltip frame from resources
      and similar will increment face_change_count, which leads to the
@@ -6011,17 +6026,19 @@ frame_parm_handler x_frame_parm_handlers[] =
   x_set_mouse_color,
   x_explicitly_set_name,
   x_set_scroll_bar_width,
+  x_set_scroll_bar_height,
   x_set_title,
   x_set_unsplittable,
   x_set_vertical_scroll_bars,
+  x_set_horizontal_scroll_bars,
   x_set_visibility,
   x_set_tool_bar_lines,
   x_set_scroll_bar_foreground,
   x_set_scroll_bar_background,
   x_set_screen_gamma,
   x_set_line_spacing,
-  x_set_fringe_width,
-  x_set_fringe_width,
+  x_set_left_fringe,
+  x_set_right_fringe,
   x_set_wait_for_wm,
   x_set_fullscreen,
   x_set_font_backend,

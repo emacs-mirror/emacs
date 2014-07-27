@@ -72,7 +72,6 @@ struct dim
 static void update_frame_line (struct frame *, int);
 static int required_matrix_height (struct window *);
 static int required_matrix_width (struct window *);
-static void change_frame_size_1 (struct frame *, int, int, bool, bool, bool, bool);
 static void increment_row_positions (struct glyph_row *, ptrdiff_t, ptrdiff_t);
 static void build_frame_matrix_from_window_tree (struct glyph_matrix *,
                                                  struct window *);
@@ -2016,12 +2015,12 @@ adjust_frame_glyphs_for_frame_redisplay (struct frame *f)
       /* Size of frame matrices must equal size of frame.  Note
 	 that we are called for X frames with window widths NOT equal
 	 to the frame width (from CHANGE_FRAME_SIZE_1).  */
-      if (matrix_dim.width != FRAME_COLS (f)
-	  || matrix_dim.height != FRAME_LINES (f))
+      if (matrix_dim.width != FRAME_TOTAL_COLS (f)
+	  || matrix_dim.height != FRAME_TOTAL_LINES (f))
 	return;
 
-      eassert (matrix_dim.width == FRAME_COLS (f)
-	       && matrix_dim.height == FRAME_LINES (f));
+      eassert (matrix_dim.width == FRAME_TOTAL_COLS (f)
+	       && matrix_dim.height == FRAME_TOTAL_LINES (f));
 
       /* Pointers to glyph memory in glyph rows are exchanged during
 	 the update phase of redisplay, which means in general that a
@@ -2123,11 +2122,11 @@ adjust_frame_glyphs_for_window_redisplay (struct frame *f)
     w->left_col = 0;
     w->pixel_top = FRAME_MENU_BAR_HEIGHT (f);
     w->top_line = FRAME_MENU_BAR_LINES (f);
+    w->total_cols = FRAME_TOTAL_COLS (f);
     w->pixel_width = (FRAME_PIXEL_WIDTH (f)
 		       - 2 * FRAME_INTERNAL_BORDER_WIDTH (f));
-    w->total_cols = FRAME_TOTAL_COLS (f);
-    w->pixel_height = FRAME_TOOL_BAR_HEIGHT (f);
     w->total_lines = FRAME_TOOL_BAR_LINES (f);
+    w->pixel_height = FRAME_TOOL_BAR_HEIGHT (f);
     allocate_matrices_for_window_redisplay (w);
   }
 #endif
@@ -2956,7 +2955,7 @@ window_to_frame_vpos (struct window *w, int vpos)
   eassert (!FRAME_WINDOW_P (XFRAME (w->frame)));
   eassert (vpos >= 0 && vpos <= w->desired_matrix->nrows);
   vpos += WINDOW_TOP_EDGE_LINE (w);
-  eassert (vpos >= 0 && vpos <= FRAME_LINES (XFRAME (w->frame)));
+  eassert (vpos >= 0 && vpos <= FRAME_TOTAL_LINES (XFRAME (w->frame)));
   return vpos;
 }
 
@@ -3421,7 +3420,7 @@ update_window (struct window *w, bool force_p)
       mode_line_row = MATRIX_MODE_LINE_ROW (desired_matrix);
       if (mode_line_row->mode_line_p && mode_line_row->enabled_p)
 	{
-	  mode_line_row->y = yb;
+	  mode_line_row->y = yb + WINDOW_SCROLL_BAR_AREA_HEIGHT (w);
 	  update_window_line (w, MATRIX_ROW_VPOS (mode_line_row,
 						  desired_matrix),
 			      &mouse_face_overwritten_p);
@@ -4537,7 +4536,7 @@ update_frame_1 (struct frame *f, bool force_p, bool inhibit_id_p,
 	}
     }
 
-  pause_p = 0 < i && i < FRAME_LINES (f) - 1;
+  pause_p = 0 < i && i < FRAME_TOTAL_LINES (f) - 1;
 
   /* Now just clean up termcap drivers and set cursor, etc.  */
   if (!pause_p && set_cursor_p)
@@ -4570,7 +4569,7 @@ update_frame_1 (struct frame *f, bool force_p, bool inhibit_id_p,
 		 cursor at the end of the prompt.  If the mini-buffer
 		 is several lines high, find the last line that has
 		 any text on it.  */
-	      row = FRAME_LINES (f);
+	      row = FRAME_TOTAL_LINES (f);
 	      do
 		{
 		  --row;
@@ -4598,7 +4597,7 @@ update_frame_1 (struct frame *f, bool force_p, bool inhibit_id_p,
 	      if (col >= FRAME_CURSOR_X_LIMIT (f))
 		{
 		  /* If we have another row, advance cursor into it.  */
-		  if (row < FRAME_LINES (f) - 1)
+		  if (row < FRAME_TOTAL_LINES (f) - 1)
 		    {
 		      col = FRAME_LEFT_SCROLL_BAR_COLS (f);
 		      row++;
@@ -4648,12 +4647,12 @@ scrolling (struct frame *frame)
   int unchanged_at_top, unchanged_at_bottom;
   int window_size;
   int changed_lines;
-  int *old_hash = alloca (FRAME_LINES (frame) * sizeof (int));
-  int *new_hash = alloca (FRAME_LINES (frame) * sizeof (int));
-  int *draw_cost = alloca (FRAME_LINES (frame) * sizeof (int));
-  int *old_draw_cost = alloca (FRAME_LINES (frame) * sizeof (int));
+  int *old_hash = alloca (FRAME_TOTAL_LINES (frame) * sizeof (int));
+  int *new_hash = alloca (FRAME_TOTAL_LINES (frame) * sizeof (int));
+  int *draw_cost = alloca (FRAME_TOTAL_LINES (frame) * sizeof (int));
+  int *old_draw_cost = alloca (FRAME_TOTAL_LINES (frame) * sizeof (int));
   register int i;
-  int free_at_end_vpos = FRAME_LINES (frame);
+  int free_at_end_vpos = FRAME_TOTAL_LINES (frame);
   struct glyph_matrix *current_matrix = frame->current_matrix;
   struct glyph_matrix *desired_matrix = frame->desired_matrix;
 
@@ -4664,8 +4663,8 @@ scrolling (struct frame *frame)
      number of unchanged lines at the end.  */
   changed_lines = 0;
   unchanged_at_top = 0;
-  unchanged_at_bottom = FRAME_LINES (frame);
-  for (i = 0; i < FRAME_LINES (frame); i++)
+  unchanged_at_bottom = FRAME_TOTAL_LINES (frame);
+  for (i = 0; i < FRAME_TOTAL_LINES (frame); i++)
     {
       /* Give up on this scrolling if some old lines are not enabled.  */
       if (!MATRIX_ROW_ENABLED_P (current_matrix, i))
@@ -4687,7 +4686,7 @@ scrolling (struct frame *frame)
       if (old_hash[i] != new_hash[i])
 	{
 	  changed_lines++;
-	  unchanged_at_bottom = FRAME_LINES (frame) - i - 1;
+	  unchanged_at_bottom = FRAME_TOTAL_LINES (frame) - i - 1;
 	}
       else if (i == unchanged_at_top)
 	unchanged_at_top++;
@@ -4697,10 +4696,10 @@ scrolling (struct frame *frame)
   /* If changed lines are few, don't allow preemption, don't scroll.  */
   if ((!FRAME_SCROLL_REGION_OK (frame)
        && changed_lines < baud_rate / 2400)
-      || unchanged_at_bottom == FRAME_LINES (frame))
+      || unchanged_at_bottom == FRAME_TOTAL_LINES (frame))
     return 1;
 
-  window_size = (FRAME_LINES (frame) - unchanged_at_top
+  window_size = (FRAME_TOTAL_LINES (frame) - unchanged_at_top
 		 - unchanged_at_bottom);
 
   if (FRAME_SCROLL_REGION_OK (frame))
@@ -4714,7 +4713,7 @@ scrolling (struct frame *frame)
       && window_size >= 18 && baud_rate > 2400
       && (window_size >=
 	  10 * scrolling_max_lines_saved (unchanged_at_top,
-					  FRAME_LINES (frame) - unchanged_at_bottom,
+					  FRAME_TOTAL_LINES (frame) - unchanged_at_bottom,
 					  old_hash, new_hash, draw_cost)))
     return 0;
 
@@ -5471,22 +5470,56 @@ do_pending_window_change (bool safe)
     }
 }
 
-/* Change the frame height and/or width.  Values may be given as zero to
-   indicate no change is to take place.
 
-   new_height and new_width refer to the text portion of the frame.  It
-   doesn't matter for new_height, since text and total portion are the
-   same in that case.  But new_width must be enlarged to get the total
-   width of the frame.
+static void
+change_frame_size_1 (struct frame *f, int new_width, int new_height,
+		     bool pretend, bool delay, bool safe, bool pixelwise)
+{
+  /* If we can't deal with the change now, queue it for later.  */
+  if (delay || (redisplaying_p && !safe))
+    {
+      f->new_width = new_width;
+      f->new_height = new_height;
+      f->new_pixelwise = pixelwise;
+      delayed_size_change = 1;
+    }
+  else
+    {
+      /* This size-change overrides any pending one for this frame.  */
+      f->new_height = 0;
+      f->new_width = 0;
+      f->new_pixelwise = 0;
 
-   If DELAY, assume we're being called from a signal handler, and
-   queue the change for later - perhaps the next redisplay.
-   Since this tries to resize windows, we can't call it
-   from a signal handler.
+      /* If an argument is zero, set it to the current value.  */
+      if (pixelwise)
+	{
+	  new_width = (new_width <= 0) ? FRAME_TEXT_WIDTH (f) : new_width;
+	  new_height = (new_height <= 0) ? FRAME_TEXT_HEIGHT (f) : new_height;
+	}
+      else
+	{
+	  new_width = (((new_width <= 0) ? FRAME_COLS (f) : new_width)
+		       * FRAME_COLUMN_WIDTH (f));
+	  new_height = (((new_height <= 0) ? FRAME_LINES (f) : new_height)
+			* FRAME_LINE_HEIGHT (f));
+	}
 
-   SAFE means this function is called from a place where it's
-   safe to change frame sizes while a redisplay is in progress.  */
+      /* Adjust frame size but make sure x_set_window_size does not
+	 get called.  */
+      adjust_frame_size (f, new_width, new_height, 5, pretend);
+    }
+}
 
+
+/* Change text height/width of frame F.  Values may be given as zero to
+   indicate that no change is needed.
+
+   If DELAY, assume we're being called from a signal handler, and queue
+   the change for later - perhaps the next redisplay.  Since this tries
+   to resize windows, we can't call it from a signal handler.
+
+   SAFE means this function is called from a place where it's safe to
+   change frame sizes while a redisplay is in progress.  */
 void
 change_frame_size (struct frame *f, int new_width, int new_height,
 		   bool pretend, bool delay, bool safe, bool pixelwise)
@@ -5506,141 +5539,6 @@ change_frame_size (struct frame *f, int new_width, int new_height,
   else
     change_frame_size_1 (f, new_width, new_height, pretend, delay, safe,
 			 pixelwise);
-}
-
-static void
-change_frame_size_1 (struct frame *f, int new_width, int new_height,
-		     bool pretend, bool delay, bool safe, bool pixelwise)
-{
-  int new_text_width, new_text_height, new_root_width;
-  int old_root_width = WINDOW_PIXEL_WIDTH (XWINDOW (FRAME_ROOT_WINDOW (f)));
-  int new_cols, new_lines;
-  ptrdiff_t count = SPECPDL_INDEX ();
-
-  /* If we can't deal with the change now, queue it for later.  */
-  if (delay || (redisplaying_p && !safe))
-    {
-      f->new_width = new_width;
-      f->new_height = new_height;
-      f->new_pixelwise = pixelwise;
-      delayed_size_change = 1;
-      return;
-    }
-
-  /* This size-change overrides any pending one for this frame.  */
-  f->new_height = 0;
-  f->new_width = 0;
-  f->new_pixelwise = 0;
-
-  /* If an argument is zero, set it to the current value.  */
-  if (pixelwise)
-    {
-      new_text_width = (new_width == 0) ? FRAME_TEXT_WIDTH (f) : new_width;
-      new_text_height = (new_height == 0) ? FRAME_TEXT_HEIGHT (f) : new_height;
-      /* Consider rounding here: Currently, the root window can be
-	 larger than the frame in terms of columns/lines.  */
-      new_cols = new_text_width / FRAME_COLUMN_WIDTH (f);
-      new_lines = new_text_height / FRAME_LINE_HEIGHT (f);
-    }
-  else
-    {
-      new_cols = (new_width == 0) ? FRAME_COLS (f) : new_width;
-      new_lines = (new_height == 0) ? FRAME_LINES (f) : new_height;
-      new_text_width = new_cols * FRAME_COLUMN_WIDTH (f);
-      new_text_height = new_lines * FRAME_LINE_HEIGHT (f);
-    }
-
-  /* Compute width of windows in F.  */
-  /* Round up to the smallest acceptable size.  */
-  check_frame_size (f, &new_text_width, &new_text_height, 1);
-
-  /* This is the width of the frame without vertical scroll bars and
-     fringe columns.  Do this after rounding - see discussion of
-     bug#9723.  */
-  new_root_width = (new_text_width
-		    + FRAME_SCROLL_BAR_AREA_WIDTH (f)
-		    + FRAME_TOTAL_FRINGE_WIDTH (f));
-  /* If we're not changing the frame size, quit now.  */
-  /* Frame width may be unchanged but the text portion may change, for
-     example, fullscreen and remove/add scroll bar.  */
-  if (new_text_height == FRAME_TEXT_HEIGHT (f)
-      && new_text_width == FRAME_TEXT_WIDTH (f)
-      && new_root_width == old_root_width
-      && (FRAME_PIXEL_HEIGHT (f) ==
-	  FRAME_TEXT_TO_PIXEL_HEIGHT (f, new_text_height))
-      && (FRAME_PIXEL_WIDTH (f) ==
-	  FRAME_TEXT_TO_PIXEL_WIDTH (f, new_text_width)))
-    return;
-
-  block_input ();
-
-#ifdef MSDOS
-  /* We only can set screen dimensions to certain values supported
-     by our video hardware.  Try to find the smallest size greater
-     or equal to the requested dimensions.  */
-  dos_set_window_size (&new_lines, &new_cols);
-#endif
-
-  if (new_text_height != FRAME_TEXT_HEIGHT (f))
-    {
-      resize_frame_windows (f, new_text_height, 0, 1);
-
-      /* MSDOS frames cannot PRETEND, as they change frame size by
-	 manipulating video hardware.  */
-      if ((FRAME_TERMCAP_P (f) && !pretend) || FRAME_MSDOS_P (f))
-	FrameRows (FRAME_TTY (f)) = new_lines;
-    }
-
-  if (new_text_width != FRAME_TEXT_WIDTH (f)
-      || new_root_width != old_root_width)
-    {
-      resize_frame_windows (f, new_root_width, 1, 1);
-
-      /* MSDOS frames cannot PRETEND, as they change frame size by
-	 manipulating video hardware.  */
-      if ((FRAME_TERMCAP_P (f) && !pretend) || FRAME_MSDOS_P (f))
-	FrameCols (FRAME_TTY (f)) = new_cols;
-
-#if defined (HAVE_WINDOW_SYSTEM) && ! defined (USE_GTK) && ! defined (HAVE_NS)
-      if (WINDOWP (f->tool_bar_window))
-	{
-	  XWINDOW (f->tool_bar_window)->total_cols = new_cols;
-	  XWINDOW (f->tool_bar_window)->pixel_width = new_root_width;
-	}
-#endif
-    }
-
-  SET_FRAME_COLS (f, new_cols);
-  FRAME_LINES (f) = new_lines;
-  FRAME_TEXT_WIDTH (f) = new_text_width;
-  FRAME_TEXT_HEIGHT (f) = new_text_height;
-  FRAME_PIXEL_WIDTH (f) = FRAME_TEXT_TO_PIXEL_WIDTH (f, new_text_width);
-  FRAME_PIXEL_HEIGHT (f) = FRAME_TEXT_TO_PIXEL_HEIGHT (f, new_text_height);
-
-  {
-    struct window *w = XWINDOW (FRAME_SELECTED_WINDOW (f));
-    int text_area_x, text_area_y, text_area_width, text_area_height;
-
-    window_box (w, TEXT_AREA, &text_area_x, &text_area_y, &text_area_width,
-		&text_area_height);
-    if (w->cursor.x >= text_area_x + text_area_width)
-      w->cursor.hpos = w->cursor.x = 0;
-    if (w->cursor.y >= text_area_y + text_area_height)
-      w->cursor.vpos = w->cursor.y = 0;
-  }
-
-  adjust_frame_glyphs (f);
-  calculate_costs (f);
-  SET_FRAME_GARBAGED (f);
-  f->resized_p = 1;
-
-  unblock_input ();
-
-  record_unwind_current_buffer ();
-
-  run_window_configuration_change_hook (f);
-
-  unbind_to (count, Qnil);
 }
 
 /***********************************************************************
@@ -6171,7 +6069,8 @@ init_display (void)
     t->display_info.tty->top_frame = selected_frame;
     change_frame_size (XFRAME (selected_frame),
                        FrameCols (t->display_info.tty),
-                       FrameRows (t->display_info.tty), 0, 0, 1, 0);
+                       FrameRows (t->display_info.tty)
+		       - FRAME_MENU_BAR_LINES (f), 0, 0, 1, 0);
 
     /* Delete the initial terminal. */
     if (--initial_terminal->reference_count == 0
@@ -6193,7 +6092,7 @@ init_display (void)
   {
     struct frame *sf = SELECTED_FRAME ();
     int width = FRAME_TOTAL_COLS (sf);
-    int height = FRAME_LINES (sf);
+    int height = FRAME_TOTAL_LINES (sf);
 
     /* If these sizes are so big they cause overflow, just ignore the
        change.  It's not clear what better we could do.  The rest of

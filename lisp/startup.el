@@ -719,9 +719,6 @@ It is the default value of the variable `top-level'."
 (defconst tool-bar-images-pixel-height 24
   "Height in pixels of images in the tool-bar.")
 
-(defvar tool-bar-originally-present nil
-  "Non-nil if tool-bars are present before user and site init files are read.")
-
 (defvar handle-args-function-alist '((nil . tty-handle-args))
   "Functions for processing window-system dependent command-line arguments.
 Window system startup files should add their own function to this
@@ -1041,18 +1038,6 @@ please check its value")
   ;; window-system-initialization-alist.
   (or (eq initial-window-system 'pc)
       (tty-register-default-colors))
-
-  ;; Record whether the tool-bar is present before the user and site
-  ;; init files are processed.  frame-notice-user-settings uses this
-  ;; to determine if the tool-bar has been disabled by the init files,
-  ;; and the frame needs to be resized.
-  (when (fboundp 'frame-notice-user-settings)
-    (let ((tool-bar-lines (or (assq 'tool-bar-lines initial-frame-alist)
-                              (assq 'tool-bar-lines default-frame-alist))))
-      (setq tool-bar-originally-present
-            (and tool-bar-lines
-                 (cdr tool-bar-lines)
-                 (not (eq 0 (cdr tool-bar-lines)))))))
 
   (let ((old-scalable-fonts-allowed scalable-fonts-allowed)
 	(old-face-ignored-fonts face-ignored-fonts))
