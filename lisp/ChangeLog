@@ -1,3 +1,8 @@
+2014-07-27  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	* progmodes/python.el (python-shell-font-lock-post-command-hook):
+	Safeguard current point and undo history.
+
 2014-07-26  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
 	Robust shell syntax highlighting.  (Bug#18084, Bug#16875)

@@ -2190,24 +2190,32 @@ goes wrong and syntax highlighting in the shell gets messed up."
     (when (and (python-util-comint-last-prompt)
                (> (point) (cdr (python-util-comint-last-prompt))))
       (let ((input (buffer-substring-no-properties
-                    (cdr (python-util-comint-last-prompt)) (point-max))))
-        (delete-region (cdr (python-util-comint-last-prompt)) (point-max))
-        (insert
-         (python-shell-font-lock-with-font-lock-buffer
-           (delete-region (line-beginning-position)
-                          (line-end-position))
-           (insert input)
-           ;; Ensure buffer is fontified, keeping it
-           ;; compatible with Emacs < 24.4.
-           (if (fboundp 'font-lock-ensure)
-               (funcall 'font-lock-ensure)
-             (font-lock-default-fontify-buffer))
-           ;; Replace FACE text properties with FONT-LOCK-FACE so they
-           ;; are not overwritten by current buffer's font-lock
-           (python-util-text-properties-replace-name
-            'face 'font-lock-face)
-           (buffer-substring (line-beginning-position)
-                             (line-end-position))))))))
+                    (cdr (python-util-comint-last-prompt)) (point-max)))
+            (old-input (python-shell-font-lock-with-font-lock-buffer
+                         (buffer-substring-no-properties
+                          (line-beginning-position) (point-max))))
+            (current-point (point))
+            (buffer-undo-list t))
+        ;; When input hasn't changed, do nothing.
+        (when (not (string= input old-input))
+          (delete-region (cdr (python-util-comint-last-prompt)) (point-max))
+          (insert
+           (python-shell-font-lock-with-font-lock-buffer
+             (delete-region (line-beginning-position)
+                            (line-end-position))
+             (insert input)
+             ;; Ensure buffer is fontified, keeping it
+             ;; compatible with Emacs < 24.4.
+             (if (fboundp 'font-lock-ensure)
+                 (funcall 'font-lock-ensure)
+               (font-lock-default-fontify-buffer))
+             ;; Replace FACE text properties with FONT-LOCK-FACE so
+             ;; they are not overwritten by comint buffer's font lock.
+             (python-util-text-properties-replace-name
+              'face 'font-lock-face)
+             (buffer-substring (line-beginning-position)
+                               (line-end-position))))
+          (goto-char current-point))))))
 
 (defun python-shell-font-lock-turn-on (&optional msg)
   "Turn on shell font-lock.
