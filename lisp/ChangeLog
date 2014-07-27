@@ -1,3 +1,8 @@
+2014-07-27  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* textmodes/tex-mode.el (tex-font-lock-verb): Doc fix.
+	(Bug#18117)
+
 2014-07-27  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
 	* progmodes/python.el (inferior-python-mode): Doc fix.
