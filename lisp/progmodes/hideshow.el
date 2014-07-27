@@ -390,37 +390,31 @@ Use the command `hs-minor-mode' to toggle or set this variable.")
       :help "Do not hidden code or comment blocks when isearch matches inside them"
       :active t :style radio :selected (eq hs-isearch-open nil)])))
 
-(defvar hs-c-start-regexp nil
+(defvar-local hs-c-start-regexp nil
   "Regexp for beginning of comments.
 Differs from mode-specific comment regexps in that
 surrounding whitespace is stripped.")
-(make-variable-buffer-local 'hs-c-start-regexp)
 
-(defvar hs-block-start-regexp nil
+(defvar-local hs-block-start-regexp nil
   "Regexp for beginning of block.")
-(make-variable-buffer-local 'hs-block-start-regexp)
 
-(defvar hs-block-start-mdata-select nil
+(defvar-local hs-block-start-mdata-select nil
   "Element in `hs-block-start-regexp' match data to consider as block start.
 The internal function `hs-forward-sexp' moves point to the beginning of this
 element (using `match-beginning') before calling `hs-forward-sexp-func'.")
-(make-variable-buffer-local 'hs-block-start-mdata-select)
 
-(defvar hs-block-end-regexp nil
+(defvar-local hs-block-end-regexp nil
   "Regexp for end of block.")
-(make-variable-buffer-local 'hs-block-end-regexp)
 
-
-(defvar hs-forward-sexp-func 'forward-sexp
+(defvar-local hs-forward-sexp-func 'forward-sexp
   "Function used to do a `forward-sexp'.
 Should change for Algol-ish modes.  For single-character block
 delimiters -- ie, the syntax table regexp for the character is
 either `(' or `)' -- `hs-forward-sexp-func' would just be
 `forward-sexp'.  For other modes such as simula, a more specialized
 function is necessary.")
-(make-variable-buffer-local 'hs-forward-sexp-func)
 
-(defvar hs-adjust-block-beginning nil
+(defvar-local hs-adjust-block-beginning nil
   "Function used to tweak the block beginning.
 The block is hidden from the position returned by this function,
 as opposed to hiding it from the position returned when searching
@@ -439,7 +433,6 @@ It should return the position from where we should start hiding.
 It should not move the point.
 
 See `hs-c-like-adjust-block-beginning' for an example of using this.")
-(make-variable-buffer-local 'hs-adjust-block-beginning)
 
 (defvar hs-headline nil
   "Text of the line where a hidden block begins, set during isearch.

@@ -1,3 +1,12 @@
+2014-07-27  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	Use `defvar-local' more.
+	* progmodes/hideshow.el
+	(hs-c-start-regexp, hs-block-start-regexp)
+	(hs-block-start-mdata-select, hs-block-end-regexp)
+	(hs-forward-sexp-func, hs-adjust-block-beginning): ...here;
+	remove corresponding `make-variable-buffer-local' top-level calls.
+
 2014-07-27  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
 	Cleanup error signals.  (Bug#18067)
