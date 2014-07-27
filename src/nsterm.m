@@ -4687,7 +4687,28 @@ ns_term_shutdown (int sig)
   ((EmacsApp *)self)->applicationDidFinishLaunchingCalled = YES;
 #endif
   [NSApp setServicesProvider: NSApp];
+
+  [self antialiasThresholdDidChange:nil];
+#ifdef NS_IMPL_COCOA
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5
+  [[NSNotificationCenter defaultCenter]
+    addObserver:self
+       selector:@selector(antialiasThresholdDidChange:)
+	   name:NSAntialiasThresholdChangedNotification
+	 object:nil];
+#endif
+#endif
+
   ns_send_appdefined (-2);
+}
+
+- (void)antialiasThresholdDidChange:(NSNotification *)notification
+{
+#ifdef NS_IMPL_COCOA
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5
+  macfont_update_antialias_threshold ();
+#endif
+#endif
 }
 
 

@@ -1,3 +1,8 @@
+2014-07-27  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (applicationDidFinishLaunching antialiasThresholdDidChange):
+	Reinstate code removed by the prevoius commit to this file.
+
 2014-07-27  Martin Rudalics  <rudalics@gmx.at>
 
 	* buffer.h (struct buffer): New fields scroll_bar_height and
