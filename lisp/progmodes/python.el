@@ -2114,10 +2114,19 @@ uniqueness for different types of configurations."
     (rx eos))
    output))
 
-(defun python-comint-output-filter-function (output)
-  "Hook run after content is put into comint buffer.
-OUTPUT is a string with the contents of the buffer."
-  (ansi-color-filter-apply output))
+(define-obsolete-function-alias
+  'python-comint-output-filter-function
+  'ansi-color-filter-apply
+  "24.5")
+
+(defun python-comint-postoutput-scroll-to-bottom (output)
+  "Faster version of `comint-postoutput-scroll-to-bottom'.
+Avoids `recenter' calls until OUTPUT is completely sent."
+  (when (and (not (string= "" output))
+             (python-shell-comint-end-of-output-p
+              (ansi-color-filter-apply output)))
+    (comint-postoutput-scroll-to-bottom output))
+  output)
 
 (defvar python-shell--parent-buffer nil)
 
@@ -2281,6 +2290,10 @@ interpreter is run.  Variables
 `python-ffap-setup-code' and `python-ffap-string-code' can
 customize this mode for different Python interpreters.
 
+This mode resets `comint-output-filter-functions' locally, so you
+may want to re-add custom functions to it using the
+`inferior-python-mode-hook'.
+
 You can also add additional setup code to be run at
 initialization of the interpreter via `python-shell-setup-codes'
 variable.
@@ -2300,11 +2313,10 @@ variable.
   (python-shell-prompt-set-calculated-regexps)
   (setq comint-prompt-regexp python-shell--prompt-calculated-input-regexp)
   (setq mode-line-process '(":%s"))
-  (make-local-variable 'comint-output-filter-functions)
-  (add-hook 'comint-output-filter-functions
-            'python-comint-output-filter-function)
-  (add-hook 'comint-output-filter-functions
-            'python-pdbtrack-comint-output-filter-function)
+  (set (make-local-variable 'comint-output-filter-functions)
+       '(ansi-color-process-output
+         python-pdbtrack-comint-output-filter-function
+         python-comint-postoutput-scroll-to-bottom))
   (set (make-local-variable 'compilation-error-regexp-alist)
        python-shell-compilation-regexp-alist)
   (define-key inferior-python-mode-map [remap complete-symbol]
