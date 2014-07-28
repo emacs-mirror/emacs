@@ -1,3 +1,10 @@
+2014-07-28  Martin Rudalics  <rudalics@gmx.at>
+
+	* frame.c (x_set_frame_parameters): Revert part of 2014-07-24
+	change that added the top margin height to the requested height
+	and revert (undocumented) part of 2014-07-28 change that changed
+	the logic of whether a size change occurred.
+
 2014-07-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* .gdbinit (xwindow): The members total_cols, total_lines,
