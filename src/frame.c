@@ -637,7 +637,7 @@ make_frame (bool mini_p)
   f->column_width = 1;  /* !FRAME_WINDOW_P value.  */
   f->line_height = 1;  /* !FRAME_WINDOW_P value.  */
 #ifdef HAVE_WINDOW_SYSTEM
-  f->vertical_scroll_bar_type = vertical_scroll_bar_none;  
+  f->vertical_scroll_bar_type = vertical_scroll_bar_none;
   f->horizontal_scroll_bars = false;
   f->want_fullscreen = FULLSCREEN_NONE;
 #if ! defined (USE_GTK) && ! defined (HAVE_NS)
@@ -914,10 +914,10 @@ make_terminal_frame (struct terminal *terminal)
   FRAME_BACKGROUND_PIXEL (f) = FACE_TTY_DEFAULT_BG_COLOR;
 #endif /* not MSDOS */
 
-#ifdef HAVE_WINDOW_SYSTEM  
+#ifdef HAVE_WINDOW_SYSTEM
   f->vertical_scroll_bar_type = vertical_scroll_bar_none;
   FRAME_HAS_HORIZONTAL_SCROLL_BARS (f) = false;
-#endif  
+#endif
 
   FRAME_MENU_BAR_LINES (f) = NILP (Vmenu_bar_mode) ? 0 : 1;
   FRAME_MENU_BAR_HEIGHT (f) = FRAME_MENU_BAR_LINES (f) * FRAME_LINE_HEIGHT (f);
@@ -1666,9 +1666,9 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
   fset_buried_buffer_list (f, Qnil);
 
   free_font_driver_list (f);
-#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI)  
+#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI)
   xfree (f->namebuf);
-#endif  
+#endif
   xfree (f->decode_mode_spec_buffer);
   xfree (FRAME_INSERT_COST (f));
   xfree (FRAME_DELETEN_COST (f));
@@ -3203,10 +3203,9 @@ x_set_frame_parameters (struct frame *f, Lisp_Object alist)
 
     XSETFRAME (frame, f);
 
-    if ((width_change || height_change)
-        && (width != FRAME_TEXT_WIDTH (f)
-            || height != FRAME_TEXT_HEIGHT (f)
-            || f->new_height || f->new_width))
+    if (((width_change && width != FRAME_TEXT_WIDTH (f))
+	 || (height_change && height != FRAME_TEXT_HEIGHT (f)))
+        && (f->new_height || f->new_width))
       {
 	/* If necessary provide default values for HEIGHT and WIDTH.  Do
 	   that here since otherwise a size change implied by an
