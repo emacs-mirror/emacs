@@ -26,6 +26,15 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "atimer.h"
 #include <unistd.h>
 
+#ifdef HAVE_TIMERFD
+#include <sys/timerfd.h>
+#ifdef HAVE_TIMERFD_CLOEXEC
+#define TIMERFD_CREATE_FLAGS TFD_CLOEXEC
+#else
+#define TIMERFD_CREATE_FLAGS 0
+#endif /* HAVE_TIMERFD_CLOEXEC */
+#endif /* HAVE_TIMERFD */
+
 /* Free-list of atimer structures.  */
 
 static struct atimer *free_atimers;
@@ -40,11 +49,23 @@ static struct atimer *stopped_atimers;
 
 static struct atimer *atimers;
 
-/* The alarm timer and whether it was properly initialized, if
-   POSIX timers are available.  */
-#ifdef HAVE_ITIMERSPEC
+#if defined (HAVE_TIMERFD)
+/* File descriptor returned by timerfd_create.  GNU/Linux-specific.  */
+static int timerfd;
+#elif defined (HAVE_ITIMERSPEC)
+/* The alarm timer used if POSIX timers are available.  */
 static timer_t alarm_timer;
-static bool alarm_timer_ok;
+#endif
+
+#if defined (HAVE_TIMERFD) || defined (HAVE_ITIMERSPEC)
+/* Non-zero if one of the above was successfully initialized.  Do not
+   use bool due to special treatment if HAVE_TIMERFD, see below.  */
+static int special_timer_available;
+#endif
+
+#ifdef HAVE_CLOCK_GETRES
+/* Resolution of CLOCK_REALTIME clock.  */
+static struct timespec resolution;
 #endif
 
 /* Block/unblock SIGALRM.  */
@@ -96,11 +117,16 @@ start_atimer (enum atimer_type type, struct timespec timestamp,
   struct atimer *t;
   sigset_t oldset;
 
-  /* Round TIME up to the next full second if we don't have
-     itimers.  */
-#ifndef HAVE_SETITIMER
+#if !defined (HAVE_SETITIMER)
+  /* Round TIME up to the next full second if we don't have itimers.  */
   if (timestamp.tv_nsec != 0 && timestamp.tv_sec < TYPE_MAXIMUM (time_t))
     timestamp = make_timespec (timestamp.tv_sec + 1, 0);
+#elif defined (HAVE_CLOCK_GETRES)
+  /* Check that the system clock is precise enough.  If
+     not, round TIME up to the system clock resolution.  */
+  if (timespec_valid_p (resolution)
+      && timespec_cmp (timestamp, resolution) < 0)
+    timestamp = resolution;
 #endif /* not HAVE_SETITIMER */
 
   /* Get an atimer structure from the free-list, or allocate
@@ -285,16 +311,25 @@ set_alarm (void)
 #endif
       struct timespec now, interval;
 
-#ifdef HAVE_ITIMERSPEC
-      if (alarm_timer_ok)
+#if defined (HAVE_TIMERFD) || defined (HAVE_ITIMERSPEC)
+      if (special_timer_available)
 	{
 	  struct itimerspec ispec;
 	  ispec.it_value = atimers->expiration;
 	  ispec.it_interval.tv_sec = ispec.it_interval.tv_nsec = 0;
+#if defined (HAVE_TIMERFD)
+	  if (special_timer_available == 1)
+	    {
+	      add_timer_wait_descriptor (timerfd);
+	      special_timer_available++;
+	    }
+	  if (timerfd_settime (timerfd, TFD_TIMER_ABSTIME, &ispec, 0) == 0)
+#elif defined (HAVE_ITIMERSPEC)
 	  if (timer_settime (alarm_timer, TIMER_ABSTIME, &ispec, 0) == 0)
+#endif	    
 	    return;
 	}
-#endif
+#endif /* HAVE_TIMERFD || HAVE_ITIMERSPEC */
 
       /* Determine interval till the next timer is ripe.
 	 Don't set the interval to 0; this disables the timer.  */
@@ -373,6 +408,15 @@ handle_alarm_signal (int sig)
   pending_signals = 1;
 }
 
+#ifdef HAVE_TIMERFD
+
+void
+timerfd_callback (int fd, void *arg)
+{
+  do_pending_atimers ();
+}
+
+#endif /* HAVE_TIMERFD */
 
 /* Do pending timers.  */
 
@@ -401,21 +445,106 @@ turn_on_atimers (bool on)
     alarm (0);
 }
 
+/* This is intended to use from automated tests.  */
+
+#ifdef ENABLE_CHECKING
+
+#define MAXTIMERS 10
+
+struct atimer_result
+{
+  /* Time when we expect this timer to trigger.  */
+  struct timespec expected;
+
+  /* Timer status: -1 if not triggered, 0 if triggered
+     too early or too late, 1 if triggered timely.  */
+  int intime;
+};
+
+static void
+debug_timer_callback (struct atimer *t)
+{
+  struct timespec now = current_timespec ();
+  struct atimer_result *r = (struct atimer_result *) t->client_data;
+  int result = timespec_cmp (now, r->expected);
+
+  if (result < 0)
+    /* Too early.  */
+    r->intime = 0;
+  else if (result >= 0)
+    {
+#ifdef HAVE_SETITIMER      
+      struct timespec delta = timespec_sub (now, r->expected);
+      /* Too late if later than expected + 0.01s.  FIXME:
+	 this should depend from system clock resolution.  */
+      if (timespec_cmp (delta, make_timespec (0, 10000000)) > 0)
+	r->intime = 0;
+      else
+#endif /* HAVE_SETITIMER */	
+	r->intime = 1;
+    }
+}
+
+DEFUN ("debug-timer-check", Fdebug_timer_check, Sdebug_timer_check, 0, 0, 0,
+       doc: /* Run internal self-tests to check timers subsystem.
+Return t if all self-tests are passed, nil otherwise.  */)
+  (void)
+{
+  int i, ok;
+  struct atimer *timer;
+  struct atimer_result *results[MAXTIMERS];
+  struct timespec t = make_timespec (0, 0);
+
+  /* Arm MAXTIMERS relative timers to trigger with 0.1s intervals.  */
+  for (i = 0; i < MAXTIMERS; i++)
+    {
+      results[i] = xmalloc (sizeof (struct atimer_result));
+      t = timespec_add (t, make_timespec (0, 100000000));
+      results[i]->expected = timespec_add (current_timespec (), t);
+      results[i]->intime = -1;
+      timer = start_atimer (ATIMER_RELATIVE, t,
+			    debug_timer_callback, results[i]);
+    }
+
+  /* Wait for 1s but process timers.  */
+  wait_reading_process_output (1, 0, 0, false, Qnil, NULL, 0);
+  /* Shut up the compiler by "using" this variable.  */
+  (void) timer;
+
+  for (i = 0, ok = 0; i < MAXTIMERS; i++)
+    ok += results[i]->intime, xfree (results[i]);
+
+  return ok == MAXTIMERS ? Qt : Qnil;
+}
+
+#endif /* ENABLE_CHECKING */
 
 void
 init_atimer (void)
 {
-#ifdef HAVE_ITIMERSPEC
+#if defined (HAVE_TIMERFD)
+  timerfd = timerfd_create (CLOCK_REALTIME, TIMERFD_CREATE_FLAGS);
+  special_timer_available = !!(timerfd != -1);
+#elif defined (HAVE_ITIMERSPEC)
   struct sigevent sigev;
   sigev.sigev_notify = SIGEV_SIGNAL;
   sigev.sigev_signo = SIGALRM;
   sigev.sigev_value.sival_ptr = &alarm_timer;
-  alarm_timer_ok = timer_create (CLOCK_REALTIME, &sigev, &alarm_timer) == 0;
-#endif
+  special_timer_available
+    = timer_create (CLOCK_REALTIME, &sigev, &alarm_timer) == 0;
+#endif /* HAVE_TIMERFD */
+#ifdef HAVE_CLOCK_GETRES
+  if (clock_getres (CLOCK_REALTIME, &resolution))
+    resolution = invalid_timespec ();
+#endif  
   free_atimers = stopped_atimers = atimers = NULL;
 
   /* pending_signals is initialized in init_keyboard.  */
   struct sigaction action;
   emacs_sigaction_init (&action, handle_alarm_signal);
   sigaction (SIGALRM, &action, 0);
+
+#ifdef ENABLE_CHECKING
+  defsubr (&Sdebug_timer_check);
+#endif  
 }

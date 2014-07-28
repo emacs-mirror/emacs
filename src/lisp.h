@@ -4186,6 +4186,9 @@ extern int wait_reading_process_output (intmax_t, int, int, bool, Lisp_Object,
 #else
 # define WAIT_READING_MAX INTMAX_MAX
 #endif
+#ifdef HAVE_TIMERFD
+extern void add_timer_wait_descriptor (int);
+#endif
 extern void add_keyboard_wait_descriptor (int);
 extern void delete_keyboard_wait_descriptor (int);
 #ifdef HAVE_GPM

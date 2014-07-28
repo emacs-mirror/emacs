@@ -3710,6 +3710,26 @@ fi
 AC_SUBST(LIBS_TERMCAP)
 AC_SUBST(TERMCAP_OBJ)
 
+# GNU/Linux-specific timer functions.
+if test $opsys = gnu-linux; then
+  AC_MSG_CHECKING([whether Linux timerfd functions are supported])
+  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <sys/timerfd.h>]],
+				     [[timerfd_create (CLOCK_REALTIME, 0);
+				       timerfd_settime (0, 0, NULL, NULL)]])],
+  emacs_cv_linux_timerfd=yes, emacs_cv_linux_timerfd=no)
+  AC_MSG_RESULT([$emacs_cv_linux_timerfd])
+  if test $emacs_cv_linux_timerfd = yes; then
+    AC_DEFINE(HAVE_TIMERFD, 1, [Define to 1 if Linux timerfd functions are supported.])
+    AC_MSG_CHECKING([whether TFD_CLOEXEC is defined])
+      AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <sys/timerfd.h>]],
+					 [[timerfd_create (CLOCK_REALTIME, TFD_CLOEXEC)]])],
+    emacs_cv_tfd_cloexec=yes, emacs_cv_tfd_cloexec=no)
+    AC_MSG_RESULT([$emacs_cv_tfd_cloexec])
+    if test $emacs_cv_tfd_cloexec = yes; then
+      AC_DEFINE(HAVE_TIMERFD_CLOEXEC, 1, [Define to 1 if TFD_CLOEXEC is defined.])
+    fi
+  fi
+fi  
 
 # Do we have res_init, for detecting changes in /etc/resolv.conf?
 # On Darwin, res_init appears not to be useful: see bug#562 and

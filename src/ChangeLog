@@ -1,3 +1,23 @@
+2014-07-28  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	On GNU/Linux, use timerfd for asynchronous timers.
+	* atimer.c (toplevel) [HAVE_TIMERFD]: Include sys/timerfd.h.
+	(toplevel): Rename alarm_timer_ok to special_timer_available.
+	[HAVE_TIMERFD]: Declare timerfd.
+	[HAVE_CLOCK_GETRES]: Declare resolution.
+	(start_atimer) [HAVE_CLOCK_GETRES]: Round up timestamp to
+	system timer resolution.
+	(set_alarm) [HAVE_TIMERFD]: Use timerfd_settime.
+	(timerfd_callback) [HAVE_TIMERFD]: New function.
+	(atimer_result, debug_timer_callback, Fdebug_timer_check)
+	[ENABLE_CHECKING]: New function for the sake of automated tests.
+	(init_atimer) [HAVE_TIMERFD]: Setup timerfd.
+	[HAVE_CLOCK_GETRES]: Likewise for system timer resolution.
+	[ENABLE_CHECKING]: Defsubr test function.
+	* atimer.h (timerfd_callback) [HAVE_TIMERFD]: Add prototype.
+	* lisp.h (add_timer_wait_descriptor) [HAVE_TIMERFD]: Likewise.
+	* process.c (add_timer_wait_descriptor) [HAVE_TIMERFD]: New function.
+
 2014-07-28  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* frame.c (x_set_frame_parameters): Don't use uninitialized locals.

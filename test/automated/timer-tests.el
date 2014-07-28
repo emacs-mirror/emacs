@@ -34,5 +34,9 @@
     (sit-for 0 t)
     (should timer-ran)))
 
-;;; timer-tests.el ends here
+(ert-deftest timer-tests-debug-timer-check ()
+  ;; This function exists only if --enable-checking.
+  (if (fboundp 'debug-timer-check)
+      (should (debug-timer-check)) t))
 
+;;; timer-tests.el ends here

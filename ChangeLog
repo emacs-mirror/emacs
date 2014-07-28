@@ -1,3 +1,9 @@
+2014-07-28  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* configure.ac (toplevel): Check whether GNU/Linux-specific
+	timerfd functions and macros are available.
+	* m4/clock_time.m4 (gl_CLOCK_TIME): Check for clock_getres as well.
+
 2014-07-13  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Improve behavior of 'bzr up; cd src; make -k'.
