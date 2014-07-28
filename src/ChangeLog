@@ -1,3 +1,9 @@
+2014-07-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* .gdbinit (xwindow): The members total_cols, total_lines,
+	left_col, and top_line are C integers (and has been so for the
+	last 1.5 years).
+
 2014-07-20  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (applicationDidFinishLaunching:): Call
