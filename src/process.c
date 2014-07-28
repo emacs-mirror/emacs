@@ -6835,7 +6835,9 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 void
 add_timer_wait_descriptor (int fd)
 {
+  FD_SET (fd, &input_wait_mask);
   FD_SET (fd, &non_keyboard_wait_mask);
+  FD_SET (fd, &non_process_wait_mask);  
   fd_callback_info[fd].func = timerfd_callback;
   fd_callback_info[fd].data = NULL;
   fd_callback_info[fd].condition |= FOR_READ;

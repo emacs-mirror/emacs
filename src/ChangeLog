@@ -35,6 +35,14 @@
 	Define as no-op.
 	(adjust_frame_size): Always declare prototype.
 
+	Fix Gnus-related issues reported by David Kastrup <dak@gnu.org> in
+	<http://lists.gnu.org/archive/html/emacs-devel/2014-07/msg00370.html>.
+	* atimer.c (timerfd_callback): Always read expiration data.
+	Add comment.
+	(turn_on_atimers) [HAVE_TIMERFD]: Disarm timerfd timer.
+	* process.c (add_timer_wait_descriptor): Add timer descriptor
+	to input_wait_mask and non_process_wait_mask as well.
+
 2014-07-28  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* frame.c (x_set_frame_parameters): Don't use uninitialized locals.

@@ -410,9 +410,19 @@ handle_alarm_signal (int sig)
 
 #ifdef HAVE_TIMERFD
 
+/* Called from wait_reading_process_output when FD, which
+   should be equal to TIMERFD, is available for reading.  */
+
 void
 timerfd_callback (int fd, void *arg)
 {
+  char buf[8];
+  ptrdiff_t nbytes;
+
+  eassert (fd == timerfd);
+  nbytes = emacs_read (fd, buf, sizeof (buf));
+  /* Just discard an expiration count for now.  */
+  eassert (nbytes == sizeof (buf));
   do_pending_atimers ();
 }
 
@@ -442,7 +452,18 @@ turn_on_atimers (bool on)
   if (on)
     set_alarm ();
   else
-    alarm (0);
+    {
+#ifdef HAVE_TIMERFD
+      if (special_timer_available > 1)
+	{
+	  struct itimerspec ispec;
+	  memset (&ispec, 0, sizeof (ispec));
+	  /* Writing zero expiration time should disarm it.  */
+	  timerfd_settime (timerfd, TFD_TIMER_ABSTIME, &ispec, 0);
+	}
+#endif /* HAVE_TIMERFD */
+      alarm (0);
+    }
 }
 
 /* This is intended to use from automated tests.  */
