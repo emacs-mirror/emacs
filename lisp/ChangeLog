@@ -1,3 +1,8 @@
+2014-07-28  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	* progmodes/python.el (inferior-python-mode): Make input prompts
+	read-only.
+
 2014-07-28  Emilio C. Lopes  <eclig@gmx.net>
 
 	* net/tramp-sh.el (tramp-get-remote-python): Also search for

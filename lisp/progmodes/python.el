@@ -2357,7 +2357,8 @@ variable.
   (set (make-local-variable 'python-shell--prompt-calculated-input-regexp) nil)
   (set (make-local-variable 'python-shell--prompt-calculated-output-regexp) nil)
   (python-shell-prompt-set-calculated-regexps)
-  (setq comint-prompt-regexp python-shell--prompt-calculated-input-regexp)
+  (setq comint-prompt-regexp python-shell--prompt-calculated-input-regexp
+        comint-prompt-read-only t)
   (setq mode-line-process '(":%s"))
   (set (make-local-variable 'comint-output-filter-functions)
        '(ansi-color-process-output
@@ -2381,6 +2382,10 @@ variable.
   (compilation-shell-minor-mode 1)
   ;; Ensure all the output is accepted before running any hooks.
   (accept-process-output (get-buffer-process (current-buffer)))
+  ;; At this point, all process output should have been received, but
+  ;; on GNU/Linux, calling `python-shell-internal-send-string' without
+  ;; a running internal shell fails to grab output properly unless
+  ;; this `sit-for' is in place.
   (sit-for 0.1 t))
 
 (defun python-shell-make-comint (cmd proc-name &optional pop internal)
