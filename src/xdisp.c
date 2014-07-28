@@ -19942,6 +19942,7 @@ display_line (struct it *it)
   int cvpos;
   ptrdiff_t min_pos = ZV + 1, max_pos = 0;
   ptrdiff_t min_bpos IF_LINT (= 0), max_bpos IF_LINT (= 0);
+  bool pending_handle_line_prefix = false;
 
   /* We always start displaying at hpos zero even if hscrolled.  */
   eassert (it->hpos == 0 && it->current_x == 0);
@@ -20002,12 +20003,22 @@ display_line (struct it *it)
       min_pos = CHARPOS (this_line_min_pos);
       min_bpos = BYTEPOS (this_line_min_pos);
     }
+  else if (it->area == TEXT_AREA)
+    {
+      /* We only do this when not calling move_it_in_display_line_to
+	 above, because that function calls itself handle_line_prefix.  */
+      handle_line_prefix (it);
+    }
   else
     {
-      /* We only do this when not calling `move_it_in_display_line_to'
-	 above, because move_it_in_display_line_to calls
-	 handle_line_prefix itself.  */
-      handle_line_prefix (it);
+      /* Line-prefix and wrap-prefix are always displayed in the text
+	 area.  But if this is the first call to display_line after
+	 init_iterator, the iterator might have been set up to write
+	 into a marginal area, e.g. if the line begins with some
+	 display property that writes to the margins.  So we need to
+	 wait with the call to handle_line_prefix until whatever
+	 writes to the margin has done its job.  */
+      pending_handle_line_prefix = true;
     }
 
   /* Get the initial row height.  This is either the height of the
@@ -20140,6 +20151,14 @@ display_line (struct it *it)
 	  row->extra_line_spacing = max (row->extra_line_spacing,
 					 it->max_extra_line_spacing);
 	  set_iterator_to_next (it, 1);
+	  /* If we didn't handle the line/wrap prefix above, and the
+	     call to set_iterator_to_next just switched to TEXT_AREA,
+	     process the prefix now.  */
+	  if (it->area == TEXT_AREA && pending_handle_line_prefix)
+	    {
+	      pending_handle_line_prefix = false;
+	      handle_line_prefix (it);
+	    }
 	  continue;
 	}
 
