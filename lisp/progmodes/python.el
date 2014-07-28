@@ -2770,7 +2770,7 @@ If DELETE is non-nil, delete the file afterwards."
 (defun python-shell-switch-to-shell ()
   "Switch to inferior Python process buffer."
   (interactive)
-  (pop-to-buffer (process-buffer (python-shell-get-or-create-process)) t))
+  (process-buffer (python-shell-get-or-create-process)) t)
 
 (defun python-shell-send-setup-code ()
   "Send all setup code for shell.

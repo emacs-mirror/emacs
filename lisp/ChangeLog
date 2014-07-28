@@ -1,5 +1,11 @@
 2014-07-28  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
+	Prevent Python process shell buffer to pop twice.
+	* progmodes/python.el (python-shell-switch-to-shell): Do not call
+	pop-to-buffer.
+
+2014-07-28  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
 	* progmodes/python.el
 	(python-shell-with-shell-buffer): New macro.
 	(python-shell-font-lock-get-or-create-buffer)
