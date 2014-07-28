@@ -1,5 +1,17 @@
 2014-07-28  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
+	* progmodes/python.el
+	(python-shell-with-shell-buffer): New macro.
+	(python-shell-font-lock-get-or-create-buffer)
+	(python-shell-font-lock-kill-buffer)
+	(python-shell-font-lock-with-font-lock-buffer)
+	(python-shell-font-lock-cleanup-buffer)
+	(python-shell-font-lock-toggle): Use it.
+	(python-shell-font-lock-turn-on)
+	(python-shell-font-lock-turn-off): Use it.  Make command.
+
+2014-07-28  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
 	Grab all Python process output before inferior-python-mode hooks.
 	* progmodes/python.el (inferior-python-mode): Call
 	accept-process-output and sit-for to ensure all output for process

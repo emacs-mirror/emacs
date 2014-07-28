@@ -2159,51 +2159,64 @@ Avoids `recenter' calls until OUTPUT is completely sent."
 
 (defvar python-shell--parent-buffer nil)
 
+(defmacro python-shell-with-shell-buffer (&rest body)
+  "Execute the forms in BODY with the shell buffer temporarily current.
+Signals an error if no shell buffer is available for current buffer."
+  (declare (indent 0) (debug t))
+  (let ((shell-buffer (make-symbol "shell-buffer")))
+    `(let ((,shell-buffer (python-shell-get-buffer)))
+       (when (not ,shell-buffer)
+         (error "No inferior Python buffer available."))
+       (with-current-buffer ,shell-buffer
+         ,@body))))
+
 (defvar python-shell--font-lock-buffer nil)
 
 (defun python-shell-font-lock-get-or-create-buffer ()
   "Get or create a font-lock buffer for current inferior process."
-  (if python-shell--font-lock-buffer
-      python-shell--font-lock-buffer
-    (let ((process-name
-           (process-name (get-buffer-process (current-buffer)))))
-      (generate-new-buffer
-       (format "*%s-font-lock*" process-name)))))
+  (python-shell-with-shell-buffer
+    (if python-shell--font-lock-buffer
+        python-shell--font-lock-buffer
+      (let ((process-name
+             (process-name (get-buffer-process (current-buffer)))))
+        (generate-new-buffer
+         (format "*%s-font-lock*" process-name))))))
 
 (defun python-shell-font-lock-kill-buffer ()
   "Kill the font-lock buffer safely."
-  (when (and python-shell--font-lock-buffer
-             (buffer-live-p python-shell--font-lock-buffer))
-    (kill-buffer python-shell--font-lock-buffer)
-    (when (eq major-mode 'inferior-python-mode)
-      (setq python-shell--font-lock-buffer nil))))
+  (python-shell-with-shell-buffer
+    (when (and python-shell--font-lock-buffer
+               (buffer-live-p python-shell--font-lock-buffer))
+      (kill-buffer python-shell--font-lock-buffer)
+      (when (eq major-mode 'inferior-python-mode)
+        (setq python-shell--font-lock-buffer nil)))))
 
 (defmacro python-shell-font-lock-with-font-lock-buffer (&rest body)
   "Execute the forms in BODY in the font-lock buffer.
 The value returned is the value of the last form in BODY.  See
 also `with-current-buffer'."
   (declare (indent 0) (debug t))
-  `(save-current-buffer
-     (when (not (eq major-mode 'inferior-python-mode))
-       (error "Current buffer is not in `inferior-python-mode'."))
-     (when (not (and python-shell--font-lock-buffer
-                     (get-buffer python-shell--font-lock-buffer)))
-       (setq python-shell--font-lock-buffer
-             (python-shell-font-lock-get-or-create-buffer)))
-     (set-buffer python-shell--font-lock-buffer)
-     (set (make-local-variable 'delay-mode-hooks) t)
-     (let ((python-indent-guess-indent-offset nil))
-       (when (not (eq major-mode 'python-mode))
-         (python-mode))
-       ,@body)))
+  `(python-shell-with-shell-buffer
+     (save-current-buffer
+       (when (not (and python-shell--font-lock-buffer
+                       (get-buffer python-shell--font-lock-buffer)))
+         (setq python-shell--font-lock-buffer
+               (python-shell-font-lock-get-or-create-buffer)))
+       (set-buffer python-shell--font-lock-buffer)
+       (set (make-local-variable 'delay-mode-hooks) t)
+       (let ((python-indent-guess-indent-offset nil))
+         (when (not (eq major-mode 'python-mode))
+           (python-mode))
+         ,@body))))
 
 (defun python-shell-font-lock-cleanup-buffer ()
   "Cleanup the font-lock buffer.
 Provided as a command because this might be handy if something
 goes wrong and syntax highlighting in the shell gets messed up."
   (interactive)
-  (python-shell-font-lock-with-font-lock-buffer
-    (delete-region (point-min) (point-max))))
+  (python-shell-with-shell-buffer
+    (python-shell-font-lock-with-font-lock-buffer
+      (delete-region (point-min) (point-max)))))
 
 (defun python-shell-font-lock-comint-output-filter-function (output)
   "Clean up the font-lock buffer after any OUTPUT."
@@ -2258,49 +2271,54 @@ goes wrong and syntax highlighting in the shell gets messed up."
 (defun python-shell-font-lock-turn-on (&optional msg)
   "Turn on shell font-lock.
 With argument MSG show activation message."
-  (python-shell-font-lock-kill-buffer)
-  (set (make-local-variable 'python-shell--font-lock-buffer) nil)
-  (add-hook 'post-command-hook
-            #'python-shell-font-lock-post-command-hook nil 'local)
-  (add-hook 'kill-buffer-hook
-            #'python-shell-font-lock-kill-buffer nil 'local)
-  (add-hook 'comint-output-filter-functions
-            #'python-shell-font-lock-comint-output-filter-function
-            'append 'local)
-  (when msg
-    (message "Shell font-lock is enabled")))
+  (interactive "p")
+  (python-shell-with-shell-buffer
+    (python-shell-font-lock-kill-buffer)
+    (set (make-local-variable 'python-shell--font-lock-buffer) nil)
+    (add-hook 'post-command-hook
+              #'python-shell-font-lock-post-command-hook nil 'local)
+    (add-hook 'kill-buffer-hook
+              #'python-shell-font-lock-kill-buffer nil 'local)
+    (add-hook 'comint-output-filter-functions
+              #'python-shell-font-lock-comint-output-filter-function
+              'append 'local)
+    (when msg
+      (message "Shell font-lock is enabled"))))
 
 (defun python-shell-font-lock-turn-off (&optional msg)
   "Turn off shell font-lock.
 With argument MSG show deactivation message."
-  (python-shell-font-lock-kill-buffer)
-  (when (python-util-comint-last-prompt)
-    ;; Cleanup current fontification
-    (remove-text-properties
-     (cdr (python-util-comint-last-prompt))
-     (line-end-position)
-     '(face nil font-lock-face nil)))
-  (set (make-local-variable 'python-shell--font-lock-buffer) nil)
-  (remove-hook 'post-command-hook
-               #'python-shell-font-lock-post-command-hook'local)
-  (remove-hook 'kill-buffer-hook
-               #'python-shell-font-lock-kill-buffer 'local)
-  (remove-hook 'comint-output-filter-functions
-               #'python-shell-font-lock-comint-output-filter-function
-               'local)
-  (when msg
-    (message "Shell font-lock is disabled")))
+  (interactive "p")
+  (python-shell-with-shell-buffer
+    (python-shell-font-lock-kill-buffer)
+    (when (python-util-comint-last-prompt)
+      ;; Cleanup current fontification
+      (remove-text-properties
+       (cdr (python-util-comint-last-prompt))
+       (line-end-position)
+       '(face nil font-lock-face nil)))
+    (set (make-local-variable 'python-shell--font-lock-buffer) nil)
+    (remove-hook 'post-command-hook
+                 #'python-shell-font-lock-post-command-hook'local)
+    (remove-hook 'kill-buffer-hook
+                 #'python-shell-font-lock-kill-buffer 'local)
+    (remove-hook 'comint-output-filter-functions
+                 #'python-shell-font-lock-comint-output-filter-function
+                 'local)
+    (when msg
+      (message "Shell font-lock is disabled"))))
 
 (defun python-shell-font-lock-toggle (&optional msg)
   "Toggle font-lock for shell.
 With argument MSG show activation/deactivation message."
   (interactive "p")
-  (set (make-local-variable 'python-shell-font-lock-enable)
-       (not python-shell-font-lock-enable))
-  (if python-shell-font-lock-enable
-      (python-shell-font-lock-turn-on msg)
-    (python-shell-font-lock-turn-off msg))
-  python-shell-font-lock-enable)
+  (python-shell-with-shell-buffer
+    (set (make-local-variable 'python-shell-font-lock-enable)
+         (not python-shell-font-lock-enable))
+    (if python-shell-font-lock-enable
+        (python-shell-font-lock-turn-on msg)
+      (python-shell-font-lock-turn-off msg))
+    python-shell-font-lock-enable))
 
 (define-derived-mode inferior-python-mode comint-mode "Inferior Python"
   "Major mode for Python inferior process.
