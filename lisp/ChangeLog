@@ -1,3 +1,8 @@
+2014-07-28  Stephen Berman  <stephen.berman@gmx.net>
+
+	* doc-view.el (doc-view-open-text): Don't require that the
+	document is saved in a file (e.g., email attachment).
+
 2014-07-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* window.el (window--pixel-to-total): Use FRAME's root window, not
