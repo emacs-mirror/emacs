@@ -866,6 +866,7 @@ default_pixels_per_inch_y (void)
 #define FRAME_HAS_VERTICAL_SCROLL_BARS(f) ((void) f, 0)
 #define FRAME_HAS_VERTICAL_SCROLL_BARS_ON_LEFT(f) ((void) f, 0)
 #define FRAME_HAS_VERTICAL_SCROLL_BARS_ON_RIGHT(f) ((void) f, 0)
+#define FRAME_HAS_HORIZONTAL_SCROLL_BARS(f) ((void) f, 0)
 
 #endif /* HAVE_WINDOW_SYSTEM */
 
@@ -1108,6 +1109,7 @@ extern void frame_make_pointer_invisible (struct frame *);
 extern void frame_make_pointer_visible (struct frame *);
 extern Lisp_Object delete_frame (Lisp_Object, Lisp_Object);
 extern bool frame_inhibit_resize (struct frame *, bool); 
+extern void adjust_frame_size (struct frame *, int, int, int, bool);
 
 extern Lisp_Object Vframe_list;
 
@@ -1375,10 +1377,6 @@ extern Lisp_Object Qrun_hook_with_args;
 
 /* The class of this X application.  */
 #define EMACS_CLASS "Emacs"
-
-/* If these are not in frame.c they are in xterm.c, w32term.c, etc.  */
-extern void adjust_frame_size (struct frame *, int, int, int, bool);
-extern int frame_windows_min_size (Lisp_Object, Lisp_Object, Lisp_Object);
 
 extern void x_set_scroll_bar_default_width (struct frame *);
 extern void x_set_scroll_bar_default_height (struct frame *);

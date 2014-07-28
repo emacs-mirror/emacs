@@ -23,6 +23,14 @@
 	* lisp.h (add_timer_wait_descriptor) [HAVE_TIMERFD]: Likewise.
 	* process.c (add_timer_wait_descriptor) [HAVE_TIMERFD]: New function.
 
+	Fix --without-x build and pacify --enable-gcc-warnings.
+	Problems reported in Bug#18122 and Bug#18124.
+	* frame.c (get_frame_param): Define even if !HAVE_WINDOW_SYSTEM.
+	(frame_windows_min_size): Now static.
+	* frame.h (FRAME_HAS_HORIZONTAL_SCROLL_BARS) [!HAVE_WINDOW_SYSTEM]:
+	Define as no-op.
+	(adjust_frame_size): Always declare prototype.
+
 2014-07-28  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* frame.c (x_set_frame_parameters): Don't use uninitialized locals.

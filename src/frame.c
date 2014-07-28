@@ -194,9 +194,8 @@ check_window_system (struct frame *f)
 	   : "Window system is not in use or not initialized");
 }
 
-
 /* Return the value of frame parameter PROP in frame FRAME.  */
-#ifdef HAVE_WINDOW_SYSTEM
+
 Lisp_Object
 get_frame_param (register struct frame *frame, Lisp_Object prop)
 {
@@ -207,8 +206,6 @@ get_frame_param (register struct frame *frame, Lisp_Object prop)
     return tem;
   return Fcdr (tem);
 }
-#endif
-
 
 /* Return 1 if `frame-inhibit-implied-resize' is non-nil or fullscreen
    state of frame F would be affected by a vertical (horizontal if
@@ -367,7 +364,7 @@ predicates which report frame's specific UI-related capabilities.  */)
     return type;
 }
 
-int
+static int
 frame_windows_min_size (Lisp_Object frame, Lisp_Object horizontal, Lisp_Object pixelwise)
 {
   return XINT (call3 (Qframe_windows_min_size, frame, horizontal, pixelwise));
