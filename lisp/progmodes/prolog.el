@@ -1079,7 +1079,7 @@ VERSION is of the format (Major . Minor)"
   ;; Inherited from the old prolog.el.
   (define-key map "\e\C-x" 'prolog-consult-region)
   (define-key map "\C-c\C-l" 'prolog-consult-file)
-  (define-key map "\C-c\C-z" 'switch-to-prolog))
+  (define-key map "\C-c\C-z" 'run-prolog))
 
 (defun prolog-mode-keybindings-inferior (_map)
   "Define keybindings for inferior Prolog mode in MAP."
@@ -1240,6 +1240,8 @@ To find out what version of Prolog mode you are running, enter
         ((string-match "\\`[rf] *[0-9]*\\'" str) nil) ;r(edo) or f(ail)
         (t t)))
 
+;; This statement was missing in Emacs 24.1, 24.2, 24.3.
+(define-obsolete-function-alias 'switch-to-prolog 'run-prolog "24.1")
 ;;;###autoload
 (defun run-prolog (arg)
   "Run an inferior Prolog process, input and output via buffer *prolog*.

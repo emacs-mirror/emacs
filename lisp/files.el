@@ -5017,6 +5017,7 @@ prints a message in the minibuffer.  Instead, use `set-buffer-modified-p'."
   (set-buffer-modified-p arg))
 
 (defun toggle-read-only (&optional arg interactive)
+  "Change whether this buffer is read-only."
   (declare (obsolete read-only-mode "24.3"))
   (interactive (list current-prefix-arg t))
   (if interactive

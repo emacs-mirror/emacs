@@ -1,3 +1,49 @@
+2014-07-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* window.el (window--pixel-to-total): Use FRAME's root window, not
+	that of the selected frame.  (Bug#18112, Bug#16674)
+
+2014-07-28  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* textmodes/tex-mode.el (tex-font-lock-verb): Doc fix.
+	(Bug#18117)
+
+2014-07-28  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	* progmodes/python.el (inferior-python-mode): Doc fix.
+
+2014-07-28  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todo-mode.el (todo-edit-item--next-key): If next key is
+	not a character, ignore it instead of raising an error.
+
+	* calendar/todo-mode.el: Fix handling of marked items and make
+	minor code improvements.
+	(todo-edit-item): If there are marked items, ensure user can only
+	invoke editing commands that work with marked items.
+	(todo-edit-item--text): When there are marked items, make it a
+	noop if invoked with point not on an item; otherwise, ensure it
+	applies only to item at point.
+	(todo-item-undone): If there are marked not-done items, return
+	point to its original position before signaling user error.
+	(todo--user-error-if-marked-done-item): New function.
+	(todo-edit-item--header, todo-edit-item--diary-inclusion)
+	(todo-item-done): Use it.
+
+2014-07-28  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (toggle-read-only): Re-add basic doc-string.
+	* vc/vc-hooks.el (vc-toggle-read-only): Tweak obsolescence mesage.
+
+	* progmodes/prolog.el (prolog-mode-keybindings-edit):
+	Replace missing `switch-to-prolog' with `run-prolog'.
+	(switch-to-prolog): Define as (obsolete) alias, as in 23.4.
+
+2014-07-28  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todo-mode.el (todo-set-top-priorities): Fix overwriting
+	of file-wide setting when changing category-wide setting.
+
 2014-07-28  Stephen Berman  <stephen.berman@gmx.net>
 
 	* doc-view.el (doc-view-open-text): Don't require that the

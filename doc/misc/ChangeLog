@@ -1,3 +1,8 @@
+2014-07-28  Stephen Berman  <stephen.berman@gmx.net>
+
+	* todo-mode.texi (Marked Items): Correct omission of item deletion
+	from commands applying to both todo and done items.
+
 2014-07-18  Albert Krewinkel  <albert+gnus@zeitkraut.de>
 
 	* gnus.texi (Posting Styles): Document the possibility to perform

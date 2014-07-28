@@ -2332,7 +2332,6 @@ interpreter is run.  Variables
 `python-shell-font-lock-enable',
 `python-shell-completion-setup-code',
 `python-shell-completion-string-code',
-`python-shell-completion-module-string-code',
 `python-eldoc-setup-code', `python-eldoc-string-code',
 `python-ffap-setup-code' and `python-ffap-string-code' can
 customize this mode for different Python interpreters.
@@ -2408,7 +2407,7 @@ killed."
                               interpreter nil args))
                (python-shell--parent-buffer (current-buffer))
                (process (get-buffer-process buffer))
-               ;; As the user may have overriden default values for
+               ;; As the user may have overridden default values for
                ;; these vars on `run-python', let-binding them allows
                ;; to have the new right values in all setup code
                ;; that's is done in `inferior-python-mode', which is

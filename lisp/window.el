@@ -2286,7 +2286,7 @@ Optional argument HORIZONTAL non-nil means assign new total
 window widths from pixel widths."
   (setq frame (window-normalize-frame frame))
   (let* ((char-size (frame-char-size frame horizontal))
-	 (root (frame-root-window))
+	 (root (frame-root-window frame))
 	 (root-size (window-size root horizontal t))
 	 ;; We have to care about the minibuffer window only if it
 	 ;; appears together with the root window on this frame.

@@ -808,7 +808,7 @@ Not smaller than the value set by `tex-suscript-height-minimum'."
 (defvar tex-verbatim-face 'tex-verbatim)
 
 (defun tex-font-lock-verb (start delim)
-  "Place syntax table properties on the \verb construct.
+  "Place syntax table properties on the \\verb construct.
 START is the position of the \\ and DELIM is the delimiter char."
   ;; Do nothing if the \verb construct is itself inside a comment or
   ;; verbatim env.

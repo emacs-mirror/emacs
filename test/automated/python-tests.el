@@ -1807,7 +1807,7 @@ Using `python-shell-interpreter' and
       (kill-buffer shell-buffer))))
 
 (ert-deftest python-shell-make-comint-3 ()
-  "Check comint creation with overriden python interpreter and args.
+  "Check comint creation with overridden python interpreter and args.
 The command passed to `python-shell-make-comint' as argument must
 locally override global values set in `python-shell-interpreter'
 and `python-shell-interpreter-args' in the new shell buffer."

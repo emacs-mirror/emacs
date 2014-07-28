@@ -2068,87 +2068,101 @@ the item at point."
 (defun todo-edit-item (&optional arg)
   "Choose an editing operation for the current item and carry it out."
   (interactive "P")
-  (cond ((todo-done-item-p)
-	 (todo-edit-item--next-key todo-edit-done-item--param-key-alist))
-	((todo-item-string)
-	 (todo-edit-item--next-key todo-edit-item--param-key-alist arg))))
+  (let ((marked (assoc (todo-current-category) todo-categories-with-marks)))
+    (cond ((and (todo-done-item-p) (not marked))
+	   (todo-edit-item--next-key todo-edit-done-item--param-key-alist))
+	  ((or marked (todo-item-string))
+	   (todo-edit-item--next-key todo-edit-item--param-key-alist arg)))))
 
 (defun todo-edit-item--text (&optional arg)
   "Function providing the text editing facilities of `todo-edit-item'."
-  (let* ((opoint (point))
-	 (start (todo-item-start))
-	 (end (save-excursion (todo-item-end)))
-	 (item-beg (progn
-		     (re-search-forward
-		      (concat todo-date-string-start todo-date-pattern
-			      "\\( " diary-time-regexp "\\)?"
-			      (regexp-quote todo-nondiary-end) "?")
-		      (line-end-position) t)
-		     (1+ (- (point) start))))
-	 (include-header (eq arg 'include-header))
-	 (comment-edit (eq arg 'comment-edit))
-	 (comment-delete (eq arg 'comment-delete))
-	 (header-string (substring (todo-item-string) 0 item-beg))
-	 (item (if (or include-header comment-edit comment-delete)
-		   (todo-item-string)
-		 (substring (todo-item-string) item-beg)))
-	 (multiline (> (length (split-string item "\n")) 1))
-	 (comment (save-excursion
-		    (todo-item-start)
-		    (re-search-forward
-		     (concat " \\[" (regexp-quote todo-comment-string)
-			     ": \\([^]]+\\)\\]") end t)))
-	 (prompt (if comment "Edit comment: " "Enter a comment: "))
-	 (buffer-read-only nil))
-    (cond
-     ((or comment-edit comment-delete)
-      (save-excursion
-	(todo-item-start)
-	(if (re-search-forward (concat " \\[" (regexp-quote todo-comment-string)
-				       ": \\([^]]+\\)\\]")
-                               end t)
-	    (if comment-delete
-		(when (todo-y-or-n-p "Delete comment? ")
-		  (delete-region (match-beginning 0) (match-end 0)))
-	      (replace-match (read-string prompt (cons (match-string 1) 1))
-			     nil nil nil 1))
-	  (if comment-delete
-	      (user-error "There is no comment to delete")
-	    (insert " [" todo-comment-string ": "
-		    (prog1 (read-string prompt)
-		      ;; If user moved point during editing,
-		      ;; make sure it moves back.
-		      (goto-char opoint)
-		      (todo-item-end))
-		      "]")))))
-     ((or multiline (eq arg 'multiline))
-      (let ((buf todo-edit-buffer))
-	(set-window-buffer (selected-window)
-			   (set-buffer (make-indirect-buffer (buffer-name) buf)))
-	(narrow-to-region (todo-item-start) (todo-item-end))
-	(todo-edit-mode)
-	(message "%s" (substitute-command-keys
-		       (concat "Type \\[todo-edit-quit] "
-			       "to return to Todo mode.\n")))))
-     (t
-      (let ((new (concat (if include-header "" header-string)
-			  (read-string "Edit: " (if include-header
-						    (cons item item-beg)
-						  (cons item 0))))))
-	 (when include-header
-	   (while (not (string-match (concat todo-date-string-start
-					     todo-date-pattern)
-                                     new))
-	     (setq new (read-from-minibuffer
-			"Item must start with a date: " new))))
-	 ;; Ensure lines following hard newlines are indented.
-	 (setq new (replace-regexp-in-string "\\(\n\\)[^[:blank:]]"
-					     "\n\t" new nil nil 1))
-	 ;; If user moved point during editing, make sure it moves back.
-	 (goto-char opoint)
-	 (todo-remove-item)
-	 (todo-insert-with-overlays new)
-	 (move-to-column item-beg))))))
+  (let ((full-item (todo-item-string)))
+    ;; If there are marked items and user invokes a text-editing
+    ;; commands with point not on an item, todo-item-start is nil and
+    ;; 1+ signals an error, so just make this a noop.
+    (when full-item
+      (let* ((opoint (point))
+	     (start (todo-item-start))
+	     (end (save-excursion (todo-item-end)))
+	     (item-beg (progn
+			 (re-search-forward
+			  (concat todo-date-string-start todo-date-pattern
+				  "\\( " diary-time-regexp "\\)?"
+				  (regexp-quote todo-nondiary-end) "?")
+			  (line-end-position) t)
+			 (1+ (- (point) start))))
+	     (include-header (eq arg 'include-header))
+	     (comment-edit (eq arg 'comment-edit))
+	     (comment-delete (eq arg 'comment-delete))
+	     (header-string (substring full-item 0 item-beg))
+	     (item (if (or include-header comment-edit comment-delete)
+		       full-item
+		     (substring full-item item-beg)))
+	     (multiline (or (eq arg 'multiline)
+			    (> (length (split-string item "\n")) 1)))
+	     (comment (save-excursion
+			(todo-item-start)
+			(re-search-forward
+			 (concat " \\[" (regexp-quote todo-comment-string)
+				 ": \\([^]]+\\)\\]") end t)))
+	     (prompt (if comment "Edit comment: " "Enter a comment: "))
+	     (buffer-read-only nil))
+	;; When there are marked items, user can invoke todo-edit-item
+	;; even if point is not on an item, but text editing only
+	;; applies to the item at point.
+	(when (or (and (todo-done-item-p)
+		       (or comment-edit comment-delete))
+		  (and (not (todo-done-item-p))
+		       (or (not arg) include-header multiline)))
+	  (cond
+	   ((or comment-edit comment-delete)
+	    (save-excursion
+	      (todo-item-start)
+	      (if (re-search-forward (concat " \\["
+					     (regexp-quote todo-comment-string)
+					     ": \\([^]]+\\)\\]") end t)
+		  (if comment-delete
+		      (when (todo-y-or-n-p "Delete comment? ")
+			(delete-region (match-beginning 0) (match-end 0)))
+		    (replace-match (read-string prompt (cons (match-string 1) 1))
+				   nil nil nil 1))
+		(if comment-delete
+		    (user-error "There is no comment to delete")
+		  (insert " [" todo-comment-string ": "
+			  (prog1 (read-string prompt)
+			    ;; If user moved point during editing,
+			    ;; make sure it moves back.
+			    (goto-char opoint)
+			    (todo-item-end))
+			  "]")))))
+	   (multiline
+	    (let ((buf todo-edit-buffer))
+	      (set-window-buffer (selected-window)
+				 (set-buffer (make-indirect-buffer
+					      (buffer-name) buf)))
+	      (narrow-to-region (todo-item-start) (todo-item-end))
+	      (todo-edit-mode)
+	      (message "%s" (substitute-command-keys
+			     (concat "Type \\[todo-edit-quit] "
+				     "to return to Todo mode.\n")))))
+	   (t
+	    (let ((new (concat (if include-header "" header-string)
+			       (read-string "Edit: " (if include-header
+							 (cons item item-beg)
+						       (cons item 0))))))
+	      (when include-header
+		(while (not (string-match (concat todo-date-string-start
+						  todo-date-pattern) new))
+		  (setq new (read-from-minibuffer
+			     "Item must start with a date: " new))))
+	      ;; Ensure lines following hard newlines are indented.
+	      (setq new (replace-regexp-in-string "\\(\n\\)[^[:blank:]]"
+						  "\n\t" new nil nil 1))
+	      ;; If user moved point during editing, make sure it moves back.
+	      (goto-char opoint)
+	      (todo-remove-item)
+	      (todo-insert-with-overlays new)
+	      (move-to-column item-beg)))))))))
 
 (defun todo-edit-quit ()
   "Return from Todo Edit mode to Todo mode.
@@ -2203,16 +2217,16 @@ made in the number or names of categories."
 
 (defun todo-edit-item--header (what &optional inc)
   "Function providing header editing facilities of `todo-edit-item'."
-  (let* ((cat (todo-current-category))
-	 (marked (assoc cat todo-categories-with-marks))
-	 (first t)
-	 (todo-date-from-calendar t)
-	 ;; INC must be an integer, but users could pass it via
-	 ;; `todo-edit-item' as e.g. `-' or `C-u'.
-	 (inc (prefix-numeric-value inc))
-	 (buffer-read-only nil)
-	 ndate ntime year monthname month day
-	 dayname)	; Needed by calendar-date-display-form.
+  (let ((marked (assoc (todo-current-category) todo-categories-with-marks))
+	(first t)
+	(todo-date-from-calendar t)
+	;; INC must be an integer, but users could pass it via
+	;; `todo-edit-item' as e.g. `-' or `C-u'.
+	(inc (prefix-numeric-value inc))
+	(buffer-read-only nil)
+	ndate ntime year monthname month day
+	dayname)	; Needed by calendar-date-display-form.
+    (when marked (todo--user-error-if-marked-done-item))
     (save-excursion
       (or (and marked (goto-char (point-min))) (todo-item-start))
       (catch 'end
@@ -2374,47 +2388,45 @@ made in the number or names of categories."
 (defun todo-edit-item--diary-inclusion (&optional nonmarking)
   "Function providing diary marking facilities of `todo-edit-item'."
   (let ((buffer-read-only)
-	(marked (assoc (todo-current-category)
-		       todo-categories-with-marks)))
+	(marked (assoc (todo-current-category) todo-categories-with-marks)))
+    (when marked (todo--user-error-if-marked-done-item))
     (catch 'stop
       (save-excursion
 	(when marked (goto-char (point-min)))
 	(while (not (eobp))
-	  (if (todo-done-item-p)
-	      (throw 'stop (message "Done items cannot be edited"))
-	    (unless (and marked (not (todo-marked-item-p)))
-	      (let* ((beg (todo-item-start))
-		     (lim (save-excursion (todo-item-end)))
-		     (end (save-excursion
-			    (or (todo-time-string-matcher lim)
-				(todo-date-string-matcher lim)))))
-		(if nonmarking
-		    (if (looking-at (regexp-quote diary-nonmarking-symbol))
-			(replace-match "")
-		      (when (looking-at (regexp-quote todo-nondiary-start))
-			(save-excursion
-			  (replace-match "")
-			  (search-forward todo-nondiary-end (1+ end) t)
-			  (replace-match "")
-			  (todo-update-count 'diary 1)))
-		      (insert diary-nonmarking-symbol))
-		  (if (looking-at (regexp-quote todo-nondiary-start))
-		      (progn
+	  (unless (and marked (not (todo-marked-item-p)))
+	    (let* ((beg (todo-item-start))
+		   (lim (save-excursion (todo-item-end)))
+		   (end (save-excursion
+			  (or (todo-time-string-matcher lim)
+			      (todo-date-string-matcher lim)))))
+	      (if nonmarking
+		  (if (looking-at (regexp-quote diary-nonmarking-symbol))
+		      (replace-match "")
+		    (when (looking-at (regexp-quote todo-nondiary-start))
+		      (save-excursion
 			(replace-match "")
 			(search-forward todo-nondiary-end (1+ end) t)
 			(replace-match "")
-			(todo-update-count 'diary 1))
-		    (when end
-		      (when (looking-at (regexp-quote diary-nonmarking-symbol))
-			(replace-match "")
-			(setq end (1- end))) ; Since we deleted nonmarking symbol.
-		      (insert todo-nondiary-start)
-		      (goto-char (1+ end))
-		      (insert todo-nondiary-end)
-		      (todo-update-count 'diary -1))))))
-	    (unless marked (throw 'stop nil))
-	    (todo-forward-item)))))
-    (todo-update-categories-sexp)))
+			(todo-update-count 'diary 1)))
+		    (insert diary-nonmarking-symbol))
+		(if (looking-at (regexp-quote todo-nondiary-start))
+		    (progn
+		      (replace-match "")
+		      (search-forward todo-nondiary-end (1+ end) t)
+		      (replace-match "")
+		      (todo-update-count 'diary 1))
+		  (when end
+		    (when (looking-at (regexp-quote diary-nonmarking-symbol))
+		      (replace-match "")
+		      (setq end (1- end))) ; Since we deleted nonmarking symbol.
+		    (insert todo-nondiary-start)
+		    (goto-char (1+ end))
+		    (insert todo-nondiary-end)
+		    (todo-update-count 'diary -1))))))
+	  (unless marked (throw 'stop nil))
+	  (todo-forward-item)))))
+  (todo-update-categories-sexp))
 
 (defun todo-edit-category-diary-inclusion (arg)
   "Make all items in this category diary items.
@@ -2785,21 +2797,7 @@ visible."
   (interactive "P")
   (let* ((cat (todo-current-category))
 	 (marked (assoc cat todo-categories-with-marks)))
-    (when marked
-      (save-excursion
-	(save-restriction
-	  (goto-char (point-max))
-	  (todo-backward-item)
-	  (unless (todo-done-item-p)
-	    (widen)
-	    (unless (re-search-forward
-		     (concat "^" (regexp-quote todo-category-beg)) nil t)
-	      (goto-char (point-max)))
-	    (forward-line -1))
-	  (while (todo-done-item-p)
-	    (when (todo-marked-item-p)
-	      (user-error "This command does not apply to done items"))
-	    (todo-backward-item)))))
+    (when marked (todo--user-error-if-marked-done-item))
     (unless (and (not marked)
 		 (or (todo-done-item-p)
 		     ;; Point is between todo and done items.
@@ -2887,7 +2885,9 @@ comments without asking."
 	  (while (not (eobp))
 	    (when (or (not marked) (and marked (todo-marked-item-p)))
 	      (if (not (todo-done-item-p))
-		  (user-error "Only done items can be undone")
+		  (progn
+		    (goto-char opoint)
+		    (user-error "Only done items can be undone"))
 		(todo-item-start)
 		(unless marked
 		  (setq ov (make-overlay (save-excursion (todo-item-start))
@@ -4285,24 +4285,25 @@ set the user customizable option `todo-top-priorities-overrides'."
 	 (frule (assoc-string file rules))
 	 (crules (nth 2 frule))
 	 (crule (assoc-string cat crules))
-	 (cur (or (and arg (cdr crule))
-		  (nth 1 frule)
-		  todo-top-priorities))
+	 (fcur (or (nth 1 frule)
+		   todo-top-priorities))
+	 (ccur (or (and arg (cdr crule))
+		   fcur))
 	 (prompt (if arg (concat "Number of top priorities in this category"
 				 " (currently %d): ")
 		   (concat "Default number of top priorities per category"
 				 " in this file (currently %d): ")))
 	 (new -1))
     (while (< new 0)
-      (let ((cur0 cur))
-	(setq new (read-number (format prompt cur0))
+      (let ((cur (if arg ccur fcur)))
+	(setq new (read-number (format prompt cur))
 	      prompt "Enter a non-negative number: "
-	      cur0 nil)))
+	      cur nil)))
     (let ((nrule (if arg
 		     (append (delete crule crules) (list (cons cat new)))
 		   (append (list file new) (list crules)))))
       (setq rules (cons (if arg
-			    (list file cur nrule)
+			    (list file fcur nrule)
 			  nrule)
 			(delete frule rules)))
       (customize-save-variable 'todo-top-priorities-overrides rules)
@@ -5223,6 +5224,25 @@ Overrides `diary-goto-entry'."
 	(progn (goto-char (point-min))
 	       (looking-at todo-done-string-start)))))
 
+(defun todo--user-error-if-marked-done-item ()
+  "Signal user error on marked done items.
+Helper funtion for editing commands that only apply to (possibly
+marked) not done todo items."
+  (save-excursion
+    (save-restriction
+      (goto-char (point-max))
+      (todo-backward-item)
+      (unless (todo-done-item-p)
+	(widen)
+	(unless (re-search-forward
+		 (concat "^" (regexp-quote todo-category-beg)) nil t)
+	  (goto-char (point-max)))
+	(forward-line -1))
+      (while (todo-done-item-p)
+	(when (todo-marked-item-p)
+	  (user-error "This command does not apply to done items"))
+	(todo-backward-item)))))
+
 (defun todo-reset-done-separator (sep)
   "Replace existing overlays of done items separator string SEP."
   (save-excursion
@@ -5531,8 +5551,8 @@ already entered and those still available."
 							'(add/edit delete))
 					      " comment"))))
 			  params " "))
-	 (this-key (char-to-string
-		    (read-key (concat todo-edit-item--prompt p->k))))
+	 (this-key (let ((key (read-key (concat todo-edit-item--prompt p->k))))
+		     (and (characterp key) (char-to-string key))))
 	 (this-param (car (rassoc this-key params))))
     (pcase this-param
       (`edit (todo-edit-item--text))
