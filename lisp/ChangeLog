@@ -1,3 +1,14 @@
+2014-07-28  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	More robust shell startup and code setup.
+	* progmodes/python.el (python-shell-make-comint): Remove
+	accept-process-output call.
+	(python-shell-get-buffer): Return current buffer if major-mode is
+	inferior-python-mode.
+	(python-shell-get-or-create-process): Use it.
+	(python-shell-send-setup-code): Send all setup code in one string,
+	output success message and accept-process-output.
+
 2014-07-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* scroll-bar.el (scroll-bar-toolkit-horizontal-scroll): Add

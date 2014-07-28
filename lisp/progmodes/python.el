@@ -2397,7 +2397,6 @@ killed."
                 (mapconcat #'identity args " ")))
           (with-current-buffer buffer
             (inferior-python-mode))
-          (accept-process-output process)
           (and pop (pop-to-buffer buffer t))
           (and internal (set-process-query-on-exit-flag process nil))))
       proc-buffer-name)))
@@ -2451,16 +2450,19 @@ startup."
       (python-shell-internal-get-process-name) nil t))))
 
 (defun python-shell-get-buffer ()
-  "Return inferior Python buffer for current buffer."
-  (let* ((dedicated-proc-name (python-shell-get-process-name t))
-         (dedicated-proc-buffer-name (format "*%s*" dedicated-proc-name))
-         (global-proc-name  (python-shell-get-process-name nil))
-         (global-proc-buffer-name (format "*%s*" global-proc-name))
-         (dedicated-running (comint-check-proc dedicated-proc-buffer-name))
-         (global-running (comint-check-proc global-proc-buffer-name)))
-    ;; Always prefer dedicated
-    (or (and dedicated-running dedicated-proc-buffer-name)
-        (and global-running global-proc-buffer-name))))
+  "Return inferior Python buffer for current buffer.
+If current buffer is in `inferior-python-mode', return it."
+  (if (eq major-mode 'inferior-python-mode)
+      (current-buffer)
+    (let* ((dedicated-proc-name (python-shell-get-process-name t))
+           (dedicated-proc-buffer-name (format "*%s*" dedicated-proc-name))
+           (global-proc-name  (python-shell-get-process-name nil))
+           (global-proc-buffer-name (format "*%s*" global-proc-name))
+           (dedicated-running (comint-check-proc dedicated-proc-buffer-name))
+           (global-running (comint-check-proc global-proc-buffer-name)))
+      ;; Always prefer dedicated
+      (or (and dedicated-running dedicated-proc-buffer-name)
+          (and global-running global-proc-buffer-name)))))
 
 (defun python-shell-get-process ()
   "Return inferior Python process for current buffer."
@@ -2472,24 +2474,14 @@ Arguments CMD, DEDICATED and SHOW are those of `run-python' and
 are used to start the shell.  If those arguments are not
 provided, `run-python' is called interactively and the user will
 be asked for their values."
-  (let* ((dedicated-proc-name (python-shell-get-process-name t))
-         (dedicated-proc-buffer-name (format "*%s*" dedicated-proc-name))
-         (global-proc-name  (python-shell-get-process-name nil))
-         (global-proc-buffer-name (format "*%s*" global-proc-name))
-         (dedicated-running (comint-check-proc dedicated-proc-buffer-name))
-         (global-running (comint-check-proc global-proc-buffer-name)))
-    (when (and (not dedicated-running) (not global-running))
-      (if (if (not cmd)
-              ;; XXX: Refactor code such that calling `run-python'
-              ;; interactively is not needed anymore.
-              (call-interactively 'run-python)
-            (run-python cmd dedicated show))
-          (setq dedicated-running t)
-        (setq global-running t)))
-    ;; Always prefer dedicated
-    (get-buffer-process (if dedicated-running
-                            dedicated-proc-buffer-name
-                          global-proc-buffer-name))))
+  (let ((shell-process (python-shell-get-process)))
+    (when (not shell-process)
+      (if (not cmd)
+          ;; XXX: Refactor code such that calling `run-python'
+          ;; interactively is not needed anymore.
+          (call-interactively 'run-python)
+        (run-python cmd dedicated show)))
+    (or shell-process (python-shell-get-process))))
 
 (defvar python-shell-internal-buffer nil
   "Current internal shell buffer for the current buffer.
@@ -2769,12 +2761,18 @@ If DELETE is non-nil, delete the file afterwards."
   "Send all setup code for shell.
 This function takes the list of setup code to send from the
 `python-shell-setup-codes' list."
-  (let ((process (get-buffer-process (current-buffer))))
-    (dolist (code python-shell-setup-codes)
-      (when code
-        (message "Sent %s" code)
-        (python-shell-send-string
-         (symbol-value code) process)))))
+  (let ((process (python-shell-get-process))
+        (code (concat
+               (mapconcat
+                (lambda (elt)
+                  (cond ((stringp elt) elt)
+                        ((symbolp elt) (symbol-value elt))
+                        (t "")))
+                python-shell-setup-codes
+                "\n\n")
+               "\n\nprint ('python.el: sent setup code')")))
+    (python-shell-send-string code)
+    (accept-process-output process)))
 
 (add-hook 'inferior-python-mode-hook
           #'python-shell-send-setup-code)
