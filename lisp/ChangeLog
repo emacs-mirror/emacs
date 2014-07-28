@@ -6,7 +6,7 @@
 	arguments to `print' to make it compatible with Python 3.
 	(tramp-get-remote-gid-with-python): Ditto.  (Bug#18118)
 
-22014-07-28  Eli Zaretskii  <eliz@gnu.org>
+2014-07-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* window.el (window--pixel-to-total): Use FRAME's root window, not
 	that of the selected frame.  (Bug#18112, Bug#16674)
