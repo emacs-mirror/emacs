@@ -1,5 +1,18 @@
 2014-07-28  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
+	Parse completion input in a iPython friendly way.  (Bug#18084)
+	* progmodes/python.el
+	(python-shell-completion-at-point): Rename from
+	python-shell-completion-complete-at-point.
+	(inferior-python-mode): Use it.
+	(python-completion-at-point): Rename from
+	python-completion-complete-at-point.  Parse input up to first
+	backward occurrence of whitespace, open-paren, close-paren or
+	string delimiter.
+	(python-mode): Use it.
+
+2014-07-28  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
 	Prevent Python process shell buffer to pop twice.
 	* progmodes/python.el (python-shell-switch-to-shell): Do not call
 	pop-to-buffer.

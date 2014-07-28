@@ -2369,9 +2369,9 @@ variable.
   (define-key inferior-python-mode-map [remap complete-symbol]
     'completion-at-point)
   (add-hook 'completion-at-point-functions
-            'python-shell-completion-complete-at-point nil 'local)
+            'python-shell-completion-at-point nil 'local)
   (add-to-list (make-local-variable 'comint-dynamic-complete-functions)
-               'python-shell-completion-complete-at-point)
+               'python-shell-completion-at-point)
   (define-key inferior-python-mode-map "\t"
     'python-shell-completion-complete-or-indent)
   (make-local-variable 'python-pdbtrack-buffers-to-kill)
@@ -2896,32 +2896,21 @@ LINE is used to detect the context on how to complete given INPUT."
                   (split-string completions
                                 "^'\\|^\"\\|;\\|'$\\|\"$" t)))))))
 
-(defun python-shell-completion-complete-at-point (&optional process)
-  "Perform completion at point in inferior Python.
+(defun python-shell-completion-at-point (&optional process)
+  "Function for `completion-at-point-functions' in `inferior-python-mode'.
 Optional argument PROCESS forces completions to be retrieved
 using that one instead of current buffer's process."
   (setq process (or process (get-buffer-process (current-buffer))))
   (let* ((start
           (save-excursion
-            (with-syntax-table python-dotty-syntax-table
-              (let* ((paren-depth (car (syntax-ppss)))
-                     (syntax-string "w_")
-                     (syntax-list (string-to-syntax syntax-string)))
-                ;; Stop scanning for the beginning of the completion
-                ;; subject after the char before point matches a
-                ;; delimiter
-                (while (member
-                        (car (syntax-after (1- (point)))) syntax-list)
-                  (skip-syntax-backward syntax-string)
-                  (when (or (equal (char-before) ?\))
-                            (equal (char-before) ?\"))
-                    (forward-char -1))
-                  (while (or
-                          ;; honor initial paren depth
-                          (> (car (syntax-ppss)) paren-depth)
-                          (python-syntax-context 'string))
-                    (forward-char -1)))
-                (point)))))
+            (if (not (re-search-backward
+                      (python-rx
+                       (or whitespace open-paren close-paren string-delimiter))
+                      (cdr (python-util-comint-last-prompt))
+                      t 1))
+                (cdr (python-util-comint-last-prompt))
+              (forward-char (length (match-string-no-properties 0)))
+              (point))))
          (end (point)))
     (list start end
           (completion-table-dynamic
@@ -2929,6 +2918,11 @@ using that one instead of current buffer's process."
             #'python-shell-completion-get-completions
             process (buffer-substring-no-properties
                      (line-beginning-position) end))))))
+
+(define-obsolete-function-alias
+  'python-shell-completion-complete-at-point
+  'python-shell-completion-at-point
+  "24.5")
 
 (defun python-shell-completion-complete-or-indent ()
   "Complete or indent depending on the context.
@@ -3036,14 +3030,19 @@ Argument OUTPUT is a string with the output from the comint process."
 
 ;;; Symbol completion
 
-(defun python-completion-complete-at-point ()
-  "Complete current symbol at point.
+(defun python-completion-at-point ()
+  "Function for `completion-at-point-functions' in `python-mode'.
 For this to work as best as possible you should call
 `python-shell-send-buffer' from time to time so context in
 inferior Python process is updated properly."
   (let ((process (python-shell-get-process)))
     (when process
-      (python-shell-completion-complete-at-point process))))
+      (python-shell-completion-at-point process))))
+
+(define-obsolete-function-alias
+  'python-completion-complete-at-point
+  'python-completion-at-point
+  "24.5")
 
 
 ;;; Fill paragraph
@@ -4268,7 +4267,7 @@ Arguments START and END narrow the buffer region to work on."
        #'python-nav-end-of-defun)
 
   (add-hook 'completion-at-point-functions
-            #'python-completion-complete-at-point nil 'local)
+            #'python-completion-at-point nil 'local)
 
   (add-hook 'post-self-insert-hook
             #'python-indent-post-self-insert-function 'append 'local)
