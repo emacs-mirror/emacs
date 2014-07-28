@@ -2410,7 +2410,7 @@
 	Avoid undefined behavior with huge regexp interval counts.
 	* regex.c (GET_INTERVAL_COUNT): Rename from 'GET_UNSIGNED_NUMBER',
 	since it's now specialized to interval counts.  All uses changed.
-	Do not assume wrapraound on signed integer overflow.
+	Do not assume wraparound on signed integer overflow.
 	(regex_compile): Simplify based on the above changes.
 
 2013-12-12  Eli Zaretskii  <eliz@gnu.org>
