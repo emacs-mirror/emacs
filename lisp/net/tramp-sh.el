@@ -5256,7 +5256,9 @@ Return ATTR."
 (defun tramp-get-remote-python (vec)
   (with-tramp-connection-property vec "python"
     (tramp-message vec 5 "Finding a suitable `python' command")
-    (tramp-find-executable vec "python" (tramp-get-remote-path vec))))
+    (or (tramp-find-executable vec "python" (tramp-get-remote-path vec))
+        (tramp-find-executable vec "python2" (tramp-get-remote-path vec))
+        (tramp-find-executable vec "python3" (tramp-get-remote-path vec)))))
 
 (defun tramp-get-remote-uid-with-python (vec id-format)
   (tramp-send-command-and-read
@@ -5264,8 +5266,8 @@ Return ATTR."
    (format "%s -c \"%s\""
 	   (tramp-get-remote-python vec)
 	   (if (equal id-format 'integer)
-	       "import os; print os.getuid()"
-	     "import os, pwd; print '\\\"' + pwd.getpwuid(os.getuid())[0] + '\\\"'"))))
+	       "import os; print (os.getuid())"
+	     "import os, pwd; print ('\\\"' + pwd.getpwuid(os.getuid())[0] + '\\\"')"))))
 
 (defun tramp-get-remote-uid (vec id-format)
   (with-tramp-connection-property vec (format "uid-%s" id-format)
@@ -5305,8 +5307,8 @@ Return ATTR."
    (format "%s -c \"%s\""
 	   (tramp-get-remote-python vec)
 	   (if (equal id-format 'integer)
-	       "import os; print os.getgid()"
-	     "import os, grp; print '\\\"' + grp.getgrgid(os.getgid())[0] + '\\\"'"))))
+	       "import os; print (os.getgid())"
+	     "import os, grp; print ('\\\"' + grp.getgrgid(os.getgid())[0] + '\\\"')"))))
 
 (defun tramp-get-remote-gid (vec id-format)
   (with-tramp-connection-property vec (format "gid-%s" id-format)
