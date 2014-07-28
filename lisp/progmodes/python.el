@@ -2361,7 +2361,10 @@ variable.
   (make-local-variable 'python-shell-internal-last-output)
   (when python-shell-font-lock-enable
     (python-shell-font-lock-turn-on))
-  (compilation-shell-minor-mode 1))
+  (compilation-shell-minor-mode 1)
+  ;; Ensure all the output is accepted before running any hooks.
+  (accept-process-output (get-buffer-process (current-buffer)))
+  (sit-for 0.1 t))
 
 (defun python-shell-make-comint (cmd proc-name &optional pop internal)
   "Create a Python shell comint buffer.
@@ -2499,13 +2502,7 @@ there for compatibility with CEDET.")
          (proc-buffer-name (format " *%s*" proc-name)))
     (when (not (process-live-p proc-name))
       (run-python-internal)
-      (setq python-shell-internal-buffer proc-buffer-name)
-      ;; XXX: Why is this `sit-for' needed?
-      ;; `python-shell-make-comint' calls `accept-process-output'
-      ;; already but it is not helping to get proper output on
-      ;; 'gnu/linux when the internal shell process is not running and
-      ;; a call to `python-shell-internal-send-string' is issued.
-      (sit-for 0.1 t))
+      (setq python-shell-internal-buffer proc-buffer-name))
     (get-buffer-process proc-buffer-name)))
 
 (define-obsolete-function-alias

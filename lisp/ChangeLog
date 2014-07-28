@@ -1,5 +1,14 @@
 2014-07-28  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
+	Grab all Python process output before inferior-python-mode hooks.
+	* progmodes/python.el (inferior-python-mode): Call
+	accept-process-output and sit-for to ensure all output for process
+	has been received before running hooks.
+	(python-shell-internal-get-or-create-process): Cleanup
+	accept-process-output and sit-for calls.
+
+2014-07-28  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
 	More robust shell startup and code setup.
 	* progmodes/python.el (python-shell-make-comint): Remove
 	accept-process-output call.
