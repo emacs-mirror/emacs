@@ -1396,11 +1396,12 @@ For now these keys are useful:
   (interactive)
   (if doc-view--current-converter-processes
       (message "DocView: please wait till conversion finished.")
-    (let ((txt (expand-file-name "doc.txt" (doc-view--current-cache-dir))))
+    (let ((txt (expand-file-name "doc.txt" (doc-view--current-cache-dir)))
+	  (bname (or buffer-file-name (buffer-name))))
       (if (file-readable-p txt)
 	  (let ((name (concat "Text contents of "
-			      (file-name-nondirectory buffer-file-name)))
-		(dir (file-name-directory buffer-file-name)))
+			      (file-name-nondirectory bname)))
+		(dir (or (file-name-directory bname) default-directory)))
 	    (with-current-buffer (find-file txt)
 	      (rename-buffer name)
 	      (setq default-directory dir)))
