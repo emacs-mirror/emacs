@@ -1,3 +1,8 @@
+2014-07-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* .gdbinit (xsubchartable): The members 'depth' and 'min_char' are
+	now C integers.
+
 2014-07-28  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	On GNU/Linux, use timerfd for asynchronous timers.

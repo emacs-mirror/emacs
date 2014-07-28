@@ -870,10 +870,8 @@ end
 define xsubchartable
   xgetptr $
   print (struct Lisp_Sub_Char_Table *) $ptr
-  xgetint $->depth
-  set $depth = $int
-  xgetint $->min_char
-  printf "Depth: %d, Min char: %d (0x%x)\n", $depth, $int, $int
+  set $subchartab = (struct Lisp_Sub_Char_Table *) $ptr
+  printf "Depth: %d, Min char: %d (0x%x)\n", $subchartab->depth, $subchartab->min_char, $subchartab->min_char
 end
 document xsubchartable
 Print the address of the sub-char-table $, its depth and min-char.
