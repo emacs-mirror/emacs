@@ -1,3 +1,8 @@
+2014-07-29  Andreas Schwab  <schwab@suse.de>
+
+	* macros.c (Fstart_kbd_macro): Initialize kbd_macro_ptr and
+	kbd_macro_end together with kbd_macro_buffer.  (Bug#18140)
+
 2014-07-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (display_line): If called with iterator set up to write
