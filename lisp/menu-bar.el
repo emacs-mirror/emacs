@@ -1988,11 +1988,10 @@ It must accept a buffer as its only required argument.")
                    (dolist (pair alist)
                      (setq i (1- i))
                      (aset buffers-vec i
-			   (nconc (list (car pair)
-					(cons nil nil))
-				  `(lambda ()
-                                     (interactive)
-                                     (funcall menu-bar-select-buffer-function ,(cdr pair))))))
+			   (cons (car pair)
+                                 `(lambda ()
+                                    (interactive)
+                                    (funcall menu-bar-select-buffer-function ,(cdr pair))))))
                    (list buffers-vec))))
 
 	 ;; Make a Frames menu if we have more than one frame.
@@ -2004,10 +2003,8 @@ It must accept a buffer as its only required argument.")
                   (i 0))
              (dolist (frame frames)
                (aset frames-vec i
-                     (nconc
-                      (list
-                       (frame-parameter frame 'name)
-                       (cons nil nil))
+                     (cons
+                      (frame-parameter frame 'name)
                       `(lambda ()
                          (interactive) (menu-bar-select-frame ,frame))))
                (setq i (1+ i)))

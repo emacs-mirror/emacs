@@ -1,3 +1,9 @@
+2014-07-29  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
+
+	* menu-bar.el (menu-bar-update-buffers): Update item list format
+	in `buffers-menu' to confirm with changes to `get_keyelt'
+	(r117463).  (Bug#18016)
+
 2014-07-28  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
 	* progmodes/python.el (inferior-python-mode): Make input prompts
