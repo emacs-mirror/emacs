@@ -1,3 +1,8 @@
+2014-07-29  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window--state-put-2): Handle horizontal scroll
+	bars, if present.
+
 2014-07-29  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
 
 	* menu-bar.el (menu-bar-update-buffers): Update item list format
