@@ -20188,7 +20188,12 @@ display_line (struct it *it)
 				  it->max_phys_ascent + it->max_phys_descent);
 	  row->extra_line_spacing = max (row->extra_line_spacing,
 					 it->max_extra_line_spacing);
-	  if (it->current_x - it->pixel_width < it->first_visible_x)
+	  if (it->current_x - it->pixel_width < it->first_visible_x
+	      /* In R2L rows, we arrange in extend_face_to_end_of_line
+		 to add a right offset to the line, by a suitable
+		 change to the stretch glyph that is the leftmost
+		 glyph of the line.  */
+	      && !row->reversed_p)
 	    row->x = x - it->first_visible_x;
 	  /* Record the maximum and minimum buffer positions seen so
 	     far in glyphs that will be displayed by this row.  */
@@ -20402,9 +20407,13 @@ display_line (struct it *it)
 		  if (it->bidi_p)
 		    RECORD_MAX_MIN_POS (it);
 
-		  if (x < it->first_visible_x)
+		  if (x < it->first_visible_x && !row->reversed_p)
 		    /* Glyph is partially visible, i.e. row starts at
-		       negative X position.  */
+		       negative X position.  Don't do that in R2L
+		       rows, where we arrange to add a right offset to
+		       the line in extend_face_to_end_of_line, by a
+		       suitable change to the stretch glyph that is
+		       the leftmost glyph of the line.  */
 		    row->x = x - it->first_visible_x;
 		}
 	      else
@@ -25295,6 +25304,24 @@ append_stretch_glyph (struct it *it, Lisp_Object object,
 	  for (g = glyph - 1; g >= it->glyph_row->glyphs[area]; g--)
 	    g[1] = *g;
 	  glyph = it->glyph_row->glyphs[area];
+
+	  /* Decrease the width of the first glyph of the row that
+	     begins before first_visible_x (e.g., due to hscroll).
+	     This is so the overall width of the row becomes smaller
+	     by the scroll amount, and the stretch glyph appended by
+	     extend_face_to_end_of_line will be wider, to shift the
+	     row glyphs to the right.  (In L2R rows, the corresponding
+	     left-shift effect is accomplished by setting row->x to a
+	     negative value, which won't work with R2L rows.)
+
+	     This must leave us with a positive value of WIDTH, since
+	     otherwise the call to move_it_in_display_line_to at the
+	     beginning of display_line would have got past the entire
+	     first glyph, and then it->current_x would have been
+	     greater or equal to it->first_visible_x.  */
+	  if (it->current_x < it->first_visible_x)
+	    width -= it->first_visible_x - it->current_x;
+	  eassert (width > 0);
 	}
       glyph->charpos = CHARPOS (it->position);
       glyph->object = object;

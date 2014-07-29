@@ -1,3 +1,11 @@
+2014-07-29  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix hscroll of R2L lines that begin with a TAB or another wide glyph.
+	* xdisp.c (append_stretch_glyph): In a R2L glyph row, decrease the
+	pixel width of the first glyph that is hscrolled from display.
+	(display_line): In R2L glyph rows, don't give a negative offset to
+	row->x when the first glyph begins before first_visible_x.
+
 2014-07-29  Andreas Schwab  <schwab@suse.de>
 
 	* macros.c (Fstart_kbd_macro): Initialize kbd_macro_ptr and
