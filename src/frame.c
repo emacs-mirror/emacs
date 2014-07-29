@@ -484,7 +484,7 @@ adjust_frame_size (struct frame *f, int new_width, int new_height, int inhibit, 
   new_lines = new_text_height / unit_height;
 
 #ifdef HAVE_WINDOW_SYSTEM
-  if (FRAME_X_WINDOW (f)
+  if (FRAME_WINDOW_P (f)
       && f->official
       && ((!inhibit_horizontal
 	   && (new_pixel_width != old_pixel_width

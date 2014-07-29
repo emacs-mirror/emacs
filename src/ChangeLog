@@ -1,3 +1,8 @@
+2014-07-29  Martin Rudalics  <rudalics@gmx.at>
+
+	* frame.c (adjust_frame_size): Use FRAME_WINDOW_P instead of
+	FRAME_X_WINDOW when calling x_set_window_size (Bug#18138).
+
 2014-07-28  Martin Rudalics  <rudalics@gmx.at>
 
 	* frame.c (x_set_frame_parameters): Revert part of 2014-07-24
