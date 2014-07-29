@@ -1,3 +1,8 @@
+2014-07-29  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xrdb.c (x_load_resources) [!USE_MOTIF]: Put horizontal scroll bar
+	background value to match the resource of its vertical counterpart.
+
 2014-07-29  Martin Rudalics  <rudalics@gmx.at>
 
 	* frame.c (adjust_frame_size): Use FRAME_WINDOW_P instead of

@@ -499,6 +499,8 @@ x_load_resources (Display *display, const char *xrm_string,
   XrmPutLineResource (&rdb, line);
   sprintf (line, "Emacs*verticalScrollBar.background: grey75");
   XrmPutLineResource (&rdb, line);
+  sprintf (line, "Emacs*horizontalScrollBar.background: grey75");
+  XrmPutLineResource (&rdb, line);
 
 #endif /* not USE_MOTIF */
 
