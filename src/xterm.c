@@ -9351,7 +9351,7 @@ x_sync_with_move (struct frame *f, int left, int top, int fuzzy)
           if (eabs (current_left - left) <= 10
 	      && eabs (current_top - top) <= 40)
             return;
-  }
+	}
       else if (current_left == left && current_top == top)
         return;
     }
@@ -9359,7 +9359,7 @@ x_sync_with_move (struct frame *f, int left, int top, int fuzzy)
   /* As a last resort, just wait 0.5 seconds and hope that XGetGeometry
      will then return up-to-date position info. */
 
-  wait_reading_process_output (0, 500000, 0, 0, Qnil, NULL, 0);
+  wait_reading_process_output (0, 500000000, 0, 0, Qnil, NULL, 0);
 }
 
 

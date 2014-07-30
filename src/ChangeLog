@@ -3,6 +3,7 @@
 	* xrdb.c (x_load_resources) [USE_MOTIF]: Although not strictly
 	necessary, put horizontal scroll bar resources as well.  See
 	<http://lists.gnu.org/archive/html/emacs-devel/2014-07/msg00430.html>.
+	* xterm.c (x_sync_with_move): Really wait 0.5s, not 0.0005s.
 
 2014-07-29  Dmitry Antipov  <dmantipov@yandex.ru>
 
