@@ -1,3 +1,8 @@
+2014-07-30 Christophe Deleuze <christophe.deleuze@free.fr>
+
+	* calendar/icalendar.el (icalendar--decode-isodatetime): Use
+	actual current-time-zone when converting to local time. (Bug#15408)
+
 2014-07-29  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (window--state-put-2): Handle horizontal scroll

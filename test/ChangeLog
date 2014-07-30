@@ -1,3 +1,7 @@
+2014-07-30  Ulf Jasper  <ulf.jasper@web.de>
+
+	* automated/icalendar-tests.el (icalendar--decode-isodatetime): New test.
+
 2014-07-28  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* automated/timer-tests.el (timer-tests-debug-timer-check): New test.

@@ -414,6 +414,38 @@ END:VEVENT
     (should (not result))
     ))
 
+(ert-deftest icalendar--decode-isodatetime ()
+  "Test `icalendar--decode-isodatetime'."
+  (let ((tz (getenv "TZ"))
+	result)
+    (unwind-protect
+	(progn
+	  ;; Use Eastern European Time (UTC+1, UTC+2 daylight saving)
+	  (setenv "TZ" "EET")
+
+          (message "%s" (current-time-zone (encode-time 0 0 10 1 1 2013 0)))
+          (message "%s" (current-time-zone (encode-time 0 0 10 1 8 2013 0)))
+
+          ;; testcase: no time zone in input -> keep time as is
+          ;; 1 Jan 2013 10:00
+          (should (equal '(0 0 10 1 1 2013 2 nil 7200)
+                         (icalendar--decode-isodatetime "20130101T100000")))
+          ;; 1 Aug 2013 10:00 (DST)
+          (should (equal '(0 0 10 1 8 2013 4 t 10800)
+                         (icalendar--decode-isodatetime "20130801T100000")))
+
+          ;; testcase: UTC time zone specifier in input -> convert to local time
+          ;; 31 Dec 2013 23:00 UTC -> 1 Jan 2013 01:00 EET
+          (should (equal '(0 0 1 1 1 2014 3 nil 7200)
+                         (icalendar--decode-isodatetime "20131231T230000Z")))
+          ;; 1 Aug 2013 10:00 UTC -> 1 Aug 2013 13:00 EEST
+          (should (equal '(0 0 13 1 8 2013 4 t 10800)
+                         (icalendar--decode-isodatetime "20130801T100000Z")))
+
+          )
+      ;; restore time-zone even if something went terribly wrong
+      (setenv "TZ" tz)))  )
+
 ;; ======================================================================
 ;; Export tests
 ;; ======================================================================
