@@ -452,6 +452,10 @@ x_load_resources (Display *display, const char *xrm_string,
   XrmPutLineResource (&rdb, line);
   sprintf (line, "%s*verticalScrollBar.troughColor: grey75", myclass);
   XrmPutLineResource (&rdb, line);
+  sprintf (line, "%s*horizontalScrollBar.background: grey75", myclass);
+  XrmPutLineResource (&rdb, line);
+  sprintf (line, "%s*horizontalScrollBar.troughColor: grey75", myclass);
+  XrmPutLineResource (&rdb, line);
   sprintf (line, "%s.dialog*.background: grey75", myclass);
   XrmPutLineResource (&rdb, line);
   sprintf (line, "%s*fsb.Text.background: white", myclass);
