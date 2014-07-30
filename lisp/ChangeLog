@@ -1,4 +1,4 @@
-2014-07-30 Christophe Deleuze <christophe.deleuze@free.fr>
+2014-07-30  Christophe Deleuze  <christophe.deleuze@free.fr>  (tiny change)
 
 	* calendar/icalendar.el (icalendar--decode-isodatetime): Use
 	actual current-time-zone when converting to local time. (Bug#15408)
