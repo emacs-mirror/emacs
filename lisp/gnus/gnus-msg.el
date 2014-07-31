@@ -1726,7 +1726,20 @@ this is a reply."
          (var (or gnus-outgoing-message-group gnus-message-archive-group))
 	 (gcc-self-val
 	  (and group (not (gnus-virtual-group-p group))
-	       (gnus-group-find-parameter group 'gcc-self)))
+	       (gnus-group-find-parameter group 'gcc-self t)))
+	 (gcc-self-get (lambda (gcc-self-val group)
+			 (if (stringp gcc-self-val)
+			     (if (string-match " " gcc-self-val)
+				 (concat "\"" gcc-self-val "\"")
+			       gcc-self-val)
+			   ;; In nndoc groups, we use the parent group name
+			   ;; instead of the current group.
+			   (let ((group (or (gnus-group-find-parameter
+					     gnus-newsgroup-name 'parent-group)
+					    group)))
+			     (if (string-match " " group)
+				 (concat "\"" group "\"")
+			       group)))))
 	 result
 	 (groups
 	  (cond
@@ -1777,19 +1790,11 @@ this is a reply."
 	  (if gcc-self-val
 	      ;; Use the `gcc-self' param value instead.
 	      (progn
-		(insert
-		 (if (stringp gcc-self-val)
-		     (if (string-match " " gcc-self-val)
-			 (concat "\"" gcc-self-val "\"")
-		       gcc-self-val)
-		   ;; In nndoc groups, we use the parent group name
-		   ;; instead of the current group.
-		   (let ((group (or (gnus-group-find-parameter
-				     gnus-newsgroup-name 'parent-group)
-				    group)))
-		     (if (string-match " " group)
-			 (concat "\"" group "\"")
-		       group))))
+		(insert (if (listp gcc-self-val)
+			    (mapconcat (lambda (val)
+					 (funcall gcc-self-get val group))
+				       gcc-self-val ", ")
+			    (funcall gcc-self-get gcc-self-val group)))
 		(if (not (eq gcc-self-val 'none))
 		    (insert "\n")
 		  (gnus-delete-line)))

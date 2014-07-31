@@ -2880,12 +2880,17 @@ news group.
 @item gcc-self
 @cindex gcc-self
 If @code{(gcc-self . t)} is present in the group parameter list, newly
-composed messages will be @code{Gcc}'d to the current group.  If
+composed messages will be @code{gcc}d to the current group.  If
 @code{(gcc-self . none)} is present, no @code{Gcc:} header will be
-generated, if @code{(gcc-self . "string")} is present, this string will
-be inserted literally as a @code{gcc} header.  This parameter takes
-precedence over any default @code{Gcc} rules as described later
-(@pxref{Archived Messages}), with the exception for messages to resend.
+generated, if @code{(gcc-self . "group")} is present, this string will
+be inserted literally as a @code{Gcc:} header.  It should be a group
+name.  The @code{gcc-self} value may also be a list of strings and
+@code{t}, e.g., @code{(gcc-self "group1" "group2" t)} means to
+@code{gcc} the newly composed message into the groups @code{"group1"}
+and @code{"group2"}, and into the current group.  The @code{gcc-self}
+parameter takes precedence over any default @code{Gcc} rules as
+described later (@pxref{Archived Messages}), with the exception for
+messages to resend.
 
 @strong{Caveat}: Adding @code{(gcc-self . t)} to the parameter list of
 @code{nntp} groups (or the like) isn't valid.  An @code{nntp} server
