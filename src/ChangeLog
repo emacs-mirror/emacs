@@ -1,3 +1,10 @@
+2014-07-31  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* frame.c (x_set_frame_parameters): Don't use uninitialized locals.
+	Without this change, the code can access the local variable 'width'
+	even when it has not been initialized, and likewise for 'height';
+	in either case this leads to undefined behavior.
+
 2014-07-30  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* xrdb.c (x_load_resources) [USE_MOTIF]: Although not strictly
