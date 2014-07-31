@@ -27,13 +27,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <unistd.h>
 
 #ifdef HAVE_TIMERFD
-#include <sys/timerfd.h>
-#ifdef HAVE_TIMERFD_CLOEXEC
-#define TIMERFD_CREATE_FLAGS TFD_CLOEXEC
-#else
-#define TIMERFD_CREATE_FLAGS 0
-#endif /* HAVE_TIMERFD_CLOEXEC */
-#endif /* HAVE_TIMERFD */
+# include <sys/timerfd.h>
+#endif
 
 /* Free-list of atimer structures.  */
 
@@ -49,23 +44,18 @@ static struct atimer *stopped_atimers;
 
 static struct atimer *atimers;
 
-#if defined (HAVE_TIMERFD)
-/* File descriptor returned by timerfd_create.  GNU/Linux-specific.  */
-static int timerfd;
-#elif defined (HAVE_ITIMERSPEC)
-/* The alarm timer used if POSIX timers are available.  */
+#ifdef HAVE_ITIMERSPEC
+/* The alarm timer and whether it was properly initialized, if
+   POSIX timers are available.  */
 static timer_t alarm_timer;
-#endif
+static bool alarm_timer_ok;
 
-#if defined (HAVE_TIMERFD) || defined (HAVE_ITIMERSPEC)
-/* Non-zero if one of the above was successfully initialized.  Do not
-   use bool due to special treatment if HAVE_TIMERFD, see below.  */
-static int special_timer_available;
-#endif
-
-#ifdef HAVE_CLOCK_GETRES
-/* Resolution of CLOCK_REALTIME clock.  */
-static struct timespec resolution;
+# ifdef HAVE_TIMERFD
+/* File descriptor for timer, or -1 if it could not be created.  */
+static int timerfd;
+# else
+enum { timerfd = -1 };
+# endif
 #endif
 
 /* Block/unblock SIGALRM.  */
@@ -92,20 +82,20 @@ static void schedule_atimer (struct atimer *);
 static struct atimer *append_atimer_lists (struct atimer *,
                                            struct atimer *);
 
-/* Start a new atimer of type TYPE.  TIME specifies when the timer is
+/* Start a new atimer of type TYPE.  TIMESTAMP specifies when the timer is
    ripe.  FN is the function to call when the timer fires.
    CLIENT_DATA is stored in the client_data member of the atimer
    structure returned and so made available to FN when it is called.
 
-   If TYPE is ATIMER_ABSOLUTE, TIME is the absolute time at which the
+   If TYPE is ATIMER_ABSOLUTE, TIMESTAMP is the absolute time at which the
    timer fires.
 
-   If TYPE is ATIMER_RELATIVE, the timer is ripe TIME s/us in the
+   If TYPE is ATIMER_RELATIVE, the timer is ripe TIMESTAMP seconds in the
    future.
 
    In both cases, the timer is automatically freed after it has fired.
 
-   If TYPE is ATIMER_CONTINUOUS, the timer fires every TIME s/us.
+   If TYPE is ATIMER_CONTINUOUS, the timer fires every TIMESTAMP seconds.
 
    Value is a pointer to the atimer started.  It can be used in calls
    to cancel_atimer; don't free it yourself.  */
@@ -117,16 +107,10 @@ start_atimer (enum atimer_type type, struct timespec timestamp,
   struct atimer *t;
   sigset_t oldset;
 
-#if !defined (HAVE_SETITIMER)
-  /* Round TIME up to the next full second if we don't have itimers.  */
+  /* Round TIMESTAMP up to the next full second if we don't have itimers.  */
+#ifndef HAVE_SETITIMER
   if (timestamp.tv_nsec != 0 && timestamp.tv_sec < TYPE_MAXIMUM (time_t))
     timestamp = make_timespec (timestamp.tv_sec + 1, 0);
-#elif defined (HAVE_CLOCK_GETRES)
-  /* Check that the system clock is precise enough.  If
-     not, round TIME up to the system clock resolution.  */
-  if (timespec_valid_p (resolution)
-      && timespec_cmp (timestamp, resolution) < 0)
-    timestamp = resolution;
 #endif /* not HAVE_SETITIMER */
 
   /* Get an atimer structure from the free-list, or allocate
@@ -311,25 +295,24 @@ set_alarm (void)
 #endif
       struct timespec now, interval;
 
-#if defined (HAVE_TIMERFD) || defined (HAVE_ITIMERSPEC)
-      if (special_timer_available)
+#ifdef HAVE_ITIMERSPEC
+      if (0 <= timerfd || alarm_timer_ok)
 	{
 	  struct itimerspec ispec;
 	  ispec.it_value = atimers->expiration;
 	  ispec.it_interval.tv_sec = ispec.it_interval.tv_nsec = 0;
-#if defined (HAVE_TIMERFD)
-	  if (special_timer_available == 1)
+# ifdef HAVE_TIMERFD
+	  if (timerfd_settime (timerfd, TFD_TIMER_ABSTIME, &ispec, 0) == 0)
 	    {
 	      add_timer_wait_descriptor (timerfd);
-	      special_timer_available++;
+	      return;
 	    }
-	  if (timerfd_settime (timerfd, TFD_TIMER_ABSTIME, &ispec, 0) == 0)
-#elif defined (HAVE_ITIMERSPEC)
-	  if (timer_settime (alarm_timer, TIMER_ABSTIME, &ispec, 0) == 0)
-#endif	    
+# endif
+	  if (alarm_timer_ok
+	      && timer_settime (alarm_timer, TIMER_ABSTIME, &ispec, 0) == 0)
 	    return;
 	}
-#endif /* HAVE_TIMERFD || HAVE_ITIMERSPEC */
+#endif
 
       /* Determine interval till the next timer is ripe.
 	 Don't set the interval to 0; this disables the timer.  */
@@ -453,15 +436,15 @@ turn_on_atimers (bool on)
     set_alarm ();
   else
     {
-#ifdef HAVE_TIMERFD
-      if (special_timer_available > 1)
-	{
-	  struct itimerspec ispec;
-	  memset (&ispec, 0, sizeof (ispec));
-	  /* Writing zero expiration time should disarm it.  */
-	  timerfd_settime (timerfd, TFD_TIMER_ABSTIME, &ispec, 0);
-	}
-#endif /* HAVE_TIMERFD */
+#ifdef HAVE_ITIMERSPEC
+      struct itimerspec ispec;
+      memset (&ispec, 0, sizeof ispec);
+      if (alarm_timer_ok)
+	timer_settime (alarm_timer, TIMER_ABSTIME, &ispec, 0);
+# ifdef HAVE_TIMERFD
+      timerfd_settime (timerfd, TFD_TIMER_ABSTIME, &ispec, 0);
+# endif
+#endif
       alarm (0);
     }
 }
@@ -494,14 +477,14 @@ debug_timer_callback (struct atimer *t)
     r->intime = 0;
   else if (result >= 0)
     {
-#ifdef HAVE_SETITIMER      
+#ifdef HAVE_SETITIMER
       struct timespec delta = timespec_sub (now, r->expected);
       /* Too late if later than expected + 0.01s.  FIXME:
 	 this should depend from system clock resolution.  */
       if (timespec_cmp (delta, make_timespec (0, 10000000)) > 0)
 	r->intime = 0;
       else
-#endif /* HAVE_SETITIMER */	
+#endif /* HAVE_SETITIMER */
 	r->intime = 1;
     }
 }
@@ -543,21 +526,20 @@ Return t if all self-tests are passed, nil otherwise.  */)
 void
 init_atimer (void)
 {
-#if defined (HAVE_TIMERFD)
-  timerfd = timerfd_create (CLOCK_REALTIME, TIMERFD_CREATE_FLAGS);
-  special_timer_available = !!(timerfd != -1);
-#elif defined (HAVE_ITIMERSPEC)
-  struct sigevent sigev;
-  sigev.sigev_notify = SIGEV_SIGNAL;
-  sigev.sigev_signo = SIGALRM;
-  sigev.sigev_value.sival_ptr = &alarm_timer;
-  special_timer_available
-    = timer_create (CLOCK_REALTIME, &sigev, &alarm_timer) == 0;
-#endif /* HAVE_TIMERFD */
-#ifdef HAVE_CLOCK_GETRES
-  if (clock_getres (CLOCK_REALTIME, &resolution))
-    resolution = invalid_timespec ();
-#endif  
+#ifdef HAVE_ITIMERSPEC
+# ifdef HAVE_TIMERFD
+  timerfd = timerfd_create (CLOCK_REALTIME, TFD_CLOEXEC);
+# endif
+  if (timerfd < 0)
+    {
+      struct sigevent sigev;
+      sigev.sigev_notify = SIGEV_SIGNAL;
+      sigev.sigev_signo = SIGALRM;
+      sigev.sigev_value.sival_ptr = &alarm_timer;
+      alarm_timer_ok
+	= timer_create (CLOCK_REALTIME, &sigev, &alarm_timer) == 0;
+    }
+#endif
   free_atimers = stopped_atimers = atimers = NULL;
 
   /* pending_signals is initialized in init_keyboard.  */
@@ -567,5 +549,5 @@ init_atimer (void)
 
 #ifdef ENABLE_CHECKING
   defsubr (&Sdebug_timer_check);
-#endif  
+#endif
 }

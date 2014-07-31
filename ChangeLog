@@ -1,3 +1,13 @@
+2014-07-31  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Simplify timerfd configuration and fix some minor glitches.
+	* configure.ac (HAVE_TIMERFD): Define only if TFD_CLOEXEC works,
+	since the code leaked file descriptors to children when !TFD_CLOEXEC.
+	(HAVE_TIMERFD_CLOEXEC): Remove; no longer used.
+	* m4/clock_time.m4 (gl_CLOCK_TIME): Don't check for clock_getres.
+	This reverts the previous change to this file, so it matches
+	gnulib again.
+
 2014-07-28  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* configure.ac (toplevel): Check whether GNU/Linux-specific

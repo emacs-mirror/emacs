@@ -1539,7 +1539,7 @@ if test "$ac_cv_header_sys_sysinfo_h" = yes; then
       AC_DEFINE(LINUX_SYSINFO_UNIT, 1,
                 [Define to 1 if Linux sysinfo sizes are in multiples of mem_unit bytes.]))
   fi
-fi  
+fi
 
 dnl On Solaris 8 there's a compilation warning for term.h because
 dnl it doesn't define `bool'.
@@ -3711,25 +3711,18 @@ AC_SUBST(LIBS_TERMCAP)
 AC_SUBST(TERMCAP_OBJ)
 
 # GNU/Linux-specific timer functions.
-if test $opsys = gnu-linux; then
-  AC_MSG_CHECKING([whether Linux timerfd functions are supported])
-  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <sys/timerfd.h>]],
-				     [[timerfd_create (CLOCK_REALTIME, 0);
-				       timerfd_settime (0, 0, NULL, NULL)]])],
-  emacs_cv_linux_timerfd=yes, emacs_cv_linux_timerfd=no)
-  AC_MSG_RESULT([$emacs_cv_linux_timerfd])
-  if test $emacs_cv_linux_timerfd = yes; then
-    AC_DEFINE(HAVE_TIMERFD, 1, [Define to 1 if Linux timerfd functions are supported.])
-    AC_MSG_CHECKING([whether TFD_CLOEXEC is defined])
-      AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <sys/timerfd.h>]],
-					 [[timerfd_create (CLOCK_REALTIME, TFD_CLOEXEC)]])],
-    emacs_cv_tfd_cloexec=yes, emacs_cv_tfd_cloexec=no)
-    AC_MSG_RESULT([$emacs_cv_tfd_cloexec])
-    if test $emacs_cv_tfd_cloexec = yes; then
-      AC_DEFINE(HAVE_TIMERFD_CLOEXEC, 1, [Define to 1 if TFD_CLOEXEC is defined.])
-    fi
-  fi
-fi  
+AC_CACHE_CHECK([for timerfd interface], [emacs_cv_have_timerfd],
+  [AC_COMPILE_IFELSE(
+     [AC_LANG_PROGRAM([[#include <sys/timerfd.h>
+     		      ]],
+		      [[timerfd_create (CLOCK_REALTIME, TFD_CLOEXEC);
+ 		        timerfd_settime (0, TFD_TIMER_ABSTIME, 0, 0);]])],
+     [emacs_cv_have_timerfd=yes],
+     [emacs_cv_have_timerfd=no])])
+if test "$emacs_cv_have_timerfd" = yes; then
+  AC_DEFINE([HAVE_TIMERFD], 1,
+    [Define to 1 if timerfd functions are supported as in GNU/Linux.])
+fi
 
 # Do we have res_init, for detecting changes in /etc/resolv.conf?
 # On Darwin, res_init appears not to be useful: see bug#562 and

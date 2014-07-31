@@ -26,6 +26,6 @@ AC_DEFUN([gl_CLOCK_TIME],
     AC_SEARCH_LIBS([clock_gettime], [rt posix4],
                    [test "$ac_cv_search_clock_gettime" = "none required" ||
                     LIB_CLOCK_GETTIME=$ac_cv_search_clock_gettime])
-    AC_CHECK_FUNCS([clock_getres clock_gettime clock_settime])
+    AC_CHECK_FUNCS([clock_gettime clock_settime])
   LIBS=$gl_saved_libs
 ])
