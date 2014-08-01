@@ -1,4 +1,4 @@
-2014-07-29  Eli Zaretskii  <eliz@gnu.org>
+2014-08-01  Eli Zaretskii  <eliz@gnu.org>
 
 	* tutorial.el (tutorial--display-changes): Accept punctuation
 	characters before the key binding.  (Bug#18146)
