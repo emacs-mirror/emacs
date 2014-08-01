@@ -3198,9 +3198,9 @@ x_set_frame_parameters (struct frame *f, Lisp_Object alist)
 
     XSETFRAME (frame, f);
 
-    if (((width_change && width != FRAME_TEXT_WIDTH (f))
-	 || (height_change && height != FRAME_TEXT_HEIGHT (f)))
-	 || f->new_height || f->new_width)
+    if ((width_change && width != FRAME_TEXT_WIDTH (f))
+	|| (height_change && height != FRAME_TEXT_HEIGHT (f))
+	|| f->new_height || f->new_width)
       {
 	/* If necessary provide default values for HEIGHT and WIDTH.  Do
 	   that here since otherwise a size change implied by an
