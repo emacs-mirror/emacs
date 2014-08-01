@@ -548,7 +548,11 @@ with some explanatory links."
 	 (start (point))
 	 (case-fold-search nil)
 	 (keybindings-regexp
-	  (concat "[[:space:]]\\("
+	  ;; Accept either [:space:] or [:punct:] before the key
+	  ;; binding because the Hebrew tutorial uses directional
+	  ;; controls and Hebrew character maqaf, the Hebrew hyphen,
+	  ;; immediately before the binding string.
+	  (concat "\\([[:space:]]\\|[[:punct:]]\\)\\("
 		  (mapconcat (lambda (kdf) (regexp-quote
 					    (tutorial--key-description
 					     (nth 1 kdf))))

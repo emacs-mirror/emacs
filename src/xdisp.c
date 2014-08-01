@@ -19337,6 +19337,12 @@ extend_face_to_end_of_line (struct it *it)
 	      it->face_id = saved_face_id;
 	      it->start_of_box_run_p = saved_box_start;
 	    }
+	  /* If stretch_width comes out negative, it means that the
+	     last glyph is only partially visible.  In R2L rows, we
+	     want the leftmost glyph to be partially visible, so we
+	     need to give the row the corresponding left offset.  */
+	  if (stretch_width < 0)
+	    it->glyph_row->x = stretch_width;
 	}
 #endif	/* HAVE_WINDOW_SYSTEM */
     }
@@ -19963,6 +19969,7 @@ display_line (struct it *it)
   int cvpos;
   ptrdiff_t min_pos = ZV + 1, max_pos = 0;
   ptrdiff_t min_bpos IF_LINT (= 0), max_bpos IF_LINT (= 0);
+  bool pending_handle_line_prefix = false;
 
   /* We always start displaying at hpos zero even if hscrolled.  */
   eassert (it->hpos == 0 && it->current_x == 0);
@@ -20023,12 +20030,22 @@ display_line (struct it *it)
       min_pos = CHARPOS (this_line_min_pos);
       min_bpos = BYTEPOS (this_line_min_pos);
     }
+  else if (it->area == TEXT_AREA)
+    {
+      /* We only do this when not calling move_it_in_display_line_to
+	 above, because that function calls itself handle_line_prefix.  */
+      handle_line_prefix (it);
+    }
   else
     {
-      /* We only do this when not calling `move_it_in_display_line_to'
-	 above, because move_it_in_display_line_to calls
-	 handle_line_prefix itself.  */
-      handle_line_prefix (it);
+      /* Line-prefix and wrap-prefix are always displayed in the text
+	 area.  But if this is the first call to display_line after
+	 init_iterator, the iterator might have been set up to write
+	 into a marginal area, e.g. if the line begins with some
+	 display property that writes to the margins.  So we need to
+	 wait with the call to handle_line_prefix until whatever
+	 writes to the margin has done its job.  */
+      pending_handle_line_prefix = true;
     }
 
   /* Get the initial row height.  This is either the height of the
@@ -20161,6 +20178,14 @@ display_line (struct it *it)
 	  row->extra_line_spacing = max (row->extra_line_spacing,
 					 it->max_extra_line_spacing);
 	  set_iterator_to_next (it, 1);
+	  /* If we didn't handle the line/wrap prefix above, and the
+	     call to set_iterator_to_next just switched to TEXT_AREA,
+	     process the prefix now.  */
+	  if (it->area == TEXT_AREA && pending_handle_line_prefix)
+	    {
+	      pending_handle_line_prefix = false;
+	      handle_line_prefix (it);
+	    }
 	  continue;
 	}
 
@@ -20190,7 +20215,12 @@ display_line (struct it *it)
 				  it->max_phys_ascent + it->max_phys_descent);
 	  row->extra_line_spacing = max (row->extra_line_spacing,
 					 it->max_extra_line_spacing);
-	  if (it->current_x - it->pixel_width < it->first_visible_x)
+	  if (it->current_x - it->pixel_width < it->first_visible_x
+	      /* In R2L rows, we arrange in extend_face_to_end_of_line
+		 to add a right offset to the line, by a suitable
+		 change to the stretch glyph that is the leftmost
+		 glyph of the line.  */
+	      && !row->reversed_p)
 	    row->x = x - it->first_visible_x;
 	  /* Record the maximum and minimum buffer positions seen so
 	     far in glyphs that will be displayed by this row.  */
@@ -20204,7 +20234,13 @@ display_line (struct it *it)
 
 	  for (i = 0; i < nglyphs; ++i, x = new_x)
 	    {
-	      glyph = row->glyphs[TEXT_AREA] + n_glyphs_before + i;
+	      /* Identify the glyphs added by the last call to
+		 PRODUCE_GLYPHS.  In R2L rows, they are prepended to
+		 the previous glyphs.  */
+	      if (!row->reversed_p)
+		glyph = row->glyphs[TEXT_AREA] + n_glyphs_before + i;
+	      else
+		glyph = row->glyphs[TEXT_AREA] + nglyphs - 1 - i;
 	      new_x = x + glyph->pixel_width;
 
 	      if (/* Lines are continued.  */
@@ -20404,10 +20440,20 @@ display_line (struct it *it)
 		  if (it->bidi_p)
 		    RECORD_MAX_MIN_POS (it);
 
-		  if (x < it->first_visible_x)
+		  if (x < it->first_visible_x && !row->reversed_p)
 		    /* Glyph is partially visible, i.e. row starts at
-		       negative X position.  */
+		       negative X position.  Don't do that in R2L
+		       rows, where we arrange to add a right offset to
+		       the line in extend_face_to_end_of_line, by a
+		       suitable change to the stretch glyph that is
+		       the leftmost glyph of the line.  */
 		    row->x = x - it->first_visible_x;
+		  /* When the last glyph of an R2L row only fits
+		     partially on the line, we need to set row->x to a
+		     negative offset, so that the leftmost glyph is
+		     the one that is partially visible.  */
+		  if (row->reversed_p && new_x > it->last_visible_x)
+		    row->x = it->last_visible_x - new_x;
 		}
 	      else
 		{
@@ -25305,6 +25351,24 @@ append_stretch_glyph (struct it *it, Lisp_Object object,
 	  for (g = glyph - 1; g >= it->glyph_row->glyphs[area]; g--)
 	    g[1] = *g;
 	  glyph = it->glyph_row->glyphs[area];
+
+	  /* Decrease the width of the first glyph of the row that
+	     begins before first_visible_x (e.g., due to hscroll).
+	     This is so the overall width of the row becomes smaller
+	     by the scroll amount, and the stretch glyph appended by
+	     extend_face_to_end_of_line will be wider, to shift the
+	     row glyphs to the right.  (In L2R rows, the corresponding
+	     left-shift effect is accomplished by setting row->x to a
+	     negative value, which won't work with R2L rows.)
+
+	     This must leave us with a positive value of WIDTH, since
+	     otherwise the call to move_it_in_display_line_to at the
+	     beginning of display_line would have got past the entire
+	     first glyph, and then it->current_x would have been
+	     greater or equal to it->first_visible_x.  */
+	  if (it->current_x < it->first_visible_x)
+	    width -= it->first_visible_x - it->current_x;
+	  eassert (width > 0);
 	}
       glyph->charpos = CHARPOS (it->position);
       glyph->object = object;

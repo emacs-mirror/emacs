@@ -63,6 +63,8 @@ macro before appending to it.  */)
     {
       current_kboard->kbd_macro_buffer = xmalloc (30 * word_size);
       current_kboard->kbd_macro_bufsize = 30;
+      current_kboard->kbd_macro_ptr = current_kboard->kbd_macro_buffer;
+      current_kboard->kbd_macro_end = current_kboard->kbd_macro_buffer;
     }
   update_mode_lines = 19;
   if (NILP (append))
