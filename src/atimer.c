@@ -27,6 +27,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <unistd.h>
 
 #ifdef HAVE_TIMERFD
+#include <errno.h>
 # include <sys/timerfd.h>
 #endif
 
@@ -399,14 +400,26 @@ handle_alarm_signal (int sig)
 void
 timerfd_callback (int fd, void *arg)
 {
-  char buf[8];
   ptrdiff_t nbytes;
+  uint64_t expirations;
 
   eassert (fd == timerfd);
-  nbytes = emacs_read (fd, buf, sizeof (buf));
-  /* Just discard an expiration count for now.  */
-  eassert (nbytes == sizeof (buf));
-  do_pending_atimers ();
+  nbytes = emacs_read (fd, &expirations, sizeof (expirations));
+
+  if (nbytes == sizeof (expirations))
+    {
+      /* Timer should expire just once.  */
+      eassert (expirations == 1);
+      do_pending_atimers ();
+    }
+  else if (nbytes < 0)
+    /* For some not yet known reason, we may get weird event and no
+       data on timer descriptor.  This can break Gnus at least, see:
+       http://lists.gnu.org/archive/html/emacs-devel/2014-07/msg00503.html.  */
+    eassert (errno == EAGAIN);
+  else
+    /* I don't know what else can happen with this descriptor.  */
+    emacs_abort ();
 }
 
 #endif /* HAVE_TIMERFD */
@@ -528,7 +541,9 @@ init_atimer (void)
 {
 #ifdef HAVE_ITIMERSPEC
 # ifdef HAVE_TIMERFD
-  timerfd = timerfd_create (CLOCK_REALTIME, TFD_CLOEXEC);
+  /* Until this feature is considered stable, you can ask to not use it.  */
+  timerfd = (egetenv ("EMACS_IGNORE_TIMERFD") ? -1 :
+	     timerfd_create (CLOCK_REALTIME, TFD_NONBLOCK | TFD_CLOEXEC));
 # endif
   if (timerfd < 0)
     {

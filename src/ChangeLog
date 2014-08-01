@@ -1,3 +1,11 @@
+2014-08-01  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* atimer.c (toplevel) [HAVE_TIMERFD]: Include errno.h.
+	(timerfd_callback): Ignore weird events with no data.  Add tight
+	assertions and comments.
+	(init_atimer) [HAVE_TIMERFD]: Add environment variable to optionally
+	disable	timerfd-based timer.  Use TFD_NONBLOCK for timer descriptor.
+
 2014-08-01  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* frame.c (x_set_frame_parameters): Fix typo in previous patch.
