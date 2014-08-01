@@ -1,3 +1,8 @@
+2014-08-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* frame.c (x_set_frame_parameters): Fix typo in previous patch.
+	I had confused && with ||.
+
 2014-07-31  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Simplify timerfd configuration and fix some minor glitches.
