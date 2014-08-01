@@ -19316,6 +19316,12 @@ extend_face_to_end_of_line (struct it *it)
 	      it->face_id = saved_face_id;
 	      it->start_of_box_run_p = saved_box_start;
 	    }
+	  /* If stretch_width comes out negative, it means that the
+	     last glyph is only partially visible.  In R2L rows, we
+	     want the leftmost glyph to be partially visible, so we
+	     need to give the row the corresponding left offset.  */
+	  if (stretch_width < 0)
+	    it->glyph_row->x = stretch_width;
 	}
 #endif	/* HAVE_WINDOW_SYSTEM */
     }
@@ -20207,7 +20213,13 @@ display_line (struct it *it)
 
 	  for (i = 0; i < nglyphs; ++i, x = new_x)
 	    {
-	      glyph = row->glyphs[TEXT_AREA] + n_glyphs_before + i;
+	      /* Identify the glyphs added by the last call to
+		 PRODUCE_GLYPHS.  In R2L rows, they are prepended to
+		 the previous glyphs.  */
+	      if (!row->reversed_p)
+		glyph = row->glyphs[TEXT_AREA] + n_glyphs_before + i;
+	      else
+		glyph = row->glyphs[TEXT_AREA] + nglyphs - 1 - i;
 	      new_x = x + glyph->pixel_width;
 
 	      if (/* Lines are continued.  */
@@ -20415,6 +20427,12 @@ display_line (struct it *it)
 		       suitable change to the stretch glyph that is
 		       the leftmost glyph of the line.  */
 		    row->x = x - it->first_visible_x;
+		  /* When the last glyph of an R2L row only fits
+		     partially on the line, we need to set row->x to a
+		     negative offset, so that the leftmost glyph is
+		     the one that is partially visible.  */
+		  if (row->reversed_p && new_x > it->last_visible_x)
+		    row->x = it->last_visible_x - new_x;
 		}
 	      else
 		{

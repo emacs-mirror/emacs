@@ -1,3 +1,16 @@
+2014-08-01  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix display of R2L lines when the last character fits only partially.
+	See http://lists.gnu.org/archive/html/emacs-devel/2014-07/msg00476.html
+	for the details.
+	* xdisp.c (extend_face_to_end_of_line): If the last glyph of an
+	R2L row is visible only partially, give the row a negative x
+	offset.
+	(display_line): Fix the calculation of the glyph whose pixel width
+	is used to decide whether the last produced glyph fits on the
+	line.  When the last glyph fits only partially, give the row a
+	negative x offset.
+
 2014-07-29  Eli Zaretskii  <eliz@gnu.org>
 
 	Fix hscroll of R2L lines that begin with a TAB or another wide glyph.
