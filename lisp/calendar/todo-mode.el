@@ -5226,7 +5226,7 @@ Overrides `diary-goto-entry'."
 
 (defun todo--user-error-if-marked-done-item ()
   "Signal user error on marked done items.
-Helper funtion for editing commands that only apply to (possibly
+Helper function for editing commands that apply only to (possibly
 marked) not done todo items."
   (save-excursion
     (save-restriction
