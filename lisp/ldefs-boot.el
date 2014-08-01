@@ -2623,7 +2623,7 @@ from `browse-url-elinks-wrapper'.
 
 ;;;***
 
-;;;### (autoloads nil "bs" "bs.el" (21291 53104 0 0))
+;;;### (autoloads nil "bs" "bs.el" (21452 63160 995987 0))
 ;;; Generated autoloads from bs.el
 (push (purecopy '(bs 1 17)) package--builtin-versions)
 
@@ -5089,8 +5089,8 @@ Enable CUA selection mode without the C-z/C-x/C-c/C-v bindings.
 
 ;;;***
 
-;;;### (autoloads nil "cua-rect" "emulation/cua-rect.el" (21291 53104
-;;;;;;  0 0))
+;;;### (autoloads nil "cua-rect" "emulation/cua-rect.el" (21434 33208
+;;;;;;  30457 0))
 ;;; Generated autoloads from emulation/cua-rect.el
 
 (autoload 'cua-rectangle-mark-mode "cua-rect" "\
@@ -5957,7 +5957,7 @@ relevant to POS.
 
 ;;;***
 
-;;;### (autoloads nil "desktop" "desktop.el" (21418 44988 932893
+;;;### (autoloads nil "desktop" "desktop.el" (21446 24405 165302
 ;;;;;;  0))
 ;;; Generated autoloads from desktop.el
 
@@ -6112,10 +6112,11 @@ if different).
 Save the desktop in a desktop file.
 Parameter DIRNAME specifies where to save the desktop file.
 Optional parameter RELEASE says whether we're done with this desktop.
-If AUTO-SAVE is non-nil, compare the saved contents to the one last saved,
-and don't save the buffer if they are the same.
+If ONLY-IF-CHANGED is non-nil, compare the current desktop information
+to that in the desktop file, and if the desktop information has not
+changed since it was last saved then do not rewrite the file.
 
-\(fn DIRNAME &optional RELEASE AUTO-SAVE)" t nil)
+\(fn DIRNAME &optional RELEASE ONLY-IF-CHANGED)" t nil)
 
 (autoload 'desktop-remove "desktop" "\
 Delete desktop file in `desktop-dirname'.
@@ -6330,7 +6331,7 @@ Optional arguments are passed to `dig-invoke'.
 
 ;;;***
 
-;;;### (autoloads nil "dired" "dired.el" (21409 30011 484411 0))
+;;;### (autoloads nil "dired" "dired.el" (21452 63160 995987 0))
 ;;; Generated autoloads from dired.el
 
 (defvar dired-listing-switches (purecopy "-al") "\
@@ -6678,7 +6679,8 @@ Locate SOA record and increment the serial field.
 
 ;;;***
 
-;;;### (autoloads nil "doc-view" "doc-view.el" (21312 16713 0 0))
+;;;### (autoloads nil "doc-view" "doc-view.el" (21462 12596 577539
+;;;;;;  0))
 ;;; Generated autoloads from doc-view.el
 
 (autoload 'doc-view-mode-p "doc-view" "\
@@ -7536,8 +7538,8 @@ an EDE controlled project.
 
 ;;;***
 
-;;;### (autoloads nil "edebug" "emacs-lisp/edebug.el" (21291 53104
-;;;;;;  0 0))
+;;;### (autoloads nil "edebug" "emacs-lisp/edebug.el" (21433 12343
+;;;;;;  302925 0))
 ;;; Generated autoloads from emacs-lisp/edebug.el
 
 (defvar edebug-all-defs nil "\
@@ -13625,8 +13627,8 @@ be found in variable `hi-lock-interactive-patterns'.
 
 ;;;***
 
-;;;### (autoloads nil "hideif" "progmodes/hideif.el" (21420 27972
-;;;;;;  753649 0))
+;;;### (autoloads nil "hideif" "progmodes/hideif.el" (21452 63160
+;;;;;;  995987 0))
 ;;; Generated autoloads from progmodes/hideif.el
 
 (autoload 'hide-ifdef-mode "hideif" "\
@@ -16872,8 +16874,8 @@ except that FILTER is not optional.
 
 ;;;***
 
-;;;### (autoloads nil "log-edit" "vc/log-edit.el" (21426 39108 202017
-;;;;;;  0))
+;;;### (autoloads nil "log-edit" "vc/log-edit.el" (21438 54848 741535
+;;;;;;  566000))
 ;;; Generated autoloads from vc/log-edit.el
 
 (autoload 'log-edit "log-edit" "\
@@ -19279,8 +19281,8 @@ the variable `nxml-enabled-unicode-blocks'.
 
 ;;;***
 
-;;;### (autoloads nil "octave" "progmodes/octave.el" (21321 34341
-;;;;;;  0 0))
+;;;### (autoloads nil "octave" "progmodes/octave.el" (21430 36152
+;;;;;;  122368 0))
 ;;; Generated autoloads from progmodes/octave.el
 
 (autoload 'octave-mode "octave" "\
@@ -20789,7 +20791,8 @@ Use streaming commands.
 
 ;;;***
 
-;;;### (autoloads nil "pp" "emacs-lisp/pp.el" (21291 53104 0 0))
+;;;### (autoloads nil "pp" "emacs-lisp/pp.el" (21427 59969 217865
+;;;;;;  0))
 ;;; Generated autoloads from emacs-lisp/pp.el
 
 (autoload 'pp-to-string "pp" "\
@@ -21474,8 +21477,8 @@ Open profile FILENAME.
 
 ;;;***
 
-;;;### (autoloads nil "prolog" "progmodes/prolog.el" (21346 62196
-;;;;;;  0 0))
+;;;### (autoloads nil "prolog" "progmodes/prolog.el" (21458 15546
+;;;;;;  437191 0))
 ;;; Generated autoloads from progmodes/prolog.el
 
 (autoload 'prolog-mode "prolog" "\
@@ -21771,10 +21774,10 @@ If EXTENSION is any other symbol, it is ignored.
 
 ;;;***
 
-;;;### (autoloads nil "python" "progmodes/python.el" (21426 39108
-;;;;;;  202017 0))
+;;;### (autoloads nil "python" "progmodes/python.el" (21460 57274
+;;;;;;  131108 0))
 ;;; Generated autoloads from progmodes/python.el
-(push (purecopy '(python 0 24 2)) package--builtin-versions)
+(push (purecopy '(python 0 24 4)) package--builtin-versions)
 
 (add-to-list 'auto-mode-alist (cons (purecopy "\\.py\\'") 'python-mode))
 
@@ -23268,8 +23271,8 @@ for modes derived from Text mode, like Mail mode.
 
 ;;;***
 
-;;;### (autoloads nil "ruby-mode" "progmodes/ruby-mode.el" (21406
-;;;;;;  53815 191813 0))
+;;;### (autoloads nil "ruby-mode" "progmodes/ruby-mode.el" (21433
+;;;;;;  12343 302925 0))
 ;;; Generated autoloads from progmodes/ruby-mode.el
 (push (purecopy '(ruby-mode 1 2)) package--builtin-versions)
 
@@ -24298,8 +24301,8 @@ To work around that, do:
 
 ;;;***
 
-;;;### (autoloads nil "sh-script" "progmodes/sh-script.el" (21418
-;;;;;;  44988 932893 0))
+;;;### (autoloads nil "sh-script" "progmodes/sh-script.el" (21437
+;;;;;;  9401 747944 0))
 ;;; Generated autoloads from progmodes/sh-script.el
 (push (purecopy '(sh-script 2 0 6)) package--builtin-versions)
 (put 'sh-shell 'safe-local-variable 'symbolp)
@@ -26808,8 +26811,8 @@ tetris-mode keybindings:
 
 ;;;***
 
-;;;### (autoloads nil "tex-mode" "textmodes/tex-mode.el" (21291 53104
-;;;;;;  0 0))
+;;;### (autoloads nil "tex-mode" "textmodes/tex-mode.el" (21462 12596
+;;;;;;  577539 0))
 ;;; Generated autoloads from textmodes/tex-mode.el
 
 (defvar tex-shell-file-name nil "\
@@ -27850,8 +27853,8 @@ Its value should be an event that has a binding in MENU.
 
 ;;;***
 
-;;;### (autoloads nil "todo-mode" "calendar/todo-mode.el" (21422
-;;;;;;  42044 967072 0))
+;;;### (autoloads nil "todo-mode" "calendar/todo-mode.el" (21459
+;;;;;;  36408 264096 0))
 ;;; Generated autoloads from calendar/todo-mode.el
 
 (autoload 'todo-show "todo-mode" "\
@@ -28240,7 +28243,8 @@ Discard Tramp from loading remote files.
 
 ;;;***
 
-;;;### (autoloads nil "tutorial" "tutorial.el" (21291 53104 0 0))
+;;;### (autoloads nil "tutorial" "tutorial.el" (21464 54324 409040
+;;;;;;  0))
 ;;; Generated autoloads from tutorial.el
 
 (autoload 'help-with-tutorial "tutorial" "\
@@ -29686,8 +29690,8 @@ These are the commands available for use in the file status buffer:
 
 ;;;***
 
-;;;### (autoloads nil "vc-dispatcher" "vc/vc-dispatcher.el" (21291
-;;;;;;  53104 0 0))
+;;;### (autoloads nil "vc-dispatcher" "vc/vc-dispatcher.el" (21444
+;;;;;;  12002 871574 911000))
 ;;; Generated autoloads from vc/vc-dispatcher.el
 
 (autoload 'vc-do-command "vc-dispatcher" "\
@@ -30645,7 +30649,7 @@ Convert Vietnamese characters of the current buffer to `VIQR' mnemonics.
 
 ;;;***
 
-;;;### (autoloads nil "view" "view.el" (21291 53104 0 0))
+;;;### (autoloads nil "view" "view.el" (21452 63160 995987 0))
 ;;; Generated autoloads from view.el
 
 (defvar view-remove-frame-by-deleting t "\
@@ -32054,8 +32058,8 @@ Zone out, completely.
 ;;;;;;  "vc/ediff-ptch.el" "vc/ediff-vers.el" "vc/ediff-wind.el"
 ;;;;;;  "vc/pcvs-info.el" "vc/pcvs-parse.el" "vc/pcvs-util.el" "vc/vc-dav.el"
 ;;;;;;  "vcursor.el" "vt-control.el" "vt100-led.el" "w32-common-fns.el"
-;;;;;;  "w32-fns.el" "w32-vars.el" "x-dnd.el") (21426 39167 845163
-;;;;;;  447000))
+;;;;;;  "w32-fns.el" "w32-vars.el" "x-dnd.el") (21467 30610 282100
+;;;;;;  377000))
 
 ;;;***
 
