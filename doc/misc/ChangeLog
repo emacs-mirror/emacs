@@ -1,3 +1,8 @@
+2014-07-31  Tassilo Horn  <tsdh@gnu.org>
+
+	* gnus.texi (Group Parameters): Document that `gcc-self' may also be a
+	list.
+
 2014-07-28  Stephen Berman  <stephen.berman@gmx.net>
 
 	* todo-mode.texi (Marked Items): Correct omission of item deletion
