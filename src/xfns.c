@@ -965,7 +965,7 @@ x_set_icon_name (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 }
 
 
-void
+static void
 x_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 {
   int nlines;
@@ -1060,7 +1060,7 @@ x_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
    height of all windows on frame F to match the new tool bar height.
    The frame's height doesn't change.  */
 
-void
+static void
 x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 {
   int nlines;
@@ -1149,7 +1149,7 @@ x_change_tool_bar_height (struct frame *f, int height)
 }
 
 
-void
+static void
 x_set_internal_border_width (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
   int border;
@@ -1172,7 +1172,7 @@ x_set_internal_border_width (struct frame *f, Lisp_Object arg, Lisp_Object oldva
 
 #ifdef USE_GTK
 	  xg_clear_under_internal_border (f);
-#else	  
+#else
 	  x_clear_under_internal_border (f);
 #endif
 	}

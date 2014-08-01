@@ -34,10 +34,6 @@ enum {
   MENU_KBD_NAVIGATION = 0x4
 };
 
-extern void x_set_menu_bar_lines (struct frame *f,
-                                  Lisp_Object value,
-                                  Lisp_Object oldval);
-
 extern void init_menu_items (void);
 extern void finish_menu_items (void) ATTRIBUTE_CONST;
 extern void discard_menu_items (void);

@@ -45,9 +45,9 @@ enum fullscreen_type
   FULLSCREEN_HEIGHT    = 0x2,
   FULLSCREEN_BOTH      = 0x3, /* Not a typo but means "width and height".  */
   FULLSCREEN_MAXIMIZED = 0x4,
-#ifdef HAVE_NTGUI  
+#ifdef HAVE_NTGUI
   FULLSCREEN_WAIT      = 0x8
-#endif  
+#endif
 };
 
 #endif /* HAVE_WINDOW_SYSTEM */
@@ -161,7 +161,7 @@ struct frame
   /* Desired and current tool-bar items.  */
   Lisp_Object tool_bar_items;
 
-#ifdef USE_GTK  
+#ifdef USE_GTK
   /* Where tool bar is, can be left, right, top or bottom.
      Except with GTK, the only supported position is `top'.  */
   Lisp_Object tool_bar_position;
@@ -185,7 +185,7 @@ struct frame
   /* Number of elements in `menu_bar_vector' that have meaningful data.  */
   int menu_bar_items_used;
 
-#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI)  
+#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI)
   /* A buffer to hold the frame's name.  Since this is used by the
      window system toolkit, we can't use the Lisp string's pointer
      (`name', above) because it might get relocated.  */
@@ -1089,7 +1089,6 @@ extern Lisp_Object Qtty_color_mode;
 extern Lisp_Object Qterminal;
 extern Lisp_Object Qnoelisp;
 
-extern void set_menu_bar_lines (struct frame *, Lisp_Object, Lisp_Object);
 extern struct frame *decode_window_system_frame (Lisp_Object);
 extern struct frame *decode_live_frame (Lisp_Object);
 extern struct frame *decode_any_frame (Lisp_Object);
@@ -1108,7 +1107,7 @@ extern void check_window_system (struct frame *);
 extern void frame_make_pointer_invisible (struct frame *);
 extern void frame_make_pointer_visible (struct frame *);
 extern Lisp_Object delete_frame (Lisp_Object, Lisp_Object);
-extern bool frame_inhibit_resize (struct frame *, bool); 
+extern bool frame_inhibit_resize (struct frame *, bool);
 extern void adjust_frame_size (struct frame *, int, int, int, bool);
 
 extern Lisp_Object Vframe_list;
@@ -1309,7 +1308,7 @@ extern Lisp_Object Vframe_list;
   ((height)						\
    - FRAME_TOP_MARGIN_HEIGHT (f)			\
    - FRAME_SCROLL_BAR_AREA_HEIGHT (f)			\
-   - 2 * FRAME_INTERNAL_BORDER_WIDTH (f))		
+   - 2 * FRAME_INTERNAL_BORDER_WIDTH (f))
 
 /* Return the width/height reserved for the windows of frame F.  */
 #define FRAME_WINDOWS_WIDTH(f)			\
@@ -1393,8 +1392,6 @@ extern void x_set_font_backend (struct frame *, Lisp_Object, Lisp_Object);
 extern void x_set_left_fringe (struct frame *, Lisp_Object, Lisp_Object);
 extern void x_set_right_fringe (struct frame *, Lisp_Object, Lisp_Object);
 extern void x_set_border_width (struct frame *, Lisp_Object, Lisp_Object);
-extern void x_set_internal_border_width (struct frame *, Lisp_Object,
-                                         Lisp_Object);
 extern void x_set_right_divider_width (struct frame *, Lisp_Object,
 				       Lisp_Object);
 extern void x_set_bottom_divider_width (struct frame *, Lisp_Object,
@@ -1429,7 +1426,6 @@ extern void x_make_frame_visible (struct frame *f);
 extern void x_make_frame_invisible (struct frame *f);
 extern void x_iconify_frame (struct frame *f);
 extern void x_set_frame_alpha (struct frame *f);
-extern void x_set_tool_bar_lines (struct frame *, Lisp_Object, Lisp_Object);
 extern void x_activate_menubar (struct frame *);
 extern void x_real_positions (struct frame *, int *, int *);
 extern void free_frame_menubar (struct frame *);

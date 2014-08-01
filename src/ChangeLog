@@ -1,3 +1,12 @@
+2014-08-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Make functions static that no longer need to be extern.
+	* frame.c, frame.h (set_menu_bar_lines):
+	* keyboard.c (Qleftmost, Qrightmost):
+	* xfns.c, frame.h, menu.h (x_set_menu_bar_lines, x_set_tool_bar_lines)
+	(x_set_internal_border_width):
+	Now static.
+
 2014-08-01  Eli Zaretskii  <eliz@gnu.org>
 
 	Fix display of R2L lines when the last character fits only partially.
