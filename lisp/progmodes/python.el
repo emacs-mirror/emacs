@@ -2129,6 +2129,27 @@ uniqueness for different types of configurations."
     directory package package)
    (python-shell-get-process)))
 
+(defun python-shell-accept-process-output (process &optional timeout regexp)
+  "Accept PROCESS output with TIMEOUT until REGEXP is found.
+Optional argument TIMEOUT is the timeout argument to
+`accept-process-output' calls.  Optional argument REGEXP
+overrides the regexp to match the end of output, defaults to
+`comint-prompt-regexp.'.  Returns non-nil when output was
+properly captured.
+
+This utility is useful in situations where the output may be
+received in chunks, since `accept-process-output' gives no
+guarantees they will be grabbed in a single call.  An example use
+case for this would be the CPython shell start-up, where the
+banner and the initial prompt are received separetely."
+  (let ((regexp (or regexp comint-prompt-regexp)))
+    (catch 'found
+      (while t
+        (when (not (accept-process-output process timeout))
+          (throw 'found nil))
+        (when (looking-back regexp)
+          (throw 'found t))))))
+
 (defun python-shell-comint-end-of-output-p (output)
   "Return non-nil if OUTPUT is ends with input prompt."
   (string-match
@@ -2380,13 +2401,8 @@ variable.
   (when python-shell-font-lock-enable
     (python-shell-font-lock-turn-on))
   (compilation-shell-minor-mode 1)
-  ;; Ensure all the output is accepted before running any hooks.
-  (accept-process-output (get-buffer-process (current-buffer)))
-  ;; At this point, all process output should have been received, but
-  ;; on GNU/Linux, calling `python-shell-internal-send-string' without
-  ;; a running internal shell fails to grab output properly unless
-  ;; this `sit-for' is in place.
-  (sit-for 0.1 t))
+  (python-shell-accept-process-output
+   (get-buffer-process (current-buffer))))
 
 (defun python-shell-make-comint (cmd proc-name &optional pop internal)
   "Create a Python shell comint buffer.
@@ -2790,8 +2806,8 @@ This function takes the list of setup code to send from the
                 python-shell-setup-codes
                 "\n\n")
                "\n\nprint ('python.el: sent setup code')")))
-    (python-shell-send-string code)
-    (accept-process-output process)))
+    (python-shell-send-string code process)
+    (python-shell-accept-process-output process)))
 
 (add-hook 'inferior-python-mode-hook
           #'python-shell-send-setup-code)

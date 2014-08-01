@@ -1,3 +1,10 @@
+2014-07-31  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	* progmodes/python.el: Shell output capture enhancements.
+	(python-shell-accept-process-output): New function.
+	(inferior-python-mode)
+	(python-shell-send-setup-code): Use it.
+
 2014-07-30  Christophe Deleuze  <christophe.deleuze@free.fr>  (tiny change)
 
 	* calendar/icalendar.el (icalendar--decode-isodatetime): Use
