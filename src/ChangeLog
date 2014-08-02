@@ -1,5 +1,10 @@
 2014-08-02  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Fix bug with clang + directory_files_internal + GC (Bug#16986).
+	* dired.c (directory_files_internal): Use a volatile variable
+	to prevent the compiler from optimizing away all copies of a local.
+	I wonder how many other GC-related bugs like this lurk elsewhere?
+
 	Avoid 100% CPU utilization on ssh session exit (Bug#17691).
 	* xterm.h (struct x_display_info): New member 'connection'.
 	* xterm.c (x_term_init, x_delete_terminal): Set and use it,
