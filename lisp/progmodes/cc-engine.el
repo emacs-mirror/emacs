@@ -4245,16 +4245,18 @@ comment at the start of cc-engine.el for more info."
 	  ;; loops when it hasn't succeeded.
 	  (while
 	      (and
-	       (< (skip-chars-backward skip-chars limit) 0)
+	       (let ((pos (point)))
+		 (while (and
+			 (< (skip-chars-backward skip-chars limit) 0)
+			 ;; Don't stop inside a literal.
+			 (when (setq lit-beg (c-ssb-lit-begin))
+			   (goto-char lit-beg)
+			   t)))
+		 (< (point) pos))
 
 	       (let ((pos (point)) state-2 pps-end-pos)
 
 		 (cond
-		  ;; Don't stop inside a literal
-		  ((setq lit-beg (c-ssb-lit-begin))
-		   (goto-char lit-beg)
-		   t)
-
 		  ((and paren-level
 			(save-excursion
 			  (setq state-2 (parse-partial-sexp

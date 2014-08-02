@@ -1,3 +1,11 @@
+2014-08-02  Alan Mackenzie  <acm@muc.de>
+
+	Correct loop termination condition in c-syntactic-skip-backward.
+	* progmodes/cc-engine.el (c-syntactic-skip-backward): Correct for
+	the situation where, after moving back out of a literal,
+	skip-chars-backward doesn't move further, yet checks have still to
+	be done.
+
 2014-08-01  Eli Zaretskii  <eliz@gnu.org>
 
 	* tutorial.el (tutorial--display-changes): Accept punctuation
