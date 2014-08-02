@@ -1033,7 +1033,10 @@ comment at the start of cc-engine.el for more info."
 			 ;; Just gone back over a brace block?
 			 ((and
 			   (eq (char-after) ?{)
-			   (not (c-looking-at-inexpr-block lim nil t)))
+			   (not (c-looking-at-inexpr-block lim nil t))
+			   (save-excursion
+			     (c-backward-token-2 1 t nil)
+			     (not (looking-at "=\\([^=]\\|$\\)"))))
 			  (save-excursion
 			    (c-forward-sexp) (point)))
 			 ;; Just gone back over some paren block?
@@ -10476,7 +10479,7 @@ comment at the start of cc-engine.el for more info."
 	  (if (eq (point) (c-point 'boi))
 	      (c-add-syntax 'brace-list-close (point))
 	    (setq lim (c-most-enclosing-brace c-state-cache (point)))
-	    (c-beginning-of-statement-1 lim)
+	    (c-beginning-of-statement-1 lim nil nil t)
 	    (c-add-stmt-syntax 'brace-list-close nil t lim paren-state)))
 
 	 (t

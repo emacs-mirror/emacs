@@ -1,5 +1,15 @@
 2014-08-02  Alan Mackenzie  <acm@muc.de>
 
+	Fix confusion in C++ file caused by comma in "= {1,2},".  Bug
+	#17756.
+	* progmodes/cc-engine.el (c-beginning-of-statement-1): In checking
+	for a statement boundary marked by "}", check there's no "="
+	before the "{".
+	(c-guess-basic-syntax CASE 9B): Call c-beginning-of-statement with
+	non-nil `comma-delim' argument.
+	* progmodes/cc-fonts.el (c-font-lock-declarators): Parse an
+	initializer expression more accurately.
+
 	Correct loop termination condition in c-syntactic-skip-backward.
 	* progmodes/cc-engine.el (c-syntactic-skip-backward): Correct for
 	the situation where, after moving back out of a literal,
