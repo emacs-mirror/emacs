@@ -1,3 +1,11 @@
+2014-08-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Avoid 100% CPU utilization on ssh session exit (Bug#17691).
+	* xterm.h (struct x_display_info): New member 'connection'.
+	* xterm.c (x_term_init, x_delete_terminal): Set and use it,
+	so that x_delete_terminal has a file descriptor to pass to
+	delete_keyboard_wait_descriptor.
+
 2014-08-01  Eli Zaretskii  <eliz@gnu.org>
 
 	Fix display of R2L lines when the last character fits only partially.

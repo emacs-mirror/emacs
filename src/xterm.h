@@ -137,6 +137,9 @@ struct x_display_info
   /* This says how to access this display in Xlib.  */
   Display *display;
 
+  /* A connection number (file descriptor) for the display.  */
+  int connection;
+
   /* This is a cons cell of the form (NAME . FONT-LIST-CACHE).  */
   Lisp_Object name_list_element;
 
