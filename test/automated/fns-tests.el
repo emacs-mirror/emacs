@@ -73,7 +73,7 @@
 (ert-deftest fns-tests-compare-strings ()
   (should-error (compare-strings))
   (should-error (compare-strings "xyzzy" "xyzzy"))
-  (should-error (compare-strings "xyzzy" 0 10 "zyxxy" 0 5))
+  (should (= (compare-strings "xyzzy" 0 10 "zyxxy" 0 5) -1))
   (should-error (compare-strings "xyzzy" 0 5 "zyxxy" -1 2))
   (should-error (compare-strings "xyzzy" 'foo nil "zyxxy" 0 1))
   (should-error (compare-strings "xyzzy" 0 'foo "zyxxy" 2 3))

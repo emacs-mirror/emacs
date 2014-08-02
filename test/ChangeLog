@@ -1,5 +1,8 @@
 2014-08-02  Glenn Morris  <rgm@gnu.org>
 
+	* automated/fns-tests.el (fns-tests-compare-strings):
+	Update test.  (Bug#17903)
+
 	* automated/icalendar-tests.el (icalendar--decode-isodatetime):
 	Use more precise TZ specification, as per 2013-08-04.
 
