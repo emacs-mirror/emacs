@@ -1541,6 +1541,7 @@ create_dialog (widget_value *wv,
           gtk_box_set_spacing (wvbox, req.height);
 	  if (item->value && strlen (item->value) > 0)
             button_spacing = 2*req.width/strlen (item->value);
+          if (button_spacing < 10) button_spacing = 10;
         }
       else
         {
@@ -1557,11 +1558,6 @@ create_dialog (widget_value *wv,
             {
               if (make_two_rows)
                 cur_box = GTK_BOX (whbox_down);
-              else
-                gtk_box_pack_start (cur_box,
-                                    gtk_label_new (""),
-                                    TRUE, TRUE,
-                                    button_spacing);
             }
         }
 

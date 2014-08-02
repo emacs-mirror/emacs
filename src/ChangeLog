@@ -1,3 +1,8 @@
+2014-08-02  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (create_dialog): Force min spacing 10 between buttons.
+	Don't add label between left and right buttons (Bug#18129).
+
 2014-08-01  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Make functions static that no longer need to be extern.
