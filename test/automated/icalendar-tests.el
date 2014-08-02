@@ -420,8 +420,8 @@ END:VEVENT
 	result)
     (unwind-protect
 	(progn
-	  ;; Use Eastern European Time (UTC+1, UTC+2 daylight saving)
-	  (setenv "TZ" "EET")
+	  ;; Use Eastern European Time (UTC+2, UTC+3 daylight saving)
+	  (setenv "TZ" "EET-2EEST,M3.5.0/3,M10.5.0/4")
 
           (message "%s" (current-time-zone (encode-time 0 0 10 1 1 2013 0)))
           (message "%s" (current-time-zone (encode-time 0 0 10 1 8 2013 0)))
