@@ -1,3 +1,11 @@
+2014-08-02  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	* progmodes/python.el: Completion code cleanups.
+	(python-shell-completion-get-completions): Detect and send import
+	statements directly to completion function.
+	(python-shell-completion-at-point): Simplify prompt calculation
+	and import vs input completion logic.
+
 2014-08-02  Alan Mackenzie  <acm@muc.de>
 
 	Fix confusion in C++ file caused by comma in "= {1,2},".  Bug

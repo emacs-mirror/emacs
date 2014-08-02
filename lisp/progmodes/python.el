@@ -2872,21 +2872,15 @@ the full statement in the case of imports."
   :type 'string
   :group 'python)
 
-(defun python-shell-completion-get-completions (process line input)
-  "Do completion at point for PROCESS.
-LINE is used to detect the context on how to complete given INPUT."
+(defun python-shell-completion-get-completions (process import input)
+  "Do completion at point using PROCESS for IMPORT or INPUT.
+When IMPORT is non-nil takes precedence over INPUT for
+completion."
   (let* ((prompt
-          ;; Get last prompt of the inferior process buffer (this
-          ;; intentionally avoids using `comint-last-prompt' because
-          ;; of incompatibilities with Emacs 24.x).
           (with-current-buffer (process-buffer process)
-            (save-excursion
+            (let ((prompt-boundaries (python-util-comint-last-prompt)))
               (buffer-substring-no-properties
-               (- (point) (length line))
-               (progn
-                 (re-search-backward "^")
-                 (python-util-forward-comment)
-                 (point))))))
+               (car prompt-boundaries) (cdr prompt-boundaries)))))
          (completion-code
           ;; Check whether a prompt matches a pdb string, an import
           ;; statement or just the standard prompt and use the
@@ -2899,19 +2893,14 @@ LINE is used to detect the context on how to complete given INPUT."
                   python-shell--prompt-calculated-input-regexp prompt)
                  python-shell-completion-string-code)
                 (t nil)))
-         (input
-          (if (string-match
-               (python-rx (+ space) (or "from" "import") space)
-               line)
-              line
-            input)))
+         (subject (or import input)))
     (and completion-code
          (> (length input) 0)
          (with-current-buffer (process-buffer process)
            (let ((completions
                   (python-util-strip-string
                    (python-shell-send-string-no-output
-                    (format completion-code input) process))))
+                    (format completion-code subject) process))))
              (and (> (length completions) 2)
                   (split-string completions
                                 "^'\\|^\"\\|;\\|'$\\|\"$" t)))))))
@@ -2921,14 +2910,20 @@ LINE is used to detect the context on how to complete given INPUT."
 Optional argument PROCESS forces completions to be retrieved
 using that one instead of current buffer's process."
   (setq process (or process (get-buffer-process (current-buffer))))
-  (let* ((start
+  (let* ((last-prompt-end (cdr (python-util-comint-last-prompt)))
+         (import-statement
+          (when (string-match-p
+                 (rx (* space) word-start (or "from" "import") word-end space)
+                 (buffer-substring-no-properties last-prompt-end (point)))
+            (buffer-substring-no-properties last-prompt-end (point))))
+         (start
           (save-excursion
             (if (not (re-search-backward
                       (python-rx
                        (or whitespace open-paren close-paren string-delimiter))
-                      (cdr (python-util-comint-last-prompt))
+                      last-prompt-end
                       t 1))
-                (cdr (python-util-comint-last-prompt))
+                last-prompt-end
               (forward-char (length (match-string-no-properties 0)))
               (point))))
          (end (point)))
@@ -2936,8 +2931,7 @@ using that one instead of current buffer's process."
           (completion-table-dynamic
            (apply-partially
             #'python-shell-completion-get-completions
-            process (buffer-substring-no-properties
-                     (line-beginning-position) end))))))
+            process import-statement)))))
 
 (define-obsolete-function-alias
   'python-shell-completion-complete-at-point
