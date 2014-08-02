@@ -253,6 +253,13 @@ If string STR1 is greater, the value is a positive number N;
   CHECK_STRING (str1);
   CHECK_STRING (str2);
 
+  /* For backward compatibility, silently bring too-large positive end
+     values into range.  */
+  if (INTEGERP (end1) && SCHARS (str1) < XINT (end1))
+    end1 = make_number (SCHARS (str1));
+  if (INTEGERP (end2) && SCHARS (str2) < XINT (end2))
+    end2 = make_number (SCHARS (str2));
+
   validate_subarray (str1, start1, end1, SCHARS (str1), &from1, &to1);
   validate_subarray (str2, start2, end2, SCHARS (str2), &from2, &to2);
 
@@ -1720,7 +1727,7 @@ See also the function `nreverse', which is used more often.  */)
   else if (VECTORP (seq))
     {
       ptrdiff_t i, size = ASIZE (seq);
-      
+
       new = make_uninit_vector (size);
       for (i = 0; i < size; i++)
 	ASET (new, i, AREF (seq, size - i - 1));
@@ -1737,7 +1744,7 @@ See also the function `nreverse', which is used more often.  */)
   else if (STRINGP (seq))
     {
       ptrdiff_t size = SCHARS (seq), bytes = SBYTES (seq);
-      
+
       if (size == bytes)
 	{
 	  ptrdiff_t i;
@@ -1755,7 +1762,7 @@ See also the function `nreverse', which is used more often.  */)
 	  while (q > SDATA (new))
 	    {
 	      int ch, len;
-	      
+
 	      ch = STRING_CHAR_AND_LENGTH (p, len);
 	      p += len, q -= len;
 	      CHAR_STRING (ch, q);

@@ -1,3 +1,8 @@
+2014-08-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Make compare-strings more compatible with old behavior (Bug#17903).
+	* fns.c (Fcompare_strings): Silently bring too-large ends into range.
+
 2014-08-02  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (create_dialog): Force min spacing 10 between buttons.
