@@ -3714,9 +3714,10 @@ AC_SUBST(TERMCAP_OBJ)
 AC_CACHE_CHECK([for timerfd interface], [emacs_cv_have_timerfd],
   [AC_COMPILE_IFELSE(
      [AC_LANG_PROGRAM([[#include <sys/timerfd.h>
-     		      ]],
-		      [[timerfd_create (CLOCK_REALTIME, TFD_CLOEXEC);
- 		        timerfd_settime (0, TFD_TIMER_ABSTIME, 0, 0);]])],
+		      ]],
+		      [[timerfd_create (CLOCK_REALTIME,
+					TFD_CLOEXEC | TFD_NONBLOCK);
+			timerfd_settime (0, TFD_TIMER_ABSTIME, 0, 0);]])],
      [emacs_cv_have_timerfd=yes],
      [emacs_cv_have_timerfd=no])])
 if test "$emacs_cv_have_timerfd" = yes; then

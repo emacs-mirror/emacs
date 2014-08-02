@@ -1,3 +1,8 @@
+2014-08-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure.ac (HAVE_TIMERFD): Also check for TFD_NONBLOCK,
+	since the code is using TFD_NONBLOCK now.
+
 2014-07-31  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Simplify timerfd configuration and fix some minor glitches.
