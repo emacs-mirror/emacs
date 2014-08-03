@@ -1,3 +1,13 @@
+2014-08-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Avoid undefined behavior with signed left shift.
+	Caught by 'gcc -fsanitize=undefined'.
+	* dispextern.h, scroll.c (scrolling_max_lines_saved, scrolling_1):
+	* dispnew.c (line_hash_code, scrolling):
+	* scroll.c (calculate_scrolling, calculate_direct_scrolling):
+	Use 'unsigned', not 'int', for line hashes.
+	(scrolling_max_lines_saved): Avoid mystery constants for hash sizes.
+
 2014-08-02  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Make compare-strings more compatible with old behavior (Bug#17903).

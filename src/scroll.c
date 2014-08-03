@@ -90,7 +90,7 @@ calculate_scrolling (struct frame *frame,
 		     /* matrix is of size window_size + 1 on each side.  */
 		     struct matrix_elt *matrix,
 		     int window_size, int lines_below,
-		     int *draw_cost, int *old_hash, int *new_hash,
+		     int *draw_cost, unsigned *old_hash, unsigned *new_hash,
 		     int free_at_end)
 {
   register int i, j;
@@ -427,7 +427,7 @@ calculate_direct_scrolling (struct frame *frame,
 			    struct matrix_elt *matrix,
 			    int window_size, int lines_below,
 			    int *draw_cost, int *old_draw_cost,
-			    int *old_hash, int *new_hash,
+			    unsigned *old_hash, unsigned *new_hash,
 			    int free_at_end)
 {
   register int i, j;
@@ -794,7 +794,7 @@ do_direct_scrolling (struct frame *frame, struct glyph_matrix *current_matrix,
 void
 scrolling_1 (struct frame *frame, int window_size, int unchanged_at_top,
 	     int unchanged_at_bottom, int *draw_cost, int *old_draw_cost,
-	     int *old_hash, int *new_hash, int free_at_end)
+	     unsigned *old_hash, unsigned *new_hash, int free_at_end)
 {
   struct matrix_elt *matrix
     = alloca ((window_size + 1) * (window_size + 1) * sizeof *matrix);
@@ -829,12 +829,14 @@ scrolling_1 (struct frame *frame, int window_size, int unchanged_at_top,
 
 int
 scrolling_max_lines_saved (int start, int end,
-                           int *oldhash, int *newhash,
+                           unsigned *oldhash, unsigned *newhash,
                            int *cost)
 {
-  struct { int hash; int count; } lines[01000];
-  register int i, h;
-  register int matchcount = 0;
+  enum { LOG2_NLINES = 9 };
+  enum { NLINES = 1 << LOG2_NLINES };
+  struct { unsigned hash; int count; } lines[NLINES];
+  int i, h;
+  int matchcount = 0;
   int avg_length = 0;
   int threshold;
 
@@ -855,7 +857,7 @@ scrolling_max_lines_saved (int start, int end,
     {
       if (cost[i] > threshold)
 	{
-	  h = newhash[i] & 0777;
+	  h = newhash[i] & (NLINES - 1);
 	  lines[h].hash = newhash[i];
 	  lines[h].count++;
 	}
@@ -865,7 +867,7 @@ scrolling_max_lines_saved (int start, int end,
      matches between old lines and new.  */
   for (i = start; i < end; i++)
     {
-      h = oldhash[i] & 0777;
+      h = oldhash[i] & (NLINES - 1);
       if (oldhash[i] == lines[h].hash)
 	{
 	  matchcount++;

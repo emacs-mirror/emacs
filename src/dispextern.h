@@ -3507,13 +3507,13 @@ extern void tty_append_glyph (struct it *);
 
 /* Defined in scroll.c */
 
-extern int scrolling_max_lines_saved (int, int, int *, int *, int *);
+extern int scrolling_max_lines_saved (int, int, unsigned *, unsigned *, int *);
 extern void do_line_insertion_deletion_costs (struct frame *, const char *,
                                               const char *, const char *,
 					      const char *, const char *,
 					      const char *, int);
-void scrolling_1 (struct frame *, int, int, int, int *, int *, int *,
-                  int *, int);
+void scrolling_1 (struct frame *, int, int, int, int *, int *, unsigned *,
+                  unsigned *, int);
 
 /* Defined in frame.c */
 

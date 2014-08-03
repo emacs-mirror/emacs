@@ -1108,10 +1108,10 @@ prepare_desired_row (struct window *w, struct glyph_row *row, bool mode_line_p)
 /* Return a hash code for glyph row ROW, which may
    be from current or desired matrix of frame F.  */
 
-static int
+static unsigned
 line_hash_code (struct frame *f, struct glyph_row *row)
 {
-  int hash = 0;
+  unsigned hash = 0;
 
   if (row->enabled_p)
     {
@@ -4647,8 +4647,8 @@ scrolling (struct frame *frame)
   int unchanged_at_top, unchanged_at_bottom;
   int window_size;
   int changed_lines;
-  int *old_hash = alloca (FRAME_TOTAL_LINES (frame) * sizeof (int));
-  int *new_hash = alloca (FRAME_TOTAL_LINES (frame) * sizeof (int));
+  unsigned *old_hash = alloca (FRAME_TOTAL_LINES (frame) * sizeof (int));
+  unsigned *new_hash = alloca (FRAME_TOTAL_LINES (frame) * sizeof (int));
   int *draw_cost = alloca (FRAME_TOTAL_LINES (frame) * sizeof (int));
   int *old_draw_cost = alloca (FRAME_TOTAL_LINES (frame) * sizeof (int));
   register int i;
