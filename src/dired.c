@@ -150,6 +150,12 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full,
   Lisp_Object w32_save = Qnil;
 #endif
 
+  /* Don't let the compiler optimize away all copies of DIRECTORY,
+     which would break GC; see Bug#16986.  Although this is required
+     only in the common case where GC_MARK_STACK == GC_MAKE_GCPROS_NOOPS,
+     it shouldn't break anything in the other cases.  */
+  Lisp_Object volatile directory_volatile = directory;
+
   /* Because of file name handlers, these functions might call
      Ffuncall, and cause a GC.  */
   list = encoded_directory = dirfilename = Qnil;
@@ -325,6 +331,7 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full,
     list = Fsort (Fnreverse (list),
 		  attrs ? Qfile_attributes_lessp : Qstring_lessp);
 
+  (void) directory_volatile;
   RETURN_UNGCPRO (list);
 }
 

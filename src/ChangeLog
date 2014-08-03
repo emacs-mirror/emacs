@@ -1,5 +1,16 @@
 2014-08-03  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Fix bug with clang + directory_files_internal + GC (Bug#16986).
+	* dired.c (directory_files_internal): Use a volatile variable
+	to prevent the compiler from optimizing away all copies of a local.
+	I wonder how many other GC-related bugs like this lurk elsewhere?
+
+	Avoid 100% CPU utilization on ssh session exit (Bug#17691).
+	* xterm.h (struct x_display_info): New member 'connection'.
+	* xterm.c (x_term_init, x_delete_terminal): Set and use it,
+	so that x_delete_terminal has a file descriptor to pass to
+	delete_keyboard_wait_descriptor.
+
 	Don't mishandle year-9999 dates (Bug#18176).
 	* editfns.c (decode_time_components): Store an invalid timespec
 	on overflow, instead of returning false, so that the caller can
