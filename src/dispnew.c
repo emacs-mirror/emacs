@@ -2684,7 +2684,8 @@ mirrored_line_dance (struct glyph_matrix *matrix, int unchanged_at_top, int nlin
   int i;
 
   /* Make a copy of the original rows.  */
-  old_rows = alloca (nlines * sizeof *old_rows);
+  USE_SAFE_ALLOCA;
+  SAFE_NALLOCA (old_rows, 1, nlines);
   memcpy (old_rows, new_rows, nlines * sizeof *old_rows);
 
   /* Assign new rows, maybe clear lines.  */
@@ -2706,6 +2707,8 @@ mirrored_line_dance (struct glyph_matrix *matrix, int unchanged_at_top, int nlin
   if (frame_matrix_frame)
     mirror_line_dance (XWINDOW (frame_matrix_frame->root_window),
 		       unchanged_at_top, nlines, copy_from, retained_p);
+
+  SAFE_FREE ();
 }
 
 
@@ -2798,7 +2801,8 @@ mirror_line_dance (struct window *w, int unchanged_at_top, int nlines, int *copy
 	  struct glyph_row *old_rows;
 
 	  /* Make a copy of the original rows of matrix m.  */
-	  old_rows = alloca (m->nrows * sizeof *old_rows);
+	  USE_SAFE_ALLOCA;
+	  SAFE_NALLOCA (old_rows, 1, m->nrows);
 	  memcpy (old_rows, m->rows, m->nrows * sizeof *old_rows);
 
 	  for (i = 0; i < nlines; ++i)
@@ -2874,6 +2878,8 @@ mirror_line_dance (struct window *w, int unchanged_at_top, int nlines, int *copy
 
 	  /* Check that no pointers are lost.  */
 	  CHECK_MATRIX (m);
+
+	  SAFE_FREE ();
 	}
 
       /* Next window on same level.  */
@@ -4647,14 +4653,19 @@ scrolling (struct frame *frame)
   int unchanged_at_top, unchanged_at_bottom;
   int window_size;
   int changed_lines;
-  unsigned *old_hash = alloca (FRAME_TOTAL_LINES (frame) * sizeof (int));
-  unsigned *new_hash = alloca (FRAME_TOTAL_LINES (frame) * sizeof (int));
-  int *draw_cost = alloca (FRAME_TOTAL_LINES (frame) * sizeof (int));
-  int *old_draw_cost = alloca (FRAME_TOTAL_LINES (frame) * sizeof (int));
-  register int i;
-  int free_at_end_vpos = FRAME_TOTAL_LINES (frame);
+  int i;
+  int height = FRAME_TOTAL_LINES (frame);
+  int free_at_end_vpos = height;
   struct glyph_matrix *current_matrix = frame->current_matrix;
   struct glyph_matrix *desired_matrix = frame->desired_matrix;
+  verify (sizeof (int) <= sizeof (unsigned));
+  verify (alignof (unsigned) % alignof (int) == 0);
+  unsigned *old_hash;
+  USE_SAFE_ALLOCA;
+  SAFE_NALLOCA (old_hash, 4, height);
+  unsigned *new_hash = old_hash + height;
+  int *draw_cost = (int *) (new_hash + height);
+  int *old_draw_cost = draw_cost + height;
 
   eassert (current_matrix);
 
@@ -4663,12 +4674,15 @@ scrolling (struct frame *frame)
      number of unchanged lines at the end.  */
   changed_lines = 0;
   unchanged_at_top = 0;
-  unchanged_at_bottom = FRAME_TOTAL_LINES (frame);
-  for (i = 0; i < FRAME_TOTAL_LINES (frame); i++)
+  unchanged_at_bottom = height;
+  for (i = 0; i < height; i++)
     {
       /* Give up on this scrolling if some old lines are not enabled.  */
       if (!MATRIX_ROW_ENABLED_P (current_matrix, i))
-	return 0;
+	{
+	  SAFE_FREE ();
+	  return false;
+	}
       old_hash[i] = line_hash_code (frame, MATRIX_ROW (current_matrix, i));
       if (! MATRIX_ROW_ENABLED_P (desired_matrix, i))
 	{
@@ -4686,7 +4700,7 @@ scrolling (struct frame *frame)
       if (old_hash[i] != new_hash[i])
 	{
 	  changed_lines++;
-	  unchanged_at_bottom = FRAME_TOTAL_LINES (frame) - i - 1;
+	  unchanged_at_bottom = height - i - 1;
 	}
       else if (i == unchanged_at_top)
 	unchanged_at_top++;
@@ -4696,10 +4710,13 @@ scrolling (struct frame *frame)
   /* If changed lines are few, don't allow preemption, don't scroll.  */
   if ((!FRAME_SCROLL_REGION_OK (frame)
        && changed_lines < baud_rate / 2400)
-      || unchanged_at_bottom == FRAME_TOTAL_LINES (frame))
-    return 1;
+      || unchanged_at_bottom == height)
+    {
+      SAFE_FREE ();
+      return true;
+    }
 
-  window_size = (FRAME_TOTAL_LINES (frame) - unchanged_at_top
+  window_size = (height - unchanged_at_top
 		 - unchanged_at_bottom);
 
   if (FRAME_SCROLL_REGION_OK (frame))
@@ -4707,27 +4724,25 @@ scrolling (struct frame *frame)
   else if (FRAME_MEMORY_BELOW_FRAME (frame))
     free_at_end_vpos = -1;
 
-  /* If large window, fast terminal and few lines in common between
-     current frame and desired frame, don't bother with i/d calc.  */
-  if (!FRAME_SCROLL_REGION_OK (frame)
-      && window_size >= 18 && baud_rate > 2400
-      && (window_size >=
-	  10 * scrolling_max_lines_saved (unchanged_at_top,
-					  FRAME_TOTAL_LINES (frame) - unchanged_at_bottom,
-					  old_hash, new_hash, draw_cost)))
-    return 0;
+  /* Do id/calc only if small window, or slow terminal, or many lines
+     in common between current frame and desired frame.  But the
+     window size must be at least 2.  */
+  if ((FRAME_SCROLL_REGION_OK (frame)
+       || window_size < 18 || baud_rate <= 2400
+       || (window_size
+	   < 10 * scrolling_max_lines_saved (unchanged_at_top,
+					     height - unchanged_at_bottom,
+					     old_hash, new_hash, draw_cost)))
+      && 2 <= window_size)
+    scrolling_1 (frame, window_size, unchanged_at_top, unchanged_at_bottom,
+		 draw_cost + unchanged_at_top - 1,
+		 old_draw_cost + unchanged_at_top - 1,
+		 old_hash + unchanged_at_top - 1,
+		 new_hash + unchanged_at_top - 1,
+		 free_at_end_vpos - unchanged_at_top);
 
-  if (window_size < 2)
-    return 0;
-
-  scrolling_1 (frame, window_size, unchanged_at_top, unchanged_at_bottom,
-	       draw_cost + unchanged_at_top - 1,
-	       old_draw_cost + unchanged_at_top - 1,
-	       old_hash + unchanged_at_top - 1,
-	       new_hash + unchanged_at_top - 1,
-	       free_at_end_vpos - unchanged_at_top);
-
-  return 0;
+  SAFE_FREE ();
+  return false;
 }
 
 

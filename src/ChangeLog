@@ -1,5 +1,9 @@
 2014-08-03  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Don't let big frames overrun the stack.
+	* dispnew.c (mirrored_line_dance, mirror_line_dance, scrolling):
+	Use SAFE_NALLOCA, not alloca.
+
 	Fix bug with clang + directory_files_internal + GC (Bug#16986).
 	* dired.c (directory_files_internal): Use a volatile variable
 	to prevent the compiler from optimizing away all copies of a local.
