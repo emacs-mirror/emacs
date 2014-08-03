@@ -1,3 +1,11 @@
+2014-08-03  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Fix bug with an attempt to select uninitialized frame (Bug#18161).
+	* xfns.c (Fx_create_frame): Move call to change_frame_size to
+	a section where Lisp evaluation is disabled.  This way a pointer
+	to uninitialized frame is not accessible from Lisp, which becomes
+	critical if following call to x_figure_window_size throws an error.
+
 2014-08-02  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix bug with clang + directory_files_internal + GC (Bug#16986).
