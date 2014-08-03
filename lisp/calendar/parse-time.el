@@ -131,7 +131,7 @@
   `(((6) parse-time-weekdays)
     ((3) (1 31))
     ((4) parse-time-months)
-    ((5) (100 4038))
+    ((5) (100 ,most-positive-fixnum))
     ((2 1 0)
      ,#'(lambda () (and (stringp parse-time-elt)
 			(= (length parse-time-elt) 8)

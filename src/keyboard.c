@@ -4370,8 +4370,9 @@ decode_timer (Lisp_Object timer, struct timespec *result)
   if (! NILP (vector[0]))
     return 0;
 
-  return decode_time_components (vector[1], vector[2], vector[3], vector[8],
-				 result, 0);
+  return (decode_time_components (vector[1], vector[2], vector[3], vector[8],
+				  result, 0)
+	  && timespec_valid_p (*result));
 }
 
 

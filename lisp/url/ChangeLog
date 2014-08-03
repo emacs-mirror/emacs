@@ -1,3 +1,9 @@
+2014-08-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Don't mishandle dates in the year 9999 (Bug#18176).
+	* url-cookie.el (url-cookie-expired-p): Treat out-of-range
+	expiration dates as if they were far in the future.
+
 2014-06-26  Leo Liu  <sdl.web@gmail.com>
 
 	* url-http.el (url-http-end-of-headers): Remove duplicate defvar.

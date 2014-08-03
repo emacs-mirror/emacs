@@ -1,5 +1,14 @@
 2014-08-03  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Don't mishandle year-9999 dates (Bug#18176).
+	* editfns.c (decode_time_components): Store an invalid timespec
+	on overflow, instead of returning false, so that the caller can
+	distinguish overflow from other errors.
+	(lisp_time_argument, lisp_seconds_argument): If the time is out
+	of range, signal a time overflow instead of an invalid time spec.
+	* keyboard.c (decode_timer): Treat time overflow like other
+	timespec errors.
+
 	Avoid undefined behavior with signed left shift.
 	Caught by 'gcc -fsanitize=undefined'.
 	* dispextern.h, scroll.c (scrolling_max_lines_saved, scrolling_1):

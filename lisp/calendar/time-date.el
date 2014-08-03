@@ -119,13 +119,20 @@ it is assumed that PICO was omitted and should be treated as zero."
 (defun date-to-time (date)
   "Parse a string DATE that represents a date-time and return a time value.
 If DATE lacks timezone information, GMT is assumed."
-  (condition-case ()
+  (condition-case err
       (apply 'encode-time (parse-time-string date))
-    (error (condition-case ()
-	       (apply 'encode-time
-		      (parse-time-string
-		       (timezone-make-date-arpa-standard date)))
-	     (error (error "Invalid date: %s" date))))))
+    (error
+     (let ((overflow-error '(error "Specified time is not representable")))
+       (if (equal err overflow-error)
+	   (apply 'signal err)
+	 (condition-case err
+	     (apply 'encode-time
+		    (parse-time-string
+		     (timezone-make-date-arpa-standard date)))
+	   (error
+	    (if (equal err overflow-error)
+		(apply 'signal err)
+	      (error "Invalid date: %s" date)))))))))
 
 ;; Bit of a mess.  Emacs has float-time since at least 21.1.
 ;; This file is synced to Gnus, and XEmacs packages may have been written

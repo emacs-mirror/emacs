@@ -1516,7 +1516,8 @@ disassemble_lisp_time (Lisp_Object specified_time, Lisp_Object *phigh,
    list, generate the corresponding time value.
 
    If RESULT is not null, store into *RESULT the converted time;
-   this can fail if the converted time does not fit into struct timespec.
+   if the converted time does not fit into struct timespec,
+   store an invalid timespec to indicate the overflow.
    If *DRESULT is not null, store into *DRESULT the number of
    seconds since the start of the POSIX Epoch.
 
@@ -1529,7 +1530,7 @@ decode_time_components (Lisp_Object high, Lisp_Object low, Lisp_Object usec,
   EMACS_INT hi, lo, us, ps;
   if (! (INTEGERP (high) && INTEGERP (low)
 	 && INTEGERP (usec) && INTEGERP (psec)))
-    return 0;
+    return false;
   hi = XINT (high);
   lo = XINT (low);
   us = XINT (usec);
@@ -1555,16 +1556,13 @@ decode_time_components (Lisp_Object high, Lisp_Object low, Lisp_Object usec,
 	  *result = make_timespec ((sec << 16) + lo, us * 1000 + ps / 1000);
 	}
       else
-	{
-	  /* Overflow in the highest-order component.  */
-	  return 0;
-	}
+	*result = invalid_timespec ();
     }
 
   if (dresult)
     *dresult = (us * 1e6 + ps) / 1e12 + lo + hi * 65536.0;
 
-  return 1;
+  return true;
 }
 
 /* Decode a Lisp list SPECIFIED_TIME that represents a time.
@@ -1576,22 +1574,23 @@ decode_time_components (Lisp_Object high, Lisp_Object low, Lisp_Object usec,
 struct timespec
 lisp_time_argument (Lisp_Object specified_time)
 {
-  struct timespec t;
   if (NILP (specified_time))
-    t = current_timespec ();
+    return current_timespec ();
   else
     {
       Lisp_Object high, low, usec, psec;
+      struct timespec t;
       if (! (disassemble_lisp_time (specified_time, &high, &low, &usec, &psec)
 	     && decode_time_components (high, low, usec, psec, &t, 0)))
 	error ("Invalid time specification");
+      if (! timespec_valid_p (t))
+	time_overflow ();
+      return t;
     }
-  return t;
 }
 
 /* Like lisp_time_argument, except decode only the seconds part,
-   do not allow out-of-range time stamps, do not check the subseconds part,
-   and always round down.  */
+   and do not check the subseconds part.  */
 static time_t
 lisp_seconds_argument (Lisp_Object specified_time)
 {
@@ -1605,6 +1604,8 @@ lisp_seconds_argument (Lisp_Object specified_time)
 	     && decode_time_components (high, low, make_number (0),
 					make_number (0), &t, 0)))
 	error ("Invalid time specification");
+      if (! timespec_valid_p (t))
+	time_overflow ();
       return t.tv_sec;
     }
 }

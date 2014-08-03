@@ -1,3 +1,11 @@
+2014-08-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Don't mishandle year-9999 dates (Bug#18176).
+	* calendar/parse-time.el (parse-time-rules):
+	Allow years up to most-positive-fixnum.
+	* calendar/time-date.el (date-to-time):
+	Pass "Specified time is not representable" errors through.
+
 2014-08-02  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
 	* progmodes/python.el: Completion code cleanups.
