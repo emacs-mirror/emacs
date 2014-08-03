@@ -118,4 +118,8 @@ check: compile-main
 	echo Testing $$els; \
 	$(emacs) $$args -f ert-run-tests-batch-and-exit
 
+## This is for hydra, so we can use the same recipe on trunk and emacs-24.
+.PHONY: check-tar
+check-tar: check
+
 # Makefile ends here.

@@ -1,3 +1,7 @@
+2014-08-03  Glenn Morris  <rgm@gnu.org>
+
+	* automated/Makefile.in (check-tar): Add as alias for check.
+
 2014-07-20  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
 	* automated/python-tests.el:
