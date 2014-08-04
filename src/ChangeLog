@@ -1,3 +1,10 @@
+2014-08-04 Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* keyboard.c (safe_run_hook_funcall): Avoid consing around
+	Vinhibit_quit and prefer internal_condition_case_n to pass args.
+	(safe_run_hooks_error, safe_run_hooks_1): Adjust accordingly.
+	(safe_run_hooks): Remove comment which is not relevant any more.
+
 2014-08-03  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Don't let big frames overrun the stack.
