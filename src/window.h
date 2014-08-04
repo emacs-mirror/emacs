@@ -787,7 +787,9 @@ wset_next_buffers (struct window *w, Lisp_Object val)
 
 /* Say whether horizontal scroll bars are currently enabled for window
    W.  Horizontal scrollbars exist for toolkit versions only.  */
-#if defined (USE_X_TOOLKIT) || defined (USE_GTK) || defined (HAVE_NTGUI)
+#if (defined (HAVE_WINDOW_SYSTEM)					\
+     && ((defined (USE_TOOLKIT_SCROLL_BARS) && !defined (HAVE_NS))	\
+	 || defined (HAVE_NTGUI)))
 #define WINDOW_HAS_HORIZONTAL_SCROLL_BAR(W)			\
   ((WINDOW_PSEUDO_P (W) || MINI_NON_ONLY_WINDOW_P (W))		\
    ? false							\

@@ -1,3 +1,21 @@
+2014-08-04  Martin Rudalics  <rudalics@gmx.at>
+
+	* frame.h (FRAME_HAS_HORIZONTAL_SCROLL_BARS): Condition
+	correctly according to toolkit used.
+	* frame.c (make_initial_frame, make_terminal_frame)
+	(x_set_horizontal_scroll_bars, x_set_scroll_bar_height)
+	(Vdefault_frame_horizontal_scroll_bars): Correctly condition
+	assignments according to presence of toolkit scrollbars.
+	* window.h (WINDOW_HAS_HORIZONTAL_SCROLL_BAR): Condition
+	correctly according to toolkit used.
+	* window.c (set_window_scroll_bars): Set horizontal scroll bar
+	only if toolkit supports it.
+	* w32term.c (w32_redeem_scroll_bar): Always redeem scroll bar if
+	present.
+	* xterm.c (x_scroll_bar_create): Initialize horizontal slot for
+	non-toolkit builds.
+	(XTredeem_scroll_bar): Always redeem scroll bar if present.
+
 2014-08-04 Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* keyboard.c (safe_run_hook_funcall): Avoid consing around

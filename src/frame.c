@@ -860,7 +860,7 @@ make_initial_frame (void)
 
 #ifdef HAVE_WINDOW_SYSTEM
   f->vertical_scroll_bar_type = vertical_scroll_bar_none;
-  FRAME_HAS_HORIZONTAL_SCROLL_BARS (f) = false;
+  f->horizontal_scroll_bars = false;
 #endif
 
   /* The default value of menu-bar-mode is t.  */
@@ -913,7 +913,7 @@ make_terminal_frame (struct terminal *terminal)
 
 #ifdef HAVE_WINDOW_SYSTEM
   f->vertical_scroll_bar_type = vertical_scroll_bar_none;
-  FRAME_HAS_HORIZONTAL_SCROLL_BARS (f) = false;
+  f->horizontal_scroll_bars = false;
 #endif
 
   FRAME_MENU_BAR_LINES (f) = NILP (Vmenu_bar_mode) ? 0 : 1;
@@ -3793,12 +3793,13 @@ x_set_vertical_scroll_bars (struct frame *f, Lisp_Object arg, Lisp_Object oldval
 void
 x_set_horizontal_scroll_bars (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
-#if defined (USE_X_TOOLKIT) || defined (USE_GTK) || defined (HAVE_NTGUI)
+#if (defined (HAVE_WINDOW_SYSTEM)					\
+     && ((defined (USE_TOOLKIT_SCROLL_BARS) && !defined (HAVE_NS))	\
+	 || defined (HAVE_NTGUI)))
   if ((NILP (arg) && FRAME_HAS_HORIZONTAL_SCROLL_BARS (f))
       || (!NILP (arg) && !FRAME_HAS_HORIZONTAL_SCROLL_BARS (f)))
     {
-      FRAME_HAS_HORIZONTAL_SCROLL_BARS (f)
-	= NILP (arg) ? false : true;
+      f->horizontal_scroll_bars = NILP (arg) ? false : true;
 
       /* We set this parameter before creating the X window for the
 	 frame, so we can get the geometry right from the start.
@@ -3844,7 +3845,9 @@ x_set_scroll_bar_width (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 void
 x_set_scroll_bar_height (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
-#if defined (USE_X_TOOLKIT) || defined (USE_GTK) || defined (HAVE_NTGUI)
+#if (defined (HAVE_WINDOW_SYSTEM)					\
+     && ((defined (USE_TOOLKIT_SCROLL_BARS) && !defined (HAVE_NS))	\
+	 || defined (HAVE_NTGUI)))
   int unit = FRAME_LINE_HEIGHT (f);
 
   if (NILP (arg))
@@ -4891,7 +4894,9 @@ Setting this variable does not affect existing frames, only new ones.  */);
 
   DEFVAR_LISP ("default-frame-horizontal-scroll-bars", Vdefault_frame_horizontal_scroll_bars,
 	       doc: /* Default value for horizontal scroll bars on this window-system.  */);
-#ifdef HAVE_WINDOW_SYSTEM
+#if (defined (HAVE_WINDOW_SYSTEM)					\
+     && ((defined (USE_TOOLKIT_SCROLL_BARS) && !defined (HAVE_NS))	\
+	 || defined (HAVE_NTGUI)))
   Vdefault_frame_horizontal_scroll_bars = Qt;
 #else
   Vdefault_frame_horizontal_scroll_bars = Qnil;

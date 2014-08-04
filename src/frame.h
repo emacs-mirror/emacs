@@ -852,8 +852,6 @@ default_pixels_per_inch_y (void)
 #define FRAME_VERTICAL_SCROLL_BAR_TYPE(f) ((f)->vertical_scroll_bar_type)
 #define FRAME_HAS_VERTICAL_SCROLL_BARS(f) \
   ((f)->vertical_scroll_bar_type != vertical_scroll_bar_none)
-#define FRAME_HAS_HORIZONTAL_SCROLL_BARS(f) \
-  ((f)->horizontal_scroll_bars)
 #define FRAME_HAS_VERTICAL_SCROLL_BARS_ON_LEFT(f) \
   ((f)->vertical_scroll_bar_type == vertical_scroll_bar_left)
 #define FRAME_HAS_VERTICAL_SCROLL_BARS_ON_RIGHT(f) \
@@ -866,9 +864,18 @@ default_pixels_per_inch_y (void)
 #define FRAME_HAS_VERTICAL_SCROLL_BARS(f) ((void) f, 0)
 #define FRAME_HAS_VERTICAL_SCROLL_BARS_ON_LEFT(f) ((void) f, 0)
 #define FRAME_HAS_VERTICAL_SCROLL_BARS_ON_RIGHT(f) ((void) f, 0)
-#define FRAME_HAS_HORIZONTAL_SCROLL_BARS(f) ((void) f, 0)
 
 #endif /* HAVE_WINDOW_SYSTEM */
+
+/* Whether horizontal scroll bars are currently enabled for frame F.  */
+#if (defined (HAVE_WINDOW_SYSTEM)					\
+     && ((defined (USE_TOOLKIT_SCROLL_BARS) && !defined (HAVE_NS))	\
+	 || defined (HAVE_NTGUI)))
+#define FRAME_HAS_HORIZONTAL_SCROLL_BARS(f) \
+  ((f)->horizontal_scroll_bars)
+#else
+#define FRAME_HAS_HORIZONTAL_SCROLL_BARS(f) ((void) f, 0)
+#endif
 
 /* Width that a scroll bar in frame F should have, if there is one.
    Measured in pixels.

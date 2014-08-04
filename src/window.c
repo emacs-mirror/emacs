@@ -7299,7 +7299,6 @@ set_window_scroll_bars (struct window *w, Lisp_Object width,
 			Lisp_Object horizontal_type)
 {
   int iwidth = (NILP (width) ? -1 : (CHECK_NATNUM (width), XINT (width)));
-  int iheight = (NILP (height) ? -1 : (CHECK_NATNUM (height), XINT (height)));
   bool changed = 0;
 
   if (iwidth == 0)
@@ -7327,29 +7326,39 @@ set_window_scroll_bars (struct window *w, Lisp_Object width,
 	}
     }
 
-  if (MINI_WINDOW_P (w) || iheight == 0)
-    horizontal_type = Qnil;
+#if (defined (HAVE_WINDOW_SYSTEM)					\
+     && ((defined (USE_TOOLKIT_SCROLL_BARS) && !defined (HAVE_NS))	\
+	 || defined (HAVE_NTGUI)))
+  {
+    int iheight = (NILP (height) ? -1 : (CHECK_NATNUM (height), XINT (height)));
 
-  if (!(NILP (horizontal_type)
-	|| EQ (horizontal_type, Qbottom)
-	|| EQ (horizontal_type, Qt)))
-    error ("Invalid type of horizontal scroll bar");
+    if (MINI_WINDOW_P (w) || iheight == 0)
+      horizontal_type = Qnil;
 
-  if (w->scroll_bar_height != iheight
-      || !EQ (w->horizontal_scroll_bar_type, horizontal_type))
-    {
-      /* Don't change anything if new scroll bar won't fit.  */
-      if ((WINDOW_PIXEL_HEIGHT (w)
-	   - WINDOW_HEADER_LINE_HEIGHT (w)
-	   - WINDOW_MODE_LINE_HEIGHT (w)
-	   - max (iheight, 0))
-	  >= MIN_SAFE_WINDOW_PIXEL_HEIGHT (w))
-	{
-	  w->scroll_bar_height = iheight;
-	  wset_horizontal_scroll_bar_type (w, horizontal_type);
-	  changed = 1;
-	}
-    }
+    if (!(NILP (horizontal_type)
+	  || EQ (horizontal_type, Qbottom)
+	  || EQ (horizontal_type, Qt)))
+      error ("Invalid type of horizontal scroll bar");
+
+    if (w->scroll_bar_height != iheight
+	|| !EQ (w->horizontal_scroll_bar_type, horizontal_type))
+      {
+	/* Don't change anything if new scroll bar won't fit.  */
+	if ((WINDOW_PIXEL_HEIGHT (w)
+	     - WINDOW_HEADER_LINE_HEIGHT (w)
+	     - WINDOW_MODE_LINE_HEIGHT (w)
+	     - max (iheight, 0))
+	    >= MIN_SAFE_WINDOW_PIXEL_HEIGHT (w))
+	  {
+	    w->scroll_bar_height = iheight;
+	    wset_horizontal_scroll_bar_type (w, horizontal_type);
+	    changed = 1;
+	  }
+      }
+  }
+#else
+  wset_horizontal_scroll_bar_type (w, Qnil);
+#endif
 
   return changed ? w : NULL;
 }

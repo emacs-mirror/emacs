@@ -5474,6 +5474,7 @@ x_scroll_bar_create (struct window *w, int top, int left, int width, int height,
   bar->start = 0;
   bar->end = 0;
   bar->dragging = -1;
+  bar->horizontal = horizontal;
 #if defined (USE_TOOLKIT_SCROLL_BARS) && defined (USE_LUCID)
   bar->last_seen_part = scroll_bar_nowhere;
 #endif
@@ -5947,7 +5948,7 @@ XTredeem_scroll_bar (struct window *w)
   if (NILP (w->vertical_scroll_bar) && NILP (w->horizontal_scroll_bar))
     emacs_abort ();
 
-  if (!NILP (w->vertical_scroll_bar) && WINDOW_HAS_VERTICAL_SCROLL_BAR (w))
+  if (!NILP (w->vertical_scroll_bar))
     {
       bar = XSCROLL_BAR (w->vertical_scroll_bar);
       /* Unlink it from the condemned list.  */
@@ -5982,7 +5983,7 @@ XTredeem_scroll_bar (struct window *w)
     }
 
  horizontal:
-  if (!NILP (w->horizontal_scroll_bar) && WINDOW_HAS_HORIZONTAL_SCROLL_BAR (w))
+  if (!NILP (w->horizontal_scroll_bar))
     {
       bar = XSCROLL_BAR (w->horizontal_scroll_bar);
       /* Unlink it from the condemned list.  */
