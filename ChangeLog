@@ -1,3 +1,10 @@
+2014-08-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	2014-08-04 extern-inline: port to FreeBSD, DragonFly
+	* lib/gnulib.mk: Regenerate (comment change only).
+	* m4/extern-inline.m4: Update from gnulib.
+
 2014-08-02  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* configure.ac (HAVE_TIMERFD): Also check for TFD_NONBLOCK,
