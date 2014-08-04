@@ -1,3 +1,9 @@
+2014-08-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* rect.el (rectangle--default-line-number-format): Rename
+	from misspelled rectange--default-line-number-format (Bug#18045).
+	All uses changed.
+
 2014-08-03  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Don't mishandle year-9999 dates (Bug#18176).

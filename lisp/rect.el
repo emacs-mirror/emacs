@@ -520,7 +520,7 @@ rectangle which were empty."
   (setq rectangle-number-line-counter
 	(1+ rectangle-number-line-counter)))
 
-(defun rectange--default-line-number-format (start end start-at)
+(defun rectangle--default-line-number-format (start end start-at)
   (concat "%"
 	  (int-to-string (length (int-to-string (+ (count-lines start end)
 						   start-at))))
@@ -541,11 +541,11 @@ with a prefix argument, prompt for START-AT and FORMAT."
 	      (start-at (read-number "Number to count from: " 1)))
 	 (list start end start-at
 	       (read-string "Format string: "
-			    (rectange--default-line-number-format
+			    (rectangle--default-line-number-format
 			     start end start-at))))
      (list (region-beginning) (region-end) 1 nil)))
   (unless format
-    (setq format (rectange--default-line-number-format start end start-at)))
+    (setq format (rectangle--default-line-number-format start end start-at)))
   (let ((rectangle-number-line-counter start-at))
     (apply-on-rectangle 'rectangle-number-line-callback
 			start end format)))
