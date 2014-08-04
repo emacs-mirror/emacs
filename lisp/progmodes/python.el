@@ -2866,11 +2866,11 @@ the full statement in the case of imports."
   "24.4"
   "Completion string code must also autocomplete modules.")
 
-(defcustom python-shell-completion-pdb-string-code
-  "';'.join(globals().keys() + locals().keys())"
-  "Python code used to get completions separated by semicolons for [i]pdb."
-  :type 'string
-  :group 'python)
+(define-obsolete-variable-alias
+  'python-shell-completion-pdb-string-code
+  'python-shell-completion-string-code
+  "24.5"
+  "Completion string code must work for (i)pdb.")
 
 (defun python-shell-completion-get-completions (process import input)
   "Do completion at point using PROCESS for IMPORT or INPUT.
@@ -2885,10 +2885,14 @@ completion."
           ;; Check whether a prompt matches a pdb string, an import
           ;; statement or just the standard prompt and use the
           ;; correct python-shell-completion-*-code string
-          (cond ((and (> (length python-shell-completion-pdb-string-code) 0)
-                      (string-match
+          (cond ((and (string-match
                        (concat "^" python-shell-prompt-pdb-regexp) prompt))
-                 python-shell-completion-pdb-string-code)
+                 ;; Since there are no guarantees the user will remain
+                 ;; in the same context where completion code was sent
+                 ;; (e.g. user steps into a function), safeguard
+                 ;; resending completion setup continuously.
+                 (concat python-shell-completion-setup-code
+                         "\nprint (" python-shell-completion-string-code ")"))
                 ((string-match
                   python-shell--prompt-calculated-input-regexp prompt)
                  python-shell-completion-string-code)

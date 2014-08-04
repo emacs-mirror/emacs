@@ -1,3 +1,11 @@
+2014-08-04  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	* progmodes/python.el: Fix completions inside (i)pdb.
+	(python-shell-completion-pdb-string-code): Make obsolete.
+	(python-shell-completion-get-completions): Use
+	python-shell-completion-string-code resending setup code
+	continuously for (i)pdb.
+
 2014-08-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* rect.el (rectangle--default-line-number-format): Rename
