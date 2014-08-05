@@ -1,3 +1,9 @@
+2014-08-05  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Fix bug with uninitialized undo list of an indirect buffer (Bug#18180).
+	* buffer.c (Fmake_indirect_buffer): Initialize undo list with the
+	base buffer's undo list.
+
 2014-08-03  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Fix bug with an attempt to select uninitialized frame (Bug#18161).
