@@ -1,3 +1,7 @@
+2014-08-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/shr.el (shr-copy-url): Also copy the image URL.
+
 2014-08-05  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-cache.el (tramp-flush-file-function): Suppress function
