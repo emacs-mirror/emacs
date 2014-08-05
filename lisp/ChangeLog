@@ -1,3 +1,12 @@
+2014-08-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* simple.el (default-line-height): A floating-point value of
+	line-spacing means a fraction of the default frame font's height,
+	not of the font currently used by the 'default' face.  Truncate
+	the pixel value, like the display engine does.
+	(window-screen-lines): Use window-inside-pixel-edges for
+	determining the window height in pixels.  (Bug#18195)
+
 2014-07-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* tutorial.el (tutorial--display-changes): Accept punctuation
