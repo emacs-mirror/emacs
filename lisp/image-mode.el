@@ -638,8 +638,14 @@ was inserted."
 			   (string-make-unibyte
 			    (buffer-substring-no-properties (point-min) (point-max)))
 			 filename))
-	 (type (image-type file-or-data nil data-p))
-	 (image (create-image file-or-data type data-p))
+	 (edges (window-inside-pixel-edges
+		 (get-buffer-window (current-buffer))))
+	 (type (if (fboundp 'imagemagick-types)
+		   'imagemagick
+		 (image-type file-or-data nil data-p)))
+	 (image (create-image file-or-data type data-p
+			      :max-width (- (nth 2 edges) (nth 0 edges))
+			      :max-height (- (nth 3 edges) (nth 1 edges))))
 	 (inhibit-read-only t)
 	 (buffer-undo-list t)
 	 (modified (buffer-modified-p))
