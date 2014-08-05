@@ -1,3 +1,9 @@
+2014-08-05  Eric Brown  <brown@fastmail.fm>  (tiny change)
+
+	* net/eww.el (eww-bookmarks-directory): New variable.
+	(eww-write-bookmarks): Use it.
+	(eww-read-bookmarks): Ditto.
+
 2014-08-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* net/shr.el (shr-copy-url): Also copy the image URL.
