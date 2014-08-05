@@ -1,3 +1,9 @@
+2014-08-05  Martin Rudalics  <rudalics@gmx.at>
+
+	* w32term.c (w32_redeem_scroll_bar):
+	* xterm.c (XTredeem_scroll_bar): Revert part of last change by
+	not redeeming scroll bars that have been turned off.
+
 2014-08-05 Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* keyboard.c (safe_run_hooks): Follow the convenient style to bind

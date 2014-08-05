@@ -4041,7 +4041,7 @@ w32_redeem_scroll_bar (struct window *w)
   if (NILP (w->vertical_scroll_bar) && NILP (w->horizontal_scroll_bar))
     emacs_abort ();
 
-  if (!NILP (w->vertical_scroll_bar))
+  if (!NILP (w->vertical_scroll_bar) && WINDOW_HAS_VERTICAL_SCROLL_BAR (w))
     {
       bar = XSCROLL_BAR (w->vertical_scroll_bar);
       /* Unlink it from the condemned list.  */
@@ -4076,7 +4076,7 @@ w32_redeem_scroll_bar (struct window *w)
     }
 
  horizontal:
-  if (!NILP (w->horizontal_scroll_bar))
+  if (!NILP (w->horizontal_scroll_bar) && WINDOW_HAS_HORIZONTAL_SCROLL_BAR (w))
     {
       bar = XSCROLL_BAR (w->horizontal_scroll_bar);
       /* Unlink it from the condemned list.  */
