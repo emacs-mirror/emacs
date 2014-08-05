@@ -1,6 +1,6 @@
 2014-08-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* image-mode.el (image-toggle-display-image): Alway rescale images
+	* image-mode.el (image-toggle-display-image): Always rescale images
 	to not be bigger than the current window.
 
 2014-08-05  Eric Brown  <brown@fastmail.fm>  (tiny change)
