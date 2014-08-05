@@ -207,7 +207,12 @@ Remove also properties of all files in subdirectories."
   "Flush all Tramp cache properties from `buffer-file-name'.
 This is suppressed for temporary buffers."
   (save-match-data
-    (unless (string-match "^ \\*temp\\*" (or (buffer-name) ""))
+    (unless
+	(string-match
+	 (concat
+	  "^" (regexp-opt '("*tramp/" "*debug tramp/" " *temp*") 'parent))
+	 (or (buffer-name) ""))
+
       (let ((bfn (if (stringp (buffer-file-name))
 		     (buffer-file-name)
 		   default-directory)))
