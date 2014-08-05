@@ -1,3 +1,10 @@
+2014-08-05 Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* keyboard.c (safe_run_hooks): Follow the convenient style to bind
+	inhibit-quit to t and pass 2 args to safe_run_hook_funcall.  See
+	<http://lists.gnu.org/archive/html/emacs-devel/2014-08/msg00077.html>.
+	(safe_run_hook_funcall): Adjust accordingly.
+
 2014-08-04  Martin Rudalics  <rudalics@gmx.at>
 
 	* frame.h (FRAME_HAS_HORIZONTAL_SCROLL_BARS): Condition

@@ -1910,18 +1910,14 @@ static Lisp_Object
 safe_run_hook_funcall (ptrdiff_t nargs, Lisp_Object *args)
 {
   Lisp_Object iargs[2];
-  struct gcpro gcpro1;
 
-  eassert (nargs == 1);
-  iargs[0] = Vinhibit_quit;
+  eassert (nargs == 2);
+  /* Yes, run_hook_with_args works this way.  */
+  iargs[0] = args[1];
   iargs[1] = args[0];
-
-  GCPRO1 (*iargs);
-  gcpro1.nvars = 2;
-
   internal_condition_case_n (safe_run_hooks_1, 2, iargs,
 			     Qt, safe_run_hooks_error);
-  RETURN_UNGCPRO (Qnil);
+  return Qnil;
 }
 
 /* If we get an error while running the hook, cause the hook variable
@@ -1931,11 +1927,18 @@ safe_run_hook_funcall (ptrdiff_t nargs, Lisp_Object *args)
 void
 safe_run_hooks (Lisp_Object hook)
 {
+  Lisp_Object args[2];
+  struct gcpro gcpro1;
   ptrdiff_t count = SPECPDL_INDEX ();
 
-  specbind (Qinhibit_quit, hook);
-  run_hook_with_args (1, &hook, safe_run_hook_funcall);
+  args[0] = hook;
+  args[1] = hook;
+
+  GCPRO1 (hook);
+  specbind (Qinhibit_quit, Qt);
+  run_hook_with_args (2, args, safe_run_hook_funcall);
   unbind_to (count, Qnil);
+  UNGCPRO;
 }
 
 
