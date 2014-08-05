@@ -210,7 +210,7 @@ This is suppressed for temporary buffers."
     (unless
 	(string-match
 	 (concat
-	  "^" (regexp-opt '("*tramp/" "*debug tramp/" " *temp*") 'parent))
+	  "^" (regexp-opt '("*tramp/" "*debug tramp/" " *temp*") 'paren))
 	 (or (buffer-name) ""))
 
       (let ((bfn (if (stringp (buffer-file-name))
