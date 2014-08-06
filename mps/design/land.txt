@@ -254,9 +254,8 @@ case the result code indicates the cause of the failure.
 ``Res LandDescribe(Land land, mps_lib_FILE *stream)``
 
 _`.function.describe`: ``LandDescribe()`` prints a textual
-representation of the land to the given stream, indicating the
-contiguous ranges in order, as well as the structure of the underlying
-splay tree implementation. It is provided for debugging purposes only.
+representation of the land to the given stream. It is provided for
+debugging purposes only.
 
 ``void LandFlush(Land dest, Land src)``
 
