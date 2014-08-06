@@ -57,9 +57,10 @@ Bool CBSCheck(CBS cbs)
   CHECKD(Land, land);
   CHECKD(SplayTree, cbsSplay(cbs));
   CHECKD(Pool, cbs->blockPool);
+  CHECKL(cbs->blockStructSize > 0);
   CHECKL(BoolCheck(cbs->ownPool));
   CHECKL(SizeIsAligned(cbs->size, LandAlignment(land)));
-  CHECKL((cbs->size == 0) == (cbs->treeSize == 0));
+  STATISTIC_STAT({CHECKL((cbs->size == 0) == (cbs->treeSize == 0));});
 
   return TRUE;
 }

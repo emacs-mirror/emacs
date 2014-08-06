@@ -870,9 +870,11 @@ Res ArenaFreeLandInsert(Arena arena, Addr base, Addr limit)
   if (res != ResOK)
     return res;
 
-  /* .chunk.no-coalesce: Make sure it didn't coalesce.  We don't want
-     chunks to coalesce so that there are no chunk-crossing allocations
-     that would prevent chunks being destroyed. */
+  /* .chunk.no-coalesce: Make sure it didn't coalesce. We don't want
+     chunks to coalesce so that there are no chunk-crossing
+     allocations that would prevent chunks being destroyed. See
+     <code/tract.c#chunk.at.base> for the mechanism that ensures that
+     chunks never coalesce. */
   AVER(RangesEqual(&oldRange, &range));
 
   return ResOK;

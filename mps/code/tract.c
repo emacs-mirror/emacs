@@ -18,6 +18,11 @@
  * chunk->base): this saves a dereference and perhaps a cache miss.
  * See ChunkKey and ChunkCompare for this optimization. The necessary
  * property is asserted in ChunkCheck.
+ *
+ * .chunk.at.base.no-coalesce: The fact that the chunk structure is
+ * stored at the base of the base also ensures that free address
+ * ranges in adjacent chunks are not coalesced by the arena's CBS. See
+ * <code/arena.c#chunk.no-coalesce>
  */
 
 #include "tract.h"
@@ -212,7 +217,7 @@ Res ChunkInit(Chunk chunk, Arena arena, Addr base, Addr limit, BootBlock boot)
   /* Init allocTable after class init, because it might be mapped there. */
   BTResRange(chunk->allocTable, 0, pages);
 
-  /* Add the chunk's free address space to the arena's freeCBS, so that
+  /* Add the chunk's free address space to the arena's freeLand, so that
      we can allocate from it. */
   if (arena->hasFreeLand) {
     res = ArenaFreeLandInsert(arena,

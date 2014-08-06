@@ -1,6 +1,6 @@
 /* land.c: LAND (COLLECTION OF ADDRESS RANGES) IMPLEMENTATION
  *
- * $Id: //info.ravenbrook.com/project/mps/branch/2014-03-30/land/code/land.c#1 $
+ * $Id$
  * Copyright (c) 2014 Ravenbrook Limited.  See end of file for license.
  *
  * .design: <design/land/>
@@ -62,6 +62,7 @@ Bool LandCheck(Land land)
   CHECKD(LandClass, land->class);
   CHECKU(Arena, land->arena);
   CHECKL(AlignCheck(land->alignment));
+  CHECKL(BoolCheck(land->inLand));
   return TRUE;
 }
 
