@@ -220,6 +220,15 @@ END:VTIMEZONE
                       (car result)))
     (should (string= "subject" (cadr result)))
 
+    ;; with start time
+    (setq result (icalendar--convert-ordinary-to-ical
+                  "&?" "&2010 2 15 12:34 s"))
+    (should (= 2 (length result)))
+    (should (string=  (concat "\nDTSTART;VALUE=DATE-TIME:20100215T123400"
+                              "\nDTEND;VALUE=DATE-TIME:20100215T133400")
+                      (car result)))
+    (should (string= "s" (cadr result)))
+
     ;; with time
     (setq result (icalendar--convert-ordinary-to-ical
                   "&?" "&2010 2 15 12:34-23:45 s"))
@@ -267,7 +276,9 @@ END:VTIMEZONE
   (should (string= "T120100"
 		   (icalendar--diarytime-to-isotime "1201" "pm")))
   (should (string= "T125900"
-		   (icalendar--diarytime-to-isotime "1259" "pm"))))
+		   (icalendar--diarytime-to-isotime "1259" "pm")))
+  (should (string= "T150000"
+		   (icalendar--diarytime-to-isotime "3" "pm"))))
 
 (ert-deftest icalendar--datetime-to-diary-date ()
   "Test method for `icalendar--datetime-to-diary-date'."

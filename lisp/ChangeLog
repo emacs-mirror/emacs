@@ -1,3 +1,10 @@
+2014-08-06  Ulf Jasper  <ulf.jasper@web.de>
+
+	* calendar/icalendar.el (icalendar--diarytime-to-isotime): 
+	(icalendar--convert-ordinary-to-ical): Allow for missing minutes
+	(Bug#13750).
+
+
 2014-08-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* image-mode.el (image-toggle-display-image): Always rescale images

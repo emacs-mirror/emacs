@@ -896,10 +896,16 @@ is not possible it uses the current calendar date style."
 
 (defun icalendar--diarytime-to-isotime (timestring ampmstring)
   "Convert a time like 9:30pm to an iso-conform string like T213000.
-In this example the TIMESTRING would be \"9:30\" and the AMPMSTRING
-would be \"pm\"."
+In this example the TIMESTRING would be \"9:30\" and the
+AMPMSTRING would be \"pm\".  The minutes may be missing as long
+as the colon is missing as well, i.e. \"9\" is allowed as
+TIMESTRING and has the same result as \"9:00\"."
   (if timestring
-      (let ((starttimenum (read (icalendar--rris ":" "" timestring))))
+      (let* ((parts (save-match-data (split-string timestring ":")))
+             (h (car parts))
+             (m (if (cdr parts) (cadr parts)
+                  (if (> (length h) 2) "" "00")))
+             (starttimenum (read (concat h m))))
         ;; take care of am/pm style
         ;; Be sure *not* to convert 12:00pm - 12:59pm to 2400-2459
         (if (and ampmstring (string= "pm" ampmstring) (< starttimenum 1200))
@@ -1231,9 +1237,9 @@ entries.  ENTRY-MAIN is the first line of the diary entry."
   (if (string-match
        (concat nonmarker
                "\\([^ /]+[ /]+[^ /]+[ /]+[^ ]+\\)\\s-*" ; date
-               "\\(\\([0-9][0-9]?:[0-9][0-9]\\)\\([ap]m\\)?" ; start time
+               "\\(\\([0-9][0-9]?\\(:[0-9][0-9]\\)?\\)\\([ap]m\\)?" ; start time
                "\\("
-               "-\\([0-9][0-9]?:[0-9][0-9]\\)\\([ap]m\\)?\\)?" ; end time
+               "-\\([0-9][0-9]?\\(:[0-9][0-9]\\)?\\)\\([ap]m\\)?\\)?" ; end time
                "\\)?"
                "\\s-*\\(.*?\\) ?$")
        entry-main)
@@ -1250,25 +1256,25 @@ entries.  ENTRY-MAIN is the first line of the diary entry."
                                               (match-beginning 3)
                                               (match-end 3))
                                  nil)
-                               (if (match-beginning 4)
+                               (if (match-beginning 5)
                                    (substring entry-main
-                                              (match-beginning 4)
-                                              (match-end 4))
+                                              (match-beginning 5)
+                                              (match-end 5))
                                  nil)))
              (endtimestring (icalendar--diarytime-to-isotime
-                             (if (match-beginning 6)
-                                 (substring entry-main
-                                            (match-beginning 6)
-                                            (match-end 6))
-                               nil)
                              (if (match-beginning 7)
                                  (substring entry-main
                                             (match-beginning 7)
                                             (match-end 7))
+                               nil)
+                             (if (match-beginning 9)
+                                 (substring entry-main
+                                            (match-beginning 9)
+                                            (match-end 9))
                                nil)))
              (summary (icalendar--convert-string-for-export
-                       (substring entry-main (match-beginning 8)
-                                  (match-end 8)))))
+                       (substring entry-main (match-beginning 10)
+                                  (match-end 10)))))
         (icalendar--dmsg "ordinary %s" entry-main)
 
         (unless startisostring

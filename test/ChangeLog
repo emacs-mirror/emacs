@@ -1,3 +1,9 @@
+2014-08-06  Ulf Jasper  <ulf.jasper@web.de>
+
+	* automated/icalendar-tests.el
+	(icalendar--convert-ordinary-to-ical),
+	(icalendar--diarytime-to-isotime): More testcases (Bug#13750).
+
 2014-08-03  Glenn Morris  <rgm@gnu.org>
 
 	* automated/Makefile.in (check-tar): New rule.
