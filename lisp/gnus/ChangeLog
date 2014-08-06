@@ -1,3 +1,7 @@
+2014-08-06  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-sum.el (gnus-summary-expire-articles): Revert.
+
 2014-08-05  Eric Abrahamsen  <eric@ericabrahamsen.net>
 
 	* gnus-sum.el (gnus-summary-expire-articles): Functions registered to
