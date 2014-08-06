@@ -10449,7 +10449,10 @@ This will be the case if the article has both been mailed and posted."
 					(gnus-data-header
 					 (assoc article (gnus-data-list nil)))
 					gnus-newsgroup-name
-					nil
+					(if (fboundp nnmail-expiry-target)
+					    (funcall nnmail-expiry-target
+						     gnus-newsgroup-name)
+					  nnmail-expiry-target)
 					nil)))))))
 	(gnus-message 6 "Expiring articles...done")))))
 

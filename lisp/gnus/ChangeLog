@@ -1,3 +1,9 @@
+2014-08-05  Eric Abrahamsen  <eric@ericabrahamsen.net>
+
+	* gnus-sum.el (gnus-summary-expire-articles): Functions registered to
+	the gnus-summary-article-expire-hook should be told where the function
+	is going. In particular, the Gnus registry might want to know.
+
 2014-07-31  Tassilo Horn  <tsdh@gnu.org>
 
 	* gnus-msg.el (gnus-inews-insert-gcc): Allow `gcc-self' to be a list of
