@@ -1,3 +1,8 @@
+2014-07-31  Tassilo Horn  <tsdh@gnu.org>
+
+	* gnus-msg.el (gnus-inews-insert-gcc): Allow `gcc-self' to be a list of
+	groups and t.
+
 2014-07-22  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-utils.el (gnus-recursive-directory-files):
