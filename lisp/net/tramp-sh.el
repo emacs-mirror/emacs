@@ -218,7 +218,9 @@ detected as prompt when being sent on echoing hosts, therefore.")
     ;; We use "-v" for better error tracking.
     (tramp-copy-args            (("-w" "1") ("-v") ("%h") ("%r")))
     (tramp-remote-copy-program  "nc")
-    ;; We use "-p" as required for busyboxes.
+    ;; We use "-p" as required for newer busyboxes.  For older
+    ;; busybox/nc versions, the value must be (("-l") ("%r")).  This
+    ;; can be achieved by tweaking `tramp-connection-properties'.
     (tramp-remote-copy-args     (("-l") ("-p" "%r")))
     (tramp-default-port         23)))
 ;;;###tramp-autoload
@@ -2334,6 +2336,7 @@ The method used must be an out-of-band method."
 			    method 'tramp-copy-program)
 	      copy-keep-date (tramp-get-method-parameter
 			      method 'tramp-copy-keep-date)
+
 	      copy-args
 	      (delete
 	       ;; " " has either been a replacement of "%k" (when
@@ -2349,6 +2352,7 @@ The method used must be an out-of-band method."
 			copy-args
 			(let ((y (mapcar (lambda (z) (format-spec z spec)) x)))
 			  (if (member "" y) '(" ") y))))))
+
 	      copy-env
 	      (delq
 	       nil
@@ -2357,23 +2361,20 @@ The method used must be an out-of-band method."
 		  (setq x (mapcar (lambda (y) (format-spec y spec)) x))
 		  (unless (member "" x) (mapconcat 'identity x " ")))
 		(tramp-get-method-parameter method 'tramp-copy-env)))
-	      remote-copy-program (tramp-get-method-parameter
-				   method 'tramp-remote-copy-program)
-	      remote-copy-args
-	      (delete
-	       ;; " " has either been a replacement of "%k" (when
-	       ;; keep-date argument is non-nil), or a replacement
-	       ;; for the whole keep-date sublist.
-	       " "
-	       (dolist
-		   (x
-		    (tramp-get-method-parameter method 'tramp-remote-copy-args)
-		    remote-copy-args)
-		 (setq remote-copy-args
-		       (append
-			remote-copy-args
-			(let ((y (mapcar (lambda (z) (format-spec z spec)) x)))
-			  (if (member "" y) '(" ") y)))))))
+
+	      remote-copy-program
+	      (tramp-get-method-parameter method 'tramp-remote-copy-program))
+
+	(dolist
+	    (x
+	     (or
+	      (tramp-get-connection-property v "remote-copy-args" nil)
+	      (tramp-get-method-parameter method 'tramp-remote-copy-args)))
+	  (setq remote-copy-args
+		(append
+		 remote-copy-args
+		 (let ((y (mapcar (lambda (z) (format-spec z spec)) x)))
+		   (if (member "" y) '(" ") y)))))
 
 	;; Check for local copy program.
 	(unless (executable-find copy-program)

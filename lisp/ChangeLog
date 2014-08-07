@@ -1,3 +1,8 @@
+2014-08-07  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-do-copy-or-rename-file-out-of-band):
+	Use cached "remote-copy-args" value, if available.  (Bug#18199)
+
 2014-08-07  Leo Liu  <sdl.web@gmail.com>
 
 	* help.el (temp-buffer-setup-hook,temp-buffer-show-hook): Revert
