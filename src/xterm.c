@@ -11329,7 +11329,10 @@ x_delete_terminal (struct terminal *terminal)
 
   /* No more input on this descriptor.  */
   if (0 <= dpyinfo->connection)
-    delete_keyboard_wait_descriptor (dpyinfo->connection);
+    {
+      delete_keyboard_wait_descriptor (dpyinfo->connection);
+      emacs_close (dpyinfo->connection);
+    }
 
   /* Mark as dead. */
   dpyinfo->display = NULL;

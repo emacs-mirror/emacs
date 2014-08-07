@@ -1,3 +1,7 @@
+2014-08-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* xterm.c (x_delete_terminal): Plug file descriptor leak (Bug#17691).
+
 2014-08-07  Reuben Thomas  <rrt@sc3d.org>
 
 	Refer to MS-DOS using the same name everywhere.
