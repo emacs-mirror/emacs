@@ -84,7 +84,7 @@ There are several subdirectories:
 `doc/lispref'   holds the source code for the Emacs Lisp reference manual.
 `doc/lispintro' holds the source code for the Introduction to Programming
                 in Emacs Lisp manual.
-`msdos'     holds configuration files for compiling Emacs under MSDOG.
+`msdos'     holds configuration files for compiling Emacs under MS-DOS.
 `nextstep'  holds instructions and some other files for compiling the
             Nextstep port of Emacs, for GNUstep and Mac OS X Cocoa.
 `nt'        holds various command files and documentation files that pertain

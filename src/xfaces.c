@@ -1068,7 +1068,7 @@ tty_color_name (struct frame *f, int idx)
 	return XCAR (coldesc);
     }
 #ifdef MSDOS
-  /* We can have an MSDOG frame under -nw for a short window of
+  /* We can have an MS-DOS frame under -nw for a short window of
      opportunity before internal_terminal_init is called.  DTRT.  */
   if (FRAME_MSDOS_P (f) && !inhibit_window_system)
     return msdos_stdcolor_name (idx);

@@ -112,7 +112,7 @@ init_editfns (void)
   pw = getpwuid (getuid ());
 #ifdef MSDOS
   /* We let the real user name default to "root" because that's quite
-     accurate on MSDOG and because it lets Emacs find the init file.
+     accurate on MS-DOS and because it lets Emacs find the init file.
      (The DVX libraries override the Djgpp libraries here.)  */
   Vuser_real_login_name = build_string (pw ? pw->pw_name : "root");
 #else

@@ -1,3 +1,7 @@
+2014-08-07  Reuben Thomas  <rrt@sc3d.org>
+
+	* README: ``MSDOG'' becomes ``MS-DOS''.
+
 2014-08-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Merge from gnulib, incorporating:
