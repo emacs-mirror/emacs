@@ -1,8 +1,14 @@
+2014-08-07  Kelvin White  <kwhite@gnu.org>
+
+	* erc.el (erc-channel-receive-names): Fix variable names
+	(erc-format-target-and/or-network): Rename server-buffers to
+	network name if possible
+
 2014-07-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* erc.el (erc-channel-receive-names): Reduce redundancy.
 
-2014-06-19  Kelvin White  <kelvin.white77@gmail.com>
+2014-06-19  Kelvin White  <kwhite@gnu.org>
 
 	* erc-backend.el: Handle user modes in relevant server responses
 	* erc.el: Better user mode support.

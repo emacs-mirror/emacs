@@ -4783,10 +4783,10 @@ channel."
 		(setq name (substring item 1))
 		(setf (pcase (aref item 0)
 			((pred (eq voice-ch)) voice)
-			((pred (eq hop-ch))   hop)
+			((pred (eq hop-ch))   halfop)
 			((pred (eq op-ch))    op)
-			((pred (eq adm-ch))   adm)
-			((pred (eq own-ch))   own))
+			((pred (eq adm-ch))   admin)
+			((pred (eq own-ch))   owner))
 		      'on)))
           (when updatep
             (puthash (erc-downcase name) t
@@ -6233,7 +6233,10 @@ shortened server name instead."
     (cond ((erc-default-target)
            (concat (erc-string-no-properties (erc-default-target))
                    "@" network-name))
-          (network-name network-name)
+          ((and network-name 
+                (not (string-equal network-name (buffer-name))))
+           (rename-buffer network-name)
+           network-name)
           (t (buffer-name (current-buffer))))))
 
 (defun erc-format-away-status ()
