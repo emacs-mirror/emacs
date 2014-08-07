@@ -1,6 +1,11 @@
+2014-08-07  Leo Liu  <sdl.web@gmail.com>
+
+	* help.el (temp-buffer-setup-hook,temp-buffer-show-hook): Revert
+	change on 2014-03-22.
+
 2014-08-06  Ulf Jasper  <ulf.jasper@web.de>
 
-	* calendar/icalendar.el (icalendar--diarytime-to-isotime): 
+	* calendar/icalendar.el (icalendar--diarytime-to-isotime):
 	(icalendar--convert-ordinary-to-ical): Allow for missing minutes
 	(Bug#13750).
 
