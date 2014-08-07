@@ -94,15 +94,14 @@ point at the click position."
 (defun mouse--down-1-maybe-follows-link (&optional _prompt)
   "Turn `mouse-1' events into `mouse-2' events if follows-link.
 Expects to be bound to `down-mouse-1' in `key-translation-map'."
-  (if (or (null mouse-1-click-follows-link)
-          (not (eq (if (eq mouse-1-click-follows-link 'double)
-                       'double-down-mouse-1 'down-mouse-1)
-                   (car-safe last-input-event)))
-          (not (mouse-on-link-p (event-start last-input-event)))
-          (and (not mouse-1-click-in-non-selected-windows)
-               (not (eq (selected-window)
-                        (posn-window (event-start last-input-event))))))
-      nil
+  (when (and mouse-1-click-follows-link
+             (eq (if (eq mouse-1-click-follows-link 'double)
+                     'double-down-mouse-1 'down-mouse-1)
+                 (car-safe last-input-event))
+             (mouse-on-link-p (event-start last-input-event))
+             (or mouse-1-click-in-non-selected-windows
+                 (eq (selected-window)
+                     (posn-window (event-start last-input-event)))))
     (let ((this-event last-input-event)
           (timedout
            (sit-for (if (numberp mouse-1-click-follows-link)
