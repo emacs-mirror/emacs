@@ -178,12 +178,7 @@ pass to the OPERATION."
 	    (ignore-errors (delete-file tmpfile)))))
 
        ;; Normally, the handlers must be discarded.
-       ;; `inhibit-file-name-handlers' isn't sufficient, because the
-       ;; local file name could be in Tramp syntax as well (for
-       ;; example, returning VMS file names like "/DISK$CAM:/AAA").
-       ;; That's why we set also `tramp-mode' to nil.
-       (t (let* (;(tramp-mode nil)
-		 (inhibit-file-name-handlers
+       (t (let* ((inhibit-file-name-handlers
 		  (list 'tramp-file-name-handler
 			'tramp-completion-file-name-handler
 			(and (eq inhibit-file-name-operation operation)

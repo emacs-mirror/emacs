@@ -1,3 +1,8 @@
+2014-08-07  Reuben Thomas  <rrt@sc3d.org>
+
+	* ediff.texi (Merging and diff3): Don't mention lack of support
+	for VMS diff, we no longer support VMS.
+
 2014-08-07  Michael Albinus  <michael.albinus@gmx.de>
 
 	* tramp.texi (Remote shell setup): Explain, how to change command

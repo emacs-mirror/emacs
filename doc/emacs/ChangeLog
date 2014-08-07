@@ -1,5 +1,10 @@
 2014-08-07  Reuben Thomas  <rrt@sc3d.org>
 
+	* programs.texi (Program Modes): Don't advertise VMS DCL support
+	any more.
+
+2014-08-07  Reuben Thomas  <rrt@sc3d.org>
+
 	Refer to MS-DOS using the same name everywhere.
 
 	* Makefile.in (EMACSSOURCES): ``MS-DOG'', ``MSDOG'' and ``msdog''

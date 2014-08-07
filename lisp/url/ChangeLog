@@ -1,3 +1,8 @@
+2014-08-07  Reuben Thomas  <rrt@sc3d.org>
+
+	* url-handlers.el: Remove a comment about VMS, which we no longer
+	support.
+
 2014-08-03  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Don't mishandle dates in the year 9999 (Bug#18176).

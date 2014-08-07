@@ -1,5 +1,20 @@
 2014-08-07  Reuben Thomas  <rrt@sc3d.org>
 
+	* progmodes/ada-mode.el:
+	* net/tramp.el (tramp-handle-file-symlink-p):
+	* net/tramp-ftp.el (tramp-ftp-file-name-handler): Remove a comment
+	about VMS, which we no longer support.
+	* progmodes/ada-xref.el (ada-xref-current): Remove mention of VMS,
+	and fix a FIXME, using convert-standard-filename in place of
+	removed ada-convert-file-name.
+
+2014-08-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.el (auto-mode-alist): Remove support for VMS from a
+	pattern.
+
+2014-08-07  Reuben Thomas  <rrt@sc3d.org>
+
 	Refer to MS-DOS using the same name everywhere.
 
 	* arc-mode.el: Fix a couple of ``MS-DOG''s missed in the previous

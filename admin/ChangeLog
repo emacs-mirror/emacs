@@ -1,5 +1,9 @@
 2014-08-07  Reuben Thomas  <rrt@sc3d.org>
 
+	* notes/exit-value: Remove specific discussion of VMS.
+
+2014-08-07  Reuben Thomas  <rrt@sc3d.org>
+
 	Refer to MS-DOS using the same name everywhere.
 
 	* FOR-RELEASE: ``MS-DOG'', ``MSDOG'' and ``msdog'' become

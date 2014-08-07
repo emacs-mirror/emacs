@@ -51,7 +51,7 @@
 ;; delete-directory			Finished (DAV)
 ;; delete-file				Finished (DAV)
 ;; diff-latest-backup-file
-;; directory-file-name			unnecessary (what about VMS)?
+;; directory-file-name			unnecessary
 ;; directory-files			Finished (DAV)
 ;; dired-call-process
 ;; dired-compress-file

@@ -2998,8 +2998,6 @@ User is always nil."
   (with-parsed-tramp-file-name filename nil
     (let ((x (car (file-attributes filename))))
       (when (stringp x)
-	;; When Tramp is running on VMS, then `file-name-absolute-p'
-	;; might do weird things.
 	(if (file-name-absolute-p x)
 	    (tramp-make-tramp-file-name method user host x)
 	  x)))))

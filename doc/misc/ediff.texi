@@ -350,8 +350,7 @@ All the above functions use the POSIX @code{diff} or @code{diff3} programs
 to find differences between two files.  They process the @code{diff} output
 and display it in a convenient form.  At present, Ediff understands only
 the plain output from diff.  Options such as @samp{-c} are not supported,
-nor is the format produced by incompatible file comparison programs such as
-the VMS version of @code{diff}.
+nor is the format produced by incompatible file comparison programs.
 
 The functions @code{ediff-files}, @code{ediff-buffers},
 @code{ediff-files3}, @code{ediff-buffers3} first display the coarse,
@@ -1944,11 +1943,6 @@ desired format in a buffer that can be displayed via the command @kbd{D}.
 Specifies the default directory to look for patches.
 
 @end table
-
-@noindent
-@strong{Warning:} Ediff does not support the output format of VMS
-@code{diff}.  Instead, make sure you are using some implementation of POSIX
-@code{diff}, such as @code{gnudiff}.
 
 @node Merging and diff3
 @section Merging and diff3
