@@ -1,3 +1,8 @@
+2014-08-07  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window--min-size-1): Explicitly set WINDOW arg in
+	calls of window-min-pixel-height and window-min-pixel-width.
+
 2014-08-07  Reuben Thomas  <rrt@sc3d.org>
 
 	* progmodes/ada-mode.el:

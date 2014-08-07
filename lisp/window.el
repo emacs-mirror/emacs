@@ -1297,7 +1297,7 @@ of WINDOW."
 		   (* (ceiling pixel-width char-size) char-size))
 		 (if (window--size-ignore-p window ignore)
 		     0
-		   (window-min-pixel-width)))
+		   (window-min-pixel-width window)))
 	      (max
 	       (ceiling pixel-width char-size)
 	       (if (window--size-ignore-p window ignore)
@@ -1318,7 +1318,7 @@ of WINDOW."
 		   (* (ceiling pixel-height char-size) char-size))
 		 (if (window--size-ignore-p window ignore)
 		     0
-		   (window-min-pixel-height)))
+		   (window-min-pixel-height window)))
 	      (max (ceiling pixel-height char-size)
 		   (if (window--size-ignore-p window ignore)
 		       0
