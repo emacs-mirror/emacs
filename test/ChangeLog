@@ -1,3 +1,7 @@
+2014-08-07  Glenn Morris  <rgm@gnu.org>
+
+	* automated/Makefile.in (check-tar): Remove, no longer needed.
+
 2014-08-03  Glenn Morris  <rgm@gnu.org>
 
 	* automated/Makefile.in (check-tar): Add as alias for check.
