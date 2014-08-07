@@ -4,7 +4,7 @@
 ;; Inc.
 
 ;; Author: Morten Welinder <terra@gnu.org>
-;; Keywords: files archives msdog editing major-mode
+;; Keywords: files archives ms-dos editing major-mode
 ;; Favorite-brand-of-beer: None, I hate beer.
 
 ;; This file is part of GNU Emacs.

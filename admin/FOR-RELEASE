@@ -202,8 +202,8 @@ mark.texi
 mini.texi         
 misc.texi         
 modes.texi        
-msdog.texi        
-msdog-xtra.texi   
+msdos.texi        
+msdos-xtra.texi   
 mule.texi         
 m-x.texi          
 package.texi      

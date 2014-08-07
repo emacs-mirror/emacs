@@ -120,7 +120,7 @@ the Emacs manual.
 
 @include fortran-xtra.texi
 
-@include msdog-xtra.texi
+@include msdos-xtra.texi
 
 @lowersections
 @end iftex

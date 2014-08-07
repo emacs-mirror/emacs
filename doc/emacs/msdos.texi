@@ -9,7 +9,7 @@
 
   This section describes peculiarities of using Emacs on Microsoft
 Windows.  Some of these peculiarities are also relevant to Microsoft's
-older MS-DOS ``operating system'' (also known as ``MS-DOG'').
+older MS-DOS operating system.
 However, Emacs features that are relevant @emph{only} to MS-DOS are
 described in a separate
 @iftex
@@ -986,5 +986,5 @@ click-to-focus policy.
 @end ifnottex
 
 @ifnottex
-@include msdog-xtra.texi
+@include msdos-xtra.texi
 @end ifnottex

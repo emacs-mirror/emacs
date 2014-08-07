@@ -36,7 +36,7 @@ Eli Zaretskii
 	    lisp/dos-fns.el
 	    lisp/dos-w32.el
 	    lisp/dos-vars.el
-	    doc/emacs/msdog.texi
+	    doc/emacs/msdos.texi
 
 Kenichi Handa
 	Mule

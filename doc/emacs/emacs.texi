@@ -1574,8 +1574,8 @@ Lisp programming.
 
 @include anti.texi
 @include macos.texi
-@c Includes msdog-xtra.
-@include msdog.texi
+@c Includes msdos-xtra.
+@include msdos.texi
 @include gnu.texi
 @include glossary.texi
 @ifnottex

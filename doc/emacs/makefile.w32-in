@@ -54,7 +54,7 @@ EMACS_XTRA=\
 	$(srcdir)/vc-xtra.texi \
 	$(srcdir)/vc1-xtra.texi \
 	$(srcdir)/fortran-xtra.texi \
-	$(srcdir)/msdog-xtra.texi
+	$(srcdir)/msdos-xtra.texi
 
 EMACSSOURCES= \
 	$(srcdir)/emacs.texi \
@@ -97,7 +97,7 @@ EMACSSOURCES= \
 	$(srcdir)/xresources.texi \
 	$(srcdir)/anti.texi \
 	$(srcdir)/macos.texi \
-	$(srcdir)/msdog.texi \
+	$(srcdir)/msdos.texi \
 	$(srcdir)/gnu.texi \
 	$(srcdir)/glossary.texi \
 	$(srcdir)/ack.texi \

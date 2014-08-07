@@ -1,3 +1,15 @@
+2014-08-07  Reuben Thomas  <rrt@sc3d.org>
+
+	Refer to MS-DOS using the same name everywhere.
+
+	* Makefile.in (EMACSSOURCES): ``MS-DOG'', ``MSDOG'' and ``msdog''
+	become ``MS-DOS''; ``msdog'' in filenames becomes ``msdos''.
+	* emacs-xtra.texi: ditto.
+	* emacs.texi: ditto.
+	* makefile.w32-in: ditto.
+	* msdog-xtra.texi: ditto, and rename file.
+	* msdog.texi: ditto, and rename file.
+
 2014-07-21  Glenn Morris  <rgm@gnu.org>
 
 	* emacs.texi (Intro): Workaround makeinfo 4 @acronym bug.  (Bug#18040)

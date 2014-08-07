@@ -1,3 +1,11 @@
+2014-08-07  Reuben Thomas  <rrt@sc3d.org>
+
+	Refer to MS-DOS using the same name everywhere.
+
+	* FOR-RELEASE: ``MS-DOG'', ``MSDOG'' and ``msdog'' become
+	``MS-DOS''.
+	* MAINTAINERS: ditto.
+
 2014-07-14  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Use binary-io module, O_BINARY, and "b" flag (Bug#18006).

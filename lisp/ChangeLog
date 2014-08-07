@@ -1,3 +1,11 @@
+2014-08-07  Reuben Thomas  <rrt@sc3d.org>
+
+	Refer to MS-DOS using the same name everywhere.
+
+	* arc-mode.el: ``MS-DOG'', ``MSDOG'' and ``msdog'' become
+	``MS-DOS''.
+	* frame.el: ditto.
+
 2014-08-07  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-sh.el (tramp-do-copy-or-rename-file-out-of-band):

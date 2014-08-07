@@ -6,19 +6,18 @@
 @c printed version) or in the main Emacs manual (for the on-line version).
 @node MS-DOS
 @section Emacs and MS-DOS
-@cindex MS-DOG
 @cindex MS-DOS peculiarities
 
   This section briefly describes the peculiarities of using Emacs on
-the MS-DOS ``operating system'' (also known as ``MS-DOG'').
+the MS-DOS ``operating system''.
 @iftex
 Information about Emacs and Microsoft's current operating system
-Windows (also known as ``Losedows'') is in the main Emacs manual
+Windows is in the main Emacs manual
 (@pxref{Microsoft Windows,,, emacs, the Emacs Manual}).
 @end iftex
 @ifnottex
 Information about peculiarities common to MS-DOS and Microsoft's
-current operating systems Windows (also known as ``Losedows'') is in
+current operating systems Windows is in
 @ref{Microsoft Windows}.
 @end ifnottex
 

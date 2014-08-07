@@ -1344,8 +1344,8 @@ frame's display)."
   (let ((frame-type (framep-on-display display)))
     (cond
      ((eq frame-type 'pc)
-      ;; MS-DOG frames support selections when Emacs runs inside
-      ;; the Windows' DOS Box.
+      ;; MS-DOS frames support selections when Emacs runs inside
+      ;; a Windows DOS Box.
       (with-no-warnings
        (not (null dos-windows-version))))
      ((memq frame-type '(x w32 ns))
