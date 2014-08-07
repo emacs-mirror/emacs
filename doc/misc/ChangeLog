@@ -1,3 +1,8 @@
+2014-08-07  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Remote shell setup): Explain, how to change command
+	line arguments of remote "nc" listener.
+
 2014-07-31  Tassilo Horn  <tsdh@gnu.org>
 
 	* gnus.texi (Group Parameters): Document that `gcc-self' may also be a

@@ -2062,6 +2062,32 @@ fi
 @end ifset
 @end ifinfo
 
+@item @command{busybox} / @command{nc}
+@cindex Unix command nc
+@cindex nc Unix command
+
+The @command{nc} command will be used with the @option{nc} method.  On
+the remote host, a listener will be installed.  Unfortunately, the
+command line syntax for this has been changed with the different
+@command{busybox} versions.  @value{tramp} uses the following syntax
+(see @code{tramp-methods}):
+
+@example
+# nc -l -p 42
+@end example
+
+If your remote @command{nc} refuses to accept the @command{-p}
+parameter, you could overwrite the syntax with the following form:
+
+@lisp
+(add-to-list
+ 'tramp-connection-properties
+ `(,(regexp-quote "192.168.0.1") "remote-copy-args" (("-l") ("%r"))))
+@end lisp
+
+@noindent
+with @samp{192.168.0.1} being the IP address of your remote host
+(@pxref{Predefined connection information}).
 @end table
 
 
