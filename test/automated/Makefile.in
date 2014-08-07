@@ -121,11 +121,6 @@ check:
 check-maybe: ${LOGFILES}
 	$(emacs) -l ert -f ert-summarize-tests-batch-and-exit $^
 
-## Mainly for hydra.
-.PHONY: check-tar
-check-tar: check
-	tar -cf logs.tar ${LOGFILES}
-
 .PHONY: mostlyclean clean bootstrap-clean distclean maintainer-clean
 
 clean mostlyclean:

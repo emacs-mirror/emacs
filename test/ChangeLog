@@ -1,3 +1,7 @@
+2014-08-07  Glenn Morris  <rgm@gnu.org>
+
+	* automated/Makefile.in (check-tar): Remove, hydra recipe does it now.
+
 2014-08-06  Ulf Jasper  <ulf.jasper@web.de>
 
 	* automated/icalendar-tests.el
