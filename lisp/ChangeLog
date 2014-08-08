@@ -1,6 +1,7 @@
 2014-08-08  Matthias Meulien  <orontee@gmail.com>
 
-	* progmodes/prog-mode.el (prog-mode-hook): Made customizable.
+	* progmodes/prog-mode.el (prog-mode-hook): Make customizable.
+	(Bug#16394)
 
 2014-08-07  Martin Rudalics  <rudalics@gmx.at>
 
