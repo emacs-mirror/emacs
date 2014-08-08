@@ -1,3 +1,11 @@
+2014-08-08  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (Fwindow_valid_p): Fix doc-string (Bug#18194).
+	(Fwindow_new_total, Fwindow_normal_size, Fwindow_new_normal)
+	(Fwindow_new_pixel, Fset_window_new_pixel)
+	(Fset_window_new_total, Fset_window_new_normal)
+	(Fwindow_resize_apply): Fix doc-strings (see Bug#18112).
+
 2014-08-07  Eli Zaretskii  <eliz@gnu.org>
 
 	* fontset.c (Finternal_char_font): Recompute basic faces if the
