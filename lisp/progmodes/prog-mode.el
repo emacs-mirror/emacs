@@ -35,6 +35,13 @@
   "Generic programming mode, from which others derive."
   :group 'languages)
 
+(defcustom prog-mode-hook nil
+  "Normal hook run when entering Text mode and many related modes."
+  :type 'hook
+  :options '(flyspell-prog-mode abbrev-mode flymake-mode linum-mode
+                                prettify-symbols-mode)
+  :group 'prog-mode)
+
 (defvar prog-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map [?\C-\M-q] 'prog-indent-sexp)
