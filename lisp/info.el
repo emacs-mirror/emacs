@@ -772,8 +772,7 @@ with the top-level Info directory.
 In interactive use, a non-numeric prefix argument directs
 this command to read a file name from the minibuffer.
 
-A numeric prefix argument N selects an Info buffer named
-\"*info*<%s>\".
+A numeric prefix argument of N selects an Info buffer named \"*info*<N>\".
 
 The search path for Info files is in the variable `Info-directory-list'.
 The top-level Info directory is made by combining all the files named `dir'
