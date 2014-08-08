@@ -1,3 +1,9 @@
+2014-08-08  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
+
+	* ibuffer.el (ibuffer-mode-map): Use toggle button for
+	`ibuffer-auto-mode' menu entry.
+	(ibuffer-mode-hook): Add `ibuffer-auto-mode' customization option.
+
 2014-08-08  Matthias Meulien  <orontee@gmail.com>
 
 	* progmodes/prog-mode.el (prog-mode-hook): Make customizable.

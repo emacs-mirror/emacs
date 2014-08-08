@@ -350,6 +350,7 @@ directory, like `default-directory'."
 (defcustom ibuffer-mode-hook nil
   "Hook run upon entry into `ibuffer-mode'."
   :type 'hook
+  :options '(ibuffer-auto-mode)
   :group 'ibuffer)
 
 (defcustom ibuffer-load-hook nil
@@ -706,7 +707,8 @@ directory, like `default-directory'."
       '(menu-item "Diff with file" ibuffer-diff-with-file
         :help "View the differences between this buffer and its file"))
     (define-key-after map [menu-bar view auto-mode]
-      '(menu-item "Toggle Auto Mode" ibuffer-auto-mode
+      '(menu-item "Auto Mode" ibuffer-auto-mode
+        :button (:toggle . ibuffer-auto-mode)
         :help "Attempt to automatically update the Ibuffer buffer"))
     (define-key-after map [menu-bar view customize]
       '(menu-item "Customize Ibuffer" ibuffer-customize
