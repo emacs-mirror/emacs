@@ -1,3 +1,8 @@
+2014-08-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mouse.el (mouse--down-1-maybe-follows-link): Don't convert the down
+	event (bug#18212).
+
 2014-08-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* info.el (info): Doc fix.

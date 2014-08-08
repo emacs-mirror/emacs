@@ -117,19 +117,14 @@ Expects to be bound to `down-mouse-1' in `key-translation-map'."
                                        'double-mouse-1 'mouse-1))
               ;; Turn the mouse-1 into a mouse-2 to follow links.
               (let ((newup (if (eq mouse-1-click-follows-link 'double)
-                                'double-mouse-2 'mouse-2))
-                    (newdown (if (eq mouse-1-click-follows-link 'double)
-                                 'double-down-mouse-2 'down-mouse-2)))
+                                'double-mouse-2 'mouse-2)))
                 ;; If mouse-2 has never been done by the user, it doesn't have
                 ;; the necessary property to be interpreted correctly.
-                (put newup 'event-kind (get (car event) 'event-kind))
-                (put newdown 'event-kind (get (car this-event) 'event-kind))
+                (unless (get newup 'event-kind)
+                  (put newup 'event-kind (get (car event) 'event-kind)))
                 (push (cons newup (cdr event)) unread-command-events)
-                ;; Modify the event in place, so read-key-sequence doesn't
-                ;; generate a second fake prefix key (see fake_prefixed_keys in
-                ;; src/keyboard.c).
-                (setcar this-event newdown)
-                (vector this-event))
+                ;; Don't change the down event, only the up-event (bug#18212).
+                nil)
             (push event unread-command-events)
             nil))))))
 
