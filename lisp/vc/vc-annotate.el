@@ -54,6 +54,12 @@ When nil, the color range from `vc-annotate-color-map' is applied
 to the foreground, and the color from the option `vc-annotate-background'
 is applied to the background."
   :type 'boolean
+  :set (lambda (symbol value)
+	 (set-default symbol value)
+	 (when (boundp 'vc-annotate-color-map)
+	   (ignore-errors
+	     ;; Update the value of the dependent variable.
+	     (custom-reevaluate-setting 'vc-annotate-color-map))))
   :version "24.5"
   :group 'vc)
 
