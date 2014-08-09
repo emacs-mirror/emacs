@@ -1,3 +1,10 @@
+2014-08-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	2014-08-07 getdtablesize: fall back on sysconf (_SC_OPEN_MAX)
+	2014-08-05 sys_select: fix FD_ZERO problem on Solaris 10
+	* lib/getdtablesize.c, lib/sys_select.in.h: Update from gnulib.
+
 2014-08-07  Reuben Thomas  <rrt@sc3d.org>
 
 	* README: ``MSDOG'' becomes ``MS-DOS''.

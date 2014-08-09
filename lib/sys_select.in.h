@@ -24,8 +24,8 @@
    On Cygwin, <sys/time.h> includes <sys/select.h>.
    Simply delegate to the system's header in this case.  */
 #if (@HAVE_SYS_SELECT_H@                                                \
+     && !defined _GL_SYS_SELECT_H_REDIRECT_FROM_SYS_TYPES_H             \
      && ((defined __osf__ && defined _SYS_TYPES_H_                      \
-          && !defined _GL_SYS_SELECT_H_REDIRECT_FROM_SYS_TIME_H         \
           && defined _OSF_SOURCE)                                       \
          || (defined __sun && defined _SYS_TYPES_H                      \
              && (! (defined _XOPEN_SOURCE || defined _POSIX_C_SOURCE)   \
@@ -36,12 +36,13 @@
 
 #elif (@HAVE_SYS_SELECT_H@                                              \
        && (defined _CYGWIN_SYS_TIME_H                                   \
-           || (defined __osf__ && defined _SYS_TIME_H_                  \
-               && !defined _GL_SYS_SELECT_H_REDIRECT_FROM_SYS_TIME_H    \
-               && defined _OSF_SOURCE)                                  \
-           || (defined __sun && defined _SYS_TIME_H                     \
-               && (! (defined _XOPEN_SOURCE || defined _POSIX_C_SOURCE) \
-                   || defined __EXTENSIONS__))))
+           || (!defined _GL_SYS_SELECT_H_REDIRECT_FROM_SYS_TIME_H       \
+               && ((defined __osf__ && defined _SYS_TIME_H_             \
+                    && defined _OSF_SOURCE)                             \
+                   || (defined __sun && defined _SYS_TIME_H             \
+                       && (! (defined _XOPEN_SOURCE                     \
+                              || defined _POSIX_C_SOURCE)               \
+                           || defined __EXTENSIONS__))))))
 
 # define _GL_SYS_SELECT_H_REDIRECT_FROM_SYS_TIME_H
 # @INCLUDE_NEXT@ @NEXT_SYS_SELECT_H@
