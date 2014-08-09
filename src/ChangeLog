@@ -1,3 +1,11 @@
+2014-08-09  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* widgetprv.h (EmacsFramePart): Remove font.
+
+	* widget.c (DEFAULT_FACE_FONT, EmacsFrameSetValues, setup_frame_gcs)
+	(resources, setup_frame_cursor_bits): Remove unused variables and
+	functions, esp. wrt. font (Bug#18227).
+
 2014-08-07  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* xterm.c (x_delete_terminal): Plug file descriptor leak (Bug#17691).

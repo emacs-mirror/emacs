@@ -43,7 +43,6 @@ typedef struct {
   int		internal_border_width;	/* internal borders */
   int		interline;		/* skips between lines */
 
-  struct font*	font;			/* font */
   Pixel		foreground_pixel;	/* foreground */
 
   Pixel		cursor_color;		/* text cursor color */
