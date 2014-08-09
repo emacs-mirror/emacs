@@ -1,3 +1,11 @@
+2014-08-09  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (Fwindow_new_total, Fwindow_new_normal)
+	(Fwindow_new_pixel, Fset_window_new_pixel)
+	(Fset_window_new_total, Fset_window_new_normal): Second attempt
+	to fix the doc-strings of these functions.  See:
+	http://lists.gnu.org/archive/html/bug-gnu-emacs/2014-08/msg00287.html
+
 2014-08-08  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.c (Fwindow_valid_p): Fix doc-string (Bug#18194).

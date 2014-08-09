@@ -794,8 +794,10 @@ DEFUN ("window-new-total", Fwindow_new_total, Swindow_new_total, 0, 1, 0,
        doc: /* Return the new total size of window WINDOW.
 WINDOW must be a valid window and defaults to the selected one.
 
-The new total size of WINDOW (see `window-total-size') is that set by
-the last call of `set-window-new-total' for WINDOW.  */)
+The new total size of WINDOW is the value set by the last call of
+`set-window-new-total' for WINDOW.  If it is valid, it will be shortly
+installed as WINDOW's total height (see `window-total-height') or total
+width (see `window-total-width').  */)
   (Lisp_Object window)
 {
   return decode_valid_window (window)->new_total;
@@ -834,8 +836,9 @@ DEFUN ("window-new-normal", Fwindow_new_normal, Swindow_new_normal, 0, 1, 0,
        doc: /* Return new normal size of window WINDOW.
 WINDOW must be a valid window and defaults to the selected one.
 
-The new normal size of WINDOW (see `window-normal-size') is that set by
-the last call of `set-window-new-normal' for WINDOW.  */)
+The new normal size of WINDOW is the value set by the last call of
+`set-window-new-normal' for WINDOW.  If valid, it will be shortly
+installed as WINDOW's normal size (see `window-normal-size').  */)
   (Lisp_Object window)
 {
   return decode_valid_window (window)->new_normal;
@@ -846,9 +849,9 @@ DEFUN ("window-new-pixel", Fwindow_new_pixel, Swindow_new_pixel, 0, 1, 0,
 WINDOW must be a valid window and defaults to the selected one.
 
 The new pixel size of WINDOW is the value set by the last call of
-`set-window-new-pixel' for WINDOW.  If set correctly, it gets eventually
-installed by the function `window-resize-apply' and will be returned by
-the functions `window-pixel-height' or `window-pixel-width'.  */)
+`set-window-new-pixel' for WINDOW.  If it is valid, it will be shortly
+installed as WINDOW's pixel height (see `window-pixel-height') or pixel
+width (see `window-pixel-width').  */)
   (Lisp_Object window)
 {
   return decode_valid_window (window)->new_pixel;
@@ -3744,9 +3747,9 @@ Return SIZE.
 Optional argument ADD non-nil means add SIZE to the new pixel size of
 WINDOW and return the sum.
 
-The new pixel size of WINDOW is used by `window-resize-apply' and, if
-that function succeeds, will be subsequently returned by the functions
-`window-pixel-height' and `window-pixel-width'.
+The new pixel size of WINDOW, if valid, will be shortly installed as
+WINDOW's pixel height (see `window-pixel-height') or pixel width (see
+`window-pixel-width').
 
 Note: This function does not operate on any child windows of WINDOW.  */)
   (Lisp_Object window, Lisp_Object size, Lisp_Object add)
@@ -3772,8 +3775,9 @@ Return SIZE.
 Optional argument ADD non-nil means add SIZE to the new total size of
 WINDOW and return the sum.
 
-The new total size of WINDOW is used by `window-resize-apply-total' and,
-after calling that function, will be returned by `window-total-size'.
+The new total size of WINDOW, if valid, will be shortly installed as
+WINDOW's total height (see `window-total-height') or total width (see
+`window-total-width').
 
 Note: This function does not operate on any child windows of WINDOW.  */)
      (Lisp_Object window, Lisp_Object size, Lisp_Object add)
@@ -3794,9 +3798,8 @@ DEFUN ("set-window-new-normal", Fset_window_new_normal, Sset_window_new_normal, 
 WINDOW must be a valid window and defaults to the selected one.
 Return SIZE.
 
-The new normal size of WINDOW is used by `window-resize-apply' and, if
-that function succeeds, will be subsequently returned by the function
-`window-normal-size'.
+The new normal size of WINDOW, if valid, will be shortly installed as
+WINDOW's normal size (see `window-normal-size').
 
 Note: This function does not operate on any child windows of WINDOW.  */)
      (Lisp_Object window, Lisp_Object size)
