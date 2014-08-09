@@ -6595,7 +6595,7 @@ keyboard_bit_set (fd_set *mask)
 
 #else  /* not subprocesses */
 
-/* Defined on msdos.c.  */
+/* Defined in msdos.c.  */
 extern int sys_select (int, fd_set *, fd_set *, fd_set *,
 		       struct timespec *, void *);
 
