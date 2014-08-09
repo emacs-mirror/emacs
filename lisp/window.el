@@ -6373,7 +6373,10 @@ again with `display-buffer-pop-up-window'."
 This either splits the selected window or reuses the window below
 the selected one."
   (let (window)
-    (or (and (not (frame-parameter nil 'unsplittable))
+    (or (and (setq window (window-in-direction 'below))
+	     (eq buffer (window-buffer window))
+	     (window--display-buffer buffer window 'reuse alist))
+	(and (not (frame-parameter nil 'unsplittable))
 	     (let ((split-height-threshold 0)
 		   split-width-threshold)
 	       (setq window (window--try-to-split-window (selected-window) alist)))

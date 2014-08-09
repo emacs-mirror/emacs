@@ -1,3 +1,9 @@
+2014-08-09  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer-below-selected): Restore original
+	behavior if buffer is already displayed in the window below the
+	selected one (Bug#18181).
+
 2014-08-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mouse.el (mouse--down-1-maybe-follows-link): Don't convert the down
