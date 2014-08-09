@@ -12,7 +12,7 @@ supported (e.g., with a specialized driver such as doslfn).
 
 To build and install the DJGPP port, you need to have the DJGPP ports
 of GCC (the GNU C compiler), GNU Make, rm, mv, cp, and sed, and
-version 2.03 or later of DJGPP itself.  See the remarks in CONFIG.BAT
+version 2.02 or later of DJGPP itself.  See the remarks in CONFIG.BAT
 for more information about locations and versions.  The Emacs FAQ (see
 info/efaq.info) includes pointers to Internet sites where you can find
 the necessary utilities; search for "MS-DOS".  The configuration step

@@ -1,3 +1,7 @@
+2014-08-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* INSTALL: Fix last change.
+
 2014-08-09  Reuben Thomas  <rrt@sc3d.org>
 
 	* sed2v2.inp: Remove support for DJGPP 2.01.
