@@ -712,7 +712,6 @@ in the repository.")
     ("server.c" . "emacsserver.c")
     ("lib-src/etags.c" . "etags.c")
     ;; msdos/
-    ("is-exec.c" . "is_exec.c")
     ("enriched.doc" . "enriched.txt")
     ("GETTING.GNU.SOFTWARE" . "FTP")
     ("etc/MACHINES" . "MACHINES")

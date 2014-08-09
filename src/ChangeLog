@@ -1,3 +1,8 @@
+2014-08-09  Reuben Thomas  <rrt@sc3d.org>
+
+	* msdos.c:
+	* dosfns.c (init_dosfns): Remove support for DJGPP < 2.02.
+
 2014-08-09  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* widgetprv.h (EmacsFramePart): Remove font.

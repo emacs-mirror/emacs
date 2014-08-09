@@ -22,10 +22,6 @@
 #include <sys/version.h>\
 /* In DJGPP v2.x almost everything is already defined in a system header.  */\
 #include <sys/config.h>\
-/* For those who still use DJGPP v2.01  */\
-#if __DJGPP__ == 2 && __DJGPP_MINOR__ == 1\
-#define NSIG 320\
-#endif
 
 /^#undef MSDOS *$/c\
 #ifndef MSDOS\

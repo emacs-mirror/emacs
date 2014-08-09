@@ -370,13 +370,6 @@ init_dosfns (void)
      Don't OR it with the previous value, so the value recorded at dump
      time, possibly with `preserve-case' flags set, won't get through.  */
   __opendir_flags = __OPENDIR_FIND_HIDDEN;
-
-#if __DJGPP_MINOR__ == 0
-  /* Under LFN, preserve the case of files as recorded in the directory
-     (in DJGPP 2.01 and later this is automagically done by the library).  */
-  if (!NILP (Fmsdos_long_file_names ()))
-    __opendir_flags |= __OPENDIR_PRESERVE_CASE;
-#endif /* __DJGPP_MINOR__ == 0 */
 }
 
 #ifndef HAVE_X_WINDOWS

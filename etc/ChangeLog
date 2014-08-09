@@ -1,3 +1,7 @@
+2014-08-09  Reuben Thomas  <rrt@sc3d.org>
+
+	* PROBLEMS: Remove msdos/is_exec.c and sigaction.c.
+
 2014-07-21  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* TODO: remove frame height remark.

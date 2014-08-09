@@ -1,3 +1,8 @@
+2014-08-09  Reuben Thomas  <rrt@sc3d.org>
+
+	* make-dist (files): Remove msdos/is_exec.c and sigaction.c.
+	* config.bat: Require DJGPP 2.02 or later.
+
 2014-08-09  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Merge from gnulib, incorporating:

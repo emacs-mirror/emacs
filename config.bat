@@ -19,13 +19,13 @@ rem   You should have received a copy of the GNU General Public License
 rem   along with GNU Emacs.  If not, see http://www.gnu.org/licenses/.
 
 rem   ----------------------------------------------------------------------
-rem   YOU'LL NEED THE FOLLOWING UTILITIES TO MAKE EMACS:
-rem
-rem   + msdos version 3 or better.
-rem   + DJGPP version 2.0 or later (version 2.03 or later recommended).
-rem   + make utility that allows breaking of the 128 chars limit on
-rem     command lines.  ndmake (as of version 4.5) won't work due to a
-rem     line length limit.  The make that comes with DJGPP does work (and is
+rem   YOU'LL NEED THE FOLLOWING UTILITIES TO MAKE EMACS:
+rem
+rem   + msdos version 3 or better.
+rem   + DJGPP version 2.02 or later (version 2.03 or later recommended).
+rem   + make utility that allows breaking of the 128 chars limit on
+rem     command lines.  ndmake (as of version 4.5) won't work due to a
+rem     line length limit.  The make that comes with DJGPP does work (and is
 rem     recommended).
 rem   + rm, mv, and cp (from GNU file utilities).
 rem   + sed (you can use the port that comes with DJGPP).
@@ -106,13 +106,13 @@ Echo Checking what version of DJGPP is installed...
 If Not "%DJGPP%" == "" goto djgppOk
 Echo To compile 'Emacs' under MS-DOS you MUST have DJGPP installed!
 Goto End
-:djgppOk
-echo int main()           >junk.c
-echo #ifdef __DJGPP__    >>junk.c
-echo {return (__DJGPP__)*10;} >>junk.c
-echo #else               >>junk.c
-echo #ifdef __GO32__     >>junk.c
-echo {return 10;}         >>junk.c
+:djgppOk
+echo int main()           >junk.c
+echo #ifdef __DJGPP__    >>junk.c
+echo {return (__DJGPP__)*10 + (__DJGPP_MINOR__);} >>junk.c
+echo #else               >>junk.c
+echo #ifdef __GO32__     >>junk.c
+echo {return 10;}         >>junk.c
 echo #else               >>junk.c
 echo {return 0;}         >>junk.c
 echo #endif              >>junk.c
@@ -123,22 +123,21 @@ junk
 If ErrorLevel 10 Goto go32Ok
 rm -f junk.c junk junk.exe
 Echo To compile 'Emacs' under MS-DOS you MUST have DJGPP installed!
-Goto End
-:go32Ok
-set djgpp_ver=2
-If Not ErrorLevel 20 Echo To build 'Emacs' you need DJGPP v2.0 or later!
-If Not ErrorLevel 20 Goto End
-rm -f junk.c junk junk.exe
-rem DJECHO is used by the top-level Makefile in the v2.x build
-Echo Checking whether 'djecho' is available...
+Goto End
+:go32Ok
+set djgpp_ver=2
+If Not ErrorLevel 22 Echo To build 'Emacs' you need DJGPP v2.02 or later!
+If Not ErrorLevel 22 Goto End
+rm -f junk.c junk junk.exe
+rem DJECHO is used by the top-level Makefile in the v2.x build
+Echo Checking whether 'djecho' is available...
 redir -o Nul -eo djecho -o junk.$$$ foo
-If Exist junk.$$$ Goto djechoOk
-Echo To build 'Emacs' you need the 'djecho.exe' program!
-Echo 'djecho.exe' is part of 'djdevNNN.zip' basic DJGPP development kit.
-Echo Versions of DJGPP before 2.02 called this program 'echo.exe'.
-Echo Either unpack 'djecho.exe' from the 'djdevNNN.zip' archive,
-Echo or, if you have 'echo.exe', copy it to 'djecho.exe'.
-Echo Then run CONFIG.BAT again with the same arguments you did now.
+If Exist junk.$$$ Goto djechoOk
+Echo To build 'Emacs' you need the 'djecho.exe' program!
+Echo 'djecho.exe' is part of 'djdevNNN.zip' basic DJGPP development kit.
+Echo Either unpack 'djecho.exe' from the 'djdevNNN.zip' archive,
+Echo or, if you have 'echo.exe', copy it to 'djecho.exe'.
+Echo Then run CONFIG.BAT again with the same arguments you did now.
 Goto End
 :djechoOk
 rm -f junk.$$$

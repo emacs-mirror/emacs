@@ -316,11 +316,6 @@ licensing@fsf.org starting on Thu, 07 Aug 2003 with subject:
 "[gnu.org #58812] Changing license of MH-E manual"
 
 
-msdos/is_exec.c, sigaction.c - these files are copyright DJ Delorie.
-Leave the copyrights alone. Leave the Eli Zaretskii copyright in
-is_exec.c alone. See the msdos/README file for the legal history of
-these files.
-
 msdos/sed*.inp - These files are copyright FSF and distributed under
 an MIT-like license.
 
@@ -563,8 +558,7 @@ oldXMenu/insque.c (rms: "We wrote that specifically for Emacs, so
 definitely relicense that.").
 
 2. The files that are copyright FSF and AIST, or AIST alone, should be
-and were updated, ditto the oldXMenu files with FSF copyright, and
-msdos/is_exec.c and sigaction.c.
+and were updated, ditto the oldXMenu files with FSF copyright.
 
 3. lwlib/
 
