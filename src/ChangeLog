@@ -1,5 +1,6 @@
 2014-08-09  Reuben Thomas  <rrt@sc3d.org>
 
+	* process.c: Fix a comment typo.
 	* msdos.c:
 	* dosfns.c (init_dosfns): Remove support for DJGPP < 2.02.
 
