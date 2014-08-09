@@ -6915,7 +6915,6 @@ or memory information can't be obtained, return nil.  */)
 		   (uintmax_t) freeswap / 1024);
   else
     return Qnil;
-}
 #else /* not HAVE_LINUX_SYSINFO, not WINDOWSNT, not MSDOS */
   /* FIXME: add more systems.  */
   return Qnil;
