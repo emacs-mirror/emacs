@@ -1,3 +1,10 @@
+2014-08-09  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-fonts.el (c-font-lock-declarators): Remove check
+	for top-level that can cause unacceptable slow-down in scrolling.
+	See email Subject: Huge {...} blocks in C/C++ again, from Dmitry
+	Antipov from 2013-10-14 in emacs-devel.
+
 2014-08-08  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
 
 	* ibuffer.el (ibuffer-mode-map): Use toggle button for
