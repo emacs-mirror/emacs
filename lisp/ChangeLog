@@ -1,3 +1,8 @@
+2014-08-10  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window-total-size): Make doc-string more
+	self-contained.
+
 2014-08-09  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (display-buffer-below-selected): Restore original
