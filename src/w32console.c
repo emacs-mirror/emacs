@@ -118,7 +118,7 @@ static void
 w32con_clear_to_end (struct frame *f)
 {
   w32con_clear_end_of_line (f, FRAME_COLS (f) - 1);
-  w32con_ins_del_lines (f, cursor_coords.Y, FRAME_LINES (f) - cursor_coords.Y - 1);
+  w32con_ins_del_lines (f, cursor_coords.Y, FRAME_TOTAL_LINES (f) - cursor_coords.Y - 1);
 }
 
 /* Clear the frame.  */
@@ -133,7 +133,7 @@ w32con_clear_frame (struct frame *f)
   GetConsoleScreenBufferInfo (GetStdHandle (STD_OUTPUT_HANDLE), &info);
 
   /* Remember that the screen buffer might be wider than the window.  */
-  n = FRAME_LINES (f) * info.dwSize.X;
+  n = FRAME_TOTAL_LINES (f) * info.dwSize.X;
   dest.X = dest.Y = 0;
 
   FillConsoleOutputAttribute (cur_screen, char_attr_normal, n, dest, &r);
@@ -175,18 +175,18 @@ w32con_ins_del_lines (struct frame *f, int vpos, int n)
   if (n < 0)
     {
       scroll.Top = vpos - n;
-      scroll.Bottom = FRAME_LINES (f);
+      scroll.Bottom = FRAME_TOTAL_LINES (f);
       dest.Y = vpos;
     }
   else
     {
       scroll.Top = vpos;
-      scroll.Bottom = FRAME_LINES (f) - n;
+      scroll.Bottom = FRAME_TOTAL_LINES (f) - n;
       dest.Y = vpos + n;
     }
   clip.Top = clip.Left = scroll.Left = 0;
   clip.Right = scroll.Right = FRAME_COLS (f);
-  clip.Bottom = FRAME_LINES (f);
+  clip.Bottom = FRAME_TOTAL_LINES (f);
 
   dest.X = 0;
 

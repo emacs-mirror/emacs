@@ -1868,7 +1868,7 @@ static Lisp_Object
 safe_run_hooks_error (Lisp_Object error, ptrdiff_t nargs, Lisp_Object *args)
 {
   Lisp_Object hook, fun, msgargs[4];
-  
+
   eassert (nargs == 2);
   hook = args[0];
   fun = args[1];
@@ -10221,8 +10221,9 @@ On such systems, Emacs starts a subshell instead of suspending.  */)
      with a window system; but suspend should be disabled in that case.  */
   get_tty_size (fileno (CURTTY ()->input), &width, &height);
   if (width != old_width || height != old_height)
-    change_frame_size (SELECTED_FRAME (), width, height
-		       - FRAME_MENU_BAR_LINES (SELECTED_FRAME ()), 0, 0, 0, 0);
+    change_frame_size (SELECTED_FRAME (), width,
+		       height - FRAME_MENU_BAR_LINES (SELECTED_FRAME ()),
+		       0, 0, 0, 0);
 
   /* Run suspend-resume-hook.  */
   hook = intern ("suspend-resume-hook");

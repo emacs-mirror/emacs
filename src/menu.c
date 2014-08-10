@@ -1455,7 +1455,7 @@ emulate_dialog_with_menu (struct frame *f, Lisp_Object contents)
 	 their upper-left corner at the given position.)  */
       if (STRINGP (prompt))
 	x_coord -= SCHARS (prompt);
-      y_coord = FRAME_LINES (f);
+      y_coord = FRAME_TOTAL_LINES (f);
     }
 
   XSETFRAME (frame, f);

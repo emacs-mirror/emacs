@@ -5444,7 +5444,9 @@ handle_window_change_signal (int sig)
           /* Record the new sizes, but don't reallocate the data
              structures now.  Let that be done later outside of the
              signal handler.  */
-          change_frame_size (XFRAME (frame), width, height, 0, 1, 0, 0);
+          change_frame_size (XFRAME (frame), width,
+			     height - FRAME_MENU_BAR_LINES (XFRAME (frame)),
+			     0, 1, 0, 0);
     }
   }
 }

@@ -1,3 +1,35 @@
+2014-08-10  Martin Rudalics  <rudalics@gmx.at>
+
+	Fix handling of menu bar line on TTY frames (Bug#18136)
+	(Bug#18196).
+	* dispnew.c (handle_window_change_signal):
+	* keyboard.c (Fsuspend_emacs): Call change_frame_size with
+	frame's menu bar lines subtracted from height.
+	* frame.c (frame_inhibit_resize): Inhibit resizing of TTY
+	frames.
+	(adjust_frame_size): Count in menu bar when setting FrameRows.
+	(make_terminal_frame): When setting up the frame's lines and
+	text height don't count in the menu bar.
+	(Fmake_terminal_frame): Call adjust_frame_size with menu bar
+	lines subtracted from height.
+	(do_switch_frame): Set tty's FrameRows to number of total lines
+	of frame.
+	(Fframe_pixel_height, Fframe_pixel_width): If no window system
+	is used, return total number of lines and columns.
+	* menu.c (emulate_dialog_with_menu): Use FRAME_TOTAL_LINES instead
+	of FRAME_LINES.
+	* term.c (OUTPUT, tty_set_terminal_modes)
+	(tty_set_terminal_window, tty_set_scroll_region)
+	(tty_clear_to_end, tty_write_glyphs, tty_write_glyphs_with_face)
+	(tty_ins_del_lines, tty_menu_display, tty_menu_activate): Use
+	FRAME_TOTAL_LINES instead of FRAME_LINES.
+	(Fresume_tty): Use FRAME_TOTAL_LINES instead of FRAME_LINES.
+	Call change_frame_size with frame's menu bar lines subtracted
+	from height.
+	* w32console.c (w32con_clear_to_end, w32con_clear_frame)
+	(w32con_ins_del_lines): Use FRAME_TOTAL_LINES instead of
+	FRAME_LINES.
+
 2014-08-09  Reuben Thomas  <rrt@sc3d.org>
 
 	* alloc.c (Fmemory_info): Remove a stray brace.

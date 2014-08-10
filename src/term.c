@@ -91,7 +91,7 @@ static _Noreturn void vfatal (const char *str, va_list ap)
 
 #define OUTPUT(tty, a)                                          \
   emacs_tputs ((tty), a,                                        \
-               FRAME_LINES (XFRAME (selected_frame)) - curY (tty),	\
+               FRAME_TOTAL_LINES (XFRAME (selected_frame)) - curY (tty),	\
                cmputc)
 
 #define OUTPUT1(tty, a) emacs_tputs ((tty), a, 1, cmputc)
@@ -201,7 +201,7 @@ tty_set_terminal_modes (struct terminal *terminal)
              off the screen, so it won't be overwritten and lost.  */
           int i;
           current_tty = tty;
-          for (i = 0; i < FRAME_LINES (XFRAME (selected_frame)); i++)
+          for (i = 0; i < FRAME_TOTAL_LINES (XFRAME (selected_frame)); i++)
             cmputc ('\n');
         }
 
@@ -257,7 +257,7 @@ tty_set_terminal_window (struct frame *f, int size)
 {
   struct tty_display_info *tty = FRAME_TTY (f);
 
-  tty->specified_window = size ? size : FRAME_LINES (f);
+  tty->specified_window = size ? size : FRAME_TOTAL_LINES (f);
   if (FRAME_SCROLL_REGION_OK (f))
     tty_set_scroll_region (f, 0, tty->specified_window);
 }
@@ -272,9 +272,9 @@ tty_set_scroll_region (struct frame *f, int start, int stop)
     buf = tparam (tty->TS_set_scroll_region, 0, 0, start, stop - 1, 0, 0);
   else if (tty->TS_set_scroll_region_1)
     buf = tparam (tty->TS_set_scroll_region_1, 0, 0,
-		  FRAME_LINES (f), start,
-		  FRAME_LINES (f) - stop,
-		  FRAME_LINES (f));
+		  FRAME_TOTAL_LINES (f), start,
+		  FRAME_TOTAL_LINES (f) - stop,
+		  FRAME_TOTAL_LINES (f));
   else
     buf = tparam (tty->TS_set_window, 0, 0, start, 0, stop, FRAME_COLS (f));
 
@@ -446,7 +446,7 @@ tty_clear_to_end (struct frame *f)
     }
   else
     {
-      for (i = curY (tty); i < FRAME_LINES (f); i++)
+      for (i = curY (tty); i < FRAME_TOTAL_LINES (f); i++)
 	{
 	  cursor_to (f, i, 0);
 	  clear_end_of_line (f, FRAME_COLS (f));
@@ -748,7 +748,7 @@ tty_write_glyphs (struct frame *f, struct glyph *string, int len)
      since that would scroll the whole frame on some terminals.  */
 
   if (AutoWrap (tty)
-      && curY (tty) + 1 == FRAME_LINES (f)
+      && curY (tty) + 1 == FRAME_TOTAL_LINES (f)
       && (curX (tty) + len) == FRAME_COLS (f))
     len --;
   if (len <= 0)
@@ -820,7 +820,7 @@ tty_write_glyphs_with_face (register struct frame *f, register struct glyph *str
      since that would scroll the whole frame on some terminals.  */
 
   if (AutoWrap (tty)
-      && curY (tty) + 1 == FRAME_LINES (f)
+      && curY (tty) + 1 == FRAME_TOTAL_LINES (f)
       && (curX (tty) + len) == FRAME_COLS (f))
     len --;
   if (len <= 0)
@@ -1009,7 +1009,7 @@ tty_ins_del_lines (struct frame *f, int vpos, int n)
       && vpos + i >= tty->specified_window)
     return;
   if (!FRAME_MEMORY_BELOW_FRAME (f)
-      && vpos + i >= FRAME_LINES (f))
+      && vpos + i >= FRAME_TOTAL_LINES (f))
     return;
 
   if (multi)
@@ -1046,7 +1046,7 @@ tty_ins_del_lines (struct frame *f, int vpos, int n)
       && FRAME_MEMORY_BELOW_FRAME (f)
       && n < 0)
     {
-      cursor_to (f, FRAME_LINES (f) + n, 0);
+      cursor_to (f, FRAME_TOTAL_LINES (f) + n, 0);
       clear_to_end (f);
     }
 }
@@ -2405,13 +2405,14 @@ frame's terminal). */)
 	  struct frame *f = XFRAME (t->display_info.tty->top_frame);
 	  int width, height;
 	  int old_height = FRAME_COLS (f);
-	  int old_width = FRAME_LINES (f);
+	  int old_width = FRAME_TOTAL_LINES (f);
 
 	  /* Check if terminal/window size has changed while the frame
 	     was suspended.  */
 	  get_tty_size (fileno (t->display_info.tty->input), &width, &height);
 	  if (width != old_width || height != old_height)
-	    change_frame_size (f, width, height - FRAME_MENU_BAR_LINES (f), 0, 0, 0, 0);
+	    change_frame_size (f, width, height - FRAME_MENU_BAR_LINES (f),
+			       0, 0, 0, 0);
 	  SET_FRAME_VISIBLE (XFRAME (t->display_info.tty->top_frame), 1);
 	}
 
@@ -2894,7 +2895,7 @@ tty_menu_display (tty_menu *menu, int x, int y, int pn, int *faces,
   /* Don't try to display more menu items than the console can display
      using the available screen lines.  Exclude the echo area line, as
      it will be overwritten by the help-echo anyway.  */
-  int max_items = min (menu->count - first_item, FRAME_LINES (sf) - 1 - y);
+  int max_items = min (menu->count - first_item, FRAME_TOTAL_LINES (sf) - 1 - y);
 
   menu_help_message = NULL;
 
@@ -3274,7 +3275,7 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
     {
       mi_result input_status;
       int min_y = state[0].y;
-      int max_y = min (min_y + state[0].menu->count, FRAME_LINES (sf) - 1) - 1;
+      int max_y = min (min_y + state[0].menu->count, FRAME_TOTAL_LINES (sf) - 1) - 1;
 
       input_status = read_menu_input (sf, &x, &y, min_y, max_y, &first_time);
       if (input_status)
