@@ -25,7 +25,7 @@ rem   + msdos version 3 or better.
 rem   + DJGPP version 2.02 or later (version 2.03 or later recommended).
 rem   + make utility that allows breaking of the 128 chars limit on
 rem     command lines.  ndmake (as of version 4.5) won't work due to a
-rem     line length limit.  The make that comes with DJGPP does work (and is
+rem     line length limit.  The DJGPP port of make works (and is
 rem     recommended).
 rem   + rm, mv, and cp (from GNU file utilities).
 rem   + sed (you can use the port that comes with DJGPP).
