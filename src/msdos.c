@@ -71,6 +71,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "coding.h"
 #include "disptab.h"
 #include "window.h"
+#include "menu.h"
 #include "buffer.h"
 #include "commands.h"
 #include "blockinput.h"

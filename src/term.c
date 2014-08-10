@@ -3936,7 +3936,11 @@ set_tty_hooks (struct terminal *terminal)
   terminal->reset_terminal_modes_hook = &tty_reset_terminal_modes;
   terminal->set_terminal_modes_hook = &tty_set_terminal_modes;
   terminal->update_end_hook = &tty_update_end;
+#ifdef MSDOS
+  terminal->menu_show_hook = &x_menu_show;
+#else
   terminal->menu_show_hook = &tty_menu_show;
+#endif
   terminal->set_terminal_window_hook = &tty_set_terminal_window;
   terminal->read_socket_hook = &tty_read_avail_input; /* keyboard.c */
   terminal->delete_frame_hook = &tty_free_frame_resources;

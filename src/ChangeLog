@@ -1,3 +1,9 @@
+2014-08-10  Reuben Thomas  <rrt@sc3d.org>
+
+	Fix a couple of recent inadvertent breaks of the MSDOS port.
+	* msdos.c: include required menu.h
+	* term.c: set correct menu_show_hook on MSDOS.
+
 2014-08-10  Martin Rudalics  <rudalics@gmx.at>
 
 	Fix handling of menu bar line on TTY frames (Bug#18136)
