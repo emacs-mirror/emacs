@@ -98,13 +98,13 @@
          result)
     (setq result (icalendar--convert-anniversary-to-ical
                   "" "%%(diary-anniversary 1964 6 30) g"))
-    (should (= 2 (length result)))
+    (should (consp result))
     (should (string= (concat
                       "\nDTSTART;VALUE=DATE:19640630"
                       "\nDTEND;VALUE=DATE:19640701"
                       "\nRRULE:FREQ=YEARLY;INTERVAL=1;BYMONTH=06;BYMONTHDAY=30")
                      (car result)))
-    (should (string= "g" (cadr result)))))
+    (should (string= "g" (cdr result)))))
 
 (ert-deftest icalendar--convert-cyclic-to-ical ()
   "Test method for `icalendar--convert-cyclic-to-ical'."
@@ -112,12 +112,12 @@
          result)
     (setq result (icalendar--convert-block-to-ical
                   "" "%%(diary-block 2004 7 19 2004 8 27) Sommerferien"))
-    (should (= 2 (length result)))
+    (should (consp result))
     (should (string= (concat
                       "\nDTSTART;VALUE=DATE:20040719"
                       "\nDTEND;VALUE=DATE:20040828")
                      (car result)))
-    (should (string= "Sommerferien" (cadr result)))))
+    (should (string= "Sommerferien" (cdr result)))))
 
 (ert-deftest icalendar--convert-block-to-ical ()
   "Test method for `icalendar--convert-block-to-ical'."
@@ -125,12 +125,12 @@
          result)
     (setq result (icalendar--convert-block-to-ical
                   "" "%%(diary-block 2004 7 19 2004 8 27) Sommerferien"))
-    (should (= 2 (length result)))
+    (should (consp result))
     (should (string= (concat
                       "\nDTSTART;VALUE=DATE:20040719"
                       "\nDTEND;VALUE=DATE:20040828")
                      (car result)))
-    (should (string= "Sommerferien" (cadr result)))))
+    (should (string= "Sommerferien" (cdr result)))))
 
 (ert-deftest icalendar--convert-yearly-to-ical ()
   "Test method for `icalendar--convert-yearly-to-ical'."
@@ -140,13 +140,13 @@
           ["January" "February" "March" "April" "May" "June" "July" "August"
            "September" "October" "November" "December"]))
     (setq result (icalendar--convert-yearly-to-ical "" "May 1 Tag der Arbeit"))
-    (should (= 2 (length result)))
+    (should (consp result))
     (should (string= (concat
                       "\nDTSTART;VALUE=DATE:19000501"
                       "\nDTEND;VALUE=DATE:19000502"
                       "\nRRULE:FREQ=YEARLY;INTERVAL=1;BYMONTH=5;BYMONTHDAY=1")
                      (car result)))
-    (should (string= "Tag der Arbeit" (cadr result)))))
+    (should (string= "Tag der Arbeit" (cdr result)))))
 
 (ert-deftest icalendar--convert-weekly-to-ical ()
   "Test method for `icalendar--convert-weekly-to-ical'."
@@ -156,12 +156,49 @@
           ["Sunday" "Monday" "Tuesday" "Wednesday" "Thursday" "Friday"
            "Saturday"]))
     (setq result (icalendar--convert-weekly-to-ical "" "Monday 8:30 subject"))
-    (should (= 2 (length result)))
+    (should (consp result))
     (should (string= (concat "\nDTSTART;VALUE=DATE-TIME:20050103T083000"
                              "\nDTEND;VALUE=DATE-TIME:20050103T093000"
                              "\nRRULE:FREQ=WEEKLY;INTERVAL=1;BYDAY=MO")
                      (car result)))
-    (should (string= "subject" (cadr result)))))
+    (should (string= "subject" (cdr result)))))
+
+(ert-deftest icalendar--convert-sexp-to-ical ()
+  "Test method for `icalendar--convert-sexp-to-ical'."
+  (let* (result
+         (icalendar-export-sexp-enumeration-days 3))
+    ;; test case %%(diary-hebrew-date)
+    (setq result (icalendar--convert-sexp-to-ical "" "%%(diary-hebrew-date)"))
+    (should (consp result))
+    (should (eq icalendar-export-sexp-enumeration-days (length result)))
+    (mapc (lambda (i)
+            (should (consp i))
+            (should (string-match "Hebrew date (until sunset): .*" (cdr i))))
+          result)))
+
+(ert-deftest icalendar--convert-to-ical ()
+  "Test method for `icalendar--convert-to-ical'."
+  (let* (result
+         (icalendar-export-sexp-enumerate-all t)
+         (icalendar-export-sexp-enumeration-days 3)
+         (calendar-date-style 'iso))
+    ;; test case: %%(diary-anniversary 1642 12 25) Newton
+    ;; forced enumeration not matching the actual day --> empty
+    (setq result (icalendar--convert-sexp-to-ical
+                  "" "%%(diary-anniversary 1642 12 25) Newton's birthday"
+                  (encode-time 1 1 1 6 12 2014)))
+    (should (null result))
+    ;; test case: %%(diary-anniversary 1642 12 25) Newton
+    ;; enumeration does match the actual day -->
+    (setq result (icalendar--convert-sexp-to-ical
+                  "" "%%(diary-anniversary 1642 12 25) Newton's birthday"
+                  (encode-time 1 1 1 24 12 2014)))
+    (should (= 1 (length result)))
+    (should (consp (car result)))
+    (should (string-match
+             "\nDTSTART;VALUE=DATE:20141225\nDTEND;VALUE=DATE:20141226"
+             (car (car result))))
+    (should (string-match "Newton's birthday" (cdr (car result))))))
 
 (ert-deftest icalendar--parse-vtimezone ()
   "Test method for `icalendar--parse-vtimezone'."
@@ -215,37 +252,37 @@ END:VTIMEZONE
          result)
     ;; without time
     (setq result (icalendar--convert-ordinary-to-ical "&?" "2010 2 15 subject"))
-    (should (= 2 (length result)))
+    (should (consp result))
     (should (string=  "\nDTSTART;VALUE=DATE:20100215\nDTEND;VALUE=DATE:20100216"
                       (car result)))
-    (should (string= "subject" (cadr result)))
+    (should (string= "subject" (cdr result)))
 
     ;; with start time
     (setq result (icalendar--convert-ordinary-to-ical
                   "&?" "&2010 2 15 12:34 s"))
-    (should (= 2 (length result)))
+    (should (consp result))
     (should (string=  (concat "\nDTSTART;VALUE=DATE-TIME:20100215T123400"
                               "\nDTEND;VALUE=DATE-TIME:20100215T133400")
                       (car result)))
-    (should (string= "s" (cadr result)))
+    (should (string= "s" (cdr result)))
 
     ;; with time
     (setq result (icalendar--convert-ordinary-to-ical
                   "&?" "&2010 2 15 12:34-23:45 s"))
-    (should (= 2 (length result)))
+    (should (consp result))
     (should (string=  (concat "\nDTSTART;VALUE=DATE-TIME:20100215T123400"
                               "\nDTEND;VALUE=DATE-TIME:20100215T234500")
                       (car result)))
-    (should (string= "s" (cadr result)))
+    (should (string= "s" (cdr result)))
 
     ;; with time, again -- test bug#5549
     (setq result (icalendar--convert-ordinary-to-ical
                   "x?" "x2010 2 15 0:34-1:45 s"))
-    (should (= 2 (length result)))
+    (should (consp result))
     (should (string=  (concat "\nDTSTART;VALUE=DATE-TIME:20100215T003400"
                               "\nDTEND;VALUE=DATE-TIME:20100215T014500")
                       (car result)))
-    (should (string= "s" (cadr result)))))
+    (should (string= "s" (cdr result)))))
 
 (ert-deftest icalendar--diarytime-to-isotime ()
   "Test method for `icalendar--diarytime-to-isotime'."

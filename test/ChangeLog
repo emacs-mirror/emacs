@@ -1,3 +1,18 @@
+2014-08-10  Ulf Jasper  <ulf.jasper@web.de>
+
+	Enumerate evaluated sexp diary entries (Bug#7911).
+
+	* automated/icalendar-tests.el
+	(icalendar--convert-anniversary-to-ical),
+	(icalendar--convert-cyclic-to-ical),
+	(icalendar--convert-block-to-ical),
+	(icalendar--convert-yearly-to-ical),
+	(icalendar--convert-weekly-to-ical),
+	(icalendar--convert-ordinary-to-ical): Returns cons cell now.
+	(icalendar--convert-to-ical),
+	(icalendar--convert-sexp-to-ical): New tests.
+
+
 2014-08-07  Glenn Morris  <rgm@gnu.org>
 
 	* automated/Makefile.in (check-tar): Remove, hydra recipe does it now.

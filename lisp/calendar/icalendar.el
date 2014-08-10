@@ -240,6 +240,31 @@ code for the event, and your personal domain name."
   :type 'string
   :group 'icalendar)
 
+(defcustom icalendar-export-sexp-enumeration-days
+  14
+  "Number of days over which a sexp diary entry is enumerated.
+In general sexp entries cannot be translated to icalendar format.
+They are therefore enumerated, i.e. explicitly evaluated for a
+certain number of days, and then exported.  The enumeration starts
+on the current day and continues for the number of days given here.
+
+See `icalendar-export-sexp-enumerate-all' for a list of sexp
+entries which by default are NOT enumerated."
+  :type 'integer
+  :group 'icalendar)
+
+(defcustom icalendar-export-sexp-enumerate-all
+  nil
+  "Determines whether ALL sexp diary entries are enumerated.
+If non-nil all sexp diary entries are enumerated for
+`icalendar-export-sexp-enumeration-days' days instead of
+translating into an icalendar equivalent.  This affects the
+following sexp diary entries: `diary-anniversary',
+`diary-cyclic', `diary-date', `diary-float',`diary-block'.  All
+other sexp entries are enumerated in any case."
+  :type 'boolean
+  :group 'icalendar)
+
 (defvar icalendar-debug nil
   "Enable icalendar debug messages.")
 
@@ -1027,40 +1052,48 @@ FExport diary data into iCalendar file: ")
 
         (condition-case error-val
             (progn
-              (setq contents-n-summary
+              (setq cns-cons-or-list
                     (icalendar--convert-to-ical nonmarker entry-main))
               (setq other-elements (icalendar--parse-summary-and-rest
 				    entry-full))
-              (setq contents (concat (car contents-n-summary)
-                                     "\nSUMMARY:" (cadr contents-n-summary)))
-              (let ((cla (cdr (assoc 'cla other-elements)))
-                    (des (cdr (assoc 'des other-elements)))
-                    (loc (cdr (assoc 'loc other-elements)))
-                    (org (cdr (assoc 'org other-elements)))
-                    (sta (cdr (assoc 'sta other-elements)))
-                    (sum (cdr (assoc 'sum other-elements)))
-                    (url (cdr (assoc 'url other-elements)))
-                    (uid (cdr (assoc 'uid other-elements))))
-                (if cla
-                    (setq contents (concat contents "\nCLASS:" cla)))
-                (if des
-                    (setq contents (concat contents "\nDESCRIPTION:" des)))
-                (if loc
-                    (setq contents (concat contents "\nLOCATION:" loc)))
-                (if org
-                    (setq contents (concat contents "\nORGANIZER:" org)))
-                (if sta
-                    (setq contents (concat contents "\nSTATUS:" sta)))
-                ;;(if sum
-                ;;    (setq contents (concat contents "\nSUMMARY:" sum)))
-                (if url
-                    (setq contents (concat contents "\nURL:" url)))
+              (mapc (lambda (contents-n-summary)
+                      (setq contents (concat (car contents-n-summary)
+                                             "\nSUMMARY:"
+                                             (cdr contents-n-summary)))
+                      (let ((cla (cdr (assoc 'cla other-elements)))
+                            (des (cdr (assoc 'des other-elements)))
+                            (loc (cdr (assoc 'loc other-elements)))
+                            (org (cdr (assoc 'org other-elements)))
+                            (sta (cdr (assoc 'sta other-elements)))
+                            (sum (cdr (assoc 'sum other-elements)))
+                            (url (cdr (assoc 'url other-elements)))
+                            (uid (cdr (assoc 'uid other-elements))))
+                        (if cla
+                            (setq contents (concat contents "\nCLASS:" cla)))
+                        (if des
+                            (setq contents (concat contents "\nDESCRIPTION:"
+                                                   des)))
+                        (if loc
+                            (setq contents (concat contents "\nLOCATION:" loc)))
+                        (if org
+                            (setq contents (concat contents "\nORGANIZER:"
+                                                   org)))
+                        (if sta
+                            (setq contents (concat contents "\nSTATUS:" sta)))
+                        ;;(if sum
+                        ;;    (setq contents (concat contents "\nSUMMARY:" sum)))
+                        (if url
+                            (setq contents (concat contents "\nURL:" url)))
 
-                (setq header (concat "\nBEGIN:VEVENT\nUID:"
-                                     (or uid
-                                         (icalendar--create-uid entry-full 
-                                                                contents)))))
-              (setq result (concat result header contents "\nEND:VEVENT")))
+                        (setq header (concat "\nBEGIN:VEVENT\nUID:"
+                                             (or uid
+                                                 (icalendar--create-uid
+                                                  entry-full contents)))))
+                      (setq result (concat result header contents
+                                           "\nEND:VEVENT")))
+                    (if (consp cns-cons-or-list)
+                        (list cns-cons-or-list)
+                      cns-cons-or-list)))
           ;; handle errors
           (error
            (setq found-error t)
@@ -1092,16 +1125,18 @@ FExport diary data into iCalendar file: ")
 NONMARKER is a regular expression matching the start of non-marking
 entries.  ENTRY-MAIN is the first line of the diary entry."
   (or
-   ;; anniversaries -- %%(diary-anniversary ...)
-   (icalendar--convert-anniversary-to-ical nonmarker entry-main)
-   ;; cyclic events -- %%(diary-cyclic ...)
-   (icalendar--convert-cyclic-to-ical nonmarker entry-main)
-   ;; diary-date -- %%(diary-date ...)
-   (icalendar--convert-date-to-ical nonmarker entry-main)
-   ;; float events -- %%(diary-float ...)
-   (icalendar--convert-float-to-ical nonmarker entry-main)
-   ;; block events -- %%(diary-block ...)
-   (icalendar--convert-block-to-ical nonmarker entry-main)
+   (unless icalendar-export-sexp-enumerate-all
+     (or
+      ;; anniversaries -- %%(diary-anniversary ...)
+      (icalendar--convert-anniversary-to-ical nonmarker entry-main)
+      ;; cyclic events -- %%(diary-cyclic ...)
+      (icalendar--convert-cyclic-to-ical nonmarker entry-main)
+      ;; diary-date -- %%(diary-date ...)
+      (icalendar--convert-date-to-ical nonmarker entry-main)
+      ;; float events -- %%(diary-float ...)
+      (icalendar--convert-float-to-ical nonmarker entry-main)
+      ;; block events -- %%(diary-block ...)
+      (icalendar--convert-block-to-ical nonmarker entry-main)))
    ;; other sexp diary entries
    (icalendar--convert-sexp-to-ical nonmarker entry-main)
    ;; weekly by day -- Monday 8:30 Team meeting
@@ -1300,7 +1335,7 @@ entries.  ENTRY-MAIN is the first line of the diary entry."
                                               (- time 230000)))
                 (setq endisostring1 endisostring)) )))
 
-        (list (concat "\nDTSTART;"
+        (cons (concat "\nDTSTART;"
                       (if starttimestring "VALUE=DATE-TIME:"
                         "VALUE=DATE:")
                       startisostring
@@ -1381,7 +1416,7 @@ entries.  ENTRY-MAIN is the first line of the diary entry."
                                           starttimestring))))
               (setq endtimestring (format "T%06d"
                                           (+ 10000 time))))))
-        (list (concat "\nDTSTART;"
+        (cons (concat "\nDTSTART;"
                       (if starttimestring
                           "VALUE=DATE-TIME:"
                         "VALUE=DATE:")
@@ -1468,7 +1503,7 @@ entries.  ENTRY-MAIN is the first line of the diary entry."
                                           starttimestring))))
               (setq endtimestring (format "T%06d"
                                           (+ 10000 time))))))
-        (list (concat "\nDTSTART;"
+        (cons (concat "\nDTSTART;"
                       (if starttimestring "VALUE=DATE-TIME:"
                         "VALUE=DATE:")
                       (format "1900%02d%02d" month day)
@@ -1489,13 +1524,16 @@ entries.  ENTRY-MAIN is the first line of the diary entry."
     ;; no match
     nil))
 
-(defun icalendar--convert-sexp-to-ical (nonmarker entry-main)
-  "Convert complex sexp diary entry to iCalendar format -- unsupported!
+(defun icalendar--convert-sexp-to-ical (nonmarker entry-main &optional start)
+  "Convert sexp diary entry to iCalendar format.
+Enumerate the evaluated sexp entry for the next
+`icalendar-export-sexp-enumeration-days' days.  NONMARKER is a
+regular expression matching the start of non-marking entries.
+ENTRY-MAIN is the first line of the diary entry.  
 
-FIXME!
-
-NONMARKER is a regular expression matching the start of non-marking
-entries.  ENTRY-MAIN is the first line of the diary entry."
+Optional argument START determines the first day of the
+enumeration, given as a time value, in same format as returned by
+`current-time' -- used for test purposes."
   (cond ((string-match (concat nonmarker
                                "%%(and \\(([^)]+)\\))\\(\\s-*.*?\\) ?$")
                        entry-main)
@@ -1508,10 +1546,37 @@ entries.  ENTRY-MAIN is the first line of the diary entry."
                   (substring entry-main (match-beginning 1) (match-end 1))
                   (substring entry-main (match-beginning 2) (match-end 2)))))
         ((string-match (concat nonmarker
-                               "%%([^)]+)\\s-*.*")
+                               "%%\\(([^)]+)\\)\\s-*\\(.*\\)")
                        entry-main)
+         ;; regular sexp entry
          (icalendar--dmsg "diary-sexp %s" entry-main)
-         (error "Sexp-entries are not supported yet"))
+         (let ((p1 (substring entry-main (match-beginning 1) (match-end 1)))
+               (p2 (substring entry-main (match-beginning 2) (match-end 2)))
+               (now (or start (current-time))))
+           (delete nil
+                   (mapcar
+                    (lambda (offset)
+                      (let* ((day (decode-time (time-add now
+                                                         (seconds-to-time
+                                                          (* offset 60 60 24)))))
+                             (d (nth 3 day))
+                             (m (nth 4 day))
+                             (y (nth 5 day))
+                             (se (diary-sexp-entry p1 p2 (list m d y)))
+                             (see (cond ((stringp se) se)
+                                        ((consp se) (cdr se))
+                                        (t nil))))
+                        (cond ((null see)
+                               nil)
+                              ((stringp see)
+                               (let ((calendar-date-style 'iso))
+                                 (icalendar--convert-ordinary-to-ical
+                                  nonmarker (format "%4d/%02d/%02d %s" y m d see))))
+                             (;TODO: 
+                              (error (format "Unsopported Sexp-entry: %s"
+                                             entry-main))))))
+                    (number-sequence
+                     0 (- icalendar-export-sexp-enumeration-days 1))))))
         (t
          ;; no match
          nil)))
@@ -1576,7 +1641,7 @@ entries.  ENTRY-MAIN is the first line of the diary entry."
                                           (+ 10000 time))))))
         (if starttimestring
             ;; with time -> write rrule
-            (list (concat "\nDTSTART;VALUE=DATE-TIME:"
+            (cons (concat "\nDTSTART;VALUE=DATE-TIME:"
                           startisostring
                           starttimestring
                           "\nDTEND;VALUE=DATE-TIME:"
@@ -1586,7 +1651,7 @@ entries.  ENTRY-MAIN is the first line of the diary entry."
                           endisostring)
                   summary)
           ;; no time -> write long event
-          (list (concat "\nDTSTART;VALUE=DATE:" startisostring
+          (cons (concat "\nDTSTART;VALUE=DATE:" startisostring
                         "\nDTEND;VALUE=DATE:" endisostring+1)
                 summary)))
     ;; no match
@@ -1622,7 +1687,7 @@ entries.  ENTRY-MAIN is the first line of the diary entry."
               (icalendar--dmsg "diary-float %s" entry-main)
               (error "Don't know if or how to implement day in `diary-float'")))
 
-          (list (concat
+          (cons (concat
                  ;;Start today (yes this is an arbitrary choice):
                  "\nDTSTART;VALUE=DATE:"
                  (format-time-string "%Y%m%d" (current-time))
@@ -1727,7 +1792,7 @@ entries.  ENTRY-MAIN is the first line of the diary entry."
                                           starttimestring))))
               (setq endtimestring (format "T%06d"
                                           (+ 10000 time))))))
-        (list (concat "\nDTSTART;"
+        (cons (concat "\nDTSTART;"
                       (if starttimestring "VALUE=DATE-TIME:"
                         "VALUE=DATE:")
                       startisostring
@@ -1796,7 +1861,7 @@ entries.  ENTRY-MAIN is the first line of the diary entry."
                                           starttimestring))))
               (setq endtimestring (format "T%06d"
                                           (+ 10000 time))))))
-        (list (concat "\nDTSTART;"
+        (cons (concat "\nDTSTART;"
                       (if starttimestring "VALUE=DATE-TIME:"
                         "VALUE=DATE:")
                       startisostring

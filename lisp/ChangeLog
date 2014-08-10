@@ -1,3 +1,25 @@
+2014-08-10  Ulf Jasper  <ulf.jasper@web.de>
+
+	Enumerate evaluated sexp diary entries (Bug#7911).
+
+	* calendar/icalendar.el (icalendar-export-sexp-enumerate-all)
+	(icalendar-export-sexp-enumeration-days): New
+	(icalendar-export-region): `icalendar--convert-to-ical' now
+	returns a cons cell or a list of cons cells.
+	(icalendar--convert-to-ical): Take care of
+	`icalendar-export-sexp-enumerate-all'. Return (a list of) cons
+	cells.
+	(icalendar--convert-ordinary-to-ical),
+	(icalendar--convert-weekly-to-ical),
+	(icalendar--convert-yearly-to-ical),
+	(icalendar--convert-block-to-ical),
+	(icalendar--convert-block-to-ical),
+	(icalendar--convert-float-to-ical),
+	(icalendar--convert-cyclic-to-ical),
+	(icalendar--convert-anniversary-to-ical): Return cons cell.
+	(icalendar--convert-sexp-to-ical): Enumerate evaluated sexp
+	entries. Return (list of) cons cells.
+
 2014-08-09  Juri Linkov  <juri@jurta.org>
 
 	* vc/vc-annotate.el (vc-annotate-background-mode): Add :set
