@@ -1,6 +1,7 @@
-/* Do not save and restore the current working directory.
+/* Save and restore current working directory.
 
-   Copyright 2013-2014 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1997-1998, 2003, 2009-2014 Free Software Foundation,
+   Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -15,32 +16,19 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
-/* Gnulib needs to save and restore the current working directory to
-   fully emulate functions like fstatat.  But Emacs doesn't care what
-   the current working directory is; it always uses absolute file
-   names.  This module replaces the Gnulib module by omitting the code
-   that Emacs does not need.  */
+/* Written by Jim Meyering.  */
 
 #ifndef SAVE_CWD_H
-#define SAVE_CWD_H 1
+# define SAVE_CWD_H 1
 
-_GL_INLINE_HEADER_BEGIN
-#ifndef SAVE_CWD_INLINE
-# define SAVE_CWD_INLINE _GL_INLINE
-#endif
+struct saved_cwd
+  {
+    int desc;
+    char *name;
+  };
 
-struct saved_cwd { int desc; };
+int save_cwd (struct saved_cwd *cwd);
+int restore_cwd (const struct saved_cwd *cwd);
+void free_cwd (struct saved_cwd *cwd);
 
-SAVE_CWD_INLINE int
-save_cwd (struct saved_cwd *cwd)
-{
-  cwd->desc = -1;
-  return 0;
-}
-
-SAVE_CWD_INLINE int restore_cwd (struct saved_cwd const *cwd) { return 0; }
-SAVE_CWD_INLINE void free_cwd (struct saved_cwd *cwd) { }
-
-_GL_INLINE_HEADER_END
-
-#endif
+#endif /* SAVE_CWD_H */
