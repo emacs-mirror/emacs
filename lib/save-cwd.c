@@ -50,14 +50,14 @@
    you're still using an obsolete system with these problems, please
    send email to the maintainer of this code.  */
 
+#if !defined HAVE_FCHDIR && !defined fchdir
+# define fchdir(fd) (-1)
+#endif
+
 int
 save_cwd (struct saved_cwd *cwd)
 {
-#ifdef HAVE_FCHDIR
   cwd->desc = open (".", O_SEARCH | O_CLOEXEC);
-#else
-  cwd->desc = -1;
-#endif
   /* The 'name' member is present only to minimize differences from
      gnulib.  Initialize it to zero, if only to simplify debugging.  */
   cwd->name = 0;
@@ -71,16 +71,14 @@ save_cwd (struct saved_cwd *cwd)
 int
 restore_cwd (const struct saved_cwd *cwd)
 {
-#ifdef HAVE_FCHDIR
   /* Restore the previous directory if possible, to avoid tying down
-     the file system of the new directory (Bug#18232).  */
+     the file system of the new directory (Bug#18232).
+     Don't worry if fchdir fails, as Emacs doesn't care what the
+     working directory is.  The fchdir call is inside an 'if' merely to
+     pacify compilers that complain if fchdir's return value is ignored.  */
   if (fchdir (cwd->desc) == 0)
     return 0;
 
-  /* Don't worry if fchdir fails, as Emacs doesn't care what the
-     working directory is.  The fchdir call is inside an 'if' merely to
-     pacify compilers that complain if fchdir's return value is ignored.  */
-#endif
   return 0;
 }
 
