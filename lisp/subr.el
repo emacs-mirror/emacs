@@ -3099,6 +3099,11 @@ buffer temporarily current, and the window that was used to display it
 temporarily selected.  But it doesn't run `temp-buffer-show-hook'
 if it uses `temp-buffer-show-function'.
 
+By default, the setup hook puts the buffer into Help mode before running BODY.
+If BODY does not change the major mode, the show hook makes the buffer
+read-only, and scans it for function and variable names to make them into
+clickable cross-references.
+
 See the related form `with-temp-buffer-window'."
   (declare (debug t))
   (let ((old-dir (make-symbol "old-dir"))

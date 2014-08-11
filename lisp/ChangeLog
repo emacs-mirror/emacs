@@ -1,5 +1,7 @@
 2014-08-11  Glenn Morris  <rgm@gnu.org>
 
+	* subr.el (with-output-to-temp-buffer): Doc fix; from elisp manual.
+
 	* files.el (basic-save-buffer-2): Revert 2013-01-31 change, which
 	chose coding system for writing before backing up, since it causes
 	a more serious problem than the one it solves.  (Closes Bug#18141,
