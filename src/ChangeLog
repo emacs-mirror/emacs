@@ -1,3 +1,8 @@
+2014-08-11  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsfns.m (Fx_create_frame): Call adjust_frame_size,
+	set f->official.
+
 2014-08-11  Glenn Morris  <rgm@gnu.org>
 
 	* fileio.c: Revert 2013-01-31 change, which chose coding system for
