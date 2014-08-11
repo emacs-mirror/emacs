@@ -240,12 +240,21 @@ This takes effect when first loading the `sgml-mode' library.")
   "A table for mapping non-ASCII characters into SGML entity names.
 Currently, only Latin-1 characters are supported.")
 
-;; nsgmls is a free SGML parser in the SP suite available from
-;; ftp.jclark.com and otherwise packaged for GNU systems.
-;; Its error messages can be parsed by next-error.
-;; The -s option suppresses output.
-
-(defcustom sgml-validate-command "nsgmls -s" ; replaced old `sgmls'
+(defcustom sgml-validate-command
+  ;; prefer tidy because (o)nsgmls is often built without --enable-http
+  ;; which makes it next to useless
+  (cond ((executable-find "tidy")
+         ;; tidy is available from http://tidy.sourceforge.net/
+         "tidy --gnu-emacs yes -e -q")
+        ((executable-find "nsgmls")
+         ;; nsgmls is a free SGML parser in the SP suite available from
+         ;; ftp.jclark.com, replaced old `sgmls'.
+         "nsgmls -s")
+        ((executable-find "onsgmls")
+         ;; onsgmls is the community version of `nsgmls'
+         ;; hosted on http://openjade.sourceforge.net/
+         "onsgmls -s")
+        (t "Install (o)nsgmls, tidy, or some other SGML validator, and set `sgml-validate-command'"))
   "The command to validate an SGML document.
 The file name of current buffer file name will be appended to this,
 separated by a space."

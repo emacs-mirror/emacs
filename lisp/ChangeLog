@@ -1,3 +1,8 @@
+2014-08-11  Sam Steingold  <sds@gnu.org>
+
+	* textmodes/sgml-mode.el (sgml-validate-command): Set depending on
+	the presence of known validators (tidy, (o)nsgmls).
+
 2014-08-11  Ulf Jasper  <ulf.jasper@web.de>
 
 	Newsticker: introduce `newsticker-treeview-date-format'. (Bug#17227)
