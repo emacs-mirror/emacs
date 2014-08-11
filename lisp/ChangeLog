@@ -5,24 +5,19 @@
 2014-08-10  Ulf Jasper  <ulf.jasper@web.de>
 
 	Enumerate evaluated sexp diary entries (Bug#7911).
-
 	* calendar/icalendar.el (icalendar-export-sexp-enumerate-all)
-	(icalendar-export-sexp-enumeration-days): New
-	(icalendar-export-region): `icalendar--convert-to-ical' now
+	(icalendar-export-sexp-enumeration-days): New.
+	(icalendar-export-region): Now `icalendar--convert-to-ical'
 	returns a cons cell or a list of cons cells.
 	(icalendar--convert-to-ical): Take care of
-	`icalendar-export-sexp-enumerate-all'. Return (a list of) cons
-	cells.
-	(icalendar--convert-ordinary-to-ical),
-	(icalendar--convert-weekly-to-ical),
-	(icalendar--convert-yearly-to-ical),
-	(icalendar--convert-block-to-ical),
-	(icalendar--convert-block-to-ical),
-	(icalendar--convert-float-to-ical),
-	(icalendar--convert-cyclic-to-ical),
+	`icalendar-export-sexp-enumerate-all'.  Return (a list of) cons cells.
+	(icalendar--convert-ordinary-to-ical)
+	(icalendar--convert-weekly-to-ical, icalendar--convert-yearly-to-ical)
+	(icalendar--convert-block-to-ical, icalendar--convert-block-to-ical)
+	(icalendar--convert-float-to-ical, icalendar--convert-cyclic-to-ical)
 	(icalendar--convert-anniversary-to-ical): Return cons cell.
 	(icalendar--convert-sexp-to-ical): Enumerate evaluated sexp
-	entries. Return (list of) cons cells.
+	entries.  Return (list of) cons cells.
 
 2014-08-09  Juri Linkov  <juri@jurta.org>
 
@@ -95,7 +90,7 @@
 
 2014-08-06  Ulf Jasper  <ulf.jasper@web.de>
 
-	* calendar/icalendar.el (icalendar--diarytime-to-isotime):
+	* calendar/icalendar.el (icalendar--diarytime-to-isotime)
 	(icalendar--convert-ordinary-to-ical): Allow for missing minutes
 	(Bug#13750).
 
