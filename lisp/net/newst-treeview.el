@@ -83,6 +83,14 @@
   "Face for newsticker selection."
   :group 'newsticker-treeview)
 
+(defcustom newsticker-treeview-date-format
+  "%d.%m.%y, %H:%M"
+  "Format for the date column in the treeview list buffer.
+See `format-time-string' for a list of valid specifiers."
+  :version "24.5"
+  :type 'string
+  :group 'newsticker-treeview)
+
 (defcustom newsticker-treeview-own-frame
   nil
   "Decides whether newsticker treeview creates and uses its own frame."
@@ -307,7 +315,7 @@ If string SHOW-FEED is non-nil it is shown in the item string."
                     0 10)
                    (propertize " " 'display '(space :align-to 12)))
                 ""))
-      (insert (format-time-string "%d.%m.%y, %H:%M"
+      (insert (format-time-string newsticker-treeview-date-format
                                   (newsticker--time item)))
       (insert (propertize " " 'display
                           (list 'space :align-to (if show-feed 28 18))))

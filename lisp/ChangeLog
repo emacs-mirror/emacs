@@ -1,3 +1,10 @@
+2014-08-11  Ulf Jasper  <ulf.jasper@web.de>
+
+	Newsticker: introduce `newsticker-treeview-date-format'. (Bug#17227)
+
+	* net/newst-treeview.el (newsticker-treeview-date-format): New.
+	(newsticker--treeview-list-add-item): Use `newsticker-treeview-date-format'.
+
 2014-08-11  Glenn Morris  <rgm@gnu.org>
 
 	* files.el (basic-save-buffer-2): Revert 2013-01-31 change, which
