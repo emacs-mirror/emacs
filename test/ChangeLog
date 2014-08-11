@@ -1,3 +1,9 @@
+2014-08-11  Glenn Morris  <rgm@gnu.org>
+
+	* automated/data/files-bug18141.el.gz: New file.
+	* automated/files.el (files-test-bug-18141-file):
+	New variable and test.  (Bug#18141)
+
 2014-08-10  Ulf Jasper  <ulf.jasper@web.de>
 
 	Enumerate evaluated sexp diary entries (Bug#7911).

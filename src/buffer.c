@@ -826,6 +826,9 @@ CLONE nil means the indirect buffer's state is reset to default values.  */)
   set_string_intervals (name, NULL);
   bset_name (b, name);
 
+  /* An indirect buffer shares undo list of its base (Bug#18180).  */
+  bset_undo_list (b, BVAR (b->base_buffer, undo_list));
+
   reset_buffer (b);
   reset_buffer_local_variables (b, 1);
 

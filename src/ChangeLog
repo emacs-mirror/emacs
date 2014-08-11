@@ -1,3 +1,33 @@
+2014-08-11  Glenn Morris  <rgm@gnu.org>
+
+	* fileio.c: Revert 2013-01-31 change, which chose coding system for
+	writing before backing up, since it causes a more serious problem
+	than the one it solves.  (Closes Bug#18141, reopens Bug#13522.)
+	(choose_write_coding_system): No longer callable from Lisp.
+	Move last piece back here from Fwrite_region.
+	(Fwrite_region, syms_of_fileio): Update for above changes.
+
+2014-08-11  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (Fwindow_valid_p): Fix doc-string (Bug#18194).
+	(Fwindow_new_total, Fwindow_normal_size, Fwindow_new_normal)
+	(Fwindow_new_pixel, Fset_window_new_pixel)
+	(Fset_window_new_total, Fset_window_new_normal)
+	(Fwindow_resize_apply): Fix doc-strings (see Bug#18112).
+	See also:
+	http://lists.gnu.org/archive/html/bug-gnu-emacs/2014-08/msg00287.html
+
+2014-08-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* fontset.c (Finternal_char_font): Recompute basic faces if the
+	frame's face cache was cleared.  (Bug#18162)
+
+2014-08-11  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Fix bug with uninitialized undo list of an indirect buffer (Bug#18180).
+	* buffer.c (Fmake_indirect_buffer): Initialize undo list with the
+	base buffer's undo list.
+
 2014-08-10  Reuben Thomas  <rrt@sc3d.org>
 
 	Fix a couple of recent inadvertent breaks of the MSDOS port.

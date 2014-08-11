@@ -1,3 +1,16 @@
+2014-08-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Don't prevent random file systems from being unmounted (Bug#18232).
+	This fix relies on having the 'fchdir' function, and on having
+	"." be searchable (or at least readable, on platforms lacking O_SEARCH),
+	but that's good enough to handle the vast majority of cases and the
+	remaining folks can just live with the annoyance of file systems
+	that occasionally can't be unmounted.
+	* configure.ac (fchdir): New function to check for.
+	* lib/save-cwd.c: Copy from gnulib, except omit the part that
+	allocates memory, since that can cause problems in Emacs.
+	* lib/save-cwd.h: Copy from gnulib.
+
 2014-08-10  Eli Zaretskii  <eliz@gnu.org>
 
 	* config.bat: Fix some confusing wording.

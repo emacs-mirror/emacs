@@ -329,7 +329,7 @@ DEFUN ("windowp", Fwindowp, Swindowp, 1, 1, 0,
 DEFUN ("window-valid-p", Fwindow_valid_p, Swindow_valid_p, 1, 1, 0,
        doc: /* Return t if OBJECT is a valid window and nil otherwise.
 A valid window is either a window that displays a buffer or an internal
-window.  Deleted windows are not live.  */)
+window.  Windows that have been deleted are not valid.  */)
   (Lisp_Object object)
 {
   return WINDOW_VALID_P (object) ? Qt : Qnil;
@@ -810,7 +810,12 @@ total width of WINDOW.  */)
 
 DEFUN ("window-new-total", Fwindow_new_total, Swindow_new_total, 0, 1, 0,
        doc: /* Return the new total size of window WINDOW.
-WINDOW must be a valid window and defaults to the selected one.  */)
+WINDOW must be a valid window and defaults to the selected one.
+
+The new total size of WINDOW is the value set by the last call of
+`set-window-new-total' for WINDOW.  If it is valid, it will be shortly
+installed as WINDOW's total height (see `window-total-height') or total
+width (see `window-total-width').  */)
   (Lisp_Object window)
 {
   return decode_valid_window (window)->new_total;
@@ -819,7 +824,25 @@ WINDOW must be a valid window and defaults to the selected one.  */)
 DEFUN ("window-normal-size", Fwindow_normal_size, Swindow_normal_size, 0, 2, 0,
        doc: /* Return the normal height of window WINDOW.
 WINDOW must be a valid window and defaults to the selected one.
-If HORIZONTAL is non-nil, return the normal width of WINDOW.  */)
+If HORIZONTAL is non-nil, return the normal width of WINDOW.
+
+The normal height of a frame's root window or a window that is
+horizontally combined (a window that has a left or right sibling) is
+1.0.  The normal height of a window that is vertically combined (has a
+sibling above or below) is the fraction of the window's height with
+respect to its parent.  The sum of the normal heights of all windows in a
+vertical combination equals 1.0.
+
+Similarly, the normal width of a frame's root window or a window that is
+vertically combined equals 1.0.  The normal width of a window that is
+horizontally combined is the fraction of the window's width with respect
+to its parent.  The sum of the normal widths of all windows in a
+horizontal combination equals 1.0.
+
+The normal sizes of windows are used to restore the proportional sizes
+of windows after they have been shrunk to their minimum sizes; for
+example when a frame is temporarily made very small and afterwards gets
+re-enlarged to its previous size.  */)
   (Lisp_Object window, Lisp_Object horizontal)
 {
   struct window *w = decode_valid_window (window);
@@ -829,7 +852,11 @@ If HORIZONTAL is non-nil, return the normal width of WINDOW.  */)
 
 DEFUN ("window-new-normal", Fwindow_new_normal, Swindow_new_normal, 0, 1, 0,
        doc: /* Return new normal size of window WINDOW.
-WINDOW must be a valid window and defaults to the selected one.  */)
+WINDOW must be a valid window and defaults to the selected one.
+
+The new normal size of WINDOW is the value set by the last call of
+`set-window-new-normal' for WINDOW.  If valid, it will be shortly
+installed as WINDOW's normal size (see `window-normal-size').  */)
   (Lisp_Object window)
 {
   return decode_valid_window (window)->new_normal;
@@ -837,7 +864,12 @@ WINDOW must be a valid window and defaults to the selected one.  */)
 
 DEFUN ("window-new-pixel", Fwindow_new_pixel, Swindow_new_pixel, 0, 1, 0,
        doc: /* Return new pixel size of window WINDOW.
-WINDOW must be a valid window and defaults to the selected one.  */)
+WINDOW must be a valid window and defaults to the selected one.
+
+The new pixel size of WINDOW is the value set by the last call of
+`set-window-new-pixel' for WINDOW.  If it is valid, it will be shortly
+installed as WINDOW's pixel height (see `window-pixel-height') or pixel
+width (see `window-pixel-width').  */)
   (Lisp_Object window)
 {
   return decode_valid_window (window)->new_pixel;
@@ -3705,6 +3737,10 @@ Return SIZE.
 Optional argument ADD non-nil means add SIZE to the new pixel size of
 WINDOW and return the sum.
 
+The new pixel size of WINDOW, if valid, will be shortly installed as
+WINDOW's pixel height (see `window-pixel-height') or pixel width (see
+`window-pixel-width').
+
 Note: This function does not operate on any child windows of WINDOW.  */)
   (Lisp_Object window, Lisp_Object size, Lisp_Object add)
 {
@@ -3729,6 +3765,10 @@ Return SIZE.
 Optional argument ADD non-nil means add SIZE to the new total size of
 WINDOW and return the sum.
 
+The new total size of WINDOW, if valid, will be shortly installed as
+WINDOW's total height (see `window-total-height') or total width (see
+`window-total-width').
+
 Note: This function does not operate on any child windows of WINDOW.  */)
      (Lisp_Object window, Lisp_Object size, Lisp_Object add)
 {
@@ -3747,6 +3787,9 @@ DEFUN ("set-window-new-normal", Fset_window_new_normal, Sset_window_new_normal, 
        doc: /* Set new normal size of WINDOW to SIZE.
 WINDOW must be a valid window and defaults to the selected one.
 Return SIZE.
+
+The new normal size of WINDOW, if valid, will be shortly installed as
+WINDOW's normal size (see `window-normal-size').
 
 Note: This function does not operate on any child windows of WINDOW.  */)
      (Lisp_Object window, Lisp_Object size)
@@ -4012,9 +4055,14 @@ If FRAME is omitted or nil, it defaults to the selected frame.
 Optional argument HORIZONTAL omitted or nil means apply requested
 height values.  HORIZONTAL non-nil means apply requested width values.
 
-This function checks whether the requested values sum up to a valid
-window layout, recursively assigns the new sizes of all child windows
-and calculates and assigns the new start positions of these windows.
+The requested size values are those set by `set-window-new-pixel' and
+`set-window-new-normal'.  This function checks whether the requested
+values sum up to a valid window layout, recursively assigns the new
+sizes of all child windows and calculates and assigns the new start
+positions of these windows.
+
+Return t if the requested values have been applied correctly, nil
+otherwise.
 
 Note: This function does not check any of `window-fixed-size-p',
 `window-min-height' or `window-min-width'.  All these checks have to

@@ -1,3 +1,41 @@
+2014-08-11  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (basic-save-buffer-2): Revert 2013-01-31 change, which
+	chose coding system for writing before backing up, since it causes
+	a more serious problem than the one it solves.  (Closes Bug#18141,
+	reopens Bug#13522.)
+
+2014-08-11  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window-total-size): Make doc-string more self-contained.
+
+	* window.el (display-buffer-below-selected): Restore original
+	behavior if buffer is already displayed in the window below the
+	selected one (Bug#18181).
+
+2014-08-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mouse.el (mouse--down-1-maybe-follows-link): Don't convert the down
+	event (bug#18212).
+
+2014-08-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* info.el (info): Doc fix.
+
+2014-08-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* info.el (Info-mode-map): Override a global down-mouse-2 binding
+	(bug#18212).
+
+2014-08-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* simple.el (default-line-height): A floating-point value of
+	line-spacing means a fraction of the default frame font's height,
+	not of the font currently used by the 'default' face.
+	Truncate the pixel value, like the display engine does.
+	(window-screen-lines): Use window-inside-pixel-edges for
+	determining the window height in pixels.  (Bug#18195)
+
 2014-08-11  Grégoire Jadi  <daimrod@gmail.com>
 
 	* leim/quail/latin-post.el: Transform " __" into " _".  (Bug#18023)
@@ -462,8 +500,8 @@
 	(python-shell-output-filter): Fix comment typo.
 
 	Fix Python shell prompts detection for remote hosts.
-	* progmodes/python.el (python-shell-prompt-detect): Replace
-	call-process with process-file and make it more robust.
+	* progmodes/python.el (python-shell-prompt-detect):
+	Replace call-process with process-file and make it more robust.
 
 	Autodetect Python shell prompts.  (Bug#17370)
 	* progmodes/python.el:

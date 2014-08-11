@@ -774,8 +774,7 @@ with the top-level Info directory.
 In interactive use, a non-numeric prefix argument directs
 this command to read a file name from the minibuffer.
 
-A numeric prefix argument N selects an Info buffer named
-\"*info*<%s>\".
+A numeric prefix argument of N selects an Info buffer named \"*info*<N>\".
 
 The search path for Info files is in the variable `Info-directory-list'.
 The top-level Info directory is made by combining all the files named `dir'
@@ -4009,6 +4008,7 @@ If FORK is non-nil, it is passed to `Info-goto-node'."
     (define-key map "," 'Info-index-next)
     (define-key map "\177" 'Info-scroll-down)
     (define-key map [mouse-2] 'Info-mouse-follow-nearest-node)
+    (define-key map [down-mouse-2] 'ignore) ;Override potential global binding.
     (define-key map [follow-link] 'mouse-face)
     (define-key map [XF86Back] 'Info-history-back)
     (define-key map [XF86Forward] 'Info-history-forward)

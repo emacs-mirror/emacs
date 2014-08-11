@@ -698,7 +698,7 @@ inquiétez pour les modifications que vous avez faites, C-x C-c vous
 proposera de sauvegarder tous les fichiers modifiés avant de quitter
 Emacs).
 
-Si vous utiliser un affichage graphique, vous n'avez pas besoin de
+Si vous utilisez un affichage graphique, vous n'avez pas besoin de
 commande spéciale pour vous déplacer d'Emacs à une autre application.
 Vous pouvez le faire à l'aide de la souris ou avec les commandes du
 gestionnaire de fenêtres.  Cependant, si vous utilisez un terminal
@@ -1143,7 +1143,7 @@ C-x C-f à côté de find-file).
 >> Faites C-x 1 pour supprimer la fenêtre d'aide.
 
    C-h i 	Manuels en ligne (alias Info). Cette commande vous place dans
-         	un tampon spéciale, appelé « *info* », où vous pouvez
+         	un tampon spécial, appelé « *info* », où vous pouvez
 		lire les manuels en ligne des paquetages installés sur
 		votre système. Faites m emacs <Entrée> pour lire le
 		manuel d'Emacs. Si vous n'avez jamais utilisé Info

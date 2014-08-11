@@ -1843,6 +1843,10 @@ DEFUN ("internal-char-font", Finternal_char_font, Sinternal_char_font, 1, 2, 0,
     return Qnil;
   if (!FRAME_WINDOW_P (f))
     return Qnil;
+  /* We need the basic faces to be valid below, so recompute them if
+     some code just happened to clear the face cache.  */
+  if (FRAME_FACE_CACHE (f)->used == 0)
+    recompute_basic_faces (f);
   face_id = FACE_FOR_CHAR (f, FACE_FROM_ID (f, face_id), c, pos, Qnil);
   face = FACE_FROM_ID (f, face_id);
   if (face->font)

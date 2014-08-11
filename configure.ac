@@ -3547,7 +3547,7 @@ AC_SUBST(BLESSMAIL_TARGET)
 
 OLD_LIBS=$LIBS
 LIBS="$LIB_PTHREAD $LIB_MATH $LIBS"
-AC_CHECK_FUNCS(accept4 gethostname \
+AC_CHECK_FUNCS(accept4 fchdir gethostname \
 getrusage get_current_dir_name \
 lrand48 random rint \
 select getpagesize setlocale \
