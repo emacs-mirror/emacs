@@ -1,3 +1,12 @@
+2014-08-11  Glenn Morris  <rgm@gnu.org>
+
+	* fileio.c: Revert 2013-01-31 change, which chose coding system for
+	writing before backing up, since it causes a more serious problem
+	than the one it solves.  (Closes Bug#18141, reopens Bug#13522.)
+	(choose_write_coding_system): No longer callable from Lisp.
+	Move last piece back here from Fwrite_region.
+	(Fwrite_region, syms_of_fileio): Update for above changes.
+
 2014-08-09  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.c (Fwindow_new_total, Fwindow_new_normal)

@@ -1,3 +1,9 @@
+2014-08-11  Glenn Morris  <rgm@gnu.org>
+
+	* automated/data/files-bug18141.el.gz: New file.
+	* automated/files.el (files-test-bug-18141-file):
+	New variable and test.  (Bug#18141)
+
 2014-08-07  Glenn Morris  <rgm@gnu.org>
 
 	* automated/Makefile.in (check-tar): Remove, no longer needed.

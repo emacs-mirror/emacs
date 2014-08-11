@@ -1,3 +1,10 @@
+2014-08-11  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (basic-save-buffer-2): Revert 2013-01-31 change, which
+	chose coding system for writing before backing up, since it causes
+	a more serious problem than the one it solves.  (Closes Bug#18141,
+	reopens Bug#13522.)
+
 2014-08-10  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (window-total-size): Make doc-string more
