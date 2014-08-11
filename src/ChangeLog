@@ -1,3 +1,8 @@
+2014-08-11  Ken Brown  <kbrown@cornell.edu>
+
+	* gmalloc.c (_malloc_mutex, _aligned_blocks_mutex) [CYGWIN]: Use
+	ERRORCHECK mutexes.  (Bug#18222)
+
 2014-08-11  Glenn Morris  <rgm@gnu.org>
 
 	* fileio.c: Revert 2013-01-31 change, which chose coding system for
