@@ -1786,12 +1786,13 @@ When nil, never request confirmation."
   :version "22.1"
   :type '(choice integer (const :tag "Never request confirmation" nil)))
 
-(defcustom out-of-memory-warning-percentage 50
+(defcustom out-of-memory-warning-percentage nil
   "Warn if file size exceeds this percentage of available free memory.
-When nil, never issue warning."
+When nil, never issue warning.  Beware: This probably doesn't do what you
+think it does, because \"free\" is pretty hard to define in practice."
   :group 'files
   :group 'find-file
-  :version "24.4"
+  :version "24.5"
   :type '(choice integer (const :tag "Never issue warning" nil)))
 
 (defun abort-if-file-too-large (size op-type filename)
