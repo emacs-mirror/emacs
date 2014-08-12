@@ -1,3 +1,9 @@
+2014-08-12  Martin Rudalics  <rudalics@gmx.at>
+
+	* frame.c (set_menu_bar_lines_1): Remove.
+	(set_menu_bar_lines): Call change_frame_size instead of
+	set_menu_bar_lines_1.
+
 2014-08-11  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsfns.m (Fx_create_frame): Call adjust_frame_size,

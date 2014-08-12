@@ -235,29 +235,6 @@ frame_inhibit_resize (struct frame *f, bool horizontal)
 #endif
 
 static void
-set_menu_bar_lines_1 (Lisp_Object window, int n)
-{
-  struct window *w = XWINDOW (window);
-  struct frame *f = XFRAME (WINDOW_FRAME (w));
-
-  w->top_line += n;
-  w->pixel_top += n * FRAME_LINE_HEIGHT (f);
-  w->total_lines -= n;
-  w->pixel_height -= n * FRAME_LINE_HEIGHT (f);
-
-  /* Handle just the top child in a vertical split.  */
-  if (WINDOW_VERTICAL_COMBINATION_P (w))
-    set_menu_bar_lines_1 (w->contents, n);
-  else if (WINDOW_HORIZONTAL_COMBINATION_P (w))
-    /* Adjust all children in a horizontal split.  */
-    for (window = w->contents; !NILP (window); window = w->next)
-      {
-	w = XWINDOW (window);
-	set_menu_bar_lines_1 (window, n);
-      }
-}
-
-static void
 set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 {
   int nlines;
@@ -278,11 +255,11 @@ set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
   if (nlines != olines)
     {
       windows_or_buffers_changed = 14;
-      FRAME_WINDOW_SIZES_CHANGED (f) = 1;
       FRAME_MENU_BAR_LINES (f) = nlines;
       FRAME_MENU_BAR_HEIGHT (f) = nlines * FRAME_LINE_HEIGHT (f);
-      set_menu_bar_lines_1 (f->root_window, nlines - olines);
-      adjust_frame_glyphs (f);
+      change_frame_size (f, FRAME_COLS (f),
+			 FRAME_LINES (f) + olines - nlines,
+			 0, 1, 0, 0);
     }
 }
 
