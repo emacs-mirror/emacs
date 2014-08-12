@@ -1,3 +1,8 @@
+2014-08-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mpc.el (mpc-reorder): Don't bother splitting the "active"s elements
+	to the first part if they're the same as the selection.
+
 2014-08-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* image-mode.el (image-transform-reset): New command and menu item.
@@ -2080,9 +2085,9 @@
 2014-05-30  Alan Mackenzie  <acm@muc.de>
 
 	Guard (looking-at "\\s!") from XEmacs.
-	* progmodes/cc-engine.el (c-state-pp-to-literal): add guard form.
+	* progmodes/cc-engine.el (c-state-pp-to-literal): Add guard form.
 
-2014-05-30    Ken Olum  <kdo@cosmos.phy.tufts.edu>  (tiny change)
+2014-05-30    Ken Olum  <kdo@cosmos.phy.tufts.edu>
 
 	* mail/rmail.el (rmail-delete-forward, rmail-delete-backward):
 	The argument COUNT is now optional, to be more backward-compatible.

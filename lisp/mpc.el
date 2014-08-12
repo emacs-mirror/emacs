@@ -1624,7 +1624,7 @@ Return non-nil if a selection was deactivated."
           (setq active
                 (if (listp active) (mpc-intersection active vals) vals))))
 
-      (when (and (listp active))
+      (when (listp active)
         ;; Remove the selections if they are all in conflict with
         ;; other constraints.
         (let ((deactivate t))
@@ -1638,8 +1638,14 @@ Return non-nil if a selection was deactivated."
               (setq selection nil)
               (mapc 'delete-overlay mpc-select)
               (setq mpc-select nil)
-              (mpc-tagbrowser-all-select)))))
+              (mpc-tagbrowser-all-select))))
 
+        ;; Don't bother splitting the "active" elements to the first part if
+        ;; they're the same as the selection.
+        (when (equal (sort (copy-sequence active) #'string-lessp)
+                     (sort (copy-sequence selection) #'string-lessp))
+          (setq active 'all)))
+      
       ;; FIXME: This `mpc-sort' takes a lot of time.  Maybe we should
       ;; be more clever and presume the buffer is mostly sorted already.
       (mpc-sort (if (listp active) active))
