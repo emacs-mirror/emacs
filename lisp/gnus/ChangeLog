@@ -1,3 +1,7 @@
+2014-08-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* gnus-art.el (gnus-hidden-properties): Drop the evil `intangible'.
+
 2014-08-06  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-sum.el (gnus-summary-expire-articles): Revert.

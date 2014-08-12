@@ -253,7 +253,13 @@ This can also be a list of the above values."
 		 (regexp :value ".*"))
   :group 'gnus-article-signature)
 
-(defcustom gnus-hidden-properties '(invisible t intangible t)
+(defcustom gnus-hidden-properties
+  (if (featurep 'xemacs)
+      ;; `intangible' is evil, but I keep it here in case it's useful.
+      '(invisible t intangible t)
+    ;; Emacs's command loop moves point out of invisible text anyway, so
+    ;; `intangible' is clearly not needed there.
+    '(invisible t))
   "Property list to use for hiding text."
   :type 'sexp
   :group 'gnus-article-hiding)
