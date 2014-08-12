@@ -1,3 +1,9 @@
+2014-08-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* image-mode.el (image-transform-reset): New command and menu item.
+	(image-mode-map): Rearrange the menu items to put presumably more
+	obscure items at the end.
+
 2014-08-12  Juri Linkov  <juri@jurta.org>
 
 	* vc/vc-annotate.el (vc-annotate-background-mode):

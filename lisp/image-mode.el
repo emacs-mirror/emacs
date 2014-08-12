@@ -379,8 +379,6 @@ call."
 	["Show as Text" image-toggle-display :active t
 	 :help "Show image as text"]
 	"--"
-	["Fit Frame to Image" image-mode-fit-frame :active t
-	 :help "Resize frame to match image"]
 	["Fit to Window Height" image-transform-fit-to-height
 	 :visible (eq image-type 'imagemagick)
 	 :help "Resize image to match the window height"]
@@ -390,6 +388,9 @@ call."
 	["Rotate Image..." image-transform-set-rotation
 	 :visible (eq image-type 'imagemagick)
 	 :help "Rotate the image"]
+	["Reset Transformations" image-transform-reset
+	 :visible (eq image-type 'imagemagick)
+	 :help "Reset all image transformations"]
 	"--"
 	["Show Thumbnails"
 	 (lambda ()
@@ -401,6 +402,9 @@ call."
          :help "Move to next image in this directory"]
 	["Previous Image" image-previous-file :active buffer-file-name
          :help "Move to previous image in this directory"]
+	"--"
+	["Fit Frame to Image" image-mode-fit-frame :active t
+	 :help "Resize frame to match image"]
 	"--"
 	["Animate Image" image-toggle-animation :style toggle
 	 :selected (let ((image (image-get-display-property)))
@@ -1095,6 +1099,16 @@ ROTATION should be in degrees.  This command has no effect unless
 Emacs is compiled with ImageMagick support."
   (interactive "nRotation angle (in degrees): ")
   (setq image-transform-rotation (float (mod rotation 360)))
+  (image-toggle-display-image))
+
+(defun image-transform-reset ()
+  "Display the current image with the default size and rotation.
+This command has no effect unless Emacs is compiled with
+ImageMagick support."
+  (interactive)
+  (setq image-transform-resize nil
+	image-transform-rotation 0.0
+	image-transform-scale 1)
   (image-toggle-display-image))
 
 (provide 'image-mode)
