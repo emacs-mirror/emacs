@@ -57,7 +57,7 @@ is applied to the background."
   :set (lambda (symbol value)
 	 (set-default symbol value)
 	 (when (boundp 'vc-annotate-color-map)
-	   (ignore-errors
+	   (with-demoted-errors
 	     ;; Update the value of the dependent variable.
 	     (custom-reevaluate-setting 'vc-annotate-color-map))))
   :version "24.5"

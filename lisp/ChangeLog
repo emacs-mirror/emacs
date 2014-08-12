@@ -1,3 +1,8 @@
+2014-08-12  Juri Linkov  <juri@jurta.org>
+
+	* vc/vc-annotate.el (vc-annotate-background-mode):
+	Use `with-demoted-errors' instead of `ignore-errors'.  (Bug#18189)
+
 2014-08-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* files.el (out-of-memory-warning-percentage): Turn it off by default.
