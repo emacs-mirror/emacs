@@ -2123,9 +2123,10 @@ cell of the form ( 'DIRLIST . 'FILELIST )."
 ;;  in order to make it look nice.
 ;;
 ;;  A generic list is of the form:
-;;  ( ("name" . marker-or-number)              <-- one tag at this level
-;;    ("name" ("name" . mon) ("name" . mon) )  <-- one group of tags
-;;    ("name" mon ("name" . mon) )             <-- group w/ a position and tags
+;;  ( ("name" . marker-or-number)                <-- one tag at this level
+;;    ("name" marker-or-number goto-fun . args)  <-- one tag at this level
+;;    ("name" ("name" . mon) ("name" . mon) )    <-- one group of tags
+;;    ("name" mon ("name" . mon) )               <-- group w/ a position and tags
 (defun speedbar-generic-list-group-p (sublst)
   "Non-nil if SUBLST is a group.
 Groups may optionally contain a position."
@@ -2156,6 +2157,8 @@ Groups may optionally contain a position."
   (and (stringp (car-safe sublst))
        (or (and (number-or-marker-p (cdr-safe sublst))
 		(not (cdr-safe (cdr-safe sublst))))
+           (ignore-errors (and (number-or-marker-p (nth 1 sublst))
+                               (functionp (nth 2 sublst))))
 	   ;; For semantic/bovine items, this is needed
 	   (symbolp (car-safe (cdr-safe sublst))))
        ))
