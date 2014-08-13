@@ -190,12 +190,9 @@ If nil, point will always be placed at the beginning of the region."
 
 ;;=== User Command ========================================================
 
-(defvar mouse-sel-has-been-enabled nil
-  "Non-nil if Mouse Sel mode has been enabled at least once.")
-
 (defvar mouse-sel-original-bindings nil)
-(defvar mouse-sel-original-interprogram-cut-function nil)
-(defvar mouse-sel-original-interprogram-paste-function nil)
+
+(defalias 'mouse-sel--ignore #'ignore)
 
 ;;;###autoload
 (define-minor-mode mouse-sel-mode
@@ -242,14 +239,11 @@ kill ring; mouse-1 or mouse-3 kills it."
 			      (global-set-key event (cdr binding)))))
 			mouse-sel-bound-events))
 	  ;; Update interprogram functions.
-	  (setq mouse-sel-original-interprogram-cut-function
-		interprogram-cut-function
-		mouse-sel-original-interprogram-paste-function
-		interprogram-paste-function
-		mouse-sel-has-been-enabled t)
 	  (unless (eq mouse-sel-default-bindings 'interprogram-cut-paste)
-	    (setq interprogram-cut-function nil
-		  interprogram-paste-function nil))))
+	    (add-function :override interprogram-cut-function
+                          #'mouse-sel--ignore)
+            (add-function :override interprogram-paste-function
+                          #'mouse-sel--ignore))))
 
     ;; Restore original bindings
     (remove-hook 'x-lost-selection-functions 'mouse-sel-lost-selection-hook)
@@ -257,11 +251,8 @@ kill ring; mouse-1 or mouse-3 kills it."
       (global-set-key (car binding) (cdr binding)))
     ;; Restore the old values of these variables,
     ;; only if they were actually saved previously.
-    (if mouse-sel-has-been-enabled
-	(setq interprogram-cut-function
-	      mouse-sel-original-interprogram-cut-function
-	      interprogram-paste-function
-	      mouse-sel-original-interprogram-paste-function))))
+    (remove-function interprogram-cut-function #'mouse-sel--ignore)
+    (remove-function interprogram-paste-function #'mouse-sel--ignore)))
 
 (make-obsolete 'mouse-sel-mode "use the normal mouse modes" "24.3")
 
