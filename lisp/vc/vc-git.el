@@ -102,6 +102,7 @@
 ;; - delete-file (file)                            OK
 ;; - rename-file (old new)                         OK
 ;; - find-file-hook ()                             NOT NEEDED
+;; - conflicted-files                              OK
 
 ;;; Code:
 
@@ -768,6 +769,23 @@ This prompts for a branch to merge from."
 	   (list merge-source))
     (with-current-buffer buffer (vc-run-delayed (vc-compilation-mode 'git)))
     (vc-set-async-update buffer)))
+
+(defun vc-git-conflicted-files (directory)
+  "Return the list of files with conflicts in DIRECTORY."
+  (let* ((status
+          (vc-git--run-command-string directory "status" "--porcelain" "--"))
+         (lines (split-string status "\n" 'omit-nulls))
+         files)
+    (dolist (line lines files)
+      (when (string-match "\\([ MADRCU?!][ MADRCU?!]\\) \\(.+\\)\\(?: -> \\(.+\\)\\)?"
+                          line)
+        (let ((state (match-string 1 line))
+              (file (match-string 2 line)))
+          ;; See git-status(1).
+          (when (member state '("AU" "UD" "UA" ;; "DD"
+                                "DU" "AA" "UU"))
+            (push file files)))))))
+
 
 ;;; HISTORY FUNCTIONS
 

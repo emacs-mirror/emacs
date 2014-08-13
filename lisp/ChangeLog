@@ -1,3 +1,10 @@
+2014-08-13  Eric S. Raymond  <esr@thyrsus.com>
+
+	* vc/vc-git.el (vc-git-conflicted-files): Integrate Rüdiger
+	Sonderfeld's code for detecting conflicted files using a status
+	listing.  Useful in itself and a step towards better smerge
+	support.
+
 2014-08-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mpc.el (mpc-reorder): Don't bother splitting the "active"s elements
