@@ -1,3 +1,9 @@
+2014-08-13  Jan Nieuwenhuizen  <janneke@gnu.org>
+
+	* automated/compile-tests.el (compile--test-error-line): Grok FILE
+	being nil.  Allows for Guile tests to pass.
+	(compile-tests--test-regexps-data): Add Guile tests.
+
 2014-08-11  Glenn Morris  <rgm@gnu.org>
 
 	* automated/data/files-bug18141.el.gz: New file.

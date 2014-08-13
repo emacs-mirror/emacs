@@ -1,5 +1,10 @@
 2014-08-13  Jan Nieuwenhuizen  <janneke@gnu.org>
 
+	* progmodes/compile.el (compilation-error-regexp-alist-alist):
+	Add Guile regexpses.
+
+2014-08-13  Jan Nieuwenhuizen  <janneke@gnu.org>
+
 	* progmodes/gud.el (guiler): New function.  Starts the Guile REPL;
 	add Guile debugger support for GUD.
 	

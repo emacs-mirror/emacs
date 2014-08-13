@@ -261,6 +261,26 @@ file:G:/cygwin/dev/build-myproj.xml:54: Compiler Adapter 'javac' can't be found.
 {standard input}:27041: Warning: end of file not at end of a line; newline inserted
 
 
+* Guile backtrace, 2.0.11
+
+symbols: guile-file, guile-line
+
+Backtrace:
+In ice-9/boot-9.scm:
+ 157: 6 [catch #t #<catch-closure 196e3e0> ...]
+In unknown file:
+   ?: 5 [apply-smob/1 #<catch-closure 196e3e0>]
+In ice-9/boot-9.scm:
+  63: 4 [call-with-prompt prompt0 ...]
+In ice-9/eval.scm:
+ 432: 3 [eval # #]
+In unknown file:
+   ?: 2 [eval (main (command-line)) #<directory (gud-break) 1962510>]
+In /home/janneke/vc/guile/examples/gud-break.scm:
+1038: 1 [main ("gud-break.scm")]
+1033: 0 [stderr "~a:hello world\n" (# # #)]
+
+
 * Lucid Compiler, lcc 3.x
 
 symbol: lcc

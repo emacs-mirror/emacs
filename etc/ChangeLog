@@ -1,3 +1,7 @@
+2014-08-08  Jan Nieuwenhuizen  <janneke@gnu.org>
+
+	* compilation.txt (file): Add Guile backtrace example.
+
 2014-08-09  Reuben Thomas  <rrt@sc3d.org>
 
 	* PROBLEMS: Remove msdos/is_exec.c and sigaction.c.

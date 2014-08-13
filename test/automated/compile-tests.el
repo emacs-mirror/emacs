@@ -190,6 +190,10 @@
      1 nil 54 "G:/cygwin/dev/build-myproj.xml")
     ("{standard input}:27041: Warning: end of file not at end of a line; newline inserted"
      1 nil 27041 "{standard input}")
+    ;; Guile
+    ("In foo.scm:\n" 1 nil nil "foo.scm")
+    ("  63:4 [call-with-prompt prompt0 ...]" 1 4 63 nil)
+    ("1038: 1 [main (\"gud-break.scm\")]" 1 1 1038 nil)
     ;; lcc
     ("E, file.cc(35,52) Illegal operation on pointers" 1 52 35 "file.cc")
     ("W, file.cc(36,52) blah blah" 1 52 36 "file.cc")
@@ -338,7 +342,8 @@ END-LINE, if that matched.")
 	    (setq end-line (cdr line) line (car line)))
 	(and (equal (compilation--loc->col loc) col)
 	     (equal (compilation--loc->line loc) line)
-	     (equal (caar (compilation--loc->file-struct loc)) file)
+	     (or (not file) 
+                 (equal (caar (compilation--loc->file-struct loc)) file))
 	     (or (null end-col)
 	     	 (equal (car (cadr (nth 2 (compilation--loc->file-struct loc))))
 	     		end-col))

@@ -477,6 +477,8 @@ File = \\(.+\\), Line = \\([0-9]+\\)\\(?:, Column = \\([0-9]+\\)\\)?"
      ;;
      "^\\([^ \t\r\n(]+\\) (\\([0-9]+\\):\\([0-9]+\\)) "
      1 2 3)
+    (guile-file "^In \\(.+\\):\n" 1)
+    (guile-line "^ *\\([0-9]+\\): *\\([0-9]+\\)" nil 1 2)
     )
   "Alist of values for `compilation-error-regexp-alist'.")
 
