@@ -5376,9 +5376,7 @@ This returns non-nil only if we actually send anything."
                                           (null erc-flood-protect) t))
                 (or (and erc-flood-protect (erc-split-line line))
                     (list line))))
-             (split-string str "\n"))
-          ;; Insert the prompt along with the command.
-          (erc-display-command str)
+             (split-string str "\n")) 
           (erc-process-input-line (concat str "\n") t nil))
         t)))))
 
@@ -6234,7 +6232,7 @@ shortened server name instead."
            (concat (erc-string-no-properties (erc-default-target))
                    "@" network-name))
           ((and network-name 
-                (not (string-equal network-name (buffer-name))))
+                (not (get-buffer network-name)))
            (rename-buffer network-name)
            network-name)
           (t (buffer-name (current-buffer))))))

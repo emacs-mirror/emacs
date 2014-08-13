@@ -1,3 +1,8 @@
+2014-08-13  Kelvin White  <kwhite@gnu.org> 
+
+	* erc.el (erc-send-input): Disable display commands in current buffer
+	(erc-format-target-and/or-network): Fix cases when buffer name is set
+
 2014-08-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* erc-stamp.el (erc-timestamp-intangible): Disable by default because
