@@ -1,3 +1,8 @@
+2014-08-13  Jan Nieuwenhuizen  <janneke@gnu.org>
+
+	* progmodes/gud.el (guiler): New function.  Starts the Guile REPL;
+	add Guile debugger support for GUD.
+	
 2014-08-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* obsolete/mouse-sel.el (mouse-sel-mode): Use add/remove-function.
