@@ -1,3 +1,9 @@
+2014-08-14  Alan Schmitt  <alan.schmitt@polytechnique.org>
+
+	* gnus-sum.el (gnus-summary-expire-articles): Functions registered to
+	the gnus-summary-article-expire-hook should be told where the function
+	is going. In particular, the Gnus registry might want to know.
+
 2014-08-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* gnus-art.el (gnus-hidden-properties): Drop the evil `intangible'.

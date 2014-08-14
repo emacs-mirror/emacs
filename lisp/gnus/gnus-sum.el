@@ -10444,13 +10444,19 @@ This will be the case if the article has both been mailed and posted."
 		  (when (and (not (memq article es))
 			     (gnus-data-find article))
 		    (gnus-summary-mark-article article gnus-canceled-mark)
-		    (run-hook-with-args 'gnus-summary-article-expire-hook
-					'delete
-					(gnus-data-header
-					 (assoc article (gnus-data-list nil)))
-					gnus-newsgroup-name
-					nil
-					nil)))))))
+		    (run-hook-with-args
+		     'gnus-summary-article-expire-hook
+		     'delete
+		     (gnus-data-header (assoc article (gnus-data-list nil)))
+		     gnus-newsgroup-name
+		     (cond
+		      ((stringp nnmail-expiry-target) nnmail-expiry-target)
+		      ((eq nnmail-expiry-target 'delete) nil)
+		      (t
+		       (let ((rescall (funcall nnmail-expiry-target
+					       gnus-newsgroup-name)))
+			 (if (stringp rescall) rescall nil))))
+		     nil)))))))
 	(gnus-message 6 "Expiring articles...done")))))
 
 (defun gnus-summary-expire-articles-now ()
