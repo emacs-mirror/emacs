@@ -716,8 +716,8 @@ Daiki Ueno: wrote epa-dired.el epa-file.el epa-hook.el epa-mail.el epa.el
   pgg-pgp5.el pgg.el plstore.el sasl.el starttls.el
 and co-wrote sasl-cram.el sasl-digest.el
 and changed mml2015.el mml1991.el epa.texi auth-source.el mml-smime.el
-  gnus.texi mm-decode.el mm-uu.el auth.texi gnus-sum.el mm-view.el
-  mml-sec.el mml.el package.el archive-contents archive-contents.sig
+  gnus.texi mm-decode.el mm-uu.el package.el auth.texi gnus-sum.el
+  mm-view.el mml-sec.el mml.el archive-contents archive-contents.sig
   dired.el dired.texi epa-file-hook.el epa-setup.el epg-package-info.el
   and 30 other files
 
@@ -1072,8 +1072,8 @@ Dirk-Jan C. Binnema: changed org-agenda.el
 Dmitri Paduchikh: changed advice.el
 
 Dmitry Antipov: changed xdisp.c alloc.c lisp.h xterm.c buffer.c window.c
-  frame.c xfns.c w32term.c frame.h font.c nsterm.m w32fns.c dispnew.c
-  editfns.c xfaces.c keyboard.c window.h xterm.h dispextern.h buffer.h
+  frame.c xfns.c w32term.c frame.h font.c nsterm.m w32fns.c xfaces.c
+  dispnew.c editfns.c keyboard.c window.h xterm.h dispextern.h buffer.h
   and 238 other files
 
 Dmitry Bolshakov: changed hideshow.el
@@ -1161,8 +1161,8 @@ Eli Zaretskii: wrote [bidirectional display in xdisp.c]
   [tty menus in term.c] bidi.c rxvt.el tty-colors.el
 and changed xdisp.c msdos.c w32.c w32fns.c files.el fileio.c simple.el
   display.texi w32proc.c sed1v2.inp src/makefile.w32-in config.bat
-  msdos.h emacs.c term.c process.c dispnew.c src/Makefile.in dispextern.h
-  mainmake.v2 rmail.el and 795 other files
+  msdos.h emacs.c term.c dispnew.c process.c dispextern.h src/Makefile.in
+  info.el mainmake.v2 and 795 other files
 
 Elias Oltmanns: changed tls.el gnus-agent.el gnus-cite.el gnus-int.el
   gnus-srvr.el gnus.el
@@ -1506,7 +1506,7 @@ and changed configure.ac src/Makefile.in Makefile.in calendar.el
   diary-lib.el files.el lisp/Makefile.in rmail.el progmodes/f90.el
   bytecomp.el emacs.texi simple.el make-dist ack.texi misc/Makefile.in
   cal-menu.el appt.el cal-hebrew.el display.texi startup.el calendar.texi
-  and 1534 other files
+  and 1536 other files
 
 Glynn Clements: wrote gamegrid.el snake.el tetris.el
 
@@ -2191,7 +2191,7 @@ Jure Cuhalev: changed ispell.el
 Juri Linkov: wrote files-x.el misearch.el occur-tests.el
 and changed isearch.el info.el replace.el simple.el dired-aux.el
   progmodes/grep.el dired.el progmodes/compile.el startup.el faces.el
-  files.el menu-bar.el display.texi descr-text.el bindings.el desktop.el
+  files.el menu-bar.el display.texi descr-text.el desktop.el bindings.el
   image-mode.el cus-edit.el ispell.el man.el comint.el
   and 355 other files
 
@@ -2524,12 +2524,12 @@ and changed nxml-mode.el tutorial.el window.el ada-xref.el buff-menu.el
 
 Lennart Staflin: changed dired.el diary-ins.el diary-lib.el tq.el xdisp.c
 
-Leo Liu: wrote pcmpl-x.el
+Leo Liu: wrote calc-tests.el pcmpl-x.el
 and changed octave.el ido.el rcirc.el subr.el files.el simple.el
   flymake.el smie.el abbrev.el eldoc.el progmodes/python.el
   progmodes/compile.el register.el rng-valid.el bindings.el comint.el
   diff-mode.el dired-x.el font-lock.el indent.el kmacro.el
-  and 129 other files
+  and 132 other files
 
 Leo P. White: changed eieio-custom.el
 
@@ -3230,8 +3230,8 @@ Paul Eggert: wrote rcs2log
 and co-wrote cal-dst.el
 and changed lisp.h configure.ac alloc.c process.c fileio.c sysdep.c
   xdisp.c image.c editfns.c keyboard.c emacs.c data.c lread.c callproc.c
-  xterm.c fns.c eval.c Makefile.in dispextern.h dispnew.c gnulib.mk
-  and 1015 other files
+  xterm.c fns.c Makefile.in eval.c dispextern.h dispnew.c gnulib.mk
+  and 1016 other files
 
 Paul Fisher: changed fns.c
 
@@ -3887,10 +3887,10 @@ Stephan Stahl: changed which-func.el buff-menu.el buffer.c dired-x.texi
 Stephen A. Wood: changed fortran.el
 
 Stephen Berman: co-wrote todo-mode.el
-and changed diary-lib.el minibuffer.el todo-mode.texi info.el
-  otodo-mode.el allout.el dframe.el dir dired-aux.el dired.el elpa
-  files.el find-dired.el frame.c gamegrid.el gnus-group.el gomoku.el
-  gtkutil.c misc/Makefile.in newcomment.el page.el and 7 other files
+and changed todo-mode.texi diary-lib.el minibuffer.el info.el
+  otodo-mode.el allout.el dframe.el dir dired-aux.el dired.el doc-view.el
+  elpa files.el find-dired.el frame.c gamegrid.el gnus-group.el gomoku.el
+  gtkutil.c misc/Makefile.in newcomment.el and 8 other files
 
 Stephen C. Gilardi: changed configure.ac
 
@@ -4493,6 +4493,8 @@ Zhang Weize: wrote ob-plantuml.el
 Zoltan Kemenczy: changed gud.el
 
 Zoran Milojevic: changed avoid.el
+
+Álvar Jesús Ibeas Martín: changed emacs-lisp-intro.texi
 
 Ævar Arnfjörð Bjarmason: changed rcirc.el
 
