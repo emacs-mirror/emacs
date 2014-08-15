@@ -490,8 +490,18 @@ register_heapinfo (void)
 }
 
 #ifdef USE_PTHREAD
+/* On Cygwin prior to 1.7.31, pthread_mutexes were ERRORCHECK mutexes
+   by default.  When the default changed to NORMAL in Cygwin-1.7.31,
+   deadlocks occurred (bug#18222).  As a temporary workaround, we
+   explicitly set the mutexes to be of ERRORCHECK type, restoring the
+   previous behavior.  */
+#ifdef CYGWIN
+pthread_mutex_t _malloc_mutex = PTHREAD_ERRORCHECK_MUTEX_INITIALIZER_NP;
+pthread_mutex_t _aligned_blocks_mutex = PTHREAD_ERRORCHECK_MUTEX_INITIALIZER_NP;
+#else  /* not CYGWIN */
 pthread_mutex_t _malloc_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t _aligned_blocks_mutex = PTHREAD_MUTEX_INITIALIZER;
+#endif	/* not CYGWIN */
 int _malloc_thread_enabled_p;
 
 static void
@@ -526,14 +536,23 @@ malloc_enable_thread (void)
      initialized mutexes when they are used first.  To avoid such a
      situation, we initialize mutexes here while their use is
      disabled in malloc etc.  */
+#ifdef CYGWIN
+  /* Use ERRORCHECK mutexes; see comment above. */
+  pthread_mutexattr_t attr;
+  pthread_mutexattr_init (&attr);
+  pthread_mutexattr_settype (&attr, PTHREAD_MUTEX_ERRORCHECK);
+  pthread_mutex_init (&_malloc_mutex, &attr);
+  pthread_mutex_init (&_aligned_blocks_mutex, &attr);
+#else  /* not CYGWIN */
   pthread_mutex_init (&_malloc_mutex, NULL);
   pthread_mutex_init (&_aligned_blocks_mutex, NULL);
+#endif	/* not CYGWIN */
   pthread_atfork (malloc_atfork_handler_prepare,
 		  malloc_atfork_handler_parent,
 		  malloc_atfork_handler_child);
   _malloc_thread_enabled_p = 1;
 }
-#endif
+#endif	/* USE_PTHREAD */
 
 static void
 malloc_initialize_1 (void)

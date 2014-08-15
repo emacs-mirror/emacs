@@ -1,3 +1,8 @@
+2014-08-15  Ken Brown  <kbrown@cornell.edu>
+
+	* gmalloc.c (_malloc_mutex, _aligned_blocks_mutex) [CYGWIN]: Use
+	ERRORCHECK mutexes.  (Bug#18222)
+
 2014-08-12  Martin Rudalics  <rudalics@gmx.at>
 
 	* frame.c (set_menu_bar_lines_1): Remove.

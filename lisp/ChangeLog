@@ -1,3 +1,12 @@
+2014-08-15  Leo Liu  <sdl.web@gmail.com>
+
+	* speedbar.el (speedbar-generic-list-tag-p): Allow special
+	elements from imenu.
+
+2014-08-15  Glenn Morris  <rgm@gnu.org>
+
+	* subr.el (with-output-to-temp-buffer): Doc fix; from elisp manual.
+
 2014-08-13  Jan Nieuwenhuizen  <janneke@gnu.org>
 
 	* progmodes/compile.el (compilation-error-regexp-alist-alist):
@@ -7,7 +16,7 @@
 
 	* progmodes/gud.el (guiler): New function.  Starts the Guile REPL;
 	add Guile debugger support for GUD.
-	
+
 2014-08-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* obsolete/mouse-sel.el (mouse-sel-mode): Use add/remove-function.
