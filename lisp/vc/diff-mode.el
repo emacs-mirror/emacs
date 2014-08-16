@@ -1220,6 +1220,9 @@ else cover the whole buffer."
 		(?- (cl-incf minus))
 		(?! (cl-incf bang))
 		((or ?\\ ?#) nil)
+		(?\n (if diff-valid-unified-empty-line
+			 (cl-incf space)
+		       (setq space 0 plus 0 minus 0 bang 0)))
 		(_  (setq space 0 plus 0 minus 0 bang 0)))
 	    (cond
 	     ((looking-at diff-hunk-header-re-unified)

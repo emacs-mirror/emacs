@@ -1,3 +1,8 @@
+2014-08-16  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* vc/diff-mode.el (diff-fixup-modifs): Handle empty line in
+	context of unified diff.
+
 2014-08-16  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Add dependencies to fix loaddefs race during parallel builds.
