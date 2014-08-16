@@ -15830,7 +15830,7 @@ set_horizontal_scroll_bar (struct window *w)
 	set_buffer_internal (old_buffer);
     }
   else
-    start = end = whole = 0;
+    start = end = whole = portion = 0;
 
   w->hscroll_whole = whole;
 

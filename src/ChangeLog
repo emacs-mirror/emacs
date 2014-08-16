@@ -1,3 +1,7 @@
+2014-08-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* xdisp.c (set_horizontal_scroll_bar): Don't use uninitialized local.
+
 2014-08-16  Martin Rudalics  <rudalics@gmx.at>
 
 	* w32term.c (w32_horizontal_scroll_bar_handle_click): In y part
