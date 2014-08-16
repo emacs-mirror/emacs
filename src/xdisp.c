@@ -15779,7 +15779,7 @@ set_vertical_scroll_bar (struct window *w)
 void
 set_horizontal_scroll_bar (struct window *w)
 {
-  int start, end, whole, box_width;
+  int start, end, whole, portion;
 
   if (!MINI_WINDOW_P (w)
       || (w == XWINDOW (minibuf_window)
@@ -15806,14 +15806,25 @@ set_horizontal_scroll_bar (struct window *w)
 			  MOVE_TO_POS | MOVE_TO_X | MOVE_TO_Y); */
 
       start = w->hscroll * FRAME_COLUMN_WIDTH (WINDOW_XFRAME (w));
-      box_width = window_box_width (w, TEXT_AREA);
-      end = start + box_width;
+      end = start + window_box_width (w, TEXT_AREA);
+      portion = end - start;
+      /* After enlarging a horizontally scrolled window such that it
+	 gets at least as wide as the text it contains, make sure that
+	 the thumb doesn't fill the entire scroll bar so we can still
+	 drag it back to see the entire text.  */
+      whole = max (whole, end);
 
-      /* The following is needed to ensure that if after maximizing a
-	 window we get hscroll > 0, we can still drag the thumb to the
-	 left.  */
-      whole = max (whole, w->hscroll + box_width);
-      whole = max (whole, end - start);
+      if (it.bidi_p)
+	{
+	  Lisp_Object pdir;
+
+	  pdir = Fcurrent_bidi_paragraph_direction (Qnil);
+	  if (EQ (pdir, Qright_to_left))
+	    {
+	      start = whole - end;
+	      end = start + portion;
+	    }
+	}
 
       if (old_buffer)
 	set_buffer_internal (old_buffer);
@@ -15826,7 +15837,7 @@ set_horizontal_scroll_bar (struct window *w)
   /* Indicate what this scroll bar ought to be displaying now.  */
   if (FRAME_TERMINAL (XFRAME (w->frame))->set_horizontal_scroll_bar_hook)
     (*FRAME_TERMINAL (XFRAME (w->frame))->set_horizontal_scroll_bar_hook)
-      (w, end - start, whole, start);
+      (w, portion, whole, start);
 }
 
 

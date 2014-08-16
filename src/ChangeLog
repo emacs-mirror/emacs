@@ -1,3 +1,10 @@
+2014-08-16  Martin Rudalics  <rudalics@gmx.at>
+
+	* w32term.c (w32_horizontal_scroll_bar_handle_click): In y part
+	of emacs_event return length from si.nPage to si.nMax.
+	* xdisp.c (set_horizontal_scroll_bar): For right-to-left text
+	interchange start and end of thumb.
+
 2014-08-15  Ken Brown  <kbrown@cornell.edu>
 
 	* gmalloc.c (_malloc_mutex, _aligned_blocks_mutex) [CYGWIN]: Use

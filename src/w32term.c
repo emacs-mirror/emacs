@@ -4272,15 +4272,15 @@ w32_horizontal_scroll_bar_handle_click (struct scroll_bar *bar, W32Msg *msg,
 
   {
     int left_range = HORIZONTAL_SCROLL_BAR_LEFT_RANGE (f, bar->width);
-    int x;
+    int x, y;
     int dragging = bar->dragging;
     SCROLLINFO si;
 
     si.cbSize = sizeof (si);
-    si.fMask = SIF_POS;
-
+    si.fMask = SIF_POS | SIF_PAGE | SIF_RANGE;
     GetScrollInfo ((HWND) msg->msg.lParam, SB_CTL, &si);
     x = si.nPos;
+    y = si.nMax - si.nPos - si.nPage;
 
     bar->dragging = 0;
     FRAME_DISPLAY_INFO (f)->last_mouse_scroll_bar_pos = msg->msg.wParam;
@@ -4354,7 +4354,7 @@ w32_horizontal_scroll_bar_handle_click (struct scroll_bar *bar, W32Msg *msg,
       }
 
     XSETINT (emacs_event->x, x);
-    XSETINT (emacs_event->y, left_range);
+    XSETINT (emacs_event->y, y);
 
     return TRUE;
   }
