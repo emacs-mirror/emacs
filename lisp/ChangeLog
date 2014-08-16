@@ -1,3 +1,15 @@
+2014-08-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Add dependencies to fix loaddefs race during parallel builds.
+	Without this, for example, 'make -j bootstrap' can fail and report
+	"Opening input file: no such file or directory,
+	.../lisp/calendar/diary-loaddefs.el ... recipe for target
+	'calendar/hol-loaddefs.el' failed", where the hol-loaddefs.el rule
+	got confused because diary-loaddefs.el was being built in parallel.
+	* Makefile.in ($(CAL_DIR)/diary-loaddefs.el):
+	Depend on $(CAL_DIR)/cal-loaddefs.el.
+	($(CAL_DIR)/hol-loaddefs.el): Depend on $(CAL_DIR)/diary-loaddefs.el.
+
 2014-08-16  Martin Rudalics  <rudalics@gmx.at>
 
 	* scroll-bar.el (scroll-bar-horizontal-drag-1): Use cdr of
