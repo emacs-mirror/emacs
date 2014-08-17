@@ -20583,10 +20583,15 @@ display_line (struct it *it)
 	  row->truncated_on_right_p = 1;
 	  it->continuation_lines_width = 0;
 	  reseat_at_next_visible_line_start (it, 0);
-	  if (IT_BYTEPOS (*it) <= BEG_BYTE)
-	    row->ends_at_zv_p = true;
+	  /* We insist below that IT's position be at ZV because in
+	     bidi-reordered lines the character at visible line start
+	     might not be the character that follows the newline in
+	     the logical order.  */
+	  if (IT_BYTEPOS (*it) > BEG_BYTE)
+	    row->ends_at_zv_p =
+	      IT_BYTEPOS (*it) >= ZV_BYTE && FETCH_BYTE (ZV_BYTE - 1) != '\n';
 	  else
-	    row->ends_at_zv_p = FETCH_BYTE (IT_BYTEPOS (*it) - 1) != '\n';
+	    row->ends_at_zv_p = false;
 	  break;
 	}
     }
