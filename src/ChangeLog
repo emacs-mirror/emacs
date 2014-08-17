@@ -1,3 +1,15 @@
+2014-08-17  Eli Zaretskii  <eliz@gnu.org>
+
+	Avoid overwriting the reversed_p flags in the glyph matrices when
+	init_iterator or start_display are called.
+	* xdisp.c (init_iterator): Don't initialize the reversed_p flag of
+	the glyph row here.
+	(tool_bar_height, redisplay_tool_bar, try_window)
+	(try_window_reusing_current_matrix, try_window_id)
+	(get_overlay_arrow_glyph_row, display_menu_bar): Initialize the
+	reversed_p flag of the iterator's glyph row where the glyph row
+	is going to be redrawn.
+
 2014-08-16  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* xdisp.c (set_horizontal_scroll_bar): Don't use uninitialized local.

@@ -2971,10 +2971,6 @@ init_iterator (struct it *it, struct window *w,
   it->glyph_row = row;
   it->area = TEXT_AREA;
 
-  /* Forget any previous info about this row being reversed.  */
-  if (it->glyph_row)
-    it->glyph_row->reversed_p = 0;
-
   /* Get the dimensions of the display area.  The display area
      consists of the visible window area plus a horizontally scrolled
      part to the left of the window.  All x-values are relative to the
@@ -12294,6 +12290,7 @@ tool_bar_height (struct frame *f, int *n_rows, bool pixelwise)
   /* Initialize an iterator for iteration over
      F->desired_tool_bar_string in the tool-bar window of frame F.  */
   init_iterator (&it, w, -1, -1, temp_row, TOOL_BAR_FACE_ID);
+  temp_row->reversed_p = false;
   it.first_visible_x = 0;
   it.last_visible_x = WINDOW_PIXEL_WIDTH (w);
   reseat_to_string (&it, NULL, f->desired_tool_bar_string, 0, 0, 0, -1);
@@ -12378,6 +12375,7 @@ redisplay_tool_bar (struct frame *f)
   it.first_visible_x = 0;
   it.last_visible_x = WINDOW_PIXEL_WIDTH (w);
   row = it.glyph_row;
+  row->reversed_p = false;
 
   /* Build a string that represents the contents of the tool-bar.  */
   build_desired_tool_bar_string (f);
@@ -16898,6 +16896,7 @@ try_window (Lisp_Object window, struct text_pos pos, int flags)
 
   /* Initialize iterator and info to start at POS.  */
   start_display (&it, w, pos);
+  it.glyph_row->reversed_p = false;
 
   /* Display all lines of W.  */
   while (it.current_y < it.last_visible_y)
@@ -17081,6 +17080,7 @@ try_window_reusing_current_matrix (struct window *w)
 	      && it.current.dpvec_index < 0)
 	    break;
 
+	  it.glyph_row->reversed_p = false;
 	  if (display_line (&it))
 	    last_text_row = it.glyph_row - 1;
 
@@ -18101,6 +18101,11 @@ try_window_id (struct window *w)
   w->cursor.vpos = -1;
   last_text_row = NULL;
   overlay_arrow_seen = 0;
+  if (it.current_y < it.last_visible_y
+      && !f->fonts_changed
+      && (first_unchanged_at_end_row == NULL
+	  || IT_CHARPOS (it) < stop_pos))
+    it.glyph_row->reversed_p = false;
   while (it.current_y < it.last_visible_y
 	 && !f->fonts_changed
 	 && (first_unchanged_at_end_row == NULL
@@ -18810,6 +18815,7 @@ get_overlay_arrow_glyph_row (struct window *w, Lisp_Object overlay_arrow_string)
 
   set_buffer_temp (buffer);
   init_iterator (&it, w, -1, -1, &scratch_glyph_row, DEFAULT_FACE_ID);
+  scratch_glyph_row.reversed_p = false;
   it.glyph_row->used[TEXT_AREA] = 0;
   SET_TEXT_POS (it.position, 0, 0);
 
@@ -21400,6 +21406,7 @@ display_menu_bar (struct window *w)
       clear_glyph_row (row);
       row->enabled_p = true;
       row->full_width_p = 1;
+      row->reversed_p = false;
     }
 
   /* Display all items of the menu bar.  */
