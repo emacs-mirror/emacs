@@ -48,6 +48,7 @@
 ;;; Code:
 
 (require 'help-fns)		       ;For fundoc-usage handling functions.
+(require 'cl-lib)
 
 (defgroup eldoc nil
   "Show function arglist or variable docstring in echo area."
@@ -75,7 +76,7 @@ Changing the value requires toggling `eldoc-mode'."
   :type '(choice string (const :tag "None" nil))
   :group 'eldoc)
 
-(defcustom eldoc-argument-case 'upcase
+(defcustom eldoc-argument-case #'identity
   "Case to display argument names of functions, as a symbol.
 This has two preferred values: `upcase' or `downcase'.
 Actually, any name of a function which takes a string as an argument and
@@ -87,6 +88,7 @@ has no effect, unless the function handles it explicitly."
 		(function-item downcase)
                 function)
   :group 'eldoc)
+(make-obsolete-variable 'eldoc-argument-case nil "24.5")
 
 (defcustom eldoc-echo-area-use-multiline-p 'truncate-sym-name-if-fit
   "Allow long ElDoc messages to resize echo area display.
@@ -341,12 +343,7 @@ Emacs Lisp mode) that support ElDoc.")
 (defun eldoc-get-fnsym-args-string (sym &optional index)
   "Return a string containing the parameter list of the function SYM.
 If SYM is a subr and no arglist is obtainable from the docstring
-or elsewhere, return a 1-line docstring.  Calls the functions
-`eldoc-function-argstring-format' and
-`eldoc-highlight-function-argument' to format the result.  The
-former calls `eldoc-argument-case'; the latter gives the
-function name `font-lock-function-name-face', and optionally
-highlights argument number INDEX."
+or elsewhere, return a 1-line docstring."
   (let (args doc advertised)
     (cond ((not (and sym (symbolp sym) (fboundp sym))))
 	  ((and (eq sym (aref eldoc-last-data 0))
@@ -356,12 +353,7 @@ highlights argument number INDEX."
 					    advertised-signature-table t)))
 	   (setq args advertised))
 	  ((setq doc (help-split-fundoc (documentation sym t) sym))
-	   (setq args (car doc))
-	   ;; Remove any enclosing (), since e-function-argstring adds them.
-	   (string-match "\\`[^ )]* ?" args)
-	   (setq args (substring args (match-end 0)))
-	   (if (string-match-p ")\\'" args)
-	       (setq args (substring args 0 -1))))
+	   (setq args (car doc)))
 	  (t
 	   (setq args (help-function-arglist sym))))
     (if args
@@ -372,8 +364,7 @@ highlights argument number INDEX."
       (setq args doc))		  ; use stored value
     ;; Change case, highlight, truncate.
     (if args
-	(eldoc-highlight-function-argument
-	 sym (eldoc-function-argstring-format args) index))))
+	(eldoc-highlight-function-argument sym args index))))
 
 (defun eldoc-highlight-function-argument (sym args index)
   "Highlight argument INDEX in ARGS list for function SYM.
@@ -388,6 +379,30 @@ In the absence of INDEX, just call `eldoc-docstring-format-sym-doc'."
     ;;        (defun NAME ARGLIST [DOCSTRING] BODY...) case?
     ;;        The problem is there is no robust way to determine if
     ;;        the current argument is indeed a docstring.
+
+    ;; When `&key' is used finding position based on `index'
+    ;; would be wrong, so find the arg at point and determine
+    ;; position in ARGS based on this current arg.
+    (when (string-match "&key" args)
+      (let* (case-fold-search
+             (cur-w (current-word))
+             (limit (save-excursion
+                      (when (re-search-backward (symbol-name sym) nil t)
+                        (match-end 0))))
+             (cur-a (if (string-match ":\\([^ ()]*\\)" cur-w)
+                        (substring cur-w 1)
+                      (save-excursion
+                        (when (re-search-backward ":\\([^ ()\n]*\\)" limit t)
+                            (match-string 1))))))
+        ;; If `cur-a' is nil probably cursor is on a positional arg
+        ;; before `&key', in this case, exit this block and determine
+        ;; position with `index'.
+        (when (and cur-a
+                   (string-match (concat "\\_<" (upcase cur-a) "\\_>") args))
+          (setq index nil ; Skip next block based on positional args.
+                start (match-beginning 0)
+                end   (match-end 0)))))
+    ;; Handle now positional arguments.
     (while (and index (>= index 1))
       (if (string-match "[^ ()]+" args end)
 	  (progn
@@ -397,9 +412,14 @@ In the absence of INDEX, just call `eldoc-docstring-format-sym-doc'."
 	      (cond ((string= argument "&rest")
 		     ;; All the rest arguments are the same.
 		     (setq index 1))
-		    ((string= argument "&optional"))
-		    ((string-match-p "\\.\\.\\.$" argument)
-		     (setq index 0))
+		    ((string= argument "&optional")) ; Skip.
+                    ((string= argument "&allow-other-keys")) ; Skip.
+                    ;; Back to index 0 in ARG1 ARG2 ARG2 ARG3 etc...
+                    ;; like in `setq'.
+		    ((or (string-match-p "\\.\\.\\.$" argument)
+                         (and (string-match-p "\\.\\.\\.)?$" args)
+                              (> index 1) (cl-oddp index)))
+                     (setq index 0))
 		    (t
 		     (setq index (1- index))))))
 	(setq end           (length args)
@@ -533,28 +553,12 @@ In the absence of INDEX, just call `eldoc-docstring-format-sym-doc'."
 (defun eldoc-function-argstring (arglist)
   "Return ARGLIST as a string enclosed by ().
 ARGLIST is either a string, or a list of strings or symbols."
-  (cond ((stringp arglist))
-	((not (listp arglist))
-	 (setq arglist nil))
-	((symbolp (car arglist))
-	 (setq arglist
-	       (mapconcat (lambda (s) (symbol-name s))
-			  arglist " ")))
-	((stringp (car arglist))
-	 (setq arglist
-	       (mapconcat (lambda (s) s)
-			  arglist " "))))
-  (if arglist
-      (format "(%s)" arglist)))
-
-(defun eldoc-function-argstring-format (argstring)
-  "Apply `eldoc-argument-case' to each word in ARGSTRING.
-The words \"&rest\", \"&optional\" are returned unchanged."
-  (mapconcat (lambda (s)
-	       (if (string-match-p "\\`(?&\\(?:optional\\|rest\\))?\\'" s)
-		   s
-		 (funcall eldoc-argument-case s)))
-	     (split-string argstring) " "))
+  (let ((str (cond ((stringp arglist) arglist)
+                   ((not (listp arglist)) nil)
+                   (t (format "%S" (help-make-usage 'toto arglist))))))
+    (if (and str (string-match "\\`([^ ]+ ?" str))
+        (replace-match "(" t t str)
+      str)))
 
 
 ;; When point is in a sexp, the function args are not reprinted in the echo

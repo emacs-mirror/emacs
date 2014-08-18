@@ -1,3 +1,17 @@
+2014-08-18  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
+
+	* emacs-lisp/eldoc.el (eldoc-highlight-function-argument): Add support
+	for &key args (bug#18048).
+
+2014-08-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/eldoc.el (eldoc-argument-case): Obsolete and change default.
+	(eldoc-function-argstring-format): Remove.
+	(eldoc-function-argstring): Always return upcase args.
+	Use help-make-usage.  Don't add parens.
+	(eldoc-get-fnsym-args-string): Don't obey eldoc-argument-case since
+	it's too late to do it right (bug#18048).
+
 2014-08-18  Eli Zaretskii  <eliz@gnu.org>
 
 	* scroll-bar.el (scroll-bar-horizontal-drag-1)
