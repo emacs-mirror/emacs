@@ -1,3 +1,7 @@
+2014-08-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (self-insert-uses-region-functions): Defvar.
+
 2014-08-13  Leo Liu  <sdl.web@gmail.com>
 
 	* speedbar.el (speedbar-generic-list-tag-p): Allow special
