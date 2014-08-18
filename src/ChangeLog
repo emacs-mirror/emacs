@@ -1,5 +1,7 @@
 2014-08-18  Eli Zaretskii  <eliz@gnu.org>
 
+	* xdisp.c (handle_stop): Improve commentary.
+
 	* indent.c (Fvertical_motion): Fix vertical motion up through a
 	display property after a newline.  (Bug#18276)
 
