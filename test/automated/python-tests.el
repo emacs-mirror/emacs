@@ -1753,7 +1753,7 @@ Using `python-shell-interpreter' and
   "Test `python-shell-exec-path' modification."
   (let* ((original-exec-path exec-path)
          (python-shell-virtualenv-path
-          (directory-file-name user-emacs-directory))
+          (directory-file-name (expand-file-name user-emacs-directory)))
          (exec-path (python-shell-calculate-exec-path)))
     (should (equal
              exec-path
