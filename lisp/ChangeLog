@@ -1,5 +1,8 @@
 2014-08-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/python.el (python-shell-prompt-detect): Remove redundant
+	executable-find (bug#18244).
+
 	* simple.el (self-insert-uses-region-functions): Defvar.
 
 2014-08-13  Leo Liu  <sdl.web@gmail.com>

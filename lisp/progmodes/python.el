@@ -1894,7 +1894,7 @@ detection and just returns nil."
                 (let ((code-file (python-shell--save-temp-file code)))
                   ;; Use `process-file' as it is remote-host friendly.
                   (process-file
-                   (executable-find python-shell-interpreter)
+                   python-shell-interpreter
                    code-file
                    '(t nil)
                    nil
@@ -2048,11 +2048,14 @@ uniqueness for different types of configurations."
             (or python-shell-virtualenv-path "")
             (mapconcat #'identity python-shell-exec-path "")))))
 
-(defun python-shell-parse-command ()
+(defun python-shell-parse-command ()    ;FIXME: why name it "parse"?
   "Calculate the string used to execute the inferior Python process."
+  ;; FIXME: process-environment doesn't seem to be used anywhere within
+  ;; this let.
   (let ((process-environment (python-shell-calculate-process-environment))
         (exec-path (python-shell-calculate-exec-path)))
     (format "%s %s"
+            ;; FIXME: Why executable-find?
             (executable-find python-shell-interpreter)
             python-shell-interpreter-args)))
 
@@ -2084,11 +2087,10 @@ uniqueness for different types of configurations."
 (defun python-shell-calculate-exec-path ()
   "Calculate exec path given `python-shell-virtualenv-path'."
   (let ((path (append python-shell-exec-path
-                      exec-path nil)))
+                      exec-path nil)))  ;FIXME: Why nil?
     (if (not python-shell-virtualenv-path)
         path
-      (cons (format "%s/bin"
-                    (directory-file-name python-shell-virtualenv-path))
+      (cons (expand-file-name "bin" python-shell-virtualenv-path)
             path))))
 
 (defun python-comint-output-filter-function (output)
