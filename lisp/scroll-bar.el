@@ -327,7 +327,8 @@ If you click outside the slider, the window scrolls to bring the slider there."
 	 (window (nth 0 start-position))
 	 (portion-whole (nth 2 start-position))
 	 (unit (frame-char-width (window-frame window))))
-    (if (eq (current-bidi-paragraph-direction) 'left-to-right)
+    (if (eq (current-bidi-paragraph-direction (window-buffer window))
+	    'left-to-right)
 	(set-window-hscroll
 	 window (/ (1- (+ (car portion-whole) unit)) unit))
       (set-window-hscroll
@@ -454,9 +455,11 @@ EVENT should be a scroll bar click."
   (let* ((end-position (event-end event))
 	 (window (nth 0 end-position))
 	 (part (nth 4 end-position))
-	 (bidi-factor (if (eq (current-bidi-paragraph-direction) 'left-to-right)
-			  1
-			-1))
+	 (bidi-factor
+	  (if (eq (current-bidi-paragraph-direction (window-buffer window))
+		  'left-to-right)
+	      1
+	    -1))
 	 before-scroll)
     (cond
      ((eq part 'end-scroll))

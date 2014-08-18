@@ -1,3 +1,10 @@
+2014-08-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* scroll-bar.el (scroll-bar-horizontal-drag-1)
+	(scroll-bar-toolkit-horizontal-scroll): When determining the
+	paragraph direction, use the buffer of the window designated in
+	the event.
+
 2014-08-16  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* vc/diff-mode.el (diff-fixup-modifs): Handle empty line in
