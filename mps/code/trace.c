@@ -1817,6 +1817,7 @@ Size TracePoll(Globals globals)
   Res res;
   Arena arena;
   Size scannedSize;
+  Bool incremental = FALSE;
 
   AVERT(Globals, globals);
   arena = GlobalsArena(globals);
@@ -1888,7 +1889,9 @@ Size TracePoll(Globals globals)
     trace = ArenaTrace(arena, (TraceId)0);
     AVER(arena->busyTraces == TraceSetSingle(trace));
     oldScanned = traceWorkClock(trace);
-    TraceQuantum(trace);
+    do {
+      TraceQuantum(trace);
+    } while(!incremental && trace->state != TraceFINISHED);
     scannedSize = traceWorkClock(trace) - oldScanned;
     if(trace->state == TraceFINISHED) {
       TraceDestroy(trace);
