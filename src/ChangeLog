@@ -1,3 +1,8 @@
+2014-08-19  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* xdisp.c (erase_phys_cursor): Fix confusion between window-relative
+	and text area-relative x-coordinates.
+
 2014-08-17  Eli Zaretskii  <eliz@gnu.org>
 
 	Avoid overwriting the reversed_p flags in the glyph matrices when

@@ -27370,7 +27370,7 @@ erase_phys_cursor (struct window *w)
   /* Maybe clear the display under the cursor.  */
   if (w->phys_cursor_type == HOLLOW_BOX_CURSOR)
     {
-      int x, y, left_x;
+      int x, y;
       int header_line_height = WINDOW_HEADER_LINE_HEIGHT (w);
       int width;
 
@@ -27379,13 +27379,15 @@ erase_phys_cursor (struct window *w)
 	goto mark_cursor_off;
 
       width = cursor_glyph->pixel_width;
-      left_x = window_box_left_offset (w, TEXT_AREA);
       x = w->phys_cursor.x;
-      if (x < left_x)
-	width -= left_x - x;
+      if (x < 0)
+	{
+	  width += x;
+	  x = 0;
+	}
       width = min (width, window_box_width (w, TEXT_AREA) - x);
       y = WINDOW_TO_FRAME_PIXEL_Y (w, max (header_line_height, cursor_row->y));
-      x = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, max (x, left_x));
+      x = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, x);
 
       if (width > 0)
 	FRAME_RIF (f)->clear_frame_area (f, x, y, width, cursor_row->visible_height);
