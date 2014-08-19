@@ -1,3 +1,9 @@
+2014-08-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32term.c (w32_horizontal_scroll_bar_handle_click): Fix the
+	second coordinate ('y') reported for dragging the horizontal
+	scroll bar thumb.
+
 2014-08-19  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* xdisp.c (erase_phys_cursor): Fix confusion between window-relative

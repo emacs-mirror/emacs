@@ -4310,7 +4310,10 @@ w32_horizontal_scroll_bar_handle_click (struct scroll_bar *bar, W32Msg *msg,
       case SB_THUMBTRACK:
       case SB_THUMBPOSITION:
 	if (HORIZONTAL_SCROLL_BAR_LEFT_RANGE (f, bar->width) <= 0xffff)
-          x = HIWORD (msg->msg.wParam);
+	  {
+	    x = HIWORD (msg->msg.wParam);
+	    y = si.nMax - x - si.nPage;
+	  }
 	bar->dragging = 1;
 	emacs_event->part = scroll_bar_horizontal_handle;
 
