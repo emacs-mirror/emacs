@@ -564,7 +564,8 @@ void ArenaRelease(Globals globals)
 }
 
 
-/* ArenaPark -- finish all current collections and clamp the arena */
+/* ArenaPark -- finish all current collections and clamp the arena,
+ * thus leaving the arena parked. */
 
 void ArenaPark(Globals globals)
 {
