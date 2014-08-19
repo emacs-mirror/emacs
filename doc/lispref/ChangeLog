@@ -1,3 +1,8 @@
+2014-08-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* display.texi (Bidirectional Display): Update the Emacs's class
+	of bidirectional conformance.
+
 2014-07-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* debugging.texi (Function Debugging, Debugger Commands):
