@@ -75,14 +75,15 @@
 
 2014-08-13  Eric S. Raymond  <esr@thyrsus.com>
 
+	* vc/vc.git.el (vc-git-resolve-when-done): New function.
+	Call "git add" when there are no longer conflict markers.
+
+2014-08-13  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
+
 	* vc/vc.git.el (vc-git-find-file-hook): New function.
-	Adds support for calling smerge on a conflicted file, and calling
-	"git add" when there are no longer conflict markers in a saved file.
-	This is a completed version of Rüdiger Sonderfeld's proposal.
+	Adds support for calling smerge (and resolve) on a conflicted file.
 	(vc-git-conflicted-files): New function.
-	Integrate Rüdiger Sonderfeld's code for detecting conflicted files
-	using a status listing.  Useful in itself and a step towards better
-	smerge support.
+	Useful in itself and a step towards better smerge support.
 
 2014-08-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
