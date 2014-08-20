@@ -408,6 +408,8 @@
 
 #define ARENA_DEFAULT_ZONED     TRUE
 
+#define ARENA_DEFAULT_INCREMENTAL     TRUE
+
 #define ArenaDefaultZONESET (ZoneSetUNIV << (MPS_WORD_WIDTH / 2))
 /* TODO: This is left over from before the branch/2014-01-29/mps-chain-zones
    and 2014-01-17/cbs-tract-alloc reformed allocation, and may now be doing
