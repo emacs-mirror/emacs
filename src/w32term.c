@@ -4166,17 +4166,24 @@ w32_scroll_bar_handle_click (struct scroll_bar *bar, W32Msg *msg,
     int y;
     int dragging = bar->dragging;
     SCROLLINFO si;
+    int sb_event = LOWORD (msg->msg.wParam);
 
     si.cbSize = sizeof (si);
-    si.fMask = SIF_POS;
+    if (sb_event == SB_THUMBTRACK)
+      si.fMask = SIF_TRACKPOS;
+    else
+      si.fMask = SIF_POS;
 
     GetScrollInfo ((HWND) msg->msg.lParam, SB_CTL, &si);
-    y = si.nPos;
+    if (sb_event == SB_THUMBTRACK)
+      y = si.nTrackPos;
+    else
+      y = si.nPos;
 
     bar->dragging = 0;
     FRAME_DISPLAY_INFO (f)->last_mouse_scroll_bar_pos = msg->msg.wParam;
 
-    switch (LOWORD (msg->msg.wParam))
+    switch (sb_event)
       {
       case SB_LINEDOWN:
 	emacs_event->part = scroll_bar_down_arrow;
@@ -4200,8 +4207,6 @@ w32_scroll_bar_handle_click (struct scroll_bar *bar, W32Msg *msg,
 	break;
       case SB_THUMBTRACK:
       case SB_THUMBPOSITION:
-	if (VERTICAL_SCROLL_BAR_TOP_RANGE (f, bar->height) <= 0xffff)
-          y = HIWORD (msg->msg.wParam);
 	bar->dragging = 1; /* ??????? */
 	emacs_event->part = scroll_bar_handle;
 
@@ -4275,17 +4280,25 @@ w32_horizontal_scroll_bar_handle_click (struct scroll_bar *bar, W32Msg *msg,
     int x, y;
     int dragging = bar->dragging;
     SCROLLINFO si;
+    int sb_event = LOWORD (msg->msg.wParam);
 
     si.cbSize = sizeof (si);
-    si.fMask = SIF_POS | SIF_PAGE | SIF_RANGE;
+    if (sb_event == SB_THUMBTRACK)
+      si.fMask = SIF_TRACKPOS | SIF_PAGE | SIF_RANGE;
+    else
+      si.fMask = SIF_POS | SIF_PAGE | SIF_RANGE;
+
     GetScrollInfo ((HWND) msg->msg.lParam, SB_CTL, &si);
-    x = si.nPos;
-    y = si.nMax - si.nPos - si.nPage;
+    if (sb_event == SB_THUMBTRACK)
+      x = si.nTrackPos;
+    else
+      x = si.nPos;
+    y = si.nMax - x - si.nPage;
 
     bar->dragging = 0;
     FRAME_DISPLAY_INFO (f)->last_mouse_scroll_bar_pos = msg->msg.wParam;
 
-    switch (LOWORD (msg->msg.wParam))
+    switch (sb_event)
       {
       case SB_LINELEFT:
 	emacs_event->part = scroll_bar_left_arrow;
@@ -4309,11 +4322,6 @@ w32_horizontal_scroll_bar_handle_click (struct scroll_bar *bar, W32Msg *msg,
 	break;
       case SB_THUMBTRACK:
       case SB_THUMBPOSITION:
-	if (HORIZONTAL_SCROLL_BAR_LEFT_RANGE (f, bar->width) <= 0xffff)
-	  {
-	    x = HIWORD (msg->msg.wParam);
-	    y = si.nMax - x - si.nPage;
-	  }
 	bar->dragging = 1;
 	emacs_event->part = scroll_bar_horizontal_handle;
 
@@ -4378,6 +4386,7 @@ x_scroll_bar_report_motion (struct frame **fp, Lisp_Object *bar_window,
   int pos;
   int top_range = VERTICAL_SCROLL_BAR_TOP_RANGE (f, bar->height);
   SCROLLINFO si;
+  int sb_event = LOWORD (dpyinfo->last_mouse_scroll_bar_pos);
 
   block_input ();
 
@@ -4385,28 +4394,21 @@ x_scroll_bar_report_motion (struct frame **fp, Lisp_Object *bar_window,
   *bar_window = bar->window;
 
   si.cbSize = sizeof (si);
-  si.fMask = SIF_POS | SIF_PAGE | SIF_RANGE;
+  if (sb_event == SB_THUMBTRACK)
+    si.fMask = SIF_TRACKPOS | SIF_PAGE | SIF_RANGE;
+  else
+    si.fMask = SIF_POS | SIF_PAGE | SIF_RANGE;
 
   GetScrollInfo (w, SB_CTL, &si);
-  pos = si.nPos;
+  if (sb_event == SB_THUMBTRACK)
+    pos = si.nTrackPos;
+  else
+    pos = si.nPos;
   top_range = si.nMax - si.nPage + 1;
 
-  switch (LOWORD (dpyinfo->last_mouse_scroll_bar_pos))
-  {
-  case SB_THUMBPOSITION:
-  case SB_THUMBTRACK:
-      *part = scroll_bar_handle;
-      if (VERTICAL_SCROLL_BAR_TOP_RANGE (f, bar->height) <= 0xffff)
-	pos = HIWORD (dpyinfo->last_mouse_scroll_bar_pos);
-      break;
-  case SB_LINEDOWN:
-      *part = scroll_bar_handle;
-      pos++;
-      break;
-  default:
-      *part = scroll_bar_handle;
-      break;
-  }
+  *part = scroll_bar_handle;
+  if (sb_event == SB_LINEDOWN)
+    pos++;
 
   XSETINT (*x, pos);
   XSETINT (*y, top_range);
@@ -4434,6 +4436,7 @@ x_horizontal_scroll_bar_report_motion (struct frame **fp, Lisp_Object *bar_windo
   int pos;
   int left_range = HORIZONTAL_SCROLL_BAR_LEFT_RANGE (f, bar->width);
   SCROLLINFO si;
+  int sb_event = LOWORD (dpyinfo->last_mouse_scroll_bar_pos);
 
   block_input ();
 
@@ -4441,28 +4444,22 @@ x_horizontal_scroll_bar_report_motion (struct frame **fp, Lisp_Object *bar_windo
   *bar_window = bar->window;
 
   si.cbSize = sizeof (si);
-  si.fMask = SIF_POS | SIF_PAGE | SIF_RANGE;
+  if (sb_event == SB_THUMBTRACK)
+    si.fMask = SIF_TRACKPOS | SIF_PAGE | SIF_RANGE;
+  else
+    si.fMask = SIF_POS | SIF_PAGE | SIF_RANGE;
 
   GetScrollInfo (w, SB_CTL, &si);
-  pos = si.nPos;
+  if (sb_event == SB_THUMBTRACK)
+    pos = si.nTrackPos;
+  else
+    pos = si.nPos;
   left_range = si.nMax - si.nPage + 1;
 
-  switch (LOWORD (dpyinfo->last_mouse_scroll_bar_pos))
-  {
-  case SB_THUMBPOSITION:
-  case SB_THUMBTRACK:
-      *part = scroll_bar_handle;
-      if (HORIZONTAL_SCROLL_BAR_LEFT_RANGE (f, bar->width) <= 0xffff)
-	pos = HIWORD (dpyinfo->last_mouse_scroll_bar_pos);
-      break;
-  case SB_LINERIGHT:
-      *part = scroll_bar_handle;
-      pos++;
-      break;
-  default:
-      *part = scroll_bar_handle;
-      break;
-  }
+  *part = scroll_bar_handle;
+  if (sb_event == SB_LINERIGHT)
+    pos++;
+
 
   XSETINT (*y, pos);
   XSETINT (*x, left_range);

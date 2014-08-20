@@ -1,3 +1,13 @@
+2014-08-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32term.c (w32_scroll_bar_handle_click)
+	(w32_horizontal_scroll_bar_handle_click)
+	(x_scroll_bar_report_motion)
+	(x_horizontal_scroll_bar_report_motion): For SB_THUMBPOSITION and
+	SB_THUMBTRACK, use the 32-bit position information returned by
+	GetScrollInfo, not the 16-bit information returned in the Windows
+	message sent to us.
+
 2014-08-19  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32term.c (w32_horizontal_scroll_bar_handle_click): Fix the
