@@ -163,6 +163,9 @@ extern const struct mps_key_s _mps_key_arena_grain_size;
 extern const struct mps_key_s _mps_key_arena_zoned;
 #define MPS_KEY_ARENA_ZONED     (&_mps_key_arena_zoned)
 #define MPS_KEY_ARENA_ZONED_FIELD b
+extern const struct mps_key_s _mps_key_arena_incremental;
+#define MPS_KEY_ARENA_INCREMENTAL     (&_mps_key_arena_incremental)
+#define MPS_KEY_ARENA_INCREMENTAL_FIELD b
 extern const struct mps_key_s _mps_key_format;
 #define MPS_KEY_FORMAT          (&_mps_key_format)
 #define MPS_KEY_FORMAT_FIELD    format
