@@ -1,3 +1,8 @@
+2014-08-20  Sam Steingold  <sds@gnu.org>
+
+	* progmodes/python.el (python-new-pythonpath): Extract from
+	`python-shell-calculate-process-environment'.
+
 2014-08-18  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
 
 	* emacs-lisp/eldoc.el (eldoc-highlight-function-argument): Add support

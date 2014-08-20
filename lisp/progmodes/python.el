@@ -2069,6 +2069,16 @@ uniqueness for different types of configurations."
             (executable-find python-shell-interpreter)
             python-shell-interpreter-args)))
 
+(defun python-new-pythonpath ()
+  "Calculate the new PYTHONPATH value from `python-shell-extra-pythonpaths'."
+  (let ((pythonpath (getenv "PYTHONPATH"))
+        (extra (mapconcat 'identity
+                          python-shell-extra-pythonpaths
+                          path-separator)))
+    (if pythonpath
+        (concat extra path-separator pythonpath)
+      extra)))
+
 (defun python-shell-calculate-process-environment ()
   "Calculate process environment given `python-shell-virtualenv-path'."
   (let ((process-environment (append
@@ -2078,13 +2088,7 @@ uniqueness for different types of configurations."
                         (directory-file-name python-shell-virtualenv-path)
                       nil)))
     (when python-shell-extra-pythonpaths
-      (setenv "PYTHONPATH"
-              (format "%s%s%s"
-                      (mapconcat 'identity
-                                 python-shell-extra-pythonpaths
-                                 path-separator)
-                      path-separator
-                      (or (getenv "PYTHONPATH") ""))))
+      (setenv "PYTHONPATH" (python-new-pythonpath)))
     (if (not virtualenv)
         process-environment
       (setenv "PYTHONHOME" nil)
