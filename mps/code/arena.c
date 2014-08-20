@@ -193,6 +193,7 @@ Res ArenaInit(Arena arena, ArenaClass class, Size grainSize, ArgList args)
 {
   Res res;
   Bool zoned = ARENA_DEFAULT_ZONED;
+  Bool incremental = ARENA_DEFAULT_INCREMENTAL;
   mps_arg_s arg;
 
   AVER(arena != NULL);
@@ -201,6 +202,9 @@ Res ArenaInit(Arena arena, ArenaClass class, Size grainSize, ArgList args)
   
   if (ArgPick(&arg, args, MPS_KEY_ARENA_ZONED))
     zoned = arg.val.b;
+
+  if (ArgPick(&arg, args, MPS_KEY_ARENA_INCREMENTAL))
+    incremental = arg.val.b;
 
   arena->class = class;
 
@@ -219,6 +223,7 @@ Res ArenaInit(Arena arena, ArenaClass class, Size grainSize, ArgList args)
   arena->hasFreeLand = FALSE;
   arena->freeZones = ZoneSetUNIV;
   arena->zoned = zoned;
+  arena->incremental = incremental;
 
   arena->primary = NULL;
   RingInit(&arena->chunkRing);
@@ -296,6 +301,7 @@ ARG_DEFINE_KEY(vmw3_top_down, Bool);
 ARG_DEFINE_KEY(arena_size, Size);
 ARG_DEFINE_KEY(arena_grain_size, Size);
 ARG_DEFINE_KEY(arena_zoned, Bool);
+ARG_DEFINE_KEY(arena_incremental, Bool);
 
 Res ArenaCreate(Arena *arenaReturn, ArenaClass class, ArgList args)
 {

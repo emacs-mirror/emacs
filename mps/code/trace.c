@@ -607,13 +607,14 @@ static Res traceFlip(Trace trace)
   /* grey objects so that it can't obtain white pointers.  This is */
   /* achieved by read protecting all segments containing objects */
   /* which are grey for any of the flipped traces. */
-  for(rank = 0; rank < RankLIMIT; ++rank)
-    RING_FOR(node, ArenaGreyRing(arena, rank), nextNode) {
-      Seg seg = SegOfGreyRing(node);
-      if(TraceSetInter(SegGrey(seg), arena->flippedTraces) == TraceSetEMPTY
-          && TraceSetIsMember(SegGrey(seg), trace))
-        ShieldRaise(arena, seg, AccessREAD);
-    }
+  if (arena->incremental)
+    for (rank = 0; rank < RankLIMIT; ++rank)
+      RING_FOR(node, ArenaGreyRing(arena, rank), nextNode) {
+        Seg seg = SegOfGreyRing(node);
+        if(TraceSetInter(SegGrey(seg), arena->flippedTraces) == TraceSetEMPTY
+            && TraceSetIsMember(SegGrey(seg), trace))
+          ShieldRaise(arena, seg, AccessREAD);
+      }
 
   /* @@@@ When write barrier collection is implemented, this is where */
   /* write protection should be removed for all segments which are */
@@ -1134,7 +1135,10 @@ static Res traceScanSegRes(TraceSet ts, Rank rank, Arena arena, Seg seg)
      * scan, consistent with the recorded SegSummary?
      */
     AVER(RefSetSub(ScanStateUnfixedSummary(ss), SegSummary(seg)));
+    
 
+    SegSetSummary(seg, RefSetUNIV);
+#if 0
     if(res != ResOK || !wasTotal) {
       /* scan was partial, so... */
       /* scanned summary should be ORed into segment summary. */
@@ -1144,6 +1148,7 @@ static Res traceScanSegRes(TraceSet ts, Rank rank, Arena arena, Seg seg)
       /* scanned summary should replace the segment summary. */
       SegSetSummary(seg, ScanStateSummary(ss));
     }
+#endif
 
     ScanStateFinish(ss);
   }
@@ -1817,7 +1822,6 @@ Size TracePoll(Globals globals)
   Res res;
   Arena arena;
   Size scannedSize;
-  Bool incremental = FALSE;
 
   AVERT(Globals, globals);
   arena = GlobalsArena(globals);
@@ -1891,7 +1895,7 @@ Size TracePoll(Globals globals)
     oldScanned = traceWorkClock(trace);
     do {
       TraceQuantum(trace);
-    } while(!incremental && trace->state != TraceFINISHED);
+    } while(!arena->incremental && trace->state != TraceFINISHED);
     scannedSize = traceWorkClock(trace) - oldScanned;
     if(trace->state == TraceFINISHED) {
       TraceDestroy(trace);

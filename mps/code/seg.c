@@ -1207,17 +1207,18 @@ static void gcSegSetGrey(Seg seg, TraceSet grey)
   arena = PoolArena(SegPool(seg));
   oldGrey = seg->grey;
   gcSegSetGreyInternal(seg, oldGrey, grey); /* do the work */
-
   /* The read barrier is raised when the segment is grey for */
   /* some _flipped_ trace, i.e., is grey for a trace for which */
   /* the mutator is black. */
-  flippedTraces = arena->flippedTraces;
-  if (TraceSetInter(oldGrey, flippedTraces) == TraceSetEMPTY) {
-    if (TraceSetInter(grey, flippedTraces) != TraceSetEMPTY)
-      ShieldRaise(arena, seg, AccessREAD);
-  } else {
-    if (TraceSetInter(grey, flippedTraces) == TraceSetEMPTY)
-      ShieldLower(arena, seg, AccessREAD);
+  if (arena->incremental) {
+    flippedTraces = arena->flippedTraces;
+    if (TraceSetInter(oldGrey, flippedTraces) == TraceSetEMPTY) {
+      if (TraceSetInter(grey, flippedTraces) != TraceSetEMPTY)
+        ShieldRaise(arena, seg, AccessREAD);
+    } else {
+      if (TraceSetInter(grey, flippedTraces) == TraceSetEMPTY)
+        ShieldLower(arena, seg, AccessREAD);
+    }
   }
 
   EVENT3(SegSetGrey, arena, seg, grey);
