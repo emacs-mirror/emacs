@@ -1136,19 +1136,19 @@ static Res traceScanSegRes(TraceSet ts, Rank rank, Arena arena, Seg seg)
      */
     AVER(RefSetSub(ScanStateUnfixedSummary(ss), SegSummary(seg)));
     
-
-    SegSetSummary(seg, RefSetUNIV);
-#if 0
-    if(res != ResOK || !wasTotal) {
-      /* scan was partial, so... */
-      /* scanned summary should be ORed into segment summary. */
-      SegSetSummary(seg, RefSetUnion(SegSummary(seg), ScanStateSummary(ss)));
+    if (arena->incremental) {
+      if(res != ResOK || !wasTotal) {
+        /* scan was partial, so... */
+        /* scanned summary should be ORed into segment summary. */
+        SegSetSummary(seg, RefSetUnion(SegSummary(seg), ScanStateSummary(ss)));
+      } else {
+        /* all objects on segment have been scanned, so... */
+        /* scanned summary should replace the segment summary. */
+        SegSetSummary(seg, ScanStateSummary(ss));
+      }
     } else {
-      /* all objects on segment have been scanned, so... */
-      /* scanned summary should replace the segment summary. */
-      SegSetSummary(seg, ScanStateSummary(ss));
+      SegSetSummary(seg, RefSetUNIV);
     }
-#endif
 
     ScanStateFinish(ss);
   }
