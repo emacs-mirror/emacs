@@ -1082,6 +1082,7 @@ static Res gcSegInit(Seg seg, Pool pool, Addr base, Size size,
 
   gcseg->summary = RefSetEMPTY;
   gcseg->buffer = NULL;
+  gcseg->unnecessaryScans = 0;
   RingInit(&gcseg->greyRing);
   gcseg->sig = GCSegSig;
 

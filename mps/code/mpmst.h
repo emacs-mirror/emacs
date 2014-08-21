@@ -300,6 +300,7 @@ typedef struct GCSegStruct {    /* GC segment structure */
   RingStruct greyRing;          /* link in list of grey segs */
   RefSet summary;               /* summary of references out of seg */
   Buffer buffer;                /* non-NULL if seg is buffered */
+  unsigned unnecessaryScans;    /* consecutive unnecessary scans performed */
   Sig sig;                      /* <design/sig/> */
 } GCSegStruct;
 

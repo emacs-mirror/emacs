@@ -635,6 +635,12 @@
     { 36 * 1024, 0.45 }  /* second gen, after which dynamic */ \
   }
 
+/* Experimental Scan Barrier threshold
+ *
+ * The number of unecessary scans performed, before raising the write
+ * barrier to remember the refset summary.
+ */
+#define TRACE_SCAN_BARRIER_THRESHOLD 3
 
 #endif /* config_h */
 
