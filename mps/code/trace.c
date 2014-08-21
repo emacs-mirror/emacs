@@ -1105,6 +1105,7 @@ static Res traceScanSegRes(TraceSet ts, Rank rank, Arena arena, Seg seg)
   } else {      /* scan it */
     ScanStateStruct ssStruct;
     ScanState ss = &ssStruct;
+    Bool considerBarrier = FALSE;
     ScanStateInit(ss, ts, arena, rank, white);
 
     /* Expose the segment to make sure we can scan it. */
@@ -1135,8 +1136,18 @@ static Res traceScanSegRes(TraceSet ts, Rank rank, Arena arena, Seg seg)
      * scan, consistent with the recorded SegSummary?
      */
     AVER(RefSetSub(ScanStateUnfixedSummary(ss), SegSummary(seg)));
+    if (ZoneSetInter(ScanStateUnfixedSummary(ss), white) == ZoneSetEMPTY) {
+      /* a scan was not necessary */
+      if (((GCSeg)seg)->unnecessaryScans < TRACE_SCAN_BARRIER_THRESHOLD) {
+        ((GCSeg)seg)->unnecessaryScans++;
+      } else {
+        considerBarrier = TRUE;
+      }
+    } else {
+      ((GCSeg)seg)->unnecessaryScans = 0;
+    }
     
-    if (arena->incremental) {
+    if (considerBarrier) {
       if(res != ResOK || !wasTotal) {
         /* scan was partial, so... */
         /* scanned summary should be ORed into segment summary. */
