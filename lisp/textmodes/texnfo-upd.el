@@ -1145,24 +1145,40 @@ For example, \"unnumberedsubsec\".  Return \"top\" for top node.
 Searches forward for a section.  Hence, point must be before the
 section whose type will be found.  Does not move point.  Signal an
 error if the node is not the top node and a section is not found."
-  (let ((case-fold-search t))
-    (save-excursion
-      (cond
-       ((re-search-forward "^@node [ \t]*top[ \t]*\\(,\\|$\\)"
-			   ;; Following search limit by cph but causes a bug
-			   ;;(line-end-position)
-			   nil
-			   t)
-	"top")
-       ((re-search-forward texinfo-section-types-regexp nil t)
-	(buffer-substring-no-properties
-	 (progn (beginning-of-line) ; copy its name
-		(1+ (point)))
-	 (progn (forward-word 1)
-		(point))))
-       (t
-	(error
-	 "texinfo-specific-section-type: Chapter or section not found"))))))
+  (let* ((case-fold-search t)
+	 ;; The Texinfo manual has a second Top node inside @verbatim
+	 ;; near the end, which dupes us into thinking we are at top
+	 ;; level, no matter where we are when invoked.  We don't
+	 ;; really grok @verbatim, so we cheat: only consider us to be
+	 ;; at top level if the position of the Top node we found is
+	 ;; before any other sectioning command.
+	 (top-pos (save-excursion
+		    (re-search-forward "^@node [ \t]*top[ \t]*\\(,\\|$\\)"
+				       ;; Following search limit causes a bug
+				       ;;(line-end-position)
+				       nil
+				       t)))
+	 (sec-pos (save-excursion
+		    (re-search-forward texinfo-section-types-regexp nil t)))
+	 sec-name)
+    (if sec-pos
+	(save-excursion
+	  (goto-char sec-pos)
+	  (setq sec-name (buffer-substring-no-properties
+			  (progn (beginning-of-line) ; copy its name
+				 (1+ (point)))
+			  (progn (forward-word 1)
+				 (point))))))
+    (cond
+     ((or sec-pos top-pos)
+      (if (and top-pos sec-pos)
+	  (if (< top-pos sec-pos)
+	      "top"
+	    sec-name)
+	(or sec-name "top")))
+     (t
+      (error
+       "texinfo-specific-section-type: Chapter or section not found")))))
 
 (defun texinfo-hierarchic-level ()
   "Return the general hierarchical level of the next node in a texinfo file.

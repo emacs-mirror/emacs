@@ -1,3 +1,11 @@
+2014-08-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* textmodes/texnfo-upd.el (texinfo-specific-section-type): Don't
+	recognize a Top node if there are other sectioning commands
+	earlier in the Texinfo file.  This fixes a bug in
+	texinfo-make-menu and avoids inflooping in
+	texinfo-all-menus-update when they are invoked on texinfo.texi.
+
 2014-08-21  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (window--side-window-p): New function.
