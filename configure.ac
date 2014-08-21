@@ -2991,6 +2991,9 @@ AC_SUBST(M17N_FLT_LIBS)
 
 ### Use -lXpm if available, unless `--with-xpm=no'.
 ### mingw32 doesn't use -lXpm, since it loads the library dynamically.
+### In the Cygwin-w32 build, we need to use /usr/include/noX/X11/xpm.h
+### rather than /usr/include/X11/xpm.h, so we set CPPFLAGS (and
+### LDFLAGS) accordingly.
 HAVE_XPM=no
 LIBXPM=
 if test "${HAVE_W32}" = "yes" && test "${opsys}" = "cygwin"; then
