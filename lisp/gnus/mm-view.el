@@ -513,7 +513,9 @@ If MODE is not set, try to find mode automatically."
         (set (make-local-variable 'enable-local-variables) nil)
 	(with-demoted-errors
 	  (if mode
-	      (funcall mode)
+	      (save-window-excursion
+		(switch-to-buffer (current-buffer))
+		(funcall mode))
 	    (let ((auto-mode-alist
 		   (delq (rassq 'doc-view-mode-maybe auto-mode-alist)
 			 (copy-sequence auto-mode-alist))))

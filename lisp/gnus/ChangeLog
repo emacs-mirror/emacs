@@ -1,3 +1,9 @@
+2014-08-21  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-view.el (mm-display-inline-fontify): Make the working buffer
+	temporarily displayed when running a mode function (at least org-mode
+	requires it).
+
 2014-08-14  Alan Schmitt  <alan.schmitt@polytechnique.org>
 
 	* gnus-sum.el (gnus-summary-expire-articles): Functions registered to
