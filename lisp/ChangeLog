@@ -1,3 +1,11 @@
+2014-08-21  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window--side-window-p): New function.
+	(split-window, window-splittable-p): Use window--side-window-p to
+	determine whether WINDOW can be split (Bug#18304).
+	* calendar/calendar.el (calendar-basic-setup): Fix one call of
+	`window-splittable-p' and add another (Bug#18304).
+
 2014-08-20  Sam Steingold  <sds@gnu.org>
 
 	* progmodes/python.el (python-new-pythonpath): Extract from

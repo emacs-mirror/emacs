@@ -743,6 +743,15 @@ number of slots on that side."
      (integer :tag "Number" :value 3 :size 5)))
   :group 'windows)
 
+(defun window--side-window-p (window)
+  "Return non-nil if WINDOW is a side window or the parent of one."
+  (or (window-parameter window 'window-side)
+      (and (window-child window)
+	   (or (window-parameter
+		(window-child window) 'window-side)
+	       (window-parameter
+		(window-last-child window) 'window-side)))))
+
 (defun window--major-non-side-window (&optional frame)
   "Return the major non-side window of frame FRAME.
 The optional argument FRAME must be a live frame and defaults to
@@ -4378,12 +4387,7 @@ frame.  The selected window is not changed by this function."
        ;; side window, throw an error unless `window-combination-resize'
        ;; equals 'side.
        ((and (not (eq window-combination-resize 'side))
-	     (or (window-parameter window 'window-side)
-		 (and (window-child window)
-		      (or (window-parameter
-			   (window-child window) 'window-side)
-			  (window-parameter
-			   (window-last-child window) 'window-side)))))
+	     (window--side-window-p window))
 	(error "Cannot split side window or parent of side window"))
        ;; If `window-combination-resize' is 'side and window has a side
        ;; window sibling, bind `window-combination-limit' to t.
@@ -5798,7 +5802,7 @@ hold:
   wide as `split-width-threshold'.
 - When WINDOW is split evenly, the emanating windows are at least
   `window-min-width' or two (whichever is larger) columns wide."
-  (when (window-live-p window)
+  (when (and (window-live-p window) (not (window--side-window-p window)))
     (with-current-buffer (window-buffer window)
       (if horizontal
 	  ;; A window can be split horizontally when its width is not
