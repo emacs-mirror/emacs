@@ -1,3 +1,8 @@
+2014-08-22  Ken Brown  <kbrown@cornell.edu>
+
+	* configure.ac (HAVE_XPM): Explain the use of CPPFLAGS in the
+	Cygwin-w32 build.  (Bug#18302)
+
 2014-08-10  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Don't prevent random file systems from being unmounted (Bug#18232).
