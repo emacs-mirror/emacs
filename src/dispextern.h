@@ -1857,7 +1857,9 @@ GLYPH_CODE_P (Lisp_Object gc)
 extern int face_change_count;
 
 /* For reordering of bidirectional text.  */
-#define BIDI_MAXLEVEL 64
+
+/* UAX#9's max_depth value.  */
+#define BIDI_MAXDEPTH 125
 
 /* Data type for describing the bidirectional character types.  The
    first 7 must be at the beginning, because they are the only values
@@ -1906,10 +1908,11 @@ struct bidi_saved_info {
   bidi_type_t orig_type;	/* type as we found it in the buffer */
 };
 
-/* Data type for keeping track of saved embedding levels and override
-   status information.  */
+/* Data type for keeping track of saved embedding levels, override
+   status, and isolate status information.  */
 struct bidi_stack {
-  int level;
+  char level;
+  bool isolate_status;
   bidi_dir_t override;
 };
 
@@ -1939,9 +1942,11 @@ struct bidi_it {
 				   resolving weak and neutral types */
   bidi_type_t type_after_w1;	/* original type, after overrides and W1 */
   bidi_type_t orig_type;	/* original type, as found in the buffer */
-  int resolved_level;		/* final resolved level of this character */
-  int invalid_levels;		/* how many PDFs to ignore */
-  int invalid_rl_levels;	/* how many PDFs from RLE/RLO to ignore */
+  char resolved_level;		/* final resolved level of this character */
+  char isolate_level;		/* count of isolate initiators unmatched by PDI */
+  ptrdiff_t invalid_levels;	/* how many PDFs to ignore */
+  ptrdiff_t invalid_rl_levels;	/* how many PDFs from RLE/RLO to ignore */
+  ptrdiff_t invalid_isolates;	/* how many PDIs to ignore */
   struct bidi_saved_info prev;	/* info about previous character */
   struct bidi_saved_info last_strong; /* last-seen strong directional char */
   struct bidi_saved_info next_for_neutral; /* surrounding characters for... */
@@ -1960,7 +1965,7 @@ struct bidi_it {
   /* Note: Everything from here on is not copied/saved when the bidi
      iterator state is saved, pushed, or popped.  So only put here
      stuff that is not part of the bidi iterator's state!  */
-  struct bidi_stack level_stack[BIDI_MAXLEVEL]; /* stack of embedding levels */
+  struct bidi_stack level_stack[BIDI_MAXDEPTH+2+1]; /* directional status stack */
   struct bidi_string_data string;	/* string to reorder */
   struct window *w;		/* the window being displayed */
   bidi_dir_t paragraph_dir;	/* current paragraph direction */

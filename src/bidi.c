@@ -305,14 +305,11 @@ bidi_get_type (int ch, bidi_dir_t override)
       case RLE:
       case RLO:
       case PDF:
-	return default_type;
-	/* FIXME: The isolate controls are treated as BN until we add
-	   support for UBA v6.3.  */
       case LRI:
       case RLI:
       case FSI:
       case PDI:
-	return WEAK_BN;
+	return default_type;
       default:
 	if (override == L2R)
 	  return STRONG_L;
@@ -348,11 +345,6 @@ bidi_get_category (bidi_type_t type)
       case WEAK_CS:
       case WEAK_NSM:
       case WEAK_BN:
-	/* FIXME */
-      case LRI:
-      case RLI:
-      case FSI:
-      case PDI:
 	return WEAK;
       case NEUTRAL_B:
       case NEUTRAL_S:
@@ -364,13 +356,10 @@ bidi_get_category (bidi_type_t type)
       case RLE:
       case RLO:
       case PDF:
-#if 0
-	/* FIXME: This awaits implementation of isolate support.  */
       case LRI:
       case RLI:
       case FSI:
       case PDI:
-#endif
 	return EXPLICIT_FORMATTING;
       default:
 	emacs_abort ();
@@ -453,7 +442,7 @@ bidi_push_embedding_level (struct bidi_it *bidi_it,
 			   int level, bidi_dir_t override)
 {
   bidi_it->stack_idx++;
-  eassert (bidi_it->stack_idx < BIDI_MAXLEVEL);
+  eassert (bidi_it->stack_idx < BIDI_MAXDEPTH+2+1);
   bidi_it->level_stack[bidi_it->stack_idx].level = level;
   bidi_it->level_stack[bidi_it->stack_idx].override = override;
 }
@@ -1244,6 +1233,50 @@ bidi_fetch_char (ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t *disp_pos,
   return ch;
 }
 
+/* Like bidi_fetch_char, but ignore any text between an isolate
+   initiator and its matching PDI or, if it has no matching PDI, the
+   end of the paragraph.  If isolates were skipped, CH_LEN and NCHARS
+   are set to the number of bytes and characters between BYTEPOS/CHARPOS
+   and the character that was fetched after skipping the isolates.  */
+static int
+bidi_fetch_char_skip_isolates (ptrdiff_t charpos, ptrdiff_t bytepos,
+			       ptrdiff_t *disp_pos, int *disp_prop,
+			       struct bidi_string_data *string,
+			       struct window *w, bool frame_window_p,
+			       ptrdiff_t *ch_len, ptrdiff_t *nchars)
+{
+  ptrdiff_t orig_charpos = charpos, orig_bytepos = bytepos;
+  int ch = bidi_fetch_char (charpos, bytepos, disp_pos, disp_prop, string, w,
+			    frame_window_p, ch_len, nchars);
+  bidi_type_t ch_type = bidi_get_type (ch, NEUTRAL_DIR);
+  ptrdiff_t level = 0;
+
+  if (ch_type == LRI || ch_type == RLI || ch_type == FSI)
+    {
+      level++;
+      while (level > 0 && ch_type != NEUTRAL_B)
+	{
+	  charpos += *nchars;
+	  bytepos += *ch_len;
+	  ch = bidi_fetch_char (charpos, bytepos, disp_pos, disp_prop, string,
+				w, frame_window_p, ch_len, nchars);
+	  ch_type = bidi_get_type (ch, NEUTRAL_DIR);
+	  /* A Note to P2 says to ignore max_depth limit.  */
+	  if (ch_type == LRI || ch_type == RLI || ch_type == FSI)
+	    level++;
+	  else if (ch_type == PDI)
+	    level--;
+	}
+    }
+
+  /* Communicate to the caller how much did we skip, so it could get
+     past the last character position we examined.  */
+  *nchars += charpos - orig_charpos;
+  *ch_len += bytepos - orig_bytepos;
+  return ch;
+}
+
+
 
 /***********************************************************************
 			Determining paragraph direction
@@ -1478,17 +1511,15 @@ bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it, bool no_default_p)
 	bytepos = pstartbyte;
 	if (!string_p)
 	  pos = BYTE_TO_CHAR (bytepos);
-	ch = bidi_fetch_char (pos, bytepos, &disp_pos, &disp_prop,
-			      &bidi_it->string, bidi_it->w,
-			      bidi_it->frame_window_p, &ch_len, &nchars);
+	ch = bidi_fetch_char_skip_isolates (pos, bytepos, &disp_pos, &disp_prop,
+					    &bidi_it->string, bidi_it->w,
+					    bidi_it->frame_window_p, &ch_len,
+					    &nchars);
 	type = bidi_get_type (ch, NEUTRAL_DIR);
 
 	pos1 = pos;
 	for (pos += nchars, bytepos += ch_len;
-	     ((bidi_get_category (type) != STRONG)
-	      || (bidi_ignore_explicit_marks_for_paragraph_level
-		  && (type == RLE || type == RLO
-		      || type == LRE || type == LRO)))
+	     bidi_get_category (type) != STRONG
 	       /* Stop when searched too far into an abnormally large
 		  paragraph full of weak or neutral characters.  */
 	       && pos - pos1 < MAX_STRONG_CHAR_SEARCH;
@@ -1506,19 +1537,17 @@ bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it, bool no_default_p)
 		&& bidi_at_paragraph_end (pos, bytepos) >= -1)
 	      break;
 	    /* Fetch next character and advance to get past it.  */
-	    ch = bidi_fetch_char (pos, bytepos, &disp_pos,
-				  &disp_prop, &bidi_it->string, bidi_it->w,
-				  bidi_it->frame_window_p, &ch_len, &nchars);
+	    ch = bidi_fetch_char_skip_isolates (pos, bytepos, &disp_pos,
+						&disp_prop, &bidi_it->string,
+						bidi_it->w,
+						bidi_it->frame_window_p,
+						&ch_len, &nchars);
 	    pos += nchars;
 	    bytepos += ch_len;
 	  }
-	if ((type == STRONG_R || type == STRONG_AL) /* P3 */
-	    || (!bidi_ignore_explicit_marks_for_paragraph_level
-		&& (type == RLO || type == RLE)))
+	if (type == STRONG_R || type == STRONG_AL) /* P3 */
 	  bidi_it->paragraph_dir = R2L;
-	else if (type == STRONG_L
-		 || (!bidi_ignore_explicit_marks_for_paragraph_level
-		     && (type == LRO || type == LRE)))
+	else if (type == STRONG_L)
 	  bidi_it->paragraph_dir = L2R;
 	if (!string_p
 	    && no_default_p && bidi_it->paragraph_dir == NEUTRAL_DIR)
@@ -1685,7 +1714,7 @@ bidi_resolve_explicit_1 (struct bidi_it *bidi_it)
 	type = WEAK_BN; /* X9/Retaining */
 	if (bidi_it->ignore_bn_limit <= -1)
 	  {
-	    if (current_level <= BIDI_MAXLEVEL - 4)
+	    if (current_level < BIDI_MAXDEPTH)
 	      {
 		/* Compute the least odd embedding level greater than
 		   the current level.  */
@@ -1694,7 +1723,7 @@ bidi_resolve_explicit_1 (struct bidi_it *bidi_it)
 		  override = NEUTRAL_DIR;
 		else
 		  override = R2L;
-		if (current_level == BIDI_MAXLEVEL - 4)
+		if (current_level == BIDI_MAXDEPTH - 1)
 		  bidi_it->invalid_rl_levels = 0;
 		bidi_push_embedding_level (bidi_it, new_level, override);
 	      }
@@ -1719,7 +1748,7 @@ bidi_resolve_explicit_1 (struct bidi_it *bidi_it)
 	type = WEAK_BN; /* X9/Retaining */
 	if (bidi_it->ignore_bn_limit <= -1)
 	  {
-	    if (current_level <= BIDI_MAXLEVEL - 5)
+	    if (current_level < BIDI_MAXDEPTH - 1)
 	      {
 		/* Compute the least even embedding level greater than
 		   the current level.  */
@@ -2451,10 +2480,7 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
       do {
 	ch = bidi_fetch_char (cpos += nc, bpos += clen, &disp_pos, &dpp, &bs,
 			      bidi_it->w, fwp, &clen, &nc);
-	if (ch == '\n' || ch == BIDI_EOB)
-	  chtype = NEUTRAL_B;
-	else
-	  chtype = bidi_get_type (ch, NEUTRAL_DIR);
+	chtype = bidi_get_type (ch, NEUTRAL_DIR);
       } while (chtype == NEUTRAL_WS || chtype == WEAK_BN
 	       || bidi_explicit_dir_char (ch)); /* L1/Retaining */
       bidi_it->next_for_ws.type = chtype;
