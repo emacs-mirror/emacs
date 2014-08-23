@@ -260,14 +260,6 @@ typedef enum {
   EXPLICIT_FORMATTING
 } bidi_category_t;
 
-/* UAX#9 says to search only for L, AL, or R types of characters, and
-   ignore RLE, RLO, LRE, and LRO, when determining the base paragraph
-   level.  Yudit indeed ignores them.  This variable is therefore set
-   by default to ignore them, but clearing it will take them into
-   account.  */
-extern bool bidi_ignore_explicit_marks_for_paragraph_level EXTERNALLY_VISIBLE;
-bool bidi_ignore_explicit_marks_for_paragraph_level = 1;
-
 static Lisp_Object paragraph_start_re, paragraph_separate_re;
 static Lisp_Object Qparagraph_start, Qparagraph_separate;
 
