@@ -1116,14 +1116,11 @@ casts and declarations are fontified.  Used on level 2 and higher."
 	    ;; initializing brace lists.
 	    (let (found)
 	      (while
-	    	  (and (setq found
-	    		     (c-syntactic-re-search-forward
-	    		      "[;,]\\|\\s)\\|\\'\\|\\(=\\|\\s(\\)" limit t t))
-	    	       (eq (char-before) ?\[))
-	    	(backward-char)
-	    	(c-safe (c-forward-sexp 1))
-	    	(setq found nil)
-	    	(setq brackets-after-id t))
+		  (and (setq found (c-syntactic-re-search-forward
+			     "[;,]\\|\\s)\\|\\'\\|\\(=\\|\\s(\\)" limit t t))
+		       (eq (char-before) ?\[)
+		       (c-go-up-list-forward))
+		     (setq brackets-after-id t))
 	      found))
 
       (setq next-pos (match-beginning 0)

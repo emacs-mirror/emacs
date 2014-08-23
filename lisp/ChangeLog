@@ -1,3 +1,8 @@
+2014-08-23  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-fonts.el (c-font-lock-declarators): Fix infinite
+	loop, bug #18306.  The bug was introduced on 2014-08-02.
+
 2014-08-21  Eli Zaretskii  <eliz@gnu.org>
 
 	* textmodes/texnfo-upd.el (texinfo-specific-section-type): Don't
