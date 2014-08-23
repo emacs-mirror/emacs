@@ -139,7 +139,7 @@ AC_CANONICAL_HOST
 canonical=$host
 configuration=${host_alias-${build_alias-$host}}
 
-dnl We get MINGW64 with MSYS2.
+dnl We get MINGW64 with MSYS2, MINGW32 with MSYS.
 case $canonical in
  *-mingw*)
   . $srcdir/nt/mingw-cfg.site
