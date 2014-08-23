@@ -650,7 +650,7 @@ case "${canonical}" in
   i[3456]86-*-* )
     case "${canonical}" in
       *-darwin* )               opsys=darwin ;;
-      *-mingw32 )
+      *-mingw* )
 		opsys=mingw32
 		# MinGW overrides and adds some system headers in nt/inc.
 		GCC_TEST_OPTIONS="-I $srcdir/nt/inc"
@@ -665,7 +665,7 @@ case "${canonical}" in
   # MinGW64
   x86_64-*-* )
     case "${canonical}" in
-      *-mingw32 )
+      *-mingw* )
 		opsys=mingw32
 		# MinGW overrides and adds some system headers in nt/inc.
 		GCC_TEST_OPTIONS="-I $srcdir/nt/inc"
@@ -1323,7 +1323,7 @@ test "$opsys" = "aix4.2" && test "x$GCC" != "xyes" && \
   C_SWITCH_SYSTEM="-ma -qmaxmem=4000"
 if test "$opsys" = "mingw32"; then
   case "$canonical" in
-    x86_64-*-mingw32) C_SWITCH_SYSTEM="-mtune=generic" ;;
+    x86_64-*-mingw*) C_SWITCH_SYSTEM="-mtune=generic" ;;
     *) C_SWITCH_SYSTEM="-mtune=pentium4" ;;
   esac
 fi

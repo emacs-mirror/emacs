@@ -1,3 +1,9 @@
+2014-08-23  Karol Ostrovsky  <karol.ostrovsky@gmail.com>  (tiny change)
+
+	* configure.ac: Accept "*-mingw*", not just "*-mingw32", as
+	canonical name of a MinGW build, because using MSYS2 'uname'
+	produces "MINGW64".
+
 2014-08-21  Ken Brown  <kbrown@cornell.edu>
 
 	* configure.ac (HAVE_XPM): Explain the use of CPPFLAGS in the

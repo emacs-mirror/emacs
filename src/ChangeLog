@@ -1,3 +1,10 @@
+2014-08-23  Karol Ostrovsky  <karol.ostrovsky@gmail.com>  (tiny change)
+
+	* Makefile.in (emacs$(EXEEXT)): Retry deletion of bootstrap-emacs
+	if the initial "rm -f" fails.  This is for MinGW builds, where
+	MS-Windows will not allow deleting the executable file of a
+	running program.
+
 2014-08-20  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32term.c (w32_scroll_bar_handle_click)

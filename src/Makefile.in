@@ -435,7 +435,9 @@ emacs$(EXEEXT): temacs$(EXEEXT) \
 	else \
 	  LC_ALL=C $(RUN_TEMACS) -batch -l loadup dump || exit 1; \
 	  test "X$(PAXCTL)" = X || $(PAXCTL) -zex emacs$(EXEEXT); \
-	  rm -f bootstrap-emacs$(EXEEXT); \
+	  while test -f bootstrap-emacs$(EXEEXT); do \
+	    rm -f bootstrap-emacs$(EXEEXT); \
+	  done; \
 	  ln emacs$(EXEEXT) bootstrap-emacs$(EXEEXT); \
 	fi
 
