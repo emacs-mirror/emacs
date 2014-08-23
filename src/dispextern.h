@@ -1945,7 +1945,6 @@ struct bidi_it {
   char resolved_level;		/* final resolved level of this character */
   char isolate_level;		/* count of isolate initiators unmatched by PDI */
   ptrdiff_t invalid_levels;	/* how many PDFs to ignore */
-  ptrdiff_t invalid_rl_levels;	/* how many PDFs from RLE/RLO to ignore */
   ptrdiff_t invalid_isolates;	/* how many PDIs to ignore */
   struct bidi_saved_info prev;	/* info about previous character */
   struct bidi_saved_info last_strong; /* last-seen strong directional char */
@@ -1955,7 +1954,7 @@ struct bidi_it {
   ptrdiff_t next_en_pos;	/* pos. of next char for determining ET type */
   bidi_type_t next_en_type;	/* type of char at next_en_pos */
   ptrdiff_t ignore_bn_limit;	/* position until which to ignore BNs */
-  bidi_dir_t sor;		/* direction of start-of-run in effect */
+  bidi_dir_t sos;		/* direction of start-of-sequence in effect */
   int scan_dir;			/* direction of text scan, 1: forw, -1: back */
   ptrdiff_t disp_pos;		/* position of display string after ch */
   int disp_prop;		/* if non-zero, there really is a
@@ -1970,7 +1969,6 @@ struct bidi_it {
   struct window *w;		/* the window being displayed */
   bidi_dir_t paragraph_dir;	/* current paragraph direction */
   ptrdiff_t separator_limit;	/* where paragraph separator should end */
-  bool_bf prev_was_pdf : 1;	/* if true, previous char was PDF */
   bool_bf first_elt : 1;	/* if true, examine current char first */
   bool_bf new_paragraph : 1;	/* if true, we expect a new paragraph */
   bool_bf frame_window_p : 1;	/* true if displaying on a GUI frame */
