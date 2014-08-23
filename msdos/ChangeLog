@@ -1,3 +1,10 @@
+2014-08-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* sed2v2.inp [DJGPP <= 2.03]: Add a prototype for snprintf, to
+	avoid compilation warning from newer GCC versions that have
+	snprintf as a built-in.  Reported by Juan Manuel Guerrero
+	<juan.guerrero@gmx.de>.
+
 2014-04-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* sedlisp.inp:
