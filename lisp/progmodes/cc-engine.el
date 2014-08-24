@@ -6286,7 +6286,8 @@ comment at the start of cc-engine.el for more info."
   ;;     `*-font-lock-extra-types');
   ;;   o - 'prefix if it's a known prefix of a type;
   ;;   o - 'found if it's a type that matches one in `c-found-types';
-  ;;   o - 'maybe if it's an identifier that might be a type; or
+  ;;   o - 'maybe if it's an identfier that might be a type;
+  ;;   o - 'decltype if it's a decltype(variable) declaration; - or
   ;;   o -  nil if it can't be a type (the point isn't moved then).
   ;;
   ;; The point is assumed to be at the beginning of a token.
@@ -6316,6 +6317,16 @@ comment at the start of cc-engine.el for more info."
 	(setq res 'prefix)))
 
     (cond
+     ((looking-at c-typeof-key) ; e.g. C++'s "decltype".
+      (goto-char (match-end 1))
+      (c-forward-syntactic-ws)
+      (setq res (and (eq (char-after) ?\()
+		     (c-safe (c-forward-sexp))
+		     'decltype))
+      (if res
+	  (c-forward-syntactic-ws)
+	(goto-char start)))
+
      ((looking-at c-type-prefix-key) ; e.g. "struct", "class", but NOT
 				     ; "typedef".
       (goto-char (match-end 1))
@@ -6442,7 +6453,7 @@ comment at the start of cc-engine.el for more info."
       ;; of these alter the classification of the found type, since
       ;; these operators typically are allowed in normal expressions
       ;; too.
-      (when c-opt-type-suffix-key
+      (when c-opt-type-suffix-key	; e.g. "..."
 	(while (looking-at c-opt-type-suffix-key)
 	  (goto-char (match-end 1))
 	  (c-forward-syntactic-ws)))
@@ -6654,6 +6665,13 @@ comment at the start of cc-engine.el for more info."
   ;;     Foo::Foo (int b) : Base (b) {}
   ;; car ^                ^ point
   ;;
+  ;;     auto foo = 5;
+  ;;      car ^   ^ point
+  ;;     auto cplusplus_11 (int a, char *b) -> decltype (bar):
+  ;;      car ^                             ^ point    
+  ;;   
+  ;;
+  ;;
   ;;   The cdr of the return value is non-nil when a
   ;;   `c-typedef-decl-kwds' specifier is found in the declaration.
   ;;   Specifically it is a dotted pair (A . B) where B is t when a
@@ -6719,6 +6737,10 @@ comment at the start of cc-engine.el for more info."
 	;; If `backup-at-type' is nil then the other variables have
 	;; undefined values.
 	backup-at-type backup-type-start backup-id-start
+	;; This stores `kwd-sym' of the symbol before the current one.
+	;; This is needed to distinguish the C++11 version of "auto" from
+	;; the pre C++11 meaning.
+	backup-kwd-sym
 	;; Set if we've found a specifier (apart from "typedef") that makes
 	;; the defined identifier(s) types.
 	at-type-decl
@@ -6727,6 +6749,10 @@ comment at the start of cc-engine.el for more info."
 	;; Set if we've found a specifier that can start a declaration
 	;; where there's no type.
 	maybe-typeless
+	;; Save the value of kwd-sym between loops of the "Check for a
+	;; type" loop.  Needed to distinguish a C++11 "auto" from a pre
+	;; C++11 one.
+	prev-kwd-sym
 	;; If a specifier is found that also can be a type prefix,
 	;; these flags are set instead of those above.  If we need to
 	;; back up an identifier, they are copied to the real flag
@@ -6744,6 +6770,8 @@ comment at the start of cc-engine.el for more info."
 	backup-if-not-cast
 	;; For casts, the return position.
 	cast-end
+	;; Have we got a new-style C++11 "auto"?
+	new-style-auto
 	;; Save `c-record-type-identifiers' and
 	;; `c-record-ref-identifiers' since ranges are recorded
 	;; speculatively and should be thrown away if it turns out
@@ -6762,11 +6790,12 @@ comment at the start of cc-engine.el for more info."
 	(let* ((start (point)) kwd-sym kwd-clause-end found-type)
 
 	  ;; Look for a specifier keyword clause.
-	  (when (or (looking-at c-prefix-spec-kwds-re)
+	  (when (or (looking-at c-prefix-spec-kwds-re) ;FIXME!!! includes auto
 		    (and (c-major-mode-is 'java-mode)
 			 (looking-at "@[A-Za-z0-9]+")))
-	    (if (looking-at c-typedef-key)
-		(setq at-typedef t))
+	    (save-match-data
+	      (if (looking-at c-typedef-key)
+		(setq at-typedef t)))
 	    (setq kwd-sym (c-keyword-sym (match-string 1)))
 	    (save-excursion
 	      (c-forward-keyword-clause 1)
@@ -6774,6 +6803,12 @@ comment at the start of cc-engine.el for more info."
 
 	  (when (setq found-type (c-forward-type t)) ; brace-block-too
 	    ;; Found a known or possible type or a prefix of a known type.
+	    (when (and (c-major-mode-is 'c++-mode) ; C++11 style "auto"?
+		       (eq prev-kwd-sym (c-keyword-sym "auto"))
+		       (looking-at "[=(]")) ; FIXME!!! proper regexp.
+	      (setq new-style-auto t)
+	      (setq found-type nil)
+	      (goto-char start))	; position of foo in "auto foo"
 
 	    (when at-type
 	      ;; Got two identifiers with nothing but whitespace
@@ -6792,6 +6827,7 @@ comment at the start of cc-engine.el for more info."
 	    (setq backup-at-type at-type
 		  backup-type-start type-start
 		  backup-id-start id-start
+		  backup-kwd-sym kwd-sym
 		  at-type found-type
 		  type-start start
 		  id-start (point)
@@ -6847,6 +6883,7 @@ comment at the start of cc-engine.el for more info."
 		    ;; specifier keyword and we know we're in a
 		    ;; declaration.
 		    (setq at-decl-or-cast t)
+		    (setq prev-kwd-sym kwd-sym)
 
 		    (goto-char kwd-clause-end))))
 
@@ -7038,14 +7075,25 @@ comment at the start of cc-engine.el for more info."
 
 	(c-forward-syntactic-ws))
 
-      (when (and (or maybe-typeless backup-maybe-typeless)
-		 (not got-identifier)
-		 (not got-prefix)
-		 at-type)
+      (when (or (and new-style-auto
+		     (looking-at c-auto-ops-re))
+		(and (or maybe-typeless backup-maybe-typeless)
+		     (not got-identifier)
+		     (not got-prefix)
+		     at-type))
 	;; Have found no identifier but `c-typeless-decl-kwds' has
 	;; matched so we know we're inside a declaration.  The
 	;; preceding type must be the identifier instead.
 	(c-fdoc-shift-type-backward))
+
+      ;; Prepare the "-> type;" for fontification later on.
+      (when (and new-style-auto
+		 (looking-at c-haskell-op-re))
+	(save-excursion
+	  (goto-char (match-end 0))
+	  (c-forward-syntactic-ws)
+	  (setq type-start (point))
+	  (setq at-type (c-forward-type))))
 
       (setq
        at-decl-or-cast
@@ -7371,6 +7419,7 @@ comment at the start of cc-engine.el for more info."
 	;; is a declaration.  Now we're being more defensive and prefer to
 	;; highlight things like "foo (bar);" as a declaration only if we're
 	;; inside an arglist that contains declarations.
+	;; CASE 19
 	(eq context 'decl))))
 
     ;; The point is now after the type decl expression.
@@ -7460,6 +7509,8 @@ comment at the start of cc-engine.el for more info."
 	;; interactive refontification.
 	(c-put-c-type-property (point) 'c-decl-arg-start))
 
+      ;; Record the type's coordinates in `c-record-type-identifiers' for
+      ;; later fontification.
       (when (and c-record-type-identifiers at-type ;; (not (eq at-type t))
 		 ;; There seems no reason to exclude a token from
 		 ;; fontification just because it's "a known type that can't

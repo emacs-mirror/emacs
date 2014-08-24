@@ -1306,14 +1306,15 @@ casts and declarations are fontified.  Used on level 2 and higher."
 	      (cond ((not (memq (char-before match-pos) '(?\( ?, ?\[ ?<)))
 		     (setq context nil
 			   c-restricted-<>-arglists nil))
-		    ;; A control flow expression
+		    ;; A control flow expression or a decltype
 		    ((and (eq (char-before match-pos) ?\()
 			  (save-excursion
 			    (goto-char match-pos)
 			    (backward-char)
 			    (c-backward-token-2)
 			    (or (looking-at c-block-stmt-2-key)
-				(looking-at c-block-stmt-1-2-key))))
+				(looking-at c-block-stmt-1-2-key)
+				(looking-at c-typeof-key))))
 		     (setq context nil
 			   c-restricted-<>-arglists t))
 		    ;; Near BOB.
@@ -1513,7 +1514,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
 			  (goto-char (match-end 0))
 			  (c-forward-syntactic-ws))
 			;; At a real declaration?
-			(if (memq (c-forward-type t) '(t known found))
+			(if (memq (c-forward-type t) '(t known found decltype))
 			    (progn
 			      (c-font-lock-declarators limit t is-typedef)
 			      nil)
@@ -2130,7 +2131,7 @@ need for `c-font-lock-extra-types'.")
 	      ;; Got two parenthesized expressions, so we have to look
 	      ;; closer at them to decide which is the type.  No need to
 	      ;; handle `c-record-ref-identifiers' since all references
-	      ;; has already been handled by other fontification rules.
+	      ;; have already been handled by other fontification rules.
 	      (let (expr1-res expr2-res)
 
 		(goto-char expr1-pos)
@@ -2165,6 +2166,9 @@ need for `c-font-lock-extra-types'.")
 		;; unusual than an initializer.
 		(cond ((memq expr1-res '(t known prefix)))
 		      ((memq expr2-res '(t known prefix)))
+		      ;; Presumably 'decltype's will be fontified elsewhere.
+		      ((eq expr1-res 'decltype))
+		      ((eq expr2-res 'decltype))
 		      ((eq expr1-res 'found)
 		       (let ((c-promote-possible-types t))
 			 (goto-char expr1-pos)

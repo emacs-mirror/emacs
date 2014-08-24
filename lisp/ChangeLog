@@ -1,5 +1,21 @@
 2014-08-24  Alan Mackenzie  <acm@muc.de>
 
+	Handle C++11's "auto" and "decltype" constructions.
+        * progmodes/cc-engine.el (c-forward-type): Enhance to recognise
+	and return 'decltype.
+        (c-forward-decl-or-cast-1): New let variables backup-kwd-sym,
+	prev-kwd-sym, new-style-auto.  Enhance to handle the new "auto"
+	keyword.
+        * progmodes/cc-fonts.el (c-font-lock-declarations): Handle the
+	"decltype" keyword.
+        (c-font-lock-c++-new): Handle "decltype" constructions.
+        * progmodes/cc-langs.el (c-auto-ops, c-auto-ops-re): New
+	c-lang-defconsts/defvars.
+        (c-haskell-op, c-haskell-op-re): New c-lang-defconsts/defvars.
+        (c-typeof-kwds, c-typeof-key): New c-lang-defconsts/defvars.
+        (c-typeless-decl-kwds): Append "auto" onto the C++ value.
+        (c-not-decl-init-keywords): Also exclude c-typeof-kwds from value.
+
 	Make ">>" act as double template ender in C++ Mode.
         * progmodes/cc-langs.el (c->-op-cont-tokens): New lang-const split
 	off from c->-op-cont-re.

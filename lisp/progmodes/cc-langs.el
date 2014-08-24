@@ -940,9 +940,12 @@ Note that operators like \".\" and \"->\" which in language references
 often are described as postfix operators are considered binary here,
 since CC Mode treats every identifier as an expression."
 
-  ;; There's currently no code in CC Mode that exploit all the info
+  ;; There's currently no code in CC Mode that exploits all the info
   ;; in this variable; precedence, associativity etc are present as a
   ;; preparation for future work.
+
+  ;; FIXME!!!  C++11's "auto" operators "=" and "->" need to go in here
+  ;; somewhere.  2012-03-24.
 
   t `(;; Preprocessor.
       ,@(when (c-lang-const c-opt-cpp-prefix)
@@ -1266,6 +1269,21 @@ operators."
 (c-lang-defvar c-stmt-delim-chars-with-comma
   (c-lang-const c-stmt-delim-chars-with-comma))
 
+(c-lang-defconst c-auto-ops
+  ;; Ops which signal C++11's new auto uses.
+  t nil
+  c++ '("=" "->"))
+(c-lang-defconst c-auto-ops-re
+  t (c-make-keywords-re nil (c-lang-const c-auto-ops)))
+(c-lang-defvar c-auto-ops-re (c-lang-const c-auto-ops-re))
+
+(c-lang-defconst c-haskell-op
+  ;; Op used in the new C++11 auto function definition, indicating type.
+  t nil
+  c++ '("->"))
+(c-lang-defconst c-haskell-op-re
+  t (c-make-keywords-re nil (c-lang-const c-haskell-op)))
+(c-lang-defvar c-haskell-op-re (c-lang-const c-haskell-op-re))
 
 ;;; Syntactic whitespace.
 
@@ -1673,6 +1691,18 @@ of a variable declaration."
   t (c-make-keywords-re t (c-lang-const c-typedef-kwds)))
 (c-lang-defvar c-typedef-key (c-lang-const c-typedef-key))
 
+(c-lang-defconst c-typeof-kwds
+  "Keywords followed by a parenthesized expression, which stands for
+the type of that expression."
+  t nil
+  c '("typeof")				; longstanding GNU C(++) extension.
+  c++ '("decltype" "typeof"))
+
+(c-lang-defconst c-typeof-key
+  ;; Adorned regexp matching `c-typeof-kwds'.
+  t (c-make-keywords-re t (c-lang-const c-typeof-kwds)))
+(c-lang-defvar c-typeof-key (c-lang-const c-typeof-key))
+
 (c-lang-defconst c-type-prefix-kwds
   "Keywords where the following name - if any - is a type name, and
 where the keyword together with the symbol works as a type in
@@ -1856,6 +1886,7 @@ will be handled."
   ;; {...}").
   t    (append (c-lang-const c-class-decl-kwds)
 	       (c-lang-const c-brace-list-decl-kwds))
+  c++  (append (c-lang-const c-typeless-decl-kwds) '("auto")) ; C++11.
   ;; Note: "manages" for CORBA CIDL clashes with its presence on
   ;; `c-type-list-kwds' for IDL.
   idl  (append (c-lang-const c-typeless-decl-kwds)
@@ -2005,7 +2036,8 @@ one of `c-type-list-kwds', `c-ref-list-kwds',
   t (c-make-keywords-re t
       (set-difference (c-lang-const c-keywords)
 		      (append (c-lang-const c-type-start-kwds)
-			      (c-lang-const c-prefix-spec-kwds))
+			      (c-lang-const c-prefix-spec-kwds)
+			      (c-lang-const c-typeof-kwds))
 		      :test 'string-equal)))
 (c-lang-defvar c-not-decl-init-keywords
   (c-lang-const c-not-decl-init-keywords))
