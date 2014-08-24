@@ -222,6 +222,14 @@ It is passed the root project found.")
 				   cedet-utest-root)))
     (expand-file-name "src" default-directory)))
 
+(defun ede-detect-utest-configdir ()
+  "Get the basedir of the detection unit tests."
+  (save-current-buffer
+    (set-buffer (semantic-find-file-noselect
+		 (expand-file-name "cedet/ede/detect.el"
+				   cedet-utest-root)))
+    (expand-file-name "config" default-directory)))
+
 (ede-cpp-root-project "UTESTCPP"
 		      :name "cpp root test"
 		      :file (expand-file-name "cpproot/README"
@@ -580,6 +588,10 @@ If LOADEDP is nil, make sure non were loaded."
 		    temporary-file-directory)
   "A config file to use with detection of arduino.")
 
+(defvar ede-detect-utest-arduino-install
+  (expand-file-name "arduino" (ede-detect-utest-configdir))
+  "A config file to use with detection of arduino.")
+
 (defun ede-detect-utest-init-dirmatch ()
   "Init the config file for for dirtesting."
 
@@ -594,7 +606,9 @@ If LOADEDP is nil, make sure non were loaded."
       ))
 
   ;; Override some bits of the ARDUINO project type.
-  (setq ede-arduino-preferences-file ede-detect-utest-arduino-fname)
+  (setq ede-arduino-preferences-file ede-detect-utest-arduino-fname
+	ede-arduino-appdir ede-detect-utest-arduino-install)
+
 
   (let ((mypath (expand-file-name "arduino" (ede-detect-utest-basedir))))
     ;;(message "Dirmatch Location: %s" mypath)
@@ -603,7 +617,7 @@ If LOADEDP is nil, make sure non were loaded."
       (erase-buffer)
       (insert "sketchbook.path=" mypath "\n"
 	      "serial.port=tty00\n"
-	      "board=uno\n")
+	      "board=ede_utest\n")
       (save-buffer 0)
       ) )
   ;; Now we need to augment the existing autoloader for arduino.
