@@ -1,3 +1,7 @@
+2014-08-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	* configure.ac: Check also for the uselocale function.  (Bug#18051)
+
 2014-08-23  Karol Ostrovsky  <karol.ostrovsky@gmail.com>  (tiny change)
 
 	* configure.ac: Accept "*-mingw*", not just "*-mingw32", as

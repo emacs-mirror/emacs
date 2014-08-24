@@ -3513,3 +3513,77 @@ system_process_attributes (Lisp_Object pid)
 }
 
 #endif	/* !defined (WINDOWSNT) */
+
+/* Wide character string collation.  */
+
+#ifdef __STDC_ISO_10646__
+#include <wchar.h>
+
+#if defined (HAVE_USELOCALE) || defined (HAVE_SETLOCALE)
+#include <locale.h>
+#endif /* HAVE_USELOCALE || HAVE_SETLOCALE */
+
+ptrdiff_t
+str_collate (Lisp_Object s1, Lisp_Object s2)
+{
+  register ptrdiff_t res, len, i, i_byte;
+  wchar_t *p1, *p2;
+  Lisp_Object lc_collate;
+#ifdef HAVE_USELOCALE
+  locale_t loc = (locale_t) 0, oldloc = (locale_t) 0;
+#elif defined (HAVE_SETLOCALE)
+  char *oldloc = NULL;
+#endif /* HAVE_USELOCALE */
+
+  USE_SAFE_ALLOCA;
+
+  /* Convert byte stream to code points.  */
+  len = SCHARS (s1); i = i_byte = 0;
+  p1 = (wchar_t *) SAFE_ALLOCA ((len+1) * (sizeof *p1));
+  while (i < len)
+    FETCH_STRING_CHAR_ADVANCE (*(p1+i-1), s1, i, i_byte);
+  *(p1+len) = 0;
+
+  len = SCHARS (s2); i = i_byte = 0;
+  p2 = (wchar_t *) SAFE_ALLOCA ((len+1) * (sizeof *p2));
+  while (i < len)
+    FETCH_STRING_CHAR_ADVANCE (*(p2+i-1), s2, i, i_byte);
+  *(p2+len) = 0;
+
+#if defined (HAVE_USELOCALE) || defined (HAVE_SETLOCALE)
+  /* Create a new locale object, and set it.  */
+  lc_collate =
+    Fgetenv_internal (build_string ("LC_COLLATE"), Vprocess_environment);
+
+#ifdef HAVE_USELOCALE
+  if (STRINGP (lc_collate)
+      && (loc = newlocale (LC_COLLATE_MASK, SSDATA (lc_collate), (locale_t) 0)))
+    oldloc = uselocale (loc);
+#elif defined (HAVE_SETLOCALE)
+  if (STRINGP (lc_collate))
+    {
+      oldloc = xstrdup (setlocale (LC_COLLATE, NULL));
+      setlocale (LC_COLLATE, SSDATA (lc_collate));
+    }
+#endif /* HAVE_USELOCALE */
+#endif /* HAVE_USELOCALE || HAVE_SETLOCALE */
+
+  res = wcscoll (p1, p2);
+
+#ifdef HAVE_USELOCALE
+  /* Free the locale object, and reset.  */
+  if (loc)
+    freelocale (loc);
+  if (oldloc)
+    uselocale (oldloc);
+#elif defined (HAVE_SETLOCALE)
+  /* Restore the original locale. */
+  if (oldloc)
+    setlocale (LC_COLLATE, oldloc);
+#endif /* HAVE_USELOCALE */
+
+  /* Return result.  */
+  SAFE_FREE ();
+  return res;
+}
+#endif /* __STDC_ISO_10646__ */

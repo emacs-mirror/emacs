@@ -1,3 +1,9 @@
+2014-08-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	* fns.c (Fstring_collate_lessp, Fstring_collate_equalp): New DEFUNs.
+
+	* sysdep.c (str_collate): New function.  (Bug#18051)
+
 2014-08-23  Karol Ostrovsky  <karol.ostrovsky@gmail.com>  (tiny change)
 
 	* Makefile.in (emacs$(EXEEXT)): Retry deletion of bootstrap-emacs

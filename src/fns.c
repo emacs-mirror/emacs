@@ -40,7 +40,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "xterm.h"
 #endif
 
-Lisp_Object Qstring_lessp;
+Lisp_Object Qstring_lessp, Qstring_collate_lessp, Qstring_collate_equalp;
 static Lisp_Object Qprovide, Qrequire;
 static Lisp_Object Qyes_or_no_p_history;
 Lisp_Object Qcursor_in_echo_area;
@@ -342,6 +342,84 @@ Symbols are also allowed; their print names are used instead.  */)
 	return c1 < c2 ? Qt : Qnil;
     }
   return i1 < SCHARS (s2) ? Qt : Qnil;
+}
+
+#ifdef __STDC_ISO_10646__
+/* Defined in sysdep.c.  */
+extern ptrdiff_t str_collate (Lisp_Object, Lisp_Object);
+#endif /* __STDC_ISO_10646__ */
+
+DEFUN ("string-collate-lessp", Fstring_collate_lessp, Sstring_collate_lessp, 2, 2, 0,
+       doc: /* Return t if first arg string is less than second in collation order.
+
+Case is significant.  Symbols are also allowed; their print names are
+used instead.
+
+This function obeys the conventions for collation order in your
+locale settings.  For example, punctuation and whitespace characters
+are considered less significant for sorting.
+
+\(sort '\("11" "12" "1 1" "1 2" "1.1" "1.2") 'string-collate-lessp)
+  => \("11" "1 1" "1.1" "12" "1 2" "1.2")
+
+If your system does not support a locale environment, this function
+behaves like `string-lessp'.
+
+If the environment variable \"LC_COLLATE\" is set in `process-environment',
+it overrides the setting of your current locale.  */)
+  (Lisp_Object s1, Lisp_Object s2)
+{
+#ifdef __STDC_ISO_10646__
+  /* Check parameters.  */
+  if (SYMBOLP (s1))
+    s1 = SYMBOL_NAME (s1);
+  if (SYMBOLP (s2))
+    s2 = SYMBOL_NAME (s2);
+  CHECK_STRING (s1);
+  CHECK_STRING (s2);
+
+  return (str_collate (s1, s2) < 0) ? Qt : Qnil;
+
+#else
+  return Fstring_lessp (s1, s2);
+#endif /* __STDC_ISO_10646__ */
+}
+
+DEFUN ("string-collate-equalp", Fstring_collate_equalp, Sstring_collate_equalp, 2, 2, 0,
+       doc: /* Return t if two strings have identical contents.
+
+Case is significant.  Symbols are also allowed; their print names are
+used instead.
+
+This function obeys the conventions for collation order in your locale
+settings.  For example, characters with different coding points but
+the same meaning are considered as equal, like different grave accent
+unicode characters.
+
+\(string-collate-equalp \(string ?\\uFF40) \(string ?\\u1FEF))
+  => t
+
+If your system does not support a locale environment, this function
+behaves like `string-equal'.
+
+If the environment variable \"LC_COLLATE\" is set in `process-environment',
+it overrides the setting of your current locale.  */)
+  (Lisp_Object s1, Lisp_Object s2)
+{
+#ifdef __STDC_ISO_10646__
+  /* Check parameters.  */
+  if (SYMBOLP (s1))
+    s1 = SYMBOL_NAME (s1);
+  if (SYMBOLP (s2))
+    s2 = SYMBOL_NAME (s2);
+  CHECK_STRING (s1);
+  CHECK_STRING (s2);
+
+  return (str_collate (s1, s2) == 0) ? Qt : Qnil;
+
+#else
+  return Fstring_equal (s1, s2);
+#endif /* __STDC_ISO_10646__ */
 }
 
 static Lisp_Object concat (ptrdiff_t nargs, Lisp_Object *args,
@@ -4919,6 +4997,8 @@ syms_of_fns (void)
   defsubr (&Sdefine_hash_table_test);
 
   DEFSYM (Qstring_lessp, "string-lessp");
+  DEFSYM (Qstring_collate_lessp, "string-collate-lessp");
+  DEFSYM (Qstring_collate_equalp, "string-collate-equalp");
   DEFSYM (Qprovide, "provide");
   DEFSYM (Qrequire, "require");
   DEFSYM (Qyes_or_no_p_history, "yes-or-no-p-history");
@@ -4972,6 +5052,8 @@ this variable.  */);
   defsubr (&Sstring_equal);
   defsubr (&Scompare_strings);
   defsubr (&Sstring_lessp);
+  defsubr (&Sstring_collate_lessp);
+  defsubr (&Sstring_collate_equalp);
   defsubr (&Sappend);
   defsubr (&Sconcat);
   defsubr (&Svconcat);

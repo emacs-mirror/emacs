@@ -3553,7 +3553,7 @@ LIBS="$LIB_PTHREAD $LIB_MATH $LIBS"
 AC_CHECK_FUNCS(accept4 fchdir gethostname \
 getrusage get_current_dir_name \
 lrand48 random rint \
-select getpagesize setlocale \
+select getpagesize setlocale uselocale \
 getrlimit setrlimit shutdown getaddrinfo \
 pthread_sigmask strsignal setitimer \
 sendto recvfrom getsockname getpeername getifaddrs freeifaddrs \
