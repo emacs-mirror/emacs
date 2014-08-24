@@ -66,6 +66,12 @@ for use in Emacs bug reports.
 hiding character but the default `.' can be used by let-binding the
 variable `read-hide-char'.
 
+** The new functions `string-collate-lessp' and `string-collate-equalp'
+preserve the collation order as defined by the system's locale(1)
+environment.  For the time being this is implemented for POSIX systems
+only, for other systems they fall back to their counterparts
+`string-lessp' and `string-equal'.
+
 
 * Editing Changes in Emacs 24.5
 
