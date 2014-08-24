@@ -1,3 +1,14 @@
+2014-08-24  Alan Mackenzie  <acm@muc.de>
+
+	Make ">>" act as double template ender in C++ Mode.
+        * progmodes/cc-langs.el (c->-op-cont-tokens): New lang-const split
+	off from c->-op-cont-re.
+        (c->-op-cont-tokens): Change to use the above.
+        (c->-op-without->-cont-regexp): New lang-const.
+        * progmodes/cc-engine.el (c-forward-<>-arglist-recur): Use
+	c->-op-without->-cont-regexp in place of c->-op-cont-tokens.
+
+
 2014-08-23  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-fonts.el (c-font-lock-declarators): Fix infinite

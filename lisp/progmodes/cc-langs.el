@@ -1217,21 +1217,40 @@ operators."
 
 (c-lang-defvar c-<-op-cont-regexp (c-lang-const c-<-op-cont-regexp))
 
+(c-lang-defconst c->-op-cont-tokens
+  ;; A list of second and subsequent characters of all multicharacter tokens
+  ;; that begin with ">".
+  t (c-filter-ops (c-lang-const c-all-op-syntax-tokens)
+		  t
+		  "\\`>."
+		  (lambda (op) (substring op 1)))
+  java (c-filter-ops (c-lang-const c-all-op-syntax-tokens)
+		     t
+		     "\\`>[^>]\\|\\`>>[^>]"
+		     (lambda (op) (substring op 1))))
+
 (c-lang-defconst c->-op-cont-regexp
   ;; Regexp matching the second and subsequent characters of all
   ;; multicharacter tokens that begin with ">".
-  t (c-make-keywords-re nil
-      (c-filter-ops (c-lang-const c-all-op-syntax-tokens)
-		    t
-		    "\\`>."
-		    (lambda (op) (substring op 1))))
-  java (c-make-keywords-re nil
-	 (c-filter-ops (c-lang-const c-all-op-syntax-tokens)
-		       t
-		       "\\`>[^>]\\|\\`>>[^>]"
-		       (lambda (op) (substring op 1)))))
+  t (c-make-keywords-re nil (c-lang-const c->-op-cont-tokens)))
 
 (c-lang-defvar c->-op-cont-regexp (c-lang-const c->-op-cont-regexp))
+
+(c-lang-defconst c->-op-without->-cont-regexp
+  ;; Regexp matching the second and subsequent characters of all
+  ;; multicharacter tokens that begin with ">" except for those beginning with
+  ;; ">>".
+  t (c-make-keywords-re nil
+      (set-difference
+       (c-lang-const c->-op-cont-tokens)
+       (c-filter-ops (c-lang-const c-all-op-syntax-tokens)
+		     t
+		     "\\`>>"
+		     (lambda (op) (substring op 1)))
+       :test 'string-equal)))
+
+(c-lang-defvar c->-op-without->-cont-regexp
+  (c-lang-const c->-op-without->-cont-regexp))
 
 (c-lang-defconst c-stmt-delim-chars
   ;; The characters that should be considered to bound statements.  To

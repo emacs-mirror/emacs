@@ -5944,7 +5944,7 @@ comment at the start of cc-engine.el for more info."
 		  ;; Either an operator starting with '>' or the end of
 		  ;; the angle bracket arglist.
 
-		  (if (looking-at c->-op-cont-regexp)
+		  (if (looking-at c->-op-without->-cont-regexp)
 		      (progn
 			(goto-char (match-end 0))
 			t)		; Continue the loop.
