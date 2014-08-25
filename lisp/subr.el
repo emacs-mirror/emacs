@@ -565,7 +565,7 @@ SEQ must be a list, vector, or string.  The comparison is done with `equal'."
     (delete elt (copy-sequence seq))))
 
 (defun remq (elt list)
-  "Return LIST with all occurrences of ELT removed.
+  "Return a copy of LIST with all occurrences of ELT removed.
 The comparison is done with `eq'.  Contrary to `delq', this does not use
 side-effects, and the argument LIST is not modified."
   (while (and (eq elt (car list)) (setq list (cdr list))))
