@@ -344,11 +344,6 @@ Symbols are also allowed; their print names are used instead.  */)
   return i1 < SCHARS (s2) ? Qt : Qnil;
 }
 
-#ifdef __STDC_ISO_10646__
-/* Defined in sysdep.c.  */
-extern ptrdiff_t str_collate (Lisp_Object, Lisp_Object);
-#endif /* __STDC_ISO_10646__ */
-
 DEFUN ("string-collate-lessp", Fstring_collate_lessp, Sstring_collate_lessp, 2, 2, 0,
        doc: /* Return t if first arg string is less than second in collation order.
 

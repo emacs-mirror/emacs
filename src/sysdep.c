@@ -3517,56 +3517,61 @@ system_process_attributes (Lisp_Object pid)
 /* Wide character string collation.  */
 
 #ifdef __STDC_ISO_10646__
-#include <wchar.h>
+# include <wchar.h>
 
-#if defined (HAVE_USELOCALE) || defined (HAVE_SETLOCALE)
-#include <locale.h>
-#endif /* HAVE_USELOCALE || HAVE_SETLOCALE */
+# if defined HAVE_USELOCALE || defined HAVE_SETLOCALE
+#  include <locale.h>
+# endif
+# ifndef HAVE_SETLOCALE
+#  define setlocale(category, locale) ((char *) 0)
+# endif
 
 ptrdiff_t
 str_collate (Lisp_Object s1, Lisp_Object s2)
 {
-  register ptrdiff_t res, len, i, i_byte;
+  ptrdiff_t res, len, i, i_byte;
   wchar_t *p1, *p2;
   Lisp_Object lc_collate;
-#ifdef HAVE_USELOCALE
-  locale_t loc = (locale_t) 0, oldloc = (locale_t) 0;
-#elif defined (HAVE_SETLOCALE)
+# ifdef HAVE_USELOCALE
+  locale_t loc = 0, oldloc = 0;
+# else
   char *oldloc = NULL;
-#endif /* HAVE_USELOCALE */
+# endif
 
   USE_SAFE_ALLOCA;
 
   /* Convert byte stream to code points.  */
   len = SCHARS (s1); i = i_byte = 0;
-  p1 = (wchar_t *) SAFE_ALLOCA ((len+1) * (sizeof *p1));
+  SAFE_NALLOCA (p1, 1, len + 1);
   while (i < len)
     FETCH_STRING_CHAR_ADVANCE (*(p1+i-1), s1, i, i_byte);
   *(p1+len) = 0;
 
   len = SCHARS (s2); i = i_byte = 0;
-  p2 = (wchar_t *) SAFE_ALLOCA ((len+1) * (sizeof *p2));
+  SAFE_NALLOCA (p2, 1, len + 1);
   while (i < len)
     FETCH_STRING_CHAR_ADVANCE (*(p2+i-1), s2, i, i_byte);
   *(p2+len) = 0;
 
-#if defined (HAVE_USELOCALE) || defined (HAVE_SETLOCALE)
   /* Create a new locale object, and set it.  */
   lc_collate =
     Fgetenv_internal (build_string ("LC_COLLATE"), Vprocess_environment);
 
-#ifdef HAVE_USELOCALE
-  if (STRINGP (lc_collate)
-      && (loc = newlocale (LC_COLLATE_MASK, SSDATA (lc_collate), (locale_t) 0)))
-    oldloc = uselocale (loc);
-#elif defined (HAVE_SETLOCALE)
   if (STRINGP (lc_collate))
     {
-      oldloc = xstrdup (setlocale (LC_COLLATE, NULL));
-      setlocale (LC_COLLATE, SSDATA (lc_collate));
+#ifdef HAVE_USELOCALE
+      loc = newlocale (LC_COLLATE_MASK, SSDATA (lc_collate), 0);
+      if (loc)
+	oldloc = uselocale (loc);
+#else
+      oldloc = setlocale (LC_COLLATE, NULL);
+      if (oldloc)
+	{
+	  oldloc = xstrdup (oldloc);
+	  setlocale (LC_COLLATE, SSDATA (lc_collate));
+	}
+#endif
     }
-#endif /* HAVE_USELOCALE */
-#endif /* HAVE_USELOCALE || HAVE_SETLOCALE */
 
   res = wcscoll (p1, p2);
 
@@ -3576,11 +3581,11 @@ str_collate (Lisp_Object s1, Lisp_Object s2)
     freelocale (loc);
   if (oldloc)
     uselocale (oldloc);
-#elif defined (HAVE_SETLOCALE)
+#else
   /* Restore the original locale. */
-  if (oldloc)
-    setlocale (LC_COLLATE, oldloc);
-#endif /* HAVE_USELOCALE */
+  setlocale (LC_COLLATE, oldloc);
+  xfree (oldloc);
+#endif
 
   /* Return result.  */
   SAFE_FREE ();

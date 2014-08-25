@@ -1,3 +1,15 @@
+2014-08-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Minor cleanups of str_collate fix (Bug#18051).
+	* fns.c (str_collate): Move decl from here ...
+	* lisp.h (str_collate): ... to here.
+	* sysdep.c (str_collate): Prune away some of the forest of ifdefs.
+	Remove unnecessary casts.  Use SAFE_NALLOCA to avoid
+	potential problems with integer overflow.  Don't assume
+	setlocale succeeds.  Remove unnecessary test before restoring
+	locale via setlocale, and free the copied setlocale string
+	when done with it.
+
 2014-08-24  Michael Albinus  <michael.albinus@gmx.de>
 
 	* fns.c (Fstring_collate_lessp, Fstring_collate_equalp): New DEFUNs.
