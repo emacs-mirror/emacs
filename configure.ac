@@ -4593,20 +4593,6 @@ if test $emacs_cv_usable_FIONREAD = yes; then
   fi
 fi
 
-
-case $opsys in
-  dnl Emacs supplies its own malloc, but glib calls posix_memalign,
-  dnl and on Cygwin prior to version 1.7.24 that becomes the
-  dnl Cygwin-supplied posix_memalign.  As malloc is not the Cygwin
-  dnl malloc, the Cygwin posix_memalign always returns ENOSYS.  A
-  dnl workaround is to set G_SLICE=always-malloc.  This is no longer
-  dnl needed starting with cygwin-1.7.24, and it is no longer
-  dnl effective starting with glib-2.36. */
-  cygwin)
-    AC_DEFINE(G_SLICE_ALWAYS_MALLOC, 1, [Define to set the
-      G_SLICE environment variable to "always-malloc" at startup.])
-    ;;
-
   hpux11)
     dnl It works to open the pty's tty in the parent (Emacs), then
     dnl close and reopen it in the child.

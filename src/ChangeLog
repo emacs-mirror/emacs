@@ -1,3 +1,8 @@
+2014-08-25  Ken Brown  <kbrown@cornell.edu>
+
+	* emacs.c (main): Remove use of obsolete macro
+	G_SLICE_ALWAYS_MALLOC.
+
 2014-08-25  Eli Zaretskii  <eliz@gnu.org>
 
 	Implement locale-sensitive string collation for MS-Windows.

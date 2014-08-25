@@ -1,3 +1,7 @@
+2014-08-25  Ken Brown  <kbrown@cornell.edu>
+
+	* configure.ac (G_SLICE_ALWAYS_MALLOC): Remove obsolete macro.
+
 2014-08-25  Christoph Scholtes  <cschol2112@gmail.com>
 
 	* INSTALL.REPO: Remove reference to obsolete configure scripts

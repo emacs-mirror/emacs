@@ -734,12 +734,6 @@ main (int argc, char **argv)
   stack_base = &dummy;
 #endif
 
-#ifdef G_SLICE_ALWAYS_MALLOC
-  /* This is used by the Cygwin build.  It's not needed starting with
-     cygwin-1.7.24, but it doesn't do any harm.  */
-  xputenv ("G_SLICE=always-malloc");
-#endif
-
 #ifndef CANNOT_DUMP
   might_dump = !initialized;
 #endif
