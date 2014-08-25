@@ -617,7 +617,7 @@ failStart:
   return res;
 }
 
-/* ArenaCollect -- collect everything in arena; leave clamped */
+/* ArenaCollect -- collect everything in arena; leave parked */
 
 Res ArenaCollect(Globals globals, int why)
 {
