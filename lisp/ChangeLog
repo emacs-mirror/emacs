@@ -1,3 +1,8 @@
+2014-08-25  Glenn Morris  <rgm@gnu.org>
+
+	* emulation/cua-rect.el (cua--highlight-rectangle):
+	Avoid error at point-min.  (Bug#18309)
+
 2014-08-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/python.el (python-shell-prompt-detect): Remove redundant
