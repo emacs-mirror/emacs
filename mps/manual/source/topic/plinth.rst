@@ -47,13 +47,23 @@ convenient window in the user interface.
 
 The plinth is divided into two parts:
 
-#. The :ref:`topic-plinth-io` enables the MPS to write binary messages
-   to an output stream.
+#. The :ref:`topic-plinth-io` provides general-purpose I/O
+   functionality. It is used by the :term:`telemetry` system to output
+   a stream of events to assist with debugging and profiling.
 
 #. The :ref:`topic-plinth-lib` provides miscellaneous functionality
    that would be available via the Standard C Library on a hosted
    platform, including functions for reporting errors and accessing
    a processor clock.
+
+The functions in the plinth module may be called in the context of a
+signal handler for a protection fault (or equivalent), so they must
+not access memory that is managed by the MPS, and they need to take
+into account the restrictions imposed by the operating system. (See
+"`Defining Signal Handlers`_" in the GNU C Library Reference Manual
+for useful advice.)
+
+.. _Defining Signal Handlers: http://www.gnu.org/software/libc/manual/html_node/Defining-Handlers.html
 
 
 .. c:macro:: CONFIG_PLINTH_NONE
@@ -85,7 +95,7 @@ I/O module
 
 .. c:type:: mps_io_t
 
-    The type of the internal state of the I/O module.
+    The type of an I/O stream.
 
     This is an alias for a pointer to the incomplete structure
     :c:type:`mps_io_s`, which the :term:`plinth` may define if it
@@ -100,19 +110,20 @@ I/O module
 
 .. c:function:: mps_res_t mps_io_create(mps_io_t *io_o)
 
-    A :term:`plinth` function for setting up the I/O module.
+    A :term:`plinth` function for creating an I/O stream for the
+    :term:`telemetry stream`.
 
-    ``io_o`` points to a location which the plinth may update with a
-    pointer to its internal state, if any.
+    ``io_o`` points to a location suitable for storing a pointer to an
+    I/O stream.
 
-    Returns :c:macro:`MPS_RES_OK` if successful.
+    If successful, the function must update this location with a
+    suitable pointer for the telemetry stream and return
+    :c:macro:`MPS_RES_OK`. Otherwise, it must return some other
+    :term:`result code`.
 
-    The MPS calls this function to set up the I/O module, for example
-    if there are events in the :term:`telemetry stream` that need to
-    be output.
-
-    A typical plinth will use it to open a file for writing, or to
-    connect to the system logging interface.
+    The MPS calls this function to create the I/O stream for telemetry
+    output. A typical plinth will use it to open a file for writing,
+    or to connect to the system logging interface.
 
     .. note::
 
@@ -123,11 +134,10 @@ I/O module
 
 .. c:function:: void mps_io_destroy(mps_io_t io)
 
-    A :term:`plinth` function for tearing down the I/O module.
+    A :term:`plinth` function for destroying an I/O stream.
 
-    ``io`` is the value that the plinth wrote to ``io_o`` when the MPS
-    called :c:func:`mps_io_create`. If the plinth wrote no value, this
-    parameter is undefined.
+    ``io`` is a pointer to the I/O stream to be destroyed. It was
+    previously created by a call to :c:func:`mps_io_create`.
 
     After calling this function, the MPS guarantees not to use the
     value ``io`` again.
@@ -140,11 +150,9 @@ I/O module
 
 .. c:function:: mps_res_t mps_io_write(mps_io_t io, void *buf, size_t size)
 
-    A :term:`plinth` function for writing data via the I/O module.
+    A :term:`plinth` function for writing data to an I/O stream.
 
-    ``io`` is the value that the plinth wrote to ``io_o`` when the MPS
-    called :c:func:`mps_io_create`. If the plinth wrote no value, this
-    parameter is undefined.
+    ``io`` is the I/O stream.
 
     ``buf`` points to the data to write.
 
@@ -160,11 +168,9 @@ I/O module
 
 .. c:function:: mps_res_t mps_io_flush(mps_io_t io)
 
-    A :term:`plinth` function for flushing the I/O module.
+    A :term:`plinth` function for flushing an I/O stream.
 
-    ``io`` is the value that the plinth wrote to ``io_o`` when the MPS
-    called :c:func:`mps_io_create`. If the plinth wrote no value, this
-    parameter is undefined.
+    ``io`` is the I/O stream.
 
     Returns :c:macro:`MPS_RES_OK` if successful.
 
