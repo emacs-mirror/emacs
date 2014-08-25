@@ -499,8 +499,8 @@ static Lisp_Object ftfont_open (struct frame *, Lisp_Object, int);
 static void ftfont_close (struct font *);
 static int ftfont_has_char (Lisp_Object, int);
 static unsigned ftfont_encode_char (struct font *, int);
-static int ftfont_text_extents (struct font *, unsigned *, int,
-                                struct font_metrics *);
+static void ftfont_text_extents (struct font *, unsigned *, int,
+				 struct font_metrics *);
 static int ftfont_get_bitmap (struct font *, unsigned,
                               struct font_bitmap *, int);
 static int ftfont_anchor_point (struct font *, unsigned, int,
@@ -1371,19 +1371,18 @@ ftfont_encode_char (struct font *font, int c)
   return (code > 0 ? code : FONT_INVALID_CODE);
 }
 
-static int
-ftfont_text_extents (struct font *font, unsigned int *code, int nglyphs, struct font_metrics *metrics)
+static void
+ftfont_text_extents (struct font *font, unsigned int *code,
+		     int nglyphs, struct font_metrics *metrics)
 {
   struct ftfont_info *ftfont_info = (struct ftfont_info *) font;
   FT_Face ft_face = ftfont_info->ft_size->face;
-  int width = 0;
-  int i;
+  int i, width = 0;
   bool first;
 
   if (ftfont_info->ft_size != ft_face->size)
     FT_Activate_Size (ftfont_info->ft_size);
-  if (metrics)
-    memset (metrics, 0, sizeof (struct font_metrics));
+
   for (i = 0, first = 1; i < nglyphs; i++)
     {
       if (FT_Load_Glyph (ft_face, code[i], FT_LOAD_DEFAULT) == 0)
@@ -1392,39 +1391,28 @@ ftfont_text_extents (struct font *font, unsigned int *code, int nglyphs, struct 
 
 	  if (first)
 	    {
-	      if (metrics)
-		{
-		  metrics->lbearing = m->horiBearingX >> 6;
-		  metrics->rbearing = (m->horiBearingX + m->width) >> 6;
-		  metrics->ascent = m->horiBearingY >> 6;
-		  metrics->descent = (m->height - m->horiBearingY) >> 6;
-		}
+	      metrics->lbearing = m->horiBearingX >> 6;
+	      metrics->rbearing = (m->horiBearingX + m->width) >> 6;
+	      metrics->ascent = m->horiBearingY >> 6;
+	      metrics->descent = (m->height - m->horiBearingY) >> 6;
 	      first = 0;
 	    }
-	  if (metrics)
-	    {
-	      if (metrics->lbearing > width + (m->horiBearingX >> 6))
-		metrics->lbearing = width + (m->horiBearingX >> 6);
-	      if (metrics->rbearing
-		  < width + ((m->horiBearingX + m->width) >> 6))
-		metrics->rbearing
-		  = width + ((m->horiBearingX + m->width) >> 6);
-	      if (metrics->ascent < (m->horiBearingY >> 6))
-		metrics->ascent = m->horiBearingY >> 6;
-	      if (metrics->descent > ((m->height - m->horiBearingY) >> 6))
-		metrics->descent = (m->height - m->horiBearingY) >> 6;
-	    }
+	  if (metrics->lbearing > width + (m->horiBearingX >> 6))
+	    metrics->lbearing = width + (m->horiBearingX >> 6);
+	  if (metrics->rbearing
+	      < width + ((m->horiBearingX + m->width) >> 6))
+	    metrics->rbearing
+	      = width + ((m->horiBearingX + m->width) >> 6);
+	  if (metrics->ascent < (m->horiBearingY >> 6))
+	    metrics->ascent = m->horiBearingY >> 6;
+	  if (metrics->descent > ((m->height - m->horiBearingY) >> 6))
+	    metrics->descent = (m->height - m->horiBearingY) >> 6;
 	  width += m->horiAdvance >> 6;
 	}
       else
-	{
-	  width += font->space_width;
-	}
+	width += font->space_width;
     }
-  if (metrics)
-    metrics->width = width;
-
-  return width;
+  metrics->width = width;
 }
 
 static int

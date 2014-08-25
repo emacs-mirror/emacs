@@ -1,3 +1,15 @@
+2014-08-25  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	One more minor cleanup of font subsystem.
+	* font.h (struct font_driver): Convert text_extents to
+	return void because returned value is never actually used.
+	* macfont.c (macfont_text_extents):
+	* w32font.c (w32font_text_extents):
+	* xftfont.c (xftfont_text_extents): Adjust to return void
+	and assume that 'metrics' argument is always non-NULL.
+	* ftfont.c (ftfont_text_extents):
+	* xfont.c (xfont_text_extents): Likewise.  Avoid redundant memset.
+
 2014-08-25  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Minor cleanups of str_collate fix (Bug#18051).

@@ -570,9 +570,9 @@ struct font_driver
   /* Compute the total metrics of the NGLYPHS glyphs specified by
      the font FONT and the sequence of glyph codes CODE, and store the
      result in METRICS.  */
-  int (*text_extents) (struct font *font,
-                       unsigned *code, int nglyphs,
-                       struct font_metrics *metrics);
+  void (*text_extents) (struct font *font,
+			unsigned *code, int nglyphs,
+			struct font_metrics *metrics);
 
 #ifdef HAVE_WINDOW_SYSTEM
 

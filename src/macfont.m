@@ -1553,8 +1553,8 @@ static Lisp_Object macfont_open (struct frame *, Lisp_Object, int);
 static void macfont_close (struct font *);
 static int macfont_has_char (Lisp_Object, int);
 static unsigned macfont_encode_char (struct font *, int);
-static int macfont_text_extents (struct font *, unsigned int *, int,
-				 struct font_metrics *);
+static void macfont_text_extents (struct font *, unsigned int *, int,
+				  struct font_metrics *);
 static int macfont_draw (struct glyph_string *, int, int, int, int, bool);
 static Lisp_Object macfont_shape (Lisp_Object);
 static int macfont_variation_glyphs (struct font *, int c,
@@ -2653,9 +2653,9 @@ macfont_encode_char (struct font *font, int c)
   return glyph != kCGFontIndexInvalid ? glyph : FONT_INVALID_CODE;
 }
 
-static int
-macfont_text_extents (struct font *font, unsigned int *code, int nglyphs,
-		      struct font_metrics *metrics)
+static void
+macfont_text_extents (struct font *font, unsigned int *code,
+		      int nglyphs, struct font_metrics *metrics)
 {
   int width, i;
 
@@ -2664,28 +2664,21 @@ macfont_text_extents (struct font *font, unsigned int *code, int nglyphs,
   for (i = 1; i < nglyphs; i++)
     {
       struct font_metrics m;
-      int w = macfont_glyph_extents (font, code[i], metrics ? &m : NULL,
-				     NULL, 0);
+      int w = macfont_glyph_extents (font, code[i], &m, NULL, 0);
 
-      if (metrics)
-	{
-	  if (width + m.lbearing < metrics->lbearing)
-	    metrics->lbearing = width + m.lbearing;
-	  if (width + m.rbearing > metrics->rbearing)
-	    metrics->rbearing = width + m.rbearing;
-	  if (m.ascent > metrics->ascent)
-	    metrics->ascent = m.ascent;
-	  if (m.descent > metrics->descent)
-	    metrics->descent = m.descent;
-	}
+      if (width + m.lbearing < metrics->lbearing)
+	metrics->lbearing = width + m.lbearing;
+      if (width + m.rbearing > metrics->rbearing)
+	metrics->rbearing = width + m.rbearing;
+      if (m.ascent > metrics->ascent)
+	metrics->ascent = m.ascent;
+      if (m.descent > metrics->descent)
+	metrics->descent = m.descent;
       width += w;
     }
   unblock_input ();
 
-  if (metrics)
-    metrics->width = width;
-
-  return width;
+  metrics->width = width;
 }
 
 static int

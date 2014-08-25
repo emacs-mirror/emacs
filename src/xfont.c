@@ -124,8 +124,8 @@ static void xfont_close (struct font *);
 static void xfont_prepare_face (struct frame *, struct face *);
 static int xfont_has_char (Lisp_Object, int);
 static unsigned xfont_encode_char (struct font *, int);
-static int xfont_text_extents (struct font *, unsigned *, int,
-                               struct font_metrics *);
+static void xfont_text_extents (struct font *, unsigned *, int,
+				struct font_metrics *);
 static int xfont_draw (struct glyph_string *, int, int, int, int, bool);
 static int xfont_check (struct frame *, struct font *);
 
@@ -975,15 +975,14 @@ xfont_encode_char (struct font *font, int c)
   return (xfont_get_pcm (xfont, &char2b) ? code : FONT_INVALID_CODE);
 }
 
-static int
-xfont_text_extents (struct font *font, unsigned int *code, int nglyphs, struct font_metrics *metrics)
+static void
+xfont_text_extents (struct font *font, unsigned int *code,
+		    int nglyphs, struct font_metrics *metrics)
 {
   XFontStruct *xfont = ((struct xfont_info *) font)->xfont;
-  int width = 0;
-  int i, first;
+  int i, width = 0;
+  bool first;
 
-  if (metrics)
-    memset (metrics, 0, sizeof (struct font_metrics));
   for (i = 0, first = 1; i < nglyphs; i++)
     {
       XChar2b char2b;
@@ -997,34 +996,27 @@ xfont_text_extents (struct font *font, unsigned int *code, int nglyphs, struct f
 	continue;
       if (first)
 	{
-	  if (metrics)
-	    {
-	      metrics->lbearing = pcm->lbearing;
-	      metrics->rbearing = pcm->rbearing;
-	      metrics->ascent = pcm->ascent;
-	      metrics->descent = pcm->descent;
-	    }
+	  metrics->lbearing = pcm->lbearing;
+	  metrics->rbearing = pcm->rbearing;
+	  metrics->ascent = pcm->ascent;
+	  metrics->descent = pcm->descent;
 	  first = 0;
 	}
       else
 	{
-	  if (metrics)
-	    {
-	      if (metrics->lbearing > width + pcm->lbearing)
-		metrics->lbearing = width + pcm->lbearing;
-	      if (metrics->rbearing < width + pcm->rbearing)
-		metrics->rbearing = width + pcm->rbearing;
-	      if (metrics->ascent < pcm->ascent)
-		metrics->ascent = pcm->ascent;
-	      if (metrics->descent < pcm->descent)
-		metrics->descent = pcm->descent;
-	    }
+	  if (metrics->lbearing > width + pcm->lbearing)
+	    metrics->lbearing = width + pcm->lbearing;
+	  if (metrics->rbearing < width + pcm->rbearing)
+	    metrics->rbearing = width + pcm->rbearing;
+	  if (metrics->ascent < pcm->ascent)
+	    metrics->ascent = pcm->ascent;
+	  if (metrics->descent < pcm->descent)
+	    metrics->descent = pcm->descent;
 	}
       width += pcm->width;
     }
-  if (metrics)
-    metrics->width = width;
-  return width;
+
+  metrics->width = width;
 }
 
 static int

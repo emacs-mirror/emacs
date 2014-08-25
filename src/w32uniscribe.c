@@ -591,8 +591,8 @@ uniscribe_encode_char (struct font *font, int c)
    Lisp_Object uniscribe_get_cache (Lisp_Object frame);
    void uniscribe_free_entity (Lisp_Object font_entity);
    int uniscribe_has_char (Lisp_Object entity, int c);
-   int uniscribe_text_extents (struct font *font, unsigned *code,
-                               int nglyphs, struct font_metrics *metrics);
+   void uniscribe_text_extents (struct font *font, unsigned *code,
+                                int nglyphs, struct font_metrics *metrics);
    int uniscribe_draw (struct glyph_string *s, int from, int to,
                        int x, int y, int with_background);
 
