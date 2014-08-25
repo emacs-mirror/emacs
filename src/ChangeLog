@@ -1,3 +1,7 @@
+2014-08-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* conf_post.h (_GL_EXECINFO_INLINE) [MSDOS]: Don't define.
+
 2014-08-18  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (handle_stop): Improve commentary.

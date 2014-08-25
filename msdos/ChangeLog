@@ -1,3 +1,8 @@
+2014-08-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* sedlibmk.inp (gl_LIBOBJS): Add execinfo.o.  Reported by Juan
+	Manuel Guerrero <juan.guerrero@gmx.de>.
+
 2014-08-23  Eli Zaretskii  <eliz@gnu.org>
 
 	* sed2v2.inp [DJGPP <= 2.03]: Add a prototype for snprintf, to
