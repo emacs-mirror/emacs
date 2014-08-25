@@ -547,3 +547,26 @@ used in queries, for example:
         If the ``User`` event category is not turned on in the
         :term:`telemetry filter` (via :c:func:`mps_telemetry_control`)
         then calling this function has no effect.
+
+
+.. index::
+   pair: telemetry; customizing
+
+Customizing the telemetry system
+--------------------------------
+
+If you need the telemetry system to support features not described
+here (for example, you need to transmit telemetry data over a network
+rather than writing it to a file on the local filesystem) then you may
+be able to do so by providing your own implementation of the
+:ref:`topic-plinth-io`.
+
+When it first needs to output telemetry, the MPS call the plinth
+function :c:func:`mps_io_create` to create an I/O stream. It then
+calls :c:func:`mps_io_write` to write binary data to the stream
+and :c:func:`mps_io_flush` to flush the stream in response to
+:c:func:`mps_telemetry_flush`. By providing your own implementations
+of these functions, you can direct the telemetry stream wherever you
+like.
+
+See :ref:`topic-plinth` for details.
