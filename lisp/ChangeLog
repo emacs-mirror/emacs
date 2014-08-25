@@ -1,3 +1,8 @@
+2014-08-25  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/shr.el (shr-copy-url): Encode copied URL to avoid getting
+	URLs containing spaces and the like.
+
 2014-08-25  Christoph Scholtes  <cschol2112@gmail.com>
 
 	* subr.el (remq): Fix docstring (Bug#18253).

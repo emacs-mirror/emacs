@@ -246,9 +246,9 @@ redirects somewhere else."
      ;; Copy the URL to the kill ring.
      (t
       (with-temp-buffer
-	(insert url)
+	(insert (url-encode-url url))
 	(copy-region-as-kill (point-min) (point-max))
-	(message "Copied %s" url))))))
+	(message "Copied %s" (buffer-substring)))))))
 
 (defun shr-next-link ()
   "Skip to the next link."
