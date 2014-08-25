@@ -266,7 +266,7 @@ replace backward.
 
 Fourth and fifth arg START and END specify the region to operate on.
 
-To customize possible responses, change the \"bindings\" in `query-replace-map'."
+To customize possible responses, change the bindings in `query-replace-map'."
   (interactive
    (let ((common
 	  (query-replace-read-args

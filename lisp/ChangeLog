@@ -1,3 +1,7 @@
+2014-08-25  Christoph Scholtes  <cschol2112@gmail.com>
+
+	* replace.el (query-replace): Fix typo in docstring (Bug#18320).
+
 2014-08-24  Alan Mackenzie  <acm@muc.de>
 
 	Handle C++11's "auto" and "decltype" constructions.
