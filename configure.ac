@@ -4593,6 +4593,7 @@ if test $emacs_cv_usable_FIONREAD = yes; then
   fi
 fi
 
+case $opsys in
   hpux11)
     dnl It works to open the pty's tty in the parent (Emacs), then
     dnl close and reopen it in the child.
