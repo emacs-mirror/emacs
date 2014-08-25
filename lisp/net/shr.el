@@ -248,7 +248,7 @@ redirects somewhere else."
       (with-temp-buffer
 	(insert (url-encode-url url))
 	(copy-region-as-kill (point-min) (point-max))
-	(message "Copied %s" (buffer-substring)))))))
+	(message "Copied %s" (buffer-string)))))))
 
 (defun shr-next-link ()
   "Skip to the next link."
