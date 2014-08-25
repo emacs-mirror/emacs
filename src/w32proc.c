@@ -32,6 +32,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <signal.h>
 #include <sys/file.h>
 #include <mbstring.h>
+#include <locale.h>
 
 /* must include CRT headers *before* config.h */
 #include <config.h>
@@ -3142,6 +3143,159 @@ If successful, the new layout id is returned, otherwise nil.  */)
     return Qnil;
 
   return Fw32_get_keyboard_layout ();
+}
+
+/* Two variables to interface between get_lcid and the EnumLocales
+   callback function below.  */
+#ifndef LOCALE_NAME_MAX_LENGTH
+# define LOCALE_NAME_MAX_LENGTH 85
+#endif
+static LCID found_lcid;
+static char lname[3 * LOCALE_NAME_MAX_LENGTH + 1 + 1];
+
+/* Callback function for EnumLocales.  */
+static BOOL CALLBACK
+get_lcid_callback (LPTSTR locale_num_str)
+{
+  char *endp;
+  char locval[2 * LOCALE_NAME_MAX_LENGTH + 1 + 1];
+  LCID try_lcid = strtoul (locale_num_str, &endp, 16);
+
+  if (GetLocaleInfo (try_lcid, LOCALE_SABBREVLANGNAME,
+		     locval, LOCALE_NAME_MAX_LENGTH))
+    {
+      strcat (locval, "_");
+      if (GetLocaleInfo (try_lcid, LOCALE_SABBREVCTRYNAME,
+			 locval + strlen (locval), LOCALE_NAME_MAX_LENGTH))
+	{
+	  size_t locval_len = strlen (locval);
+
+	  if (strnicmp (locval, lname, locval_len) == 0
+	      && (lname[locval_len] == '.'
+		  || lname[locval_len] == '\0'))
+	    {
+	      found_lcid = try_lcid;
+	      return FALSE;
+	    }
+	}
+    }
+  return TRUE;
+}
+
+/* Return the Locale ID (LCID) number given the locale's name, a
+   string, in LOCALE_NAME.  This works by enumerating all the locales
+   supported by the system, until we find one whose name matches
+   LOCALE_NAME.  */
+static LCID
+get_lcid (const char *locale_name)
+{
+  /* A simple cache.  */
+  static LCID last_lcid;
+  static char last_locale[1000];
+
+  /* The code below is not thread-safe, as it uses static variables.
+     But this function is called only from the Lisp thread.  */
+  if (last_lcid > 0 && strcmp (locale_name, last_locale) == 0)
+    return last_lcid;
+
+  strncpy (lname, locale_name, sizeof (lname) - 1);
+  lname[sizeof (lname) - 1] = '\0';
+  found_lcid = 0;
+  EnumSystemLocales (get_lcid_callback, LCID_SUPPORTED);
+  if (found_lcid > 0)
+    {
+      last_lcid = found_lcid;
+      strcpy (last_locale, locale_name);
+    }
+  return found_lcid;
+}
+
+#ifndef _NSLCMPERROR
+# define _NSLCMPERROR INT_MAX
+#endif
+
+int
+w32_compare_strings (const char *s1, const char *s2, char *locname)
+{
+  LCID lcid = GetThreadLocale ();
+  wchar_t *string1_w, *string2_w;
+  int val, needed;
+  extern BOOL g_b_init_compare_string_w;
+  static int (WINAPI *pCompareStringW)(LCID, DWORD, LPCWSTR, int, LPCWSTR, int);
+
+  USE_SAFE_ALLOCA;
+
+  if (!g_b_init_compare_string_w)
+    {
+      if (os_subtype == OS_9X)
+	{
+	  pCompareStringW = GetProcAddress (LoadLibrary ("Unicows.dll"),
+					    "CompareStringW");
+	  if (!pCompareStringW)
+	    {
+	      errno = EINVAL;
+	      /* This return value is compatible with wcscoll and
+		 other MS CRT functions.  */
+	      return _NSLCMPERROR;
+	    }
+	}
+      else
+	pCompareStringW = CompareStringW;
+
+      g_b_init_compare_string_w = 1;
+    }
+
+  needed = pMultiByteToWideChar (CP_UTF8, MB_ERR_INVALID_CHARS, s1, -1, NULL, 0);
+  if (needed > 0)
+    {
+      SAFE_NALLOCA (string1_w, 1, needed + 1);
+      pMultiByteToWideChar (CP_UTF8, MB_ERR_INVALID_CHARS, s1, -1,
+			    string1_w, needed);
+    }
+  else
+    {
+      errno = EINVAL;
+      return _NSLCMPERROR;
+    }
+
+  needed = pMultiByteToWideChar (CP_UTF8, MB_ERR_INVALID_CHARS, s2, -1, NULL, 0);
+  if (needed > 0)
+    {
+      SAFE_NALLOCA (string2_w, 1, needed + 1);
+      pMultiByteToWideChar (CP_UTF8, MB_ERR_INVALID_CHARS, s2, -1,
+			    string2_w, needed);
+    }
+  else
+    {
+      SAFE_FREE ();
+      errno = EINVAL;
+      return _NSLCMPERROR;
+    }
+
+  if (locname)
+    {
+      /* Convert locale name string to LCID.  We don't want to use
+	 LocaleNameToLCID because (a) it is only available since
+	 Vista, and (b) it doesn't accept locale names returned by
+	 'setlocale' and 'GetLocaleInfo'.  */
+      LCID new_lcid = get_lcid (locname);
+
+      if (new_lcid > 0)
+	lcid = new_lcid;
+    }
+
+  /* FIXME: Need a way to control the FLAGS argument, perhaps via the
+     CODESET part of LOCNAME.  In particular, ls-lisp will want
+     NORM_IGNORESYMBOLS and sometimes LINGUISTIC_IGNORECASE or
+     NORM_IGNORECASE.  */
+  val = pCompareStringW (lcid, 0, string1_w, -1, string2_w, -1);
+  SAFE_FREE ();
+  if (!val)
+    {
+      errno = EINVAL;
+      return _NSLCMPERROR;
+    }
+  return val - 2;
 }
 
 

@@ -1,3 +1,19 @@
+2014-08-25  Eli Zaretskii  <eliz@gnu.org>
+
+	Implement locale-sensitive string collation for MS-Windows.
+	* w32proc.c (get_lcid_callback, get_lcid, w32_compare_strings):
+	New functions.  (Bug#18051)
+
+	* w32.h (w32_compare_strings): Add prototype.
+
+	* w32.c <g_b_init_compare_string_w>: New global flag.
+	(globals_of_w32): Initialize it.
+
+	* sysdep.c (str_collate) [WINDOWSNT]: Implementation for MS-Windows.
+
+	* fns.c (Fstring_collate_lessp, Fstring_collate_equalp)
+	[WINDOWSNT]: Call str_collate on MS-Windows.
+
 2014-08-25  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	One more minor cleanup of font subsystem.

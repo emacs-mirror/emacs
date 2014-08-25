@@ -3592,3 +3592,15 @@ str_collate (Lisp_Object s1, Lisp_Object s2)
   return res;
 }
 #endif /* __STDC_ISO_10646__ */
+
+#ifdef WINDOWSNT
+ptrdiff_t
+str_collate (Lisp_Object s1, Lisp_Object s2)
+{
+  Lisp_Object lc_collate =
+    Fgetenv_internal (build_string ("LC_COLLATE"), Vprocess_environment);
+  char *loc = STRINGP (lc_collate) ? SSDATA (lc_collate) : NULL;
+
+  return w32_compare_strings (SDATA (s1), SDATA (s2), loc);
+}
+#endif	/* WINDOWSNT */

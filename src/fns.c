@@ -364,7 +364,7 @@ If the environment variable \"LC_COLLATE\" is set in `process-environment',
 it overrides the setting of your current locale.  */)
   (Lisp_Object s1, Lisp_Object s2)
 {
-#ifdef __STDC_ISO_10646__
+#if defined __STDC_ISO_10646__ || defined WINDOWSNT
   /* Check parameters.  */
   if (SYMBOLP (s1))
     s1 = SYMBOL_NAME (s1);
@@ -375,9 +375,9 @@ it overrides the setting of your current locale.  */)
 
   return (str_collate (s1, s2) < 0) ? Qt : Qnil;
 
-#else
+#else  /* !__STDC_ISO_10646__, !WINDOWSNT */
   return Fstring_lessp (s1, s2);
-#endif /* __STDC_ISO_10646__ */
+#endif /* !__STDC_ISO_10646__, !WINDOWSNT */
 }
 
 DEFUN ("string-collate-equalp", Fstring_collate_equalp, Sstring_collate_equalp, 2, 2, 0,
@@ -401,7 +401,7 @@ If the environment variable \"LC_COLLATE\" is set in `process-environment',
 it overrides the setting of your current locale.  */)
   (Lisp_Object s1, Lisp_Object s2)
 {
-#ifdef __STDC_ISO_10646__
+#if defined __STDC_ISO_10646__ || defined WINDOWSNT
   /* Check parameters.  */
   if (SYMBOLP (s1))
     s1 = SYMBOL_NAME (s1);
@@ -412,9 +412,9 @@ it overrides the setting of your current locale.  */)
 
   return (str_collate (s1, s2) == 0) ? Qt : Qnil;
 
-#else
+#else  /* !__STDC_ISO_10646__, !WINDOWSNT */
   return Fstring_equal (s1, s2);
-#endif /* __STDC_ISO_10646__ */
+#endif /* !__STDC_ISO_10646__, !WINDOWSNT */
 }
 
 static Lisp_Object concat (ptrdiff_t nargs, Lisp_Object *args,

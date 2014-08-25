@@ -1,3 +1,8 @@
+2014-08-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* NEWS: Mention that string-collate-* functions are supported on
+	MS-Windows as well.
+
 2014-08-08  Jan Nieuwenhuizen  <janneke@gnu.org>
 
 	* compilation.txt (file): Add Guile backtrace example.
