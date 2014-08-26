@@ -1526,10 +1526,15 @@ if test $emacs_cv_personality_linux32 = yes; then
             [Define to 1 if personality LINUX32 can be set.])
 fi
 
+# Note that Solaris has sys/sysinfo.h which defines struct
+# sysinfo as well.  To make sure that we're using GNU/Linux
+# sysinfo, we explicitly set one of its fields.
 if test "$ac_cv_header_sys_sysinfo_h" = yes; then
   AC_MSG_CHECKING([if Linux sysinfo may be used])
   AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <sys/sysinfo.h>]],
-                                     [[struct sysinfo si; sysinfo (&si)]])],
+                                     [[struct sysinfo si;
+                                       si.totalram = 0;
+                                       sysinfo (&si)]])],
     emacs_cv_linux_sysinfo=yes, emacs_cv_linux_sysinfo=no)
   AC_MSG_RESULT($emacs_cv_linux_sysinfo)
   if test $emacs_cv_linux_sysinfo = yes; then
