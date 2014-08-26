@@ -2806,15 +2806,16 @@ Return file name."
 			      cid handle directory))
 	      (throw 'found file)))
 	   ((equal (concat "<" cid ">") (mm-handle-id handle))
-	    (setq file (or (mm-handle-filename handle)
-			   (concat
-			    (make-temp-name "cid")
-			    (car (rassoc (car (mm-handle-type handle))
-					 mailcap-mime-extensions)))))
-	    (mm-save-part-to-file handle (expand-file-name file directory))
-	    (throw 'found (concat (file-name-nondirectory
-				   (directory-file-name directory))
-				  "/" file)))))))))
+	    (setq file
+		  (expand-file-name
+		   (or (mm-handle-filename handle)
+		       (concat
+			(make-temp-name "cid")
+			(car (rassoc (car (mm-handle-type handle))
+				     mailcap-mime-extensions))))
+		   directory))
+	    (mm-save-part-to-file handle file)
+	    (throw 'found file))))))))
 
 (defun gnus-article-browse-html-parts (list &optional header)
   "View all \"text/html\" parts from LIST.
@@ -2848,19 +2849,6 @@ message header will be added to the bodies of the \"text/html\" parts."
 		   (mm-enable-multibyte)
 		 (mm-disable-multibyte))
 	       (insert content)
-	       ;; remove <base>
-	       (let ((case-fold-search t))
-		 (goto-char (point-min))
-		 (when (and (search-forward "<head>" nil t)
-			    (progn
-			      (save-restriction
-				(narrow-to-region
-				 (point)
-				 (or (search-forward "</head>" nil t) (point)))
-				(goto-char (point-min)))
-			      (re-search-forward
-			       "[\t\n ]*<base[\t\n ]+[^>]+>[\t\n ]*" nil t)))
-		   (replace-match "\n")))
 	       ;; resolve cid contents
 	       (let ((case-fold-search t)
 		     cid-file)
@@ -2879,7 +2867,16 @@ message header will be added to the bodies of the \"text/html\" parts."
 				(with-current-buffer gnus-article-buffer
 				  gnus-article-mime-handles)
 				cid-dir))
-		     (replace-match cid-file nil nil nil 1))))
+		     (when (eq system-type 'cygwin)
+		       (setq cid-file
+			     (concat "/" (substring
+					  (with-output-to-string
+					    (call-process "cygpath" nil
+							  standard-output
+							  nil "-m" cid-file))
+					  0 -1))))
+		     (replace-match (concat "file://" cid-file)
+				    nil nil nil 1))))
 	       (unless content (setq content (buffer-string))))
 	     (when (or charset header (not file))
 	       (setq tmp-file (mm-make-temp-file

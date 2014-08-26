@@ -1,6 +1,12 @@
 2014-08-26  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art.el (gnus-article-browse-html-save-cid-content)
+	(gnus-article-browse-html-parts):
+	Revert last change that breaks links other than cid contents.
+
+2014-08-26  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-browse-html-save-cid-content)
 	(gnus-article-browse-html-parts): Make cid file names relative.
 
 2014-08-21  Katsumi Yamaoka  <yamaoka@jpl.org>
