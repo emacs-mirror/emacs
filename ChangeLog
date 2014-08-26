@@ -1,3 +1,10 @@
+2014-08-26  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Detect features needed to handle C stack overflows.
+	* configure.ac: Check for sigaltstack and related sigaction
+	support.  Unconditionally check for sigsetjmp and siglongjmp.
+	(HAVE_STACK_OVERFLOW_HANDLING): Define if we can support it.
+
 2014-08-25  Ken Brown  <kbrown@cornell.edu>
 
 	* configure.ac (G_SLICE_ALWAYS_MALLOC): Remove obsolete macro.

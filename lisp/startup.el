@@ -497,7 +497,7 @@ It sets `command-line-processed', processes the command-line,
 reads the initialization files, etc.
 It is the default value of the variable `top-level'."
   (if command-line-processed
-      (message "Back to top level.")
+      (message top-level-message)
     (setq command-line-processed t)
 
     ;; Look in each dir in load-path for a subdirs.el file.  If we

@@ -1,3 +1,7 @@
+2014-08-26  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* startup.el (normal-top-level): Use top-level-message.
+
 2014-08-25  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* net/shr.el (shr-copy-url): Encode copied URL to avoid getting

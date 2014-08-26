@@ -3728,6 +3728,22 @@ if test "$emacs_cv_have_timerfd" = yes; then
     [Define to 1 if timerfd functions are supported as in GNU/Linux.])
 fi
 
+# Alternate stack for signal handlers.
+AC_CACHE_CHECK([whether signals can be handled on alternate stack],
+	       [emacs_cv_alternate_stack],
+  [AC_COMPILE_IFELSE(
+     [AC_LANG_PROGRAM([[#include <signal.h>
+		      ]],
+		      [[stack_t ss;
+			struct sigaction sa;
+			ss.ss_sp = malloc (SIGSTKSZ);
+			ss.ss_size = SIGSTKSZ;
+			sa.sa_flags = SA_SIGINFO | SA_ONSTACK;
+			sigaltstack (&ss, 0);
+			sigaction (SIGSEGV, &sa, 0);]])],
+     [emacs_cv_alternate_stack=yes],
+     [emacs_cv_alternate_stack=no])])
+
 # Do we have res_init, for detecting changes in /etc/resolv.conf?
 # On Darwin, res_init appears not to be useful: see bug#562 and
 # http://lists.gnu.org/archive/html/emacs-devel/2007-11/msg01467.html
@@ -4447,22 +4463,31 @@ AC_CACHE_CHECK([for _setjmp], [emacs_cv_func__setjmp],
      [emacs_cv_func__setjmp=no])])
 if test $emacs_cv_func__setjmp = yes; then
   AC_DEFINE([HAVE__SETJMP], 1, [Define to 1 if _setjmp and _longjmp work.])
-else
-  AC_CACHE_CHECK([for sigsetjmp], [emacs_cv_func_sigsetjmp],
-    [AC_LINK_IFELSE(
-       [AC_LANG_PROGRAM(
-	 [[#include <setjmp.h>
-	 ]],
-	 [[sigjmp_buf j;
-	   if (! sigsetjmp (j, 1))
-	     siglongjmp (j, 1);]])],
-       [emacs_cv_func_sigsetjmp=yes],
-       [emacs_cv_func_sigsetjmp=no])])
-  if test $emacs_cv_func_sigsetjmp = yes; then
-    AC_DEFINE([HAVE_SIGSETJMP], 1,
-      [Define to 1 if sigsetjmp and siglongjmp work.
-       The value of this symbol is irrelevant if HAVE__SETJMP is defined.])
-  fi
+fi
+
+# We need to preserve signal mask to handle C stack overflows.
+AC_CACHE_CHECK([for sigsetjmp], [emacs_cv_func_sigsetjmp],
+  [AC_LINK_IFELSE(
+     [AC_LANG_PROGRAM(
+       [[#include <setjmp.h>
+       ]],
+       [[sigjmp_buf j;
+         if (! sigsetjmp (j, 1))
+	   siglongjmp (j, 1);]])],
+     [emacs_cv_func_sigsetjmp=yes],
+     [emacs_cv_func_sigsetjmp=no])])
+if test $emacs_cv_func_sigsetjmp = yes; then
+  AC_DEFINE([HAVE_SIGSETJMP], 1,
+    [Define to 1 if sigsetjmp and siglongjmp work.])
+fi
+
+# We need all of these features to handle C stack overflows.
+if test "$ac_cv_header_sys_resource_h" = "yes" -a \
+	"$ac_cv_func_getrlimit" = "yes" -a \
+	"$emacs_cv_func_sigsetjmp" = "yes" -a \
+	"$emacs_cv_alternate_stack" = yes; then
+  AC_DEFINE([HAVE_STACK_OVERFLOW_HANDLING], 1,
+    [Define to 1 if C stack overflow can be handled in some cases.])
 fi
 
 case $opsys in

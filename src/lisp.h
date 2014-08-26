@@ -4093,6 +4093,9 @@ extern Lisp_Object Qdisabled, QCfilter;
 extern Lisp_Object Qup, Qdown;
 extern Lisp_Object last_undo_boundary;
 extern bool input_pending;
+#ifdef HAVE_STACK_OVERFLOW_HANDLING
+extern sigjmp_buf return_to_command_loop;
+#endif
 extern Lisp_Object menu_bar_items (Lisp_Object);
 extern Lisp_Object tool_bar_items (Lisp_Object, int *);
 extern void discard_mouse_events (void);

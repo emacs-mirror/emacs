@@ -46,7 +46,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 # include <sys/user.h>
 # undef frame
 
-# include <sys/resource.h>
 # include <math.h>
 #endif
 
@@ -72,6 +71,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "msdos.h"
 #endif
 
+#ifdef HAVE_SYS_RESOURCE_H
+#include <sys/resource.h>
+#endif
 #include <sys/param.h>
 #include <sys/file.h>
 #include <fcntl.h>
@@ -1716,6 +1718,72 @@ handle_arith_signal (int sig)
   xsignal0 (Qarith_error);
 }
 
+#ifdef HAVE_STACK_OVERFLOW_HANDLING
+
+/* True if stack grows down as expected on most OS/ABI variants.  */
+
+static bool stack_grows_down;
+
+/* Alternate stack used by SIGSEGV handler below.  */
+
+static unsigned char sigsegv_stack[SIGSTKSZ];
+
+/* Attempt to recover from SIGSEGV caused by C stack overflow.  */
+
+static void
+handle_sigsegv (int sig, siginfo_t *siginfo, void *arg)
+{
+  /* Hard GC error may lead to stack overflow caused by
+     too nested calls to mark_object.  No way to survive.  */
+  if (!gc_in_progress)
+    {
+      struct rlimit rlim;
+
+      if (!getrlimit (RLIMIT_STACK, &rlim))
+	{
+	  enum { STACK_EXTRA = 16 * 1024 };
+	  char *fault_addr = (char *) siginfo->si_addr;
+	  unsigned long used = (stack_grows_down
+				? stack_bottom - fault_addr
+				: fault_addr - stack_bottom);
+
+	  if (used + STACK_EXTRA > rlim.rlim_cur)
+	    /* Most likely this is it.  */
+	    siglongjmp (return_to_command_loop, 1);
+	}
+    }
+}
+
+static bool
+init_sigsegv (void)
+{
+  struct sigaction sa;
+  stack_t ss;
+
+  stack_grows_down = ((char *) &ss < stack_bottom);
+
+  ss.ss_sp = sigsegv_stack;
+  ss.ss_size = sizeof (sigsegv_stack);
+  ss.ss_flags = 0;
+  if (sigaltstack (&ss, NULL) < 0)
+    return 0;
+
+  sigfillset (&sa.sa_mask);
+  sa.sa_sigaction = handle_sigsegv;
+  sa.sa_flags = SA_SIGINFO | SA_ONSTACK | emacs_sigaction_flags ();
+  return sigaction (SIGSEGV, &sa, NULL) < 0 ? 0 : 1;
+}
+
+#else /* not HAVE_STACK_OVERFLOW_HANDLING */
+
+static bool
+init_sigsegv (void)
+{
+  return 0;
+}
+
+#endif /* HAVE_STACK_OVERFLOW_HANDLING */
+
 static void
 deliver_arith_signal (int sig)
 {
@@ -1982,7 +2050,8 @@ init_signals (bool dumping)
 #ifdef SIGBUS
   sigaction (SIGBUS, &thread_fatal_action, 0);
 #endif
-  sigaction (SIGSEGV, &thread_fatal_action, 0);
+  if (!init_sigsegv ())
+    sigaction (SIGSEGV, &thread_fatal_action, 0);
 #ifdef SIGSYS
   sigaction (SIGSYS, &thread_fatal_action, 0);
 #endif

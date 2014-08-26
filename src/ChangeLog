@@ -1,3 +1,22 @@
+2014-08-26  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Handle C stack overflow caused by too nested Lisp evaluation.
+	* lisp.h (toplevel) [HAVE_STACK_OVERFLOW_HANDLING]: Declare
+	siglongjmp point to transfer control from SIGSEGV handler.
+	* keyboard.c (return_to_command_loop, recover_top_level_message)
+	[HAVE_STACK_OVERFLOW_HANDLING]: New variables.
+	(regular_top_level_message): New variable.
+	(command_loop) [HAVE_STACK_OVERFLOW_HANDLING]: Handle non-local
+	exit from SIGSEGV handler and adjust message displayed by Vtop_level
+	if appropriate.
+	(syms_of_keyboard): DEFVAR Vtop_level_message and initialize
+	new variables described above.
+	* sysdep.c [HAVE_SYS_RESOURCE_H]: Include sys/resource.h as such.
+	(stack_grows_down, sigsegv_stack, handle_sigsegv)
+	[HAVE_STACK_OVERFLOW_HANDLING]: New variables and function.
+	(init_sigsegv): New function.
+	(init_signals): Use it.
+
 2014-08-25  Ken Brown  <kbrown@cornell.edu>
 
 	* emacs.c (main): Remove use of obsolete macro

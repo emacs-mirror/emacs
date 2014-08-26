@@ -133,6 +133,19 @@ static ptrdiff_t this_single_command_key_start;
 static ptrdiff_t before_command_key_count;
 static ptrdiff_t before_command_echo_length;
 
+#ifdef HAVE_STACK_OVERFLOW_HANDLING
+
+/* For longjmp to recover from C stack overflow.  */
+sigjmp_buf return_to_command_loop;
+
+/* Message displayed by Vtop_level when recovering from C stack overflow.  */
+static Lisp_Object recover_top_level_message;
+
+#endif /* HAVE_STACK_OVERFLOW_HANDLING */
+
+/* Message normally displayed by Vtop_level.  */
+static Lisp_Object regular_top_level_message;
+
 /* For longjmp to where kbd input is being done.  */
 
 static sys_jmp_buf getcjmp;
@@ -1134,6 +1147,17 @@ static Lisp_Object top_level_1 (Lisp_Object);
 Lisp_Object
 command_loop (void)
 {
+#ifdef HAVE_STACK_OVERFLOW_HANDLING  
+  /* At least on GNU/Linux, saving signal mask is important here.  */
+  if (sigsetjmp (return_to_command_loop, 1) != 0)
+    {
+      /* Comes here from handle_sigsegv, see sysdep.c.  */
+      init_eval ();
+      Vtop_level_message = recover_top_level_message;
+    }
+  else
+    Vtop_level_message = regular_top_level_message;
+#endif /* HAVE_STACK_OVERFLOW_HANDLING */
   if (command_loop_level > 0 || minibuf_level > 0)
     {
       Lisp_Object val;
@@ -10999,6 +11023,15 @@ syms_of_keyboard (void)
 
   Vlispy_mouse_stem = build_pure_c_string ("mouse");
   staticpro (&Vlispy_mouse_stem);
+
+  regular_top_level_message = build_pure_c_string ("Back to top level");
+#ifdef HAVE_STACK_OVERFLOW_HANDLING
+  recover_top_level_message
+    = build_pure_c_string ("Re-entering top level after C stack overflow");
+#endif  
+  DEFVAR_LISP ("top-level-message", Vtop_level_message,
+	       doc: /* Message displayed by `normal-top-level'.  */);
+  Vtop_level_message = regular_top_level_message;
 
   /* Tool-bars.  */
   DEFSYM (QCimage, ":image");
