@@ -1754,6 +1754,9 @@ handle_sigsegv (int sig, siginfo_t *siginfo, void *arg)
     }
 }
 
+/* Return true if we have successfully set up SIGSEGV handler on alternate
+   stack.  Otherwise we just treat SIGSEGV among the rest of fatal signals.  */
+
 static bool
 init_sigsegv (void)
 {
