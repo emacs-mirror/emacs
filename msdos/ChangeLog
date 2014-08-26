@@ -4,11 +4,12 @@
 
 2014-08-09  Reuben Thomas  <rrt@sc3d.org>
 
+	* is_exec.c, sigaction.c: Remove files.
 	* sed2v2.inp: Remove support for DJGPP 2.01.
 	* INSTALL: Don't mention removed files msdos/is_exec.c and
 	sigaction.c, and increase minimum version of DJGPP to 2.02.
 	* README: Remove note on legal status of removed files
-	msdos/is_exec.c and sigaction.c.
+	is_exec.c and sigaction.c.
 
 2014-04-16  Eli Zaretskii  <eliz@gnu.org>
 

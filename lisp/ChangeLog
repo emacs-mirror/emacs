@@ -140,12 +140,12 @@
 
 2014-08-13  Eric S. Raymond  <esr@thyrsus.com>
 
-	* vc/vc.git.el (vc-git-resolve-when-done): New function.
+	* vc/vc-git.el (vc-git-resolve-when-done): New function.
 	Call "git add" when there are no longer conflict markers.
 
 2014-08-13  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
 
-	* vc/vc.git.el (vc-git-find-file-hook): New function.
+	* vc/vc-git.el (vc-git-find-file-hook): New function.
 	Adds support for calling smerge (and resolve) on a conflicted file.
 	(vc-git-conflicted-files): New function.
 	Useful in itself and a step towards better smerge support.
@@ -281,24 +281,13 @@
 
 2014-08-07  Eli Zaretskii  <eliz@gnu.org>
 
-	* files.el (auto-mode-alist): Remove support for VMS from a
-	pattern.
+	* files.el (auto-mode-alist): Remove support for VMS from a pattern.
 
 2014-08-07  Reuben Thomas  <rrt@sc3d.org>
 
 	Refer to MS-DOS using the same name everywhere.
-
-	* arc-mode.el: Fix a couple of ``MS-DOG''s missed in the previous
-	commit.
-	* file-mode.el: ditto.
-
-2014-08-07  Reuben Thomas  <rrt@sc3d.org>
-
-	Refer to MS-DOS using the same name everywhere.
-
-	* arc-mode.el: ``MS-DOG'', ``MSDOG'' and ``msdog'' become
-	``MS-DOS''.
-	* frame.el: ditto.
+	* arc-mode.el, files.el, frame.el: ``MS-DOG'', ``MSDOG'' and
+	``msdog'' become ``MS-DOS''.
 
 2014-08-07  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -3958,9 +3947,7 @@
 2014-03-23  Daniel Colascione  <dancol@dancol.org>
 
 	Change subword-mode to use `find-word-boundary-function-table' and
-	replace `capitalized-words-mode'.  Also, convert to lexical
-	binding.
-
+	replace `capitalized-words-mode'.  Also, convert to lexical binding.
 	* progmodes/cap-words.el: Delete now-obsolete file.
 	* progmodes/subword.el: Reimplement using
 	`find-word-boundary-function-table'.

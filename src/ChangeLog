@@ -43,7 +43,7 @@
 	One more minor cleanup of font subsystem.
 	* font.h (struct font_driver): Convert text_extents to
 	return void because returned value is never actually used.
-	* macfont.c (macfont_text_extents):
+	* macfont.m (macfont_text_extents):
 	* w32font.c (w32font_text_extents):
 	* xftfont.c (xftfont_text_extents): Adjust to return void
 	and assume that 'metrics' argument is always non-NULL.
@@ -206,9 +206,10 @@
 2014-08-09  Reuben Thomas  <rrt@sc3d.org>
 
 	* alloc.c (Fmemory_info): Remove a stray brace.
+
 	* process.c: Fix a comment typo.
-	* msdos.c:
-	* dosfns.c (init_dosfns): Remove support for DJGPP < 2.02.
+
+	* msdos.c, dosfns.c (init_dosfns): Remove support for DJGPP < 2.02.
 
 2014-08-09  Jan Djärv  <jan.h.d@swipnet.se>
 
