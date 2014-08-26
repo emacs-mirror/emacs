@@ -283,6 +283,7 @@ Changes to files matching one of the regexps in this list are not listed.")
     "images/icons/allout-widgets-dark-bg"
     "images/icons/allout-widgets-light-bg"
     ;; Never had any meaningful changes logged, now deleted:
+    "lib/stdarg.in.h" "lib/stdbool.in.h"
     "unidata/bidimirror.awk" "unidata/biditype.awk"
     "split-man" "Xkeymap.txt" "ms-7bkermit" "ulimit.hack"
     "gnu-hp300" "refcard.bit" "ledit.l" "forms.README" "forms-d2.dat"
@@ -575,9 +576,10 @@ Changes to files in this list are not listed.")
     "README"
     ;; There were a few of these, not just the generated top-level one.
     "configure" "config.h"
+    "is_exec.c" "sigaction.c"
     ;; nt/
     "ebuild.bat" "install.bat" "fast-install.bat"
-    "debug.bat.in" "emacs.bat.in"
+    "debug.bat.in" "emacs.bat.in" "addsection.c"
     "inc/sys/dir.h" "inc/gettext.h"
     ".gdbinit-union"
     "alloca.s"
@@ -631,6 +633,8 @@ Changes to files in this list are not listed.")
     "mh-exec.el" "mh-init.el" "mh-customize.el"
     "net/zone-mode.el" "xesam.el"
     "term/mac-win.el" "sup-mouse.el"
+    "term/vt102.el" "term/vt201.el" "term/vt220.el" "term/vt300.el"
+    "term/vt320.el" "term/vt400.el" "term/vt420.el"
     "url-https.el"
     "org-mac-message.el" "org-mew.el" "org-w3m.el" "org-vm.el" "org-wl.el"
     "org-mks.el" "org-remember.el" "org-xoxo.el" "org-docbook.el"
@@ -638,6 +642,7 @@ Changes to files in this list are not listed.")
     "org-exp-blocks.el"		     ; maybe this is ob-exp now? dunno
     "org-lparse.el"
     "org-special-blocks.el" "org-taskjuggler.el"
+    "progmodes/cap-words.el"
     ;; gnus
     "nnwfm.el" "nnlistserv.el" "nnkiboze.el" "nndb.el" "nnsoup.el"
     "netrc.el" "password.el" "sasl-cram.el" "sasl-digest.el" "sasl-ntlm.el"
@@ -712,6 +717,7 @@ in the repository.")
     ("server.c" . "emacsserver.c")
     ("lib-src/etags.c" . "etags.c")
     ;; msdos/
+    ("is-exec.c" . "is_exec.c")
     ("enriched.doc" . "enriched.txt")
     ("GETTING.GNU.SOFTWARE" . "FTP")
     ("etc/MACHINES" . "MACHINES")
@@ -755,6 +761,13 @@ in the repository.")
     ;; Obsolete.
     ("emacs-lisp/assoc.el" . "assoc.el")
     ("emacs-lisp/cust-print.el" . "cust-print.el")
+    ("emacs-lisp/gulp.el" . "gulp.el")
+    ("emulation/crisp.el" . "crisp.el")
+    ("emulation/tpu-edt.el" . "tpu-edt.el")
+    ("emulation/tpu-extras.el" . "tpu-extras.el")
+    ("emulation/vi.el" . "vi.el")
+    ("emulation/vip.el" . "vip.el")
+    ("emulation/ws-mode.el" . "ws-mode.el")
     ("mail/mailpost.el" . "mailpost.el")
     ("play/bruce.el" . "bruce.el")
     ("play/yow.el" . "yow.el")
@@ -786,6 +799,8 @@ in the repository.")
     ("emacs.tex" . "emacs.texi")
     ("faq.texi" . "efaq.texi")
     ("major.texi" . "modes.texi")
+    ("msdog-xtra.texi" . "msdos-xtra.texi")
+    ("msdog.texi" . "msdos.texi")
     ;; And from emacs/ to misc/ and back again.
     ("ns-emacs.texi" . "macos.texi")
     ("overrides.texi" . "gnus-overrides.texi")
@@ -824,6 +839,8 @@ in the repository.")
     ("autogen/update_autogen" . "update_autogen")
     ;; Moved from etc/ to admin/.
     ("grammars" . "grammars")
+    ;; Moved from lisp/emacs-lisp/ to admin/.
+    ("emacs-lisp/authors.el" . "authors.el")
     ;; From etc to lisp/cedet/semantic/.
     ("grammars/bovine-grammar.el" . "bovine/grammar.el")
     ("grammars/wisent-grammar.el" . "wisent/grammar.el")
@@ -1295,8 +1312,11 @@ list of their contributions.\n")
     (let (authors-author-list)
       (maphash #'authors-add-to-author-list table)
       (setq authors-author-list
-	    (sort authors-author-list
-		  (lambda (a b) (string-lessp (car a) (car b)))))
+	    (let ((process-environment (cons "LC_COLLATE=en_US.UTF-8"
+					     process-environment)))
+	      (sort authors-author-list
+		    (lambda (a b)
+		      (string-collate-lessp (car a) (car b))))))
       (dolist (a authors-author-list)
 	(let ((author (car a))
 	      (wrote (nth 1 a))
