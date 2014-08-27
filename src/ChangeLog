@@ -1,3 +1,8 @@
+2014-08-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* syntax.c (scan_lists): Don't examine positions before BEGV.
+	(Bug#18339)
+
 2014-08-27  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Improve robustness of new string-collation code (Bug#18051).
