@@ -587,6 +587,8 @@ size, and full-buffer size."
 
 (autoload 'url-expand-file-name "url-expand")
 
+;; FIXME This needs some tests writing.
+;; Does it even need to exist, given that url-expand-file-name does?
 (defun shr-expand-url (url &optional base)
   (setq base
 	(if base
