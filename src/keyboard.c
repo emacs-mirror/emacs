@@ -11028,7 +11028,7 @@ syms_of_keyboard (void)
 #ifdef HAVE_STACK_OVERFLOW_HANDLING
   recover_top_level_message
     = build_pure_c_string ("Re-entering top level after C stack overflow");
-#endif  
+#endif
   DEFVAR_LISP ("top-level-message", Vtop_level_message,
 	       doc: /* Message displayed by `normal-top-level'.  */);
   Vtop_level_message = regular_top_level_message;

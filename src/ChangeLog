@@ -1,3 +1,12 @@
+2014-08-27  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Fix some glitches in previous change.
+	* sysdep.c (stack_direction): Replace stack_grows_down
+	to simplify calculation of stack boundaries.
+	(handle_sigsegv): Check whether we really crash somewhere near
+	to stack boundary, and handle fatal signal as usual if not.
+	(init_sigsegv): Adjust accordingly.
+
 2014-08-26  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Handle C stack overflow caused by too nested Lisp evaluation.

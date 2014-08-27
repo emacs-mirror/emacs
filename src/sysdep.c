@@ -1720,9 +1720,9 @@ handle_arith_signal (int sig)
 
 #ifdef HAVE_STACK_OVERFLOW_HANDLING
 
-/* True if stack grows down as expected on most OS/ABI variants.  */
+/* -1 if stack grows down as expected on most OS/ABI variants, 1 otherwise.  */
 
-static bool stack_grows_down;
+static int stack_direction;
 
 /* Alternate stack used by SIGSEGV handler below.  */
 
@@ -1741,17 +1741,25 @@ handle_sigsegv (int sig, siginfo_t *siginfo, void *arg)
 
       if (!getrlimit (RLIMIT_STACK, &rlim))
 	{
-	  enum { STACK_EXTRA = 16 * 1024 };
-	  char *fault_addr = (char *) siginfo->si_addr;
-	  unsigned long used = (stack_grows_down
-				? stack_bottom - fault_addr
-				: fault_addr - stack_bottom);
+	  enum { STACK_DANGER_ZONE = 16 * 1024 };
+	  char *beg, *end, *addr;
 
-	  if (used + STACK_EXTRA > rlim.rlim_cur)
-	    /* Most likely this is it.  */
+	  beg = stack_bottom;
+	  end = stack_bottom + stack_direction * rlim.rlim_cur;
+	  if (beg > end)
+	    addr = beg, beg = end, end = addr;
+	  addr = (char *) siginfo->si_addr;
+	  /* If we're somewhere on stack and too close to
+	     one of its boundaries, most likely this is it.  */
+	  if (beg < addr && addr < end
+	      && (addr - beg < STACK_DANGER_ZONE
+		  || end - addr < STACK_DANGER_ZONE))
 	    siglongjmp (return_to_command_loop, 1);
 	}
     }
+
+  /* Otherwise we can't do anything with this.  */
+  deliver_fatal_thread_signal (sig);
 }
 
 /* Return true if we have successfully set up SIGSEGV handler on alternate
@@ -1763,7 +1771,7 @@ init_sigsegv (void)
   struct sigaction sa;
   stack_t ss;
 
-  stack_grows_down = ((char *) &ss < stack_bottom);
+  stack_direction = ((char *) &ss < stack_bottom) ? -1 : 1;
 
   ss.ss_sp = sigsegv_stack;
   ss.ss_size = sizeof (sigsegv_stack);
