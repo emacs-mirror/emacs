@@ -285,6 +285,7 @@ typedef struct SegStruct {      /* segment structure */
   TraceSet white : TraceLIMIT;  /* traces for which seg is white */
   TraceSet nailed : TraceLIMIT; /* traces for which seg has nailed objects */
   RankSet rankSet : RankLIMIT;  /* ranks of references in this seg */
+  unsigned scans : SEG_SCANS_BITS; /* use write barrier after this many scans */
 } SegStruct;
 
 
@@ -300,7 +301,6 @@ typedef struct GCSegStruct {    /* GC segment structure */
   RingStruct greyRing;          /* link in list of grey segs */
   RefSet summary;               /* summary of references out of seg */
   Buffer buffer;                /* non-NULL if seg is buffered */
-  unsigned unnecessaryScans;    /* consecutive unnecessary scans performed */
   Sig sig;                      /* <design/sig/> */
 } GCSegStruct;
 

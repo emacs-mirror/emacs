@@ -1105,7 +1105,6 @@ static Res traceScanSegRes(TraceSet ts, Rank rank, Arena arena, Seg seg)
   } else {      /* scan it */
     ScanStateStruct ssStruct;
     ScanState ss = &ssStruct;
-    Bool considerBarrier = FALSE;
     ScanStateInit(ss, ts, arena, rank, white);
 
     /* Expose the segment to make sure we can scan it. */
@@ -1138,16 +1137,14 @@ static Res traceScanSegRes(TraceSet ts, Rank rank, Arena arena, Seg seg)
     AVER(RefSetSub(ScanStateUnfixedSummary(ss), SegSummary(seg)));
     if (ZoneSetInter(ScanStateUnfixedSummary(ss), white) == ZoneSetEMPTY) {
       /* a scan was not necessary */
-      if (((GCSeg)seg)->unnecessaryScans < TRACE_SCAN_BARRIER_THRESHOLD) {
-        ((GCSeg)seg)->unnecessaryScans++;
-      } else {
-        considerBarrier = TRUE;
-      }
+      if (seg->scans > 0)
+        seg->scans--;
     } else {
-      ((GCSeg)seg)->unnecessaryScans = 0;
+      if (seg->scans < SEG_SCANS_AFTER_NEEDED_SCAN)
+        seg->scans = SEG_SCANS_AFTER_NEEDED_SCAN;
     }
     
-    if (considerBarrier) {
+    if (seg->scans == 0) {
       if(res != ResOK || !wasTotal) {
         /* scan was partial, so... */
         /* scanned summary should be ORed into segment summary. */
@@ -1216,6 +1213,9 @@ void TraceSegAccess(Arena arena, Seg seg, AccessSet mode)
   AVER((mode & SegSM(seg) & AccessWRITE) == 0 || SegSummary(seg) != RefSetUNIV);
 
   EVENT3(TraceAccess, arena, seg, mode);
+
+  if ((mode & SegSM(seg) & AccessWRITE) != 0)     /* write barrier? */
+    seg->scans = SEG_SCANS_AFTER_HIT;
 
   if((mode & SegSM(seg) & AccessREAD) != 0) {   /* read barrier? */
     Trace trace;
