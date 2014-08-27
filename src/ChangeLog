@@ -1,3 +1,15 @@
+2014-08-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Improve robustness of new string-collation code (Bug#18051).
+	* sysdep.c (LC_COLLATE, LC_COLLATE_MASK, freelocale, locale_t)
+	(newlocale, wcscoll_l): Define substitutes for platforms that
+	lack them, so as to simplify the mainline code.
+	(str_collate): Simplify the code by assuming the above definitions.
+	Use wcscoll_l, not uselocale, as uselocale is too fragile.  For
+	example, the old version left the Emacs in the wrong locale if
+	wcscoll reported an error.  Use 'int', not ptrdiff_t, for the int
+	result.  Report an error if newlocale fails.
+
 2014-08-27  Michael Albinus  <michael.albinus@gmx.de>
 
 	* lisp.h (str_collate):

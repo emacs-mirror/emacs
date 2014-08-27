@@ -3599,24 +3599,89 @@ system_process_attributes (Lisp_Object pid)
 #ifdef __STDC_ISO_10646__
 # include <wchar.h>
 
-# if defined HAVE_USELOCALE || defined HAVE_SETLOCALE
+# if defined HAVE_NEWLOCALE || defined HAVE_SETLOCALE
 #  include <locale.h>
+# else
+#  define LC_COLLATE 0
+#  define LC_COLLATE_MASK 0
 # endif
-# ifndef HAVE_SETLOCALE
-#  define setlocale(category, locale) ((char *) 0)
+# ifndef HAVE_NEWLOCALE
+#  undef freelocale
+#  undef locale_t
+#  undef newlocale
+#  undef wcscoll_l
+#  define freelocale emacs_freelocale
+#  define locale_t emacs_locale_t
+#  define newlocale emacs_newlocale
+#  define wcscoll_l emacs_wcscoll_l
+
+typedef char const *locale_t;
+
+static locale_t
+newlocale (int category_mask, char const *locale, locale_t loc)
+{
+  return locale;
+}
+
+static void
+freelocale (locale_t loc)
+{
+}
+
+static char *
+emacs_setlocale (int category, char const *locale)
+{
+#  ifdef HAVE_SETLOCALE
+  errno = 0;
+  char *loc = setlocale (category, locale);
+  if (loc || errno)
+    return loc;
+  errno = EINVAL;
+#  else
+  errno = ENOTSUP;
+#  endif
+  return 0;
+}
+
+static int
+wcscoll_l (wchar_t const *a, wchar_t const *b, locale_t loc)
+{
+  int result = 0;
+  char *oldloc = emacs_setlocale (LC_COLLATE, NULL);
+  int err;
+
+  if (! oldloc)
+    err = errno;
+  else
+    {
+      USE_SAFE_ALLOCA;
+      char *oldcopy = SAFE_ALLOCA (strlen (oldloc) + 1);
+      strcpy (oldcopy, oldloc);
+      if (! emacs_setlocale (LC_COLLATE, loc))
+	err = errno;
+      else
+	{
+	  errno = 0;
+	  result = wcscoll (a, b);
+	  err = errno;
+	  if (! emacs_setlocale (LC_COLLATE, oldcopy))
+	    err = errno;
+	}
+      SAFE_FREE ();
+    }
+
+  errno = err;
+  return result;
+}
 # endif
 
 int
 str_collate (Lisp_Object s1, Lisp_Object s2)
 {
-  ptrdiff_t res, len, i, i_byte;
+  int res, err;
+  ptrdiff_t len, i, i_byte;
   wchar_t *p1, *p2;
   Lisp_Object lc_collate;
-# ifdef HAVE_USELOCALE
-  locale_t loc = 0, oldloc = 0;
-# else
-  char *oldloc = NULL;
-# endif
 
   USE_SAFE_ALLOCA;
 
@@ -3633,44 +3698,28 @@ str_collate (Lisp_Object s1, Lisp_Object s2)
     FETCH_STRING_CHAR_ADVANCE (*(p2+i-1), s2, i, i_byte);
   *(p2+len) = 0;
 
-  /* Create a new locale object, and set it.  */
   lc_collate =
     Fgetenv_internal (build_string ("LC_COLLATE"), Vprocess_environment);
 
   if (STRINGP (lc_collate))
     {
-#ifdef HAVE_USELOCALE
-      loc = newlocale (LC_COLLATE_MASK, SSDATA (lc_collate), 0);
-      if (loc)
-	oldloc = uselocale (loc);
-#else
-      oldloc = setlocale (LC_COLLATE, NULL);
-      if (oldloc)
-	{
-	  oldloc = xstrdup (oldloc);
-	  setlocale (LC_COLLATE, SSDATA (lc_collate));
-	}
-#endif
+      locale_t loc = newlocale (LC_COLLATE_MASK, SSDATA (lc_collate), 0);
+      if (!loc)
+	error ("Wrong locale: %s", strerror (errno));
+      errno = 0;
+      res = wcscoll_l (p1, p2, loc);
+      err = errno;
+      freelocale (loc);
     }
+  else
+    {
+      errno = 0;
+      res = wcscoll (p1, p2);
+      err = errno;
+    }
+  if (err)
+    error ("Wrong argument: %s", strerror (err));
 
-  errno = 0;
-  res = wcscoll (p1, p2);
-  if (errno)
-    error ("Wrong argument: %s", strerror (errno));
-
-#ifdef HAVE_USELOCALE
-  /* Free the locale object, and reset.  */
-  if (loc)
-    freelocale (loc);
-  if (oldloc)
-    uselocale (oldloc);
-#else
-  /* Restore the original locale. */
-  setlocale (LC_COLLATE, oldloc);
-  xfree (oldloc);
-#endif
-
-  /* Return result.  */
   SAFE_FREE ();
   return res;
 }

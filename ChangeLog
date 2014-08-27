@@ -1,3 +1,8 @@
+2014-08-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Improve robustness of new string-collation code (Bug#18051).
+	* configure.ac (newlocale): Check for this, not for uselocale.
+
 2014-08-26  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Detect features needed to handle C stack overflows.
