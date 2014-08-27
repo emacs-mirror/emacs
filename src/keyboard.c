@@ -1153,10 +1153,10 @@ command_loop (void)
     {
       /* Comes here from handle_sigsegv, see sysdep.c.  */
       init_eval ();
-      Vtop_level_message = recover_top_level_message;
+      Vinternal__top_level_message = recover_top_level_message;
     }
   else
-    Vtop_level_message = regular_top_level_message;
+    Vinternal__top_level_message = regular_top_level_message;
 #endif /* HAVE_STACK_OVERFLOW_HANDLING */
   if (command_loop_level > 0 || minibuf_level > 0)
     {
@@ -11029,9 +11029,9 @@ syms_of_keyboard (void)
   recover_top_level_message
     = build_pure_c_string ("Re-entering top level after C stack overflow");
 #endif
-  DEFVAR_LISP ("top-level-message", Vtop_level_message,
+  DEFVAR_LISP ("internal--top-level-message", Vinternal__top_level_message,
 	       doc: /* Message displayed by `normal-top-level'.  */);
-  Vtop_level_message = regular_top_level_message;
+  Vinternal__top_level_message = regular_top_level_message;
 
   /* Tool-bars.  */
   DEFSYM (QCimage, ":image");

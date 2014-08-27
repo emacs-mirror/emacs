@@ -1,3 +1,7 @@
+2014-08-27  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* startup.el (normal-top-level): Now use internal--top-level-message.
+
 2014-08-26  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* startup.el (normal-top-level): Use top-level-message.

@@ -1,3 +1,7 @@
+2014-08-27  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* eval.texi (Eval): Mention possible recovery from stack overflow.
+
 2014-07-11  Eli Zaretskii  <eliz@gnu.org>
 
 	* internals.texi (Garbage Collection): Fix last change.

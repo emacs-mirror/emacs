@@ -6,6 +6,10 @@
 	(handle_sigsegv): Check whether we really crash somewhere near
 	to stack boundary, and handle fatal signal as usual if not.
 	(init_sigsegv): Adjust accordingly.
+	* keyboard.c (Vtop_level_message): Rename to
+	Vinternal__top_level_message, as suggested by Stefan Monnier in
+	http://lists.gnu.org/archive/html/emacs-devel/2014-08/msg00493.html
+	All related users changed.
 
 2014-08-26  Dmitry Antipov  <dmantipov@yandex.ru>
 

@@ -805,7 +805,12 @@ message @code{"Lisp nesting exceeds max-lisp-eval-depth"}).
 This limit, with the associated error when it is exceeded, is one way
 Emacs Lisp avoids infinite recursion on an ill-defined function.  If
 you increase the value of @code{max-lisp-eval-depth} too much, such
-code can cause stack overflow instead.
+code can cause stack overflow instead.  On some systems, this overflow
+can be handled.  In that case, normal Lisp evaluation is interrupted
+and control is transferred back to the top level command loop
+(@code{top-level}).  Note that there is no way to enter Emacs Lisp
+debugger in this situation.  @xref{Error Debugging}.
+
 @cindex Lisp nesting error
 
 The depth limit counts internal uses of @code{eval}, @code{apply}, and
