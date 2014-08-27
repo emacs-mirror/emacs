@@ -1,3 +1,9 @@
+2014-08-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	* lisp.h (str_collate):
+	* sysdep.c (str_collate): Return int.
+	(str_collate) [__STDC_ISO_10646__]: Propagate error of wcscoll.
+
 2014-08-27  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Fix some glitches in previous change.

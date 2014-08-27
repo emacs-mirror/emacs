@@ -3606,7 +3606,7 @@ system_process_attributes (Lisp_Object pid)
 #  define setlocale(category, locale) ((char *) 0)
 # endif
 
-ptrdiff_t
+int
 str_collate (Lisp_Object s1, Lisp_Object s2)
 {
   ptrdiff_t res, len, i, i_byte;
@@ -3653,7 +3653,10 @@ str_collate (Lisp_Object s1, Lisp_Object s2)
 #endif
     }
 
+  errno = 0;
   res = wcscoll (p1, p2);
+  if (errno)
+    error ("Wrong argument: %s", strerror (errno));
 
 #ifdef HAVE_USELOCALE
   /* Free the locale object, and reset.  */
@@ -3674,7 +3677,7 @@ str_collate (Lisp_Object s1, Lisp_Object s2)
 #endif /* __STDC_ISO_10646__ */
 
 #ifdef WINDOWSNT
-ptrdiff_t
+int
 str_collate (Lisp_Object s1, Lisp_Object s2)
 {
   Lisp_Object lc_collate =

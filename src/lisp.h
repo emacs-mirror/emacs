@@ -4298,7 +4298,7 @@ extern void lock_file (Lisp_Object);
 extern void unlock_file (Lisp_Object);
 extern void unlock_buffer (struct buffer *);
 extern void syms_of_filelock (void);
-extern ptrdiff_t str_collate (Lisp_Object, Lisp_Object);
+extern int str_collate (Lisp_Object, Lisp_Object);
 
 /* Defined in sound.c.  */
 extern void syms_of_sound (void);
