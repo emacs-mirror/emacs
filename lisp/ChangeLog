@@ -1,5 +1,7 @@
 2014-08-27  Michael Albinus  <michael.albinus@gmx.de>
 
+	* emacs-lisp/authors.el (authors-aliases): Addition.
+
 	* net/tramp-adb.el: Spell author name correctly.
 
 2014-08-27  João Távora  <joaotavora@gmail.com>
