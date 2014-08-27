@@ -1,3 +1,8 @@
+2014-08-27  João Távora  <joaotavora@gmail.com>
+
+	* net/shr.el (shr-expand-url): Plain expand-file-name is not enough;
+	use url-expand-file-name.  (Bug#18310)
+
 2014-08-25  Glenn Morris  <rgm@gnu.org>
 
 	* emulation/cua-rect.el (cua--highlight-rectangle):
