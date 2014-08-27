@@ -160,6 +160,7 @@ static Res SegInit(Seg seg, Pool pool, Addr base, Size size,
   seg->grey = TraceSetEMPTY;
   seg->pm = AccessSetEMPTY;
   seg->sm = AccessSetEMPTY;
+  seg->scans = SEG_SCANS_INIT;
   seg->depth = 0;
   seg->firstTract = NULL;
 
@@ -1082,7 +1083,6 @@ static Res gcSegInit(Seg seg, Pool pool, Addr base, Size size,
 
   gcseg->summary = RefSetEMPTY;
   gcseg->buffer = NULL;
-  gcseg->unnecessaryScans = 0;
   RingInit(&gcseg->greyRing);
   gcseg->sig = GCSegSig;
 
