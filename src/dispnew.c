@@ -5143,9 +5143,8 @@ buffer_posn_from_coords (struct window *w, int *x, int *y, struct display_pos *p
   move_it_to (&it, -1, 0, *y, -1, MOVE_TO_X | MOVE_TO_Y);
 
   /* TO_X is the pixel position that the iterator will compute for the
-     glyph at *X.  We add it.first_visible_x because iterator
-     positions include the hscroll.  */
-  to_x = x0 + it.first_visible_x;
+     glyph at *X.  */
+  to_x = x0;
   if (it.bidi_it.paragraph_dir == R2L)
     /* For lines in an R2L paragraph, we need to mirror TO_X wrt the
        text area.  This is because the iterator, even in R2L
@@ -5158,6 +5157,10 @@ buffer_posn_from_coords (struct window *w, int *x, int *y, struct display_pos *p
        text-area width is W, the rightmost pixel position is W-1, and
        it should be mirrored into zero pixel position.)  */
     to_x = window_box_width (w, TEXT_AREA) - to_x - 1;
+
+  /* We need to add it.first_visible_x because iterator positions
+     include the hscroll. */
+  to_x += it.first_visible_x;
 
   /* Now move horizontally in the row to the glyph under *X.  Second
      argument is ZV to prevent move_it_in_display_line from matching

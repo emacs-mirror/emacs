@@ -1,3 +1,8 @@
+2014-08-28  Glenn Morris  <rgm@gnu.org>
+
+	* automated/python-tests.el (python-shell-calculate-exec-path-2):
+	Update test for today's python.el changes.
+
 2014-08-13  Jan Nieuwenhuizen  <janneke@gnu.org>
 
 	* automated/compile-tests.el (compile--test-error-line): Grok FILE

@@ -2004,6 +2004,8 @@ whether or not it is currently displayed in some window.  */)
       int first_x;
       bool overshoot_handled = 0;
       bool disp_string_at_start_p = 0;
+      ptrdiff_t nlines = XINT (lines);
+      int vpos_init = 0;
 
       itdata = bidi_shelve_cache ();
       SET_TEXT_POS (pt, PT, PT_BYTE);
@@ -2093,18 +2095,31 @@ whether or not it is currently displayed in some window.  */)
 
 	  overshoot_handled = 1;
 	}
-      if (XINT (lines) <= 0)
+      else if (IT_CHARPOS (it) == PT - 1
+	       && FETCH_BYTE (PT - 1) == '\n'
+	       && nlines < 0)
 	{
-	  it.vpos = 0;
+	  /* The position we started from was covered by a display
+	     property, so we moved to position before the string, and
+	     backed up one line, because the character at PT - 1 is a
+	     newline.  So we need one less line to go up.  */
+	  nlines++;
+	  /* But we still need to record that one line, in order to
+	     return the correct value to the caller.  */
+	  vpos_init = -1;
+	}
+      if (nlines <= 0)
+	{
+	  it.vpos = vpos_init;
 	  /* Do this even if LINES is 0, so that we move back to the
 	     beginning of the current line as we ought.  */
-	  if (XINT (lines) == 0 || IT_CHARPOS (it) > 0)
-	    move_it_by_lines (&it, max (PTRDIFF_MIN, XINT (lines)));
+	  if (nlines == 0 || IT_CHARPOS (it) > 0)
+	    move_it_by_lines (&it, max (PTRDIFF_MIN, nlines));
 	}
       else if (overshoot_handled)
 	{
 	  it.vpos = 0;
-	  move_it_by_lines (&it, min (PTRDIFF_MAX, XINT (lines)));
+	  move_it_by_lines (&it, min (PTRDIFF_MAX, nlines));
 	}
       else
 	{
@@ -2119,13 +2134,13 @@ whether or not it is currently displayed in some window.  */)
 		  it.vpos = 0;
 		  move_it_by_lines (&it, 1);
 		}
-	      if (XINT (lines) > 1)
-		move_it_by_lines (&it, min (PTRDIFF_MAX, XINT (lines) - 1));
+	      if (nlines > 1)
+		move_it_by_lines (&it, min (PTRDIFF_MAX, nlines - 1));
 	    }
 	  else
 	    {
 	      it.vpos = 0;
-	      move_it_by_lines (&it, min (PTRDIFF_MAX, XINT (lines)));
+	      move_it_by_lines (&it, min (PTRDIFF_MAX, nlines));
 	    }
 	}
 

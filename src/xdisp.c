@@ -3413,6 +3413,48 @@ handle_stop (struct it *it)
   if (it->selective_display_ellipsis_p)
     it->saved_face_id = it->face_id;
 
+  /* Here's the description of the semantics of, and the logic behind,
+     the various HANDLED_* statuses:
+
+     HANDLED_NORMALLY means the handler did its job, and the loop
+     should proceed to calling the next handler in order.
+
+     HANDLED_RECOMPUTE_PROPS means the handler caused a significant
+     change in the properties and overlays at current position, so the
+     loop should be restarted, to re-invoke the handlers that were
+     already called.  This happens when fontification-functions were
+     called by handle_fontified_prop, and actually fontified
+     something.  Another case where HANDLED_RECOMPUTE_PROPS is
+     returned is when we discover overlay strings that need to be
+     displayed right away.  The loop below will continue for as long
+     as the status is HANDLED_RECOMPUTE_PROPS.
+
+     HANDLED_RETURN means return immediately to the caller, to
+     continue iteration without calling any further handlers.  This is
+     used when we need to act on some property right away, for example
+     when we need to display the ellipsis or a replacing display
+     property, such as display string or image.
+
+     HANDLED_OVERLAY_STRING_CONSUMED means an overlay string was just
+     consumed, and the handler switched to the next overlay string.
+     This signals the loop below to refrain from looking for more
+     overlays before all the overlay strings of the current overlay
+     are processed.
+
+     Some of the handlers called by the loop push the iterator state
+     onto the stack (see 'push_it'), and arrange for the iteration to
+     continue with another object, such as an image, a display string,
+     or an overlay string.  In most such cases, it->stop_charpos is
+     set to the first character of the string, so that when the
+     iteration resumes, this function will immediately be called
+     again, to examine the properties at the beginning of the string.
+
+     When a display or overlay string is exhausted, the iterator state
+     is popped (see 'pop_it'), and iteration continues with the
+     previous object.  Again, in many such cases this function is
+     called again to find the next position where properties might
+     change.  */
+
   do
     {
       handled = HANDLED_NORMALLY;
@@ -20621,10 +20663,15 @@ display_line (struct it *it)
 	  row->truncated_on_right_p = 1;
 	  it->continuation_lines_width = 0;
 	  reseat_at_next_visible_line_start (it, 0);
-	  if (IT_BYTEPOS (*it) <= BEG_BYTE)
-	    row->ends_at_zv_p = true;
+	  /* We insist below that IT's position be at ZV because in
+	     bidi-reordered lines the character at visible line start
+	     might not be the character that follows the newline in
+	     the logical order.  */
+	  if (IT_BYTEPOS (*it) > BEG_BYTE)
+	    row->ends_at_zv_p =
+	      IT_BYTEPOS (*it) >= ZV_BYTE && FETCH_BYTE (ZV_BYTE - 1) != '\n';
 	  else
-	    row->ends_at_zv_p = FETCH_BYTE (IT_BYTEPOS (*it) - 1) != '\n';
+	    row->ends_at_zv_p = false;
 	  break;
 	}
     }

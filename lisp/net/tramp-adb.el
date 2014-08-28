@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2011-2014 Free Software Foundation, Inc.
 
-;; Author: Juergen Hoetzel <juergen@archlinux.org>
+;; Author: Jürgen Hötzel <juergen@archlinux.org>
 ;; Keywords: comm, processes
 ;; Package: tramp
 

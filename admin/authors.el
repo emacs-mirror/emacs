@@ -92,6 +92,7 @@ files.")
     ("Joseph Arceneaux" "Joe Arceneaux")
     ("Joseph M. Kelsey" "Joe Kelsey")	; FIXME ?
     ("Juan León Lahoz García" "Juan-Leon Lahoz Garcia")
+    ("Jürgen Hötzel" "Juergen Hoetzel")
     ("K. Shane Hartman" "Shane Hartman")
     ("Kai Großjohann" "Kai Grossjohann")
     ("Karl Berry" "K. Berry")

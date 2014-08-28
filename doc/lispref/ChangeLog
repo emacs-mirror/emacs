@@ -1,3 +1,8 @@
+2014-08-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* display.texi (Bidirectional Display): Update the Emacs's class
+	of bidirectional conformance.
+
 2014-08-27  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* eval.texi (Eval): Mention possible recovery from stack overflow.

@@ -1,3 +1,26 @@
+2014-08-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* emacs-lisp/authors.el (authors-aliases): Addition.
+
+	* net/tramp-adb.el: Spell author name correctly.
+
+2014-08-28  João Távora  <joaotavora@gmail.com>
+
+	* net/shr.el (shr-expand-url): Plain expand-file-name is not enough;
+	use url-expand-file-name.  (Bug#18310)
+
+2014-08-28  Glenn Morris  <rgm@gnu.org>
+
+	* emulation/cua-rect.el (cua--highlight-rectangle):
+	Avoid error at point-min.  (Bug#18309)
+
+2014-08-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/python.el (python-shell-prompt-detect): Remove redundant
+	executable-find (bug#18244).
+
+	* simple.el (self-insert-uses-region-functions): Defvar.
+
 2014-08-28  Glenn Morris  <rgm@gnu.org>
 
 	* subr.el (remq): Revert 2014-08-25 doc change (not always true).

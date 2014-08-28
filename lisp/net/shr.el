@@ -589,6 +589,10 @@ size, and full-buffer size."
 	  (url-type parsed)
 	  url)))
 
+(autoload 'url-expand-file-name "url-expand")
+
+;; FIXME This needs some tests writing.
+;; Does it even need to exist, given that url-expand-file-name does?
 (defun shr-expand-url (url &optional base)
   (setq base
 	(if base
@@ -614,7 +618,7 @@ size, and full-buffer size."
 	 (concat (nth 3 base) url))
 	(t
 	 ;; Totally relative.
-	 (concat (car base) (expand-file-name url (cadr base))))))
+	 (url-expand-file-name url (concat (car base) (cadr base))))))
 
 (defun shr-ensure-newline ()
   (unless (zerop (current-column))

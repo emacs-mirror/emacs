@@ -127,6 +127,8 @@ s/^#undef HAVE_STRTOULL *$/#define HAVE_STRTOULL 1/
 #define HAVE_SNPRINTF 1\
 #else\
 #undef HAVE_SNPRINTF\
+#include <sys/types.h>\
+extern int snprintf (char *__restrict, size_t, const char *__restrict, ...);\
 #endif
 s/^#undef PENDING_OUTPUT_N_BYTES *$/#define PENDING_OUTPUT_N_BYTES fp->_ptr - fp->_base/
 
