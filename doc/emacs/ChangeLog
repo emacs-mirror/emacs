@@ -10118,7 +10118,7 @@
 
 	* frames.texi (Dialog Boxes): Add use-file-dialog.
 
-2003-11-22  Martin Stjernholm  <bug-cc-mode@gnu.org>
+2003-11-22  Martin Stjernholm  <mast@lysator.liu.se>
 
 	* ack.texi: Note that Alan Mackenzie contributed the AWK support
 	in CC Mode.

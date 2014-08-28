@@ -1,6 +1,6 @@
 2013-03-11  Glenn Morris  <rgm@gnu.org>
 
-        * Version 24.3 released.
+	* Version 24.3 released.
 
 2013-03-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -17100,7 +17100,7 @@
 	* vc/ediff-init.el (ediff-toggle-read-only-function):
 	Use toggle-read-only.
 
-2011-10-22  Alan Mackenzie  <bug-cc-mode@gnu.org>
+2011-10-22  Alan Mackenzie  <acm@muc.de>
 
 	Fix bug #9560, sporadic wrong indentation; improve instrumentation
 	of c-parse-state.

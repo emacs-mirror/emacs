@@ -8502,7 +8502,7 @@
 	* tutorial.el (help-with-tutorial): Hack safe file-local variables
 	after reading the tutorial.
 
-2010-08-06  Alan Mackenzie  <bug-cc-mode@gnu.org>
+2010-08-06  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-cmds.el (c-mask-paragraph, c-fill-paragraph):
 	Fix for the case that a C style comment has its delimiters alone on
@@ -8844,9 +8844,9 @@
 	(sql-mode-menu): Add submenu to select connections.
 	(sql-interactive-mode-menu): Add "Save Connection" item.
 	(sql-add-product): Fix menu item.
-	(sql-get-product-feature): Improved error handling.
+	(sql-get-product-feature): Improve error handling.
 	(sql--alt-buffer-part, sql--alt-if-not-empty): Remove.
-	(sql-make-alternate-buffer-name): Simplified.
+	(sql-make-alternate-buffer-name): Simplify.
 	(sql-product-interactive): Handle missing product.
 	(sql-connect): Support string keys, minor improvements.
 	(sql-save-connection): New function.
@@ -8908,7 +8908,7 @@
 	(sql-connection-alist): New variable.
 	(sql-connect): New function.
 	(sql--alt-buffer-part, sql--alt-if-not-empty)
-	(sql-make-alternate-buffer-name): Improved alternative buffer name.
+	(sql-make-alternate-buffer-name): Improve alternative buffer name.
 
 2010-07-17  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
 
@@ -9383,7 +9383,7 @@
 	`compose-mail-user-agent-warnings', instead of to the
 	nonexistent `compose-mail-check-user-agent'.
 
-2010-06-21  Alan Mackenzie  <bug-cc-mode@gnu.org>
+2010-06-21  Alan Mackenzie  <acm@muc.de>
 
 	Fix an indentation bug:
 
@@ -9392,7 +9392,7 @@
 	of existing values.
 
 	* progmodes/cc-engine.el (c-clear-<-pair-props-if-match-after)
-	(c-clear->-pair-props-if-match-before): now return t when they've
+	(c-clear->-pair-props-if-match-before): Now return t when they've
 	cleared properties, nil otherwise.
 	(c-before-change-check-<>-operators): Set c-new-beg/end correctly
 	by taking account of the existing value.

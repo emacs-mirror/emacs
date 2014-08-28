@@ -477,7 +477,7 @@ buffers that use a particular major mode, use the mode hook, as in
 this example:
 
     (add-hook 'emacs-lisp-mode-hook
-	      '(lambda () (imenu-add-to-menubar "Index")))
+	      (lambda () (imenu-add-to-menubar "Index")))
 
 ** Changes in BibTeX mode.
 

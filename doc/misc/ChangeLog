@@ -264,14 +264,14 @@
 
 2014-03-23  Katsumi Yamaoka  <yamaoka@jpl.org>
 
-	* gnus.texi (MIME Commands): Mention
-	gnus-mime-buttonize-attachments-in-header and
+	* gnus.texi (MIME Commands):
+	Mention gnus-mime-buttonize-attachments-in-header and
 	gnus-mime-display-attachment-buttons-in-header.
 
 2014-03-23  Lars Ingebrigtsen  <larsi@gnus.org>
 
-	* message.texi (Forwarding): Mention
-	`message-forward-included-headers'.
+	* message.texi (Forwarding):
+	Mention `message-forward-included-headers'.
 
 2014-03-23  Lars Ingebrigtsen  <larsi@gnus.org>
 
@@ -8791,7 +8791,7 @@
 
 	* org.texi (Installation, Activation): Split from Installation and
 	Activation.
-	(Clocking work time): Documented new features.
+	(Clocking work time): Document new features.
 
 2006-08-13  Alex Schroeder  <alex@gnu.org>
 
@@ -9392,22 +9392,22 @@
 	* emacs-mime.texi (Flowed text): Add mm-fill-flowed.  (Sync
 	2004-01-27 from the trunk).
 
-2006-02-24  Alan Mackenzie  <bug-cc-mode@gnu.org>
+2006-02-24  Alan Mackenzie  <acm@muc.de>
 
 	* cc-mode.texi: Rename c-hungry-backspace to
 	c-hungry-delete-backwards, at the request of RMS.  Leave the old
 	name as an alias.
 
-2006-02-24  Alan Mackenzie  <bug-cc-mode@gnu.org>
+2006-02-24  Alan Mackenzie  <acm@muc.de>
 
 	* cc-mode.texi: Correct the definition of c-beginning-of-defun, to
 	include the function header within the defun.
 
-2006-02-24  Alan Mackenzie  <bug-cc-mode@gnu.org>
+2006-02-24  Alan Mackenzie  <acm@muc.de>
 
 	* cc-mode.texi: Correct two typos.
 
-2006-02-24  Alan Mackenzie  <bug-cc-mode@gnu.org>
+2006-02-24  Alan Mackenzie  <acm@muc.de>
 
 	* cc-mode.texi (Comment Commands): State that C-u M-; kills any
 	existing comment.
@@ -9721,7 +9721,7 @@
 	(MIME with Emacs mail packages): Delete section about the Emacs
 	MIME FAQ (it's not reachable anymore).
 
-2005-12-08  Alan Mackenzie  <bug-cc-mode@gnu.org>
+2005-12-08  Alan Mackenzie  <acm@muc.de>
 
 	* cc-mode.texi: The manual has been extensively revised: the
 	information about using CC Mode has been separated from the larger
@@ -9949,7 +9949,7 @@
 
 2005-10-10  Carsten Dominik  <dominik@science.uva.nl>
 
-	* org.texi (Workflow states): Documented that change in keywords
+	* org.texi (Workflow states): Document that change in keywords
 	becomes active only after restart of Emacs.
 
 2005-10-08  Michael Albinus  <michael.albinus@gmx.de>
@@ -10824,7 +10824,7 @@
 
 	* Makefile.in (../info/tramp, tramp.dvi): Depend on trampver.texi.
 
-2004-08-11  Martin Stjernholm  <bug-cc-mode@gnu.org>
+2004-08-11  Martin Stjernholm  <mast@lysator.liu.se>
 
 	* cc-mode.texi: Various updates for CC Mode 5.30.9.
 
@@ -11072,7 +11072,7 @@
 
 	* eshell.texi (Known Problems): Add doc item.
 
-2003-11-22  Martin Stjernholm  <bug-cc-mode@gnu.org>
+2003-11-22  Martin Stjernholm  <mast@lysator.liu.se>
 
 	* cc-mode.texi: Update for CC Mode 5.30.
 
