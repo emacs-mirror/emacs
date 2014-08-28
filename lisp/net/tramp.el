@@ -3289,11 +3289,12 @@ User is always nil."
 	    ;; Run the process.
 	    (setq p (apply 'start-file-process "*Async Shell*" buffer args))
 	  ;; Display output.
-	  (pop-to-buffer output-buffer)
-	  (setq mode-line-process '(":%s"))
-	  (shell-mode)
-	  (set-process-sentinel p 'shell-command-sentinel)
-	  (set-process-filter p 'comint-output-filter))
+	  (with-current-buffer output-buffer
+	    (display-buffer output-buffer '(nil (allow-no-window . t)))
+	    (setq mode-line-process '(":%s"))
+	    (shell-mode)
+	    (set-process-sentinel p 'shell-command-sentinel)
+	    (set-process-filter p 'comint-output-filter)))
 
       (prog1
 	  ;; Run the process.
