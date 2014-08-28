@@ -1,3 +1,8 @@
+2014-08-28  Martin Rudalics  <rudalics@gmx.at>
+
+	* scroll-bar.el (scroll-bar-horizontal-drag-1): Handle new
+	interpretation of `portion-whole'.
+
 2014-08-28  Michael Albinus  <michael.albinus@gmx.de>
 
 	* emacs-lisp/authors.el (authors-aliases): Addition.

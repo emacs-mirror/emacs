@@ -330,9 +330,11 @@ If you click outside the slider, the window scrolls to bring the slider there."
     (if (eq (current-bidi-paragraph-direction (window-buffer window))
 	    'left-to-right)
 	(set-window-hscroll
-	 window (/ (1- (+ (car portion-whole) unit)) unit))
+	 window (/ (+ (car portion-whole) (1- unit)) unit))
       (set-window-hscroll
-	 window (/ (1- (+ (cdr portion-whole) unit)) unit)))))
+       window (/ (+ (- (cdr portion-whole) (car portion-whole))
+		    (1- unit))
+		 unit)))))
 
 (defun scroll-bar-horizontal-drag (event)
   "Scroll the window horizontally by dragging the scroll bar slider.

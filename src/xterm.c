@@ -4549,12 +4549,9 @@ xm_scroll_callback (Widget widget, XtPointer client_data, XtPointer call_data)
 
 	if (horizontal)
 	  {
-	    whole = bar->whole;
-	    portion = (((float) cs->value
-			/ (XM_SB_MAX - slider_size))
-		       * (whole
-			  - ((float) slider_size / XM_SB_MAX) * whole));
-	    portion = max (0, portion);
+	    portion = bar->whole * ((float)cs->value / XM_SB_MAX);
+	    whole = bar->whole * ((float)(XM_SB_MAX - slider_size) / XM_SB_MAX);
+	    portion = min (portion, whole);
 	    part = scroll_bar_horizontal_handle;
 	  }
 	else
@@ -4687,24 +4684,51 @@ xaw_jump_callback (Widget widget, XtPointer client_data, XtPointer call_data)
   float *top_addr = call_data;
   float top = *top_addr;
   float shown;
-  int whole, portion, height;
+  int whole, portion, height, width;
   enum scroll_bar_part part;
   int horizontal = bar->horizontal;
 
-  /* Get the size of the thumb, a value between 0 and 1.  */
-  block_input ();
-  XtVaGetValues (widget, XtNshown, &shown, XtNheight, &height, NULL);
-  unblock_input ();
 
   if (horizontal)
     {
-      whole = bar->whole;
-      portion = (top * (whole - (shown * whole))) / (1 - shown);
-      portion = max (0, portion);
+      /* Get the size of the thumb, a value between 0 and 1.  */
+      block_input ();
+      XtVaGetValues (widget, XtNshown, &shown, XtNwidth, &width, NULL);
+      unblock_input ();
+
+      if (shown < 1)
+	{
+	  whole = bar->whole - (shown * bar->whole);
+	  portion = min (top * bar->whole, whole);
+	}
+      else
+	{
+	  whole = bar->whole;
+	  portion = 0;
+	}
+
       part = scroll_bar_horizontal_handle;
     }
   else
-    part = scroll_bar_handle;
+    {
+      /* Get the size of the thumb, a value between 0 and 1.  */
+      block_input ();
+      XtVaGetValues (widget, XtNshown, &shown, XtNheight, &height, NULL);
+      unblock_input ();
+
+      whole = 10000000;
+      portion = shown < 1 ? top * whole : 0;
+
+      if (shown < 1 && (eabs (top + shown - 1) < 1.0f / height))
+	/* Some derivatives of Xaw refuse to shrink the thumb when you reach
+	   the bottom, so we force the scrolling whenever we see that we're
+	   too close to the bottom (in x_set_toolkit_scroll_bar_thumb
+	   we try to ensure that we always stay two pixels away from the
+	   bottom).  */
+	part = scroll_bar_down_arrow;
+      else
+	part = scroll_bar_handle;
+    }
 
   window_being_scrolled = bar->window;
   bar->dragging = portion;
@@ -4727,28 +4751,54 @@ xaw_scroll_callback (Widget widget, XtPointer client_data, XtPointer call_data)
   struct scroll_bar *bar = client_data;
   /* The position really is stored cast to a pointer.  */
   int position = (intptr_t) call_data;
-  Dimension height;
+  Dimension height, width;
   enum scroll_bar_part part;
 
-  /* Get the height of the scroll bar.  */
-  block_input ();
-  XtVaGetValues (widget, XtNheight, &height, NULL);
-  unblock_input ();
+  if (bar->horizontal)
+    {
+      /* Get the width of the scroll bar.  */
+      block_input ();
+      XtVaGetValues (widget, XtNwidth, &width, NULL);
+      unblock_input ();
 
-  if (eabs (position) >= height)
-    part = (position < 0) ? scroll_bar_above_handle : scroll_bar_below_handle;
+      if (eabs (position) >= width)
+	part = (position < 0) ? scroll_bar_before_handle : scroll_bar_after_handle;
 
-  /* If Xaw3d was compiled with ARROW_SCROLLBAR,
-     it maps line-movement to call_data = max(5, height/20).  */
-  else if (xaw3d_arrow_scroll && eabs (position) <= max (5, height / 20))
-    part = (position < 0) ? scroll_bar_up_arrow : scroll_bar_down_arrow;
+      /* If Xaw3d was compiled with ARROW_SCROLLBAR,
+	 it maps line-movement to call_data = max(5, height/20).  */
+      else if (xaw3d_arrow_scroll && eabs (position) <= max (5, width / 20))
+	part = (position < 0) ? scroll_bar_left_arrow : scroll_bar_right_arrow;
+      else
+	part = scroll_bar_move_ratio;
+
+      window_being_scrolled = bar->window;
+      bar->dragging = -1;
+      bar->last_seen_part = part;
+      x_send_scroll_bar_event (bar->window, part, position, width, bar->horizontal);
+    }
   else
-    part = scroll_bar_move_ratio;
+    {
 
-  window_being_scrolled = bar->window;
-  bar->dragging = -1;
-  bar->last_seen_part = part;
-  x_send_scroll_bar_event (bar->window, part, position, height, bar->horizontal);
+      /* Get the height of the scroll bar.  */
+      block_input ();
+      XtVaGetValues (widget, XtNheight, &height, NULL);
+      unblock_input ();
+
+      if (eabs (position) >= height)
+	part = (position < 0) ? scroll_bar_above_handle : scroll_bar_below_handle;
+
+      /* If Xaw3d was compiled with ARROW_SCROLLBAR,
+	 it maps line-movement to call_data = max(5, height/20).  */
+      else if (xaw3d_arrow_scroll && eabs (position) <= max (5, height / 20))
+	part = (position < 0) ? scroll_bar_up_arrow : scroll_bar_down_arrow;
+      else
+	part = scroll_bar_move_ratio;
+
+      window_being_scrolled = bar->window;
+      bar->dragging = -1;
+      bar->last_seen_part = part;
+      x_send_scroll_bar_event (bar->window, part, position, height, bar->horizontal);
+    }
 }
 
 #endif /* not USE_GTK and not USE_MOTIF */
@@ -6134,7 +6184,7 @@ x_scroll_bar_handle_click (struct scroll_bar *bar,
       /* If the user has released the handle, set it to its final position.  */
       if (event->type == ButtonRelease && bar->dragging != -1)
 	{
-	  int new_start =  - bar->dragging;
+	  int new_start = y - bar->dragging;
 	  int new_end = new_start + bar->end - bar->start;
 
 	  x_scroll_bar_set_handle (bar, new_start, new_end, 0);

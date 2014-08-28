@@ -4293,7 +4293,7 @@ w32_horizontal_scroll_bar_handle_click (struct scroll_bar *bar, W32Msg *msg,
       x = si.nTrackPos;
     else
       x = si.nPos;
-    y = si.nMax - x - si.nPage;
+    y = si.nMax - si.nPage;
 
     bar->dragging = 0;
     FRAME_DISPLAY_INFO (f)->last_mouse_scroll_bar_pos = msg->msg.wParam;
@@ -4350,12 +4350,9 @@ w32_horizontal_scroll_bar_handle_click (struct scroll_bar *bar, W32Msg *msg,
 	    int end = bar->end;
 
 	    si.cbSize = sizeof (si);
-/** 	    si.fMask = SIF_PAGE | SIF_POS; **/
 	    si.fMask = SIF_POS;
-/** 	    si.nPage = end - start + HORIZONTAL_SCROLL_BAR_MIN_HANDLE; **/
 	    si.nPos = min (last_scroll_bar_drag_pos,
 			   XWINDOW (bar->window)->hscroll_whole - 1);
-/** 	    si.nPos = last_scroll_bar_drag_pos; **/
 	    SetScrollInfo (SCROLL_BAR_W32_WINDOW (bar), SB_CTL, &si, TRUE);
 	  }
 	/* fall through */

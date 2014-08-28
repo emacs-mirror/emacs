@@ -1,3 +1,19 @@
+2014-08-28  Martin Rudalics  <rudalics@gmx.at>
+
+	* w32term.c (w32_horizontal_scroll_bar_handle_click): In
+	`event->y' return entire range (the size of the scroll bar minus
+	that of the thumb).
+	* xterm.c (xm_scroll_callback, xaw_jump_callback): In `whole'
+	return entire range (the scaled size of the scroll bar minus
+	that of the slider).  In `portion' return the scaled position of
+	the slider.
+	(xaw_jump_callback): Restore part of code for vertical scroll
+	bar broken in change from 2014-07-27.
+	(xaw_scroll_callback): Provide incremental scrolling with
+	horizontal scroll bars.
+	(x_scroll_bar_handle_click): Fix typo introduced in change from
+	2014-07-27.
+
 2014-08-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* conf_post.h (_GL_EXECINFO_INLINE) [MSDOS]: Don't define.
