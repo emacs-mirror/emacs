@@ -2859,10 +2859,13 @@ scan_lists (EMACS_INT from, EMACS_INT count, EMACS_INT depth, bool sexpflag)
 	    case Smath:
 	      if (!sexpflag)
 		break;
-	      temp_pos = dec_bytepos (from_byte);
-	      UPDATE_SYNTAX_TABLE_BACKWARD (from - 1);
-	      if (from != stop && c == FETCH_CHAR_AS_MULTIBYTE (temp_pos))
-		DEC_BOTH (from, from_byte);
+	      if (from > BEGV)
+		{
+		  temp_pos = dec_bytepos (from_byte);
+		  UPDATE_SYNTAX_TABLE_BACKWARD (from - 1);
+		  if (from != stop && c == FETCH_CHAR_AS_MULTIBYTE (temp_pos))
+		    DEC_BOTH (from, from_byte);
+		}
 	      if (mathexit)
 		{
 		  mathexit = 0;
