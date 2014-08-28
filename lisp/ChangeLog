@@ -1,3 +1,18 @@
+2014-08-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/cc-defs.el: Expose c-lanf-defconst's expressions to the
+	byte-compiler.
+	(lookup-syntax-properties): Silence byte-compiler.
+	(c-lang-defconst): Quote the code with `lambda' rather than with
+	`quote'.
+	(c-lang-const): Avoid unneeded setq.
+	(c-lang-constants-under-evaluation): Add docstring.
+	(c-lang--novalue): New constant.
+	(c-find-assignment-for-mode): Use it instead of c-lang-constants.
+	(c-get-lang-constant): Same here.
+	Get the mode's value using `funcall' now that the code is quoted
+	with `lambda'.
+
 2014-08-28  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-handle-shell-command): Use `display-buffer'.
@@ -67,8 +82,8 @@
         * progmodes/cc-fonts.el (c-font-lock-declarations): Handle the
 	"decltype" keyword.
         (c-font-lock-c++-new): Handle "decltype" constructions.
-        * progmodes/cc-langs.el (c-auto-ops, c-auto-ops-re): New
-	c-lang-defconsts/defvars.
+        * progmodes/cc-langs.el (c-auto-ops, c-auto-ops-re):
+	New c-lang-defconsts/defvars.
         (c-haskell-op, c-haskell-op-re): New c-lang-defconsts/defvars.
         (c-typeof-kwds, c-typeof-key): New c-lang-defconsts/defvars.
         (c-typeless-decl-kwds): Append "auto" onto the C++ value.
@@ -79,8 +94,8 @@
 	off from c->-op-cont-re.
         (c->-op-cont-tokens): Change to use the above.
         (c->-op-without->-cont-regexp): New lang-const.
-        * progmodes/cc-engine.el (c-forward-<>-arglist-recur): Use
-	c->-op-without->-cont-regexp in place of c->-op-cont-tokens.
+        * progmodes/cc-engine.el (c-forward-<>-arglist-recur):
+	Use c->-op-without->-cont-regexp in place of c->-op-cont-tokens.
 
 
 2014-08-23  Alan Mackenzie  <acm@muc.de>
@@ -90,8 +105,8 @@
 
 2014-08-21  Eli Zaretskii  <eliz@gnu.org>
 
-	* textmodes/texnfo-upd.el (texinfo-specific-section-type): Don't
-	recognize a Top node if there are other sectioning commands
+	* textmodes/texnfo-upd.el (texinfo-specific-section-type):
+	Don't recognize a Top node if there are other sectioning commands
 	earlier in the Texinfo file.  This fixes a bug in
 	texinfo-make-menu and avoids inflooping in
 	texinfo-all-menus-update when they are invoked on texinfo.texi.
@@ -193,7 +208,7 @@
 
 2014-08-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* mpc.el (mpc-reorder): Don't bother splitting the "active"s elements
+	* mpc.el (mpc-reorder): Don't bother splitting the "active" elements
 	to the first part if they're the same as the selection.
 
 2014-08-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
@@ -337,8 +352,8 @@
 
 2014-08-07  Leo Liu  <sdl.web@gmail.com>
 
-	* help.el (temp-buffer-setup-hook,temp-buffer-show-hook): Revert
-	change on 2014-03-22.
+	* help.el (temp-buffer-setup-hook,temp-buffer-show-hook):
+	Revert change on 2014-03-22.
 
 2014-08-06  Ulf Jasper  <ulf.jasper@web.de>
 
@@ -371,8 +386,8 @@
 
 	* progmodes/python.el: Fix completions inside (i)pdb.
 	(python-shell-completion-pdb-string-code): Make obsolete.
-	(python-shell-completion-get-completions): Use
-	python-shell-completion-string-code resending setup code
+	(python-shell-completion-get-completions):
+	Use python-shell-completion-string-code resending setup code
 	continuously for (i)pdb.
 
 2014-08-04  Paul Eggert  <eggert@cs.ucla.edu>
@@ -399,8 +414,8 @@
 
 2014-08-02  Alan Mackenzie  <acm@muc.de>
 
-	Fix confusion in C++ file caused by comma in "= {1,2},".  Bug
-	#17756.
+	Fix confusion in C++ file caused by comma in "= {1,2},".
+	Bug #17756.
 	* progmodes/cc-engine.el (c-beginning-of-statement-1): In checking
 	for a statement boundary marked by "}", check there's no "="
 	before the "{".
@@ -429,8 +444,8 @@
 
 2014-07-30  Christophe Deleuze  <christophe.deleuze@free.fr>  (tiny change)
 
-	* calendar/icalendar.el (icalendar--decode-isodatetime): Use
-	actual current-time-zone when converting to local time. (Bug#15408)
+	* calendar/icalendar.el (icalendar--decode-isodatetime):
+	Use actual current-time-zone when converting to local time. (Bug#15408)
 
 2014-07-29  Martin Rudalics  <rudalics@gmx.at>
 
@@ -541,17 +556,17 @@
 2014-07-28  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
 	Grab all Python process output before inferior-python-mode hooks.
-	* progmodes/python.el (inferior-python-mode): Call
-	accept-process-output and sit-for to ensure all output for process
+	* progmodes/python.el (inferior-python-mode):
+	Call accept-process-output and sit-for to ensure all output for process
 	has been received before running hooks.
-	(python-shell-internal-get-or-create-process): Cleanup
-	accept-process-output and sit-for calls.
+	(python-shell-internal-get-or-create-process):
+	Cleanup accept-process-output and sit-for calls.
 
 2014-07-28  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
 	More robust shell startup and code setup.
-	* progmodes/python.el (python-shell-make-comint): Remove
-	accept-process-output call.
+	* progmodes/python.el (python-shell-make-comint):
+	Remove accept-process-output call.
 	(python-shell-get-buffer): Return current buffer if major-mode is
 	inferior-python-mode.
 	(python-shell-get-or-create-process): Use it.
@@ -560,8 +575,8 @@
 
 2014-07-27  Eli Zaretskii  <eliz@gnu.org>
 
-	* scroll-bar.el (scroll-bar-toolkit-horizontal-scroll): Add
-	rudimentary support for bidirectional text.
+	* scroll-bar.el (scroll-bar-toolkit-horizontal-scroll):
+	Add rudimentary support for bidirectional text.
 
 2014-07-27  Martin Rudalics  <rudalics@gmx.at>
 
@@ -935,8 +950,8 @@
 	(linum-update-window): Use it to adjust margin to linum's width.
 
 	* leim/quail/sisheng.el (sisheng-list): Don't bother with-case-table.
-	* eshell/em-smart.el (eshell-smart-scroll-window): Use
-	with-selected-window.
+	* eshell/em-smart.el (eshell-smart-scroll-window):
+	Use with-selected-window.
 
 	* xt-mouse.el (xterm-mouse-translate-1): Intern drag event (bug#17894).
 	Remove also pointless window&mark manipulation.
@@ -3968,7 +3983,7 @@
 2014-03-23  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* calendar/parse-time.el (parse-time-iso8601-regexp)
-	(parse-iso8601-time-string): Copied from `url-dav' so that we can use
+	(parse-iso8601-time-string): Copy from `url-dav' so that we can use
 	it more generally.
 
 2014-03-23  Lars Ingebrigtsen  <larsi@gnus.org>
@@ -5570,7 +5585,7 @@
 	* help-at-pt.el (help-at-pt-string, help-at-pt-maybe-display):
 	Also try to display local help from just before point.
 
-2014-02-02  Alan Mackenzie  <bug-cc-mode@gnu.org>
+2014-02-02  Alan Mackenzie  <acm@muc.de>
 
 	c-parse-state.  Don't "append-lower-brace-pair" in certain
 	circumstances.  Also fix an obscure bug where "\\s!" shouldn't be
