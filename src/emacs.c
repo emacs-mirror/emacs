@@ -145,7 +145,7 @@ extern int malloc_set_state (void *);
 /* True if the MALLOC_CHECK_ environment variable was set while
    dumping.  Used to work around a bug in glibc's malloc.  */
 static bool malloc_using_checking;
-#elif defined HAVE_PTHREAD && !defined SYSTEM_MALLOC
+#elif defined HAVE_PTHREAD && !defined SYSTEM_MALLOC && !defined HYBRID_MALLOC
 extern void malloc_enable_thread (void);
 #endif
 
@@ -906,7 +906,7 @@ main (int argc, char **argv)
 
   clearerr (stdin);
 
-#ifndef SYSTEM_MALLOC
+#if !defined SYSTEM_MALLOC && !defined HYBRID_MALLOC
   /* Arrange to get warning messages as memory fills up.  */
   memory_warnings (0, malloc_warning);
 
@@ -914,7 +914,7 @@ main (int argc, char **argv)
      Also call realloc and free for consistency.  */
   free (realloc (malloc (4), 4));
 
-#endif	/* not SYSTEM_MALLOC */
+#endif	/* not SYSTEM_MALLOC and not HYBRID_MALLOC */
 
 #ifdef MSDOS
   SET_BINARY (fileno (stdin));
@@ -1139,12 +1139,13 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 #endif /* DOS_NT */
     }
 
-#if defined HAVE_PTHREAD && !defined SYSTEM_MALLOC && !defined DOUG_LEA_MALLOC
+#if defined HAVE_PTHREAD && !defined SYSTEM_MALLOC \
+  && !defined DOUG_LEA_MALLOC && !defined HYBRID_MALLOC
 # ifndef CANNOT_DUMP
   /* Do not make gmalloc thread-safe when creating bootstrap-emacs, as
-     that causes an infinite recursive loop with FreeBSD.  But do make
-     it thread-safe when creating emacs, otherwise bootstrap-emacs
-     fails on Cygwin.  See Bug#14569.  */
+     that causes an infinite recursive loop with FreeBSD.  See
+     Bug#14569.  The part of this bug involving Cygwin is no longer
+     relevant, now that Cygwin defines HYBRID_MALLOC.  */
   if (!noninteractive || initialized)
 # endif
     malloc_enable_thread ();
@@ -2131,7 +2132,7 @@ You must run Emacs in batch mode in order to dump it.  */)
   fflush (stdout);
   /* Tell malloc where start of impure now is.  */
   /* Also arrange for warnings when nearly out of space.  */
-#ifndef SYSTEM_MALLOC
+#if !defined SYSTEM_MALLOC && !defined HYBRID_MALLOC
 #ifndef WINDOWSNT
   /* On Windows, this was done before dumping, and that once suffices.
      Meanwhile, my_edata is not valid on Windows.  */
@@ -2140,7 +2141,7 @@ You must run Emacs in batch mode in order to dump it.  */)
     memory_warnings (my_edata, malloc_warning);
   }
 #endif /* not WINDOWSNT */
-#endif /* not SYSTEM_MALLOC */
+#endif /* not SYSTEM_MALLOC and not HYBRID_MALLOC */
 #ifdef DOUG_LEA_MALLOC
   malloc_state_ptr = malloc_get_state ();
 #endif

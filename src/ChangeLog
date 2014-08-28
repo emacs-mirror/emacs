@@ -1,3 +1,47 @@
+2014-08-28  Ken Brown  <kbrown@cornell.edu>
+
+	Add support for HYBRID_MALLOC, allowing the use of gmalloc before
+	dumping and the system malloc after dumping.  (Bug#18222)
+
+	* conf_post.h (malloc, realloc, calloc, free) [HYBRID_MALLOC]:
+	Define as macros, expanding to hybrid_malloc, etc.
+	(HYBRID_GET_CURRENT_DIR_NAME): New macro.
+	(get_current_dir_name) [HYBRID_GET_CURRENT_DIR_NAME]: Define as
+	macro.
+	* gmalloc.c: Set up the infrastructure for HYBRID_MALLOC, with a
+	full implementation on Cygwin.  Remove Cygwin-specific code that
+	is no longer needed.
+	(malloc, realloc, calloc, free, aligned_alloc) [HYBRID_MALLOC]:
+	Redefine as macros expanding to gmalloc, grealloc, etc.
+	(DUMPED, ALLOCATED_BEFORE_DUMPING) [CYGWIN]: New macros.
+	(get_current_dir_name) [HYBRID_GET_CURRENT_DIR_NAME]: Undefine.
+	(USE_PTHREAD, posix_memalign) [HYBRID_MALLOC]: Don't define.
+	(hybrid_malloc, hybrid_calloc, hybrid_free, hybrid_realloc)
+	[HYBRID_MALLOC]:
+	(hybrid_get_current_dir_name) [HYBRID_GET_CURRENT_DIR_NAME]:
+	(hybrid_aligned_alloc) [HYBRID_MALLOC && (HAVE_ALIGNED_ALLOC ||
+	HAVE_POSIX_MEMALIGN)]: New functions.
+	* alloc.c (aligned_alloc) [HYBRID_MALLOC && (ALIGNED_ALLOC ||
+	HAVE_POSIX_MEMALIGN)]: Define as macro expanding to
+	hybrid_aligned_alloc; declare.
+	(USE_ALIGNED_ALLOC) [HYBRID_MALLOC && (ALIGNED_ALLOC ||
+	HAVE_POSIX_MEMALIGN)]: Define.
+	(refill_memory_reserve) [HYBRID_MALLOC]: Do nothing.
+	* sysdep.c (get_current_dir_name) [HYBRID_GET_CURRENT_DIR_NAME]:
+	Define as macro, expanding to gget_current_dir_name, and define
+	the latter.
+	* emacs.c (main) [HYBRID_MALLOC]: Don't call memory_warnings() or
+	malloc_enable_thread().  Don't initialize malloc.
+	* lisp.h (NONPOINTER_BITS) [CYGWIN]: Define (because GNU_MALLOC is
+	no longer defined on Cygwin).
+	(refill_memory_reserve) [HYBRID_MALLOC]: Don't declare.
+	* sheap.c (bss_sbrk_buffer_end): New variable.
+	* unexcw.c (__malloc_initialized): Remove variable.
+	* ralloc.c: Throughout, treat HYBRID_MALLOC the same as
+	SYSTEM_MALLOC.
+	* xdisp.c (decode_mode_spec) [HYBRID_MALLOC]: Don't check
+	Vmemory_full.
+
 2014-08-28  Martin Rudalics  <rudalics@gmx.at>
 
 	* w32term.c (w32_horizontal_scroll_bar_handle_click): In

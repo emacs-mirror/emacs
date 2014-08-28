@@ -80,6 +80,23 @@ typedef bool bool_bf;
 #define vfork fork
 #endif  /* DARWIN_OS */
 
+/* If HYBRID_MALLOC is defined (e.g., on Cygwin), emacs will use
+   gmalloc before dumping and the system malloc after dumping.
+   hybrid_malloc and friends, defined in gmalloc.c, are wrappers that
+   accomplish this.  */
+#ifdef HYBRID_MALLOC
+#ifdef emacs
+#define malloc hybrid_malloc
+#define realloc hybrid_realloc
+#define calloc hybrid_calloc
+#define free hybrid_free
+#if defined HAVE_GET_CURRENT_DIR_NAME && !defined BROKEN_GET_CURRENT_DIR_NAME
+#define HYBRID_GET_CURRENT_DIR_NAME 1
+#define get_current_dir_name hybrid_get_current_dir_name
+#endif
+#endif
+#endif	/* HYBRID_MALLOC */
+
 /* We have to go this route, rather than the old hpux9 approach of
    renaming the functions via macros.  The system's stdlib.h has fully
    prototyped declarations, which yields a conflicting definition of

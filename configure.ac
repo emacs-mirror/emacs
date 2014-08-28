@@ -2033,9 +2033,13 @@ AC_CACHE_CHECK(
 doug_lea_malloc=$emacs_cv_var_doug_lea_malloc
 
 system_malloc=$emacs_cv_sanitize_address
+
+hybrid_malloc=
+
 case "$opsys" in
   ## darwin ld insists on the use of malloc routines in the System framework.
   darwin|mingw32|sol2-10) system_malloc=yes ;;
+  cygwin) hybrid_malloc=yes;;
 esac
 
 GMALLOC_OBJ=
@@ -2046,6 +2050,13 @@ if test "${system_malloc}" = "yes"; then
   GNU_MALLOC=no
   GNU_MALLOC_reason="
     (The GNU allocators don't work with this system configuration.)"
+  VMLIMIT_OBJ=
+elif test "$hybrid_malloc" = yes; then
+  AC_DEFINE(HYBRID_MALLOC, 1,
+    [Define to use gmalloc before dumping and the system malloc after.])
+  GNU_MALLOC=
+  GNU_MALLOC_reason="only before dumping"
+  GMALLOC_OBJ=gmalloc.o
   VMLIMIT_OBJ=
 else
   test "$doug_lea_malloc" != "yes" && GMALLOC_OBJ=gmalloc.o
@@ -3568,9 +3579,11 @@ cfmakeraw cfsetspeed copysign __executable_start log2)
 LIBS=$OLD_LIBS
 
 dnl No need to check for aligned_alloc and posix_memalign if using
-dnl gmalloc.o, as it supplies them.  Don't use these functions on
-dnl Darwin as they are incompatible with unexmacosx.c.
-if test -z "$GMALLOC_OBJ" && test "$opsys" != darwin; then
+dnl gmalloc.o, as it supplies them, unless we're using hybrid_malloc.
+dnl Don't use these functions on Darwin as they are incompatible with
+dnl unexmacosx.c.
+if (test -z "$GMALLOC_OBJ" || test "$hybrid_malloc" = yes) \
+  && test "$opsys" != darwin; then
   AC_CHECK_FUNCS([aligned_alloc posix_memalign], [break])
 fi
 

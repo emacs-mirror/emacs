@@ -1,3 +1,9 @@
+2014-08-28  Ken Brown  <kbrown@cornell.edu>
+
+	* configure.ac (HYBRID_MALLOC): New macro; define to use gmalloc
+	before dumping and the system malloc after dumping.  Define on
+	Cygwin.  (Bug#18222)
+
 2014-08-28  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (appdatadir): New variable.

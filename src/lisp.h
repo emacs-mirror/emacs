@@ -88,7 +88,8 @@ DEFINE_GDB_SYMBOL_END (GCTYPEBITS)
    2.  We know malloc returns a multiple of 8.  */
 #if (defined alignas \
      && (defined GNU_MALLOC || defined DOUG_LEA_MALLOC || defined __GLIBC__ \
-	 || defined DARWIN_OS || defined __sun || defined __MINGW32__))
+	 || defined DARWIN_OS || defined __sun || defined __MINGW32__ \
+	 || defined CYGWIN))
 # define NONPOINTER_BITS 0
 #else
 # define NONPOINTER_BITS GCTYPEBITS
@@ -3629,7 +3630,7 @@ extern _Noreturn void memory_full (size_t);
 extern _Noreturn void buffer_memory_full (ptrdiff_t);
 extern bool survives_gc_p (Lisp_Object);
 extern void mark_object (Lisp_Object);
-#if defined REL_ALLOC && !defined SYSTEM_MALLOC
+#if defined REL_ALLOC && !defined SYSTEM_MALLOC && !defined HYBRID_MALLOC
 extern void refill_memory_reserve (void);
 #endif
 extern const char *pending_malloc_warning;

@@ -80,7 +80,7 @@ static bool valgrind_p;
    marked objects.  */
 
 #if (defined SYSTEM_MALLOC || defined DOUG_LEA_MALLOC \
-     || defined GC_CHECK_MARKED_OBJECTS)
+     || defined HYBRID_MALLOC || defined GC_CHECK_MARKED_OBJECTS)
 #undef GC_MALLOC_CHECK
 #endif
 
@@ -285,7 +285,7 @@ static void gc_sweep (void);
 static Lisp_Object make_pure_vector (ptrdiff_t);
 static void mark_buffer (struct buffer *);
 
-#if !defined REL_ALLOC || defined SYSTEM_MALLOC
+#if !defined REL_ALLOC || defined SYSTEM_MALLOC || defined HYBRID_MALLOC
 static void refill_memory_reserve (void);
 #endif
 static void compact_small_strings (void);
@@ -1014,10 +1014,17 @@ lisp_free (void *block)
    clang 3.3 anyway.  */
 
 #if ! ADDRESS_SANITIZER
-# if !defined SYSTEM_MALLOC && !defined DOUG_LEA_MALLOC
+# if !defined SYSTEM_MALLOC && !defined DOUG_LEA_MALLOC && !defined HYBRID_MALLOC
 #  define USE_ALIGNED_ALLOC 1
 /* Defined in gmalloc.c.  */
 void *aligned_alloc (size_t, size_t);
+# elif defined HYBRID_MALLOC
+#  if defined ALIGNED_ALLOC || defined HAVE_POSIX_MEMALIGN
+#   define USE_ALIGNED_ALLOC 1
+#   define aligned_alloc hybrid_aligned_alloc
+/* Defined in gmalloc.c.  */
+void *aligned_alloc (size_t, size_t);
+#  endif
 # elif defined HAVE_ALIGNED_ALLOC
 #  define USE_ALIGNED_ALLOC 1
 # elif defined HAVE_POSIX_MEMALIGN
@@ -3829,7 +3836,7 @@ memory_full (size_t nbytes)
 void
 refill_memory_reserve (void)
 {
-#ifndef SYSTEM_MALLOC
+#if !defined SYSTEM_MALLOC && !defined HYBRID_MALLOC
   if (spare_memory[0] == 0)
     spare_memory[0] = malloc (SPARE_MEMORY);
   if (spare_memory[1] == 0)
