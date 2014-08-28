@@ -1,3 +1,8 @@
+2014-08-28  Glenn Morris  <rgm@gnu.org>
+
+	* tar-mode.el (tar--extract, tar-extract):
+	Avoid permanently disabling undo in extracted buffers.  (Bug#18344)
+
 2014-08-27  Michael Albinus  <michael.albinus@gmx.de>
 
 	* emacs-lisp/authors.el (authors-aliases): Addition.
