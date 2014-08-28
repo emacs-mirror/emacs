@@ -55,8 +55,6 @@
 	bar broken in change from 2014-07-27.
 	(xaw_scroll_callback): Provide incremental scrolling with
 	horizontal scroll bars.
-	(x_scroll_bar_handle_click): Fix typo introduced in change from
-	2014-07-27.
 
 2014-08-28  Eli Zaretskii  <eliz@gnu.org>
 

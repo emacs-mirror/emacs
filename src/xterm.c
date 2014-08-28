@@ -6184,7 +6184,7 @@ x_scroll_bar_handle_click (struct scroll_bar *bar,
       /* If the user has released the handle, set it to its final position.  */
       if (event->type == ButtonRelease && bar->dragging != -1)
 	{
-	  int new_start = y - bar->dragging;
+	  int new_start = - bar->dragging;
 	  int new_end = new_start + bar->end - bar->start;
 
 	  x_scroll_bar_set_handle (bar, new_start, new_end, 0);
