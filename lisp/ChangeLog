@@ -1,3 +1,7 @@
+2014-08-28  Glenn Morris  <rgm@gnu.org>
+
+	* subr.el (remq): Revert 2014-08-25 doc change (not always true).
+
 2014-08-27  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* startup.el (normal-top-level): Now use internal--top-level-message.
