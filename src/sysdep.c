@@ -3601,8 +3601,11 @@ system_process_attributes (Lisp_Object pid)
 
 # if defined HAVE_NEWLOCALE || defined HAVE_SETLOCALE
 #  include <locale.h>
-# else
+# endif
+# ifndef LC_COLLATE
 #  define LC_COLLATE 0
+# endif
+# ifndef LC_COLLATE_MASK
 #  define LC_COLLATE_MASK 0
 # endif
 # ifndef HAVE_NEWLOCALE

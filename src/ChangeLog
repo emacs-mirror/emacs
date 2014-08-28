@@ -1,3 +1,8 @@
+2014-08-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* sysdep.c (LC_COLLATE, LC_COLLATE_MASK): Give individual defaults
+	(Bug#18051).
+
 2014-08-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* syntax.c (scan_lists): Don't examine positions before BEGV.
