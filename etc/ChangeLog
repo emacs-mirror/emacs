@@ -1,3 +1,7 @@
+2014-08-28  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.appdata.xml: New file; description from Emacs's homepage.
+
 2014-07-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* PROBLEMS: Mention the problem from bug #17950.
