@@ -3796,6 +3796,6 @@ str_collate (Lisp_Object s1, Lisp_Object s2,
 
   char *loc = STRINGP (locale) ? SSDATA (locale) : NULL;
 
-  return w32_compare_strings (SDATA (s1), SDATA (s2), loc);
+  return w32_compare_strings (SDATA (s1), SDATA (s2), loc, !NILP (ignore_case));
 }
 #endif	/* WINDOWSNT */

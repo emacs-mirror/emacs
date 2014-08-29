@@ -72,6 +72,13 @@ environment.  For the time being this is implemented for modern POSIX
 systems and for MS-Windows, for other systems they fall back to their
 counterparts `string-lessp' and `string-equal'.
 
+*** The MS-Windows specific variable `w32-collate-ignore-punctuation',
+if set to a non-nil value, causes the above 2 functions to ignore
+symbol and punctuation characters when collating strings.  This
+emulates the behavior of modern Posix platforms when the locale's
+codeset is "UTF-8" (as in "en_US.UTF-8").  This is needed because
+MS-Windows doesn't support UTF-8 as codeset in its locales.
+
 
 * Editing Changes in Emacs 24.5
 

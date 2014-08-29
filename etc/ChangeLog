@@ -1,3 +1,7 @@
+2014-08-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* NEWS: Mention w32-collate-ignore-punctuation.
+
 2014-08-29  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* NEWS: Mention that `sort' can handle vectors.

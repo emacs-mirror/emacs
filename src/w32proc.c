@@ -3213,15 +3213,20 @@ get_lcid (const char *locale_name)
 #ifndef _NSLCMPERROR
 # define _NSLCMPERROR INT_MAX
 #endif
+#ifndef LINGUISTIC_IGNORECASE
+# define LINGUISTIC_IGNORECASE  0x00000010
+#endif
 
 int
-w32_compare_strings (const char *s1, const char *s2, char *locname)
+w32_compare_strings (const char *s1, const char *s2, char *locname,
+		     int ignore_case)
 {
   LCID lcid = GetThreadLocale ();
   wchar_t *string1_w, *string2_w;
   int val, needed;
   extern BOOL g_b_init_compare_string_w;
   static int (WINAPI *pCompareStringW)(LCID, DWORD, LPCWSTR, int, LPCWSTR, int);
+  DWORD flags = 0;
 
   USE_SAFE_ALLOCA;
 
@@ -3284,11 +3289,22 @@ w32_compare_strings (const char *s1, const char *s2, char *locname)
 	lcid = new_lcid;
     }
 
-  /* FIXME: Need a way to control the FLAGS argument, perhaps via the
-     CODESET part of LOCNAME.  In particular, ls-lisp will want
-     NORM_IGNORESYMBOLS and sometimes LINGUISTIC_IGNORECASE or
-     NORM_IGNORECASE.  */
-  val = pCompareStringW (lcid, 0, string1_w, -1, string2_w, -1);
+  if (ignore_case)
+    {
+      /* NORM_IGNORECASE ignores any tertiary distinction, not just
+	 case variants.  LINGUISTIC_IGNORECASE is more selective, and
+	 is sensitive to the locale's language, but it is not
+	 available before Vista.  */
+      if (w32_major_version >= 6)
+	flags |= LINGUISTIC_IGNORECASE;
+      else
+	flags |= NORM_IGNORECASE;
+    }
+  /* This approximates what glibc collation functions do when the
+     locale's codeset is UTF-8.  */
+  if (!NILP (Vw32_collate_ignore_punctuation))
+    flags |= NORM_IGNORESYMBOLS;
+  val = pCompareStringW (lcid, flags, string1_w, -1, string2_w, -1);
   SAFE_FREE ();
   if (!val)
     {
@@ -3407,6 +3423,20 @@ on local fixed drives.  A value of nil means never issue them.
 Any other non-nil value means do this even on remote and removable drives
 where the performance impact may be noticeable even on modern hardware.  */);
   Vw32_get_true_file_attributes = Qlocal;
+
+  DEFVAR_LISP ("w32-collate-ignore-punctuation",
+	       Vw32_collate_ignore_punctuation,
+	       doc: /* Non-nil causes string collation functions ignore punctuation on MS-Windows.
+On Posix platforms, `string-collate-lessp' and `string-collate-equalp'
+ignore punctuation characters when they compare strings, if the
+locale's codeset is UTF-8, as in \"en_US.UTF-8\".  Binding this option
+to a non-nil value will achieve a similar effect on MS-Windows, where
+locales with UTF-8 codeset are not supported.
+
+Note that setting this to non-nil will also ignore blanks and symbols
+in the strings.  So do NOT use this option when comparing file names
+for equality, only when you need to sort them.  */);
+  Vw32_collate_ignore_punctuation = Qnil;
 
   staticpro (&Vw32_valid_locale_ids);
   staticpro (&Vw32_valid_codepages);

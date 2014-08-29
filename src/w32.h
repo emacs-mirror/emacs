@@ -211,7 +211,7 @@ extern int w32_memory_info (unsigned long long *, unsigned long long *,
 			    unsigned long long *, unsigned long long *);
 
 /* Compare 2 UTF-8 strings in locale-dependent fashion.  */
-extern int w32_compare_strings (const char *, const char *, char *);
+extern int w32_compare_strings (const char *, const char *, char *, int);
 
 #ifdef HAVE_GNUTLS
 #include <gnutls/gnutls.h>

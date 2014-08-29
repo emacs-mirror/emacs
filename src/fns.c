@@ -350,7 +350,7 @@ Symbols are also allowed; their print names are used instead.
 
 This function obeys the conventions for collation order in your
 locale settings.  For example, punctuation and whitespace characters
-are considered less significant for sorting:
+might be considered less significant for sorting:
 
 \(sort '\("11" "12" "1 1" "1 2" "1.1" "1.2") 'string-collate-lessp)
   => \("11" "1 1" "1.1" "12" "1 2" "1.2")
@@ -358,10 +358,14 @@ are considered less significant for sorting:
 The optional argument LOCALE, a string, overrides the setting of your
 current locale identifier for collation.  The value is system
 dependent; a LOCALE \"en_US.UTF-8\" is applicable on POSIX systems,
-while it would be \"English_USA.1252\" on MS Windows systems.
+while it would be, e.g., \"enu_USA.1252\" on MS-Windows systems.
 
 If IGNORE-CASE is non-nil, characters are converted to lower-case
 before comparing them.
+
+To emulate Unicode-compliant collation on MS-Windows systems,
+bind `w32-collate-ignore-punctuation' to a non-nil value, since
+the codeset part of the locale cannot be \"UTF-8\" on MS-Windows.
 
 If your system does not support a locale environment, this function
 behaves like `string-lessp'.  */)
@@ -391,8 +395,8 @@ Symbols are also allowed; their print names are used instead.
 
 This function obeys the conventions for collation order in your locale
 settings.  For example, characters with different coding points but
-the same meaning are considered as equal, like different grave accent
-unicode characters:
+the same meaning might be considered as equal, like different grave
+accent Unicode characters:
 
 \(string-collate-equalp \(string ?\\uFF40) \(string ?\\u1FEF))
   => t
@@ -400,13 +404,20 @@ unicode characters:
 The optional argument LOCALE, a string, overrides the setting of your
 current locale identifier for collation.  The value is system
 dependent; a LOCALE \"en_US.UTF-8\" is applicable on POSIX systems,
-while it would be \"English_USA.1252\" on MS Windows systems.
+while it would be \"enu_USA.1252\" on MS Windows systems.
 
 If IGNORE-CASE is non-nil, characters are converted to lower-case
 before comparing them.
 
+To emulate Unicode-compliant collation on MS-Windows systems,
+bind `w32-collate-ignore-punctuation' to a non-nil value, since
+the codeset part of the locale cannot be \"UTF-8\" on MS-Windows.
+
 If your system does not support a locale environment, this function
-behaves like `string-equal'.  */)
+behaves like `string-equal'.
+
+Do NOT use this function to compare file names for equality, only
+for sorting them.  */)
   (Lisp_Object s1, Lisp_Object s2, Lisp_Object locale, Lisp_Object ignore_case)
 {
 #if defined __STDC_ISO_10646__ || defined WINDOWSNT

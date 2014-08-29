@@ -1,3 +1,17 @@
+2014-08-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* fns.c (Fstring_collate_lessp, Fstring_collate_equalp): Doc fix.
+
+	* w32proc.c (w32_compare_strings): Accept additional argument
+	IGNORE_CASE.  Set up the flags for CompareStringW to ignore case
+	if requested.  If w32-collate-ignore-punctuation is non-nil, add
+	NORM_IGNORESYMBOLS to the flags.
+	(LINGUISTIC_IGNORECASE): Define if not already defined.
+	(syms_of_ntproc) <Vw32_collate_ignore_punctuation>: New variable.
+
+	* sysdep.c (str_collate) [WINDOWSNT]: Adapt to the interface
+	change.
+
 2014-08-29  Michael Albinus  <michael.albinus@gmx.de>
 
 	* sysdep.c (LC_CTYPE, LC_CTYPE_MASK, towlower_l):
