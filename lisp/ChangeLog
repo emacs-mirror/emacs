@@ -1,3 +1,8 @@
+2014-08-29  Leo Liu  <sdl.web@gmail.com>
+
+	* files.el (minibuffer-with-setup-hook): Allow (:append FUN) to
+	append to minibuffer-setup-hook.  (Bug#18341)
+
 2014-08-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/cc-defs.el: Expose c-lanf-defconst's expressions to the
