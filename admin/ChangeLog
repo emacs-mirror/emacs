@@ -1,3 +1,7 @@
+2014-08-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* authors.el (authors-aliases): Addition.
+
 2014-08-26  Glenn Morris  <rgm@gnu.org>
 
 	* authors.el (authors-ignored-files, authors-valid-file-names)
