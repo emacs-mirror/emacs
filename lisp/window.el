@@ -6469,13 +6469,26 @@ the selected one."
 
 (defun display-buffer-at-bottom (buffer alist)
   "Try displaying BUFFER in a window at the bottom of the selected frame.
-This either splits the window at the bottom of the frame or the
-frame's root window, or reuses an existing window at the bottom
-of the selected frame."
-  (let (bottom-window window)
+This either reuses such a window provided it shows BUFFER
+already, splits a window at the bottom of the frame or the
+frame's root window, or reuses some window at the bottom of the
+selected frame."
+  (let (bottom-window bottom-window-shows-buffer window)
     (walk-window-tree
-     (lambda (window) (setq bottom-window window)) nil nil 'nomini)
-    (or (and (not (frame-parameter nil 'unsplittable))
+     (lambda (window)
+       (cond
+	((window-in-direction 'below window))
+	((and (not bottom-window-shows-buffer)
+	      (eq buffer (window-buffer window)))
+	 (setq bottom-window-shows-buffer t)
+	 (setq bottom-window window))
+	((not bottom-window)
+	 (setq bottom-window window)))
+       nil nil 'nomini))
+    (or (and bottom-window-shows-buffer
+	     (window--display-buffer
+	      buffer bottom-window 'reuse alist display-buffer-mark-dedicated))
+     (and (not (frame-parameter nil 'unsplittable))
 	     (let (split-width-threshold)
 	       (setq window (window--try-to-split-window bottom-window alist)))
 	     (window--display-buffer
