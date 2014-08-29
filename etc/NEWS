@@ -205,6 +205,8 @@ permissions set to temporary values (e.g., for creating private files).
 ** Functions `rmail-delete-forward' and `rmail-delete-backward' take an
 optional repeat-count argument.
 
+** Function `sort' can deal with vectors.
+
 ---
 ** New utilities in subr-x.el:
 *** New macros `if-let' and `when-let' allow defining bindings and to

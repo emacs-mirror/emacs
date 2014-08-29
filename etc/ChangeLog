@@ -1,3 +1,7 @@
+2014-08-29  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* NEWS: Mention that `sort' can handle vectors.
+
 2014-08-28  Glenn Morris  <rgm@gnu.org>
 
 	* emacs.appdata.xml: New file; description from Emacs's homepage.
