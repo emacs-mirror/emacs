@@ -103,6 +103,9 @@ performance improvements when pasting large amounts of text.
 ** New font-lock functions font-lock-ensure and font-lock-flush, which
 should be used instead of font-lock-fontify-buffer when called from Elisp.
 
+** Macro `minibuffer-with-setup-hook' takes (:append FUN) to mean
+appending FUN to `minibuffer-setup-hook'.
+
 ** Calendar and diary
 
 +++

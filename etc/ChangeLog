@@ -1,3 +1,7 @@
+2014-08-29  Leo Liu  <sdl.web@gmail.com>
+
+	* NEWS: Mention (:append FUN) to minibuffer-with-setup-hook.
+
 2014-08-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* NEWS: Mention w32-collate-ignore-punctuation.
