@@ -1,3 +1,14 @@
+2014-08-29  Michael Albinus  <michael.albinus@gmx.de>
+
+	* sysdep.c (LC_CTYPE, LC_CTYPE_MASK, towlower_l):
+	Define substitutes for platforms that lack them.
+	(str_collate): Add arguments locale and ignore_case.
+
+	* fns.c (Fstring_collate_lessp, Fstring_collate_equalp):
+	Add optional arguments LOCALE and IGNORE-CASE.
+
+	* lisp.h (str_collate): Adapt argument list.
+
 2014-08-29  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Add vectors support to Fsort.

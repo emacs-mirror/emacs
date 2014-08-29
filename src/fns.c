@@ -344,25 +344,28 @@ Symbols are also allowed; their print names are used instead.  */)
   return i1 < SCHARS (s2) ? Qt : Qnil;
 }
 
-DEFUN ("string-collate-lessp", Fstring_collate_lessp, Sstring_collate_lessp, 2, 2, 0,
+DEFUN ("string-collate-lessp", Fstring_collate_lessp, Sstring_collate_lessp, 2, 4, 0,
        doc: /* Return t if first arg string is less than second in collation order.
-
-Case is significant.  Symbols are also allowed; their print names are
-used instead.
+Symbols are also allowed; their print names are used instead.
 
 This function obeys the conventions for collation order in your
 locale settings.  For example, punctuation and whitespace characters
-are considered less significant for sorting.
+are considered less significant for sorting:
 
 \(sort '\("11" "12" "1 1" "1 2" "1.1" "1.2") 'string-collate-lessp)
   => \("11" "1 1" "1.1" "12" "1 2" "1.2")
 
-If your system does not support a locale environment, this function
-behaves like `string-lessp'.
+The optional argument LOCALE, a string, overrides the setting of your
+current locale identifier for collation.  The value is system
+dependent; a LOCALE \"en_US.UTF-8\" is applicable on POSIX systems,
+while it would be \"English_USA.1252\" on MS Windows systems.
 
-If the environment variable \"LC_COLLATE\" is set in `process-environment',
-it overrides the setting of your current locale.  */)
-  (Lisp_Object s1, Lisp_Object s2)
+If IGNORE-CASE is non-nil, characters are converted to lower-case
+before comparing them.
+
+If your system does not support a locale environment, this function
+behaves like `string-lessp'.  */)
+  (Lisp_Object s1, Lisp_Object s2, Lisp_Object locale, Lisp_Object ignore_case)
 {
 #if defined __STDC_ISO_10646__ || defined WINDOWSNT
   /* Check parameters.  */
@@ -372,34 +375,39 @@ it overrides the setting of your current locale.  */)
     s2 = SYMBOL_NAME (s2);
   CHECK_STRING (s1);
   CHECK_STRING (s2);
+  if (!NILP (locale))
+    CHECK_STRING (locale);
 
-  return (str_collate (s1, s2) < 0) ? Qt : Qnil;
+  return (str_collate (s1, s2, locale, ignore_case) < 0) ? Qt : Qnil;
 
 #else  /* !__STDC_ISO_10646__, !WINDOWSNT */
   return Fstring_lessp (s1, s2);
 #endif /* !__STDC_ISO_10646__, !WINDOWSNT */
 }
 
-DEFUN ("string-collate-equalp", Fstring_collate_equalp, Sstring_collate_equalp, 2, 2, 0,
+DEFUN ("string-collate-equalp", Fstring_collate_equalp, Sstring_collate_equalp, 2, 4, 0,
        doc: /* Return t if two strings have identical contents.
-
-Case is significant.  Symbols are also allowed; their print names are
-used instead.
+Symbols are also allowed; their print names are used instead.
 
 This function obeys the conventions for collation order in your locale
 settings.  For example, characters with different coding points but
 the same meaning are considered as equal, like different grave accent
-unicode characters.
+unicode characters:
 
 \(string-collate-equalp \(string ?\\uFF40) \(string ?\\u1FEF))
   => t
 
-If your system does not support a locale environment, this function
-behaves like `string-equal'.
+The optional argument LOCALE, a string, overrides the setting of your
+current locale identifier for collation.  The value is system
+dependent; a LOCALE \"en_US.UTF-8\" is applicable on POSIX systems,
+while it would be \"English_USA.1252\" on MS Windows systems.
 
-If the environment variable \"LC_COLLATE\" is set in `process-environment',
-it overrides the setting of your current locale.  */)
-  (Lisp_Object s1, Lisp_Object s2)
+If IGNORE-CASE is non-nil, characters are converted to lower-case
+before comparing them.
+
+If your system does not support a locale environment, this function
+behaves like `string-equal'.  */)
+  (Lisp_Object s1, Lisp_Object s2, Lisp_Object locale, Lisp_Object ignore_case)
 {
 #if defined __STDC_ISO_10646__ || defined WINDOWSNT
   /* Check parameters.  */
@@ -409,8 +417,10 @@ it overrides the setting of your current locale.  */)
     s2 = SYMBOL_NAME (s2);
   CHECK_STRING (s1);
   CHECK_STRING (s2);
+  if (!NILP (locale))
+    CHECK_STRING (locale);
 
-  return (str_collate (s1, s2) == 0) ? Qt : Qnil;
+  return (str_collate (s1, s2, locale, ignore_case) == 0) ? Qt : Qnil;
 
 #else  /* !__STDC_ISO_10646__, !WINDOWSNT */
   return Fstring_equal (s1, s2);

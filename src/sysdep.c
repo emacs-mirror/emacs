@@ -3605,6 +3605,7 @@ system_process_attributes (Lisp_Object pid)
 
 #ifdef __STDC_ISO_10646__
 # include <wchar.h>
+# include <wctype.h>
 
 # if defined HAVE_NEWLOCALE || defined HAVE_SETLOCALE
 #  include <locale.h>
@@ -3615,15 +3616,24 @@ system_process_attributes (Lisp_Object pid)
 # ifndef LC_COLLATE_MASK
 #  define LC_COLLATE_MASK 0
 # endif
+# ifndef LC_CTYPE
+#  define LC_CTYPE 0
+# endif
+# ifndef LC_CTYPE_MASK
+#  define LC_CTYPE_MASK 0
+# endif
+
 # ifndef HAVE_NEWLOCALE
 #  undef freelocale
 #  undef locale_t
 #  undef newlocale
 #  undef wcscoll_l
+#  undef towlower_l
 #  define freelocale emacs_freelocale
 #  define locale_t emacs_locale_t
 #  define newlocale emacs_newlocale
 #  define wcscoll_l emacs_wcscoll_l
+#  define towlower_l emacs_towlower_l
 
 typedef char const *locale_t;
 
@@ -3683,15 +3693,37 @@ wcscoll_l (wchar_t const *a, wchar_t const *b, locale_t loc)
   errno = err;
   return result;
 }
+
+static wint_t
+towlower_l (wint_t wc, locale_t loc)
+{
+  wint_t result = wc;
+  char *oldloc = emacs_setlocale (LC_CTYPE, NULL);
+
+  if (oldloc)
+    {
+      USE_SAFE_ALLOCA;
+      char *oldcopy = SAFE_ALLOCA (strlen (oldloc) + 1);
+      strcpy (oldcopy, oldloc);
+      if (emacs_setlocale (LC_CTYPE, loc))
+	{
+	  result = towlower (wc);
+	  emacs_setlocale (LC_COLLATE, oldcopy);
+	}
+      SAFE_FREE ();
+    }
+
+  return result;
+}
 # endif
 
 int
-str_collate (Lisp_Object s1, Lisp_Object s2)
+str_collate (Lisp_Object s1, Lisp_Object s2,
+	     Lisp_Object locale, Lisp_Object ignore_case)
 {
   int res, err;
   ptrdiff_t len, i, i_byte;
   wchar_t *p1, *p2;
-  Lisp_Object lc_collate;
 
   USE_SAFE_ALLOCA;
 
@@ -3708,22 +3740,43 @@ str_collate (Lisp_Object s1, Lisp_Object s2)
     FETCH_STRING_CHAR_ADVANCE (*(p2+i-1), s2, i, i_byte);
   *(p2+len) = 0;
 
-  lc_collate =
-    Fgetenv_internal (build_string ("LC_COLLATE"), Vprocess_environment);
-
-  if (STRINGP (lc_collate))
+  if (STRINGP (locale))
     {
-      locale_t loc = newlocale (LC_COLLATE_MASK, SSDATA (lc_collate), 0);
+      locale_t loc = newlocale (LC_COLLATE_MASK | LC_CTYPE_MASK,
+				SSDATA (locale), 0);
       if (!loc)
 	error ("Wrong locale: %s", strerror (errno));
       errno = 0;
-      res = wcscoll_l (p1, p2, loc);
+
+      if (! NILP (ignore_case))
+	for (int i = 1; i < 3; i++)
+	  {
+	    wchar_t *p = (i == 1) ? p1 : p2;
+	    for (; *p; p++)
+	      {
+		*p = towlower_l (*p, loc);
+		if (errno)
+		  break;
+	      }
+	    if (errno)
+	      break;
+	  }
+
+      if (! errno)
+	res = wcscoll_l (p1, p2, loc);
       err = errno;
       freelocale (loc);
     }
   else
     {
       errno = 0;
+      if (! NILP (ignore_case))
+	for (int i = 1; i < 3; i++)
+	  {
+	    wchar_t *p = (i == 1) ? p1 : p2;
+	    for (; *p; p++)
+	      *p = towlower (*p);
+	  }
       res = wcscoll (p1, p2);
       err = errno;
     }
@@ -3733,15 +3786,14 @@ str_collate (Lisp_Object s1, Lisp_Object s2)
   SAFE_FREE ();
   return res;
 }
-#endif /* __STDC_ISO_10646__ */
+#endif  /* __STDC_ISO_10646__ */
 
 #ifdef WINDOWSNT
 int
-str_collate (Lisp_Object s1, Lisp_Object s2)
-{
-  Lisp_Object lc_collate =
-    Fgetenv_internal (build_string ("LC_COLLATE"), Vprocess_environment);
-  char *loc = STRINGP (lc_collate) ? SSDATA (lc_collate) : NULL;
+str_collate (Lisp_Object s1, Lisp_Object s2,
+{	     Lisp_Object locale, Lisp_Object ignore_case)
+
+  char *loc = STRINGP (locale) ? SSDATA (locale) : NULL;
 
   return w32_compare_strings (SDATA (s1), SDATA (s2), loc);
 }
