@@ -113,8 +113,8 @@
   (should (equal
 	   (sort
 	    (vector
-	     (cons 8 "xxx") (cons 9 "aaa") (cons 8 "bbb") (cons 9 "zzz")
-	     (cons 9 "ppp") (cons 8 "ttt") (cons 8 "eee") (cons 9 "fff"))
+	     '(8 . "xxx") '(9 . "aaa") '(8 . "bbb") '(9 . "zzz")
+	     '(9 . "ppp") '(8 . "ttt") '(8 . "eee") '(9 . "fff"))
 	    (lambda (x y) (< (car x) (car y))))
 	   [(8 . "xxx") (8 . "bbb") (8 . "ttt") (8 . "eee")
 	    (9 . "aaa") (9 . "zzz") (9 . "ppp") (9 . "fff")])))

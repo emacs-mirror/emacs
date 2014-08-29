@@ -1958,7 +1958,7 @@ if the first element should sort before the second.  */)
   else if (VECTORP (seq))
     seq = sort_vector (seq, predicate);
   else if (!NILP (seq))
-    wrong_type_argument (Qarrayp, seq);
+    wrong_type_argument (Qsequencep, seq);
   return seq;
 }
 

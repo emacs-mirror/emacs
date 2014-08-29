@@ -1,3 +1,10 @@
+2014-08-29  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* lists.texi (Functions that Rearrange Lists): Remove
+	description of sort ...
+	* sequences.texi (Sequence Functions): ... and generalize
+	it for sequences.  Add an example.
+
 2014-08-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* display.texi (Bidirectional Display): Update the Emacs's class
