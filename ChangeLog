@@ -1,3 +1,7 @@
+2014-08-29  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* configure.ac (AC_CHECK_FUNCS): Check for qsort_r.
+
 2014-08-28  Ken Brown  <kbrown@cornell.edu>
 
 	* configure.ac (HYBRID_MALLOC): New macro; define to use gmalloc

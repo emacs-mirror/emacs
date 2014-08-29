@@ -100,3 +100,21 @@
   (should (compare-strings "こんにちはｺﾝﾆﾁﾊ" nil nil "こんにちはｺﾝﾆﾁﾊ" nil nil))
   (should (= (compare-strings "んにちはｺﾝﾆﾁﾊこ" nil nil "こんにちはｺﾝﾆﾁﾊ" nil nil) 1))
   (should (= (compare-strings "こんにちはｺﾝﾆﾁﾊ" nil nil "んにちはｺﾝﾆﾁﾊこ" nil nil) -1)))
+
+(ert-deftest fns-tests-sort ()
+  (should (equal (sort '(9 5 2 -1 5 3 8 7 4) (lambda (x y) (< x y)))
+		 '(-1 2 3 4 5 5 7 8 9)))
+  (should (equal (sort '(9 5 2 -1 5 3 8 7 4) (lambda (x y) (> x y)))
+		 '(9 8 7 5 5 4 3 2 -1)))
+  (should (equal (sort '[9 5 2 -1 5 3 8 7 4] (lambda (x y) (< x y)))
+		 [-1 2 3 4 5 5 7 8 9])) 
+  (should (equal (sort '[9 5 2 -1 5 3 8 7 4] (lambda (x y) (> x y)))
+		 [9 8 7 5 5 4 3 2 -1]))
+  (should (equal
+	   (sort
+	    (vector
+	     (cons 8 "xxx") (cons 9 "aaa") (cons 8 "bbb") (cons 9 "zzz")
+	     (cons 9 "ppp") (cons 8 "ttt") (cons 8 "eee") (cons 9 "fff"))
+	    (lambda (x y) (< (car x) (car y))))
+	   [(8 . "xxx") (8 . "bbb") (8 . "ttt") (8 . "eee")
+	    (9 . "aaa") (9 . "zzz") (9 . "ppp") (9 . "fff")])))

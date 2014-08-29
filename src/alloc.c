@@ -3610,6 +3610,17 @@ make_save_ptr_int (void *a, ptrdiff_t b)
   return val;
 }
 
+Lisp_Object
+make_save_int_obj (ptrdiff_t a, Lisp_Object b)
+{
+  Lisp_Object val = allocate_misc (Lisp_Misc_Save_Value);
+  struct Lisp_Save_Value *p = XSAVE_VALUE (val);
+  p->save_type = SAVE_TYPE_INT_OBJ;
+  p->data[0].integer = a;
+  p->data[1].object = b;
+  return val;
+}
+  
 #if ! (defined USE_X_TOOLKIT || defined USE_GTK)
 Lisp_Object
 make_save_ptr_ptr (void *a, void *b)

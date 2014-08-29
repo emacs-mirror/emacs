@@ -3573,7 +3573,7 @@ select getpagesize setlocale newlocale \
 getrlimit setrlimit shutdown getaddrinfo \
 pthread_sigmask strsignal setitimer \
 sendto recvfrom getsockname getpeername getifaddrs freeifaddrs \
-gai_strerror sync \
+gai_strerror sync qsort_r \
 getpwent endpwent getgrent endgrent \
 cfmakeraw cfsetspeed copysign __executable_start log2)
 LIBS=$OLD_LIBS

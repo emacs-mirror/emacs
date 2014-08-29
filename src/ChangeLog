@@ -1,3 +1,14 @@
+2014-08-29  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Add vectors support to Fsort.
+	* fns.c (sort_vector, sort_vector_compare): New functions.
+	(sort_list): Likewise, refactored out of ...
+	(Fsort): ... adjusted user.  Mention vectors in docstring.
+	(sort_vector_predicate) [!HAVE_QSORT_R]: New variable.
+	* alloc.c (make_save_int_obj): New function.
+	* lisp.h (enum Lisp_Save_Type): New member SAVE_TYPE_INT_OBJ.
+	(make_save_int_obj): Add prototype.
+
 2014-08-28  Ken Brown  <kbrown@cornell.edu>
 
 	Add support for HYBRID_MALLOC, allowing the use of gmalloc before

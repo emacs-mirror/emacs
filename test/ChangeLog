@@ -1,3 +1,7 @@
+2014-08-29  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* automated/fns-tests.el (fns-tests-sort): New test.
+
 2014-08-28  Glenn Morris  <rgm@gnu.org>
 
 	* automated/python-tests.el (python-shell-calculate-exec-path-2):

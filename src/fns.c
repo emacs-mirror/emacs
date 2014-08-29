@@ -1846,13 +1846,12 @@ See also the function `nreverse', which is used more often.  */)
     wrong_type_argument (Qsequencep, seq);
   return new;
 }
-
-DEFUN ("sort", Fsort, Ssort, 2, 2, 0,
-       doc: /* Sort LIST, stably, comparing elements using PREDICATE.
-Returns the sorted list.  LIST is modified by side effects.
-PREDICATE is called with two elements of LIST, and should return non-nil
-if the first element should sort before the second.  */)
-  (Lisp_Object list, Lisp_Object predicate)
+
+/* Sort LIST using PREDICATE, preserving original order of elements
+   considered as equal.  */
+
+static Lisp_Object
+sort_list (Lisp_Object list, Lisp_Object predicate)
 {
   Lisp_Object front, back;
   register Lisp_Object len, tem;
@@ -1875,6 +1874,92 @@ if the first element should sort before the second.  */)
   back = Fsort (back, predicate);
   UNGCPRO;
   return merge (front, back, predicate);
+}
+
+/* Using GNU qsort_r, we can pass this as a parameter.  */
+#ifndef HAVE_QSORT_R
+static Lisp_Object sort_vector_predicate;
+#endif
+
+/* Comparison function called by qsort.  */
+
+static int
+#ifdef HAVE_QSORT_R
+sort_vector_compare (const void *p, const void *q, void *arg)
+#else
+sort_vector_compare (const void *p, const void *q)
+#endif /* HAVE_QSORT_R */  
+{
+  bool more, less;
+  Lisp_Object op, oq, vp, vq;
+#ifdef HAVE_QSORT_R
+  Lisp_Object sort_vector_predicate = *(Lisp_Object *) arg;
+#endif  
+
+  op = *(Lisp_Object *) p;
+  oq = *(Lisp_Object *) q;
+  vp = XSAVE_OBJECT (op, 1);
+  vq = XSAVE_OBJECT (oq, 1);
+
+  /* Use recorded element index as a secondary key to
+     preserve original order.  Pretty ugly but works.  */
+  more = NILP (call2 (sort_vector_predicate, vp, vq));
+  less = NILP (call2 (sort_vector_predicate, vq, vp));
+  return ((more && !less) ? 1
+	  : ((!more && less) ? -1
+	     : XSAVE_INTEGER (op, 0) - XSAVE_INTEGER (oq, 0)));
+}
+
+/* Sort VECTOR using PREDICATE, preserving original order of elements
+   considered as equal.  */
+
+static Lisp_Object
+sort_vector (Lisp_Object vector, Lisp_Object predicate)
+{
+  ptrdiff_t i;
+  EMACS_INT len = ASIZE (vector);
+  Lisp_Object *v = XVECTOR (vector)->contents;
+
+  if (len < 2)
+    return vector;
+  /* Record original index of each element to make qsort stable.  */
+  for (i = 0; i < len; i++)
+    v[i] = make_save_int_obj (i, v[i]);
+
+  /* Setup predicate and sort.  */
+#ifdef HAVE_QSORT_R
+  qsort_r (v, len, word_size, sort_vector_compare, (void *) &predicate);
+#else  
+  sort_vector_predicate = predicate;
+  qsort (v, len, word_size, sort_vector_compare);
+#endif /* HAVE_QSORT_R */
+
+  /* Discard indexes and restore original elements.  */
+  for (i = 0; i < len; i++)
+    {
+      Lisp_Object save = v[i];
+      /* Use explicit free to offload GC.  */
+      v[i] = XSAVE_OBJECT (save, 1);
+      free_misc (save);
+    }
+  return vector;
+}
+
+DEFUN ("sort", Fsort, Ssort, 2, 2, 0,
+       doc: /* Sort SEQ, stably, comparing elements using PREDICATE.
+Returns the sorted sequence.  SEQ should be a list or vector.
+If SEQ is a list, it is modified by side effects.  PREDICATE
+is called with two elements of SEQ, and should return non-nil
+if the first element should sort before the second.  */)
+  (Lisp_Object seq, Lisp_Object predicate)
+{
+  if (CONSP (seq))
+    seq = sort_list (seq, predicate);
+  else if (VECTORP (seq))
+    seq = sort_vector (seq, predicate);
+  else if (!NILP (seq))
+    wrong_type_argument (Qarrayp, seq);
+  return seq;
 }
 
 Lisp_Object
