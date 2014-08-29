@@ -1,3 +1,7 @@
+2014-08-29  Michael Albinus  <michael.albinus@gmx.de>
+
+	* authors.el (authors): Use LOCALE argument of `string-collate-lessp'.
+
 2014-08-28  Michael Albinus  <michael.albinus@gmx.de>
 
 	* authors.el (authors-aliases): Addition.

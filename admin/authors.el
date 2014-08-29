@@ -1313,11 +1313,9 @@ list of their contributions.\n")
     (let (authors-author-list)
       (maphash #'authors-add-to-author-list table)
       (setq authors-author-list
-	    (let ((process-environment (cons "LC_COLLATE=en_US.UTF-8"
-					     process-environment)))
-	      (sort authors-author-list
-		    (lambda (a b)
-		      (string-collate-lessp (car a) (car b))))))
+	    (sort authors-author-list
+		  (lambda (a b)
+		    (string-collate-lessp (car a) (car b) "en_US.UTF-8"))))
       (dolist (a authors-author-list)
 	(let ((author (car a))
 	      (wrote (nth 1 a))
