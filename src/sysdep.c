@@ -3740,6 +3740,8 @@ str_collate (Lisp_Object s1, Lisp_Object s2,
     FETCH_STRING_CHAR_ADVANCE (*(p2+i-1), s2, i, i_byte);
   *(p2+len) = 0;
 
+  errno = 0;
+
   if (STRINGP (locale))
     {
       locale_t loc = newlocale (LC_COLLATE_MASK | LC_CTYPE_MASK,
@@ -3761,7 +3763,6 @@ str_collate (Lisp_Object s1, Lisp_Object s2,
     }
   else
     {
-      errno = 0;
       if (! NILP (ignore_case))
 	for (int i = 1; i < 3; i++)
 	  {
@@ -3769,6 +3770,7 @@ str_collate (Lisp_Object s1, Lisp_Object s2,
 	    for (; *p; p++)
 	      *p = towlower (*p);
 	  }
+
       res = wcscoll (p1, p2);
       err = errno;
     }

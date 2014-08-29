@@ -1,9 +1,13 @@
+2014-08-29  Michael Albinus  <michael.albinus@gmx.de>
+
+	* sysdep.c (str_collate) [__STDC_ISO_10646__]: Move up setting errno.
+
 2014-08-29  Paul Eggert  <eggert@cs.ucla.edu>
 
-	* sysdep.c (str_collate): Do not look at errno after towlower_l.
-	errno's value is not specified after towlower_l.  Instead, assume
-	that towlower_l returns its argument on failure, which is portable
-	in practice.
+	* sysdep.c (str_collate) [__STDC_ISO_10646__]: Do not look at
+	errno after towlower_l.  errno's value is not specified after
+	towlower_l.  Instead, assume that towlower_l returns its argument
+	on failure, which is portable in practice.
 
 2014-08-29  Eli Zaretskii  <eliz@gnu.org>
 
