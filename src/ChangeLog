@@ -9,7 +9,7 @@
 	* lisp.h (enum Lisp_Save_Type): New member SAVE_TYPE_INT_OBJ.
 	(make_save_int_obj): Add prototype.
 
-	Fix last change to support Darwin/OSX (Bug#18354).
+	Fix last change to support Darwin/OSX and FreeBSD (Bug#18354).
 	* sysdep.c (sort_vector_compare) [DARWIN_OS || __FreeBSD__]:
 	Conditionally define to match system's qsort_r signature.
 	(sort_vector) [DARWIN_OS || __FreeBSD__]: Likewise in call to qsort_r.
