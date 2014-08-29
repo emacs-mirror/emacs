@@ -3791,7 +3791,8 @@ str_collate (Lisp_Object s1, Lisp_Object s2,
 #ifdef WINDOWSNT
 int
 str_collate (Lisp_Object s1, Lisp_Object s2,
-{	     Lisp_Object locale, Lisp_Object ignore_case)
+	     Lisp_Object locale, Lisp_Object ignore_case)
+{
 
   char *loc = STRINGP (locale) ? SSDATA (locale) : NULL;
 

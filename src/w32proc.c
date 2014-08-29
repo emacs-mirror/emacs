@@ -3288,7 +3288,7 @@ w32_compare_strings (const char *s1, const char *s2, char *locname)
      CODESET part of LOCNAME.  In particular, ls-lisp will want
      NORM_IGNORESYMBOLS and sometimes LINGUISTIC_IGNORECASE or
      NORM_IGNORECASE.  */
-  val = pCompareStringW (lcid, 0, string1_w, -1, string2_w, -1);
+  val = pCompareStringW (lcid, NORM_IGNORESYMBOLS, string1_w, -1, string2_w, -1);
   SAFE_FREE ();
   if (!val)
     {
