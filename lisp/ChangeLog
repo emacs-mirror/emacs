@@ -1,3 +1,8 @@
+2014-08-29  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Use mode function
+	name instead of variable name in hook docstring.  (Bug#18349)
+
 2014-08-29  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (display-buffer-at-bottom): Prefer bottom-left
