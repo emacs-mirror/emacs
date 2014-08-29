@@ -1,3 +1,10 @@
+2014-08-29  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* sysdep.c (str_collate): Do not look at errno after towlower_l.
+	errno's value is not specified after towlower_l.  Instead, assume
+	that towlower_l returns its argument on failure, which is portable
+	in practice.
+
 2014-08-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* fns.c (Fstring_collate_lessp, Fstring_collate_equalp): Doc fix.

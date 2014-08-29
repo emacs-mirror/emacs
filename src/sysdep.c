@@ -3746,24 +3746,16 @@ str_collate (Lisp_Object s1, Lisp_Object s2,
 				SSDATA (locale), 0);
       if (!loc)
 	error ("Wrong locale: %s", strerror (errno));
-      errno = 0;
 
       if (! NILP (ignore_case))
 	for (int i = 1; i < 3; i++)
 	  {
 	    wchar_t *p = (i == 1) ? p1 : p2;
 	    for (; *p; p++)
-	      {
-		*p = towlower_l (*p, loc);
-		if (errno)
-		  break;
-	      }
-	    if (errno)
-	      break;
+	      *p = towlower_l (*p, loc);
 	  }
 
-      if (! errno)
-	res = wcscoll_l (p1, p2, loc);
+      res = wcscoll_l (p1, p2, loc);
       err = errno;
       freelocale (loc);
     }
