@@ -1876,7 +1876,8 @@ sort_list (Lisp_Object list, Lisp_Object predicate)
   return merge (front, back, predicate);
 }
 
-/* Using GNU qsort_r, we can pass this as a parameter.  */
+/* Using GNU qsort_r, we can pass this as a parameter.  This also
+   exists on FreeBSD and Darwin/OSX, but with a different signature. */
 #ifndef HAVE_QSORT_R
 static Lisp_Object sort_vector_predicate;
 #endif
@@ -1885,16 +1886,22 @@ static Lisp_Object sort_vector_predicate;
 
 static int
 #ifdef HAVE_QSORT_R
+#if defined (DARWIN_OS) || defined (__FreeBSD__)
+sort_vector_compare (void *arg, const void *p, const void *q)
+#elif defined (GNU_LINUX)
 sort_vector_compare (const void *p, const void *q, void *arg)
-#else
+#else /* neither darwin/bsd nor gnu/linux */
+#error "check how qsort_r comparison function works on your platform"
+#endif /* DARWIN_OS || __FreeBSD__ */
+#else /* not HAVE_QSORT_R */
 sort_vector_compare (const void *p, const void *q)
-#endif /* HAVE_QSORT_R */  
+#endif /* HAVE_QSORT_R */
 {
   bool more, less;
   Lisp_Object op, oq, vp, vq;
 #ifdef HAVE_QSORT_R
   Lisp_Object sort_vector_predicate = *(Lisp_Object *) arg;
-#endif  
+#endif
 
   op = *(Lisp_Object *) p;
   oq = *(Lisp_Object *) q;
@@ -1928,8 +1935,14 @@ sort_vector (Lisp_Object vector, Lisp_Object predicate)
 
   /* Setup predicate and sort.  */
 #ifdef HAVE_QSORT_R
+#if defined (DARWIN_OS) || defined (__FreeBSD__)
+  qsort_r (v, len, word_size, (void *) &predicate, sort_vector_compare);
+#elif defined (GNU_LINUX)
   qsort_r (v, len, word_size, sort_vector_compare, (void *) &predicate);
-#else  
+#else /* neither darwin/bsd nor gnu/linux */
+#error "check how qsort_r works on your platform"
+#endif /* DARWIN_OS || __FreeBSD__ */
+#else /* not HAVE_QSORT_R */
   sort_vector_predicate = predicate;
   qsort (v, len, word_size, sort_vector_compare);
 #endif /* HAVE_QSORT_R */
