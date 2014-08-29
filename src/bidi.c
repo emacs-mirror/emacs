@@ -1398,18 +1398,38 @@ bidi_find_paragraph_start (ptrdiff_t pos, ptrdiff_t pos_byte)
    bidi_paragraph_init to less than 10 ms even on slow machines.  */
 #define MAX_STRONG_CHAR_SEARCH 100000
 
+/* Starting from POS, find the first strong (L, R, or AL) character,
+   while skipping over any characters between an isolate initiator and
+   its matching PDI.  STOP_AT_PDI non-zero means stop at the PDI that
+   matches the isolate initiator at POS.  Return the bidi type of the
+   character where the search stopped.  Give up if after examining
+   MAX_STRONG_CHAR_SEARCH buffer or string positions no strong
+   character was found.  */
 static bidi_type_t
 find_first_strong_char (ptrdiff_t pos, ptrdiff_t bytepos, ptrdiff_t end,
 			ptrdiff_t *disp_pos, int *disp_prop,
 			struct bidi_string_data *string, struct window *w,
 			bool string_p, bool frame_window_p,
-			ptrdiff_t *ch_len, ptrdiff_t *nchars)
+			ptrdiff_t *ch_len, ptrdiff_t *nchars, bool stop_at_pdi)
 {
   ptrdiff_t pos1;
   bidi_type_t type;
   const unsigned char *s;
   int ch;
 
+  if (stop_at_pdi)
+    {
+      /* If STOP_AT_PDI is non-zero, we must have been called with FSI
+	 at POS.  Get past it.  */
+#ifdef ENABLE_CHECKING
+      ch = bidi_fetch_char (pos, bytepos, disp_pos, disp_prop, string, w,
+			    frame_window_p, ch_len, nchars);
+      type = bidi_get_type (ch, NEUTRAL_DIR);
+      eassert (type == FSI /* || type == LRI || type == RLI */);
+#endif
+      pos += *nchars;
+      bytepos += *ch_len;
+    }
   ch = bidi_fetch_char_skip_isolates (pos, bytepos, disp_pos, disp_prop, string,
 				      w, frame_window_p, ch_len, nchars);
   type = bidi_get_type (ch, NEUTRAL_DIR);
@@ -1417,6 +1437,8 @@ find_first_strong_char (ptrdiff_t pos, ptrdiff_t bytepos, ptrdiff_t end,
   pos1 = pos;
   for (pos += *nchars, bytepos += *ch_len;
        bidi_get_category (type) != STRONG
+	 /* If requested to stop at first PDI, stop there.  */
+	 && !(stop_at_pdi && type == PDI)
 	 /* Stop when searched too far into an abnormally large
 	    paragraph full of weak or neutral characters.  */
 	 && pos - pos1 < MAX_STRONG_CHAR_SEARCH;
@@ -1440,6 +1462,7 @@ find_first_strong_char (ptrdiff_t pos, ptrdiff_t bytepos, ptrdiff_t end,
       pos += *nchars;
       bytepos += *ch_len;
     }
+  return type;
 }
 
 /* Determine the base direction, a.k.a. base embedding level, of the
@@ -1545,7 +1568,7 @@ bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it, bool no_default_p)
 	type = find_first_strong_char (pos, bytepos, end, &disp_pos, &disp_prop,
 				       &bidi_it->string, bidi_it->w,
 				       string_p, bidi_it->frame_window_p,
-				       &ch_len, &nchars);
+				       &ch_len, &nchars, false);
 	if (type == STRONG_R || type == STRONG_AL) /* P3 */
 	  bidi_it->paragraph_dir = R2L;
 	else if (type == STRONG_L)
@@ -1619,7 +1642,7 @@ static int
 bidi_resolve_explicit_1 (struct bidi_it *bidi_it)
 {
   int curchar;
-  bidi_type_t type;
+  bidi_type_t type, typ1;
   int current_level;
   int new_level;
   bidi_dir_t override;
@@ -1775,19 +1798,28 @@ bidi_resolve_explicit_1 (struct bidi_it *bidi_it)
 	  type = WEAK_EN;
 	break;
       case FSI:	/* X5c */
-	bidi_it->type_after_w1 = type;
 	end = string_p ? bidi_it->string.schars : ZV;
 	disp_pos = bidi_it->disp_pos;
 	disp_prop = bidi_it->disp_prop;
-	type = find_first_strong_char (bidi_it->charpos, bidi_it->bytepos, end,
+	nchars = bidi_it->nchars;
+	ch_len = bidi_it->ch_len;
+	typ1 = find_first_strong_char (bidi_it->charpos, bidi_it->bytepos, end,
 				       &disp_pos, &disp_prop, &bidi_it->string,
 				       bidi_it->w, string_p, bidi_it->frame_window_p,
-				       &ch_len, &nchars);
-	if (type != STRONG_R && type != STRONG_AL)
-	  goto fsi_as_lri;
+				       &ch_len, &nchars, true);
+	if (typ1 != STRONG_R && typ1 != STRONG_AL)
+	  {
+	    type = LRI;
+	    goto fsi_as_lri;
+	  }
+	else
+	  type == RLI;
 	/* FALLTHROUGH */
       case RLI:	/* X5a */
-	bidi_it->type_after_w1 = type;
+	if (override == NEUTRAL_DIR)
+	  bidi_it->type_after_w1 = type;
+	else	/* Unicode 8.0 correction.  */
+	  bidi_it->type_after_w1 = (override == L2R ? STRONG_L : STRONG_R);
 	bidi_check_type (bidi_it->type_after_w1);
 	if (current_level < BIDI_MAXDEPTH
 	    && bidi_it->invalid_levels == 0
@@ -1802,7 +1834,10 @@ bidi_resolve_explicit_1 (struct bidi_it *bidi_it)
 	break;
       case LRI:	/* X5b */
     fsi_as_lri:
-	bidi_it->type_after_w1 = type;
+	if (override == NEUTRAL_DIR)
+	  bidi_it->type_after_w1 = type;
+	else	/* Unicode 8.0 correction.  */
+	  bidi_it->type_after_w1 = (override == L2R ? STRONG_L : STRONG_R);
 	bidi_check_type (bidi_it->type_after_w1);
 	if (current_level < BIDI_MAXDEPTH - 1
 	    && bidi_it->invalid_levels == 0
@@ -1817,7 +1852,10 @@ bidi_resolve_explicit_1 (struct bidi_it *bidi_it)
 	break;
       case PDI:	/* X6a */
 	if (bidi_it->invalid_isolates)
-	  bidi_it->invalid_isolates--;
+	  {
+	    bidi_it->invalid_isolates--;
+	    new_level = current_level;
+	  }
 	else if (bidi_it->isolate_level > 0)
 	  {
 	    bidi_it->invalid_levels = 0;
@@ -1825,9 +1863,16 @@ bidi_resolve_explicit_1 (struct bidi_it *bidi_it)
 	      bidi_pop_embedding_level (bidi_it);
 	    eassert (bidi_it->stack_idx > 0);
 	    new_level = bidi_pop_embedding_level (bidi_it);
-	    bidi_it->resolved_level = new_level;
 	    bidi_it->isolate_level--;
 	  }
+	bidi_it->resolved_level = new_level;
+	/* Unicode 8.0 correction.  */
+	if (bidi_it->level_stack[bidi_it->stack_idx].override == L2R)
+	  bidi_it->type_after_w1 = STRONG_L;
+	else if (bidi_it->level_stack[bidi_it->stack_idx].override == R2L)
+	  bidi_it->type_after_w1 = STRONG_R;
+	else
+	  bidi_it->type_after_w1 = type;
 	break;
       case PDF:	/* X7 */
 	bidi_it->type_after_w1 = type;
