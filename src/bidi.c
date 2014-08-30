@@ -424,22 +424,22 @@ static void
 bidi_push_embedding_level (struct bidi_it *bidi_it,
 			   int level, bidi_dir_t override, bool isolate_status)
 {
-  struct bidi_stack st;
+  struct bidi_stack *st;
 
   bidi_it->stack_idx++;
   eassert (bidi_it->stack_idx < BIDI_MAXDEPTH+2+1);
-  st = bidi_it->level_stack[bidi_it->stack_idx];
-  st.level = level;
-  st.override = override;
-  st.isolate_status = isolate_status;
+  st = &bidi_it->level_stack[bidi_it->stack_idx];
+  st->level = level;
+  st->override = override;
+  st->isolate_status = isolate_status;
   if (isolate_status)
     {
-      st.prev = bidi_it->prev;
-      st.last_strong = bidi_it->last_strong;
-      st.prev_for_neutral = bidi_it->prev_for_neutral;
-      st.next_for_neutral = bidi_it->next_for_neutral;
-      st.next_for_ws = bidi_it->next_for_ws;
-      st.sos = bidi_it->sos;
+      st->prev = bidi_it->prev;
+      st->last_strong = bidi_it->last_strong;
+      st->prev_for_neutral = bidi_it->prev_for_neutral;
+      st->next_for_neutral = bidi_it->next_for_neutral;
+      st->next_for_ws = bidi_it->next_for_ws;
+      st->sos = bidi_it->sos;
     }
 }
 
@@ -1446,7 +1446,6 @@ find_first_strong_char (ptrdiff_t pos, ptrdiff_t bytepos, ptrdiff_t end,
 {
   ptrdiff_t pos1;
   bidi_type_t type;
-  const unsigned char *s;
   int ch;
 
   if (stop_at_pdi)
@@ -1543,7 +1542,6 @@ bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it, bool no_default_p)
     }
   else if (dir == NEUTRAL_DIR)	/* P2 */
     {
-      int ch;
       ptrdiff_t ch_len, nchars;
       ptrdiff_t pos, disp_pos = -1;
       int disp_prop = 0;
@@ -1592,8 +1590,6 @@ bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it, bool no_default_p)
       /* The following loop is run more than once only if NO_DEFAULT_P,
 	 and only if we are iterating on a buffer.  */
       do {
-	ptrdiff_t pos1;
-
 	bytepos = pstartbyte;
 	if (!string_p)
 	  pos = BYTE_TO_CHAR (bytepos);
@@ -1845,7 +1841,7 @@ bidi_resolve_explicit_1 (struct bidi_it *bidi_it)
 	    goto fsi_as_lri;
 	  }
 	else
-	  type == RLI;
+	  type = RLI;
 	/* FALLTHROUGH */
       case RLI:	/* X5a */
 	if (override == NEUTRAL_DIR)
