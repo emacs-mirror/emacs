@@ -1,3 +1,9 @@
+2014-08-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* sysdep.c (str_collate): Clear errno just before wcscoll(_l).
+	One can't hoist this out of the 'if', because intervening calls to
+	newlocale, twolower, etc. can change errno.
+
 2014-08-30  Eli Zaretskii  <eliz@gnu.org>
 
 	* sysdep.c (str_collate) [__STDC_ISO_10646__]: Improve the
