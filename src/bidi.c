@@ -407,7 +407,6 @@ bidi_set_sos_type (struct bidi_it *bidi_it, int level_before, int level_after)
     /* FIXME: should the default sos direction be user selectable?  */
     bidi_it->sos = ((higher_level & 1) != 0 ? R2L : L2R);
 
-  /* FIXME: This needs to be reviewed!! */
   bidi_it->prev.type = UNKNOWN_BT;
   bidi_it->last_strong.type = bidi_it->last_strong.type_after_w1
     = bidi_it->last_strong.orig_type = UNKNOWN_BT;
@@ -425,21 +424,55 @@ static void
 bidi_push_embedding_level (struct bidi_it *bidi_it,
 			   int level, bidi_dir_t override, bool isolate_status)
 {
+  struct bidi_stack st;
+
   bidi_it->stack_idx++;
   eassert (bidi_it->stack_idx < BIDI_MAXDEPTH+2+1);
-  bidi_it->level_stack[bidi_it->stack_idx].level = level;
-  bidi_it->level_stack[bidi_it->stack_idx].override = override;
-  bidi_it->level_stack[bidi_it->stack_idx].isolate_status = isolate_status;
+  st = bidi_it->level_stack[bidi_it->stack_idx];
+  st.level = level;
+  st.override = override;
+  st.isolate_status = isolate_status;
+  if (isolate_status)
+    {
+      st.prev = bidi_it->prev;
+      st.last_strong = bidi_it->last_strong;
+      st.prev_for_neutral = bidi_it->prev_for_neutral;
+      st.next_for_neutral = bidi_it->next_for_neutral;
+      st.next_for_ws = bidi_it->next_for_ws;
+      st.next_en_pos = bidi_it->next_en_pos;
+      st.next_en_type = bidi_it->next_en_type;
+      st.sos = bidi_it->sos;
+    }
 }
 
-/* Pop the embedding level and directional override status from the
-   stack, and return the new level.  */
+/* Pop from the stack the embedding level, the directional override
+   status, and optionally saved information for the isolating run
+   sequence.  Return the new level.  */
 static int
 bidi_pop_embedding_level (struct bidi_it *bidi_it)
 {
-  /* UAX#9 says to ignore invalid PDFs.  */
+  /* UAX#9 says to ignore invalid PDFs (X7, last bullet)
+     and PDIs (X6a, 2nd bullet).  */
   if (bidi_it->stack_idx > 0)
-    bidi_it->stack_idx--;
+    {
+      bool isolate_status
+	= bidi_it->level_stack[bidi_it->stack_idx].isolate_status;
+      struct bidi_stack st;
+
+      st = bidi_it->level_stack[bidi_it->stack_idx];
+      if (isolate_status)
+	{
+	  bidi_it->prev = st.prev;
+	  bidi_it->last_strong = st.last_strong;
+	  bidi_it->prev_for_neutral = st.prev_for_neutral;
+	  bidi_it->next_for_neutral = st.next_for_neutral;
+	  bidi_it->next_for_ws = st.next_for_ws;
+	  bidi_it->next_en_pos = st.next_en_pos;
+	  bidi_it->next_en_type = st.next_en_type;
+	  bidi_it->sos = st.sos;
+	}
+      bidi_it->stack_idx--;
+    }
   return bidi_it->level_stack[bidi_it->stack_idx].level;
 }
 
@@ -475,6 +508,9 @@ bidi_copy_it (struct bidi_it *to, struct bidi_it *from)
 			Caching the bidi iterator states
  ***********************************************************************/
 
+/* We allocate and de-allocate the cache in chunks of this size (in
+   characters).  200 was chosen as an upper limit for reasonably-long
+   lines in a text file/buffer.  */
 #define BIDI_CACHE_CHUNK 200
 static struct bidi_it *bidi_cache;
 static ptrdiff_t bidi_cache_size = 0;
@@ -954,6 +990,7 @@ static void
 bidi_set_paragraph_end (struct bidi_it *bidi_it)
 {
   bidi_it->invalid_levels = 0;
+  bidi_it->invalid_isolates = 0;
   bidi_it->stack_idx = 0;
   bidi_it->resolved_level = bidi_it->level_stack[0].level;
 }
@@ -1016,7 +1053,6 @@ bidi_line_init (struct bidi_it *bidi_it)
   bidi_it->invalid_isolates = 0; /* X1 */
   /* Setting this to zero will force its recomputation the first time
      we need it for W5.  */
-  /* FIXME: Review this!!! */
   bidi_it->next_en_pos = 0;
   bidi_it->next_en_type = UNKNOWN_BT;
   bidi_it->next_for_ws.type = UNKNOWN_BT;
@@ -2010,10 +2046,16 @@ bidi_resolve_weak (struct bidi_it *bidi_it)
     emacs_abort ();
 
   eassert (prev_level >= 0);
-  if (new_level != prev_level
+  if (new_level > prev_level
+      /* When the embedding level goes down, we only need to compute
+	 the type of sos if this level is not an isolate, because the
+	 sos type of the isolating sequence was already computed and
+	 saved on the stack.  */
+      || (new_level < prev_level
+	  && !bidi_it->level_stack[bidi_it->stack_idx].isolate_status)
       || bidi_it->type == NEUTRAL_B)
     {
-      /* We've got a new embedding level run, compute the directional
+      /* We've got a new isolating sequence, compute the directional
          type of sos and initialize per-run variables (UAX#9, clause
          X10).  */
       bidi_set_sos_type (bidi_it, prev_level, new_level);
@@ -2350,7 +2392,7 @@ bidi_resolve_neutral (struct bidi_it *bidi_it)
 		/* FALLTHROUGH */
 	      case NEUTRAL_B:
 		/* Marched all the way to the end of this level run.
-		   We need to use the eor type, whose information is
+		   We need to use the eos type, whose information is
 		   stored by bidi_set_sos_type in the prev_for_neutral
 		   member.  */
 		if (saved_it.type != WEAK_BN

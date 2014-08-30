@@ -1908,12 +1908,21 @@ struct bidi_saved_info {
   bidi_type_t orig_type;	/* type as we found it in the buffer */
 };
 
-/* Data type for keeping track of saved embedding levels, override
-   status, and isolate status information.  */
+/* Data type for keeping track of information about saved embedding
+   levels, override status, isolate status, and isolating sequence
+   runs.  */
 struct bidi_stack {
   char level;
   bool isolate_status;
   bidi_dir_t override;
+  struct bidi_saved_info prev;
+  struct bidi_saved_info last_strong;
+  struct bidi_saved_info next_for_neutral;
+  struct bidi_saved_info prev_for_neutral;
+  struct bidi_saved_info next_for_ws;
+  ptrdiff_t next_en_pos;
+  bidi_type_t next_en_type;
+  bidi_dir_t sos;
 };
 
 /* Data type for storing information about a string being iterated on.  */
