@@ -1992,17 +1992,18 @@ sort_vector (Lisp_Object vector, Lisp_Object predicate)
     return;
   ptrdiff_t halflen = len >> 1;
   Lisp_Object *tmp;
+  Lisp_Object tmpvec = Qnil;
   struct gcpro gcpro1, gcpro2, gcpro3;
-  GCPRO3 (vector, predicate, predicate);
-  USE_SAFE_ALLOCA;
-  SAFE_ALLOCA_LISP (tmp, halflen);
-  for (ptrdiff_t i = 0; i < halflen; i++)
-    tmp[i] = make_number (0);
-  gcpro3.var = tmp;
-  gcpro3.nvars = halflen;
+  GCPRO3 (vector, predicate, tmpvec);
+  if (halflen < MAX_ALLOCA / word_size)
+    tmp = alloca (halflen * word_size);
+  else
+    {
+      tmpvec = Fmake_vector (make_number (halflen), make_number (0));
+      tmp = XVECTOR (tmpvec)->contents;
+    }
   sort_vector_inplace (predicate, len, XVECTOR (vector)->contents, tmp);
   UNGCPRO;
-  SAFE_FREE ();
 }
 
 DEFUN ("sort", Fsort, Ssort, 2, 2, 0,
