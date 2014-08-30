@@ -439,8 +439,6 @@ bidi_push_embedding_level (struct bidi_it *bidi_it,
       st.prev_for_neutral = bidi_it->prev_for_neutral;
       st.next_for_neutral = bidi_it->next_for_neutral;
       st.next_for_ws = bidi_it->next_for_ws;
-      st.next_en_pos = bidi_it->next_en_pos;
-      st.next_en_type = bidi_it->next_en_type;
       st.sos = bidi_it->sos;
     }
 }
@@ -467,8 +465,6 @@ bidi_pop_embedding_level (struct bidi_it *bidi_it)
 	  bidi_it->prev_for_neutral = st.prev_for_neutral;
 	  bidi_it->next_for_neutral = st.next_for_neutral;
 	  bidi_it->next_for_ws = st.next_for_ws;
-	  bidi_it->next_en_pos = st.next_en_pos;
-	  bidi_it->next_en_type = st.next_en_type;
 	  bidi_it->sos = st.sos;
 	}
       bidi_it->stack_idx--;
@@ -2018,6 +2014,12 @@ bidi_resolve_explicit (struct bidi_it *bidi_it)
   return new_level;
 }
 
+static bool
+bidi_isolate_fmt_char (bidi_type_t ch_type)
+{
+  return (ch_type == LRI || ch_type == RLI || ch_type == PDI);
+}
+
 /* Advance in the buffer/string, resolve weak types and return the
    type of the next character after weak type resolution.  */
 static bidi_type_t
@@ -2085,7 +2087,12 @@ bidi_resolve_weak (struct bidi_it *bidi_it)
 	  if (bidi_it->prev.type_after_w1 != UNKNOWN_BT
 	      /* if type_after_w1 is NEUTRAL_B, this NSM is at sos */
 	      && bidi_it->prev.type_after_w1 != NEUTRAL_B)
-	    type = bidi_it->prev.type_after_w1;
+	    {
+	      if (bidi_isolate_fmt_char (bidi_it->prev.type_after_w1))
+		type = NEUTRAL_ON;
+	      else
+		type = bidi_it->prev.type_after_w1;
+	    }
 	  else if (bidi_it->sos == R2L)
 	    type = STRONG_R;
 	  else if (bidi_it->sos == L2R)

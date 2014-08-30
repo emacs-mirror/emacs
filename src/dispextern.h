@@ -1920,8 +1920,6 @@ struct bidi_stack {
   struct bidi_saved_info next_for_neutral;
   struct bidi_saved_info prev_for_neutral;
   struct bidi_saved_info next_for_ws;
-  ptrdiff_t next_en_pos;
-  bidi_type_t next_en_type;
   bidi_dir_t sos;
 };
 
