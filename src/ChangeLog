@@ -1,3 +1,15 @@
+2014-08-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* sysdep.c (str_collate) [__STDC_ISO_10646__]: Improve the
+	wording of the error messages.
+	(str_collate) [WINDOWSNT]: Signal an error if w32_compare_strings
+	sets errno.
+
+	* w32proc.c (get_lcid_callback): Accept locale specifications
+	without the country part, as in "enu" vs "enu_USA".
+	(w32_compare_strings): Signal an error if a locale was specified,
+	but couldn't be translated into a valid LCID.
+
 2014-08-29  Michael Albinus  <michael.albinus@gmx.de>
 
 	* sysdep.c (str_collate) [__STDC_ISO_10646__]: Move up setting errno.

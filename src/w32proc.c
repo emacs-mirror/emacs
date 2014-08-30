@@ -3164,6 +3164,12 @@ get_lcid_callback (LPTSTR locale_num_str)
   if (GetLocaleInfo (try_lcid, LOCALE_SABBREVLANGNAME,
 		     locval, LOCALE_NAME_MAX_LENGTH))
     {
+      /* This is for when they only specify the language, as in "ENU".  */
+      if (stricmp (locval, lname) == 0)
+	{
+	  found_lcid = try_lcid;
+	  return FALSE;
+	}
       strcat (locval, "_");
       if (GetLocaleInfo (try_lcid, LOCALE_SABBREVCTRYNAME,
 			 locval + strlen (locval), LOCALE_NAME_MAX_LENGTH))
@@ -3287,6 +3293,8 @@ w32_compare_strings (const char *s1, const char *s2, char *locname,
 
       if (new_lcid > 0)
 	lcid = new_lcid;
+      else
+	error ("Invalid locale %s: Invalid argument", locname);
     }
 
   if (ignore_case)

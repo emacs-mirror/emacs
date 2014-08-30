@@ -3747,7 +3747,7 @@ str_collate (Lisp_Object s1, Lisp_Object s2,
       locale_t loc = newlocale (LC_COLLATE_MASK | LC_CTYPE_MASK,
 				SSDATA (locale), 0);
       if (!loc)
-	error ("Wrong locale: %s", strerror (errno));
+	error ("Invalid locale %s: %s", SSDATA (locale), strerror (errno));
 
       if (! NILP (ignore_case))
 	for (int i = 1; i < 3; i++)
@@ -3774,8 +3774,13 @@ str_collate (Lisp_Object s1, Lisp_Object s2,
       res = wcscoll (p1, p2);
       err = errno;
     }
+#  ifndef HAVE_NEWLOCALE
   if (err)
-    error ("Wrong argument: %s", strerror (err));
+    error ("Invalid locale or string for collation: %s", strerror (err));
+#  else
+  if (err)
+    error ("Invalid string for collation: %s", strerror (err));
+#  endif
 
   SAFE_FREE ();
   return res;
@@ -3789,7 +3794,14 @@ str_collate (Lisp_Object s1, Lisp_Object s2,
 {
 
   char *loc = STRINGP (locale) ? SSDATA (locale) : NULL;
+  int res, err = errno;
 
-  return w32_compare_strings (SDATA (s1), SDATA (s2), loc, !NILP (ignore_case));
+  errno = 0;
+  res = w32_compare_strings (SDATA (s1), SDATA (s2), loc, !NILP (ignore_case));
+  if (errno)
+    error ("Invalid string for collation: %s", strerror (errno));
+
+  errno = err;
+  return res;
 }
 #endif	/* WINDOWSNT */
