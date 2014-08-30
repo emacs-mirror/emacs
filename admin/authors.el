@@ -1315,7 +1315,10 @@ list of their contributions.\n")
       (setq authors-author-list
 	    (sort authors-author-list
 		  (lambda (a b)
-		    (string-collate-lessp (car a) (car b) "en_US.UTF-8"))))
+		    (string-collate-lessp (car a) (car b)
+					  (if (eq system-type 'windows-nt)
+					      "enu_USA"
+					    "en_US.UTF-8")))))
       (dolist (a authors-author-list)
 	(let ((author (car a))
 	      (wrote (nth 1 a))

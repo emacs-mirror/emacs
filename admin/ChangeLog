@@ -1,3 +1,8 @@
+2014-08-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* authors.el (authors): Fix last change so it works for MS-Windows
+	as well.
+
 2014-08-29  Michael Albinus  <michael.albinus@gmx.de>
 
 	* authors.el (authors): Use LOCALE argument of `string-collate-lessp'.
