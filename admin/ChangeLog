@@ -1,3 +1,8 @@
+2014-08-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Vector-sorting fixes (Bug#18361).
+	* merge-gnulib (GNULIB_MODULES): Add vla.
+
 2014-08-30  Eli Zaretskii  <eliz@gnu.org>
 
 	* authors.el (authors): Fix last change so it works for MS-Windows

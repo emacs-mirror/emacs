@@ -1,5 +1,19 @@
 2014-08-30  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Vector-sorting fixes (Bug#18361).
+	It's not safe to call qsort or qsort_r, since they have undefined
+	behavior if the user-specified predicate is not a total order.
+	Also, watch out for garbage-collection while sorting vectors.
+	* fns.c: Include <vla.h>.
+	(sort_vector_predicate) [!HAVE_QSORT_R]: Remove.
+	(sort_vector_compare): Remove, replacing with ....
+	(inorder, merge_vectors, sort_vector_inplace, sort_vector_copy):
+	... these new functions.
+	(sort_vector): Rewrite to use the new functions.
+	GCPRO locals, since the predicate can invoke the GC.
+	Since it's in-place return void; caller changed.
+	(merge): Use 'inorder', for clarity.
+
 	* sysdep.c (str_collate): Clear errno just before wcscoll(_l).
 	One can't hoist this out of the 'if', because intervening calls to
 	newlocale, twolower, etc. can change errno.

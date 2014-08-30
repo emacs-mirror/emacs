@@ -39,7 +39,7 @@ GNULIB_MODULES='
   strftime strtoimax strtoumax symlink sys_stat
   sys_time time timer-time timespec-add timespec-sub
   unsetenv update-copyright utimens
-  warnings
+  vla warnings
 '
 
 GNULIB_TOOL_FLAGS='

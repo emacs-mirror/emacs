@@ -24,6 +24,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <time.h>
 
 #include <intprops.h>
+#include <vla.h>
 
 #include "lisp.h"
 #include "commands.h"
@@ -49,6 +50,8 @@ static Lisp_Object Qcodeset, Qdays, Qmonths, Qpaper;
 
 static Lisp_Object Qmd5, Qsha1, Qsha224, Qsha256, Qsha384, Qsha512;
 
+static void sort_vector_copy (Lisp_Object, ptrdiff_t,
+			      Lisp_Object [restrict], Lisp_Object [restrict]);
 static bool internal_equal (Lisp_Object, Lisp_Object, int, bool, Lisp_Object);
 
 DEFUN ("identity", Fidentity, Sidentity, 1, 1, 0,
@@ -1897,86 +1900,109 @@ sort_list (Lisp_Object list, Lisp_Object predicate)
   return merge (front, back, predicate);
 }
 
-/* Using GNU qsort_r, we can pass this as a parameter.  This also
-   exists on FreeBSD and Darwin/OSX, but with a different signature. */
-#ifndef HAVE_QSORT_R
-static Lisp_Object sort_vector_predicate;
-#endif
-
-/* Comparison function called by qsort.  */
-
-static int
-#ifdef HAVE_QSORT_R
-#if defined (DARWIN_OS) || defined (__FreeBSD__)
-sort_vector_compare (void *arg, const void *p, const void *q)
-#elif defined (GNU_LINUX)
-sort_vector_compare (const void *p, const void *q, void *arg)
-#else /* neither darwin/bsd nor gnu/linux */
-#error "check how qsort_r comparison function works on your platform"
-#endif /* DARWIN_OS || __FreeBSD__ */
-#else /* not HAVE_QSORT_R */
-sort_vector_compare (const void *p, const void *q)
-#endif /* HAVE_QSORT_R */
+/* Using PRED to compare, return whether A and B are in order.
+   Compare stably when A appeared before B in the input.  */
+static bool
+inorder (Lisp_Object pred, Lisp_Object a, Lisp_Object b)
 {
-  bool more, less;
-  Lisp_Object op, oq, vp, vq;
-#ifdef HAVE_QSORT_R
-  Lisp_Object sort_vector_predicate = *(Lisp_Object *) arg;
-#endif
-
-  op = *(Lisp_Object *) p;
-  oq = *(Lisp_Object *) q;
-  vp = XSAVE_OBJECT (op, 1);
-  vq = XSAVE_OBJECT (oq, 1);
-
-  /* Use recorded element index as a secondary key to
-     preserve original order.  Pretty ugly but works.  */
-  more = NILP (call2 (sort_vector_predicate, vp, vq));
-  less = NILP (call2 (sort_vector_predicate, vq, vp));
-  return ((more && !less) ? 1
-	  : ((!more && less) ? -1
-	     : XSAVE_INTEGER (op, 0) - XSAVE_INTEGER (oq, 0)));
+  return NILP (call2 (pred, b, a));
 }
 
-/* Sort VECTOR using PREDICATE, preserving original order of elements
-   considered as equal.  */
+/* Using PRED to compare, merge from ALEN-length A and BLEN-length B
+   into DEST.  Argument arrays must be nonempty and must not overlap,
+   except that B might be the last part of DEST.  */
+static void
+merge_vectors (Lisp_Object pred,
+	       ptrdiff_t alen, Lisp_Object const a[restrict VLA_ELEMS (alen)],
+	       ptrdiff_t blen, Lisp_Object const b[VLA_ELEMS (blen)],
+	       Lisp_Object dest[VLA_ELEMS (alen + blen)])
+{
+  eassume (0 < alen && 0 < blen);
+  Lisp_Object const *alim = a + alen;
+  Lisp_Object const *blim = b + blen;
 
-static Lisp_Object
+  while (true)
+    {
+      if (inorder (pred, a[0], b[0]))
+	{
+	  *dest++ = *a++;
+	  if (a == alim)
+	    {
+	      if (dest != b)
+		memcpy (dest, b, (blim - b) * sizeof *dest);
+	      return;
+	    }
+	}
+      else
+	{
+	  *dest++ = *b++;
+	  if (b == blim)
+	    {
+	      memcpy (dest, a, (alim - a) * sizeof *dest);
+	      return;
+	    }
+	}
+    }
+}
+
+/* Using PRED to compare, sort LEN-length VEC in place, using TMP for
+   temporary storage.  LEN must be at least 2.  */
+static void
+sort_vector_inplace (Lisp_Object pred, ptrdiff_t len,
+		     Lisp_Object vec[restrict VLA_ELEMS (len)],
+		     Lisp_Object tmp[restrict VLA_ELEMS (len >> 1)])
+{
+  eassume (2 <= len);
+  ptrdiff_t halflen = len >> 1;
+  sort_vector_copy (pred, halflen, vec, tmp);
+  if (1 < len - halflen)
+    sort_vector_inplace (pred, len - halflen, vec + halflen, vec);
+  merge_vectors (pred, halflen, tmp, len - halflen, vec + halflen, vec);
+}
+
+/* Using PRED to compare, sort from LEN-length SRC into DST.
+   Len must be positive.  */
+static void
+sort_vector_copy (Lisp_Object pred, ptrdiff_t len,
+		  Lisp_Object src[restrict VLA_ELEMS (len)],
+		  Lisp_Object dest[restrict VLA_ELEMS (len)])
+{
+  eassume (0 < len);
+  ptrdiff_t halflen = len >> 1;
+  if (halflen < 1)
+    dest[0] = src[0];
+  else
+    {
+      if (1 < halflen)
+	sort_vector_inplace (pred, halflen, src, dest);
+      if (1 < len - halflen)
+	sort_vector_inplace (pred, len - halflen, src + halflen, dest);
+      merge_vectors (pred, halflen, src, len - halflen, src + halflen, dest);
+    }
+}
+
+/* Sort VECTOR in place using PREDICATE, preserving original order of
+   elements considered as equal.  */
+
+static void
 sort_vector (Lisp_Object vector, Lisp_Object predicate)
 {
-  ptrdiff_t i;
-  EMACS_INT len = ASIZE (vector);
-  Lisp_Object *v = XVECTOR (vector)->contents;
-
+  ptrdiff_t len = ASIZE (vector);
   if (len < 2)
-    return vector;
-  /* Record original index of each element to make qsort stable.  */
-  for (i = 0; i < len; i++)
-    v[i] = make_save_int_obj (i, v[i]);
-
-  /* Setup predicate and sort.  */
-#ifdef HAVE_QSORT_R
-#if defined (DARWIN_OS) || defined (__FreeBSD__)
-  qsort_r (v, len, word_size, (void *) &predicate, sort_vector_compare);
-#elif defined (GNU_LINUX)
-  qsort_r (v, len, word_size, sort_vector_compare, (void *) &predicate);
-#else /* neither darwin/bsd nor gnu/linux */
-#error "check how qsort_r works on your platform"
-#endif /* DARWIN_OS || __FreeBSD__ */
-#else /* not HAVE_QSORT_R */
-  sort_vector_predicate = predicate;
-  qsort (v, len, word_size, sort_vector_compare);
-#endif /* HAVE_QSORT_R */
-
-  /* Discard indexes and restore original elements.  */
-  for (i = 0; i < len; i++)
-    {
-      Lisp_Object save = v[i];
-      /* Use explicit free to offload GC.  */
-      v[i] = XSAVE_OBJECT (save, 1);
-      free_misc (save);
-    }
-  return vector;
+    return;
+  ptrdiff_t halflen = len >> 1;
+  Lisp_Object *tmp;
+  struct gcpro gcpro1, gcpro2, gcpro3;
+  GCPRO3 (vector, predicate, predicate);
+  USE_SAFE_ALLOCA;
+  SAFE_ALLOCA_LISP (tmp, halflen);
+  for (ptrdiff_t i = 0; i < halflen; i++)
+    tmp[i] = make_number (0);
+  gcpro3.var = tmp;
+  gcpro3.nvars = halflen;
+  sort_vector_inplace (predicate, len, XVECTOR (vector)->contents, tmp);
+  UNGCPRO;
+  SAFE_FREE ();
 }
 
 DEFUN ("sort", Fsort, Ssort, 2, 2, 0,
@@ -1990,7 +2016,7 @@ if the first element should sort before the second.  */)
   if (CONSP (seq))
     seq = sort_list (seq, predicate);
   else if (VECTORP (seq))
-    seq = sort_vector (seq, predicate);
+    sort_vector (seq, predicate);
   else if (!NILP (seq))
     wrong_type_argument (Qsequencep, seq);
   return seq;
@@ -2033,8 +2059,7 @@ merge (Lisp_Object org_l1, Lisp_Object org_l2, Lisp_Object pred)
 	  Fsetcdr (tail, l1);
 	  return value;
 	}
-      tem = call2 (pred, Fcar (l2), Fcar (l1));
-      if (NILP (tem))
+      if (inorder (pred, Fcar (l1), Fcar (l2)))
 	{
 	  tem = l1;
 	  l1 = Fcdr (l1);
