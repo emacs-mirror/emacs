@@ -1,3 +1,8 @@
+2014-08-30  Ken Brown  <kbrown@cornell.edu>
+
+	* conf_post.h (strnicmp) [CYGWIN && HAVE_NTGUI]: Define.
+	(Bug#18366)
+
 2014-08-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* syntax.c (scan_lists): Don't examine positions before BEGV.
