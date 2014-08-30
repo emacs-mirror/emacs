@@ -1932,7 +1932,7 @@
 
 	* dispextern.h (struct face) [HAVE_XFT]: Ifdef 'extra' member.
 	* font.c (font_done_for_face):
-	* xface.c (realize_non_ascii_face): Adjust user.
+	* xfaces.c (realize_non_ascii_face): Adjust user.
 	* font.h (struct font_driver): Convert 'prepare_face' to return
 	void because its return value is never used anyway.
 	* xfont.c (xfont_prepare_face): Return void.

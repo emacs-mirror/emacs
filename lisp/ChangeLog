@@ -6094,8 +6094,8 @@
 
 2014-01-14  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
 
-	* ispell.el (ispell-region): Reset `in-comment' for new line
-	instead of wrongly reset `add-coment' (bug#13577).
+	* textmodes/ispell.el (ispell-region): Reset `in-comment' for new
+	line instead of wrongly reset `add-coment' (bug#13577).
 
 2014-01-14  Daiki Ueno  <ueno@gnu.org>
 
