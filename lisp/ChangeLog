@@ -1,3 +1,15 @@
+2014-08-31  Christoph Scholtes  <cschol2112@gmail.com>
+
+	* ibuffer.el: Replace mode-specific quit function with
+	`quit-window' via `special-mode'.
+	(ibuffer-mode-map): Use keybindings from special-mode-map instead
+	of local overrides.
+	(ibuffer): Don't store previous windows configuration. Let
+	`quit-window' handle restoring.
+	(ibuffer-quit): Remove function. Use `quit-window' instead.
+	(ibuffer-restore-window-config-on-quit): Remove variable.
+	(ibuffer-prev-window-config): Remove variable.
+
 2014-08-29  Michael Heerdegen  <michael_heerdegen@web.de>
 
 	* emacs-lisp/easy-mmode.el (define-minor-mode): Use mode function

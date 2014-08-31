@@ -540,10 +540,6 @@ directory, like `default-directory'."
     (define-key map (kbd "/ X") 'ibuffer-delete-saved-filter-groups)
     (define-key map (kbd "/ \\") 'ibuffer-clear-filter-groups)
 
-    (define-key map (kbd "q") 'ibuffer-quit)
-    (define-key map (kbd "h") 'describe-mode)
-    (define-key map (kbd "?") 'describe-mode)
-
     (define-key map (kbd "% n") 'ibuffer-mark-by-name-regexp)
     (define-key map (kbd "% m") 'ibuffer-mark-by-mode-regexp)
     (define-key map (kbd "% f") 'ibuffer-mark-by-file-name-regexp)
@@ -877,12 +873,6 @@ directory, like `default-directory'."
     (define-key map (kbd "RET") 'ibuffer-toggle-filter-group)
     (define-key map [down-mouse-3] 'ibuffer-mouse-popup-menu)
     map))
-
-(defvar ibuffer-restore-window-config-on-quit nil
-  "If non-nil, restore previous window configuration upon exiting `ibuffer'.")
-
-(defvar ibuffer-prev-window-config nil
-  "Window configuration before starting Ibuffer.")
 
 (defvar ibuffer-did-modification nil)
 
@@ -2298,18 +2288,6 @@ If optional arg SILENT is non-nil, do not display progress messages."
       (goto-char (point-min))
       (forward-line orig))))
 
-(defun ibuffer-quit ()
-  "Quit this `ibuffer' session.
-Try to restore the previous window configuration if
-`ibuffer-restore-window-config-on-quit' is non-nil."
-  (interactive)
-  (if ibuffer-restore-window-config-on-quit
-      (progn
-	(bury-buffer)
-	(unless (= (count-windows) 1)
-	  (set-window-configuration ibuffer-prev-window-config)))
-    (bury-buffer)))
-
 ;;;###autoload
 (defun ibuffer-list-buffers (&optional files-only)
   "Display a list of buffers, in another window.
@@ -2350,7 +2328,6 @@ FORMATS is the value to use for `ibuffer-formats'.
   (interactive "P")
   (when ibuffer-use-other-window
     (setq other-window-p t))
-  (setq ibuffer-prev-window-config (current-window-configuration))
   (let ((buf (get-buffer-create (or name "*Ibuffer*"))))
     (if other-window-p
 	(funcall (if noselect (lambda (buf) (display-buffer buf t)) #'pop-to-buffer) buf)
@@ -2362,8 +2339,7 @@ FORMATS is the value to use for `ibuffer-formats'.
 	(select-window (get-buffer-window buf 0))
 	(or (derived-mode-p 'ibuffer-mode)
 	    (ibuffer-mode))
-	(setq ibuffer-restore-window-config-on-quit other-window-p)
-	(when shrink
+ 	(when shrink
 	  (setq ibuffer-shrink-to-minimum-size shrink))
 	(when qualifiers
 	  (require 'ibuf-ext)
@@ -2501,7 +2477,6 @@ Other commands:
   '\\[ibuffer-switch-format]' - Change the current display format.
   '\\[forward-line]' - Move point to the next line.
   '\\[previous-line]' - Move point to the previous line.
-  '\\[ibuffer-quit]' - Bury the Ibuffer buffer.
   '\\[describe-mode]' - This help.
   '\\[ibuffer-diff-with-file]' - View the differences between this buffer
           and its associated file.
@@ -2616,7 +2591,6 @@ will be inserted before the group at point."
   (set (make-local-variable 'ibuffer-cached-eliding-string) nil)
   (set (make-local-variable 'ibuffer-cached-elide-long-columns) nil)
   (set (make-local-variable 'ibuffer-current-format) nil)
-  (set (make-local-variable 'ibuffer-restore-window-config-on-quit) nil)
   (set (make-local-variable 'ibuffer-did-modification) nil)
   (set (make-local-variable 'ibuffer-tmp-hide-regexps) nil)
   (set (make-local-variable 'ibuffer-tmp-show-regexps) nil)
