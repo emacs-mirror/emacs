@@ -2174,7 +2174,10 @@ get_glyph_string_clip_rects (struct glyph_string *s, NativeRectangle *rects, int
 
       if (s->x > r.x)
 	{
-	  r.width -= s->x - r.x;
+	  if (r.width >= s->x - r.x)
+	    r.width -= s->x - r.x;
+	  else	/* R2L hscrolled row with cursor outside text area */
+	    r.width = 0;
 	  r.x = s->x;
 	}
       r.width = min (r.width, glyph->pixel_width);
