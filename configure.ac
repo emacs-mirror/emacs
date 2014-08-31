@@ -4005,15 +4005,6 @@ fi
 
 AC_TYPE_MBSTATE_T
 
-AC_CACHE_CHECK([for C restricted array declarations], emacs_cv_c_restrict_arr,
-  [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[void fred (int x[__restrict]);]], [[]])],
-                  emacs_cv_c_restrict_arr=yes, emacs_cv_c_restrict_arr=no)])
-if test "$emacs_cv_c_restrict_arr" = yes; then
-  AC_DEFINE(__restrict_arr, __restrict,
-    [Define to compiler's equivalent of C99 restrict keyword in array
-     declarations.  Define as empty for no equivalent.])
-fi
-
 dnl Fixme: AC_SYS_POSIX_TERMIOS should probably be used, but it's not clear
 dnl how the tty code is related to POSIX and/or other versions of termios.
 dnl The following looks like a useful start.

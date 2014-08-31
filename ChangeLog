@@ -2,6 +2,7 @@
 
 	* configure.ac (MAKE): Export it, for config.status.
 	Needed on AIX when 'configure' infers MAKE=gmake.
+	(__restrict_arr): Remove; no longer used.
 
 2014-08-30  Paul Eggert  <eggert@cs.ucla.edu>
 
