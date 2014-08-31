@@ -1,3 +1,9 @@
+2014-08-31  Ken Brown  <kbrown@cornell.edu>
+
+	* gmalloc.c: Don't include <stdlib.h>.  Declare system malloc and
+	friends before defining hybrid_malloc and friends if HYBRID_MALLOC
+	is defined.  (Bug#18368)
+
 2014-08-30  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Vector-sorting fixes (Bug#18361).

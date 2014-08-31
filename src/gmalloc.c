@@ -19,13 +19,6 @@ License along with this library.  If not, see <http://www.gnu.org/licenses/>.
    The author may be reached (Email) at the address mike@ai.mit.edu,
    or (US mail) as Mike Haertel c/o Free Software Foundation.  */
 
-/* If HYBRID_MALLOC is defined in config.h, then conf_post.h #defines
-   malloc and friends as macros before including stdlib.h.  In this
-   file we will need the prototypes for the system malloc, so we must
-   include stdlib.h before config.h.  And we have to do this
-   unconditionally, since HYBRID_MALLOC hasn't been defined yet.  */
-#include <stdlib.h>
-
 #include <config.h>
 
 #if defined HAVE_PTHREAD && !defined HYBRID_MALLOC
@@ -1724,6 +1717,17 @@ valloc (size_t size)
 #undef calloc
 #undef aligned_alloc
 #undef free
+
+/* Declare system malloc and friends.  */
+extern void *malloc (size_t size);
+extern void *realloc (void *ptr, size_t size);
+extern void *calloc (size_t nmemb, size_t size);
+extern void free (void *ptr);
+#ifdef HAVE_ALIGNED_ALLOC
+extern void *aligned_alloc (size_t alignment, size_t size);
+#elif defined HAVE_POSIX_MEMALIGN
+extern int posix_memalign (void **memptr, size_t alignment, size_t size);
+#endif
 
 /* See the comments near the beginning of this file for explanations
    of the following functions. */
