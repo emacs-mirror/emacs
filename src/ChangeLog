@@ -1,3 +1,9 @@
+2014-08-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (display_and_set_cursor): Call erase_phys_cursor also
+	when HPOS is negative, for the benefit of R2L glyph rows whose
+	newline overflows into the fringe.
+
 2014-08-30  Ken Brown  <kbrown@cornell.edu>
 
 	* conf_post.h (strnicmp) [CYGWIN && HAVE_NTGUI]: Define.
