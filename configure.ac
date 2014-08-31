@@ -130,6 +130,7 @@ If you have it installed under another name, configure with 'MAKE=...'.
 For example, run '$0 MAKE=gnu-make'.]])
 }
 MAKE=$ac_cv_path_MAKE
+export MAKE
 
 dnl Fairly arbitrary, older versions might work too.
 AM_INIT_AUTOMAKE(1.11)
