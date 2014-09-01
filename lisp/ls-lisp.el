@@ -273,7 +273,7 @@ The Lisp emulation does not run any external programs or shells.  It
 supports ordinary shell wildcards if `ls-lisp-support-shell-wildcards'
 is non-nil; otherwise, it interprets wildcards as regular expressions
 to match file names.  It does not support all `ls' switches -- those
-that work are: A a B C c F G g h i n R r S s t U u X.  The l switch
+that work are: A a B C c F G g h i n R r S s t U u v X.  The l switch
 is assumed to be always present and cannot be turned off."
   (if ls-lisp-use-insert-directory-program
       (funcall orig-fun
@@ -551,6 +551,67 @@ to a non-nil value."
       (let ((u (compare-strings s1 0 nil s2 0 nil ls-lisp-ignore-case)))
 	(and (numberp u) (< u 0))))))
 
+(defun ls-lisp-version-lessp (s1 s2)
+  "Return t if versioned string S1 should sort before versioned string S2.
+
+Case is significant if `ls-lisp-ignore-case' is nil.
+This is the same as string-lessp (with the exception of case
+insensitivity), but sequences of digits are compared numerically,
+as a whole, in the same manner as the `strverscmp' function available
+in some standard C libraries does."
+  (let ((i1 0)
+	(i2 0)
+	(len1 (length s1))
+	(len2 (length s2))
+	(val 0)
+	ni1 ni2 e1 e2 found-2-numbers-p)
+    (while (and (< i1 len1) (< i2 len2) (zerop val))
+      (unless found-2-numbers-p
+	(setq ni1 (string-match "[0-9]+" s1 i1)
+	      e1 (match-end 0))
+	(setq ni2 (string-match "[0-9]+" s2 i2)
+	      e2 (match-end 0)))
+      (cond
+       ((and ni1 ni2)
+	(cond
+	 ((and (> ni1 i1) (> ni2 i2))
+	  ;; Compare non-numerical part as strings.
+	  (setq val (compare-strings s1 i1 ni1 s2 i2 ni2 ls-lisp-ignore-case)
+		i1 ni1
+		i2 ni2
+		found-2-numbers-p t))
+	 ((and (= ni1 i1) (= ni2 i2))
+	  (setq found-2-numbers-p nil)
+	  ;; Compare numerical parts as integral and/or fractional parts.
+	  (let* ((sub1 (substring s1 ni1 e1))
+		 (sub2 (substring s2 ni2 e2))
+		 ;; "Fraction" is a numerical sequence with leading zeros.
+		 (fr1 (string-match "\\`0+" sub1))
+		 (fr2 (string-match "\\`0+" sub2)))
+	    (cond
+	     ((and fr1 fr2)	; two fractions, the shortest wins
+	      (setq val (- val (- (length sub1) (length sub2)))))
+	     (fr1		; a fraction is always less than an integral
+	      (setq val (- ni1)))
+	     (fr2
+	      (setq val ni2)))
+	    (if (zerop val)	; fall back on numerical comparison
+		(setq val (- (string-to-number sub1)
+			     (string-to-number sub2))))
+	    (setq i1 e1
+		  i2 e2)))
+	 (t
+	  (setq val (compare-strings s1 i1 nil s2 i2 nil ls-lisp-ignore-case)
+		i1 len1
+		i2 len2))))
+       (t (setq val (compare-strings s1 i1 nil s2 i2 nil ls-lisp-ignore-case)
+		i1 len1
+		i2 len2)))
+      (and (eq val t) (setq val 0)))
+    (if (zerop val)
+	(setq val (- len1 len2)))
+    (< val 0)))
+
 (defun ls-lisp-handle-switches (file-alist switches)
   "Return new FILE-ALIST sorted according to SWITCHES.
 SWITCHES is a list of characters.  Default sorting is alphabetic."
@@ -577,6 +638,9 @@ SWITCHES is a list of characters.  Default sorting is alphabetic."
 				 (ls-lisp-string-lessp
 				  (ls-lisp-extension (car x))
 				  (ls-lisp-extension (car y)))))
+			      ((memq ?v switches)
+			       (lambda (x y) ; sorted by version number
+				 (ls-lisp-version-lessp (car x) (car y))))
 			      (t
 			       (lambda (x y) ; sorted alphabetically
 				 (ls-lisp-string-lessp (car x) (car y))))))))

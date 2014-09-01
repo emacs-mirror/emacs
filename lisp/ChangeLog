@@ -4,6 +4,11 @@
 	(ls-lisp-UCA-like-collation): New defcustoms.
 	(ls-lisp-string-lessp): Use them to control sorting by file
 	names.  (Bug#18051)
+	(ls-lisp-version-lessp): New function.
+	(ls-lisp-handle-switches): Use it to implement the -v switch of
+	GNU ls.
+	(ls-lisp--insert-directory): Mention the -v switch in the doc
+	string.
 
 2014-08-31  Christoph Scholtes  <cschol2112@gmail.com>
 
