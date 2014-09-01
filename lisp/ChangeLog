@@ -1,3 +1,10 @@
+2014-09-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* ls-lisp.el (ls-lisp-use-string-collate)
+	(ls-lisp-UCA-like-collation): New defcustoms.
+	(ls-lisp-string-lessp): Use them to control sorting by file
+	names.  (Bug#18051)
+
 2014-08-31  Christoph Scholtes  <cschol2112@gmail.com>
 
 	* ibuffer.el: Replace mode-specific quit function with

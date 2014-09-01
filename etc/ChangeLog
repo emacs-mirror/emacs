@@ -1,3 +1,7 @@
+2014-09-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* NEWS: Mention that ls-lisp uses string-collate-lessp.
+
 2014-09-01  Paul Eggert  <eggert@cs.ucla.edu>
 
 	--enable-silent-rules now suppresses more chatter.

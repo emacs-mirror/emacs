@@ -75,6 +75,10 @@ environment.  For the time being this is implemented for modern POSIX
 systems and for MS-Windows, for other systems they fall back to their
 counterparts `string-lessp' and `string-equal'.
 
+*** The ls-lisp package uses `string-collate-lessp' to sort file names.
+If you want the old, locale-independent sorting, customize the new
+option `ls-lisp-use-string-collate' to a nil value.
+
 *** The MS-Windows specific variable `w32-collate-ignore-punctuation',
 if set to a non-nil value, causes the above 2 functions to ignore
 symbol and punctuation characters when collating strings.  This

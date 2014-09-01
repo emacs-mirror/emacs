@@ -113,6 +113,47 @@ update the dependent variables."
   :type 'boolean
   :group 'ls-lisp)
 
+(defcustom ls-lisp-use-string-collate
+  (cond ((memq ls-lisp-emulation '(MacOS UNIX)) nil)
+	(t t))		; GNU/Linux or MS-Windows emulate GNU ls
+  "Non-nil causes ls-lisp to sort files in locale-dependent collation order.
+
+A value of nil means use ordinary string comparison (see `compare-strings')
+for sorting files.  A non-nil value uses `string-collate-lessp' instead,
+which more closely emulates what GNU `ls' does.
+
+On GNU/Linux systems, if the locale's codeset specifies UTF-8, as
+in \"en_US.UTF-8\", the collation order follows the Unicode
+Collation Algorithm (UCA), which places together file names that
+differ only in punctuation characters.  On MS-Windows, customize
+the option `ls-lisp-UCA-like-collation' to a non-nil value to get
+similar behavior."
+  :version "24.5"
+  :set-after '(ls-lisp-emulation)
+  :type 'boolean
+  :group 'ls-lisp)
+
+(defcustom ls-lisp-UCA-like-collation t
+  "Non-nil means force ls-lisp use a collation order compatible with UCA.
+
+UCA is the Unicode Collation Algorithm.  GNU/Linux systems automatically
+follow it in their string-collation routines if the locale specifies
+UTF-8 as its codeset.  On MS-Windows, customize this option to a non-nil
+value to get similar behavior.
+
+When this option is non-nil, and `ls-lisp-use-string-collate' is also
+non-nil, the collation order produced on MS-Windows will ignore
+punctuation and symbol characters, which will, for example, place
+\`.foo' near `foo'.  See the documentation of `string-collate-lessp'
+and `w32-collate-ignore-punctuation' for more details.
+
+This option is ignored on platforms other than MS-Windows; to
+control the collation ordering of the file names on those other
+systems, set your locale instead."
+  :version "24.5"
+  :type 'boolean
+  :group 'ls-lisp)
+
 (defcustom ls-lisp-dirs-first (eq ls-lisp-emulation 'MS-Windows)
   "Non-nil causes ls-lisp to sort directories first in any ordering.
 \(Or last if it is reversed.)  Follows Microsoft Windows Explorer."
@@ -495,11 +536,20 @@ Responds to the window width as ls should but may not!"
     result))
 
 (defsubst ls-lisp-string-lessp (s1 s2)
-  "Return t if string S1 is less than string S2 in lexicographic order.
+  "Return t if string S1 should sort before string S2.
 Case is significant if `ls-lisp-ignore-case' is nil.
-Unibyte strings are converted to multibyte for comparison."
-  (let ((u (compare-strings s1 0 nil s2 0 nil ls-lisp-ignore-case)))
-    (and (numberp u) (< u 0))))
+Uses `string-collate-lessp' if `ls-lisp-use-string-collate' is non-nil,
+\`compare-strings' otherwise.
+On GNU/Linux systems, if the locale specifies UTF-8 as the codeset,
+the sorting order will place together file names that differ only
+by punctuation characters, like `.emacs' and `emacs'.  To have a
+similar behavior on MS-Widnows, customize `ls-lisp-UCA-like-collation'
+to a non-nil value."
+  (let ((w32-collate-ignore-punctuation ls-lisp-UCA-like-collation))
+    (if ls-lisp-use-string-collate
+	(string-collate-lessp s1 s2 nil ls-lisp-ignore-case)
+      (let ((u (compare-strings s1 0 nil s2 0 nil ls-lisp-ignore-case)))
+	(and (numberp u) (< u 0))))))
 
 (defun ls-lisp-handle-switches (file-alist switches)
   "Return new FILE-ALIST sorted according to SWITCHES.
