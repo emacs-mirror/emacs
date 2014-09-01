@@ -40,6 +40,9 @@ or by sticking with Emacs 24.4.
 ** The configure option `--with-pkg-config-prog' has been removed.
 Use './configure PKG_CONFIG=/full/name/of/pkg-config' if you need to.
 
+** The configure option '--enable-silent-rules' and the command
+'make V=0' now do a better job of suppressing chatter.
+
 
 * Startup Changes in Emacs 24.5
 

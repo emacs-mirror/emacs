@@ -328,6 +328,11 @@ and is useful with GNU-compatible compilers.  On a recent GNU system
 there should be no warnings; on older and on non-GNU systems the
 generated warnings may still be useful.
 
+Use --enable-silent-rules to cause 'make' to chatter less.  This is
+helpful when combined with options like --enable-gcc-warnings that
+generate long shell-command lines.  'make V=0' also suppresses the
+chatter.
+
 Use --enable-link-time-optimization to enable link-time optimizer.  If
 you're using GNU compiler, this feature is supported since version 4.5.0.
 If `configure' can determine number of online CPUS on your system, final

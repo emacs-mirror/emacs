@@ -1,5 +1,8 @@
 2014-09-01  Paul Eggert  <eggert@cs.ucla.edu>
 
+	--enable-silent-warnings now suppresses more chatter.
+	* INSTALL: Document this.
+
 	Clean up extern decls a bit.
 	* configure.ac (WERROR_CFLAGS): Don't disable -Wnested-externs.
 	While we're at it, don't disable -Wlogical-op either.

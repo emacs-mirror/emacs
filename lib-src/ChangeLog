@@ -1,5 +1,15 @@
 2014-09-01  Paul Eggert  <eggert@cs.ucla.edu>
 
+	--enable-silent-warnings now suppresses more chatter.
+	* Makefile.in (AM_DEFAULT_VERBOSITY, AM_V_CC, am__v_CC_)
+	(am__v_CC_0, am__v_CC_1, AM_V_CCLD, am__v_CCLD_, am__v_CCLD_0)
+	(am__v_CCLD_1): New macros, taken from Automake.
+	(regex.o, etags${EXEEXT}, ctags${EXEEXT}, ebrowse${EXEEXT})
+	(profile${EXEEXT}, make-docfile${EXEEXT}, movemail${EXEEXT})
+	(pop.o, emacsclient${EXEEXT}, emacsclientw${EXEEXT})
+	(emacsclientw${EXEEXT}, ntlib.o, hexl${EXEEXT})
+	(update-game-score${EXEEXT}): Use them.
+
 	* etags.c (emacs_strchr, emacs_strrchr): Remove.
 	All uses replaced by strchr and strrchr, which are on all
 	target platforms now.

@@ -1,5 +1,11 @@
 2014-09-01  Paul Eggert  <eggert@cs.ucla.edu>
 
+	--enable-silent-warnings now suppresses more chatter.
+	* Makefile.in (AM_DEFAULT_VERBOSITY, AM_V_CC, am__v_CC_)
+	(am__v_CC_0, am__v_CC_1, AM_V_CCLD, am__v_CCLD_, am__v_CCLD_0)
+	(am__v_CCLD_1): New macros, taken from Automake.
+	(.c.o, .m.o, temacs$(EXEEXT)): Use them.
+
 	Clean up extern decls a bit.
 	* bytecode.c: Include blockinput.h and keyboard.h rather
 	than rolling their APIs by hand.

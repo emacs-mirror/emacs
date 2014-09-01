@@ -51,6 +51,14 @@ TOOLKIT_OBJS = $(@X_TOOLKIT_TYPE@_OBJS)
 
 OBJS = lwlib.o $(TOOLKIT_OBJS) lwlib-utils.o
 
+# 'make' verbosity.
+AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
+
+AM_V_CC = $(am__v_CC_@AM_V@)
+am__v_CC_ = $(am__v_CC_@AM_DEFAULT_V@)
+am__v_CC_0 = @echo "  CC      " $@;
+am__v_CC_1 =
+
 DEPDIR = deps
 ## -MMD -MF $(DEPDIR)/$*.d if AUTO_DEPEND; else empty.
 DEPFLAGS = @DEPFLAGS@
@@ -73,7 +81,7 @@ all: liblw.a
 
 .c.o:
 	@$(MKDEPDIR)
-	$(CC) -c $(CPPFLAGS) $(ALL_CFLAGS) $<
+	$(AM_V_CC)$(CC) -c $(CPPFLAGS) $(ALL_CFLAGS) $<
 
 liblw.a: $(OBJS)
 	rm -f $@
