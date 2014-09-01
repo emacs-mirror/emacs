@@ -65,8 +65,8 @@ should return a grid vector array that is the new solution.
 
 ;;;***
 
-;;;### (autoloads nil "ada-mode" "progmodes/ada-mode.el" (21220 61111
-;;;;;;  156047 0))
+;;;### (autoloads nil "ada-mode" "progmodes/ada-mode.el" (21476 41895
+;;;;;;  55661 0))
 ;;; Generated autoloads from progmodes/ada-mode.el
 
 (autoload 'ada-add-extensions "ada-mode" "\
@@ -96,8 +96,8 @@ Insert a descriptive header at the top of the file.
 
 ;;;***
 
-;;;### (autoloads nil "ada-xref" "progmodes/ada-xref.el" (21187 63826
-;;;;;;  213216 0))
+;;;### (autoloads nil "ada-xref" "progmodes/ada-xref.el" (21476 41895
+;;;;;;  55661 0))
 ;;; Generated autoloads from progmodes/ada-xref.el
 
 (autoload 'ada-find-file "ada-xref" "\
@@ -1153,7 +1153,7 @@ Returns list of symbols and documentation found.
 
 ;;;***
 
-;;;### (autoloads nil "arc-mode" "arc-mode.el" (21207 49087 974317
+;;;### (autoloads nil "arc-mode" "arc-mode.el" (21476 41895 55661
 ;;;;;;  0))
 ;;; Generated autoloads from arc-mode.el
 
@@ -2981,8 +2981,8 @@ See the documentation for `calculator-mode' for more information.
 
 ;;;***
 
-;;;### (autoloads nil "calendar" "calendar/calendar.el" (21403 21198
-;;;;;;  190145 203000))
+;;;### (autoloads nil "calendar" "calendar/calendar.el" (21493 50983
+;;;;;;  112694 0))
 ;;; Generated autoloads from calendar/calendar.el
 
 (autoload 'calendar "calendar" "\
@@ -3050,8 +3050,8 @@ it fails.
 
 ;;;***
 
-;;;### (autoloads nil "cc-engine" "progmodes/cc-engine.el" (21425
-;;;;;;  14635 268306 0))
+;;;### (autoloads nil "cc-engine" "progmodes/cc-engine.el" (21499
+;;;;;;  3372 630891 0))
 ;;; Generated autoloads from progmodes/cc-engine.el
 
 (autoload 'c-guess-basic-syntax "cc-engine" "\
@@ -4313,8 +4313,8 @@ on third call it again advances points to the next difference and so on.
 
 ;;;***
 
-;;;### (autoloads nil "compile" "progmodes/compile.el" (21383 2343
-;;;;;;  498187 0))
+;;;### (autoloads nil "compile" "progmodes/compile.el" (21484 36010
+;;;;;;  707226 0))
 ;;; Generated autoloads from progmodes/compile.el
 
 (defvar compilation-mode-hook nil "\
@@ -5044,8 +5044,8 @@ Enable CUA selection mode without the C-z/C-x/C-c/C-v bindings.
 
 ;;;***
 
-;;;### (autoloads nil "cua-rect" "emulation/cua-rect.el" (21437 5802
-;;;;;;  125919 0))
+;;;### (autoloads nil "cua-rect" "emulation/cua-rect.el" (21503 425
+;;;;;;  992235 0))
 ;;; Generated autoloads from emulation/cua-rect.el
 
 (autoload 'cua-rectangle-mark-mode "cua-rect" "\
@@ -6245,8 +6245,8 @@ This requires the external program `diff' to be in your `exec-path'.
 
 ;;;***
 
-;;;### (autoloads nil "diff-mode" "vc/diff-mode.el" (21409 26408
-;;;;;;  607647 0))
+;;;### (autoloads nil "diff-mode" "vc/diff-mode.el" (21488 33062
+;;;;;;  959598 0))
 ;;; Generated autoloads from vc/diff-mode.el
 
 (autoload 'diff-mode "diff-mode" "\
@@ -6724,8 +6724,8 @@ Switch to *dungeon* buffer and start game.
 
 ;;;***
 
-;;;### (autoloads nil "easy-mmode" "emacs-lisp/easy-mmode.el" (21259
-;;;;;;  10807 217062 0))
+;;;### (autoloads nil "easy-mmode" "emacs-lisp/easy-mmode.el" (21505
+;;;;;;  42150 427725 0))
 ;;; Generated autoloads from emacs-lisp/easy-mmode.el
 
 (defalias 'easy-mmode-define-minor-mode 'define-minor-mode)
@@ -8009,8 +8009,8 @@ It creates an autoload function for CNAME's constructor.
 
 ;;;***
 
-;;;### (autoloads nil "eldoc" "emacs-lisp/eldoc.el" (21305 16557
-;;;;;;  836987 0))
+;;;### (autoloads nil "eldoc" "emacs-lisp/eldoc.el" (21491 9262 4301
+;;;;;;  0))
 ;;; Generated autoloads from emacs-lisp/eldoc.el
 
 (defvar eldoc-minor-mode-string (purecopy " ElDoc") "\
@@ -8658,7 +8658,7 @@ Look at CONFIG and try to expand GROUP.
 
 ;;;***
 
-;;;### (autoloads nil "erc" "erc/erc.el" (21437 5802 125919 0))
+;;;### (autoloads nil "erc" "erc/erc.el" (21484 36010 707226 0))
 ;;; Generated autoloads from erc/erc.el
 (push (purecopy '(erc 5 3)) package--builtin-versions)
 
@@ -9100,8 +9100,8 @@ This will add a speedbar major display mode.
 
 ;;;***
 
-;;;### (autoloads nil "erc-stamp" "erc/erc-stamp.el" (21240 46395
-;;;;;;  727291 0))
+;;;### (autoloads nil "erc-stamp" "erc/erc-stamp.el" (21481 59815
+;;;;;;  980216 0))
 ;;; Generated autoloads from erc/erc-stamp.el
  (autoload 'erc-timestamp-mode "erc-stamp" nil t)
 
@@ -9914,7 +9914,7 @@ fourth arg NOSEP non-nil inhibits this.
 
 ;;;***
 
-;;;### (autoloads nil "eww" "net/eww.el" (21423 59302 489365 0))
+;;;### (autoloads nil "eww" "net/eww.el" (21474 169 693017 0))
 ;;; Generated autoloads from net/eww.el
 
 (autoload 'eww "eww" "\
@@ -11840,8 +11840,8 @@ CLEAN is obsolete and ignored.
 
 ;;;***
 
-;;;### (autoloads nil "gnus-art" "gnus/gnus-art.el" (21393 38187
-;;;;;;  675040 0))
+;;;### (autoloads nil "gnus-art" "gnus/gnus-art.el" (21481 59815
+;;;;;;  980216 0))
 ;;; Generated autoloads from gnus/gnus-art.el
 
 (autoload 'gnus-article-prepare-display "gnus-art" "\
@@ -12450,8 +12450,8 @@ Declare back end NAME with ABILITIES as a Gnus back end.
 
 ;;;***
 
-;;;### (autoloads nil "gnus-sum" "gnus/gnus-sum.el" (21414 44327
-;;;;;;  790846 0))
+;;;### (autoloads nil "gnus-sum" "gnus/gnus-sum.el" (21485 56871
+;;;;;;  932720 0))
 ;;; Generated autoloads from gnus/gnus-sum.el
 
 (autoload 'gnus-summary-bookmark-jump "gnus-sum" "\
@@ -12770,7 +12770,7 @@ the form \"WINDOW-ID PIXMAP-ID\".  Value is non-nil if successful.
 
 ;;;***
 
-;;;### (autoloads nil "gud" "progmodes/gud.el" (21240 46395 727291
+;;;### (autoloads nil "gud" "progmodes/gud.el" (21484 36010 707226
 ;;;;;;  0))
 ;;; Generated autoloads from progmodes/gud.el
 
@@ -12814,6 +12814,13 @@ and source-file directory for your debugger.
 
 (autoload 'pdb "gud" "\
 Run pdb on program FILE in buffer `*gud-FILE*'.
+The directory containing FILE becomes the initial working directory
+and source-file directory for your debugger.
+
+\(fn COMMAND-LINE)" t nil)
+
+(autoload 'guiler "gud" "\
+Run guiler on program FILE in buffer `*gud-FILE*'.
 The directory containing FILE becomes the initial working directory
 and source-file directory for your debugger.
 
@@ -14260,8 +14267,7 @@ bound to the current value of the filter.
 
 ;;;***
 
-;;;### (autoloads nil "ibuffer" "ibuffer.el" (21187 63826 213216
-;;;;;;  0))
+;;;### (autoloads nil "ibuffer" "ibuffer.el" (21508 18343 5038 0))
 ;;; Generated autoloads from ibuffer.el
 
 (autoload 'ibuffer-list-buffers "ibuffer" "\
@@ -14300,8 +14306,8 @@ FORMATS is the value to use for `ibuffer-formats'.
 
 ;;;***
 
-;;;### (autoloads nil "icalendar" "calendar/icalendar.el" (21466
-;;;;;;  6053 9002 0))
+;;;### (autoloads nil "icalendar" "calendar/icalendar.el" (21480
+;;;;;;  38952 540043 0))
 ;;; Generated autoloads from calendar/icalendar.el
 (push (purecopy '(icalendar 0 19)) package--builtin-versions)
 
@@ -15271,7 +15277,7 @@ An image file is one whose name has an extension in
 
 ;;;***
 
-;;;### (autoloads nil "image-mode" "image-mode.el" (21334 16805 699731
+;;;### (autoloads nil "image-mode" "image-mode.el" (21483 15143 105233
 ;;;;;;  0))
 ;;; Generated autoloads from image-mode.el
 
@@ -15507,7 +15513,7 @@ of `inferior-lisp-program').  Runs the hooks from
 
 ;;;***
 
-;;;### (autoloads nil "info" "info.el" (21419 7843 195974 0))
+;;;### (autoloads nil "info" "info.el" (21480 38952 540043 0))
 ;;; Generated autoloads from info.el
 
 (defcustom Info-default-directory-list (let* ((config-dir (file-name-as-directory (or (and (featurep 'ns) (let ((dir (expand-file-name "../info" data-directory))) (if (file-directory-p dir) dir))) configure-info-directory))) (prefixes (prune-directory-list '("/usr/local/" "/usr/" "/opt/" "/"))) (suffixes '("share/" "" "gnu/" "gnu/lib/" "gnu/lib/emacs/" "emacs/" "lib/" "lib/emacs/")) (standard-info-dirs (apply #'nconc (mapcar (lambda (pfx) (let ((dirs (mapcar (lambda (sfx) (concat pfx sfx "info/")) suffixes))) (prune-directory-list dirs))) prefixes))) (dirs (if (member config-dir standard-info-dirs) (nconc standard-info-dirs (list config-dir)) (cons config-dir standard-info-dirs)))) (if (not (eq system-type 'windows-nt)) dirs (let* ((instdir (file-name-directory invocation-directory)) (dir1 (expand-file-name "../info/" instdir)) (dir2 (expand-file-name "../../../info/" instdir))) (cond ((file-exists-p dir1) (append dirs (list dir1))) ((file-exists-p dir2) (append dirs (list dir2))) (t dirs))))) "\
@@ -15549,8 +15555,7 @@ with the top-level Info directory.
 In interactive use, a non-numeric prefix argument directs
 this command to read a file name from the minibuffer.
 
-A numeric prefix argument N selects an Info buffer named
-\"*info*<%s>\".
+A numeric prefix argument of N selects an Info buffer named \"*info*<N>\".
 
 The search path for Info files is in the variable `Info-directory-list'.
 The top-level Info directory is made by combining all the files named `dir'
@@ -18580,7 +18585,7 @@ To test this function, evaluate:
 
 ;;;***
 
-;;;### (autoloads nil "mpc" "mpc.el" (21361 61732 646433 0))
+;;;### (autoloads nil "mpc" "mpc.el" (21483 15143 105233 0))
 ;;; Generated autoloads from mpc.el
 
 (autoload 'mpc "mpc" "\
@@ -19157,8 +19162,8 @@ running already.
 
 ;;;***
 
-;;;### (autoloads nil "newst-treeview" "net/newst-treeview.el" (21187
-;;;;;;  63826 213216 0))
+;;;### (autoloads nil "newst-treeview" "net/newst-treeview.el" (21481
+;;;;;;  59815 980216 0))
 ;;; Generated autoloads from net/newst-treeview.el
 
 (autoload 'newsticker-treeview "newst-treeview" "\
@@ -20240,8 +20245,8 @@ matching parenthesis is highlighted in `show-paren-style' after
 
 ;;;***
 
-;;;### (autoloads nil "parse-time" "calendar/parse-time.el" (21296
-;;;;;;  1575 438327 0))
+;;;### (autoloads nil "parse-time" "calendar/parse-time.el" (21471
+;;;;;;  23976 844614 0))
 ;;; Generated autoloads from calendar/parse-time.el
 (put 'parse-time-rules 'risky-local-variable t)
 
@@ -21864,8 +21869,8 @@ If EXTENSION is any other symbol, it is ignored.
 
 ;;;***
 
-;;;### (autoloads nil "python" "progmodes/python.el" (21467 26920
-;;;;;;  243336 0))
+;;;### (autoloads nil "python" "progmodes/python.el" (21503 425 992235
+;;;;;;  0))
 ;;; Generated autoloads from progmodes/python.el
 (push (purecopy '(python 0 24 4)) package--builtin-versions)
 
@@ -22334,7 +22339,7 @@ were operated on recently.
 
 ;;;***
 
-;;;### (autoloads nil "rect" "rect.el" (21450 17830 135996 0))
+;;;### (autoloads nil "rect" "rect.el" (21471 23976 844614 0))
 ;;; Generated autoloads from rect.el
 
 (autoload 'delete-rectangle "rect" "\
@@ -24244,8 +24249,8 @@ formula:
 
 ;;;***
 
-;;;### (autoloads nil "sgml-mode" "textmodes/sgml-mode.el" (21240
-;;;;;;  46395 727291 0))
+;;;### (autoloads nil "sgml-mode" "textmodes/sgml-mode.el" (21481
+;;;;;;  59815 980216 0))
 ;;; Generated autoloads from textmodes/sgml-mode.el
 
 (autoload 'sgml-mode "sgml-mode" "\
@@ -24512,7 +24517,7 @@ Otherwise, one argument `-i' is passed to the shell.
 
 ;;;***
 
-;;;### (autoloads nil "shr" "net/shr.el" (21327 43559 923043 0))
+;;;### (autoloads nil "shr" "net/shr.el" (21503 425 992235 0))
 ;;; Generated autoloads from net/shr.el
 
 (autoload 'shr-render-region "shr" "\
@@ -25179,7 +25184,7 @@ Spam reports will be queued with the method used when
 
 ;;;***
 
-;;;### (autoloads nil "speedbar" "speedbar.el" (21335 37672 97862
+;;;### (autoloads nil "speedbar" "speedbar.el" (21485 56871 932720
 ;;;;;;  0))
 ;;; Generated autoloads from speedbar.el
 
@@ -27549,8 +27554,8 @@ Return a string giving the duration of the Emacs initialization.
 
 ;;;***
 
-;;;### (autoloads nil "time-date" "calendar/time-date.el" (21361
-;;;;;;  61732 646433 0))
+;;;### (autoloads nil "time-date" "calendar/time-date.el" (21471
+;;;;;;  23976 844614 0))
 ;;; Generated autoloads from calendar/time-date.el
 
 (autoload 'date-to-time "time-date" "\
@@ -27882,8 +27887,8 @@ Its value should be an event that has a binding in MENU.
 
 ;;;***
 
-;;;### (autoloads nil "todo-mode" "calendar/todo-mode.el" (21462
-;;;;;;  9001 456449 0))
+;;;### (autoloads nil "todo-mode" "calendar/todo-mode.el" (21471
+;;;;;;  23976 844614 0))
 ;;; Generated autoloads from calendar/todo-mode.el
 
 (autoload 'todo-show "todo-mode" "\
@@ -28081,7 +28086,8 @@ the output buffer or changing the window configuration.
 
 ;;;***
 
-;;;### (autoloads nil "tramp" "net/tramp.el" (21429 11690 49391 0))
+;;;### (autoloads nil "tramp" "net/tramp.el" (21504 21288 950856
+;;;;;;  0))
 ;;; Generated autoloads from net/tramp.el
 
 (defvar tramp-mode t "\
@@ -28196,8 +28202,8 @@ Discard Tramp from loading remote files.
 
 ;;;***
 
-;;;### (autoloads nil "tramp-ftp" "net/tramp-ftp.el" (21406 50214
-;;;;;;  284651 0))
+;;;### (autoloads nil "tramp-ftp" "net/tramp-ftp.el" (21476 41895
+;;;;;;  55661 0))
 ;;; Generated autoloads from net/tramp-ftp.el
 
 (autoload 'tramp-ftp-enable-ange-ftp "tramp-ftp" "\
@@ -28207,7 +28213,7 @@ Discard Tramp from loading remote files.
 
 ;;;***
 
-;;;### (autoloads nil "tutorial" "tutorial.el" (21240 46395 727291
+;;;### (autoloads nil "tutorial" "tutorial.el" (21468 47783 238320
 ;;;;;;  0))
 ;;; Generated autoloads from tutorial.el
 
@@ -28745,8 +28751,8 @@ Might do a non-blocking connection; use `process-status' to check.
 
 ;;;***
 
-;;;### (autoloads nil "url-handlers" "url/url-handlers.el" (21419
-;;;;;;  62246 751914 0))
+;;;### (autoloads nil "url-handlers" "url/url-handlers.el" (21476
+;;;;;;  41895 55661 0))
 ;;; Generated autoloads from url/url-handlers.el
 
 (defvar url-handler-mode nil "\
@@ -29586,8 +29592,8 @@ Return the branch part of a revision number REV.
 
 ;;;***
 
-;;;### (autoloads nil "vc-annotate" "vc/vc-annotate.el" (21435 50471
-;;;;;;  547961 0))
+;;;### (autoloads nil "vc-annotate" "vc/vc-annotate.el" (21481 59815
+;;;;;;  980216 0))
 ;;; Generated autoloads from vc/vc-annotate.el
 
 (autoload 'vc-annotate "vc-annotate" "\
@@ -29715,8 +29721,8 @@ case, and the process object in the asynchronous case.
 
 ;;;***
 
-;;;### (autoloads nil "vc-git" "vc/vc-git.el" (21429 11690 49391
-;;;;;;  0))
+;;;### (autoloads nil "vc-git" "vc/vc-git.el" (21499 26793 739924
+;;;;;;  529000))
 ;;; Generated autoloads from vc/vc-git.el
  (defun vc-git-registered (file)
   "Return non-nil if FILE is registered with git."
@@ -31947,8 +31953,8 @@ Zone out, completely.
 ;;;;;;  "vc/ediff-ptch.el" "vc/ediff-vers.el" "vc/ediff-wind.el"
 ;;;;;;  "vc/pcvs-info.el" "vc/pcvs-parse.el" "vc/pcvs-util.el" "vc/vc-dav.el"
 ;;;;;;  "vcursor.el" "vt-control.el" "vt100-led.el" "w32-common-fns.el"
-;;;;;;  "w32-fns.el" "w32-vars.el" "x-dnd.el") (21467 27179 976956
-;;;;;;  799000))
+;;;;;;  "w32-fns.el" "w32-vars.el" "x-dnd.el") (21508 18595 492383
+;;;;;;  362000))
 
 ;;;***
 
