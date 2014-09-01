@@ -1,6 +1,6 @@
 2014-09-01  Paul Eggert  <eggert@cs.ucla.edu>
 
-	--enable-silent-warnings now suppresses more chatter.
+	--enable-silent-rules now suppresses more chatter.
 	* NEWS: Document this.
 
 2014-08-29  Leo Liu  <sdl.web@gmail.com>

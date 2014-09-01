@@ -1,6 +1,6 @@
 2014-09-01  Paul Eggert  <eggert@cs.ucla.edu>
 
-	--enable-silent-warnings now suppresses more chatter.
+	--enable-silent-rules now suppresses more chatter.
 	* INSTALL: Document this.
 
 	Clean up extern decls a bit.
