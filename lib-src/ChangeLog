@@ -1,3 +1,9 @@
+2014-09-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* etags.c (emacs_strchr, emacs_strrchr): Remove.
+	All uses replaced by strchr and strrchr, which are on all
+	target platforms now.
+
 2014-07-15  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Use "b" flag more consistently; avoid "t" (Bug#18006).
