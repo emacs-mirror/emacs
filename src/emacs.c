@@ -83,6 +83,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "charset.h"
 #include "composite.h"
 #include "dispextern.h"
+#include "regex.h"
 #include "syntax.h"
 #include "sysselect.h"
 #include "systime.h"
@@ -741,9 +742,6 @@ main (int argc, char **argv)
 #ifdef GNU_LINUX
   if (!initialized)
     {
-      extern char my_endbss[];
-      extern char *my_endbss_static;
-
       if (my_heap_start == 0)
         my_heap_start = sbrk (0);
 
@@ -872,7 +870,6 @@ main (int argc, char **argv)
       && !getrlimit (RLIMIT_STACK, &rlim))
     {
       long newlim;
-      extern size_t re_max_failures;
       /* Approximate the amount regex.c needs per unit of re_max_failures.  */
       int ratio = 20 * sizeof (char *);
       /* Then add 33% to cover the size of the smaller stacks that regex.c
@@ -2136,10 +2133,7 @@ You must run Emacs in batch mode in order to dump it.  */)
 #ifndef WINDOWSNT
   /* On Windows, this was done before dumping, and that once suffices.
      Meanwhile, my_edata is not valid on Windows.  */
-  {
-    extern char my_edata[];
-    memory_warnings (my_edata, malloc_warning);
-  }
+  memory_warnings (my_edata, malloc_warning);
 #endif /* not WINDOWSNT */
 #endif /* not SYSTEM_MALLOC and not HYBRID_MALLOC */
 #ifdef DOUG_LEA_MALLOC

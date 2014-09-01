@@ -1,3 +1,9 @@
+2014-09-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Clean up extern decls a bit.
+	* configure.ac (WERROR_CFLAGS): Don't disable -Wnested-externs.
+	While we're at it, don't disable -Wlogical-op either.
+
 2014-08-31  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* configure.ac (MAKE): Export it, for config.status.

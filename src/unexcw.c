@@ -34,10 +34,6 @@ extern void report_sheap_usage (int);
 
 extern int bss_sbrk_did_unexec;
 
-/* emacs symbols that indicate where bss and data end for emacs internals */
-extern char my_endbss[];
-extern char my_edata[];
-
 /*
 ** header for Windows executable files
 */

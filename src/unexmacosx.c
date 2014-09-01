@@ -826,7 +826,6 @@ copy_data_segment (struct load_command *lc)
 	 file.  */
       if (strncmp (sectp->sectname, SECT_DATA, 16) == 0)
 	{
-	  extern char my_edata[];
 	  unsigned long my_size;
 
 	  /* The __data section is basically dumped from memory.  But
@@ -857,7 +856,6 @@ copy_data_segment (struct load_command *lc)
 	}
       else if (strncmp (sectp->sectname, SECT_BSS, 16) == 0)
 	{
-	  extern char *my_endbss_static;
 	  unsigned long my_size;
 
 	  sectp->flags = S_REGULAR;

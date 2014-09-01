@@ -1,3 +1,19 @@
+2014-09-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Clean up extern decls a bit.
+	* bytecode.c: Include blockinput.h and keyboard.h rather
+	than rolling their APIs by hand.
+	* emacs.c: Include regex.h and rely on its and lisp.h's API
+	rather than rolling them by hand.
+	* lastfile.c: Include lisp.h, to check this file's API.
+	* lisp.h (lisp_eval_depth, my_edata, my_endbss, my_endbss_static):
+	New decls.
+	* regex.h (re_max_failures): New decl.
+	* unexcw.c, unexmacosx.c, unexw32.c:
+	Rely on lisp.h's API rather than rolling it by hand.
+	* vm-limit.c (__after_morecore_hook, __morecore, real_morecore):
+	Declare at top level, to pacify GCC -Wnested-externs.
+
 2014-08-31  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (get_glyph_string_clip_rects): Don't let the width of a

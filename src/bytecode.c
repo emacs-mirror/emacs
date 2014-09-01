@@ -36,8 +36,10 @@ by Hallvard:
 #include <config.h>
 
 #include "lisp.h"
+#include "blockinput.h"
 #include "character.h"
 #include "buffer.h"
+#include "keyboard.h"
 #include "syntax.h"
 #include "window.h"
 
@@ -1106,9 +1108,6 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	  goto pushhandler;
 	CASE (Bpushconditioncase): /* New in 24.4.  */
 	  {
-	    extern EMACS_INT lisp_eval_depth;
-	    extern int poll_suppress_count;
-	    extern int interrupt_input_blocked;
 	    struct handler *c;
 	    Lisp_Object tag;
 	    int dest;

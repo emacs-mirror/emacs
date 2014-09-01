@@ -3885,6 +3885,7 @@ intern_c_string (const char *str)
 }
 
 /* Defined in eval.c.  */
+extern EMACS_INT lisp_eval_depth;
 extern Lisp_Object Qexit, Qinteractive, Qcommandp, Qmacro;
 extern Lisp_Object Qinhibit_quit, Qinternal_interpreter_environment, Qclosure;
 extern Lisp_Object Qand_rest;
@@ -4418,6 +4419,11 @@ extern void syms_of_profiler (void);
 /* Defined in msdos.c, w32.c.  */
 extern char *emacs_root_dir (void);
 #endif /* DOS_NT */
+
+/* Defined in lastfile.c.  */
+extern char my_edata[];
+extern char my_endbss[];
+extern char *my_endbss_static;
 
 /* True means ^G can quit instantly.  */
 extern bool immediate_quit;

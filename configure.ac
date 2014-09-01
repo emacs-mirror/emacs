@@ -844,10 +844,8 @@ else
 
   nw="$nw -Wsystem-headers"         # Don't let system headers trigger warnings
   nw="$nw -Woverlength-strings"     # Not a problem these days
-  nw="$nw -Wlogical-op"             # any use of fwrite provokes this
   nw="$nw -Wformat-nonliteral"      # we do this a lot
-  nw="$nw -Wvla"                    # warnings in gettext.h
-  nw="$nw -Wnested-externs"         # use of XARGMATCH/verify_function__
+  nw="$nw -Wvla"                    # Emacs uses <vla.h>.
   nw="$nw -Wswitch-default"         # Too many warnings for now
   nw="$nw -Winline"                 # OK to ignore 'inline'
   nw="$nw -Wjump-misses-init"       # We sometimes safely jump over init.
@@ -864,7 +862,8 @@ else
   # Emacs's use of alloca inhibits protecting the stack.
   nw="$nw -Wstack-protector"
 
-  # The following line should be removable at some point.
+  # Emacs's use of partly-pure functions such as CHECK_TYPE make this
+  # option problematic.
   nw="$nw -Wsuggest-attribute=pure"
 
   # This part is merely for shortening the command line,
@@ -890,10 +889,6 @@ else
   gl_WARN_ADD([-Wno-switch])           # Too many warnings for now
   gl_WARN_ADD([-Wno-unused-parameter]) # Too many warnings for now
   gl_WARN_ADD([-Wno-format-nonliteral])
-
-  # In spite of excluding -Wlogical-op above, it is enabled, as of
-  # gcc 4.5.0 20090517.
-  gl_WARN_ADD([-Wno-logical-op])
 
   # More things that clang is unduly picky about.
   if test $emacs_cv_clang = yes; then
