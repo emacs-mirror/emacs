@@ -3236,6 +3236,13 @@ w32_compare_strings (const char *s1, const char *s2, char *locname,
 
   USE_SAFE_ALLOCA;
 
+  /* The LCID machinery doesn't seem to support the "C" locale, so we
+     need to do that by hand.  */
+  if (locname
+      && ((locname[0] == 'C' && (locname[1] == '\0' || locname[1] == '.'))
+	  || strcmp (locname, "POSIX") == 0))
+    return (ignore_case ? stricmp (s1, s2) : strcmp (s1, s2));
+
   if (!g_b_init_compare_string_w)
     {
       if (os_subtype == OS_9X)

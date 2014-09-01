@@ -1,3 +1,8 @@
+2014-09-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32proc.c (w32_compare_strings): Support "C" and "POSIX"
+	locales.
+
 2014-09-01  Paul Eggert  <eggert@cs.ucla.edu>
 
 	--enable-silent-rules now suppresses more chatter.
