@@ -889,7 +889,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
   bool collapse_newdir = 1;
   bool is_escaped = 0;
 #endif /* DOS_NT */
-  ptrdiff_t length;
+  ptrdiff_t length, newdirlen;
   Lisp_Object handler, result, handled_name;
   bool multibyte;
   Lisp_Object hdir;
@@ -1147,6 +1147,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
      append it to the current working directory.  */
 
   newdir = 0;
+  newdirlen = -1;
 
   if (nm[0] == '~')		/* prefix ~ */
     {
@@ -1171,10 +1172,12 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	  else
 #endif
 	    tem = build_string (newdir);
+	  newdirlen = SBYTES (tem);
 	  if (multibyte && !STRING_MULTIBYTE (tem))
 	    {
 	      hdir = DECODE_FILE (tem);
 	      newdir = SSDATA (hdir);
+	      newdirlen = SBYTES (hdir);
 	    }
 #ifdef DOS_NT
 	  collapse_newdir = 0;
@@ -1201,10 +1204,12 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 		 bite us since we expect the directory to be
 		 multibyte.  */
 	      tem = build_string (newdir);
+	      newdirlen = SBYTES (tem);
 	      if (multibyte && !STRING_MULTIBYTE (tem))
 		{
 		  hdir = DECODE_FILE (tem);
 		  newdir = SSDATA (hdir);
+		  newdirlen = SBYTES (hdir);
 		}
 	      nm = p;
 #ifdef DOS_NT
@@ -1234,7 +1239,8 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	      Lisp_Object tem = build_string (adir);
 
 	      tem = DECODE_FILE (tem);
-	      memcpy (adir, SSDATA (tem), SBYTES (tem) + 1);
+	      newdirlen = SBYTES (tem);
+	      memcpy (adir, SSDATA (tem), newdirlen + 1);
 	    }
 	}
       if (!adir)
@@ -1245,6 +1251,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	  adir[1] = ':';
 	  adir[2] = '/';
 	  adir[3] = 0;
+	  newdirlen = 3;
 	}
       newdir = adir;
     }
@@ -1265,11 +1272,13 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
       && !newdir)
     {
       newdir = SSDATA (default_directory);
+      newdirlen = SBYTES (default_directory);
 #ifdef DOS_NT
       /* Note if special escape prefix is present, but remove for now.  */
       if (newdir[0] == '/' && newdir[1] == ':')
 	{
 	  is_escaped = 1;
+	  newdirlen -= 2;
 	  newdir += 2;
 	}
 #endif
@@ -1305,14 +1314,14 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	  if (IS_DRIVE (newdir[0]) && IS_DEVICE_SEP (newdir[1]))
 	    {
 	      drive = (unsigned char) newdir[0];
+	      newdirlen -= 2;
 	      newdir += 2;
 	    }
 	  if (!IS_DIRECTORY_SEP (nm[0]))
 	    {
-	      ptrdiff_t newlen = strlen (newdir);
-	      char *tmp = alloca (newlen + file_name_as_directory_slop
+	      char *tmp = alloca (newdirlen + file_name_as_directory_slop
 				  + strlen (nm) + 1);
-	      file_name_as_directory (tmp, newdir, newlen, multibyte);
+	      file_name_as_directory (tmp, newdir, newdirlen, multibyte);
 	      strcat (tmp, nm);
 	      nm = tmp;
 	    }
@@ -1329,8 +1338,11 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	      Lisp_Object tem = build_string (adir);
 
 	      tem = DECODE_FILE (tem);
-	      memcpy (adir, SSDATA (tem), SBYTES (tem) + 1);
+	      newdirlen = SBYTES (tem);
+	      memcpy (adir, SSDATA (tem), newdirlen + 1);
 	    }
+	  else
+	    newdirlen = strlen (aidr);
 	  newdir = adir;
 	}
 
@@ -1338,6 +1350,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
       if (IS_DRIVE (newdir[0]) && IS_DEVICE_SEP (newdir[1]))
 	{
 	  drive = newdir[0];
+	  newdirlen -= 2;
 	  newdir += 2;
 	}
 
@@ -1349,17 +1362,18 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	  if (IS_DIRECTORY_SEP (newdir[0]) && IS_DIRECTORY_SEP (newdir[1])
 	      && !IS_DIRECTORY_SEP (newdir[2]))
 	    {
-	      char *adir = strcpy (alloca (strlen (newdir) + 1), newdir);
+	      char *adir = strcpy (alloca (newdirlen + 1), newdir);
 	      char *p = adir + 2;
 	      while (*p && !IS_DIRECTORY_SEP (*p)) p++;
 	      p++;
 	      while (*p && !IS_DIRECTORY_SEP (*p)) p++;
 	      *p = 0;
 	      newdir = adir;
+	      newdirlen = strlen (adir);
 	    }
 	  else
 #endif
-	    newdir = "";
+	    newdirlen = 0, newdir = "";
 	}
     }
 #endif /* DOS_NT */
@@ -1368,7 +1382,8 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
     {
       /* Ignore any slash at the end of newdir, unless newdir is
 	 just "/" or "//".  */
-      length = strlen (newdir);
+      length = newdirlen;
+      eassert (length == strlen (newdir));
       while (length > 1 && IS_DIRECTORY_SEP (newdir[length - 1])
 	     && ! (length == 2 && IS_DIRECTORY_SEP (newdir[0])))
 	length--;
@@ -2765,23 +2780,24 @@ searchable directory.  */)
     }
 
   absname = ENCODE_FILE (absname);
-  return file_accessible_directory_p (SSDATA (absname)) ? Qt : Qnil;
+  return file_accessible_directory_p (absname) ? Qt : Qnil;
 }
 
 /* If FILE is a searchable directory or a symlink to a
    searchable directory, return true.  Otherwise return
    false and set errno to an error number.  */
 bool
-file_accessible_directory_p (char const *file)
+file_accessible_directory_p (Lisp_Object file)
 {
 #ifdef DOS_NT
   /* There's no need to test whether FILE is searchable, as the
      searchable/executable bit is invented on DOS_NT platforms.  */
-  return file_directory_p (file);
+  return file_directory_p (SSDATA (file));
 #else
   /* On POSIXish platforms, use just one system call; this avoids a
      race and is typically faster.  */
-  ptrdiff_t len = strlen (file);
+  const char *data = SSDATA (file);
+  ptrdiff_t len = SBYTES (file);
   char const *dir;
   bool ok;
   int saved_errno;
@@ -2793,15 +2809,15 @@ file_accessible_directory_p (char const *file)
      "/" and "//" are distinct on some platforms, whereas "/", "///",
      "////", etc. are all equivalent.  */
   if (! len)
-    dir = file;
+    dir = data;
   else
     {
       /* Just check for trailing '/' when deciding whether to append '/'.
 	 That's simpler than testing the two special cases "/" and "//",
 	 and it's a safe optimization here.  */
       char *buf = SAFE_ALLOCA (len + 3);
-      memcpy (buf, file, len);
-      strcpy (buf + len, &"/."[file[len - 1] == '/']);
+      memcpy (buf, data, len);
+      strcpy (buf + len, &"/."[data[len - 1] == '/']);
       dir = buf;
     }
 

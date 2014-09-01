@@ -1,3 +1,16 @@
+2014-09-01  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Avoid extra calls to strlen in filesystem I/O routines.
+	* fileio.c (Fexpand_file_name): Avoid calls to strlen if
+	the length of 'newdir' is known or may be precalculated.
+	(file_accessible_directory_p): Prefer to pass Lisp_Object,
+	not 'char *', and so use precalculated length.
+	(Ffile_accessible_directory_p):
+	* callproc.c (encode_current_directory, init_callproc):
+	* charset.c (init_charset):
+	* lread.c (load_path_check, load_path_default): Adjust users.
+	* lisp.h (file_accessible_directory_p): Tweak prototype.
+
 2014-09-01  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32proc.c (w32_compare_strings): Support "C" and "POSIX"

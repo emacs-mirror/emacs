@@ -4213,7 +4213,7 @@ load_path_check (Lisp_Object lpath)
       if (STRINGP (dirfile))
         {
           dirfile = Fdirectory_file_name (dirfile);
-          if (! file_accessible_directory_p (SSDATA (dirfile)))
+          if (! file_accessible_directory_p (dirfile))
             dir_warning ("Lisp directory", XCAR (path_tail));
         }
     }

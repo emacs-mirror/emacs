@@ -129,7 +129,7 @@ encode_current_directory (void)
 
   if (STRING_MULTIBYTE (dir))
     dir = ENCODE_FILE (dir);
-  if (! file_accessible_directory_p (SSDATA (dir)))
+  if (! file_accessible_directory_p (dir))
     report_file_error ("Setting current directory",
 		       BVAR (current_buffer, directory));
 
@@ -1625,12 +1625,12 @@ init_callproc (void)
 #endif
     {
       tempdir = Fdirectory_file_name (Vexec_directory);
-      if (! file_accessible_directory_p (SSDATA (tempdir)))
+      if (! file_accessible_directory_p (tempdir))
 	dir_warning ("arch-dependent data dir", Vexec_directory);
     }
 
   tempdir = Fdirectory_file_name (Vdata_directory);
-  if (! file_accessible_directory_p (SSDATA (tempdir)))
+  if (! file_accessible_directory_p (tempdir))
     dir_warning ("arch-independent data dir", Vdata_directory);
 
   sh = getenv ("SHELL");
