@@ -1,3 +1,8 @@
+2014-09-01  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	* automated/python-tests.el:
+	(python-indent-electric-colon-1): New test.  (Bug#18228)
+
 2014-08-18  Glenn Morris  <rgm@gnu.org>
 
 	* automated/python-tests.el (python-shell-calculate-exec-path-2):

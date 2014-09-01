@@ -1,3 +1,8 @@
+2014-09-01  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	* progmodes/python.el (python-indent-post-self-insert-function):
+	Avoid electric colon at beginning-of-defun.  (Bug#18228)
+
 2014-09-01  Glenn Morris  <rgm@gnu.org>
 
 	* tutorial.el (tutorial--display-changes):

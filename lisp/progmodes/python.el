@@ -1155,9 +1155,15 @@ the line will be re-indented automatically if needed."
      ((and (eq ?: last-command-event)
            (memq ?: electric-indent-chars)
            (not current-prefix-arg)
+           ;; Trigger electric colon only at end of line
            (eolp)
+           ;; Avoid re-indenting on extra colon
            (not (equal ?: (char-before (1- (point)))))
-           (not (python-syntax-comment-or-string-p)))
+           (not (python-syntax-comment-or-string-p))
+           ;; Never re-indent at beginning of defun
+           (not (save-excursion
+                  (python-nav-beginning-of-statement)
+                  (python-info-looking-at-beginning-of-defun))))
       (python-indent-line)))))
 
 
