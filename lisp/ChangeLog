@@ -1,3 +1,8 @@
+2014-09-01  Glenn Morris  <rgm@gnu.org>
+
+	* tutorial.el (tutorial--display-changes):
+	Fix 2014-07-29 change.  (Bug#18382)
+
 2014-08-29  Ken Brown  <kbrown@cornell.edu>
 
 	* startup.el (fancy-splash-frame): Extend the fix for Bug#16014 to

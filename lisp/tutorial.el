@@ -552,7 +552,7 @@ with some explanatory links."
 	  ;; binding because the Hebrew tutorial uses directional
 	  ;; controls and Hebrew character maqaf, the Hebrew hyphen,
 	  ;; immediately before the binding string.
-	  (concat "\\([[:space:]]\\|[[:punct:]]\\)\\("
+	  (concat "\\(?:[[:space:]]\\|[[:punct:]]\\)\\("
 		  (mapconcat (lambda (kdf) (regexp-quote
 					    (tutorial--key-description
 					     (nth 1 kdf))))
