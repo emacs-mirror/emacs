@@ -1,3 +1,9 @@
+2014-09-02  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* fileio.c (CHECK_LENGTH): New macro.
+	(Fexpand_file_name): Use it and get rid of a few more calls
+	to strlen and strcat.
+
 2014-09-01  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Avoid extra calls to strlen in filesystem I/O routines.
