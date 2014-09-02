@@ -1954,16 +1954,8 @@ DEFUN ("local-variable-p", Flocal_variable_p, Slocal_variable_p,
 BUFFER defaults to the current buffer.  */)
   (register Lisp_Object variable, Lisp_Object buffer)
 {
-  register struct buffer *buf;
+  register struct buffer *buf = decode_buffer (buffer);
   struct Lisp_Symbol *sym;
-
-  if (NILP (buffer))
-    buf = current_buffer;
-  else
-    {
-      CHECK_BUFFER (buffer);
-      buf = XBUFFER (buffer);
-    }
 
   CHECK_SYMBOL (variable);
   sym = XSYMBOL (variable);

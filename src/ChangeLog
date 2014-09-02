@@ -7,6 +7,14 @@
 	* lisp.h (egetenv): ... because of a new inline function used to
 	avoid calls to strlen for a compile-time constants.
 
+	* buffer.h (decode_buffer): New function.
+	* buffer.c (Fbuffer_name, Fbuffer_file_name, Fbuffer_base_buffer)
+	(Fbuffer_local_variables, Fbuffer_modified_p, Fbuffer_modified_tick)
+	(Fbuffer_chars_modified_tick, Fdelete_all_overlays):
+	* data.c (Flocal_variables_p):
+	* fileio.c (Fverify_visited_file_modtime):
+	* marker.c (live_buffer): Use it.
+
 2014-09-01  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Avoid extra calls to strlen in filesystem I/O routines.

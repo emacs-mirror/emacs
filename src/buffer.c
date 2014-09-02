@@ -1134,10 +1134,7 @@ BUFFER defaults to the current buffer.
 Return nil if BUFFER has been killed.  */)
   (register Lisp_Object buffer)
 {
-  if (NILP (buffer))
-    return BVAR (current_buffer, name);
-  CHECK_BUFFER (buffer);
-  return BVAR (XBUFFER (buffer), name);
+  return BVAR (decode_buffer (buffer), name);
 }
 
 DEFUN ("buffer-file-name", Fbuffer_file_name, Sbuffer_file_name, 0, 1, 0,
@@ -1145,10 +1142,7 @@ DEFUN ("buffer-file-name", Fbuffer_file_name, Sbuffer_file_name, 0, 1, 0,
 No argument or nil as argument means use the current buffer.  */)
   (register Lisp_Object buffer)
 {
-  if (NILP (buffer))
-    return BVAR (current_buffer, filename);
-  CHECK_BUFFER (buffer);
-  return BVAR (XBUFFER (buffer), filename);
+  return BVAR (decode_buffer (buffer), filename);
 }
 
 DEFUN ("buffer-base-buffer", Fbuffer_base_buffer, Sbuffer_base_buffer,
@@ -1158,21 +1152,8 @@ If BUFFER is not indirect, return nil.
 BUFFER defaults to the current buffer.  */)
   (register Lisp_Object buffer)
 {
-  struct buffer *base;
-  Lisp_Object base_buffer;
-
-  if (NILP (buffer))
-    base = current_buffer->base_buffer;
-  else
-    {
-      CHECK_BUFFER (buffer);
-      base = XBUFFER (buffer)->base_buffer;
-    }
-
-  if (! base)
-    return Qnil;
-  XSETBUFFER (base_buffer, base);
-  return base_buffer;
+  struct buffer *base = decode_buffer (buffer)->base_buffer;
+  return base ? (XSETBUFFER (buffer, base), buffer) : Qnil;
 }
 
 DEFUN ("buffer-local-value", Fbuffer_local_value,
@@ -1297,18 +1278,8 @@ Note that storing new VALUEs in these elements doesn't change the variables.
 No argument or nil as argument means use current buffer as BUFFER.  */)
   (register Lisp_Object buffer)
 {
-  register struct buffer *buf;
-  register Lisp_Object result;
-
-  if (NILP (buffer))
-    buf = current_buffer;
-  else
-    {
-      CHECK_BUFFER (buffer);
-      buf = XBUFFER (buffer);
-    }
-
-  result = buffer_lisp_local_variables (buf, 0);
+  register struct buffer *buf = decode_buffer (buffer);
+  register Lisp_Object result = buffer_lisp_local_variables (buf, 0);
 
   /* Add on all the variables stored in special slots.  */
   {
@@ -1337,15 +1308,7 @@ DEFUN ("buffer-modified-p", Fbuffer_modified_p, Sbuffer_modified_p,
 No argument or nil as argument means use current buffer as BUFFER.  */)
   (register Lisp_Object buffer)
 {
-  register struct buffer *buf;
-  if (NILP (buffer))
-    buf = current_buffer;
-  else
-    {
-      CHECK_BUFFER (buffer);
-      buf = XBUFFER (buffer);
-    }
-
+  register struct buffer *buf = decode_buffer (buffer);
   return BUF_SAVE_MODIFF (buf) < BUF_MODIFF (buf) ? Qt : Qnil;
 }
 
@@ -1451,16 +1414,7 @@ text in that buffer is changed.  It wraps around occasionally.
 No argument or nil as argument means use current buffer as BUFFER.  */)
   (register Lisp_Object buffer)
 {
-  register struct buffer *buf;
-  if (NILP (buffer))
-    buf = current_buffer;
-  else
-    {
-      CHECK_BUFFER (buffer);
-      buf = XBUFFER (buffer);
-    }
-
-  return make_number (BUF_MODIFF (buf));
+  return make_number (BUF_MODIFF (decode_buffer (buffer)));
 }
 
 DEFUN ("buffer-chars-modified-tick", Fbuffer_chars_modified_tick,
@@ -1475,16 +1429,7 @@ between these calls.  No argument or nil as argument means use current
 buffer as BUFFER.  */)
   (register Lisp_Object buffer)
 {
-  register struct buffer *buf;
-  if (NILP (buffer))
-    buf = current_buffer;
-  else
-    {
-      CHECK_BUFFER (buffer);
-      buf = XBUFFER (buffer);
-    }
-
-  return make_number (BUF_CHARS_MODIFF (buf));
+  return make_number (BUF_CHARS_MODIFF (decode_buffer (buffer)));
 }
 
 DEFUN ("rename-buffer", Frename_buffer, Srename_buffer, 1, 2,
@@ -4137,17 +4082,7 @@ BUFFER omitted or nil means delete all overlays of the current
 buffer.  */)
   (Lisp_Object buffer)
 {
-  register struct buffer *buf;
-
-  if (NILP (buffer))
-    buf = current_buffer;
-  else
-    {
-      CHECK_BUFFER (buffer);
-      buf = XBUFFER (buffer);
-    }
-
-  delete_all_overlays (buf);
+  delete_all_overlays (decode_buffer (buffer));
   return Qnil;
 }
 

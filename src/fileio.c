@@ -5324,19 +5324,11 @@ If BUF is omitted or nil, it defaults to the current buffer.
 See Info node `(elisp)Modification Time' for more details.  */)
   (Lisp_Object buf)
 {
-  struct buffer *b;
+  struct buffer *b = decode_buffer (buf);
   struct stat st;
   Lisp_Object handler;
   Lisp_Object filename;
   struct timespec mtime;
-
-  if (NILP (buf))
-    b = current_buffer;
-  else
-    {
-      CHECK_BUFFER (buf);
-      b = XBUFFER (buf);
-    }
 
   if (!STRINGP (BVAR (b, filename))) return Qt;
   if (b->modtime.tv_nsec == UNKNOWN_MODTIME_NSECS) return Qt;

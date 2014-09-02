@@ -1088,6 +1088,13 @@ extern void mmap_set_vars (bool);
 extern void restore_buffer (Lisp_Object);
 extern void set_buffer_if_live (Lisp_Object);
 
+INLINE
+struct buffer *
+decode_buffer (Lisp_Object b)
+{
+  return NILP (b) ? current_buffer : (CHECK_BUFFER (b), XBUFFER (b));
+}
+
 /* Set the current buffer to B.
 
    We previously set windows_or_buffers_changed here to invalidate
