@@ -1,3 +1,10 @@
+2014-09-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	2014-09-02 gnulib-common.m4: port to GCC 4.2.1 and Sun Studio 12 C++
+	2014-09-01 manywarnings: add GCC 4.9 warnings
+	* m4/gnulib-common.m4, m4/manywarnings.m4: Update from gnulib.
+
 2014-09-01  Paul Eggert  <eggert@cs.ucla.edu>
 
 	--enable-silent-rules now suppresses more chatter.
