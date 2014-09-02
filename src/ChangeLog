@@ -3,6 +3,9 @@
 	* fileio.c (CHECK_LENGTH): New macro.
 	(Fexpand_file_name): Use it and get rid of a few more calls
 	to strlen and strcat.
+	* callproc.c (egetenv_internal): Add arg and rename from egetenv ...
+	* lisp.h (egetenv): ... because of a new inline function used to
+	avoid calls to strlen for a compile-time constants.
 
 2014-09-01  Dmitry Antipov  <dmantipov@yandex.ru>
 

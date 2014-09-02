@@ -1488,14 +1488,14 @@ If optional parameter ENV is a list, then search this list instead of
 }
 
 /* A version of getenv that consults the Lisp environment lists,
-   easily callable from C.  */
+   easily callable from C.  This is usually called from egetenv.  */
 char *
-egetenv (const char *var)
+egetenv_internal (const char *var, ptrdiff_t len)
 {
   char *value;
   ptrdiff_t valuelen;
 
-  if (getenv_internal (var, strlen (var), &value, &valuelen, Qnil))
+  if (getenv_internal (var, len, &value, &valuelen, Qnil))
     return value;
   else
     return 0;

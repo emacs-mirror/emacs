@@ -4442,7 +4442,16 @@ extern char *xlispstrdup (Lisp_Object) ATTRIBUTE_MALLOC;
 extern void dupstring (char **, char const *);
 extern void xputenv (const char *);
 
-extern char *egetenv (const char *);
+extern char *egetenv_internal (const char *, ptrdiff_t);
+
+/* VAR is usually a compile-time constant, so the
+   call to strlen is likely to be optimized away.  */
+
+INLINE char *
+egetenv(const char *var)
+{
+  return egetenv_internal (var, strlen (var));
+}
 
 /* Copy Lisp string to temporary (allocated on stack) C string.  */
 
