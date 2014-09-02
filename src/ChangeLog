@@ -1,3 +1,11 @@
+2014-09-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Minor cleanup of recent strlen-avoiding patch.
+	* fileio.c (CHECK_LENGTH): Remove.
+	Rewrite callers so that they don't need it.
+	(Fexpand_file_name) [DOS_NT]: Fix a case where directory length
+	variable wasn't set.
+
 2014-09-02  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* fileio.c (CHECK_LENGTH): New macro.

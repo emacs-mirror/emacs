@@ -1952,9 +1952,9 @@ DEFUN ("local-variable-p", Flocal_variable_p, Slocal_variable_p,
        1, 2, 0,
        doc: /* Non-nil if VARIABLE has a local binding in buffer BUFFER.
 BUFFER defaults to the current buffer.  */)
-  (register Lisp_Object variable, Lisp_Object buffer)
+  (Lisp_Object variable, Lisp_Object buffer)
 {
-  register struct buffer *buf = decode_buffer (buffer);
+  struct buffer *buf = decode_buffer (buffer);
   struct Lisp_Symbol *sym;
 
   CHECK_SYMBOL (variable);

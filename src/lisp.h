@@ -4444,12 +4444,10 @@ extern void xputenv (const char *);
 
 extern char *egetenv_internal (const char *, ptrdiff_t);
 
-/* VAR is usually a compile-time constant, so the
-   call to strlen is likely to be optimized away.  */
-
 INLINE char *
-egetenv(const char *var)
+egetenv (const char *var)
 {
+  /* When VAR is a string literal, strlen can be optimized away.  */
   return egetenv_internal (var, strlen (var));
 }
 

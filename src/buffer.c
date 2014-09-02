@@ -1276,10 +1276,10 @@ Most elements look like (SYMBOL . VALUE), describing one variable.
 For a symbol that is locally unbound, just the symbol appears in the value.
 Note that storing new VALUEs in these elements doesn't change the variables.
 No argument or nil as argument means use current buffer as BUFFER.  */)
-  (register Lisp_Object buffer)
+  (Lisp_Object buffer)
 {
-  register struct buffer *buf = decode_buffer (buffer);
-  register Lisp_Object result = buffer_lisp_local_variables (buf, 0);
+  struct buffer *buf = decode_buffer (buffer);
+  Lisp_Object result = buffer_lisp_local_variables (buf, 0);
 
   /* Add on all the variables stored in special slots.  */
   {
@@ -1306,9 +1306,9 @@ DEFUN ("buffer-modified-p", Fbuffer_modified_p, Sbuffer_modified_p,
        0, 1, 0,
        doc: /* Return t if BUFFER was modified since its file was last read or saved.
 No argument or nil as argument means use current buffer as BUFFER.  */)
-  (register Lisp_Object buffer)
+  (Lisp_Object buffer)
 {
-  register struct buffer *buf = decode_buffer (buffer);
+  struct buffer *buf = decode_buffer (buffer);
   return BUF_SAVE_MODIFF (buf) < BUF_MODIFF (buf) ? Qt : Qnil;
 }
 
