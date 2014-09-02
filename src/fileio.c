@@ -1342,7 +1342,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	      memcpy (adir, SSDATA (tem), newdirlen + 1);
 	    }
 	  else
-	    newdirlen = strlen (aidr);
+	    newdirlen = strlen (adir);
 	  newdir = adir;
 	}
 
