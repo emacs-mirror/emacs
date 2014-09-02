@@ -1,3 +1,10 @@
+2014-09-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* dispnew.c (buffer_posn_from_coords): Fix an off-by-one error in
+	the reported row in the case of a window with a header line, by
+	improving on the fix committed in r106022
+	eliz@gnu.org-20111008105850-ht4tvsayohvr1kjc.  (Bug#18384)
+
 2014-09-02  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* eval.c (internal_lisp_condition_case): Don't overrun the stack
