@@ -1,5 +1,13 @@
 2014-09-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/package.el (package-generate-description-file):
+	Properly quote the arguments (bug#18332).  Change second arg.
+	(package--alist-to-plist-args): Rename from package--alist-to-plist and
+	quote the elements.
+	(package--make-autoloads-and-stuff): Fix the test for pre-existence of
+	the *-pkg.el file.  Adjust to new calling convention of
+	package-generate-description-file.
+
 	* progmodes/gud.el (gud-gdb-completion-at-point): Add hack (bug#18282).
 	(gud-gdb-completions): Remove obsolete workaround.
 
