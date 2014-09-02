@@ -1280,7 +1280,7 @@ internal_lisp_condition_case (volatile Lisp_Object var, Lisp_Object bodyform,
   { /* The first clause is the one that should be checked first, so it should
        be added to handlerlist last.  So we build in `clauses' a table that
        contains `handlers' but in reverse order.  */
-    Lisp_Object *clauses = alloca (clausenb * sizeof (Lisp_Object *));
+    Lisp_Object *clauses = alloca (clausenb * sizeof *clauses);
     Lisp_Object *volatile clauses_volatile = clauses;
     int i = clausenb;
     for (val = handlers; CONSP (val); val = XCDR (val))

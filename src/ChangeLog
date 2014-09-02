@@ -1,3 +1,8 @@
+2014-09-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* eval.c (internal_lisp_condition_case): Don't overrun the stack
+	when configured --with-wide-int on typical 32-bit platforms.
+
 2014-08-31  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (display_and_set_cursor): Call erase_phys_cursor also
