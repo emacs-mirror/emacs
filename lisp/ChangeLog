@@ -1,3 +1,12 @@
+2014-09-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/which-func.el (which-func-ff-hook): Obey pre-existing
+	buffer-local setting of which-func-mode.
+	(which-func-mode): Use defvar-local.
+	(which-function-mode): Don't reset which-func-mode in each buffer since
+	it might have been set by someone else.
+	(which-func-update-ediff-windows): Check which-function-mode.
+
 2014-09-03  Martin Rudalics  <rudalics@gmx.at>
 
 	* frame.el (frame-initialize): Remove horizontal-scroll-bars
