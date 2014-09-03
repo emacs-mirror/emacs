@@ -1,3 +1,8 @@
+2014-09-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/sh-script.el (sh-font-lock-quoted-subshell): Try to better
+	handle multiline elements (bug#18380).
+
 2014-09-01  Eli Zaretskii  <eliz@gnu.org>
 
 	* ls-lisp.el (ls-lisp-use-string-collate)
@@ -7,8 +12,7 @@
 	(ls-lisp-version-lessp): New function.
 	(ls-lisp-handle-switches): Use it to implement the -v switch of
 	GNU ls.
-	(ls-lisp--insert-directory): Mention the -v switch in the doc
-	string.
+	(ls-lisp--insert-directory): Mention the -v switch in the doc string.
 
 2014-08-31  Christoph Scholtes  <cschol2112@gmail.com>
 
@@ -16,8 +20,8 @@
 	`quit-window' via `special-mode'.
 	(ibuffer-mode-map): Use keybindings from special-mode-map instead
 	of local overrides.
-	(ibuffer): Don't store previous windows configuration. Let
-	`quit-window' handle restoring.
+	(ibuffer): Don't store previous windows configuration.
+	Let `quit-window' handle restoring.
 	(ibuffer-quit): Remove function. Use `quit-window' instead.
 	(ibuffer-restore-window-config-on-quit): Remove variable.
 	(ibuffer-prev-window-config): Remove variable.
