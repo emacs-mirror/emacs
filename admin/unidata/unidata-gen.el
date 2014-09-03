@@ -152,7 +152,8 @@
 ;; PROP: character property
 ;; INDEX: index to each element of unidata-list for PROP.
 ;;   It may be a function that generates an alist of character codes
-;;   vs. the corresponding property values.
+;;   vs. the corresponding property values.  Currently, only character
+;;   codepoints or symbol values are supported in this case.
 ;; GENERATOR: function to generate a char-table
 ;; FILENAME: filename to store the char-table
 ;; DOCSTRING: docstring for the property
@@ -271,7 +272,23 @@ is the character itself."
      "Unicode bidi-mirroring characters.
 Property value is a character that has the corresponding mirroring image or nil.
 The value nil means that the actual property value of a character
-is the character itself.")))
+is the character itself.")
+    (paired-bracket
+     unidata-gen-brackets-list unidata-gen-table-character "uni-brackets.el"
+     "Unicode bidi paired-bracket characters.
+Property value is the paired bracket character, or nil.
+The value nil means that the character is neither an opening nor
+a closing paired bracket."
+     string)
+    (bracket-type
+     unidata-gen-bracket-type-list unidata-gen-table-symbol "uni-brackets.el"
+     "Unicode bidi paired-bracket type.
+Property value is a symbol `o' (Open), `c' (Close), or `n' (None)."
+     unidata-describe-bidi-bracket-type
+     n
+     ;; The order of elements must be in sync with bidi_bracket_type_t
+     ;; in src/dispextern.h.
+     (n o c))))
 
 ;; Functions to access the above data.
 (defsubst unidata-prop-index (prop) (nth 1 (assq prop unidata-prop-alist)))
@@ -449,7 +466,10 @@ is the character itself.")))
 	      (unidata-encode-val val-list (nth 2 elm)))
       (set-char-table-range table (cons (car elm) (nth 1 elm)) (nth 2 elm)))
 
-    (setq tail unidata-list)
+    (if (functionp prop-idx)
+	(setq tail (funcall prop-idx)
+	      prop-idx 1)
+      (setq tail unidata-list))
     (while tail
       (setq elt (car tail) tail (cdr tail))
       (setq range (car elt)
@@ -854,7 +874,7 @@ is the character itself.")))
 ;; The following command yields a file of about 96K bytes.
 ;;   % gawk -F ';' '{print $1,$2;}' < UnicodeData.txt | gzip > temp.gz
 ;; With the following function, we can get a file of almost the same
-;; the size.
+;; size.
 
 ;; Generate a char-table for character names.
 
@@ -1159,6 +1179,12 @@ is the character itself.")))
 		 (string ?'))))
    val " "))
 
+(defun unidata-describe-bidi-bracket-type (val)
+  (cdr (assq val
+	     '((n . "Not a paired bracket character.")
+	       (o . "Opening paired bracket character.")
+	       (c . "Closing paired bracket character.")))))
+
 (defun unidata-gen-mirroring-list ()
   (let ((head (list nil))
 	tail)
@@ -1172,6 +1198,36 @@ is the character itself.")))
 	  (setq tail (setcdr tail (list (list char mirror)))))))
     (cdr head)))
 
+(defun unidata-gen-brackets-list ()
+  (let ((head (list nil))
+	tail)
+    (with-temp-buffer
+      (insert-file-contents (expand-file-name "BidiBrackets.txt" unidata-dir))
+      (goto-char (point-min))
+      (setq tail head)
+      (while (re-search-forward
+	      "^\\([0-9A-F]+\\);\\s +\\([0-9A-F]+\\);\\s +\\([oc]\\)"
+	      nil t)
+	(let ((char (string-to-number (match-string 1) 16))
+	      (paired (match-string 2)))
+	  (setq tail (setcdr tail (list (list char paired)))))))
+    (cdr head)))
+
+(defun unidata-gen-bracket-type-list ()
+  (let ((head (list nil))
+	tail)
+    (with-temp-buffer
+      (insert-file-contents (expand-file-name "BidiBrackets.txt" unidata-dir))
+      (goto-char (point-min))
+      (setq tail head)
+      (while (re-search-forward
+	      "^\\([0-9A-F]+\\);\\s +\\([0-9A-F]+\\);\\s +\\([oc]\\)"
+	      nil t)
+	(let ((char (string-to-number (match-string 1) 16))
+	      (type (match-string 3)))
+	  (setq tail (setcdr tail (list (list char type)))))))
+    (cdr head)))
+
 ;; Verify if we can retrieve correct values from the generated
 ;; char-tables.
 
@@ -1180,19 +1236,30 @@ is the character itself.")))
     (let* ((prop (car elt))
 	   (index (unidata-prop-index prop))
 	   (generator (unidata-prop-generator prop))
+	   (default-value (unidata-prop-default prop))
+	   (val-list (unidata-prop-val-list prop))
 	   (table (progn
 		    (message "Generating %S table..." prop)
-		    (funcall generator prop)))
+		    (funcall generator prop default-value val-list)))
 	   (decoder (char-table-extra-slot table 1))
+	   (alist (and (functionp index)
+		       (funcall index)))
 	   (check #x400))
       (dolist (e unidata-list)
-	(let ((char (car e))
-	      (val1 (nth index e))
-	      val2)
+	(let* ((char (car e))
+	       (val1
+		(if alist (nth 1 (assoc char alist))
+		  (nth index e)))
+	       val2)
 	  (if (and (stringp val1) (= (length val1) 0))
 	      (setq val1 nil))
-	  (unless (consp char)
-	    (setq val2 (funcall decoder char (aref table char) table))
+	  (unless (or (consp char)
+		      (integerp decoder))
+	    (setq val2
+		  (cond ((functionp decoder)
+			 (funcall decoder char (aref table char) table))
+			(t		; must be nil
+			 (aref table char))))
 	    (if val1
 		(cond ((eq generator 'unidata-gen-table-symbol)
 		       (setq val1 (intern val1)))
@@ -1201,11 +1268,17 @@ is the character itself.")))
 		      ((eq generator 'unidata-gen-table-character)
 		       (setq val1 (string-to-number val1 16)))
 		      ((eq generator 'unidata-gen-table-decomposition)
-		       (setq val1 (unidata-split-decomposition val1)))))
+		       (setq val1 (unidata-split-decomposition val1))))
+	      (cond ((eq prop 'decomposition)
+		     (setq val1 (list char)))
+		    ((eq prop 'bracket-type)
+		     (setq val1 'n))))
 	    (when (>= char check)
 	      (message "%S %04X" prop check)
 	      (setq check (+ check #x400)))
 	    (or (equal val1 val2)
+		;; <control> characters get a 'name' property of nil
+		(and (eq prop 'name) (string= val1 "<control>") (null val2))
 		(insert (format "> %04X %S\n< %04X %S\n"
 				char val1 char val2)))
 	    (sit-for 0)))))))
@@ -1242,6 +1315,9 @@ is the character itself.")))
 	       (describer (unidata-prop-describer prop))
 	       (default-value (unidata-prop-default prop))
 	       (val-list (unidata-prop-val-list prop))
+	       ;; Avoid creating backup files for those uni-*.el files
+	       ;; that hold more than one table.
+	       (backup-inhibited t)
 	       table)
 	  ;; Filename in this comment line is extracted by sed in
 	  ;; Makefile.
@@ -1261,7 +1337,7 @@ is the character itself.")))
 		(setq describer (symbol-function describer)))
 	      (set-char-table-extra-slot table 3 describer))
 	    (if (bobp)
-		(insert ";; Copyright (C) 1991-2013 Unicode, Inc.
+		(insert ";; Copyright (C) 1991-2014 Unicode, Inc.
 ;; This file was generated from the Unicode data files at
 ;; http://www.unicode.org/Public/UNIDATA/.
 ;; See lisp/international/README for the copyright and permission notice.\n"))

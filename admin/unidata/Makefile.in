@@ -50,7 +50,8 @@ ${top_srcdir}/src/macuvs.h: ${srcdir}/uvs.el ${srcdir}/IVD_Sequences.txt | \
 unidata.txt: ${srcdir}/UnicodeData.txt
 	sed -e 's/\([^;]*\);\(.*\)/(#x\1 "\2")/' -e 's/;/" "/g' < $< > $@
 
-${DSTDIR}/charprop.el: ${srcdir}/unidata-gen.el ${srcdir}/UnicodeData.txt | \
+${DSTDIR}/charprop.el: ${srcdir}/unidata-gen.el ${srcdir}/UnicodeData.txt \
+  ${srcdir}/BidiMirroring.txt ${srcdir}/BidiBrackets.txt | \
   ${srcdir}/unidata-gen.elc unidata.txt
 	-if [ -f "$@" ]; then \
 	  cd ${DSTDIR} && chmod +w charprop.el `sed -n 's/^;; FILE: //p' < charprop.el`; \
@@ -59,7 +60,7 @@ ${DSTDIR}/charprop.el: ${srcdir}/unidata-gen.el ${srcdir}/UnicodeData.txt | \
 	  ${srcdir} "${DSTDIR}"
 
 ## Like the above, but generate in PWD rather than lisp/international.
-charprop.el: ${srcdir}/unidata-gen.elc unidata.txt
+charprop.el: ${srcdir}/unidata-gen.elc unidata.txt BidiMirroring.txt BidiBrackets.txt
 	${emacs} -L ${srcdir} -l unidata-gen -f unidata-gen-files \
 	  ${srcdir}
 
