@@ -467,7 +467,8 @@ rather than interactively.  This a trivial one-liner in easy-mode.el.
 
 ** Add definitions for symbol properties, for documentation purposes.
 
-** Add horizontal scroll bars.
+** Temporarily remove scroll bars when they are not needed, typically
+  when a buffer can be fully displayed in its window.
 
 ** Provide an optional feature which computes a scroll bar slider's
   size and its position from lines instead of characters.
