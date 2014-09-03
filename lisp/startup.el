@@ -1797,7 +1797,7 @@ we put it on this frame."
   (let (chosen-frame)
     ;; MS-Windows needs this to have a chance to make the initial
     ;; frame visible.
-    (if (eq system-type 'windows-nt)
+    (if (eq (window-system) 'w32)
 	(sit-for 0 t))
     (dolist (frame (append (frame-list) (list (selected-frame))))
       (if (and (frame-visible-p frame)

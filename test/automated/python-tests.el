@@ -711,6 +711,20 @@ if a:
     (should (= (python-indent-calculate-indentation) 0))
     (should (equal (python-indent-calculate-levels) '(0)))))
 
+(ert-deftest python-indent-electric-colon-1 ()
+  "Test indentation case from Bug#18228."
+  (python-tests-with-temp-buffer
+   "
+def a():
+    pass
+
+def b()
+"
+   (python-tests-look-at "def b()")
+   (goto-char (line-end-position))
+   (python-tests-self-insert ":")
+   (should (= (current-indentation) 0))))
+
 
 ;;; Navigation
 

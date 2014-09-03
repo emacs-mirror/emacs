@@ -810,18 +810,6 @@ CONTEXT is the text before COMMAND on the line."
 					   (current-buffer)
 					   ;; From string-match above.
 					   (length context))))
-    ;; `gud-gdb-run-command-fetch-lines' has some nasty side-effects on the
-    ;; buffer (via `gud-delete-prompt-marker'): it removes the prompt and then
-    ;; re-adds it later, thus messing up markers and overlays along the way.
-    ;; This is a problem for completion-in-region which uses an overlay to
-    ;; create a field.
-    ;; So we restore completion-in-region's field if needed.
-    ;; FIXME: change gud-gdb-run-command-fetch-lines so it doesn't modify the
-    ;; buffer at all.
-    (when (/= start (- (point) (field-beginning)))
-      (dolist (ol (overlays-at (1- (point))))
-        (when (eq (overlay-get ol 'field) 'completion)
-          (move-overlay ol (- (point) start) (overlay-end ol)))))
     ;; Protect against old versions of GDB.
     (and complete-list
 	 (string-match "^Undefined command: \"complete\"" (car complete-list))
@@ -860,7 +848,14 @@ CONTEXT is the text before COMMAND on the line."
          (save-excursion
            (skip-chars-backward "^ " (comint-line-beginning-position))
            (point))))
-    (list start end
+    ;; FIXME: `gud-gdb-run-command-fetch-lines' has some nasty side-effects on
+    ;; the buffer (via `gud-delete-prompt-marker'): it removes the prompt and
+    ;; then re-adds it later, thus messing up markers and overlays along the
+    ;; way (bug#18282).
+    ;; We use an "insert-before" marker for `start', since it's typically right
+    ;; after the prompt, which works around the problem, but is a hack (and
+    ;; comes with other downsides, e.g. if completion adds text at `start').
+    (list (copy-marker start t) end
           (completion-table-dynamic
            (apply-partially gud-gdb-completion-function
                             (buffer-substring (comint-line-beginning-position)

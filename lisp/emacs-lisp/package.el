@@ -689,11 +689,9 @@ untar into a directory named DIR; otherwise, signal an error."
 	    (error "Package does not untar cleanly into directory %s/" dir)))))
   (tar-untar-buffer))
 
-(defun package-generate-description-file (pkg-desc pkg-dir)
+(defun package-generate-description-file (pkg-desc pkg-file)
   "Create the foo-pkg.el file for single-file packages."
-  (let* ((name (package-desc-name pkg-desc))
-         (pkg-file (expand-file-name (package--description-file pkg-dir)
-                                     pkg-dir)))
+  (let* ((name (package-desc-name pkg-desc)))
     (let ((print-level nil)
           (print-quoted t)
           (print-length nil))
@@ -714,25 +712,20 @@ untar into a directory named DIR; otherwise, signal an error."
                            (list (car elt)
                                  (package-version-join (cadr elt))))
                          requires))))
-          (let ((alist (package-desc-extras pkg-desc))
-                flat)
-            (while alist
-              (let* ((pair (pop alist))
-                     (key (car pair))
-                     (val (cdr pair)))
-                ;; Don't bother ‘quote’ing ‘key’; it is always a keyword.
-                (push key flat)
-                (push (if (and (not (consp val))
-                               (or (keywordp val)
-                                   (not (symbolp val))
-                                   (memq val '(nil t))))
-                          val
-                        `',val)
-                      flat)))
-            (nreverse flat))))
+          (package--alist-to-plist-args
+           (package-desc-extras pkg-desc))))
         "\n")
        nil pkg-file nil 'silent))))
 
+(defun package--alist-to-plist-args (alist)
+  (mapcar (lambda (x)
+            (if (and (not (consp x))
+                     (or (keywordp x)
+                         (not (symbolp x))
+                         (memq x '(nil t))))
+                x `',x))
+          (apply #'nconc
+                 (mapcar (lambda (pair) (list (car pair) (cdr pair))) alist))))
 (defun package-unpack (pkg-desc)
   "Install the contents of the current buffer as a package."
   (let* ((name (package-desc-name pkg-desc))
@@ -764,9 +757,10 @@ untar into a directory named DIR; otherwise, signal an error."
 (defun package--make-autoloads-and-stuff (pkg-desc pkg-dir)
   "Generate autoloads, description file, etc.. for PKG-DESC installed at PKG-DIR."
   (package-generate-autoloads (package-desc-name pkg-desc) pkg-dir)
-  (let ((desc-file (package--description-file pkg-dir)))
+  (let ((desc-file (expand-file-name (package--description-file pkg-dir)
+                                     pkg-dir)))
     (unless (file-exists-p desc-file)
-      (package-generate-description-file pkg-desc pkg-dir)))
+      (package-generate-description-file pkg-desc desc-file)))
   ;; FIXME: Create foo.info and dir file from foo.texi?
   )
 

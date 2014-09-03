@@ -800,8 +800,6 @@ tar-file's buffer."
                           tarname
                           ")"))
          (buffer (generate-new-buffer bufname)))
-    (with-current-buffer buffer
-      (setq buffer-undo-list t))
     (with-current-buffer tar-data-buffer
       (let (coding)
         (narrow-to-region start end)
@@ -829,7 +827,11 @@ tar-file's buffer."
             (with-current-buffer buffer
               (set-buffer-multibyte nil)))
         (widen)
-        (decode-coding-region start end coding buffer)))
+        (with-current-buffer buffer
+          (setq buffer-undo-list t))
+        (decode-coding-region start end coding buffer)
+        (with-current-buffer buffer
+          (setq buffer-undo-list nil))))
     buffer))
 
 (defun tar-extract (&optional other-window-p)
@@ -869,7 +871,6 @@ tar-file's buffer."
               (with-current-buffer tar-buffer
                 default-directory))
         (set-buffer-modified-p nil)
-        (setq buffer-undo-list t)
         (normal-mode)                   ; pick a mode.
         (set (make-local-variable 'tar-superior-buffer) tar-buffer)
         (set (make-local-variable 'tar-superior-descriptor) descriptor)

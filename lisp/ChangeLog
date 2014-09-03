@@ -1,5 +1,47 @@
 2014-09-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/package.el (package-generate-description-file):
+	Properly quote the arguments (bug#18332).  Change second arg.
+	(package--alist-to-plist-args): Rename from package--alist-to-plist and
+	quote the elements.
+	(package--make-autoloads-and-stuff): Fix the test for pre-existence of
+	the *-pkg.el file.  Adjust to new calling convention of
+	package-generate-description-file.
+
+	* progmodes/gud.el (gud-gdb-completion-at-point): Add hack (bug#18282).
+	(gud-gdb-completions): Remove obsolete workaround.
+
+2014-09-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* subr.el (posn-col-row): Revert the change from commit
+	r99634.2.576 eliz@gnu.org-20101113210758-8ml5kibjtza5ysmb, which
+	was inadvertently merged from emacs-23 release branch in r102428
+	monnier@iro.umontreal.ca-20101118035414-yvlg7k7dk4k4l3q, and
+	introduced an off-by-one error in the reported row when there is a
+	header line.  (Bug#18384)
+
+2014-09-03  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	* progmodes/python.el (python-indent-post-self-insert-function):
+	Avoid electric colon at beginning-of-defun.  (Bug#18228)
+
+2014-09-03  Glenn Morris  <rgm@gnu.org>
+
+	* tutorial.el (tutorial--display-changes):
+	Fix 2014-08-01 change.  (Bug#18382)
+
+2014-09-03  Ken Brown  <kbrown@cornell.edu>
+
+	* startup.el (fancy-splash-frame): Extend the fix for Bug#16014 to
+	the Cygwin-w32 build.  (Bug#18347)
+
+2014-09-03  Glenn Morris  <rgm@gnu.org>
+
+	* tar-mode.el (tar--extract, tar-extract):
+	Avoid permanently disabling undo in extracted buffers.  (Bug#18344)
+
+2014-09-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
 	* progmodes/sh-script.el (sh-font-lock-quoted-subshell): Try to better
 	handle multiline elements (bug#18380).
 

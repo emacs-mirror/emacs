@@ -1,3 +1,25 @@
+2014-09-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* dispnew.c (buffer_posn_from_coords): Fix an off-by-one error in
+	the reported row in the case of a window with a header line, by
+	improving on the fix committed in r106022
+	eliz@gnu.org-20111008105850-ht4tvsayohvr1kjc.  (Bug#18384)
+
+2014-09-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* eval.c (internal_lisp_condition_case): Don't overrun the stack
+	when configured --with-wide-int on typical 32-bit platforms.
+
+2014-09-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (display_and_set_cursor): Call erase_phys_cursor also
+	when HPOS is negative, for the benefit of R2L glyph rows whose
+	newline overflows into the fringe.
+
+2014-09-03  Ken Brown  <kbrown@cornell.edu>
+
+	* conf_post.h (strnicmp) [CYGWIN && HAVE_NTGUI]: Define.  (Bug#18366)
+
 2014-09-02  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Minor cleanup of recent strlen-avoiding patch.

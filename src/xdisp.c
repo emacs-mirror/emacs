@@ -27513,6 +27513,10 @@ display_and_set_cursor (struct window *w, bool on,
       && (!on
 	  || w->phys_cursor.x != x
 	  || w->phys_cursor.y != y
+	  /* HPOS can be negative in R2L rows whose
+	     exact_window_width_line_p flag is set (i.e. their newline
+	     would "overflow into the fringe").  */
+	  || hpos < 0
 	  || new_cursor_type != w->phys_cursor_type
 	  || ((new_cursor_type == BAR_CURSOR || new_cursor_type == HBAR_CURSOR)
 	      && new_cursor_width != w->phys_cursor_width)))
