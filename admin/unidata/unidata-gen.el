@@ -854,7 +854,7 @@ is the character itself.")))
 ;; The following command yields a file of about 96K bytes.
 ;;   % gawk -F ';' '{print $1,$2;}' < UnicodeData.txt | gzip > temp.gz
 ;; With the following function, we can get a file of almost the same
-;; the size.
+;; size.
 
 ;; Generate a char-table for character names.
 
@@ -1174,25 +1174,42 @@ is the character itself.")))
 
 ;; Verify if we can retrieve correct values from the generated
 ;; char-tables.
+;;
+;; Use like this:
+;;
+;; (let ((unidata-dir "/path/to/admin/unidata"))
+;;   (unidata-setup-list "unidata.txt")
+;;   (unidata-check))
 
 (defun unidata-check ()
   (dolist (elt unidata-prop-alist)
     (let* ((prop (car elt))
 	   (index (unidata-prop-index prop))
 	   (generator (unidata-prop-generator prop))
+	   (default-value (unidata-prop-default prop))
+	   (val-list (unidata-prop-val-list prop))
 	   (table (progn
 		    (message "Generating %S table..." prop)
-		    (funcall generator prop)))
+		    (funcall generator prop default-value val-list)))
 	   (decoder (char-table-extra-slot table 1))
+	   (alist (and (functionp index)
+		       (funcall index)))
 	   (check #x400))
       (dolist (e unidata-list)
-	(let ((char (car e))
-	      (val1 (nth index e))
-	      val2)
+	(let* ((char (car e))
+	       (val1
+		(if alist (nth 1 (assoc char alist))
+		  (nth index e)))
+	       val2)
 	  (if (and (stringp val1) (= (length val1) 0))
 	      (setq val1 nil))
-	  (unless (consp char)
-	    (setq val2 (funcall decoder char (aref table char) table))
+	  (unless (or (consp char)
+		      (integerp decoder))
+	    (setq val2
+		  (cond ((functionp decoder)
+			 (funcall decoder char (aref table char) table))
+			(t		; must be nil
+			 (aref table char))))
 	    (if val1
 		(cond ((eq generator 'unidata-gen-table-symbol)
 		       (setq val1 (intern val1)))
@@ -1201,11 +1218,15 @@ is the character itself.")))
 		      ((eq generator 'unidata-gen-table-character)
 		       (setq val1 (string-to-number val1 16)))
 		      ((eq generator 'unidata-gen-table-decomposition)
-		       (setq val1 (unidata-split-decomposition val1)))))
+		       (setq val1 (unidata-split-decomposition val1))))
+	      (cond ((eq prop 'decomposition)
+		     (setq val1 (list char)))))
 	    (when (>= char check)
 	      (message "%S %04X" prop check)
 	      (setq check (+ check #x400)))
 	    (or (equal val1 val2)
+		;; <control> characters get a 'name' property of nil
+		(and (eq prop 'name) (string= val1 "<control>") (null val2))
 		(insert (format "> %04X %S\n< %04X %S\n"
 				char val1 char val2)))
 	    (sit-for 0)))))))
@@ -1261,7 +1282,7 @@ is the character itself.")))
 		(setq describer (symbol-function describer)))
 	      (set-char-table-extra-slot table 3 describer))
 	    (if (bobp)
-		(insert ";; Copyright (C) 1991-2013 Unicode, Inc.
+		(insert ";; Copyright (C) 1991-2014 Unicode, Inc.
 ;; This file was generated from the Unicode data files at
 ;; http://www.unicode.org/Public/UNIDATA/.
 ;; See lisp/international/README for the copyright and permission notice.\n"))
