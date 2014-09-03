@@ -3112,15 +3112,9 @@ This function is an internal primitive--use `make-frame' instead.  */)
 #endif
 		       "verticalScrollBars", "ScrollBars",
 		       RES_TYPE_SYMBOL);
-  x_default_parameter (f, parms, Qhorizontal_scroll_bars,
-#if defined (USE_GTK) && defined (USE_TOOLKIT_SCROLL_BARS)
-		       Qt,
-#else
-		       Qnil,
-#endif
+  x_default_parameter (f, parms, Qhorizontal_scroll_bars, Qnil,
 		       "horizontalScrollBars", "ScrollBars",
 		       RES_TYPE_SYMBOL);
-
   /* Also do the stuff which must be set before the window exists.  */
   x_default_parameter (f, parms, Qforeground_color, build_string ("black"),
 		       "foreground", "Foreground", RES_TYPE_STRING);

@@ -4872,16 +4872,6 @@ Setting this variable does not affect existing frames, only new ones.  */);
   Vdefault_frame_scroll_bars = Qnil;
 #endif
 
-  DEFVAR_LISP ("default-frame-horizontal-scroll-bars", Vdefault_frame_horizontal_scroll_bars,
-	       doc: /* Default value for horizontal scroll bars on this window-system.  */);
-#if (defined (HAVE_WINDOW_SYSTEM)					\
-     && ((defined (USE_TOOLKIT_SCROLL_BARS) && !defined (HAVE_NS))	\
-	 || defined (HAVE_NTGUI)))
-  Vdefault_frame_horizontal_scroll_bars = Qt;
-#else
-  Vdefault_frame_horizontal_scroll_bars = Qnil;
-#endif
-
   DEFVAR_BOOL ("scroll-bar-adjust-thumb-portion",
                scroll_bar_adjust_thumb_portion_p,
                doc: /* Adjust thumb for overscrolling for Gtk+ and MOTIF.

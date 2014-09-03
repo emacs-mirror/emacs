@@ -1,3 +1,16 @@
+2014-09-03  Martin Rudalics  <rudalics@gmx.at>
+
+	* frame.el (frame-initialize): Remove horizontal-scroll-bars
+	from frame-initial-frame-alist.
+	* scroll-bar.el (previous-horizontal-scroll-bar-mode)
+	(horizontal-scroll-bar-mode-explicit)
+	(set-horizontal-scroll-bar-mode, get-horizontal-scroll-bar-mode)
+	(toggle-horizontal-scroll-bar): Remove.
+	(horizontal-scroll-bar-mode): Remove defcustom.
+	(horizontal-scroll-bar-mode): Fix doc-string.
+	(scroll-bar-toolkit-scroll)
+	(scroll-bar-toolkit-horizontal-scroll): Add doc-strings stubs.
+
 2014-09-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/package.el (package-generate-description-file):

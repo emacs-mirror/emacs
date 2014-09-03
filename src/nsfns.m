@@ -1244,7 +1244,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
 			   "verticalScrollBars", "VerticalScrollBars",
 			   RES_TYPE_SYMBOL);
   }
-  x_default_parameter (f, parms, Qhorizontal_scroll_bars, Qt,
+  x_default_parameter (f, parms, Qhorizontal_scroll_bars, Qnil,
 		       "horizontalScrollBars", "HorizontalScrollBars",
 		       RES_TYPE_SYMBOL);
   x_default_parameter (f, parms, Qforeground_color, build_string ("Black"),

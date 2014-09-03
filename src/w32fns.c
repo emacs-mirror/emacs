@@ -4569,7 +4569,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
 		       NULL, NULL, RES_TYPE_NUMBER);
   x_default_parameter (f, parameters, Qvertical_scroll_bars, Qright,
 		       "verticalScrollBars", "ScrollBars", RES_TYPE_SYMBOL);
-  x_default_parameter (f, parameters, Qhorizontal_scroll_bars, Qbottom,
+  x_default_parameter (f, parameters, Qhorizontal_scroll_bars, Qnil,
 		       "horizontalScrollBars", "ScrollBars", RES_TYPE_SYMBOL);
 
   /* Also do the stuff which must be set before the window exists.  */

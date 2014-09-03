@@ -1,3 +1,13 @@
+2014-09-03  Martin Rudalics  <rudalics@gmx.at>
+
+	* buffer.c (scroll-bar-height): Fix typo in doc-string.
+	* frame.c (Vdefault_frame_horizontal_scroll_bars): Remove
+	variable.
+	* nsfns.m (Fx_create_frame):
+	* w32fns.c (Fx_create_frame):
+	* xfns.c (Fx_create_frame): Default horizontal scroll bars to
+	nil.
+
 2014-09-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* dispnew.c (buffer_posn_from_coords): Fix an off-by-one error in

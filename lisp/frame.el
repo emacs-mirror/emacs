@@ -174,10 +174,6 @@ This function runs the hook `focus-out-hook'."
 	    (progn
 	      (setq frame-initial-frame-alist
 		    (append initial-frame-alist default-frame-alist nil))
-	      (or (assq 'horizontal-scroll-bars frame-initial-frame-alist)
-		  (setq frame-initial-frame-alist
-			(cons '(horizontal-scroll-bars . t)
-			      frame-initial-frame-alist)))
 	      (setq frame-initial-frame-alist
 		    (cons (cons 'window-system initial-window-system)
 			  frame-initial-frame-alist))

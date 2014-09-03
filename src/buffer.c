@@ -5919,7 +5919,7 @@ A value of nil means to use the scroll bar width from the window's frame.  */);
   DEFVAR_PER_BUFFER ("scroll-bar-height", &BVAR (current_buffer, scroll_bar_height),
 		     Qintegerp,
 		     doc: /* Height of this buffer's scroll bars in pixels.
-A value of nil means to use the scroll bar heiht from the window's frame.  */);
+A value of nil means to use the scroll bar height from the window's frame.  */);
 
   DEFVAR_PER_BUFFER ("vertical-scroll-bar", &BVAR (current_buffer, vertical_scroll_bar_type),
 		     Qvertical_scroll_bar,

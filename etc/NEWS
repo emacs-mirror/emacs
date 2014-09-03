@@ -232,6 +232,17 @@ optional repeat-count argument.
     as the first or last argument of subsequent forms.
 
 
+* Changes in Frames and Windows Code in Emacs 24.5
+
+** Emacs can now draw horizontal scroll bars on some platforms that
+provide toolkit scroll bars, namely Gtk, Lucid, Motif and Windows.
+Horizontal scroll bars are turned off by default.  Use the command
+`horizontal-scroll-bar-mode' to toggle them on all frames; the frame
+parameter `horizontal-scroll-bars' to turn them on/off on individual
+frames; the function `set-window-scroll-bars' to turn them on/off on
+individual windows.
+
+
 * Changes in Emacs 24.5 on Non-Free Operating Systems
 
 ---
