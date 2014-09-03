@@ -2300,7 +2300,7 @@ emacs_full_write (int fildes, char const *buf, ptrdiff_t nbyte,
 	{
 	  if (errno == EINTR)
 	    {
-	      /* I originally used `QUIT' but that might causes files to
+	      /* I originally used `QUIT' but that might cause files to
 		 be truncated if you hit C-g in the middle of it.  --Stef  */
 	      if (process_signals && pending_signals)
 		process_pending_signals ();
