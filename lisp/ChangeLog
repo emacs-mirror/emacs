@@ -1,3 +1,9 @@
+2014-09-04  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
+
+	* emacs-lisp/eldoc.el (eldoc-highlight-function-argument): Handle the
+	case where we're currently providing part of the &rest arg after some
+	&key args, as in define-ibuffer-op (bug#18048).
+
 2014-09-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/which-func.el (which-func-ff-hook): Obey pre-existing
