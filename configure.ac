@@ -1087,15 +1087,16 @@ if test $opsys = gnu-linux; then
 fi
 
 ## Need makeinfo >= 4.7 (?) to build the manuals.
-AC_PATH_PROG(MAKEINFO, makeinfo, no)
-dnl By this stage, configure has already checked for egrep and set EGREP,
-dnl or exited with an error if no egrep was found.
 if test "$MAKEINFO" != "no"; then
-  case `
-    $MAKEINFO --version 2> /dev/null |
-    $EGREP 'texinfo[[^0-9]]*([[1-4]][[0-9]]+|[[5-9]]|4\.[[7-9]]|4\.[[1-6]][[0-9]]+)'
-  ` in
-    '') MAKEINFO=no;;
+  if test "$MAKEINFO" = "${am_missing_run}makeinfo"; then
+    MAKEINFO=makeinfo
+  fi
+  case `($MAKEINFO --version) 2>/dev/null` in
+    'makeinfo (GNU texinfo) '4.[[7-9]]* | \
+    'makeinfo (GNU texinfo) '4.[[1-9][0-9]]* | \
+    'makeinfo (GNU texinfo) '[[5-9]]* | \
+    'makeinfo (GNU texinfo) '[[1-9][0-9]]* ) ;;
+    *) MAKEINFO=no;;
   esac
 fi
 

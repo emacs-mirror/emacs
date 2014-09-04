@@ -1,3 +1,9 @@
+2014-09-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure.ac (MAKEINFO): Clean up some configuration bitrot.
+	MAKEINFO is already set before we get here, so no need to call AC_PATH_PROG.
+	Bypass $am_missing_run.  Simplify version-number checking.
+
 2014-09-02  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Merge from gnulib, incorporating:
