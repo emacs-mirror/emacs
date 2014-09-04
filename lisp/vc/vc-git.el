@@ -774,7 +774,7 @@ This prompts for a branch to merge from."
   "Return the list of files with conflicts in DIRECTORY."
   (let* ((status
           (vc-git--run-command-string directory "status" "--porcelain" "--"))
-         (lines (split-string status "\n" 'omit-nulls))
+         (lines (when status (split-string status "\n" 'omit-nulls)))
          files)
     (dolist (line lines files)
       (when (string-match "\\([ MADRCU?!][ MADRCU?!]\\) \\(.+\\)\\(?: -> \\(.+\\)\\)?"
