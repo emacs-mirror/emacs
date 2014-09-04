@@ -1,3 +1,8 @@
+2014-09-04  Lars Ljung  <lars@matholka.se>  (tiny change)
+
+	* isearch.el (isearch-yank-word-or-char): Obey superword-mode
+	as well (bug#18400).
+
 2014-09-04  Eli Zaretskii  <eliz@gnu.org>
 
 	* subr.el (posn-actual-col-row): Doc fix.  (Bug#18385)
