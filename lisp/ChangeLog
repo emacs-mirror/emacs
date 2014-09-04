@@ -1,3 +1,11 @@
+2014-09-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/eldoc.el (eldoc-function-argstring): Don't strip
+	terminating paren (bug#18352).
+	(eldoc-last-data-store): Return cached data.
+	(eldoc-get-var-docstring): Avoid setq.
+	(eldoc-get-fnsym-args-string): Clarify data flow.
+
 2014-09-04  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
 
 	* emacs-lisp/eldoc.el (eldoc-highlight-function-argument): Handle the

@@ -1,4 +1,4 @@
-;;; eldoc.el --- show function arglist or variable docstring in echo area  -*- lexical-binding: t; -*-
+;;; eldoc.el --- Show function arglist or variable docstring in echo area  -*- lexical-binding:t; -*-
 
 ;; Copyright (C) 1996-2014 Free Software Foundation, Inc.
 
@@ -344,27 +344,29 @@ Emacs Lisp mode) that support ElDoc.")
   "Return a string containing the parameter list of the function SYM.
 If SYM is a subr and no arglist is obtainable from the docstring
 or elsewhere, return a 1-line docstring."
-  (let (args doc advertised)
-    (cond ((not (and sym (symbolp sym) (fboundp sym))))
+  (let ((argstring
+	 (cond
+	  ((not (and sym (symbolp sym) (fboundp sym))) nil)
 	  ((and (eq sym (aref eldoc-last-data 0))
 		(eq 'function (aref eldoc-last-data 2)))
-	   (setq doc (aref eldoc-last-data 1)))
-	  ((listp (setq advertised (gethash (indirect-function sym)
-					    advertised-signature-table t)))
-	   (setq args advertised))
-	  ((setq doc (help-split-fundoc (documentation sym t) sym))
-	   (setq args (car doc)))
+	   (aref eldoc-last-data 1))
 	  (t
-	   (setq args (help-function-arglist sym))))
-    (if args
-	;; Stringify, and store before highlighting, downcasing, etc.
-	;; FIXME should truncate before storing.
-	(eldoc-last-data-store sym (setq args (eldoc-function-argstring args))
-			       'function)
-      (setq args doc))		  ; use stored value
-    ;; Change case, highlight, truncate.
-    (if args
-	(eldoc-highlight-function-argument sym args index))))
+	   (let* ((advertised (gethash (indirect-function sym)
+                                       advertised-signature-table t))
+                  doc
+		  (args
+		   (cond
+		    ((listp advertised) advertised)
+		    ((setq doc (help-split-fundoc (documentation sym t) sym))
+		     (car doc))
+		    (t (help-function-arglist sym)))))
+             ;; Stringify, and store before highlighting, downcasing, etc.
+             ;; FIXME should truncate before storing.
+	     (eldoc-last-data-store sym (eldoc-function-argstring args)
+                                    'function))))))
+    ;; Highlight, truncate.
+    (if argstring
+	(eldoc-highlight-function-argument sym argstring index))))
 
 (defun eldoc-highlight-function-argument (sym args index)
   "Highlight argument INDEX in ARGS list for function SYM.
@@ -478,23 +480,23 @@ In the absence of INDEX, just call `eldoc-docstring-format-sym-doc'."
 ;; Return a string containing a brief (one-line) documentation string for
 ;; the variable.
 (defun eldoc-get-var-docstring (sym)
-  (when sym
-    (cond ((and (eq sym (aref eldoc-last-data 0))
-		(eq 'variable (aref eldoc-last-data 2)))
-	   (aref eldoc-last-data 1))
-	  (t
-	   (let ((doc (documentation-property sym 'variable-documentation t)))
-	     (cond (doc
-		    (setq doc (eldoc-docstring-format-sym-doc
-			       sym (eldoc-docstring-first-line doc)
-			       'font-lock-variable-name-face))
-		    (eldoc-last-data-store sym doc 'variable)))
-	     doc)))))
+  (cond ((not sym) nil)
+        ((and (eq sym (aref eldoc-last-data 0))
+              (eq 'variable (aref eldoc-last-data 2)))
+         (aref eldoc-last-data 1))
+        (t
+         (let ((doc (documentation-property sym 'variable-documentation t)))
+           (when doc
+             (let ((doc (eldoc-docstring-format-sym-doc
+                         sym (eldoc-docstring-first-line doc)
+                         'font-lock-variable-name-face)))
+               (eldoc-last-data-store sym doc 'variable)))))))
 
 (defun eldoc-last-data-store (symbol doc type)
   (aset eldoc-last-data 0 symbol)
   (aset eldoc-last-data 1 doc)
-  (aset eldoc-last-data 2 type))
+  (aset eldoc-last-data 2 type)
+  doc)
 
 ;; Note that any leading `*' in the docstring (which indicates the variable
 ;; is a user option) is removed.
@@ -596,7 +598,7 @@ ARGLIST is either a string, or a list of strings or symbols."
   (let ((str (cond ((stringp arglist) arglist)
                    ((not (listp arglist)) nil)
                    (t (format "%S" (help-make-usage 'toto arglist))))))
-    (if (and str (string-match "\\`([^ ]+ ?" str))
+    (if (and str (string-match "\\`([^ )]+ ?" str))
         (replace-match "(" t t str)
       str)))
 
