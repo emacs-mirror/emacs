@@ -1,3 +1,10 @@
+2014-09-04  Jan D  <jhd@f20.localdomain>
+
+	* xterm.c (x_term_init): Don't call x_session_initialize if running
+	as a daemon (Bug#18375).
+
+	* xsmfns.c: Initialize ice_fd.
+
 2014-09-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Less chatter in 'make' output.

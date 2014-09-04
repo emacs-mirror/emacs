@@ -11183,8 +11183,8 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 #ifdef HAVE_X_SM
   /* Only do this for the very first display in the Emacs session.
      Ignore X session management when Emacs was first started on a
-     tty.  */
-  if (terminal->id == 1)
+     tty or started as a daemon.  */
+  if (terminal->id == 1 && ! IS_DAEMON)
     x_session_initialize (dpyinfo);
 #endif
 

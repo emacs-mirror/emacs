@@ -49,7 +49,7 @@ static struct input_event emacs_event;
 
 /* The descriptor that we use to check for data from the session manager.  */
 
-static int ice_fd;
+static int ice_fd = -1;
 
 /* A flag that says if we are in shutdown interactions or not.  */
 
