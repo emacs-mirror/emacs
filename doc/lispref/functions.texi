@@ -1220,15 +1220,6 @@ ways to do it.  The added function is also called an @emph{advice}.
 This macro is the handy way to add the advice @var{function} to the function
 stored in @var{place} (@pxref{Generalized Variables}).
 
-If @var{function} is not interactive, then the combined function will inherit
-the interactive spec, if any, of the original function.  Else, the combined
-function will be interactive and will use the interactive spec of
-@var{function}.  One exception: if the interactive spec of @var{function}
-is a function (rather than an expression or a string), then the interactive
-spec of the combined function will be a call to that function with as sole
-argument the interactive spec of the original function.  To interpret the spec
-received as argument, use @code{advice-eval-interactive-spec}.
-
 @var{where} determines how @var{function} is composed with the
 existing function, e.g. whether @var{function} should be called before, or
 after the original function.  @xref{Advice combinators}, for the list of
@@ -1271,6 +1262,21 @@ original function and other advices will apply to it, whereas an outermost
 @code{:override} advice will override not only the original function but all
 other advices applied to it as well.
 @end table
+
+If @var{function} is not interactive, then the combined function will inherit
+the interactive spec, if any, of the original function.  Else, the combined
+function will be interactive and will use the interactive spec of
+@var{function}.  One exception: if the interactive spec of @var{function}
+is a function (rather than an expression or a string), then the interactive
+spec of the combined function will be a call to that function with as sole
+argument the interactive spec of the original function.  To interpret the spec
+received as argument, use @code{advice-eval-interactive-spec}.
+
+Note: The interactive spec of @var{function} will apply to the combined
+function and should hence obey the calling convention of the combined function
+rather than that of @var{function}.  In many cases, it makes no difference
+since they are identical, but it does matter for @code{:around},
+@code{:filter-args}, and @code{filter-return}, where @var{function}.
 @end defmac
 
 @defmac remove-function place function
