@@ -1,3 +1,8 @@
+2014-09-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Less chatter in 'make' output.
+	* Makefile.in (clean): Simplify, for shorter command line.
+
 2014-08-07  Reuben Thomas  <rrt@sc3d.org>
 
 	* ediff.texi (Merging and diff3): Don't mention lack of support

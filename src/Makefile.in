@@ -317,6 +317,16 @@ am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 =
 
+AM_V_GEN = $(am__v_GEN_@AM_V@)
+am__v_GEN_ = $(am__v_GEN_@AM_DEFAULT_V@)
+am__v_GEN_0 = @echo "  GEN     " $@;
+am__v_GEN_1 =
+
+AM_V_at = $(am__v_at_@AM_V@)
+am__v_at_ = $(am__v_at_@AM_DEFAULT_V@)
+am__v_at_0 = @
+am__v_at_1 =
+
 DEPDIR=deps
 ## -MMD -MF $(DEPDIR)/$*.d if AUTO_DEPEND; else empty.
 DEPFLAGS=@DEPFLAGS@
@@ -469,29 +479,32 @@ emacs$(EXEEXT): temacs$(EXEEXT) \
 ## in the contents of the DOC file.
 ##
 $(etc)/DOC: $(libsrc)/make-docfile$(EXEEXT) $(obj) $(lisp)
-	$(MKDIR_P) $(etc)
-	-rm -f $(etc)/DOC
-	$(libsrc)/make-docfile -d $(srcdir) $(SOME_MACHINE_OBJECTS) $(obj) > $(etc)/DOC
-	$(libsrc)/make-docfile -a $(etc)/DOC -d $(lispsource) `sed -n -e 's| \\\\||' -e 's|^[ 	]*$$(lispsource)/||p' $(srcdir)/lisp.mk`
+	$(AM_V_GEN)$(MKDIR_P) $(etc)
+	-$(AM_V_at)rm -f $(etc)/DOC
+	$(AM_V_at)$(libsrc)/make-docfile -d $(srcdir) \
+	  $(SOME_MACHINE_OBJECTS) $(obj) > $(etc)/DOC
+	$(AM_V_at)$(libsrc)/make-docfile -a $(etc)/DOC -d $(lispsource) \
+	  `sed -n -e 's| \\\\||' -e 's|^[ 	]*$$(lispsource)/||p' \
+	     $(srcdir)/lisp.mk`
 
 $(libsrc)/make-docfile$(EXEEXT):
 	$(MAKE) -C $(libsrc) make-docfile$(EXEEXT)
 
 buildobj.h: Makefile
-	for i in $(ALLOBJS); do \
+	$(AM_V_GEN)for i in $(ALLOBJS); do \
 	  echo "$$i" | sed 's,.*/,,; s/\.obj$$/\.o/; s/^/"/; s/$$/",/' \
 	    || exit; \
 	done >$@.tmp
-	mv $@.tmp $@
+	$(AM_V_at)mv $@.tmp $@
 
 globals.h: gl-stamp; @true
 
 GLOBAL_SOURCES = $(base_obj:.o=.c) $(NS_OBJC_OBJ:.o=.m)
 
 gl-stamp: $(libsrc)/make-docfile$(EXEEXT) $(GLOBAL_SOURCES)
-	$(libsrc)/make-docfile -d $(srcdir) -g $(obj) > gl.tmp
-	$(top_srcdir)/build-aux/move-if-change gl.tmp globals.h
-	echo timestamp > $@
+	$(AM_V_GEN)$(libsrc)/make-docfile -d $(srcdir) -g $(obj) > gl.tmp
+	$(AM_V_at)$(top_srcdir)/build-aux/move-if-change gl.tmp globals.h
+	$(AM_V_at)echo timestamp > $@
 
 $(ALLOBJS): globals.h
 

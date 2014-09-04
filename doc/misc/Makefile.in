@@ -221,8 +221,7 @@ mostlyclean:
 	rm -f gnustmp*
 
 clean: mostlyclean
-	rm -f $(DVI_TARGETS) $(HTML_TARGETS) $(PDF_TARGETS) $(PS_TARGETS)
-	rm -f efaq-w32.dvi efaq-w32.html efaq-w32.pdf efaq-w32.ps
+	rm -f *.dvi *.html *.pdf *.ps
 	rm -f emacs-misc-${version}.tar*
 
 distclean: clean

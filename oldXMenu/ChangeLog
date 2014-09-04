@@ -1,3 +1,8 @@
+2014-09-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Less chatter in 'make' output.
+	* Makefile.in (clean mostlyclean): Simplify, for shorter command line.
+
 2014-09-01  Paul Eggert  <eggert@cs.ucla.edu>
 
 	--enable-silent-rules now suppresses more chatter.

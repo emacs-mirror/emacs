@@ -128,7 +128,7 @@ libXMenu11.a: $(OBJS) $(EXTRA)
 .PHONY: mostlyclean clean distclean bootstrap-clean maintainer-clean
 
 clean mostlyclean:
-	rm -f libXMenu11.a ${OBJS} ${EXTRA}
+	rm -f libXMenu11.a *.o
 	-rm -rf ${DEPDIR}
 
 bootstrap-clean maintainer-clean distclean: clean
