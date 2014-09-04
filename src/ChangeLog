@@ -1,3 +1,9 @@
+2014-09-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* data.c (set_internal): Use assq_no_quit, not Fassq, to find an
+	existing binding of a variable, to avoid silently aborting
+	commands that use specbind.  (Bug#18331)
+
 2014-09-02  Eli Zaretskii  <eliz@gnu.org>
 
 	* dispnew.c (buffer_posn_from_coords): Fix an off-by-one error in
