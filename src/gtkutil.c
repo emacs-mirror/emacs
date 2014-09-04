@@ -1324,7 +1324,7 @@ x_wm_set_size_hint (struct frame *f, long int flags, bool user_position)
 
   size_hints.base_width = base_width;
   size_hints.base_height = base_height;
-  size_hints.min_width  = base_width + min_cols * FRAME_COLUMN_WIDTH (f);;
+  size_hints.min_width  = base_width + min_cols * FRAME_COLUMN_WIDTH (f);
   size_hints.min_height = base_height + min_rows * FRAME_LINE_HEIGHT (f);
 
   /* These currently have a one to one mapping with the X values, but I

@@ -1231,7 +1231,7 @@ DEFUN ("internal-describe-syntax-value", Finternal_describe_syntax_value,
   syntax_code = XINT (first) & INT_MAX;
   code = syntax_code & 0377;
   start1 = SYNTAX_FLAGS_COMSTART_FIRST (syntax_code);
-  start2 = SYNTAX_FLAGS_COMSTART_SECOND (syntax_code);;
+  start2 = SYNTAX_FLAGS_COMSTART_SECOND (syntax_code);
   end1 = SYNTAX_FLAGS_COMEND_FIRST (syntax_code);
   end2 = SYNTAX_FLAGS_COMEND_SECOND (syntax_code);
   prefix = SYNTAX_FLAGS_PREFIX (syntax_code);

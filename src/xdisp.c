@@ -2538,7 +2538,7 @@ remember_mouse_glyph (struct frame *f, int gx, int gy, NativeRectangle *rect)
       gy = 0;
       /* The bottom divider prevails. */
       height = WINDOW_PIXEL_HEIGHT (w) - WINDOW_BOTTOM_DIVIDER_WIDTH (w);
-      goto add_edge;;
+      goto add_edge;
 
     case ON_BOTTOM_DIVIDER:
       gx = 0;
@@ -5120,7 +5120,7 @@ handle_single_display_spec (struct it *it, Lisp_Object spec, Lisp_Object object,
 
       if (it)
 	{
-	  int face_id = lookup_basic_face (it->f, DEFAULT_FACE_ID);;
+	  int face_id = lookup_basic_face (it->f, DEFAULT_FACE_ID);
 
 	  if (CONSP (XCDR (XCDR (spec))))
 	    {
@@ -20988,7 +20988,7 @@ Value is the new character position of point.  */)
 		  if ((gpt->resolved_level - row->reversed_p) % 2 == 0)
 		    new_pos += (row->reversed_p ? -dir : dir);
 		  else
-		    new_pos -= (row->reversed_p ? -dir : dir);;
+		    new_pos -= (row->reversed_p ? -dir : dir);
 		}
 	      else if (BUFFERP (g->object))
 		new_pos = g->charpos;

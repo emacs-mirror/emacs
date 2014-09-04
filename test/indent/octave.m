@@ -1982,7 +1982,7 @@ function [out1, out2] = installed_packages (local_list, global_list)
   endif
 
   h1 = postpad (h1, max_name_length + 1, " ");
-  h2 = postpad (h2, max_version_length, " ");;
+  h2 = postpad (h2, max_version_length, " ");
 
   ## Print a header.
   header = sprintf("%s | %s | %s\n", h1, h2, h3);
