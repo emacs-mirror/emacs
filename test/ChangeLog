@@ -1,3 +1,9 @@
+2014-09-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/fns-tests.el (fns-tests-compare-strings): In case
+	`compare-strings' shall return t, check for this.
+	(fns-tests-collate-strings, fns-tests-collate-sort): New tests.
+
 2014-09-03  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
 	* automated/python-tests.el (python-indent-electric-colon-1):
