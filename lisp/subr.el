@@ -2877,23 +2877,21 @@ COMMAND is the shell command to run.
 An old calling convention accepted any number of arguments after COMMAND,
 which were just concatenated to COMMAND.  This is still supported but strongly
 discouraged."
-   ;; We used to use `exec' to replace the shell with the command,
-   ;; but that failed to handle (...) and semicolon, etc.
+  (declare (advertised-calling-convention (name buffer command) "23.1"))
+  ;; We used to use `exec' to replace the shell with the command,
+  ;; but that failed to handle (...) and semicolon, etc.
   (start-process name buffer shell-file-name shell-command-switch
 		 (mapconcat 'identity args " ")))
-(set-advertised-calling-convention 'start-process-shell-command
-                                   '(name buffer command) "23.1")
 
 (defun start-file-process-shell-command (name buffer &rest args)
   "Start a program in a subprocess.  Return the process object for it.
 Similar to `start-process-shell-command', but calls `start-file-process'."
+  (declare (advertised-calling-convention (name buffer command) "23.1"))
   (start-file-process
    name buffer
    (if (file-remote-p default-directory) "/bin/sh" shell-file-name)
    (if (file-remote-p default-directory) "-c" shell-command-switch)
    (mapconcat 'identity args " ")))
-(set-advertised-calling-convention 'start-file-process-shell-command
-                                   '(name buffer command) "23.1")
 
 (defun call-process-shell-command (command &optional infile buffer display
 					   &rest args)
@@ -2909,13 +2907,18 @@ STDERR-FILE may be nil (discard standard error output),
 t (mix it with ordinary output), or a file name string.
 
 Fourth arg DISPLAY non-nil means redisplay buffer as output is inserted.
-Remaining arguments are strings passed as additional arguments for COMMAND.
 Wildcards and redirection are handled as usual in the shell.
 
 If BUFFER is 0, `call-process-shell-command' returns immediately with value nil.
 Otherwise it waits for COMMAND to terminate and returns a numeric exit
 status or a signal description string.
-If you quit, the process is killed with SIGINT, or SIGKILL if you quit again."
+If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.
+
+An old calling convention accepted any number of arguments after DISPLAY,
+which were just concatenated to COMMAND.  This is still supported but strongly
+discouraged."
+  (declare (advertised-calling-convention
+            (command &optional infile buffer display) "24.5"))
   ;; We used to use `exec' to replace the shell with the command,
   ;; but that failed to handle (...) and semicolon, etc.
   (call-process shell-file-name
@@ -2927,6 +2930,8 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again."
 					   &rest args)
   "Process files synchronously in a separate process.
 Similar to `call-process-shell-command', but calls `process-file'."
+  (declare (advertised-calling-convention
+            (command &optional infile buffer display) "24.5"))
   (process-file
    (if (file-remote-p default-directory) "/bin/sh" shell-file-name)
    infile buffer display

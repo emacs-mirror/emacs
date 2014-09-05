@@ -1,3 +1,10 @@
+2014-09-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (call-process-shell-command, process-file-shell-command):
+	Make the `args' obsolete (bug#18409).
+	(start-process-shell-command, start-file-process-shell-command):
+	Use `declare'.
+
 2014-09-05  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc-forms.el (math-normalize-hms): Do a better check for

@@ -200,6 +200,9 @@ position list returned for such events is now nil.
 
 * Lisp Changes in Emacs 24.5
 
+*** call-process-shell-command and process-file-shell-command
+don't take "&rest args" an more.
+
 ** New function `funcall-interactively', which works like `funcall'
 but makes `called-interactively-p' treat the function as (you guessed it)
 called interactively.
