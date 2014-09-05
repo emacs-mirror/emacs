@@ -1,3 +1,7 @@
+2014-09-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc/vc-dir.el (vc-dir-update): Don't burp in corner case.
+
 2014-09-04  Lars Ljung  <lars@matholka.se>  (tiny change)
 
 	* isearch.el (isearch-yank-word-or-char): Obey superword-mode
