@@ -1,3 +1,8 @@
+2014-09-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-sh-handle-start-file-process):
+	Expand `default-directory'.
+
 2014-09-05  Martin Rudalics  <rudalics@gmx.at>
 
 	* scroll-bar.el (horizontal-scroll-bars-available-p): New
