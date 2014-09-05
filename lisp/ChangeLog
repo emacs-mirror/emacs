@@ -1,3 +1,9 @@
+2014-09-05  Sam Steingold  <sds@gnu.org>
+
+	* textmodes/tex-mode.el (tex-print-file-extension): New user
+	option.
+	(tex-print): Use it instead of the hard-coded string.
+
 2014-09-05  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-sh.el (tramp-sh-handle-start-file-process):

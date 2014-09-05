@@ -163,6 +163,11 @@ reinclusion protected header files from being fully hidden.
 *** New custom variable `hide-ifdef-exclude-define-regexp' to define symbol
 name patterns (e.x. all "FOR_DOXYGEN_ONLY_*") to be excluded.
 
+** TeX mode
+
+*** New custom variable `tex-print-file-extension' to help users who
+use PDF instead of DVI.
+
 ** Obsolete packages
 
 ---

@@ -2573,18 +2573,28 @@ line LINE of the window, or centered if LINE is nil."
 		      (prefix-numeric-value linenum)
 		    (/ (window-height) 2)))))))
 
+(defcustom tex-print-file-extension ".dvi"
+  "The TeX-compiled file extension for viewing and printing.
+If you use pdflatex instead of latex, set this to \".pdf\" and modify
+ `tex-dvi-view-command' and `tex-dvi-print-command' appropriatelty."
+  :type 'string
+  :group 'tex-view
+  :version "24.5")
+
 (defun tex-print (&optional alt)
   "Print the .dvi file made by \\[tex-region], \\[tex-buffer] or \\[tex-file].
 Runs the shell command defined by `tex-dvi-print-command'.  If prefix argument
 is provided, use the alternative command, `tex-alt-dvi-print-command'."
   (interactive "P")
-  (let ((print-file-name-dvi (tex-append tex-print-file ".dvi"))
+  (let ((print-file-name-dvi (tex-append tex-print-file
+                                         tex-print-file-extension))
 	test-name)
     (if (and (not (equal (current-buffer) tex-last-buffer-texed))
 	     (buffer-file-name)
 	     ;; Check that this buffer's printed file is up to date.
 	     (file-newer-than-file-p
-	      (setq test-name (tex-append (buffer-file-name) ".dvi"))
+	      (setq test-name (tex-append (buffer-file-name)
+                                          tex-print-file-extension))
 	      (buffer-file-name)))
 	(setq print-file-name-dvi test-name))
     (if (not (file-exists-p print-file-name-dvi))
