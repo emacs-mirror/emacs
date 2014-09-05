@@ -240,6 +240,8 @@ optional repeat-count argument.
 ** Emacs can now draw horizontal scroll bars on some platforms that
 provide toolkit scroll bars, namely Gtk, Lucid, Motif and Windows.
 Horizontal scroll bars are turned off by default.
+*** New function `horizontal-scroll-bars-available-p' telling whether
+    horizontal scroll bars are available on the underlying system.
 *** New mode `horizontal-scroll-bar-mode' to toggle horizontal scroll
     bars on all existing and future frames.
 *** New frame parameters `horizontal-scroll-bars' and

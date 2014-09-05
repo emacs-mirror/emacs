@@ -1,3 +1,12 @@
+2014-09-05  Martin Rudalics  <rudalics@gmx.at>
+
+	* scroll-bar.el (horizontal-scroll-bars-available-p): New
+	function.
+	(horizontal-scroll-bar-mode): Rewrite using
+	horizontal-scroll-bars-available-p.
+	* menu-bar.el (menu-bar-showhide-scroll-bar-menu): Rewrite using
+	horizontal-scroll-bars-available-p.
+
 2014-09-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* subr.el (call-process-shell-command, process-file-shell-command):

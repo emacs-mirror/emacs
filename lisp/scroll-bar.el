@@ -144,6 +144,13 @@ created in the future."
 			    (if v (or previous-scroll-bar-mode
 				      default-frame-scroll-bars))))))
 
+(defun horizontal-scroll-bars-available-p ()
+  "Return non-nil when horizontal scroll bars are available on this system."
+  (and (display-graphic-p)
+       (boundp 'x-toolkit-scroll-bars)
+       x-toolkit-scroll-bars
+       (not (eq (window-system) 'ns))))
+
 (define-minor-mode horizontal-scroll-bar-mode
   "Toggle horizontal scroll bars on all frames (Horizontal Scroll Bar mode).
 With a prefix argument ARG, enable Horizontal Scroll Bar mode if
@@ -155,14 +162,19 @@ created in the future."
   :init-value nil
   :global t
   :group 'frames
-  (dolist (frame (frame-list))
-    (set-frame-parameter
-     frame 'horizontal-scroll-bars horizontal-scroll-bar-mode))
-  ;; Handle `default-frame-alist' entry.
-  (setq default-frame-alist
-	(cons (cons 'horizontal-scroll-bars horizontal-scroll-bar-mode)
-	      (assq-delete-all 'horizontal-scroll-bars
-			       default-frame-alist))))
+  (if (and horizontal-scroll-bar-mode
+	   (not (horizontal-scroll-bars-available-p)))
+      (progn
+	(setq horizontal-scroll-bar-mode nil)
+	(message "Horizontal scroll bars are not implemented on this system"))
+    (dolist (frame (frame-list))
+      (set-frame-parameter
+       frame 'horizontal-scroll-bars horizontal-scroll-bar-mode))
+    ;; Handle `default-frame-alist' entry.
+    (setq default-frame-alist
+	  (cons (cons 'horizontal-scroll-bars horizontal-scroll-bar-mode)
+		(assq-delete-all 'horizontal-scroll-bars
+				 default-frame-alist)))))
 
 (defun toggle-scroll-bar (arg)
   "Toggle whether or not the selected frame has vertical scroll bars.

@@ -903,19 +903,17 @@ by \"Save Options\" in Custom buffers.")
       '(menu-item "Horizontal"
                   menu-bar-horizontal-scroll-bar
                   :help "Horizontal scroll bar"
-                  :visible (display-graphic-p)
-                  :button (:radio . (eq (cdr (assq 'horizontal-scroll-bars
-                                                   (frame-parameters)))
-					t))))
+                  :visible (horizontal-scroll-bars-available-p)
+                  :button (:radio . (cdr (assq 'horizontal-scroll-bars
+					       (frame-parameters))))))
 
     (bindings--define-key menu [none-horizontal]
       '(menu-item "None-horizontal"
                   menu-bar-no-horizontal-scroll-bar
                   :help "Turn off horizontal scroll bars"
-                  :visible (display-graphic-p)
-                  :button (:radio . (eq (cdr (assq 'horizontal-scroll-bars
-                                                   (frame-parameters)))
-					nil))))
+                  :visible (horizontal-scroll-bars-available-p)
+                  :button (:radio . (not (cdr (assq 'horizontal-scroll-bars
+                                                   (frame-parameters)))))))
 
     (bindings--define-key menu [right]
       '(menu-item "On the Right"
