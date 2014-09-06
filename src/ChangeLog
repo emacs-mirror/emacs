@@ -1,3 +1,7 @@
+2014-09-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (EMACS_HEAPSIZE): Remove, no longer used.  (Bug#18416)
+
 2014-09-04  Jan D  <jhd@f20.localdomain>
 
 	* xterm.c (x_term_init): Don't call x_session_initialize if running
@@ -2571,7 +2575,7 @@
 
 	Use mmap(2) emulation for allocating buffer text on MS-Windows.
 	* Makefile.in (C_HEAP_SWITCH): Get the predefined heap size from
-	configure.
+	configure, not from HEAPSIZE.
 	(ADDSECTION, MINGW_TEMACS_POST_LINK): Remove, no longer used.
 
 	* lisp.h (NONPOINTER_BITS): Modify the condition to define to zero

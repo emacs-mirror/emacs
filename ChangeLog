@@ -368,6 +368,7 @@
 	dumped heap size depending on 32/64bits arch on Windows.
 	Don't check for pthreads.h on MinGW32/64, it gets in the way.
 	Use mmap(2) for buffers and system malloc for MinGW32/64.
+	(EMACS_HEAPSIZE): Remove.
 
 2014-05-27  Paul Eggert  <eggert@cs.ucla.edu>
 
