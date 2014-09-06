@@ -107,6 +107,9 @@ performance improvements when pasting large amounts of text.
 *** C-x C-x in rectangle-mark-mode now cycles through the four corners.
 *** `string-rectangle' provides on-the-fly preview of the result.
 
++++
+** Macro `pcase' now supports vector qpattern.
+
 ** New font-lock functions font-lock-ensure and font-lock-flush, which
 should be used instead of font-lock-fontify-buffer when called from Elisp.
 

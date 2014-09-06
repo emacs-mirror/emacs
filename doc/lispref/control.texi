@@ -370,6 +370,10 @@ More specifically, a Q-pattern can take the following forms:
 @item (@var{qpattern1} . @var{qpattern2})
 This pattern matches any cons cell whose @code{car} matches @var{QPATTERN1} and
 whose @code{cdr} matches @var{PATTERN2}.
+@item [@var{qpattern1 qpattern2..qpatternm}]
+This pattern matches a vector of length @code{M} whose 0..(M-1)th
+elements match @var{QPATTERN1}, @var{QPATTERN2}..@var{QPATTERNm},
+respectively.
 @item @var{atom}
 This pattern matches any atom @code{equal} to @var{atom}.
 @item ,@var{upattern}

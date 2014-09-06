@@ -1,3 +1,7 @@
+2014-09-06  Leo Liu  <sdl.web@gmail.com>
+
+	* NEWS: Mention vector qpattern for pcase.  (Bug#18327).
+
 2014-09-01  Eli Zaretskii  <eliz@gnu.org>
 
 	* NEWS: Mention that ls-lisp uses string-collate-lessp.

@@ -1,3 +1,9 @@
+2014-09-06  Leo Liu  <sdl.web@gmail.com>
+
+	* emacs-lisp/pcase.el (pcase): Doc fix.
+	(pcase--split-vector): New function.
+	(pcase--q1): Support vector qpattern.  (Bug#18327)
+
 2014-09-05  Sam Steingold  <sds@gnu.org>
 
 	* textmodes/tex-mode.el (tex-print-file-extension): New user

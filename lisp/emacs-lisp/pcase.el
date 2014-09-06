@@ -108,11 +108,12 @@ If a SYMBOL is used twice in the same pattern (i.e. the pattern is
 \"non-linear\"), then the second occurrence is turned into an `eq'uality test.
 
 QPatterns can take the following forms:
-  (QPAT1 . QPAT2)	matches if QPAT1 matches the car and QPAT2 the cdr.
-  ,UPAT			matches if the UPattern UPAT matches.
-  STRING		matches if the object is `equal' to STRING.
-  ATOM			matches if the object is `eq' to ATOM.
-QPatterns for vectors are not implemented yet.
+  (QPAT1 . QPAT2)       matches if QPAT1 matches the car and QPAT2 the cdr.
+  [QPAT1 QPAT2..QPATn]  matches a vector of length n and QPAT1..QPATn match
+                           its 0..(n-1)th elements, respectively.
+  ,UPAT                 matches if the UPattern UPAT matches.
+  STRING                matches if the object is `equal' to STRING.
+  ATOM                  matches if the object is `eq' to ATOM.
 
 PRED can take the form
   FUNCTION	     in which case it gets called with one argument.
@@ -447,6 +448,24 @@ MATCH is the pattern that needs to be matched, of the form:
          (pcase--mutually-exclusive-p #'consp (cadr pat)))
     '(:pcase--fail . nil))))
 
+(defun pcase--split-vector (syms pat)
+  (cond
+   ;; A QPattern for a vector of same length.
+   ((and (eq (car-safe pat) '\`)
+         (vectorp (cadr pat))
+         (= (length syms) (length (cadr pat))))
+    (let ((qpat (cadr pat)))
+      (cons `(and ,@(mapcar (lambda (s)
+                              `(match ,(car s) .
+                                      ,(pcase--upat (aref qpat (cdr s)))))
+                            syms))
+            :pcase--fail)))
+   ;; Other QPatterns go to the `else' side.
+   ((eq (car-safe pat) '\`) '(:pcase--fail . nil))
+   ((and (eq (car-safe pat) 'pred)
+         (pcase--mutually-exclusive-p #'vectorp (cadr pat)))
+    '(:pcase--fail . nil))))
+
 (defun pcase--split-equal (elem pat)
   (cond
    ;; The same match will give the same result.
@@ -738,8 +757,30 @@ Otherwise, it defers to REST which is a list of branches of the form
    ((eq (car-safe qpat) '\,) (error "Can't use `,UPATTERN"))
    ((floatp qpat) (error "Floating point patterns not supported"))
    ((vectorp qpat)
-    ;; FIXME.
-    (error "Vector QPatterns not implemented yet"))
+    (let* ((len (length qpat))
+           (syms (mapcar (lambda (i) (cons (make-symbol (format "xaref%s" i)) i))
+                         (number-sequence 0 (1- len))))
+           (splitrest (pcase--split-rest
+                       sym
+                       (lambda (pat) (pcase--split-vector syms pat))
+                       rest))
+           (then-rest (car splitrest))
+           (else-rest (cdr splitrest))
+           (then-body (pcase--u1
+                       `(,@(mapcar (lambda (s)
+                                     `(match ,(car s) .
+                                             ,(pcase--upat (aref qpat (cdr s)))))
+                                   syms)
+                         ,@matches)
+                       code vars then-rest)))
+      (pcase--if
+       `(and (vectorp ,sym) (= (length ,sym) ,len))
+       (macroexp-let* (delq nil (mapcar (lambda (s)
+                                          (and (get (car s) 'pcase-used)
+                                               `(,(car s) (aref ,sym ,(cdr s)))))
+                                        syms))
+                      then-body)
+       (pcase--u else-rest))))
    ((consp qpat)
     (let* ((syma (make-symbol "xcar"))
            (symd (make-symbol "xcdr"))
