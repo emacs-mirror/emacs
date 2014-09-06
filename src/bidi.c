@@ -429,12 +429,12 @@ bidi_push_embedding_level (struct bidi_it *bidi_it,
   bidi_it->stack_idx++;
   eassert (bidi_it->stack_idx < BIDI_MAXDEPTH+2+1);
   st = &bidi_it->level_stack[bidi_it->stack_idx];
+  eassert (level <= (1 << 7));
   st->level = level;
   st->override = override;
   st->isolate_status = isolate_status;
   if (isolate_status)
     {
-      st->prev = bidi_it->prev;
       st->last_strong = bidi_it->last_strong;
       st->prev_for_neutral = bidi_it->prev_for_neutral;
       st->next_for_neutral = bidi_it->next_for_neutral;
@@ -449,6 +449,8 @@ bidi_push_embedding_level (struct bidi_it *bidi_it,
 static int
 bidi_pop_embedding_level (struct bidi_it *bidi_it)
 {
+  int level;
+
   /* UAX#9 says to ignore invalid PDFs (X7, last bullet)
      and PDIs (X6a, 2nd bullet).  */
   if (bidi_it->stack_idx > 0)
@@ -460,7 +462,15 @@ bidi_pop_embedding_level (struct bidi_it *bidi_it)
       st = bidi_it->level_stack[bidi_it->stack_idx];
       if (isolate_status)
 	{
-	  bidi_it->prev = st.prev;
+	  /* PREV is used in W1 for resolving WEAK_NSM.  By the time
+	     we get to an NSM, we must have gotten past at least one
+	     character: the PDI that ends the isolate from which we
+	     are popping here.  So PREV will have been filled up by
+	     the time we first use it.  We initialize it here to
+	     UNKNOWN_BT to be able to catch any blunders in this
+	     logic.  */
+	  bidi_it->prev.orig_type = bidi_it->prev.type_after_w1
+	    = bidi_it->prev.type = UNKNOWN_BT;
 	  bidi_it->last_strong = st.last_strong;
 	  bidi_it->prev_for_neutral = st.prev_for_neutral;
 	  bidi_it->next_for_neutral = st.next_for_neutral;
@@ -469,7 +479,9 @@ bidi_pop_embedding_level (struct bidi_it *bidi_it)
 	}
       bidi_it->stack_idx--;
     }
-  return bidi_it->level_stack[bidi_it->stack_idx].level;
+  level = bidi_it->level_stack[bidi_it->stack_idx].level;
+  eassert (0 <= level && level <= BIDI_MAXDEPTH + 1);
+  return level;
 }
 
 /* Record in SAVED_INFO the information about the current character.  */

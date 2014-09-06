@@ -1912,15 +1912,14 @@ struct bidi_saved_info {
    levels, override status, isolate status, and isolating sequence
    runs.  */
 struct bidi_stack {
-  char level;
-  bool isolate_status;
-  bidi_dir_t override;
-  struct bidi_saved_info prev;
   struct bidi_saved_info last_strong;
   struct bidi_saved_info next_for_neutral;
   struct bidi_saved_info prev_for_neutral;
   struct bidi_saved_info next_for_ws;
-  bidi_dir_t sos;
+  unsigned level : 7;
+  bool_bf isolate_status : 1;
+  unsigned override : 2;
+  unsigned sos : 2;
 };
 
 /* Data type for storing information about a string being iterated on.  */
