@@ -1,5 +1,9 @@
 2014-09-07  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* callproc.c (exec_failed) [DOS_NT]: Define a dummy.
+	All callers simplified.  Add a comment about exec_failed, vfork,
+	and alloca.
+
 	Adjust drag-and-drop fix when window is above top (Bug#18303).
 	* xselect.c (x_fill_property_data): Don't let sign bit of negative
 	XCDR bleed into XCAR's encoded value.  Improve checks for

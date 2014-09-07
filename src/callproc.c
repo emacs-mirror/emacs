@@ -1154,6 +1154,9 @@ add_env (char **env, char **new_env, char *string)
 #ifndef DOS_NT
 
 /* 'exec' failed inside a child running NAME, with error number ERR.
+   Possibly a vforked child needed to allocate a large vector on the
+   stack; such a child cannot fall back on malloc because that might
+   mess up the allocator's data structures in the parent.
    Report the error and exit the child.  */
 
 static _Noreturn void
@@ -1168,6 +1171,17 @@ exec_failed (char const *name, int err)
   emacs_perror (name);
   _exit (err == ENOENT ? EXIT_ENOENT : EXIT_CANNOT_INVOKE);
 }
+
+#else
+
+/* Do nothing.  There is no need to fail, as DOS_NT platforms do not
+   fork and exec, and handle alloca exhaustion in a different way.  */
+
+static void
+exec_failed (char const *name, int err)
+{
+}
+
 #endif
 
 /* This is the last thing run in a newly forked inferior
@@ -1213,13 +1227,8 @@ child_setup (int in, int out, int err, char **new_argv, bool set_pgrp,
        on that.  */
     pwd_var = xmalloc (i + 5);
 #else
-    /* WINDOWSNT doesn't define exec_failed, and doesn't need this
-       test, since a directory name cannot be longer than 260
-       characters, i.e. 260 * 4 = 1040 UTF-8 bytes.  */
-#ifndef WINDOWSNT
     if (MAX_ALLOCA - 5 < i)
       exec_failed (new_argv[0], ENOMEM);
-#endif
     pwd_var = alloca (i + 5);
 #endif
     temp = pwd_var + 4;
@@ -1286,10 +1295,8 @@ child_setup (int in, int out, int err, char **new_argv, bool set_pgrp,
       }
 
     /* new_length + 2 to include PWD and terminating 0.  */
-#ifndef WINDOWSNT
     if (MAX_ALLOCA / sizeof *env - 2 < new_length)
       exec_failed (new_argv[0], ENOMEM);
-#endif
     env = new_env = alloca ((new_length + 2) * sizeof *env);
     /* If we have a PWD envvar, pass one down,
        but with corrected value.  */
@@ -1300,11 +1307,8 @@ child_setup (int in, int out, int err, char **new_argv, bool set_pgrp,
       {
 	char *vdata;
 
-	/* WINDOWSNT doesn't have $DISPLAY.  */
-#ifndef WINDOWSNT
 	if (MAX_ALLOCA - sizeof "DISPLAY=" < SBYTES (display))
 	  exec_failed (new_argv[0], ENOMEM);
-#endif
 	vdata = alloca (sizeof "DISPLAY=" + SBYTES (display));
 	strcpy (vdata, "DISPLAY=");
 	strcat (vdata, SSDATA (display));
