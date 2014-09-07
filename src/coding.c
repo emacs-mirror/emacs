@@ -6867,6 +6867,11 @@ decode_eol (struct coding_system *coding)
 }
 
 
+/* MAX_LOOKUP's maximum value.  MAX_LOOKUP is an int and so cannot
+   exceed INT_MAX.  Also, MAX_LOOKUP is multiplied by sizeof (int) for
+   alloca, so it cannot exceed MAX_ALLOCA / sizeof (int).  */
+enum { MAX_LOOKUP_MAX = min (INT_MAX, MAX_ALLOCA / sizeof (int)) };
+
 /* Return a translation table (or list of them) from coding system
    attribute vector ATTRS for encoding (if ENCODEP) or decoding (if
    not ENCODEP). */
@@ -6919,7 +6924,7 @@ get_translation_table (Lisp_Object attrs, bool encodep, int *max_lookup)
 	{
 	  val = XCHAR_TABLE (translation_table)->extras[1];
 	  if (NATNUMP (val) && *max_lookup < XFASTINT (val))
-	    *max_lookup = XFASTINT (val);
+	    *max_lookup = min (XFASTINT (val), MAX_LOOKUP_MAX);
 	}
       else if (CONSP (translation_table))
 	{
@@ -6931,7 +6936,7 @@ get_translation_table (Lisp_Object attrs, bool encodep, int *max_lookup)
 	      {
 		Lisp_Object tailval = XCHAR_TABLE (XCAR (tail))->extras[1];
 		if (NATNUMP (tailval) && *max_lookup < XFASTINT (tailval))
-		  *max_lookup = XFASTINT (tailval);
+		  *max_lookup = min (XFASTINT (tailval), MAX_LOOKUP_MAX);
 	      }
 	}
     }
@@ -10011,7 +10016,8 @@ make_subsidiaries (Lisp_Object base)
 {
   Lisp_Object subsidiaries;
   ptrdiff_t base_name_len = SBYTES (SYMBOL_NAME (base));
-  char *buf = alloca (base_name_len + 6);
+  USE_SAFE_ALLOCA;
+  char *buf = SAFE_ALLOCA (base_name_len + 6);
   int i;
 
   memcpy (buf, SDATA (SYMBOL_NAME (base)), base_name_len);
@@ -10021,6 +10027,7 @@ make_subsidiaries (Lisp_Object base)
       strcpy (buf + base_name_len, suffixes[i]);
       ASET (subsidiaries, i, intern (buf));
     }
+  SAFE_FREE ();
   return subsidiaries;
 }
 

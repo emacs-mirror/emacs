@@ -1386,9 +1386,10 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
   Lisp_Object buffer, name, program, proc, current_dir, tem;
-  register unsigned char **new_argv;
+  unsigned char **new_argv;
   ptrdiff_t i;
   ptrdiff_t count = SPECPDL_INDEX ();
+  USE_SAFE_ALLOCA;
 
   buffer = args[1];
   if (!NILP (buffer))
@@ -1464,7 +1465,7 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
     val = Vcoding_system_for_read;
     if (NILP (val))
       {
-	args2 = alloca ((nargs + 1) * sizeof *args2);
+	SAFE_ALLOCA_LISP (args2, nargs + 1);
 	args2[0] = Qstart_process;
 	for (i = 0; i < nargs; i++) args2[i + 1] = args[i];
 	GCPRO2 (proc, current_dir);
@@ -1483,7 +1484,7 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
       {
 	if (EQ (coding_systems, Qt))
 	  {
-	    args2 = alloca ((nargs + 1) * sizeof *args2);
+	    SAFE_ALLOCA_LISP (args2, nargs + 1);
 	    args2[0] = Qstart_process;
 	    for (i = 0; i < nargs; i++) args2[i + 1] = args[i];
 	    GCPRO2 (proc, current_dir);
@@ -1578,7 +1579,7 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
 
       /* Now that everything is encoded we can collect the strings into
 	 NEW_ARGV.  */
-      new_argv = alloca ((nargs - 1) * sizeof *new_argv);
+      SAFE_NALLOCA (new_argv, 1, nargs - 1);
       new_argv[nargs - 2] = 0;
 
       for (i = nargs - 2; i-- != 0; )
@@ -1592,6 +1593,7 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
   else
     create_pty (proc);
 
+  SAFE_FREE ();
   return unbind_to (count, proc);
 }
 
@@ -2071,8 +2073,10 @@ get_lisp_to_sockaddr_size (Lisp_Object address, int *familyp)
 	   && VECTORP (XCDR (address)))
     {
       struct sockaddr *sa;
-      *familyp = XINT (XCAR (address));
       p = XVECTOR (XCDR (address));
+      if (MAX_ALLOCA - sizeof sa->sa_family < p->header.size)
+	return 0;
+      *familyp = XINT (XCAR (address));
       return p->header.size + sizeof (sa->sa_family);
     }
   return 0;
@@ -4973,18 +4977,17 @@ read_and_dispose_of_process_output (struct Lisp_Process *p, char *chars,
    for decoding.  */
 
 static int
-read_process_output (Lisp_Object proc, register int channel)
+read_process_output (Lisp_Object proc, int channel)
 {
-  register ssize_t nbytes;
-  char *chars;
-  register struct Lisp_Process *p = XPROCESS (proc);
+  ssize_t nbytes;
+  struct Lisp_Process *p = XPROCESS (proc);
   struct coding_system *coding = proc_decode_coding_system[channel];
   int carryover = p->decoding_carryover;
-  int readmax = 4096;
+  enum { readmax = 4096 };
   ptrdiff_t count = SPECPDL_INDEX ();
   Lisp_Object odeactivate;
+  char chars[sizeof coding->carryover + readmax];
 
-  chars = alloca (carryover + readmax);
   if (carryover)
     /* See the comment above.  */
     memcpy (chars, SDATA (p->decoding_buf), carryover);
@@ -6837,7 +6840,7 @@ add_timer_wait_descriptor (int fd)
 {
   FD_SET (fd, &input_wait_mask);
   FD_SET (fd, &non_keyboard_wait_mask);
-  FD_SET (fd, &non_process_wait_mask);  
+  FD_SET (fd, &non_process_wait_mask);
   fd_callback_info[fd].func = timerfd_callback;
   fd_callback_info[fd].data = NULL;
   fd_callback_info[fd].condition |= FOR_READ;

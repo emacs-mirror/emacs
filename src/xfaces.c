@@ -5980,6 +5980,7 @@ face_at_buffer_position (struct window *w, ptrdiff_t pos,
     endpos = XINT (end);
 
   /* Look at properties from overlays.  */
+  USE_SAFE_ALLOCA;
   {
     ptrdiff_t next_overlay;
 
@@ -6006,7 +6007,10 @@ face_at_buffer_position (struct window *w, ptrdiff_t pos,
   /* Optimize common cases where we can use the default face.  */
   if (noverlays == 0
       && NILP (prop))
-    return default_face->id;
+    {
+      SAFE_FREE ();
+      return default_face->id;
+    }
 
   /* Begin with attributes from the default face.  */
   memcpy (attrs, default_face->lface, sizeof attrs);
@@ -6033,6 +6037,8 @@ face_at_buffer_position (struct window *w, ptrdiff_t pos,
     }
 
   *endptr = endpos;
+
+  SAFE_FREE ();
 
   /* Look up a realized face with the given face attributes,
      or realize a new one for ASCII characters.  */

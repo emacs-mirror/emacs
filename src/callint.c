@@ -297,6 +297,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
   Lisp_Object teml;
   Lisp_Object up_event;
   Lisp_Object enable;
+  USE_SAFE_ALLOCA;
   ptrdiff_t speccount = SPECPDL_INDEX ();
 
   /* The index of the next element of this_command_keys to examine for
@@ -366,12 +367,8 @@ invoke it.  If KEYS is omitted or nil, the return value of
       wrong_type_argument (Qcommandp, function);
   }
 
-  /* If SPECS is set to a string, use it as an interactive prompt.  */
-  if (STRINGP (specs))
-    /* Make a copy of string so that if a GC relocates specs,
-       `string' will still be valid.  */
-    string = xlispstrdupa (specs);
-  else
+  /* If SPECS is not a string, invent one.  */
+  if (! STRINGP (specs))
     {
       Lisp_Object input;
       Lisp_Object funval = Findirect_function (function, Qt);
@@ -416,9 +413,15 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	args[0] = Qfuncall_interactively;
 	args[1] = function;
 	args[2] = specs;
-	return unbind_to (speccount, Fapply (3, args));
+	Lisp_Object result = unbind_to (speccount, Fapply (3, args));
+	SAFE_FREE ();
+	return result;
       }
     }
+
+  /* SPECS is set to a string; use it as an interactive prompt.
+     Copy it so that STRING will be valid even if a GC relocates SPECS.  */
+  SAFE_ALLOCA_STRING (string, specs);
 
   /* Here if function specifies a string to control parsing the defaults.  */
 
@@ -507,14 +510,15 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	break;
     }
 
-  if (min (MOST_POSITIVE_FIXNUM,
-	   min (PTRDIFF_MAX, SIZE_MAX) / word_size)
-      < nargs)
+  if (MOST_POSITIVE_FIXNUM < min (PTRDIFF_MAX, SIZE_MAX) / word_size
+      && MOST_POSITIVE_FIXNUM < nargs)
     memory_full (SIZE_MAX);
 
-  args = alloca (nargs * sizeof *args);
-  visargs = alloca (nargs * sizeof *visargs);
-  varies = alloca (nargs * sizeof *varies);
+  /* Allocate them all at one go.  This wastes a bit of memory, but
+     it's OK to trade space for speed.  */
+  SAFE_NALLOCA (args, 3, nargs);
+  visargs = args + nargs;
+  varies = (signed char *) (visargs + nargs);
 
   for (i = 0; i < nargs; i++)
     {
@@ -871,7 +875,9 @@ invoke it.  If KEYS is omitted or nil, the return value of
   {
     Lisp_Object val = Ffuncall (nargs, args);
     UNGCPRO;
-    return unbind_to (speccount, val);
+    val = unbind_to (speccount, val);
+    SAFE_FREE ();
+    return val;
   }
 }
 

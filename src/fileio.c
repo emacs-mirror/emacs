@@ -396,13 +396,6 @@ Otherwise return a directory name.
 Given a Unix syntax file name, returns a string ending in slash.  */)
   (Lisp_Object filename)
 {
-#ifndef DOS_NT
-  register const char *beg;
-#else
-  register char *beg;
-  Lisp_Object tem_fn;
-#endif
-  register const char *p;
   Lisp_Object handler;
 
   CHECK_STRING (filename);
@@ -417,12 +410,8 @@ Given a Unix syntax file name, returns a string ending in slash.  */)
       return STRINGP (handled_name) ? handled_name : Qnil;
     }
 
-#ifdef DOS_NT
-  beg = xlispstrdupa (filename);
-#else
-  beg = SSDATA (filename);
-#endif
-  p = beg + SBYTES (filename);
+  char *beg = SSDATA (filename);
+  char const *p = beg + SBYTES (filename);
 
   while (p != beg && !IS_DIRECTORY_SEP (p[-1])
 #ifdef DOS_NT
@@ -438,6 +427,11 @@ Given a Unix syntax file name, returns a string ending in slash.  */)
     return Qnil;
 #ifdef DOS_NT
   /* Expansion of "c:" to drive and default directory.  */
+  Lisp_Object tem_fn;
+  USE_SAFE_ALLOCA;
+  SAFE_ALLOCA_STRING (beg, filename);
+  p = beg + (p - SSDATA (filename));
+
   if (p[-1] == ':')
     {
       /* MAXPATHLEN+1 is guaranteed to be enough space for getdefdir.  */
@@ -481,6 +475,7 @@ Given a Unix syntax file name, returns a string ending in slash.  */)
       dostounix_filename (beg);
       tem_fn = make_specified_string (beg, -1, p - beg, 0);
     }
+  SAFE_FREE ();
   return tem_fn;
 #else  /* DOS_NT */
   return make_specified_string (beg, -1, p - beg, STRING_MULTIBYTE (filename));
@@ -1019,7 +1014,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 #endif
 
   /* Make a local copy of NAME to protect it from GC in DECODE_FILE below.  */
-  nm = xlispstrdupa (name);
+  SAFE_ALLOCA_STRING (nm, name);
   nmlim = nm + SBYTES (name);
 
 #ifdef DOS_NT
@@ -1122,12 +1117,12 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	  if (!NILP (Vw32_downcase_file_names))
 	    name = Fdowncase (name);
 #endif
-	  return name;
 #else /* not DOS_NT */
-	  if (strcmp (nm, SSDATA (name)) == 0)
-	    return name;
-	  return make_specified_string (nm, -1, nmlim - nm, multibyte);
+	  if (strcmp (nm, SSDATA (name)) != 0)
+	    name = make_specified_string (nm, -1, nmlim - nm, multibyte);
 #endif /* not DOS_NT */
+	  SAFE_FREE ();
+	  return name;
 	}
     }
 
@@ -1729,7 +1724,8 @@ search_embedded_absfilename (char *nm, char *endp)
 	  for (s = p; *s && !IS_DIRECTORY_SEP (*s); s++);
 	  if (p[0] == '~' && s > p + 1)	/* We've got "/~something/".  */
 	    {
-	      char *o = alloca (s - p + 1);
+	      USE_SAFE_ALLOCA;
+	      char *o = SAFE_ALLOCA (s - p + 1);
 	      struct passwd *pw;
 	      memcpy (o, p, s - p);
 	      o [s - p] = 0;
@@ -1740,6 +1736,7 @@ search_embedded_absfilename (char *nm, char *endp)
 	      block_input ();
 	      pw = getpwnam (o + 1);
 	      unblock_input ();
+	      SAFE_FREE ();
 	      if (pw)
 		return p;
 	    }
@@ -1788,7 +1785,8 @@ those `/' is discarded.  */)
   /* Always work on a copy of the string, in case GC happens during
      decode of environment variables, causing the original Lisp_String
      data to be relocated.  */
-  nm = xlispstrdupa (filename);
+  USE_SAFE_ALLOCA;
+  SAFE_ALLOCA_STRING (nm, filename);
 
 #ifdef DOS_NT
   dostounix_filename (nm);
@@ -1802,8 +1800,13 @@ those `/' is discarded.  */)
     /* Start over with the new string, so we check the file-name-handler
        again.  Important with filenames like "/home/foo//:/hello///there"
        which would substitute to "/:/hello///there" rather than "/there".  */
-    return Fsubstitute_in_file_name
-      (make_specified_string (p, -1, endp - p, multibyte));
+    {
+      Lisp_Object result
+	= (Fsubstitute_in_file_name
+	   (make_specified_string (p, -1, endp - p, multibyte)));
+      SAFE_FREE ();
+      return result;
+    }
 
   /* See if any variables are substituted into the string.  */
 
@@ -1825,6 +1828,7 @@ those `/' is discarded.  */)
       if (!NILP (Vw32_downcase_file_names))
 	filename = Fdowncase (filename);
 #endif
+      SAFE_FREE ();
       return filename;
     }
 
@@ -1843,14 +1847,14 @@ those `/' is discarded.  */)
     {
       Lisp_Object xname = make_specified_string (xnm, -1, x - xnm, multibyte);
 
-      xname = Fdowncase (xname);
-      return xname;
+      filename = Fdowncase (xname);
     }
   else
 #endif
-  return (xnm == SSDATA (filename)
-	  ? filename
-	  : make_specified_string (xnm, -1, x - xnm, multibyte));
+  if (xnm != SSDATA (filename))
+    filename = make_specified_string (xnm, -1, x - xnm, multibyte);
+  SAFE_FREE ();
+  return filename;
 }
 
 /* A slightly faster and more convenient way to get

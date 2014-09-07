@@ -1079,10 +1079,11 @@ fontset_pattern_regexp (Lisp_Object pattern)
       /* If PATTERN is not full XLFD we convert "*" to ".*".  Otherwise
 	 we convert "*" to "[^-]*" which is much faster in regular
 	 expression matching.  */
-      if (ndashes < 14)
-	p1 = regex = alloca (SBYTES (pattern) + 2 * nstars + 2 * nescs + 1);
-      else
-	p1 = regex = alloca (SBYTES (pattern) + 5 * nstars + 2 * nescs + 1);
+      ptrdiff_t regexsize = (SBYTES (pattern)
+			     + (ndashes < 14 ? 2 : 5) * nstars
+			     + 2 * nescs + 1);
+      USE_SAFE_ALLOCA;
+      p1 = regex = SAFE_ALLOCA (regexsize);
 
       *p1++ = '^';
       for (p0 = SDATA (pattern); *p0; p0++)
@@ -1110,6 +1111,7 @@ fontset_pattern_regexp (Lisp_Object pattern)
 
       Vcached_fontset_data = Fcons (build_string (SSDATA (pattern)),
 				    build_string ((char *) regex));
+      SAFE_FREE ();
     }
 
   return CACHED_FONTSET_REGEX;
@@ -1892,7 +1894,9 @@ format is the same as above.  */)
 
   /* Recode fontsets realized on FRAME from the base fontset FONTSET
      in the table `realized'.  */
-  realized[0] = alloca (word_size * ASIZE (Vfontset_table));
+  USE_SAFE_ALLOCA;
+  SAFE_ALLOCA_LISP (realized[0], 2 * ASIZE (Vfontset_table));
+  realized[1] = realized[0] + ASIZE (Vfontset_table);
   for (i = j = 0; i < ASIZE (Vfontset_table); i++)
     {
       elt = FONTSET_FROM_ID (i);
@@ -1903,7 +1907,6 @@ format is the same as above.  */)
     }
   realized[0][j] = Qnil;
 
-  realized[1] = alloca (word_size * ASIZE (Vfontset_table));
   for (i = j = 0; ! NILP (realized[0][i]); i++)
     {
       elt = FONTSET_DEFAULT (realized[0][i]);
@@ -1995,6 +1998,7 @@ format is the same as above.  */)
 	break;
     }
 
+  SAFE_FREE ();
   return tables[0];
 }
 

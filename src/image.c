@@ -3037,13 +3037,16 @@ xbm_load (struct frame *f, struct image *img)
 				     + SBYTES (data)));
       else
 	{
+	  USE_SAFE_ALLOCA;
+
 	  if (VECTORP (data))
 	    {
 	      int i;
 	      char *p;
 	      int nbytes = (img->width + BITS_PER_CHAR - 1) / BITS_PER_CHAR;
 
-	      p = bits = alloca (nbytes * img->height);
+	      SAFE_NALLOCA (bits, nbytes, img->height);
+	      p = bits;
 	      for (i = 0; i < img->height; ++i, p += nbytes)
 		{
 		  Lisp_Object line = AREF (data, i);
@@ -3064,9 +3067,8 @@ xbm_load (struct frame *f, struct image *img)
             int nbytes, i;
             /* Windows mono bitmaps are reversed compared with X.  */
             invertedBits = bits;
-            nbytes = (img->width + BITS_PER_CHAR - 1) / BITS_PER_CHAR
-              * img->height;
-            bits = alloca (nbytes);
+            nbytes = (img->width + BITS_PER_CHAR - 1) / BITS_PER_CHAR;
+            SAFE_NALLOCA (bits, nbytes, img->height);
             for (i = 0; i < nbytes; i++)
               bits[i] = XBM_BIT_SHUFFLE (invertedBits[i]);
           }
@@ -3088,6 +3090,8 @@ xbm_load (struct frame *f, struct image *img)
 			   img->spec, Qnil);
 	      x_clear_image (f, img);
 	    }
+
+	  SAFE_FREE ();
 	}
     }
 
@@ -3494,6 +3498,8 @@ xpm_load (struct frame *f, struct image *img)
   int rc;
   XpmAttributes attrs;
   Lisp_Object specified_file, color_symbols;
+  USE_SAFE_ALLOCA;
+
 #ifdef HAVE_NTGUI
   HDC hdc;
   xpm_XImage * xpm_image = NULL, * xpm_mask = NULL;
@@ -3536,7 +3542,7 @@ xpm_load (struct frame *f, struct image *img)
     {
       Lisp_Object tail;
       XpmColorSymbol *xpm_syms;
-      int i, size;
+      ptrdiff_t i, size;
 
       attrs.valuemask |= XpmColorSymbols;
 
@@ -3546,8 +3552,8 @@ xpm_load (struct frame *f, struct image *img)
 	++attrs.numsymbols;
 
       /* Allocate an XpmColorSymbol array.  */
+      SAFE_NALLOCA (xpm_syms, 1, attrs.numsymbols);
       size = attrs.numsymbols * sizeof *xpm_syms;
-      xpm_syms = alloca (size);
       memset (xpm_syms, 0, size);
       attrs.colorsymbols = xpm_syms;
 
@@ -3569,17 +3575,11 @@ xpm_load (struct frame *f, struct image *img)
 	  name = XCAR (XCAR (tail));
 	  color = XCDR (XCAR (tail));
 	  if (STRINGP (name))
-	    {
-	      xpm_syms[i].name = alloca (SCHARS (name) + 1);
-	      strcpy (xpm_syms[i].name, SSDATA (name));
-	    }
+	    SAFE_ALLOCA_STRING (xpm_syms[i].name, name);
 	  else
 	    xpm_syms[i].name = empty_string;
 	  if (STRINGP (color))
-	    {
-	      xpm_syms[i].value = alloca (SCHARS (color) + 1);
-	      strcpy (xpm_syms[i].value, SSDATA (color));
-	    }
+	    SAFE_ALLOCA_STRING (xpm_syms[i].value, color);
 	  else
 	    xpm_syms[i].value = empty_string;
 	}
@@ -3610,6 +3610,7 @@ xpm_load (struct frame *f, struct image *img)
 #ifdef ALLOC_XPM_COLORS
 	  xpm_free_color_cache ();
 #endif
+	  SAFE_FREE ();
 	  return 0;
 	}
 
@@ -3640,6 +3641,7 @@ xpm_load (struct frame *f, struct image *img)
 #ifdef ALLOC_XPM_COLORS
 	  xpm_free_color_cache ();
 #endif
+	  SAFE_FREE ();
 	  return 0;
 	}
 #ifdef HAVE_NTGUI
@@ -3782,6 +3784,7 @@ xpm_load (struct frame *f, struct image *img)
 #ifdef ALLOC_XPM_COLORS
   xpm_free_color_cache ();
 #endif
+  SAFE_FREE ();
   return rc == XpmSuccess;
 }
 
@@ -6580,6 +6583,7 @@ jpeg_load_body (struct frame *f, struct image *img,
      colors generated, and mgr->cinfo.colormap is a two-dimensional array
      of color indices in the range 0..mgr->cinfo.actual_number_of_colors.
      No more than 255 colors will be generated.  */
+  USE_SAFE_ALLOCA;
   {
     int i, ir, ig, ib;
 
@@ -6595,7 +6599,7 @@ jpeg_load_body (struct frame *f, struct image *img,
        a default color, and we don't have to care about which colors
        can be freed safely, and which can't.  */
     init_color_table ();
-    colors = alloca (mgr->cinfo.actual_number_of_colors * sizeof *colors);
+    SAFE_NALLOCA (colors, 1, mgr->cinfo.actual_number_of_colors);
 
     for (i = 0; i < mgr->cinfo.actual_number_of_colors; ++i)
       {
@@ -6638,6 +6642,7 @@ jpeg_load_body (struct frame *f, struct image *img,
 
   /* Put ximg into the image.  */
   image_put_x_image (f, img, ximg, 0);
+  SAFE_FREE ();
   return 1;
 }
 

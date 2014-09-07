@@ -1272,7 +1272,10 @@ internal_lisp_condition_case (volatile Lisp_Object var, Lisp_Object bodyform,
 
   { /* The first clause is the one that should be checked first, so it should
        be added to handlerlist last.  So we build in `clauses' a table that
-       contains `handlers' but in reverse order.  */
+       contains `handlers' but in reverse order.  SAFE_ALLOCA won't work
+       here due to the setjmp, so impose a MAX_ALLOCA limit.  */
+    if (MAX_ALLOCA / word_size < clausenb)
+      memory_full (SIZE_MAX);
     Lisp_Object *clauses = alloca (clausenb * sizeof *clauses);
     Lisp_Object *volatile clauses_volatile = clauses;
     int i = clausenb;
@@ -1311,7 +1314,7 @@ internal_lisp_condition_case (volatile Lisp_Object var, Lisp_Object bodyform,
 	    return val;
 	  }
       }
-    }
+  }
 
   val = eval_sub (bodyform);
   handlerlist = oldhandlerlist;
@@ -2789,10 +2792,11 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
 	val = (XSUBR (fun)->function.aMANY) (numargs, args + 1);
       else
 	{
+	  Lisp_Object internal_argbuf[8];
 	  if (XSUBR (fun)->max_args > numargs)
 	    {
-	      internal_args = alloca (XSUBR (fun)->max_args
-				      * sizeof *internal_args);
+	      eassert (XSUBR (fun)->max_args <= ARRAYELTS (internal_argbuf));
+	      internal_args = internal_argbuf;
 	      memcpy (internal_args, args + 1, numargs * word_size);
 	      for (i = numargs; i < XSUBR (fun)->max_args; i++)
 		internal_args[i] = Qnil;

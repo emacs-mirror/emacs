@@ -994,22 +994,24 @@ affects all frames on the same terminal device.  */)
     {
       char *name = 0, *type = 0;
       Lisp_Object tty, tty_type;
+      USE_SAFE_ALLOCA;
 
       tty = get_future_frame_param
         (Qtty, parms, (FRAME_TERMCAP_P (XFRAME (selected_frame))
                        ? FRAME_TTY (XFRAME (selected_frame))->name
                        : NULL));
       if (!NILP (tty))
-	name = xlispstrdupa (tty);
+	SAFE_ALLOCA_STRING (name, tty);
 
       tty_type = get_future_frame_param
         (Qtty_type, parms, (FRAME_TERMCAP_P (XFRAME (selected_frame))
                             ? FRAME_TTY (XFRAME (selected_frame))->type
                             : NULL));
       if (!NILP (tty_type))
-	type = xlispstrdupa (tty_type);
+	SAFE_ALLOCA_STRING (type, tty_type);
 
       t = init_tty (name, type, 0); /* Errors are not fatal.  */
+      SAFE_FREE ();
     }
 
   f = make_terminal_frame (t);
@@ -3017,14 +3019,14 @@ x_set_frame_parameters (struct frame *f, Lisp_Object alist)
 #ifdef HAVE_X_WINDOWS
   bool icon_left_no_change = 0, icon_top_no_change = 0;
 #endif
-  struct gcpro gcpro1, gcpro2;
 
   i = 0;
   for (tail = alist; CONSP (tail); tail = XCDR (tail))
     i++;
 
-  parms = alloca (i * sizeof *parms);
-  values = alloca (i * sizeof *values);
+  USE_SAFE_ALLOCA;
+  SAFE_ALLOCA_LISP (parms, 2 * i);
+  values = parms + i;
 
   /* Extract parm names and values into those vectors.  */
 
@@ -3040,10 +3042,6 @@ x_set_frame_parameters (struct frame *f, Lisp_Object alist)
     }
   /* TAIL and ALIST are not used again below here.  */
   alist = tail = Qnil;
-
-  GCPRO2 (*parms, *values);
-  gcpro1.nvars = i;
-  gcpro2.nvars = i;
 
   /* There is no need to gcpro LEFT, TOP, ICON_LEFT, or ICON_TOP,
      because their values appear in VALUES and strings are not valid.  */
@@ -3273,7 +3271,7 @@ x_set_frame_parameters (struct frame *f, Lisp_Object alist)
 #endif /* HAVE_X_WINDOWS */
   }
 
-  UNGCPRO;
+  SAFE_FREE ();
 }
 
 
@@ -4010,10 +4008,6 @@ validate_x_resource_name (void)
 static Lisp_Object
 xrdb_get_resource (XrmDatabase rdb, Lisp_Object attribute, Lisp_Object class, Lisp_Object component, Lisp_Object subclass)
 {
-  register char *value;
-  char *name_key;
-  char *class_key;
-
   CHECK_STRING (attribute);
   CHECK_STRING (class);
 
@@ -4028,17 +4022,20 @@ xrdb_get_resource (XrmDatabase rdb, Lisp_Object attribute, Lisp_Object class, Li
 
   /* Allocate space for the components, the dots which separate them,
      and the final '\0'.  Make them big enough for the worst case.  */
-  name_key = alloca (SBYTES (Vx_resource_name)
-		     + (STRINGP (component)
-			? SBYTES (component) : 0)
-		     + SBYTES (attribute)
-		     + 3);
+  ptrdiff_t name_keysize = (SBYTES (Vx_resource_name)
+			    + (STRINGP (component)
+			       ? SBYTES (component) : 0)
+			    + SBYTES (attribute)
+			    + 3);
 
-  class_key = alloca (SBYTES (Vx_resource_class)
-		      + SBYTES (class)
-		      + (STRINGP (subclass)
-			 ? SBYTES (subclass) : 0)
-		      + 3);
+  ptrdiff_t class_keysize = (SBYTES (Vx_resource_class)
+			     + SBYTES (class)
+			     + (STRINGP (subclass)
+				? SBYTES (subclass) : 0)
+			     + 3);
+  USE_SAFE_ALLOCA;
+  char *name_key = SAFE_ALLOCA (name_keysize + class_keysize);
+  char *class_key = name_key + name_keysize;
 
   /* Start with emacs.FRAMENAME for the name (the specific one)
      and with `Emacs' for the class key (the general one).  */
@@ -4060,7 +4057,8 @@ xrdb_get_resource (XrmDatabase rdb, Lisp_Object attribute, Lisp_Object class, Li
   strcat (name_key, ".");
   strcat (name_key, SSDATA (attribute));
 
-  value = x_get_string_resource (rdb, name_key, class_key);
+  char *value = x_get_string_resource (rdb, name_key, class_key);
+  SAFE_FREE();
 
   if (value && *value)
     return build_string (value);
@@ -4112,8 +4110,10 @@ x_get_resource_string (const char *attribute, const char *class)
 
   /* Allocate space for the components, the dots which separate them,
      and the final '\0'.  */
-  char *name_key = SAFE_ALLOCA (invocation_namelen + strlen (attribute) + 2);
-  char *class_key = alloca ((sizeof (EMACS_CLASS) - 1) + strlen (class) + 2);
+  ptrdiff_t name_keysize = invocation_namelen + strlen (attribute) + 2;
+  ptrdiff_t class_keysize = sizeof (EMACS_CLASS) - 1 + strlen (class) + 2;
+  char *name_key = SAFE_ALLOCA (name_keysize + class_keysize);
+  char *class_key = name_key + name_keysize;
 
   esprintf (name_key, "%s.%s", SSDATA (Vinvocation_name), attribute);
   sprintf (class_key, "%s.%s", EMACS_CLASS, class);

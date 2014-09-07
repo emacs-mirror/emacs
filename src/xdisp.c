@@ -2626,15 +2626,14 @@ safe__call (bool inhibit_quit, ptrdiff_t nargs, Lisp_Object func, va_list ap)
     {
       ptrdiff_t i;
       ptrdiff_t count = SPECPDL_INDEX ();
-      struct gcpro gcpro1;
-      Lisp_Object *args = alloca (nargs * word_size);
+      Lisp_Object *args;
+      USE_SAFE_ALLOCA;
+      SAFE_ALLOCA_LISP (args, nargs);
 
       args[0] = func;
       for (i = 1; i < nargs; i++)
 	args[i] = va_arg (ap, Lisp_Object);
 
-      GCPRO1 (args[0]);
-      gcpro1.nvars = nargs;
       specbind (Qinhibit_redisplay, Qt);
       if (inhibit_quit)
 	specbind (Qinhibit_quit, Qt);
@@ -2642,7 +2641,7 @@ safe__call (bool inhibit_quit, ptrdiff_t nargs, Lisp_Object func, va_list ap)
 	 so there is no possibility of wanting to redisplay.  */
       val = internal_condition_case_n (Ffuncall, nargs, args, Qt,
 				       safe_eval_handler);
-      UNGCPRO;
+      SAFE_FREE ();
       val = unbind_to (count, val);
     }
 
@@ -3659,6 +3658,7 @@ next_overlay_change (ptrdiff_t pos)
   ptrdiff_t i, noverlays;
   ptrdiff_t endpos;
   Lisp_Object *overlays;
+  USE_SAFE_ALLOCA;
 
   /* Get all overlays at the given position.  */
   GET_OVERLAYS_AT (pos, overlays, noverlays, &endpos, 1);
@@ -3675,6 +3675,7 @@ next_overlay_change (ptrdiff_t pos)
       endpos = min (endpos, oendpos);
     }
 
+  SAFE_FREE ();
   return endpos;
 }
 
@@ -5735,10 +5736,11 @@ load_overlay_strings (struct it *it, ptrdiff_t charpos)
   Lisp_Object overlay, window, str, invisible;
   struct Lisp_Overlay *ov;
   ptrdiff_t start, end;
-  ptrdiff_t size = 20;
   ptrdiff_t n = 0, i, j;
   int invis_p;
-  struct overlay_entry *entries = alloca (size * sizeof *entries);
+  struct overlay_entry entriesbuf[20];
+  ptrdiff_t size = ARRAYELTS (entriesbuf);
+  struct overlay_entry *entries = entriesbuf;
   USE_SAFE_ALLOCA;
 
   if (charpos <= 0)
@@ -10191,9 +10193,9 @@ message3 (Lisp_Object m)
     {
       ptrdiff_t nbytes = SBYTES (m);
       bool multibyte = STRING_MULTIBYTE (m);
+      char *buffer;
       USE_SAFE_ALLOCA;
-      char *buffer = SAFE_ALLOCA (nbytes);
-      memcpy (buffer, SDATA (m), nbytes);
+      SAFE_ALLOCA_STRING (buffer, m);
       message_dolog (buffer, nbytes, 1, multibyte);
       SAFE_FREE ();
     }
@@ -10395,11 +10397,13 @@ vmessage (const char *m, va_list ap)
 	    {
 	      ptrdiff_t len;
 	      ptrdiff_t maxsize = FRAME_MESSAGE_BUF_SIZE (f);
-	      char *message_buf = alloca (maxsize + 1);
+	      USE_SAFE_ALLOCA;
+	      char *message_buf = SAFE_ALLOCA (maxsize + 1);
 
 	      len = doprnt (message_buf, maxsize, m, 0, ap);
 
 	      message3 (make_string (message_buf, len));
+	      SAFE_FREE ();
 	    }
 	  else
 	    message1 (0);
@@ -18695,10 +18699,10 @@ dump_glyph_row (struct glyph_row *row, int vpos, int glyphs)
   else if (glyphs == 1)
     {
       int area;
+      char s[SHRT_MAX + 4];
 
       for (area = LEFT_MARGIN_AREA; area < LAST_AREA; ++area)
 	{
-	  char *s = alloca (row->used[area] + 4);
 	  int i;
 
 	  for (i = 0; i < row->used[area]; ++i)
@@ -22690,10 +22694,8 @@ decode_mode_spec_coding (Lisp_Object coding_system, register char *buf, int eol_
 	}
       else if (CHARACTERP (eoltype))
 	{
-	  unsigned char *tmp = alloca (MAX_MULTIBYTE_LENGTH);
 	  int c = XFASTINT (eoltype);
-	  eol_str_len = CHAR_STRING (c, tmp);
-	  eol_str = tmp;
+	  return buf + CHAR_STRING (c, (unsigned char *) buf);
 	}
       else
 	{
@@ -24609,7 +24611,7 @@ compute_overhangs_and_x (struct glyph_string *s, int x, int backward_p)
 	 face_id = (row)->glyphs[area][START].face_id;			   \
 									   \
 	 s = alloca (sizeof *s);					   \
-	 char2b = alloca ((END - START) * sizeof *char2b);		   \
+	 SAFE_NALLOCA (char2b, 1, (END) - (START));			   \
 	 INIT_GLYPH_STRING (s, char2b, w, row, area, START, HL);	   \
 	 append_glyph_string (&HEAD, &TAIL, s);				   \
 	 s->x = (X);							   \
@@ -24637,7 +24639,7 @@ compute_overhangs_and_x (struct glyph_string *s, int x, int backward_p)
     struct glyph_string *first_s = NULL;				    \
     int n;								    \
     									    \
-    char2b = alloca (cmp->glyph_len * sizeof *char2b);			    \
+    SAFE_NALLOCA (char2b, 1, cmp->glyph_len);				    \
     									    \
     /* Make glyph_strings for each glyph sequence that is drawable by	    \
        the same face, and append them to HEAD/TAIL.  */			    \
@@ -24672,7 +24674,7 @@ compute_overhangs_and_x (struct glyph_string *s, int x, int backward_p)
     gstring = (composition_gstring_from_id				  \
 	       ((row)->glyphs[area][START].u.cmp.id));			  \
     s = alloca (sizeof *s);						  \
-    char2b = alloca (LGSTRING_GLYPH_LEN (gstring) * sizeof *char2b);	  \
+    SAFE_NALLOCA (char2b, 1, LGSTRING_GLYPH_LEN (gstring));		  \
     INIT_GLYPH_STRING (s, char2b, w, row, area, START, HL);		  \
     append_glyph_string (&(HEAD), &(TAIL), s);				  \
     s->x = (X);								  \
@@ -24824,6 +24826,7 @@ draw_glyphs (struct window *w, int x, struct glyph_row *row,
      BUILD_GLYPH_STRINGS will modify its start parameter.  That's
      the reason we use a separate variable `i'.  */
   i = start;
+  USE_SAFE_ALLOCA;
   BUILD_GLYPH_STRINGS (i, end, head, tail, hl, x, last_x);
   if (tail)
     x_reached = tail->x + tail->background_width;
@@ -25023,6 +25026,7 @@ draw_glyphs (struct window *w, int x, struct glyph_row *row,
 
   RELEASE_HDC (hdc, f);
 
+  SAFE_FREE ();
   return x_reached;
 }
 
@@ -29291,6 +29295,8 @@ note_mouse_highlight (struct frame *f, int x, int y)
       /* Is this char mouse-active or does it have help-echo?  */
       position = make_number (pos);
 
+      USE_SAFE_ALLOCA;
+
       if (BUFFERP (object))
 	{
 	  /* Put all the overlays we want in a vector in overlay_vec.  */
@@ -29572,6 +29578,7 @@ note_mouse_highlight (struct frame *f, int x, int y)
       BEGV = obegv;
       ZV = ozv;
       current_buffer = obuf;
+      SAFE_FREE ();
     }
 
  set_cursor:

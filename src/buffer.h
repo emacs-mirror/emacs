@@ -1127,15 +1127,15 @@ record_unwind_current_buffer (void)
 #define GET_OVERLAYS_AT(posn, overlays, noverlays, nextp, chrq)		\
   do {									\
     ptrdiff_t maxlen = 40;						\
-    overlays = alloca (maxlen * sizeof *overlays);			\
-    noverlays = overlays_at (posn, false, &overlays, &maxlen,		\
-			     nextp, NULL, chrq);			\
-    if (noverlays > maxlen)						\
+    SAFE_NALLOCA (overlays, 1, maxlen);					\
+    (noverlays) = overlays_at (posn, false, &(overlays), &maxlen,	\
+			       nextp, NULL, chrq);			\
+    if ((noverlays) > maxlen)						\
       {									\
 	maxlen = noverlays;						\
-	overlays = alloca (maxlen * sizeof *overlays);			\
-	noverlays = overlays_at (posn, false, &overlays, &maxlen,	\
-				 nextp, NULL, chrq);			\
+	SAFE_NALLOCA (overlays, 1, maxlen);				\
+	(noverlays) = overlays_at (posn, false, &(overlays), &maxlen,	\
+				   nextp, NULL, chrq);			\
       }									\
   } while (false)
 

@@ -3191,6 +3191,7 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
   Lisp_Object selectface;
   int first_item = 0;
   int col, row;
+  USE_SAFE_ALLOCA;
 
   /* Don't allow non-positive x0 and y0, lest the menu will wrap
      around the display.  */
@@ -3199,7 +3200,7 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
   if (y0 <= 0)
     y0 = 1;
 
-  state = alloca (menu->panecount * sizeof (struct tty_menu_state));
+  SAFE_NALLOCA (state, 1, menu->panecount);
   memset (state, 0, sizeof (*state));
   faces[0]
     = lookup_derived_face (sf, intern ("tty-menu-disabled-face"),
@@ -3421,6 +3422,7 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
   discard_mouse_events ();
   if (!kbd_buffer_events_waiting ())
     clear_input_pending ();
+  SAFE_FREE ();
   return result;
 }
 
@@ -3606,6 +3608,7 @@ tty_menu_show (struct frame *f, int x, int y, int menuflags,
   item_y = y += f->top_pos;
 
   /* Create all the necessary panes and their items.  */
+  USE_SAFE_ALLOCA;
   maxwidth = maxlines = lines = i = 0;
   lpane = TTYM_FAILURE;
   while (i < menu_items_used)
@@ -3674,9 +3677,7 @@ tty_menu_show (struct frame *f, int x, int y, int menuflags,
 
 	  if (!NILP (descrip))
 	    {
-	      /* If alloca is fast, use that to make the space,
-		 to reduce gc needs.  */
-	      item_data = (char *) alloca (maxwidth + SBYTES (descrip) + 1);
+	      item_data = SAFE_ALLOCA (maxwidth + SBYTES (descrip) + 1);
 	      memcpy (item_data, SSDATA (item_name), SBYTES (item_name));
 	      for (j = SCHARS (item_name); j < maxwidth; j++)
 		item_data[j] = ' ';
@@ -3829,6 +3830,7 @@ tty_menu_show (struct frame *f, int x, int y, int menuflags,
 
  tty_menu_end:
 
+  SAFE_FREE ();
   unbind_to (specpdl_count, Qnil);
   return entry;
 }

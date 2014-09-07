@@ -500,10 +500,12 @@ kset_system_key_syms (struct kboard *kb, Lisp_Object val)
 static void
 echo_add_key (Lisp_Object c)
 {
-  int size = KEY_DESCRIPTION_SIZE + 100;
-  char *buffer = alloca (size);
+  char initbuf[KEY_DESCRIPTION_SIZE + 100];
+  ptrdiff_t size = sizeof initbuf;
+  char *buffer = initbuf;
   char *ptr = buffer;
   Lisp_Object echo_string;
+  USE_SAFE_ALLOCA;
 
   echo_string = KVAR (current_kboard, echo_string);
 
@@ -515,13 +517,13 @@ echo_add_key (Lisp_Object c)
   else if (SYMBOLP (c))
     {
       Lisp_Object name = SYMBOL_NAME (c);
-      int nbytes = SBYTES (name);
+      ptrdiff_t nbytes = SBYTES (name);
 
       if (size - (ptr - buffer) < nbytes)
 	{
-	  int offset = ptr - buffer;
+	  ptrdiff_t offset = ptr - buffer;
 	  size = max (2 * size, size + nbytes);
-	  buffer = alloca (size);
+	  buffer = SAFE_ALLOCA (size);
 	  ptr = buffer + offset;
 	}
 
@@ -532,14 +534,14 @@ echo_add_key (Lisp_Object c)
   if ((NILP (echo_string) || SCHARS (echo_string) == 0)
       && help_char_p (c))
     {
-      const char *text = " (Type ? for further options)";
-      int len = strlen (text);
+      static const char text[] = " (Type ? for further options)";
+      int len = sizeof text - 1;
 
       if (size - (ptr - buffer) < len)
 	{
-	  int offset = ptr - buffer;
+	  ptrdiff_t offset = ptr - buffer;
 	  size += len;
-	  buffer = alloca (size);
+	  buffer = SAFE_ALLOCA (size);
 	  ptr = buffer + offset;
 	}
 
@@ -572,6 +574,7 @@ echo_add_key (Lisp_Object c)
   kset_echo_string
     (current_kboard,
      concat2 (echo_string, make_string (buffer, ptr - buffer)));
+  SAFE_FREE ();
 }
 
 /* Add C to the echo string, if echoing is going on.  C can be a
@@ -1147,7 +1150,7 @@ static Lisp_Object top_level_1 (Lisp_Object);
 Lisp_Object
 command_loop (void)
 {
-#ifdef HAVE_STACK_OVERFLOW_HANDLING  
+#ifdef HAVE_STACK_OVERFLOW_HANDLING
   /* At least on GNU/Linux, saving signal mask is important here.  */
   if (sigsetjmp (return_to_command_loop, 1) != 0)
     {
@@ -2351,14 +2354,15 @@ read_decoded_event_from_main_queue (struct timespec *end_time,
 	    { /* An encoded byte sequence, let's try to decode it.  */
 	      struct coding_system *coding
 		= TERMINAL_KEYBOARD_CODING (terminal);
-	      unsigned char *src = alloca (n);
+	      unsigned char src[MAX_ENCODED_BYTES];
+	      unsigned char dest[4 * sizeof src];
 	      int i;
 	      for (i = 0; i < n; i++)
 		src[i] = XINT (events[i]);
 	      if (meta_key != 2)
 		for (i = 0; i < n; i++)
 		  src[i] &= ~0x80;
-	      coding->destination = alloca (n * 4);
+	      coding->destination = dest;
 	      coding->dst_bytes = n * 4;
 	      decode_coding_c_string (coding, src, n, Qnil);
 	      eassert (coding->produced_char <= n);
@@ -7434,10 +7438,13 @@ menu_bar_items (Lisp_Object old)
      in the current keymaps, or nil where it is not a prefix.  */
   Lisp_Object *maps;
 
+  Lisp_Object mapsbuf[3];
   Lisp_Object def, tail;
 
   ptrdiff_t mapno;
   Lisp_Object oquit;
+
+  USE_SAFE_ALLOCA;
 
   /* In order to build the menus, we need to call the keymap
      accessors.  They all call QUIT.  But this function is called
@@ -7467,7 +7474,7 @@ menu_bar_items (Lisp_Object old)
 	&& !NILP (Voverriding_local_map))
       {
 	/* Yes, use them (if non-nil) as well as the global map.  */
-	maps = alloca (3 * sizeof (maps[0]));
+	maps = mapsbuf;
 	nmaps = 0;
 	if (!NILP (KVAR (current_kboard, Voverriding_terminal_local_map)))
 	  maps[nmaps++] = KVAR (current_kboard, Voverriding_terminal_local_map);
@@ -7484,7 +7491,7 @@ menu_bar_items (Lisp_Object old)
 	Lisp_Object tem;
 	ptrdiff_t nminor;
 	nminor = current_minor_maps (NULL, &tmaps);
-	maps = alloca ((nminor + 4) * sizeof *maps);
+	SAFE_NALLOCA (maps, 1, nminor + 4);
 	nmaps = 0;
 	tem = KVAR (current_kboard, Voverriding_terminal_local_map);
 	if (!NILP (tem) && !NILP (Voverriding_local_map_menu_flag))
@@ -7556,6 +7563,7 @@ menu_bar_items (Lisp_Object old)
   }
 
   Vinhibit_quit = oquit;
+  SAFE_FREE ();
   return menu_bar_items_vector;
 }
 
@@ -7992,9 +8000,11 @@ Lisp_Object
 tool_bar_items (Lisp_Object reuse, int *nitems)
 {
   Lisp_Object *maps;
+  Lisp_Object mapsbuf[3];
   ptrdiff_t nmaps, i;
   Lisp_Object oquit;
   Lisp_Object *tmaps;
+  USE_SAFE_ALLOCA;
 
   *nitems = 0;
 
@@ -8018,7 +8028,7 @@ tool_bar_items (Lisp_Object reuse, int *nitems)
       && !NILP (Voverriding_local_map))
     {
       /* Yes, use them (if non-nil) as well as the global map.  */
-      maps = alloca (3 * sizeof *maps);
+      maps = mapsbuf;
       nmaps = 0;
       if (!NILP (KVAR (current_kboard, Voverriding_terminal_local_map)))
 	maps[nmaps++] = KVAR (current_kboard, Voverriding_terminal_local_map);
@@ -8035,7 +8045,7 @@ tool_bar_items (Lisp_Object reuse, int *nitems)
       Lisp_Object tem;
       ptrdiff_t nminor;
       nminor = current_minor_maps (NULL, &tmaps);
-      maps = alloca ((nminor + 4) * sizeof *maps);
+      SAFE_NALLOCA (maps, 1, nminor + 4);
       nmaps = 0;
       tem = KVAR (current_kboard, Voverriding_terminal_local_map);
       if (!NILP (tem) && !NILP (Voverriding_local_map_menu_flag))
@@ -8064,6 +8074,7 @@ tool_bar_items (Lisp_Object reuse, int *nitems)
 
   Vinhibit_quit = oquit;
   *nitems = ntool_bar_items / TOOL_BAR_ITEM_NSLOTS;
+  SAFE_FREE ();
   return tool_bar_items_vector;
 }
 

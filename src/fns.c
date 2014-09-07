@@ -1992,17 +1992,14 @@ sort_vector (Lisp_Object vector, Lisp_Object predicate)
     return;
   ptrdiff_t halflen = len >> 1;
   Lisp_Object *tmp;
-  Lisp_Object tmpvec = Qnil;
-  struct gcpro gcpro1, gcpro2, gcpro3;
-  GCPRO3 (vector, predicate, tmpvec);
-  if (halflen < MAX_ALLOCA / word_size)
-    tmp = alloca (halflen * word_size);
-  else
-    {
-      tmpvec = Fmake_vector (make_number (halflen), make_number (0));
-      tmp = XVECTOR (tmpvec)->contents;
-    }
+  struct gcpro gcpro1, gcpro2;
+  GCPRO2 (vector, predicate);
+  USE_SAFE_ALLOCA;
+  SAFE_ALLOCA_LISP (tmp, halflen);
+  for (ptrdiff_t i = 0; i < halflen; i++)
+    tmp[i] = make_number (0);
   sort_vector_inplace (predicate, len, XVECTOR (vector)->contents, tmp);
+  SAFE_FREE ();
   UNGCPRO;
 }
 
@@ -3289,7 +3286,6 @@ into shorter lines.  */)
   if (encoded_length < 0)
     {
       /* The encoding wasn't possible. */
-      SAFE_FREE ();
       error ("Multibyte character in data for base64 encoding");
     }
 
@@ -3434,7 +3430,6 @@ If the region can't be decoded, signal an error and don't modify the buffer.  */
   if (decoded_length < 0)
     {
       /* The decoding wasn't possible. */
-      SAFE_FREE ();
       error ("Invalid base64 data");
     }
 
@@ -4581,12 +4576,12 @@ usage: (make-hash-table &rest KEYWORD-ARGS)  */)
 {
   Lisp_Object test, size, rehash_size, rehash_threshold, weak;
   struct hash_table_test testdesc;
-  char *used;
   ptrdiff_t i;
+  USE_SAFE_ALLOCA;
 
   /* The vector `used' is used to keep track of arguments that
      have been consumed.  */
-  used = alloca (nargs * sizeof *used);
+  char *used = SAFE_ALLOCA (nargs * sizeof *used);
   memset (used, 0, nargs * sizeof *used);
 
   /* See if there's a `:test TEST' among the arguments.  */
@@ -4653,6 +4648,7 @@ usage: (make-hash-table &rest KEYWORD-ARGS)  */)
     if (!used[i])
       signal_error ("Invalid argument list", args[i]);
 
+  SAFE_FREE ();
   return make_hash_table (testdesc, size, rehash_size, rehash_threshold, weak);
 }
 

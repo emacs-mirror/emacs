@@ -1473,6 +1473,7 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes,
   ptrdiff_t max_suffix_len = 0;
   int last_errno = ENOENT;
   int save_fd = -1;
+  USE_SAFE_ALLOCA;
 
   /* The last-modified time of the newest matching file found.
      Initialize it to something less than all valid timestamps.  */
@@ -1513,7 +1514,10 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes,
 	 this path element/specified file name and any possible suffix.  */
       want_length = max_suffix_len + SBYTES (filename);
       if (fn_size <= want_length)
-	fn = alloca (fn_size = 100 + want_length);
+	{
+	  fn_size = 100 + want_length;
+	  fn = SAFE_ALLOCA (fn_size);
+	}
 
       /* Loop over suffixes.  */
       for (tail = NILP (suffixes) ? list1 (empty_unibyte_string) : suffixes;
@@ -1579,6 +1583,7 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes,
                   /* We succeeded; return this descriptor and filename.  */
                   if (storeptr)
                     *storeptr = string;
+		  SAFE_FREE ();
                   UNGCPRO;
                   return -2;
 		}
@@ -1651,6 +1656,7 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes,
                       /* We succeeded; return this descriptor and filename.  */
                       if (storeptr)
                         *storeptr = string;
+		      SAFE_FREE ();
                       UNGCPRO;
                       return fd;
                     }
@@ -1661,6 +1667,7 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes,
                 {
                   if (storeptr)
                     *storeptr = save_string;
+		  SAFE_FREE ();
                   UNGCPRO;
                   return save_fd;
                 }
@@ -1670,6 +1677,7 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes,
 	break;
     }
 
+  SAFE_FREE ();
   UNGCPRO;
   errno = last_errno;
   return -1;

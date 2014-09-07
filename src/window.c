@@ -6124,6 +6124,7 @@ the return value is nil.  Otherwise the value is t.  */)
   Lisp_Object frame;
   struct frame *f;
   ptrdiff_t old_point = -1;
+  USE_SAFE_ALLOCA;
 
   CHECK_WINDOW_CONFIGURATION (configuration);
 
@@ -6231,8 +6232,8 @@ the return value is nil.  Otherwise the value is t.  */)
 	 really like to do is to free only those matrices not reused
 	 below.  */
       root_window = XWINDOW (FRAME_ROOT_WINDOW (f));
-      leaf_windows = alloca (count_windows (root_window)
-			     * sizeof *leaf_windows);
+      int nwindows = count_windows (root_window);
+      SAFE_NALLOCA (leaf_windows, 1, nwindows);
       n_leaf_windows = get_leaf_windows (root_window, leaf_windows, 0);
 
       /* Kludge Alert!
@@ -6456,6 +6457,7 @@ the return value is nil.  Otherwise the value is t.  */)
   Vminibuf_scroll_window = data->minibuf_scroll_window;
   minibuf_selected_window = data->minibuf_selected_window;
 
+  SAFE_FREE ();
   return (FRAME_LIVE_P (f) ? Qt : Qnil);
 }
 

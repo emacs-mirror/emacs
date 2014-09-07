@@ -2883,13 +2883,14 @@ You type        Translation\n\
 	  if (!SYMBOLP (modes[i]))
 	    emacs_abort ();
 
-	  p = title = alloca (42 + SCHARS (SYMBOL_NAME (modes[i])));
+	  USE_SAFE_ALLOCA;
+	  p = title = SAFE_ALLOCA (42 + SBYTES (SYMBOL_NAME (modes[i])));
 	  *p++ = '\f';
 	  *p++ = '\n';
 	  *p++ = '`';
 	  memcpy (p, SDATA (SYMBOL_NAME (modes[i])),
-		  SCHARS (SYMBOL_NAME (modes[i])));
-	  p += SCHARS (SYMBOL_NAME (modes[i]));
+		  SBYTES (SYMBOL_NAME (modes[i])));
+	  p += SBYTES (SYMBOL_NAME (modes[i]));
 	  *p++ = '\'';
 	  memcpy (p, " Minor Mode Bindings", strlen (" Minor Mode Bindings"));
 	  p += strlen (" Minor Mode Bindings");
@@ -2898,6 +2899,7 @@ You type        Translation\n\
 	  describe_map_tree (maps[i], 1, shadow, prefix,
 			     title, nomenu, 0, 0, 0);
 	  shadow = Fcons (maps[i], shadow);
+	  SAFE_FREE ();
 	}
 
       start1 = get_local_map (BUF_PT (XBUFFER (buffer)),
@@ -3184,10 +3186,10 @@ describe_map (Lisp_Object map, Lisp_Object prefix,
 
   /* These accumulate the values from sparse keymap bindings,
      so we can sort them and handle them in order.  */
-  int length_needed = 0;
+  ptrdiff_t length_needed = 0;
   struct describe_map_elt *vect;
-  int slots_used = 0;
-  int i;
+  ptrdiff_t slots_used = 0;
+  ptrdiff_t i;
 
   suppress = Qnil;
 
@@ -3207,7 +3209,8 @@ describe_map (Lisp_Object map, Lisp_Object prefix,
   for (tail = map; CONSP (tail); tail = XCDR (tail))
     length_needed++;
 
-  vect = alloca (length_needed * sizeof *vect);
+  USE_SAFE_ALLOCA;
+  SAFE_NALLOCA (vect, 1, length_needed);
 
   for (tail = map; CONSP (tail); tail = XCDR (tail))
     {
@@ -3350,6 +3353,7 @@ describe_map (Lisp_Object map, Lisp_Object prefix,
 	}
     }
 
+  SAFE_FREE ();
   UNGCPRO;
 }
 

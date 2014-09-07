@@ -376,13 +376,14 @@ at POSITION.  */)
       set_buffer_temp (XBUFFER (object));
 
       /* First try with room for 40 overlays.  */
-      noverlays = 40;
-      overlay_vec = alloca (noverlays * sizeof *overlay_vec);
+      Lisp_Object overlay_vecbuf[40];
+      noverlays = ARRAYELTS (overlay_vecbuf);
+      overlay_vec = overlay_vecbuf;
       noverlays = overlays_around (posn, overlay_vec, noverlays);
 
       /* If there are more than 40,
 	 make enough space for all, and try again.  */
-      if (noverlays > 40)
+      if (ARRAYELTS (overlay_vecbuf) < noverlays)
 	{
 	  SAFE_ALLOCA_LISP (overlay_vec, noverlays);
 	  noverlays = overlays_around (posn, overlay_vec, noverlays);
@@ -1325,17 +1326,16 @@ name, or nil if there is no such user.  */)
   /* Substitute the login name for the &, upcasing the first character.  */
   if (q)
     {
-      register char *r;
-      Lisp_Object login;
-
-      login = Fuser_login_name (make_number (pw->pw_uid));
-      r = alloca (strlen (p) + SCHARS (login) + 1);
+      Lisp_Object login = Fuser_login_name (make_number (pw->pw_uid));
+      USE_SAFE_ALLOCA;
+      char *r = SAFE_ALLOCA (strlen (p) + SBYTES (login) + 1);
       memcpy (r, p, q - p);
       r[q - p] = 0;
       strcat (r, SSDATA (login));
       r[q - p] = upcase ((unsigned char) r[q - p]);
       strcat (r, q + 1);
       full = build_string (r);
+      SAFE_FREE ();
     }
 #endif /* AMPERSAND_FULL_NAME */
 
@@ -3012,8 +3012,12 @@ static Lisp_Object
 check_translation (ptrdiff_t pos, ptrdiff_t pos_byte, ptrdiff_t end,
 		   Lisp_Object val)
 {
-  int buf_size = 16, buf_used = 0;
-  int *buf = alloca (sizeof (int) * buf_size);
+  int initial_buf[16];
+  int *buf = initial_buf;
+  ptrdiff_t buf_size = ARRAYELTS (initial_buf);
+  int *bufalloc = 0;
+  ptrdiff_t buf_used = 0;
+  Lisp_Object result = Qnil;
 
   for (; CONSP (val); val = XCDR (val))
     {
@@ -3038,12 +3042,11 @@ check_translation (ptrdiff_t pos, ptrdiff_t pos_byte, ptrdiff_t end,
 
 		  if (buf_used == buf_size)
 		    {
-		      int *newbuf;
-
-		      buf_size += 16;
-		      newbuf = alloca (sizeof (int) * buf_size);
-		      memcpy (newbuf, buf, sizeof (int) * buf_used);
-		      buf = newbuf;
+		      bufalloc = xpalloc (bufalloc, &buf_size, 1, -1,
+					  sizeof *bufalloc);
+		      if (buf == initial_buf)
+			memcpy (bufalloc, buf, sizeof initial_buf);
+		      buf = bufalloc;
 		    }
 		  buf[buf_used++] = STRING_CHAR_AND_LENGTH (p, len1);
 		  pos_byte += len1;
@@ -3052,10 +3055,15 @@ check_translation (ptrdiff_t pos, ptrdiff_t pos_byte, ptrdiff_t end,
 		break;
 	    }
 	  if (i == len)
-	    return XCAR (val);
+	    {
+	      result = XCAR (val);
+	      break;
+	    }
 	}
     }
-  return Qnil;
+
+  xfree (bufalloc);
+  return result;
 }
 
 
@@ -4617,11 +4625,11 @@ Transposing beyond buffer boundaries is an error.  */)
       if (tmp_interval3)
 	set_text_properties_1 (startr1, endr2, Qnil, buf, tmp_interval3);
 
+      USE_SAFE_ALLOCA;
+
       /* First region smaller than second.  */
       if (len1_byte < len2_byte)
         {
-	  USE_SAFE_ALLOCA;
-
 	  temp = SAFE_ALLOCA (len2_byte);
 
 	  /* Don't precompute these addresses.  We have to compute them
@@ -4633,21 +4641,19 @@ Transposing beyond buffer boundaries is an error.  */)
           memcpy (temp, start2_addr, len2_byte);
           memcpy (start1_addr + len2_byte, start1_addr, len1_byte);
           memcpy (start1_addr, temp, len2_byte);
-	  SAFE_FREE ();
         }
       else
 	/* First region not smaller than second.  */
         {
-	  USE_SAFE_ALLOCA;
-
 	  temp = SAFE_ALLOCA (len1_byte);
 	  start1_addr = BYTE_POS_ADDR (start1_byte);
 	  start2_addr = BYTE_POS_ADDR (start2_byte);
           memcpy (temp, start1_addr, len1_byte);
           memcpy (start1_addr, start2_addr, len2_byte);
           memcpy (start1_addr + len2_byte, temp, len1_byte);
-	  SAFE_FREE ();
         }
+
+      SAFE_FREE ();
       graft_intervals_into_buffer (tmp_interval1, start1 + len2,
                                    len1, current_buffer, 0);
       graft_intervals_into_buffer (tmp_interval2, start1,

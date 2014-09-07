@@ -2618,29 +2618,28 @@ list5 (Lisp_Object arg1, Lisp_Object arg2, Lisp_Object arg3, Lisp_Object arg4, L
 Lisp_Object
 listn (enum constype type, ptrdiff_t count, Lisp_Object arg, ...)
 {
+  Lisp_Object (*cons) (Lisp_Object, Lisp_Object);
+  switch (type)
+    {
+    case CONSTYPE_PURE: cons = pure_cons; break;
+    case CONSTYPE_HEAP: cons = Fcons; break;
+    default: emacs_abort ();
+    }
+
+  eassume (0 < count);
+  Lisp_Object val = cons (arg, Qnil);
+  Lisp_Object tail = val;
+
   va_list ap;
-  ptrdiff_t i;
-  Lisp_Object val, *objp;
-
-  /* Change to SAFE_ALLOCA if you hit this eassert.  */
-  eassert (count <= MAX_ALLOCA / word_size);
-
-  objp = alloca (count * word_size);
-  objp[0] = arg;
   va_start (ap, arg);
-  for (i = 1; i < count; i++)
-    objp[i] = va_arg (ap, Lisp_Object);
+  for (ptrdiff_t i = 1; i < count; i++)
+    {
+      Lisp_Object elem = cons (va_arg (ap, Lisp_Object), Qnil);
+      XSETCDR (tail, elem);
+      tail = elem;
+    }
   va_end (ap);
 
-  for (val = Qnil, i = count - 1; i >= 0; i--)
-    {
-      if (type == CONSTYPE_PURE)
-	val = pure_cons (objp[i], val);
-      else if (type == CONSTYPE_HEAP)
-	val = Fcons (objp[i], val);
-      else
-	emacs_abort ();
-    }
   return val;
 }
 
@@ -3620,7 +3619,7 @@ make_save_int_obj (ptrdiff_t a, Lisp_Object b)
   p->data[1].object = b;
   return val;
 }
-  
+
 #if ! (defined USE_X_TOOLKIT || defined USE_GTK)
 Lisp_Object
 make_save_ptr_ptr (void *a, void *b)

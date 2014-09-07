@@ -4451,12 +4451,6 @@ egetenv (const char *var)
   return egetenv_internal (var, strlen (var));
 }
 
-/* Copy Lisp string to temporary (allocated on stack) C string.  */
-
-#define xlispstrdupa(string)			\
-  memcpy (alloca (SBYTES (string) + 1),		\
-	  SSDATA (string), SBYTES (string) + 1)
-
 /* Set up the name of the machine we're running on.  */
 extern void init_system_name (void);
 
@@ -4484,7 +4478,7 @@ extern void *record_xmalloc (size_t) ATTRIBUTE_ALLOC_SIZE ((1));
 
 /* SAFE_ALLOCA allocates a simple buffer.  */
 
-#define SAFE_ALLOCA(size) ((size) < MAX_ALLOCA	\
+#define SAFE_ALLOCA(size) ((size) <= MAX_ALLOCA	\
 			   ? alloca (size)	\
 			   : (sa_must_free = true, record_xmalloc (size)))
 
@@ -4504,6 +4498,14 @@ extern void *record_xmalloc (size_t) ATTRIBUTE_ALLOC_SIZE ((1));
       }								 \
   } while (false)
 
+/* SAFE_ALLOCA_STRING allocates a C copy of a Lisp string.  */
+
+#define SAFE_ALLOCA_STRING(ptr, string)			\
+  do {							\
+    (ptr) = SAFE_ALLOCA (SBYTES (string) + 1);		\
+    memcpy (ptr, SDATA (string), SBYTES (string) + 1);	\
+  } while (false)
+
 /* SAFE_FREE frees xmalloced memory and enables GC as needed.  */
 
 #define SAFE_FREE()			\
@@ -4519,9 +4521,9 @@ extern void *record_xmalloc (size_t) ATTRIBUTE_ALLOC_SIZE ((1));
 
 #define SAFE_ALLOCA_LISP(buf, nelt)			       \
   do {							       \
-    if ((nelt) < MAX_ALLOCA / word_size)		       \
+    if ((nelt) <= MAX_ALLOCA / word_size)		       \
       (buf) = alloca ((nelt) * word_size);		       \
-    else if ((nelt) < min (PTRDIFF_MAX, SIZE_MAX) / word_size) \
+    else if ((nelt) <= min (PTRDIFF_MAX, SIZE_MAX) / word_size) \
       {							       \
 	Lisp_Object arg_;				       \
 	(buf) = xmalloc ((nelt) * word_size);		       \

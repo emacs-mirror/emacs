@@ -457,17 +457,28 @@ init_syntax_once (void)
 
 # endif /* not alloca */
 
-# define REGEX_ALLOCATE alloca
+# ifdef emacs
+#  define REGEX_USE_SAFE_ALLOCA USE_SAFE_ALLOCA
+#  define REGEX_SAFE_FREE() SAFE_FREE ()
+#  define REGEX_ALLOCATE SAFE_ALLOCA
+# else
+#  define REGEX_ALLOCATE alloca
+# endif
 
 /* Assumes a `char *destination' variable.  */
 # define REGEX_REALLOCATE(source, osize, nsize)				\
-  (destination = alloca (nsize),					\
+  (destination = REGEX_ALLOCATE (nsize),				\
    memcpy (destination, source, osize))
 
 /* No need to do anything to free, after alloca.  */
 # define REGEX_FREE(arg) ((void)0) /* Do nothing!  But inhibit gcc warning.  */
 
 #endif /* not REGEX_MALLOC */
+
+#ifndef REGEX_USE_SAFE_ALLOCA
+# define REGEX_USE_SAFE_ALLOCA ((void) 0)
+# define REGEX_SAFE_FREE() ((void) 0)
+#endif
 
 /* Define how to allocate the failure stack.  */
 
@@ -482,22 +493,10 @@ init_syntax_once (void)
 
 #else /* not using relocating allocator */
 
-# ifdef REGEX_MALLOC
+# define REGEX_ALLOCATE_STACK(size) REGEX_ALLOCATE (size)
+# define REGEX_REALLOCATE_STACK(source, o, n) REGEX_REALLOCATE (source, o, n)
+# define REGEX_FREE_STACK(ptr) REGEX_FREE (ptr)
 
-#  define REGEX_ALLOCATE_STACK malloc
-#  define REGEX_REALLOCATE_STACK(source, osize, nsize) realloc (source, nsize)
-#  define REGEX_FREE_STACK free
-
-# else /* not REGEX_MALLOC */
-
-#  define REGEX_ALLOCATE_STACK alloca
-
-#  define REGEX_REALLOCATE_STACK(source, osize, nsize)			\
-   REGEX_REALLOCATE (source, osize, nsize)
-/* No need to explicitly free anything.  */
-#  define REGEX_FREE_STACK(arg) ((void)0)
-
-# endif /* not REGEX_MALLOC */
 #endif /* not using relocating allocator */
 
 
@@ -4579,6 +4578,7 @@ static int bcmp_translate (re_char *s1, re_char *s2,
     FREE_VAR (regend);							\
     FREE_VAR (best_regstart);						\
     FREE_VAR (best_regend);						\
+    REGEX_SAFE_FREE ();							\
   } while (0)
 #else
 # define FREE_VARIABLES() ((void)0) /* Do nothing!  But inhibit gcc warning.  */
@@ -5017,6 +5017,8 @@ re_match_2_internal (struct re_pattern_buffer *bufp, const_re_char *string1,
 #endif
 
   DEBUG_PRINT ("\n\nEntering re_match_2.\n");
+
+  REGEX_USE_SAFE_ALLOCA;
 
   INIT_FAIL_STACK ();
 

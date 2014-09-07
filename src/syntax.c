@@ -1567,6 +1567,7 @@ skip_chars (bool forwardp, Lisp_Object string, Lisp_Object lim,
   const unsigned char *str;
   int len;
   Lisp_Object iso_classes;
+  USE_SAFE_ALLOCA;
 
   CHECK_STRING (string);
   iso_classes = Qnil;
@@ -1699,7 +1700,7 @@ skip_chars (bool forwardp, Lisp_Object string, Lisp_Object lim,
 	  memcpy (himap, fastmap + 0200, 0200);
 	  himap[0200] = 0;
 	  memset (fastmap + 0200, 0, 0200);
-	  char_ranges = alloca (sizeof *char_ranges * 128 * 2);
+	  SAFE_NALLOCA (char_ranges, 2, 128);
 	  i = 0;
 
 	  while ((p1 = memchr (himap + i, 1, 0200 - i)))
@@ -1723,7 +1724,7 @@ skip_chars (bool forwardp, Lisp_Object string, Lisp_Object lim,
     }
   else				/* STRING is multibyte */
     {
-      char_ranges = alloca (sizeof *char_ranges * SCHARS (string) * 2);
+      SAFE_NALLOCA (char_ranges, 2, SCHARS (string));
 
       while (i_byte < size_byte)
 	{
@@ -2032,6 +2033,7 @@ skip_chars (bool forwardp, Lisp_Object string, Lisp_Object lim,
     SET_PT_BOTH (pos, pos_byte);
     immediate_quit = 0;
 
+    SAFE_FREE ();
     return make_number (PT - start_point);
   }
 }

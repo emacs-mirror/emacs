@@ -561,6 +561,8 @@ the same file name is found in the `doc-directory'.  */)
   char *p, *name;
   bool skip_file = 0;
   ptrdiff_t count;
+  char const *dirname;
+  ptrdiff_t dirlen;
   /* Preloaded defcustoms using custom-initialize-delay are added to
      this list, but kept unbound.  See http://debbugs.gnu.org/11565  */
   Lisp_Object delayed_init =
@@ -577,15 +579,21 @@ the same file name is found in the `doc-directory'.  */)
       (0)
 #endif /* CANNOT_DUMP */
     {
-      name = alloca (SCHARS (filename) + 14);
-      strcpy (name, "../etc/");
+      static char const sibling_etc[] = "../etc/";
+      dirname = sibling_etc;
+      dirlen = sizeof sibling_etc - 1;
     }
   else
     {
       CHECK_STRING (Vdoc_directory);
-      name = alloca (SCHARS (filename) + SCHARS (Vdoc_directory) + 1);
-      strcpy (name, SSDATA (Vdoc_directory));
+      dirname = SSDATA (Vdoc_directory);
+      dirlen = SBYTES (Vdoc_directory);
     }
+
+  count = SPECPDL_INDEX ();
+  USE_SAFE_ALLOCA;
+  name = SAFE_ALLOCA (dirlen + SBYTES (filename) + 1);
+  strcpy (name, dirname);
   strcat (name, SSDATA (filename)); 	/*** Add this line ***/
 
   /* Vbuild_files is nil when temacs is run, and non-nil after that.  */
@@ -608,7 +616,6 @@ the same file name is found in the `doc-directory'.  */)
       report_file_errno ("Opening doc string file", build_string (name),
 			 open_errno);
     }
-  count = SPECPDL_INDEX ();
   record_unwind_protect_int (close_file_unwind, fd);
   Vdoc_file_name = filename;
   filled = 0;
@@ -637,7 +644,7 @@ the same file name is found in the `doc-directory'.  */)
                   && (end[-1] == 'o' || end[-1] == 'c'))
                 {
                   ptrdiff_t len = end - p - 2;
-                  char *fromfile = alloca (len + 1);
+                  char *fromfile = SAFE_ALLOCA (len + 1);
                   memcpy (fromfile, &p[2], len);
                   fromfile[len] = 0;
                   if (fromfile[len-1] == 'c')
@@ -688,6 +695,8 @@ the same file name is found in the `doc-directory'.  */)
       filled -= end - buf;
       memmove (buf, end, filled);
     }
+
+  SAFE_FREE ();
   return unbind_to (count, Qnil);
 }
 

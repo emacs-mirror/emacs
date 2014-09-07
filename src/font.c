@@ -1299,6 +1299,9 @@ font_unparse_xlfd (Lisp_Object font, int pixel_size, char *name, int nbytes)
 
   val = AREF (font, FONT_SIZE_INDEX);
   eassert (NUMBERP (val) || NILP (val));
+  char font_size_index_buf[sizeof "-*"
+			   + MAX (INT_STRLEN_BOUND (EMACS_INT),
+				  1 + DBL_MAX_10_EXP + 1)];
   if (INTEGERP (val))
     {
       EMACS_INT v = XINT (val);
@@ -1306,8 +1309,7 @@ font_unparse_xlfd (Lisp_Object font, int pixel_size, char *name, int nbytes)
 	v = pixel_size;
       if (v > 0)
 	{
-	  f[XLFD_PIXEL_INDEX] = p =
-	    alloca (sizeof "-*" + INT_STRLEN_BOUND (EMACS_INT));
+	  f[XLFD_PIXEL_INDEX] = p = font_size_index_buf;
 	  sprintf (p, "%"pI"d-*", v);
 	}
       else
@@ -1316,21 +1318,22 @@ font_unparse_xlfd (Lisp_Object font, int pixel_size, char *name, int nbytes)
   else if (FLOATP (val))
     {
       double v = XFLOAT_DATA (val) * 10;
-      f[XLFD_PIXEL_INDEX] = p = alloca (sizeof "*-" + 1 + DBL_MAX_10_EXP + 1);
+      f[XLFD_PIXEL_INDEX] = p = font_size_index_buf;
       sprintf (p, "*-%.0f", v);
     }
   else
     f[XLFD_PIXEL_INDEX] = "*-*";
 
+  char dpi_index_buf[sizeof "-" + 2 * INT_STRLEN_BOUND (EMACS_INT)];
   if (INTEGERP (AREF (font, FONT_DPI_INDEX)))
     {
       EMACS_INT v = XINT (AREF (font, FONT_DPI_INDEX));
-      f[XLFD_RESX_INDEX] = p =
-	alloca (sizeof "-" + 2 * INT_STRLEN_BOUND (EMACS_INT));
+      f[XLFD_RESX_INDEX] = p = dpi_index_buf;
       sprintf (p, "%"pI"d-%"pI"d", v, v);
     }
   else
     f[XLFD_RESX_INDEX] = "*-*";
+
   if (INTEGERP (AREF (font, FONT_SPACING_INDEX)))
     {
       EMACS_INT spacing = XINT (AREF (font, FONT_SPACING_INDEX));
@@ -1342,13 +1345,16 @@ font_unparse_xlfd (Lisp_Object font, int pixel_size, char *name, int nbytes)
     }
   else
     f[XLFD_SPACING_INDEX] = "*";
+
+  char avgwidth_index_buf[INT_BUFSIZE_BOUND (EMACS_INT)];
   if (INTEGERP (AREF (font,  FONT_AVGWIDTH_INDEX)))
     {
-      f[XLFD_AVGWIDTH_INDEX] = p = alloca (INT_BUFSIZE_BOUND (EMACS_INT));
+      f[XLFD_AVGWIDTH_INDEX] = p = avgwidth_index_buf;
       sprintf (p, "%"pI"d", XINT (AREF (font, FONT_AVGWIDTH_INDEX)));
     }
   else
     f[XLFD_AVGWIDTH_INDEX] = "*";
+
   len = snprintf (name, nbytes, "-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s",
 		  f[XLFD_FOUNDRY_INDEX], f[XLFD_FAMILY_INDEX],
 		  f[XLFD_WEIGHT_INDEX], f[XLFD_SLANT_INDEX],
@@ -2185,13 +2191,17 @@ font_score (Lisp_Object entity, Lisp_Object *spec_prop)
 static Lisp_Object
 font_vconcat_entity_vectors (Lisp_Object list)
 {
-  int nargs = XINT (Flength (list));
-  Lisp_Object *args = alloca (word_size * nargs);
-  int i;
+  EMACS_INT nargs = XFASTINT (Flength (list));
+  Lisp_Object *args;
+  USE_SAFE_ALLOCA;
+  SAFE_ALLOCA_LISP (args, nargs);
+  ptrdiff_t i;
 
   for (i = 0; i < nargs; i++, list = XCDR (list))
     args[i] = XCAR (list);
-  return Fvconcat (nargs, args);
+  Lisp_Object result = Fvconcat (nargs, args);
+  SAFE_FREE ();
+  return result;
 }
 
 
@@ -3219,9 +3229,10 @@ font_find_for_lface (struct frame *f, Lisp_Object *attrs, Lisp_Object spec, int 
       val = attrs[LFACE_FAMILY_INDEX];
       val = font_intern_prop (SSDATA (val), SBYTES (val), 1);
     }
+  Lisp_Object familybuf[3];
   if (NILP (val))
     {
-      family = alloca ((sizeof family[0]) * 2);
+      family = familybuf;
       family[0] = Qnil;
       family[1] = zero_vector;	/* terminator.  */
     }
@@ -3242,7 +3253,7 @@ font_find_for_lface (struct frame *f, Lisp_Object *attrs, Lisp_Object spec, int 
 	}
       else
 	{
-	  family = alloca ((sizeof family[0]) * 3);
+	  family = familybuf;
 	  i = 0;
 	  family[i++] = val;
 	  if (NILP (AREF (spec, FONT_FAMILY_INDEX)))
@@ -3529,8 +3540,9 @@ font_update_drivers (struct frame *f, Lisp_Object new_drivers)
       struct font_driver_list **list_table, **next;
       Lisp_Object tail;
       int i;
+      USE_SAFE_ALLOCA;
 
-      list_table = alloca (sizeof list_table[0] * (num_font_drivers + 1));
+      SAFE_NALLOCA (list_table, 1, num_font_drivers + 1);
       for (i = 0, tail = new_drivers; ! NILP (tail); tail = XCDR (tail))
 	{
 	  for (list = f->font_driver_list; list; list = list->next)
@@ -3551,6 +3563,7 @@ font_update_drivers (struct frame *f, Lisp_Object new_drivers)
 	  next = &(*next)->next;
 	}
       *next = NULL;
+      SAFE_FREE ();
 
       if (! f->font_driver_list->on)
 	{ /* None of the drivers is enabled: enable them all.

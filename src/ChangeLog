@@ -1,3 +1,101 @@
+2014-09-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use SAFE_ALLOCA etc. to avoid unbounded stack allocation (Bug#18410).
+	This follows up on the recent thread in emacs-devel on alloca; see:
+	http://lists.gnu.org/archive/html/emacs-devel/2014-09/msg00042.html
+	This patch also cleans up alloca-related glitches noted while
+	examining the code looking for unbounded alloca.
+	* alloc.c (listn):
+	* callproc.c (init_callproc):
+	Rewrite to avoid need for alloca.
+	* buffer.c (mouse_face_overlay_overlaps)
+	(report_overlay_modification):
+	* buffer.h (GET_OVERLAYS_AT):
+	* coding.c (make_subsidiaries):
+	* doc.c (Fsnarf_documentation):
+	* editfns.c (Fuser_full_name):
+	* fileio.c (Ffile_name_directory, Fexpand_file_name)
+	(search_embedded_absfilename, Fsubstitute_in_file_name):
+	* fns.c (Fmake_hash_table):
+	* font.c (font_vconcat_entity_vectors, font_update_drivers):
+	* fontset.c (fontset_pattern_regexp, Ffontset_info):
+	* frame.c (Fmake_terminal_frame, x_set_frame_parameters)
+	(xrdb_get_resource, x_get_resource_string):
+	* ftfont.c (ftfont_get_charset, ftfont_check_otf, ftfont_drive_otf):
+	* ftxfont.c (ftxfont_draw):
+	* image.c (xbm_load, xpm_load, jpeg_load_body):
+	* keyboard.c (echo_add_key, menu_bar_items, tool_bar_items):
+	* keymap.c (Fdescribe_buffer_bindings, describe_map):
+	* lread.c (openp):
+	* menu.c (digest_single_submenu, find_and_call_menu_selection)
+	(find_and_return_menu_selection):
+	* print.c (PRINTFINISH):
+	* process.c (Fformat_network_address):
+	* scroll.c (do_scrolling, do_direct_scrolling, scrolling_1):
+	* search.c (search_buffer, Fmatch_data, Fregexp_quote):
+	* sound.c (wav_play, au_play):
+	* syntax.c (skip_chars):
+	* term.c (tty_menu_activate, tty_menu_show):
+	* textprop.c (get_char_property_and_overlay):
+	* window.c (Fset_window_configuration):
+	* xdisp.c (safe__call, next_overlay_change, vmessage)
+	(compute_overhangs_and_x, draw_glyphs, note_mouse_highlight):
+	* xfaces.c (face_at_buffer_position):
+	* xmenu.c (x_menu_show):
+	Use SAFE_ALLOCA etc. instead of plain alloca, since the
+	allocation size isn't bounded.
+	* callint.c (Fcall_interactively): Redo memory_full check
+	so that it can be done at compile-time on some platforms.
+	* coding.c (MAX_LOOKUP_MAX): New constant.
+	(get_translation_table): Use it.
+	* callproc.c (call_process): Use SAFE_NALLOCA instead of
+	SAFE_ALLOCA, to catch integer overflows on size calculation.
+	(exec_failed) [!DOS_NT]: New function.
+	(child_setup) [!DOS_NT]: Use it.
+	* editfns.c (Ftranspose_regions):
+	Hoist USE_SAFE_ALLOC + SAFE_FREE out of 'if'.
+	* editfns.c (check_translation):
+	Allocate larger buffers on the heap.
+	* eval.c (internal_lisp_condition_case):
+	Check for MAX_ALLOCA overflow.
+	* fns.c (sort_vector): Use SAFE_ALLOCA_LISP rather than Fmake_vector.
+	(Fbase64_encode_region, Fbase64_decode_region):
+	Avoid unnecessary calls to SAFE_FREE before 'error'.
+	* buffer.c (mouse_face_overlay_overlaps):
+	* editfns.c (Fget_pos_property, check_translation):
+	* eval.c (Ffuncall):
+	* font.c (font_unparse_xlfd, font_find_for_lface):
+	* ftfont.c (ftfont_drive_otf):
+	* keyboard.c (echo_add_key, read_decoded_event_from_main_queue)
+	(menu_bar_items, tool_bar_items):
+	* sound.c (Fplay_sound_internal):
+	* xdisp.c (load_overlay_strings, dump_glyph_row):
+	Use an ordinary auto buffer rather than alloca, since the
+	allocation size is fixed and small.
+	* ftfont.c: Include <c-strcase.h>.
+	(matching_prefix): New function.
+	(get_adstyle_property): Use it, to avoid need for alloca.
+	* keyboard.c (echo_add_key):
+	* keymap.c (describe_map): Use ptrdiff_t, not int.
+	* keyboard.c (echo_add_key): Prefer sizeof to strlen.
+	* keymap.c (Fdescribe_buffer_bindings): Use SBYTES, not SCHARS,
+	when counting bytes.
+	* lisp.h (xlispstrdupa): Remove, replacing with ...
+	(SAFE_ALLOCA_STRING): ... new macro with different API.
+	This fixes a portability problem, namely, alloca result
+	passed to another function.  All uses changed.
+	(SAFE_ALLOCA, SAFE_ALLOCA_LISP): Check for MAX_ALLOCA,
+	not MAX_ALLOCA - 1.
+	* regex.c (REGEX_USE_SAFE_ALLOCA, REGEX_SAFE_FREE)
+	(REGEX_ALLOCATE): New macros.
+	(REGEX_REALLOCATE, REGEX_ALLOCATE_STACK, REGEX_REALLOCATE_STACK)
+	(REGEX_FREE_STACK, FREE_VARIABLES, re_match_2_internal):
+	Use them.
+	* xdisp.c (message3): Use SAFE_ALLOCA_STRING rather than doing it
+	by hand.
+	(decode_mode_spec_coding): Store directly into buf rather than
+	into an alloca temporary and copying the temporary to the buf.
+
 2014-09-06  Eli Zaretskii  <eliz@gnu.org>
 
 	* Makefile.in (EMACS_HEAPSIZE): Remove, no longer used.  (Bug#18416)

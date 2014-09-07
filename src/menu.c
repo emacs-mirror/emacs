@@ -632,8 +632,9 @@ digest_single_submenu (int start, int end, bool top_level_items)
   widget_value **submenu_stack;
   bool panes_seen = 0;
   struct frame *f = XFRAME (Vmenu_updating_frame);
+  USE_SAFE_ALLOCA;
 
-  submenu_stack = alloca (menu_items_used * sizeof *submenu_stack);
+  SAFE_NALLOCA (submenu_stack, 1, menu_items_used);
   wv = make_widget_value ("menu", NULL, true, Qnil);
   wv->button_type = BUTTON_TYPE_NONE;
   first_wv = wv;
@@ -835,11 +836,12 @@ digest_single_submenu (int start, int end, bool top_level_items)
      that was originally a button, return it by itself.  */
   if (top_level_items && first_wv->contents && first_wv->contents->next == 0)
     {
-      wv = first_wv->contents;
-      xfree (first_wv);
-      return wv;
+      wv = first_wv;
+      first_wv = first_wv->contents;
+      xfree (wv);
     }
 
+  SAFE_FREE ();
   return first_wv;
 }
 
@@ -890,9 +892,10 @@ find_and_call_menu_selection (struct frame *f, int menu_bar_items_used,
   Lisp_Object *subprefix_stack;
   int submenu_depth = 0;
   int i;
+  USE_SAFE_ALLOCA;
 
   entry = Qnil;
-  subprefix_stack = alloca (menu_bar_items_used * sizeof *subprefix_stack);
+  SAFE_NALLOCA (subprefix_stack, 1, menu_bar_items_used);
   prefix = Qnil;
   i = 0;
 
@@ -954,11 +957,13 @@ find_and_call_menu_selection (struct frame *f, int menu_bar_items_used,
 	      buf.arg = entry;
 	      kbd_buffer_store_event (&buf);
 
-	      return;
+	      break;
 	    }
 	  i += MENU_ITEMS_ITEM_LENGTH;
 	}
     }
+
+  SAFE_FREE ();
 }
 
 #endif /* USE_X_TOOLKIT || USE_GTK || HAVE_NS || HAVE_NTGUI */
@@ -973,10 +978,11 @@ find_and_return_menu_selection (struct frame *f, bool keymaps, void *client_data
   int i;
   Lisp_Object *subprefix_stack;
   int submenu_depth = 0;
+  USE_SAFE_ALLOCA;
 
   prefix = entry = Qnil;
   i = 0;
-  subprefix_stack = alloca (menu_items_used * word_size);
+  SAFE_ALLOCA_LISP (subprefix_stack, menu_items_used);
 
   while (i < menu_items_used)
     {
@@ -1018,11 +1024,13 @@ find_and_return_menu_selection (struct frame *f, bool keymaps, void *client_data
                     if (!NILP (subprefix_stack[j]))
                       entry = Fcons (subprefix_stack[j], entry);
                 }
+	      SAFE_FREE ();
               return entry;
             }
           i += MENU_ITEMS_ITEM_LENGTH;
         }
     }
+  SAFE_FREE ();
   return Qnil;
 }
 #endif  /* HAVE_NS */

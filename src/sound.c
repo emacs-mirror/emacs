@@ -564,12 +564,11 @@ wav_play (struct sound *s, struct sound_device *sd)
 	       SBYTES (s->data) - sizeof *header);
   else
     {
-      char *buffer;
       ptrdiff_t nbytes = 0;
       ptrdiff_t blksize = sd->period_size ? sd->period_size (sd) : 2048;
       ptrdiff_t data_left = header->data_length;
-
-      buffer = alloca (blksize);
+      USE_SAFE_ALLOCA;
+      char *buffer = SAFE_ALLOCA (blksize);
       lseek (s->fd, sizeof *header, SEEK_SET);
       while (data_left > 0
              && (nbytes = emacs_read (s->fd, buffer, blksize)) > 0)
@@ -582,6 +581,7 @@ wav_play (struct sound *s, struct sound_device *sd)
 
       if (nbytes < 0)
 	sound_perror ("Error reading sound file");
+      SAFE_FREE ();
     }
 }
 
@@ -656,19 +656,20 @@ au_play (struct sound *s, struct sound_device *sd)
   else
     {
       ptrdiff_t blksize = sd->period_size ? sd->period_size (sd) : 2048;
-      char *buffer;
       ptrdiff_t nbytes;
 
       /* Seek */
       lseek (s->fd, header->data_offset, SEEK_SET);
 
       /* Copy sound data to the device.  */
-      buffer = alloca (blksize);
+      USE_SAFE_ALLOCA;
+      char *buffer = SAFE_ALLOCA (blksize);
       while ((nbytes = emacs_read (s->fd, buffer, blksize)) > 0)
 	sd->write (sd, buffer, nbytes);
 
       if (nbytes < 0)
 	sound_perror ("Error reading sound file");
+      SAFE_FREE ();
     }
 }
 
@@ -1309,7 +1310,6 @@ Internal use only, use `play-sound' instead.  */)
   struct gcpro gcpro1, gcpro2;
   Lisp_Object args[2];
 #else /* WINDOWSNT */
-  int len = 0;
   Lisp_Object lo_file = {0};
   char * psz_file = NULL;
   unsigned long ui_volume_tmp = UINT_MAX;
@@ -1326,7 +1326,8 @@ Internal use only, use `play-sound' instead.  */)
   current_sound_device = xzalloc (sizeof *current_sound_device);
   current_sound = xzalloc (sizeof *current_sound);
   record_unwind_protect_void (sound_cleanup);
-  current_sound->header = alloca (MAX_SOUND_HEADER_BYTES);
+  char headerbuf[MAX_SOUND_HEADER_BYTES];
+  current_sound->header = headerbuf;
 
   if (STRINGP (attrs[SOUND_FILE]))
     {

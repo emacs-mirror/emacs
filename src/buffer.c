@@ -3053,13 +3053,15 @@ mouse_face_overlay_overlaps (Lisp_Object overlay)
   ptrdiff_t end = OVERLAY_POSITION (OVERLAY_END (overlay));
   ptrdiff_t n, i, size;
   Lisp_Object *v, tem;
+  Lisp_Object vbuf[10];
+  USE_SAFE_ALLOCA;
 
-  size = 10;
-  v = alloca (size * sizeof *v);
+  size = ARRAYELTS (vbuf);
+  v = vbuf;
   n = overlays_in (start, end, 0, &v, &size, NULL, NULL);
   if (n > size)
     {
-      v = alloca (n * sizeof *v);
+      SAFE_NALLOCA (v, 1, n);
       overlays_in (start, end, 0, &v, &n, NULL, NULL);
     }
 
@@ -3069,6 +3071,7 @@ mouse_face_overlay_overlaps (Lisp_Object overlay)
 	    !NILP (tem)))
       break;
 
+  SAFE_FREE ();
   return i < n;
 }
 
@@ -4517,13 +4520,13 @@ report_overlay_modification (Lisp_Object start, Lisp_Object end, bool after,
        First copy the vector contents, in case some of these hooks
        do subsequent modification of the buffer.  */
     ptrdiff_t size = last_overlay_modification_hooks_used;
-    Lisp_Object *copy = alloca (size * sizeof *copy);
+    Lisp_Object *copy;
     ptrdiff_t i;
 
+    USE_SAFE_ALLOCA;
+    SAFE_ALLOCA_LISP (copy, size);
     memcpy (copy, XVECTOR (last_overlay_modification_hooks)->contents,
 	    size * word_size);
-    gcpro1.var = copy;
-    gcpro1.nvars = size;
 
     for (i = 0; i < size;)
       {
@@ -4532,6 +4535,8 @@ report_overlay_modification (Lisp_Object start, Lisp_Object end, bool after,
 	overlay_i = copy[i++];
 	call_overlay_mod_hooks (prop_i, overlay_i, after, arg1, arg2, arg3);
       }
+
+    SAFE_FREE ();
   }
   UNGCPRO;
 }
