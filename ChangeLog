@@ -1,3 +1,8 @@
+2014-09-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Expand @AM_DEFAULT_VERBOSITY@ even if Automake is old (Bug#18415).
+	* configure.ac: Assume verbose output for older Automake.
+
 2014-09-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* configure.ac (MAKEINFO): Clean up some configuration bitrot.

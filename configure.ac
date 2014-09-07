@@ -980,6 +980,17 @@ if test "${enableval}" != "no"; then
    fi
 fi)
 
+dnl Port to Automake 1.11.
+dnl This section can be removed once we assume Automake 1.14 or later.
+: ${AM_DEFAULT_VERBOSITY=1}
+: ${AM_V=$AM_DEFAULT_VERBOSITY}
+: ${AM_DEFAULT_V=$AM_DEFAULT_VERBOSITY}
+AC_SUBST([AM_V])
+AM_SUBST_NOTMAKE([AM_V])
+AC_SUBST([AM_DEFAULT_V])
+AM_SUBST_NOTMAKE([AM_DEFAULT_V])
+AC_SUBST([AM_DEFAULT_VERBOSITY])
+
 dnl Some other nice autoconf tests.
 dnl These are commented out, since gl_EARLY and/or Autoconf already does them.
 dnl AC_PROG_INSTALL
