@@ -458,6 +458,59 @@ Representations}.
 @code{string-equal} is another name for @code{string=}.
 @end defun
 
+@defun string-collate-equalp string1 string2 &optional locale ignore-case
+This function returns @code{t} if @var{string1} and @var{string2} are
+equal with respect to collation rules.  A collation rule is not only
+determined by the lexicographic order of the characters contained in
+@var{string1} and @var{string2}, but also further rules about
+relations between these characters.  Usually, it is defined by the
+@var{locale} environment Emacs is running with.
+
+For example, characters with different coding points but
+the same meaning might be considered as equal, like different grave
+accent Unicode characters:
+
+@example
+@group
+(string-collate-equalp (string ?\uFF40) (string ?\u1FEF))
+     @result{} t
+@end group
+@end example
+
+The optional argument @var{locale}, a string, overrides the setting of
+your current locale identifier for collation.  The value is system
+dependent; a @var{locale} "en_US.UTF-8" is applicable on POSIX
+systems, while it would be, e.g., "enu_USA.1252" on MS-Windows
+systems.
+
+If @var{IGNORE-CASE} is non-nil, characters are converted to lower-case
+before comparing them.
+
+To emulate Unicode-compliant collation on MS-Windows systems,
+bind @code{w32-collate-ignore-punctuation} to a non-nil value, since
+the codeset part of the locale cannot be "UTF-8" on MS-Windows.
+
+If your system does not support a locale environment, this function
+behaves like @code{string-equal}.
+
+Do NOT use this function to compare file names for equality, only
+for sorting them.
+@end defun
+
+@defun string-prefix-p string1 string2 &optional ignore-case
+This function returns non-@code{nil} if @var{string1} is a prefix of
+@var{string2}; i.e., if @var{string2} starts with @var{string1}.  If
+the optional argument @var{ignore-case} is non-@code{nil}, the
+comparison ignores case differences.
+@end defun
+
+@defun string-suffix-p suffix string &optional ignore-case
+This function returns non-@code{nil} if @var{suffix} is a suffix of
+@var{string}; i.e., if @var{string} ends with @var{suffix}.  If the
+optional argument @var{ignore-case} is non-@code{nil}, the comparison
+ignores case differences.
+@end defun
+
 @cindex lexical comparison
 @defun string< string1 string2
 @c (findex string< causes problems for permuted index!!)
@@ -514,6 +567,50 @@ are used.
 
 @defun string-lessp string1 string2
 @code{string-lessp} is another name for @code{string<}.
+@end defun
+
+@defun string-collate-lessp string1 string2 &optional locale ignore-case
+This function returns @code{t} if @var{string1} is less than
+@var{string2} in collation order.  A collation order is not only
+determined by the lexicographic order of the characters contained in
+@var{string1} and @var{string2}, but also further rules about
+relations between these characters.  Usually, it is defined by the
+@var{locale} environment Emacs is running with.
+
+For example, punctuation and whitespace characters might be considered
+less significant for @ref{Sorting,,sorting}.
+
+@example
+@group
+(sort '("11" "12" "1 1" "1 2" "1.1" "1.2") 'string-collate-lessp)
+     @result{} ("11" "1 1" "1.1" "12" "1 2" "1.2")
+@end group
+@end example
+
+The optional argument @var{locale}, a string, overrides the setting of
+your current locale identifier for collation.  The value is system
+dependent; a @var{locale} "en_US.UTF-8" is applicable on POSIX
+systems, while it would be, e.g., "enu_USA.1252" on MS-Windows
+systems.  The @var{locale} "POSIX" lets @code{string-collate-lessp}
+behave like @code{string-lessp}:
+
+@example
+@group
+(sort '("11" "12" "1 1" "1 2" "1.1" "1.2")
+      (lambda (s1 s2) (string-collate-lessp s1 s2 "POSIX")))
+     @result{} ("1 1" "1 2" "1.1" "1.2" "11" "12")
+@end group
+@end example
+
+If @var{IGNORE-CASE} is non-nil, characters are converted to lower-case
+before comparing them.
+
+To emulate Unicode-compliant collation on MS-Windows systems,
+bind @code{w32-collate-ignore-punctuation} to a non-nil value, since
+the codeset part of the locale cannot be "UTF-8" on MS-Windows.
+
+If your system does not support a locale environment, this function
+behaves like @code{string-lessp}.
 @end defun
 
 @defun string-prefix-p string1 string2 &optional ignore-case

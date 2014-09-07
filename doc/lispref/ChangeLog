@@ -1,3 +1,8 @@
+2014-09-07  Michael Albinus  <michael.albinus@gmx.de>
+
+	* strings.texi (Text Comparison): Describe `string-collate-equalp'
+	and `string-collate-lessp'.
+
 2014-09-06  Leo Liu  <sdl.web@gmail.com>
 
 	* control.texi (Pattern matching case statement): Document vector
