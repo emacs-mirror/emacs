@@ -2362,7 +2362,14 @@ read_decoded_event_from_main_queue (struct timespec *end_time,
 	      if (meta_key != 2)
 		for (i = 0; i < n; i++)
 		  src[i] &= ~0x80;
-	      coding->destination = dest;
+
+	      /* FIXME: For some reason decode_coding_c_string requires a
+		 fresh output buffer each time, and reusing the old buffer can
+		 make Emacs dump core.  Avoid triggering the problem for now
+		 by allocating a new buffer each time through the loop.  */
+	      bool please_fixme = true;
+	      coding->destination = please_fixme ? alloca (n * 4) : dest;
+
 	      coding->dst_bytes = n * 4;
 	      decode_coding_c_string (coding, src, n, Qnil);
 	      eassert (coding->produced_char <= n);
