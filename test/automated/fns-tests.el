@@ -101,10 +101,19 @@
   (should (= (compare-strings "んにちはｺﾝﾆﾁﾊこ" nil nil "こんにちはｺﾝﾆﾁﾊ" nil nil) 1))
   (should (= (compare-strings "こんにちはｺﾝﾆﾁﾊ" nil nil "んにちはｺﾝﾆﾁﾊこ" nil nil) -1)))
 
+(defun fns-tests--collate-enabled-p ()
+  "Check whether collation functions are enabled."
+  (and
+   ;; When there is no collation library, collation functions fall back
+   ;; to their lexicographic counterparts.  We don't need to test then.
+   (not (ignore-errors (string-collate-equalp "" "" t)))
+   ;; We use a locale, which might not be installed.  Check it.
+   (ignore-errors
+     (string-collate-equalp
+      "" "" (if (eq system-type 'windows-nt) "enu_USA" "en_US.UTF-8")))))
+
 (ert-deftest fns-tests-collate-strings ()
-  ;; When there is no collation library, collation functions fall back
-  ;; to their lexicographic counterparts.  We don't need to test then.
-  (skip-unless (not (ignore-errors (string-collate-equalp "" "" t))))
+  (skip-unless (fns-tests--collate-enabled-p))
 
   (should (string-collate-equalp "xyzzy" "xyzzy"))
   (should-not (string-collate-equalp "xyzzy" "XYZZY"))
@@ -146,6 +155,8 @@
 	    (9 . "aaa") (9 . "zzz") (9 . "ppp") (9 . "fff")])))
 
 (ert-deftest fns-tests-collate-sort ()
+  (skip-unless (fns-tests--collate-enabled-p))
+
   ;; Punctuation and whitespace characters are relevant for POSIX.
   (should
    (equal

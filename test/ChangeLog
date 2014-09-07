@@ -1,3 +1,8 @@
+2014-09-07  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/fns-tests.el (fns-tests--collate-enabled-p): New function.
+	(fns-tests-collate-strings, fns-tests-collate-sort): Use it.
+
 2014-09-05  Michael Albinus  <michael.albinus@gmx.de>
 
 	* automated/fns-tests.el (fns-tests-compare-strings): In case
