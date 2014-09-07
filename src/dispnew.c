@@ -1083,8 +1083,7 @@ prepare_desired_row (struct window *w, struct glyph_row *row, bool mode_line_p)
       if (w->right_margin_cols > 0)
 	row->glyphs[RIGHT_MARGIN_AREA] = row->glyphs[LAST_AREA];
     }
-  else if (row == MATRIX_MODE_LINE_ROW (w->desired_matrix)
-	   || row == MATRIX_HEADER_LINE_ROW (w->desired_matrix))
+  else
     {
       /* The real number of glyphs reserved for the margins is
 	 recorded in the glyph matrix, and can be different from
@@ -1094,8 +1093,8 @@ prepare_desired_row (struct window *w, struct glyph_row *row, bool mode_line_p)
       int right = w->desired_matrix->right_margin_glyphs;
 
       /* Make sure the marginal areas of this row are in sync with
-	 what the window wants, when the 1st/last row of the matrix
-	 actually displays text and not header/mode line.  */
+	 what the window wants, when the row actually displays text
+	 and not header/mode line.  */
       if (w->left_margin_cols > 0
 	  && (left != row->glyphs[TEXT_AREA] - row->glyphs[LEFT_MARGIN_AREA]))
 	row->glyphs[TEXT_AREA] = row->glyphs[LEFT_MARGIN_AREA] + left;

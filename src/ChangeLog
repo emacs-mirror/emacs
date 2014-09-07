@@ -1,3 +1,9 @@
+2014-09-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* dispnew.c (prepare_desired_row): When MODE_LINE_P is zero,
+	always make sure the marginal areas of the row are in sync with
+	what the window wants.  (Bug#18419)
+
 2014-09-04  Eli Zaretskii  <eliz@gnu.org>
 
 	* data.c (set_internal): Use assq_no_quit, not Fassq, to find an
