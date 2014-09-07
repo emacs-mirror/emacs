@@ -2299,7 +2299,24 @@ x_fill_property_data (Display *dpy, Lisp_Object data, void *ret, int format)
       Lisp_Object o = XCAR (iter);
 
       if (INTEGERP (o) || FLOATP (o) || CONSP (o))
-	val = cons_to_signed (o, LONG_MIN, LONG_MAX);
+        {
+          if (CONSP (o) && INTEGERP (XCAR (o)) && INTEGERP (XCDR (o)))
+            {
+              intmax_t v1 = XINT (XCAR (o));
+              intmax_t v2 = XINT (XCDR (o));
+              /* cons_to_signed does not handle negative values for v2.
+                 For XDnd, v2 might be y of a window, and can be negative.
+                 The XDnd spec. is not explicit about negative values,
+                 but lets do what it says.
+              */
+              if (v1 < 0 || v2 < 0)
+                val = (v1 << 16) | v2;
+              else
+                val = cons_to_signed (o, LONG_MIN, LONG_MAX);
+            }
+          else
+            val = cons_to_signed (o, LONG_MIN, LONG_MAX);
+        }
       else if (STRINGP (o))
         {
           block_input ();

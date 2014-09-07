@@ -1,3 +1,8 @@
+2014-09-07  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xselect.c (x_fill_property_data): Handle negative XCDR when data
+	is CONSP (Bug#18303).
+
 2014-09-07  Eli Zaretskii  <eliz@gnu.org>
 
 	* callproc.c (child_setup) [WINDOWSNT]: Don't call exec_failed if
