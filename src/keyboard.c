@@ -2355,22 +2355,15 @@ read_decoded_event_from_main_queue (struct timespec *end_time,
 	      struct coding_system *coding
 		= TERMINAL_KEYBOARD_CODING (terminal);
 	      unsigned char src[MAX_ENCODED_BYTES];
-	      unsigned char dest[4 * sizeof src];
+	      unsigned char dest[MAX_ENCODED_BYTES * MAX_MULTIBYTE_LENGTH];
 	      int i;
 	      for (i = 0; i < n; i++)
 		src[i] = XINT (events[i]);
 	      if (meta_key != 2)
 		for (i = 0; i < n; i++)
 		  src[i] &= ~0x80;
-
-	      /* FIXME: For some reason decode_coding_c_string requires a
-		 fresh output buffer each time, and reusing the old buffer can
-		 make Emacs dump core.  Avoid triggering the problem for now
-		 by allocating a new buffer each time through the loop.  */
-	      bool please_fixme = true;
-	      coding->destination = please_fixme ? alloca (n * 4) : dest;
-
-	      coding->dst_bytes = n * 4;
+	      coding->destination = dest;
+	      coding->dst_bytes = sizeof dest;
 	      decode_coding_c_string (coding, src, n, Qnil);
 	      eassert (coding->produced_char <= n);
 	      if (coding->produced_char == 0)

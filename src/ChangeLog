@@ -1,5 +1,15 @@
 2014-09-07  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Fix bug uncovered by changing alloca to auto buffer (Bug#18410).
+	* coding.c (growable_destination): New function.
+	(produce_chars): Use it for sanity checks.  Do not fiddle with
+	dst_end if the source and destination are both nil, as it's
+	the caller's responsibility to avoid overlap.
+	* keyboard.c (read_decoded_event_from_main_queue):
+	The destination must be MAX_MULTIBYTE_LENGTH times the max source
+	length, not 4 times, to prevent decode_coding_c_string from trying
+	to reallocate a destination.  This removes the need for the FIXME.
+
 	* callproc.c (exec_failed) [DOS_NT]: Define a dummy.
 	All callers simplified.  Add a comment about exec_failed, vfork,
 	and alloca.

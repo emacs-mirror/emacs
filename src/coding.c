@@ -690,6 +690,14 @@ CHECK_NATNUM_CDR (Lisp_Object x)
   XSETCDR (x, tmp);
 }
 
+/* True if CODING's destination can be grown.  */
+
+static bool
+growable_destination (struct coding_system *coding)
+{
+  return STRINGP (coding->dst_object) || BUFFERP (coding->dst_object);
+}
+
 
 /* Safely get one byte from the source text pointed by SRC which ends
    at SRC_END, and set C to that byte.  If there are not enough bytes
@@ -7019,8 +7027,10 @@ produce_chars (struct coding_system *coding, Lisp_Object translation_table,
       int *buf = coding->charbuf;
       int *buf_end = buf + coding->charbuf_used;
 
-      if (EQ (coding->src_object, coding->dst_object))
+      if (EQ (coding->src_object, coding->dst_object)
+	  && ! NILP (coding->dst_object))
 	{
+	  eassert (growable_destination (coding));
 	  coding_set_source (coding);
 	  dst_end = ((unsigned char *) coding->source) + coding->consumed;
 	}
@@ -7059,6 +7069,7 @@ produce_chars (struct coding_system *coding, Lisp_Object translation_table,
 
 	      if ((dst_end - dst) / MAX_MULTIBYTE_LENGTH < to_nchars)
 		{
+		  eassert (growable_destination (coding));
 		  if (((min (PTRDIFF_MAX, SIZE_MAX) - (buf_end - buf))
 		       / MAX_MULTIBYTE_LENGTH)
 		      < to_nchars)
@@ -7103,7 +7114,10 @@ produce_chars (struct coding_system *coding, Lisp_Object translation_table,
       const unsigned char *src_end = src + coding->consumed;
 
       if (EQ (coding->dst_object, coding->src_object))
-	dst_end = (unsigned char *) src;
+	{
+	  eassert (growable_destination (coding));
+	  dst_end = (unsigned char *) src;
+	}
       if (coding->src_multibyte != coding->dst_multibyte)
 	{
 	  if (coding->src_multibyte)
@@ -7119,6 +7133,7 @@ produce_chars (struct coding_system *coding, Lisp_Object translation_table,
 		  ONE_MORE_BYTE (c);
 		  if (dst == dst_end)
 		    {
+		      eassert (growable_destination (coding));
 		      if (EQ (coding->src_object, coding->dst_object))
 			dst_end = (unsigned char *) src;
 		      if (dst == dst_end)
@@ -7149,6 +7164,7 @@ produce_chars (struct coding_system *coding, Lisp_Object translation_table,
 
 		if (dst >= dst_end - 1)
 		  {
+		    eassert (growable_destination (coding));
 		    if (EQ (coding->src_object, coding->dst_object))
 		      dst_end = (unsigned char *) src;
 		    if (dst >= dst_end - 1)
