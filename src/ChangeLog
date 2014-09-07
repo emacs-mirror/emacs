@@ -1,3 +1,10 @@
+2014-09-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Adjust drag-and-drop fix when window is above top (Bug#18303).
+	* xselect.c (x_fill_property_data): Don't let sign bit of negative
+	XCDR bleed into XCAR's encoded value.  Improve checks for
+	out-of-range data while we're at it.
+
 2014-09-07  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xselect.c (x_fill_property_data): Handle negative XCDR when data

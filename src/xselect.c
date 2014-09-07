@@ -2300,22 +2300,20 @@ x_fill_property_data (Display *dpy, Lisp_Object data, void *ret, int format)
 
       if (INTEGERP (o) || FLOATP (o) || CONSP (o))
         {
-          if (CONSP (o) && INTEGERP (XCAR (o)) && INTEGERP (XCDR (o)))
+          if (CONSP (o)
+	      && RANGED_INTEGERP (X_LONG_MIN >> 16, XCAR (o), X_LONG_MAX >> 16)
+	      && RANGED_INTEGERP (- (1 << 15), XCDR (o), -1))
             {
-              intmax_t v1 = XINT (XCAR (o));
-              intmax_t v2 = XINT (XCDR (o));
+              long v1 = XINT (XCAR (o));
+              long v2 = XINT (XCDR (o));
               /* cons_to_signed does not handle negative values for v2.
                  For XDnd, v2 might be y of a window, and can be negative.
                  The XDnd spec. is not explicit about negative values,
-                 but lets do what it says.
-              */
-              if (v1 < 0 || v2 < 0)
-                val = (v1 << 16) | v2;
-              else
-                val = cons_to_signed (o, LONG_MIN, LONG_MAX);
+                 but let's assume negative v2 is sent modulo 2**16.  */
+	      val = (v1 << 16) | (v2 & 0xffff);
             }
           else
-            val = cons_to_signed (o, LONG_MIN, LONG_MAX);
+            val = cons_to_signed (o, X_LONG_MIN, X_LONG_MAX);
         }
       else if (STRINGP (o))
         {
@@ -2335,7 +2333,7 @@ x_fill_property_data (Display *dpy, Lisp_Object data, void *ret, int format)
 	}
       else if (format == 16)
 	{
-	  if (SHRT_MIN <= val && val <= SHRT_MAX)
+	  if (X_SHRT_MIN <= val && val <= X_SHRT_MAX)
 	    *d16++ = val;
 	  else
 	    error ("Out of 'short' range");
