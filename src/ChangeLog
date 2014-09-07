@@ -1,3 +1,10 @@
+2014-09-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* callproc.c (child_setup) [WINDOWSNT]: Don't call exec_failed if
+	'alloca' gets passed arguments larger than MAX_ALLOCA.
+
+	* font.c (MAX): Define if not defined elsewhere.
+
 2014-09-07  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* keyboard.c (read_decoded_event_from_main_queue): Reinstitute alloca
