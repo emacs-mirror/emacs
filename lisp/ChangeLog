@@ -4,6 +4,9 @@
 	bound to C-c C-n.
 	(sql-show-sqli-buffer): Display the buffer instead of its name and
 	bind the command to C-c C-z.
+	(sql-default-directory): New user option.
+	(sql-product-interactive): Bind `default-directory' to it to
+	enable remote connections using Tramp.
 
 2014-09-08  Glenn Morris  <rgm@gnu.org>
 

@@ -282,6 +282,13 @@ file.  Since that is a plaintext file, this could be dangerous."
   :group 'SQL
   :safe 'numberp)
 
+(defcustom sql-default-directory nil
+  "Default directory for SQL processes."
+  :version "24.5"
+  :type 'string
+  :group 'SQL
+  :safe 'stringp)
+
 ;; Login parameter type
 
 (define-widget 'sql-login-params 'lazy
@@ -4173,7 +4180,9 @@ the call to \\[sql-product-interactive] with
                     (sql-password   (default-value 'sql-password))
                     (sql-server     (default-value 'sql-server))
                     (sql-database   (default-value 'sql-database))
-                    (sql-port       (default-value 'sql-port)))
+                    (sql-port       (default-value 'sql-port))
+                    (default-directory (or sql-default-directory
+                                           default-directory)))
                 (funcall (sql-get-product-feature product :sqli-comint-func)
                          product
                          (sql-get-product-feature product :sqli-options)))

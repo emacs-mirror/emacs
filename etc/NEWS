@@ -146,6 +146,15 @@ protocols as well as for "telnet" and "ftp" are passed to Tramp.
 
 *** New connection method "nc", which allows to access dumb busyboxes.
 
+** SQL mode
+
+*** New user variable `sql-default-directory' enables remote
+connections using Tramp.
+
+*** New command `sql-send-line-and-next' sends the current line to the
+interactive buffer and advances to the next line, skipping whitespace
+and comments.
+
 ** VC and related modes
 
 *** New option `vc-annotate-background-mode' controls whether
@@ -209,7 +218,7 @@ position list returned for such events is now nil.
 * Lisp Changes in Emacs 24.5
 
 *** call-process-shell-command and process-file-shell-command
-don't take "&rest args" an more.
+don't take "&rest args" any more.
 
 ** New function `funcall-interactively', which works like `funcall'
 but makes `called-interactively-p' treat the function as (you guessed it)
