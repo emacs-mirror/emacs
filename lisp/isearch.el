@@ -1968,10 +1968,12 @@ Subword is used when `subword-mode' is activated. "
    (lambda ()
      (if (or (= (char-syntax (or (char-after) 0)) ?w)
              (= (char-syntax (or (char-after (1+ (point))) 0)) ?w))
-	 (if (and (boundp 'subword-mode) subword-mode)
+	 (if (or (and (boundp 'subword-mode) subword-mode)
+		 (and (boundp 'superword-mode) superword-mode))
 	     (subword-forward 1)
 	   (forward-word 1))
-       (forward-char 1)) (point))))
+       (forward-char 1))
+     (point))))
 
 (defun isearch-yank-word (&optional arg)
   "Pull next word from buffer into search string.

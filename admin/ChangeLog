@@ -1,3 +1,11 @@
+2014-09-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* unidata/unidata-gen.el (unidata-check): Bring this function up
+	to date with the currently supported methods of generating Unicode
+	property tables.  Add a comment with a description how to invoke
+	the check.  Update the copyright years in the reference to the
+	Unicode data files we use.
+
 2014-08-30  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Vector-sorting fixes (Bug#18361).

@@ -1159,12 +1159,17 @@ and `event-end' functions."
 	      (/ (cdr pair) (+ (frame-char-height frame) spacing))))))))
 
 (defun posn-actual-col-row (position)
-  "Return the actual column and row in POSITION, measured in characters.
-These are the actual row number in the window and character number in that row.
+  "Return the window row number in POSITION and character number in that row.
+
 Return nil if POSITION does not contain the actual position; in that case
-`posn-col-row' can be used to get approximate values.
+\`posn-col-row' can be used to get approximate values.
 POSITION should be a list of the form returned by the `event-start'
-and `event-end' functions."
+and `event-end' functions.
+
+This function does not account for the width on display, like the
+number of visual columns taken by a TAB or image.  If you need
+the coordinates of POSITION in character units, you should use
+\`posn-col-row', not this function."
   (nth 6 position))
 
 (defsubst posn-timestamp (position)

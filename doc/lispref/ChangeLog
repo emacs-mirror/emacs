@@ -1,3 +1,8 @@
+2014-09-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* functions.texi (Core Advising Primitives): Add a note about the
+	confusing treatment of `interactive' for :filter-args (bug#18399).
+
 2014-09-07  Michael Albinus  <michael.albinus@gmx.de>
 
 	* strings.texi (Text Comparison): Describe `string-collate-equalp'

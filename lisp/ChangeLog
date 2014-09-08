@@ -1,3 +1,21 @@
+2014-09-08  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/calendar.el (calendar-basic-setup):
+	Avoid clobbering calendar with diary.  (Bug#18381)
+
+2014-09-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc/vc-dir.el (vc-dir-update): Don't burp in corner case.
+
+2014-09-08  Lars Ljung  <lars@matholka.se>  (tiny change)
+
+	* isearch.el (isearch-yank-word-or-char): Obey superword-mode
+	as well (bug#18400).
+
+2014-09-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* subr.el (posn-actual-col-row): Doc fix.  (Bug#18385)
+
 2014-09-06  Leo Liu  <sdl.web@gmail.com>
 
 	* emacs-lisp/pcase.el (pcase): Doc fix.

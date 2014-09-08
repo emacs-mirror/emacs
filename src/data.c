@@ -1311,10 +1311,10 @@ set_internal (Lisp_Object symbol, Lisp_Object newval, Lisp_Object where,
 
 	    /* Find the new binding.  */
 	    XSETSYMBOL (symbol, sym); /* May have changed via aliasing.  */
-	    tem1 = Fassq (symbol,
-			  (blv->frame_local
-			   ? XFRAME (where)->param_alist
-			   : BVAR (XBUFFER (where), local_var_alist)));
+	    tem1 = assq_no_quit (symbol,
+				 (blv->frame_local
+				  ? XFRAME (where)->param_alist
+				  : BVAR (XBUFFER (where), local_var_alist)));
 	    set_blv_where (blv, where);
 	    blv->found = 1;
 

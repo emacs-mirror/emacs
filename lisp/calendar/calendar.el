@@ -1443,7 +1443,12 @@ display the generated calendar."
       (calendar-generate-window month year)
       (if (and calendar-view-diary-initially-flag
                (calendar-date-is-visible-p date))
-          (diary-view-entries))))
+          ;; Do not clobber the calendar with the diary, if the diary
+          ;; has previously been shown in the window that now shows the
+          ;; calendar (bug#18381).
+          (let ((display-buffer-overriding-action
+                 '(nil . ((inhibit-same-window . t)))))
+            (diary-view-entries)))))
   (if calendar-view-holidays-initially-flag
       (let* ((diary-buffer (get-file-buffer diary-file))
              (diary-window (if diary-buffer (get-buffer-window diary-buffer)))

@@ -433,7 +433,8 @@ If NOINSERT, ignore elements on ENTRIES which are not in the ewoc."
 	      ;; previous node was in a different directory.
 	      (let* ((rd (file-relative-name entrydir))
 		     (prev-node (ewoc-prev vc-ewoc node))
-		     (prev-dir (vc-dir-node-directory prev-node)))
+		     (prev-dir (if prev-node
+				   (vc-dir-node-directory prev-node))))
 		(unless (string-equal entrydir prev-dir)
 		  (ewoc-enter-before
 		   vc-ewoc node (vc-dir-create-fileinfo rd nil nil nil entrydir))))
