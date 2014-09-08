@@ -7,6 +7,8 @@
 	(sql-default-directory): New user option.
 	(sql-product-interactive): Bind `default-directory' to it to
 	enable remote connections using Tramp.
+	(sql-set-sqli-buffer): Call `sql-product-interactive' when no
+	suitable buffer is available.
 
 2014-09-08  Glenn Morris  <rgm@gnu.org>
 

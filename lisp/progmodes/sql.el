@@ -3059,7 +3059,7 @@ If you call it from anywhere else, it sets the global copy of
   (interactive)
   (let ((default-buffer (sql-find-sqli-buffer)))
     (if (null default-buffer)
-        (user-error "There is no suitable SQLi buffer")
+        (sql-product-interactive)
       (let ((new-buffer (read-buffer "New SQLi buffer: " default-buffer t)))
         (if (null (sql-buffer-live-p new-buffer))
             (user-error "Buffer %s is not a working SQLi buffer" new-buffer)
@@ -3075,10 +3075,9 @@ It is stored in the variable `sql-buffer'.
 I
 See also `sql-help' on how to create such a buffer."
   (interactive)
-  (unless (and sql-buffer (buffer-live-p (get-buffer sql-buffer)))
+  (unless (and sql-buffer (buffer-live-p (get-buffer sql-buffer))
+               (get-buffer-process sql-buffer))
     (sql-set-sqli-buffer))
-  (unless (get-buffer-process sql-buffer)
-    (user-error "Buffer %s has no process" sql-buffer))
   (display-buffer sql-buffer))
 
 (defun sql-make-alternate-buffer-name ()
