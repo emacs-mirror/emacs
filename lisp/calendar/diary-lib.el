@@ -1,7 +1,6 @@
 ;;; diary-lib.el --- diary functions
 
-;; Copyright (C) 1989-1990, 1992-1995, 2001-2014 Free Software
-;; Foundation, Inc.
+;; Copyright (C) 1989-1990, 1992-1995, 2001-2014 Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Maintainer: Glenn Morris <rgm@gnu.org>
@@ -468,7 +467,8 @@ Only used if `diary-header-line-flag' is non-nil."
 ;; just visiting the diary-file. This is i) unlikely, and ii) no great loss.
 ;;;###cal-autoload
 (defun diary-live-p ()
-  "Return non-nil if the diary is being displayed."
+  "Return non-nil if the diary is being displayed.
+The actual return value is a diary buffer."
   (or (get-buffer diary-fancy-buffer)
       (and diary-file (find-buffer-visiting diary-file))))
 

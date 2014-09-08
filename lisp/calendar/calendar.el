@@ -1450,7 +1450,7 @@ display the generated calendar."
                  '(nil . ((inhibit-same-window . t)))))
             (diary-view-entries)))))
   (if calendar-view-holidays-initially-flag
-      (let* ((diary-buffer (get-file-buffer diary-file))
+      (let* ((diary-buffer (diary-live-p))
              (diary-window (if diary-buffer (get-buffer-window diary-buffer)))
              (split-height-threshold (if diary-window 2 1000)))
         ;; FIXME display buffer?

@@ -1,6 +1,10 @@
 2014-09-08  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/calendar.el (calendar-basic-setup):
+	Fix calendar-view-holidays-initially-flag and fancy display.
+	* calendar/diary-lib.el (diary-live-p): Doc fix.
+
+	* calendar/calendar.el (calendar-basic-setup):
 	Avoid clobbering calendar with diary.  (Bug#18381)
 
 2014-09-08  Stefan Monnier  <monnier@iro.umontreal.ca>
