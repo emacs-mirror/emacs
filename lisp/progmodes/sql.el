@@ -1223,6 +1223,7 @@ Based on `comint-mode-map'.")
     (define-key map (kbd "C-c C-b") 'sql-send-buffer)
     (define-key map (kbd "C-c C-n") 'sql-send-line-and-next)
     (define-key map (kbd "C-c C-i") 'sql-product-interactive)
+    (define-key map (kbd "C-c C-z") 'sql-show-sqli-buffer)
     (define-key map (kbd "C-c C-l a") 'sql-list-all)
     (define-key map (kbd "C-c C-l t") 'sql-list-table)
     (define-key map [remap beginning-of-defun] 'sql-beginning-of-statement)
@@ -3060,17 +3061,18 @@ If you call it from anywhere else, it sets the global copy of
             (run-hooks 'sql-set-sqli-hook)))))))
 
 (defun sql-show-sqli-buffer ()
-  "Show the name of current SQLi buffer.
+  "Display the current SQLi buffer.
 
-This is the buffer SQL strings are sent to.  It is stored in the
-variable `sql-buffer'.  See `sql-help' on how to create such a buffer."
+This is the buffer SQL strings are sent to.
+It is stored in the variable `sql-buffer'.
+I
+See also `sql-help' on how to create such a buffer."
   (interactive)
-  (if (or (null sql-buffer)
-          (null (buffer-live-p (get-buffer sql-buffer))))
-      (user-error "%s has no SQLi buffer set" (buffer-name (current-buffer)))
-    (if (null (get-buffer-process sql-buffer))
-	(user-error "Buffer %s has no process" sql-buffer)
-      (user-error "Current SQLi buffer is %s" sql-buffer))))
+  (unless (and sql-buffer (buffer-live-p (get-buffer sql-buffer)))
+    (sql-set-sqli-buffer))
+  (unless (get-buffer-process sql-buffer)
+    (user-error "Buffer %s has no process" sql-buffer))
+  (display-buffer sql-buffer))
 
 (defun sql-make-alternate-buffer-name ()
   "Return a string that can be used to rename a SQLi buffer.
