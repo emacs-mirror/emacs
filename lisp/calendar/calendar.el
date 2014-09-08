@@ -1,7 +1,6 @@
 ;;; calendar.el --- calendar functions
 
-;; Copyright (C) 1988-1995, 1997, 2000-2014 Free Software Foundation,
-;; Inc.
+;; Copyright (C) 1988-1995, 1997, 2000-2014 Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Maintainer: Glenn Morris <rgm@gnu.org>
@@ -1432,7 +1431,12 @@ display the generated calendar."
       (calendar-generate-window month year)
       (if (and calendar-view-diary-initially-flag
                (calendar-date-is-visible-p date))
-          (diary-view-entries))))
+          ;; Do not clobber the calendar with the diary, if the diary
+          ;; has previously been shown in the window that now shows the
+          ;; calendar (bug#18381).
+          (let ((display-buffer-overriding-action
+                 '(nil . ((inhibit-same-window . t)))))
+            (diary-view-entries)))))
   (if calendar-view-holidays-initially-flag
       (let* ((diary-buffer (get-file-buffer diary-file))
              (diary-window (if diary-buffer (get-buffer-window diary-buffer)))

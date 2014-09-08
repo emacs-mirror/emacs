@@ -1,3 +1,8 @@
+2014-09-08  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/calendar.el (calendar-basic-setup):
+	Avoid clobbering calendar with diary.  (Bug#18381)
+
 2014-09-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc/vc-dir.el (vc-dir-update): Don't burp in corner case.
