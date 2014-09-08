@@ -212,11 +212,11 @@
 ;; Michael Mauger <michael@mauger.com> -- improved product support
 ;; Drew Adams <drew.adams@oracle.com> -- Emacs 20 support
 ;; Harald Maier <maierh@myself.com> -- sql-send-string
-;; Stefan Monnier <monnier@iro.umontreal.ca> -- font-lock corrections; 
+;; Stefan Monnier <monnier@iro.umontreal.ca> -- font-lock corrections;
 ;;      code polish
 ;; Paul Sleigh <bat@flurf.net> -- MySQL keyword enhancement
 ;; Andrew Schein <andrew@andrewschein.com> -- sql-port bug
-;; Ian Bjorhovde <idbjorh@dataproxy.com> -- db2 escape newlines 
+;; Ian Bjorhovde <idbjorh@dataproxy.com> -- db2 escape newlines
 ;;      incorrectly enabled by default
 ;; Roman Scherer <roman.scherer@nugg.ad> -- Connection documentation
 ;; Mark Wilkinson <wilkinsonmr@gmail.com> -- file-local variables ignored
@@ -1221,6 +1221,7 @@ Based on `comint-mode-map'.")
     (define-key map (kbd "C-c C-r") 'sql-send-region)
     (define-key map (kbd "C-c C-s") 'sql-send-string)
     (define-key map (kbd "C-c C-b") 'sql-send-buffer)
+    (define-key map (kbd "C-c C-n") 'sql-send-line-and-next)
     (define-key map (kbd "C-c C-i") 'sql-product-interactive)
     (define-key map (kbd "C-c C-l a") 'sql-list-all)
     (define-key map (kbd "C-c C-l t") 'sql-list-table)
@@ -3073,7 +3074,6 @@ variable `sql-buffer'.  See `sql-help' on how to create such a buffer."
 
 (defun sql-make-alternate-buffer-name ()
   "Return a string that can be used to rename a SQLi buffer.
-
 This is used to set `sql-alternate-buffer-name' within
 `sql-interactive-mode'.
 
@@ -3323,7 +3323,7 @@ to avoid deleting non-prompt output."
               (setq oline (replace-match "" nil nil oline)
                     sql-output-newline-count (1- sql-output-newline-count)
                     prompt-found t)))
-          
+
           ;; If we've found all the expected prompts, stop looking
           (if (= sql-output-newline-count 0)
               (setq sql-output-newline-count nil
@@ -3402,6 +3402,13 @@ to avoid deleting non-prompt output."
   "Send the buffer contents to the SQL process."
   (interactive)
   (sql-send-region (point-min) (point-max)))
+
+(defun sql-send-line-and-next ()
+  "Send the current line to the SQL process and go to the next line."
+  (interactive)
+  (sql-send-region (line-beginning-position 1) (line-beginning-position 2))
+  (beginning-of-line 2)
+  (while (forward-comment 1)))  ; skip all comments and whitespace
 
 (defun sql-send-magic-terminator (buf str terminator)
   "Send TERMINATOR to buffer BUF if its not present in STR."
@@ -3589,7 +3596,7 @@ buffer is popped into a view window."
          (apply c sqlbuf outbuf enhanced arg nil))
         (t (error "Unknown sql-execute item %s" c))))
    (if (consp command) command (cons command nil)))
-  
+
   (setq outbuf (get-buffer outbuf))
   (if (zerop (buffer-size outbuf))
       (kill-buffer outbuf)
