@@ -395,7 +395,16 @@ must be one of the symbols `header', `mode', or `vertical'."
       ;; Check whether header-line can be dragged at all.
       (if (window-at-side-p window 'top)
 	  (setq draggable nil)
-	(setq height (/ (window-header-line-height window) 2))
+	;; window-pixel-edges includes the header and mode lines, so
+	;; we need to account for that when calculating window growth.
+	;; On GUI frames, assume the mouse is approximately in the
+	;; middle of the header/mode line, so we need only half the
+	;; height in pixels.
+	(setq height
+	      (cond
+	       ((display-graphic-p frame)
+		(/ (window-header-line-height window) 2))
+	       (t  (window-header-line-height window))))
 	(setq window (window-in-direction 'above window t))))
      ((eq line 'mode)
       ;; Check whether mode-line can be dragged at all.
@@ -410,7 +419,11 @@ must be one of the symbols `header', `mode', or `vertical'."
 			     (eq minibuffer-window
 				 (active-minibuffer-window))))))
 	  (setq draggable nil)
-	(setq height (/ (window-mode-line-height window) 2))))
+	(setq height
+	      (cond
+	       ((display-graphic-p frame)
+		(/ (window-mode-line-height window) 2))
+	       (t  (window-mode-line-height window))))))
      ((eq line 'vertical)
       ;; Get the window to adjust for the vertical case.  If the scroll
       ;; bar is on the window's right or we drag a vertical divider,

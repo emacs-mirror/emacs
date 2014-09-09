@@ -1,3 +1,11 @@
+2014-09-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* mouse.el (mouse-drag-line): On text-mode frames, count the mode
+	line and header line as 1 pixel.  This fixes the 1-"pixel" (row)
+	discrepancy between window-pixel-edges and mouse events, and
+	avoids moving mode line up when the mouse click is on the modeline
+	and no drag is attempted.
+
 2014-09-08  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/calendar.el (calendar-basic-setup):
