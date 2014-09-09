@@ -1,3 +1,9 @@
+2014-09-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* automated/fns-tests.el (fns-tests-collate-sort): Bind
+	w32-collate-ignore-punctuation to t when sorting according to
+	UTS#10 rules.
+
 2014-09-07  Michael Albinus  <michael.albinus@gmx.de>
 
 	* automated/fns-tests.el (fns-tests--collate-enabled-p): New function.

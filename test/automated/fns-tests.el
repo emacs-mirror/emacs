@@ -169,8 +169,9 @@
    (equal
     (sort '("11" "12" "1 1" "1 2" "1.1" "1.2")
 	  (lambda (a b)
-	    (string-collate-lessp
-	     a b (if (eq system-type 'windows-nt) "enu_USA" "en_US.UTF-8"))))
+	    (let ((w32-collate-ignore-punctuation t))
+	      (string-collate-lessp
+	       a b (if (eq system-type 'windows-nt) "enu_USA" "en_US.UTF-8")))))
     '("11" "1 1" "1.1" "12" "1 2" "1.2")))
 
   ;; Diacritics are different letters for POSIX, they sort lexicographical.
@@ -184,6 +185,7 @@
    (equal
     (sort '("Ævar" "Agustín" "Adrian" "Eli")
 	  (lambda (a b)
-	    (string-collate-lessp
-	     a b (if (eq system-type 'windows-nt) "enu_USA" "en_US.UTF-8"))))
+	    (let ((w32-collate-ignore-punctuation t))
+	      (string-collate-lessp
+	       a b (if (eq system-type 'windows-nt) "enu_USA" "en_US.UTF-8")))))
     '("Adrian" "Ævar" "Agustín" "Eli"))))
