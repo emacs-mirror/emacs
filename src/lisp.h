@@ -298,6 +298,13 @@ error !;
 # endif
 #endif
 
+/* Stolen from gnulib.  */
+#if (__GNUC__ || __HP_cc || __HP_aCC || __IBMC__	\
+     || __IBMCPP__ || __ICC || 0x5110 <= __SUNPRO_C)
+#define GCALIGNED __attribute__ ((aligned (GCALIGNMENT)))
+#else
+#define GCALIGNED /* empty */
+#endif
 
 /* Some operations are so commonly executed that they are implemented
    as macros, not functions, because otherwise runtime performance would
@@ -1016,7 +1023,7 @@ LISP_MACRO_DEFUN_VOID (CHECK_TYPE,
 
 typedef struct interval *INTERVAL;
 
-struct Lisp_Cons
+struct GCALIGNED Lisp_Cons
   {
     /* Car of this cons cell.  */
     Lisp_Object car;
@@ -3622,6 +3629,10 @@ extern void syms_of_xsettings (void);
 /* Defined in vm-limit.c.  */
 extern void memory_warnings (void *, void (*warnfun) (const char *));
 
+/* Defined in character.c.  */
+extern void parse_str_as_multibyte (const unsigned char *, ptrdiff_t,
+				    ptrdiff_t *, ptrdiff_t *);
+
 /* Defined in alloc.c.  */
 extern void check_pure_size (void);
 extern void free_misc (Lisp_Object);
@@ -4534,6 +4545,115 @@ extern void *record_xmalloc (size_t) ATTRIBUTE_ALLOC_SIZE ((1));
     else						       \
       memory_full (SIZE_MAX);				       \
   } while (false)
+
+/* Use the following functions to allocate temporary (function-
+   or block-scoped) conses, vectors, and strings.  These objects
+   are not managed by GC, and passing them out of their scope
+   most likely causes an immediate crash at next GC.  */
+
+#if (__GNUC__ || __HP_cc || __HP_aCC || __IBMC__	\
+     || __IBMCPP__ || __ICC || 0x5110 <= __SUNPRO_C)
+
+/* Allocate temporary block-scoped cons.  This version assumes
+   that stack-allocated Lisp_Cons is always aligned properly.  */
+
+#define scoped_cons(car, cdr)						\
+  make_lisp_ptr (&((struct Lisp_Cons) { car, { cdr } }), Lisp_Cons)
+
+#else /* not __GNUC__ etc... */
+
+/* Helper function for an alternate scoped cons, see below.  */				     
+
+INLINE Lisp_Object
+scoped_cons_init (void *ptr, Lisp_Object x, Lisp_Object y)
+{
+  struct Lisp_Cons *c = (struct Lisp_Cons *)
+    (((uintptr_t) ptr + (GCALIGNMENT - 1)) & ~(GCALIGNMENT - 1));
+  c->car = x;
+  c->u.cdr = y;
+  return make_lisp_ptr (c, Lisp_Cons);
+}
+
+/* This version uses explicit alignment.  */
+
+#define scoped_cons(car, cdr)						\
+  scoped_cons_init ((char[sizeof (struct Lisp_Cons)			\
+			  + (GCALIGNMENT - 1)]) {}, (car), (cdr))
+
+#endif /* __GNUC__ etc... */
+
+/* Convenient utility macro similar to list2.  */
+
+#define scoped_list2(x, y) scoped_cons (x, scoped_cons (y, Qnil))
+
+/* True if Lisp_Object may be placed at P.  Used only
+   under ENABLE_CHECKING and optimized away otherwise.  */
+
+INLINE bool
+pointer_valid_for_lisp_object (void *p)
+{
+  uintptr_t v = (uintptr_t) p;
+  return !(USE_LSB_TAG ? (v & ~VALMASK) : v >> VALBITS);
+}
+
+/* Helper function for build_local_vector, see below.  */
+
+INLINE Lisp_Object
+local_vector_init (uintptr_t addr, ptrdiff_t length, Lisp_Object init)
+{
+  ptrdiff_t i;
+  struct Lisp_Vector *v = (struct Lisp_Vector *) addr;
+
+  eassert (pointer_valid_for_lisp_object (v));
+  v->header.size = length;
+  for (i = 0; i < length; i++)
+    v->contents[i] = init;
+  return make_lisp_ptr (v, Lisp_Vectorlike);
+}
+
+/* If size permits, create temporary function-scoped vector OBJ of
+   length SIZE, with each element being INIT.  Otherwise create
+   regular GC-managed vector.  */
+
+#define build_local_vector(obj, size, init)				\
+  (MAX_ALLOCA < (size) * word_size + header_size			\
+   ? obj = Fmake_vector (make_number (size), (init))			\
+   : (obj = XIL ((uintptr_t) alloca					\
+		 ((size) * word_size + header_size)),			\
+      obj = local_vector_init ((uintptr_t) XLI (obj), (size), (init))))
+
+/* Helper function for build_local_string, see below.  */
+
+INLINE Lisp_Object
+local_string_init (uintptr_t addr, const char *data, ptrdiff_t size)
+{
+  ptrdiff_t nchars, nbytes;
+  struct Lisp_String *s = (struct Lisp_String *) addr;
+
+  eassert (pointer_valid_for_lisp_object (s));
+  parse_str_as_multibyte ((const unsigned char *) data,
+			  size, &nchars, &nbytes);
+  s->data = (unsigned char *) (addr + sizeof *s);
+  s->intervals = NULL;
+  memcpy (s->data, data, size);
+  s->data[size] = '\0';
+  if (size == nchars || size != nbytes)
+    s->size = size, s->size_byte = -1;
+  else
+    s->size = nchars, s->size_byte = nbytes;
+  return make_lisp_ptr (s, Lisp_String);
+}
+
+/* If size permits, create temporary function-scoped string OBJ
+   with contents DATA of length NBYTES.  Otherwise create regular
+   GC-managed string.  */
+
+#define build_local_string(obj, data, nbytes)				\
+  (MAX_ALLOCA < (nbytes) + sizeof (struct Lisp_String)			\
+   ? obj = make_string ((data), (nbytes))				\
+   : (obj = XIL ((uintptr_t) alloca					\
+		 ((nbytes) + sizeof (struct Lisp_String))),		\
+      obj = local_string_init ((uintptr_t) XLI (obj), data, nbytes)))
 
 /* Loop over all tails of a list, checking for cycles.
    FIXME: Make tortoise and n internal declarations.

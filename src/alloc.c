@@ -7117,8 +7117,29 @@ die (const char *msg, const char *file, int line)
 	   file, line, msg);
   terminate_due_to_signal (SIGABRT, INT_MAX);
 }
-#endif
-
+
+/* Stress alloca with inconveniently sized requests and check
+   whether all allocated areas may be used for Lisp_Object.  */
+
+NO_INLINE static void
+verify_alloca (void)
+{
+  int i;
+  enum { ALLOCA_CHECK_MAX = 256 };
+  /* Start from size of the smallest Lisp object.  */
+  for (i = sizeof (struct Lisp_Cons); i <= ALLOCA_CHECK_MAX; i++)
+    {
+      char *ptr = alloca (i);
+      eassert (pointer_valid_for_lisp_object (ptr));
+    }
+}
+
+#else /* not ENABLE_CHECKING */
+
+#define verify_alloca() ((void) 0)
+
+#endif /* ENABLE_CHECKING */
+
 /* Initialization.  */
 
 void
@@ -7127,6 +7148,8 @@ init_alloc_once (void)
   /* Used to do Vpurify_flag = Qt here, but Qt isn't set up yet!  */
   purebeg = PUREBEG;
   pure_size = PURESIZE;
+
+  verify_alloca ();
 
 #if GC_MARK_STACK || defined GC_MALLOC_CHECK
   mem_init ();

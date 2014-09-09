@@ -5,6 +5,18 @@
 	(x_delete_terminal): Do not close X connection fd (Bug#18403).
 	Add eassert and mark dpyinfo as dead only if it was alive.
 
+	Add macros to allocate temporary Lisp objects with alloca.
+	Respect MAX_ALLOCA and fall back to regular GC for large objects.
+	* character.h (parse_str_as_multibyte): Move prototype to ...
+	* lisp.h (parse_str_as_multibyte): ... here.
+	(struct Lisp_Cons): Add GCALIGNED attribute if supported.
+	(scoped_cons, scoped_list2, build_local_vector, build_local_string):
+	New macros.
+	(scoped_cons_init, pointer_valid_for_lisp_object, local_vector_init)
+	(local_string_init): New functions.
+	* alloc.c (verify_alloca) [ENABLE_CHECKING]: New function.
+	(init_alloc_once): Call it.
+
 2014-09-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* dispnew.c (prepare_desired_row): When MODE_LINE_P is zero,
