@@ -10667,7 +10667,6 @@ static unsigned x_display_id;
 struct x_display_info *
 x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 {
-  int connection;
   Display *dpy;
   struct terminal *terminal;
   struct x_display_info *dpyinfo;
@@ -11110,22 +11109,19 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 
   xsettings_initialize (dpyinfo);
 
-  connection = ConnectionNumber (dpyinfo->display);
-
   /* This is only needed for distinguishing keyboard and process input.  */
-  if (connection != 0)
-    add_keyboard_wait_descriptor (connection);
+  if (dpyinfo->connection != 0)
+    add_keyboard_wait_descriptor (dpyinfo->connection);
 
 #ifdef F_SETOWN
-  fcntl (connection, F_SETOWN, getpid ());
+  fcntl (dpyinfo->connection, F_SETOWN, getpid ());
 #endif /* ! defined (F_SETOWN) */
 
   if (interrupt_input)
-    init_sigio (connection);
+    init_sigio (dpyinfo->connection);
 
 #ifdef USE_LUCID
   {
-    XFontStruct *xfont = NULL;
     XrmValue d, fr, to;
     Font font;
 
@@ -11139,10 +11135,10 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
     x_catch_errors (dpy);
     if (!XtCallConverter (dpy, XtCvtStringToFont, &d, 1, &fr, &to, NULL))
       emacs_abort ();
-    if (x_had_errors_p (dpy) || !((xfont = XQueryFont (dpy, font))))
+    if (x_had_errors_p (dpy) || !XQueryFont (dpy, font))
       XrmPutLineResource (&xrdb, "Emacs.dialog.*.font: 9x15");
-    if (xfont)
-      XFreeFont (dpy, xfont);
+    /* Do not free XFontStruct returned by the above call to XQueryFont.
+       This leads to X protocol errors at XtCloseDisplay (Bug#18403).  */
     x_uncatch_errors ();
   }
 #endif
@@ -11375,18 +11371,17 @@ x_delete_terminal (struct terminal *terminal)
       XCloseDisplay (dpyinfo->display);
 #endif
 #endif /* ! USE_GTK */
-    }
 
-  /* No more input on this descriptor.  */
-  if (0 <= dpyinfo->connection)
-    {
+      /* No more input on this descriptor.  Do not close it because
+	 it's already closed by X(t)CloseDisplay (Bug#18403).  */
+      eassert (0 <= dpyinfo->connection);
       delete_keyboard_wait_descriptor (dpyinfo->connection);
-      emacs_close (dpyinfo->connection);
+
+      /* Mark as dead. */
+      dpyinfo->display = NULL;
+      dpyinfo->connection = -1;
     }
 
-  /* Mark as dead. */
-  dpyinfo->display = NULL;
-  dpyinfo->connection = -1;
   x_delete_display (dpyinfo);
   unblock_input ();
 }

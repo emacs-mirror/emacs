@@ -1,3 +1,10 @@
+2014-09-09  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xterm.c (x_term_init): Consolidate duplicated code.
+	[USE_LUCID]: Revert 2014-04-02 change (Bug#18403).  Add comment.
+	(x_delete_terminal): Do not close X connection fd (Bug#18403).
+	Add eassert and mark dpyinfo as dead only if it was alive.
+
 2014-09-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* dispnew.c (prepare_desired_row): When MODE_LINE_P is zero,
