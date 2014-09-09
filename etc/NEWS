@@ -240,9 +240,6 @@ of the buffer is visible).
 
 *** New display actions functions for `display-buffer':
 
-**** `display-buffer-in-previous-window' displays a buffer in a window
-previously showing that buffer.
-
 **** `display-buffer-at-bottom' chooses or creates a window at the
 bottom of the selected frame.
 
@@ -251,6 +248,9 @@ bottom of the selected frame.
 *** New display action alist entry `allow-no-window' to indicate the
 caller of `display-buffer' is ready to handle the case of not displaying
 the buffer in a window.
+
+*** `display-buffer-in-previous-window' is now a member of
+`display-buffer-fallback-action'.
 
 ** Lisp evaluation
 
