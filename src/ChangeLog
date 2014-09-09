@@ -1,3 +1,10 @@
+2014-09-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (pos_visible_p): Properly save and restore the iterator
+	state around the call to line_bottom, since it can move the
+	iterator to another screen line.  This fixes off-by-one errors in
+	the reported row in some rare cases.
+
 2014-09-07  Eli Zaretskii  <eliz@gnu.org>
 
 	* dispnew.c (prepare_desired_row): When MODE_LINE_P is zero,
