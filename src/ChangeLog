@@ -1,3 +1,9 @@
+2014-09-09  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (updateFrameSize:, initFrameFromEmacs:)
+	(toggleFullScreen:): Take frame_resize_pixelwise into account when
+	setting resize increments (Bug#18435).
+
 2014-09-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (pos_visible_p): Properly save and restore the iterator
