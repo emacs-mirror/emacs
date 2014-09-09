@@ -1,7 +1,6 @@
 ;;; diary-lib.el --- diary functions
 
-;; Copyright (C) 1989-1990, 1992-1995, 2001-2014 Free Software
-;; Foundation, Inc.
+;; Copyright (C) 1989-1990, 1992-1995, 2001-2014 Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Maintainer: Glenn Morris <rgm@gnu.org>
@@ -901,12 +900,20 @@ LIST-ONLY is non-nil, in which case it just returns the list."
                   ;;;     (diary-include-other-diary-files) ; recurse
                   ;;;   (run-hooks 'diary-list-entries-hook))
                   (unless list-only
-                    (if (and diary-display-function
-                             (listp diary-display-function))
-                        ;; Backwards compatibility.
-                        (run-hooks 'diary-display-function)
-                      (funcall (or diary-display-function
-                                   'diary-simple-display))))
+                    ;; Avoid M-x diary; M-x calendar; M-x diary
+                    ;; clobbering the calendar window.
+                    ;; FIXME this is not the right solution.
+                    (let ((display-buffer-fallback-action
+                           (list (delq
+                                  'display-buffer-in-previous-window
+                                  (copy-sequence
+                                   (car display-buffer-fallback-action))))))
+                      (if (and diary-display-function
+                               (listp diary-display-function))
+                          ;; Backwards compatibility.
+                          (run-hooks 'diary-display-function)
+                        (funcall (or diary-display-function
+                                     'diary-simple-display)))))
                   (run-hooks 'diary-hook)))))
         (and temp-buff (buffer-name temp-buff) (kill-buffer temp-buff)))
       (or d-incp (message "Preparing diary...done"))

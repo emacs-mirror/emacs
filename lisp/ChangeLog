@@ -1,3 +1,8 @@
+2014-09-09  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/diary-lib.el (diary-list-entries):
+	Restore 24.3 display behavior.  (Bug#18381)
+
 2014-09-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* mouse.el (mouse-drag-line): On text-mode frames, count the mode
