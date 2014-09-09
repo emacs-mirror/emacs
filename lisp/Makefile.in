@@ -495,7 +495,7 @@ check-declare:
 # CC Mode uses a compile time macro system which causes a compile time
 # dependency in cc-*.elc files on the macros in other cc-*.el and the
 # version string in cc-defs.el.
-$(lisp)/progmodes/cc-align.elc $(lisp)/progmodes/cc-awk.elc\
+$(lisp)/progmodes/cc-align.elc\
  $(lisp)/progmodes/cc-cmds.elc $(lisp)/progmodes/cc-compat.elc\
  $(lisp)/progmodes/cc-engine.elc $(lisp)/progmodes/cc-fonts.elc\
  $(lisp)/progmodes/cc-langs.elc $(lisp)/progmodes/cc-menus.elc\
