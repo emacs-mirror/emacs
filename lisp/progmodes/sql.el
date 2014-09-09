@@ -285,7 +285,7 @@ file.  Since that is a plaintext file, this could be dangerous."
 (defcustom sql-default-directory nil
   "Default directory for SQL processes."
   :version "24.5"
-  :type 'string
+  :type '(choice (const nil) string)
   :group 'SQL
   :safe 'stringp)
 

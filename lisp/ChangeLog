@@ -1,3 +1,7 @@
+2014-09-09  Sam Steingold  <sds@gnu.org>
+
+	* progmodes/sql.el (sql-default-directory): Fix type annotation.
+
 2014-09-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/cc-awk.el: Remove unneeded cc-bytecomp use.
