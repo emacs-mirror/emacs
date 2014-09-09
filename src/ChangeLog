@@ -17,6 +17,15 @@
 	* alloc.c (verify_alloca) [ENABLE_CHECKING]: New function.
 	(init_alloc_once): Call it.
 
+	Cleanup last change and make all new stuff conditional.
+	* lisp.h (build_local_string): Rename to ...
+	(make_local_string): ... this macro.
+	(build_local_string, scoped_list1, scoped_list3): New macros.
+	(toplevel) [USE_STACK_LISP_OBJECTS]: Define all new macros
+	and functions as such, use regular fallbacks otherwise.
+	* alloc.c (verify_alloca) [USE_STACK_LISP_OBJECTS]: Define
+	conditionally.
+
 2014-09-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* dispnew.c (prepare_desired_row): When MODE_LINE_P is zero,

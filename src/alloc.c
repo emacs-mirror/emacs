@@ -7118,6 +7118,10 @@ die (const char *msg, const char *file, int line)
   terminate_due_to_signal (SIGABRT, INT_MAX);
 }
 
+#endif /* ENABLE_CHECKING */
+
+#if defined (ENABLE_CHECKING) && defined (USE_STACK_LISP_OBJECTS)
+
 /* Stress alloca with inconveniently sized requests and check
    whether all allocated areas may be used for Lisp_Object.  */
 
@@ -7134,11 +7138,11 @@ verify_alloca (void)
     }
 }
 
-#else /* not ENABLE_CHECKING */
+#else /* not (ENABLE_CHECKING && USE_STACK_LISP_OBJECTS) */
 
 #define verify_alloca() ((void) 0)
 
-#endif /* ENABLE_CHECKING */
+#endif /* ENABLE_CHECKING && USE_STACK_LISP_OBJECTS */
 
 /* Initialization.  */
 

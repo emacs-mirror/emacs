@@ -4546,6 +4546,12 @@ extern void *record_xmalloc (size_t) ATTRIBUTE_ALLOC_SIZE ((1));
       memory_full (SIZE_MAX);				       \
   } while (false)
 
+/* This feature is experimental and requires very careful debugging.
+   Brave user should compile with CPPFLAGS='-DUSE_STACK_LISP_OBJECTS'
+   to get into the game.  */
+
+#ifdef USE_STACK_LISP_OBJECTS
+
 /* Use the following functions to allocate temporary (function-
    or block-scoped) conses, vectors, and strings.  These objects
    are not managed by GC, and passing them out of their scope
@@ -4582,9 +4588,12 @@ scoped_cons_init (void *ptr, Lisp_Object x, Lisp_Object y)
 
 #endif /* __GNUC__ etc... */
 
-/* Convenient utility macro similar to list2.  */
+/* Convenient utility macros similar to listX functions.  */
 
+#define scoped_list1(x) scoped_cons (x, Qnil)
 #define scoped_list2(x, y) scoped_cons (x, scoped_cons (y, Qnil))
+#define scoped_list3(x, y, z)					\
+  scoped_cons (x, scoped_cons (y, scoped_cons (z, Qnil)))
 
 /* True if Lisp_Object may be placed at P.  Used only
    under ENABLE_CHECKING and optimized away otherwise.  */
@@ -4622,7 +4631,7 @@ local_vector_init (uintptr_t addr, ptrdiff_t length, Lisp_Object init)
 		 ((size) * word_size + header_size)),			\
       obj = local_vector_init ((uintptr_t) XLI (obj), (size), (init))))
 
-/* Helper function for build_local_string, see below.  */
+/* Helper function for make_local_string, see below.  */
 
 INLINE Lisp_Object
 local_string_init (uintptr_t addr, const char *data, ptrdiff_t size)
@@ -4648,12 +4657,31 @@ local_string_init (uintptr_t addr, const char *data, ptrdiff_t size)
    with contents DATA of length NBYTES.  Otherwise create regular
    GC-managed string.  */
 
-#define build_local_string(obj, data, nbytes)				\
+#define make_local_string(obj, data, nbytes)				\
   (MAX_ALLOCA < (nbytes) + sizeof (struct Lisp_String)			\
    ? obj = make_string ((data), (nbytes))				\
    : (obj = XIL ((uintptr_t) alloca					\
 		 ((nbytes) + sizeof (struct Lisp_String))),		\
       obj = local_string_init ((uintptr_t) XLI (obj), data, nbytes)))
+
+/* We want an interface similar to make_string and build_string, right?  */
+
+#define build_local_string(obj, data)		\
+  make_local_string (obj, data, strlen (data))
+
+#else /* not USE_STACK_LISP_OBJECTS */
+
+#define scoped_cons(x, y) Fcons ((x), (y))
+#define scoped_list1(x) list1 (x)
+#define scoped_list2(x, y) list2 ((x), (y))
+#define scoped_list3(x, y, z) list3 ((x), (y), (z))
+#define build_local_vector(obj, size, init)		\
+  (obj = Fmake_vector (make_number ((size), (init))))
+#define make_local_string(obj, data, nbytes)	\
+  (obj = make_string ((data), (nbytes)))
+#define build_local_string(obj, data) (obj = build_string (data))
+
+#endif /* USE_STACK_LISP_OBJECTS */
 
 /* Loop over all tails of a list, checking for cycles.
    FIXME: Make tortoise and n internal declarations.
