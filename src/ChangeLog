@@ -1,3 +1,13 @@
+2014-09-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Simplify lisp.h by removing the __COUNTER__ business.
+	Problem reported by Dmitry Antipov in:
+	http://lists.gnu.org/archive/html/emacs-devel/2014-09/msg00220.html
+	* lisp.h (make_local_vector, make_local_string)
+	(build_local_string): Simplify by not bothering with __COUNTER__.
+	The __COUNTER__ business wasn't working properly, and was needed
+	only for hypothetical future expansion anyway.
+
 2014-09-10  Alp Aker  <alp.tekin.aker@gmail.com>
 
 	* nsterm.m (ns_draw_fringe_bitmap): Use the same logic as other

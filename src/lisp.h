@@ -4563,58 +4563,50 @@ verify (sizeof (struct Lisp_Cons) == sizeof (union Aligned_Cons));
 # define scoped_list3(x, y, z) list3 (x, y, z)
 #endif
 
-#if USE_STACK_LISP_OBJECTS && HAVE_STATEMENT_EXPRESSIONS && defined __COUNTER__
+#if USE_STACK_LISP_OBJECTS && HAVE_STATEMENT_EXPRESSIONS
 
 # define USE_LOCAL_ALLOCATORS
 
 /* Return a function-scoped vector of length SIZE, with each element
    being INIT.  */
 
-# define make_local_vector(size, init) \
-    make_local_vector_n (size, init, __COUNTER__)
-# define make_local_vector_n(size_arg, init_arg, n)			\
+# define make_local_vector(size, init)					\
     ({									\
-       ptrdiff_t size##n = size_arg;					\
-       Lisp_Object init##n = init_arg;					\
-       Lisp_Object vec##n;						\
-       if (size##n <= (MAX_ALLOCA - header_size) / word_size)		\
+       ptrdiff_t size_ = size;						\
+       Lisp_Object init_ = init;					\
+       Lisp_Object vec_;						\
+       if (size_ <= (MAX_ALLOCA - header_size) / word_size)		\
 	 {								\
-	   void *ptr##n = alloca (size##n * word_size + header_size);	\
-	   vec##n = local_vector_init (ptr##n, size##n, init##n);	\
+	   void *ptr_ = alloca (size_ * word_size + header_size);	\
+	   vec_ = local_vector_init (ptr_, size_, init_);		\
 	 }								\
        else								\
-	 vec##n = Fmake_vector (make_number (size##n), init##n);	\
-       vec##n;								\
+	 vec_ = Fmake_vector (make_number (size_), init_);		\
+       vec_;								\
     })
 
 /* Return a function-scoped string with contents DATA and length NBYTES.  */
 
-# define make_local_string(data, nbytes) \
-    make_local_string (data, nbytes, __COUNTER__)
-# define make_local_string_n(data_arg, nbytes_arg, n)			\
+# define make_local_string(data, nbytes) 				\
     ({									\
-       char const *data##n = data_arg;					\
-       ptrdiff_t nbytes##n = nbytes_arg;				\
-       Lisp_Object string##n;						\
-       if (nbytes##n <= MAX_ALLOCA - sizeof (struct Lisp_String) - 1)	\
+       char const *data_ = data;					\
+       ptrdiff_t nbytes_ = nbytes;					\
+       Lisp_Object string_;						\
+       if (nbytes_ <= MAX_ALLOCA - sizeof (struct Lisp_String) - 1)	\
 	 {								\
-	   struct Lisp_String *ptr##n					\
-	     = alloca (sizeof (struct Lisp_String) + 1 + nbytes);	\
-	   string##n = local_string_init (ptr##n, data##n, nbytes##n);	\
+	   struct Lisp_String *ptr_ = alloca (sizeof (struct Lisp_String) + 1 \
+					      + nbytes_);		\
+	   string_ = local_string_init (ptr_, data_, nbytes_);		\
 	 }								\
        else								\
-	 string##n = make_string (data##n, nbytes##n);			\
-       string##n;							\
+	 string_ = make_string (data_, nbytes_);			\
+       string_;								\
     })
 
 /* Return a function-scoped string with contents DATA.  */
 
-# define build_local_string(data) build_local_string_n (data, __COUNTER__)
-# define build_local_string_n(data_arg, n)			\
-    ({								\
-       char const *data##n = data_arg;				\
-       make_local_string (data##n, strlen (data##n));		\
-    })
+# define build_local_string(data) \
+    ({ char const *data_ = data; make_local_string (data_, strlen (data_)); })
 
 #else
 
