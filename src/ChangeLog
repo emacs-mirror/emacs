@@ -1,5 +1,15 @@
 2014-09-10  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* lisp.h (DEFINE_GDB_SYMBOL_ENUM): Remove.
+	These can generate a constant with the correct value but the wrong
+	width, which doesn't work as a printf argument.  All uses removed.
+	Problem reported by Dmitry Antipov in:
+	http://lists.gnu.org/archive/html/emacs-devel/2014-09/msg00213.html
+	(ENUMABLE): Remove; no longer needed.
+	(ARRAY_MARK_FLAG_val, PSEUDOVECTOR_FLAG_val, VALMASK_val):
+	Remove; no longer needed because of the above change.
+	Each definiens moved to the only use.
+
 	Improve the experimental local and scoped allocation.
 	* alloc.c (local_string_init, local_vector_init):
 	New functions, defined if USE_LOCAL_ALLOCATORS.
