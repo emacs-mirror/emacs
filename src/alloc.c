@@ -7175,8 +7175,8 @@ verify_alloca (void)
   /* Start from size of the smallest Lisp object.  */
   for (i = sizeof (struct Lisp_Cons); i <= ALLOCA_CHECK_MAX; i++)
     {
-      char *ptr = alloca (i);
-      eassert (pointer_valid_for_lisp_object (ptr));
+      void *ptr = alloca (i);
+      make_lisp_ptr (ptr, Lisp_Cons);
     }
 }
 
