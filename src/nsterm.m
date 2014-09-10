@@ -2347,7 +2347,18 @@ ns_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
          to erase the whole background. */
       [ns_lookup_indexed_color(face->background, f) set];
       NSRectFill (r);
-      [img setXBMColor: ns_lookup_indexed_color(face->foreground, f)];
+
+      {
+        NSColor *bm_color;
+        if (!p->cursor_p)
+          bm_color = ns_lookup_indexed_color(face->foreground, f);
+        else if (p->overlay_p)
+          bm_color = ns_lookup_indexed_color(face->background, f);
+        else
+          bm_color = f->output_data.ns->cursor_color;
+        [img setXBMColor: bm_color];
+      }
+
 #if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
       [img drawInRect: r
               fromRect: NSZeroRect

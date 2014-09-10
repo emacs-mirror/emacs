@@ -1,3 +1,8 @@
+2014-09-10  Alp Aker  <alp.tekin.aker@gmail.com>
+
+	* nsterm.m (ns_draw_fringe_bitmap): Use the same logic as other
+	terms to determine bitmap color.  (Bug#18437)
+
 2014-09-10  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32.c (sys_write): Use SAFE_NALLOCA for the NL -> CRLF
