@@ -6860,6 +6860,14 @@ handle_one_xevent (struct x_display_info *dpyinfo,
             inev.ie.kind = DEICONIFY_EVENT;
             XSETFRAME (inev.ie.frame_or_window, f);
           }
+        else if (! FRAME_ICONIFIED_P (f)
+                 && f->output_data.x->net_wm_state_hidden_seen)
+          {
+            SET_FRAME_VISIBLE (f, 0);
+            SET_FRAME_ICONIFIED (f, 1);
+            inev.ie.kind = ICONIFY_EVENT;
+            XSETFRAME (inev.ie.frame_or_window, f);
+          }
 
       x_handle_property_notify (&event->xproperty);
       xft_settings_event (dpyinfo, event);
