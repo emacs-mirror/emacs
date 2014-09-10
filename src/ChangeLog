@@ -1,3 +1,8 @@
+2014-09-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (sys_write): Use SAFE_NALLOCA for the NL -> CRLF
+	translation buffer.
+
 2014-09-10  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* xterm.c (handle_one_xevent): Add braces to pacify gcc -Wall.

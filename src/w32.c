@@ -8241,6 +8241,7 @@ int
 sys_write (int fd, const void * buffer, unsigned int count)
 {
   int nchars;
+  USE_SAFE_ALLOCA;
 
   if (fd < 0)
     {
@@ -8259,30 +8260,33 @@ sys_write (int fd, const void * buffer, unsigned int count)
       /* Perform text mode translation if required.  */
       if ((fd_info[fd].flags & FILE_BINARY) == 0)
 	{
-	  char * tmpbuf = alloca (count * 2);
-	  unsigned char * src = (void *)buffer;
-	  unsigned char * dst = tmpbuf;
+	  char * tmpbuf;
+	  const unsigned char * src = buffer;
+	  unsigned char * dst;
 	  int nbytes = count;
+
+	  SAFE_NALLOCA (tmpbuf, 2, count);
+	  dst = tmpbuf;
 
 	  while (1)
 	    {
 	      unsigned char *next;
-	      /* copy next line or remaining bytes */
+	      /* Copy next line or remaining bytes.  */
 	      next = _memccpy (dst, src, '\n', nbytes);
 	      if (next)
 		{
-		  /* copied one line ending with '\n' */
+		  /* Copied one line ending with '\n'.  */
 		  int copied = next - dst;
 		  nbytes -= copied;
 		  src += copied;
-		  /* insert '\r' before '\n' */
+		  /* Insert '\r' before '\n'.  */
 		  next[-1] = '\r';
 		  next[0] = '\n';
 		  dst = next + 1;
 		  count++;
 		}
 	      else
-		/* copied remaining partial line -> now finished */
+		/* Copied remaining partial line -> now finished.  */
 		break;
 	    }
 	  buffer = tmpbuf;
@@ -8296,31 +8300,44 @@ sys_write (int fd, const void * buffer, unsigned int count)
       HANDLE wait_hnd[2] = { interrupt_handle, ovl->hEvent };
       DWORD active = 0;
 
+      /* This is async (a.k.a. "overlapped") I/O, so the return value
+	 of FALSE from WriteFile means either an error or the output
+	 will be completed asynchronously (ERROR_IO_PENDING).  */
       if (!WriteFile (hnd, buffer, count, (DWORD*) &nchars, ovl))
 	{
 	  if (GetLastError () != ERROR_IO_PENDING)
 	    {
 	      errno = EIO;
-	      return -1;
+	      nchars = -1;
 	    }
-	  if (detect_input_pending ())
-	    active = MsgWaitForMultipleObjects (2, wait_hnd, FALSE, INFINITE,
-						QS_ALLINPUT);
 	  else
-	    active = WaitForMultipleObjects (2, wait_hnd, FALSE, INFINITE);
-	  if (active == WAIT_OBJECT_0)
-	    { /* User pressed C-g, cancel write, then leave.  Don't bother
-		 cleaning up as we may only get stuck in buggy drivers.  */
-	      PurgeComm (hnd, PURGE_TXABORT | PURGE_TXCLEAR);
-	      CancelIo (hnd);
-	      errno = EIO;
-	      return -1;
-	    }
-	  if (active == WAIT_OBJECT_0 + 1
-	      && !GetOverlappedResult (hnd, ovl, (DWORD*) &nchars, TRUE))
 	    {
-	      errno = EIO;
-	      return -1;
+	      /* Wait for the write to complete, and watch C-g while
+		 at that.  */
+	      if (detect_input_pending ())
+		active = MsgWaitForMultipleObjects (2, wait_hnd, FALSE,
+						    INFINITE, QS_ALLINPUT);
+	      else
+		active = WaitForMultipleObjects (2, wait_hnd, FALSE, INFINITE);
+	      switch (active)
+		{
+		case WAIT_OBJECT_0:
+		  /* User pressed C-g, cancel write, then leave.
+		     Don't bother cleaning up as we may only get stuck
+		     in buggy drivers.  */
+		  PurgeComm (hnd, PURGE_TXABORT | PURGE_TXCLEAR);
+		  CancelIo (hnd);
+		  errno = EIO;	/* Why not EINTR? */
+		  nchars = -1;
+		  break;
+		case WAIT_OBJECT_0 + 1:
+		  if (!GetOverlappedResult (hnd, ovl, (DWORD*) &nchars, TRUE))
+		    {
+		      errno = EIO;
+		      nchars = -1;
+		    }
+		  break;
+		}
 	    }
 	}
     }
@@ -8381,6 +8398,7 @@ sys_write (int fd, const void * buffer, unsigned int count)
 	}
     }
 
+  SAFE_FREE ();
   return nchars;
 }
 
