@@ -1,3 +1,8 @@
+2014-09-10  Ivan Shmakov  <ivan@siamics.net>  (tiny change)
+
+	* desktop.el (desktop-create-buffer): Check that buffers are still live
+	before burying them (bug#18373).
+
 2014-09-09  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/diary-lib.el (diary-list-entries):
