@@ -1,3 +1,7 @@
+2014-09-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* xterm.c (handle_one_xevent): Add braces to pacify gcc -Wall.
+
 2014-09-10  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c (handle_one_xevent): Detect iconified by looking at
