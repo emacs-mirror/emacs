@@ -1,3 +1,9 @@
+2014-09-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Improve the experimental local and scoped allocation.
+	* configure.ac (HAVE_STRUCT_ATTRIBUTE_ALIGNED)
+	(HAVE_STATEMENT_EXPRESSIONS): New configure-time checks.
+
 2014-09-07  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Expand @AM_DEFAULT_VERBOSITY@ even if Automake is old (Bug#18415).

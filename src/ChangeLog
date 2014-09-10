@@ -1,3 +1,30 @@
+2014-09-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Improve the experimental local and scoped allocation.
+	* alloc.c (local_string_init, local_vector_init):
+	New functions, defined if USE_LOCAL_ALLOCATORS.
+	Mostly, these are moved here from lisp.h, as it's not
+	clear it's worth making them inline.
+	* lisp.h (USE_STACK_LISP_OBJECTS): Default to false.
+	(GCALIGNED): Depend on HAVE_STRUCT_ATTRIBUTE_ALIGNED and
+	USE_STACK_LISP_OBJECTS, not on a laundry list.
+	(local_string_init, local_vector_init): New decls.
+	(union Aligned_Cons): New type.
+	(scoped_cons): Use it.  Give up on the char trick, as it's a too
+	much of a maintenance hassle; if someone wants this speedup
+	they'll just need to convince their compiler to align properly.
+	Conversely, use the speedup if struct Lisp_Cons happens to
+	be aligned even without a directive.  Better yet, help it along
+	by using union Aligned_Cons rather than struct Lisp_Cons.
+	(pointer_valid_for_lisp_object): Remove.  This check is not
+	necessary, since make_lisp_ptr is already doing it.  All uses removed.
+	(local_vector_init, local_string_init): Move to alloc.c.
+	(build_local_vector): Remove this awkward macro, replacing with ...
+	(make_local_vector): New macro, which acts more like a function.
+	Use statement expressions and use __COUNTER__ to avoid macro
+	capture.  Fall back on functions if these features are not supported.
+	(build_local_string, make_local_string): Likewise.
+
 2014-09-09  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* xterm.c (x_term_init): Consolidate duplicated code.
