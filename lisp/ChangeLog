@@ -1,3 +1,13 @@
+2014-09-10  Alan Mackenzie  <acm@muc.de>
+
+	CC Mode: revert recent changes and fix bug 17463 (cc-langs.elc
+	gets loaded at run-time).
+	* progmodes/cc-langs.el (c-no-parens-syntax-table): Rename the
+	c-lang-const to c-make-no-parens-syntax-table and correct the
+	logic.
+	(c-no-parens-syntax-table): Correct the logic of the
+	c-lang-defvar.
+
 2014-09-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	CC-mode: Set open-paren-in-column-0-is-defun-start to nil;

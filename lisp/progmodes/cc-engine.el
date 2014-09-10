@@ -2222,8 +2222,6 @@ comment at the start of cc-engine.el for more info."
        ((and (not not-in-delimiter)	; inside a comment starter
 	     (not (bobp))
 	     (progn (backward-char)
-                    ;; FIXME: We never add category-properties to
-                    ;; c-emacs-features!
 		    (and (not (and (memq 'category-properties c-emacs-features)
 				   (looking-at "\\s!")))
 			 (looking-at c-comment-start-regexp))))
@@ -4121,10 +4119,10 @@ comment at the start of cc-engine.el for more info."
 				 (c-end-of-current-token last-token-end-pos))
 			       (setq last-token-end-pos (point))))))
 		 ;; Inside a token.
-		 (goto-char (if lookbehind-submatch
-                                ;; See the NOTE above.
-				state-pos
-			      (min last-token-end-pos bound))))
+		 (if lookbehind-submatch
+		     ;; See the NOTE above.
+		     (goto-char state-pos)
+		   (goto-char (min last-token-end-pos bound))))
 
 		(t
 		 ;; A real match.

@@ -153,8 +153,8 @@
 	c-emacs-variable-inits-tail c-emacs-variable-inits))
 
 (defmacro c-lang-defvar (var val &optional doc)
-  "Declare the buffer local variable VAR to get the value VAL.
-VAL is evaluated and assigned at mode initialization.  More precisely, VAL is
+  "Declares the buffer local variable VAR to get the value VAL.  VAL is
+evaluated and assigned at mode initialization.  More precisely, VAL is
 evaluated and bound to VAR when the result from the macro
 `c-init-language-vars' is evaluated.
 
@@ -218,54 +218,55 @@ the evaluated constant value at compile time."
   ;; Some helper functions used when building the language constants.
 
   (defun c-filter-ops (ops opgroup-filter op-filter &optional xlate)
-    "Extract a subset of the operators in the list OPS in a DWIM:ey way.
-The return value is a plain list of operators:
-
-OPS either has the structure of `c-operators', is a single
-group in `c-operators', or is a plain list of operators.
-
-OPGROUP-FILTER specifies how to select the operator groups.  It
-can be t to choose all groups, a list of group type symbols
-\(such as 'prefix) to accept, or a function which will be called
-with the group symbol for each group and should return non-nil
-if that group is to be included.
-
-If XLATE is given, it's a function which is called for each
-matching operator and its return value is collected instead.
-If it returns a list, the elements are spliced directly into
-the final result, which is returned as a list with duplicates
-removed using `equal'.
-
-`c-mode-syntax-table' for the current mode is in effect during
-the whole procedure."
+    ;; Extract a subset of the operators in the list OPS in a DWIM:ey
+    ;; way.  The return value is a plain list of operators:
+    ;;
+    ;; OPS either has the structure of `c-operators', is a single
+    ;; group in `c-operators', or is a plain list of operators.
+    ;;
+    ;; OPGROUP-FILTER specifies how to select the operator groups.  It
+    ;; can be t to choose all groups, a list of group type symbols
+    ;; (such as 'prefix) to accept, or a function which will be called
+    ;; with the group symbol for each group and should return non-nil
+    ;; if that group is to be included.
+    ;;
+    ;; If XLATE is given, it's a function which is called for each
+    ;; matching operator and its return value is collected instead.
+    ;; If it returns a list, the elements are spliced directly into
+    ;; the final result, which is returned as a list with duplicates
+    ;; removed using `equal'.
+    ;;
+    ;; `c-mode-syntax-table' for the current mode is in effect during
+    ;; the whole procedure.
     (unless (listp (car-safe ops))
       (setq ops (list ops)))
-    (let ((opgroup-filter
-           (cond ((eq opgroup-filter t) (lambda (opgroup) t))
-                 ((not (functionp opgroup-filter))
-                  `(lambda (opgroup) (memq opgroup ',opgroup-filter)))
-                 (t opgroup-filter)))
-          (op-filter
-           (cond ((eq op-filter t) (lambda (op) t))
-                 ((stringp op-filter) `(lambda (op) (string-match ,op-filter op)))
-                 (t op-filter))))
-      (unless xlate
-        (setq xlate #'identity))
-      (c-with-syntax-table (c-lang-const c-mode-syntax-table)
-        (cl-delete-duplicates
-         (cl-mapcan (lambda (opgroup)
-                      (when (if (symbolp (car opgroup))
-                                (when (funcall opgroup-filter (car opgroup))
-                                  (setq opgroup (cdr opgroup))
-                                  t)
-                              t)
-                        (cl-mapcan (lambda (op)
-                                     (when (funcall op-filter op)
-                                       (let ((res (funcall xlate op)))
-                                         (if (listp res) res (list res)))))
-                                   opgroup)))
-                    ops)
-         :test #'equal)))))
+    (cond ((eq opgroup-filter t)
+	   (setq opgroup-filter (lambda (opgroup) t)))
+	  ((not (functionp opgroup-filter))
+	   (setq opgroup-filter `(lambda (opgroup)
+				   (memq opgroup ',opgroup-filter)))))
+    (cond ((eq op-filter t)
+	   (setq op-filter (lambda (op) t)))
+	  ((stringp op-filter)
+	   (setq op-filter `(lambda (op)
+			      (string-match ,op-filter op)))))
+    (unless xlate
+      (setq xlate 'identity))
+    (c-with-syntax-table (c-lang-const c-mode-syntax-table)
+      (cl-delete-duplicates
+       (cl-mapcan (lambda (opgroup)
+		 (when (if (symbolp (car opgroup))
+			   (when (funcall opgroup-filter (car opgroup))
+			     (setq opgroup (cdr opgroup))
+			     t)
+			 t)
+		   (cl-mapcan (lambda (op)
+			     (when (funcall op-filter op)
+			       (let ((res (funcall xlate op)))
+				 (if (listp res) res (list res)))))
+			   opgroup)))
+	       ops)
+       :test 'equal))))
 
 
 ;;; Various mode specific values that aren't language related.
@@ -349,12 +350,16 @@ the comment syntax to handle both line style \"//\" and block style
   ;; all languages now require dual comments, we make this the
   ;; default.
   (cond
-   ((featurep 'xemacs)
+   ;; XEmacs
+   ((memq '8-bit c-emacs-features)
     (modify-syntax-entry ?/  ". 1456" table)
     (modify-syntax-entry ?*  ". 23"   table))
-   (t
+   ;; Emacs
+   ((memq '1-bit c-emacs-features)
     (modify-syntax-entry ?/  ". 124b" table)
-    (modify-syntax-entry ?*  ". 23"   table)))
+    (modify-syntax-entry ?*  ". 23"   table))
+   ;; incompatible
+   (t (error "CC Mode is incompatible with this version of Emacs")))
 
   (modify-syntax-entry ?\n "> b"  table)
   ;; Give CR the same syntax as newline, for selective-display
@@ -363,19 +368,19 @@ the comment syntax to handle both line style \"//\" and block style
 (c-lang-defconst c-make-mode-syntax-table
   "Functions that generates the mode specific syntax tables.
 The syntax tables aren't stored directly since they're quite large."
-  t (lambda ()
-      (let ((table (make-syntax-table)))
-        (c-populate-syntax-table table)
-        ;; Mode specific syntaxes.
-        (cond ((or (c-major-mode-is 'objc-mode) (c-major-mode-is 'java-mode))
-               ;; Let '@' be part of symbols in ObjC to cope with
-               ;; its compiler directives as single keyword tokens.
-               ;; This is then necessary since it's assumed that
-               ;; every keyword is a single symbol.
-               (modify-syntax-entry ?@ "_" table))
-              ((c-major-mode-is 'pike-mode)
-               (modify-syntax-entry ?@ "." table)))
-        table)))
+  t `(lambda ()
+       (let ((table (make-syntax-table)))
+	 (c-populate-syntax-table table)
+	 ;; Mode specific syntaxes.
+	 ,(cond ((or (c-major-mode-is 'objc-mode) (c-major-mode-is 'java-mode))
+		 ;; Let '@' be part of symbols in ObjC to cope with
+		 ;; its compiler directives as single keyword tokens.
+		 ;; This is then necessary since it's assumed that
+		 ;; every keyword is a single symbol.
+		 `(modify-syntax-entry ?@ "_" table))
+		((c-major-mode-is 'pike-mode)
+		 `(modify-syntax-entry ?@ "." table)))
+	 table)))
 
 (c-lang-defconst c-mode-syntax-table
   ;; The syntax tables in evaluated form.  Only used temporarily when
@@ -393,15 +398,15 @@ The syntax tables aren't stored directly since they're quite large."
   ;; CALLED!!!
   t   nil
   (java c++) `(lambda ()
-                (let ((table (funcall ,(c-lang-const c-make-mode-syntax-table))))
-                  (modify-syntax-entry ?< "(>" table)
+	 (let ((table (funcall ,(c-lang-const c-make-mode-syntax-table))))
+	   (modify-syntax-entry ?< "(>" table)
 	   (modify-syntax-entry ?> ")<" table)
 	   table)))
 (c-lang-defvar c++-template-syntax-table
   (and (c-lang-const c++-make-template-syntax-table)
        (funcall (c-lang-const c++-make-template-syntax-table))))
 
-(c-lang-defconst c-no-parens-syntax-table
+(c-lang-defconst c-make-no-parens-syntax-table
   ;; A variant of the standard syntax table which is used to find matching
   ;; "<"s and ">"s which have been marked as parens using syntax table
   ;; properties.  The other paren characters (e.g. "{", ")" "]") are given a
@@ -409,18 +414,20 @@ The syntax tables aren't stored directly since they're quite large."
   ;; even when there's unbalanced other parens inside them.
   ;;
   ;; This variable is nil for languages which don't have template stuff.
-  t  `(lambda ()
-	(if (c-lang-const c-recognize-<>-arglists)
-	    (let ((table (funcall ,(c-lang-const c-make-mode-syntax-table))))
-	      (modify-syntax-entry ?\( "." table)
-	      (modify-syntax-entry ?\) "." table)
-              (modify-syntax-entry ?\[ "." table)
-              (modify-syntax-entry ?\] "." table)
-              (modify-syntax-entry ?\{ "." table)
-	      (modify-syntax-entry ?\} "." table)
-	      table))))
+  t  (if (c-lang-const c-recognize-<>-arglists)
+     `(lambda ()
+	;(if (c-lang-const c-recognize-<>-arglists)
+	(let ((table (funcall ,(c-lang-const c-make-mode-syntax-table))))
+	  (modify-syntax-entry ?\( "." table)
+	  (modify-syntax-entry ?\) "." table)
+	  (modify-syntax-entry ?\[ "." table)
+	  (modify-syntax-entry ?\] "." table)
+	  (modify-syntax-entry ?\{ "." table)
+	  (modify-syntax-entry ?\} "." table)
+	  table))))
 (c-lang-defvar c-no-parens-syntax-table
-	       (funcall (c-lang-const c-no-parens-syntax-table)))
+  (and (c-lang-const c-make-no-parens-syntax-table)
+       (funcall (c-lang-const c-make-no-parens-syntax-table))))
 
 (c-lang-defconst c-identifier-syntax-modifications
   "A list that describes the modifications that should be done to the
@@ -1137,8 +1144,7 @@ operators."
   c++  (append '("&" "<%" "%>" "<:" ":>" "%:" "%:%:")
 	       (c-lang-const c-other-op-syntax-tokens))
   objc (append '("#" "##"		; Used by cpp.
-		 "+" "-")
-               (c-lang-const c-other-op-syntax-tokens))
+		 "+" "-") (c-lang-const c-other-op-syntax-tokens))
   idl  (append '("#" "##")		; Used by cpp.
 	       (c-lang-const c-other-op-syntax-tokens))
   pike (append '("..")
@@ -2465,24 +2471,27 @@ Note that Java specific rules are currently applied to tell this from
 
 ;; Note: No `*-kwds' language constants may be defined below this point.
 
-(defconst c-kwds-lang-consts
-  ;; List of all the language constants that contain keyword lists.
-  (let (list)
-    (mapatoms (lambda (sym)
-                (when (and ;; (boundp sym)
-                       (string-match "-kwds\\'" (symbol-name sym)))
-                  ;; Make the list of globally interned symbols
-                  ;; instead of ones interned in `c-lang-constants'.
-                  (setq list (cons (intern (symbol-name sym)) list))))
-              c-lang-constants)
-    list))
+(eval-and-compile
+  (defconst c-kwds-lang-consts
+    ;; List of all the language constants that contain keyword lists.
+    (let (list)
+      (mapatoms (lambda (sym)
+		  (when (and (boundp sym)
+			     (string-match "-kwds\\'" (symbol-name sym)))
+		    ;; Make the list of globally interned symbols
+		    ;; instead of ones interned in `c-lang-constants'.
+		    (setq list (cons (intern (symbol-name sym)) list))))
+		c-lang-constants)
+      list)))
 
 (c-lang-defconst c-keywords
   ;; All keywords as a list.
   t (cl-delete-duplicates
-     (apply #'append (mapcar (lambda (kwds-lang-const)
-                              (c-get-lang-constant kwds-lang-const))
-                            c-kwds-lang-consts))
+     (c-lang-defconst-eval-immediately
+      `(append ,@(mapcar (lambda (kwds-lang-const)
+			   `(c-lang-const ,kwds-lang-const))
+			 c-kwds-lang-consts)
+	       nil))
      :test 'string-equal))
 
 (c-lang-defconst c-keywords-regexp
@@ -2494,10 +2503,18 @@ Note that Java specific rules are currently applied to tell this from
   ;; An alist with all the keywords in the cars.  The cdr for each
   ;; keyword is a list of the symbols for the `*-kwds' lists that
   ;; contains it.
-  t (let (kwd-list kwd
+  t (let ((kwd-list-alist
+	   (c-lang-defconst-eval-immediately
+	    `(list ,@(mapcar (lambda (kwds-lang-const)
+			       `(cons ',kwds-lang-const
+				      (c-lang-const ,kwds-lang-const)))
+			     c-kwds-lang-consts))))
+	  lang-const kwd-list kwd
 	  result-alist elem)
-      (dolist (lang-const c-kwds-lang-consts)
-	(setq kwd-list (c-get-lang-constant lang-const))
+      (while kwd-list-alist
+	(setq lang-const (caar kwd-list-alist)
+	      kwd-list (cdar kwd-list-alist)
+	      kwd-list-alist (cdr kwd-list-alist))
 	(while kwd-list
 	  (setq kwd (car kwd-list)
 		kwd-list (cdr kwd-list))
@@ -2583,13 +2600,12 @@ Note that Java specific rules are currently applied to tell this from
 			    right-assoc-sequence)
 			  t))
 
-	   ;; (unambiguous-prefix-ops (cl-set-difference nonkeyword-prefix-ops
-	   ;;      				   in-or-postfix-ops
-	   ;;      				   :test 'string-equal))
-	   ;; (ambiguous-prefix-ops (cl-intersection nonkeyword-prefix-ops
-	   ;;      			       in-or-postfix-ops
-	   ;;      			       :test 'string-equal))
-           )
+	   (unambiguous-prefix-ops (set-difference nonkeyword-prefix-ops
+						   in-or-postfix-ops
+						   :test 'string-equal))
+	   (ambiguous-prefix-ops (intersection nonkeyword-prefix-ops
+					       in-or-postfix-ops
+					       :test 'string-equal)))
 
       (concat
        "\\("
