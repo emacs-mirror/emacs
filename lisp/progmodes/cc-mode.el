@@ -95,14 +95,9 @@
 (cc-require 'cc-menus)
 (cc-require 'cc-guess)
 
-;; Silence the compiler.
-(cc-bytecomp-defvar adaptive-fill-first-line-regexp) ; Emacs
-(cc-bytecomp-defun run-mode-hooks)	; Emacs 21.1
-
 ;; We set these variables during mode init, yet we don't require
 ;; font-lock.
-(cc-bytecomp-defvar font-lock-defaults)
-(cc-bytecomp-defvar font-lock-syntactic-keywords)
+(defvar font-lock-defaults)
 
 ;; Menu support for both XEmacs and Emacs.  If you don't have easymenu
 ;; with your version of Emacs, you are incompatible!
@@ -552,11 +547,8 @@ that requires a literal mode spec at compile time."
   ;; heuristic that open parens in column 0 are defun starters.  Since
   ;; we have c-state-cache, that heuristic isn't useful and only causes
   ;; trouble, so turn it off.
-;; 2006/12/17: This facility is somewhat confused, and doesn't really seem
-;; helpful.  Comment it out for now.
-;;   (when (memq 'col-0-paren c-emacs-features)
-;;     (make-local-variable 'open-paren-in-column-0-is-defun-start)
-;;     (setq open-paren-in-column-0-is-defun-start nil))
+  (when (memq 'col-0-paren c-emacs-features)
+    (set (make-local-variable 'open-paren-in-column-0-is-defun-start) nil))
 
   (c-clear-found-types)
 
@@ -816,7 +808,7 @@ Note that the style variables are always made local to the buffer."
 (defmacro c-run-mode-hooks (&rest hooks)
   ;; Emacs 21.1 has introduced a system with delayed mode hooks that
   ;; requires the use of the new function `run-mode-hooks'.
-  (if (cc-bytecomp-fboundp 'run-mode-hooks)
+  (if (fboundp 'run-mode-hooks)
       `(run-mode-hooks ,@hooks)
     `(progn ,@(mapcar (lambda (hook) `(run-hooks ,hook)) hooks))))
 
@@ -1232,8 +1224,8 @@ This function is called from `c-common-init', once per mode initialization."
 	  (font-lock-mark-block-function
 	   . c-mark-function)))
 
-  (make-local-variable 'font-lock-fontify-region-function)
-  (setq font-lock-fontify-region-function 'c-font-lock-fontify-region)
+  (set (make-local-variable 'font-lock-fontify-region-function)
+       #'c-font-lock-fontify-region)
 
   (if (featurep 'xemacs)
       (make-local-hook 'font-lock-mode-hook))

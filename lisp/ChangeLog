@@ -1,3 +1,45 @@
+2014-09-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	CC-mode: Set open-paren-in-column-0-is-defun-start to nil;
+	plus misc cleanup.
+	* progmodes/cc-mode.el (c-basic-common-init):
+	Set open-paren-in-column-0-is-defun-start.
+	(adaptive-fill-first-line-regexp, font-lock-syntactic-keywords):
+	Remove declarations, unused.
+	(run-mode-hooks): Remove declaration.
+	(font-lock-defaults): Use plain `defvar' to declare.
+	(c-run-mode-hooks): Test existence of run-mode-hooks with fboundp.
+	* progmodes/cc-langs.el (c-filter-ops): Avoid `setq'.
+	(c-make-mode-syntax-table): Don't micro-optimize.
+	(c-keywords, c-keyword-member-alist): Simplify.
+	(c-kwds-lang-consts): Don't eval at compile-time.
+	(c-primary-expr-regexp): Comment out unused vars.
+	* progmodes/cc-fonts.el (c-font-lock-context): Declare at top-level.
+	(c-font-byte-compile): New var.
+	(c--compile): New function.  Use it instead of `byte-compile'.
+	(c-cpp-matchers): Quote the value returned by
+	`c-make-syntactic-matcher' in case it's not self-evaluating.
+	(c-basic-matchers-before): Avoid a plain MATCHER as keyword, wrap it in
+	parentheses instead (in case MATCHER happens to be a list).
+	(c-font-lock-enum-tail): Remove unused var `start'.
+	(c-font-lock-objc-methods): Silence byte-compiler warnings.
+	* progmodes/cc-engine.el (c-syntactic-re-search-forward): Sink an `if'
+	test into an argument.
+	* progmodes/cc-defs.el (c-point, c-major-mode-is, c-put-char-property)
+	(c-get-char-property): Don't use `eval' just to unquote a constant.
+	(c-use-extents): Remove.  Use (featurep 'xemacs), compiled
+	more efficiently.
+	(c-put-char-property-fun): Don't call `byte-compile' by hand.
+	(c-clear-char-property, c-clear-char-properties): Check that `property'
+	is a quoted constant.
+	(c-emacs-features): Remove `infodock', `syntax-properties', and
+	`pps-extended-state' (never used), `8-bit' and `1-bit' (use (featurep
+	'xemacs) instead).  Use `with-temp-buffer' and let-bind vars after
+	changing buffer, so we don't have to setq them again afterwards.
+	(c-lang-const): Remove redundant symbolp assertions.
+	(c-find-assignment-for-mode): Use `or'.
+	* Makefile.in (compile-one-process): Remove cc-mode dependency.
+
 2014-09-09  Sam Steingold  <sds@gnu.org>
 
 	* progmodes/sql.el (sql-default-directory): Fix type annotation.

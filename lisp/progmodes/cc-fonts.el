@@ -201,16 +201,17 @@
   :version "24.1"
   :group 'c)
 
+;; This indicates the "font locking context", and is set just before
+;; fontification is done.  If non-nil, it says, e.g., point starts
+;; from within a #if preprocessor construct.
+(defvar c-font-lock-context nil)
+(make-variable-buffer-local 'c-font-lock-context)
+(cc-bytecomp-defvar c-font-lock-context)
+
 (eval-and-compile
   ;; We need the following definitions during compilation since they're
   ;; used when the `c-lang-defconst' initializers are evaluated.  Define
   ;; them at runtime too for the sake of derived modes.
-
-  ;; This indicates the "font locking context", and is set just before
-  ;; fontification is done.  If non-nil, it says, e.g., point starts
-  ;; from within a #if preprocessor construct.
-  (defvar c-font-lock-context nil)
-  (make-variable-buffer-local 'c-font-lock-context)
 
   (defmacro c-put-font-lock-face (from to face)
     ;; Put a face on a region (overriding any existing face) in the way
@@ -272,18 +273,29 @@
 		    (c-got-face-at (point) c-literal-faces))))
       t))
 
+  (defvar c-font-byte-compile t
+    "If non-nil, byte-compile the dynamically-generated functions.")
+
+  (defun c--compile (exp)
+    (cond
+     ((byte-code-function-p exp) (error "Already byte-compiled: %S" exp))
+     ((not (eq (car-safe exp) 'lambda))
+      (error "Expected a (lambda ..): %S" exp))
+     (c-font-byte-compile (byte-compile exp))
+     (t (eval (macroexpand-all exp)))))
+
   (defun c-make-syntactic-matcher (regexp)
-    ;; Returns a byte compiled function suitable for use in place of a
-    ;; regexp string in a `font-lock-keywords' matcher, except that
-    ;; only matches outside comments and string literals count.
-    ;;
-    ;; This function does not do any hidden buffer changes, but the
-    ;; generated functions will.  (They are however used in places
-    ;; covered by the font-lock context.)
-    (byte-compile
+    "Return a function suitable for use in place of a
+regexp string in a `font-lock-keywords' matcher, except that
+only matches outside comments and string literals count.
+
+This function does not do any hidden buffer changes, but the
+generated functions will.  (They are however used in places
+covered by the font-lock context.)"
+    (c--compile
      `(lambda (limit)
 	(let (res)
-	  (while (and (setq res (re-search-forward ,regexp limit t))
+          (while (and (setq res (re-search-forward ,regexp limit t))
 		      (progn
 			(goto-char (match-beginning 0))
 			(or (c-skip-comments-and-strings limit)
@@ -332,34 +344,34 @@
 	    highlights))))
 
   (defun c-make-font-lock-search-function (regexp &rest highlights)
-    ;; This function makes a byte compiled function that works much like
-    ;; a matcher element in `font-lock-keywords'.  It cuts out a little
-    ;; bit of the overhead compared to a real matcher.  The main reason
-    ;; is however to pass the real search limit to the anchored
-    ;; matcher(s), since most (if not all) font-lock implementations
-    ;; arbitrarily limit anchored matchers to the same line, and also
-    ;; to insulate against various other irritating differences between
-    ;; the different (X)Emacs font-lock packages.
-    ;;
-    ;; REGEXP is the matcher, which must be a regexp.  Only matches
-    ;; where the beginning is outside any comment or string literal are
-    ;; significant.
-    ;;
-    ;; HIGHLIGHTS is a list of highlight specs, just like in
-    ;; `font-lock-keywords', with these limitations: The face is always
-    ;; overridden (no big disadvantage, since hits in comments etc are
-    ;; filtered anyway), there is no "laxmatch", and an anchored matcher
-    ;; is always a form which must do all the fontification directly.
-    ;; `limit' is a variable bound to the real limit in the context of
-    ;; the anchored matcher forms.
-    ;;
-    ;; This function does not do any hidden buffer changes, but the
-    ;; generated functions will.  (They are however used in places
-    ;; covered by the font-lock context.)
+    "This function makes a byte compiled function that works much like
+a matcher element in `font-lock-keywords'.  It cuts out a little
+bit of the overhead compared to a real matcher.  The main reason
+is however to pass the real search limit to the anchored
+matcher(s), since most (if not all) font-lock implementations
+arbitrarily limit anchored matchers to the same line, and also
+to insulate against various other irritating differences between
+the different (X)Emacs font-lock packages.
 
-    ;; Note: Replace `byte-compile' with `eval' to debug the generated
+REGEXP is the matcher, which must be a regexp.  Only matches
+where the beginning is outside any comment or string literal are
+significant.
+
+HIGHLIGHTS is a list of highlight specs, just like in
+`font-lock-keywords', with these limitations: The face is always
+overridden (no big disadvantage, since hits in comments etc are
+filtered anyway), there is no \"laxmatch\", and an anchored matcher
+is always a form which must do all the fontification directly.
+`limit' is a variable bound to the real limit in the context of
+the anchored matcher forms.
+
+This function does not do any hidden buffer changes, but the
+generated functions will.  (They are however used in places
+covered by the font-lock context.)"
+
+    ;; Note: Set c-font-byte-compile to nil to debug the generated
     ;; lambda more easily.
-    (byte-compile
+    (c--compile
      `(lambda (limit)
 	(let ( ;; The font-lock package in Emacs is known to clobber
 	      ;; `parse-sexp-lookup-properties' (when it exists).
@@ -402,44 +414,44 @@
 	nil)))
 
   (defun c-make-font-lock-BO-decl-search-function (regexp &rest highlights)
-    ;; This function makes a byte compiled function that first moves back
-    ;; to the beginning of the current declaration (if any), then searches
-    ;; forward for matcher elements (as in `font-lock-keywords') and
-    ;; fontifies them.
-    ;;
-    ;; The motivation for moving back to the declaration start is to
-    ;; establish a context for the current text when, e.g., a character
-    ;; is typed on a C++ inheritance continuation line, or a jit-lock
-    ;; chunk starts there.
-    ;;
-    ;; The new function works much like a matcher element in
-    ;; `font-lock-keywords'.  It cuts out a little bit of the overhead
-    ;; compared to a real matcher.  The main reason is however to pass the
-    ;; real search limit to the anchored matcher(s), since most (if not
-    ;; all) font-lock implementations arbitrarily limit anchored matchers
-    ;; to the same line, and also to insulate against various other
-    ;; irritating differences between the different (X)Emacs font-lock
-    ;; packages.
-    ;;
-    ;; REGEXP is the matcher, which must be a regexp.  Only matches
-    ;; where the beginning is outside any comment or string literal are
-    ;; significant.
-    ;;
-    ;; HIGHLIGHTS is a list of highlight specs, just like in
-    ;; `font-lock-keywords', with these limitations: The face is always
-    ;; overridden (no big disadvantage, since hits in comments etc are
-    ;; filtered anyway), there is no "laxmatch", and an anchored matcher
-    ;; is always a form which must do all the fontification directly.
-    ;; `limit' is a variable bound to the real limit in the context of
-    ;; the anchored matcher forms.
-    ;;
-    ;; This function does not do any hidden buffer changes, but the
-    ;; generated functions will.  (They are however used in places
-    ;; covered by the font-lock context.)
+    "This function makes a byte compiled function that first moves back
+to the beginning of the current declaration (if any), then searches
+forward for matcher elements (as in `font-lock-keywords') and
+fontifies them.
 
-    ;; Note: Replace `byte-compile' with `eval' to debug the generated
+The motivation for moving back to the declaration start is to
+establish a context for the current text when, e.g., a character
+is typed on a C++ inheritance continuation line, or a jit-lock
+chunk starts there.
+
+The new function works much like a matcher element in
+`font-lock-keywords'.  It cuts out a little bit of the overhead
+compared to a real matcher.  The main reason is however to pass the
+real search limit to the anchored matcher(s), since most (if not
+all) font-lock implementations arbitrarily limit anchored matchers
+to the same line, and also to insulate against various other
+irritating differences between the different (X)Emacs font-lock
+packages.
+
+REGEXP is the matcher, which must be a regexp.  Only matches
+where the beginning is outside any comment or string literal are
+significant.
+
+HIGHLIGHTS is a list of highlight specs, just like in
+`font-lock-keywords', with these limitations: The face is always
+overridden (no big disadvantage, since hits in comments etc are
+filtered anyway), there is no \"laxmatch\", and an anchored matcher
+is always a form which must do all the fontification directly.
+`limit' is a variable bound to the real limit in the context of
+the anchored matcher forms.
+
+This function does not do any hidden buffer changes, but the
+generated functions will.  (They are however used in places
+covered by the font-lock context.)"
+
+    ;; Note: Set c-font-byte-compile to nil to debug the generated
     ;; lambda more easily.
-    (byte-compile
+    (c--compile
      `(lambda (limit)
 	(let ( ;; The font-lock package in Emacs is known to clobber
 	      ;; `parse-sexp-lookup-properties' (when it exists).
@@ -457,40 +469,40 @@
 	nil)))
 
   (defun c-make-font-lock-context-search-function (normal &rest state-stanzas)
-    ;; This function makes a byte compiled function that works much like
-    ;; a matcher element in `font-lock-keywords', with the following
-    ;; enhancement: the generated function will test for particular "font
-    ;; lock contexts" at the start of the region, i.e. is this point in
-    ;; the middle of some particular construct?  if so the generated
-    ;; function will first fontify the tail of the construct, before
-    ;; going into the main loop and fontify full constructs up to limit.
-    ;;
-    ;; The generated function takes one parameter called `limit', and
-    ;; will fontify the region between POINT and LIMIT.
-    ;;
-    ;; NORMAL is a list of the form (REGEXP HIGHLIGHTS .....), and is
-    ;; used to fontify the "regular" bit of the region.
-    ;; STATE-STANZAS is list of elements of the form (STATE LIM REGEXP
-    ;; HIGHLIGHTS), each element coding one possible font lock context.
+    "This function makes a byte compiled function that works much like
+a matcher element in `font-lock-keywords', with the following
+enhancement: the generated function will test for particular \"font
+lock contexts\" at the start of the region, i.e. is this point in
+the middle of some particular construct?  if so the generated
+function will first fontify the tail of the construct, before
+going into the main loop and fontify full constructs up to limit.
 
-    ;; o - REGEXP is a font-lock regular expression (NOT a function),
-    ;; o - HIGHLIGHTS is a list of zero or more highlighters as defined
-    ;;   on page "Search-based Fontification" in the elisp manual.  As
-    ;;   yet (2009-06), they must have OVERRIDE set, and may not have
-    ;;   LAXMATCH set.
-    ;;
-    ;; o - STATE is the "font lock context" (e.g. in-cpp-expr) and is
-    ;;   not quoted.
-    ;; o - LIM is a lisp form whose evaluation will yield the limit
-    ;;   position in the buffer for fontification by this stanza.
-    ;;
-    ;; This function does not do any hidden buffer changes, but the
-    ;; generated functions will.  (They are however used in places
-    ;; covered by the font-lock context.)
-    ;;
-    ;; Note: Replace `byte-compile' with `eval' to debug the generated
+The generated function takes one parameter called `limit', and
+will fontify the region between POINT and LIMIT.
+
+NORMAL is a list of the form (REGEXP HIGHLIGHTS .....), and is
+used to fontify the \"regular\" bit of the region.
+STATE-STANZAS is list of elements of the form (STATE LIM REGEXP
+HIGHLIGHTS), each element coding one possible font lock context.
+
+o - REGEXP is a font-lock regular expression (NOT a function),
+o - HIGHLIGHTS is a list of zero or more highlighters as defined
+  on page \"Search-based Fontification\" in the elisp manual.  As
+  yet (2009-06), they must have OVERRIDE set, and may not have
+  LAXMATCH set.
+
+o - STATE is the \"font lock context\" (e.g. in-cpp-expr) and is
+  not quoted.
+o - LIM is a lisp form whose evaluation will yield the limit
+  position in the buffer for fontification by this stanza.
+
+This function does not do any hidden buffer changes, but the
+generated functions will.  (They are however used in places
+covered by the font-lock context.)"
+
+    ;; Note: Set c-font-byte-compile to nil to debug the generated
     ;; lambda more easily.
-    (byte-compile
+    (c--compile
      `(lambda (limit)
 	(let ( ;; The font-lock package in Emacs is known to clobber
 	      ;; `parse-sexp-lookup-properties' (when it exists).
@@ -522,10 +534,10 @@
     (form &rest &or ("quote" (&rest form)) ("`" (&rest form)) form)));))
 
 (defun c-fontify-recorded-types-and-refs ()
-  ;; Convert the ranges recorded on `c-record-type-identifiers' and
-  ;; `c-record-ref-identifiers' to fontification.
-  ;;
-  ;; This function does hidden buffer changes.
+  "Convert the ranges recorded on `c-record-type-identifiers' and
+`c-record-ref-identifiers' to fontification.
+  
+This function does hidden buffer changes."
   (let (elem)
     (while (consp c-record-type-identifiers)
       (setq elem (car c-record-type-identifiers)
@@ -581,7 +593,7 @@ stuff.  Used on level 1 and higher."
 
 		       ;; Use an anchored matcher to put paren syntax
 		       ;; on the brackets.
-		       (,(byte-compile
+		       (,(c--compile
 			  `(lambda (limit)
 			     (let ((beg (match-beginning
 					 ,(+ ncle-depth re-depth sws-depth 1)))
@@ -683,10 +695,10 @@ stuff.  Used on level 1 and higher."
 			 "\\)")
 		 `(,(1+ ncle-depth) c-preprocessor-face-name t)))
 
-	      (eval . (list ,(c-make-syntactic-matcher
-			      (concat noncontinued-line-end
-				      (c-lang-const c-opt-cpp-prefix)
-				      "if\\(n\\)def\\>"))
+	      (eval . (list ',(c-make-syntactic-matcher
+                               (concat noncontinued-line-end
+                                       (c-lang-const c-opt-cpp-prefix)
+                                       "if\\(n\\)def\\>"))
 			    ,(+ ncle-depth 1)
 			    c-negation-char-face-name
 			    'append))
@@ -745,11 +757,11 @@ casts and declarations are fontified.  Used on level 2 and higher."
       ;; this, but it doesn't give the control we want since any
       ;; fontification done inside the function will be
       ;; unconditionally overridden.
-      ,(c-make-font-lock-search-function
-	;; Match a char before the string starter to make
-	;; `c-skip-comments-and-strings' work correctly.
-	(concat ".\\(" c-string-limit-regexp "\\)")
-	'((c-font-lock-invalid-string)))
+      (,(c-make-font-lock-search-function
+         ;; Match a char before the string starter to make
+         ;; `c-skip-comments-and-strings' work correctly.
+         (concat ".\\(" c-string-limit-regexp "\\)")
+         '((c-font-lock-invalid-string))))
 
       ;; Fontify keyword constants.
       ,@(when (c-lang-const c-constant-kwds)
@@ -801,7 +813,8 @@ casts and declarations are fontified.  Used on level 2 and higher."
 				    (c-backward-syntactic-ws)
 				    (setq id-end (point))
 				    (< (skip-chars-backward
-					,(c-lang-const c-symbol-chars)) 0))
+					,(c-lang-const c-symbol-chars))
+                                       0))
 				  (not (get-text-property (point) 'face)))
 			(c-put-font-lock-face (point) id-end
 					      c-reference-face-name)
@@ -809,7 +822,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
 		    nil
 		    (goto-char (match-end 0)))))
 
-	    `((,(byte-compile
+	    `((,(c--compile
 		 ;; Must use a function here since we match longer than
 		 ;; we want to move before doing a new search.  This is
 		 ;; not necessary for XEmacs since it restarts the
@@ -1564,9 +1577,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
   ;; Note that this function won't attempt to fontify beyond the end of the
   ;; current enum block, if any.
   (let* ((paren-state (c-parse-state))
-	 (encl-pos (c-most-enclosing-brace paren-state))
-	 (start (point))
-	)
+	 (encl-pos (c-most-enclosing-brace paren-state)))
     (when (and
 	   encl-pos
 	   (eq (char-after encl-pos) ?\{)
@@ -1617,17 +1628,16 @@ on level 2 only and so aren't combined with `c-complex-decl-matchers'."
   t `(;; Objective-C methods.
       ,@(when (c-major-mode-is 'objc-mode)
 	  `((,(c-lang-const c-opt-method-key)
-	     (,(byte-compile
-		(lambda (limit)
-		  (let (;; The font-lock package in Emacs is known to clobber
-			;; `parse-sexp-lookup-properties' (when it exists).
-			(parse-sexp-lookup-properties
-			 (cc-eval-when-compile
-			   (boundp 'parse-sexp-lookup-properties))))
-		    (save-restriction
-		      (narrow-to-region (point-min) limit)
-		      (c-font-lock-objc-method)))
-		  nil))
+	     (,(lambda (limit)
+                 (let (;; The font-lock package in Emacs is known to clobber
+                       ;; `parse-sexp-lookup-properties' (when it exists).
+                       (parse-sexp-lookup-properties
+                        (cc-eval-when-compile
+                          (boundp 'parse-sexp-lookup-properties))))
+                   (save-restriction
+                     (narrow-to-region (point-min) limit)
+                     (c-font-lock-objc-method)))
+                 nil)
 	      (goto-char (match-end 1))))))
 
       ;; Fontify all type names and the identifiers in the
@@ -1742,7 +1752,7 @@ on level 2 only and so aren't combined with `c-complex-decl-matchers'."
 
       ;; Fontify types preceded by `c-type-prefix-kwds' (e.g. "struct").
       ,@(when (c-lang-const c-type-prefix-kwds)
-	  `((,(byte-compile
+	  `((,(c--compile
 	       `(lambda (limit)
 		  (c-fontify-types-and-refs
 		      ((c-promote-possible-types t)
@@ -2295,7 +2305,7 @@ need for `c++-font-lock-extra-types'.")
      limit
      "[-+]"
      nil
-     (lambda (match-pos inside-macro)
+     (lambda (_match-pos _inside-macro)
        (forward-char)
        (c-font-lock-objc-method))))
   nil)

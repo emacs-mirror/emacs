@@ -195,7 +195,7 @@ If the referenced position doesn't exist, the closest accessible point
 to it is returned.  This function does not modify the point or the mark."
 
   (if (eq (car-safe position) 'quote)
-      (let ((position (eval position)))
+      (let ((position (nth 1 position)))
 	(cond
 
 	 ((eq position 'bol)
@@ -885,7 +885,7 @@ MODE is either a mode symbol or a list of mode symbols."
       `(c-lang-major-mode-is ,mode)
 
     (if (eq (car-safe mode) 'quote)
-	(let ((mode (eval mode)))
+	(let ((mode (nth 1 mode)))
 	  (if (listp mode)
 	      `(memq c-buffer-is-cc-mode ',mode)
 	    `(eq c-buffer-is-cc-mode ',mode)))
@@ -900,26 +900,10 @@ MODE is either a mode symbol or a list of mode symbols."
 ;; properties set on a single character and that never spread to any
 ;; other characters.
 
-(eval-and-compile
-  ;; Constant used at compile time to decide whether or not to use
-  ;; XEmacs extents.  Check all the extent functions we'll use since
-  ;; some packages might add compatibility aliases for some of them in
-  ;; Emacs.
-  (defconst c-use-extents (and (cc-bytecomp-fboundp 'extent-at)
-			       (cc-bytecomp-fboundp 'set-extent-property)
-			       (cc-bytecomp-fboundp 'set-extent-properties)
-			       (cc-bytecomp-fboundp 'make-extent)
-			       (cc-bytecomp-fboundp 'extent-property)
-			       (cc-bytecomp-fboundp 'delete-extent)
-			       (cc-bytecomp-fboundp 'map-extents))))
-
 ;; `c-put-char-property' is complex enough in XEmacs and Emacs < 21 to
 ;; make it a function.
 (defalias 'c-put-char-property-fun
-  (cc-eval-when-compile
-    (cond (c-use-extents
-	   ;; XEmacs.
-	   (byte-compile
+  (cond ((featurep 'xemacs)
 	    (lambda (pos property value)
 	      (let ((ext (extent-at pos nil property)))
 		(if ext
@@ -928,20 +912,19 @@ MODE is either a mode symbol or a list of mode symbols."
 					 (cons property
 					       (cons value
 						     '(start-open t
-						       end-open t)))))))))
+                                                    end-open t))))))))
 
 	  ((not (cc-bytecomp-boundp 'text-property-default-nonsticky))
 	   ;; In Emacs < 21 we have to mess with the `rear-nonsticky' property.
-	   (byte-compile
 	    (lambda (pos property value)
 	      (put-text-property pos (1+ pos) property value)
 	      (let ((prop (get-text-property pos 'rear-nonsticky)))
 		(or (memq property prop)
 		    (put-text-property pos (1+ pos)
 				       'rear-nonsticky
-				       (cons property prop)))))))
+                                    (cons property prop))))))
 	  ;; This won't be used for anything.
-	  (t 'ignore))))
+        (t #'ignore)))
 (cc-bytecomp-defun c-put-char-property-fun) ; Make it known below.
 
 (defmacro c-put-char-property (pos property value)
@@ -956,42 +939,38 @@ MODE is either a mode symbol or a list of mode symbols."
   ;; 21) then it's assumed that the property is present on it.
   ;;
   ;; This macro does a hidden buffer change.
-  (setq property (eval property))
-  (if (or c-use-extents
+  (if (or (featurep 'xemacs)
 	  (not (cc-bytecomp-boundp 'text-property-default-nonsticky)))
       ;; XEmacs and Emacs < 21.
-      `(c-put-char-property-fun ,pos ',property ,value)
+      `(c-put-char-property-fun ,pos ,property ,value)
     ;; In Emacs 21 we got the `rear-nonsticky' property covered
     ;; by `text-property-default-nonsticky'.
     `(let ((-pos- ,pos))
-       (put-text-property -pos- (1+ -pos-) ',property ,value))))
+       (put-text-property -pos- (1+ -pos-) ,property ,value))))
 
 (defmacro c-get-char-property (pos property)
   ;; Get the value of the given property on the character at POS if
   ;; it's been put there by `c-put-char-property'.  PROPERTY is
   ;; assumed to be constant.
-  (setq property (eval property))
-  (if c-use-extents
+  (if (featurep 'xemacs)
       ;; XEmacs.
-      `(let ((ext (extent-at ,pos nil ',property)))
-	 (if ext (extent-property ext ',property)))
+      `(let ((ext (extent-at ,pos nil ,property)))
+	 (if ext (extent-property ext ,property)))
     ;; Emacs.
-    `(get-text-property ,pos ',property)))
+    `(get-text-property ,pos ,property)))
 
 ;; `c-clear-char-property' is complex enough in Emacs < 21 to make it
 ;; a function, since we have to mess with the `rear-nonsticky' property.
 (defalias 'c-clear-char-property-fun
-  (cc-eval-when-compile
-    (unless (or c-use-extents
+  (unless (or (featurep 'xemacs)
 		(cc-bytecomp-boundp 'text-property-default-nonsticky))
-      (byte-compile
        (lambda (pos property)
 	 (when (get-text-property pos property)
 	   (remove-text-properties pos (1+ pos) (list property nil))
 	   (put-text-property pos (1+ pos)
 			      'rear-nonsticky
 			      (delq property (get-text-property
-					      pos 'rear-nonsticky)))))))))
+                                           pos 'rear-nonsticky)))))))
 (cc-bytecomp-defun c-clear-char-property-fun) ; Make it known below.
 
 (defmacro c-clear-char-property (pos property)
@@ -1000,8 +979,10 @@ MODE is either a mode symbol or a list of mode symbols."
   ;; constant.
   ;;
   ;; This macro does a hidden buffer change.
-  (setq property (eval property))
-  (cond (c-use-extents
+  (if (eq 'quote (car-safe property))
+      (setq property (nth 1 property))
+    (error "`property' should be a quoted constant"))
+  (cond ((featurep 'xemacs)
 	 ;; XEmacs.
 	 `(let ((ext (extent-at ,pos nil ',property)))
 	    (if ext (delete-extent ext))))
@@ -1026,8 +1007,10 @@ MODE is either a mode symbol or a list of mode symbols."
   ;; `syntax-table'.
   ;;
   ;; This macro does hidden buffer changes.
-  (setq property (eval property))
-  (if c-use-extents
+  (if (eq 'quote (car-safe property))
+      (setq property (nth 1 property))
+    (error "`property' should be a quoted constant"))
+  (if (featurep 'xemacs)
       ;; XEmacs.
       `(map-extents (lambda (ext ignored)
 		      (delete-extent ext))
@@ -1097,7 +1080,7 @@ been put there by c-put-char-property.  POINT remains unchanged."
 which have the value VALUE, as tested by `equal'.  These
 properties are assumed to be over individual characters, having
 been put there by c-put-char-property.  POINT remains unchanged."
-  (if c-use-extents
+  (if (featurep 'xemacs)
     ;; XEmacs
       `(let ((-property- ,property))
 	 (map-extents (lambda (ext val)
@@ -1561,32 +1544,6 @@ non-nil, a caret is prepended to invert the set."
 (defconst c-emacs-features
   (let (list)
 
-    (if (boundp 'infodock-version)
-	;; I've no idea what this actually is, but it's legacy. /mast
-	(setq list (cons 'infodock list)))
-
-    ;; XEmacs uses 8-bit modify-syntax-entry flags.
-    ;; Emacs uses a 1-bit flag.  We will have to set up our
-    ;; syntax tables differently to handle this.
-    (let ((table (copy-syntax-table))
-	  entry)
-      (modify-syntax-entry ?a ". 12345678" table)
-      (cond
-       ;; Emacs
-       ((arrayp table)
-	(setq entry (aref table ?a))
-	;; In Emacs, table entries are cons cells
-	(if (consp entry) (setq entry (car entry))))
-       ;; XEmacs
-       ((fboundp 'get-char-table)
-	(setq entry (get-char-table ?a table)))
-       ;; incompatible
-       (t (error "CC Mode is incompatible with this version of Emacs")))
-      (setq list (cons (if (= (logand (lsh entry -16) 255) 255)
-			   '8-bit
-			 '1-bit)
-		       list)))
-
     ;; Check whether beginning/end-of-defun call
     ;; beginning/end-of-defun-function nicely, passing through the
     ;; argument and respecting the return code.
@@ -1609,34 +1566,11 @@ non-nil, a caret is prepended to invert the set."
 			       (not (end-of-defun))))
 	  (setq list (cons 'argumentative-bod-function list))))
 
-    (let ((buf (generate-new-buffer " test"))
-	  parse-sexp-lookup-properties
-	  parse-sexp-ignore-comments
-	  lookup-syntax-properties)	; XEmacs
-      (with-current-buffer buf
+    (with-temp-buffer
+      (let ((parse-sexp-lookup-properties t)
+            (parse-sexp-ignore-comments t)
+            (lookup-syntax-properties t))	; XEmacs
 	(set-syntax-table (make-syntax-table))
-
-	;; For some reason we have to set some of these after the
-	;; buffer has been made current.  (Specifically,
-	;; `parse-sexp-ignore-comments' in Emacs 21.)
-	(setq parse-sexp-lookup-properties t
-	      parse-sexp-ignore-comments t
-	      lookup-syntax-properties t)
-
-	;; Find out if the `syntax-table' text property works.
-	(modify-syntax-entry ?< ".")
-	(modify-syntax-entry ?> ".")
-	(insert "<()>")
-	(c-mark-<-as-paren (point-min))
-	(c-mark->-as-paren (+ 3 (point-min)))
-	(goto-char (point-min))
-	(c-forward-sexp)
-	(if (= (point) (+ 4 (point-min)))
-	    (setq list (cons 'syntax-properties list))
-	  (error (concat
-		  "CC Mode is incompatible with this version of Emacs - "
-		  "support for the `syntax-table' text property "
-		  "is required.")))
 
 	;; Find out if generic comment delimiters work.
 	(c-safe
@@ -1674,11 +1608,11 @@ non-nil, a caret is prepended to invert the set."
 	    (cond
 	     ;; XEmacs.  Afaik this is currently an Emacs-only
 	     ;; feature, but it's good to be prepared.
-	     ((memq '8-bit list)
+	     ((featurep 'xemacs)
 	      (modify-syntax-entry ?/ ". 1456")
 	      (modify-syntax-entry ?* ". 23"))
 	     ;; Emacs
-	     ((memq '1-bit list)
+	     (t
 	      (modify-syntax-entry ?/ ". 124b")
 	      (modify-syntax-entry ?* ". 23")))
 	    (modify-syntax-entry ?\n "> b")
@@ -1687,16 +1621,7 @@ non-nil, a caret is prepended to invert the set."
 	    (if (bobp)
 		(setq list (cons 'col-0-paren list)))))
 
-	(set-buffer-modified-p nil))
-      (kill-buffer buf))
-
-    ;; See if `parse-partial-sexp' returns the eighth element.
-    (if (c-safe (>= (length (save-excursion (parse-partial-sexp (point) (point))))
-		    10))
-	(setq list (cons 'pps-extended-state list))
-      (error (concat
-	      "CC Mode is incompatible with this version of Emacs - "
-	      "`parse-partial-sexp' has to return at least 10 elements.")))
+	(set-buffer-modified-p nil)))
 
     ;;(message "c-emacs-features: %S" list)
     list)
@@ -1705,29 +1630,16 @@ There are many flavors of Emacs out there, each with different
 features supporting those needed by CC Mode.  The following values
 might be present:
 
-'8-bit              8 bit syntax entry flags (XEmacs style).
-'1-bit              1 bit syntax entry flags (Emacs style).
-'argumentative-bod-function         beginning-of-defun passes ARG through
-                    to a non-null beginning-of-defun-function.  It is assumed
-		    the end-of-defun does the same thing.
-'syntax-properties  It works to override the syntax for specific characters
-		    in the buffer with the 'syntax-table property.  It's
-		    always set - CC Mode no longer works in emacsen without
-		    this feature.
-'gen-comment-delim  Generic comment delimiters work
+`argumentative-bod-function'         `beginning-of-defun' passes ARG through
+                    to a non-null `beginning-of-defun-function.'  It is assumed
+		    that `end-of-defun' does the same thing.
+`gen-comment-delim'  Generic comment delimiters work
 		    (i.e. the syntax class `!').
-'gen-string-delim   Generic string delimiters work
+`gen-string-delim'   Generic string delimiters work
 		    (i.e. the syntax class `|').
-'pps-extended-state `parse-partial-sexp' returns a list with at least 10
-		    elements, i.e. it contains the position of the start of
-		    the last comment or string.  It's always set - CC Mode
-                    no longer works in emacsen without this feature.
-'posix-char-classes The regexp engine understands POSIX character classes.
-'col-0-paren        It's possible to turn off the ad-hoc rule that a paren
-		    in column zero is the start of a defun.
-'infodock           This is Infodock (based on XEmacs).
-
-'8-bit and '1-bit are mutually exclusive.")
+`posix-char-classes' The regexp engine understands POSIX character classes.
+`col-0-paren'        It's possible to turn off the ad-hoc rule that a paren
+		    in column zero is the start of a defun.")
 
 
 ;;; Some helper constants.
@@ -2023,11 +1935,6 @@ LANG is the name of the language, i.e. the mode name without the
 language.  NAME and LANG are not evaluated so they should not be
 quoted."
 
-  (or (symbolp name)
-      (error "Not a symbol: %S" name))
-  (or (symbolp lang)
-      (error "Not a symbol: %S" lang))
-
   (let ((sym (intern (symbol-name name) c-lang-constants))
 	(mode (when lang (intern (concat (symbol-name lang) "-mode")))))
 
@@ -2188,57 +2095,56 @@ fallback definition for all modes, to break the cycle).")
 	value))))
 
 (defun c-find-assignment-for-mode (source-pos mode match-any-lang _name)
-  ;; Find the first assignment entry that applies to MODE at or after
-  ;; SOURCE-POS.  If MATCH-ANY-LANG is non-nil, entries with `t' as
-  ;; the language list are considered to match, otherwise they don't.
-  ;; On return SOURCE-POS is updated to point to the next assignment
-  ;; after the returned one.  If no assignment is found,
-  ;; `c-lang--novalue' is returned as a magic value.
-  ;;
-  ;; SOURCE-POS is a vector that points out a specific assignment in
-  ;; the double alist that's used in the `source' property.  The first
-  ;; element is the position in the top alist which is indexed with
-  ;; the source files, and the second element is the position in the
-  ;; nested bindings alist.
-  ;;
-  ;; NAME is only used for error messages.
+  "Find the first assignment entry that applies to MODE at or after
+SOURCE-POS.  If MATCH-ANY-LANG is non-nil, entries with `t' as
+the language list are considered to match, otherwise they don't.
+On return SOURCE-POS is updated to point to the next assignment
+after the returned one.  If no assignment is found,
+`c-lang--novalue' is returned as a magic value.
+
+SOURCE-POS is a vector that points out a specific assignment in
+the double alist that's used in the `source' property.  The first
+element is the position in the top alist which is indexed with
+the source files, and the second element is the position in the
+nested bindings alist.
+
+NAME is only used for error messages."
 
   (catch 'found
     (let ((file-entry (elt source-pos 0))
 	  (assignment-entry (elt source-pos 1))
 	  assignment)
 
-      (while (if assignment-entry
-		 t
-	       ;; Handled the last assignment from one file, begin on the
-	       ;; next.  Due to the check in `c-lang-defconst', we know
-	       ;; there's at least one.
-	       (when file-entry
+      (while (or assignment-entry
+                 ;; Handled the last assignment from one file, begin on the
+                 ;; next.  Due to the check in `c-lang-defconst', we know
+                 ;; there's at least one.
+                 (when file-entry
 
-		 (unless (aset source-pos 1
-			       (setq assignment-entry (cdar file-entry)))
-		   ;; The file containing the source definitions has not
-		   ;; been loaded.
-		   (let ((file (symbol-name (caar file-entry)))
-			 (c-lang-constants-under-evaluation nil))
-		     ;;(message (concat "Loading %s to get the source "
-		     ;;			"value for language constant %s")
-		     ;;		file name)
-		     (load file nil t))
+                   (unless (aset source-pos 1
+                                 (setq assignment-entry (cdar file-entry)))
+                     ;; The file containing the source definitions has not
+                     ;; been loaded.
+                     (let ((file (symbol-name (caar file-entry)))
+                           (c-lang-constants-under-evaluation nil))
+                       ;;(message (concat "Loading %s to get the source "
+                       ;;			"value for language constant %s")
+                       ;;		file name)
+                       (load file nil t))
 
-		   (unless (setq assignment-entry (cdar file-entry))
-		     ;; The load didn't fill in the source for the
-		     ;; constant as expected.  The situation is
-		     ;; probably that a derived mode was written for
-		     ;; and compiled with another version of CC Mode,
-		     ;; and the requested constant isn't in the
-		     ;; currently loaded one.  Put in a dummy
-		     ;; assignment that matches no language.
-		     (setcdr (car file-entry)
-			     (setq assignment-entry (list (list nil))))))
+                     (unless (setq assignment-entry (cdar file-entry))
+                       ;; The load didn't fill in the source for the
+                       ;; constant as expected.  The situation is
+                       ;; probably that a derived mode was written for
+                       ;; and compiled with another version of CC Mode,
+                       ;; and the requested constant isn't in the
+                       ;; currently loaded one.  Put in a dummy
+                       ;; assignment that matches no language.
+                       (setcdr (car file-entry)
+                               (setq assignment-entry (list (list nil))))))
 
-		 (aset source-pos 0 (setq file-entry (cdr file-entry)))
-		 t))
+                   (aset source-pos 0 (setq file-entry (cdr file-entry)))
+                   t))
 
 	(setq assignment (car assignment-entry))
 	(aset source-pos 1
