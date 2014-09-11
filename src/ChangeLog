@@ -1,3 +1,10 @@
+2014-09-10  Paul Eggert  <eggert@penguin.cs.ucla.edu>
+
+	* charset.c (Fget_unused_iso_final_char): Fix subscript error.
+	Use check_iso_charset_parameter instead of doing the checks by hand.
+	(check_iso_charset_parameter): Move up.  Check parameters a bit
+	more carefully, and return true for 96-char sets.  All callers changed.
+
 2014-09-10  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Simplify lisp.h by removing the __COUNTER__ business.
