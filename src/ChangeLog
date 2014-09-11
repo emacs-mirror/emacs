@@ -1,3 +1,8 @@
+2014-09-11  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* lisp.h (make_local_string): Nitpick indent.
+	* print.c (Fprin1_to_string): Remove unused GCPROs.
+
 2014-09-11  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Pacify --enable-gcc-warnings when no window system is used.

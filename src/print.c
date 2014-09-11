@@ -583,7 +583,6 @@ A printed representation of an object is text which describes that object.  */)
 {
   Lisp_Object printcharfun;
   bool prev_abort_on_gc;
-  /* struct gcpro gcpro1, gcpro2; */
   Lisp_Object save_deactivate_mark;
   ptrdiff_t count = SPECPDL_INDEX ();
   struct buffer *previous;
@@ -597,7 +596,6 @@ A printed representation of an object is text which describes that object.  */)
        but we don't want to deactivate the mark just for that.
        No need for specbind, since errors deactivate the mark.  */
     save_deactivate_mark = Vdeactivate_mark;
-    /* GCPRO2 (object, save_deactivate_mark); */
     prev_abort_on_gc = abort_on_gc;
     abort_on_gc = 1;
 
@@ -621,7 +619,6 @@ A printed representation of an object is text which describes that object.  */)
   set_buffer_internal (previous);
 
   Vdeactivate_mark = save_deactivate_mark;
-  /* UNGCPRO; */
 
   abort_on_gc = prev_abort_on_gc;
   return unbind_to (count, object);

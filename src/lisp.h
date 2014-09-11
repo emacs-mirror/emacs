@@ -4594,8 +4594,8 @@ verify (sizeof (struct Lisp_Cons) == sizeof (union Aligned_Cons));
        Lisp_Object string_;						\
        if (nbytes_ <= MAX_ALLOCA - sizeof (struct Lisp_String) - 1)	\
 	 {								\
-	   struct Lisp_String *ptr_ = alloca (sizeof (struct Lisp_String) + 1 \
-					      + nbytes_);		\
+	   struct Lisp_String *ptr_					\
+	     = alloca (sizeof (struct Lisp_String) + 1 + nbytes_);	\
 	   string_ = local_string_init (ptr_, data_, nbytes_);		\
 	 }								\
        else								\
