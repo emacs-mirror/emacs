@@ -3026,12 +3026,12 @@ routines."
 If necessary and possible, make sure that every window on frame
 FRAME has its minimum height.  Optional argument HORIZONTAL
 non-nil means to make sure that every window on frame FRAME has
-its minimum width.  The minimumm height/width of a window is the
+its minimum width.  The minimum height/width of a window is the
 respective value returned by `window-min-size' for that window.
 
 Return t if all windows were resized appropriately.  Return nil
 if at least one window could not be resized as requested, which
-may happen when the FRAME is not large enough to accomodate it."
+may happen when the FRAME is not large enough to accommodate it."
   (let ((value t))
     (walk-window-tree
      (lambda (window)

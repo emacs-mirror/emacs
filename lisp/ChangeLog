@@ -1,3 +1,9 @@
+2014-09-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* ses.el (ses-file-format-extend-parameter-list): Rename from
+	ses-file-format-extend-paramter-list, to correct a misspelling.
+	All uses changed.
+
 2014-09-10  Alan Mackenzie  <acm@muc.de>
 
 	CC Mode: revert recent changes and fix bug 17463 (cc-langs.elc

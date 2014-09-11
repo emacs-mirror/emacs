@@ -411,7 +411,7 @@ In the absence of INDEX, just call `eldoc-docstring-format-sym-doc'."
                               (when (cdr split)
                                 (setq key-have-value t))))))))
              ;; If `cur-a' is not one of `args-lst-ak'
-             ;; assume user is entering an unknow key
+             ;; assume user is entering an unknown key
              ;; referenced in last position in signature.
              (other-key-arg (and (stringp cur-a)
                                  args-lst-ak

@@ -1531,7 +1531,7 @@ entries.  ENTRY-MAIN is the first line of the diary entry."
 Enumerate the evaluated sexp entry for the next
 `icalendar-export-sexp-enumeration-days' days.  NONMARKER is a
 regular expression matching the start of non-marking entries.
-ENTRY-MAIN is the first line of the diary entry.  
+ENTRY-MAIN is the first line of the diary entry.
 
 Optional argument START determines the first day of the
 enumeration, given as a time value, in same format as returned by
@@ -1574,8 +1574,8 @@ enumeration, given as a time value, in same format as returned by
                                (let ((calendar-date-style 'iso))
                                  (icalendar--convert-ordinary-to-ical
                                   nonmarker (format "%4d/%02d/%02d %s" y m d see))))
-                             (;TODO: 
-                              (error (format "Unsopported Sexp-entry: %s"
+                             (;TODO:
+                              (error (format "Unsupported Sexp-entry: %s"
                                              entry-main))))))
                     (number-sequence
                      0 (- icalendar-export-sexp-enumeration-days 1))))))

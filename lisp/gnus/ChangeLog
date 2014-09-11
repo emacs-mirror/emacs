@@ -1,3 +1,8 @@
+2014-09-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* gnus-cloud.el (gnus-cloud-parse-version-1): Fix misspelling
+	of ":delete".
+
 2014-08-26  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art.el (gnus-article-browse-html-save-cid-content)

@@ -239,7 +239,7 @@ Files matching `gnus-face-omit-files' are not considered."
 
 ;;;###autoload
 (defun gnus-insert-random-face-header ()
-  "Insert a randome Face header from `gnus-face-directory'."
+  "Insert a random Face header from `gnus-face-directory'."
   (gnus--insert-random-face-with-type 'gnus-random-face 'Face))
 
 (defface gnus-x-face '((t (:foreground "black" :background "white")))

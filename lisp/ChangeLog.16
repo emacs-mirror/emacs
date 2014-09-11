@@ -5052,7 +5052,7 @@
 	(w32-handle-dropped-file): Convert incoming dropped files from
 	Windows paths to Cygwin ones before passing them on to the rest of
 	Emacs.
-	(w32-drag-n-drop): New paramter new-frame.  Simplify logic.
+	(w32-drag-n-drop): New parameter new-frame.  Simplify logic.
 	(w32-initialize-window-system): Assert we're not initialized twice.
 
 	* term/x-win.el: Require cl-lib; add ourselves to display-format-alist.

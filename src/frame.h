@@ -1288,7 +1288,7 @@ extern Lisp_Object Vframe_list;
    / FRAME_LINE_HEIGHT (f))
 
 /* Return the pixel width/height of frame F with a text size of
-   width/heigh.  */
+   width/height.  */
 #define FRAME_TEXT_TO_PIXEL_WIDTH(f, width)	  \
   ((width)					  \
    + FRAME_SCROLL_BAR_AREA_WIDTH (f)		  \

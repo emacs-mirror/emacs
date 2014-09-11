@@ -543,7 +543,7 @@ Uses `string-collate-lessp' if `ls-lisp-use-string-collate' is non-nil,
 On GNU/Linux systems, if the locale specifies UTF-8 as the codeset,
 the sorting order will place together file names that differ only
 by punctuation characters, like `.emacs' and `emacs'.  To have a
-similar behavior on MS-Widnows, customize `ls-lisp-UCA-like-collation'
+similar behavior on MS-Windows, customize `ls-lisp-UCA-like-collation'
 to a non-nil value."
   (let ((w32-collate-ignore-punctuation ls-lisp-UCA-like-collation))
     (if ls-lisp-use-string-collate

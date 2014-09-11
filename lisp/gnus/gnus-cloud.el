@@ -125,7 +125,7 @@
 	(let ((spec (ignore-errors (read (current-buffer))))
 	      length)
 	  (when (and (consp spec)
-		     (memq (plist-get spec :type) '(:file :data :deleta)))
+		     (memq (plist-get spec :type) '(:file :data :delete)))
 	    (setq length (plist-get spec :length))
 	    (push (append spec
 			  (list

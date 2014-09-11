@@ -165,7 +165,7 @@
            (list 1 2 3))))
 
 (ert-deftest subr-x-test-if-let-false ()
-  "Test `if-let' with falsey bindings."
+  "Test `if-let' with falsie bindings."
   (should (equal
            (if-let (a nil)
                (list a b c)
@@ -205,8 +205,8 @@
              "no")
            (list 1 2 3))))
 
-(ert-deftest subr-x-test-if-let-and-lazyness-is-preserved ()
-  "Test `if-let' respects `and' lazyness."
+(ert-deftest subr-x-test-if-let-and-laziness-is-preserved ()
+  "Test `if-let' respects `and' laziness."
   (let (a-called b-called c-called)
     (should (equal
              (if-let ((a nil)
@@ -360,7 +360,7 @@
            (list 1 2 3))))
 
 (ert-deftest subr-x-test-when-let-false ()
-  "Test `when-let' with falsey bindings."
+  "Test `when-let' with falsie bindings."
   (should (equal
            (when-let (a nil)
              (list a b c)
@@ -399,8 +399,8 @@
              (list a b c))
            (list 1 2 3))))
 
-(ert-deftest subr-x-test-when-let-and-lazyness-is-preserved ()
-  "Test `when-let' respects `and' lazyness."
+(ert-deftest subr-x-test-when-let-and-laziness-is-preserved ()
+  "Test `when-let' respects `and' laziness."
   (let (a-called b-called c-called)
     (should (equal
              (progn

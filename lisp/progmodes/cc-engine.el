@@ -3296,7 +3296,7 @@ comment at the start of cc-engine.el for more info."
       (setq res (c-remove-stale-state-cache start-point here here-bopl))
       (setq cache-pos (car res)
 	    scan-backward-pos (cadr res)
-	    cons-separated (car (cddr res)) 
+	    cons-separated (car (cddr res))
 	    bopl-state (cadr (cddr res))) ; will be nil if (< here-bopl
 					; start-point)
       (if (and scan-backward-pos
@@ -6286,7 +6286,7 @@ comment at the start of cc-engine.el for more info."
   ;;     `*-font-lock-extra-types');
   ;;   o - 'prefix if it's a known prefix of a type;
   ;;   o - 'found if it's a type that matches one in `c-found-types';
-  ;;   o - 'maybe if it's an identfier that might be a type;
+  ;;   o - 'maybe if it's an identifier that might be a type;
   ;;   o - 'decltype if it's a decltype(variable) declaration; - or
   ;;   o -  nil if it can't be a type (the point isn't moved then).
   ;;
@@ -6668,8 +6668,8 @@ comment at the start of cc-engine.el for more info."
   ;;     auto foo = 5;
   ;;      car ^   ^ point
   ;;     auto cplusplus_11 (int a, char *b) -> decltype (bar):
-  ;;      car ^                             ^ point    
-  ;;   
+  ;;      car ^                             ^ point
+  ;;
   ;;
   ;;
   ;;   The cdr of the return value is non-nil when a

@@ -2153,7 +2153,7 @@ This utility is useful in situations where the output may be
 received in chunks, since `accept-process-output' gives no
 guarantees they will be grabbed in a single call.  An example use
 case for this would be the CPython shell start-up, where the
-banner and the initial prompt are received separetely."
+banner and the initial prompt are received separately."
   (let ((regexp (or regexp comint-prompt-regexp)))
     (catch 'found
       (while t
@@ -4110,7 +4110,7 @@ to \"^python-\"."
                (cdr pair))))
    (buffer-local-variables from-buffer)))
 
-(defvar comint-last-prompt-overlay)     ; Shut up, bytecompiler
+(defvar comint-last-prompt-overlay)     ; Shut up, byte compiler.
 
 (defun python-util-comint-last-prompt ()
   "Return comint last prompt overlay start and end.

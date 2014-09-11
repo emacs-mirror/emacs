@@ -1,4 +1,4 @@
-;;; tildify-test.el --- ERT tests for teldify.el
+;;; tildify-test.el --- ERT tests for tildify.el
 
 ;; Copyright (C) 2014 Free Software Foundation, Inc.
 

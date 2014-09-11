@@ -301,7 +301,7 @@ default printer and then modify its output.")
 (defmacro ses--metaprogramming (exp) (declare (debug t)) (eval exp t))
 (ses--metaprogramming
  `(progn ,@(mapcar (lambda (x) `(defvar ,(or (car-safe x) x))) ses-localvars)))
- 
+
 (defun ses-set-localvars ()
   "Set buffer-local and initialize some SES variables."
   (dolist (x ses-localvars)
@@ -1349,11 +1349,11 @@ ses--default-printer, ses--numrows, or ses--numcols."
       (goto-char ses--params-marker)
       (forward-line def))))
 
-(defun ses-file-format-extend-paramter-list (new-file-format)
+(defun ses-file-format-extend-parameter-list (new-file-format)
   "Extend the global parameters list when file format is updated
 from 2 to 3. This happens when local printer function are added
 to a sheet that was created with SES version 2. This is not
-undoable. Return nil when there was no change, and non nil otherwise."  
+undoable. Return nil when there was no change, and non nil otherwise."
   (save-excursion
     (cond
      ((and (= ses--file-format 2) (= 3 new-file-format))
@@ -1759,7 +1759,7 @@ Does not execute cell formulas or print functions."
 	     (numberp (nth 2 params))
 	     (> (nth 2 params) 0)
 	     (or (<= params-len 3)
-		 (let ((numlocprn (nth 3 params))) 
+		 (let ((numlocprn (nth 3 params)))
 		   (and (integerp numlocprn) (>= numlocprn 0)))))
 	(error "Invalid SES file"))
     (setq ses--file-format (car params)
@@ -1793,8 +1793,8 @@ Does not execute cell formulas or print functions."
   (mapc 'ses-printer-record ses-standard-printer-functions)
   (setq ses--symbolic-formulas                   nil)
 
-  ;; Load local printer definitions.  
-  ;; This must be loaded *BEFORE* cells and column printers because the latters
+  ;; Load local printer definitions.
+  ;; This must be loaded *BEFORE* cells and column printers because the latter
   ;; may call them.
   (save-excursion
     (forward-line (* ses--numrows (1+ ses--numcols)))
@@ -3462,7 +3462,7 @@ Uses the value COMPILED-VALUE for this printer."
                 (backward-char))
               (insert printer-def-text)
               (when (= create-printer 1)
-                (ses-file-format-extend-paramter-list 3)
+                (ses-file-format-extend-parameter-list 3)
                 (ses-set-parameter 'ses--numlocprn
                                    (+ ses--numlocprn create-printer))))))))))
 

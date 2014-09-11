@@ -453,7 +453,7 @@ mmap_lisp_allowed_p (void)
   /* If we can't store all memory addresses in our lisp objects, it's
      risky to let the heap use mmap and give us addresses from all
      over our address space.  We also can't use mmap for lisp objects
-     if we might dump: unexec doesn't preserve the contents of mmaped
+     if we might dump: unexec doesn't preserve the contents of mmapped
      regions.  */
   return pointers_fit_in_lispobj_p () && !might_dump;
 }
@@ -7131,7 +7131,7 @@ detect_suspicious_free (void* ptr)
 
 DEFUN ("suspicious-object", Fsuspicious_object, Ssuspicious_object, 1, 1, 0,
        doc: /* Return OBJ, maybe marking it for extra scrutiny.
-If Emacs is compiled with suspicous object checking, capture
+If Emacs is compiled with suspicious object checking, capture
 a stack trace when OBJ is freed in order to help track down
 garbage collection bugs.  Otherwise, do nothing and return OBJ.   */)
    (Lisp_Object obj)

@@ -351,7 +351,7 @@ frame_windows_min_size (Lisp_Object frame, Lisp_Object horizontal, Lisp_Object p
 
 /* Make sure windows sizes of frame F are OK.  new_width and new_height
    are in pixels.  A value of -1 means no change is requested for that
-   size (but the frame may still have to be resized to accomodate
+   size (but the frame may still have to be resized to accommodate
    windows with their minimum sizes.
 
    The argument INHIBIT can assume the following values:

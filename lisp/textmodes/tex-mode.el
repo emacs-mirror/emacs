@@ -2576,7 +2576,7 @@ line LINE of the window, or centered if LINE is nil."
 (defcustom tex-print-file-extension ".dvi"
   "The TeX-compiled file extension for viewing and printing.
 If you use pdflatex instead of latex, set this to \".pdf\" and modify
- `tex-dvi-view-command' and `tex-dvi-print-command' appropriatelty."
+ `tex-dvi-view-command' and `tex-dvi-print-command' appropriately."
   :type 'string
   :group 'tex-view
   :version "24.5")
