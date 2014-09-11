@@ -3,6 +3,11 @@
 	* lisp.h (make_local_string): Nitpick indent.
 	* print.c (Fprin1_to_string): Remove unused GCPROs.
 
+	More debugging aids around GCPROs.
+	* lisp.h (struct gcpro) [DEBUG_GCPRO]: Add extra members.
+	(GCPRO1, GCPRO2, GCPRO3, GCPRO4, GCPRO5, GCPRO6, GCPRO7):
+	Minor restyle.  If DEBUG_GCPRO, initialize extra fields.
+
 2014-09-11  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Pacify --enable-gcc-warnings when no window system is used.

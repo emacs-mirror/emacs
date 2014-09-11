@@ -3016,6 +3016,16 @@ struct gcpro
   ptrdiff_t nvars;
 
 #ifdef DEBUG_GCPRO
+  /* File name where this record is used.  */
+  const char *name;
+
+  /* Line number in this file.  */
+  int lineno;
+
+  /* Index in the local chain of records.  */
+  int idx;
+
+  /* Nesting level.  */
   int level;
 #endif
 };
@@ -3071,122 +3081,150 @@ struct gcpro
 
 #ifndef DEBUG_GCPRO
 
-#define GCPRO1(varname) \
- {gcpro1.next = gcprolist; gcpro1.var = &varname; gcpro1.nvars = 1; \
-  gcprolist = &gcpro1; }
+#define GCPRO1(a)							\
+  { gcpro1.next = gcprolist; gcpro1.var = &(a); gcpro1.nvars = 1;	\
+    gcprolist = &gcpro1; }
 
-#define GCPRO2(varname1, varname2) \
- {gcpro1.next = gcprolist; gcpro1.var = &varname1; gcpro1.nvars = 1; \
-  gcpro2.next = &gcpro1; gcpro2.var = &varname2; gcpro2.nvars = 1; \
-  gcprolist = &gcpro2; }
+#define GCPRO2(a, b)							\
+  { gcpro1.next = gcprolist; gcpro1.var = &(a); gcpro1.nvars = 1;	\
+    gcpro2.next = &gcpro1; gcpro2.var = &(b); gcpro2.nvars = 1;		\
+    gcprolist = &gcpro2; }
 
-#define GCPRO3(varname1, varname2, varname3) \
- {gcpro1.next = gcprolist; gcpro1.var = &varname1; gcpro1.nvars = 1; \
-  gcpro2.next = &gcpro1; gcpro2.var = &varname2; gcpro2.nvars = 1; \
-  gcpro3.next = &gcpro2; gcpro3.var = &varname3; gcpro3.nvars = 1; \
-  gcprolist = &gcpro3; }
+#define GCPRO3(a, b, c)							\
+  { gcpro1.next = gcprolist; gcpro1.var = &(a); gcpro1.nvars = 1;	\
+    gcpro2.next = &gcpro1; gcpro2.var = &(b); gcpro2.nvars = 1;		\
+    gcpro3.next = &gcpro2; gcpro3.var = &(c); gcpro3.nvars = 1;		\
+    gcprolist = &gcpro3; }
 
-#define GCPRO4(varname1, varname2, varname3, varname4) \
- {gcpro1.next = gcprolist; gcpro1.var = &varname1; gcpro1.nvars = 1; \
-  gcpro2.next = &gcpro1; gcpro2.var = &varname2; gcpro2.nvars = 1; \
-  gcpro3.next = &gcpro2; gcpro3.var = &varname3; gcpro3.nvars = 1; \
-  gcpro4.next = &gcpro3; gcpro4.var = &varname4; gcpro4.nvars = 1; \
-  gcprolist = &gcpro4; }
+#define GCPRO4(a, b, c, d)						\
+  { gcpro1.next = gcprolist; gcpro1.var = &(a); gcpro1.nvars = 1;	\
+    gcpro2.next = &gcpro1; gcpro2.var = &(b); gcpro2.nvars = 1;		\
+    gcpro3.next = &gcpro2; gcpro3.var = &(c); gcpro3.nvars = 1;		\
+    gcpro4.next = &gcpro3; gcpro4.var = &(d); gcpro4.nvars = 1;		\
+    gcprolist = &gcpro4; }
 
-#define GCPRO5(varname1, varname2, varname3, varname4, varname5) \
- {gcpro1.next = gcprolist; gcpro1.var = &varname1; gcpro1.nvars = 1; \
-  gcpro2.next = &gcpro1; gcpro2.var = &varname2; gcpro2.nvars = 1; \
-  gcpro3.next = &gcpro2; gcpro3.var = &varname3; gcpro3.nvars = 1; \
-  gcpro4.next = &gcpro3; gcpro4.var = &varname4; gcpro4.nvars = 1; \
-  gcpro5.next = &gcpro4; gcpro5.var = &varname5; gcpro5.nvars = 1; \
-  gcprolist = &gcpro5; }
+#define GCPRO5(a, b, c, d, e)						\
+  { gcpro1.next = gcprolist; gcpro1.var = &(a); gcpro1.nvars = 1;	\
+    gcpro2.next = &gcpro1; gcpro2.var = &(b); gcpro2.nvars = 1;		\
+    gcpro3.next = &gcpro2; gcpro3.var = &(c); gcpro3.nvars = 1;		\
+    gcpro4.next = &gcpro3; gcpro4.var = &(d); gcpro4.nvars = 1;		\
+    gcpro5.next = &gcpro4; gcpro5.var = &(e); gcpro5.nvars = 1;		\
+    gcprolist = &gcpro5; }
 
-#define GCPRO6(varname1, varname2, varname3, varname4, varname5, varname6) \
- {gcpro1.next = gcprolist; gcpro1.var = &varname1; gcpro1.nvars = 1; \
-  gcpro2.next = &gcpro1; gcpro2.var = &varname2; gcpro2.nvars = 1; \
-  gcpro3.next = &gcpro2; gcpro3.var = &varname3; gcpro3.nvars = 1; \
-  gcpro4.next = &gcpro3; gcpro4.var = &varname4; gcpro4.nvars = 1; \
-  gcpro5.next = &gcpro4; gcpro5.var = &varname5; gcpro5.nvars = 1; \
-  gcpro6.next = &gcpro5; gcpro6.var = &varname6; gcpro6.nvars = 1; \
-  gcprolist = &gcpro6; }
+#define GCPRO6(a, b, c, d, e, f)					\
+  { gcpro1.next = gcprolist; gcpro1.var = &(a); gcpro1.nvars = 1;	\
+    gcpro2.next = &gcpro1; gcpro2.var = &(b); gcpro2.nvars = 1;		\
+    gcpro3.next = &gcpro2; gcpro3.var = &(c); gcpro3.nvars = 1;		\
+    gcpro4.next = &gcpro3; gcpro4.var = &(d); gcpro4.nvars = 1;		\
+    gcpro5.next = &gcpro4; gcpro5.var = &(e); gcpro5.nvars = 1;		\
+    gcpro6.next = &gcpro5; gcpro6.var = &(f); gcpro6.nvars = 1;		\
+    gcprolist = &gcpro6; }
 
-#define GCPRO7(a, b, c, d, e, f, g)				\
- {gcpro1.next = gcprolist; gcpro1.var = &(a); gcpro1.nvars = 1;	\
-  gcpro2.next = &gcpro1; gcpro2.var = &(b); gcpro2.nvars = 1;	\
-  gcpro3.next = &gcpro2; gcpro3.var = &(c); gcpro3.nvars = 1;	\
-  gcpro4.next = &gcpro3; gcpro4.var = &(d); gcpro4.nvars = 1;	\
-  gcpro5.next = &gcpro4; gcpro5.var = &(e); gcpro5.nvars = 1;	\
-  gcpro6.next = &gcpro5; gcpro6.var = &(f); gcpro6.nvars = 1;	\
-  gcpro7.next = &gcpro6; gcpro7.var = &(g); gcpro7.nvars = 1;	\
-  gcprolist = &gcpro7; }
+#define GCPRO7(a, b, c, d, e, f, g)					\
+  { gcpro1.next = gcprolist; gcpro1.var = &(a); gcpro1.nvars = 1;	\
+    gcpro2.next = &gcpro1; gcpro2.var = &(b); gcpro2.nvars = 1;		\
+    gcpro3.next = &gcpro2; gcpro3.var = &(c); gcpro3.nvars = 1;		\
+    gcpro4.next = &gcpro3; gcpro4.var = &(d); gcpro4.nvars = 1;		\
+    gcpro5.next = &gcpro4; gcpro5.var = &(e); gcpro5.nvars = 1;		\
+    gcpro6.next = &gcpro5; gcpro6.var = &(f); gcpro6.nvars = 1;		\
+    gcpro7.next = &gcpro6; gcpro7.var = &(g); gcpro7.nvars = 1;		\
+    gcprolist = &gcpro7; }
 
 #define UNGCPRO (gcprolist = gcpro1.next)
 
-#else
+#else /* !DEBUG_GCPRO */
 
 extern int gcpro_level;
 
-#define GCPRO1(varname) \
- {gcpro1.next = gcprolist; gcpro1.var = &varname; gcpro1.nvars = 1; \
-  gcpro1.level = gcpro_level++; \
-  gcprolist = &gcpro1; }
+#define GCPRO1(a)							\
+  { gcpro1.next = gcprolist; gcpro1.var = &(a); gcpro1.nvars = 1;	\
+    gcpro1.name = __FILE__; gcpro1.lineno = __LINE__; gcpro1.idx = 1;	\
+    gcpro1.level = gcpro_level++;					\
+    gcprolist = &gcpro1; }
 
-#define GCPRO2(varname1, varname2) \
- {gcpro1.next = gcprolist; gcpro1.var = &varname1; gcpro1.nvars = 1; \
-  gcpro1.level = gcpro_level; \
-  gcpro2.next = &gcpro1; gcpro2.var = &varname2; gcpro2.nvars = 1; \
-  gcpro2.level = gcpro_level++; \
-  gcprolist = &gcpro2; }
+#define GCPRO2(a, b)							\
+  { gcpro1.next = gcprolist; gcpro1.var = &(a); gcpro1.nvars = 1;	\
+    gcpro1.name = __FILE__; gcpro1.lineno = __LINE__; gcpro1.idx = 1;	\
+    gcpro1.level = gcpro_level;					   	\
+    gcpro2.next = &gcpro1; gcpro2.var = &(b); gcpro2.nvars = 1;		\
+    gcpro2.name = __FILE__; gcpro2.lineno = __LINE__; gcpro2.idx = 2;	\
+    gcpro2.level = gcpro_level++;					\
+    gcprolist = &gcpro2; }
 
-#define GCPRO3(varname1, varname2, varname3) \
- {gcpro1.next = gcprolist; gcpro1.var = &varname1; gcpro1.nvars = 1; \
-  gcpro1.level = gcpro_level; \
-  gcpro2.next = &gcpro1; gcpro2.var = &varname2; gcpro2.nvars = 1; \
-  gcpro3.next = &gcpro2; gcpro3.var = &varname3; gcpro3.nvars = 1; \
-  gcpro3.level = gcpro_level++; \
-  gcprolist = &gcpro3; }
+#define GCPRO3(a, b, c)							\
+  { gcpro1.next = gcprolist; gcpro1.var = &(a); gcpro1.nvars = 1;	\
+    gcpro1.name = __FILE__; gcpro1.lineno = __LINE__; gcpro1.idx = 1;	\
+    gcpro1.level = gcpro_level;						\
+    gcpro2.next = &gcpro1; gcpro2.var = &(b); gcpro2.nvars = 1;		\
+    gcpro2.name = __FILE__; gcpro2.lineno = __LINE__; gcpro2.idx = 2;	\
+    gcpro3.next = &gcpro2; gcpro3.var = &(c); gcpro3.nvars = 1;		\
+    gcpro3.name = __FILE__; gcpro3.lineno = __LINE__; gcpro3.idx = 3;	\
+    gcpro3.level = gcpro_level++;					\
+    gcprolist = &gcpro3; }
 
-#define GCPRO4(varname1, varname2, varname3, varname4) \
- {gcpro1.next = gcprolist; gcpro1.var = &varname1; gcpro1.nvars = 1; \
-  gcpro1.level = gcpro_level; \
-  gcpro2.next = &gcpro1; gcpro2.var = &varname2; gcpro2.nvars = 1; \
-  gcpro3.next = &gcpro2; gcpro3.var = &varname3; gcpro3.nvars = 1; \
-  gcpro4.next = &gcpro3; gcpro4.var = &varname4; gcpro4.nvars = 1; \
-  gcpro4.level = gcpro_level++; \
-  gcprolist = &gcpro4; }
+#define GCPRO4(a, b, c, d)						\
+  { gcpro1.next = gcprolist; gcpro1.var = &(a); gcpro1.nvars = 1;	\
+    gcpro1.name = __FILE__; gcpro1.lineno = __LINE__; gcpro1.idx = 1;	\
+    gcpro1.level = gcpro_level;						\
+    gcpro2.next = &gcpro1; gcpro2.var = &(b); gcpro2.nvars = 1;		\
+    gcpro2.name = __FILE__; gcpro2.lineno = __LINE__; gcpro2.idx = 2;	\
+    gcpro3.next = &gcpro2; gcpro3.var = &(c); gcpro3.nvars = 1;		\
+    gcpro3.name = __FILE__; gcpro3.lineno = __LINE__; gcpro3.idx = 3;	\
+    gcpro4.next = &gcpro3; gcpro4.var = &(d); gcpro4.nvars = 1;		\
+    gcpro4.name = __FILE__; gcpro4.lineno = __LINE__; gcpro4.idx = 4;	\
+    gcpro4.level = gcpro_level++;					\
+    gcprolist = &gcpro4; }
 
-#define GCPRO5(varname1, varname2, varname3, varname4, varname5) \
- {gcpro1.next = gcprolist; gcpro1.var = &varname1; gcpro1.nvars = 1; \
-  gcpro1.level = gcpro_level; \
-  gcpro2.next = &gcpro1; gcpro2.var = &varname2; gcpro2.nvars = 1; \
-  gcpro3.next = &gcpro2; gcpro3.var = &varname3; gcpro3.nvars = 1; \
-  gcpro4.next = &gcpro3; gcpro4.var = &varname4; gcpro4.nvars = 1; \
-  gcpro5.next = &gcpro4; gcpro5.var = &varname5; gcpro5.nvars = 1; \
-  gcpro5.level = gcpro_level++; \
-  gcprolist = &gcpro5; }
+#define GCPRO5(a, b, c, d, e)						\
+  { gcpro1.next = gcprolist; gcpro1.var = &(a); gcpro1.nvars = 1;	\
+    gcpro1.name = __FILE__; gcpro1.lineno = __LINE__; gcpro1.idx = 1;	\
+    gcpro1.level = gcpro_level;						\
+    gcpro2.next = &gcpro1; gcpro2.var = &(b); gcpro2.nvars = 1;		\
+    gcpro2.name = __FILE__; gcpro2.lineno = __LINE__; gcpro2.idx = 2;	\
+    gcpro3.next = &gcpro2; gcpro3.var = &(c); gcpro3.nvars = 1;		\
+    gcpro3.name = __FILE__; gcpro3.lineno = __LINE__; gcpro3.idx = 3;	\
+    gcpro4.next = &gcpro3; gcpro4.var = &(d); gcpro4.nvars = 1;		\
+    gcpro4.name = __FILE__; gcpro4.lineno = __LINE__; gcpro4.idx = 4;	\
+    gcpro5.next = &gcpro4; gcpro5.var = &(e); gcpro5.nvars = 1;		\
+    gcpro5.name = __FILE__; gcpro5.lineno = __LINE__; gcpro5.idx = 5;	\
+    gcpro5.level = gcpro_level++;					\
+    gcprolist = &gcpro5; }
 
-#define GCPRO6(varname1, varname2, varname3, varname4, varname5, varname6) \
- {gcpro1.next = gcprolist; gcpro1.var = &varname1; gcpro1.nvars = 1; \
-  gcpro1.level = gcpro_level; \
-  gcpro2.next = &gcpro1; gcpro2.var = &varname2; gcpro2.nvars = 1; \
-  gcpro3.next = &gcpro2; gcpro3.var = &varname3; gcpro3.nvars = 1; \
-  gcpro4.next = &gcpro3; gcpro4.var = &varname4; gcpro4.nvars = 1; \
-  gcpro5.next = &gcpro4; gcpro5.var = &varname5; gcpro5.nvars = 1; \
-  gcpro6.next = &gcpro5; gcpro6.var = &varname6; gcpro6.nvars = 1; \
-  gcpro6.level = gcpro_level++; \
-  gcprolist = &gcpro6; }
+#define GCPRO6(a, b, c, d, e, f)					\
+  { gcpro1.next = gcprolist; gcpro1.var = &(a); gcpro1.nvars = 1;	\
+    gcpro1.name = __FILE__; gcpro1.lineno = __LINE__; gcpro1.idx = 1;	\
+    gcpro1.level = gcpro_level;						\
+    gcpro2.next = &gcpro1; gcpro2.var = &(b); gcpro2.nvars = 1;		\
+    gcpro2.name = __FILE__; gcpro2.lineno = __LINE__; gcpro2.idx = 2;	\
+    gcpro3.next = &gcpro2; gcpro3.var = &(c); gcpro3.nvars = 1;		\
+    gcpro3.name = __FILE__; gcpro3.lineno = __LINE__; gcpro3.idx = 3;	\
+    gcpro4.next = &gcpro3; gcpro4.var = &(d); gcpro4.nvars = 1;		\
+    gcpro4.name = __FILE__; gcpro4.lineno = __LINE__; gcpro4.idx = 4;	\
+    gcpro5.next = &gcpro4; gcpro5.var = &(e); gcpro5.nvars = 1;		\
+    gcpro5.name = __FILE__; gcpro5.lineno = __LINE__; gcpro5.idx = 5;	\
+    gcpro6.next = &gcpro5; gcpro6.var = &(f); gcpro6.nvars = 1;		\
+    gcpro6.name = __FILE__; gcpro6.lineno = __LINE__; gcpro6.idx = 6;	\
+    gcpro6.level = gcpro_level++;					\
+    gcprolist = &gcpro6; }
 
 #define GCPRO7(a, b, c, d, e, f, g)					\
- {gcpro1.next = gcprolist; gcpro1.var = &(a); gcpro1.nvars = 1;		\
-  gcpro1.level = gcpro_level;						\
-  gcpro2.next = &gcpro1; gcpro2.var = &(b); gcpro2.nvars = 1;		\
-  gcpro3.next = &gcpro2; gcpro3.var = &(c); gcpro3.nvars = 1;		\
-  gcpro4.next = &gcpro3; gcpro4.var = &(d); gcpro4.nvars = 1;		\
-  gcpro5.next = &gcpro4; gcpro5.var = &(e); gcpro5.nvars = 1;		\
-  gcpro6.next = &gcpro5; gcpro6.var = &(f); gcpro6.nvars = 1;		\
-  gcpro7.next = &gcpro6; gcpro7.var = &(g); gcpro7.nvars = 1;		\
-  gcpro7.level = gcpro_level++;						\
-  gcprolist = &gcpro7; }
+  { gcpro1.next = gcprolist; gcpro1.var = &(a); gcpro1.nvars = 1;	\
+    gcpro1.name = __FILE__; gcpro1.lineno = __LINE__; gcpro1.idx = 1;	\
+    gcpro1.level = gcpro_level;						\
+    gcpro2.next = &gcpro1; gcpro2.var = &(b); gcpro2.nvars = 1;		\
+    gcpro2.name = __FILE__; gcpro2.lineno = __LINE__; gcpro2.idx = 2;	\
+    gcpro3.next = &gcpro2; gcpro3.var = &(c); gcpro3.nvars = 1;		\
+    gcpro3.name = __FILE__; gcpro3.lineno = __LINE__; gcpro3.idx = 3;	\
+    gcpro4.next = &gcpro3; gcpro4.var = &(d); gcpro4.nvars = 1;		\
+    gcpro4.name = __FILE__; gcpro4.lineno = __LINE__; gcpro4.idx = 4;	\
+    gcpro5.next = &gcpro4; gcpro5.var = &(e); gcpro5.nvars = 1;		\
+    gcpro5.name = __FILE__; gcpro5.lineno = __LINE__; gcpro5.idx = 5;	\
+    gcpro6.next = &gcpro5; gcpro6.var = &(f); gcpro6.nvars = 1;		\
+    gcpro6.name = __FILE__; gcpro6.lineno = __LINE__; gcpro6.idx = 6;	\
+    gcpro7.next = &gcpro6; gcpro7.var = &(g); gcpro7.nvars = 1;		\
+    gcpro7.name = __FILE__; gcpro7.lineno = __LINE__; gcpro7.idx = 7;	\
+    gcpro7.level = gcpro_level++;					\
+    gcprolist = &gcpro7; }
 
 #define UNGCPRO					\
   (--gcpro_level != gcpro1.level		\
