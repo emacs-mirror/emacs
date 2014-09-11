@@ -11,6 +11,13 @@
 	* lread.c (readevalloop_eager_expand_eval): Add GCPRO and fix
 	bootstrap broken if GC_MARK_STACK == GC_USE_GCPROS_AS_BEFORE.
 
+	Remove redundant GCPROs around Ffuncall and Fapply calls. This
+	is safe because Ffuncall protects all of its arguments by itself.
+	* charset.c (map_charset_for_dump): Remove redundant GCPRO.
+	* eval.c (Fapply, apply1, call0, call1, call2, call3, call4, call5)
+	(call6, call7): Likewise.  Use compound literals where applicable.
+	(run_hook_with_args_2): Use compound literal.
+
 2014-09-11  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Pacify --enable-gcc-warnings when no window system is used.

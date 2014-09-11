@@ -667,12 +667,8 @@ map_charset_for_dump (void (*c_function) (Lisp_Object, Lisp_Object),
 {
   int from_idx = CODE_POINT_TO_INDEX (temp_charset_work->current, from);
   int to_idx = CODE_POINT_TO_INDEX (temp_charset_work->current, to);
-  Lisp_Object range;
+  Lisp_Object range = Fcons (Qnil, Qnil);
   int c, stop;
-  struct gcpro gcpro1;
-
-  range = Fcons (Qnil, Qnil);
-  GCPRO1 (range);
 
   c = temp_charset_work->min_char;
   stop = (temp_charset_work->max_char < 0x20000
@@ -715,7 +711,6 @@ map_charset_for_dump (void (*c_function) (Lisp_Object, Lisp_Object),
 	}
       c++;
     }
-  UNGCPRO;
 }
 
 void

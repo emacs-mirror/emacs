@@ -2274,12 +2274,10 @@ Thus, (apply '+ 1 2 '(3 4)) returns 10.
 usage: (apply FUNCTION &rest ARGUMENTS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
-  ptrdiff_t i;
-  EMACS_INT numargs;
+  ptrdiff_t i, numargs, funcall_nargs;
   register Lisp_Object spread_arg;
   register Lisp_Object *funcall_args;
   Lisp_Object fun, retval;
-  struct gcpro gcpro1;
   USE_SAFE_ALLOCA;
 
   fun = args [0];
@@ -2320,10 +2318,9 @@ usage: (apply FUNCTION &rest ARGUMENTS)  */)
 	  /* Avoid making funcall cons up a yet another new vector of arguments
 	     by explicitly supplying nil's for optional values.  */
 	  SAFE_ALLOCA_LISP (funcall_args, 1 + XSUBR (fun)->max_args);
-	  for (i = numargs; i < XSUBR (fun)->max_args;)
+	  for (i = numargs; i < XSUBR (fun)->max_args; /* nothing */)
 	    funcall_args[++i] = Qnil;
-	  GCPRO1 (*funcall_args);
-	  gcpro1.nvars = 1 + XSUBR (fun)->max_args;
+	  funcall_nargs = 1 + XSUBR (fun)->max_args;
 	}
     }
  funcall:
@@ -2332,8 +2329,7 @@ usage: (apply FUNCTION &rest ARGUMENTS)  */)
   if (!funcall_args)
     {
       SAFE_ALLOCA_LISP (funcall_args, 1 + numargs);
-      GCPRO1 (*funcall_args);
-      gcpro1.nvars = 1 + numargs;
+      funcall_nargs = 1 + numargs;
     }
 
   memcpy (funcall_args, args, nargs * word_size);
@@ -2346,11 +2342,10 @@ usage: (apply FUNCTION &rest ARGUMENTS)  */)
       spread_arg = XCDR (spread_arg);
     }
 
-  /* By convention, the caller needs to gcpro Ffuncall's args.  */
-  retval = Ffuncall (gcpro1.nvars, funcall_args);
-  UNGCPRO;
-  SAFE_FREE ();
+  /* Ffuncall gcpro's all of its args.  */
+  retval = Ffuncall (funcall_nargs, funcall_args);
 
+  SAFE_FREE ();
   return retval;
 }
 
@@ -2558,41 +2553,22 @@ run_hook_with_args (ptrdiff_t nargs, Lisp_Object *args,
 void
 run_hook_with_args_2 (Lisp_Object hook, Lisp_Object arg1, Lisp_Object arg2)
 {
-  Lisp_Object temp[3];
-  temp[0] = hook;
-  temp[1] = arg1;
-  temp[2] = arg2;
-
-  Frun_hook_with_args (3, temp);
+  Frun_hook_with_args (3, ((Lisp_Object []) { hook, arg1, arg2 }));
 }
-
+
 /* Apply fn to arg.  */
 Lisp_Object
 apply1 (Lisp_Object fn, Lisp_Object arg)
 {
-  struct gcpro gcpro1;
-
-  GCPRO1 (fn);
-  if (NILP (arg))
-    RETURN_UNGCPRO (Ffuncall (1, &fn));
-  gcpro1.nvars = 2;
-  {
-    Lisp_Object args[2];
-    args[0] = fn;
-    args[1] = arg;
-    gcpro1.var = args;
-    RETURN_UNGCPRO (Fapply (2, args));
-  }
+  return (NILP (arg) ? Ffuncall (1, &fn)
+	  : Fapply (2, ((Lisp_Object []) { fn, arg })));
 }
 
 /* Call function fn on no arguments.  */
 Lisp_Object
 call0 (Lisp_Object fn)
 {
-  struct gcpro gcpro1;
-
-  GCPRO1 (fn);
-  RETURN_UNGCPRO (Ffuncall (1, &fn));
+  return Ffuncall (1, &fn);
 }
 
 /* Call function fn with 1 argument arg1.  */
@@ -2600,14 +2576,7 @@ call0 (Lisp_Object fn)
 Lisp_Object
 call1 (Lisp_Object fn, Lisp_Object arg1)
 {
-  struct gcpro gcpro1;
-  Lisp_Object args[2];
-
-  args[0] = fn;
-  args[1] = arg1;
-  GCPRO1 (args[0]);
-  gcpro1.nvars = 2;
-  RETURN_UNGCPRO (Ffuncall (2, args));
+  return Ffuncall (2, ((Lisp_Object []) { fn, arg1 }));
 }
 
 /* Call function fn with 2 arguments arg1, arg2.  */
@@ -2615,14 +2584,7 @@ call1 (Lisp_Object fn, Lisp_Object arg1)
 Lisp_Object
 call2 (Lisp_Object fn, Lisp_Object arg1, Lisp_Object arg2)
 {
-  struct gcpro gcpro1;
-  Lisp_Object args[3];
-  args[0] = fn;
-  args[1] = arg1;
-  args[2] = arg2;
-  GCPRO1 (args[0]);
-  gcpro1.nvars = 3;
-  RETURN_UNGCPRO (Ffuncall (3, args));
+  return Ffuncall (3, ((Lisp_Object []) { fn, arg1, arg2 }));
 }
 
 /* Call function fn with 3 arguments arg1, arg2, arg3.  */
@@ -2630,15 +2592,7 @@ call2 (Lisp_Object fn, Lisp_Object arg1, Lisp_Object arg2)
 Lisp_Object
 call3 (Lisp_Object fn, Lisp_Object arg1, Lisp_Object arg2, Lisp_Object arg3)
 {
-  struct gcpro gcpro1;
-  Lisp_Object args[4];
-  args[0] = fn;
-  args[1] = arg1;
-  args[2] = arg2;
-  args[3] = arg3;
-  GCPRO1 (args[0]);
-  gcpro1.nvars = 4;
-  RETURN_UNGCPRO (Ffuncall (4, args));
+  return Ffuncall (4, ((Lisp_Object []) { fn, arg1, arg2, arg3 }));
 }
 
 /* Call function fn with 4 arguments arg1, arg2, arg3, arg4.  */
@@ -2647,16 +2601,7 @@ Lisp_Object
 call4 (Lisp_Object fn, Lisp_Object arg1, Lisp_Object arg2, Lisp_Object arg3,
        Lisp_Object arg4)
 {
-  struct gcpro gcpro1;
-  Lisp_Object args[5];
-  args[0] = fn;
-  args[1] = arg1;
-  args[2] = arg2;
-  args[3] = arg3;
-  args[4] = arg4;
-  GCPRO1 (args[0]);
-  gcpro1.nvars = 5;
-  RETURN_UNGCPRO (Ffuncall (5, args));
+  return Ffuncall (5, ((Lisp_Object []) { fn, arg1, arg2, arg3, arg4 }));
 }
 
 /* Call function fn with 5 arguments arg1, arg2, arg3, arg4, arg5.  */
@@ -2665,17 +2610,7 @@ Lisp_Object
 call5 (Lisp_Object fn, Lisp_Object arg1, Lisp_Object arg2, Lisp_Object arg3,
        Lisp_Object arg4, Lisp_Object arg5)
 {
-  struct gcpro gcpro1;
-  Lisp_Object args[6];
-  args[0] = fn;
-  args[1] = arg1;
-  args[2] = arg2;
-  args[3] = arg3;
-  args[4] = arg4;
-  args[5] = arg5;
-  GCPRO1 (args[0]);
-  gcpro1.nvars = 6;
-  RETURN_UNGCPRO (Ffuncall (6, args));
+  return Ffuncall (6, ((Lisp_Object []) { fn, arg1, arg2, arg3, arg4, arg5 }));
 }
 
 /* Call function fn with 6 arguments arg1, arg2, arg3, arg4, arg5, arg6.  */
@@ -2684,18 +2619,8 @@ Lisp_Object
 call6 (Lisp_Object fn, Lisp_Object arg1, Lisp_Object arg2, Lisp_Object arg3,
        Lisp_Object arg4, Lisp_Object arg5, Lisp_Object arg6)
 {
-  struct gcpro gcpro1;
-  Lisp_Object args[7];
-  args[0] = fn;
-  args[1] = arg1;
-  args[2] = arg2;
-  args[3] = arg3;
-  args[4] = arg4;
-  args[5] = arg5;
-  args[6] = arg6;
-  GCPRO1 (args[0]);
-  gcpro1.nvars = 7;
-  RETURN_UNGCPRO (Ffuncall (7, args));
+  return Ffuncall (7, ((Lisp_Object [])
+    { fn, arg1, arg2, arg3, arg4, arg5, arg6 }));
 }
 
 /* Call function fn with 7 arguments arg1, arg2, arg3, arg4, arg5, arg6, arg7.  */
@@ -2704,19 +2629,8 @@ Lisp_Object
 call7 (Lisp_Object fn, Lisp_Object arg1, Lisp_Object arg2, Lisp_Object arg3,
        Lisp_Object arg4, Lisp_Object arg5, Lisp_Object arg6, Lisp_Object arg7)
 {
-  struct gcpro gcpro1;
-  Lisp_Object args[8];
-  args[0] = fn;
-  args[1] = arg1;
-  args[2] = arg2;
-  args[3] = arg3;
-  args[4] = arg4;
-  args[5] = arg5;
-  args[6] = arg6;
-  args[7] = arg7;
-  GCPRO1 (args[0]);
-  gcpro1.nvars = 8;
-  RETURN_UNGCPRO (Ffuncall (8, args));
+  return Ffuncall (8, ((Lisp_Object [])
+    { fn, arg1, arg2, arg3, arg4, arg5, arg6, arg7 }));
 }
 
 /* The caller should GCPRO all the elements of ARGS.  */
