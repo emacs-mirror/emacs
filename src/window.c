@@ -7376,9 +7376,7 @@ set_window_scroll_bars (struct window *w, Lisp_Object width,
 	}
     }
 
-#if (defined (HAVE_WINDOW_SYSTEM)					\
-     && ((defined (USE_TOOLKIT_SCROLL_BARS) && !defined (HAVE_NS))	\
-	 || defined (HAVE_NTGUI)))
+#if USE_HORIZONTAL_SCROLL_BARS
   {
     int iheight = (NILP (height) ? -1 : (CHECK_NATNUM (height), XINT (height)));
 

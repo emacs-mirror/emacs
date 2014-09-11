@@ -1,3 +1,18 @@
+2014-09-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Pacify --enable-gcc-warnings when no window system is used.
+	These warnings found that subscript error, so they seem worthwhile.
+	* composite.c (char_composable_p): Simplify a bit.
+	* frame.c (x_set_frame_parameters): Add an IF_LINT.
+	* frame.c (x_set_horizontal_scroll_bars, x_set_scroll_bar_height):
+	* frame.h (FRAME_HAS_HORIZONTAL_SCROLL_BARS):
+	* window.c (set_window_scroll_bars):
+	Use USE_HORIZONTAL_SCROLL_BARS for simplicity.
+	* frame.h [! USE_HORIZONTAL_SCROLL_BARS]:
+	Ignore -Wsuggest-attribute=const.
+	* window.h (USE_HORIZONTAL_SCROLL_BARS): New macro.
+	(WINDOW_HAS_HORIZONTAL_SCROLL_BAR): Use it.
+
 2014-09-10  Paul Eggert  <eggert@penguin.cs.ucla.edu>
 
 	* charset.c (Fget_unused_iso_final_char): Fix subscript error.

@@ -928,7 +928,7 @@ static bool
 char_composable_p (int c)
 {
   Lisp_Object val;
-  return (c > ' '			
+  return (c > ' '
 	  && (c == 0x200C || c == 0x200D
 	      || (val = CHAR_TABLE_REF (Vunicode_category_table, c),
 		  (INTEGERP (val) && (XINT (val) <= UNICODE_CATEGORY_So)))));
@@ -1016,24 +1016,19 @@ composition_compute_stop_pos (struct composition_it *cmp_it, ptrdiff_t charpos, 
 	  val = CHAR_TABLE_REF (Vcomposition_function_table, c);
 	  if (! NILP (val))
 	    {
-	      Lisp_Object elt;
-	      int ridx;
-
-	      for (ridx = 0; CONSP (val); val = XCDR (val), ridx++)
+	      for (int ridx = 0; CONSP (val); val = XCDR (val), ridx++)
 		{
-		  elt = XCAR (val);
+		  Lisp_Object elt = XCAR (val);
 		  if (VECTORP (elt) && ASIZE (elt) == 3
 		      && NATNUMP (AREF (elt, 1))
 		      && charpos - 1 - XFASTINT (AREF (elt, 1)) >= start)
-		    break;
-		}
-	      if (CONSP (val))
-		{
-		  cmp_it->rule_idx = ridx;
-		  cmp_it->lookback = XFASTINT (AREF (elt, 1));
-		  cmp_it->stop_pos = charpos - 1 - cmp_it->lookback;
-		  cmp_it->ch = c;
-		  return;
+		    {
+		      cmp_it->rule_idx = ridx;
+		      cmp_it->lookback = XFASTINT (AREF (elt, 1));
+		      cmp_it->stop_pos = charpos - 1 - cmp_it->lookback;
+		      cmp_it->ch = c;
+		      return;
+		    }
 		}
 	    }
 	}

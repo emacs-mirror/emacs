@@ -3002,7 +3002,7 @@ x_set_frame_parameters (struct frame *f, Lisp_Object alist)
   /* If both of these parameters are present, it's more efficient to
      set them both at once.  So we wait until we've looked at the
      entire list before we set them.  */
-  int width, height;
+  int width, height IF_LINT (= 0);
   bool width_change = 0, height_change = 0;
 
   /* Same here.  */
@@ -3771,9 +3771,7 @@ x_set_vertical_scroll_bars (struct frame *f, Lisp_Object arg, Lisp_Object oldval
 void
 x_set_horizontal_scroll_bars (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
-#if (defined (HAVE_WINDOW_SYSTEM)					\
-     && ((defined (USE_TOOLKIT_SCROLL_BARS) && !defined (HAVE_NS))	\
-	 || defined (HAVE_NTGUI)))
+#if USE_HORIZONTAL_SCROLL_BARS
   if ((NILP (arg) && FRAME_HAS_HORIZONTAL_SCROLL_BARS (f))
       || (!NILP (arg) && !FRAME_HAS_HORIZONTAL_SCROLL_BARS (f)))
     {
@@ -3823,9 +3821,7 @@ x_set_scroll_bar_width (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 void
 x_set_scroll_bar_height (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
-#if (defined (HAVE_WINDOW_SYSTEM)					\
-     && ((defined (USE_TOOLKIT_SCROLL_BARS) && !defined (HAVE_NS))	\
-	 || defined (HAVE_NTGUI)))
+#if USE_HORIZONTAL_SCROLL_BARS
   int unit = FRAME_LINE_HEIGHT (f);
 
   if (NILP (arg))
