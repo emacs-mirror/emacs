@@ -8,6 +8,9 @@
 	(GCPRO1, GCPRO2, GCPRO3, GCPRO4, GCPRO5, GCPRO6, GCPRO7):
 	Minor restyle.  If DEBUG_GCPRO, initialize extra fields.
 
+	* lread.c (readevalloop_eager_expand_eval): Add GCPRO and fix
+	bootstrap broken if GC_MARK_STACK == GC_USE_GCPROS_AS_BEFORE.
+
 2014-09-11  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Pacify --enable-gcc-warnings when no window system is used.

@@ -1782,15 +1782,17 @@ readevalloop_eager_expand_eval (Lisp_Object val, Lisp_Object macroexpand)
   val = call2 (macroexpand, val, Qnil);
   if (EQ (CAR_SAFE (val), Qprogn))
     {
+      struct gcpro gcpro1;
       Lisp_Object subforms = XCDR (val);
-      val = Qnil;
-      for (; CONSP (subforms); subforms = XCDR (subforms))
+
+      GCPRO1 (subforms);
+      for (val = Qnil; CONSP (subforms); subforms = XCDR (subforms))
           val = readevalloop_eager_expand_eval (XCAR (subforms),
                                                 macroexpand);
+      UNGCPRO;
     }
   else
       val = eval_sub (call2 (macroexpand, val, Qt));
-
   return val;
 }
 
