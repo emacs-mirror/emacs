@@ -4804,10 +4804,10 @@ DEFUN ("resize-mini-window-internal", Fresize_mini_window_internal, Sresize_mini
       block_input ();
       window_resize_apply (r, 0);
 
-      w->total_lines = XFASTINT (w->new_total);
-      w->top_line = r->top_line + r->total_lines;
       w->pixel_height = XFASTINT (w->new_pixel);
+      w->total_lines = w->pixel_height / FRAME_LINE_HEIGHT (f);
       w->pixel_top = r->pixel_top + r->pixel_height;
+      w->top_line = r->top_line + r->total_lines;
 
       fset_redisplay (f);
       FRAME_WINDOW_SIZES_CHANGED (f) = 1;

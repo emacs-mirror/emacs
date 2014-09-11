@@ -1,3 +1,8 @@
+2014-09-11  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (Fresize_mini_window_internal): Set w->total_lines
+	from w->pixel_height (Bug#18422).
+
 2014-09-09  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (updateFrameSize:, initFrameFromEmacs:)
