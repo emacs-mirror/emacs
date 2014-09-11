@@ -1124,6 +1124,11 @@ and can be accessed by calling the `coding-system-type' function.)
 
 *** `with-demoted-errors' takes an additional argument `format'.
 
+*** Errors from timer functions are no longer silently discarded,
+but are reported as messages.  So you may see "Error running timer"
+messages from code that was failing silently till now.  Set
+`debug-on-error' non-nil to get a real error and a backtrace.
+
 ** Faces
 
 *** Face specs set via Custom themes now replace the `defface' spec
