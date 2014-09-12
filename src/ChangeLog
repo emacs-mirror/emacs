@@ -1,3 +1,7 @@
+2014-09-12  Detlev Zundel  <dzu@member.fsf.org>
+
+	* buffer.c (syms_of_buffer): DEFSYM Qchoice (Bug#18337).
+
 2014-09-11  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* lisp.h (make_local_string): Nitpick indent.

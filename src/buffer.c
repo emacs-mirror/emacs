@@ -5391,6 +5391,7 @@ syms_of_buffer (void)
   staticpro (&Qpermanent_local);
   staticpro (&Qkill_buffer_hook);
 
+  DEFSYM (Qchoice, "choice");
   DEFSYM (Qleft, "left");
   DEFSYM (Qright, "right");
   DEFSYM (Qrange, "range");
