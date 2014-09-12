@@ -1,3 +1,7 @@
+2014-09-12  Kan-Ru Chen  <kanru@kanru.info>
+
+	* window.el (fit-window-to-buffer): Doc fix.
+
 2014-09-10  Ivan Shmakov  <ivan@siamics.net>  (tiny change)
 
 	* desktop.el (desktop-create-buffer): Check that buffers are still live
