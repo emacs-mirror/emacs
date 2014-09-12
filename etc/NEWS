@@ -155,6 +155,8 @@ connections using Tramp.
 interactive buffer and advances to the next line, skipping whitespace
 and comments.
 
+*** Add support for Vertica SQL.
+
 ** VC and related modes
 
 *** New option `vc-annotate-background-mode' controls whether

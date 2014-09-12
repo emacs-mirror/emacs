@@ -505,6 +505,19 @@ file.  Since that is a plaintext file, this could be dangerous."
      :prompt-length 5
      :syntax-alist ((?@ . "_"))
      :terminator ("^go" . "go"))
+
+    (vertica
+     :name "Vertica"
+     :sqli-program sql-vertica-program
+     :sqli-options sql-vertica-options
+     :sqli-login sql-vertica-login-params
+     :sqli-comint-func 'sql-comint-vertica
+     :list-all ("select table_name from v_catalog.tables" .
+                "select * from v_catalog.tables")
+     :list-table "\\d %s"
+     :prompt-regexp "^\\w*=[#>] "
+     :prompt-length 5
+     :prompt-cont-regexp "^\\w*[-(][#>] ")
     )
   "An alist of product specific configuration settings.
 
@@ -5056,6 +5069,51 @@ buffer.
 
 
 
+(defcustom sql-vertica-program "vsql"
+  "Command to start the Vertica client."
+  :version "24.5"
+  :type 'file
+  :group 'SQL)
+
+(defcustom sql-vertica-options '("-P" "pager=off")
+  "List of additional options for `sql-vertica-program'.
+The default value disables the internal pager."
+  :version "24.5"
+  :type '(repeat string)
+  :group 'SQL)
+
+(defcustom sql-vertica-login-params '(user password database server)
+  "List of login parameters needed to connect to Vertica."
+  :version "24.5"
+  :type 'sql-login-params
+  :group 'SQL)
+
+(defun sql-comint-vertica (product options)
+  "Create comint buffer and connect to Vertica."
+  (sql-comint product
+              (nconc
+               (and (not (string= "" sql-server))
+                    (list "-h" sql-server))
+               (and (not (string= "" sql-database))
+                    (list "-d" sql-database))
+               (and (not (string= "" sql-password))
+                    (list "-w" sql-password))
+               (and (not (string= "" sql-user))
+                    (list "-U" sql-user))
+               options)))
+
+;;;###autoload
+(defun sql-vertica (&optional buffer)
+  "Run vsql as an inferior process."
+  (interactive "P")
+  (sql-product-interactive 'vertica buffer))
+
+(provide 'vertica)
+
+;;; vertica.el ends here
+
+
+
 (provide 'sql)
 
 ;;; sql.el ends here
