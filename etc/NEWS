@@ -136,6 +136,12 @@ See `diary-chinese-list-entries' and `diary-chinese-mark-entries'.
 ** The Rmail commands d, C-d and u now handle repeat counts to delete or
 undelete multiple messages.
 
+** Rmail can now render HTML mail messages if your Emacs was built with
+libxml2 or if you have the Lynx browser installed.  By default, Rmail
+will display the HTML version of a mail message that has both HTML and
+plain text parts, if display of HTML email is possible; customize the
+`rmail-mime-prefer-html' option to `nil' if you don't want that.
+
 ** SES now supports local printer functions; see `ses-define-local-printer'.
 
 ** In sh-mode, you can now use `sh-shell' as a file-local variable to
