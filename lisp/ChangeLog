@@ -1,3 +1,8 @@
+2014-09-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/rmailmm.el (rmail-mime-insert-html): Decode the HTML part
+	using the specified transfer-encoding, if any, or 'undecided'.
+
 2013-12-27  Ken Olum  <kdo@cosmos.phy.tufts.edu>
 
 	Support rendering of HTML parts in Rmail (bug#4258).

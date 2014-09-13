@@ -659,7 +659,12 @@ HEADER is a header component of a MIME-entity object (see
   "Decode, render, and insert html from MIME-entity ENTITY."
   (let ((body (rmail-mime-entity-body entity))
 	(transfer-encoding (rmail-mime-entity-transfer-encoding entity))
-	(buffer (current-buffer)))
+	(charset (cdr (assq 'charset (cdr (rmail-mime-entity-type entity)))))
+	(buffer (current-buffer))
+	coding-system)
+    (if charset (setq coding-system (coding-system-from-name charset)))
+    (or (and coding-system (coding-system-p coding-system))
+	(setq coding-system 'undecided))
     (with-temp-buffer
       (set-buffer-multibyte nil)
       (setq buffer-undo-list t)
@@ -669,6 +674,11 @@ HEADER is a header component of a MIME-entity object (see
 	     (ignore-errors (base64-decode-region (point-min) (point-max))))
 	    ((string= transfer-encoding "quoted-printable")
 	     (quoted-printable-decode-region (point-min) (point-max))))
+      (decode-coding-region (point-min) (point) coding-system)
+      (if (and
+	   (or (not rmail-mime-coding-system) (consp rmail-mime-coding-system))
+	   (not (eq (coding-system-base coding-system) 'us-ascii)))
+	  (setq rmail-mime-coding-system coding-system))
       ;; Convert html in temporary buffer to text and insert in original buffer
       (let ((source-buffer (current-buffer)))
 	(with-current-buffer buffer
