@@ -694,7 +694,12 @@ HEADER is a header component of a MIME-entity object (see
 	;; Image retrieval happens asynchronously, but meanwhile
 	;; `rmail-swap-buffers' may have been run, leaving
 	;; `shr-image-fetched' trying to insert the image in the wrong buffer.
-	(shr-inhibit-images t))
+	(shr-inhibit-images t)
+	;; Bind shr-width to nil to force shr-insert-document break
+	;; the lines at the window margin.  The default is
+	;; fill-column, whose default value is too small, and screws
+	;; up display of the quoted messages.
+	shr-width)
     (shr-insert-document dom)))
 
 (defun rmail-mime-render-html-lynx (source-buffer)

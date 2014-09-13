@@ -2,6 +2,8 @@
 
 	* mail/rmailmm.el (rmail-mime-insert-html): Decode the HTML part
 	using the specified transfer-encoding, if any, or 'undecided'.
+	(rmail-mime-render-html-shr): Bind shr-width to nil, so lines are
+	broken at the window margin.
 
 2013-12-27  Ken Olum  <kdo@cosmos.phy.tufts.edu>
 
