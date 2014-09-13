@@ -1,3 +1,9 @@
+2014-09-13  Christopher Schmidt  <ch@ristopher.com>
+
+	* calendar/calendar.el (calendar-update-mode-line):
+	Do not overwrite mode-line-format if calendar-mode-line-format is
+	nil.  (Bug#18467)
+
 2014-09-13  Leo Liu  <sdl.web@gmail.com>
 
 	* emacs-lisp/pcase.el (pcase--dontwarn-upats): New var.

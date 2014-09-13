@@ -127,6 +127,9 @@ appending FUN to `minibuffer-setup-hook'.
 *** Calendar can list and mark diary entries with Chinese dates.
 See `diary-chinese-list-entries' and `diary-chinese-mark-entries'.
 
+*** The mode line of the calendar buffer will not be modified if
+`calendar-mode-line-format' is nil.
+
 ** New ERT function `ert-summarize-tests-batch-and-exit'.
 
 ---

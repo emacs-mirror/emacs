@@ -1,3 +1,8 @@
+2014-09-13  Christopher Schmidt  <ch@ristopher.com>
+
+	* NEWS: Mention nil `calendar-mode-line-format' will not modify
+	the mode line of the calendar buffer.  (Bug#18467)
+
 2014-09-06  Leo Liu  <sdl.web@gmail.com>
 
 	* NEWS: Mention vector qpattern for pcase.  (Bug#18327).
