@@ -1953,7 +1953,7 @@ bidi_resolve_explicit_1 (struct bidi_it *bidi_it)
 static int
 bidi_resolve_explicit (struct bidi_it *bidi_it)
 {
-  int prev_level = bidi_it->resolved_level;
+  int prev_level = bidi_it->level_stack[bidi_it->stack_idx].level;
   int new_level  = bidi_resolve_explicit_1 (bidi_it);
   ptrdiff_t eob = bidi_it->string.s ? bidi_it->string.schars : ZV;
   const unsigned char *s
@@ -2035,7 +2035,7 @@ bidi_resolve_weak (struct bidi_it *bidi_it)
 {
   bidi_type_t type;
   bidi_dir_t override;
-  int prev_level = bidi_it->resolved_level;
+  int prev_level = bidi_it->level_stack[bidi_it->stack_idx].level;
   int new_level  = bidi_resolve_explicit (bidi_it);
   int next_char;
   bidi_type_t type_of_next;
@@ -2283,9 +2283,9 @@ bidi_resolve_neutral_1 (bidi_type_t prev_type, bidi_type_t next_type, int lev)
 static bidi_type_t
 bidi_resolve_neutral (struct bidi_it *bidi_it)
 {
-  int prev_level = bidi_it->resolved_level;
+  int prev_level = bidi_it->level_stack[bidi_it->stack_idx].level;
   bidi_type_t type = bidi_resolve_weak (bidi_it);
-  int current_level = bidi_it->resolved_level;
+  int current_level = bidi_it->level_stack[bidi_it->stack_idx].level;
 
   if (!(type == STRONG_R
 	|| type == STRONG_L
@@ -2517,7 +2517,7 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
 	 state must be already cached, so there's no need to know the
 	 embedding level of the previous character, since we will be
 	 returning to our caller shortly.  */
-      prev_level = bidi_it->resolved_level;
+      prev_level = bidi_it->level_stack[bidi_it->stack_idx].level;
       eassert (prev_level >= 0);
     }
   next_for_neutral = bidi_it->next_for_neutral;
@@ -2685,6 +2685,8 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
 	level++;
     }
 
+  /* FIXME: Exempt explicit directional characters from the assignment
+     below, and remove the PDF hack above.  */
   bidi_it->resolved_level = level;
   return level;
 }
@@ -2822,6 +2824,11 @@ bidi_move_to_visually_next (struct bidi_it *bidi_it)
 	     in the cache, which at this point should not happen.  If
 	     it does, we will infloop.  */
 	  eassert (next_level >= 0);
+	  /* If next_level is not consistent with incr, we might
+	     infloop.  */
+	  eassert (incr > 0
+		   ? next_level > expected_next_level
+		   : next_level < expected_next_level);
 	  expected_next_level += incr;
 	  level_to_search += incr;
 	  bidi_find_other_level_edge (bidi_it, level_to_search, !ascending);
