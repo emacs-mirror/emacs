@@ -1,3 +1,12 @@
+2014-09-13  Leo Liu  <sdl.web@gmail.com>
+
+	* emacs-lisp/pcase.el (pcase--dontwarn-upats): New var.
+	(pcase--expand): Use it.
+	(pcase-exhaustive): New macro.  (Bug#16567)
+
+	* emacs-lisp/lisp-mode.el (lisp-el-font-lock-keywords-2): Add
+	pcase-exhaustive.
+
 2014-09-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* mail/rmailmm.el (rmail-mime-insert-html): Decode the HTML part

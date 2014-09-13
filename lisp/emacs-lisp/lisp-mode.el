@@ -197,9 +197,9 @@ It has `lisp-mode-abbrev-table' as its parent."
               (el-vdefs '("defconst" "defcustom" "defvaralias" "defvar-local"
                           "defface"))
               (el-tdefs '("defgroup" "deftheme"))
-              (el-kw '("while-no-input" "letrec" "pcase" "pcase-let"
-                       "pcase-let*" "save-restriction" "save-excursion"
-                       "save-selected-window"
+              (el-kw '("while-no-input" "letrec" "pcase" "pcase-exhaustive"
+                       "pcase-let" "pcase-let*" "save-restriction"
+                       "save-excursion" "save-selected-window"
                        ;; "eval-after-load" "eval-next-after-load"
                        "save-window-excursion" "save-current-buffer"
                        "save-match-data" "combine-after-change-calls"

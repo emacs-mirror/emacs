@@ -68,6 +68,8 @@
 
 (defconst pcase--dontcare-upats '(t _ pcase--dontcare))
 
+(defvar pcase--dontwarn-upats '(pcase--dontcare))
+
 (def-edebug-spec
   pcase-UPAT
   (&or symbolp
@@ -147,6 +149,15 @@ like `(,a . ,(pred (< a))) or, with more checks:
         ;; (puthash (car cases) `(,exp ,cases ,@expansion) pcase--memoize-1)
         ;; (puthash (car cases) `(,exp ,cases ,@expansion) pcase--memoize-2)
         expansion))))
+
+;;;###autoload
+(defmacro pcase-exhaustive (exp &rest cases)
+  "The exhaustive version of `pcase' (which see)."
+  (declare (indent 1) (debug pcase))
+  (let* ((x (make-symbol "x"))
+         (pcase--dontwarn-upats (cons x pcase--dontwarn-upats)))
+    (pcase--expand
+     exp (append cases `((,x (error "No clause matching `%S'" ,x)))))))
 
 (defun pcase--let* (bindings body)
   (cond
@@ -280,7 +291,8 @@ of the form (UPAT EXP)."
                              vars))))
                      cases))))
       (dolist (case cases)
-        (unless (or (memq case used-cases) (eq (car case) 'pcase--dontcare))
+        (unless (or (memq case used-cases)
+                    (memq (car case) pcase--dontwarn-upats))
           (message "Redundant pcase pattern: %S" (car case))))
       (macroexp-let* defs main))))
 
