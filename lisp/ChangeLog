@@ -1,3 +1,22 @@
+2013-12-27  Ken Olum  <kdo@cosmos.phy.tufts.edu>
+
+	Support rendering of HTML parts in Rmail (bug#4258).
+	* mail/rmailmm.el (rmail-mime-process): Handle text/html
+	separately from other text/ types.  Suppress tagline for
+	multipart body.
+	(rmail-mime-parse): Don't change visibility of tagline here.
+	(rmail-mime-set-bulk-data, rmail-mime-insert-bulk):
+	Handle text/html specially.
+	(rmail-mime-render-html-function,rmail-mime-prefer-html): New variables.
+	(rmail-mime-insert-html, rmail-mime-render-html-shr)
+	(rmail-mime-render-html-lynx): New functions.
+	(rmail-mime-fix-inserted-faces): New function.
+	(rmail-mime-process-multipart): Find the best part to show
+	following rmail-mime-prefer-html if set.
+	(rmail-mime-searching): New variable.
+	(rmail-search-mime-message): Bind rmail-mime-searching to
+	suppress rendering while searching.
+
 2014-09-12  Sam Steingold  <sds@gnu.org>
 
 	* progmodes/sql.el (sql-product-alist): Add vertica.

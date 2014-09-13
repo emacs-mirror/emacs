@@ -131,6 +131,26 @@ automatically display the image in the buffer."
   :version "23.2"
   :group 'rmail-mime)
 
+(defcustom rmail-mime-render-html-function
+  (cond ((fboundp 'libxml-parse-html-region) 'rmail-mime-render-html-shr)
+	((executable-find "lynx") 'rmail-mime-render-html-lynx)
+	(t nil))
+  "Function to convert HTML to text.  Called with buffer containing HTML
+extracted from message in a temporary buffer.  Converts to text in current 
+buffer. If NIL, display HTML source."
+  :group 'rmail
+  :version "24.5"
+  :type '(choice function (const nil)))
+
+(defcustom rmail-mime-prefer-html
+  ;; Default to preferring HTML parts, but only if we have a renderer
+  (if rmail-mime-render-html-function t nil)
+  "If non-nil, default to showing HTML part rather than text part
+when both are available"
+  :group 'rmail
+  :version "24.5"
+  :type 'boolean)
+
 ;;; End of user options.
 
 ;;; Global variables that always have let-binding when referred.
@@ -149,6 +169,10 @@ processing MIME.")
   "The first coding-system used for decoding a MIME entity.
 The value is usually nil, and bound to non-nil while inserting
 MIME entities.")
+
+(defvar rmail-mime-searching nil
+  "Bound to T inside `rmail-search-mime-message' to suppress expensive 
+operations such as HTML decoding")
 
 ;;; MIME-entity object
 
@@ -631,6 +655,57 @@ HEADER is a header component of a MIME-entity object (see
     (insert-image (create-image data (cdr bulk-data) t))
     (insert "\n")))
 
+(defun rmail-mime-insert-html (entity)
+  "Decode, render, and insert html from MIME-entity ENTITY."
+  (let ((body (rmail-mime-entity-body entity))
+	(transfer-encoding (rmail-mime-entity-transfer-encoding entity))
+	(buffer (current-buffer)))
+    (with-temp-buffer
+      (set-buffer-multibyte nil)
+      (setq buffer-undo-list t)
+      (insert-buffer-substring rmail-mime-mbox-buffer
+			       (aref body 0) (aref body 1))
+      (cond ((string= transfer-encoding "base64")
+	     (ignore-errors (base64-decode-region (point-min) (point-max))))
+	    ((string= transfer-encoding "quoted-printable")
+	     (quoted-printable-decode-region (point-min) (point-max))))
+      ;; Convert html in temporary buffer to text and insert in original buffer
+      (let ((source-buffer (current-buffer)))
+	(with-current-buffer buffer
+	  (let ((start (point)))
+	    (if rmail-mime-render-html-function
+		(funcall rmail-mime-render-html-function source-buffer)
+	      (insert-buffer-substring source-buffer))
+	    (rmail-mime-fix-inserted-faces start)))))))
+
+(defun rmail-mime-render-html-shr (source-buffer)
+  (let ((dom (with-current-buffer source-buffer
+	       (libxml-parse-html-region (point-min) (point-max))))
+	;; Image retrieval happens asynchronously, but meanwhile
+	;; `rmail-swap-buffers' may have been run, leaving
+	;; `shr-image-fetched' trying to insert the image in the wrong buffer.
+	(shr-inhibit-images t))
+    (shr-insert-document dom)))
+
+(defun rmail-mime-render-html-lynx (source-buffer)
+  (let ((destination-buffer (current-buffer)))
+    (with-current-buffer source-buffer
+      (call-process-region (point-min) (point-max)
+			   "lynx" nil destination-buffer nil
+			   "-stdin" "-dump" "-force_html"
+			   "-dont_wrap_pre" "-width=70"))))
+
+;; Put font-lock-face properties matching face properties on text
+;; inserted, e.g., by shr, in text from START to point.
+(defun rmail-mime-fix-inserted-faces (start)
+  (while (< start (point))
+    (let ((face (get-text-property start 'face))
+	  (next (next-single-property-change 
+		 start 'face (current-buffer) (point))))
+      (if face				; anything to do?
+	  (put-text-property start next 'font-lock-face face))
+      (setq start next))))
+    
 (defun rmail-mime-toggle-button (button)
   "Hide or show the body of the MIME-entity associated with BUTTON."
   (save-excursion
@@ -675,6 +750,8 @@ directly."
 		    (setq size (/ (* size 7) 3)))))))
 
     (cond
+     ((string-match "text/html" content-type)
+      (setq type 'html))
      ((string-match "text/" content-type)
       (setq type 'text))
      ((string-match "image/\\(.*\\)" content-type)
@@ -784,6 +861,12 @@ directly."
       (if (rmail-mime-display-body new)
 	  (cond ((eq (cdr bulk-data) 'text)
 		 (rmail-mime-insert-decoded-text entity))
+		((eq (cdr bulk-data) 'html)
+		 ;; Render HTML if display single message, but if searching
+		 ;; don't render but just search HTML itself.
+		 (if rmail-mime-searching
+		     (rmail-mime-insert-decoded-text entity)
+		   (rmail-mime-insert-html entity)))
 		((cdr bulk-data)
 		 (rmail-mime-insert-image entity))
 		(t
@@ -918,18 +1001,28 @@ The other arguments are the same as `rmail-mime-multipart-handler'."
       (setq entities (nreverse entities))
       (if (string-match "alternative" subtype)
 	  ;; Find the best entity to show, and hide all the others.
-	  (let (best second)
+	  ;; If rmail-mime-prefer-html is set, html is best, then plain.
+	  ;; If not, plain is best, then html.
+	  ;; Then comes any other text part.
+	  ;; If thereto of the same type, earlier entities in the message (later
+	  ;; in the reverse list) are preferred.
+	  (let (best best-priority)
 	    (dolist (child entities)
 	      (if (string= (or (car (rmail-mime-entity-disposition child))
 			       (car content-disposition))
 			   "inline")
-		  (if (string-match "text/plain"
-				    (car (rmail-mime-entity-type child)))
-		      (setq best child)
-		    (if (string-match "text/.*"
-				      (car (rmail-mime-entity-type child)))
-			(setq second child)))))
-	    (or best (not second) (setq best second))
+		  (let ((type (car (rmail-mime-entity-type child))))
+		    (if (string-match "text/" type)
+			;; Consider all inline text parts
+			(let ((priority
+			       (cond ((string-match "text/html" type)
+				      (if rmail-mime-prefer-html 1 2))
+				     ((string-match "text/plain" type)
+				      (if rmail-mime-prefer-html 2 1))
+				     (t 3))))
+			  (if (or (null best) (<= priority best-priority))
+			      (setq best child
+				    best-priority priority)))))))
 	    (dolist (child entities)
 	      (unless (eq best child)
 		(aset (rmail-mime-entity-body child) 2 nil)
@@ -1114,6 +1207,8 @@ modified."
 	  (cond ((string-match "multipart/.*" (car content-type))
 		 (save-restriction
 		   (narrow-to-region (1- end) (point-max))
+		   (if (zerop (length parse-tag)) ; top level of message
+		       (aset new 1 (aset tagline 2 nil))) ; don't show tagline
 		   (setq children (rmail-mime-process-multipart
 				   content-type
 				   content-disposition
@@ -1134,6 +1229,12 @@ modified."
 		     (aset (rmail-mime-entity-tagline msg) 2 nil)
 		     (setq children (list msg)
 			   handler 'rmail-mime-insert-multipart))))
+		((and is-inline (string-match "text/html" (car content-type)))
+		 ;; Display tagline, so part can be detached
+		 (aset new 1 (aset tagline 2 t))
+		 (aset new 2 (aset body 2 t)) ; display body also.
+		 (setq handler 'rmail-mime-insert-bulk))
+		;; Inline non-HTML text
 		((and is-inline (string-match "text/" (car content-type)))
 		 ;; Don't need a tagline.
 		 (aset new 1 (aset tagline 2 nil))
@@ -1186,10 +1287,6 @@ If an error occurs, return an error message string."
 		   (new (aref (rmail-mime-entity-display entity) 1)))
 	      ;; Show header.
 	      (aset new 0 (aset (rmail-mime-entity-header entity) 2 t))
-	      ;; Show tagline if and only if body is not shown.
-	      (if (aref new 2)
-		  (aset new 1 (aset (rmail-mime-entity-tagline entity) 2 nil))
-		(aset new 1 (aset (rmail-mime-entity-tagline entity) 2 t)))
 	      entity)))
       (error (format "%s" err)))))
 
@@ -1390,7 +1487,8 @@ This is the usual value of `rmail-insert-mime-forwarded-message-function'."
   "Function to set in `rmail-search-mime-message-function' (which see)."
   (save-restriction
     (narrow-to-region (rmail-msgbeg msg) (rmail-msgend msg))
-    (let* ((rmail-mime-mbox-buffer (current-buffer))
+    (let* ((rmail-mime-searching t)	; mark inside search
+	   (rmail-mime-mbox-buffer (current-buffer))
 	   (rmail-mime-view-buffer rmail-view-buffer)
 	   (header-end (save-excursion
 			 (re-search-forward "^$" nil 'move) (point)))
