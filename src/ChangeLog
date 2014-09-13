@@ -1,3 +1,16 @@
+2014-09-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* sound.c (Fplay_sound_internal): Encode the sound file name in
+	the ANSI codepage.  Expand it against data-directory, as per docs,
+	not against the current directory.  No need to make a local copy
+	of the file name; pass the encoded file name directly to
+	do_play_sound.  (Bug#18463)
+
+	* w32.c (ansi_encode_filename): If w32_get_short_filename returns
+	NULL, and the file name is not encodable in ANSI codepage, return
+	the string with "?" replacement characters, which will fail the
+	caller.  This avoids returning a random value in that case.
+
 2014-09-11  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.c (Fresize_mini_window_internal): Set w->total_lines

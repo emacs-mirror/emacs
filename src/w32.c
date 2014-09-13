@@ -2387,6 +2387,8 @@ ansi_encode_filename (Lisp_Object filename)
 	  dostounix_filename (shortname);
 	  encoded_filename = build_string (shortname);
 	}
+      else
+	encoded_filename = build_unibyte_string (fname);
     }
   else
     encoded_filename = build_unibyte_string (fname);
