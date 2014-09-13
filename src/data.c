@@ -2310,7 +2310,7 @@ bool-vector.  IDX starts at 0.  */)
 	{
 	  if (! SINGLE_BYTE_CHAR_P (c))
 	    {
-	      int i;
+	      ptrdiff_t i;
 
 	      for (i = SBYTES (array) - 1; i >= 0; i--)
 		if (SREF (array, i) >= 0x80)

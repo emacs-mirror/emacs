@@ -1,3 +1,11 @@
+2014-09-13  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Prefer ptrdiff_t to int and avoid integer overflows.
+	* fileio.c (make_temp_name):
+	* font.c (font_parse_family_registry): Avoid integer
+	overflow on string size calculation.
+	* data.c (Faset): Likewise for byte index.
+
 2014-09-12  Detlev Zundel  <dzu@member.fsf.org>
 
 	* buffer.c (syms_of_buffer): DEFSYM Qchoice (Bug#18337).
@@ -15,7 +23,7 @@
 	* lread.c (readevalloop_eager_expand_eval): Add GCPRO and fix
 	bootstrap broken if GC_MARK_STACK == GC_USE_GCPROS_AS_BEFORE.
 
-	Remove redundant GCPROs around Ffuncall and Fapply calls. This
+	Remove redundant GCPROs around Ffuncall and Fapply calls.  This
 	is safe because Ffuncall protects all of its arguments by itself.
 	* charset.c (map_charset_for_dump): Remove redundant GCPRO.
 	* eval.c (Fapply, apply1, call0, call1, call2, call3, call4, call5)
