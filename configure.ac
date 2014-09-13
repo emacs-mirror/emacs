@@ -1398,7 +1398,7 @@ AC_DEFUN([PKG_CHECK_MODULES], [
 HAVE_SOUND=no
 if test "${with_sound}" != "no"; then
   # Sound support for GNU/Linux, the free BSDs, and MinGW.
-  AC_CHECK_HEADERS([machine/soundcard.h sys/soundcard.h soundcard.h],
+  AC_CHECK_HEADERS([machine/soundcard.h sys/soundcard.h soundcard.h mmsystem.h],
     have_sound_header=yes, [], [
     #ifdef __MINGW32__
     #define WIN32_LEAN_AND_MEAN

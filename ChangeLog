@@ -1,3 +1,8 @@
+2014-09-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* configure.ac (HAVE_SOUND): Check for mmsystem.h header that
+	defines the sound stuff on MS-Windows.  (Bug#18463)
+
 2014-08-22  Ken Brown  <kbrown@cornell.edu>
 
 	* configure.ac (HAVE_XPM): Explain the use of CPPFLAGS in the
