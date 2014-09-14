@@ -7690,15 +7690,15 @@ fcntl (int s, int cmd, int options)
   if (cmd == F_DUPFD_CLOEXEC)
     return sys_dup (s);
 
-  if (winsock_lib == NULL)
-    {
-      errno = ENETDOWN;
-      return -1;
-    }
-
   check_errno ();
   if (fd_info[s].flags & FILE_SOCKET)
     {
+      if (winsock_lib == NULL)
+	{
+	  errno = ENETDOWN;
+	  return -1;
+	}
+
       if (cmd == F_SETFL && options == O_NONBLOCK)
 	{
 	  unsigned long nblock = 1;
@@ -7715,13 +7715,36 @@ fcntl (int s, int cmd, int options)
 	  return SOCKET_ERROR;
 	}
     }
+  else if ((fd_info[s].flags & (FILE_PIPE | FILE_WRITE))
+	   == (FILE_PIPE | FILE_WRITE))
+    {
+      /* Force our writes to pipes be non-blocking.  */
+      if (cmd == F_SETFL && options == O_NONBLOCK)
+	{
+	  HANDLE h = (HANDLE)_get_osfhandle (s);
+	  DWORD pipe_mode = PIPE_NOWAIT;
+
+	  if (!SetNamedPipeHandleState (h, &pipe_mode, NULL, NULL))
+	    {
+	      DebPrint (("SetNamedPipeHandleState: %lu\n", GetLastError ()));
+	      return SOCKET_ERROR;
+	    }
+	  fd_info[s].flags |= FILE_NDELAY;
+	  return 0;
+	}
+      else
+	{
+	  errno = EINVAL;
+	  return SOCKET_ERROR;
+	}
+    }
   errno = ENOTSOCK;
   return SOCKET_ERROR;
 }
 
 
 /* Shadow main io functions: we need to handle pipes and sockets more
-   intelligently, and implement non-blocking mode as well. */
+   intelligently.  */
 
 int
 sys_close (int fd)
@@ -8206,7 +8229,6 @@ sys_read (int fd, char * buffer, unsigned int count)
 /* From w32xfns.c */
 extern HANDLE interrupt_handle;
 
-/* For now, don't bother with a non-blocking mode */
 int
 sys_write (int fd, const void * buffer, unsigned int count)
 {
@@ -8341,6 +8363,22 @@ sys_write (int fd, const void * buffer, unsigned int count)
 	  nchars += n;
 	  if (n < 0)
 	    {
+	      /* When there's no buffer space in a pipe that is in the
+		 non-blocking mode, _write returns ENOSPC.  We return
+		 EAGAIN instead, which should trigger the logic in
+		 send_process that enters waiting loop and calls
+		 wait_reading_process_output to allow process input to
+		 be accepted during the wait.  Those calls to
+		 wait_reading_process_output allow sys_select to
+		 notice when process input becomes available, thus
+		 avoiding deadlock whereby each side of the pipe is
+		 blocked on write, waiting for the other party to read
+		 its end of the pipe.  */
+	      if (errno == ENOSPC
+		  && fd < MAXDESC
+		  && ((fd_info[fd].flags & (FILE_PIPE | FILE_NDELAY))
+		      == (FILE_PIPE | FILE_NDELAY)))
+		errno = EAGAIN;
 	      nchars = n;
 	      break;
 	    }
