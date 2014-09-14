@@ -5108,11 +5108,6 @@ The default value disables the internal pager."
   (interactive "P")
   (sql-product-interactive 'vertica buffer))
 
-(provide 'vertica)
-
-;;; vertica.el ends here
-
-
 
 (provide 'sql)
 
