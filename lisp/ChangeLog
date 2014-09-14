@@ -1,3 +1,8 @@
+2014-09-14  Glenn Morris  <rgm@gnu.org>
+
+	* image.el (image-multi-frame-p): Fix thinko - do not force
+	a delay if none was specified.  (Bug#18334)
+
 2014-09-12  Kan-Ru Chen  <kanru@kanru.info>
 
 	* window.el (fit-window-to-buffer): Doc fix.

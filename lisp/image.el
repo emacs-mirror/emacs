@@ -637,8 +637,8 @@ in which case you might want to use `image-default-frame-delay'."
 	   (images (plist-get metadata 'count))
 	   (delay (plist-get metadata 'delay)))
       (when (and images (> images 1))
-	(if (or (not (numberp delay)) (< delay 0))
-	    (setq delay image-default-frame-delay))
+	(and delay (or (not (numberp delay)) (< delay 0))
+	     (setq delay image-default-frame-delay))
 	(cons images delay)))))
 
 (defun image-animated-p (image)
