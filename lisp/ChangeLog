@@ -1,3 +1,12 @@
+2014-09-14  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-cache.el (tramp-flush-file-function): Simplify check.
+	Suppress debug messages.
+
+	* net/tramp.el (tramp-file-name-handler):
+	* net/tramp-gvfs.el (tramp-gvfs-url-file-name): Apply `cons' where
+	appropriate.
+
 2014-09-13  Christopher Schmidt  <ch@ristopher.com>
 
 	* calendar/calendar.el (calendar-update-mode-line):

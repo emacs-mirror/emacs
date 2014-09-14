@@ -2148,13 +2148,13 @@ Falls back to normal file name handler if no Tramp file name handler exists."
 		       ((eq result 'non-essential)
 			(tramp-message
 			 v 5 "Non-essential received in operation %s"
-			 (append (list operation) args))
+			 (cons operation args))
 			(tramp-run-real-handler operation args))
 		       ((eq result 'suppress)
 			(let (tramp-message-show-message)
 			  (tramp-message
 			   v 1 "Suppress received in operation %s"
-			   (append (list operation) args))
+			   (cons operation args))
 			  (tramp-cleanup-connection v t)
 			  (tramp-run-real-handler operation args)))
 		       (t result)))
@@ -2164,7 +2164,7 @@ Falls back to normal file name handler if no Tramp file name handler exists."
 		   (let (tramp-message-show-message)
 		     (tramp-message
 		      v 1 "Interrupt received in operation %s"
-		      (append (list operation) args)))
+		      (cons operation args)))
 		   ;; Propagate the quit signal.
 		   (signal (car err) (cdr err)))
 
