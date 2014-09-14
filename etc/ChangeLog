@@ -1,3 +1,7 @@
+2014-09-14  Daniel Colascione  <dancol@dancol.org>
+
+	* NEWS: Mention changes to `insert-register'
+
 2014-09-13  Christopher Schmidt  <ch@ristopher.com>
 
 	* NEWS: Mention nil `calendar-mode-line-format' will not modify

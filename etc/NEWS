@@ -49,6 +49,9 @@ Use './configure PKG_CONFIG=/full/name/of/pkg-config' if you need to.
 
 * Changes in Emacs 24.5
 
+** `insert-register' now leaves point after the inserted text
+when called interactively.  A prefix argument toggles this behavior.
+
 ** New var `truncate-string-ellipsis' to choose how to indicate truncation.
 
 ---

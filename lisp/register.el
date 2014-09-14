@@ -425,13 +425,14 @@ Interactively, reads the register using `register-read-with-preview'."
   "Insert contents of register REGISTER.  (REGISTER is a character.)
 Normally puts point before and mark after the inserted text.
 If optional second arg is non-nil, puts mark before and point after.
-Interactively, second arg is non-nil if prefix arg is supplied.
+Interactively, second arg is nil if prefix arg is supplied and t
+otherwise.
 
 Interactively, reads the register using `register-read-with-preview'."
   (interactive (progn
 		 (barf-if-buffer-read-only)
 		 (list (register-read-with-preview "Insert register: ")
-		       current-prefix-arg)))
+		       (not current-prefix-arg))))
   (push-mark)
   (let ((val (get-register register)))
     (cond

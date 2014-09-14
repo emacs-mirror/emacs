@@ -1,3 +1,8 @@
+2014-09-14  Daniel Colascione  <dancol@dancol.org>
+
+	* register.el (insert-register): Change default interactive
+	insertion mode.
+
 2014-09-14  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-cache.el (tramp-flush-file-function): Simplify check.
