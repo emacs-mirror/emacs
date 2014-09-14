@@ -1,3 +1,8 @@
+2014-09-14  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* callproc.c (init_callproc): Fix bug introduced at
+	2014-09-07 (Bug#18474).
+
 2014-09-13  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Prefer ptrdiff_t to int and avoid integer overflows.

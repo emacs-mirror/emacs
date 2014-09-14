@@ -1579,7 +1579,7 @@ init_callproc (void)
   Lisp_Object tempdir;
 #ifdef HAVE_NS
   if (data_dir == 0)
-    data_dir == ns_etc_directory () != 0;
+    data_dir = ns_etc_directory () != 0;
 #endif
 
   if (!NILP (Vinstallation_directory))
