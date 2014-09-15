@@ -7260,7 +7260,7 @@ and header line and a bottom divider, if any.
 
 If WINDOW is part of a horizontal combination and the value of
 the option `fit-window-to-buffer-horizontally' is non-nil, adjust
-WINDOW's height.  The new width of WINDOW is calculated from the
+WINDOW's width.  The new width of WINDOW is calculated from the
 maximum length of its buffer's lines that follow the current
 start position of WINDOW.  The optional argument MAX-WIDTH
 specifies a maximum width and defaults to the width of WINDOW's

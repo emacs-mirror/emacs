@@ -1,3 +1,30 @@
+2014-09-15  Glenn Morris  <rgm@gnu.org>
+
+	* image.el (image-multi-frame-p): Fix thinko - do not force
+	a delay if none was specified.  (Bug#18334)
+
+2014-09-15  Kan-Ru Chen  <kanru@kanru.info>
+
+	* window.el (fit-window-to-buffer): Doc fix.
+
+2014-09-15  Ivan Shmakov  <ivan@siamics.net>  (tiny change)
+
+	* desktop.el (desktop-create-buffer): Check that buffers are still live
+	before burying them (bug#18373).
+
+2014-09-15  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/diary-lib.el (diary-list-entries):
+	Restore 24.3 display behavior.  (Bug#18381)
+
+2014-09-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* mouse.el (mouse-drag-line): On text-mode frames, count the mode
+	line and header line as 1 pixel.  This fixes the 1-"pixel" (row)
+	discrepancy between window-pixel-edges and mouse events, and
+	avoids moving mode line up when the mouse click is on the modeline
+	and no drag is attempted.
+
 2014-09-14  Daniel Colascione  <dancol@dancol.org>
 
 	* register.el (insert-register): Change default interactive

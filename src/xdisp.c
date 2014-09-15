@@ -1455,15 +1455,19 @@ pos_visible_p (struct window *w, ptrdiff_t charpos, int *x, int *y,
 	 glyph.  */
       int top_x = it.current_x;
       int top_y = it.current_y;
-      /* Calling line_bottom_y may change it.method, it.position, etc.  */
-      enum it_method it_method = it.method;
-      int bottom_y = (last_height = 0, line_bottom_y (&it));
       int window_top_y = WINDOW_HEADER_LINE_HEIGHT (w);
+      int bottom_y;
+      struct it save_it;
+      void *save_it_data = NULL;
 
+      /* Calling line_bottom_y may change it.method, it.position, etc.  */
+      SAVE_IT (save_it, it, save_it_data);
+      last_height = 0;
+      bottom_y = line_bottom_y (&it);
       if (top_y < window_top_y)
 	visible_p = bottom_y > window_top_y;
       else if (top_y < it.last_visible_y)
-	visible_p = true;
+	visible_p = 1;
       if (bottom_y >= it.last_visible_y
 	  && it.bidi_p && it.bidi_it.scan_dir == -1
 	  && IT_CHARPOS (it) < charpos)
@@ -1476,7 +1480,6 @@ pos_visible_p (struct window *w, ptrdiff_t charpos, int *x, int *y,
 	     move_it_to again with a slightly larger vertical limit,
 	     and see if it actually moved vertically; if it did, we
 	     didn't really reach CHARPOS, which is beyond window end.  */
-	  struct it save_it = it;
 	  /* Why 10? because we don't know how many canonical lines
 	     will the height of the next line(s) be.  So we guess.  */
 	  int ten_more_lines = 10 * default_line_pixel_height (w);
@@ -1486,11 +1489,11 @@ pos_visible_p (struct window *w, ptrdiff_t charpos, int *x, int *y,
 	  if (it.current_y > top_y)
 	    visible_p = 0;
 
-	  it = save_it;
 	}
+      RESTORE_IT (&it, &save_it, save_it_data);
       if (visible_p)
 	{
-	  if (it_method == GET_FROM_DISPLAY_VECTOR)
+	  if (it.method == GET_FROM_DISPLAY_VECTOR)
 	    {
 	      /* We stopped on the last glyph of a display vector.
 		 Try and recompute.  Hack alert!  */

@@ -88,6 +88,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <limits.h>
 #include <windows.h>
 #include <mmsystem.h>
+
+#include "coding.h"
+#include "w32.h"
 /* END: Windows Specific Includes */
 
 #endif /* WINDOWSNT */
@@ -1310,8 +1313,7 @@ Internal use only, use `play-sound' instead.  */)
   struct gcpro gcpro1, gcpro2;
   Lisp_Object args[2];
 #else /* WINDOWSNT */
-  Lisp_Object lo_file = {0};
-  char * psz_file = NULL;
+  Lisp_Object lo_file;
   unsigned long ui_volume_tmp = UINT_MAX;
   unsigned long ui_volume = UINT_MAX;
 #endif /* WINDOWSNT */
@@ -1384,10 +1386,11 @@ Internal use only, use `play-sound' instead.  */)
 
 #else /* WINDOWSNT */
 
-  lo_file = Fexpand_file_name (attrs[SOUND_FILE], Qnil);
-  len = XSTRING (lo_file)->size;
-  psz_file = alloca (len + 1);
-  strcpy (psz_file, XSTRING (lo_file)->data);
+  lo_file = Fexpand_file_name (attrs[SOUND_FILE], Vdata_directory);
+  lo_file = ENCODE_FILE (lo_file);
+  /* Since UNICOWS.DLL includes only a stub for mciSendStringW, we
+     need to encode the file in the ANSI codepage.  */
+  lo_file = ansi_encode_filename (lo_file);
   if (INTEGERP (attrs[SOUND_VOLUME]))
     {
       ui_volume_tmp = XFASTINT (attrs[SOUND_VOLUME]);
@@ -1409,7 +1412,7 @@ Internal use only, use `play-sound' instead.  */)
     {
       ui_volume = ui_volume_tmp * (UINT_MAX / 100);
     }
-  do_play_sound (psz_file, ui_volume);
+  do_play_sound (SDATA (lo_file), ui_volume);
 
 #endif /* WINDOWSNT */
 

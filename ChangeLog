@@ -1,3 +1,8 @@
+2014-09-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* configure.ac (HAVE_SOUND): Check for mmsystem.h header that
+	defines the sound stuff on MS-Windows.  (Bug#18463)
+
 2014-09-10  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Improve the experimental local and scoped allocation.

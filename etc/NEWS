@@ -533,9 +533,6 @@ of the buffer is visible).
 
 *** New display actions functions for `display-buffer':
 
-**** `display-buffer-in-previous-window' displays a buffer in a window
-previously showing that buffer.
-
 **** `display-buffer-at-bottom' chooses or creates a window at the
 bottom of the selected frame.
 
@@ -544,6 +541,9 @@ bottom of the selected frame.
 *** New display action alist entry `allow-no-window' to indicate the
 caller of `display-buffer' is ready to handle the case of not displaying
 the buffer in a window.
+
+*** `display-buffer-in-previous-window' is now a member of
+`display-buffer-fallback-action'.
 
 ** Lisp evaluation
 
@@ -1416,6 +1416,11 @@ and can be accessed by calling the `coding-system-type' function.)
 *** New function `define-error'.
 
 *** `with-demoted-errors' takes an additional argument `format'.
+
+*** Errors from timer functions are no longer silently discarded,
+but are reported as messages.  So you may see "Error running timer"
+messages from code that was failing silently till now.  Set
+`debug-on-error' non-nil to get a real error and a backtrace.
 
 ** Faces
 

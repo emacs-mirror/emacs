@@ -1,3 +1,40 @@
+2014-09-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (fcntl): Support O_NONBLOCK fcntl on the write side of pipes.
+	(sys_write): When a write to a non-blocking pipe returns ENOSPC,
+	set errno to EAGAIN instead, to allow the caller to retry the
+	write after some waiting.  Fixes deadlocks when Emacs exchanges a
+	lot of data through the pipe.  (Bug#18420)
+
+	* sound.c (Fplay_sound_internal): Encode the sound file name in
+	the ANSI codepage.  Expand it against data-directory, as per docs,
+	not against the current directory.  No need to make a local copy
+	of the file name; pass the encoded file name directly to
+	do_play_sound.  (Bug#18463)
+
+	* w32.c (ansi_encode_filename): If w32_get_short_filename returns
+	NULL, and the file name is not encodable in ANSI codepage, return
+	the string with "?" replacement characters, which will fail the
+	caller.  This avoids returning a random value in that case.
+
+2014-09-15  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (Fresize_mini_window_internal): Set w->total_lines
+	from w->pixel_height (Bug#18422).
+
+2014-09-15  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (updateFrameSize:, initFrameFromEmacs:)
+	(toggleFullScreen:): Take frame_resize_pixelwise into account when
+	setting resize increments (Bug#18435).
+
+2014-09-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (pos_visible_p): Properly save and restore the iterator
+	state around the call to line_bottom, since it can move the
+	iterator to another screen line.  This fixes off-by-one errors in
+	the reported row in some rare cases.
+
 2014-09-14  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* callproc.c (init_callproc): Fix bug introduced at
