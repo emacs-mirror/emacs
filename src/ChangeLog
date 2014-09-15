@@ -1,3 +1,17 @@
+2014-09-15  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix display of R2L lines in partial-width windows.
+	* xdisp.c (init_iterator): Don't use it->bidi_p before it is
+	assigned the correct value.
+	(extend_face_to_end_of_line): Account for truncation and
+	continuation glyphs in R2L rows when one of the fringes is not
+	displayed.
+	(display_line): Don't assign negative X offset to a row if we are
+	going to produce a truncation glyph for it.  When handling
+	truncated R2L rows, consider the width of the left fringe instead
+	of the right one.
+	(produce_special_glyphs): Fix bogus assignments.
+
 2014-09-14  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32.c (fcntl): Support O_NONBLOCK fcntl on the write side of

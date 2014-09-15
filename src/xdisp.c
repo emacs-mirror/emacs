@@ -2994,12 +2994,8 @@ init_iterator (struct it *it, struct window *w,
 
       /* If we truncate lines, leave room for the truncation glyph(s) at
 	 the right margin.  Otherwise, leave room for the continuation
-	 glyph(s).  Done only if the window has no fringes.  Since we
-	 don't know at this point whether there will be any R2L lines in
-	 the window, we reserve space for truncation/continuation glyphs
-	 even if only one of the fringes is absent.  */
-      if (WINDOW_RIGHT_FRINGE_WIDTH (it->w) == 0
-	  || (it->bidi_p && WINDOW_LEFT_FRINGE_WIDTH (it->w) == 0))
+	 glyph(s).  Done only if the window has no right fringe.  */
+      if (WINDOW_RIGHT_FRINGE_WIDTH (it->w) == 0)
 	{
 	  if (it->line_wrap == TRUNCATE)
 	    it->last_visible_x -= it->truncation_pixel_width;
@@ -3064,6 +3060,19 @@ init_iterator (struct it *it, struct window *w,
 	 iterator.  */
       if (it->bidi_p)
 	{
+	  /*  Since we don't know at this point whether there will be
+	      any R2L lines in the window, we reserve space for
+	      truncation/continuation glyphs even if only the left
+	      fringe is absent.  */
+	  if (base_face_id == DEFAULT_FACE_ID
+	      && WINDOW_LEFT_FRINGE_WIDTH (it->w) == 0
+	      && WINDOW_RIGHT_FRINGE_WIDTH (it->w) != 0)
+	    {
+	      if (it->line_wrap == TRUNCATE)
+		it->last_visible_x -= it->truncation_pixel_width;
+	      else
+		it->last_visible_x -= it->continuation_pixel_width;
+	    }
 	  /* Note the paragraph direction that this buffer wants to
 	     use.  */
 	  if (EQ (BVAR (current_buffer, bidi_paragraph_direction),
@@ -19334,7 +19343,18 @@ extend_face_to_end_of_line (struct it *it)
 
 	  for (row_width = 0, g = row_start; g < row_end; g++)
 	    row_width += g->pixel_width;
-	  stretch_width = window_box_width (it->w, TEXT_AREA) - row_width;
+
+	  /* FIXME: There are various minor display glitches in R2L
+	     rows when only one of the fringes is missing.  The
+	     strange condition below produces the least bad effect.  */
+	  if ((WINDOW_LEFT_FRINGE_WIDTH (it->w) == 0)
+	      == (WINDOW_RIGHT_FRINGE_WIDTH (it->w) == 0)
+	      || WINDOW_RIGHT_FRINGE_WIDTH (it->w) != 0)
+	    stretch_width = window_box_width (it->w, TEXT_AREA);
+	  else
+	    stretch_width = it->last_visible_x - it->first_visible_x;
+	  stretch_width -= row_width;
+
 	  if (stretch_width > 0)
 	    {
 	      stretch_ascent =
@@ -20475,9 +20495,17 @@ display_line (struct it *it)
 		  /* When the last glyph of an R2L row only fits
 		     partially on the line, we need to set row->x to a
 		     negative offset, so that the leftmost glyph is
-		     the one that is partially visible.  */
-		  if (row->reversed_p && new_x > it->last_visible_x)
-		    row->x = it->last_visible_x - new_x;
+		     the one that is partially visible.  But if we are
+		     going to produce the truncation glyph, this will
+		     be taken care of in produce_special_glyphs.  */
+		  if (row->reversed_p
+		      && new_x > it->last_visible_x
+		      && !(it->line_wrap == TRUNCATE
+			   && WINDOW_LEFT_FRINGE_WIDTH (it->w) == 0))
+		    {
+		      eassert (FRAME_WINDOW_P (it->f));
+		      row->x = it->last_visible_x - new_x;
+		    }
 		}
 	      else
 		{
@@ -20551,7 +20579,10 @@ display_line (struct it *it)
 		  that they are cropped at the right edge of the
 		  window, so an image glyph will always end exactly at
 		  last_visible_x, even if there's no right fringe.  */
-	       && (WINDOW_RIGHT_FRINGE_WIDTH (it->w) || it->what == IT_IMAGE))
+	       && ((row->reversed_p
+		    ? WINDOW_LEFT_FRINGE_WIDTH (it->w)
+		    : WINDOW_RIGHT_FRINGE_WIDTH (it->w))
+		   || it->what == IT_IMAGE))
 	      ? (it->current_x >= it->last_visible_x)
 	      : (it->current_x > it->last_visible_x)))
 	{
@@ -25719,14 +25750,13 @@ produce_special_glyphs (struct it *it, enum display_element_type what)
 
   temp_it.dp = NULL;
   temp_it.what = IT_CHARACTER;
-  temp_it.len = 1;
   temp_it.c = temp_it.char_to_display = GLYPH_CHAR (glyph);
   temp_it.face_id = GLYPH_FACE (glyph);
   temp_it.len = CHAR_BYTES (temp_it.c);
 
   PRODUCE_GLYPHS (&temp_it);
   it->pixel_width = temp_it.pixel_width;
-  it->nglyphs = temp_it.pixel_width;
+  it->nglyphs = temp_it.nglyphs;
 }
 
 #ifdef HAVE_WINDOW_SYSTEM
