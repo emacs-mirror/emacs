@@ -1317,9 +1317,10 @@ specify the property to add.
 If the optional fifth argument OBJECT is a buffer (or nil, which means
 the current buffer), START and END are buffer positions (integers or
 markers).  If OBJECT is a string, START and END are 0-based indices into it.  */)
-  (Lisp_Object start, Lisp_Object end, Lisp_Object property, Lisp_Object value, Lisp_Object object)
+  (Lisp_Object start, Lisp_Object end, Lisp_Object property,
+   Lisp_Object value, Lisp_Object object)
 {
-  Fadd_text_properties (start, end, list2 (property, value), object);
+  Fadd_text_properties (start, end, scoped_list2 (property, value), object);
   return Qnil;
 }
 
@@ -1360,7 +1361,7 @@ into it.  */)
   (Lisp_Object start, Lisp_Object end, Lisp_Object face,
    Lisp_Object append, Lisp_Object object)
 {
-  add_text_properties_1 (start, end, list2 (Qface, face), object,
+  add_text_properties_1 (start, end, scoped_list2 (Qface, face), object,
 			 (NILP (append)
 			  ? TEXT_PROPERTY_PREPEND
 			  : TEXT_PROPERTY_APPEND));
@@ -1909,7 +1910,8 @@ text_property_stickiness (Lisp_Object prop, Lisp_Object pos, Lisp_Object buffer)
 /* Note this can GC when DEST is a buffer.  */
 
 Lisp_Object
-copy_text_properties (Lisp_Object start, Lisp_Object end, Lisp_Object src, Lisp_Object pos, Lisp_Object dest, Lisp_Object prop)
+copy_text_properties (Lisp_Object start, Lisp_Object end, Lisp_Object src,
+		      Lisp_Object pos, Lisp_Object dest, Lisp_Object prop)
 {
   INTERVAL i;
   Lisp_Object res;
@@ -1962,12 +1964,11 @@ copy_text_properties (Lisp_Object start, Lisp_Object end, Lisp_Object src, Lisp_
 	    plist = Fcdr (Fcdr (plist));
 	  }
       if (! NILP (plist))
-	{
-	  /* Must defer modifications to the interval tree in case src
-	     and dest refer to the same string or buffer.  */
-	  stuff = Fcons (list3 (make_number (p), make_number (p + len), plist),
-			 stuff);
-	}
+	/* Must defer modifications to the interval tree in case
+	   src and dest refer to the same string or buffer.  */
+	stuff = local_cons
+	  (local_list3 (make_number (p), make_number (p + len), plist),
+	   stuff);
 
       i = next_interval (i);
       if (!i)

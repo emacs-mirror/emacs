@@ -1569,7 +1569,7 @@ only `ascii', `eight-bit-control', and `eight-bit-graphic'.  */)
 
   from_byte = CHAR_TO_BYTE (from);
 
-  charsets = Fmake_vector (make_number (charset_table_used), Qnil);
+  charsets = make_local_vector (charset_table_used, Qnil);
   while (1)
     {
       find_charsets_in_text (BYTE_POS_ADDR (from_byte), stop - from,
@@ -1606,7 +1606,7 @@ only `ascii', `eight-bit-control', and `eight-bit-graphic'. */)
 
   CHECK_STRING (str);
 
-  charsets = Fmake_vector (make_number (charset_table_used), Qnil);
+  charsets = make_local_vector (charset_table_used, Qnil);
   find_charsets_in_text (SDATA (str), SCHARS (str), SBYTES (str),
 			 charsets, table,
 			 STRING_MULTIBYTE (str));

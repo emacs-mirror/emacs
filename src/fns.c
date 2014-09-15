@@ -2706,7 +2706,6 @@ if `last-nonmenu-event' is nil, and `use-dialog-box' is non-nil.  */)
   (Lisp_Object prompt)
 {
   register Lisp_Object ans;
-  Lisp_Object args[2];
   struct gcpro gcpro1;
 
   CHECK_STRING (prompt);
@@ -2725,10 +2724,8 @@ if `last-nonmenu-event' is nil, and `use-dialog-box' is non-nil.  */)
       return obj;
     }
 
-  args[0] = prompt;
-  args[1] = build_string ("(yes or no) ");
-  prompt = Fconcat (2, args);
-
+  prompt = Fconcat (2, ((Lisp_Object [])
+    { prompt, build_local_string ("(yes or no) ") }));
   GCPRO1 (prompt);
 
   while (1)

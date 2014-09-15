@@ -390,7 +390,7 @@ single_menu_item (Lisp_Object key, Lisp_Object item, Lisp_Object dummy, void *sk
 		      if (!submenu && SREF (tem, 0) != '\0'
 			  && SREF (tem, 0) != '-')
 			ASET (menu_items, idx + MENU_ITEMS_ITEM_NAME,
-			      concat2 (build_string ("    "), tem));
+			      concat2 (build_local_string ("    "), tem));
 		      idx += MENU_ITEMS_ITEM_LENGTH;
 		    }
 		}
@@ -399,14 +399,14 @@ single_menu_item (Lisp_Object key, Lisp_Object item, Lisp_Object dummy, void *sk
 
 	  /* Calculate prefix, if any, for this item.  */
 	  if (EQ (type, QCtoggle))
-	    prefix = build_string (NILP (selected) ? "[ ] " : "[X] ");
+	    prefix = build_local_string (NILP (selected) ? "[ ] " : "[X] ");
 	  else if (EQ (type, QCradio))
-	    prefix = build_string (NILP (selected) ? "( ) " : "(*) ");
+	    prefix = build_local_string (NILP (selected) ? "( ) " : "(*) ");
 	}
       /* Not a button. If we have earlier buttons, then we need a prefix.  */
       else if (!skp->notbuttons && SREF (item_string, 0) != '\0'
 	       && SREF (item_string, 0) != '-')
-	prefix = build_string ("    ");
+	prefix = build_local_string ("    ");
 
       if (!NILP (prefix))
 	item_string = concat2 (prefix, item_string);
@@ -416,7 +416,7 @@ single_menu_item (Lisp_Object key, Lisp_Object item, Lisp_Object dummy, void *sk
        || FRAME_MSDOS_P (XFRAME (Vmenu_updating_frame)))
       && !NILP (map))
     /* Indicate visually that this is a submenu.  */
-    item_string = concat2 (item_string, build_string (" >"));
+    item_string = concat2 (item_string, build_local_string (" >"));
 
   push_menu_item (item_string, enabled, key,
 		  AREF (item_properties, ITEM_PROPERTY_DEF),

@@ -1,3 +1,37 @@
+2014-09-15  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	If USE_LOCAL_ALLOCATORS, allocate some Lisp objects on stack.
+	* lisp.h (local_cons, local_list1, local_list2, local_list3)
+	[USE_LOCAL_ALLOCATORS]: New macros.
+	[!USE_LOCAL_ALLOCATORS]: Fall back to regular functions.
+	(build_local_string): Avoid argument name expansion clash with
+	make_local_string.
+	* alloc.c (toplevel)
+	[USE_LOCAL_ALLOCATORS && GC_MARK_STACK != GC_MAKE_GCPROS_NOOPS]:
+	Preprocessor guard to avoid impossible configuration.
+	* charset.c (Ffind_charset_region, Ffind_charset_string):
+	Use make_local_vector.
+	* lread.c (read1, substitute_object_recurse): Use scoped_cons.
+	* textprop.c (Fput_text_property, Fadd_face_text_property):
+	Use scoped_list2.
+	(copy_text_properties): Use local_cons and local_list3.
+	* chartab.c (uniprop_table):
+	* data.c (wrong_choice, wrong_range):
+	* doc.c (get_doc_string):
+	* editfns.c (format2):
+	* fileio.c (Fexpand_file_name, auto_save_error):
+	* fns.c (Fyes_or_no_p):
+	* font.c (font_parse_xlfd, font_parse_family_registry, font_add_log):
+	* fontset.c (Fset_fontset_font):
+	* keyboard.c (echo_add_key, echo_dash, parse_menu_item)
+	(read_char_minibuf_menu_prompt):
+	* keymap.c (silly_event_symbol_error, describe_vector):
+	* menu.c (single_menu_item):
+	* minibuf.c (Fread_buffer):
+	* process.c (status_message, Fformat_network_address)
+	(server_accept_connection): Use make_local_string and
+	build_local_string.  Prefer compound literals where appropriate.
+
 2014-09-15  Daniel Colascione  <dancol@dancol.org>
 
 	* fns.c (Fsort): Tweak sort docstring.

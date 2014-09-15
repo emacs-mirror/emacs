@@ -1190,12 +1190,12 @@ font_parse_xlfd (char *name, ptrdiff_t len, Lisp_Object font)
 	{
 	  val = prop[XLFD_ENCODING_INDEX];
 	  if (! NILP (val))
-	    val = concat2 (build_string ("*-"), SYMBOL_NAME (val));
+	    val = concat2 (build_local_string ("*-"), SYMBOL_NAME (val));
 	}
       else if (NILP (prop[XLFD_ENCODING_INDEX]))
-	val = concat2 (SYMBOL_NAME (val), build_string ("-*"));
+	val = concat2 (SYMBOL_NAME (val), build_local_string ("-*"));
       else
-	val = concat3 (SYMBOL_NAME (val), build_string ("-"),
+	val = concat3 (SYMBOL_NAME (val), build_local_string ("-"),
 		       SYMBOL_NAME (prop[XLFD_ENCODING_INDEX]));
       if (! NILP (val))
 	ASET (font, FONT_REGISTRY_INDEX, Fintern (val, Qnil));
@@ -1793,9 +1793,9 @@ font_parse_family_registry (Lisp_Object family, Lisp_Object registry, Lisp_Objec
       if (! p1)
 	{
 	  if (SDATA (registry)[len - 1] == '*')
-	    registry = concat2 (registry, build_string ("-*"));
+	    registry = concat2 (registry, build_local_string ("-*"));
 	  else
-	    registry = concat2 (registry, build_string ("*-*"));
+	    registry = concat2 (registry, build_local_string ("*-*"));
 	}
       registry = Fdowncase (registry);
       ASET (font_spec, FONT_REGISTRY_INDEX, Fintern (registry, Qnil));
@@ -5022,7 +5022,7 @@ font_add_log (const char *action, Lisp_Object arg, Lisp_Object result)
   if (FONTP (arg))
     {
       Lisp_Object tail, elt;
-      Lisp_Object equalstr = build_string ("=");
+      Lisp_Object equalstr = build_local_string ("=");
 
       val = Ffont_xlfd_name (arg, Qt);
       for (tail = AREF (arg, FONT_EXTRA_INDEX); CONSP (tail);
@@ -5056,7 +5056,7 @@ font_add_log (const char *action, Lisp_Object arg, Lisp_Object result)
       val = Ffont_xlfd_name (result, Qt);
       if (! FONT_SPEC_P (result))
 	val = concat3 (SYMBOL_NAME (AREF (result, FONT_TYPE_INDEX)),
-		       build_string (":"), val);
+		       build_local_string (":"), val);
       result = val;
     }
   else if (CONSP (result))

@@ -1162,11 +1162,11 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	      char newdir_utf8[MAX_UTF8_PATH];
 
 	      filename_from_ansi (newdir, newdir_utf8);
-	      tem = build_string (newdir_utf8);
+	      tem = build_local_string (newdir_utf8);
 	    }
 	  else
 #endif
-	    tem = build_string (newdir);
+	    tem = build_local_string (newdir);
 	  newdirlim = newdir + SBYTES (tem);
 	  if (multibyte && !STRING_MULTIBYTE (tem))
 	    {
@@ -1198,7 +1198,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	      /* `getpwnam' may return a unibyte string, which will
 		 bite us since we expect the directory to be
 		 multibyte.  */
-	      tem = build_string (newdir);
+	      tem = build_local_string (newdir);
 	      newdirlim = newdir + SBYTES (tem);
 	      if (multibyte && !STRING_MULTIBYTE (tem))
 		{
@@ -1231,7 +1231,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	    adir = NULL;
 	  else if (multibyte)
 	    {
-	      Lisp_Object tem = build_string (adir);
+	      Lisp_Object tem = build_local_string (adir);
 
 	      tem = DECODE_FILE (tem);
 	      newdirlim = adir + SBYTES (tem);
@@ -1332,7 +1332,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	    getcwd (adir, adir_size);
 	  if (multibyte)
 	    {
-	      Lisp_Object tem = build_string (adir);
+	      Lisp_Object tem = build_local_string (adir);
 
 	      tem = DECODE_FILE (tem);
 	      newdirlim = adir + SBYTES (tem);
@@ -5408,7 +5408,7 @@ An argument specifies the modification time value to use
 static Lisp_Object
 auto_save_error (Lisp_Object error_val)
 {
-  Lisp_Object args[3], msg;
+  Lisp_Object msg;
   int i;
   struct gcpro gcpro1;
 
@@ -5416,10 +5416,10 @@ auto_save_error (Lisp_Object error_val)
 
   ring_bell (XFRAME (selected_frame));
 
-  args[0] = build_string ("Auto-saving %s: %s");
-  args[1] = BVAR (current_buffer, name);
-  args[2] = Ferror_message_string (error_val);
-  msg = Fformat (3, args);
+  msg = Fformat (3, ((Lisp_Object [])
+    { build_local_string ("Auto-saving %s: %s"),
+      BVAR (current_buffer, name),
+      Ferror_message_string (error_val) }));
   GCPRO1 (msg);
 
   for (i = 0; i < 3; ++i)

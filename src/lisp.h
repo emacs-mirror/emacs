@@ -4605,6 +4605,20 @@ verify (sizeof (struct Lisp_Cons) == sizeof (union Aligned_Cons));
 
 # define USE_LOCAL_ALLOCATORS
 
+/* Return a function-scoped cons whose car is X and cdr is Y.  */
+
+# define local_cons(x, y)						\
+    ({									\
+       struct Lisp_Cons *c = alloca (sizeof (struct Lisp_Cons));	\
+       c->car = (x);							\
+       c->u.cdr = (y);							\
+       make_lisp_ptr (c, Lisp_Cons);					\
+    })
+
+# define local_list1(x) local_cons (x, Qnil)
+# define local_list2(x, y) local_cons (x, local_list1 (y))
+# define local_list3(x, y, z) local_cons (x, local_list2 (y, z))
+
 /* Return a function-scoped vector of length SIZE, with each element
    being INIT.  */
 
@@ -4643,12 +4657,17 @@ verify (sizeof (struct Lisp_Cons) == sizeof (union Aligned_Cons));
 
 /* Return a function-scoped string with contents DATA.  */
 
-# define build_local_string(data) \
-    ({ char const *data_ = data; make_local_string (data_, strlen (data_)); })
+# define build_local_string(data)			\
+    ({ char const *data1_ = (data);			\
+       make_local_string (data1_, strlen (data1_)); })
 
 #else
 
 /* Safer but slower implementations.  */
+# define local_cons(car, cdr) Fcons (car, cdr)
+# define local_list1(x) list1 (x)
+# define local_list2(x, y) list2 (x, y)
+# define local_list3(x, y, z) list3 (x, y, z)
 # define make_local_vector(size, init) Fmake_vector (make_number (size), init)
 # define make_local_string(data, nbytes) make_string (data, nbytes)
 # define build_local_string(data) build_string (data)

@@ -1123,7 +1123,7 @@ If `read-buffer-function' is non-nil, this works by calling it as a
 function, instead of the usual behavior.  */)
   (Lisp_Object prompt, Lisp_Object def, Lisp_Object require_match)
 {
-  Lisp_Object args[4], result;
+  Lisp_Object result;
   char *s;
   ptrdiff_t len;
   ptrdiff_t count = SPECPDL_INDEX ();
@@ -1157,10 +1157,9 @@ function, instead of the usual behavior.  */)
 					      STRING_MULTIBYTE (prompt));
 	    }
 
-	  args[0] = build_string ("%s (default %s): ");
-	  args[1] = prompt;
-	  args[2] = CONSP (def) ? XCAR (def) : def;
-	  prompt = Fformat (3, args);
+	  prompt = Fformat (3, ((Lisp_Object [])
+	    { build_local_string ("%s (default %s): "),
+	      prompt, CONSP (def) ? XCAR (def) : def }));
 	}
 
       result = Fcompleting_read (prompt, intern ("internal-complete-buffer"),
@@ -1168,13 +1167,8 @@ function, instead of the usual behavior.  */)
 				 Qbuffer_name_history, def, Qnil);
     }
   else
-    {
-      args[0] = Vread_buffer_function;
-      args[1] = prompt;
-      args[2] = def;
-      args[3] = require_match;
-      result = Ffuncall (4, args);
-    }
+    result = Ffuncall (4, ((Lisp_Object [])
+      { Vread_buffer_function, prompt, def, require_match }));
   return unbind_to (count, result);
 }
 

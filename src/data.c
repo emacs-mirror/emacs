@@ -988,8 +988,9 @@ wrong_choice (Lisp_Object choice, Lisp_Object wrong)
   for (obj = choice; !NILP (obj); obj = XCDR (obj))
     {
       args[i++] = SYMBOL_NAME (XCAR (obj));
-      args[i++] = build_string (NILP (XCDR (obj)) ? " should be specified"
-				: (NILP (XCDR (XCDR (obj))) ? " or " : ", "));
+      args[i++] = build_local_string
+	(NILP (XCDR (obj)) ? " should be specified"
+	 : (NILP (XCDR (XCDR (obj))) ? " or " : ", "));
     }
 
   obj = Fconcat (i, args);
@@ -1003,14 +1004,11 @@ wrong_choice (Lisp_Object choice, Lisp_Object wrong)
 static void
 wrong_range (Lisp_Object min, Lisp_Object max, Lisp_Object wrong)
 {
-  Lisp_Object args[4];
-
-  args[0] = build_string ("Value should be from ");
-  args[1] = Fnumber_to_string (min);
-  args[2] = build_string (" to ");
-  args[3] = Fnumber_to_string (max);
-
-  xsignal2 (Qerror, Fconcat (4, args), wrong);
+  xsignal2 (Qerror, Fconcat (4, ((Lisp_Object [])
+    { build_local_string ("Value should be from "),
+      Fnumber_to_string (min),
+      build_local_string (" to "),
+      Fnumber_to_string (max) })), wrong);
 }
 
 /* Store NEWVAL into SYMBOL, where VALCONTENTS is found in the value cell
