@@ -4114,8 +4114,9 @@ buffer.
 Normally, this command puts point before the inserted text, and the
 mark after it.  However, if the optional second argument @var{beforep}
 is non-@code{nil}, it puts the mark before and point after.
-You can pass a non-@code{nil} second argument @var{beforep} to this
-function interactively by supplying any prefix argument.
+
+When called interactively, the command defaults to putting point after
+text, and a prefix argument inverts this behavior.
 
 If the register contains a rectangle, then the rectangle is inserted
 with its upper left corner at point.  This means that text is inserted

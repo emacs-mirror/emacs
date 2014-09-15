@@ -1,3 +1,8 @@
+2014-09-15  Daniel Colascione  <dancol@dancol.org>
+
+	* text.texi (Registers): Make `insert-register' documentation
+	reflect interface change.
+
 2014-09-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* functions.texi (Core Advising Primitives): Add a note about the
