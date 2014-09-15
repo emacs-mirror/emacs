@@ -1,3 +1,8 @@
+2014-09-15  Daniel Colascione  <dancol@dancol.org>
+
+	* regs.texi (Text Registers): Update end-user documentation
+	to reflect `insert-register' interface change.
+
 2014-08-07  Reuben Thomas  <rrt@sc3d.org>
 
 	* programs.texi (Program Modes): Don't advertise VMS DCL support
