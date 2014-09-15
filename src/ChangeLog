@@ -1,3 +1,7 @@
+2014-09-15  Daniel Colascione  <dancol@dancol.org>
+
+	* fns.c (Fsort): Tweak sort docstring.
+
 2014-09-15  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32.c (fcntl): Support O_NONBLOCK fcntl on the write side of pipes.

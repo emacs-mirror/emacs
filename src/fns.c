@@ -2005,10 +2005,10 @@ sort_vector (Lisp_Object vector, Lisp_Object predicate)
 
 DEFUN ("sort", Fsort, Ssort, 2, 2, 0,
        doc: /* Sort SEQ, stably, comparing elements using PREDICATE.
-Returns the sorted sequence.  SEQ should be a list or vector.
-If SEQ is a list, it is modified by side effects.  PREDICATE
-is called with two elements of SEQ, and should return non-nil
-if the first element should sort before the second.  */)
+Returns the sorted sequence.  SEQ should be a list or vector.  SEQ is
+modified by side effects.  PREDICATE is called with two elements of
+SEQ, and should return non-nil if the first element should sort before
+the second.  */)
   (Lisp_Object seq, Lisp_Object predicate)
 {
   if (CONSP (seq))
