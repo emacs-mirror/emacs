@@ -1,3 +1,23 @@
+2014-09-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* sound.c [WINDOWSNT]: Include w32common.h and mbstring.h.
+	(SOUND_WARNING) [WINDOWSNT]: Include in do..while and improve the
+	error message format.  Use message_with_string to have non-ASCII
+	file names properly displayed.
+	(do_play_sound) [WINDOWSNT]: Use Unicode APIs to play sound files
+	when w32-unicode-filenames is non-nil, but not on Windows 9X,
+	where these APIs are not available even in UNICOWS.DLL.  Improve
+	the format of error messages and include the file name in them
+	where appropriate.
+	(Fplay_sound_internal) [WINDOWSNT]: Make the MS-Windows branch
+	call play-sound-functions, per documentation.
+
+	* w32.c (w32_get_long_filename, w32_get_short_filename): Constify
+	the input file name arguments.
+
+	* w32.h (w32_get_long_filename, w32_get_short_filename): Update
+	prototypes.
+
 2014-09-15  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	If USE_LOCAL_ALLOCATORS, allocate some Lisp objects on stack.

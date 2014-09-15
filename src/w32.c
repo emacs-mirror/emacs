@@ -2294,7 +2294,7 @@ get_long_basename (char * name, char * buf, int size)
 
 /* Get long name for file, if possible (assumed to be absolute).  */
 BOOL
-w32_get_long_filename (char * name, char * buf, int size)
+w32_get_long_filename (const char * name, char * buf, int size)
 {
   char * o = buf;
   char * p;
@@ -2345,7 +2345,7 @@ w32_get_long_filename (char * name, char * buf, int size)
 }
 
 unsigned int
-w32_get_short_filename (char * name, char * buf, int size)
+w32_get_short_filename (const char * name, char * buf, int size)
 {
   if (w32_unicode_filenames)
     {

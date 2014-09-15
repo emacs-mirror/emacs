@@ -144,10 +144,10 @@ extern char * w32_strerror (int error_no);
 extern int w32_valid_pointer_p (void *, int);
 
 /* Get long (aka "true") form of file name, if it exists.  */
-extern BOOL w32_get_long_filename (char * name, char * buf, int size);
+extern BOOL w32_get_long_filename (const char * name, char * buf, int size);
 
 /* Get the short (a.k.a. "8+3") form of a file name.  */
-extern unsigned int w32_get_short_filename (char *, char *, int);
+extern unsigned int w32_get_short_filename (const char *, char *, int);
 
 /* Prepare our standard handles for proper inheritance by child processes.  */
 extern void prepare_standard_handles (int in, int out,
