@@ -146,6 +146,7 @@ Return nil when the queue is empty."
 (defvar use-package-keywords
   '(
      :bind
+     :bind*
      :commands
      :config
      :defer
@@ -247,6 +248,8 @@ For full documentation. please see commentary.
 :init Code to run when `use-package' form evals.
 :bind Perform key bindings, and define autoload for bound
       commands.
+:bind* Perform key bindings, and define autoload for bound
+      commands, overriding all minor mode bindings.
 :commands Define autoloads for given commands.
 :pre-load Code to run when `use-package' form evals and before
        anything else. Unlike :init this form runs before the
@@ -254,7 +257,7 @@ For full documentation. please see commentary.
 :mode Form to be added to `auto-mode-alist'.
 :interpreter Form to be added to `interpreter-mode-alist'.
 :defer Defer loading of package -- automatic
-       if :commands, :bind, :mode or :interpreter are used.
+       if :commands, :bind, :bind*, :mode or :interpreter are used.
 :demand Prevent deferred loading in all cases.
 :config Runs if and when package loads.
 :if Conditional loading.
@@ -279,6 +282,7 @@ For full documentation. please see commentary.
          (idle-body (use-package-plist-get args :idle))
          (idle-priority (use-package-plist-get args :idle-priority))
          (keybindings-alist (use-package-plist-get args :bind t t))
+         (overriding-keybindings-alist (use-package-plist-get args :bind* t t))
          (mode (use-package-plist-get args :mode t t))
          (mode-alist
           (if (stringp mode) (cons mode name) mode))
@@ -370,6 +374,12 @@ For full documentation. please see commentary.
                      `(bind-key ,(car binding)
                                 (quote ,(cdr binding))))
                  keybindings-alist)
+
+        (funcall init-for-commands
+                 #'(lambda (binding)
+                     `(bind-key* ,(car binding)
+                                (quote ,(cdr binding))))
+                 overriding-keybindings-alist)
 
         (funcall init-for-commands
                  #'(lambda (mode)
