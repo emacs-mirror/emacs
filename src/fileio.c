@@ -733,7 +733,7 @@ Lisp_Object
 make_temp_name (Lisp_Object prefix, bool base64_p)
 {
   Lisp_Object val, encoded_prefix;
-  int len;
+  ptrdiff_t len;
   printmax_t pid;
   char *p, *data;
   char pidbuf[INT_BUFSIZE_BOUND (printmax_t)];

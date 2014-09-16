@@ -1724,7 +1724,7 @@ font_parse_name (char *name, ptrdiff_t namelen, Lisp_Object font)
 void
 font_parse_family_registry (Lisp_Object family, Lisp_Object registry, Lisp_Object font_spec)
 {
-  int len;
+  ptrdiff_t len;
   char *p0, *p1;
 
   if (! NILP (family)

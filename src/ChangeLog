@@ -9,6 +9,12 @@
 	(apply_lambda): Likewise.  Get current specpdl level as 3rd arg.
 	(do_debug_on_call): Get current specpdl level as 2nd arg.
 
+	Prefer ptrdiff_t to int and avoid integer overflows.
+	* fileio.c (make_temp_name):
+	* font.c (font_parse_family_registry): Avoid integer
+	overflow on string size calculation.
+	* data.c (Faset): Likewise for byte index.
+
 2014-09-15  Eli Zaretskii  <eliz@gnu.org>
 
 	Fix display of R2L lines in partial-width windows.
