@@ -1,3 +1,21 @@
+2014-09-16  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	If USE_LOCAL_ALLOCATORS, allocate even more Lisp objects on stack.
+	* charset.c (load_charset_map_from_file): Use scoped_list2
+	and build_local_string.
+	* buffer.c (Fother_buffer, other_buffer_safely, init_buffer):
+	* emacs.c (init_cmdargs, decode_env_path):
+	* fileio.c (Fexpand_file_name):
+	* fns.c (maybe_resize_hash_table) [ENABLE_CHECKING]:
+	* frame.c (x_get_arg):
+	* keyboard.c (safe_run_hooks_error):
+	* lread.c (load_warn_old_style_backquotes):
+	* xdisp.c (Fcurrent_bidi_paragraph_direction):
+	* xfns.c (x_default_scroll_bar_color_parameter, select_visual):
+	* xselect.c (x_clipboard_manager_error_1)
+	(x_clipboard_manager_save_all):
+	* xterm.c (x_term_init): Use build_local_string.
+
 2014-09-15  Eli Zaretskii  <eliz@gnu.org>
 
 	* sound.c [WINDOWSNT]: Include w32common.h and mbstring.h.

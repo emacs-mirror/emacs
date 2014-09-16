@@ -1111,7 +1111,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 
 	      name = make_specified_string (nm, -1, p - nm, multibyte);
 	      temp[0] = DRIVE_LETTER (drive);
-	      name = concat2 (build_string (temp), name);
+	      name = concat2 (build_local_string (temp), name);
 	    }
 #ifdef WINDOWSNT
 	  if (!NILP (Vw32_downcase_file_names))

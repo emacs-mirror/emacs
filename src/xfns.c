@@ -1571,13 +1571,13 @@ x_default_scroll_bar_color_parameter (struct frame *f,
 
       /* See if an X resource for the scroll bar color has been
 	 specified.  */
-      tem = display_x_get_resource (dpyinfo,
-				    build_string (foreground_p
-						  ? "foreground"
-						  : "background"),
-				    empty_unibyte_string,
-				    build_string ("verticalScrollBar"),
-				    empty_unibyte_string);
+      tem = display_x_get_resource
+	(dpyinfo, build_local_string (foreground_p
+				      ? "foreground"
+				      : "background"),
+	 empty_unibyte_string,
+	 build_local_string ("verticalScrollBar"),
+	 empty_unibyte_string);
       if (!STRINGP (tem))
 	{
 	  /* If nothing has been specified, scroll bars will use a
@@ -4273,13 +4273,12 @@ select_visual (struct x_display_info *dpyinfo)
 {
   Display *dpy = dpyinfo->display;
   Screen *screen = dpyinfo->screen;
-  Lisp_Object value;
 
   /* See if a visual is specified.  */
-  value = display_x_get_resource (dpyinfo,
-				  build_string ("visualClass"),
-				  build_string ("VisualClass"),
-				  Qnil, Qnil);
+  Lisp_Object value = display_x_get_resource
+    (dpyinfo, build_local_string ("visualClass"),
+     build_local_string ("VisualClass"), Qnil, Qnil);
+
   if (STRINGP (value))
     {
       /* VALUE should be of the form CLASS-DEPTH, where CLASS is one

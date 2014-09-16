@@ -1894,16 +1894,13 @@ safe_run_hooks_1 (ptrdiff_t nargs, Lisp_Object *args)
 static Lisp_Object
 safe_run_hooks_error (Lisp_Object error, ptrdiff_t nargs, Lisp_Object *args)
 {
-  Lisp_Object hook, fun, msgargs[4];
+  Lisp_Object hook, fun;
 
   eassert (nargs == 2);
   hook = args[0];
   fun = args[1];
-  msgargs[0] = build_string ("Error in %s (%S): %S");
-  msgargs[1] = hook;
-  msgargs[2] = fun;
-  msgargs[3] = error;
-  Fmessage (4, msgargs);
+  Fmessage (4, ((Lisp_Object [])
+    { build_local_string ("Error in %s (%S): %S"), hook, fun, error }));
 
   if (SYMBOLP (hook))
     {

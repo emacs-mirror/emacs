@@ -2159,11 +2159,10 @@ x_clipboard_manager_save (Lisp_Object frame)
 static Lisp_Object
 x_clipboard_manager_error_1 (Lisp_Object err)
 {
-  Lisp_Object args[2];
-  args[0] = build_string ("X clipboard manager error: %s\n\
-If the problem persists, set `x-select-enable-clipboard-manager' to nil.");
-  args[1] = CAR (CDR (err));
-  Fmessage (2, args);
+  Fmessage (2, ((Lisp_Object [])
+    { build_local_string ("X clipboard manager error: %s\n\
+If the problem persists, set `x-select-enable-clipboard-manager' to nil."),
+      CAR (CDR (err)) }));
   return Qnil;
 }
 
@@ -2230,10 +2229,9 @@ x_clipboard_manager_save_all (void)
       local_frame = XCAR (XCDR (XCDR (XCDR (local_selection))));
       if (FRAME_LIVE_P (XFRAME (local_frame)))
 	{
-	  Lisp_Object args[1];
-	  args[0] = build_string ("Saving clipboard to X clipboard manager...");
-	  Fmessage (1, args);
-
+	  Fmessage (1, ((Lisp_Object [])
+	    { build_local_string
+		("Saving clipboard to X clipboard manager...") }));
 	  internal_condition_case_1 (x_clipboard_manager_save, local_frame,
 				     Qt, x_clipboard_manager_error_2);
 	}

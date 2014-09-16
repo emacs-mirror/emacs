@@ -983,7 +983,7 @@ wrong_choice (Lisp_Object choice, Lisp_Object wrong)
   USE_SAFE_ALLOCA;
   SAFE_ALLOCA_LISP (args, len * 2 + 1);
 
-  args[i++] = build_string ("One of ");
+  args[i++] = build_local_string ("One of ");
 
   for (obj = choice; !NILP (obj); obj = XCDR (obj))
     {

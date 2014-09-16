@@ -969,12 +969,9 @@ static void
 load_warn_old_style_backquotes (Lisp_Object file)
 {
   if (!NILP (Vold_style_backquotes))
-    {
-      Lisp_Object args[2];
-      args[0] = build_string ("Loading `%s': old-style backquotes detected!");
-      args[1] = file;
-      Fmessage (2, args);
-    }
+    Fmessage (2, ((Lisp_Object [])
+      { build_local_string ("Loading `%s': old-style backquotes detected!"),
+	file }));
 }
 
 DEFUN ("get-load-suffixes", Fget_load_suffixes, Sget_load_suffixes, 0, 0, 0,

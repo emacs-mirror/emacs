@@ -3994,12 +3994,9 @@ maybe_resize_hash_table (struct Lisp_Hash_Table *h)
 #ifdef ENABLE_CHECKING
       if (HASH_TABLE_P (Vpurify_flag)
 	  && XHASH_TABLE (Vpurify_flag) == h)
-	{
-	  Lisp_Object args[2];
-	  args[0] = build_string ("Growing hash table to: %d");
-	  args[1] = make_number (new_size);
-	  Fmessage (2, args);
-	}
+	Fmessage (2, ((Lisp_Object [])
+	  { build_local_string ("Growing hash table to: %d"),
+	    make_number (new_size) }));
 #endif
 
       set_hash_key_and_value (h, larger_vector (h->key_and_value,
