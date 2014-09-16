@@ -2227,7 +2227,7 @@ x_draw_stretch_glyph_string (struct glyph_string *s)
 	{
 	  /* In R2L rows, draw the cursor on the right edge of the
 	     stretch glyph.  */
-	  int right_x = window_box_right_offset (s->w, TEXT_AREA);
+	  int right_x = window_box_right (s->w, TEXT_AREA);
 
 	  if (x + background_width > right_x)
 	    background_width -= x - right_x;

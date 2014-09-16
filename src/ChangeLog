@@ -1,3 +1,11 @@
+2014-09-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* xterm.c (x_draw_stretch_glyph_string):
+	* w32term.c (x_draw_stretch_glyph_string): Fix a thinko that
+	caused the block cursor to disappear on a TAB in R2L lines in
+	every window except the leftmost one.  Reported by Martin Rudalics
+	<rudalics@gmx.at>.
+
 2014-09-16  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Always use matched specpdl entry to record call arguments (Bug#18473).
