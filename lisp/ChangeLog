@@ -1,3 +1,8 @@
+2014-09-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* msb.el (msb--make-keymap-menu, msb-menu-bar-update-buffers):
+	Don't add outdated key-shortcut cache (bug#18482).
+
 2014-09-15  Glenn Morris  <rgm@gnu.org>
 
 	* image.el (image-multi-frame-p): Fix thinko - do not force
