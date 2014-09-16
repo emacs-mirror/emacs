@@ -18858,7 +18858,7 @@ get_overlay_arrow_glyph_row (struct window *w, Lisp_Object overlay_arrow_string)
   struct buffer *buffer = XBUFFER (w->contents);
   struct buffer *old = current_buffer;
   const unsigned char *arrow_string = SDATA (overlay_arrow_string);
-  int arrow_len = SCHARS (overlay_arrow_string);
+  ptrdiff_t arrow_len = SCHARS (overlay_arrow_string);
   const unsigned char *arrow_end = arrow_string + arrow_len;
   const unsigned char *p;
   struct it it;

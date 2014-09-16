@@ -16,6 +16,11 @@
 	(x_clipboard_manager_save_all):
 	* xterm.c (x_term_init): Use build_local_string.
 
+	Avoid more integer overflows on string size calculations.
+	* category.c (Fmake_category_set):
+	* xdisp.c (get_overlay_arrow_glyph_row):
+	* w32font.c (intern_font_name): Prefer ptrdiff_t to int.
+
 2014-09-15  Eli Zaretskii  <eliz@gnu.org>
 
 	* sound.c [WINDOWSNT]: Include w32common.h and mbstring.h.

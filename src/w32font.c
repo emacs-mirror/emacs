@@ -287,7 +287,7 @@ Lisp_Object
 intern_font_name (char * string)
 {
   Lisp_Object str = DECODE_SYSTEM (build_string (string));
-  int len = SCHARS (str);
+  ptrdiff_t len = SCHARS (str);
   Lisp_Object obarray = check_obarray (Vobarray);
   Lisp_Object tem = oblookup (obarray, SDATA (str), len, len);
   /* This code is similar to intern function from lread.c.  */

@@ -96,7 +96,7 @@ those categories.  */)
   (Lisp_Object categories)
 {
   Lisp_Object val;
-  int len;
+  ptrdiff_t len;
 
   CHECK_STRING (categories);
   val = MAKE_CATEGORY_SET;
