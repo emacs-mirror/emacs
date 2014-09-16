@@ -1,5 +1,11 @@
 2014-09-16  Eli Zaretskii  <eliz@gnu.org>
 
+	* xterm.c (x_draw_hollow_cursor, x_draw_bar_cursor):
+	* w32term.c (x_draw_hollow_cursor, x_draw_bar_cursor): In R2L
+	lines, draw the hollow-box and hbar cursors on the right side of
+	cursor-glyph.  Thanks to martin rudalics <rudalics@gmx.at> for
+	testing on X.
+
 	* xterm.c (x_draw_stretch_glyph_string):
 	* w32term.c (x_draw_stretch_glyph_string): Fix a thinko that
 	caused the block cursor to disappear on a TAB in R2L lines in
