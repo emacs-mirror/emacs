@@ -1,3 +1,7 @@
+2014-09-16  Daniel Colascione  <dancol@dancol.org>
+
+	* fns.c (sxhash): For symbols, use address as hash code.
+
 2014-09-16  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	If USE_LOCAL_ALLOCATORS, allocate even more Lisp objects on stack.

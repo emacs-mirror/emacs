@@ -4476,12 +4476,9 @@ sxhash (Lisp_Object obj, int depth)
       break;
 
     case Lisp_Misc:
+    case Lisp_Symbol:
       hash = XHASH (obj);
       break;
-
-    case Lisp_Symbol:
-      obj = SYMBOL_NAME (obj);
-      /* Fall through.  */
 
     case Lisp_String:
       hash = sxhash_string (SSDATA (obj), SBYTES (obj));
