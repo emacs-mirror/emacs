@@ -111,7 +111,7 @@ union specbinding *backtrace_next (union specbinding *) EXTERNALLY_VISIBLE;
 union specbinding *backtrace_top (void) EXTERNALLY_VISIBLE;
 
 static Lisp_Object funcall_lambda (Lisp_Object, ptrdiff_t, Lisp_Object *);
-static Lisp_Object apply_lambda (Lisp_Object fun, Lisp_Object args);
+static Lisp_Object apply_lambda (Lisp_Object, Lisp_Object, ptrdiff_t);
 
 static Lisp_Object
 specpdl_symbol (union specbinding *pdl)
@@ -179,17 +179,11 @@ backtrace_debug_on_exit (union specbinding *pdl)
 /* Functions to modify slots of backtrace records.  */
 
 static void
-set_backtrace_args (union specbinding *pdl, Lisp_Object *args)
+set_backtrace_args (union specbinding *pdl, Lisp_Object *args, ptrdiff_t nargs)
 {
   eassert (pdl->kind == SPECPDL_BACKTRACE);
   pdl->bt.args = args;
-}
-
-static void
-set_backtrace_nargs (union specbinding *pdl, ptrdiff_t n)
-{
-  eassert (pdl->kind == SPECPDL_BACKTRACE);
-  pdl->bt.nargs = n;
+  pdl->bt.nargs = nargs;
 }
 
 static void
@@ -341,10 +335,10 @@ call_debugger (Lisp_Object arg)
 }
 
 static void
-do_debug_on_call (Lisp_Object code)
+do_debug_on_call (Lisp_Object code, ptrdiff_t count)
 {
   debug_on_next_call = 0;
-  set_backtrace_debug_on_exit (specpdl_ptr - 1, true);
+  set_backtrace_debug_on_exit (specpdl + count, true);
   call_debugger (list1 (code));
 }
 
@@ -2039,9 +2033,11 @@ grow_specpdl (void)
     }
 }
 
-void
+ptrdiff_t
 record_in_backtrace (Lisp_Object function, Lisp_Object *args, ptrdiff_t nargs)
 {
+  ptrdiff_t count = SPECPDL_INDEX ();
+
   eassert (nargs >= UNEVALLED);
   specpdl_ptr->bt.kind = SPECPDL_BACKTRACE;
   specpdl_ptr->bt.debug_on_exit = false;
@@ -2049,6 +2045,8 @@ record_in_backtrace (Lisp_Object function, Lisp_Object *args, ptrdiff_t nargs)
   specpdl_ptr->bt.args = args;
   specpdl_ptr->bt.nargs = nargs;
   grow_specpdl ();
+
+  return count;
 }
 
 /* Eval a sub-expression of the current expression (i.e. in the same
@@ -2059,6 +2057,7 @@ eval_sub (Lisp_Object form)
   Lisp_Object fun, val, original_fun, original_args;
   Lisp_Object funcar;
   struct gcpro gcpro1, gcpro2, gcpro3;
+  ptrdiff_t count;
 
   if (SYMBOLP (form))
     {
@@ -2096,10 +2095,10 @@ eval_sub (Lisp_Object form)
   original_args = XCDR (form);
 
   /* This also protects them from gc.  */
-  record_in_backtrace (original_fun, &original_args, UNEVALLED);
+  count = record_in_backtrace (original_fun, &original_args, UNEVALLED);
 
   if (debug_on_next_call)
-    do_debug_on_call (Qt);
+    do_debug_on_call (Qt, count);
 
   /* At this point, only original_fun and original_args
      have values that will be used below.  */
@@ -2151,8 +2150,7 @@ eval_sub (Lisp_Object form)
 	      gcpro3.nvars = argnum;
 	    }
 
-	  set_backtrace_args (specpdl_ptr - 1, vals);
-	  set_backtrace_nargs (specpdl_ptr - 1, XINT (numargs));
+	  set_backtrace_args (specpdl + count, vals, XINT (numargs));
 
 	  val = (XSUBR (fun)->function.aMANY) (XINT (numargs), vals);
 	  UNGCPRO;
@@ -2173,8 +2171,7 @@ eval_sub (Lisp_Object form)
 
 	  UNGCPRO;
 
-	  set_backtrace_args (specpdl_ptr - 1, argvals);
-	  set_backtrace_nargs (specpdl_ptr - 1, XINT (numargs));
+	  set_backtrace_args (specpdl + count, argvals, XINT (numargs));
 
 	  switch (i)
 	    {
@@ -2227,7 +2224,7 @@ eval_sub (Lisp_Object form)
 	}
     }
   else if (COMPILEDP (fun))
-    val = apply_lambda (fun, original_args);
+    val = apply_lambda (fun, original_args, count);
   else
     {
       if (NILP (fun))
@@ -2244,7 +2241,7 @@ eval_sub (Lisp_Object form)
 	}
       if (EQ (funcar, Qmacro))
 	{
-	  ptrdiff_t count = SPECPDL_INDEX ();
+	  ptrdiff_t count1 = SPECPDL_INDEX ();
 	  Lisp_Object exp;
 	  /* Bind lexical-binding during expansion of the macro, so the
 	     macro can know reliably if the code it outputs will be
@@ -2252,19 +2249,19 @@ eval_sub (Lisp_Object form)
 	  specbind (Qlexical_binding,
 		    NILP (Vinternal_interpreter_environment) ? Qnil : Qt);
 	  exp = apply1 (Fcdr (fun), original_args);
-	  unbind_to (count, Qnil);
+	  unbind_to (count1, Qnil);
 	  val = eval_sub (exp);
 	}
       else if (EQ (funcar, Qlambda)
 	       || EQ (funcar, Qclosure))
-	val = apply_lambda (fun, original_args);
+	val = apply_lambda (fun, original_args, count);
       else
 	xsignal1 (Qinvalid_function, original_fun);
     }
   check_cons_list ();
 
   lisp_eval_depth--;
-  if (backtrace_debug_on_exit (specpdl_ptr - 1))
+  if (backtrace_debug_on_exit (specpdl + count))
     val = call_debugger (list2 (Qexit, val));
   specpdl_ptr--;
 
@@ -2747,7 +2744,7 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
   Lisp_Object lisp_numargs;
   Lisp_Object val;
   register Lisp_Object *internal_args;
-  ptrdiff_t i;
+  ptrdiff_t i, count;
 
   QUIT;
 
@@ -2760,13 +2757,13 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
     }
 
   /* This also GCPROs them.  */
-  record_in_backtrace (args[0], &args[1], nargs - 1);
+  count = record_in_backtrace (args[0], &args[1], nargs - 1);
 
   /* Call GC after setting up the backtrace, so the latter GCPROs the args.  */
   maybe_gc ();
 
   if (debug_on_next_call)
-    do_debug_on_call (Qlambda);
+    do_debug_on_call (Qlambda, count);
 
   check_cons_list ();
 
@@ -2885,14 +2882,14 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
     }
   check_cons_list ();
   lisp_eval_depth--;
-  if (backtrace_debug_on_exit (specpdl_ptr - 1))
+  if (backtrace_debug_on_exit (specpdl + count))
     val = call_debugger (list2 (Qexit, val));
   specpdl_ptr--;
   return val;
 }
 
 static Lisp_Object
-apply_lambda (Lisp_Object fun, Lisp_Object args)
+apply_lambda (Lisp_Object fun, Lisp_Object args, ptrdiff_t count)
 {
   Lisp_Object args_left;
   ptrdiff_t i;
@@ -2919,15 +2916,14 @@ apply_lambda (Lisp_Object fun, Lisp_Object args)
 
   UNGCPRO;
 
-  set_backtrace_args (specpdl_ptr - 1, arg_vector);
-  set_backtrace_nargs (specpdl_ptr - 1, i);
+  set_backtrace_args (specpdl + count, arg_vector, i);
   tem = funcall_lambda (fun, numargs, arg_vector);
 
   /* Do the debug-on-exit now, while arg_vector still exists.  */
-  if (backtrace_debug_on_exit (specpdl_ptr - 1))
+  if (backtrace_debug_on_exit (specpdl + count))
     {
       /* Don't do it again when we return to eval.  */
-      set_backtrace_debug_on_exit (specpdl_ptr - 1, false);
+      set_backtrace_debug_on_exit (specpdl + count, false);
       tem = call_debugger (list2 (Qexit, tem));
     }
   SAFE_FREE ();
