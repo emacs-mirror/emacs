@@ -1,3 +1,7 @@
+2014-09-17  Samuel Bronson  <naesten@gmail.com>
+
+	* unexmacosx.c (copy_data_segment): Port to GCC 4.6+ (Bug#9927).
+
 2014-09-17  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix minor problems found by static checking.
