@@ -3479,6 +3479,10 @@ If one hasn't been set, or if it's stale, prompt for a new one."
   '(when (fboundp 'folding-add-to-marks-list)
      (folding-add-to-marks-list 'js-mode "// {{{" "// }}}" )))
 
+;;;###autoload
+(dolist (name (list "node" "nodejs" "gjs" "rhino"))
+  (add-to-list 'interpreter-mode-alist (cons (purecopy name) 'js-mode)))
+
 (provide 'js)
 
 ;; js.el ends here
