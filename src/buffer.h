@@ -1088,8 +1088,9 @@ extern void mmap_set_vars (bool);
 extern void restore_buffer (Lisp_Object);
 extern void set_buffer_if_live (Lisp_Object);
 
-INLINE
-struct buffer *
+/* Return B as a struct buffer pointer, defaulting to the current buffer.  */
+
+INLINE struct buffer *
 decode_buffer (Lisp_Object b)
 {
   return NILP (b) ? current_buffer : (CHECK_BUFFER (b), XBUFFER (b));

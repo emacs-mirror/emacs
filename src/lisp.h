@@ -1967,7 +1967,6 @@ enum Lisp_Save_Type
     SAVE_TYPE_OBJ_OBJ_OBJ_OBJ
       = SAVE_OBJECT + (SAVE_TYPE_OBJ_OBJ_OBJ << SAVE_SLOT_BITS),
     SAVE_TYPE_PTR_INT = SAVE_POINTER + (SAVE_INTEGER << SAVE_SLOT_BITS),
-    SAVE_TYPE_INT_OBJ = SAVE_INTEGER + (SAVE_OBJECT << SAVE_SLOT_BITS),
     SAVE_TYPE_PTR_OBJ = SAVE_POINTER + (SAVE_OBJECT << SAVE_SLOT_BITS),
     SAVE_TYPE_PTR_PTR = SAVE_POINTER + (SAVE_POINTER << SAVE_SLOT_BITS),
     SAVE_TYPE_FUNCPTR_PTR_OBJ
@@ -3798,7 +3797,6 @@ extern Lisp_Object make_save_obj_obj_obj_obj (Lisp_Object, Lisp_Object,
 extern Lisp_Object make_save_ptr (void *);
 extern Lisp_Object make_save_ptr_int (void *, ptrdiff_t);
 extern Lisp_Object make_save_ptr_ptr (void *, void *);
-extern Lisp_Object make_save_int_obj (ptrdiff_t, Lisp_Object);
 extern Lisp_Object make_save_funcptr_ptr_obj (void (*) (void), void *,
 					      Lisp_Object);
 extern Lisp_Object make_save_memory (Lisp_Object *, ptrdiff_t);

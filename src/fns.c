@@ -41,7 +41,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "xterm.h"
 #endif
 
-Lisp_Object Qstring_lessp, Qstring_collate_lessp, Qstring_collate_equalp;
+Lisp_Object Qstring_lessp;
+static Lisp_Object Qstring_collate_lessp, Qstring_collate_equalp;
 static Lisp_Object Qprovide, Qrequire;
 static Lisp_Object Qyes_or_no_p_history;
 Lisp_Object Qcursor_in_echo_area;

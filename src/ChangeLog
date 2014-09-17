@@ -1,3 +1,11 @@
+2014-09-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix minor problems found by static checking.
+	* alloc.c, lisp.h (SAVE_TYPE_INT_OBJ, make_save_int_obj):
+	Remove; now unused.
+	* buffer.h (decode_buffer): Doc and indentation fixes.
+	* fns.c (Qstring_collate_lessp, Qstring_collate_equalp): Now static.
+
 2014-09-17  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Avoid clang-specific warnings.
