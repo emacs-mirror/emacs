@@ -1,3 +1,13 @@
+2014-09-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Don't assume 'grep' supports GREP_OPTIONS.
+	The GREP_OPTIONS environment variable is planned to be marked
+	obsolescent in GNU grep, due to problems in its use, so stop
+	relying on it.
+	* progmodes/grep.el (grep-highlight-matches): Document this.
+	(grep-process-setup): Do not set GREP_OPTIONS.
+	(grep-compute-defaults): Use an explicit --color option if supported.
+
 2014-09-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* msb.el (msb--make-keymap-menu, msb-menu-bar-update-buffers):

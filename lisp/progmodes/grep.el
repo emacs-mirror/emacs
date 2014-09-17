@@ -76,11 +76,10 @@ in grep buffers, so if you have globally disabled font-lock-mode,
 you will not get highlighting.
 
 This option sets the environment variable GREP_COLORS to specify
-markers for highlighting and GREP_OPTIONS to add the --color
-option in front of any explicit grep options before starting
-the grep.
+markers for highlighting and adds the --color option in front of
+any explicit grep options before starting the grep.
 
-When this option is `auto', grep uses `--color=auto' to highlight
+When this option is `auto', grep uses `--color' to highlight
 matches only when it outputs to a terminal (when `grep' is the last
 command in the pipe), thus avoiding the use of any potentially-harmful
 escape sequences when standard output goes to a file or pipe.
@@ -96,7 +95,7 @@ To change the default value, use Customize or call the function
   :type '(choice (const :tag "Do not highlight matches with grep markers" nil)
 		 (const :tag "Highlight matches with grep markers" t)
 		 (const :tag "Use --color=always" always)
-		 (const :tag "Use --color=auto" auto)
+		 (const :tag "Use --color" auto)
 		 (other :tag "Not Set" auto-detect))
   :set 'grep-apply-setting
   :version "22.1"
@@ -466,10 +465,6 @@ Set up `compilation-exit-message-function' and run `grep-setup-hook'."
     ;; `setenv' modifies `process-environment' let-bound in `compilation-start'
     ;; Any TERM except "dumb" allows GNU grep to use `--color=auto'
     (setenv "TERM" "emacs-grep")
-    (setenv "GREP_OPTIONS"
-	    (concat (getenv "GREP_OPTIONS")
-		    " --color=" (if (eq grep-highlight-matches 'always)
-				    "always" "auto")))
     ;; GREP_COLOR is used in GNU grep 2.5.1, but deprecated in later versions
     (setenv "GREP_COLOR" "01;31")
     ;; GREP_COLORS is used in GNU grep 2.5.2 and later versions
@@ -569,7 +564,13 @@ This function is called from `compilation-filter-hook'."
     (unless (and grep-command grep-find-command
 		 grep-template grep-find-template)
       (let ((grep-options
-	     (concat (if grep-use-null-device "-n" "-nH")
+	     (concat (and grep-highlight-matches
+			  (grep-probe grep-program
+				      `(nil nil nil "--color" "x" ,null-device)
+				      nil 1)
+			  (if (eq grep-highlight-matches 'always)
+			      "--color=always " "--color "))
+		     (if grep-use-null-device "-n" "-nH")
 		     (if (grep-probe grep-program
 				     `(nil nil nil "-e" "foo" ,null-device)
 				     nil 1)
