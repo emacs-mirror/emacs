@@ -3325,7 +3325,7 @@ See also the function `vector'.  */)
 /* Initialize V with LENGTH objects each with value INIT,
    and return it tagged as a Lisp Object.  */
 
-INLINE Lisp_Object
+Lisp_Object
 local_vector_init (struct Lisp_Vector *v, ptrdiff_t length, Lisp_Object init)
 {
   v->header.size = length;
