@@ -5286,7 +5286,7 @@ init_buffer (int initialized)
     }
 #else  /* not USE_MMAP_FOR_BUFFERS */
   /* Avoid compiler warnings.  */
-  initialized = initialized;
+  (void) initialized;
 #endif /* USE_MMAP_FOR_BUFFERS */
 
   Fset_buffer (Fget_buffer_create (build_local_string ("*scratch*")));

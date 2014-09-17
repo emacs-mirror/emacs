@@ -4060,8 +4060,8 @@ server_accept_connection (Lisp_Object server, int channel)
 	unsigned char *ip = (unsigned char *)&saddr.in.sin_addr.s_addr;
 
 	host = Fformat (5, ((Lisp_Object [])
-	  { build_local_string ("%d.%d.%d.%d"), make_number (*ip++),
-	    make_number (*ip++), make_number (*ip++), make_number (*ip++) }));
+	  { build_local_string ("%d.%d.%d.%d"), make_number (ip[0]),
+	    make_number (ip[1]), make_number (ip[2]), make_number (ip[3]) }));
 	service = make_number (ntohs (saddr.in.sin_port));
 	caller = Fformat (3, ((Lisp_Object [])
 	  { build_local_string (" <%s:%d>"), host, service }));

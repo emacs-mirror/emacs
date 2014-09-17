@@ -1,3 +1,9 @@
+2014-09-17  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Avoid clang-specific warnings.
+	* buffer.c (init_buffer): Shut up -Wself-assign.
+	* process.c (server_accept_connection): Shut up -Wunsequenced.
+
 2014-09-16  Daniel Colascione  <dancol@dancol.org>
 
 	* fns.c (sxhash): For symbols, use address as hash code.
