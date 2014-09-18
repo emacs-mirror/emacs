@@ -1598,7 +1598,7 @@ appended.  By default, FONT-SPEC overrides the previous settings.  */)
 	  if (! NILP (font_object))
 	    {
 	      update_auto_fontset_alist (font_object, fontset);
-	      alist = list1 (Fcons (Qfont, Fcons (name, font_object)));
+	      alist = FRAME_PARAMETER (Qfont, Fcons (name, font_object));
 	      Fmodify_frame_parameters (fr, alist);
 	    }
 	}

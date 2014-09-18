@@ -6098,14 +6098,14 @@ init_display (void)
 
     /* Update frame parameters to reflect the new type. */
     Fmodify_frame_parameters
-      (selected_frame, list1 (Fcons (Qtty_type,
-                                     Ftty_type (selected_frame))));
+      (selected_frame, FRAME_PARAMETER (Qtty_type,
+					Ftty_type (selected_frame)));
     if (t->display_info.tty->name)
       Fmodify_frame_parameters
 	(selected_frame,
-	 list1 (Fcons (Qtty, build_string (t->display_info.tty->name))));
+	 FRAME_PARAMETER (Qtty, build_string (t->display_info.tty->name)));
     else
-      Fmodify_frame_parameters (selected_frame, list1 (Fcons (Qtty, Qnil)));
+      Fmodify_frame_parameters (selected_frame, FRAME_PARAMETER (Qtty, Qnil));
   }
 
   {

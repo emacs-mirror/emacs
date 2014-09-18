@@ -775,7 +775,7 @@ xfont_open (struct frame *f, Lisp_Object entity, int pixel_size)
       if (dashes >= 13)
 	{
 	  len = xfont_decode_coding_xlfd (p0, -1, name);
-	  fullname = Fdowncase (make_string (name, len));
+	  fullname = Fdowncase (make_local_string (name, len));
 	}
       XFree (p0);
     }

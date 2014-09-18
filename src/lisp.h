@@ -4623,6 +4623,7 @@ verify (sizeof (struct Lisp_Cons) == sizeof (union Aligned_Cons));
 # define local_list1(x) local_cons (x, Qnil)
 # define local_list2(x, y) local_cons (x, local_list1 (y))
 # define local_list3(x, y, z) local_cons (x, local_list2 (y, z))
+# define local_list4(x, y, z, t) local_cons (x, local_list3 (y, z, t))
 
 /* Return a function-scoped vector of length SIZE, with each element
    being INIT.  */
@@ -4673,6 +4674,7 @@ verify (sizeof (struct Lisp_Cons) == sizeof (union Aligned_Cons));
 # define local_list1(x) list1 (x)
 # define local_list2(x, y) list2 (x, y)
 # define local_list3(x, y, z) list3 (x, y, z)
+# define local_list4(x, y, z, t) list4 (x, y, z, t)
 # define make_local_vector(size, init) Fmake_vector (make_number (size), init)
 # define make_local_string(data, nbytes) make_string (data, nbytes)
 # define build_local_string(data) build_string (data)

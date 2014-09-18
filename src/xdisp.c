@@ -12061,7 +12061,7 @@ build_desired_tool_bar_string (struct frame *f)
       (f, Fmake_string (make_number (size_needed), make_number (' ')));
   else
     {
-      props = list4 (Qdisplay, Qnil, Qmenu_item, Qnil);
+      props = local_list4 (Qdisplay, Qnil, Qmenu_item, Qnil);
       Fremove_text_properties (make_number (0), make_number (size),
 			       props, f->desired_tool_bar_string);
     }
@@ -12174,8 +12174,8 @@ build_desired_tool_bar_string (struct frame *f)
 	 the start of this item's properties in the tool-bar items
 	 vector.  */
       image = Fcons (Qimage, plist);
-      props = list4 (Qdisplay, image,
-		     Qmenu_item, make_number (i * TOOL_BAR_ITEM_NSLOTS));
+      props = local_list4 (Qdisplay, image, Qmenu_item,
+			   make_number (i * TOOL_BAR_ITEM_NSLOTS));
 
       /* Let the last image hide all remaining spaces in the tool bar
          string.  The string can be longer than needed when we reuse a

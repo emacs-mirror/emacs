@@ -638,7 +638,7 @@ status_message (struct Lisp_Process *p)
     {
       string = Fnumber_to_string (make_number (code));
       string2 = build_local_string ("\n");
-      return concat3 (build_string ("failed with code "),
+      return concat3 (build_local_string ("failed with code "),
 		      string, string2);
     }
   else
