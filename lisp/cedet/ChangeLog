@@ -1,3 +1,9 @@
+2014-09-18  David Engster  <deng@randomsample.de>
+
+	* ede/emacs.el (ede-emacs-version): Do not call 'egrep' to
+	determine Emacs version (it was dead code anyway).  Make sure that
+	configure.ac or configure.in exist.  (Bug#18476)
+
 2014-05-01  Glenn Morris  <rgm@gnu.org>
 
 	* ede.el (ede-project-directories, ede-check-project-directory):
