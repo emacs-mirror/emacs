@@ -4,6 +4,8 @@
 	`fit-width' or a `fit-height', don't limit the size of the image
 	to the window size, because that doesn't preserve the aspect
 	ratio.
+	* image-mode.el: Move defvars earlier to avoid a byte-compilation
+	warning.
 
 2014-09-17  Reuben Thomas  <rrt@sc3d.org>
 

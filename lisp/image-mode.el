@@ -49,6 +49,26 @@
   "Special hook run when image data is requested in a new window.
 It is called with one argument, the initial WINPROPS.")
 
+;; FIXME this doesn't seem mature yet. Document in manual when it is.
+(defvar image-transform-resize nil
+  "The image resize operation.
+Its value should be one of the following:
+ - nil, meaning no resizing.
+ - `fit-height', meaning to fit the image to the window height.
+ - `fit-width', meaning to fit the image to the window width.
+ - A number, which is a scale factor (the default size is 1).")
+
+(defvar image-transform-scale 1.0
+  "The scale factor of the image being displayed.")
+
+(defvar image-transform-rotation 0.0
+  "Rotation angle for the image in the current Image mode buffer.")
+
+(defvar image-transform-right-angle-fudge 0.0001
+  "Snap distance to a multiple of a right angle.
+There's no deep theory behind the default value, it should just
+be somewhat larger than ImageMagick's MagickEpsilon.")
+
 (defun image-mode-winprops (&optional window cleanup)
   "Return winprops of WINDOW.
 A winprops object has the shape (WINDOW . ALIST).
@@ -904,26 +924,6 @@ replacing the current Image mode buffer."
 ;; been compiled with ImageMagick support."
 ;;   nil "image-transform" image-transform-minor-mode-map)
 
-
-;; FIXME this doesn't seem mature yet. Document in manual when it is.
-(defvar image-transform-resize nil
-  "The image resize operation.
-Its value should be one of the following:
- - nil, meaning no resizing.
- - `fit-height', meaning to fit the image to the window height.
- - `fit-width', meaning to fit the image to the window width.
- - A number, which is a scale factor (the default size is 1).")
-
-(defvar image-transform-scale 1.0
-  "The scale factor of the image being displayed.")
-
-(defvar image-transform-rotation 0.0
-  "Rotation angle for the image in the current Image mode buffer.")
-
-(defvar image-transform-right-angle-fudge 0.0001
-  "Snap distance to a multiple of a right angle.
-There's no deep theory behind the default value, it should just
-be somewhat larger than ImageMagick's MagickEpsilon.")
 
 (defsubst image-transform-width (width height)
   "Return the bounding box width of a rotated WIDTH x HEIGHT rectangle.
