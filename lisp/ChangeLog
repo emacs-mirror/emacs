@@ -1,3 +1,9 @@
+2014-09-18  Kan-Ru Chen  <kanru@kanru.info>
+
+	* window.el (fit-window-to-buffer): When counting buffer width,
+	count the whole visible buffer.  Correctly convert the body-height
+	to pixel size for window-text-pixel-size (Bug#18498).
+
 2014-09-14  Glenn Morris  <rgm@gnu.org>
 
 	* image.el (image-multi-frame-p): Fix thinko - do not force
