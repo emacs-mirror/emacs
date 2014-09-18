@@ -1,3 +1,8 @@
+2014-09-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (redisplay_internal): Force redisplay of all windows
+	that show a buffer whose narrowing has changed.  (Bug#18490)
+
 2014-09-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* xterm.c (x_draw_hollow_cursor, x_draw_bar_cursor):

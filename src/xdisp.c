@@ -13598,6 +13598,12 @@ redisplay_internal (void)
 
       if (mode_line_update_needed (w))
 	w->update_mode_line = 1;
+
+      /* If reconsider_clip_changes above decided that the narrowing
+	 in the current buffer changed, make sure all other windows
+	 showing that buffer will be redisplayed.  */
+      if (current_buffer->clip_changed)
+	bset_update_mode_line (current_buffer);
     }
 
   /* Normally the message* functions will have already displayed and
