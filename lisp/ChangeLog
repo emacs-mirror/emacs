@@ -1,3 +1,9 @@
+2014-09-18  Ivan Kanis  <ivan@kanis.fr>
+
+	* net/shr.el, net/eww.el: Don't override `shr-width', but
+	introduce a new variable `shr-internal-width'.  This allows users
+	to specify a width themselves.
+
 2014-09-18  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* image-mode.el (image-toggle-display-image): If we have a

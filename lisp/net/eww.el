@@ -270,7 +270,6 @@ word(s) will be searched for via `eww-search-prefix'."
     (setq eww-current-dom document)
     (let ((inhibit-read-only t)
 	  (after-change-functions nil)
-	  (shr-width nil)
 	  (shr-target-id (url-target (url-generic-parse-url url)))
 	  (shr-external-rendering-functions
 	   '((title . eww-tag-title)
