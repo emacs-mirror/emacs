@@ -415,7 +415,7 @@ For full documentation. please see commentary.
                  ,(if (stringp name)
                       `(load ,name t)
                     `(require ',name nil t))
-               (error (message "Error compiling %s: %s" ',name err) nil))))
+               (error (message "Error requiring %s: %s" ',name err) nil))))
 
          ,(if (and (or commands (use-package-plist-get args :defer))
                    (not (use-package-plist-get args :demand)))
