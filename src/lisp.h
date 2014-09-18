@@ -4603,14 +4603,29 @@ verify (sizeof (struct Lisp_Cons) == sizeof (union Aligned_Cons));
 
 # define USE_LOCAL_ALLOCATORS
 
+/* Alignment fixup needed for alloca.  GCC aligns alloca properly already,
+   Clang sometimes doesn't, and play it safe for other random compilers.  */
+# if __GNUC__ && !__clang__
+enum { ALLOCA_FIXUP = 0 };
+# else
+enum { ALLOCA_FIXUP = GCALIGNMENT - 1 };
+# endif
+
+/* Declare a void * variable PTR and set it to a properly-aligned array of
+   N newly allocated bytes with function lifetime.  */
+# define LOCAL_ALLOCA(ptr, n)				\
+    void *ptr = alloca ((n) + ALLOCA_FIXUP);		\
+    ptr = (void *) ((intptr_t) ptr_ & ~(ALLOCA_FIXUP))
+
 /* Return a function-scoped cons whose car is X and cdr is Y.  */
 
 # define local_cons(x, y)						\
     ({									\
-       struct Lisp_Cons *c = alloca (sizeof (struct Lisp_Cons));	\
-       c->car = (x);							\
-       c->u.cdr = (y);							\
-       make_lisp_ptr (c, Lisp_Cons);					\
+       LOCAL_ALLOCA (ptr_, sizeof (struct Lisp_Cons));			\
+       struct Lisp_Cons *c_ = ptr_;					\
+       c_->car = (x);							\
+       c_->u.cdr = (y);							\
+       make_lisp_ptr (c_, Lisp_Cons);					\
     })
 
 # define local_list1(x) local_cons (x, Qnil)
@@ -4625,9 +4640,9 @@ verify (sizeof (struct Lisp_Cons) == sizeof (union Aligned_Cons));
        ptrdiff_t size_ = size;						\
        Lisp_Object init_ = init;					\
        Lisp_Object vec_;						\
-       if (size_ <= (MAX_ALLOCA - header_size) / word_size)		\
+       if (size_ <= (MAX_ALLOCA - ALLOCA_FIXUP - header_size) / word_size) \
 	 {								\
-	   void *ptr_ = alloca (size_ * word_size + header_size);	\
+	   LOCAL_ALLOCA (ptr_, size_ * word_size + header_size);	\
 	   vec_ = local_vector_init (ptr_, size_, init_);		\
 	 }								\
        else								\
@@ -4642,10 +4657,10 @@ verify (sizeof (struct Lisp_Cons) == sizeof (union Aligned_Cons));
        char const *data_ = data;					\
        ptrdiff_t nbytes_ = nbytes;					\
        Lisp_Object string_;						\
-       if (nbytes_ <= MAX_ALLOCA - sizeof (struct Lisp_String) - 1)	\
+       if (nbytes_							\
+	   <= MAX_ALLOCA - ALLOCA_FIXUP - sizeof (struct Lisp_String) - 1) \
 	 {								\
-	   struct Lisp_String *ptr_					\
-	     = alloca (sizeof (struct Lisp_String) + 1 + nbytes_);	\
+	   LOCAL_ALLOCA (ptr_, sizeof (struct Lisp_String) + 1 + bytes_); \
 	   string_ = local_string_init (ptr_, data_, nbytes_);		\
 	 }								\
        else								\

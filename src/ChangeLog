@@ -1,3 +1,11 @@
+2014-09-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port USE_LOCAL_ALLOCATORS code to clang 3.4 x86-64.
+	* lisp.h (ALLOCA_FIXUP): New constant.
+	(LOCAL_ALLOCA): New macro.
+	(local_cons, make_local_vector, make_local_string): Use them.
+	(local_cons): Rename parameter to make capture less likely.
+
 2014-09-17  Samuel Bronson  <naesten@gmail.com>
 
 	* unexmacosx.c (copy_data_segment): Port to GCC 4.6+ (Bug#9927).
