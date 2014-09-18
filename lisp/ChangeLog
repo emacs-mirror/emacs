@@ -1,3 +1,10 @@
+2014-09-18  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* image-mode.el (image-toggle-display-image): If we have a
+	`fit-width' or a `fit-height', don't limit the size of the image
+	to the window size, because that doesn't preserve the aspect
+	ratio.
+
 2014-09-17  Reuben Thomas  <rrt@sc3d.org>
 
 	* progmodes/js.el: Add interpreter-mode-alist support for various
