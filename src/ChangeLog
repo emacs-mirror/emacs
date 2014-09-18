@@ -1,3 +1,8 @@
+2014-09-18  Juri Linkov  <juri@jurta.org>
+
+	* image.c (imagemagick_load_image): Add delay to imagemagick metadata.
+	(Bug#10747, bug#18334)
+
 2014-09-18  Eli Zaretskii  <eliz@gnu.org>
 
 	* frame.c (Fmouse_position, Fset_mouse_position): Clarify the
