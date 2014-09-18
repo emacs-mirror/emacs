@@ -1,5 +1,8 @@
 2014-09-18  Eli Zaretskii  <eliz@gnu.org>
 
+	* frame.c (Fmouse_position, Fset_mouse_position): Clarify the
+	units in which the position is measured.  (Bug#18493)
+
 	* xdisp.c (redisplay_internal): Force redisplay of all windows
 	that show a buffer whose narrowing has changed.  (Bug#18490)
 
