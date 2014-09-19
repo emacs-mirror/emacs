@@ -848,6 +848,46 @@ considered."
                      (mapcar #'symbol-name (lisp--local-variables))))))
          lastvars)))))
 
+(defun lisp--expect-function-p (pos)
+  "Return non-nil if the symbol at point is expected to be a function."
+  (or
+   (and (eq (char-before pos) ?')
+        (eq (char-before (1- pos)) ?#))
+   (save-excursion
+     (let ((parent (nth 1 (syntax-ppss pos))))
+       (when parent
+         (goto-char parent)
+         (and
+          (looking-at (concat "(\\(cl-\\)?"
+                              (regexp-opt '("declare-function"
+                                            "function" "defadvice"
+                                            "callf" "callf2"
+                                            "defsetf"))
+                              "[ \t\r\n]+"))
+          (eq (match-end 0) pos)))))))
+
+(defun lisp--form-quoted-p (pos)
+  "Return non-nil if the form at POS is not evaluated.
+It can be quoted, or be inside a quoted form."
+  ;; FIXME: Do some macro expansion maybe.
+  (save-excursion
+    (let ((state (syntax-ppss pos)))
+      (or (nth 8 state)   ; Code inside strings usually isn't evaluated.
+          ;; FIXME: The 9th element is undocumented.
+          (let ((nesting (cons (point) (reverse (nth 9 state))))
+                res)
+            (while (and nesting (not res))
+              (goto-char (pop nesting))
+              (cond
+               ((or (eq (char-after) ?\[)
+                    (progn
+                      (skip-chars-backward " ")
+                      (memq (char-before) '(?' ?`))))
+                (setq res t))
+               ((eq (char-before) ?,)
+                (setq nesting nil))))
+            res)))))
+
 ;; FIXME: Support for Company brings in features which straddle eldoc.
 ;; We should consolidate this, so that major modes can provide all that
 ;; data all at once:
@@ -927,22 +967,41 @@ considered."
                 ;; use it to provide a more specific completion table in some
                 ;; cases.  E.g. filter out keywords that are not understood by
                 ;; the macro/function being called.
-                (list nil (completion-table-merge
-                           lisp--local-variables-completion-table
-                           (apply-partially #'completion-table-with-predicate
-                                            obarray
-                                            ;; Don't include all symbols
-                                            ;; (bug#16646).
-                                            (lambda (sym)
-                                              (or (boundp sym)
-                                                  (fboundp sym)
-                                                  (symbol-plist sym)))
-                                            'strict))
+                (cond
+                 ((lisp--expect-function-p beg)
+                  (list nil obarray
+                        :predicate #'fboundp
+                        :company-doc-buffer #'lisp--company-doc-buffer
+                        :company-docsig #'lisp--company-doc-string
+                        :company-location #'lisp--company-location))
+                 ((lisp--form-quoted-p beg)
+                  (list nil (completion-table-merge
+                             ;; FIXME: Is this table useful for this case?
+                             lisp--local-variables-completion-table
+                             (apply-partially #'completion-table-with-predicate
+                                              obarray
+                                              ;; Don't include all symbols
+                                              ;; (bug#16646).
+                                              (lambda (sym)
+                                                (or (boundp sym)
+                                                    (fboundp sym)
+                                                    (symbol-plist sym)))
+                                              'strict))
                       :annotation-function
                       (lambda (str) (if (fboundp (intern-soft str)) " <f>"))
                       :company-doc-buffer #'lisp--company-doc-buffer
                       :company-docsig #'lisp--company-doc-string
-                      :company-location #'lisp--company-location)
+                      :company-location #'lisp--company-location))
+                 (t
+                  (list nil (completion-table-merge
+                             lisp--local-variables-completion-table
+                             (apply-partially #'completion-table-with-predicate
+                                              obarray
+                                              #'boundp
+                                              'strict))
+                        :company-doc-buffer #'lisp--company-doc-buffer
+                        :company-docsig #'lisp--company-doc-string
+                        :company-location #'lisp--company-location)))
               ;; Looks like a funcall position.  Let's double check.
               (save-excursion
                 (goto-char (1- beg))

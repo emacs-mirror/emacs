@@ -1,3 +1,11 @@
+2014-09-19  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* emacs-lisp/lisp.el (lisp--expect-function-p)
+	(lisp--form-quoted-p): New functions.
+	(lisp-completion-at-point): Use them to see if we're completing a
+	variable reference, a function name, or just any symbol.
+	http://lists.gnu.org/archive/html/emacs-devel/2014-02/msg00229.html
+
 2014-09-18  Ivan Kanis  <ivan@kanis.fr>
 
 	* net/shr.el, net/eww.el: Don't override `shr-width', but
