@@ -2,6 +2,9 @@
 
 	* emacs-lisp/lisp.el (lisp-completion-at-point): Only calculate
 	`table-etc' when `end' is non-nil.
+	(lisp-completion-at-point): Move `end' back if it's after quote.
+	If in comment or string, only complete when after backquote.
+	(Bug#18265)
 
 2014-09-19  Dmitry Gutov  <dgutov@yandex.ru>
 

@@ -957,12 +957,14 @@ It can be quoted, or be inside a quoted form."
 		  (save-excursion
 		    (goto-char beg)
 		    (forward-sexp 1)
+                    (skip-chars-backward "'")
 		    (when (>= (point) pos)
 		      (point)))
 		(scan-error pos))))
            ;; t if in function position.
            (funpos (eq (char-before beg) ?\()))
-      (when end
+      (when (and end (or (not (nth 8 (syntax-ppss)))
+                         (eq (char-before beg) ?`)))
         (let ((table-etc
                (if (not funpos)
                    ;; FIXME: We could look at the first element of the list and
