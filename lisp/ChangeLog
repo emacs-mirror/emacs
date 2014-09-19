@@ -1,5 +1,10 @@
 2014-09-19  Dmitry Gutov  <dgutov@yandex.ru>
 
+	* emacs-lisp/lisp.el (lisp-completion-at-point): Only calculate
+	`table-etc' when `end' is non-nil.
+
+2014-09-19  Dmitry Gutov  <dgutov@yandex.ru>
+
 	* emacs-lisp/lisp.el (lisp--expect-function-p)
 	(lisp--form-quoted-p): New functions.
 	(lisp-completion-at-point): Use them to see if we're completing a

@@ -960,104 +960,105 @@ It can be quoted, or be inside a quoted form."
 		    (when (>= (point) pos)
 		      (point)))
 		(scan-error pos))))
-           (funpos (eq (char-before beg) ?\()) ;t if in function position.
-           (table-etc
-            (if (not funpos)
-                ;; FIXME: We could look at the first element of the list and
-                ;; use it to provide a more specific completion table in some
-                ;; cases.  E.g. filter out keywords that are not understood by
-                ;; the macro/function being called.
-                (cond
-                 ((lisp--expect-function-p beg)
-                  (list nil obarray
-                        :predicate #'fboundp
-                        :company-doc-buffer #'lisp--company-doc-buffer
-                        :company-docsig #'lisp--company-doc-string
-                        :company-location #'lisp--company-location))
-                 ((lisp--form-quoted-p beg)
-                  (list nil (completion-table-merge
-                             ;; FIXME: Is this table useful for this case?
-                             lisp--local-variables-completion-table
-                             (apply-partially #'completion-table-with-predicate
-                                              obarray
-                                              ;; Don't include all symbols
-                                              ;; (bug#16646).
-                                              (lambda (sym)
-                                                (or (boundp sym)
-                                                    (fboundp sym)
-                                                    (symbol-plist sym)))
-                                              'strict))
-                      :annotation-function
-                      (lambda (str) (if (fboundp (intern-soft str)) " <f>"))
-                      :company-doc-buffer #'lisp--company-doc-buffer
-                      :company-docsig #'lisp--company-doc-string
-                      :company-location #'lisp--company-location))
-                 (t
-                  (list nil (completion-table-merge
-                             lisp--local-variables-completion-table
-                             (apply-partially #'completion-table-with-predicate
-                                              obarray
-                                              #'boundp
-                                              'strict))
-                        :company-doc-buffer #'lisp--company-doc-buffer
-                        :company-docsig #'lisp--company-doc-string
-                        :company-location #'lisp--company-location)))
-              ;; Looks like a funcall position.  Let's double check.
-              (save-excursion
-                (goto-char (1- beg))
-                (let ((parent
-                       (condition-case nil
-                           (progn (up-list -1) (forward-char 1)
-                                  (let ((c (char-after)))
-                                    (if (eq c ?\() ?\(
-                                      (if (memq (char-syntax c) '(?w ?_))
-                                          (read (current-buffer))))))
-                         (error nil))))
-                  (pcase parent
-                    ;; FIXME: Rather than hardcode special cases here,
-                    ;; we should use something like a symbol-property.
-                    (`declare
-                     (list t (mapcar (lambda (x) (symbol-name (car x)))
-                                     (delete-dups
-                                      ;; FIXME: We should include some
-                                      ;; docstring with each entry.
-                                      (append
-                                       macro-declarations-alist
-                                       defun-declarations-alist)))))
-                    ((and (or `condition-case `condition-case-unless-debug)
-                          (guard (save-excursion
-                                   (ignore-errors
-                                     (forward-sexp 2)
-                                     (< (point) beg)))))
-                     (list t obarray
-                           :predicate (lambda (sym) (get sym 'error-conditions))))
-		    ((and ?\(
-			  (guard (save-excursion
-				   (goto-char (1- beg))
-				   (up-list -1)
-				   (forward-symbol -1)
-				   (looking-at "\\_<let\\*?\\_>"))))
-		     (list t obarray
-			   :predicate #'boundp
-			   :company-doc-buffer #'lisp--company-doc-buffer
-			   :company-docsig #'lisp--company-doc-string
-			   :company-location #'lisp--company-location))
-                    (_ (list nil obarray
-                             :predicate #'fboundp
-                             :company-doc-buffer #'lisp--company-doc-buffer
-                             :company-docsig #'lisp--company-doc-string
-                             :company-location #'lisp--company-location
-                             ))))))))
+           ;; t if in function position.
+           (funpos (eq (char-before beg) ?\()))
       (when end
-        (let ((tail (if (null (car table-etc))
-                        (cdr table-etc)
-                      (cons
-                       (if (memq (char-syntax (or (char-after end) ?\s))
-                                 '(?\s ?>))
-                           (cadr table-etc)
-                         (apply-partially 'completion-table-with-terminator
-                                          " " (cadr table-etc)))
-                       (cddr table-etc)))))
-          `(,beg ,end ,@tail))))))
+        (let ((table-etc
+               (if (not funpos)
+                   ;; FIXME: We could look at the first element of the list and
+                   ;; use it to provide a more specific completion table in some
+                   ;; cases.  E.g. filter out keywords that are not understood by
+                   ;; the macro/function being called.
+                   (cond
+                    ((lisp--expect-function-p beg)
+                     (list nil obarray
+                           :predicate #'fboundp
+                           :company-doc-buffer #'lisp--company-doc-buffer
+                           :company-docsig #'lisp--company-doc-string
+                           :company-location #'lisp--company-location))
+                    ((lisp--form-quoted-p beg)
+                     (list nil (completion-table-merge
+                                ;; FIXME: Is this table useful for this case?
+                                lisp--local-variables-completion-table
+                                (apply-partially #'completion-table-with-predicate
+                                                 obarray
+                                                 ;; Don't include all symbols
+                                                 ;; (bug#16646).
+                                                 (lambda (sym)
+                                                   (or (boundp sym)
+                                                       (fboundp sym)
+                                                       (symbol-plist sym)))
+                                                 'strict))
+                           :annotation-function
+                           (lambda (str) (if (fboundp (intern-soft str)) " <f>"))
+                           :company-doc-buffer #'lisp--company-doc-buffer
+                           :company-docsig #'lisp--company-doc-string
+                           :company-location #'lisp--company-location))
+                    (t
+                     (list nil (completion-table-merge
+                                lisp--local-variables-completion-table
+                                (apply-partially #'completion-table-with-predicate
+                                                 obarray
+                                                 #'boundp
+                                                 'strict))
+                           :company-doc-buffer #'lisp--company-doc-buffer
+                           :company-docsig #'lisp--company-doc-string
+                           :company-location #'lisp--company-location)))
+                 ;; Looks like a funcall position.  Let's double check.
+                 (save-excursion
+                   (goto-char (1- beg))
+                   (let ((parent
+                          (condition-case nil
+                              (progn (up-list -1) (forward-char 1)
+                                     (let ((c (char-after)))
+                                       (if (eq c ?\() ?\(
+                                         (if (memq (char-syntax c) '(?w ?_))
+                                             (read (current-buffer))))))
+                            (error nil))))
+                     (pcase parent
+                       ;; FIXME: Rather than hardcode special cases here,
+                       ;; we should use something like a symbol-property.
+                       (`declare
+                        (list t (mapcar (lambda (x) (symbol-name (car x)))
+                                        (delete-dups
+                                         ;; FIXME: We should include some
+                                         ;; docstring with each entry.
+                                         (append
+                                          macro-declarations-alist
+                                          defun-declarations-alist)))))
+                       ((and (or `condition-case `condition-case-unless-debug)
+                             (guard (save-excursion
+                                      (ignore-errors
+                                        (forward-sexp 2)
+                                        (< (point) beg)))))
+                        (list t obarray
+                              :predicate (lambda (sym) (get sym 'error-conditions))))
+                       ((and ?\(
+                             (guard (save-excursion
+                                      (goto-char (1- beg))
+                                      (up-list -1)
+                                      (forward-symbol -1)
+                                      (looking-at "\\_<let\\*?\\_>"))))
+                        (list t obarray
+                              :predicate #'boundp
+                              :company-doc-buffer #'lisp--company-doc-buffer
+                              :company-docsig #'lisp--company-doc-string
+                              :company-location #'lisp--company-location))
+                       (_ (list nil obarray
+                                :predicate #'fboundp
+                                :company-doc-buffer #'lisp--company-doc-buffer
+                                :company-docsig #'lisp--company-doc-string
+                                :company-location #'lisp--company-location
+                                ))))))))
+          (nconc (list beg end)
+                 (if (null (car table-etc))
+                     (cdr table-etc)
+                   (cons
+                    (if (memq (char-syntax (or (char-after end) ?\s))
+                              '(?\s ?>))
+                        (cadr table-etc)
+                      (apply-partially 'completion-table-with-terminator
+                                       " " (cadr table-etc)))
+                    (cddr table-etc)))))))))
 
 ;;; lisp.el ends here
