@@ -1,4 +1,4 @@
-2014-09-19  Dmitry  <dgutov@yandex.ru>
+2014-09-19  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* url.el (url-retrieve-internal): Clarify the docstring.
 
