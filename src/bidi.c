@@ -403,9 +403,8 @@ bidi_set_sos_type (struct bidi_it *bidi_it, int level_before, int level_after)
 {
   int higher_level = (level_before > level_after ? level_before : level_after);
 
-  if (level_before < level_after)
-    /* FIXME: should the default sos direction be user selectable?  */
-    bidi_it->sos = ((higher_level & 1) != 0 ? R2L : L2R);
+  /* FIXME: should the default sos direction be user selectable?  */
+  bidi_it->sos = ((higher_level & 1) != 0 ? R2L : L2R); /* X10 */
 
   bidi_it->prev.type = UNKNOWN_BT;
   bidi_it->last_strong.type = bidi_it->last_strong.type_after_w1
@@ -1925,14 +1924,13 @@ bidi_resolve_explicit_1 (struct bidi_it *bidi_it)
 		if (bidi_it->invalid_levels)
 		  bidi_it->invalid_levels--;
 		else if (!isolate_status && bidi_it->stack_idx > 1)
-		  new_level = bidi_pop_embedding_level (bidi_it);
+		  bidi_pop_embedding_level (bidi_it);
 	      }
 	  }
 	else if (bidi_it->prev.type_after_w1 == WEAK_EN /* W5/Retaining */
 		 || (bidi_it->next_en_pos > bidi_it->charpos
 		     && bidi_it->next_en_type == WEAK_EN))
 	  type = WEAK_EN;
-	bidi_it->resolved_level = new_level;
 	break;
       default:
 	/* Nothing.  */
@@ -1942,6 +1940,7 @@ bidi_resolve_explicit_1 (struct bidi_it *bidi_it)
   bidi_it->type = type;
   bidi_check_type (bidi_it->type);
 
+  eassert (bidi_it->resolved_level >= 0);
   return bidi_it->resolved_level;
 }
 
@@ -2047,13 +2046,12 @@ bidi_resolve_weak (struct bidi_it *bidi_it)
   type = bidi_it->type;
   override = bidi_it->level_stack[bidi_it->stack_idx].override;
 
-  if (type == UNKNOWN_BT
-      || type == LRE
-      || type == LRO
-      || type == RLE
-      || type == RLO
-      || type == PDF)
-    emacs_abort ();
+  eassert (!(type == UNKNOWN_BT
+	     || type == LRE
+	     || type == LRO
+	     || type == RLE
+	     || type == RLO
+	     || type == PDF));
 
   eassert (prev_level >= 0);
   if (new_level > prev_level
@@ -2287,16 +2285,15 @@ bidi_resolve_neutral (struct bidi_it *bidi_it)
   bidi_type_t type = bidi_resolve_weak (bidi_it);
   int current_level = bidi_it->level_stack[bidi_it->stack_idx].level;
 
-  if (!(type == STRONG_R
-	|| type == STRONG_L
-	|| type == WEAK_BN
-	|| type == WEAK_EN
-	|| type == WEAK_AN
-	|| type == NEUTRAL_B
-	|| type == NEUTRAL_S
-	|| type == NEUTRAL_WS
-	|| type == NEUTRAL_ON))
-    emacs_abort ();
+  eassert ((type == STRONG_R
+	    || type == STRONG_L
+	    || type == WEAK_BN
+	    || type == WEAK_EN
+	    || type == WEAK_AN
+	    || type == NEUTRAL_B
+	    || type == NEUTRAL_S
+	    || type == NEUTRAL_WS
+	    || type == NEUTRAL_ON));
 
   eassert (prev_level >= 0);
   eassert (current_level >= 0);
@@ -2482,7 +2479,10 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
 
       /* There's no sense in trying to advance if we hit end of text.  */
       if (bidi_it->charpos >= eob)
-	return bidi_it->resolved_level;
+	{
+	  eassert (bidi_it->resolved_level >= 0);
+	  return bidi_it->resolved_level;
+	}
 
       /* Record the info about the previous character.  */
       if (bidi_it->type_after_w1 != WEAK_BN /* W1/Retaining */
@@ -2563,7 +2563,10 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
 	 before it was completely resolved, so we cannot return
 	 it.  */
       if (bidi_it->resolved_level != -1)
-	return bidi_it->resolved_level;
+	{
+	  eassert (bidi_it->resolved_level >= 0);
+	  return bidi_it->resolved_level;
+	}
     }
   if (bidi_it->scan_dir == -1)
     /* If we are going backwards, the iterator state is already cached
@@ -2574,7 +2577,10 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
     type = bidi_type_of_next_char (bidi_it);
 
   if (type == NEUTRAL_B)
-    return bidi_it->resolved_level;
+    {
+      eassert (bidi_it->resolved_level >= 0);
+      return bidi_it->resolved_level;
+    }
 
   level = bidi_it->level_stack[bidi_it->stack_idx].level;
   if ((bidi_get_category (type) == NEUTRAL /* && type != NEUTRAL_B */)
@@ -2590,12 +2596,11 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
 				     level);
     }
 
-  if (!(type == STRONG_R
-	|| type == STRONG_L
-	|| type == WEAK_BN
-	|| type == WEAK_EN
-	|| type == WEAK_AN))
-    emacs_abort ();
+  eassert ((type == STRONG_R
+	    || type == STRONG_L
+	    || type == WEAK_BN
+	    || type == WEAK_EN
+	    || type == WEAK_AN));
   bidi_it->type = type;
   bidi_check_type (bidi_it->type);
 
