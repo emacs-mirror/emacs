@@ -5,6 +5,9 @@
 	(lisp-completion-at-point): Move `end' back if it's after quote.
 	If in comment or string, only complete when after backquote.
 	(Bug#18265)
+	(lisp-completion-at-point): Don't use
+	`lisp--local-variables-completion-table' in the
+	`lisp--form-quoted-p' case.
 
 2014-09-19  Dmitry Gutov  <dgutov@yandex.ru>
 

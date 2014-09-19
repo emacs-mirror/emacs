@@ -979,18 +979,13 @@ It can be quoted, or be inside a quoted form."
                            :company-docsig #'lisp--company-doc-string
                            :company-location #'lisp--company-location))
                     ((lisp--form-quoted-p beg)
-                     (list nil (completion-table-merge
-                                ;; FIXME: Is this table useful for this case?
-                                lisp--local-variables-completion-table
-                                (apply-partially #'completion-table-with-predicate
-                                                 obarray
-                                                 ;; Don't include all symbols
-                                                 ;; (bug#16646).
-                                                 (lambda (sym)
-                                                   (or (boundp sym)
-                                                       (fboundp sym)
-                                                       (symbol-plist sym)))
-                                                 'strict))
+                     (list nil obarray
+                           ;; Don't include all symbols
+                           ;; (bug#16646).
+                           :predicate (lambda (sym)
+                                        (or (boundp sym)
+                                            (fboundp sym)
+                                            (symbol-plist sym)))
                            :annotation-function
                            (lambda (str) (if (fboundp (intern-soft str)) " <f>"))
                            :company-doc-buffer #'lisp--company-doc-buffer
