@@ -1,3 +1,9 @@
+2014-09-19  Dmitry  <dgutov@yandex.ru>
+
+	* url.el (url-retrieve-internal): Clarify the docstring.
+
+	* url-http.el (url-http): Same.  (Bug#18116)
+
 2014-06-26  Leo Liu  <sdl.web@gmail.com>
 
 	* url-http.el (url-http-end-of-headers): Remove duplicate defvar.
