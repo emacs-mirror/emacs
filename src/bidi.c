@@ -1681,7 +1681,7 @@ static int
 bidi_resolve_explicit_1 (struct bidi_it *bidi_it)
 {
   int curchar;
-  bidi_type_t type, typ1;
+  bidi_type_t type, typ1, prev_type = UNKNOWN_BT;;
   int current_level;
   int new_level;
   bidi_dir_t override;
@@ -1719,6 +1719,17 @@ bidi_resolve_explicit_1 (struct bidi_it *bidi_it)
 	    }
 	  eassert (bidi_it->bytepos == CHAR_TO_BYTE (bidi_it->charpos));
 	}
+      /* Determine the orginal bidi type of the previous character,
+	 which is needed for handling isolate initiators and PDF.  The
+	 type of the previous character will only be non-trivial if
+	 our caller moved through some previous text in
+	 get_visually_first_element, in which case bidi_it->prev holds
+	 the information we want.  */
+      if (bidi_it->first_elt && bidi_it->prev.type != UNKNOWN_BT)
+	{
+	  eassert (bidi_it->prev.charpos == bidi_it->charpos - 1);
+	  prev_type = bidi_it->prev.orig_type;
+	}
     }
   /* Don't move at end of buffer/string.  */
   else if (bidi_it->charpos < (string_p ? bidi_it->string.schars : ZV))
@@ -1731,6 +1742,7 @@ bidi_resolve_explicit_1 (struct bidi_it *bidi_it)
       if (bidi_it->ch_len == 0)
 	emacs_abort ();
       bidi_it->bytepos += bidi_it->ch_len;
+      prev_type = bidi_it->orig_type;
     }
 
   current_level = bidi_it->level_stack[bidi_it->stack_idx].level; /* X1 */
@@ -1864,26 +1876,18 @@ bidi_resolve_explicit_1 (struct bidi_it *bidi_it)
 	bidi_it->type_after_w1 = type;
 	bidi_check_type (bidi_it->type_after_w1);
 	type = WEAK_BN; /* X9/Retaining */
-	if (bidi_it->ignore_bn_limit <= -1)
-	  {
-	    if (!bidi_it->invalid_isolates)
-	      {
-		if (bidi_it->invalid_levels)
-		  bidi_it->invalid_levels--;
-		else if (!isolate_status && bidi_it->stack_idx > 1)
-		  bidi_pop_embedding_level (bidi_it);
-	      }
-	  }
-	else if (bidi_it->prev.type_after_w1 == WEAK_EN /* W5/Retaining */
-		 || (bidi_it->next_en_pos > bidi_it->charpos
-		     && bidi_it->next_en_type == WEAK_EN))
+	if (bidi_it->ignore_bn_limit > -1
+	    && bidi_it->prev.type_after_w1 == WEAK_EN /* W5/Retaining */
+	    || (bidi_it->next_en_pos > bidi_it->charpos
+		&& bidi_it->next_en_type == WEAK_EN))
 	  type = WEAK_EN;
 	break;
       default:
-	/* LRI, RLI, and FSI increment the embedding level of the
-	   _following_ charcaters, so we must look at the type of the
-	   previous character to support that.  */
-	switch (bidi_it->prev.orig_type)
+	/* LRI, RLI, and FSI increment, and PDF decrements, the
+	   embedding level of the _following_ characters, so we must
+	   look at the type of the previous character to support
+	   that.  */
+	switch (prev_type)
 	  {
 	  case FSI:	/* X5c */
 	    end = string_p ? bidi_it->string.schars : ZV;
@@ -1906,7 +1910,6 @@ bidi_resolve_explicit_1 (struct bidi_it *bidi_it)
 	      type = RLI;
 	    /* FALLTHROUGH */
 	  case RLI:	/* X5a */
-	    eassert (bidi_it->prev.charpos == bidi_it->charpos - 1);
 	    if (override == NEUTRAL_DIR)
 	      bidi_it->type_after_w1 = type;
 	    else	/* Unicode 8.0 correction.  */
@@ -1926,7 +1929,6 @@ bidi_resolve_explicit_1 (struct bidi_it *bidi_it)
 	    break;
 	  case LRI:	/* X5b */
 	  fsi_as_lri:
-	    eassert (bidi_it->prev.charpos == bidi_it->charpos - 1);
 	    if (override == NEUTRAL_DIR)
 	      bidi_it->type_after_w1 = type;
 	    else	/* Unicode 8.0 correction.  */
@@ -1943,6 +1945,19 @@ bidi_resolve_explicit_1 (struct bidi_it *bidi_it)
 	      }
 	    else
 	      bidi_it->invalid_isolates++;
+	    break;
+	  case PDF:	/* X7 */
+	    if (bidi_it->ignore_bn_limit <= -1)
+	      {
+		if (!bidi_it->invalid_isolates)
+		  {
+		    if (bidi_it->invalid_levels)
+		      bidi_it->invalid_levels--;
+		    else if (!isolate_status && bidi_it->stack_idx >= 1)
+		      new_level = bidi_pop_embedding_level (bidi_it);
+		  }
+		bidi_it->resolved_level = new_level;
+	      }
 	    break;
 	  default:
 	    /* Nothing.  */
