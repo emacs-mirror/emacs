@@ -1,3 +1,8 @@
+2014-09-17  Tom Willemse  <tom@ryuslash.org>  (tiny change)
+
+	* progmodes/prog-mode.el (prog-mode-hook): Replace reference to
+	Text mode in docstring (bug#18464).
+
 2014-09-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/perl-mode.el (perl-syntax-propertize-function):
@@ -41,8 +46,7 @@
 
 	* image-mode.el (image-toggle-display-image): If we have a
 	`fit-width' or a `fit-height', don't limit the size of the image
-	to the window size, because that doesn't preserve the aspect
-	ratio.
+	to the window size, because that doesn't preserve the aspect ratio.
 	* image-mode.el: Move defvars earlier to avoid a byte-compilation
 	warning.
 
