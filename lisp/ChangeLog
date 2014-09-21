@@ -1,3 +1,12 @@
+2014-09-21  Tassilo Horn  <tsdh@gnu.org>
+
+	* textmodes/reftex-sel.el (reftex-select-label-mode)
+	(reftex-select-bib-mode, reftex-insert-docstruct): Derive modes
+	from special-mode (instead of fundamental-mode) and propertize
+	with font-lock-face instead of just face. (Bug#18496)
+
+	* textmodes/reftex-toc.el (reftex-toc-mode, reftex-toc): Ditto.
+
 2014-09-19  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* emacs-lisp/lisp.el (lisp-completion-at-point): Only calculate
