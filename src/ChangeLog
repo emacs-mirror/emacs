@@ -1,3 +1,15 @@
+2014-09-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Minor improvements to new stack-allocated Lisp objects.
+	* frame.h (FRAME_PARAMETER):
+	Prefer scoped_list1 to local_list1 where either would do.
+	* lisp.h (scoped_list4): New macro.
+	(local_cons, local_list1, local_list2, local_list3, local_list4)
+	(make_local_vector, make_local_string, build_local_string):
+	Prefer functions to macros where either would do.
+	* xdisp.c (build_desired_tool_bar_string):
+	Prefer scoped_list4 to local_list4 where either would do.
+
 2014-09-18  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	More and more stack-allocated Lisp objects if USE_LOCAL_ALLOCATORS.

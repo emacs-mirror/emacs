@@ -12038,11 +12038,11 @@ static void
 build_desired_tool_bar_string (struct frame *f)
 {
   int i, size, size_needed;
-  struct gcpro gcpro1, gcpro2, gcpro3;
-  Lisp_Object image, plist, props;
+  struct gcpro gcpro1, gcpro2;
+  Lisp_Object image, plist;
 
-  image = plist = props = Qnil;
-  GCPRO3 (image, plist, props);
+  image = plist = Qnil;
+  GCPRO2 (image, plist);
 
   /* Prepare F->desired_tool_bar_string.  If we can reuse it, do so.
      Otherwise, make a new string.  */
@@ -12061,9 +12061,12 @@ build_desired_tool_bar_string (struct frame *f)
       (f, Fmake_string (make_number (size_needed), make_number (' ')));
   else
     {
-      props = local_list4 (Qdisplay, Qnil, Qmenu_item, Qnil);
+      Lisp_Object props = scoped_list4 (Qdisplay, Qnil, Qmenu_item, Qnil);
+      struct gcpro gcpro1;
+      GCPRO1 (props);
       Fremove_text_properties (make_number (0), make_number (size),
 			       props, f->desired_tool_bar_string);
+      UNGCPRO;
     }
 
   /* Put a `display' property on the string for the images to display,
@@ -12174,8 +12177,11 @@ build_desired_tool_bar_string (struct frame *f)
 	 the start of this item's properties in the tool-bar items
 	 vector.  */
       image = Fcons (Qimage, plist);
-      props = local_list4 (Qdisplay, image, Qmenu_item,
-			   make_number (i * TOOL_BAR_ITEM_NSLOTS));
+      Lisp_Object props
+	= scoped_list4 (Qdisplay, image, Qmenu_item,
+			make_number (i * TOOL_BAR_ITEM_NSLOTS));
+      struct gcpro gcpro1;
+      GCPRO1 (props);
 
       /* Let the last image hide all remaining spaces in the tool bar
          string.  The string can be longer than needed when we reuse a
@@ -12186,6 +12192,7 @@ build_desired_tool_bar_string (struct frame *f)
 	end = i + 1;
       Fadd_text_properties (make_number (i), make_number (end),
 			    props, f->desired_tool_bar_string);
+      UNGCPRO;
 #undef PROP
     }
 

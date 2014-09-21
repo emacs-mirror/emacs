@@ -1063,7 +1063,7 @@ default_pixels_per_inch_y (void)
 /* Handy macro to construct an argument to Fmodify_frame_parameters.  */
 
 #define FRAME_PARAMETER(parameter, value)	\
-  local_list1 (scoped_cons (parameter, value))
+  scoped_list1 (scoped_cons (parameter, value))
 
 /* False means there are no visible garbaged frames.  */
 extern bool frame_garbaged;

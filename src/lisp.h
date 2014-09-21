@@ -4590,13 +4590,15 @@ verify (sizeof (struct Lisp_Cons) == sizeof (union Aligned_Cons));
 /* Convenient utility macros similar to listX functions.  */
 
 #if USE_STACK_LISP_OBJECTS
-# define scoped_list1(x) scoped_cons (x, Qnil)
-# define scoped_list2(x, y) scoped_cons (x, scoped_list1 (y))
-# define scoped_list3(x, y, z) scoped_cons (x, scoped_list2 (y, z))
+# define scoped_list1(a) scoped_cons (a, Qnil)
+# define scoped_list2(a, b) scoped_cons (a, scoped_list1 (b))
+# define scoped_list3(a, b, c) scoped_cons (a, scoped_list2 (b, c))
+# define scoped_list4(a, b, c, d) scoped_cons (a, scoped_list3 (b, c, d))
 #else
-# define scoped_list1(x) list1 (x)
-# define scoped_list2(x, y) list2 (x, y)
-# define scoped_list3(x, y, z) list3 (x, y, z)
+# define scoped_list1(a) list1 (a)
+# define scoped_list2(a, b) list2 (a, b)
+# define scoped_list3(a, b, c) list3 (a, b, c)
+# define scoped_list4(a, b, c, d) list4 (a, b, c, d)
 #endif
 
 /* Local allocators require both statement expressions and a
@@ -4620,10 +4622,10 @@ verify (sizeof (struct Lisp_Cons) == sizeof (union Aligned_Cons));
        make_lisp_ptr (c_, Lisp_Cons);					\
     })
 
-# define local_list1(x) local_cons (x, Qnil)
-# define local_list2(x, y) local_cons (x, local_list1 (y))
-# define local_list3(x, y, z) local_cons (x, local_list2 (y, z))
-# define local_list4(x, y, z, t) local_cons (x, local_list3 (y, z, t))
+# define local_list1(a) local_cons (a, Qnil)
+# define local_list2(a, b) local_cons (a, local_list1 (b))
+# define local_list3(a, b, c) local_cons (a, local_list2 (b, c))
+# define local_list4(a, b, c, d) local_cons (a, local_list3 (b, c, d))
 
 /* Return a function-scoped vector of length SIZE, with each element
    being INIT.  */
@@ -4670,14 +4672,46 @@ verify (sizeof (struct Lisp_Cons) == sizeof (union Aligned_Cons));
 #else
 
 /* Safer but slower implementations.  */
-# define local_cons(car, cdr) Fcons (car, cdr)
-# define local_list1(x) list1 (x)
-# define local_list2(x, y) list2 (x, y)
-# define local_list3(x, y, z) list3 (x, y, z)
-# define local_list4(x, y, z, t) list4 (x, y, z, t)
-# define make_local_vector(size, init) Fmake_vector (make_number (size), init)
-# define make_local_string(data, nbytes) make_string (data, nbytes)
-# define build_local_string(data) build_string (data)
+INLINE Lisp_Object
+local_cons (Lisp_Object car, Lisp_Object cdr)
+{
+  return Fcons (car, cdr);
+}
+INLINE Lisp_Object
+local_list1 (Lisp_Object a)
+{
+  return list1 (a);
+}
+INLINE Lisp_Object
+local_list2 (Lisp_Object a, Lisp_Object b)
+{
+  return list2 (a, b);
+}
+INLINE Lisp_Object
+local_list3 (Lisp_Object a, Lisp_Object b, Lisp_Object c)
+{
+  return list3 (a, b, c);
+}
+INLINE Lisp_Object
+local_list4 (Lisp_Object a, Lisp_Object b, Lisp_Object c, Lisp_Object d)
+{
+  return list4 (a, b, c, d);
+}
+INLINE Lisp_Object
+make_local_vector (ptrdiff_t size, Lisp_Object init)
+{
+  return Fmake_vector (make_number (size), init);
+}
+INLINE Lisp_Object
+make_local_string (char const *str, ptrdiff_t nbytes)
+{
+  return make_string (str, nbytes);
+}
+INLINE Lisp_Object
+build_local_string (const char *str)
+{
+  return build_string (str);
+}
 #endif
 
 
