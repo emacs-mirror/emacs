@@ -1,6 +1,10 @@
 #!/usr/bin/perl
 # -*- eval: (bug-reference-mode 1) -*-
 
+sub add_funds($) {
+    return 0;
+}
+
 use v5.14;
 
 my $str= <<END;

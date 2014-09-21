@@ -254,7 +254,7 @@
        (1 (prog1 "\"" (perl-syntax-propertize-special-constructs end))))
       ;; Funny things in `sub' arg-specs like `sub myfun ($)' or `sub ($)'.
       ;; Be careful not to match "sub { (...) ... }".
-      ("\\<sub\\(?:[[:space:]]+[^{}[:punct:][:space:]]+\\)?[[:space:]]*(\\([^)]+\\))"
+      ("\\<sub\\(?:[\s\t\n]+\\(?:\\sw\\|\\s_\\)+\\)?[\s\t\n]*(\\([^)]+\\))"
        (1 "."))
       ;; Turn __DATA__ trailer into a comment.
       ("^\\(_\\)_\\(?:DATA\\|END\\)__[ \t]*\\(?:\\(\n\\)#.-\\*-.*perl.*-\\*-\\|\n.*\\)"

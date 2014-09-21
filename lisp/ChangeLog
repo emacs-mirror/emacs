@@ -1,3 +1,8 @@
+2014-09-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/perl-mode.el (perl-syntax-propertize-function):
+	Accept underscores in identifiers after "sub" (bug#18502).
+
 2014-09-21  Tassilo Horn  <tsdh@gnu.org>
 
 	* textmodes/reftex-sel.el (reftex-select-label-mode)
@@ -6491,7 +6496,7 @@
 	COMMAND-alternatives variable, assign COMMAND as its definition
 	name so that `describe-variable' can relocate it.
 
-2014-01-14  Matthew Leach  <matthew@mattleach.net>  (tiny change)
+2014-01-14  Matthew Leach  <matthew@mattleach.net>
 
 	* font-lock.el (font-lock-keywords): Fix typo in docstring
 	(bug#16307).
