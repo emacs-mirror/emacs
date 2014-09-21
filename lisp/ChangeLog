@@ -1,5 +1,8 @@
 2014-09-17  Tom Willemse  <tom@ryuslash.org>  (tiny change)
 
+	* simple.el (clone-indirect-buffer): Mention the return value
+	(bug#18478).
+
 	* progmodes/prog-mode.el (prog-mode-hook): Replace reference to
 	Text mode in docstring (bug#18464).
 

@@ -7577,7 +7577,9 @@ DISPLAY-FLAG non-nil means show the new buffer with `pop-to-buffer'.
 This is always done when called interactively.
 
 Optional third arg NORECORD non-nil means do not put this buffer at the
-front of the list of recently selected ones."
+front of the list of recently selected ones.
+
+Returns the newly created indirect buffer."
   (interactive
    (progn
      (if (get major-mode 'no-clone-indirect)
