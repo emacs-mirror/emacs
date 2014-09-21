@@ -1302,7 +1302,9 @@ dump_it (void)
       }
 
   if (curr_header_offset > text_seg_lowest_offset)
-    unexec_error ("not enough room for load commands for new __DATA segments");
+    unexec_error ("not enough room for load commands for new __DATA segments"
+		  " (increase headerpad_extra in configure.in to at least %lX)",
+		  num_unexec_regions * sizeof (struct segment_command));
 
   printf ("%ld unused bytes follow Mach-O header\n",
 	  text_seg_lowest_offset - curr_header_offset);

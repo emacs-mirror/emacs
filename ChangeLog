@@ -1,3 +1,8 @@
+2014-09-21  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.ac: Increase headerpad_extra to 1000, update the comment
+	about load commands (Bug#18505).
+
 2014-09-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* configure.ac (HAVE_SOUND): Check for mmsystem.h header that
