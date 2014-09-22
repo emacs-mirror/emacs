@@ -291,7 +291,7 @@ intern_font_name (char * string)
   Lisp_Object obarray = check_obarray (Vobarray);
   Lisp_Object tem = oblookup (obarray, SDATA (str), len, len);
   /* This code is similar to intern function from lread.c.  */
-  return SYMBOLP (tem) ? tem : Fintern (str, obarray);
+  return SYMBOLP (tem) ? tem : intern_driver (str, obarray, XINT (tem));
 }
 
 /* w32 implementation of get_cache for font backend.

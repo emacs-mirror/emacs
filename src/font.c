@@ -277,10 +277,8 @@ static int num_font_drivers;
 Lisp_Object
 font_intern_prop (const char *str, ptrdiff_t len, bool force_symbol)
 {
-  ptrdiff_t i;
-  Lisp_Object tem;
-  Lisp_Object obarray;
-  ptrdiff_t nbytes, nchars;
+  ptrdiff_t i, nbytes, nchars;
+  Lisp_Object tem, name, obarray;
 
   if (len == 1 && *str == '*')
     return Qnil;
@@ -311,12 +309,11 @@ font_intern_prop (const char *str, ptrdiff_t len, bool force_symbol)
   parse_str_as_multibyte ((unsigned char *) str, len, &nchars, &nbytes);
   tem = oblookup (obarray, str,
 		  (len == nchars || len != nbytes) ? len : nchars, len);
-
   if (SYMBOLP (tem))
     return tem;
-  tem = make_specified_string (str, nchars, len,
-			       len != nchars && len == nbytes);
-  return Fintern (tem, obarray);
+  name = make_specified_string (str, nchars, len,
+				len != nchars && len == nbytes);
+  return intern_driver (name, obarray, XINT (tem));
 }
 
 /* Return a pixel size of font-spec SPEC on frame F.  */

@@ -1,3 +1,12 @@
+2014-09-22  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Avoid extra call to oblookup when interning symbols.
+	* lisp.h (intern_driver): Add prototype.
+	* lread.c (intern_driver): New function.
+	(intern1, intern_c_string_1, Fintern):
+	* font.c (font_intern_prop):
+	* w32font.c (intern_font_name): Use it.
+
 2014-09-21  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Minor improvements to new stack-allocated Lisp objects.
