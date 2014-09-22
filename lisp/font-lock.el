@@ -1759,7 +1759,7 @@ If SYNTACTIC-KEYWORDS is non-nil, it means these keywords are used for
       keywords
     (setq keywords
 	  (cons t (cons keywords
-			(mapcar 'font-lock-compile-keyword keywords))))
+			(mapcar #'font-lock-compile-keyword keywords))))
     (if (and (not syntactic-keywords)
 	     (let ((beg-function
 		    (or font-lock-beginning-of-syntax-function
@@ -1783,7 +1783,7 @@ If SYNTACTIC-KEYWORDS is non-nil, it means these keywords are used for
     keywords))
 
 (defun font-lock-compile-keyword (keyword)
-  (cond ((nlistp keyword)			; MATCHER
+  (cond ((or (functionp keyword) (nlistp keyword)) ; MATCHER
 	 (list keyword '(0 font-lock-keyword-face)))
 	((eq (car keyword) 'eval)		; (eval . FORM)
 	 (font-lock-compile-keyword (eval (cdr keyword))))

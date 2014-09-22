@@ -1,5 +1,8 @@
 2014-09-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* font-lock.el (font-lock-compile-keyword): Don't confuse a lambda
+	expression for a list.
+
 	* emacs-lisp/bytecomp.el (byte-compile-lambda): Don't add fundoc usage
 	for functions with no arguments.
 
