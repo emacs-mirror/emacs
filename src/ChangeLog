@@ -1,3 +1,9 @@
+2014-09-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* fileio.c (Fexpand_file_name) [DOS_NT]: Make sure newdirlim is
+	always set to a valid value.  Make sure the size passed to alloca
+	is always positive.  (Bug#18516)
+
 2014-09-22  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Avoid extra call to oblookup when interning symbols.
