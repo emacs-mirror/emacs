@@ -104,6 +104,7 @@ performance improvements when pasting large amounts of text.
 
 ** pcase
 *** New UPatterns `quote' and `app'.
+*** New UPatterns can be defined with `pcase-defmacro'.
 
 ** Lisp mode
 *** Strings after `:documentation' are highlighted as docstrings.

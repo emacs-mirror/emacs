@@ -1,5 +1,9 @@
 2014-09-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/pcase.el (pcase-defmacro): New macro.
+	(pcase--macroexpand): New function.
+	(pcase--expand): Use it.
+
 	Add support for `quote' and `app'.
 	* emacs-lisp/pcase.el (pcase--app-subst-match, pcase--app-subst-rest):
 	New optimization functions.

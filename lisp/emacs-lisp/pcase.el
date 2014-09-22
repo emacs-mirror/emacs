@@ -284,7 +284,7 @@ of the form (UPAT EXP)."
            (main
             (pcase--u
              (mapcar (lambda (case)
-                       `((match ,val . ,(car case))
+                       `((match ,val . ,(pcase--macroexpand (car case)))
                          ,(lambda (vars)
                             (unless (memq case used-cases)
                               ;; Keep track of the cases that are used.
@@ -302,6 +302,31 @@ of the form (UPAT EXP)."
                     (memq (car case) pcase--dontwarn-upats))
           (message "Redundant pcase pattern: %S" (car case))))
       (macroexp-let* defs main))))
+
+(defun pcase--macroexpand (pat)
+  "Expands all macro-patterns in PAT."
+  (let ((head (car-safe pat)))
+    (cond
+     ((memq head '(nil pred guard quote)) pat)
+     ((memq head '(or and)) `(,head ,@(mapcar #'pcase--macroexpand (cdr pat))))
+     ((eq head 'let) `(let ,(pcase--macroexpand (cadr pat)) ,@(cddr pat)))
+     ((eq head 'app) `(app ,(nth 1 pat) ,(pcase--macroexpand (nth 2 pat))))
+     (t
+      (let* ((expander (get head 'pcase-macroexpander))
+             (npat (if expander (apply expander (cdr pat)))))
+        (if (null npat)
+            (error (if expander
+                       "Unexpandable %s pattern: %S"
+                     "Unknown %s pattern: %S")
+                   head pat)
+          (pcase--macroexpand npat)))))))
+
+;;;###autoload
+(defmacro pcase-defmacro (name args &rest body)
+  "Define a pcase UPattern macro."
+  (declare (indent 2) (debug (def-name sexp def-body)) (doc-string 3))
+  `(put ',name 'pcase-macroexpander
+        (lambda ,args ,@body)))
 
 (defun pcase-codegen (code vars)
   ;; Don't use let*, otherwise macroexp-let* may merge it with some surrounding
