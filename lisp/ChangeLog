@@ -1,5 +1,10 @@
 2014-09-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/pcase.el: Allow (F . ARGS) in `app' patterns.
+	(pcase--funcall, pcase--eval): New functions.
+	(pcase--u1): Use them for guard, pred, let, and app.
+	(\`): Use the new feature to generate better code for vector patterns.
+
 	* emacs-lisp/pcase.el: Use pcase-defmacro to handle backquote.
 	(pcase--upat): Remove.
 	(pcase--macroexpand): Don't hardcode handling of `.

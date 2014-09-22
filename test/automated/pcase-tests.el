@@ -58,6 +58,8 @@
     (should-not (pcase-tests-grep 'memq exp))
     (should-not (pcase-tests-grep 'member exp))))
 
+(ert-deftest pcase-tests-vectors ()
+  (should (equal (pcase [1 2] (`[,x] 1) (`[,x ,y] (+ x y))) 3)))
 
 ;; Local Variables:
 ;; no-byte-compile: t

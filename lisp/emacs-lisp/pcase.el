@@ -104,16 +104,12 @@ UPatterns can take the following forms:
   (and UPAT...)	matches if all the patterns match.
   'VAL		matches if the object is `equal' to VAL
   `QPAT		matches if the QPattern QPAT matches.
-  (pred PRED)	matches if PRED applied to the object returns non-nil.
+  (pred FUN)	matches if FUN applied to the object returns non-nil.
   (guard BOOLEXP)	matches if BOOLEXP evaluates to non-nil.
   (let UPAT EXP)	matches if EXP matches UPAT.
   (app FUN UPAT)	matches if FUN applied to the object matches UPAT.
 If a SYMBOL is used twice in the same pattern (i.e. the pattern is
 \"non-linear\"), then the second occurrence is turned into an `eq'uality test.
-
-FUN can be either of the form (lambda ARGS BODY) or a symbol.
-It has to obey the rule that if (FUN X) returns V then calling it again will
-return the same V again (so that multiple (FUN X) can be consolidated).
 
 QPatterns can take the following forms:
   (QPAT1 . QPAT2)       matches if QPAT1 matches the car and QPAT2 the cdr.
@@ -123,12 +119,14 @@ QPatterns can take the following forms:
   STRING                matches if the object is `equal' to STRING.
   ATOM                  matches if the object is `eq' to ATOM.
 
-PRED can take the form
-  FUNCTION	     in which case it gets called with one argument.
+FUN can take the form
+  SYMBOL or (lambda ARGS BODY)  in which case it's called with one argument.
   (F ARG1 .. ARGn) in which case F gets called with an n+1'th argument
                         which is the value being matched.
-A PRED of the form FUNCTION is equivalent to one of the form (FUNCTION).
-PRED patterns can refer to variables bound earlier in the pattern.
+So a FUN of the form SYMBOL is equivalent to one of the form (FUN).
+FUN can refer to variables bound earlier in the pattern.
+FUN is assumed to be pure, i.e. it can be dropped if its result is not used,
+and two identical calls can be merged into one.
 E.g. you can match pairs where the cdr is larger than the car with a pattern
 like `(,a . ,(pred (< a))) or, with more checks:
 `(,(and a (pred numberp)) . ,(and (pred numberp) (pred (< a))))"
@@ -600,6 +598,40 @@ MATCH is the pattern that needs to be matched, of the form:
   (declare (debug (sexp body)))
   `(,fun ,arg2 ,arg1))
 
+(defun pcase--funcall (fun arg vars)
+  "Build a function call to FUN with arg ARG."
+  (if (symbolp fun)
+      `(,fun ,arg)
+    (let* (;; `vs' is an upper bound on the vars we need.
+           (vs (pcase--fgrep (mapcar #'car vars) fun))
+           (env (mapcar (lambda (var)
+                          (list var (cdr (assq var vars))))
+                        vs))
+           (call (progn
+                   (when (memq arg vs)
+                     ;; `arg' is shadowed by `env'.
+                     (let ((newsym (make-symbol "x")))
+                       (push (list newsym arg) env)
+                       (setq arg newsym)))
+                   (if (functionp fun)
+                       `(funcall #',fun ,arg)
+                     `(,@fun ,arg)))))
+      (if (null vs)
+          call
+        ;; Let's not replace `vars' in `fun' since it's
+        ;; too difficult to do it right, instead just
+        ;; let-bind `vars' around `fun'.
+        `(let* ,env ,call)))))
+
+(defun pcase--eval (exp vars)
+  "Build an expression that will evaluate EXP."
+  (let* ((found (assq exp vars)))
+    (if found (cdr found)
+      (let* ((vs (pcase--fgrep (mapcar #'car vars) exp))
+             (env (mapcar (lambda (v) (list v (cdr (assq v vars))))
+                          vs)))
+        (if env (macroexp-let* env exp) exp)))))
+
 ;; It's very tempting to use `pcase' below, tho obviously, it'd create
 ;; bootstrapping problems.
 (defun pcase--u1 (matches code vars rest)
@@ -674,30 +706,9 @@ Otherwise, it defers to REST which is a list of branches of the form
                  sym (lambda (pat) (pcase--split-pred vars upat pat)) rest))
                (then-rest (car splitrest))
                (else-rest (cdr splitrest)))
-          (pcase--if (if (and (eq (car upat) 'pred) (symbolp (cadr upat)))
-                         `(,(cadr upat) ,sym)
-                       (let* ((exp (cadr upat))
-                              ;; `vs' is an upper bound on the vars we need.
-                              (vs (pcase--fgrep (mapcar #'car vars) exp))
-                              (env (mapcar (lambda (var)
-                                             (list var (cdr (assq var vars))))
-                                           vs))
-                              (call (if (eq 'guard (car upat))
-                                        exp
-                                      (when (memq sym vs)
-                                        ;; `sym' is shadowed by `env'.
-                                        (let ((newsym (make-symbol "x")))
-                                          (push (list newsym sym) env)
-                                          (setq sym newsym)))
-                                      (if (functionp exp)
-                                          `(funcall #',exp ,sym)
-                                        `(,@exp ,sym)))))
-                         (if (null vs)
-                             call
-                           ;; Let's not replace `vars' in `exp' since it's
-                           ;; too difficult to do it right, instead just
-                           ;; let-bind `vars' around `exp'.
-                           `(let* ,env ,call))))
+          (pcase--if (if (eq (car upat) 'pred)
+                         (pcase--funcall (cadr upat) sym vars)
+                       (pcase--eval (cadr upat) vars))
                      (pcase--u1 matches code vars then-rest)
                      (pcase--u else-rest))))
        ((symbolp upat)
@@ -714,13 +725,7 @@ Otherwise, it defers to REST which is a list of branches of the form
         ;;            (cons (cons (nth 1 upat) (nth 2 upat)) vars) rest)
         (macroexp-let2
             macroexp-copyable-p sym
-            (let* ((exp (nth 2 upat))
-                   (found (assq exp vars)))
-              (if found (cdr found)
-                (let* ((vs (pcase--fgrep (mapcar #'car vars) exp))
-                       (env (mapcar (lambda (v) (list v (cdr (assq v vars))))
-                                    vs)))
-                  (if env (macroexp-let* env exp) exp))))
+            (pcase--eval (nth 2 upat) vars)
           (pcase--u1 (cons (pcase--match sym (nth 1 upat)) matches)
                      code vars rest)))
        ((eq (car-safe upat) 'app)
@@ -737,14 +742,7 @@ Otherwise, it defers to REST which is a list of branches of the form
           (if (not (get nsym 'pcase-used))
               body
             (macroexp-let*
-             `((,nsym
-                ,(if (symbolp fun)
-                     `(,fun ,sym)
-                   (let* ((vs (pcase--fgrep (mapcar #'car vars) fun))
-                          (env (mapcar (lambda (v) (list v (cdr (assq v vars))))
-                                       vs))
-                          (call `(funcall #',fun ,sym)))
-                     (if env (macroexp-let* env call) call)))))
+             `((,nsym ,(pcase--funcall fun sym vars)))
              body))))
        ((eq (car-safe upat) 'quote)
         (pcase--mark-used sym)
@@ -794,7 +792,7 @@ Otherwise, it defers to REST which is a list of branches of the form
           (app length ,(length qpat))
           ,@(let ((upats nil))
               (dotimes (i (length qpat))
-                (push `(app (lambda (v) (aref v ,i)) ,(list '\` (aref qpat i)))
+                (push `(app (pcase--flip aref ,i) ,(list '\` (aref qpat i)))
                       upats))
               (nreverse upats))))
    ((consp qpat)
