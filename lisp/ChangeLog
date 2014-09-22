@@ -1,5 +1,42 @@
 2014-09-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	Add pcase-defmacro, as well as `quote' and `app' patterns.
+	* loadup.el: Increase max-lisp-eval-depth when macroexpanding macroexp.
+	* emacs-lisp/pcase.el: Allow (F . ARGS) in `app' patterns.
+	(pcase--funcall, pcase--eval): New functions.
+	(pcase--u1): Use them for guard, pred, let, and app.
+	(\`): Use the new feature to generate better code for vector patterns.
+	* emacs-lisp/pcase.el: Use pcase-defmacro to handle backquote.
+	(pcase--upat): Remove.
+	(pcase--macroexpand): Don't hardcode handling of `.
+	(pcase--split-consp, pcase--split-vector): Remove.
+	(pcase--split-equal): Disregard ` since it's expanded away.
+	(pcase--split-member): Optimize for quote rather than for `.
+	(pcase--split-pred): Optimize for quote rather than for `.
+	(pcase--u1): Remove handling of ` (and of `or' and `and').
+	Quote non-selfquoting values when passing them to `eq'.
+	Drop `app's let-binding if the variable is not used.
+	(pcase--q1): Remove.
+	(`): Define as a pattern macro.
+	* emacs-lisp/pcase.el (pcase--match): New smart-constructor function.
+	(pcase--expand pcase--q1, pcase--app-subst-match): Use it.
+	(pcase--macroexpand): Handle self-quoting patterns here, expand them to
+	quote patterns.
+	(pcase--split-match): Don't hoist or/and here any more.
+	(pcase--split-equal): Optimize quote patterns as well as ` patterns.
+	(pcase--flip): New helper macro.
+	(pcase--u1): Optimize the memq case directly.
+	Don't handle neither self-quoting nor and/or patterns any more.
+	* emacs-lisp/pcase.el (pcase-defmacro): New macro.
+	(pcase--macroexpand): New function.
+	(pcase--expand): Use it.
+	* emacs-lisp/pcase.el (pcase--app-subst-match, pcase--app-subst-rest):
+	New optimization functions.
+	(pcase--u1): Add support for `quote' and `app'.
+	(pcase): Document them in the docstring.
+
+2014-09-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
 	Use lexical-bindin in Ibuffer.
 	* ibuffer.el (ibuffer-do-toggle-read-only): `arg' is unused.
 	(ibuffer-compile-format): Simplify.

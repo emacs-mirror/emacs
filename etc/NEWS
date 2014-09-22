@@ -102,6 +102,10 @@ performance improvements when pasting large amounts of text.
 
 * Changes in Specialized Modes and Packages in Emacs 24.5
 
+** pcase
+*** New UPatterns `quote' and `app'.
+*** New UPatterns can be defined with `pcase-defmacro'.
+
 ** Lisp mode
 *** Strings after `:documentation' are highlighted as docstrings.
 
