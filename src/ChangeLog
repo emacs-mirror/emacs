@@ -1,3 +1,9 @@
+2014-09-22  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	On OSX, do not free font-specific data more than once (Bug#18501).
+	* macfont.m (macfont_close): Release and free font-specific data
+	only if it wasn't previously freed.
+
 2014-09-21  David Caldwell <david@porkrind.org> (tiny change)
 
 	* unexmacosx.c (dump_it): Improve error message.
