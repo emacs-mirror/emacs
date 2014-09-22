@@ -80,12 +80,6 @@ Return a tuple of ( EMACSNAME . VERSION )."
     (with-current-buffer buff
       (erase-buffer)
       (setq default-directory (file-name-as-directory dir))
-      (or (file-exists-p configure_ac)
-	  (setq configure_ac "configure.in"))
-      ;(call-process "egrep" nil buff nil "-n" "-e" "^version=" "Makefile")
-      (call-process "egrep" nil buff nil "-n" "-e" "AC_INIT" configure_ac)
-      (goto-char (point-min))
-      ;(re-search-forward "version=\\([0-9.]+\\)")
       (cond
        ;; Maybe XEmacs?
        ((file-exists-p "version.sh")
@@ -113,7 +107,8 @@ m4_define(\\[SXEM4CS_BETA_VERSION\\], \\[\\([0-9]+\\)\\])")
        ;; Insert other Emacs here...
 
        ;; Vaguely recent version of GNU Emacs?
-       (t
+       ((or (file-exists-p configure_ac)
+	    (file-exists-p (setq configure_ac "configure.in")))
 	(insert-file-contents configure_ac)
 	(goto-char (point-min))
 	(re-search-forward "AC_INIT(\\(?:GNU \\)?[eE]macs,\\s-*\\([0-9.]+\\)\\s-*[,)]")

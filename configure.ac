@@ -4936,17 +4936,19 @@ case "$opsys" in
   darwin)
    ## The -headerpad option tells ld (see man page) to leave room at the
    ## end of the header for adding load commands.  Needed for dumping.
-   ## 0x690 is the total size of 30 segment load commands (at 56
-   ## each); under Cocoa 31 commands are required.
+   ## 0x1000 is enough for roughly 52 load commands on the x86_64
+   ## architecture (where they are 78 bytes each). The actual number of
+   ## load commands added is not consistent but normally ranges from
+   ## about 14 to about 34. Setting it high gets us plenty of slop and
+   ## only costs about 1.5K of wasted binary space.
+   headerpad_extra=1000
    if test "$HAVE_NS" = "yes"; then
      libs_nsgui="-framework AppKit"
      if test "$NS_IMPL_COCOA" = "yes"; then
         libs_nsgui="$libs_nsgui -framework IOKit"
      fi
-     headerpad_extra=6C8
    else
      libs_nsgui=
-     headerpad_extra=690
    fi
    LD_SWITCH_SYSTEM_TEMACS="-fno-pie -prebind $libs_nsgui -Xlinker -headerpad -Xlinker $headerpad_extra"
 

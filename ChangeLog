@@ -1,3 +1,8 @@
+2014-09-22  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.ac: Increase headerpad_extra to 1000, update the comment
+	about load commands (Bug#18505).
+
 2014-09-15  Eli Zaretskii  <eliz@gnu.org>
 
 	* configure.ac (HAVE_SOUND): Check for mmsystem.h header that
@@ -1539,8 +1544,8 @@
 
 2013-07-29  Michael Albinus  <michael.albinus@gmx.de>
 
-	* INSTALL (DETAILED BUILDING AND INSTALLATION): Add
-	--without-file-notification to --without-all.
+	* INSTALL (DETAILED BUILDING AND INSTALLATION):
+	Add --without-file-notification to --without-all.
 
 2013-07-29  Xue Fuqiao  <xfq.free@gmail.com>
 
@@ -1813,8 +1818,8 @@
 	CONFIG_SITE for the MSYS build on MS-Windows.
 	(Makefile): Use $(CFG).
 
-	* .bzrignore: Ignore *.res, *.tmp, and *.map.  Remove
-	src/emacs.res.
+	* .bzrignore: Ignore *.res, *.tmp, and *.map.
+	Remove src/emacs.res.
 
 2013-05-16  Paul Eggert  <eggert@cs.ucla.edu>
 
@@ -13428,7 +13433,7 @@
 	detail: -with-x... and --srcdir.
 	(options, boolean_opts): Delete; we don't have enough options to
 	make this worthwhile.
-	(prefix, bindir, lisppath, datadir, libdir, lockdir): Deleted,
+	(prefix, bindir, lisppath, datadir, libdir, lockdir): Delete,
 	along with the code which supported them; these should be set as
 	arguments to the top-level make.
 	(config_h_opts): Since this no longer doubles as a list of option

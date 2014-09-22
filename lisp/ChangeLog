@@ -1,3 +1,9 @@
+2014-09-22  Kan-Ru Chen  <kanru@kanru.info>
+
+	* window.el (fit-window-to-buffer): When counting buffer width,
+	count the whole visible buffer.  Correctly convert the body-height
+	to pixel size for window-text-pixel-size (Bug#18498).
+
 2014-09-22  Sam Steingold  <sds@gnu.org>
 
 	* progmodes/sql.el (sql-product-alist): Improve the Vertica entry.
@@ -191,8 +197,8 @@
 	(pcase--expand): Use it.
 	(pcase-exhaustive): New macro.  (Bug#16567)
 
-	* emacs-lisp/lisp-mode.el (lisp-el-font-lock-keywords-2): Add
-	pcase-exhaustive.
+	* emacs-lisp/lisp-mode.el (lisp-el-font-lock-keywords-2):
+	Add pcase-exhaustive.
 
 2014-09-13  Eli Zaretskii  <eliz@gnu.org>
 
@@ -349,8 +355,8 @@
 
 2014-09-05  Martin Rudalics  <rudalics@gmx.at>
 
-	* scroll-bar.el (horizontal-scroll-bars-available-p): New
-	function.
+	* scroll-bar.el (horizontal-scroll-bars-available-p):
+	New function.
 	(horizontal-scroll-bar-mode): Rewrite using
 	horizontal-scroll-bars-available-p.
 	* menu-bar.el (menu-bar-showhide-scroll-bar-menu): Rewrite using

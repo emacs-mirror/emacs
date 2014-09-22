@@ -1171,8 +1171,8 @@ the end of the document."
   "Retrieve URL via HTTP asynchronously.
 URL must be a parsed URL.  See `url-generic-parse-url' for details.
 
-When retrieval is completed, execute the function CALLBACK, using
-the arguments listed in CBARGS.  The first element in CBARGS
+When retrieval is completed, execute the function CALLBACK, passing it
+an updated value of CBARGS as arguments.  The first element in CBARGS
 should be a plist describing what has happened so far during the
 request, as described in the docstring of `url-retrieve' (if in
 doubt, specify nil).

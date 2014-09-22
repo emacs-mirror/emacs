@@ -2598,20 +2598,25 @@ static void
 macfont_close (struct font *font)
 {
   struct macfont_info *macfont_info = (struct macfont_info *) font;
-  int i;
 
-  block_input ();
-  CFRelease (macfont_info->macfont);
-  CGFontRelease (macfont_info->cgfont);
-  if (macfont_info->screen_font)
-    CFRelease (macfont_info->screen_font);
-  macfont_release_cache (macfont_info->cache);
-  for (i = 0; i < macfont_info->metrics_nrows; i++)
-    if (macfont_info->metrics[i])
-      xfree (macfont_info->metrics[i]);
-  if (macfont_info->metrics)
-    xfree (macfont_info->metrics);
-  unblock_input ();
+  if (macfont_info->cache)
+    {
+      int i;
+
+      block_input ();
+      CFRelease (macfont_info->macfont);
+      CGFontRelease (macfont_info->cgfont);
+      if (macfont_info->screen_font)
+	CFRelease (macfont_info->screen_font);
+      macfont_release_cache (macfont_info->cache);
+      for (i = 0; i < macfont_info->metrics_nrows; i++)
+	if (macfont_info->metrics[i])
+	  xfree (macfont_info->metrics[i]);
+      if (macfont_info->metrics)
+	xfree (macfont_info->metrics);
+      macfont_info->cache = NULL;
+      unblock_input ();
+    }
 }
 
 static int

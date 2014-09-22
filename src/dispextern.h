@@ -2523,7 +2523,9 @@ struct it
 
   /* First and last visible x-position in the display area.  If window
      is hscrolled by n columns, first_visible_x == n * FRAME_COLUMN_WIDTH
-     (f), and last_visible_x == pixel width of W + first_visible_x.  */
+     (f), and last_visible_x == pixel width of W + first_visible_x.
+     When truncation or continuation glyphs are produced due to lack of
+     fringes, last_visible_x excludes the space required for these glyphs.  */
   int first_visible_x, last_visible_x;
 
   /* Last visible y-position + 1 in the display area without a mode

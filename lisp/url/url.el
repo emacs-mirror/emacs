@@ -170,8 +170,8 @@ URL-encoded before it's used."
 (defun url-retrieve-internal (url callback cbargs &optional silent
 				  inhibit-cookies)
   "Internal function; external interface is `url-retrieve'.
-CBARGS is the list of arguments that the callback function will
-receive; its first element should be a plist specifying what has
+The callback function will receive an updated value of CBARGS as
+arguments; its first element should be a plist specifying what has
 happened so far during the request, as described in the docstring
 of `url-retrieve' (if in doubt, specify nil).
 

@@ -1,3 +1,75 @@
+2014-09-22  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	On OSX, do not free font-specific data more than once (Bug#18501).
+	* macfont.m (macfont_close): Release and free font-specific data
+	only if it wasn't previously freed.
+
+2014-09-22  David Caldwell <david@porkrind.org> (tiny change)
+
+	* unexmacosx.c (dump_it): Improve error message.
+
+2014-09-22  Juri Linkov  <juri@jurta.org>
+
+	* image.c (imagemagick_load_image): Add delay to imagemagick metadata.
+	(Bug#10747, bug#18334)
+
+2014-09-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* frame.c (Fmouse_position, Fset_mouse_position): Clarify the
+	units in which the position is measured.  (Bug#18493)
+
+	* xdisp.c (redisplay_internal): Force redisplay of all windows
+	that show a buffer whose narrowing has changed.  (Bug#18490)
+
+2014-09-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* xterm.c (x_draw_hollow_cursor, x_draw_bar_cursor):
+	* w32term.c (x_draw_hollow_cursor, x_draw_bar_cursor): In R2L
+	lines, draw the hollow-box and hbar cursors on the right side of
+	cursor-glyph.  Thanks to martin rudalics <rudalics@gmx.at> for
+	testing on X.
+
+	* xterm.c (x_draw_stretch_glyph_string):
+	* w32term.c (x_draw_stretch_glyph_string): Fix a thinko that
+	caused the block cursor to disappear on a TAB in R2L lines in
+	every window except the leftmost one.  Reported by Martin Rudalics
+	<rudalics@gmx.at>.
+
+2014-09-22  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Always use matched specpdl entry to record call arguments (Bug#18473).
+	* lisp.h (record_in_backtrace): Adjust prototype.
+	* eval.c (record_in_backtrace): Return current specpdl level.
+	(set_backtrace_args, set_backtrace_nargs): Merge.  Adjust all users.
+	(eval_sub, Ffuncall): Record call arguments in matched specpdl
+	entry and use that entry in call to backtrace_debug_on_exit.
+	(apply_lambda): Likewise.  Get current specpdl level as 3rd arg.
+	(do_debug_on_call): Get current specpdl level as 2nd arg.
+
+	Prefer ptrdiff_t to int and avoid integer overflows.
+	* fileio.c (make_temp_name):
+	* font.c (font_parse_family_registry): Avoid integer
+	overflow on string size calculation.
+	* data.c (Faset): Likewise for byte index.
+
+2014-09-22  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix display of R2L lines in partial-width windows.
+	* xdisp.c (init_iterator): Don't use it->bidi_p before it is
+	assigned the correct value.
+	(extend_face_to_end_of_line): Account for truncation and
+	continuation glyphs in R2L rows when one of the fringes is not
+	displayed.
+	(display_line): Don't assign negative X offset to a row if we are
+	going to produce a truncation glyph for it.  When handling
+	truncated R2L rows, consider the width of the left fringe instead
+	of the right one.
+	(produce_special_glyphs): Fix bogus assignments.
+
+2014-09-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (fcntl): Support O_NONBLOCK fcntl on the write side of pipes.
+
 2014-09-22  Eli Zaretskii  <eliz@gnu.org>
 
 	* fileio.c (Fexpand_file_name) [DOS_NT]: Make sure newdirlim is
@@ -103,17 +175,17 @@
 	file names properly displayed.
 	(do_play_sound) [WINDOWSNT]: Use Unicode APIs to play sound files
 	when w32-unicode-filenames is non-nil, but not on Windows 9X,
-	where these APIs are not available even in UNICOWS.DLL.  Improve
-	the format of error messages and include the file name in them
+	where these APIs are not available even in UNICOWS.DLL.
+	Improve the format of error messages and include the file name in them
 	where appropriate.
 	(Fplay_sound_internal) [WINDOWSNT]: Make the MS-Windows branch
 	call play-sound-functions, per documentation.
 
-	* w32.c (w32_get_long_filename, w32_get_short_filename): Constify
-	the input file name arguments.
+	* w32.c (w32_get_long_filename, w32_get_short_filename):
+	Constify the input file name arguments.
 
-	* w32.h (w32_get_long_filename, w32_get_short_filename): Update
-	prototypes.
+	* w32.h (w32_get_long_filename, w32_get_short_filename):
+	Update prototypes.
 
 2014-09-15  Dmitry Antipov  <dmantipov@yandex.ru>
 
@@ -220,8 +292,8 @@
 	* lread.c (readevalloop_eager_expand_eval): Add GCPRO and fix
 	bootstrap broken if GC_MARK_STACK == GC_USE_GCPROS_AS_BEFORE.
 
-	Remove redundant GCPROs around Ffuncall and Fapply calls.  This
-	is safe because Ffuncall protects all of its arguments by itself.
+	Remove redundant GCPROs around Ffuncall and Fapply calls.
+	This is safe because Ffuncall protects all of its arguments by itself.
 	* charset.c (map_charset_for_dump): Remove redundant GCPRO.
 	* eval.c (Fapply, apply1, call0, call1, call2, call3, call4, call5)
 	(call6, call7): Likewise.  Use compound literals where applicable.
@@ -511,8 +583,8 @@
 2014-09-03  Martin Rudalics  <rudalics@gmx.at>
 
 	* buffer.c (scroll-bar-height): Fix typo in doc-string.
-	* frame.c (Vdefault_frame_horizontal_scroll_bars): Remove
-	variable.
+	* frame.c (Vdefault_frame_horizontal_scroll_bars):
+	Remove variable.
 	* nsfns.m (Fx_create_frame):
 	* w32fns.c (Fx_create_frame):
 	* xfns.c (Fx_create_frame): Default horizontal scroll bars to
@@ -750,8 +822,8 @@
 
 2014-08-28  Martin Rudalics  <rudalics@gmx.at>
 
-	* w32term.c (w32_horizontal_scroll_bar_handle_click): In
-	`event->y' return entire range (the size of the scroll bar minus
+	* w32term.c (w32_horizontal_scroll_bar_handle_click):
+	In `event->y' return entire range (the size of the scroll bar minus
 	that of the thumb).
 	* xterm.c (xm_scroll_callback, xaw_jump_callback): In `whole'
 	return entire range (the scaled size of the scroll bar minus
@@ -771,8 +843,8 @@
 
 	* xdisp.c (display_line): Don't assume that the call to
 	reseat_at_next_visible_line_start ends up at a character
-	immediately following the newline on the previous line.  Avoids
-	setting the ends_at_zv_p flag on screen lines that are not at or
+	immediately following the newline on the previous line.
+	Avoids setting the ends_at_zv_p flag on screen lines that are not at or
 	beyond ZV, which causes infloop in redisplay.  For the details, see
 	http://lists.gnu.org/archive/html/emacs-devel/2014-08/msg00368.html.
 
@@ -796,8 +868,8 @@
 	(newlocale, wcscoll_l): Define substitutes for platforms that
 	lack them, so as to simplify the mainline code.
 	(str_collate): Simplify the code by assuming the above definitions.
-	Use wcscoll_l, not uselocale, as uselocale is too fragile.  For
-	example, the old version left the Emacs in the wrong locale if
+	Use wcscoll_l, not uselocale, as uselocale is too fragile.
+	For example, the old version left the Emacs in the wrong locale if
 	wcscoll reported an error.  Use 'int', not ptrdiff_t, for the int
 	result.  Report an error if newlocale fails.
 
@@ -1016,8 +1088,8 @@
 	* term.c (OUTPUT, tty_set_terminal_modes)
 	(tty_set_terminal_window, tty_set_scroll_region)
 	(tty_clear_to_end, tty_write_glyphs, tty_write_glyphs_with_face)
-	(tty_ins_del_lines, tty_menu_display, tty_menu_activate): Use
-	FRAME_TOTAL_LINES instead of FRAME_LINES.
+	(tty_ins_del_lines, tty_menu_display, tty_menu_activate):
+	Use FRAME_TOTAL_LINES instead of FRAME_LINES.
 	(Fresume_tty): Use FRAME_TOTAL_LINES instead of FRAME_LINES.
 	Call change_frame_size with frame's menu bar lines subtracted
 	from height.
@@ -1068,14 +1140,14 @@
 
 2014-08-04  Martin Rudalics  <rudalics@gmx.at>
 
-	* frame.h (FRAME_HAS_HORIZONTAL_SCROLL_BARS): Condition
-	correctly according to toolkit used.
+	* frame.h (FRAME_HAS_HORIZONTAL_SCROLL_BARS):
+	Condition correctly according to toolkit used.
 	* frame.c (make_initial_frame, make_terminal_frame)
 	(x_set_horizontal_scroll_bars, x_set_scroll_bar_height)
 	(Vdefault_frame_horizontal_scroll_bars): Correctly condition
 	assignments according to presence of toolkit scrollbars.
-	* window.h (WINDOW_HAS_HORIZONTAL_SCROLL_BAR): Condition
-	correctly according to toolkit used.
+	* window.h (WINDOW_HAS_HORIZONTAL_SCROLL_BAR):
+	Condition correctly according to toolkit used.
 	* window.c (set_window_scroll_bars): Set horizontal scroll bar
 	only if toolkit supports it.
 	* w32term.c (w32_redeem_scroll_bar): Always redeem scroll bar if
@@ -1331,15 +1403,15 @@
 	(x_set_scroll_bar_height): Add external declarations.
 	* frame.c: (frame_inhibit_resize, frame_windows_min_size)
 	(adjust_frame_size): New functions.
-	(make_frame): Initial horizontal_scroll_bars field.  Use
-	SET_FRAME_LINES.  Don't allow horizontal scroll bar in
+	(make_frame): Initial horizontal_scroll_bars field.
+	Use SET_FRAME_LINES.  Don't allow horizontal scroll bar in
 	minibuffer window.
 	(make_initial_frame, make_terminal_frame): No horizontal scroll
 	bar in initial and terminal frames.  Use adjust_frame_size.
 	(Fframe_total_cols): Fix doc-string.
 	(Fframe_total_lines, Fscroll_bar_height): New Lisp functions.
-	(Fset_frame_height, Fset_frame_width, Fset_frame_size): Rewrite
-	using adjust_frame_size.
+	(Fset_frame_height, Fset_frame_width, Fset_frame_size):
+	Rewrite using adjust_frame_size.
 	(Qscroll_bar_height, Qhorizontal_scroll_bars)
 	(Qframe_windows_min_size): New symbols.
 	(x_set_frame_parameters): Remove call of check_frame_size.
@@ -1350,8 +1422,8 @@
 	(x_set_internal_border_width, x_set_vertical_scroll_bars)
 	(x_set_scroll_bar_width, x_set_right_divider_width)
 	(x_set_bottom_divider_width): Rewrite using adjust_frame_size.
-	(x_set_horizontal_scroll_bars, x_set_scroll_bar_height): New
-	functions.
+	(x_set_horizontal_scroll_bars, x_set_scroll_bar_height):
+	New functions.
 	(x_figure_window_size): Rewrite to make frame display the
 	expected number of lines.
 	(Vdefault_frame_scroll_bars): Rewrite doc-string.
@@ -1398,8 +1470,8 @@
 	compute_fringe_widths.
 	* term.c (Fresume_tty): When changing the size of a tty frame do
 	not pass height of menu bar.
-	(clear_tty_hooks, set_tty_hooks): Clear
-	horizontal_scroll_bar_hook.
+	(clear_tty_hooks, set_tty_hooks):
+	Clear horizontal_scroll_bar_hook.
 	(init_tty): Frame has no horizontal scroll bars.
 	* termhooks.h (enum scroll_bar_part): Add scroll_bar_move_ratio,
 	scroll_bar_before_handle, scroll_bar_horizontal_handle,
@@ -1408,25 +1480,25 @@
 	scroll_bar_to_rightmost entries.
 	(enum event_kind): Add HORIZONTAL_SCROLL_BAR_CLICK_EVENT
 	(struct terminal): Add set_horizontal_scroll_bar_hook.
-	* w32console.c (initialize_w32_display): Clear
-	horizontal_scroll_bar_hook.
+	* w32console.c (initialize_w32_display):
+	Clear horizontal_scroll_bar_hook.
 	* w32fns.c (x_set_mouse_color): Use FRAME_W32_DISPLAY instead of
 	FRAME_X_DISPLAY.
 	(x_clear_under_internal_border, x_set_internal_border_width):
 	New functions.
-	(x_set_menu_bar_lines): Rewrite using frame_inhibit_resize.  Set
-	windows_or_buffers_changed when adding the menu bar.
+	(x_set_menu_bar_lines): Rewrite using frame_inhibit_resize.
+	Set windows_or_buffers_changed when adding the menu bar.
 	(x_set_tool_bar_lines): Rewrite using adjust_frame_size.
 	(x_change_tool_bar_height, x_set_scroll_bar_default_height)
 	(w32_createhscrollbar): New functions.
 	(w32_createscrollbar): Rename to w32_createvscrollbar.
 	(w32_createwindow): Init WND_HSCROLLBAR_INDEX.
 	(w32_name_of_message): Replace WM_EMACS_CREATESCROLLBAR by
-	WM_EMACS_CREATEVSCROLLBAR and WM_EMACS_CREATEHSCROLLBAR.  Add
-	WM_EMACS_SHOWCURSOR.
+	WM_EMACS_CREATEVSCROLLBAR and WM_EMACS_CREATEHSCROLLBAR.
+	Add WM_EMACS_SHOWCURSOR.
 	(w32_wnd_proc): Handle WM_HSCROLL case.  In WM_WINDOWPOSCHANGING
-	case do not artificially impose WM size hints.  Handle
-	WM_EMACS_SHOWCURSOR case.  Replace WM_EMACS_CREATESCROLLBAR case
+	case do not artificially impose WM size hints.
+	Handle WM_EMACS_SHOWCURSOR case.  Replace WM_EMACS_CREATESCROLLBAR case
 	by WM_EMACS_CREATEVSCROLLBAR and WM_EMACS_CREATEHSCROLLBAR
 	cases.
 	(my_create_tip_window): Replace WND_SCROLLBAR_INDEX by
@@ -1445,8 +1517,8 @@
 	pass height of menu bar to change_frame_size.
 	* w32menu.c (set_frame_menubar): Rewrite using
 	frame_inhibit_resize.
-	* w32term.h (struct w32_display_info): Add
-	horizontal_scroll_bar_cursor and cursor_display_counter.
+	* w32term.h (struct w32_display_info):
+	Add horizontal_scroll_bar_cursor and cursor_display_counter.
 	(struct scroll_bar): Add horizontal.
 	(HORIZONTAL_SCROLL_BAR_INSIDE_HEIGHT)
 	(HORIZONTAL_SCROLL_BAR_LEFT_RANGE)
@@ -1456,8 +1528,8 @@
 	(HORIZONTAL_SCROLL_BAR_TOP_BORDER)
 	(HORIZONTAL_SCROLL_BAR_BOTTOM_BORDER)
 	(HORIZONTAL_SCROLL_BAR_MIN_HANDLE): New macros.
-	(WM_EMACS_CREATEVSCROLLBAR, WM_EMACS_CREATEHSCROLLBAR): Define
-	instead of WM_EMACS_CREATESCROLLBAR.
+	(WM_EMACS_CREATEVSCROLLBAR, WM_EMACS_CREATEHSCROLLBAR):
+	Define instead of WM_EMACS_CREATESCROLLBAR.
 	(WND_VSCROLLBAR_INDEX, WND_HSCROLLBAR_INDEX): Define instead of
 	WND_SCROLLBAR_INDEX.
 	* w32term.c (horizontal_scroll_bar_min_handle)
@@ -1476,18 +1548,18 @@
 	scrollbar cases.
 	(my_create_scrollbar): Replace with two new functions
 	my_create_vscrollbar and my_create_hscrollbar.
-	(x_scroll_bar_create): New argument "horizontal".  Update
-	callers accordingly.
+	(x_scroll_bar_create): New argument "horizontal".
+	Update callers accordingly.
 	(x_scroll_bar_remove, w32_condemn_scroll_bars)
 	(w32_redeem_scroll_bar, x_scroll_bar_clear): Handle horizontal
 	scroll bar case.
 	(w32_read_socket): Handle WM_HSCROLL cae.
-	(x_new_font): Don't recompute fringe widths.  Use
-	frame_inhibit_resize.  Calculate new menu bar height iff we
+	(x_new_font): Don't recompute fringe widths.
+	Use frame_inhibit_resize.  Calculate new menu bar height iff we
 	build without toolkit.  Always clear under internal border.
 	(x_set_window_size): Don't check frame size or recompute
-	fringes.  Reset fullscreen status before applying sizes.  Always
-	resize as requested by pixelwise argument.  Don't call
+	fringes.  Reset fullscreen status before applying sizes.
+	Always resize as requested by pixelwise argument.  Don't call
 	do_pending_window_change.
 	(x_wm_set_size_hint): Add call for FRAME_SCROLL_BAR_AREA_HEIGHT.
 	(w32_initialize_display_info): Initialize dpyinfo's
@@ -1513,8 +1585,8 @@
 	(WINDOW_TOPMOST_P, WINDOW_HAS_HORIZONTAL_SCROLL_BAR)
 	(WINDOW_CONFIG_SCROLL_BAR_HEIGHT)
 	(WINDOW_CONFIG_SCROLL_BAR_LINES)
-	(WINDOW_SCROLL_BAR_LINES, WINDOW_SCROLL_BAR_AREA_HEIGHT): New
-	macros.
+	(WINDOW_SCROLL_BAR_LINES, WINDOW_SCROLL_BAR_AREA_HEIGHT):
+	New macros.
 	(WINDOW_LEFT_FRINGE_COLS, WINDOW_RIGHT_FRINGE_COLS)
 	(WINDOW_FRINGE_COLS, WINDOW_FRINGE_EXTENDED_P): Remove macros.
 	(WINDOW_VERTICAL_SCROLL_BAR_TYPE)
@@ -1527,11 +1599,11 @@
 	(Fwindow_old_point, sanitize_window_sizes): New functions.
 	(Qwindow_sanitize_window_sizes): New symbol.
 	(window_body_height): Count in horizontal scroll bar.
-	(set_window_hscroll, Fscroll_left, Fscroll_right): Set
-	suspend_auto_hscroll slot.
+	(set_window_hscroll, Fscroll_left, Fscroll_right):
+	Set suspend_auto_hscroll slot.
 	(Fwindow_inside_edges): Count fringes pixelwise.
-	(coordinates_in_window, Fcoordinates_in_window_p): Consider
-	horizontal scroll bar.
+	(coordinates_in_window, Fcoordinates_in_window_p):
+	Consider horizontal scroll bar.
 	(check_frame_size, adjust_window_margins): Remove functions and
 	corresponding calls.
 	(set_window_buffer): Initialize old_pointm and horizontal scroll
@@ -1547,8 +1619,8 @@
 	(Fsplit_window_internal): Inherit horizontal scroll bar type and
 	height.
 	(Fdelete_window_internal): Unchain old_pointm marker.
-	(window_scroll_pixel_based, Fscroll_other_window): Adjust
-	old_pointm.
+	(window_scroll_pixel_based, Fscroll_other_window):
+	Adjust old_pointm.
 	(Fwindow_text_width, Fwindow_text_height): New argument
 	"pixelwise".
 	(struct saved_window): New fields, old_pointm, hscroll_whole,
@@ -1603,10 +1675,10 @@
 	(x_frame_parm_handlers): Add x_set_scroll_bar_height,
 	x_set_horizontal_scroll_bars, x_set_left_fringe,
 	x_set_right_fringe.
-	* xmenu.c (update_frame_menubar, free_frame_menubar): Use
-	adjust_frame_size.
-	* xterm.h (struct x_display_info): Add
-	horizontal_scroll_bar_cursor and Xatom_Horizontal_Scrollbar
+	* xmenu.c (update_frame_menubar, free_frame_menubar):
+	Use adjust_frame_size.
+	* xterm.h (struct x_display_info):
+	Add horizontal_scroll_bar_cursor and Xatom_Horizontal_Scrollbar
 	slots.
 	(struct scroll_bar): Add horizontal slot.
 	(HORIZONTAL_SCROLL_BAR_INSIDE_HEIGHT)
@@ -1629,15 +1701,15 @@
 	(x_set_toolkit_horizontal_scroll_bar_thumb)
 	(XTset_horizontal_scroll_bar, x_net_wm_state)
 	(x_horizontal_scroll_bar_report_motion): New functions.
-	(xg_scroll_callback, x_scroll_bar_handle_click): Handle
-	horizontal scroll bars.
+	(xg_scroll_callback, x_scroll_bar_handle_click):
+	Handle horizontal scroll bars.
 	(SCROLL_BAR_HORIZONTAL_NAME): Define.
 	(XTset_vertical_scroll_bar): Attempt to clear areas not covered
 	by scroll bar.
-	(XTcondemn_scroll_bars, XTredeem_scroll_bar): Rewrite.  Handle
-	horizontal scroll bars.
-	(handle_one_xevent): Handle horizontal scroll bar events.  Call
-	x_net_wm_state.
+	(XTcondemn_scroll_bars, XTredeem_scroll_bar): Rewrite.
+	Handle horizontal scroll bars.
+	(handle_one_xevent): Handle horizontal scroll bar events.
+	Call x_net_wm_state.
 	(x_set_window_size_1, x_wm_set_size_hint): Don't call
 	check_frame_size.
 	(x_set_window_size): Don't call check_frame_size and
@@ -1687,8 +1759,8 @@
 
 2014-07-25  Eli Zaretskii  <eliz@gnu.org>
 
-	* w32term.h (current_popup_menu, menubar_in_use): Move
-	declarations from w32term.c.
+	* w32term.h (current_popup_menu, menubar_in_use):
+	Move declarations from w32term.c.
 
 2014-07-25  Martin Rudalics  <rudalics@gmx.at>
 
@@ -1742,8 +1814,8 @@
 	* xterm.c (handle_one_xevent):
 	* gtkutil.c (xg_event_is_for_menubar):
 	* xfns.c (x_window) [USE_X_TOOLKIT]:
-	* xmenu.c (set_frame_menubar, free_frame_menubar): Prefer
-	to use FRAME_MENUBAR_HEIGHT.
+	* xmenu.c (set_frame_menubar, free_frame_menubar):
+	Prefer to use FRAME_MENUBAR_HEIGHT.
 
 2014-07-21  Dmitry Antipov  <dmantipov@yandex.ru>
 
@@ -1764,12 +1836,12 @@
 
 2014-07-21  Eli Zaretskii  <eliz@gnu.org>
 
-	* w32select.c (setup_windows_coding_system): Apply
-	CODING_ANNOTATION_MASK to the common_flags member of struct
+	* w32select.c (setup_windows_coding_system):
+	Apply CODING_ANNOTATION_MASK to the common_flags member of struct
 	coding_system.  Reported by martin rudalics <rudalics@gmx.at>.
 
-	* w16select.c (Fw16_get_clipboard_data): Apply
-	CODING_ANNOTATION_MASK to the common_flags member of struct
+	* w16select.c (Fw16_get_clipboard_data):
+	Apply CODING_ANNOTATION_MASK to the common_flags member of struct
 	coding_system.
 
 	* xdisp.c (init_iterator): Initialize it->stop_charpos to the
@@ -1777,8 +1849,8 @@
 	(handle_invisible_prop): Record in it->stop_charpos the position
 	where the invisible text ends.  (Bug#18035)
 	(hscroll_window_tree): Don't try hscrolling windows whose cursor
-	row has zero buffer position as their start position.  Reported by
-	martin rudalics <rudalics@gmx.at>.
+	row has zero buffer position as their start position.
+	Reported by martin rudalics <rudalics@gmx.at>.
 
 	* xdisp.c (move_it_vertically_backward, move_it_by_lines): Prevent
 	infinite looping in redisplay when display lines don't have enough
@@ -2218,8 +2290,8 @@
 	are in sync with what the window wants.
 	(Bug#17892)
 
-	* xdisp.c (display_line, display_mode_line): Call
-	prepare_desired_row with additional arguments, as appropriate.
+	* xdisp.c (display_line, display_mode_line):
+	Call prepare_desired_row with additional arguments, as appropriate.
 
 	* dispextern.h (prepare_desired_row): Adjust prototype.
 
@@ -2308,7 +2380,7 @@
 
 2014-06-28  K. Handa  <handa@gnu.org>
 
-	* coding.c (MAX_CHARBUF_SIZE): Renamed from CHARBUF_SIZE.
+	* coding.c (MAX_CHARBUF_SIZE): Rename from CHARBUF_SIZE.
 	(MIN_CHARBUF_SIZE): New macro.
 	(ALLOC_CONVERSION_WORK_AREA): New arg SIZE.  Callers changed.
 

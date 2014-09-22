@@ -8231,6 +8231,12 @@ imagemagick_load_image (struct frame *f, struct image *img,
       return 0;
     }
 
+  if (MagickGetImageDelay (image_wand) > 0)
+    img->lisp_data =
+      Fcons (Qdelay,
+             Fcons (make_float (MagickGetImageDelay (image_wand) / 100.0),
+                    img->lisp_data));
+
   if (MagickGetNumberImages (image_wand) > 1)
     img->lisp_data =
       Fcons (Qcount,
