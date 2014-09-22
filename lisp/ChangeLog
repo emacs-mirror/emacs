@@ -1,5 +1,8 @@
 2014-09-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/bytecomp.el (byte-compile-lambda): Don't add fundoc usage
+	for functions with no arguments.
+
 	* mpc.el (mpc-data-directory): Use locate-user-emacs-file.
 	(mpc-volume-refresh): Make sure the corresponding header-line is updated.
 
