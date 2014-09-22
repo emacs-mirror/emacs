@@ -1,5 +1,7 @@
 2014-09-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* loadup.el: Increase max-lisp-eval-depth while macroexpanding macroexp.el.
+
 	* emacs-lisp/pcase.el: Allow (F . ARGS) in `app' patterns.
 	(pcase--funcall, pcase--eval): New functions.
 	(pcase--u1): Use them for guard, pred, let, and app.
