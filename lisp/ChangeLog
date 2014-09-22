@@ -1,3 +1,8 @@
+2014-09-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mpc.el (mpc-data-directory): Use locate-user-emacs-file.
+	(mpc-volume-refresh): Make sure the corresponding header-line is updated.
+
 2014-09-17  Tom Willemse  <tom@ryuslash.org>  (tiny change)
 
 	* simple.el (clone-indirect-buffer): Mention the return value
