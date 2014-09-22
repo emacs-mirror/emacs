@@ -1,4 +1,4 @@
-;;; ibuffer.el --- operate on buffers like dired
+;;; ibuffer.el --- operate on buffers like dired  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2000-2014 Free Software Foundation, Inc.
 
@@ -907,7 +907,7 @@ width and the longest string in LIST."
       (when (zerop columns)
 	(setq columns 1))
       (while list
-	(dotimes (i (1- columns))
+	(dotimes (_ (1- columns))
 	  (insert (concat (car list) (make-string (- max (length (car list)))
 						  ?\s)))
 	  (setq list (cdr list)))
@@ -1275,7 +1275,7 @@ a new window in the current frame, splitting vertically."
    :modifier-p t)
   (set-buffer-modified-p (not (buffer-modified-p))))
 
-(define-ibuffer-op ibuffer-do-toggle-read-only (&optional arg)
+(define-ibuffer-op ibuffer-do-toggle-read-only (&optional _arg);FIXME:arg unused!
   "Toggle read only status in marked buffers.
 With optional ARG, make read-only only if ARG is not negative."
   (:opstring "toggled read only status in"
@@ -1520,7 +1520,7 @@ If point is on a group name, this function operates on that group."
 	;; We use these variables to keep track of which variables
 	;; inside the generated function we need to bind, since
 	;; binding variables in Emacs takes time.
-	str-used tmp1-used tmp2-used global-strlen-used)
+	(vars-used ()))
     (dolist (form format)
       (push
        ;; Generate a form based on a particular format entry, like
@@ -1546,8 +1546,8 @@ If point is on a group name, this function operates on that group."
 	       ;; This is a complex case; they want it limited to a
 	       ;; minimum size.
 	       (setq min-used t)
-	       (setq str-used t strlen-used t global-strlen-used t
-		     tmp1-used t tmp2-used t)
+               (setq strlen-used t)
+	       (setq vars-used '(str strlen tmp1 tmp2))
 	       ;; Generate code to limit the string to a minimum size.
 	       (setq minform `(progn
 				(setq str
@@ -1559,7 +1559,8 @@ If point is on a group name, this function operates on that group."
 					    strlen)
 					align)))))
 	     (when (or (not (integerp max)) (> max 0))
-	       (setq str-used t max-used t)
+	       (setq max-used t)
+               (cl-pushnew 'str vars-used)
 	       ;; Generate code to limit the string to a maximum size.
 	       (setq maxform `(progn
 				(setq str
@@ -1587,8 +1588,9 @@ If point is on a group name, this function operates on that group."
 		   ;; don't even understand it, and I wrote it five
 		   ;; minutes ago.
 		   (insertgenfn
-                    (ibuffer-aif (get sym 'ibuffer-column-summarizer)
+                    (if (get sym 'ibuffer-column-summarizer)
                         ;; I really, really wish Emacs Lisp had closures.
+                        ;; FIXME: Elisp does have them now.
                         (lambda (arg sym)
                           `(insert
                             (let ((ret ,arg))
@@ -1596,7 +1598,7 @@ If point is on a group name, this function operates on that group."
                                    (cons ret (get ',sym
                                                   'ibuffer-column-summary)))
                               ret)))
-                      (lambda (arg sym)
+                      (lambda (arg _sym)
                         `(insert ,arg))))
 		   (mincompform `(< strlen ,(if (integerp min)
 						min
@@ -1624,10 +1626,9 @@ If point is on a group name, this function operates on that group."
 			  `(when ,maxcompform
 			     ,maxform)))
 		      outforms)
-		     (push (append
-			    `(setq str ,callform)
-			    (when strlen-used
-			      `(strlen (length str))))
+		     (push `(setq str ,callform
+                                  ,@(when strlen-used
+                                      `(strlen (length str))))
 			   outforms)
 		     (setq outforms
 			   (append outforms
@@ -1640,25 +1641,17 @@ If point is on a group name, this function operates on that group."
 	       `(let ,letbindings
 		  ,@outforms)))))
        result))
-    (setq result
-	  ;; We don't want to unconditionally load the byte-compiler.
-	  (funcall (if (or ibuffer-always-compile-formats
-			   (featurep 'bytecomp))
-		       #'byte-compile
-		     #'identity)
-		   ;; Here, we actually create a lambda form which
-		   ;; inserts all the generated forms for each entry
-		   ;; in the format string.
-		   (nconc (list 'lambda '(buffer mark))
-			  `((let ,(append (when str-used
-					    '(str))
-					  (when global-strlen-used
-					    '(strlen))
-					  (when tmp1-used
-					    '(tmp1))
-					  (when tmp2-used
-					    '(tmp2)))
-			      ,@(nreverse result))))))))
+    ;; We don't want to unconditionally load the byte-compiler.
+    (funcall (if (or ibuffer-always-compile-formats
+                     (featurep 'bytecomp))
+                 #'byte-compile
+               #'identity)
+             ;; Here, we actually create a lambda form which
+             ;; inserts all the generated forms for each entry
+             ;; in the format string.
+             `(lambda (buffer mark)
+                (let ,vars-used
+                  ,@(nreverse result))))))
 
 (defun ibuffer-recompile-formats ()
   "Recompile `ibuffer-formats'."
@@ -1676,8 +1669,8 @@ If point is on a group name, this function operates on that group."
 
 (defun ibuffer-clear-summary-columns (format)
   (dolist (form format)
-    (ibuffer-awhen (and (consp form)
-			(get (car form) 'ibuffer-column-summarizer))
+    (when (and (consp form)
+               (get (car form) 'ibuffer-column-summarizer))
       (put (car form) 'ibuffer-column-summary nil))))
 
 (defun ibuffer-check-formats ()

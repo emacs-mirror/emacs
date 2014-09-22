@@ -1,5 +1,17 @@
 2014-09-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	Use lexical-bindin in Ibuffer.
+	* ibuffer.el (ibuffer-do-toggle-read-only): `arg' is unused.
+	(ibuffer-compile-format): Simplify.
+	(ibuffer-clear-summary-columns): Simplify.
+	* ibuf-ext.el (ibuffer-generate-filter-groups): Don't use the third
+	elem of dotimes when we don't refer to the iteration var from it.
+	(ibuffer-toggle-sorting-mode): Avoid add-to-list.
+	* ibuf-macs.el (define-ibuffer-column, define-ibuffer-op):
+	Silence byte-compiler.
+
+2014-09-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
 	* font-lock.el (font-lock-compile-keyword): Don't confuse a lambda
 	expression for a list.
 

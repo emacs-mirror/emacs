@@ -1,4 +1,4 @@
-;;; ibuf-ext.el --- extensions for ibuffer
+;;; ibuf-ext.el --- extensions for ibuffer  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2000-2014 Free Software Foundation, Inc.
 
@@ -523,9 +523,9 @@ To evaluate a form without viewing the buffer, see `ibuffer-do-eval'."
 				ibuffer-filter-groups
 			      (append ibuffer-filter-groups
 				      (list (cons "Default" nil))))))
-;;     (dolist (hidden ibuffer-hidden-filter-groups)
-;;       (setq filter-group-alist (ibuffer-delete-alist
-;; 				   hidden filter-group-alist)))
+    ;; (dolist (hidden ibuffer-hidden-filter-groups)
+    ;;   (setq filter-group-alist (ibuffer-delete-alist
+    ;;     			   hidden filter-group-alist)))
     (let ((vec (make-vector (length filter-group-alist) nil))
 	  (i 0))
       (dolist (filtergroup filter-group-alist)
@@ -540,12 +540,13 @@ To evaluate a form without viewing the buffer, see `ibuffer-do-eval'."
 	    (cl-incf i)
 	    (setq bmarklist lamers))))
       (let (ret)
-	(dotimes (j i ret)
+	(dotimes (j i)
 	  (let ((bufs (aref vec j)))
 	    (unless (and noempty (null bufs))
 	      (push (cons (car (nth j filter-group-alist))
 			  bufs)
-		    ret))))))))
+		    ret))))
+        ret))))
 
 ;;;###autoload
 (defun ibuffer-filters-to-filter-group (name)
@@ -1100,9 +1101,9 @@ Default sorting modes are:
  Major Mode - the name of the major mode of the buffer
  Size - the size of the buffer"
   (interactive)
-  (let ((modes (mapcar 'car ibuffer-sorting-functions-alist)))
-    (add-to-list 'modes 'recency)
-    (setq modes (sort modes 'string-lessp))
+  (let ((modes (mapcar #'car ibuffer-sorting-functions-alist)))
+    (cl-pushnew 'recency modes)
+    (setq modes (sort modes #'string-lessp))
     (let ((next (or (car-safe (cdr-safe (memq ibuffer-sorting-mode modes)))
                     (car modes))))
       (setq ibuffer-sorting-mode next)
