@@ -1,5 +1,18 @@
 2014-09-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/pcase.el: Use pcase-defmacro to handle backquote.
+	(pcase--upat): Remove.
+	(pcase--macroexpand): Don't hardcode handling of `.
+	(pcase--split-consp, pcase--split-vector): Remove.
+	(pcase--split-equal): Disregard ` since it's expanded away.
+	(pcase--split-member): Optimize for quote rather than for `.
+	(pcase--split-pred): Optimize for quote rather than for `.
+	(pcase--u1): Remove handling of ` (and of `or' and `and').
+	Quote non-selfquoting values when passing them to `eq'.
+	Drop `app's let-binding if the variable is not used.
+	(pcase--q1): Remove.
+	(`): Define as a pattern macro.
+
 	* emacs-lisp/pcase.el (pcase--match): New smart-constructor function.
 	(pcase--expand pcase--q1, pcase--app-subst-match): Use it.
 	(pcase--macroexpand): Handle self-quoting patterns here, expand them to
