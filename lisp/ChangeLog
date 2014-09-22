@@ -1,5 +1,13 @@
 2014-09-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	Add support for `quote' and `app'.
+	* emacs-lisp/pcase.el (pcase--app-subst-match, pcase--app-subst-rest):
+	New optimization functions.
+	(pcase--u1): Add support for `quote' and `app'.
+	(pcase): Document them in the docstring.
+
+2014-09-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
 	Use lexical-bindin in Ibuffer.
 	* ibuffer.el (ibuffer-do-toggle-read-only): `arg' is unused.
 	(ibuffer-compile-format): Simplify.

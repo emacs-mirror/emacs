@@ -102,12 +102,18 @@ UPatterns can take the following forms:
   SYMBOL	matches anything and binds it to SYMBOL.
   (or UPAT...)	matches if any of the patterns matches.
   (and UPAT...)	matches if all the patterns match.
+  'VAL		matches if the object is `equal' to VAL
   `QPAT		matches if the QPattern QPAT matches.
   (pred PRED)	matches if PRED applied to the object returns non-nil.
   (guard BOOLEXP)	matches if BOOLEXP evaluates to non-nil.
   (let UPAT EXP)	matches if EXP matches UPAT.
+  (app FUN UPAT)	matches if FUN applied to the object matches UPAT.
 If a SYMBOL is used twice in the same pattern (i.e. the pattern is
 \"non-linear\"), then the second occurrence is turned into an `eq'uality test.
+
+FUN can be either of the form (lambda ARGS BODY) or a symbol.
+It has to obey the rule that if (FUN X) returns V then calling it again will
+return the same V again (so that multiple (FUN X) can be consolidated).
 
 QPatterns can take the following forms:
   (QPAT1 . QPAT2)       matches if QPAT1 matches the car and QPAT2 the cdr.
@@ -119,7 +125,7 @@ QPatterns can take the following forms:
 
 PRED can take the form
   FUNCTION	     in which case it gets called with one argument.
-  (FUN ARG1 .. ARGN) in which case it gets called with an N+1'th argument
+  (F ARG1 .. ARGn) in which case F gets called with an n+1'th argument
                         which is the value being matched.
 A PRED of the form FUNCTION is equivalent to one of the form (FUNCTION).
 PRED patterns can refer to variables bound earlier in the pattern.
@@ -157,6 +163,7 @@ like `(,a . ,(pred (< a))) or, with more checks:
   (let* ((x (make-symbol "x"))
          (pcase--dontwarn-upats (cons x pcase--dontwarn-upats)))
     (pcase--expand
+     ;; FIXME: Could we add the FILE:LINE data in the error message?
      exp (append cases `((,x (error "No clause matching `%S'" ,x)))))))
 
 (defun pcase--let* (bindings body)
@@ -569,6 +576,27 @@ MATCH is the pattern that needs to be matched, of the form:
 (defun pcase--self-quoting-p (upat)
   (or (keywordp upat) (numberp upat) (stringp upat)))
 
+(defun pcase--app-subst-match (match sym fun nsym)
+  (cond
+   ((eq (car match) 'match)
+    (if (and (eq sym (cadr match))
+             (eq 'app (car-safe (cddr match)))
+             (equal fun (nth 1 (cddr match))))
+        `(match ,nsym ,@(nth 2 (cddr match)))
+      match))
+   ((memq (car match) '(or and))
+    `(,(car match)
+      ,@(mapcar (lambda (match)
+                  (pcase--app-subst-match match sym fun nsym))
+                (cdr match))))
+   (t (error "Uknown MATCH %s" match))))
+
+(defun pcase--app-subst-rest (rest sym fun nsym)
+  (mapcar (lambda (branch)
+            `(,(pcase--app-subst-match (car branch) sym fun nsym)
+              ,@(cdr branch)))
+          rest))
+
 (defsubst pcase--mark-used (sym)
   ;; Exceptionally, `sym' may be a constant expression rather than a symbol.
   (if (symbolp sym) (put sym 'pcase-used t)))
@@ -695,9 +723,40 @@ Otherwise, it defers to REST which is a list of branches of the form
                   (if env (macroexp-let* env exp) exp))))
           (pcase--u1 (cons `(match ,sym . ,(nth 1 upat)) matches)
                      code vars rest)))
+       ((eq (car-safe upat) 'app)
+        ;; A upat of the form (app FUN UPAT)
+        (pcase--mark-used sym)
+        (let* ((fun (nth 1 upat)))
+          (macroexp-let2
+              macroexp-copyable-p nsym
+              (if (symbolp fun)
+                  `(,fun ,sym)
+                (let* ((vs (pcase--fgrep (mapcar #'car vars) fun))
+                       (env (mapcar (lambda (v) (list v (cdr (assq v vars))))
+                                    vs))
+                       (call `(funcall #',fun ,sym)))
+                  (if env (macroexp-let* env call) call)))
+            ;; We don't change `matches' to reuse the newly computed value,
+            ;; because we assume there shouldn't be such redundancy in there.
+            (pcase--u1 (cons `(match ,nsym ,@(nth 2 upat)) matches)
+                       code vars
+                       (pcase--app-subst-rest rest sym fun nsym)))))
        ((eq (car-safe upat) '\`)
         (pcase--mark-used sym)
         (pcase--q1 sym (cadr upat) matches code vars rest))
+       ((eq (car-safe upat) 'quote)
+        (let* ((val (cadr upat))
+               (splitrest (pcase--split-rest
+                           sym (lambda (pat) (pcase--split-equal val pat)) rest))
+               (then-rest (car splitrest))
+               (else-rest (cdr splitrest)))
+          (pcase--if (cond
+                      ((null val) `(null ,sym))
+                      ((or (integerp val) (symbolp val))
+                       `(equal ,sym ,val))
+                      (t `(equal ,sym ',val)))
+                     (pcase--u1 matches code vars then-rest)
+                     (pcase--u else-rest))))
        ((eq (car-safe upat) 'or)
         (let ((all (> (length (cdr upat)) 1))
               (memq-fine t))
