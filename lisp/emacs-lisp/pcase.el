@@ -284,7 +284,7 @@ of the form (UPAT EXP)."
            (main
             (pcase--u
              (mapcar (lambda (case)
-                       `((match ,val . ,(pcase--macroexpand (car case)))
+                       `(,(pcase--match val (pcase--macroexpand (car case)))
                          ,(lambda (vars)
                             (unless (memq case used-cases)
                               ;; Keep track of the cases that are used.
@@ -307,7 +307,9 @@ of the form (UPAT EXP)."
   "Expands all macro-patterns in PAT."
   (let ((head (car-safe pat)))
     (cond
-     ((memq head '(nil pred guard quote)) pat)
+     ((null head)
+      (if (pcase--self-quoting-p pat) `',pat pat))
+     ((memq head '(pred guard quote \`)) pat)
      ((memq head '(or and)) `(,head ,@(mapcar #'pcase--macroexpand (cdr pat))))
      ((eq head 'let) `(let ,(pcase--macroexpand (cadr pat)) ,@(cddr pat)))
      ((eq head 'app) `(app ,(nth 1 pat) ,(pcase--macroexpand (nth 2 pat))))
@@ -327,6 +329,18 @@ of the form (UPAT EXP)."
   (declare (indent 2) (debug (def-name sexp def-body)) (doc-string 3))
   `(put ',name 'pcase-macroexpander
         (lambda ,args ,@body)))
+
+(defun pcase--match (val upat)
+  "Build a MATCH structure, hoisting all `or's and `and's outside."
+  (cond
+   ;; Hoist or/and patterns into or/and matches.
+   ((memq (car-safe upat) '(or and))
+    `(,(car upat)
+      ,@(mapcar (lambda (upat)
+                  (pcase--match val upat))
+                (cdr upat))))
+   (t
+    `(match ,val . ,upat))))
 
 (defun pcase-codegen (code vars)
   ;; Don't use let*, otherwise macroexp-let* may merge it with some surrounding
@@ -431,17 +445,8 @@ MATCH is the pattern that needs to be matched, of the form:
     ((eq (car match) 'match)
      (if (not (eq sym (cadr match)))
          (cons match match)
-       (let ((pat (cddr match)))
-         (cond
-          ;; Hoist `or' and `and' patterns to `or' and `and' matches.
-          ((memq (car-safe pat) '(or and))
-           (pcase--split-match sym splitter
-                               (cons (car pat)
-                                     (mapcar (lambda (alt)
-                                               `(match ,sym . ,alt))
-                                             (cdr pat)))))
-          (t (let ((res (funcall splitter (cddr match))))
-               (cons (or (car res) match) (or (cdr res) match))))))))
+       (let ((res (funcall splitter (cddr match))))
+         (cons (or (car res) match) (or (cdr res) match)))))
     ((memq (car match) '(or and))
      (let ((then-alts '())
            (else-alts '())
@@ -483,8 +488,8 @@ MATCH is the pattern that needs to be matched, of the form:
    ;; A QPattern for a cons, can only go the `then' side.
    ((and (eq (car-safe pat) '\`) (consp (cadr pat)))
     (let ((qpat (cadr pat)))
-      (cons `(and (match ,syma . ,(pcase--upat (car qpat)))
-                  (match ,symd . ,(pcase--upat (cdr qpat))))
+      (cons `(and ,(pcase--match syma (pcase--upat (car qpat)))
+                  ,(pcase--match symd (pcase--upat (cdr qpat))))
             :pcase--fail)))
    ;; A QPattern but not for a cons, can only go to the `else' side.
    ((eq (car-safe pat) '\`) '(:pcase--fail . nil))
@@ -513,10 +518,10 @@ MATCH is the pattern that needs to be matched, of the form:
 (defun pcase--split-equal (elem pat)
   (cond
    ;; The same match will give the same result.
-   ((and (eq (car-safe pat) '\`) (equal (cadr pat) elem))
+   ((and (memq (car-safe pat) '(quote \`)) (equal (cadr pat) elem))
     '(:pcase--succeed . :pcase--fail))
    ;; A different match will fail if this one succeeds.
-   ((and (eq (car-safe pat) '\`)
+   ((and (memq (car-safe pat) '(quote \`))
          ;; (or (integerp (cadr pat)) (symbolp (cadr pat))
          ;;     (consp (cadr pat)))
          )
@@ -607,7 +612,7 @@ MATCH is the pattern that needs to be matched, of the form:
     (if (and (eq sym (cadr match))
              (eq 'app (car-safe (cddr match)))
              (equal fun (nth 1 (cddr match))))
-        `(match ,nsym ,@(nth 2 (cddr match)))
+        (pcase--match nsym (nth 2 (cddr match)))
       match))
    ((memq (car match) '(or and))
     `(,(car match)
@@ -625,6 +630,11 @@ MATCH is the pattern that needs to be matched, of the form:
 (defsubst pcase--mark-used (sym)
   ;; Exceptionally, `sym' may be a constant expression rather than a symbol.
   (if (symbolp sym) (put sym 'pcase-used t)))
+
+(defmacro pcase--flip (fun arg1 arg2)
+  "Helper function, used internally to avoid (funcall (lambda ...) ...)."
+  (declare (debug (sexp body)))
+  `(,fun ,arg2 ,arg1))
 
 ;; It's very tempting to use `pcase' below, tho obviously, it'd create
 ;; bootstrapping problems.
@@ -647,22 +657,26 @@ Otherwise, it defers to REST which is a list of branches of the form
    ((eq 'or (caar matches))
     (let* ((alts (cdar matches))
            (var (if (eq (caar alts) 'match) (cadr (car alts))))
-           (simples '()) (others '()))
+           (simples '()) (others '()) (memq-ok t))
       (when var
         (dolist (alt alts)
           (if (and (eq (car alt) 'match) (eq var (cadr alt))
                    (let ((upat (cddr alt)))
-                     (and (eq (car-safe upat) '\`)
-                          (or (integerp (cadr upat)) (symbolp (cadr upat))
-                              (stringp (cadr upat))))))
-              (push (cddr alt) simples)
+                     (eq (car-safe upat) 'quote)))
+              (let ((val (cadr (cddr alt))))
+                (unless (or (integerp val) (symbolp val))
+                  (setq memq-ok nil))
+                (push (cadr (cddr alt)) simples))
             (push alt others))))
       (cond
        ((null alts) (error "Please avoid it") (pcase--u rest))
+       ;; Yes, we can use `memq' (or `member')!
        ((> (length simples) 1)
-        ;; De-hoist the `or' MATCH into an `or' pattern that will be
-        ;; turned into a `memq' below.
-        (pcase--u1 (cons `(match ,var or . ,(nreverse simples)) (cdr matches))
+        (pcase--u1 (cons `(match ,var
+                                 . (pred (pcase--flip
+                                          ,(if memq-ok #'memq #'member)
+                                          ',simples)))
+                         (cdr matches))
                    code vars
                    (if (null others) rest
                      (cons (cons
@@ -722,9 +736,6 @@ Otherwise, it defers to REST which is a list of branches of the form
                            `(let* ,env ,call))))
                      (pcase--u1 matches code vars then-rest)
                      (pcase--u else-rest))))
-       ((pcase--self-quoting-p upat)
-        (pcase--mark-used sym)
-        (pcase--q1 sym upat matches code vars rest))
        ((symbolp upat)
         (pcase--mark-used sym)
         (if (not (assq upat vars))
@@ -746,7 +757,7 @@ Otherwise, it defers to REST which is a list of branches of the form
                        (env (mapcar (lambda (v) (list v (cdr (assq v vars))))
                                     vs)))
                   (if env (macroexp-let* env exp) exp))))
-          (pcase--u1 (cons `(match ,sym . ,(nth 1 upat)) matches)
+          (pcase--u1 (cons (pcase--match sym (nth 1 upat)) matches)
                      code vars rest)))
        ((eq (car-safe upat) 'app)
         ;; A upat of the form (app FUN UPAT)
@@ -763,7 +774,7 @@ Otherwise, it defers to REST which is a list of branches of the form
                   (if env (macroexp-let* env call) call)))
             ;; We don't change `matches' to reuse the newly computed value,
             ;; because we assume there shouldn't be such redundancy in there.
-            (pcase--u1 (cons `(match ,nsym ,@(nth 2 upat)) matches)
+            (pcase--u1 (cons (pcase--match nsym (nth 2 upat)) matches)
                        code vars
                        (pcase--app-subst-rest rest sym fun nsym)))))
        ((eq (car-safe upat) '\`)
@@ -777,46 +788,20 @@ Otherwise, it defers to REST which is a list of branches of the form
                (else-rest (cdr splitrest)))
           (pcase--if (cond
                       ((null val) `(null ,sym))
-                      ((or (integerp val) (symbolp val))
-                       `(equal ,sym ,val))
+                      ((or (integerp val) (symbolp val)) `(eq ,sym ,val))
                       (t `(equal ,sym ',val)))
                      (pcase--u1 matches code vars then-rest)
                      (pcase--u else-rest))))
        ((eq (car-safe upat) 'or)
-        (let ((all (> (length (cdr upat)) 1))
-              (memq-fine t))
-          (when all
-            (dolist (alt (cdr upat))
-              (unless (if (pcase--self-quoting-p alt)
-                          (progn
-                            (unless (or (symbolp alt) (integerp alt))
-                              (setq memq-fine nil))
-                            t)
-                        (and (eq (car-safe alt) '\`)
-                             (or (symbolp (cadr alt)) (integerp (cadr alt))
-                                 (setq memq-fine nil)
-                                 (stringp (cadr alt)))))
-                (setq all nil))))
-          (if all
-              ;; Use memq for (or `a `b `c `d) rather than a big tree.
-              (let* ((elems (mapcar (lambda (x) (if (consp x) (cadr x) x))
-                                    (cdr upat)))
-                     (splitrest
-                      (pcase--split-rest
-                       sym (lambda (pat) (pcase--split-member elems pat)) rest))
-                     (then-rest (car splitrest))
-                     (else-rest (cdr splitrest)))
-                (pcase--mark-used sym)
-                (pcase--if `(,(if memq-fine #'memq #'member) ,sym ',elems)
-                           (pcase--u1 matches code vars then-rest)
-                           (pcase--u else-rest)))
-            (pcase--u1 (cons `(match ,sym ,@(cadr upat)) matches) code vars
-                       (append (mapcar (lambda (upat)
-                                         `((and (match ,sym . ,upat) ,@matches)
-                                           ,code ,@vars))
-                                       (cddr upat))
-                               rest)))))
+        (error "Should have been hoisted already: %S" upat)
+        (pcase--u1 (cons `(match ,sym ,@(cadr upat)) matches) code vars
+                   (append (mapcar (lambda (upat)
+                                     `((and (match ,sym . ,upat) ,@matches)
+                                       ,code ,@vars))
+                                   (cddr upat))
+                           rest)))
        ((eq (car-safe upat) 'and)
+        (error "Should have been hoisted already: %S" upat)
         (pcase--u1 (append (mapcar (lambda (upat) `(match ,sym ,@upat))
                                    (cdr upat))
                            matches)
@@ -864,8 +849,9 @@ Otherwise, it defers to REST which is a list of branches of the form
            (else-rest (cdr splitrest))
            (then-body (pcase--u1
                        `(,@(mapcar (lambda (s)
-                                     `(match ,(car s) .
-                                             ,(pcase--upat (aref qpat (cdr s)))))
+                                     (pcase--match
+                                      (car s)
+                                      (pcase--upat (aref qpat (cdr s)))))
                                    syms)
                          ,@matches)
                        code vars then-rest)))
@@ -886,8 +872,8 @@ Otherwise, it defers to REST which is a list of branches of the form
                        rest))
            (then-rest (car splitrest))
            (else-rest (cdr splitrest))
-           (then-body (pcase--u1 `((match ,syma . ,(pcase--upat (car qpat)))
-                                   (match ,symd . ,(pcase--upat (cdr qpat)))
+           (then-body (pcase--u1 `(,(pcase--match syma (pcase--upat (car qpat)))
+                                   ,(pcase--match symd (pcase--upat (cdr qpat)))
                                    ,@matches)
                                  code vars then-rest)))
       (pcase--if

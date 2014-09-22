@@ -22,10 +22,42 @@
 ;;; Code:
 
 (require 'ert)
+(require 'cl-lib)
 
-(ert-deftest pcase-tests-behavior ()
+(ert-deftest pcase-tests-base ()
   "Test pcase code."
   (should (equal (pcase '(1 . 2) ((app car '2) 6) ((app car '1) 5)) 5)))
+
+(pcase-defmacro pcase-tests-plus (pat n)
+  `(app (lambda (v) (- v ,n)) ,pat))
+
+(ert-deftest pcase-tests-macro ()
+  (should (equal (pcase 5 ((pcase-tests-plus x 3) x)) 2)))
+
+(defun pcase-tests-grep (fname exp)
+  (when (consp exp)
+    (or (eq fname (car exp))
+        (cl-some (lambda (exp) (pcase-tests-grep fname exp)) (cdr exp)))))
+
+(ert-deftest pcase-tests-tests ()
+  (should (pcase-tests-grep 'memq '(or (+ 2 3) (memq x y))))
+  (should-not (pcase-tests-grep 'memq '(or (+ 2 3) (- x y)))))
+
+(ert-deftest pcase-tests-member ()
+  (should (pcase-tests-grep
+           'memq (macroexpand-all '(pcase x ((or 1 2 3) body)))))
+  (should (pcase-tests-grep
+           'member (macroexpand-all '(pcase x ((or '"a" '2 '3) body)))))
+  (should-not (pcase-tests-grep
+               'memq (macroexpand-all '(pcase x ((or "a" 2 3) body)))))
+  (let ((exp (macroexpand-all
+                      '(pcase x
+                         ("a" body1)
+                         (2 body2)
+                         ((or "a" 2 3) body)))))
+    (should-not (pcase-tests-grep 'memq exp))
+    (should-not (pcase-tests-grep 'member exp))))
+
 
 ;; Local Variables:
 ;; no-byte-compile: t

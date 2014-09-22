@@ -1,5 +1,15 @@
 2014-09-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/pcase.el (pcase--match): New smart-constructor function.
+	(pcase--expand pcase--q1, pcase--app-subst-match): Use it.
+	(pcase--macroexpand): Handle self-quoting patterns here, expand them to
+	quote patterns.
+	(pcase--split-match): Don't hoist or/and here any more.
+	(pcase--split-equal): Optimize quote patterns as well as ` patterns.
+	(pcase--flip): New helper macro.
+	(pcase--u1): Optimize the memq case directly.
+	Don't handle neither self-quoting nor and/or patterns any more.
+
 	* emacs-lisp/pcase.el (pcase-defmacro): New macro.
 	(pcase--macroexpand): New function.
 	(pcase--expand): Use it.
