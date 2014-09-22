@@ -511,9 +511,8 @@ file.  Since that is a plaintext file, this could be dangerous."
      :sqli-program sql-vertica-program
      :sqli-options sql-vertica-options
      :sqli-login sql-vertica-login-params
-     :sqli-comint-func 'sql-comint-vertica
-     :list-all ("select table_name from v_catalog.tables" .
-                "select * from v_catalog.tables")
+     :sqli-comint-func sql-comint-vertica
+     :list-all ("\\d" . "\\dS")
      :list-table "\\d %s"
      :prompt-regexp "^\\w*=[#>] "
      :prompt-length 5

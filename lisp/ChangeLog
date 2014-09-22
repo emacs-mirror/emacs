@@ -1,3 +1,7 @@
+2014-09-22  Sam Steingold  <sds@gnu.org>
+
+	* progmodes/sql.el (sql-product-alist): Improve the Vertica entry.
+
 2014-09-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Add pcase-defmacro, as well as `quote' and `app' patterns.
