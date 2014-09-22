@@ -3624,7 +3624,11 @@ buffer is popped into a view window."
                        (get-lru-window))))
       (with-current-buffer outbuf
         (set-buffer-modified-p nil)
-        (read-only-mode +1))
+        (setq-local revert-buffer-function
+                    (lambda (_ignore-auto _noconfirm)
+                      (sql-execute sqlbuf (buffer-name outbuf)
+                                   command enhanced arg)))
+        (special-mode))
       (pop-to-buffer outbuf)
       (when one-win
         (shrink-window-if-larger-than-buffer)))))
