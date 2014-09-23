@@ -1144,7 +1144,7 @@ window_box_left_offset (struct window *w, enum glyph_row_area area)
    area AREA of window W.  ANY_AREA means return the right edge of the
    whole window, to the left of the right fringe of W.  */
 
-int
+static int
 window_box_right_offset (struct window *w, enum glyph_row_area area)
 {
   /* Don't return more than the window's pixel width.  */

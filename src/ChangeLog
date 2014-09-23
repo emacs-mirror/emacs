@@ -1,3 +1,7 @@
+2014-09-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* dispextern.h, xdisp.c (window_box_right_offset): Now static.
+
 2014-09-23  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Use known length of a Lisp string to copy it faster.
