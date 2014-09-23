@@ -1,4 +1,4 @@
-# pthread_sigmask.m4 serial 14
+# pthread_sigmask.m4 serial 15
 dnl Copyright (C) 2011-2014 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -40,7 +40,7 @@ AC_DEFUN([gl_FUNC_PTHREAD_SIGMASK],
              LIBS="$gl_save_LIBS"
             ])
           if test $gl_cv_func_pthread_sigmask_in_LIBMULTITHREAD = yes; then
-            dnl pthread_sigmask is available with -lpthread.
+            dnl pthread_sigmask is available with -pthread or -lpthread.
             LIB_PTHREAD_SIGMASK="$LIBMULTITHREAD"
           else
             dnl pthread_sigmask is not available at all.
@@ -86,7 +86,7 @@ AC_DEFUN([gl_FUNC_PTHREAD_SIGMASK],
   AC_SUBST([LIB_PTHREAD_SIGMASK])
   dnl We don't need a variable LTLIB_PTHREAD_SIGMASK, because when
   dnl "$gl_threads_api" = posix, $LTLIBMULTITHREAD and $LIBMULTITHREAD are the
-  dnl same: either both empty or both "-lpthread".
+  dnl same.
 
   dnl Now test for some bugs in the system function.
   if test $HAVE_PTHREAD_SIGMASK = 1; then
@@ -98,6 +98,7 @@ AC_DEFUN([gl_FUNC_PTHREAD_SIGMASK],
     dnl no effect.
     if test -z "$LIB_PTHREAD_SIGMASK"; then
       case " $LIBS " in
+        *' -pthread '*) ;;
         *' -lpthread '*) ;;
 	*)
 	  AC_CACHE_CHECK([whether pthread_sigmask works without -lpthread],

@@ -1,3 +1,9 @@
+2014-09-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	2014-09-11 fcntl-h: fix compilation with Intel C++ compiler
+	2014-09-04 pthread, pthread_sigmask, threadlib: port to Ubuntu 14.04
+
 2014-09-22  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.ac: Increase headerpad_extra to 1000, update the comment
