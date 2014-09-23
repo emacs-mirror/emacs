@@ -418,7 +418,7 @@ x_session_initialize (struct x_display_info *dpyinfo)
   emacs_program[0] = '\0';
 
   if (! EQ (Vinvocation_directory, Qnil))
-    strcpy (emacs_program, SSDATA (Vinvocation_directory));
+    lispstrcpy (emacs_program, Vinvocation_directory);
   strcat (emacs_program, SSDATA (Vinvocation_name));
 
   /* The SM protocol says all callbacks are mandatory, so set up all

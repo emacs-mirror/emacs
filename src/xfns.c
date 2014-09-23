@@ -4289,7 +4289,7 @@ select_visual (struct x_display_info *dpyinfo)
       int i, class = -1;
       XVisualInfo vinfo;
 
-      strcpy (s, SSDATA (value));
+      lispstrcpy (s, value);
       dash = strchr (s, '-');
       if (dash)
 	{

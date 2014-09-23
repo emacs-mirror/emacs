@@ -761,7 +761,7 @@ xd_append_arg (int dtype, Lisp_Object object, DBusMessageIter *iter)
 		&& STRINGP (CAR_SAFE (XD_NEXT_VALUE (object)))
 		&& NILP (CDR_SAFE (XD_NEXT_VALUE (object))))
 	      {
-		strcpy (signature, SSDATA (CAR_SAFE (XD_NEXT_VALUE (object))));
+		lispstrcpy (signature, CAR_SAFE (XD_NEXT_VALUE (object)));
 		object = CDR_SAFE (XD_NEXT_VALUE (object));
 	      }
 

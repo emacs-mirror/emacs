@@ -4266,7 +4266,7 @@ the consecutive wildcards are folded into one.  */)
 	{
 	  if (NILP (fold_wildcards))
 	    return font_name;
-	  strcpy (name, SSDATA (font_name));
+	  lispstrcpy (name, font_name);
 	  namelen = SBYTES (font_name);
 	  goto done;
 	}

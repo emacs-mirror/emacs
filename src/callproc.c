@@ -1235,7 +1235,7 @@ child_setup (int in, int out, int err, char **new_argv, bool set_pgrp,
 #endif
     temp = pwd_var + 4;
     memcpy (pwd_var, "PWD=", 4);
-    strcpy (temp, SSDATA (current_dir));
+    lispstrcpy (temp, current_dir);
 
 #ifndef DOS_NT
     /* We can't signal an Elisp error here; we're in a vfork.  Since

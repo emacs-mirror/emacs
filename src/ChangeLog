@@ -1,7 +1,24 @@
+2014-09-23  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Use known length of a Lisp string to copy it faster.
+	* lisp.h (lispstrcpy): New function.  Add comment.
+	* callproc.c (child_setup):
+	* dbusbind.c (xd_append_arg):
+	* doc.c (get_doc_string):
+	* font.c (Ffont_xlfd_name):
+	* frame.c (xrdb_get_resource):
+	* process.c (Fmake_network_process, network_interface_info):
+	* w32fns.c (Fx_open_connection):
+	* w32proc.c (sys_spawnve):
+	* xfns.c (select_visual):
+	* xfont.c (xfont_list):
+	* xsmfns.c (x_session_initialize):
+	* xterm.c (x_term_init): Use it.
+
 2014-09-23  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix SAFE_ALLOCA to not exhaust the stack when in a loop.
-	Problem reported by Dmietry Antipov in thread leading to:
+	Problem reported by Dmitry Antipov in thread leading to:
 	http://lists.gnu.org/archive/html/emacs-devel/2014-09/msg00713.html
 	This patch fixes only SAFE_ALLOCA, SAFE_NALLOCA, and SAFE_ALLOCA_LISP;
 	the experimental local_* macros enabled by USE_LOCAL_ALLOCATORS

@@ -5339,7 +5339,7 @@ terminate Emacs if we can't open the connection.
   {
     char basename[ MAX_PATH ], *str;
 
-    strcpy (basename, SDATA (Vinvocation_name));
+    lispstrcpy (basename, Vinvocation_name);
     str = strrchr (basename, '.');
     if (str) *str = 0;
     Vinvocation_name = build_string (basename);

@@ -4462,6 +4462,15 @@ extern void *xpalloc (void *, ptrdiff_t *, ptrdiff_t, ptrdiff_t, ptrdiff_t);
 extern char *xstrdup (const char *) ATTRIBUTE_MALLOC;
 extern char *xlispstrdup (Lisp_Object) ATTRIBUTE_MALLOC;
 extern void dupstring (char **, char const *);
+
+/* Like strcpy but uses known length of a Lisp string.  */
+
+INLINE char *
+lispstrcpy (const char *dest, Lisp_Object string)
+{
+  return memcpy ((void *) dest, SSDATA (string), SBYTES (string) + 1);
+}
+
 extern void xputenv (const char *);
 
 extern char *egetenv_internal (const char *, ptrdiff_t);

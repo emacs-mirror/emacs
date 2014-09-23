@@ -1647,7 +1647,7 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
 	strcpy (cmdname, egetenv ("CMDPROXY"));
       else
 	{
-	  strcpy (cmdname, SDATA (Vinvocation_directory));
+	  lispstrcpy (cmdname, Vinvocation_directory);
 	  strcat (cmdname, "cmdproxy.exe");
 	}
 

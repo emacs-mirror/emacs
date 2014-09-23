@@ -10902,7 +10902,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
   dpyinfo->x_id = ++x_display_id;
   dpyinfo->x_id_name = xmalloc (SBYTES (Vinvocation_name)
 				+ SBYTES (Vsystem_name) + 2);
-  strcat (strcat (strcpy (dpyinfo->x_id_name, SSDATA (Vinvocation_name)), "@"),
+  strcat (strcat (lispstrcpy (dpyinfo->x_id_name, Vinvocation_name), "@"),
 	  SSDATA (Vsystem_name));
 
   /* Figure out which modifier bits mean what.  */
