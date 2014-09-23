@@ -541,7 +541,7 @@ xfont_list (struct frame *f, Lisp_Object spec)
 	    if (STRINGP (XCAR (alter))
 		&& ((r - name) + SBYTES (XCAR (alter))) < 256)
 	      {
-		lispstrcpy (r, XCAR (alter));
+		lispstpcpy (r, XCAR (alter));
 		list = xfont_list_pattern (display, name, registry, script);
 		if (! NILP (list))
 		  break;

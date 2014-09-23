@@ -121,7 +121,7 @@ get_doc_string (Lisp_Object filepos, bool unibyte, bool definition)
       if (minsize < 8)
 	minsize = 8;
       name = SAFE_ALLOCA (minsize + SCHARS (file) + 8);
-      lispstrcpy (name, docdir);
+      lispstpcpy (name, docdir);
       strcat (name, SSDATA (file));
     }
   else

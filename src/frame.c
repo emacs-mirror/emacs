@@ -4036,8 +4036,8 @@ xrdb_get_resource (XrmDatabase rdb, Lisp_Object attribute, Lisp_Object class, Li
 
   /* Start with emacs.FRAMENAME for the name (the specific one)
      and with `Emacs' for the class key (the general one).  */
-  lispstrcpy (name_key, Vx_resource_name);
-  lispstrcpy (class_key, Vx_resource_class);
+  lispstpcpy (name_key, Vx_resource_name);
+  lispstpcpy (class_key, Vx_resource_class);
 
   strcat (class_key, ".");
   strcat (class_key, SSDATA (class));

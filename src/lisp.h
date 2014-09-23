@@ -4463,12 +4463,15 @@ extern char *xstrdup (const char *) ATTRIBUTE_MALLOC;
 extern char *xlispstrdup (Lisp_Object) ATTRIBUTE_MALLOC;
 extern void dupstring (char **, char const *);
 
-/* Like strcpy but uses known length of a Lisp string.  */
+/* Make DEST a copy of STRING's data.  Return a pointer to DEST's terminating
+   null byte.  This is like stpcpy, except the source is a Lisp string.  */
 
 INLINE char *
-lispstrcpy (const char *dest, Lisp_Object string)
+lispstpcpy (char *dest, Lisp_Object string)
 {
-  return memcpy ((void *) dest, SSDATA (string), SBYTES (string) + 1);
+  ptrdiff_t len = SBYTES (string);
+  memcpy (dest, SDATA (string), len + 1);
+  return dest + len;
 }
 
 extern void xputenv (const char *);
