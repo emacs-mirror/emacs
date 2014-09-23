@@ -632,6 +632,7 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
     int volatile fd_error_volatile = fd_error;
     int volatile filefd_volatile = filefd;
     ptrdiff_t volatile count_volatile = count;
+    ptrdiff_t volatile sa_avail_volatile = sa_avail;
     ptrdiff_t volatile sa_count_volatile = sa_count;
     char **volatile new_argv_volatile = new_argv;
     int volatile callproc_fd_volatile[CALLPROC_FDS];
@@ -648,6 +649,7 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
     fd_error = fd_error_volatile;
     filefd = filefd_volatile;
     count = count_volatile;
+    sa_avail = sa_avail_volatile;
     sa_count = sa_count_volatile;
     new_argv = new_argv_volatile;
 

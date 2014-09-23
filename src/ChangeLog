@@ -1,3 +1,17 @@
+2014-09-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix SAFE_ALLOCA to not exhaust the stack when in a loop.
+	Problem reported by Dmietry Antipov in thread leading to:
+	http://lists.gnu.org/archive/html/emacs-devel/2014-09/msg00713.html
+	This patch fixes only SAFE_ALLOCA, SAFE_NALLOCA, and SAFE_ALLOCA_LISP;
+	the experimental local_* macros enabled by USE_LOCAL_ALLOCATORS
+	remain unfixed.
+	* callproc.c (call_process): Save and restore sa_avail.
+	* lisp.h (USE_SAFE_ALLOCA): Define sa_avail.
+	(AVAIL_ALLOCA): New macro.
+	(SAFE_ALLOCA, SAFE_NALLOCA, SAFE_ALLOCA_LISP):
+	Use it, and check against sa_avail rather than MAX_ALLOCA.
+
 2014-09-22  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	On OSX, do not free font-specific data more than once (Bug#18501).

@@ -4496,12 +4496,15 @@ enum MAX_ALLOCA { MAX_ALLOCA = 16 * 1024 };
 extern void *record_xmalloc (size_t) ATTRIBUTE_ALLOC_SIZE ((1));
 
 #define USE_SAFE_ALLOCA			\
+  ptrdiff_t sa_avail = MAX_ALLOCA;	\
   ptrdiff_t sa_count = SPECPDL_INDEX (); bool sa_must_free = false
+
+#define AVAIL_ALLOCA(size) (sa_avail -= (size), alloca (size))
 
 /* SAFE_ALLOCA allocates a simple buffer.  */
 
-#define SAFE_ALLOCA(size) ((size) <= MAX_ALLOCA	\
-			   ? alloca (size)	\
+#define SAFE_ALLOCA(size) ((size) <= sa_avail				\
+			   ? AVAIL_ALLOCA (size)			\
 			   : (sa_must_free = true, record_xmalloc (size)))
 
 /* SAFE_NALLOCA sets BUF to a newly allocated array of MULTIPLIER *
@@ -4510,8 +4513,8 @@ extern void *record_xmalloc (size_t) ATTRIBUTE_ALLOC_SIZE ((1));
 
 #define SAFE_NALLOCA(buf, multiplier, nitems)			 \
   do {								 \
-    if ((nitems) <= MAX_ALLOCA / sizeof *(buf) / (multiplier))	 \
-      (buf) = alloca (sizeof *(buf) * (multiplier) * (nitems));	 \
+    if ((nitems) <= sa_avail / sizeof *(buf) / (multiplier))	 \
+      (buf) = AVAIL_ALLOCA (sizeof *(buf) * (multiplier) * (nitems)); \
     else							 \
       {								 \
 	(buf) = xnmalloc (nitems, sizeof *(buf) * (multiplier)); \
@@ -4543,8 +4546,8 @@ extern void *record_xmalloc (size_t) ATTRIBUTE_ALLOC_SIZE ((1));
 
 #define SAFE_ALLOCA_LISP(buf, nelt)			       \
   do {							       \
-    if ((nelt) <= MAX_ALLOCA / word_size)		       \
-      (buf) = alloca ((nelt) * word_size);		       \
+    if ((nelt) <= sa_avail / word_size)			       \
+      (buf) = AVAIL_ALLOCA ((nelt) * word_size);	       \
     else if ((nelt) <= min (PTRDIFF_MAX, SIZE_MAX) / word_size) \
       {							       \
 	Lisp_Object arg_;				       \
