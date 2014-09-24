@@ -231,6 +231,9 @@ active region handling.
 any reference to a buffer position.  The 6th member of the mouse
 position list returned for such events is now nil.
 
+** Menu items in keymaps do not support the "key shortcut cache" any more.
+These slots used to hold key-shortcut data, but have been obsolete since
+Emacs-21.
 
 
 * Lisp Changes in Emacs 24.5

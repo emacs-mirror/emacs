@@ -1,3 +1,8 @@
+2014-09-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* find-cmd.el (find-cmd): Use grep's `find-program' (bug#18518).
+	Suggested by <lompik@voila.fr>.
+
 2014-09-24  Ulf Jasper  <ulf.jasper@web.de>
 
 	* net/newst-treeview.el (newsticker--treeview-do-get-node-by-id):
@@ -204,7 +209,7 @@
 
 	* window.el (fit-window-to-buffer): Doc fix.
 
-2014-09-15  Ivan Shmakov  <ivan@siamics.net>  (tiny change)
+2014-09-15  Ivan Shmakov  <ivan@siamics.net>
 
 	* desktop.el (desktop-create-buffer): Check that buffers are still live
 	before burying them (bug#18373).
@@ -1585,7 +1590,7 @@
 	(dbus-register-service): Register it.  (Bug#17858)
 	(dbus-managed-objects-handler): Fix docstring.
 
-2014-07-04  Phil Sainty  <psainty@orcon.net.nz>  (tiny change)
+2014-07-04  Phil Sainty  <psainty@orcon.net.nz>
 
 	* emacs-lisp/lisp.el (narrow-to-defun-include-comments): New var.
 	(narrow-to-defun): New arg include-comments, defaulting to it
@@ -8898,7 +8903,7 @@
 	Add option to delete file when done.  (Bug#15647)
 	(python-shell-send-string, python-shell-send-region): Use it.
 
-2013-11-23  Ivan Shmakov  <ivan@siamics.net>  (tiny change)
+2013-11-23  Ivan Shmakov  <ivan@siamics.net>
 
 	* vc/diff-mode.el (diff-mode): Only allow diff-default-read-only
 	to set buffer-read-only to t, never to nil.  (Bug#15938)

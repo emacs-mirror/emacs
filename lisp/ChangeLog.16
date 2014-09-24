@@ -7534,7 +7534,7 @@
 	In doc-strings state whether the argument window has to denote a
 	live, valid or any window.
 
-2012-08-16  Phil Sainty  <psainty@orcon.net.nz>  (tiny change)
+2012-08-16  Phil Sainty  <psainty@orcon.net.nz>
 
 	* progmodes/subword.el (subword-forward-function)
 	(subword-backward-function, subword-forward-regexp)
