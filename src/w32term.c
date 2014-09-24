@@ -3344,11 +3344,11 @@ static struct scroll_bar *x_window_to_scroll_bar (Window, int);
 static void x_scroll_bar_report_motion (struct frame **, Lisp_Object *,
 					enum scroll_bar_part *,
 					Lisp_Object *, Lisp_Object *,
-					unsigned long *);
+					Time *);
 static void x_horizontal_scroll_bar_report_motion (struct frame **, Lisp_Object *,
 						   enum scroll_bar_part *,
 						   Lisp_Object *, Lisp_Object *,
-						   unsigned long *);
+						   Time *);
 static void x_check_fullscreen (struct frame *);
 
 static void
@@ -3380,7 +3380,7 @@ w32_define_cursor (Window window, Cursor cursor)
 static void
 w32_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 		    enum scroll_bar_part *part, Lisp_Object *x, Lisp_Object *y,
-		    unsigned long *time)
+		    Time *time)
 {
   struct frame *f1;
   struct w32_display_info *dpyinfo = FRAME_DISPLAY_INFO (*fp);
@@ -4374,7 +4374,7 @@ static void
 x_scroll_bar_report_motion (struct frame **fp, Lisp_Object *bar_window,
 			    enum scroll_bar_part *part,
 			    Lisp_Object *x, Lisp_Object *y,
-			    unsigned long *time)
+			    Time *time)
 {
   struct w32_display_info *dpyinfo = FRAME_DISPLAY_INFO (*fp);
   struct scroll_bar *bar = dpyinfo->last_mouse_scroll_bar;
@@ -4424,7 +4424,7 @@ static void
 x_horizontal_scroll_bar_report_motion (struct frame **fp, Lisp_Object *bar_window,
 				       enum scroll_bar_part *part,
 				       Lisp_Object *x, Lisp_Object *y,
-				       unsigned long *time)
+				       Time *time)
 {
   struct w32_display_info *dpyinfo = FRAME_DISPLAY_INFO (*fp);
   struct scroll_bar *bar = dpyinfo->last_mouse_scroll_bar;

@@ -19,6 +19,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef EMACS_SYSTIME_H
 #define EMACS_SYSTIME_H
 
+#include <sys/types.h>
 #include <timespec.h>
 
 INLINE_HEADER_BEGIN
@@ -27,7 +28,7 @@ INLINE_HEADER_BEGIN
 # ifdef HAVE_X_WINDOWS
 #  include <X11/X.h>
 # else
-typedef unsigned long Time;
+typedef size_t Time;
 # endif
 #endif
 

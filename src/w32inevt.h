@@ -27,6 +27,6 @@ extern void w32_console_mouse_position (struct frame **f, int insist,
 					Lisp_Object *bar_window,
 					enum scroll_bar_part *part,
 					Lisp_Object *x, Lisp_Object *y,
-					unsigned long *time);
+					Time *time);
 
 #endif /* EMACS_W32INEVT_H */
