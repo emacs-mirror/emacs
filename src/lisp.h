@@ -282,7 +282,16 @@ error !;
 # endif
 #endif
 
+/* This should work on GNU/Linux with GCC.  Other configurations may be
+   problematic and/or not tested yet.  Clang is known to have problems,
+   see http://lists.gnu.org/archive/html/emacs-devel/2014-09/msg00506.html.
+   Also http://lists.gnu.org/archive/html/emacs-devel/2014-09/msg00422.html
+   describes an issues with 32-bit MS-Windows.  */
 #ifndef USE_STACK_LISP_OBJECTS
+# if defined (GNU_LINUX) && defined (__GNUC__) && !defined (__clang__)
+#   define USE_STACK_LISP_OBJECTS true
+# endif
+#else
 # define USE_STACK_LISP_OBJECTS false
 #endif
 
@@ -4581,8 +4590,10 @@ extern void *record_xmalloc (size_t) ATTRIBUTE_ALLOC_SIZE ((1));
    better performance because GC is not involved.
 
    This feature is experimental and requires careful debugging.
-   Brave users can compile with CPPFLAGS='-DUSE_STACK_LISP_OBJECTS'
-   to get into the game.  */
+   It's enabled by default on GNU/Linux with GCC.  On other systems,
+   brave users can compile with CPPFLAGS='-DUSE_STACK_LISP_OBJECTS'
+   to get into the game.  Also note that this feature requires
+   GC_MARK_STACK == GC_MAKE_GCPROS_NOOPS.  */
 
 /* A struct Lisp_Cons inside a union that is no larger and may be
    better-aligned.  */

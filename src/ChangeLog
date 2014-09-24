@@ -36,6 +36,9 @@
 	(font_delete_unmatched): Use local_cons but respect MAX_ALLOCA.
 	* keymap.c (append_key): Use scoped_list1.
 
+	* lisp.h (USE_STACK_LISP_OBJECTS): Enable by default if GNU_LINUX
+	&& __GNUC__ && !__clang__.  Mention known problems.  Adjust comment.
+
 2014-09-24  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix some slow uses and misuses of strcat.
