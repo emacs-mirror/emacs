@@ -367,7 +367,7 @@ font_style_to_value (enum font_property_index prop, Lisp_Object val,
     {
       int i, j;
       char *s;
-      Lisp_Object args[2], elt;
+      Lisp_Object elt;
 
       /* At first try exact match.  */
       for (i = 0; i < len; i++)
@@ -399,9 +399,9 @@ font_style_to_value (enum font_property_index prop, Lisp_Object val,
       eassert (len < 255);
       elt = Fmake_vector (make_number (2), make_number (100));
       ASET (elt, 1, val);
-      args[0] = table;
-      args[1] = Fmake_vector (make_number (1), elt);
-      ASET (font_style_table, prop - FONT_WEIGHT_INDEX, Fvconcat (2, args));
+      ASET (font_style_table, prop - FONT_WEIGHT_INDEX,
+	    Fvconcat (2, ((Lisp_Object [])
+	      { table, make_local_vector (1, elt) })));
       return (100 << 8) | (i << 4);
     }
   else
@@ -2685,7 +2685,9 @@ font_delete_unmatched (Lisp_Object vec, Lisp_Object spec, int size)
 {
   Lisp_Object entity, val;
   enum font_property_index prop;
-  int i;
+  /* If USE_STACK_LISP_OBJECTS, MAX is used to avoid unbounded alloca.  */
+  ptrdiff_t i, max
+    = (USE_STACK_LISP_OBJECTS ? MAX_ALLOCA / sizeof (struct Lisp_Cons) : 0);
 
   for (val = Qnil, i = ASIZE (vec) - 1; i >= 0; i--)
     {
@@ -2713,7 +2715,7 @@ font_delete_unmatched (Lisp_Object vec, Lisp_Object spec, int size)
 	}
       if (NILP (spec))
 	{
-	  val = Fcons (entity, val);
+	  val = --max > 0 ? local_cons (entity, val) : Fcons (entity, val);
 	  continue;
 	}
       for (prop = FONT_WEIGHT_INDEX; prop < FONT_SIZE_INDEX; prop++)
@@ -2744,7 +2746,7 @@ font_delete_unmatched (Lisp_Object vec, Lisp_Object spec, int size)
 		   AREF (entity, FONT_AVGWIDTH_INDEX)))
 	prop = FONT_SPEC_MAX;
       if (prop < FONT_SPEC_MAX)
-	val = Fcons (entity, val);
+	val = --max > 0 ? local_cons (entity, val) : Fcons (entity, val);
     }
   return (Fvconcat (1, &val));
 }

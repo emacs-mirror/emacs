@@ -1299,11 +1299,7 @@ define_as_prefix (Lisp_Object keymap, Lisp_Object c)
 static Lisp_Object
 append_key (Lisp_Object key_sequence, Lisp_Object key)
 {
-  Lisp_Object args[2];
-
-  args[0] = key_sequence;
-  args[1] = list1 (key);
-  return Fvconcat (2, args);
+  return Fvconcat (2, ((Lisp_Object []) { key_sequence, scoped_list1 (key) }));
 }
 
 /* Given a event type C which is a symbol,

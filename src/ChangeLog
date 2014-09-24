@@ -31,6 +31,11 @@
 	(x_send_scroll_bar_event, xm_scroll_callback, xg_scroll_callback):
 	Prefer enum and explicit enum members to integers and numeric values.
 
+	* chartab.c (uniprop_encode_value_numeric):
+	* font.c (font_style_to_value): Use make_local_vector.
+	(font_delete_unmatched): Use local_cons but respect MAX_ALLOCA.
+	* keymap.c (append_key): Use scoped_list1.
+
 2014-09-24  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix some slow uses and misuses of strcat.
