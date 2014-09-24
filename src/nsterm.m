@@ -1930,10 +1930,9 @@ ns_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
           position = [view convertPoint: position fromView: nil];
           remember_mouse_glyph (f, position.x, position.y,
 				&dpyinfo->last_mouse_glyph);
-/*fprintf (stderr, "ns_mouse_position: %.0f, %.0f\n", position.x, position.y); */
 
           if (bar_window) *bar_window = Qnil;
-          if (part) *part = 0; /*scroll_bar_handle; */
+          if (part) *part = scroll_bar_above_handle;
 
           if (x) XSETINT (*x, lrint (position.x));
           if (y) XSETINT (*y, lrint (position.y));
@@ -7505,7 +7504,7 @@ if (cols > 0 && rows > 0)
       [scroll_repeat_entry release];
       scroll_repeat_entry = nil;
     }
-  last_hit_part = 0;
+  last_hit_part = scroll_bar_above_handle;
 }
 
 

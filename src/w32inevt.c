@@ -411,7 +411,7 @@ w32_console_mouse_position (struct frame **f,
 
   *f = get_frame ();
   *bar_window = Qnil;
-  *part = 0;
+  *part = scroll_bar_above_handle;
   SELECTED_FRAME ()->mouse_moved = 0;
 
   XSETINT (*x, movement_pos.X);

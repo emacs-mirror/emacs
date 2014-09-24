@@ -4157,7 +4157,7 @@ XTmouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 	    dpyinfo->last_mouse_glyph_frame = f1;
 
 	    *bar_window = Qnil;
-	    *part = 0;
+	    *part = scroll_bar_above_handle;
 	    *fp = f1;
 	    XSETINT (*x, win_x);
 	    XSETINT (*y, win_y);
@@ -4250,7 +4250,8 @@ x_window_to_menu_bar (Window window)
 
 #ifdef USE_TOOLKIT_SCROLL_BARS
 
-static void x_send_scroll_bar_event (Lisp_Object, int, int, int, bool);
+static void x_send_scroll_bar_event (Lisp_Object, enum scroll_bar_part,
+				     int, int, bool);
 
 /* Lisp window being scrolled.  Set when starting to interact with
    a toolkit scroll bar, reset to nil when ending the interaction.  */
@@ -4371,7 +4372,8 @@ xt_horizontal_action_hook (Widget widget, XtPointer client_data, String action_n
    amount to scroll of a whole of WHOLE.  */
 
 static void
-x_send_scroll_bar_event (Lisp_Object window, int part, int portion, int whole, bool horizontal)
+x_send_scroll_bar_event (Lisp_Object window, enum scroll_bar_part part,
+			 int portion, int whole, bool horizontal)
 {
   XEvent event;
   XClientMessageEvent *ev = &event.xclient;
@@ -4504,8 +4506,8 @@ xm_scroll_callback (Widget widget, XtPointer client_data, XtPointer call_data)
 {
   struct scroll_bar *bar = client_data;
   XmScrollBarCallbackStruct *cs = call_data;
-  int part = -1, whole = 0, portion = 0;
-  int horizontal = bar->horizontal;
+  enum scroll_bar_part part = scroll_bar_nowhere;
+  int horizontal = bar->horizontal, whole = 0, portion = 0;
 
   switch (cs->reason)
     {
@@ -4569,7 +4571,7 @@ xm_scroll_callback (Widget widget, XtPointer client_data, XtPointer call_data)
       break;
     };
 
-  if (part >= 0)
+  if (part != scroll_bar_nowhere)
     {
       window_being_scrolled = bar->window;
       x_send_scroll_bar_event (bar->window, part, portion, whole, bar->horizontal);
@@ -4587,8 +4589,9 @@ xg_scroll_callback (GtkRange     *range,
                     gdouble       value,
                     gpointer      user_data)
 {
+  int whole = 0, portion = 0;
   struct scroll_bar *bar = user_data;
-  int part = -1, whole = 0, portion = 0;
+  enum scroll_bar_part part = scroll_bar_nowhere;
   GtkAdjustment *adj = GTK_ADJUSTMENT (gtk_range_get_adjustment (range));
   struct frame *f = g_object_get_data (G_OBJECT (range), XG_FRAME_DATA);
 
@@ -4641,7 +4644,7 @@ xg_scroll_callback (GtkRange     *range,
       break;
     }
 
-  if (part >= 0)
+  if (part != scroll_bar_nowhere)
     {
       window_being_scrolled = bar->window;
       x_send_scroll_bar_event (bar->window, part, portion, whole, bar->horizontal);

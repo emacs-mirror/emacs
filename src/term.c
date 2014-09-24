@@ -2540,7 +2540,7 @@ term_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
   (*fp)->mouse_moved = 0;
 
   *bar_window = Qnil;
-  *part = 0;
+  *part = scroll_bar_above_handle;
 
   XSETINT (*x, last_mouse_x);
   XSETINT (*y, last_mouse_y);

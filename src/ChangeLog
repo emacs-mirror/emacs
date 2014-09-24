@@ -1,3 +1,23 @@
+2014-09-24  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* termhooks.h (enum scroll_bar_part): Begin from 0 to allow...
+	(struct input_event): ...unsigned bitfields.  Likewise for
+	`event_kind' member.  Prefer unsigned for `code' and 'modifiers'.
+	Use `timestamp' for HELP_EVENT position.  Add compile-time assert.
+	* keyboard.c (gen_help_event, kbd_buffer_store_help_event)
+	(kbd_buffer_get_event): Adjust users.
+	(scroll_bar_parts): Add Qnil to match scroll_bar_nowhere.
+	(make_scroll_bar_position): New function, refactored out of...
+	(make_lispy_event): ...adjusted user.
+	* nsterm.h (EmacsScroller): Use enum for `last_hit_part' member.
+	* nsterm.m (ns_mouse_position, mouseUp):
+	* term.c (term_mouse_position):
+	* w32inevt.c (w32_console_mouse_position):
+	* w32term.c (w32_mouse_position):
+	* xterm.c (XTmouse_position): Use scroll_bar_above_handle.
+	(x_send_scroll_bar_event, xm_scroll_callback, xg_scroll_callback):
+	Prefer enum and explicit enum members to integers and numeric values.
+
 2014-09-24  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix some slow uses and misuses of strcat.

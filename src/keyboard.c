@@ -3747,14 +3747,12 @@ gen_help_event (Lisp_Object help, Lisp_Object frame, Lisp_Object window,
 {
   struct input_event event;
 
-  EVENT_INIT (event);
-
   event.kind = HELP_EVENT;
   event.frame_or_window = frame;
   event.arg = object;
   event.x = WINDOWP (window) ? window : frame;
   event.y = help;
-  event.code = pos;
+  event.timestamp = pos;
   kbd_buffer_store_event (&event);
 }
 
@@ -3771,7 +3769,7 @@ kbd_buffer_store_help_event (Lisp_Object frame, Lisp_Object help)
   event.arg = Qnil;
   event.x = Qnil;
   event.y = help;
-  event.code = 0;
+  event.timestamp = 0;
   kbd_buffer_store_event (&event);
 }
 
@@ -4086,7 +4084,7 @@ kbd_buffer_get_event (KBOARD **kbp,
 
 	  frame = event->frame_or_window;
 	  object = event->arg;
-	  position = make_number (event->code);
+	  position = make_number (event->timestamp);
 	  window = event->x;
 	  help = event->y;
 	  clear_event (event);
@@ -5201,9 +5199,11 @@ static Lisp_Object Qleftmost, Qrightmost;
 static Lisp_Object Qend_scroll;
 static Lisp_Object Qratio;
 
-/* An array of scroll bar parts, indexed by an enum scroll_bar_part value.  */
+/* An array of scroll bar parts, indexed by an enum scroll_bar_part value.
+   Note that Qnil corresponds to scroll_bar_nowhere and should not appear
+   in Lisp events.  */
 static Lisp_Object *const scroll_bar_parts[] = {
-  &Qabove_handle, &Qhandle, &Qbelow_handle,
+  &Qnil, &Qabove_handle, &Qhandle, &Qbelow_handle,
   &Qup, &Qdown, &Qtop, &Qbottom, &Qend_scroll, &Qratio,
   &Qbefore_handle, &Qhorizontal_handle, &Qafter_handle,
   &Qleft, &Qright, &Qleftmost, &Qrightmost, &Qend_scroll, &Qratio
@@ -5450,6 +5450,16 @@ toolkit_menubar_in_use (struct frame *f)
 #endif
 }
 
+/* Build the part of Lisp event which represents scroll bar state from
+   EV.  TYPE is one of Qvertical_scroll_bar or Qhorizontal_scroll_bar.  */
+
+static Lisp_Object
+make_scroll_bar_position (struct input_event *ev, Lisp_Object type)
+{
+  return list5 (ev->frame_or_window, type, Fcons (ev->x, ev->y),
+		make_number (ev->timestamp), *scroll_bar_parts[ev->part]);
+}
+
 /* Given a struct input_event, build the lisp event which represents
    it.  If EVENT is 0, build a mouse movement event from the mouse
    movement buffer, which should have a movement event in it.
@@ -5667,20 +5677,8 @@ make_lispy_event (struct input_event *event)
 	  }
 #ifndef USE_TOOLKIT_SCROLL_BARS
 	else
-	  {
-	    /* It's a scrollbar click.  */
-	    Lisp_Object window;
-	    Lisp_Object portion_whole;
-	    Lisp_Object part;
-
-	    window = event->frame_or_window;
-	    portion_whole = Fcons (event->x, event->y);
-	    part = *scroll_bar_parts[(int) event->part];
-
-	    position = list5 (window, Qvertical_scroll_bar,
-			      portion_whole, make_number (event->timestamp),
-			      part);
-	  }
+	  /* It's a scrollbar click.  */
+	  position = make_scroll_bar_position (event, Qvertical_scroll_bar);
 #endif /* not USE_TOOLKIT_SCROLL_BARS */
 
 	if (button >= ASIZE (button_down_location))
@@ -5957,14 +5955,9 @@ make_lispy_event (struct input_event *event)
 
     case SCROLL_BAR_CLICK_EVENT:
       {
-	Lisp_Object position, head, window, portion_whole, part;
+	Lisp_Object position, head;
 
-	window = event->frame_or_window;
-	portion_whole = Fcons (event->x, event->y);
-	part = *scroll_bar_parts[(int) event->part];
-
-	position = list5 (window, Qvertical_scroll_bar, portion_whole,
-			  make_number (event->timestamp), part);
+	position = make_scroll_bar_position (event, Qvertical_scroll_bar);
 
 	/* Always treat scroll bar events as clicks.  */
 	event->modifiers |= click_modifier;
@@ -5987,14 +5980,9 @@ make_lispy_event (struct input_event *event)
 
     case HORIZONTAL_SCROLL_BAR_CLICK_EVENT:
       {
-	Lisp_Object position, head, window, portion_whole, part;
+	Lisp_Object position, head;
 
-	window = event->frame_or_window;
-	portion_whole = Fcons (event->x, event->y);
-	part = *scroll_bar_parts[(int) event->part];
-
-	position = list5 (window, Qhorizontal_scroll_bar, portion_whole,
-			  make_number (event->timestamp), part);
+	position = make_scroll_bar_position (event, Qhorizontal_scroll_bar);
 
 	/* Always treat scroll bar events as clicks.  */
 	event->modifiers |= click_modifier;

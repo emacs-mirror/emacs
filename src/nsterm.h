@@ -401,7 +401,7 @@ typedef float EmacsCGFloat;
    CGFloat last_mouse_offset;
    float min_portion;
    int pixel_height;
-   int last_hit_part;
+   enum scroll_bar_part last_hit_part;
 
    BOOL condemned;
 
