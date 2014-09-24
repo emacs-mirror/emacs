@@ -508,16 +508,16 @@ get_utf8_string (const char *str)
              && err->code == G_CONVERT_ERROR_ILLEGAL_SEQUENCE)
         {
           memcpy (up, p, bytes_written);
-          sprintf (up + bytes_written, "\\%03o", p[bytes_written]);
-          up += bytes_written+4;
-          p += bytes_written+1;
+          up += bytes_written;
+          up += sprintf (up, "\\%03o", p[bytes_written]);
+          p += bytes_written + 1;
           g_error_free (err);
           err = NULL;
         }
 
       if (cp)
         {
-          strcat (utf8_str, cp);
+          strcpy (up, cp);
           g_free (cp);
         }
       if (err)

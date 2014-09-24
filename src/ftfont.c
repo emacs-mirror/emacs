@@ -804,7 +804,7 @@ ftfont_spec_pattern (Lisp_Object spec, char *otlayout, struct OpenTypeSpec **ots
 	      *otspec = ftfont_get_open_type_spec (val);
 	      if (! *otspec)
 		return NULL;
-	      strcat (otlayout, "otlayout:");
+	      strcpy (otlayout, "otlayout:");
 	      OTF_TAG_STR ((*otspec)->script_tag, otlayout + 9);
 	      script = (*otspec)->script;
 	    }

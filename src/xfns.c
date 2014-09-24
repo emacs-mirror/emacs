@@ -1786,7 +1786,7 @@ xic_create_fontsetname (const char *base_fontname, int motif)
 	  len = p - base_fontname + strlen (allcs) + 1;
 	  font_allcs = alloca (len);
 	  memcpy (font_allcs, base_fontname, p - base_fontname);
-	  strcat (font_allcs, allcs);
+	  strcpy (font_allcs + (p - base_fontname), allcs);
 
 	  /* Build the font spec that matches all families and
 	     add-styles.  */
@@ -1794,7 +1794,7 @@ xic_create_fontsetname (const char *base_fontname, int motif)
 	  font_allfamilies = alloca (len);
 	  strcpy (font_allfamilies, allfamilies);
 	  memcpy (font_allfamilies + strlen (allfamilies), p1, p - p1);
-	  strcat (font_allfamilies, allcs);
+	  strcpy (font_allfamilies + strlen (allfamilies) + (p - p1), allcs);
 
 	  /* Build the font spec that matches all.  */
 	  len = p - p2 + strlen (allcs) + strlen (all) + strlen (allfamilies) + 1;
@@ -1802,7 +1802,8 @@ xic_create_fontsetname (const char *base_fontname, int motif)
 	  strcpy (font_all, allfamilies);
 	  strcat (font_all, all);
 	  memcpy (font_all + strlen (all) + strlen (allfamilies), p2, p - p2);
-	  strcat (font_all, allcs);
+	  strcpy (font_all + strlen (all) + strlen (allfamilies) + (p - p2),
+		  allcs);
 
 	  /* Build the actual font set name.  */
 	  len = strlen (base_fontname) + strlen (font_allcs)

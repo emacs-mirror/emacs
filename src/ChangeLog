@@ -1,3 +1,14 @@
+2014-09-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix some slow uses and misuses of strcat.
+	* doc.c (get_doc_string):
+	* gtkutil.c (get_utf8_string):
+	* xsmfns.c (x_session_initialize):
+	Avoid recomputation of string length.
+	* ftfont.c (ftfont_spec_pattern):
+	* xfns.c (xic_create_fontsetname):
+	Don't assume output buffer is initially zero.
+
 2014-09-23  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* lisp.h (lispstpcpy): Rename from lispstrcpy, and act like stpcpy.
