@@ -1,3 +1,7 @@
+2014-09-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* package-keyring.gpg: New file.
+
 2014-08-28  Glenn Morris  <rgm@gnu.org>
 
 	* emacs.appdata.xml: New file; description from Emacs's homepage.
