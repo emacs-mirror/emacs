@@ -289,10 +289,10 @@ error !;
    describes an issues with 32-bit MS-Windows.  */
 #ifndef USE_STACK_LISP_OBJECTS
 # if defined (GNU_LINUX) && defined (__GNUC__) && !defined (__clang__)
-#   define USE_STACK_LISP_OBJECTS true
+#  define USE_STACK_LISP_OBJECTS true
+# else
+#  define USE_STACK_LISP_OBJECTS false
 # endif
-#else
-# define USE_STACK_LISP_OBJECTS false
 #endif
 
 #if defined HAVE_STRUCT_ATTRIBUTE_ALIGNED && USE_STACK_LISP_OBJECTS
