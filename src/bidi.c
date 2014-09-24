@@ -2011,7 +2011,6 @@ bidi_resolve_explicit (struct bidi_it *bidi_it)
 						       + bidi_it->ch_len, s,
 						       bidi_it->string.unibyte)))
 	{
-	  bidi_remember_char (&bidi_it->prev, bidi_it);
 	  /* This advances to the next character, skipping any
 	     characters covered by display strings.  */
 	  level = bidi_resolve_explicit_1 (bidi_it);
@@ -2426,29 +2425,29 @@ bidi_resolve_neutral (struct bidi_it *bidi_it)
 		   though they were R.''  */
 		next_type = STRONG_R;
 		break;
-	      case WEAK_BN:
-	      case NEUTRAL_ON:	/* W6/Retaining */
-		if (!bidi_explicit_dir_char (bidi_it->ch))
-		  emacs_abort (); /* can't happen: BNs are skipped */
-		/* FALLTHROUGH */
-	      case NEUTRAL_B:
-		/* Marched all the way to the end of this level run.
-		   We need to use the eos type, whose information is
-		   stored by bidi_set_sos_type in the prev_for_neutral
-		   member.  */
-		if (saved_it.type != WEAK_BN
-		    || bidi_get_category (bidi_it->prev.type_after_w1) == NEUTRAL)
-		  next_type = bidi_it->prev_for_neutral.type;
-		else
-		  {
-		    /* This is a BN which does not adjoin neutrals.
-		       Leave its type alone.  */
-		    bidi_copy_it (bidi_it, &saved_it);
-		    return bidi_it->type;
-		  }
-		break;
 	      default:
-		emacs_abort ();
+		if ((bidi_it->level_stack[bidi_it->stack_idx].level
+		     != current_level)
+		    || type == NEUTRAL_B)
+		  {
+		    /* Marched all the way to the end of this level
+		       run.  We need to use the eos type, whose
+		       information is stored by bidi_set_sos_type in
+		       the prev_for_neutral member.  */
+		    if (saved_it.type != WEAK_BN
+			|| bidi_get_category (bidi_it->prev.type_after_w1) == NEUTRAL)
+		      next_type = bidi_it->prev_for_neutral.type;
+		    else
+		      {
+			/* This is a BN which does not adjoin
+			   neutrals.  Leave its type alone.  */
+			bidi_copy_it (bidi_it, &saved_it);
+			return bidi_it->type;
+		      }
+		  }
+		else
+		  emacs_abort ();
+		break;
 	    }
 	  type = bidi_resolve_neutral_1 (saved_it.prev_for_neutral.type,
 					 next_type, current_level);
