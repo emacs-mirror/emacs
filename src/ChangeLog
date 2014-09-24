@@ -1,5 +1,16 @@
 2014-09-24  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Avoid signed integer overflow when converting Time to ptrdiff_t.
+	* keyboard.c (INPUT_EVENT_POS_MAX, INPUT_EVENT_POS_MIN):
+	New macros.
+	(position_to_Time, Time_to_position): New functions.
+	(gen_help_event, kbd_buffer_get_event): Use them.
+	* systime.h (Time) [emacs && !HAVE_X_WINDOWS]:
+	Go back to plain 'unsigned long', so that 'Time' is the same
+	for both X and non-X builds; this is less likely to cause surprise.
+	* termhooks.h: Remove compile-time check that Time and ptrdiff_t
+	are the same size; this is no longer required.
+
 	* keyboard.c (make_lispy_event): Avoid unnecessary tests
 	of bit 28 and of whether an unsigned value is negative.
 	This simplifies the code a bit, and pacifies clang 3.4.

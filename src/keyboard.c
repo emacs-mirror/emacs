@@ -3729,6 +3729,34 @@ kbd_buffer_unget_event (register struct input_event *event)
     }
 }
 
+/* Limit help event positions to this range, to avoid overflow problems.  */
+#define INPUT_EVENT_POS_MAX \
+  ((ptrdiff_t) min (PTRDIFF_MAX, min (TYPE_MAXIMUM (Time) / 2, \
+				      MOST_POSITIVE_FIXNUM)))
+#define INPUT_EVENT_POS_MIN (-1 - INPUT_EVENT_POS_MAX)
+
+/* Return a Time that encodes position POS.  POS must be in range.  */
+
+static Time
+position_to_Time (ptrdiff_t pos)
+{
+  eassert (INPUT_EVENT_POS_MIN <= pos && pos <= INPUT_EVENT_POS_MAX);
+  return pos;
+}
+
+/* Return the position that ENCODED_POS encodes.
+   Avoid signed integer overflow.  */
+
+static ptrdiff_t
+Time_to_position (Time encoded_pos)
+{
+  if (encoded_pos <= INPUT_EVENT_POS_MAX)
+    return encoded_pos;
+  Time encoded_pos_min = INPUT_EVENT_POS_MIN;
+  eassert (encoded_pos_min <= encoded_pos);
+  ptrdiff_t notpos = -1 - encoded_pos;
+  return -1 - notpos;
+}
 
 /* Generate a HELP_EVENT input_event and store it in the keyboard
    buffer.
@@ -3752,7 +3780,7 @@ gen_help_event (Lisp_Object help, Lisp_Object frame, Lisp_Object window,
   event.arg = object;
   event.x = WINDOWP (window) ? window : frame;
   event.y = help;
-  event.timestamp = pos;
+  event.timestamp = position_to_Time (pos);
   kbd_buffer_store_event (&event);
 }
 
@@ -4084,7 +4112,7 @@ kbd_buffer_get_event (KBOARD **kbp,
 
 	  frame = event->frame_or_window;
 	  object = event->arg;
-	  position = make_number (event->timestamp);
+	  position = make_number (Time_to_position (event->timestamp));
 	  window = event->x;
 	  help = event->y;
 	  clear_event (event);

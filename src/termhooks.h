@@ -288,9 +288,6 @@ struct input_event
   Lisp_Object arg;
 };
 
-/* To make sure we don't break HELP_EVENT.  */
-verify (sizeof (Time) == sizeof (ptrdiff_t));
-
 #define EVENT_INIT(event) memset (&(event), 0, sizeof (struct input_event))
 
 /* Bits in the modifiers member of the input_event structure.
