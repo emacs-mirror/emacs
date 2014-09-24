@@ -1,3 +1,54 @@
+2014-09-24  Ulf Jasper  <ulf.jasper@web.de>
+
+	* net/newst-treeview.el (newsticker--treeview-do-get-node-by-id):
+	Renamed `newsticker--treeview-do-get-node' to
+	`newsticker--treeview-do-get-node-by-id'.
+	(newsticker--treeview-get-node-by-id): Renamed
+	`newsticker--treeview-get-node' to
+	`newsticker--treeview-get-node-by-id'.
+	(newsticker--treeview-get-current-node): Renamed `
+	`newsticker--treeview-get-node' to
+	`newsticker--treeview-get-node-by-id'.
+	(newsticker--treeview-buffer-init)
+	(newsticker--treeview-buffer-init): Disable buffer undo.
+	(newsticker--treeview-unfold-node): Adapted to modified
+	`newsticker--group-find-parent-group'.
+	(newsticker--group-do-find-group): Renamed
+	`newsticker--group-do-find-group-for-feed' to
+	`newsticker--group-do-find-group'.  Now works for both, groups and
+	feeds.
+	(newsticker--group-find-parent-group): Renamed
+	`newsticker--group-find-group-for-feed' to
+	`newsticker--group-find-parent-group'.  Now works for both, groups
+	and feeds.
+	(newsticker--group-do-get-parent-group)
+	(newsticker--group-get-parent-group): Removed.
+	(newsticker-group-add-group): Changed interactive prompts.
+	(newsticker-group-add-group): Finally jump to added group.
+	(newsticker-group-delete-group): Finally jump to current feed.
+	(newsticker--group-do-rename-group, newsticker-group-rename-group)
+	(newsticker--get-group-names, newsticker--group-names): New.
+	(newsticker-group-move-feed): Finally jump to moved feed.
+	(newsticker-group-shift-feed-down, newsticker-group-shift-feed-up)
+	(newsticker-group-shift-group-down)
+	(newsticker-group-shift-group-up, newsticker--group-shift): New
+	(newsticker--group-manage-orphan-feeds): Renamed
+	`newsticker--group-find-group-for-feed' to
+	`newsticker--group-find-parent-group'.
+	(newsticker-treeview-mode-map): New keybindings for new shift commands.
+	(newsticker-treeview-tree-do-click): Renamed
+	`newsticker--treeview-get-node' to
+	`newsticker--treeview-get-node-by-id'.
+
+	* net/newst-backend.el (newsticker--item-list)
+	(newsticker--item-position, newsticker--prev-message)
+	(newsticker--scrollable-text): Moved to newst-ticker.el.
+
+	* net/newst-ticker.el (newsticker--item-list)
+	(newsticker--item-position, newsticker--prev-message)
+	(newsticker--scrollable-text): Moved from newst-backend.el.
+
+
 2014-09-22  Kan-Ru Chen  <kanru@kanru.info>
 
 	* window.el (fit-window-to-buffer): When counting buffer width,

@@ -1,3 +1,9 @@
+2014-09-24  Ulf Jasper  <ulf.jasper@web.de>
+
+	* automated/newsticker-tests.el
+	(newsticker--group-find-parent-group),
+	(newsticker--group-do-rename-group): New tests.
+
 2014-09-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* automated/fns-tests.el (fns-tests-collate-sort): Bind
