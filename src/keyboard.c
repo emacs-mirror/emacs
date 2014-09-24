@@ -5548,30 +5548,27 @@ make_lispy_event (struct input_event *event)
                                     ARRAYELTS (iso_lispy_function_keys));
 #endif
 
-      /* Handle system-specific or unknown keysyms.  */
-      if (event->code & (1 << 28)
-	  || event->code - FUNCTION_KEY_OFFSET < 0
-	  || (event->code - FUNCTION_KEY_OFFSET
-	      >= ARRAYELTS (lispy_function_keys))
-	  || !lispy_function_keys[event->code - FUNCTION_KEY_OFFSET])
-	{
-	  /* We need to use an alist rather than a vector as the cache
-	     since we can't make a vector long enough.  */
-	  if (NILP (KVAR (current_kboard, system_key_syms)))
-	    kset_system_key_syms (current_kboard, Fcons (Qnil, Qnil));
-	  return modify_event_symbol (event->code,
-				      event->modifiers,
-				      Qfunction_key,
-				      KVAR (current_kboard, Vsystem_key_alist),
-				      0, &KVAR (current_kboard, system_key_syms),
-				      PTRDIFF_MAX);
-	}
+      if ((FUNCTION_KEY_OFFSET <= event->code
+	   && (event->code
+	       < FUNCTION_KEY_OFFSET + ARRAYELTS (lispy_function_keys)))
+	  && lispy_function_keys[event->code - FUNCTION_KEY_OFFSET])
+	return modify_event_symbol (event->code - FUNCTION_KEY_OFFSET,
+				    event->modifiers,
+				    Qfunction_key, Qnil,
+				    lispy_function_keys, &func_key_syms,
+				    ARRAYELTS (lispy_function_keys));
 
-      return modify_event_symbol (event->code - FUNCTION_KEY_OFFSET,
+      /* Handle system-specific or unknown keysyms.
+	 We need to use an alist rather than a vector as the cache
+	 since we can't make a vector long enough.  */
+      if (NILP (KVAR (current_kboard, system_key_syms)))
+	kset_system_key_syms (current_kboard, Fcons (Qnil, Qnil));
+      return modify_event_symbol (event->code,
 				  event->modifiers,
-				  Qfunction_key, Qnil,
-				  lispy_function_keys, &func_key_syms,
-                                  ARRAYELTS (lispy_function_keys));
+				  Qfunction_key,
+				  KVAR (current_kboard, Vsystem_key_alist),
+				  0, &KVAR (current_kboard, system_key_syms),
+				  PTRDIFF_MAX);
 
 #ifdef HAVE_NTGUI
     case MULTIMEDIA_KEY_EVENT:

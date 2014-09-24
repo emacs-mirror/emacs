@@ -1,3 +1,9 @@
+2014-09-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* keyboard.c (make_lispy_event): Avoid unnecessary tests
+	of bit 28 and of whether an unsigned value is negative.
+	This simplifies the code a bit, and pacifies clang 3.4.
+
 2014-09-24  Eli Zaretskii  <eliz@gnu.org>
 
 	* systime.h (Time): Define as size_t, to be consistent with 64-bit
