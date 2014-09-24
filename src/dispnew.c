@@ -2138,8 +2138,11 @@ adjust_frame_glyphs_for_window_redisplay (struct frame *f)
 static void
 adjust_decode_mode_spec_buffer (struct frame *f)
 {
+  ssize_t frame_message_buf_size = FRAME_MESSAGE_BUF_SIZE (f);
+
+  eassert (frame_message_buf_size >= 0);
   f->decode_mode_spec_buffer = xrealloc (f->decode_mode_spec_buffer,
-					 FRAME_MESSAGE_BUF_SIZE (f) + 1);
+					 frame_message_buf_size + 1);
 }
 
 
@@ -5539,10 +5542,6 @@ change_frame_size_1 (struct frame *f, int new_width, int new_height,
     {
       new_text_width = (new_width == 0) ? FRAME_TEXT_WIDTH (f) : new_width;
       new_text_height = (new_height == 0) ? FRAME_TEXT_HEIGHT (f) : new_height;
-      /* Consider rounding here: Currently, the root window can be
-	 larger than the frame in terms of columns/lines.  */
-      new_cols = new_text_width / FRAME_COLUMN_WIDTH (f);
-      new_lines = new_text_height / FRAME_LINE_HEIGHT (f);
     }
   else
     {
@@ -5555,6 +5554,12 @@ change_frame_size_1 (struct frame *f, int new_width, int new_height,
   /* Compute width of windows in F.  */
   /* Round up to the smallest acceptable size.  */
   check_frame_size (f, &new_text_width, &new_text_height, 1);
+  /* Recompute the dimensions in character units, since
+     check_frame_size might have changed the pixel dimensions.  */
+  /* Consider rounding here: Currently, the root window can be
+     larger than the frame in terms of columns/lines.  */
+  new_cols = new_text_width / FRAME_COLUMN_WIDTH (f);
+  new_lines = new_text_height / FRAME_LINE_HEIGHT (f);
 
   /* This is the width of the frame without vertical scroll bars and
      fringe columns.  Do this after rounding - see discussion of

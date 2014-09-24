@@ -1,3 +1,16 @@
+2014-09-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32term.c (w32_read_socket): Don't use frame dimensions for
+	resizing if GetClientRect returned an empty (0, 0, 0, 0)
+	rectangle.  Check the return value of GetClientRect, and don't use
+	the results if it didn't succeed.
+
+	* dispnew.c (change_frame_size_1): Recompute the frame dimensions
+	in columns and lines after correcting the pixel dimensions in
+	check_frame_size.
+	(adjust_decode_mode_spec_buffer): Add assertion to avoid passing
+	negative values to xrealloc.  (Bug#18528)
+
 2014-09-22  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	On OSX, do not free font-specific data more than once (Bug#18501).

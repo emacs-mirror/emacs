@@ -4754,34 +4754,42 @@ w32_read_socket (struct terminal *terminal,
 	      RECT rect;
 	      int rows, columns, width, height, text_width, text_height;
 
-	      GetClientRect (msg.msg.hwnd, &rect);
-
-	      height = rect.bottom - rect.top;
-	      width = rect.right - rect.left;
-	      text_width = FRAME_PIXEL_TO_TEXT_WIDTH (f, width);
-	      text_height = FRAME_PIXEL_TO_TEXT_HEIGHT (f, height);
-	      rows = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, height);
-	      columns = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, width);
-
-	      /* TODO: Clip size to the screen dimensions.  */
-
-	      /* Even if the number of character rows and columns has
-		 not changed, the font size may have changed, so we need
-		 to check the pixel dimensions as well.  */
-
-	      if (width != FRAME_PIXEL_WIDTH (f)
-		  || height != FRAME_PIXEL_HEIGHT (f)
-		  || text_width != FRAME_TEXT_WIDTH (f)
-		  || text_height != FRAME_TEXT_HEIGHT (f))
+	      if (GetClientRect (msg.msg.hwnd, &rect)
+		  /* GetClientRect evidently returns (0, 0, 0, 0) if
+		     called on a minimized frame.  Such "dimensions"
+		     aren't useful anyway.  */
+		  && !(rect.bottom == 0
+		       && rect.top == 0
+		       && rect.left == 0
+		       && rect.right == 0))
 		{
-		  change_frame_size (f, text_width, text_height, 0, 1, 0, 1);
-		  SET_FRAME_GARBAGED (f);
-		  cancel_mouse_face (f);
-		  /* Do we want to set these here ????  */
-/** 		  FRAME_PIXEL_WIDTH (f) = width; **/
-/** 		  FRAME_TEXT_WIDTH (f) = text_width; **/
-/** 		  FRAME_PIXEL_HEIGHT (f) = height; **/
-		  f->win_gravity = NorthWestGravity;
+		  height = rect.bottom - rect.top;
+		  width = rect.right - rect.left;
+		  text_width = FRAME_PIXEL_TO_TEXT_WIDTH (f, width);
+		  text_height = FRAME_PIXEL_TO_TEXT_HEIGHT (f, height);
+		  rows = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, height);
+		  columns = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, width);
+
+		  /* TODO: Clip size to the screen dimensions.  */
+
+		  /* Even if the number of character rows and columns
+		     has not changed, the font size may have changed,
+		     so we need to check the pixel dimensions as well.  */
+
+		  if (width != FRAME_PIXEL_WIDTH (f)
+		      || height != FRAME_PIXEL_HEIGHT (f)
+		      || text_width != FRAME_TEXT_WIDTH (f)
+		      || text_height != FRAME_TEXT_HEIGHT (f))
+		    {
+		      change_frame_size (f, text_width, text_height, 0, 1, 0, 1);
+		      SET_FRAME_GARBAGED (f);
+		      cancel_mouse_face (f);
+		      /* Do we want to set these here ????  */
+		      /** 		FRAME_PIXEL_WIDTH (f) = width; **/
+		      /** 		FRAME_TEXT_WIDTH (f) = text_width; **/
+		      /** 		FRAME_PIXEL_HEIGHT (f) = height; **/
+		      f->win_gravity = NorthWestGravity;
+		    }
 		}
 	    }
 
