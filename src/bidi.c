@@ -414,7 +414,6 @@ bidi_set_sos_type (struct bidi_it *bidi_it, int level_before, int level_after)
   bidi_it->prev_for_neutral.bytepos = bidi_it->bytepos;
   bidi_it->next_for_neutral.type = bidi_it->next_for_neutral.type_after_w1
     = bidi_it->next_for_neutral.orig_type = UNKNOWN_BT;
-  bidi_it->ignore_bn_limit = -1; /* meaning it's unknown */
 }
 
 /* Push the current embedding level and override status; reset the
@@ -760,7 +759,6 @@ bidi_cache_iterator_state (struct bidi_it *bidi_it, bool resolved)
       bidi_cache[idx].invalid_levels = bidi_it->invalid_levels;
       bidi_cache[idx].next_for_neutral = bidi_it->next_for_neutral;
       bidi_cache[idx].next_for_ws = bidi_it->next_for_ws;
-      bidi_cache[idx].ignore_bn_limit = bidi_it->ignore_bn_limit;
       bidi_cache[idx].disp_pos = bidi_it->disp_pos;
       bidi_cache[idx].disp_prop = bidi_it->disp_prop;
     }
@@ -1014,7 +1012,7 @@ bidi_init_it (ptrdiff_t charpos, ptrdiff_t bytepos, bool frame_window_p,
   if (bytepos >= 0)
     bidi_it->bytepos = bytepos;
   bidi_it->frame_window_p = frame_window_p;
-  bidi_it->nchars = -1;	/* to be computed in bidi_resolve_explicit_1 */
+  bidi_it->nchars = -1;	/* to be computed in bidi_resolve_explicit */
   bidi_it->first_elt = 1;
   bidi_set_paragraph_end (bidi_it);
   bidi_it->new_paragraph = 1;
@@ -1673,12 +1671,13 @@ bidi_explicit_dir_char (int ch)
 	  || ch_type == PDF);
 }
 
-/* A helper function for bidi_resolve_explicit.  It advances to the
-   next character in logical order and determines the new embedding
-   level and directional override, but does not take into account
-   empty embeddings.  */
+/* Given an iterator state in BIDI_IT, advance one character position
+   in the buffer/string to the next character (in the logical order),
+   resolve any explicit embeddings, directional overrides, and isolate
+   initiators and terminators, and return the embedding level of the
+   character after resolving these explicit directives.  */
 static int
-bidi_resolve_explicit_1 (struct bidi_it *bidi_it)
+bidi_resolve_explicit (struct bidi_it *bidi_it)
 {
   int curchar;
   bidi_type_t type, typ1, prev_type = UNKNOWN_BT;;
@@ -1789,64 +1788,50 @@ bidi_resolve_explicit_1 (struct bidi_it *bidi_it)
 	bidi_it->type_after_w1 = type;
 	bidi_check_type (bidi_it->type_after_w1);
 	type = WEAK_BN; /* X9/Retaining */
-	if (bidi_it->ignore_bn_limit <= -1)
+	if (current_level < BIDI_MAXDEPTH
+	    && bidi_it->invalid_levels == 0
+	    && bidi_it->invalid_isolates == 0)
 	  {
-	    if (current_level < BIDI_MAXDEPTH
-		&& bidi_it->invalid_levels == 0
-		&& bidi_it->invalid_isolates == 0)
-	      {
-		/* Compute the least odd embedding level greater than
-		   the current level.  */
-		new_level = ((current_level + 1) & ~1) + 1;
-		if (bidi_it->type_after_w1 == RLE)
-		  override = NEUTRAL_DIR;
-		else
-		  override = R2L;
-		bidi_push_embedding_level (bidi_it, new_level, override, false);
-		bidi_it->resolved_level = new_level;
-	      }
+	    /* Compute the least odd embedding level greater than
+	       the current level.  */
+	    new_level = ((current_level + 1) & ~1) + 1;
+	    if (bidi_it->type_after_w1 == RLE)
+	      override = NEUTRAL_DIR;
 	    else
-	      {
-		if (bidi_it->invalid_isolates == 0)
-		  bidi_it->invalid_levels++;
-	      }
+	      override = R2L;
+	    bidi_push_embedding_level (bidi_it, new_level, override, false);
+	    bidi_it->resolved_level = new_level;
 	  }
-	else if (bidi_it->prev.type_after_w1 == WEAK_EN /* W5/Retaining */
-		 || (bidi_it->next_en_pos > bidi_it->charpos
-		     && bidi_it->next_en_type == WEAK_EN))
-	  type = WEAK_EN;
+	else
+	  {
+	    if (bidi_it->invalid_isolates == 0)
+	      bidi_it->invalid_levels++;
+	  }
 	break;
       case LRE:	/* X3 */
       case LRO:	/* X5 */
 	bidi_it->type_after_w1 = type;
 	bidi_check_type (bidi_it->type_after_w1);
 	type = WEAK_BN; /* X9/Retaining */
-	if (bidi_it->ignore_bn_limit <= -1)
+	if (current_level < BIDI_MAXDEPTH - 1
+	    && bidi_it->invalid_levels == 0
+	    && bidi_it->invalid_isolates == 0)
 	  {
-	    if (current_level < BIDI_MAXDEPTH - 1
-		&& bidi_it->invalid_levels == 0
-		&& bidi_it->invalid_isolates == 0)
-	      {
-		/* Compute the least even embedding level greater than
-		   the current level.  */
-		new_level = ((current_level + 2) & ~1);
-		if (bidi_it->type_after_w1 == LRE)
-		  override = NEUTRAL_DIR;
-		else
-		  override = L2R;
-		bidi_push_embedding_level (bidi_it, new_level, override, false);
-		bidi_it->resolved_level = new_level;
-	      }
+	    /* Compute the least even embedding level greater than
+	       the current level.  */
+	    new_level = ((current_level + 2) & ~1);
+	    if (bidi_it->type_after_w1 == LRE)
+	      override = NEUTRAL_DIR;
 	    else
-	      {
-		if (bidi_it->invalid_isolates == 0)
-		  bidi_it->invalid_levels++;
-	      }
+	      override = L2R;
+	    bidi_push_embedding_level (bidi_it, new_level, override, false);
+	    bidi_it->resolved_level = new_level;
 	  }
-	else if (bidi_it->prev.type_after_w1 == WEAK_EN /* W5/Retaining */
-		 || (bidi_it->next_en_pos > bidi_it->charpos
-		     && bidi_it->next_en_type == WEAK_EN))
-	  type = WEAK_EN;
+	else
+	  {
+	    if (bidi_it->invalid_isolates == 0)
+	      bidi_it->invalid_levels++;
+	  }
 	break;
       case PDI:	/* X6a */
 	if (bidi_it->invalid_isolates)
@@ -1876,11 +1861,6 @@ bidi_resolve_explicit_1 (struct bidi_it *bidi_it)
 	bidi_it->type_after_w1 = type;
 	bidi_check_type (bidi_it->type_after_w1);
 	type = WEAK_BN; /* X9/Retaining */
-	if (bidi_it->ignore_bn_limit > -1
-	    && bidi_it->prev.type_after_w1 == WEAK_EN /* W5/Retaining */
-	    || (bidi_it->next_en_pos > bidi_it->charpos
-		&& bidi_it->next_en_type == WEAK_EN))
-	  type = WEAK_EN;
 	break;
       default:
 	/* LRI, RLI, and FSI increment, and PDF decrements, the
@@ -1947,17 +1927,14 @@ bidi_resolve_explicit_1 (struct bidi_it *bidi_it)
 	      bidi_it->invalid_isolates++;
 	    break;
 	  case PDF:	/* X7 */
-	    if (bidi_it->ignore_bn_limit <= -1)
+	    if (!bidi_it->invalid_isolates)
 	      {
-		if (!bidi_it->invalid_isolates)
-		  {
-		    if (bidi_it->invalid_levels)
-		      bidi_it->invalid_levels--;
-		    else if (!isolate_status && bidi_it->stack_idx >= 1)
-		      new_level = bidi_pop_embedding_level (bidi_it);
-		  }
-		bidi_it->resolved_level = new_level;
+		if (bidi_it->invalid_levels)
+		  bidi_it->invalid_levels--;
+		else if (!isolate_status && bidi_it->stack_idx >= 1)
+		  new_level = bidi_pop_embedding_level (bidi_it);
 	      }
+	    bidi_it->resolved_level = new_level;
 	    break;
 	  default:
 	    /* Nothing.  */
@@ -1968,85 +1945,15 @@ bidi_resolve_explicit_1 (struct bidi_it *bidi_it)
   bidi_it->type = type;
   bidi_check_type (bidi_it->type);
 
-  eassert (bidi_it->resolved_level >= 0);
-  return bidi_it->resolved_level;
-}
-
-/* Given an iterator state in BIDI_IT, advance one character position
-   in the buffer/string to the next character (in the logical order),
-   resolve any explicit embeddings and directional overrides, and
-   return the embedding level of the character after resolving
-   explicit directives and ignoring empty embeddings.  */
-static int
-bidi_resolve_explicit (struct bidi_it *bidi_it)
-{
-  int prev_level = bidi_it->level_stack[bidi_it->stack_idx].level;
-  int new_level  = bidi_resolve_explicit_1 (bidi_it);
-  ptrdiff_t eob = bidi_it->string.s ? bidi_it->string.schars : ZV;
-  const unsigned char *s
-    = (STRINGP (bidi_it->string.lstring)
-       ? SDATA (bidi_it->string.lstring)
-       : bidi_it->string.s);
-
-  eassert (prev_level >= 0);
-  if (prev_level < new_level
-      && bidi_it->type == WEAK_BN
-      && bidi_it->ignore_bn_limit == -1 /* only if not already known */
-      && bidi_it->charpos < eob		/* not already at EOB */
-      && bidi_explicit_dir_char (bidi_char_at_pos (bidi_it->bytepos
-						   + bidi_it->ch_len, s,
-						   bidi_it->string.unibyte)))
-    {
-      /* Avoid pushing and popping embedding levels if the level run
-	 is empty, as this breaks level runs where it shouldn't.
-	 UAX#9 removes all the explicit embedding and override codes,
-	 so empty embeddings disappear without a trace.  We need to
-	 behave as if we did the same.  */
-      struct bidi_it saved_it;
-      int level = prev_level;
-
-      bidi_copy_it (&saved_it, bidi_it);
-
-      while (bidi_explicit_dir_char (bidi_char_at_pos (bidi_it->bytepos
-						       + bidi_it->ch_len, s,
-						       bidi_it->string.unibyte)))
-	{
-	  /* This advances to the next character, skipping any
-	     characters covered by display strings.  */
-	  level = bidi_resolve_explicit_1 (bidi_it);
-	  /* If string.lstring was relocated inside bidi_resolve_explicit_1,
-	     a pointer to its data is no longer valid.  */
-	  if (STRINGP (bidi_it->string.lstring))
-	    s = SDATA (bidi_it->string.lstring);
-	}
-
-      if (bidi_it->nchars <= 0)
-	emacs_abort ();
-      if (level == prev_level)	/* empty embedding */
-	saved_it.ignore_bn_limit = bidi_it->charpos + bidi_it->nchars;
-      else			/* this embedding is non-empty */
-	saved_it.ignore_bn_limit = -2;
-
-      bidi_copy_it (bidi_it, &saved_it);
-      if (bidi_it->ignore_bn_limit > -1)
-	{
-	  /* We pushed a level, but we shouldn't have.  Undo that. */
-	  if (!bidi_it->invalid_levels)
-	    new_level = bidi_pop_embedding_level (bidi_it);
-	  else
-	    bidi_it->invalid_levels--;
-	}
-    }
-
   if (bidi_it->type == NEUTRAL_B)	/* X8 */
     {
       bidi_set_paragraph_end (bidi_it);
       /* This is needed by bidi_resolve_weak below, and in L1.  */
       bidi_it->type_after_w1 = bidi_it->type;
-      bidi_check_type (bidi_it->type_after_w1);
     }
 
-  return new_level;
+  eassert (bidi_it->resolved_level >= 0);
+  return bidi_it->resolved_level;
 }
 
 static bool
@@ -2473,14 +2380,6 @@ bidi_type_of_next_char (struct bidi_it *bidi_it)
   /* This should always be called during a forward scan.  */
   if (bidi_it->scan_dir != 1)
     emacs_abort ();
-
-  /* Reset the limit until which to ignore BNs if we step out of the
-     area where we found only empty levels.  */
-  if ((bidi_it->ignore_bn_limit > -1
-       && bidi_it->ignore_bn_limit <= bidi_it->charpos)
-      || (bidi_it->ignore_bn_limit == -2
-	  && !bidi_explicit_dir_char (bidi_it->ch)))
-    bidi_it->ignore_bn_limit = -1;
 
   type = bidi_resolve_neutral (bidi_it);
 
