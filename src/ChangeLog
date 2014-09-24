@@ -1,5 +1,10 @@
 2014-09-24  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Default to stack objects on non-GNU/Linux, non-DOS_NT platforms.
+	* lisp.h (USE_STACK_LISP_OBJECTS): Also default to true
+	if !defined DOS_NT && !defined GNU_LINUX.  I've tested this on AIX
+	and Solaris and it's likely to work on similar platforms.
+
 	Avoid signed integer overflow when converting Time to ptrdiff_t.
 	* keyboard.c (INPUT_EVENT_POS_MAX, INPUT_EVENT_POS_MIN):
 	New macros.

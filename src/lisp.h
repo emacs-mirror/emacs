@@ -282,13 +282,12 @@ error !;
 # endif
 #endif
 
-/* This should work on GNU/Linux with GCC.  Other configurations may be
-   problematic and/or not tested yet.  Clang is known to have problems,
-   see http://lists.gnu.org/archive/html/emacs-devel/2014-09/msg00506.html.
+/* This should work with GCC on non-DOS_NT.  Clang has known problems; see
+   http://lists.gnu.org/archive/html/emacs-devel/2014-09/msg00506.html.
    Also http://lists.gnu.org/archive/html/emacs-devel/2014-09/msg00422.html
-   describes an issues with 32-bit MS-Windows.  */
+   describes an issue with 32-bit MS-Windows.  */
 #ifndef USE_STACK_LISP_OBJECTS
-# if defined (GNU_LINUX) && defined (__GNUC__) && !defined (__clang__)
+# if defined __GNUC__ && !defined __clang__ && !defined DOS_NT
 #  define USE_STACK_LISP_OBJECTS true
 # else
 #  define USE_STACK_LISP_OBJECTS false
