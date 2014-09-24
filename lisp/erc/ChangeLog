@@ -1,3 +1,10 @@
+2014-09-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* erc-track.el (erc-modified-channels-display): Update all mode lines
+	if needed (bug#18510).  Remove call to erc-modified-channels-object
+	where we ignored the return value.
+	(erc-modified-channels-update): Don't force-mode-line-update here any more.
+
 2014-02-25  Julien Danjou  <julien@danjou.info>
 
 	* erc-networks.el (erc-determine-network): Check that NETWORK as a
