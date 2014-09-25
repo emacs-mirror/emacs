@@ -2706,7 +2706,8 @@ If dialog boxes are supported, a dialog box will be used
 if `last-nonmenu-event' is nil, and `use-dialog-box' is non-nil.  */)
   (Lisp_Object prompt)
 {
-  register Lisp_Object ans;
+  USE_LOCAL_ALLOCA;
+  Lisp_Object ans;
   struct gcpro gcpro1;
 
   CHECK_STRING (prompt);
@@ -3996,7 +3997,7 @@ maybe_resize_hash_table (struct Lisp_Hash_Table *h)
       if (HASH_TABLE_P (Vpurify_flag)
 	  && XHASH_TABLE (Vpurify_flag) == h)
 	Fmessage (2, ((Lisp_Object [])
-	  { build_local_string ("Growing hash table to: %d"),
+	  { build_string ("Growing hash table to: %d"),
 	    make_number (new_size) }));
 #endif
 

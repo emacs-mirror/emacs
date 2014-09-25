@@ -481,6 +481,7 @@ static void
 load_charset_map_from_file (struct charset *charset, Lisp_Object mapfile,
 			    int control_flag)
 {
+  USE_LOCAL_ALLOCA;
   unsigned min_code = CHARSET_MIN_CODE (charset);
   unsigned max_code = CHARSET_MAX_CODE (charset);
   int fd;
@@ -1550,6 +1551,7 @@ If the current buffer is unibyte, the returned list may contain
 only `ascii', `eight-bit-control', and `eight-bit-graphic'.  */)
   (Lisp_Object beg, Lisp_Object end, Lisp_Object table)
 {
+  USE_LOCAL_ALLOCA;
   Lisp_Object charsets;
   ptrdiff_t from, from_byte, to, stop, stop_byte;
   int i;
@@ -1601,6 +1603,7 @@ If STR is unibyte, the returned list may contain
 only `ascii', `eight-bit-control', and `eight-bit-graphic'. */)
   (Lisp_Object str, Lisp_Object table)
 {
+  USE_LOCAL_ALLOCA;
   Lisp_Object charsets;
   int i;
   Lisp_Object val;

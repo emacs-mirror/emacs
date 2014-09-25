@@ -677,6 +677,7 @@ xfont_list_family (struct frame *f)
 static Lisp_Object
 xfont_open (struct frame *f, Lisp_Object entity, int pixel_size)
 {
+  USE_LOCAL_ALLOCA;
   Display_Info *dpyinfo = FRAME_DISPLAY_INFO (f);
   Display *display = dpyinfo->display;
   char name[512];

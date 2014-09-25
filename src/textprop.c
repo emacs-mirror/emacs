@@ -1913,6 +1913,7 @@ Lisp_Object
 copy_text_properties (Lisp_Object start, Lisp_Object end, Lisp_Object src,
 		      Lisp_Object pos, Lisp_Object dest, Lisp_Object prop)
 {
+  USE_LOCAL_ALLOCA;
   INTERVAL i;
   Lisp_Object res;
   Lisp_Object stuff;

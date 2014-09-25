@@ -3531,6 +3531,7 @@ properties to add to the result.
 usage: (propertize STRING &rest PROPERTIES)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
+  USE_LOCAL_ALLOCA;
   Lisp_Object properties, string;
   struct gcpro gcpro1, gcpro2;
   ptrdiff_t i;
@@ -4362,6 +4363,7 @@ usage: (format STRING &rest OBJECTS)  */)
 Lisp_Object
 format2 (const char *string1, Lisp_Object arg0, Lisp_Object arg1)
 {
+  USE_LOCAL_ALLOCA;
   return Fformat (3, ((Lisp_Object [])
     { build_local_string (string1), arg0, arg1 }));
 }

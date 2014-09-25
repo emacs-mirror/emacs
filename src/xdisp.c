@@ -20892,6 +20892,7 @@ paragraphs, text begins at the right margin and is read from right to left.
 See also `bidi-paragraph-direction'.  */)
   (Lisp_Object buffer)
 {
+  USE_LOCAL_ALLOCA;
   struct buffer *buf = current_buffer;
   struct buffer *old = buf;
 

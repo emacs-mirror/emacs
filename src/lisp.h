@@ -4562,11 +4562,27 @@ extern void *record_xmalloc (size_t) ATTRIBUTE_ALLOC_SIZE ((1));
   } while (false)
 
 
+/* Return floor (NBYTES / WORD_SIZE).  */
+
+INLINE ptrdiff_t
+lisp_word_count (ptrdiff_t nbytes)
+{
+  if (-1 >> 1 == -1)
+    switch (word_size)
+      {
+      case 2: return nbytes >> 1;
+      case 4: return nbytes >> 2;
+      case 8: return nbytes >> 3;
+      case 16: return nbytes >> 4;
+      }
+  return nbytes / word_size - (nbytes % word_size < 0);
+}
+
 /* SAFE_ALLOCA_LISP allocates an array of Lisp_Objects.  */
 
 #define SAFE_ALLOCA_LISP(buf, nelt)			       \
   do {							       \
-    if ((nelt) <= sa_avail / word_size)			       \
+    if ((nelt) <= lisp_word_count (sa_avail))		       \
       (buf) = AVAIL_ALLOCA ((nelt) * word_size);	       \
     else if ((nelt) <= min (PTRDIFF_MAX, SIZE_MAX) / word_size) \
       {							       \
@@ -4635,17 +4651,27 @@ verify (sizeof (struct Lisp_Cons) == sizeof (union Aligned_Cons));
 # define USE_LOCAL_ALLOCATORS
 #endif
 
+/* Any function that uses a local allocator should start with either
+   'USE_SAFE_ALLOCA; or 'USE_LOCAL_ALLOCA;' (but not both).  */
+#ifdef USE_LOCAL_ALLOCATORS
+# define USE_LOCAL_ALLOCA ptrdiff_t sa_avail = MAX_ALLOCA
+#else
+# define USE_LOCAL_ALLOCA
+#endif
+
 #ifdef USE_LOCAL_ALLOCATORS
 
 /* Return a function-scoped cons whose car is X and cdr is Y.  */
 
 # define local_cons(x, y)						\
-    ({									\
-       struct Lisp_Cons *c_ = alloca (sizeof (struct Lisp_Cons));	\
-       c_->car = (x);							\
-       c_->u.cdr = (y);							\
-       make_lisp_ptr (c_, Lisp_Cons);					\
-    })
+    (sizeof (struct Lisp_Cons) <= sa_avail				\
+     ? ({								\
+	  struct Lisp_Cons *c_ = AVAIL_ALLOCA (sizeof (struct Lisp_Cons)); \
+	  c_->car = (x);						\
+	  c_->u.cdr = (y);						\
+	  make_lisp_ptr (c_, Lisp_Cons);				\
+       })								\
+     : Fcons (x, y))
 
 # define local_list1(a) local_cons (a, Qnil)
 # define local_list2(a, b) local_cons (a, local_list1 (b))
@@ -4658,33 +4684,33 @@ verify (sizeof (struct Lisp_Cons) == sizeof (union Aligned_Cons));
 # define make_local_vector(size, init)					\
     ({									\
        ptrdiff_t size_ = size;						\
-       Lisp_Object init_ = init;					\
        Lisp_Object vec_;						\
-       if (size_ <= (MAX_ALLOCA - header_size) / word_size)		\
+       if (size_ <= lisp_word_count (sa_avail - header_size))		\
 	 {								\
-	   void *ptr_ = alloca (size_ * word_size + header_size);	\
-	   vec_ = local_vector_init (ptr_, size_, init_);		\
+	   void *ptr_ = AVAIL_ALLOCA (size_ * word_size + header_size);	\
+	   vec_ = local_vector_init (ptr_, size_, init);		\
 	 }								\
        else								\
-	 vec_ = Fmake_vector (make_number (size_), init_);		\
+	 vec_ = Fmake_vector (make_number (size_), init);		\
        vec_;								\
     })
+
+enum { LISP_STRING_OVERHEAD = sizeof (struct Lisp_String) + 1 };
 
 /* Return a function-scoped string with contents DATA and length NBYTES.  */
 
 # define make_local_string(data, nbytes) 				\
     ({									\
-       char const *data_ = data;					\
        ptrdiff_t nbytes_ = nbytes;					\
        Lisp_Object string_;						\
-       if (nbytes_ <= MAX_ALLOCA - sizeof (struct Lisp_String) - 1)	\
+       if (nbytes_ <= sa_avail - LISP_STRING_OVERHEAD)			\
 	 {								\
-	   struct Lisp_String *ptr_					\
-	     = alloca (sizeof (struct Lisp_String) + 1 + nbytes_);	\
-	   string_ = local_string_init (ptr_, data_, nbytes_);		\
+	   struct Lisp_String *ptr_ = AVAIL_ALLOCA (LISP_STRING_OVERHEAD \
+						    + nbytes_);		\
+	   string_ = local_string_init (ptr_, data, nbytes_);		\
 	 }								\
        else								\
-	 string_ = make_string (data_, nbytes_);			\
+	 string_ = make_string (data, nbytes_);				\
        string_;								\
     })
 

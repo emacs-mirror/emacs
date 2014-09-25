@@ -968,6 +968,7 @@ load_error_handler (Lisp_Object data)
 static void
 load_warn_old_style_backquotes (Lisp_Object file)
 {
+  USE_LOCAL_ALLOCA;
   if (!NILP (Vold_style_backquotes))
     Fmessage (2, ((Lisp_Object [])
       { build_local_string ("Loading `%s': old-style backquotes detected!"),
@@ -3638,6 +3639,7 @@ read_vector (Lisp_Object readcharfun, bool bytecodeflag)
 static Lisp_Object
 read_list (bool flag, Lisp_Object readcharfun)
 {
+  USE_LOCAL_ALLOCA;
   Lisp_Object val, tail;
   Lisp_Object elt, tem;
   struct gcpro gcpro1, gcpro2;

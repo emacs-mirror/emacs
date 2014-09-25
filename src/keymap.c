@@ -1308,6 +1308,7 @@ append_key (Lisp_Object key_sequence, Lisp_Object key)
 static void
 silly_event_symbol_error (Lisp_Object c)
 {
+  USE_LOCAL_ALLOCA;
   Lisp_Object parsed, base, name, assoc;
   int modifiers;
 
@@ -2235,6 +2236,8 @@ Optional argument NO-ANGLES non-nil means don't put angle brackets
 around function keys and event symbols.  */)
   (Lisp_Object key, Lisp_Object no_angles)
 {
+  USE_SAFE_ALLOCA;
+
   if (CONSP (key) && lucid_event_type_list_p (key))
     key = Fevent_convert_list (key);
 
@@ -2258,7 +2261,6 @@ around function keys and event symbols.  */)
       if (NILP (no_angles))
 	{
 	  Lisp_Object result;
-	  USE_SAFE_ALLOCA;
 	  char *buffer = SAFE_ALLOCA (sizeof "<>"
 				      + SBYTES (SYMBOL_NAME (key)));
 	  esprintf (buffer, "<%s>", SDATA (SYMBOL_NAME (key)));
@@ -3416,6 +3418,7 @@ describe_vector (Lisp_Object vector, Lisp_Object prefix, Lisp_Object args,
 		 bool partial, Lisp_Object shadow, Lisp_Object entire_map,
 		 bool keymap_p, bool mention_shadow)
 {
+  USE_LOCAL_ALLOCA;
   Lisp_Object definition;
   Lisp_Object tem2;
   Lisp_Object elt_prefix = Qnil;

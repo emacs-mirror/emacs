@@ -1123,6 +1123,7 @@ If `read-buffer-function' is non-nil, this works by calling it as a
 function, instead of the usual behavior.  */)
   (Lisp_Object prompt, Lisp_Object def, Lisp_Object require_match)
 {
+  USE_LOCAL_ALLOCA;
   Lisp_Object result;
   char *s;
   ptrdiff_t len;

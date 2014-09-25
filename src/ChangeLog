@@ -1,3 +1,53 @@
+2014-09-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix local_cons etc. to not exhaust the stack when in a loop.
+	Problem reported in:
+	http://lists.gnu.org/archive/html/emacs-devel/2014-09/msg00696.html
+	* buffer.c (Fother_buffer, other_buffer_safely, init_buffer):
+	* charset.c (load_charset_map_from_file, Ffind_charset_region)
+	(Ffind_charset_string):
+	* chartab.c (uniprop_encode_value_numeric, uniprop_table):
+	* data.c (wrong_range):
+	* editfns.c (Fpropertize, format2):
+	* emacs.c (init_cmdargs, decode_env_path):
+	* fileio.c (auto_save_error):
+	* fns.c (Fyes_or_no_p):
+	* font.c (font_style_to_value, font_parse_xlfd)
+	(font_parse_family_registry, font_delete_unmatched)
+	(font_add_log):
+	* fontset.c (Fset_fontset_font):
+	* frame.c (x_get_arg):
+	* keyboard.c (echo_dash, safe_run_hooks_error, parse_menu_item)
+	(read_char_minibuf_menu_prompt):
+	* keymap.c (silly_event_symbol_error, describe_vector):
+	* lread.c (load_warn_old_style_backquotes):
+	* menu.c (single_menu_item):
+	* minibuf.c (Fread_buffer):
+	* process.c (status_message, Fformat_network_address)
+	(server_accept_connection):
+	* textprop.c (copy_text_properties):
+	* xdisp.c (Fcurrent_bidi_paragraph_direction):
+	* xfns.c (x_default_scroll_bar_color_parameter):
+	* xfont.c (xfont_open):
+	* xselect.c (x_clipboard_manager_error_1):
+	* xterm.c (x_term_init):
+	Put USE_LOCAL_ALLOCA at the start of the function.
+	* fns.c (maybe_resize_hash_table): Use build_string instead of
+	build_local_string, since we'd otherwise need a conditional
+	USE_LOCAL_ALLOCA here, but this is just debugging output and is
+	not worth the bother of optimization.
+	* font.c (font_delete_unmatched): Remove by-hand code that
+	observed MAX_ALLOCA limit, since it's now done automatically.
+	* keymap.c (Fsingle_key_description): Put USE_SAFE_ALLOCA at top,
+	since build_local_string needs its sa_alloc.
+	* lisp.h (lisp_word_count): New function.
+	(SAFE_ALLOCA_LISP): Use it.
+	(USE_LOCAL_ALLOCA): New macro.
+	(local_cons, make_local_vector, make_local_string):
+	Observe the MAX_ALLOCA limit.
+	(LISP_STRING_OVERHEAD): New constant.
+	(make_local_string): Use it.
+
 2014-09-24  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Default to stack objects on non-GNU/Linux, non-DOS_NT platforms.

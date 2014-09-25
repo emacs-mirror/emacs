@@ -10692,6 +10692,7 @@ static unsigned x_display_id;
 struct x_display_info *
 x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 {
+  USE_LOCAL_ALLOCA;
   Display *dpy;
   struct terminal *terminal;
   struct x_display_info *dpyinfo;

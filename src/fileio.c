@@ -5411,6 +5411,7 @@ An argument specifies the modification time value to use
 static Lisp_Object
 auto_save_error (Lisp_Object error_val)
 {
+  USE_LOCAL_ALLOCA;
   Lisp_Object msg;
   int i;
   struct gcpro gcpro1;
