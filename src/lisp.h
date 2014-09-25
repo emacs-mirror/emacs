@@ -4595,18 +4595,17 @@ lisp_word_count (ptrdiff_t nbytes)
   } while (false)
 
 
-/* If USE_STACK_LISP_OBJECTS, define macros that and functions that
-   allocate block-scoped conses and function-scoped vectors and
-   strings.  These objects are not managed by the garbage collector,
-   so they are dangerous: passing them out of their scope (e.g., to
-   user code) results in undefined behavior.  Conversely, they have
-   better performance because GC is not involved.
+/* If USE_STACK_LISP_OBJECTS, define macros that and functions that allocate
+   block-scoped conses and function-scoped vectors and strings.  These objects
+   are not managed by the garbage collector, so they are dangerous: passing
+   them out of their scope (e.g., to user code) results in undefined behavior.
+   Conversely, they have better performance because GC is not involved.
 
-   This feature is experimental and requires careful debugging.
-   It's enabled by default on GNU/Linux with GCC.  On other systems,
-   brave users can compile with CPPFLAGS='-DUSE_STACK_LISP_OBJECTS'
-   to get into the game.  Also note that this feature requires
-   GC_MARK_STACK == GC_MAKE_GCPROS_NOOPS.  */
+   This feature is experimental and requires careful debugging.  It's enabled
+   by default if GCC or a compiler that mimics GCC well (like Intel C/C++) is
+   used, except clang (see notice above).  For other compilers, brave users can
+   compile with CPPFLAGS='-DUSE_STACK_LISP_OBJECTS' to get into the game.
+   Note that this feature requires GC_MARK_STACK == GC_MAKE_GCPROS_NOOPS.  */
 
 /* A struct Lisp_Cons inside a union that is no larger and may be
    better-aligned.  */
