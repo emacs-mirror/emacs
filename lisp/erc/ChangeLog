@@ -1,3 +1,13 @@
+2014-09-25  Kelvin White  <kwhite@gnu.org>
+
+	* erc.el: Follow Emacs version instead of tracking it seperately.
+	(erc-quit/part-reason-default) : Clean up quit/part message
+	functions by abstracting repetitive code, change version string.
+	(erc-quit-reason-various, erc-quit-reason-normal, erc-quit-reason-zippy)
+	(erc-part-reason-normal, erc-part-reason-zippy, erc-part-reason-various)
+	(erc-cmd-SV, erc-ctcp-query-VERSION, erc-version, erc-version-string):
+	Change version string.
+
 2014-08-13  Kelvin White  <kwhite@gnu.org> 
 
 	* erc.el (erc-send-input): Disable display commands in current buffer

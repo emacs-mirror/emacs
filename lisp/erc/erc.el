@@ -12,7 +12,7 @@
 ;;               Kelvin White (kwhite@gnu.org)
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: IRC, chat, client, Internet
-;; Version: 5.3
+
 
 ;; This file is part of GNU Emacs.
 
@@ -63,10 +63,10 @@
 ;;; History:
 ;;
 
-;;; Code:
-
-(defconst erc-version-string "Version 5.3"
+(defconst erc-version-string (format "\C-bERC\C-b (IRC client for Emacs %s)" emacs-version)
   "ERC version.  This is used by function `erc-version'.")
+
+;;; Code:
 
 (eval-when-compile (require 'cl-lib))
 (require 'font-lock)
@@ -3380,14 +3380,16 @@ If USER is omitted, close the current query buffer if one exists
       (signal 'wrong-number-of-arguments ""))))
 (defalias 'erc-cmd-Q 'erc-cmd-QUERY)
 
+(defun erc-quit/part-reason-default ()
+  "Default quit/part message."
+  (format "\C-bERC\C-b (IRC client for Emacs %s)" emacs-version))
+
+
 (defun erc-quit-reason-normal (&optional s)
   "Normal quit message.
 
 If S is non-nil, it will be used as the quit reason."
-  (or s
-      (format "\C-bERC\C-b %s (IRC client for Emacs)"; - \C-b%s\C-b"
-              erc-version-string) ; erc-official-location)
-      ))
+  (or s (erc-quit/part-reason-default)))
 
 (defun erc-quit-reason-zippy (&optional s)
   "Zippy quit message.
@@ -3396,7 +3398,7 @@ If S is non-nil, it will be used as the quit reason."
   (or s
       (if (fboundp 'yow)
           (erc-replace-regexp-in-string "\n" "" (yow))
-        (erc-quit-reason-normal))))
+        (erc-quit/part-reason-default))))
 
 (make-obsolete 'erc-quit-reason-zippy "it will be removed." "24.4")
 
@@ -3409,16 +3411,13 @@ If S is non-nil, it will be used as the quit reason."
      ((functionp res) (funcall res))
      ((stringp res) res)
      (s s)
-     (t (erc-quit-reason-normal)))))
+     (t (erc-quit/part-reason-default)))))
 
 (defun erc-part-reason-normal (&optional s)
   "Normal part message.
 
-If S is non-nil, it will be used as the quit reason."
-  (or s
-      (format "\C-bERC\C-b %s (IRC client for Emacs)"; - \C-b%s\C-b"
-              erc-version-string) ; erc-official-location)
-      ))
+If S is non-nil, it will be used as the part reason."
+  (or s (erc-quit/part-reason-default)))
 
 (defun erc-part-reason-zippy (&optional s)
   "Zippy part message.
@@ -3427,7 +3426,7 @@ If S is non-nil, it will be used as the quit reason."
   (or s
       (if (fboundp 'yow)
           (erc-replace-regexp-in-string "\n" "" (yow))
-        (erc-part-reason-normal))))
+        (erc-quit/part-reason-default))))
 
 (make-obsolete 'erc-part-reason-zippy "it will be removed." "24.4")
 
@@ -3440,7 +3439,7 @@ If S is non-nil, it will be used as the quit reason."
      ((functionp res) (funcall res))
      ((stringp res) res)
      (s s)
-     (t (erc-part-reason-normal)))))
+     (t (erc-quit/part-reason-default)))))
 
 (defun erc-cmd-QUIT (reason)
   "Disconnect from the current server.
@@ -3534,8 +3533,7 @@ the message given by REASON."
 
 (defun erc-cmd-SV ()
   "Say the current ERC and Emacs version into channel."
-  (erc-send-message (format "I'm using ERC %s with %s %s (%s%s) of %s."
-                            erc-version-string
+  (erc-send-message (format "I'm using ERC with %s %s (%s%s) of %s."
                             (if (featurep 'xemacs) "XEmacs" "GNU Emacs")
                             emacs-version
                             system-configuration
@@ -4594,8 +4592,8 @@ See also `erc-display-message'."
   (unless erc-disable-ctcp-replies
     (erc-send-ctcp-notice
      nick (format
-           "VERSION \C-bERC\C-b %s - an IRC client for emacs (\C-b%s\C-b)"
-           erc-version-string
+           "VERSION \C-bERC\C-b - an IRC client for Emacs %s (\C-b%s\C-b)"
+           emacs-version
            erc-official-location)))
   nil)
 
@@ -6373,7 +6371,7 @@ P may be an integer or a service name."
 If optional argument HERE is non-nil, insert version number at point."
   (interactive "P")
   (let ((version-string
-         (format "ERC %s (GNU Emacs %s)" erc-version-string emacs-version)))
+         (format "ERC (IRC client for Emacs %s)" emacs-version)))
     (if here
         (insert version-string)
       (if (called-interactively-p 'interactive)
