@@ -8643,7 +8643,7 @@ x_new_font (struct frame *f, Lisp_Object font_object, int fontset)
   FRAME_COLUMN_WIDTH (f) = font->average_width;
   FRAME_LINE_HEIGHT (f) = FONT_HEIGHT (font);
 
-#ifndef USE_X_TOOLKIT							\
+#ifndef USE_X_TOOLKIT
   FRAME_MENU_BAR_HEIGHT (f) = FRAME_MENU_BAR_LINES (f) * FRAME_LINE_HEIGHT (f);
 #endif
 
