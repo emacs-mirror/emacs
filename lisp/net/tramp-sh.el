@@ -3464,19 +3464,19 @@ the result will be a local, non-Tramp, file name."
 		     (not (with-tramp-connection-property v vc-bzr-program
 			    (tramp-find-executable
 			     v vc-bzr-program (tramp-get-remote-path v)))))
-	    (setq vc-handled-backends (delq 'Bzr vc-handled-backends)))
+	    (setq vc-handled-backends (remq 'Bzr vc-handled-backends)))
 	  (when (and (memq 'Git vc-handled-backends)
 		     (boundp 'vc-git-program)
 		     (not (with-tramp-connection-property v vc-git-program
 			    (tramp-find-executable
 			     v vc-git-program (tramp-get-remote-path v)))))
-	    (setq vc-handled-backends (delq 'Git vc-handled-backends)))
+	    (setq vc-handled-backends (remq 'Git vc-handled-backends)))
 	  (when (and (memq 'Hg vc-handled-backends)
 		     (boundp 'vc-hg-program)
 		     (not (with-tramp-connection-property v vc-hg-program
 			    (tramp-find-executable
 			     v vc-hg-program (tramp-get-remote-path v)))))
-	    (setq vc-handled-backends (delq 'Hg vc-handled-backends)))
+	    (setq vc-handled-backends (remq 'Hg vc-handled-backends)))
 	  ;; Run.
 	  (ignore-errors
 	    (tramp-run-real-handler 'vc-registered (list file))))))))
