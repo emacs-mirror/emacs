@@ -1,3 +1,10 @@
+2014-09-25  Juri Linkov  <juri@jurta.org>
+
+	* vc/add-log.el (change-log-next-buffer): Don't create an empty
+	buffer "ChangeLog" when the current buffer doesn't match ChangeLog.[0-9].
+	Return the current buffer if no files match the default pattern
+	ChangeLog.[0-9].  Signal "end of multi" when file is nil. (Bug#18547)
+
 2014-09-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* net/tramp-sh.el (tramp-sh-handle-vc-registered): Don't modify
