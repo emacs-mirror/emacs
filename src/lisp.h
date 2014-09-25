@@ -286,7 +286,13 @@ error !;
    http://lists.gnu.org/archive/html/emacs-devel/2014-09/msg00506.html.  */
 #ifndef USE_STACK_LISP_OBJECTS
 # if defined __GNUC__ && !defined __clang__
-#  define USE_STACK_LISP_OBJECTS true
+   /* 32-bit MinGW builds need at least GCC 4.2 to support this.  */
+#  if defined __MINGW32__ && !defined _W64	\
+      && __GNUC__ + (__GNUC_MINOR__ > 1) < 5
+#   define USE_STACK_LISP_OBJECTS false
+#  else	 /* !(__MINGW32__ && __GNUC__ < 4.2) */
+#   define USE_STACK_LISP_OBJECTS true
+#  endif
 # else
 #  define USE_STACK_LISP_OBJECTS false
 # endif

@@ -1,5 +1,8 @@
 2014-09-25  Eli Zaretskii  <eliz@gnu.org>
 
+	* lisp.h (USE_STACK_LISP_OBJECTS): Default to false for 32-bit
+	MinGW builds that use GCC before 4.2.
+
 	Default to stack objects on DOS_NT platforms as well.
 	* w32term.h (ALIGN_STACK) [__GNUC__]: Define to
 	__attribute__((force_align_arg_pointer)) for GCC 4.2 and later.
