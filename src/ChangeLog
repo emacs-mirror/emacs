@@ -1,3 +1,22 @@
+2014-09-25  Eli Zaretskii  <eliz@gnu.org>
+
+	Default to stack objects on DOS_NT platforms as well.
+	* w32term.h (ALIGN_STACK) [__GNUC__]: Define to
+	__attribute__((force_align_arg_pointer)) for GCC 4.2 and later.
+
+	* lisp.h (USE_STACK_LISP_OBJECTS): Remove the !DOS_NT condition.
+
+	* w32proc.c (enum_locale_fn, enum_codepage_fn): Add the
+	ALIGN_STACK attribute.
+
+	* w32fns.c (w32_monitor_enum): Add the ALIGN_STACK attribute.
+
+	* w32uniscribe.c (add_opentype_font_name_to_list): Add the
+	ALIGN_STACK attribute.
+
+	* w32font.c (add_font_name_to_list, add_font_entity_to_list)
+	(add_one_font_entity_to_list): Add the ALIGN_STACK attribute.
+
 2014-09-25  Martin Rudalics  <rudalics@gmx.at>
 
 	* frame.c (frame_inhibit_resize):

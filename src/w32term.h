@@ -22,6 +22,22 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "frame.h"
 #include "atimer.h"
 
+/* Stack alignment stuff.  Every CALLBACK function should have the
+   ALIGN_STACK attribute if it manipulates Lisp objects, because
+   Windows x86 32-bit ABI only guarantees 4-byte stack alignment, and
+   that is what we will get when a Windows function calls us.  The
+   ALIGN_STACK attribute forces GCC to emit a preamble code to
+   re-align the stack at function entry.  Further details about this
+   can be found in http://www.peterstock.co.uk/games/mingw_sse/.  */
+#ifdef __GNUC__
+# if defined USE_STACK_LISP_OBJECTS && defined _W64	\
+  && __GNUC__ + (__GNUC_MINOR__ > 1) >= 5
+#  define ALIGN_STACK __attribute__((force_align_arg_pointer))
+# else
+#  define ALIGN_STACK
+# endif	 /* USE_STACK_LISP_OBJECTS */
+#endif
+
 
 #define BLACK_PIX_DEFAULT(f) PALETTERGB(0,0,0)
 #define WHITE_PIX_DEFAULT(f) PALETTERGB(255,255,255)

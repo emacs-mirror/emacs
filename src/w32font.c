@@ -115,15 +115,15 @@ static void compute_metrics (HDC, struct w32font_info *, unsigned int,
 static Lisp_Object w32_registry (LONG, DWORD);
 
 /* EnumFontFamiliesEx callbacks.  */
-static int CALLBACK add_font_entity_to_list (ENUMLOGFONTEX *,
-                                             NEWTEXTMETRICEX *,
-                                             DWORD, LPARAM);
-static int CALLBACK add_one_font_entity_to_list (ENUMLOGFONTEX *,
-                                                 NEWTEXTMETRICEX *,
-                                                 DWORD, LPARAM);
-static int CALLBACK add_font_name_to_list (ENUMLOGFONTEX *,
-                                           NEWTEXTMETRICEX *,
-                                           DWORD, LPARAM);
+static int CALLBACK ALIGN_STACK add_font_entity_to_list (ENUMLOGFONTEX *,
+							 NEWTEXTMETRICEX *,
+							 DWORD, LPARAM);
+static int CALLBACK ALIGN_STACK add_one_font_entity_to_list (ENUMLOGFONTEX *,
+							     NEWTEXTMETRICEX *,
+							     DWORD, LPARAM);
+static int CALLBACK ALIGN_STACK add_font_name_to_list (ENUMLOGFONTEX *,
+						       NEWTEXTMETRICEX *,
+						       DWORD, LPARAM);
 
 /* struct passed in as LPARAM arg to EnumFontFamiliesEx, for keeping track
    of what we really want.  */
@@ -1000,7 +1000,7 @@ w32font_open_internal (struct frame *f, Lisp_Object font_entity,
 
 /* Callback function for EnumFontFamiliesEx.
  * Adds the name of a font to a Lisp list (passed in as the lParam arg).  */
-static int CALLBACK
+static int CALLBACK ALIGN_STACK
 add_font_name_to_list (ENUMLOGFONTEX *logical_font,
 		       NEWTEXTMETRICEX *physical_font,
 		       DWORD font_type, LPARAM list_object)
@@ -1446,7 +1446,7 @@ check_face_name (LOGFONT *font, char *full_name)
  * and if so, adds it to a list. Both the data we are checking against
  * and the list to which the fonts are added are passed in via the
  * lparam argument, in the form of a font_callback_data struct. */
-static int CALLBACK
+static int CALLBACK ALIGN_STACK
 add_font_entity_to_list (ENUMLOGFONTEX *logical_font,
 			 NEWTEXTMETRICEX *physical_font,
 			 DWORD font_type, LPARAM lParam)
@@ -1565,7 +1565,7 @@ add_font_entity_to_list (ENUMLOGFONTEX *logical_font,
 
 /* Callback function for EnumFontFamiliesEx.
  * Terminates the search once we have a match. */
-static int CALLBACK
+static int CALLBACK ALIGN_STACK
 add_one_font_entity_to_list (ENUMLOGFONTEX *logical_font,
 			     NEWTEXTMETRICEX *physical_font,
 			     DWORD font_type, LPARAM lParam)

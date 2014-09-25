@@ -52,9 +52,9 @@ extern Lisp_Object Quniscribe;
 extern Lisp_Object Qopentype;
 
 /* EnumFontFamiliesEx callback.  */
-static int CALLBACK add_opentype_font_name_to_list (ENUMLOGFONTEX *,
-                                                    NEWTEXTMETRICEX *,
-                                                    DWORD, LPARAM);
+static int CALLBACK ALIGN_STACK add_opentype_font_name_to_list (ENUMLOGFONTEX *,
+								NEWTEXTMETRICEX *,
+								DWORD, LPARAM);
 /* Used by uniscribe_otf_capability.  */
 static Lisp_Object otf_features (HDC context, char *table);
 
@@ -613,7 +613,7 @@ uniscribe_encode_char (struct font *font, int c)
 /* Callback function for EnumFontFamiliesEx.
    Adds the name of opentype fonts to a Lisp list (passed in as the
    lParam arg). */
-static int CALLBACK
+static int CALLBACK ALIGN_STACK
 add_opentype_font_name_to_list (ENUMLOGFONTEX *logical_font,
 				NEWTEXTMETRICEX *physical_font,
 				DWORD font_type, LPARAM list_object)

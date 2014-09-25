@@ -5012,7 +5012,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
   return Qnil;
 }
 
-static BOOL CALLBACK
+static BOOL CALLBACK ALIGN_STACK
 w32_monitor_enum (HMONITOR monitor, HDC hdc, RECT *rcMonitor, LPARAM dwData)
 {
   Lisp_Object *monitor_list = (Lisp_Object *) dwData;
