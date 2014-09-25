@@ -1,3 +1,7 @@
+2014-09-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure.ac (MAKEINFO): Allow 'makeinfo' to be called 'texi2any'.
+
 2014-09-23  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Merge from gnulib, incorporating:

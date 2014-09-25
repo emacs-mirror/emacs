@@ -1103,10 +1103,10 @@ if test "$MAKEINFO" != "no"; then
     MAKEINFO=makeinfo
   fi
   case `($MAKEINFO --version) 2>/dev/null` in
-    'makeinfo (GNU texinfo) '4.[[7-9]]* | \
-    'makeinfo (GNU texinfo) '4.[[1-9][0-9]]* | \
-    'makeinfo (GNU texinfo) '[[5-9]]* | \
-    'makeinfo (GNU texinfo) '[[1-9][0-9]]* ) ;;
+    *' (GNU texinfo) '4.[[7-9]]* | \
+    *' (GNU texinfo) '4.[[1-9][0-9]]* | \
+    *' (GNU texinfo) '[[5-9]]* | \
+    *' (GNU texinfo) '[[1-9][0-9]]* ) ;;
     *) MAKEINFO=no;;
   esac
 fi
