@@ -30145,8 +30145,6 @@ expose_frame (struct frame *f, int x, int y, int w, int h)
       r.x = r.y = 0;
       r.width = FRAME_TEXT_WIDTH (f);
       r.height = FRAME_TEXT_HEIGHT (f);
-/**       r.width = FRAME_COLUMN_WIDTH (f) * FRAME_COLS (f); **/
-/**       r.height = FRAME_LINE_HEIGHT (f) * FRAME_LINES (f); **/
     }
   else
     {

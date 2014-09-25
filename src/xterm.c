@@ -7560,9 +7560,6 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      SET_FRAME_GARBAGED (f);
               cancel_mouse_face (f);
             }
-
-/**           FRAME_PIXEL_WIDTH (f) = event->xconfigure.width; **/
-/**           FRAME_PIXEL_HEIGHT (f) = event->xconfigure.height; **/
 #endif /* not USE_GTK */
 #endif
 
@@ -8647,7 +8644,6 @@ x_new_font (struct frame *f, Lisp_Object font_object, int fontset)
   FRAME_LINE_HEIGHT (f) = FONT_HEIGHT (font);
 
 #ifndef USE_X_TOOLKIT							\
-/**   FRAME_TOOL_BAR_HEIGHT (f) = FRAME_TOOL_BAR_LINES (f) * FRAME_LINE_HEIGHT (f); **/
   FRAME_MENU_BAR_HEIGHT (f) = FRAME_MENU_BAR_LINES (f) * FRAME_LINE_HEIGHT (f);
 #endif
 
@@ -9490,34 +9486,12 @@ x_set_window_size_1 (struct frame *f, int change_gravity, int width, int height,
 {
   int pixelwidth, pixelheight;
 
-/**   if (pixelwise) **/
-/**     { **/
-/**       pixelwidth = FRAME_TEXT_TO_PIXEL_WIDTH (f, width); **/
-/**       pixelheight = FRAME_TEXT_TO_PIXEL_HEIGHT (f, height); **/
-/**     } **/
-/**   else **/
-/**     { **/
-/**       pixelwidth = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, width); **/
-/**       pixelheight = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, height); **/
-/**     } **/
-
-/**   FRAME_TOOL_BAR_HEIGHT (f) = FRAME_TOOLBAR_HEIGHT (f); **/
   pixelwidth = (pixelwise
 		? FRAME_TEXT_TO_PIXEL_WIDTH (f, width)
 		: FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, width));
   pixelheight = ((pixelwise
 		  ? FRAME_TEXT_TO_PIXEL_HEIGHT (f, height)
 		  : FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, height)));
-
-/**   pixelwidth = ((pixelwise ? width : (width * FRAME_COLUMN_WIDTH (f))) **/
-/** 		+ FRAME_SCROLL_BAR_AREA_WIDTH (f) **/
-/** 		+ FRAME_TOTAL_FRINGE_WIDTH (f) **/
-/** 		+ 2 * FRAME_INTERNAL_BORDER_WIDTH (f)); **/
-
-/**   pixelheight = ((pixelwise ? height : (height * FRAME_LINE_HEIGHT (f))) **/
-/** 		 + FRAME_TOOLBAR_HEIGHT (f) **/
-/** 		 + FRAME_SCROLL_BAR_AREA_HEIGHT (f) **/
-/** 		 + 2 * FRAME_INTERNAL_BORDER_WIDTH (f)); **/
 
   if (change_gravity) f->win_gravity = NorthWestGravity;
   x_wm_set_size_hint (f, 0, 0);

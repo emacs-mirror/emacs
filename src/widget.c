@@ -579,15 +579,6 @@ EmacsFrameResize (Widget widget)
   if (true || frame_resize_pixelwise)
     {
       int width, height;
-/**       int width = (ew->core.width **/
-/** 		   - FRAME_SCROLL_BAR_AREA_WIDTH (f) **/
-/** 		   - FRAME_TOTAL_FRINGE_WIDTH (f) **/
-/** 		   - 2 * FRAME_INTERNAL_BORDER_WIDTH (f)); **/
-
-/**       int height  = (ew->core.height **/
-/** 		     - FRAME_TOOLBAR_HEIGHT (f) **/
-/** 		     - FRAME_SCROLL_BAR_AREA_HEIGHT (f) **/
-/** 		     - 2 * FRAME_INTERNAL_BORDER_WIDTH (f)); **/
 
       pixel_to_text_size (ew, ew->core.width, ew->core.height, &width, &height);
       change_frame_size (f, width, height, 0, 1, 0, 1);

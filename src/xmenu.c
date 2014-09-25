@@ -627,7 +627,6 @@ update_frame_menubar (struct frame *f)
   xg_update_frame_menubar (f);
 #else
   struct x_output *x;
-/**   int columns, rows; **/
 
   eassert (FRAME_X_P (f));
 
@@ -637,10 +636,6 @@ update_frame_menubar (struct frame *f)
     return;
 
   block_input ();
-  /* Save the size of the frame because the pane widget doesn't accept
-     to resize itself. So force it.  */
-/**   columns = FRAME_COLS (f); **/
-/**   rows = FRAME_LINES (f); **/
 
   /* Do the voodoo which means "I'm changing lots of things, don't try
      to refigure sizes until I'm done."  */
@@ -661,8 +656,7 @@ update_frame_menubar (struct frame *f)
   XtManageChild (x->edit_widget);
   lw_refigure_widget (x->column_widget, True);
 
-  /* Force the pane widget to resize itself with the right values.  */
-/**   EmacsFrameSetCharSize (x->edit_widget, columns, rows); **/
+  /* Force the pane widget to resize itself.  */
   adjust_frame_size (f, FRAME_TEXT_WIDTH (f), FRAME_TEXT_HEIGHT (f), 2, 0);
   unblock_input ();
 #endif

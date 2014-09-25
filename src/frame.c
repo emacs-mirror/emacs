@@ -219,21 +219,6 @@ frame_inhibit_resize (struct frame *f, bool horizontal)
 	  || FRAME_TERMCAP_P (f) || FRAME_MSDOS_P (f));
 }
 
-#if 0
-bool
-frame_inhibit_resize (struct frame *f, bool horizontal)
-{
-  Lisp_Object fullscreen = get_frame_param (f, Qfullscreen);
-
-  return (frame_inhibit_implied_resize
-	  || EQ (fullscreen, Qfullboth)
-	  || EQ (fullscreen, Qfullscreen)
-	  || EQ (fullscreen, Qmaximized)
-	  || (horizontal && EQ (fullscreen, Qfullwidth))
-	  || (!horizontal && EQ (fullscreen, Qfullheight)));
-}
-#endif
-
 static void
 set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 {

@@ -1,3 +1,14 @@
+2014-09-25  Martin Rudalics  <rudalics@gmx.at>
+
+	* frame.c (frame_inhibit_resize):
+	* widget.c (EmacsFrameResize):
+	* window.c (resize_frame_windows, Fset_window_configuration):
+	* xdisp.c (expose_frame):
+	* xfns.c (x_change_tool_bar_height):
+	* xmenu.c (update_frame_menubar):
+	* xterm.c (handle_one_xevent, x_new_font, x_set_window_size_1):
+	Remove code left dead after 2014-07-27 changes.
+
 2014-09-25  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix local_cons etc. to not exhaust the stack when in a loop.

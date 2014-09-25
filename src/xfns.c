@@ -1140,10 +1140,8 @@ x_change_tool_bar_height (struct frame *f, int height)
 
   adjust_frame_size (f, -1, -1, 4, 0);
 
-/** #if !defined USE_X_TOOLKIT **/
   if (FRAME_X_WINDOW (f))
     x_clear_under_internal_border (f);
-/** #endif **/
 
 #endif /* USE_GTK */
 }
