@@ -1,3 +1,7 @@
+2014-09-26  Ken Brown  <kbrown@cornell.edu>
+
+	* w32term.h (ALIGN_STACK): Fix the cpp condition.
+
 2014-09-25  Eli Zaretskii  <eliz@gnu.org>
 
 	* lisp.h (USE_STACK_LISP_OBJECTS): Default to false for 32-bit

@@ -30,7 +30,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    re-align the stack at function entry.  Further details about this
    can be found in http://www.peterstock.co.uk/games/mingw_sse/.  */
 #ifdef __GNUC__
-# if defined USE_STACK_LISP_OBJECTS && !defined _W64	\
+# if USE_STACK_LISP_OBJECTS && !defined _W64 && !defined __x86_64__	\
   && __GNUC__ + (__GNUC_MINOR__ > 1) >= 5
 #  define ALIGN_STACK __attribute__((force_align_arg_pointer))
 # else
