@@ -34,20 +34,11 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl-lib))
-
-(defvar parse-time-digits (make-vector 256 nil))
+(require 'cl-lib)
 
 ;; Byte-compiler warnings
 (defvar parse-time-elt)
 (defvar parse-time-val)
-
-(unless (aref parse-time-digits ?0)
-  (cl-loop for i from ?0 to ?9
-           do (aset parse-time-digits i (- i ?0))))
-
-(defsubst digit-char-p (char)
-  (aref parse-time-digits char))
 
 (defsubst parse-time-string-chars (char)
   (save-match-data
@@ -58,30 +49,6 @@
 	    ((string-match "[[:upper:]]" (setq str (string char))) ?A)
 	    ((string-match "[[:lower:]]" str) ?a)
 	    ((string-match "[[:digit:]]" str) ?0)))))
-
-(put 'parse-error 'error-conditions '(parse-error error))
-(put 'parse-error 'error-message "Parsing error")
-
-(defsubst parse-integer (string &optional start end)
-  "[CL] Parse and return the integer in STRING, or nil if none."
-  (let ((integer 0)
-	(digit 0)
-	(index (or start 0))
-	(end (or end (length string))))
-    (when (< index end)
-      (let ((sign (aref string index)))
-	(if (or (eq sign ?+) (eq sign ?-))
-	    (setq sign (parse-time-string-chars sign)
-		  index (1+ index))
-	  (setq sign 1))
-	(while (and (< index end)
-		    (setq digit (digit-char-p (aref string index))))
-	  (setq integer (+ (* integer 10) digit)
-		index (1+ index)))
-	(if (/= index end)
-	    (signal 'parse-error `("not an integer"
-				   ,(substring string (or start 0) end)))
-	  (* sign integer))))))
 
 (defun parse-time-tokenize (string)
   "Tokenize STRING into substrings."
@@ -100,7 +67,7 @@
 		  (setq c (parse-time-string-chars (aref string index))))
 	(setq all-digits (and all-digits (eq c ?0))))
       (if (<= index end)
-	  (push (if all-digits (parse-integer string start index)
+	  (push (if all-digits (cl-parse-integer string :start start :end index)
 		  (substring string start index))
 		list)))
     (nreverse list)))
@@ -147,8 +114,8 @@
 	       (= 5 (length parse-time-elt))
 	       (or (= (aref parse-time-elt 0) ?+)
 		   (= (aref parse-time-elt 0) ?-))))
-     ,#'(lambda () (* 60 (+ (parse-integer parse-time-elt 3 5)
-			    (* 60 (parse-integer parse-time-elt 1 3)))
+     ,#'(lambda () (* 60 (+ (cl-parse-integer parse-time-elt :start 3 :end 5)
+			    (* 60 (cl-parse-integer parse-time-elt :start 1 :end 3)))
 		      (if (= (aref parse-time-elt 0) ?-) -1 1))))
     ((5 4 3)
      ,#'(lambda () (and (stringp parse-time-elt)
@@ -210,9 +177,10 @@ unknown are returned as nil."
 		(let ((new-val (if rule
 				   (let ((this (pop rule)))
 				     (if (vectorp this)
-					 (parse-integer
+					 (cl-parse-integer
 					  parse-time-elt
-					  (aref this 0) (aref this 1))
+					  :start (aref this 0)
+					  :end (aref this 1))
 				       (funcall this)))
 				 parse-time-val)))
 		  (rplaca (nthcdr (pop slots) time) new-val))))))))

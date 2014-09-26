@@ -1,3 +1,16 @@
+2014-09-26  Leo Liu  <sdl.web@gmail.com>
+
+	Add cl-parse-integer based on parse-integer (Bug#18557)
+	* calendar/parse-time.el (parse-time-digits): Remove.
+	(digit-char-p, parse-integer) Moved to cl-lib.el.
+	(parse-time-tokenize, parse-time-rules, parse-time-string): Use
+	cl-parse-integer.
+
+	* emacs-lisp/cl-extra.el (cl-parse-integer): New function.
+
+	* emacs-lisp/cl-lib.el (cl-digit-char-table): New var.
+	(cl-digit-char-p): New function.
+
 2014-09-25  Juri Linkov  <juri@jurta.org>
 
 	* vc/add-log.el (change-log-next-buffer): Don't create an empty

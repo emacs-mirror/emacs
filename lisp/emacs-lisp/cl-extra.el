@@ -383,6 +383,41 @@ With two arguments, return rounding and remainder of their quotient."
   "Return 1 if X is positive, -1 if negative, 0 if zero."
   (cond ((> x 0) 1) ((< x 0) -1) (t 0)))
 
+;;;###autoload
+(cl-defun cl-parse-integer (string &key start end radix junk-allowed)
+  "Parse integer from the substring of STRING from START to END.
+STRING may be surrounded by whitespace chars (chars with syntax ` ').
+Other non-digit chars are considered junk.
+RADIX is an integer between 2 and 36, the default is 10.  Signal
+an error if the substring between START and END cannot be parsed
+as an integer unless JUNK-ALLOWED is non-nil."
+  (cl-check-type string string)
+  (let* ((start (or start 0))
+	 (len	(length string))
+	 (end   (or end len))
+	 (radix (or radix 10)))
+    (or (<= start end len)
+	(error "Bad interval: [%d, %d)" start end))
+    (cl-flet ((skip-whitespace ()
+		(while (and (< start end)
+			    (= 32 (char-syntax (aref string start))))
+		  (setq start (1+ start)))))
+      (skip-whitespace)
+      (let ((sign (cl-case (and (< start end) (aref string start))
+		    (?+ (cl-incf start) +1)
+		    (?- (cl-incf start) -1)
+		    (t  +1)))
+	    digit sum)
+	(while (and (< start end)
+		    (setq digit (cl-digit-char-p (aref string start) radix)))
+	  (setq sum (+ (* (or sum 0) radix) digit)
+		start (1+ start)))
+	(skip-whitespace)
+	(cond ((and junk-allowed (null sum)) sum)
+	      (junk-allowed (* sign sum))
+	      ((/= start end) (error "Not an integer string: %s" string))
+	      (t (* sign sum)))))))
+
 
 ;; Random numbers.
 
