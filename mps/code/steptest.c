@@ -56,8 +56,6 @@ static unsigned long step_frequencies[] = {
     1000000000, /* one billion */
 };
 
-#define TESTS (sizeof(step_frequencies) / sizeof(step_frequencies[0]))
-
 static unsigned test_number = 0;
 
 
@@ -496,7 +494,7 @@ int main(int argc, char *argv[])
 
     testlib_init(argc, argv);
 
-    while (test_number < TESTS) {
+    while (test_number < NELEMS(step_frequencies)) {
         mps_arena_t arena;
         mps_thr_t thread;
         void *r;

@@ -386,7 +386,7 @@ static void testTableExists(sqlite3 *db)
   size_t i;
   int defects = 0;
   int tests = 0;
-  for (i=0; i < (sizeof(tableTests)/sizeof(tableTests[0])); ++i) {
+  for (i=0; i < NELEMS(tableTests); ++i) {
     const char *name = tableTests[i].name;
     int exists = tableExists(db, name);
     if (exists)
@@ -566,7 +566,7 @@ static void makeTables(sqlite3 *db)
   size_t i;
   evlog(LOG_SOMETIMES, "Creating tables.");
         
-  for (i=0; i < (sizeof(createStatements)/sizeof(createStatements[0])); ++i) {
+  for (i=0; i < NELEMS(createStatements); ++i) {
     runStatement(db, createStatements[i], "Table creation");
   }
 }
@@ -585,7 +585,7 @@ static void dropGlueTables(sqlite3 *db)
 
   evlog(LOG_ALWAYS, "Dropping glue tables so they are rebuilt.");
         
-  for (i=0; i < (sizeof(glueTables)/sizeof(glueTables[0])); ++i) {
+  for (i=0; i < NELEMS(glueTables); ++i) {
     evlog(LOG_SOMETIMES, "Dropping table %s", glueTables[i]);
     sprintf(sql, "DROP TABLE %s", glueTables[i]);
     res = sqlite3_exec(db,

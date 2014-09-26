@@ -449,7 +449,7 @@ int main(int argc, char *argv[]) {
   (void)fflush(stdout);
 
   while (argc > 0) {
-    for (i = 0; i < sizeof(pools) / sizeof(pools[0]); ++i)
+    for (i = 0; i < NELEMS(pools); ++i)
       if (strcmp(argv[0], pools[i].name) == 0)
         goto found;
     fprintf(stderr, "unknown pool test \"%s\"\n", argv[0]);
