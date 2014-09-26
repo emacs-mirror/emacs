@@ -222,7 +222,7 @@ static void test_pool(mps_pool_t pool, size_t roots_count, int mode)
   cl.pool = pool;
   cl.roots_count = roots_count;
 
-  for (i = 0; i < sizeof(kids)/sizeof(kids[0]); ++i)
+  for (i = 0; i < NELEMS(kids); ++i)
     testthr_create(&kids[i], kid_thread, &cl);
 
   die(mps_ap_create(&ap, pool, mps_rank_exact()), "BufferCreate");
@@ -306,7 +306,7 @@ static void test_pool(mps_pool_t pool, size_t roots_count, int mode)
   mps_ap_destroy(busy_ap);
   mps_ap_destroy(ap);
 
-  for (i = 0; i < sizeof(kids)/sizeof(kids[0]); ++i)
+  for (i = 0; i < NELEMS(kids); ++i)
     testthr_join(&kids[i], NULL);
 }
 

@@ -102,8 +102,8 @@ typedef const struct SrcIdStruct {
  * NELEMS(a) expands into an expression that is the number
  * of elements in the array a.
  *
- * WARNING: expands a more than once (you'd have to write obviously
- * perverse code for this to matter though).
+ * WARNING: expands a more than once (but only in the context of
+ * sizeof, so does not cause double evaluation).
  */
 
 #define NELEMS(a) (sizeof(a)/sizeof((a)[0]))
