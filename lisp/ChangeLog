@@ -1,3 +1,13 @@
+2014-09-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* progmodes/grep.el (grep-regexp-alist): Use more-accurate regexp.
+	Do not match file names that end in '/', as they cannot be 'grep'
+	hits nowadays.  This prevents confusion when 'grep -r' reports a
+	match in a file whose basename is ':12345:'.  Conversely, do not
+	require exactly the same sequence of spaces and tabs after both
+	colons, and allow spaces or tabs before the second colon, as per
+	the POSIX spec for 'grep' output.
+
 2014-09-26  Leo Liu  <sdl.web@gmail.com>
 
 	Add cl-parse-integer based on parse-integer (Bug#18557)
