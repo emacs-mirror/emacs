@@ -2219,6 +2219,7 @@ bidi_resolve_neutral (struct bidi_it *bidi_it)
   int prev_level = bidi_it->level_stack[bidi_it->stack_idx].level;
   bidi_type_t type = bidi_resolve_weak (bidi_it);
   int current_level = bidi_it->level_stack[bidi_it->stack_idx].level;
+  bool is_neutral = bidi_get_category (type) == NEUTRAL;
 
   eassert ((type == STRONG_R
 	    || type == STRONG_L
@@ -2234,8 +2235,9 @@ bidi_resolve_neutral (struct bidi_it *bidi_it)
   eassert (current_level >= 0);
   if ((type != NEUTRAL_B /* Don't risk entering the long loop below if
 			    we are already at paragraph end.  */
-       && bidi_get_category (type) == NEUTRAL)
-      || (type == WEAK_BN && prev_level == current_level))
+       && is_neutral)
+      /* N1-N2/Retaining */
+      || (type == WEAK_BN && bidi_explicit_dir_char (bidi_it->ch)))
     {
       if (bidi_it->next_for_neutral.type != UNKNOWN_BT)
 	type = bidi_resolve_neutral_1 (bidi_it->prev_for_neutral.type,
@@ -2283,6 +2285,7 @@ bidi_resolve_neutral (struct bidi_it *bidi_it)
 	     implementations!  */
 	  struct bidi_it saved_it;
 	  bidi_type_t next_type;
+	  bool adjacent_to_neutrals = is_neutral;
 
 	  if (bidi_it->scan_dir == -1)
 	    emacs_abort ();
@@ -2300,6 +2303,9 @@ bidi_resolve_neutral (struct bidi_it *bidi_it)
 		&& bidi_it->type != WEAK_BN)
 	      bidi_remember_char (&bidi_it->prev, bidi_it);
 	    type = bidi_resolve_weak (bidi_it);
+	    if (!adjacent_to_neutrals
+		&& bidi_get_category (type) == NEUTRAL)
+	      adjacent_to_neutrals = true;
 	    /* Paragraph separators have their levels fully resolved
 	       at this point, so cache them as resolved.  */
 	    bidi_cache_iterator_state (bidi_it, type == NEUTRAL_B);
@@ -2315,46 +2321,45 @@ bidi_resolve_neutral (struct bidi_it *bidi_it)
 			 != current_level)));
 
 	  bidi_remember_char (&saved_it.next_for_neutral, bidi_it);
-
-	  switch (type)
+	  if ((bidi_it->level_stack[bidi_it->stack_idx].level != current_level)
+	      || type == NEUTRAL_B)
 	    {
-	      case STRONG_L:
-	      case STRONG_R:
-	      case STRONG_AL:
-		/* Actually, STRONG_AL cannot happen here, because
-		   bidi_resolve_weak converts it to STRONG_R, per W3.  */
-		eassert (type != STRONG_AL);
-		next_type = type;
-		break;
-	      case WEAK_EN:
-	      case WEAK_AN:
-		/* N1: ``European and Arabic numbers are treated as
-		   though they were R.''  */
-		next_type = STRONG_R;
-		break;
-	      default:
-		if ((bidi_it->level_stack[bidi_it->stack_idx].level
-		     != current_level)
-		    || type == NEUTRAL_B)
-		  {
-		    /* Marched all the way to the end of this level
-		       run.  We need to use the eos type, whose
-		       information is stored by bidi_set_sos_type in
-		       the prev_for_neutral member.  */
-		    if (saved_it.type != WEAK_BN
-			|| bidi_get_category (bidi_it->prev.type_after_w1) == NEUTRAL)
-		      next_type = bidi_it->prev_for_neutral.type;
-		    else
-		      {
-			/* This is a BN which does not adjoin
-			   neutrals.  Leave its type alone.  */
-			bidi_copy_it (bidi_it, &saved_it);
-			return bidi_it->type;
-		      }
-		  }
-		else
+	      /* Marched all the way to the end of this level run.  We
+		 need to use the eos type, whose information is stored
+		 by bidi_set_sos_type in the prev_for_neutral
+		 member.  */
+	      if (adjacent_to_neutrals)
+		next_type = bidi_it->prev_for_neutral.type;
+	      else
+		{
+		  /* This is a BN which does not adjoin neutrals.
+		     Leave its type alone.  */
+		  bidi_copy_it (bidi_it, &saved_it);
+		  return bidi_it->type;
+		}
+	    }
+	  else
+	    {
+	      switch (type)
+		{
+		case STRONG_L:
+		case STRONG_R:
+		case STRONG_AL:
+		  /* Actually, STRONG_AL cannot happen here, because
+		     bidi_resolve_weak converts it to STRONG_R, per W3.  */
+		  eassert (type != STRONG_AL);
+		  next_type = type;
+		  break;
+		case WEAK_EN:
+		case WEAK_AN:
+		  /* N1: ``European and Arabic numbers are treated as
+		     though they were R.''  */
+		  next_type = STRONG_R;
+		  break;
+		default:
 		  emacs_abort ();
-		break;
+		  break;
+		}
 	    }
 	  type = bidi_resolve_neutral_1 (saved_it.prev_for_neutral.type,
 					 next_type, current_level);
@@ -2456,6 +2461,10 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
     {
       int bob = ((bidi_it->string.s || STRINGP (bidi_it->string.lstring))
 		 ? 0 : 1);
+      bidi_type_t prev_type = bidi_it->prev.type;
+      bidi_type_t type_for_neutral = bidi_it->next_for_neutral.type;
+      ptrdiff_t pos_for_neutral = bidi_it->next_for_neutral.charpos;
+
       if (bidi_it->scan_dir > 0)
 	{
 	  if (bidi_it->nchars <= 0)
@@ -2472,6 +2481,22 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
 	type = bidi_cache_find (next_char_pos, -1, bidi_it);
       else
 	type = UNKNOWN_BT;
+
+      /* For a sequence of BN and NI, copy the type from the previous
+	 character.  This is because the loop in bidi_resolve_neutral
+	 that handles such sequences caches the characters it
+	 traverses, but does not (and cannot) store the
+	 next_for_neutral member for them, because it is only known
+	 when the loop ends.  So when we find them in the cache, their
+	 type needs to be updated, but we don't have next_for_neutral
+	 to do that.  However, whatever type is resolved as result of
+	 that loop, it will be the same for all the traversed
+	 characters, by virtue of N1 and N2.  */
+      if (type == WEAK_BN && bidi_it->scan_dir > 0
+	  && bidi_explicit_dir_char (bidi_it->ch)
+	  && type_for_neutral != UNKNOWN_BT
+	  && bidi_it->charpos < pos_for_neutral)
+	type = prev_type;
     }
   else
     type = UNKNOWN_BT;
@@ -2510,8 +2535,7 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
     }
 
   level = bidi_it->level_stack[bidi_it->stack_idx].level;
-  if ((bidi_get_category (type) == NEUTRAL /* && type != NEUTRAL_B */)
-      || (type == WEAK_BN && prev_level == level))
+  if (bidi_get_category (type) == NEUTRAL /* && type != NEUTRAL_B */)
     {
       if (bidi_it->next_for_neutral.type == UNKNOWN_BT)
 	emacs_abort ();
@@ -2562,42 +2586,8 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
       bidi_it->next_for_ws.bytepos = bpos;
     }
 
-  /* Resolve implicit levels, with a twist: PDFs get the embedding
-     level of the embedding they terminate.  See below for the
-     reason.  */
-  if (bidi_it->orig_type == PDF
-      /* Don't do this if this formatting code didn't change the
-	 embedding level due to invalid or empty embeddings.  */
-      && prev_level != level)
-    {
-      /* Don't look in UAX#9 for the reason for this: it's our own
-	 private quirk.  The reason is that we want the formatting
-	 codes to be delivered so that they bracket the text of their
-	 embedding.  For example, given the text
-
-	     {RLO}teST{PDF}
-
-	 we want it to be displayed as
-
-	     {PDF}STet{RLO}
-
-	 not as
-
-	     STet{RLO}{PDF}
-
-	 which will result because we bump up the embedding level as
-	 soon as we see the RLO and pop it as soon as we see the PDF,
-	 so RLO itself has the same embedding level as "teST", and
-	 thus would be normally delivered last, just before the PDF.
-	 The switch below fiddles with the level of PDF so that this
-	 ugly side effect does not happen.
-
-	 (This is, of course, only important if the formatting codes
-	 are actually displayed, but Emacs does need to display them
-	 if the user wants to.)  */
-      level = prev_level;
-    }
-  else if (bidi_it->orig_type == NEUTRAL_B /* L1 */
+  /* Resolve implicit levels.  */
+  if (bidi_it->orig_type == NEUTRAL_B /* L1 */
 	   || bidi_it->orig_type == NEUTRAL_S
 	   || bidi_it->ch == '\n' || bidi_it->ch == BIDI_EOB
 	   || (bidi_it->orig_type == NEUTRAL_WS
