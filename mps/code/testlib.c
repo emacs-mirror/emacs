@@ -325,9 +325,9 @@ void rnd_state_set_v2(unsigned long seed0_v2)
 static struct {
   const char *ident;
   const char *doc;
-} res_strings[] = {
-#define RES_STRINGS_ROW(X, ident, doc) {#ident, #doc},
-_mps_RES_ENUM(RES_STRINGS_ROW, X)
+} const res_strings[] = {
+#define RES_STRINGS_ROW(X, ident, doc) {#ident, doc},
+  _mps_RES_ENUM(RES_STRINGS_ROW, X)
 };
 
 
@@ -372,7 +372,7 @@ void error(const char *format, ...)
 void die_expect(mps_res_t res, mps_res_t expected, const char *s)
 {
   if (res != expected) {
-    if (0 <= res && (unsigned)res < sizeof(res_strings) / sizeof(res_strings[0]))
+    if (0 <= res && (unsigned)res < NELEMS(res_strings))
       error("\n%s: %s: %s\n", s, res_strings[res].ident, res_strings[res].doc);
     else
       error("\n%s: %d: unknown result code\n", s, res);
