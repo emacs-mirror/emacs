@@ -49,21 +49,27 @@ The MPS is currently supported for deployment on:
 
 - Windows XP or later on IA-32 and x86-64, using Microsoft Visual C/C++;
 
-- Linux (Ubuntu 11 and RHEL 6.3 known good, otherwise YMMV) on IA-32 and x86-64, using GCC;
+- Linux 2.4 or later, on IA-32 and x86-64, using GCC or Clang/LLVM;
 
 - FreeBSD 7 or later, on IA-32 and x86-64, using GCC;
 
-- OS X 10.4 or later, on IA-32 and x86-64 (single threaded only), using Clang/LLVM.
-
-The MPS will *not* work in a multi-threaded 32-bit application on 64-bit
-Windows 7.  This is due to a serious fault in Microsoft's WOW64 emulator
-that we are powerless to correct.  It is due to be fixed in Windows 8.
-See `WOW64 bug: GetThreadContext() may return stale contents <http://zachsaw.blogspot.co.uk/2010/11/wow64-bug-getthreadcontext-may-return.html>`_.
+- OS X 10.4 or later, on IA-32 and x86-64, using Clang/LLVM.
 
 The MPS is highly portable and has run on many other processors and
 operating systems in the past (see :ref:`guide-build`). Most of the
 MPS is written in very pure ANSI C and compiles without warnings on
 anything.
+
+.. warning::
+
+    The MPS does not work in a multi-threaded 32-bit application on an
+    unpatched 64-bit Windows 7. This is due to a serious bug in
+    Microsoft's WOW64 emulator. See `WOW64 bug: GetThreadContext() may
+    return stale contents
+    <http://zachsaw.blogspot.co.uk/2010/11/wow64-bug-getthreadcontext-may-return.html>`_.
+    The bug is fixed in Windows 8; on Windows 7 you must install the
+    `hotfix from Microsoft
+    <http://support2.microsoft.com/kb/2864432/en-us>`_.
 
 
 .. index::
