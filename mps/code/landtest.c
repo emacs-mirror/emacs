@@ -3,17 +3,8 @@
  * $Id$
  * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
- * The MPS contains three land implementations:
- *
- * 1. the CBS (Coalescing Block Structure) module maintains blocks in
- * a splay tree for fast access with a cost in storage;
- *
- * 2. the Freelist module maintains blocks in an address-ordered
- * singly linked list for zero storage overhead with a cost in
- * performance.
- *
- * 3. the Failover module implements a mechanism for using CBS until
- * it fails, then falling back to a Freelist.
+ * Test all three Land implementations against duplicate operations on
+ * a bit-table.
  */
 
 #include "cbs.h"
@@ -48,6 +39,7 @@ typedef struct TestStateStruct {
   Align align;
   BT allocTable;
   Addr block;
+  Size size;
   Land land;
 } TestStateStruct, *TestState;
 
@@ -111,7 +103,7 @@ static void check(TestState state)
   Bool b;
 
   closure.state = state;
-  closure.limit = addrOfIndex(state, ArraySize);
+  closure.limit = addrOfIndex(state, state->size);
   closure.oldLimit = state->block;
 
   b = LandIterate(state->land, checkVisitor, &closure, UNUSED_SIZE);
@@ -188,10 +180,10 @@ static Index lastEdge(BT bt, Size size, Index base)
  *
  * The function first picks a uniformly distributed <base> within the table.
  *
- * It then scans forward a binary exponentially distributed
- * number of "edges" in the table (that is, transitions between set and
- * reset) to get <end>.  Note that there is a 50% chance that <end> will
- * be the next edge, a 25% chance it will be the edge after, etc., until
+ * It then scans forward a binary exponentially distributed number of
+ * "edges" in the table (that is, transitions between set and reset)
+ * to get <end>. Note that there is a 50% chance that <end> will be
+ * the next edge, a 25% chance it will be the edge after, etc., until
  * the end of the table.
  *
  * Finally it picks a <limit> uniformly distributed in the range
@@ -208,11 +200,11 @@ static void randomRange(Addr *baseReturn, Addr *limitReturn, TestState state)
                 /* after base */
   Index limit;  /* a randomly chosen value in (base, limit]. */
 
-  base = fbmRnd(ArraySize);
+  base = fbmRnd(state->size);
 
   do {
-    end = nextEdge(state->allocTable, ArraySize, base);
-  } while(end < ArraySize && fbmRnd(2) == 0); /* p=0.5 exponential */
+    end = nextEdge(state->allocTable, state->size, base);
+  } while (end < state->size && fbmRnd(2) == 0); /* p=0.5 exponential */
 
   Insist(end > base);
 
@@ -239,21 +231,10 @@ static void allocate(TestState state, Addr base, Addr limit)
   NAllocateTried++;
 
   if (isFree) {
-    Size left, right, total;       /* Sizes of block and two fragments */
-
     outerBase =
-      addrOfIndex(state, lastEdge(state->allocTable, ArraySize, ib));
+      addrOfIndex(state, lastEdge(state->allocTable, state->size, ib));
     outerLimit =
-      addrOfIndex(state, nextEdge(state->allocTable, ArraySize, il - 1));
-
-    left = AddrOffset(outerBase, base);
-    right = AddrOffset(limit, outerLimit);
-    total = AddrOffset(outerBase, outerLimit);
-
-    /* TODO: check these values */
-    testlib_unused(left);
-    testlib_unused(right);
-    testlib_unused(total);
+      addrOfIndex(state, nextEdge(state->allocTable, state->size, il - 1));
   } else {
     outerBase = outerLimit = NULL;
   }
@@ -297,31 +278,20 @@ static void deallocate(TestState state, Addr base, Addr limit)
   NDeallocateTried++;
 
   if (isAllocated) {
-    Size left, right, total;       /* Sizes of block and two fragments */
-
     /* Find the free blocks adjacent to the allocated block */
     if (ib > 0 && !BTGet(state->allocTable, ib - 1)) {
       outerBase =
-        addrOfIndex(state, lastEdge(state->allocTable, ArraySize, ib - 1));
+        addrOfIndex(state, lastEdge(state->allocTable, state->size, ib - 1));
     } else {
       outerBase = base;
      }
 
-    if (il < ArraySize && !BTGet(state->allocTable, il)) {
+    if (il < state->size && !BTGet(state->allocTable, il)) {
       outerLimit =
-        addrOfIndex(state, nextEdge(state->allocTable, ArraySize, il));
+        addrOfIndex(state, nextEdge(state->allocTable, state->size, il));
     } else {
       outerLimit = limit;
     }
-
-    left = AddrOffset(outerBase, base);
-    right = AddrOffset(limit, outerLimit);
-    total = AddrOffset(outerBase, outerLimit);
-
-    /* TODO: check these values */
-    testlib_unused(left);
-    testlib_unused(right);
-    testlib_unused(total);
   }
 
   RangeInit(&range, base, limit);
@@ -355,15 +325,13 @@ static void find(TestState state, Size size, Bool high, FindDelete findDelete)
   RangeStruct foundRange, oldRange;
   Addr remainderBase, remainderLimit;
   Addr origBase, origLimit;
-  Size oldSize, newSize;
 
   origBase = origLimit = NULL;
   expected = (high ? BTFindLongResRangeHigh : BTFindLongResRange)
                (&expectedBase, &expectedLimit, state->allocTable,
-                (Index)0, (Index)ArraySize, (Count)size);
+                (Index)0, (Index)state->size, (Count)size);
 
   if (expected) {
-    oldSize = (expectedLimit - expectedBase) * state->align;
     remainderBase = origBase = addrOfIndex(state, expectedBase);
     remainderLimit = origLimit = addrOfIndex(state, expectedLimit);
 
@@ -386,14 +354,6 @@ static void find(TestState state, Size size, Bool high, FindDelete findDelete)
       cdie(0, "invalid findDelete");
       break;
     }
-
-    if (findDelete != FindDeleteNONE) {
-      newSize = AddrOffset(remainderBase, remainderLimit);
-    }
-
-    /* TODO: check these values */
-    testlib_unused(oldSize);
-    testlib_unused(newSize);
   }
 
   found = (high ? LandFindLast : LandFindFirst)
@@ -440,7 +400,7 @@ static void test(TestState state, unsigned n) {
   Bool high;
   FindDelete findDelete = FindDeleteNONE;
 
-  BTSetRange(state->allocTable, 0, ArraySize); /* Initially all allocated */
+  BTSetRange(state->allocTable, 0, state->size); /* Initially all allocated */
   check(state);
   for(i = 0; i < n; i++) {
     switch(fbmRnd(3)) {
@@ -453,7 +413,7 @@ static void test(TestState state, unsigned n) {
       deallocate(state, base, limit);
       break;
     case 2:
-      size = fbmRnd(ArraySize / 10) + 1;
+      size = fbmRnd(state->size / 10) + 1;
       high = fbmRnd(2) ? TRUE : FALSE;
       switch(fbmRnd(6)) {
       default: findDelete = FindDeleteNONE; break;
@@ -480,8 +440,6 @@ extern int main(int argc, char *argv[])
   Arena arena;
   TestStateStruct state;
   void *p;
-  Addr block;
-  BT allocTable;
   MFSStruct blockPool;
   CBSStruct cbsStruct;
   FreelistStruct flStruct;
@@ -490,11 +448,11 @@ extern int main(int argc, char *argv[])
   Land fl = FreelistLand(&flStruct);
   Land fo = FailoverLand(&foStruct);
   Pool mfs = MFSPool(&blockPool);
-  Align align;
   int i;
 
   testlib_init(argc, argv);
-  align = (1 << rnd() % 4) * MPS_PF_ALIGN;
+  state.size = ArraySize;
+  state.align = (1 << rnd() % 4) * MPS_PF_ALIGN;
 
   NAllocateTried = NAllocateSucceeded = NDeallocateTried =
     NDeallocateSucceeded = 0;
@@ -503,36 +461,34 @@ extern int main(int argc, char *argv[])
       "mps_arena_create");
   arena = (Arena)mpsArena; /* avoid pun */
 
-  die((mps_res_t)BTCreate(&allocTable, arena, ArraySize),
+  die((mps_res_t)BTCreate(&state.allocTable, arena, state.size),
       "failed to create alloc table");
 
-  die((mps_res_t)ControlAlloc(&p, arena, (ArraySize + 1) * align, 
+  die((mps_res_t)ControlAlloc(&p, arena, (state.size + 1) * state.align,
                               /* withReservoirPermit */ FALSE),
       "failed to allocate block");
-  block = AddrAlignUp(p, align);
+  state.block = AddrAlignUp(p, state.align);
 
   if (verbose) {
-    printf("Allocated block [%p,%p)\n", (void *)block,
-           (void *)AddrAdd(block, ArraySize));
+    printf("Allocated block [%p,%p)\n", (void *)state.block,
+           (void *)AddrAdd(state.block, state.size));
   }
 
   /* 1. Test CBS */
 
   MPS_ARGS_BEGIN(args) {
-    die((mps_res_t)LandInit(cbs, CBSFastLandClassGet(), arena, align, NULL, args),
+    die((mps_res_t)LandInit(cbs, CBSFastLandClassGet(), arena, state.align,
+                            NULL, args),
         "failed to initialise CBS");
   } MPS_ARGS_END(args);
-  state.align = align;
-  state.block = block;
-  state.allocTable = allocTable;
   state.land = cbs;
   test(&state, nCBSOperations);
   LandFinish(cbs);
 
   /* 2. Test Freelist */
 
-  die((mps_res_t)LandInit(fl, FreelistLandClassGet(), arena, align, NULL,
-                          mps_args_none),
+  die((mps_res_t)LandInit(fl, FreelistLandClassGet(), arena, state.align,
+                          NULL, mps_args_none),
       "failed to initialise Freelist");
   state.land = fl;
   test(&state, nFLOperations);
@@ -554,19 +510,19 @@ extern int main(int argc, char *argv[])
 
       MPS_ARGS_BEGIN(args) {
         MPS_ARGS_ADD(args, CBSBlockPool, mfs);
-        die((mps_res_t)LandInit(cbs, CBSFastLandClassGet(), arena, align, NULL,
-                                args),
+        die((mps_res_t)LandInit(cbs, CBSFastLandClassGet(), arena, state.align,
+                                NULL, args),
             "failed to initialise CBS");
       } MPS_ARGS_END(args);
 
-      die((mps_res_t)LandInit(fl, FreelistLandClassGet(), arena, align, NULL,
-                              mps_args_none),
+      die((mps_res_t)LandInit(fl, FreelistLandClassGet(), arena, state.align,
+                              NULL, mps_args_none),
           "failed to initialise Freelist");
       MPS_ARGS_BEGIN(args) {
         MPS_ARGS_ADD(args, FailoverPrimary, cbs);
         MPS_ARGS_ADD(args, FailoverSecondary, fl);
-        die((mps_res_t)LandInit(fo, FailoverLandClassGet(), arena, align, NULL,
-                                args),
+        die((mps_res_t)LandInit(fo, FailoverLandClassGet(), arena, state.align,
+                                NULL, args),
             "failed to initialise Failover");
       } MPS_ARGS_END(args);
 
@@ -578,7 +534,7 @@ extern int main(int argc, char *argv[])
       PoolFinish(mfs);
   }
 
-  ControlFree(arena, p, (ArraySize + 1) * align);
+  ControlFree(arena, p, (state.size + 1) * state.align);
   mps_arena_destroy(arena);
 
   printf("\nNumber of allocations attempted: %"PRIuLONGEST"\n",
