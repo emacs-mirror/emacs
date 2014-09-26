@@ -37,6 +37,7 @@ Ravenbrook by arrangement. Please :ref:`contact us <contact>` at
 `mps-questions@ravenbrook.com <mailto:mps-questions@ravenbrook.com>`_
 for details.
 
+.. comment:: Keep this section synchronized with readme.txt
 
 .. index::
    single: Memory Pool System; supported target platforms
@@ -47,9 +48,10 @@ Supported target platforms
 
 The MPS is currently supported for deployment on:
 
-- Windows XP or later on IA-32 and x86-64, using Microsoft Visual C/C++;
+- Windows XP or later, on IA-32 and x86-64, using Microsoft Visual C/C++;
 
-- Linux 2.4 or later, on IA-32 and x86-64, using GCC or Clang/LLVM;
+- Linux 2.4 or later, on IA-32 using GCC and on x86-64 using GCC or
+  Clang/LLVM;
 
 - FreeBSD 7 or later, on IA-32 and x86-64, using GCC;
 
@@ -62,14 +64,13 @@ anything.
 
 .. warning::
 
-    The MPS does not work in a multi-threaded 32-bit application on an
-    unpatched 64-bit Windows 7. This is due to a serious bug in
-    Microsoft's WOW64 emulator. See `WOW64 bug: GetThreadContext() may
-    return stale contents
-    <http://zachsaw.blogspot.co.uk/2010/11/wow64-bug-getthreadcontext-may-return.html>`_.
-    The bug is fixed in Windows 8; on Windows 7 you must install the
-    `hotfix from Microsoft
-    <http://support2.microsoft.com/kb/2864432/en-us>`_.
+    If you are running a multi-threaded 32-bit application on 64-bit
+    Windows 7 via the WOW64 emulator, then you must install `this
+    hotfix from Microsoft
+    <http://support.microsoft.com/kb/2864432/en-us>`_. See `WOW64 bug:
+    GetThreadContext() may return stale contents
+    <http://zachsaw.blogspot.co.uk/2010/11/wow64-bug-getthreadcontext-may-return.html>`_
+    for a description of the problem.
 
 
 .. index::
