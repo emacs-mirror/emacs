@@ -4225,11 +4225,12 @@ and as second argument the event parsed as a vector."
 (defun erc-format-nick (&optional user _channel-data)
   "Return the nickname of USER.
 See also `erc-format-nick-function'."
-  (let ((nick (erc-server-user-nickname user)))
+  (when user
+    (let ((nick (erc-server-user-nickname user)))
     (concat (erc-propertize
              (erc-get-user-mode-prefix nick)
              'face 'erc-nick-prefix-face)
-	    nick)))
+	    nick))))
 
 (defun erc-get-user-mode-prefix (user)
   (when user

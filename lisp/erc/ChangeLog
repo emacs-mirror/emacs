@@ -1,3 +1,7 @@
+2014-09-26  Kelvin White  <kwhite@gnu.org>
+
+	* erc.el (erc-format-nick): Fix code regression - Bug #18551
+
 2014-09-25  Kelvin White  <kwhite@gnu.org>
 
 	* erc.el: Follow Emacs version instead of tracking it seperately.
