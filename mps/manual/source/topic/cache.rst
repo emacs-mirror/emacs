@@ -152,8 +152,7 @@ Cache interface
     :c:macro:`MPS_RES_COMMIT_LIMIT` when it fails to allocate memory
     for the internal cache structure. Returns :c:macro:`MPS_RES_LIMIT`
     if you ask for too many size classes: in this case, combine some
-    small adjacent classes. Returns :c:macro:`MPS_RES_PARAM` if the
-    pool doesn't support segregated allocation caches.
+    small adjacent classes.
 
     After this function returns, the array of size classes pointed to
     be ``classes`` is no longer needed and may be discarded.  The
