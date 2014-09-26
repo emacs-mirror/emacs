@@ -1,3 +1,9 @@
+2014-09-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* xfns.c (x_default_scroll_bar_color_parameter):
+	Use USE_LOCAL_ALLOCA only if USE_TOOLKIT_SCROLL_BARS,
+	to pacify --enable-gcc-warnings in non-scrollbar builds.
+
 2014-09-26  Ken Brown  <kbrown@cornell.edu>
 
 	* w32term.h (ALIGN_STACK): Fix the cpp condition.

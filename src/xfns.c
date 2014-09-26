@@ -1559,7 +1559,9 @@ x_default_scroll_bar_color_parameter (struct frame *f,
 				      const char *xprop, const char *xclass,
 				      int foreground_p)
 {
+#ifdef USE_TOOLKIT_SCROLL_BARS
   USE_LOCAL_ALLOCA;
+#endif
   struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
   Lisp_Object tem;
 
