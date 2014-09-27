@@ -1,3 +1,11 @@
+2014-09-27  Ken Brown  <kbrown@cornell.edu>
+
+	Fix implementation of HYBRID_MALLOC on Cygwin.
+	* sheap.c (bss_sbrk_buffer_end): Cast to void *.
+	(bss_sbrk_buffer_beg): New variable.  Use it...
+	* gmalloc.c (ALLOCATED_BEFORE_DUMPING) [CYGWIN]: ...here, to fix
+	incorrect definition.
+
 2014-09-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* keyboard.c (track-mouse): Rename to internal--track-mouse.
