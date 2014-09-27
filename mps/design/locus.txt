@@ -47,7 +47,7 @@ the locus manager. The locus manager and the arena (working together)
 try to honour these preferences, and decide what address space the
 pool gets.
 
-Preferences are expressed by the ``SegPref`` argument to
+Preferences are expressed by the ``LocusPref`` argument to
 ``SegAlloc()``. Note that, when they call ``SegAlloc()``, pools are
 asking for address space and writeable storage simultaneously, in a
 single call. There is currently no way for pools to reserve address
@@ -76,13 +76,8 @@ Why is it important to manage address space?
 
    The locus manager manages the mapping from clumps to zones.
 
-   To specify a clump, pools use the ``SegPrefGen`` argument to
-   ``SegPrefExpress()``.
-
-   .. note::
-
-       The name is misleading: generations are only one sort of clump.
-       Richard Kistruck, 2007-04-24.
+   To specify a clump, pools can pass ``LocusPrefZoneSet`` and a set
+   of zones to ``LocusPrefExpress()``.
 
 #. Prevent address space fragmentation (within the arena)
 
@@ -138,7 +133,7 @@ Why is it important to manage address space?
 
     Pools can specify a preference for High and Low ends of address
     space, which implies a search-order. Pools could also specify
-    clumping, using either ``SegPrefGen`` or ``SegPrefZoneSet``.
+    clumping, using either ``LocusPrefGen`` or ``LocusPrefZoneSet``.
 
 
 Discovering the layout

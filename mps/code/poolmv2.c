@@ -1130,9 +1130,8 @@ mps_class_t mps_class_mvt(void)
 static Res MVTSegAlloc(Seg *segReturn, MVT mvt, Size size,
                        Bool withReservoirPermit)
 {
-  Res res = SegAlloc(segReturn, SegClassGet(),
-                     SegPrefDefault(), size, MVTPool(mvt), withReservoirPermit,
-                     argsNone);
+  Res res = SegAlloc(segReturn, SegClassGet(), LocusPrefDefault(), size,
+                     MVTPool(mvt), withReservoirPermit, argsNone);
 
   if (res == ResOK) {
     Size segSize = SegSize(*segReturn);

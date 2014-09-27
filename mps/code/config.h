@@ -413,8 +413,8 @@
    and 2014-01-17/cbs-tract-alloc reformed allocation, and may now be doing
    more harm than good.  Experiment with setting to ZoneSetUNIV. */
 
-#define SegPrefDEFAULT { \
-  SegPrefSig,          /* sig */ \
+#define LocusPrefDEFAULT { \
+  LocusPrefSig,        /* sig */ \
   FALSE,               /* high */ \
   ArenaDefaultZONESET, /* zoneSet */ \
   ZoneSetEMPTY,        /* avoid */ \

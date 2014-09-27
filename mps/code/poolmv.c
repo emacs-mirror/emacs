@@ -564,11 +564,11 @@ static Res MVAlloc(Addr *pReturn, Pool pool, Size size,
   arena = PoolArena(pool);
   regionSize = SizeArenaGrains(regionSize, arena);
 
-  res = ArenaAlloc(&base, SegPrefDefault(), regionSize, pool,
+  res = ArenaAlloc(&base, LocusPrefDefault(), regionSize, pool,
                    withReservoirPermit);
   if(res != ResOK) { /* try again with a region big enough for this object */
     regionSize = SizeArenaGrains(size, arena);
-    res = ArenaAlloc(&base, SegPrefDefault(), regionSize, pool,
+    res = ArenaAlloc(&base, LocusPrefDefault(), regionSize, pool,
                      withReservoirPermit);
     if (res != ResOK) {
       PoolFree(mvSpanPool(mv), (Addr)span, sizeof(MVSpanStruct));
