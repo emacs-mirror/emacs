@@ -1394,8 +1394,11 @@ display the result of expression evaluation."
   (let ((minibuffer-completing-symbol t))
     (minibuffer-with-setup-hook
         (lambda ()
+          ;; FIXME: call emacs-lisp-mode?
+          (setq-local eldoc-documentation-function
+                      #'elisp-eldoc-documentation-function)
           (add-hook 'completion-at-point-functions
-                    #'lisp-completion-at-point nil t)
+                    #'elisp-completion-at-point nil t)
           (run-hooks 'eval-expression-minibuffer-setup-hook))
       (read-from-minibuffer prompt initial-contents
                             read-expression-map t

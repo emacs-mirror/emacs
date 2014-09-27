@@ -102,6 +102,10 @@ performance improvements when pasting large amounts of text.
 
 * Changes in Specialized Modes and Packages in Emacs 24.5
 
+** ElDoc
+*** New minor mode global-eldoc-mode
+*** eldoc-documentation-function now defaults to nil
+
 ** pcase
 *** New UPatterns `quote' and `app'.
 *** New UPatterns can be defined with `pcase-defmacro'.

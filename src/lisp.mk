@@ -132,6 +132,7 @@ lisp = \
 	$(lispsource)/textmodes/paragraphs.elc \
 	$(lispsource)/progmodes/prog-mode.elc \
 	$(lispsource)/emacs-lisp/lisp-mode.elc \
+	$(lispsource)/progmodes/elisp-mode.elc \
 	$(lispsource)/textmodes/text-mode.elc \
 	$(lispsource)/textmodes/fill.elc \
 	$(lispsource)/newcomment.elc \

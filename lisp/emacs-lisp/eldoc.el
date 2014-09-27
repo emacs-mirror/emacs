@@ -116,8 +116,8 @@ has no effect, unless the function handles it explicitly."
 (defface eldoc-highlight-function-argument
   '((t (:inherit bold)))
   "Face used for the argument at point in a function's argument list.
-Note that if `eldoc-documentation-function' is non-nil, this face
-has no effect, unless the function handles it explicitly."
+Note that this face has no effect unless the `eldoc-documentation-function'
+handles it explicitly."
   :group 'eldoc)
 
 ;;; No user options below here.
@@ -185,15 +185,34 @@ it displays the argument list of the function called in the
 expression point is on."
   :group 'eldoc :lighter eldoc-minor-mode-string
   (setq eldoc-last-message nil)
-  (if eldoc-mode
+  (cond
+   (eldoc-documentation-function
+    (message "There is no ElDoc support in this buffer")
+    (setq eldoc-mode nil))
+   (eldoc-mode
+    (when eldoc-print-after-edit
+      (setq-local eldoc-message-commands (eldoc-edit-message-commands)))
+    (add-hook 'post-command-hook 'eldoc-schedule-timer nil t)
+    (add-hook 'pre-command-hook 'eldoc-pre-command-refresh-echo-area nil t))
+   (t
+    (kill-local-variable 'eldoc-message-commands)
+    (remove-hook 'post-command-hook 'eldoc-schedule-timer t)
+    (remove-hook 'pre-command-hook 'eldoc-pre-command-refresh-echo-area t))))
+
+;;;###autoload
+(define-minor-mode global-eldoc-mode
+  "Enable `eldoc-mode' in all buffers where it's applicable."
+  :group 'eldoc :global t
+  (setq eldoc-last-message nil)
+  (if global-eldoc-mode
       (progn
 	(when eldoc-print-after-edit
 	  (setq-local eldoc-message-commands (eldoc-edit-message-commands)))
-	(add-hook 'post-command-hook 'eldoc-schedule-timer nil t)
-	(add-hook 'pre-command-hook 'eldoc-pre-command-refresh-echo-area nil t))
+	(add-hook 'post-command-hook #'eldoc-schedule-timer)
+	(add-hook 'pre-command-hook #'eldoc-pre-command-refresh-echo-area))
     (kill-local-variable 'eldoc-message-commands)
-    (remove-hook 'post-command-hook 'eldoc-schedule-timer t)
-    (remove-hook 'pre-command-hook 'eldoc-pre-command-refresh-echo-area t)))
+    (remove-hook 'post-command-hook #'eldoc-schedule-timer)
+    (remove-hook 'pre-command-hook #'eldoc-pre-command-refresh-echo-area)))
 
 ;;;###autoload
 (define-obsolete-function-alias 'turn-on-eldoc-mode 'eldoc-mode "24.4")
@@ -201,11 +220,14 @@ expression point is on."
 
 (defun eldoc-schedule-timer ()
   (or (and eldoc-timer
-           (memq eldoc-timer timer-idle-list))
+           (memq eldoc-timer timer-idle-list)) ;FIXME: Why?
       (setq eldoc-timer
             (run-with-idle-timer
 	     eldoc-idle-delay t
-	     (lambda () (and eldoc-mode (eldoc-print-current-symbol-info))))))
+	     (lambda ()
+               (when (or eldoc-mode
+                         (and global-eldoc-mode eldoc-documentation-function))
+                 (eldoc-print-current-symbol-info))))))
 
   ;; If user has changed the idle delay, update the timer.
   (cond ((not (= eldoc-idle-delay eldoc-current-idle-delay))
@@ -300,7 +322,7 @@ Otherwise work like `message'."
 
 
 ;;;###autoload
-(defvar eldoc-documentation-function #'eldoc-documentation-function-default
+(defvar eldoc-documentation-function nil
   "Function to call to return doc string.
 The function of no args should return a one-line string for displaying
 doc about a function etc. appropriate to the context around point.
@@ -313,8 +335,7 @@ the variables `eldoc-argument-case' and `eldoc-echo-area-use-multiline-p',
 and the face `eldoc-highlight-function-argument', if they are to have any
 effect.
 
-This variable is expected to be made buffer-local by modes (other than
-Emacs Lisp mode) that support ElDoc.")
+This variable is expected to be set buffer-locally by modes that support ElDoc.")
 
 (defun eldoc-print-current-symbol-info ()
   ;; This is run from post-command-hook or some idle timer thing,
@@ -326,281 +347,6 @@ Emacs Lisp mode) that support ElDoc.")
                (eldoc-message nil)
                nil))
 	 (eldoc-message (funcall eldoc-documentation-function)))))
-
-(defun eldoc-documentation-function-default ()
-  "Default value for `eldoc-documentation-function' (which see)."
-  (let ((current-symbol (eldoc-current-symbol))
-	(current-fnsym  (eldoc-fnsym-in-current-sexp)))
-    (cond ((null current-fnsym)
-	   nil)
-	  ((eq current-symbol (car current-fnsym))
-	   (or (apply #'eldoc-get-fnsym-args-string current-fnsym)
-	       (eldoc-get-var-docstring current-symbol)))
-	  (t
-	   (or (eldoc-get-var-docstring current-symbol)
-	       (apply #'eldoc-get-fnsym-args-string current-fnsym))))))
-
-(defun eldoc-get-fnsym-args-string (sym &optional index)
-  "Return a string containing the parameter list of the function SYM.
-If SYM is a subr and no arglist is obtainable from the docstring
-or elsewhere, return a 1-line docstring."
-  (let ((argstring
-	 (cond
-	  ((not (and sym (symbolp sym) (fboundp sym))) nil)
-	  ((and (eq sym (aref eldoc-last-data 0))
-		(eq 'function (aref eldoc-last-data 2)))
-	   (aref eldoc-last-data 1))
-	  (t
-	   (let* ((advertised (gethash (indirect-function sym)
-                                       advertised-signature-table t))
-                  doc
-		  (args
-		   (cond
-		    ((listp advertised) advertised)
-		    ((setq doc (help-split-fundoc (documentation sym t) sym))
-		     (car doc))
-		    (t (help-function-arglist sym)))))
-             ;; Stringify, and store before highlighting, downcasing, etc.
-             ;; FIXME should truncate before storing.
-	     (eldoc-last-data-store sym (eldoc-function-argstring args)
-                                    'function))))))
-    ;; Highlight, truncate.
-    (if argstring
-	(eldoc-highlight-function-argument sym argstring index))))
-
-(defun eldoc-highlight-function-argument (sym args index)
-  "Highlight argument INDEX in ARGS list for function SYM.
-In the absence of INDEX, just call `eldoc-docstring-format-sym-doc'."
-  ;; FIXME: This should probably work on the list representation of `args'
-  ;; rather than its string representation.
-  ;; FIXME: This function is much too long, we need to split it up!
-  (let ((start          nil)
-	(end            0)
-	(argument-face  'eldoc-highlight-function-argument)
-        (args-lst (mapcar (lambda (x)
-                            (replace-regexp-in-string
-                             "\\`[(]\\|[)]\\'" "" x))
-                          (split-string args))))
-    ;; Find the current argument in the argument string.  We need to
-    ;; handle `&rest' and informal `...' properly.
-    ;;
-    ;; FIXME: What to do with optional arguments, like in
-    ;;        (defun NAME ARGLIST [DOCSTRING] BODY...) case?
-    ;;        The problem is there is no robust way to determine if
-    ;;        the current argument is indeed a docstring.
-
-    ;; When `&key' is used finding position based on `index'
-    ;; would be wrong, so find the arg at point and determine
-    ;; position in ARGS based on this current arg.
-    (when (string-match "&key" args)
-      (let* (case-fold-search
-             key-have-value
-             (sym-name (symbol-name sym))
-             (cur-w (current-word))
-             (args-lst-ak (cdr (member "&key" args-lst)))
-             (limit (save-excursion
-                      (when (re-search-backward sym-name nil t)
-                        (match-end 0))))
-             (cur-a (if (and cur-w (string-match ":\\([^ ()]*\\)" cur-w))
-                        (substring cur-w 1)
-                      (save-excursion
-                        (let (split)
-                          (when (re-search-backward ":\\([^()\n]*\\)" limit t)
-                            (setq split (split-string (match-string 1) " " t))
-                            (prog1 (car split)
-                              (when (cdr split)
-                                (setq key-have-value t))))))))
-             ;; If `cur-a' is not one of `args-lst-ak'
-             ;; assume user is entering an unknown key
-             ;; referenced in last position in signature.
-             (other-key-arg (and (stringp cur-a)
-                                 args-lst-ak
-                                 (not (member (upcase cur-a) args-lst-ak))
-                                 (upcase (car (last args-lst-ak))))))
-        (unless (string= cur-w sym-name)
-          ;; The last keyword have already a value
-          ;; i.e :foo a b and cursor is at b.
-          ;; If signature have also `&rest'
-          ;; (assume it is after the `&key' section)
-          ;; go to the arg after `&rest'.
-          (if (and key-have-value
-                   (save-excursion
-                     (not (re-search-forward ":.*" (point-at-eol) t)))
-                   (string-match "&rest \\([^ ()]*\\)" args))
-              (setq index nil ; Skip next block based on positional args.
-                    start (match-beginning 1)
-                    end   (match-end 1))
-            ;; If `cur-a' is nil probably cursor is on a positional arg
-            ;; before `&key', in this case, exit this block and determine
-            ;; position with `index'.
-            (when (and cur-a     ; A keyword arg (dot removed) or nil.
-                       (or (string-match
-                            (concat "\\_<" (upcase cur-a) "\\_>") args)
-                           (string-match
-                            (concat "\\_<" other-key-arg "\\_>") args)))
-              (setq index nil ; Skip next block based on positional args.
-                    start (match-beginning 0)
-                    end   (match-end 0)))))))
-    ;; Handle now positional arguments.
-    (while (and index (>= index 1))
-      (if (string-match "[^ ()]+" args end)
-	  (progn
-	    (setq start (match-beginning 0)
-		  end   (match-end 0))
-	    (let ((argument (match-string 0 args)))
-	      (cond ((string= argument "&rest")
-		     ;; All the rest arguments are the same.
-		     (setq index 1))
-		    ((string= argument "&optional"))         ; Skip.
-                    ((string= argument "&allow-other-keys")) ; Skip.
-                    ;; Back to index 0 in ARG1 ARG2 ARG2 ARG3 etc...
-                    ;; like in `setq'.
-		    ((or (and (string-match-p "\\.\\.\\.$" argument)
-                              (string= argument (car (last args-lst))))
-                         (and (string-match-p "\\.\\.\\.$"
-                                              (substring args 1 (1- (length args))))
-                              (= (length (remove "..." args-lst)) 2)
-                              (> index 1) (cl-oddp index)))
-                     (setq index 0))
-		    (t
-		     (setq index (1- index))))))
-	(setq end           (length args)
-	      start         (1- end)
-	      argument-face 'font-lock-warning-face
-	      index         0)))
-    (let ((doc args))
-      (when start
-	(setq doc (copy-sequence args))
-	(add-text-properties start end (list 'face argument-face) doc))
-      (setq doc (eldoc-docstring-format-sym-doc
-		 sym doc (if (functionp sym) 'font-lock-function-name-face
-                           'font-lock-keyword-face)))
-      doc)))
-
-;; Return a string containing a brief (one-line) documentation string for
-;; the variable.
-(defun eldoc-get-var-docstring (sym)
-  (cond ((not sym) nil)
-        ((and (eq sym (aref eldoc-last-data 0))
-              (eq 'variable (aref eldoc-last-data 2)))
-         (aref eldoc-last-data 1))
-        (t
-         (let ((doc (documentation-property sym 'variable-documentation t)))
-           (when doc
-             (let ((doc (eldoc-docstring-format-sym-doc
-                         sym (eldoc-docstring-first-line doc)
-                         'font-lock-variable-name-face)))
-               (eldoc-last-data-store sym doc 'variable)))))))
-
-(defun eldoc-last-data-store (symbol doc type)
-  (aset eldoc-last-data 0 symbol)
-  (aset eldoc-last-data 1 doc)
-  (aset eldoc-last-data 2 type)
-  doc)
-
-;; Note that any leading `*' in the docstring (which indicates the variable
-;; is a user option) is removed.
-(defun eldoc-docstring-first-line (doc)
-  (and (stringp doc)
-       (substitute-command-keys
-        (save-match-data
-	  ;; Don't use "^" in the regexp below since it may match
-	  ;; anywhere in the doc-string.
-	  (let ((start (if (string-match "\\`\\*" doc) (match-end 0) 0)))
-            (cond ((string-match "\n" doc)
-                   (substring doc start (match-beginning 0)))
-                  ((zerop start) doc)
-                  (t (substring doc start))))))))
-
-;; If the entire line cannot fit in the echo area, the symbol name may be
-;; truncated or eliminated entirely from the output to make room for the
-;; description.
-(defun eldoc-docstring-format-sym-doc (sym doc face)
-  (save-match-data
-    (let* ((name (symbol-name sym))
-           (ea-multi eldoc-echo-area-use-multiline-p)
-           ;; Subtract 1 from window width since emacs will not write
-           ;; any chars to the last column, or in later versions, will
-           ;; cause a wraparound and resize of the echo area.
-           (ea-width (1- (window-width (minibuffer-window))))
-           (strip (- (+ (length name) (length ": ") (length doc)) ea-width)))
-      (cond ((or (<= strip 0)
-                 (eq ea-multi t)
-                 (and ea-multi (> (length doc) ea-width)))
-             (format "%s: %s" (propertize name 'face face) doc))
-            ((> (length doc) ea-width)
-             (substring (format "%s" doc) 0 ea-width))
-            ((>= strip (length name))
-             (format "%s" doc))
-            (t
-             ;; Show the end of the partial symbol name, rather
-             ;; than the beginning, since the former is more likely
-             ;; to be unique given package namespace conventions.
-             (setq name (substring name strip))
-             (format "%s: %s" (propertize name 'face face) doc))))))
-
-
-;; Return a list of current function name and argument index.
-(defun eldoc-fnsym-in-current-sexp ()
-  (save-excursion
-    (let ((argument-index (1- (eldoc-beginning-of-sexp))))
-      ;; If we are at the beginning of function name, this will be -1.
-      (when (< argument-index 0)
-	(setq argument-index 0))
-      ;; Don't do anything if current word is inside a string.
-      (if (= (or (char-after (1- (point))) 0) ?\")
-	  nil
-	(list (eldoc-current-symbol) argument-index)))))
-
-;; Move to the beginning of current sexp.  Return the number of nested
-;; sexp the point was over or after.
-(defun eldoc-beginning-of-sexp ()
-  (let ((parse-sexp-ignore-comments t)
-	(num-skipped-sexps 0))
-    (condition-case _
-	(progn
-	  ;; First account for the case the point is directly over a
-	  ;; beginning of a nested sexp.
-	  (condition-case _
-	      (let ((p (point)))
-		(forward-sexp -1)
-		(forward-sexp 1)
-		(when (< (point) p)
-		  (setq num-skipped-sexps 1)))
-	    (error))
-	  (while
-	      (let ((p (point)))
-		(forward-sexp -1)
-		(when (< (point) p)
-		  (setq num-skipped-sexps (1+ num-skipped-sexps))))))
-      (error))
-    num-skipped-sexps))
-
-;; returns nil unless current word is an interned symbol.
-(defun eldoc-current-symbol ()
-  (let ((c (char-after (point))))
-    (and c
-         (memq (char-syntax c) '(?w ?_))
-         (intern-soft (current-word)))))
-
-;; Do indirect function resolution if possible.
-(defun eldoc-symbol-function (fsym)
-  (let ((defn (symbol-function fsym)))
-    (and (symbolp defn)
-         (condition-case _
-             (setq defn (indirect-function fsym))
-           (error (setq defn nil))))
-    defn))
-
-(defun eldoc-function-argstring (arglist)
-  "Return ARGLIST as a string enclosed by ().
-ARGLIST is either a string, or a list of strings or symbols."
-  (let ((str (cond ((stringp arglist) arglist)
-                   ((not (listp arglist)) nil)
-                   (t (format "%S" (help-make-usage 'toto arglist))))))
-    (if (and str (string-match "\\`([^ )]+ ?" str))
-        (replace-match "(" t t str)
-      str)))
 
 
 ;; When point is in a sexp, the function args are not reprinted in the echo
@@ -617,7 +363,7 @@ ARGLIST is either a string, or a list of strings or symbols."
 
 (defun eldoc-add-command-completions (&rest names)
   (dolist (name names)
-    (apply 'eldoc-add-command (all-completions name obarray 'commandp))))
+    (apply #'eldoc-add-command (all-completions name obarray 'commandp))))
 
 (defun eldoc-remove-command (&rest cmds)
   (dolist (name cmds)
@@ -627,7 +373,7 @@ ARGLIST is either a string, or a list of strings or symbols."
 
 (defun eldoc-remove-command-completions (&rest names)
   (dolist (name names)
-    (apply 'eldoc-remove-command
+    (apply #'eldoc-remove-command
            (all-completions name eldoc-message-commands))))
 
 

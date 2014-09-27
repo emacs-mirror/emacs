@@ -1,3 +1,45 @@
+2014-09-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Introduce global-eldoc-mode.  Move Elisp-specific code to elisp-mode.el.
+	* emacs-lisp/eldoc.el (global-eldoc-mode): New minor mode.
+	(eldoc-schedule-timer): Obey it.
+	(eldoc-documentation-function): Default to nil.
+	(eldoc-mode): Don't enable if eldoc-documentation-function is not set.
+	(eldoc-documentation-function-default, eldoc-get-fnsym-args-string)
+	(eldoc-highlight-function-argument, eldoc-get-var-docstring)
+	(eldoc-last-data-store, eldoc-docstring-first-line)
+	(eldoc-docstring-format-sym-doc, eldoc-fnsym-in-current-sexp)
+	(eldoc-beginning-of-sexp, eldoc-current-symbol)
+	(eldoc-function-argstring): Move to elisp-mode.el.
+	(eldoc-symbol-function): Remove, unused.
+	* progmodes/elisp-mode.el: New file.  Rename all "eldoc-*" to "elisp--*".
+	(elisp-completion-at-point): Rename from lisp-completion-at-point.
+	(elisp--preceding-sexp): Rename from preceding-sexp.
+	* loadup.el: Load new file progmodes/elisp-mode.
+	* ielm.el (inferior-emacs-lisp-mode): Set eldoc-documentation-function.
+	* emacs-lisp/lisp.el (lisp--local-variables-1, lisp--local-variables)
+	(lisp--local-variables-completion-table, lisp--expect-function-p)
+	(lisp--form-quoted-p, lisp--company-doc-buffer)
+	(lisp--company-doc-string, lisp--company-location)
+	(lisp-completion-at-point): Move to elisp-mode.el.
+	* emacs-lisp/lisp-mode.el (lisp--mode-syntax-table): New syntax-table,
+	extracted from emacs-lisp-mode-syntax-table.
+	(emacs-lisp-mode-abbrev-table, emacs-lisp-mode-syntax-table): Move to
+	elisp-mode.el.
+	(lisp-imenu-generic-expression): Add comments to document what comes
+	from which Lisp dialect.
+	(emacs-lisp-mode-map, emacs-lisp-byte-compile)
+	(emacs-lisp-byte-compile-and-load, emacs-lisp-mode-hook)
+	(emacs-lisp-mode, emacs-list-byte-code-comment-re)
+	(emacs-lisp-byte-code-comment)
+	(emacs-lisp-byte-code-syntax-propertize, emacs-lisp-byte-code-mode)
+	(lisp-interaction-mode-map, lisp-interaction-mode)
+	(eval-print-last-sexp, last-sexp-setup-props)
+	(last-sexp-toggle-display, prin1-char, preceding-sexp)
+	(eval-last-sexp-1, eval-last-sexp-print-value)
+	(eval-last-sexp-fake-value, eval-sexp-add-defvars, eval-last-sexp)
+	(eval-defun-1, eval-defun-2, eval-defun): Move to elisp-mode.el.
+
 2014-09-26  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* progmodes/grep.el (grep-regexp-alist): Use more-accurate regexp.
@@ -13,8 +55,8 @@
 	Add cl-parse-integer based on parse-integer (Bug#18557)
 	* calendar/parse-time.el (parse-time-digits): Remove.
 	(digit-char-p, parse-integer) Moved to cl-lib.el.
-	(parse-time-tokenize, parse-time-rules, parse-time-string): Use
-	cl-parse-integer.
+	(parse-time-tokenize, parse-time-rules, parse-time-string):
+	Use cl-parse-integer.
 
 	* emacs-lisp/cl-extra.el (cl-parse-integer): New function.
 
