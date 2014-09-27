@@ -747,9 +747,12 @@ static Bool freelistDescribeVisitor(Land land, Range range,
   mps_lib_FILE *stream = closureP;
   Count depth = closureS;
 
-  if (!TESTT(Land, land)) return FALSE;
-  if (!RangeCheck(range)) return FALSE;
-  if (stream == NULL) return FALSE;
+  if (!TESTT(Land, land))
+    return FALSE;
+  if (!RangeCheck(range))
+    return FALSE;
+  if (stream == NULL)
+    return FALSE;
 
   res = WriteF(stream, depth,
                "[$P,", (WriteFP)RangeBase(range),
@@ -767,10 +770,13 @@ static Res freelistDescribe(Land land, mps_lib_FILE *stream, Count depth)
   Res res;
   Bool b;
 
-  if (!TESTT(Land, land)) return ResFAIL;
+  if (!TESTT(Land, land))
+    return ResFAIL;
   fl = freelistOfLand(land);
-  if (!TESTT(Freelist, fl)) return ResFAIL;
-  if (stream == NULL) return ResFAIL;
+  if (!TESTT(Freelist, fl))
+    return ResFAIL;
+  if (stream == NULL)
+    return ResFAIL;
 
   res = WriteF(stream, depth,
                "Freelist $P {\n", (WriteFP)fl,
@@ -778,7 +784,8 @@ static Res freelistDescribe(Land land, mps_lib_FILE *stream, Count depth)
                NULL);
 
   b = LandIterate(land, freelistDescribeVisitor, stream, depth + 2);
-  if (!b) return ResFAIL;
+  if (!b)
+    return ResFAIL;
 
   res = WriteF(stream, depth, "} Freelist $P\n", (WriteFP)fl, NULL);
   return res;

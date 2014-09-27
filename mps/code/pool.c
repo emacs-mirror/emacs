@@ -549,8 +549,10 @@ Res PoolDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
   Res res;
   Ring node, nextNode;
 
-  if (!TESTT(Pool, pool)) return ResFAIL;
-  if (stream == NULL) return ResFAIL;
+  if (!TESTT(Pool, pool))
+    return ResFAIL;
+  if (stream == NULL)
+    return ResFAIL;
  
   res = WriteF(stream, depth,
                "Pool $P ($U) {\n", (WriteFP)pool, (WriteFU)pool->serial,
@@ -560,10 +562,12 @@ Res PoolDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
                (WriteFP)pool->arena, (WriteFU)pool->arena->serial,
                "  alignment $W\n", (WriteFW)pool->alignment,
                NULL);
-  if (res != ResOK) return res;
+  if (res != ResOK)
+    return res;
   if (NULL != pool->format) {
     res = FormatDescribe(pool->format, stream, depth + 2);
-    if (res != ResOK) return res;
+    if (res != ResOK)
+      return res;
   }
   res = WriteF(stream, depth + 2,
                "fillMutatorSize $UKb\n",
@@ -575,21 +579,25 @@ Res PoolDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
                "emptyInternalSize $UKb\n",
                (WriteFU)(pool->emptyInternalSize / 1024),
                NULL);
-  if (res != ResOK) return res;
+  if (res != ResOK)
+    return res;
 
   res = (*pool->class->describe)(pool, stream, depth + 2);
-  if (res != ResOK) return res;
+  if (res != ResOK)
+    return res;
 
   RING_FOR(node, &pool->bufferRing, nextNode) {
     Buffer buffer = RING_ELT(Buffer, poolRing, node);
     res = BufferDescribe(buffer, stream, depth + 2);
-    if (res != ResOK) return res;
+    if (res != ResOK)
+      return res;
   }
 
   res = WriteF(stream, depth,
                "} Pool $P ($U)\n", (WriteFP)pool, (WriteFU)pool->serial,
                NULL);
-  if (res != ResOK) return res;
+  if (res != ResOK)
+    return res;
 
   return ResOK;
 }

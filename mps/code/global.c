@@ -1017,8 +1017,10 @@ Res GlobalsDescribe(Globals arenaGlobals, mps_lib_FILE *stream, Count depth)
   TraceId ti;
   Trace trace;
 
-  if (!TESTT(Globals, arenaGlobals)) return ResFAIL;
-  if (stream == NULL) return ResFAIL;
+  if (!TESTT(Globals, arenaGlobals))
+    return ResFAIL;
+  if (stream == NULL)
+    return ResFAIL;
 
   arena = GlobalsArena(arenaGlobals);
   res = WriteF(stream, depth,
@@ -1050,13 +1052,15 @@ Res GlobalsDescribe(Globals arenaGlobals, mps_lib_FILE *stream, Count depth)
                "history {\n",
                "  [note: indices are raw, not rotated]\n",
                NULL);
-  if (res != ResOK) return res;
+  if (res != ResOK)
+    return res;
 
   for(i=0; i < LDHistoryLENGTH; ++ i) {
     res = WriteF(stream, depth + 2,
                  "[$U] = $B\n", (WriteFU)i, (WriteFB)arena->history[i],
                  NULL);
-    if (res != ResOK) return res;
+    if (res != ResOK)
+      return res;
   }
 
   res = WriteF(stream, depth,
@@ -1066,39 +1070,46 @@ Res GlobalsDescribe(Globals arenaGlobals, mps_lib_FILE *stream, Count depth)
                "shCacheI $U\n", (WriteFU)arena->shCacheI,
                /* @@@@ should SegDescribe the cached segs? */
                NULL);
-  if (res != ResOK) return res;
+  if (res != ResOK)
+    return res;
 
   res = RootsDescribe(arenaGlobals, stream, depth);
-  if (res != ResOK) return res;
+  if (res != ResOK)
+    return res;
 
   RING_FOR(node, &arenaGlobals->poolRing, nextNode) {
     Pool pool = RING_ELT(Pool, arenaRing, node);
     res = PoolDescribe(pool, stream, depth);
-    if (res != ResOK) return res;
+    if (res != ResOK)
+      return res;
   }
 
   RING_FOR(node, &arena->formatRing, nextNode) {
     Format format = RING_ELT(Format, arenaRing, node);
     res = FormatDescribe(format, stream, depth);
-    if (res != ResOK) return res;
+    if (res != ResOK)
+      return res;
   }
 
   RING_FOR(node, &arena->threadRing, nextNode) {
     Thread thread = ThreadRingThread(node);
     res = ThreadDescribe(thread, stream, depth);
-    if (res != ResOK) return res;
+    if (res != ResOK)
+      return res;
   }
 
   RING_FOR(node, &arena->chainRing, nextNode) {
     Chain chain = RING_ELT(Chain, chainRing, node);
     res = ChainDescribe(chain, stream, depth);
-    if (res != ResOK) return res;
+    if (res != ResOK)
+      return res;
   }
 
   TRACE_SET_ITER(ti, trace, TraceSetUNIV, arena)
     if (TraceSetIsMember(arena->busyTraces, trace)) {
       res = TraceDescribe(trace, stream, depth);
-      if (res != ResOK) return res;
+      if (res != ResOK)
+        return res;
     }
   TRACE_SET_ITER_END(ti, trace, TraceSetUNIV, arena);
 

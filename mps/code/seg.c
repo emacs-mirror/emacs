@@ -362,8 +362,10 @@ Res SegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
   Res res;
   Pool pool;
 
-  if (!TESTT(Seg, seg)) return ResFAIL;
-  if (stream == NULL) return ResFAIL;
+  if (!TESTT(Seg, seg))
+    return ResFAIL;
+  if (stream == NULL)
+    return ResFAIL;
 
   pool = SegPool(seg);
 
@@ -395,13 +397,16 @@ Res SegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
                BS_IS_MEMBER(seg->rankSet, RankFINAL) ? " FINAL" : "",
                BS_IS_MEMBER(seg->rankSet, RankWEAK)  ? " WEAK"  : "",
                NULL);
-  if (res != ResOK) return res;
+  if (res != ResOK)
+    return res;
 
   res = seg->class->describe(seg, stream, depth + 2);
-  if (res != ResOK) return res;
+  if (res != ResOK)
+    return res;
 
   res = WriteF(stream, 0, "\n", NULL);
-  if (res != ResOK) return res;
+  if (res != ResOK)
+    return res;
 
   res = WriteF(stream, depth, "} Segment $P\n", (WriteFP)seg, NULL);
   return res;
@@ -1016,8 +1021,10 @@ static Res segTrivDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
 {
   Res res;
 
-  if (!TESTT(Seg, seg)) return ResFAIL;
-  if (stream == NULL) return ResFAIL;
+  if (!TESTT(Seg, seg))
+    return ResFAIL;
+  if (stream == NULL)
+    return ResFAIL;
 
   res = WriteF(stream, depth,
                "shield depth $U\n", (WriteFU)seg->depth,
@@ -1576,27 +1583,33 @@ static Res gcSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
   SegClass super;
   GCSeg gcseg;
 
-  if (!TESTT(Seg, seg)) return ResFAIL;
-  if (stream == NULL) return ResFAIL;
+  if (!TESTT(Seg, seg))
+    return ResFAIL;
+  if (stream == NULL)
+    return ResFAIL;
   gcseg = SegGCSeg(seg);
-  if (!TESTT(GCSeg, gcseg)) return ResFAIL;
+  if (!TESTT(GCSeg, gcseg))
+    return ResFAIL;
 
   /* Describe the superclass fields first via next-method call */
   super = SEG_SUPERCLASS(GCSegClass);
   res = super->describe(seg, stream, depth);
-  if (res != ResOK) return res;
+  if (res != ResOK)
+    return res;
 
   res = WriteF(stream, depth,
                "summary $W\n", (WriteFW)gcseg->summary,
                NULL);
-  if (res != ResOK) return res;
+  if (res != ResOK)
+    return res;
 
   if (gcseg->buffer == NULL) {
     res = WriteF(stream, depth, "buffer: NULL\n", NULL);
   } else {
     res = BufferDescribe(gcseg->buffer, stream, depth);
   }
-  if (res != ResOK) return res;
+  if (res != ResOK)
+    return res;
 
   return ResOK;
 }

@@ -584,8 +584,10 @@ Res RootDescribe(Root root, mps_lib_FILE *stream, Count depth)
 {
   Res res;
 
-  if (!TESTT(Root, root)) return ResFAIL;
-  if (stream == NULL) return ResFAIL;
+  if (!TESTT(Root, root))
+    return ResFAIL;
+  if (stream == NULL)
+    return ResFAIL;
 
   res = WriteF(stream, depth,
                "Root $P ($U) {\n", (WriteFP)root, (WriteFU)root->serial,
@@ -608,7 +610,8 @@ Res RootDescribe(Root root, mps_lib_FILE *stream, Count depth)
                root->pm & AccessREAD ? " READ" : "",
                root->pm & AccessWRITE ? " WRITE" : "",
                NULL);
-  if (res != ResOK) return res;
+  if (res != ResOK)
+    return res;
 
   switch(root->var) {
     case RootTABLE:
@@ -617,7 +620,8 @@ Res RootDescribe(Root root, mps_lib_FILE *stream, Count depth)
                  (WriteFA)root->the.table.base,
                  (WriteFA)root->the.table.limit,
                  NULL);
-    if (res != ResOK) return res;
+    if (res != ResOK)
+      return res;
     break;
 
     case RootTABLE_MASKED:
@@ -627,7 +631,8 @@ Res RootDescribe(Root root, mps_lib_FILE *stream, Count depth)
                  (WriteFA)root->the.tableMasked.limit,
                  (WriteFB)root->the.tableMasked.mask,
                  NULL);
-    if (res != ResOK) return res;
+    if (res != ResOK)
+      return res;
     break;
 
     case RootFUN:
@@ -636,7 +641,8 @@ Res RootDescribe(Root root, mps_lib_FILE *stream, Count depth)
                  "environment p $P s $W\n",
                  (WriteFP)root->the.fun.p, (WriteFW)root->the.fun.s,
                  NULL);
-    if (res != ResOK) return res;
+    if (res != ResOK)
+      return res;
     break;
 
     case RootREG:
@@ -644,7 +650,8 @@ Res RootDescribe(Root root, mps_lib_FILE *stream, Count depth)
                  "thread $P\n", (WriteFP)root->the.reg.thread,
                  "environment p $P", (WriteFP)root->the.reg.p,
                  NULL);
-    if (res != ResOK) return res;
+    if (res != ResOK)
+      return res;
     break;
 
     case RootFMT:
@@ -653,7 +660,8 @@ Res RootDescribe(Root root, mps_lib_FILE *stream, Count depth)
                  "format base $A limit $A\n",
                  (WriteFA)root->the.fmt.base, (WriteFA)root->the.fmt.limit,
                  NULL);
-    if (res != ResOK) return res;
+    if (res != ResOK)
+      return res;
     break;
           
     default:
@@ -663,7 +671,8 @@ Res RootDescribe(Root root, mps_lib_FILE *stream, Count depth)
   res = WriteF(stream, depth,
                "} Root $P ($U)\n", (WriteFP)root, (WriteFU)root->serial,
                NULL);
-  if (res != ResOK) return res;
+  if (res != ResOK)
+    return res;
 
   return ResOK;
 }
@@ -679,7 +688,8 @@ Res RootsDescribe(Globals arenaGlobals, mps_lib_FILE *stream, Count depth)
   RING_FOR(node, &arenaGlobals->rootRing, next) {
     Root root = RING_ELT(Root, arenaRing, node);
     res = RootDescribe(root, stream, depth);
-    if (res != ResOK) return res;
+    if (res != ResOK)
+      return res;
   }
   return res;
 }

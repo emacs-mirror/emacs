@@ -673,10 +673,13 @@ static Res MVFFDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
   Res res;
   MVFF mvff;
 
-  if (!TESTT(Pool, pool)) return ResFAIL;
+  if (!TESTT(Pool, pool))
+    return ResFAIL;
   mvff = PoolMVFF(pool);
-  if (!TESTT(MVFF, mvff)) return ResFAIL;
-  if (stream == NULL) return ResFAIL;
+  if (!TESTT(MVFF, mvff))
+    return ResFAIL;
+  if (stream == NULL)
+    return ResFAIL;
 
   res = WriteF(stream, depth,
                "MVFF $P {\n", (WriteFP)mvff,
@@ -688,22 +691,27 @@ static Res MVFFDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
                "  slotHigh  $U\n",  (WriteFU)mvff->slotHigh,
                "  spare     $D\n",  (WriteFD)mvff->spare,
                NULL);
-  if (res != ResOK) return res;
+  if (res != ResOK)
+    return res;
 
   res = LocusPrefDescribe(MVFFLocusPref(mvff), stream, depth + 2);
-  if (res != ResOK) return res;
+  if (res != ResOK)
+    return res;
 
   /* Don't describe MVFFBlockPool(mvff) otherwise it'll appear twice
    * in the output of GlobalDescribe. */
 
   res = LandDescribe(MVFFTotalLand(mvff), stream, depth + 2);
-  if (res != ResOK) return res;
+  if (res != ResOK)
+    return res;
 
   res = LandDescribe(MVFFFreePrimary(mvff), stream, depth + 2);
-  if (res != ResOK) return res;
+  if (res != ResOK)
+    return res;
 
   res = LandDescribe(MVFFFreeSecondary(mvff), stream, depth + 2);
-  if (res != ResOK) return res;
+  if (res != ResOK)
+    return res;
 
   res = WriteF(stream, depth, "} MVFF $P\n", (WriteFP)mvff, NULL);
   return res;

@@ -103,7 +103,8 @@ void AMSSegFreeWalk(AMSSeg amsseg, FreeBlockStepMethod f, void *p)
     while (next < amsseg->grains) {
       Bool found = BTFindLongResRange(&base, &limit, amsseg->allocTable,
                                       next, amsseg->grains, 1);
-      if (!found) break;
+      if (!found)
+        break;
       (*f)(AMS_INDEX_ADDR(seg, base), AMS_INDEX_ADDR(seg, limit), pool, p);
       next = limit + 1;
     }
@@ -539,15 +540,19 @@ static Res AMSSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
   Buffer buffer;               /* the segment's buffer, if it has one */
   Index i;
 
-  if (!TESTT(Seg, seg)) return ResFAIL;
-  if (stream == NULL) return ResFAIL;
+  if (!TESTT(Seg, seg))
+    return ResFAIL;
+  if (stream == NULL)
+    return ResFAIL;
   amsseg = Seg2AMSSeg(seg);
-  if (!TESTT(AMSSeg, amsseg)) return ResFAIL;
+  if (!TESTT(AMSSeg, amsseg))
+    return ResFAIL;
 
   /* Describe the superclass fields first via next-method call */
   super = SEG_SUPERCLASS(AMSSegClass);
   res = super->describe(seg, stream, depth);
-  if (res != ResOK) return res;
+  if (res != ResOK)
+    return res;
 
   buffer = SegBuffer(seg);
 
@@ -558,7 +563,8 @@ static Res AMSSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
                "  oldGrains   $W\n", (WriteFW)amsseg->oldGrains,
                "  newGrains   $W\n", (WriteFW)amsseg->newGrains,
                NULL);
-  if (res != ResOK) return res;
+  if (res != ResOK)
+    return res;
   if (amsseg->allocTableInUse)
     res = WriteF(stream, depth,
                  "alloctable $P\n", (WriteFP)amsseg->allocTable,
@@ -567,23 +573,27 @@ static Res AMSSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
     res = WriteF(stream, depth,
                  "firstFree $W\n", (WriteFW)amsseg->firstFree,
                  NULL);
-  if (res != ResOK) return res;
+  if (res != ResOK)
+    return res;
   res = WriteF(stream, depth,
                "tables: nongrey $P, nonwhite $P\n",
                (WriteFP)amsseg->nongreyTable,
                (WriteFP)amsseg->nonwhiteTable,
                "map:",
                NULL);
-  if (res != ResOK) return res;
+  if (res != ResOK)
+    return res;
 
   for (i=0; i < amsseg->grains; ++i) {
     char c = 0;
 
     if (i % 64 == 0) {
       res = WriteF(stream, 0, "\n", NULL);
-      if (res != ResOK) return res;
+      if (res != ResOK)
+        return res;
       res = WriteF(stream, depth, "  ", NULL);
-      if (res != ResOK) return res;
+      if (res != ResOK)
+        return res;
     }
 
     WRITE_BUFFER_LIMIT(stream, seg, i, buffer, BufferBase, "[");
@@ -1697,10 +1707,13 @@ static Res AMSDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
   Ring node, nextNode;
   Res res;
 
-  if (!TESTT(Pool, pool)) return ResFAIL;
+  if (!TESTT(Pool, pool))
+    return ResFAIL;
   ams = PoolAMS(pool);
-  if (!TESTT(AMS, ams)) return ResFAIL;
-  if (stream == NULL) return ResFAIL;
+  if (!TESTT(AMS, ams))
+    return ResFAIL;
+  if (stream == NULL)
+    return ResFAIL;
 
   res = WriteF(stream, depth,
                "AMS $P {\n", (WriteFP)ams,
@@ -1708,18 +1721,21 @@ static Res AMSDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
                (WriteFP)pool, (WriteFU)pool->serial,
                "  grain shift $U\n", (WriteFU)ams->grainShift,
                NULL);
-  if (res != ResOK) return res;
+  if (res != ResOK)
+    return res;
 
   res = WriteF(stream, depth + 2,
                "segments: * black  + grey  - white  . alloc  ! bad\n"
                "buffers: [ base  < scan limit  | init  > alloc  ] limit\n",
                NULL);
-  if (res != ResOK) return res;
+  if (res != ResOK)
+    return res;
 
   RING_FOR(node, &ams->segRing, nextNode) {
     AMSSeg amsseg = RING_ELT(AMSSeg, segRing, node);
     res = SegDescribe(AMSSeg2Seg(amsseg), stream, depth + 2);
-    if (res != ResOK) return res;
+    if (res != ResOK)
+      return res;
   }
 
   res = WriteF(stream, depth, "} AMS $P\n",(WriteFP)ams, NULL);

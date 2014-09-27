@@ -485,7 +485,8 @@ Res WriteF_firstformat_v(mps_lib_FILE *stream, Count depth,
       }
       if (*format != '$') {
         r = mps_lib_fputc(*format, stream); /* Could be more efficient */
-        if (r == mps_lib_EOF) return ResIO;
+        if (r == mps_lib_EOF)
+          return ResIO;
         if (*format == '\n') {
           start_of_line = TRUE;
         }
@@ -498,14 +499,16 @@ Res WriteF_firstformat_v(mps_lib_FILE *stream, Count depth,
             WriteFA addr = va_arg(args, WriteFA);
             res = WriteULongest(stream, (ULongest)addr, 16,
                                 (sizeof(WriteFA) * CHAR_BIT + 3) / 4);
-            if (res != ResOK) return res;
+            if (res != ResOK)
+              return res;
           } break;
 
           case 'P': {                   /* pointer, see .writef.p */
             WriteFP p = va_arg(args, WriteFP);
             res = WriteULongest(stream, (ULongest)p, 16,
                                 (sizeof(WriteFP) * CHAR_BIT + 3)/ 4);
-            if (res != ResOK) return res;
+            if (res != ResOK)
+              return res;
           } break;
 
           case 'F': {                   /* function */
@@ -517,56 +520,65 @@ Res WriteF_firstformat_v(mps_lib_FILE *stream, Count depth,
             for(i=0; i < sizeof(WriteFF); i++) {
               res = WriteULongest(stream, (ULongest)(b[i]), 16,
                                   (CHAR_BIT + 3) / 4);
-              if (res != ResOK) return res;
+              if (res != ResOK)
+                return res;
             }
           } break;
            
           case 'S': {                   /* string */
             WriteFS s = va_arg(args, WriteFS);
             r = mps_lib_fputs((const char *)s, stream);
-            if (r == mps_lib_EOF) return ResIO;
+            if (r == mps_lib_EOF)
+              return ResIO;
           } break;
        
           case 'C': {                   /* character */
             WriteFC c = va_arg(args, WriteFC); /* promoted */
             r = mps_lib_fputc((int)c, stream);
-            if (r == mps_lib_EOF) return ResIO;
+            if (r == mps_lib_EOF)
+              return ResIO;
           } break;
        
           case 'W': {                   /* word */
             WriteFW w = va_arg(args, WriteFW);
             res = WriteULongest(stream, (ULongest)w, 16,
                                 (sizeof(WriteFW) * CHAR_BIT + 3) / 4);
-            if (res != ResOK) return res;
+            if (res != ResOK)
+              return res;
           } break;
 
           case 'U': {                   /* decimal, see .writef.p */
             WriteFU u = va_arg(args, WriteFU);
             res = WriteULongest(stream, (ULongest)u, 10, 0);
-            if (res != ResOK) return res;
+            if (res != ResOK)
+              return res;
           } break;
 
           case '3': {                   /* decimal for thousandths */
             WriteFU u = va_arg(args, WriteFU);
             res = WriteULongest(stream, (ULongest)u, 10, 3);
-            if (res != ResOK) return res;
+            if (res != ResOK)
+              return res;
           } break;
 
           case 'B': {                   /* binary, see .writef.p */
             WriteFB b = va_arg(args, WriteFB);
             res = WriteULongest(stream, (ULongest)b, 2, sizeof(WriteFB) * CHAR_BIT);
-            if (res != ResOK) return res;
+            if (res != ResOK)
+              return res;
           } break;
        
           case '$': {                   /* dollar char */
             r = mps_lib_fputc('$', stream);
-            if (r == mps_lib_EOF) return ResIO;
+            if (r == mps_lib_EOF)
+              return ResIO;
           } break;
 
           case 'D': {                   /* double */
             WriteFD d = va_arg(args, WriteFD);
             res = WriteDouble(stream, d);
-            if (res != ResOK) return res;
+            if (res != ResOK)
+              return res;
           } break;
               
           default:

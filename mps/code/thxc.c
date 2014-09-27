@@ -69,7 +69,8 @@ Res ThreadRegister(Thread *threadReturn, Arena arena)
 
   res = ControlAlloc(&p, arena, sizeof(ThreadStruct),
                      /* withReservoirPermit */ FALSE);
-  if(res != ResOK) return res;
+  if (res != ResOK)
+    return res;
   thread = (Thread)p;
 
   thread->arena = arena;
@@ -259,7 +260,8 @@ Res ThreadDescribe(Thread thread, mps_lib_FILE *stream, Count depth)
                "  port $U\n", (WriteFU)thread->port,
                "} Thread $P ($U)\n", (WriteFP)thread, (WriteFU)thread->serial,
                NULL);
-  if(res != ResOK) return res;
+  if (res != ResOK)
+    return res;
 
   return ResOK;
 }

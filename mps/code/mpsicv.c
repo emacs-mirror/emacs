@@ -130,11 +130,13 @@ static mps_addr_t make(void)
 
   do {
     MPS_RESERVE_BLOCK(res, pMps, ap, sizeMps);
-    if (res != MPS_RES_OK) die(res, "MPS_RESERVE_BLOCK");
+    if (res != MPS_RES_OK)
+      die(res, "MPS_RESERVE_BLOCK");
     HeaderInit(pMps);
     pCli = PtrMps2Cli(pMps);
     res = dylan_init(pCli, sizeCli, exactRoots, exactRootsCOUNT);
-    if (res != MPS_RES_OK) die(res, "dylan_init");
+    if (res != MPS_RES_OK)
+      die(res, "dylan_init");
   } while(!mps_commit(ap, pMps, sizeMps));
 
   return pCli;
@@ -153,11 +155,13 @@ static mps_addr_t make_with_permit(void)
 
   do {
     MPS_RESERVE_WITH_RESERVOIR_PERMIT_BLOCK(res, pMps, ap, sizeMps);
-    if (res != MPS_RES_OK) die(res, "MPS_RESERVE_WITH_RESERVOIR_PERMIT_BLOCK");
+    if (res != MPS_RES_OK)
+      die(res, "MPS_RESERVE_WITH_RESERVOIR_PERMIT_BLOCK");
     HeaderInit(pMps);
     pCli = PtrMps2Cli(pMps);
     res = dylan_init(pCli, sizeCli, exactRoots, exactRootsCOUNT);
-    if (res != MPS_RES_OK) die(res, "dylan_init");
+    if (res != MPS_RES_OK)
+      die(res, "dylan_init");
   } while(!mps_commit(ap, pMps, sizeMps));
 
   return pCli;
@@ -176,11 +180,13 @@ static mps_addr_t make_no_inline(void)
 
   do {
     res = (mps_reserve)(&pMps, ap, sizeMps);
-    if (res != MPS_RES_OK) die(res, "(mps_reserve)");
+    if (res != MPS_RES_OK)
+      die(res, "(mps_reserve)");
     HeaderInit(pMps);
     pCli = PtrMps2Cli(pMps);
     res = dylan_init(pCli, sizeCli, exactRoots, exactRootsCOUNT);
-    if (res != MPS_RES_OK) die(res, "dylan_init");
+    if (res != MPS_RES_OK)
+      die(res, "dylan_init");
   } while(!(mps_commit)(ap, pMps, sizeMps));
 
   return pCli;

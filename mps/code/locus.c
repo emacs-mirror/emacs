@@ -84,8 +84,10 @@ Res LocusPrefDescribe(LocusPref pref, mps_lib_FILE *stream, Count depth)
 {
   Res res;
 
-  if (!TESTT(LocusPref, pref)) return ResFAIL;
-  if (stream == NULL) return ResFAIL;
+  if (!TESTT(LocusPref, pref))
+    return ResFAIL;
+  if (stream == NULL)
+    return ResFAIL;
 
   res = WriteF(stream, depth,
                "LocusPref $P {\n", (WriteFP)pref,
@@ -152,8 +154,10 @@ Res GenDescDescribe(GenDesc gen, mps_lib_FILE *stream, Count depth)
   Res res;
   Ring node, nextNode;
 
-  if (!TESTT(GenDesc, gen)) return ResFAIL;
-  if (stream == NULL) return ResFAIL;
+  if (!TESTT(GenDesc, gen))
+    return ResFAIL;
+  if (stream == NULL)
+    return ResFAIL;
 
   res = WriteF(stream, depth,
                "GenDesc $P {\n", (WriteFP)gen,
@@ -161,12 +165,14 @@ Res GenDescDescribe(GenDesc gen, mps_lib_FILE *stream, Count depth)
                "  capacity $W\n", (WriteFW)gen->capacity,
                "  mortality $D\n", (WriteFD)gen->mortality,
                NULL);
-  if (res != ResOK) return res;
+  if (res != ResOK)
+    return res;
 
   RING_FOR(node, &gen->locusRing, nextNode) {
     PoolGen pgen = RING_ELT(PoolGen, genRing, node);
     res = PoolGenDescribe(pgen, stream, depth + 2);
-    if (res != ResOK) return res;
+    if (res != ResOK)
+      return res;
   }
 
   res = WriteF(stream, depth, "} GenDesc $P\n", (WriteFP)gen, NULL);
@@ -467,19 +473,23 @@ Res ChainDescribe(Chain chain, mps_lib_FILE *stream, Count depth)
   Res res;
   size_t i;
 
-  if (!TESTT(Chain, chain)) return ResFAIL;
-  if (stream == NULL) return ResFAIL;
+  if (!TESTT(Chain, chain))
+    return ResFAIL;
+  if (stream == NULL)
+    return ResFAIL;
 
   res = WriteF(stream, depth,
                "Chain $P {\n", (WriteFP)chain,
                "  arena $P\n", (WriteFP)chain->arena,
                "  activeTraces $B\n", (WriteFB)chain->activeTraces,
                NULL);
-  if (res != ResOK) return res;
+  if (res != ResOK)
+    return res;
 
   for (i = 0; i < chain->genCount; ++i) {
     res = GenDescDescribe(&chain->gens[i], stream, depth + 2);
-    if (res != ResOK) return res;
+    if (res != ResOK)
+      return res;
   }
 
   res = WriteF(stream, depth,
@@ -748,8 +758,10 @@ Res PoolGenDescribe(PoolGen pgen, mps_lib_FILE *stream, Count depth)
 {
   Res res;
 
-  if (!TESTT(PoolGen, pgen)) return ResFAIL;
-  if (stream == NULL) return ResFAIL;
+  if (!TESTT(PoolGen, pgen))
+    return ResFAIL;
+  if (stream == NULL)
+    return ResFAIL;
   
   res = WriteF(stream, depth,
                "PoolGen $P {\n", (WriteFP)pgen,

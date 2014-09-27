@@ -172,7 +172,8 @@ static void printParamS(const char *str)
   putchar('"');
   for (i = 0; str[i] != '\0'; ++i) {
     char c = str[i];
-    if (c == '"' || c == '\\') putchar('\\');
+    if (c == '"' || c == '\\')
+      putchar('\\');
     putchar(c);
   }
   putchar('"');

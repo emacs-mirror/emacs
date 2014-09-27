@@ -47,8 +47,10 @@ static void arenaFreePage(Arena arena, Addr base, Pool pool);
 
 static Res ArenaTrivDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
 {
-  if (!TESTT(Arena, arena)) return ResFAIL;
-  if (stream == NULL) return ResFAIL;
+  if (!TESTT(Arena, arena))
+    return ResFAIL;
+  if (stream == NULL)
+    return ResFAIL;
 
   /* .describe.triv.never-called-from-subclass-method:
    * This Triv method seems to assume that it will never get called
@@ -454,20 +456,24 @@ Res ArenaDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
   Res res;
   Size reserved;
 
-  if (!TESTT(Arena, arena)) return ResFAIL;
-  if (stream == NULL) return ResFAIL;
+  if (!TESTT(Arena, arena))
+    return ResFAIL;
+  if (stream == NULL)
+    return ResFAIL;
 
   res = WriteF(stream, depth, "Arena $P {\n", (WriteFP)arena,
                "  class $P (\"$S\")\n",
                (WriteFP)arena->class, (WriteFS)arena->class->name,
                NULL);
-  if (res != ResOK) return res;
+  if (res != ResOK)
+    return res;
 
   if (arena->poolReady) {
     res = WriteF(stream, depth + 2,
                  "controlPool $P\n", (WriteFP)&arena->controlPoolStruct,
                  NULL);
-    if (res != ResOK) return res;
+    if (res != ResOK)
+      return res;
   }
 
   /* Note: this Describe clause calls a function */
@@ -477,7 +483,8 @@ Res ArenaDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
                "total size of address-space reserved\n",
                (WriteFW)reserved,
                NULL);
-  if (res != ResOK) return res;
+  if (res != ResOK)
+    return res;
 
   res = WriteF(stream, depth + 2,
                "committed        $W  <-- "
@@ -495,23 +502,29 @@ Res ArenaDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
                "freeZones        $B\n", (WriteFB)arena->freeZones,
                "zoned            $S\n", WriteFYesNo(arena->zoned),
                NULL);
-  if (res != ResOK) return res;
+  if (res != ResOK)
+    return res;
 
   res = WriteF(stream, depth + 2,
                "droppedMessages $U$S\n", (WriteFU)arena->droppedMessages,
                (arena->droppedMessages == 0 ? "" : "  -- MESSAGES DROPPED!"),
                NULL);
-  if (res != ResOK) return res;
+  if (res != ResOK)
+    return res;
 
   res = (*arena->class->describe)(arena, stream, depth);
-  if (res != ResOK) return res;
+  if (res != ResOK)
+    return res;
 
   res = WriteF(stream, depth + 2, "Globals {\n", NULL);
-  if (res != ResOK) return res;  
+  if (res != ResOK)
+    return res;  
   res = GlobalsDescribe(ArenaGlobals(arena), stream, depth + 4);
-  if (res != ResOK) return res;
+  if (res != ResOK)
+    return res;
   res = WriteF(stream, depth + 2, "} Globals\n", NULL);
-  if (res != ResOK) return res;  
+  if (res != ResOK)
+    return res;  
 
   res = WriteF(stream, depth,
                "} Arena $P ($U)\n", (WriteFP)arena,
@@ -528,14 +541,17 @@ static Res arenaDescribeTractsInChunk(Chunk chunk, mps_lib_FILE *stream, Count d
   Res res;
   Index pi;
 
-  if (!TESTT(Chunk, chunk)) return ResFAIL;
-  if (stream == NULL) return ResFAIL;
+  if (!TESTT(Chunk, chunk))
+    return ResFAIL;
+  if (stream == NULL)
+    return ResFAIL;
 
   res = WriteF(stream, depth, "Chunk [$P, $P) ($U) {\n",
                (WriteFP)chunk->base, (WriteFP)chunk->limit,
                (WriteFU)chunk->serial,
                NULL);
-  if (res != ResOK) return res;
+  if (res != ResOK)
+    return res;
 
   for (pi = chunk->allocBase; pi < chunk->pages; ++pi) {
     if (BTGet(chunk->allocTable, pi)) {
@@ -544,7 +560,8 @@ static Res arenaDescribeTractsInChunk(Chunk chunk, mps_lib_FILE *stream, Count d
                    (WriteFP)TractBase(tract),
                    (WriteFP)TractLimit(tract, ChunkArena(chunk)),
                    NULL);
-      if (res != ResOK) return res;
+      if (res != ResOK)
+        return res;
       if (TractHasPool(tract)) {
         Pool pool = TractPool(tract);
         res = WriteF(stream, 0, " $P $U ($S)",
@@ -552,10 +569,12 @@ static Res arenaDescribeTractsInChunk(Chunk chunk, mps_lib_FILE *stream, Count d
                      (WriteFU)(pool->serial),
                      (WriteFS)(pool->class->name),
                      NULL);
-        if (res != ResOK) return res;
+        if (res != ResOK)
+          return res;
       }
       res = WriteF(stream, 0, "\n", NULL);
-      if (res != ResOK) return res;
+      if (res != ResOK)
+        return res;
     }
   }
 
@@ -573,13 +592,16 @@ Res ArenaDescribeTracts(Arena arena, mps_lib_FILE *stream, Count depth)
   Ring node, next;
   Res res;
 
-  if (!TESTT(Arena, arena)) return ResFAIL;
-  if (stream == NULL) return ResFAIL;
+  if (!TESTT(Arena, arena))
+    return ResFAIL;
+  if (stream == NULL)
+    return ResFAIL;
 
   RING_FOR(node, &arena->chunkRing, next) {
     Chunk chunk = RING_ELT(Chunk, chunkRing, node);
     res = arenaDescribeTractsInChunk(chunk, stream, depth);
-    if (res != ResOK) return res;
+    if (res != ResOK)
+      return res;
   }
 
   return ResOK;
@@ -636,8 +658,10 @@ Res ControlDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
 {
   Res res;
 
-  if (!TESTT(Arena, arena)) return ResFAIL;
-  if (stream == NULL) return ResFAIL;
+  if (!TESTT(Arena, arena))
+    return ResFAIL;
+  if (stream == NULL)
+    return ResFAIL;
 
   res = PoolDescribe(ArenaControlPool(arena), stream, depth);
 

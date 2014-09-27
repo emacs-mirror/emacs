@@ -1,7 +1,7 @@
 /* shield.c: SHIELD IMPLEMENTATION
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
  * See: idea.shield, design.mps.shield.
  *
@@ -133,7 +133,8 @@ static void flush(Arena arena, Size i)
   AVER(i < arena->shCacheLimit);
 
   seg = arena->shCache[i];
-  if (seg == NULL) return;
+  if (seg == NULL)
+    return;
   AVERT(Seg, seg);
 
   AVER(arena->shDepth > 0);
@@ -157,7 +158,8 @@ static void cache(Arena arena, Seg seg)
   AVERT_CRITICAL(Arena, arena);
   AVERT_CRITICAL(Seg, seg);
 
-  if (SegSM(seg) == SegPM(seg)) return;
+  if (SegSM(seg)
+    == SegPM(seg)) return;
   if (SegDepth(seg) > 0) {
     ShieldSuspend(arena);
     return;
@@ -334,7 +336,7 @@ void (ShieldCover)(Arena arena, Seg seg)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

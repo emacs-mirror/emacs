@@ -193,7 +193,7 @@ mps_res_t mps_arena_commit_limit_set(mps_arena_t arena, size_t limit)
   res = ArenaSetCommitLimit(arena, limit);
   ArenaLeave(arena);
 
-  return res;
+  return (mps_res_t)res;
 }
 
 void mps_arena_spare_commit_limit_set(mps_arena_t arena, size_t limit)
@@ -269,7 +269,7 @@ mps_res_t mps_arena_start_collect(mps_arena_t arena)
   ArenaEnter(arena);
   res = ArenaStartCollect(ArenaGlobals(arena), TraceStartWhyCLIENTFULL_INCREMENTAL);
   ArenaLeave(arena);
-  return res;
+  return (mps_res_t)res;
 }
 
 mps_res_t mps_arena_collect(mps_arena_t arena)
@@ -278,7 +278,7 @@ mps_res_t mps_arena_collect(mps_arena_t arena)
   ArenaEnter(arena);
   res = ArenaCollect(ArenaGlobals(arena), TraceStartWhyCLIENTFULL_BLOCK);
   ArenaLeave(arena);
-  return res;
+  return (mps_res_t)res;
 }
 
 mps_bool_t mps_arena_step(mps_arena_t arena,
@@ -303,7 +303,7 @@ mps_res_t mps_arena_create(mps_arena_t *mps_arena_o,
   va_start(varargs, mps_arena_class);
   res = mps_arena_create_v(mps_arena_o, mps_arena_class, varargs);
   va_end(varargs);
-  return res;
+  return (mps_res_t)res;
 }
 
 
@@ -337,7 +337,7 @@ mps_res_t mps_arena_create_k(mps_arena_t *mps_arena_o,
 
   res = ArenaCreate(&arena, arena_class, mps_args);
   if (res != ResOK)
-    return res;
+    return (mps_res_t)res;
 
   ArenaLeave(arena);
   *mps_arena_o = (mps_arena_t)arena;
@@ -461,7 +461,8 @@ mps_res_t mps_fmt_create_k(mps_fmt_t *mps_fmt_o,
 
   ArenaLeave(arena);
 
-  if (res != ResOK) return res;
+  if (res != ResOK)
+    return (mps_res_t)res;
   *mps_fmt_o = (mps_fmt_t)format;
   return MPS_RES_OK;
 }
@@ -499,7 +500,8 @@ mps_res_t mps_fmt_create_A(mps_fmt_t *mps_fmt_o,
 
   ArenaLeave(arena);
 
-  if (res != ResOK) return res;
+  if (res != ResOK)
+    return (mps_res_t)res;
   *mps_fmt_o = (mps_fmt_t)format;
   return MPS_RES_OK;
 }
@@ -533,7 +535,8 @@ mps_res_t mps_fmt_create_B(mps_fmt_t *mps_fmt_o,
 
   ArenaLeave(arena);
 
-  if (res != ResOK) return res;
+  if (res != ResOK)
+    return (mps_res_t)res;
   *mps_fmt_o = (mps_fmt_t)format;
   return MPS_RES_OK;
 }
@@ -567,7 +570,8 @@ mps_res_t mps_fmt_create_auto_header(mps_fmt_t *mps_fmt_o,
 
   ArenaLeave(arena);
 
-  if (res != ResOK) return res;
+  if (res != ResOK)
+    return (mps_res_t)res;
   *mps_fmt_o = (mps_fmt_t)format;
   return MPS_RES_OK;
 }
@@ -599,7 +603,8 @@ mps_res_t mps_fmt_create_fixed(mps_fmt_t *mps_fmt_o,
 
   ArenaLeave(arena);
 
-  if (res != ResOK) return res;
+  if (res != ResOK)
+    return (mps_res_t)res;
   *mps_fmt_o = (mps_fmt_t)format;
   return MPS_RES_OK;
 }
@@ -659,9 +664,10 @@ mps_res_t mps_pool_create_k(mps_pool_t *mps_pool_o, mps_arena_t arena,
 
   ArenaLeave(arena);
 
-  if (res != ResOK) return res;
+  if (res != ResOK)
+    return (mps_res_t)res;
   *mps_pool_o = (mps_pool_t)pool;
-  return res;
+  return MPS_RES_OK;
 }
 
 void mps_pool_destroy(mps_pool_t pool)
@@ -739,7 +745,8 @@ mps_res_t mps_alloc(mps_addr_t *p_o, mps_pool_t pool, size_t size)
 
   ArenaLeave(arena);
 
-  if (res != ResOK) return res;
+  if (res != ResOK)
+    return (mps_res_t)res;
   *p_o = (mps_addr_t)p;
   return MPS_RES_OK;
 }
@@ -836,7 +843,7 @@ mps_res_t mps_ap_create_k(mps_ap_t *mps_ap_o,
   ArenaLeave(arena);
 
   if (res != ResOK)
-    return res;
+    return (mps_res_t)res;
 
   *mps_ap_o = BufferAP(buf);
   return MPS_RES_OK;
@@ -1041,7 +1048,8 @@ mps_res_t mps_ap_fill(mps_addr_t *p_o, mps_ap_t mps_ap, size_t size)
 
   ArenaLeave(arena);
 
-  if (res != ResOK) return res;
+  if (res != ResOK)
+    return (mps_res_t)res;
   *p_o = (mps_addr_t)p;
   return MPS_RES_OK;
 }
@@ -1072,7 +1080,8 @@ mps_res_t mps_ap_fill_with_reservoir_permit(mps_addr_t *p_o, mps_ap_t mps_ap,
 
   ArenaLeave(arena);
 
-  if (res != ResOK) return res;
+  if (res != ResOK)
+    return (mps_res_t)res;
   *p_o = (mps_addr_t)p;
   return MPS_RES_OK;
 }
@@ -1127,7 +1136,8 @@ mps_res_t mps_sac_create(mps_sac_t *mps_sac_o, mps_pool_t pool,
 
   ArenaLeave(arena);
 
-  if (res != ResOK) return (mps_res_t)res;
+  if (res != ResOK)
+    return (mps_res_t)res;
   *mps_sac_o = ExternalSACOfSAC(sac);
   return (mps_res_t)res;
 }
@@ -1189,7 +1199,8 @@ mps_res_t mps_sac_fill(mps_addr_t *p_o, mps_sac_t mps_sac, size_t size,
 
   ArenaLeave(arena);
 
-  if (res != ResOK) return (mps_res_t)res;
+  if (res != ResOK)
+    return (mps_res_t)res;
   *p_o = (mps_addr_t)p;
   return (mps_res_t)res;
 }
@@ -1225,7 +1236,7 @@ mps_res_t mps_sac_alloc(mps_addr_t *p_o, mps_sac_t mps_sac, size_t size,
   AVER(size > 0);
 
   MPS_SAC_ALLOC_FAST(res, *p_o, mps_sac, size, (has_reservoir_permit != 0));
-  return res;
+  return (mps_res_t)res;
 }
 
 
@@ -1262,7 +1273,8 @@ mps_res_t mps_root_create(mps_root_t *mps_root_o, mps_arena_t arena,
 
   ArenaLeave(arena);
 
-  if (res != ResOK) return res;
+  if (res != ResOK)
+    return (mps_res_t)res;
   *mps_root_o = (mps_root_t)root;
   return MPS_RES_OK;
 }
@@ -1291,7 +1303,8 @@ mps_res_t mps_root_create_table(mps_root_t *mps_root_o, mps_arena_t arena,
 
   ArenaLeave(arena);
 
-  if (res != ResOK) return res;
+  if (res != ResOK)
+    return (mps_res_t)res;
   *mps_root_o = (mps_root_t)root;
   return MPS_RES_OK;
 }
@@ -1322,7 +1335,8 @@ mps_res_t mps_root_create_table_masked(mps_root_t *mps_root_o,
 
   ArenaLeave(arena);
 
-  if (res != ResOK) return res;
+  if (res != ResOK)
+    return (mps_res_t)res;
   *mps_root_o = (mps_root_t)root;
   return MPS_RES_OK;
 }
@@ -1344,7 +1358,8 @@ mps_res_t mps_root_create_fmt(mps_root_t *mps_root_o, mps_arena_t arena,
   res = RootCreateFmt(&root, arena, rank, mode, scan, (Addr)base, (Addr)limit);
 
   ArenaLeave(arena);
-  if (res != ResOK) return res;
+  if (res != ResOK)
+    return (mps_res_t)res;
   *mps_root_o = (mps_root_t)root;
   return MPS_RES_OK;
 }
@@ -1373,7 +1388,8 @@ mps_res_t mps_root_create_reg(mps_root_t *mps_root_o, mps_arena_t arena,
 
   ArenaLeave(arena);
 
-  if (res != ResOK) return res;
+  if (res != ResOK)
+    return (mps_res_t)res;
   *mps_root_o = (mps_root_t)root;
   return MPS_RES_OK;
 }
@@ -1433,7 +1449,8 @@ mps_res_t mps_thread_reg(mps_thr_t *mps_thr_o, mps_arena_t arena)
 
   ArenaLeave(arena);
 
-  if (res != ResOK) return res;
+  if (res != ResOK)
+    return (mps_res_t)res;
   *mps_thr_o = (mps_thr_t)thread;
   return MPS_RES_OK;
 }
@@ -1534,7 +1551,7 @@ mps_res_t mps_finalize(mps_arena_t arena, mps_addr_t *refref)
   res = ArenaFinalize(arena, object);
 
   ArenaLeave(arena);
-  return res;
+  return (mps_res_t)res;
 }
 
 
@@ -1551,7 +1568,7 @@ mps_res_t mps_definalize(mps_arena_t arena, mps_addr_t *refref)
   res = ArenaDefinalize(arena, object);
 
   ArenaLeave(arena);
-  return res;
+  return (mps_res_t)res;
 }
 
 
@@ -1857,7 +1874,7 @@ mps_res_t mps_ap_alloc_pattern_end(mps_ap_t mps_ap,
   ArenaPoll(ArenaGlobals(arena)); /* .poll */
 
   ArenaLeave(arena);
-  return res;
+  return (mps_res_t)res;
 }
 
 
@@ -1942,7 +1959,7 @@ mps_res_t mps_chain_create(mps_chain_t *chain_o, mps_arena_t arena,
 
   ArenaLeave(arena);
   if (res != ResOK)
-    return res;
+    return (mps_res_t)res;
   *chain_o = (mps_chain_t)chain;
   return MPS_RES_OK;
 }
