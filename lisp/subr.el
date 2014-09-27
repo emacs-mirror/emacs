@@ -2945,6 +2945,14 @@ Similar to `call-process-shell-command', but calls `process-file'."
 
 ;;;; Lisp macros to do various things temporarily.
 
+(defmacro track-mouse (&rest body)
+  "Evaluate BODY with mouse movement events enabled.
+Within a `track-mouse' form, mouse motion generates input events that
+ you can read with `read-event'.
+Normally, mouse motion is ignored."
+  (declare (debug t) (indent 0))
+  `(internal--track-mouse (lambda () ,@body)))
+
 (defmacro with-current-buffer (buffer-or-name &rest body)
   "Execute the forms in BODY with BUFFER-OR-NAME temporarily current.
 BUFFER-OR-NAME must be a buffer or the name of an existing buffer.

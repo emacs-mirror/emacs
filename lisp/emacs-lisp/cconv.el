@@ -462,10 +462,6 @@ places where they originally did not directly appear."
      `(,head ,(cconv-convert form env extend)
         :fun-body ,(cconv--convert-function () body env form)))
 
-    (`(track-mouse . ,body)
-     `(track-mouse
-        :fun-body ,(cconv--convert-function () body env form)))
-
     (`(setq . ,forms)                   ; setq special form
      (let ((prognlist ()))
        (while forms
@@ -699,11 +695,6 @@ and updates the data stored in ENV."
             `unwind-protect)
        ,form . ,body)
      (cconv-analyse-form form env)
-     (cconv--analyse-function () body env form))
-
-    ;; FIXME: The lack of bytecode for track-mouse forces us to wrap the body.
-    ;; `track-mouse' really should be made into a macro.
-    (`(track-mouse . ,body)
      (cconv--analyse-function () body env form))
 
     (`(defvar ,var) (push var byte-compile-bound-variables))

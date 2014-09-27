@@ -4072,7 +4072,6 @@ binding slots have been popped."
 (byte-defop-compiler-1 save-restriction)
 ;; (byte-defop-compiler-1 save-window-excursion)      ;Obsolete: now a macro.
 ;; (byte-defop-compiler-1 with-output-to-temp-buffer) ;Obsolete: now a macro.
-(byte-defop-compiler-1 track-mouse)
 
 (defvar byte-compile--use-old-handlers t
   "If nil, use new byte codes introduced in Emacs-24.4.")
@@ -4106,12 +4105,6 @@ binding slots have been popped."
   (byte-compile-out 'byte-unwind-protect 0)
   (byte-compile-form-do-effect (car (cdr form)))
   (byte-compile-out 'byte-unbind 1))
-
-(defun byte-compile-track-mouse (form)
-  (byte-compile-form
-   (pcase form
-     (`(,_ :fun-body ,f) `(eval (list 'track-mouse (list 'funcall ,f))))
-     (_ `(eval '(track-mouse ,@(byte-compile-top-level-body (cdr form))))))))
 
 (defun byte-compile-condition-case (form)
   (if byte-compile--use-old-handlers

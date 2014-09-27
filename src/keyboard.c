@@ -1287,13 +1287,9 @@ tracking_off (Lisp_Object old_value)
     }
 }
 
-DEFUN ("track-mouse", Ftrack_mouse, Strack_mouse, 0, UNEVALLED, 0,
-       doc: /* Evaluate BODY with mouse movement events enabled.
-Within a `track-mouse' form, mouse motion generates input events that
-you can read with `read-event'.
-Normally, mouse motion is ignored.
-usage: (track-mouse BODY...)  */)
-  (Lisp_Object args)
+DEFUN ("internal--track-mouse", Ftrack_mouse, Strack_mouse, 1, 1, 0,
+       doc: /* Call BODYFUN with mouse movement events enabled.  */)
+  (Lisp_Object bodyfun)
 {
   ptrdiff_t count = SPECPDL_INDEX ();
   Lisp_Object val;
@@ -1302,7 +1298,7 @@ usage: (track-mouse BODY...)  */)
 
   do_mouse_tracking = Qt;
 
-  val = Fprogn (args);
+  val = call0 (bodyfun);
   return unbind_to (count, val);
 }
 

@@ -1,5 +1,8 @@
 2014-09-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* keyboard.c (track-mouse): Rename to internal--track-mouse.
+	Make it into a function and change arg to be a function.
+
 	* lisp.mk (lisp): Add elisp-mode.elc.
 
 2014-09-26  Paul Eggert  <eggert@cs.ucla.edu>
