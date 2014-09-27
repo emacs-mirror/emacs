@@ -1,5 +1,8 @@
 2014-09-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* epg-config.el (epg-gpg-program): Use the plain program names rather
+	than their absolute file name.
+
 	* subr.el (track-mouse): New macro.
 	* emacs-lisp/cconv.el (cconv-convert, cconv-analyse-form):
 	Remove track-mouse case.

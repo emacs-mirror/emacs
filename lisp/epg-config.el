@@ -39,9 +39,9 @@
   :group 'data
   :group 'external)
 
-(defcustom epg-gpg-program (or (executable-find "gpg")
-			       (executable-find "gpg2")
-			       "gpg")
+(defcustom epg-gpg-program (cond ((executable-find "gpg") "gpg")
+				 ((executable-find "gpg2") "gpg2")
+				 (t "gpg"))
   "The `gpg' executable."
   :group 'epg
   :type 'string)
