@@ -411,9 +411,12 @@ Document History
 
 - 1996-08-30 RB_ Document created from paper notes.
 
-- 1997-06-10 RB_ Updated with mail.richard.1997-05-30.16-13 and
+- 1997-06-10 RB_ Updated with `mail.richard.1997-05-30.16-13`_ and
   subsequent discussion in the Pool Hall at Longstanton. (See also
-  mail.drj.1997-06-05.15-20.)
+  `mail.drj.1997-06-05.15-20`_.)
+
+  .. _mail.richard.1997-05-30.16-13: https://info.ravenbrook.com/project/mps/mail/1997/05/30/16-13/0.txt
+  .. _mail.drj.1997-06-05.15-20: https://info.ravenbrook.com/project/mps/mail/1997/06/05/15-20/0.txt
 
 - 2002-06-07 RB_ Converted from MMInfo database design document.
 

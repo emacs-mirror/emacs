@@ -38,7 +38,9 @@ traces. This limitation is expressed in the symbol ``TraceLIMIT``.
 
 .. _request.mps.160020: https://info.ravenbrook.com/project/mps/import/2001-11-05/mmprevol/request/mps/160020
 
-_`.rate`: See `mail.nickb.1997-07-31.14-37 </project/mps/mail/1997/07/31/14-37/0.txt>`_.
+_`.rate`: See `mail.nickb.1997-07-31.14-37`_.
+
+.. _mail.nickb.1997-07-31.14-37: https://info.ravenbrook.com/project/mps/mail/1997/07/31/14-37/0.txt
 
 .. note::
 
@@ -60,7 +62,7 @@ that this is the case in ``TraceFix()``.
     need to adjust our strategy here. See `mail.dsm.1996-02-14.18-18`_
     for a strategy of coping gracefully with ``PoolDestroy()``.
 
-.. _mail.dsm.1996-02-14.18-18: https://info.ravenbrook.com/project/mps/mail/1996/02/14/18-18/0.txt
+    .. _mail.dsm.1996-02-14.18-18: https://info.ravenbrook.com/project/mps/mail/1996/02/14/18-18/0.txt
 
 _`.fix.fixed.all`: ``ss->fixedSummary`` is accumulated (in
 ``TraceFix()``) for all pointers, whether or not they are genuine

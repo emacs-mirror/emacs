@@ -209,24 +209,23 @@
 
 #include "mpstd.h"
 
-/* Suppress Visual C warnings at warning level 4, */
-/* see mail.richard.1997-09-25.13-26 and job003715. */
-/* Essentially the same settings are done in testlib.h. */
+/* Suppress Visual C warnings at /W4 (warning level 4) */
+/* This is also done in testlib.h. */
 
 #ifdef MPS_BUILD_MV
 
-/* "constant conditional" (MPS_END) */
+/* "constant conditional" (provoked by MPS_END) */
 #pragma warning(disable: 4127)
 
 #endif /* MPS_BUILD_MV */
 
 
-/* Suppress Pelles C warnings at warning level 2 */
+/* Suppress Pelles C warnings at /W2 (warning level 2) */
 /* Some of the same settings are done in testlib.h. */
 
 #ifdef MPS_BUILD_PC
 
-/* "Unreachable code" (AVER, if condition is constantly true). */
+/* "Unreachable code" (provoked by AVER, if condition is constantly true). */
 #pragma warn(disable: 2154)
 
 /* "Consider changing type to 'size_t' for loop variable" */

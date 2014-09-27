@@ -15,8 +15,12 @@ Ring data structure
 Introduction
 ------------
 
-_`.source`: rings are derived from the earlier use of Deques. See
-design.mps.deque.
+_`.source`: rings are derived from the earlier use of double-ended
+queues (deques). RB found that most of the deque features were unused
+(see item 6 of `mail.richard.1996-03-25.16-02`_) and so the simple
+doubly-linked list structure of rings suffices.
+
+.. _mail.richard.1996-03-25.16-02: https://info.ravenbrook.com/project/mps/mail/1996/03/25/16-02/0.txt
 
 
 Description
@@ -45,14 +49,14 @@ and deletion because the entire ring can be found from any node.
 
 In the MPS, rings are used to connect a "parent" structure (such as a
 ``Arena``) to a number of "child" structures (such as ``Pool``), as
-shown in `.fig.ring`_. Note the slight abuse of naming convention, in
-that ``barRing`` is not called ``barRingStruct``.
+shown in `.fig.ring`_.
 
-_`.fig.ring`: A ring of ``Bar`` objects owned by a ``Foo`` object.
+_`.fig.ring`: A ring of ``Child`` objects owned by a ``Parent``
+object.
 
 [missing figure]
 
-_`.fig.empty`: An empty ring of ``Bar`` objects owned by a ``Foo``
+_`.fig.empty`: An empty ring of ``Child`` objects owned by a ``Parent``
 object.
 
 [missing figure]
@@ -60,7 +64,7 @@ object.
 _`.def.singleton`: A "singleton" ring is a ring containing one node,
 whose previous and next nodes are itself (see `.fig.single`_).
 
-_`.fig.single`: A singleton ``Bar`` object not on any ring.
+_`.fig.single`: A singleton ``Child`` object not on any ring.
 
 [missing figure]
 
@@ -69,8 +73,11 @@ _`.fig.elt`: How ``RING_ELT()`` gets a parent pointer from a node pointer.
 [missing figure]
 
 
+Interface
+---------
+
 Init / Finish
--------------
+.............
 
 ``void RingInit(Ring ring)``
 
@@ -84,8 +91,36 @@ ring must be a singleton ring before it can be finished (it is an
 error to attempt to finish a non-singleton ring).
 
 
+Checking
+........
+
+``Bool RingCheck(Ring ring)``
+
+_`.check`: ``RingCheck()`` is the check function for rings. See
+design.mps.check_).
+
+.. _design.mps.check: check
+
+``Bool RingCheckSingle(Ring ring)``
+
+_`.check.single`: ``RingCheckSingle()`` is a check function that
+additionally checks that ``ring`` is a singleton (see
+`.def.singleton`_).
+
+``Bool RingIsSingle(Ring ring)``
+
+_`.is.single`: Return ``TRUE`` if ``ring`` is a singleton (see
+`.def.singleton`_).
+
+``Size RingLength(Ring ring)``
+
+_`.length`: Return the number of elements in the ring, not counting
+``ring`` itself. This therefore returns 0 for singleton rings, and for
+parent-children rings it returns the number of children.
+
+
 Iteration
----------
+.........
 
 ``RING_FOR(Ring node, Ring ring, Ring next)``
 
@@ -112,17 +147,25 @@ iteration.
 _`.for.ex`: An example::
 
     Ring node, nextNode;
-    RING_FOR(node, &foo->barRing, nextNode) {
-      Bar bar = RING_ELT(Bar, FooRing, node);
-      frob(bar);
+    RING_FOR(node, &parent->childRing, nextNode) {
+      Child child = RING_ELT(Child, ParentRing, node);
+      foo(child);
     }
 
 _`.for.ex.elt`: Notice the idiomatic use of ``RING_ELT()`` which is
 almost universal when using ``RING_FOR()``.
 
 
-Subclass
---------
+Element access
+..............
+
+``Ring RingNext(Ring ring)``
+
+_`.next`: ``RingNext()`` returns the next node in the ring.
+
+``Ring (RingPrev)(Ring ring)``
+
+_`.prev`: ``RingPrev()`` returns the previous node in the ring.
 
 ``RING_ELT(type, field, Ring node)``
 
@@ -137,7 +180,7 @@ result is a pointer to the enclosing structure.
 
 
 Append / Remove
----------------
+...............
 
 ``void RingAppend(Ring ring, Ring new)``
 
@@ -162,11 +205,16 @@ that joined two rings. This is not done as it is not required.
 Naming
 ------
 
-_`.naming`: By convention, when one structure ``Foo`` contains one
-ring of ``Bar`` structures, the field in ``Foo`` is usually known as
-``barRing``, and the field in ``Bar`` is known as ``fooRing``. If the
-``Foo`` structure contains more than one ring of ``Bar`` structures,
-then they will have names such as ``spongRing`` and ``frobRing``.
+_`.naming`: By convention, when one structure ``Parent`` contains one
+ring of ``Child`` structures, the field in ``Parent`` is usually known
+as ``childRing``, and the field in ``Child`` is known as
+``parentRing``. If the ``Parent`` structure contains more than one
+ring of ``Child`` structures, then they should have names like
+``allocatedChildRing`` and ``freeChildRing``.
+
+_`.naming.rule.break`: Note the slight abuse of naming convention, in
+that the ring members have names ending in ``Ring`` rather than
+``RingStruct``.
 
 
 Deques
@@ -186,7 +234,7 @@ This section documents known defects with the current design.
 
 _`.app_for.misuse`: It is easy to pass ``RingAppend()`` and
 ``RING_FOR()`` the arguments in the wrong order as all the arguments
-have the same type. see `.head`_.
+have the same type.
 
 _`.check.improve`: There is no method for performing a full integrity
 check. This could be added.
