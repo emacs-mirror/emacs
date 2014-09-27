@@ -52,13 +52,15 @@ static Bool SACCheck(SAC sac)
   for (j = sac->middleIndex + 1, i = 0; j < sac->classesCount; ++j, i += 2) {
     CHECKL(prevSize < esac->_freelists[i]._size);
     b = sacFreeListBlockCheck(&(esac->_freelists[i]));
-    if (!b) return b;
+    if (!b)
+      return b;
     prevSize = esac->_freelists[i]._size;
   }
   /* check overlarge class */
   CHECKL(prevSize < esac->_freelists[i]._size);
   b = sacFreeListBlockCheck(&(esac->_freelists[i]));
-  if (!b) return b;
+  if (!b)
+    return b;
   CHECKL(esac->_freelists[i]._size == SizeMAX);
   CHECKL(esac->_freelists[i]._count == 0);
   CHECKL(esac->_freelists[i]._count_max == 0);
@@ -68,7 +70,8 @@ static Bool SACCheck(SAC sac)
   for (j = sac->middleIndex, i = 1; j > 0; --j, i += 2) {
     CHECKL(prevSize > esac->_freelists[i]._size);
     b = sacFreeListBlockCheck(&(esac->_freelists[i]));
-    if (!b) return b;
+    if (!b)
+      return b;
     prevSize = esac->_freelists[i]._size;
   }
   /* check smallest class */
@@ -136,7 +139,8 @@ Res SACCreate(SAC *sacReturn, Pool pool, Count classesCount,
   /* Find middle one */
   totalFreq /= 2;
   for (i = 0; i < classesCount; ++i) {
-    if (totalFreq < classes[i].mps_frequency) break;
+    if (totalFreq < classes[i].mps_frequency)
+      break;
     totalFreq -= classes[i].mps_frequency;
   }
   if (totalFreq <= classes[i].mps_frequency / 2)

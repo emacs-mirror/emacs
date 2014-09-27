@@ -67,7 +67,8 @@ static size_t arena_grain_size = 1; /* arena grain size */
           if (blocks[k].p == NULL) { \
             size_t s = rnd() % ((sizeof(void *) << (rnd() % sshift)) - 1); \
             void *p = NULL; \
-            if (s > 0) alloc(p, s); \
+            if (s > 0) \
+              alloc(p, s); \
             blocks[k].p = p; \
             blocks[k].s = s; \
           } else { \

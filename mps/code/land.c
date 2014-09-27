@@ -376,8 +376,10 @@ Res LandDescribe(Land land, mps_lib_FILE *stream, Count depth)
 {
   Res res;
 
-  if (!TESTT(Land, land)) return ResFAIL;
-  if (stream == NULL) return ResFAIL;
+  if (!TESTT(Land, land))
+    return ResFAIL;
+  if (stream == NULL)
+    return ResFAIL;
 
   res = WriteF(stream, depth,
                "Land $P {\n", (WriteFP)land,

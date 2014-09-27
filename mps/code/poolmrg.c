@@ -804,16 +804,21 @@ static Res MRGDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
   RefPart refPart;
   Res res;
 
-  if (!TESTT(Pool, pool)) return ResFAIL;
+  if (!TESTT(Pool, pool))
+    return ResFAIL;
   mrg = PoolMRG(pool);
-  if (!TESTT(MRG, mrg)) return ResFAIL;
-  if (stream == NULL) return ResFAIL;
+  if (!TESTT(MRG, mrg))
+    return ResFAIL;
+  if (stream == NULL)
+    return ResFAIL;
 
   arena = PoolArena(pool);
   res = WriteF(stream, depth, "extendBy $W\n", (WriteFW)mrg->extendBy, NULL);
-  if (res != ResOK) return res;
+  if (res != ResOK)
+    return res;
   res = WriteF(stream, depth, "Entry queue:\n", NULL);
-  if (res != ResOK) return res;
+  if (res != ResOK)
+    return res;
   RING_FOR(node, &mrg->entryRing, nextNode) {
     Bool outsideShield = !arena->insideShield;
     refPart = MRGRefPartOfLink(linkOfRing(node), arena);
@@ -826,7 +831,8 @@ static Res MRGDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
     if (outsideShield) {
       ShieldLeave(arena);
     }
-    if (res != ResOK) return res;
+    if (res != ResOK)
+      return res;
   }
 
   return ResOK;

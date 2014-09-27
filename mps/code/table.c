@@ -1,7 +1,7 @@
 /* table.h: A dictionary mapping a Word to a void*
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
  * .note.good-hash: As is common in hash table implementations, we
  * assume that the hash function is good.
@@ -301,7 +301,8 @@ extern Res TableDefine(Table table, Word key, void *value)
 
   if (table->count >= table->length * SPACEFRACTION) {
     Res res = TableGrow(table, 1);
-    if(res != ResOK) return res;
+    if (res != ResOK)
+      return res;
     entry = tableFind(table, key, FALSE /* no deletions yet */);
     AVER(entry != NULL);
     if (entryIsActive(table, entry))
@@ -382,7 +383,7 @@ extern Count TableCount(Table table)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

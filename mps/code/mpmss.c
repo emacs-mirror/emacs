@@ -95,7 +95,8 @@ static mps_res_t stress(mps_arena_t arena, mps_pool_debug_option_s *options,
     for (i=testSetSIZE/2; i<testSetSIZE; ++i) {
       ss[i] = (*size)(i);
       res = mps_alloc((mps_addr_t *)&ps[i], pool, ss[i]);
-      if (res != MPS_RES_OK) return res;
+      if (res != MPS_RES_OK)
+        return res;
       allocated += alignUp(ss[i], align) + debugOverhead;
     }
     check_allocated_size(pool, allocated);

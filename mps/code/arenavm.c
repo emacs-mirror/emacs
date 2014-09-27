@@ -194,10 +194,13 @@ static Res VMArenaDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
   Res res;
   VMArena vmArena;
 
-  if (!TESTT(Arena, arena)) return ResFAIL;
-  if (stream == NULL) return ResFAIL;
+  if (!TESTT(Arena, arena))
+    return ResFAIL;
+  if (stream == NULL)
+    return ResFAIL;
   vmArena = Arena2VMArena(arena);
-  if (!TESTT(VMArena, vmArena)) return ResFAIL;
+  if (!TESTT(VMArena, vmArena))
+    return ResFAIL;
 
   /* Describe the superclass fields first via next-method call */
   /* ...but the next method is ArenaTrivDescribe, so don't call it;
@@ -205,7 +208,8 @@ static Res VMArenaDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
    *
   super = ARENA_SUPERCLASS(VMArenaClass);
   res = super->describe(arena, stream);
-  if (res != ResOK) return res;
+  if (res != ResOK)
+    return res;
    *
   */
 

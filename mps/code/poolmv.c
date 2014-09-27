@@ -455,7 +455,8 @@ static Res MVSpanFree(MVSpan span, Addr base, Addr limit, Pool blockPool)
         /* block must be split into two parts.  */
         res = PoolAlloc(&addr, blockPool, sizeof(MVBlockStruct),
                         /* withReservoirPermit */ FALSE);
-        if(res != ResOK) return res;
+        if (res != ResOK)
+          return res;
         new = (MVBlock)addr;
 
         freeAreaSize = AddrOffset(base, limit);
@@ -742,10 +743,13 @@ static Res MVDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
   char c;
   Ring spans, node = NULL, nextNode; /* gcc whinge stop */
 
-  if(!TESTT(Pool, pool)) return ResFAIL;
+  if (!TESTT(Pool, pool))
+    return ResFAIL;
   mv = PoolMV(pool);
-  if(!TESTT(MV, mv)) return ResFAIL;
-  if(stream == NULL) return ResFAIL;
+  if (!TESTT(MV, mv))
+    return ResFAIL;
+  if (stream == NULL)
+    return ResFAIL;
 
   res = WriteF(stream, depth,
                "blockPool $P ($U)\n",
@@ -769,7 +773,8 @@ static Res MVDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
     MVBlock block;
     span = RING_ELT(MVSpan, spans, node);
     res = WriteF(stream, depth, "MVSpan $P {\n", (WriteFP)span, NULL);
-    if(res != ResOK) return res;
+    if (res != ResOK)
+      return res;
 
     res = WriteF(stream, depth + 2,
                  "span    $P\n", (WriteFP)span,
@@ -778,19 +783,22 @@ static Res MVDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
                  "blocks  $U\n", (WriteFU)span->blockCount,
                  "largest ",
                  NULL);
-    if(res != ResOK) return res;
+    if (res != ResOK)
+      return res;
 
     if (span->largestKnown) /* .design.largest */
       res = WriteF(stream, 0, "$W\n", (WriteFW)span->largest, NULL);
     else
       res = WriteF(stream, 0, "unknown\n", NULL);
-    if(res != ResOK) return res;
+    if (res != ResOK)
+      return res;
 
     block = span->blocks;
 
     for(i = span->base.base; i < span->limit.limit; i = AddrAdd(i, length)) {
       res = WriteF(stream, depth + 2, "$A ", (WriteFA)i, NULL);
-      if(res != ResOK) return res;
+      if (res != ResOK)
+        return res;
 
       for(j = i;
           j < AddrAdd(i, length) && j < span->limit.limit;
@@ -813,13 +821,16 @@ static Res MVDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
         else /* j > block->base && j < block->limit */
           c = '=';
         res = WriteF(stream, 0, "$C", (WriteFC)c, NULL);
-        if(res != ResOK) return res;
+        if (res != ResOK)
+          return res;
       }
       res = WriteF(stream, 0, "\n", NULL);
-      if(res != ResOK) return res;
+      if (res != ResOK)
+        return res;
     }
     res = WriteF(stream, depth, "} MVSpan $P\n", (WriteFP)span, NULL);
-    if(res != ResOK) return res;
+    if (res != ResOK)
+      return res;
   }
 
   return ResOK;

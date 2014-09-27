@@ -83,7 +83,8 @@ static void aset(obj_t v, size_t i, obj_t val) {
 static obj_t mktree(mps_ap_t ap, unsigned d, obj_t leaf) {
   obj_t tree;
   size_t i;
-  if (d <= 0) return leaf;
+  if (d <= 0)
+    return leaf;
   tree = mkvector(ap, width);
   for (i = 0; i < width; ++i) {
     aset(tree, i, mktree(ap, d - 1, leaf));

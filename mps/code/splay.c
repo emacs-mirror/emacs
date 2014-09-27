@@ -1024,34 +1024,44 @@ static Res SplayNodeDescribe(Tree node, mps_lib_FILE *stream,
 {
   Res res;
 
-  if (!TreeCheck(node)) return ResFAIL;
-  if (stream == NULL) return ResFAIL;
-  if (nodeDescribe == NULL) return ResFAIL;
+  if (!TreeCheck(node))
+    return ResFAIL;
+  if (stream == NULL)
+    return ResFAIL;
+  if (nodeDescribe == NULL)
+    return ResFAIL;
 
   res = WriteF(stream, 0, "( ", NULL);
-  if (res != ResOK) return res;
+  if (res != ResOK)
+    return res;
 
   if (TreeHasLeft(node)) {
     res = SplayNodeDescribe(TreeLeft(node), stream, nodeDescribe);
-    if (res != ResOK) return res;
+    if (res != ResOK)
+      return res;
 
     res = WriteF(stream, 0, " / ", NULL);
-    if (res != ResOK) return res;
+    if (res != ResOK)
+      return res;
   }
 
   res = (*nodeDescribe)(node, stream);
-  if (res != ResOK) return res;
+  if (res != ResOK)
+    return res;
 
   if (TreeHasRight(node)) {
     res = WriteF(stream, 0, " \\ ", NULL);
-    if (res != ResOK) return res;
+    if (res != ResOK)
+      return res;
 
     res = SplayNodeDescribe(TreeRight(node), stream, nodeDescribe);
-    if (res != ResOK) return res;
+    if (res != ResOK)
+      return res;
   }
 
   res = WriteF(stream, 0, " )", NULL);
-  if (res != ResOK) return res;
+  if (res != ResOK)
+    return res;
 
   return ResOK;
 }
@@ -1356,9 +1366,12 @@ Res SplayTreeDescribe(SplayTree splay, mps_lib_FILE *stream, Count depth,
 {
   Res res;
 
-  if (!TESTT(SplayTree, splay)) return ResFAIL;
-  if (stream == NULL) return ResFAIL;
-  if (nodeDescribe == NULL) return ResFAIL;
+  if (!TESTT(SplayTree, splay))
+    return ResFAIL;
+  if (stream == NULL)
+    return ResFAIL;
+  if (nodeDescribe == NULL)
+    return ResFAIL;
 
   res = WriteF(stream, depth,
                "Splay $P {\n", (WriteFP)splay,
@@ -1366,13 +1379,16 @@ Res SplayTreeDescribe(SplayTree splay, mps_lib_FILE *stream, Count depth,
                "  nodeKey $F\n", (WriteFF)splay->nodeKey,
                "  updateNode $F\n", (WriteFF)splay->updateNode,
                NULL);
-  if (res != ResOK) return res;
+  if (res != ResOK)
+    return res;
 
   if (SplayTreeRoot(splay) != TreeEMPTY) {
     res = WriteF(stream, depth, "  tree ", NULL);
-    if (res != ResOK) return res;
+    if (res != ResOK)
+      return res;
     res = SplayNodeDescribe(SplayTreeRoot(splay), stream, nodeDescribe);
-    if (res != ResOK) return res;
+    if (res != ResOK)
+      return res;
   }
 
   res = WriteF(stream, depth, "\n} Splay $P\n", (WriteFP)splay, NULL);
