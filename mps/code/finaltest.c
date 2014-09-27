@@ -215,7 +215,7 @@ static void test_trees(int mode, const char *name, mps_arena_t arena,
 }
 
 static void test_pool(int mode, mps_arena_t arena, mps_chain_t chain,
-                      mps_class_t pool_class)
+                      mps_pool_class_t pool_class)
 {
   mps_ap_t ap;
   mps_fmt_t fmt;

@@ -308,7 +308,7 @@ AWL interface
 
    #include "mpscawl.h"
 
-.. c:function:: mps_class_t mps_class_awl(void)
+.. c:function:: mps_pool_class_t mps_class_awl(void)
 
     Return the :term:`pool class` for an AWL (Automatic Weak Linked)
     :term:`pool`.
@@ -356,7 +356,7 @@ AWL interface
         find-dependent function like this::
 
             mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, 
-                                      mps_class_t mps_class_awl(),
+                                      mps_pool_class_t mps_class_awl(),
                                       mps_fmt_t fmt,
                                       mps_awl_find_dependent_t find_dependent)
 

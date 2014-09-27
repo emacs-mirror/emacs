@@ -51,7 +51,8 @@ typedef struct mps_pool_s   *mps_pool_t;   /* pool */
 typedef struct mps_chain_s  *mps_chain_t;  /* chain */
 typedef struct mps_fmt_s    *mps_fmt_t;    /* object format */
 typedef struct mps_root_s   *mps_root_t;   /* root */
-typedef struct mps_class_s  *mps_class_t;  /* pool class */
+typedef struct mps_pool_class_s  *mps_pool_class_t;  /* pool class */
+typedef mps_pool_class_t mps_class_t;      /* deprecated alias */
 typedef struct mps_thr_s    *mps_thr_t;    /* thread registration */
 typedef struct mps_ap_s     *mps_ap_t;     /* allocation point */
 typedef struct mps_ld_s     *mps_ld_t;     /* location dependency */
@@ -472,11 +473,11 @@ extern void mps_fmt_destroy(mps_fmt_t);
 /* Pools */
 
 extern mps_res_t mps_pool_create(mps_pool_t *, mps_arena_t,
-                                 mps_class_t, ...);
+                                 mps_pool_class_t, ...);
 extern mps_res_t mps_pool_create_v(mps_pool_t *, mps_arena_t,
-                                   mps_class_t, va_list);
+                                   mps_pool_class_t, va_list);
 extern mps_res_t mps_pool_create_k(mps_pool_t *, mps_arena_t,
-                                   mps_class_t, mps_arg_s []);
+                                   mps_pool_class_t, mps_arg_s []);
 extern void mps_pool_destroy(mps_pool_t);
 extern size_t mps_pool_total_size(mps_pool_t);
 extern size_t mps_pool_free_size(mps_pool_t);

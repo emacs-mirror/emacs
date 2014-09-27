@@ -623,7 +623,7 @@ void mps_fmt_destroy(mps_fmt_t format)
 
 
 mps_res_t mps_pool_create(mps_pool_t *mps_pool_o, mps_arena_t arena,
-                          mps_class_t mps_class, ...)
+                          mps_pool_class_t mps_class, ...)
 {
   mps_res_t res;
   va_list varargs;
@@ -634,16 +634,16 @@ mps_res_t mps_pool_create(mps_pool_t *mps_pool_o, mps_arena_t arena,
 }
 
 mps_res_t mps_pool_create_v(mps_pool_t *mps_pool_o, mps_arena_t arena,
-                            mps_class_t class, va_list varargs)
+                            mps_pool_class_t pool_class, va_list varargs)
 {
   mps_arg_s args[MPS_ARGS_MAX];
-  AVERT(PoolClass, class);
-  class->varargs(args, varargs);
-  return mps_pool_create_k(mps_pool_o, arena, class, args);
+  AVERT(PoolClass, pool_class);
+  pool_class->varargs(args, varargs);
+  return mps_pool_create_k(mps_pool_o, arena, pool_class, args);
 }
 
 mps_res_t mps_pool_create_k(mps_pool_t *mps_pool_o, mps_arena_t arena,
-                            mps_class_t class, mps_arg_s args[])
+                            mps_pool_class_t pool_class, mps_arg_s args[])
 {
   Pool pool;
   Res res;
@@ -652,10 +652,10 @@ mps_res_t mps_pool_create_k(mps_pool_t *mps_pool_o, mps_arena_t arena,
 
   AVER(mps_pool_o != NULL);
   AVERT(Arena, arena);
-  AVERT(PoolClass, class);
+  AVERT(PoolClass, pool_class);
   AVERT(ArgList, args);
 
-  res = PoolCreate(&pool, arena, class, args);
+  res = PoolCreate(&pool, arena, pool_class, args);
 
   ArenaLeave(arena);
 

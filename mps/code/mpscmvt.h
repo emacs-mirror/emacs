@@ -1,7 +1,7 @@
 /* mpscmvt.h: MEMORY POOL SYSTEM CLASS "MVT"
  *
  * $Id$
- * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  */
 
 #ifndef mpscmvt_h
@@ -16,7 +16,7 @@ extern const struct mps_key_s _mps_key_mvt_frag_limit;
 #define MPS_KEY_MVT_FRAG_LIMIT (&_mps_key_mvt_frag_limit)
 #define MPS_KEY_MVT_FRAG_LIMIT_FIELD d
 
-extern mps_class_t mps_class_mvt(void);
+extern mps_pool_class_t mps_class_mvt(void);
 
 #define mps_mvt_free_size mps_pool_free_size
 #define mps_mvt_size mps_pool_total_size
@@ -26,7 +26,7 @@ extern mps_class_t mps_class_mvt(void);
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

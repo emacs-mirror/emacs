@@ -166,7 +166,7 @@ static void watch(dj_t dj, const char *name)
 
 /* Wrap a call to dj benchmark that doesn't require MPS setup */
 
-static void wrap(dj_t dj, mps_class_t dummy, const char *name)
+static void wrap(dj_t dj, mps_pool_class_t dummy, const char *name)
 {
   (void)dummy;
   pool = NULL;
@@ -176,7 +176,7 @@ static void wrap(dj_t dj, mps_class_t dummy, const char *name)
 
 /* Wrap a call to a dj benchmark that requires MPS setup */
 
-static void arena_wrap(dj_t dj, mps_class_t pool_class, const char *name)
+static void arena_wrap(dj_t dj, mps_pool_class_t pool_class, const char *name)
 {
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, arena_size);
@@ -213,16 +213,16 @@ static struct option longopts[] = {
 
 /* Test definitions. */
 
-static mps_class_t dummy_class(void)
+static mps_pool_class_t dummy_class(void)
 {
   return NULL;
 }
 
 static struct {
   const char *name;
-  void (*wrap)(dj_t, mps_class_t, const char *name);
+  void (*wrap)(dj_t, mps_pool_class_t, const char *name);
   dj_t dj;
-  mps_class_t (*pool_class)(void);
+  mps_pool_class_t (*pool_class)(void);
 } pools[] = {
   {"mvt",   arena_wrap, dj_reserve, mps_class_mvt},
   {"mvff",  arena_wrap, dj_reserve, mps_class_mvff},

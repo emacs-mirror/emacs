@@ -19,7 +19,7 @@ making it available for allocation.
     :c:func:`mps_alloc` or via an :term:`allocation point`.
 
 
-.. c:function:: mps_res_t mps_pool_create_k(mps_pool_t *pool_o, mps_arena_t arena, mps_class_t class, mps_arg_s args[])
+.. c:function:: mps_res_t mps_pool_create_k(mps_pool_t *pool_o, mps_arena_t arena, mps_pool_class_t pool_class, mps_arg_s args[])
 
     Create a :term:`pool` in an :term:`arena`.
 
@@ -28,7 +28,7 @@ making it available for allocation.
 
     ``arena`` is the arena in which to create the pool.
 
-    ``class`` is the :term:`pool class` of the new pool.
+    ``pool_class`` is the :term:`pool class` of the new pool.
 
     ``args`` are :term:`keyword arguments` specific to the pool class.
     See the documentation for the pool class.
@@ -40,7 +40,7 @@ making it available for allocation.
     :c:func:`mps_pool_destroy`.
 
 
-.. c:function:: mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, mps_class_t class, ...)
+.. c:function:: mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, mps_pool_class_t pool_class, ...)
 
     .. deprecated:: starting with version 1.112.
 
@@ -53,7 +53,7 @@ making it available for allocation.
     list mechanism.
 
 
-.. c:function:: mps_res_t mps_pool_create_v(mps_pool_t *pool_o, mps_arena_t arena, mps_class_t class, va_list args)
+.. c:function:: mps_res_t mps_pool_create_v(mps_pool_t *pool_o, mps_arena_t arena, mps_pool_class_t pool_class, va_list args)
 
     .. deprecated:: starting with version 1.112.
 
@@ -119,14 +119,16 @@ return a block of memory to the pool) and others are
 See the :ref:`pool` for a list of pool classes.
 
 
-.. c:type:: mps_class_t
+.. c:type:: mps_pool_class_t
 
     The type of :term:`pool classes`.
 
-    .. note::
+.. c:type:: typedef mps_pool_class_t mps_class_t
 
-        This should really have been called ``mps_pool_class_t`` but
-        it is too late to change it now.
+    .. deprecated:: starting with version 1.115.
+
+        The former name for ``mps_pool_class_t``, chosen when pools
+        were the only objects in the MPS that belonged to classes.
 
 
 .. index::

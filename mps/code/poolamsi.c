@@ -1,7 +1,7 @@
 /* poolamsi.c: AUTOMATIC MARK & SWEEP POOL CLASS C INTERFACE
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  */
 
 #include "mpscams.h"
@@ -13,23 +13,23 @@ SRCID(poolamsi, "$Id$");
 
 /* mps_class_ams -- return the AMS pool class descriptor */
 
-mps_class_t mps_class_ams(void)
+mps_pool_class_t mps_class_ams(void)
 {
-  return (mps_class_t)AMSPoolClassGet();
+  return (mps_pool_class_t)AMSPoolClassGet();
 }
 
 
 /* mps_class_ams_debug -- return the AMS (debug) pool class descriptor */
 
-mps_class_t mps_class_ams_debug(void)
+mps_pool_class_t mps_class_ams_debug(void)
 {
-  return (mps_class_t)AMSDebugPoolClassGet();
+  return (mps_pool_class_t)AMSDebugPoolClassGet();
 }
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

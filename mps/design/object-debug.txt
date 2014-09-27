@@ -340,11 +340,6 @@ fencepost.
 _`.interface.fenceposting.checker`: A format method to check the
 fenceposts around an object. The ``NULL`` method checks tails.
 
-``mps_class_t mps_debug_class(mps_class_t class)``
-
-_`.interface.fenceposting.pool`: A function to wrap a pool class
-to provide fenceposting (note absence of arena parameter).
-
 ``mps_res_t mps_alloc(mps_addr_t *, mps_pool_t, size_t);``
 ``mps_res_t mps_alloc_dbg(mps_addr_t *, mps_pool_t, size_t, ...);``
 ``mps_res_t mps_alloc_dbg_v(mps_addr_t *, mps_pool_t, size_t, va_list);``

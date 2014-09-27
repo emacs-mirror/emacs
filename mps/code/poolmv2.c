@@ -1115,9 +1115,9 @@ PoolClass PoolClassMVT(void)
 
 /* mps_class_mvt -- the class of an mvt pool */
 
-mps_class_t mps_class_mvt(void)
+mps_pool_class_t mps_class_mvt(void)
 {
-  return (mps_class_t)(PoolClassMVT());
+  return (mps_pool_class_t)(PoolClassMVT());
 }
 
 

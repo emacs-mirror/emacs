@@ -224,7 +224,7 @@ static void watch(gcthread_fn_t fn, const char *name)
 /* Setup MPS arena and call benchmark. */
 
 static void arena_setup(gcthread_fn_t fn,
-                        mps_class_t pool_class,
+                        mps_pool_class_t pool_class,
                         const char *name)
 {
   MPS_ARGS_BEGIN(args) {
@@ -281,7 +281,7 @@ static struct option longopts[] = {
 static struct {
   const char *name;
   gcthread_fn_t fn;
-  mps_class_t (*pool_class)(void);
+  mps_pool_class_t (*pool_class)(void);
 } pools[] = {
   {"amc", gc_tree, mps_class_amc},
   {"ams", gc_tree, mps_class_ams},

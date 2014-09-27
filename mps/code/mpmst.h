@@ -48,7 +48,7 @@
 
 #define PoolClassSig    ((Sig)0x519C7A55) /* SIGnature pool CLASS */
 
-typedef struct mps_class_s {
+typedef struct mps_pool_class_s {
   ProtocolClassStruct protocol;
   const char *name;             /* class name string */
   size_t size;                  /* size of outer structure */

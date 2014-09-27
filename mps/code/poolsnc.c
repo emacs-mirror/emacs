@@ -687,9 +687,9 @@ DEFINE_POOL_CLASS(SNCPoolClass, this)
 }
 
 
-mps_class_t mps_class_snc(void)
+mps_pool_class_t mps_class_snc(void)
 {
-  return (mps_class_t)SNCPoolClassGet();
+  return (mps_pool_class_t)SNCPoolClassGet();
 }
 
 

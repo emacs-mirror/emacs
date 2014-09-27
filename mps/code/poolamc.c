@@ -2481,16 +2481,16 @@ DEFINE_POOL_CLASS(AMCPoolClass, this)
 
 /* mps_class_amc -- return the pool class descriptor to the client */
 
-mps_class_t mps_class_amc(void)
+mps_pool_class_t mps_class_amc(void)
 {
-  return (mps_class_t)AMCPoolClassGet();
+  return (mps_pool_class_t)AMCPoolClassGet();
 }
 
 /* mps_class_amcz -- return the pool class descriptor to the client */
 
-mps_class_t mps_class_amcz(void)
+mps_pool_class_t mps_class_amcz(void)
 {
-  return (mps_class_t)AMCZPoolClassGet();
+  return (mps_pool_class_t)AMCZPoolClassGet();
 }
 
 

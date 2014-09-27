@@ -108,7 +108,7 @@ static mps_addr_t make(void)
 static mps_pool_debug_option_s freecheckOptions =
   { NULL, 0, "Dead", 4 };
 
-static void test_pool(mps_class_t pool_class, mps_arg_s args[],
+static void test_pool(mps_pool_class_t pool_class, mps_arg_s args[],
                       mps_bool_t haveAmbiguous)
 {
   mps_pool_t pool;

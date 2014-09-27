@@ -702,9 +702,9 @@ static void mps_amst_ap_stress(mps_ap_t ap)
 
 /* mps_class_amst -- return the pool class descriptor to the client */
 
-static mps_class_t mps_class_amst(void)
+static mps_pool_class_t mps_class_amst(void)
 {
-  return (mps_class_t)AMSTPoolClassGet();
+  return (mps_pool_class_t)AMSTPoolClassGet();
 }
 
 

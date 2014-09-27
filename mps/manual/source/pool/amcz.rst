@@ -54,7 +54,7 @@ AMCZ interface
 
    #include "mpscamc.h"
 
-.. c:function:: mps_class_t mps_class_amcz(void)
+.. c:function:: mps_pool_class_t mps_class_amcz(void)
 
     Return the :term:`pool class` for an AMCZ (Automatic
     Mostly-Copying Zero-rank) :term:`pool`.
@@ -93,6 +93,6 @@ AMCZ interface
         chain like this::
 
             mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, 
-                                      mps_class_t mps_class_amcz(),
+                                      mps_pool_class_t mps_class_amcz(),
                                       mps_fmt_t fmt,
                                       mps_chain_t chain)

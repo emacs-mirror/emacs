@@ -1,5 +1,5 @@
 /* eventrep.c: Allocation replayer routines
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
  * $Id$
  */
@@ -242,7 +242,8 @@ static void objRemove(void **objReturn, objectTable table,
 
 /* poolRecreate -- create and record a pool */
 
-static void poolRecreate(void *logPool, void *logArena, mps_class_t class,
+static void poolRecreate(void *logPool, void *logArena,
+                         mps_pool_class_t pool_class,
                          poolSupport support, int bufferClassLevel, ...)
 {
   va_list args;
@@ -650,7 +651,7 @@ void EventRepFinish(void)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

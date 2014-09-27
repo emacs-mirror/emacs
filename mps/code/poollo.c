@@ -850,9 +850,9 @@ DEFINE_POOL_CLASS(LOPoolClass, this)
 
 /* mps_class_lo -- the external interface to get the LO pool class */
 
-mps_class_t mps_class_lo(void)
+mps_pool_class_t mps_class_lo(void)
 {
-  return (mps_class_t)EnsureLOPoolClass();
+  return (mps_pool_class_t)EnsureLOPoolClass();
 }
 
 

@@ -97,7 +97,8 @@ static void report(mps_arena_t arena)
 
 /* test -- the body of the test */
 
-static void *test(mps_arena_t arena, mps_class_t pool_class, size_t roots_count)
+static void *test(mps_arena_t arena, mps_pool_class_t pool_class,
+                  size_t roots_count)
 {
   mps_fmt_t format;
   mps_chain_t chain;

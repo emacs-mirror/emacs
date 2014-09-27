@@ -65,7 +65,7 @@ MV interface
 
    #include "mpscmv.h"
 
-.. c:function:: mps_class_t mps_class_mv(void)
+.. c:function:: mps_pool_class_t mps_class_mv(void)
 
     Return the :term:`pool class` for an MV (Manual Variable)
     :term:`pool`.
@@ -111,13 +111,13 @@ MV interface
         mean size, and maximum size like this::
 
             mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, 
-                                      mps_class_t mps_class_mv(),
+                                      mps_pool_class_t mps_class_mv(),
                                       size_t extend_size,
                                       size_t average_size,
                                       mps_size_t maximum_size)
 
 
-.. c:function:: mps_class_t mps_class_mv_debug(void)
+.. c:function:: mps_pool_class_t mps_class_mv_debug(void)
 
     A :ref:`debugging <topic-debugging>` version of the MV pool
     class.
@@ -135,7 +135,7 @@ MV interface
         this::
 
             mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, 
-                                      mps_class_t mps_class_mv_debug(),
+                                      mps_pool_class_t mps_class_mv_debug(),
                                       mps_pool_debug_option_s debug_option,
                                       mps_size_t extend_size,
                                       mps_size_t average_size,
