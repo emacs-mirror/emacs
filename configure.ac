@@ -254,7 +254,7 @@ AC_ARG_WITH([mailhost],[AS_HELP_STRING([--with-mailhost=HOSTNAME],
 
 AC_ARG_WITH([sound],[AS_HELP_STRING([--with-sound=VALUE],
   [compile with sound support (VALUE one of: yes, alsa, oss, bsd-ossaudio, no;
-default yes).  Only for GNU/Linux, FreeBSD, NetBSD, MinGW.])],
+default yes).  Only for GNU/Linux, FreeBSD, NetBSD, MinGW, Cygwin.])],
   [ case "${withval}" in
       yes|no|alsa|oss|bsd-ossaudio) val=$withval ;;
       *) AC_MSG_ERROR([`--with-sound=$withval' is invalid;
@@ -1442,7 +1442,7 @@ AC_DEFUN([EMACS_CHECK_MODULES],
 
 HAVE_SOUND=no
 if test "${with_sound}" != "no"; then
-  # Sound support for GNU/Linux, the free BSDs, and MinGW.
+  # Sound support for GNU/Linux, the free BSDs, MinGW, and Cygwin.
   AC_CHECK_HEADERS([machine/soundcard.h sys/soundcard.h soundcard.h mmsystem.h],
     have_sound_header=yes, [], [
     #ifdef __MINGW32__
@@ -1505,7 +1505,7 @@ if test "${with_sound}" != "no"; then
      case "$opsys" in
        dnl defined __FreeBSD__ || defined __NetBSD__ || defined __linux__
        dnl Adjust the --with-sound help text if you change this.
-       gnu-linux|freebsd|netbsd|mingw32)
+       gnu-linux|freebsd|netbsd|mingw32|cygwin)
          AC_DEFINE(HAVE_SOUND, 1, [Define to 1 if you have sound support.])
          HAVE_SOUND=yes
          ;;

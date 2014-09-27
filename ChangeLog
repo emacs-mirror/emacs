@@ -1,3 +1,7 @@
+2014-09-27  Ken Brown  <kbrown@cornell.edu>
+
+	* configure.ac [CYGWIN]: Enable sound support.
+
 2014-09-25  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* configure.ac (MAKEINFO): Allow 'makeinfo' to be called 'texi2any'.
