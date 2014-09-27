@@ -38,5 +38,5 @@ Examples:
 (2) Source of mapping files
 
 All mapping files are generated automatically from data files freely
-available on the Internet (e.g. glibc/localedata/charmaps").  See the
+available on the Internet (e.g. glibc/localedata/charmaps).  See the
 file ../../admin/charsets/mapfiles/README for the detail.
