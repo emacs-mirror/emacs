@@ -302,15 +302,15 @@ Memory Management Glossary: P
         .. aka:: *pig in the snake*.
 
         In a :term:`generational <generational garbage collection>`
-        collector, when a large and long-lived :term:`object` is
+        collector, when long-lived :term:`objects` are
         :term:`allocated` in :term:`nursery space`, collection effort
-        will be wasted as that object survives and is :term:`promoted
-        <promotion>` from :term:`generation` to generation. This is
-        especially noticeable in a :term:`copying collector <copying
-        garbage collection>`, where the large object will be copied
-        many times. This difficulty is similar to that of a python
-        which swallows its prey whole and is somewhat immobilized as
-        it digests it.
+        will be wasted as those objects survive and are
+        :term:`promoted <promotion>` from :term:`generation` to
+        generation. This is especially noticeable in a :term:`copying
+        collector <copying garbage collection>`, where long-lived
+        objects will be copied many times. This difficulty is similar
+        to that of a python which swallows its prey whole and is
+        somewhat immobilized as it digests it.
 
         Modern collectors permit objects to be allocated directly into
         appropriate generations or pools to avoid this problem.
