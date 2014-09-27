@@ -281,10 +281,13 @@ static Res failoverDescribe(Land land, mps_lib_FILE *stream, Count depth)
   Failover fo;
   Res res;
 
-  if (!TESTT(Land, land)) return ResFAIL;
+  if (!TESTT(Land, land))
+    return ResFAIL;
   fo = failoverOfLand(land);
-  if (!TESTT(Failover, fo)) return ResFAIL;
-  if (stream == NULL) return ResFAIL;
+  if (!TESTT(Failover, fo))
+    return ResFAIL;
+  if (stream == NULL)
+    return ResFAIL;
 
   res = WriteF(stream, depth,
                "Failover $P {\n", (WriteFP)fo,

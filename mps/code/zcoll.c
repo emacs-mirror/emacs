@@ -205,7 +205,8 @@ static void get(mps_arena_t arena)
                (ulongest_t)mclockEnd, (ulongest_t)(mclockEnd - mclockBegin));
         printf("    Coll End  ");
         showStatsText(notcon, con, live);
-        if(rnd()==0) showStatsAscii(notcon, con, live, alimit);
+        if (rnd()==0)
+          showStatsAscii(notcon, con, live, alimit);
         break;
       }
       case mps_message_type_finalization(): {

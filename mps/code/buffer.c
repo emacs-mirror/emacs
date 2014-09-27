@@ -150,8 +150,10 @@ Res BufferDescribe(Buffer buffer, mps_lib_FILE *stream, Count depth)
 {
   Res res;
 
-  if (!TESTT(Buffer, buffer)) return ResFAIL;
-  if (stream == NULL) return ResFAIL;
+  if (!TESTT(Buffer, buffer))
+    return ResFAIL;
+  if (stream == NULL)
+    return ResFAIL;
 
   res = WriteF(stream, depth,
                "Buffer $P ($U) {\n",
@@ -178,10 +180,12 @@ Res BufferDescribe(Buffer buffer, mps_lib_FILE *stream, Count depth)
                "  alignment $W\n",   (WriteFW)buffer->alignment,
                "  rampCount $U\n",   (WriteFU)buffer->rampCount,
                NULL);
-  if (res != ResOK) return res;
+  if (res != ResOK)
+    return res;
 
   res = buffer->class->describe(buffer, stream, depth + 2);
-  if (res != ResOK) return res;
+  if (res != ResOK)
+    return res;
 
   res = WriteF(stream, depth, "} Buffer $P ($U)\n",
                (WriteFP)buffer, (WriteFU)buffer->serial,
@@ -1165,8 +1169,10 @@ static void bufferNoReassignSeg(Buffer buffer, Seg seg)
 
 static Res bufferTrivDescribe(Buffer buffer, mps_lib_FILE *stream, Count depth)
 {
-  if (!TESTT(Buffer, buffer)) return ResFAIL;
-  if (stream == NULL) return ResFAIL;
+  if (!TESTT(Buffer, buffer))
+    return ResFAIL;
+  if (stream == NULL)
+    return ResFAIL;
   UNUSED(depth);
   /* dispatching function does it all */
   return ResOK;
@@ -1428,15 +1434,19 @@ static Res segBufDescribe(Buffer buffer, mps_lib_FILE *stream, Count depth)
   BufferClass super;
   Res res;
 
-  if (!TESTT(Buffer, buffer)) return ResFAIL;
-  if (stream == NULL) return ResFAIL;
+  if (!TESTT(Buffer, buffer))
+    return ResFAIL;
+  if (stream == NULL)
+    return ResFAIL;
   segbuf = BufferSegBuf(buffer);
-  if (!TESTT(SegBuf, segbuf)) return ResFAIL;
+  if (!TESTT(SegBuf, segbuf))
+    return ResFAIL;
 
   /* Describe the superclass fields first via next-method call */
   super = BUFFER_SUPERCLASS(SegBufClass);
   res = super->describe(buffer, stream, depth);
-  if (res != ResOK) return res;
+  if (res != ResOK)
+    return res;
 
   res = WriteF(stream, depth,
                "Seg $P\n",         (WriteFP)segbuf->seg,

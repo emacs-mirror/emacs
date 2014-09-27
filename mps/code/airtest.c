@@ -99,12 +99,14 @@ static void test_main(void *marker, int interior, int stack)
   mps_root_t reg_root = NULL;
 
   res = mps_arena_create_k(&scheme_arena, mps_arena_class_vm(), mps_args_none);
-  if (res != MPS_RES_OK) error("Couldn't create arena");
+  if (res != MPS_RES_OK)
+    error("Couldn't create arena");
 
   res = mps_chain_create(&obj_chain, scheme_arena,
                          sizeof(obj_gen_params) / sizeof(*obj_gen_params),
                          obj_gen_params);
-  if (res != MPS_RES_OK) error("Couldn't create obj chain");
+  if (res != MPS_RES_OK)
+    error("Couldn't create obj chain");
 
   scheme_fmt(&obj_fmt);
 
@@ -117,15 +119,18 @@ static void test_main(void *marker, int interior, int stack)
   } MPS_ARGS_END(args);
 
   res = mps_ap_create_k(&obj_ap, obj_pool, mps_args_none);
-  if (res != MPS_RES_OK) error("Couldn't create obj allocation point");
+  if (res != MPS_RES_OK)
+    error("Couldn't create obj allocation point");
 
   res = mps_thread_reg(&thread, scheme_arena);
-  if (res != MPS_RES_OK) error("Couldn't register thread");
+  if (res != MPS_RES_OK)
+    error("Couldn't register thread");
 
   if (stack) {
     res = mps_root_create_reg(&reg_root, scheme_arena, mps_rank_ambig(), 0,
                               thread, mps_stack_scan_ambig, marker, 0);
-    if (res != MPS_RES_OK) error("Couldn't create root");
+    if (res != MPS_RES_OK)
+      error("Couldn't create root");
   }
   
   test_air(interior, stack);

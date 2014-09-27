@@ -351,7 +351,8 @@ static Res MFSDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
                "free $W\n", (WriteFW)mfs->free,
                "tractList $P\n", (WriteFP)mfs->tractList,
                NULL);
-  if(res != ResOK) return res;
+  if (res != ResOK)
+    return res;
 
   return ResOK;
 }

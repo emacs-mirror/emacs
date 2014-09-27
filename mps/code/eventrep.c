@@ -620,11 +620,14 @@ Res EventRepInit(void)
   totalEvents = 0; discardedEvents = 0; unknownEvents = 0;
 
   res = TableCreate(&arenaTable, (size_t)1);
-  if (res != ResOK) goto failArena;
+  if (res != ResOK)
+    goto failArena;
   res = TableCreate(&poolTable, (size_t)1<<4);
-  if (res != ResOK) goto failPool;
+  if (res != ResOK)
+    goto failPool;
   res = TableCreate(&apTable, (size_t)1<<6);
-  if (res != ResOK) goto failAp;
+  if (res != ResOK)
+    goto failAp;
 
   return ResOK;
 

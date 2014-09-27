@@ -95,7 +95,8 @@ static mps_res_t stress(mps_arena_t arena, mps_align_t align,
   size_t ss[TEST_SET_SIZE];
 
   res = mps_pool_create_k(&pool, arena, pool_class, args);
-  if(res != MPS_RES_OK) return res;
+  if (res != MPS_RES_OK)
+    return res;
 
   die(mps_ap_create(&ap, pool, mps_rank_exact()), "BufferCreate");
 
@@ -110,7 +111,8 @@ static mps_res_t stress(mps_arena_t arena, mps_align_t align,
       *ps[i] = 1; /* Write something, so it gets swap. */
 
     if (verbose) {
-      if(i && i%4==0) putchar('\n');
+      if (i && i%4==0)
+        putchar('\n');
       printf("%"PRIwWORD PRIXLONGEST" %6"PRIXLONGEST" ",
              (ulongest_t)ps[i], (ulongest_t)ss[i]);
     }
@@ -151,7 +153,8 @@ static mps_res_t stress(mps_arena_t arena, mps_align_t align,
       ss[i] = s;
      
       if (verbose) {
-        if(i && i%4==0) putchar('\n');
+        if (i && i%4==0)
+          putchar('\n');
         printf("%"PRIwWORD PRIXLONGEST" %6"PRIXLONGEST" ",
                (ulongest_t)ps[i], (ulongest_t)ss[i]);
       }

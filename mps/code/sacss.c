@@ -96,7 +96,8 @@ static mps_res_t stress(mps_arena_t arena, mps_align_t align,
       ps[j] = ps[i]; ss[j] = ss[i];
       ps[i] = tp; ss[i] = ts;
     }
-    if (k == (testLOOPS / 2)) mps_sac_flush(sac);
+    if (k == (testLOOPS / 2))
+      mps_sac_flush(sac);
     /* free half of the objects */
     /* upper half, as when allocating them again we want smaller objects */
     /* see randomSize() */
@@ -121,7 +122,8 @@ static mps_res_t stress(mps_arena_t arena, mps_align_t align,
         res = mps_sac_alloc((mps_addr_t *)&ps[i], sac, ss[i], FALSE);
         break;
       }
-      if (res != MPS_RES_OK) return res;
+      if (res != MPS_RES_OK)
+        return res;
     }
   }
    

@@ -1028,7 +1028,8 @@ Count BTCountResRange(BT bt, Index base, Index limit)
   AVER(base < limit);
 
   for (bit = base; bit < limit; ++bit)
-    if (!BTGet(bt, bit)) ++c;
+    if (!BTGet(bt, bit))
+      ++c;
   return c;
 }
 

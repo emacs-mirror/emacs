@@ -210,7 +210,8 @@ Res FormatDescribe(Format format, mps_lib_FILE *stream, Count depth)
                "  headerSize $W\n", (WriteFW)format->headerSize,
                "} Format $P ($U)\n", (WriteFP)format, (WriteFU)format->serial,
                NULL);
-  if (res != ResOK) return res;
+  if (res != ResOK)
+    return res;
 
   return ResOK;
 }

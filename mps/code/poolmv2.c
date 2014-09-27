@@ -1027,10 +1027,13 @@ static Res MVTDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
   Res res;
   MVT mvt;
 
-  if (!TESTT(Pool, pool)) return ResFAIL;
+  if (!TESTT(Pool, pool))
+    return ResFAIL;
   mvt = PoolMVT(pool);
-  if (!TESTT(MVT, mvt)) return ResFAIL;
-  if (stream == NULL) return ResFAIL;
+  if (!TESTT(MVT, mvt))
+    return ResFAIL;
+  if (stream == NULL)
+    return ResFAIL;
 
   res = WriteF(stream, depth,
                "MVT $P {\n", (WriteFP)mvt,
@@ -1050,17 +1053,22 @@ static Res MVTDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
                "  available: $U\n", (WriteFU)mvt->available,
                "  unavailable: $U\n", (WriteFU)mvt->unavailable,
                NULL);
-  if(res != ResOK) return res;
+  if (res != ResOK)
+    return res;
 
   res = LandDescribe(MVTFreePrimary(mvt), stream, depth + 2);
-  if(res != ResOK) return res;
+  if (res != ResOK)
+    return res;
   res = LandDescribe(MVTFreeSecondary(mvt), stream, depth + 2);
-  if(res != ResOK) return res;
+  if (res != ResOK)
+    return res;
   res = LandDescribe(MVTFreeLand(mvt), stream, depth + 2);
-  if(res != ResOK) return res;
+  if (res != ResOK)
+    return res;
   res = ABQDescribe(MVTABQ(mvt), (ABQDescribeElement)RangeDescribe, stream,
                     depth + 2);
-  if(res != ResOK) return res;
+  if (res != ResOK)
+    return res;
 
   METER_WRITE(mvt->segAllocs, stream, depth + 2);
   METER_WRITE(mvt->segFrees, stream, depth + 2);

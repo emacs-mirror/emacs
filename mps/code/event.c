@@ -334,11 +334,14 @@ Res EventDescribe(Event event, mps_lib_FILE *stream, Count depth)
                "Event $P {\n", (WriteFP)event,
                "  code $U\n", (WriteFU)event->any.code,
                "  clock ", NULL);
-  if (res != ResOK) return res;
+  if (res != ResOK)
+    return res;
   res = EVENT_CLOCK_WRITE(stream, depth, event->any.clock);
-  if (res != ResOK) return res;
+  if (res != ResOK)
+    return res;
   res = WriteF(stream, depth, "\n  size $U\n", (WriteFU)event->any.size, NULL);
-  if (res != ResOK) return res;
+  if (res != ResOK)
+    return res;
 
   switch (event->any.code) {
 
@@ -352,14 +355,16 @@ Res EventDescribe(Event event, mps_lib_FILE *stream, Count depth)
                  "  event \"$S\"", (WriteFS)#name, \
                  EVENT_##name##_PARAMS(EVENT_DESC_PARAM, name) \
                  NULL); \
-    if (res != ResOK) return res; \
+    if (res != ResOK)
+      return res; \
     break;
 
   EVENT_LIST(EVENT_DESC, X)
 
   default:
     res = WriteF(stream, depth, "  event type unknown", NULL);
-    if (res != ResOK) return res;
+    if (res != ResOK)
+      return res;
     /* TODO: Hexdump unknown event contents. */
     break;
   }
@@ -375,8 +380,10 @@ Res EventWrite(Event event, mps_lib_FILE *stream)
 {
   Res res;
   
-  if (event == NULL) return ResFAIL;
-  if (stream == NULL) return ResFAIL;
+  if (event == NULL)
+    return ResFAIL;
+  if (stream == NULL)
+    return ResFAIL;
 
   res = EVENT_CLOCK_WRITE(stream, 0, event->any.clock);
   if (res != ResOK)
@@ -392,14 +399,16 @@ Res EventWrite(Event event, mps_lib_FILE *stream)
     res = WriteF(stream, 0, " $S", (WriteFS)#name, \
                  EVENT_##name##_PARAMS(EVENT_WRITE_PARAM, name) \
                  NULL); \
-    if (res != ResOK) return res; \
+    if (res != ResOK) \
+      return res; \
     break;
   EVENT_LIST(EVENT_WRITE, X)
 
   default:
     res = WriteF(stream, 0, " <unknown code $U>",
                  (WriteFU)event->any.code, NULL);
-    if (res != ResOK) return res;
+    if (res != ResOK)
+      return res;
     /* TODO: Hexdump unknown event contents. */
     break;
   }

@@ -1440,7 +1440,8 @@ Res TraceScanArea(ScanState ss, Addr *base, Addr *limit)
   TRACE_SCAN_BEGIN(ss) {
     p = base;
   loop:
-    if(p >= limit) goto out;
+    if (p >= limit)
+      goto out;
     ref = *p++;
     if(!TRACE_FIX1(ss, ref))
       goto loop;
@@ -1504,10 +1505,13 @@ Res TraceScanAreaMasked(ScanState ss, Addr *base, Addr *limit, Word mask)
   TRACE_SCAN_BEGIN(ss) {
     p = base;
   loop:
-    if(p >= limit) goto out;
+    if (p >= limit)
+      goto out;
     ref = *p++;
-    if(((Word)ref & mask) != 0) goto loop;
-    if(!TRACE_FIX1(ss, ref)) goto loop;
+    if (((Word)ref & mask)
+      != 0) goto loop;
+    if (!TRACE_FIX1(ss, ref))
+      goto loop;
     res = TRACE_FIX2(ss, p-1);
     if(res == ResOK)
       goto loop;
@@ -1916,8 +1920,10 @@ Res TraceDescribe(Trace trace, mps_lib_FILE *stream, Count depth)
   Res res;
   const char *state;
 
-  if (!TESTT(Trace, trace)) return ResFAIL;
-  if (stream == NULL) return ResFAIL;
+  if (!TESTT(Trace, trace))
+    return ResFAIL;
+  if (stream == NULL)
+    return ResFAIL;
 
   switch (trace->state) {
   case TraceINIT:      state = "INIT";      break;

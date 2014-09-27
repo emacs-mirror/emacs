@@ -359,10 +359,13 @@ Res ChunkNodeDescribe(Tree node, mps_lib_FILE *stream)
 {
   Chunk chunk;
 
-  if (!TreeCheck(node)) return ResFAIL;
-  if (stream == NULL) return ResFAIL;
+  if (!TreeCheck(node))
+    return ResFAIL;
+  if (stream == NULL)
+    return ResFAIL;
   chunk = ChunkOfTree(node);
-  if (!TESTT(Chunk, chunk)) return ResFAIL;
+  if (!TESTT(Chunk, chunk))
+    return ResFAIL;
 
   return WriteF(stream, 0, "[$P,$P)", (WriteFP)chunk->base,
                 (WriteFP)chunk->limit, NULL);

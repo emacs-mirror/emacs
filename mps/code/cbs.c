@@ -1147,7 +1147,8 @@ static Res cbsDescribe(Land land, mps_lib_FILE *stream, Count depth)
                "  ownPool: $U\n", (WriteFU)cbs->ownPool,
                "  treeSize: $U\n", (WriteFU)cbs->treeSize,
                NULL);
-  if (res != ResOK) return res;
+  if (res != ResOK)
+    return res;
 
   METER_WRITE(cbs->treeSearch, stream, depth + 2);
 
@@ -1159,7 +1160,8 @@ static Res cbsDescribe(Land land, mps_lib_FILE *stream, Count depth)
     describe = cbsSplayNodeDescribe;
 
   res = SplayTreeDescribe(cbsSplay(cbs), stream, depth + 2, describe);
-  if (res != ResOK) return res;
+  if (res != ResOK)
+    return res;
 
   res = WriteF(stream, depth, "} CBS $P\n", (WriteFP)cbs, NULL);
 

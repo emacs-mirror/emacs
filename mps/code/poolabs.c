@@ -263,7 +263,8 @@ Res PoolTrivBufferFill(Addr *baseReturn, Addr *limitReturn,
   AVERT(Bool, withReservoirPermit);
 
   res = PoolAlloc(&p, pool, size, withReservoirPermit);
-  if(res != ResOK) return res;
+  if (res != ResOK)
+    return res;
  
   *baseReturn = p;
   *limitReturn = AddrAdd(p, size);
