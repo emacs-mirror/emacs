@@ -55,7 +55,7 @@ typedef struct AllocInfoStruct {
   } the;
 } AllocInfoStruct;
 
-typedef Res (*AllocFun)(AllocInfoStruct *aiReturn, SegPref pref,
+typedef Res (*AllocFun)(AllocInfoStruct *aiReturn, LocusPref pref,
                         Size size, Pool pool);
 
 typedef void (*FreeFun)(AllocInfo ai);
@@ -156,7 +156,7 @@ static Bool tractSearch(Tract *tractReturn, Arena arena, Addr addr)
 
 /* Implementation of the tract-based interchangability interface */
 
-static Res allocAsTract(AllocInfoStruct *aiReturn, SegPref pref,
+static Res allocAsTract(AllocInfoStruct *aiReturn, LocusPref pref,
                         Size size, Pool pool)
 {
   Res res;
@@ -244,7 +244,7 @@ static AllocatorClassStruct allocatorTractStruct = {
 
 /* Implementation of the segment-based interchangability interface */
 
-static Res allocAsSeg(AllocInfoStruct *aiReturn, SegPref pref,
+static Res allocAsSeg(AllocInfoStruct *aiReturn, LocusPref pref,
                       Size size, Pool pool)
 {
   Res res;
@@ -329,12 +329,12 @@ static void testAllocAndIterate(Arena arena, Pool pool,
                                 AllocatorClass allocator)
 {
   AllocInfoStruct offsetRegion, gapRegion, newRegion, topRegion;
-  SegPrefStruct pref;
+  LocusPrefStruct pref;
   Count offset, gap, new;
   ZoneSet zone = (ZoneSet)2;
   int i;
 
-  SegPrefInit(&pref);
+  LocusPrefInit(&pref);
   
   /* Testing the behaviour with various sizes of gaps in the page table. */
 
@@ -397,7 +397,7 @@ static void testAllocAndIterate(Arena arena, Pool pool,
         allocator->free(&offsetRegion);
       }
     }
-    SegPrefExpress(&pref, SegPrefZoneSet, &zone);
+    LocusPrefExpress(&pref, LocusPrefZoneSet, &zone);
   }
 }
 

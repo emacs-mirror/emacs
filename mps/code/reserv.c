@@ -167,7 +167,7 @@ Res ReservoirEnsureFull(Reservoir reservoir)
     Res res;
     Addr base;
     Tract tract;
-    res = ArenaAlloc(&base, SegPrefDefault(), size, pool, FALSE);
+    res = ArenaAlloc(&base, LocusPrefDefault(), size, pool, FALSE);
     if (res != ResOK) {
       AVER(reservoirIsConsistent(reservoir));
       return res;

@@ -92,8 +92,8 @@ typedef struct SegStruct *Seg;          /* <code/seg.c> */
 typedef struct GCSegStruct *GCSeg;      /* <code/seg.c> */
 typedef struct SegClassStruct *SegClass; /* <code/seg.c> */
 typedef SegClass GCSegClass;            /* <code/seg.c> */
-typedef struct SegPrefStruct *SegPref;  /* design.mps.pref, <code/locus.c> */
-typedef int SegPrefKind;                /* design.mps.pref, <code/locus.c> */
+typedef struct LocusPrefStruct *LocusPref; /* <design/locus/>, <code/locus.c> */
+typedef int LocusPrefKind;              /* <design/locus/>, <code/locus.c> */
 typedef struct mps_arena_class_s *ArenaClass; /* <design/arena/> */
 typedef ArenaClass AbstractArenaClass;  /* <code/arena.c> */
 typedef struct mps_arena_s *Arena;      /* <design/arena/> */
@@ -123,7 +123,7 @@ typedef void (*ArenaFinishMethod)(Arena arena);
 typedef Size (*ArenaReservedMethod)(Arena arena);
 typedef Size (*ArenaPurgeSpareMethod)(Arena arena, Size size);
 typedef Res (*ArenaExtendMethod)(Arena arena, Addr base, Size size);
-typedef Res (*ArenaGrowMethod)(Arena arena, SegPref pref, Size size);
+typedef Res (*ArenaGrowMethod)(Arena arena, LocusPref pref, Size size);
 typedef void (*ArenaFreeMethod)(Addr base, Size size, Pool pool);
 typedef Res (*ArenaChunkInitMethod)(Chunk chunk, BootBlock boot);
 typedef void (*ArenaChunkFinishMethod)(Chunk chunk);
@@ -306,12 +306,12 @@ typedef Res (*LandDescribeMethod)(Land land, mps_lib_FILE *stream, Count depth);
 #define AttrMASK        (AttrFMT | AttrGC | AttrMOVINGGC)
 
 
-/* Segment preferences */
+/* Locus preferences */
 enum {
-  SegPrefHigh = 1,
-  SegPrefLow, 
-  SegPrefZoneSet,
-  SegPrefLIMIT
+  LocusPrefHigh = 1,
+  LocusPrefLow, 
+  LocusPrefZoneSet,
+  LocusPrefLIMIT
 };
 
 

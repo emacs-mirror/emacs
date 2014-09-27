@@ -695,7 +695,7 @@ static Size vmArenaChunkSize(VMArena vmArena, Size size)
  *
  * The size arg specifies how much we wish to allocate after the extension.
  */
-static Res VMArenaGrow(Arena arena, SegPref pref, Size size)
+static Res VMArenaGrow(Arena arena, LocusPref pref, Size size)
 {
   Chunk newChunk;
   Size chunkSize;
@@ -707,7 +707,7 @@ static Res VMArenaGrow(Arena arena, SegPref pref, Size size)
   AVERT(VMArena, vmArena);
   
   /* TODO: Ensure that extended arena will be able to satisfy pref. */
-  AVERT(SegPref, pref);
+  AVERT(LocusPref, pref);
   UNUSED(pref);
 
   chunkSize = vmArenaChunkSize(vmArena, size);

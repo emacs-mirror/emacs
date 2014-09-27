@@ -617,7 +617,7 @@ extern Res ArenaSetCommitLimit(Arena arena, Size limit);
 extern Size ArenaSpareCommitLimit(Arena arena);
 extern void ArenaSetSpareCommitLimit(Arena arena, Size limit);
 extern Size ArenaNoPurgeSpare(Arena arena, Size size);
-extern Res ArenaNoGrow(Arena arena, SegPref pref, Size size);
+extern Res ArenaNoGrow(Arena arena, LocusPref pref, Size size);
 
 extern double ArenaMutatorAllocSize(Arena arena);
 extern Size ArenaAvail(Arena arena);
@@ -643,7 +643,7 @@ extern Bool ReservoirDeposit(Reservoir reservoir, Addr *baseIO, Size *sizeIO);
 extern Res ReservoirWithdraw(Addr *baseReturn, Tract *baseTractReturn,
                              Reservoir reservoir, Size size, Pool pool);
 
-extern Res ArenaAlloc(Addr *baseReturn, SegPref pref,
+extern Res ArenaAlloc(Addr *baseReturn, LocusPref pref,
                       Size size, Pool pool, Bool withReservoirPermit);
 extern void ArenaFree(Addr base, Size size, Pool pool);
 
@@ -652,10 +652,11 @@ extern Res ArenaNoExtend(Arena arena, Addr base, Size size);
 
 /* Locus interface */
 
-extern Bool SegPrefCheck(SegPref pref);
-extern SegPref SegPrefDefault(void);
-extern void SegPrefInit(SegPref pref);
-extern void SegPrefExpress(SegPref pref, SegPrefKind kind, void *p);
+extern Bool LocusPrefCheck(LocusPref pref);
+extern LocusPref LocusPrefDefault(void);
+extern void LocusPrefInit(LocusPref pref);
+extern void LocusPrefExpress(LocusPref pref, LocusPrefKind kind, void *p);
+extern Res LocusPrefDescribe(LocusPref pref, mps_lib_FILE *stream, Count depth);
 
 extern void LocusInit(Arena arena);
 extern void LocusFinish(Arena arena);
@@ -664,7 +665,7 @@ extern Bool LocusCheck(Arena arena);
 
 /* Segment interface */
 
-extern Res SegAlloc(Seg *segReturn, SegClass class, SegPref pref,
+extern Res SegAlloc(Seg *segReturn, SegClass class, LocusPref pref,
                     Size size, Pool pool, Bool withReservoirPermit,
                     ArgList args);
 extern void SegFree(Seg seg);
