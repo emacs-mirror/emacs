@@ -1,7 +1,7 @@
 /* mpscams.h: MEMORY POOL SYSTEM CLASS "AMS"
  *
  * $Id$
- * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  */
 
@@ -14,15 +14,15 @@ extern const struct mps_key_s _mps_key_ams_support_ambiguous;
 #define MPS_KEY_AMS_SUPPORT_AMBIGUOUS (&_mps_key_ams_support_ambiguous)
 #define MPS_KEY_AMS_SUPPORT_AMBIGUOUS_FIELD b
 
-extern mps_class_t mps_class_ams(void);
-extern mps_class_t mps_class_ams_debug(void);
+extern mps_pool_class_t mps_class_ams(void);
+extern mps_pool_class_t mps_class_ams_debug(void);
 
 #endif /* mpscams_h */
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

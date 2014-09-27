@@ -3,6 +3,20 @@
 Release notes
 =============
 
+
+.. _release-notes-1.115:
+
+Release 1.115.0
+---------------
+
+Interface changes
+.................
+
+#. The type of pool classes is now :c:type:`mps_pool_class_t`. The old
+   name :c:type:`mps_class_t` is still available via a ``typedef``,
+   but is deprecated.
+
+
 .. _release-notes-1.114:
 
 Release 1.114.0

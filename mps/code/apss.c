@@ -57,7 +57,8 @@ static void check_allocated_size(mps_pool_t pool, mps_ap_t ap, size_t allocated)
 static mps_res_t stress(mps_arena_t arena, mps_pool_debug_option_s *options,
                         mps_align_t align,
                         size_t (*size)(size_t i, mps_align_t align),
-                        const char *name, mps_class_t class, mps_arg_s args[])
+                        const char *name, mps_pool_class_t pool_class,
+                        mps_arg_s args[])
 {
   mps_res_t res = MPS_RES_OK;
   mps_pool_t pool;
@@ -70,7 +71,7 @@ static mps_res_t stress(mps_arena_t arena, mps_pool_debug_option_s *options,
 
   printf("stress %s\n", name);
 
-  die(mps_pool_create_k(&pool, arena, class, args), "pool_create");
+  die(mps_pool_create_k(&pool, arena, pool_class, args), "pool_create");
   die(mps_ap_create(&ap, pool, mps_rank_exact()), "BufferCreate");
 
   /* allocate a load of objects */

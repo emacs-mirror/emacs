@@ -1,7 +1,7 @@
 /* mpscaawl.h: MEMORY POOL SYSTEM CLASS "AWL"
  *
  * $Id$
- * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  */
 
 #ifndef mpscawl_h
@@ -13,7 +13,7 @@ extern const struct mps_key_s _mps_key_awl_find_dependent;
 #define MPS_KEY_AWL_FIND_DEPENDENT (&_mps_key_awl_find_dependent)
 #define MPS_KEY_AWL_FIND_DEPENDENT_FIELD addr_method
 
-extern mps_class_t mps_class_awl(void);
+extern mps_pool_class_t mps_class_awl(void);
 
 typedef mps_addr_t (*mps_awl_find_dependent_t)(mps_addr_t addr);
 
@@ -22,7 +22,7 @@ typedef mps_addr_t (*mps_awl_find_dependent_t)(mps_addr_t addr);
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

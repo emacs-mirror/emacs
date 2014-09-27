@@ -98,7 +98,7 @@ AMS interface
    #include "mpscams.h"
 
 
-.. c:function:: mps_class_t mps_class_ams(void)
+.. c:function:: mps_pool_class_t mps_class_ams(void)
 
     Return the :term:`pool class` for an AMS (Automatic Mark & Sweep)
     :term:`pool`.
@@ -143,7 +143,7 @@ AMS interface
         chain, and ambiguous flag like this::
 
             mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, 
-                                      mps_class_t mps_class_ams(),
+                                      mps_pool_class_t mps_class_ams(),
                                       mps_fmt_t fmt,
                                       mps_chain_t chain,
                                       mps_bool_t support_ambiguous)
@@ -174,7 +174,7 @@ AMS interface
                                     mps_rank_t rank)
 
 
-.. c:function:: mps_class_t mps_class_ams_debug(void)
+.. c:function:: mps_pool_class_t mps_class_ams_debug(void)
 
     A :ref:`debugging <topic-debugging>` version of the AMS pool
     class.
@@ -193,7 +193,7 @@ AMS interface
         this::
 
             mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, 
-                                      mps_class_t mps_class_ams_debug(),
+                                      mps_pool_class_t mps_class_ams_debug(),
                                       mps_pool_debug_option_s debug_option,
                                       mps_fmt_t fmt,
                                       mps_chain_t chain,

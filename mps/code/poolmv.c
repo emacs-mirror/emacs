@@ -872,14 +872,14 @@ DEFINE_POOL_CLASS(MVDebugPoolClass, this)
  * Note this is an MPS interface extension
  */
 
-mps_class_t mps_class_mv(void)
+mps_pool_class_t mps_class_mv(void)
 {
-  return (mps_class_t)(EnsureMVPoolClass());
+  return (mps_pool_class_t)(EnsureMVPoolClass());
 }
 
-mps_class_t mps_class_mv_debug(void)
+mps_pool_class_t mps_class_mv_debug(void)
 {
-  return (mps_class_t)(EnsureMVDebugPoolClass());
+  return (mps_pool_class_t)(EnsureMVDebugPoolClass());
 }
 
 

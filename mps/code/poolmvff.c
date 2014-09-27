@@ -754,14 +754,14 @@ DEFINE_POOL_CLASS(MVFFDebugPoolClass, this)
 
 /* MPS Interface Extensions. */
 
-mps_class_t mps_class_mvff(void)
+mps_pool_class_t mps_class_mvff(void)
 {
-  return (mps_class_t)(MVFFPoolClassGet());
+  return (mps_pool_class_t)(MVFFPoolClassGet());
 }
 
-mps_class_t mps_class_mvff_debug(void)
+mps_pool_class_t mps_class_mvff_debug(void)
 {
-  return (mps_class_t)(MVFFDebugPoolClassGet());
+  return (mps_pool_class_t)(MVFFDebugPoolClassGet());
 }
 
 

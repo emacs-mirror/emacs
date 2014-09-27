@@ -38,7 +38,7 @@ static void check_allocated_size(mps_pool_t pool, size_t allocated)
 
 static mps_res_t stress(mps_arena_t arena, mps_pool_debug_option_s *options,
                         size_t (*size)(size_t i), mps_align_t align,
-                        const char *name, mps_class_t pool_class,
+                        const char *name, mps_pool_class_t pool_class,
                         mps_arg_s *args)
 {
   mps_res_t res;

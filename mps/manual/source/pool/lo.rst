@@ -103,7 +103,7 @@ LO interface
 
    #include "mpsclo.h"
 
-.. c:function:: mps_class_t mps_class_lo(void)
+.. c:function:: mps_pool_class_t mps_class_lo(void)
 
     Return the :term:`pool class` for an LO (Leaf Object)
     :term:`pool`.
@@ -143,5 +143,5 @@ LO interface
         this::
 
             mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, 
-                                      mps_class_t mps_class_lo(),
+                                      mps_pool_class_t mps_class_lo(),
                                       mps_fmt_t fmt)
