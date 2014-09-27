@@ -70,7 +70,7 @@ static void mps_lib_assert_fail_default(const char *file, unsigned line,
                 "The MPS detected a problem!\n"
                 "%s:%u: MPS ASSERTION FAILED: %s\n"
                 "See the \"Assertions\" section in the reference manual:\n"
-                "http://ravenbrook.com/project/mps/master/manual/html/topic/error.html#assertions\n",
+                "http://www.ravenbrook.com/project/mps/master/manual/html/topic/error.html#assertions\n",
                 file, line, condition);
   /* Ensure the message is output even if stderr is buffered. */
   (void)fflush(stderr);
