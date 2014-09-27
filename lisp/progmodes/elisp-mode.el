@@ -1009,7 +1009,7 @@ which see."
 
 ;;; ElDoc Support
 
-(defconst elisp--eldoc-last-data (make-vector 3 nil)
+(defvar elisp--eldoc-last-data (make-vector 3 nil)
   "Bookkeeping; elements are as follows:
   0 - contains the last symbol read from the buffer.
   1 - contains the string last displayed in the echo area for variables,

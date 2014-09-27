@@ -1,3 +1,9 @@
+2014-09-27  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/elisp-mode.el (elisp--eldoc-last-data): Use defvar.
+
+	* emacs-lisp/eldoc.el (eldoc-mode): Fix thinko.
+
 2014-09-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/pcase.el (pcase--split-match, pcase--app-subst-match):

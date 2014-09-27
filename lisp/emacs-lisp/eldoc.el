@@ -186,7 +186,7 @@ expression point is on."
   :group 'eldoc :lighter eldoc-minor-mode-string
   (setq eldoc-last-message nil)
   (cond
-   (eldoc-documentation-function
+   ((not eldoc-documentation-function)
     (message "There is no ElDoc support in this buffer")
     (setq eldoc-mode nil))
    (eldoc-mode
