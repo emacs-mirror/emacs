@@ -459,7 +459,7 @@ Res ArenaDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
 
   res = WriteF(stream, depth, "Arena $P {\n", (WriteFP)arena,
                "  class $P (\"$S\")\n",
-               (WriteFP)arena->class, arena->class->name,
+               (WriteFP)arena->class, (WriteFS)arena->class->name,
                NULL);
   if (res != ResOK) return res;
 
@@ -488,6 +488,12 @@ Res ArenaDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
                "spareCommitLimit $W\n", (WriteFW)arena->spareCommitLimit,
                "zoneShift        $U\n", (WriteFU)arena->zoneShift,
                "grainSize        $W\n", (WriteFW)arena->grainSize,
+               "lastTract        $P\n", (WriteFP)arena->lastTract,
+               "lastTractBase    $P\n", (WriteFP)arena->lastTractBase,
+               "primary          $P\n", (WriteFP)arena->primary,
+               "hasFreeLand      $S\n", WriteFYesNo(arena->hasFreeLand),
+               "freeZones        $B\n", (WriteFB)arena->freeZones,
+               "zoned            $S\n", WriteFYesNo(arena->zoned),
                NULL);
   if (res != ResOK) return res;
 

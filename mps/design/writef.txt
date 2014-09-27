@@ -49,8 +49,8 @@ insert into the output, followed by another format string, more items,
 and so on, and finally a ``NULL`` format string. For example::
 
     res = WriteF(stream, depth,
-                 "Hello: $A\n", address,
-                 "Spong: $U ($S)\n", number, string,
+                 "Hello: $A\n", (WriteFA)address,
+                 "Spong: $U ($S)\n", (WriteFU)number, (WriteFS)string,
                  NULL);
     if (res != ResOK) return res;
 
@@ -60,7 +60,7 @@ This makes ``Describe()`` methods much easier to write. For example, ``BufferDes
                  "Buffer $P ($U) {\n",
                  (WriteFP)buffer, (WriteFU)buffer->serial,
                  "  class $P (\"$S\")\n",
-                 (WriteFP)buffer->class, buffer->class->name,
+                 (WriteFP)buffer->class, (WriteFS)buffer->class->name,
                  "  Arena $P\n",       (WriteFP)buffer->arena,
                  "  Pool $P\n",        (WriteFP)buffer->pool,
                  "  ", buffer->isMutator ? "Mutator" : "Internal", " Buffer\n",
@@ -72,12 +72,14 @@ This makes ``Describe()`` methods much easier to write. For example, ``BufferDes
                  "  fillSize $UKb\n",  (WriteFU)(buffer->fillSize / 1024),
                  "  emptySize $UKb\n", (WriteFU)(buffer->emptySize / 1024),
                  "  alignment $W\n",   (WriteFW)buffer->alignment,
-                 "  base $A\n",        buffer->base,
-                 "  initAtFlip $A\n",  buffer->initAtFlip,
-                 "  init $A\n",        buffer->ap_s.init,
-                 "  alloc $A\n",       buffer->ap_s.alloc,
-                 "  limit $A\n",       buffer->ap_s.limit,
-                 "  poolLimit $A\n",   buffer->poolLimit,
+                 "  base $A\n",        (WriteFA)buffer->base,
+                 "  initAtFlip $A\n",  (WriteFA)buffer->initAtFlip,
+                 "  init $A\n",        (WriteFA)buffer->ap_s.init,
+                 "  alloc $A\n",       (WriteFA)buffer->ap_s.alloc,
+                 "  limit $A\n",       (WriteFA)buffer->ap_s.limit,
+                 "  poolLimit $A\n",   (WriteFA)buffer->poolLimit,
+                 "  alignment $W\n",   (WriteFW)buffer->alignment,
+                 "  rampCount $U\n",   (WriteFU)buffer->rampCount,
                  NULL);
     if (res != ResOK) return res;
 
@@ -87,6 +89,16 @@ version of that type. These are provided both to ensure promotion and
 to avoid any confusion about what type should be used in a cast. It is
 easy to check the casts against the formats to ensure that they
 correspond.
+
+_`.types.cast`: Every argument to ``WriteF()`` must be cast, because
+in variable-length argument lists the "default argument promotion"
+rules apply and this could cause an argument to be read incorrectly on
+some platforms: for example on a 64-bit platform the ``$W`` format,
+which expects a 64-bit argument, is incompatible with a 32-bit
+``unsigned`` argument, which will not be promoted to 64 bits by the
+default argument promotion rules. (Note that most of these casts are
+unnecessary, but requiring them all makes it easy to check that the
+necessary ones are all there.)
 
 _`.types.future`: It is possibly that this type set or similar may be
 used in future in some generalisation of varargs in the MPS.

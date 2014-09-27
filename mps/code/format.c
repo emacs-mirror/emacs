@@ -207,6 +207,7 @@ Res FormatDescribe(Format format, mps_lib_FILE *stream, Count depth)
                "  move $F\n", (WriteFF)format->move,
                "  isMoved $F\n", (WriteFF)format->isMoved,
                "  pad $F\n", (WriteFF)format->pad,
+               "  headerSize $W\n", (WriteFW)format->headerSize,
                "} Format $P ($U)\n", (WriteFP)format, (WriteFU)format->serial,
                NULL);
   if (res != ResOK) return res;

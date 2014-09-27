@@ -89,7 +89,7 @@ Res LocusPrefDescribe(LocusPref pref, mps_lib_FILE *stream, Count depth)
 
   res = WriteF(stream, depth,
                "LocusPref $P {\n", (WriteFP)pref,
-               "  high $U\n", (WriteFU)pref->high,
+               "  high $S\n", WriteFYesNo(pref->high),
                "  zones $B\n", (WriteFB)pref->zones,
                "  avoid $B\n", (WriteFB)pref->avoid,
                "} LocusPref $P\n", (WriteFP)pref,
@@ -158,7 +158,7 @@ Res GenDescDescribe(GenDesc gen, mps_lib_FILE *stream, Count depth)
   res = WriteF(stream, depth,
                "GenDesc $P {\n", (WriteFP)gen,
                "  zones $B\n", (WriteFB)gen->zones,
-               "  capacity $U\n", (WriteFU)gen->capacity,
+               "  capacity $W\n", (WriteFW)gen->capacity,
                "  mortality $D\n", (WriteFD)gen->mortality,
                NULL);
   if (res != ResOK) return res;

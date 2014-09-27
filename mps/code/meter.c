@@ -1,7 +1,7 @@
 /* meter.c: METERS
  *
  * $Id$
- * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
  * TRANSGRESSIONS
  *
@@ -69,8 +69,8 @@ Res MeterWrite(Meter meter, mps_lib_FILE *stream, Count depth)
   Res res = ResOK;
 
   res = WriteF(stream, depth,
-               "meter \"$S\" {", meter->name,
-               "count: $U", meter->count,
+               "meter \"$S\" {", (WriteFS)meter->name,
+               "count: $U", (WriteFU)meter->count,
                NULL);
   if (res != ResOK)
     return res;
@@ -78,11 +78,11 @@ Res MeterWrite(Meter meter, mps_lib_FILE *stream, Count depth)
     double mean = meter->total / (double)meter->count;
    
     res = WriteF(stream, 0,
-                 ", total: $D", meter->total,
-                 ", max: $U", meter->max,
-                 ", min: $U", meter->min,
-                 ", mean: $D", mean,
-                 ", mean^2: $D", meter->meanSquared,
+                 ", total $D", (WriteFD)meter->total,
+                 ", max $U", (WriteFU)meter->max,
+                 ", min $U", (WriteFU)meter->min,
+                 ", mean $D", (WriteFD)mean,
+                 ", meanSquared $D", (WriteFD)meter->meanSquared,
                  NULL);
     if (res != ResOK)
       return res;
@@ -104,7 +104,7 @@ void MeterEmit(Meter meter)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

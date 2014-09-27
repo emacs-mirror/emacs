@@ -789,7 +789,7 @@ static Res MVDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
     block = span->blocks;
 
     for(i = span->base.base; i < span->limit.limit; i = AddrAdd(i, length)) {
-      res = WriteF(stream, depth + 2, "$A ", i, NULL);
+      res = WriteF(stream, depth + 2, "$A ", (WriteFA)i, NULL);
       if(res != ResOK) return res;
 
       for(j = i;
@@ -812,7 +812,7 @@ static Res MVDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
           c = ']';
         else /* j > block->base && j < block->limit */
           c = '=';
-        res = WriteF(stream, 0, "$C", c, NULL);
+        res = WriteF(stream, 0, "$C", (WriteFC)c, NULL);
         if(res != ResOK) return res;
       }
       res = WriteF(stream, 0, "\n", NULL);
