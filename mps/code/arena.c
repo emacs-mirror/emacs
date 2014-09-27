@@ -992,7 +992,7 @@ failMark:
  * to avoid disruption to clients, but needs revision.
  */
 
-static Res arenaAllocPolicy(Tract *tractReturn, Arena arena, SegPref pref,
+static Res arenaAllocPolicy(Tract *tractReturn, Arena arena, LocusPref pref,
                             Size size, Pool pool)
 {
   Res res;
@@ -1000,7 +1000,7 @@ static Res arenaAllocPolicy(Tract *tractReturn, Arena arena, SegPref pref,
   ZoneSet zones, moreZones, evenMoreZones;
 
   AVER(tractReturn != NULL);
-  AVERT(SegPref, pref);
+  AVERT(LocusPref, pref);
   AVER(size > (Size)0);
   AVERT(Pool, pool);
   
@@ -1082,7 +1082,7 @@ found:
 
 /* ArenaAlloc -- allocate some tracts from the arena */
 
-Res ArenaAlloc(Addr *baseReturn, SegPref pref, Size size, Pool pool,
+Res ArenaAlloc(Addr *baseReturn, LocusPref pref, Size size, Pool pool,
                Bool withReservoirPermit)
 {
   Res res;
@@ -1092,7 +1092,7 @@ Res ArenaAlloc(Addr *baseReturn, SegPref pref, Size size, Pool pool,
   Reservoir reservoir;
 
   AVER(baseReturn != NULL);
-  AVERT(SegPref, pref);
+  AVERT(LocusPref, pref);
   AVER(size > (Size)0);
   AVERT(Pool, pool);
   AVERT(Bool, withReservoirPermit);
@@ -1246,10 +1246,10 @@ Size ArenaNoPurgeSpare(Arena arena, Size size)
 }
 
 
-Res ArenaNoGrow(Arena arena, SegPref pref, Size size)
+Res ArenaNoGrow(Arena arena, LocusPref pref, Size size)
 {
   AVERT(Arena, arena);
-  AVERT(SegPref, pref);
+  AVERT(LocusPref, pref);
   UNUSED(size);
   return ResRESOURCE;
 }

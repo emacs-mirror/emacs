@@ -524,7 +524,7 @@ static Res MRGSegPairCreate(MRGRefSeg *refSegReturn, MRG mrg,
   linkSegSize = SizeArenaGrains(linkSegSize, arena);
 
   res = SegAlloc(&segLink, EnsureMRGLinkSegClass(),
-                 SegPrefDefault(), linkSegSize, pool,
+                 LocusPrefDefault(), linkSegSize, pool,
                  withReservoirPermit, argsNone);
   if (res != ResOK)
     goto failLinkSegAlloc;
@@ -533,7 +533,7 @@ static Res MRGSegPairCreate(MRGRefSeg *refSegReturn, MRG mrg,
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD_FIELD(args, mrgKeyLinkSeg, p, linkseg); /* .ref.initarg */
     res = SegAlloc(&segRefPart, EnsureMRGRefSegClass(),
-                   SegPrefDefault(), mrg->extendBy, pool,
+                   LocusPrefDefault(), mrg->extendBy, pool,
                    withReservoirPermit, args);
   } MPS_ARGS_END(args);
   if (res != ResOK)

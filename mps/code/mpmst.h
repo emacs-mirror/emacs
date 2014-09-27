@@ -304,22 +304,21 @@ typedef struct GCSegStruct {    /* GC segment structure */
 } GCSegStruct;
 
 
-/* SegPrefStruct -- segment preference structure
+/* LocusPrefStruct -- locus preference structure
  *
- * .seg-pref: arena memory users (pool class code) need a way of
- * expressing preferences about the segments they allocate.
- *
- * .seg-pref.misleading: The name is historical and misleading. SegPref
- * objects need have nothing to do with segments. @@@@ */
+ * .locus-pref: arena memory users (pool class code) need a way of
+ * expressing preferences about the locus of the segments they
+ * allocate. See <design/locus/>.
+ */
 
-#define SegPrefSig      ((Sig)0x5195E9B6) /* SIGnature SEG PRef */
+#define LocusPrefSig      ((Sig)0x51970CB6) /* SIGnature LOCus PRef */
 
-typedef struct SegPrefStruct {  /* segment placement preferences */
+typedef struct LocusPrefStruct { /* locus placement preferences */
   Sig sig;                      /* <code/misc.h#sig> */
   Bool high;                    /* high or low */
   ZoneSet zones;                /* preferred zones */
   ZoneSet avoid;                /* zones to avoid */
-} SegPrefStruct;
+} LocusPrefStruct;
 
 
 /* BufferClassStruct -- buffer class structure

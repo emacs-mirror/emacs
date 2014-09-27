@@ -19,11 +19,11 @@
 SRCID(locus, "$Id$");
 
 
-/* SegPrefCheck -- check the consistency of a segment preference */
+/* LocusPrefCheck -- check the consistency of a locus preference */
 
-Bool SegPrefCheck(SegPref pref)
+Bool LocusPrefCheck(LocusPref pref)
 {
-  CHECKS(SegPref, pref);
+  CHECKS(LocusPref, pref);
   CHECKL(BoolCheck(pref->high));
   /* zones can't be checked because it's arbitrary. */
   /* avoid can't be checked because it's arbitrary. */
@@ -31,51 +31,70 @@ Bool SegPrefCheck(SegPref pref)
 }
 
 
-/* SegPrefDefault -- return a segment preference representing the defaults */
+/* LocusPrefDefault -- return a locus preference representing the defaults */
 
-static SegPrefStruct segPrefDefault = SegPrefDEFAULT;
+static LocusPrefStruct locusPrefDefault = LocusPrefDEFAULT;
 
-SegPref SegPrefDefault(void)
+LocusPref LocusPrefDefault(void)
 {
-  return &segPrefDefault;
+  return &locusPrefDefault;
 }
 
-/* SegPrefInit -- initialise a segment preference to the defaults */
+/* LocusPrefInit -- initialise a locus preference to the defaults */
 
-void SegPrefInit(SegPref pref)
+void LocusPrefInit(LocusPref pref)
 {
-  (void)mps_lib_memcpy(pref, &segPrefDefault, sizeof(SegPrefStruct));
+  (void)mps_lib_memcpy(pref, &locusPrefDefault, sizeof(LocusPrefStruct));
 }
 
 
-/* SegPrefExpress -- express a segment preference */
+/* LocusPrefExpress -- express a locus preference */
 
-void SegPrefExpress(SegPref pref, SegPrefKind kind, void *p)
+void LocusPrefExpress(LocusPref pref, LocusPrefKind kind, void *p)
 {
-  AVERT(SegPref, pref);
-  AVER(pref != &segPrefDefault);
+  AVERT(LocusPref, pref);
+  AVER(pref != &locusPrefDefault);
 
   switch(kind) {
-  case SegPrefHigh:
+  case LocusPrefHigh:
     AVER(p == NULL);
     pref->high = TRUE;
     break;
 
-  case SegPrefLow:
+  case LocusPrefLow:
     AVER(p == NULL);
     pref->high = FALSE;
     break;
 
-  case SegPrefZoneSet:
+  case LocusPrefZoneSet:
     AVER(p != NULL);
     pref->zones = *(ZoneSet *)p;
     break;
 
   default:
     /* Unknown kinds are ignored for binary compatibility. */
-    /* See design.mps.pref. */
     break;
   }
+}
+
+
+/* LocusPrefDescribe -- describe a locus preference */
+
+Res LocusPrefDescribe(LocusPref pref, mps_lib_FILE *stream, Count depth)
+{
+  Res res;
+
+  if (!TESTT(LocusPref, pref)) return ResFAIL;
+  if (stream == NULL) return ResFAIL;
+
+  res = WriteF(stream, depth,
+               "LocusPref $P {\n", (WriteFP)pref,
+               "  high $U\n", (WriteFU)pref->high,
+               "  zones $B\n", (WriteFB)pref->zones,
+               "  avoid $B\n", (WriteFB)pref->avoid,
+               "} LocusPref $P\n", (WriteFP)pref,
+               NULL);
+  return res;
 }
 
 
@@ -286,7 +305,7 @@ GenDesc ChainGen(Chain chain, Index gen)
 Res PoolGenAlloc(Seg *segReturn, PoolGen pgen, SegClass class, Size size,
                  Bool withReservoirPermit, ArgList args)
 {
-  SegPrefStruct pref;
+  LocusPrefStruct pref;
   Res res;
   Seg seg;
   ZoneSet zones, moreZones;
@@ -304,7 +323,7 @@ Res PoolGenAlloc(Seg *segReturn, PoolGen pgen, SegClass class, Size size,
   gen = pgen->gen;
   zones = gen->zones;
 
-  SegPrefInit(&pref);
+  LocusPrefInit(&pref);
   pref.high = FALSE;
   pref.zones = zones;
   pref.avoid = ZoneSetBlacklist(arena);

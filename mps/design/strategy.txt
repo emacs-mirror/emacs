@@ -173,7 +173,7 @@ generation's zonesets.
 
 An attempt is made to use distinct zonesets for different generations.
 Segments in automatic pools are allocated using ``PoolGenAlloc()``
-which creates a ``SegPref`` using the zoneset from the generation's
+which creates a ``LocusPref`` using the zoneset from the generation's
 ``GenDesc``. The zoneset for each generation starts out empty. If the
 zoneset is empty, an attempt is made to allocate from a free zone. The
 ``GenDesc`` zoneset is augmented with whichever zones the new segment

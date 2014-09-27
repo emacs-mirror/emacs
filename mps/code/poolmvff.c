@@ -45,7 +45,7 @@ extern PoolClass PoolClassMVFF(void);
 typedef struct MVFFStruct *MVFF;
 typedef struct MVFFStruct {     /* MVFF pool outer structure */
   PoolStruct poolStruct;        /* generic structure */
-  SegPrefStruct segPrefStruct;  /* the preferences for allocation */
+  LocusPrefStruct locusPrefStruct; /* the preferences for allocation */
   Size extendBy;                /* size to extend pool by */
   Size avgSize;                 /* client estimate of allocation size */
   double spare;                 /* spare space fraction, see MVFFReduce */
@@ -66,7 +66,7 @@ typedef struct MVFFStruct {     /* MVFF pool outer structure */
 #define MVFFFreePrimary(mvff)   CBSLand(&(mvff)->freeCBSStruct)
 #define MVFFFreeSecondary(mvff)  FreelistLand(&(mvff)->flStruct)
 #define MVFFFreeLand(mvff)  FailoverLand(&(mvff)->foStruct)
-#define MVFFSegPref(mvff)   (&(mvff)->segPrefStruct)
+#define MVFFLocusPref(mvff) (&(mvff)->locusPrefStruct)
 #define MVFFBlockPool(mvff) MFSPool(&(mvff)->cbsBlockPoolStruct)
 
 static Bool MVFFCheck(MVFF mvff);
@@ -222,13 +222,13 @@ static Res MVFFExtend(Range rangeReturn, MVFF mvff, Size size,
 
   allocSize = SizeArenaGrains(allocSize, arena);
 
-  res = ArenaAlloc(&base, MVFFSegPref(mvff), allocSize, pool,
+  res = ArenaAlloc(&base, MVFFLocusPref(mvff), allocSize, pool,
                    withReservoirPermit);
   if (res != ResOK) {
     /* try again with a range just large enough for object */
     /* see <design/poolmvff/#design.seg-fail> */
     allocSize = SizeArenaGrains(size, arena);
-    res = ArenaAlloc(&base, MVFFSegPref(mvff), allocSize, pool,
+    res = ArenaAlloc(&base, MVFFLocusPref(mvff), allocSize, pool,
                      withReservoirPermit);
     if (res != ResOK)
       return res;
@@ -469,7 +469,7 @@ static Res MVFFInit(Pool pool, ArgList args)
   /* .arg: class-specific additional arguments; see */
   /* <design/poolmvff/#method.init> */
   /* .arg.check: we do the same checks here and in MVFFCheck */
-  /* except for arenaHigh, which is stored only in the segPref. */
+  /* except for arenaHigh, which is stored only in the locusPref. */
   
   if (ArgPick(&arg, args, MPS_KEY_EXTEND_BY))
     extendBy = arg.val.size;
@@ -518,8 +518,9 @@ static Res MVFFInit(Pool pool, ArgList args)
   mvff->firstFit = firstFit;
   mvff->spare = spare;
 
-  SegPrefInit(MVFFSegPref(mvff));
-  SegPrefExpress(MVFFSegPref(mvff), arenaHigh ? SegPrefHigh : SegPrefLow, NULL);
+  LocusPrefInit(MVFFLocusPref(mvff));
+  LocusPrefExpress(MVFFLocusPref(mvff),
+                   arenaHigh ? LocusPrefHigh : LocusPrefLow, NULL);
 
   /* An MFS pool is explicitly initialised for the two CBSs partly to
    * share space, but mostly to avoid a call to PoolCreate, so that
@@ -689,7 +690,8 @@ static Res MVFFDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
                NULL);
   if (res != ResOK) return res;
 
-  /* TODO: SegPrefDescribe(MVFFSegPref(mvff), stream); */
+  res = LocusPrefDescribe(MVFFLocusPref(mvff), stream, depth + 2);
+  if (res != ResOK) return res;
 
   /* Don't describe MVFFBlockPool(mvff) otherwise it'll appear twice
    * in the output of GlobalDescribe. */
@@ -771,7 +773,7 @@ static Bool MVFFCheck(MVFF mvff)
   CHECKS(MVFF, mvff);
   CHECKD(Pool, MVFFPool(mvff));
   CHECKL(IsSubclassPoly(MVFFPool(mvff)->class, MVFFPoolClassGet()));
-  CHECKD(SegPref, MVFFSegPref(mvff));
+  CHECKD(LocusPref, MVFFLocusPref(mvff));
   CHECKL(mvff->extendBy >= ArenaGrainSize(PoolArena(MVFFPool(mvff))));
   CHECKL(mvff->avgSize > 0);                    /* see .arg.check */
   CHECKL(mvff->avgSize <= mvff->extendBy);      /* see .arg.check */

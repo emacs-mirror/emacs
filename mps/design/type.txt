@@ -493,24 +493,19 @@ _`.rootvar`: The type ``RootVar`` is the type of the discriminator for
 the union within ``RootStruct``.
 
 
-``typedef int SegPrefKind``
+``typedef int LocusPrefKind``
 
-_`.segprefkind`: The type ``SegPrefKind`` expresses a preference for
+_`.segprefkind`: The type ``LocusPrefKind`` expresses a preference for
 addresses within an address space. It takes one of the following
 values:
 
-==================  ====================================================
-Kind                Description
-==================  ====================================================
-``SegPrefHigh``     Prefer high addresses.
-``SegPrefLow``      Prefer low addresses.
-``SegPrefZoneSet``  Prefer addresses in specified zones.
-==================  ====================================================
-
-.. note::
-
-    The name is misleading as this is used to refer to address
-    preferences in general, not just addresses of segments.
+====================  ====================================
+Kind                  Description
+====================  ====================================
+``LocusPrefHigh``     Prefer high addresses.
+``LocusPrefLow``      Prefer low addresses.
+``LocusPrefZoneSet``  Prefer addresses in specified zones.
+====================  ====================================
 
 
 ``typedef unsigned Serial``
@@ -684,9 +679,9 @@ pointers to structures. For example, ``Ring`` is a pointer to a
 
 ``AllocFrame``, ``AllocPattern``, ``AP``, ``Arena``, ``BootBlock``,
 ``Buffer``, ``Chain``, ``Chunk``, ``Format``, ``Globals``, ``Land``,
-``LD``, ``Lock``, ``MutatorFaultContext``, ``PoolClass``, ``Page``,
-``Pool``, ``PoolDebugMixin``, ``Range``, ``Reservoir``, ``Ring``,
-``Root``, ``ScanState``, ``Seg``, ``SegBuf``, ``SegPref``,
+``LD``, ``Lock``, ``LocusPref``, ``MutatorFaultContext``,
+``PoolClass``, ``Page``, ``Pool``, ``PoolDebugMixin``, ``Range``,
+``Reservoir``, ``Ring``, ``Root``, ``ScanState``, ``Seg``, ``SegBuf``,
 ``StackContext``, ``Thread``, ``Trace``, ``VM``.
 
 ``typedef void *Pointer``

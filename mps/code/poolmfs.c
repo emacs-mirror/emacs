@@ -252,7 +252,7 @@ static Res MFSAlloc(Addr *pReturn, Pool pool, Size size,
       return ResLIMIT;
 
     /* Create a new region and attach it to the pool. */
-    res = ArenaAlloc(&base, SegPrefDefault(), mfs->extendBy, pool,
+    res = ArenaAlloc(&base, LocusPrefDefault(), mfs->extendBy, pool,
                      withReservoirPermit);
     if(res != ResOK)
       return res;

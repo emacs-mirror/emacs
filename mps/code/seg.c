@@ -54,7 +54,7 @@ static Res SegInit(Seg seg, Pool pool, Addr base, Size size,
 
 /* SegAlloc -- allocate a segment from the arena */
 
-Res SegAlloc(Seg *segReturn, SegClass class, SegPref pref,
+Res SegAlloc(Seg *segReturn, SegClass class, LocusPref pref,
              Size size, Pool pool, Bool withReservoirPermit, ArgList args)
 {
   Res res;
@@ -65,7 +65,7 @@ Res SegAlloc(Seg *segReturn, SegClass class, SegPref pref,
 
   AVER(segReturn != NULL);
   AVERT(SegClass, class);
-  AVERT(SegPref, pref);
+  AVERT(LocusPref, pref);
   AVER(size > (Size)0);
   AVERT(Pool, pool);
   AVERT(Bool, withReservoirPermit);

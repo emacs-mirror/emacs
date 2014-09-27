@@ -21,12 +21,12 @@ TYPES = '''
     AccessSet Accumulation Addr Align AllocFrame AllocPattern AP Arg
     Arena Attr Bool BootBlock BT Buffer BufferMode Byte Chain Chunk
     Clock Compare Count Epoch FindDelete Format FrameState Fun GenDesc
-    Globals Index Land LD Lock Message MessageType MutatorFaultContext
-    Page Pointer Pool PoolGen PThreadext Range Rank RankSet
-    ReadonlyAddr Ref RefSet Res Reservoir Ring Root RootMode RootVar
-    ScanState Seg SegBuf SegPref SegPrefKind Serial Shift Sig Size
-    Space SplayNode SplayTree StackContext Thread Trace TraceId
-    TraceSet TraceStartWhy TraceState ULongest VM Word ZoneSet
+    Globals Index Land LD Lock LocusPref LocusPrefKind Message
+    MessageType MutatorFaultContext Page Pointer Pool PoolGen
+    PThreadext Range Rank RankSet ReadonlyAddr Ref RefSet Res
+    Reservoir Ring Root RootMode RootVar ScanState Seg SegBuf Serial
+    Shift Sig Size Space SplayNode SplayTree StackContext Thread Trace
+    TraceId TraceSet TraceStartWhy TraceState ULongest VM Word ZoneSet
 
 '''
 
