@@ -398,8 +398,8 @@ Memory Management Glossary: P
 
         .. mps:specific::
 
-            A value of type :c:type:`mps_class_t` describing a class
-            of :term:`pools` that manage memory according to
+            A value of type :c:type:`mps_pool_class_t` describing a
+            class of :term:`pools` that manage memory according to
             particular policy. See :ref:`pool`.
 
     precise garbage collection

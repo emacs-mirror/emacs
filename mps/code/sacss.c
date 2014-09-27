@@ -43,7 +43,7 @@ static mps_res_t make(mps_addr_t *p, mps_sac_t sac, size_t size)
 
 static mps_res_t stress(mps_arena_t arena, mps_align_t align,
                         size_t (*size)(size_t i),
-                        const char *name, mps_class_t pool_class,
+                        const char *name, mps_pool_class_t pool_class,
                         mps_arg_s *args)
 {
   mps_res_t res;

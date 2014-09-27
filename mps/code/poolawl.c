@@ -1349,9 +1349,9 @@ DEFINE_POOL_CLASS(AWLPoolClass, this)
 }
 
 
-mps_class_t mps_class_awl(void)
+mps_pool_class_t mps_class_awl(void)
 {
-  return (mps_class_t)AWLPoolClassGet();
+  return (mps_pool_class_t)AWLPoolClassGet();
 }
 
 

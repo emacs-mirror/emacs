@@ -127,7 +127,7 @@ static void stepper(mps_addr_t object, mps_fmt_t format,
 
 /* test -- the body of the test */
 
-static void *test(mps_arena_t arena, mps_class_t pool_class)
+static void *test(mps_arena_t arena, mps_pool_class_t pool_class)
 {
     mps_chain_t chain;
     mps_fmt_t format;

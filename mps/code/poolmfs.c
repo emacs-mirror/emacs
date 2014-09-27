@@ -381,9 +381,9 @@ PoolClass PoolClassMFS(void)
 }
 
 
-mps_class_t mps_class_mfs(void)
+mps_pool_class_t mps_class_mfs(void)
 {
-  return (mps_class_t)PoolClassMFS();
+  return (mps_pool_class_t)PoolClassMFS();
 }
 
 

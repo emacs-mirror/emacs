@@ -107,7 +107,7 @@ MVFF interface
 
    #include "mpscmvff.h"
 
-.. c:function:: mps_class_t mps_class_mvff(void)
+.. c:function:: mps_pool_class_t mps_class_mvff(void)
 
     Return the :term:`pool class` for an MVFF (Manual Variable First
     Fit) :term:`pool`.
@@ -185,7 +185,7 @@ MVFF interface
         this::
 
             mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, 
-                                      mps_class_t mps_class_mvff(),
+                                      mps_pool_class_t mps_class_mvff(),
                                       size_t extend_size,
                                       size_t average_size,
                                       mps_align_t alignment,
@@ -194,7 +194,7 @@ MVFF interface
                                       mps_bool_t first_fit)
 
 
-.. c:function:: mps_class_t mps_class_mvff_debug(void)
+.. c:function:: mps_pool_class_t mps_class_mvff_debug(void)
 
     A :ref:`debugging <topic-debugging>` version of the MVFF pool
     class.
@@ -215,7 +215,7 @@ MVFF interface
         this::
 
             mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, 
-                                      mps_class_t mps_class_mvff_debug(),
+                                      mps_pool_class_t mps_class_mvff_debug(),
                                       mps_pool_debug_option_s debug_option,
                                       size_t extend_size,
                                       size_t average_size,
