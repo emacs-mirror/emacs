@@ -28,6 +28,12 @@
   "Test pcase code."
   (should (equal (pcase '(1 . 2) ((app car '2) 6) ((app car '1) 5)) 5)))
 
+(ert-deftest pcase-tests-bugs ()
+  (should (equal (pcase '(2 . 3)        ;bug#18554
+                   (`(,hd . ,(and (pred atom) tl)) (list hd tl))
+                   ((pred consp) nil))
+                 '(2 3))))
+
 (pcase-defmacro pcase-tests-plus (pat n)
   `(app (lambda (v) (- v ,n)) ,pat))
 
