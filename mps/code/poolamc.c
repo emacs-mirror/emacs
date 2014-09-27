@@ -299,7 +299,7 @@ static Res AMCSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
     Addr j;
     char c;
 
-    res = WriteF(stream, depth + 2, "$A  ", i, NULL);
+    res = WriteF(stream, depth + 2, "$A  ", (WriteFA)i, NULL);
     if(res != ResOK)
       return res;
 
@@ -319,7 +319,7 @@ static Res AMCSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
           c = (nailed ? '+' : '=');
         }
       }
-      res = WriteF(stream, 0, "$C", c, NULL);
+      res = WriteF(stream, 0, "$C", (WriteFC)c, NULL);
       if(res != ResOK)
         return res;
     }
@@ -726,7 +726,7 @@ static Res amcGenDescribe(amcGen gen, mps_lib_FILE *stream, Count depth)
 
   res = WriteF(stream, depth,
                "amcGen $P {\n", (WriteFP)gen,
-               "  buffer $P\n", gen->forward, NULL);
+               "  buffer $P\n", (WriteFP)gen->forward, NULL);
   if (res != ResOK)
     return res;
 

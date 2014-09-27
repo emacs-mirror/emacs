@@ -166,10 +166,11 @@ Res ABQDescribe(ABQ abq, ABQDescribeElement describeElement, mps_lib_FILE *strea
 
   res = WriteF(stream, depth,
                "ABQ $P {\n", (WriteFP)abq,
-               "  elements: $U \n", (WriteFU)abq->elements,
-               "  in: $U \n", (WriteFU)abq->in,
-               "  out: $U \n", (WriteFU)abq->out,
-               "  queue: \n",
+               "  elements $U\n", (WriteFU)abq->elements,
+               "  elementSize $W\n", (WriteFW)abq->elementSize,
+               "  in $U\n", (WriteFU)abq->in,
+               "  out $U\n", (WriteFU)abq->out,
+               "  queue:\n",
                NULL);
   if(res != ResOK)
     return res;

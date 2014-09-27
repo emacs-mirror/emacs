@@ -810,7 +810,7 @@ static Res MRGDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
   if (stream == NULL) return ResFAIL;
 
   arena = PoolArena(pool);
-  res = WriteF(stream, depth, "extendBy $W\n", mrg->extendBy, NULL);
+  res = WriteF(stream, depth, "extendBy $W\n", (WriteFW)mrg->extendBy, NULL);
   if (res != ResOK) return res;
   res = WriteF(stream, depth, "Entry queue:\n", NULL);
   if (res != ResOK) return res;

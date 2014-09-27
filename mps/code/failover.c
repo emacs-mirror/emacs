@@ -289,9 +289,9 @@ static Res failoverDescribe(Land land, mps_lib_FILE *stream, Count depth)
   res = WriteF(stream, depth,
                "Failover $P {\n", (WriteFP)fo,
                "  primary = $P ($S)\n", (WriteFP)fo->primary,
-               fo->primary->class->name,
+               (WriteFS)fo->primary->class->name,
                "  secondary = $P ($S)\n", (WriteFP)fo->secondary,
-               fo->secondary->class->name,
+               (WriteFS)fo->secondary->class->name,
                "}\n", NULL);
 
   return res;

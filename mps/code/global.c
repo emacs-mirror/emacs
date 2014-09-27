@@ -1022,11 +1022,11 @@ Res GlobalsDescribe(Globals arenaGlobals, mps_lib_FILE *stream, Count depth)
 
   arena = GlobalsArena(arenaGlobals);
   res = WriteF(stream, depth,
-               "mpsVersion $S\n", arenaGlobals->mpsVersionString,
+               "mpsVersion $S\n", (WriteFS)arenaGlobals->mpsVersionString,
                "lock $P\n", (WriteFP)arenaGlobals->lock,
                "pollThreshold $U kB\n",
                (WriteFU)(arenaGlobals->pollThreshold / 1024),
-               arenaGlobals->insidePoll ? "inside poll\n" : "outside poll\n",
+               arenaGlobals->insidePoll ? "inside" : "outside", " poll\n",
                arenaGlobals->clamped ? "clamped\n" : "released\n",
                "fillMutatorSize $U kB\n",
                (WriteFU)(arenaGlobals->fillMutatorSize / 1024),
@@ -1042,7 +1042,7 @@ Res GlobalsDescribe(Globals arenaGlobals, mps_lib_FILE *stream, Count depth)
                "rootSerial $U\n", (WriteFU)arenaGlobals->rootSerial,
                "formatSerial $U\n", (WriteFU)arena->formatSerial,
                "threadSerial $U\n", (WriteFU)arena->threadSerial,
-               arena->insideShield ? "inside shield\n" : "outside shield\n",
+               arena->insideShield ? "inside" : "outside", " shield\n",
                "busyTraces    $B\n", (WriteFB)arena->busyTraces,
                "flippedTraces $B\n", (WriteFB)arena->flippedTraces,
                "epoch $U\n", (WriteFU)arena->epoch,
@@ -1054,16 +1054,16 @@ Res GlobalsDescribe(Globals arenaGlobals, mps_lib_FILE *stream, Count depth)
 
   for(i=0; i < LDHistoryLENGTH; ++ i) {
     res = WriteF(stream, depth + 2,
-                 "[$U] = $B\n", i, arena->history[i],
+                 "[$U] = $B\n", (WriteFU)i, (WriteFB)arena->history[i],
                  NULL);
     if (res != ResOK) return res;
   }
 
   res = WriteF(stream, depth,
                "} history\n",
-               "suspended $S\n", arena->suspended ? "YES" : "NO",
-               "shDepth $U\n", arena->shDepth,
-               "shCacheI $U\n", arena->shCacheI,
+               "suspended $S\n", WriteFYesNo(arena->suspended),
+               "shDepth $U\n", (WriteFU)arena->shDepth,
+               "shCacheI $U\n", (WriteFU)arena->shCacheI,
                /* @@@@ should SegDescribe the cached segs? */
                NULL);
   if (res != ResOK) return res;

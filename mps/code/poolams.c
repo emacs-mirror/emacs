@@ -522,11 +522,11 @@ failCreateTablesLo:
 
 /* AMSSegDescribe -- describe an AMS segment */
 
-#define WRITE_BUFFER_LIMIT(stream, seg, i, buffer, accessor, char) \
+#define WRITE_BUFFER_LIMIT(stream, seg, i, buffer, accessor, code) \
   BEGIN \
     if ((buffer) != NULL \
        && (i) == AMS_ADDR_INDEX(seg, accessor(buffer))) { \
-      Res _res = WriteF(stream, 0, char, NULL); \
+      Res _res = WriteF(stream, 0, code, NULL); \
       if (_res != ResOK) return _res; \
     } \
   END
@@ -604,7 +604,7 @@ static Res AMSSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
         c = '.';
     } else
       c = ' ';
-    res = WriteF(stream, 0, "$C", c, NULL);
+    res = WriteF(stream, 0, "$C", (WriteFC)c, NULL);
     if (res != ResOK)
       return res;
 
