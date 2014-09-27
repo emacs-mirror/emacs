@@ -1915,7 +1915,6 @@ struct bidi_stack {
   struct bidi_saved_info last_strong;
   struct bidi_saved_info next_for_neutral;
   struct bidi_saved_info prev_for_neutral;
-  struct bidi_saved_info next_for_ws;
   unsigned level : 7;
   bool_bf isolate_status : 1;
   unsigned override : 2;

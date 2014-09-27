@@ -406,7 +406,7 @@ bidi_set_sos_type (struct bidi_it *bidi_it, int level_before, int level_after)
   /* FIXME: should the default sos direction be user selectable?  */
   bidi_it->sos = ((higher_level & 1) != 0 ? R2L : L2R); /* X10 */
 
-  bidi_it->prev.type = UNKNOWN_BT;
+  bidi_it->prev.type = bidi_it->prev.type_after_w1 = UNKNOWN_BT;
   bidi_it->last_strong.type = bidi_it->last_strong.type_after_w1
     = bidi_it->last_strong.orig_type = UNKNOWN_BT;
   bidi_it->prev_for_neutral.type = (bidi_it->sos == R2L ? STRONG_R : STRONG_L);
@@ -436,7 +436,6 @@ bidi_push_embedding_level (struct bidi_it *bidi_it,
       st->last_strong = bidi_it->last_strong;
       st->prev_for_neutral = bidi_it->prev_for_neutral;
       st->next_for_neutral = bidi_it->next_for_neutral;
-      st->next_for_ws = bidi_it->next_for_ws;
       st->sos = bidi_it->sos;
     }
 }
@@ -472,7 +471,6 @@ bidi_pop_embedding_level (struct bidi_it *bidi_it)
 	  bidi_it->last_strong = st.last_strong;
 	  bidi_it->prev_for_neutral = st.prev_for_neutral;
 	  bidi_it->next_for_neutral = st.next_for_neutral;
-	  bidi_it->next_for_ws = st.next_for_ws;
 	  bidi_it->sos = st.sos;
 	}
       bidi_it->stack_idx--;
@@ -2003,8 +2001,8 @@ bidi_resolve_weak (struct bidi_it *bidi_it)
          X10).  */
       bidi_set_sos_type (bidi_it, prev_level, new_level);
     }
-  else if (type == NEUTRAL_S || type == NEUTRAL_WS
-	   || type == WEAK_BN || type == STRONG_AL)
+  if (type == NEUTRAL_S || type == NEUTRAL_WS
+      || type == WEAK_BN || type == STRONG_AL)
     bidi_it->type_after_w1 = type;	/* needed in L1 */
   bidi_check_type (bidi_it->type_after_w1);
 
@@ -2025,12 +2023,20 @@ bidi_resolve_weak (struct bidi_it *bidi_it)
 	     current level run, and thus not relevant to this NSM.
 	     This is why NSM gets the type_after_w1 of the previous
 	     character.  */
+	  /* bidi_set_sos_type sets type_after_w1 to UNKNOWN_BT.  */
 	  if (bidi_it->prev.type_after_w1 != UNKNOWN_BT
-	      /* if type_after_w1 is NEUTRAL_B, this NSM is at sos */
+	      /* If type_after_w1 is NEUTRAL_B, this NSM is at sos.  */
 	      && bidi_it->prev.type_after_w1 != NEUTRAL_B)
 	    {
 	      if (bidi_isolate_fmt_char (bidi_it->prev.type_after_w1))
-		type = NEUTRAL_ON;
+		{
+		  /* From W1: "Note that in an isolating run sequence,
+		     an isolate initiator followed by an NSM or any
+		     type other than PDI must be an overflow isolate
+		     initiator."  */
+		  eassert (bidi_it->invalid_isolates > 0);
+		  type = NEUTRAL_ON;
+		}
 	      else
 		type = bidi_it->prev.type_after_w1;
 	    }
@@ -2071,8 +2077,7 @@ bidi_resolve_weak (struct bidi_it *bidi_it)
 	      bidi_copy_it (&saved_it, bidi_it);
 	      while (bidi_resolve_explicit (bidi_it) == new_level
 		     && bidi_it->type == WEAK_BN)
-		;
-	      type_of_next = bidi_it->type;
+		type_of_next = bidi_it->type;
 	      bidi_copy_it (bidi_it, &saved_it);
 	    }
 
@@ -2115,6 +2120,12 @@ bidi_resolve_weak (struct bidi_it *bidi_it)
 	    }
 	  else if (bidi_it->next_en_pos >=0)
 	    {
+	      /* We overstepped the last known position for ET
+		 resolution but there could be other such characters
+		 in this paragraph (when we are sure there are no more
+		 such positions, we set next_en_pos to a negative
+		 value).  Try to find the next position for ET
+		 resolution.  */
 	      ptrdiff_t en_pos = bidi_it->charpos + bidi_it->nchars;
 	      const unsigned char *s = (STRINGP (bidi_it->string.lstring)
 					? SDATA (bidi_it->string.lstring)
@@ -2137,9 +2148,20 @@ bidi_resolve_weak (struct bidi_it *bidi_it)
 		  while (bidi_resolve_explicit (bidi_it) == new_level
 			 && (bidi_it->type == WEAK_BN
 			     || bidi_it->type == WEAK_ET))
-		    ;
-		  type_of_next = bidi_it->type;
-		  en_pos = bidi_it->charpos;
+		    type_of_next = bidi_it->type;
+		  if (type == WEAK_BN
+		      && bidi_it->charpos == saved_it.charpos + saved_it.nchars)
+		    {
+		      /* If we entered the above loop with a BN that
+			 changes the level, the type of next
+			 character, which is in a different level, is
+			 not relevant to resolving this series of ET
+			 and BN.  */
+		      en_pos = saved_it.charpos;
+		      type_of_next = type;
+		    }
+		  else
+		    en_pos = bidi_it->charpos;
 		  bidi_copy_it (bidi_it, &saved_it);
 		}
 	      /* Remember this position, to speed up processing of the
@@ -2199,7 +2221,8 @@ bidi_resolve_weak (struct bidi_it *bidi_it)
 static bidi_type_t
 bidi_resolve_neutral_1 (bidi_type_t prev_type, bidi_type_t next_type, int lev)
 {
-  /* N1: European and Arabic numbers are treated as though they were R.  */
+  /* N1: "European and Arabic numbers act as if they were R in terms
+     of their influence on NIs."  */
   if (next_type == WEAK_EN || next_type == WEAK_AN)
     next_type = STRONG_R;
   if (prev_type == WEAK_EN || prev_type == WEAK_AN)
@@ -2221,21 +2244,27 @@ bidi_resolve_neutral (struct bidi_it *bidi_it)
   int current_level = bidi_it->level_stack[bidi_it->stack_idx].level;
   bool is_neutral = bidi_get_category (type) == NEUTRAL;
 
-  eassert ((type == STRONG_R
-	    || type == STRONG_L
-	    || type == WEAK_BN
-	    || type == WEAK_EN
-	    || type == WEAK_AN
-	    || type == NEUTRAL_B
-	    || type == NEUTRAL_S
-	    || type == NEUTRAL_WS
-	    || type == NEUTRAL_ON));
+  eassert (type == STRONG_R
+	   || type == STRONG_L
+	   || type == WEAK_BN
+	   || type == WEAK_EN
+	   || type == WEAK_AN
+	   || type == NEUTRAL_B
+	   || type == NEUTRAL_S
+	   || type == NEUTRAL_WS
+	   || type == NEUTRAL_ON
+	   || type == LRI
+	   || type == RLI
+	   || type == PDI);
 
   eassert (prev_level >= 0);
   eassert (current_level >= 0);
+
+  /* FIXME: Insert the code for N0 here.  */
+
   if ((type != NEUTRAL_B /* Don't risk entering the long loop below if
 			    we are already at paragraph end.  */
-       && is_neutral)
+       && (is_neutral || bidi_isolate_fmt_char (type)))
       /* N1-N2/Retaining */
       || (type == WEAK_BN && bidi_explicit_dir_char (bidi_it->ch)))
     {
@@ -2258,7 +2287,8 @@ bidi_resolve_neutral (struct bidi_it *bidi_it)
 	 entering the expensive loop in the "else" clause.  */
       else if (current_level == 0
 	       && bidi_it->prev_for_neutral.type == STRONG_L
-	       && !bidi_explicit_dir_char (bidi_it->ch))
+	       && !bidi_explicit_dir_char (bidi_it->ch)
+	       && !bidi_isolate_fmt_char (type))
 	type = bidi_resolve_neutral_1 (bidi_it->prev_for_neutral.type,
 				       STRONG_L, current_level);
       else if (/* current level is 1 */
@@ -2270,7 +2300,8 @@ bidi_resolve_neutral (struct bidi_it *bidi_it)
 	       && (bidi_it->prev_for_neutral.type == STRONG_R
 		   || bidi_it->prev_for_neutral.type == WEAK_EN
 		   || bidi_it->prev_for_neutral.type == WEAK_AN)
-	       && !bidi_explicit_dir_char (bidi_it->ch))
+	       && !bidi_explicit_dir_char (bidi_it->ch)
+	       && !bidi_isolate_fmt_char (type))
 	type = bidi_resolve_neutral_1 (bidi_it->prev_for_neutral.type,
 				       STRONG_R, current_level);
       else
@@ -2295,32 +2326,43 @@ bidi_resolve_neutral (struct bidi_it *bidi_it)
 	     character, and then use that to resolve the neutral we
 	     are dealing with now.  We also cache the scanned iterator
 	     states, to salvage some of the effort later.  */
-	  bidi_cache_iterator_state (bidi_it, 0);
 	  do {
+	    /* Paragraph separators have their levels fully resolved
+	       at this point, so cache them as resolved.  */
+	    bidi_cache_iterator_state (bidi_it, type == NEUTRAL_B);
 	    /* Record the info about the previous character, so that
-	       it will be cached below with this state.  */
+	       it will be cached with this state.  */
 	    if (bidi_it->type_after_w1 != WEAK_BN /* W1/Retaining */
 		&& bidi_it->type != WEAK_BN)
 	      bidi_remember_char (&bidi_it->prev, bidi_it);
 	    type = bidi_resolve_weak (bidi_it);
+	    /* Skip level runs excluded from this isolating run sequence.  */
+	    if (bidi_it->level_stack[bidi_it->stack_idx].level > current_level
+		&& bidi_it->level_stack[bidi_it->stack_idx].isolate_status)
+	      {
+		while (bidi_it->level_stack[bidi_it->stack_idx].level
+		       > current_level)
+		  {
+		    bidi_cache_iterator_state (bidi_it, type == NEUTRAL_B);
+		    type = bidi_resolve_weak (bidi_it);
+		  }
+	      }
 	    if (!adjacent_to_neutrals
-		&& bidi_get_category (type) == NEUTRAL)
+		&& (bidi_get_category (type) == NEUTRAL
+		    || bidi_isolate_fmt_char (type)))
 	      adjacent_to_neutrals = true;
-	    /* Paragraph separators have their levels fully resolved
-	       at this point, so cache them as resolved.  */
-	    bidi_cache_iterator_state (bidi_it, type == NEUTRAL_B);
-	    /* FIXME: implement L1 here, by testing for a newline and
-	       resetting the level for any sequence of whitespace
-	       characters adjacent to it.  */
 	  } while (!(type == NEUTRAL_B
 		     || (type != WEAK_BN
-			 && bidi_get_category (type) != NEUTRAL)
+			 && bidi_get_category (type) != NEUTRAL
+			 && !bidi_isolate_fmt_char (type))
 		     /* This is all per level run, so stop when we
 			reach the end of this level run.  */
 		     || (bidi_it->level_stack[bidi_it->stack_idx].level
 			 != current_level)));
 
+	  /* Record the character we stopped at.  */
 	  bidi_remember_char (&saved_it.next_for_neutral, bidi_it);
+
 	  if ((bidi_it->level_stack[bidi_it->stack_idx].level != current_level)
 	      || type == NEUTRAL_B)
 	    {
@@ -2352,8 +2394,8 @@ bidi_resolve_neutral (struct bidi_it *bidi_it)
 		  break;
 		case WEAK_EN:
 		case WEAK_AN:
-		  /* N1: ``European and Arabic numbers are treated as
-		     though they were R.''  */
+		  /* N1: "European and Arabic numbers act as if they
+		     were R in terms of their influence on NIs."  */
 		  next_type = STRONG_R;
 		  break;
 		default:
@@ -2361,12 +2403,17 @@ bidi_resolve_neutral (struct bidi_it *bidi_it)
 		  break;
 		}
 	    }
+	  /* Resolve the type of all the NIs found during the above loop.  */
 	  type = bidi_resolve_neutral_1 (saved_it.prev_for_neutral.type,
 					 next_type, current_level);
+	  /* Update next_for_neutral with the resolved type, so we
+	     could use it for all the other NIs up to the place where
+	     we exited the loop.  */
 	  saved_it.next_for_neutral.type = next_type;
+	  bidi_check_type (type);
+	  /* Update the character which caused us to enter the above loop.  */
 	  saved_it.type = type;
 	  bidi_check_type (next_type);
-	  bidi_check_type (type);
 	  bidi_copy_it (bidi_it, &saved_it);
 	}
     }
@@ -2402,6 +2449,7 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
   int level, prev_level = -1;
   struct bidi_saved_info next_for_neutral;
   ptrdiff_t next_char_pos = -2;
+  bool need_to_update_cache = false;
 
   if (bidi_it->scan_dir == 1)
     {
@@ -2519,6 +2567,13 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
 	  eassert (bidi_it->resolved_level >= 0);
 	  return bidi_it->resolved_level;
 	}
+      else
+	{
+	  /* Take note when we've got a cached state that is not fully
+	     resolved, so that we could make sure we update the cache
+	     below, when we do resolve it.  */
+	  need_to_update_cache = true;
+	}
     }
   if (bidi_it->scan_dir == -1)
     /* If we are going backwards, the iterator state is already cached
@@ -2535,7 +2590,8 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
     }
 
   level = bidi_it->level_stack[bidi_it->stack_idx].level;
-  if (bidi_get_category (type) == NEUTRAL /* && type != NEUTRAL_B */)
+  if (bidi_get_category (type) == NEUTRAL /* && type != NEUTRAL_B */
+      || bidi_isolate_fmt_char (type))
     {
       if (bidi_it->next_for_neutral.type == UNKNOWN_BT)
 	emacs_abort ();
@@ -2558,7 +2614,8 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
   /* For L1 below, we need to know, for each WS character, whether
      it belongs to a sequence of WS characters preceding a newline
      or a TAB or a paragraph separator.  */
-  if (bidi_it->orig_type == NEUTRAL_WS
+  if ((bidi_it->orig_type == NEUTRAL_WS
+       || bidi_isolate_fmt_char (bidi_it->orig_type))
       && bidi_it->next_for_ws.type == UNKNOWN_BT)
     {
       int ch;
@@ -2579,6 +2636,7 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
 			      bidi_it->w, fwp, &clen, &nc);
 	chtype = bidi_get_type (ch, NEUTRAL_DIR);
       } while (chtype == NEUTRAL_WS || chtype == WEAK_BN
+	       || bidi_isolate_fmt_char (chtype)
 	       || bidi_explicit_dir_char (ch)); /* L1/Retaining */
       bidi_it->next_for_ws.type = chtype;
       bidi_check_type (bidi_it->next_for_ws.type);
@@ -2607,9 +2665,9 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
 	level++;
     }
 
-  /* FIXME: Exempt explicit directional characters from the assignment
-     below, and remove the PDF hack above.  */
   bidi_it->resolved_level = level;
+  if (need_to_update_cache)
+    bidi_cache_iterator_state (bidi_it, 1);
   return level;
 }
 
