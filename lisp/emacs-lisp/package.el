@@ -289,7 +289,9 @@ contrast, `package-user-dir' contains packages for personal use."
   :group 'package
   :version "24.1")
 
-(defcustom package-check-signature 'allow-unsigned
+(defcustom package-check-signature
+  (if (progn (require 'epg-config) (executable-find epg-gpg-program))
+      'allow-unsigned)
   "Non-nil means to check package signatures when installing.
 The value `allow-unsigned' means to still install a package even if
 it is unsigned.
@@ -1313,12 +1315,12 @@ makes them available for download."
     (make-directory package-user-dir t))
   (let ((default-keyring (expand-file-name "package-keyring.gpg"
 					   data-directory)))
-    (if (file-exists-p default-keyring)
-	(condition-case-unless-debug error
-	    (progn
-	      (epg-check-configuration (epg-configuration))
-	      (package-import-keyring default-keyring))
-	  (error (message "Cannot import default keyring: %S" (cdr error))))))
+    (when (and package-check-signature (file-exists-p default-keyring))
+      (condition-case-unless-debug error
+	  (progn
+	    (epg-check-configuration (epg-configuration))
+	    (package-import-keyring default-keyring))
+	(error (message "Cannot import default keyring: %S" (cdr error))))))
   (dolist (archive package-archives)
     (condition-case-unless-debug nil
 	(package--download-one-archive archive "archive-contents")

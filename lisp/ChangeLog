@@ -1,3 +1,10 @@
+2014-09-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/package.el (package-check-signature): Default to nil if
+	GPG is not available.
+	(package-refresh-contents): Don't mess with the keyring if we won't
+	check the signatures anyway.
+
 2014-09-18  Kan-Ru Chen  <kanru@kanru.info>
 
 	* window.el (fit-window-to-buffer): When counting buffer width,
