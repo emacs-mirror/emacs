@@ -32,7 +32,7 @@ extern Bool RingCheckSingle(Ring ring);
 extern Bool RingIsSingle(Ring ring);
 extern Size RingLength(Ring ring);
 
-/* .ring.init: */
+/* .ring.init: See <design/ring/#init> */
 extern void (RingInit)(Ring ring);
 #define RingInit(ring) \
   BEGIN \
@@ -43,7 +43,7 @@ extern void (RingInit)(Ring ring);
     AVER(RingCheck(_ring)); \
   END
 
-/* .ring.finish: */
+/* .ring.finish: See <design/ring/#finish> */
 extern void (RingFinish)(Ring ring);
 #define RingFinish(ring) \
   BEGIN \
@@ -53,7 +53,7 @@ extern void (RingFinish)(Ring ring);
     _ring->prev = RingNONE; \
   END
 
-/* .ring.append: */
+/* .ring.append: See <design/ring/#append> */
 extern void (RingAppend)(Ring ring, Ring new);
 #define RingAppend(ring, new) \
   BEGIN \
@@ -79,7 +79,7 @@ extern void (RingInsert)(Ring ring, Ring new);
     _ring->next = _new; \
   END
 
-/* .ring.remove: */
+/* .ring.remove: See <design/ring/#remove> */
 extern void (RingRemove)(Ring old);
 #define RingRemove(old) \
   BEGIN \
@@ -92,11 +92,11 @@ extern void (RingRemove)(Ring old);
     _old->prev = _old; \
   END
 
-/* .ring.next: */
+/* .ring.next: See <design/ring/#next> */
 extern Ring (RingNext)(Ring ring);
 #define RingNext(ring)  ((ring)->next)
 
-/* .ring.prev: */
+/* .ring.prev: See <design/ring/#prev> */
 extern Ring (RingPrev)(Ring ring);
 #define RingPrev(ring)  ((ring)->prev)
 

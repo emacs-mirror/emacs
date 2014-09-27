@@ -20,8 +20,14 @@ the burden of having to be clever about tract/group placement away
 from the pools, preserving trace differentiability and contiguity
 where appropriate.
 
-_`.source`: mail.gavinm.1998-02-05.17-52(0), mail.ptw.1998-02-05.19-53(0), 
-mail.pekka.1998-02-09.13-58(0), and mail.gavinm.1998-02-09.14-05(0).
+_`.source`: `mail.gavinm.1998-02-05.17-52`_,
+`mail.ptw.1998-02-05.19-53`_, `mail.pekka.1998-02-09.13-58`_, and
+`mail.gavinm.1998-02-09.14-05`_.
+
+.. _mail.gavinm.1998-02-05.17-52: https://info.ravenbrook.com/project/mps/mail/1998/02/05/17-52/0.txt
+.. _mail.ptw.1998-02-05.19-53:  https://info.ravenbrook.com/project/mps/mail/1998/02/05/19-53/0.txt
+.. _mail.pekka.1998-02-09.13-58: https://info.ravenbrook.com/project/mps/mail/1998/02/09/13-58/0.txt
+.. _mail.gavinm.1998-02-09.14-05: https://info.ravenbrook.com/project/mps/mail/1998/02/09/14-05/0.txt
 
 _`.readership`: Any MPS developer.
 
@@ -37,10 +43,12 @@ The MPS manages three main resources:
 
 The locus manager manages address space at the arena level.
 
-.. note:
+.. note::
 
-    Tucker was right: see mail.ptw.1998-11-02.14-25. Richard Kistruck,
-    2007-04-24.
+    Tucker was right: see `mail.ptw.1998-11-02.14-25`_. Richard
+    Kistruck, 2007-04-24.
+
+    .. _mail.ptw.1998-11-02.14-25: https://info.ravenbrook.com/project/mps/mail/1998/11/02/14-25/0.txt
 
 When a pool wants some address space, it expresses some preferences to
 the locus manager. The locus manager and the arena (working together)

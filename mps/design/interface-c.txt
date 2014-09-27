@@ -18,7 +18,9 @@ Introduction
 _`.scope`: This document is the design for the Memory Pool System
 (MPS) interface to the C Language, impl.h.mps.
 
-_`.bg`: See mail.richard.1996-07-24.10-57.
+_`.bg`: See `mail.richard.1996-07-24.10-57`_.
+
+.. _mail.richard.1996-07-24.10-57: https://info.ravenbrook.com/project/mps/mail/1996/07/24/10-57/0.txt
 
 
 Analysis
@@ -194,7 +196,10 @@ can be called outside of ``ArenaEnter()`` and ``ArenaLeave()``.
 _`.check.types`: We use definitions of types in both our external
 interface and our internal code, and we want to make sure that they
 are compatible. (The external interface changes less often and hides
-more information.) This checking uses the following macros.
+more information.) This checking uses the following macros, originally
+from `mail.richard.1996-08-07.09-49`_.
+
+.. _mail.richard.1996-08-07.09-49: https://info.ravenbrook.com/project/mps/mail/1996/08/07/09-49/0.txt
 
 ``COMPATLVALUE(lvalue1, lvalue2)``
 
@@ -240,7 +245,9 @@ Binary compatibility issues
 ---------------------------
 
 As in, "Enumeration types are not allowed" (see
-mail.richard.1995-09-08.09-28).
+`mail.richard.1995-09-08.09-28`_).
+
+.. _mail.richard.1995-09-08.09-28: https://info.ravenbrook.com/project/mps/mail/1995/09/08/09-28/0.txt
 
 _`.compat`: There are two main aspects to run-time compatibility:
 binary interface and protocol.

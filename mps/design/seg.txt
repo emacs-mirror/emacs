@@ -319,7 +319,9 @@ Document History
   and 1) was as part of editing MMsrc!seg.c(MMdevel_action2.1).
 
 - 1999-04-16 Tony Mann. Rewritten to separate segments and tracts,
-  following mail.tony.1998-11-02.10-26
+  following `mail.tony.1998-11-02.10-26`_.
+
+  .. _mail.tony.1998-11-02.10-26: https://info.ravenbrook.com/project/mps/mail/1998/11/02/10-26/0.txt
 
 - 2002-06-07 RB_ Converted from MMInfo database design document.
 
