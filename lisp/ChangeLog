@@ -1,5 +1,9 @@
 2014-09-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/pcase.el (pcase--split-match, pcase--app-subst-match):
+	Handle the case where `match' is :pcase--succeed or :pcase--fail
+	(bug#18554).
+
 	Introduce global-eldoc-mode.  Move Elisp-specific code to elisp-mode.el.
 	* emacs-lisp/eldoc.el (global-eldoc-mode): New minor mode.
 	(eldoc-schedule-timer): Obey it.

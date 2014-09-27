@@ -435,12 +435,12 @@ MATCH is the pattern that needs to be matched, of the form:
 
 (defun pcase--split-match (sym splitter match)
   (cond
-    ((eq (car match) 'match)
+    ((eq (car-safe match) 'match)
      (if (not (eq sym (cadr match)))
          (cons match match)
        (let ((res (funcall splitter (cddr match))))
          (cons (or (car res) match) (or (cdr res) match)))))
-    ((memq (car match) '(or and))
+    ((memq (car-safe match) '(or and))
      (let ((then-alts '())
            (else-alts '())
            (neutral-elem (if (eq 'or (car match))
@@ -460,6 +460,7 @@ MATCH is the pattern that needs to be matched, of the form:
                    ((null else-alts) neutral-elem)
                    ((null (cdr else-alts)) (car else-alts))
                    (t (cons (car match) (nreverse else-alts)))))))
+    ((memq match '(:pcase--succeed :pcase--fail)) (cons match match))
     (t (error "Uknown MATCH %s" match))))
 
 (defun pcase--split-rest (sym splitter rest)
@@ -570,17 +571,18 @@ MATCH is the pattern that needs to be matched, of the form:
 
 (defun pcase--app-subst-match (match sym fun nsym)
   (cond
-   ((eq (car match) 'match)
+   ((eq (car-safe match) 'match)
     (if (and (eq sym (cadr match))
              (eq 'app (car-safe (cddr match)))
              (equal fun (nth 1 (cddr match))))
         (pcase--match nsym (nth 2 (cddr match)))
       match))
-   ((memq (car match) '(or and))
+   ((memq (car-safe match) '(or and))
     `(,(car match)
       ,@(mapcar (lambda (match)
                   (pcase--app-subst-match match sym fun nsym))
                 (cdr match))))
+   ((memq match '(:pcase--succeed :pcase--fail)) match)
    (t (error "Uknown MATCH %s" match))))
 
 (defun pcase--app-subst-rest (rest sym fun nsym)
