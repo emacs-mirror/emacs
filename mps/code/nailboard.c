@@ -413,7 +413,12 @@ Res NailboardDescribe(Nailboard board, mps_lib_FILE *stream, Count depth)
   if (stream == NULL)
     return ResFAIL;
 
-  res = WriteF(stream, depth, "Nailboard $P {\n", (WriteFP)board, NULL);
+  res = WriteF(stream, depth,
+               "Nailboard $P {\n", (WriteFP)board,
+               "  levels: $U\n", (WriteFU)board->levels,
+               "  newNails: $S\n", WriteFYesNo(board->newNails),
+               "  alignShift: $U\n", (WriteFU)board->alignShift,
+               NULL);
   if (res != ResOK)
     return res;
 
@@ -421,22 +426,18 @@ Res NailboardDescribe(Nailboard board, mps_lib_FILE *stream, Count depth)
   if (res != ResOK)
     return res;
 
-  res = WriteF(stream, depth + 2,
-               "levels: $U\n", (WriteFU)board->levels,
-               "newNails: $S\n", board->newNails ? "TRUE" : "FALSE",
-               "alignShift: $U\n", (WriteFU)board->alignShift,
-               NULL);
-
   for(i = 0; i < board->levels; ++i) {
     Count levelNails = nailboardLevelBits(nailboardNails(board), i);
     Count resetNails = BTCountResRange(board->level[i], 0, levelNails);
     res = WriteF(stream, depth + 2, "Level $U ($U bits, $U set): ",
-                 i, levelNails, levelNails - resetNails, NULL);
+                 (WriteFU)i, (WriteFU)levelNails,
+                 (WriteFU)(levelNails - resetNails),
+                 NULL);
     if (res != ResOK)
       return res;
     for (j = 0; j < levelNails; ++j) {
       char c = BTGet(board->level[i], j) ? '*' : '.';
-      res = WriteF(stream, 0, "$C", c, NULL);
+      res = WriteF(stream, 0, "$C", (WriteFC)c, NULL);
       if (res != ResOK)
         return res;
     }

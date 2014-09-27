@@ -382,10 +382,10 @@ Res LandDescribe(Land land, mps_lib_FILE *stream, Count depth)
   res = WriteF(stream, depth,
                "Land $P {\n", (WriteFP)land,
                "  class $P", (WriteFP)land->class,
-               " (\"$S\")\n", land->class->name,
+               " (\"$S\")\n", (WriteFS)land->class->name,
                "  arena $P\n", (WriteFP)land->arena,
                "  align $U\n", (WriteFU)land->alignment,
-               "  inLand: $U\n", (WriteFU)land->inLand,
+               "  inLand $S\n", WriteFYesNo(land->inLand),
                NULL);
   if (res != ResOK)
     return res;

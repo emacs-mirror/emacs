@@ -160,6 +160,7 @@ extern Res WriteF(mps_lib_FILE *stream, Count depth, ...);
 extern Res WriteF_v(mps_lib_FILE *stream, Count depth, va_list args);
 extern Res WriteF_firstformat_v(mps_lib_FILE *stream, Count depth,
                                 const char *firstformat, va_list args);
+#define WriteFYesNo(condition) ((WriteFS)((condition) ? "YES" : "NO"))
 
 
 /* Miscellaneous support -- see <code/mpm.c> */

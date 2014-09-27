@@ -342,11 +342,14 @@ static Res MFSDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
   AVER(stream != NULL);
 
   res = WriteF(stream, depth,
-               "unrounded unit size $W\n", (WriteFW)mfs->unroundedUnitSize,
-               "unit size $W\n",           (WriteFW)mfs->unitSize,
-               "extent size $W\n",         (WriteFW)mfs->extendBy,
-               "free list begins at $P\n", (WriteFP)mfs->freeList,
-               "tract list begin at $P\n", (WriteFP)mfs->tractList,
+               "unroundedUnitSize $W\n", (WriteFW)mfs->unroundedUnitSize,
+               "extendBy $W\n", (WriteFW)mfs->extendBy,
+               "extendSelf $S\n", WriteFYesNo(mfs->extendSelf),
+               "unitSize $W\n", (WriteFW)mfs->unitSize,
+               "freeList $P\n", (WriteFP)mfs->freeList,
+               "total $W\n", (WriteFW)mfs->total,
+               "free $W\n", (WriteFW)mfs->free,
+               "tractList $P\n", (WriteFP)mfs->tractList,
                NULL);
   if(res != ResOK) return res;
 

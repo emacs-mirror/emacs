@@ -14,6 +14,8 @@
 /* GenParamStruct -- structure for specifying generation parameters */
 /* .gen-param: This structure must match <code/mps.h#gen-param>. */
 
+typedef struct GenParamStruct *GenParam;
+
 typedef struct GenParamStruct {
   Size capacity; /* capacity in kB */
   double mortality;
@@ -69,14 +71,14 @@ typedef struct mps_chain_s {
   RingStruct chainRing; /* list of chains in the arena */
   TraceSet activeTraces; /* set of traces collecting this chain */
   size_t genCount; /* number of generations */
-  GenDescStruct *gens; /* the array of generations */
+  GenDesc gens; /* the array of generations */
 } ChainStruct;
 
 
 extern Res GenDescDescribe(GenDesc gen, mps_lib_FILE *stream, Count depth);
 
 extern Res ChainCreate(Chain *chainReturn, Arena arena, size_t genCount,
-                       GenParamStruct *params);
+                       GenParam params);
 extern void ChainDestroy(Chain chain);
 extern Bool ChainCheck(Chain chain);
 

@@ -389,7 +389,7 @@ Res EventWrite(Event event, mps_lib_FILE *stream)
 
 #define EVENT_WRITE(X, name, code, always, kind) \
   case code: \
-    res = WriteF(stream, 0, " $S", #name, \
+    res = WriteF(stream, 0, " $S", (WriteFS)#name, \
                  EVENT_##name##_PARAMS(EVENT_WRITE_PARAM, name) \
                  NULL); \
     if (res != ResOK) return res; \
@@ -397,7 +397,8 @@ Res EventWrite(Event event, mps_lib_FILE *stream)
   EVENT_LIST(EVENT_WRITE, X)
 
   default:
-    res = WriteF(stream, 0, " <unknown code $U>", event->any.code, NULL);
+    res = WriteF(stream, 0, " <unknown code $U>",
+                 (WriteFU)event->any.code, NULL);
     if (res != ResOK) return res;
     /* TODO: Hexdump unknown event contents. */
     break;
