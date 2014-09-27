@@ -27,7 +27,9 @@ _`.source`: req.dylan(6), req.epcore(16), req.product(2)
 
 _`.background`: design.mps.poolmv(0), design.mps.poolepdl(0),
 design.product.soft.drop(0), paper.wil95(1), paper.vo96(0),
-paper.grun92(1), paper.beck82(0), mail.ptw.1998-02-25.22-18(0)
+paper.grun92(1), paper.beck82(0), `mail.ptw.1998-02-25.22-18`_.
+
+.. _mail.ptw.1998-02-25.22-18: https://info.ravenbrook.com/project/mps/mail/1998/02/25/22-18/0.txt
 
 
 Definitions
@@ -817,7 +819,9 @@ freeing. Standard checking and description should be provided.
 collected pools, but no manual pool currently does.]
 
 _`.impl.c.future`: The implementation should not preclude "buffered
-free" (mail.ptw.1997-12-05.19-07(0), ff.) being added in the future.
+free" (`mail.ptw.1997-12-05.19-07`_) being added in the future.
+
+.. _mail.ptw.1997-12-05.19-07: https://info.ravenbrook.com/project/mps/mail/1997/12/05/19-07/0.txt
 
 _`.impl.c.parameters`: The pool parameters are calculated as follows
 from the input parameters: minimum, mean, and maximum size are taked
@@ -959,7 +963,9 @@ proc.release.epcore(2).test)
 Text
 ----
 
-Possible tweaks (from mail.pekka.1998-04-15.13-10(0)):
+Possible tweaks (from `mail.pekka.1998-04-15.13-10`_):
+
+.. _mail.pekka.1998-04-15.13-10: https://info.ravenbrook.com/project/mps/mail/1998/04/15/13-10/0.txt
 
 - Try to coalesce splinters returned from AP's with the front (or any)
   block on the ABQ.
@@ -973,16 +979,24 @@ B. Document History
 -------------------
 
 - 1998-02-04 PTW Initial e-mail discussion. See thread starting with
-  mail.ptw.1998-02-04.21-27(0).
+  `mail.ptw.1998-02-04.21-27`_.
+
+  .. _mail.ptw.1998-02-04.21-27: https://info.ravenbrook.com/project/mps/mail/1998/02/04/21-27/0.txt
 
 - 1998-02-13 PTW Initial draft based on e-mail request for comments.
-  See thread starting with mail.ptw.1998-02-12.03-36.
+  See thread starting with `mail.ptw.1998-02-12.03-36`_.
+
+  .. _mail.ptw.1998-02-12.03-36: https://info.ravenbrook.com/project/mps/mail/1998/02/12/03-36/0.txt
 
 - 1998-04-01 PTW Revised in response to e-mail request for comments.
-  See thread starting with mail.ptw.1998-03-23.20-43(0).
+  See thread starting with `mail.ptw.1998-03-23.20-43`_.
+
+  .. _mail.ptw.1998-03-23.20-43: https://info.ravenbrook.com/project/mps/mail/1998/03/23/20-43/0.txt
 
 - 1998-04-15 PTW Revised in response to e-mail request for comments.
-  See thread starting with mail.ptw.1998-04-13.21-40(0).
+  See thread starting with `mail.ptw.1998-04-13.21-40`_.
+
+  .. _mail.ptw.1998-04-13.21-40: https://info.ravenbrook.com/project/mps/mail/1998/04/13/21-40/0.txt
 
 - 1998-05-06 PTW Revised in response to review
   review.design.mps.poolmv2.2(0).

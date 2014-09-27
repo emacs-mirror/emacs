@@ -33,8 +33,12 @@ benefits of object-oriented class inheritance to maximize code reuse,
 minimize code maintenance and minimize the use of boilerplate code.
 
 _`.purpose.related`: For related discussion, see
-mail.tony.1998-08-28.16-26(0), mail.tony.1998-09-01.11-38(0),
-mail.tony.1998-10-06.11-03(0) and other messages in the same threads.
+`mail.tony.1998-08-28.16-26`_, `mail.tony.1998-09-01.11-38`_,
+`mail.tony.1998-10-06.11-03`_ and other messages in the same threads.
+
+.. _mail.tony.1998-10-06.11-03: https://info.ravenbrook.com/project/mps/mail/1998/10/06/11-03/0.txt
+.. _mail.tony.1998-09-01.11-38: https://info.ravenbrook.com/project/mps/mail/1998/09/01/11-38/0.txt
+.. _mail.tony.1998-08-28.16-26: https://info.ravenbrook.com/project/mps/mail/1998/08/28/16-26/0.txt
 
 
 Requirements
@@ -330,7 +334,9 @@ specialized methods for ``coerceClass`` and ``coerceInst`` to be
 written (see `.overview.coerce-class`_ and `.overview.coerce-inst`_).
 Documentation on support for multiple inheritance is under
 construction. This facility is not currently used. The basic idea is
-described in mail.tony.1998-10-06.11-03(0).
+described in `mail.tony.1998-10-06.11-03`_.
+
+.. _mail.tony.1998-10-06.11-03: https://info.ravenbrook.com/project/mps/mail/1998/10/06/11-03/0.txt
 
 
 Protocol guidelines

@@ -21,8 +21,11 @@ the MPS.
 _`.readership`: This document is intended for any MPS developer.
 
 _`.source`: Various meetings and brainstorms, including
-meeting.general.1997-03-04(0), mail.richard.1997-07-03.17-01(0),
-mail.gavinm.1997-05-01.12-40(0).
+meeting.general.1997-03-04(0), `mail.richard.1997-07-03.17-01`_,
+`mail.gavinm.1997-05-01.12-40`_.
+
+.. _mail.gavinm.1997-05-01.12-40: https://info.ravenbrook.com/project/mps/mail/1997/05/01/12-40/0.txt
+.. _mail.richard.1997-07-03.17-01: https://info.ravenbrook.com/project/mps/mail/1997/07/03/17-01/0.txt
 
 
 Overview

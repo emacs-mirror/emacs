@@ -281,10 +281,10 @@ extern unsigned CheckLevel;
 /* COMPAT* -- type compatibility checking
  *
  * .check.macros: The COMPAT* macros use some C trickery to attempt to
- * verify that certain types and fields are equivalent.  They do not
- * do a complete job.  This trickery is justified by the security gained
- * in knowing that <code/mps.h> matches the MPM.  See also
- * mail.richard.1996-08-07.09-49.  [This paragraph is intended to
+ * verify that certain types and fields are equivalent. They do not do
+ * a complete job. This trickery is justified by the security gained
+ * in knowing that <code/mps.h> matches the MPM. See
+ * <design/interface-c/#check.types>. [This paragraph is intended to
  * satisfy rule.impl.trick.]
  */
 

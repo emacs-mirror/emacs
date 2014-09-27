@@ -198,11 +198,14 @@ adjust the pointer and the size for alloc and free, to put down the
 fenceposts during alloc, and to check them; to avoid slowing down all
 allocation, this would require some MOPping to make the format class
 affect the choice of the alloc and free methods (see
-mail.pekka.1998-06-11.18-18).
+`mail.pekka.1998-06-11.18-18`_).
+
+.. _mail.pekka.1998-06-11.18-18: https://info.ravenbrook.com/project/mps/mail/1998/06/11/18-18/0.txt
 
 _`.fence.wrapper.alloc.size`: We could just communicate the size of
 the fenceposts between the format and the allocation routines, but
-then you couldn't use variable fenceposts (.fence.wrapper.variable).
+then you couldn't use variable fenceposts
+(`.fence.wrapper.variable`_).
 
 .. note::
 
@@ -415,7 +418,9 @@ Document History
 - 1998-09-10 Pekka Pirinen The first draft merely records all the
   various ideas about fenceposting that came up in discussions in
   June, July and September 1998. This includes the format wrapping
-  idea from mail.ptw.1998-06-19.21-13(0).
+  idea from `mail.ptw.1998-06-19.21-13`_.
+
+  .. _mail.ptw.1998-06-19.21-13: https://info.ravenbrook.com/project/mps/mail/1998/06/19/21-13/0.txt
 
 - 2002-06-07 RB_ Converted from MMInfo database design document.
 

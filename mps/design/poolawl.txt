@@ -40,7 +40,9 @@ Must satisfy request.dylan.170123_.
 _`.req.obj-format`: Only objects of a certain format need be
 supported. This format is a subset of the Dylan Object Format. The
 pool uses the first slot in the fixed part of an object to store an
-association. See mail.drj.1997-03-11.12-05
+association. See `mail.drj.1997-03-11.12-05`_.
+
+.. _mail.drj.1997-03-11.12-05: https://info.ravenbrook.com/project/mps/mail/1997/03/11/12-05/0.txt
 
 
 Definitions

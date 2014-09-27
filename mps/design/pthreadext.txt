@@ -90,9 +90,10 @@ summary, a small number of POSIX functions are defined to be
 restriction in signal handlers. All other POSIX functions are
 considered to be unsafe. Behaviour is undefined if an unsafe function
 is interrupted by a signal and the signal handler then proceeds to
-call another unsafe function. See mail.tony.1999-08-24.15-40(0)and
+call another unsafe function. See `mail.tony.1999-08-24.15-40`_ and
 followups for some further analysis.
 
+.. _mail.tony.1999-08-24.15-40: https://info.ravenbrook.com/project/mps/mail/1999/08/24/15-40/0.txt
 .. _sigaction: http://www.opengroup.org/onlinepubs/007908799/xsh/sigaction.html
 
 _`.anal.signal.safety.implication`: Since we can't assume that we

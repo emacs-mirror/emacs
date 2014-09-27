@@ -8,8 +8,7 @@
  * .purpose: Rings are used to manage potentially unbounded collections
  * of things.
  *
- * .sources: <design/ring/>,
- *   item 6 of mail.richard_brooksby.1996-03-25.16-02
+ * .sources: <design/ring/>
  */
 
 #include "ring.h"
@@ -21,9 +20,10 @@ SRCID(ring, "$Id$");
 
 /* RingCheck, RingCheckSingle -- check the validity of a ring node
  *
- * RingCheck performs a consistency check on the ring node.
- * RingCheckSingle performs the same check, but also checks that
- * the ring node is a singleton (<design/ring/#def.singleton>).
+ * RingCheck performs a consistency check on the ring node
+ * (<design/ring#check>). RingCheckSingle performs the same check, but
+ * also checks that the ring node is a singleton
+ * (<design/ring/#check.single>).
  */
 
 Bool RingCheck(Ring ring)
@@ -46,11 +46,24 @@ Bool RingCheckSingle(Ring ring)
   return TRUE;
 }
 
+
+/* RingIsSingle -- return true if ring is a singleton
+ *
+ * See <design/ring/#is.single>
+ */
+
 Bool RingIsSingle(Ring ring)
 {
   AVERT(Ring, ring);
   return (ring->next == ring);
 }
+
+
+/* RingLength -- return the number of nodes in the ring, not including
+ * this node
+ *
+ * See <design/ring/#length>
+ */
 
 Size RingLength(Ring ring)
 {

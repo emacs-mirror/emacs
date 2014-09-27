@@ -22,8 +22,10 @@ hexadecimal digits.
 _`.readership`: This document is intended for anyone devising
 arbitrary constants which may appear in hex-dumps.
 
-_`.sources`: This transliteration was supplied by RichardK in
-mail.richardk.1997-04-07.13-44.
+_`.sources`: This transliteration was supplied by RHSK in
+`mail.richardk.1997-04-07.13-44`_.
+
+.. _mail.richardk.1997-04-07.13-44: https://info.ravenbrook.com/project/mps/mail/1997/04/07/13-44/0.txt 
 
 
 Transliteration

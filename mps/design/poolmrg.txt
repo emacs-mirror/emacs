@@ -518,7 +518,9 @@ Future
 ------
 
 _`.future.array`: In future, for speed or simplicity, this pool could
-be rewritten to use an array. See mail.gavinm.1997-09-04.13-08(0).
+be rewritten to use an array. See `mail.gavinm.1997-09-04.13-08`_.
+
+.. _mail.gavinm.1997-09-04.13-08: https://info.ravenbrook.com/project/mps/mail/1997/09/04/13-08/0.txt
 
 
 Tests

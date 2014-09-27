@@ -48,11 +48,12 @@ the archives if you can't find what you want here.
     2006-06-09.
 
 _`.source.synchronize`: For a discussion of the synchronization
-issues:
+issues, see `mail.richard.1995-05-19.17-10`_,
+`mail.ptw.1995-05-19.19-15`_, and `mail.richard.1995-05-24.10-18`_.
 
-* `mail.richard.1995-05-19.17-10 </project/mps/mail/1995/05/19/17-10/0.txt>`_
-* `mail.ptw.1995-05-19.19-15 </project/mps/mail/1995/05/19/19-15/0.txt>`_
-* `mail.richard.1995-05-24.10-18 </project/mps/mail/1995/05/24/10-18/0.txt>`_
+.. _mail.richard.1995-05-19.17-10: https://info.ravenbrook.com/project/mps/mail/1995/05/19/17-10/0.txt
+.. _mail.ptw.1995-05-19.19-15: https://info.ravenbrook.com/project/mps/mail/1995/05/19/19-15/0.txt
+.. _mail.richard.1995-05-24.10-18: https://info.ravenbrook.com/project/mps/mail/1995/05/24/10-18/0.txt
 
 .. note::
 
@@ -60,33 +61,39 @@ issues:
     incorrect. The operations should be in the other order. DRJ.
 
 _`.source.interface`: For a description of the buffer interface in C
-prototypes:
+prototypes, see `mail.richard.1997-04-28.09-25`_.
 
-* `mail.richard.1997-04-28.09-25(0) </project/mps/mail/1997/04/28/09-25/0.txt>`_
+.. _mail.richard.1997-04-28.09-25: https://info.ravenbrook.com/project/mps/mail/1997/04/28/09-25/0.txt
 
 _`.source.qa`: Discussions with QA were useful in pinning down the
 semantics and understanding of some obscure but important boundary
-cases. See the thread starting
-`mail.richard.tucker.1997-05-12.09-45(0)
-</project/mps/mail/1997/05/12/09-45/0.txt>`_ with subject "notes on
-our allocation points discussion":
+cases. See the thread with subject "notes on our allocation points
+discussion" and messages `mail.richard.tucker.1997-05-12.09-45`_,
+`mail.ptw.1997-05-12.12-46`_, `mail.richard.1997-05-12.13-15`_,
+`mail.richard.1997-05-12.13-28`_, `mail.ptw.1997-05-13.15-15`_,
+`mail.sheep.1997-05-14.11-52`_, `mail.rit.1997-05-15.09-19`_,
+`mail.ptw.1997-05-15.21-22`_, `mail.ptw.1997-05-15.21-35`_,
+`mail.rit.1997-05-16.08-02`_, `mail.rit.1997-05-16.08-42`_,
+`mail.ptw.1997-05-16.12-36`_, `mail.ptw.1997-05-16.12-47`_,
+`mail.richard.1997-05-19.15-46`_, `mail.richard.1997-05-19.15-56`_,
+and `mail.ptw.1997-05-20.20-47`_.
 
-* `mail.richard.tucker.1997-05-12.09-45 </project/mps/mail/1997/05/12/09-45/0.txt>`_
-* `mail.ptw.1997-05-12.12-46(1) </project/mps/mail/1997/05/12/12-46/1.txt>`_
-* `mail.richard.1997-05-12.13-15 </project/mps/mail/1997/05/12/13-15/0.txt>`_
-* `mail.richard.1997-05-12.13-28 </project/mps/mail/1997/05/12/13-28/0.txt>`_
-* `mail.ptw.1997-05-13.15-15 </project/mps/mail/1997/05/13/15-15/0.txt>`_
-* `mail.sheep.1997-05-14.11-52 </project/mps/mail/1997/05/14/11-52/0.txt>`_
-* `mail.rit.1997-05-15.09-19 </project/mps/mail/1997/05/15/09-19/0.txt>`_
-* `mail.ptw.1997-05-15.21-22 </project/mps/mail/1997/05/15/21-22/0.txt>`_
-* `mail.ptw.1997-05-15.21-35 </project/mps/mail/1997/05/15/21-35/0.txt>`_
-* `mail.rit.1997-05-16.08-02 </project/mps/mail/1997/05/16/08-02/0.txt>`_
-* `mail.rit.1997-05-16.08-42 </project/mps/mail/1997/05/16/08-42/0.txt>`_
-* `mail.ptw.1997-05-16.12-36 </project/mps/mail/1997/05/16/12-36/0.txt>`_
-* `mail.ptw.1997-05-16.12-47 </project/mps/mail/1997/05/16/12-47/0.txt>`_
-* `mail.richard.1997-05-19.15-46 </project/mps/mail/1997/05/19/15-46/0.txt>`_
-* `mail.richard.1997-05-19.15-56 </project/mps/mail/1997/05/19/15-56/0.txt>`_
-* `mail.ptw.1997-05-20.20-47 </project/mps/mail/1997/05/20/20-47/0.txt>`_
+.. _mail.richard.tucker.1997-05-12.09-45: https://info.ravenbrook.com/project/mps/mail/1997/05/12/09-45/0.txt
+.. _mail.ptw.1997-05-12.12-46: https://info.ravenbrook.com/project/mps/mail/1997/05/12/12-46/1.txt
+.. _mail.richard.1997-05-12.13-15: https://info.ravenbrook.com/project/mps/mail/1997/05/12/13-15/0.txt
+.. _mail.richard.1997-05-12.13-28: https://info.ravenbrook.com/project/mps/mail/1997/05/12/13-28/0.txt
+.. _mail.ptw.1997-05-13.15-15: https://info.ravenbrook.com/project/mps/mail/1997/05/13/15-15/0.txt
+.. _mail.sheep.1997-05-14.11-52: https://info.ravenbrook.com/project/mps/mail/1997/05/14/11-52/0.txt
+.. _mail.rit.1997-05-15.09-19: https://info.ravenbrook.com/project/mps/mail/1997/05/15/09-19/0.txt
+.. _mail.ptw.1997-05-15.21-22: https://info.ravenbrook.com/project/mps/mail/1997/05/15/21-22/0.txt
+.. _mail.ptw.1997-05-15.21-35: https://info.ravenbrook.com/project/mps/mail/1997/05/15/21-35/0.txt
+.. _mail.rit.1997-05-16.08-02: https://info.ravenbrook.com/project/mps/mail/1997/05/16/08-02/0.txt
+.. _mail.rit.1997-05-16.08-42: https://info.ravenbrook.com/project/mps/mail/1997/05/16/08-42/0.txt
+.. _mail.ptw.1997-05-16.12-36: https://info.ravenbrook.com/project/mps/mail/1997/05/16/12-36/0.txt
+.. _mail.ptw.1997-05-16.12-47: https://info.ravenbrook.com/project/mps/mail/1997/05/16/12-47/0.txt
+.. _mail.richard.1997-05-19.15-46: https://info.ravenbrook.com/project/mps/mail/1997/05/19/15-46/0.txt
+.. _mail.richard.1997-05-19.15-56: https://info.ravenbrook.com/project/mps/mail/1997/05/19/15-56/0.txt
+.. _mail.ptw.1997-05-20.20-47: https://info.ravenbrook.com/project/mps/mail/1997/05/20/20-47/0.txt
 
 
 

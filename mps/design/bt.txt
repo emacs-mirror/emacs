@@ -206,10 +206,12 @@ _`.req.speed.fast`: The following operations shall be very fast:
   (design.mps.poolams(2)), ``PoolClassEPVM`` (design.mps.poolepvm(0)).
   Of these AWL and EPVM have speed requirements. For AWL the length of
   range to be found will be the length of a Dylan table in words.
-  According to mail.tony.1999-05-05.11-36(0), only <entry-vector>
+  According to `mail.tony.1999-05-05.11-36`_, only <entry-vector>
   objects are allocated in AWL (though not all <entry-vector> objects
   are allocated in AWL), and the mean length of an <entry-vector>
   object is 486 Words. No data for EPVM alas.
+
+  .. _mail.tony.1999-05-05.11-36: https://info.ravenbrook.com/project/mps/mail/1999/05/05/11-36/0.txt 
 
 _`.req.speed.fast.other.why`: We might expect mark and sweep pools to
 make use of Bit Tables, the MPS has general requirements to support
