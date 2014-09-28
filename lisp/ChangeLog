@@ -1,3 +1,9 @@
+2014-09-28  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	Font-lock `cl-flet*', too.
+	* emacs-lisp/lisp-mode.el (lisp-cl-font-lock-keywords-2):
+	Add "flet*" to intermediate var `cl-lib-kw'.
+
 2014-09-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* epg-config.el (epg-gpg-program): Use the plain program names rather

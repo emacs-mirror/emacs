@@ -233,7 +233,7 @@
                            "etypecase" "ccase" "ctypecase" "loop" "do" "do*"
                            "the" "locally" "proclaim" "declaim" "letf" "go"
                            ;; "lexical-let" "lexical-let*"
-                           "symbol-macrolet" "flet" "destructuring-bind"
+                           "symbol-macrolet" "flet" "flet*" "destructuring-bind"
                            "labels" "macrolet" "tagbody" "multiple-value-bind"
                            "block" "return" "return-from"))
               (cl-lib-errs '("assert" "check-type"))
