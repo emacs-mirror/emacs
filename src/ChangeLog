@@ -1,3 +1,8 @@
+2014-09-28  Ken Brown  <kbrown@cornell.edu>
+
+	* sheap.c (bss_sbrk_buffer_beg): Remove redundant variable.
+	* gmalloc.c [CYGWIN]: Adapt to change in sheap.c.
+
 2014-09-27  Ken Brown  <kbrown@cornell.edu>
 
 	Fix implementation of HYBRID_MALLOC on Cygwin.
