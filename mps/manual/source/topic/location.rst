@@ -161,19 +161,22 @@ At this point you must:
 For example, in the case of a hash table you should rehash based on
 the new locations of the blocks.
 
-.. code-block:: c
-    :emphasize-lines: 6
+In the toy Scheme interpreter this behaviour is encapsulated into ``table_find``:
 
-    static obj_t table_ref(obj_t tbl, obj_t key)
+.. code-block:: c
+    :emphasize-lines: 7
+
+    static struct bucket_s *table_find(obj_t tbl, obj_t buckets, obj_t key, int add)
     {
-        struct bucket_s *b = buckets_find(tbl, tbl->table.buckets, key, NULL);
-        if (b && b->key != NULL && b->key != obj_deleted)
-            return b->value;
-        if (mps_ld_isstale(&tbl->table.ld, arena, key)) {
+        struct bucket_s *b;
+        assert(TYPE(tbl) == TYPE_TABLE);
+        b = buckets_find(tbl, tbl->table.buckets, key, add);
+        if ((b == NULL || b->key == NULL || b->key == obj_deleted)
+            && mps_ld_isstale(&tbl->table.ld, arena, key))
+        {
             b = table_rehash(tbl, tbl->table.buckets->buckets.length, key);
-            if (b) return b->value;
         }
-        return NULL;
+        return b;
     }
 
 After :c:func:`mps_ld_isstale` has returned true, and you've rehashed
@@ -189,6 +192,17 @@ back to a non-address-based version of the computation: here, since
 ``table_rehash`` has to loop over all the entries in the table anyway,
 it might as well find the bucket containing ``key`` at the same time
 and return it.
+
+.. warning::
+
+    Don't forget to check for staleness when setting a key in a table.
+    If the key is stale then it would be a mistake to add it to the
+    table as then the key will be present twice, at the positions
+    given by the hash of its old and new addresses, thus violating the
+    invariant of the hash table (that a key appears at most once).
+
+    Similarly, staleness must be tested when deleting a key from a
+    table.
 
 
 .. index::
