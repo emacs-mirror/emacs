@@ -800,13 +800,13 @@ static int string_equalp(obj_t obj1, obj_t obj2)
           0 == strcmp(obj1->string.string, obj2->string.string));
 }
 
-static int buckets_find(obj_t tbl, buckets_t buckets, obj_t key, mps_ld_t ld, size_t *b)
+static int buckets_find(obj_t tbl, buckets_t buckets, obj_t key, int add, size_t *b)
 {
   unsigned long i, h, probe;
   unsigned long l = UNTAG_COUNT(buckets->length) - 1;
   int result = 0;
   assert(TYPE(tbl) == TYPE_TABLE);
-  h = tbl->table.hash(key, ld);
+  h = tbl->table.hash(key, add ? &tbl->table.ld : NULL);
   probe = (h >> 8) | 1;
   h &= l;
   i = h;
@@ -863,7 +863,7 @@ static int table_rehash(obj_t tbl, size_t new_length, obj_t key, size_t *key_buc
     if (old_key != obj_unused && old_key != obj_deleted) {
       int found;
       size_t b;
-      found = buckets_find(tbl, new_keys, old_key, &tbl->table.ld, &b);
+      found = buckets_find(tbl, new_keys, old_key, 1, &b);
       assert(found);            /* new table shouldn't be full */
       assert(new_keys->bucket[b] == obj_unused); /* shouldn't be in new table */
       new_keys->bucket[b] = old_key;
@@ -887,18 +887,28 @@ static int table_rehash(obj_t tbl, size_t new_length, obj_t key, size_t *key_buc
  * moved by the garbage collector: in this case we need to re-hash the
  * table. See topic/location.
  */
+static int table_find(obj_t tbl, buckets_t buckets, obj_t key, int add, size_t *b)
+{
+  if (!buckets_find(tbl, tbl->table.keys, key, add, b)) {
+    return 0;
+  } else if ((tbl->table.keys->bucket[*b] == obj_unused
+              || tbl->table.keys->bucket[*b] == obj_deleted)
+             && mps_ld_isstale(&tbl->table.ld, arena, key)) {
+    return table_rehash(tbl, UNTAG_COUNT(tbl->table.keys->length), key, b);
+  } else {
+    return 1;
+  }
+}
+
 static obj_t table_ref(obj_t tbl, obj_t key)
 {
   size_t b;
   assert(TYPE(tbl) == TYPE_TABLE);
-  if (buckets_find(tbl, tbl->table.keys, key, NULL, &b)) {
+  if (table_find(tbl, tbl->table.keys, key, 0, &b)) {
     obj_t k = tbl->table.keys->bucket[b];
     if (k != obj_unused && k != obj_deleted)
       return tbl->table.values->bucket[b];
   }
-  if (mps_ld_isstale(&tbl->table.ld, arena, key))
-    if (table_rehash(tbl, UNTAG_COUNT(tbl->table.keys->length), key, &b))
-      return tbl->table.values->bucket[b];
   return NULL;
 }
 
@@ -906,7 +916,7 @@ static int table_try_set(obj_t tbl, obj_t key, obj_t value)
 {
   size_t b;
   assert(TYPE(tbl) == TYPE_TABLE);
-  if (!buckets_find(tbl, tbl->table.keys, key, &tbl->table.ld, &b))
+  if (!table_find(tbl, tbl->table.keys, key, 1, &b))
     return 0;
   if (tbl->table.keys->bucket[b] == obj_unused) {
     tbl->table.keys->bucket[b] = key;
@@ -942,17 +952,9 @@ static void table_delete(obj_t tbl, obj_t key)
 {
   size_t b;
   assert(TYPE(tbl) == TYPE_TABLE);
-  if(!buckets_find(tbl, tbl->table.keys, key, NULL, &b) ||
-     tbl->table.keys->bucket[b] == obj_unused ||
-     tbl->table.keys->bucket[b] == obj_deleted)
-  {
-    if(!mps_ld_isstale(&tbl->table.ld, arena, key))
-      return;
-    if(!table_rehash(tbl, UNTAG_COUNT(tbl->table.keys->length), key, &b))
-      return;
-  }
-  if(tbl->table.keys->bucket[b] != obj_unused &&
-     tbl->table.keys->bucket[b] != obj_deleted) 
+  if(table_find(tbl, tbl->table.keys, key, 0, &b)
+     && tbl->table.keys->bucket[b] != obj_unused
+     && tbl->table.keys->bucket[b] != obj_deleted) 
   {
     tbl->table.keys->bucket[b] = obj_deleted;
     tbl->table.keys->deleted

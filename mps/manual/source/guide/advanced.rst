@@ -228,12 +228,12 @@ not been updated to match.
     11736, 1> ht
     #[hashtable (two 2) (three 3) (one 1)]
 
-The MPS solves this problem with its :dfn:`location dependency` feature:
-a structure of type :c:type:`mps_ld_s` encapsulates a set of
+The MPS solves this problem with its :dfn:`location dependency`
+feature: a structure of type :c:type:`mps_ld_s` encapsulates a set of
 dependencies on the locations of blocks. You add addresses to the
-location dependency, and then test to see if it has been made
-:dfn:`stale`: that is, if any of the blocks whose location has been
-depended on might have moved since their location was depended upon.
+location dependency, and then later test an address to see if it is
+:dfn:`stale`: that is, if the block at that address might have moved
+since its location was depended upon.
 
 You need to provide space for the :c:type:`mps_ld_s` structure. In the
 case of a hash table, it is most convenient to inline it in the hash
@@ -324,9 +324,9 @@ any of its keys.
 
 .. note::
 
-    The garbage collector may run at any time, so the table may become
-    be stale at any time after calling :c:func:`mps_ld_add`, perhaps
-    even before you've added the new key.
+    The garbage collector may run at any time, so a key may become
+    stale at any time after calling :c:func:`mps_ld_add`, perhaps even
+    before you've added it!
 
     It's best to postpone worrying about this until this key is actually
     looked up, when the staleness will be discovered. After all, it may
@@ -339,19 +339,22 @@ function :c:func:`mps_ld_isstale` tells you if a block whose
 location you depended upon since the last call to
 :c:func:`mps_ld_reset` might have moved.
 
-.. code-block:: c
-    :emphasize-lines: 6
+In the toy Scheme interpreter this behaviour is encapsulated into ``table_find``:
 
-    static obj_t table_ref(obj_t tbl, obj_t key)
+.. code-block:: c
+    :emphasize-lines: 7
+
+    static struct bucket_s *table_find(obj_t tbl, obj_t buckets, obj_t key, int add)
     {
-        struct bucket_s *b = buckets_find(tbl, tbl->table.buckets, key, NULL);
-        if (b && b->key != NULL && b->key != obj_deleted)
-            return b->value;
-        if (mps_ld_isstale(&tbl->table.ld, arena, key)) {
+        struct bucket_s *b;
+        assert(TYPE(tbl) == TYPE_TABLE);
+        b = buckets_find(tbl, tbl->table.buckets, key, add);
+        if ((b == NULL || b->key == NULL || b->key == obj_deleted)
+            && mps_ld_isstale(&tbl->table.ld, arena, key))
+        {
             b = table_rehash(tbl, tbl->table.buckets->buckets.length, key);
-            if (b) return b->value;
         }
-        return NULL;
+        return b;
     }
 
 It's important to test :c:func:`mps_ld_isstale` only in case of
@@ -380,8 +383,9 @@ By adding the line::
 
     puts("stale!");
 
-after :c:func:`mps_ld_isstale` returns true, it's possible to see when
-the location dependency becomes stale and the table has to be rehashed.
+in ``table_find`` after :c:func:`mps_ld_isstale` returns true, it's
+possible to see when the location dependency becomes stale and the
+table has to be rehashed:
 
 .. code-block:: none
     :emphasize-lines: 21, 23
@@ -422,43 +426,28 @@ the location dependency becomes stale and the table has to be rehashed.
     move in the collection, so it's not found in the table, and that
     causes :c:func:`mps_ld_isstale` to be tested.
 
-Don't forget to check the location dependency for staleness if you are
-about to delete a key from a hash table but discover that it's not
-there. In the toy Scheme interpreter, deletion looks like this:
-
-.. code-block:: c
-    :emphasize-lines: 6
-
-    static void table_delete(obj_t tbl, obj_t key)
-    {
-        struct bucket_s *b;
-        assert(TYPE(tbl) == TYPE_TABLE);
-        b = buckets_find(tbl, tbl->table.buckets, key, NULL);
-        if ((b == NULL || b->key == NULL) && mps_ld_isstale(&tbl->table.ld, arena, key)) {
-            b = table_rehash(tbl, tbl->table.buckets->buckets.length, key);
-        }
-        if (b != NULL && b->key != NULL) {
-            b->key = obj_deleted;
-            ++ tbl->table.buckets->buckets.deleted;
-        }
-    }
-
-Again, by adding the line ``puts("stale!");`` after
-:c:func:`mps_ld_isstale` returns true, it's possible to see when the
-location dependency becomes stale and the table has to be rehashed:
+Don't forget to check the location dependency for staleness when
+setting a value for key in a hash table, and when deleting a key from
+a hash table. Here's an interaction with the toy Scheme interpreter
+showing a key being found to be stale when setting and when deleting
+it:
 
 .. code-block:: none
 
     MPS Toy Scheme Example
     13248, 0> (define ht (make-eq-hashtable))
     ht
-    13624, 0> (hashtable-set! ht 'one 1)
+    13624, 0> (hashtable-set! ht 'a 1)
     13808, 0> (gc)
+    13832, 1> (hashtable-set! ht 'a 2)
+    stale!
     13832, 1> (hashtable-delete! ht 'one)
     stale!
-    14112, 1> ht
+    14152, 1> (gc)
+    14176, 2> (hashtable-delete! ht 'a)
+    stale!
+    14456, 2> ht
     #[hashtable]
-
 
 
 .. topics::
