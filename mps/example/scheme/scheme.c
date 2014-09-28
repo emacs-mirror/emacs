@@ -874,13 +874,13 @@ static int string_equalp(obj_t obj1, obj_t obj2)
           0 == strcmp(obj1->string.string, obj2->string.string));
 }
 
-static struct bucket_s *buckets_find(obj_t tbl, obj_t buckets, obj_t key, mps_ld_t ld)
+static struct bucket_s *buckets_find(obj_t tbl, obj_t buckets, obj_t key, int add)
 {
   unsigned long i, h, probe;
   struct bucket_s *result = NULL;
   assert(TYPE(tbl) == TYPE_TABLE);
   assert(TYPE(buckets) == TYPE_BUCKETS);
-  h = tbl->table.hash(key, ld);
+  h = tbl->table.hash(key, add ? &tbl->table.ld : NULL);
   probe = (h >> 8) | 1;
   h &= (buckets->buckets.length-1);
   i = h;
@@ -927,7 +927,7 @@ static struct bucket_s *table_rehash(obj_t tbl, size_t new_length, obj_t key)
   for (i = 0; i < tbl->table.buckets->buckets.length; ++i) {
     struct bucket_s *old_b = &tbl->table.buckets->buckets.bucket[i];
     if (old_b->key != NULL && old_b->key != obj_deleted) {
-      struct bucket_s *b = buckets_find(tbl, new_buckets, old_b->key, &tbl->table.ld);
+      struct bucket_s *b = buckets_find(tbl, new_buckets, old_b->key, 1);
       assert(b != NULL);	/* new table shouldn't be full */
       assert(b->key == NULL);	/* shouldn't be in new table */
       *b = *old_b;
@@ -946,17 +946,26 @@ static struct bucket_s *table_rehash(obj_t tbl, size_t new_length, obj_t key)
  * moved by the garbage collector: in this case we need to re-hash the
  * table. See topic/location.
  */
+static struct bucket_s *table_find(obj_t tbl, obj_t buckets, obj_t key, int add)
+{
+  struct bucket_s *b;
+  assert(TYPE(tbl) == TYPE_TABLE);
+  b = buckets_find(tbl, tbl->table.buckets, key, add);
+  if ((b == NULL || b->key == NULL || b->key == obj_deleted)
+      && mps_ld_isstale(&tbl->table.ld, arena, key))
+  {
+    b = table_rehash(tbl, tbl->table.buckets->buckets.length, key);
+  }
+  return b;
+}
+
 static obj_t table_ref(obj_t tbl, obj_t key)
 {
   struct bucket_s *b;
   assert(TYPE(tbl) == TYPE_TABLE);
-  b = buckets_find(tbl, tbl->table.buckets, key, NULL);
+  b = table_find(tbl, tbl->table.buckets, key, 0);
   if (b && b->key != NULL && b->key != obj_deleted)
     return b->value;
-  if (mps_ld_isstale(&tbl->table.ld, arena, key)) {
-    b = table_rehash(tbl, tbl->table.buckets->buckets.length, key);
-    if (b) return b->value;
-  }
   return NULL;
 }
 
@@ -964,7 +973,7 @@ static int table_try_set(obj_t tbl, obj_t key, obj_t value)
 {
   struct bucket_s *b;
   assert(TYPE(tbl) == TYPE_TABLE);
-  b = buckets_find(tbl, tbl->table.buckets, key, &tbl->table.ld);
+  b = table_find(tbl, tbl->table.buckets, key, 1);
   if (b == NULL)
     return 0;
   if (b->key == NULL) {
@@ -1000,11 +1009,8 @@ static void table_delete(obj_t tbl, obj_t key)
 {
   struct bucket_s *b;
   assert(TYPE(tbl) == TYPE_TABLE);
-  b = buckets_find(tbl, tbl->table.buckets, key, NULL);
-  if ((b == NULL || b->key == NULL) && mps_ld_isstale(&tbl->table.ld, arena, key)) {
-    b = table_rehash(tbl, tbl->table.buckets->buckets.length, key);
-  }
-  if (b != NULL && b->key != NULL) {
+  b = table_find(tbl, tbl->table.buckets, key, 0);
+  if (b && b->key != NULL && b->key != obj_deleted) {
     b->key = obj_deleted;
     ++ tbl->table.buckets->buckets.deleted;
   }
