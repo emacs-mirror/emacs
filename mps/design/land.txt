@@ -239,7 +239,7 @@ that lies entirely within the ``zoneSet``, return its range via the
 ``rangeReturn`` argument, set ``*foundReturn`` to ``TRUE``, and return
 ``ResOK``. (The first such block, if ``high`` is ``FALSE``, or the
 last, if ``high`` is ``TRUE``.) If there is no such block, set
-``*foundReturn`` to ``TRUE``, and return ``ResOK``.
+``*foundReturn`` to ``FALSE``, and return ``ResOK``.
 
 Delete the range as for ``LandFindFirst()`` and ``LastFindLast()``
 (with the effect of ``FindDeleteLOW`` if ``high`` is ``FALSE`` and the
