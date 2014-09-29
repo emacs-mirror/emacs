@@ -1,3 +1,28 @@
+2014-09-29  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Keep stack-allocated Lisp objects fast rather than versatile.
+	* lisp.h (union Aligned_Cons) [!GCALIGNED]: Define as such.
+	(SCOPED_CONS_INITIALIZER): New macro.
+	(scoped_cons) [USE_STACK_LISP_OBJECTS]: Use it.
+	(USE_LOCAL_ALLOCA): Remove.
+	(local_cons, local_list1, local_list2, local_list3, local_list4):
+	Remove.  Stack overflow checking makes them too slow.
+	(make_local_vector): Likewise.  Also we just don't have enough
+	users for it.
+	(enum LISP_STRING_OVERHEAD): Remove.
+	(local_string_init, local_vector_init): Remove prototypes.
+	(make_local_string, build_local_string): Redesign to target short
+	compile-time string constants, fall back to regular string allocation
+	where appropriate.
+	(lisp_string_size): New function.
+	(verify_ascii) [ENABLE_CHECKING]: Add prototype.
+	* alloc.c (local_string_init, local_vector_init): Remove.
+	(verify_ascii) [ENABLE_CHECKING]: New function.
+	* buffer.c, charset.c, chartab.c, data.c, editfns.c, emacs.c, fileio.c:
+	* fns.c, font.c, fontset.c, frame.c, keyboard.c, keymap.c, lread.c:
+	* menu.c, minibuf.c, process.c, textprop.c, xdisp.c, xfns.c, xfont.c:
+	* xselect.c, xterm.c: All related users changed.
+
 2014-09-28  Ken Brown  <kbrown@cornell.edu>
 
 	* sheap.c (bss_sbrk_buffer_beg): Remove redundant variable.

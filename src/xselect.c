@@ -2159,7 +2159,6 @@ x_clipboard_manager_save (Lisp_Object frame)
 static Lisp_Object
 x_clipboard_manager_error_1 (Lisp_Object err)
 {
-  USE_LOCAL_ALLOCA;
   Fmessage (2, ((Lisp_Object [])
     { build_local_string ("X clipboard manager error: %s\n\
 If the problem persists, set `x-select-enable-clipboard-manager' to nil."),
@@ -2213,7 +2212,6 @@ void
 x_clipboard_manager_save_all (void)
 {
   /* Loop through all X displays, saving owned clipboards.  */
-  USE_LOCAL_ALLOCA;
   struct x_display_info *dpyinfo;
   Lisp_Object local_selection, local_frame;
 

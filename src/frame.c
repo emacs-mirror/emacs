@@ -4122,7 +4122,6 @@ Lisp_Object
 x_get_arg (Display_Info *dpyinfo, Lisp_Object alist, Lisp_Object param,
 	   const char *attribute, const char *class, enum resource_types type)
 {
-  USE_LOCAL_ALLOCA;
   Lisp_Object tem;
 
   tem = Fassq (param, alist);

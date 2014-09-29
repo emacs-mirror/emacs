@@ -1420,7 +1420,6 @@ to the font specifications for TARGET previously set.  If it is
 appended.  By default, FONT-SPEC overrides the previous settings.  */)
   (Lisp_Object name, Lisp_Object target, Lisp_Object font_spec, Lisp_Object frame, Lisp_Object add)
 {
-  USE_LOCAL_ALLOCA;
   Lisp_Object fontset;
   Lisp_Object font_def, registry, family;
   Lisp_Object range_list;

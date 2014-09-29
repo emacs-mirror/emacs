@@ -4838,17 +4838,6 @@ if test "$emacs_cv_struct_alignment" = yes; then
      structure to an N-byte boundary.])
 fi
 
-AC_CACHE_CHECK([for statement expressions],
-  [emacs_cv_statement_expressions],
-  [AC_COMPILE_IFELSE(
-     [AC_LANG_PROGRAM([], [[return ({ int x = 5; x-x; });]])],
-     [emacs_cv_statement_expressions=yes],
-     [emacs_cv_statement_expressions=no])])
-if test "$emacs_cv_statement_expressions" = yes; then
-  AC_DEFINE([HAVE_STATEMENT_EXPRESSIONS], 1,
-    [Define to 1 if statement expressions work.])
-fi
-
 if test "${GNU_MALLOC}" = "yes" ; then
   AC_DEFINE(GNU_MALLOC, 1,
 	    [Define to 1 if you want to use the GNU memory allocator.])

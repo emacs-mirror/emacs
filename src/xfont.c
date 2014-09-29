@@ -677,7 +677,6 @@ xfont_list_family (struct frame *f)
 static Lisp_Object
 xfont_open (struct frame *f, Lisp_Object entity, int pixel_size)
 {
-  USE_LOCAL_ALLOCA;
   Display_Info *dpyinfo = FRAME_DISPLAY_INFO (f);
   Display *display = dpyinfo->display;
   char name[512];
@@ -776,7 +775,7 @@ xfont_open (struct frame *f, Lisp_Object entity, int pixel_size)
       if (dashes >= 13)
 	{
 	  len = xfont_decode_coding_xlfd (p0, -1, name);
-	  fullname = Fdowncase (make_local_string (name, len));
+	  fullname = Fdowncase (make_string (name, len));
 	}
       XFree (p0);
     }

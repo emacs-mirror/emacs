@@ -1004,7 +1004,6 @@ wrong_choice (Lisp_Object choice, Lisp_Object wrong)
 static void
 wrong_range (Lisp_Object min, Lisp_Object max, Lisp_Object wrong)
 {
-  USE_LOCAL_ALLOCA;
   xsignal2 (Qerror, Fconcat (4, ((Lisp_Object [])
     { build_local_string ("Value should be from "),
       Fnumber_to_string (min),

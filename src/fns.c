@@ -2706,7 +2706,6 @@ If dialog boxes are supported, a dialog box will be used
 if `last-nonmenu-event' is nil, and `use-dialog-box' is non-nil.  */)
   (Lisp_Object prompt)
 {
-  USE_LOCAL_ALLOCA;
   Lisp_Object ans;
   struct gcpro gcpro1;
 

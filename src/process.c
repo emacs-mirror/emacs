@@ -592,7 +592,6 @@ decode_status (Lisp_Object l, Lisp_Object *symbol, int *code, bool *coredump)
 static Lisp_Object
 status_message (struct Lisp_Process *p)
 {
-  USE_LOCAL_ALLOCA;
   Lisp_Object status = p->status;
   Lisp_Object symbol;
   int code;
@@ -1291,8 +1290,6 @@ number in the string, even when present in ADDRESS.
 Returns nil if format of ADDRESS is invalid.  */)
   (Lisp_Object address, Lisp_Object omit_port)
 {
-  USE_LOCAL_ALLOCA;
-
   if (NILP (address))
     return Qnil;
 
@@ -4006,7 +4003,6 @@ static EMACS_INT connect_counter = 0;
 static void
 server_accept_connection (Lisp_Object server, int channel)
 {
-  USE_LOCAL_ALLOCA;
   Lisp_Object proc, caller, name, buffer;
   Lisp_Object contact, host, service;
   struct Lisp_Process *ps= XPROCESS (server);

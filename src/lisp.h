@@ -3705,8 +3705,6 @@ extern Lisp_Object make_uninit_bool_vector (EMACS_INT);
 extern Lisp_Object bool_vector_fill (Lisp_Object, Lisp_Object);
 extern _Noreturn void string_overflow (void);
 extern Lisp_Object make_string (const char *, ptrdiff_t);
-extern Lisp_Object local_string_init (struct Lisp_String *, char const *,
-				      ptrdiff_t);
 extern Lisp_Object make_formatted_string (char *, const char *, ...)
   ATTRIBUTE_FORMAT_PRINTF (2, 3);
 extern Lisp_Object make_unibyte_string (const char *, ptrdiff_t);
@@ -3795,8 +3793,6 @@ extern struct Lisp_Hash_Table *allocate_hash_table (void);
 extern struct window *allocate_window (void);
 extern struct frame *allocate_frame (void);
 extern struct Lisp_Process *allocate_process (void);
-extern Lisp_Object local_vector_init (struct Lisp_Vector *, ptrdiff_t,
-				      Lisp_Object);
 extern struct terminal *allocate_terminal (void);
 extern bool gc_in_progress;
 extern bool abort_on_gc;
@@ -4602,16 +4598,24 @@ lisp_word_count (ptrdiff_t nbytes)
 
 
 /* If USE_STACK_LISP_OBJECTS, define macros that and functions that allocate
-   block-scoped conses and function-scoped vectors and strings.  These objects
-   are not managed by the garbage collector, so they are dangerous: passing
-   them out of their scope (e.g., to user code) results in undefined behavior.
+   block-scoped conses and function-scoped strings.  These objects are not
+   managed by the garbage collector, so they are dangerous: passing them
+   out of their scope (e.g., to user code) results in undefined behavior.
    Conversely, they have better performance because GC is not involved.
 
    This feature is experimental and requires careful debugging.  It's enabled
    by default if GCC or a compiler that mimics GCC well (like Intel C/C++) is
    used, except clang (see notice above).  For other compilers, brave users can
-   compile with CPPFLAGS='-DUSE_STACK_LISP_OBJECTS' to get into the game.
+   compile with CPPFLAGS='-DUSE_STACK_LISP_OBJECTS=1' to get into the game.
    Note that this feature requires GC_MARK_STACK == GC_MAKE_GCPROS_NOOPS.  */
+
+#ifdef GCALIGNED
+
+/* No tricks if struct Lisp_Cons is always aligned.  */
+
+# define SCOPED_CONS_INITIALIZER(a, b) &((struct Lisp_Cons) { a, { b } })
+
+#else /* not GCALIGNED */
 
 /* A struct Lisp_Cons inside a union that is no larger and may be
    better-aligned.  */
@@ -4621,153 +4625,89 @@ union Aligned_Cons
   struct Lisp_Cons s;
   double d; intmax_t i; void *p;
 };
+
+verify (alignof (union Aligned_Cons) % GCALIGNMENT == 0);
 verify (sizeof (struct Lisp_Cons) == sizeof (union Aligned_Cons));
 
-/* Allocate a block-scoped cons.  */
+# define SCOPED_CONS_INITIALIZER(a, b)		\
+    &((union Aligned_Cons) { { a, { b } } }.s)
 
-#define scoped_cons(car, cdr)						\
-   ((USE_STACK_LISP_OBJECTS						\
-     && alignof (union Aligned_Cons) % GCALIGNMENT == 0)		\
-    ? make_lisp_ptr (&((union Aligned_Cons) {{car, {cdr}}}).s, Lisp_Cons) \
-    : Fcons (car, cdr))
+#endif /* GCALIGNED */
 
-/* Convenient utility macros similar to listX functions.  */
+/* Basic stack-based cons allocation.  */
 
 #if USE_STACK_LISP_OBJECTS
+# define scoped_cons(a, b) \
+    make_lisp_ptr (SCOPED_CONS_INITIALIZER (a, b), Lisp_Cons)
 # define scoped_list1(a) scoped_cons (a, Qnil)
 # define scoped_list2(a, b) scoped_cons (a, scoped_list1 (b))
 # define scoped_list3(a, b, c) scoped_cons (a, scoped_list2 (b, c))
 # define scoped_list4(a, b, c, d) scoped_cons (a, scoped_list3 (b, c, d))
 #else
+# define scoped_cons(a, b) Fcons (a, b)
 # define scoped_list1(a) list1 (a)
 # define scoped_list2(a, b) list2 (a, b)
 # define scoped_list3(a, b, c) list3 (a, b, c)
 # define scoped_list4(a, b, c, d) list4 (a, b, c, d)
 #endif
 
-/* Local allocators require both statement expressions and a
-   GCALIGNMENT-aligned alloca.  clang's alloca isn't properly aligned
-   in some cases.  In the absence of solid information, play it safe
-   for other non-GCC compilers.  */
-#if (USE_STACK_LISP_OBJECTS && HAVE_STATEMENT_EXPRESSIONS \
-     && __GNUC__ && !__clang__)
-# define USE_LOCAL_ALLOCATORS
+/* On-stack string allocation requires __builtin_constant_p, statement
+   expressions and GCALIGNMENT-aligned alloca.  All from the above is
+   assumed for GCC.  At least for clang < 3.6, alloca isn't properly
+   aligned in some cases.  In the absence of solid information, play
+   it safe for other non-GCC compilers.  */
+
+#if USE_STACK_LISP_OBJECTS && __GNUC__ && !__clang__
+
+/* Used to check whether stack-allocated strings are ASCII-only.  */
+
+#ifdef ENABLE_CHECKING
+extern const char * verify_ascii (const char *);
+#else
+#define verify_ascii(str) (str)
 #endif
 
-/* Any function that uses a local allocator should start with either
-   'USE_SAFE_ALLOCA; or 'USE_LOCAL_ALLOCA;' (but not both).  */
-#ifdef USE_LOCAL_ALLOCATORS
-# define USE_LOCAL_ALLOCA ptrdiff_t sa_avail = MAX_ALLOCA
-#else
-# define USE_LOCAL_ALLOCA
-#endif
+/* Return number of bytes needed for Lisp string of length NBYTES.  */
 
-#ifdef USE_LOCAL_ALLOCATORS
-
-/* Return a function-scoped cons whose car is X and cdr is Y.  */
-
-# define local_cons(x, y)						\
-    (sizeof (struct Lisp_Cons) <= sa_avail				\
-     ? ({								\
-	  struct Lisp_Cons *c_ = AVAIL_ALLOCA (sizeof (struct Lisp_Cons)); \
-	  c_->car = (x);						\
-	  c_->u.cdr = (y);						\
-	  make_lisp_ptr (c_, Lisp_Cons);				\
-       })								\
-     : Fcons (x, y))
-
-# define local_list1(a) local_cons (a, Qnil)
-# define local_list2(a, b) local_cons (a, local_list1 (b))
-# define local_list3(a, b, c) local_cons (a, local_list2 (b, c))
-# define local_list4(a, b, c, d) local_cons (a, local_list3 (b, c, d))
-
-/* Return a function-scoped vector of length SIZE, with each element
-   being INIT.  */
-
-# define make_local_vector(size, init)					\
-    ({									\
-       ptrdiff_t size_ = size;						\
-       Lisp_Object vec_;						\
-       if (size_ <= lisp_word_count (sa_avail - header_size))		\
-	 {								\
-	   void *ptr_ = AVAIL_ALLOCA (size_ * word_size + header_size);	\
-	   vec_ = local_vector_init (ptr_, size_, init);		\
-	 }								\
-       else								\
-	 vec_ = Fmake_vector (make_number (size_), init);		\
-       vec_;								\
-    })
-
-enum { LISP_STRING_OVERHEAD = sizeof (struct Lisp_String) + 1 };
-
-/* Return a function-scoped string with contents DATA and length NBYTES.  */
-
-# define make_local_string(data, nbytes) 				\
-    ({									\
-       ptrdiff_t nbytes_ = nbytes;					\
-       Lisp_Object string_;						\
-       if (nbytes_ <= sa_avail - LISP_STRING_OVERHEAD)			\
-	 {								\
-	   struct Lisp_String *ptr_ = AVAIL_ALLOCA (LISP_STRING_OVERHEAD \
-						    + nbytes_);		\
-	   string_ = local_string_init (ptr_, data, nbytes_);		\
-	 }								\
-       else								\
-	 string_ = make_string (data, nbytes_);				\
-       string_;								\
-    })
-
-/* Return a function-scoped string with contents DATA.  */
-
-# define build_local_string(data)			\
-    ({ char const *data1_ = (data);			\
-       make_local_string (data1_, strlen (data1_)); })
-
-#else
-
-/* Safer but slower implementations.  */
-INLINE Lisp_Object
-local_cons (Lisp_Object car, Lisp_Object cdr)
+INLINE ptrdiff_t
+lisp_string_size (ptrdiff_t nbytes)
 {
-  return Fcons (car, cdr);
+  return sizeof (struct Lisp_String) + nbytes + 1;
 }
-INLINE Lisp_Object
-local_list1 (Lisp_Object a)
-{
-  return list1 (a);
-}
-INLINE Lisp_Object
-local_list2 (Lisp_Object a, Lisp_Object b)
-{
-  return list2 (a, b);
-}
-INLINE Lisp_Object
-local_list3 (Lisp_Object a, Lisp_Object b, Lisp_Object c)
-{
-  return list3 (a, b, c);
-}
-INLINE Lisp_Object
-local_list4 (Lisp_Object a, Lisp_Object b, Lisp_Object c, Lisp_Object d)
-{
-  return list4 (a, b, c, d);
-}
-INLINE Lisp_Object
-make_local_vector (ptrdiff_t size, Lisp_Object init)
-{
-  return Fmake_vector (make_number (size), init);
-}
-INLINE Lisp_Object
-make_local_string (char const *str, ptrdiff_t nbytes)
-{
-  return make_string (str, nbytes);
-}
+
+/* Return function-scoped unibyte Lisp string with contents STR of length
+   NBYTES and memory footprint of MEMSIZE bytes if the latter doesn't exceed
+   MAX_ALLOCA, abort otherwise.  */
+
+# define make_local_string(str, memsize, nbytes)		\
+    ((memsize < MAX_ALLOCA)					\
+      ? ({ struct Lisp_String *s_ = alloca (memsize);		\
+	   s_->data = (unsigned char *) (s_ + 1);		\
+	   memcpy (s_->data, verify_ascii (str), nbytes + 1);	\
+	   s_->size = nbytes, s_->size_byte = -1;		\
+	   s_->intervals = NULL;				\
+	   make_lisp_ptr (s_, Lisp_String); })			\
+     : (emacs_abort (), Qnil))
+
+/* If STR is a compile-time string constant, build function-scoped Lisp string
+   from it, fall back to regular Lisp string otherwise.  We assume compile-time
+   string constants never exceeds MAX_ALLOCA - sizeof (Lisp_String) - 1.  */
+
+# define build_local_string(str)				\
+    (__builtin_constant_p (str)					\
+     ? make_local_string					\
+         (str, lisp_string_size (strlen (str)), strlen (str))	\
+     : build_string (str))
+
+#else /* not USE_STACK_LISP_OBJECTS && __GNUC__ && !__clang__ */
+
 INLINE Lisp_Object
 build_local_string (const char *str)
 {
   return build_string (str);
 }
-#endif
 
+#endif /* not USE_STACK_LISP_OBJECTS && __GNUC__ && !__clang__ */
 
 /* Loop over all tails of a list, checking for cycles.
    FIXME: Make tortoise and n internal declarations.

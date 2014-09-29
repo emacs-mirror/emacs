@@ -1511,7 +1511,6 @@ list first, followed by the list of all buffers.  If no other buffer
 exists, return the buffer `*scratch*' (creating it if necessary).  */)
   (Lisp_Object buffer, Lisp_Object visible_ok, Lisp_Object frame)
 {
-  USE_LOCAL_ALLOCA;
   struct frame *f = decode_any_frame (frame);
   Lisp_Object tail = f->buffer_list, pred = f->buffer_predicate;
   Lisp_Object buf, notsogood = Qnil;
@@ -1570,7 +1569,6 @@ exists, return the buffer `*scratch*' (creating it if necessary).  */)
 Lisp_Object
 other_buffer_safely (Lisp_Object buffer)
 {
-  USE_LOCAL_ALLOCA;
   Lisp_Object tail, buf;
 
   FOR_EACH_LIVE_BUFFER (tail, buf)
@@ -5240,7 +5238,6 @@ init_buffer_once (void)
 void
 init_buffer (int initialized)
 {
-  USE_LOCAL_ALLOCA;
   char *pwd;
   Lisp_Object temp;
   ptrdiff_t len;

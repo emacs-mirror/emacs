@@ -3531,7 +3531,6 @@ properties to add to the result.
 usage: (propertize STRING &rest PROPERTIES)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
-  USE_LOCAL_ALLOCA;
   Lisp_Object properties, string;
   struct gcpro gcpro1, gcpro2;
   ptrdiff_t i;
@@ -3548,7 +3547,7 @@ usage: (propertize STRING &rest PROPERTIES)  */)
   string = Fcopy_sequence (args[0]);
 
   for (i = 1; i < nargs; i += 2)
-    properties = local_cons (args[i], local_cons (args[i + 1], properties));
+    properties = Fcons (args[i], Fcons (args[i + 1], properties));
 
   Fadd_text_properties (make_number (0),
 			make_number (SCHARS (string)),
@@ -4363,7 +4362,6 @@ usage: (format STRING &rest OBJECTS)  */)
 Lisp_Object
 format2 (const char *string1, Lisp_Object arg0, Lisp_Object arg1)
 {
-  USE_LOCAL_ALLOCA;
   return Fformat (3, ((Lisp_Object [])
     { build_local_string (string1), arg0, arg1 }));
 }

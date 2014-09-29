@@ -357,7 +357,6 @@ int
 font_style_to_value (enum font_property_index prop, Lisp_Object val,
                      bool noerror)
 {
-  USE_LOCAL_ALLOCA;
   Lisp_Object table = AREF (font_style_table, prop - FONT_WEIGHT_INDEX);
   int len;
 
@@ -402,7 +401,7 @@ font_style_to_value (enum font_property_index prop, Lisp_Object val,
       ASET (elt, 1, val);
       ASET (font_style_table, prop - FONT_WEIGHT_INDEX,
 	    Fvconcat (2, ((Lisp_Object [])
-	      { table, make_local_vector (1, elt) })));
+	      { table, Fmake_vector (make_number (1), elt) })));
       return (100 << 8) | (i << 4);
     }
   else
@@ -1050,7 +1049,6 @@ font_expand_wildcards (Lisp_Object *field, int n)
 int
 font_parse_xlfd (char *name, ptrdiff_t len, Lisp_Object font)
 {
-  USE_LOCAL_ALLOCA;
   int i, j, n;
   char *f[XLFD_LAST_INDEX + 1];
   Lisp_Object val;
@@ -1760,7 +1758,6 @@ font_parse_name (char *name, ptrdiff_t namelen, Lisp_Object font)
 void
 font_parse_family_registry (Lisp_Object family, Lisp_Object registry, Lisp_Object font_spec)
 {
-  USE_LOCAL_ALLOCA;
   ptrdiff_t len;
   char *p0, *p1;
 
@@ -2686,7 +2683,6 @@ static Lisp_Object scratch_font_spec, scratch_font_prefer;
 static Lisp_Object
 font_delete_unmatched (Lisp_Object vec, Lisp_Object spec, int size)
 {
-  USE_LOCAL_ALLOCA;
   Lisp_Object entity, val;
   enum font_property_index prop;
   ptrdiff_t i;
@@ -2717,7 +2713,7 @@ font_delete_unmatched (Lisp_Object vec, Lisp_Object spec, int size)
 	}
       if (NILP (spec))
 	{
-	  val = local_cons (entity, val);
+	  val = Fcons (entity, val);
 	  continue;
 	}
       for (prop = FONT_WEIGHT_INDEX; prop < FONT_SIZE_INDEX; prop++)
@@ -2748,7 +2744,7 @@ font_delete_unmatched (Lisp_Object vec, Lisp_Object spec, int size)
 		   AREF (entity, FONT_AVGWIDTH_INDEX)))
 	prop = FONT_SPEC_MAX;
       if (prop < FONT_SPEC_MAX)
-	val = local_cons (entity, val);
+	val = Fcons (entity, val);
     }
   return (Fvconcat (1, &val));
 }
@@ -5006,7 +5002,6 @@ static Lisp_Object Vfont_log_deferred;
 void
 font_add_log (const char *action, Lisp_Object arg, Lisp_Object result)
 {
-  USE_LOCAL_ALLOCA;
   Lisp_Object val;
   int i;
 

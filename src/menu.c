@@ -324,7 +324,6 @@ single_keymap_panes (Lisp_Object keymap, Lisp_Object pane_name,
 static void
 single_menu_item (Lisp_Object key, Lisp_Object item, Lisp_Object dummy, void *skp_v)
 {
-  USE_LOCAL_ALLOCA;
   Lisp_Object map, item_string, enabled;
   struct gcpro gcpro1, gcpro2;
   bool res;

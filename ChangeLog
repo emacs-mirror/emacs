@@ -1,3 +1,8 @@
+2014-09-29  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* configure.ac (HAVE_STATEMENT_EXPRESSIONS): Remove.
+	For USE_STACK_LISP_OBJECTS, we always assume __GNUC__.
+
 2014-09-27  Ken Brown  <kbrown@cornell.edu>
 
 	* configure.ac [CYGWIN]: Enable sound support.

@@ -1308,7 +1308,6 @@ append_key (Lisp_Object key_sequence, Lisp_Object key)
 static void
 silly_event_symbol_error (Lisp_Object c)
 {
-  USE_LOCAL_ALLOCA;
   Lisp_Object parsed, base, name, assoc;
   int modifiers;
 
@@ -3418,7 +3417,6 @@ describe_vector (Lisp_Object vector, Lisp_Object prefix, Lisp_Object args,
 		 bool partial, Lisp_Object shadow, Lisp_Object entire_map,
 		 bool keymap_p, bool mention_shadow)
 {
-  USE_LOCAL_ALLOCA;
   Lisp_Object definition;
   Lisp_Object tem2;
   Lisp_Object elt_prefix = Qnil;

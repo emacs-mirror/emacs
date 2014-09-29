@@ -396,7 +396,6 @@ terminate_due_to_signal (int sig, int backtrace_limit)
 static void
 init_cmdargs (int argc, char **argv, int skip_args, char *original_pwd)
 {
-  USE_LOCAL_ALLOCA;
   int i;
   Lisp_Object name, dir, handler;
   ptrdiff_t count = SPECPDL_INDEX ();
@@ -2209,7 +2208,6 @@ synchronize_system_messages_locale (void)
 Lisp_Object
 decode_env_path (const char *evarname, const char *defalt, bool empty)
 {
-  USE_LOCAL_ALLOCA;
   const char *path, *p;
   Lisp_Object lpath, element, tem;
   /* Default is to use "." for empty path elements.

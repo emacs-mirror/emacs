@@ -573,7 +573,7 @@ echo_add_key (Lisp_Object c)
 
   kset_echo_string
     (current_kboard,
-     concat2 (echo_string, make_local_string (buffer, ptr - buffer)));
+     concat2 (echo_string, make_string (buffer, ptr - buffer)));
   SAFE_FREE ();
 }
 
@@ -597,8 +597,6 @@ echo_char (Lisp_Object c)
 static void
 echo_dash (void)
 {
-  USE_LOCAL_ALLOCA;
-
   /* Do nothing if not echoing at all.  */
   if (NILP (KVAR (current_kboard, echo_string)))
     return;
@@ -1892,7 +1890,6 @@ safe_run_hooks_1 (ptrdiff_t nargs, Lisp_Object *args)
 static Lisp_Object
 safe_run_hooks_error (Lisp_Object error, ptrdiff_t nargs, Lisp_Object *args)
 {
-  USE_LOCAL_ALLOCA;
   Lisp_Object hook, fun;
 
   eassert (nargs == 2);
@@ -7699,7 +7696,6 @@ menu_item_eval_property (Lisp_Object sexpr)
 bool
 parse_menu_item (Lisp_Object item, int inmenubar)
 {
-  USE_LOCAL_ALLOCA;
   Lisp_Object def, tem, item_string, start;
   Lisp_Object filter;
   Lisp_Object keyhint;
@@ -8523,7 +8519,6 @@ static Lisp_Object
 read_char_minibuf_menu_prompt (int commandflag,
 			       Lisp_Object map)
 {
-  USE_LOCAL_ALLOCA;
   Lisp_Object name;
   ptrdiff_t nlength;
   /* FIXME: Use the minibuffer's frame width.  */
