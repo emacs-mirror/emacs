@@ -257,7 +257,9 @@ part.  This is for the internal use, you should never modify the value.")
 		((string= mode "encrypt")
 		 (setq tags (list "encrypt" method)))
 		((string= mode "signencrypt")
-		 (setq tags (list "sign" method "encrypt" method))))
+		 (setq tags (list "sign" method "encrypt" method)))
+		(t
+		 (error "Unknown secure mode %s" mode)))
 	  (eval `(mml-insert-tag ,secure-mode
 				 ,@tags
 				 ,(if keyfile "keyfile")
