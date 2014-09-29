@@ -1,3 +1,7 @@
+2014-09-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdos.c (internal_terminal_init): Bump version to 25.
+
 2014-09-29  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Keep stack-allocated Lisp objects fast rather than versatile.

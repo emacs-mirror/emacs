@@ -1,3 +1,7 @@
+2014-09-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacsver.texi (EMACSVER): Bump to 20.0.50.
+
 2014-09-15  Daniel Colascione  <dancol@dancol.org>
 
 	* regs.texi (Text Registers): Update end-user documentation

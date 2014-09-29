@@ -1,3 +1,7 @@
+2014-09-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* sed2v2.inp: Bump version to 25.0.50.
+
 2014-08-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* sedlibmk.inp (gl_LIBOBJS): Add execinfo.o.  Reported by Juan

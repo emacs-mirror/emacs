@@ -1,3 +1,9 @@
+2014-09-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* README: Bump version to 25.0.50.
+
+	* configure.ac (AC_INIT): Bump version to 25.0.50.
+
 2014-09-29  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* configure.ac (HAVE_STATEMENT_EXPRESSIONS): Remove.
