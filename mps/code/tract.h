@@ -1,7 +1,7 @@
 /* tract.h: PAGE TABLE INTERFACE
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  */
 
 
@@ -137,7 +137,7 @@ typedef struct ChunkStruct {
   Sig sig;              /* <design/sig/> */
   Serial serial;        /* serial within the arena */
   Arena arena;          /* parent arena */
-  RingStruct chunkRing; /* node in ring of all chunks in arena */
+  RingStruct arenaRing; /* node in ring of all chunks in arena */
   TreeStruct chunkTree; /* node in tree of all chunks in arena */
   Size pageSize;        /* size of pages */
   Shift pageShift;      /* log2 of page size, for shifts */
@@ -255,7 +255,7 @@ extern void PageFree(Chunk chunk, Index pi);
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

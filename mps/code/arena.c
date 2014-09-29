@@ -598,7 +598,7 @@ Res ArenaDescribeTracts(Arena arena, mps_lib_FILE *stream, Count depth)
     return ResFAIL;
 
   RING_FOR(node, &arena->chunkRing, next) {
-    Chunk chunk = RING_ELT(Chunk, chunkRing, node);
+    Chunk chunk = RING_ELT(Chunk, arenaRing, node);
     res = arenaDescribeTractsInChunk(chunk, stream, depth);
     if (res != ResOK)
       return res;
@@ -685,7 +685,7 @@ void ArenaChunkInsert(Arena arena, Chunk chunk) {
   AVER(updatedTree);
   TreeBalance(&updatedTree);
   arena->chunkTree = updatedTree;
-  RingAppend(&arena->chunkRing, &chunk->chunkRing);
+  RingAppend(&arena->chunkRing, &chunk->arenaRing);
 
   /* As part of the bootstrap, the first created chunk becomes the primary
      chunk.  This step allows ArenaFreeLandInsert to allocate pages. */
@@ -743,7 +743,7 @@ static Res arenaAllocPage(Addr *baseReturn, Arena arena, Pool pool)
   if (res != ResOK) {
     Ring node, next;
     RING_FOR(node, &arena->chunkRing, next) {
-      Chunk chunk = RING_ELT(Chunk, chunkRing, node);
+      Chunk chunk = RING_ELT(Chunk, arenaRing, node);
       if (chunk != arena->primary) {
         res = arenaAllocPageInChunk(baseReturn, chunk, pool);
         if (res == ResOK)

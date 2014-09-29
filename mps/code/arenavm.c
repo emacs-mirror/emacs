@@ -660,7 +660,7 @@ static Size VMArenaReserved(Arena arena)
 
   reserved = 0;
   RING_FOR(node, &arena->chunkRing, next) {
-    VMChunk vmChunk = Chunk2VMChunk(RING_ELT(Chunk, chunkRing, node));
+    VMChunk vmChunk = Chunk2VMChunk(RING_ELT(Chunk, arenaRing, node));
     reserved += VMReserved(VMChunkVM(vmChunk));
   }
   return reserved;
