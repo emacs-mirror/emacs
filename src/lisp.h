@@ -216,7 +216,6 @@ extern bool suppress_checking EXTERNALLY_VISIBLE;
     : die (# cond, __FILE__, __LINE__))
 #endif /* ENABLE_CHECKING */
 
-
 /* Use the configure flag --enable-check-lisp-object-type to make
    Lisp_Object use a struct type instead of the default int.  The flag
    causes CHECK_LISP_OBJECT_TYPE to be defined.  */
