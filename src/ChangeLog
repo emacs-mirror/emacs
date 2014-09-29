@@ -1,3 +1,16 @@
+2014-09-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (cursor_row_fully_visible_p): Update commentary.
+	(redisplay_window): Treat the frame's frozen_window_starts flag
+	the same way as the optional_new_start flag for the window: only
+	obey it if the glyph row showing point will be fully visible.
+	Likewise when the window start is in a continuation line.  If,
+	after trying everything under the 'force_start' label, point is
+	still not fully visible, give up and scroll the window.  Add
+	debugging traces.  (Bug#18545)
+
+	* window.c (Frecenter): Set the window's redisplay flag.
+
 2014-09-24  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32term.c (w32_read_socket): Don't use frame dimensions for
