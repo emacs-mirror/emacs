@@ -323,7 +323,6 @@ static void find(TestState state, Size size, Bool high, FindDelete findDelete)
   Bool expected, found;
   Index expectedBase, expectedLimit;
   RangeStruct foundRange, oldRange;
-  Addr remainderBase, remainderLimit;
   Addr origBase, origLimit;
 
   origBase = origLimit = NULL;
@@ -332,23 +331,20 @@ static void find(TestState state, Size size, Bool high, FindDelete findDelete)
                 (Index)0, (Index)state->size, (Count)size);
 
   if (expected) {
-    remainderBase = origBase = addrOfIndex(state, expectedBase);
-    remainderLimit = origLimit = addrOfIndex(state, expectedLimit);
+    origBase = addrOfIndex(state, expectedBase);
+    origLimit = addrOfIndex(state, expectedLimit);
 
     switch(findDelete) {
     case FindDeleteNONE:
       /* do nothing */
       break;
     case FindDeleteENTIRE:
-      remainderBase = remainderLimit;
       break;
     case FindDeleteLOW:
       expectedLimit = expectedBase + size;
-      remainderBase = addrOfIndex(state, expectedLimit);
       break;
     case FindDeleteHIGH:
       expectedBase = expectedLimit - size;
-      remainderLimit = addrOfIndex(state, expectedBase);
       break;
     default:
       cdie(0, "invalid findDelete");
