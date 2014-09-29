@@ -139,7 +139,7 @@ automatically display the image in the buffer."
 extracted from message in a temporary buffer.  Converts to text in current 
 buffer. If NIL, display HTML source."
   :group 'rmail
-  :version "24.5"
+  :version "25.1"
   :type '(choice function (const nil)))
 
 (defcustom rmail-mime-prefer-html
@@ -148,7 +148,7 @@ buffer. If NIL, display HTML source."
   "If non-nil, default to showing HTML part rather than text part
 when both are available"
   :group 'rmail
-  :version "24.5"
+  :version "25.1"
   :type 'boolean)
 
 ;;; End of user options.

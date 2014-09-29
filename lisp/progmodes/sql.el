@@ -284,7 +284,7 @@ file.  Since that is a plaintext file, this could be dangerous."
 
 (defcustom sql-default-directory nil
   "Default directory for SQL processes."
-  :version "24.5"
+  :version "25.1"
   :type '(choice (const nil) string)
   :group 'SQL
   :safe 'stringp)
@@ -5074,20 +5074,20 @@ buffer.
 
 (defcustom sql-vertica-program "vsql"
   "Command to start the Vertica client."
-  :version "24.5"
+  :version "25.1"
   :type 'file
   :group 'SQL)
 
 (defcustom sql-vertica-options '("-P" "pager=off")
   "List of additional options for `sql-vertica-program'.
 The default value disables the internal pager."
-  :version "24.5"
+  :version "25.1"
   :type '(repeat string)
   :group 'SQL)
 
 (defcustom sql-vertica-login-params '(user password database server)
   "List of login parameters needed to connect to Vertica."
-  :version "24.5"
+  :version "25.1"
   :type 'sql-login-params
   :group 'SQL)
 

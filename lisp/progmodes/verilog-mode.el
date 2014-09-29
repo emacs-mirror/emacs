@@ -1027,7 +1027,7 @@ If 'packed', then as many inputs and outputs that fit within
 
 If 'single', then a single input or output will be put onto each
 line."
-  :version "24.5"
+  :version "25.1"
   :type '(radio (const :tag "Line up Assignments and Declarations" packed)
 		(const :tag "Line up Assignment statements" single))
   :group 'verilog-mode-auto)

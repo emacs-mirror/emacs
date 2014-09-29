@@ -59,7 +59,7 @@
 
 (defcustom eww-bookmarks-directory user-emacs-directory
   "Directory where bookmark files will be stored."
-  :version "24.5"
+  :version "25.1"
   :group 'eww
   :type 'string)
 

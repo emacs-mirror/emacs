@@ -684,7 +684,7 @@ Adapted from `font-lock-match-c-style-declaration-item-and-skip-to-next'."
   :group 'font-lock-highlighting-faces)
 
 (define-obsolete-function-alias 'vera-fontify-buffer
-  'font-lock-fontify-buffer "24.5")
+  'font-lock-fontify-buffer "25.1")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Indentation

@@ -3172,7 +3172,7 @@ See `pr-ps-printer-alist'.")
 
 (defmacro pr-save-file-modes (&rest body)
   "Execute BODY with file permissions temporarily set to `pr-file-modes'."
-  (declare (obsolete with-file-modes "24.5"))
+  (declare (obsolete with-file-modes "25.1"))
   `(with-file-modes pr-file-modes ,@body))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

@@ -139,7 +139,7 @@
 (defcustom hide-ifdef-exclude-define-regexp nil
   "Ignore #define names if those names match this exclusion pattern."
   :type 'string
-  :version "24.5")
+  :version "25.1")
 
 (defcustom hide-ifdef-expand-reinclusion-protection t
   "Non-nil means don't hide an entire header file enclosed by #ifndef...#endif.
@@ -161,7 +161,7 @@ be hidden.
 This behavior is generally undesirable.  If this option is non-nil, the outermost
 #if is always visible."
   :type 'boolean
-  :version "24.5")
+  :version "25.1")
 
 (defcustom hide-ifdef-header-regexp
   "\\.h\\(h\\|xx\\|pp\\)?\\'"
@@ -169,7 +169,7 @@ This behavior is generally undesirable.  If this option is non-nil, the outermos
 Effective only if `hide-ifdef-expand-reinclusion-protection' is t."
   :type 'string
   :group 'hide-ifdef
-  :version "24.5")
+  :version "25.1")
 
 (defvar hide-ifdef-mode-submap
   ;; Set up the submap that goes after the prefix key.

@@ -88,7 +88,7 @@
 
 ;;;###autoload
 (define-obsolete-function-alias
-  'capitalized-words-mode 'subword-mode "24.5")
+  'capitalized-words-mode 'subword-mode "25.1")
 
 ;;;###autoload
 (define-minor-mode subword-mode

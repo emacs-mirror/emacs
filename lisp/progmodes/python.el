@@ -1801,7 +1801,7 @@ It should not contain a caret (^) at the beginning."
   :type 'string)
 
 (define-obsolete-variable-alias
-  'python-shell-enable-font-lock 'python-shell-font-lock-enable "24.5")
+  'python-shell-enable-font-lock 'python-shell-font-lock-enable "25.1")
 
 (defcustom python-shell-font-lock-enable t
   "Should syntax highlighting be enabled in the Python shell buffer?
@@ -2179,7 +2179,7 @@ banner and the initial prompt are received separately."
 (define-obsolete-function-alias
   'python-comint-output-filter-function
   'ansi-color-filter-apply
-  "24.5")
+  "25.1")
 
 (defun python-comint-postoutput-scroll-to-bottom (output)
   "Faster version of `comint-postoutput-scroll-to-bottom'.
@@ -2881,7 +2881,7 @@ the full statement in the case of imports."
 (define-obsolete-variable-alias
   'python-shell-completion-pdb-string-code
   'python-shell-completion-string-code
-  "24.5"
+  "25.1"
   "Completion string code must work for (i)pdb.")
 
 (defun python-shell-completion-get-completions (process import input)
@@ -2952,7 +2952,7 @@ using that one instead of current buffer's process."
 (define-obsolete-function-alias
   'python-shell-completion-complete-at-point
   'python-shell-completion-at-point
-  "24.5")
+  "25.1")
 
 (defun python-shell-completion-complete-or-indent ()
   "Complete or indent depending on the context.
@@ -3072,7 +3072,7 @@ inferior Python process is updated properly."
 (define-obsolete-function-alias
   'python-completion-complete-at-point
   'python-completion-at-point
-  "24.5")
+  "25.1")
 
 
 ;;; Fill paragraph

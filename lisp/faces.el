@@ -53,7 +53,7 @@ This means to treat a terminal of type TYPE as if it were of type ALIAS."
   :type '(alist :key-type (string :tag "Terminal")
 		:value-type (string :tag "Alias"))
   :group 'terminals
-  :version "24.5")
+  :version "25.1")
 
 (declare-function xw-defined-colors "term/common-win" (&optional frame))
 

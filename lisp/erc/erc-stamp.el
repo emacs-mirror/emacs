@@ -151,7 +151,7 @@ the minibuffer."
   "Whether the timestamps should be intangible, i.e. prevent the point
 from entering them and instead jump over them."
   :group 'erc-stamp
-  :version "24.5"
+  :version "25.1"
   :type 'boolean)
 
 (defface erc-timestamp-face '((t :weight bold :foreground "green"))

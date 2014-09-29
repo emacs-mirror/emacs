@@ -159,7 +159,7 @@ to bind a single value, BINDINGS can just be a plain tuple."
   "Join all STRINGS using SEPARATOR."
   (mapconcat 'identity strings separator))
 
-(define-obsolete-function-alias 'string-reverse 'reverse "24.5")
+(define-obsolete-function-alias 'string-reverse 'reverse "25.1")
 
 (defsubst string-trim-left (string)
   "Remove leading whitespace from STRING."

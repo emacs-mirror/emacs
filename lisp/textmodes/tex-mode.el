@@ -2579,7 +2579,7 @@ If you use pdflatex instead of latex, set this to \".pdf\" and modify
  `tex-dvi-view-command' and `tex-dvi-print-command' appropriately."
   :type 'string
   :group 'tex-view
-  :version "24.5")
+  :version "25.1")
 
 (defun tex-print (&optional alt)
   "Print the .dvi file made by \\[tex-region], \\[tex-buffer] or \\[tex-file].

@@ -1798,7 +1798,7 @@ When nil, never issue warning.  Beware: This probably doesn't do what you
 think it does, because \"free\" is pretty hard to define in practice."
   :group 'files
   :group 'find-file
-  :version "24.5"
+  :version "25.1"
   :type '(choice integer (const :tag "Never issue warning" nil)))
 
 (defun abort-if-file-too-large (size op-type filename)

@@ -22,7 +22,7 @@ When you add a new item, use the appropriate mark if you are sure it applies,
 otherwise leave it unmarked.
 
 
-* Installation Changes in Emacs 24.5
+* Installation Changes in Emacs 25.1
 
 +++
 ** Building Emacs now requires C99 or later.
@@ -44,10 +44,10 @@ Use './configure PKG_CONFIG=/full/name/of/pkg-config' if you need to.
 'make V=0' now do a better job of suppressing chatter.
 
 
-* Startup Changes in Emacs 24.5
+* Startup Changes in Emacs 25.1
 
 
-* Changes in Emacs 24.5
+* Changes in Emacs 25.1
 
 ** `insert-register' now leaves point after the inserted text
 when called interactively.  A prefix argument toggles this behavior.
@@ -90,7 +90,7 @@ codeset is "UTF-8" (as in "en_US.UTF-8").  This is needed because
 MS-Windows doesn't support UTF-8 as codeset in its locales.
 
 
-* Editing Changes in Emacs 24.5
+* Editing Changes in Emacs 25.1
 
 ** Emacs now supports "bracketed paste mode" when running on a terminal
 that supports it.  This facility allows Emacs to understand pasted
@@ -100,7 +100,7 @@ paste experience similar to that under a window system, and significant
 performance improvements when pasting large amounts of text.
 
 
-* Changes in Specialized Modes and Packages in Emacs 24.5
+* Changes in Specialized Modes and Packages in Emacs 25.1
 
 ** ElDoc
 *** New minor mode global-eldoc-mode
@@ -216,10 +216,10 @@ These emulations of old editors are believed to be no longer relevant
 *** vi.el, vip.el (try M-x viper instead)
 
 
-* New Modes and Packages in Emacs 24.5
+* New Modes and Packages in Emacs 25.1
 
 
-* Incompatible Lisp Changes in Emacs 24.5
+* Incompatible Lisp Changes in Emacs 25.1
 
 ** window-configurations no longer record the buffers's marks.
 
@@ -240,7 +240,7 @@ These slots used to hold key-shortcut data, but have been obsolete since
 Emacs-21.
 
 
-* Lisp Changes in Emacs 24.5
+* Lisp Changes in Emacs 25.1
 
 *** call-process-shell-command and process-file-shell-command
 don't take "&rest args" any more.
@@ -277,7 +277,7 @@ optional repeat-count argument.
     as the first or last argument of subsequent forms.
 
 
-* Changes in Frames and Windows Code in Emacs 24.5
+* Changes in Frames and Windows Code in Emacs 25.1
 
 ** Emacs can now draw horizontal scroll bars on some platforms that
 provide toolkit scroll bars, namely Gtk, Lucid, Motif and Windows.
@@ -311,7 +311,7 @@ fullwidth frames, the behavior may depend on the toolkit used.
    specific frame does not resize that frame in order to preserve the
    number of columns or lines it displays.
 
-* Changes in Emacs 24.5 on Non-Free Operating Systems
+* Changes in Emacs 25.1 on Non-Free Operating Systems
 
 ---
 ** Building Emacs for MS-Windows requires at least Windows XP

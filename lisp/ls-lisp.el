@@ -128,7 +128,7 @@ Collation Algorithm (UCA), which places together file names that
 differ only in punctuation characters.  On MS-Windows, customize
 the option `ls-lisp-UCA-like-collation' to a non-nil value to get
 similar behavior."
-  :version "24.5"
+  :version "25.1"
   :set-after '(ls-lisp-emulation)
   :type 'boolean
   :group 'ls-lisp)
@@ -150,7 +150,7 @@ and `w32-collate-ignore-punctuation' for more details.
 This option is ignored on platforms other than MS-Windows; to
 control the collation ordering of the file names on those other
 systems, set your locale instead."
-  :version "24.5"
+  :version "25.1"
   :type 'boolean
   :group 'ls-lisp)
 

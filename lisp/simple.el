@@ -2515,6 +2515,7 @@ marker adjustment's corresponding (TEXT . POS) element."
   "Test whether UNDO-ELT crosses one edge of that region START ... END.
 This assumes we have already decided that UNDO-ELT
 is not *inside* the region START...END."
+  (declare (obsolete nil "25.1"))
   (cond ((atom undo-elt) nil)
 	((null (car undo-elt))
 	 ;; (nil PROPERTY VALUE BEG . END)
@@ -2525,7 +2526,6 @@ is not *inside* the region START...END."
 	 ;; (BEGIN . END)
 	 (and (< (car undo-elt) end)
 	      (> (cdr undo-elt) start)))))
-(make-obsolete 'undo-elt-crosses-region nil "24.5")
 
 (defun undo-adjust-elt (elt deltas)
   "Return adjustment of undo element ELT by the undo DELTAS
@@ -3758,7 +3758,7 @@ argument should still be a \"useful\" string for such uses."
   "Whether appending to kill ring also makes \\[undo] restore both pieces of text simultaneously."
   :type 'boolean
   :group 'killing
-  :version "24.5")
+  :version "25.1")
 
 (defun kill-append (string before-p)
   "Append STRING to the end of the latest kill in the kill ring.

@@ -692,7 +692,7 @@ details, see the documentation for the variable `diary-list-entries-hook'."
   "Symbol indicating a diary entry according to the Chinese calendar."
   :type 'string
   :group 'diary
-  :version "24.5")
+  :version "25.1")
 
 (define-obsolete-variable-alias 'hebrew-diary-entry-symbol
   'diary-hebrew-entry-symbol "23.1")

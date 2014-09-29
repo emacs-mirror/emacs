@@ -250,7 +250,7 @@ on the current day and continues for the number of days given here.
 
 See `icalendar-export-sexp-enumerate-all' for a list of sexp
 entries which by default are NOT enumerated."
-  :version "24.5"
+  :version "25.1"
   :type 'integer
   :group 'icalendar)
 
@@ -263,7 +263,7 @@ translating into an icalendar equivalent.  This affects the
 following sexp diary entries: `diary-anniversary',
 `diary-cyclic', `diary-date', `diary-float',`diary-block'.  All
 other sexp entries are enumerated in any case."
-  :version "24.5"
+  :version "25.1"
   :type 'boolean
   :group 'icalendar)
 

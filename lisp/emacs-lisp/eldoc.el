@@ -88,7 +88,7 @@ has no effect, unless the function handles it explicitly."
 		(function-item downcase)
                 function)
   :group 'eldoc)
-(make-obsolete-variable 'eldoc-argument-case nil "24.5")
+(make-obsolete-variable 'eldoc-argument-case nil "25.1")
 
 (defcustom eldoc-echo-area-use-multiline-p 'truncate-sym-name-if-fit
   "Allow long ElDoc messages to resize echo area display.

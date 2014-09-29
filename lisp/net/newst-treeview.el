@@ -87,7 +87,7 @@
   "%d.%m.%y, %H:%M"
   "Format for the date column in the treeview list buffer.
 See `format-time-string' for a list of valid specifiers."
-  :version "24.5"
+  :version "25.1"
   :type 'string
   :group 'newsticker-treeview)
 

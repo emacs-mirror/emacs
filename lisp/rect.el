@@ -35,7 +35,7 @@
 
 (defgroup rectangle nil
   "Operations on rectangles."
-  :version "24.5"
+  :version "25.1"
   :group 'editing)
 
 ;; FIXME: this function should be replaced by `apply-on-rectangle'
