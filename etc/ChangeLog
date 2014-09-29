@@ -1,3 +1,7 @@
+2014-09-29  Fabrice Niessen  <fniessen@pirilampo.org>
+
+	* themes/leuven-theme.el: Updates.
+
 2014-09-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* package-keyring.gpg: New file.
