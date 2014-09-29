@@ -1,3 +1,17 @@
+2014-09-28  Ulf Jasper  <ulf.jasper@web.de>
+
+	* url-gw.el (url-open-stream): New optional parameter
+	`gateway-method'.  If non-nil use it instead of global variable
+	`url-gateway-method'.
+
+	* url/url-http.el (url-http): New optional parameter
+	`gateway-method', pass it to `url-http-find-free-connection'.
+	(url-http-find-free-connection): New optional parameter
+	gateway-method, pass it to `url-open-stream'.
+	(url-https-create-secure-wrapper): Do not modify
+	`url-gateway-method' but explicitly provide 'tls as gateway-method
+	parameter to `url-https'.
+
 2014-09-22  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* url.el (url-retrieve-internal): Clarify the docstring.
