@@ -355,7 +355,7 @@ Res EventDescribe(Event event, mps_lib_FILE *stream, Count depth)
                  "  event \"$S\"", (WriteFS)#name, \
                  EVENT_##name##_PARAMS(EVENT_DESC_PARAM, name) \
                  NULL); \
-    if (res != ResOK)
+    if (res != ResOK) \
       return res; \
     break;
 
