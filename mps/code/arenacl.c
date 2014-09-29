@@ -206,6 +206,17 @@ static void ClientChunkFinish(Chunk chunk)
 }
 
 
+/* ClientChunkReserved -- return the amount of reserved address space
+ * in a client chunk.
+ */
+
+static Size ClientChunkReserved(Chunk chunk)
+{
+  AVERT(Chunk, chunk);
+  return ChunkSize(chunk);
+}
+
+
 /* ClientArenaVarargs -- parse obsolete varargs */
 
 static void ClientArenaVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
@@ -344,27 +355,6 @@ static Res ClientArenaExtend(Arena arena, Addr base, Size size)
 }
 
 
-/* ClientArenaReserved -- return the amount of reserved address space */
-
-static Size ClientArenaReserved(Arena arena)
-{
-  Size size;
-  Ring node, nextNode;
-
-  AVERT(Arena, arena);
-
-  size = 0;
-  /* .req.extend.slow */
-  RING_FOR(node, &arena->chunkRing, nextNode) {
-    Chunk chunk = RING_ELT(Chunk, arenaRing, node);
-    AVERT(Chunk, chunk);
-    size += ChunkSize(chunk);
-  }
-
-  return size;
-}
-
-
 /* ClientArenaPagesMarkAllocated -- Mark the pages allocated */
 
 static Res ClientArenaPagesMarkAllocated(Arena arena, Chunk chunk,
@@ -447,12 +437,12 @@ DEFINE_ARENA_CLASS(ClientArenaClass, this)
   this->varargs = ClientArenaVarargs;
   this->init = ClientArenaInit;
   this->finish = ClientArenaFinish;
-  this->reserved = ClientArenaReserved;
   this->extend = ClientArenaExtend;
   this->pagesMarkAllocated = ClientArenaPagesMarkAllocated;
   this->free = ClientFree;
   this->chunkInit = ClientChunkInit;
   this->chunkFinish = ClientChunkFinish;
+  this->chunkReserved = ClientChunkReserved;
   AVERT(ArenaClass, this);
 }
 
