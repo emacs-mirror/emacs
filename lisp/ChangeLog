@@ -1,3 +1,7 @@
+2014-09-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* ses.el (ses--letref): Quote value before it gets re-evaluated.
+
 2014-09-28  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	Font-lock `cl-flet*', too.

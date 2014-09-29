@@ -457,7 +457,7 @@ functions refer to its value."
   (declare (indent 2) (debug (sexp form &rest body)))
   (gv-letplace (getter setter) place
     `(cl-macrolet ((,(nth 0 vars) () ',getter)
-                   (,(nth 1 vars) (v) (funcall ,setter v)))
+                   (,(nth 1 vars) (v) (funcall ',setter v)))
        ,@body)))
 
 (defmacro ses-cell-property (property-name row &optional col)
@@ -3398,7 +3398,7 @@ highlighted range in the spreadsheet."
 				  (symbol-name new-name)))
     (force-mode-line-update)))
 
-(defun ses-refresh-local-printer (name compiled-value)
+(defun ses-refresh-local-printer (name _compiled-value) ;FIXME: unused arg?
   "Refresh printout for all cells which use printer NAME.
 NAME should be the name of a locally defined printer.
 Uses the value COMPILED-VALUE for this printer."
