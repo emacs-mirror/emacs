@@ -186,7 +186,7 @@ Res ChunkInit(Chunk chunk, Arena arena, Addr base, Addr limit, BootBlock boot)
 
   chunk->serial = (arena->chunkSerial)++;
   chunk->arena = arena;
-  RingInit(&chunk->chunkRing);
+  RingInit(&chunk->arenaRing);
 
   chunk->pageSize = ArenaGrainSize(arena);
   chunk->pageShift = pageShift = SizeLog2(chunk->pageSize);
@@ -265,7 +265,7 @@ void ChunkFinish(Chunk chunk)
   chunk->sig = SigInvalid;
 
   TreeFinish(&chunk->chunkTree);
-  RingRemove(&chunk->chunkRing);
+  RingRemove(&chunk->arenaRing);
 
   if (chunk->arena->primary == chunk)
     chunk->arena->primary = NULL;

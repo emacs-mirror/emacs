@@ -356,7 +356,7 @@ static Size ClientArenaReserved(Arena arena)
   size = 0;
   /* .req.extend.slow */
   RING_FOR(node, &arena->chunkRing, nextNode) {
-    Chunk chunk = RING_ELT(Chunk, chunkRing, node);
+    Chunk chunk = RING_ELT(Chunk, arenaRing, node);
     AVERT(Chunk, chunk);
     size += ChunkSize(chunk);
   }
