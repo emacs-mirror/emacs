@@ -1,3 +1,7 @@
+2014-09-30  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* internals.texi (Stack-allocated Objects): Describe this feature.
+
 2014-09-15  Daniel Colascione  <dancol@dancol.org>
 
 	* text.texi (Registers): Make `insert-register' documentation

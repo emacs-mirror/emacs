@@ -14,6 +14,7 @@ internal aspects of GNU Emacs that may be of interest to C programmers.
 * Building Emacs::      How the dumped Emacs is made.
 * Pure Storage::        Kludge to make preloaded Lisp functions shareable.
 * Garbage Collection::  Reclaiming space for Lisp objects no longer used.
+* Stack-allocated Objects::    Temporary conses and strings on C stack.
 * Memory Usage::        Info about total size of Lisp objects made so far.
 * C Dialect::           What C variant Emacs is written in.
 * Writing Emacs Primitives::   Writing C code for Emacs.
@@ -528,6 +529,31 @@ This variable contains the total number of seconds of elapsed time
 during garbage collection so far in this Emacs session, as a
 floating-point number.
 @end defvar
+
+@node Stack-allocated Objects
+@section Stack-allocated Objects
+
+@cindex stack allocation overview
+  The garbage collector described above is used to manage data visible
+from Lisp program, as well as the most of data internally used by the
+interpreter.  But sometimes it may be useful to allocate temporary
+internal (i.e. not visible for Lisp program) objects using C stack of
+an interpreter.  Currently conses and strings are the only objects which
+can be allocated in that way.  Strings are limited to ASCII characters
+only and should be treated as immutable (calling @code{ASET} on them is
+undefined).
+
+@cindex stack allocation internals
+  In C, this is implemented as a special macros which expands to
+a @code{Lisp_Object} with block-scoped semantics and lifetime (see
+the code around @code{USE_STACK_LISP_OBJECTS} in @file{lisp.h}).  This
+means that these objects are not managed by the garbage collector;
+instead, they are allocated like local variables in C and automatically
+freed when an execution reaches an end of the corresponding scope.  Thus,
+allocation and freeing are faster than using garbage collector.  But
+remember that passing them out of their scope results in undefined
+behavior.  Think twice before using this feature and carefully debug
+your code with @code{GC_CHECK_MARKED_OBJECTS} (see @file{alloc.c}).
 
 @node Memory Usage
 @section Memory Usage
