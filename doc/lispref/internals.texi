@@ -537,25 +537,50 @@ floating-point number.
 @cindex Lisp objects, stack-allocated
   The garbage collector described above is used to manage data visible
 from Lisp programs, as well as most of the data internally used by the
-Lisp interpreter.  But sometimes it may be useful to allocate
-temporary internal (i.e.@: not visible for a Lisp program) objects
-using the C stack of the interpreter.  Currently, only cons cells and
-strings can be allocated that way.  Stack-allocated strings are
-limited to @acronym{ASCII} characters only, and should be treated as
-immutable (calling @code{ASET} on them produces undefined behavior).
+Lisp interpreter.  Sometimes it may be useful to allocate temporary
+internal objects using the C stack of the interpreter.  This can help
+performance, as stack allocation is typically faster than using heap
+memory to allocate and the garbage collector to free.  The downside is
+that using such objects after they are freed results in undefined
+behavior, so uses should be well thought out and carefully debugged by
+using the @code{GC_CHECK_MARKED_OBJECTS} feature (see
+@file{src/alloc.c}).  In particular, stack-allocated objects should
+never be made visible to user Lisp code.
 
-  In C, this is implemented as special macros which expand into a
-@code{Lisp_Object} with block-scoped semantics and lifetime (see the
-code around @code{USE_STACK_LISP_OBJECTS} in @file{src/lisp.h}).  This
-means that these objects are not freed by the garbage collector;
-instead, they are allocated like local variables in C and
-automatically freed when execution goes out of the scope where the
-object was allocated.  Thus, allocating and freeing these objects is
-faster than when using heap memory to allocate and the garbage
-collector to free their memory.  Note that using such objects out of
-their scope will result in undefined behavior, so code using them
-should be well thought out and carefully debugged by using the
-@code{GC_CHECK_MARKED_OBJECTS} feature (see @file{src/alloc.c}).
+  Currently, cons cells and strings can be allocated this way.  This
+is implemented by C macros like @code{scoped_cons} and
+@code{SCOPED_STRING} that return a @code{Lisp_Object} with block
+lifetime.  These objects are not freed by the garbage collector;
+instead, they have automatic storage duration, i.e., they are
+allocated like local variables and are automatically freed at the end
+of execution of the C block where the object was allocated.  C blocks
+include compound statements (i.e., inside @samp{@{} and @samp{@}}),
+along with selection and iteration statements and their immediate
+substatements.  For example:
+
+@example
+/* Erroneous code.  */
+Lisp_Object x;
+if (foo)
+  x = SCOPED_STRING ("prefix");
+else
+  x = bar;
+return concat2 (x, baz);
+@end example
+
+@noindent
+This has undefined behavior because the @code{if} statement is a
+block, so @code{x} is used after the corresponding object has been
+freed.  Better would be:
+
+@example
+Lisp_Object x = foo ? SCOPED_STRING ("prefix") : bar;
+return concat2 (x, baz);
+@end example
+
+  For performance reasons, stack-allocated strings are limited to
+@acronym{ASCII} characters, and many of these strings are immutable,
+i.e., calling @code{ASET} on them produces undefined behavior.
 
 @node Memory Usage
 @section Memory Usage
