@@ -46,6 +46,10 @@
 
 ;;; Compatibility
 
+;; TODO: Replace `cl' with `cl-lib'.
+;; `cl' is deprecated in Emacs 24.3. Use `cl-lib' instead. However,
+;; we'll likely have to insert `cl-' before each use of a Common Lisp
+;; function.
 ;;;###mh-autoload
 (defmacro mh-require-cl ()
   "Macro to load \"cl\" if needed.
