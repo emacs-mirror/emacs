@@ -1,5 +1,7 @@
 2014-09-30  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xterm.c (x_term_init): Allocate temps on stack, not on heap.
+
 	* frame.c (x_set_frame_parameters): Port --enable-gcc-warnings
 	to Ubuntu 14.04.1 x86-64.
 

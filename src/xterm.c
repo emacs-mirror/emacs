@@ -11062,11 +11062,11 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
     };
 
     int i;
-    const int atom_count = ARRAYELTS (atom_refs);
-    /* 1 for _XSETTINGS_SN  */
-    const int total_atom_count = 1 + atom_count;
-    Atom *atoms_return = xmalloc (total_atom_count * sizeof *atoms_return);
-    char **atom_names = xmalloc (total_atom_count * sizeof *atom_names);
+    enum { atom_count = ARRAYELTS (atom_refs) };
+    /* 1 for _XSETTINGS_SN.  */
+    enum { total_atom_count = 1 + atom_count };
+    Atom atoms_return[total_atom_count];
+    char *atom_names[total_atom_count];
     static char const xsettings_fmt[] = "_XSETTINGS_S%d";
     char xsettings_atom_name[sizeof xsettings_fmt - 2
 			     + INT_STRLEN_BOUND (int)];
@@ -11074,7 +11074,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
     for (i = 0; i < atom_count; i++)
       atom_names[i] = (char *) atom_refs[i].name;
 
-    /* Build _XSETTINGS_SN atom name */
+    /* Build _XSETTINGS_SN atom name.  */
     sprintf (xsettings_atom_name, xsettings_fmt,
 	     XScreenNumberOfScreen (dpyinfo->screen));
     atom_names[i] = xsettings_atom_name;
@@ -11085,11 +11085,8 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
     for (i = 0; i < atom_count; i++)
       *(Atom *) ((char *) dpyinfo + atom_refs[i].offset) = atoms_return[i];
 
-    /* Manual copy of last atom */
+    /* Manually copy last atom.  */
     dpyinfo->Xatom_xsettings_sel = atoms_return[i];
-
-    xfree (atom_names);
-    xfree (atoms_return);
   }
 
   dpyinfo->x_dnd_atoms_size = 8;
