@@ -1,3 +1,8 @@
+2014-09-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* ses.el (ses-setup): Don't assume modifying the iteration var of
+	dotimes affects the iteration (bug#18191).
+
 2014-09-30  Vincent Belaïche  <vincentb1@users.sourceforge.net>
 
 	* ses.el (ses-calculate-cell): bind row and col dynamically to

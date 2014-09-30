@@ -1870,45 +1870,42 @@ Narrows the buffer to show only the print area.  Gives it `read-only' and
 `intangible' properties.  Sets up highlighting for current cell."
   (interactive)
   (let ((end (point-min))
-	(inhibit-read-only t)
 	(inhibit-point-motion-hooks t)
-	(was-modified (buffer-modified-p))
 	pos sym)
-    (ses-goto-data 0 0) ; Include marker between print-area and data-area.
-    (set-text-properties (point) (point-max) nil) ; Delete garbage props.
-    (mapc 'delete-overlay (overlays-in (point-min) (point-max)))
-    ;; The print area is read-only (except for our special commands) and uses a
-    ;; special keymap.
-    (put-text-property (point-min) (1- (point)) 'read-only 'ses)
-    (put-text-property (point-min) (1- (point)) 'keymap 'ses-mode-print-map)
-    ;; For the beginning of the buffer, we want the read-only and keymap
-    ;; attributes to be  inherited from the first character.
-    (put-text-property (point-min) (1+ (point-min)) 'front-sticky t)
-    ;; Create intangible properties, which also indicate which cell the text
-    ;; came from.
-    (dotimes-with-progress-reporter (row ses--numrows) "Finding cells..."
-      (dotimes (col ses--numcols)
-	(setq pos  end
-	      sym  (ses-cell-symbol row col))
-	;; Include skipped cells following this one.
-	(while (and (< col (1- ses--numcols))
-		    (eq (ses-cell-value row (1+ col)) '*skip*))
-	  (setq end (+ end (ses-col-width col) 1)
-		col (1+ col)))
-	(setq end (save-excursion
-		    (goto-char pos)
-		    (move-to-column (+ (current-column) (- end pos)
-				       (ses-col-width col)))
-		    (if (eolp)
-			(+ end (ses-col-width col) 1)
-		      (forward-char)
-		      (point))))
-	(put-text-property pos end 'intangible sym)))
-    ;; Adding these properties did not actually alter the text.
-    (unless was-modified
-      (restore-buffer-modified-p nil)
-      (buffer-disable-undo)
-      (buffer-enable-undo)))
+    (with-silent-modifications
+      (ses-goto-data 0 0)    ; Include marker between print-area and data-area.
+      (set-text-properties (point) (point-max) nil) ; Delete garbage props.
+      (mapc 'delete-overlay (overlays-in (point-min) (point-max)))
+      ;; The print area is read-only (except for our special commands) and
+      ;; uses a special keymap.
+      (put-text-property (point-min) (1- (point)) 'read-only 'ses)
+      (put-text-property (point-min) (1- (point)) 'keymap 'ses-mode-print-map)
+      ;; For the beginning of the buffer, we want the read-only and keymap
+      ;; attributes to be  inherited from the first character.
+      (put-text-property (point-min) (1+ (point-min)) 'front-sticky t)
+      ;; Create intangible properties, which also indicate which cell the text
+      ;; came from.
+      (dotimes-with-progress-reporter (row ses--numrows) "Finding cells..."
+        (dotimes (col ses--numcols)
+          (setq pos  end
+                sym  (ses-cell-symbol row col))
+          (unless (eq (symbol-value sym) '*skip*)
+            ;; Include skipped cells following this one.
+            (while (and (< col (1- ses--numcols))
+                        (eq (ses-cell-value row (1+ col)) '*skip*))
+              (setq end (+ end (ses-col-width col) 1)
+                    ;; Beware: Modifying the iteration variable of `dotimes'
+                    ;; may or may not affect the iteration!
+                    col (1+ col)))
+            (setq end (save-excursion
+                        (goto-char pos)
+                        (move-to-column (+ (current-column) (- end pos)
+                                           (ses-col-width col)))
+                        (if (eolp)
+                            (+ end (ses-col-width col) 1)
+                          (forward-char)
+                          (point))))
+            (put-text-property pos end 'intangible sym))))))
   ;; Create the underlining overlay.  It's impossible for (point) to be 2,
   ;; because column A must be at least 1 column wide.
   (setq ses--curcell-overlay (make-overlay (1+ (point-min)) (1+ (point-min))))
