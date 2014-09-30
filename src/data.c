@@ -979,18 +979,20 @@ wrong_choice (Lisp_Object choice, Lisp_Object wrong)
 {
   ptrdiff_t i = 0, len = XINT (Flength (choice));
   Lisp_Object obj, *args;
+  Lisp_Object should_be_specified = SCOPED_STRING (" should be specified");
+  Lisp_Object or = SCOPED_STRING (" or ");
+  Lisp_Object comma = SCOPED_STRING (", ");
 
   USE_SAFE_ALLOCA;
   SAFE_ALLOCA_LISP (args, len * 2 + 1);
 
-  args[i++] = build_local_string ("One of ");
+  args[i++] = SCOPED_STRING ("One of ");
 
   for (obj = choice; !NILP (obj); obj = XCDR (obj))
     {
       args[i++] = SYMBOL_NAME (XCAR (obj));
-      args[i++] = build_local_string
-	(NILP (XCDR (obj)) ? " should be specified"
-	 : (NILP (XCDR (XCDR (obj))) ? " or " : ", "));
+      args[i++] = (NILP (XCDR (obj)) ? should_be_specified
+		   : NILP (XCDR (XCDR (obj))) ? or : comma);
     }
 
   obj = Fconcat (i, args);
@@ -1005,9 +1007,9 @@ static void
 wrong_range (Lisp_Object min, Lisp_Object max, Lisp_Object wrong)
 {
   xsignal2 (Qerror, Fconcat (4, ((Lisp_Object [])
-    { build_local_string ("Value should be from "),
+    { SCOPED_STRING ("Value should be from "),
       Fnumber_to_string (min),
-      build_local_string (" to "),
+      SCOPED_STRING (" to "),
       Fnumber_to_string (max) })), wrong);
 }
 

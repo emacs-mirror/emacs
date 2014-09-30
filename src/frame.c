@@ -4149,8 +4149,8 @@ x_get_arg (Display_Info *dpyinfo, Lisp_Object alist, Lisp_Object param,
       if (attribute && dpyinfo)
 	{
 	  tem = display_x_get_resource
-	    (dpyinfo, build_local_string (attribute),
-	     build_local_string (class), Qnil, Qnil);
+	    (dpyinfo, SCOPED_STRING (attribute),
+	     SCOPED_STRING (class), Qnil, Qnil);
 
 	  if (NILP (tem))
 	    return Qunbound;

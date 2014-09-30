@@ -1338,7 +1338,7 @@ silly_event_symbol_error (Lisp_Object c)
       *p = 0;
 
       c = reorder_modifiers (c);
-      keystring = concat2 (build_local_string (new_mods), XCDR (assoc));
+      keystring = concat2 (SCOPED_STRING (new_mods), XCDR (assoc));
 
       error ("To bind the key %s, use [?%s], not [%s]",
 	     SDATA (SYMBOL_NAME (c)), SDATA (keystring),
@@ -2243,7 +2243,7 @@ around function keys and event symbols.  */)
   if (CONSP (key) && INTEGERP (XCAR (key)) && INTEGERP (XCDR (key)))
     /* An interval from a map-char-table.  */
     return concat3 (Fsingle_key_description (XCAR (key), no_angles),
-		    build_local_string (".."),
+		    SCOPED_STRING (".."),
 		    Fsingle_key_description (XCDR (key), no_angles));
 
   key = EVENT_HEAD (key);
@@ -3441,7 +3441,7 @@ describe_vector (Lisp_Object vector, Lisp_Object prefix, Lisp_Object args,
 	{
 	  Lisp_Object tem;
 	  tem = Fkey_description (prefix, Qnil);
-	  elt_prefix = concat2 (tem, build_local_string (" "));
+	  elt_prefix = concat2 (tem, SCOPED_STRING (" "));
 	}
       prefix = Qnil;
     }

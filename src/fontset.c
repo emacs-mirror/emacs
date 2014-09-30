@@ -1462,7 +1462,7 @@ appended.  By default, FONT-SPEC overrides the previous settings.  */)
       registry = AREF (font_spec, FONT_REGISTRY_INDEX);
       if (! NILP (registry))
 	registry = Fdowncase (SYMBOL_NAME (registry));
-      encoding = find_font_encoding (concat3 (family, build_local_string ("-"),
+      encoding = find_font_encoding (concat3 (family, SCOPED_STRING ("-"),
 					      registry));
       if (NILP (encoding))
 	encoding = Qascii;

@@ -620,7 +620,7 @@ status_message (struct Lisp_Process *p)
 	  if (c1 != c2)
 	    Faset (string, make_number (0), make_number (c2));
 	}
-      string2 = build_local_string (coredump ? " (core dumped)\n" : "\n");
+      string2 = SCOPED_STRING (coredump ? " (core dumped)\n" : "\n");
       return concat2 (string, string2);
     }
   else if (EQ (symbol, Qexit))
@@ -630,15 +630,15 @@ status_message (struct Lisp_Process *p)
       if (code == 0)
 	return build_string ("finished\n");
       string = Fnumber_to_string (make_number (code));
-      string2 = build_local_string (coredump ? " (core dumped)\n" : "\n");
-      return concat3 (build_local_string ("exited abnormally with code "),
+      string2 = SCOPED_STRING (coredump ? " (core dumped)\n" : "\n");
+      return concat3 (SCOPED_STRING ("exited abnormally with code "),
 		      string, string2);
     }
   else if (EQ (symbol, Qfailed))
     {
       string = Fnumber_to_string (make_number (code));
-      string2 = build_local_string ("\n");
-      return concat3 (build_local_string ("failed with code "),
+      string2 = SCOPED_STRING ("\n");
+      return concat3 (SCOPED_STRING ("failed with code "),
 		      string, string2);
     }
   else
@@ -1302,29 +1302,32 @@ Returns nil if format of ADDRESS is invalid.  */)
       ptrdiff_t size = p->header.size;
       Lisp_Object args[10];
       int nargs, i;
+      char const *format;
 
       if (size == 4 || (size == 5 && !NILP (omit_port)))
 	{
-	  args[0] = build_local_string ("%d.%d.%d.%d");
+	  format = "%d.%d.%d.%d";
 	  nargs = 4;
 	}
       else if (size == 5)
 	{
-	  args[0] = build_local_string ("%d.%d.%d.%d:%d");
+	  format = "%d.%d.%d.%d:%d";
 	  nargs = 5;
 	}
       else if (size == 8 || (size == 9 && !NILP (omit_port)))
 	{
-	  args[0] = build_local_string ("%x:%x:%x:%x:%x:%x:%x:%x");
+	  format = "%x:%x:%x:%x:%x:%x:%x:%x";
 	  nargs = 8;
 	}
       else if (size == 9)
 	{
-	  args[0] = build_local_string ("[%x:%x:%x:%x:%x:%x:%x:%x]:%d");
+	  format = "[%x:%x:%x:%x:%x:%x:%x:%x]:%d";
 	  nargs = 9;
 	}
       else
 	return Qnil;
+
+      args[0] = SCOPED_STRING (format);
 
       for (i = 0; i < nargs; i++)
 	{
@@ -1344,7 +1347,7 @@ Returns nil if format of ADDRESS is invalid.  */)
 
   if (CONSP (address))
     return Fformat (2, ((Lisp_Object [])
-      { build_local_string ("<Family %d>"), Fcar (address) }));
+      { SCOPED_STRING ("<Family %d>"), Fcar (address) }));
 
   return Qnil;
 }
@@ -4060,11 +4063,11 @@ server_accept_connection (Lisp_Object server, int channel)
 	unsigned char *ip = (unsigned char *)&saddr.in.sin_addr.s_addr;
 
 	host = Fformat (5, ((Lisp_Object [])
-	  { build_local_string ("%d.%d.%d.%d"), make_number (ip[0]),
+	  { SCOPED_STRING ("%d.%d.%d.%d"), make_number (ip[0]),
 	    make_number (ip[1]), make_number (ip[2]), make_number (ip[3]) }));
 	service = make_number (ntohs (saddr.in.sin_port));
 	caller = Fformat (3, ((Lisp_Object [])
-	  { build_local_string (" <%s:%d>"), host, service }));
+	  { SCOPED_STRING (" <%s:%d>"), host, service }));
       }
       break;
 
@@ -4075,13 +4078,13 @@ server_accept_connection (Lisp_Object server, int channel)
 	uint16_t *ip6 = (uint16_t *)&saddr.in6.sin6_addr;
 	int i;
 
-	args[0] = build_local_string ("%x:%x:%x:%x:%x:%x:%x:%x");
+	args[0] = SCOPED_STRING ("%x:%x:%x:%x:%x:%x:%x:%x");
 	for (i = 0; i < 8; i++)
 	  args[i + 1] = make_number (ntohs (ip6[i]));
 	host = Fformat (9, args);
 	service = make_number (ntohs (saddr.in.sin_port));
 	caller = Fformat (3, ((Lisp_Object [])
-	  { build_local_string (" <[%s]:%d>"), host, service }));
+	  { SCOPED_STRING (" <[%s]:%d>"), host, service }));
       }
       break;
 #endif
@@ -4092,7 +4095,7 @@ server_accept_connection (Lisp_Object server, int channel)
     default:
       caller = Fnumber_to_string (make_number (connect_counter));
       caller = concat3
-	(build_local_string (" <"), caller, build_local_string (">"));
+	(SCOPED_STRING (" <"), caller, SCOPED_STRING (">"));
       break;
     }
 
@@ -4191,14 +4194,14 @@ server_accept_connection (Lisp_Object server, int channel)
 
   if (!NILP (ps->log))
       call3 (ps->log, server, proc,
-	     concat3 (build_local_string ("accept from "),
-		      (STRINGP (host) ? host : build_local_string ("-")),
-		      build_local_string ("\n")));
+	     concat3 (SCOPED_STRING ("accept from "),
+		      (STRINGP (host) ? host : SCOPED_STRING ("-")),
+		      SCOPED_STRING ("\n")));
 
   exec_sentinel (proc,
-		 concat3 (build_local_string ("open from "),
-			  (STRINGP (host) ? host : build_local_string ("-")),
-			  build_local_string ("\n")));
+		 concat3 (SCOPED_STRING ("open from "),
+			  (STRINGP (host) ? host : SCOPED_STRING ("-")),
+			  SCOPED_STRING ("\n")));
 }
 
 /* This variable is different from waiting_for_input in keyboard.c.

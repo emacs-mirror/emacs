@@ -566,10 +566,10 @@ echo_add_key (Lisp_Object c)
       if (XINT (last_char) == '-' && XINT (prev_char) != ' ')
 	Faset (echo_string, idx, make_number (' '));
       else
-	echo_string = concat2 (echo_string, build_local_string (" "));
+	echo_string = concat2 (echo_string, SCOPED_STRING (" "));
     }
   else if (STRINGP (echo_string) && SCHARS (echo_string) > 0)
-    echo_string = concat2 (echo_string, build_local_string (" "));
+    echo_string = concat2 (echo_string, SCOPED_STRING (" "));
 
   kset_echo_string
     (current_kboard,
@@ -632,7 +632,7 @@ echo_dash (void)
      but make it go away when the next character is added.  */
   kset_echo_string
     (current_kboard,
-     concat2 (KVAR (current_kboard, echo_string), build_local_string ("-")));
+     concat2 (KVAR (current_kboard, echo_string), SCOPED_STRING ("-")));
   echo_now ();
 }
 
@@ -1896,7 +1896,7 @@ safe_run_hooks_error (Lisp_Object error, ptrdiff_t nargs, Lisp_Object *args)
   hook = args[0];
   fun = args[1];
   Fmessage (4, ((Lisp_Object [])
-    { build_local_string ("Error in %s (%S): %S"), hook, fun, error }));
+    { SCOPED_STRING ("Error in %s (%S): %S"), hook, fun, error }));
 
   if (SYMBOLP (hook))
     {
@@ -7889,7 +7889,7 @@ parse_menu_item (Lisp_Object item, int inmenubar)
     /* The previous code preferred :key-sequence to :keys, so we
        preserve this behavior.  */
     if (STRINGP (keyeq) && !CONSP (keyhint))
-      keyeq = concat2 (build_local_string ("  "),
+      keyeq = concat2 (SCOPED_STRING ("  "),
 		       Fsubstitute_command_keys (keyeq));
     else
       {
@@ -7933,7 +7933,7 @@ parse_menu_item (Lisp_Object item, int inmenubar)
 		if (STRINGP (XCDR (prefix)))
 		  tem = concat2 (tem, XCDR (prefix));
 	      }
-	    keyeq = concat2 (build_local_string ("  "), tem);
+	    keyeq = concat2 (SCOPED_STRING ("  "), tem);
 	  }
 	else
 	  keyeq = Qnil;
@@ -8638,9 +8638,9 @@ read_char_minibuf_menu_prompt (int commandflag,
 		      Lisp_Object selected
 			= AREF (item_properties, ITEM_PROPERTY_SELECTED);
 		      if (EQ (tem, QCradio))
-			tem = build_local_string (NILP (selected) ? "(*) " : "( ) ");
+			tem = SCOPED_STRING (NILP (selected) ? "(*) " : "( ) ");
 		      else
-			tem = build_local_string (NILP (selected) ? "[X] " : "[ ] ");
+			tem = SCOPED_STRING (NILP (selected) ? "[X] " : "[ ] ");
 		      s = concat2 (tem, s);
 		    }
 

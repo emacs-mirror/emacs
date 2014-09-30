@@ -1,3 +1,44 @@
+2014-09-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Simplify stack-allocated Lisp objects, and make them more portable.
+	The build_local_string macro was used in two ways: (1) string
+	literals for which scoped allocation suffices, and (2) file name
+	components, where it's not safe in general to assume bounded-size
+	ASCII data.  Simplify by defining a new macro SCOPED_STRING that
+	allocates a block-scope string, and by using SCOPED_STRING for (1)
+	and build_string for (2).  Furthermore, actually use stack
+	allocation only for objects known to have sufficient alignment.
+	This simpler implementation means Emacs can make
+	USE_STACK_LISP_OBJECTS the default unless GC_MARK_STACK !=
+	GC_MAKE_GCPROS_NOOPS.
+	* lisp.h (GCALIGNED): Align even if !USE_STACK_LISP_OBJECTS,
+	for fewer differences among implementations.
+	(struct Lisp_String): Now GCALIGNED.
+	(USE_STACK_LISP_OBJECTS): Default to true, since the
+	implementation no longer insists on a nonempty GCALIGNED.
+	But make it false if GC_MARK_STACK != GC_MAKE_GCPROS_NOOPS.
+	(SCOPED_CONS_INITIALIZER): Remove, since it's no longer needed
+	separately.  Move definiens to scoped_cons.  The old definition
+	was incorrect when GCALIGNED was defined to be empty.
+	(union Aligned_String): New type.
+	(USE_STACK_CONS, USE_STACK_STRING): New constants, so that the
+	implementation ports to compilers that don't align strictly enough.
+	Don't worry about the union sizes; it's not worth bothering about.
+	(scoped_cons, scoped_list1, scoped_list3, scoped_list4):
+	Rewrite using USE_STACK_CONS.
+	(scoped_cons): Assume the use of union Aligned_Cons.
+	(lisp_string_size, make_local_string, build_local_string): Remove.
+	Unless otherwise specified, all callers of build_local_string
+	changed to use SCOPED_STRING.
+	(SCOPED_STRING): New macro.
+	* data.c (wrong_choice):
+	* menu.c (single_menu_item):
+	* process.c (Fformat_network_address):
+	Hoist use of SCOPED_STRING out of a scope, so that its returned
+	object lives long enough.
+	* fileio.c (Fexpand_file_name): Use build_string, not SCOPED_STRING,
+	as the string might be long or might not be ASCII.
+
 2014-09-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* msdos.c (internal_terminal_init): Bump version to 25.

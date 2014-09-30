@@ -1111,7 +1111,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 
 	      name = make_specified_string (nm, -1, p - nm, multibyte);
 	      temp[0] = DRIVE_LETTER (drive);
-	      name = concat2 (build_local_string (temp), name);
+	      name = concat2 (SCOPED_STRING (temp), name);
 	    }
 #ifdef WINDOWSNT
 	  if (!NILP (Vw32_downcase_file_names))
@@ -1162,11 +1162,11 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	      char newdir_utf8[MAX_UTF8_PATH];
 
 	      filename_from_ansi (newdir, newdir_utf8);
-	      tem = build_local_string (newdir_utf8);
+	      tem = build_string (newdir_utf8);
 	    }
 	  else
 #endif
-	    tem = build_local_string (newdir);
+	    tem = build_string (newdir);
 	  newdirlim = newdir + SBYTES (tem);
 	  if (multibyte && !STRING_MULTIBYTE (tem))
 	    {
@@ -1198,7 +1198,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	      /* `getpwnam' may return a unibyte string, which will
 		 bite us since we expect the directory to be
 		 multibyte.  */
-	      tem = build_local_string (newdir);
+	      tem = build_string (newdir);
 	      newdirlim = newdir + SBYTES (tem);
 	      if (multibyte && !STRING_MULTIBYTE (tem))
 		{
@@ -1231,7 +1231,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	    adir = NULL;
 	  else if (multibyte)
 	    {
-	      Lisp_Object tem = build_local_string (adir);
+	      Lisp_Object tem = build_string (adir);
 
 	      tem = DECODE_FILE (tem);
 	      newdirlim = adir + SBYTES (tem);
@@ -1334,7 +1334,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	    getcwd (adir, adir_size);
 	  if (multibyte)
 	    {
-	      Lisp_Object tem = build_local_string (adir);
+	      Lisp_Object tem = build_string (adir);
 
 	      tem = DECODE_FILE (tem);
 	      newdirlim = adir + SBYTES (tem);
@@ -5420,7 +5420,7 @@ auto_save_error (Lisp_Object error_val)
   ring_bell (XFRAME (selected_frame));
 
   msg = Fformat (3, ((Lisp_Object [])
-    { build_local_string ("Auto-saving %s: %s"),
+    { SCOPED_STRING ("Auto-saving %s: %s"),
       BVAR (current_buffer, name),
       Ferror_message_string (error_val) }));
   GCPRO1 (msg);

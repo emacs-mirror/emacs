@@ -970,7 +970,7 @@ load_warn_old_style_backquotes (Lisp_Object file)
 {
   if (!NILP (Vold_style_backquotes))
     Fmessage (2, ((Lisp_Object [])
-      { build_local_string ("Loading `%s': old-style backquotes detected!"),
+      { SCOPED_STRING ("Loading `%s': old-style backquotes detected!"),
 	file }));
 }
 
@@ -3678,7 +3678,7 @@ read_list (bool flag, Lisp_Object readcharfun)
 	       in the installed Lisp directory.
 	       We don't use Fexpand_file_name because that would make
 	       the directory absolute now.  */
-	    elt = concat2 (build_local_string ("../lisp/"),
+	    elt = concat2 (SCOPED_STRING ("../lisp/"),
 			   Ffile_name_nondirectory (elt));
 	}
       else if (EQ (elt, Vload_file_name)

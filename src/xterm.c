@@ -10937,8 +10937,8 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 	{
 	  Lisp_Object value;
 	  value = display_x_get_resource
-	    (dpyinfo, build_local_string ("privateColormap"),
-	     build_local_string ("PrivateColormap"), Qnil, Qnil);
+	    (dpyinfo, SCOPED_STRING ("privateColormap"),
+	     SCOPED_STRING ("PrivateColormap"), Qnil, Qnil);
 	  if (STRINGP (value)
 	      && (!strcmp (SSDATA (value), "true")
 		  || !strcmp (SSDATA (value), "on")))
@@ -11146,8 +11146,8 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
      for debugging X code.  */
   {
     Lisp_Object value = display_x_get_resource
-      (dpyinfo, build_local_string ("synchronous"),
-       build_local_string ("Synchronous"), Qnil, Qnil);
+      (dpyinfo, SCOPED_STRING ("synchronous"),
+       SCOPED_STRING ("Synchronous"), Qnil, Qnil);
     if (STRINGP (value)
 	&& (!strcmp (SSDATA (value), "true")
 	    || !strcmp (SSDATA (value), "on")))
@@ -11156,8 +11156,8 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 
   {
     Lisp_Object value = display_x_get_resource
-      (dpyinfo, build_local_string ("useXIM"),
-       build_local_string ("UseXIM"), Qnil, Qnil);
+      (dpyinfo, SCOPED_STRING ("useXIM"),
+       SCOPED_STRING ("UseXIM"), Qnil, Qnil);
 #ifdef USE_XIM
     if (STRINGP (value)
 	&& (!strcmp (SSDATA (value), "false")

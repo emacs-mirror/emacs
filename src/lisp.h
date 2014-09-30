@@ -282,23 +282,7 @@ error !;
 # endif
 #endif
 
-/* This should work with GCC.  Clang has known problems; see
-   http://lists.gnu.org/archive/html/emacs-devel/2014-09/msg00506.html.  */
-#ifndef USE_STACK_LISP_OBJECTS
-# if defined __GNUC__ && !defined __clang__
-   /* 32-bit MinGW builds need at least GCC 4.2 to support this.  */
-#  if defined __MINGW32__ && !defined _W64	\
-      && __GNUC__ + (__GNUC_MINOR__ > 1) < 5
-#   define USE_STACK_LISP_OBJECTS false
-#  else	 /* !(__MINGW32__ && __GNUC__ < 4.2) */
-#   define USE_STACK_LISP_OBJECTS true
-#  endif
-# else
-#  define USE_STACK_LISP_OBJECTS false
-# endif
-#endif
-
-#if defined HAVE_STRUCT_ATTRIBUTE_ALIGNED && USE_STACK_LISP_OBJECTS
+#ifdef HAVE_STRUCT_ATTRIBUTE_ALIGNED
 # define GCALIGNED __attribute__ ((aligned (GCALIGNMENT)))
 #else
 # define GCALIGNED /* empty */
@@ -1088,7 +1072,7 @@ CDR_SAFE (Lisp_Object c)
 
 /* In a string or vector, the sign bit of the `size' is the gc mark bit.  */
 
-struct Lisp_String
+struct GCALIGNED Lisp_String
   {
     ptrdiff_t size;
     ptrdiff_t size_byte;
@@ -4598,27 +4582,26 @@ lisp_word_count (ptrdiff_t nbytes)
 
 
 /* If USE_STACK_LISP_OBJECTS, define macros that and functions that allocate
-   block-scoped conses and function-scoped strings.  These objects are not
+   block-scoped conses and strings.  These objects are not
    managed by the garbage collector, so they are dangerous: passing them
    out of their scope (e.g., to user code) results in undefined behavior.
    Conversely, they have better performance because GC is not involved.
 
-   This feature is experimental and requires careful debugging.  It's enabled
-   by default if GCC or a compiler that mimics GCC well (like Intel C/C++) is
-   used, except clang (see notice above).  For other compilers, brave users can
-   compile with CPPFLAGS='-DUSE_STACK_LISP_OBJECTS=1' to get into the game.
-   Note that this feature requires GC_MARK_STACK == GC_MAKE_GCPROS_NOOPS.  */
+   This feature is experimental and requires careful debugging.
+   Build with CPPFLAGS='-DUSE_STACK_LISP_OBJECTS=0' to disable it.  */
 
-#ifdef GCALIGNED
+#ifndef USE_STACK_LISP_OBJECTS
+# define USE_STACK_LISP_OBJECTS true
+#endif
 
-/* No tricks if struct Lisp_Cons is always aligned.  */
+/* USE_STACK_LISP_OBJECTS requires GC_MARK_STACK == GC_MAKE_GCPROS_NOOPS.  */
 
-# define SCOPED_CONS_INITIALIZER(a, b) &((struct Lisp_Cons) { a, { b } })
+#if GC_MARK_STACK != GC_MAKE_GCPROS_NOOPS
+# undef USE_STACK_LISP_OBJECTS
+# define USE_STACK_LISP_OBJECTS false
+#endif
 
-#else /* not GCALIGNED */
-
-/* A struct Lisp_Cons inside a union that is no larger and may be
-   better-aligned.  */
+/* Struct inside unions that are typically no larger and aligned enough.  */
 
 union Aligned_Cons
 {
@@ -4626,88 +4609,61 @@ union Aligned_Cons
   double d; intmax_t i; void *p;
 };
 
-verify (alignof (union Aligned_Cons) % GCALIGNMENT == 0);
-verify (sizeof (struct Lisp_Cons) == sizeof (union Aligned_Cons));
+union Aligned_String
+{
+  struct Lisp_String s;
+  double d; intmax_t i; void *p;
+};
 
-# define SCOPED_CONS_INITIALIZER(a, b)		\
-    &((union Aligned_Cons) { { a, { b } } }.s)
+/* True for stack-based cons and string implementations.  */
 
-#endif /* GCALIGNED */
+enum
+  {
+    USE_STACK_CONS = (USE_STACK_LISP_OBJECTS
+		      && alignof (union Aligned_Cons) % GCALIGNMENT == 0),
+    USE_STACK_STRING = (USE_STACK_LISP_OBJECTS
+			&& alignof (union Aligned_String) % GCALIGNMENT == 0)
+  };
 
-/* Basic stack-based cons allocation.  */
+/* Build a stack-based Lisp cons or short list if possible, a GC-based
+   one otherwise.  The resulting object should not be modified or made
+   visible to user code.  */
 
-#if USE_STACK_LISP_OBJECTS
-# define scoped_cons(a, b) \
-    make_lisp_ptr (SCOPED_CONS_INITIALIZER (a, b), Lisp_Cons)
-# define scoped_list1(a) scoped_cons (a, Qnil)
-# define scoped_list2(a, b) scoped_cons (a, scoped_list1 (b))
-# define scoped_list3(a, b, c) scoped_cons (a, scoped_list2 (b, c))
-# define scoped_list4(a, b, c, d) scoped_cons (a, scoped_list3 (b, c, d))
-#else
-# define scoped_cons(a, b) Fcons (a, b)
-# define scoped_list1(a) list1 (a)
-# define scoped_list2(a, b) list2 (a, b)
-# define scoped_list3(a, b, c) list3 (a, b, c)
-# define scoped_list4(a, b, c, d) list4 (a, b, c, d)
-#endif
+#define scoped_cons(a, b)			\
+  (USE_STACK_CONS				\
+   ? make_lisp_ptr (&(union Aligned_Cons) { { a, { b } } }.s, Lisp_Cons) \
+   : Fcons (a, b))
+#define scoped_list1(a)				\
+  (USE_STACK_CONS ? scoped_cons (a, Qnil) : list1 (a))
+#define scoped_list2(a, b)			\
+  (USE_STACK_CONS ? scoped_cons (a, scoped_list1 (b)) : list2 (a,b))
+#define scoped_list3(a, b, c)			\
+  (USE_STACK_CONS ? scoped_cons (a, scoped_list2 (b, c)) : list3 (a, b, c))
+#define scoped_list4(a, b, c, d)		\
+  (USE_STACK_CONS				\
+   ? scoped_cons (a, scoped_list3 (b, c, d)) :	\
+   list4 (a, b, c, d))
 
-/* On-stack string allocation requires __builtin_constant_p, statement
-   expressions and GCALIGNMENT-aligned alloca.  All from the above is
-   assumed for GCC.  At least for clang < 3.6, alloca isn't properly
-   aligned in some cases.  In the absence of solid information, play
-   it safe for other non-GCC compilers.  */
-
-#if USE_STACK_LISP_OBJECTS && __GNUC__ && !__clang__
-
-/* Used to check whether stack-allocated strings are ASCII-only.  */
+/* Check whether stack-allocated strings are ASCII-only.  */
 
 #ifdef ENABLE_CHECKING
-extern const char * verify_ascii (const char *);
+extern const char *verify_ascii (const char *);
 #else
-#define verify_ascii(str) (str)
+# define verify_ascii(str) (str)
 #endif
 
-/* Return number of bytes needed for Lisp string of length NBYTES.  */
+/* Build a stack-based Lisp string from STR if possible, a GC-based
+   one if not.  STR is not necessarily copied and should contain only
+   ASCII characters.  The resulting Lisp string should not be modified
+   or made visible to user code.  */
 
-INLINE ptrdiff_t
-lisp_string_size (ptrdiff_t nbytes)
-{
-  return sizeof (struct Lisp_String) + nbytes + 1;
-}
-
-/* Return function-scoped unibyte Lisp string with contents STR of length
-   NBYTES and memory footprint of MEMSIZE bytes if the latter doesn't exceed
-   MAX_ALLOCA, abort otherwise.  */
-
-# define make_local_string(str, memsize, nbytes)		\
-    ((memsize < MAX_ALLOCA)					\
-      ? ({ struct Lisp_String *s_ = alloca (memsize);		\
-	   s_->data = (unsigned char *) (s_ + 1);		\
-	   memcpy (s_->data, verify_ascii (str), nbytes + 1);	\
-	   s_->size = nbytes, s_->size_byte = -1;		\
-	   s_->intervals = NULL;				\
-	   make_lisp_ptr (s_, Lisp_String); })			\
-     : (emacs_abort (), Qnil))
-
-/* If STR is a compile-time string constant, build function-scoped Lisp string
-   from it, fall back to regular Lisp string otherwise.  We assume compile-time
-   string constants never exceeds MAX_ALLOCA - sizeof (Lisp_String) - 1.  */
-
-# define build_local_string(str)				\
-    (__builtin_constant_p (str)					\
-     ? make_local_string					\
-         (str, lisp_string_size (strlen (str)), strlen (str))	\
-     : build_string (str))
-
-#else /* not USE_STACK_LISP_OBJECTS && __GNUC__ && !__clang__ */
-
-INLINE Lisp_Object
-build_local_string (const char *str)
-{
-  return build_string (str);
-}
-
-#endif /* not USE_STACK_LISP_OBJECTS && __GNUC__ && !__clang__ */
+#define SCOPED_STRING(str)						\
+  (USE_STACK_STRING							\
+   ? (make_lisp_ptr							\
+      ((&(union Aligned_String)						\
+	{ { strlen (str), -1, 0, (unsigned char *) verify_ascii (str) } }.s), \
+       Lisp_String))							\
+   : build_string (verify_ascii (str)))
 
 /* Loop over all tails of a list, checking for cycles.
    FIXME: Make tortoise and n internal declarations.

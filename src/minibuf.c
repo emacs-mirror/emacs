@@ -1158,7 +1158,7 @@ function, instead of the usual behavior.  */)
 	    }
 
 	  prompt = Fformat (3, ((Lisp_Object [])
-	    { build_local_string ("%s (default %s): "),
+	    { SCOPED_STRING ("%s (default %s): "),
 	      prompt, CONSP (def) ? XCAR (def) : def }));
 	}
 

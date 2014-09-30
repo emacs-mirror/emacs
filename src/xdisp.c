@@ -20928,7 +20928,7 @@ See also `bidi-paragraph-direction'.  */)
 	 the previous non-empty line.  */
       if (pos >= ZV && pos > BEGV)
 	DEC_BOTH (pos, bytepos);
-      if (fast_looking_at (build_local_string ("[\f\t ]*\n"),
+      if (fast_looking_at (SCOPED_STRING ("[\f\t ]*\n"),
 			   pos, bytepos, ZV, ZV_BYTE, Qnil) > 0)
 	{
 	  while ((c = FETCH_BYTE (bytepos)) == '\n'

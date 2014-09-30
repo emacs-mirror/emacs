@@ -2726,7 +2726,7 @@ if `last-nonmenu-event' is nil, and `use-dialog-box' is non-nil.  */)
     }
 
   prompt = Fconcat (2, ((Lisp_Object [])
-    { prompt, build_local_string ("(yes or no) ") }));
+    { prompt, SCOPED_STRING ("(yes or no) ") }));
   GCPRO1 (prompt);
 
   while (1)

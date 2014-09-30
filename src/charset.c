@@ -490,8 +490,7 @@ load_charset_map_from_file (struct charset *charset, Lisp_Object mapfile,
   int n_entries;
   ptrdiff_t count;
 
-  suffixes = scoped_list2 (build_local_string (".map"),
-			   build_local_string (".TXT"));
+  suffixes = scoped_list2 (SCOPED_STRING (".map"), SCOPED_STRING (".TXT"));
 
   count = SPECPDL_INDEX ();
   record_unwind_protect_nothing ();

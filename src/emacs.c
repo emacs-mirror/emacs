@@ -423,7 +423,7 @@ init_cmdargs (int argc, char **argv, int skip_args, char *original_pwd)
      if it would otherwise be treated as magic.  */
   handler = Ffind_file_name_handler (raw_name, Qt);
   if (! NILP (handler))
-    raw_name = concat2 (build_local_string ("/:"), raw_name);
+    raw_name = concat2 (SCOPED_STRING ("/:"), raw_name);
 
   Vinvocation_name = Ffile_name_nondirectory (raw_name);
   Vinvocation_directory = Ffile_name_directory (raw_name);
@@ -441,7 +441,7 @@ init_cmdargs (int argc, char **argv, int skip_args, char *original_pwd)
 	     if it would otherwise be treated as magic.  */
 	  handler = Ffind_file_name_handler (found, Qt);
 	  if (! NILP (handler))
-	    found = concat2 (build_local_string ("/:"), found);
+	    found = concat2 (SCOPED_STRING ("/:"), found);
 	  Vinvocation_directory = Ffile_name_directory (found);
 	}
     }
@@ -2323,7 +2323,7 @@ decode_env_path (const char *evarname, const char *defalt, bool empty)
             }
 
           if (! NILP (tem))
-            element = concat2 (build_local_string ("/:"), element);
+            element = concat2 (SCOPED_STRING ("/:"), element);
         } /* !NILP (element) */
 
       lpath = Fcons (element, lpath);

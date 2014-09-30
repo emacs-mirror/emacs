@@ -1552,10 +1552,10 @@ exists, return the buffer `*scratch*' (creating it if necessary).  */)
     return notsogood;
   else
     {
-      buf = Fget_buffer (build_local_string ("*scratch*"));
+      buf = Fget_buffer (SCOPED_STRING ("*scratch*"));
       if (NILP (buf))
 	{
-	  buf = Fget_buffer_create (build_local_string ("*scratch*"));
+	  buf = Fget_buffer_create (SCOPED_STRING ("*scratch*"));
 	  Fset_buffer_major_mode (buf);
 	}
       return buf;
@@ -1575,10 +1575,10 @@ other_buffer_safely (Lisp_Object buffer)
     if (candidate_buffer (buf, buffer))
       return buf;
 
-  buf = Fget_buffer (build_local_string ("*scratch*"));
+  buf = Fget_buffer (SCOPED_STRING ("*scratch*"));
   if (NILP (buf))
     {
-      buf = Fget_buffer_create (build_local_string ("*scratch*"));
+      buf = Fget_buffer_create (SCOPED_STRING ("*scratch*"));
       Fset_buffer_major_mode (buf);
     }
 
@@ -5289,7 +5289,7 @@ init_buffer (int initialized)
   (void) initialized;
 #endif /* USE_MMAP_FOR_BUFFERS */
 
-  Fset_buffer (Fget_buffer_create (build_local_string ("*scratch*")));
+  Fset_buffer (Fget_buffer_create (SCOPED_STRING ("*scratch*")));
   if (NILP (BVAR (&buffer_defaults, enable_multibyte_characters)))
     Fset_buffer_multibyte (Qnil);
 
@@ -5328,7 +5328,7 @@ init_buffer (int initialized)
       && strcmp ("/", SSDATA (BVAR (current_buffer, directory))))
     bset_directory
       (current_buffer,
-       concat2 (build_local_string ("/:"), BVAR (current_buffer, directory)));
+       concat2 (SCOPED_STRING ("/:"), BVAR (current_buffer, directory)));
 
   temp = get_minibuffer (0);
   bset_directory (XBUFFER (temp), BVAR (current_buffer, directory));
