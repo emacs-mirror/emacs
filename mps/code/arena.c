@@ -142,9 +142,6 @@ Bool ArenaCheck(Arena arena)
     CHECKD(Reservoir, &arena->reservoirStruct);
   }
 
-  /* Can't check that limit>=size because we may call ArenaCheck */
-  /* while the size is being adjusted. */
-
   CHECKL(arena->committed <= arena->commitLimit);
   CHECKL(arena->spareCommitted <= arena->committed);
 
