@@ -3,6 +3,28 @@
 Copyright (C) 2001-2014 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
+* Changes in MH-E 8.6
+
+Version 8.6 fixes composition errors in nmh 1.6.
+
+** Bug Fixes in MH-E 8.6
+
+*** Add support for nmh 1.5
+
+A components file is now generated that works with nmh 1.5 (partially
+closes SF #468).
+	
+*** Error if mh-x-face-file is nil
+
+Ensure that `mh-x-face-file' is a string before trying to use it
+(closes SF #474).
+
+*** MH-Folder buffer includes "scan: bad message list unseen"
+
+Fix this error (closes SF #471).
+
+
+
 * Changes in MH-E 8.5
 
 Version 8.5 fixes bugs when incorporating or forwarding mail.
