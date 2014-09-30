@@ -1,3 +1,8 @@
+2014-09-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* TODO: Remove char/unsigned char, long long, IRIX unexelf.c.
+	The first two are done, and IRIX support has been dropped.
+
 2014-09-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* refcards/ru-refcard.tex: Bump version to 25.0.50.

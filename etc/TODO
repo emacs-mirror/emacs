@@ -531,12 +531,6 @@ rather than interactively.  This a trivial one-liner in easy-mode.el.
   [Basic support added 2013/10:
   http://lists.gnu.org/archive/html/emacs-devel/2013-10/msg00904.html ]
 
-** Eliminate the storm of warnings concerning char/unsigned char
-  mismatches that we get with GCC 4.x and proprietary compilers on
-  various systems.  They make it difficult to spot the important warnings.
-
-** Fix anything necessary to use `long long' EMACS_INTs with GCC.
-
 ** Split out parts of lisp.h.
 
 ** Update the FAQ.
@@ -1336,9 +1330,6 @@ for vc-rcs-update-changelog.
 
 ** a two-char comment-starter whose two chars are symbol constituents will
 not be noticed if it appears within a word.
-
-** Fix unexelf.c to handle the .data.rel and .data.rel.local
-   sections made by GCC 3.4 on IRIX.
 
 
 This file is part of GNU Emacs.
