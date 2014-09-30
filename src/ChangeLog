@@ -1,5 +1,8 @@
 2014-09-30  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* frame.c (x_set_frame_parameters): Port --enable-gcc-warnings
+	to Ubuntu 14.04.1 x86-64.
+
 	Simplify stack-allocated Lisp objects, and make them more portable.
 	The build_local_string macro was used in two ways: (1) string
 	literals for which scoped allocation suffices, and (2) file name

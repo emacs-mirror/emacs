@@ -2988,7 +2988,7 @@ x_set_frame_parameters (struct frame *f, Lisp_Object alist)
   /* If both of these parameters are present, it's more efficient to
      set them both at once.  So we wait until we've looked at the
      entire list before we set them.  */
-  int width, height IF_LINT (= 0);
+  int width IF_LINT (= 0), height IF_LINT (= 0);
   bool width_change = 0, height_change = 0;
 
   /* Same here.  */
