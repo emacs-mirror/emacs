@@ -592,30 +592,37 @@ for safety.  This is a macro to prevent propagate-on-load viruses."
   t)
 
 (defmacro ses-dorange (curcell &rest body)
-  "Execute BODY repeatedly, with the variables `row' and `col' set to each
-cell in the range specified by CURCELL.  The range is available in the
-variables `minrow', `maxrow', `mincol', and `maxcol'."
+  "Execute BODY repeatedly, with the variables `row', `col',
+`maxrow' and `maxcol' dynamically scoped to each cell in the
+range specified by CURCELL."
   (declare (indent defun) (debug (form body)))
   (let ((cur (make-symbol "cur"))
 	(min (make-symbol "min"))
 	(max (make-symbol "max"))
 	(r   (make-symbol "r"))
-	(c   (make-symbol "c")))
+	(c   (make-symbol "c"))
+	(row (make-symbol "row"))
+	;; The range is available in the variables `minrow', `maxrow',
+	;; `mincol', and `maxcol'.
+	(minrow (make-symbol "minrow"))
+	(mincol (make-symbol "mincol"))
+	(maxrow (make-symbol "maxrow"))
+	(maxcol (make-symbol "maxcol"))	)
     `(let* ((,cur ,curcell)
 	    (,min (ses-sym-rowcol (if (consp ,cur) (car ,cur) ,cur)))
 	    (,max (ses-sym-rowcol (if (consp ,cur) (cdr ,cur) ,cur))))
-       (let ((minrow (car ,min))
-	     (maxrow (car ,max))
-	     (mincol (cdr ,min))
-	     (maxcol (cdr ,max))
-	     row col)
-	 (if (or (> minrow maxrow) (> mincol maxcol))
+       (let ((,minrow (car ,min))
+	     (,maxrow (car ,max))
+	     (,mincol (cdr ,min))
+	     (,maxcol (cdr ,max))
+	     ,row)
+	 (if (or (> ,minrow ,maxrow) (> ,mincol ,maxcol))
 	     (error "Empty range"))
-	 (dotimes (,r (- maxrow minrow -1))
-	   (setq row (+ ,r minrow))
-	   (dotimes (,c (- maxcol mincol -1))
-	     (setq col (+ ,c mincol))
-	     ,@body))))))
+	 (dotimes (,r (- ,maxrow ,minrow -1))
+	   (setq ,row (+ ,r ,minrow))
+	   (dotimes (,c (- ,maxcol ,mincol -1))
+	     (cl-progv '(row col maxrow maxcol) (list ,row (+ ,c ,mincol) ,maxrow ,maxcol)
+	       ,@body)))))))
 
 ;;Support for coverage testing.
 (defmacro 1value (form)
@@ -939,7 +946,9 @@ the old and FORCE is nil."
 	(setq formula (ses-safe-formula (cadr formula)))
 	(ses-set-cell row col 'formula formula))
       (condition-case sig
-	  (setq newval (eval formula))
+	  (setq newval (cl-progv '(row col)
+			   (list row col)
+			 (eval formula)))
 	(error
 	 ;; Variable `sig' can't be nil.
 	 (nconc sig (list (ses-cell-symbol cell)))
@@ -2176,6 +2185,14 @@ print area if NONARROW is nil."
 (defun ses-initialize-Dijkstra-attempt ()
   (setq ses--Dijkstra-attempt-nb (1+ ses--Dijkstra-attempt-nb)
 	ses--Dijkstra-weight-bound (* ses--numrows ses--numcols)))
+
+;; These functions use the variables 'row' and 'col' that are dynamically bound
+;; by ses-print-cell.  We define these variables at compile-time to make the
+;; compiler happy.
+(defvar row)
+(defvar col)
+(defvar maxrow)
+(defvar maxcol)
 
 (defun ses-recalculate-cell ()
   "Recalculate and reprint the current cell or range.
@@ -3675,12 +3692,6 @@ either (ses-range BEG END) or (list ...).  The TEST is evaluated."
 ;;----------------------------------------------------------------------------
 ;; Standard print functions
 ;;----------------------------------------------------------------------------
-
-;; These functions use the variables 'row' and 'col' that are dynamically bound
-;; by ses-print-cell.  We define these variables at compile-time to make the
-;; compiler happy.
-(defvar row)
-(defvar col)
 
 (defun ses-center (value &optional span fill)
   "Print VALUE, centered within column.

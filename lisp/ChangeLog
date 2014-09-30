@@ -1,3 +1,12 @@
+2014-09-30  Vincent Belaïche  <vincentb1@users.sourceforge.net>
+
+	* ses.el (ses-calculate-cell): bind row and col dynamically to
+	their values with 'cl-progv'.
+	(ses-dorange): bind row, col, maxrow and maxcol dynamically to
+	their values with 'cl-progv', also use non-interned symbols for
+	row, minrow, maxrow, mincol and maxcol.
+	(maxrow maxcol): New defvar, to make the compiler happy.
+
 2014-09-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuffer.el (completion-at-point): Emit warning for ill-behaved
