@@ -1,3 +1,8 @@
+2014-09-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion-at-point): Emit warning for ill-behaved
+	completion functions.
+
 2014-09-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* ses.el (ses--letref): Quote value before it gets re-evaluated.

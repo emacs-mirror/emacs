@@ -2106,7 +2106,11 @@ The completion method is determined by `completion-at-point-functions'."
          (completion-in-region start end collection
                                (plist-get plist :predicate))))
       ;; Maybe completion already happened and the function returned t.
-      (_ (cdr res)))))
+      (_
+       (when (cdr res)
+         (message "Warning: %S failed to return valid completion data!"
+                  (car res)))
+       (cdr res)))))
 
 (defun completion-help-at-point ()
   "Display the completions on the text around point.
