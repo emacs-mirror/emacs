@@ -15028,7 +15028,7 @@ run_window_scroll_functions (Lisp_Object window, struct text_pos startp)
    is higher than window.
 
    If CURRENT_MATRIX_P is non-zero, use the information from the
-   window's current glyph matrix; otherwise uze the desired glyph
+   window's current glyph matrix; otherwise use the desired glyph
    matrix.
 
    A value of 0 means the caller should do scrolling
