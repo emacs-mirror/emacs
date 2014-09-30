@@ -1,3 +1,8 @@
+2014-09-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* internals.texi (Stack-allocated Objects): Minor improvements of
+	the wording and the indexing.
+
 2014-09-30  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* internals.texi (Stack-allocated Objects): Describe this feature.

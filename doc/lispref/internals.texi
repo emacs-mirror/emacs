@@ -533,27 +533,29 @@ floating-point number.
 @node Stack-allocated Objects
 @section Stack-allocated Objects
 
-@cindex stack allocation overview
+@cindex stack allocated Lisp objects
+@cindex Lisp objects, stack-allocated
   The garbage collector described above is used to manage data visible
-from Lisp program, as well as the most of data internally used by the
-interpreter.  But sometimes it may be useful to allocate temporary
-internal (i.e. not visible for Lisp program) objects using C stack of
-an interpreter.  Currently conses and strings are the only objects which
-can be allocated in that way.  Strings are limited to ASCII characters
-only and should be treated as immutable (calling @code{ASET} on them is
-undefined).
+from Lisp programs, as well as most of the data internally used by the
+Lisp interpreter.  But sometimes it may be useful to allocate
+temporary internal (i.e.@: not visible for a Lisp program) objects
+using the C stack of the interpreter.  Currently, only cons cells and
+strings can be allocated that way.  Stack-allocated strings are
+limited to @acronym{ASCII} characters only, and should be treated as
+immutable (calling @code{ASET} on them produces undefined behavior).
 
-@cindex stack allocation internals
-  In C, this is implemented as a special macros which expands to
-a @code{Lisp_Object} with block-scoped semantics and lifetime (see
-the code around @code{USE_STACK_LISP_OBJECTS} in @file{lisp.h}).  This
-means that these objects are not managed by the garbage collector;
-instead, they are allocated like local variables in C and automatically
-freed when an execution reaches an end of the corresponding scope.  Thus,
-allocation and freeing are faster than using garbage collector.  But
-remember that passing them out of their scope results in undefined
-behavior.  Think twice before using this feature and carefully debug
-your code with @code{GC_CHECK_MARKED_OBJECTS} (see @file{alloc.c}).
+  In C, this is implemented as special macros which expand into a
+@code{Lisp_Object} with block-scoped semantics and lifetime (see the
+code around @code{USE_STACK_LISP_OBJECTS} in @file{src/lisp.h}).  This
+means that these objects are not freed by the garbage collector;
+instead, they are allocated like local variables in C and
+automatically freed when execution goes out of the scope where the
+object was allocated.  Thus, allocating and freeing these objects is
+faster than when using heap memory to allocate and the garbage
+collector to free their memory.  Note that using such objects out of
+their scope will result in undefined behavior, so code using them
+should be well thought out and carefully debugged by using the
+@code{GC_CHECK_MARKED_OBJECTS} feature (see @file{src/alloc.c}).
 
 @node Memory Usage
 @section Memory Usage
