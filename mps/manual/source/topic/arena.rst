@@ -380,8 +380,17 @@ Arena properties
 
     ``arena`` is the arena.
 
-    Returns the total amount of memory that has been committed to RAM
+    Returns the total amount of memory that has been committed for use
     by the MPS, in :term:`bytes (1)`.
+
+    For a :term:`virtual memory arena`, this is the amount of memory
+    mapped to RAM by the operating system's virtual memory interface.
+
+    For a :term:`client arena`, this is the amount of memory marked as
+    in use in the arena's page tables. This is not particularly
+    meaningful by itself, but it corresponds to the amount of mapped
+    memory that the MPS would use if switched to a virtual memory
+    arena.
 
     The committed memory is generally larger than the sum of the sizes
     of the allocated :term:`blocks`. The reasons for this are:
@@ -412,7 +421,7 @@ Arena properties
     (over-)estimate the size of the heap.
 
     If you want to know how much memory the MPS is using then you're
-    probably interested in the value :c:func:`mps_arena_committed()` −
+    probably interested in the value :c:func:`mps_arena_committed` −
     :c:func:`mps_arena_spare_committed`.
 
     The amount of committed memory can be limited with the function
@@ -436,12 +445,12 @@ Arena properties
 
     .. note::
 
-        For a client arena, the reserved address may be lower than the
-        sum of the :c:macro:`MPS_KEY_ARENA_SIZE` keyword argument
-        passed to :c:func:`mps_arena_create_k` and the ``size``
-        arguments passed to :c:func:`mps_arena_extend`, because the
-        arena may be unable to use the whole of each chunk for reasons
-        of alignment.
+        For a :term:`client arena`, the reserved address may be lower
+        than the sum of the :c:macro:`MPS_KEY_ARENA_SIZE` keyword
+        argument passed to :c:func:`mps_arena_create_k` and the
+        ``size`` arguments passed to :c:func:`mps_arena_extend`,
+        because the arena may be unable to use the whole of each chunk
+        for reasons of alignment.
 
 
 .. c:function:: size_t mps_arena_spare_commit_limit(mps_arena_t arena)
@@ -505,6 +514,11 @@ Arena properties
     :c:func:`mps_arena_spare_commit_limit`. This is analogous to the
     functions for limiting the amount of :term:`committed <mapped>`
     memory.
+
+    .. note::
+
+        :term:`Client arenas` do not use spare committed memory, and
+        so this function always returns 0.
 
 
 .. index::

@@ -142,6 +142,12 @@ Bool ArenaCheck(Arena arena)
     CHECKD(Reservoir, &arena->reservoirStruct);
   }
 
+  /* .reserved.check: Would like to check that arena->committed <=
+   * arena->reserved, but that isn't always true in the VM arena.
+   * Memory is committed early on when VMChunkCreate calls VMArenaMap
+   * (to provide a place for the chunk struct) but is not recorded as
+   * reserved until ChunkInit calls ArenaChunkInsert.
+   */
   CHECKL(arena->committed <= arena->commitLimit);
   CHECKL(arena->spareCommitted <= arena->committed);
 
