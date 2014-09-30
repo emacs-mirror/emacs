@@ -1,3 +1,17 @@
+2014-09-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32fns.c (w32_createwindow): Accept an additional argument, an
+	array of 2 values specifying the coordinates of the frame's
+	top-left corner.  Use these values instead of calling x_get_arg,
+	which can cons Lisp objects, and therefore cannot be called except
+	from the main thread.  Remove redundant tests for the default
+	values.
+	(my_create_window): Move the calculation of the coordinates of the
+	frame's top-left edge here.  Pass them to the input thread via the
+	second parameter of the WM_EMACS_CREATEWINDOW message.  See
+	http://lists.gnu.org/archive/html/emacs-devel/2014-09/msg00892.html
+	for the details.
+
 2014-09-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (cursor_row_fully_visible_p): Update commentary.
