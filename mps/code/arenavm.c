@@ -565,6 +565,7 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
   res = ArenaInit(arena, class, grainSize, args);
   if (res != ResOK)
     goto failArenaInit;
+  arena->reserved = VMReserved(vm);
   arena->committed = VMMapped(vm);
 
   /* Copy VM descriptor into its place in the arena. */
@@ -645,6 +646,7 @@ static void VMArenaFinish(Arena arena)
   RingFinish(&vmArena->spareRing);
 
   /* Destroying the chunks should leave only the arena's own VM. */
+  AVER(arena->reserved == VMReserved(VMArenaVM(vmArena)));
   AVER(arena->committed == VMMapped(VMArenaVM(vmArena)));
 
   vmArena->sig = SigInvalid;
@@ -798,10 +800,13 @@ static Res pageDescMap(VMChunk vmChunk, Index basePI, Index limitPI)
 
 static void pageDescUnmap(VMChunk vmChunk, Index basePI, Index limitPI)
 {
+  Size size;
   Size before = VMMapped(VMChunkVM(vmChunk));
   Arena arena = VMArena2Arena(VMChunkVMArena(vmChunk));
   SparseArrayUnmap(&vmChunk->pages, basePI, limitPI);
-  arena->committed += VMMapped(VMChunkVM(vmChunk)) - before;
+  size = before - VMMapped(VMChunkVM(vmChunk));
+  AVER(arena->committed >= size);
+  arena->committed -= size;
 }
 
 
