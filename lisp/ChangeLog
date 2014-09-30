@@ -1,13 +1,24 @@
 2014-09-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* ses.el (ses--row, ses--col): New dyn-scoped vars, to replace row&col.
+	(ses-center, ses-center-span): Use them.
+	(ses-print-cell): Bind them while calling the printer.
+	(row, col, maxrow, maxcol): Don't declare as dynamically scoped.
+	(ses-dorange): Revert last change.
+	(ses-calculate-cell): Don't bind row&col dynamically while evaluating
+	the formula.
+	(ses-set-cell): Avoid `eval'.
+	(ses--time-check): Rename it from ses-time-check and turn it into
+	a macro.
+
 	* ses.el (ses-setup): Don't assume modifying the iteration var of
 	dotimes affects the iteration (bug#18191).
 
 2014-09-30  Vincent Belaïche  <vincentb1@users.sourceforge.net>
 
-	* ses.el (ses-calculate-cell): bind row and col dynamically to
+	* ses.el (ses-calculate-cell): Bind row and col dynamically to
 	their values with 'cl-progv'.
-	(ses-dorange): bind row, col, maxrow and maxcol dynamically to
+	(ses-dorange): Bind row, col, maxrow and maxcol dynamically to
 	their values with 'cl-progv', also use non-interned symbols for
 	row, minrow, maxrow, mincol and maxcol.
 	(maxrow maxcol): New defvar, to make the compiler happy.

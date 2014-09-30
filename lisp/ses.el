@@ -561,7 +561,7 @@ macro to prevent propagate-on-load viruses."
   ;;To save time later, we also calculate the total width of each line in the
   ;;print area (excluding the terminating newline)
   (setq ses--col-widths widths
-	ses--linewidth  (apply '+ -1 (mapcar '1+ widths))
+	ses--linewidth  (apply #'+ -1 (mapcar #'1+ widths))
 	ses--blank-line (concat (make-string ses--linewidth ?\s) "\n"))
   t)
 
@@ -573,7 +573,7 @@ them for safety.  This is a macro to prevent propagate-on-load viruses."
   (dotimes (x ses--numcols)
     (aset printers x (ses-safe-printer (aref printers x))))
   (setq ses--col-printers printers)
-  (mapc 'ses-printer-record printers)
+  (mapc #'ses-printer-record printers)
   t)
 
 (defmacro ses-default-printer (def)
@@ -592,37 +592,29 @@ for safety.  This is a macro to prevent propagate-on-load viruses."
   t)
 
 (defmacro ses-dorange (curcell &rest body)
-  "Execute BODY repeatedly, with the variables `row', `col',
-`maxrow' and `maxcol' dynamically scoped to each cell in the
-range specified by CURCELL."
+  "Execute BODY repeatedly, with the variables `row' and `col' set to each
+cell in the range specified by CURCELL.  The range is available in the
+variables `minrow', `maxrow', `mincol', and `maxcol'."
   (declare (indent defun) (debug (form body)))
   (let ((cur (make-symbol "cur"))
 	(min (make-symbol "min"))
 	(max (make-symbol "max"))
 	(r   (make-symbol "r"))
-	(c   (make-symbol "c"))
-	(row (make-symbol "row"))
-	;; The range is available in the variables `minrow', `maxrow',
-	;; `mincol', and `maxcol'.
-	(minrow (make-symbol "minrow"))
-	(mincol (make-symbol "mincol"))
-	(maxrow (make-symbol "maxrow"))
-	(maxcol (make-symbol "maxcol"))	)
+	(c   (make-symbol "c")))
     `(let* ((,cur ,curcell)
 	    (,min (ses-sym-rowcol (if (consp ,cur) (car ,cur) ,cur)))
 	    (,max (ses-sym-rowcol (if (consp ,cur) (cdr ,cur) ,cur))))
-       (let ((,minrow (car ,min))
-	     (,maxrow (car ,max))
-	     (,mincol (cdr ,min))
-	     (,maxcol (cdr ,max))
-	     ,row)
-	 (if (or (> ,minrow ,maxrow) (> ,mincol ,maxcol))
+       (let ((minrow (car ,min))
+	     (maxrow (car ,max))
+	     (mincol (cdr ,min))
+	     (maxcol (cdr ,max)))
+	 (if (or (> minrow maxrow) (> mincol maxcol))
 	     (error "Empty range"))
-	 (dotimes (,r (- ,maxrow ,minrow -1))
-	   (setq ,row (+ ,r ,minrow))
-	   (dotimes (,c (- ,maxcol ,mincol -1))
-	     (cl-progv '(row col maxrow maxcol) (list ,row (+ ,c ,mincol) ,maxrow ,maxcol)
-	       ,@body)))))))
+	 (dotimes (,r (- maxrow minrow -1))
+	   (let ((row (+ ,r minrow)))
+             (dotimes (,c (- maxcol mincol -1))
+               (let ((col (+ ,c mincol)))
+                 ,@body))))))))
 
 ;;Support for coverage testing.
 (defmacro 1value (form)
@@ -787,13 +779,12 @@ updated again."
   (setq ses--header-hscroll -1))
 
 ;;Split this code off into a function to avoid coverage-testing difficulties
-(defun ses-time-check (format arg)
+(defmacro ses--time-check (format &rest args)
   "If `ses-start-time' is more than a second ago, call `message' with FORMAT
-and (eval ARG) and reset `ses-start-time' to the current time."
-  (when (> (- (float-time) ses-start-time) 1.0)
-    (message format (eval arg))
-    (setq ses-start-time (float-time)))
-  nil)
+and ARGS and reset `ses-start-time' to the current time."
+  `(when (> (- (float-time) ses-start-time) 1.0)
+     (message ,format ,@args)
+     (setq ses-start-time (float-time))))
 
 
 ;;----------------------------------------------------------------------------
@@ -809,7 +800,8 @@ cell (ROW,COL).  This is undoable.  The cell's data will be updated through
          (val ,val))
      (let* ((cell (ses-get-cell row col))
             (change
-             ,(let ((field (eval field t)))
+             ,(let ((field (progn (cl-assert (eq (car field) 'quote))
+                                  (cadr field))))
                 (if (eq field 'value)
                     `(ses-set-with-undo (ses-cell-symbol cell) val)
                   ;; (let* ((slots (get 'ses-cell 'cl-struct-slots))
@@ -946,9 +938,7 @@ the old and FORCE is nil."
 	(setq formula (ses-safe-formula (cadr formula)))
 	(ses-set-cell row col 'formula formula))
       (condition-case sig
-	  (setq newval (cl-progv '(row col)
-			   (list row col)
-			 (eval formula)))
+	  (setq newval (eval formula t))
 	(error
 	 ;; Variable `sig' can't be nil.
 	 (nconc sig (list (ses-cell-symbol cell)))
@@ -1140,6 +1130,9 @@ A single cell is appropriate unless some argument is 'needrange."
    ((memq 'needrange args)
     (error "Need a range"))))
 
+(defvar ses--row)
+(defvar ses--col)
+
 (defun ses-print-cell (row col)
   "Format and print the value of cell (ROW,COL) to the print area.
 Use the cell's printer function.  If the cell's new print form is too wide,
@@ -1167,10 +1160,13 @@ preceding cell has spilled over."
 	    (ses-set-cell row col 'printer
 			  (setq printer (ses-safe-printer (cadr printer)))))
 	;; Print the value.
-	(setq text (ses-call-printer (or printer
-					 (ses-col-printer col)
-					 ses--default-printer)
-				     value))
+	(setq text
+              (let ((ses--row row)
+                    (ses--col col))
+                (ses-call-printer (or printer
+                                      (ses-col-printer col)
+                                      ses--default-printer)
+                                  value)))
 	(if (consp ses-call-printer-return)
 	    ;; Printer returned an error.
 	    (setq sig ses-call-printer-return))))
@@ -1279,13 +1275,15 @@ printer signaled one (and \"%s\" is used as the default printer), else nil."
 	    (format (car printer) value)
 	  ""))
        (t
-	(setq value  (funcall
-		      (or (and (symbolp printer)
-			       (let ((locprn (gethash printer ses--local-printer-hashmap)))
-				 (and locprn
-				      (ses--locprn-compiled locprn))))
-			  printer)
-		      (or value "")))
+	(setq value
+              (funcall
+               (or (and (symbolp printer)
+                        (let ((locprn (gethash printer
+                                               ses--local-printer-hashmap)))
+                          (and locprn
+                               (ses--locprn-compiled locprn))))
+                   printer)
+               (or value "")))
 	(if (stringp value)
 	    value
 	  (or (stringp (car-safe value))
@@ -1411,8 +1409,8 @@ Newlines in the data are escaped."
     (with-temp-message " "
       (save-excursion
 	(while ses--deferred-write
-	  (ses-time-check "Writing... (%d cells left)"
-			  '(length ses--deferred-write))
+	  (ses--time-check "Writing... (%d cells left)"
+                           (length ses--deferred-write))
 	  (setq rowcol  (pop ses--deferred-write)
 		row     (car rowcol)
 		col     (cdr rowcol)
@@ -1702,7 +1700,7 @@ to each symbol."
       (let (row col)
 	(setq ses-start-time (float-time))
 	(while reform
-	  (ses-time-check "Fixing ses-ranges... (%d left)" '(length reform))
+	  (ses--time-check "Fixing ses-ranges... (%d left)" (length reform))
 	  (setq row    (caar reform)
 		col    (cdar reform)
 		reform (cdr reform))
@@ -1799,7 +1797,7 @@ Does not execute cell formulas or print functions."
   (setq ses--data-marker (point-marker))
   (forward-char (1- (length ses-print-data-boundary)))
   ;; Initialize printer and symbol lists.
-  (mapc 'ses-printer-record ses-standard-printer-functions)
+  (mapc #'ses-printer-record ses-standard-printer-functions)
   (setq ses--symbolic-formulas                   nil)
 
   ;; Load local printer definitions.
@@ -1848,10 +1846,10 @@ Does not execute cell formulas or print functions."
 	     (eq (car-safe head-row) 'ses-header-row)
 	     (= n4 ?\n))
 	(error "Invalid SES global parameters"))
-    (1value (eval widths))
-    (1value (eval def-printer))
-    (1value (eval printers))
-    (1value (eval head-row)))
+    (1value (eval widths t))
+    (1value (eval def-printer t))
+    (1value (eval printers t))
+    (1value (eval head-row t)))
   ;; Should be back at global-params.
   (forward-char 1)
   (or (looking-at-p ses-initial-global-parameters-re)
@@ -1875,7 +1873,7 @@ Narrows the buffer to show only the print area.  Gives it `read-only' and
     (with-silent-modifications
       (ses-goto-data 0 0)    ; Include marker between print-area and data-area.
       (set-text-properties (point) (point-max) nil) ; Delete garbage props.
-      (mapc 'delete-overlay (overlays-in (point-min) (point-max)))
+      (mapc #'delete-overlay (overlays-in (point-min) (point-max)))
       ;; The print area is read-only (except for our special commands) and
       ;; uses a special keymap.
       (put-text-property (point-min) (1- (point)) 'read-only 'ses)
@@ -1925,7 +1923,7 @@ Delete overlays, remove special text properties."
     ;; Delete read-only, keymap, and intangible properties.
     (set-text-properties (point-min) (point-max) nil)
     ;; Delete overlay.
-    (mapc 'delete-overlay (overlays-in (point-min) (point-max)))
+    (mapc #'delete-overlay (overlays-in (point-min) (point-max)))
     (unless was-modified
       (restore-buffer-modified-p nil))))
 
@@ -2131,7 +2129,7 @@ Based on the current set of columns and `window-hscroll' position."
 	(push (propertize (format "  [row %d]" ses--header-row)
 			  'display '((height (- 1))))
 	      result))
-    (setq ses--header-string (apply 'concat (nreverse result)))))
+    (setq ses--header-string (apply #'concat (nreverse result)))))
 
 
 ;;----------------------------------------------------------------------------
@@ -2186,10 +2184,10 @@ print area if NONARROW is nil."
 ;; These functions use the variables 'row' and 'col' that are dynamically bound
 ;; by ses-print-cell.  We define these variables at compile-time to make the
 ;; compiler happy.
-(defvar row)
-(defvar col)
-(defvar maxrow)
-(defvar maxcol)
+;; (defvar row)
+;; (defvar col)
+;; (defvar maxrow)
+;; (defvar maxcol)
 
 (defun ses-recalculate-cell ()
   "Recalculate and reprint the current cell or range.
@@ -2218,7 +2216,7 @@ to are recalculated first."
       ;; First, recalculate all cells that don't refer to other cells and
       ;; produce a list of cells with references.
       (ses-dorange ses--curcell
-	(ses-time-check "Recalculating... %s" '(ses-cell-symbol row col))
+	(ses--time-check "Recalculating... %s" (ses-cell-symbol row col))
 	(condition-case nil
 	    (progn
 	      ;; The t causes an error if the cell has references.  If no
@@ -2839,7 +2837,7 @@ SES attributes recording the contents of the cell as of the time of copying."
     ;;Avoid overflow situation
     (setq end (1- ses--data-marker)))
   (let* ((inhibit-point-motion-hooks t)
-	 (x (mapconcat 'ses-copy-region-helper
+	 (x (mapconcat #'ses-copy-region-helper
 		       (extract-rectangle beg (1- end)) "\n")))
     (remove-text-properties 0 (length x)
 			    '(read-only t
@@ -3144,7 +3142,7 @@ is non-nil.  Newlines and tabs in the export text are escaped."
 	(push "\t" result))
        ((< row maxrow)
 	(push "\n" result))))
-    (setq result (apply 'concat (nreverse result)))
+    (setq result (apply #'concat (nreverse result)))
     (kill-new result)))
 
 
@@ -3617,7 +3615,7 @@ Use `math-format-value' as a printer for Calc objects."
 	(setcdr (last result 2) nil)
       (setq result (cdr (nreverse result))))
     (unless reorient-x
-      (setq result (mapcar 'nreverse result)))
+      (setq result (mapcar #'nreverse result)))
     (when transpose
       (let ((ret (mapcar (lambda (x) (list x)) (pop result))) iter)
 	(while result
@@ -3629,7 +3627,7 @@ Use `math-format-value' as a printer for Calc objects."
 
     (cl-flet ((vectorize-*1
                (clean result)
-               (cons clean (cons (quote 'vec) (apply 'append result))))
+               (cons clean (cons (quote 'vec) (apply #'append result))))
               (vectorize-*2
                (clean result)
                (cons clean (cons (quote 'vec)
@@ -3637,7 +3635,7 @@ Use `math-format-value' as a printer for Calc objects."
                                            (cons  clean (cons (quote 'vec) x)))
                                          result)))))
       (pcase vectorize
-	(`nil (cons clean (apply 'append result)))
+	(`nil (cons clean (apply #'append result)))
 	(`*1 (vectorize-*1 clean result))
 	(`*2 (vectorize-*2 clean result))
 	(`* (funcall (if (cdr result)
@@ -3655,13 +3653,13 @@ Use `math-format-value' as a printer for Calc objects."
 
 (defun ses+ (&rest args)
   "Compute the sum of the arguments, ignoring blanks."
-  (apply '+ (apply 'ses-delete-blanks args)))
+  (apply #'+ (apply #'ses-delete-blanks args)))
 
 (defun ses-average (list)
   "Computes the sum of the numbers in LIST, divided by their length.  Blanks
 are ignored.  Result is always floating-point, even if all args are integers."
-  (setq list (apply 'ses-delete-blanks list))
-  (/ (float (apply '+ list)) (length list)))
+  (setq list (apply #'ses-delete-blanks list))
+  (/ (float (apply #'+ list)) (length list)))
 
 (defmacro ses-select (fromrange test torange)
   "Select cells in FROMRANGE that are `equal' to TEST.
@@ -3670,7 +3668,7 @@ The ranges are macroexpanded but not evaluated so they should be
 either (ses-range BEG END) or (list ...).  The TEST is evaluated."
   (setq fromrange (cdr (macroexpand fromrange))
 	torange   (cdr (macroexpand torange))
-	test      (eval test))
+	test      (eval test t))
   (or (= (length fromrange) (length torange))
       (error "ses-select: Ranges not same length"))
   (let (result)
@@ -3695,14 +3693,14 @@ either (ses-range BEG END) or (list ...).  The TEST is evaluated."
 FILL is the fill character for centering (default = space).
 SPAN indicates how many additional rightward columns to include
 in width (default = 0)."
-  (let ((printer (or (ses-col-printer col) ses--default-printer))
-	(width   (ses-col-width col))
+  (let ((printer (or (ses-col-printer ses--col) ses--default-printer))
+	(width   (ses-col-width ses--col))
 	half)
     (or fill (setq fill ?\s))
     (or span (setq span 0))
     (setq value (ses-call-printer printer value))
     (dotimes (x span)
-      (setq width (+ width 1 (ses-col-width (+ col span (- x))))))
+      (setq width (+ width 1 (ses-col-width (+ ses--col span (- x))))))
     ;; Set column width.
     (setq width (- width (string-width value)))
     (if (<= width 0)
@@ -3715,11 +3713,11 @@ in width (default = 0)."
   "Print VALUE, centered within the span that starts in the current column
 and continues until the next nonblank column.
 FILL specifies the fill character (default = space)."
-  (let ((end (1+ col)))
+  (let ((end (1+ ses--col)))
     (while (and (< end ses--numcols)
-		(memq (ses-cell-value row end) '(nil *skip*)))
+		(memq (ses-cell-value ses--row end) '(nil *skip*)))
       (setq end (1+ end)))
-    (ses-center value (- end col 1) fill)))
+    (ses-center value (- end ses--col 1) fill)))
 
 (defun ses-dashfill (value &optional span)
   "Print VALUE centered using dashes.
