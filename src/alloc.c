@@ -69,12 +69,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 static bool valgrind_p;
 #endif
 
-#if USE_STACK_LISP_OBJECTS
-# if GC_MARK_STACK != GC_MAKE_GCPROS_NOOPS
-#  error "Stack-allocated Lisp objects are not compatible with GCPROs"
-# endif
-#endif
-
 /* GC_CHECK_MARKED_OBJECTS means do sanity checks on allocated objects.
    Doable only if GC_MARK_STACK.  */
 #if ! GC_MARK_STACK

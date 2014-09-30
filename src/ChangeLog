@@ -1,5 +1,9 @@
 2014-09-30  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* alloc.c: Remove now-unnecessary check.
+	Suggested by Dmitry Antipov in:
+	http://lists.gnu.org/archive/html/emacs-devel/2014-09/msg00891.html
+
 	* xterm.c (x_term_init): Allocate temps on stack, not on heap.
 
 	* frame.c (x_set_frame_parameters): Port --enable-gcc-warnings
