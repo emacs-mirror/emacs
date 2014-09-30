@@ -1,3 +1,11 @@
+2014-09-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* erc-track.el (erc-modified-channels-display): Update all mode lines
+	if needed (bug#18510).  Remove call to erc-modified-channels-object
+	where we ignored the return value.
+	(erc-modified-channels-update): Don't force-mode-line-update here
+	any more.
+
 2014-09-26  Kelvin White  <kwhite@gnu.org>
 
 	* erc.el (erc-format-nick): Fix code regression - Bug #18551
@@ -12,7 +20,7 @@
 	(erc-cmd-SV, erc-ctcp-query-VERSION, erc-version, erc-version-string):
 	Change version string.
 
-2014-08-13  Kelvin White  <kwhite@gnu.org> 
+2014-08-13  Kelvin White  <kwhite@gnu.org>
 
 	* erc.el (erc-send-input): Disable display commands in current buffer
 	(erc-format-target-and/or-network): Fix cases when buffer name is set

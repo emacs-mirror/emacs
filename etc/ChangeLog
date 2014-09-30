@@ -1,3 +1,17 @@
+2014-09-30  Bill Wohler	 <wohler@newt.com>
+
+	Release MH-E version 8.6
+
+	* NEWS, MH-E-NEWS: Update for MH-E release 8.6.
+
+2014-09-30  Fabrice Niessen  <fniessen@pirilampo.org>
+
+	* themes/leuven-theme.el: Updates.
+
+2014-09-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* package-keyring.gpg: New file.
+
 2014-09-30  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* TODO: Remove char/unsigned char, long long, IRIX unexelf.c.

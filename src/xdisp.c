@@ -15002,6 +15002,10 @@ run_window_scroll_functions (Lisp_Object window, struct text_pos startp)
    If FORCE_P is non-zero, return 0 even if partial visible cursor row
    is higher than window.
 
+   If CURRENT_MATRIX_P is non-zero, use the information from the
+   window's current glyph matrix; otherwise use the desired glyph
+   matrix.
+
    A value of 0 means the caller should do scrolling
    as if point had gone off the screen.  */
 
@@ -16175,26 +16179,48 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
 
   /* If someone specified a new starting point but did not insist,
      check whether it can be used.  */
-  if (w->optional_new_start
+  if ((w->optional_new_start || window_frozen_p (w))
       && CHARPOS (startp) >= BEGV
       && CHARPOS (startp) <= ZV)
     {
+      ptrdiff_t it_charpos;
+
       w->optional_new_start = 0;
       start_display (&it, w, startp);
       move_it_to (&it, PT, 0, it.last_visible_y, -1,
 		  MOVE_TO_POS | MOVE_TO_X | MOVE_TO_Y);
-      if (IT_CHARPOS (it) == PT)
-	w->force_start = 1;
-      /* IT may overshoot PT if text at PT is invisible.  */
-      else if (IT_CHARPOS (it) > PT && CHARPOS (startp) <= PT)
-	w->force_start = 1;
+      /* Record IT's position now, since line_bottom_y might change
+	 that.  */
+      it_charpos = IT_CHARPOS (it);
+      /* Make sure we set the force_start flag only if the cursor row
+	 will be fully visible.  Otherwise, the code under force_start
+	 label below will try to move point back into view, which is
+	 not what the code which sets optional_new_start wants.  */
+      if ((it.current_y == 0 || line_bottom_y (&it) < it.last_visible_y)
+	  && !w->force_start)
+	{
+	  if (it_charpos == PT)
+	    w->force_start = 1;
+	  /* IT may overshoot PT if text at PT is invisible.  */
+	  else if (it_charpos > PT && CHARPOS (startp) <= PT)
+	    w->force_start = 1;
+#ifdef GLYPH_DEBUG
+	  if (w->force_start)
+	    {
+	      if (window_frozen_p (w))
+		debug_method_add (w, "set force_start from frozen window start");
+	      else
+		debug_method_add (w, "set force_start from optional_new_start");
+	    }
+#endif
+	}
     }
 
  force_start:
 
   /* Handle case where place to start displaying has been specified,
      unless the specified location is outside the accessible range.  */
-  if (w->force_start || window_frozen_p (w))
+  if (w->force_start)
     {
       /* We set this later on if we have to adjust point.  */
       int new_vpos = -1;
@@ -16239,7 +16265,7 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
 	  goto need_larger_matrices;
 	}
 
-      if (w->cursor.vpos < 0 && !window_frozen_p (w))
+      if (w->cursor.vpos < 0)
 	{
 	  /* If point does not appear, try to move point so it does
 	     appear. The desired matrix has been built above, so we
@@ -16332,6 +16358,11 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
 	    }
 	  */
 	}
+      if (w->cursor.vpos < 0 || !cursor_row_fully_visible_p (w, 0, 0))
+	{
+	  clear_glyph_matrix (w->desired_matrix);
+	  goto try_to_scroll;
+	}
 
 #ifdef GLYPH_DEBUG
       debug_method_add (w, "forced window start");
@@ -16396,7 +16427,8 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
 	       || CHARPOS (startp) == BEGV
 	       || !window_outdated (w)))
     {
-      int d1, d2, d3, d4, d5, d6;
+      int d1, d2, d5, d6;
+      int rtop, rbot;
 
       /* If first window line is a continuation line, and window start
 	 is inside the modified region, but the first change is before
@@ -16421,14 +16453,20 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
 	  && compute_window_start_on_continuation_line (w)
 	  /* It doesn't make sense to force the window start like we
 	     do at label force_start if it is already known that point
-	     will not be visible in the resulting window, because
+	     will not be fully visible in the resulting window, because
 	     doing so will move point from its correct position
 	     instead of scrolling the window to bring point into view.
 	     See bug#9324.  */
-	  && pos_visible_p (w, PT, &d1, &d2, &d3, &d4, &d5, &d6))
+	  && pos_visible_p (w, PT, &d1, &d2, &rtop, &rbot, &d5, &d6)
+	  /* A very tall row could need more than the window height,
+	     in which case we accept that it is partially visible.  */
+	  && (rtop != 0) == (rbot != 0))
 	{
 	  w->force_start = 1;
 	  SET_TEXT_POS_FROM_MARKER (startp, w->start);
+#ifdef GLYPH_DEBUG
+	  debug_method_add (w, "recomputed window start in continuation line");
+#endif
 	  goto force_start;
       	}
 
