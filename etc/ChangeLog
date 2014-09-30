@@ -1,3 +1,9 @@
+2014-09-30  Bill Wohler	 <wohler@newt.com>
+
+	Release MH-E version 8.6
+
+	* NEWS, MH-E-NEWS: Update for MH-E release 8.6.
+
 2014-09-29  Fabrice Niessen  <fniessen@pirilampo.org>
 
 	* themes/leuven-theme.el: Updates.
