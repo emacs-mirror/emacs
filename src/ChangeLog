@@ -1,3 +1,8 @@
+2014-10-01  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* gtkutil.c (xg_set_toolkit_horizontal_scroll_bar_thumb):
+	Resurrect old code and fix compilation with GTK < 2.13.6.
+
 2014-10-01  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Use AUTO_CONS instead of SCOPED_CONS, etc.

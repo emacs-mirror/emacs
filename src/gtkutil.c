@@ -3993,17 +3993,18 @@ xg_set_toolkit_horizontal_scroll_bar_thumb (struct scroll_bar *bar,
 
       block_input ();
       adj = gtk_range_get_adjustment (GTK_RANGE (wscroll));
-
-      /*      gtk_adjustment_set_lower (adj, (gdouble) lower);
+#if GTK_CHECK_VERSION (2, 3, 16)
+      gtk_adjustment_configure (adj, (gdouble) value, (gdouble) lower,
+				(gdouble) upper, (gdouble) step_increment,
+				(gdouble) page_increment, (gdouble) pagesize);
+#else
+      gtk_adjustment_set_lower (adj, (gdouble) lower);
       gtk_adjustment_set_upper (adj, (gdouble) upper);
       gtk_adjustment_set_page_size (adj, (gdouble) pagesize);
       gtk_adjustment_set_value (adj, (gdouble) value);
       gtk_adjustment_set_page_increment (adj, (gdouble) page_increment);
-      gtk_adjustment_set_step_increment (adj, (gdouble)
-      step_increment); */
-      gtk_adjustment_configure (adj, (gdouble) value, (gdouble) lower,
-				(gdouble) upper, (gdouble) step_increment,
-				(gdouble) page_increment, (gdouble) pagesize);
+      gtk_adjustment_set_step_increment (adj, (gdouble) step_increment);
+#endif
       gtk_adjustment_changed (adj);
       unblock_input ();
     }
