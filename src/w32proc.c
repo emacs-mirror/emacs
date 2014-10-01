@@ -1605,6 +1605,15 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
       program = ENCODE_FILE (full);
       cmdname = SDATA (program);
     }
+  else
+    {
+      char *p = alloca (strlen (cmdname) + 1);
+
+      /* Don't change the command name we were passed by our caller
+	 (unixtodos_filename below will destructively mirror forward
+	 slashes).  */
+      cmdname = strcpy (p, cmdname);
+    }
 
   /* make sure argv[0] and cmdname are both in DOS format */
   unixtodos_filename (cmdname);

@@ -1,3 +1,9 @@
+2014-10-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32proc.c (sys_spawnve): Avoid modification of the CMDNAME
+	argument passed by the caller, when we mirror all slashes into
+	backslashes.
+
 2014-10-01  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* gtkutil.c (xg_set_toolkit_horizontal_scroll_bar_thumb):
