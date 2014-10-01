@@ -1,3 +1,8 @@
+2014-10-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* dispnew.c (adjust_decode_mode_spec_buffer): Prefer ptrdiff_t
+	to ssize_t since we're not using ssize_t-related syscalls here.
+
 2014-09-30  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32fns.c (w32_createwindow): Accept an additional argument, an
