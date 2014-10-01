@@ -1298,7 +1298,13 @@ similar to an entry in `package-alist'.  Save the cached copy to
   (setq file (expand-file-name file))
   (let ((context (epg-make-context 'OpenPGP))
 	(homedir (expand-file-name "gnupg" package-user-dir)))
-    (make-directory homedir t)
+    ;; FIXME Use `with-file-modes' when merged to trunk.
+    (let ((umask (default-file-modes)))
+      (unwind-protect
+          (progn
+            (set-default-file-modes 448)
+            (make-directory homedir t))
+        (set-default-file-modes umask)))
     (epg-context-set-home-directory context homedir)
     (message "Importing %s..." (file-name-nondirectory file))
     (epg-import-keys-from-file context file)
