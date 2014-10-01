@@ -1,3 +1,10 @@
+2014-10-01  Glenn Morris  <rgm@gnu.org>
+
+	* automated/package-test.el (with-package-test, package-test-signed):
+	Also set HOME to a temp value, in case the real one is absent (e.g.
+	hydra) or read-only.  (Bug#18575)
+	(package-test-signed): Use skip-unless rather than expected-result.
+
 2014-09-01  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
 	* automated/python-tests.el:
