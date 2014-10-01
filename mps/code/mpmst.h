@@ -536,7 +536,6 @@ typedef struct mps_arena_class_s {
   ArenaFreeMethod free;
   ArenaChunkInitMethod chunkInit;
   ArenaChunkFinishMethod chunkFinish;
-  ArenaChunkReservedMethod chunkReserved;
   ArenaCompactMethod compact;
   ArenaDescribeMethod describe;
   ArenaPagesMarkAllocatedMethod pagesMarkAllocated;
