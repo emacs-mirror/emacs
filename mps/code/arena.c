@@ -91,7 +91,6 @@ DEFINE_CLASS(AbstractArenaClass, class)
   class->free = NULL;
   class->chunkInit = NULL;
   class->chunkFinish = NULL;
-  class->chunkReserved = NULL;
   class->compact = ArenaTrivCompact;
   class->describe = ArenaTrivDescribe;
   class->pagesMarkAllocated = NULL;
@@ -119,7 +118,6 @@ Bool ArenaClassCheck(ArenaClass class)
   CHECKL(FUNCHECK(class->free));
   CHECKL(FUNCHECK(class->chunkInit));
   CHECKL(FUNCHECK(class->chunkFinish));
-  CHECKL(FUNCHECK(class->chunkReserved));
   CHECKL(FUNCHECK(class->compact));
   CHECKL(FUNCHECK(class->describe));
   CHECKL(FUNCHECK(class->pagesMarkAllocated));
@@ -669,7 +667,6 @@ Res ControlDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
 void ArenaChunkInsert(Arena arena, Chunk chunk) {
   Bool inserted;
   Tree tree, updatedTree = NULL;
-  Size size;
 
   AVERT(Arena, arena);
   AVERT(Chunk, chunk);
@@ -683,8 +680,7 @@ void ArenaChunkInsert(Arena arena, Chunk chunk) {
   arena->chunkTree = updatedTree;
   RingAppend(&arena->chunkRing, &chunk->arenaRing);
 
-  size = (*arena->class->chunkReserved)(chunk);
-  arena->reserved += size;
+  arena->reserved += ChunkReserved(chunk);
 
   /* As part of the bootstrap, the first created chunk becomes the primary
      chunk.  This step allows ArenaFreeLandInsert to allocate pages. */
@@ -708,7 +704,7 @@ void ArenaChunkRemoved(Arena arena, Chunk chunk)
   if (arena->primary == chunk)
     arena->primary = NULL;
 
-  size = (*arena->class->chunkReserved)(chunk);
+  size = ChunkReserved(chunk);
   AVER(arena->reserved >= size);
   arena->reserved -= size;
 }

@@ -131,7 +131,8 @@ static Res clientChunkCreate(Chunk *chunkReturn, ClientArena clientArena,
   clChunk = p;  chunk = ClientChunk2Chunk(clChunk);
 
   res = ChunkInit(chunk, arena, alignedBase,
-                  AddrAlignDown(limit, ArenaGrainSize(arena)), boot);
+                  AddrAlignDown(limit, ArenaGrainSize(arena)),
+                  AddrOffset(base, limit), boot);
   if (res != ResOK)
     goto failChunkInit;
 
@@ -219,17 +220,6 @@ static void ClientChunkFinish(Chunk chunk)
 {
   /* Can't check chunk as it's not valid anymore. */
   UNUSED(chunk); NOOP;
-}
-
-
-/* ClientChunkReserved -- return the amount of reserved address space
- * in a client chunk.
- */
-
-static Size ClientChunkReserved(Chunk chunk)
-{
-  AVERT(Chunk, chunk);
-  return ChunkSize(chunk);
 }
 
 
@@ -469,7 +459,6 @@ DEFINE_ARENA_CLASS(ClientArenaClass, this)
   this->free = ClientArenaFree;
   this->chunkInit = ClientChunkInit;
   this->chunkFinish = ClientChunkFinish;
-  this->chunkReserved = ClientChunkReserved;
   AVERT(ArenaClass, this);
 }
 

@@ -148,6 +148,9 @@ typedef struct ChunkStruct {
   BT allocTable;        /* page allocation table */
   Page pageTable;       /* the page table */
   Count pageTablePages; /* number of pages occupied by page table */
+  Size reserved;        /* reserved address space for chunk (including overhead
+                           such as losses due to alignment): must not change
+                           (or arena reserved calculation will break) */
 } ChunkStruct;
 
 
@@ -159,10 +162,11 @@ typedef struct ChunkStruct {
 #define ChunkSizeToPages(chunk, size) ((Count)((size) >> (chunk)->pageShift))
 #define ChunkPage(chunk, pi) (&(chunk)->pageTable[pi])
 #define ChunkOfTree(tree) PARENT(ChunkStruct, chunkTree, tree)
+#define ChunkReserved(chunk) RVALUE((chunk)->reserved)
 
 extern Bool ChunkCheck(Chunk chunk);
 extern Res ChunkInit(Chunk chunk, Arena arena, Addr base, Addr limit,
-                     BootBlock boot);
+                     Size reserved, BootBlock boot);
 extern void ChunkFinish(Chunk chunk);
 extern Compare ChunkCompare(Tree tree, TreeKey key);
 extern TreeKey ChunkKey(Tree tree);
