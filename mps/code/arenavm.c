@@ -323,7 +323,8 @@ static Res VMChunkCreate(Chunk *chunkReturn, VMArena vmArena, Size size)
 
   /* Copy VM descriptor into its place in the chunk. */
   VMCopy(VMChunkVM(vmChunk), vm);
-  res = ChunkInit(VMChunk2Chunk(vmChunk), arena, base, limit, boot);
+  res = ChunkInit(VMChunk2Chunk(vmChunk), arena, base, limit,
+                  VMReserved(VMChunkVM(vmChunk)), boot);
   if (res != ResOK)
     goto failChunkInit;
 
@@ -453,17 +454,6 @@ static void VMChunkFinish(Chunk chunk)
   /* No point in finishing the other fields, since they are unmapped. */
 
   VMFinish(vm);
-}
-
-
-/* VMChunkReserved -- return the amount of reserved address space in a
- * VM chunk.
- */
-
-static Size VMChunkReserved(Chunk chunk)
-{
-  AVERT(Chunk, chunk);
-  return VMReserved(VMChunkVM(Chunk2VMChunk(chunk)));
 }
 
 
@@ -1198,7 +1188,6 @@ DEFINE_ARENA_CLASS(VMArenaClass, this)
   this->free = VMFree;
   this->chunkInit = VMChunkInit;
   this->chunkFinish = VMChunkFinish;
-  this->chunkReserved = VMChunkReserved;
   this->compact = VMCompact;
   this->describe = VMArenaDescribe;
   this->pagesMarkAllocated = VMPagesMarkAllocated;

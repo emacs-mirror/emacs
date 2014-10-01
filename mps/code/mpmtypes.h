@@ -125,7 +125,6 @@ typedef Res (*ArenaExtendMethod)(Arena arena, Addr base, Size size);
 typedef Res (*ArenaGrowMethod)(Arena arena, LocusPref pref, Size size);
 typedef void (*ArenaFreeMethod)(Addr base, Size size, Pool pool);
 typedef Res (*ArenaChunkInitMethod)(Chunk chunk, BootBlock boot);
-typedef Size (*ArenaChunkReservedMethod)(Chunk chunk);
 typedef void (*ArenaChunkFinishMethod)(Chunk chunk);
 typedef void (*ArenaCompactMethod)(Arena arena, Trace trace);
 typedef Res (*ArenaDescribeMethod)(Arena arena, mps_lib_FILE *stream, Count depth);
