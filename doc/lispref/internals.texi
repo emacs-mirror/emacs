@@ -1625,6 +1625,8 @@ of @code{intptr_t}).
 
 @item
 Prefer @code{int} for Emacs character codes, in the range 0 ..@: 0x3FFFFF.
+More generally, prefer @code{int} for integers known to be in
+@code{int} range, e.g., screen column counts.
 
 @item
 Prefer @code{ptrdiff_t} for sizes, i.e., for integers bounded by the
@@ -1634,6 +1636,17 @@ for signed types.  Using @code{ptrdiff_t} limits objects to
 @code{PTRDIFF_MAX} bytes, but larger objects would cause trouble
 anyway since they would break pointer subtraction, so this does not
 impose an arbitrary limit.
+
+@item
+Avoid @code{ssize_t} except when communicating to low-level APIs that
+have @code{ssize_t}-related limitations.  Although it's equivalent to
+@code{ptrdiff_t} on typical platforms, @code{ssize_t} is occasionally
+narrower, so using it for size-related calculations could overflow.
+Also, @code{ptrdiff_t} is more ubiquitous and better-standardized, has
+standard @code{printf} formats, and is the basis for Emacs's internal
+size-overflow checking.  When using @code{ssize_t}, please note that
+POSIX requires support only for values in the range @minus{}1 ..@:
+@code{SSIZE_MAX}.
 
 @item
 Prefer @code{intptr_t} for internal representations of pointers, or
