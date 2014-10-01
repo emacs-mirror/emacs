@@ -1,3 +1,8 @@
+2014-10-01  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xfaces.c (Finternal_set_lisp_face_attribute): Don't try to
+	make a font_object from a tty frame (Bug#18573).
+
 2014-09-30  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32fns.c (w32_createwindow): Accept an additional argument, an

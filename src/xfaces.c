@@ -3119,17 +3119,20 @@ FRAME 0 means change the face on all frames, and change the default
 		f = XFRAME (selected_frame);
 	      else
 		f = XFRAME (frame);
-	      if (! FONT_OBJECT_P (value))
-		{
-		  Lisp_Object *attrs = XVECTOR (lface)->contents;
-		  Lisp_Object font_object;
+              if (f->terminal->type != output_termcap)
+                {
+                  if (! FONT_OBJECT_P (value))
+                    {
+                      Lisp_Object *attrs = XVECTOR (lface)->contents;
+                      Lisp_Object font_object;
 
-		  font_object = font_load_for_lface (f, attrs, value);
-		  if (NILP (font_object))
-		    signal_error ("Font not available", value);
-		  value = font_object;
-		}
-	      set_lface_from_font (f, lface, value, 1);
+                      font_object = font_load_for_lface (f, attrs, value);
+                      if (NILP (font_object))
+                        signal_error ("Font not available", value);
+                      value = font_object;
+                    }
+                  set_lface_from_font (f, lface, value, 1);
+                }
 	    }
 	  else
 	    ASET (lface, LFACE_FONT_INDEX, value);
