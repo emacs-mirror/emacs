@@ -143,10 +143,7 @@ TEXT and CALCVAL are the TEXT and internal structure of stack entries.")
   "Set the contents of the Calc register REGISTER to (TEXT . CALCVAL),
 as well as set the contents of the Emacs register REGISTER to TEXT."
   (set-register register text)
-  (let ((aelt (assq register calc-register-alist)))
-    (if aelt
-        (setcdr aelt (cons text calcval))
-      (push (cons register (cons text calcval)) calc-register-alist))))
+  (setf (alist-get register calc-register-alist) (cons text calcval)))
 
 (defun calc-get-register (reg)
   "Return the CALCVAL portion of the contents of the Calc register REG,

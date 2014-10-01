@@ -664,10 +664,7 @@ nil while the filtering is done to restore it."
     ;; Set the display parameter after filtering, so that filter functions
     ;; have access to its original value.
     (when frameset--target-display
-      (let ((display (assq 'display filtered)))
-	(if display
-	    (setcdr display (cdr frameset--target-display))
-	  (push frameset--target-display filtered))))
+      (setf (alist-get 'display filtered) (cdr frameset--target-display)))
     filtered))
 
 

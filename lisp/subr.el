@@ -555,6 +555,15 @@ Elements of ALIST that are not conses are ignored."
 	(setq tail tail-cdr))))
   alist)
 
+(defun alist-get (key alist &optional default remove)
+  "Get the value associated to KEY in ALIST.
+DEFAULT is the value to return if KEY is not found in ALIST.
+REMOVE, if non-nil, means that when setting this element, we should
+remove the entry if the new value is `eql' to DEFAULT."
+  (ignore remove) ;;Silence byte-compiler.
+  (let ((x (assq key alist)))
+    (if x (cdr x) default)))
+
 (defun remove (elt seq)
   "Return a copy of SEQ with all occurrences of ELT removed.
 SEQ must be a list, vector, or string.  The comparison is done with `equal'."

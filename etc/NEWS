@@ -245,6 +245,8 @@ Emacs-21.
 *** call-process-shell-command and process-file-shell-command
 don't take "&rest args" any more.
 
+** New function `alist-get', which is also a valid place (aka lvalue).
+
 ** New function `funcall-interactively', which works like `funcall'
 but makes `called-interactively-p' treat the function as (you guessed it)
 called interactively.

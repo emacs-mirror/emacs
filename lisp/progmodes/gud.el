@@ -256,9 +256,8 @@ Used to gray out relevant toolbar icons.")
        ([menu-bar file] . undefined))))
   "Map used in visited files.")
 
-(let ((m (assq 'gud-minor-mode minor-mode-map-alist)))
-  (if m (setcdr m gud-minor-mode-map)
-    (push (cons 'gud-minor-mode gud-minor-mode-map) minor-mode-map-alist)))
+(setf (alist-get 'gud-minor-mode minor-mode-map-alist)
+      gud-minor-mode-map)
 
 (defvar gud-mode-map
   ;; Will inherit from comint-mode via define-derived-mode.

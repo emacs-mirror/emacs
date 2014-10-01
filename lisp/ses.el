@@ -426,33 +426,6 @@ functions refer to its value."
 		       (ses-get-cell (car rowcol) (cdr rowcol)))))))
 
 
-(defun ses--alist-get (key alist &optional remove)
-  "Get the value associated to KEY in ALIST."
-  (declare
-   (gv-expander
-    (lambda (do)
-      (macroexp-let2 macroexp-copyable-p k key
-        (gv-letplace (getter setter) alist
-          (macroexp-let2 nil p `(assq ,k ,getter)
-            (funcall do `(cdr ,p)
-                     (lambda (v)
-                       (let ((set-exp
-                              `(if ,p (setcdr ,p ,v)
-                                 ,(funcall setter
-                                           `(cons (setq ,p (cons ,k ,v))
-                                                  ,getter)))))
-                         (cond
-                          ((null remove) set-exp)
-                          ((null v)
-                           `(if ,p ,(funcall setter `(delq ,p ,getter))))
-                          (t
-                           `(cond
-                             (,v ,set-exp)
-                             (,p ,(funcall setter
-                                           `(delq ,p ,getter)))))))))))))))
-  (ignore remove) ;;Silence byte-compiler.
-  (cdr (assoc key alist)))
-
 (defmacro ses--letref (vars place &rest body)
   (declare (indent 2) (debug (sexp form &rest body)))
   (gv-letplace (getter setter) place
@@ -467,18 +440,18 @@ When COL is omitted, CELL=ROW is a cell object.  When COL is
 present ROW and COL are the integer coordinates of the cell of
 interest."
   (declare (debug t))
-  `(ses--alist-get ,property-name
-                   (ses-cell--properties
-                    ,(if col `(ses-get-cell ,row ,col) row))))
+  `(alist-get ,property-name
+              (ses-cell--properties
+               ,(if col `(ses-get-cell ,row ,col) row))))
 
 (defmacro ses-cell-property-pop (property-name row &optional col)
   "From a CELL or a pair (ROW,COL), get and remove the property value of
 the corresponding cell with name PROPERTY-NAME."
   `(ses--letref (pget pset)
-       (ses--alist-get ,property-name
-                       (ses-cell--properties
-                        ,(if col `(ses-get-cell ,row ,col) row))
-                       t)
+       (alist-get ,property-name
+                  (ses-cell--properties
+                   ,(if col `(ses-get-cell ,row ,col) row))
+                  nil t)
      (prog1 (pget) (pset nil))))
 
 (defmacro ses-cell-value (row &optional col)

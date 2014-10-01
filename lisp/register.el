@@ -33,6 +33,8 @@
 
 ;;; Code:
 
+;; FIXME: Clean up namespace usage!
+
 (cl-defstruct
   (registerv (:constructor nil)
 	     (:constructor registerv--make (&optional data print-func
@@ -98,16 +100,12 @@ If nil, do not show register previews, unless `help-char' (or a member of
 
 (defun get-register (register)
   "Return contents of Emacs register named REGISTER, or nil if none."
-  (cdr (assq register register-alist)))
+  (alist-get register register-alist))
 
 (defun set-register (register value)
   "Set contents of Emacs register named REGISTER to VALUE.  Returns VALUE.
 See the documentation of the variable `register-alist' for possible VALUEs."
-  (let ((aelt (assq register register-alist)))
-    (if aelt
-	(setcdr aelt value)
-      (push (cons register value) register-alist))
-    value))
+  (setf (alist-get register register-alist) value))
 
 (defun register-describe-oneline (c)
   "One-line description of register C."

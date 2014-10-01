@@ -3822,6 +3822,7 @@ If `ps-prefix-quote' is nil, it's set to t after generating string."
 
 (defun ps-get (alist-sym key)
   "Return element from association list ALIST-SYM which car is `eq' to KEY."
+  (declare (obsolete alist-get "25.1"))
   (assq key (symbol-value alist-sym)))
 
 
@@ -3829,6 +3830,7 @@ If `ps-prefix-quote' is nil, it's set to t after generating string."
   "Store element (KEY . VALUE) into association list ALIST-SYM.
 If KEY already exists in ALIST-SYM, modify cdr to VALUE.
 It can be retrieved with `(ps-get ALIST-SYM KEY)'."
+  (declare (obsolete "use (setf (alist-get ..) ..) instead" "25.1"))
   (let ((elt: (assq key (symbol-value alist-sym)))) ; to avoid name conflict
     (if elt:
 	(setcdr elt: value)
@@ -3839,6 +3841,7 @@ It can be retrieved with `(ps-get ALIST-SYM KEY)'."
 
 (defun ps-del (alist-sym key)
   "Delete by side effect element KEY from association list ALIST-SYM."
+  (declare (obsolete "use (setf (alist-get k alist nil t) nil) instead" "25.1"))
   (let ((a:list: (symbol-value alist-sym)) ; to avoid name conflict
 	old)
     (while a:list:

@@ -1,3 +1,8 @@
+2014-10-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* unidata/unidata-gen.el (unidata-gen-table-word-list): Use alist-get
+	and cl-incf.
+
 2014-09-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* unidata/unidata-gen.el (unidata-check): Bring this function up

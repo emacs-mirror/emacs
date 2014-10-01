@@ -1,3 +1,20 @@
+2014-10-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (alist-get): New accessor.
+	* emacs-lisp/gv.el (alist-get): Provide expander.
+	* winner.el (winner-remember):
+	* tempo.el (tempo-use-tag-list):
+	* progmodes/gud.el (minor-mode-map-alist):
+	* international/mule-cmds.el (define-char-code-property):
+	* frameset.el (frameset-filter-params):
+	* files.el (dir-locals-set-class-variables):
+	* register.el (get-register, set-register):
+	* calc/calc-yank.el (calc-set-register): Use it.
+	* ps-print.el (ps-get, ps-put, ps-del): Mark as obsolete.
+	* tooltip.el (tooltip-set-param): Mark as obsolete.
+	(tooltip-show): Use alist-get instead.
+	* ses.el (ses--alist-get): Remove.  Use alist-get instead.
+
 2014-10-01  Ulf Jasper  <ulf.jasper@web.de>
 
 	* net/newst-backend.el: Remove Time-stamp.  Rename variable
@@ -5,8 +22,8 @@
 	make it customizable.
 	(newsticker--sentinel-work): Move xml-workarounds to function
 	`newsticker--do-xml-workarounds', call unless libxml-parser is
-	used.  Allow single quote in regexp for encoding.  Use
-	libxml-parser if available, else fall back to `xml-parse-region'.
+	used.  Allow single quote in regexp for encoding.
+	Use libxml-parser if available, else fall back to `xml-parse-region'.
 	Take care of possibly missing namespace prefixes (like "RDF"
 	instead of "rdf:RDF") when checking xml nodes and attributes (as
 	libxml correctly removes the prefixes).  Always use Atom 1.0 as

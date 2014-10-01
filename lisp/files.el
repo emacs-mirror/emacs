@@ -3649,10 +3649,7 @@ VARIABLES list of the class.  The list is processed in order.
 * If the element is of the form (DIRECTORY . LIST), and DIRECTORY
   is an initial substring of the file's directory, then LIST is
   applied by recursively following these rules."
-  (let ((elt (assq class dir-locals-class-alist)))
-    (if elt
-	(setcdr elt variables)
-      (push (cons class variables) dir-locals-class-alist))))
+  (setf (alist-get class dir-locals-class-alist) variables))
 
 (defconst dir-locals-file ".dir-locals.el"
   "File that contains directory-local variables.
