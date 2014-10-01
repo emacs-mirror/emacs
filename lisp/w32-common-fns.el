@@ -104,12 +104,11 @@ ignored on MS-Windows and MS-DOS."
 ;; current selection against it, and avoid passing back our own text
 ;; from x-selection-value.
 (defvar x-last-selected-text nil)
-(defvar x-select-enable-clipboard)
 
 (defun x-get-selection-value ()
   "Return the value of the current selection.
 Consult the selection.  Treat empty strings as if they were unset."
-  (if x-select-enable-clipboard
+  (if gui-select-enable-clipboard
       (let (text)
 	;; Don't die if x-get-selection signals an error.
 	(with-demoted-errors "w32-get-clipboard-data:%s"
@@ -128,7 +127,6 @@ Consult the selection.  Treat empty strings as if they were unset."
 (defalias 'x-selection-value 'x-get-selection-value)
 
 ;; Arrange for the kill and yank functions to set and check the clipboard.
-(setq interprogram-cut-function 'x-select-text)
 (setq interprogram-paste-function 'x-get-selection-value)
 
 (provide 'w32-common-fns)

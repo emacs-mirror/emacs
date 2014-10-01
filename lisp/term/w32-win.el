@@ -371,9 +371,18 @@ This returns an error if any Emacs frames are X frames, or always under W32."
   (setq w32-initialized t))
 
 (add-to-list 'display-format-alist '("\\`w32\\'" . w32))
-(add-to-list 'handle-args-function-alist '(w32 . x-handle-args))
-(add-to-list 'frame-creation-function-alist '(w32 . x-create-frame-with-faces))
-(add-to-list 'window-system-initialization-alist '(w32 . w32-initialize-window-system))
+(gui-method-define handle-args-function w32 #'x-handle-args)
+(gui-method-define frame-creation-function w32
+                   #'x-create-frame-with-faces)
+(gui-method-define window-system-initialization w32
+                   #'w32-initialize-window-system)
+
+(declare-function w32-set-clipboard-data "w32select.c"
+		  (string &optional ignored))
+(gui-method-define gui-select-text w32
+                   (lambda (text)
+                     (if gui-select-enable-clipboard
+                         (w32-set-clipboard-data text))))
 
 (provide 'w32-win)
 

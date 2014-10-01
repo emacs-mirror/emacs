@@ -1217,8 +1217,6 @@ The value nil is the same as the list (UTF8_STRING COMPOUND_TEXT STRING)."
 	(remove-text-properties 0 (length text) '(foreign-selection nil) text))
     text))
 
-(defvar x-select-enable-clipboard)	; common-win
-
 ;; Return the value of the current X selection.
 ;; Consult the selection.  Treat empty strings as if they were unset.
 ;; If this function is called twice and finds the same text,
@@ -1290,7 +1288,6 @@ The value nil is the same as the list (UTF8_STRING COMPOUND_TEXT STRING)."
   'x-selection-value "24.1")
 
 ;; Arrange for the kill and yank functions to set and check the clipboard.
-(setq interprogram-cut-function 'x-select-text)
 (setq interprogram-paste-function 'x-selection-value)
 
 ;; Make paste from other applications use the decoding in x-select-request-type
@@ -1301,6 +1298,7 @@ Request data types in the order specified by `x-select-request-type'."
   (x-selection-value-internal 'PRIMARY))
 
 (defun x-clipboard-yank ()
+  ;; FIXME: How is that different from `clipboard-yank'?
   "Insert the clipboard contents, or the last stretch of killed text."
   (interactive "*")
   (let ((clipboard-text (x-selection-value-internal 'CLIPBOARD))
@@ -1463,9 +1461,23 @@ This returns an error if any Emacs frames are X frames, or always under W32."
   (setq x-initialized t))
 
 (add-to-list 'display-format-alist '("\\`[^:]*:[0-9]+\\(\\.[0-9]+\\)?\\'" . x))
-(add-to-list 'handle-args-function-alist '(x . x-handle-args))
-(add-to-list 'frame-creation-function-alist '(x . x-create-frame-with-faces))
-(add-to-list 'window-system-initialization-alist '(x . x-initialize-window-system))
+(gui-method-define handle-args-function x #'x-handle-args)
+(gui-method-define frame-creation-function x #'x-create-frame-with-faces)
+(gui-method-define window-system-initialization x #'x-initialize-window-system)
+
+(defvar x-select-enable-primary)	; x-win.el
+(gui-method-define gui-select-text x
+                   (lambda (text)
+                     (when x-select-enable-primary
+                       (x-set-selection 'PRIMARY text)
+                       (setq x-last-selected-text-primary text))
+                     (when x-select-enable-clipboard
+                       ;; When cutting, the selection is cleared and PRIMARY
+                       ;; set to the empty string.  Prevent that, PRIMARY
+                       ;; should not be reset by cut (Bug#16382).
+                       (setq saved-region-selection text)
+                       (x-set-selection 'CLIPBOARD text)
+                       (setq x-last-selected-text-clipboard text))))
 
 ;; Initiate drag and drop
 (add-hook 'after-make-frame-functions 'x-dnd-init-frame)

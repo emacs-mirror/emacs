@@ -2638,12 +2638,14 @@ syms_of_xselect (void)
   converted_selections = NULL;
   conversion_fail_tag = None;
 
+  /* FIXME: Duplicate definition in nsselect.c.  */
   DEFVAR_LISP ("selection-converter-alist", Vselection_converter_alist,
 	       doc: /* An alist associating X Windows selection-types with functions.
 These functions are called to convert the selection, with three args:
 the name of the selection (typically `PRIMARY', `SECONDARY', or `CLIPBOARD');
 a desired type to which the selection should be converted;
-and the local selection value (whatever was given to `x-own-selection').
+and the local selection value (whatever was given to
+`x-own-selection-internal').
 
 The function should return the value to send to the X server
 \(typically a string).  A return value of nil

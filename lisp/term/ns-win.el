@@ -739,7 +739,6 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 ;; We keep track of the last text selected here, so we can check the
 ;; current selection against it, and avoid passing back our own text
 ;; from x-selection-value.
-(defvar ns-last-selected-text nil)
 
 ;; Return the value of the current Nextstep selection.  For
 ;; compatibility with older Nextstep applications, this checks cut
@@ -751,13 +750,13 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
     (if (string= text "") (setq text nil))
     (cond
      ((not text) nil)
-     ((eq text ns-last-selected-text) nil)
-     ((string= text ns-last-selected-text)
+     ((eq text gui-last-selected-text) nil)
+     ((string= text gui-last-selected-text)
       ;; Record the newer string, so subsequent calls can use the `eq' test.
-      (setq ns-last-selected-text text)
+      (setq gui-last-selected-text text)
       nil)
      (t
-      (setq ns-last-selected-text text)))))
+      (setq gui-last-selected-text text)))))
 
 (defun ns-copy-including-secondary ()
   (interactive)
@@ -959,10 +958,18 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 
 ;; Any display name is OK.
 (add-to-list 'display-format-alist '(".*" . ns))
-(add-to-list 'handle-args-function-alist '(ns . x-handle-args))
-(add-to-list 'frame-creation-function-alist '(ns . x-create-frame-with-faces))
-(add-to-list 'window-system-initialization-alist '(ns . ns-initialize-window-system))
+(gui-method-define handle-args-function ns #'x-handle-args)
+(gui-method-define frame-creation-function ns #'x-create-frame-with-faces)
+(gui-method-define window-system-initialization ns
+                   #'ns-initialize-window-system)
 
+(declare-function ns-set-pasteboard "ns-win" (string))
+(gui-method-define gui-select-text ns
+                   (lambda (text)
+                     ;; Don't send the pasteboard too much text.
+                     ;; It becomes slow, and if really big it causes errors.
+                     (when gui-select-enable-clipboard
+                       (ns-set-pasteboard text))))
 
 (provide 'ns-win)
 

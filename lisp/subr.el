@@ -4800,6 +4800,21 @@ which is higher than \"1alpha\", which is higher than \"1snapshot\".
 Also, \"-GIT\", \"-CVS\" and \"-NNN\" are treated as snapshot versions."
   (version-list-= (version-to-list v1) (version-to-list v2)))
 
+(defvar package--builtin-versions
+  ;; Mostly populated by loaddefs.el via autoload-builtin-package-versions.
+  (purecopy `((emacs . ,(version-to-list emacs-version))))
+  "Alist giving the version of each versioned builtin package.
+I.e. each element of the list is of the form (NAME . VERSION) where
+NAME is the package name as a symbol, and VERSION is its version
+as a list.")
+
+(defun package--description-file (dir)
+  (concat (let ((subdir (file-name-nondirectory
+                         (directory-file-name dir))))
+            (if (string-match "\\([^.].*?\\)-\\([0-9]+\\(?:[.][0-9]+\\|\\(?:pre\\|beta\\|alpha\\)[0-9]+\\)*\\)" subdir)
+                (match-string 1 subdir) subdir))
+          "-pkg.el"))
+
 
 ;;; Misc.
 (defconst menu-bar-separator '("--")

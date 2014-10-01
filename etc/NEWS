@@ -49,6 +49,9 @@ Use './configure PKG_CONFIG=/full/name/of/pkg-config' if you need to.
 
 * Changes in Emacs 25.1
 
+** x-select-enable-clipboard is renamed gui-select-enable-clipboard.
+Additionally it now also applies to OSX and GNUstep.
+
 ** `insert-register' now leaves point after the inserted text
 when called interactively.  A prefix argument toggles this behavior.
 
@@ -242,7 +245,9 @@ Emacs-21.
 
 * Lisp Changes in Emacs 25.1
 
-*** call-process-shell-command and process-file-shell-command
+** x-select-text is renamed gui-select-text.
+
+** call-process-shell-command and process-file-shell-command
 don't take "&rest args" any more.
 
 ** New function `alist-get', which is also a valid place (aka lvalue).

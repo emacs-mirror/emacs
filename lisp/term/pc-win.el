@@ -219,44 +219,10 @@ the operating system.")
 ;
 ;;;; Selections
 ;
-;;; We keep track of the last text selected here, so we can check the
-;;; current selection against it, and avoid passing back our own text
-;;; from x-selection-value.
-(defvar x-last-selected-text nil)
-
-(defcustom x-select-enable-clipboard t
-  "Non-nil means cutting and pasting uses the clipboard.
-This is in addition to, but in preference to, the primary selection.
-
-Note that MS-Windows does not support selection types other than the
-clipboard.  (The primary selection that is set by Emacs is not
-accessible to other programs on MS-Windows.)
-
-This variable is not used by the Nextstep port."
-  :type 'boolean
-  :group 'killing)
-
-(defun x-select-text (text)
-  "Select TEXT, a string, according to the window system.
-
-On X, if `x-select-enable-clipboard' is non-nil, copy TEXT to the
-clipboard.  If `x-select-enable-primary' is non-nil, put TEXT in
-the primary selection.
-
-On MS-Windows, make TEXT the current selection.  If
-`x-select-enable-clipboard' is non-nil, copy the text to the
-clipboard as well.
-
-On Nextstep, put TEXT in the pasteboard (`x-select-enable-clipboard'
-is not used)."
-  (if x-select-enable-clipboard
-      (w16-set-clipboard-data text))
-  (setq x-last-selected-text text))
-
 (defun x-get-selection-value ()
   "Return the value of the current selection.
 Consult the selection.  Treat empty strings as if they were unset."
-  (if x-select-enable-clipboard
+  (if gui-select-enable-clipboard
       (let (text)
 	;; Don't die if x-get-selection signals an error.
 	(with-demoted-errors "w16-get-clipboard-data:%s"
@@ -264,13 +230,13 @@ Consult the selection.  Treat empty strings as if they were unset."
 	(if (string= text "") (setq text nil))
 	(cond
 	 ((not text) nil)
-	 ((eq text x-last-selected-text) nil)
-	 ((string= text x-last-selected-text)
+	 ((eq text gui-last-selected-text) nil)
+	 ((string= text gui-last-selected-text)
 	  ;; Record the newer string, so subsequent calls can use the 'eq' test.
-	  (setq x-last-selected-text text)
+	  (setq gui-last-selected-text text)
 	  nil)
 	 (t
-	  (setq x-last-selected-text text))))))
+	  (setq gui-last-selected-text text))))))
 
 ;; x-selection-owner-p is used in simple.el.
 (defun x-selection-owner-p (&optional _selection _terminal)
@@ -288,7 +254,7 @@ frame's display, or the first available X display.
 On Nextstep, TERMINAL is unused.
 
 \(fn &optional SELECTION TERMINAL)"
-    (if x-select-enable-clipboard
+    (if gui-select-enable-clipboard
       (let (text)
 	;; Don't die if w16-get-clipboard-data signals an error.
 	(ignore-errors
@@ -298,8 +264,8 @@ On Nextstep, TERMINAL is unused.
 	;; we've put into the Windows clipboard.
 	(cond
 	 ((not text) t)
-	 ((or (eq text x-last-selected-text)
-	      (string= text x-last-selected-text))
+	 ((or (eq text gui-last-selected-text)
+	      (string= text gui-last-selected-text))
 	  text)
 	 (t nil)))))
 
@@ -463,20 +429,27 @@ Errors out because it is not supposed to be called, ever."
   (setq split-window-keep-point t)
   ;; Arrange for the kill and yank functions to set and check the
   ;; clipboard.
-  (setq interprogram-cut-function 'x-select-text)
   (setq interprogram-paste-function 'x-get-selection-value)
   (menu-bar-enable-clipboard)
   (run-hooks 'terminal-init-msdos-hook))
 
 ;; frame-creation-function-alist is examined by frame.el:make-frame.
-(add-to-list 'frame-creation-function-alist
-	     '(pc . msdos-create-frame-with-faces))
+(gui-method-define frame-creation-function
+                   pc #'msdos-create-frame-with-faces)
 ;; window-system-initialization-alist is examined by startup.el:command-line.
-(add-to-list 'window-system-initialization-alist
-	     '(pc . msdos-initialize-window-system))
+(gui-method-define window-system-initialization
+                   pc #'msdos-initialize-window-system)
 ;; We don't need anything beyond tty-handle-args for handling
 ;; command-line argument; see startup.el.
-(add-to-list 'handle-args-function-alist '(pc . tty-handle-args))
+(gui-method-define handle-args-function pc #'tty-handle-args)
+
+
+(declare-function w16-set-clipboard-data "w16select.c"
+		  (string &optional ignored))
+(gui-method-define gui-select-text pc
+                   (lambda (text)
+                     (when gui-select-enable-clipboard
+                       (w16-set-clipboard-data text))))
 
 ;; ---------------------------------------------------------------------------
 

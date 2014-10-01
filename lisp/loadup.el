@@ -126,7 +126,6 @@
 (load "faces")  ; after here, `defface' may be used.
 
 (load "button")
-(load "startup")
 
 ;; We don't want to store loaddefs.el in the repository because it is
 ;; a generated file; but it is required in order to compile the lisp files.
@@ -193,6 +192,7 @@
 
 (load "indent")
 (load "frame")
+(load "startup")
 (load "term/tty-colors")
 (load "font-core")
 ;; facemenu must be loaded before font-lock, because `facemenu-keymap'

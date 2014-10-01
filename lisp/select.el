@@ -77,6 +77,41 @@ After the communication, this variable is set to nil.")
 ;; Only declared obsolete in 23.3.
 (define-obsolete-function-alias 'x-selection 'x-get-selection "at least 19.34")
 
+(defcustom gui-select-enable-clipboard t
+  "Non-nil means cutting and pasting uses the clipboard.
+This can be in addition to, but in preference to, the primary selection,
+if applicable (i.e. under X11)."
+  :type 'boolean
+  :group 'killing
+  ;; The GNU/Linux version changed in 24.1, the MS-Windows version did not.
+  :version "24.1")
+(define-obsolete-variable-alias 'x-select-enable-clipboard
+  'gui-select-enable-clipboard "25.1")
+
+(gui-method-declare gui-select-text #'ignore
+  "Method used to pass the current selection to the system.
+Called with one argument (the text selected).
+Should obey `gui-select-enable-clipboard' where applicable.")
+
+(defvar gui-last-selected-text nil
+  "Last text passed to `gui-select-text'.")
+
+(defun gui-select-text (text)
+  "Select TEXT, a string, according to the window system.
+if `gui-select-enable-clipboard' is non-nil, copy TEXT to the system's clipboard.
+
+On X, if `x-select-enable-primary' is non-nil, put TEXT in
+the primary selection.
+
+On MS-Windows, make TEXT the current selection."
+  ;; FIXME: We should test gui-select-enable-clipboard here!
+  ;; But that would break the independence between x-select-enable-primary
+  ;; and x-select-enable-clipboard!
+  ;;(when gui-select-enable-clipboard
+    (gui-call gui-select-text text) ;;)
+  (setq gui-last-selected-text text))
+(define-obsolete-function-alias 'x-select-text 'gui-select-text "25.1")
+
 (defun x-get-selection (&optional type data-type)
   "Return the value of an X Windows selection.
 The argument TYPE (default `PRIMARY') says which selection,

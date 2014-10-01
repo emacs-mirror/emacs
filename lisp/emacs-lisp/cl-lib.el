@@ -701,7 +701,6 @@ If ALIST is non-nil, the new pairs are prepended to it."
 (gv-define-setter window-width (store)
   `(progn (enlarge-window (- ,store (window-width)) t) ,store))
 (gv-define-simple-setter x-get-secondary-selection x-own-secondary-selection t)
-(gv-define-simple-setter x-get-selection x-own-selection t)
 
 ;; More complex setf-methods.
 

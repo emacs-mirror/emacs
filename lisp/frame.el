@@ -26,21 +26,39 @@
 ;;; Code:
 (eval-when-compile (require 'cl-lib))
 
-(defvar frame-creation-function-alist
-  (list (cons nil
-	      (if (fboundp 'tty-create-frame-with-faces)
-		  'tty-create-frame-with-faces
-                (lambda (_parameters)
-                  (error "Can't create multiple frames without a window system")))))
-  "Alist of window-system dependent functions to call to create a new frame.
+;; Dispatch tables for GUI methods.
+
+(defun gui-method--name (base)
+  (intern (format "%s-alist" base)))
+
+(defmacro gui-method (name &optional type)
+  (macroexp-let2 nil type (or type `(framep (selected-frame)))
+    `(alist-get ,type ,(gui-method--name name)
+                (lambda (&rest _args)
+                  (error "No method %S for %S frame" ',name ,type)))))
+
+(defmacro gui-method-define (name type fun)
+  `(setf (gui-method ,name ',type) ,fun))
+
+(defmacro gui-method-declare (name &optional tty-fun doc)
+  (declare (doc-string 3) (indent 2))
+  `(defvar ,(gui-method--name name)
+     ,(if tty-fun `(list (cons t ,tty-fun))) ,doc))
+
+(defmacro gui-call (name &rest args)
+  `(funcall (gui-method ,name) ,@args))
+
+(gui-method-declare frame-creation-function
+    #'tty-create-frame-with-faces
+  "Method for window-system dependent functions to create a new frame.
 The window system startup file should add its frame creation
-function to this list, which should take an alist of parameters
+function to this method, which should take an alist of parameters
 as its argument.")
 
 (defvar window-system-default-frame-alist nil
   "Window-system dependent default frame parameters.
 The value should be an alist of elements (WINDOW-SYSTEM . ALIST),
-where WINDOW-SYSTEM is a window system symbol (see `window-system')
+where WINDOW-SYSTEM is a window system symbol (as returned by `framep')
 and ALIST is a frame parameter alist like `default-frame-alist'.
 Then, for frames on WINDOW-SYSTEM, any parameters specified in
 ALIST supersede the corresponding parameters specified in
@@ -632,9 +650,8 @@ the new frame according to its own rules."
 	     ((assq 'terminal parameters)
 	      (let ((type (terminal-live-p (cdr (assq 'terminal parameters)))))
 		(cond
-		 ((eq type t) nil)
-		 ((eq type nil) (error "Terminal %s does not exist"
-                                       (cdr (assq 'terminal parameters))))
+		 ((null type) (error "Terminal %s does not exist"
+                                     (cdr (assq 'terminal parameters))))
 		 (t type))))
 	     ((assq 'window-system parameters)
 	      (cdr (assq 'window-system parameters)))
@@ -643,15 +660,12 @@ the new frame according to its own rules."
                   (error "Don't know how to interpret display %S"
                          display)))
 	     (t window-system)))
-	 (frame-creation-function (cdr (assq w frame-creation-function-alist)))
 	 (oldframe (selected-frame))
 	 (params parameters)
 	 frame)
-    (unless frame-creation-function
-      (error "Don't know how to create a frame on window system %s" w))
 
     (unless (get w 'window-system-initialized)
-      (funcall (cdr (assq w window-system-initialization-alist)) display)
+      (funcall (gui-method window-system-initialization w) display)
       (setq x-display-name display)
       (put w 'window-system-initialized t))
 
@@ -665,7 +679,8 @@ the new frame according to its own rules."
 	(push p params)))
     ;; Now make the frame.
     (run-hooks 'before-make-frame-hook)
-    (setq frame (funcall frame-creation-function params))
+    (setq frame
+          (funcall (gui-method frame-creation-function w) params))
     (normal-erase-is-backspace-setup-frame frame)
     ;; Inherit the original frame's parameters.
     (dolist (param frame-inherited-parameters)

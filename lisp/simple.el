@@ -3629,7 +3629,7 @@ No filtering is done unless a hook says to."
 
 ;;;; Window system cut and paste hooks.
 
-(defvar interprogram-cut-function nil
+(defvar interprogram-cut-function #'x-select-text
   "Function to call to make a killed region available to other programs.
 Most window systems provide a facility for cutting and pasting
 text between different programs, such as the clipboard on X and
@@ -3640,7 +3640,7 @@ put in the kill ring, to make the new kill available to other
 programs.  The function takes one argument, TEXT, which is a
 string containing the text which should be made available.")
 
-(defvar interprogram-paste-function nil
+(defvar interprogram-paste-function #'ignore
   "Function to call to get text cut from other programs.
 Most window systems provide a facility for cutting and pasting
 text between different programs, such as the clipboard on X and
