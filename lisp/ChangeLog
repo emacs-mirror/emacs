@@ -1,3 +1,10 @@
+2014-10-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/python.el (python-shell-completion-get-completions):
+	Use python-shell--prompt-calculated-input-regexp from the
+	process buffer (bug#18582).
+	Don't assume that `line' comes from the process buffer.
+
 2014-09-30  Leonardo Nobrega  <leonobr@gmail.com>  (tiny change)
 
 	* progmodes/python.el (python-fill-paren): Don't inf-loop at EOB

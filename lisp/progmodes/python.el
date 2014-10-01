@@ -2687,39 +2687,38 @@ the full statement in the case of imports."
 (defun python-shell-completion-get-completions (process line input)
   "Do completion at point for PROCESS.
 LINE is used to detect the context on how to complete given INPUT."
-  (let* ((prompt
-          ;; Get last prompt of the inferior process buffer (this
-          ;; intentionally avoids using `comint-last-prompt' because
-          ;; of incompatibilities with Emacs 24.x).
-          (with-current-buffer (process-buffer process)
+  (with-current-buffer (process-buffer process)
+    (let* ((prompt
+            ;; Get last prompt of the inferior process buffer (this
+            ;; intentionally avoids using `comint-last-prompt' because
+            ;; of incompatibilities with Emacs 24.x).
             (save-excursion
               (buffer-substring-no-properties
-               (- (point) (length line))
+               (line-beginning-position) ;End of prompt.
                (progn
                  (re-search-backward "^")
-                 (python-util-forward-comment)
-                 (point))))))
-         (completion-code
-          ;; Check whether a prompt matches a pdb string, an import
-          ;; statement or just the standard prompt and use the
-          ;; correct python-shell-completion-*-code string
-          (cond ((and (> (length python-shell-completion-pdb-string-code) 0)
-                      (string-match
-                       (concat "^" python-shell-prompt-pdb-regexp) prompt))
-                 python-shell-completion-pdb-string-code)
-                ((string-match
-                  python-shell--prompt-calculated-input-regexp prompt)
-                 python-shell-completion-string-code)
-                (t nil)))
-         (input
-          (if (string-match
-               (python-rx (+ space) (or "from" "import") space)
-               line)
-              line
-            input)))
-    (and completion-code
-         (> (length input) 0)
-         (with-current-buffer (process-buffer process)
+                 (python-util-forward-comment) ;FIXME: Why?
+                 (point)))))
+           (completion-code
+            ;; Check whether a prompt matches a pdb string, an import
+            ;; statement or just the standard prompt and use the
+            ;; correct python-shell-completion-*-code string
+            (cond ((and (> (length python-shell-completion-pdb-string-code) 0)
+                        (string-match
+                         (concat "^" python-shell-prompt-pdb-regexp) prompt))
+                   python-shell-completion-pdb-string-code)
+                  ((string-match
+                    python-shell--prompt-calculated-input-regexp prompt)
+                   python-shell-completion-string-code)
+                  (t nil)))
+           (input
+            (if (string-match
+                 (python-rx (+ space) (or "from" "import") space)
+                 line)
+                line
+              input)))
+      (and completion-code
+           (> (length input) 0)
            (let ((completions
                   (python-util-strip-string
                    (python-shell-send-string-no-output
