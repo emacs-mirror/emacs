@@ -5,7 +5,6 @@
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
 ;; Filename:    newst-reader.el
 ;; URL:         http://www.nongnu.org/newsticker
-;; Time-stamp:  "24. September 2011, 15:47:49 (ulf)"
 ;; Package:     newsticker
 
 ;; ======================================================================
@@ -67,6 +66,12 @@ This must be one of the functions `newsticker-plainview' or
   :group 'newsticker-reader)
 
 ;; image related things
+(defcustom newsticker-download-logos
+  t
+  "If non-nil newsticker downloads logo images of subscribed feeds."
+  :type 'boolean
+  :group 'newsticker-reader)
+
 (defcustom newsticker-enable-logo-manipulations
   t
   "If non-nil newsticker manipulates logo images.
@@ -186,15 +191,17 @@ KEYMAP will be applied."
                                    'nt-type 'desc))
         (insert "\n")))))
 
-(defun newsticker--print-extra-elements (item keymap)
+(defun newsticker--print-extra-elements (item keymap &optional htmlish)
   "Insert extra-elements of ITEM in a pretty form into the current buffer.
 KEYMAP is applied."
   (let ((ignored-elements '(items link title description content
-                                  content:encoded dc:subject
-                                  dc:date entry item guid pubDate
+                                  content:encoded encoded
+                                  dc:subject subject
+                                  dc:date date entry item guid pubDate
                                   published updated
                                   enclosure))
         (left-column-width 1))
+    (if htmlish (insert "<ul>"))
     (mapc (lambda (extra-element)
             (when (listp extra-element) ;; take care of broken xml
                                         ;; data, 2007-05-25
@@ -209,15 +216,19 @@ KEYMAP is applied."
               (unless (memq (car extra-element) ignored-elements)
                 (newsticker--do-print-extra-element extra-element
                                                     left-column-width
-                                                    keymap))))
-          (newsticker--extra item))))
+                                                    keymap
+                                                    htmlish))))
+          (newsticker--extra item))
+    (if htmlish (insert "</ul>"))))
 
-(defun newsticker--do-print-extra-element (extra-element width keymap)
+(defun newsticker--do-print-extra-element (extra-element width keymap htmlish)
   "Actually print an EXTRA-ELEMENT using the given WIDTH.
 KEYMAP is applied."
   (let ((name (symbol-name (car extra-element))))
-    (insert (format "%s: " name))
-    (insert (make-string (- width (length name)) ? )))
+    (if htmlish
+        (insert (format "<li>%s: " name))
+      (insert (format "%s: " name))
+      (insert (make-string (- width (length name)) ? ))))
   (let (;;(attributes (cadr extra-element)) ;FIXME!!!!
         (contents (cddr extra-element)))
     (cond ((listp contents)
@@ -238,7 +249,9 @@ KEYMAP is applied."
                  contents))
           (t
            (insert (format "%s" contents))))
-    (insert "\n")))
+    (if htmlish
+        (insert "</li>")
+      (insert "\n"))))
 
 (defun newsticker--image-read (feed-name-symbol disabled)
   "Read the cached image for FEED-NAME-SYMBOL from disk.

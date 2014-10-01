@@ -1,3 +1,46 @@
+2014-10-01  Ulf Jasper  <ulf.jasper@web.de>
+
+	* net/newst-backend.el: Remove Time-stamp.  Rename variable
+	`newsticker--download-logos' to `newsticker-download-logos' and
+	make it customizable.
+	(newsticker--sentinel-work): Move xml-workarounds to function
+	`newsticker--do-xml-workarounds', call unless libxml-parser is
+	used.  Allow single quote in regexp for encoding.  Use
+	libxml-parser if available, else fall back to `xml-parse-region'.
+	Take care of possibly missing namespace prefixes (like "RDF"
+	instead of "rdf:RDF") when checking xml nodes and attributes (as
+	libxml correctly removes the prefixes).  Always use Atom 1.0 as
+	fallback feed type.  Rename `newsticker--download-logos' to
+	`newsticker-download-logos'
+	(newsticker--unxml, newsticker--unxml-node)
+	(newsticker--unxml-attribute): New.
+	(newsticker--parse-atom-1.0): Call `unxml' in case that embedded
+	HTML code has become part of the xml parse tree.
+	(newsticker--parse-rss-1.0, newsticker--parse-rss-2.0): Take care
+	of possibly missing namespace prefixes.
+	(newsticker--parse-generic-items): Code formatting. Typo.
+	(newsticker--images-dir): Add trailing slash.
+	(newsticker--image-get): Fix error message.
+
+	* net/newst-plainview.el: Remove Time-stamp.
+
+	* net/newst-reader.el: Remove Time-stamp.
+	(newsticker-download-logos): Rename variable
+	`newsticker--download-logos' to `newsticker-download-logos' and
+	make it customizable.
+	(newsticker--print-extra-elements): Add optional parameter
+	'htmlish for using html markup.  Amend list of ignored elements.
+	(newsticker--do-print-extra-element): Add parameter 'htmlish for
+	using html markup.
+
+	* net/newst-ticker.el: Remove Time-stamp.
+
+	* net/newst-treeview.el (newsticker--treeview-item-show): Use html
+	for formatting extra elements.
+
+	* net/newsticker.el:  Remove Time-stamp, Version.
+	(newsticker-version): Make obsolete.
+
 2014-09-30  Leonardo Nobrega  <leonobr@gmail.com>  (tiny change)
 
 	* progmodes/python.el (python-fill-paren): Don't inf-loop at EOB

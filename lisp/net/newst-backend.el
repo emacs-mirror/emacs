@@ -6,7 +6,6 @@
 ;; Filename:    newst-backend.el
 ;; URL:         http://www.nongnu.org/newsticker
 ;; Keywords:    News, RSS, Atom
-;; Time-stamp:  "23. September 2014, 19:51:10 (ulf)"
 ;; Package:     newsticker
 
 ;; ======================================================================
@@ -46,9 +45,6 @@
 (defvar newsticker--retrieval-timer-list nil
   "List of timers for news retrieval.
 This is an alist, each element consisting of (feed-name . timer).")
-
-(defvar newsticker--download-logos nil
-  "If non-nil download feed logos if available.")
 
 (defvar newsticker--sentinel-callback nil
   "Function called at end of `newsticker--sentinel'.")
@@ -861,59 +857,11 @@ Argument BUFFER is the buffer of the retrieval process."
              (node-list
               (save-current-buffer
                 (set-buffer buffer)
-                ;; a very very dirty workaround to overcome the
-                ;; problems with the newest (20030621) xml.el:
-                ;; remove all unnecessary whitespace
-                (goto-char (point-min))
-                (while (re-search-forward ">[ \t\r\n]+<" nil t)
-                  (replace-match "><" nil t))
-                ;; and another brutal workaround (20031105)!  For some
-                ;; reason the xml parser does not like the colon in the
-                ;; doctype name "rdf:RDF"
-                (goto-char (point-min))
-                (if (re-search-forward "<!DOCTYPE[ \t\n]+rdf:RDF" nil t)
-                  (replace-match "<!DOCTYPE rdfColonRDF" nil t))
-                ;; finally.... ~##^°!!!!!
-                (goto-char (point-min))
-                (while (search-forward "\r\n" nil t)
-                  (replace-match "\n" nil t))
-                ;; still more brutal workarounds (20040309)!  The xml
-                ;; parser does not like doctype rss
-                (goto-char (point-min))
-                (if (re-search-forward "<!DOCTYPE[ \t\n]+rss[ \t\n]*>" nil t)
-                  (replace-match "" nil t))
-                ;; And another one (20050618)! (Fixed in GNU Emacs 22.0.50.18)
-                ;; Remove comments to avoid this xml-parsing bug:
-                ;; "XML files can have only one toplevel tag"
-                (goto-char (point-min))
-                (while (search-forward "<!--" nil t)
-                  (let ((start (match-beginning 0)))
-                    (unless (search-forward "-->" nil t)
-                      (error "Can't find end of comment"))
-                    (delete-region start (point))))
-                ;; And another one (20050702)! If description is HTML
-                ;; encoded and starts with a `<', wrap the whole
-                ;; description in a CDATA expression.  This happened for
-                ;; http://www.thefreedictionary.com/_/WoD/rss.aspx?type=quote
-                (goto-char (point-min))
-                (while (re-search-forward
-                        "<description>\\(<img.*?\\)</description>" nil t)
-                  (replace-match
-                   "<description><![CDATA[ \\1 ]]></description>"))
-                ;; And another one (20051123)! XML parser does not
-                ;; like this: <yweather:location city="Frankfurt/Main"
-                ;; region="" country="GM" />
-                ;; try to "fix" empty attributes
-                ;; This happened for
-                ;; http://xml.weather.yahoo.com/forecastrss?p=GMXX0040&u=f
-                (goto-char (point-min))
-                (while (re-search-forward "\\(<[^>]*\\)=\"\"" nil t)
-                  (replace-match "\\1=\" \""))
-                ;;
-                (set-buffer-modified-p nil)
+                (unless (fboundp 'libxml-parse-xml-region)
+                  (newsticker--do-xml-workarounds))
                 ;; check coding system
                 (goto-char (point-min))
-                (if (re-search-forward "encoding=\"\\([^\"]+\\)\""
+                (if (re-search-forward "encoding=['\"]\\([^\"]+?\\)['\"]"
                                        nil t)
                     (setq coding-system (intern (downcase (match-string 1))))
                   (setq coding-system
@@ -931,12 +879,13 @@ Argument BUFFER is the buffer of the retrieval process."
                 (condition-case errordata
                     ;; The xml parser might fail
                     ;; or the xml might be bugged
-                    (xml-parse-region (point-min) (point-max))
+                    (if (fboundp 'libxml-parse-xml-region)
+                        (list (libxml-parse-xml-region (point-min) (point-max)))
+                      (xml-parse-region (point-min) (point-max)))
                   (error (message "Could not parse %s: %s"
                                   (buffer-name) (cadr errordata))
                          (throw 'oops nil)))))
              (topnode (car node-list))
-             (channelnode (car (xml-get-children topnode 'channel)))
              (imageurl nil))
         ;; mark all items as obsolete
         (newsticker--cache-replace-age newsticker--cache
@@ -963,7 +912,8 @@ Argument BUFFER is the buffer of the retrieval process."
                   (setq imageurl (newsticker--get-logo-url-rss-0.92 topnode))
                   (newsticker--parse-rss-0.92 name time topnode))
                  ;; RSS 1.0
-                 ((eq 'rdf:RDF (xml-node-name topnode))
+                 ((or (eq 'RDF (xml-node-name topnode))
+                      (eq 'rdf:RDF (xml-node-name topnode)))
                   (setq imageurl (newsticker--get-logo-url-rss-1.0 topnode))
                   (newsticker--parse-rss-1.0 name time topnode))
                  ;; RSS 2.0
@@ -978,16 +928,24 @@ Argument BUFFER is the buffer of the retrieval process."
                   (setq imageurl (newsticker--get-logo-url-atom-0.3 topnode))
                   (newsticker--parse-atom-0.3 name time topnode))
                  ;; Atom 1.0
-                 ((and (eq 'feed (xml-node-name topnode))
-                       (string= "http://www.w3.org/2005/Atom"
-                                (xml-get-attribute topnode 'xmlns)))
+                 (t
+                  ;; The test for Atom 1.0 does not work when using
+                  ;; libxml, as with libxml the namespace attribute is
+                  ;; not in the xml tree.  For the time being we skip
+                  ;; the check and assume that we are dealing with an
+                  ;; Atom 1.0 feed.
+
+                  ;; (and (eq 'feed (xml-node-name topnode))
+                  ;;      (string= "http://www.w3.org/2005/Atom"
+                  ;;               (xml-get-attribute topnode 'xmlns)))
                   (setq imageurl (newsticker--get-logo-url-atom-1.0 topnode))
                   (newsticker--parse-atom-1.0 name time topnode))
                  ;; unknown feed type
-                 (t
-                  (newsticker--debug-msg "Feed type unknown: %s: %s"
-                                         (xml-node-name topnode) name)
-                  nil))
+                 ;; (t
+                 ;;  (newsticker--debug-msg "Feed type unknown: %s: %s"
+                 ;;                         (xml-node-name topnode) name)
+                 ;;  nil)
+                 )
                 (setq something-was-added t))
           (error (message "sentinelerror in %s: %s" name error-data)))
 
@@ -1031,10 +989,66 @@ Argument BUFFER is the buffer of the retrieval process."
         (unless newsticker-debug
           (kill-buffer buffer))
         ;; launch retrieval of image
-        (when (and imageurl newsticker--download-logos)
+        (when (and imageurl (boundp 'newsticker-download-logos)
+                   newsticker-download-logos)
           (newsticker--image-get name imageurl)))))
   (when newsticker--sentinel-callback
     (funcall newsticker--sentinel-callback)))
+
+(defun newsticker--do-xml-workarounds ()
+  "Fix all issues which `xml-parse-region' could be choking on."
+  
+  ;; a very very dirty workaround to overcome the
+  ;; problems with the newest (20030621) xml.el:
+  ;; remove all unnecessary whitespace
+  (goto-char (point-min))
+  (while (re-search-forward ">[ \t\r\n]+<" nil t)
+    (replace-match "><" nil t))
+  ;; and another brutal workaround (20031105)!  For some
+  ;; reason the xml parser does not like the colon in the
+  ;; doctype name "rdf:RDF"
+  (goto-char (point-min))
+  (if (re-search-forward "<!DOCTYPE[ \t\n]+rdf:RDF" nil t)
+      (replace-match "<!DOCTYPE rdfColonRDF" nil t))
+  ;; finally.... ~##^°!!!!!
+  (goto-char (point-min))
+  (while (search-forward "\r\n" nil t)
+    (replace-match "\n" nil t))
+  ;; still more brutal workarounds (20040309)!  The xml
+  ;; parser does not like doctype rss
+  (goto-char (point-min))
+  (if (re-search-forward "<!DOCTYPE[ \t\n]+rss[ \t\n]*>" nil t)
+      (replace-match "" nil t))
+  ;; And another one (20050618)! (Fixed in GNU Emacs 22.0.50.18)
+  ;; Remove comments to avoid this xml-parsing bug:
+  ;; "XML files can have only one toplevel tag"
+  (goto-char (point-min))
+  (while (search-forward "<!--" nil t)
+    (let ((start (match-beginning 0)))
+      (unless (search-forward "-->" nil t)
+        (error "Can't find end of comment"))
+      (delete-region start (point))))
+  ;; And another one (20050702)! If description is HTML
+  ;; encoded and starts with a `<', wrap the whole
+  ;; description in a CDATA expression.  This happened for
+  ;; http://www.thefreedictionary.com/_/WoD/rss.aspx?type=quote
+  (goto-char (point-min))
+  (while (re-search-forward
+          "<description>\\(<img.*?\\)</description>" nil t)
+    (replace-match
+     "<description><![CDATA[ \\1 ]]></description>"))
+  ;; And another one (20051123)! XML parser does not
+  ;; like this: <yweather:location city="Frankfurt/Main"
+  ;; region="" country="GM" />
+  ;; try to "fix" empty attributes
+  ;; This happened for
+  ;; http://xml.weather.yahoo.com/forecastrss?p=GMXX0040&u=f
+  (goto-char (point-min))
+  (while (re-search-forward "\\(<[^>]*\\)=\"\"" nil t)
+    (replace-match "\\1=\" \""))
+  ;;
+  (set-buffer-modified-p nil))
+
 
 (defun newsticker--get-logo-url-atom-1.0 (node)
   "Return logo URL from atom 1.0 data in NODE."
@@ -1117,6 +1131,30 @@ same as in `newsticker--parse-atom-1.0'."
                       (xml-node-children node))))
     (or new-item new-feed)))
 
+(defun newsticker--unxml (node)
+  "Reverse parsing of an xml string.
+Restore an xml-string from a an xml-node that was returned by xml-parse..."
+  (if (or (not node) (stringp node))
+      node
+    (newsticker--unxml-node node)))
+
+(defun newsticker--unxml-node (node)
+  "Actually restore xml-string of an xml node."
+  (let ((qname (symbol-name (car node)))
+        (att-list (cadr node))
+        (children (cddr node)))
+    (concat "<" qname
+            (when att-list " ")
+            (mapconcat 'newsticker--unxml-attribute att-list " ")
+            ">"
+            (mapconcat 'newsticker--unxml children "") "</" qname ">")))
+
+(defun newsticker--unxml-attribute (att)
+  "Actually restore xml-string of an attribute of an xml node."
+  (let ((name (symbol-name (car att)))
+        (value (cdr att)))
+    (concat name "=\"" value "\"")))
+
 (defun newsticker--parse-atom-1.0 (name time topnode)
   "Parse Atom 1.0 data.
 Argument NAME gives the name of a news feed.  TIME gives the
@@ -1149,8 +1187,13 @@ URL `http://www.atompub.org/2005/08/17/draft-ietf-atompub-format-11.html'"
                             (car (xml-get-children node 'title)))))
                     ;; desc-fn
                     (lambda (node)
-                      (or (car (xml-node-children
-                                (car (xml-get-children node 'content))))
+                      ;; unxml the content node. Atom allows for
+                      ;; integrating (x)html into the atom structure
+                      ;; but we need the raw html string.
+                      ;; e.g. http://www.heise.de/open/news/news-atom.xml
+                  (or (newsticker--unxml
+                           (car (xml-node-children
+                                (car (xml-get-children node 'content)))))
                           (car (xml-node-children
                                 (car (xml-get-children node 'summary))))))
                     ;; link-fn
@@ -1295,9 +1338,15 @@ For the RSS 1.0 specification see URL `http://web.resource.org/rss/1.0/spec'."
                        (car (xml-node-children
                              (car (xml-get-children channelnode 'title))))
                        ;; desc
-                       (car (xml-node-children
-                             (car (xml-get-children channelnode
-                                                    'description))))
+                       (or (car (xml-node-children
+                                 (car (xml-get-children channelnode
+                                                        'encoded))))
+                           (car (xml-node-children
+                                 (car (xml-get-children channelnode
+                                                        'content:encoded))))
+                           (car (xml-node-children
+                                 (car (xml-get-children channelnode
+                                                        'description)))))
                        ;; link
                        (car (xml-node-children
                              (car (xml-get-children channelnode 'link))))
@@ -1321,8 +1370,10 @@ For the RSS 1.0 specification see URL `http://web.resource.org/rss/1.0/spec'."
                          ;; time-fn
                          (lambda (node)
                            (newsticker--decode-iso8601-date
-                            (car (xml-node-children
-                                  (car (xml-get-children node 'dc:date))))))
+                            (or (car (xml-node-children
+                                      (car (xml-get-children node 'dc:date))))
+                                (car (xml-node-children
+                                      (car (xml-get-children node 'date)))))))
                          ;; guid-fn
                          (lambda (node)
                            nil)
@@ -1346,9 +1397,15 @@ For the RSS 2.0 specification see URL `http://blogs.law.harvard.edu/tech/rss'."
                        (car (xml-node-children
                              (car (xml-get-children channelnode 'title))))
                        ;; desc
-                       (car (xml-node-children
-                             (car (xml-get-children channelnode
-                                                    'description))))
+                       (or (car (xml-node-children
+                                 (car (xml-get-children channelnode
+                                                        'encoded))))
+                           (car (xml-node-children
+                                 (car (xml-get-children channelnode
+                                                        'content:encoded))))
+                           (car (xml-node-children
+                                 (car (xml-get-children channelnode
+                                                        'description)))))
                        ;; link
                        (car (xml-node-children
                              (car (xml-get-children channelnode 'link))))
@@ -1363,6 +1420,9 @@ For the RSS 2.0 specification see URL `http://blogs.law.harvard.edu/tech/rss'."
                          ;; desc-fn
                          (lambda (node)
                            (or (car (xml-node-children
+                                     (car (xml-get-children node
+                                                            'encoded))))
+                               (car (xml-node-children
                                      (car (xml-get-children node
                                                             'content:encoded))))
                                (car (xml-node-children
@@ -1456,7 +1516,7 @@ argument, which is one of the items in ITEMLIST."
               ;; decode numeric entities
               (setq title (xml-substitute-numeric-entities title))
               (when desc
-                (setq desc  (xml-substitute-numeric-entities desc)))
+                (setq desc (xml-substitute-numeric-entities desc)))
               (setq link (xml-substitute-numeric-entities link))
               ;; remove whitespace from title, desc, and link
               (setq title (newsticker--remove-whitespace title))
@@ -1478,9 +1538,9 @@ argument, which is one of the items in ITEMLIST."
                     (let ((prev-age (newsticker--age old-item)))
                       (unless newsticker-automatically-mark-items-as-old
                         ;; Some feeds deliver items multiply, the
-                        ;; first time we find an 'obsolete-old one the
-                        ;; cache, the following times we find an 'old
-                        ;; one
+                        ;; first time we find an 'obsolete-old one in
+                        ;; the cache, the following times we find an
+                        ;; 'old one
                         (if (memq prev-age '(obsolete-old old))
                             (setq age2 'old)
                           (setq age2 'new)))
@@ -1704,7 +1764,7 @@ Checks list of active processes against list of newsticker processes."
 ;; ======================================================================
 (defun newsticker--images-dir ()
   "Return directory where feed images are saved."
-  (concat newsticker-dir "/images"))
+  (concat newsticker-dir "/images/"))
 
 (defun newsticker--image-get (feed-name url)
   "Get image of the news site FEED-NAME from URL.
@@ -1725,7 +1785,7 @@ If the image has been downloaded in the last 24h do nothing."
              (item (or (assoc feed-name newsticker-url-list)
                        (assoc feed-name newsticker-url-list-defaults)
                        (error
-                        "Cannot get news for %s: Check newsticker-url-list"
+                        "Cannot get image for %s: Check newsticker-url-list"
                         feed-name)))
              (wget-arguments (or (car (cdr (cdr (cdr (cdr item)))))
                                  newsticker-wget-arguments)))

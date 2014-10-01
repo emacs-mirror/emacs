@@ -6,7 +6,6 @@
 ;; Filename:    newst-ticker.el
 ;; URL:         http://www.nongnu.org/newsticker
 ;; Keywords:    News, RSS, Atom
-;; Time-stamp:  "24. September 2014, 19:07:25 (ulf)"
 ;; Package:     newsticker
 
 ;; ======================================================================

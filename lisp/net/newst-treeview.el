@@ -781,8 +781,11 @@ for the button."
         (put-text-property pos (point) 'face 'newsticker-enclosure-face)
         (setq pos (point))
         (insert "\n")
-        (newsticker--print-extra-elements item newsticker--treeview-url-keymap)
-        (put-text-property pos (point) 'face 'newsticker-extra-face)
+        (set-marker marker1 pos)
+        (newsticker--print-extra-elements item newsticker--treeview-url-keymap t)
+        (set-marker marker2 (point))
+        (newsticker--treeview-render-text marker1 marker2)
+        (put-text-property marker1 marker2 'face 'newsticker-extra-face)
         (goto-char (point-min)))))
   (if (and newsticker-treeview-automatically-mark-displayed-items-as-old
            item

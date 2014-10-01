@@ -5,7 +5,6 @@
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
 ;; Filename:    newst-plainview.el
 ;; URL:         http://www.nongnu.org/newsticker
-;; Time-stamp:  "Mon 11-Feb-2013 20:27:11 gm on skiddaw"
 ;; Package:     newsticker
 
 ;; ======================================================================
