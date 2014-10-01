@@ -1,5 +1,46 @@
 2014-10-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	Consolidate x-select-text.
+	* frame.el (gui-method, gui-method-define, gui-method-declare)
+	(gui-call): New macros.
+	(gui-method--name): New function.
+	(frame-creation-function-alist): Use gui-method-declare.
+	(make-frame): Use gui-method.
+	* select.el (gui-select-enable-clipboard): Rename from
+	x-select-enable-clipboard and move here.
+	(x-select-enable-clipboard): Define as obsolete alias.
+	(gui-last-selected-text): New var, to replace x-last-selected-text.
+	(gui-select-text): New GUI method.
+	(gui-select-text): New function.
+	(x-select-text): Define as obsolete alias.
+	* term/common-win.el (x-select-enable-clipboard, x-select-text):
+	Move to select.el.
+	* simple.el (interprogram-cut-function): Change default to
+	x-select-text.
+	(interprogram-paste-function): Change default to `ignore'.
+	* w32-common-fns.el (interprogram-cut-function): Don't modify.
+	* term/x-win.el (interprogram-cut-function): Don't modify.
+	(gui-select-text): Add method for x.
+	* term/w32-win.el (gui-select-text): Add method for w32.
+	* term/pc-win.el (x-last-selected-text): Remove, use
+	gui-last-selected-text instead.
+	(msdos-initialize-window-system): Don't set interprogram-cut-function.
+	(gui-select-text): Add method for pc.
+	* term/ns-win.el (ns-last-selected-text): Remove, use
+	gui-last-selected-text instead.
+	(gui-select-text): Add method for ns.
+	(x-setup-function-keys): Don't change interprogram-cut-function.
+	* loadup.el ("startup"): Load after "frame".
+	* subr.el (package--builtin-versions, package--description-file):
+	Move from startup.el.
+	* startup.el (package--builtin-versions, package--description-file):
+	Move to subr.el.
+	(handle-args-function-alist, window-system-initialization-alist):
+	Use gui-method-declare.
+	(command-line): Use gui-method.
+
+2014-10-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
 	* subr.el (alist-get): New accessor.
 	* emacs-lisp/gv.el (alist-get): Provide expander.
 	* winner.el (winner-remember):
