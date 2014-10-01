@@ -548,35 +548,12 @@ using the @code{GC_CHECK_MARKED_OBJECTS} feature (see
 never be made visible to user Lisp code.
 
   Currently, cons cells and strings can be allocated this way.  This
-is implemented by C macros like @code{scoped_cons} and
-@code{SCOPED_STRING} that return a @code{Lisp_Object} with block
+is implemented by C macros like @code{AUTO_CONS} and
+@code{AUTO_STRING} that define a named @code{Lisp_Object} with block
 lifetime.  These objects are not freed by the garbage collector;
 instead, they have automatic storage duration, i.e., they are
 allocated like local variables and are automatically freed at the end
-of execution of the C block where the object was allocated.  C blocks
-include compound statements (i.e., inside @samp{@{} and @samp{@}}),
-along with selection and iteration statements and their immediate
-substatements.  For example:
-
-@example
-/* Erroneous code.  */
-Lisp_Object x;
-if (foo)
-  x = SCOPED_STRING ("prefix");
-else
-  x = bar;
-return concat2 (x, baz);
-@end example
-
-@noindent
-This has undefined behavior because the @code{if} statement is a
-block, so @code{x} is used after the corresponding object has been
-freed.  Better would be:
-
-@example
-Lisp_Object x = foo ? SCOPED_STRING ("prefix") : bar;
-return concat2 (x, baz);
-@end example
+of execution of the C block that defined the object.
 
   For performance reasons, stack-allocated strings are limited to
 @acronym{ASCII} characters, and many of these strings are immutable,

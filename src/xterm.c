@@ -10935,10 +10935,11 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
     {
       if (dpyinfo->visual->class == PseudoColor)
 	{
-	  Lisp_Object value;
-	  value = display_x_get_resource
-	    (dpyinfo, SCOPED_STRING ("privateColormap"),
-	     SCOPED_STRING ("PrivateColormap"), Qnil, Qnil);
+	  AUTO_STRING (privateColormap, "privateColormap");
+	  AUTO_STRING (PrivateColormap, "PrivateColormap");
+	  Lisp_Object value
+	    = display_x_get_resource (dpyinfo, privateColormap,
+				      PrivateColormap, Qnil, Qnil);
 	  if (STRINGP (value)
 	      && (!strcmp (SSDATA (value), "true")
 		  || !strcmp (SSDATA (value), "on")))
@@ -11142,9 +11143,10 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
   /* See if we should run in synchronous mode.  This is useful
      for debugging X code.  */
   {
-    Lisp_Object value = display_x_get_resource
-      (dpyinfo, SCOPED_STRING ("synchronous"),
-       SCOPED_STRING ("Synchronous"), Qnil, Qnil);
+    AUTO_STRING (synchronous, "synchronous");
+    AUTO_STRING (Synchronous, "Synchronous");
+    Lisp_Object value = display_x_get_resource (dpyinfo, synchronous,
+						Synchronous, Qnil, Qnil);
     if (STRINGP (value)
 	&& (!strcmp (SSDATA (value), "true")
 	    || !strcmp (SSDATA (value), "on")))
@@ -11152,9 +11154,10 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
   }
 
   {
-    Lisp_Object value = display_x_get_resource
-      (dpyinfo, SCOPED_STRING ("useXIM"),
-       SCOPED_STRING ("UseXIM"), Qnil, Qnil);
+    AUTO_STRING (useXIM, "useXIM");
+    AUTO_STRING (UseXIM, "UseXIM");
+    Lisp_Object value = display_x_get_resource (dpyinfo, useXIM, UseXIM,
+						Qnil, Qnil);
 #ifdef USE_XIM
     if (STRINGP (value)
 	&& (!strcmp (SSDATA (value), "false")

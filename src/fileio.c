@@ -1111,7 +1111,8 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 
 	      name = make_specified_string (nm, -1, p - nm, multibyte);
 	      temp[0] = DRIVE_LETTER (drive);
-	      name = concat2 (SCOPED_STRING (temp), name);
+	      AUTO_STRING (drive_prefix, temp);
+	      name = concat2 (drive_prefix, name);
 	    }
 #ifdef WINDOWSNT
 	  if (!NILP (Vw32_downcase_file_names))
@@ -5419,10 +5420,10 @@ auto_save_error (Lisp_Object error_val)
 
   ring_bell (XFRAME (selected_frame));
 
+  AUTO_STRING (format, "Auto-saving %s: %s");
   msg = Fformat (3, ((Lisp_Object [])
-    { SCOPED_STRING ("Auto-saving %s: %s"),
-      BVAR (current_buffer, name),
-      Ferror_message_string (error_val) }));
+		     {format, BVAR (current_buffer, name),
+		      Ferror_message_string (error_val)}));
   GCPRO1 (msg);
 
   for (i = 0; i < 3; ++i)

@@ -3398,7 +3398,8 @@ set_font_frame_param (Lisp_Object frame, Lisp_Object lface)
 	  ASET (lface, LFACE_FONT_INDEX, font);
 	}
       f->default_face_done_p = 0;
-      Fmodify_frame_parameters (frame, FRAME_PARAMETER (Qfont, font));
+      AUTO_FRAME_ARG (arg, Qfont, font);
+      Fmodify_frame_parameters (frame, arg);
     }
 }
 
@@ -3787,18 +3788,23 @@ Default face attributes override any local face attributes.  */)
 	      && newface->font)
 	    {
 	      Lisp_Object name = newface->font->props[FONT_NAME_INDEX];
-	      Fmodify_frame_parameters (frame, FRAME_PARAMETER (Qfont, name));
+	      AUTO_FRAME_ARG (arg, Qfont, name);
+	      Fmodify_frame_parameters (frame, arg);
 	    }
 
 	  if (STRINGP (gvec[LFACE_FOREGROUND_INDEX]))
-	    Fmodify_frame_parameters
-	      (frame, FRAME_PARAMETER (Qforeground_color,
-				       gvec[LFACE_FOREGROUND_INDEX]));
+	    {
+	      AUTO_FRAME_ARG (arg, Qforeground_color,
+			      gvec[LFACE_FOREGROUND_INDEX]);
+	      Fmodify_frame_parameters (frame, arg);
+	    }
 
 	  if (STRINGP (gvec[LFACE_BACKGROUND_INDEX]))
-	    Fmodify_frame_parameters
-	      (frame, FRAME_PARAMETER (Qbackground_color,
-				       gvec[LFACE_BACKGROUND_INDEX]));
+	    {
+	      AUTO_FRAME_ARG (arg, Qbackground_color,
+			      gvec[LFACE_BACKGROUND_INDEX]);
+	      Fmodify_frame_parameters (frame, arg);
+	    }
 	}
     }
 

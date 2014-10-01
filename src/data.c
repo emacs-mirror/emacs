@@ -979,14 +979,15 @@ wrong_choice (Lisp_Object choice, Lisp_Object wrong)
 {
   ptrdiff_t i = 0, len = XINT (Flength (choice));
   Lisp_Object obj, *args;
-  Lisp_Object should_be_specified = SCOPED_STRING (" should be specified");
-  Lisp_Object or = SCOPED_STRING (" or ");
-  Lisp_Object comma = SCOPED_STRING (", ");
+  AUTO_STRING (one_of, "One of ");
+  AUTO_STRING (comma, ", ");
+  AUTO_STRING (or, " or ");
+  AUTO_STRING (should_be_specified, " should be specified");
 
   USE_SAFE_ALLOCA;
   SAFE_ALLOCA_LISP (args, len * 2 + 1);
 
-  args[i++] = SCOPED_STRING ("One of ");
+  args[i++] = one_of;
 
   for (obj = choice; !NILP (obj); obj = XCDR (obj))
     {
@@ -1006,11 +1007,13 @@ wrong_choice (Lisp_Object choice, Lisp_Object wrong)
 static void
 wrong_range (Lisp_Object min, Lisp_Object max, Lisp_Object wrong)
 {
-  xsignal2 (Qerror, Fconcat (4, ((Lisp_Object [])
-    { SCOPED_STRING ("Value should be from "),
-      Fnumber_to_string (min),
-      SCOPED_STRING (" to "),
-      Fnumber_to_string (max) })), wrong);
+  AUTO_STRING (value_should_be_from, "Value should be from ");
+  AUTO_STRING (to, " to ");
+  xsignal2 (Qerror,
+	    Fconcat (4, ((Lisp_Object [])
+			 {value_should_be_from, Fnumber_to_string (min),
+			  to, Fnumber_to_string (max)})),
+	    wrong);
 }
 
 /* Store NEWVAL into SYMBOL, where VALCONTENTS is found in the value cell

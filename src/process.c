@@ -596,7 +596,7 @@ status_message (struct Lisp_Process *p)
   Lisp_Object symbol;
   int code;
   bool coredump;
-  Lisp_Object string, string2;
+  Lisp_Object string;
 
   decode_status (status, &symbol, &code, &coredump);
 
@@ -620,8 +620,8 @@ status_message (struct Lisp_Process *p)
 	  if (c1 != c2)
 	    Faset (string, make_number (0), make_number (c2));
 	}
-      string2 = SCOPED_STRING (coredump ? " (core dumped)\n" : "\n");
-      return concat2 (string, string2);
+      AUTO_STRING (suffix, coredump ? " (core dumped)\n" : "\n");
+      return concat2 (string, suffix);
     }
   else if (EQ (symbol, Qexit))
     {
@@ -629,17 +629,17 @@ status_message (struct Lisp_Process *p)
 	return build_string (code == 0 ? "deleted\n" : "connection broken by remote peer\n");
       if (code == 0)
 	return build_string ("finished\n");
+      AUTO_STRING (prefix, "exited abnormally with code ");
       string = Fnumber_to_string (make_number (code));
-      string2 = SCOPED_STRING (coredump ? " (core dumped)\n" : "\n");
-      return concat3 (SCOPED_STRING ("exited abnormally with code "),
-		      string, string2);
+      AUTO_STRING (suffix, coredump ? " (core dumped)\n" : "\n");
+      return concat3 (prefix, string, suffix);
     }
   else if (EQ (symbol, Qfailed))
     {
+      AUTO_STRING (prefix, "failed with code ");
       string = Fnumber_to_string (make_number (code));
-      string2 = SCOPED_STRING ("\n");
-      return concat3 (SCOPED_STRING ("failed with code "),
-		      string, string2);
+      AUTO_STRING (suffix, "\n");
+      return concat3 (prefix, string, suffix);
     }
   else
     return Fcopy_sequence (Fsymbol_name (symbol));
@@ -1327,7 +1327,8 @@ Returns nil if format of ADDRESS is invalid.  */)
       else
 	return Qnil;
 
-      args[0] = SCOPED_STRING (format);
+      AUTO_STRING (format_obj, format);
+      args[0] = format_obj;
 
       for (i = 0; i < nargs; i++)
 	{
@@ -1346,8 +1347,10 @@ Returns nil if format of ADDRESS is invalid.  */)
     }
 
   if (CONSP (address))
-    return Fformat (2, ((Lisp_Object [])
-      { SCOPED_STRING ("<Family %d>"), Fcar (address) }));
+    {
+      AUTO_STRING (format, "<Family %d>");
+      return Fformat (2, (Lisp_Object []) {format, Fcar (address)});
+    }
 
   return Qnil;
 }
@@ -4062,12 +4065,13 @@ server_accept_connection (Lisp_Object server, int channel)
       {
 	unsigned char *ip = (unsigned char *)&saddr.in.sin_addr.s_addr;
 
+	AUTO_STRING (ipv4_format, "%d.%d.%d.%d");
 	host = Fformat (5, ((Lisp_Object [])
-	  { SCOPED_STRING ("%d.%d.%d.%d"), make_number (ip[0]),
+	  { ipv4_format, make_number (ip[0]),
 	    make_number (ip[1]), make_number (ip[2]), make_number (ip[3]) }));
 	service = make_number (ntohs (saddr.in.sin_port));
-	caller = Fformat (3, ((Lisp_Object [])
-	  { SCOPED_STRING (" <%s:%d>"), host, service }));
+	AUTO_STRING (caller_format, " <%s:%d>");
+	caller = Fformat (3, (Lisp_Object []) {caller_format, host, service});
       }
       break;
 
@@ -4078,13 +4082,14 @@ server_accept_connection (Lisp_Object server, int channel)
 	uint16_t *ip6 = (uint16_t *)&saddr.in6.sin6_addr;
 	int i;
 
-	args[0] = SCOPED_STRING ("%x:%x:%x:%x:%x:%x:%x:%x");
+	AUTO_STRING (ipv6_format, "%x:%x:%x:%x:%x:%x:%x:%x");
+	args[0] = ipv6_format;
 	for (i = 0; i < 8; i++)
 	  args[i + 1] = make_number (ntohs (ip6[i]));
 	host = Fformat (9, args);
 	service = make_number (ntohs (saddr.in.sin_port));
-	caller = Fformat (3, ((Lisp_Object [])
-	  { SCOPED_STRING (" <[%s]:%d>"), host, service }));
+	AUTO_STRING (caller_format, " <[%s]:%d>");
+	caller = Fformat (3, (Lisp_Object []) {caller_format, host, service});
       }
       break;
 #endif
@@ -4094,8 +4099,9 @@ server_accept_connection (Lisp_Object server, int channel)
 #endif
     default:
       caller = Fnumber_to_string (make_number (connect_counter));
-      caller = concat3
-	(SCOPED_STRING (" <"), caller, SCOPED_STRING (">"));
+      AUTO_STRING (space_lessthan, " <");
+      AUTO_STRING (greaterthan, ">");
+      caller = concat3 (space_lessthan, caller, greaterthan);
       break;
     }
 
@@ -4192,16 +4198,18 @@ server_accept_connection (Lisp_Object server, int channel)
   p->inherit_coding_system_flag
     = (NILP (buffer) ? 0 : ps->inherit_coding_system_flag);
 
-  if (!NILP (ps->log))
-      call3 (ps->log, server, proc,
-	     concat3 (SCOPED_STRING ("accept from "),
-		      (STRINGP (host) ? host : SCOPED_STRING ("-")),
-		      SCOPED_STRING ("\n")));
+  AUTO_STRING (dash, "-");
+  AUTO_STRING (nl, "\n");
+  Lisp_Object host_string = STRINGP (host) ? host : dash;
 
-  exec_sentinel (proc,
-		 concat3 (SCOPED_STRING ("open from "),
-			  (STRINGP (host) ? host : SCOPED_STRING ("-")),
-			  SCOPED_STRING ("\n")));
+  if (!NILP (ps->log))
+    {
+      AUTO_STRING (accept_from, "accept from ");
+      call3 (ps->log, server, proc, concat3 (accept_from, host_string, nl));
+    }
+
+  AUTO_STRING (open_from, "open from ");
+  exec_sentinel (proc, concat3 (open_from, host_string, nl));
 }
 
 /* This variable is different from waiting_for_input in keyboard.c.

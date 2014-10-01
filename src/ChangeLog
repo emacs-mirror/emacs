@@ -1,5 +1,21 @@
 2014-10-01  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Use AUTO_CONS instead of SCOPED_CONS, etc.
+	* frame.h (AUTO_FRAME_ARG): Rename from FRAME_PARAMETER.
+	* lisp.h (AUTO_CONS): Rename from scoped_cons.
+	(AUTO_LIST1): Rename from scoped_list1.
+	(AUTO_LIST2): Rename from scoped_list2.
+	(AUTO_LIST3): Rename from scoped_list3.
+	(AUTO_LIST4): Rename from scoped_list4.
+	(AUTO_STRING): Rename from SCOPED_STRING.
+	* frame.h (AUTO_FRAME_ARG):
+	* lisp.h (AUTO_CONS, AUTO_LIST1, AUTO_LIST2, AUTO_LIST3)
+	(AUTO_LIST4, AUTO_STRING):
+	Prepend a new argument 'name'.
+	Declare a variable instead of yielding a value.
+	All uses changed.
+	* lisp.h (STACK_CONS, AUTO_CONS_EXPR): New internal macros.
+
 	* dispnew.c (adjust_decode_mode_spec_buffer): Prefer ptrdiff_t
 	to ssize_t since we're not using ssize_t-related syscalls here.
 

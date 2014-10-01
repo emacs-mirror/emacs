@@ -1299,7 +1299,8 @@ define_as_prefix (Lisp_Object keymap, Lisp_Object c)
 static Lisp_Object
 append_key (Lisp_Object key_sequence, Lisp_Object key)
 {
-  return Fvconcat (2, ((Lisp_Object []) { key_sequence, scoped_list1 (key) }));
+  AUTO_LIST1 (key_list, key);
+  return Fvconcat (2, ((Lisp_Object []) { key_sequence, key_list }));
 }
 
 /* Given a event type C which is a symbol,
@@ -1338,7 +1339,8 @@ silly_event_symbol_error (Lisp_Object c)
       *p = 0;
 
       c = reorder_modifiers (c);
-      keystring = concat2 (SCOPED_STRING (new_mods), XCDR (assoc));
+      AUTO_STRING (new_modstring, new_mods);
+      keystring = concat2 (new_modstring, XCDR (assoc));
 
       error ("To bind the key %s, use [?%s], not [%s]",
 	     SDATA (SYMBOL_NAME (c)), SDATA (keystring),
@@ -2242,9 +2244,12 @@ around function keys and event symbols.  */)
 
   if (CONSP (key) && INTEGERP (XCAR (key)) && INTEGERP (XCDR (key)))
     /* An interval from a map-char-table.  */
-    return concat3 (Fsingle_key_description (XCAR (key), no_angles),
-		    SCOPED_STRING (".."),
-		    Fsingle_key_description (XCDR (key), no_angles));
+    {
+      AUTO_STRING (dotdot, "..");
+      return concat3 (Fsingle_key_description (XCAR (key), no_angles),
+		      dotdot,
+		      Fsingle_key_description (XCDR (key), no_angles));
+    }
 
   key = EVENT_HEAD (key);
 
@@ -3439,9 +3444,9 @@ describe_vector (Lisp_Object vector, Lisp_Object prefix, Lisp_Object args,
       /* Call Fkey_description first, to avoid GC bug for the other string.  */
       if (!NILP (prefix) && XFASTINT (Flength (prefix)) > 0)
 	{
-	  Lisp_Object tem;
-	  tem = Fkey_description (prefix, Qnil);
-	  elt_prefix = concat2 (tem, SCOPED_STRING (" "));
+	  Lisp_Object tem = Fkey_description (prefix, Qnil);
+	  AUTO_STRING (space, " ");
+	  elt_prefix = concat2 (tem, space);
 	}
       prefix = Qnil;
     }

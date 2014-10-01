@@ -6100,15 +6100,12 @@ init_display (void)
       (*initial_terminal->delete_terminal_hook) (initial_terminal);
 
     /* Update frame parameters to reflect the new type. */
-    Fmodify_frame_parameters
-      (selected_frame, FRAME_PARAMETER (Qtty_type,
-					Ftty_type (selected_frame)));
-    if (t->display_info.tty->name)
-      Fmodify_frame_parameters
-	(selected_frame,
-	 FRAME_PARAMETER (Qtty, build_string (t->display_info.tty->name)));
-    else
-      Fmodify_frame_parameters (selected_frame, FRAME_PARAMETER (Qtty, Qnil));
+    AUTO_FRAME_ARG (tty_type_arg, Qtty_type, Ftty_type (selected_frame));
+    Fmodify_frame_parameters (selected_frame, tty_type_arg);
+    AUTO_FRAME_ARG (tty_arg, Qtty, (t->display_info.tty->name
+				    ? build_string (t->display_info.tty->name)
+				    : Qnil));
+    Fmodify_frame_parameters (selected_frame, tty_arg);
   }
 
   {

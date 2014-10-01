@@ -389,8 +389,11 @@ single_menu_item (Lisp_Object key, Lisp_Object item, Lisp_Object dummy, void *sk
 		    {
 		      if (!submenu && SREF (tem, 0) != '\0'
 			  && SREF (tem, 0) != '-')
-			ASET (menu_items, idx + MENU_ITEMS_ITEM_NAME,
-			      concat2 (SCOPED_STRING ("    "), tem));
+			{
+			  AUTO_STRING (spaces, "    ");
+			  ASET (menu_items, idx + MENU_ITEMS_ITEM_NAME,
+				concat2 (spaces, tem));
+			}
 		      idx += MENU_ITEMS_ITEM_LENGTH;
 		    }
 		}
@@ -409,14 +412,20 @@ single_menu_item (Lisp_Object key, Lisp_Object item, Lisp_Object dummy, void *sk
 	prefix = "    ";
 
       if (prefix)
-	item_string = concat2 (SCOPED_STRING (prefix), item_string);
+	{
+	  AUTO_STRING (prefix_obj, prefix);
+	  item_string = concat2 (prefix_obj, item_string);
+	}
   }
 
   if ((FRAME_TERMCAP_P (XFRAME (Vmenu_updating_frame))
        || FRAME_MSDOS_P (XFRAME (Vmenu_updating_frame)))
       && !NILP (map))
     /* Indicate visually that this is a submenu.  */
-    item_string = concat2 (item_string, SCOPED_STRING (" >"));
+    {
+      AUTO_STRING (space_gt, " >");
+      item_string = concat2 (item_string, space_gt);
+    }
 
   push_menu_item (item_string, enabled, key,
 		  AREF (item_properties, ITEM_PROPERTY_DEF),

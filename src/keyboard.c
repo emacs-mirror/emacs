@@ -551,6 +551,7 @@ echo_add_key (Lisp_Object c)
 
   /* Replace a dash from echo_dash with a space, otherwise add a space
      at the end as a separator between keys.  */
+  AUTO_STRING (space, " ");
   if (STRINGP (echo_string) && SCHARS (echo_string) > 1)
     {
       Lisp_Object last_char, prev_char, idx;
@@ -566,10 +567,10 @@ echo_add_key (Lisp_Object c)
       if (XINT (last_char) == '-' && XINT (prev_char) != ' ')
 	Faset (echo_string, idx, make_number (' '));
       else
-	echo_string = concat2 (echo_string, SCOPED_STRING (" "));
+	echo_string = concat2 (echo_string, space);
     }
   else if (STRINGP (echo_string) && SCHARS (echo_string) > 0)
-    echo_string = concat2 (echo_string, SCOPED_STRING (" "));
+    echo_string = concat2 (echo_string, space);
 
   kset_echo_string
     (current_kboard,
@@ -630,9 +631,9 @@ echo_dash (void)
 
   /* Put a dash at the end of the buffer temporarily,
      but make it go away when the next character is added.  */
-  kset_echo_string
-    (current_kboard,
-     concat2 (KVAR (current_kboard, echo_string), SCOPED_STRING ("-")));
+  AUTO_STRING (dash, "-");
+  kset_echo_string (current_kboard,
+		    concat2 (KVAR (current_kboard, echo_string), dash));
   echo_now ();
 }
 
@@ -1890,13 +1891,11 @@ safe_run_hooks_1 (ptrdiff_t nargs, Lisp_Object *args)
 static Lisp_Object
 safe_run_hooks_error (Lisp_Object error, ptrdiff_t nargs, Lisp_Object *args)
 {
-  Lisp_Object hook, fun;
-
   eassert (nargs == 2);
-  hook = args[0];
-  fun = args[1];
-  Fmessage (4, ((Lisp_Object [])
-    { SCOPED_STRING ("Error in %s (%S): %S"), hook, fun, error }));
+  AUTO_STRING (format, "Error in %s (%S): %S");
+  Lisp_Object hook = args[0];
+  Lisp_Object fun = args[1];
+  Fmessage (4, (Lisp_Object []) {format, hook, fun, error});
 
   if (SYMBOLP (hook))
     {
@@ -7885,12 +7884,12 @@ parse_menu_item (Lisp_Object item, int inmenubar)
 
   { /* This is a command.  See if there is an equivalent key binding.  */
     Lisp_Object keyeq = AREF (item_properties, ITEM_PROPERTY_KEYEQ);
+    AUTO_STRING (space_space, "  ");
 
     /* The previous code preferred :key-sequence to :keys, so we
        preserve this behavior.  */
     if (STRINGP (keyeq) && !CONSP (keyhint))
-      keyeq = concat2 (SCOPED_STRING ("  "),
-		       Fsubstitute_command_keys (keyeq));
+      keyeq = concat2 (space_space, Fsubstitute_command_keys (keyeq));
     else
       {
 	Lisp_Object prefix = keyeq;
@@ -7933,7 +7932,7 @@ parse_menu_item (Lisp_Object item, int inmenubar)
 		if (STRINGP (XCDR (prefix)))
 		  tem = concat2 (tem, XCDR (prefix));
 	      }
-	    keyeq = concat2 (SCOPED_STRING ("  "), tem);
+	    keyeq = concat2 (space_space, tem);
 	  }
 	else
 	  keyeq = Qnil;
@@ -8637,10 +8636,14 @@ read_char_minibuf_menu_prompt (int commandflag,
 		      /* Insert button prefix.  */
 		      Lisp_Object selected
 			= AREF (item_properties, ITEM_PROPERTY_SELECTED);
+		      AUTO_STRING (radio_yes, "(*) ");
+		      AUTO_STRING (radio_no , "( ) ");
+		      AUTO_STRING (check_yes, "[X] ");
+		      AUTO_STRING (check_no , "[ ] ");
 		      if (EQ (tem, QCradio))
-			tem = SCOPED_STRING (NILP (selected) ? "(*) " : "( ) ");
+			tem = NILP (selected) ? radio_yes : radio_no;
 		      else
-			tem = SCOPED_STRING (NILP (selected) ? "[X] " : "[ ] ");
+			tem = NILP (selected) ? check_yes : check_no;
 		      s = concat2 (tem, s);
 		    }
 

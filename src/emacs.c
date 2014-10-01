@@ -400,6 +400,7 @@ init_cmdargs (int argc, char **argv, int skip_args, char *original_pwd)
   Lisp_Object name, dir, handler;
   ptrdiff_t count = SPECPDL_INDEX ();
   Lisp_Object raw_name;
+  AUTO_STRING (slash_colon, "/:");
 
   initial_argv = argv;
   initial_argc = argc;
@@ -423,7 +424,7 @@ init_cmdargs (int argc, char **argv, int skip_args, char *original_pwd)
      if it would otherwise be treated as magic.  */
   handler = Ffind_file_name_handler (raw_name, Qt);
   if (! NILP (handler))
-    raw_name = concat2 (SCOPED_STRING ("/:"), raw_name);
+    raw_name = concat2 (slash_colon, raw_name);
 
   Vinvocation_name = Ffile_name_nondirectory (raw_name);
   Vinvocation_directory = Ffile_name_directory (raw_name);
@@ -441,7 +442,7 @@ init_cmdargs (int argc, char **argv, int skip_args, char *original_pwd)
 	     if it would otherwise be treated as magic.  */
 	  handler = Ffind_file_name_handler (found, Qt);
 	  if (! NILP (handler))
-	    found = concat2 (SCOPED_STRING ("/:"), found);
+	    found = concat2 (slash_colon, found);
 	  Vinvocation_directory = Ffile_name_directory (found);
 	}
     }
@@ -2323,7 +2324,10 @@ decode_env_path (const char *evarname, const char *defalt, bool empty)
             }
 
           if (! NILP (tem))
-            element = concat2 (SCOPED_STRING ("/:"), element);
+	    {
+	      AUTO_STRING (slash_colon, "/:");
+	      element = concat2 (slash_colon, element);
+	    }
         } /* !NILP (element) */
 
       lpath = Fcons (element, lpath);

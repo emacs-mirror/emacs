@@ -485,14 +485,12 @@ load_charset_map_from_file (struct charset *charset, Lisp_Object mapfile,
   unsigned max_code = CHARSET_MAX_CODE (charset);
   int fd;
   FILE *fp;
-  Lisp_Object suffixes;
   struct charset_map_entries *head, *entries;
   int n_entries;
-  ptrdiff_t count;
-
-  suffixes = scoped_list2 (SCOPED_STRING (".map"), SCOPED_STRING (".TXT"));
-
-  count = SPECPDL_INDEX ();
+  AUTO_STRING (map, ".map");
+  AUTO_STRING (txt, ".txt");
+  AUTO_LIST2 (suffixes, map, txt);
+  ptrdiff_t count = SPECPDL_INDEX ();
   record_unwind_protect_nothing ();
   specbind (Qfile_name_handler_alist, Qnil);
   fd = openp (Vcharset_map_path, mapfile, suffixes, NULL, Qnil, false);

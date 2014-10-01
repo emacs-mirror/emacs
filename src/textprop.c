@@ -1320,7 +1320,8 @@ markers).  If OBJECT is a string, START and END are 0-based indices into it.  */
   (Lisp_Object start, Lisp_Object end, Lisp_Object property,
    Lisp_Object value, Lisp_Object object)
 {
-  Fadd_text_properties (start, end, scoped_list2 (property, value), object);
+  AUTO_LIST2 (properties, property, value);
+  Fadd_text_properties (start, end, properties, object);
   return Qnil;
 }
 
@@ -1361,7 +1362,8 @@ into it.  */)
   (Lisp_Object start, Lisp_Object end, Lisp_Object face,
    Lisp_Object append, Lisp_Object object)
 {
-  add_text_properties_1 (start, end, scoped_list2 (Qface, face), object,
+  AUTO_LIST2 (properties, Qface, face);
+  add_text_properties_1 (start, end, properties, object,
 			 (NILP (append)
 			  ? TEXT_PROPERTY_PREPEND
 			  : TEXT_PROPERTY_APPEND));

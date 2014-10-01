@@ -146,8 +146,9 @@ get_doc_string (Lisp_Object filepos, bool unibyte, bool definition)
       if (fd < 0)
 	{
 	  SAFE_FREE ();
-	  return concat3 (SCOPED_STRING ("Cannot open doc string file \""),
-			  file, SCOPED_STRING ("\"\n"));
+	  AUTO_STRING (cannot_open, "Cannot open doc string file \"");
+	  AUTO_STRING (quote_nl, "\"\n");
+	  return concat3 (cannot_open, file, quote_nl);
 	}
     }
   count = SPECPDL_INDEX ();

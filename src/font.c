@@ -1187,13 +1187,22 @@ font_parse_xlfd (char *name, ptrdiff_t len, Lisp_Object font)
 	{
 	  val = prop[XLFD_ENCODING_INDEX];
 	  if (! NILP (val))
-	    val = concat2 (SCOPED_STRING ("*-"), SYMBOL_NAME (val));
+	    {
+	      AUTO_STRING (stardash, "*-");
+	      val = concat2 (stardash, SYMBOL_NAME (val));
+	    }
 	}
       else if (NILP (prop[XLFD_ENCODING_INDEX]))
-	val = concat2 (SYMBOL_NAME (val), SCOPED_STRING ("-*"));
+	{
+	  AUTO_STRING (dashstar, "-*");
+	  val = concat2 (SYMBOL_NAME (val), dashstar);
+	}
       else
-	val = concat3 (SYMBOL_NAME (val), SCOPED_STRING ("-"),
-		       SYMBOL_NAME (prop[XLFD_ENCODING_INDEX]));
+	{
+	  AUTO_STRING (dash, "-");
+	  val = concat3 (SYMBOL_NAME (val), dash,
+			 SYMBOL_NAME (prop[XLFD_ENCODING_INDEX]));
+	}
       if (! NILP (val))
 	ASET (font, FONT_REGISTRY_INDEX, Fintern (val, Qnil));
 
@@ -1789,10 +1798,8 @@ font_parse_family_registry (Lisp_Object family, Lisp_Object registry, Lisp_Objec
       p1 = strchr (p0, '-');
       if (! p1)
 	{
-	  if (SDATA (registry)[len - 1] == '*')
-	    registry = concat2 (registry, SCOPED_STRING ("-*"));
-	  else
-	    registry = concat2 (registry, SCOPED_STRING ("*-*"));
+	  AUTO_STRING (extra, ("*-*" + (len && p0[len - 1] == '*')));
+	  registry = concat2 (registry, extra);
 	}
       registry = Fdowncase (registry);
       ASET (font_spec, FONT_REGISTRY_INDEX, Fintern (registry, Qnil));
@@ -5019,7 +5026,7 @@ font_add_log (const char *action, Lisp_Object arg, Lisp_Object result)
   if (FONTP (arg))
     {
       Lisp_Object tail, elt;
-      Lisp_Object equalstr = SCOPED_STRING ("=");
+      AUTO_STRING (equalstr, "=");
 
       val = Ffont_xlfd_name (arg, Qt);
       for (tail = AREF (arg, FONT_EXTRA_INDEX); CONSP (tail);
@@ -5052,8 +5059,11 @@ font_add_log (const char *action, Lisp_Object arg, Lisp_Object result)
     {
       val = Ffont_xlfd_name (result, Qt);
       if (! FONT_SPEC_P (result))
-	val = concat3 (SYMBOL_NAME (AREF (result, FONT_TYPE_INDEX)),
-		       SCOPED_STRING (":"), val);
+	{
+	  AUTO_STRING (colon, ":");
+	  val = concat3 (SYMBOL_NAME (AREF (result, FONT_TYPE_INDEX)),
+			 colon, val);
+	}
       result = val;
     }
   else if (CONSP (result))

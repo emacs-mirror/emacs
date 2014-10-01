@@ -1569,11 +1569,14 @@ x_default_scroll_bar_color_parameter (struct frame *f,
 
       /* See if an X resource for the scroll bar color has been
 	 specified.  */
-      tem = display_x_get_resource
-	(dpyinfo, SCOPED_STRING (foreground_p ? "foreground" : "background"),
-	 empty_unibyte_string,
-	 SCOPED_STRING ("verticalScrollBar"),
-	 empty_unibyte_string);
+      AUTO_STRING (foreground, "foreground");
+      AUTO_STRING (background, "foreground");
+      AUTO_STRING (verticalScrollBar, "verticalScrollBar");
+      tem = (display_x_get_resource
+	     (dpyinfo, foreground_p ? foreground : background,
+	      empty_unibyte_string,
+	      verticalScrollBar,
+	      empty_unibyte_string));
       if (!STRINGP (tem))
 	{
 	  /* If nothing has been specified, scroll bars will use a
@@ -1591,7 +1594,8 @@ x_default_scroll_bar_color_parameter (struct frame *f,
 #endif /* not USE_TOOLKIT_SCROLL_BARS */
     }
 
-  x_set_frame_parameters (f, FRAME_PARAMETER (prop, tem));
+  AUTO_FRAME_ARG (arg, prop, tem);
+  x_set_frame_parameters (f, arg);
   return tem;
 }
 
@@ -2843,7 +2847,8 @@ x_default_font_parameter (struct frame *f, Lisp_Object parms)
     {
       /* Remember the explicit font parameter, so we can re-apply it after
 	 we've applied the `default' face settings.  */
-      x_set_frame_parameters (f, FRAME_PARAMETER (Qfont_param, font_param));
+      AUTO_FRAME_ARG (arg, Qfont_param, font_param);
+      x_set_frame_parameters (f, arg);
     }
 
   /* This call will make X resources override any system font setting.  */
@@ -4272,9 +4277,10 @@ select_visual (struct x_display_info *dpyinfo)
   Screen *screen = dpyinfo->screen;
 
   /* See if a visual is specified.  */
-  Lisp_Object value = display_x_get_resource
-    (dpyinfo, SCOPED_STRING ("visualClass"),
-     SCOPED_STRING ("VisualClass"), Qnil, Qnil);
+  AUTO_STRING (visualClass, "visualClass");
+  AUTO_STRING (VisualClass, "VisualClass");
+  Lisp_Object value = display_x_get_resource (dpyinfo, visualClass,
+					      VisualClass, Qnil, Qnil);
 
   if (STRINGP (value))
     {
@@ -5033,7 +5039,10 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
 
   /* Add `tooltip' frame parameter's default value. */
   if (NILP (Fframe_parameter (frame, Qtooltip)))
-    Fmodify_frame_parameters (frame, FRAME_PARAMETER (Qtooltip, Qt));
+    {
+      AUTO_FRAME_ARG (arg, Qtooltip, Qt);
+      Fmodify_frame_parameters (frame, arg);
+    }
 
   /* FIXME - can this be done in a similar way to normal frames?
      http://lists.gnu.org/archive/html/emacs-devel/2007-10/msg00641.html */
@@ -5051,8 +5060,10 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
       disptype = intern ("color");
 
     if (NILP (Fframe_parameter (frame, Qdisplay_type)))
-      Fmodify_frame_parameters
-	(frame, FRAME_PARAMETER (Qdisplay_type, disptype));
+      {
+	AUTO_FRAME_ARG (arg, Qdisplay_type, disptype);
+	Fmodify_frame_parameters (frame, arg);
+      }
   }
 
   /* Set up faces after all frame parameters are known.  This call
@@ -5071,7 +5082,10 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
     call2 (Qface_set_after_frame_default, frame, Qnil);
 
     if (!EQ (bg, Fframe_parameter (frame, Qbackground_color)))
-      Fmodify_frame_parameters (frame, FRAME_PARAMETER (Qbackground_color, bg));
+      {
+	AUTO_FRAME_ARG (arg, Qbackground_color, bg);
+	Fmodify_frame_parameters (frame, arg);
+      }
   }
 
   f->no_split = 1;

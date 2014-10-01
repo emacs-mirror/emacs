@@ -12070,7 +12070,7 @@ build_desired_tool_bar_string (struct frame *f)
       (f, Fmake_string (make_number (size_needed), make_number (' ')));
   else
     {
-      Lisp_Object props = scoped_list4 (Qdisplay, Qnil, Qmenu_item, Qnil);
+      AUTO_LIST4 (props, Qdisplay, Qnil, Qmenu_item, Qnil);
       struct gcpro gcpro1;
       GCPRO1 (props);
       Fremove_text_properties (make_number (0), make_number (size),
@@ -12186,9 +12186,8 @@ build_desired_tool_bar_string (struct frame *f)
 	 the start of this item's properties in the tool-bar items
 	 vector.  */
       image = Fcons (Qimage, plist);
-      Lisp_Object props
-	= scoped_list4 (Qdisplay, image, Qmenu_item,
-			make_number (i * TOOL_BAR_ITEM_NSLOTS));
+      AUTO_LIST4 (props, Qdisplay, image, Qmenu_item,
+		  make_number (i * TOOL_BAR_ITEM_NSLOTS));
       struct gcpro gcpro1;
       GCPRO1 (props);
 
@@ -20966,7 +20965,8 @@ See also `bidi-paragraph-direction'.  */)
 	 the previous non-empty line.  */
       if (pos >= ZV && pos > BEGV)
 	DEC_BOTH (pos, bytepos);
-      if (fast_looking_at (SCOPED_STRING ("[\f\t ]*\n"),
+      AUTO_STRING (trailing_white_space, "[\f\t ]*\n");
+      if (fast_looking_at (trailing_white_space,
 			   pos, bytepos, ZV, ZV_BYTE, Qnil) > 0)
 	{
 	  while ((c = FETCH_BYTE (bytepos)) == '\n'

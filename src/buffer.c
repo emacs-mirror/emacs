@@ -1552,10 +1552,11 @@ exists, return the buffer `*scratch*' (creating it if necessary).  */)
     return notsogood;
   else
     {
-      buf = Fget_buffer (SCOPED_STRING ("*scratch*"));
+      AUTO_STRING (scratch, "*scratch*");
+      buf = Fget_buffer (scratch);
       if (NILP (buf))
 	{
-	  buf = Fget_buffer_create (SCOPED_STRING ("*scratch*"));
+	  buf = Fget_buffer_create (scratch);
 	  Fset_buffer_major_mode (buf);
 	}
       return buf;
@@ -1575,10 +1576,11 @@ other_buffer_safely (Lisp_Object buffer)
     if (candidate_buffer (buf, buffer))
       return buf;
 
-  buf = Fget_buffer (SCOPED_STRING ("*scratch*"));
+  AUTO_STRING (scratch, "*scratch*");
+  buf = Fget_buffer (scratch);
   if (NILP (buf))
     {
-      buf = Fget_buffer_create (SCOPED_STRING ("*scratch*"));
+      buf = Fget_buffer_create (scratch);
       Fset_buffer_major_mode (buf);
     }
 
@@ -5289,7 +5291,8 @@ init_buffer (int initialized)
   (void) initialized;
 #endif /* USE_MMAP_FOR_BUFFERS */
 
-  Fset_buffer (Fget_buffer_create (SCOPED_STRING ("*scratch*")));
+  AUTO_STRING (scratch, "*scratch*");
+  Fset_buffer (Fget_buffer_create (scratch));
   if (NILP (BVAR (&buffer_defaults, enable_multibyte_characters)))
     Fset_buffer_multibyte (Qnil);
 
@@ -5326,9 +5329,12 @@ init_buffer (int initialized)
 	 However, it is not necessary to turn / into /:/.
 	 So avoid doing that.  */
       && strcmp ("/", SSDATA (BVAR (current_buffer, directory))))
-    bset_directory
-      (current_buffer,
-       concat2 (SCOPED_STRING ("/:"), BVAR (current_buffer, directory)));
+    {
+      AUTO_STRING (slash_colon, "/:");
+      bset_directory (current_buffer,
+		      concat2 (slash_colon,
+			       BVAR (current_buffer, directory)));
+    }
 
   temp = get_minibuffer (0);
   bset_directory (XBUFFER (temp), BVAR (current_buffer, directory));

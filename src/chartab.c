@@ -1302,8 +1302,8 @@ uniprop_table (Lisp_Object prop)
     {
       struct gcpro gcpro1;
       GCPRO1 (val);
-      result = Fload (concat2 (SCOPED_STRING ("international/"), table),
-		      Qt, Qt, Qt, Qt);
+      AUTO_STRING (intl, "international/");
+      result = Fload (concat2 (intl, table), Qt, Qt, Qt, Qt);
       UNGCPRO;
       if (NILP (result))
 	return Qnil;

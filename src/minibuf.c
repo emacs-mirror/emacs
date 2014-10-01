@@ -1157,9 +1157,10 @@ function, instead of the usual behavior.  */)
 					      STRING_MULTIBYTE (prompt));
 	    }
 
+	  AUTO_STRING (format, "%s (default %s): ");
 	  prompt = Fformat (3, ((Lisp_Object [])
-	    { SCOPED_STRING ("%s (default %s): "),
-	      prompt, CONSP (def) ? XCAR (def) : def }));
+				{format, prompt,
+				 CONSP (def) ? XCAR (def) : def}));
 	}
 
       result = Fcompleting_read (prompt, intern ("internal-complete-buffer"),

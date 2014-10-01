@@ -4148,9 +4148,9 @@ x_get_arg (Display_Info *dpyinfo, Lisp_Object alist, Lisp_Object param,
     {
       if (attribute && dpyinfo)
 	{
-	  tem = display_x_get_resource
-	    (dpyinfo, SCOPED_STRING (attribute),
-	     SCOPED_STRING (class), Qnil, Qnil);
+	  AUTO_STRING (at, attribute);
+	  AUTO_STRING (cl, class);
+	  tem = display_x_get_resource (dpyinfo, at, cl, Qnil, Qnil);
 
 	  if (NILP (tem))
 	    return Qunbound;
@@ -4260,7 +4260,8 @@ x_default_parameter (struct frame *f, Lisp_Object alist, Lisp_Object prop,
   tem = x_frame_get_arg (f, alist, prop, xprop, xclass, type);
   if (EQ (tem, Qunbound))
     tem = deflt;
-  x_set_frame_parameters (f, FRAME_PARAMETER (prop, tem));
+  AUTO_FRAME_ARG (arg, prop, tem);
+  x_set_frame_parameters (f, arg);
   return tem;
 }
 

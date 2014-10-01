@@ -4625,24 +4625,36 @@ enum
 			&& alignof (union Aligned_String) % GCALIGNMENT == 0)
   };
 
-/* Build a stack-based Lisp cons or short list if possible, a GC-based
-   one otherwise.  The resulting object should not be modified or made
-   visible to user code.  */
+/* Auxiliary macros used for auto allocation of Lisp objects.  Please
+   use these only in macros like AUTO_CONS that declare a local
+   variable whose lifetime will be clear to the programmer.  */
+#define STACK_CONS(a, b) \
+  make_lisp_ptr (&(union Aligned_Cons) { { a, { b } } }.s, Lisp_Cons)
+#define AUTO_CONS_EXPR(a, b) \
+  (USE_STACK_CONS ? STACK_CONS (a, b) : Fcons (a, b))
 
-#define scoped_cons(a, b)			\
-  (USE_STACK_CONS				\
-   ? make_lisp_ptr (&(union Aligned_Cons) { { a, { b } } }.s, Lisp_Cons) \
-   : Fcons (a, b))
-#define scoped_list1(a)				\
-  (USE_STACK_CONS ? scoped_cons (a, Qnil) : list1 (a))
-#define scoped_list2(a, b)			\
-  (USE_STACK_CONS ? scoped_cons (a, scoped_list1 (b)) : list2 (a,b))
-#define scoped_list3(a, b, c)			\
-  (USE_STACK_CONS ? scoped_cons (a, scoped_list2 (b, c)) : list3 (a, b, c))
-#define scoped_list4(a, b, c, d)		\
-  (USE_STACK_CONS				\
-   ? scoped_cons (a, scoped_list3 (b, c, d)) :	\
-   list4 (a, b, c, d))
+/* Declare NAME as an auto Lisp cons or short list if possible, a
+   GC-based one otherwise.  This is in the sense of the C keyword
+   'auto'; i.e., the object has the lifetime of the containing block.
+   The resulting object should not be made visible to user Lisp code.  */
+
+#define AUTO_CONS(name, a, b) Lisp_Object name = AUTO_CONS_EXPR (a, b)
+#define AUTO_LIST1(name, a)						\
+  Lisp_Object name = (USE_STACK_CONS ? STACK_CONS (a, Qnil) : list1 (a))
+#define AUTO_LIST2(name, a, b)						\
+  Lisp_Object name = (USE_STACK_CONS					\
+		      ? STACK_CONS (a, STACK_CONS (b, Qnil))		\
+		      : list2 (a, b))
+#define AUTO_LIST3(name, a, b, c)					\
+  Lisp_Object name = (USE_STACK_CONS					\
+		      ? STACK_CONS (a, STACK_CONS (b, STACK_CONS (c, Qnil))) \
+		      : list3 (a, b, c))
+#define AUTO_LIST4(name, a, b, c, d)					\
+    Lisp_Object name							\
+      = (USE_STACK_CONS							\
+	 ? STACK_CONS (a, STACK_CONS (b, STACK_CONS (c,			\
+						     STACK_CONS (d, Qnil)))) \
+	 : list4 (a, b, c, d))
 
 /* Check whether stack-allocated strings are ASCII-only.  */
 
@@ -4652,18 +4664,19 @@ extern const char *verify_ascii (const char *);
 # define verify_ascii(str) (str)
 #endif
 
-/* Build a stack-based Lisp string from STR if possible, a GC-based
-   one if not.  STR is not necessarily copied and should contain only
-   ASCII characters.  The resulting Lisp string should not be modified
-   or made visible to user code.  */
+/* Declare NAME as an auto Lisp string if possible, a GC-based one if not.
+   Take its value from STR.  STR is not necessarily copied and should
+   contain only ASCII characters.  The resulting Lisp string should
+   not be modified or made visible to user code.  */
 
-#define SCOPED_STRING(str)						\
-  (USE_STACK_STRING							\
-   ? (make_lisp_ptr							\
-      ((&(union Aligned_String)						\
-	{ { strlen (str), -1, 0, (unsigned char *) verify_ascii (str) } }.s), \
-       Lisp_String))							\
-   : build_string (verify_ascii (str)))
+#define AUTO_STRING(name, str)						\
+  Lisp_Object name =							\
+    (USE_STACK_STRING							\
+     ? (make_lisp_ptr							\
+	((&(union Aligned_String)					\
+	  {{strlen (str), -1, 0, (unsigned char *) verify_ascii (str)}}.s), \
+	  Lisp_String))							\
+     : build_string (verify_ascii (str)))
 
 /* Loop over all tails of a list, checking for cycles.
    FIXME: Make tortoise and n internal declarations.
