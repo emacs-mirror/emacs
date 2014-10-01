@@ -2,6 +2,7 @@
 
 	* xfaces.c (Finternal_set_lisp_face_attribute): Don't try to
 	make a font_object from a tty frame (Bug#18573).
+	(Finternal_set_lisp_face_attribute): Added FIXME comment.
 
 2014-09-30  Eli Zaretskii  <eliz@gnu.org>
 

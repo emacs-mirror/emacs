@@ -3119,6 +3119,13 @@ FRAME 0 means change the face on all frames, and change the default
 		f = XFRAME (selected_frame);
 	      else
 		f = XFRAME (frame);
+
+              /* FIXME:
+                 If frame is t, and selected frame is a tty frame, the font
+                 can't be realized.  An improvement wuld be to loop over frames
+                 for a non-tty frame and use that.  See discussion in
+                 bug#18573.
+              */
               if (f->terminal->type != output_termcap)
                 {
                   if (! FONT_OBJECT_P (value))
