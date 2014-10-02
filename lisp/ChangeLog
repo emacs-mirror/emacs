@@ -1,3 +1,9 @@
+2014-10-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* obsolete/lucid.el (read-number): Remove, redundant.
+	* obsolete/cl-compat.el (cl-floor, cl-ceiling, cl-round, cl-truncate):
+	Remove, broken.
+
 2014-10-02  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/package.el (package-import-keyring):
