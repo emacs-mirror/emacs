@@ -1,3 +1,8 @@
+2014-10-02  Daiki Ueno  <ueno@gnu.org>
+
+	* mml.el (mml-parse-1): Error out if unknown mode is specified in
+	<#secure> tag (bug#18513).
+
 2014-09-29  Daiki Ueno  <ueno@gnu.org>
 
 	* mml.el (mml-parse-1): Error out if unknown mode is specified in

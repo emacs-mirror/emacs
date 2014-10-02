@@ -289,6 +289,8 @@ contrast, `package-user-dir' contains packages for personal use."
   :group 'package
   :version "24.1")
 
+(defvar epg-gpg-program)
+
 (defcustom package-check-signature
   (if (progn (require 'epg-config) (executable-find epg-gpg-program))
       'allow-unsigned)
@@ -1299,7 +1301,8 @@ similar to an entry in `package-alist'.  Save the cached copy to
   (setq file (expand-file-name file))
   (let ((context (epg-make-context 'OpenPGP))
 	(homedir (expand-file-name "gnupg" package-user-dir)))
-    (make-directory homedir t)
+    (with-file-modes 448
+      (make-directory homedir t))
     (epg-context-set-home-directory context homedir)
     (message "Importing %s..." (file-name-nondirectory file))
     (epg-import-keys-from-file context file)

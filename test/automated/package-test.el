@@ -89,6 +89,8 @@
   "Set up temporary locations and variables for testing."
   (declare (indent 1))
   `(let* ((package-test-user-dir (make-temp-file "pkg-test-user-dir-" t))
+          (process-environment (cons (format "HOME=%s" package-test-user-dir)
+                                     process-environment))
           (package-user-dir package-test-user-dir)
           (package-archives `(("gnu" . ,package-test-data-dir)))
           (old-yes-no-defn (symbol-function 'yes-or-no-p))
@@ -361,11 +363,15 @@ Must called from within a `tar-mode' buffer."
 
 (ert-deftest package-test-signed ()
   "Test verifying package signature."
-  :expected-result (condition-case nil
-		       (progn
+  (skip-unless (ignore-errors
+		 (let ((homedir (make-temp-file "package-test" t)))
+		   (unwind-protect
+		       (let ((process-environment
+			      (cons (format "HOME=%s" homedir)
+				    process-environment)))
 			 (epg-check-configuration (epg-configuration))
-			 :passed)
-		     (error :failed))
+			 t)
+		     (delete-directory homedir t)))))
   (let* ((keyring (expand-file-name "key.pub" package-test-data-dir))
 	 (package-test-data-dir
 	   (expand-file-name "data/package/signed" package-test-file-dir)))

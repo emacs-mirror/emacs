@@ -2888,31 +2888,30 @@ the full statement in the case of imports."
   "Do completion at point using PROCESS for IMPORT or INPUT.
 When IMPORT is non-nil takes precedence over INPUT for
 completion."
-  (let* ((prompt
-          (with-current-buffer (process-buffer process)
+  (with-current-buffer (process-buffer process)
+    (let* ((prompt
             (let ((prompt-boundaries (python-util-comint-last-prompt)))
               (buffer-substring-no-properties
-               (car prompt-boundaries) (cdr prompt-boundaries)))))
-         (completion-code
-          ;; Check whether a prompt matches a pdb string, an import
-          ;; statement or just the standard prompt and use the
-          ;; correct python-shell-completion-*-code string
-          (cond ((and (string-match
-                       (concat "^" python-shell-prompt-pdb-regexp) prompt))
-                 ;; Since there are no guarantees the user will remain
-                 ;; in the same context where completion code was sent
-                 ;; (e.g. user steps into a function), safeguard
-                 ;; resending completion setup continuously.
-                 (concat python-shell-completion-setup-code
-                         "\nprint (" python-shell-completion-string-code ")"))
-                ((string-match
-                  python-shell--prompt-calculated-input-regexp prompt)
-                 python-shell-completion-string-code)
-                (t nil)))
-         (subject (or import input)))
-    (and completion-code
-         (> (length input) 0)
-         (with-current-buffer (process-buffer process)
+               (car prompt-boundaries) (cdr prompt-boundaries))))
+           (completion-code
+            ;; Check whether a prompt matches a pdb string, an import
+            ;; statement or just the standard prompt and use the
+            ;; correct python-shell-completion-*-code string
+            (cond ((and (string-match
+                         (concat "^" python-shell-prompt-pdb-regexp) prompt))
+                   ;; Since there are no guarantees the user will remain
+                   ;; in the same context where completion code was sent
+                   ;; (e.g. user steps into a function), safeguard
+                   ;; resending completion setup continuously.
+                   (concat python-shell-completion-setup-code
+                           "\nprint (" python-shell-completion-string-code ")"))
+                  ((string-match
+                    python-shell--prompt-calculated-input-regexp prompt)
+                   python-shell-completion-string-code)
+                  (t nil)))
+           (subject (or import input)))
+      (and completion-code
+           (> (length input) 0)
            (let ((completions
                   (python-util-strip-string
                    (python-shell-send-string-no-output

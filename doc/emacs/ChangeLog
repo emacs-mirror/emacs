@@ -1,3 +1,7 @@
+2014-10-02  Glenn Morris  <rgm@gnu.org>
+
+	* package.texi (Package Installation): Mention etc/package-keyring.gpg.
+
 2014-09-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* emacsver.texi (EMACSVER): Bump to 20.0.50.

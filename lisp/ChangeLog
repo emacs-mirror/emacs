@@ -1,3 +1,15 @@
+2014-10-02  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/package.el (package-import-keyring):
+	Create gnupg directory private.  (Bug#17625#155)
+
+2014-10-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/python.el (python-shell-completion-get-completions):
+	Use python-shell--prompt-calculated-input-regexp from the
+	process buffer (bug#18582).
+	Don't assume that `line' comes from the process buffer.
+
 2014-10-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* frame.el: Use lexical-binding (bug#18598).

@@ -1,3 +1,9 @@
+2014-10-02  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xfaces.c (Finternal_set_lisp_face_attribute): Don't try to
+	make a font_object from a tty frame (Bug#18573).
+	(Finternal_set_lisp_face_attribute): Add FIXME comment.
+
 2014-10-02  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* alloc.c (mark_overlay): Assume that overlay boundaries are
@@ -398,7 +404,7 @@
 	* macfont.m (macfont_close): Release and free font-specific data
 	only if it wasn't previously freed.
 
-2014-09-22  David Caldwell <david@porkrind.org> (tiny change)
+2014-09-22  David Caldwell <david@porkrind.org>  (tiny change)
 
 	* unexmacosx.c (dump_it): Improve error message.
 
@@ -9808,7 +9814,7 @@
 	* eval.c (Ffuncall): Fix handling of ((lambda ..) ..) in lexically
 	scoped code (bug#11258).
 
-2013-08-28  Davor Cubranic  <cubranic@stat.ubc.ca> (tiny change)
+2013-08-28  Davor Cubranic  <cubranic@stat.ubc.ca>  (tiny change)
 
 	* nsterm.m (last_window): New variable.
 	(EV_TRAILER2): New macro.
