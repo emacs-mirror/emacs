@@ -887,7 +887,7 @@ static int table_rehash(obj_t tbl, size_t new_length, obj_t key, size_t *key_buc
  * moved by the garbage collector: in this case we need to re-hash the
  * table. See topic/location.
  */
-static int table_find(obj_t tbl, buckets_t buckets, obj_t key, int add, size_t *b)
+static int table_find(obj_t tbl, obj_t key, int add, size_t *b)
 {
   if (!buckets_find(tbl, tbl->table.keys, key, add, b)) {
     return 0;
@@ -904,7 +904,7 @@ static obj_t table_ref(obj_t tbl, obj_t key)
 {
   size_t b;
   assert(TYPE(tbl) == TYPE_TABLE);
-  if (table_find(tbl, tbl->table.keys, key, 0, &b)) {
+  if (table_find(tbl, key, 0, &b)) {
     obj_t k = tbl->table.keys->bucket[b];
     if (k != obj_unused && k != obj_deleted)
       return tbl->table.values->bucket[b];
@@ -916,7 +916,7 @@ static int table_try_set(obj_t tbl, obj_t key, obj_t value)
 {
   size_t b;
   assert(TYPE(tbl) == TYPE_TABLE);
-  if (!table_find(tbl, tbl->table.keys, key, 1, &b))
+  if (!table_find(tbl, key, 1, &b))
     return 0;
   if (tbl->table.keys->bucket[b] == obj_unused) {
     tbl->table.keys->bucket[b] = key;
@@ -952,7 +952,7 @@ static void table_delete(obj_t tbl, obj_t key)
 {
   size_t b;
   assert(TYPE(tbl) == TYPE_TABLE);
-  if(table_find(tbl, tbl->table.keys, key, 0, &b)
+  if(table_find(tbl, key, 0, &b)
      && tbl->table.keys->bucket[b] != obj_unused
      && tbl->table.keys->bucket[b] != obj_deleted) 
   {
