@@ -71,9 +71,6 @@ other programs (X Windows clients or MS Windows programs).  But, if this
 variable is set, it is used for the next communication only.
 After the communication, this variable is set to nil.")
 
-(declare-function x-get-selection-internal "xselect.c"
-		  (selection-symbol target-type &optional time-stamp terminal))
-
 ;; Only declared obsolete in 23.3.
 (define-obsolete-function-alias 'x-selection 'x-get-selection "at least 19.34")
 
@@ -92,6 +89,13 @@ if applicable (i.e. under X11)."
   "Method used to pass the current selection to the system.
 Called with one argument (the text selected).
 Should obey `gui-select-enable-clipboard' where applicable.")
+
+(gui-method-declare gui-get-selection #'ignore
+  "Return selected text.
+Called with 2 arguments: (SELECTION-SYMBOL TARGET-TYPE)
+SELECTION-SYMBOL is typically `PRIMARY', `SECONDARY', or `CLIPBOARD'.
+\(Those are literal upper-case symbol names, since that's what X expects.)
+TARGET-TYPE is the type of data desired, typically `STRING'.")
 
 (defvar gui-last-selected-text nil
   "Last text passed to `gui-select-text'.")
@@ -112,7 +116,7 @@ On MS-Windows, make TEXT the current selection."
   (setq gui-last-selected-text text))
 (define-obsolete-function-alias 'x-select-text 'gui-select-text "25.1")
 
-(defun x-get-selection (&optional type data-type)
+(defun gui-get-selection (&optional type data-type)
   "Return the value of an X Windows selection.
 The argument TYPE (default `PRIMARY') says which selection,
 and the argument DATA-TYPE (default `STRING') says
@@ -126,39 +130,69 @@ all upper-case names.  The most often used ones, in addition to
 DATA-TYPE is usually `STRING', but can also be one of the symbols
 in `selection-converter-alist', which see.  This argument is
 ignored on MS-Windows and MS-DOS."
-  (let ((data (x-get-selection-internal (or type 'PRIMARY)
-					(or data-type 'STRING)))
-	coding)
+  (let ((data (gui-call gui-get-selection (or type 'PRIMARY)
+                        (or data-type 'STRING))))
     (when (and (stringp data)
 	       (setq data-type (get-text-property 0 'foreign-selection data)))
-      (setq coding (or next-selection-coding-system
-		       selection-coding-system
-		       (cond ((eq data-type 'UTF8_STRING)
-			      'utf-8)
-			     ((eq data-type 'COMPOUND_TEXT)
-			      'compound-text-with-extensions)
-			     ((eq data-type 'C_STRING)
-			      nil)
-			     ((eq data-type 'STRING)
-			      'iso-8859-1)
-			     (t
-			      (error "Unknown selection data type: %S" type))))
-	    data (if coding (decode-coding-string data coding)
-		   (string-to-multibyte data)))
+      (let ((coding (or next-selection-coding-system
+                        selection-coding-system
+                        (pcase data-type
+                          ('UTF8_STRING 'utf-8)
+                          ('COMPOUND_TEXT 'compound-text-with-extensions)
+                          ('C_STRING nil)
+                          ('STRING 'iso-8859-1)
+                          (_ (error "Unknown selection data type: %S"
+                                    type))))))
+        (setq data (if coding (decode-coding-string data coding)
+                     (string-to-multibyte data))))
       (setq next-selection-coding-system nil)
       (put-text-property 0 (length data) 'foreign-selection data-type data))
     data))
+(define-obsolete-function-alias 'x-get-selection 'gui-get-selection "25.1")
 
 (defun x-get-clipboard ()
   "Return text pasted to the clipboard."
-  (x-get-selection-internal 'CLIPBOARD 'STRING))
+  (declare (obsolete gui-get-selection "25.1"))
+  (gui-call gui-get-selection 'CLIPBOARD 'STRING))
 
-(declare-function x-own-selection-internal "xselect.c"
-		  (selection-name selection-value &optional frame))
-(declare-function x-disown-selection-internal "xselect.c"
-		  (selection &optional time terminal))
+(defun gui-get-primary-selection ()
+  "Return the PRIMARY selection, or the best emulation thereof."
+  (or (gui-get-selection 'PRIMARY)
+      (and (fboundp 'w32-get-selection-value)
+           (eq (framep (selected-frame)) 'w32)
+           ;; MS-Windows emulates PRIMARY in x-get-selection, but only
+           ;; within the Emacs session, so consult the clipboard if
+           ;; primary is not found.
+           (w32-get-selection-value))
+      (error "No selection is available")))
+(define-obsolete-function-alias 'x-get-selection-value
+  'gui-get-primary-selection "25.1")
 
-(defun x-set-selection (type data)
+(gui-method-declare gui-own-selection nil
+  "Method to assert a selection of type SELECTION and value VALUE.
+SELECTION is a symbol, typically `PRIMARY', `SECONDARY', or `CLIPBOARD'.
+(Those are literal upper-case symbol names, since that's what X expects.)
+VALUE is typically a string, or a cons of two markers, but may be
+anything that the functions on `selection-converter-alist' know about.
+
+Called with 2 args: (SELECTION VALUE).")
+
+(gui-method-declare gui-disown-selection nil
+  "If we own the selection SELECTION, disown it.
+Disowning it means there is no such selection.
+
+Called with one argument: (SELECTION)")
+
+(gui-method-declare gui-selection-owner-p #'ignore
+  "Whether the current Emacs process owns the given X Selection.
+Called with one argument: (SELECTION).
+The arg should be the name of the selection in question, typically one of
+the symbols `PRIMARY', `SECONDARY', or `CLIPBOARD'.
+(Those are literal upper-case symbol names, since that's what X expects.)
+For convenience, the symbol nil is the same as `PRIMARY',
+and t is the same as `SECONDARY'.")
+
+(defun gui-set-selection (type data)
   "Make an X selection of type TYPE and value DATA.
 The argument TYPE (nil means `PRIMARY') says which selection, and
 DATA specifies the contents.  TYPE must be a symbol.  \(It can also
@@ -186,23 +220,24 @@ are not available to other programs."
 		   (list 'PRIMARY (read-string "Set text for pasting: "))
 		 (list 'PRIMARY (buffer-substring (region-beginning) (region-end)))))
   (if (stringp type) (setq type (intern type)))
-  (or (x-valid-simple-selection-p data)
+  (or (gui--valid-simple-selection-p data)
       (and (vectorp data)
 	   (let ((valid t)
 		 (i (1- (length data))))
 	     (while (>= i 0)
-	       (or (x-valid-simple-selection-p (aref data i))
+	       (or (gui--valid-simple-selection-p (aref data i))
 		   (setq valid nil))
 	       (setq i (1- i)))
 	     valid))
       (signal 'error (list "invalid selection" data)))
   (or type (setq type 'PRIMARY))
   (if data
-      (x-own-selection-internal type data)
-    (x-disown-selection-internal type))
+      (gui-call gui-own-selection type data)
+    (gui-call gui-disown-selection type))
   data)
+(define-obsolete-function-alias 'x-set-selection 'gui-set-selection "25.1")
 
-(defun x-valid-simple-selection-p (data)
+(defun gui--valid-simple-selection-p (data)
   (or (bufferp data)
       (and (consp data)
 	   (markerp (car data))
@@ -358,7 +393,7 @@ two markers or an overlay.  Otherwise, it is nil."
     (apply 'vector all)))
 
 (defun xselect-convert-to-delete (selection _type _value)
-  (x-disown-selection-internal selection)
+  (gui-call gui-disown-selection selection)
   ;; A return value of nil means that we do not know how to do this conversion,
   ;; and replies with an "error".  A return value of NULL means that we have
   ;; done the conversion (and any side-effects) but have no value to return.

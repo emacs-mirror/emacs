@@ -1249,16 +1249,7 @@ without any interpretation."
     (run-hooks 'mouse-leave-buffer-hook)
     (setq this-command 'yank)
     (mouse-set-point click)
-    (term-send-raw-string
-     ;; From `mouse-yank-primary':
-     (or (if (fboundp 'x-get-selection-value)
-             (if (eq system-type 'windows-nt)
-                 (or (x-get-selection 'PRIMARY)
-                     (x-get-selection-value))
-               (or (x-get-selection-value)
-                   (x-get-selection 'PRIMARY)))
-	   (x-get-selection 'PRIMARY))
-	 (error "No selection is available")))))
+    (term-send-raw-string (gui-get-primary-selection))))
 
 (defun term-paste ()
   "Insert the last stretch of killed text at point."

@@ -245,7 +245,12 @@ Emacs-21.
 
 * Lisp Changes in Emacs 25.1
 
-** x-select-text is renamed gui-select-text.
+** Some "x-*" were obsoleted:
+*** x-select-text is renamed gui-select-text.
+*** x-get-selection is renamed gui-get-selection.
+*** x-get-clipboard and x-clipboard-yank are marked obsolete.
+*** x-get-selection-value is renamed to gui-get-primary-selection.
+*** x-set-selection is renamed to gui-set-selection
 
 ** call-process-shell-command and process-file-shell-command
 don't take "&rest args" any more.

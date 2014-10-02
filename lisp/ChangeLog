@@ -1,3 +1,39 @@
+2014-10-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Consolidate management/ownership of selections.
+	* select.el (gui-get-selection-alist): New method.
+	(gui-get-selection): Use it.  Rename from x-get-selection.
+	(x-get-selection): Define as obsolete alias.
+	(x-get-clipboard): Mark obsolete.
+	(gui-get-primary-selection): New function.
+	(x-get-selection-value): Mark obsolete.
+	(gui-own-selection-alist, gui-disown-selection-alist)
+	(gui-selection-owner-p-alist): New methods.
+	(gui-set-selection): Use them.  Rename from x-set-selection.
+	(x-set-selection): Define as obsolete alias.
+	(gui--valid-simple-selection-p): Rename from
+	x-valid-simple-selection-p.
+	* w32-common-fns.el (gui-own-selection, gui-disown-selection)
+	(gui-selection-owner-p, gui-get-selection): Define for w32.
+	(w32-get-selection-value): Rename from x-get-selection-value.
+	Use the new gui-last-selected-text.
+	* term/x-win.el (x-get-selection-value): Remove.
+	(x-clipboard-yank): Declare obsolete.
+	(gui-own-selection, gui-disown-selection, gui-get-selection)
+	(gui-selection-owner-p): Define for x.
+	* term/w32-win.el (w32-win-suspend-error): Rename from
+	x-win-suspend-error.
+	* term/pc-win.el (w16-get-selection-value): Rename from
+	x-get-selection-value.
+	(w16-selection-owner-p): Rename from x-selection-owner-p.
+	(gui-own-selection, gui-disown-selection, gui-get-selection)
+	(gui-selection-owner-p): Define for pc.
+	(w16--select-text): New function.
+	* term/ns-win.el (gui-own-selection, gui-disown-selection)
+	(gui-get-selection, gui-selection-owner-p): Define for ns.
+	* term.el (term-mouse-paste):
+	* mouse.el (mouse-yank-primary): Use gui-get-primary-selection.
+
 2014-10-02  H. Dieter Wilhelm <dieter@duenenhof-wilhelm.de>  (tiny change)
 
 	* calc/calc-help.el (calc-describe-thing): Quote strings

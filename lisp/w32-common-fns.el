@@ -41,53 +41,23 @@ That includes all Windows systems except for 9X/Me."
 (declare-function x-server-version "w32fns.c" (&optional display))
 
 ;;; Fix interface to (X-specific) mouse.el
-(defun x-set-selection (type data)
-  "Make an X selection of type TYPE and value DATA.
-The argument TYPE (nil means `PRIMARY') says which selection, and
-DATA specifies the contents.  TYPE must be a symbol.  \(It can also
-be a string, which stands for the symbol with that name, but this
-is considered obsolete.)  DATA may be a string, a symbol, an
-integer (or a cons of two integers or list of two integers).
+(gui-method-define gui-own-selection w32
+                   (lambda (type value)
+                     (put 'x-selections (or type 'PRIMARY) data)))
 
-The selection may also be a cons of two markers pointing to the same buffer,
-or an overlay.  In these cases, the selection is considered to be the text
-between the markers *at whatever time the selection is examined*.
-Thus, editing done in the buffer after you specify the selection
-can alter the effective value of the selection.
+(gui-method-define gui-disown-selection w32
+                   (lambda (type &optional _time-object _frame)
+                     (put 'x-selections (or type 'PRIMARY) nil)))
 
-The data may also be a vector of valid non-vector selection values.
+(gui-method-define gui-get-selection w32
+                   (lambda (&optional type _data-type)
+                     (get 'x-selections (or type 'PRIMARY))))
 
-The return value is DATA.
-
-Interactively, this command sets the primary selection.  Without
-prefix argument, it reads the selection in the minibuffer.  With
-prefix argument, it uses the text of the region as the selection value.
-
-Note that on MS-Windows, primary and secondary selections set by Emacs
-are not available to other programs."
-  (put 'x-selections (or type 'PRIMARY) data))
-
-(defun x-get-selection (&optional type _data-type)
-  "Return the value of an X Windows selection.
-The argument TYPE (default `PRIMARY') says which selection,
-and the argument DATA-TYPE (default `STRING') says
-how to convert the data.
-
-TYPE may be any symbol \(but nil stands for `PRIMARY').  However,
-only a few symbols are commonly used.  They conventionally have
-all upper-case names.  The most often used ones, in addition to
-`PRIMARY', are `SECONDARY' and `CLIPBOARD'.
-
-DATA-TYPE is usually `STRING', but can also be one of the symbols
-in `selection-converter-alist', which see.  This argument is
-ignored on MS-Windows and MS-DOS."
-  (get 'x-selections (or type 'PRIMARY)))
-
-;; x-selection-owner-p is used in simple.el
-(defun x-selection-owner-p (&optional selection _terminal)
-  "" ; placeholder for doc.c
-  (and (memq selection '(nil PRIMARY SECONDARY))
-       (get 'x-selections (or selection 'PRIMARY))))
+;; gui-selection-owner-p is used in simple.el
+(gui-method-define gui-selection-owner-p w32
+                   (lambda (selection)
+                     (and (memq selection '(nil PRIMARY SECONDARY))
+                          (get 'x-selections (or selection 'PRIMARY)))))
 
 ;; The "Windows" keys on newer keyboards bring up the Start menu
 ;; whether you want it or not - make Emacs ignore these keystrokes
@@ -103,30 +73,29 @@ ignored on MS-Windows and MS-DOS."
 ;; We keep track of the last text selected here, so we can check the
 ;; current selection against it, and avoid passing back our own text
 ;; from x-selection-value.
-(defvar x-last-selected-text nil)
 
-(defun x-get-selection-value ()
+(defun w32-get-selection-value ()
   "Return the value of the current selection.
 Consult the selection.  Treat empty strings as if they were unset."
   (if gui-select-enable-clipboard
-      (let (text)
-	;; Don't die if x-get-selection signals an error.
-	(with-demoted-errors "w32-get-clipboard-data:%s"
-	  (setq text (w32-get-clipboard-data)))
+      (let ((text
+             ;; Don't die if x-get-selection signals an error.
+             (with-demoted-errors "w32-get-clipboard-data:%S"
+               (w32-get-clipboard-data))))
 	(if (string= text "") (setq text nil))
 	(cond
 	 ((not text) nil)
-	 ((eq text x-last-selected-text) nil)
-	 ((string= text x-last-selected-text)
+	 ((eq text gui-last-selected-text) nil)
+	 ((string= text gui-last-selected-text)
 	  ;; Record the newer string, so subsequent calls can use the 'eq' test.
-	  (setq x-last-selected-text text)
+	  (setq gui-last-selected-text text)
 	  nil)
 	 (t
-	  (setq x-last-selected-text text))))))
+	  (setq gui-last-selected-text text))))))
 
-(defalias 'x-selection-value 'x-get-selection-value)
+(defalias 'x-selection-value #'w32-get-selection-value)
 
 ;; Arrange for the kill and yank functions to set and check the clipboard.
-(setq interprogram-paste-function 'x-get-selection-value)
+(setq interprogram-paste-function #'w32-get-selection-value)
 
 (provide 'w32-common-fns)

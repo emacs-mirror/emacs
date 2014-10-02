@@ -1290,16 +1290,9 @@ The value nil is the same as the list (UTF8_STRING COMPOUND_TEXT STRING)."
 ;; Arrange for the kill and yank functions to set and check the clipboard.
 (setq interprogram-paste-function 'x-selection-value)
 
-;; Make paste from other applications use the decoding in x-select-request-type
-;; and not just STRING.
-(defun x-get-selection-value ()
-  "Get the current value of the PRIMARY selection.
-Request data types in the order specified by `x-select-request-type'."
-  (x-selection-value-internal 'PRIMARY))
-
 (defun x-clipboard-yank ()
-  ;; FIXME: How is that different from `clipboard-yank'?
   "Insert the clipboard contents, or the last stretch of killed text."
+  (declare (obsolete clipboard-yank "25.1"))
   (interactive "*")
   (let ((clipboard-text (x-selection-value-internal 'CLIPBOARD))
 	(x-select-enable-clipboard t))
@@ -1325,9 +1318,9 @@ Request data types in the order specified by `x-select-request-type'."
 
 (defun x-win-suspend-error ()
   "Report an error when a suspend is attempted.
-This returns an error if any Emacs frames are X frames, or always under W32."
+This returns an error if any Emacs frames are X frames."
   ;; Don't allow suspending if any of the frames are X frames.
-  (if (memq 'x (mapcar 'window-system (frame-list)))
+  (if (memq 'x (mapcar #'window-system (frame-list)))
       (error "Cannot suspend Emacs while running under X")))
 
 (defvar x-initialized nil
@@ -1469,15 +1462,19 @@ This returns an error if any Emacs frames are X frames, or always under W32."
 (gui-method-define gui-select-text x
                    (lambda (text)
                      (when x-select-enable-primary
-                       (x-set-selection 'PRIMARY text)
+                       (gui-set-selection 'PRIMARY text)
                        (setq x-last-selected-text-primary text))
                      (when x-select-enable-clipboard
                        ;; When cutting, the selection is cleared and PRIMARY
                        ;; set to the empty string.  Prevent that, PRIMARY
                        ;; should not be reset by cut (Bug#16382).
                        (setq saved-region-selection text)
-                       (x-set-selection 'CLIPBOARD text)
+                       (gui-set-selection 'CLIPBOARD text)
                        (setq x-last-selected-text-clipboard text))))
+(gui-method-define gui-own-selection x #'x-own-selection-internal)
+(gui-method-define gui-disown-selection x #'x-disown-selection-internal)
+(gui-method-define gui-selection-owner-p x #'x-selection-owner-p)
+(gui-method-define gui-get-selection x #'x-get-selection-internal)
 
 ;; Initiate drag and drop
 (add-hook 'after-make-frame-functions 'x-dnd-init-frame)

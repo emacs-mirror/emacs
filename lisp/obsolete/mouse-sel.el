@@ -97,7 +97,7 @@
 ;; 	 In this mode, mouse-insert-selection just calls mouse-yank-at-click.
 ;;
 ;;       Selection/kill-ring interaction is retained
-;;         interprogram-cut-function   = x-select-text
+;;         interprogram-cut-function   = gui-select-text
 ;;         interprogram-paste-function = x-selection-value
 ;;
 ;;       What you lose is the ability to select some text in
@@ -292,15 +292,13 @@ where   SELECTION-NAME          = name of selection
 	SELECTION-THING-SYMBOL 	= name of variable where the current selection
  				  type for this selection should be stored.")
 
-(declare-function x-select-text "term/common-win" (text))
-
 (defvar mouse-sel-set-selection-function
   (if (eq mouse-sel-default-bindings 'interprogram-cut-paste)
-      'x-set-selection
+      'gui-set-selection
     (lambda (selection value)
       (if (eq selection 'PRIMARY)
-	  (x-select-text value)
-	(x-set-selection selection value))))
+	  (gui-select-text value)
+	(gui-set-selection selection value))))
   "Function to call to set selection.
 Called with two arguments:
 
@@ -316,7 +314,6 @@ is `interprogram-cut-paste'.")
   (lambda (selection)
     (if (eq selection 'PRIMARY)
 	(or (x-selection-value)
-	    (bound-and-true-p x-last-selected-text)
 	    (bound-and-true-p x-last-selected-text-primary))
       (x-get-selection selection)))
   "Function to call to get the selection.

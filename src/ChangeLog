@@ -1,3 +1,8 @@
+2014-10-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* nsselect.m (ns-own-selection-internal, ns-disown-selection-internal):
+	Rename from the "x-" prefix.
+
 2014-10-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* xselect.c (selection-converter-alist): Fix docstring.

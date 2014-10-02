@@ -1068,24 +1068,7 @@ regardless of where you click."
     (let (select-active-regions)
       (deactivate-mark)))
   (or mouse-yank-at-point (mouse-set-point click))
-  (let ((primary
-         (if (fboundp 'x-get-selection-value)
-             (if (eq (framep (selected-frame)) 'w32)
-                 ;; MS-Windows emulates PRIMARY in x-get-selection, but not
-                 ;; in x-get-selection-value (the latter only accesses the
-                 ;; clipboard).  So try PRIMARY first, in case they selected
-                 ;; something with the mouse in the current Emacs session.
-                 (or (x-get-selection 'PRIMARY)
-                     (x-get-selection-value))
-               ;; Else MS-DOS or X.
-               ;; On X, x-get-selection-value supports more formats and
-               ;; encodings, so use it in preference to x-get-selection.
-               (or (x-get-selection-value)
-                   (x-get-selection 'PRIMARY)))
-           ;; FIXME: What about xterm-mouse-mode etc.?
-           (x-get-selection 'PRIMARY))))
-    (unless primary
-      (error "No selection is available"))
+  (let ((primary (gui-get-primary-selection)))
     (push-mark (point))
     (insert-for-yank primary)))
 
@@ -1272,7 +1255,7 @@ This must be bound to a mouse drag event."
       (if (numberp (posn-point posn))
 	  (setq beg (posn-point posn)))
       (move-overlay mouse-secondary-overlay beg (posn-point end))
-      (x-set-selection
+      (gui-set-selection
        'SECONDARY
        (buffer-substring (overlay-start mouse-secondary-overlay)
 			 (overlay-end mouse-secondary-overlay))))))
@@ -1347,13 +1330,13 @@ The function returns a non-nil value if it creates a secondary selection."
 	    (if (marker-position mouse-secondary-start)
 		(save-window-excursion
 		  (delete-overlay mouse-secondary-overlay)
-		  (x-set-selection 'SECONDARY nil)
+		  (gui-set-selection 'SECONDARY nil)
 		  (select-window start-window)
 		  (save-excursion
 		    (goto-char mouse-secondary-start)
 		    (sit-for 1)
 		    nil))
-	      (x-set-selection
+	      (gui-set-selection
 	       'SECONDARY
 	       (buffer-substring (overlay-start mouse-secondary-overlay)
 				 (overlay-end mouse-secondary-overlay)))))))))
@@ -1486,7 +1469,7 @@ CLICK position, kill the secondary selection."
 	 (setq str (buffer-substring (overlay-start mouse-secondary-overlay)
 				     (overlay-end mouse-secondary-overlay)))
 	 (> (length str) 0)
-	 (x-set-selection 'SECONDARY str))))
+	 (gui-set-selection 'SECONDARY str))))
 
 
 (defcustom mouse-buffer-menu-maxlen 20

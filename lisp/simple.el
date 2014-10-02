@@ -3629,7 +3629,7 @@ No filtering is done unless a hook says to."
 
 ;;;; Window system cut and paste hooks.
 
-(defvar interprogram-cut-function #'x-select-text
+(defvar interprogram-cut-function #'gui-select-text
   "Function to call to make a killed region available to other programs.
 Most window systems provide a facility for cutting and pasting
 text between different programs, such as the clipboard on X and
@@ -4497,8 +4497,6 @@ a mistake; see the documentation of `set-mark'."
     (signal 'mark-inactive nil)))
 
 ;; Behind display-selections-p.
-(declare-function x-selection-owner-p "xselect.c"
-                  (&optional selection terminal))
 (declare-function x-selection-exists-p "xselect.c"
                   (&optional selection terminal))
 
@@ -4525,15 +4523,15 @@ run `deactivate-mark-hook'."
       ;; the region prior to the last command modifying the buffer.
       ;; Set the selection to that, or to the current region.
       (cond (saved-region-selection
-	     (x-set-selection 'PRIMARY saved-region-selection)
+	     (gui-set-selection 'PRIMARY saved-region-selection)
 	     (setq saved-region-selection nil))
 	    ;; If another program has acquired the selection, region
 	    ;; deactivation should not clobber it (Bug#11772).
 	    ((and (/= (region-beginning) (region-end))
-		  (or (x-selection-owner-p 'PRIMARY)
-		      (null (x-selection-exists-p 'PRIMARY))))
-	     (x-set-selection 'PRIMARY
-                              (funcall region-extract-function nil)))))
+		  (or (call-gui gui-selection-owner-p 'PRIMARY)
+		      (null (gui-selection-exists-p 'PRIMARY))))
+	     (gui-set-selection 'PRIMARY
+                                (funcall region-extract-function nil)))))
     (when mark-active (force-mode-line-update)) ;Refresh toolbar (bug#16382).
     (cond
      ((eq (car-safe transient-mark-mode) 'only)
