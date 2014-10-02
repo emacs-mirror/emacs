@@ -1,5 +1,10 @@
 2014-10-02  Kelvin White  <kwhite@gnu.org>
 
+	* erc.el (erc-rename-buffer-p): When set to t buffers will be
+	renamed to the current irc network.
+	(erc-format-target-and/or-network): Use `erc-rename-buffer-p' when
+	renaming buffers.
+
 	* erc-ring.el (erc-input-ring-setup): Fixes Bug #18599
 
 2014-09-30  Stefan Monnier  <monnier@iro.umontreal.ca>

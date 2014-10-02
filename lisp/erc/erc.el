@@ -1792,6 +1792,10 @@ buffer rather than a server buffer.")
   "Used to keep track of how many times an attempt at changing nick is made.")
 (make-variable-buffer-local 'erc-nick-change-attempt-count)
 
+(defvar erc-rename-buffer-p nil
+  "When this is set to t, buffers will be renamed to network name if available")
+(make-variable-buffer-local 'erc-rename-buffer-p)
+
 (defun erc-migrate-modules (mods)
   "Migrate old names of ERC modules to new ones."
   ;; modify `transforms' to specify what needs to be changed
@@ -6227,7 +6231,8 @@ shortened server name instead."
                    "@" network-name))
           ((and network-name 
                 (not (get-buffer network-name)))
-           (rename-buffer network-name)
+           (when erc-rename-buffer-p
+	     (rename-buffer network-name))
            network-name)
           (t (buffer-name (current-buffer))))))
 
