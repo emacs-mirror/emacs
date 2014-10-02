@@ -27,9 +27,6 @@
 #include "mpscams.h"
 #include "mpscawl.h"
 #include "mpsclo.h"
-#include "mpscmfs.h"
-#include "mpscmv.h"
-#include "mpscmvff.h"
 #include "mpslib.h"
 #include "mpstd.h"
 #include "testlib.h"
@@ -216,26 +213,6 @@ static void test(mps_arena_t arena, mps_pool_class_t pool_class)
 }
 
 
-/* test_fail -- check that you can't register objects for finalization
- * in manually managed pools
- */
-
-static void test_fail(mps_arena_t arena, mps_pool_class_t pool_class)
-{
-  size_t size = 4096;
-  mps_pool_t pool;
-  mps_addr_t p;
-
-  MPS_ARGS_BEGIN(args) {
-    MPS_ARGS_ADD(args, MPS_KEY_MFS_UNIT_SIZE, size);
-    die(mps_pool_create_k(&pool, arena, pool_class, args), "pool_create\n");
-  } MPS_ARGS_END(args);
-  die(mps_alloc(&p, pool, size), "mps_alloc");
-  Insist(mps_finalize(arena, &p) == MPS_RES_UNIMPL);
-  mps_pool_destroy(pool);
-}
-
-
 int main(int argc, char *argv[])
 {
   mps_arena_t arena;
@@ -244,10 +221,6 @@ int main(int argc, char *argv[])
 
   die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
       "arena_create\n");
-
-  test_fail(arena, mps_class_mfs());
-  test_fail(arena, mps_class_mv());
-  test_fail(arena, mps_class_mvff());
 
   test(arena, mps_class_amc());
   test(arena, mps_class_amcz());
