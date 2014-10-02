@@ -1,3 +1,11 @@
+2014-10-02  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* alloc.c (mark_overlay): Assume that overlay boundaries are
+	always markers.  Add comment.
+	* lread.c (read_internal_start): Use convenient validate_subarray.
+	Adjust docstring.
+	(Fread_from_string): Adjust docstring.
+
 2014-10-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* lisp.h: Fix up compilation for USE_STACK_LISP_OBJECTS=false.

@@ -2096,9 +2096,10 @@ DEFUN ("read-from-string", Fread_from_string, Sread_from_string, 1, 3, 0,
        doc: /* Read one Lisp expression which is represented as text by STRING.
 Returns a cons: (OBJECT-READ . FINAL-STRING-INDEX).
 FINAL-STRING-INDEX is an integer giving the position of the next
- remaining character in STRING.
-START and END optionally delimit a substring of STRING from which to read;
- they default to 0 and (length STRING) respectively.  */)
+remaining character in STRING.  START and END optionally delimit
+a substring of STRING from which to read;  they default to 0 and
+(length STRING) respectively.  Negative values are counted from
+the end of STRING.  */)
   (Lisp_Object string, Lisp_Object start, Lisp_Object end)
 {
   Lisp_Object ret;
@@ -2109,10 +2110,9 @@ START and END optionally delimit a substring of STRING from which to read;
 }
 
 /* Function to set up the global context we need in toplevel read
-   calls.  */
+   calls.  START and END only used when STREAM is a string.  */
 static Lisp_Object
 read_internal_start (Lisp_Object stream, Lisp_Object start, Lisp_Object end)
-/* `start', `end' only used when stream is a string.  */
 {
   Lisp_Object retval;
 
@@ -2134,25 +2134,9 @@ read_internal_start (Lisp_Object stream, Lisp_Object start, Lisp_Object end)
       else
 	string = XCAR (stream);
 
-      if (NILP (end))
-	endval = SCHARS (string);
-      else
-	{
-	  CHECK_NUMBER (end);
-	  if (! (0 <= XINT (end) && XINT (end) <= SCHARS (string)))
-	    args_out_of_range (string, end);
-	  endval = XINT (end);
-	}
+      validate_subarray (string, start, end, SCHARS (string),
+			 &startval, &endval);
 
-      if (NILP (start))
-	startval = 0;
-      else
-	{
-	  CHECK_NUMBER (start);
-	  if (! (0 <= XINT (start) && XINT (start) <= endval))
-	    args_out_of_range (string, start);
-	  startval = XINT (start);
-	}
       read_from_string_index = startval;
       read_from_string_index_byte = string_char_to_byte (string, startval);
       read_from_string_limit = endval;

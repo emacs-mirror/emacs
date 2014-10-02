@@ -6015,8 +6015,9 @@ mark_overlay (struct Lisp_Overlay *ptr)
   for (; ptr && !ptr->gcmarkbit; ptr = ptr->next)
     {
       ptr->gcmarkbit = 1;
-      mark_object (ptr->start);
-      mark_object (ptr->end);
+      /* These two are always markers and can be marked fast.  */
+      XMARKER (ptr->start)->gcmarkbit = 1;
+      XMARKER (ptr->end)->gcmarkbit = 1;
       mark_object (ptr->plist);
     }
 }
