@@ -1,3 +1,8 @@
+2014-10-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (move_it_by_lines): Call reseat_1 after moving the
+	iterator backwards, to resync the bidi iterator.  (Bug#18584)
+
 2014-10-01  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xfaces.c (Finternal_set_lisp_face_attribute): Don't try to
