@@ -39,6 +39,7 @@
 #define churnFACTOR 10
 #define finalizationRATE 6
 #define gcINTERVAL ((size_t)150 * 1024)
+#define collectionCOUNT 3
 #define messageCOUNT 3
 
 /* 3 words:  wrapper  |  vector-len  |  first-slot */
@@ -150,7 +151,7 @@ static void test(mps_arena_t arena, mps_pool_class_t pool_class)
   mps_message_type_enable(arena, mps_message_type_finalization());
 
   /* <design/poolmrg/#test.promise.ut.churn> */
-  while (messages < messageCOUNT) {
+  while (messages < messageCOUNT && mps_collections(arena) < collectionCOUNT) {
     
     /* Perhaps cause (minor) collection */
     churn(ap);
