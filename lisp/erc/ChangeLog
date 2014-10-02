@@ -1,3 +1,7 @@
+2014-10-02  Kelvin White  <kwhite@gnu.org>
+
+	* erc-ring.el (erc-input-ring-setup): Fixes Bug #18599
+
 2014-09-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* erc-track.el (erc-modified-channels-display): Update all mode lines

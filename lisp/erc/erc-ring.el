@@ -67,7 +67,8 @@ variable.")
 (defun erc-input-ring-setup ()
   "Do the setup required so that we can use comint style input rings.
 Call this function when setting up the mode."
-  (setq erc-input-ring (make-ring comint-input-ring-size))
+  (unless (ring-p erc-input-ring)
+    (setq erc-input-ring (make-ring comint-input-ring-size)))
   (setq erc-input-ring-index nil))
 
 (defun erc-add-to-input-ring (s)
