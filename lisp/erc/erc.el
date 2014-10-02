@@ -5374,7 +5374,7 @@ This returns non-nil only if we actually send anything."
                                           (null erc-flood-protect) t))
                 (or (and erc-flood-protect (erc-split-line line))
                     (list line))))
-             (split-string str "\n")) 
+             (split-string str "\n"))
           (erc-process-input-line (concat str "\n") t nil))
         t)))))
 
@@ -6082,7 +6082,7 @@ entry of `channel-members'."
                  nick login host
                  (if full-name (format " (%s)" full-name) "")
                  (if (or voice halfop op admin owner)
-                     (format " and is +%s%s on %s"
+                     (format " and is +%s%s%s%s%s on %s"
                              (if voice "v" "")
                              (if halfop "h" "")
                              (if op "o" "")
@@ -6229,7 +6229,7 @@ shortened server name instead."
     (cond ((erc-default-target)
            (concat (erc-string-no-properties (erc-default-target))
                    "@" network-name))
-          ((and network-name 
+          ((and network-name
                 (not (get-buffer network-name)))
            (when erc-rename-buffer-p
 	     (rename-buffer network-name))

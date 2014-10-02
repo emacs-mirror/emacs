@@ -1,3 +1,7 @@
+2014-10-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* erc.el (erc-nick-at-point): Fix format-string typo (Bug#17755).
+
 2014-10-02  Kelvin White  <kwhite@gnu.org>
 
 	* erc.el (erc-rename-buffer-p): When set to t buffers will be
