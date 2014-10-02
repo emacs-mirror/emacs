@@ -50,7 +50,7 @@
 	* macfont.m (macfont_close): Release and free font-specific data
 	only if it wasn't previously freed.
 
-2014-09-21  David Caldwell <david@porkrind.org> (tiny change)
+2014-09-21  David Caldwell <david@porkrind.org>  (tiny change)
 
 	* unexmacosx.c (dump_it): Improve error message.
 
@@ -6339,7 +6339,7 @@
 	* eval.c (Ffuncall): Fix handling of ((lambda ..) ..) in lexically
 	scoped code (bug#11258).
 
-2013-08-28  Davor Cubranic  <cubranic@stat.ubc.ca> (tiny change)
+2013-08-28  Davor Cubranic  <cubranic@stat.ubc.ca>  (tiny change)
 
 	* nsterm.m (last_window): New variable.
 	(EV_TRAILER2): New macro.
