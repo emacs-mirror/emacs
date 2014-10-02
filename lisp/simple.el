@@ -4528,7 +4528,7 @@ run `deactivate-mark-hook'."
 	    ;; If another program has acquired the selection, region
 	    ;; deactivation should not clobber it (Bug#11772).
 	    ((and (/= (region-beginning) (region-end))
-		  (or (call-gui gui-selection-owner-p 'PRIMARY)
+		  (or (gui-call gui-selection-owner-p 'PRIMARY)
 		      (null (gui-selection-exists-p 'PRIMARY))))
 	     (gui-set-selection 'PRIMARY
                                 (funcall region-extract-function nil)))))
