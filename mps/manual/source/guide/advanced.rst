@@ -152,7 +152,6 @@ ensures that the file handle won't be closed more than once.
     {
         assert(TYPE(port) == TYPE_PORT);
         if(port->port.stream != NULL) {
-            mps_addr_t port_ref = port;
             fclose(port->port.stream);
             port->port.stream = NULL;
         }
