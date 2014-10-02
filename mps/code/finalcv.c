@@ -24,6 +24,12 @@
 #include "mps.h"
 #include "mpsavm.h"
 #include "mpscamc.h"
+#include "mpscams.h"
+#include "mpscawl.h"
+#include "mpsclo.h"
+#include "mpscmfs.h"
+#include "mpscmv.h"
+#include "mpscmvff.h"
 #include "mpslib.h"
 #include "mpstd.h"
 #include "testlib.h"
@@ -36,7 +42,7 @@
 #define churnFACTOR 10
 #define finalizationRATE 6
 #define gcINTERVAL ((size_t)150 * 1024)
-#define collectionCOUNT 3
+#define messageCOUNT 3
 
 /* 3 words:  wrapper  |  vector-len  |  first-slot */
 #define vectorSIZE (3*sizeof(mps_word_t))
@@ -95,35 +101,37 @@ enum {
 };
 
 
-static void *test(void *arg, size_t s)
+static void test(mps_arena_t arena, mps_pool_class_t pool_class)
 {
-  unsigned i;                        /* index */
+  size_t i;                     /* index */
   mps_ap_t ap;
   mps_fmt_t fmt;
   mps_chain_t chain;
-  mps_pool_t amc;
+  mps_pool_t pool;
   mps_res_t e;
   mps_root_t mps_root[2];
   mps_addr_t nullref = NULL;
   int state[rootCOUNT];
-  mps_arena_t arena;
-  void *p = NULL;
   mps_message_t message;
+  size_t messages = 0;
+  void *p;
 
-  arena = (mps_arena_t)arg;
-  (void)s;
+  printf("---- finalcv: pool class %s ----\n", pool_class->name);
 
   die(mps_fmt_create_A(&fmt, arena, dylan_fmt_A()), "fmt_create\n");
   die(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
-  die(mps_pool_create(&amc, arena, mps_class_amc(), fmt, chain),
-      "pool_create amc\n");
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD(args, MPS_KEY_CHAIN, chain);
+    MPS_ARGS_ADD(args, MPS_KEY_FORMAT, fmt);
+    die(mps_pool_create_k(&pool, arena, pool_class, args), "pool_create\n");
+  } MPS_ARGS_END(args);
   die(mps_root_create_table(&mps_root[0], arena, mps_rank_exact(), (mps_rm_t)0,
                             root, (size_t)rootCOUNT),
       "root_create\n");
   die(mps_root_create_table(&mps_root[1], arena, mps_rank_exact(), (mps_rm_t)0,
                             &p, (size_t)1),
       "root_create\n");
-  die(mps_ap_create(&ap, amc, mps_rank_exact()), "ap_create\n");
+  die(mps_ap_create(&ap, pool, mps_rank_exact()), "ap_create\n");
 
   /* Make registered-for-finalization objects. */
   /* <design/poolmrg/#test.promise.ut.alloc> */
@@ -142,12 +150,10 @@ static void *test(void *arg, size_t s)
   }
   p = NULL;
 
-  die(ArenaDescribe(arena, mps_lib_get_stdout(), 0), "ArenaDescribe");
-
   mps_message_type_enable(arena, mps_message_type_finalization());
 
   /* <design/poolmrg/#test.promise.ut.churn> */
-  while (mps_collections(arena) < collectionCOUNT) {
+  while (messages < messageCOUNT) {
     
     /* Perhaps cause (minor) collection */
     churn(ap);
@@ -197,36 +203,58 @@ static void *test(void *arg, size_t s)
       if (rnd() % 2 == 0)
         root[objind] = objaddr;
       mps_message_discard(arena, message);
+      ++ messages;
     }
   }
 
-  /* @@@@ <design/poolmrg/#test.promise.ut.nofinal.check> missing */
-
-  mps_arena_park(arena);
   mps_ap_destroy(ap);
   mps_root_destroy(mps_root[1]);
   mps_root_destroy(mps_root[0]);
-  mps_pool_destroy(amc);
+  mps_pool_destroy(pool);
   mps_chain_destroy(chain);
   mps_fmt_destroy(fmt);
+}
 
-  return NULL;
+
+/* test_fail -- check that you can't register objects for finalization
+ * in manually managed pools
+ */
+
+static void test_fail(mps_arena_t arena, mps_pool_class_t pool_class)
+{
+  size_t size = 4096;
+  mps_pool_t pool;
+  mps_addr_t p;
+
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD(args, MPS_KEY_MFS_UNIT_SIZE, size);
+    die(mps_pool_create_k(&pool, arena, pool_class, args), "pool_create\n");
+  } MPS_ARGS_END(args);
+  die(mps_alloc(&p, pool, size), "mps_alloc");
+  Insist(mps_finalize(arena, &p) == MPS_RES_UNIMPL);
+  mps_pool_destroy(pool);
 }
 
 
 int main(int argc, char *argv[])
 {
   mps_arena_t arena;
-  mps_thr_t thread;
-  void *r;
 
   testlib_init(argc, argv);
 
   die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
       "arena_create\n");
-  die(mps_thread_reg(&thread, arena), "thread_reg\n");
-  mps_tramp(&r, test, arena, 0);
-  mps_thread_dereg(thread);
+
+  test_fail(arena, mps_class_mfs());
+  test_fail(arena, mps_class_mv());
+  test_fail(arena, mps_class_mvff());
+
+  test(arena, mps_class_amc());
+  test(arena, mps_class_amcz());
+  test(arena, mps_class_awl());
+  test(arena, mps_class_ams());
+  test(arena, mps_class_lo());
+
   mps_arena_destroy(arena);
 
   printf("%s: Conclusion: Failed to find any defects.\n", argv[0]);
