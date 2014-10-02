@@ -4658,7 +4658,7 @@ enum
 
 /* Check whether stack-allocated strings are ASCII-only.  */
 
-#ifdef ENABLE_CHECKING
+#if defined (ENABLE_CHECKING) && USE_STACK_LISP_OBJECTS
 extern const char *verify_ascii (const char *);
 #else
 # define verify_ascii(str) (str)

@@ -1,5 +1,7 @@
 2014-10-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* lisp.h: Fix up compilation for USE_STACK_LISP_OBJECTS=false.
+
 	* nsselect.m (ns-own-selection-internal, ns-disown-selection-internal):
 	Rename from the "x-" prefix.
 
