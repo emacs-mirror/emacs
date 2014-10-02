@@ -17,6 +17,22 @@ Interface changes
    but is deprecated.
 
 
+Other changes
+-------------
+
+#. Unfinalizable objects can no longer be registered for finalization.
+   Previously the objects would be registered but never finalized. See
+   job003865_.
+
+   .. _job003865: https://www.ravenbrook.com/project/mps/issue/job003865/
+
+#. :c:func:`mps_arena_has_addr` now returns the correct result for
+   objects allocated from the :ref:`pool-mfs`, :ref:`pool-mv`, and
+   :ref:`pool-mvff` pools. See job003866_.
+
+   .. _job003866: https://www.ravenbrook.com/project/mps/issue/job003866/
+
+
 .. _release-notes-1.114:
 
 Release 1.114.0
