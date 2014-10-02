@@ -1,4 +1,4 @@
-;;; frame.el --- multi-frame management independent of window systems
+;;; frame.el --- multi-frame management independent of window systems  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1993-1994, 1996-1997, 2000-2014 Free Software Foundation, Inc.
 
@@ -680,7 +680,7 @@ the new frame according to its own rules."
     ;; Now make the frame.
     (run-hooks 'before-make-frame-hook)
     (setq frame
-          (funcall (gui-method frame-creation-function w) params))
+          (funcall (gui-method frame-creation-function (or w t)) params))
     (normal-erase-is-backspace-setup-frame frame)
     ;; Inherit the original frame's parameters.
     (dolist (param frame-inherited-parameters)

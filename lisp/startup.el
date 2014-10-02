@@ -954,8 +954,7 @@ please check its value")
 	     command-line-args))
       ;; Initialize the window system. (Open connection, etc.)
       (funcall
-       (or (cdr (assq initial-window-system window-system-initialization-alist))
-	   (error "Unsupported window system `%s'" initial-window-system)))
+       (gui-method window-system-initialization (or initial-window-system t)))
       (put initial-window-system 'window-system-initialized t))
     ;; If there was an error, print the error message and exit.
     (error

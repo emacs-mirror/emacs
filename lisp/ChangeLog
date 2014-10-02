@@ -1,5 +1,9 @@
 2014-10-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* frame.el: Use lexical-binding (bug#18598).
+	(make-frame): Use t rather than nil for tty's window-system.
+	* startup.el (command-line): Use gui-method.
+
 	Consolidate management/ownership of selections.
 	* select.el (gui-get-selection-alist): New method.
 	(gui-get-selection): Use it.  Rename from x-get-selection.
