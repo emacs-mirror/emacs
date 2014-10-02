@@ -1,4 +1,4 @@
-2014-10-02  
+2014-10-02  H. Dieter Wilhelm <dieter@duenenhof-wilhelm.de>  (tiny change)
 
 	* calc/calc-help.el (calc-describe-thing): Quote strings
 	which could look like regexps.
