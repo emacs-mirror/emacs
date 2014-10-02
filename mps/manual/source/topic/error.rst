@@ -311,6 +311,16 @@ this documentation.
     created on that pool.
 
 
+``trace.c: ss->rank < RankEXACT``
+
+    The client program destroyed a pool containing objects registered
+    for finalization, and then continued to run the garbage collector.
+    See :ref:`topic-finalization-cautions` under
+    :ref:`topic-finalization`, which says, "You must destroy these
+    pools by following the “safe tear-down” procedure described under
+    :c:func:`mps_pool_destroy`."
+
+
 ``trace.c: RefSetSub(ScanStateUnfixedSummary(ss), SegSummary(seg))``
 
     The client program's :term:`scan method` failed to update a
