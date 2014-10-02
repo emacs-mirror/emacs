@@ -1394,10 +1394,10 @@ static void ArenaTrivCompact(Arena arena, Trace trace)
 
 Bool ArenaHasAddr(Arena arena, Addr addr)
 {
-  Seg seg;
+  Tract tract;
 
   AVERT(Arena, arena);
-  return SegOfAddr(&seg, arena, addr);
+  return TractOfAddr(&tract, arena, addr);
 }
 
 
