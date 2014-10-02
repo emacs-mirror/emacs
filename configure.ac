@@ -35,7 +35,8 @@ then
       # "/c/foo/bar", to simplify later conversions to native Windows
       # format ("c:/foo/bar")
       srcdir=`cd "${srcdir}" && pwd -W`
-      srcdir="/${srcdir:0:1}${srcdir:2}"
+      # 'eval' pacifies strict POSIX non-MinGW shells (Bug#18612).
+      eval 'srcdir="/${srcdir:0:1}${srcdir:2}"'
       ;;
   esac
 fi

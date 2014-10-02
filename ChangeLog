@@ -1,3 +1,7 @@
+2014-10-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure.ac: Port to strict POSIX shells on non-MinGW (Bug#18612).
+
 2014-09-21  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.ac: Increase headerpad_extra to 1000, update the comment
