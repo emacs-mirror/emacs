@@ -1,3 +1,8 @@
+2014-10-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* dispnew.c (adjust_decode_mode_spec_buffer): Use 'int' instead of
+	'ssize_t'.  Suggested by Paul Eggert <eggert@cs.ucla.edu>.
+
 2014-10-02  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xfaces.c (Finternal_set_lisp_face_attribute): Don't try to
