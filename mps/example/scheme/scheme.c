@@ -946,7 +946,7 @@ static struct bucket_s *table_rehash(obj_t tbl, size_t new_length, obj_t key)
  * moved by the garbage collector: in this case we need to re-hash the
  * table. See topic/location.
  */
-static struct bucket_s *table_find(obj_t tbl, obj_t buckets, obj_t key, int add)
+static struct bucket_s *table_find(obj_t tbl, obj_t key, int add)
 {
   struct bucket_s *b;
   assert(TYPE(tbl) == TYPE_TABLE);
@@ -963,7 +963,7 @@ static obj_t table_ref(obj_t tbl, obj_t key)
 {
   struct bucket_s *b;
   assert(TYPE(tbl) == TYPE_TABLE);
-  b = table_find(tbl, tbl->table.buckets, key, 0);
+  b = table_find(tbl, key, 0);
   if (b && b->key != NULL && b->key != obj_deleted)
     return b->value;
   return NULL;
@@ -973,7 +973,7 @@ static int table_try_set(obj_t tbl, obj_t key, obj_t value)
 {
   struct bucket_s *b;
   assert(TYPE(tbl) == TYPE_TABLE);
-  b = table_find(tbl, tbl->table.buckets, key, 1);
+  b = table_find(tbl, key, 1);
   if (b == NULL)
     return 0;
   if (b->key == NULL) {
@@ -1009,7 +1009,7 @@ static void table_delete(obj_t tbl, obj_t key)
 {
   struct bucket_s *b;
   assert(TYPE(tbl) == TYPE_TABLE);
-  b = table_find(tbl, tbl->table.buckets, key, 0);
+  b = table_find(tbl, key, 0);
   if (b && b->key != NULL && b->key != obj_deleted) {
     b->key = obj_deleted;
     ++ tbl->table.buckets->buckets.deleted;
