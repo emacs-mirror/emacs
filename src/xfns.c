@@ -4829,7 +4829,8 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
   f = make_frame (1);
   XSETFRAME (frame, f);
 
-  buffer = Fget_buffer_create (build_string (" *tip*"));
+  AUTO_STRING (tip, " *tip*");
+  buffer = Fget_buffer_create (tip);
   /* Use set_window_buffer instead of Fset_window_buffer (see
      discussion of bug#11984, bug#12025, bug#12026).  */
   set_window_buffer (FRAME_ROOT_WINDOW (f), buffer, 0, 0);

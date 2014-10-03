@@ -2691,7 +2691,10 @@ emacs_readlinkat (int fd, char const *filename)
 
   val = build_unibyte_string (buf);
   if (buf[0] == '/' && strchr (buf, ':'))
-    val = concat2 (build_unibyte_string ("/:"), val);
+    {
+      AUTO_STRING (slash_colon, "/:");
+      val = concat2 (slash_colon, val);
+    }
   if (buf != readlink_buf)
     xfree (buf);
   val = DECODE_FILE (val);
@@ -3645,13 +3648,14 @@ by calling `format-decode', which see.  */)
 		report_file_error ("Read error", orig_filename);
 	      else if (nread > 0)
 		{
+		  AUTO_STRING (name, " *code-converting-work*");
 		  struct buffer *prev = current_buffer;
 		  Lisp_Object workbuf;
 		  struct buffer *buf;
 
 		  record_unwind_current_buffer ();
 
-		  workbuf = Fget_buffer_create (build_string (" *code-converting-work*"));
+		  workbuf = Fget_buffer_create (name);
 		  buf = XBUFFER (workbuf);
 
 		  delete_all_overlays (buf);

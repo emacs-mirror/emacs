@@ -9,6 +9,9 @@
 	Adjust users.
 	* gmalloc.c (min): Tiny style change.
 
+	* fileio.c (emacs_readlinkat, Finsert_file_contents):
+	* w32fns.c, xfns.c (x_create_tip_frame): Use AUTO_STRING.
+
 2014-10-03  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix x-focus-frame bug with "Not an in-range integer" (Bug#18586).
