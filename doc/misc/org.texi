@@ -2,7 +2,7 @@
 @c %**start of header
 @setfilename ../../info/org
 @settitle The Org Manual
-@set VERSION 8.2.6
+@set VERSION 8.2.8
 
 @c Version and Contact Info
 @set MAINTAINERSITE @uref{http://orgmode.org,maintainers web page}
@@ -584,8 +584,9 @@ Exporting
 * Markdown export::             Exporting to Markdown
 * OpenDocument Text export::    Exporting to OpenDocument Text
 * Org export::                  Exporting to Org
+* Texinfo export::              Exporting to Texinfo
 * iCalendar export::            Exporting to iCalendar
-* Other built-in back-ends::    Exporting to @code{Texinfo} or a man page
+* Other built-in back-ends::    Exporting to a man page
 * Export in foreign buffers::   Author tables and lists in Org syntax
 * Advanced configuration::      Fine-tuning the export output
 
@@ -636,6 +637,16 @@ Advanced topics in ODT export
 * Creating one-off styles::     How to produce custom highlighting etc
 * Customizing tables in ODT export::  How to define and use Table templates
 * Validating OpenDocument XML::  How to debug corrupt OpenDocument files
+
+Texinfo export
+
+* Texinfo export commands::     How to invoke Texinfo export
+* Document preamble::           File header, title and copyright page
+* Headings and sectioning structure:: Building document structure
+* Indices::                     Creating indices
+* Quoting Texinfo code::        Incorporating literal Texinfo code
+* Texinfo specific attributes:: Controlling Texinfo output
+* An example::
 
 Publishing
 
@@ -2725,9 +2736,11 @@ Operations, , Logical Operations, calc, GNU Emacs Calc Manual}).  For example
 @item if($1 < 20, teen, string(""))
 "teen" if age $1 is less than 20, else the Org table result field is set to
 empty with the empty string.
-@item if("$1" == "nan" || "$2" == "nan", string(""), $1 + $2); E
+@item if("$1" == "nan" || "$2" == "nan", string(""), $1 + $2); E f-1
 Sum of the first two columns.  When at least one of the input fields is empty
-the Org table result field is set to empty.
+the Org table result field is set to empty.  @samp{E} is required to not
+convert empty fields to 0.  @samp{f-1} is an optional Calc format string
+similar to @samp{%.1f} but leaves empty results empty.
 @item if(typeof(vmean($1..$7)) == 12, string(""), vmean($1..$7); E
 Mean value of a range unless there is any empty field.  Every field in the
 range that is empty is replaced by @samp{nan} which lets @samp{vmean} result
@@ -4410,7 +4423,7 @@ To record a timestamp without a note for TODO keywords configured with
 
 @noindent
 @vindex org-log-done
-you not only define global TODO keywords and fast access keys, but also
+You not only define global TODO keywords and fast access keys, but also
 request that a time is recorded when the entry is set to
 DONE@footnote{It is possible that Org mode will record two timestamps
 when you are using both @code{org-log-done} and state change logging.
@@ -9951,11 +9964,10 @@ include your @file{.emacs} file, you could use:
 @end example
 
 @noindent
-The optional second and third parameter are the markup (e.g., @samp{quote},
-@samp{example}, or @samp{src}), and, if the markup is @samp{src}, the
-language for formatting the contents.  The markup is optional; if it is not
-given, the text will be assumed to be in Org mode format and will be
-processed normally.
+The optional second and third parameter are the markup (i.e., @samp{example}
+or @samp{src}), and, if the markup is @samp{src}, the language for formatting
+the contents.  The markup is optional; if it is not given, the text will be
+assumed to be in Org mode format and will be processed normally.
 
 Contents of the included file will belong to the same structure (headline,
 item) containing the @code{INCLUDE} keyword.  In particular, headlines within
@@ -10364,8 +10376,9 @@ in the iCalendar format.
 * Markdown export::             Exporting to Markdown
 * OpenDocument Text export::    Exporting to OpenDocument Text
 * Org export::                  Exporting to Org
+* Texinfo export::              Exporting to Texinfo
 * iCalendar export::            Exporting to iCalendar
-* Other built-in back-ends::    Exporting to @code{Texinfo} or a man page
+* Other built-in back-ends::    Exporting to a man page
 * Export in foreign buffers::   Author tables and lists in Org syntax
 * Advanced configuration::      Fine-tuning the export output
 @end menu
@@ -10690,16 +10703,12 @@ Toggle inclusion of TODO keywords into exported text
 Toggle inclusion of tables (@code{org-export-with-tables}).
 @end table
 
-@cindex property, EXPORT_FILE_NAME
 When exporting only a subtree, each of the previous keywords@footnote{With
 the exception of @samp{SETUPFILE}.} can be overridden locally by special node
 properties.  These begin with @samp{EXPORT_}, followed by the name of the
 keyword they supplant.  For example, @samp{DATE} and @samp{OPTIONS} keywords
 become, respectively, @samp{EXPORT_DATE} and @samp{EXPORT_OPTIONS}
-properties.  Subtree export also supports the self-explicit
-@samp{EXPORT_FILE_NAME} property@footnote{There is no buffer-wide equivalent
-for this property.  The file name in this case is derived from the file
-associated to the buffer, if possible, or asked to the user otherwise.}.
+properties.
 
 @cindex #+BIND
 @vindex org-export-allow-bind-keywords
@@ -10707,6 +10716,13 @@ If @code{org-export-allow-bind-keywords} is non-@code{nil}, Emacs variables
 can become buffer-local during export by using the BIND keyword.  Its syntax
 is @samp{#+BIND: variable value}.  This is particularly useful for in-buffer
 settings that cannot be changed using specific keywords.
+
+@cindex property, EXPORT_FILE_NAME
+The name of the output file to be generated is taken from the file associated
+to the buffer, when possible, or asked to you otherwise.  For subtree export,
+you can also set @samp{EXPORT_FILE_NAME} property.  In all cases, only the
+base name of the file is retained, and a back-end specific extension is
+added.
 
 @node ASCII/Latin-1/UTF-8 export, Beamer export, Export settings, Exporting
 @section ASCII/Latin-1/UTF-8 export
@@ -12228,7 +12244,7 @@ height:width ratio, do the following
 @cindex #+ATTR_ODT
 You can control the manner in which an image is anchored by setting the
 @code{:anchor} property of it's @code{#+ATTR_ODT} line.  You can specify one
-of the the following three values for the @code{:anchor} property:
+of the following three values for the @code{:anchor} property:
 @samp{"as-char"}, @samp{"paragraph"} and @samp{"page"}.
 
 To create an image that is anchored to a page, do the following:
@@ -12834,7 +12850,324 @@ Export to a temporary buffer.  Do not create a file.
 Export to an Org file, then open it.
 @end table
 
-@node iCalendar export, Other built-in back-ends, Org export, Exporting
+@node Texinfo export, iCalendar export, Org export, Exporting
+@section Texinfo export
+@cindex Texinfo export
+
+@samp{texinfo} export back-end generates Texinfo code and can compile it into
+an Info file.
+
+@menu
+* Texinfo export commands::     How to invoke Texinfo export
+* Document preamble::           File header, title and copyright page
+* Headings and sectioning structure:: Building document structure
+* Indices::                     Creating indices
+* Quoting Texinfo code::        Incorporating literal Texinfo code
+* Texinfo specific attributes:: Controlling Texinfo output
+* An example::
+@end menu
+
+@node Texinfo export commands, Document preamble, Texinfo export, Texinfo export
+@subsection Texinfo export commands
+
+@vindex org-texinfo-info-process
+@table @kbd
+@orgcmd{C-c C-e i t,org-texinfo-export-to-texinfo}
+Export as a Texinfo file.  For an Org file, @file{myfile.org}, the resulting
+file will be @file{myfile.texi}.  The file will be overwritten without
+warning.
+@orgcmd{C-c C-e i i,org-texinfo-export-to-info}
+Export to Texinfo and then process to an Info file@footnote{By setting
+@code{org-texinfo-info-process}, it is possible to generate other formats,
+including DocBook.}.
+@end table
+
+@node Document preamble, Headings and sectioning structure, Texinfo export commands, Texinfo export
+@subsection Document preamble
+
+When processing a document, @samp{texinfo} back-end generates a minimal file
+header along with a title page, a copyright page, and a menu.  You control
+the latter through the structure of the document (@pxref{Headings and
+sectioning structure}).  Various keywords allow to tweak the other parts.  It
+is also possible to give directions to install the document in the @samp{Top}
+node.
+
+@subsubheading File header
+
+@cindex #+TEXINFO_FILENAME
+Upon creating the header of a Texinfo file, the back-end guesses a name for
+the Info file to be compiled.  This may not be a sensible choice, e.g., if
+you want to produce the final document in a different directory.  Specify an
+alternate path with @code{#+TEXINFO_FILENAME} keyword to override the default
+destination.
+
+@vindex org-texinfo-coding-system
+@vindex org-texinfo-classes
+@cindex #+TEXINFO_HEADER
+@cindex #+TEXINFO_CLASS
+Along with the output file name, the header contains information about the
+language (@pxref{Export settings}) and current encoding used@footnote{See
+@code{org-texinfo-coding-system} for more information.}.  Insert
+a @code{#+TEXINFO_HEADER} keyword for each additional command needed, e.g.,
+@@code@{@@synindex@}.
+
+If you happen to regularly install the same set of commands, it may be easier
+to define your own class in @code{org-texinfo-classes}, which see.  Set
+@code{#+TEXINFO_CLASS} keyword accordingly in your document to activate it.
+
+@subsubheading Title and copyright page
+
+@cindex #+TEXINFO_PRINTED_TITLE
+@cindex #+SUBTITLE
+The default template includes a title page for hard copy output.  The title
+and author displayed on this page are extracted from, respectively,
+@code{#+TITLE} and @code{#+AUTHOR} keywords (@pxref{Export settings}).  It is
+also possible to print a different, more specific, title with
+@code{#+TEXINFO_PRINTED_TITLE} keyword, and add subtitles with
+@code{#+SUBTITLE} keyword.  Both expect raw Texinfo code in their value.
+
+@cindex #+SUBAUTHOR
+Likewise, information brought by @code{#+AUTHOR} may not be enough.  You can
+include other authors with several @code{#+SUBAUTHOR} keywords.  Values are
+also expected to be written in Texinfo code.
+
+@example
+#+AUTHOR: Jane Smith
+#+SUBAUTHOR: John Doe
+#+TEXINFO_PRINTED_TITLE: This Long Title@@inlinefmt@{tex,@@*@} Is Broken in @@TeX@{@}
+@end example
+
+@cindex property, COPYING
+Copying material is defined in a dedicated headline with a non-nil
+@code{:COPYING:} property.  The contents are inserted within
+a @code{@@copying} command at the beginning of the document whereas the
+heading itself does not appear in the structure of the document.
+
+Copyright information is printed on the back of the title page.
+
+@example
+* Copying
+  :PROPERTIES:
+  :COPYING: t
+  :END:
+
+  This is a short example of a complete Texinfo file, version 1.0.
+
+  Copyright \copy 2014 Free Software Foundation, Inc.
+@end example
+
+@subsubheading The Top node
+
+@cindex #+TEXINFO_DIR_CATEGORY
+@cindex #+TEXINFO_DIR_TITLE
+@cindex #+TEXINFO_DIR_DESC
+You may ultimately want to install your new Info file to your system.  You
+can write an appropriate entry in the top level directory specifying its
+category and title with, respectively, @code{#+TEXINFO_DIR_CATEGORY} and
+@code{#+TEXINFO_DIR_TITLE}.  Optionally, you can add a short description
+using @code{#+TEXINFO_DIR_DESC}.  The following example would write an entry
+similar to Org's in the @samp{Top} node.
+
+@example
+#+TEXINFO_DIR_CATEGORY: Emacs
+#+TEXINFO_DIR_TITLE: Org Mode: (org)
+#+TEXINFO_DIR_DESC: Outline-based notes management and organizer
+@end example
+
+@node Headings and sectioning structure, Indices, Document preamble, Texinfo export
+@subsection Headings and sectioning structure
+
+@vindex org-texinfo-classes
+@vindex org-texinfo-default-class
+@cindex #+TEXINFO_CLASS
+@samp{texinfo} uses a pre-defined scheme, or class, to convert headlines into
+Texinfo structuring commands.  For example, a top level headline appears as
+@code{@@chapter} if it should be numbered or as @code{@@unnumbered}
+otherwise.  If you need to use a different set of commands, e.g., to start
+with @code{@@part} instead of @code{@@chapter}, install a new class in
+@code{org-texinfo-classes}, then activate it with @code{#+TEXINFO_CLASS}
+keyword.  Export process defaults to @code{org-texinfo-default-class} when
+there is no such keyword in the document.
+
+If a headline's level has no associated structuring command, or is below
+a certain threshold @pxref{Export settings}, that headline becomes a list in
+Texinfo output.
+
+@cindex property, APPENDIX
+As an exception, a headline with a non-nil @code{:APPENDIX:} property becomes
+an appendix, independently on its level and the class used.
+
+@cindex property, DESCRIPTION
+Each regular sectioning structure creates a menu entry, named after the
+heading.  You can provide a different, e.g., shorter, title in
+@code{:ALT_TITLE:} property (@pxref{Table of contents}).  Optionally, you can
+specify a description for the item in @code{:DESCRIPTION:} property.  E.g.,
+
+@example
+* Controlling Screen Display
+  :PROPERTIES:
+  :ALT_TITLE: Display
+  :DESCRIPTION: Controlling Screen Display
+  :END:
+@end example
+
+@node Indices, Quoting Texinfo code, Headings and sectioning structure, Texinfo export
+@subsection Indices
+
+@cindex #+CINDEX
+@cindex #+FINDEX
+@cindex #+KINDEX
+@cindex #+PINDEX
+@cindex #+TINDEX
+@cindex #+VINDEX
+Index entries are created using dedicated keywords.  @samp{texinfo} back-end
+provides one for each predefined type: @code{#+CINDEX}, @code{#+FINDEX},
+@code{#+KINDEX}, @code{#+PINDEX}, @code{#+TINDEX} and @code{#+VINDEX}.  For
+custom indices, you can write raw Texinfo code (@pxref{Quoting Texinfo
+code}).
+
+@example
+#+CINDEX: Defining indexing entries
+@end example
+
+@cindex property, INDEX
+To generate an index, you need to set the @code{:INDEX:} property of
+a headline to an appropriate abbreviation (e.g., @samp{cp} or @samp{vr}).
+The headline is then exported as an unnumbered chapter or section command and
+the index is inserted after its contents.
+
+@example
+* Concept Index
+  :PROPERTIES:
+  :INDEX: cp
+  :END:
+@end example
+
+@node Quoting Texinfo code, Texinfo specific attributes, Indices, Texinfo export
+@subsection Quoting Texinfo code
+
+It is possible to insert raw Texinfo code using any of the following
+constructs
+
+@cindex #+TEXINFO
+@cindex #+BEGIN_TEXINFO
+@example
+Richard @@@@texinfo:@@sc@{@@@@Stallman@@@@texinfo:@}@@@@ commence' GNU.
+
+#+TEXINFO: @@need800
+This paragraph is preceded by...
+
+#+BEGIN_TEXINFO
+@@auindex Johnson, Mark
+@@auindex Lakoff, George
+#+END_TEXINFO
+@end example
+
+@node Texinfo specific attributes, An example, Quoting Texinfo code, Texinfo export
+@subsection Texinfo specific attributes
+
+@cindex #+ATTR_TEXINFO
+@samp{texinfo} back-end understands several attributes in plain lists and
+tables.  They must be specified using an @code{#+ATTR_TEXINFO} keyword,
+written just above the list or table.
+
+@subsubheading Plain lists
+
+In Texinfo output, description lists appear as two-column tables, using the
+default command @code{@@table}.  You can use @code{@@ftable} or
+@code{@@vtable}@footnote{For more information, @inforef{Two-column
+Tables,,texinfo}.} instead with @code{:table-type} attribute.
+
+@vindex org-texinfo-def-table-markup
+In any case, these constructs require a highlighting command for entries in
+the list.  You can provide one with @code{:indic} attribute.  If you do not,
+it defaults to the value stored in @code{org-texinfo-def-table-markup}, which
+see.
+
+@example
+#+ATTR_TEXINFO: :indic @@asis
+- foo :: This is the text for /foo/, with no highlighting.
+@end example
+
+@subsubheading Tables
+
+When exporting a table, column widths are deduced from the longest cell in
+each column.  You can also define them explicitly as fractions of the line
+length, using @code{:columns} attribute.
+
+@example
+#+ATTR_TEXINFO: :columns .5 .5
+| a cell | another cell |
+@end example
+
+@node An example,  , Texinfo specific attributes, Texinfo export
+@subsection An example
+
+Here is a thorough example, taken from @inforef{GNU Sample Texts,,texinfo}.
+
+@smallexample
+#+MACRO: version 2.0
+#+MACRO: updated last updated 4 March 2014
+
+#+OPTIONS: ':t toc:t author:t email:t
+#+TITLE: GNU Sample @{@{@{version@}@}@}
+#+AUTHOR: A.U. Thor
+#+EMAIL: bug-sample@@gnu.org
+#+LANGUAGE: en
+
+#+TEXINFO_FILENAME: sample.info
+#+TEXINFO_HEADER: @@syncodeindex pg cp
+
+#+TEXINFO_DIR_CATEGORY: Texinfo documentation system
+#+TEXINFO_DIR_TITLE: sample: (sample)
+#+TEXINFO_DIR_DESC: Invoking sample
+
+#+TEXINFO_PRINTED_TITLE: GNU Sample
+#+SUBTITLE: for version 2.0, last updated 4 March 2014
+
+* Copying 
+  :PROPERTIES:
+  :COPYING:  t
+  :END:
+
+  This manual is for GNU Sample (version @{@{@{version@}@}@},
+  @{@{@{updated@}@}@}), which is an example in the Texinfo documentation.
+
+  Copyright @@@@texinfo:@@copyright@{@}@@@@ 2013 Free Software Foundation,
+  Inc.
+
+  #+BEGIN_QUOTE
+  Permission is granted to copy, distribute and/or modify this
+  document under the terms of the GNU Free Documentation License,
+  Version 1.3 or any later version published by the Free Software
+  Foundation; with no Invariant Sections, with no Front-Cover Texts,
+  and with no Back-Cover Texts.  A copy of the license is included in
+  the section entitled "GNU Free Documentation License".
+  #+END_QUOTE
+
+* Invoking sample
+
+  #+PINDEX: sample
+  #+CINDEX: invoking @@command@{sample@}
+
+  This is a sample manual.  There is no sample program to invoke, but
+  if there were, you could see its basic usage and command line
+  options here.
+
+* GNU Free Documentation License
+  :PROPERTIES:
+  :APPENDIX: t
+  :END:
+
+  #+TEXINFO: @@include fdl.texi
+
+* Index
+  :PROPERTIES:
+  :INDEX:    cp
+  :END:
+@end smallexample
+
+@node iCalendar export, Other built-in back-ends, Texinfo export, Exporting
 @section iCalendar export
 @cindex iCalendar export
 
@@ -12912,12 +13245,11 @@ On top of the aforementioned back-ends, Org comes with other built-in ones:
 
 @itemize
 @item @file{ox-man.el}: export to a man page.
-@item @file{ox-texinfo.el}: export to @code{Texinfo} format.
 @end itemize
 
 To activate these export back-end, customize @code{org-export-backends} or
-load them directly with e.g., @code{(require 'ox-texinfo)}.  This will add
-new keys in the export dispatcher (@pxref{The Export Dispatcher}).
+load them directly with e.g., @code{(require 'ox-man)}.  This will add new
+keys in the export dispatcher (@pxref{The Export Dispatcher}).
 
 See the comment section of these files for more information on how to use
 them.
@@ -13334,7 +13666,6 @@ string of these options for details.
 @item @code{:headline-levels}       @tab @code{org-export-headline-levels}
 @item @code{:language}              @tab @code{org-export-default-language}
 @item @code{:preserve-breaks}       @tab @code{org-export-preserve-breaks}
-@item @code{:publishing-directory}  @tab @code{org-export-publishing-directory}
 @item @code{:section-numbers}       @tab @code{org-export-with-section-numbers}
 @item @code{:select-tags}           @tab @code{org-export-select-tags}
 @item @code{:with-author}           @tab @code{org-export-with-author}
@@ -15473,10 +15804,10 @@ are active:
 @item @kbd{C-c C-c} @tab @code{org-babel-execute-src-block}
 @kindex C-c C-o
 @item @kbd{C-c C-o} @tab @code{org-babel-open-src-block-result}
-@kindex C-up
-@item @kbd{C-@key{up}}    @tab @code{org-babel-load-in-session}
+@kindex M-up
+@item @kbd{M-@key{up}}    @tab @code{org-babel-load-in-session}
 @kindex M-down
-@item @kbd{M-@key{down}}  @tab @code{org-babel-pop-to-session}
+@item @kbd{M-@key{down}}  @tab @code{org-babel-switch-to-session}
 @end multitable
 
 In an Org mode buffer, the following key bindings are active:
@@ -18208,7 +18539,6 @@ org-customize @key{RET}} and then click yourself through the tree.
 @bye
 
 @c Local variables:
-@c coding: utf-8
 @c fill-column: 77
 @c indent-tabs-mode: nil
 @c paragraph-start:    "\\|^@[a-zA-Z]*[ \n]\\|^@x?org\\(key\\|cmd\\)\\|\f\\|[ 	]*$"

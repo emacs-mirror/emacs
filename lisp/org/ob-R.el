@@ -173,12 +173,11 @@ This function is called by `org-babel-execute-src-block'."
 (defun org-babel-R-assign-elisp (name value colnames-p rownames-p)
   "Construct R code assigning the elisp VALUE to a variable named NAME."
   (if (listp value)
-      (let ((max (apply #'max (mapcar #'length (org-remove-if-not
-						#'sequencep value))))
-	    (min (apply #'min (mapcar #'length (org-remove-if-not
-						#'sequencep value))))
-	    (transition-file (org-babel-temp-file "R-import-")))
-        ;; ensure VALUE has an orgtbl structure (depth of at least 2)
+      (let* ((lengths (mapcar 'length (org-remove-if-not 'sequencep value)))
+	     (max (if lengths (apply 'max lengths) 0))
+	     (min (if lengths (apply 'min lengths) 0))
+	     (transition-file (org-babel-temp-file "R-import-")))
+        ;; Ensure VALUE has an orgtbl structure (depth of at least 2).
         (unless (listp (car value)) (setq value (list value)))
         (with-temp-file transition-file
           (insert

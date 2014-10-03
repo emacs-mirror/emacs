@@ -56,8 +56,6 @@ This will typically be either 'python or 'python-mode."
   :package-version '(Org . "8.0")
   :type 'symbol)
 
-(defvar org-src-preserve-indentation)
-
 (defcustom org-babel-python-hline-to "None"
   "Replace hlines in incoming tables with this when translating to python."
   :group 'org-babel

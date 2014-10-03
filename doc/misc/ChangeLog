@@ -1,3 +1,25 @@
+2014-10-02  Bastien Guerry  <bzg@gnu.org>
+
+	* org.texi (Key bindings and useful functions): Fix typo.  Use the
+	correct function's name.
+
+2014-10-02  Michael Brand  <michael.ch.brand@gmail.com>
+
+	* org.texi (Formula syntax for Calc): Add `f-1' to TBLFM example
+	about `nan'.
+
+2014-10-02  Nicolas Goaziou  <mail@nicolasgoaziou.fr>
+
+	* org.texi (Export settings): Be more explicit about how output
+	file name is built.
+
+	* org.texi (Headings and sectioning structure): Document menus.
+
+2014-10-02  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org.texi (Include files, Publishing options): Remove reference
+	to inexistent variable.
+
 2014-07-25  Stephen Berman  <stephen.berman@gmx.net>
 
 	* todo-mode.texi (Marked Items): Correct omission of item deletion

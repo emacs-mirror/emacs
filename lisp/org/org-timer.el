@@ -186,7 +186,10 @@ it in the buffer."
     (insert (org-timer-value-string))))
 
 (defun org-timer-value-string ()
-  (format org-timer-format (org-timer-secs-to-hms (floor (org-timer-seconds)))))
+  "Set the timer string."
+  (format org-timer-format
+	  (org-timer-secs-to-hms
+	   (abs (floor (org-timer-seconds))))))
 
 (defvar org-timer-timer-is-countdown nil)
 (defun org-timer-seconds ()

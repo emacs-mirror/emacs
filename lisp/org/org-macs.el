@@ -154,9 +154,9 @@ We use a macro so that the test can happen at compilation time."
     `(let ((,mpom ,pom))
        (save-excursion
 	 (if (markerp ,mpom) (set-buffer (marker-buffer ,mpom)))
-	 (save-excursion
-	   (goto-char (or ,mpom (point)))
-	   ,@body)))))
+	 (org-with-wide-buffer
+	  (goto-char (or ,mpom (point)))
+	  ,@body)))))
 (def-edebug-spec org-with-point-at (form body))
 (put 'org-with-point-at 'lisp-indent-function 1)
 

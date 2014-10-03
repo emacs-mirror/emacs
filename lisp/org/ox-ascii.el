@@ -192,8 +192,10 @@ original Org buffer at the same place."
 (defcustom org-ascii-indented-line-width 'auto
   "Additional indentation width for the first line in a paragraph.
 If the value is an integer, indent the first line of each
-paragraph by this number.  If it is the symbol `auto' preserve
-indentation from original document."
+paragraph by this width, unless it is located at the beginning of
+a section, in which case indentation is removed from that line.
+If it is the symbol `auto' preserve indentation from original
+document."
   :group 'org-export-ascii
   :version "24.4"
   :package-version '(Org . "8.0")
@@ -421,17 +423,17 @@ equivalent to `left'.  For a justification that doesn't also fill
 string, see `org-ascii--justify-string'.
 
 Return nil if S isn't a string."
-  ;; Don't fill paragraph when break should be preserved.
-  (cond ((not (stringp s)) nil)
-	((plist-get info :preserve-breaks) s)
-	(t (let ((double-space-p sentence-end-double-space))
-	     (with-temp-buffer
-	       (let ((fill-column text-width)
-		     (use-hard-newlines t)
-		     (sentence-end-double-space double-space-p))
-		 (insert s)
-		 (fill-region (point-min) (point-max) justify))
-	       (buffer-string))))))
+  (when (stringp s)
+    (let ((double-space-p sentence-end-double-space))
+      (with-temp-buffer
+	(let ((fill-column text-width)
+	      (use-hard-newlines t)
+	      (sentence-end-double-space double-space-p))
+	  (insert (if (plist-get info :preserve-breaks)
+		      (replace-regexp-in-string "\n" hard-newline s)
+		    s))
+	  (fill-region (point-min) (point-max) justify))
+	(buffer-string)))))
 
 (defun org-ascii--justify-string (s text-width how)
   "Justify string S.
@@ -455,13 +457,13 @@ HOW determines the type of justification: it can be `left',
 Empty lines are not indented."
   (when (stringp s)
     (replace-regexp-in-string
-     "\\(^\\)\\(?:.*\\S-\\)" (make-string width ? ) s nil nil 1)))
+     "\\(^\\)[ \t]*\\S-" (make-string width ?\s) s nil nil 1)))
 
 (defun org-ascii--box-string (s info)
   "Return string S with a partial box to its left.
 INFO is a plist used as a communication channel."
   (let ((utf8p (eq (plist-get info :ascii-charset) 'utf-8)))
-    (format (if utf8p "╭────\n%s\n╰────" ",----\n%s\n`----")
+    (format (if utf8p "┌────\n%s\n└────" ",----\n%s\n`----")
 	    (replace-regexp-in-string
 	     "^" (if utf8p "│ " "| ")
 	     ;; Remove last newline character.
@@ -473,7 +475,7 @@ INFO is a plist used as a communication channel."
   (case (org-element-type element)
     ;; Elements with an absolute width: `headline' and `inlinetask'.
     (inlinetask org-ascii-inlinetask-width)
-    ('headline
+    (headline
      (- org-ascii-text-width
 	(let ((low-level-rank (org-export-low-level-p element info)))
 	  (if low-level-rank (* low-level-rank 2) org-ascii-global-margin))))
@@ -1418,12 +1420,16 @@ INFO is a plist holding contextual information."
   "Transcode a PARAGRAPH element from Org to ASCII.
 CONTENTS is the contents of the paragraph, as a string.  INFO is
 the plist used as a communication channel."
-  (let ((contents (if (not (wholenump org-ascii-indented-line-width)) contents
-		    (concat
-		     (make-string org-ascii-indented-line-width ? )
-		     (replace-regexp-in-string "\\`[ \t]+" "" contents)))))
-    (org-ascii--fill-string
-     contents (org-ascii--current-text-width paragraph info) info)))
+  (org-ascii--fill-string
+   (if (not (wholenump org-ascii-indented-line-width)) contents
+     (concat
+      ;; Do not indent first paragraph in a section.
+      (unless (and (not (org-export-get-previous-element paragraph info))
+		   (eq (org-element-type (org-export-get-parent paragraph))
+		       'section))
+	(make-string org-ascii-indented-line-width ?\s))
+      (replace-regexp-in-string "\\`[ \t]+" "" contents)))
+   (org-ascii--current-text-width paragraph info) info))
 
 
 ;;;; Plain List
@@ -1591,8 +1597,8 @@ contextual information."
 CONTENTS is the contents of the object.  INFO is a plist holding
 contextual information."
   (if (org-element-property :use-brackets-p superscript)
-      (format "_{%s}" contents)
-    (format "_%s" contents)))
+      (format "^{%s}" contents)
+    (format "^%s" contents)))
 
 
 ;;;; Strike-through
@@ -1659,20 +1665,25 @@ are ignored."
     (or (gethash key cache)
 	(puthash
 	 key
-	 (or (and (not org-ascii-table-widen-columns)
-		  (org-export-table-cell-width table-cell info))
-	     (let* ((max-width 0))
-	       (org-element-map table 'table-row
-		 (lambda (row)
-		   (setq max-width
-			 (max (string-width
-			       (org-export-data
-				(org-element-contents
-				 (elt (org-element-contents row) col))
-				info))
-			      max-width)))
-		 info)
-	       max-width))
+	 (let ((cookie-width (org-export-table-cell-width table-cell info)))
+	   (or (and (not org-ascii-table-widen-columns) cookie-width)
+	       (let ((contents-width
+		      (let ((max-width 0))
+			(org-element-map table 'table-row
+			  (lambda (row)
+			    (setq max-width
+				  (max (string-width
+					(org-export-data
+					 (org-element-contents
+					  (elt (org-element-contents row) col))
+					 info))
+				       max-width)))
+			  info)
+			max-width)))
+		 (cond ((not cookie-width) contents-width)
+		       (org-ascii-table-widen-columns
+			(max cookie-width contents-width))
+		       (t cookie-width)))))
 	 cache))))
 
 (defun org-ascii-table-cell (table-cell contents info)
