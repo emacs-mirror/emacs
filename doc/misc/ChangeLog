@@ -1,3 +1,8 @@
+2014-10-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* erc.texi (Connecting): Remove stray "OA" that failed the manual
+	build.
+
 2014-10-03  Kelvin White  <kwhite@gnu.org>
 
 	* erc.texi (Advanced Usage, Options): Add descriptions and examples

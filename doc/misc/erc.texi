@@ -591,7 +591,7 @@ other nicks are tried in the list order.
 @defopt erc-format-nick-function
 A function to format a nickname for message display
 
-You can set this to @code{erc-format-@OA@nick} to display user mode prefix
+You can set this to @code{erc-format-@@nick} to display user mode prefix
 @end defopt
 
 @example
