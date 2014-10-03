@@ -5,8 +5,8 @@
 	is going to be used by the ANSI color filter without further
 	checks in Emacs 23 and throws an error.
 
-	* ob-lilypond.el, testing/lisp/test-ob-lilypond.el: Change prefix
-	from `ly-' to `org-babel-lilypond-' throughout.
+	* ob-lilypond.el: Change prefix from `ly-' to
+	`org-babel-lilypond-' throughout.
 
 	* org-footnote.el: Forward declare `org-element-context',
 	`org-element-property' and `org-element-type'.
@@ -21,7 +21,7 @@
 	* ob-exp.el: Require org-src to import
 	'org-src-preserve-indentations'.
 
-	* ob-haskell.el, lisp/ob-python.el: Remove superfluous forward
+	* ob-haskell.el, ob-python.el: Remove superfluous forward
 	declaration of 'org-src-preserve-indentations', since it gets
 	imported by other requires.
 
