@@ -515,10 +515,12 @@ init_syntax_once (void)
 
 #define STREQ(s1, s2) ((strcmp (s1, s2) == 0))
 
-#undef MAX
-#undef MIN
-#define MAX(a, b) ((a) > (b) ? (a) : (b))
-#define MIN(a, b) ((a) < (b) ? (a) : (b))
+#ifndef emacs  
+# undef max
+# undef min
+# define max(a, b) ((a) > (b) ? (a) : (b))
+# define min(a, b) ((a) < (b) ? (a) : (b))
+#endif
 
 /* Type of source-pattern and string chars.  */
 #ifdef _MSC_VER
@@ -1394,14 +1396,14 @@ typedef struct
    : ((fail_stack).stack						\
       = REGEX_REALLOCATE_STACK ((fail_stack).stack,			\
 	  (fail_stack).size * sizeof (fail_stack_elt_t),		\
-	  MIN (re_max_failures * TYPICAL_FAILURE_SIZE,			\
+	  min (re_max_failures * TYPICAL_FAILURE_SIZE,			\
 	       ((fail_stack).size * sizeof (fail_stack_elt_t)		\
 		* FAIL_STACK_GROWTH_FACTOR))),				\
 									\
       (fail_stack).stack == NULL					\
       ? 0								\
       : ((fail_stack).size						\
-	 = (MIN (re_max_failures * TYPICAL_FAILURE_SIZE,		\
+	 = (min (re_max_failures * TYPICAL_FAILURE_SIZE,		\
 		 ((fail_stack).size * sizeof (fail_stack_elt_t)		\
 		  * FAIL_STACK_GROWTH_FACTOR))				\
 	    / sizeof (fail_stack_elt_t)),				\
@@ -2309,8 +2311,8 @@ set_image_of_range (struct range_table_work_area *work_area,
 		cmin = c, cmax = c;
 	      else
 		{
-		  cmin = MIN (cmin, c);
-		  cmax = MAX (cmax, c);
+		  cmin = min (cmin, c);
+		  cmax = max (cmax, c);
 		}
 	    }
 	}
@@ -2989,7 +2991,7 @@ regex_compile (const_re_char *pattern, size_t size, reg_syntax_t syntax,
 #else  /* emacs */
 		    if (c < 128)
 		      {
-			ch = MIN (127, c1);
+			ch = min (127, c1);
 			SETUP_ASCII_RANGE (range_table_work, c, ch);
 			c = ch + 1;
 			if (CHAR_BYTE8_P (c1))
@@ -5210,7 +5212,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp, const_re_char *string1,
 		{ /* No.  So allocate them with malloc.  We need one
 		     extra element beyond `num_regs' for the `-1' marker
 		     GNU code uses.  */
-		  regs->num_regs = MAX (RE_NREGS, num_regs + 1);
+		  regs->num_regs = max (RE_NREGS, num_regs + 1);
 		  regs->start = TALLOC (regs->num_regs, regoff_t);
 		  regs->end = TALLOC (regs->num_regs, regoff_t);
 		  if (regs->start == NULL || regs->end == NULL)
@@ -5254,7 +5256,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp, const_re_char *string1,
 
 	      /* Go through the first `min (num_regs, regs->num_regs)'
 		 registers, since that is all we initialized.  */
-	      for (reg = 1; reg < MIN (num_regs, regs->num_regs); reg++)
+	      for (reg = 1; reg < min (num_regs, regs->num_regs); reg++)
 		{
 		  if (REG_UNSET (regstart[reg]) || REG_UNSET (regend[reg]))
 		    regs->start[reg] = regs->end[reg] = -1;

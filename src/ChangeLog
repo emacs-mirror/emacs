@@ -1,3 +1,14 @@
+2014-10-03  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Consistently use min and max macros from lisp.h.
+	* coding.c (min, max):
+	* font.c (MAX):
+	* unexhp9k800.c (min):
+	* unexw32.c (min, max): Use definitions from lisp.h.
+	* regex.c (MAX, MIN) [!emacs]: Define own max and min as such.
+	Adjust users.
+	* gmalloc.c (min): Tiny style change.
+
 2014-10-03  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix x-focus-frame bug with "Not an in-range integer" (Bug#18586).

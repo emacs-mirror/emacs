@@ -41,10 +41,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include TERM_HEADER
 #endif /* HAVE_WINDOW_SYSTEM */
 
-#ifndef MAX
-# define MAX(a, b) ((a) > (b) ? (a) : (b))
-#endif
-
 Lisp_Object Qopentype;
 
 /* Important character set strings.  */
@@ -1310,7 +1306,7 @@ font_unparse_xlfd (Lisp_Object font, int pixel_size, char *name, int nbytes)
   val = AREF (font, FONT_SIZE_INDEX);
   eassert (NUMBERP (val) || NILP (val));
   char font_size_index_buf[sizeof "-*"
-			   + MAX (INT_STRLEN_BOUND (EMACS_INT),
+			   + max (INT_STRLEN_BOUND (EMACS_INT),
 				  1 + DBL_MAX_10_EXP + 1)];
   if (INTEGERP (val))
     {

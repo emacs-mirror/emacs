@@ -72,7 +72,6 @@ run_time_remap (char *ignored)
 
 #undef roundup
 #define roundup(x,n) (((x) + ((n) - 1)) & ~((n) - 1))  /* n is power of 2 */
-#define min(x,y)  (((x) < (y)) ? (x) : (y))
 
 /* Report a fatal error and exit.  */
 static _Noreturn void

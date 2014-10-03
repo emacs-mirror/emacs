@@ -642,15 +642,6 @@ static enum coding_category coding_priorities[coding_category_max];
    Nth coding category.  */
 static struct coding_system coding_categories[coding_category_max];
 
-/*** Commonly used macros and functions ***/
-
-#ifndef min
-#define min(a, b) ((a) < (b) ? (a) : (b))
-#endif
-#ifndef max
-#define max(a, b) ((a) > (b) ? (a) : (b))
-#endif
-
 /* Encode a flag that can be nil, something else, or t as -1, 0, 1.  */
 
 static int

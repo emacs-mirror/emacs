@@ -48,11 +48,6 @@ extern char *my_begbss_static;
 
 #include "w32heap.h"
 
-#undef min
-#undef max
-#define min(x, y) (((x) < (y)) ? (x) : (y))
-#define max(x, y) (((x) > (y)) ? (x) : (y))
-
 /* Basically, our "initialized" flag.  */
 BOOL using_dynamic_heap = FALSE;
 

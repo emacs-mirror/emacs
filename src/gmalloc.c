@@ -1303,7 +1303,7 @@ License along with this library.  If not, see <http://www.gnu.org/licenses/>.
    or (US mail) as Mike Haertel c/o Free Software Foundation.  */
 
 #ifndef min
-#define min(A, B) ((A) < (B) ? (A) : (B))
+#define min(a, b) ((a) < (b) ? (a) : (b))
 #endif
 
 /* Debugging hook for realloc.  */
