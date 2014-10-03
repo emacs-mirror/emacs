@@ -971,10 +971,10 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
                      (when gui-select-enable-clipboard
                        (ns-set-pasteboard text))))
 
-(gui-method-define gui-own-selection x #'ns-own-selection-internal)
-(gui-method-define gui-disown-selection x #'ns-disown-selection-internal)
-(gui-method-define gui-selection-owner-p x #'ns-selection-owner-p)
-(gui-method-define gui-get-selection x #'x-get-selection-internal) ;FIXME:name!
+(gui-method-define gui-own-selection ns #'ns-own-selection-internal)
+(gui-method-define gui-disown-selection ns #'ns-disown-selection-internal)
+(gui-method-define gui-selection-owner-p ns #'ns-selection-owner-p)
+(gui-method-define gui-get-selection ns #'x-get-selection-internal) ;FIXME:name!
 
 (provide 'ns-win)
 

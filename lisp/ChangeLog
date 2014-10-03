@@ -1,3 +1,7 @@
+2014-10-02  David Raynes  <rayners@gmail.com>  (tiny change)
+
+	* term/ns-win.el: Add functions to ns frame, not x frame (bug#18614).
+
 2014-10-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* obsolete/lucid.el (read-number): Remove, redundant.
