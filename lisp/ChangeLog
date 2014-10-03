@@ -6,12 +6,12 @@
 2014-10-03  Martin Rudalics  <rudalics@gmx.at>
 
 	* frame.el (toggle-frame-maximized, toggle-frame-fullscreen):
-	In doc-string mention need of setting `frame-resize-pixelwise'.
+	In doc-string mention need to set `frame-resize-pixelwise'.
 
 2014-10-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc/vc-svn.el (vc-svn-after-dir-status): Fix the non-remote regexp,
-	similarly to Roger's 2010-06-12 change for the remote change
+	similarly to Rogers's 2010-06-16 change for the remote case
 	(bug#18605).
 
 2014-10-03  Stefan Monnier  <monnier@iro.umontreal.ca>
