@@ -469,6 +469,10 @@ hides window manager decorations, giving slightly more screen space to
 Emacs itself.)
 @end table
 
+  Note that with some window managers you may have to customize the
+variable @code{frame-resize-pixelwise} to a non-@code{nil} value in
+order to make a frame truly ``maximized'' or ``fullscreen''.
+
   The @kbd{C-x 5 0} (@code{delete-frame}) command deletes the selected
 frame.  However, it will refuse to delete the last frame in an Emacs
 session, to prevent you from losing the ability to interact with the

@@ -1,5 +1,16 @@
 2014-10-03  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	* font.c (font_list_entities): Do not add empty vector to font cache.
+	(font_matching_entity): Likewise.  If matching entity is found, insert
+	1-item vector with this entity instead of an entity itself (Bug#17125).
+
+2014-10-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (move_it_by_lines): Call reseat_1 after moving the
+	iterator backwards, to resync the bidi iterator.  (Bug#18584)
+
+2014-10-03  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	Consistently use min and max macros from lisp.h.
 	* coding.c (min, max):
 	* font.c (MAX):

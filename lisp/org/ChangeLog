@@ -1,3 +1,598 @@
+2014-10-03  Achim Gratz  <Stromeko@Stromeko.DE>
+
+	* ob-sh.el (org-babel-sh-initiate-session): After initiating a
+	session, initialize the marker `comint-last-output-start' since it
+	is going to be used by the ANSI color filter without further
+	checks in Emacs 23 and throws an error.
+
+	* ob-lilypond.el: Change prefix from `ly-' to
+	`org-babel-lilypond-' throughout.
+
+	* org-footnote.el: Forward declare `org-element-context',
+	`org-element-property' and `org-element-type'.
+
+	* org.el: Add forward declarations for a number of functions that
+	the compiler otherwise warns about as potentially undefined at
+	runtime.
+
+	* ob-core.el: Add comment to forward declaration of
+	'org-src-preserve-indentations'.
+
+	* ob-exp.el: Require org-src to import
+	'org-src-preserve-indentations'.
+
+	* ob-haskell.el, ob-python.el: Remove superfluous forward
+	declaration of 'org-src-preserve-indentations', since it gets
+	imported by other requires.
+
+	* ob-core.el (org-every): Forward declare 'org-every'.
+
+	* ob-C.el: Require cl during compilation so that lexical-let is
+	known.
+
+	* org-entities.el: Remove superfluous require of org-macs.
+	Forward declare 'org-toggle-pretty-entities' and
+	'org-pretty-entities'.
+
+	* ox.el (org-export-get-parent): Move definition of
+	'org-export-get-parent' before first use.  Leave comment at original
+	place of definition.
+
+	* org.el (org-uniquify): Move definition of 'org-uniquify' before
+	first use.  Leave comment at original place of definition.
+
+	* ob-tangle.el (org-babel-tangle): When `file-name-directory'
+	returns nil, do not run make-directory.  Remove superfluous when
+	clauses by using short-circuiting `and' instead.
+
+2014-10-03  Alex Kosorukoff  <alex@3form.com>  (tiny change)
+
+	* org-capture.el (org-capture-fill-template): Set `mark-active' to
+	nil.
+
+2014-10-03  Bastien Guerry  <bzg@gnu.org>
+
+	* org-agenda.el (org-agenda-prepare): Reset preset filters when
+	using sticky agendas.
+
+	* org-agenda.el (org-agenda-get-sexps): Don't add tags as text
+	properties.
+
+	* org-capture.el (org-capture-fill-template): Take
+	`org-extend-today-until' into account when setting the format time
+	string.
+
+	* org.el (org-paste-subtree): Fix match subexpression.
+
+	* org.el (org-fix-ellipsis-at-bol): Delete.
+	(org-mode, org-show-context, org-isearch-end): Don't use
+	`org-fix-ellipsis-at-bol'.
+
+	* org-agenda.el (org-agenda-filter-apply): Fix setting of
+	`org-agenda-filtered-by-category'.
+
+	* org.el (org-fontify-meta-lines-and-blocks-1): Fix handling
+	of `org-hidden-keywords'.
+
+	* org-agenda.el (org-cmp-ts): Fix agenda entry type checking.
+
+	* org-agenda.el (org-entries-lessp): Fix inactive timestamp
+	comparison.
+
+	* org-agenda.el (org-agenda-mode): Let `org-agenda-redo' DTRT
+	when agenda are sticky.
+	(org-agenda-tag-filter-while-redo): Delete.
+	(org-agenda-list, org-agenda-redo, org-agenda-filter-by-tag):
+	Remove unused code.
+	(org-agenda-clockreport-mode, org-agenda-set-mode-name): Don't
+	consider tag filters.
+
+	* org.el (org-fix-ellipsis-at-bol)
+	(org-first-headline-recenter): Use `set-window-start' instead
+	of `recenter'.
+
+	* org-agenda.el (org-recenter-heading): Delete.
+
+	* org.el (org-insert-heading): With one universal prefix argument
+	or `org-insert-heading-respect-content' set to `t', always respect
+	the content, i.e. don't insert a list item and don't convert
+	normal lines into headings.  Update docstring.
+	(org-insert-heading-respect-content): Remove unused arg.
+	(org-insert-todo-heading-respect-content): Don't use
+	`org-insert-todo-heading-respect-content', use the second argument
+	of `org-insert-todo-heading' instead.
+
+	* org-mobile.el (org-mobile-edit): Use only one arg.
+
+	* org.el (org-overview): Don't call `recenter'.
+
+	* org-agenda.el (org-agenda-custom-commands-local-options): Fix
+	misquoted values.
+
+	* org.el (org-property-re): Also match null properties by default.
+	(org-entry-delete): Also delete null properties.
+	(org-read-property-value): Allow the empty string as a new value.
+	(org-delete-property): Throw a message when there is not property
+	to delete.
+
+	* org-agenda.el (org-agenda-insert-diary-make-new-entry): Fix
+	docstring.
+
+	* org.el (org-re-property): New parameter `allow-null' to match
+	property with a null value.
+	(org-entry-put): Correctly update a property with a null
+	value.
+
+	* ox-md.el (org-md-headline): When exporting with a HTML table of
+	contents, add HTML anchors to Markdown headlines.
+
+	* org.el (org-insert-heading): Don't insert an item when called
+	with two universal prefix arguments.
+
+	* org-agenda.el (org-agenda-finalize): Remove duplicate check for
+	'org-hd-marker.
+
+	* org-agenda.el (org-agenda-prepare-window): New parameter
+	`filter-alist' to set the filters correctly when
+	`org-agenda-persistent-filter' is on.
+	(org-agenda-prepare): Use the new parameter for
+	`org-agenda-prepare-window'.
+
+	* org-compat.el (org-in-invisibility-spec-p): Tiny code cleanup.
+	(org-move-to-column): Only remove '(org-filtered) from
+	`buffer-invisibility-spec'.
+
+	* org-agenda.el (org-agenda-mode): Add buffer invisibility specs.
+	(org-agenda-filter-hide-line, org-agenda-remove-filter): Set
+	the 'invisible text property to 'org-filtered.
+	(org-agenda-show-new-time): Add the default face to avoid the
+	foreground of the last character on the line to leak into the
+	timestamp notification.
+
+	* org-agenda.el (org-get-time-of-day): Don't return time string
+	from within links.
+
+	* org-timer.el (org-timer-value-string): Always return a positive
+	value.  Add docstring.
+
+	* org-capture.el (org-capture-steal-local-variables): Don't steal
+	`mark-active', which should be nil in the target buffer.
+
+	* org-agenda.el (org-agenda-remove-filter): Use `save-excursion'.
+
+	* org.el (org-move-subtree-down): Use `org-end-of-subtree' instead
+	of `outline-end-of-subtree'.
+	(outline-end-of-subtree): Remove advice.
+
+	* org-mouse.el (org-mouse-move-tree, org-mouse-do-remotely): Use
+	`org-end-of-subtree' instead of `outline-end-of-subtree'.
+
+	* org-agenda.el (org-cmp-ts): Argument `type' is not optional.
+	Don't quote it.
+
+	* org-habit.el (org-habit-insert-consistency-graphs): Don't remove
+	filter overlays as we don't use overlays for filters anymore.
+
+	* org-agenda.el (org-agenda-local-vars): Add
+	`org-agenda-top-headline-filter'.
+	(org-agenda-filter-by-category): Fix syntax.
+	(org-agenda-filter-show-all-top-filter): New function.
+	(org-agenda-filter-by-top-headline)
+	(org-agenda-filter-remove-all): Use the new function.
+	(org-agenda-filter-top-headline-apply): Use a dedicated symbol
+	`top-headline'.
+
+	* org.el (org-entry-properties): Ensure the special property is
+	not commented out when matched.
+
+	* org-agenda.el (org-agenda-write): Code cleanup.
+	(org-agenda-mark-filtered-text)
+	(org-agenda-unmark-filtered-text)
+	(org-agenda-fix-tags-filter-overlays-at): Delete.
+	(org-agenda-remove-marked-text): Use the `property' argument
+	instead of hard-coding 'org-filtered.
+	(org-agenda-filter-remove-all): Use `org-agenda-finalize'.
+	(org-agenda-filter-hide-line): Rewrite using text properties
+	instead of overlays.
+	(org-agenda-remove-filter): New function.
+	(org-agenda-filter-show-all-tag)
+	(org-agenda-filter-show-all-cat)
+	(org-agenda-filter-show-all-re): Rewrite using
+	`org-agenda-remove-filter'.
+
+	* org-attach.el (org-attach-dir): When the property is "inherited"
+	from a variable outside of the file, do not use
+	`org-entry-property-inherited-from' to find the attachment
+	position, assume we need to go back to the current headline.
+
+	* ob-R.el (org-babel-R-assign-elisp): Fix parsing of a
+	one-dimensional value.
+
+	* org.el (org-insert-heading): Fix bug when trying to insert a
+	heading when point is before the first headline and not at the
+	beginning of a line.
+
+	* org-table.el (org-table-eval-formula): Fix conversion of
+	inactive timestamps to active ones.
+
+	* org.el (org-set-regexps-and-options): Allow
+	`org-complex-heading-regexp-format' to match [/] and [%] cookies
+	when they are both before and after the heading.
+
+	* org-agenda.el (org-agenda-max-todos, org-agenda-max-tags)
+	(org-agenda-max-effort): Fix type strings.
+
+	* org-capture.el (org-capture-fill-template): Deactivate region
+	while trying to align tags on the current headline.
+
+	* org-agenda.el (org-agenda-finalize): Filter by top headline if
+	`org-agenda-top-headline-filter' is set.
+
+2014-10-03  Bernt Hansen  <bernt@norang.ca>
+
+	* org-macs.el: Remove restriction when locating markers.
+
+2014-10-03  Dmitry Gorbik  <dgorbik@me.com>  (tiny change)
+
+	* org.el (org-fast-tag-selection): Fix window splitting.
+
+2014-10-03  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-screen.el (org-babel-screen-test): Use unpredictable name for
+	temporary file.
+
+	* ob-screen.el (org-babel-screen-session-write-temp-file): Use
+	unpredictable temp file name, fixes bug#17416.
+
+2014-10-03  Ian Kelling  <ian@iankelling.org>
+
+	* ob-core.el (org-babel-insert-result): Test all list elements
+	against listp and (eq element 'hline) instead of checking just the
+	first.
+
+2014-10-03  Konstantin Kliakhandler  <kosta@slumpy.org>  (tiny change)
+
+	* org-agenda.el (org-agenda-redo): Reapply the filters correctly.
+
+2014-10-03  Kyle Meyer  <kyle@kyleam.com>  (tiny change)
+
+	* ox.el (org-export-show-temporary-export-buffer): Fix typo.
+
+2014-10-03  Matt Lundin  <mdl@imapmail.org>
+
+	* ox-publish.el (org-publish-find-title, org-publish-find-date):
+	Make sure to call org-export-get-environment in copy of buffer if
+	emacs is already visiting. Otherwise, #+bind variables meant for
+	export can be set in live buffers.
+
+	* org.el (org-agenda-inhibit-startup): fix docstring to reflect
+	default value
+
+	* ox-publish.el (org-publish-find-title, org-publish-find-date):
+	Fix unnecessary invocations of org-mode with org-inhibit-startup.
+
+2014-10-03  Nick Dokos  <ndokos@gmail.com>
+
+	* org-table.el (org-table-clean-before-export): The regexes match
+	spaces in addition to the special characters that might be used in
+	the first column as special marking characters.  Remove the space
+	from the character class.
+
+	* ox-ascii.el (org-ascii-superscript): Change _ to ^ in the
+	output.
+
+2014-10-03  Nick Dokos  <ndokos@redhat.com>
+
+	* org-table.el (org-table-show-reference): Call `set-window-start'
+	with the calculated values `min' and `max', not with
+	(point-min) and (point-max).
+
+2014-10-03  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* ox-latex.el (org-latex-link): Improve test for unnumbered
+	headlines.
+
+	* ox-ascii.el (org-ascii--fill-string): Allow filling even when
+	`org-export-preserve-breaks' is non-nil.
+
+	* org.el (org-N-empty-lines-before-current): Make sure to delete
+	only empty lines, not trailing whitespaces.
+
+	* ox-html.el (org-html-headline): Make sure even listified
+	headlines have proper anchors so internal links can refer to them.
+	Small refactoring.
+
+	* org-src.el (org-edit-src-code): Fix regexp.
+	(org-edit-src-exit): Do not remove auto-save timer.  This is
+	handled by the timer itself.
+
+	* org.el (org-re-property): Fix regexp.  Improve docstring.
+
+	* org-element.el (org-element-property-drawer-parser)
+	(org-element-node-property-parser): Ignore lines that are not node
+	properties.
+	(org-element-node-property-interpreter): Allow nil properties.
+
+	* org.el (org-re-property): Fix regexp to match properties with
+	empty values.
+
+	* org-element.el (org-element-headline-interpreter): Take into
+	consideration `org-odd-levels-only' value.  Small refactoring.
+
+	* ox-texinfo.el (org-texinfo--get-node): Return a node or anchor
+	name.
+	(org-texinfo--sanitize-content): Fix regexp.
+	(org-texinfo-link): Fix various bugs in link export.
+
+	* ox-beamer.el (org-beamer-link):
+	* ox-html.el (org-html-link):
+	* ox-latex.el (org-latex-link):
+	* ox-odt.el (org-odt-link): When radio link has no valid
+	target (e.g., this is a subtree export and the radio target is not
+	in the exported subtree), simply return contents.
+
+	* org.el (org-called-with-limited-levels): Initialize variable.
+
+	* org-agenda.el (org-agenda-write): Write headings in proper
+	order.
+
+	* org-element.el (org-element-table-interpreter): Enhance
+	docstring.
+
+	* ox-md.el (org-md-link): Allow custom link type export function.
+
+	* ox-texinfo.el (org-texinfo-template): Fix language and encoding
+	case.
+
+	* ox-md.el (org-md-separate-elements): Outside of lists, preserve
+	blank lines between paragraphs and plain lists.
+
+	* org-element.el (org-element-normalize-contents): Fix indentation
+	removal when there is an empty line within a verse block.
+
+	* ox-texinfo.el (org-texinfo--normalize-headlines): Properly add a
+	section to the contents.
+
+	* ox-texinfo.el (org-texinfo--normalize-headlines): Do not set pre
+	blanks since the value is now hard-coded.
+	(org-texinfo-headline): Force one blank line before contents, when non
+	empty.  Refactoring.
+	(org-texinfo-src-block): Refactor code.  Comply to predicate naming.
+
+	* ox-texinfo.el (org-texinfo--sanitize-node): Handle
+	" (not)allowed" case.
+
+	* ox-texinfo.el (org-texinfo-headline): Remove wrong code
+	comments.
+
+	* ox-texinfo.el (org-texinfo-headline): Remove `not-in-toc'
+	special case for tags.
+
+	* ox-texinfo.el (org-texinfo-headline): Remove LaTeXism (optional
+	arguments within square brackets).
+
+	* ox-texinfo.el (org-texinfo-info-process): Fix docstring.
+	(org-texinfo-compile): Do not check for impossible cases (e.g., if the
+	previous variable contains a function).
+
+	* ox-texinfo.el (org-texinfo-max-toc-depth): Fix docstring.
+
+	* ox-texinfo.el (org-texinfo--make-option-string,
+	org-texinfo--sanitize-headline,
+	org-texinfo--sanitize-headline-contents): Remove.
+
+	* ox-texinfo.el (org-texinfo--sanitize-node): "@", "{" and "}"
+	characters are allowed in a node name.  So are "(" and ")" unless
+	"(" starts the name and there is ")" somewhere in the name.  Also
+	trim and collapse whitespace characters.  Renamed from
+	`org-texinfo--sanitize-menu'.
+	(org-texinfo--get-node): Do not sanitize node names over zealously.
+	Ensure returned node names are unique.
+	(org-texinfo-headline): Only add @node command where it makes sense.
+
+	* ox-texinfo.el (org-texinfo--sanitize-menu)
+	(org-texinfo--sanitize-content): Fix docstrings.
+
+	* ox-texinfo.el (org-texinfo--normalize-headlines): Make sure a
+	blank line always follows nodes.
+
+	* ox-texinfo.el (org-texinfo-make-menu): Change signature.  Remove
+	some intermediate functions.  Generate the full master menu when
+	asked.
+	(org-texinfo--build-menu): Use a simpler algorithm.
+	(org-texinfo--format-entries): Fix entries when both node and title
+	are different.
+	(org-texinfo--menu-entries): Renamed from `org-texinfo--generate-menu-list'.
+	(org-texinfo-headline): Move menu handling to next function.
+	(org-texinfo-section): Handle menu for current parent.
+	(org-texinfo--menu-headlines, org-texinfo--generate-detailed): Remove
+	functions.
+	(org-texinfo--normalize-headlines): New function.
+
+	* ox-texinfo.el (org-texinfo-headline): Fix @appendix command.
+
+	* ox-texinfo.el (org-texinfo-headline): Do not sanitize heading
+	text for sectioning command.
+
+	* ox-texinfo.el (org-texinfo--generate-menu-list): ":COPYING: nil"
+	is expected to be equivalent to no COPYING property at all.
+
+	* ox-texinfo.el (org-texinfo-item): Fix blank lines between items.
+
+	* ox-texinfo.el (org-texinfo-plain-list): Fix format string.
+	Small refactoring.
+
+	* ox-texinfo.el (texinfo): Provide new export property.
+	(org-texinfo-template): Use dedicated title for hard copy, when
+	available.
+
+	* ox-texinfo.el (org-texinfo-headline): Always obey to a non-nil
+	:APPENDIX: property.  Small refactoring.
+
+	* ox-texinfo.el (org-texinfo-verse-block): Generate somewhat
+	meaningful Texinfo code instead of LaTeX.
+
+	* ox-texinfo.el (org-texinfo-table): Remove reference to
+	"verbatim" attribute.  Handle table.el tables.  Tiny refactoring.
+	(org-texinfo-table--org-table, org-texinfo-table--table.el-table):
+	Remove functions.
+	(org-texinfo-table-column-widths): Indent code correctly.  Ignore
+	special column, if any.  Add a comment about the limitation on the
+	width computation.
+	(org-texinfo-table-row): Small refactoring.
+
+	* ox-texinfo.el (texinfo): Do not provide a default value for
+	@setfilename value.
+	(org-texinfo-filename): Remove variable.
+	(org-texinfo-template): Correctly find value for @setfilename command.
+	If none is possible, do not provide the command at all.
+
+	* ox.el (org-export-to-file): Provide output file name in
+	communication channel, through :output-file property.
+
+	* ox-texinfo.el (org-texinfo-template): Do not hardcode "Manual"
+	in top node.
+
+	* ox-texinfo.el (org-texinfo-classes): Change default value.
+	Update docstring.
+	(org-texinfo-template): Insert header string from current class after
+	"@settitle" command.  Always provide "\input texinfo" at the beginning
+	of the output.
+
+	* ox-texinfo.el (org-texinfo-template): Remove spurious blank
+	lines in output.  Refactor code.
+
+	* ox-texinfo.el (org-texinfo-template): Fix multi-line subtitles.
+
+	* ox-texinfo.el (org-texinfo-template): Make sure table of
+	contents are allowed before inserting them.
+
+	* ox-texinfo.el (org-texinfo-template): Check if copying data is
+	not nil before using it.
+
+	* ox-texinfo.el (org-texinfo-template): Fix multi-line subauthors.
+	Correctly add email, when provided.  Check if author info is
+	wanted first.
+
+	* ox-texinfo.el (org-texinfo-node-description-column)
+	(org-texinfo-format-drawer-function): Fix docstrings.
+
+	* ox-texinfo.el (texinfo): Make sure comments are ignored.
+	(org-texinfo-comment, org-texinfo-comment-block): Remove functions.
+
+	* ox-texinfo.el (org-texinfo-template): Properly pad @direntry
+	description.
+
+	* org-element.el (org-element-headline-parser): Add missing
+	`:post-blank' property in docstring.
+
+	* ox-latex.el (org-latex-table-scientific-notation): Set
+	appropriate value.
+	(org-latex-listings-options): Fix docstring.
+
+	* ox.el (org-export-raw-special-block-p): New function.
+
+	* org-element.el (org-element-link-parser): Properly handle
+	multi-line links according to RFC 3986 when enclosed within square
+	brackets.
+
+	* org-element.el (org-element-parse-secondary-string): Clone all
+	local variables from current buffer before parsing a secondary
+	string.  Small refactoring.
+	(org-element-object-variables): Remove variable.
+
+	* ox-odt.el (org-odt--format-paragraph): Change signature to
+	include info.
+	(org-odt-footnote-reference, org-odt-paragraph): Apply signature
+	change.
+
+	* org-clock.el (org-clocktable-indent-string): Use "\emsp" instead
+	of "\__", which is not supported anymore since Org 8.0.
+
+	* ox-odt.el (org-odt--paragraph-style): New function.
+	(org-odt--format-paragraph): Use new function to get proper style
+	to apply.
+
+	* org-element.el (org-element--current-element): Fix regexp.
+
+	* org-element.el (org-element--current-element): Fix regexp
+	matching latex environments.  Discrepancy with regexp used in
+	`org-element-latex-environment-parser' introduced matching errors.
+
+	* ox-ascii.el (org-ascii--table-cell-width): Correctly export
+	tables with width cookies.
+
+	* org.el (org-insert-heading): Fix error when inserting a headline
+	before first headline, with point not at bol.  Remove source block
+	check for consistency with behavior after first headline.  Tiny
+	fix to docstring.
+
+	* org.el (org-scan-tags): Fix typo in docstring.
+
+	* ox.el (org-export--get-inbuffer-options): Return the empty
+	string instead of nil when TITLE keywords has no value.
+	(org-export--get-buffer-attributes): Do not set :title property
+	early.
+	(org-export--get-global-options): Do not ignore anymore nil values.
+	Small refactoring.
+	(org-export-as): Correctly set :title here.
+
+	* org-list.el (org-list-repair): Fix typo in docstring.
+
+	* ox-ascii.el (org-ascii--current-text-width): Tiny fix.
+
+	* ox-org.el (org-org-section): Tiny refactoring.  Use appropriate
+	property.
+
+	* ox-org.el (org-org-headline): Ignore footnote sections.
+	(org-org-section): New function.
+
+	* ox-beamer.el (org-beamer-select-environment): Ignore persistent
+	tags when displaying environments.
+
+	* ox-ascii.el (org-ascii-indented-line-width): Update docstring.
+	(org-ascii-paragraph): Do not apply indentation to the very first line
+	of a section.
+
+	* ox-latex.el (org-latex-inlinetask): Skip body if contents are
+	empty.
+
+	* ox-html.el (org-html-standalone-image-p): Ensure paragraph
+	contains at least a link before return a non-nil value.  Clarify
+	docstring.
+
+	* ox.el (org-export-data): Always return a string, as specified
+	by the docstring.
+
+	* ox-ascii.el (org-ascii--indent-string): Fix regexp to avoid
+	stack overflow in regexp matcher on very long lines.
+
+	* org-element.el (org-element-timestamp-parser): Fix docstring.
+
+	* ox-icalendar.el (org-icalendar-include-sexps,
+	org-icalendar-blocked-headline-p): Fix docstrings.
+	(org-icalendar-clear-blank-lines): Fix docstring and regexp.
+
+	* ox-icalendar.el (org-icalendar-entry): Use
+	`org-icalendar-with-timestamps'.
+
+2014-10-03  Nicolas Richard  <theonewiththeevillook@yahoo.fr>
+
+	* org.el (org-cycle-internal-local): Don't show a trailing
+	character when cycling a subtree that ends with a non-newline
+	character at the end of the buffer or the narrowed region.
+
+2014-10-03  Sebastien Vauban  <sva-news-D0wtAvR13HarG/iDocfnWg@public.gmane.org>
+
+	* ox-ascii.el (org-ascii--box-string): Choose more universal
+	Unicode characters for boxquote corners.
+
+2014-10-03  marcowahlsoft@gmail.com  <marcowahlsoft@gmail.com>  (tiny change)
+
+	* org-agenda.el (org-agenda-bulk-mark)
+	(org-agenda-bulk-mark-regexp, org-agenda-bulk-toggle-all): Fix
+	org-agenda-bulk-mark-all when time-grid is shown.
+
 2014-06-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* org-compat.el (activate-mark): Set transient-mark-mode buffer-locally.

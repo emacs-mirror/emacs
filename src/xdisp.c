@@ -9752,6 +9752,7 @@ move_it_by_lines (struct it *it, ptrdiff_t dvpos)
 	      back_to_previous_visible_line_start (it);
 	      it->vpos--;
 	    }
+	  reseat_1 (it, it->current.pos, 1);
 	}
       else
 	RESTORE_IT (it, it, it2data);

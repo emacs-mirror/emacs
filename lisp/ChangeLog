@@ -1,3 +1,19 @@
+2014-10-03  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* vc/vc-svn.el (vc-svn-ignore-completion-table): Implement.
+	(vc-svn-ignore): Use it.  (Bug#18619)
+
+2014-10-03  Martin Rudalics  <rudalics@gmx.at>
+
+	* frame.el (toggle-frame-maximized, toggle-frame-fullscreen):
+	In doc-string mention need of setting `frame-resize-pixelwise'.
+
+2014-10-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc/vc-svn.el (vc-svn-after-dir-status): Fix the non-remote regexp,
+	similarly to Roger's 2010-06-12 change for the remote change
+	(bug#18605).
+
 2014-10-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	New gui-selection-value consolidating x-selection-value.

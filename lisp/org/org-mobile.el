@@ -1074,7 +1074,7 @@ be returned that indicates what went wrong."
 	    ;; which prevents correct insertion when point is invisible
 	    (org-show-subtree)
 	    (end-of-line 1)
-	    (org-insert-heading-respect-content '(16) t)
+	    (org-insert-heading-respect-content t)
 	    (org-demote))
 	(beginning-of-line)
 	(insert "* "))

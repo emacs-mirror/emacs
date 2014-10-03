@@ -400,8 +400,11 @@ This is used by Org to re-create the anniversary hash table."
 (defun org-bbdb-complete-link ()
   "Read a bbdb link with name completion."
   (require 'bbdb-com)
-  (concat "bbdb:"
-	  (bbdb-record-name (car (bbdb-completing-read-record "Name: ")))))
+  (let ((rec (bbdb-completing-read-record "Name: ")))
+    (concat "bbdb:"
+	    (bbdb-record-name (if (listp rec)
+				  (car rec)
+				rec)))))
 
 (defun org-bbdb-anniv-export-ical ()
   "Extract anniversaries from BBDB and convert them to icalendar format."

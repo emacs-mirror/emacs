@@ -208,7 +208,9 @@ the directory and (if necessary) the corresponding ID will be created."
 	    (save-excursion
 	      (save-restriction
 		(widen)
-		(goto-char org-entry-property-inherited-from)
+		(if (marker-position org-entry-property-inherited-from)
+		    (goto-char org-entry-property-inherited-from)
+		  (org-back-to-heading t))
 		(let (org-attach-allow-inheritance)
 		  (org-attach-dir create-if-not-exists-p)))))
       (org-attach-check-absolute-path attach-dir)

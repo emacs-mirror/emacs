@@ -1,3 +1,9 @@
+2014-10-03  Martin Rudalics  <rudalics@gmx.at>
+
+	* frames.texi (Frame Commands):
+	* cmdargs.texi (Window Size X): Mention the use of
+	`frame-resize-pixelwise' to make frames truly fullscreen or maximized.
+
 2014-10-02  Glenn Morris  <rgm@gnu.org>
 
 	* package.texi (Package Installation): Mention etc/package-keyring.gpg.

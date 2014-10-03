@@ -24,6 +24,7 @@
 
 ;;; Code:
 (require 'ob-core)
+(require 'org-src)
 (eval-when-compile
   (require 'cl))
 

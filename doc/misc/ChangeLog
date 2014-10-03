@@ -1,3 +1,23 @@
+2014-10-03  Bastien Guerry  <bzg@gnu.org>
+
+	* org.texi (Key bindings and useful functions): Fix typo.
+	Use the correct function's name.
+
+2014-10-03  Michael Brand  <michael.ch.brand@gmail.com>
+
+	* org.texi (Formula syntax for Calc): Add `f-1' to TBLFM example
+	about `nan'.
+
+2014-10-03  Nicolas Goaziou  <mail@nicolasgoaziou.fr>
+
+	* org.texi (Export settings): Be more explicit about how output
+	file name is built.
+
+	* org.texi (Headings and sectioning structure): Document menus.
+
+	* org.texi (Include files, Publishing options): Remove reference
+	to nonexistent variable.
+
 2014-10-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* erc.texi (Connecting): Remove stray "OA" that failed the manual

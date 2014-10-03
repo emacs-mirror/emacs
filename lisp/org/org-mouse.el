@@ -953,20 +953,23 @@ This means, between the beginning of line and the point."
 		       (point)
 		       (save-excursion (goto-char start)
 				       (org-back-to-heading) (point))))
-	    (outline-end-of-subtree)
+	    (progn (org-end-of-subtree nil t)
+		   (unless (eobp) (backward-char)))
 	    (end-of-line)
 	    (if (eobp) (newline) (forward-char)))
 
 	  (when (looking-at org-outline-regexp)
 	    (let ((level (- (match-end 0) (match-beginning 0))))
 	      (when (> end (match-end 0))
-		(outline-end-of-subtree)
+		(progn (org-end-of-subtree nil t)
+		       (unless (eobp) (backward-char)))
 		(end-of-line)
 		(if (eobp) (newline) (forward-char))
 		(setq level (1+ level)))
 	      (org-paste-subtree level)
 	      (save-excursion
-		(outline-end-of-subtree)
+		(progn (org-end-of-subtree nil t)
+		       (unless (eobp) (backward-char)))
 		(when (bolp) (delete-char -1))))))))))
 
 
@@ -1003,8 +1006,8 @@ This means, between the beginning of line and the point."
 	   (org-mouse-main-buffer (current-buffer)))
       (when (eq (with-current-buffer buffer major-mode) 'org-mode)
 	(let ((endmarker (with-current-buffer buffer
-			   (outline-end-of-subtree)
-			   (forward-char 1)
+			   (org-end-of-subtree nil t)
+			   (unless (eobp) (forward-char 1))
 			   (point-marker))))
 	  (org-with-remote-undo buffer
 	    (with-current-buffer buffer

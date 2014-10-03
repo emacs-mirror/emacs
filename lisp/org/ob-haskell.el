@@ -147,7 +147,6 @@ specifying a variable of the same value."
       (concat "[" (mapconcat #'org-babel-haskell-var-to-haskell var ", ") "]")
     (format "%S" var)))
 
-(defvar org-src-preserve-indentation)
 (defvar org-export-copy-to-kill-ring)
 (declare-function org-export-to-file "ox"
 		  (backend file

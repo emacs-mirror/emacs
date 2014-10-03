@@ -225,13 +225,14 @@ used to limit the exported source code blocks by language."
 					  (concat base-name "." ext) base-name))))
 		    (when file-name
 		      ;; Possibly create the parent directories for file.
-		      (when (let ((m (funcall get-spec :mkdirp)))
-                              (and m (not (string= m "no"))))
-			(make-directory (file-name-directory file-name) 'parents))
+		      (let ((m (funcall get-spec :mkdirp))
+			    (fnd (file-name-directory file-name)))
+			(and m fnd (not (string= m "no"))
+			     (make-directory fnd 'parents)))
 		      ;; delete any old versions of file
-		      (when (and (file-exists-p file-name)
-				 (not (member file-name (mapcar #'car path-collector))))
-			(delete-file file-name))
+		      (and (file-exists-p file-name)
+			   (not (member file-name (mapcar #'car path-collector)))
+			   (delete-file file-name))
 		      ;; drop source-block to file
 		      (with-temp-buffer
 			(when (fboundp lang-f) (ignore-errors (funcall lang-f)))
