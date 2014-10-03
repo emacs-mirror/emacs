@@ -1,3 +1,8 @@
+2014-10-03  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* vc/vc-svn.el (vc-svn-ignore-completion-table): Implement.
+	(vc-svn-ignore): Use it.  (Bug#18619)
+
 2014-10-03  Martin Rudalics  <rudalics@gmx.at>
 
 	* frame.el (toggle-frame-maximized, toggle-frame-fullscreen):
