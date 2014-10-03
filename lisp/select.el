@@ -24,6 +24,31 @@
 
 ;; Based partially on earlier release by Lucid.
 
+;; The functionality here is pretty messy, because there are different
+;; functions that claim to get or set the "selection", with no clear
+;; distinction between them.  Here's my best understanding of it:
+;; - gui-select-text and gui-selection-value go together to access the general
+;;   notion of "GUI selection" for interoperation with other applications.
+;;   This can use either the clipboard or the primary selection, or both or
+;;   none according to gui-select-enable-clipboard and x-select-enable-primary.
+;;   These are the default values of interprogram-cut/paste-function.
+;; - gui-get-primary-selection is used to get the PRIMARY selection,
+;;   specifically for mouse-yank-primary.
+;; - gui-get-selection and gui-set-selection are lower-level functions meant to
+;;   access various kinds of selections (CLIPBOARD, PRIMARY, SECONDARY).
+
+;; Currently gui-select-text and gui-selection-value provide gui-methods so the
+;; actual backend can do it whichever way it wants.  This means for example
+;; that gui-select-enable-clipboard is defined here but implemented in each and
+;; every backend.
+;; Maybe a better structure would be to make gui-select-text and
+;; gui-selection-value have no associated gui-method, and implement
+;; gui-select-enable-clipboard (and x-select-enable-clipboard) themselves.
+;; This would instead rely on gui-get/set-selection being implemented well
+;; (e.g. currently w32's implementation thereof sucks, for example,
+;; since it doesn't access the system's clipboard when setting/getting the
+;; CLIPBOARD selection).
+
 ;;; Code:
 
 (defcustom selection-coding-system nil
