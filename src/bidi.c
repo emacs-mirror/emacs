@@ -1726,6 +1726,8 @@ bidi_resolve_explicit (struct bidi_it *bidi_it)
 	{
 	  eassert (bidi_it->prev.charpos == bidi_it->charpos - 1);
 	  prev_type = bidi_it->prev.orig_type;
+	  if (prev_type == FSI)
+	    prev_type = bidi_it->type_after_w1;
 	}
     }
   /* Don't move at end of buffer/string.  */
@@ -1740,6 +1742,8 @@ bidi_resolve_explicit (struct bidi_it *bidi_it)
 	emacs_abort ();
       bidi_it->bytepos += bidi_it->ch_len;
       prev_type = bidi_it->orig_type;
+      if (prev_type == FSI)
+	prev_type = bidi_it->type_after_w1;
     }
   else	/* EOB or end of string */
     prev_type = NEUTRAL_B;
@@ -1763,78 +1767,48 @@ bidi_resolve_explicit (struct bidi_it *bidi_it)
 	   embedding level of the _following_ characters, so we must
 	   first look at the type of the previous character to support
 	   that.  */
-	switch (prev_type)
-	  {
-	  case FSI:	/* X5c */
-	    end = string_p ? bidi_it->string.schars : ZV;
-	    disp_pos = bidi_it->disp_pos;
-	    disp_prop = bidi_it->disp_prop;
-	    nchars = bidi_it->nchars;
-	    ch_len = bidi_it->ch_len;
-	    typ1 = find_first_strong_char (bidi_it->charpos,
-					   bidi_it->bytepos, end,
-					   &disp_pos, &disp_prop,
-					   &bidi_it->string, bidi_it->w,
-					   string_p, bidi_it->frame_window_p,
-					   &ch_len, &nchars, true);
-	    if (typ1 != STRONG_R && typ1 != STRONG_AL)
-	      {
-		type = LRI;
-		goto fsi_as_lri;
-	      }
-	    else
-	      type = RLI;
-	    /* FALLTHROUGH */
-	  case RLI:	/* X5a */
-	    if (override == NEUTRAL_DIR)
-	      bidi_it->type_after_w1 = type;
-	    else	/* Unicode 8.0 correction.  */
-	      bidi_it->type_after_w1 = (override == L2R ? STRONG_L : STRONG_R);
-	    bidi_check_type (bidi_it->type_after_w1);
-	    if (current_level < BIDI_MAXDEPTH
-		&& bidi_it->invalid_levels == 0
-		&& bidi_it->invalid_isolates == 0)
-	      {
-		new_level = ((current_level + 1) & ~1) + 1;
-		bidi_it->isolate_level++;
-		bidi_push_embedding_level (bidi_it, new_level,
-					   NEUTRAL_DIR, true);
-	      }
-	    else
-	      bidi_it->invalid_isolates++;
-	    break;
-	  case LRI:	/* X5b */
-	  fsi_as_lri:
-	    if (override == NEUTRAL_DIR)
-	      bidi_it->type_after_w1 = type;
-	    else	/* Unicode 8.0 correction.  */
-	      bidi_it->type_after_w1 = (override == L2R ? STRONG_L : STRONG_R);
-	    bidi_check_type (bidi_it->type_after_w1);
-	    if (current_level < BIDI_MAXDEPTH - 1
-		&& bidi_it->invalid_levels == 0
-		&& bidi_it->invalid_isolates == 0)
-	      {
-		new_level = ((current_level + 2) & ~1);
-		bidi_it->isolate_level++;
-		bidi_push_embedding_level (bidi_it, new_level,
-					   NEUTRAL_DIR, true);
-	      }
-	    else
-	      bidi_it->invalid_isolates++;
-	    break;
-	  case PDF:	/* X7 */
-	    if (!bidi_it->invalid_isolates)
-	      {
-		if (bidi_it->invalid_levels)
-		  bidi_it->invalid_levels--;
-		else if (!isolate_status && bidi_it->stack_idx >= 1)
-		  new_level = bidi_pop_embedding_level (bidi_it);
-	      }
-	    break;
-	  default:
-	    /* Nothing.  */
-	    break;
-	  }
+      switch (prev_type)
+	{
+	case RLI:	/* X5a */
+	  if (current_level < BIDI_MAXDEPTH
+	      && bidi_it->invalid_levels == 0
+	      && bidi_it->invalid_isolates == 0)
+	    {
+	      new_level = ((current_level + 1) & ~1) + 1;
+	      bidi_it->isolate_level++;
+	      bidi_push_embedding_level (bidi_it, new_level,
+					 NEUTRAL_DIR, true);
+	    }
+	  else
+	    bidi_it->invalid_isolates++;
+	  break;
+	case LRI:	/* X5b */
+	  if (current_level < BIDI_MAXDEPTH - 1
+	      && bidi_it->invalid_levels == 0
+	      && bidi_it->invalid_isolates == 0)
+	    {
+	      new_level = ((current_level + 2) & ~1);
+	      bidi_it->isolate_level++;
+	      bidi_push_embedding_level (bidi_it, new_level,
+					 NEUTRAL_DIR, true);
+	    }
+	  else
+	    bidi_it->invalid_isolates++;
+	  break;
+	case PDF:	/* X7 */
+	  if (!bidi_it->invalid_isolates)
+	    {
+	      if (bidi_it->invalid_levels)
+		bidi_it->invalid_levels--;
+	      else if (!isolate_status && bidi_it->stack_idx >= 1)
+		new_level = bidi_pop_embedding_level (bidi_it);
+	    }
+	  break;
+	default:
+	  eassert (prev_type != FSI);
+	  /* Nothing.  */
+	  break;
+	}
       /* Fetch the character at BYTEPOS.  If it is covered by a
 	 display string, treat the entire run of covered characters as
 	 a single character u+FFFC.  */
@@ -1859,85 +1833,120 @@ bidi_resolve_explicit (struct bidi_it *bidi_it)
 
   switch (type)
     {
-      case RLE:	/* X2 */
-      case RLO:	/* X4 */
+    case RLE:	/* X2 */
+    case RLO:	/* X4 */
+      bidi_it->type_after_w1 = type;
+      bidi_check_type (bidi_it->type_after_w1);
+      type = WEAK_BN; /* X9/Retaining */
+      if (new_level < BIDI_MAXDEPTH
+	  && bidi_it->invalid_levels == 0
+	  && bidi_it->invalid_isolates == 0)
+	{
+	  /* Compute the least odd embedding level greater than
+	     the current level.  */
+	  new_level = ((new_level + 1) & ~1) + 1;
+	  if (bidi_it->type_after_w1 == RLE)
+	    override = NEUTRAL_DIR;
+	  else
+	    override = R2L;
+	  bidi_push_embedding_level (bidi_it, new_level, override, false);
+	  bidi_it->resolved_level = new_level;
+	}
+      else
+	{
+	  if (bidi_it->invalid_isolates == 0)
+	    bidi_it->invalid_levels++;
+	}
+      break;
+    case LRE:	/* X3 */
+    case LRO:	/* X5 */
+      bidi_it->type_after_w1 = type;
+      bidi_check_type (bidi_it->type_after_w1);
+      type = WEAK_BN; /* X9/Retaining */
+      if (new_level < BIDI_MAXDEPTH - 1
+	  && bidi_it->invalid_levels == 0
+	  && bidi_it->invalid_isolates == 0)
+	{
+	  /* Compute the least even embedding level greater than
+	     the current level.  */
+	  new_level = ((new_level + 2) & ~1);
+	  if (bidi_it->type_after_w1 == LRE)
+	    override = NEUTRAL_DIR;
+	  else
+	    override = L2R;
+	  bidi_push_embedding_level (bidi_it, new_level, override, false);
+	  bidi_it->resolved_level = new_level;
+	}
+      else
+	{
+	  if (bidi_it->invalid_isolates == 0)
+	    bidi_it->invalid_levels++;
+	}
+      break;
+    case FSI:	/* X5c */
+      end = string_p ? bidi_it->string.schars : ZV;
+      disp_pos = bidi_it->disp_pos;
+      disp_prop = bidi_it->disp_prop;
+      nchars = bidi_it->nchars;
+      ch_len = bidi_it->ch_len;
+      typ1 = find_first_strong_char (bidi_it->charpos,
+				     bidi_it->bytepos, end,
+				     &disp_pos, &disp_prop,
+				     &bidi_it->string, bidi_it->w,
+				     string_p, bidi_it->frame_window_p,
+				     &ch_len, &nchars, true);
+      if (typ1 != STRONG_R && typ1 != STRONG_AL)
+	{
+	  type = LRI;
+	  goto fsi_as_lri;
+	}
+      else
+	type = RLI;
+      /* FALLTHROUGH */
+    case RLI:	/* X5a */
+      if (override == NEUTRAL_DIR)
 	bidi_it->type_after_w1 = type;
-	bidi_check_type (bidi_it->type_after_w1);
-	type = WEAK_BN; /* X9/Retaining */
-	if (new_level < BIDI_MAXDEPTH
-	    && bidi_it->invalid_levels == 0
-	    && bidi_it->invalid_isolates == 0)
-	  {
-	    /* Compute the least odd embedding level greater than
-	       the current level.  */
-	    new_level = ((new_level + 1) & ~1) + 1;
-	    if (bidi_it->type_after_w1 == RLE)
-	      override = NEUTRAL_DIR;
-	    else
-	      override = R2L;
-	    bidi_push_embedding_level (bidi_it, new_level, override, false);
-	    bidi_it->resolved_level = new_level;
-	  }
-	else
-	  {
-	    if (bidi_it->invalid_isolates == 0)
-	      bidi_it->invalid_levels++;
-	  }
-	break;
-      case LRE:	/* X3 */
-      case LRO:	/* X5 */
+      else	/* Unicode 8.0 correction.  */
+	bidi_it->type_after_w1 = (override == L2R ? STRONG_L : STRONG_R);
+      bidi_check_type (bidi_it->type_after_w1);
+      break;
+    case LRI:	/* X5b */
+    fsi_as_lri:
+      if (override == NEUTRAL_DIR)
 	bidi_it->type_after_w1 = type;
-	bidi_check_type (bidi_it->type_after_w1);
-	type = WEAK_BN; /* X9/Retaining */
-	if (new_level < BIDI_MAXDEPTH - 1
-	    && bidi_it->invalid_levels == 0
-	    && bidi_it->invalid_isolates == 0)
-	  {
-	    /* Compute the least even embedding level greater than
-	       the current level.  */
-	    new_level = ((new_level + 2) & ~1);
-	    if (bidi_it->type_after_w1 == LRE)
-	      override = NEUTRAL_DIR;
-	    else
-	      override = L2R;
-	    bidi_push_embedding_level (bidi_it, new_level, override, false);
-	    bidi_it->resolved_level = new_level;
-	  }
-	else
-	  {
-	    if (bidi_it->invalid_isolates == 0)
-	      bidi_it->invalid_levels++;
-	  }
-	break;
-      case PDI:	/* X6a */
-	if (bidi_it->invalid_isolates)
-	  bidi_it->invalid_isolates--;
-	else if (bidi_it->isolate_level > 0)
-	  {
-	    bidi_it->invalid_levels = 0;
-	    while (!bidi_it->level_stack[bidi_it->stack_idx].isolate_status)
-	      bidi_pop_embedding_level (bidi_it);
-	    eassert (bidi_it->stack_idx > 0);
-	    new_level = bidi_pop_embedding_level (bidi_it);
-	    bidi_it->isolate_level--;
-	  }
-	bidi_it->resolved_level = new_level;
-	/* Unicode 8.0 correction.  */
-	if (bidi_it->level_stack[bidi_it->stack_idx].override == L2R)
-	  bidi_it->type_after_w1 = STRONG_L;
-	else if (bidi_it->level_stack[bidi_it->stack_idx].override == R2L)
-	  bidi_it->type_after_w1 = STRONG_R;
-	else
-	  bidi_it->type_after_w1 = type;
-	break;
-      case PDF:	/* X7 */
+      else	/* Unicode 8.0 correction.  */
+	bidi_it->type_after_w1 = (override == L2R ? STRONG_L : STRONG_R);
+      bidi_check_type (bidi_it->type_after_w1);
+      break;
+    case PDI:	/* X6a */
+      if (bidi_it->invalid_isolates)
+	bidi_it->invalid_isolates--;
+      else if (bidi_it->isolate_level > 0)
+	{
+	  bidi_it->invalid_levels = 0;
+	  while (!bidi_it->level_stack[bidi_it->stack_idx].isolate_status)
+	    bidi_pop_embedding_level (bidi_it);
+	  eassert (bidi_it->stack_idx > 0);
+	  new_level = bidi_pop_embedding_level (bidi_it);
+	  bidi_it->isolate_level--;
+	}
+      bidi_it->resolved_level = new_level;
+      /* Unicode 8.0 correction.  */
+      if (bidi_it->level_stack[bidi_it->stack_idx].override == L2R)
+	bidi_it->type_after_w1 = STRONG_L;
+      else if (bidi_it->level_stack[bidi_it->stack_idx].override == R2L)
+	bidi_it->type_after_w1 = STRONG_R;
+      else
 	bidi_it->type_after_w1 = type;
-	bidi_check_type (bidi_it->type_after_w1);
-	type = WEAK_BN; /* X9/Retaining */
-	break;
-      default:
-	/* Nothing.  */
-	break;
+      break;
+    case PDF:	/* X7 */
+      bidi_it->type_after_w1 = type;
+      bidi_check_type (bidi_it->type_after_w1);
+      type = WEAK_BN; /* X9/Retaining */
+      break;
+    default:
+      /* Nothing.  */
+      break;
     }
 
   bidi_it->type = type;
