@@ -70,32 +70,15 @@ That includes all Windows systems except for 9X/Me."
 
 ;;;; Selections
 
-;; We keep track of the last text selected here, so we can check the
-;; current selection against it, and avoid passing back our own text
-;; from x-selection-value.
-
 (defun w32-get-selection-value ()
   "Return the value of the current selection.
 Consult the selection.  Treat empty strings as if they were unset."
   (if gui-select-enable-clipboard
-      (let ((text
-             ;; Don't die if x-get-selection signals an error.
-             (with-demoted-errors "w32-get-clipboard-data:%S"
-               (w32-get-clipboard-data))))
-	(if (string= text "") (setq text nil))
-	(cond
-	 ((not text) nil)
-	 ((eq text gui-last-selected-text) nil)
-	 ((string= text gui-last-selected-text)
-	  ;; Record the newer string, so subsequent calls can use the 'eq' test.
-	  (setq gui-last-selected-text text)
-	  nil)
-	 (t
-	  (setq gui-last-selected-text text))))))
+      ;; Don't die if x-get-selection signals an error.
+      (with-demoted-errors "w32-get-clipboard-data:%S"
+        (w32-get-clipboard-data))))
 
-(defalias 'x-selection-value #'w32-get-selection-value)
-
 ;; Arrange for the kill and yank functions to set and check the clipboard.
-(setq interprogram-paste-function #'w32-get-selection-value)
+(gui-method-define gui-selection-value w32 #'w32-get-selection-value)
 
 (provide 'w32-common-fns)

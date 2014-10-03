@@ -1156,7 +1156,7 @@ as returned by `x-server-vendor'."
 
 ;; We keep track of the last text selected here, so we can check the
 ;; current selection against it, and avoid passing back our own text
-;; from x-selection-value.  We track both
+;; from x--selection-value.  We track both
 ;; separately in case another X application only sets one of them
 ;; we aren't fooled by the PRIMARY or CLIPBOARD selection staying the same.
 (defvar x-last-selected-text-clipboard nil
@@ -1222,73 +1222,72 @@ The value nil is the same as the list (UTF8_STRING COMPOUND_TEXT STRING)."
 ;; If this function is called twice and finds the same text,
 ;; it returns nil the second time.  This is so that a single
 ;; selection won't be added to the kill ring over and over.
-(defun x-selection-value ()
+(gui-method-define gui-selection-value x #'x--selection-value)
+(defun x--selection-value ()
   ;; With multi-tty, this function may be called from a tty frame.
-  (when (eq (framep (selected-frame)) 'x)
-    (let (clip-text primary-text)
-      (when x-select-enable-clipboard
-        (setq clip-text (x-selection-value-internal 'CLIPBOARD))
-        (if (string= clip-text "") (setq clip-text nil))
+  (let (clip-text primary-text)
+    (when x-select-enable-clipboard
+      (setq clip-text (x-selection-value-internal 'CLIPBOARD))
+      (if (string= clip-text "") (setq clip-text nil))
 
-        ;; Check the CLIPBOARD selection for 'newness', is it different
-        ;; from what we remembered them to be last time we did a
-        ;; cut/paste operation.
-        (setq clip-text
-              (cond ;; check clipboard
-               ((or (not clip-text) (string= clip-text ""))
-                (setq x-last-selected-text-clipboard nil))
-               ((eq      clip-text x-last-selected-text-clipboard) nil)
-               ((string= clip-text x-last-selected-text-clipboard)
-                ;; Record the newer string,
-                ;; so subsequent calls can use the `eq' test.
-                (setq x-last-selected-text-clipboard clip-text)
-                nil)
-               (t (setq x-last-selected-text-clipboard clip-text)))))
+      ;; Check the CLIPBOARD selection for 'newness', is it different
+      ;; from what we remembered them to be last time we did a
+      ;; cut/paste operation.
+      (setq clip-text
+            (cond ;; check clipboard
+             ((or (not clip-text) (string= clip-text ""))
+              (setq x-last-selected-text-clipboard nil))
+             ((eq      clip-text x-last-selected-text-clipboard) nil)
+             ((string= clip-text x-last-selected-text-clipboard)
+              ;; Record the newer string,
+              ;; so subsequent calls can use the `eq' test.
+              (setq x-last-selected-text-clipboard clip-text)
+              nil)
+             (t (setq x-last-selected-text-clipboard clip-text)))))
 
-      (when x-select-enable-primary
-	(setq primary-text (x-selection-value-internal 'PRIMARY))
-	;; Check the PRIMARY selection for 'newness', is it different
-	;; from what we remembered them to be last time we did a
-	;; cut/paste operation.
-	(setq primary-text
-	      (cond ;; check primary selection
-	       ((or (not primary-text) (string= primary-text ""))
-		(setq x-last-selected-text-primary nil))
-	       ((eq      primary-text x-last-selected-text-primary) nil)
-	       ((string= primary-text x-last-selected-text-primary)
-		;; Record the newer string,
-		;; so subsequent calls can use the `eq' test.
-		(setq x-last-selected-text-primary primary-text)
-		nil)
-	       (t
-		(setq x-last-selected-text-primary primary-text)))))
+    (when x-select-enable-primary
+      (setq primary-text (x-selection-value-internal 'PRIMARY))
+      ;; Check the PRIMARY selection for 'newness', is it different
+      ;; from what we remembered them to be last time we did a
+      ;; cut/paste operation.
+      (setq primary-text
+            (cond ;; check primary selection
+             ((or (not primary-text) (string= primary-text ""))
+              (setq x-last-selected-text-primary nil))
+             ((eq      primary-text x-last-selected-text-primary) nil)
+             ((string= primary-text x-last-selected-text-primary)
+              ;; Record the newer string,
+              ;; so subsequent calls can use the `eq' test.
+              (setq x-last-selected-text-primary primary-text)
+              nil)
+             (t
+              (setq x-last-selected-text-primary primary-text)))))
 
-      ;; As we have done one selection, clear this now.
-      (setq next-selection-coding-system nil)
+    ;; As we have done one selection, clear this now.
+    (setq next-selection-coding-system nil)
 
-      ;; At this point we have recorded the current values for the
-      ;; selection from clipboard (if we are supposed to) and primary.
-      ;; So return the first one that has changed
-      ;; (which is the first non-null one).
-      ;;
-      ;; NOTE: There will be cases where more than one of these has
-      ;; changed and the new values differ.  This indicates that
-      ;; something like the following has happened since the last time
-      ;; we looked at the selections: Application X set all the
-      ;; selections, then Application Y set only one of them.
-      ;; In this case since we don't have
-      ;; timestamps there is no way to know what the 'correct' value to
-      ;; return is.  The nice thing to do would be to tell the user we
-      ;; saw multiple possible selections and ask the user which was the
-      ;; one they wanted.
-      (or clip-text primary-text)
-      )))
+    ;; At this point we have recorded the current values for the
+    ;; selection from clipboard (if we are supposed to) and primary.
+    ;; So return the first one that has changed
+    ;; (which is the first non-null one).
+    ;;
+    ;; NOTE: There will be cases where more than one of these has
+    ;; changed and the new values differ.  This indicates that
+    ;; something like the following has happened since the last time
+    ;; we looked at the selections: Application X set all the
+    ;; selections, then Application Y set only one of them.
+    ;; In this case since we don't have
+    ;; timestamps there is no way to know what the 'correct' value to
+    ;; return is.  The nice thing to do would be to tell the user we
+    ;; saw multiple possible selections and ask the user which was the
+    ;; one they wanted.
+    (or clip-text primary-text)
+    ))
 
 (define-obsolete-function-alias 'x-cut-buffer-or-selection-value
   'x-selection-value "24.1")
 
 ;; Arrange for the kill and yank functions to set and check the clipboard.
-(setq interprogram-paste-function 'x-selection-value)
 
 (defun x-clipboard-yank ()
   "Insert the clipboard contents, or the last stretch of killed text."

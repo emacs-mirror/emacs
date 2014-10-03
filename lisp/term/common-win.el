@@ -56,8 +56,7 @@
         (set-keymap-parent map (keymap-parent local-function-key-map))
         (set-keymap-parent local-function-key-map map))
       (when (featurep 'ns)
-	(setq interprogram-paste-function 'x-selection-value
-	      system-key-alist
+	(setq system-key-alist
 	      (list
 	       ;; These are special "keys" used to pass events from C to lisp.
 	       (cons (logior (lsh 0 16)   1) 'ns-power-off)

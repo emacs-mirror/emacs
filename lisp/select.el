@@ -98,6 +98,9 @@ SELECTION-SYMBOL is typically `PRIMARY', `SECONDARY', or `CLIPBOARD'.
 TARGET-TYPE is the type of data desired, typically `STRING'.")
 
 (defvar gui-last-selected-text nil
+  ;; We keep track of the last text selected here, so we can check the
+  ;; current selection against it, and avoid passing back our own text
+  ;; from gui-selection-value.
   "Last text passed to `gui-select-text'.")
 
 (defun gui-select-text (text)
@@ -115,6 +118,25 @@ On MS-Windows, make TEXT the current selection."
     (gui-call gui-select-text text) ;;)
   (setq gui-last-selected-text text))
 (define-obsolete-function-alias 'x-select-text 'gui-select-text "25.1")
+
+(gui-method-declare gui-selection-value #'ignore
+  "Method to return the GUI's selection.
+Takes no argument, and returns a string.
+Should obey `gui-select-enable-clipboard'.")
+
+(defun gui-selection-value ()
+  (let ((text (gui-call gui-selection-value)))
+    (if (string= text "") (setq text nil))
+    (cond
+     ((not text) nil)
+     ((eq text gui-last-selected-text) nil)
+     ((string= text gui-last-selected-text)
+      ;; Record the newer string, so subsequent calls can use the `eq' test.
+      (setq gui-last-selected-text text)
+      nil)
+     (t
+      (setq gui-last-selected-text text)))))
+(define-obsolete-function-alias 'x-selection-value 'gui-selection-value "25.1")
 
 (defun gui-get-selection (&optional type data-type)
   "Return the value of an X Windows selection.

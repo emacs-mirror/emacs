@@ -3640,7 +3640,7 @@ put in the kill ring, to make the new kill available to other
 programs.  The function takes one argument, TEXT, which is a
 string containing the text which should be made available.")
 
-(defvar interprogram-paste-function #'ignore
+(defvar interprogram-paste-function #'gui-selection-value
   "Function to call to get text cut from other programs.
 Most window systems provide a facility for cutting and pasting
 text between different programs, such as the clipboard on X and

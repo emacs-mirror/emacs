@@ -736,27 +736,14 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
   (if (not (stringp string)) (error "Nonstring given to pasteboard"))
   (ns-store-selection-internal 'CLIPBOARD string))
 
-;; We keep track of the last text selected here, so we can check the
-;; current selection against it, and avoid passing back our own text
-;; from x-selection-value.
-
 ;; Return the value of the current Nextstep selection.  For
 ;; compatibility with older Nextstep applications, this checks cut
 ;; buffer 0 before retrieving the value of the primary selection.
-(defun x-selection-value ()
-  (let (text)
-    ;; Consult the selection.  Treat empty strings as if they were unset.
-    (or text (setq text (ns-get-pasteboard)))
-    (if (string= text "") (setq text nil))
-    (cond
-     ((not text) nil)
-     ((eq text gui-last-selected-text) nil)
-     ((string= text gui-last-selected-text)
-      ;; Record the newer string, so subsequent calls can use the `eq' test.
-      (setq gui-last-selected-text text)
-      nil)
-     (t
-      (setq gui-last-selected-text text)))))
+(gui-method-define gui-selection-value ns #'ns-selection-value)
+(defun ns-selection-value ()
+  ;; Consult the selection.  Treat empty strings as if they were unset.
+  (if gui-select-enable-clipboard
+      (ns-get-pasteboard)))
 
 (defun ns-copy-including-secondary ()
   (interactive)

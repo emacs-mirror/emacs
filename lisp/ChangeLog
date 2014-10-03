@@ -1,3 +1,29 @@
+2014-10-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	New gui-selection-value consolidating x-selection-value.
+	* select.el (gui-selection-value-alist): New method.
+	(gui-selection-value): New function.
+	(x-selection-value): Make it an obsolete alias.
+	* simple.el (interprogram-paste-function): Default to
+	gui-selection-value.
+	* w32-common-fns.el (w32-get-selection-value): Simplify.
+	(x-selection-value): Remove alias.
+	(interprogram-paste-function): Don't set.
+	(gui-selection-value): Define for w32.
+	* term/x-win.el (gui-selection-value): Define for x.
+	(x--selection-value): Rename from x--selection-value.
+	(interprogram-paste-function): Don't set.
+	* term/pc-win.el (w16-get-selection-value): Simplify.
+	(msdos-initialize-window-system): Don't set
+	interprogram-paste-function.
+	(gui-selection-value): Define for pc.
+	* term/ns-win.el (x-selection-value): Remove.
+	(gui-selection-value): Define for ns, instead.
+	* term/common-win.el (x-setup-function-keys): Don't set
+	interprogram-paste-function.
+	* obsolete/mouse-sel.el (mouse-sel-get-selection-function):
+	Use gui-selection-value.
+
 2014-10-02  David Raynes  <rayners@gmail.com>  (tiny change)
 
 	* term/ns-win.el: Add functions to ns frame, not x frame (bug#18614).

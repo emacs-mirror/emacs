@@ -247,6 +247,7 @@ Emacs-21.
 
 ** Some "x-*" were obsoleted:
 *** x-select-text is renamed gui-select-text.
+*** x-selection-value is renamed gui-selection-value.
 *** x-get-selection is renamed gui-get-selection.
 *** x-get-clipboard and x-clipboard-yank are marked obsolete.
 *** x-get-selection-value is renamed to gui-get-primary-selection.

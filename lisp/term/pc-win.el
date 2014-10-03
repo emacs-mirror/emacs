@@ -223,20 +223,9 @@ the operating system.")
   "Return the value of the current selection.
 Consult the selection.  Treat empty strings as if they were unset."
   (if gui-select-enable-clipboard
-      (let (text)
-	;; Don't die if x-get-selection signals an error.
-	(with-demoted-errors "w16-get-clipboard-data:%s"
-          (setq text (w16-get-clipboard-data)))
-	(if (string= text "") (setq text nil))
-	(cond
-	 ((not text) nil)
-	 ((eq text gui-last-selected-text) nil)
-	 ((string= text gui-last-selected-text)
-	  ;; Record the newer string, so subsequent calls can use the 'eq' test.
-	  (setq gui-last-selected-text text)
-	  nil)
-	 (t
-	  (setq gui-last-selected-text text))))))
+      ;; Don't die if x-get-selection signals an error.
+      (with-demoted-errors "w16-get-clipboard-data:%s"
+        (w16-get-clipboard-data))))
 
 ;; gui-selection-owner-p is used in simple.el.
 (gui-method-define gui-selection-owner-p pc #'w16-selection-owner-p)
@@ -380,7 +369,6 @@ Errors out because it is not supposed to be called, ever."
   (setq split-window-keep-point t)
   ;; Arrange for the kill and yank functions to set and check the
   ;; clipboard.
-  (setq interprogram-paste-function #'w16-get-selection-value)
   (menu-bar-enable-clipboard)
   (run-hooks 'terminal-init-msdos-hook))
 
@@ -398,6 +386,7 @@ Errors out because it is not supposed to be called, ever."
 (declare-function w16-set-clipboard-data "w16select.c"
 		  (string &optional ignored))
 (gui-method-define gui-select-text pc #'w16--select-text)
+(gui-method-define gui-selection-value pc #'w16-get-selection-value)
 (defun w16--select-text (text)
   (when gui-select-enable-clipboard
     (w16-set-clipboard-data text)))
