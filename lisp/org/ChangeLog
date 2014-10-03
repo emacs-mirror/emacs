@@ -587,7 +587,7 @@
 	* ox-ascii.el (org-ascii--box-string): Choose more universal
 	Unicode characters for boxquote corners.
 
-2014-10-02  marcowahlsoft@gmail.com  <marcowahlsoft@gmail.com>  (tiny change)
+2014-10-02  Marco Wahl  <marcowahlsoft@gmail.com>  (tiny change)
 
 	* org-agenda.el (org-agenda-bulk-mark)
 	(org-agenda-bulk-mark-regexp, org-agenda-bulk-toggle-all): Fix
