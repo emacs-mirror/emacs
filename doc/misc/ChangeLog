@@ -1,3 +1,8 @@
+2014-10-03  Kelvin White  <kwhite@gnu.org>
+
+	* erc.texi (Advanced Usage, Options): Add descriptions and examples
+	for erc-format-nick-function and erc-rename-buffers options.
+
 2014-09-26  Leo Liu  <sdl.web@gmail.com>
 
 	* cl.texi (Predicates on Numbers): Document cl-digit-char-p.
