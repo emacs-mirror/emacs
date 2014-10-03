@@ -96,13 +96,6 @@ static Lisp_Object Qx_lost_selection_functions, Qx_sent_selection_functions;
    is not necessarily sizeof (long).  */
 #define X_LONG_SIZE 4
 
-/* Extreme 'short' and 'long' values suitable for libX11.  */
-#define X_SHRT_MAX 0x7fff
-#define X_SHRT_MIN (-1 - X_SHRT_MAX)
-#define X_LONG_MAX 0x7fffffff
-#define X_LONG_MIN (-1 - X_LONG_MAX)
-#define X_ULONG_MAX 0xffffffffUL
-
 /* If this is a smaller number than the max-request-size of the display,
    emacs will use INCR selection transfer when the selection is larger
    than this.  The max-request-size is usually around 64k, so if you want
@@ -2284,10 +2277,10 @@ x_check_property_data (Lisp_Object data)
 void
 x_fill_property_data (Display *dpy, Lisp_Object data, void *ret, int format)
 {
-  long val;
-  long  *d32 = (long  *) ret;
-  short *d16 = (short *) ret;
-  char  *d08 = (char  *) ret;
+  unsigned long val;
+  unsigned long  *d32 = (unsigned long  *) ret;
+  unsigned short *d16 = (unsigned short *) ret;
+  unsigned char  *d08 = (unsigned char  *) ret;
   Lisp_Object iter;
 
   for (iter = data; CONSP (iter); iter = XCDR (iter))
@@ -2300,16 +2293,16 @@ x_fill_property_data (Display *dpy, Lisp_Object data, void *ret, int format)
 	      && RANGED_INTEGERP (X_LONG_MIN >> 16, XCAR (o), X_LONG_MAX >> 16)
 	      && RANGED_INTEGERP (- (1 << 15), XCDR (o), -1))
             {
-              long v1 = XINT (XCAR (o));
-              long v2 = XINT (XCDR (o));
-              /* cons_to_signed does not handle negative values for v2.
+	      /* cons_to_x_long does not handle negative values for v2.
                  For XDnd, v2 might be y of a window, and can be negative.
                  The XDnd spec. is not explicit about negative values,
                  but let's assume negative v2 is sent modulo 2**16.  */
-	      val = (v1 << 16) | (v2 & 0xffff);
+	      unsigned long v1 = XINT (XCAR (o)) & 0xffff;
+	      unsigned long v2 = XINT (XCDR (o)) & 0xffff;
+	      val = (v1 << 16) | v2;
             }
           else
-            val = cons_to_signed (o, X_LONG_MIN, X_LONG_MAX);
+            val = cons_to_x_long (o);
         }
       else if (STRINGP (o))
         {
@@ -2322,17 +2315,15 @@ x_fill_property_data (Display *dpy, Lisp_Object data, void *ret, int format)
 
       if (format == 8)
 	{
-	  if (CHAR_MIN <= val && val <= CHAR_MAX)
-	    *d08++ = val;
-	  else
+	  if ((1 << 8) < val && val <= X_ULONG_MAX - (1 << 7))
 	    error ("Out of 'char' range");
+	  *d08++ = val;
 	}
       else if (format == 16)
 	{
-	  if (X_SHRT_MIN <= val && val <= X_SHRT_MAX)
-	    *d16++ = val;
-	  else
+	  if ((1 << 16) < val && val <= X_ULONG_MAX - (1 << 15))
 	    error ("Out of 'short' range");
+	  *d16++ = val;
 	}
       else
         *d32++ = val;

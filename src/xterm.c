@@ -6802,7 +6802,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       break;
 
     case SelectionNotify:
-      dpyinfo->last_user_time = event->xselection.time;
+      x_display_set_last_user_time (dpyinfo, event->xselection.time);
 #ifdef USE_X_TOOLKIT
       if (! x_window_to_frame (dpyinfo, event->xselection.requestor))
         goto OTHER;
@@ -6811,7 +6811,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       break;
 
     case SelectionClear:	/* Someone has grabbed ownership.  */
-      dpyinfo->last_user_time = event->xselectionclear.time;
+      x_display_set_last_user_time (dpyinfo, event->xselectionclear.time);
 #ifdef USE_X_TOOLKIT
       if (! x_window_to_frame (dpyinfo, event->xselectionclear.window))
         goto OTHER;
@@ -6827,7 +6827,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       break;
 
     case SelectionRequest:	/* Someone wants our selection.  */
-      dpyinfo->last_user_time = event->xselectionrequest.time;
+      x_display_set_last_user_time (dpyinfo, event->xselectionrequest.time);
 #ifdef USE_X_TOOLKIT
       if (!x_window_to_frame (dpyinfo, event->xselectionrequest.owner))
         goto OTHER;
@@ -6846,7 +6846,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       break;
 
     case PropertyNotify:
-      dpyinfo->last_user_time = event->xproperty.time;
+      x_display_set_last_user_time (dpyinfo, event->xproperty.time);
       f = x_top_window_to_frame (dpyinfo, event->xproperty.window);
       if (f && event->xproperty.atom == dpyinfo->Xatom_net_wm_state)
 	{
@@ -7044,7 +7044,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
     case KeyPress:
 
-      dpyinfo->last_user_time = event->xkey.time;
+      x_display_set_last_user_time (dpyinfo, event->xkey.time);
       ignore_next_mouse_click_timeout = 0;
 
 #if defined (USE_X_TOOLKIT) || defined (USE_GTK)
@@ -7378,7 +7378,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #endif
 
     case KeyRelease:
-      dpyinfo->last_user_time = event->xkey.time;
+      x_display_set_last_user_time (dpyinfo, event->xkey.time);
 #ifdef HAVE_X_I18N
       /* Don't dispatch this event since XtDispatchEvent calls
          XFilterEvent, and two calls in a row may freeze the
@@ -7389,7 +7389,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #endif
 
     case EnterNotify:
-      dpyinfo->last_user_time = event->xcrossing.time;
+      x_display_set_last_user_time (dpyinfo, event->xcrossing.time);
       x_detect_focus_change (dpyinfo, any, event, &inev.ie);
 
       f = any;
@@ -7414,7 +7414,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       goto OTHER;
 
     case LeaveNotify:
-      dpyinfo->last_user_time = event->xcrossing.time;
+      x_display_set_last_user_time (dpyinfo, event->xcrossing.time);
       x_detect_focus_change (dpyinfo, any, event, &inev.ie);
 
       f = x_top_window_to_frame (dpyinfo, event->xcrossing.window);
@@ -7448,7 +7448,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
     case MotionNotify:
       {
-        dpyinfo->last_user_time = event->xmotion.time;
+        x_display_set_last_user_time (dpyinfo, event->xmotion.time);
         previous_help_echo_string = help_echo_string;
         help_echo_string = Qnil;
 
@@ -7588,7 +7588,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	memset (&compose_status, 0, sizeof (compose_status));
 	dpyinfo->last_mouse_glyph_frame = NULL;
-	dpyinfo->last_user_time = event->xbutton.time;
+	x_display_set_last_user_time (dpyinfo, event->xbutton.time);
 
         f = (x_mouse_grabbed (dpyinfo) ? dpyinfo->last_mouse_frame
 	     : x_window_to_frame (dpyinfo, event->xbutton.window));

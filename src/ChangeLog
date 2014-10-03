@@ -1,3 +1,14 @@
+2014-10-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix x-focus-frame bug with "Not an in-range integer" (Bug#18586).
+	* xselect.c (X_SHRT_MAX, X_SHRT_MIN, X_LONG_MAX, X_LONG_MIN)
+	(X_ULONG_MAX): Move these macros to xterm.h.
+	(x_fill_property_data): Be more generous about allowing either
+	signed or unsigned data of the appropriate width.
+	* xterm.h (x_display_set_last_user_time): New function.
+	All setters of last_user_time changd to use this function.
+	If ENABLE_CHECKING, check that the times are in range.
+
 2014-10-02  Eli Zaretskii  <eliz@gnu.org>
 
 	* dispnew.c (adjust_decode_mode_spec_buffer): Use 'int' instead of

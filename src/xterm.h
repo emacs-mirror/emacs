@@ -434,7 +434,7 @@ extern void select_visual (struct x_display_info *);
 
 struct x_output
 {
-#if defined (USE_X_TOOLKIT) || defined (USE_GTK)  
+#if defined (USE_X_TOOLKIT) || defined (USE_GTK)
   /* Height of menu bar widget, in pixels.  This value
      is not meaningful if the menubar is turned off.  */
   int menubar_height;
@@ -653,6 +653,13 @@ struct x_output
   int move_offset_top;
   int move_offset_left;
 };
+
+/* Extreme 'short' and 'long' values suitable for libX11.  */
+#define X_SHRT_MAX 0x7fff
+#define X_SHRT_MIN (-1 - X_SHRT_MAX)
+#define X_LONG_MAX 0x7fffffff
+#define X_LONG_MIN (-1 - X_LONG_MAX)
+#define X_ULONG_MAX 0xffffffffUL
 
 #define No_Cursor (None)
 
@@ -1020,6 +1027,15 @@ INLINE int
 x_display_pixel_width (struct x_display_info *dpyinfo)
 {
   return WidthOfScreen (dpyinfo->screen);
+}
+
+INLINE void
+x_display_set_last_user_time (struct x_display_info *dpyinfo, Time t)
+{
+#ifdef ENABLE_CHECKING
+  eassert (t <= X_ULONG_MAX);
+#endif
+  dpyinfo->last_user_time = t;
 }
 
 extern void x_set_sticky (struct frame *, Lisp_Object, Lisp_Object);
