@@ -1,3 +1,9 @@
+2014-10-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc/vc-svn.el (vc-svn-after-dir-status): Fix the non-remote regexp,
+	similarly to Roger's 2010-06-12 change for the remote change
+	(bug#18605).
+
 2014-10-01  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/package.el (package-import-keyring):

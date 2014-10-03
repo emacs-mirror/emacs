@@ -195,7 +195,7 @@ If you want to force an empty list of arguments, use t."
                      (?~ . edited)))
 	(re (if remote "^\\(.\\)\\(.\\).....? \\([ *]\\) +\\(?:[-0-9]+\\)?   \\(.*\\)$"
 	      ;; Subexp 3 is a dummy in this case, so the numbers match.
-	      "^\\(.\\)\\(.\\)...\\(.\\) \\(.*\\)$"))
+	      "^\\(.\\)\\(.\\)...\\(.\\).? \\(.*\\)$"))
        result)
     (goto-char (point-min))
     (while (re-search-forward re nil t)
