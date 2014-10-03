@@ -1,3 +1,10 @@
+2014-10-03  Martin Rudalics  <rudalics@gmx.at>
+
+	* frames.texi (Size Parameters, Size and Position): Mention that
+	with some window managers you have to set
+	`frame-resize-pixelwise' in order make a frame truly fullscreen
+	or maximized.
+
 2014-09-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* functions.texi (Core Advising Primitives): Add a note about the

@@ -686,6 +686,11 @@ difference between @code{maximized} and @code{fullboth} is that the
 former can still be resized by dragging window manager decorations
 with the mouse, while the latter really covers the whole screen and
 does not allow resizing by mouse dragging.
+
+With some window managers you may have to customize the variable
+@code{frame-resize-pixelwise} to a non-@code{nil} value in order to make
+a frame appear ``maximized'' or ``fullscreen''.
+
 @end table
 
 @node Layout Parameters
@@ -1163,7 +1168,10 @@ on the toolkit used: Dragging the frame border with the mouse is usually
 always done character-wise.  Calling @code{set-frame-size} (see below)
 with arguments that do not specify the frame size as an integer multiple
 of its character size may be, however, either ignored or cause a
-rounding (GTK+, Windows) or get accepted (Lucid, Motif).
+rounding (GTK+) or get accepted (Lucid, Motif, Windows).
+
+With some window managers you may have to set this to non-@code{nil} in
+order to make a frame appear truly ``maximized'' or ``fullscreen''.
 @end defopt
 
 @defun set-frame-size frame width height pixelwise

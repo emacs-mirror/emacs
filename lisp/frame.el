@@ -1844,6 +1844,11 @@ If the frame is in fullscreen mode, don't change its mode,
 just toggle the temporary frame parameter `maximized',
 so the frame will go to the right maximization state
 after disabling fullscreen mode.
+
+Note that with some window managers you may have to set
+`frame-resize-pixelwise' to non-nil in order to make a frame
+appear truly maximized.
+
 See also `toggle-frame-fullscreen'."
   (interactive)
   (if (memq (frame-parameter nil 'fullscreen) '(fullscreen fullboth))
@@ -1865,6 +1870,11 @@ already fullscreen.  Ignore window manager screen decorations.
 When turning on fullscreen mode, remember the previous value of the
 maximization state in the temporary frame parameter `maximized'.
 Restore the maximization state when turning off fullscreen mode.
+
+Note that with some window managers you may have to set
+`frame-resize-pixelwise' to non-nil in order to make a frame
+appear truly fullscreen.
+
 See also `toggle-frame-maximized'."
   (interactive)
   (modify-frame-parameters
