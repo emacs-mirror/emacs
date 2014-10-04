@@ -3925,9 +3925,9 @@ bar actually occupies.
 @end defun
 
 @defun window-scroll-bar-width &optional window
-This function returns the width of @var{window}'s vertical scrollbar,
-in pixels.  @var{window} must be a live window.  If @var{window} is
-@code{nil} or omitted, it will be the selected window.
+This function returns the width in pixels of @var{window}'s vertical
+scrollbar.  @var{window} must be a live window, and defaults to the
+selected window.
 @end defun
 
 If you don't specify these values for a window with
