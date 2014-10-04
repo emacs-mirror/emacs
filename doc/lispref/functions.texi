@@ -1232,7 +1232,7 @@ global value of @var{place}.  Whereas if @var{place} is of the form
 @code{(local @var{symbol})}, where @var{symbol} is an expression which returns
 the variable name, then @var{function} will only be added in the
 current buffer.  Finally, if you want to modify a lexical variable, you will
-have to use @code{(var @var{VARIABLE})}.
+have to use @code{(var @var{variable})}.
 
 Every function added with @code{add-function} can be accompanied by an
 association list of properties @var{props}.  Currently only two of those

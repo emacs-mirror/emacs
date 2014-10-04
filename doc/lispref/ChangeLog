@@ -1,5 +1,9 @@
 2014-10-04  Glenn Morris  <rgm@gnu.org>
 
+	* buffers.texi (Buffer List):
+	* display.texi (Image Descriptors, Defining Images):
+	* functions.texi (Core Advising Primitives): Small fixes re @var usage.
+
 	* windows.texi (Window Sizes, Resizing Windows): Copyedits.
 
 	* frames.texi (Multiple Terminals): Copyedits re multiple monitors.

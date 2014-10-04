@@ -863,7 +863,7 @@ If no suitable buffer exists, the buffer @file{*scratch*} is returned
 
 @defun last-buffer &optional buffer visible-ok frame
 This function returns the last buffer in @var{frame}'s buffer list other
-than @var{BUFFER}.  If @var{frame} is omitted or @code{nil}, it uses the
+than @var{buffer}.  If @var{frame} is omitted or @code{nil}, it uses the
 selected frame's buffer list.
 
 The argument @var{visible-ok} is handled as with @code{other-buffer},

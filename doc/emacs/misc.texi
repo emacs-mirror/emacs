@@ -1610,9 +1610,9 @@ all server buffers are finished.  You can take as long as you like to
 edit the server buffers within Emacs, and they are @emph{not} killed
 when you type @kbd{C-x #} in them.
 
-@item --parent-id @var{ID}
+@item --parent-id @var{id}
 Open an @command{emacsclient} frame as a client frame in the parent X
-window with id @var{ID}, via the XEmbed protocol.  Currently, this
+window with id @var{id}, via the XEmbed protocol.  Currently, this
 option is mainly useful for developers.
 
 @item -q

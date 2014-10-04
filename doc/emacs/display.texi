@@ -1245,11 +1245,11 @@ Size Indication mode.  The size will be displayed immediately
 following the buffer percentage like this:
 
 @example
-@var{POS} of @var{SIZE}
+@var{pos} of @var{size}
 @end example
 
 @noindent
-Here @var{SIZE} is the human readable representation of the number of
+Here @var{size} is the human readable representation of the number of
 characters in the buffer, which means that @samp{k} for 10^3, @samp{M}
 for 10^6, @samp{G} for 10^9, etc., are used to abbreviate.
 

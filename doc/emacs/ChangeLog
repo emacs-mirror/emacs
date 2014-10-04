@@ -1,5 +1,10 @@
 2014-10-04  Glenn Morris  <rgm@gnu.org>
 
+	* cmdargs.texi (Misc X):
+	* display.texi (Optional Mode Line):
+	* misc.texi (emacsclient Options):
+	* vc1-xtra.texi (VC Delete/Rename): Small fixes re @var usage.
+
 	* killing.texi (Rectangles): Copyedits re rectangle-mark-mode.
 	(CUA Bindings): Mention rectangle-mark-mode.
 
