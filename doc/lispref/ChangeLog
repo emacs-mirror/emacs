@@ -1,5 +1,7 @@
 2014-10-04  Glenn Morris  <rgm@gnu.org>
 
+	* commands.texi (Generic Commands): Copyedits.
+
 	* display.texi (Scroll Bars):
 	* modes.texi (Header Lines): Copyedits.
 
