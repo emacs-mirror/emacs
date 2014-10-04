@@ -1289,7 +1289,7 @@ bars (top, bottom, or nil)."
 
 (defun frame-monitor-attributes (&optional frame)
   "Return the attributes of the physical monitor dominating FRAME.
-If FRAME is omitted, describe the currently selected frame.
+If FRAME is omitted or nil, describe the currently selected frame.
 
 A frame is dominated by a physical monitor when either the
 largest area of the frame resides in the monitor, or the monitor
@@ -1567,16 +1567,15 @@ If DISPLAY is omitted or nil, it defaults to the selected frame's display."
 
 (defun display-monitor-attributes-list (&optional display)
   "Return a list of physical monitor attributes on DISPLAY.
-Each element of the list represents the attributes of each
-physical monitor.  The first element corresponds to the primary
-monitor.
+If DISPLAY is omitted or nil, it defaults to the selected frame's display.
+Each element of the list represents the attributes of a physical
+monitor.  The first element corresponds to the primary monitor.
 
-Attributes for a physical monitor is represented as an alist of
-attribute keys and values as follows:
+The attributes for a physical monitor are represented as an alist
+of attribute keys and values as follows:
 
- geometry -- Position and size in pixels in the form of
-	     (X Y WIDTH HEIGHT)
- workarea -- Position and size of the workarea in pixels in the
+ geometry -- Position and size in pixels in the form of (X Y WIDTH HEIGHT)
+ workarea -- Position and size of the work area in pixels in the
 	     form of (X Y WIDTH HEIGHT)
  mm-size  -- Width and height in millimeters in the form of
  	     (WIDTH HEIGHT)
@@ -1589,11 +1588,10 @@ with (*) are optional.
 A frame is dominated by a physical monitor when either the
 largest area of the frame resides in the monitor, or the monitor
 is the closest to the frame if the frame does not intersect any
-physical monitors.  Every non-tip frame (including invisible one)
+physical monitors.  Every (non-tooltip) frame (including invisible ones)
 in a graphical display is dominated by exactly one physical
 monitor at a time, though it can span multiple (or no) physical
-monitors.
-If DISPLAY is omitted or nil, it defaults to the selected frame's display."
+monitors."
   (let ((frame-type (framep-on-display display)))
     (cond
      ((eq frame-type 'x)
