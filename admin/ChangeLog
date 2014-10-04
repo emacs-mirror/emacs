@@ -1,3 +1,7 @@
+2014-10-04  Glenn Morris  <rgm@gnu.org>
+
+	* authors.el (authors-renamed-files-alist): Add package-x-test.el
+
 2014-10-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* unidata/unidata-gen.el (unidata-gen-table-word-list): Use alist-get

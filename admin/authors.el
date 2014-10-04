@@ -782,6 +782,7 @@ in the repository.")
     ;; The one in lisp is eshell/eshell.el.
     ("eshell.el" . "automated/eshell.el")
     ("eshell/esh-test.el" . "automated/eshell.el")
+    ("automated/package-x-test.el" . "automated/package-test.el")
     ;; INSTALL-CVS -> .CVS -> .BZR -> .REPO
     ("INSTALL-CVS" . "INSTALL.REPO")
     ("INSTALL.CVS" . "INSTALL.REPO")
