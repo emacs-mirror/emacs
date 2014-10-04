@@ -1,3 +1,18 @@
+2014-10-04  Glenn Morris  <rgm@gnu.org>
+
+	* commands.texi (Generic Commands): Copyedits.
+
+	* display.texi (Scroll Bars):
+	* modes.texi (Header Lines): Copyedits.
+
+	* buffers.texi (Buffer List):
+	* display.texi (Image Descriptors, Defining Images):
+	* functions.texi (Core Advising Primitives): Small fixes re @var usage.
+
+	* windows.texi (Window Sizes, Resizing Windows): Copyedits.
+
+	* frames.texi (Multiple Terminals): Copyedits re multiple monitors.
+
 2014-10-03  Martin Rudalics  <rudalics@gmx.at>
 
 	* frames.texi (Size Parameters, Size and Position): Mention that

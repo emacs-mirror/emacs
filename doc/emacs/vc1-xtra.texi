@@ -113,7 +113,7 @@ Prompt for a file name, delete the file from the working tree, and
 schedule the deletion for committing.
 
 @item M-x vc-rename-file
-Prompt for two file names, @var{VAR} and @var{OLD}, rename them in the
+Prompt for two file names, @var{var} and @var{old}, rename them in the
 working tree, and schedule the renaming for committing.
 @end table
 

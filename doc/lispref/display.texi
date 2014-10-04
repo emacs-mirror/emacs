@@ -3925,9 +3925,9 @@ bar actually occupies.
 @end defun
 
 @defun window-scroll-bar-width &optional window
-This function returns the width of @var{window}'s vertical scrollbar,
-in pixels.  @var{window} must be a live window.  If @var{window} is
-@code{nil} or omitted, it will be the selected window.
+This function returns the width in pixels of @var{window}'s vertical
+scrollbar.  @var{window} must be a live window, and defaults to the
+selected window.
 @end defun
 
 If you don't specify these values for a window with
@@ -4503,7 +4503,7 @@ functions to insert images into buffers.
 
   Each image descriptor has the form @code{(image . @var{props})},
 where @var{props} is a property list of alternating keyword symbols
-and values, including at least the pair @code{:type @var{TYPE}} which
+and values, including at least the pair @code{:type @var{type}} that
 specifies the image type.
 
   The following is a list of properties that are meaningful for all
@@ -4995,7 +4995,7 @@ of a list of image specifications @var{specs}.
 Each specification in @var{specs} is a property list with contents
 depending on image type.  All specifications must at least contain the
 properties @code{:type @var{type}} and either @w{@code{:file @var{file}}}
-or @w{@code{:data @var{DATA}}}, where @var{type} is a symbol specifying
+or @w{@code{:data @var{data}}}, where @var{type} is a symbol specifying
 the image type, e.g., @code{xbm}, @var{file} is the file to load the
 image from, and @var{data} is a string containing the actual image data.
 The first specification in the list whose @var{type} is supported, and
