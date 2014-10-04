@@ -1,5 +1,8 @@
 2014-10-04  Glenn Morris  <rgm@gnu.org>
 
+	* misc.texi (Sorting):
+	* search.texi (Query Replace): Markup fixes.
+
 	* cmdargs.texi (Misc X):
 	* display.texi (Optional Mode Line):
 	* misc.texi (emacsclient Options):
