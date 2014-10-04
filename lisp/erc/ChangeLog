@@ -1,3 +1,8 @@
+2014-10-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* erc.el (erc-channel-receive-names): Silence compiler warning.
+	(erc-format-@nick, erc-update-modes): Idem.
+
 2014-10-03  Kelvin White  <kwhite@gnu.org>
 
 	* erc.el (erc-rename-buffers): Use defcustom instead of defvar for

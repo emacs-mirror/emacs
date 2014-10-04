@@ -4246,7 +4246,7 @@ See also `erc-format-nick-function'."
            (erc-propertize "+" 'help-echo "voice"))
           (t ""))))
 
-(defun erc-format-@nick (&optional user channel-data)
+(defun erc-format-@nick (&optional user _channel-data)
   "Format the nickname of USER showing if USER has a voice, is an
 operator, half-op, admin or owner. Owners have \"~\", admins have
 \"&\", operators have \"@\" and users with voice have \"+\" as a
@@ -4770,22 +4770,24 @@ channel."
          (hop-ch (cdr (assq ?h prefix)))
          (adm-ch (cdr (assq ?a prefix)))
          (own-ch (cdr (assq ?q prefix)))
-         names name op voice halfop admin owner)
-    (setq names (delete "" (split-string names-string)))
+         (names (delete "" (split-string names-string)))
+	 name op voice halfop admin owner)
     (let ((erc-channel-members-changed-hook nil))
       (dolist (item names)
-        (let ((updatep t))
+        (let ((updatep t)
+	      (ch (aref item 0)))
           (setq name item op 'off voice 'off halfop 'off admin 'off owner 'off)
-          (if (rassq (elt item 0) prefix)
+          (if (rassq ch prefix)
               (if (= (length item) 1)
 		  (setq updatep nil)
 		(setq name (substring item 1))
-		(setf (pcase (aref item 0)
+		(setf (pcase ch
 			((pred (eq voice-ch)) voice)
 			((pred (eq hop-ch))   halfop)
 			((pred (eq op-ch))    op)
 			((pred (eq adm-ch))   admin)
-			((pred (eq own-ch))   owner))
+			((pred (eq own-ch))   owner)
+			(_ (error "Unknown prefix char `%S'" ch) voice))
 		      'on)))
           (when updatep
             (puthash (erc-downcase name) t
@@ -5086,7 +5088,7 @@ arg-modes is a list of triples of the form:
         (list add-modes remove-modes arg-modes))
     nil))
 
-(defun erc-update-modes (tgt mode-string &optional nick host login)
+(defun erc-update-modes (tgt mode-string &optional _nick _host _login)
   "Update the mode information for TGT, provided as MODE-STRING.
 Optional arguments: NICK, HOST and LOGIN - the attributes of the
 person who changed the modes."
