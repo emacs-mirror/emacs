@@ -396,6 +396,73 @@ Must called from within a `tar-mode' buffer."
 			(expand-file-name "signed-good-1.0" package-user-dir))
 		nil t))))))
 
+
+
+;;; Tests for package-x features.
+
+(require 'package-x)
+
+(defvar package-x-test--single-archive-entry-1-3
+  (cons 'simple-single
+        (package-make-ac-desc '(1 3) nil
+                              "A single-file package with no dependencies"
+                              'single
+                              '((:url . "http://doodles.au"))))
+  "Expected contents of the archive entry from the \"simple-single\" package.")
+
+(defvar package-x-test--single-archive-entry-1-4
+  (cons 'simple-single
+        (package-make-ac-desc '(1 4) nil
+                              "A single-file package with no dependencies"
+                              'single
+                              nil))
+  "Expected contents of the archive entry from the updated \"simple-single\" package.")
+
+(ert-deftest package-x-test-upload-buffer ()
+  "Test creating an \"archive-contents\" file"
+  (with-package-test (:basedir "data/package"
+                               :file "simple-single-1.3.el"
+                               :upload-base t)
+    (package-upload-buffer)
+    (should (file-exists-p (expand-file-name "archive-contents"
+                                             package-archive-upload-base)))
+    (should (file-exists-p (expand-file-name "simple-single-1.3.el"
+                                             package-archive-upload-base)))
+    (should (file-exists-p (expand-file-name "simple-single-readme.txt"
+                                             package-archive-upload-base)))
+
+    (let (archive-contents)
+      (with-temp-buffer
+        (insert-file-contents
+         (expand-file-name "archive-contents"
+                           package-archive-upload-base))
+        (setq archive-contents
+              (package-read-from-string
+               (buffer-substring (point-min) (point-max)))))
+      (should (equal archive-contents
+                     (list 1 package-x-test--single-archive-entry-1-3))))))
+
+(ert-deftest package-x-test-upload-new-version ()
+  "Test uploading a new version of a package"
+  (with-package-test (:basedir "data/package"
+                               :file "simple-single-1.3.el"
+                               :upload-base t)
+    (package-upload-buffer)
+    (with-temp-buffer
+      (insert-file-contents "newer-versions/simple-single-1.4.el")
+      (package-upload-buffer))
+
+    (let (archive-contents)
+      (with-temp-buffer
+        (insert-file-contents
+         (expand-file-name "archive-contents"
+                           package-archive-upload-base))
+        (setq archive-contents
+              (package-read-from-string
+               (buffer-substring (point-min) (point-max)))))
+      (should (equal archive-contents
+                     (list 1 package-x-test--single-archive-entry-1-4))))))
+
 (provide 'package-test)
 
 ;;; package-test.el ends here

@@ -1,3 +1,8 @@
+2014-10-04  Glenn Morris  <rgm@gnu.org>
+
+	* automated/package-x-test.el: Remove file...
+	* automated/package-test.el: ... merge package-x-test.el.  (Bug#18574)
+
 2014-10-02  Glenn Morris  <rgm@gnu.org>
 
 	* automated/package-test.el (with-package-test, package-test-signed):
