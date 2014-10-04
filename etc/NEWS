@@ -147,6 +147,9 @@ See `diary-chinese-list-entries' and `diary-chinese-mark-entries'.
 ** New ERT function `ert-summarize-tests-batch-and-exit'.
 
 ---
+** ntlm.el has support for NTLM2.
+
+---
 ** The Rmail commands d, C-d and u now handle repeat counts to delete or
 undelete multiple messages.
 
