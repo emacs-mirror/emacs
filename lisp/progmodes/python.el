@@ -545,7 +545,7 @@ The type returned can be `comment', `string' or `paren'."
               (res nil))
           (while (and (setq res (re-search-forward re limit t))
                       (or (python-syntax-context 'paren)
-                          (equal (char-after (point-marker)) ?=))))
+                          (equal (char-after (point)) ?=))))
           res))
      (1 font-lock-variable-name-face nil nil))
     ;; support for a, b, c = (1, 2, 3)
@@ -1042,9 +1042,9 @@ See `python-indent-line' for details."
   "De-indent current line."
   (interactive "*")
   (when (and (not (python-syntax-comment-or-string-p))
-             (<= (point-marker) (save-excursion
+             (<= (point) (save-excursion
                                   (back-to-indentation)
-                                  (point-marker)))
+                           (point)))
              (> (current-column) 0))
     (python-indent-line t)
     t))
@@ -2399,12 +2399,8 @@ variable.
          python-comint-postoutput-scroll-to-bottom))
   (set (make-local-variable 'compilation-error-regexp-alist)
        python-shell-compilation-regexp-alist)
-  (define-key inferior-python-mode-map [remap complete-symbol]
-    'completion-at-point)
   (add-hook 'completion-at-point-functions
-            'python-shell-completion-at-point nil 'local)
-  (add-to-list (make-local-variable 'comint-dynamic-complete-functions)
-               'python-shell-completion-at-point)
+            #'python-shell-completion-at-point nil 'local)
   (define-key inferior-python-mode-map "\t"
     'python-shell-completion-complete-or-indent)
   (make-local-variable 'python-pdbtrack-buffers-to-kill)
@@ -2960,7 +2956,7 @@ If not try to complete."
   (interactive)
   (if (string-match "^[[:space:]]*$"
                     (buffer-substring (comint-line-beginning-position)
-                                      (point-marker)))
+                                      (point)))
       (indent-for-tab-command)
     (completion-at-point)))
 
@@ -3291,8 +3287,7 @@ JUSTIFY should be used (if applicable) as in `fill-paragraph'."
   (save-restriction
     (narrow-to-region (progn
                         (while (python-syntax-context 'paren)
-                          (goto-char (1- (point-marker))))
-                        (point-marker)
+                          (goto-char (1- (point))))
                         (line-beginning-position))
                       (progn
                         (when (not (python-syntax-context 'paren))
@@ -3301,8 +3296,8 @@ JUSTIFY should be used (if applicable) as in `fill-paragraph'."
                             (skip-syntax-backward "^)")))
                         (while (and (python-syntax-context 'paren)
                                     (not (eobp)))
-                          (goto-char (1+ (point-marker))))
-                        (point-marker)))
+                          (goto-char (1+ (point))))
+                        (point)))
     (let ((paragraph-start "\f\\|[ \t]*$")
           (paragraph-separate ",")
           (fill-paragraph-function))
@@ -4323,7 +4318,8 @@ Arguments START and END narrow the buffer region to work on."
   (add-to-list 'hs-special-modes-alist
                `(python-mode "^\\s-*\\(?:def\\|class\\)\\>" nil "#"
                              ,(lambda (_arg)
-                                (python-nav-end-of-defun)) nil))
+                                (python-nav-end-of-defun))
+                             nil))
 
   (set (make-local-variable 'outline-regexp)
        (python-rx (* space) block-start))

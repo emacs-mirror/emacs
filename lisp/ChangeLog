@@ -1,3 +1,11 @@
+2014-10-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/python.el: Avoid building unneeded markers.
+	(python-font-lock-keywords, python-indent-dedent-line)
+	(python-fill-paren, python-shell-completion-complete-or-indent):
+	Prefer point over point-marker.
+	(inferior-python-mode): Remove redundant completion settings.
+
 2014-10-03  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* vc/vc-svn.el (vc-svn-ignore-completion-table): Implement.
