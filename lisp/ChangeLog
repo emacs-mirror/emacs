@@ -1,3 +1,7 @@
+2014-10-04  Mark Oteiza  <mvoteiza@udel.edu>  (tiny change)
+
+	* files.el (auto-mode-alist): Use sh-mode for .zsh files.  (Bug#18488)
+
 2014-10-04  Glenn Morris  <rgm@gnu.org>
 
 	* frame.el (frame-monitor-attributes)
