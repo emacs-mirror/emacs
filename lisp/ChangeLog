@@ -1,3 +1,8 @@
+2014-10-04  Glenn Morris  <rgm@gnu.org>
+
+	* startup.el (command-line):
+	Handle altered user-emacs-directory in load-path warning.  (Bug#18512)
+
 2014-10-04  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (window-full-height-p): Make it behave correctly for
