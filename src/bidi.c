@@ -1763,10 +1763,10 @@ bidi_resolve_explicit (struct bidi_it *bidi_it)
     }
   else
     {
-	/* LRI, RLI, and FSI increment, and PDF decrements, the
-	   embedding level of the _following_ characters, so we must
-	   first look at the type of the previous character to support
-	   that.  */
+      /* LRI, RLI, and FSI increment, and PDF decrements, the
+	 embedding level of the _following_ characters, so we must
+	 first look at the type of the previous character to support
+	 that.  */
       switch (prev_type)
 	{
 	case RLI:	/* X5a */
@@ -2518,7 +2518,7 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
     {
       int bob = ((bidi_it->string.s || STRINGP (bidi_it->string.lstring))
 		 ? 0 : 1);
-      bidi_type_t prev_type = bidi_it->prev.type;
+      bidi_type_t prev_type = bidi_it->type;
       bidi_type_t type_for_neutral = bidi_it->next_for_neutral.type;
       ptrdiff_t pos_for_neutral = bidi_it->next_for_neutral.charpos;
 
@@ -2553,7 +2553,10 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
 	  && bidi_explicit_dir_char (bidi_it->ch)
 	  && type_for_neutral != UNKNOWN_BT
 	  && bidi_it->charpos < pos_for_neutral)
-	type = prev_type;
+	{
+	  type = prev_type;
+	  eassert (type != UNKNOWN_BT);
+	}
     }
   else
     type = UNKNOWN_BT;
