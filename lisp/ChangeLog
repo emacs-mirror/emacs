@@ -1,3 +1,8 @@
+2014-10-04  Thomas Fitzsimmons  <fitzsim@fitzsim.org>
+
+	* net/ntlm.el (ntlm-build-auth-request):
+	Add NTLM2 Session support.  (Bug#15603)
+
 2014-10-04  Glenn Morris  <rgm@gnu.org>
 
 	* apropos.el (apropos-symbols-internal):

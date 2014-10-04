@@ -80,8 +80,8 @@ is not given."
 	(request-msgType (concat (make-string 1 1) (make-string 3 0)))
 					;0x01 0x00 0x00 0x00
 	(request-flags (concat (make-string 1 7) (make-string 1 178)
-			       (make-string 2 0)))
-					;0x07 0xb2 0x00 0x00
+			       (make-string 1 8) (make-string 1 0)))
+					;0x07 0xb2 0x08 0x00
 	lu ld off-d off-u)
     (when (string-match "@" user)
       (unless domain
@@ -144,11 +144,35 @@ by PASSWORD-HASHES.  PASSWORD-HASHES should be a return value of
       (setq domain (substring user (1+ (match-beginning 0))))
       (setq user (substring user 0 (match-beginning 0))))
 
-    ;; generate response data
-    (setq lmRespData
-	  (ntlm-smb-owf-encrypt (car password-hashes) challengeData))
-    (setq ntRespData
-	  (ntlm-smb-owf-encrypt (cadr password-hashes) challengeData))
+    ;; check if "negotiate NTLM2 key" flag is set in type 2 message
+    (if (not (zerop (logand (aref flags 2) 8)))
+	(let (randomString
+	      sessionHash)
+	  ;; generate NTLM2 session response data
+	  (setq randomString (string-make-unibyte
+			      (concat
+			       (make-string 1 (random 256))
+			       (make-string 1 (random 256))
+			       (make-string 1 (random 256))
+			       (make-string 1 (random 256))
+			       (make-string 1 (random 256))
+			       (make-string 1 (random 256))
+			       (make-string 1 (random 256))
+			       (make-string 1 (random 256)))))
+	  (setq sessionHash (secure-hash 'md5
+					 (concat challengeData randomString)
+					 nil nil t))
+	  (setq sessionHash (substring sessionHash 0 8))
+
+	  (setq lmRespData (concat randomString (make-string 16 0)))
+	  (setq ntRespData (ntlm-smb-owf-encrypt
+			    (cadr password-hashes) sessionHash)))
+      (progn
+	;; generate response data
+	(setq lmRespData
+	      (ntlm-smb-owf-encrypt (car password-hashes) challengeData))
+	(setq ntRespData
+	      (ntlm-smb-owf-encrypt (cadr password-hashes) challengeData))))
 
     ;; get offsets to fields to pack the response struct in a string
     (setq lu (length user))
