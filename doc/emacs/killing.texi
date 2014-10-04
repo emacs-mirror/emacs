@@ -754,6 +754,10 @@ Replace rectangle contents with @var{string} on each line
 (@code{string-rectangle}).
 @item M-x string-insert-rectangle @key{RET} @var{string} @key{RET}
 Insert @var{string} on each line of the rectangle.
+@item C-x @key{SPC}
+Toggle Rectangle Mark mode (@code{rectangle-mark-mode}).
+When this mode is active, the region-rectangle is highlighted and can
+be shrunk/grown, and the standard kill and yank commands operate on it.
 @end table
 
   The rectangle operations fall into two classes: commands to erase or
@@ -840,11 +844,13 @@ rectangle shifts right.
 shifting the original text to the right.
 
 @findex rectangle-mark-mode
-@cindex rectangular region
-  The command @kbd{C-x @key{SPC}} (@code{rectangle-mark-mode}) makes a
-@dfn{rectangular region}.  It is a new feature introduced in GNU Emacs
-24.4, and most commands now are still unaware of it, but kill and yank
-(@pxref{Killing}) do work on the rectangle.
+  The command @kbd{C-x @key{SPC}} (@code{rectangle-mark-mode}) toggles
+whether the region-rectangle or the standard region is highlighted
+(first activating the region if necessary).  When this mode is enabled,
+commands that resize the region (@kbd{C-f}, @kbd{C-n} etc.) do
+so in a rectangular fashion, and killing and yanking operate on the
+rectangle.  @xref{Killing}.  The mode persists only as long as the
+region is active.
 
 @node CUA Bindings
 @section CUA Bindings
@@ -887,7 +893,8 @@ any direction.  Normal text you type is inserted to the left or right
 of each line in the rectangle (on the same side as the cursor).
 
   You can use this rectangle support without activating CUA by calling the
-@code{cua-rectangle-mark-mode} command.
+@code{cua-rectangle-mark-mode} command.  But see also the standard
+@code{rectangle-mark-mode}.  @xref{Rectangles}.
 
   With CUA you can easily copy text and rectangles into and out of
 registers by providing a one-digit numeric prefix to the kill, copy,
