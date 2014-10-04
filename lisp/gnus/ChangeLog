@@ -1,3 +1,8 @@
+2014-10-04  Peter Münster  <pmlists@free.fr>  (tiny change)
+
+	* gnus-delay.el (gnus-delay-send-queue): Remove `gnus-delay-header'
+	last so it can be used in `message-send-hook'.
+
 2014-10-02  Daiki Ueno  <ueno@gnu.org>
 
 	* mml.el (mml-parse-1): Error out if unknown mode is specified in
