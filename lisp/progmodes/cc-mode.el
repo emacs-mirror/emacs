@@ -185,8 +185,7 @@ control).  See \"cc-mode.el\" for more info."
 	    (run-hooks 'c-initialization-hook)
 	    ;; Fix obsolete variables.
 	    (if (boundp 'c-comment-continuation-stars)
-		(setq c-block-comment-prefix
-		      (symbol-value 'c-comment-continuation-stars)))
+		(setq c-block-comment-prefix c-comment-continuation-stars))
 	    (add-hook 'change-major-mode-hook 'c-leave-cc-mode-mode)
 	    (setq c-initialization-ok t)
 	    ;; Connect up with Emacs's electric-indent-mode, for >= Emacs 24.4
@@ -1322,6 +1321,7 @@ This function is called from `c-common-init', once per mode initialization."
 ;;;###autoload (add-to-list 'auto-mode-alist '("\\.i\\'" . c-mode))
 ;;;###autoload (add-to-list 'auto-mode-alist '("\\.ii\\'" . c++-mode))
 
+(unless (fboundp 'prog-mode) (defalias 'prog-mode 'fundamental-mode))
 
 ;;;###autoload
 (define-derived-mode c-mode prog-mode "C"

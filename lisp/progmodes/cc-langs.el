@@ -130,9 +130,7 @@
 
 
 ;; This file is not always loaded.  See note above.
-;; Except it is always loaded - see bug#17463.
-;;;(cc-external-require 'cl)
-(require 'cl-lib)
+(cc-external-require 'cl)
 
 
 ;;; Setup for the `c-lang-defvar' system.
@@ -253,14 +251,14 @@ the evaluated constant value at compile time."
     (unless xlate
       (setq xlate 'identity))
     (c-with-syntax-table (c-lang-const c-mode-syntax-table)
-      (cl-delete-duplicates
-       (cl-mapcan (lambda (opgroup)
+      (delete-duplicates
+       (mapcan (lambda (opgroup)
 		 (when (if (symbolp (car opgroup))
 			   (when (funcall opgroup-filter (car opgroup))
 			     (setq opgroup (cdr opgroup))
 			     t)
 			 t)
-		   (cl-mapcan (lambda (op)
+		   (mapcan (lambda (op)
 			     (when (funcall op-filter op)
 			       (let ((res (funcall xlate op)))
 				 (if (listp res) res (list res)))))
@@ -301,7 +299,8 @@ the evaluated constant value at compile time."
        ["Set Style..."                   c-set-style t]
        ["Show Current Style Name"        (message
 					  "Style Name: %s"
-					  c-indentation-style) t]
+					  c-indentation-style)
+                                         t]
        ["Guess Style from this Buffer"   c-guess-buffer-no-install t]
        ["Install the Last Guessed Style..." c-guess-install
 	(and c-guess-guessed-offsets-alist
@@ -1155,7 +1154,7 @@ operators."
 (c-lang-defconst c-all-op-syntax-tokens
   ;; List of all tokens in the punctuation and parenthesis syntax
   ;; classes.
-  t (cl-delete-duplicates (append (c-lang-const c-other-op-syntax-tokens)
+  t (delete-duplicates (append (c-lang-const c-other-op-syntax-tokens)
 			       (c-lang-const c-operator-list))
 		       :test 'string-equal))
 
@@ -1587,13 +1586,14 @@ properly."
 (c-lang-defvar c-syntactic-eol (c-lang-const c-syntactic-eol))
 
 
-;;; Defun functions
+;;; Defun handling.
 
-;; The Emacs variables beginning-of-defun-function and
-;; end-of-defun-function will be set so that commands like
-;; `mark-defun' and `narrow-to-defun' work right.  The key sequences
-;; C-M-a and C-M-e are, however, bound directly to the CC Mode
-;; functions, allowing optimization for large n.
+;; The Emacs variables beginning-of-defun-function and end-of-defun-function
+;; will be set so that commands like `mark-defun' and `narrow-to-defun' work
+;; right.  In older Emacsen, the key sequences C-M-a and C-M-e are, however,
+;; bound directly to the CC Mode functions, allowing optimisation for large n.
+;; From Emacs 23, this isn't necessary any more, since n is passed to the two
+;; functions.
 (c-lang-defconst beginning-of-defun-function
   "Function to which beginning-of-defun-function will be set."
   t 'c-beginning-of-defun
@@ -1754,7 +1754,7 @@ not the type face."
 (c-lang-defconst c-type-start-kwds
   ;; All keywords that can start a type (i.e. are either a type prefix
   ;; or a complete type).
-  t (cl-delete-duplicates (append (c-lang-const c-primitive-type-kwds)
+  t (delete-duplicates (append (c-lang-const c-primitive-type-kwds)
 			       (c-lang-const c-type-prefix-kwds)
 			       (c-lang-const c-type-modifier-kwds))
 		       :test 'string-equal))
@@ -1998,7 +1998,7 @@ one of `c-type-list-kwds', `c-ref-list-kwds',
   ;; something is a type or just some sort of macro in front of the
   ;; declaration.  They might be ambiguous with types or type
   ;; prefixes.
-  t (cl-delete-duplicates (append (c-lang-const c-class-decl-kwds)
+  t (delete-duplicates (append (c-lang-const c-class-decl-kwds)
 			       (c-lang-const c-brace-list-decl-kwds)
 			       (c-lang-const c-other-block-decl-kwds)
 			       (c-lang-const c-typedef-decl-kwds)
@@ -2192,7 +2192,7 @@ type identifiers separated by arbitrary tokens."
   pike '("array" "function" "int" "mapping" "multiset" "object" "program"))
 
 (c-lang-defconst c-paren-any-kwds
-  t (cl-delete-duplicates (append (c-lang-const c-paren-nontype-kwds)
+  t (delete-duplicates (append (c-lang-const c-paren-nontype-kwds)
 			       (c-lang-const c-paren-type-kwds))
 		       :test 'string-equal))
 
@@ -2218,7 +2218,7 @@ assumed to be set if this isn't nil."
 
 (c-lang-defconst c-<>-sexp-kwds
   ;; All keywords that can be followed by an angle bracket sexp.
-  t (cl-delete-duplicates (append (c-lang-const c-<>-type-kwds)
+  t (delete-duplicates (append (c-lang-const c-<>-type-kwds)
 			       (c-lang-const c-<>-arglist-kwds))
 		       :test 'string-equal))
 
@@ -2278,7 +2278,7 @@ Keywords here should also be in `c-block-stmt-1-kwds'."
 
 (c-lang-defconst c-block-stmt-kwds
   ;; Union of `c-block-stmt-1-kwds' and `c-block-stmt-2-kwds'.
-  t (cl-delete-duplicates (append (c-lang-const c-block-stmt-1-kwds)
+  t (delete-duplicates (append (c-lang-const c-block-stmt-1-kwds)
 			       (c-lang-const c-block-stmt-2-kwds))
 		       :test 'string-equal))
 
@@ -2382,7 +2382,7 @@ This construct is \"<keyword> <expression> :\"."
 (c-lang-defconst c-expr-kwds
   ;; Keywords that can occur anywhere in expressions.  Built from
   ;; `c-primary-expr-kwds' and all keyword operators in `c-operators'.
-  t (cl-delete-duplicates
+  t (delete-duplicates
      (append (c-lang-const c-primary-expr-kwds)
 	     (c-filter-ops (c-lang-const c-operator-list)
 			   t
@@ -2486,7 +2486,7 @@ Note that Java specific rules are currently applied to tell this from
 
 (c-lang-defconst c-keywords
   ;; All keywords as a list.
-  t (cl-delete-duplicates
+  t (delete-duplicates
      (c-lang-defconst-eval-immediately
       `(append ,@(mapcar (lambda (kwds-lang-const)
 			   `(c-lang-const ,kwds-lang-const))
@@ -2826,7 +2826,7 @@ possible for good performance."
 (c-lang-defvar c-block-prefix-charset (c-lang-const c-block-prefix-charset))
 
 (c-lang-defconst c-type-decl-prefix-key
-  "Regexp matching the declarator operators that might precede the
+  "Regexp matching any declarator operator that might precede the
 identifier in a declaration, e.g. the \"*\" in \"char *argv\".  This
 regexp should match \"(\" if parentheses are valid in declarators.
 The end of the first submatch is taken as the end of the operator.
@@ -3025,7 +3025,8 @@ identifier or one of the keywords on `c-<>-type-kwds' or
 expression is considered to be a type."
   t (or (consp (c-lang-const c-<>-type-kwds))
 	(consp (c-lang-const c-<>-arglist-kwds)))
-  java t)
+  java t)	    ; 2008-10-19.  This is crude.  The syntax for java
+		    ; generics is not yet coded in CC Mode.
 (c-lang-defvar c-recognize-<>-arglists (c-lang-const c-recognize-<>-arglists))
 
 (c-lang-defconst c-enums-contain-decls
@@ -3249,7 +3250,7 @@ accomplish that conveniently."
 			     ;; `c-lang-const' will expand to the evaluated
 			     ;; constant immediately in `macroexpand-all'
 			     ;; below.
-			      (cl-mapcan
+			      (mapcan
 			       (lambda (init)
 				 `(current-var ',(car init)
 				   ,(car init) ,(macroexpand-all

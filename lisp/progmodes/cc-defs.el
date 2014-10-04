@@ -86,6 +86,11 @@
 	       font-lock-keywords)))
       (cc-load "cc-fix")))
 
+;; XEmacs 21.4 doesn't have `delete-dups'.
+(eval-and-compile
+  (if (and (not (fboundp 'delete-dups))
+	   (not (featurep 'cc-fix)))
+      (cc-load "cc-fix")))
 
 ;;; Variables also used at compile time.
 
@@ -913,6 +918,12 @@ MODE is either a mode symbol or a list of mode symbols."
 			       (cc-bytecomp-fboundp 'delete-extent)
 			       (cc-bytecomp-fboundp 'map-extents))))
 
+(defconst c-<-as-paren-syntax '(4 . ?>))
+(put 'c-<-as-paren-syntax 'syntax-table c-<-as-paren-syntax)
+
+(defconst c->-as-paren-syntax '(5 . ?<))
+(put 'c->-as-paren-syntax 'syntax-table c->-as-paren-syntax)
+
 ;; `c-put-char-property' is complex enough in XEmacs and Emacs < 21 to
 ;; make it a function.
 (defalias 'c-put-char-property-fun
@@ -1188,9 +1199,6 @@ been put there by c-put-char-property.  POINT remains unchanged."
     (if (< (point) start)
 	(goto-char (point-max)))))
 
-(defconst c-<-as-paren-syntax '(4 . ?>))
-(put 'c-<-as-paren-syntax 'syntax-table c-<-as-paren-syntax)
-
 (defsubst c-mark-<-as-paren (pos)
   ;; Mark the "<" character at POS as a template opener using the
   ;; `syntax-table' property via the `category' property.
@@ -1200,9 +1208,6 @@ been put there by c-put-char-property.  POINT remains unchanged."
   ;; toggle the property in all template brackets simultaneously and
   ;; cheaply.  We use this, for instance, in `c-parse-state'.
   (c-put-char-property pos 'category 'c-<-as-paren-syntax))
-
-(defconst c->-as-paren-syntax '(5 . ?<))
-(put 'c->-as-paren-syntax 'syntax-table c->-as-paren-syntax)
 
 (defsubst c-mark->-as-paren (pos)
   ;; Mark the ">" character at POS as an sexp list closer using the
@@ -1419,8 +1424,8 @@ Notably, null elements in LIST are ignored."
 
 (defun c-make-keywords-re (adorn list &optional mode)
   "Make a regexp that matches all the strings the list.
-Duplicates and nil elements in the list are removed.  The resulting
-regexp may contain zero or more submatch expressions.
+Duplicates and nil elements in the list are removed.  The
+resulting regexp may contain zero or more submatch expressions.
 
 If ADORN is t there will be at least one submatch and the first
 surrounds the matched alternative, and the regexp will also not match
@@ -1438,11 +1443,7 @@ The optional MODE specifies the language to get `c-nonsymbol-key' from
 when it's needed.  The default is the current language taken from
 `c-buffer-is-cc-mode'."
 
-  (let (unique)
-    (dolist (elt list)
-      (unless (member elt unique)
-	(push elt unique)))
-    (setq list (delete nil unique)))
+  (setq list (delete nil (delete-dups list)))
   (if list
       (let (re)
 
@@ -1638,13 +1639,13 @@ non-nil, a caret is prepended to invert the set."
 		  "support for the `syntax-table' text property "
 		  "is required.")))
 
-	;; Find out if generic comment delimiters work.
+	;; Find out if "\\s!" (generic comment delimiters) work.
 	(c-safe
 	  (modify-syntax-entry ?x "!")
 	  (if (string-match "\\s!" "x")
 	      (setq list (cons 'gen-comment-delim list))))
 
-	;; Find out if generic string delimiters work.
+	;; Find out if "\\s|" (generic string delimiters) work.
 	(c-safe
 	  (modify-syntax-entry ?x "|")
 	  (if (string-match "\\s|" "x")
@@ -1691,7 +1692,8 @@ non-nil, a caret is prepended to invert the set."
       (kill-buffer buf))
 
     ;; See if `parse-partial-sexp' returns the eighth element.
-    (if (c-safe (>= (length (save-excursion (parse-partial-sexp (point) (point))))
+    (if (c-safe (>= (length (save-excursion
+			      (parse-partial-sexp (point) (point))))
 		    10))
 	(setq list (cons 'pps-extended-state list))
       (error (concat
@@ -1707,9 +1709,8 @@ might be present:
 
 '8-bit              8 bit syntax entry flags (XEmacs style).
 '1-bit              1 bit syntax entry flags (Emacs style).
-'argumentative-bod-function         beginning-of-defun passes ARG through
-                    to a non-null beginning-of-defun-function.  It is assumed
-		    the end-of-defun does the same thing.
+'argumentative-bod-function	    beginning-of-defun and end-of-defun pass
+		    ARG through to beginning/end-of-defun-function.
 'syntax-properties  It works to override the syntax for specific characters
 		    in the buffer with the 'syntax-table property.  It's
 		    always set - CC Mode no longer works in emacsen without
@@ -1803,18 +1804,18 @@ system."
     (error "Unknown base mode `%s'" base-mode))
   (put mode 'c-fallback-mode base-mode))
 
-(defvar c-lang-constants (make-vector 151 0)
-  "Obarray used as a cache to keep track of the language constants.
-The constants stored are those defined by `c-lang-defconst' and the values
-computed by `c-lang-const'.  It's mostly used at compile time but it's not
-stored in compiled files.
+(defvar c-lang-constants (make-vector 151 0))
+;;   Obarray used as a cache to keep track of the language constants.
+;; The constants stored are those defined by `c-lang-defconst' and the values
+;; computed by `c-lang-const'.  It's mostly used at compile time but it's not
+;; stored in compiled files.
 
-The obarray contains all the language constants as symbols.  The
-value cells hold the evaluated values as alists where each car is
-the mode name symbol and the corresponding cdr is the evaluated
-value in that mode.  The property lists hold the source definitions
-and other miscellaneous data.  The obarray might also contain
-various other symbols, but those don't have any variable bindings.")
+;; The obarray contains all the language constants as symbols.  The
+;; value cells hold the evaluated values as alists where each car is
+;; the mode name symbol and the corresponding cdr is the evaluated
+;; value in that mode.  The property lists hold the source definitions
+;; and other miscellaneous data.  The obarray might also contain
+;; various other symbols, but those don't have any variable bindings.
 
 (defvar c-lang-const-expansion nil)
 
@@ -1831,7 +1832,9 @@ various other symbols, but those don't have any variable bindings.")
 	       (t
 		;; Being evaluated interactively.
 		(buffer-file-name)))))
-    (and file (file-name-base file))))
+    (and file
+	 (file-name-sans-extension
+	  (file-name-nondirectory file)))))
 
 (defmacro c-lang-defconst-eval-immediately (form)
   "Can be used inside a VAL in `c-lang-defconst' to evaluate FORM

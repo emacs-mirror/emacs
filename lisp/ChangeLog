@@ -1,5 +1,28 @@
 2014-10-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	Merge trivially safe differences from standalone CC-mode.
+	* progmodes/cc-mode.el (c-initialize-cc-mode): Don't quote a symbol
+	just to then pass it to `symbol-value'.
+	(prog-mode): Provide fallback definition, if needed.
+	* progmodes/cc-langs.el: Always load `cl'.  Don't load `cl-lib'.
+	Remove "cl-" prefix accordingly.
+	* progmodes/cc-fonts.el (c-font-lock-invalid-string): Use integerp or
+	characterp depending on the type of characters.
+	(c-font-lock-enum-tail): Remove unused var `start'.
+	* progmodes/cc-engine.el: Load CL at compile-time.
+	(c-declare-lang-variables): Use mapcan.
+	(c-append-to-state-cache): Remove unused var `ce+1'.
+	(c-parse-state-state): Make buffer-local.
+	(c-ssb-lit-begin): Remove unused var `pps-end-pos'.
+	(c-just-after-func-arglist-p): Remove unused var `end'.
+	* progmodes/cc-defs.el: Load cc-fix if delete-dups is undefined.
+	(c-<-as-paren-syntax, c->-as-paren-syntax): Move definition earlier.
+	(c-make-keywords-re): Use delete-dups.
+	(c-get-current-file): Avoid file-name-base.
+	* progmodes/cc-cmds.el (c-electric-lt-gt): Remove unused var
+	`close-paren-inserted'.
+	* progmodes/cc-awk.el (c-forward-sws): Remove unused declaration.
+
 	* progmodes/python.el: Avoid building unneeded markers.
 	(python-font-lock-keywords, python-indent-dedent-line)
 	(python-fill-paren, python-shell-completion-complete-or-indent):

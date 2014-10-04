@@ -1090,7 +1090,7 @@ numeric argument is supplied, or the point is inside a literal."
 
   (interactive "*P")
   (let ((c-echo-syntactic-information-p nil)
-	final-pos close-paren-inserted found-delim case-fold-search)
+	final-pos found-delim case-fold-search)
 
     (self-insert-command (prefix-numeric-value arg))
     (setq final-pos (point))

@@ -519,7 +519,8 @@ is called with one argument, the guessed style."
       (goto-char (point-min))
       (when (search-forward (concat "("
 				    (symbol-name (car needs-markers))
-				    " ") nil t)
+				    " ")
+                            nil t)
 	(move-end-of-line 1)
 	(comment-dwim nil)
 	(insert " Guessed value"))
