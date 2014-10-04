@@ -423,6 +423,7 @@ bidi_push_embedding_level (struct bidi_it *bidi_it,
 			   int level, bidi_dir_t override, bool isolate_status)
 {
   struct bidi_stack *st;
+  int prev_level = bidi_it->level_stack[bidi_it->stack_idx].level;
 
   bidi_it->stack_idx++;
   eassert (bidi_it->stack_idx < BIDI_MAXDEPTH+2+1);
@@ -438,6 +439,9 @@ bidi_push_embedding_level (struct bidi_it *bidi_it,
       st->next_for_neutral = bidi_it->next_for_neutral;
       st->sos = bidi_it->sos;
     }
+  /* We've got a new isolating sequence, compute the directional type
+     of sos and initialize per-sequence variables (UAX#9, clause X10).  */
+  bidi_set_sos_type (bidi_it, prev_level, level);
 }
 
 /* Pop from the stack the embedding level, the directional override
@@ -454,6 +458,8 @@ bidi_pop_embedding_level (struct bidi_it *bidi_it)
     {
       bool isolate_status
 	= bidi_it->level_stack[bidi_it->stack_idx].isolate_status;
+      int old_level = bidi_it->level_stack[bidi_it->stack_idx].level;
+
       struct bidi_stack st;
 
       st = bidi_it->level_stack[bidi_it->stack_idx];
@@ -473,6 +479,10 @@ bidi_pop_embedding_level (struct bidi_it *bidi_it)
 	  bidi_it->next_for_neutral = st.next_for_neutral;
 	  bidi_it->sos = st.sos;
 	}
+      else
+	bidi_set_sos_type (bidi_it, old_level,
+			   bidi_it->level_stack[bidi_it->stack_idx - 1].level);
+
       bidi_it->stack_idx--;
     }
   level = bidi_it->level_stack[bidi_it->stack_idx].level;
@@ -1996,14 +2006,7 @@ bidi_resolve_weak (struct bidi_it *bidi_it)
 	     || type == PDF));
 
   eassert (prev_level >= 0);
-  if (new_level > prev_level
-      /* When the embedding level goes down, we only need to compute
-	 the type of sos if this level is not an isolate, because the
-	 sos type of the isolating sequence was already computed and
-	 saved on the stack.  */
-      || (new_level < prev_level
-	  && !bidi_it->level_stack[bidi_it->stack_idx].isolate_status)
-      || bidi_it->type == NEUTRAL_B)
+  if (bidi_it->type == NEUTRAL_B)
     {
       /* We've got a new isolating sequence, compute the directional
          type of sos and initialize per-run variables (UAX#9, clause
@@ -2336,6 +2339,8 @@ bidi_resolve_neutral (struct bidi_it *bidi_it)
 	     are dealing with now.  We also cache the scanned iterator
 	     states, to salvage some of the effort later.  */
 	  do {
+	    int old_sidx, new_sidx;
+
 	    /* Paragraph separators have their levels fully resolved
 	       at this point, so cache them as resolved.  */
 	    bidi_cache_iterator_state (bidi_it, type == NEUTRAL_B);
@@ -2344,10 +2349,19 @@ bidi_resolve_neutral (struct bidi_it *bidi_it)
 	    if (bidi_it->type_after_w1 != WEAK_BN /* W1/Retaining */
 		&& bidi_it->type != WEAK_BN)
 	      bidi_remember_char (&bidi_it->prev, bidi_it);
+	    old_sidx = bidi_it->stack_idx;
 	    type = bidi_resolve_weak (bidi_it);
 	    /* Skip level runs excluded from this isolating run sequence.  */
-	    if (bidi_it->level_stack[bidi_it->stack_idx].level > current_level
-		&& bidi_it->level_stack[bidi_it->stack_idx].isolate_status)
+	    new_sidx = bidi_it->stack_idx;
+	    if (bidi_it->level_stack[new_sidx].level > current_level
+		&& (bidi_it->level_stack[new_sidx].isolate_status
+		    /* This is for when we have an isolate initiator
+		       immediately followed by an embedding or
+		       override initiator, in which case we get the
+		       level stack pushed twice by the single call to
+		       bidi_resolve_weak above.  */
+		    || (new_sidx > old_sidx + 1
+			&& bidi_it->level_stack[new_sidx - 1].isolate_status)))
 	      {
 		while (bidi_it->level_stack[bidi_it->stack_idx].level
 		       > current_level)
