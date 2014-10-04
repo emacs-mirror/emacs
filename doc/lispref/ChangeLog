@@ -1,5 +1,7 @@
 2014-10-04  Glenn Morris  <rgm@gnu.org>
 
+	* windows.texi (Window Sizes, Resizing Windows): Copyedits.
+
 	* frames.texi (Multiple Terminals): Copyedits re multiple monitors.
 
 2014-10-03  Martin Rudalics  <rudalics@gmx.at>
