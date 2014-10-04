@@ -1,5 +1,8 @@
 2014-10-04  Glenn Morris  <rgm@gnu.org>
 
+	* apropos.el (apropos-symbols-internal):
+	Avoid error with non-symbol properties.  (Bug#18337#16)
+
 	* startup.el (command-line):
 	Handle altered user-emacs-directory in load-path warning.  (Bug#18512)
 
