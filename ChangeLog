@@ -1,3 +1,7 @@
+2014-10-04  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac: Silence warning with some old Xrandr.h.  (Bug#18465)
+
 2014-10-03  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* configure.ac: Port to strict POSIX shells on non-MinGW (Bug#18612).

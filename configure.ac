@@ -3377,8 +3377,12 @@ if test "${HAVE_X11}" = "yes"; then
   EMACS_CHECK_MODULES([XRANDR], [$XRANDR_MODULES])
   if test $HAVE_XRANDR = no; then
     # Test old way in case pkg-config doesn't have it (older machines).
+    # Include Xrender.h by hand to work around bug in older Xrandr.h
+    # (e.g. RHEL5) and silence (harmless) configure warning (bug#18465).
     AC_CHECK_HEADER(X11/extensions/Xrandr.h,
-      [AC_CHECK_LIB(Xrandr, XRRGetScreenResources, HAVE_XRANDR=yes)])
+      [AC_CHECK_LIB(Xrandr, XRRGetScreenResources, HAVE_XRANDR=yes)],
+      [], [AC_INCLUDES_DEFAULT
+#include <X11/extensions/Xrender.h>])
     if test $HAVE_XRANDR = yes; then
       XRANDR_LIBS=-lXrandr
     fi
