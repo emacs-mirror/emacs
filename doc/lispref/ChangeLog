@@ -1,3 +1,14 @@
+2014-10-04  Martin Rudalics  <rudalics@gmx.at>
+
+	* display.texi (Scroll Bars): Add description of horizontal scroll
+	bars and associated functions.
+	* frames.texi (Layout Parameters): Add horizontal scroll bar
+	entries.  Remove paragraph on "combined fringe widths".
+	* windows.texi (Window Sizes): Describe affects of horizontal
+	scroll bars on window layout and sizes.  Fix description of
+	window-full-height-p.
+	(Resizing Windows): Mention horizontal scroll bar.
+
 2014-10-04  Glenn Morris  <rgm@gnu.org>
 
 	* commands.texi (Generic Commands): Copyedits.

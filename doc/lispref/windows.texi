@@ -394,13 +394,14 @@ internal window).  The @var{edges} element is a list @code{(@var{left}
 @group
         ____________________________________________
        |______________ Header Line ______________|RD| ^
-     ^ |LS|LF|LM|                       |RM|RF|RS|  | |
+     ^ |LS|LM|LF|                       |RF|RM|RS|  | |
      | |  |  |  |                       |  |  |  |  | |
 Window |  |  |  |       Text Area       |  |  |  |  | Window
 Body | |  |  |  |     (Window Body)     |  |  |  |  | Total
 Height |  |  |  |                       |  |  |  |  | Height
      | |  |  |  |<- Window Body Width ->|  |  |  |  | |
      v |__|__|__|_______________________|__|__|__|  | |
+       |_________ Horizontal Scroll Bar _________|  | |
        |_______________ Mode Line _______________|__| |
        |_____________ Bottom Divider _______________| v
         <---------- Window Total Width ------------>
@@ -414,15 +415,15 @@ Height |  |  |  |                       |  |  |  |  | Height
   At the center of the window is the @dfn{text area}, or @dfn{body},
 where the buffer text is displayed.  The text area can be surrounded by
 a series of optional areas.  On the left and right, from innermost to
-outermost, these are the left and right margins, denoted by LM and RM in
-the schematic (@pxref{Display Margins}); the left and right fringes,
-denoted by LF and RF (@pxref{Fringes}); the left or right scroll bar,
-only one of which is present at any time, denoted by LS and RS
-(@pxref{Scroll Bars}); and the right divider, denoted by RD
+outermost, these are the left and right fringes, denoted by LF and RF
+(@pxref{Fringes}); the left and right margins, denoted by LM and RM in
+the schematic (@pxref{Display Margins}); the left or right vertical
+scroll bar, only one of which is present at any time, denoted by LS and
+RS (@pxref{Scroll Bars}); and the right divider, denoted by RD
 (@pxref{Window Dividers}).  At the top of the window is the header line
-(@pxref{Header Lines}); at the bottom of the window is the mode line
-(@pxref{Mode Line Format}) followed by the bottom divider (@pxref{Window
-Dividers}).
+(@pxref{Header Lines}).  At the bottom of the window are the horizontal
+scroll bar (@pxref{Scroll Bars}); the mode line (@pxref{Mode Line
+Format}); and the bottom divider (@pxref{Window Dividers}).
 
   Emacs provides miscellaneous functions for finding the height and
 width of a window.  The return value of many of these functions can be
@@ -439,11 +440,8 @@ displayed within it.
 @cindex height of a window
 @cindex total height of a window
   The @dfn{total height} of a window is the number of lines comprising
-the window's body, the header line, the mode line and the bottom divider
-(if any).  Note that the height of a frame is not the same as the height
-of its root window (@pxref{Windows and Frames}), since a frame may also
-contain an echo area, a menu bar, and a tool bar (@pxref{Size and
-Position}).
+the window's body, the header line, the horizontal scroll bar, the mode
+line and the bottom divider (if any).
 
 @defun window-total-height &optional window round
 This function returns the total height, in lines, of the window
@@ -457,8 +455,8 @@ rounded internally.  This is done in a way such that, if the window is a
 parent window, the sum of the total heights of all its child windows
 internally equals the total height of their parent.  This means that
 although two windows have the same pixel height, their internal total
-heights may differ by one line.  This means also, that if this window is
-vertically combined and has a right sibling, the topmost row of that
+heights may differ by one line.  This means also, that if window is
+vertically combined and has a next sibling, the topmost row of that
 sibling can be calculated as the sum of this window's topmost row and
 total height (@pxref{Coordinates and Windows})
 
@@ -490,11 +488,10 @@ window, the sum of the total widths of all its children internally
 equals the total width of their parent.  This means that although two
 windows have the same pixel width, their internal total widths may
 differ by one column.  This means also, that if this window is
-horizontally combined and has a right sibling, the leftmost column of
+horizontally combined and has a next sibling, the leftmost column of
 that sibling can be calculated as the sum of this window's leftmost
-column and total width (@pxref{Coordinates and Windows}).  The
-optional argument @var{round} behaves as it does for
-@code{window-total-height}.
+column and total width (@pxref{Coordinates and Windows}).  The optional
+argument @var{round} behaves as it does for @code{window-total-height}.
 @end defun
 
 @defun window-total-size &optional window horizontal round
@@ -517,9 +514,10 @@ window in units of pixels.
 This function returns the total height of window @var{window} in pixels.
 @var{window} must be a valid window and defaults to the selected one.
 
-The return value includes mode and header line and a bottom divider, if
-any.  If @var{window} is an internal window, its pixel height is the
-pixel height of the screen areas spanned by its children.
+The return value includes mode and header line, a horizontal scroll bar
+and a bottom divider, if any.  If @var{window} is an internal window,
+its pixel height is the pixel height of the screen areas spanned by its
+children.
 @end defun
 
 @cindex window pixel height
@@ -542,10 +540,12 @@ the screen areas spanned by its children.
 window has any adjacent windows.
 
 @defun window-full-height-p &optional window
-This function returns non-@code{nil} if @var{window} has no other
-window above or below it in its frame, i.e., its total height equals
-the total height of the root window on that frame.  If @var{window} is
-omitted or @code{nil}, it defaults to the selected window.
+This function returns non-@code{nil} if @var{window} has no other window
+above or below it in its frame.  More precisely, this means that the
+total height of @var{window} equals the total height of the root window
+on that frame.  The minibuffer window does not count in this regard.  If
+@var{window} is omitted or @code{nil}, it defaults to the selected
+window.
 @end defun
 
 @defun window-full-width-p &optional window
@@ -559,7 +559,8 @@ that of the root window on that frame.  If @var{window} is omitted or
 @cindex body height of a window
 @cindex window body width
 The @dfn{body height} of a window is the height of its text area, which
-does not include a mode or header line or a bottom divider.
+does not include a mode or header line, a horizontal scroll bar, or a
+bottom divider.
 
 @defun window-body-height &optional window pixelwise
 This function returns the height, in lines, of the body of window
@@ -646,7 +647,8 @@ size:
 @defopt window-min-height
 This option specifies the minimum total height, in lines, of any window.
 Its value has to accommodate at least one text line as well as a mode
-and header line and a bottom divider, if present.
+and header line, a horizontal scroll bar and a bottom divider, if
+present.
 @end defopt
 
 @defopt window-min-width
@@ -685,10 +687,11 @@ of @var{window}'s lines.
 
 The return value makes sure that all components of @var{window} remain
 fully visible if @var{window}'s size were actually set to it.  With
-@var{horizontal} @code{nil} it includes the mode and header line and the
-bottom divider.  With @var{horizontal} non-@code{nil} it includes the
-fringes, a scroll bar, and a right divider, if present.  It does not,
-however, include the space reserved for the margins.
+@var{horizontal} @code{nil} it includes the mode and header line, the
+horizontal scroll bar and the bottom divider.  With @var{horizontal}
+non-@code{nil} it includes the fringes, a scroll bar, and a right
+divider, if present.  It does not, however, include the space reserved
+for the margins.
 
 The optional argument @var{ignore}, if non-@code{nil}, means ignore
 restrictions imposed by fixed size windows, @code{window-min-height} or
@@ -740,11 +743,11 @@ Normally, the variables @code{window-min-height} and
 (@pxref{Window Sizes}).  However, if the optional argument @var{ignore}
 is non-@code{nil}, this function ignores @code{window-min-height} and
 @code{window-min-width}, as well as @code{window-size-fixed}.  Instead,
-it considers the minimum-height window to be one consisting of a header,
-a mode line and a bottom divider (if any), plus a text area one line
-tall; and a minimum-width window as one consisting of fringes, margins,
-a scroll bar and a right divider (if any), plus a text area two columns
-wide.
+it considers the minimum-height window to be one consisting of a header
+and a mode line, a horizontal scrollbar and a bottom divider (if any),
+plus a text area one line tall; and a minimum-width window as one
+consisting of fringes, margins, a scroll bar and a right divider (if
+any), plus a text area two columns wide.
 
 If the optional argument @var{pixelwise} is non-@code{nil},
 @var{delta} is interpreted as pixels.

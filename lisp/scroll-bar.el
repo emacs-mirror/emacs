@@ -79,7 +79,7 @@ SIDE must be the symbol `left' or `right'."
      (htype lines)
      ((frame-parameter nil 'horizontal-scroll-bars)
       ;; nil means it's a non-toolkit scroll bar (which is currently
-      ;; impossible), and its width in columns is 14 pixels rounded up.
+      ;; impossible), and its height in lines is 14 pixels rounded up.
       (ceiling (or (frame-parameter nil 'scroll-bar-height) 14)
                (frame-char-width)))
      (0))))
@@ -178,7 +178,7 @@ created in the future."
 
 (defun toggle-scroll-bar (arg)
   "Toggle whether or not the selected frame has vertical scroll bars.
-With arg, turn vertical scroll bars on if and only if arg is positive.
+With ARG, turn vertical scroll bars on if and only if ARG is positive.
 The variable `scroll-bar-mode' controls which side the scroll bars are on
 when they are turned on; if it is nil, they go on the left."
   (interactive "P")
@@ -193,6 +193,21 @@ when they are turned on; if it is nil, they go on the left."
    (list (cons 'vertical-scroll-bars
 	       (if (> arg 0)
 		   (or scroll-bar-mode default-frame-scroll-bars))))))
+
+(defun toggle-horizontal-scroll-bar (arg)
+  "Toggle whether or not the selected frame has horizontal scroll bars.
+With ARG, turn vertical scroll bars on if and only if ARG is positive."
+  (interactive "P")
+  (if (null arg)
+      (setq arg
+	    (if (cdr (assq 'horizontal-scroll-bars
+			   (frame-parameters (selected-frame))))
+		-1 1))
+    (setq arg (prefix-numeric-value arg)))
+  (modify-frame-parameters
+   (selected-frame)
+   (list (cons 'horizontal-scroll-bars
+	       (when (> arg 0) 'bottom)))))
 
 ;;;; Buffer navigation using the scroll bar.
 

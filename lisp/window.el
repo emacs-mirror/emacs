@@ -1745,9 +1745,6 @@ doc-string of `window-resizable'."
 (defalias 'window-height 'window-total-height)
 (defalias 'window-width 'window-body-width)
 
-;; Eventually the following two should work pixelwise.
-
-;; See discussion in bug#4543.
 (defun window-full-height-p (&optional window)
   "Return t if WINDOW is as high as its containing frame.
 More precisely, return t if and only if the total height of
@@ -1755,8 +1752,10 @@ WINDOW equals the total height of the root window of WINDOW's
 frame.  WINDOW must be a valid window and defaults to the
 selected one."
   (setq window (window-normalize-window window))
-  (= (window-pixel-height window)
-     (window-pixel-height (frame-root-window window))))
+  (if (window-minibuffer-p window)
+      (eq window (frame-root-window (window-frame window)))
+    (= (window-pixel-height window)
+       (window-pixel-height (frame-root-window window)))))
 
 (defun window-full-width-p (&optional window)
   "Return t if WINDOW is as wide as its containing frame.
@@ -1780,28 +1779,26 @@ optional argument PIXELWISE is passed to the functions."
     (window-body-height window pixelwise)))
 
 (defun window-current-scroll-bars (&optional window)
-  "Return the current scroll bar settings for WINDOW.
+  "Return the current scroll bar types for WINDOW.
 WINDOW must be a live window and defaults to the selected one.
 
 The return value is a cons cell (VERTICAL . HORIZONTAL) where
 VERTICAL specifies the current location of the vertical scroll
-bars (`left', `right', or nil), and HORIZONTAL specifies the
-current location of the horizontal scroll bars (`top', `bottom',
-or nil).
+bar (`left', `right' or nil), and HORIZONTAL specifies the
+current location of the horizontal scroll bar (`bottom' or nil).
 
 Unlike `window-scroll-bars', this function reports the scroll bar
 type actually used, once frame defaults and `scroll-bar-mode' are
 taken into account."
   (setq window (window-normalize-window window t))
-  (let ((vert (nth 2 (window-scroll-bars window)))
-	(hor nil))
-    (when (or (eq vert t) (eq hor t))
-      (let ((fcsb (frame-current-scroll-bars (window-frame window))))
-	(if (eq vert t)
-	    (setq vert (car fcsb)))
-	(if (eq hor t)
-	    (setq hor (cdr fcsb)))))
-    (cons vert hor)))
+  (let ((vertical (nth 2 (window-scroll-bars window)))
+	(horizontal (nth 5 (window-scroll-bars window)))
+	(inherited (frame-current-scroll-bars (window-frame window))))
+    (when (eq vertical t)
+      (setq vertical (car inherited)))
+    (when (eq horizontal t)
+      (setq horizontal (cdr inherited)))
+    (cons vertical (and horizontal 'bottom))))
 
 (defun walk-windows (fun &optional minibuf all-frames)
   "Cycle through all live windows, calling FUN for each one.
@@ -7176,7 +7173,7 @@ FRAME."
 	     (height
 	      (+ (cdr value)
 		 (window-bottom-divider-width)
-		 (nth 3 (window-scroll-bars)))))
+		 (window-scroll-bar-height))))
 	;; Don't change height or width when the window's size is fixed
 	;; in either direction or ONLY forbids it.
 	(cond
@@ -7335,7 +7332,7 @@ accessible position."
 	  ;; height.  Its width remains fixed.
 	  (setq height (+ (cdr (window-text-pixel-size
 				nil nil t nil (frame-pixel-height) t))
-			  (nth 3 (window-scroll-bars window))
+			  (window-scroll-bar-height window)
 			  (window-bottom-divider-width)))
 	  ;; Round height.
 	  (unless pixelwise

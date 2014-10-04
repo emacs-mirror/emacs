@@ -292,20 +292,28 @@ optional repeat-count argument.
 
 * Changes in Frames and Windows Code in Emacs 25.1
 
++++
 ** Emacs can now draw horizontal scroll bars on some platforms that
-provide toolkit scroll bars, namely Gtk, Lucid, Motif and Windows.
+provide toolkit scroll bars, namely Gtk+, Lucid, Motif and Windows.
 Horizontal scroll bars are turned off by default.
 *** New function `horizontal-scroll-bars-available-p' telling whether
     horizontal scroll bars are available on the underlying system.
 *** New mode `horizontal-scroll-bar-mode' to toggle horizontal scroll
     bars on all existing and future frames.
+*** New function `toggle-horizontal-scroll-bar' to toggle horizontal
+    scroll bars on the selected frame.
 *** New frame parameters `horizontal-scroll-bars' and
     `scroll-bar-height' to set horizontal scroll bars and their height
     for individual frames and in `default-frame-alist'.
-*** New function `frame-scroll-bar-height' to return the height of
-    horizontal scroll bars on a specific frame.
+*** New functions `frame-scroll-bar-height' and
+    `window-scroll-bar-height' return the height of horizontal scroll
+    bars on a specific frame or window.
 *** `set-window-scroll-bars' now accepts five parameters where the last
     two specify height and type of the window's horizontal scroll bar.
+*** `window-scroll-bars' now returns type and sizes of horizontal scroll
+    bars too.
+*** New buffer-local variables `horizontal-scroll-bar' and
+    `scroll-bar-height'.
 
 ** The height of a frame's menu and tool bar are no more counted in the
 frame's text height.  This means that the text height stands only for

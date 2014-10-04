@@ -1,3 +1,13 @@
+2014-10-04  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window-full-height-p): Make it behave correctly for
+	minibuffer window.
+	(window-current-scroll-bars): Fix code.
+	(fit-frame-to-buffer): Use window-scroll-bar-height instead of
+	window-scroll-bars.
+	* frame.el (frame-current-scroll-bars): Fix doc-string.
+	* scroll-bar.el (toggle-horizontal-scroll-bar): New command.
+
 2014-10-04  Mark Oteiza  <mvoteiza@udel.edu>  (tiny change)
 
 	* files.el (auto-mode-alist): Use sh-mode for .zsh files.  (Bug#18488)

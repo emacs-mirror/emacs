@@ -1343,7 +1343,7 @@ Emacs Display
 * Faces::                   A face defines a graphics style
                               for text characters: font, colors, etc.
 * Fringes::                 Controlling window fringes.
-* Scroll Bars::             Controlling vertical scroll bars.
+* Scroll Bars::             Controlling scroll bars.
 * Window Dividers::         Separating windows visually.
 * Display Property::        Enabling special display features.
 * Images::                  Displaying images in Emacs buffers.

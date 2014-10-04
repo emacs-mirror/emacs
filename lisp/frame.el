@@ -1263,16 +1263,18 @@ On graphical displays, it is displayed on the frame's title bar."
 			   (list (cons 'name name))))
 
 (defun frame-current-scroll-bars (&optional frame)
-  "Return the current scroll-bar settings in frame FRAME.
-Value is a cons (VERTICAL . HORIZ0NTAL) where VERTICAL specifies the
-current location of the vertical scroll-bars (left, right, or nil),
-and HORIZONTAL specifies the current location of the horizontal scroll
-bars (top, bottom, or nil)."
-  (let ((vert (frame-parameter frame 'vertical-scroll-bars))
-	(hor nil))
-    (unless (memq vert '(left right nil))
-      (setq vert default-frame-scroll-bars))
-    (cons vert hor)))
+  "Return the current scroll-bar types for frame FRAME.
+Value is a cons (VERTICAL . HORIZ0NTAL) where VERTICAL specifies
+the current location of the vertical scroll-bars (`left', `right'
+or nil), and HORIZONTAL specifies the current location of the
+horizontal scroll bars (`bottom' or nil).  FRAME must specify a
+live frame and defaults to the selected one."
+  (let* ((frame (window-normalize-frame frame))
+	 (vertical (frame-parameter frame 'vertical-scroll-bars))
+	 (horizontal (frame-parameter frame 'horizontal-scroll-bars)))
+    (unless (memq vertical '(left right nil))
+      (setq vertical default-frame-scroll-bars))
+    (cons vertical (and horizontal 'bottom))))
 
 (defun frame-monitor-attributes (&optional frame)
   "Return the attributes of the physical monitor dominating FRAME.

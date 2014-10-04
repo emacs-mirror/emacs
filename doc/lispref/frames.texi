@@ -709,18 +709,20 @@ Whether the frame has scroll bars for vertical scrolling, and which side
 of the frame they should be on.  The possible values are @code{left},
 @code{right}, and @code{nil} for no scroll bars.
 
-@ignore
 @vindex horizontal-scroll-bars, a frame parameter
 @item horizontal-scroll-bars
-Whether the frame has scroll bars for horizontal scrolling
-(non-@code{nil} means yes).  Horizontal scroll bars are not currently
-implemented.
-@end ignore
+Whether the frame has scroll bars for horizontal scrolling (@code{t} and
+@code{bottom} mean yes, @code{nil} means no).
 
 @vindex scroll-bar-width, a frame parameter
 @item scroll-bar-width
 The width of vertical scroll bars, in pixels, or @code{nil} meaning to
 use the default width.
+
+@vindex scroll-bar-height, a frame parameter
+@item scroll-bar-height
+The height of horizontal scroll bars, in pixels, or @code{nil} meaning
+to use the default height.
 
 @vindex left-fringe, a frame parameter
 @vindex right-fringe, a frame parameter
@@ -734,14 +736,6 @@ When you use @code{frame-parameter} to query the value of either of
 these two frame parameters, the return value is always an integer.
 When using @code{set-frame-parameter}, passing a @code{nil} value
 imposes an actual default value of 8 pixels.
-
-The combined fringe widths must add up to an integral number of
-columns, so the actual default fringe widths for the frame, as
-reported by @code{frame-parameter}, may be larger than what you
-specify.  Any extra width is distributed evenly between the left and
-right fringe.  However, you can force one fringe or the other to a
-precise width by specifying that width as a negative integer.  If both
-widths are negative, only the left fringe gets the specified width.
 
 @vindex right-divider-width, a frame parameter
 @item right-divider-width

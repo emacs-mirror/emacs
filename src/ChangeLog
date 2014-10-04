@@ -1,3 +1,10 @@
+2014-10-04  Martin Rudalics  <rudalics@gmx.at>
+
+	* buffer.c (scroll_bar_width, scroll_bar_height): Fix
+	doc-strings.
+	* window.c (Fset_window_scroll_bars): Fix doc-string.
+	(Fwindow_scroll_bars): Have it return what the doc-string says.
+
 2014-10-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (move_it_by_lines): Call reseat_1 after moving the

@@ -7002,16 +7002,17 @@ DEFUN ("set-window-scroll-bars", Fset_window_scroll_bars,
        doc: /* Set width and type of scroll bars of window WINDOW.
 WINDOW must be a live window and defaults to the selected one.
 
-Second parameter WIDTH specifies the pixel width for the scroll bar.
+Second parameter WIDTH specifies the pixel width for the vertical scroll
+bar.  If WIDTH is nil, use the scroll-bar width of WINDOW's frame.
 Third parameter VERTICAL-TYPE specifies the type of the vertical scroll
-bar: left, right, or nil.  If WIDTH is nil, use the frame's scroll-bar
-width.  If VERTICAL-TYPE is t, use the frame's scroll-bar type.
+bar: left, right, or nil.  If VERTICAL-TYPE is t, this means use the
+frame's scroll-bar type.
 
-Fourth parameter HEIGHT specifies the pixel height for the scroll bar.
-Fifth parameter HORIZONTAL-TYPE specifies the type of the vertical
-scroll bar: nil, bottom, or t.  If HEIGHT is nil, use the frame's
-scroll-bar height.  If HORIZONTAL-TYPE is t, use the frame's scroll-bar
-type.
+Fourth parameter HEIGHT specifies the pixel height for the horizontal
+scroll bar.  If HEIGHT is nil, use the scroll-bar height of WINDOW's
+frame.  Fifth parameter HORIZONTAL-TYPE specifies the type of the
+horizontal scroll bar: nil, bottom, or t.  If HORIZONTAL-TYPE is t, this
+means to use the frame's horizontal scroll-bar type.
 
 Return t if scroll bars were actually changed and nil otherwise.  */)
   (Lisp_Object window, Lisp_Object width, Lisp_Object vertical_type,
@@ -7029,17 +7030,22 @@ DEFUN ("window-scroll-bars", Fwindow_scroll_bars, Swindow_scroll_bars,
        doc: /* Get width and type of scroll bars of window WINDOW.
 WINDOW must be a live window and defaults to the selected one.
 
-Value is a list of the form (WIDTH COLS VERTICAL-TYPE HEIGHT LINES
-HORIZONTAL-TYPE).  If WIDTH or HEIGHT is nil or TYPE is t, the window is
-using the frame's corresponding value.  */)
+Value is a list of the form (WIDTH COLUMNS VERTICAL-TYPE HEIGHT LINES
+HORIZONTAL-TYPE).  If WIDTH or HEIGHT is nil or VERTICAL-TYPE or
+HORIZONTAL-TYPE is t, the window is using the frame's corresponding
+value.  */)
   (Lisp_Object window)
 {
   struct window *w = decode_live_window (window);
 
-  return Fcons (make_number (WINDOW_SCROLL_BAR_AREA_WIDTH (w)),
+  return Fcons (((w->scroll_bar_width >= 0)
+		 ? make_number (w->scroll_bar_width)
+		 : Qnil),
 		list5 (make_number (WINDOW_SCROLL_BAR_COLS (w)),
 		       w->vertical_scroll_bar_type,
-		       make_number (WINDOW_SCROLL_BAR_AREA_HEIGHT (w)),
+		       ((w->scroll_bar_height >= 0)
+			? make_number (w->scroll_bar_height)
+			: Qnil),
 		       make_number (WINDOW_SCROLL_BAR_LINES (w)),
 		       w->horizontal_scroll_bar_type));
 }
