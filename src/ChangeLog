@@ -1,3 +1,9 @@
+2014-10-04  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (create_menus): Only add tearoffs to empty menus.
+	(xg_update_submenu): Remove has_tearoff_p, pass 1 to create_menus
+	for add_tearoff_p.
+
 2014-10-04  Martin Rudalics  <rudalics@gmx.at>
 
 	* buffer.c (scroll_bar_width, scroll_bar_height): Fix

@@ -2554,11 +2554,18 @@ create_menus (widget_value *data,
 #ifdef HAVE_GTK_TEAROFF_MENU_ITEM_NEW
   if (! menu_bar_p && add_tearoff_p)
     {
-      GtkWidget *tearoff = gtk_tearoff_menu_item_new ();
-      gtk_menu_shell_append (GTK_MENU_SHELL (wmenu), tearoff);
+      // Only add tearoff if menu is empty.
+      GList *list = gtk_container_get_children (GTK_CONTAINER (wmenu));
+      if (! list)
+        {
+          GtkWidget *tearoff = gtk_tearoff_menu_item_new ();
+          gtk_menu_shell_append (GTK_MENU_SHELL (wmenu), tearoff);
 
-      g_signal_connect (G_OBJECT (tearoff), "activate",
-                        G_CALLBACK (tearoff_activate), 0);
+          g_signal_connect (G_OBJECT (tearoff), "activate",
+                            G_CALLBACK (tearoff_activate), 0);
+        }
+      else
+        g_list_free (list);
     }
 #endif
 
@@ -3088,7 +3095,6 @@ xg_update_submenu (GtkWidget *submenu,
   GList *list = 0;
   GList *iter;
   widget_value *cur;
-  bool has_tearoff_p = 0;
   GList *first_radio = 0;
 
   if (submenu)
@@ -3104,7 +3110,6 @@ xg_update_submenu (GtkWidget *submenu,
   /* Skip tearoff items, they have no counterpart in val.  */
     if (GTK_IS_TEAROFF_MENU_ITEM (w))
       {
-        has_tearoff_p = 1;
         iter = g_list_next (iter);
         if (iter) w = GTK_WIDGET (iter->data);
         else break;
@@ -3198,7 +3203,7 @@ xg_update_submenu (GtkWidget *submenu,
                              highlight_cb,
                              0,
                              0,
-                             ! has_tearoff_p,
+                             1,
                              submenu,
                              cl_data,
                              0);
