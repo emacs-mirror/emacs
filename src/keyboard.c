@@ -5217,7 +5217,6 @@ static const char *const lispy_drag_n_drop_names[] =
 static Lisp_Object Qabove_handle, Qhandle, Qbelow_handle;
 static Lisp_Object Qbefore_handle, Qhorizontal_handle, Qafter_handle;
 Lisp_Object Qup, Qdown, Qtop, Qbottom;
-Lisp_Object Qleft, Qright;
 static Lisp_Object Qleftmost, Qrightmost;
 static Lisp_Object Qend_scroll;
 static Lisp_Object Qratio;

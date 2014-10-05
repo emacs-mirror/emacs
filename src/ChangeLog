@@ -1,3 +1,10 @@
+2014-10-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* keyboard.c (Qleft, Qright): Remove duplicate definitions (Bug#9927).
+	These were already defined in buffer.c, and the duplicate
+	definitions cause problems on platforms like 'gcc -fno-common'.
+	Reported by Peter Dyballa in: http://bugs.gnu.org/9927#137
+
 2014-10-05  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (updateFrameSize:): Only call update_frame_tool_bar
