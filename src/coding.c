@@ -3073,8 +3073,13 @@ detect_coding_iso_2022 (struct coding_system *coding,
 		  ONE_MORE_BYTE (c1);
 		  if (c1 < ' ' || c1 >= 0x80
 		      || (id = iso_charset_table[0][c >= ','][c1]) < 0)
-		    /* Invalid designation sequence.  Just ignore.  */
-		    break;
+		    {
+		      /* Invalid designation sequence.  Just ignore.  */
+		      if (c1 >= 0x80)
+			rejected |= (CATEGORY_MASK_ISO_7BIT
+				     | CATEGORY_MASK_ISO_7_ELSE);
+		      break;
+		    }
 		}
 	      else if (c == '$')
 		{
@@ -3088,16 +3093,29 @@ detect_coding_iso_2022 (struct coding_system *coding,
 		      ONE_MORE_BYTE (c1);
 		      if (c1 < ' ' || c1 >= 0x80
 			  || (id = iso_charset_table[1][c >= ','][c1]) < 0)
-			/* Invalid designation sequence.  Just ignore.  */
-			break;
+			{
+			  /* Invalid designation sequence.  Just ignore.  */
+			  if (c1 >= 0x80)
+			    rejected |= (CATEGORY_MASK_ISO_7BIT
+					 | CATEGORY_MASK_ISO_7_ELSE);
+			  break;
+			}
 		    }
 		  else
-		    /* Invalid designation sequence.  Just ignore it.  */
-		    break;
+		    {
+		      /* Invalid designation sequence.  Just ignore it.  */
+		      if (c >= 0x80)
+			rejected |= (CATEGORY_MASK_ISO_7BIT
+				     | CATEGORY_MASK_ISO_7_ELSE);
+		      break;
+		    }
 		}
 	      else
 		{
 		  /* Invalid escape sequence.  Just ignore it.  */
+		  if (c >= 0x80)
+		    rejected |= (CATEGORY_MASK_ISO_7BIT
+				 | CATEGORY_MASK_ISO_7_ELSE);
 		  break;
 		}
 
