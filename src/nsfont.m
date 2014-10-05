@@ -1039,8 +1039,13 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
   static unsigned char cbuf[1024];
   unsigned char *c = cbuf;
 #ifdef NS_IMPL_GNUSTEP
+#if GNUSTEP_GUI_MAJOR_VERSION > 0 || GNUSTEP_GUI_MINOR_VERSION > 22
+  static CGFloat advances[1024];
+  CGFloat *adv = advances;
+#else
   static float advances[1024];
   float *adv = advances;
+#endif
 #else
   static CGSize advances[1024];
   CGSize *adv = advances;

@@ -1,5 +1,8 @@
 2014-10-05  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* nsfont.m (nsfont_draw): Use CGFloat for GNUstep newer than
+	0.23 (Bug#18030).
+
 	* nsterm.m (syms_of_nsterm): ns-use-fullscreen-animation is new.
 	(toggleFullScreen:): Use ns-use-fullscreen-animation for animate.
 	(ns_select, ns_read_socket): Use unwind_protect to decrease
