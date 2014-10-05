@@ -1,5 +1,8 @@
 2014-10-05  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* nsterm.m (syms_of_nsterm): ns-use-fullscreen-animation is new.
+	(toggleFullScreen:): Use ns-use-fullscreen-animation for animate.
+
 	* macfont.m: Fix indentation and import changes from macport
 	24.3.94.
 	(macfont_closest_traits_index): New function.

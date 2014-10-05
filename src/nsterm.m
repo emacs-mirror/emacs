@@ -6529,7 +6529,7 @@ if (cols > 0 && rows > 0)
       [fw makeFirstResponder:self];
       [w orderOut:self];
       r = [fw frameRectForContentRect:[screen frame]];
-      [fw setFrame: r display:YES animate:YES];
+      [fw setFrame: r display:YES animate:ns_use_fullscreen_animation];
       [self windowDidEnterFullScreen:nil];
       [fw display];
     }
@@ -6561,7 +6561,7 @@ if (cols > 0 && rows > 0)
         FRAME_TOOLBAR_HEIGHT (f) = tobar_height;
 
       [self windowWillExitFullScreen:nil];
-      [fw setFrame: [w frame] display:YES animate:YES];
+      [fw setFrame: [w frame] display:YES animate:ns_use_fullscreen_animation];
       [fw close];
       [w makeKeyAndOrderFront:NSApp];
       [self windowDidExitFullScreen:nil];
@@ -7764,6 +7764,12 @@ Default is t for OSX >= 10.7, nil otherwise.  */);
   ns_use_native_fullscreen = NO;
 #endif
   ns_last_use_native_fullscreen = ns_use_native_fullscreen;
+
+  DEFVAR_BOOL ("ns-use-fullscreen-animation", ns_use_fullscreen_animation,
+     doc: /*Non-nil means use animation on non-native fullscreen.
+For native fullscreen, this does nothing.
+Default is nil.  */);
+  ns_use_fullscreen_animation = NO;
 
   DEFVAR_BOOL ("ns-use-srgb-colorspace", ns_use_srgb_colorspace,
      doc: /*Non-nil means to use sRGB colorspace on OSX >= 10.7.
