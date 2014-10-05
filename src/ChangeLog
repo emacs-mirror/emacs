@@ -1,5 +1,8 @@
 2014-10-05  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* nsterm.m (updateFrameSize:): Only call update_frame_tool_bar
+	if toolbar is visible.
+
 	* nsfont.m (nsfont_draw): Use CGFloat for GNUstep newer than
 	0.23 (Bug#18030).
 
