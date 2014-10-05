@@ -4,6 +4,8 @@
 	(toggleFullScreen:): Use ns-use-fullscreen-animation for animate.
 	(ns_select, ns_read_socket): Use unwind_protect to decrease
 	apploopnr (Bug#18345).
+	(ns_draw_window_cursor): Adjust y for hbar cursor only if smaller than
+	line height (Bug#17977).
 
 	* macfont.m: Fix indentation and import changes from macport
 	24.3.94.

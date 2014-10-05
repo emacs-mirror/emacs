@@ -2441,7 +2441,10 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
   else if (cursor_type == HBAR_CURSOR)
     {
       cursor_height = (cursor_width < 1) ? lrint (0.25 * h) : cursor_width;
-      fy += h - cursor_height;
+      if (cursor_height > glyph_row->height)
+        cursor_height = glyph_row->height;
+      if (h > cursor_height) // Cursor smaller than line height, move down
+        fy += h - cursor_height;
       h = cursor_height;
     }
 
@@ -6884,7 +6887,7 @@ if (cols > 0 && rows > 0)
     }
   else
     {
-      error ("Invalid data type in dragging pasteboard");
+      fprintf (stderr, "Invalid data type in dragging pasteboard");
       return NO;
     }
 }
