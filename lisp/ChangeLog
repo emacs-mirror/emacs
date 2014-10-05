@@ -1,3 +1,7 @@
+2014-10-05  Leo Liu  <sdl.web@gmail.com>
+
+	* imenu.el (imenu-default-goto-function): Fix typo.
+
 2014-10-04  Glenn Morris  <rgm@gnu.org>
 
 	* frame.el (frame-monitor-attributes)

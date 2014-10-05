@@ -1012,7 +1012,7 @@ to `imenu-update-menubar'.")
     (imenu item)
     nil))
 
-(defun imenu-default-goto-function (_name position &optional _rest)
+(defun imenu-default-goto-function (_name position &rest _rest)
   "Move to the given position.
 
 NAME is ignored.  POSITION is where to move.  REST is also ignored.
