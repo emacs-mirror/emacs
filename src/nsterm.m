@@ -3513,6 +3513,15 @@ ns_check_pending_open_menu ()
 }
 #endif /* NS_IMPL_COCOA) && >= MAC_OS_X_VERSION_10_5 */
 
+static void
+unwind_apploopnr (Lisp_Object not_used)
+{
+  --apploopnr;
+  n_emacs_events_pending = 0;
+  ns_finish_events ();
+  q_event_ptr = NULL;
+}
+
 static int
 ns_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 /* --------------------------------------------------------------------------
@@ -3570,6 +3579,7 @@ ns_read_socket (struct terminal *terminal, struct input_event *hold_quit)
     }
   else
     {
+      ptrdiff_t specpdl_count = SPECPDL_INDEX ();
       /* Run and wait for events.  We must always send one NX_APPDEFINED event
          to ourself, otherwise [NXApp run] will never exit.  */
       send_appdefined = YES;
@@ -3579,8 +3589,9 @@ ns_read_socket (struct terminal *terminal, struct input_event *hold_quit)
         {
           emacs_abort ();
         }
+      record_unwind_protect (unwind_apploopnr, Qt);
       [NSApp run];
-      --apploopnr;
+      unbind_to (specpdl_count, Qnil);  /* calls unwind_apploopnr */
     }
 
   nevents = n_emacs_events_pending;
@@ -3687,8 +3698,14 @@ ns_select (int nfds, fd_set *readfds, fd_set *writefds,
     {
       emacs_abort ();
     }
-  [NSApp run];
-  --apploopnr;
+
+  {
+    ptrdiff_t specpdl_count = SPECPDL_INDEX ();
+    record_unwind_protect (unwind_apploopnr, Qt);
+    [NSApp run];
+    unbind_to (specpdl_count, Qnil);  /* calls unwind_apploopnr */
+  }
+
   ns_finish_events ();
   if (nr > 0 && readfds)
     {

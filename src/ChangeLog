@@ -2,6 +2,8 @@
 
 	* nsterm.m (syms_of_nsterm): ns-use-fullscreen-animation is new.
 	(toggleFullScreen:): Use ns-use-fullscreen-animation for animate.
+	(ns_select, ns_read_socket): Use unwind_protect to decrease
+	apploopnr (Bug#18345).
 
 	* macfont.m: Fix indentation and import changes from macport
 	24.3.94.
