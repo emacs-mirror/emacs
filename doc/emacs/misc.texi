@@ -1935,9 +1935,9 @@ They divide the text of the region into many @dfn{sort records},
 identify a @dfn{sort key} for each record, and then reorder the records
 into the order determined by the sort keys.  The records are ordered so
 that their keys are in alphabetical order, or, for numeric sorting, in
-numeric order.  In alphabetic sorting, all upper-case letters `A' through
-`Z' come before lower-case `a', in accord with the @acronym{ASCII} character
-sequence.
+numeric order.  In alphabetic sorting, all upper-case letters @samp{A}
+through @samp{Z} come before lower-case @samp{a}, in accordance with the
+@acronym{ASCII} character sequence.
 
   The various sort commands differ in how they divide the text into sort
 records and in which part of each record is used as the sort key.  Most of
