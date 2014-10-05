@@ -1,3 +1,7 @@
+2014-10-05  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* NEWS: Mention ns-use-fullscreen-animation.
+
 2014-09-30  Bill Wohler	 <wohler@newt.com>
 
 	Release MH-E version 8.6

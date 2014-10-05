@@ -92,6 +92,11 @@ emulates the behavior of modern Posix platforms when the locale's
 codeset is "UTF-8" (as in "en_US.UTF-8").  This is needed because
 MS-Windows doesn't support UTF-8 as codeset in its locales.
 
+** New variable `ns-use-fullscreen-animation' controls animation for
+non-native NS fullscreen.  The default is nil.  Set to t to enable
+animation when entering and leaving fullscreen.  For native OSX fullscreen
+this has no effect.
+
 
 * Editing Changes in Emacs 25.1
 
