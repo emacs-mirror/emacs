@@ -1,3 +1,12 @@
+2014-10-05  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* macfont.m: Fix indentation and import changes from macport
+	24.3.94.
+	(macfont_closest_traits_index): New function.
+	(macfont_closest_traits_index_p): Renamed from
+	macfont_closest_traits_index.
+	(macfont_list): Use macfont_closest_traits_index_p.
+
 2014-10-05  K. Handa  <handa@gnu.org>
 
 	* coding.c (detect_coding_iso_2022): Set coding->rejected
