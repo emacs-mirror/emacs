@@ -825,6 +825,7 @@ if test "$gl_gcc_warnings" != yes; then
      gl_WARN_ADD([-Wno-switch])
      gl_WARN_ADD([-Wno-tautological-constant-out-of-range-compare])
      gl_WARN_ADD([-Wno-pointer-sign])
+     gl_WARN_ADD([-Wno-string-plus-int])
   fi
 else
   isystem='-isystem '
