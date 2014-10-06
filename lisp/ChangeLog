@@ -1,3 +1,130 @@
+2014-10-06  Glenn Morris  <rgm@gnu.org>
+
+	Remove calendar code obsolete since at least version 23.1.
+	* calendar/cal-bahai.el (calendar-absolute-from-bahai)
+	(calendar-print-bahai-date, calendar-bahai-prompt-for-date)
+	(calendar-goto-bahai-date, list-bahai-diary-entries)
+	(mark-bahai-calendar-date-pattern, mark-bahai-diary-entries)
+	(insert-bahai-diary-entry, insert-monthly-bahai-diary-entry)
+	(insert-yearly-bahai-diary-entry):
+	* calendar/cal-china.el (chinese-calendar-time-zone)
+	(chinese-calendar-location-name)
+	(chinese-calendar-daylight-time-offset)
+	(chinese-calendar-standard-time-zone-name)
+	(chinese-calendar-daylight-time-zone-name)
+	(chinese-calendar-daylight-savings-starts)
+	(chinese-calendar-daylight-savings-ends)
+	(chinese-calendar-daylight-savings-starts-time)
+	(chinese-calendar-daylight-savings-ends-time)
+	(chinese-calendar-celestial-stem)
+	(chinese-calendar-terrestrial-branch)
+	(calendar-absolute-from-chinese, calendar-print-chinese-date)
+	(calendar-goto-chinese-date):
+	* calendar/cal-coptic.el (calendar-absolute-from-coptic)
+	(calendar-print-coptic-date, coptic-prompt-for-date)
+	(calendar-goto-coptic-date, calendar-absolute-from-ethiopic)
+	(calendar-print-ethiopic-date, calendar-goto-ethiopic-date):
+	* calendar/cal-french.el (calendar-absolute-from-french)
+	(calendar-print-french-date, calendar-goto-french-date):
+	* calendar/cal-hebrew.el (diary-sabbath-candles-minutes)
+	(calendar-absolute-from-hebrew, calendar-print-hebrew-date)
+	(hebrew-calendar-yahrzeit, calendar-goto-hebrew-date)
+	(holiday-rosh-hashanah-etc, holiday-hanukkah)
+	(holiday-passover-etc, holiday-tisha-b-av-etc)
+	(list-hebrew-diary-entries, mark-hebrew-calendar-date-pattern)
+	(mark-hebrew-diary-entries, insert-hebrew-diary-entry)
+	(insert-monthly-hebrew-diary-entry)
+	(insert-yearly-hebrew-diary-entry, list-yahrzeit-dates)
+	(diary-omer, diary-yahrzeit, diary-rosh-hodesh, diary-parasha)
+	(diary-sabbath-candles):
+	* calendar/cal-islam.el (calendar-absolute-from-islamic)
+	(calendar-print-islamic-date, calendar-goto-islamic-date)
+	(list-islamic-diary-entries, mark-islamic-calendar-date-pattern)
+	(mark-islamic-diary-entries, insert-islamic-diary-entry)
+	(insert-monthly-islamic-diary-entry)
+	(insert-yearly-islamic-diary-entry):
+	* calendar/cal-iso.el (calendar-absolute-from-iso)
+	(calendar-print-iso-date, calendar-iso-read-args)
+	(calendar-goto-iso-date, calendar-goto-iso-week):
+	* calendar/cal-julian.el (calendar-absolute-from-julian)
+	(calendar-print-julian-date, calendar-goto-julian-date)
+	(calendar-absolute-from-astro, calendar-print-astro-day-number)
+	(calendar-goto-astro-day-number):
+	* calendar/cal-mayan.el (calendar-print-mayan-date)
+	(calendar-next-haab-date, calendar-previous-haab-date)
+	(calendar-next-tzolkin-date, calendar-previous-tzolkin-date)
+	(calendar-next-calendar-round-date)
+	(calendar-previous-calendar-round-date)
+	(calendar-absolute-from-mayan-long-count)
+	(calendar-goto-mayan-long-count-date):
+	* calendar/cal-move.el (scroll-calendar-left)
+	(scroll-calendar-right, scroll-calendar-left-three-months)
+	(scroll-calendar-right-three-months):
+	* calendar/cal-persia.el (calendar-absolute-from-persian)
+	(calendar-print-persian-date, persian-prompt-for-date)
+	(calendar-goto-persian-date):
+	* calendar/cal-x.el (calendar-after-frame-setup-hooks):
+	* calendar/calendar.el (view-diary-entries-initially)
+	(mark-diary-entries-in-calendar, calendar-today-face)
+	(diary-face, holiday-face, view-calendar-holidays-initially)
+	(mark-holidays-in-calendar, initial-calendar-window-hook)
+	(today-visible-calendar-hook, today-invisible-calendar-hook)
+	(hebrew-diary-entry-symbol, islamic-diary-entry-symbol)
+	(bahai-diary-entry-symbol, american-date-diary-pattern)
+	(european-date-diary-pattern, european-calendar-display-form)
+	(american-calendar-display-form, holidays-in-diary-buffer)
+	(all-hebrew-calendar-holidays, all-christian-calendar-holidays)
+	(all-islamic-calendar-holidays, all-bahai-calendar-holidays)
+	(fancy-diary-buffer, increment-calendar-month)
+	(extract-calendar-month, extract-calendar-day)
+	(extract-calendar-year, exit-calendar, calendar-date-is-legal-p)
+	(mark-visible-calendar-date, calendar-version):
+	* calendar/diary-lib.el (diary-button-face, sexp-diary-entry-symbol)
+	(diary-display-hook, list-diary-entries-hook)
+	(mark-diary-entries-hook, nongregorian-diary-listing-hook)
+	(nongregorian-diary-marking-hook, print-diary-entries-hook)
+	(abbreviated-calendar-year, number-of-diary-entries)
+	(view-other-diary-entries, add-to-diary-list)
+	(include-other-diary-files, simple-diary-display)
+	(fancy-diary-display, print-diary-entries, mark-diary-entries)
+	(mark-sexp-diary-entries, mark-included-diary-files)
+	(mark-calendar-days-named, mark-calendar-month)
+	(mark-calendar-date-pattern, sort-diary-entries)
+	(list-sexp-diary-entries, make-diary-entry, insert-diary-entry)
+	(insert-weekly-diary-entry, insert-monthly-diary-entry)
+	(insert-yearly-diary-entry, insert-anniversary-diary-entry)
+	(insert-block-diary-entry, insert-cyclic-diary-entry)
+	(fancy-diary-font-lock-keywords, fancy-diary-display-mode):
+	* calendar/holidays.el (general-holidays, oriental-holidays)
+	(local-holidays, other-holidays, hebrew-holidays)
+	(christian-holidays, islamic-holidays, bahai-holidays)
+	(solar-holidays, list-calendar-holidays)
+	(check-calendar-holidays, mark-calendar-holidays)
+	(filter-visible-calendar-holidays):
+	* calendar/lunar.el (calendar-phases-of-moon, phases-of-moon)
+	(diary-phases-of-moon): Remove obsolete aliases.
+	* calendar/cal-menu.el (cal-menu-load-hook): Remove obsolete hook.
+	* calendar/cal-x.el (calendar-one-frame-setup)
+	(calendar-only-one-frame-setup, calendar-two-frame-setup):
+	Remove obsolete functions.
+	(cal-x-load-hook): Remove obsolete hook.
+	* calendar/calendar.el (european-calendar-style):
+	Remove obsolete variable.
+	(calendar-date-style): No longer consult european-calendar-style.
+	* calendar/calendar.el (european-calendar, american-calendar):
+	Remove obsolete commands.
+	* calendar/calendar.el (calendar-for-loop): Remove obsolete macro.
+	* calendar/diary-lib.el (diary-face): Remove obsolete variable.
+	(diary-font-lock-date-forms, diary-fancy-font-lock-keywords):
+	Use the face `diary' instead of the variable `diary-face'.
+	* calendar/holidays.el (hebrew-holidays-1, hebrew-holidays-2)
+	(hebrew-holidays-3, hebrew-holidays-4): Remove obsolete variables.
+	* calendar/icalendar.el (icalendar--date-style): Remove function.
+	Replace all uses with calendar-date-style.
+	* textmodes/remember.el (calendar-date-style): Declare.
+	(remember-diary-convert-entry):
+	No longer consult european-calendar-style.
+
 2014-10-05  Leo Liu  <sdl.web@gmail.com>
 
 	* imenu.el (imenu-default-goto-function): Fix typo.

@@ -75,9 +75,6 @@ Gregorian date Sunday, December 31, 1 BC."
        (* 30 (1- month))              ; days in prior months this year
        day)))                         ; days so far this month
 
-(define-obsolete-function-alias 'calendar-absolute-from-coptic
-  'calendar-coptic-to-absolute "23.1")
-
 (defun calendar-coptic-from-absolute (date)
   "Compute the Coptic equivalent for absolute date DATE.
 The result is a list of the form (MONTH DAY YEAR).
@@ -135,9 +132,6 @@ Defaults to today's date if DATE is not given."
         (message "Date is pre-%s calendar" calendar-coptic-name)
       (message "%s date: %s" calendar-coptic-name f))))
 
-(define-obsolete-function-alias 'calendar-print-coptic-date
-  'calendar-coptic-print-date "23.1")
-
 (defun calendar-coptic-read-date ()
   "Interactively read the arguments for a Coptic date command.
 Reads a year, month, and day."
@@ -164,9 +158,6 @@ Reads a year, month, and day."
                (lambda (x) (and (< 0 x) (<= x last))))))
     (list (list month day year))))
 
-(define-obsolete-function-alias 'coptic-prompt-for-date
-  'calendar-coptic-read-date "23.1")
-
 ;;;###cal-autoload
 (defun calendar-coptic-goto-date (date &optional noecho)
   "Move cursor to Coptic date DATE.
@@ -176,8 +167,6 @@ Echo Coptic date unless NOECHO is t."
                        (calendar-coptic-to-absolute date)))
   (or noecho (calendar-coptic-print-date)))
 
-(define-obsolete-function-alias 'calendar-goto-coptic-date
-  'calendar-coptic-goto-date "23.1")
 
 (defvar date)
 
@@ -208,9 +197,6 @@ Gregorian date Sunday, December 31, 1 BC."
   (let ((calendar-coptic-epoch calendar-ethiopic-epoch))
     (calendar-coptic-to-absolute date)))
 
-(define-obsolete-function-alias 'calendar-absolute-from-ethiopic
-  'calendar-ethiopic-to-absolute "23.1")
-
 (defun calendar-ethiopic-from-absolute (date)
   "Compute the Ethiopic equivalent for absolute date DATE.
 The result is a list of the form (MONTH DAY YEAR).
@@ -238,9 +224,6 @@ Defaults to today's date if DATE is not given."
         (calendar-coptic-month-name-array calendar-ethiopic-month-name-array))
     (call-interactively 'calendar-coptic-print-date)))
 
-(define-obsolete-function-alias 'calendar-print-ethiopic-date
-  'calendar-ethiopic-print-date "23.1")
-
 ;;;###cal-autoload
 (defun calendar-ethiopic-goto-date (date &optional noecho)
   "Move cursor to Ethiopic date DATE.
@@ -253,9 +236,6 @@ Echo Ethiopic date unless NOECHO is t."
   (calendar-goto-date (calendar-gregorian-from-absolute
                        (calendar-ethiopic-to-absolute date)))
   (or noecho (calendar-ethiopic-print-date)))
-
-(define-obsolete-function-alias 'calendar-goto-ethiopic-date
-  'calendar-ethiopic-goto-date "23.1")
 
 ;; To be called from diary-list-sexp-entries, where DATE is bound.
 ;;;###diary-autoload

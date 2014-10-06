@@ -65,9 +65,6 @@ Relevant if `calendar-setup' has the value `one-frame'."
              (vertical-scroll-bars boolean))
   :group 'calendar)
 
-(define-obsolete-variable-alias 'calendar-after-frame-setup-hooks
-  'calendar-after-frame-setup-hook "23.1")
-
 (defcustom calendar-after-frame-setup-hook nil
   "List of functions to be run after creating a calendar and/or diary frame."
   :type 'hook
@@ -149,36 +146,6 @@ If PROMPT is non-nil, prompt for the month and year to use."
         (set-window-dedicated-p (selected-window) t)
         (if (eq config 'one-frame)
             (calendar-dedicate-diary))))))
-
-
-;;;###cal-autoload
-(defun calendar-one-frame-setup (&optional prompt)
-  "Display calendar and diary in a single dedicated frame.
-See `calendar-frame-setup' for more information."
-  (declare (obsolete calendar-frame-setup "23.1"))
-  (calendar-frame-setup 'one-frame prompt))
-
-;;;###cal-autoload
-(defun calendar-only-one-frame-setup (&optional prompt)
-  "Display calendar in a dedicated frame.
-See `calendar-frame-setup' for more information."
-  (declare (obsolete calendar-frame-setup "23.1"))
-  (calendar-frame-setup 'calendar-only prompt))
-
-;;;###cal-autoload
-(defun calendar-two-frame-setup (&optional prompt)
-  "Display calendar and diary in separate, dedicated frames.
-See `calendar-frame-setup' for more information."
-  (declare (obsolete calendar-frame-setup "23.1"))
-  (calendar-frame-setup 'two-frames prompt))
-
-;; Undocumented and probably useless.
-(defvar cal-x-load-hook nil
-  "Hook run on loading of the `cal-x' package.")
-(make-obsolete-variable 'cal-x-load-hook "it will be removed in future." "23.1")
-
-(run-hooks 'cal-x-load-hook)
-
 
 (provide 'cal-x)
 

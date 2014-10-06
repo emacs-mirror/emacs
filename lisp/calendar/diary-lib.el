@@ -48,13 +48,6 @@ are holidays."
   :type 'boolean
   :group 'diary)
 
-(defcustom diary-face 'diary
-  "Face name to use for diary entries."
-  :type 'face
-  :group 'calendar-faces)
-(make-obsolete-variable 'diary-face "customize the face `diary' instead."
-                        "23.1")
-
 (defface diary-anniversary '((t :inherit font-lock-keyword-face))
   "Face used for anniversaries in the fancy diary display."
   :version "22.1"
@@ -70,8 +63,6 @@ are holidays."
   "Face used for buttons in the fancy diary display."
   :version "22.1"
   :group 'calendar-faces)
-
-(define-obsolete-face-alias 'diary-button-face 'diary-button "22.1")
 
 ;; Face markup of calendar and diary displays: Any entry line that
 ;; ends with [foo:value] where foo is a face attribute (except :box
@@ -132,9 +123,6 @@ are: `string', `symbol', `int', `tnil', `stringtnil.'"
   :type 'function
   :group 'diary)
 
-(define-obsolete-variable-alias 'sexp-diary-entry-symbol
-  'diary-sexp-entry-symbol "23.1")
-
 (defcustom diary-sexp-entry-symbol "%%"
   "The string used to indicate a sexp diary entry in `diary-file'.
 See the documentation for the function `diary-list-sexp-entries'."
@@ -167,9 +155,6 @@ Used for example by the appointment package - see `appt-activate'."
   :type 'hook
   :group 'diary)
 
-(define-obsolete-variable-alias 'diary-display-hook 'diary-display-function
-  "23.1")
-
 (defcustom diary-display-function 'diary-fancy-display
   "Function used to display the diary.
 The two standard options are `diary-fancy-display' and `diary-simple-display'.
@@ -194,9 +179,6 @@ holidays), or hard copy output."
   :set 'diary-set-maybe-redraw
   :version "23.2"                       ; simple->fancy
   :group 'diary)
-
-(define-obsolete-variable-alias 'list-diary-entries-hook
-  'diary-list-entries-hook "23.1")
 
 (defcustom diary-list-entries-hook nil
   "Hook run after diary file is culled for relevant entries.
@@ -226,9 +208,6 @@ the main file and all included files, you would use the nongregorian hook."
   :options '(diary-include-other-diary-files diary-sort-entries)
   :group 'diary)
 
-(define-obsolete-variable-alias 'mark-diary-entries-hook
-  'diary-mark-entries-hook "23.1")
-
 (defcustom diary-mark-entries-hook nil
   "List of functions called after marking diary entries in the calendar.
 You might wish to add `diary-mark-included-diary-files', in which case
@@ -242,9 +221,6 @@ differ only if you are using included diary files.  In that case,
   :type 'hook
   :options '(diary-mark-included-diary-files)
   :group 'diary)
-
-(define-obsolete-variable-alias 'nongregorian-diary-listing-hook
-  'diary-nongregorian-listing-hook "23.1")
 
 (defcustom diary-nongregorian-listing-hook nil
   "List of functions called for listing diary file and included files.
@@ -263,9 +239,6 @@ use `diary-list-entries-hook', which runs only for the main diary file."
              diary-islamic-list-entries)
   :group 'diary)
 
-(define-obsolete-variable-alias 'nongregorian-diary-marking-hook
-  'diary-nongregorian-marking-hook "23.1")
-
 (defcustom diary-nongregorian-marking-hook nil
   "List of functions called for marking diary file and included files.
 As the files are processed for diary entries, these functions are used
@@ -282,9 +255,6 @@ use `diary-mark-entries-hook', which runs only for the main diary file."
              diary-hebrew-mark-entries
              diary-islamic-mark-entries)
   :group 'diary)
-
-(define-obsolete-variable-alias 'print-diary-entries-hook
-  'diary-print-entries-hook "23.1")
 
 (defcustom diary-print-entries-hook 'lpr-buffer
   "Run by `diary-print-entries' after preparing a temporary diary buffer.
@@ -332,9 +302,6 @@ expressions that can involve the keywords `days' (a number), `date'
 \(a list of month, day, year), and `diary-entry' (a string)."
   :type 'sexp
   :group 'diary)
-
-(define-obsolete-variable-alias 'abbreviated-calendar-year
-  'diary-abbreviated-year-flag "23.1")
 
 (defcustom diary-abbreviated-year-flag t
   "Interpret a two-digit year DD in a diary entry as either 19DD or 20DD.
@@ -484,9 +451,6 @@ just visiting the `diary-file'), and SYMBOL's value is to be changed."
          ;; Note this assumes diary was called without prefix arg.
          (diary))))
 
-(define-obsolete-variable-alias 'number-of-diary-entries
-  'diary-number-of-entries "23.1")
-
 (defcustom diary-number-of-entries 1
   "Specifies how many days of diary entries are to be displayed initially.
 This variable affects the diary display when the command \\[diary] is
@@ -561,10 +525,6 @@ DFILE specifies the file to use as the diary file."
          (read-file-name "Enter diary file name: " default-directory nil t)))
   (let ((diary-file dfile))
     (diary-view-entries arg)))
-
-;;;###cal-autoload
-(define-obsolete-function-alias 'view-other-diary-entries
-  'diary-view-other-diary-entries "23.1")
 
 (defvar diary-syntax-table
   (let ((st (copy-syntax-table (standard-syntax-table))))
@@ -683,8 +643,6 @@ Also removes the region between `diary-comment-start' and
                     (list (list date string specifier
                                 (list marker dfile literal)
                                 globcolor)))))))
-
-(define-obsolete-function-alias 'add-to-diary-list 'diary-add-to-list "23.1")
 
 (defun diary-list-entries-2 (date mark globattr list-only
                                   &optional months symbol gdate)
@@ -975,9 +933,6 @@ For details, see `diary-include-files'.
 See also `diary-mark-included-diary-files'."
   (diary-include-files))
 
-(define-obsolete-function-alias 'include-other-diary-files
-  'diary-include-other-diary-files "23.1")
-
 (defvar date-string)                    ; bound in diary-list-entries
 
 (defun diary-display-no-entries ()
@@ -1035,9 +990,6 @@ in the mode line.  This is an option for `diary-display-function'."
           ;; d-s-p is passed from diary-list-entries.
           (set-window-point window diary-saved-point)
           (set-window-start window (point-min)))))))
-
-(define-obsolete-function-alias 'simple-diary-display
-  'diary-simple-display "23.1")
 
 (defvar diary-goto-entry-function 'diary-goto-entry
   "Function called to jump to a diary entry.
@@ -1165,9 +1117,6 @@ This is an option for `diary-display-function'."
         (diary-fancy-display-mode))
       (calendar-set-mode-line date-string))))
 
-(define-obsolete-function-alias 'fancy-diary-display
-  'diary-fancy-display "23.1")
-
 ;; FIXME modernize?
 (defun diary-print-entries ()
   "Print a hard copy of the diary display.
@@ -1211,9 +1160,6 @@ the actual printing."
               (make-string (length heading) ?=) "\n")
       (run-hooks 'diary-print-entries-hook)
       (kill-buffer temp-buffer))))
-
-(define-obsolete-function-alias 'print-diary-entries
-  'diary-print-entries "23.1")
 
 ;;;###cal-autoload
 (defun diary-show-all-entries ()
@@ -1462,9 +1408,6 @@ marks.  This is intended to deal with deleted diary entries."
       (and temp-buff (buffer-name temp-buff) (kill-buffer temp-buff)))
     (or d-incp (message "Marking diary entries...done"))))
 
-;;;###cal-autoload
-(define-obsolete-function-alias 'mark-diary-entries 'diary-mark-entries "23.1")
-
 (defun diary-sexp-entry (sexp entry date)
   "Process a SEXP diary ENTRY for DATE."
   (let ((result (if calendar-debug-sexp
@@ -1542,18 +1485,12 @@ is marked.  See the documentation for the function `diary-list-sexp-entries'."
            (or (cadr (diary-pull-attrs entry file-glob-attrs))
                (if (consp mark) (car mark)))))))))
 
-(define-obsolete-function-alias 'mark-sexp-diary-entries
-  'diary-mark-sexp-entries "23.1")
-
 (defun diary-mark-included-diary-files ()
   "Mark diary entries from included diary files.
 To use, add this function to `diary-mark-entries-hook'.
 For details, see `diary-include-files'.
 See also `diary-include-other-diary-files'."
   (diary-include-files t))
-
-(define-obsolete-function-alias 'mark-included-diary-files
-  'diary-mark-included-diary-files "23.1")
 
 (defun calendar-mark-days-named (dayname &optional color)
   "Mark all dates in the calendar window that are day DAYNAME of the week.
@@ -1577,9 +1514,6 @@ Optional argument COLOR is passed to `calendar-mark-visible-date' as MARK."
                                     color)
         (setq day (+ day 7))))))
 
-(define-obsolete-function-alias 'mark-calendar-days-named
-  'calendar-mark-days-named "23.1")
-
 (defun calendar-mark-month (month year p-month p-day p-year &optional color)
   "Mark dates in the MONTH/YEAR that conform to pattern P-MONTH/P-DAY/P-YEAR.
 A value of 0 in any position of the pattern is a wildcard.
@@ -1593,9 +1527,6 @@ Optional argument COLOR is passed to `calendar-mark-visible-date' as MARK."
             (calendar-mark-visible-date (list month (1+ i) year) color))
         (calendar-mark-visible-date (list month p-day year) color))))
 
-(define-obsolete-function-alias 'mark-calendar-month
-  'calendar-mark-month "23.1")
-
 (defun calendar-mark-date-pattern (month day year &optional color)
   "Mark all dates in the calendar window that conform to MONTH/DAY/YEAR.
 A value of 0 in any position is a wildcard.  Optional argument COLOR is
@@ -1607,9 +1538,6 @@ passed to `calendar-mark-visible-date' as MARK."
       (dotimes (_idummy 3)
         (calendar-mark-month m y month day year color)
         (calendar-increment-month m y 1)))))
-
-(define-obsolete-function-alias 'mark-calendar-date-pattern
-  'calendar-mark-date-pattern "23.1")
 
 ;; Bahai, Hebrew, Islamic.
 (defun calendar-mark-complex (month day year fromabs &optional color)
@@ -1716,8 +1644,6 @@ If you add this function to `diary-list-entries-hook', it should
 be the last item in the hook, in case earlier items add diary
 entries, or change the order."
   (setq diary-entries-list (sort diary-entries-list 'diary-entry-compare)))
-
-(define-obsolete-function-alias 'sort-diary-entries 'diary-sort-entries "23.1")
 
 
 (defun diary-list-sexp-entries (date)
@@ -1876,9 +1802,6 @@ best if they are non-marking."
                          marks literal)
       (setq entry-found (or entry-found diary-entry)))
     entry-found))
-
-(define-obsolete-function-alias 'list-sexp-diary-entries
-  'diary-list-sexp-entries "23.1")
 
 (defun diary-make-date (a b c)
   "Convert A B C into the internal calendar date form.
@@ -2141,9 +2064,6 @@ If omitted, NONMARKING defaults to nil and FILE defaults to
    string " "))
 
 ;;;###cal-autoload
-(define-obsolete-function-alias 'make-diary-entry 'diary-make-entry "23.1")
-
-;;;###cal-autoload
 (defun diary-insert-entry (arg &optional event)
   "Insert a diary entry for the date indicated by point.
 Prefix argument ARG makes the entry nonmarking."
@@ -2153,19 +2073,12 @@ Prefix argument ARG makes the entry nonmarking."
                     arg))
 
 ;;;###cal-autoload
-(define-obsolete-function-alias 'insert-diary-entry 'diary-insert-entry "23.1")
-
-;;;###cal-autoload
 (defun diary-insert-weekly-entry (arg)
   "Insert a weekly diary entry for the day of the week indicated by point.
 Prefix argument ARG makes the entry nonmarking."
   (interactive "P")
   (diary-make-entry (calendar-day-name (calendar-cursor-to-date t))
                     arg))
-
-;;;###cal-autoload
-(define-obsolete-function-alias 'insert-weekly-diary-entry
-  'diary-insert-weekly-entry "23.1")
 
 (defun diary-date-display-form (&optional type)
   "Return value for `calendar-date-display-form' using `calendar-date-style'.
@@ -2222,19 +2135,11 @@ Prefix argument ARG makes the entry nonmarking."
   (diary-insert-entry-1 'monthly arg))
 
 ;;;###cal-autoload
-(define-obsolete-function-alias 'insert-monthly-diary-entry
-  'diary-insert-monthly-entry "23.1")
-
-;;;###cal-autoload
 (defun diary-insert-yearly-entry (arg)
   "Insert an annual diary entry for the day of the year indicated by point.
 Prefix argument ARG makes the entry nonmarking."
   (interactive "P")
   (diary-insert-entry-1 'yearly arg))
-
-;;;###cal-autoload
-(define-obsolete-function-alias 'insert-yearly-diary-entry
-  'diary-insert-yearly-entry "23.1")
 
 ;;;###cal-autoload
 (defun diary-insert-anniversary-entry (arg)
@@ -2247,10 +2152,6 @@ Prefix argument ARG makes the entry nonmarking."
              diary-sexp-entry-symbol
              (calendar-date-string (calendar-cursor-to-date t) nil t))
      arg)))
-
-;;;###cal-autoload
-(define-obsolete-function-alias 'insert-anniversary-diary-entry
-  'diary-insert-anniversary-entry "23.1")
 
 ;;;###cal-autoload
 (defun diary-insert-block-entry (arg)
@@ -2276,10 +2177,6 @@ Prefix argument ARG makes the entry nonmarking."
      arg)))
 
 ;;;###cal-autoload
-(define-obsolete-function-alias 'insert-block-diary-entry
-  'diary-insert-block-entry "23.1")
-
-;;;###cal-autoload
 (defun diary-insert-cyclic-entry (arg)
   "Insert a cyclic diary entry starting at the date given by point.
 Prefix argument ARG makes the entry nonmarking."
@@ -2292,10 +2189,6 @@ Prefix argument ARG makes the entry nonmarking."
                             (lambda (x) (> x 0)))
              (calendar-date-string (calendar-cursor-to-date t) nil t))
      arg)))
-
-;;;###cal-autoload
-(define-obsolete-function-alias 'insert-cyclic-diary-entry
-  'diary-insert-cyclic-entry "23.1")
 
 ;;; Diary mode.
 
@@ -2357,7 +2250,7 @@ full month names."
                        (if (equal (car x) 'backup)
                            (concat "\\)" (eval (car (reverse x))))
                          "\\)"))
-               '(1 diary-face)))
+               '(1 'diary)))
             diary-date-forms)))
 
 (defmacro diary-font-lock-keywords-1 (markfunc listfunc feature months symbol)
@@ -2494,11 +2387,8 @@ This depends on the calendar date style."
     (put-text-property (match-beginning 0) (match-end 0) 'font-lock-multiline t)
     t))
 
-(define-obsolete-variable-alias 'fancy-diary-font-lock-keywords
-  'diary-fancy-font-lock-keywords "23.1")
-
 (defvar diary-fancy-font-lock-keywords
-  `((diary-fancy-date-matcher . diary-face)
+  `((diary-fancy-date-matcher . 'diary)
     ("^.*\\([aA]nniversary\\|[bB]irthday\\).*$" . 'diary-anniversary)
     ("^.*Yahrzeit.*$" . font-lock-constant-face)
     ("^\\(Erev \\)?Rosh Hodesh.*" . font-lock-function-name-face)
@@ -2544,9 +2434,6 @@ Fontify the region between BEG and END, quietly unless VERBOSE is non-nil."
   (set (make-local-variable 'minor-mode-overriding-map-alist)
        (list (cons t diary-fancy-overriding-map)))
   (view-mode 1))
-
-(define-obsolete-function-alias 'fancy-diary-display-mode
-  'diary-fancy-display-mode "23.1")
 
 ;; Following code from Dave Love <fx@gnu.org>.
 ;; Import Outlook-format appointments from mail messages in Gnus or

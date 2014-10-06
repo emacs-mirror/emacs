@@ -94,9 +94,6 @@ Gregorian date Sunday, December 31, 1 BC."
          0)
        day)))                           ; days so far this month
 
-(define-obsolete-function-alias 'calendar-absolute-from-bahai
-  'calendar-bahai-to-absolute "23.1")
-
 (defun calendar-bahai-from-absolute (date)
   "Bahá'í date (month day year) corresponding to the absolute DATE."
   (if (< date calendar-bahai-epoch)
@@ -152,9 +149,6 @@ Defaults to today's date if DATE is not given."
        (message "Date is pre-Bahá'í")
      (message "Bahá'í date: %s" s))))
 
-(define-obsolete-function-alias
-  'calendar-print-bahai-date 'calendar-bahai-print-date "23.1")
-
 (defun calendar-bahai-read-date ()
  "Interactively read the arguments for a Bahá'í date command.
 Reads a year, month and day."
@@ -179,9 +173,6 @@ Reads a year, month and day."
                              (lambda (x) (and (< 0 x) (<= x 19))))))
     (list (list month day year))))
 
-(define-obsolete-function-alias
-  'calendar-bahai-prompt-for-date 'calendar-bahai-read-date "23.1")
-
 ;;;###cal-autoload
 (defun calendar-bahai-goto-date (date &optional noecho)
   "Move cursor to Bahá'í date DATE; echo Bahá'í date unless NOECHO is non-nil."
@@ -189,9 +180,6 @@ Reads a year, month and day."
   (calendar-goto-date (calendar-gregorian-from-absolute
                        (calendar-bahai-to-absolute date)))
   (or noecho (calendar-bahai-print-date)))
-
-(define-obsolete-function-alias
-  'calendar-goto-bahai-date 'calendar-bahai-goto-date "23.1")
 
 (defvar displayed-month)
 (defvar displayed-year)
@@ -270,9 +258,6 @@ will not be marked in the calendar.  This function is provided for use with
   (diary-list-entries-1 calendar-bahai-month-name-array
                         diary-bahai-entry-symbol
                         'calendar-bahai-from-absolute))
-(define-obsolete-function-alias
-  'list-bahai-diary-entries 'diary-bahai-list-entries "23.1")
-
 
 (autoload 'calendar-mark-1 "diary-lib")
 
@@ -283,10 +268,6 @@ A value of 0 in any position is a wildcard.  Optional argument COLOR is
 passed to `calendar-mark-visible-date' as MARK."
   (calendar-mark-1 month day year 'calendar-bahai-from-absolute
                    'calendar-bahai-to-absolute color))
-
-(define-obsolete-function-alias
-  'mark-bahai-calendar-date-pattern 'calendar-bahai-mark-date-pattern "23.1")
-
 
 (autoload 'diary-mark-entries-1 "diary-lib")
 
@@ -300,10 +281,6 @@ window.  See `diary-bahai-list-entries' for more information."
                         diary-bahai-entry-symbol
                         'calendar-bahai-from-absolute))
 
-(define-obsolete-function-alias
-  'mark-bahai-diary-entries 'diary-bahai-mark-entries "23.1")
-
-
 (autoload 'diary-insert-entry-1 "diary-lib")
 
 ;;;###cal-autoload
@@ -316,9 +293,6 @@ Prefix argument ARG makes the entry nonmarking."
                         diary-bahai-entry-symbol
                         'calendar-bahai-from-absolute))
 
-(define-obsolete-function-alias
-  'insert-bahai-diary-entry 'diary-bahai-insert-entry "23.1")
-
 ;;;###cal-autoload
 (defun diary-bahai-insert-monthly-entry (arg)
   "Insert a monthly diary entry.
@@ -329,9 +303,6 @@ Prefix argument ARG makes the entry nonmarking."
                         diary-bahai-entry-symbol
                         'calendar-bahai-from-absolute))
 
-(define-obsolete-function-alias
-  'insert-monthly-bahai-diary-entry 'diary-bahai-insert-monthly-entry "23.1")
-
 ;;;###cal-autoload
 (defun diary-bahai-insert-yearly-entry (arg)
   "Insert an annual diary entry.
@@ -341,9 +312,6 @@ Prefix argument ARG will make the entry nonmarking."
   (diary-insert-entry-1 'yearly arg calendar-bahai-month-name-array
                         diary-bahai-entry-symbol
                         'calendar-bahai-from-absolute))
-
-(define-obsolete-function-alias
-  'insert-yearly-bahai-diary-entry 'diary-bahai-insert-yearly-entry "23.1")
 
 (defvar date)
 

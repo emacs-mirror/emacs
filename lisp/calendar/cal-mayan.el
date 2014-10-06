@@ -132,9 +132,6 @@ but some use 1137140.  Using 1232041 gives you Spinden's correlation; using
   (message "Mayan date: %s"
            (calendar-mayan-date-string (calendar-cursor-to-date t))))
 
-(define-obsolete-function-alias 'calendar-print-mayan-date
-  'calendar-mayan-print-date "23.1")
-
 (defun calendar-mayan-read-haab-date ()
   "Prompt for a Mayan haab date."
   (let* ((completion-ignore-case t)
@@ -179,9 +176,6 @@ Echo Mayan date unless NOECHO is non-nil."
         (calendar-absolute-from-gregorian (calendar-cursor-to-date))))))
   (or noecho (calendar-mayan-print-date)))
 
-(define-obsolete-function-alias 'calendar-next-haab-date
-  'calendar-mayan-next-haab-date "23.1")
-
 ;;;###cal-autoload
 (defun calendar-mayan-previous-haab-date (haab-date &optional noecho)
   "Move cursor to previous instance of Mayan HAAB-DATE.
@@ -193,9 +187,6 @@ Echo Mayan date unless NOECHO is non-nil."
      haab-date
      (1- (calendar-absolute-from-gregorian (calendar-cursor-to-date))))))
   (or noecho (calendar-mayan-print-date)))
-
-(define-obsolete-function-alias 'calendar-previous-haab-date
-  'calendar-mayan-previous-haab-date "23.1")
 
 (defun calendar-mayan-haab-to-string (haab)
   "Convert Mayan HAAB date (a pair) into its traditional written form."
@@ -247,9 +238,6 @@ Echo Mayan date unless NOECHO is non-nil."
         (calendar-absolute-from-gregorian (calendar-cursor-to-date))))))
   (or noecho (calendar-mayan-print-date)))
 
-(define-obsolete-function-alias 'calendar-next-tzolkin-date
-  'calendar-mayan-next-tzolkin-date "23.1")
-
 ;;;###cal-autoload
 (defun calendar-mayan-previous-tzolkin-date (tzolkin-date &optional noecho)
   "Move cursor to previous instance of Mayan TZOLKIN-DATE.
@@ -261,9 +249,6 @@ Echo Mayan date unless NOECHO is non-nil."
      tzolkin-date
      (1- (calendar-absolute-from-gregorian (calendar-cursor-to-date))))))
   (or noecho (calendar-mayan-print-date)))
-
-(define-obsolete-function-alias 'calendar-previous-tzolkin-date
-  'calendar-mayan-previous-tzolkin-date "23.1")
 
 (defun calendar-mayan-tzolkin-to-string (tzolkin)
   "Convert Mayan TZOLKIN date (a pair) into its traditional written form."
@@ -309,9 +294,6 @@ Echo Mayan date unless NOECHO is non-nil."
       (calendar-goto-date (calendar-gregorian-from-absolute date))
       (or noecho (calendar-mayan-print-date)))))
 
-(define-obsolete-function-alias 'calendar-next-calendar-round-date
-  'calendar-mayan-next-round-date "23.1")
-
 ;;;###cal-autoload
 (defun calendar-mayan-previous-round-date
   (tzolkin-date haab-date &optional noecho)
@@ -330,9 +312,6 @@ Echo Mayan date unless NOECHO is non-nil."
       (calendar-goto-date (calendar-gregorian-from-absolute date))
       (or noecho (calendar-mayan-print-date)))))
 
-(define-obsolete-function-alias 'calendar-previous-calendar-round-date
-  'calendar-mayan-previous-round-date "23.1")
-
 (defun calendar-mayan-long-count-to-absolute (c)
   "Compute the absolute date corresponding to the Mayan Long Count C.
 Long count is a list (baktun katun tun uinal kin)"
@@ -343,9 +322,6 @@ Long count is a list (baktun katun tun uinal kin)"
      (nth 4 c)                          ; kin (days)
      ;; Days before absolute date 0.
      (- calendar-mayan-days-before-absolute-zero)))
-
-(define-obsolete-function-alias 'calendar-absolute-from-mayan-long-count
-  'calendar-mayan-long-count-to-absolute "23.1")
 
 (defun calendar-mayan-long-count-common-era (lc)
   "Return non-nil if long count LC represents a date in the Common Era."
@@ -376,9 +352,6 @@ Echo Mayan date unless NOECHO is non-nil."
    (calendar-gregorian-from-absolute
     (calendar-mayan-long-count-to-absolute date)))
   (or noecho (calendar-mayan-print-date)))
-
-(define-obsolete-function-alias 'calendar-goto-mayan-long-count-date
-  'calendar-mayan-goto-long-count-date "23.1")
 
 (defvar date)
 

@@ -87,9 +87,6 @@ Gregorian date Sunday, December 31, 1 BC."
           (calendar-persian-last-day-of-month m year))
          day))))                        ; days so far this month
 
-(define-obsolete-function-alias 'calendar-absolute-from-persian
-  'calendar-persian-to-absolute "23.1")
-
 (defun calendar-persian-year-from-absolute (date)
   "Persian year corresponding to the absolute DATE."
   (let* ((d0                   ; prior days since start of 2820 cycles
@@ -163,9 +160,6 @@ Gregorian date Sunday, December 31, 1 BC."
   (message "Persian date: %s"
            (calendar-persian-date-string (calendar-cursor-to-date t))))
 
-(define-obsolete-function-alias 'calendar-print-persian-date
-  'calendar-persian-print-date "23.1")
-
 (defun calendar-persian-read-date ()
   "Interactively read the arguments for a Persian date command.
 Reads a year, month, and day."
@@ -192,9 +186,6 @@ Reads a year, month, and day."
                (lambda (x) (and (< 0 x) (<= x last))))))
     (list (list month day year))))
 
-(define-obsolete-function-alias 'persian-prompt-for-date
-  'calendar-persian-read-date "23.1")
-
 ;;;###cal-autoload
 (defun calendar-persian-goto-date (date &optional noecho)
   "Move cursor to Persian date DATE.
@@ -204,8 +195,6 @@ Echo Persian date unless NOECHO is non-nil."
                        (calendar-persian-to-absolute date)))
   (or noecho (calendar-persian-print-date)))
 
-(define-obsolete-function-alias 'calendar-goto-persian-date
-  'calendar-persian-goto-date "23.1")
 
 (defvar date)
 

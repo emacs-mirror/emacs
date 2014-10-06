@@ -1,3 +1,8 @@
+2014-10-06  Glenn Morris  <rgm@gnu.org>
+
+	* automated/icalendar-tests.el (icalendar--calendar-style):
+	Remove test, no longer relevant.
+
 2014-10-04  Glenn Morris  <rgm@gnu.org>
 
 	* automated/package-x-test.el: Remove file...

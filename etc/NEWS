@@ -143,11 +143,26 @@ appending FUN to `minibuffer-setup-hook'.
 `diary-chinese-insert-monthly-entry', `diary-chinese-insert-yearly-entry'.
 
 +++
-*** Calendar can list and mark diary entries with Chinese dates.
+*** The calendar can now list and mark diary entries with Chinese dates.
 See `diary-chinese-list-entries' and `diary-chinese-mark-entries'.
 
-*** The mode line of the calendar buffer will not be modified if
-`calendar-mode-line-format' is nil.
+---
+*** The option `calendar-mode-line-format' can now be nil,
+which means to do nothing special with the mode line in calendars.
+
+---
+*** Many items obsolete since at least version 23.1 have been removed.
+The majority were function/variable/face aliases, too numerous to list here.
+The remainder were:
+
+**** Functions `calendar-one-frame-setup', `calendar-only-one-frame-setup',
+`calendar-two-frame-setup', `european-calendar', `american-calendar'.
+
+**** Hooks `cal-menu-load-hook', `cal-x-load-hook'.
+
+**** Macro `calendar-for-loop'.
+
+**** Variables `european-calendar-style', `diary-face', `hebrew-holidays-{1,4}'.
 
 ** New ERT function `ert-summarize-tests-batch-and-exit'.
 

@@ -32,9 +32,6 @@
 
 (require 'calendar)
 
-(define-obsolete-variable-alias 'diary-sabbath-candles-minutes
-  'diary-hebrew-sabbath-candles-minutes "23.1")
-
 (defcustom diary-hebrew-sabbath-candles-minutes 18
   "Number of minutes before sunset for sabbath candle lighting.
 Used by `diary-hebrew-sabbath-candles'."
@@ -136,9 +133,6 @@ Gregorian date Sunday, December 31, 1 BC."
        (calendar-hebrew-elapsed-days year) ; days in prior years
        -1373429)))               ; days elapsed before absolute date 1
 
-(define-obsolete-function-alias 'calendar-absolute-from-hebrew
-  'calendar-hebrew-to-absolute "23.1")
-
 (defun calendar-hebrew-from-absolute (date)
   "Compute the Hebrew date (month day year) corresponding to absolute DATE.
 The absolute date is the number of days elapsed since the (imaginary)
@@ -194,9 +188,6 @@ Driven by the variable `calendar-date-display-form'."
   (message "Hebrew date (until sunset): %s"
            (calendar-hebrew-date-string (calendar-cursor-to-date t))))
 
-(define-obsolete-function-alias 'calendar-print-hebrew-date
-  'calendar-hebrew-print-date "23.1")
-
 (defun calendar-hebrew-yahrzeit (death-date year)
   "Absolute date of the anniversary of Hebrew DEATH-DATE in Hebrew YEAR."
   (let ((death-day (calendar-extract-day death-date))
@@ -229,9 +220,6 @@ Driven by the variable `calendar-date-display-form'."
      ;; In all other cases, use the normal anniversary of the date of death.
      (t (calendar-hebrew-to-absolute
          (list death-month death-day year))))))
-
-(define-obsolete-function-alias 'hebrew-calendar-yahrzeit
-  'calendar-hebrew-yahrzeit "23.1")
 
 (defun calendar-hebrew-read-date ()
   "Interactively read the arguments for a Hebrew date command.
@@ -283,9 +271,6 @@ Reads a year, month, and day."
   (calendar-goto-date (calendar-gregorian-from-absolute
                        (calendar-hebrew-to-absolute date)))
   (or noecho (calendar-hebrew-print-date)))
-
-(define-obsolete-function-alias 'calendar-goto-hebrew-date
-  'calendar-hebrew-goto-date "23.1")
 
 (defvar displayed-month)                ; from calendar-generate
 
@@ -398,10 +383,6 @@ or ALL is non-nil."
                    "Hoshanah Rabbah"))))))))
 
 ;;;###holiday-autoload
-(define-obsolete-function-alias 'holiday-rosh-hashanah-etc
-  'holiday-hebrew-rosh-hashanah "23.1")
-
-;;;###holiday-autoload
 (defun holiday-hebrew-hanukkah (&optional all)
   "List of dates related to Hanukkah, as visible in calendar window.
 Shows only Hanukkah, unless `calendar-hebrew-all-holidays-flag' or ALL
@@ -432,10 +413,6 @@ is non-nil."
                      (format "Hanukkah (%s day)" (aref ord i)))
                     han)))
          (list (list (calendar-gregorian-from-absolute abs-h) "Hanukkah")))))))
-
-;;;###holiday-autoload
-(define-obsolete-function-alias 'holiday-hanukkah
-  'holiday-hebrew-hanukkah "23.1")
 
 ;;;###holiday-autoload
 (defun holiday-hebrew-passover (&optional all)
@@ -520,10 +497,6 @@ or ALL is non-nil."
                    "Shavuot (second day)")))))))))
 
 ;;;###holiday-autoload
-(define-obsolete-function-alias 'holiday-passover-etc
-  'holiday-hebrew-passover "23.1")
-
-;;;###holiday-autoload
 (defun holiday-hebrew-tisha-b-av ()
   "List of dates around Tisha B'Av, as visible in calendar window."
   (when (memq displayed-month '(5 6 7 8 9))
@@ -544,10 +517,6 @@ or ALL is non-nil."
         (list (calendar-gregorian-from-absolute
                (calendar-dayname-on-or-before 6 (+ abs-t-a 7)))
               "Shabbat Nahamu"))))))
-
-;;;###holiday-autoload
-(define-obsolete-function-alias 'holiday-tisha-b-av-etc
-  'holiday-hebrew-tisha-b-av "23.1")
 
 (autoload 'holiday-julian "cal-julian")
 
@@ -634,9 +603,6 @@ is provided for use with `diary-nongregorian-listing-hook'."
   (diary-list-entries-1 calendar-hebrew-month-name-array-leap-year
                         diary-hebrew-entry-symbol
                         'calendar-hebrew-from-absolute))
-;;;###diary-autoload
-(define-obsolete-function-alias 'list-hebrew-diary-entries
-  'diary-hebrew-list-entries "23.1")
 
 (autoload 'calendar-mark-complex "diary-lib")
 
@@ -662,10 +628,6 @@ passed to `calendar-mark-visible-date' as MARK."
       (calendar-mark-complex month day year
                              'calendar-hebrew-from-absolute color))))
 
-;;;###diary-autoload
-(define-obsolete-function-alias 'mark-hebrew-calendar-date-pattern
-  'calendar-hebrew-mark-date-pattern "23.1")
-
 (autoload 'diary-mark-entries-1 "diary-lib")
 
 ;;;###diary-autoload
@@ -678,10 +640,6 @@ window.  See `list-hebrew-diary-entries' for more information."
                         diary-hebrew-entry-symbol
                         'calendar-hebrew-from-absolute))
 
-;;;###diary-autoload
-(define-obsolete-function-alias 'mark-hebrew-diary-entries
-  'diary-hebrew-mark-entries "23.1")
-
 (autoload 'diary-insert-entry-1 "diary-lib")
 
 ;;;###cal-autoload
@@ -693,10 +651,6 @@ Prefix argument ARG makes the entry nonmarking."
                         diary-hebrew-entry-symbol
                         'calendar-hebrew-from-absolute))
 
-;;;###diary-autoload
-(define-obsolete-function-alias 'insert-hebrew-diary-entry
-  'diary-hebrew-insert-entry "23.1")
-
 ;;;###cal-autoload
 (defun diary-hebrew-insert-monthly-entry (arg)
   "Insert a monthly diary entry.
@@ -706,9 +660,6 @@ Prefix argument ARG makes the entry nonmarking."
   (diary-insert-entry-1 'monthly arg calendar-hebrew-month-name-array-leap-year
                         diary-hebrew-entry-symbol
                         'calendar-hebrew-from-absolute))
-;;;###diary-autoload
-(define-obsolete-function-alias 'insert-monthly-hebrew-diary-entry
-  'diary-hebrew-insert-monthly-entry "23.1")
 
 ;;;###cal-autoload
 (defun diary-hebrew-insert-yearly-entry (arg)
@@ -719,9 +670,6 @@ Prefix argument ARG makes the entry nonmarking."
   (diary-insert-entry-1 'yearly arg calendar-hebrew-month-name-array-leap-year
                         diary-hebrew-entry-symbol
                         'calendar-hebrew-from-absolute))
-;;;###diary-autoload
-(define-obsolete-function-alias 'insert-yearly-hebrew-diary-entry
-  'diary-hebrew-insert-yearly-entry "23.1")
 
 ;;;###autoload
 (defun calendar-hebrew-list-yahrzeits (death-date start-year end-year)
@@ -785,10 +733,6 @@ from the cursor position."
              (calendar-hebrew-from-absolute
               (calendar-absolute-from-gregorian (list 1 1 i))))))) "\n"))))
   (message "Computing Yahrzeits...done"))
-
-;;;###autoload
-(define-obsolete-function-alias 'list-yahrzeit-dates
-  'calendar-hebrew-list-yahrzeits "23.1")
 
 (defun calendar-hebrew-birthday (date year)
   "Absolute date of the anniversary of Hebrew birth DATE, in Hebrew YEAR."
@@ -869,8 +813,6 @@ use when highlighting the day in the calendar."
                                     ""
                                   (format " and %d day%s"
                                           day (if (= day 1) "" "s"))))))))))
-;;;###diary-autoload
-(define-obsolete-function-alias 'diary-omer 'diary-hebrew-omer "23.1")
 
 (autoload 'diary-make-date "diary-lib")
 
@@ -910,9 +852,6 @@ use when highlighting the day in the calendar."
                       (if (= y d) "" " (evening)")
                       diff
                       (diary-ordinal-suffix diff))))))
-
-;;;###diary-autoload
-(define-obsolete-function-alias 'diary-yahrzeit 'diary-hebrew-yahrzeit "23.1")
 
 ;;;###diary-autoload
 (defun diary-hebrew-rosh-hodesh (&optional mark)
@@ -976,9 +915,6 @@ use when highlighting the day in the calendar."
                                        (calendar-hebrew-last-month-of-year
                                         h-year))
                                     0 h-month)))))))))
-;;;###diary-autoload
-(define-obsolete-function-alias 'diary-rosh-hodesh
-  'diary-hebrew-rosh-hodesh "23.1")
 
 (defconst calendar-hebrew-parashiot-names
   ["Bereshith"   "Noah"      "Lech L'cha" "Vayera"    "Hayei Sarah" "Toledoth"
@@ -1166,8 +1102,6 @@ use when highlighting the day in the calendar."
                                     (cdr parasha))))
                        (calendar-hebrew-parasha-name parasha)))))))))
 
-(define-obsolete-function-alias 'diary-parasha 'diary-hebrew-parasha "23.1")
-
 
 (declare-function solar-setup "solar" ())
 (declare-function solar-sunrise-sunset "solar" (date))
@@ -1198,10 +1132,6 @@ use when highlighting the day in the calendar."
                                         (/ diary-hebrew-sabbath-candles-minutes
                                            60.0))
                                      (cdr sunset)))))))))
-
-;;;###diary-autoload
-(define-obsolete-function-alias 'diary-sabbath-candles
-  'diary-hebrew-sabbath-candles "23.1")
 
 
 (provide 'cal-hebrew)

@@ -45,9 +45,6 @@ The Gregorian date Sunday, December 31, 1 BC is imaginary."
        (/ (1- year) 4)
        -2)))
 
-(define-obsolete-function-alias 'calendar-absolute-from-julian
-  'calendar-julian-to-absolute "23.1")
-
 ;;;###cal-autoload
 (defun calendar-julian-from-absolute (date)
   "Compute the Julian (month day year) corresponding to the absolute DATE.
@@ -93,9 +90,6 @@ Driven by the variable `calendar-date-display-form'."
   (message "Julian date: %s"
            (calendar-julian-date-string (calendar-cursor-to-date t))))
 
-(define-obsolete-function-alias 'calendar-print-julian-date
-  'calendar-julian-print-date "23.1")
-
 ;;;###cal-autoload
 (defun calendar-julian-goto-date (date &optional noecho)
   "Move cursor to Julian DATE; echo Julian date unless NOECHO is non-nil."
@@ -132,9 +126,6 @@ Driven by the variable `calendar-date-display-form'."
                        (calendar-julian-to-absolute date)))
   (or noecho (calendar-julian-print-date)))
 
-(define-obsolete-function-alias 'calendar-goto-julian-date
-  'calendar-julian-goto-date "23.1")
-
 ;;;###holiday-autoload
 (defun holiday-julian (month day string)
   "Holiday on MONTH, DAY (Julian) called STRING.
@@ -155,9 +146,6 @@ nil if it is not visible in the current calendar window."
 (defun calendar-astro-to-absolute (d)
   "Absolute date of astronomical (Julian) day number D."
   (- d 1721424.5))
-
-(define-obsolete-function-alias 'calendar-absolute-from-astro
-  'calendar-astro-to-absolute "23.1")
 
 ;;;###cal-autoload
 (defun calendar-astro-from-absolute (d)
@@ -181,9 +169,6 @@ Defaults to today's date if DATE is not given."
    "Astronomical (Julian) day number (at noon UTC): %s.0"
    (calendar-astro-date-string (calendar-cursor-to-date t))))
 
-(define-obsolete-function-alias 'calendar-print-astro-day-number
-  'calendar-astro-print-day-number "23.1")
-
 ;;;###cal-autoload
 (defun calendar-astro-goto-day-number (daynumber &optional noecho)
   "Move cursor to astronomical (Julian) DAYNUMBER.
@@ -197,8 +182,6 @@ Echo astronomical (Julian) day number unless NOECHO is non-nil."
      (calendar-astro-to-absolute daynumber))))
   (or noecho (calendar-astro-print-day-number)))
 
-(define-obsolete-function-alias 'calendar-goto-astro-day-number
-  'calendar-astro-goto-day-number "23.1")
 
 (defvar date)
 

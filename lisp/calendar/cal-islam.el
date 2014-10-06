@@ -87,9 +87,6 @@ Gregorian date Sunday, December 31, 1 BC."
        leap-years-in-cycle            ; leap days this cycle
        (1- calendar-islamic-epoch)))) ; days before start of calendar
 
-(define-obsolete-function-alias 'calendar-absolute-from-islamic
-  'calendar-islamic-to-absolute "23.1")
-
 (defun calendar-islamic-from-absolute (date)
   "Compute the Islamic date (month day year) corresponding to absolute DATE.
 The absolute date is the number of days elapsed since the (imaginary)
@@ -141,9 +138,6 @@ Driven by the variable `calendar-date-display-form'."
         (message "Date is pre-Islamic")
       (message "Islamic date (until sunset): %s" i))))
 
-(define-obsolete-function-alias 'calendar-print-islamic-date
-  'calendar-islamic-print-date "23.1")
-
 (defun calendar-islamic-read-date ()
   "Interactively read the arguments for an Islamic date command.
 Reads a year, month, and day."
@@ -176,9 +170,6 @@ Reads a year, month, and day."
   (calendar-goto-date (calendar-gregorian-from-absolute
                        (calendar-islamic-to-absolute date)))
   (or noecho (calendar-islamic-print-date)))
-
-(define-obsolete-function-alias 'calendar-goto-islamic-date
-  'calendar-islamic-goto-date "23.1")
 
 (defvar displayed-month)                ; from calendar-generate
 (defvar displayed-year)
@@ -260,9 +251,6 @@ marked in the calendar.  This function is provided for use with
                         diary-islamic-entry-symbol
                         'calendar-islamic-from-absolute))
 
-(define-obsolete-function-alias 'list-islamic-diary-entries
-  'diary-islamic-list-entries "23.1")
-
 (autoload 'calendar-mark-1 "diary-lib")
 
 ;;;###diary-autoload
@@ -272,9 +260,6 @@ A value of 0 in any position is a wildcard.  Optional argument COLOR is
 passed to `calendar-mark-visible-date' as MARK."
   (calendar-mark-1 month day year 'calendar-islamic-from-absolute
                    'calendar-islamic-to-absolute color))
-
-(define-obsolete-function-alias 'mark-islamic-calendar-date-pattern
-  'calendar-islamic-mark-date-pattern "23.1")
 
 (autoload 'diary-mark-entries-1 "diary-lib")
 
@@ -288,9 +273,6 @@ window.  See `diary-islamic-list-entries' for more information."
                         diary-islamic-entry-symbol
                         'calendar-islamic-from-absolute))
 
-(define-obsolete-function-alias
-  'mark-islamic-diary-entries 'diary-islamic-mark-entries "23.1")
-
 (autoload 'diary-insert-entry-1 "diary-lib")
 
 ;;;###cal-autoload
@@ -303,9 +285,6 @@ Prefix argument ARG makes the entry nonmarking."
                         diary-islamic-entry-symbol
                         'calendar-islamic-from-absolute))
 
-(define-obsolete-function-alias 'insert-islamic-diary-entry
-  'diary-islamic-insert-entry "23.1")
-
 ;;;###cal-autoload
 (defun diary-islamic-insert-monthly-entry (arg)
   "Insert a monthly diary entry.
@@ -316,9 +295,6 @@ Prefix argument ARG makes the entry nonmarking."
                         diary-islamic-entry-symbol
                         'calendar-islamic-from-absolute))
 
-(define-obsolete-function-alias 'insert-monthly-islamic-diary-entry
-  'diary-islamic-insert-monthly-entry "23.1")
-
 ;;;###cal-autoload
 (defun diary-islamic-insert-yearly-entry (arg)
   "Insert an annual diary entry.
@@ -328,8 +304,6 @@ Prefix argument ARG makes the entry nonmarking."
   (diary-insert-entry-1 'yearly arg calendar-islamic-month-name-array
                         diary-islamic-entry-symbol
                         'calendar-islamic-from-absolute))
-(define-obsolete-function-alias
-  'insert-yearly-islamic-diary-entry 'diary-islamic-insert-yearly-entry "23.1")
 
 (defvar date)
 

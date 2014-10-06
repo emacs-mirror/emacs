@@ -499,6 +499,8 @@ If this is nil, then `diary-file' will be used instead."
   :type '(choice (const :tag "diary-file" nil) file)
   :group 'remember)
 
+(defvar calendar-date-style)            ; calendar.el
+
 (defun remember-diary-convert-entry (entry)
   "Translate MSG to an entry readable by diary."
   (save-match-data
@@ -511,23 +513,17 @@ If this is nil, then `diary-file' will be used instead."
           ;; which requires calendar.
           (require 'calendar)
           (replace-match
-           (let ((style (if (boundp 'calendar-date-style)
-                            calendar-date-style
-                          ;; Don't complain about obsolescence.
-                          (if (with-no-warnings european-calendar-style)
-                              'european
-                            'american))))
-             (cond ((eq style 'european)
-                    (concat (match-string 3 entry) "/"
-                            (match-string 2 entry) "/"
-                            (match-string 1 entry)))
-                   ((eq style 'iso)
-                    (concat (match-string 1 entry) "-"
+           (cond ((eq calendar-date-style 'european)
+                  (concat (match-string 3 entry) "/"
+                          (match-string 2 entry) "/"
+                          (match-string 1 entry)))
+                 ((eq calendar-date-style 'iso)
+                  (concat (match-string 1 entry) "-"
                             (match-string 2 entry) "-"
                             (match-string 3 entry)))
-                   (t (concat (match-string 2 entry) "/"
-                              (match-string 3 entry) "/"
-                              (match-string 1 entry)))))
+                 (t (concat (match-string 2 entry) "/"
+                            (match-string 3 entry) "/"
+                            (match-string 1 entry))))
            t t entry))
       entry)))
 

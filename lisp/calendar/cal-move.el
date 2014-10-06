@@ -175,9 +175,6 @@ EVENT is an event like `last-nonmenu-event'."
           (t (list month 1 year))))))
     (run-hooks 'calendar-move-hook)))
 
-(define-obsolete-function-alias
-  'scroll-calendar-left 'calendar-scroll-left "23.1")
-
 ;;;###cal-autoload
 (defun calendar-scroll-right (&optional arg event)
   "Scroll the displayed calendar window right by ARG months.
@@ -188,9 +185,6 @@ EVENT is an event like `last-nonmenu-event'."
                      last-nonmenu-event))
   (calendar-scroll-left (- (or arg 1)) event))
 
-(define-obsolete-function-alias
-  'scroll-calendar-right 'calendar-scroll-right "23.1")
-
 ;;;###cal-autoload
 (defun calendar-scroll-left-three-months (arg &optional event)
   "Scroll the displayed calendar window left by 3*ARG months.
@@ -200,9 +194,6 @@ EVENT is an event like `last-nonmenu-event'."
   (interactive (list (prefix-numeric-value current-prefix-arg)
                      last-nonmenu-event))
   (calendar-scroll-left (* 3 arg) event))
-
-(define-obsolete-function-alias 'scroll-calendar-left-three-months
-  'calendar-scroll-left-three-months "23.1")
 
 ;; cf scroll-bar-toolkit-scroll
 ;;;###cal-autoload
@@ -225,9 +216,6 @@ EVENT is an event like `last-nonmenu-event'."
   (interactive (list (prefix-numeric-value current-prefix-arg)
                      last-nonmenu-event))
   (calendar-scroll-left (* -3 arg) event))
-
-(define-obsolete-function-alias 'scroll-calendar-right-three-months
-  'calendar-scroll-right-three-months "23.1")
 
 ;;;###cal-autoload
 (defun calendar-forward-day (arg)

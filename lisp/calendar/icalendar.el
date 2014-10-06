@@ -740,16 +740,6 @@ ISO format: (year month day)."
     ;; datetime == nil
     nil))
 
-(defun icalendar--date-style ()
-  "Return current calendar date style.
-Convenience function to handle transition from old
-`european-calendar-style' to new `calendar-date-style'."
-  (if (boundp 'calendar-date-style)
-      calendar-date-style
-    (if (with-no-warnings european-calendar-style)
-        'european
-      'american)))
-
 (defun icalendar--datetime-to-diary-date (datetime &optional separator)
   "Convert the decoded DATETIME to diary format.
 Optional argument SEPARATOR gives the separator between month,
@@ -757,7 +747,7 @@ day, and year.  If nil a blank character is used as separator.
 Call icalendar--datetime-to-*-date according to the current
 calendar date style."
   (funcall (intern-soft (format "icalendar--datetime-to-%s-date"
-                                (icalendar--date-style)))
+                                calendar-date-style))
            datetime separator))
 
 (defun icalendar--datetime-to-colontime (datetime)
@@ -867,7 +857,7 @@ is not possible it uses the current calendar date style."
                                           (match-end 2))))
              (setq year (read (substring datestring (match-beginning 3)
                                          (match-end 3))))
-             (if (eq (icalendar--date-style) 'american)
+             (if (eq calendar-date-style 'american)
                  (let ((x month))
                    (setq month day)
                    (setq day x))))
@@ -1451,7 +1441,7 @@ entries.  ENTRY-MAIN is the first line of the diary entry."
 NONMARKER is a regular expression matching the start of non-marking
 entries.  ENTRY-MAIN is the first line of the diary entry."
   (if (string-match (concat nonmarker
-                            (if (eq (icalendar--date-style) 'european)
+                            (if (eq calendar-date-style 'european)
                                 "\\([0-9]+[0-9]?\\)\\s-+\\([a-z]+\\)\\s-+"
                               "\\([a-z]+\\)\\s-+\\([0-9]+[0-9]?\\)\\s-+")
                             "\\*?\\s-*"
@@ -1462,8 +1452,8 @@ entries.  ENTRY-MAIN is the first line of the diary entry."
                             "\\s-*\\([^0-9]+.*?\\) ?$" ; must not match years
                             )
                     entry-main)
-      (let* ((daypos (if (eq (icalendar--date-style) 'european) 1 2))
-             (monpos (if (eq (icalendar--date-style) 'european) 2 1))
+      (let* ((daypos (if (eq calendar-date-style 'european) 1 2))
+             (monpos (if (eq calendar-date-style 'european) 2 1))
              (day (read (substring entry-main
                                    (match-beginning daypos)
                                    (match-end daypos))))
@@ -2300,11 +2290,11 @@ END-T is the event's end time in diary format."
                (let ((day (nth 3 dtstart-dec))
                      (month (nth 4 dtstart-dec)))
                  (setq result (concat "%%(and (diary-date "
-                                      (cond ((eq (icalendar--date-style) 'iso)
+                                      (cond ((eq calendar-date-style 'iso)
                                              (format "t %d %d" month day))
-                                            ((eq (icalendar--date-style) 'european)
+                                            ((eq calendar-date-style 'european)
                                              (format "%d %d t" day month))
-                                            ((eq (icalendar--date-style) 'american)
+                                            ((eq calendar-date-style 'american)
                                              (format "%d %d t" month day)))
                                       ") (diary-block "
                                       dtstart-conv
@@ -2326,16 +2316,16 @@ END-T is the event's end time in diary format."
                  (format
                   "%%%%(and (diary-date %s) (diary-block %s %s)) %s%s%s"
                   (let ((day (nth 3 dtstart-dec)))
-                    (cond ((eq (icalendar--date-style) 'iso)
+                    (cond ((eq calendar-date-style 'iso)
                            (format "t t %d" day))
-                          ((eq (icalendar--date-style) 'european)
+                          ((eq calendar-date-style 'european)
                            (format "%d t t" day))
-                          ((eq (icalendar--date-style) 'american)
+                          ((eq calendar-date-style 'american)
                            (format "t %d t" day))))
                   dtstart-conv
                   (if until
                       until-conv
-                    (if (eq (icalendar--date-style) 'iso) "9999 1 1" "1 1 9999")) ;; FIXME: should be unlimited
+                    (if (eq calendar-date-style 'iso) "9999 1 1" "1 1 9999")) ;; FIXME: should be unlimited
                   (or start-t "")
                   (if end-t "-" "") (or end-t ""))))
           ;; daily
