@@ -1034,16 +1034,13 @@ for more information."
   (if (stringp index-item)
       (setq index-item (assoc index-item (imenu--make-index-alist))))
   (when index-item
-    (push-mark nil t)
-    (let* ((is-special-item (listp (cdr index-item)))
-	   (function
-	    (if is-special-item
-		(nth 2 index-item) imenu-default-goto-function))
-	   (position (if is-special-item
-			 (cadr index-item) (cdr index-item)))
-	   (args (if is-special-item (cdr (cddr index-item)))))
-      (apply function (car index-item) position args))
-    (run-hooks 'imenu-after-jump-hook)))
+    (pcase index-item
+      (`(,name ,pos ,fn . ,args)
+       (push-mark nil t)
+       (apply fn name pos args)
+       (run-hooks 'imenu-after-jump-hook))
+      (`(,name . ,pos) (imenu (list name pos imenu-default-goto-function)))
+      (_ (error "Unknown imenu item: %S" index-item)))))
 
 (provide 'imenu)
 
