@@ -676,8 +676,9 @@ Gnus will only offer you the Accept/Tentative/Decline buttons for
 calendar events if any of your identities matches at least one
 RSVP participant.
 
-Your identity is guessed automatically from the variables `user-full-name',
-`user-mail-address', and `gnus-ignored-from-addresses'.
+Your identity is guessed automatically from the variables
+`user-full-name', `user-mail-address',
+`gnus-ignored-from-addresses' and `message-alternative-emails'.
 
 If you need even more aliases you can define them here.  It really
 only makes sense to define names or email addresses."
@@ -703,6 +704,7 @@ These will be used to retrieve the RSVP information from ical events."
                  (list user-full-name (regexp-quote user-mail-address)
                        ; NOTE: these can be lists
                        gnus-ignored-from-addresses ; already regexp-quoted
+                       message-alternative-emails  ;
                        (mapcar #'regexp-quote gnus-icalendar-additional-identities)))))
 
 ;; TODO: make the template customizable

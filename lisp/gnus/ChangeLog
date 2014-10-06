@@ -1,3 +1,8 @@
+2014-10-06  Jan Tatarik  <jan.tatarik@gmail.com>
+
+	* gnus-icalendar.el (gnus-icalendar-identities):
+	Include message-alternative-emails.
+
 2014-10-04  Alan Schmitt  <alan.schmitt@polytechnique.org>  (tiny change)
 
 	* nnimap.el (nnimap-process-expiry-targets): Reverse the list of
