@@ -1,3 +1,15 @@
+2014-10-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* obsolete/iswitchb.el (iswitchb-mode): Use normal autoload cookie.
+	Remove redundant obsolescence thingy.
+
+	* loadup.el: Don't load obsolete/loaddefs.el.
+
+	* icomplete.el: Move Iswitchb autoload here.  Much simpler.
+
+	* Makefile.in (obsolete-autoloads): Remove.
+	(AUTOGENEL): Remove obsolete/loaddefs.el.
+
 2014-10-06  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (obsolete-autoloads): Write to a separate file,
