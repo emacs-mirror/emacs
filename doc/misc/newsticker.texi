@@ -596,10 +596,10 @@ Newsticker works with the standard RSS and Atom formats listed below
 @item RSS 1.0 (see @uref{http://purl.org/rss/1.0/spec})
 @item RSS 2.0 (see @uref{http://blogs.law.harvard.edu/tech/rss})
 @end itemize
-@itemize
 
 @subheading Atom formats
 
+@itemize
 @item Atom 0.3
 @item Atom 1.0 (see
 @uref{https://datatracker.ietf.org/doc/rfc4287/})
