@@ -26,7 +26,6 @@
 
 ;;; Code:
 (require 'w32-vars)
-(require 'w32-common-fns)
 
 (defvar explicit-shell-file-name)
 

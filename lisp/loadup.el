@@ -252,7 +252,6 @@
       (load "w32-vars")
       (load "term/w32-win")
       (load "disp-table")
-      (load "w32-common-fns")
       (when (eq system-type 'windows-nt)
         (load "w32-fns")
         (load "ls-lisp")

@@ -1,12 +1,16 @@
 2014-10-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* obsolete/iswitchb.el (iswitchb-mode): Use normal autoload cookie.
-	Remove redundant obsolescence thingy.
-
-	* loadup.el: Don't load obsolete/loaddefs.el.
+	* term/w32-win.el: Move all code from 32-common-fns.el here.
+	(gui-select-text, gui-selection-value): Use w32 handlers in the w32
+	console as well (bug#18629).
+	* w32-common-fns.el: Remove.
+	* loadup.el: Don't load w32-common-fns.el.
+	* w32-fns.elc: Don't require w32-common-fns.
 
 	* icomplete.el: Move Iswitchb autoload here.  Much simpler.
-
+	* obsolete/iswitchb.el (iswitchb-mode): Use normal autoload cookie.
+	Remove redundant obsolescence thingy.
+	* loadup.el: Don't load obsolete/loaddefs.el.
 	* Makefile.in (obsolete-autoloads): Remove.
 	(AUTOGENEL): Remove obsolete/loaddefs.el.
 

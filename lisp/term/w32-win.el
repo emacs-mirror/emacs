@@ -376,12 +376,69 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 (gui-method-define window-system-initialization w32
                    #'w32-initialize-window-system)
 
+;;;; Selections
+
 (declare-function w32-set-clipboard-data "w32select.c"
 		  (string &optional ignored))
-(gui-method-define gui-select-text w32
-                   (lambda (text)
-                     (if gui-select-enable-clipboard
-                         (w32-set-clipboard-data text))))
+(declare-function w32-get-clipboard-data "w32select.c")
+
+(defun w32--select-text (text)
+  (if gui-select-enable-clipboard (w32-set-clipboard-data text)))
+
+(defun w32--get-selection-value ()
+  "Return the value of the current selection.
+Consult the selection.  Treat empty strings as if they were unset."
+  (if gui-select-enable-clipboard
+      ;; Don't die if x-get-selection signals an error.
+      (with-demoted-errors "w32-get-clipboard-data:%S"
+        (w32-get-clipboard-data))))
+
+;; Arrange for the kill and yank functions to set and check the clipboard.
+(gui-method-define gui-select-text w32 #'w32--select-text)
+(gui-method-define gui-selection-value w32 #'w32--get-selection-value)
+
+(when (eq system-type 'windows-nt)
+  ;; Make copy&pasting in w32's console interact with the system's clipboard!
+  (gui-method-define gui-select-text t #'w32--select-text)
+  (gui-method-define gui-selection-value t #'w32--get-selection-value))
+
+;;; Fix interface to (X-specific) mouse.el
+(gui-method-define gui-own-selection w32
+                   (lambda (type value)
+                     (put 'x-selections (or type 'PRIMARY) data)))
+
+(gui-method-define gui-disown-selection w32
+                   (lambda (type)
+                     (put 'x-selections (or type 'PRIMARY) nil)))
+
+(gui-method-define gui-get-selection w32
+                   (lambda (&optional type _data-type)
+                     (get 'x-selections (or type 'PRIMARY))))
+
+;; gui-selection-owner-p is used in simple.el
+(gui-method-define gui-selection-owner-p w32
+                   (lambda (selection)
+                     (and (memq selection '(nil PRIMARY SECONDARY))
+                          (get 'x-selections (or selection 'PRIMARY)))))
+
+;; The "Windows" keys on newer keyboards bring up the Start menu
+;; whether you want it or not - make Emacs ignore these keystrokes
+;; rather than beep.
+(global-set-key [lwindow] 'ignore)
+(global-set-key [rwindow] 'ignore)
+
+(declare-function x-server-version "w32fns.c" (&optional terminal))
+
+(defun w32-version ()
+  "Return the MS-Windows version numbers.
+The value is a list of three integers: the major and minor version
+numbers, and the build number."
+  (x-server-version))
+
+(defun w32-using-nt ()
+  "Return non-nil if running on a Windows NT descendant.
+That includes all Windows systems except for 9X/Me."
+  (getenv "SystemRoot"))
 
 (provide 'w32-win)
 

@@ -1,3 +1,7 @@
+2014-10-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp.mk (lisp): Remove w32-common-fns.elc.
+
 2014-10-05  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* keyboard.c (Qleft, Qright): Remove duplicate definitions (Bug#9927).
@@ -20,10 +24,9 @@
 	(ns_draw_window_cursor): Adjust y for hbar cursor only if smaller than
 	line height (Bug#17977).
 
-	* macfont.m: Fix indentation and import changes from macport
-	24.3.94.
+	* macfont.m: Fix indentation and import changes from macport 24.3.94.
 	(macfont_closest_traits_index): New function.
-	(macfont_closest_traits_index_p): Renamed from
+	(macfont_closest_traits_index_p): Rename from
 	macfont_closest_traits_index.
 	(macfont_list): Use macfont_closest_traits_index_p.
 
@@ -40,8 +43,8 @@
 
 2014-10-04  Martin Rudalics  <rudalics@gmx.at>
 
-	* buffer.c (scroll_bar_width, scroll_bar_height): Fix
-	doc-strings.
+	* buffer.c (scroll_bar_width, scroll_bar_height):
+	Fix doc-strings.
 	* window.c (Fset_window_scroll_bars): Fix doc-string.
 	(Fwindow_scroll_bars): Have it return what the doc-string says.
 
@@ -144,8 +147,8 @@
 	values.
 	(my_create_window): Move the calculation of the coordinates of the
 	frame's top-left edge here.  Pass them to the input thread via the
-	second parameter of the WM_EMACS_CREATEWINDOW message.  See
-	http://lists.gnu.org/archive/html/emacs-devel/2014-09/msg00892.html
+	second parameter of the WM_EMACS_CREATEWINDOW message.
+	See http://lists.gnu.org/archive/html/emacs-devel/2014-09/msg00892.html
 	for the details.
 
 2014-09-30  Eli Zaretskii  <eliz@gnu.org>
@@ -156,8 +159,8 @@
 	obey it if the glyph row showing point will be fully visible.
 	Likewise when the window start is in a continuation line.  If,
 	after trying everything under the 'force_start' label, point is
-	still not fully visible, give up and scroll the window.  Add
-	debugging traces.  (Bug#18545)
+	still not fully visible, give up and scroll the window.
+	Add debugging traces.  (Bug#18545)
 
 	* window.c (Frecenter): Set the window's redisplay flag.
 
