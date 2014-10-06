@@ -1,5 +1,12 @@
 2014-10-06  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (obsolete-autoloads): Write to a separate file,
+	to workaround autoloads bug.  (Bug#17407)
+	(AUTOGENEL): Add obsolete/loaddefs.el.
+	* loadup.el: Load obsolete/loaddefs.el if present.
+	* subr.el (do-after-load-evaluation):
+	Don't warn about obsolete/loaddefs.el.
+
 	* menu-bar.el (menu-bar-games-menu): Remove landmark.
 	It has zero relationship to a game.
 

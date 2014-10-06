@@ -68,6 +68,7 @@ AUTOGENEL = loaddefs.el \
 	cedet/semantic/loaddefs.el \
 	cedet/ede/loaddefs.el \
 	cedet/srecode/loaddefs.el \
+	obsolete/loaddefs.el \
 	org/org-loaddefs.el
 
 # Value of max-lisp-eval-depth when compiling initially.
@@ -194,7 +195,7 @@ autoloads: $(LOADDEFS)
 obsolete-autoloads: ${lisp}/obsolete/*.el
 	$(emacs) -l autoload \
 	    --eval '(setq generate-autoload-cookie ";;;###obsolete-autoload")' \
-	    --eval '(setq generated-autoload-file (expand-file-name (unmsys--file-name "$(srcdir)/loaddefs.el")))' \
+	    --eval '(setq generated-autoload-file (expand-file-name (unmsys--file-name "$(srcdir)/obsolete/loaddefs.el")))' \
 	    -f batch-update-autoloads ${lisp}/obsolete
 
 # This is required by the bootstrap-emacs target in ../src/Makefile, so

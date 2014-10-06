@@ -3879,7 +3879,9 @@ This function is called directly from the C code."
       ;; discard the file name regexp
       (mapc #'funcall (cdr a-l-element))))
   ;; Complain when the user uses obsolete files.
-  (when (string-match-p "/obsolete/[^/]*\\'" abs-file)
+  (when (save-match-data
+          (and (string-match "/obsolete/\\([^/]*\\)\\'" abs-file)
+               (not (equal "loaddefs.el" (match-string 1 abs-file)))))
     ;; Maybe we should just use display-warning?  This seems yucky...
     (let* ((file (file-name-nondirectory abs-file))
 	   (msg (format "Package %s is obsolete!"
