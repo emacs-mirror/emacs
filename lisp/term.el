@@ -974,6 +974,9 @@ is buffer-local."
   (if (and (not (featurep 'xemacs))
 	   (display-graphic-p)
 	   overflow-newline-into-fringe
+	   ;; Subtract 1 from the width when any fringe has zero width,
+	   ;; not just the right fringe.  Bug#18601.
+	   (/= (frame-parameter nil 'left-fringe) 0)
 	   (/= (frame-parameter nil 'right-fringe) 0))
       (window-body-width)
     (1- (window-body-width))))

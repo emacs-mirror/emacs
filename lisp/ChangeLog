@@ -1,3 +1,8 @@
+2014-10-06  Martin Rudalics  <rudalics@gmx.at>
+
+	* term.el (term-window-width): Subtract 1 from the width when
+	any fringe has zero width, not just the right fringe.  (Bug#18601)
+
 2014-10-05  Leo Liu  <sdl.web@gmail.com>
 
 	* imenu.el (imenu-default-goto-function): Fix typo.
