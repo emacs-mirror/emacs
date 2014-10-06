@@ -1330,9 +1330,6 @@ mail status in mode line"))
     (bindings--define-key menu [life]
       '(menu-item "Life"  life
                   :help "Watch how John Conway's cellular automaton evolves"))
-    (bindings--define-key menu [land]
-      '(menu-item "Landmark" landmark
-                  :help "Watch a neural-network robot learn landmarks"))
     (bindings--define-key menu [hanoi]
       '(menu-item "Towers of Hanoi" hanoi
                   :help "Watch Towers-of-Hanoi puzzle solved by Emacs"))

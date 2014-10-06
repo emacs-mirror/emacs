@@ -1,3 +1,8 @@
+2014-10-06  Glenn Morris  <rgm@gnu.org>
+
+	* menu-bar.el (menu-bar-games-menu): Remove landmark.
+	It has zero relationship to a game.
+
 2014-10-06  Leo Liu  <sdl.web@gmail.com>
 
 	* imenu.el (imenu): Re-write for clarity.
