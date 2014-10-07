@@ -335,6 +335,7 @@ enum {
 /* This is checked by <code/mpsi.c#check>. */
 
 enum {
+  RankMIN = 0,
   RankAMBIG = 0,
   RankEXACT = 1,
   RankFINAL = 2,
