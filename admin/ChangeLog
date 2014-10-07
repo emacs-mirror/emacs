@@ -1,5 +1,11 @@
 2014-10-07  Glenn Morris  <rgm@gnu.org>
 
+	* unidata/Makefile.in: Check for deleted uni- files.  (Bug#18489)
+	(all): Use unifiles rather than charprop.el.
+	(FORCE): New variable and phony rule.
+	(${unidir}/charprop.el): Respect FORCE.
+	(unifiles): New rule.
+
 	* unidata/Makefile.in (unidir): Rename from DSTDIR.  Change all uses.
 	(charprop.el, install): Remove rules.
 	(clean): Simplify.

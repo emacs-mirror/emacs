@@ -1,3 +1,8 @@
+2014-10-07  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in ($(srcdir)/macuvs.h)
+	($(lispsource)/international/charprop.el): Add explicit FORCE.
+
 2014-10-07  Eli Zaretskii  <eliz@gnu.org>
 
 	* decompress.c (init_zlib_functions): Move the message about zlib

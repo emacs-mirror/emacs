@@ -31,9 +31,9 @@ EMACS = ${top_builddir}/src/emacs
 unidir = ${top_srcdir}/lisp/international
 emacs = "${EMACS}" -batch --no-site-file --no-site-lisp
 
-.PHONY: all
+.PHONY: all unifiles
 
-all: ${top_srcdir}/src/macuvs.h ${unidir}/charprop.el
+all: ${top_srcdir}/src/macuvs.h unifiles
 
 ## Specify .elc as an order-only prereq so as to not needlessly rebuild
 ## target just because the .elc is missing.
@@ -50,13 +50,26 @@ ${top_srcdir}/src/macuvs.h: ${srcdir}/uvs.el ${srcdir}/IVD_Sequences.txt | \
 unidata.txt: ${srcdir}/UnicodeData.txt
 	sed -e 's/\([^;]*\);\(.*\)/(#x\1 "\2")/' -e 's/;/" "/g' < $< > $@
 
-${unidir}/charprop.el: ${srcdir}/unidata-gen.el ${srcdir}/UnicodeData.txt | \
+FORCE =
+FORCE:
+.PHONY: FORCE
+
+${unidir}/charprop.el: ${FORCE} ${srcdir}/unidata-gen.el ${srcdir}/UnicodeData.txt | \
   ${srcdir}/unidata-gen.elc unidata.txt
 	-if [ -f "$@" ]; then \
 	  cd ${unidir} && chmod +w charprop.el `sed -n 's/^;; FILE: //p' < charprop.el`; \
 	fi
 	${emacs} -L ${srcdir} -l unidata-gen -f unidata-gen-files \
 	  ${srcdir} "${unidir}"
+
+## Check for deleted uni- files, and if any such, force a rebuild.
+## Perhaps a more elegant way would be for the previous rule
+## to generate a Makefile fragment explicitly listing the uni- files,
+## which this file could include.  If no fragment, rebuild everything.
+unifiles: ${unidir}/charprop.el
+	for f in `sed -n 's/^;; FILE: //p' < $<`; do \
+	  [ -f ${unidir}/$$f ] || { ${MAKE} $< FORCE=FORCE || exit 1; break; };\
+	done
 
 .PHONY: clean bootstrap-clean distclean maintainer-clean extraclean
 

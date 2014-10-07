@@ -437,8 +437,12 @@ all: emacs$(EXEEXT) $(OTHER_FILES)
 $(leimdir)/leim-list.el: bootstrap-emacs$(EXEEXT)
 	$(MAKE) -C ../leim leim-list.el EMACS="$(bootstrap_exe)"
 
+## FORCE it so that admin/unidata can decide whether these files
+## are up-to-date.  Although since charprop depends on bootstrap-emacs,
+## and emacs (which recreates bootstrap-emacs) depends on charprop,
+## in practice this rule was always run anyway.
 $(srcdir)/macuvs.h $(lispsource)/international/charprop.el: \
-  bootstrap-emacs$(EXEEXT)
+  bootstrap-emacs$(EXEEXT) FORCE
 	$(MAKE) -C ../admin/unidata all EMACS="../$(bootstrap_exe)"
 
 ## The dumped Emacs is as functional and more efficient than
