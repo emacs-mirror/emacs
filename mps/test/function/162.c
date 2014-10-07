@@ -25,7 +25,7 @@ static void test(void) {
  mps_addr_t a;
  char * c;
 
- cdie(mps_arena_create(&arena, mps_arena_class_vmnz(),
+ cdie(mps_arena_create(&arena, mps_arena_class_vm(),
   (size_t) (1024*1024*50)), "create arena");
  cdie(mps_thread_reg(&thread, arena), "register thread");
 
