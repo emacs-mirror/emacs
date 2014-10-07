@@ -1,5 +1,5 @@
 /* table.h: Interface for a dictionary
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
  * $Id$
  */
@@ -15,8 +15,8 @@ typedef struct TableStruct *Table;
 
 #define TableSig        ((Sig)0x5192AB13) /* SIGnature TABLE */
 
-typedef void *(*TableAllocMethod)(void *closure, size_t size);
-typedef void (*TableFreeMethod)(void *closure, void *p, size_t size);
+typedef void *(*TableAllocFunction)(void *closure, size_t size);
+typedef void (*TableFreeFunction)(void *closure, void *p, size_t size);
 
 typedef struct TableEntryStruct {
   Word key;
@@ -28,8 +28,8 @@ typedef struct TableStruct {
   Count length;                 /* Number of slots in the array */
   Count count;                  /* Active entries in the table */
   TableEntry array;             /* Array of table slots */
-  TableAllocMethod alloc;
-  TableFreeMethod free;
+  TableAllocFunction alloc;
+  TableFreeFunction free;
   void *allocClosure;
   Word unusedKey;               /* key marking unused (undefined) entries */
   Word deletedKey;              /* key marking deleted entries */
@@ -37,8 +37,8 @@ typedef struct TableStruct {
 
 extern Res TableCreate(Table *tableReturn,
                        Count length,
-                       TableAllocMethod tableAlloc,
-                       TableFreeMethod tableFree,
+                       TableAllocFunction tableAlloc,
+                       TableFreeFunction tableFree,
                        void *allocClosure,
                        Word unusedKey,
                        Word deletedKey);
@@ -60,7 +60,7 @@ extern Res TableGrow(Table table, Count extraCapacity);
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

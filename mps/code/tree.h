@@ -25,21 +25,21 @@ typedef struct TreeStruct {
   Tree left, right;
 } TreeStruct;
 
-typedef Res (*TreeDescribeMethod)(Tree tree, mps_lib_FILE *stream);
+typedef Res (*TreeDescribeFunction)(Tree tree, mps_lib_FILE *stream);
 
 
-/* TreeKey and TreeCompare -- ordered binary trees
+/* TreeKeyFunction and TreeCompareFunction -- ordered binary trees
  *
  * Binary trees are almost always ordered, and these types provide the
- * abstraction for ordering.  A TreeCompare method returns whether a key
- * is less than, equal to, or greater than the key in a tree node.  A
- * TreeKeyMethod extracts a key from a node, depending on how TreeStruct
- * is embedded within its parent structure.
+ * abstraction for ordering. A TreeCompareFunction method returns
+ * whether a key is less than, equal to, or greater than the key in a
+ * tree node. A TreeKeyFunction extracts a key from a node, depending
+ * on how TreeStruct is embedded within its parent structure.
  */
 
 typedef void *TreeKey;
-typedef Compare (*TreeCompare)(Tree tree, TreeKey key);
-typedef TreeKey (*TreeKeyMethod)(Tree tree);
+typedef Compare (*TreeCompareFunction)(Tree tree, TreeKey key);
+typedef TreeKey (*TreeKeyFunction)(Tree tree);
 
 
 /* When storing Addrs in a tree, it is fastest to cast the Addr
@@ -67,7 +67,8 @@ typedef TreeKey (*TreeKeyMethod)(Tree tree);
 
 extern Bool TreeCheck(Tree tree);
 extern Bool TreeCheckLeaf(Tree tree);
-extern Count TreeDebugCount(Tree tree, TreeCompare compare, TreeKeyMethod key);
+extern Count TreeDebugCount(Tree tree, TreeCompareFunction compare,
+                            TreeKeyFunction key);
 
 #define TreeInit(tree) \
   BEGIN \
@@ -115,17 +116,17 @@ extern Count TreeDebugCount(Tree tree, TreeCompare compare, TreeKeyMethod key);
 #define TreeHasRight(tree) (TreeRight(tree) != TreeEMPTY)
 
 extern Compare TreeFind(Tree *treeReturn, Tree root,
-                        TreeKey key, TreeCompare compare);
+                        TreeKey key, TreeCompareFunction compare);
 extern Bool TreeFindNext(Tree *treeReturn, Tree root,
-                         TreeKey key, TreeCompare compare);
+                         TreeKey key, TreeCompareFunction compare);
 
 extern Bool TreeInsert(Tree *treeReturn, Tree root, Tree node,
-                       TreeKey key, TreeCompare compare);
+                       TreeKey key, TreeCompareFunction compare);
 
 typedef Bool TreeVisitor(Tree tree, void *closureP, Size closureS);
 extern Bool TreeTraverse(Tree tree,
-                         TreeCompare compare,
-                         TreeKeyMethod key,
+                         TreeCompareFunction compare,
+                         TreeKeyFunction key,
                          TreeVisitor visit, void *closureP, Size closureS);
 extern Bool TreeTraverseMorris(Tree tree, TreeVisitor visit,
                                void *closureP, Size closureS);

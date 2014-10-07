@@ -215,7 +215,7 @@ static void cbsUpdateZonedNode(SplayTree splay, Tree tree)
 
 ARG_DEFINE_KEY(cbs_block_pool, Pool);
 
-static Res cbsInitComm(Land land, ArgList args, SplayUpdateNodeMethod update,
+static Res cbsInitComm(Land land, ArgList args, SplayUpdateNodeFunction update,
                        Size blockStructSize)
 {
   CBS cbs;
@@ -1058,7 +1058,7 @@ static Res cbsFindInZones(Bool *foundReturn, Range rangeReturn,
   cbsTestNodeInZonesClosureStruct closure;
   Res res;
   LandFindMethod landFind;
-  SplayFindMethod splayFind;
+  SplayFindFunction splayFind;
   RangeStruct rangeStruct, oldRangeStruct;
   
   AVER(foundReturn != NULL);

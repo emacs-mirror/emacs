@@ -495,8 +495,7 @@ Res PoolAddrObject(Addr *pReturn, Pool pool, Seg seg, Addr addr)
 
 /* PoolWalk -- walk objects in this segment */
 
-void PoolWalk(Pool pool, Seg seg, FormattedObjectsStepMethod f,
-              void *p, size_t s)
+void PoolWalk(Pool pool, Seg seg, FormattedObjectsVisitor f, void *p, size_t s)
 {
   AVERT(Pool, pool);
   AVERT(Seg, seg);
@@ -512,7 +511,7 @@ void PoolWalk(Pool pool, Seg seg, FormattedObjectsStepMethod f,
  * PoolFreeWalk is not required to find all free blocks.
  */
 
-void PoolFreeWalk(Pool pool, FreeBlockStepMethod f, void *p)
+void PoolFreeWalk(Pool pool, FreeBlockVisitor f, void *p)
 {
   AVERT(Pool, pool);
   AVER(FUNCHECK(f));

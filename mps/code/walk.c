@@ -56,7 +56,7 @@ static void ArenaFormattedObjectsStep(Addr object, Format format, Pool pool,
  *
  * So called because it walks all formatted objects in an arena.  */
 
-static void ArenaFormattedObjectsWalk(Arena arena, FormattedObjectsStepMethod f,
+static void ArenaFormattedObjectsWalk(Arena arena, FormattedObjectsVisitor f,
                                       void *p, size_t s)
 {
   Seg seg;
