@@ -1,3 +1,25 @@
+2014-10-07  Wilson Snyder  <wsnyder@wsnyder.org>
+
+	Sync with upstream verilog-mode revision c075a492.
+	* progmodes/verilog-mode.el (verilog-mode-version): Bump.
+	(verilog-menu): Add AUTOINSERTLAST.
+	(verilog-no-indent-begin-re): When `verilog-indent-begin-after-if'
+	is nil, fix indenting initial/final to match always statements, bug825.
+	Reported by Tim Clapp.
+	(verilog-extended-complete-re): Fix indentation of DPI-C imports,
+	bug557.  Reported by ZeDong Mao and Jason Forkey.
+	(verilog-read-decls): Fix parsing typed interfaces.
+	Fix AUTOINOUTMODPORT missing types.  Reported by Stephan Bourduas.
+	(verilog-auto-arg-ports): Fix verilog-auto-arg-format single.
+	(verilog-auto-output-every): Add regexp to AUTOOUTPUTEVERY, bug793.
+	Reported by Pierre-David Pfister.
+	(verilog-auto-insert-lisp): Doc fix.
+	(verilog-auto-insert-last, verilog-auto): Add AUTOINSERTLAST to
+	allow post-AUTO user fixups, bug826.  Reported by Dennis Muhlestein.
+	(verilog-sk-ovm-class, verilog-sk-uvm-object)
+	(verilog-sk-uvm-component): Fix missing string keyword in class
+	skeletons, bug824.  Reported by eldad faruhi.
+
 2014-10-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* term/w32-win.el: Move all code from 32-common-fns.el here.
