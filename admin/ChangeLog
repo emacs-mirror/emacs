@@ -1,3 +1,9 @@
+2014-10-07  Glenn Morris  <rgm@gnu.org>
+
+	* unidata/Makefile.in (unidir): Rename from DSTDIR.  Change all uses.
+	(charprop.el, install): Remove rules.
+	(clean): Simplify.
+
 2014-10-04  Glenn Morris  <rgm@gnu.org>
 
 	* authors.el (authors-renamed-files-alist): Add package-x-test.el
