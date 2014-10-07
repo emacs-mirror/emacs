@@ -22,7 +22,7 @@ typedef struct AMCStruct *AMC;
 typedef struct amcGenStruct *amcGen;
 
 /* Function returning TRUE if block in nailboarded segment is pinned. */
-typedef Bool (*amcPinnedMethod)(AMC amc, Nailboard board, Addr base, Addr limit);
+typedef Bool (*amcPinnedFunction)(AMC amc, Nailboard board, Addr base, Addr limit);
 
 
 /* forward declarations */
@@ -471,7 +471,7 @@ typedef struct AMCStruct { /* <design/poolamc/#struct> */
   amcGen afterRampGen;     /* the generation after rampGen */
   unsigned rampCount;      /* <design/poolamc/#ramp.count> */
   int rampMode;            /* <design/poolamc/#ramp.mode> */
-  amcPinnedMethod pinned;  /* function determining if block is pinned */
+  amcPinnedFunction pinned; /* function determining if block is pinned */
   Size extendBy;           /* segment size to extend pool by */
   Size largeSize;          /* min size of "large" segments */
 
@@ -2168,7 +2168,7 @@ static void AMCTraceEnd(Pool pool, Trace trace)
 
 /* AMCWalk -- Apply function to (black) objects in segment */
 
-static void AMCWalk(Pool pool, Seg seg, FormattedObjectsStepMethod f,
+static void AMCWalk(Pool pool, Seg seg, FormattedObjectsVisitor f,
                     void *p, size_t s)
 {
   Addr object, nextObject, limit;
@@ -2218,8 +2218,7 @@ static void AMCWalk(Pool pool, Seg seg, FormattedObjectsStepMethod f,
 
 /* amcWalkAll -- Apply a function to all (black) objects in a pool */
 
-static void amcWalkAll(Pool pool, FormattedObjectsStepMethod f,
-                       void *p, size_t s)
+static void amcWalkAll(Pool pool, FormattedObjectsVisitor f, void *p, size_t s)
 {
   Arena arena;
   Ring ring, next, node;

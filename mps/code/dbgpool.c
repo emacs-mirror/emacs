@@ -132,7 +132,7 @@ static Res DebugPoolInit(Pool pool, ArgList args)
   Res res;
   PoolDebugOptions options = &debugPoolOptionsDefault;
   PoolDebugMixin debug;
-  TagInitMethod tagInit;
+  TagInitFunction tagInit;
   Size tagSize;
   ArgStruct arg;
 
@@ -648,19 +648,16 @@ static void DebugPoolFree(Pool pool, Addr old, Size size)
 
 /* TagWalk -- walk all objects in the pool using tags */
 
-typedef void (*ObjectsStepMethod)(Addr addr, Size size, Format fmt,
-                                  Pool pool, void *tagData, void *p);
+typedef void (*ObjectsVisitor)(Addr addr, Size size, Format fmt,
+                               Pool pool, void *tagData, void *p);
 
-#define ObjectsStepMethodCheck(f) \
-  ((f) != NULL) /* that's the best we can do */
-
-static void TagWalk(Pool pool, ObjectsStepMethod step, void *p)
+static void TagWalk(Pool pool, ObjectsVisitor visitor, void *p)
 {
   Tree node;
   PoolDebugMixin debug;
 
   AVERT(Pool, pool);
-  AVERT(ObjectsStepMethod, step);
+  AVER(FUNCHECK(visitor));
   /* Can't check p */
 
   debug = DebugPoolDebugMixin(pool);
@@ -671,7 +668,7 @@ static void TagWalk(Pool pool, ObjectsStepMethod step, void *p)
   while (node != TreeEMPTY) {
     Tag tag = TagOfTree(node);
 
-    step(tag->addr, tag->size, NULL, pool, &tag->userdata, p);
+    (*visitor)(tag->addr, tag->size, NULL, pool, &tag->userdata, p);
     node = SplayTreeNext(&debug->index, &tag->addr);
   }
 }

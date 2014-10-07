@@ -58,6 +58,7 @@ fix_                    The Design of the Generic Fix Function
 freelist_               Free list land implementation
 guide.hex.trans_        Guide to transliterating the alphabet into hexadecimal
 guide.impl.c.format_    Coding standard: conventions for the general format of C source code in the MPS
+guide.impl.c.naming_    Coding standard: conventions for internal names
 interface-c_            The design of the Memory Pool System interface to C
 io_                     The design of the MPS I/O subsystem
 keyword-arguments_      The design of the MPS mechanism for passing arguments by keyword.
@@ -130,6 +131,7 @@ writef_                 The design of the MPS writef function
 .. _freelist: freelist
 .. _guide.hex.trans: guide.hex.trans
 .. _guide.impl.c.format: guide.impl.c.format
+.. _guide.impl.c.naming: guide.impl.c.naming
 .. _interface-c: interface-c
 .. _io: io
 .. _keyword-arguments: keyword-arguments

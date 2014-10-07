@@ -148,11 +148,11 @@ typedef Res (*TraceFixMethod)(ScanState ss, Ref *refIO);
 /* Heap Walker */
 
 /* This type is used by the PoolClass method Walk */
-typedef void (*FormattedObjectsStepMethod)(Addr obj, Format fmt, Pool pool,
+typedef void (*FormattedObjectsVisitor)(Addr obj, Format fmt, Pool pool,
                                            void *v, size_t s);
 
 /* This type is used by the PoolClass method Walk */
-typedef void (*FreeBlockStepMethod)(Addr base, Addr limit, Pool pool, void *p);
+typedef void (*FreeBlockVisitor)(Addr base, Addr limit, Pool pool, void *p);
 
 
 /* Seg*Method -- see <design/seg/> */
@@ -230,10 +230,9 @@ typedef void (*PoolFramePopPendingMethod)(Pool pool, Buffer buf,
                                           AllocFrame frame);
 typedef Res (*PoolAddrObjectMethod)(Addr *pReturn,
                                     Pool pool, Seg seg, Addr addr);
-typedef void (*PoolWalkMethod)(Pool pool, Seg seg,
-                               FormattedObjectsStepMethod f,
+typedef void (*PoolWalkMethod)(Pool pool, Seg seg, FormattedObjectsVisitor f,
                                void *v, size_t s);
-typedef void (*PoolFreeWalkMethod)(Pool pool, FreeBlockStepMethod f, void *p);
+typedef void (*PoolFreeWalkMethod)(Pool pool, FreeBlockVisitor f, void *p);
 typedef BufferClass (*PoolBufferClassMethod)(void);
 typedef Res (*PoolDescribeMethod)(Pool pool, mps_lib_FILE *stream, Count depth);
 typedef PoolDebugMixin (*PoolDebugMixinMethod)(Pool pool);

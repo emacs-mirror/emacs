@@ -14,6 +14,7 @@ Design
     freelist
     guide.hex.trans
     guide.impl.c.format
+    guide.impl.c.naming
     interface-c
     keyword-arguments
     land
