@@ -1,3 +1,7 @@
+2014-10-07  Glenn Morris  <rgm@gnu.org>
+
+	* font-lock.el (font-lock-fontify-buffer): Fix interactive-only markup.
+
 2014-10-07  Wilson Snyder  <wsnyder@wsnyder.org>
 
 	Sync with upstream verilog-mode revision c075a492.

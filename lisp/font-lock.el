@@ -1047,7 +1047,7 @@ The region it returns may start or end in the middle of a line.")
    ;; Of course, this function doesn't do all of the above in all situations
    ;; (e.g. depending on whether jit-lock is in use) and it can't guess what
    ;; the caller wants.
-   (interactive-only "use font-lock-ensure or font-lock-flush instead."))
+   (interactive-only "use `font-lock-ensure' or `font-lock-flush' instead."))
   (interactive "p")
   (font-lock-set-defaults)
   (let ((font-lock-verbose (or font-lock-verbose interactively)))
