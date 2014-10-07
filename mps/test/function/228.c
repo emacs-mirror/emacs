@@ -7,6 +7,7 @@ TEST_HEADER
 OUTPUT_SPEC
  assert = true
  assertfile P= global.c
+ assertcond = PoolHasAttr(refpool, AttrGC)
 END_HEADER
 */
 
@@ -34,7 +35,7 @@ static void test(void)
 
 int main(void)
 {
-  test();
+  easy_tramp(test);
   pass();
   return 0;
 }
