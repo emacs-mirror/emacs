@@ -68,9 +68,9 @@ Bool SplayTreeCheck(SplayTree splay)
  */
 
 void SplayTreeInit(SplayTree splay,
-                   TreeCompare compare,
-                   TreeKeyMethod nodeKey,
-                   SplayUpdateNodeMethod updateNode)
+                   TreeCompareFunction compare,
+                   TreeKeyFunction nodeKey,
+                   SplayUpdateNodeFunction updateNode)
 {
   AVER(splay != NULL);
   AVER(FUNCHECK(compare));
@@ -298,7 +298,8 @@ typedef struct SplayStateStruct {
  */
 
 static Compare SplaySplitDown(SplayStateStruct *stateReturn,
-                              SplayTree splay, TreeKey key, TreeCompare compare)
+                              SplayTree splay, TreeKey key,
+                              TreeCompareFunction compare)
 {
   TreeStruct sentinel;
   Tree middle, leftLast, rightFirst, leftPrev, rightNext;
@@ -503,7 +504,8 @@ static Tree SplayZagZagRev(Tree middle, Tree *leftLastIO)
  */
 
 static Compare SplaySplitRev(SplayStateStruct *stateReturn,
-                             SplayTree splay, TreeKey key, TreeCompare compare)
+                             SplayTree splay, TreeKey key,
+                             TreeCompareFunction compare)
 {
   Tree middle, leftLast, rightFirst;
   Compare cmp;
@@ -650,7 +652,8 @@ static void SplayAssembleRev(SplayTree splay, SplayState state)
 /* SplaySplit -- call SplaySplitDown or SplaySplitRev as appropriate */
 
 static Compare SplaySplit(SplayStateStruct *stateReturn,
-                          SplayTree splay, TreeKey key, TreeCompare compare)
+                          SplayTree splay, TreeKey key,
+                          TreeCompareFunction compare)
 {
   if (SplayHasUpdate(splay))
     return SplaySplitRev(stateReturn, splay, key, compare);
@@ -688,7 +691,8 @@ static void SplayAssemble(SplayTree splay, SplayState state)
  * See <design/splay/#impl.splay>.
  */
 
-static Compare SplaySplay(SplayTree splay, TreeKey key, TreeCompare compare)
+static Compare SplaySplay(SplayTree splay, TreeKey key,
+                          TreeCompareFunction compare)
 {
   Compare cmp;
   SplayStateStruct stateStruct;
@@ -1020,7 +1024,7 @@ Tree SplayTreeNext(SplayTree splay, TreeKey oldKey) {
  */
 
 static Res SplayNodeDescribe(Tree node, mps_lib_FILE *stream,
-                             TreeDescribeMethod nodeDescribe)
+                             TreeDescribeFunction nodeDescribe)
 {
   Res res;
 
@@ -1083,8 +1087,8 @@ static Res SplayNodeDescribe(Tree node, mps_lib_FILE *stream,
  */
 
 typedef struct SplayFindClosureStruct {
-  SplayTestNodeMethod testNode;
-  SplayTestTreeMethod testTree;
+  SplayTestNodeFunction testNode;
+  SplayTestTreeFunction testTree;
   void *p;
   Size s;
   SplayTree splay;
@@ -1096,8 +1100,8 @@ static Compare SplayFindFirstCompare(Tree node, TreeKey key)
   SplayFindClosure closure;
   void *closureP;
   Size closureS;
-  SplayTestNodeMethod testNode;
-  SplayTestTreeMethod testTree;
+  SplayTestNodeFunction testNode;
+  SplayTestTreeFunction testTree;
   SplayTree splay;
 
   AVERT(Tree, node);
@@ -1137,8 +1141,8 @@ static Compare SplayFindLastCompare(Tree node, TreeKey key)
   SplayFindClosure closure;
   void *closureP;
   Size closureS;
-  SplayTestNodeMethod testNode;
-  SplayTestTreeMethod testTree;
+  SplayTestNodeFunction testNode;
+  SplayTestTreeFunction testTree;
   SplayTree splay;
 
   AVERT(Tree, node);
@@ -1190,8 +1194,8 @@ static Compare SplayFindLastCompare(Tree node, TreeKey key)
  */
 
 Bool SplayFindFirst(Tree *nodeReturn, SplayTree splay,
-                    SplayTestNodeMethod testNode,
-                    SplayTestTreeMethod testTree,
+                    SplayTestNodeFunction testNode,
+                    SplayTestTreeFunction testTree,
                     void *closureP, Size closureS)
 {
   SplayFindClosureStruct closureStruct;
@@ -1254,8 +1258,8 @@ Bool SplayFindFirst(Tree *nodeReturn, SplayTree splay,
 /* SplayFindLast -- As SplayFindFirst but in reverse address order */
 
 Bool SplayFindLast(Tree *nodeReturn, SplayTree splay,
-                   SplayTestNodeMethod testNode,
-                   SplayTestTreeMethod testTree,
+                   SplayTestNodeFunction testNode,
+                   SplayTestTreeFunction testTree,
                    void *closureP, Size closureS)
 {
   SplayFindClosureStruct closureStruct;
@@ -1362,7 +1366,7 @@ void SplayNodeInit(SplayTree splay, Tree node)
  */
 
 Res SplayTreeDescribe(SplayTree splay, mps_lib_FILE *stream, Count depth,
-                      TreeDescribeMethod nodeDescribe)
+                      TreeDescribeFunction nodeDescribe)
 {
   Res res;
 

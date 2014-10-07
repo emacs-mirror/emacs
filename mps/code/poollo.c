@@ -401,8 +401,7 @@ static void loSegReclaim(LOSeg loseg, Trace trace)
 /* This walks over _all_ objects in the heap, whether they are */
 /* black or white, they are still validly formatted as this is */
 /* a leaf pool, so there can't be any dangling references */
-static void LOWalk(Pool pool, Seg seg,
-                   FormattedObjectsStepMethod f,
+static void LOWalk(Pool pool, Seg seg, FormattedObjectsVisitor f,
                    void *p, size_t s)
 {
   Addr base;

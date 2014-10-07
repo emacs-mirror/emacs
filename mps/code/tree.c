@@ -50,7 +50,8 @@ Bool TreeCheckLeaf(Tree tree)
  */
 
 static Count TreeDebugCountBetween(Tree node,
-                                   TreeCompare compare, TreeKeyMethod key,
+                                   TreeCompareFunction compare,
+                                   TreeKeyFunction key,
                                    TreeKey min, TreeKey max)
 {
   if (node == TreeEMPTY)
@@ -63,7 +64,8 @@ static Count TreeDebugCountBetween(Tree node,
          TreeDebugCountBetween(TreeRight(node), compare, key, key(node), max);
 }
 
-Count TreeDebugCount(Tree tree, TreeCompare compare, TreeKeyMethod key)
+Count TreeDebugCount(Tree tree, TreeCompareFunction compare,
+                     TreeKeyFunction key)
 {
   AVERT(Tree, tree);
   return TreeDebugCountBetween(tree, compare, key, NULL, NULL);
@@ -80,7 +82,8 @@ Count TreeDebugCount(Tree tree, TreeCompare compare, TreeKeyMethod key)
  * or CompareGREATER for its right.
  */
 
-Compare TreeFind(Tree *treeReturn, Tree root, TreeKey key, TreeCompare compare)
+Compare TreeFind(Tree *treeReturn, Tree root, TreeKey key,
+                 TreeCompareFunction compare)
 {
   Tree node, parent;
   Compare cmp = CompareEQUAL;
@@ -126,7 +129,8 @@ Compare TreeFind(Tree *treeReturn, Tree root, TreeKey key, TreeCompare compare)
  * *treeReturn unchanged and return FALSE.
  */
 
-Bool TreeFindNext(Tree *treeReturn, Tree root, TreeKey key, TreeCompare compare)
+Bool TreeFindNext(Tree *treeReturn, Tree root, TreeKey key,
+                  TreeCompareFunction compare)
 {
   Tree node, best = NULL;
   Bool result = FALSE;
@@ -169,7 +173,7 @@ Bool TreeFindNext(Tree *treeReturn, Tree root, TreeKey key, TreeCompare compare)
  */
 
 Bool TreeInsert(Tree *treeReturn, Tree root, Tree node,
-                TreeKey key, TreeCompare compare)
+                TreeKey key, TreeCompareFunction compare)
 {
   Tree parent;
   Compare cmp;
@@ -318,8 +322,8 @@ static Tree stepUpLeft(Tree node, Tree *parentIO)
 }
 
 Bool TreeTraverse(Tree tree,
-                  TreeCompare compare,
-                  TreeKeyMethod key,
+                  TreeCompareFunction compare,
+                  TreeKeyFunction key,
                   TreeVisitor visit, void *closureP, Size closureS)
 {
   Tree parent, node;

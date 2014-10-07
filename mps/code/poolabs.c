@@ -648,8 +648,8 @@ Res PoolNoAddrObject(Addr *pReturn, Pool pool, Seg seg, Addr addr)
   return ResUNIMPL;
 }
 
-void PoolNoWalk(Pool pool, Seg seg,
-                FormattedObjectsStepMethod f, void *p, size_t s)
+void PoolNoWalk(Pool pool, Seg seg, FormattedObjectsVisitor f,
+                void *p, size_t s)
 {
   AVERT(Pool, pool);
   AVERT(Seg, seg);
@@ -662,7 +662,7 @@ void PoolNoWalk(Pool pool, Seg seg,
 }
 
 
-void PoolTrivFreeWalk(Pool pool, FreeBlockStepMethod f, void *p)
+void PoolTrivFreeWalk(Pool pool, FreeBlockVisitor f, void *p)
 {
   AVERT(Pool, pool);
   AVER(FUNCHECK(f));

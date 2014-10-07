@@ -74,7 +74,7 @@ typedef struct awlStatTotalStruct {
 
 /* the type of a function to find an object's dependent object */
 
-typedef Addr (*FindDependentMethod)(Addr object);
+typedef Addr (*FindDependentFunction)(Addr object);
 
 /* AWLStruct -- AWL pool structure
  *
@@ -86,7 +86,7 @@ typedef struct AWLStruct {
   Shift alignShift;
   PoolGenStruct pgen;       /* generation representing the pool */
   Count succAccesses;       /* number of successive single accesses */
-  FindDependentMethod findDependent; /*  to find a dependent object */
+  FindDependentFunction findDependent; /*  to find a dependent object */
   awlStatTotalStruct stats;
   Sig sig;
 } AWLStruct, *AWL;
@@ -550,7 +550,7 @@ static Res AWLInit(Pool pool, ArgList args)
 {
   AWL awl;
   Format format;
-  FindDependentMethod findDependent = awlNoDependent;
+  FindDependentFunction findDependent = awlNoDependent;
   Chain chain;
   Res res;
   ArgStruct arg;
@@ -564,7 +564,7 @@ static Res AWLInit(Pool pool, ArgList args)
   ArgRequire(&arg, args, MPS_KEY_FORMAT);
   format = arg.val.format;
   if (ArgPick(&arg, args, MPS_KEY_AWL_FIND_DEPENDENT))
-    findDependent = (FindDependentMethod)arg.val.addr_method;
+    findDependent = (FindDependentFunction)arg.val.addr_method;
   if (ArgPick(&arg, args, MPS_KEY_CHAIN))
     chain = arg.val.chain;
   else {
@@ -1232,7 +1232,7 @@ static Res AWLAccess(Pool pool, Seg seg, Addr addr,
 
 /* AWLWalk -- walk all objects */
 
-static void AWLWalk(Pool pool, Seg seg, FormattedObjectsStepMethod f,
+static void AWLWalk(Pool pool, Seg seg, FormattedObjectsVisitor f,
                     void *p, size_t s)
 {
   AWL awl;

@@ -85,7 +85,7 @@ Bool AMSSegCheck(AMSSeg amsseg)
 
 /* AMSSegFreeWalk -- walk the free space in a segment */
 
-void AMSSegFreeWalk(AMSSeg amsseg, FreeBlockStepMethod f, void *p)
+void AMSSegFreeWalk(AMSSeg amsseg, FreeBlockVisitor f, void *p)
 {
   Pool pool;
   Seg seg;
@@ -1653,7 +1653,7 @@ static void AMSReclaim(Pool pool, Trace trace, Seg seg)
 
 /* AMSFreeWalk -- free block walking method of the pool class */
 
-static void AMSFreeWalk(Pool pool, FreeBlockStepMethod f, void *p)
+static void AMSFreeWalk(Pool pool, FreeBlockVisitor f, void *p)
 {
   AMS ams;
   Ring node, ring, nextNode;    /* for iterating over the segments */
