@@ -1,3 +1,8 @@
+2014-10-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* url-http.el (url-http-create-request): Recheck zlib availability
+	on windows-nt each time it might be required.  (Bug#18650)
+
 2014-09-28  Ulf Jasper  <ulf.jasper@web.de>
 
 	* url-gw.el (url-open-stream): New optional parameter

@@ -60,10 +60,7 @@ init_zlib_functions (void)
   HMODULE library = w32_delayed_load (Qzlib_dll);
 
   if (!library)
-    {
-      message1 ("zlib library not found");
-      return false;
-    }
+    return false;
 
   LOAD_ZLIB_FN (library, inflateInit2_);
   LOAD_ZLIB_FN (library, inflate);
@@ -150,7 +147,10 @@ This function can be called only in unibyte buffers.  */)
   if (!zlib_initialized)
     zlib_initialized = init_zlib_functions ();
   if (!zlib_initialized)
-    return Qnil;
+    {
+      message1 ("zlib library not found");
+      return Qnil;
+    }
 #endif
 
   /* This is a unibyte buffer, so character positions and bytes are

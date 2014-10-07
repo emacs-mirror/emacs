@@ -1,3 +1,9 @@
+2014-10-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* decompress.c (init_zlib_functions): Move the message about zlib
+	being unavailable from here...
+	(Fzlib_decompress_region): ...to here.  (Bug#18650)
+
 2014-10-07  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* font.c (Ffont_get_glyphs): Use validate_subarray and fix

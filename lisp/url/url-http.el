@@ -313,7 +313,14 @@ request.")
                  (concat
                   "From: " url-personal-mail-address "\r\n"))
              ;; Encodings we understand
-             (if url-mime-encoding-string
+             (if (or url-mime-encoding-string
+		     ;; MS-Windows loads zlib dynamically, so recheck
+		     ;; in case they made it available since
+		     ;; initialization in url-vars.el.
+		     (and (eq 'system-type 'windows-nt)
+			  (fboundp 'zlib-available-p)
+			  (zlib-available-p)
+			  (setq url-mime-encoding-string "gzip")))
                  (concat
                   "Accept-encoding: " url-mime-encoding-string "\r\n"))
              (if url-mime-charset-string
