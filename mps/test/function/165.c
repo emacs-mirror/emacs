@@ -35,9 +35,9 @@ static void test(void)
 
  unsigned long com0, com1, com2;
 
-/* create a VM arena of 30MB */
+/* create a VM arena of 40MB */
 
- cdie(mps_arena_create(&arena, mps_arena_class_vmnz(), (size_t) (1024*1024*40)),
+ cdie(mps_arena_create(&arena, mps_arena_class_vm(), (size_t)(1024*1024*40)),
   "create arena");
 
 /* set the commit limit to 100MB, i.e. let the arena do the limiting */
