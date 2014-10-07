@@ -1174,7 +1174,7 @@ static void gcSegSetGreyInternal(Seg seg, TraceSet oldGrey, TraceSet grey)
   if (oldGrey == TraceSetEMPTY) {
     if (grey != TraceSetEMPTY) {
       AVER(RankSetIsSingle(seg->rankSet));
-      for(rank = 0; rank < RankLIMIT; ++rank)
+      for(rank = RankMIN; rank < RankLIMIT; ++rank)
         if (RankSetIsMember(seg->rankSet, rank)) {
           /* NOTE: We push the segment onto the front of the queue, so that
              we preserve some locality of scanning, and so that we tend to
