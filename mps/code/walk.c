@@ -192,7 +192,7 @@ static void rootsStepClosureInit(rootsStepClosure rsc,
 
   /* First initialize the ScanState superclass */
   ss = &rsc->ssStruct;
-  ScanStateInit(ss, TraceSetSingle(trace), GlobalsArena(arena), RankAMBIG,
+  ScanStateInit(ss, TraceSetSingle(trace), GlobalsArena(arena), RankMIN,
                 trace->white);
 
   /* Initialize the fix method in the ScanState */
@@ -338,7 +338,7 @@ static Res ArenaRootsWalk(Globals arenaGlobals, mps_roots_stepper_t f,
   rootsStepClosureInit(rsc, arenaGlobals, trace, RootsWalkFix, f, p, s);
   ss = rootsStepClosure2ScanState(rsc);
 
-  for(rank = RankAMBIG; rank < RankLIMIT; ++rank) {
+  for(rank = RankMIN; rank < RankLIMIT; ++rank) {
     ss->rank = rank;
     AVERT(ScanState, ss);
     res = RootsIterate(arenaGlobals, rootWalk, (void *)ss);

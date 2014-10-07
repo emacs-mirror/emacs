@@ -185,7 +185,7 @@ Bool GlobalsCheck(Globals arenaGlobals)
     CHECKL(TraceIdMessagesCheck(arena, ti));
   TRACE_SET_ITER_END(ti, trace, TraceSetUNIV, arena);
 
-  for(rank = 0; rank < RankLIMIT; ++rank)
+  for(rank = RankMIN; rank < RankLIMIT; ++rank)
     CHECKD_NOSIG(Ring, &arena->greyRing[rank]);
   CHECKD_NOSIG(Ring, &arena->chainRing);
 
@@ -308,7 +308,7 @@ Res GlobalsInit(Globals arenaGlobals)
     arena->tMessage[ti] = NULL;
   }
 
-  for(rank = 0; rank < RankLIMIT; ++rank)
+  for(rank = RankMIN; rank < RankLIMIT; ++rank)
     RingInit(&arena->greyRing[rank]);
   STATISTIC(arena->writeBarrierHitCount = 0);
   RingInit(&arena->chainRing);
@@ -405,7 +405,7 @@ void GlobalsFinish(Globals arenaGlobals)
   RingFinish(&arena->chainRing);
   RingFinish(&arena->messageRing);
   RingFinish(&arena->threadRing);
-  for(rank = 0; rank < RankLIMIT; ++rank)
+  for(rank = RankMIN; rank < RankLIMIT; ++rank)
     RingFinish(&arena->greyRing[rank]);
   RingFinish(&arenaGlobals->rootRing);
   RingFinish(&arenaGlobals->poolRing);
@@ -496,7 +496,7 @@ void GlobalsPrepareToDestroy(Globals arenaGlobals)
   AVER(RingIsSingle(&arena->messageRing));
   AVER(RingIsSingle(&arena->threadRing));
   AVER(RingIsSingle(&arenaGlobals->rootRing));
-  for(rank = 0; rank < RankLIMIT; ++rank)
+  for(rank = RankMIN; rank < RankLIMIT; ++rank)
     AVER(RingIsSingle(&arena->greyRing[rank]));
 
   /* At this point the following pools still exist:

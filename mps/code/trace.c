@@ -233,7 +233,7 @@ Bool traceBandAdvance(Trace trace)
   ++trace->band;
   trace->firstStretch = TRUE;
   if(trace->band >= RankLIMIT) {
-    trace->band = RankAMBIG;
+    trace->band = RankMIN;
     return FALSE;
   }
   EVENT3(TraceBandAdvance, trace->arena, trace->ti, trace->band);
@@ -587,7 +587,7 @@ static Res traceFlip(Trace trace)
   /* early, before the pool contents.  @@@@ This isn't correct if there are */
   /* higher ranking roots than data in pools. */
 
-  for(rank = RankAMBIG; rank <= RankEXACT; ++rank) {
+  for(rank = RankMIN; rank <= RankEXACT; ++rank) {
     rfc.rank = rank;
     res = RootsIterate(ArenaGlobals(arena), rootFlip, (void *)&rfc);
     if (res != ResOK)
@@ -607,7 +607,7 @@ static Res traceFlip(Trace trace)
   /* grey objects so that it can't obtain white pointers.  This is */
   /* achieved by read protecting all segments containing objects */
   /* which are grey for any of the flipped traces. */
-  for(rank = 0; rank < RankLIMIT; ++rank)
+  for(rank = RankMIN; rank < RankLIMIT; ++rank)
     RING_FOR(node, ArenaGreyRing(arena, rank), nextNode) {
       Seg seg = SegOfGreyRing(node);
       if(TraceSetInter(SegGrey(seg), arena->flippedTraces) == TraceSetEMPTY
@@ -685,7 +685,7 @@ found:
   trace->mayMove = ZoneSetEMPTY;
   trace->ti = ti;
   trace->state = TraceINIT;
-  trace->band = RankAMBIG;      /* Required to be the earliest rank. */
+  trace->band = RankMIN;
   trace->fix = PoolFix;
   trace->fixClosure = NULL;
   trace->chain = NULL;
@@ -910,7 +910,7 @@ Rank TraceRankForAccess(Arena arena, Seg seg)
   AVERT(Arena, arena);
   AVERT(Seg, seg);
 
-  band = RankAMBIG; /* initialize band to avoid warning */
+  band = RankLIMIT; /* initialize with invalid rank */
   ts = arena->flippedTraces;    
   AVER(TraceSetIsSingle(ts));
   TRACE_SET_ITER(ti, trace, ts, arena)
