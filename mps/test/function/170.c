@@ -196,7 +196,7 @@ static void test(void)
 
  /* create a VM arena of 100MB */
 
- cdie(mps_arena_create(&arena,mps_arena_class_vmnz(),(size_t)(1024*1024*100)),
+ cdie(mps_arena_create(&arena, mps_arena_class_vm(), (size_t)(1024*1024*100)),
   "create arena");
 
  cdie(mps_thread_reg(&thread, arena), "register thread");
