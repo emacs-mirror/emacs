@@ -121,7 +121,8 @@ static Res clientChunkCreate(Chunk *chunkReturn, ClientArena clientArena,
   res = BootAlloc(&p, boot, sizeof(ClientChunkStruct), MPS_PF_ALIGN);
   if (res != ResOK)
     goto failChunkAlloc;
-  clChunk = p;  chunk = ClientChunk2Chunk(clChunk);
+  clChunk = p;
+  chunk = ClientChunk2Chunk(clChunk);
 
   res = ChunkInit(chunk, arena, alignedBase,
                   AddrAlignDown(limit, ArenaGrainSize(arena)), boot);
@@ -155,7 +156,6 @@ static Res ClientChunkInit(Chunk chunk, BootBlock boot)
   /* chunk is supposed to be uninitialized, so don't check it. */
   clChunk = Chunk2ClientChunk(chunk);
   AVERT(BootBlock, boot);
-  UNUSED(boot);
 
   /* TODO: An old comment claimed this is too large.
      Does it fail to exclude the page table or something? */
@@ -202,7 +202,7 @@ static Bool clientChunkDestroy(Tree tree, void *closureP, Size closureS)
 static void ClientChunkFinish(Chunk chunk)
 {
   /* Can't check chunk as it's not valid anymore. */
-  UNUSED(chunk); NOOP;
+  UNUSED(chunk);
 }
 
 
