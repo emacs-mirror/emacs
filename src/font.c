@@ -4687,9 +4687,10 @@ DEFUN ("font-get-glyphs", Ffont_get_glyphs, Sfont_get_glyphs, 3, 4, 0,
        doc:
        /* Return a vector of FONT-OBJECT's glyphs for the specified characters.
 FROM and TO are positions (integers or markers) specifying a region
-of the current buffer.
-If the optional fourth arg OBJECT is not nil, it is a string or a
-vector containing the target characters.
+of the current buffer, and can be in either order.  If the optional
+fourth arg OBJECT is not nil, it is a string or a vector containing
+the target characters between indices FROM and TO, which are treated
+as in `substring'.
 
 Each element is a vector containing information of a glyph in this format:
   [FROM-IDX TO-IDX C CODE WIDTH LBEARING RBEARING ASCENT DESCENT ADJUSTMENT]
@@ -4732,45 +4733,50 @@ the corresponding element is nil.  */)
   else if (STRINGP (object))
     {
       const unsigned char *p;
+      ptrdiff_t ifrom, ito;
 
-      CHECK_NUMBER (from);
-      CHECK_NUMBER (to);
-      if (XINT (from) < 0 || XINT (from) > XINT (to)
-	  || XINT (to) > SCHARS (object))
-	args_out_of_range_3 (object, from, to);
-      if (EQ (from, to))
+      validate_subarray (object, from, to, SCHARS (object), &ifrom, &ito);
+      if (ifrom == ito)
 	return Qnil;
-      len = XFASTINT (to) - XFASTINT (from);
+      len = ito - ifrom;
       SAFE_ALLOCA_LISP (chars, len);
       p = SDATA (object);
       if (STRING_MULTIBYTE (object))
-	for (i = 0; i < len; i++)
+	{
+	  int c;
+
+	  /* Skip IFROM characters from the beginning.  */
+	  for (i = 0; i < ifrom; i++)
+	    c = STRING_CHAR_ADVANCE (p);
+
+	  /* Now fetch an interesting characters.  */
+	  for (i = 0; i < len; i++)
 	  {
-	    int c = STRING_CHAR_ADVANCE (p);
+	    c = STRING_CHAR_ADVANCE (p);
 	    chars[i] = make_number (c);
 	  }
+	}
       else
 	for (i = 0; i < len; i++)
-	  chars[i] = make_number (p[i]);
+	  chars[i] = make_number (p[ifrom + i]);
     }
-  else
+  else if (VECTORP (object))
     {
-      CHECK_VECTOR (object);
-      CHECK_NUMBER (from);
-      CHECK_NUMBER (to);
-      if (XINT (from) < 0 || XINT (from) > XINT (to)
-	  || XINT (to) > ASIZE (object))
-	args_out_of_range_3 (object, from, to);
-      if (EQ (from, to))
+      ptrdiff_t ifrom, ito;
+
+      validate_subarray (object, from, to, ASIZE (object), &ifrom, &ito);
+      if (ifrom == ito)
 	return Qnil;
-      len = XFASTINT (to) - XFASTINT (from);
+      len = ito - ifrom;
       for (i = 0; i < len; i++)
 	{
-	  Lisp_Object elt = AREF (object, XFASTINT (from) + i);
+	  Lisp_Object elt = AREF (object, ifrom + i);
 	  CHECK_CHARACTER (elt);
 	}
-      chars = aref_addr (object, XFASTINT (from));
+      chars = aref_addr (object, ifrom);
     }
+  else
+    wrong_type_argument (Qarrayp, object);
 
   vec = make_uninit_vector (len);
   for (i = 0; i < len; i++)

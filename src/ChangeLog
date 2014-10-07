@@ -1,3 +1,8 @@
+2014-10-07  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* font.c (Ffont_get_glyphs): Use validate_subarray and fix
+	the case where an optional string is used.  Adjust docstring.
+
 2014-10-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* lisp.mk (lisp): Remove w32-common-fns.elc.
