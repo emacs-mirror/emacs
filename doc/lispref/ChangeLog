@@ -1,3 +1,8 @@
+2014-10-08  Leo Liu  <sdl.web@gmail.com>
+
+	* streams.texi (Output Functions): Document new argument ENSURE to
+	terpri.  (Bug#18652)
+
 2014-10-04  Martin Rudalics  <rudalics@gmx.at>
 
 	* display.texi (Scroll Bars): Add description of horizontal scroll

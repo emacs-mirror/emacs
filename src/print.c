@@ -58,6 +58,9 @@ static ptrdiff_t new_backquote_output;
 #define PRINT_CIRCLE 200
 static Lisp_Object being_printed[PRINT_CIRCLE];
 
+/* Last char printed to stdout by printchar.  */
+static unsigned int printchar_stdout_last;
+
 /* When printing into a buffer, first we put the text in this
    block, then insert it all at once.  */
 static char *print_buffer;
@@ -238,6 +241,7 @@ printchar (unsigned int ch, Lisp_Object fun)
 	}
       else if (noninteractive)
 	{
+	  printchar_stdout_last = ch;
 	  fwrite (str, 1, len, stdout);
 	  noninteractive_need_newline = 1;
 	}
@@ -515,19 +519,33 @@ static void print_preprocess (Lisp_Object);
 static void print_preprocess_string (INTERVAL, Lisp_Object);
 static void print_object (Lisp_Object, Lisp_Object, bool);
 
-DEFUN ("terpri", Fterpri, Sterpri, 0, 1, 0,
+DEFUN ("terpri", Fterpri, Sterpri, 0, 2, 0,
        doc: /* Output a newline to stream PRINTCHARFUN.
+If ENSURE is non-nil only output a newline if not already at the
+beginning of a line.  Value is non-nil if a newline is printed.
 If PRINTCHARFUN is omitted or nil, the value of `standard-output' is used.  */)
-  (Lisp_Object printcharfun)
+  (Lisp_Object printcharfun, Lisp_Object ensure)
 {
-  PRINTDECLARE;
+  Lisp_Object val = Qnil;
 
+  PRINTDECLARE;
   if (NILP (printcharfun))
     printcharfun = Vstandard_output;
   PRINTPREPARE;
-  PRINTCHAR ('\n');
+
+  if (NILP (ensure))
+    val = Qt;
+  /* Difficult to check if at line beginning so abort.  */
+  else if (FUNCTIONP (printcharfun))
+    signal_error ("Unsupported function argument", printcharfun);
+  else if (noninteractive && !NILP (printcharfun))
+    val = printchar_stdout_last == 10 ? Qnil : Qt;
+  else if (NILP (Fbolp ()))
+    val = Qt;
+
+  if (!NILP (val)) PRINTCHAR ('\n');
   PRINTFINISH;
-  return Qt;
+  return val;
 }
 
 DEFUN ("prin1", Fprin1, Sprin1, 1, 2, 0,

@@ -3364,7 +3364,7 @@ describe_vector_princ (Lisp_Object elt, Lisp_Object fun)
 {
   Findent_to (make_number (16), make_number (1));
   call1 (fun, elt);
-  Fterpri (Qnil);
+  Fterpri (Qnil, Qnil);
 }
 
 DEFUN ("describe-vector", Fdescribe_vector, Sdescribe_vector, 1, 2, 0,

@@ -1126,7 +1126,7 @@ Default value of `command-error-function'.  */)
     {
       print_error_message (data, Qexternal_debugging_output,
 			   SSDATA (context), signal);
-      Fterpri (Qexternal_debugging_output);
+      Fterpri (Qexternal_debugging_output, Qnil);
       Fkill_emacs (make_number (-1));
     }
   else

@@ -1,3 +1,8 @@
+2014-10-08  Leo Liu  <sdl.web@gmail.com>
+
+	* automated/print-tests.el: New file.
+	(terpri): Tests for terpri.  (Bug#18652)
+
 2014-10-06  Glenn Morris  <rgm@gnu.org>
 
 	* automated/icalendar-tests.el (icalendar--calendar-style):

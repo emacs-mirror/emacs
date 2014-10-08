@@ -1,3 +1,7 @@
+2014-10-08  Leo Liu  <sdl.web@gmail.com>
+
+	* cl.texi (Porting Common Lisp): Remove parse-integer.
+
 2014-10-06  Ulf Jasper  <ulf.jasper@web.de>
 
 	* newsticker.texi (Supported Formats): Fix order of subheading and

@@ -647,6 +647,13 @@ PROPLIST is a list of the sort returned by `symbol-plist'.
 	(progn (setplist sym (cdr (cdr plist))) t)
       (cl--do-remf plist tag))))
 
+;;; Streams.
+
+;;;###autoload
+(defun cl-fresh-line (&optional stream)
+  "Output a newline unless already at the beginning of a line."
+  (terpri stream 'ensure))
+
 ;;; Some debugging aids.
 
 (defun cl-prettyprint (form)

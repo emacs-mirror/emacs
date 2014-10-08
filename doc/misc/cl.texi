@@ -4707,9 +4707,8 @@ exactly the same thing, so this package has not bothered to
 implement a Common Lisp-style @code{make-list}.
 
 @item
-A few more notable Common Lisp features not included in this
-package:  @code{compiler-let}, @code{tagbody}, @code{prog},
-@code{ldb/dpb}, @code{parse-integer}, @code{cerror}.
+A few more notable Common Lisp features not included in this package:
+@code{compiler-let}, @code{prog}, @code{ldb/dpb}, @code{cerror}.
 
 @item
 Recursion.  While recursion works in Emacs Lisp just like it

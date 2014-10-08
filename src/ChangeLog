@@ -1,3 +1,14 @@
+2014-10-08  Leo Liu  <sdl.web@gmail.com>
+
+	Enhance terpri to allow conditionally output a newline.  (Bug#18652)
+	* keymap.c (describe_vector_princ):
+	* keyboard.c (Fcommand_error_default_function): Adapt to change to
+	Fterpri.
+
+	* print.c (printchar_stdout_last): Declare.
+	(printchar): Record the last char written to stdout.
+	(Fterpri): Add optional argument ENSURE.
+
 2014-10-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32inevt.c (maybe_generate_resize_event): Pass non-zero as the
