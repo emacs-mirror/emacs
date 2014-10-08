@@ -1595,7 +1595,7 @@ of attribute keys and values as follows:
 
 where X, Y, WIDTH, and HEIGHT are integers, which might be negative
 for monitors other than the primary one.  X and Y are coordinates
-of the top-left corner of the rectange.  Keys labeled with (*) are
+of the top-left corner of the rectangle.  Keys labeled with (*) are
 optional.
 
 A frame is dominated by a physical monitor when either the
