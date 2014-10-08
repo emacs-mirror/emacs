@@ -1,3 +1,8 @@
+2014-10-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32fns.c (check_x_display_info): Accept terminal objects as
+	argument, to follow what xfns.c does.
+
 2014-10-07  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in ($(srcdir)/macuvs.h)

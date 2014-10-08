@@ -263,9 +263,9 @@ static unsigned int sound_type = 0xFFFFFFFF;
    the first display on the list.  */
 
 struct w32_display_info *
-check_x_display_info (Lisp_Object frame)
+check_x_display_info (Lisp_Object object)
 {
-  if (NILP (frame))
+  if (NILP (object))
     {
       struct frame *sf = XFRAME (selected_frame);
 
@@ -274,14 +274,23 @@ check_x_display_info (Lisp_Object frame)
       else
 	return &one_w32_display_info;
     }
-  else if (STRINGP (frame))
-    return x_display_info_for_name (frame);
+  else if (TERMINALP (object))
+    {
+      struct terminal *t = get_terminal (object, 1);
+
+      if (t->type != output_w32)
+        error ("Terminal %d is not a W32 display", t->id);
+
+      return t->display_info.w32;
+    }
+  else if (STRINGP (object))
+    return x_display_info_for_name (object);
   else
     {
       struct frame *f;
 
-      CHECK_LIVE_FRAME (frame);
-      f = XFRAME (frame);
+      CHECK_LIVE_FRAME (object);
+      f = XFRAME (object);
       if (! FRAME_W32_P (f))
 	error ("Non-W32 frame used");
       return FRAME_DISPLAY_INFO (f);
