@@ -94,12 +94,10 @@ Runs `calendar-after-frame-setup-hook', selects frame, iconifies if needed."
   (set-window-dedicated-p
    (display-buffer
     (if (if (listp diary-display-function)
-            (or (memq 'diary-fancy-display diary-display-function)
-                (memq 'fancy-diary-display diary-display-function))
-          (memq diary-display-function '(diary-fancy-display
-                                         fancy-diary-display)))
+            (memq 'diary-fancy-display diary-display-function)
+          (eq diary-display-function 'diary-fancy-display))
         (progn
-          ;; If there are no diary entries, there won't be a fancy-diary
+          ;; If there are no diary entries, there won't be a buffer
           ;; to dedicate, so make a basic one.
           (or (get-buffer diary-fancy-buffer)
               (calendar-in-read-only-buffer diary-fancy-buffer

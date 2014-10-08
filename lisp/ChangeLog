@@ -1,3 +1,8 @@
+2014-10-08  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/cal-x.el (calendar-dedicate-diary):
+	Drop support for recently deleted aliases.
+
 2014-10-08  Leo Liu  <sdl.web@gmail.com>
 
 	* progmodes/cfengine.el (cfengine3-make-syntax-cache): Always
