@@ -1700,6 +1700,7 @@ static Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   AVERT_CRITICAL(AMC, amc);
   format = pool->format;
   ref = *refIO;
+  AVER_CRITICAL(AddrIsAligned(ref, PoolAlignment(pool)));
   AVER_CRITICAL(SegBase(seg) <= ref);
   AVER_CRITICAL(ref < SegLimit(seg));
   arena = pool->arena;
@@ -1805,6 +1806,7 @@ static Res AMCHeaderFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   Format format;       /* cache of pool->format */
   Size headerSize;     /* cache of pool->format->headerSize */
   Ref ref;             /* reference to be fixed */
+  Addr base;           /* base address of reference */
   Ref newRef;          /* new location, if moved */
   Addr newBase;        /* base address of new copy */
   Size length;         /* length of object to be relocated */
@@ -1853,6 +1855,8 @@ static Res AMCHeaderFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   headerSize = format->headerSize;
   ref = *refIO;
   AVER_CRITICAL(AddrAdd(SegBase(seg), headerSize) <= ref);
+  base = AddrSub(ref, headerSize);
+  AVER_CRITICAL(AddrIsAligned(base, PoolAlignment(pool)));  
   AVER_CRITICAL(ref < SegLimit(seg)); /* see .ref-limit */
   arena = pool->arena;
 
@@ -1919,7 +1923,7 @@ static Res AMCHeaderFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
       SegSetGrey(toSeg, TraceSetUnion(SegGrey(toSeg), grey));
 
       /* <design/trace/#fix.copy> */
-      (void)AddrCopy(newBase, AddrSub(ref, headerSize), length);  /* .exposed.seg */
+      (void)AddrCopy(newBase, base, length);  /* .exposed.seg */
 
       ShieldCover(arena, toSeg);
     } while (!BUFFER_COMMIT(buffer, newBase, length));
