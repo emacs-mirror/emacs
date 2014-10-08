@@ -1,3 +1,8 @@
+2014-10-08  K. Handa  <handa@gnu.org>
+
+	* coding.c (detect_coding_iso_2022): Set coding->rejected
+	correctly when an invalid escape sequence is found (Bug#18610).
+
 2014-10-03  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* font.c (font_list_entities): Do not add empty vector to font cache.

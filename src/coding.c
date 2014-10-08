@@ -3078,8 +3078,13 @@ detect_coding_iso_2022 (struct coding_system *coding,
 		  ONE_MORE_BYTE (c1);
 		  if (c1 < ' ' || c1 >= 0x80
 		      || (id = iso_charset_table[0][c >= ','][c1]) < 0)
-		    /* Invalid designation sequence.  Just ignore.  */
-		    break;
+		    {
+		      /* Invalid designation sequence.  Just ignore.  */
+		      if (c1 >= 0x80)
+			rejected |= (CATEGORY_MASK_ISO_7BIT
+				     | CATEGORY_MASK_ISO_7_ELSE);
+		      break;
+		    }
 		}
 	      else if (c == '$')
 		{
@@ -3093,16 +3098,29 @@ detect_coding_iso_2022 (struct coding_system *coding,
 		      ONE_MORE_BYTE (c1);
 		      if (c1 < ' ' || c1 >= 0x80
 			  || (id = iso_charset_table[1][c >= ','][c1]) < 0)
-			/* Invalid designation sequence.  Just ignore.  */
-			break;
+			{
+			  /* Invalid designation sequence.  Just ignore.  */
+			  if (c1 >= 0x80)
+			    rejected |= (CATEGORY_MASK_ISO_7BIT
+					 | CATEGORY_MASK_ISO_7_ELSE);
+			  break;
+			}
 		    }
 		  else
-		    /* Invalid designation sequence.  Just ignore it.  */
-		    break;
+		    {
+		      /* Invalid designation sequence.  Just ignore it.  */
+		      if (c >= 0x80)
+			rejected |= (CATEGORY_MASK_ISO_7BIT
+				     | CATEGORY_MASK_ISO_7_ELSE);
+		      break;
+		    }
 		}
 	      else
 		{
 		  /* Invalid escape sequence.  Just ignore it.  */
+		  if (c >= 0x80)
+		    rejected |= (CATEGORY_MASK_ISO_7BIT
+				 | CATEGORY_MASK_ISO_7_ELSE);
 		  break;
 		}
 
@@ -3153,7 +3171,7 @@ detect_coding_iso_2022 (struct coding_system *coding,
 	  if (inhibit_iso_escape_detection)
 	    break;
 	  single_shifting = 0;
-	  rejected |= CATEGORY_MASK_ISO_7BIT;
+	  rejected |= CATEGORY_MASK_ISO_7BIT | CATEGORY_MASK_ISO_7_ELSE;
 	  if (CODING_ISO_FLAGS (&coding_categories[coding_category_iso_8_1])
 	      & CODING_ISO_FLAG_SINGLE_SHIFT)
 	    {
@@ -3180,9 +3198,9 @@ detect_coding_iso_2022 (struct coding_system *coding,
 	      single_shifting = 0;
 	      break;
 	    }
+	  rejected |= CATEGORY_MASK_ISO_7BIT | CATEGORY_MASK_ISO_7_ELSE;
 	  if (c >= 0xA0)
 	    {
-	      rejected |= CATEGORY_MASK_ISO_7BIT | CATEGORY_MASK_ISO_7_ELSE;
 	      found |= CATEGORY_MASK_ISO_8_1;
 	      /* Check the length of succeeding codes of the range
                  0xA0..0FF.  If the byte length is even, we include
