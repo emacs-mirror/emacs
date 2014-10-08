@@ -605,7 +605,7 @@ maybe_generate_resize_event (void)
   change_frame_size (f,
 		     1 + info.srWindow.Right - info.srWindow.Left,
 		     1 + info.srWindow.Bottom - info.srWindow.Top
-		     - FRAME_MENU_BAR_LINES (f), 0, 0, 0, 0);
+		     - FRAME_MENU_BAR_LINES (f), 0, 1, 0, 0);
 }
 
 #if HAVE_W32NOTIFY

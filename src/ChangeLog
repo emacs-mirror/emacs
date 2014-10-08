@@ -1,5 +1,12 @@
 2014-10-08  Eli Zaretskii  <eliz@gnu.org>
 
+	* w32inevt.c (maybe_generate_resize_event): Pass non-zero as the
+	DELAY argument to change_frame_size, so that the frame size
+	changes, if any are needed, are delayed until the next redisplay.
+	This is to avoid a too early QUIT inside change_frame_size, when
+	it calls Lisp in frame_windows_min_size, in case one of the events
+	we've read sets the quit-flag.  (Bug#18649)
+
 	* w32fns.c (check_x_display_info): Accept terminal objects as
 	argument, to follow what xfns.c does.
 
