@@ -1231,29 +1231,32 @@ Should not be necessary unless you reinstall CFEngine."
   (setq cfengine-mode-syntax-cache nil))
 
 (defun cfengine3-make-syntax-cache ()
-  "Build the CFEngine 3 syntax cache.
-Calls `cfengine-cf-promises' with \"-s json\""
-  (let ((syntax (cddr (assoc cfengine-cf-promises cfengine-mode-syntax-cache))))
-    (if cfengine-cf-promises
-        (or syntax
-            (with-demoted-errors
-                (with-temp-buffer
-                  (call-process-shell-command cfengine-cf-promises
-                                              nil   ; no input
-                                              t     ; current buffer
-                                              nil   ; no redisplay
-                                              "-s" "json")
-                  (goto-char (point-min))
-                  (setq syntax (json-read))
-                  (setq cfengine-mode-syntax-cache
-                        (cons (cons cfengine-cf-promises syntax)
-                              cfengine-mode-syntax-cache))
-                  (setq cfengine-mode-syntax-functions-regex
-                        (regexp-opt (mapcar (lambda (def)
-                                              (format "%s" (car def)))
-                                            (cdr (assq 'functions syntax)))
-                                    'symbols))))))
-    cfengine3-fallback-syntax))
+  "Build the CFEngine 3 syntax cache and return the syntax.
+Calls `cfengine-cf-promises' with \"-s json\"."
+  (or (cdr (assoc cfengine-cf-promises cfengine-mode-syntax-cache))
+      (let ((syntax (or (when cfengine-cf-promises
+                          (with-demoted-errors "cfengine3-make-syntax-cache: %S"
+                            (with-temp-buffer
+                              (or (zerop (process-file cfengine-cf-promises
+                                                       nil ; no input
+                                                       t   ; output
+                                                       nil ; no redisplay
+                                                       "-s" "json"))
+                                  (error "%s" (buffer-substring
+                                               (point-min)
+                                               (progn (goto-char (point-min))
+                                                      (line-end-position)))))
+                              (goto-char (point-min))
+                              (json-read))))
+                        cfengine3-fallback-syntax)))
+        (push (cons cfengine-cf-promises syntax)
+              cfengine-mode-syntax-cache)
+        (setq cfengine-mode-syntax-functions-regex
+              (regexp-opt (mapcar (lambda (def)
+                                    (format "%s" (car def)))
+                                  (cdr (assq 'functions syntax)))
+                          'symbols))
+        syntax)))
 
 (defun cfengine3-documentation-function ()
   "Document CFengine 3 functions around point.
@@ -1265,7 +1268,6 @@ Use it by enabling `eldoc-mode'."
 
 (defun cfengine3-completion-function ()
   "Return completions for function name around or before point."
-  (cfengine3-make-syntax-cache)
   (let* ((bounds (save-excursion
                    (let ((p (point)))
                      (skip-syntax-backward "w_" (point-at-bol))

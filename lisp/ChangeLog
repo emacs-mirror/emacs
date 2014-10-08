@@ -1,3 +1,11 @@
+2014-10-08  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/cfengine.el (cfengine3-make-syntax-cache): Always
+	return a syntax.  Replace call-process-shell-command with
+	process-file.  Ensure cfengine-mode-syntax-functions-regex is
+	always set.  Ensure cache when cfengine-cf-promises fails.
+	(Bug#18620)
+
 2014-10-07  Glenn Morris  <rgm@gnu.org>
 
 	* font-lock.el (font-lock-fontify-buffer): Fix interactive-only markup.
