@@ -507,6 +507,7 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
 {
   Size size = VM_ARENA_SIZE_DEFAULT; /* initial arena size */
   Align grainSize = MPS_PF_ALIGN; /* arena grain size */
+  Size pageSize = PageSize(); /* operating system page size */
   Size chunkSize; /* size actually created */
   Size vmArenaSize; /* aligned size of VMArenaStruct */
   Res res;
@@ -522,14 +523,19 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
   AVER(class == VMArenaClassGet());
   AVERT(ArgList, args);
 
-  if (ArgPick(&arg, args, MPS_KEY_ARENA_SIZE))
-    size = arg.val.size;
   if (ArgPick(&arg, args, MPS_KEY_ARENA_GRAIN_SIZE))
     grainSize = arg.val.size;
-  grainSize = SizeAlignUp(grainSize, PageSize());
-
-  AVER(size > 0);
+  if (grainSize < pageSize)
+    /* Make it easier to write portable programs by rounding up. */
+    grainSize = pageSize;
   AVERT(ArenaGrainSize, grainSize);
+
+  if (ArgPick(&arg, args, MPS_KEY_ARENA_SIZE))
+    size = arg.val.size;
+  if (size < grainSize * MPS_WORD_WIDTH)
+    /* There has to be enough room in the chunk for a full complement of
+       zones. Make it easier to write portable programs by rounding up. */
+    size = grainSize * MPS_WORD_WIDTH;
   
   /* Parse remaining arguments, if any, into VM parameters. We must do
      this into some stack-allocated memory for the moment, since we

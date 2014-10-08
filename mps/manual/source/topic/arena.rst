@@ -254,6 +254,14 @@ Virtual memory arenas
       necessary. The MPS is most efficient if you reserve an address
       space that is several times larger than your peak memory usage.
 
+      If you specify a value for :c:macro:`MPS_KEY_ARENA_SIZE` that's
+      too small for the virtual memory arena, then the MPS rounds it
+      up to the minimum and continues. The minimum size for the
+      virtual memory arena is :c:macro:`MPS_WORD_WIDTH` ×
+      :c:macro:`MPS_KEY_ARENA_GRAIN_SIZE` bytes. For example, on a
+      64-bit platform with a 4\ :term:`kilobyte` page size, this is
+      256\ :term:`kilobytes`.
+
       .. note::
 
           The MPS asks for more address space if it runs out, but the
@@ -262,11 +270,14 @@ Virtual memory arenas
 
     * :c:macro:`MPS_KEY_ARENA_GRAIN_SIZE` (type :c:type:`size_t`) is
       the granularity with which the arena will manage memory
-      internally. It must be a power of 2. It will be aligned up to a
-      multiple of the operating system's page size if necessary. If
-      not provided, the operating system's page size is used. Larger
-      granularity reduces overheads, but increases
-      :term:`fragmentation` and :term:`retention`.
+      internally. It must be a power of 2. If not provided, the
+      operating system's page size is used. Larger granularity reduces
+      overheads, but increases :term:`fragmentation` and
+      :term:`retention`.
+
+      If you specify a value of :c:macro:`MPS_KEY_ARENA_GRAIN_SIZE`
+      that's smaller than the operating system page size, the MPS
+      rounds it up to the page size and continues.
 
     A second optional :term:`keyword argument` may be passed, but it
     only has any effect on the Windows operating system:
