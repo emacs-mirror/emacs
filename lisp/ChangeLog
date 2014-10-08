@@ -1,3 +1,16 @@
+2014-10-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* faces.el (display-grayscale-p): Mention in the doc string that
+	the argument can be either a display name or a frame.
+
+	* frame.el (display-pixel-height, display-pixel-width)
+	(display-mm-height, display-mm-width, display-backing-store)
+	(display-save-under, display-planes, display-color-cells)
+	(display-visual-class, display-monitor-attributes-list)
+	(display-screens): Mention in the doc string that the argument can
+	be either a display name or a frame.  Improve the docs of the
+	monitor attributes.  (Bug#18636)
+
 2014-10-06  Martin Rudalics  <rudalics@gmx.at>
 
 	* term.el (term-window-width): Subtract 1 from the width when

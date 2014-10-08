@@ -1381,6 +1381,7 @@ frame's display)."
 
 (defun display-screens (&optional display)
   "Return the number of screens associated with DISPLAY.
+DISPLAY should be either a frame or a display name (a string).
 If DISPLAY is omitted or nil, it defaults to the selected frame's display."
   (let ((frame-type (framep-on-display display)))
     (cond
@@ -1393,6 +1394,7 @@ If DISPLAY is omitted or nil, it defaults to the selected frame's display."
 
 (defun display-pixel-height (&optional display)
   "Return the height of DISPLAY's screen in pixels.
+DISPLAY can be a display name or a frame.
 If DISPLAY is omitted or nil, it defaults to the selected frame's display.
 
 For character terminals, each character counts as a single pixel.
@@ -1412,6 +1414,7 @@ with DISPLAY.  To get information for each physical monitor, use
 
 (defun display-pixel-width (&optional display)
   "Return the width of DISPLAY's screen in pixels.
+DISPLAY can be a display name or a frame.
 If DISPLAY is omitted or nil, it defaults to the selected frame's display.
 
 For character terminals, each character counts as a single pixel.
@@ -1450,6 +1453,7 @@ not explicitly specified."
 (defun display-mm-height (&optional display)
   "Return the height of DISPLAY's screen in millimeters.
 If the information is unavailable, this function returns nil.
+DISPLAY can be a display name or a frame.
 If DISPLAY is omitted or nil, it defaults to the selected frame's display.
 
 You can override what the system thinks the result should be by
@@ -1470,6 +1474,7 @@ monitor, use `display-monitor-attributes-list'."
 (defun display-mm-width (&optional display)
   "Return the width of DISPLAY's screen in millimeters.
 If the information is unavailable, this function returns nil.
+DISPLAY can be a display name or a frame.
 If DISPLAY is omitted or nil, it defaults to the selected frame's display.
 
 You can override what the system thinks the result should be by
@@ -1493,6 +1498,7 @@ monitor, use `display-monitor-attributes-list'."
   "Return the backing store capability of DISPLAY's screen.
 The value may be `always', `when-mapped', `not-useful', or nil if
 the question is inapplicable to a certain kind of display.
+DISPLAY can be a display name or a frame.
 If DISPLAY is omitted or nil, it defaults to the selected frame's display."
   (let ((frame-type (framep-on-display display)))
     (cond
@@ -1505,6 +1511,7 @@ If DISPLAY is omitted or nil, it defaults to the selected frame's display."
 
 (defun display-save-under (&optional display)
   "Return non-nil if DISPLAY's screen supports the SaveUnder feature.
+DISPLAY can be a display name or a frame.
 If DISPLAY is omitted or nil, it defaults to the selected frame's display."
   (let ((frame-type (framep-on-display display)))
     (cond
@@ -1517,6 +1524,7 @@ If DISPLAY is omitted or nil, it defaults to the selected frame's display."
 
 (defun display-planes (&optional display)
   "Return the number of planes supported by DISPLAY.
+DISPLAY can be a display name or a frame.
 If DISPLAY is omitted or nil, it defaults to the selected frame's display."
   (let ((frame-type (framep-on-display display)))
     (cond
@@ -1531,6 +1539,7 @@ If DISPLAY is omitted or nil, it defaults to the selected frame's display."
 
 (defun display-color-cells (&optional display)
   "Return the number of color cells supported by DISPLAY.
+DISPLAY can be a display name or a frame.
 If DISPLAY is omitted or nil, it defaults to the selected frame's display."
   (let ((frame-type (framep-on-display display)))
     (cond
@@ -1547,6 +1556,7 @@ If DISPLAY is omitted or nil, it defaults to the selected frame's display."
   "Return the visual class of DISPLAY.
 The value is one of the symbols `static-gray', `gray-scale',
 `static-color', `pseudo-color', `true-color', or `direct-color'.
+DISPLAY can be a display name or a frame.
 If DISPLAY is omitted or nil, it defaults to the selected frame's display."
   (let ((frame-type (framep-on-display display)))
     (cond
@@ -1567,6 +1577,7 @@ If DISPLAY is omitted or nil, it defaults to the selected frame's display."
 
 (defun display-monitor-attributes-list (&optional display)
   "Return a list of physical monitor attributes on DISPLAY.
+DISPLAY can be a display name, a terminal name, or a frame.
 If DISPLAY is omitted or nil, it defaults to the selected frame's display.
 Each element of the list represents the attributes of a physical
 monitor.  The first element corresponds to the primary monitor.
@@ -1576,14 +1587,16 @@ of attribute keys and values as follows:
 
  geometry -- Position and size in pixels in the form of (X Y WIDTH HEIGHT)
  workarea -- Position and size of the work area in pixels in the
-	     form of (X Y WIDTH HEIGHT)
+	     form of (X Y WIDTH HEIGHT); this excludes task bar etc.
  mm-size  -- Width and height in millimeters in the form of
  	     (WIDTH HEIGHT)
  frames   -- List of frames dominated by the physical monitor
  name (*) -- Name of the physical monitor as a string
 
-where X, Y, WIDTH, and HEIGHT are integers.  Keys labeled
-with (*) are optional.
+where X, Y, WIDTH, and HEIGHT are integers, which might be negative
+for monitors other than the primary one.  X and Y are coordinates
+of the top-left corner of the rectange.  Keys labeled with (*) are
+optional.
 
 A frame is dominated by a physical monitor when either the
 largest area of the frame resides in the monitor, or the monitor
