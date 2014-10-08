@@ -391,7 +391,6 @@ display:
   @result{}
   (((geometry 0 0 1920 1080)   ;; Left hand monitor
     (workarea 0 0 1920 1050)   ;; Bottom of screen used for task bar
-    task bar
     (mm-size 677 381)
     (name . "\\\\.\\DISPLAY1")
     (frames #<frame emacs@@host *foo* 0000000005BBDC48>
