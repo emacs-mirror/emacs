@@ -1,3 +1,8 @@
+2014-10-09  Glenn Morris  <rgm@gnu.org>
+
+	* package.texi (Package Menu): The package list was changed to not
+	say "unsigned" any more.
+
 2014-10-05  Glenn Morris  <rgm@gnu.org>
 
 	* misc.texi (Sorting):

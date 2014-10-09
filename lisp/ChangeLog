@@ -1,3 +1,25 @@
+2014-10-09  Glenn Morris  <rgm@gnu.org>
+
+	* frame.el (display-monitor-attributes-list): Doc tweaks.
+
+2014-10-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* faces.el (display-grayscale-p): Mention in the doc string that
+	the argument can be either a display name or a frame.
+
+	* frame.el (display-pixel-height, display-pixel-width)
+	(display-mm-height, display-mm-width, display-backing-store)
+	(display-save-under, display-planes, display-color-cells)
+	(display-visual-class, display-monitor-attributes-list)
+	(display-screens): Mention in the doc string that the argument can
+	be either a display name or a frame.  Improve the docs of the
+	monitor attributes.  (Bug#18636)
+
+2014-10-09  Martin Rudalics  <rudalics@gmx.at>
+
+	* term.el (term-window-width): Subtract 1 from the width when
+	any fringe has zero width, not just the right fringe.  (Bug#18601)
+
 2014-10-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* frame.el (make-frame): Use t rather than nil for `w' (bug#18653).

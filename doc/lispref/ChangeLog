@@ -1,3 +1,20 @@
+2014-10-09  Glenn Morris  <rgm@gnu.org>
+
+	* frames.texi (Multiple Terminals): Copyedits.
+
+2014-10-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* frames.texi (Multiple Terminals): Improve the description of X
+	display names.  Add index entries.
+	(Basic Parameters): Add a cross-reference to where X display names
+	are described.
+	(Position Parameters): Mention that positional parameters of the
+	form (+ POS) can be negative if they are on a non-primary monitor
+	of a multi-monitor display.  (Bug#18636)
+	(Creating Frames): Mention that on multi-monitor displays the
+	frame might be positioned differently than specified by the frame
+	parameters alist.
+
 2014-10-08  Leo Liu  <sdl.web@gmail.com>
 
 	* streams.texi (Output Functions): Document new argument ENSURE to

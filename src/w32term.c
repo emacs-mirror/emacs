@@ -6347,7 +6347,7 @@ x_make_frame_visible (struct frame *f)
 	  RECT window_rect;
 
 	  /* Adjust vertical window position in order to avoid being
-	     covered by a task bar placed at the bottom of the desktop. */
+	     covered by a taskbar placed at the bottom of the desktop. */
 	  SystemParametersInfo (SPI_GETWORKAREA, 0, &workarea_rect, 0);
 	  GetWindowRect (FRAME_W32_WINDOW (f), &window_rect);
 	  if (window_rect.bottom > workarea_rect.bottom
