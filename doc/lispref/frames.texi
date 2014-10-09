@@ -356,12 +356,14 @@ that, if the monitor is not the primary monitor, some of the
 coordinates might be negative.
 
 @item workarea
-Position of the top-left corner and size of the work area in pixels as
-@samp{(@var{x} @var{y} @var{width} @var{height})}.  This is different
-from @samp{geometry} in that the various system windows, such as the
-task bar and side bar, are excluded from the work area.  Note that, if
-the monitor is not the primary monitor, some of the coordinates might
-be negative.
+Position of the top-left corner and size of the work area (``usable''
+space) in pixels as @samp{(@var{x} @var{y} @var{width} @var{height})}.
+This may be different from @samp{geometry} in that space occupied by
+various window manager features (docks, taskbars, etc.) may be
+excluded from the work area.  Whether or not such features actually
+subtract from the work area depends on the platform and environment.
+Again, if the monitor is not the primary monitor, some of the
+coordinates might be negative.
 
 @item mm-size
 Width and height in millimeters as @samp{(@var{width} @var{height})}
@@ -371,10 +373,14 @@ List of frames that this physical monitor dominates (see below).
 
 @item name
 Name of the physical monitor as @var{string}.
+
+@item source
+Source of the multi-monitor information as @var{string};
+e.g., @samp{XRandr} or @samp{Xinerama}.
 @end table
 
 @var{x}, @var{y}, @var{width}, and @var{height} are integers.
-@samp{name} may not be present.
+@samp{name} and @samp{source} may be absent.
 
 A frame is @dfn{dominated} by a physical monitor when either the
 largest area of the frame resides in that monitor, or (if the frame
@@ -389,14 +395,14 @@ display:
 @smalllisp
   (display-monitor-attributes-list)
   @result{}
-  (((geometry 0 0 1920 1080)   ;; Left hand monitor
-    (workarea 0 0 1920 1050)   ;; Bottom of screen used for task bar
+  (((geometry 0 0 1920 1080) ;; @r{Left-hand, primary monitor}
+    (workarea 0 0 1920 1050) ;; @r{A taskbar occupies some of the height}
     (mm-size 677 381)
     (name . "\\\\.\\DISPLAY1")
     (frames #<frame emacs@@host *foo* 0000000005BBDC48>
             #<frame emacs@@host *scratch* 000000008179D370>))
-   ((geometry 1920 0 1680 1050) ;; Right hand monitor
-    (workarea 1920 0 1680 1050) ;; Whole screen can be used
+   ((geometry 1920 0 1680 1050) ;; @r{Right-hand monitor}
+    (workarea 1920 0 1680 1050) ;; @r{Whole screen can be used}
     (mm-size 593 370)
     (name . "\\\\.\\DISPLAY2")
     (frames)))

@@ -220,7 +220,7 @@ See the end of the file for license conditions.
   key in HKEY_CURRENT_USER.  Just delete the whole Software\GNU\Emacs
   key.
 
-  The Start menu entry can be removed by right-clicking on the Task bar
+  The Start menu entry can be removed by right-clicking on the Taskbar
   and selecting Properties, then using the Remove option on the Start
   Menu Programs page.  (If you installed under an account with
   administrator privileges, then you need to click the Advanced button

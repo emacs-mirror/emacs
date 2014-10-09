@@ -1587,16 +1587,25 @@ of attribute keys and values as follows:
 
  geometry -- Position and size in pixels in the form of (X Y WIDTH HEIGHT)
  workarea -- Position and size of the work area in pixels in the
-	     form of (X Y WIDTH HEIGHT); this excludes task bar etc.
+	     form of (X Y WIDTH HEIGHT)
  mm-size  -- Width and height in millimeters in the form of
  	     (WIDTH HEIGHT)
  frames   -- List of frames dominated by the physical monitor
  name (*) -- Name of the physical monitor as a string
+ source (*) -- Source of multi-monitor information as a string
 
-where X, Y, WIDTH, and HEIGHT are integers, which might be negative
-for monitors other than the primary one.  X and Y are coordinates
-of the top-left corner of the rectangle.  Keys labeled with (*) are
-optional.
+where X, Y, WIDTH, and HEIGHT are integers.  X and Y are coordinates
+of the top-left corner, and might be negative for monitors other than
+the primary one.  Keys labeled with (*) are optional.
+
+The \"work area\" is a measure of the \"usable\" display space.
+It may be less than the total screen size, owing to space taken up
+by window manager features (docks, taskbars, etc.).  The precise
+details depend on the platform and environment.
+
+The `source' attribute describes the source from which the information
+was obtained.  On X, this may be one of: \"Gdk\", \"XRandr\", \"Xinerama\",
+or \"fallback\".
 
 A frame is dominated by a physical monitor when either the
 largest area of the frame resides in the monitor, or the monitor

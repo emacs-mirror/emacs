@@ -1,3 +1,7 @@
+2014-10-09  Glenn Morris  <rgm@gnu.org>
+
+	* frames.texi (Multiple Terminals): Copyedits.
+
 2014-10-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* frames.texi (Multiple Terminals): Improve the description of X

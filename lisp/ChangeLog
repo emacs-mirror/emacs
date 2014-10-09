@@ -1,3 +1,7 @@
+2014-10-09  Glenn Morris  <rgm@gnu.org>
+
+	* frame.el (display-monitor-attributes-list): Doc tweaks.
+
 2014-10-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* faces.el (display-grayscale-p): Mention in the doc string that
