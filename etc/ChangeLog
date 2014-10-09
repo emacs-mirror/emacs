@@ -1,3 +1,7 @@
+2014-10-09  Leo Liu  <sdl.web@gmail.com>
+
+	* NEWS: Mention optional arg to terpri and new cl-lib functions.
+
 2014-10-05  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* NEWS: Mention ns-use-fullscreen-animation.

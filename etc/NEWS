@@ -52,6 +52,9 @@ Use './configure PKG_CONFIG=/full/name/of/pkg-config' if you need to.
 ** x-select-enable-clipboard is renamed gui-select-enable-clipboard.
 Additionally it now also applies to OSX and GNUstep.
 
++++
+** terpri gets an optional arg ENSURE to conditionally output a newline.
+
 ** `insert-register' now leaves point after the inserted text
 when called interactively.  A prefix argument toggles this behavior.
 
@@ -117,6 +120,8 @@ performance improvements when pasting large amounts of text.
 ** pcase
 *** New UPatterns `quote' and `app'.
 *** New UPatterns can be defined with `pcase-defmacro'.
++++
+*** New vector QPattern.
 
 ** Lisp mode
 *** Strings after `:documentation' are highlighted as docstrings.
@@ -126,14 +131,14 @@ performance improvements when pasting large amounts of text.
 *** C-x C-x in rectangle-mark-mode now cycles through the four corners.
 *** `string-rectangle' provides on-the-fly preview of the result.
 
-+++
-** Macro `pcase' now supports vector qpattern.
-
 ** New font-lock functions font-lock-ensure and font-lock-flush, which
 should be used instead of font-lock-fontify-buffer when called from Elisp.
 
 ** Macro `minibuffer-with-setup-hook' takes (:append FUN) to mean
 appending FUN to `minibuffer-setup-hook'.
+
+** cl-lib
+*** New functions cl-fresh-line, cl-digit-char-p and cl-parse-integer.
 
 ** Calendar and diary
 
