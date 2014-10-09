@@ -1896,6 +1896,17 @@ typedef enum {
   NEUTRAL_ON	/* other neutrals */
 } bidi_type_t;
 
+/* Data type for describing the Bidi Paired Bracket Type of a character.
+
+   The order of members must be in sync with the 8th element of the
+   member of unidata-prop-alist (in admin/unidata/unidata-gen.el) for
+   Unicode character property `bracket-type'.  */
+typedef enum {
+  BIDI_BRACKET_NONE = 0,
+  BIDI_BRACKET_OPEN,
+  BIDI_BRACKET_CLOSE
+} bidi_bracket_type_t;
+
 /* The basic directionality data type.  */
 typedef enum { NEUTRAL_DIR, L2R, R2L } bidi_dir_t;
 
@@ -1906,6 +1917,7 @@ struct bidi_saved_info {
   bidi_type_t type;		/* character's resolved bidi type */
   bidi_type_t type_after_w1;	/* original type of the character, after W1 */
   bidi_type_t orig_type;	/* type as we found it in the buffer */
+  bool_bf bracket_resolved : 1;	/* 1 if type was BPA-resolved */
 };
 
 /* Data type for keeping track of information about saved embedding
@@ -1964,6 +1976,7 @@ struct bidi_it {
   int disp_prop;		/* if non-zero, there really is a
 				   `display' property/string at disp_pos;
 				   if 2, the property is a `space' spec */
+  bool_bf bracket_resolved : 1;	/* if 1, this bracket's type is BPA-resolved */
   int stack_idx;		/* index of current data on the stack */
   /* Note: Everything from here on is not copied/saved when the bidi
      iterator state is saved, pushed, or popped.  So only put here
