@@ -1,3 +1,12 @@
+2014-10-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* lisp.h (USE_STACK_STRING): Now true only if USE_STACK CONS.
+	On x86 platforms this works around GCC bug 63495
+	<https://gcc.gnu.org/bugzilla/show_bug.cgi?id=63495>,
+	and more generally should fix a portability problem in Emacs.
+	Problem reported by Stefan Monnier in:
+	http://lists.gnu.org/archive/html/emacs-devel/2014-10/msg00261.html
+
 2014-10-08  Leo Liu  <sdl.web@gmail.com>
 
 	Enhance terpri to allow conditionally output a newline.  (Bug#18652)

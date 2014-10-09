@@ -4615,13 +4615,16 @@ union Aligned_String
   double d; intmax_t i; void *p;
 };
 
-/* True for stack-based cons and string implementations.  */
+/* True for stack-based cons and string implementations, respectively.
+   Use stack-based strings only if stack-based cons also works.
+   Otherwise, STACK_CONS would create heap-based cons cells that
+   could point to stack-based strings, which is a no-no.  */
 
 enum
   {
     USE_STACK_CONS = (USE_STACK_LISP_OBJECTS
 		      && alignof (union Aligned_Cons) % GCALIGNMENT == 0),
-    USE_STACK_STRING = (USE_STACK_LISP_OBJECTS
+    USE_STACK_STRING = (USE_STACK_CONS
 			&& alignof (union Aligned_String) % GCALIGNMENT == 0)
   };
 
