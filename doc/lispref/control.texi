@@ -328,13 +328,13 @@ lexical binding):
 @example
 (defun evaluate (exp env)
   (pcase exp
-    (`(add ,x ,y)         (+ (evaluate x env) (evaluate y env)))
-    (`(call ,fun ,arg)    (funcall (evaluate fun env) (evaluate arg env)))
-    (`(fn ,arg ,body)     (lambda (val)
-                            (evaluate body (cons (cons arg val) env))))
-    ((pred numberp)       exp)
-    ((pred symbolp)       (cdr (assq exp env)))
-    (_                    (error "Unknown expression %S" exp))))
+    (`(add ,x ,y)       (+ (evaluate x env) (evaluate y env)))
+    (`(call ,fun ,arg)  (funcall (evaluate fun env) (evaluate arg env)))
+    (`(fn ,arg ,body)   (lambda (val)
+                          (evaluate body (cons (cons arg val) env))))
+    ((pred numberp)     exp)
+    ((pred symbolp)     (cdr (assq exp env)))
+    (_                  (error "Unknown expression %S" exp))))
 @end example
 
 Where @code{`(add ,x ,y)} is a pattern that checks that @code{exp} is a three
