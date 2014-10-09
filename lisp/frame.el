@@ -646,20 +646,23 @@ frame the selected frame.  However, the window system may select
 the new frame according to its own rules."
   (interactive)
   (let* ((display (cdr (assq 'display parameters)))
-         (w (cond
-	     ((assq 'terminal parameters)
-	      (let ((type (terminal-live-p (cdr (assq 'terminal parameters)))))
-		(cond
-		 ((null type) (error "Terminal %s does not exist"
-                                     (cdr (assq 'terminal parameters))))
-		 (t type))))
-	     ((assq 'window-system parameters)
-	      (cdr (assq 'window-system parameters)))
-             (display
-              (or (window-system-for-display display)
-                  (error "Don't know how to interpret display %S"
-                         display)))
-	     (t window-system)))
+         (w (or
+             (cond
+              ((assq 'terminal parameters)
+               (let ((type (terminal-live-p
+                            (cdr (assq 'terminal parameters)))))
+                 (cond
+                  ((null type) (error "Terminal %s does not exist"
+                                      (cdr (assq 'terminal parameters))))
+                  (t type))))
+              ((assq 'window-system parameters)
+               (cdr (assq 'window-system parameters)))
+              (display
+               (or (window-system-for-display display)
+                   (error "Don't know how to interpret display %S"
+                          display)))
+              (t window-system))
+             t))
 	 (oldframe (selected-frame))
 	 (params parameters)
 	 frame)
@@ -680,7 +683,7 @@ the new frame according to its own rules."
     ;; Now make the frame.
     (run-hooks 'before-make-frame-hook)
     (setq frame
-          (funcall (gui-method frame-creation-function (or w t)) params))
+          (funcall (gui-method frame-creation-function w) params))
     (normal-erase-is-backspace-setup-frame frame)
     ;; Inherit the original frame's parameters.
     (dolist (param frame-inherited-parameters)
