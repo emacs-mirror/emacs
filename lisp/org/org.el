@@ -7571,7 +7571,7 @@ headline or the item and create a new headline/item with the text
 in the current line after point \(see `org-M-RET-may-split-line'
 on how to modify this behavior).
 
-With one universal prefirx argument, set the user option
+With one universal prefix argument, set the user option
 `org-insert-heading-respect-content' to t for the duration of
 the command.  This modifies the behavior described above in this
 ways: on list items and at the beginning of normal lines, force
