@@ -392,21 +392,21 @@ time, though the frame can span multiple (or no) physical monitors.
 Here's an example of the data produced by this function on a 2-monitor
 display:
 
-@smalllisp
+@lisp
   (display-monitor-attributes-list)
   @result{}
   (((geometry 0 0 1920 1080) ;; @r{Left-hand, primary monitor}
     (workarea 0 0 1920 1050) ;; @r{A taskbar occupies some of the height}
     (mm-size 677 381)
-    (name . "\\\\.\\DISPLAY1")
-    (frames #<frame emacs@@host *foo* 0000000005BBDC48>
-            #<frame emacs@@host *scratch* 000000008179D370>))
+    (name . "DISPLAY1")
+    (frames #<frame emacs@@host *Messages* 0x11578c0>
+            #<frame emacs@@host *scratch* 0x114b838>))
    ((geometry 1920 0 1680 1050) ;; @r{Right-hand monitor}
     (workarea 1920 0 1680 1050) ;; @r{Whole screen can be used}
     (mm-size 593 370)
-    (name . "\\\\.\\DISPLAY2")
+    (name . "DISPLAY2")
     (frames)))
-@end smalllisp
+@end lisp
 
 @end defun
 
