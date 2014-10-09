@@ -1583,7 +1583,8 @@ and nil for X and Y.  */)
 {
   struct frame *f;
   Lisp_Object lispy_dummy;
-  Lisp_Object x, y;
+  Lisp_Object x, y, retval;
+  struct gcpro gcpro1;
 
   f = SELECTED_FRAME ();
   x = y = Qnil;
@@ -1600,7 +1601,11 @@ and nil for X and Y.  */)
     }
 
   XSETFRAME (lispy_dummy, f);
-  return Fcons (lispy_dummy, Fcons (x, y));
+  retval = Fcons (lispy_dummy, Fcons (x, y));
+  GCPRO1 (retval);
+  if (!NILP (Vmouse_position_function))
+    retval = call1 (Vmouse_position_function, retval);
+  RETURN_UNGCPRO (retval);
 }
 
 DEFUN ("set-mouse-position", Fset_mouse_position, Sset_mouse_position, 3, 3, 0,
@@ -4662,8 +4667,8 @@ is visible.  In this case you can not overscroll.  */);
 
   DEFVAR_LISP ("mouse-position-function", Vmouse_position_function,
 	       doc: /* If non-nil, function to transform normal value of `mouse-position'.
-`mouse-position' calls this function, passing its usual return value as
-argument, and returns whatever this function returns.
+`mouse-position' and `mouse-pixel-position' call this function, passing their
+usual return value as argument, and return whatever this function returns.
 This abnormal hook exists for the benefit of packages like `xt-mouse.el'
 which need to do mouse handling at the Lisp level.  */);
   Vmouse_position_function = Qnil;

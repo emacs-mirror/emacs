@@ -1,3 +1,8 @@
+2014-10-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* frame.c (Fmouse_pixel_position): Call Vmouse_position_function
+	(bug#18638).
+
 2014-10-08  K. Handa  <handa@gnu.org>
 
 	* coding.c (detect_coding_iso_2022): Set coding->rejected
