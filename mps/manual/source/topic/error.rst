@@ -8,12 +8,18 @@ Error handing
 =============
 
 Operations in the Memory Pool System that might fail return a
-:term:`result code` of type :c:type:`mps_res_t`, rather than a
-"special value" of the return type.
+:term:`result code` of type :c:type:`mps_res_t`. Success is always
+indicated by the result code :c:macro:`MPS_RES_OK`, which is defined
+to be zero. Other result codes indicate failure, and are non-zero. The
+MPS never uses a "special value" of some other type to indicate
+failure (such as returning ``NULL`` for a pointer result, or −1 for a
+size result).
 
-Success is always indicated by the result code :c:macro:`MPS_RES_OK`,
-which is defined to be zero. Other result codes indicate failure, and
-are non-zero.
+.. note::
+
+    The MPS does not throw or catch exceptions. (This is necessary
+    for the MPS to be portable to systems that have only a
+    :term:`freestanding` implementation of the C language.)
 
 The modular nature of the MPS means that it is not usually possible
 for a function description to list the possible error codes that it
