@@ -18,14 +18,14 @@ END_HEADER
 #define ARENALIMIT (ARENA)
 
 #define TABSIZE (50000)
-#define ENTERRAMP (30000)
-#define LEAVERAMP (100000)
+#define ENTERRAMP (3000)
+#define LEAVERAMP (10000)
 
 #define BACKSIZE (128)
 #define BACKITER (32)
 #define RAMPSIZE (128)
 
-#define ITERATIONS (1000000ul)
+#define ITERATIONS (100000ul)
 
 #define RAMP_INTERFACE
 /*

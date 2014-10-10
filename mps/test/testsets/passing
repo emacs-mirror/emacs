@@ -152,7 +152,7 @@ function/165.c
 function/167.c
 % 168-169 -- no such test
 % function/170.c -- commit limit logic seems wrong @@@@
-% function/171.c -- job003495
+function/171.c
 function/200.c
 % 201-202 -- no such test
 function/203.c
