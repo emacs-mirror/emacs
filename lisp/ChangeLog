@@ -1,3 +1,9 @@
+2014-10-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/bat-mode.el (bat-font-lock-keywords): Fix \\<_ typo
+	(bug#18622).  Reported by Arni Magnusson <arnima@hafro.is>.
+	* progmodes/prolog.el (prolog-electric--underscore): Same.
+
 2014-10-09  Glenn Morris  <rgm@gnu.org>
 
 	* frame.el (display-monitor-attributes-list): Doc tweaks.
