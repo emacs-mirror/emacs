@@ -1,3 +1,8 @@
+2014-10-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix port to Debian GNU/kFreeBSD 7 (wheezy) (Bug#18666).
+	* process.c (accept4) [!HAVE_ACCEPT4]: New macro.
+
 2014-10-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* frame.c (Fmouse_pixel_position): Call Vmouse_position_function

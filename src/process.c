@@ -173,6 +173,9 @@ close_on_exec (int fd)
   return fd;
 }
 
+# undef accept4
+# define accept4(sockfd, addr, addrlen, flags) \
+    process_accept4 (sockfd, addr, addrlen, flags)
 static int
 accept4 (int sockfd, struct sockaddr *addr, socklen_t *addrlen, int flags)
 {
