@@ -1902,7 +1902,7 @@ typedef enum {
    member of unidata-prop-alist (in admin/unidata/unidata-gen.el) for
    Unicode character property `bracket-type'.  */
 typedef enum {
-  BIDI_BRACKET_NONE = 0,
+  BIDI_BRACKET_NONE = 1,
   BIDI_BRACKET_OPEN,
   BIDI_BRACKET_CLOSE
 } bidi_bracket_type_t;
