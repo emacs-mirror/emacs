@@ -172,6 +172,9 @@ The remainder were:
 ** New ERT function `ert-summarize-tests-batch-and-exit'.
 
 ---
+** `Info-fontify-maximum-menu-size' can be t for no limit.
+
+---
 ** ntlm.el has support for NTLM2.
 
 ---

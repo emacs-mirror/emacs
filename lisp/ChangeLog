@@ -1,6 +1,8 @@
 2014-10-10  Glenn Morris  <rgm@gnu.org>
 
 	* info.el (Info-fontify-maximum-menu-size): Bump to 400k.  (Bug#16227)
+	Fix :type.  Allow t to mean no limit.
+	(Info-fontify-node): Handle Info-fontify-maximum-menu-size = t.
 
 2014-10-09  Glenn Morris  <rgm@gnu.org>
 
