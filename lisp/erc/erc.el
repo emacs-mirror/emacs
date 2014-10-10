@@ -2057,9 +2057,10 @@ Returns the buffer for the given server or channel."
   "Initialize the `erc-last-saved-position' marker to a sensible position.
 BUFFER is the current buffer."
   (with-current-buffer buffer
-    (setq erc-last-saved-position (make-marker))
-    (move-marker erc-last-saved-position
-                 (1- (marker-position erc-insert-marker)))))
+    (unless (markerp erc-last-saved-position)
+      (setq erc-last-saved-position (make-marker))
+      (move-marker erc-last-saved-position
+		   (1- (marker-position erc-insert-marker)))))
 
 ;; interactive startup
 

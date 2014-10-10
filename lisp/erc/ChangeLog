@@ -1,3 +1,8 @@
+2014-10-10  Kelvin White  <kwhite@gnu.org>
+
+	* erc.el (erc-initialize-log-marker): Only initialize
+	  erc-last-saved-position if not already a marker.
+
 2014-10-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* erc.el (erc-channel-receive-names): Silence compiler warning.
