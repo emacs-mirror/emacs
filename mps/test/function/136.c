@@ -1,18 +1,21 @@
 /* 
 TEST_HEADER
  id = $Id$
- summary = MVFF low-memory test; reusing arena in other pool
+ summary = MVFF low-memory test; failover of CBS to freelist
  language = c
  link = testlib.o
+OUTPUT_SPEC
+ limit < 160000
 END_HEADER
 */
 
 /* Purpose:
- * This is a grey-box test intended to expose problems in the
- * interaction between MVFF and CBS, whereby MVFF can't return
- * segments to the arena when CBS can't allocate control blocks.
  *
- * This problem is believed to occur in release.epcore.anchovy.1.
+ * This tests that the MVFF can continue to return blocks to the arena
+ * even if its CBS can no longer allocate control blocks (by failing
+ * over to use the freelist).
+ *
+ * This failed to work in release.epcore.anchovy.1.
  *
  *
  * Strategy:
@@ -57,13 +60,29 @@ static void do_test(size_t extendBy, size_t avgSize, size_t align,
   largeObjectSize = extendBy;
   smallObjectSize = align;
 
-  die(mps_pool_create(&pool, arena, mps_class_mvff(),
-                      extendBy, avgSize, align, slotHigh, arenaHigh, firstFit),
-      "create MVFF pool");
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD(args, MPS_KEY_EXTEND_BY, extendBy);
+    MPS_ARGS_ADD(args, MPS_KEY_MEAN_SIZE, avgSize);
+    MPS_ARGS_ADD(args, MPS_KEY_MVFF_ARENA_HIGH, arenaHigh);
+    MPS_ARGS_ADD(args, MPS_KEY_MVFF_SLOT_HIGH, slotHigh);
+    MPS_ARGS_ADD(args, MPS_KEY_MVFF_FIRST_FIT, firstFit);
+    /* Set SPARE to 0 as we want this pool to return memory to the
+       arena as soon as it is freed so we can allocate it elsewhere. */
+    MPS_ARGS_ADD(args, MPS_KEY_SPARE, 0.0);
+    die(mps_pool_create_k(&pool, arena, mps_class_mvff(), args),
+        "create MVFF pool");
+  } MPS_ARGS_END(args);
 
   die(mps_pool_create(&pool2, arena, mps_class_mv(),
                       extendBy, avgSize, /* maxSize */ extendBy),
       "create MV pool");
+
+  /* Allocate one small object in pool2 so that its block and span
+     pools get some initial memory. */
+  res = mps_alloc(&p, pool2, 8);
+  asserts(res == MPS_RES_OK, 
+          "Couldn't allocate one object of size %lu in second pool",
+          (unsigned long)8);
 
   /* First we allocate large objects until we run out of memory. */
   for(i = 0; i < MAXLARGEOBJECTS; i++) {
@@ -76,8 +95,10 @@ static void do_test(size_t extendBy, size_t avgSize, size_t align,
   asserts(res != MPS_RES_OK, 
           "Unexpectedly managed to create %lu objects of size %lu",
           MAXLARGEOBJECTS, largeObjectSize);
-  asserts(nLargeObjects > 0, "Couldn't create even one object of size %lu",
-          largeObjectSize);
+  if (nLargeObjects < 2) {
+    /* Need two large objects for the rest of the test to work */
+    goto done;
+  }
 
   /* Then we free one to make sure we can allocate some small objects */
   mps_free(pool, largeObjects[nLargeObjects - 1], largeObjectSize);
@@ -107,7 +128,7 @@ static void do_test(size_t extendBy, size_t avgSize, size_t align,
     smallObjects[i] = (mps_addr_t)0;
   }
 
-  /* The CBS should be in emergency mode now. */
+  /* MVFF should be failing over from the CBS to the freelist now. */
 
   /* Then we free every other large object */
   for(i = 0; i < nLargeObjects; i += 2) {
@@ -121,6 +142,7 @@ static void do_test(size_t extendBy, size_t avgSize, size_t align,
           "Couldn't allocate one object of size %lu in second pool",
           (unsigned long)largeObjectSize);
 
+ done:
   mps_pool_destroy(pool);
   mps_pool_destroy(pool2);
 }
@@ -137,9 +159,9 @@ static void test(void)
       "create arena");
  cdie(mps_thread_reg(&thread, arena), "register thread");
 
- for (comlimit = 512 *1024; comlimit >= 64 * 1024; comlimit -= 4*1024) {
+ for (comlimit = 512 * 1024; comlimit >= 148 * 1024; comlimit -= 4*1024) {
    mps_arena_commit_limit_set(arena, comlimit);
-   report("limit", "%x", comlimit);
+   report("limit", "%d", comlimit);
    symm = ranint(8);
    slotHigh = (symm >> 2) & 1;
    arenaHigh = (symm >> 1) & 1;
