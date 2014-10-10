@@ -2060,7 +2060,7 @@ BUFFER is the current buffer."
     (unless (markerp erc-last-saved-position)
       (setq erc-last-saved-position (make-marker))
       (move-marker erc-last-saved-position
-		   (1- (marker-position erc-insert-marker)))))
+		   (1- (marker-position erc-insert-marker))))))
 
 ;; interactive startup
 
