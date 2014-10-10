@@ -97,6 +97,7 @@ static void test(void)
 
  /* throw them all away and collect everything */
 
+ comment("b = %p", b);
  a = NULL;
  b = NULL;
  c = NULL;

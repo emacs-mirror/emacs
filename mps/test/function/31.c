@@ -34,7 +34,7 @@ static void test(void)
  mps_chain_t chain;
  mps_ap_t apamc, apawl;
 
- mycell *a, *b, *c;
+ mycell *b, *c;
 
  int i;
 
@@ -70,7 +70,7 @@ static void test(void)
   mps_ap_create(&apamc, poolamc, mps_rank_exact()),
   "create ap");
 
- a = allocone(apawl, 1, 1);
+ (void)allocone(apawl, 1, 1);
  b = allocone(apawl, 1, 1);
  c = allocone(apawl, 1000, 1);
 

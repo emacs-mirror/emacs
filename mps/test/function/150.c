@@ -141,9 +141,6 @@ static void messagepoll(mycell **ref, int faction)
 }
 
 
-#define clear(type, var) (*((volatile type*)&(var)) = NULL)
-
-
 static void test(void)
 {
  mps_pool_t poolamc, poolawl, poollo;
@@ -217,11 +214,11 @@ static void test(void)
 
  /* throw them all away and collect everything */
 
- clear(mycell*, a);
- clear(mycell*, b);
- clear(mycell*, c);
- clear(mycell*, d);
- clear(mycell*, exfmt_root);
+ a = NULL;
+ b = NULL;
+ c = NULL;
+ d = NULL;
+ exfmt_root = NULL;
 
  for (j=0; j<5; j++) {
   mps_arena_collect(arena);
