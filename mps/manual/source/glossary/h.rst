@@ -98,6 +98,16 @@ Memory Management Glossary: H
 
         .. opposite:: :term:`miss rate`.
 
+    hosted
+
+        In the :term:`C` programming language, a hosted implementation
+        is one that provides all the features of the standard C
+        library.
+
+        .. opposite:: :term:`freestanding`.
+
+        .. bibref:: :ref:`ISO/IEC 9899:1990 <C1990>`, :ref:`ISO/IEC 9899:1999 <C1999>`.
+
     hot
 
         .. mps:specific::
