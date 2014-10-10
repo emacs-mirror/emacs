@@ -108,7 +108,7 @@ Return the buffer."
       ;; Return the buffer.
       buffer)))
 
-(defun temp-buffer-window-show (&optional buffer action)
+(defun temp-buffer-window-show (buffer &optional action)
   "Show temporary buffer BUFFER in a window.
 Return the window showing BUFFER.  Pass ACTION as action argument
 to `display-buffer'."
