@@ -7,7 +7,7 @@ TEST_HEADER
 OUTPUT_SPEC
  assert = true
  assertfile P= trace.c
- assertline = 963
+ assertcond = ss->rank < RankEXACT
 END_HEADER
 */
 
