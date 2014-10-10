@@ -6,20 +6,22 @@ to see what version of the harness you have (or look at the
 file "test/version").
 
 
-Running on OS X
+Testing on unix
 ---------------
 
-On OS X you can invoke the test suite like this (from the root of the
-master sources or development branch)::
+From the root of the master sources or development branch::
 
-    $ ./configure && make
-    $ alias qa="perl test/test/qa -i code -l code/xc/mps.build/Debug/mps.build/Objects-normal/x86_64/mps.o"
+    $ PLATFORM=lii6ll # substitute your platform
+    $ make -C code -f $PLATFORM.gmk VARIETY=cool $PLATFORM/cool/mps.o
+    $ alias qa="perl test/test/qa -i code -l code/$PLATFORM/cool/mps.o"
     $ qa clib
     $ qa run test/function/5.c
     $ qa runset test/testsets/passing
 
 Each test case is compiled in its turn to the file
-``test/test/obj/Darwin_12.3.0_i386__unix/tmp_test`` so you can debug it
-with::
+``test/test/obj/$(uname -s)_$(uname -r)_$(uname -p)__unix/tmp_test``
+so you can debug it with::
 
-    $ lldb test/test/obj/Darwin_12.3.0_i386__unix/tmp_test
+    $ lldb test/test/obj/$(uname -s)_$(uname -r)_$(uname -p)__unix/tmp_test
+
+(Or ``gdb`` instead of ``lldb``.)
