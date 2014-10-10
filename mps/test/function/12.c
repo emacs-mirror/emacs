@@ -63,6 +63,9 @@ static void test(void)
  mycell *cells;
  int h,i,j,k,l;
  mycell *pobj;
+
+ mycell *ambig[NAPS];
+
  size_t bytes;
  size_t alignment;
  mps_addr_t q;
@@ -106,6 +109,9 @@ static void test(void)
    comment("%i of 100", h);
 
    for(j=0; j<1000; j++) {
+     if (j == 500) {
+       mps_arena_collect(arena);
+     }
      i = ranint(NAPS);
 
      switch (ap_state[i]) {
@@ -144,6 +150,7 @@ static void test(void)
        break;
      case 2:
        commentif(BLAH, "%i: begin commit %li", i, p[i]->data.id);
+       ambig[i] = p[i];
        ap[i]->init = ap[i]->alloc;
        ap_state[i] = 3;
        break;
@@ -156,12 +163,14 @@ static void test(void)
          commentif(BLAH, "%i -> %i", i, l);
        }
        ap_state[i] = 0;
+       ambig[i] = NULL;
        break;
      }
    }
    checkfrom(cells);
  }
 
+ comment("ambig[i] = %p", ambig[i]); /* stop compiler optimizing ambig away */
  comment("Finished main loop");
 
  for (i=0; i<NAPS; i++) {

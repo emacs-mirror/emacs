@@ -172,6 +172,7 @@ static void test(void)
  comment("Maximum size increase:");
  report("mincr", "%ld", mdiff);
 
+ comment("ambig[i] = %p", ambig[i]); /* stop compiler optimizing ambig away */
  comment("Finished main loop");
 
  for (i=0; i<NAPS; i++) {
