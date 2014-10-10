@@ -235,9 +235,14 @@ Called with one argument: (SELECTION)")
 Called with one argument: (SELECTION).
 The arg should be the name of the selection in question, typically one of
 the symbols `PRIMARY', `SECONDARY', or `CLIPBOARD'.
-(Those are literal upper-case symbol names, since that's what X expects.)
-For convenience, the symbol nil is the same as `PRIMARY',
-and t is the same as `SECONDARY'.")
+(Those are literal upper-case symbol names, since that's what X expects.)")
+
+(gui-method-declare gui-selection-exists-p #'ignore
+  "Whether there is an owner for the given X Selection.
+Called with one argument: (SELECTION).
+The arg should be the name of the selection in question, typically one of
+the symbols `PRIMARY', `SECONDARY', or `CLIPBOARD'.
+(Those are literal upper-case symbol names, since that's what X expects.)")
 
 (defun gui-set-selection (type data)
   "Make an X selection of type TYPE and value DATA.

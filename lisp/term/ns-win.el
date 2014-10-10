@@ -961,6 +961,7 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 (gui-method-define gui-own-selection ns #'ns-own-selection-internal)
 (gui-method-define gui-disown-selection ns #'ns-disown-selection-internal)
 (gui-method-define gui-selection-owner-p ns #'ns-selection-owner-p)
+(gui-method-define gui-selection-exists-p ns #'x-selection-exists-p)
 (gui-method-define gui-get-selection ns #'x-get-selection-internal) ;FIXME:name!
 
 (provide 'ns-win)

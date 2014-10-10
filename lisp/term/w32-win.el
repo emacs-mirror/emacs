@@ -420,6 +420,7 @@ Consult the selection.  Treat empty strings as if they were unset."
                    (lambda (selection)
                      (and (memq selection '(nil PRIMARY SECONDARY))
                           (get 'x-selections (or selection 'PRIMARY)))))
+(gui-method-define gui-selection-exists-p w32 #'x-selection-exists-p)
 
 ;; The "Windows" keys on newer keyboards bring up the Start menu
 ;; whether you want it or not - make Emacs ignore these keystrokes

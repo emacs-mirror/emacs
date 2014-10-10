@@ -1473,6 +1473,7 @@ This returns an error if any Emacs frames are X frames."
 (gui-method-define gui-own-selection x #'x-own-selection-internal)
 (gui-method-define gui-disown-selection x #'x-disown-selection-internal)
 (gui-method-define gui-selection-owner-p x #'x-selection-owner-p)
+(gui-method-define gui-selection-exists-p x #'x-selection-exists-p)
 (gui-method-define gui-get-selection x #'x-get-selection-internal)
 
 ;; Initiate drag and drop

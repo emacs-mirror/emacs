@@ -4497,8 +4497,6 @@ a mistake; see the documentation of `set-mark'."
     (signal 'mark-inactive nil)))
 
 ;; Behind display-selections-p.
-(declare-function x-selection-exists-p "xselect.c"
-                  (&optional selection terminal))
 
 (defun deactivate-mark (&optional force)
   "Deactivate the mark.
@@ -4529,7 +4527,7 @@ run `deactivate-mark-hook'."
 	    ;; deactivation should not clobber it (Bug#11772).
 	    ((and (/= (region-beginning) (region-end))
 		  (or (gui-call gui-selection-owner-p 'PRIMARY)
-		      (null (gui-selection-exists-p 'PRIMARY))))
+		      (null (gui-call gui-selection-exists-p 'PRIMARY))))
 	     (gui-set-selection 'PRIMARY
                                 (funcall region-extract-function nil)))))
     (when mark-active (force-mode-line-update)) ;Refresh toolbar (bug#16382).

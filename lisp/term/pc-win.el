@@ -228,6 +228,7 @@ Consult the selection.  Treat empty strings as if they were unset."
         (w16-get-clipboard-data))))
 
 ;; gui-selection-owner-p is used in simple.el.
+(gui-method-define gui-selection-exists-p pc #'x-selection-exists-p)
 (gui-method-define gui-selection-owner-p pc #'w16-selection-owner-p)
 (defun w16-selection-owner-p (_selection)
   ;; FIXME: Other systems don't obey gui-select-enable-clipboard here.

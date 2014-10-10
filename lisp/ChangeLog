@@ -1,3 +1,13 @@
+2014-10-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* select.el (gui-selection-exists-p-alist): New method.
+	* menu-bar.el (menu-bar-edit-menu, clipboard-yank):
+	* simple.el (deactivate-mark): Use it.
+	* term/x-win.el (gui-selection-exists-p):
+	* term/w32-win.el (gui-selection-exists-p):
+	* term/pc-win.el (gui-selection-exists-p):
+	* term/ns-win.el (gui-selection-exists-p): Provide a backend instance.
+
 2014-10-10  Glenn Morris  <rgm@gnu.org>
 
 	* info.el (Info-fontify-maximum-menu-size): Bump to 400k.  (Bug#16227)
