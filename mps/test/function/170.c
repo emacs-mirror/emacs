@@ -17,10 +17,6 @@ END_HEADER
 #include "mpsavm.h"
 
 
-#define MVFF_HI_PARMS EXTEND,AVGSIZE,MPS_PF_ALIGN,1,1,0
-#define MVFF_LO_PARMS EXTEND,AVGSIZE,MPS_PF_ALIGN,0,0,1
-
-
 enum {
  SPARE_EMPTY,
  SPARE_LESS,
@@ -116,13 +112,27 @@ static void t_alloc(int spare, int spare_total, int commit, int obj_size) {
 
  /* create low and high pools */
  
- die(
-  mps_pool_create(&poolhi, arena, mps_class_mvff(), MVFF_HI_PARMS),
-  "create high pool");
+ MPS_ARGS_BEGIN(args) {
+   MPS_ARGS_ADD(args, MPS_KEY_EXTEND_BY, EXTEND);
+   MPS_ARGS_ADD(args, MPS_KEY_MEAN_SIZE, AVGSIZE);
+   MPS_ARGS_ADD(args, MPS_KEY_MVFF_ARENA_HIGH, 1);
+   MPS_ARGS_ADD(args, MPS_KEY_MVFF_SLOT_HIGH, 1);
+   MPS_ARGS_ADD(args, MPS_KEY_MVFF_FIRST_FIT, 0);
+   MPS_ARGS_ADD(args, MPS_KEY_SPARE, 0.0);
+   die(mps_pool_create_k(&poolhi, arena, mps_class_mvff(), args),
+       "create high pool");
+ } MPS_ARGS_END(args);
 
- die(
-  mps_pool_create(&poollo, arena, mps_class_mvff(), MVFF_LO_PARMS),
-  "create low pool");
+ MPS_ARGS_BEGIN(args) {
+   MPS_ARGS_ADD(args, MPS_KEY_EXTEND_BY, EXTEND);
+   MPS_ARGS_ADD(args, MPS_KEY_MEAN_SIZE, AVGSIZE);
+   MPS_ARGS_ADD(args, MPS_KEY_MVFF_ARENA_HIGH, 0);
+   MPS_ARGS_ADD(args, MPS_KEY_MVFF_SLOT_HIGH, 0);
+   MPS_ARGS_ADD(args, MPS_KEY_MVFF_FIRST_FIT, 1);
+   MPS_ARGS_ADD(args, MPS_KEY_SPARE, 0.0);
+   die(mps_pool_create_k(&poollo, arena, mps_class_mvff(), args),
+       "create low pool");
+ } MPS_ARGS_END(args);
 
  /* flush hysteresis fund, then set limit */
 
@@ -130,10 +140,12 @@ static void t_alloc(int spare, int spare_total, int commit, int obj_size) {
  mps_arena_spare_commit_limit_set(arena, SPARE_LIMIT);
 
  /* allocate something in each pool (to reduce risk of subsidiary
-    allocation being neede later */
+    allocation being needed later) */
 
  die(mps_alloc(&objlo, poollo, EXTEND), "low alloc");
+ mps_free(poollo, objlo, EXTEND);
  die(mps_alloc(&objhi, poolhi, EXTEND), "high alloc");
+ mps_free(poolhi, objhi, EXTEND);
 
  /* set up spare committed the way we want it */
 
@@ -181,7 +193,12 @@ static void t_alloc(int spare, int spare_total, int commit, int obj_size) {
  }
 
  if (res != res_expected) {
-  comment("Spare useful/total %i/%i. Limit %i. Size %i. Expected %s. Got %s", spare, spare_total, commit, obj_size, err_text(res_expected), err_text(res));
+  comment("hisize=%lu losize=%lu\n"
+          "comsize=%lu comlimit=%lu\n"
+          "Expected %s. Got %s",
+          (unsigned long)hisize, (unsigned long)losize,
+          (unsigned long)comsize, (unsigned long)comlimit,
+          err_text(res_expected), err_text(res));
   report("failed", "yes");
  }
 
