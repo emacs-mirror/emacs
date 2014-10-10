@@ -64,13 +64,13 @@ static void test(void)
          mps_arena_reserved(arena), mps_arena_committed(arena));
 
  b = allocdumb(ap, 1024ul*1024ul*40, mps_rank_exact());
- comment("alloc 40 MB");
+ comment("alloc 40 MB at %p", b);
 
  comment("reserved %ld, committed %ld",
          mps_arena_reserved(arena), mps_arena_committed(arena));
 
  b = allocdumb(ap, 1024ul*1024ul*40, mps_rank_exact());
- comment("alloc 80 MB");
+ comment("alloc 80 MB at %p", b);
 
  comment("reserved %ld, committed %ld",
          mps_arena_reserved(arena), mps_arena_committed(arena));

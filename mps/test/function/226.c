@@ -70,7 +70,6 @@ static void test(void) {
 
  mps_addr_t base;
  mps_addr_t *addr;
- mycell *a;
 
  int i,j,merge,stale,prevstale;
 
@@ -166,10 +165,12 @@ static void test(void) {
     comment("inc to %d at %d", stale, i);
    }
    for (j = 0; j < JUNK; j++) {
-    a = allocdumb(apamc, ranint(1000), mps_rank_exact());
+    (void)allocdumb(apamc, ranint(1000), mps_rank_exact());
    }
   }
  }
+
+ comment("held[0] = %p", held[0]); /* avoid warning about unused variable */
 
  mps_arena_park(arena);
  mps_ap_destroy(apawl);
