@@ -9,19 +9,20 @@ file "test/version").
 Testing on unix
 ---------------
 
-From the root of the master sources or development branch::
+From the test directory::
 
     $ PLATFORM=lii6ll # substitute your platform
-    $ make -C code -f $PLATFORM.gmk VARIETY=cool $PLATFORM/cool/mps.o
-    $ alias qa="perl test/test/qa -i code -l code/$PLATFORM/cool/mps.o"
+    $ CODE=../code # code directory of the branch you are testing
+    $ make -C $CODE -f $PLATFORM.gmk VARIETY=cool $PLATFORM/cool/mps.o
+    $ alias qa="perl test/qa -i $CODE -l $CODE/$PLATFORM/cool/mps.o"
     $ qa clib
-    $ qa run test/function/5.c
-    $ qa runset test/testsets/passing
+    $ qa run function/5.c
+    $ qa runset testsets/passing
 
 Each test case is compiled in its turn to the file
-``test/test/obj/$(uname -s)_$(uname -r)_$(uname -p)__unix/tmp_test``
+``test/obj/$(uname -s)_$(uname -r)_$(uname -p)__unix/tmp_test``
 so you can debug it with::
 
-    $ lldb test/test/obj/$(uname -s)_$(uname -r)_$(uname -p)__unix/tmp_test
+    $ lldb test/obj/$(uname -s)_$(uname -r)_$(uname -p)__unix/tmp_test
 
 (Or ``gdb`` instead of ``lldb``.)
