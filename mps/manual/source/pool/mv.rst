@@ -80,7 +80,7 @@ MV interface
       :c:func:`mps_free`, it will be rounded up to the pool's alignment.
 
     * :c:macro:`MPS_KEY_EXTEND_BY` (type :c:type:`size_t`,
-      default 65536) is the :term:`size` of segment that the pool will
+      default 65536) is the :term:`size` of block that the pool will
       request from the :term:`arena`.
 
     * :c:macro:`MPS_KEY_MEAN_SIZE` (type :c:type:`size_t`, default 32)
@@ -107,7 +107,7 @@ MV interface
 
     .. deprecated:: starting with version 1.112.
 
-        When using :c:func:`mps_pool_create`, pass the segment size,
+        When using :c:func:`mps_pool_create`, pass the block size,
         mean size, and maximum size like this::
 
             mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, 

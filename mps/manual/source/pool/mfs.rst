@@ -89,12 +89,12 @@ MFS interface
 
     In addition, :c:func:`mps_pool_create_k` may take:
 
-    * :c:macro:`MPS_KEY_EXTEND_BY` (type :c:type:`size_t`, default 65536) is the
-      :term:`size` of segment that the pool will request from the
-      :term:`arena`. It must be at least as big as the unit size
-      specified by the :c:macro:`MPS_KEY_MFS_UNIT_SIZE` keyword
-      argument. If this is not a multiple of the unit size, there will
-      be wasted space in each segment.
+    * :c:macro:`MPS_KEY_EXTEND_BY` (type :c:type:`size_t`,
+      default 65536) is the :term:`size` of block that the pool will
+      request from the :term:`arena`. It must be at least as big as
+      the unit size specified by the :c:macro:`MPS_KEY_MFS_UNIT_SIZE`
+      keyword argument. If this is not a multiple of the unit size,
+      there will be wasted space in each block.
 
     For example::
 
@@ -106,7 +106,7 @@ MFS interface
 
     .. deprecated:: starting with version 1.112.
 
-        When using :c:func:`mps_pool_create`, pass the segment size and
+        When using :c:func:`mps_pool_create`, pass the block size and
         unit size like this::
 
             mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, 

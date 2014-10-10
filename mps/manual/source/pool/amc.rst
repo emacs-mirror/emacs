@@ -128,8 +128,8 @@ AMC interface
       pointers` keep objects alive.
 
     * :c:macro:`MPS_KEY_EXTEND_BY` (type :c:type:`size_t`,
-      default 4096) is the default :term:`size` of segment that the pool will
-      request from the :term:`arena`.
+      default 4096) is the default :term:`size` of block that the pool
+      will request from the :term:`arena`.
 
     For example::
 
