@@ -142,7 +142,7 @@ MVT interface
     that will break is the partial freeing of large blocks.
 
     * :c:macro:`MPS_KEY_MVT_RESERVE_DEPTH` (type
-      :c:type:`mps_count_t`, default 1024) is the expected hysteresis
+      :c:type:`mps_word_t`, default 1024) is the expected hysteresis
       of the population of the pool. When blocks are freed, the pool
       will retain sufficient storage to allocate this many blocks of the
       mean size for near term allocations (rather than immediately
@@ -207,8 +207,8 @@ MVT interface
                                       size_t minimum_size,
                                       size_t mean_size,
                                       size_t maximum_size,
-                                      mps_count_t reserve_depth,
-                                      mps_count_t fragmentation_limit)
+                                      mps_word_t reserve_depth,
+                                      mps_word_t fragmentation_limit)
 
         .. note::
 
