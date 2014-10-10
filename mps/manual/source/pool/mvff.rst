@@ -42,11 +42,6 @@ on the same pool, because the worst-fit policy of buffer filling will
 grab all the large blocks, leading to severe fragmentation. If you
 need both forms of allocation, use two separate pools.
 
-Note that buffered allocation can't allocate across segment boundaries
-(see :ref:`topic-allocation-point-implementation` for the technical
-reason). This can cause added external fragmentation if objects are
-allocated that are a significant fraction of the segment size.
-
 .. note::
 
     If you need to allocate large objects in an MVFF pool,
@@ -116,7 +111,7 @@ MVFF interface
     the following :term:`keyword arguments`:
 
     * :c:macro:`MPS_KEY_EXTEND_BY` (type :c:type:`size_t`, default
-      65536) is the :term:`size` of segment that the pool will request
+      65536) is the :term:`size` of block that the pool will request
       from the :term:`arena`.
 
     * :c:macro:`MPS_KEY_MEAN_SIZE` (type :c:type:`size_t`, default 32)
@@ -139,7 +134,7 @@ MVFF interface
       arena for use by other pools.
 
     * :c:macro:`MPS_KEY_MVFF_ARENA_HIGH` (type :c:type:`mps_bool_t`,
-      default false) determines whether new segments are acquired at high
+      default false) determines whether new blocks are acquired at high
       addresses (if true), or at low addresses (if false).
 
     * :c:macro:`MPS_KEY_MVFF_SLOT_HIGH` [#not-ap]_ (type :c:type:`mps_bool_t`,
