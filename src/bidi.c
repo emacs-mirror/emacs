@@ -592,7 +592,7 @@ bidi_cache_fetch_state (ptrdiff_t idx, struct bidi_it *bidi_it)
 }
 
 /* Find a cached state with a given CHARPOS and resolved embedding
-   level less or equal to LEVEL.  if LEVEL is -1, disregard the
+   level less or equal to LEVEL.  If LEVEL is -1, disregard the
    resolved levels in cached states.  DIR, if non-zero, means search
    in that direction from the last cache hit.  */
 static ptrdiff_t
@@ -778,12 +778,23 @@ bidi_cache_iterator_state (struct bidi_it *bidi_it, bool resolved)
     bidi_cache_idx = idx + 1;
 }
 
+/* Look for a cached iterator state that corresponds to CHARPOS.  If
+   found, copy the cached state into BIDI_IT and return the type of
+   the cached entry.  If not found, return UNKNOWN_BT.  NEUTRALS_OK
+   non-zero means it is OK to return cached state for neutral
+   characters that have no valid next_for_neutral member, and
+   therefore cannot be resolved.  This can happen if the state was
+   cached before it was resolved in bidi_resolve_neutral.  */
 static bidi_type_t
-bidi_cache_find (ptrdiff_t charpos, int level, struct bidi_it *bidi_it)
+bidi_cache_find (ptrdiff_t charpos, bool neutrals_ok, struct bidi_it *bidi_it)
 {
-  ptrdiff_t i = bidi_cache_search (charpos, level, bidi_it->scan_dir);
+  ptrdiff_t i = bidi_cache_search (charpos, -1, bidi_it->scan_dir);
 
-  if (i >= bidi_cache_start)
+  if (i >= bidi_cache_start
+      && (neutrals_ok
+	  || !(bidi_cache[i].resolved_level == -1
+	       && bidi_get_category (bidi_cache[i].type) == NEUTRAL
+	       && bidi_cache[i].next_for_neutral.type == UNKNOWN_BT)))
     {
       bidi_dir_t current_scan_dir = bidi_it->scan_dir;
 
@@ -2421,6 +2432,9 @@ bidi_resolve_bracket_pairs (struct bidi_it *bidi_it)
 		}
 	      for (sp = bpa_sp; sp >= 0; sp--)
 		bpa_stack[sp].flags |= flag;
+	      /* FIXME: Pay attention to types that can be
+		 next_for_neutral, and when found, update cached
+		 states for which it is relevant.  */
 	    }
 	  /* Record the info about the previous character, so that it
 	     will be cached with this state.  */
@@ -2513,7 +2527,7 @@ bidi_resolve_neutral (struct bidi_it *bidi_it)
       && bidi_paired_bracket_type (ch) != BIDI_BRACKET_NONE)
     {
       if (bidi_cache_idx > bidi_cache_start
-	  && bidi_cache_find (bidi_it->charpos, -1, bidi_it) != UNKNOWN_BT
+	  && bidi_cache_find (bidi_it->charpos, 1, bidi_it) != UNKNOWN_BT
 	  && bidi_it->bracket_resolved)
 	type = bidi_it->type;
       else
@@ -2797,7 +2811,7 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
 	   cached at the beginning of the iteration.  */
 	next_char_pos = bidi_it->charpos - 1;
       if (next_char_pos >= bob - 1)
-	type = bidi_cache_find (next_char_pos, -1, bidi_it);
+	type = bidi_cache_find (next_char_pos, 0, bidi_it);
       else
 	type = UNKNOWN_BT;
 
