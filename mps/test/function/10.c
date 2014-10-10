@@ -20,8 +20,6 @@ void *stackpointer;
 
 static mps_res_t myscan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
 {
- MPS_SCAN_BEGIN(ss)
- MPS_SCAN_END(ss);
  return MPS_RES_OK;
 }
 

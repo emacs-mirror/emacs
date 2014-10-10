@@ -161,6 +161,7 @@ static void test(void)
 
  /* throw them all away and collect everything */
 
+ comment("b = %p", b); /* suppress compiler warning about unused b */
  a = NULL;
  b = NULL;
  c = NULL;

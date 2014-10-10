@@ -34,7 +34,7 @@ static void test(void)
  mps_chain_t chain;
  mps_ap_t apamc, apawl;
 
- mycell *a[100], *b;
+ mycell *a[100];
 
  int i;
  int j;
@@ -80,7 +80,7 @@ static void test(void)
   z = ranint(5);
   comment("setting %i (%p) %i", k, a[k], z);
   setref(a[k], z, a[j]);
-  b = allocdumb(apamc, 0x400*64, 0);
+  (void)allocdumb(apamc, 0x400*64, 0);
  }
 
  mps_arena_park(arena);

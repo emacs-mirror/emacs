@@ -84,7 +84,7 @@ mycell *a[4], *b[4];
 static void test(void)
 {
  mps_chain_t chain;
- mycell *w, *x, *y;
+ mycell *x;
 
  cdie(mps_arena_create(&arena, mps_arena_class_vm(), (size_t) 1024*1024*30),
       "create arena");
@@ -148,8 +148,8 @@ static void test(void)
   mps_stack_scan_ambig, stackpointer, 0), "create stack root");
 
  x = allocdumb(apamc, 64, mps_rank_exact());
- y = allocdumb(apamc, 64, mps_rank_exact());
- w = allocdumb(apamc, 64, mps_rank_exact());
+ (void)allocdumb(apamc, 64, mps_rank_exact());
+ (void)allocdumb(apamc, 64, mps_rank_exact());
  rootcount = 0;
  speccount = 0;
  walkroots(x);
