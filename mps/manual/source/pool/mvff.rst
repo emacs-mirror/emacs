@@ -42,11 +42,6 @@ on the same pool, because the worst-fit policy of buffer filling will
 grab all the large blocks, leading to severe fragmentation. If you
 need both forms of allocation, use two separate pools.
 
-.. note::
-
-    If you need to allocate large objects in an MVFF pool,
-    :ref:`contact us <contact>`.
-
 
 .. index::
    single: MVFF; properties
