@@ -2382,7 +2382,7 @@ bidi_resolve_bracket_pairs (struct bidi_it *bidi_it)
 			    & (FLAG_OPPOSITE_INSIDE | FLAG_OPPOSITE_OUTSIDE))
 			   == (FLAG_OPPOSITE_INSIDE | FLAG_OPPOSITE_OUTSIDE))
 		    type = ((embedding_level & 1) ? STRONG_L : STRONG_R);
-		  else if (bpa_stack[sp].flags & FLAG_OPPOSITE_INSIDE) /* N0c2 */
+		  else if (bpa_stack[sp].flags & FLAG_OPPOSITE_INSIDE) /*N0c2*/
 		    type = ((embedding_level & 1) ? STRONG_R : STRONG_L);
 
 		  /* Update and cache the closing bracket.  */
@@ -2776,6 +2776,9 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
       if (bidi_it->next_for_ws.type != UNKNOWN_BT
 	  && bidi_it->charpos >= bidi_it->next_for_ws.charpos)
 	bidi_it->next_for_ws.type = UNKNOWN_BT;
+
+      /* Resete the bracket_resolved flag.  */
+      bidi_it->bracket_resolved = 0;
 
       /* This must be taken before we fill the iterator with the info
 	 about the next char.  If we scan backwards, the iterator
