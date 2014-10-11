@@ -1,6 +1,7 @@
 2014-10-11  Jan Djärv  <jan.h.d@swipnet.se>
 
-	* cus-start.el (all): Add missing ns to ns-use-fullscreen-animation.
+	* cus-start.el (all): Add missing ns and boolean to
+	ns-use-fullscreen-animation.
 
 2014-10-11  Leo Liu  <sdl.web@gmail.com>
 
