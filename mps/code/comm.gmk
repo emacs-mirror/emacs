@@ -283,6 +283,7 @@ TEST_TARGETS=\
     qs \
     sacss \
     segsmss \
+    sncss \
     steptest \
     teletest \
     walkt0 \
@@ -511,11 +512,14 @@ $(PFM)/$(VARIETY)/sacss: $(PFM)/$(VARIETY)/sacss.o \
 $(PFM)/$(VARIETY)/segsmss: $(PFM)/$(VARIETY)/segsmss.o \
 	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
-$(PFM)/$(VARIETY)/teletest: $(PFM)/$(VARIETY)/teletest.o \
+$(PFM)/$(VARIETY)/sncss: $(PFM)/$(VARIETY)/sncss.o \
 	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/steptest: $(PFM)/$(VARIETY)/steptest.o \
 	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+
+$(PFM)/$(VARIETY)/teletest: $(PFM)/$(VARIETY)/teletest.o \
+	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/walkt0: $(PFM)/$(VARIETY)/walkt0.o \
 	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
