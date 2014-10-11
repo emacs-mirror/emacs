@@ -182,7 +182,8 @@ FMTTEST = <fmthe> <fmtdy> <fmtno> <fmtdytst>
 FMTSCHEME = <fmtscheme>
 TESTLIB = <testlib> <getoptl>
 TESTTHR = <testthrw3>
-MPM = $(MPMCOMMON) $(MPMPF) $(AMC) $(AMS) $(AWL) $(LO) $(MV2) $(MVFF) $(PLINTH)
+POOLS = $(AMC) $(AMS) $(AWL) $(LO) $(MV2) $(MVFF) $(SNC)
+MPM = $(MPMCOMMON) $(MPMPF) $(POOLS) $(PLINTH)
 
 
 # CHECK PARAMETERS
