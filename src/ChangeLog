@@ -1099,7 +1099,7 @@
 
 	* Makefile.in (EMACS_HEAPSIZE): Remove, no longer used.  (Bug#18416)
 
-2014-09-04  Jan D  <jhd@f20.localdomain>
+2014-09-04  Jan D  <jan.h.d@swipnet.se>
 
 	* xterm.c (x_term_init): Don't call x_session_initialize if running
 	as a daemon (Bug#18375).
