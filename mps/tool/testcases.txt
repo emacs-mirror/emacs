@@ -37,6 +37,7 @@ poolncv
 qs
 sacss
 segsmss
+sncss
 steptest       =P
 teletest       =N                interactive
 walkt0
