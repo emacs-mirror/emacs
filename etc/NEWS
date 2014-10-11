@@ -169,6 +169,8 @@ The remainder were:
 
 **** Variables `european-calendar-style', `diary-face', `hebrew-holidays-{1,4}'.
 
+**** The nil and list forms of `diary-display-function'.
+
 ** New ERT function `ert-summarize-tests-batch-and-exit'.
 
 ---

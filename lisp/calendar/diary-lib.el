@@ -159,11 +159,6 @@ Used for example by the appointment package - see `appt-activate'."
   "Function used to display the diary.
 The two standard options are `diary-fancy-display' and `diary-simple-display'.
 
-For historical reasons, `nil' is the same as `diary-simple-display'
-\(so you must use `ignore' for no display).  Also for historical
-reasons, this variable can be a list of functions to run.  These
-uses are not recommended and may be removed at some point.
-
 When this function is called, the variable `diary-entries-list'
 is a list, in order by date, of all relevant diary entries in the
 form of ((MONTH DAY YEAR) STRING), where string is the diary
@@ -172,9 +167,8 @@ produce a different buffer for display (perhaps combined with
 holidays), or hard copy output."
   :type '(choice (const diary-fancy-display :tag "Fancy display")
                  (const diary-simple-display :tag "Basic display")
-                 (const ignore :tag "No display")
-                 (const nil :tag "Obsolete way to choose basic display")
-                 (hook :tag "Obsolete form with list of display functions"))
+                 (const :tag "No display" ignore)
+                 (function :tag "User-specified function"))
   :initialize 'custom-initialize-default
   :set 'diary-set-maybe-redraw
   :version "23.2"                       ; simple->fancy
@@ -867,12 +861,7 @@ LIST-ONLY is non-nil, in which case it just returns the list."
                                   'display-buffer-in-previous-window
                                   (copy-sequence
                                    (car display-buffer-fallback-action))))))
-                      (if (and diary-display-function
-                               (listp diary-display-function))
-                          ;; Backwards compatibility.
-                          (run-hooks 'diary-display-function)
-                        (funcall (or diary-display-function
-                                     'diary-simple-display)))))
+                      (funcall diary-display-function)))
                   (run-hooks 'diary-hook)))))
         (and temp-buff (buffer-name temp-buff) (kill-buffer temp-buff)))
       (or d-incp (message "Preparing diary...done"))

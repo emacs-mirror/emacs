@@ -1,3 +1,10 @@
+2014-10-11  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/diary-lib.el (diary-display-function):
+	Drop support for deprecated nil and list forms.
+	(diary-list-entries): Update for the above.
+	* calendar/cal-x.el (calendar-dedicate-diary): Simplify accordingly.
+
 2014-10-10  Leo Liu  <sdl.web@gmail.com>
 
 	* window.el (temp-buffer-window-show): Make BUFFER a required arg.
