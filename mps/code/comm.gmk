@@ -213,7 +213,8 @@ MPMCOMMON = \
     version.c \
     vm.c \
     walk.c
-MPM = $(MPMCOMMON) $(MPMPF) $(AMC) $(AMS) $(AWL) $(LO) $(MV2) $(MVFF) $(PLINTH)
+POOLS = $(AMC) $(AMS) $(AWL) $(LO) $(MV2) $(MVFF) $(SNC)
+MPM = $(MPMCOMMON) $(MPMPF) $(POOLS) $(PLINTH)
 
 
 # These map the source file lists onto object files and dependency files
