@@ -1,3 +1,7 @@
+2014-10-11  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* cus-start.el (all): Add ns-use-fullscreen-animation.
+
 2014-10-11  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/diary-lib.el (diary-display-function):
