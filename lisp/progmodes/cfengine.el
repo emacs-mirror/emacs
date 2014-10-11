@@ -27,9 +27,6 @@
 ;; Provides support for editing GNU Cfengine files, including
 ;; font-locking, Imenu and indentation, but with no special keybindings.
 
-;; The CFEngine 3.x support doesn't have Imenu support but patches are
-;; welcome.
-
 ;; By default, CFEngine 3.x syntax is used.
 
 ;; You can set it up so either `cfengine2-mode' (2.x and earlier) or
@@ -56,7 +53,6 @@
 ;;; Code:
 
 (autoload 'json-read "json")
-(autoload 'regexp-opt "regexp-opt")
 
 (defgroup cfengine ()
   "Editing CFEngine files."
@@ -815,24 +811,18 @@ bundle agent rcfiles
     "List of the action keywords supported by Cfengine.
 This includes those for cfservd as well as cfagent.")
 
-  (defconst cfengine3-defuns
-    (mapcar
-     'symbol-name
-     '(bundle body))
+  (defconst cfengine3-defuns '("bundle" "body")
     "List of the CFEngine 3.x defun headings.")
 
-  (defconst cfengine3-defuns-regex
-    (regexp-opt cfengine3-defuns t)
+  (defconst cfengine3-defuns-regex (regexp-opt cfengine3-defuns t)
     "Regex to match the CFEngine 3.x defuns.")
 
   (defconst cfengine3-class-selector-regex "\\([[:alnum:]_().&|!:]+\\)::")
 
   (defconst cfengine3-category-regex "\\([[:alnum:]_]+\\):")
 
-  (defconst cfengine3-vartypes
-    (mapcar
-     'symbol-name
-     '(string int real slist ilist rlist irange rrange counter data))
+  (defconst cfengine3-vartypes '("string" "int" "real" "slist" "ilist" "rlist"
+                                 "irange" "rrange" "counter" "data")
     "List of the CFEngine 3.x variable types."))
 
 (defvar cfengine2-font-lock-keywords
@@ -1308,6 +1298,20 @@ Use it by enabling `eldoc-mode'."
     ("=>"  . ?⇒)
     ("::" . ?∷)))
 
+(defun cfengine3-create-imenu-index ()
+  "A function for `imenu-create-index-function'."
+  (goto-char (point-min))
+  (let ((re (concat "^\\s-*" cfengine3-defuns-regex
+                    "\\s-*\\(\\(?:\\w\\|\\s_\\)+\\)" ;type
+                    "\\s-*\\(\\(?:\\w\\|\\s_\\)+\\)" ;id
+                    ))
+        (defuns ()))
+    (while (re-search-forward re nil t)
+      (push (cons (mapconcat #'match-string '(1 2 3) ".")
+                  (copy-marker (match-beginning 3)))
+            defuns))
+    (nreverse defuns)))
+
 ;;;###autoload
 (define-derived-mode cfengine3-mode prog-mode "CFE3"
   "Major mode for editing CFEngine3 input.
@@ -1334,17 +1338,16 @@ to the action header."
                  (when buffer-file-name
                    (shell-quote-argument buffer-file-name)))))
 
-  (set (make-local-variable 'eldoc-documentation-function)
-       #'cfengine3-documentation-function)
+  (setq-local eldoc-documentation-function #'cfengine3-documentation-function)
 
   (add-hook 'completion-at-point-functions
             #'cfengine3-completion-function nil t)
 
   ;; Use defuns as the essential syntax block.
-  (set (make-local-variable 'beginning-of-defun-function)
-       #'cfengine3-beginning-of-defun)
-  (set (make-local-variable 'end-of-defun-function)
-       #'cfengine3-end-of-defun))
+  (setq-local beginning-of-defun-function #'cfengine3-beginning-of-defun)
+  (setq-local end-of-defun-function #'cfengine3-end-of-defun)
+
+  (setq-local imenu-create-index-function #'cfengine3-create-imenu-index))
 
 ;;;###autoload
 (define-derived-mode cfengine2-mode prog-mode "CFE2"
@@ -1378,15 +1381,18 @@ to the action header."
 
 ;;;###autoload
 (defun cfengine-auto-mode ()
-  "Choose between `cfengine2-mode' and `cfengine3-mode' depending
-on the buffer contents"
-  (let ((v3 nil))
-    (save-restriction
-      (goto-char (point-min))
-      (while (not (or (eobp) v3))
-        (setq v3 (looking-at (concat cfengine3-defuns-regex "\\_>")))
-        (forward-line)))
-    (if v3 (cfengine3-mode) (cfengine2-mode))))
+  "Choose `cfengine2-mode' or `cfengine3-mode' by buffer contents."
+  (interactive)
+  (if (save-excursion
+        (save-restriction
+          (widen)
+          (goto-char (point-min))
+          (forward-comment (point-max))
+          (or (eobp)
+              (re-search-forward
+               (concat "^\\s-*" cfengine3-defuns-regex "\\_>") nil t))))
+      (cfengine3-mode)
+    (cfengine2-mode)))
 
 (defalias 'cfengine-mode 'cfengine3-mode)
 

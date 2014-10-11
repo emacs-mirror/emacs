@@ -1,3 +1,12 @@
+2014-10-11  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/cfengine.el (cfengine3-defuns, cfengine3-vartypes):
+	Use strings.
+	(cfengine3-create-imenu-index): New function.
+	(cfengine3-mode): Use it for `imenu-create-index-function'.
+	(cfengine-auto-mode): Improve and prefer cfengine3-mode when
+	buffer is empty.
+
 2014-10-11  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* cus-start.el (all): Add ns-use-fullscreen-animation.
