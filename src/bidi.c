@@ -411,7 +411,6 @@ bidi_set_sos_type (struct bidi_it *bidi_it, int level_before, int level_after)
     = bidi_it->last_strong.orig_type = UNKNOWN_BT;
   bidi_it->prev_for_neutral.type = (bidi_it->sos == R2L ? STRONG_R : STRONG_L);
   bidi_it->prev_for_neutral.charpos = bidi_it->charpos;
-  bidi_it->prev_for_neutral.bytepos = bidi_it->bytepos;
   bidi_it->next_for_neutral.type = bidi_it->next_for_neutral.type_after_wn
     = bidi_it->next_for_neutral.orig_type = UNKNOWN_BT;
 }
@@ -496,7 +495,6 @@ bidi_remember_char (struct bidi_saved_info *saved_info,
 		    struct bidi_it *bidi_it)
 {
   saved_info->charpos = bidi_it->charpos;
-  saved_info->bytepos = bidi_it->bytepos;
   saved_info->type = bidi_it->type;
   bidi_check_type (bidi_it->type);
   saved_info->type_after_wn = bidi_it->type_after_wn;
@@ -1776,6 +1774,9 @@ bidi_resolve_explicit (struct bidi_it *bidi_it)
   else	/* EOB or end of string */
     prev_type = NEUTRAL_B;
 
+  /* Reset the bracket_resolved flag.  */
+  bidi_it->bracket_resolved = 0;
+
   current_level = bidi_it->level_stack[bidi_it->stack_idx].level; /* X1 */
   override = bidi_it->level_stack[bidi_it->stack_idx].override;
   isolate_status = bidi_it->level_stack[bidi_it->stack_idx].isolate_status;
@@ -2777,9 +2778,6 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
 	  && bidi_it->charpos >= bidi_it->next_for_ws.charpos)
 	bidi_it->next_for_ws.type = UNKNOWN_BT;
 
-      /* Resete the bracket_resolved flag.  */
-      bidi_it->bracket_resolved = 0;
-
       /* This must be taken before we fill the iterator with the info
 	 about the next char.  If we scan backwards, the iterator
 	 state must be already cached, so there's no need to know the
@@ -2884,7 +2882,10 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
   if (bidi_get_category (type) == NEUTRAL /* && type != NEUTRAL_B */
       || bidi_isolate_fmt_char (type))
     {
-      if (bidi_it->next_for_neutral.type == UNKNOWN_BT)
+      /* Make sure the data for resolving neutrals we are about to use
+	 is valid.  */
+      if (bidi_it->next_for_neutral.charpos <= bidi_it->charpos
+	  || bidi_it->next_for_neutral.type == UNKNOWN_BT)
 	emacs_abort ();
 
       /* If the cached state shows a neutral character, it was not
@@ -2932,7 +2933,6 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
       bidi_it->next_for_ws.type = chtype;
       bidi_check_type (bidi_it->next_for_ws.type);
       bidi_it->next_for_ws.charpos = cpos;
-      bidi_it->next_for_ws.bytepos = bpos;
     }
 
   /* Resolve implicit levels.  */
