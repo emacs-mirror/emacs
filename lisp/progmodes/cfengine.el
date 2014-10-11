@@ -1302,8 +1302,8 @@ Use it by enabling `eldoc-mode'."
   "A function for `imenu-create-index-function'."
   (goto-char (point-min))
   (let ((re (concat "^\\s-*" cfengine3-defuns-regex
-                    "\\s-*\\(\\(?:\\w\\|\\s_\\)+\\)" ;type
-                    "\\s-*\\(\\(?:\\w\\|\\s_\\)+\\)" ;id
+                    "\\s-+\\(\\(?:\\w\\|\\s_\\)+\\)" ;type
+                    "\\s-+\\(\\(?:\\w\\|\\s_\\)+\\)" ;id
                     ))
         (defuns ()))
     (while (re-search-forward re nil t)
