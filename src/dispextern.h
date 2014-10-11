@@ -1915,7 +1915,7 @@ typedef enum { NEUTRAL_DIR, L2R, R2L } bidi_dir_t;
 struct bidi_saved_info {
   ptrdiff_t bytepos, charpos;	/* character's buffer position */
   bidi_type_t type;		/* character's resolved bidi type */
-  bidi_type_t type_after_w1;	/* original type of the character, after W1 */
+  bidi_type_t type_after_wn;	/* original type of the character, after W1 */
   bidi_type_t orig_type;	/* type as we found it in the buffer */
   bool_bf bracket_resolved : 1;	/* 1 if type was BPA-resolved */
 };
@@ -1955,10 +1955,10 @@ struct bidi_it {
   ptrdiff_t nchars;		/* its "length", usually 1; it's > 1 for a run
 				   of characters covered by a display string */
   ptrdiff_t ch_len;		/* its length in bytes */
-  bidi_type_t type;		/* bidi type of this character, after
+  bidi_type_t type;		/* final bidi type of this character, after
 				   resolving weak and neutral types */
-  bidi_type_t type_after_w1;	/* original type, after overrides and W1 */
-  bidi_type_t orig_type;	/* original type, as found in the buffer */
+  bidi_type_t type_after_wn;	/* bidi type after overrides and Wn */
+  bidi_type_t orig_type;	/* original bidi type, as found in the buffer */
   char resolved_level;		/* final resolved level of this character */
   char isolate_level;		/* count of isolate initiators unmatched by PDI */
   ptrdiff_t invalid_levels;	/* how many PDFs to ignore */
