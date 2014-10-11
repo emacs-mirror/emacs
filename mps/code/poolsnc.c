@@ -663,6 +663,52 @@ static void SNCWalk(Pool pool, Seg seg, FormattedObjectsVisitor f,
 }
 
 
+/* SNCTotalSize -- total memory allocated from the arena */
+
+static Size SNCTotalSize(Pool pool)
+{
+  SNC snc;
+  Ring ring, node, nextNode;
+  Size total = 0;
+
+  AVERT(Pool, pool);
+  snc = PoolSNC(pool);
+  AVERT(SNC, snc);
+
+  ring = &pool->segRing;
+  RING_FOR(node, ring, nextNode) {
+    Seg seg = SegOfPoolRing(node);
+    AVERT(Seg, seg);
+    total += SegSize(seg);
+  }
+
+  return total;
+}
+
+
+/* SNCFreeSize -- free memory (unused by client program) */
+
+static Size SNCFreeSize(Pool pool)
+{
+  SNC snc;
+  Seg seg;
+  Size free = 0;
+
+  AVERT(Pool, pool);
+  snc = PoolSNC(pool);
+  AVERT(SNC, snc);
+
+  seg = snc->freeSegs;
+  while (seg != NULL) {
+    AVERT(Seg, seg);
+    free += SegSize(seg);
+    seg = sncSegNext(seg);
+  }
+
+  return free;
+}
+
+
 /* SNCPoolClass -- the class definition */
 
 DEFINE_POOL_CLASS(SNCPoolClass, this)
@@ -683,6 +729,8 @@ DEFINE_POOL_CLASS(SNCPoolClass, this)
   this->framePopPending = SNCFramePopPending;
   this->walk = SNCWalk;
   this->bufferClass = SNCBufClassGet;
+  this->totalSize = SNCTotalSize;
+  this->freeSize = SNCFreeSize;
   AVERT(PoolClass, this);
 }
 
