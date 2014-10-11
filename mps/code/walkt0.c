@@ -14,9 +14,11 @@
 #include "mpscams.h"
 #include "mpscawl.h"
 #include "mpsclo.h"
+#include "mpscsnc.h"
 #include "mpsavm.h"
 #include "mpstd.h"
 #include "mps.h"
+#include "mpm.h"
 
 #include <stdio.h> /* printf */
 
@@ -88,12 +90,16 @@ static mps_addr_t make(void)
  * ...2: comparing with what we expect for:
  *   pool
  *   fmt
+ *
+ * .. 3: accumulating the count and size of objects found
  */
 struct stepper_data {
   mps_arena_t arena;
   mps_pool_t expect_pool;
   mps_fmt_t expect_fmt;
-  unsigned long count;
+  size_t count;                 /* number of non-padding objects found */
+  size_t objSize;               /* total size of non-padding objects */
+  size_t padSize;               /* total size of padding objects */
 };
 
 static void stepper(mps_addr_t object, mps_fmt_t format,
@@ -104,6 +110,7 @@ static void stepper(mps_addr_t object, mps_fmt_t format,
     mps_bool_t b;
     mps_pool_t query_pool;
     mps_fmt_t query_fmt;
+    size_t size;
 
     Insist(s == sizeof *sd);
     sd = p;
@@ -120,20 +127,26 @@ static void stepper(mps_addr_t object, mps_fmt_t format,
     Insist(b);
     Insist(query_fmt == format);
     Insist(format == sd->expect_fmt);
-    
-    sd->count += 1;
-    return;
+
+    size = AddrOffset(object, dylan_skip(object));
+    if (dylan_ispad(object)) {
+      sd->padSize += size;
+    } else {
+      ++ sd->count;
+      sd->objSize += size;
+    }      
 }
 
 /* test -- the body of the test */
 
-static void *test(mps_arena_t arena, mps_pool_class_t pool_class)
+static void test(mps_arena_t arena, mps_pool_class_t pool_class)
 {
     mps_chain_t chain;
     mps_fmt_t format;
     mps_pool_t pool;
     mps_root_t exactRoot;
     size_t i;
+    size_t totalSize, freeSize, allocSize, bufferSize;
     unsigned long objs;
     struct stepper_data sdStruct, *sd;
 
@@ -175,25 +188,38 @@ static void *test(mps_arena_t arena, mps_pool_class_t pool_class)
         ++objs;
     }
 
+    mps_arena_park(arena);
+
     sd = &sdStruct;
     sd->arena = arena;
     sd->expect_pool = pool;
     sd->expect_fmt = format;
     sd->count = 0;
+    sd->objSize = 0;
+    sd->padSize = 0;
     mps_arena_formatted_objects_walk(arena, stepper, sd, sizeof *sd);
-    /* Note: stepper finds more than we expect, due to pad objects */
-    /* printf("stepper found %ld objs\n", sd->count); */
+    Insist(sd->count == objs);
 
+    totalSize = mps_pool_total_size(pool);
+    freeSize = mps_pool_free_size(pool);
+    allocSize = totalSize - freeSize;
+    bufferSize = AddrOffset(ap->init, ap->limit);
+    printf("%s: obj=%lu pad=%lu total=%lu free=%lu alloc=%lu buffer=%lu\n",
+           ((Pool)pool)->class->name,
+           (unsigned long)sd->objSize,
+           (unsigned long)sd->padSize,
+           (unsigned long)totalSize,
+           (unsigned long)freeSize,
+           (unsigned long)allocSize,
+           (unsigned long)bufferSize);
+    Insist(sd->objSize + sd->padSize + bufferSize == allocSize);
 
-    mps_arena_park(arena);
     mps_ap_destroy(ap);
     mps_root_destroy(exactRoot);
     mps_pool_destroy(pool);
     mps_chain_destroy(chain);
     mps_fmt_destroy(format);
     mps_arena_release(arena);
-
-    return NULL;
 }
 
 int main(int argc, char *argv[])
@@ -213,6 +239,7 @@ int main(int argc, char *argv[])
     /* TODO: test(arena, mps_class_ams()); -- see job003738 */
     test(arena, mps_class_awl());
     test(arena, mps_class_lo());
+    test(arena, mps_class_snc());
 
     mps_thread_dereg(thread);
     mps_arena_destroy(arena);
