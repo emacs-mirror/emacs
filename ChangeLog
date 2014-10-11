@@ -1,3 +1,8 @@
+2014-10-11  Ken Brown  <kbrown@cornell.edu>
+
+	* configure.ac (LD_SWITCH_SYSTEM_TEMACS) [CYGWIN]: Set stack size
+	to 8 MB.  (Bug#18438)
+
 2014-10-02  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* configure.ac: Port to strict POSIX shells on non-MinGW (Bug#18612).
