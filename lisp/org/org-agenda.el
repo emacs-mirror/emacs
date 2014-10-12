@@ -5089,8 +5089,7 @@ of what a project is and how to check if it stuck, customize the variable
   "Get the (Emacs Calendar) diary entries for DATE."
   (require 'diary-lib)
   (let* ((diary-fancy-buffer "*temporary-fancy-diary-buffer*")
-	 (diary-display-hook '(fancy-diary-display))
-	 (diary-display-function 'fancy-diary-display)
+	 (diary-display-function 'diary-fancy-display)
 	 (pop-up-frames nil)
 	 (diary-list-entries-hook
 	  (cons 'org-diary-default-entry diary-list-entries-hook))

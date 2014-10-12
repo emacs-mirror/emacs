@@ -881,7 +881,7 @@ publishing will be done asynchronously, in another process."
 			  ;; project is still a string here.
 			  (list (assoc project org-publish-project-alist)))))
     (if async
-	(org-export-async-start 'ignore
+	(org-export-async-start (lambda (results) nil)
 	  `(let ((org-publish-use-timestamps-flag
 		  (if ',force nil ,org-publish-use-timestamps-flag)))
 	     (org-publish-projects ',project-alist)))
@@ -899,7 +899,7 @@ optional argument ASYNC, publishing will be done asynchronously,
 in another process."
   (interactive "P")
   (if async
-      (org-export-async-start 'ignore
+      (org-export-async-start (lambda (results) nil)
 	`(progn
 	   (when ',force (org-publish-remove-all-timestamps))
 	   (let ((org-publish-use-timestamps-flag
@@ -921,7 +921,7 @@ asynchronously, in another process."
   (interactive "P")
   (let ((file (buffer-file-name (buffer-base-buffer))))
     (if async
-	(org-export-async-start 'ignore
+	(org-export-async-start (lambda (results) nil)
 	  `(let ((org-publish-use-timestamps-flag
 		  (if ',force nil ,org-publish-use-timestamps-flag)))
 	     (org-publish-file ,file)))
