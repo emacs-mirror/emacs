@@ -1472,6 +1472,7 @@ symbols specifying conditions when the grid should be displayed:
  weekly        if the agenda shows an entire week
  today         show grid on current date, independent of daily/weekly display
  require-timed show grid only if at least one item has a time specification
+ remove-match  skip grid times already present in an entry
 
 The second item is a string which will be placed behind the grid time.
 
@@ -5088,8 +5089,7 @@ of what a project is and how to check if it stuck, customize the variable
   "Get the (Emacs Calendar) diary entries for DATE."
   (require 'diary-lib)
   (let* ((diary-fancy-buffer "*temporary-fancy-diary-buffer*")
-	 (diary-display-hook '(fancy-diary-display))
-	 (diary-display-function 'fancy-diary-display)
+	 (diary-display-function 'diary-fancy-display)
 	 (pop-up-frames nil)
 	 (diary-list-entries-hook
 	  (cons 'org-diary-default-entry diary-list-entries-hook))

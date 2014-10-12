@@ -9099,14 +9099,16 @@ if `orgstruct-heading-prefix-regexp' is not empty."
 	    (if fallback
 		(let* ((orgstruct-mode)
 		       (binding
-			(loop with key = ,key
-			      for rep in
-			      '(nil
-				("<\\([^>]*\\)tab>" . "\\1TAB")
-				("<\\([^>]*\\)return>" . "\\1RET")
-				("<\\([^>]*\\)escape>" . "\\1ESC")
-				("<\\([^>]*\\)delete>" . "\\1DEL"))
-			      do
+			(let ((key ,key))
+			  (catch 'exit
+			    (dolist
+				(rep
+				 '(nil
+				   ("<\\([^>]*\\)tab>" . "\\1TAB")
+				   ("<\\([^>]*\\)return>" . "\\1RET")
+				   ("<\\([^>]*\\)escape>" . "\\1ESC")
+				   ("<\\([^>]*\\)delete>" . "\\1DEL"))
+				 nil)
 			      (when rep
 				(setq key (read-kbd-macro
 					   (let ((case-fold-search))
@@ -9114,7 +9116,8 @@ if `orgstruct-heading-prefix-regexp' is not empty."
 					      (car rep)
 					      (cdr rep)
 					      (key-description key))))))
-			      thereis (key-binding key))))
+			      (when (key-binding key)
+				(throw 'exit (key-binding key))))))))
 		  (if (keymapp binding)
 		      (org-set-transient-map binding)
 		    (let ((func (or binding

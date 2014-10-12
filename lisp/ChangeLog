@@ -1,3 +1,15 @@
+2014-10-12  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	Fix import completion.  (Bug#18582)
+	* progmodes/python.el (python-shell-completion-get-completions):
+	Fix import case regexp.
+
+2014-10-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/bat-mode.el (bat-font-lock-keywords): Fix \\<_ typo
+	(bug#18622).  Reported by Arni Magnusson <arnima@hafro.is>.
+	* progmodes/prolog.el (prolog-electric--underscore): Same.
+
 2014-10-12  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-sh.el (tramp-get-remote-id): Check also for "gid".

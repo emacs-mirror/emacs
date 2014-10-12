@@ -1,3 +1,7 @@
+2014-10-12  Glenn Morris  <rgm@gnu.org>
+
+	* elisp.texi (DATE): Bump to October 2014.
+
 2014-10-09  Glenn Morris  <rgm@gnu.org>
 
 	* frames.texi (Multiple Terminals): Copyedits.

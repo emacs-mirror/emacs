@@ -149,13 +149,15 @@ General steps (for each step, check for possible errors):
 
 11. Send an announcement to: emacs-devel, and bcc: info-gnu-emacs@gnu.org.
     For a pretest, also bcc: platform-testers@gnu.org.
+    For a release, also bcc: info-gnu@gnu.org.
     (The reason for using bcc: is to make it less likely that people
     will followup on the wrong list.)
     See the info-gnu-emacs mailing list archives for the form
     of past announcements.  The first pretest announcement, and the
     release announcement, should have more detail.
 
-12. For a release, update the Emacs homepage in the web repository.
-    Also update history.html, and add the new NEWS file as NEWS.xx.y.
+12. For a release, update the Emacs homepage emacs.html in the web repository.
+    Also update history.html, and add the new NEWS file as news/NEWS.xx.y.
     Regenerate the html manuals (use make-manuals from admin.el).
     If there are new manuals, add appropriate index pages.
+    Delete any old manual pages that are no longer present.
