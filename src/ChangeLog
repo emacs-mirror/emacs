@@ -1,3 +1,7 @@
+2014-10-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* nsmenu.m (clear): Assume OS X 10.6 or later.
+
 2014-10-12  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* unexmacosx.c: Remove include ppc/reloc.h.

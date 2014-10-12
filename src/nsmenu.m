@@ -693,9 +693,7 @@ x_activate_menubar (struct frame *f)
     {
       NSMenuItem *item = [self itemAtIndex: n];
       NSString *title = [item title];
-      if (([title length] == 0  /* OSX 10.5 */
-	   || [ns_app_name isEqualToString: title]  /* from 10.6 on */
-	   || [@"Apple" isEqualToString: title]) /* older */
+      if ([ns_app_name isEqualToString: title]
           && ![item isSeparatorItem])
         continue;
       [self removeItemAtIndex: n];
