@@ -163,7 +163,7 @@ static void SNCBufFinish(Buffer buffer)
   pool = BufferPool(buffer);
 
   snc = PoolSNC(pool);
-  /* Put any segments which haven't bee popped onto the free list */
+  /* Put any segments which haven't been popped onto the free list */
   sncPopPartialSegChain(snc, buffer, NULL);
 
   sncbuf->sig = SigInvalid;
@@ -490,7 +490,7 @@ static void SNCBufferEmpty(Pool pool, Buffer buffer,
 
   arena = BufferArena(buffer);
 
-  /* Pad the end unused space at the end of the segment */
+  /* Pad the unused space at the end of the segment */
   size = AddrOffset(init, limit);
   if (size > 0) {
     ShieldExpose(arena, seg);
@@ -551,7 +551,7 @@ static Res SNCFramePush(AllocFrame *frameReturn, Pool pool, Buffer buf)
   AVERT(Buffer, buf);
 
   state = BufferFrameState(buf);
-  /* Sould have been notified of pending pops before this */
+  /* Should have been notified of pending pops before this */
   AVER(state == BufferFrameVALID || state == BufferFrameDISABLED);
   if (state == BufferFrameDISABLED) {
     AVER(BufferIsReset(buf));  /* The buffer must be reset */
@@ -607,6 +607,7 @@ static void SNCFramePopPending(Pool pool, Buffer buf, AllocFrame frame)
     addr = (Addr)frame;
     foundSeg = SegOfAddr(&seg, arena, addr);
     AVER(foundSeg);
+    AVER(SegPool(seg) == pool);
 
     if (SegBuffer(seg) == buf) {
       /* don't need to change the segment - just the alloc pointers */
