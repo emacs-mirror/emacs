@@ -434,9 +434,13 @@ Implementation
 ..............
 
 _`.lw-frame.push`: The external ``PushFrame()`` operation
-(``mps_ap_frame_push()``) performs the following operations::
+``mps_ap_frame_push()`` performs the following operations::
 
-    IF (!APIsTrapped(ap) && StateOfFrame(ap) == Valid && ap->init == ap->alloc)
+    IF !APIsTrapped(ap)
+       AND StateOfFrame(ap) == Valid
+       AND ap->init == ap->alloc
+       AND ap->init < ap->limit
+    THEN
        *frame_o = ap->init;
     ELSE
       WITH_ARENA_LOCK
@@ -444,10 +448,19 @@ _`.lw-frame.push`: The external ``PushFrame()`` operation
       END
     END
 
+_`.lw-frame.push.limit`: The reason for not using the lightweight
+operation when ``ap->init == ap->limit`` is that a frame pointer at
+the limit of a buffer (and possibly therefore of a segment) would be
+ambiguous: is it at the limit of the segment, or at the base of the
+segment that's adjacent in memory? The internal operation must handle
+this case, for example by refilling the buffer and setting the frame
+at the beginning.
+
 _`.lw-frame.pop`: The external ``PopFrame()`` operation
 (``mps_ap_frame_pop()``) performs the following operations::
 
-    IF (StateOfFrame(ap) != Disabled)
+    IF StateOfFrame(ap) != Disabled
+    THEN
       TrapAP(ap);  /* ensure next allocation or push involves the pool */
       ap->frameptr = frame;
       ap->lwpopPending = TRUE;

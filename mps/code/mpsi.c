@@ -950,7 +950,7 @@ mps_res_t (mps_ap_frame_push)(mps_frame_t *frame_o, mps_ap_t mps_ap)
     return MPS_RES_FAIL;
   }
 
-  if (!mps_ap->_lwpoppending) {
+  if (!mps_ap->_lwpoppending && mps_ap->init < mps_ap->limit) {
     /* Valid state for a lightweight push */
     *frame_o = (mps_frame_t)mps_ap->init;
     return MPS_RES_OK;
