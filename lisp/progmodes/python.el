@@ -2695,10 +2695,7 @@ LINE is used to detect the context on how to complete given INPUT."
             (save-excursion
               (buffer-substring-no-properties
                (line-beginning-position) ;End of prompt.
-               (progn
-                 (re-search-backward "^")
-                 (python-util-forward-comment) ;FIXME: Why?
-                 (point)))))
+               (re-search-backward "^"))))
            (completion-code
             ;; Check whether a prompt matches a pdb string, an import
             ;; statement or just the standard prompt and use the
@@ -2713,7 +2710,7 @@ LINE is used to detect the context on how to complete given INPUT."
                   (t nil)))
            (input
             (if (string-match
-                 (python-rx (+ space) (or "from" "import") space)
+                 (python-rx line-start (* space) (or "from" "import") space)
                  line)
                 line
               input)))

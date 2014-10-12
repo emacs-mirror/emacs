@@ -1,3 +1,9 @@
+2014-10-12  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	Fix import completion.  (Bug#18582)
+	* progmodes/python.el (python-shell-completion-get-completions):
+	Fix import case regexp.
+
 2014-10-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/bat-mode.el (bat-font-lock-keywords): Fix \\<_ typo
