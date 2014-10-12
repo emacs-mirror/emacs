@@ -3915,43 +3915,7 @@ AC_SUBST(KRB4LIB)
 
 AC_CHECK_HEADERS(valgrind/valgrind.h)
 
-AC_CHECK_FUNCS_ONCE(tzset)
-AC_MSG_CHECKING(whether localtime caches TZ)
-AC_CACHE_VAL(emacs_cv_localtime_cache,
-[if test x$ac_cv_func_tzset = xyes; then
-AC_RUN_IFELSE([AC_LANG_SOURCE([[#include <time.h>
-char TZ_GMT0[] = "TZ=GMT0";
-char TZ_PST8[] = "TZ=PST8";
-main()
-{
-  time_t now = time ((time_t *) 0);
-  int hour_GMT0, hour_unset;
-  if (putenv (TZ_GMT0) != 0)
-    exit (1);
-  hour_GMT0 = localtime (&now)->tm_hour;
-  unsetenv("TZ");
-  hour_unset = localtime (&now)->tm_hour;
-  if (putenv (TZ_PST8) != 0)
-    exit (1);
-  if (localtime (&now)->tm_hour == hour_GMT0)
-    exit (1);
-  unsetenv("TZ");
-  if (localtime (&now)->tm_hour != hour_unset)
-    exit (1);
-  exit (0);
-}]])], emacs_cv_localtime_cache=no, emacs_cv_localtime_cache=yes,
-[# If we have tzset, assume the worst when cross-compiling.
-emacs_cv_localtime_cache=yes])
-else
-	# If we lack tzset, report that localtime does not cache TZ,
-	# since we can't invalidate the cache if we don't have tzset.
-	emacs_cv_localtime_cache=no
-fi])dnl
-AC_MSG_RESULT($emacs_cv_localtime_cache)
-if test $emacs_cv_localtime_cache = yes; then
-  AC_DEFINE(LOCALTIME_CACHE, 1,
-	    [Define to 1 if localtime caches TZ.])
-fi
+AC_CHECK_FUNCS_ONCE(tzalloc tzset)
 
 ok_so_far=yes
 AC_CHECK_FUNC(socket, , ok_so_far=no)

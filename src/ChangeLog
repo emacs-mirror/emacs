@@ -1,3 +1,41 @@
+2014-10-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix putenv race conditions with undefined behavior (Bug#8705).
+	Do all putenv calls before Emacs creates any threads.
+	Use a safer way to modify the TZ environment variable in the
+	presence of multiple threads.  For further thread-safety,
+	prefer localtime_r and gmtime_r to localtime and gmtime,
+	and prefer struct tm's tm_gmtoff (if available) to calling
+	both localtime_r and gmtime_r.
+	* dbusbind.c (Fdbus__init_bus): Move xputenv call from here ...
+	(init_dbusbind): ... to this new function.
+	* emacs.c (main) [HAVE_DBUS]: Call it before creating threads.
+	* xterm.c (x_term_init): Move xputenv call from here ...
+	(init_xterm): ... to this new function.
+	* emacs.c (main) [USE_GTK]: Call it before creating threads.
+	* editfns.c (HAVE_TM_GMTOFF): Default to false.
+	(dump_tz_string): New constant.
+	(init_editfns): Use it.  This centralizes the dump_tz stuff.
+	Call set_time_zone_rule here, so that its xputenv is done
+	before Emacs goes multithreaded.
+	(mktime_z) [!HAVE_TZALLOC]: New function, which is typically
+	thread-safe enough for Emacs.
+	(format_time_string, Fdecode_time, Fcurrent_time_string)
+	(Fcurrent_time_zone):
+	Prefer localtime_r and gmtime_r, which are more thread-safe, to
+	localtime and gmtime.  Remove now-unnecessary calls to block_input.
+	(tm_gmtoff): New static function.
+	(Fdecode_time, Fcurrent_time_zone): Use it.
+	(Fencode_time): Use mktime_z, for better thread-safety.
+	(set_time_zone_rule): Now static.  Rewrite to be mostly thread-safe,
+	i.e., not quite thread-safe but good enough for Emacs typical usage.
+	Do not reclaim storage that is in the environment; let it leak.
+	Always call tzset, since localtime_r does not.
+	* emacs.c (dump_tz, Fdump_emacs) [HAVE_TZSET]: Remove dump_tz stuff.
+	This is now done in init_editfns.
+	* systime.h (mktime_z, timezone_t, tzalloc, tzfree) [!HAVE_TZALLOC]:
+	New macros and declarations, for platforms lacking tzalloc & friends.
+
 2014-10-09  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* lisp.h (USE_STACK_STRING): Now true only if USE_STACK CONS.

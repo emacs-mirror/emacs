@@ -1,3 +1,9 @@
+2014-10-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix putenv race conditions with undefined behavior (Bug#8705).
+	* merge-gnulib (GNULIB_MODULES): Add time_r, since Emacs now
+	calls localtime_r and gmtime_r directly.
+
 2014-10-07  Glenn Morris  <rgm@gnu.org>
 
 	* unidata/Makefile.in: Check for deleted uni- files.  (Bug#18489)

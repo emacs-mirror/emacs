@@ -10717,10 +10717,6 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 
         XSetLocaleModifiers ("");
 
-        /* Emacs can only handle core input events, so make sure
-           Gtk doesn't use Xinput or Xinput2 extensions.  */
-	xputenv ("GDK_CORE_DEVICE_EVENTS=1");
-
         /* Work around GLib bug that outputs a faulty warning. See
            https://bugzilla.gnome.org/show_bug.cgi?id=563627.  */
         id = g_log_set_handler ("GLib", G_LOG_LEVEL_WARNING | G_LOG_FLAG_FATAL
@@ -11470,6 +11466,15 @@ x_initialize (void)
   XSetIOErrorHandler (x_io_error_quitter);
 }
 
+#ifdef USE_GTK
+void
+init_xterm (void)
+{
+  /* Emacs can handle only core input events, so make sure
+     Gtk doesn't use Xinput or Xinput2 extensions.  */
+  xputenv ("GDK_CORE_DEVICE_EVENTS=1");
+}
+#endif
 
 void
 syms_of_xterm (void)

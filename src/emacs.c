@@ -578,12 +578,6 @@ DEFUN ("invocation-directory", Finvocation_directory, Sinvocation_directory,
 }
 
 
-#ifdef HAVE_TZSET
-/* A valid but unlikely value for the TZ environment value.
-   It is OK (though a bit slower) if the user actually chooses this value.  */
-static char const dump_tz[] = "UtC0";
-#endif
-
 /* Test whether the next argument in ARGV matches SSTR or a prefix of
    LSTR (at least MINLEN characters).  If so, then if VALPTR is non-null
    (the argument is supposed to have a value) store in *VALPTR either
@@ -1548,8 +1542,23 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 
   init_charset ();
 
-  init_editfns (); /* init_process_emacs uses Voperating_system_release. */
-  init_process_emacs (); /* init_display uses add_keyboard_wait_descriptor. */
+  /* This calls putenv and so must precede init_process_emacs.  Also,
+     it sets Voperating_system_release, which init_process_emacs uses.  */
+  init_editfns ();
+
+  /* These two call putenv.  */
+#ifdef HAVE_DBUS
+  init_dbusbind ();
+#endif
+#ifdef USE_GTK
+  init_xterm ();
+#endif
+
+  /* This can create a thread that may call getenv, so it must follow
+     all calls to putenv and setenv.  Also, this sets up
+     add_keyboard_wait_descriptor, which init_display uses.  */
+  init_process_emacs ();
+
   init_keyboard ();	/* This too must precede init_sys_modes.  */
   if (!noninteractive)
     init_display ();	/* Determine terminal type.  Calls init_sys_modes.  */
@@ -1586,26 +1595,6 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 			    build_string ("loadup.el"));
     }
 
-  if (initialized)
-    {
-#ifdef HAVE_TZSET
-      {
-	/* If the execution TZ happens to be the same as the dump TZ,
-	   change it to some other value and then change it back,
-	   to force the underlying implementation to reload the TZ info.
-	   This is needed on implementations that load TZ info from files,
-	   since the TZ file contents may differ between dump and execution.  */
-	char *tz = getenv ("TZ");
-	if (tz && !strcmp (tz, dump_tz))
-	  {
-	    ++*tz;
-	    tzset ();
-	    --*tz;
-	  }
-      }
-#endif
-    }
-
   /* Set up for profiling.  This is known to work on FreeBSD,
      GNU/Linux and MinGW.  It might work on some other systems too.
      Give it a try and tell us if it works on your system.  To compile
@@ -1629,15 +1618,6 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 #endif
 
   initialized = 1;
-
-#ifdef LOCALTIME_CACHE
-  /* Some versions of localtime have a bug.  They cache the value of the time
-     zone rather than looking it up every time.  Since localtime() is
-     called to bolt the undumping time into the undumped emacs, this
-     results in localtime ignoring the TZ environment variable.
-     This flushes the new TZ value into localtime.  */
-  tzset ();
-#endif /* defined (LOCALTIME_CACHE) */
 
   /* Enter editor command loop.  This never returns.  */
   Frecursive_edit ();
@@ -2118,14 +2098,6 @@ You must run Emacs in batch mode in order to dump it.  */)
 
   tem = Vpurify_flag;
   Vpurify_flag = Qnil;
-
-#ifdef HAVE_TZSET
-  set_time_zone_rule (dump_tz);
-#ifndef LOCALTIME_CACHE
-  /* Force a tz reload, since set_time_zone_rule doesn't.  */
-  tzset ();
-#endif
-#endif
 
   fflush (stdout);
   /* Tell malloc where start of impure now is.  */
