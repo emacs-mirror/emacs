@@ -1915,9 +1915,7 @@ typedef enum { NEUTRAL_DIR, L2R, R2L } bidi_dir_t;
 struct bidi_saved_info {
   ptrdiff_t charpos;		/* character's buffer position */
   bidi_type_t type;		/* character's resolved bidi type */
-  bidi_type_t type_after_wn;	/* bidi type of the character, after Wn */
   bidi_type_t orig_type;	/* bidi type as we found it in the buffer */
-  bool_bf bracket_resolved : 1;	/* 1 if type was BPA-resolved */
 };
 
 /* Data type for keeping track of information about saved embedding
