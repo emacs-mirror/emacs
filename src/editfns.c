@@ -90,7 +90,7 @@ static char const *initial_tz;
 
 /* A valid but unlikely setting for the TZ environment variable.
    It is OK (though a bit slower) if the user chooses this value.  */
-static char const dump_tz_string[] = "TZ=UtC0";
+static char dump_tz_string[] = "TZ=UtC0";
 
 void
 init_editfns (void)
@@ -109,7 +109,7 @@ init_editfns (void)
   if (!initialized)
     {
 # ifdef HAVE_TZSET
-      xputenv ((char *) dump_tz_string);
+      xputenv (dump_tz_string);
       tzset ();
 # endif
       return;

@@ -1,5 +1,8 @@
 2014-10-12  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* editfns.c (dump_tz_string): No longer const.
+	It might be modified.
+
 	* nsmenu.m (clear): Assume OS X 10.6 or later.
 
 2014-10-12  Jan Djärv  <jan.h.d@swipnet.se>
