@@ -21,3 +21,4 @@ etc/refcards/*.aux
 etc/refcards/*.log
 info/dir
 info/*.info
+test/biditest.txt

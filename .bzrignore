@@ -230,3 +230,4 @@ admin/charsets/eucjp-ms.el
 admin/charsets/jisx2131-filter
 test/automated/flymake/warnpred/a.out
 test/automated/*.log
+test/biditest.txt
