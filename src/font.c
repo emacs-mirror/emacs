@@ -1184,14 +1184,14 @@ font_parse_xlfd (char *name, ptrdiff_t len, Lisp_Object font)
 	  val = prop[XLFD_ENCODING_INDEX];
 	  if (! NILP (val))
 	    {
-	      AUTO_STRING (stardash, "*-");
-	      val = concat2 (stardash, SYMBOL_NAME (val));
+	      AUTO_STRING (star_dash, "*-");
+	      val = concat2 (star_dash, SYMBOL_NAME (val));
 	    }
 	}
       else if (NILP (prop[XLFD_ENCODING_INDEX]))
 	{
-	  AUTO_STRING (dashstar, "-*");
-	  val = concat2 (SYMBOL_NAME (val), dashstar);
+	  AUTO_STRING (dash_star, "-*");
+	  val = concat2 (SYMBOL_NAME (val), dash_star);
 	}
       else
 	{
@@ -5028,7 +5028,7 @@ font_add_log (const char *action, Lisp_Object arg, Lisp_Object result)
   if (FONTP (arg))
     {
       Lisp_Object tail, elt;
-      AUTO_STRING (equalstr, "=");
+      AUTO_STRING (equal, "=");
 
       val = Ffont_xlfd_name (arg, Qt);
       for (tail = AREF (arg, FONT_EXTRA_INDEX); CONSP (tail);
@@ -5038,16 +5038,15 @@ font_add_log (const char *action, Lisp_Object arg, Lisp_Object result)
 	  if (EQ (XCAR (elt), QCscript)
 	      && SYMBOLP (XCDR (elt)))
 	    val = concat3 (val, SYMBOL_NAME (QCscript),
-			   concat2 (equalstr, SYMBOL_NAME (XCDR (elt))));
+			   concat2 (equal, SYMBOL_NAME (XCDR (elt))));
 	  else if (EQ (XCAR (elt), QClang)
 		   && SYMBOLP (XCDR (elt)))
 	    val = concat3 (val, SYMBOL_NAME (QClang),
-			   concat2 (equalstr, SYMBOL_NAME (XCDR (elt))));
+			   concat2 (equal, SYMBOL_NAME (XCDR (elt))));
 	  else if (EQ (XCAR (elt), QCotf)
 		   && CONSP (XCDR (elt)) && SYMBOLP (XCAR (XCDR (elt))))
 	    val = concat3 (val, SYMBOL_NAME (QCotf),
-			   concat2 (equalstr,
-				    SYMBOL_NAME (XCAR (XCDR (elt)))));
+			   concat2 (equal, SYMBOL_NAME (XCAR (XCDR (elt)))));
 	}
       arg = val;
     }

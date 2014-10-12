@@ -1339,8 +1339,8 @@ silly_event_symbol_error (Lisp_Object c)
       *p = 0;
 
       c = reorder_modifiers (c);
-      AUTO_STRING (new_modstring, new_mods);
-      keystring = concat2 (new_modstring, XCDR (assoc));
+      AUTO_STRING (new_mods_string, new_mods);
+      keystring = concat2 (new_mods_string, XCDR (assoc));
 
       error ("To bind the key %s, use [?%s], not [%s]",
 	     SDATA (SYMBOL_NAME (c)), SDATA (keystring),
@@ -2245,9 +2245,9 @@ around function keys and event symbols.  */)
   if (CONSP (key) && INTEGERP (XCAR (key)) && INTEGERP (XCDR (key)))
     /* An interval from a map-char-table.  */
     {
-      AUTO_STRING (dotdot, "..");
+      AUTO_STRING (dot_dot, "..");
       return concat3 (Fsingle_key_description (XCAR (key), no_angles),
-		      dotdot,
+		      dot_dot,
 		      Fsingle_key_description (XCDR (key), no_angles));
     }
 

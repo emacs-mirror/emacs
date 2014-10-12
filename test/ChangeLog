@@ -313,7 +313,7 @@
 
 2014-06-05  Michal Nazarewicz  <mina86@mina86.com>
 
-	* automated/tildify-tests.el (tildify-test--test): Optimise the test
+	* automated/tildify-tests.el (tildify-test--test): Optimize the test
 	slightly by reusing the same temporary buffer across multiple test
 	cases.
 

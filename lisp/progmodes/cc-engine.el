@@ -5162,7 +5162,7 @@ comment at the start of cc-engine.el for more info."
     ;; Now loop, one decl spot per iteration.  We already have the first
     ;; match in `cfd-match-pos'.
     (while (progn
-	     ;; Go foward over "false matches", one per iteration.
+	     ;; Go forward over "false matches", one per iteration.
 	     (while (and
 		     (< cfd-match-pos cfd-limit)
 

@@ -3305,7 +3305,7 @@
 	outside of ignored environments.
 	(tildify-build-regexp): Remove function since it is now
 	incorporated in `tildify-foreach-region-outside-env' where it is
-	optimised and simplified by the use of `mapconcat'.
+	optimized and simplified by the use of `mapconcat'.
 	(tildify-tildify): Return number of substitutions made so that…
 	(tildify-count): …can be removed.
 	(tildify-find-env): Accept a new PAIRS argument which was
@@ -3318,7 +3318,7 @@
 	and instead using or.
 
 	* textmodes/tildify.el (tildify-ignored-environments-alist):
-	Optimise environments regexes
+	Optimize environments regexes
 
 	Each time beginning of an environment to ignore is found,
 	`tildify-find-env' needs to identify regexp for the ending
@@ -3400,7 +3400,7 @@
 
 	The most trivial fix would be to replace `expression' in the
 	true-part of the if-statement with `aux', but instead, this commit
-	optimises `tildify-find-env' by changing it to use `mapconcat'
+	optimizes `tildify-find-env' by changing it to use `mapconcat'
 	rather than open-coded while-loop.
 
 2014-06-05  Mario Lang  <mlang@delysid.org>
@@ -16622,7 +16622,7 @@
 
 2013-06-04  Alan Mackenzie  <acm@muc.de>
 
-	Remove faulty optimisation from indentation calculation.
+	Remove faulty optimization from indentation calculation.
 	* progmodes/cc-engine.el (c-guess-basic-syntax): Don't calculate
 	search limit based on 2000 characters back from indent-point.
 

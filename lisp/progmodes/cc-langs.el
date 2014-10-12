@@ -1591,7 +1591,7 @@ properly."
 ;; The Emacs variables beginning-of-defun-function and end-of-defun-function
 ;; will be set so that commands like `mark-defun' and `narrow-to-defun' work
 ;; right.  In older Emacsen, the key sequences C-M-a and C-M-e are, however,
-;; bound directly to the CC Mode functions, allowing optimisation for large n.
+;; bound directly to the CC Mode functions, allowing optimization for large n.
 ;; From Emacs 23, this isn't necessary any more, since n is passed to the two
 ;; functions.
 (c-lang-defconst beginning-of-defun-function

@@ -6,7 +6,7 @@ years.  This file defines the current method, explains why it was
 chosen, and lightly documents the previous schemes.  It was prompted
 by http://lists.gnu.org/archive/html/emacs-devel/2014-09/msg00872.html.
 
-Releated info:
+Related info:
 - [[file:FOR-RELEASE][FOR-RELEASE]]
 - [[file:make-tarball.txt][make-tarball.txt]]
 

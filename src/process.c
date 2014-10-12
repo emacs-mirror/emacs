@@ -4099,9 +4099,9 @@ server_accept_connection (Lisp_Object server, int channel)
 #endif
     default:
       caller = Fnumber_to_string (make_number (connect_counter));
-      AUTO_STRING (space_lessthan, " <");
-      AUTO_STRING (greaterthan, ">");
-      caller = concat3 (space_lessthan, caller, greaterthan);
+      AUTO_STRING (space_less_than, " <");
+      AUTO_STRING (greater_than, ">");
+      caller = concat3 (space_less_than, caller, greater_than);
       break;
     }
 

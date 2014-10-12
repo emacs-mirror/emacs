@@ -3661,8 +3661,8 @@ read_list (bool flag, Lisp_Object readcharfun)
 	       We don't use Fexpand_file_name because that would make
 	       the directory absolute now.  */
 	    {
-	      AUTO_STRING (dotdotlisp, "../lisp/");
-	      elt = concat2 (dotdotlisp, Ffile_name_nondirectory (elt));
+	      AUTO_STRING (dot_dot_lisp, "../lisp/");
+	      elt = concat2 (dot_dot_lisp, Ffile_name_nondirectory (elt));
 	    }
 	}
       else if (EQ (elt, Vload_file_name)
