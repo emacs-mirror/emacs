@@ -440,6 +440,11 @@ Memory management in various languages
         Lisp Machines are used in today's implementations, at a cost
         of a few more cycles.
 
+        .. link::
+
+            `Lisp Machine Manual, 6th edition <http://common-lisp.net/project/bknr/static/lmman/frontpage.html>`_,
+            `The Garbage Collector <http://common-lisp.net/project/bknr/static/lmman/fd-hac.xml#The%20Garbage%20Collector-section>`_.
+
     Lua
 
         Lua is a dynamically typed language created by Roberto
