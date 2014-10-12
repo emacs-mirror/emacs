@@ -358,6 +358,12 @@ bidi_get_category (bidi_type_t type)
     }
 }
 
+static bool
+bidi_isolate_fmt_char (bidi_type_t ch_type)
+{
+  return (ch_type == LRI || ch_type == RLI || ch_type == PDI || ch_type == FSI);
+}
+
 /* Return the mirrored character of C, if it has one.  If C has no
    mirrored counterpart, return C.
    Note: The conditions in UAX#9 clause L4 regarding the surrounding
@@ -804,8 +810,13 @@ bidi_cache_find (ptrdiff_t charpos, bool neutrals_ok, struct bidi_it *bidi_it)
 
   if (i >= bidi_cache_start
       && (neutrals_ok
+	  /* Callers that don't want to resolve neutrals (and set
+	     neutrals_ok = false) need to be sure that there's enough
+	     info in the cached state to resolve the neutrals and
+	     isolates, and if not, they don't want the cached state.  */
 	  || !(bidi_cache[i].resolved_level == -1
-	       && bidi_get_category (bidi_cache[i].type) == NEUTRAL
+	       && (bidi_get_category (bidi_cache[i].type) == NEUTRAL
+		   || bidi_isolate_fmt_char (bidi_cache[i].type))
 	       && bidi_cache[i].next_for_neutral.type == UNKNOWN_BT)))
     {
       bidi_dir_t current_scan_dir = bidi_it->scan_dir;
@@ -2037,12 +2048,6 @@ bidi_resolve_explicit (struct bidi_it *bidi_it)
   return bidi_it->resolved_level;
 }
 
-static bool
-bidi_isolate_fmt_char (bidi_type_t ch_type)
-{
-  return (ch_type == LRI || ch_type == RLI || ch_type == PDI || ch_type == FSI);
-}
-
 /* Advance in the buffer/string, resolve weak types and return the
    type of the next character after weak type resolution.  */
 static bidi_type_t
@@ -2837,7 +2842,7 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
 	      eassert (bidi_it->resolved_level >= 0);
 	      return bidi_it->resolved_level;
 	    }
-	  else if (next_char_pos >= bob - 1)
+	  else
 	    {
 	      level = bidi_it->level_stack[bidi_it->stack_idx].level;
 	      if (bidi_get_category (type) == NEUTRAL
