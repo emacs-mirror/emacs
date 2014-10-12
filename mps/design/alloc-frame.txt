@@ -460,6 +460,8 @@ _`.lw-frame.pop`: The external ``PopFrame()`` operation
 (``mps_ap_frame_pop()``) performs the following operations::
 
     IF StateOfFrame(ap) != Disabled
+       AND BufferBase(ap) <= frame
+       AND frame < ap->init
     THEN
       TrapAP(ap);  /* ensure next allocation or push involves the pool */
       ap->frameptr = frame;
@@ -469,6 +471,13 @@ _`.lw-frame.pop`: The external ``PopFrame()`` operation
         PerformInternalPopFrameOperation(...)
       END
     END
+
+_`.lw-frame.pop.buffer`: The reason for testing that ``frame`` is in
+the buffer is that if it's not, then we're popping to an address in
+some other segment, and that means that some objects in the other
+segment (and all objects in any segments on the stack in between) are
+now dead, and the only way for the pool to mark them as being dead is
+to do a heavyweight pop.
 
 
 Document History
