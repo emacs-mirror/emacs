@@ -1717,12 +1717,14 @@ if test "${with_ns}" != no; then
      ns_appbindir=${ns_appdir}/Contents/MacOS
      ns_appresdir=${ns_appdir}/Contents/Resources
      ns_appsrc=Cocoa/Emacs.base
+     ns_fontfile=macfont.o
   elif test -f $GNUSTEP_CONFIG_FILE; then
      NS_IMPL_GNUSTEP=yes
      ns_appdir=`pwd`/nextstep/Emacs.app
      ns_appbindir=${ns_appdir}
      ns_appresdir=${ns_appdir}/Resources
      ns_appsrc=GNUstep/Emacs.base
+     ns_fontfile=nsfont.o
      dnl FIXME sourcing this several times in subshells seems inefficient.
      GNUSTEP_SYSTEM_HEADERS="$(. $GNUSTEP_CONFIG_FILE; echo $GNUSTEP_SYSTEM_HEADERS)"
      GNUSTEP_SYSTEM_LIBRARIES="$(. $GNUSTEP_CONFIG_FILE; echo $GNUSTEP_SYSTEM_LIBRARIES)"
@@ -1765,48 +1767,24 @@ fail;
 
   macfont_file=""
   if test "${NS_IMPL_COCOA}" = "yes"; then
-    AC_MSG_CHECKING([for OSX 10.4 or newer])
+    AC_MSG_CHECKING([for OSX 10.6 or newer])
     AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#include <AppKit/AppKit.h>],
                                      [
 #ifdef MAC_OS_X_VERSION_MAX_ALLOWED
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1040
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1060
  ; /* OK */
 #else
- error "OSX 10.4 or newer required";
+ error "OSX 10.6 or newer required";
 #endif
 #endif
 		    ])],
-		    ns_osx_have_104=yes,
-		    ns_osx_have_104=no)
-    AC_MSG_RESULT([$ns_osx_have_104])
+		    ns_osx_have_106=yes,
+		    ns_osx_have_106=no)
+    AC_MSG_RESULT([$ns_osx_have_106])
 
-    if test $ns_osx_have_104 = no; then
-       AC_MSG_ERROR([`OSX 10.4 or newer is required']);
+    if test $ns_osx_have_106 = no; then
+       AC_MSG_ERROR([`OSX 10.6 or newer is required']);
     fi
-    AC_MSG_CHECKING([for OSX 10.5 or newer])
-    AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#include <AppKit/AppKit.h>],
-                                     [
-#ifdef MAC_OS_X_VERSION_MAX_ALLOWED
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1050
- ; /* OK */
-#else
- error "OSX 10.5 not found";
-#endif
-#endif
-		    ])],
-		    ns_osx_have_105=yes,
-		    ns_osx_have_105=no)
-    AC_MSG_RESULT([$ns_osx_have_105])
-    if test $ns_osx_have_105 = yes; then
-      macfont_file="macfont.o"
-    fi
-  fi
-  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#include <Foundation/NSObjCRuntime.h>],
-                                     [NSInteger i;])],
-		    ns_have_nsinteger=yes,
-		    ns_have_nsinteger=no)
-  if test $ns_have_nsinteger = yes; then
-    AC_DEFINE(NS_HAVE_NSINTEGER, 1, [Define to 1 if `NSInteger' is defined.])
   fi
 fi
 
@@ -1840,7 +1818,7 @@ if test "${HAVE_NS}" = yes; then
      INSTALL_ARCH_INDEP_EXTRA=
   fi
 
-  NS_OBJC_OBJ="nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o nsfont.o $macfont_file"
+  NS_OBJC_OBJ="nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o $ns_fontfile"
 fi
 CFLAGS="$tmp_CFLAGS"
 CPPFLAGS="$tmp_CPPFLAGS"

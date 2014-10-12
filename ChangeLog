@@ -1,3 +1,8 @@
+2014-10-12  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.ac: Require OSX 10.6.  Remove NSInteger test,
+	use nsfont for Gnustep, macfont for OSX.
+
 2014-10-12  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix putenv race conditions that can crash Emacs (Bug#8705).

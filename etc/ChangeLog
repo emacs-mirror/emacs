@@ -1,3 +1,7 @@
+2014-10-12  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* NEWS: OSX required is 10.6 or newer.
+
 2014-10-09  Leo Liu  <sdl.web@gmail.com>
 
 	* NEWS: Mention optional arg to terpri and new cl-lib functions.

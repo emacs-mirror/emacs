@@ -1,3 +1,51 @@
+2014-10-12  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* unexmacosx.c: Remove include ppc/reloc.h.
+	(unrelocate, copy_dysymtab): Remove PPC code.
+	(rebase_reloc_address): Remove, only used for PPC:
+
+	* nsterm.m: Always include macfont.h on COCOA.
+	(ns_update_auto_hide_menu_bar, ns_draw_fringe_bitmap)
+	(ns_dumpglyphs_image, ns_check_menu_open)
+	(applicationDidFinishLaunching)
+	(antialiasThresholdDidChange:)
+	(keyDown:, toggleFullScreen:, setPosition:portion:whole:): Remove
+	checks for OSX <= 10.5/10.6.
+	(changeFont:): Use macfont on COCOA, nsfont on GNUSTEP.
+	(syms_of_nsterm): Call syms_of_macfont on COCOA, syms_of_nsfont on
+	GNUSTEP.
+
+	* nsterm.h (MAC_OS_X_VERSION_10_4, MAC_OS_X_VERSION_10_5): Remove.
+	(NS_HAVE_NSINTEGER): Remove block.
+	Remove >= OSX 10.6 tests.
+
+	* nsmenu.m (NSMenuDidBeginTrackingNotification): Remove.
+	(x_activate_menubar, trackingNotification:): Remove check for
+	OSX >= 10.5.
+	(menuNeedsUpdate:): Remove check for OSX < 10.5.
+
+	* nsimage.m (allocInitFromFile:): Remove code for OSX < 10.6.
+
+	* nsfns.m: Always include macfont.h on COCOA.
+	(ns_filename_from_panel, ns_directory_from_panel)
+	(Fx_create_frame, Fns_popup_font_panel, ns_run_file_dialog)
+	(Fns_read_file_name, Fns_list_services): Remove code for OSX < 10.6
+
+	* macfont.m: Remove >= 1050 check.
+	(macfont_create_family_with_symbol)
+	(macfont_get_glyph_for_character)
+	(mac_font_get_glyphs_for_variants)
+	(mac_ctfont_create_available_families, syms_of_macfont): Remove
+	code for OSX < 10.6.
+	(mac_font_family_group, mac_font_family_compare): Remove, only used
+	for OSX < 10.6.
+
+	* macfont.h (MAC_FONT_FORMAT_ATTRIBUTE, MAC_FONT_FORMAT_BITMAP)
+	(mac_font_copy_non_synthetic_table): Remove versions for OSX < 10.6
+
+	* Makefile.in: Replace nsfont.o macfont.o with ns_fontfile in
+	comment.
+
 2014-10-12  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix putenv race conditions with undefined behavior (Bug#8705).

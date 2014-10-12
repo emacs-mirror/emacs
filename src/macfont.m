@@ -36,8 +36,6 @@ Original author: YAMAMOTO Mitsuharu
 #include "macfont.h"
 #include "macuvs.h"
 
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1050
-
 #include <libkern/OSByteOrder.h>
 
 static struct font_driver macfont_driver;
@@ -926,22 +924,9 @@ macfont_create_family_with_symbol (Lisp_Object symbol)
   if (family_name == NULL)
     return NULL;
 
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1060
-#if MAC_OS_X_VERSION_MIN_REQUIRED < 1060
-  if (CTFontManagerCompareFontFamilyNames != NULL)
-#endif
     {
       family_name_comparator = CTFontManagerCompareFontFamilyNames;
     }
-#if MAC_OS_X_VERSION_MIN_REQUIRED < 1060
-  else		     /* CTFontManagerCompareFontFamilyNames == NULL */
-#endif
-#endif	/* MAC_OS_X_VERSION_MAX_ALLOWED >= 1060 */
-#if MAC_OS_X_VERSION_MIN_REQUIRED < 1060
-    {
-      family_name_comparator = mac_font_family_compare;
-    }
-#endif
 
   if ((*family_name_comparator) (family_name, CFSTR ("LastResort"), NULL)
       == kCFCompareEqualTo)
@@ -1331,12 +1316,8 @@ macfont_get_glyph_for_character (struct font *font, UTF32Char c)
           CGGlyph *glyphs;
           int i, len;
           int nrows;
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
           dispatch_queue_t queue;
           dispatch_group_t group = NULL;
-#else
-          int nkeys;
-#endif
 
           if (row != 0)
             {
@@ -1374,14 +1355,12 @@ macfont_get_glyph_for_character (struct font *font, UTF32Char c)
                   return glyph;
                 }
 
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
               queue =
                 dispatch_get_global_queue (DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
               group = dispatch_group_create ();
               dispatch_group_async (group, queue, ^{
                   int nkeys;
                   uintptr_t key;
-#endif
                   nkeys = nkeys_or_perm;
                   for (key = row * (256 / NGLYPHS_IN_VALUE); ; key++)
                     if (CFDictionaryContainsKey (dictionary,
@@ -1392,9 +1371,7 @@ macfont_get_glyph_for_character (struct font *font, UTF32Char c)
                         if (--nkeys == 0)
                           break;
                       }
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
                 });
-#endif
             }
 
           len = 0;
@@ -1436,13 +1413,11 @@ macfont_get_glyph_for_character (struct font *font, UTF32Char c)
           cache->glyph.matrix[nrows - 1] = glyphs;
           cache->glyph.nrows = nrows;
 
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
           if (group)
             {
               dispatch_group_wait (group, DISPATCH_TIME_FOREVER);
               dispatch_release (group);
             }
-#endif
         }
 
       return cache->glyph.matrix[nkeys_or_perm - ROW_PERM_OFFSET][c % 256];
@@ -3165,11 +3140,9 @@ mac_font_get_glyphs_for_variants (CFDataRef uvs_table, UTF32Char c,
   struct variation_selector_record *records = uvs->variation_selector_records;
   CFIndex i;
   UInt32 ir, nrecords;
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
   dispatch_queue_t queue =
     dispatch_get_global_queue (DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
   dispatch_group_t group = dispatch_group_create ();
-#endif
 
   nrecords = BUINT32_VALUE (uvs->num_var_selector_records);
   i = 0;
@@ -3193,9 +3166,7 @@ mac_font_get_glyphs_for_variants (CFDataRef uvs_table, UTF32Char c,
       default_uvs_offset = BUINT32_VALUE (records[ir].default_uvs_offset);
       non_default_uvs_offset =
         BUINT32_VALUE (records[ir].non_default_uvs_offset);
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
       dispatch_group_async (group, queue, ^{
-#endif
           glyphs[i] = kCGFontIndexInvalid;
 
           if (default_uvs_offset)
@@ -3247,18 +3218,14 @@ mac_font_get_glyphs_for_variants (CFDataRef uvs_table, UTF32Char c,
                   BUINT24_VALUE (mappings[hi - 1].unicode_value) == c)
                 glyphs[i] = BUINT16_VALUE (mappings[hi - 1].glyph_id);
             }
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
         });
-#endif
       i++;
       ir++;
     }
   while (i < count)
     glyphs[i++] = kCGFontIndexInvalid;
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
   dispatch_group_wait (group, DISPATCH_TIME_FOREVER);
   dispatch_release (group);
-#endif
 }
 
 static int
@@ -3460,10 +3427,6 @@ mac_ctfont_create_available_families (void)
 {
   CFMutableArrayRef families = NULL;
 
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1060
-#if MAC_OS_X_VERSION_MIN_REQUIRED < 1060
-  if (CTFontManagerCopyAvailableFontFamilyNames != NULL)
-#endif
     {
       CFArrayRef orig_families = CTFontManagerCopyAvailableFontFamilyNames ();
 
@@ -3487,56 +3450,8 @@ mac_ctfont_create_available_families (void)
           CFRelease (orig_families);
         }
     }
-#if MAC_OS_X_VERSION_MIN_REQUIRED < 1060
-  else	       /* CTFontManagerCopyAvailableFontFamilyNames == NULL */
-#endif
-#endif	/* MAC_OS_X_VERSION_MAX_ALLOWED >= 1060 */
-#if MAC_OS_X_VERSION_MIN_REQUIRED < 1060
-    {
-      CTFontCollectionRef collection;
-      CFArrayRef descs = NULL;
 
-      collection = CTFontCollectionCreateFromAvailableFonts (NULL);
-      if (collection)
-        {
-          descs = CTFontCollectionCreateMatchingFontDescriptors (collection);
-          CFRelease (collection);
-        }
-      if (descs)
-        {
-          CFIndex i, count = CFArrayGetCount (descs);
-
-          families = CFArrayCreateMutable (NULL, count, &kCFTypeArrayCallBacks);
-          if (families)
-            for (i = 0; i < count; i++)
-              {
-                FontDescriptorRef desc = CFArrayGetValueAtIndex (descs, i);
-                CFStringRef name =
-                  mac_font_descriptor_copy_attribute (desc,
-                                                      MAC_FONT_FAMILY_NAME_ATTRIBUTE);
-
-                if (name)
-                  {
-                    CFIndex p, limit = CFArrayGetCount (families);
-
-                    p = CFArrayBSearchValues (families, CFRangeMake (0, limit),
-                                              (const void *) name,
-                                              mac_font_family_compare, NULL);
-                    if (p >= limit)
-                      CFArrayAppendValue (families, name);
-                    else if (mac_font_family_compare
-                             (CFArrayGetValueAtIndex (families, p),
-                              name, NULL) != kCFCompareEqualTo)
-                      CFArrayInsertValueAtIndex (families, p, name);
-                    CFRelease (name);
-                  }
-              }
-          CFRelease (descs);
-        }
-    }
-#endif
-
-  return families;
+    return families;
 }
 
 static Boolean
@@ -3855,41 +3770,6 @@ mac_ctfont_get_glyph_for_cid (CTFontRef font, CTCharacterCollection collection,
 }
 #endif
 
-#if MAC_OS_X_VERSION_MIN_REQUIRED < 1060
-static inline int
-mac_font_family_group (CFStringRef family)
-{
-  if (CFStringHasPrefix (family, CFSTR ("#")))
-    return 2;
-  else
-    {
-      CFRange range;
-
-      range = CFStringFind (family, CFSTR ("Apple"),
-                            kCFCompareCaseInsensitive | kCFCompareAnchored);
-      if (range.location != kCFNotFound)
-        return 1;
-
-      return 0;
-    }
-}
-
-static CFComparisonResult
-mac_font_family_compare (const void *val1, const void *val2, void *context)
-{
-  CFStringRef family1 = (CFStringRef) val1, family2 = (CFStringRef) val2;
-  int group1, group2;
-
-  group1 = mac_font_family_group (family1);
-  group2 = mac_font_family_group (family2);
-  if (group1 < group2)
-    return kCFCompareLessThan;
-  if (group1 > group2)
-    return kCFCompareGreaterThan;
-  return CFStringCompare (family1, family2, kCFCompareCaseInsensitive);
-}
-#endif	/* MAC_OS_X_VERSION_MIN_REQUIRED < 1060 */
-
 static CFArrayRef
 mac_font_copy_default_descriptors_for_language (CFStringRef language)
 {
@@ -4040,13 +3920,10 @@ mac_register_font_driver (struct frame *f)
   register_font_driver (&macfont_driver, f);
 }
 
-#endif // MAC_OS_X_VERSION_MAX_ALLOWED >= 1050
-
 
 void
 syms_of_macfont (void)
 {
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1050
   static struct font_driver mac_font_driver;
 
   DEFSYM (Qmac_ct, "mac-ct");
@@ -4055,5 +3932,4 @@ syms_of_macfont (void)
 
   DEFSYM (QCdestination, ":destination");
   DEFSYM (QCminspace, ":minspace");
-#endif
 }

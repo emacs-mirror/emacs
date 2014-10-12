@@ -57,11 +57,7 @@ typedef CTCharacterCollection CharacterCollection;
 #define MAC_FONT_CASCADE_LIST_ATTRIBUTE kCTFontCascadeListAttribute
 #define MAC_FONT_CHARACTER_SET_ATTRIBUTE kCTFontCharacterSetAttribute
 #define MAC_FONT_LANGUAGES_ATTRIBUTE kCTFontLanguagesAttribute
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
 #define MAC_FONT_FORMAT_ATTRIBUTE kCTFontFormatAttribute
-#else
-#define MAC_FONT_FORMAT_ATTRIBUTE (CFSTR ("NSCTFontFormatAttribute"))
-#endif
 #define MAC_FONT_SYMBOLIC_TRAIT kCTFontSymbolicTrait
 #define MAC_FONT_WEIGHT_TRAIT kCTFontWeightTrait
 #define MAC_FONT_WIDTH_TRAIT kCTFontWidthTrait
@@ -79,11 +75,7 @@ enum {
 };
 
 enum {
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1060
   MAC_FONT_FORMAT_BITMAP = kCTFontFormatBitmap
-#else
-  MAC_FONT_FORMAT_BITMAP = 5
-#endif
 };
 
 enum {
@@ -112,13 +104,8 @@ enum {
 #define mac_font_get_underline_position CTFontGetUnderlinePosition
 #define mac_font_get_underline_thickness CTFontGetUnderlineThickness
 #define mac_font_copy_graphics_font(font) CTFontCopyGraphicsFont (font, NULL)
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
 #define mac_font_copy_non_synthetic_table(font, table) \
   CTFontCopyTable (font, table, kCTFontTableOptionNoOptions)
-#else
-#define mac_font_copy_non_synthetic_table(font, table) \
-  CTFontCopyTable (font, table, kCTFontTableOptionExcludeSynthetic)
-#endif
 
 #define mac_font_create_preferred_family_for_attributes \
   mac_ctfont_create_preferred_family_for_attributes
