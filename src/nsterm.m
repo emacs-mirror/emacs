@@ -3445,7 +3445,7 @@ check_native_fs ()
 }
 #endif
 
-/* GNUstep and OSX <= 10.4 does not have cancelTracking.  */
+/* GNUstep does not have cancelTracking.  */
 #ifdef NS_IMPL_COCOA
 /* Check if menu open should be canceled or continued as normal.  */
 void
@@ -4518,7 +4518,7 @@ ns_term_shutdown (int sig)
 #define NSAppKitVersionNumber10_8 1187
 #endif
 
-  if (NSAppKitVersionNumber <= NSAppKitVersionNumber10_8) 
+  if (NSAppKitVersionNumber <= NSAppKitVersionNumber10_8)
     {
       [super run];
       return;
@@ -7065,7 +7065,7 @@ if (cols > 0 && rows > 0)
 #endif
 #endif
 
-  for (i = 0; i < nr_screens; ++i) 
+  for (i = 0; i < nr_screens; ++i)
     {
       NSScreen *s = [screens objectAtIndex: i];
       NSRect scrrect = [s frame];

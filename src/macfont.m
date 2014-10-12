@@ -40,7 +40,7 @@ Original author: YAMAMOTO Mitsuharu
 
 static struct font_driver macfont_driver;
 
-/* Core Text, for Mac OS X 10.5 and later.  */
+/* Core Text, for Mac OS X.  */
 static Lisp_Object Qmac_ct;
 
 static double mac_ctfont_get_advance_width_for_glyph (CTFontRef, CGGlyph);
@@ -2706,7 +2706,7 @@ macfont_draw (struct glyph_string *s, int from, int to, int x, int y,
                                   s->width, FONT_HEIGHT (s->font));
   else
     background_rect = CGRectNull;
-  
+
   text_position = CGPointMake (x, -y);
   glyphs = xmalloc (sizeof (CGGlyph) * len);
   {
@@ -2735,7 +2735,7 @@ macfont_draw (struct glyph_string *s, int from, int to, int x, int y,
 
   if (!CGRectIsNull (background_rect))
     {
-      if (s->hl == DRAW_MOUSE_FACE) 
+      if (s->hl == DRAW_MOUSE_FACE)
         {
           face = FACE_FROM_ID (s->f, MOUSE_HL_INFO (s->f)->mouse_face_face_id);
           if (!face)
@@ -2744,7 +2744,7 @@ macfont_draw (struct glyph_string *s, int from, int to, int x, int y,
       CG_SET_FILL_COLOR_WITH_FACE_BACKGROUND (context, face, f);
       CGContextFillRects (context, &background_rect, 1);
     }
-  
+
   if (macfont_info->cgfont)
     {
       CGAffineTransform atfm;

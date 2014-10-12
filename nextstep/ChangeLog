@@ -1,3 +1,7 @@
+2014-10-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* README: Mac OS X 10.6 or later now required.
+
 2014-06-25  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (${ns_appbindir}): New.

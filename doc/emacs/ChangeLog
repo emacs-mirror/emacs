@@ -1,3 +1,8 @@
+2014-10-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* macos.texi (Mac OS / GNUstep, Mac / GNUstep Basics)
+	(Mac / GNUstep Customization): Mac OS X 10.6 or later now required.
+
 2014-10-09  Glenn Morris  <rgm@gnu.org>
 
 	* package.texi (Package Menu): The package list was changed to not
