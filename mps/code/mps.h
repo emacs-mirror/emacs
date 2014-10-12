@@ -299,7 +299,6 @@ extern mps_rank_t mps_rank_weak(void);
 
 
 /* Allocation Point */
-/* .ap: Keep in sync with <code/mpmst.h#ap>. */
 
 typedef struct mps_ap_s {       /* allocation point descriptor */
   mps_addr_t init;              /* limit of initialized memory */
