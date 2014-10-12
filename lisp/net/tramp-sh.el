@@ -5228,13 +5228,14 @@ Return ATTR."
   (with-tramp-connection-property vec "id"
     (tramp-message vec 5 "Finding POSIX `id' command")
     (catch 'id-found
-      (let ((dl (tramp-get-remote-path vec))
-	    result)
-	(while (and dl (setq result (tramp-find-executable vec "id" dl t t)))
-	  ;; Check POSIX parameter.
-	  (when (tramp-send-command-and-check vec (format "%s -u" result))
-	    (throw 'id-found result))
-	  (setq dl (cdr dl)))))))
+      (dolist (cmd '("id" "gid"))
+	(let ((dl (tramp-get-remote-path vec))
+	      result)
+	  (while (and dl (setq result (tramp-find-executable vec cmd dl t t)))
+	    ;; Check POSIX parameter.
+	    (when (tramp-send-command-and-check vec (format "%s -u" result))
+	      (throw 'id-found result))
+	    (setq dl (cdr dl))))))))
 
 (defun tramp-get-remote-uid-with-id (vec id-format)
   (tramp-send-command-and-read
