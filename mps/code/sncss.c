@@ -16,29 +16,34 @@
 #include <stdio.h> /* printf */
 
 
+/* Simple format for the SNC pool. */
+
+typedef struct obj_s {
+  size_t size;
+  int pad;
+} obj_s, *obj_t;
+
 /* make -- allocate one object, and if it's big enough, store the size
  * in the first word, for the benefit of the object format */
 
 static mps_res_t make(mps_addr_t *p, mps_ap_t ap, size_t size)
 {
-  mps_addr_t obj;
+  mps_addr_t addr;
   mps_res_t res;
 
   do {
-    res = mps_reserve(&obj, ap, size);
-    if(res != MPS_RES_OK)
+    obj_t obj;
+    res = mps_reserve(&addr, ap, size);
+    if (res != MPS_RES_OK)
       return res;
-    if(size >= sizeof size)
-      *(size_t *)obj = size;
-  } while(!mps_commit(ap, *p, size));
+    obj = addr;
+    obj->size = size;
+    obj->pad = 0;
+  } while (!mps_commit(ap, addr, size));
 
-  *p = obj;     
+  *p = addr;     
   return MPS_RES_OK;
 }
-
-
-/* Simple format for the SNC pool. Each object starts with a word
-   giving its length. */
 
 static mps_res_t fmtScan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
 {
@@ -50,15 +55,46 @@ static mps_res_t fmtScan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
 
 static mps_addr_t fmtSkip(mps_addr_t addr)
 {
-  size_t *obj = addr;
-  return (char *)addr + *obj;
+  obj_t obj = addr;
+  return (char *)addr + obj->size;
 }
 
 static void fmtPad(mps_addr_t addr, size_t size)
 {
-  size_t *obj = addr;
-  *obj = size;
+  obj_t obj = addr;
+  obj->size = size;
+  obj->pad = 1;
 }
+
+typedef struct env_s {
+  size_t obj;
+  size_t pad;
+} env_s, *env_t;
+
+static void fmtVisitor(mps_addr_t object, mps_fmt_t format,
+                       mps_pool_t pool, void *p, size_t s)
+{
+  env_t env = p;
+  obj_t obj = object;
+  testlib_unused(format);
+  testlib_unused(pool);
+  testlib_unused(s);
+  if (obj->pad)
+    env->pad += obj->size;
+  else
+    env->obj += obj->size;
+}
+
+#define AP_MAX 3                /* Number of allocation points */
+#define DEPTH_MAX 20            /* Maximum depth of frame push */
+
+typedef struct ap_s {
+  mps_ap_t ap;                  /* An allocation point on an ANC pool */
+  size_t depth;                 /* Number of frames pushed */
+  size_t alloc[DEPTH_MAX + 1];  /* Total allocation at each depth */
+  size_t push[DEPTH_MAX];       /* Total allocation when we pushed */
+  mps_frame_t frame[DEPTH_MAX]; /* The frame pointers at each depth */
+} ap_s, *ap_t;
 
 static void test(mps_pool_class_t pool_class)
 {
@@ -67,14 +103,9 @@ static void test(mps_pool_class_t pool_class)
   mps_arena_t arena;
   mps_fmt_t fmt;
   mps_pool_t pool;
-  struct ap_s {
-    mps_ap_t ap;
-    size_t frames;
-    mps_frame_t frame[20];
-    size_t alloc[21];
-  } aps[3];
+  ap_s aps[AP_MAX];
 
-  align = sizeof(void *) << (rnd() % 4);
+  align = sizeof(obj_s) << (rnd() % 4);
 
   die(mps_arena_create_k(&arena, mps_arena_class_vm(), mps_args_none),
       "mps_arena_create");
@@ -93,51 +124,57 @@ static void test(mps_pool_class_t pool_class)
   } MPS_ARGS_END(args);
 
   for (i = 0; i < NELEMS(aps); ++i) {
-    struct ap_s *a = &aps[i];
+    ap_t a = &aps[i];
     die(mps_ap_create_k(&a->ap, pool, mps_args_none), "ap_create");
-    a->frames = 0;
+    a->depth = 0;
     a->alloc[0] = 0;
   }
 
-  for (i = 0; i < 100000; ++i) {
+  for (i = 0; i < 1000000; ++i) {
     size_t k = rnd() % NELEMS(aps);
-    struct ap_s *a = &aps[k];
-    if (rnd() % 100 == 0) {
+    ap_t a = &aps[k];
+    if (rnd() % 10 == 0) {
       j = rnd() % NELEMS(a->frame);
-      if (j < a->frames) {
-        a->frames = j;
+      if (j < a->depth) {
+        a->depth = j;
         mps_ap_frame_pop(a->ap, a->frame[j]);
-        printf("%lu: pop %lu\n", (unsigned long)k, (unsigned long)j);
+        a->alloc[j] = a->push[j];
       } else {
-        mps_ap_frame_push(&a->frame[a->frames], a->ap);
-        printf("%lu: push %lu\n", (unsigned long)k, (unsigned long)a->frames);
-        ++ a->frames;
-        a->alloc[a->frames] = 0;
+        a->push[a->depth] = a->alloc[a->depth];
+        mps_ap_frame_push(&a->frame[a->depth], a->ap);
+        ++ a->depth;
+        a->alloc[a->depth] = 0;
       }
     } else {
       size_t size = alignUp(1 + rnd() % 128, align);
       mps_addr_t p;
       make(&p, a->ap, size);
-      a->alloc[a->frames] += size;
+      a->alloc[a->depth] += size;
     }
   }
 
   {
+    env_s env = {0, 0};
     size_t alloc = 0;
-    size_t unused = 0;
+    size_t free = mps_pool_free_size(pool);
+    size_t total = mps_pool_total_size(pool);
+
     for (i = 0; i < NELEMS(aps); ++i) {
-      struct ap_s *a = &aps[i];
-      for (j = 0; j <= a->frames; ++j) {
+      ap_t a = &aps[i];
+      for (j = 0; j <= a->depth; ++j) {
         alloc += a->alloc[j];
       }
-      unused += AddrOffset(a->ap->init, a->ap->limit);
     }
-    printf("alloc=%lu unused=%lu, total=%lu free=%lu a+u+f=%lu\n",
+
+    mps_arena_formatted_objects_walk(arena, fmtVisitor, &env, 0);
+
+    printf("alloc=%lu obj=%lu pad=%lu free=%lu total=%lu\n",
            (unsigned long)alloc,
-           (unsigned long)unused,
-           (unsigned long)mps_pool_total_size(pool),
-           (unsigned long)mps_pool_free_size(pool),
-           (unsigned long)(alloc + unused + mps_pool_free_size(pool)));
+           (unsigned long)env.obj,
+           (unsigned long)env.pad,
+           (unsigned long)free,
+           (unsigned long)total);
+    Insist(alloc == env.obj);
   }
 
   for (i = 0; i < NELEMS(aps); ++i) {
