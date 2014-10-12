@@ -5532,7 +5532,7 @@ and `org-export-to-file' for more specialized functions."
            ;; Register running process in stack.
            (org-export-add-to-stack (get-buffer ,proc-buffer) nil ,process)
            ;; Set-up sentinel in order to catch results.
-           (let ((handler ,fun))
+           (let ((handler ',fun))
              (set-process-sentinel
               ,process
               `(lambda (p status)

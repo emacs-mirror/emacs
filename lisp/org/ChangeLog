@@ -1,3 +1,17 @@
+2014-10-12  Christopher Schmidt  <ch@ristopher.com>
+
+	* org.el (orgstruct-make-binding): Do not use loop in interpreted
+	code.
+
+2014-10-12  Mike McLean  <mike.mclean@pobox.com>  (tiny change)
+
+	* org-agenda.el (org-agenda-time-grid): Change docstring.
+
+2014-10-12  Nicolas Goaziou  <mail@nicolasgoaziou.fr>
+
+	* ox.el (org-export-async-start): Allow to use symbols as
+	function.
+
 2014-10-02  Achim Gratz  <Stromeko@Stromeko.DE>
 
 	* ob-sh.el (org-babel-sh-initiate-session): After initiating a

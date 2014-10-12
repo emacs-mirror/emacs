@@ -2,7 +2,8 @@
 @c %**start of header
 @setfilename ../../info/org
 @settitle The Org Manual
-@set VERSION 8.2.8
+
+@set VERSION 8.2.9
 
 @c Version and Contact Info
 @set MAINTAINERSITE @uref{http://orgmode.org,maintainers web page}
