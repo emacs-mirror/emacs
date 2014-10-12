@@ -200,17 +200,19 @@ typedef struct SNCSegStruct *SNCSeg;
 typedef struct SNCSegStruct {
   GCSegStruct gcSegStruct;  /* superclass fields must come first */
   SNCSeg next;              /* Next segment in chain, or NULL */
+  Bool free;                /* Segment is free? */
   Sig sig;
 } SNCSegStruct;
 
 #define SegSNCSeg(seg)             ((SNCSeg)(seg))
 #define SNCSegSeg(sncseg)          ((Seg)(sncseg))
 
-#define sncSegNext(seg) \
-  (SNCSegSeg(SegSNCSeg(seg)->next))
-
+#define sncSegNext(seg) RVALUE(SNCSegSeg(SegSNCSeg(seg)->next))
 #define sncSegSetNext(seg, nextseg) \
   ((void)(SegSNCSeg(seg)->next = SegSNCSeg(nextseg)))
+
+#define sncSegFree(seg) RVALUE(SegSNCSeg(seg)->free)
+#define sncSegSetFree(seg, _free) ((void)(SegSNCSeg(seg)->free = (_free)))
 
 ATTRIBUTE_UNUSED
 static Bool SNCSegCheck(SNCSeg sncseg)
@@ -220,6 +222,7 @@ static Bool SNCSegCheck(SNCSeg sncseg)
   if (NULL != sncseg->next) {
     CHECKS(SNCSeg, sncseg->next);
   }
+  CHECKL(BoolCheck(sncseg->free));
   return TRUE;
 }
 
@@ -246,6 +249,7 @@ static Res sncSegInit(Seg seg, Pool pool, Addr base, Size size,
     return res;
 
   sncseg->next = NULL;
+  sncseg->free = TRUE;
   sncseg->sig = SNCSegSig;
   AVERT(SNCSeg, sncseg);
   return ResOK;
@@ -273,6 +277,7 @@ static void sncRecordAllocatedSeg(Buffer buffer, Seg seg)
   AVERT(Seg, seg);
   AVER(sncSegNext(seg) == NULL);
 
+  sncSegSetFree(seg, FALSE);
   sncSegSetNext(seg, sncBufferTopSeg(buffer));
   sncBufferSetTopSeg(buffer, seg);
 }
@@ -291,6 +296,7 @@ static void sncRecordFreeSeg(SNC snc, Seg seg)
   SegSetGrey(seg, TraceSetEMPTY);
   SegSetRankAndSummary(seg, RankSetEMPTY, RefSetEMPTY);
 
+  sncSegSetFree(seg, TRUE);
   sncSegSetNext(seg, snc->freeSegs);
   snc->freeSegs = seg;
 }
@@ -500,6 +506,42 @@ static void SNCBufferEmpty(Pool pool, Buffer buffer,
 }
 
 
+/* SNCScanLimit -- limit of scannable objects in segment */
+
+static Addr SNCScanLimit(Arena arena, Seg seg)
+{
+  Addr limit;
+  Buffer buf;
+  buf = SegBuffer(seg);
+  if (buf == NULL) {
+    /* Segment is unbuffered: entire segment scannable */
+    limit = SegLimit(seg);
+  } else if (BufferFrameState(buf) != BufferFramePOP_PENDING) {
+    /* No pop pending: scannable up to limit of initialized objects. */
+    limit = BufferScanLimit(buf);
+  } else {
+    Addr addr = (Addr)buf->ap_s._frameptr;
+    if (addr == NULL) {
+      /* Pop pending to bottom of stack */
+      limit = BufferBase(buf);
+    } else {
+      Seg popSeg;
+      Bool foundSeg = SegOfAddr(&popSeg, arena, addr);
+      AVER(foundSeg);
+      if (popSeg == seg) {
+        /* Pop pending to address in same segment */
+        AVER(addr <= BufferScanLimit(buf));  /* check direction of pop */
+        limit = addr;
+      } else {
+        /* Pop pending to address in different segment */
+        limit = BufferBase(buf);
+      }
+    }
+  }
+  return limit;
+}
+
+
 static Res SNCScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
 {
   Addr base, limit;
@@ -516,14 +558,7 @@ static Res SNCScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
 
   format = pool->format;
   base = SegBase(seg);
-   
-  /* If the segment is buffered, only walk as far as the end */
-  /* of the initialized objects.  */
-  if (SegBuffer(seg) != NULL) {
-    limit = BufferScanLimit(SegBuffer(seg));
-  } else {
-    limit = SegLimit(seg);
-  }
+  limit = SNCScanLimit(PoolArena(pool), seg);
  
   if (base < limit) {
     res = (*format->scan)(&ss->ss_s, base, limit);
@@ -579,21 +614,6 @@ static Res SNCFramePush(AllocFrame *frameReturn, Pool pool, Buffer buf)
 }
 
 
-
-static Res SNCFramePop(Pool pool, Buffer buf, AllocFrame frame)
-{
-  AVERT(Pool, pool);
-  AVERT(Buffer, buf);
-  /* Normally the Pop would be handled as a lightweight pop */
-  /* The only reason that might not happen is if the stack is empty */
-  AVER(sncBufferTopSeg(buf) == NULL);
-  /* The only valid frame must also be NULL - .lw-frame-null  */
-  AVER(frame == NULL);
-  /* Popping an empty frame is a NOOP */
-  return ResOK;
-}
-
-
 static void SNCFramePopPending(Pool pool, Buffer buf, AllocFrame frame)
 {
   Addr addr;
@@ -638,6 +658,16 @@ static void SNCFramePopPending(Pool pool, Buffer buf, AllocFrame frame)
 }
 
 
+static Res SNCFramePop(Pool pool, Buffer buf, AllocFrame frame)
+{
+  AVERT(Pool, pool);
+  AVERT(Buffer, buf);
+  BufferFrameSetState(buf, BufferFrameVALID);
+  SNCFramePopPending(pool, buf, frame);
+  return ResOK;
+}
+
+
 static void SNCWalk(Pool pool, Seg seg, FormattedObjectsVisitor f,
                     void *p, size_t s)
 {
@@ -648,7 +678,7 @@ static void SNCWalk(Pool pool, Seg seg, FormattedObjectsVisitor f,
 
   /* Avoid applying the function to grey objects. */
   /* They may have pointers to old-space. */
-  if (SegGrey(seg) == TraceSetEMPTY) {
+  if (SegGrey(seg) == TraceSetEMPTY && !sncSegFree(seg)) {
     Addr object = SegBase(seg);
     Addr nextObject;
     Addr limit;
@@ -658,13 +688,7 @@ static void SNCWalk(Pool pool, Seg seg, FormattedObjectsVisitor f,
     snc = PoolSNC(pool);
     AVERT(SNC, snc);
     format = pool->format;
-
-    /* If the segment is buffered, only walk as far as the end */
-    /* of the initialized objects.  Cf. SNCScan. */
-    if (SegBuffer(seg) != NULL)
-      limit = BufferScanLimit(SegBuffer(seg));
-    else
-      limit = SegLimit(seg);
+    limit = SNCScanLimit(PoolArena(pool), seg);
 
     while(object < limit) {
       (*f)(object, format, pool, p, s);
