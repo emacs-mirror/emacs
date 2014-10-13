@@ -4,6 +4,10 @@ TEST_HEADER
  summary = zero maxSize for pool_create (MV)
  language = c
  link = testlib.o
+OUTPUT_SPEC
+ assert = true
+ assertfile P= poolmv.c
+ assertcond = maxSize > 0
 END_HEADER
 */
 

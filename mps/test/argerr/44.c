@@ -4,6 +4,10 @@ TEST_HEADER
  summary = extendBy > maxSize for pool_create (MV)
  language = c
  link = testlib.o
+OUTPUT_SPEC
+ assert = true
+ assertfile P= poolmv.c
+ assertcond = extendBy <= maxSize
 END_HEADER
 */
 

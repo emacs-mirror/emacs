@@ -4,6 +4,8 @@ TEST_HEADER
  summary = UNALIGNED arena_t to thread_reg
  language = c
  link = testlib.o
+OUTPUT_SPEC
+ abort = true
 END_HEADER
 */
 

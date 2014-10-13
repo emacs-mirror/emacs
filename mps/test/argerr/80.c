@@ -4,6 +4,10 @@ TEST_HEADER
  summary = null arena for ld_add
  language = c
  link = testlib.o
+OUTPUT_SPEC
+ assert = true
+ assertfile P= ld.c
+ assertcond = TESTT(Arena, arena)
 END_HEADER
 */
 

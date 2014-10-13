@@ -4,6 +4,10 @@ TEST_HEADER
  summary = NULL base for mps_root_create_table
  language = c
  link = testlib.o
+OUTPUT_SPEC
+ assert = true
+ assertfile P= mpsi.c
+ assertcond = base != NULL
 END_HEADER
 */
 
