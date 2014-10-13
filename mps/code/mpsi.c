@@ -19,6 +19,11 @@
  * (between ArenaEnter and ArenaLeave) as this will leave the Arena in
  * an unsuitable state for re-entry.
  *
+ * .note.avert: Use AVERT only when "inside" the Arena (between
+ * ArenaEnter and ArenaLeave), as it's not thread-safe in all
+ * varieties. Use AVER(TESTT) otherwise. See
+ * <design/sig/#check.arg.unlocked>.
+ *
  *
  * TRANSGRESSIONS (rule.impl.trans)
  *
@@ -314,7 +319,7 @@ mps_res_t mps_arena_create_v(mps_arena_t *mps_arena_o,
                              va_list varargs)
 {
   mps_arg_s args[MPS_ARGS_MAX];
-  AVERT(ArenaClass, arena_class);
+  AVER(TESTT(ArenaClass, arena_class));
   arena_class->varargs(args, varargs);
   return mps_arena_create_k(mps_arena_o, arena_class, args);
 }
@@ -642,7 +647,7 @@ mps_res_t mps_pool_create_v(mps_pool_t *mps_pool_o, mps_arena_t arena,
                             mps_pool_class_t pool_class, va_list varargs)
 {
   mps_arg_s args[MPS_ARGS_MAX];
-  AVERT(PoolClass, pool_class);
+  AVER(TESTT(PoolClass, pool_class));
   pool_class->varargs(args, varargs);
   return mps_pool_create_k(mps_pool_o, arena, pool_class, args);
 }

@@ -548,7 +548,7 @@ void ArenaEnterLock(Arena arena, Bool recursive)
   } else {
     LockClaim(lock);
   }
-  AVERT(Arena, arena); /* can't AVER it until we've got the lock */
+  AVERT(Arena, arena); /* can't AVERT it until we've got the lock */
   if(recursive) {
     /* already in shield */
   } else {
