@@ -2353,7 +2353,10 @@ typedef struct bpa_stack_entry {
   do {									\
    bpa_sp++;								\
    if (bpa_sp >= MAX_BPA_STACK)						\
-     goto bpa_give_up;							\
+     {									\
+       bpa_sp = MAX_BPA_STACK - 1;					\
+       goto bpa_give_up;						\
+     }									\
    bpa_stack[bpa_sp].close_bracket_char = bidi_mirror_char (bidi_it->ch); \
    bpa_stack[bpa_sp].open_bracket_idx = bidi_cache_last_idx;		\
    STORE_BRACKET_CHARPOS;						\
@@ -2389,10 +2392,15 @@ bidi_resolve_bracket_pairs (struct bidi_it *bidi_it)
       struct bidi_it saved_it;
       bidi_type_t last_strong;
       int embedding_level = bidi_it->level_stack[bidi_it->stack_idx].level;
+      struct bidi_it tem_it;
 
       eassert (MAX_BPA_STACK >= 100);
       bidi_copy_it (&saved_it, bidi_it);
       last_strong = bidi_it->prev_for_neutral.type;
+      /* bidi_cache_iterator_state refuses to cache on backward scans,
+	 and bidi_cache_fetch_state doesn't bring scan_dir from the
+	 cache, so we must initialize this explicitly.  */
+      tem_it.scan_dir = 1;
 
       while (1)
 	{
@@ -2422,17 +2430,16 @@ bidi_resolve_bracket_pairs (struct bidi_it *bidi_it)
 		  else if (bpa_stack[sp].flags & FLAG_OPPOSITE_INSIDE) /*N0c2*/
 		    type = ((embedding_level & 1) ? STRONG_R : STRONG_L);
 
-		  /* Update and cache the closing bracket.  */
+		  /* Update the type of the closing bracket.  */
 		  bidi_it->type = type;
-		  bidi_it->bracket_resolved = 1;
-		  bidi_cache_iterator_state (bidi_it, 0, 0);
 		  /* Update and cache the corresponding opening bracket.  */
 		  bidi_cache_fetch_state (bpa_stack[sp].open_bracket_idx,
-					  bidi_it);
+					  &tem_it);
 #ifdef ENABLE_CHECKING
-		  eassert (bpa_stack[sp].open_bracket_pos == bidi_it->charpos);
+		  eassert (bpa_stack[sp].open_bracket_pos == tem_it.charpos);
 #endif
-		  bidi_it->type = type;
+		  tem_it.type = type;
+		  bidi_cache_iterator_state (&tem_it, 0, 0);
 		  bpa_sp = sp - 1;
 		}
 	      bidi_it->bracket_resolved = 1;
@@ -2496,17 +2503,18 @@ bidi_resolve_bracket_pairs (struct bidi_it *bidi_it)
 		 isolating run sequence, and didn't find matching
 		 closing brackets for some opening brackets.  Unwind
 		 whatever is left on the BPA stack, and mark each
-		 bracket there as BPA-resolved.  */
+		 bracket there as BPA-resolved, leaving their type
+		 unchanged.  */
 	      while (bpa_sp >= 0)
 		{
 		  bidi_cache_fetch_state (bpa_stack[bpa_sp].open_bracket_idx,
-					  bidi_it);
+					  &tem_it);
 #ifdef ENABLE_CHECKING
 		  eassert (bpa_stack[bpa_sp].open_bracket_pos
-			   == bidi_it->charpos);
+			   == tem_it.charpos);
 #endif
-		  bidi_it->bracket_resolved = 1;
-		  bidi_cache_iterator_state (bidi_it, 0, 0);
+		  tem_it.bracket_resolved = 1;
+		  bidi_cache_iterator_state (&tem_it, 0, 0);
 		  bpa_sp--;
 		}
 	      type = saved_it.type;
