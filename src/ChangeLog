@@ -1,3 +1,8 @@
+2014-10-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32term.h (ALIGN_STACK): Use _WIN64, not _W64, to distinguish
+	between 32-bit and 64-bit MinGW builds.  (Bug#18699)
+
 2014-10-12  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix port to Debian GNU/kFreeBSD 7 (wheezy) (Bug#18666).
