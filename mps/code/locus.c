@@ -350,10 +350,8 @@ Res PoolGenAlloc(Seg *segReturn, PoolGen pgen, SegClass class, Size size,
 
   size = SegSize(seg);
   pgen->totalSize += size;
-  STATISTIC_STAT ({
-    ++ pgen->segs;
-    pgen->freeSize += size;
-  });
+  ++ pgen->segs;
+  pgen->freeSize += size;
   *segReturn = seg;
   return ResOK;
 }
@@ -512,13 +510,13 @@ Res PoolGenInit(PoolGen pgen, GenDesc gen, Pool pool)
   pgen->pool = pool;
   pgen->gen = gen;
   RingInit(&pgen->genRing);
-  STATISTIC(pgen->segs = 0);
+  pgen->segs = 0;
   pgen->totalSize = 0;
-  STATISTIC(pgen->freeSize = 0);
+  pgen->freeSize = 0;
   pgen->newSize = 0;
-  STATISTIC(pgen->oldSize = 0);
+  pgen->oldSize = 0;
   pgen->newDeferredSize = 0;
-  STATISTIC(pgen->oldDeferredSize = 0);
+  pgen->oldDeferredSize = 0;
   pgen->sig = PoolGenSig;
   AVERT(PoolGen, pgen);
 
@@ -535,12 +533,10 @@ void PoolGenFinish(PoolGen pgen)
   AVER(pgen->totalSize == 0);
   AVER(pgen->newSize == 0);
   AVER(pgen->newDeferredSize == 0);
-  STATISTIC_STAT ({
-    AVER(pgen->segs == 0);
-    AVER(pgen->freeSize == 0);
-    AVER(pgen->oldSize == 0);
-    AVER(pgen->oldDeferredSize == 0);
-  });
+  AVER(pgen->segs == 0);
+  AVER(pgen->freeSize == 0);
+  AVER(pgen->oldSize == 0);
+  AVER(pgen->oldDeferredSize == 0);
 
   pgen->sig = SigInvalid;
   RingRemove(&pgen->genRing);
@@ -556,12 +552,10 @@ Bool PoolGenCheck(PoolGen pgen)
   CHECKU(Pool, pgen->pool);
   CHECKU(GenDesc, pgen->gen);
   CHECKD_NOSIG(Ring, &pgen->genRing);
-  STATISTIC_STAT ({
-    CHECKL((pgen->totalSize == 0) == (pgen->segs == 0));
-    CHECKL(pgen->totalSize >= pgen->segs * ArenaGrainSize(PoolArena(pgen->pool)));
-    CHECKL(pgen->totalSize == pgen->freeSize + pgen->newSize + pgen->oldSize
-           + pgen->newDeferredSize + pgen->oldDeferredSize);
-  });
+  CHECKL((pgen->totalSize == 0) == (pgen->segs == 0));
+  CHECKL(pgen->totalSize >= pgen->segs * ArenaGrainSize(PoolArena(pgen->pool)));
+  CHECKL(pgen->totalSize == pgen->freeSize + pgen->newSize + pgen->oldSize
+         + pgen->newDeferredSize + pgen->oldDeferredSize);
   return TRUE;
 }
 
@@ -581,10 +575,8 @@ void PoolGenAccountForFill(PoolGen pgen, Size size, Bool deferred)
   AVERT(PoolGen, pgen);
   AVERT(Bool, deferred);
 
-  STATISTIC_STAT ({
-    AVER(pgen->freeSize >= size);
-    pgen->freeSize -= size;
-  });
+  AVER(pgen->freeSize >= size);
+  pgen->freeSize -= size;
   if (deferred)
     pgen->newDeferredSize += size;
   else
@@ -613,7 +605,7 @@ void PoolGenAccountForEmpty(PoolGen pgen, Size unused, Bool deferred)
     AVER(pgen->newSize >= unused);
     pgen->newSize -= unused;
   }
-  STATISTIC(pgen->freeSize += unused);
+  pgen->freeSize += unused;
 }
 
 
@@ -633,11 +625,11 @@ void PoolGenAccountForAge(PoolGen pgen, Size size, Bool deferred)
   if (deferred) {
     AVER(pgen->newDeferredSize >= size);
     pgen->newDeferredSize -= size;
-    STATISTIC(pgen->oldDeferredSize += size);
+    pgen->oldDeferredSize += size;
   } else {
     AVER(pgen->newSize >= size);
     pgen->newSize -= size;
-    STATISTIC(pgen->oldSize += size);
+    pgen->oldSize += size;
   }
 }
 
@@ -655,16 +647,14 @@ void PoolGenAccountForReclaim(PoolGen pgen, Size reclaimed, Bool deferred)
   AVERT(PoolGen, pgen);
   AVERT(Bool, deferred);
 
-  STATISTIC_STAT ({
-    if (deferred) {
-      AVER(pgen->oldDeferredSize >= reclaimed);
-      pgen->oldDeferredSize -= reclaimed;
-    } else {
-      AVER(pgen->oldSize >= reclaimed);
-      pgen->oldSize -= reclaimed;
-    }
-    pgen->freeSize += reclaimed;
-  });
+  if (deferred) {
+    AVER(pgen->oldDeferredSize >= reclaimed);
+    pgen->oldDeferredSize -= reclaimed;
+  } else {
+    AVER(pgen->oldSize >= reclaimed);
+    pgen->oldSize -= reclaimed;
+  }
+  pgen->freeSize += reclaimed;
 }
 
 
@@ -680,11 +670,9 @@ void PoolGenAccountForReclaim(PoolGen pgen, Size reclaimed, Bool deferred)
 void PoolGenUndefer(PoolGen pgen, Size oldSize, Size newSize)
 {
   AVERT(PoolGen, pgen);
-  STATISTIC_STAT ({
-    AVER(pgen->oldDeferredSize >= oldSize);
-    pgen->oldDeferredSize -= oldSize;
-    pgen->oldSize += oldSize;
-  });
+  AVER(pgen->oldDeferredSize >= oldSize);
+  pgen->oldDeferredSize -= oldSize;
+  pgen->oldSize += oldSize;
   AVER(pgen->newDeferredSize >= newSize);
   pgen->newDeferredSize -= newSize;
   pgen->newSize += newSize;
@@ -696,10 +684,8 @@ void PoolGenUndefer(PoolGen pgen, Size oldSize, Size newSize)
 void PoolGenAccountForSegSplit(PoolGen pgen)
 {
   AVERT(PoolGen, pgen);
-  STATISTIC_STAT ({
-    AVER(pgen->segs >= 1); /* must be at least one segment to split */
-    ++ pgen->segs;
-  });
+  AVER(pgen->segs >= 1);   /* must be at least one segment to split */
+  ++ pgen->segs;
 }
 
 
@@ -708,10 +694,8 @@ void PoolGenAccountForSegSplit(PoolGen pgen)
 void PoolGenAccountForSegMerge(PoolGen pgen)
 {
   AVERT(PoolGen, pgen);
-  STATISTIC_STAT ({
-    AVER(pgen->segs >= 2); /* must be at least two segments to merge */
-    -- pgen->segs;
-  });
+  AVER(pgen->segs >= 2);  /* must be at least two segments to merge */
+  -- pgen->segs;
 }
 
 
@@ -742,12 +726,10 @@ void PoolGenFree(PoolGen pgen, Seg seg, Size freeSize, Size oldSize,
 
   AVER(pgen->totalSize >= size);
   pgen->totalSize -= size;
-  STATISTIC_STAT ({
-    AVER(pgen->segs > 0);
-    -- pgen->segs;
-    AVER(pgen->freeSize >= size);
-    pgen->freeSize -= size;
-  });
+  AVER(pgen->segs > 0);
+  -- pgen->segs;
+  AVER(pgen->freeSize >= size);
+  pgen->freeSize -= size;
   SegFree(seg);
 }
 
