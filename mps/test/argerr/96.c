@@ -4,6 +4,10 @@ TEST_HEADER
  summary = highbit set rank for mps_root_create
  language = c
  link = testlib.o
+OUTPUT_SPEC
+ assert = true
+ assertfile P= ref.c
+ assertcond = rank < RankLIMIT
 END_HEADER
 */
 

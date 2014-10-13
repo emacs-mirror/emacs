@@ -1,9 +1,13 @@
 /* 
 TEST_HEADER
  id = $Id$
- summary = unaligned 2nd arg to mps_free
+ summary = unaligned 2nd arg to mps_free (MFS)
  language = c
  link = testlib.o
+OUTPUT_SPEC
+ assert = true
+ assertfile P= poolmfs.c
+ assertcond = 
 END_HEADER
 */
 

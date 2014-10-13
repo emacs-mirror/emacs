@@ -1,9 +1,13 @@
 /* 
 TEST_HEADER
  id = $Id$
- summary = NULL 1st arg to mps_alloc
+ summary = NULL 1st arg to mps_alloc (MFS)
  language = c
  link = testlib.o
+OUTPUT_SPEC
+ assert = true
+ assertfile P= mpsi.c
+ assertcond = p_o != NULL
 END_HEADER
 */
 
@@ -20,7 +24,6 @@ static void test(void)
  mps_thr_t thread;
 
  size_t mysize;
- mps_addr_t a;
 
  cdie(mps_arena_create(&arena, mps_arena_class_vm(), mmqaArenaSIZE), "create arena");
 

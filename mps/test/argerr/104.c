@@ -1,9 +1,13 @@
 /* 
 TEST_HEADER
  id = $Id$
- summary = MIN-1 rank for mps_root_create_table
+ summary = -1 rank for mps_root_create_table
  language = c
  link = testlib.o
+OUTPUT_SPEC
+ assert = true
+ assertfile P= ref.c
+ assertcond = rank < RankLIMIT
 END_HEADER
 */
 
@@ -24,7 +28,7 @@ static void test(void)
  cdie(mps_thread_reg(&thread, arena), "register thread");
 
  cdie(mps_root_create_table(&root, arena,
-        MPS_RANK_MIN-1, 0, a, sizeof a),
+        -1, 0, a, sizeof a),
       "root create");
 
 }

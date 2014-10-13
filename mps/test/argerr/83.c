@@ -17,7 +17,6 @@ static void test(void)
  mps_arena_t arena;
  mps_ld_s ld;
  mps_thr_t thread;
- mps_addr_t p;
 
  cdie(mps_arena_create(&arena, mps_arena_class_vm(), mmqaArenaSIZE), "create arena");
 

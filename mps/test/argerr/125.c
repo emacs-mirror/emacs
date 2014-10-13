@@ -4,6 +4,10 @@ TEST_HEADER
  summary = null base for mps_root_create_fmt
  language = c
  link = testlib.o
+OUTPUT_SPEC
+ assert = true
+ assertfile P= root.c
+ assertcond = base != 0
 END_HEADER
 */
 

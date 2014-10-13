@@ -1,9 +1,13 @@
 /* 
 TEST_HEADER
  id = $Id$
- summary = MIN-1 root mode for mps_root_create
+ summary = -1 root mode for mps_root_create
  language = c
  link = testlib.o
+OUTPUT_SPEC
+ assert = true
+ assertfile P= mpsi.c
+ assertcond = mps_rm == (mps_rm_t)0
 END_HEADER
 */
 
@@ -27,7 +31,7 @@ static void test(void)
 
  cdie(mps_thread_reg(&thread, arena), "register thread");
 
- cdie(mps_root_create(&root, arena, mps_rank_ambig(), MPS_RM_MIN-1,
+ cdie(mps_root_create(&root, arena, mps_rank_ambig(), -1,
                       rootscan, NULL, 0),
       "root create");
 

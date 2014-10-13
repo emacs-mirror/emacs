@@ -4,6 +4,10 @@ TEST_HEADER
  summary = zero extendBy for pool_create (MFS)
  language = c
  link = testlib.o
+OUTPUT_SPEC
+ assert = true
+ assertfile P= poolmfs.c
+ assertcond = extendBy > 0
 END_HEADER
 */
 

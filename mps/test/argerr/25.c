@@ -1,9 +1,13 @@
 /* 
 TEST_HEADER
  id = $Id$
- summary = high bit set 3rd arg to mps_alloc
+ summary = high bit set 3rd arg to mps_alloc (MFS)
  language = c
  link = testlib.o
+OUTPUT_SPEC
+ assert = true
+ assertfile P= poolmfs.c
+ assertcond = size == mfs->unroundedUnitSize
 END_HEADER
 */
 

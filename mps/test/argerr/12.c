@@ -4,6 +4,10 @@ TEST_HEADER
  summary = null 2nd arg to pool_create
  language = c
  link = testlib.o newfmt.o
+OUTPUT_SPEC
+ assert = true
+ assertfile P= global.c
+ assertcond = TESTT(Arena, arena)
 END_HEADER
 */
 
