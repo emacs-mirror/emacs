@@ -110,6 +110,7 @@ typedef struct mps_pool_s {     /* generic structure */
   RingStruct segRing;           /* segs are attached to pool */
   Align alignment;              /* alignment for units */
   Format format;                /* format only if class->attr&AttrFMT */
+  RingStruct formatRing;        /* link in list of pools using format */
   PoolFixMethod fix;            /* fix method */
   double fillMutatorSize;       /* bytes filled, mutator buffers */
   double emptyMutatorSize;      /* bytes emptied, mutator buffers */
@@ -410,6 +411,7 @@ typedef struct mps_fmt_s {
   Serial serial;                /* from arena->formatSerial */
   Arena arena;                  /* owning arena */
   RingStruct arenaRing;         /* formats are attached to the arena */
+  RingStruct poolRing;          /* ring of pools using the format */
   Align alignment;              /* alignment of formatted objects */
   mps_fmt_scan_t scan;
   mps_fmt_skip_t skip;

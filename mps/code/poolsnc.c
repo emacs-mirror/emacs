@@ -388,6 +388,7 @@ static Res SNCInit(Pool pool, ArgList args)
 
   AVERT(Format, format);
   pool->format = format;
+  RingAppend(&format->poolRing, &pool->formatRing);
   snc->freeSegs = NULL;
   snc->sig = SNCSig;
 

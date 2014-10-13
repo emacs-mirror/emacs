@@ -4,6 +4,10 @@ TEST_HEADER
  summary = destroy a format though attached to a pool
  language = c
  link = testlib.o
+OUTPUT_SPEC
+ assert = true
+ assertfile P= format.c
+ assertcond = RingIsSingle(&format->poolRing)
 END_HEADER
 */
 

@@ -838,6 +838,7 @@ Res AMSInitInternal(AMS ams, Format format, Chain chain, unsigned gen,
   pool = AMSPool(ams);
   AVERT(Pool, pool);
   pool->format = format;
+  RingAppend(&format->poolRing, &pool->formatRing);
   pool->alignment = pool->format->alignment;
   ams->grainShift = SizeLog2(PoolAlignment(pool));
 

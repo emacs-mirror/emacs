@@ -153,6 +153,7 @@ Res PoolInit(Pool pool, Arena arena, PoolClass class, ArgList args)
   RingInit(&pool->arenaRing);
   RingInit(&pool->bufferRing);
   RingInit(&pool->segRing);
+  RingInit(&pool->formatRing);
   pool->bufferSerial = (Serial)0;
   pool->alignment = MPS_PF_ALIGN;
   pool->format = NULL;
@@ -181,6 +182,7 @@ Res PoolInit(Pool pool, Arena arena, PoolClass class, ArgList args)
 
 failInit:
   pool->sig = SigInvalid;      /* Leave arena->poolSerial incremented */
+  RingFinish(&pool->formatRing);
   RingFinish(&pool->segRing);
   RingFinish(&pool->bufferRing);
   RingFinish(&pool->arenaRing);
@@ -237,10 +239,14 @@ void PoolFinish(Pool pool)
   /* Do any class-specific finishing. */
   (*pool->class->finish)(pool);
 
-  /* Detach the pool from the arena, and unsig it. */
+  /* Detach the pool from the arena and format, and unsig it. */
   RingRemove(&pool->arenaRing);
+  if (pool->format) {
+    RingRemove(&pool->formatRing);
+  }
   pool->sig = SigInvalid;
  
+  RingFinish(&pool->formatRing);
   RingFinish(&pool->segRing);
   RingFinish(&pool->bufferRing);
   RingFinish(&pool->arenaRing);
