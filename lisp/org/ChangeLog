@@ -1258,7 +1258,7 @@
 	* org-habit.el (org-habit-parse-todo): Match all TODO keywords,
 	not just "TODO".
 
-2013-01-07  U-usuario  <rbenit68@yahoo.es>  (tiny change)
+2013-01-07  Miguel Ruiz  <rbenit68@yahoo.es>  (tiny change)
 
 	* ob-gnuplot.el (org-babel-gnuplot-quote-tsv-field): Fix code
 	typo.
