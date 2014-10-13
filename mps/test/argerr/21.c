@@ -1,9 +1,11 @@
 /* 
 TEST_HEADER
  id = $Id$
- summary = UNALIGNED 1st arg to mps_alloc
+ summary = UNALIGNED 1st arg to mps_alloc (MFS)
  language = c
  link = testlib.o
+OUTPUT_SPEC
+ abort = true
 END_HEADER
 */
 
@@ -20,7 +22,6 @@ static void test(void)
  mps_thr_t thread;
 
  size_t mysize;
- mps_addr_t a;
 
  cdie(mps_arena_create(&arena, mps_arena_class_vm(), mmqaArenaSIZE), "create arena");
 

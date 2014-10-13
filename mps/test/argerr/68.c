@@ -4,6 +4,10 @@ TEST_HEADER
  summary = null thr_t to thread_reg
  language = c
  link = testlib.o
+OUTPUT_SPEC
+ assert = true
+ assertfile P= mpsi.c
+ assertcond = mps_thr_o != NULL
 END_HEADER
 */
 

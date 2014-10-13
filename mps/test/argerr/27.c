@@ -1,9 +1,11 @@
 /* 
 TEST_HEADER
  id = $Id$
- summary = unaligned 1st arg to mps_free
+ summary = unaligned 1st arg to mps_free (MFS)
  language = c
  link = testlib.o
+OUTPUT_SPEC
+ abort = true
 END_HEADER
 */
 

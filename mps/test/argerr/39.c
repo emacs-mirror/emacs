@@ -4,6 +4,10 @@ TEST_HEADER
  summary = zero unitSize for pool_create (MFS)
  language = c
  link = testlib.o
+OUTPUT_SPEC
+ assert = true
+ assertfile P= poolmfs.c
+ assertcond = unitSize > 0
 END_HEADER
 */
 

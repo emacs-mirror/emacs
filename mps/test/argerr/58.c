@@ -4,6 +4,10 @@ TEST_HEADER
  summary = zero size to mps_reserve
  language = c
  link = testlib.o newfmt.o
+OUTPUT_SPEC
+ assert = true
+ assertfile P= mpsi.c
+ assertcond = size > 0
 END_HEADER
 */
 
@@ -51,7 +55,7 @@ static void test(void)
 
  cdie(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
 
- ddie(
+ cdie(
   mps_pool_create(&pool, arena, mps_class_amc(), format, chain),
   "create pool");
 

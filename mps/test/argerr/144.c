@@ -4,6 +4,10 @@ TEST_HEADER
  summary = null root_t for mps_root_destroy
  language = c
  link = testlib.o
+OUTPUT_SPEC
+ assert = true
+ assertfile P= root.c
+ assertcond = TESTT(Root, root)
 END_HEADER
 */
 

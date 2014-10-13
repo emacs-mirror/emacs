@@ -4,6 +4,8 @@ TEST_HEADER
  summary = UNALIGNED thr_t to thread_dereg
  language = c
  link = testlib.o
+OUTPUT_SPEC
+ abort = true
 END_HEADER
 */
 

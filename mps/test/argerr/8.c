@@ -4,6 +4,10 @@ TEST_HEADER
  summary = NULL arg to fmt_destroy
  language = c
  link = testlib.o newfmt.o
+OUTPUT_SPEC
+ assert = true
+ assertfile P= mpsi.c
+ assertcond = TESTT(Format, format)
 END_HEADER
 */
 
@@ -17,7 +21,6 @@ void *stackpointer;
 static void test(void)
 {
  mps_arena_t arena;
- mps_pool_t pool;
  mps_thr_t thread;
  mps_root_t root;
 

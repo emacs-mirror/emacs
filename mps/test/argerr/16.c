@@ -4,6 +4,10 @@ TEST_HEADER
  summary = NULL 4th arg to pool_create
  language = c
  link = testlib.o newfmt.o
+OUTPUT_SPEC
+ assert = true
+ assertfile P= arg.c
+ assertcond = SigCheck Format: arg->val.format
 END_HEADER
 */
 

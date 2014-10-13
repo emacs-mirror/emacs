@@ -4,6 +4,8 @@ TEST_HEADER
  summary = UNALIGNED thread for mps_root_create_reg
  language = c
  link = testlib.o
+OUTPUT_SPEC
+ abort = true
 END_HEADER
 */
 

@@ -4,6 +4,10 @@ TEST_HEADER
  summary = destroy an arena with an null arena_t
  language = c
  link = testlib.o
+OUTPUT_SPEC
+ assert = true
+ assertfile P= global.c
+ assertcond = TESTT(Arena, arena)
 END_HEADER
 */
 

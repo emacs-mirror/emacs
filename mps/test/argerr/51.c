@@ -4,11 +4,15 @@ TEST_HEADER
  summary = highbit set rank to mps_ap_create
  language = c
  link = testlib.o newfmt.o
+OUTPUT_SPEC
+ assert = true
+ assertfile P= ref.c
+ assertcond = rank < RankLIMIT
 END_HEADER
 */
 
 #include "testlib.h"
-#include "mpscamc.h"
+#include "mpscawl.h"
 #include "newfmt.h"
 #include "arg.h"
 
@@ -47,8 +51,8 @@ static void test(void)
 
  cdie(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
 
- ddie(
-  mps_pool_create(&pool, arena, mps_class_amc(), format, chain),
+ cdie(
+  mps_pool_create(&pool, arena, mps_class_awl(), format, chain),
   "create pool");
 
  cdie(
