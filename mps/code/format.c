@@ -22,6 +22,7 @@ Bool FormatCheck(Format format)
   CHECKU(Arena, format->arena);
   CHECKL(format->serial < format->arena->formatSerial);
   CHECKD_NOSIG(Ring, &format->arenaRing);
+  CHECKD_NOSIG(Ring, &format->poolRing);
   CHECKL(AlignCheck(format->alignment));
   /* TODO: Define the concept of the maximum alignment it is possible to
      request from the MPS, document and provide an interface to it, and then
@@ -141,6 +142,7 @@ Res FormatCreate(Format *formatReturn, Arena arena, ArgList args)
 
   format->arena = arena;
   RingInit(&format->arenaRing);
+  RingInit(&format->poolRing);
   format->alignment = fmtAlign;
   format->headerSize = fmtHeaderSize;
   format->scan = fmtScan;
@@ -168,12 +170,14 @@ Res FormatCreate(Format *formatReturn, Arena arena, ArgList args)
 void FormatDestroy(Format format)
 {
   AVERT(Format, format);
+  AVER(RingIsSingle(&format->poolRing));
 
   RingRemove(&format->arenaRing);
 
   format->sig = SigInvalid;
  
   RingFinish(&format->arenaRing);
+  RingFinish(&format->poolRing);
 
   ControlFree(format->arena, format, sizeof(FormatStruct));
 }
