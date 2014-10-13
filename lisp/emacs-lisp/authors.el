@@ -121,6 +121,7 @@ files.")
     ("Mikio Nakajima" "Nakajima Mikio")
     ("Nelson Jose dos Santos Ferreira" "Nelson Ferreira")
     ("Noorul Islam" "Noorul Islam K M")
+;;;    ("Tetsurou Okazaki" "OKAZAKI Tetsurou") ; FIXME?
     ("Paul Eggert" "Paul R\\. Eggert")
     ("Pavel Janík" "Pavel Janík Ml." "Pavel Janik Ml." "Pavel Janik")
     ("Pavel Kobiakov" "Pavel Kobyakov")
@@ -143,6 +144,7 @@ files.")
     ("Sam Steingold" "Sam Shteingold")
     ("Satyaki Das" "Indexed search by Satyaki Das")
     ("Sébastien Vauban" "Sebastien Vauban")
+    ("Sergey Litvinov" "Litvinov Sergey")
     ;; There are other Stefans.
 ;;;    ("Stefan Monnier" "Stefan")
     ("Steven L. Baur" "SL Baur" "Steven L Baur")
@@ -178,11 +180,13 @@ If REALNAME is nil, ignore that author.")
 
 ;; FIXME seems it would be less fragile to check for O', Mc, etc.
 (defconst authors-fixed-case
-  '("Brian van den Broek"
+  '("Barry O'Reilly"
+    "Brian van den Broek"
     "Bryan O'Sullivan"
     "Christian von Roques"
     "Christophe de Dinechin"
     "Craig McDaniel"
+    "Daniel LaLiberte"
     "David J. MacKenzie"
     "David McCabe"
     "David O'Toole"
@@ -190,12 +194,16 @@ If REALNAME is nil, ignore that author.")
     "Dominique de Waleffe"
     "Edward O'Connor"
     "Exal de Jesus Garcia Carrillo"
+    "George McNinch"
     "Greg McGary"
     "Hans de Graaff"
+    "Ivan Vilata i Balaguer"
+    "Jae-hyeon Park"
     "James TD Smith"
     "Jay McCarthy"
     "Joel N. Weber II"
     "Matt McClure"
+    "Mike McLean"
     "Michael McNamara"
     "Mike McEwan"
     "Nelson Jose dos Santos Ferreira"
@@ -203,10 +211,13 @@ If REALNAME is nil, ignore that author.")
     "Peter O'Gorman"
     "Piet van Oostrum"
     "Roland McGrath"
+    "Santiago Payà i Miralta"
     "Sean O'Halpin"
     "Sean O'Rourke"
+    "Shun-ichi Goto"
     "Thomas DeWeese"
-    "Tijs van Bakel")
+    "Tijs van Bakel"
+    "Yu-ji Hosokawa")
   "List of authors whose names cannot be simply capitalized.")
 
 (defvar authors-public-domain-files
@@ -231,6 +242,7 @@ If REALNAME is nil, ignore that author.")
   '(".*loaddefs.el$"			; not obsolete, but auto-generated
     "\\.\\(cvs\\|git\\)ignore$"		; obsolete or uninteresting
     "\\.arch-inventory$"
+    "automated/data"		   ; not interesting
     ;; TODO lib/? Matches other things?
     "build-aux/" "m4/" "Emacs.xcodeproj" "mapfiles" "\\.map\\'"
     "preferences\\.\\(nib\\|gorm\\)"
@@ -239,6 +251,11 @@ If REALNAME is nil, ignore that author.")
 gnus-booklet\\|fr-drdref\\)\\.p\\(df\\|s\\)\\'")
   "List of regexps matching obsolete files.
 Changes to files matching one of the regexps in this list are not listed.")
+
+(defconst authors-no-scan-regexps
+  '("etc/nxml/"
+    "automated/data")
+  "Lists of regexps matching files not to scan for authorship.")
 
 (defconst authors-ignored-files
   '("external-lisp"
@@ -1052,6 +1069,15 @@ from `authors-obsolete-files-regexps'."
 	    regexps (cdr regexps)))
     obsolete-p))
 
+(defun authors-no-scan-file-p (file)
+  "Return non-nil if FILE should not be scanned.
+FILE is not scanned if it matches any of `authors-no-scan-regexps'."
+  (let (no-scan-p
+	(regexps authors-no-scan-regexps))
+    (while (and regexps (not no-scan-p))
+      (setq no-scan-p (string-match-p (car regexps) file)
+	    regexps (cdr regexps)))
+    no-scan-p))
 
 (defun authors-add (author file action table)
   "Record that AUTHOR worked on FILE.
@@ -1283,8 +1309,9 @@ buffer *Authors Errors* containing references to unknown files."
 	(authors-scan-change-log log table)))
     (let ((els (process-lines find-program root "-name" "*.el")))
       (dolist (file els)
-	(message "Scanning %s..." file)
-	(authors-scan-el file table)))
+	(unless (authors-no-scan-file-p file)
+	  (message "Scanning %s..." file)
+	  (authors-scan-el file table))))
     (message "Generating buffer %s..." buffer-name)
     (set-buffer (get-buffer-create buffer-name))
     (erase-buffer)
