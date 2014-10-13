@@ -216,7 +216,7 @@ sub verdict {
  $testconclusion = "PASS";
  $testconcreason = "";
 
- foreach $key (keys %spec_output) {
+ foreach $key (sort keys %spec_output) {
    $ope = $spec_rel{$key};
    $spe = $spec_output{$key};
   if (defined($real_output{$key})) {
