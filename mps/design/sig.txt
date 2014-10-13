@@ -149,7 +149,7 @@ Tools
 -----
 _`.test.uniq`: The Unix command::
 
-    grep -oh '^#define \w*Sig\b' code/*.[ch] | sort | uniq -c
+    sed -n '/^#define [a-zA-Z]*Sig/s/[^(]*(/(/p' code/*.[ch] | sort | uniq -c
 
 will display all signatures defined in the MPS along with a count of how
 many times they are defined.  If any counts are greater than 1, then the
