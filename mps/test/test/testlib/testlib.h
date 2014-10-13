@@ -6,6 +6,8 @@ test_lib.h
 #ifndef testlib_h
 #define testlib_h
 
+#include <stdlib.h>
+
 #include "mmqasym.h"
 #ifndef MMQA_HEADER_mps
 #error Header file mps.h not found
