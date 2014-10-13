@@ -242,7 +242,7 @@ If REALNAME is nil, ignore that author.")
   '(".*loaddefs.el$"			; not obsolete, but auto-generated
     "\\.\\(cvs\\|git\\)ignore$"		; obsolete or uninteresting
     "\\.arch-inventory$"
-    "automated/data"		   ; not interesting
+    "automated/data/"		   ; not interesting
     ;; TODO lib/? Matches other things?
     "build-aux/" "m4/" "Emacs.xcodeproj" "mapfiles" "\\.map\\'"
     "preferences\\.\\(nib\\|gorm\\)"
@@ -254,7 +254,7 @@ Changes to files matching one of the regexps in this list are not listed.")
 
 (defconst authors-no-scan-regexps
   '("etc/nxml/"
-    "automated/data")
+    "automated/data/")
   "Lists of regexps matching files not to scan for authorship.")
 
 (defconst authors-ignored-files
