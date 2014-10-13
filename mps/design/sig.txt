@@ -101,18 +101,24 @@ Do not do anything else with signatures.  See `.rule.purpose`_.
 
 Checking
 --------
-The signature is checked in various ways.  Every function that takes a
-(pointer to) a signed structure should check its argument using the
-``AVERT`` macro.  This macro has different definitions depending on how
-the MPS is compiled (see design.mps.config.def.var_).  It may simply check
-the signature directly, or call the full checking function for the
-structure.
+_`.check.arg`: Every function that takes a pointer to a signed
+structure should check its argument.
+
+_`.check.arg.unlocked`: A function that does not hold the arena lock
+should check the argument using ``AVER(TESTT(type, val))``, which
+checks that ``val->sig`` is the correct signature for ``type``.
+
+_`.check.arg.locked`: A function that holds the arena lock should
+check the argument using the ``AVERT`` macro. This macro has different
+definitions depending on how the MPS is compiled (see
+`design.mps.config.def.var`_). It may simply check the signature, or
+call the full checking function for the structure.
 
 .. _design.mps.config.def.var: config#def-var
 
-The checking function for the structure should also validate the
-signature as its first step using the ``CHECKS()`` macro (see
-check.h_). For example::
+_`.check.sig`: The checking function for the structure should also
+validate the signature as its first step using the ``CHECKS()`` macro
+(see `check.h`_). For example::
 
     Bool MessageCheck(Message message)
     {
@@ -126,6 +132,7 @@ wrong type, an uninitialized object, or a dead object, or a random
 pointer into a function.
 
 .. _check.h: ../code/check.h
+
 
 Rules
 -----
@@ -142,7 +149,7 @@ Tools
 -----
 _`.test.uniq`: The Unix command::
 
-    sed -n '/^#define [a-zA-Z]*Sig/s/[^(]*(/(/p' code/*.[ch] | sort | uniq -c
+    grep -oh '^#define \w*Sig\b' code/*.[ch] | sort | uniq -c
 
 will display all signatures defined in the MPS along with a count of how
 many times they are defined.  If any counts are greater than 1, then the
