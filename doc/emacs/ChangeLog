@@ -1,3 +1,7 @@
+2014-10-13  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (dist): Update for new output variables.
+
 2014-10-12  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* macos.texi (Mac OS / GNUstep, Mac / GNUstep Basics)
