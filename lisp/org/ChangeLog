@@ -1,3 +1,18 @@
+2014-10-12  Marco Wahl  <marcowahlsoft@gmail.com>
+
+        * org-agenda.el (org-get-entries-from-diary): Use
+	`diary-fancy-display' instead of the obsolete
+	`diary-display-hook'.
+
+2014-10-12  Nicolas Goaziou  <mail@nicolasgoaziou.fr>
+
+        * ox.el (org-export-async-start): Limit first argument to lambda
+	expressions.
+
+        * ox-publish.el (org-publish, org-publish-all)
+	(org-publish-current-file): Replace `ignore', per limit stated
+	above.
+
 2014-10-12  Christopher Schmidt  <ch@ristopher.com>
 
 	* org.el (orgstruct-make-binding): Do not use loop in interpreted code.
@@ -1268,7 +1283,7 @@
 	* org-habit.el (org-habit-parse-todo): Match all TODO keywords,
 	not just "TODO".
 
-2013-01-07  U-usuario  <rbenit68@yahoo.es>  (tiny change)
+2013-01-07  Miguel Ruiz  <rbenit68@yahoo.es>  (tiny change)
 
 	* ob-gnuplot.el (org-babel-gnuplot-quote-tsv-field): Fix code
 	typo.

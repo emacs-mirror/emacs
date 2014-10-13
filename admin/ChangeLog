@@ -1,3 +1,11 @@
+2014-10-13  Glenn Morris  <rgm@gnu.org>
+
+	* authors.el (authors-aliases, authors-fixed-case)
+	(authors-obsolete-files-regexps): Additions.
+	(authors-no-scan-regexps): New constant.
+	(authors-no-scan-file-p): New function.
+	(authors): Respect authors-no-scan-file-p.
+
 2014-10-12  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix putenv race conditions with undefined behavior (Bug#8705).
