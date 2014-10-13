@@ -200,7 +200,6 @@ typedef struct SNCSegStruct *SNCSeg;
 typedef struct SNCSegStruct {
   GCSegStruct gcSegStruct;  /* superclass fields must come first */
   SNCSeg next;              /* Next segment in chain, or NULL */
-  Bool free;                /* Segment is free? */
   Sig sig;
 } SNCSegStruct;
 
@@ -211,9 +210,6 @@ typedef struct SNCSegStruct {
 #define sncSegSetNext(seg, nextseg) \
   ((void)(SegSNCSeg(seg)->next = SegSNCSeg(nextseg)))
 
-#define sncSegFree(seg) RVALUE(SegSNCSeg(seg)->free)
-#define sncSegSetFree(seg, _free) ((void)(SegSNCSeg(seg)->free = (_free)))
-
 ATTRIBUTE_UNUSED
 static Bool SNCSegCheck(SNCSeg sncseg)
 {
@@ -222,7 +218,6 @@ static Bool SNCSegCheck(SNCSeg sncseg)
   if (NULL != sncseg->next) {
     CHECKS(SNCSeg, sncseg->next);
   }
-  CHECKL(BoolCheck(sncseg->free));
   return TRUE;
 }
 
@@ -249,7 +244,6 @@ static Res sncSegInit(Seg seg, Pool pool, Addr base, Size size,
     return res;
 
   sncseg->next = NULL;
-  sncseg->free = TRUE;
   sncseg->sig = SNCSegSig;
   AVERT(SNCSeg, sncseg);
   return ResOK;
@@ -277,7 +271,6 @@ static void sncRecordAllocatedSeg(Buffer buffer, Seg seg)
   AVERT(Seg, seg);
   AVER(sncSegNext(seg) == NULL);
 
-  sncSegSetFree(seg, FALSE);
   sncSegSetNext(seg, sncBufferTopSeg(buffer));
   sncBufferSetTopSeg(buffer, seg);
 }
@@ -296,7 +289,9 @@ static void sncRecordFreeSeg(SNC snc, Seg seg)
   SegSetGrey(seg, TraceSetEMPTY);
   SegSetRankAndSummary(seg, RankSetEMPTY, RefSetEMPTY);
 
-  sncSegSetFree(seg, TRUE);
+  /* Pad the whole segment so we don't try to walk it. */
+  (*SNCPool(snc)->format->pad)(SegBase(seg), SegSize(seg));
+
   sncSegSetNext(seg, snc->freeSegs);
   snc->freeSegs = seg;
 }
@@ -678,7 +673,7 @@ static void SNCWalk(Pool pool, Seg seg, FormattedObjectsVisitor f,
 
   /* Avoid applying the function to grey objects. */
   /* They may have pointers to old-space. */
-  if (SegGrey(seg) == TraceSetEMPTY && !sncSegFree(seg)) {
+  if (SegGrey(seg) == TraceSetEMPTY) {
     Addr object = SegBase(seg);
     Addr nextObject;
     Addr limit;
