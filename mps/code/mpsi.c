@@ -928,7 +928,7 @@ mps_bool_t (mps_commit)(mps_ap_t mps_ap, mps_addr_t p, size_t size)
   AVER(p != NULL);
   AVER(size > 0);
   AVER(p == mps_ap->init);
-  AVER((void *)((char *)mps_ap->init + size) == mps_ap->alloc);
+  AVER(PointerAdd(mps_ap->init, size) == mps_ap->alloc);
 
   return mps_commit(mps_ap, p, size);
 }
