@@ -20,7 +20,7 @@ TYPES = '''
 
     AccessSet Accumulation Addr Align AllocFrame AllocPattern AP Arg
     Arena Attr Bool BootBlock BT Buffer BufferMode Byte Chain Chunk
-    Clock Compare Count Epoch FindDelete Format FrameState Fun GenDesc
+    Clock Compare Count Epoch FindDelete Format Fun GenDesc
     Globals Index Land LD Lock LocusPref LocusPrefKind Message
     MessageType MutatorFaultContext Page Pointer Pool PoolGen
     PThreadext Range Rank RankSet ReadonlyAddr Ref RefSet Res

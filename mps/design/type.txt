@@ -277,29 +277,6 @@ Value                 Description
 ====================  ==================================================
 
 
-``typedef unsigned FrameState``
-
-_`.framestate`: ``FrameState`` represents the current state in a
-buffer frame's lifecycle. See design.mps.alloc-frame_. It takes one of
-the following values:
-
-.. _design.mps.alloc-frame: alloc-frame
-
-==========================  ============================================
-State                       Description
-==========================  ============================================
-``BufferFrameVALID``        Indicates that ``PushFrame()`` can be a
-                            lightweight operation and need not be
-                            synchronized.
-``BufferFramePOP_PENDING``  Indicates that there has been a
-                            ``PopFrame()`` operation that the pool
-                            must respond to.
-``BufferFrameDISABLED``     Indicates that the pool has disabled
-                            support for lightweight operations for
-                            this buffer.
-==========================  ============================================
-
-
 ``typedef void (*Fun)(void)``
 
 _`.fun`: ``Fun`` is the type of a pointer to a function about which

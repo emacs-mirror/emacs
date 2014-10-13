@@ -71,7 +71,6 @@ typedef struct BufferClassStruct *BufferClass; /* <design/buffer/> */
 typedef BufferClass SegBufClass;        /* <design/buffer/> */
 typedef BufferClass RankBufClass;       /* <design/buffer/> */
 typedef unsigned BufferMode;            /* <design/buffer/> */
-typedef unsigned FrameState;            /* <design/alloc-frame/> */
 typedef struct mps_fmt_s *Format;       /* design.mps.format */
 typedef struct LockStruct *Lock;        /* <code/lock.c>* */
 typedef struct mps_pool_s *Pool;        /* <design/pool/> */

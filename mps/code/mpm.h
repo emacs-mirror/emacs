@@ -805,8 +805,6 @@ extern void BufferRampReset(Buffer buffer);
 
 extern Res BufferFramePush(AllocFrame *frameReturn, Buffer buffer);
 extern Res BufferFramePop(Buffer buffer, AllocFrame frame);
-extern FrameState BufferFrameState(Buffer buffer);
-extern void BufferFrameSetState(Buffer buffer, FrameState state);
 
 
 /* DEFINE_BUFFER_CLASS -- define a buffer class */
