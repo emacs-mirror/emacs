@@ -1,7 +1,7 @@
 /* 
 TEST_HEADER
  id = $Id$
- summary = reserve twice without committing
+ summary = reserve (macro) twice without committing
  language = c
  link = myfmt.o testlib.o
 END_HEADER

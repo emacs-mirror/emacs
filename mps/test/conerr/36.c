@@ -4,6 +4,10 @@ TEST_HEADER
  summary = destroy AP between reserve and commit
  language = c
  link = myfmt.o testlib.o
+OUTPUT_SPEC
+ assert = true
+ assertfile P= buffer.c
+ assertcond = BufferIsReady(buffer)
 END_HEADER
 */
 

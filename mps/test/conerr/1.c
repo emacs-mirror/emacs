@@ -4,6 +4,8 @@ TEST_HEADER
  summary = destroy an arena without creating it
  language = c
  link = testlib.o
+OUTPUT_SPEC
+ abort = true
 END_HEADER
 */
 
@@ -11,7 +13,7 @@ END_HEADER
 
 static void test(void)
 {
- mps_arena_t arena;
+  mps_arena_t arena = (mps_arena_t)1;
 
  mps_arena_destroy(arena);
  comment("Destroy arena.");

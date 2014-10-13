@@ -4,6 +4,8 @@ TEST_HEADER
  summary = deregister thread without registering it first
  language = c
  link = myfmt.o testlib.o
+OUTPUT_SPEC
+ abort = true
 END_HEADER
 */
 
@@ -16,7 +18,7 @@ void *stackpointer;
 static void test(void)
 {
  mps_arena_t arena;
- mps_thr_t thread;
+ mps_thr_t thread = (mps_thr_t)1;
 
  cdie(mps_arena_create(&arena, mps_arena_class_vm(), mmqaArenaSIZE), "create arena");
 
