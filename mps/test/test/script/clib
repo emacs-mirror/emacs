@@ -361,8 +361,10 @@ sub listFileSymbols {
   die "Failed to open $infile.\n";
  }
  while (<IN>) {
-  while (s/((mps|MPS)_\w+)/ /) {
-   push @symbols, $1;
+  unless (/^\/\*/ .. /\*\/$/) {
+   while (/\b((mps|MPS)_\w+\b)/g) {
+    push @symbols, $1;
+   }
   }
  }
  close(IN);
