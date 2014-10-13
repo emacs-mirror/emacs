@@ -1224,7 +1224,7 @@ in *Help* buffer.  See also the command `describe-char'."
 	  ;; embedding, which eliminates any effects on the rest of
 	  ;; the line.  For RLE and RLO we also append an invisible
 	  ;; LRM, to avoid reordering the following numerical
-	  ;; characters.
+	  ;; characters.  For LRI/RLI/FSI we append a PDI.
 	  (cond ((memq char '(?\x202a ?\x202d))
 		 (propertize (string ?\x202c) 'invisible t))
 		((memq char '(?\x202b ?\x202e))
