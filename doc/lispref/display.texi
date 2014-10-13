@@ -6552,7 +6552,8 @@ position.  In performing this @dfn{bidirectional reordering}, Emacs
 follows the Unicode Bidirectional Algorithm (a.k.a.@: @acronym{UBA}),
 which is described in Annex #9 of the Unicode standard
 (@url{http://www.unicode.org/reports/tr9/}).  Emacs provides a ``Full
-Bidirectionality'' class implementation of the @acronym{UBA}.
+Bidirectionality'' class implementation of the @acronym{UBA},
+consistent with the requirements of the Unicode Standard v7.0.
 
 @defvar bidi-display-reordering
 If the value of this buffer-local variable is non-@code{nil} (the
