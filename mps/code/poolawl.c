@@ -576,6 +576,7 @@ static Res AWLInit(Pool pool, ArgList args)
 
   AVERT(Format, format);
   pool->format = format;
+  RingAppend(&format->poolRing, &pool->formatRing);
   pool->alignment = format->alignment;
 
   AVER(FUNCHECK(findDependent));
