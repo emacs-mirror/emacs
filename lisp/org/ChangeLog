@@ -1,3 +1,18 @@
+2014-10-12  Marco Wahl  <marcowahlsoft@gmail.com>
+
+        * org-agenda.el (org-get-entries-from-diary): Use
+	`diary-fancy-display' instead of the obsolete
+	`diary-display-hook'.
+
+2014-10-12  Nicolas Goaziou  <mail@nicolasgoaziou.fr>
+
+        * ox.el (org-export-async-start): Limit first argument to lambda
+	expressions.
+
+        * ox-publish.el (org-publish, org-publish-all)
+	(org-publish-current-file): Replace `ignore', per limit stated
+	above.
+
 2014-10-12  Christopher Schmidt  <ch@ristopher.com>
 
 	* org.el (orgstruct-make-binding): Do not use loop in interpreted
