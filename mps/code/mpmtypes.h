@@ -226,8 +226,6 @@ typedef Res (*PoolFramePushMethod)(AllocFrame *frameReturn,
                                    Pool pool, Buffer buf);
 typedef Res (*PoolFramePopMethod)(Pool pool, Buffer buf,
                                   AllocFrame frame);
-typedef void (*PoolFramePopPendingMethod)(Pool pool, Buffer buf,
-                                          AllocFrame frame);
 typedef Res (*PoolAddrObjectMethod)(Addr *pReturn,
                                     Pool pool, Seg seg, Addr addr);
 typedef void (*PoolWalkMethod)(Pool pool, Seg seg, FormattedObjectsVisitor f,
@@ -319,14 +317,6 @@ enum {
 #define BufferModeFLIPPED       ((BufferMode)(1<<1))
 #define BufferModeLOGGED        ((BufferMode)(1<<2))
 #define BufferModeTRANSITION    ((BufferMode)(1<<3))
-
-
-/* Buffer frame states. See <design/alloc-frame/#lw-frame.states> */
-enum {
-  BufferFrameVALID = 1,
-  BufferFramePOP_PENDING,
-  BufferFrameDISABLED
-};
 
 
 /* Rank constants -- see <design/type/#rank> */

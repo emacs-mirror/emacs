@@ -273,8 +273,6 @@ extern Res PoolNoFramePush(AllocFrame *frameReturn, Pool pool, Buffer buf);
 extern Res PoolTrivFramePush(AllocFrame *frameReturn, Pool pool, Buffer buf);
 extern Res PoolNoFramePop(Pool pool, Buffer buf, AllocFrame frame);
 extern Res PoolTrivFramePop(Pool pool, Buffer buf, AllocFrame frame);
-extern void PoolNoFramePopPending(Pool pool, Buffer buf, AllocFrame frame);
-extern void PoolTrivFramePopPending(Pool pool, Buffer buf, AllocFrame frame);
 extern Res PoolNoAddrObject(Addr *pReturn, Pool pool, Seg seg, Addr addr);
 extern void PoolNoWalk(Pool pool, Seg seg, FormattedObjectsVisitor f,
                        void *p, size_t s);
@@ -800,7 +798,6 @@ extern Addr BufferScanLimit(Buffer buffer);
 extern void BufferReassignSeg(Buffer buffer, Seg seg);
 
 extern Bool BufferIsTrapped(Buffer buffer);
-extern Bool BufferIsTrappedByMutator(Buffer buffer);
 
 extern void BufferRampBegin(Buffer buffer, AllocPattern pattern);
 extern Res BufferRampEnd(Buffer buffer);

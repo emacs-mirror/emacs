@@ -462,8 +462,6 @@ found:
   AVERT(Seg, seg);
   /* put the segment on the buffer chain */
   sncRecordAllocatedSeg(buffer, seg);
-  /* Permit the use of lightweight frames - .lw-frame-state */
-  BufferFrameSetState(buffer, BufferFrameVALID);
   *baseReturn = SegBase(seg);
   *limitReturn = SegLimit(seg);
   return ResOK;
@@ -485,9 +483,6 @@ static void SNCBufferEmpty(Pool pool, Buffer buffer,
   AVER(SegLimit(seg) == limit);
   snc = PoolSNC(pool);
   AVERT(SNC, snc);
-  AVER(BufferFrameState(buffer) == BufferFrameVALID);
-  /* .lw-frame-state */
-  BufferFrameSetState(buffer, BufferFrameDISABLED);
 
   arena = BufferArena(buffer);
 
@@ -503,7 +498,7 @@ static void SNCBufferEmpty(Pool pool, Buffer buffer,
 
 /* SNCScanLimit -- limit of scannable objects in segment */
 
-static Addr SNCScanLimit(Arena arena, Seg seg)
+static Addr SNCScanLimit(Seg seg)
 {
   Addr limit;
   Buffer buf;
@@ -511,27 +506,9 @@ static Addr SNCScanLimit(Arena arena, Seg seg)
   if (buf == NULL) {
     /* Segment is unbuffered: entire segment scannable */
     limit = SegLimit(seg);
-  } else if (BufferFrameState(buf) != BufferFramePOP_PENDING) {
-    /* No pop pending: scannable up to limit of initialized objects. */
-    limit = BufferScanLimit(buf);
   } else {
-    Addr addr = (Addr)buf->ap_s._frameptr;
-    if (addr == NULL) {
-      /* Pop pending to bottom of stack */
-      limit = BufferBase(buf);
-    } else {
-      Seg popSeg;
-      Bool foundSeg = SegOfAddr(&popSeg, arena, addr);
-      AVER(foundSeg);
-      if (popSeg == seg) {
-        /* Pop pending to address in same segment */
-        AVER(addr <= BufferScanLimit(buf));  /* check direction of pop */
-        limit = addr;
-      } else {
-        /* Pop pending to address in different segment */
-        limit = BufferBase(buf);
-      }
-    }
+    /* Segment is buffered: scannable up to limit of initialized objects. */
+    limit = BufferScanLimit(buf);
   }
   return limit;
 }
@@ -553,7 +530,7 @@ static Res SNCScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
 
   format = pool->format;
   base = SegBase(seg);
-  limit = SNCScanLimit(PoolArena(pool), seg);
+  limit = SNCScanLimit(seg);
  
   if (base < limit) {
     res = (*format->scan)(&ss->ss_s, base, limit);
@@ -575,16 +552,11 @@ static Res SNCScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
 
 static Res SNCFramePush(AllocFrame *frameReturn, Pool pool, Buffer buf)
 {
-  FrameState state;
   AVER(frameReturn != NULL);
   AVERT(Pool, pool);
   AVERT(Buffer, buf);
 
-  state = BufferFrameState(buf);
-  /* Should have been notified of pending pops before this */
-  AVER(state == BufferFrameVALID || state == BufferFrameDISABLED);
-  if (state == BufferFrameDISABLED) {
-    AVER(BufferIsReset(buf));  /* The buffer must be reset */
+  if (BufferIsReset(buf)) {
     AVER(sncBufferTopSeg(buf) == NULL);  /* The stack must be empty  */
     /* Use NULL to indicate an empty stack. .lw-frame-null */
     *frameReturn = NULL;
@@ -609,7 +581,7 @@ static Res SNCFramePush(AllocFrame *frameReturn, Pool pool, Buffer buf)
 }
 
 
-static void SNCFramePopPending(Pool pool, Buffer buf, AllocFrame frame)
+static Res SNCFramePop(Pool pool, Buffer buf, AllocFrame frame)
 {
   Addr addr;
   SNC snc;
@@ -618,8 +590,6 @@ static void SNCFramePopPending(Pool pool, Buffer buf, AllocFrame frame)
   /* frame is an Addr and can't be directly checked */
   snc = PoolSNC(pool);
   AVERT(SNC, snc);
-
-  AVER(BufferFrameState(buf) == BufferFrameVALID);
  
   if (frame == NULL) {
     /* corresponds to a pop to bottom of stack. .lw-frame-null */
@@ -646,19 +616,9 @@ static void SNCFramePopPending(Pool pool, Buffer buf, AllocFrame frame)
       BufferDetach(buf, pool);
       sncPopPartialSegChain(snc, buf, seg);
       BufferAttach(buf, SegBase(seg), SegLimit(seg), addr, (Size)0);
-      /* Permit the use of lightweight frames - .lw-frame-state */
-      BufferFrameSetState(buf, BufferFrameVALID);
     }
   }
-}
 
-
-static Res SNCFramePop(Pool pool, Buffer buf, AllocFrame frame)
-{
-  AVERT(Pool, pool);
-  AVERT(Buffer, buf);
-  BufferFrameSetState(buf, BufferFrameVALID);
-  SNCFramePopPending(pool, buf, frame);
   return ResOK;
 }
 
@@ -683,7 +643,7 @@ static void SNCWalk(Pool pool, Seg seg, FormattedObjectsVisitor f,
     snc = PoolSNC(pool);
     AVERT(SNC, snc);
     format = pool->format;
-    limit = SNCScanLimit(PoolArena(pool), seg);
+    limit = SNCScanLimit(seg);
 
     while(object < limit) {
       (*f)(object, format, pool, p, s);
@@ -759,7 +719,6 @@ DEFINE_POOL_CLASS(SNCPoolClass, this)
   this->scan = SNCScan;
   this->framePush = SNCFramePush;
   this->framePop = SNCFramePop;
-  this->framePopPending = SNCFramePopPending;
   this->walk = SNCWalk;
   this->bufferClass = SNCBufClassGet;
   this->totalSize = SNCTotalSize;
