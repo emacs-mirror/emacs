@@ -448,6 +448,12 @@ relevant to POS."
 	(setq char-description
 	      (concat char-description
 		      (propertize (string ?\x202c ?\x200e) 'invisible t))))
+       ;; Append a PDI character to directional isolate initiators, to
+       ;; prevent potential messup of the following numerical text
+       ((memq char '(?\x2066 ?\x2067 ?\x2068))
+	(setq char-description
+	      (concat char-description
+		      (propertize (string ?\x2069) 'invisible t))))
        ;; Append a LRM character to any strong character to avoid
        ;; messing up the numerical codepoint.
        ((memq (get-char-code-property char 'bidi-class) '(R AL))

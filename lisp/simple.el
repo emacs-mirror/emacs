@@ -1229,6 +1229,8 @@ in *Help* buffer.  See also the command `describe-char'."
 		 (propertize (string ?\x202c) 'invisible t))
 		((memq char '(?\x202b ?\x202e))
 		 (propertize (string ?\x202c ?\x200e) 'invisible t))
+		((memq char '(?\x2066 ?\x2067 ?\x2068))
+		 (propertize (string ?\x2069) 'invisible t))
 		;; Strong right-to-left characters cause reordering of
 		;; the following numerical characters which show the
 		;; codepoint, so append LRM to countermand that.
