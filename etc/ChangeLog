@@ -1,3 +1,7 @@
+2014-10-13  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* NEWS: Move and clarify OSX >= 10.6.
+
 2014-10-12  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* NEWS: OSX required is 10.6 or newer.

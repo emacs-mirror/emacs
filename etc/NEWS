@@ -36,9 +36,6 @@ should be able to work around the problem either by porting the Emacs
 undumping code to GCC under IRIX, or by configuring --with-wide-int,
 or by sticking with Emacs 24.4.
 
-** Building Emacs on OSX now requires 10.6 or newer.
-That also means that PowerPC is not supported.
-
 ---
 ** The configure option `--with-pkg-config-prog' has been removed.
 Use './configure PKG_CONFIG=/full/name/of/pkg-config' if you need to.
@@ -376,6 +373,8 @@ fullwidth frames, the behavior may depend on the toolkit used.
 or Windows Server 2003.  The built binaries still run on all versions
 of Windows starting with Windows 9X.
 
+** Building Emacs on OSX with Coca (--with-ns) now requires 10.6 or newer.
+PowerPC on OSX is not supported.
 
 
 ----------------------------------------------------------------------
