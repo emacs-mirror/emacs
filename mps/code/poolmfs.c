@@ -94,6 +94,8 @@ static Res MFSInit(Pool pool, ArgList args)
   if (ArgPick(&arg, args, MFSExtendSelf))
     extendSelf = arg.val.b;
 
+  AVER(unitSize > 0);
+  AVER(extendBy > 0);
   AVERT(Bool, extendSelf);
  
   mfs = PoolPoolMFS(pool);
