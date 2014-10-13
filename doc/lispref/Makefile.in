@@ -191,6 +191,20 @@ dist:
 	  -e "s/@ver[s]ion@/${version}/" \
 	  -e 's/@MAKE[I]NFO@/makeinfo/' -e 's/@MK[D]IR_P@/mkdir -p/' \
 	  -e 's/@IN[F]O_EXT@/.info/' -e 's/@IN[F]O_OPTS@//' \
+	  -e 's|@SH[E]LL@|/bin/bash|' \
+	  -e 's|@[p]refix@|/usr/local|' \
+	  -e 's|@[d]atarootdir@|$${prefix}/share|' \
+	  -e 's|@[d]atadir@|$${datarootdir}|' \
+	  -e 's|@[P]ACKAGE_TARNAME@|emacs|' \
+	  -e 's|@[d]ocdir@|$${datarootdir}/doc/$${PACKAGE_TARNAME}|' \
+	  -e 's|@[d]vidir@|$${docdir}|' \
+	  -e 's|@[h]tmldir@|$${docdir}|' \
+	  -e 's|@[p]dfdir@|$${docdir}|' \
+	  -e 's|@[p]sdir@|$${docdir}|' \
+	  -e 's|@[G]ZIP_PROG@|gzip|' \
+	  -e 's|@IN[S]TALL@|install -c|' \
+	  -e 's|@IN[S]TALL_DATA@|$${INSTALL} -m 644|' \
+	  -e '/@[c]onfigure_input@/d' \
 	  ${srcdir}/Makefile.in > emacs-lispref-${version}/Makefile
 	@if grep '@[a-zA-Z_]*@' emacs-lispref-${version}/Makefile; then \
 	  echo "Unexpanded configure variables in Makefile?" 1>&2; exit 1; \
