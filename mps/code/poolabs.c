@@ -57,7 +57,6 @@ void PoolClassMixInBuffer(PoolClass class)
   /* By default, buffered pools treat frame operations as NOOPs */
   class->framePush = PoolTrivFramePush;
   class->framePop = PoolTrivFramePop;
-  class->framePopPending = PoolTrivFramePopPending;
   class->bufferClass = BufferClassGet;
 }
 
@@ -138,7 +137,6 @@ DEFINE_CLASS(AbstractPoolClass, class)
   class->rampEnd = PoolNoRampEnd;
   class->framePush = PoolNoFramePush;
   class->framePop = PoolNoFramePop;
-  class->framePopPending = PoolNoFramePopPending;
   class->addrObject = PoolNoAddrObject;
   class->walk = PoolNoWalk;
   class->freewalk = PoolTrivFreeWalk;
@@ -598,16 +596,6 @@ Res PoolNoFramePop(Pool pool, Buffer buf, AllocFrame frame)
 }
 
 
-void PoolNoFramePopPending(Pool pool, Buffer buf, AllocFrame frame)
-{
-  AVERT(Pool, pool);
-  AVERT(Buffer, buf);
-  /* frame is of an abstract type & can't be checked */
-  UNUSED(frame);
-  NOTREACHED;
-}
-
-
 Res PoolTrivFramePush(AllocFrame *frameReturn, Pool pool, Buffer buf)
 {
   AVER(frameReturn != NULL);
@@ -624,16 +612,6 @@ Res PoolTrivFramePop(Pool pool, Buffer buf, AllocFrame frame)
   /* frame is of an abstract type & can't be checked */
   UNUSED(frame);
   return ResOK;
-}
-
-
-void PoolTrivFramePopPending(Pool pool, Buffer buf, AllocFrame frame)
-{
-  AVERT(Pool, pool);
-  AVERT(Buffer, buf);
-  /* frame is of an abstract type & can't be checked */
-  UNUSED(frame);
-  NOOP;
 }
 
 

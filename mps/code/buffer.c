@@ -30,10 +30,6 @@
 SRCID(buffer, "$Id$");
 
 
-/* forward declarations */
-static void BufferFrameNotifyPopPending(Buffer buffer);
-
-
 /* BufferCheck -- check consistency of a buffer
  *
  * See .ap.async.  */
@@ -52,15 +48,6 @@ Bool BufferCheck(Buffer buffer)
   CHECKL(buffer->emptySize <= buffer->fillSize);
   CHECKL(buffer->alignment == buffer->pool->alignment);
   CHECKL(AlignCheck(buffer->alignment));
-  CHECKL(BoolCheck(buffer->ap_s._enabled));
-
-  if (buffer->ap_s._enabled) {
-    /* no useful check for frameptr - mutator may be updating it */
-    CHECKL(BoolCheck(buffer->ap_s._lwpoppending));
-  } else {
-    CHECKL(buffer->ap_s._lwpoppending == FALSE);
-    CHECKL(buffer->ap_s._frameptr == NULL);
-  }
 
   /* If any of the buffer's fields indicate that it is reset, make */
   /* sure it is really reset.  Otherwise, check various properties */
@@ -81,8 +68,6 @@ Bool BufferCheck(Buffer buffer)
     /* Nothing reliable to check for lightweight frame state */
     CHECKL(buffer->poolLimit == (Addr)0);
   } else {
-    Addr aplimit;
-
     /* The buffer is attached to a region of memory.   */
     /* Check consistency. */
     CHECKL(buffer->mode & BufferModeATTACHED);
@@ -101,14 +86,6 @@ Bool BufferCheck(Buffer buffer)
     CHECKL(AddrIsAligned(buffer->ap_s.limit, buffer->alignment));
     CHECKL(AddrIsAligned(buffer->poolLimit, buffer->alignment));
 
-    /* .lwcheck: If LW frames are enabled, the buffer may become */
-    /* trapped asynchronously. It can't become untrapped */
-    /* asynchronously, though. See <design/alloc-frame/#lw-frame.pop>. */
-    /* Read a snapshot value of the limit field. Use this to determine */
-    /* if we are trapped, and to permit more useful checking when not */
-    /* yet trapped. */
-    aplimit = buffer->ap_s.limit;
-
     /* If the buffer isn't trapped then "limit" should be the limit */
     /* set by the owning pool.  Otherwise, "init" is either at the */
     /* same place it was at flip (.commit.before) or has been set */
@@ -119,12 +96,10 @@ Bool BufferCheck(Buffer buffer)
     /* request.dylan.170429.sol.zero_). */
     /* .. _request.dylan.170429.sol.zero: https://info.ravenbrook.com/project/mps/import/2001-11-05/mmprevol/request/dylan/170429 */
 
-    if ((buffer->ap_s._enabled && aplimit == (Addr)0) /* see .lwcheck */
-        || (!buffer->ap_s._enabled && BufferIsTrapped(buffer))) {
+    if (BufferIsTrapped(buffer)) {
       /* .check.use-trapped: This checking function uses BufferIsTrapped, */
       /* So BufferIsTrapped can't do checking as that would cause an */
       /* infinite loop. */
-      CHECKL(aplimit == (Addr)0);
       if (buffer->mode & BufferModeFLIPPED) {
         CHECKL(buffer->ap_s.init == buffer->initAtFlip
                || buffer->ap_s.init == buffer->ap_s.alloc);
@@ -133,7 +108,6 @@ Bool BufferCheck(Buffer buffer)
       }
       /* Nothing special to check in the logged mode. */
     } else {
-      CHECKL(aplimit == buffer->poolLimit); /* see .lwcheck */
       CHECKL(buffer->initAtFlip == (Addr)0);
     }
   }
@@ -230,9 +204,6 @@ static Res BufferInit(Buffer buffer, BufferClass class,
   buffer->ap_s.init = (mps_addr_t)0;
   buffer->ap_s.alloc = (mps_addr_t)0;
   buffer->ap_s.limit = (mps_addr_t)0;
-  buffer->ap_s._frameptr = NULL;
-  buffer->ap_s._enabled = FALSE;
-  buffer->ap_s._lwpoppending = FALSE;
   buffer->poolLimit = (Addr)0;
   buffer->rampCount = 0;
 
@@ -319,8 +290,6 @@ void BufferDetach(Buffer buffer, Pool pool)
     /* Ask the owning pool to do whatever it needs to before the */
     /* buffer is detached (e.g. copy buffer state into pool state). */
     (*pool->class->bufferEmpty)(pool, buffer, init, limit);
-    /* Use of lightweight frames must have been disabled by now */
-    AVER(BufferFrameState(buffer) == BufferFrameDISABLED);
 
     /* run any class-specific detachment method */
     buffer->class->detach(buffer);
@@ -346,7 +315,6 @@ void BufferDetach(Buffer buffer, Pool pool)
     buffer->poolLimit = (Addr)0;
     buffer->mode &=
       ~(BufferModeATTACHED|BufferModeFLIPPED|BufferModeTRANSITION);
-    BufferFrameSetState(buffer, BufferFrameDISABLED);
 
     EVENT2(BufferEmpty, buffer, spare);
   }
@@ -382,11 +350,6 @@ void BufferFinish(Buffer buffer)
   pool = BufferPool(buffer);
 
   AVER(BufferIsReady(buffer));
-
-  /* <design/alloc-frame/#lw-frame.sync.trip> */
-  if (BufferIsTrappedByMutator(buffer)) {
-    BufferFrameNotifyPopPending(buffer);
-  }
 
   BufferDetach(buffer, pool);
 
@@ -463,44 +426,6 @@ static void BufferSetUnflipped(Buffer buffer)
 }
 
 
-/* BufferFrameState
- *
- * Returns the frame state of a buffer.  See
- * <design/alloc-frame/#lw-frame.states>.  */
-
-FrameState BufferFrameState(Buffer buffer)
-{
-  AVERT(Buffer, buffer);
-  if (buffer->ap_s._enabled) {
-    if (buffer->ap_s._lwpoppending) {
-      return BufferFramePOP_PENDING;
-    } else {
-      AVER(buffer->ap_s._frameptr == NULL);
-      return BufferFrameVALID;
-    }
-  } else {
-    AVER(buffer->ap_s._frameptr == NULL);
-    AVER(buffer->ap_s._lwpoppending == FALSE);
-    return BufferFrameDISABLED;
-  }
-}
-
-
-/* BufferFrameSetState
- *
- * Sets the frame state of a buffer.  Only the mutator may set the
- * PopPending state.  See <design/alloc-frame/#lw-frame.states>.  */
-
-void BufferFrameSetState(Buffer buffer, FrameState state)
-{
-  AVERT(Buffer, buffer);
-  AVER(state == BufferFrameVALID || state == BufferFrameDISABLED);
-  buffer->ap_s._frameptr = NULL;
-  buffer->ap_s._lwpoppending = FALSE;
-  buffer->ap_s._enabled = (state == BufferFrameVALID);
-}
-
-
 /* BufferSetAllocAddr
  *
  * Sets the init & alloc pointers of a buffer.  */
@@ -518,32 +443,6 @@ void BufferSetAllocAddr(Buffer buffer, Addr addr)
 }
 
 
-/* BufferFrameNotifyPopPending
- *
- * Notifies the pool when a lightweight frame pop operation has been
- * deferred and needs to be processed.  See
- * <design/alloc-frame/#lw-frame.sync.trip>.  */
-
-static void BufferFrameNotifyPopPending(Buffer buffer)
-{
-  AllocFrame frame;
-  Pool pool;
-  AVER(BufferIsTrappedByMutator(buffer));
-  AVER(BufferFrameState(buffer) == BufferFramePOP_PENDING);
-  frame = (AllocFrame)buffer->ap_s._frameptr;
-  /* Unset PopPending state & notify the pool */
-  BufferFrameSetState(buffer, BufferFrameVALID);
-  /* If the frame is no longer trapped, undo the trap by resetting */
-  /* the AP limit pointer */
-  if (!BufferIsTrapped(buffer)) {
-    buffer->ap_s.limit = buffer->poolLimit;
-  }
-  pool = BufferPool(buffer);
-  (*pool->class->framePopPending)(pool, buffer, frame);
-}
-
-
-
 /* BufferFramePush
  *
  * See <design/alloc-frame/>.  */
@@ -555,16 +454,11 @@ Res BufferFramePush(AllocFrame *frameReturn, Buffer buffer)
   AVER(frameReturn != NULL);
 
 
-  /* Process any flip or PopPending */
+  /* Process any flip */
   if (!BufferIsReset(buffer) && buffer->ap_s.limit == (Addr)0) {
     /* .fill.unflip: If the buffer is flipped then we unflip the buffer. */
     if (buffer->mode & BufferModeFLIPPED) {
       BufferSetUnflipped(buffer);
-    }
- 
-    /* check for PopPending */
-    if (BufferIsTrappedByMutator(buffer)) {
-      BufferFrameNotifyPopPending(buffer);
     }
   }
   pool = BufferPool(buffer);
@@ -702,11 +596,6 @@ Res BufferFill(Addr *pReturn, Buffer buffer, Size size,
       BufferSetUnflipped(buffer);
     }
 
-    /* <design/alloc-frame/#lw-frame.sync.trip> */
-    if (BufferIsTrappedByMutator(buffer)) {
-      BufferFrameNotifyPopPending(buffer);
-    }
-
     /* .fill.logged: If the buffer is logged then we leave it logged. */
     next = AddrAdd(buffer->ap_s.alloc, size);
     if (next > (Addr)buffer->ap_s.alloc &&
@@ -807,8 +696,6 @@ Bool BufferTrip(Buffer buffer, Addr p, Size size)
   AVER(buffer->ap_s.limit == 0);
   /* Of course we should be trapped. */
   AVER(BufferIsTrapped(buffer));
-  /* But the mutator shouldn't have caused the trap */
-  AVER(!BufferIsTrappedByMutator(buffer));
 
   /* The init and alloc fields should be equal at this point, because */
   /* the step .commit.update has happened. */
@@ -955,21 +842,7 @@ void BufferReassignSeg(Buffer buffer, Seg seg)
 Bool BufferIsTrapped(Buffer buffer)
 {
   /* Can't check buffer, see .check.use-trapped */
-  return BufferIsTrappedByMutator(buffer)
-         || ((buffer->mode & (BufferModeFLIPPED|BufferModeLOGGED)) != 0);
-}
-
-
-/* BufferIsTrappedByMutator
- *
- * Indicates whether the mutator trapped the buffer.  See
- * <design/alloc-frame/#lw-frame.sync.trip> and .ap.async.  */
-
-Bool BufferIsTrappedByMutator(Buffer buffer)
-{
-  AVER(!buffer->ap_s._lwpoppending || buffer->ap_s._enabled);
-  /* Can't check buffer, see .check.use-trapped */
-  return buffer->ap_s._lwpoppending;
+  return (buffer->mode & (BufferModeFLIPPED|BufferModeLOGGED)) != 0;
 }
 
 
