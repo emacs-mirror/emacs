@@ -4,6 +4,10 @@ TEST_HEADER
  summary = destroy an arena which isn't an arena, with a pointer in
  language = c
  link = testlib.o
+OUTPUT_SPEC
+ assert = true
+ assertfile P= global.c
+ assertcond = TESTT(Arena, arena)
 END_HEADER
 */
 
@@ -13,7 +17,7 @@ static void test(void)
 {
  mps_arena_t arena;
 
- arena = &arena;
+ arena = (mps_arena_t)&arena;
  mps_arena_destroy(arena);
  comment("Destroy arena.");
 }

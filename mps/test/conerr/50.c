@@ -4,6 +4,8 @@ TEST_HEADER
  summary = reset ld in uncreated arena
  language = c
  link = myfmt.o testlib.o
+OUTPUT_SPEC
+ abort = true
 END_HEADER
 */
 
@@ -13,7 +15,7 @@ END_HEADER
 
 static void test(void)
 {
- mps_arena_t arena;
+ mps_arena_t arena = (mps_arena_t)1;
  mps_ld_s ld;
 
 /*

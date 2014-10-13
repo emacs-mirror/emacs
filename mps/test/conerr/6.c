@@ -4,6 +4,10 @@ TEST_HEADER
  summary = destroy an arena which contains a root
  language = c
  link = testlib.o
+OUTPUT_SPEC
+ assert = true
+ assertfile P= global.c
+ assertcond = RingIsSingle(&arenaGlobals->rootRing)
 END_HEADER
 */
 
@@ -27,6 +31,7 @@ static void test(void)
    mps_stack_scan_ambig, stackpointer, 0), 
   "create root");
 
+ mps_thread_dereg(thread);
  mps_arena_destroy(arena);
  comment("Destroy arena.");
 }

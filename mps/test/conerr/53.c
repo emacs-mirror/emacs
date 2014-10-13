@@ -4,6 +4,10 @@ TEST_HEADER
  summary = add to ld without resetting
  language = c
  link = myfmt.o testlib.o
+OUTPUT_SPEC
+ assert = true
+ assertfile P= ld.c
+ assertcond = ld->_epoch <= arena->epoch
 END_HEADER
 */
 
