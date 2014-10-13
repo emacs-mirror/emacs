@@ -4,6 +4,10 @@ TEST_HEADER
  summary = destroy an arena which contains a thread
  language = c
  link = testlib.o
+OUTPUT_SPEC
+ assert = true
+ assertfile P= global.c
+ assertcond = RingIsSingle(&arena->threadRing)
 END_HEADER
 */
 

@@ -4,6 +4,8 @@ TEST_HEADER
  summary = create root in destroyed arena
  language = c
  link = myfmt.o testlib.o
+OUTPUT_SPEC
+ abort = true
 END_HEADER
 */
 

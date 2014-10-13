@@ -4,6 +4,10 @@ TEST_HEADER
  summary = alloc in an destroyed pool
  language = c
  link = testlib.o
+OUTPUT_SPEC
+ assert = true
+ assertfile P= mpsi.c
+ assertcond = TESTT(Pool, pool)
 END_HEADER
 */
 
