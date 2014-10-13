@@ -278,7 +278,7 @@ static void sncRecordAllocatedSeg(Buffer buffer, Seg seg)
 
 /* sncRecordFreeSeg  - stores a segment on the freelist */
 
-static void sncRecordFreeSeg(SNC snc, Seg seg)
+static void sncRecordFreeSeg(Arena arena, SNC snc, Seg seg)
 {
   AVERT(SNC, snc);
   AVERT(Seg, seg);
@@ -290,7 +290,10 @@ static void sncRecordFreeSeg(SNC snc, Seg seg)
   SegSetRankAndSummary(seg, RankSetEMPTY, RefSetEMPTY);
 
   /* Pad the whole segment so we don't try to walk it. */
+  /* FIXME: are the Expose and Cover calls necessary here? */
+  ShieldExpose(arena, seg);
   (*SNCPool(snc)->format->pad)(SegBase(seg), SegSize(seg));
+  ShieldCover(arena, seg);
 
   sncSegSetNext(seg, snc->freeSegs);
   snc->freeSegs = seg;
@@ -318,7 +321,7 @@ static void sncPopPartialSegChain(SNC snc, Buffer buf, Seg upTo)
     AVER(free != NULL);
     next = sncSegNext(free);
     sncSegSetNext(free, NULL);
-    sncRecordFreeSeg(snc, free);
+    sncRecordFreeSeg(BufferArena(buf), snc, free);
     free = next;
   }
   /* Make upTo the head of the buffer chain */
