@@ -305,9 +305,6 @@ typedef struct mps_ap_s {       /* allocation point descriptor */
   mps_addr_t init;              /* limit of initialized memory */
   mps_addr_t alloc;             /* limit of allocated memory */
   mps_addr_t limit;             /* limit of available memory */
-  mps_addr_t _frameptr;         /* lightweight frame pointer */
-  mps_bool_t _enabled;          /* lightweight frame status */
-  mps_bool_t _lwpoppending;     /* lightweight pop pending? */
 } mps_ap_s;
 
 
