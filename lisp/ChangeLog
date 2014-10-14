@@ -1,3 +1,10 @@
+2014-10-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacs-lisp/tabulated-list.el (tabulated-list-mode): Force
+	bidi-paragraph-direction to 'left-to-right'.  This fixes
+	buffer-menu display when the first buffer happens to start with
+	R2L letter.
+
 2014-10-13  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/authors.el (authors-aliases, authors-fixed-case)
