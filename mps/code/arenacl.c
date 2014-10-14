@@ -227,7 +227,7 @@ static void ClientArenaVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
  * to do the generic part of init.
  */
 
-ARG_DEFINE_KEY(arena_cl_addr, Addr);
+ARG_DEFINE_KEY(ARENA_CL_BASE, Addr);
 
 static Res ClientArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
 {

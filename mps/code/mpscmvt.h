@@ -9,11 +9,11 @@
 
 #include "mps.h"
 
-extern const struct mps_key_s _mps_key_mvt_reserve_depth;
-#define MPS_KEY_MVT_RESERVE_DEPTH (&_mps_key_mvt_reserve_depth)
+extern const struct mps_key_s _mps_key_MVT_RESERVE_DEPTH;
+#define MPS_KEY_MVT_RESERVE_DEPTH (&_mps_key_MVT_RESERVE_DEPTH)
 #define MPS_KEY_MVT_RESERVE_DEPTH_FIELD count
-extern const struct mps_key_s _mps_key_mvt_frag_limit;
-#define MPS_KEY_MVT_FRAG_LIMIT (&_mps_key_mvt_frag_limit)
+extern const struct mps_key_s _mps_key_MVT_FRAG_LIMIT;
+#define MPS_KEY_MVT_FRAG_LIMIT (&_mps_key_MVT_FRAG_LIMIT)
 #define MPS_KEY_MVT_FRAG_LIMIT_FIELD d
 
 extern mps_pool_class_t mps_class_mvt(void);

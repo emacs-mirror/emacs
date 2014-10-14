@@ -107,18 +107,18 @@ Bool PoolCheck(Pool pool)
 
 /* Common keywords to PoolInit */
 
-ARG_DEFINE_KEY(format, Format);
-ARG_DEFINE_KEY(chain, Chain);
-ARG_DEFINE_KEY(gen, Cant);
-ARG_DEFINE_KEY(rank, Rank);
-ARG_DEFINE_KEY(extend_by, Size);
-ARG_DEFINE_KEY(large_size, Size);
-ARG_DEFINE_KEY(min_size, Size);
-ARG_DEFINE_KEY(mean_size, Size);
-ARG_DEFINE_KEY(max_size, Size);
-ARG_DEFINE_KEY(align, Align);
-ARG_DEFINE_KEY(spare, double);
-ARG_DEFINE_KEY(interior, Bool);
+ARG_DEFINE_KEY(FORMAT, Format);
+ARG_DEFINE_KEY(CHAIN, Chain);
+ARG_DEFINE_KEY(GEN, Cant);
+ARG_DEFINE_KEY(RANK, Rank);
+ARG_DEFINE_KEY(EXTEND_BY, Size);
+ARG_DEFINE_KEY(LARGE_SIZE, Size);
+ARG_DEFINE_KEY(MIN_SIZE, Size);
+ARG_DEFINE_KEY(MEAN_SIZE, Size);
+ARG_DEFINE_KEY(MAX_SIZE, Size);
+ARG_DEFINE_KEY(ALIGN, Align);
+ARG_DEFINE_KEY(SPARE, double);
+ARG_DEFINE_KEY(INTERIOR, Bool);
 
 
 /* PoolInit -- initialize a pool
