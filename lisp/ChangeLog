@@ -1,3 +1,9 @@
+2014-10-14  Jérémy Compostella  <jeremy.compostella@intel.com>
+	    Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-open-connection-setup-interactive-shell):
+	Reduce the amount of set environment variable commands.
+
 2014-10-12  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
 	Fix import completion.  (Bug#18582)
