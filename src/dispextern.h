@@ -445,8 +445,8 @@ struct glyph
   /* True means don't display cursor here.  */
   bool_bf avoid_cursor_p : 1;
 
-  /* Resolved bidirectional level of this character [0..63].  */
-  unsigned resolved_level : 5;
+  /* Resolved bidirectional level of this character [0..127].  */
+  unsigned resolved_level : 7;
 
   /* Resolved bidirectional type of this character, see enum
      bidi_type_t below.  Note that according to UAX#9, only some

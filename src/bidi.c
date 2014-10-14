@@ -3161,6 +3161,9 @@ bidi_move_to_visually_next (struct bidi_it *bidi_it)
 	bidi_cache_iterator_state (bidi_it, 1, 0);
     }
 
+  eassert (bidi_it->resolved_level >= 0
+	   && bidi_it->resolved_level <= BIDI_MAXDEPTH + 2);
+
   if (STRINGP (bidi_it->string.lstring))
     UNGCPRO;
 }
