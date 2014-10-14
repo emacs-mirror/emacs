@@ -2439,7 +2439,23 @@ bidi_resolve_bracket_pairs (struct bidi_it *bidi_it)
 		  eassert (bpa_stack[sp].open_bracket_pos == tem_it.charpos);
 #endif
 		  tem_it.type = type;
+		  tem_it.bracket_resolved = 1;
 		  bidi_cache_iterator_state (&tem_it, 0, 0);
+		  /* Mark as resolved the unmatched brackets we are
+		     about to pop from the stack.  */
+		  while (bpa_sp > sp)
+		    {
+		      bidi_cache_fetch_state
+			(bpa_stack[bpa_sp].open_bracket_idx, &tem_it);
+#ifdef ENABLE_CHECKING
+		      eassert (bpa_stack[bpa_sp].open_bracket_pos
+			       == tem_it.charpos);
+#endif
+		      tem_it.bracket_resolved = 1;
+		      bidi_cache_iterator_state (&tem_it, 0, 0);
+		      bpa_sp--;
+		    }
+		  /* Pop the BPA stack.  */
 		  bpa_sp = sp - 1;
 		}
 	      bidi_it->bracket_resolved = 1;
@@ -2474,9 +2490,6 @@ bidi_resolve_bracket_pairs (struct bidi_it *bidi_it)
 		}
 	      for (sp = bpa_sp; sp >= 0; sp--)
 		bpa_stack[sp].flags |= flag;
-	      /* FIXME: Pay attention to types that can be
-		 next_for_neutral, and when found, update cached
-		 states for which it is relevant.  */
 	    }
 	  old_sidx = bidi_it->stack_idx;
 	  type = bidi_resolve_weak (bidi_it);
@@ -2566,9 +2579,16 @@ bidi_resolve_neutral (struct bidi_it *bidi_it)
 
   if (bidi_cache_idx > bidi_cache_start && !bidi_it->first_elt)
     {
+      struct bidi_it tem_it;
+
       if (bidi_it->nchars <= 0)
 	emacs_abort ();
+      bidi_copy_it (&tem_it, bidi_it);
       type = bidi_cache_find (bidi_it->charpos + bidi_it->nchars, 1, bidi_it);
+      if (type != UNKNOWN_BT
+	  && (tem_it.type == STRONG_R || tem_it.type == STRONG_L
+	      || tem_it.type == WEAK_EN || tem_it.type == WEAK_AN))
+	bidi_remember_char (&bidi_it->prev_for_neutral, &tem_it, 1);
     }
   if (type == UNKNOWN_BT)
     type = bidi_resolve_brackets (bidi_it);
