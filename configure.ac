@@ -557,7 +557,7 @@ case "${canonical}" in
   *-apple-darwin* )
     case "${canonical}" in
       i[3456]86-* )  ;;
-      powerpc-* )    ;;
+      powerpc-* )    unported=yes ;;
       x86_64-* )     ;;
       * )            unported=yes ;;
     esac

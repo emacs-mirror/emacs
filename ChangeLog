@@ -1,3 +1,7 @@
+2014-10-14  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.ac: apple-darwin powerpc is unported.
+
 2014-10-12  Ken Brown  <kbrown@cornell.edu>
 
 	* configure.ac (LD_SWITCH_SYSTEM_TEMACS) [CYGWIN]: Set stack size
