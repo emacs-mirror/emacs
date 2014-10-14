@@ -83,6 +83,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "charset.h"
 #include "composite.h"
 #include "dispextern.h"
+#include "regex.h"
 #include "syntax.h"
 #include "sysselect.h"
 #include "systime.h"
@@ -145,7 +146,7 @@ extern int malloc_set_state (void *);
 /* True if the MALLOC_CHECK_ environment variable was set while
    dumping.  Used to work around a bug in glibc's malloc.  */
 static bool malloc_using_checking;
-#elif defined HAVE_PTHREAD && !defined SYSTEM_MALLOC
+#elif defined HAVE_PTHREAD && !defined SYSTEM_MALLOC && !defined HYBRID_MALLOC
 extern void malloc_enable_thread (void);
 #endif
 
@@ -395,10 +396,11 @@ terminate_due_to_signal (int sig, int backtrace_limit)
 static void
 init_cmdargs (int argc, char **argv, int skip_args, char *original_pwd)
 {
-  register int i;
+  int i;
   Lisp_Object name, dir, handler;
   ptrdiff_t count = SPECPDL_INDEX ();
   Lisp_Object raw_name;
+  AUTO_STRING (slash_colon, "/:");
 
   initial_argv = argv;
   initial_argc = argc;
@@ -422,7 +424,7 @@ init_cmdargs (int argc, char **argv, int skip_args, char *original_pwd)
      if it would otherwise be treated as magic.  */
   handler = Ffind_file_name_handler (raw_name, Qt);
   if (! NILP (handler))
-    raw_name = concat2 (build_string ("/:"), raw_name);
+    raw_name = concat2 (slash_colon, raw_name);
 
   Vinvocation_name = Ffile_name_nondirectory (raw_name);
   Vinvocation_directory = Ffile_name_directory (raw_name);
@@ -440,7 +442,7 @@ init_cmdargs (int argc, char **argv, int skip_args, char *original_pwd)
 	     if it would otherwise be treated as magic.  */
 	  handler = Ffind_file_name_handler (found, Qt);
 	  if (! NILP (handler))
-	    found = concat2 (build_string ("/:"), found);
+	    found = concat2 (slash_colon, found);
 	  Vinvocation_directory = Ffile_name_directory (found);
 	}
     }
@@ -576,12 +578,6 @@ DEFUN ("invocation-directory", Finvocation_directory, Sinvocation_directory,
 }
 
 
-#ifdef HAVE_TZSET
-/* A valid but unlikely value for the TZ environment value.
-   It is OK (though a bit slower) if the user actually chooses this value.  */
-static char const dump_tz[] = "UtC0";
-#endif
-
 /* Test whether the next argument in ARGV matches SSTR or a prefix of
    LSTR (at least MINLEN characters).  If so, then if VALPTR is non-null
    (the argument is supposed to have a value) store in *VALPTR either
@@ -734,12 +730,6 @@ main (int argc, char **argv)
   stack_base = &dummy;
 #endif
 
-#ifdef G_SLICE_ALWAYS_MALLOC
-  /* This is used by the Cygwin build.  It's not needed starting with
-     cygwin-1.7.24, but it doesn't do any harm.  */
-  xputenv ("G_SLICE=always-malloc");
-#endif
-
 #ifndef CANNOT_DUMP
   might_dump = !initialized;
 #endif
@@ -747,9 +737,6 @@ main (int argc, char **argv)
 #ifdef GNU_LINUX
   if (!initialized)
     {
-      extern char my_endbss[];
-      extern char *my_endbss_static;
-
       if (my_heap_start == 0)
         my_heap_start = sbrk (0);
 
@@ -878,7 +865,6 @@ main (int argc, char **argv)
       && !getrlimit (RLIMIT_STACK, &rlim))
     {
       long newlim;
-      extern size_t re_max_failures;
       /* Approximate the amount regex.c needs per unit of re_max_failures.  */
       int ratio = 20 * sizeof (char *);
       /* Then add 33% to cover the size of the smaller stacks that regex.c
@@ -912,7 +898,7 @@ main (int argc, char **argv)
 
   clearerr (stdin);
 
-#ifndef SYSTEM_MALLOC
+#if !defined SYSTEM_MALLOC && !defined HYBRID_MALLOC
   /* Arrange to get warning messages as memory fills up.  */
   memory_warnings (0, malloc_warning);
 
@@ -920,7 +906,7 @@ main (int argc, char **argv)
      Also call realloc and free for consistency.  */
   free (realloc (malloc (4), 4));
 
-#endif	/* not SYSTEM_MALLOC */
+#endif	/* not SYSTEM_MALLOC and not HYBRID_MALLOC */
 
 #ifdef MSDOS
   SET_BINARY (fileno (stdin));
@@ -1145,12 +1131,13 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 #endif /* DOS_NT */
     }
 
-#if defined HAVE_PTHREAD && !defined SYSTEM_MALLOC && !defined DOUG_LEA_MALLOC
+#if defined HAVE_PTHREAD && !defined SYSTEM_MALLOC \
+  && !defined DOUG_LEA_MALLOC && !defined HYBRID_MALLOC
 # ifndef CANNOT_DUMP
   /* Do not make gmalloc thread-safe when creating bootstrap-emacs, as
-     that causes an infinite recursive loop with FreeBSD.  But do make
-     it thread-safe when creating emacs, otherwise bootstrap-emacs
-     fails on Cygwin.  See Bug#14569.  */
+     that causes an infinite recursive loop with FreeBSD.  See
+     Bug#14569.  The part of this bug involving Cygwin is no longer
+     relevant, now that Cygwin defines HYBRID_MALLOC.  */
   if (!noninteractive || initialized)
 # endif
     malloc_enable_thread ();
@@ -1555,8 +1542,23 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 
   init_charset ();
 
-  init_editfns (); /* init_process_emacs uses Voperating_system_release. */
-  init_process_emacs (); /* init_display uses add_keyboard_wait_descriptor. */
+  /* This calls putenv and so must precede init_process_emacs.  Also,
+     it sets Voperating_system_release, which init_process_emacs uses.  */
+  init_editfns ();
+
+  /* These two call putenv.  */
+#ifdef HAVE_DBUS
+  init_dbusbind ();
+#endif
+#ifdef USE_GTK
+  init_xterm ();
+#endif
+
+  /* This can create a thread that may call getenv, so it must follow
+     all calls to putenv and setenv.  Also, this sets up
+     add_keyboard_wait_descriptor, which init_display uses.  */
+  init_process_emacs ();
+
   init_keyboard ();	/* This too must precede init_sys_modes.  */
   if (!noninteractive)
     init_display ();	/* Determine terminal type.  Calls init_sys_modes.  */
@@ -1593,26 +1595,6 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 			    build_string ("loadup.el"));
     }
 
-  if (initialized)
-    {
-#ifdef HAVE_TZSET
-      {
-	/* If the execution TZ happens to be the same as the dump TZ,
-	   change it to some other value and then change it back,
-	   to force the underlying implementation to reload the TZ info.
-	   This is needed on implementations that load TZ info from files,
-	   since the TZ file contents may differ between dump and execution.  */
-	char *tz = getenv ("TZ");
-	if (tz && !strcmp (tz, dump_tz))
-	  {
-	    ++*tz;
-	    tzset ();
-	    --*tz;
-	  }
-      }
-#endif
-    }
-
   /* Set up for profiling.  This is known to work on FreeBSD,
      GNU/Linux and MinGW.  It might work on some other systems too.
      Give it a try and tell us if it works on your system.  To compile
@@ -1636,15 +1618,6 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 #endif
 
   initialized = 1;
-
-#ifdef LOCALTIME_CACHE
-  /* Some versions of localtime have a bug.  They cache the value of the time
-     zone rather than looking it up every time.  Since localtime() is
-     called to bolt the undumping time into the undumped emacs, this
-     results in localtime ignoring the TZ environment variable.
-     This flushes the new TZ value into localtime.  */
-  tzset ();
-#endif /* defined (LOCALTIME_CACHE) */
 
   /* Enter editor command loop.  This never returns.  */
   Frecursive_edit ();
@@ -2126,27 +2099,16 @@ You must run Emacs in batch mode in order to dump it.  */)
   tem = Vpurify_flag;
   Vpurify_flag = Qnil;
 
-#ifdef HAVE_TZSET
-  set_time_zone_rule (dump_tz);
-#ifndef LOCALTIME_CACHE
-  /* Force a tz reload, since set_time_zone_rule doesn't.  */
-  tzset ();
-#endif
-#endif
-
   fflush (stdout);
   /* Tell malloc where start of impure now is.  */
   /* Also arrange for warnings when nearly out of space.  */
-#ifndef SYSTEM_MALLOC
+#if !defined SYSTEM_MALLOC && !defined HYBRID_MALLOC
 #ifndef WINDOWSNT
   /* On Windows, this was done before dumping, and that once suffices.
      Meanwhile, my_edata is not valid on Windows.  */
-  {
-    extern char my_edata[];
-    memory_warnings (my_edata, malloc_warning);
-  }
+  memory_warnings (my_edata, malloc_warning);
 #endif /* not WINDOWSNT */
-#endif /* not SYSTEM_MALLOC */
+#endif /* not SYSTEM_MALLOC and not HYBRID_MALLOC */
 #ifdef DOUG_LEA_MALLOC
   malloc_state_ptr = malloc_get_state ();
 #endif
@@ -2334,7 +2296,10 @@ decode_env_path (const char *evarname, const char *defalt, bool empty)
             }
 
           if (! NILP (tem))
-            element = concat2 (build_string ("/:"), element);
+	    {
+	      AUTO_STRING (slash_colon, "/:");
+	      element = concat2 (slash_colon, element);
+	    }
         } /* !NILP (element) */
 
       lpath = Fcons (element, lpath);

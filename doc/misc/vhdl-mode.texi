@@ -212,7 +212,7 @@ indented relative to buffer position 20, which is the @samp{b} in the
 
 @cindex comment only line
 Syntactic component lists can contain more than one component, and
-individual syntactic compenents need not have relative buffer positions.
+individual syntactic components need not have relative buffer positions.
 The most common example of this is a line that contains a @dfn{comment
 only line}.
 @example
@@ -416,7 +416,7 @@ to:
 @end group
 @end example
 
-In other words, we want to change the indentation of the statments
+In other words, we want to change the indentation of the statements
 inside the inverter process.  Notice that the construct we want to
 change starts on line 3.  To change the indentation of a line, we need
 to see which syntactic component affect the offset calculations for that
@@ -630,7 +630,7 @@ using @code{vhdl-set-style}.
 @findex set-offset (vhdl-)
 Another variable, @code{vhdl-file-offsets}, takes an association list
 similar to what is allowed in @code{vhdl-offsets-alist}.  When the file is
-visited, VHDL Mode will automatically institute these offets using
+visited, VHDL Mode will automatically institute these offsets using
 @code{vhdl-set-offset}.  @xref{Customizing Indentation}.
 
 Note that file style settings (i.e. @code{vhdl-file-style}) are applied
@@ -648,7 +648,7 @@ before file offset settings (i.e. @code{vhdl-file-offsets}).
 For most users, VHDL Mode will support their coding styles with
 very little need for customizations.  Usually, one of the standard
 styles defined in @code{vhdl-style-alist} will do the trick.  Sometimes,
-one of the syntactic symbol offsets will need to be tweeked slightly, or
+one of the syntactic symbol offsets will need to be tweaked slightly, or
 perhaps @code{vhdl-basic-offset} will need to be changed.  However, some
 styles require a more advanced ability for customization, and one of the
 real strengths of VHDL Mode is that the syntactic analysis model

@@ -219,21 +219,6 @@ frame_inhibit_resize (struct frame *f, bool horizontal)
 	  || FRAME_TERMCAP_P (f) || FRAME_MSDOS_P (f));
 }
 
-#if 0
-bool
-frame_inhibit_resize (struct frame *f, bool horizontal)
-{
-  Lisp_Object fullscreen = get_frame_param (f, Qfullscreen);
-
-  return (frame_inhibit_implied_resize
-	  || EQ (fullscreen, Qfullboth)
-	  || EQ (fullscreen, Qfullscreen)
-	  || EQ (fullscreen, Qmaximized)
-	  || (horizontal && EQ (fullscreen, Qfullwidth))
-	  || (!horizontal && EQ (fullscreen, Qfullheight)));
-}
-#endif
-
 static void
 set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 {
@@ -351,7 +336,7 @@ frame_windows_min_size (Lisp_Object frame, Lisp_Object horizontal, Lisp_Object p
 
 /* Make sure windows sizes of frame F are OK.  new_width and new_height
    are in pixels.  A value of -1 means no change is requested for that
-   size (but the frame may still have to be resized to accomodate
+   size (but the frame may still have to be resized to accommodate
    windows with their minimum sizes.
 
    The argument INHIBIT can assume the following values:
@@ -979,7 +964,7 @@ affects all frames on the same terminal device.  */)
     if (CONSP (terminal))
       {
         terminal = XCDR (terminal);
-        t = get_terminal (terminal, 1);
+        t = decode_live_terminal (terminal);
       }
 #ifdef MSDOS
     if (t && t != the_only_display_info.terminal)
@@ -994,22 +979,24 @@ affects all frames on the same terminal device.  */)
     {
       char *name = 0, *type = 0;
       Lisp_Object tty, tty_type;
+      USE_SAFE_ALLOCA;
 
       tty = get_future_frame_param
         (Qtty, parms, (FRAME_TERMCAP_P (XFRAME (selected_frame))
                        ? FRAME_TTY (XFRAME (selected_frame))->name
                        : NULL));
       if (!NILP (tty))
-	name = xlispstrdupa (tty);
+	SAFE_ALLOCA_STRING (name, tty);
 
       tty_type = get_future_frame_param
         (Qtty_type, parms, (FRAME_TERMCAP_P (XFRAME (selected_frame))
                             ? FRAME_TTY (XFRAME (selected_frame))->type
                             : NULL));
       if (!NILP (tty_type))
-	type = xlispstrdupa (tty_type);
+	SAFE_ALLOCA_STRING (type, tty_type);
 
       t = init_tty (name, type, 0); /* Errors are not fatal.  */
+      SAFE_FREE ();
     }
 
   f = make_terminal_frame (t);
@@ -1804,9 +1791,9 @@ The functions are run with one argument, the frame to be deleted.  */)
 
 DEFUN ("mouse-position", Fmouse_position, Smouse_position, 0, 0, 0,
        doc: /* Return a list (FRAME X . Y) giving the current mouse frame and position.
-The position is given in character cells, where (0, 0) is the
-upper-left corner of the frame, X is the horizontal offset, and Y is
-the vertical offset.
+The position is given in canonical character cells, where (0, 0) is the
+upper-left corner of the frame, X is the horizontal offset, and Y is the
+vertical offset, measured in units of the frame's default character size.
 If Emacs is running on a mouseless terminal or hasn't been programmed
 to read the mouse position, it returns the selected frame for FRAME
 and nil for X and Y.
@@ -1863,7 +1850,8 @@ and nil for X and Y.  */)
 {
   struct frame *f;
   Lisp_Object lispy_dummy;
-  Lisp_Object x, y;
+  Lisp_Object x, y, retval;
+  struct gcpro gcpro1;
 
   f = SELECTED_FRAME ();
   x = y = Qnil;
@@ -1880,7 +1868,11 @@ and nil for X and Y.  */)
     }
 
   XSETFRAME (lispy_dummy, f);
-  return Fcons (lispy_dummy, Fcons (x, y));
+  retval = Fcons (lispy_dummy, Fcons (x, y));
+  GCPRO1 (retval);
+  if (!NILP (Vmouse_position_function))
+    retval = call1 (Vmouse_position_function, retval);
+  RETURN_UNGCPRO (retval);
 }
 
 #ifdef HAVE_WINDOW_SYSTEM
@@ -1925,9 +1917,10 @@ Coordinates are relative to the frame, not a window,
 so the coordinates of the top left character in the frame
 may be nonzero due to left-hand scroll bars or the menu bar.
 
-The position is given in character cells, where (0, 0) is the
-upper-left corner of the frame, X is the horizontal offset, and Y is
-the vertical offset.
+The position is given in canonical character cells, where (0, 0) is
+the upper-left corner of the frame, X is the horizontal offset, and
+Y is the vertical offset, measured in units of the frame's default
+character size.
 
 This function is a no-op for an X frame that is not visible.
 If you have just created a frame, you must wait for it to become visible
@@ -3000,7 +2993,7 @@ x_set_frame_parameters (struct frame *f, Lisp_Object alist)
   /* If both of these parameters are present, it's more efficient to
      set them both at once.  So we wait until we've looked at the
      entire list before we set them.  */
-  int width, height;
+  int width IF_LINT (= 0), height IF_LINT (= 0);
   bool width_change = 0, height_change = 0;
 
   /* Same here.  */
@@ -3017,14 +3010,14 @@ x_set_frame_parameters (struct frame *f, Lisp_Object alist)
 #ifdef HAVE_X_WINDOWS
   bool icon_left_no_change = 0, icon_top_no_change = 0;
 #endif
-  struct gcpro gcpro1, gcpro2;
 
   i = 0;
   for (tail = alist; CONSP (tail); tail = XCDR (tail))
     i++;
 
-  parms = alloca (i * sizeof *parms);
-  values = alloca (i * sizeof *values);
+  USE_SAFE_ALLOCA;
+  SAFE_ALLOCA_LISP (parms, 2 * i);
+  values = parms + i;
 
   /* Extract parm names and values into those vectors.  */
 
@@ -3040,10 +3033,6 @@ x_set_frame_parameters (struct frame *f, Lisp_Object alist)
     }
   /* TAIL and ALIST are not used again below here.  */
   alist = tail = Qnil;
-
-  GCPRO2 (*parms, *values);
-  gcpro1.nvars = i;
-  gcpro2.nvars = i;
 
   /* There is no need to gcpro LEFT, TOP, ICON_LEFT, or ICON_TOP,
      because their values appear in VALUES and strings are not valid.  */
@@ -3273,7 +3262,7 @@ x_set_frame_parameters (struct frame *f, Lisp_Object alist)
 #endif /* HAVE_X_WINDOWS */
   }
 
-  UNGCPRO;
+  SAFE_FREE ();
 }
 
 
@@ -3773,9 +3762,7 @@ x_set_vertical_scroll_bars (struct frame *f, Lisp_Object arg, Lisp_Object oldval
 void
 x_set_horizontal_scroll_bars (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
-#if (defined (HAVE_WINDOW_SYSTEM)					\
-     && ((defined (USE_TOOLKIT_SCROLL_BARS) && !defined (HAVE_NS))	\
-	 || defined (HAVE_NTGUI)))
+#if USE_HORIZONTAL_SCROLL_BARS
   if ((NILP (arg) && FRAME_HAS_HORIZONTAL_SCROLL_BARS (f))
       || (!NILP (arg) && !FRAME_HAS_HORIZONTAL_SCROLL_BARS (f)))
     {
@@ -3825,9 +3812,7 @@ x_set_scroll_bar_width (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 void
 x_set_scroll_bar_height (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
-#if (defined (HAVE_WINDOW_SYSTEM)					\
-     && ((defined (USE_TOOLKIT_SCROLL_BARS) && !defined (HAVE_NS))	\
-	 || defined (HAVE_NTGUI)))
+#if USE_HORIZONTAL_SCROLL_BARS
   int unit = FRAME_LINE_HEIGHT (f);
 
   if (NILP (arg))
@@ -4010,10 +3995,6 @@ validate_x_resource_name (void)
 static Lisp_Object
 xrdb_get_resource (XrmDatabase rdb, Lisp_Object attribute, Lisp_Object class, Lisp_Object component, Lisp_Object subclass)
 {
-  register char *value;
-  char *name_key;
-  char *class_key;
-
   CHECK_STRING (attribute);
   CHECK_STRING (class);
 
@@ -4028,22 +4009,25 @@ xrdb_get_resource (XrmDatabase rdb, Lisp_Object attribute, Lisp_Object class, Li
 
   /* Allocate space for the components, the dots which separate them,
      and the final '\0'.  Make them big enough for the worst case.  */
-  name_key = alloca (SBYTES (Vx_resource_name)
-		     + (STRINGP (component)
-			? SBYTES (component) : 0)
-		     + SBYTES (attribute)
-		     + 3);
+  ptrdiff_t name_keysize = (SBYTES (Vx_resource_name)
+			    + (STRINGP (component)
+			       ? SBYTES (component) : 0)
+			    + SBYTES (attribute)
+			    + 3);
 
-  class_key = alloca (SBYTES (Vx_resource_class)
-		      + SBYTES (class)
-		      + (STRINGP (subclass)
-			 ? SBYTES (subclass) : 0)
-		      + 3);
+  ptrdiff_t class_keysize = (SBYTES (Vx_resource_class)
+			     + SBYTES (class)
+			     + (STRINGP (subclass)
+				? SBYTES (subclass) : 0)
+			     + 3);
+  USE_SAFE_ALLOCA;
+  char *name_key = SAFE_ALLOCA (name_keysize + class_keysize);
+  char *class_key = name_key + name_keysize;
 
   /* Start with emacs.FRAMENAME for the name (the specific one)
      and with `Emacs' for the class key (the general one).  */
-  strcpy (name_key, SSDATA (Vx_resource_name));
-  strcpy (class_key, SSDATA (Vx_resource_class));
+  lispstpcpy (name_key, Vx_resource_name);
+  lispstpcpy (class_key, Vx_resource_class);
 
   strcat (class_key, ".");
   strcat (class_key, SSDATA (class));
@@ -4060,7 +4044,8 @@ xrdb_get_resource (XrmDatabase rdb, Lisp_Object attribute, Lisp_Object class, Li
   strcat (name_key, ".");
   strcat (name_key, SSDATA (attribute));
 
-  value = x_get_string_resource (rdb, name_key, class_key);
+  char *value = x_get_string_resource (rdb, name_key, class_key);
+  SAFE_FREE();
 
   if (value && *value)
     return build_string (value);
@@ -4112,8 +4097,10 @@ x_get_resource_string (const char *attribute, const char *class)
 
   /* Allocate space for the components, the dots which separate them,
      and the final '\0'.  */
-  char *name_key = SAFE_ALLOCA (invocation_namelen + strlen (attribute) + 2);
-  char *class_key = alloca ((sizeof (EMACS_CLASS) - 1) + strlen (class) + 2);
+  ptrdiff_t name_keysize = invocation_namelen + strlen (attribute) + 2;
+  ptrdiff_t class_keysize = sizeof (EMACS_CLASS) - 1 + strlen (class) + 2;
+  char *name_key = SAFE_ALLOCA (name_keysize + class_keysize);
+  char *class_key = name_key + name_keysize;
 
   esprintf (name_key, "%s.%s", SSDATA (Vinvocation_name), attribute);
   sprintf (class_key, "%s.%s", EMACS_CLASS, class);
@@ -4140,7 +4127,7 @@ Lisp_Object
 x_get_arg (Display_Info *dpyinfo, Lisp_Object alist, Lisp_Object param,
 	   const char *attribute, const char *class, enum resource_types type)
 {
-  register Lisp_Object tem;
+  Lisp_Object tem;
 
   tem = Fassq (param, alist);
 
@@ -4166,10 +4153,9 @@ x_get_arg (Display_Info *dpyinfo, Lisp_Object alist, Lisp_Object param,
     {
       if (attribute && dpyinfo)
 	{
-	  tem = display_x_get_resource (dpyinfo,
-					build_string (attribute),
-					build_string (class),
-					Qnil, Qnil);
+	  AUTO_STRING (at, attribute);
+	  AUTO_STRING (cl, class);
+	  tem = display_x_get_resource (dpyinfo, at, cl, Qnil, Qnil);
 
 	  if (NILP (tem))
 	    return Qunbound;
@@ -4279,7 +4265,8 @@ x_default_parameter (struct frame *f, Lisp_Object alist, Lisp_Object prop,
   tem = x_frame_get_arg (f, alist, prop, xprop, xclass, type);
   if (EQ (tem, Qunbound))
     tem = deflt;
-  x_set_frame_parameters (f, list1 (Fcons (prop, tem)));
+  AUTO_FRAME_ARG (arg, prop, tem);
+  x_set_frame_parameters (f, arg);
   return tem;
 }
 
@@ -4872,16 +4859,6 @@ Setting this variable does not affect existing frames, only new ones.  */);
   Vdefault_frame_scroll_bars = Qnil;
 #endif
 
-  DEFVAR_LISP ("default-frame-horizontal-scroll-bars", Vdefault_frame_horizontal_scroll_bars,
-	       doc: /* Default value for horizontal scroll bars on this window-system.  */);
-#if (defined (HAVE_WINDOW_SYSTEM)					\
-     && ((defined (USE_TOOLKIT_SCROLL_BARS) && !defined (HAVE_NS))	\
-	 || defined (HAVE_NTGUI)))
-  Vdefault_frame_horizontal_scroll_bars = Qt;
-#else
-  Vdefault_frame_horizontal_scroll_bars = Qnil;
-#endif
-
   DEFVAR_BOOL ("scroll-bar-adjust-thumb-portion",
                scroll_bar_adjust_thumb_portion_p,
                doc: /* Adjust thumb for overscrolling for Gtk+ and MOTIF.
@@ -4897,8 +4874,8 @@ is visible.  In this case you can not overscroll.  */);
 
   DEFVAR_LISP ("mouse-position-function", Vmouse_position_function,
 	       doc: /* If non-nil, function to transform normal value of `mouse-position'.
-`mouse-position' calls this function, passing its usual return value as
-argument, and returns whatever this function returns.
+`mouse-position' and `mouse-pixel-position' call this function, passing their
+usual return value as argument, and return whatever this function returns.
 This abnormal hook exists for the benefit of packages like `xt-mouse.el'
 which need to do mouse handling at the Lisp level.  */);
   Vmouse_position_function = Qnil;

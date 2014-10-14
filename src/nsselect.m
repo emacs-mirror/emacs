@@ -328,19 +328,14 @@ ns_string_to_pasteboard (id pb, Lisp_Object str)
    ========================================================================== */
 
 
-DEFUN ("x-own-selection-internal", Fx_own_selection_internal,
-       Sx_own_selection_internal, 2, 3, 0,
+DEFUN ("ns-own-selection-internal", Fns_own_selection_internal,
+       Sns_own_selection_internal, 2, 2, 0,
        doc: /* Assert an X selection of type SELECTION and value VALUE.
 SELECTION is a symbol, typically `PRIMARY', `SECONDARY', or `CLIPBOARD'.
 \(Those are literal upper-case symbol names, since that's what X expects.)
 VALUE is typically a string, or a cons of two markers, but may be
-anything that the functions on `selection-converter-alist' know about.
-
-FRAME should be a frame that should own the selection.  If omitted or
-nil, it defaults to the selected frame.
-
-On Nextstep, FRAME is unused.  */)
-     (Lisp_Object selection, Lisp_Object value, Lisp_Object frame)
+anything that the functions on `selection-converter-alist' know about.  */)
+     (Lisp_Object selection, Lisp_Object value)
 {
   id pb;
   Lisp_Object old_value, new_value;
@@ -385,21 +380,11 @@ On Nextstep, FRAME is unused.  */)
 }
 
 
-DEFUN ("x-disown-selection-internal", Fx_disown_selection_internal,
-       Sx_disown_selection_internal, 1, 3, 0,
+DEFUN ("ns-disown-selection-internal", Fns_disown_selection_internal,
+       Sns_disown_selection_internal, 1, 1, 0,
        doc: /* If we own the selection SELECTION, disown it.
-Disowning it means there is no such selection.
-
-Sets the last-change time for the selection to TIME-OBJECT (by default
-the time of the last event).
-
-TERMINAL should be a terminal object or a frame specifying the X
-server to query.  If omitted or nil, that stands for the selected
-frame's display, or the first available X display.
-
-On Nextstep, the TIME-OBJECT and TERMINAL arguments are unused.
-On MS-DOS, all this does is return non-nil if we own the selection.  */)
-  (Lisp_Object selection, Lisp_Object time_object, Lisp_Object terminal)
+Disowning it means there is no such selection.  */)
+  (Lisp_Object selection)
 {
   id pb;
   check_window_system (NULL);
@@ -443,7 +428,7 @@ On Nextstep, TERMINAL is unused.  */)
 }
 
 
-DEFUN ("x-selection-owner-p", Fx_selection_owner_p, Sx_selection_owner_p,
+DEFUN ("ns-selection-owner-p", Fns_selection_owner_p, Sns_selection_owner_p,
        0, 2, 0,
        doc: /* Whether the current Emacs process owns the given X Selection.
 The arg should be the name of the selection in question, typically one of
@@ -507,7 +492,7 @@ On Nextstep, TIME-STAMP and TERMINAL are unused.  */)
 DEFUN ("ns-get-selection-internal", Fns_get_selection_internal,
        Sns_get_selection_internal, 1, 1, 0,
        doc: /* Returns the value of SELECTION as a string.
-SELECTION is a symbol, typically `PRIMARY', `SECONDARY', or `CLIPBOARD'. */)
+SELECTION is a symbol, typically `PRIMARY', `SECONDARY', or `CLIPBOARD'.  */)
      (Lisp_Object selection)
 {
   id pb;
@@ -520,7 +505,7 @@ SELECTION is a symbol, typically `PRIMARY', `SECONDARY', or `CLIPBOARD'. */)
 DEFUN ("ns-store-selection-internal", Fns_store_selection_internal,
        Sns_store_selection_internal, 2, 2, 0,
        doc: /* Sets the string value of SELECTION.
-SELECTION is a symbol, typically `PRIMARY', `SECONDARY', or `CLIPBOARD'. */)
+SELECTION is a symbol, typically `PRIMARY', `SECONDARY', or `CLIPBOARD'.  */)
      (Lisp_Object selection, Lisp_Object string)
 {
   id pb;
@@ -546,11 +531,11 @@ syms_of_nsselect (void)
   QTEXT      = intern_c_string ("TEXT"); 	staticpro (&QTEXT);
   QFILE_NAME = intern_c_string ("FILE_NAME"); 	staticpro (&QFILE_NAME);
 
-  defsubr (&Sx_disown_selection_internal);
+  defsubr (&Sns_disown_selection_internal);
   defsubr (&Sx_get_selection_internal);
-  defsubr (&Sx_own_selection_internal);
+  defsubr (&Sns_own_selection_internal);
   defsubr (&Sx_selection_exists_p);
-  defsubr (&Sx_selection_owner_p);
+  defsubr (&Sns_selection_owner_p);
   defsubr (&Sns_get_selection_internal);
   defsubr (&Sns_store_selection_internal);
 

@@ -43,18 +43,10 @@ PIMAGE_NT_HEADERS
 extern BOOL ctrl_c_handler (unsigned long type);
 
 extern char my_begdata[];
-extern char my_edata[];
 extern char my_begbss[];
-extern char my_endbss[];
 extern char *my_begbss_static;
-extern char *my_endbss_static;
 
 #include "w32heap.h"
-
-#undef min
-#undef max
-#define min(x, y) (((x) < (y)) ? (x) : (y))
-#define max(x, y) (((x) > (y)) ? (x) : (y))
 
 /* Basically, our "initialized" flag.  */
 BOOL using_dynamic_heap = FALSE;

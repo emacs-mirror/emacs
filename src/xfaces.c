@@ -3112,17 +3112,26 @@ FRAME 0 means change the face on all frames, and change the default
 		f = XFRAME (selected_frame);
 	      else
 		f = XFRAME (frame);
-	      if (! FONT_OBJECT_P (value))
-		{
-		  Lisp_Object *attrs = XVECTOR (lface)->contents;
-		  Lisp_Object font_object;
 
-		  font_object = font_load_for_lface (f, attrs, value);
-		  if (NILP (font_object))
-		    signal_error ("Font not available", value);
-		  value = font_object;
-		}
-	      set_lface_from_font (f, lface, value, 1);
+              /* FIXME:
+                 If frame is t, and selected frame is a tty frame, the font
+                 can't be realized.  An improvement would be to loop over frames
+                 for a non-tty frame and use that.  See discussion in
+                 bug#18573.  */
+              if (f->terminal->type != output_termcap)
+                {
+                  if (! FONT_OBJECT_P (value))
+                    {
+                      Lisp_Object *attrs = XVECTOR (lface)->contents;
+                      Lisp_Object font_object;
+
+                      font_object = font_load_for_lface (f, attrs, value);
+                      if (NILP (font_object))
+                        signal_error ("Font not available", value);
+                      value = font_object;
+                    }
+                  set_lface_from_font (f, lface, value, 1);
+                }
 	    }
 	  else
 	    ASET (lface, LFACE_FONT_INDEX, value);
@@ -3398,7 +3407,8 @@ set_font_frame_param (Lisp_Object frame, Lisp_Object lface)
 	  ASET (lface, LFACE_FONT_INDEX, font);
 	}
       f->default_face_done_p = 0;
-      Fmodify_frame_parameters (frame, list1 (Fcons (Qfont, font)));
+      AUTO_FRAME_ARG (arg, Qfont, font);
+      Fmodify_frame_parameters (frame, arg);
     }
 }
 
@@ -3787,18 +3797,23 @@ Default face attributes override any local face attributes.  */)
 	      && newface->font)
 	    {
 	      Lisp_Object name = newface->font->props[FONT_NAME_INDEX];
-	      Fmodify_frame_parameters (frame, list1 (Fcons (Qfont, name)));
+	      AUTO_FRAME_ARG (arg, Qfont, name);
+	      Fmodify_frame_parameters (frame, arg);
 	    }
 
 	  if (STRINGP (gvec[LFACE_FOREGROUND_INDEX]))
-	    Fmodify_frame_parameters (frame,
-				      list1 (Fcons (Qforeground_color,
-						    gvec[LFACE_FOREGROUND_INDEX])));
+	    {
+	      AUTO_FRAME_ARG (arg, Qforeground_color,
+			      gvec[LFACE_FOREGROUND_INDEX]);
+	      Fmodify_frame_parameters (frame, arg);
+	    }
 
 	  if (STRINGP (gvec[LFACE_BACKGROUND_INDEX]))
-	    Fmodify_frame_parameters (frame,
-				      list1 (Fcons (Qbackground_color,
-						    gvec[LFACE_BACKGROUND_INDEX])));
+	    {
+	      AUTO_FRAME_ARG (arg, Qbackground_color,
+			      gvec[LFACE_BACKGROUND_INDEX]);
+	      Fmodify_frame_parameters (frame, arg);
+	    }
 	}
     }
 
@@ -5980,6 +5995,7 @@ face_at_buffer_position (struct window *w, ptrdiff_t pos,
     endpos = XINT (end);
 
   /* Look at properties from overlays.  */
+  USE_SAFE_ALLOCA;
   {
     ptrdiff_t next_overlay;
 
@@ -6006,7 +6022,10 @@ face_at_buffer_position (struct window *w, ptrdiff_t pos,
   /* Optimize common cases where we can use the default face.  */
   if (noverlays == 0
       && NILP (prop))
-    return default_face->id;
+    {
+      SAFE_FREE ();
+      return default_face->id;
+    }
 
   /* Begin with attributes from the default face.  */
   memcpy (attrs, default_face->lface, sizeof attrs);
@@ -6033,6 +6052,8 @@ face_at_buffer_position (struct window *w, ptrdiff_t pos,
     }
 
   *endptr = endpos;
+
+  SAFE_FREE ();
 
   /* Look up a realized face with the given face attributes,
      or realize a new one for ASCII characters.  */

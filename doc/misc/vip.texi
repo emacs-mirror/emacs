@@ -1561,7 +1561,7 @@ assigned to a function that just beeps (@code{vip-nil}).
 @end example
 
 VIP uses a special local keymap to interpret key strokes you enter in vi
-mode.  The following keys are bound to @var{nil} in the keymap.  Therefore,
+mode.  The following keys are bound to @code{nil} in the keymap.  Therefore,
 these keys are interpreted by the global keymap of Emacs.  We give below a
 short description of the functions bound to these keys in the global
 keymap.  See GNU Emacs Manual for details.

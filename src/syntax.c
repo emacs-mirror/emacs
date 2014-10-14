@@ -1231,7 +1231,7 @@ DEFUN ("internal-describe-syntax-value", Finternal_describe_syntax_value,
   syntax_code = XINT (first) & INT_MAX;
   code = syntax_code & 0377;
   start1 = SYNTAX_FLAGS_COMSTART_FIRST (syntax_code);
-  start2 = SYNTAX_FLAGS_COMSTART_SECOND (syntax_code);;
+  start2 = SYNTAX_FLAGS_COMSTART_SECOND (syntax_code);
   end1 = SYNTAX_FLAGS_COMEND_FIRST (syntax_code);
   end2 = SYNTAX_FLAGS_COMEND_SECOND (syntax_code);
   prefix = SYNTAX_FLAGS_PREFIX (syntax_code);
@@ -1567,6 +1567,7 @@ skip_chars (bool forwardp, Lisp_Object string, Lisp_Object lim,
   const unsigned char *str;
   int len;
   Lisp_Object iso_classes;
+  USE_SAFE_ALLOCA;
 
   CHECK_STRING (string);
   iso_classes = Qnil;
@@ -1699,7 +1700,7 @@ skip_chars (bool forwardp, Lisp_Object string, Lisp_Object lim,
 	  memcpy (himap, fastmap + 0200, 0200);
 	  himap[0200] = 0;
 	  memset (fastmap + 0200, 0, 0200);
-	  char_ranges = alloca (sizeof *char_ranges * 128 * 2);
+	  SAFE_NALLOCA (char_ranges, 2, 128);
 	  i = 0;
 
 	  while ((p1 = memchr (himap + i, 1, 0200 - i)))
@@ -1723,7 +1724,7 @@ skip_chars (bool forwardp, Lisp_Object string, Lisp_Object lim,
     }
   else				/* STRING is multibyte */
     {
-      char_ranges = alloca (sizeof *char_ranges * SCHARS (string) * 2);
+      SAFE_NALLOCA (char_ranges, 2, SCHARS (string));
 
       while (i_byte < size_byte)
 	{
@@ -2032,6 +2033,7 @@ skip_chars (bool forwardp, Lisp_Object string, Lisp_Object lim,
     SET_PT_BOTH (pos, pos_byte);
     immediate_quit = 0;
 
+    SAFE_FREE ();
     return make_number (PT - start_point);
   }
 }
@@ -2857,10 +2859,13 @@ scan_lists (EMACS_INT from, EMACS_INT count, EMACS_INT depth, bool sexpflag)
 	    case Smath:
 	      if (!sexpflag)
 		break;
-	      temp_pos = dec_bytepos (from_byte);
-	      UPDATE_SYNTAX_TABLE_BACKWARD (from - 1);
-	      if (from != stop && c == FETCH_CHAR_AS_MULTIBYTE (temp_pos))
-		DEC_BOTH (from, from_byte);
+	      if (from > BEGV)
+		{
+		  temp_pos = dec_bytepos (from_byte);
+		  UPDATE_SYNTAX_TABLE_BACKWARD (from - 1);
+		  if (from != stop && c == FETCH_CHAR_AS_MULTIBYTE (temp_pos))
+		    DEC_BOTH (from, from_byte);
+		}
 	      if (mathexit)
 		{
 		  mathexit = 0;

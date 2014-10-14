@@ -794,7 +794,7 @@ If command is repeated at same position, delete the rectangle."
 			       (make-string
 				(- l cl0 (if (and (= le pl) (/= le lb)) 1 0))
 				(if cua--virtual-edges-debug ?. ?\s))
-			       'face (or (get-text-property (1- s) 'face) 'default)))
+			       'face (or (get-text-property (max (1- s) (point-min)) 'face) 'default)))
 		     (if (/= pl le)
 			 (setq s (1- s))))
 		   (cond

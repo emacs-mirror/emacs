@@ -4163,7 +4163,6 @@ resize_frame_windows (struct frame *f, int size, bool horflag, bool pixelwise)
       new_pixel_size = max (horflag
 			    ? size
 			    : (size
-/** 			       - FRAME_TOP_MARGIN_HEIGHT (f) **/
 			       - ((FRAME_HAS_MINIBUF_P (f)
 				   && !FRAME_MINIBUF_ONLY_P (f))
 				  ? FRAME_LINE_HEIGHT (f) : 0)),
@@ -4175,7 +4174,6 @@ resize_frame_windows (struct frame *f, int size, bool horflag, bool pixelwise)
       new_size = max (horflag
 		      ? size
 		      : (size
-/** 			 - FRAME_TOP_MARGIN (f) **/
 			 - ((FRAME_HAS_MINIBUF_P (f)
 			     && !FRAME_MINIBUF_ONLY_P (f))
 			    ? 1 : 0)),
@@ -4796,10 +4794,10 @@ DEFUN ("resize-mini-window-internal", Fresize_mini_window_internal, Sresize_mini
       block_input ();
       window_resize_apply (r, 0);
 
-      w->total_lines = XFASTINT (w->new_total);
-      w->top_line = r->top_line + r->total_lines;
       w->pixel_height = XFASTINT (w->new_pixel);
+      w->total_lines = w->pixel_height / FRAME_LINE_HEIGHT (f);
       w->pixel_top = r->pixel_top + r->pixel_height;
+      w->top_line = r->top_line + r->total_lines;
 
       fset_redisplay (f);
       FRAME_WINDOW_SIZES_CHANGED (f) = 1;
@@ -5916,6 +5914,8 @@ and redisplay normally--don't erase and redraw the frame.  */)
   w->start_at_line_beg = (bytepos == BEGV_BYTE
 			  || FETCH_BYTE (bytepos - 1) == '\n');
 
+  wset_redisplay (w);
+
   return Qnil;
 }
 
@@ -6124,6 +6124,7 @@ the return value is nil.  Otherwise the value is t.  */)
   Lisp_Object frame;
   struct frame *f;
   ptrdiff_t old_point = -1;
+  USE_SAFE_ALLOCA;
 
   CHECK_WINDOW_CONFIGURATION (configuration);
 
@@ -6231,8 +6232,8 @@ the return value is nil.  Otherwise the value is t.  */)
 	 really like to do is to free only those matrices not reused
 	 below.  */
       root_window = XWINDOW (FRAME_ROOT_WINDOW (f));
-      leaf_windows = alloca (count_windows (root_window)
-			     * sizeof *leaf_windows);
+      int nwindows = count_windows (root_window);
+      SAFE_NALLOCA (leaf_windows, 1, nwindows);
       n_leaf_windows = get_leaf_windows (root_window, leaf_windows, 0);
 
       /* Kludge Alert!
@@ -6456,423 +6457,10 @@ the return value is nil.  Otherwise the value is t.  */)
   Vminibuf_scroll_window = data->minibuf_scroll_window;
   minibuf_selected_window = data->minibuf_selected_window;
 
+  SAFE_FREE ();
   return (FRAME_LIVE_P (f) ? Qt : Qnil);
 }
 
-
-#if 0
-DEFUN ("set-window-configuration", Fset_window_configuration,
-       Sset_window_configuration, 1, 1, 0,
-       doc: /* Set the configuration of windows and buffers as specified by CONFIGURATION.
-CONFIGURATION must be a value previously returned
-by `current-window-configuration' (which see).
-If CONFIGURATION was made from a frame that is now deleted,
-only frame-independent values can be restored.  In this case,
-the return value is nil.  Otherwise the value is t.  */)
-  (Lisp_Object configuration)
-{
-  register struct save_window_data *data;
-  struct Lisp_Vector *saved_windows;
-  Lisp_Object new_current_buffer;
-  Lisp_Object frame;
-  struct frame *f;
-  ptrdiff_t old_point = -1;
-
-  CHECK_WINDOW_CONFIGURATION (configuration);
-
-  data = (struct save_window_data *) XVECTOR (configuration);
-  saved_windows = XVECTOR (data->saved_windows);
-
-  new_current_buffer = data->current_buffer;
-  if (!BUFFER_LIVE_P (XBUFFER (new_current_buffer)))
-    new_current_buffer = Qnil;
-  else
-    {
-      if (XBUFFER (new_current_buffer) == current_buffer)
-	/* The code further down "preserves point" by saving here PT in
-	   old_point and then setting it later back into PT.  When the
-	   current-selected-window and the final-selected-window both show
-	   the current buffer, this suffers from the problem that the
-	   current PT is the window-point of the current-selected-window,
-	   while the final PT is the point of the final-selected-window, so
-	   this copy from one PT to the other would end up moving the
-	   window-point of the final-selected-window to the window-point of
-	   the current-selected-window.  So we have to be careful which
-	   point of the current-buffer we copy into old_point.  */
-	if (EQ (XWINDOW (data->current_window)->contents, new_current_buffer)
-	    && WINDOWP (selected_window)
-	    && EQ (XWINDOW (selected_window)->contents, new_current_buffer)
-	    && !EQ (selected_window, data->current_window))
-	  old_point = marker_position (XWINDOW (data->current_window)->pointm);
-	else
-	  old_point = PT;
-      else
-	/* BUF_PT (XBUFFER (new_current_buffer)) gives us the position of
-	   point in new_current_buffer as of the last time this buffer was
-	   used.  This can be non-deterministic since it can be changed by
-	   things like jit-lock by mere temporary selection of some random
-	   window that happens to show this buffer.
-	   So if possible we want this arbitrary choice of "which point" to
-	   be the one from the to-be-selected-window so as to prevent this
-	   window's cursor from being copied from another window.  */
-	if (EQ (XWINDOW (data->current_window)->contents, new_current_buffer)
-	    /* If current_window = selected_window, its point is in BUF_PT.  */
-	    && !EQ (selected_window, data->current_window))
-	  old_point = marker_position (XWINDOW (data->current_window)->pointm);
-	else
-	  old_point = BUF_PT (XBUFFER (new_current_buffer));
-    }
-
-  frame = XWINDOW (SAVED_WINDOW_N (saved_windows, 0)->window)->frame;
-  f = XFRAME (frame);
-
-  /* If f is a dead frame, don't bother rebuilding its window tree.
-     However, there is other stuff we should still try to do below.  */
-  if (FRAME_LIVE_P (f))
-    {
-      Lisp_Object window;
-      Lisp_Object dead_windows = Qnil;
-      register Lisp_Object tem, par, pers;
-      register struct window *w;
-      register struct saved_window *p;
-      struct window *root_window;
-      struct window **leaf_windows;
-      int n_leaf_windows;
-      ptrdiff_t k;
-      int i, n;
-      ptrdiff_t count = SPECPDL_INDEX ();
-      /* If the frame has been resized since this window configuration was
-	 made, we change the frame to the size specified in the
-	 configuration, restore the configuration, and then resize it
-	 back.  We keep track of the prevailing height in these variables.  */
-      int previous_frame_text_height = FRAME_TEXT_HEIGHT (f);
-      int previous_frame_text_width =  FRAME_TEXT_WIDTH  (f);
-      /* int previous_frame_menu_bar_height = FRAME_MENU_BAR_HEIGHT (f); */
-      /* int previous_frame_tool_bar_height = FRAME_TOOL_BAR_HEIGHT (f); */
-      /* int previous_frame_lines = FRAME_LINES (f); */
-      /* int previous_frame_cols =  FRAME_COLS  (f); */
-      int previous_frame_menu_bar_lines = FRAME_MENU_BAR_LINES (f);
-      int previous_frame_tool_bar_lines = FRAME_TOOL_BAR_LINES (f);
-
-      /* Don't do this within the main loop below: This may call Lisp
-	 code and is thus potentially unsafe while input is blocked.  */
-      for (k = 0; k < saved_windows->header.size; k++)
-	{
-	  p = SAVED_WINDOW_N (saved_windows, k);
-	  window = p->window;
-	  w = XWINDOW (window);
-	  if (BUFFERP (w->contents)
-	      && !EQ (w->contents, p->buffer)
-	      && BUFFER_LIVE_P (XBUFFER (p->buffer)))
-	    /* If a window we restore gets another buffer, record the
-	       window's old buffer.  */
-	    call1 (Qrecord_window_buffer, window);
-	}
-
-      /* Consider frame unofficial, temporarily.  */
-      f->official = false;
-      /* The mouse highlighting code could get screwed up
-	 if it runs during this.  */
-      block_input ();
-
-      if (data->frame_text_width != previous_frame_text_width
-	  || data->frame_text_height != previous_frame_text_height)
-	/* Make frame size fit the one in data, so window sizes restored
-	   from data match those of the frame.  */
-	adjust_frame_size (f, data->frame_text_width,
-			   data->frame_text_height, 5, 0);
-
-      if (data->frame_menu_bar_lines != previous_frame_menu_bar_lines)
-	{
-#ifdef HAVE_WINDOW_SYSTEM
-	  if (FRAME_WINDOW_P (f))
-	    x_set_menu_bar_lines (f, make_number (data->frame_menu_bar_lines),
-				  make_number (0));
-	  else	/* TTY or MSDOS */
-#endif
-	    set_menu_bar_lines (f, make_number (data->frame_menu_bar_lines),
-				make_number (0));
-	}
-#ifdef HAVE_WINDOW_SYSTEM
-      if (data->frame_tool_bar_lines != previous_frame_tool_bar_lines)
-	x_set_tool_bar_lines (f, make_number (data->frame_tool_bar_lines),
-			      make_number (0));
-#endif
-
-      /* "Swap out" point from the selected window's buffer
-	 into the window itself.  (Normally the pointm of the selected
-	 window holds garbage.)  We do this now, before
-	 restoring the window contents, and prevent it from
-	 being done later on when we select a new window.  */
-      if (! NILP (XWINDOW (selected_window)->contents))
-	{
-	  w = XWINDOW (selected_window);
-	  set_marker_both (w->pointm,
-			   w->contents,
-			   BUF_PT (XBUFFER (w->contents)),
-			   BUF_PT_BYTE (XBUFFER (w->contents)));
-	}
-
-      fset_redisplay (f);
-      FRAME_WINDOW_SIZES_CHANGED (f) = 1;
-
-      /* Problem: Freeing all matrices and later allocating them again
-	 is a serious redisplay flickering problem.  What we would
-	 really like to do is to free only those matrices not reused
-	 below.  */
-      root_window = XWINDOW (FRAME_ROOT_WINDOW (f));
-      leaf_windows = alloca (count_windows (root_window)
-			     * sizeof *leaf_windows);
-      n_leaf_windows = get_leaf_windows (root_window, leaf_windows, 0);
-
-      /* Kludge Alert!
-	 Mark all windows now on frame as "deleted".
-	 Restoring the new configuration "undeletes" any that are in it.
-
-	 Save their current buffers in their height fields, since we may
-	 need it later, if a buffer saved in the configuration is now
-	 dead.  */
-      delete_all_child_windows (FRAME_ROOT_WINDOW (f));
-
-      for (k = 0; k < saved_windows->header.size; k++)
-	{
-	  p = SAVED_WINDOW_N (saved_windows, k);
-	  window = p->window;
-	  w = XWINDOW (window);
-	  wset_next (w, Qnil);
-
-	  if (!NILP (p->parent))
-	    wset_parent
-	      (w, SAVED_WINDOW_N (saved_windows, XFASTINT (p->parent))->window);
-	  else
-	    wset_parent (w, Qnil);
-
-	  if (!NILP (p->prev))
-	    {
-	      wset_prev
-		(w, SAVED_WINDOW_N (saved_windows, XFASTINT (p->prev))->window);
-	      wset_next (XWINDOW (w->prev), p->window);
-	    }
-	  else
-	    {
-	      wset_prev (w, Qnil);
-	      if (!NILP (w->parent))
-		wset_combination (XWINDOW (w->parent),
-				  (XINT (p->total_cols)
-				   != XWINDOW (w->parent)->total_cols),
-				  p->window);
-	    }
-
-	  /* If we squirreled away the buffer, restore it now.  */
-	  if (BUFFERP (w->combination_limit))
-	    wset_buffer (w, w->combination_limit);
-	  w->pixel_left = XFASTINT (p->pixel_left);
-	  w->pixel_top = XFASTINT (p->pixel_top);
-	  w->pixel_width = XFASTINT (p->pixel_width);
-	  w->pixel_height = XFASTINT (p->pixel_height);
-	  w->left_col = XFASTINT (p->left_col);
-	  w->top_line = XFASTINT (p->top_line);
-	  w->total_cols = XFASTINT (p->total_cols);
-	  w->total_lines = XFASTINT (p->total_lines);
-	  wset_normal_cols (w, p->normal_cols);
-	  wset_normal_lines (w, p->normal_lines);
-	  w->hscroll = XFASTINT (p->hscroll);
-	  w->suspend_auto_hscroll = !NILP (p->suspend_auto_hscroll);
-	  w->min_hscroll = XFASTINT (p->min_hscroll);
-	  w->hscroll_whole = XFASTINT (p->hscroll_whole);
-	  wset_display_table (w, p->display_table);
-	  w->left_margin_cols = XINT (p->left_margin_cols);
-	  w->right_margin_cols = XINT (p->right_margin_cols);
-	  w->left_fringe_width = XINT (p->left_fringe_width);
-	  w->right_fringe_width = XINT (p->right_fringe_width);
-	  w->fringes_outside_margins = !NILP (p->fringes_outside_margins);
-	  w->scroll_bar_width = XINT (p->scroll_bar_width);
-	  w->scroll_bar_height = XINT (p->scroll_bar_height);
-	  wset_vertical_scroll_bar_type (w, p->vertical_scroll_bar_type);
-	  wset_horizontal_scroll_bar_type (w, p->horizontal_scroll_bar_type);
-	  wset_dedicated (w, p->dedicated);
-	  wset_combination_limit (w, p->combination_limit);
-	  /* Restore any window parameters that have been saved.
-	     Parameters that have not been saved are left alone.  */
-	  for (tem = p->window_parameters; CONSP (tem); tem = XCDR (tem))
-	    {
-	      pers = XCAR (tem);
-	      if (CONSP (pers))
-		{
-		  if (NILP (XCDR (pers)))
-		    {
-		      par = Fassq (XCAR (pers), w->window_parameters);
-		      if (CONSP (par) && !NILP (XCDR (par)))
-			/* Reset a parameter to nil if and only if it
-			   has a non-nil association.  Don't make new
-			   associations.  */
-			Fsetcdr (par, Qnil);
-		    }
-		  else
-		    /* Always restore a non-nil value.  */
-		    Fset_window_parameter (window, XCAR (pers), XCDR (pers));
-		}
-	    }
-
-	  if (BUFFERP (p->buffer) && BUFFER_LIVE_P (XBUFFER (p->buffer)))
-	    /* If saved buffer is alive, install it.  */
-	    {
-	      wset_buffer (w, p->buffer);
-	      w->start_at_line_beg = !NILP (p->start_at_line_beg);
-	      set_marker_restricted (w->start, p->start, w->contents);
-	      set_marker_restricted (w->pointm, p->pointm, w->contents);
-	      set_marker_restricted (w->old_pointm, p->old_pointm, w->contents);
-	      /* As documented in Fcurrent_window_configuration, don't
-		 restore the location of point in the buffer which was
-		 current when the window configuration was recorded.  */
-	      if (!EQ (p->buffer, new_current_buffer)
-		  && XBUFFER (p->buffer) == current_buffer)
-		Fgoto_char (w->pointm);
-	    }
-	  else if (BUFFERP (w->contents) && BUFFER_LIVE_P (XBUFFER (w->contents)))
-	    /* Keep window's old buffer; make sure the markers are real.  */
-	    {
-	      /* Set window markers at start of visible range.  */
-	      if (XMARKER (w->start)->buffer == 0)
-		set_marker_restricted_both (w->start, w->contents, 0, 0);
-	      if (XMARKER (w->pointm)->buffer == 0)
-		set_marker_restricted_both
-		  (w->pointm, w->contents,
-		   BUF_PT (XBUFFER (w->contents)),
-		   BUF_PT_BYTE (XBUFFER (w->contents)));
-	      if (XMARKER (w->old_pointm)->buffer == 0)
-		set_marker_restricted_both
-		  (w->old_pointm, w->contents,
-		   BUF_PT (XBUFFER (w->contents)),
-		   BUF_PT_BYTE (XBUFFER (w->contents)));
-	      w->start_at_line_beg = 1;
-	    }
-	  else if (!NILP (w->start))
-	    /* Leaf window has no live buffer, get one.  */
-	    {
-	      /* Get the buffer via other_buffer_safely in order to
-		 avoid showing an unimportant buffer and, if necessary, to
-		 recreate *scratch* in the course (part of Juanma's bs-show
-		 scenario from March 2011).  */
-	      wset_buffer (w, other_buffer_safely (Fcurrent_buffer ()));
-	      /* This will set the markers to beginning of visible
-		 range.  */
-	      set_marker_restricted_both (w->start, w->contents, 0, 0);
-	      set_marker_restricted_both (w->pointm, w->contents, 0, 0);
-	      set_marker_restricted_both (w->old_pointm, w->contents, 0, 0);
-	      w->start_at_line_beg = 1;
-	      if (!NILP (w->dedicated))
-		/* Record this window as dead.  */
-		dead_windows = Fcons (window, dead_windows);
-	      /* Make sure window is no more dedicated.  */
-	      wset_dedicated (w, Qnil);
-	    }
-	}
-
-      fset_root_window (f, data->root_window);
-      /* Arrange *not* to restore point in the buffer that was
-	 current when the window configuration was saved.  */
-      if (EQ (XWINDOW (data->current_window)->contents, new_current_buffer))
-	set_marker_restricted (XWINDOW (data->current_window)->pointm,
-			       make_number (old_point),
-			       XWINDOW (data->current_window)->contents);
-
-      /* In the following call to `select-window', prevent "swapping out
-	 point" in the old selected window using the buffer that has
-	 been restored into it.  We already swapped out that point from
-	 that window's old buffer.
-
-	 Do not record the buffer here.  We do that in a separate call
-	 to select_window below.  See also Bug#16207.  */
-      select_window (data->current_window, Qt, 1);
-      BVAR (XBUFFER (XWINDOW (selected_window)->contents),
-	    last_selected_window)
-	= selected_window;
-
-      if (NILP (data->focus_frame)
-	  || (FRAMEP (data->focus_frame)
-	      && FRAME_LIVE_P (XFRAME (data->focus_frame))))
-	Fredirect_frame_focus (frame, data->focus_frame);
-
-      /* Set the frame size to the value it had before this function.  */
-      if (previous_frame_text_width != FRAME_TEXT_WIDTH (f)
-	  || previous_frame_text_height != FRAME_TEXT_HEIGHT (f))
-	adjust_frame_size (f, previous_frame_text_width,
-			   previous_frame_text_height, 5, 0);
-
-      if (previous_frame_menu_bar_lines != FRAME_MENU_BAR_LINES (f))
-	{
-#ifdef HAVE_WINDOW_SYSTEM
-	  if (FRAME_WINDOW_P (f))
-	    x_set_menu_bar_lines (f,
-				  make_number (previous_frame_menu_bar_lines),
-				  make_number (0));
-	  else	/* TTY or MSDOS */
-#endif
-	    set_menu_bar_lines (f, make_number (previous_frame_menu_bar_lines),
-				make_number (0));
-	}
-#ifdef HAVE_WINDOW_SYSTEM
-      if (previous_frame_tool_bar_lines != FRAME_TOOL_BAR_LINES (f))
-	x_set_tool_bar_lines (f, make_number (previous_frame_tool_bar_lines),
-			      make_number (0));
-#endif
-
-      /* Now, free glyph matrices in windows that were not reused.  */
-      for (i = n = 0; i < n_leaf_windows; ++i)
-	{
-	  if (NILP (leaf_windows[i]->contents))
-	    free_window_matrices (leaf_windows[i]);
-	  else if (EQ (leaf_windows[i]->contents, new_current_buffer))
-	    ++n;
-	}
-
-      /* Make frame official again and apply frame size changes if
-	 needed.  */
-      f->official = true;
-      adjust_frame_size (f, -1, -1, 1, 0);
-
-      adjust_frame_glyphs (f);
-      unblock_input ();
-
-      /* Scan dead buffer windows.  */
-      for (; CONSP (dead_windows); dead_windows = XCDR (dead_windows))
-	{
-	  window = XCAR (dead_windows);
-	  if (WINDOW_LIVE_P (window) && !EQ (window, FRAME_ROOT_WINDOW (f)))
-	    delete_deletable_window (window);
-	}
-
-      /* Record the selected window's buffer here.  The window should
-	 already be the selected one from the call above.  */
-      select_window (data->current_window, Qnil, 0);
-
-      /* Fselect_window will have made f the selected frame, so we
-	 reselect the proper frame here.  Fhandle_switch_frame will change the
-	 selected window too, but that doesn't make the call to
-	 Fselect_window above totally superfluous; it still sets f's
-	 selected window.  */
-      if (FRAME_LIVE_P (XFRAME (data->selected_frame)))
-	do_switch_frame (data->selected_frame, 0, 0, Qnil);
-
-      run_window_configuration_change_hook (f);
-    }
-
-  if (!NILP (new_current_buffer))
-    {
-      Fset_buffer (new_current_buffer);
-      /* If the new current buffer doesn't appear in the selected
-	 window, go to its old point (see bug#12208).  */
-      if (!EQ (XWINDOW (data->current_window)->contents, new_current_buffer))
-	Fgoto_char (make_number (old_point));
-    }
-
-  Vminibuf_scroll_window = data->minibuf_scroll_window;
-  minibuf_selected_window = data->minibuf_selected_window;
-
-  return (FRAME_LIVE_P (f) ? Qt : Qnil);
-}
-#endif
 
 void
 restore_window_configuration (Lisp_Object configuration)
@@ -7374,9 +6962,7 @@ set_window_scroll_bars (struct window *w, Lisp_Object width,
 	}
     }
 
-#if (defined (HAVE_WINDOW_SYSTEM)					\
-     && ((defined (USE_TOOLKIT_SCROLL_BARS) && !defined (HAVE_NS))	\
-	 || defined (HAVE_NTGUI)))
+#if USE_HORIZONTAL_SCROLL_BARS
   {
     int iheight = (NILP (height) ? -1 : (CHECK_NATNUM (height), XINT (height)));
 
@@ -7416,16 +7002,17 @@ DEFUN ("set-window-scroll-bars", Fset_window_scroll_bars,
        doc: /* Set width and type of scroll bars of window WINDOW.
 WINDOW must be a live window and defaults to the selected one.
 
-Second parameter WIDTH specifies the pixel width for the scroll bar.
+Second parameter WIDTH specifies the pixel width for the vertical scroll
+bar.  If WIDTH is nil, use the scroll-bar width of WINDOW's frame.
 Third parameter VERTICAL-TYPE specifies the type of the vertical scroll
-bar: left, right, or nil.  If WIDTH is nil, use the frame's scroll-bar
-width.  If VERTICAL-TYPE is t, use the frame's scroll-bar type.
+bar: left, right, or nil.  If VERTICAL-TYPE is t, this means use the
+frame's scroll-bar type.
 
-Fourth parameter HEIGHT specifies the pixel height for the scroll bar.
-Fifth parameter HORIZONTAL-TYPE specifies the type of the vertical
-scroll bar: nil, bottom, or t.  If HEIGHT is nil, use the frame's
-scroll-bar height.  If HORIZONTAL-TYPE is t, use the frame's scroll-bar
-type.
+Fourth parameter HEIGHT specifies the pixel height for the horizontal
+scroll bar.  If HEIGHT is nil, use the scroll-bar height of WINDOW's
+frame.  Fifth parameter HORIZONTAL-TYPE specifies the type of the
+horizontal scroll bar: nil, bottom, or t.  If HORIZONTAL-TYPE is t, this
+means to use the frame's horizontal scroll-bar type.
 
 Return t if scroll bars were actually changed and nil otherwise.  */)
   (Lisp_Object window, Lisp_Object width, Lisp_Object vertical_type,
@@ -7443,17 +7030,22 @@ DEFUN ("window-scroll-bars", Fwindow_scroll_bars, Swindow_scroll_bars,
        doc: /* Get width and type of scroll bars of window WINDOW.
 WINDOW must be a live window and defaults to the selected one.
 
-Value is a list of the form (WIDTH COLS VERTICAL-TYPE HEIGHT LINES
-HORIZONTAL-TYPE).  If WIDTH or HEIGHT is nil or TYPE is t, the window is
-using the frame's corresponding value.  */)
+Value is a list of the form (WIDTH COLUMNS VERTICAL-TYPE HEIGHT LINES
+HORIZONTAL-TYPE).  If WIDTH or HEIGHT is nil or VERTICAL-TYPE or
+HORIZONTAL-TYPE is t, the window is using the frame's corresponding
+value.  */)
   (Lisp_Object window)
 {
   struct window *w = decode_live_window (window);
 
-  return Fcons (make_number (WINDOW_SCROLL_BAR_AREA_WIDTH (w)),
+  return Fcons (((w->scroll_bar_width >= 0)
+		 ? make_number (w->scroll_bar_width)
+		 : Qnil),
 		list5 (make_number (WINDOW_SCROLL_BAR_COLS (w)),
 		       w->vertical_scroll_bar_type,
-		       make_number (WINDOW_SCROLL_BAR_AREA_HEIGHT (w)),
+		       ((w->scroll_bar_height >= 0)
+			? make_number (w->scroll_bar_height)
+			: Qnil),
 		       make_number (WINDOW_SCROLL_BAR_LINES (w)),
 		       w->horizontal_scroll_bar_type));
 }

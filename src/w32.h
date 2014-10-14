@@ -144,10 +144,10 @@ extern char * w32_strerror (int error_no);
 extern int w32_valid_pointer_p (void *, int);
 
 /* Get long (aka "true") form of file name, if it exists.  */
-extern BOOL w32_get_long_filename (char * name, char * buf, int size);
+extern BOOL w32_get_long_filename (const char * name, char * buf, int size);
 
 /* Get the short (a.k.a. "8+3") form of a file name.  */
-extern unsigned int w32_get_short_filename (char *, char *, int);
+extern unsigned int w32_get_short_filename (const char *, char *, int);
 
 /* Prepare our standard handles for proper inheritance by child processes.  */
 extern void prepare_standard_handles (int in, int out,
@@ -209,6 +209,9 @@ extern int sys_link (const char *, const char *);
 /* Return total and free memory info.  */
 extern int w32_memory_info (unsigned long long *, unsigned long long *,
 			    unsigned long long *, unsigned long long *);
+
+/* Compare 2 UTF-8 strings in locale-dependent fashion.  */
+extern int w32_compare_strings (const char *, const char *, char *, int);
 
 #ifdef HAVE_GNUTLS
 #include <gnutls/gnutls.h>

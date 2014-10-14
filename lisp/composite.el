@@ -702,7 +702,7 @@ All non-spacing characters have this function in
 	    (setq xoff (- (lglyph-rbearing fc))))
 	(if (< dc-width fc-width)
 	    ;; The following glyph is wider, but we don't know how to
-	    ;; align both glyphs.  So, try the easiet method;
+	    ;; align both glyphs.  So, try the easiest method;
 	    ;; i.e. align left edges of the glyphs.
 	    (setq xoff (- xoff (- dc-width) (- (lglyph-lbearing fc )))
 		  width (- fc-width dc-width)))

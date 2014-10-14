@@ -119,13 +119,13 @@
   (let ((macroexp--pending-eager-loads '(skip)))
     (load "emacs-lisp/pcase"))
   ;; Re-load macroexp so as to eagerly macro-expand its uses of pcase.
-  (load "emacs-lisp/macroexp"))
+  (let ((max-lisp-eval-depth (* 2 max-lisp-eval-depth)))
+    (load "emacs-lisp/macroexp")))
 
 (load "cus-face")
 (load "faces")  ; after here, `defface' may be used.
 
 (load "button")
-(load "startup")
 
 ;; We don't want to store loaddefs.el in the repository because it is
 ;; a generated file; but it is required in order to compile the lisp files.
@@ -192,6 +192,7 @@
 
 (load "indent")
 (load "frame")
+(load "startup")
 (load "term/tty-colors")
 (load "font-core")
 ;; facemenu must be loaded before font-lock, because `facemenu-keymap'
@@ -216,6 +217,7 @@
 (load "textmodes/paragraphs")
 (load "progmodes/prog-mode")
 (load "emacs-lisp/lisp-mode")
+(load "progmodes/elisp-mode")
 (load "textmodes/text-mode")
 (load "textmodes/fill")
 (load "newcomment")
@@ -250,7 +252,6 @@
       (load "w32-vars")
       (load "term/w32-win")
       (load "disp-table")
-      (load "w32-common-fns")
       (when (eq system-type 'windows-nt)
         (load "w32-fns")
         (load "ls-lisp")

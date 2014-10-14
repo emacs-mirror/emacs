@@ -88,7 +88,7 @@
 
 ;;;###autoload
 (define-obsolete-function-alias
-  'capitalized-words-mode 'subword-mode "24.5")
+  'capitalized-words-mode 'subword-mode "25.1")
 
 ;;;###autoload
 (define-minor-mode subword-mode
@@ -113,7 +113,7 @@ called a `subword'.  Here are some examples:
   NSGraphicsContext  =>  \"NS\", \"Graphics\" and \"Context\"
 
 This mode changes the definition of a word so that word commands
-treat nomenclature boundaries as word bounaries.
+treat nomenclature boundaries as word boundaries.
 
 \\{subword-mode-map}"
     :lighter " ,"
@@ -130,7 +130,7 @@ treat nomenclature boundaries as word bounaries.
 ;; N.B. These commands aren't used unless explicitly invoked; they're
 ;; here for compatibility.  Today, subword-mode leaves motion commands
 ;; alone and uses `find-word-boundary-function-table' to change how
-;; `forward-word' and other low-level commands detect word bounaries.
+;; `forward-word' and other low-level commands detect word boundaries.
 ;; This way, all word-related activities, not just the images we
 ;; imagine here, get subword treatment.
 
@@ -334,7 +334,7 @@ as parts of words: e.g., in `superword-mode',
     tab)
   "Assigned to `find-word-boundary-function-table' in
 `subword-mode' and `superword-mode'; defers to
-`subword-find-word-bounary'.")
+`subword-find-word-boundary'.")
 
 (defconst subword-empty-char-table
   (make-char-table nil)

@@ -979,17 +979,21 @@ wrong_choice (Lisp_Object choice, Lisp_Object wrong)
 {
   ptrdiff_t i = 0, len = XINT (Flength (choice));
   Lisp_Object obj, *args;
+  AUTO_STRING (one_of, "One of ");
+  AUTO_STRING (comma, ", ");
+  AUTO_STRING (or, " or ");
+  AUTO_STRING (should_be_specified, " should be specified");
 
   USE_SAFE_ALLOCA;
   SAFE_ALLOCA_LISP (args, len * 2 + 1);
 
-  args[i++] = build_string ("One of ");
+  args[i++] = one_of;
 
   for (obj = choice; !NILP (obj); obj = XCDR (obj))
     {
       args[i++] = SYMBOL_NAME (XCAR (obj));
-      args[i++] = build_string (NILP (XCDR (obj)) ? " should be specified"
-				: (NILP (XCDR (XCDR (obj))) ? " or " : ", "));
+      args[i++] = (NILP (XCDR (obj)) ? should_be_specified
+		   : NILP (XCDR (XCDR (obj))) ? or : comma);
     }
 
   obj = Fconcat (i, args);
@@ -1003,14 +1007,13 @@ wrong_choice (Lisp_Object choice, Lisp_Object wrong)
 static void
 wrong_range (Lisp_Object min, Lisp_Object max, Lisp_Object wrong)
 {
-  Lisp_Object args[4];
-
-  args[0] = build_string ("Value should be from ");
-  args[1] = Fnumber_to_string (min);
-  args[2] = build_string (" to ");
-  args[3] = Fnumber_to_string (max);
-
-  xsignal2 (Qerror, Fconcat (4, args), wrong);
+  AUTO_STRING (value_should_be_from, "Value should be from ");
+  AUTO_STRING (to, " to ");
+  xsignal2 (Qerror,
+	    Fconcat (4, ((Lisp_Object [])
+			 {value_should_be_from, Fnumber_to_string (min),
+			  to, Fnumber_to_string (max)})),
+	    wrong);
 }
 
 /* Store NEWVAL into SYMBOL, where VALCONTENTS is found in the value cell
@@ -1311,10 +1314,10 @@ set_internal (Lisp_Object symbol, Lisp_Object newval, Lisp_Object where,
 
 	    /* Find the new binding.  */
 	    XSETSYMBOL (symbol, sym); /* May have changed via aliasing.  */
-	    tem1 = Fassq (symbol,
-			  (blv->frame_local
-			   ? XFRAME (where)->param_alist
-			   : BVAR (XBUFFER (where), local_var_alist)));
+	    tem1 = assq_no_quit (symbol,
+				 (blv->frame_local
+				  ? XFRAME (where)->param_alist
+				  : BVAR (XBUFFER (where), local_var_alist)));
 	    set_blv_where (blv, where);
 	    blv->found = 1;
 
@@ -1952,18 +1955,10 @@ DEFUN ("local-variable-p", Flocal_variable_p, Slocal_variable_p,
        1, 2, 0,
        doc: /* Non-nil if VARIABLE has a local binding in buffer BUFFER.
 BUFFER defaults to the current buffer.  */)
-  (register Lisp_Object variable, Lisp_Object buffer)
+  (Lisp_Object variable, Lisp_Object buffer)
 {
-  register struct buffer *buf;
+  struct buffer *buf = decode_buffer (buffer);
   struct Lisp_Symbol *sym;
-
-  if (NILP (buffer))
-    buf = current_buffer;
-  else
-    {
-      CHECK_BUFFER (buffer);
-      buf = XBUFFER (buffer);
-    }
 
   CHECK_SYMBOL (variable);
   sym = XSYMBOL (variable);
@@ -2318,7 +2313,7 @@ bool-vector.  IDX starts at 0.  */)
 	{
 	  if (! SINGLE_BYTE_CHAR_P (c))
 	    {
-	      int i;
+	      ptrdiff_t i;
 
 	      for (i = SBYTES (array) - 1; i >= 0; i--)
 		if (SREF (array, i) >= 0x80)

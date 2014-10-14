@@ -203,20 +203,24 @@ linked Emacs under SunOS 4.x."
       proc)))
 
 ;;;###autoload
-(defun url-open-stream (name buffer host service)
+(defun url-open-stream (name buffer host service &optional gateway-method)
   "Open a stream to HOST, possibly via a gateway.
 Args per `open-network-stream'.
 Will not make a connection if `url-gateway-unplugged' is non-nil.
-Might do a non-blocking connection; use `process-status' to check."
+Might do a non-blocking connection; use `process-status' to check.
+
+Optional arg GATEWAY-METHOD specifies the gateway to be used,
+overriding the value of `url-gateway-method'."
   (unless url-gateway-unplugged
-    (let ((gw-method (if (and url-gateway-local-host-regexp
-			      (not (eq 'tls url-gateway-method))
-			      (not (eq 'ssl url-gateway-method))
-			      (string-match
-			       url-gateway-local-host-regexp
-			       host))
-			 'native
-		       url-gateway-method))
+    (let* ((gwm (or gateway-method url-gateway-method))
+           (gw-method (if (and url-gateway-local-host-regexp
+                               (not (eq 'tls gwm))
+                               (not (eq 'ssl gwm))
+                               (string-match
+                                url-gateway-local-host-regexp
+                                host))
+                          'native
+                        gwm))
 	  ;; An attempt to deal with denied connections, and attempt
 	  ;; to reconnect
 	  (cur-retries 0)

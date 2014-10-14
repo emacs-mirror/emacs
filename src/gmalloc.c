@@ -21,13 +21,18 @@ License along with this library.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <config.h>
 
-#ifdef HAVE_PTHREAD
+#if defined HAVE_PTHREAD && !defined HYBRID_MALLOC
 #define USE_PTHREAD
 #endif
 
 #include <string.h>
 #include <limits.h>
 #include <stdint.h>
+
+#ifdef HYBRID_GET_CURRENT_DIR_NAME
+#undef get_current_dir_name
+#endif
+
 #include <unistd.h>
 
 #ifdef USE_PTHREAD
@@ -40,6 +45,41 @@ License along with this library.  If not, see <http://www.gnu.org/licenses/>.
 
 #ifdef emacs
 extern void emacs_abort (void);
+#endif
+
+/* If HYBRID_MALLOC is defined, then temacs will use malloc,
+   realloc... as defined in this file (and renamed gmalloc,
+   grealloc... via the macros that follow).  The dumped emacs,
+   however, will use the system malloc, realloc....  In other source
+   files, malloc, realloc... are renamed hybrid_malloc,
+   hybrid_realloc... via macros in conf_post.h.  hybrid_malloc and
+   friends are wrapper functions defined later in this file.
+   aligned_alloc is defined as a macro only in alloc.c.
+
+   As of this writing (August 2014), Cygwin is the only platform on
+   which HYBRID_MACRO is defined.  Any other platform that wants to
+   define it will have to define the macros DUMPED and
+   ALLOCATED_BEFORE_DUMPING, defined below for Cygwin.  */
+#ifdef HYBRID_MALLOC
+#undef malloc
+#undef realloc
+#undef calloc
+#undef free
+#define malloc gmalloc
+#define realloc grealloc
+#define calloc gcalloc
+#define aligned_alloc galigned_alloc
+#define free gfree
+#endif  /* HYBRID_MALLOC */
+
+#ifdef CYGWIN
+extern void *bss_sbrk (ptrdiff_t size);
+extern int bss_sbrk_did_unexec;
+extern char bss_sbrk_buffer[];
+extern void *bss_sbrk_buffer_end;
+#define DUMPED bss_sbrk_did_unexec
+#define ALLOCATED_BEFORE_DUMPING(P) \
+  ((P) < bss_sbrk_buffer_end && (P) >= (void *) bss_sbrk_buffer)
 #endif
 
 #ifdef	__cplusplus
@@ -306,22 +346,6 @@ License along with this library.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <errno.h>
 
-/* On Cygwin there are two heaps.  temacs uses the static heap
-   (defined in sheap.c and managed with bss_sbrk), and the dumped
-   emacs uses the Cygwin heap (managed with sbrk).  When emacs starts
-   on Cygwin, it reinitializes malloc, and we save the old info for
-   use by free and realloc if they're called with a pointer into the
-   static heap.
-
-   Currently (2011-08-16) the Cygwin build doesn't use ralloc.c; if
-   this is changed in the future, we'll have to similarly deal with
-   reinitializing ralloc. */
-#ifdef CYGWIN
-extern void *bss_sbrk (ptrdiff_t size);
-extern int bss_sbrk_did_unexec;
-char *bss_sbrk_heapbase;	/* _heapbase for static heap */
-malloc_info *bss_sbrk_heapinfo;	/* _heapinfo for static heap */
-#endif
 void *(*__morecore) (ptrdiff_t size) = __default_morecore;
 
 /* Debugging hook for `malloc'.  */
@@ -490,18 +514,8 @@ register_heapinfo (void)
 }
 
 #ifdef USE_PTHREAD
-/* On Cygwin prior to 1.7.31, pthread_mutexes were ERRORCHECK mutexes
-   by default.  When the default changed to NORMAL in Cygwin-1.7.31,
-   deadlocks occurred (bug#18222).  As a temporary workaround, we
-   explicitly set the mutexes to be of ERRORCHECK type, restoring the
-   previous behavior.  */
-#ifdef CYGWIN
-pthread_mutex_t _malloc_mutex = PTHREAD_ERRORCHECK_MUTEX_INITIALIZER_NP;
-pthread_mutex_t _aligned_blocks_mutex = PTHREAD_ERRORCHECK_MUTEX_INITIALIZER_NP;
-#else  /* not CYGWIN */
 pthread_mutex_t _malloc_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t _aligned_blocks_mutex = PTHREAD_MUTEX_INITIALIZER;
-#endif	/* not CYGWIN */
 int _malloc_thread_enabled_p;
 
 static void
@@ -536,17 +550,8 @@ malloc_enable_thread (void)
      initialized mutexes when they are used first.  To avoid such a
      situation, we initialize mutexes here while their use is
      disabled in malloc etc.  */
-#ifdef CYGWIN
-  /* Use ERRORCHECK mutexes; see comment above. */
-  pthread_mutexattr_t attr;
-  pthread_mutexattr_init (&attr);
-  pthread_mutexattr_settype (&attr, PTHREAD_MUTEX_ERRORCHECK);
-  pthread_mutex_init (&_malloc_mutex, &attr);
-  pthread_mutex_init (&_aligned_blocks_mutex, &attr);
-#else  /* not CYGWIN */
   pthread_mutex_init (&_malloc_mutex, NULL);
   pthread_mutex_init (&_aligned_blocks_mutex, NULL);
-#endif	/* not CYGWIN */
   pthread_atfork (malloc_atfork_handler_prepare,
 		  malloc_atfork_handler_parent,
 		  malloc_atfork_handler_child);
@@ -559,16 +564,6 @@ malloc_initialize_1 (void)
 {
 #ifdef GC_MCHECK
   mcheck (NULL);
-#endif
-
-#ifdef CYGWIN
-  if (bss_sbrk_did_unexec)
-    /* we're reinitializing the dumped emacs */
-    {
-      bss_sbrk_heapbase = _heapbase;
-      bss_sbrk_heapinfo = _heapinfo;
-      memset (_fraghead, 0, BLOCKLOG * sizeof (struct list));
-    }
 #endif
 
   if (__malloc_initialize_hook)
@@ -1027,12 +1022,6 @@ _free_internal_nolock (void *ptr)
   if (ptr == NULL)
     return;
 
-#ifdef CYGWIN
-  if ((char *) ptr < _heapbase)
-    /* We're being asked to free something in the static heap. */
-    return;
-#endif
-
   PROTECT_MALLOC_STATE (0);
 
   LOCK_ALIGNED_BLOCKS ();
@@ -1314,30 +1303,7 @@ License along with this library.  If not, see <http://www.gnu.org/licenses/>.
    or (US mail) as Mike Haertel c/o Free Software Foundation.  */
 
 #ifndef min
-#define min(A, B) ((A) < (B) ? (A) : (B))
-#endif
-
-/* On Cygwin the dumped emacs may try to realloc storage allocated in
-   the static heap.  We just malloc space in the new heap and copy the
-   data.  */
-#ifdef CYGWIN
-void *
-special_realloc (void *ptr, size_t size)
-{
-  void *result;
-  int type;
-  size_t block, oldsize;
-
-  block = ((char *) ptr - bss_sbrk_heapbase) / BLOCKSIZE + 1;
-  type = bss_sbrk_heapinfo[block].busy.type;
-  oldsize =
-    type == 0 ? bss_sbrk_heapinfo[block].busy.info.size * BLOCKSIZE
-    : (size_t) 1 << type;
-  result = _malloc_internal_nolock (size);
-  if (result)
-    return memcpy (result, ptr, min (oldsize, size));
-  return result;
-}
+#define min(a, b) ((a) < (b) ? (a) : (b))
 #endif
 
 /* Debugging hook for realloc.  */
@@ -1363,12 +1329,6 @@ _realloc_internal_nolock (void *ptr, size_t size)
     }
   else if (ptr == NULL)
     return _malloc_internal_nolock (size);
-
-#ifdef CYGWIN
-  if ((char *) ptr < _heapbase)
-    /* ptr points into the static heap */
-    return special_realloc (ptr, size);
-#endif
 
   block = BLOCK (ptr);
 
@@ -1566,7 +1526,7 @@ __default_morecore (ptrdiff_t increment)
 {
   void *result;
 #if defined (CYGWIN)
-  if (!bss_sbrk_did_unexec)
+  if (!DUMPED)
     {
       return bss_sbrk (increment);
     }
@@ -1689,6 +1649,9 @@ memalign (size_t alignment, size_t size)
   return aligned_alloc (alignment, size);
 }
 
+/* If HYBRID_MALLOC is defined, we may want to use the system
+   posix_memalign below.  */
+#ifndef HYBRID_MALLOC
 int
 posix_memalign (void **memptr, size_t alignment, size_t size)
 {
@@ -1707,6 +1670,7 @@ posix_memalign (void **memptr, size_t alignment, size_t size)
 
   return 0;
 }
+#endif
 
 /* Allocate memory on a page boundary.
    Copyright (C) 1991, 92, 93, 94, 96 Free Software Foundation, Inc.
@@ -1746,6 +1710,113 @@ valloc (size_t size)
 
   return aligned_alloc (pagesize, size);
 }
+
+#ifdef HYBRID_MALLOC
+#undef malloc
+#undef realloc
+#undef calloc
+#undef aligned_alloc
+#undef free
+
+/* Declare system malloc and friends.  */
+extern void *malloc (size_t size);
+extern void *realloc (void *ptr, size_t size);
+extern void *calloc (size_t nmemb, size_t size);
+extern void free (void *ptr);
+#ifdef HAVE_ALIGNED_ALLOC
+extern void *aligned_alloc (size_t alignment, size_t size);
+#elif defined HAVE_POSIX_MEMALIGN
+extern int posix_memalign (void **memptr, size_t alignment, size_t size);
+#endif
+
+/* See the comments near the beginning of this file for explanations
+   of the following functions. */
+
+void *
+hybrid_malloc (size_t size)
+{
+  if (DUMPED)
+    return malloc (size);
+  return gmalloc (size);
+}
+
+void *
+hybrid_calloc (size_t nmemb, size_t size)
+{
+  if (DUMPED)
+    return calloc (nmemb, size);
+  return gcalloc (nmemb, size);
+}
+
+void
+hybrid_free (void *ptr)
+{
+  if (!DUMPED)
+    gfree (ptr);
+  else if (!ALLOCATED_BEFORE_DUMPING (ptr))
+    free (ptr);
+  /* Otherwise the dumped emacs is trying to free something allocated
+     before dumping; do nothing.  */
+  return;
+}
+
+#if defined HAVE_ALIGNED_ALLOC || defined HAVE_POSIX_MEMALIGN
+void *
+hybrid_aligned_alloc (size_t alignment, size_t size)
+{
+  if (!DUMPED)
+    return galigned_alloc (alignment, size);
+  /* The following is copied from alloc.c */
+#ifdef HAVE_ALIGNED_ALLOC
+  return aligned_alloc (alignment, size);
+#else  /* HAVE_POSIX_MEMALIGN */
+  void *p;
+  return posix_memalign (&p, alignment, size) == 0 ? p : 0;
+#endif
+}
+#endif
+  
+void *
+hybrid_realloc (void *ptr, size_t size)
+{
+  void *result;
+  int type;
+  size_t block, oldsize;
+
+  if (!DUMPED)
+    return grealloc (ptr, size);
+  if (!ALLOCATED_BEFORE_DUMPING (ptr))
+    return realloc (ptr, size);
+
+  /* The dumped emacs is trying to realloc storage allocated before
+   dumping.  We just malloc new space and copy the data.  */
+  if (size == 0 || ptr == NULL)
+    return malloc (size);
+  block = ((char *) ptr - _heapbase) / BLOCKSIZE + 1;
+  type = _heapinfo[block].busy.type;
+  oldsize =
+    type == 0 ? _heapinfo[block].busy.info.size * BLOCKSIZE
+    : (size_t) 1 << type;
+  result = malloc (size);
+  if (result)
+    return memcpy (result, ptr, min (oldsize, size));
+  return result;
+}
+
+#ifdef HYBRID_GET_CURRENT_DIR_NAME
+/* Defined in sysdep.c.  */
+char *gget_current_dir_name (void);
+
+char *
+hybrid_get_current_dir_name (void)
+{
+  if (DUMPED)
+    return get_current_dir_name ();
+  return gget_current_dir_name ();
+}
+#endif
+
+#endif	/* HYBRID_MALLOC */
 
 #ifdef GC_MCHECK
 

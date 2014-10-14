@@ -1134,10 +1134,7 @@ BUFFER defaults to the current buffer.
 Return nil if BUFFER has been killed.  */)
   (register Lisp_Object buffer)
 {
-  if (NILP (buffer))
-    return BVAR (current_buffer, name);
-  CHECK_BUFFER (buffer);
-  return BVAR (XBUFFER (buffer), name);
+  return BVAR (decode_buffer (buffer), name);
 }
 
 DEFUN ("buffer-file-name", Fbuffer_file_name, Sbuffer_file_name, 0, 1, 0,
@@ -1145,10 +1142,7 @@ DEFUN ("buffer-file-name", Fbuffer_file_name, Sbuffer_file_name, 0, 1, 0,
 No argument or nil as argument means use the current buffer.  */)
   (register Lisp_Object buffer)
 {
-  if (NILP (buffer))
-    return BVAR (current_buffer, filename);
-  CHECK_BUFFER (buffer);
-  return BVAR (XBUFFER (buffer), filename);
+  return BVAR (decode_buffer (buffer), filename);
 }
 
 DEFUN ("buffer-base-buffer", Fbuffer_base_buffer, Sbuffer_base_buffer,
@@ -1158,21 +1152,8 @@ If BUFFER is not indirect, return nil.
 BUFFER defaults to the current buffer.  */)
   (register Lisp_Object buffer)
 {
-  struct buffer *base;
-  Lisp_Object base_buffer;
-
-  if (NILP (buffer))
-    base = current_buffer->base_buffer;
-  else
-    {
-      CHECK_BUFFER (buffer);
-      base = XBUFFER (buffer)->base_buffer;
-    }
-
-  if (! base)
-    return Qnil;
-  XSETBUFFER (base_buffer, base);
-  return base_buffer;
+  struct buffer *base = decode_buffer (buffer)->base_buffer;
+  return base ? (XSETBUFFER (buffer, base), buffer) : Qnil;
 }
 
 DEFUN ("buffer-local-value", Fbuffer_local_value,
@@ -1295,20 +1276,10 @@ Most elements look like (SYMBOL . VALUE), describing one variable.
 For a symbol that is locally unbound, just the symbol appears in the value.
 Note that storing new VALUEs in these elements doesn't change the variables.
 No argument or nil as argument means use current buffer as BUFFER.  */)
-  (register Lisp_Object buffer)
+  (Lisp_Object buffer)
 {
-  register struct buffer *buf;
-  register Lisp_Object result;
-
-  if (NILP (buffer))
-    buf = current_buffer;
-  else
-    {
-      CHECK_BUFFER (buffer);
-      buf = XBUFFER (buffer);
-    }
-
-  result = buffer_lisp_local_variables (buf, 0);
+  struct buffer *buf = decode_buffer (buffer);
+  Lisp_Object result = buffer_lisp_local_variables (buf, 0);
 
   /* Add on all the variables stored in special slots.  */
   {
@@ -1335,17 +1306,9 @@ DEFUN ("buffer-modified-p", Fbuffer_modified_p, Sbuffer_modified_p,
        0, 1, 0,
        doc: /* Return t if BUFFER was modified since its file was last read or saved.
 No argument or nil as argument means use current buffer as BUFFER.  */)
-  (register Lisp_Object buffer)
+  (Lisp_Object buffer)
 {
-  register struct buffer *buf;
-  if (NILP (buffer))
-    buf = current_buffer;
-  else
-    {
-      CHECK_BUFFER (buffer);
-      buf = XBUFFER (buffer);
-    }
-
+  struct buffer *buf = decode_buffer (buffer);
   return BUF_SAVE_MODIFF (buf) < BUF_MODIFF (buf) ? Qt : Qnil;
 }
 
@@ -1451,16 +1414,7 @@ text in that buffer is changed.  It wraps around occasionally.
 No argument or nil as argument means use current buffer as BUFFER.  */)
   (register Lisp_Object buffer)
 {
-  register struct buffer *buf;
-  if (NILP (buffer))
-    buf = current_buffer;
-  else
-    {
-      CHECK_BUFFER (buffer);
-      buf = XBUFFER (buffer);
-    }
-
-  return make_number (BUF_MODIFF (buf));
+  return make_number (BUF_MODIFF (decode_buffer (buffer)));
 }
 
 DEFUN ("buffer-chars-modified-tick", Fbuffer_chars_modified_tick,
@@ -1475,16 +1429,7 @@ between these calls.  No argument or nil as argument means use current
 buffer as BUFFER.  */)
   (register Lisp_Object buffer)
 {
-  register struct buffer *buf;
-  if (NILP (buffer))
-    buf = current_buffer;
-  else
-    {
-      CHECK_BUFFER (buffer);
-      buf = XBUFFER (buffer);
-    }
-
-  return make_number (BUF_CHARS_MODIFF (buf));
+  return make_number (BUF_CHARS_MODIFF (decode_buffer (buffer)));
 }
 
 DEFUN ("rename-buffer", Frename_buffer, Srename_buffer, 1, 2,
@@ -1564,7 +1509,7 @@ frame's buffer list.
 The buffer is found by scanning the selected or specified frame's buffer
 list first, followed by the list of all buffers.  If no other buffer
 exists, return the buffer `*scratch*' (creating it if necessary).  */)
-  (register Lisp_Object buffer, Lisp_Object visible_ok, Lisp_Object frame)
+  (Lisp_Object buffer, Lisp_Object visible_ok, Lisp_Object frame)
 {
   struct frame *f = decode_any_frame (frame);
   Lisp_Object tail = f->buffer_list, pred = f->buffer_predicate;
@@ -1607,10 +1552,11 @@ exists, return the buffer `*scratch*' (creating it if necessary).  */)
     return notsogood;
   else
     {
-      buf = Fget_buffer (build_string ("*scratch*"));
+      AUTO_STRING (scratch, "*scratch*");
+      buf = Fget_buffer (scratch);
       if (NILP (buf))
 	{
-	  buf = Fget_buffer_create (build_string ("*scratch*"));
+	  buf = Fget_buffer_create (scratch);
 	  Fset_buffer_major_mode (buf);
 	}
       return buf;
@@ -1630,10 +1576,11 @@ other_buffer_safely (Lisp_Object buffer)
     if (candidate_buffer (buf, buffer))
       return buf;
 
-  buf = Fget_buffer (build_string ("*scratch*"));
+  AUTO_STRING (scratch, "*scratch*");
+  buf = Fget_buffer (scratch);
   if (NILP (buf))
     {
-      buf = Fget_buffer_create (build_string ("*scratch*"));
+      buf = Fget_buffer_create (scratch);
       Fset_buffer_major_mode (buf);
     }
 
@@ -3108,13 +3055,15 @@ mouse_face_overlay_overlaps (Lisp_Object overlay)
   ptrdiff_t end = OVERLAY_POSITION (OVERLAY_END (overlay));
   ptrdiff_t n, i, size;
   Lisp_Object *v, tem;
+  Lisp_Object vbuf[10];
+  USE_SAFE_ALLOCA;
 
-  size = 10;
-  v = alloca (size * sizeof *v);
+  size = ARRAYELTS (vbuf);
+  v = vbuf;
   n = overlays_in (start, end, 0, &v, &size, NULL, NULL);
   if (n > size)
     {
-      v = alloca (n * sizeof *v);
+      SAFE_NALLOCA (v, 1, n);
       overlays_in (start, end, 0, &v, &n, NULL, NULL);
     }
 
@@ -3124,6 +3073,7 @@ mouse_face_overlay_overlaps (Lisp_Object overlay)
 	    !NILP (tem)))
       break;
 
+  SAFE_FREE ();
   return i < n;
 }
 
@@ -4137,17 +4087,7 @@ BUFFER omitted or nil means delete all overlays of the current
 buffer.  */)
   (Lisp_Object buffer)
 {
-  register struct buffer *buf;
-
-  if (NILP (buffer))
-    buf = current_buffer;
-  else
-    {
-      CHECK_BUFFER (buffer);
-      buf = XBUFFER (buffer);
-    }
-
-  delete_all_overlays (buf);
+  delete_all_overlays (decode_buffer (buffer));
   return Qnil;
 }
 
@@ -4582,13 +4522,13 @@ report_overlay_modification (Lisp_Object start, Lisp_Object end, bool after,
        First copy the vector contents, in case some of these hooks
        do subsequent modification of the buffer.  */
     ptrdiff_t size = last_overlay_modification_hooks_used;
-    Lisp_Object *copy = alloca (size * sizeof *copy);
+    Lisp_Object *copy;
     ptrdiff_t i;
 
+    USE_SAFE_ALLOCA;
+    SAFE_ALLOCA_LISP (copy, size);
     memcpy (copy, XVECTOR (last_overlay_modification_hooks)->contents,
 	    size * word_size);
-    gcpro1.var = copy;
-    gcpro1.nvars = size;
 
     for (i = 0; i < size;)
       {
@@ -4597,6 +4537,8 @@ report_overlay_modification (Lisp_Object start, Lisp_Object end, bool after,
 	overlay_i = copy[i++];
 	call_overlay_mod_hooks (prop_i, overlay_i, after, arg1, arg2, arg3);
       }
+
+    SAFE_FREE ();
   }
   UNGCPRO;
 }
@@ -5346,10 +5288,11 @@ init_buffer (int initialized)
     }
 #else  /* not USE_MMAP_FOR_BUFFERS */
   /* Avoid compiler warnings.  */
-  initialized = initialized;
+  (void) initialized;
 #endif /* USE_MMAP_FOR_BUFFERS */
 
-  Fset_buffer (Fget_buffer_create (build_string ("*scratch*")));
+  AUTO_STRING (scratch, "*scratch*");
+  Fset_buffer (Fget_buffer_create (scratch));
   if (NILP (BVAR (&buffer_defaults, enable_multibyte_characters)))
     Fset_buffer_multibyte (Qnil);
 
@@ -5386,9 +5329,12 @@ init_buffer (int initialized)
 	 However, it is not necessary to turn / into /:/.
 	 So avoid doing that.  */
       && strcmp ("/", SSDATA (BVAR (current_buffer, directory))))
-    bset_directory
-      (current_buffer,
-       concat2 (build_string ("/:"), BVAR (current_buffer, directory)));
+    {
+      AUTO_STRING (slash_colon, "/:");
+      bset_directory (current_buffer,
+		      concat2 (slash_colon,
+			       BVAR (current_buffer, directory)));
+    }
 
   temp = get_minibuffer (0);
   bset_directory (XBUFFER (temp), BVAR (current_buffer, directory));
@@ -5451,6 +5397,7 @@ syms_of_buffer (void)
   staticpro (&Qpermanent_local);
   staticpro (&Qkill_buffer_hook);
 
+  DEFSYM (Qchoice, "choice");
   DEFSYM (Qleft, "left");
   DEFSYM (Qright, "right");
   DEFSYM (Qrange, "range");
@@ -5978,13 +5925,13 @@ in a window.  To make the change take effect, call `set-window-buffer'.  */);
 
   DEFVAR_PER_BUFFER ("scroll-bar-width", &BVAR (current_buffer, scroll_bar_width),
 		     Qintegerp,
-		     doc: /* Width of this buffer's scroll bars in pixels.
+		     doc: /* Width of this buffer's vertical scroll bars in pixels.
 A value of nil means to use the scroll bar width from the window's frame.  */);
 
   DEFVAR_PER_BUFFER ("scroll-bar-height", &BVAR (current_buffer, scroll_bar_height),
 		     Qintegerp,
-		     doc: /* Height of this buffer's scroll bars in pixels.
-A value of nil means to use the scroll bar heiht from the window's frame.  */);
+		     doc: /* Height of this buffer's horizontal scroll bars in pixels.
+A value of nil means to use the scroll bar height from the window's frame.  */);
 
   DEFVAR_PER_BUFFER ("vertical-scroll-bar", &BVAR (current_buffer, vertical_scroll_bar_type),
 		     Qvertical_scroll_bar,
@@ -6003,7 +5950,7 @@ The value takes effect whenever you tell a window to display this buffer;
 for instance, with `set-window-buffer' or when `display-buffer' displays it.
 
 A value of `bottom' means put the horizontal scroll bar at the bottom of
-the window; a value of nil means don't show any horizonal scroll bars.
+the window; a value of nil means don't show any horizontal scroll bars.
 A value of t (the default) means do whatever the window's frame
 specifies.  */);
 

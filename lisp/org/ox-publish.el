@@ -805,9 +805,14 @@ Default for SITEMAP-FILENAME is 'sitemap.org'."
 	  (visiting (find-buffer-visiting file))
 	  (buffer (or visiting (find-file-noselect file))))
      (with-current-buffer buffer
-       (org-mode)
        (let ((title
-	      (let ((property (plist-get (org-export-get-environment) :title)))
+	      (let ((property
+		     (plist-get
+		      ;; protect local variables in open buffers
+		      (if visiting
+			  (org-export-with-buffer-copy (org-export-get-environment))
+			(org-export-get-environment))
+		      :title)))
 		(if property
 		    (org-no-properties (org-element-interpret-data property))
 		  (file-name-nondirectory (file-name-sans-extension file))))))
@@ -822,12 +827,14 @@ If FILE is an Org file and provides a DATE keyword use it.  In
 any other case use the file system's modification time.  Return
 time in `current-time' format."
   (if (file-directory-p file) (nth 5 (file-attributes file))
-    (let* ((visiting (find-buffer-visiting file))
+    (let* ((org-inhibit-startup t)
+	   (visiting (find-buffer-visiting file))
 	   (file-buf (or visiting (find-file-noselect file nil)))
 	   (date (plist-get
 		  (with-current-buffer file-buf
-		    (let ((org-inhibit-startup t)) (org-mode))
-		    (org-export-get-environment))
+		    (if visiting
+			(org-export-with-buffer-copy (org-export-get-environment))
+		      (org-export-get-environment)))
 		  :date)))
       (unless visiting (kill-buffer file-buf))
       ;; DATE is either a timestamp object or a secondary string.  If it
@@ -874,7 +881,7 @@ publishing will be done asynchronously, in another process."
 			  ;; project is still a string here.
 			  (list (assoc project org-publish-project-alist)))))
     (if async
-	(org-export-async-start 'ignore
+	(org-export-async-start (lambda (results) nil)
 	  `(let ((org-publish-use-timestamps-flag
 		  (if ',force nil ,org-publish-use-timestamps-flag)))
 	     (org-publish-projects ',project-alist)))
@@ -892,7 +899,7 @@ optional argument ASYNC, publishing will be done asynchronously,
 in another process."
   (interactive "P")
   (if async
-      (org-export-async-start 'ignore
+      (org-export-async-start (lambda (results) nil)
 	`(progn
 	   (when ',force (org-publish-remove-all-timestamps))
 	   (let ((org-publish-use-timestamps-flag
@@ -914,7 +921,7 @@ asynchronously, in another process."
   (interactive "P")
   (let ((file (buffer-file-name (buffer-base-buffer))))
     (if async
-	(org-export-async-start 'ignore
+	(org-export-async-start (lambda (results) nil)
 	  `(let ((org-publish-use-timestamps-flag
 		  (if ',force nil ,org-publish-use-timestamps-flag)))
 	     (org-publish-file ,file)))

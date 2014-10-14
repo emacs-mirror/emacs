@@ -304,7 +304,7 @@ well."
 (defface diff-changed
   '((t nil))
   "`diff-mode' face used to highlight changed lines."
-  :version "24.5"
+  :version "25.1"
   :group 'diff-mode)
 (define-obsolete-face-alias 'diff-changed-face 'diff-changed "22.1")
 (defvar diff-changed-face 'diff-changed)
@@ -343,7 +343,7 @@ well."
     (((class color grayscale) (min-colors 88) (background dark))
      :foreground "#dddddd"))
   "`diff-mode' face used to highlight context and other side-information."
-  :version "24.5"
+  :version "25.1"
   :group 'diff-mode)
 (define-obsolete-face-alias 'diff-context-face 'diff-context "22.1")
 (defvar diff-context-face 'diff-context)

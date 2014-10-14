@@ -1,3 +1,55 @@
+2014-10-13  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (dist): Update for new output variables.
+
+2014-10-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* macos.texi (Mac OS / GNUstep, Mac / GNUstep Basics)
+	(Mac / GNUstep Customization): Mac OS X 10.6 or later now required.
+
+2014-10-09  Glenn Morris  <rgm@gnu.org>
+
+	* package.texi (Package Menu): The package list was changed to not
+	say "unsigned" any more.
+
+2014-10-05  Glenn Morris  <rgm@gnu.org>
+
+	* misc.texi (Sorting):
+	* search.texi (Query Replace): Markup fixes.
+
+2014-10-04  Martin Rudalics  <rudalics@gmx.at>
+
+	* frames.texi (Scroll Bars): Describe use of horizontal scroll bars.
+
+2014-10-04  Glenn Morris  <rgm@gnu.org>
+
+	* cmdargs.texi (Misc X):
+	* display.texi (Optional Mode Line):
+	* misc.texi (emacsclient Options):
+	* vc1-xtra.texi (VC Delete/Rename): Small fixes re @var usage.
+
+	* killing.texi (Rectangles): Copyedits re rectangle-mark-mode.
+	(CUA Bindings): Mention rectangle-mark-mode.
+
+2014-10-03  Martin Rudalics  <rudalics@gmx.at>
+
+	* frames.texi (Frame Commands):
+	* cmdargs.texi (Window Size X): Mention the use of
+	`frame-resize-pixelwise' to make frames truly fullscreen or maximized.
+
+2014-10-02  Glenn Morris  <rgm@gnu.org>
+
+	* package.texi (Package Installation): Mention etc/package-keyring.gpg.
+
+2014-09-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacsver.texi (EMACSVER): Bump to 20.0.50.
+
+2014-09-15  Daniel Colascione  <dancol@dancol.org>
+
+	* regs.texi (Text Registers): Update end-user documentation
+	to reflect `insert-register' interface change.
+
 2014-08-07  Reuben Thomas  <rrt@sc3d.org>
 
 	* programs.texi (Program Modes): Don't advertise VMS DCL support
@@ -10118,7 +10170,7 @@
 
 	* frames.texi (Dialog Boxes): Add use-file-dialog.
 
-2003-11-22  Martin Stjernholm  <bug-cc-mode@gnu.org>
+2003-11-22  Martin Stjernholm  <mast@lysator.liu.se>
 
 	* ack.texi: Note that Alan Mackenzie contributed the AWK support
 	in CC Mode.

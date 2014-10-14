@@ -19,6 +19,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
+/* If HYBRID_GET_CURRENT_DIR_NAME is defined in conf_post.h, then we
+   need the following before including unistd.h, in order to pick up
+   the right prototype for gget_current_dir_name.  */
+#ifdef HYBRID_GET_CURRENT_DIR_NAME
+#undef get_current_dir_name
+#define get_current_dir_name gget_current_dir_name
+#endif
+
 #include <execinfo.h>
 #include "sysstdio.h"
 #ifdef HAVE_PWD_H
@@ -46,7 +54,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 # include <sys/user.h>
 # undef frame
 
-# include <sys/resource.h>
 # include <math.h>
 #endif
 
@@ -72,6 +79,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "msdos.h"
 #endif
 
+#ifdef HAVE_SYS_RESOURCE_H
+#include <sys/resource.h>
+#endif
 #include <sys/param.h>
 #include <sys/file.h>
 #include <fcntl.h>
@@ -119,9 +129,8 @@ static const int baud_convert[] =
     1800, 2400, 4800, 9600, 19200, 38400
   };
 
-
-#if !defined (HAVE_GET_CURRENT_DIR_NAME) || defined (BROKEN_GET_CURRENT_DIR_NAME)
-
+#if !defined HAVE_GET_CURRENT_DIR_NAME || defined BROKEN_GET_CURRENT_DIR_NAME \
+  || (defined HYBRID_GET_CURRENT_DIR_NAME)
 /* Return the current working directory.  Returns NULL on errors.
    Any other returned value must be freed with free. This is used
    only when get_current_dir_name is not defined on the system.  */
@@ -1716,6 +1725,83 @@ handle_arith_signal (int sig)
   xsignal0 (Qarith_error);
 }
 
+#ifdef HAVE_STACK_OVERFLOW_HANDLING
+
+/* -1 if stack grows down as expected on most OS/ABI variants, 1 otherwise.  */
+
+static int stack_direction;
+
+/* Alternate stack used by SIGSEGV handler below.  */
+
+static unsigned char sigsegv_stack[SIGSTKSZ];
+
+/* Attempt to recover from SIGSEGV caused by C stack overflow.  */
+
+static void
+handle_sigsegv (int sig, siginfo_t *siginfo, void *arg)
+{
+  /* Hard GC error may lead to stack overflow caused by
+     too nested calls to mark_object.  No way to survive.  */
+  if (!gc_in_progress)
+    {
+      struct rlimit rlim;
+
+      if (!getrlimit (RLIMIT_STACK, &rlim))
+	{
+	  enum { STACK_DANGER_ZONE = 16 * 1024 };
+	  char *beg, *end, *addr;
+
+	  beg = stack_bottom;
+	  end = stack_bottom + stack_direction * rlim.rlim_cur;
+	  if (beg > end)
+	    addr = beg, beg = end, end = addr;
+	  addr = (char *) siginfo->si_addr;
+	  /* If we're somewhere on stack and too close to
+	     one of its boundaries, most likely this is it.  */
+	  if (beg < addr && addr < end
+	      && (addr - beg < STACK_DANGER_ZONE
+		  || end - addr < STACK_DANGER_ZONE))
+	    siglongjmp (return_to_command_loop, 1);
+	}
+    }
+
+  /* Otherwise we can't do anything with this.  */
+  deliver_fatal_thread_signal (sig);
+}
+
+/* Return true if we have successfully set up SIGSEGV handler on alternate
+   stack.  Otherwise we just treat SIGSEGV among the rest of fatal signals.  */
+
+static bool
+init_sigsegv (void)
+{
+  struct sigaction sa;
+  stack_t ss;
+
+  stack_direction = ((char *) &ss < stack_bottom) ? -1 : 1;
+
+  ss.ss_sp = sigsegv_stack;
+  ss.ss_size = sizeof (sigsegv_stack);
+  ss.ss_flags = 0;
+  if (sigaltstack (&ss, NULL) < 0)
+    return 0;
+
+  sigfillset (&sa.sa_mask);
+  sa.sa_sigaction = handle_sigsegv;
+  sa.sa_flags = SA_SIGINFO | SA_ONSTACK | emacs_sigaction_flags ();
+  return sigaction (SIGSEGV, &sa, NULL) < 0 ? 0 : 1;
+}
+
+#else /* not HAVE_STACK_OVERFLOW_HANDLING */
+
+static bool
+init_sigsegv (void)
+{
+  return 0;
+}
+
+#endif /* HAVE_STACK_OVERFLOW_HANDLING */
+
 static void
 deliver_arith_signal (int sig)
 {
@@ -1982,7 +2068,8 @@ init_signals (bool dumping)
 #ifdef SIGBUS
   sigaction (SIGBUS, &thread_fatal_action, 0);
 #endif
-  sigaction (SIGSEGV, &thread_fatal_action, 0);
+  if (!init_sigsegv ())
+    sigaction (SIGSEGV, &thread_fatal_action, 0);
 #ifdef SIGSYS
   sigaction (SIGSYS, &thread_fatal_action, 0);
 #endif
@@ -2370,7 +2457,7 @@ emacs_full_write (int fildes, char const *buf, ptrdiff_t nbyte,
 	{
 	  if (errno == EINTR)
 	    {
-	      /* I originally used `QUIT' but that might causes files to
+	      /* I originally used `QUIT' but that might cause files to
 		 be truncated if you hit C-g in the middle of it.  --Stef  */
 	      if (process_signals && pending_signals)
 		process_pending_signals ();
@@ -3513,3 +3600,208 @@ system_process_attributes (Lisp_Object pid)
 }
 
 #endif	/* !defined (WINDOWSNT) */
+
+/* Wide character string collation.  */
+
+#ifdef __STDC_ISO_10646__
+# include <wchar.h>
+# include <wctype.h>
+
+# if defined HAVE_NEWLOCALE || defined HAVE_SETLOCALE
+#  include <locale.h>
+# endif
+# ifndef LC_COLLATE
+#  define LC_COLLATE 0
+# endif
+# ifndef LC_COLLATE_MASK
+#  define LC_COLLATE_MASK 0
+# endif
+# ifndef LC_CTYPE
+#  define LC_CTYPE 0
+# endif
+# ifndef LC_CTYPE_MASK
+#  define LC_CTYPE_MASK 0
+# endif
+
+# ifndef HAVE_NEWLOCALE
+#  undef freelocale
+#  undef locale_t
+#  undef newlocale
+#  undef wcscoll_l
+#  undef towlower_l
+#  define freelocale emacs_freelocale
+#  define locale_t emacs_locale_t
+#  define newlocale emacs_newlocale
+#  define wcscoll_l emacs_wcscoll_l
+#  define towlower_l emacs_towlower_l
+
+typedef char const *locale_t;
+
+static locale_t
+newlocale (int category_mask, char const *locale, locale_t loc)
+{
+  return locale;
+}
+
+static void
+freelocale (locale_t loc)
+{
+}
+
+static char *
+emacs_setlocale (int category, char const *locale)
+{
+#  ifdef HAVE_SETLOCALE
+  errno = 0;
+  char *loc = setlocale (category, locale);
+  if (loc || errno)
+    return loc;
+  errno = EINVAL;
+#  else
+  errno = ENOTSUP;
+#  endif
+  return 0;
+}
+
+static int
+wcscoll_l (wchar_t const *a, wchar_t const *b, locale_t loc)
+{
+  int result = 0;
+  char *oldloc = emacs_setlocale (LC_COLLATE, NULL);
+  int err;
+
+  if (! oldloc)
+    err = errno;
+  else
+    {
+      USE_SAFE_ALLOCA;
+      char *oldcopy = SAFE_ALLOCA (strlen (oldloc) + 1);
+      strcpy (oldcopy, oldloc);
+      if (! emacs_setlocale (LC_COLLATE, loc))
+	err = errno;
+      else
+	{
+	  errno = 0;
+	  result = wcscoll (a, b);
+	  err = errno;
+	  if (! emacs_setlocale (LC_COLLATE, oldcopy))
+	    err = errno;
+	}
+      SAFE_FREE ();
+    }
+
+  errno = err;
+  return result;
+}
+
+static wint_t
+towlower_l (wint_t wc, locale_t loc)
+{
+  wint_t result = wc;
+  char *oldloc = emacs_setlocale (LC_CTYPE, NULL);
+
+  if (oldloc)
+    {
+      USE_SAFE_ALLOCA;
+      char *oldcopy = SAFE_ALLOCA (strlen (oldloc) + 1);
+      strcpy (oldcopy, oldloc);
+      if (emacs_setlocale (LC_CTYPE, loc))
+	{
+	  result = towlower (wc);
+	  emacs_setlocale (LC_COLLATE, oldcopy);
+	}
+      SAFE_FREE ();
+    }
+
+  return result;
+}
+# endif
+
+int
+str_collate (Lisp_Object s1, Lisp_Object s2,
+	     Lisp_Object locale, Lisp_Object ignore_case)
+{
+  int res, err;
+  ptrdiff_t len, i, i_byte;
+  wchar_t *p1, *p2;
+
+  USE_SAFE_ALLOCA;
+
+  /* Convert byte stream to code points.  */
+  len = SCHARS (s1); i = i_byte = 0;
+  SAFE_NALLOCA (p1, 1, len + 1);
+  while (i < len)
+    FETCH_STRING_CHAR_ADVANCE (*(p1+i-1), s1, i, i_byte);
+  *(p1+len) = 0;
+
+  len = SCHARS (s2); i = i_byte = 0;
+  SAFE_NALLOCA (p2, 1, len + 1);
+  while (i < len)
+    FETCH_STRING_CHAR_ADVANCE (*(p2+i-1), s2, i, i_byte);
+  *(p2+len) = 0;
+
+  if (STRINGP (locale))
+    {
+      locale_t loc = newlocale (LC_COLLATE_MASK | LC_CTYPE_MASK,
+				SSDATA (locale), 0);
+      if (!loc)
+	error ("Invalid locale %s: %s", SSDATA (locale), strerror (errno));
+
+      if (! NILP (ignore_case))
+	for (int i = 1; i < 3; i++)
+	  {
+	    wchar_t *p = (i == 1) ? p1 : p2;
+	    for (; *p; p++)
+	      *p = towlower_l (*p, loc);
+	  }
+
+      errno = 0;
+      res = wcscoll_l (p1, p2, loc);
+      err = errno;
+      freelocale (loc);
+    }
+  else
+    {
+      if (! NILP (ignore_case))
+	for (int i = 1; i < 3; i++)
+	  {
+	    wchar_t *p = (i == 1) ? p1 : p2;
+	    for (; *p; p++)
+	      *p = towlower (*p);
+	  }
+
+      errno = 0;
+      res = wcscoll (p1, p2);
+      err = errno;
+    }
+#  ifndef HAVE_NEWLOCALE
+  if (err)
+    error ("Invalid locale or string for collation: %s", strerror (err));
+#  else
+  if (err)
+    error ("Invalid string for collation: %s", strerror (err));
+#  endif
+
+  SAFE_FREE ();
+  return res;
+}
+#endif  /* __STDC_ISO_10646__ */
+
+#ifdef WINDOWSNT
+int
+str_collate (Lisp_Object s1, Lisp_Object s2,
+	     Lisp_Object locale, Lisp_Object ignore_case)
+{
+
+  char *loc = STRINGP (locale) ? SSDATA (locale) : NULL;
+  int res, err = errno;
+
+  errno = 0;
+  res = w32_compare_strings (SDATA (s1), SDATA (s2), loc, !NILP (ignore_case));
+  if (errno)
+    error ("Invalid string for collation: %s", strerror (errno));
+
+  errno = err;
+  return res;
+}
+#endif	/* WINDOWSNT */

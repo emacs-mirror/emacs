@@ -42,19 +42,19 @@
 
 (defcustom gnus-x-face-omit-files nil
   "Regexp to match faces in `gnus-x-face-directory' to be omitted."
-  :version "24.5"
+  :version "25.1"
   :group 'gnus-fun
   :type 'string)
 
 (defcustom gnus-face-directory (expand-file-name "faces" gnus-directory)
   "*Directory where Face PNG files are stored."
-  :version "24.5"
+  :version "25.1"
   :group 'gnus-fun
   :type 'directory)
 
 (defcustom gnus-face-omit-files nil
   "Regexp to match faces in `gnus-face-directory' to be omitted."
-  :version "24.5"
+  :version "25.1"
   :group 'gnus-fun
   :type 'string)
 
@@ -239,7 +239,7 @@ Files matching `gnus-face-omit-files' are not considered."
 
 ;;;###autoload
 (defun gnus-insert-random-face-header ()
-  "Insert a randome Face header from `gnus-face-directory'."
+  "Insert a random Face header from `gnus-face-directory'."
   (gnus--insert-random-face-with-type 'gnus-random-face 'Face))
 
 (defface gnus-x-face '((t (:foreground "black" :background "white")))

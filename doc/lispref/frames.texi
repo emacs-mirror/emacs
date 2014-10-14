@@ -131,6 +131,13 @@ applies any parameters listed in @code{frame-inherited-parameters}
 (see below) and not present in the argument, taking the values from
 the frame that was selected when @code{make-frame} was called.
 
+Note that on multi-monitor displays (@pxref{Multiple Terminals}), the
+window manager might position the frame differently than specified by
+the positional parameters in @var{alist} (@pxref{Position
+Parameters}).  For example, some window managers have a policy of
+displaying the frame on the monitor that contains the largest part of
+the window (a.k.a.@: the @dfn{dominating} monitor).
+
 This function itself does not make the new frame the selected frame.
 @xref{Input Focus}.  The previously selected frame remains selected.
 On graphical terminals, however, the windowing system may select the
@@ -258,13 +265,27 @@ of those frames is ``@emph{the} selected frame'' at any given moment
 terminals, by interacting with the @command{emacsclient} program.
 @xref{Emacs Server,,, emacs, The GNU Emacs Manual}.
 
+@cindex X display names
+@cindex display name on X
   A single X server can handle more than one display.  Each X display
-has a three-part name, @samp{@var{host}:@var{server}.@var{screen}}.
-The first two parts, @var{host} and @var{server}, identify the X
-server; the third part, @var{screen}, identifies a screen number on
-that X server.  When you use two or more screens belonging to one
-server, Emacs knows by the similarity in their names that they share a
-single keyboard.
+has a three-part name,
+@samp{@var{hostname}:@var{displaynumber}.@var{screennumber}}.  The
+first part, @var{hostname}, specifies the name of the machine to which
+the display is physically connected.  The second part,
+@var{displaynumber}, is a zero-based number that identifies one or
+more monitors connected to that machine that share a common keyboard
+and pointing device (mouse, tablet, etc.).  The third part,
+@var{screennumber}, identifies a zero-based screen number (a separate
+monitor) that is part of a single monitor collection on that X server.
+When you use two or more screens belonging to one server, Emacs knows
+by the similarity in their names that they share a single keyboard.
+
+  Systems that don't use the X window system, such as MS-Windows,
+don't support the notion of X displays, and have only one display on
+each host.  The display name on these systems doesn't follow the above
+3-part format; for example, the display name on MS-Windows systems is
+a constant string @samp{w32}, and exists for compatibility, so that
+you could pass it to functions that expect a display name.
 
 @deffn Command make-frame-on-display display &optional parameters
 This function creates and returns a new frame on @var{display}, taking
@@ -314,57 +335,84 @@ on that display (@pxref{Deleting Frames}).
 
 @cindex multi-monitor
   On some ``multi-monitor'' setups, a single X display outputs to more
-than one physical monitor.  @code{display-monitor-attributes-list} and
-@code{frame-monitor-attributes} can be used to obtain information
-about each physical monitor on multi-monitor setups.
+than one physical monitor.  You can use the functions
+@code{display-monitor-attributes-list} and @code{frame-monitor-attributes}
+to obtain information about such setups.
 
 @defun display-monitor-attributes-list &optional display
 This function returns a list of physical monitor attributes on
-@var{display}.  Each element of the list is an association list,
-representing the attributes of each physical monitor.  The first
-element corresponds to the primary monitor.
-
-Attributes for a physical monitor are:
+@var{display}, which can be a display name (a string), a terminal, or
+a frame; if omitted or @code{nil}, it defaults to the selected frame's
+display.  Each element of the list is an association list,
+representing the attributes of a physical monitor.  The first element
+corresponds to the primary monitor.  The attribute keys and values
+are:
 
 @table @samp
 @item geometry
-Position and size in pixels in the form of @samp{(X Y WIDTH HEIGHT)}
+Position of the top-left corner of the monitor's screen and its size,
+in pixels, as @samp{(@var{x} @var{y} @var{width} @var{height})}.  Note
+that, if the monitor is not the primary monitor, some of the
+coordinates might be negative.
 
 @item workarea
-Position and size of the workarea in pixels in the form of @samp{(X Y
-WIDTH HEIGHT)}
+Position of the top-left corner and size of the work area (``usable''
+space) in pixels as @samp{(@var{x} @var{y} @var{width} @var{height})}.
+This may be different from @samp{geometry} in that space occupied by
+various window manager features (docks, taskbars, etc.) may be
+excluded from the work area.  Whether or not such features actually
+subtract from the work area depends on the platform and environment.
+Again, if the monitor is not the primary monitor, some of the
+coordinates might be negative.
 
 @item mm-size
-Width and height in millimeters in the form of @samp{(WIDTH HEIGHT)}
+Width and height in millimeters as @samp{(@var{width} @var{height})}
 
 @item frames
-List of frames dominated by the physical monitor
+List of frames that this physical monitor dominates (see below).
 
 @item name
-Name of the physical monitor as a string
+Name of the physical monitor as @var{string}.
+
+@item source
+Source of the multi-monitor information as @var{string};
+e.g., @samp{XRandr} or @samp{Xinerama}.
 @end table
 
-where X, Y, WIDTH, and HEIGHT are integers.  @samp{name} is optional.
+@var{x}, @var{y}, @var{width}, and @var{height} are integers.
+@samp{name} and @samp{source} may be absent.
 
-A frame is dominated by a physical monitor when either the
-largest area of the frame resides in the monitor, or the monitor
-is the closest to the frame if the frame does not intersect any
-physical monitors.  Every non-tip frame (including invisible one)
-in a graphical display is dominated by exactly one physical
-monitor at a time, though it can span multiple (or no) physical
-monitors.
+A frame is @dfn{dominated} by a physical monitor when either the
+largest area of the frame resides in that monitor, or (if the frame
+does not intersect any physical monitors) that monitor is the closest
+to the frame.  Every (non-tooltip) frame (whether visible or not) in a
+graphical display is dominated by exactly one physical monitor at a
+time, though the frame can span multiple (or no) physical monitors.
 
-@var{display} defaults to the selected frame's display.
+Here's an example of the data produced by this function on a 2-monitor
+display:
+
+@lisp
+  (display-monitor-attributes-list)
+  @result{}
+  (((geometry 0 0 1920 1080) ;; @r{Left-hand, primary monitor}
+    (workarea 0 0 1920 1050) ;; @r{A taskbar occupies some of the height}
+    (mm-size 677 381)
+    (name . "DISPLAY1")
+    (frames #<frame emacs@@host *Messages* 0x11578c0>
+            #<frame emacs@@host *scratch* 0x114b838>))
+   ((geometry 1920 0 1680 1050) ;; @r{Right-hand monitor}
+    (workarea 1920 0 1680 1050) ;; @r{Whole screen can be used}
+    (mm-size 593 370)
+    (name . "DISPLAY2")
+    (frames)))
+@end lisp
+
 @end defun
 
 @defun frame-monitor-attributes &optional frame
 This function returns the attributes of the physical monitor
-dominating @var{frame}, which defaults to the selected frame.
-
-A frame is dominated by a physical monitor when either the
-largest area of the frame resides in the monitor, or the monitor
-is the closest to the frame if the frame does not intersect any
-physical monitors.
+dominating (see above) @var{frame}, which defaults to the selected frame.
 @end defun
 
 @node Frame Parameters
@@ -536,8 +584,9 @@ frame.  @code{title} and @code{name} are meaningful on all terminals.
 @vindex display, a frame parameter
 @item display
 The display on which to open this frame.  It should be a string of the
-form @code{"@var{host}:@var{dpy}.@var{screen}"}, just like the
-@env{DISPLAY} environment variable.
+form @samp{@var{host}:@var{dpy}.@var{screen}}, just like the
+@env{DISPLAY} environment variable.  @xref{Multiple Terminals}, for
+more details about display names.
 
 @vindex display-type, a frame parameter
 @item display-type
@@ -593,12 +642,14 @@ right screen edge.
 @item @code{(+ @var{pos})}
 This specifies the position of the left frame edge relative to the left
 screen edge.  The integer @var{pos} may be positive or negative; a
-negative value specifies a position outside the screen.
+negative value specifies a position outside the screen or on a monitor
+other than the primary one (for multi-monitor displays).
 
 @item @code{(- @var{pos})}
 This specifies the position of the right frame edge relative to the right
 screen edge.  The integer @var{pos} may be positive or negative; a
-negative value specifies a position outside the screen.
+negative value specifies a position outside the screen or on a monitor
+other than the primary one (for multi-monitor displays).
 @end table
 
 Some window managers ignore program-specified positions.  If you want to
@@ -686,6 +737,11 @@ difference between @code{maximized} and @code{fullboth} is that the
 former can still be resized by dragging window manager decorations
 with the mouse, while the latter really covers the whole screen and
 does not allow resizing by mouse dragging.
+
+With some window managers you may have to customize the variable
+@code{frame-resize-pixelwise} to a non-@code{nil} value in order to make
+a frame appear ``maximized'' or ``fullscreen''.
+
 @end table
 
 @node Layout Parameters
@@ -711,18 +767,20 @@ Whether the frame has scroll bars for vertical scrolling, and which side
 of the frame they should be on.  The possible values are @code{left},
 @code{right}, and @code{nil} for no scroll bars.
 
-@ignore
 @vindex horizontal-scroll-bars, a frame parameter
 @item horizontal-scroll-bars
-Whether the frame has scroll bars for horizontal scrolling
-(non-@code{nil} means yes).  Horizontal scroll bars are not currently
-implemented.
-@end ignore
+Whether the frame has scroll bars for horizontal scrolling (@code{t} and
+@code{bottom} mean yes, @code{nil} means no).
 
 @vindex scroll-bar-width, a frame parameter
 @item scroll-bar-width
 The width of vertical scroll bars, in pixels, or @code{nil} meaning to
 use the default width.
+
+@vindex scroll-bar-height, a frame parameter
+@item scroll-bar-height
+The height of horizontal scroll bars, in pixels, or @code{nil} meaning
+to use the default height.
 
 @vindex left-fringe, a frame parameter
 @vindex right-fringe, a frame parameter
@@ -736,14 +794,6 @@ When you use @code{frame-parameter} to query the value of either of
 these two frame parameters, the return value is always an integer.
 When using @code{set-frame-parameter}, passing a @code{nil} value
 imposes an actual default value of 8 pixels.
-
-The combined fringe widths must add up to an integral number of
-columns, so the actual default fringe widths for the frame, as
-reported by @code{frame-parameter}, may be larger than what you
-specify.  Any extra width is distributed evenly between the left and
-right fringe.  However, you can force one fringe or the other to a
-precise width by specifying that width as a negative integer.  If both
-widths are negative, only the left fringe gets the specified width.
 
 @vindex right-divider-width, a frame parameter
 @item right-divider-width
@@ -966,7 +1016,7 @@ variable do not take effect immediately, only when you specify the
 A list of symbols, specifying the @dfn{font backends} to use for
 drawing fonts in the frame, in order of priority.  On X, there are
 currently two available font backends: @code{x} (the X core font
-driver) and @code{xft} (the Xft font driver).  On Windows, there are
+driver) and @code{xft} (the Xft font driver).  On MS-Windows, there are
 currently two available font backends: @code{gdi} and
 @code{uniscribe} (@pxref{Windows Fonts,,, emacs, The GNU Emacs
 Manual}).  On other systems, there is only one available font backend,
@@ -1158,12 +1208,15 @@ size hints to the window manager.  This means that this variable should
 be set only in a user's initial file; applications should never bind it
 temporarily.
 
-The precise semantics of a value of @code{nil} for this option depends
-on the toolkit used: Dragging the frame border with the mouse is usually
-always done character-wise.  Calling @code{set-frame-size} (see below)
+The precise meaning of a value of @code{nil} for this option depends
+on the toolkit used.  Dragging the frame border with the mouse is usually
+done character-wise.  Calling @code{set-frame-size} (see below)
 with arguments that do not specify the frame size as an integer multiple
-of its character size may be, however, either ignored or cause a
-rounding (GTK+, Windows) or get accepted (Lucid, Motif).
+of its character size, however, may: be ignored, cause a
+rounding (GTK+), or be accepted (Lucid, Motif, MS-Windows).
+
+With some window managers you may have to set this to non-@code{nil} in
+order to make a frame appear truly ``maximized'' or ``fullscreen''.
 @end defopt
 
 @defun set-frame-size frame width height pixelwise

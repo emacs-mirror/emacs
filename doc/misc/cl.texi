@@ -2929,6 +2929,12 @@ This predicate tests whether @var{integer} is even.  It is an
 error if the argument is not an integer.
 @end defun
 
+@defun cl-digit-char-p char radix
+Test if @var{char} is a digit in the specified @var{radix} (default is
+10).  If true return the decimal value of digit @var{char} in
+@var{radix}.
+@end defun
+
 @node Numerical Functions
 @section Numerical Functions
 
@@ -3009,6 +3015,15 @@ of @code{cl-floor}.
 @defun cl-rem number divisor
 This function returns the same value as the second return value
 of @code{cl-truncate}.
+@end defun
+
+@defun cl-parse-integer string &key start end radix junk-allowed
+This function implements the Common Lisp @code{parse-integer}
+function.  It parses an integer in the specified @var{radix} from the
+substring of @var{string} between @var{start} and @var{end}.  Any
+leading and trailing whitespace chars are ignored. It signals an error
+if the substring between @var{start} and @var{end} cannot be parsed as
+an integer unless @var{junk-allowed} is non-nil.
 @end defun
 
 @node Random Numbers
@@ -4692,9 +4707,8 @@ exactly the same thing, so this package has not bothered to
 implement a Common Lisp-style @code{make-list}.
 
 @item
-A few more notable Common Lisp features not included in this
-package:  @code{compiler-let}, @code{tagbody}, @code{prog},
-@code{ldb/dpb}, @code{parse-integer}, @code{cerror}.
+A few more notable Common Lisp features not included in this package:
+@code{compiler-let}, @code{prog}, @code{ldb/dpb}, @code{cerror}.
 
 @item
 Recursion.  While recursion works in Emacs Lisp just like it

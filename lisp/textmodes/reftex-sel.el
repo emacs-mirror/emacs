@@ -103,7 +103,7 @@ This keymap can be used to configure the label selection process which is
 started with the command \\[reftex-reference].")
 
 ;;;###autoload
-(define-derived-mode reftex-select-label-mode fundamental-mode "LSelect"
+(define-derived-mode reftex-select-label-mode special-mode "LSelect"
   "Major mode for selecting a label in a LaTeX document.
 This buffer was created with RefTeX.
 It only has a meaningful keymap when you are in the middle of a
@@ -149,7 +149,7 @@ This keymap can be used to configure the BibTeX selection process which is
 started with the command \\[reftex-citation].")
 
 ;;;###autoload
-(define-derived-mode reftex-select-bib-mode fundamental-mode "BSelect"
+(define-derived-mode reftex-select-bib-mode special-mode "BSelect"
   "Major mode for selecting a citation key in a LaTeX document.
 This buffer was created with RefTeX.
 It only has a meaningful keymap when you are in the middle of a
@@ -296,7 +296,7 @@ During a selection process, these are the local bindings.
           (setq to (point))
           (when font
             (put-text-property from to
-                               'face reftex-file-boundary-face))
+                               'font-lock-face reftex-file-boundary-face))
           (when toc-buffer
             (if mouse-face
                 (put-text-property from (1- to)
@@ -314,7 +314,7 @@ During a selection process, these are the local bindings.
           (setq to (point))
           (when font
             (put-text-property from to
-                               'face reftex-section-heading-face))
+                               'font-lock-face reftex-section-heading-face))
           (when toc-buffer
             (if mouse-face
                 (put-text-property from (1- to)
@@ -353,7 +353,7 @@ During a selection process, these are the local bindings.
             (setq to (point))
             (put-text-property
              (- (point) (length label)) to
-             'face (if comment
+             'font-lock-face (if comment
                        'font-lock-comment-face
                      label-face))
             (goto-char to))
@@ -383,14 +383,14 @@ During a selection process, these are the local bindings.
           (setq index-tag (format "<%s>" (nth 1 cell)))
           (and font
                (put-text-property 0 (length index-tag)
-                                  'face reftex-index-tag-face index-tag))
+                                  'font-lock-face reftex-index-tag-face index-tag))
           (insert label-indent index-tag " " (nth 7 cell))
 
           (when font
             (setq to (point))
             (put-text-property
              (- (point) (length (nth 7 cell))) to
-             'face index-face)
+             'font-lock-face index-face)
             (goto-char to))
           (insert "\n")
           (setq to (point))
@@ -690,7 +690,7 @@ Cycle in reverse order if optional argument REVERSE is non-nil."
           eoe (or (next-single-property-change (point) :data) (point-max)))
     (setq ovl (reftex-make-overlay boe eoe))
     (push (list data ovl separator) reftex-select-marked)
-    (reftex-overlay-put ovl 'face reftex-select-mark-face)
+    (reftex-overlay-put ovl 'font-lock-face reftex-select-mark-face)
     (reftex-overlay-put ovl 'before-string
                         (if separator
                             (format "*%c%d* " separator

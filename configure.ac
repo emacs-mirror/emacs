@@ -23,7 +23,7 @@ dnl  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 AC_PREREQ(2.65)
 dnl Note this is parsed by (at least) make-dist and lisp/cedet/ede/emacs.el.
-AC_INIT(GNU Emacs, 24.4.50, bug-gnu-emacs@gnu.org)
+AC_INIT(GNU Emacs, 25.0.50, bug-gnu-emacs@gnu.org)
 
 dnl Set emacs_config_options to the options of 'configure', quoted for the shell,
 dnl and then quoted again for a C string.  Separate options with spaces.
@@ -130,6 +130,7 @@ If you have it installed under another name, configure with 'MAKE=...'.
 For example, run '$0 MAKE=gnu-make'.]])
 }
 MAKE=$ac_cv_path_MAKE
+export MAKE
 
 dnl Fairly arbitrary, older versions might work too.
 AM_INIT_AUTOMAKE(1.11)
@@ -139,7 +140,7 @@ AC_CANONICAL_HOST
 canonical=$host
 configuration=${host_alias-${build_alias-$host}}
 
-dnl We get MINGW64 with MSYS2.
+dnl We get MINGW64 with MSYS2, MINGW32 with MSYS.
 case $canonical in
  *-mingw*)
   . $srcdir/nt/mingw-cfg.site
@@ -150,7 +151,8 @@ case $canonical in
       # "/c/foo/bar", to simplify later conversions to native Windows
       # format ("c:/foo/bar").
       srcdir=`cd "${srcdir}" && pwd -W`
-      srcdir="/${srcdir:0:1}${srcdir:2}"
+      # 'eval' pacifies strict POSIX non-MinGW shells (Bug#18612).
+      eval 'srcdir="/${srcdir:0:1}${srcdir:2}"'
       ;;
   esac;;
 esac
@@ -253,7 +255,7 @@ AC_ARG_WITH([mailhost],[AS_HELP_STRING([--with-mailhost=HOSTNAME],
 
 AC_ARG_WITH([sound],[AS_HELP_STRING([--with-sound=VALUE],
   [compile with sound support (VALUE one of: yes, alsa, oss, bsd-ossaudio, no;
-default yes).  Only for GNU/Linux, FreeBSD, NetBSD, MinGW.])],
+default yes).  Only for GNU/Linux, FreeBSD, NetBSD, MinGW, Cygwin.])],
   [ case "${withval}" in
       yes|no|alsa|oss|bsd-ossaudio) val=$withval ;;
       *) AC_MSG_ERROR([`--with-sound=$withval' is invalid;
@@ -555,7 +557,7 @@ case "${canonical}" in
   *-apple-darwin* )
     case "${canonical}" in
       i[3456]86-* )  ;;
-      powerpc-* )    ;;
+      powerpc-* )    unported=yes ;;
       x86_64-* )     ;;
       * )            unported=yes ;;
     esac
@@ -650,7 +652,7 @@ case "${canonical}" in
   i[3456]86-*-* )
     case "${canonical}" in
       *-darwin* )               opsys=darwin ;;
-      *-mingw32 )
+      *-mingw* )
 		opsys=mingw32
 		# MinGW overrides and adds some system headers in nt/inc.
 		GCC_TEST_OPTIONS="-I $srcdir/nt/inc"
@@ -665,7 +667,7 @@ case "${canonical}" in
   # MinGW64
   x86_64-*-* )
     case "${canonical}" in
-      *-mingw32 )
+      *-mingw* )
 		opsys=mingw32
 		# MinGW overrides and adds some system headers in nt/inc.
 		GCC_TEST_OPTIONS="-I $srcdir/nt/inc"
@@ -703,6 +705,13 @@ If you think it should, please send a report to ${PACKAGE_BUGREPORT}.
 Check `etc/MACHINES' for recognized configuration names.])
 fi
 
+case "$canonical" in
+  *-apple-darwin* )
+  x="`uname -r`"
+    case "$x" in
+      [[0-9]].*) AC_MSG_ERROR([OSX 10.6 or later required]) ;;
+    esac
+esac
 
 #### Choose a compiler.
 
@@ -823,6 +832,7 @@ if test "$gl_gcc_warnings" != yes; then
      gl_WARN_ADD([-Wno-switch])
      gl_WARN_ADD([-Wno-tautological-constant-out-of-range-compare])
      gl_WARN_ADD([-Wno-pointer-sign])
+     gl_WARN_ADD([-Wno-string-plus-int])
   fi
 else
   isystem='-isystem '
@@ -843,10 +853,8 @@ else
 
   nw="$nw -Wsystem-headers"         # Don't let system headers trigger warnings
   nw="$nw -Woverlength-strings"     # Not a problem these days
-  nw="$nw -Wlogical-op"             # any use of fwrite provokes this
   nw="$nw -Wformat-nonliteral"      # we do this a lot
-  nw="$nw -Wvla"                    # warnings in gettext.h
-  nw="$nw -Wnested-externs"         # use of XARGMATCH/verify_function__
+  nw="$nw -Wvla"                    # Emacs uses <vla.h>.
   nw="$nw -Wswitch-default"         # Too many warnings for now
   nw="$nw -Winline"                 # OK to ignore 'inline'
   nw="$nw -Wjump-misses-init"       # We sometimes safely jump over init.
@@ -863,7 +871,8 @@ else
   # Emacs's use of alloca inhibits protecting the stack.
   nw="$nw -Wstack-protector"
 
-  # The following line should be removable at some point.
+  # Emacs's use of partly-pure functions such as CHECK_TYPE make this
+  # option problematic.
   nw="$nw -Wsuggest-attribute=pure"
 
   # This part is merely for shortening the command line,
@@ -889,10 +898,6 @@ else
   gl_WARN_ADD([-Wno-switch])           # Too many warnings for now
   gl_WARN_ADD([-Wno-unused-parameter]) # Too many warnings for now
   gl_WARN_ADD([-Wno-format-nonliteral])
-
-  # In spite of excluding -Wlogical-op above, it is enabled, as of
-  # gcc 4.5.0 20090517.
-  gl_WARN_ADD([-Wno-logical-op])
 
   # More things that clang is unduly picky about.
   if test $emacs_cv_clang = yes; then
@@ -983,6 +988,17 @@ if test "${enableval}" != "no"; then
       fi
    fi
 fi)
+
+dnl Port to Automake 1.11.
+dnl This section can be removed once we assume Automake 1.14 or later.
+: ${AM_DEFAULT_VERBOSITY=1}
+: ${AM_V=$AM_DEFAULT_VERBOSITY}
+: ${AM_DEFAULT_V=$AM_DEFAULT_VERBOSITY}
+AC_SUBST([AM_V])
+AM_SUBST_NOTMAKE([AM_V])
+AC_SUBST([AM_DEFAULT_V])
+AM_SUBST_NOTMAKE([AM_DEFAULT_V])
+AC_SUBST([AM_DEFAULT_VERBOSITY])
 
 dnl Some other nice autoconf tests.
 dnl These are commented out, since gl_EARLY and/or Autoconf already does them.
@@ -1091,15 +1107,16 @@ if test $opsys = gnu-linux; then
 fi
 
 ## Need makeinfo >= 4.7 (?) to build the manuals.
-AC_PATH_PROG(MAKEINFO, makeinfo, no)
-dnl By this stage, configure has already checked for egrep and set EGREP,
-dnl or exited with an error if no egrep was found.
 if test "$MAKEINFO" != "no"; then
-  case `
-    $MAKEINFO --version 2> /dev/null |
-    $EGREP 'texinfo[[^0-9]]*([[1-4]][[0-9]]+|[[5-9]]|4\.[[7-9]]|4\.[[1-6]][[0-9]]+)'
-  ` in
-    '') MAKEINFO=no;;
+  if test "$MAKEINFO" = "${am_missing_run}makeinfo"; then
+    MAKEINFO=makeinfo
+  fi
+  case `($MAKEINFO --version) 2>/dev/null` in
+    *' (GNU texinfo) '4.[[7-9]]* | \
+    *' (GNU texinfo) '4.[[1-9][0-9]]* | \
+    *' (GNU texinfo) '[[5-9]]* | \
+    *' (GNU texinfo) '[[1-9][0-9]]* ) ;;
+    *) MAKEINFO=no;;
   esac
 fi
 
@@ -1323,7 +1340,7 @@ test "$opsys" = "aix4.2" && test "x$GCC" != "xyes" && \
   C_SWITCH_SYSTEM="-ma -qmaxmem=4000"
 if test "$opsys" = "mingw32"; then
   case "$canonical" in
-    x86_64-*-mingw32) C_SWITCH_SYSTEM="-mtune=generic" ;;
+    x86_64-*-mingw*) C_SWITCH_SYSTEM="-mtune=generic" ;;
     *) C_SWITCH_SYSTEM="-mtune=pentium4" ;;
   esac
 fi
@@ -1434,8 +1451,8 @@ AC_DEFUN([EMACS_CHECK_MODULES],
 
 HAVE_SOUND=no
 if test "${with_sound}" != "no"; then
-  # Sound support for GNU/Linux, the free BSDs, and MinGW.
-  AC_CHECK_HEADERS([machine/soundcard.h sys/soundcard.h soundcard.h],
+  # Sound support for GNU/Linux, the free BSDs, MinGW, and Cygwin.
+  AC_CHECK_HEADERS([machine/soundcard.h sys/soundcard.h soundcard.h mmsystem.h],
     have_sound_header=yes, [], [
     #ifdef __MINGW32__
     #define WIN32_LEAN_AND_MEAN
@@ -1497,7 +1514,7 @@ if test "${with_sound}" != "no"; then
      case "$opsys" in
        dnl defined __FreeBSD__ || defined __NetBSD__ || defined __linux__
        dnl Adjust the --with-sound help text if you change this.
-       gnu-linux|freebsd|netbsd|mingw32)
+       gnu-linux|freebsd|netbsd|mingw32|cygwin)
          AC_DEFINE(HAVE_SOUND, 1, [Define to 1 if you have sound support.])
          HAVE_SOUND=yes
          ;;
@@ -1526,10 +1543,15 @@ if test $emacs_cv_personality_linux32 = yes; then
             [Define to 1 if personality LINUX32 can be set.])
 fi
 
+# Note that Solaris has sys/sysinfo.h which defines struct
+# sysinfo as well.  To make sure that we're using GNU/Linux
+# sysinfo, we explicitly set one of its fields.
 if test "$ac_cv_header_sys_sysinfo_h" = yes; then
   AC_MSG_CHECKING([if Linux sysinfo may be used])
   AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <sys/sysinfo.h>]],
-                                     [[struct sysinfo si; sysinfo (&si)]])],
+                                     [[struct sysinfo si;
+                                       si.totalram = 0;
+                                       sysinfo (&si)]])],
     emacs_cv_linux_sysinfo=yes, emacs_cv_linux_sysinfo=no)
   AC_MSG_RESULT($emacs_cv_linux_sysinfo)
   if test $emacs_cv_linux_sysinfo = yes; then
@@ -1702,12 +1724,14 @@ if test "${with_ns}" != no; then
      ns_appbindir=${ns_appdir}/Contents/MacOS
      ns_appresdir=${ns_appdir}/Contents/Resources
      ns_appsrc=Cocoa/Emacs.base
+     ns_fontfile=macfont.o
   elif test -f $GNUSTEP_CONFIG_FILE; then
      NS_IMPL_GNUSTEP=yes
      ns_appdir=`pwd`/nextstep/Emacs.app
      ns_appbindir=${ns_appdir}
      ns_appresdir=${ns_appdir}/Resources
      ns_appsrc=GNUstep/Emacs.base
+     ns_fontfile=nsfont.o
      dnl FIXME sourcing this several times in subshells seems inefficient.
      GNUSTEP_SYSTEM_HEADERS="$(. $GNUSTEP_CONFIG_FILE; echo $GNUSTEP_SYSTEM_HEADERS)"
      GNUSTEP_SYSTEM_LIBRARIES="$(. $GNUSTEP_CONFIG_FILE; echo $GNUSTEP_SYSTEM_LIBRARIES)"
@@ -1750,48 +1774,24 @@ fail;
 
   macfont_file=""
   if test "${NS_IMPL_COCOA}" = "yes"; then
-    AC_MSG_CHECKING([for OSX 10.4 or newer])
+    AC_MSG_CHECKING([for OSX 10.6 or newer])
     AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#include <AppKit/AppKit.h>],
                                      [
 #ifdef MAC_OS_X_VERSION_MAX_ALLOWED
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1040
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1060
  ; /* OK */
 #else
- error "OSX 10.4 or newer required";
+ error "OSX 10.6 or newer required";
 #endif
 #endif
 		    ])],
-		    ns_osx_have_104=yes,
-		    ns_osx_have_104=no)
-    AC_MSG_RESULT([$ns_osx_have_104])
+		    ns_osx_have_106=yes,
+		    ns_osx_have_106=no)
+    AC_MSG_RESULT([$ns_osx_have_106])
 
-    if test $ns_osx_have_104 = no; then
-       AC_MSG_ERROR([`OSX 10.4 or newer is required']);
+    if test $ns_osx_have_106 = no; then
+       AC_MSG_ERROR([`OSX 10.6 or newer is required']);
     fi
-    AC_MSG_CHECKING([for OSX 10.5 or newer])
-    AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#include <AppKit/AppKit.h>],
-                                     [
-#ifdef MAC_OS_X_VERSION_MAX_ALLOWED
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1050
- ; /* OK */
-#else
- error "OSX 10.5 not found";
-#endif
-#endif
-		    ])],
-		    ns_osx_have_105=yes,
-		    ns_osx_have_105=no)
-    AC_MSG_RESULT([$ns_osx_have_105])
-    if test $ns_osx_have_105 = yes; then
-      macfont_file="macfont.o"
-    fi
-  fi
-  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#include <Foundation/NSObjCRuntime.h>],
-                                     [NSInteger i;])],
-		    ns_have_nsinteger=yes,
-		    ns_have_nsinteger=no)
-  if test $ns_have_nsinteger = yes; then
-    AC_DEFINE(NS_HAVE_NSINTEGER, 1, [Define to 1 if `NSInteger' is defined.])
   fi
 fi
 
@@ -1825,7 +1825,7 @@ if test "${HAVE_NS}" = yes; then
      INSTALL_ARCH_INDEP_EXTRA=
   fi
 
-  NS_OBJC_OBJ="nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o nsfont.o $macfont_file"
+  NS_OBJC_OBJ="nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o $ns_fontfile"
 fi
 CFLAGS="$tmp_CFLAGS"
 CPPFLAGS="$tmp_CPPFLAGS"
@@ -2028,9 +2028,13 @@ AC_CACHE_CHECK(
 doug_lea_malloc=$emacs_cv_var_doug_lea_malloc
 
 system_malloc=$emacs_cv_sanitize_address
+
+hybrid_malloc=
+
 case "$opsys" in
   ## darwin ld insists on the use of malloc routines in the System framework.
   darwin|mingw32|sol2-10) system_malloc=yes ;;
+  cygwin) hybrid_malloc=yes;;
 esac
 
 GMALLOC_OBJ=
@@ -2041,6 +2045,13 @@ if test "${system_malloc}" = "yes"; then
   GNU_MALLOC=no
   GNU_MALLOC_reason="
     (The GNU allocators don't work with this system configuration.)"
+  VMLIMIT_OBJ=
+elif test "$hybrid_malloc" = yes; then
+  AC_DEFINE(HYBRID_MALLOC, 1,
+    [Define to use gmalloc before dumping and the system malloc after.])
+  GNU_MALLOC=
+  GNU_MALLOC_reason="only before dumping"
+  GMALLOC_OBJ=gmalloc.o
   VMLIMIT_OBJ=
 else
   test "$doug_lea_malloc" != "yes" && GMALLOC_OBJ=gmalloc.o
@@ -3352,8 +3363,12 @@ if test "${HAVE_X11}" = "yes"; then
   EMACS_CHECK_MODULES([XRANDR], [$XRANDR_MODULES])
   if test $HAVE_XRANDR = no; then
     # Test old way in case pkg-config doesn't have it (older machines).
+    # Include Xrender.h by hand to work around bug in older Xrandr.h
+    # (e.g. RHEL5) and silence (harmless) configure warning (bug#18465).
     AC_CHECK_HEADER(X11/extensions/Xrandr.h,
-      [AC_CHECK_LIB(Xrandr, XRRGetScreenResources, HAVE_XRANDR=yes)])
+      [AC_CHECK_LIB(Xrandr, XRRGetScreenResources, HAVE_XRANDR=yes)],
+      [], [AC_INCLUDES_DEFAULT
+#include <X11/extensions/Xrender.h>])
     if test $HAVE_XRANDR = yes; then
       XRANDR_LIBS=-lXrandr
     fi
@@ -3553,7 +3568,7 @@ LIBS="$LIB_PTHREAD $LIB_MATH $LIBS"
 AC_CHECK_FUNCS(accept4 fchdir gethostname \
 getrusage get_current_dir_name \
 lrand48 random rint \
-select getpagesize setlocale \
+select getpagesize setlocale newlocale \
 getrlimit setrlimit shutdown getaddrinfo \
 pthread_sigmask strsignal setitimer \
 sendto recvfrom getsockname getpeername getifaddrs freeifaddrs \
@@ -3563,9 +3578,11 @@ cfmakeraw cfsetspeed copysign __executable_start log2)
 LIBS=$OLD_LIBS
 
 dnl No need to check for aligned_alloc and posix_memalign if using
-dnl gmalloc.o, as it supplies them.  Don't use these functions on
-dnl Darwin as they are incompatible with unexmacosx.c.
-if test -z "$GMALLOC_OBJ" && test "$opsys" != darwin; then
+dnl gmalloc.o, as it supplies them, unless we're using hybrid_malloc.
+dnl Don't use these functions on Darwin as they are incompatible with
+dnl unexmacosx.c.
+if (test -z "$GMALLOC_OBJ" || test "$hybrid_malloc" = yes) \
+  && test "$opsys" != darwin; then
   AC_CHECK_FUNCS([aligned_alloc posix_memalign], [break])
 fi
 
@@ -3728,6 +3745,22 @@ if test "$emacs_cv_have_timerfd" = yes; then
     [Define to 1 if timerfd functions are supported as in GNU/Linux.])
 fi
 
+# Alternate stack for signal handlers.
+AC_CACHE_CHECK([whether signals can be handled on alternate stack],
+	       [emacs_cv_alternate_stack],
+  [AC_COMPILE_IFELSE(
+     [AC_LANG_PROGRAM([[#include <signal.h>
+		      ]],
+		      [[stack_t ss;
+			struct sigaction sa;
+			ss.ss_sp = malloc (SIGSTKSZ);
+			ss.ss_size = SIGSTKSZ;
+			sa.sa_flags = SA_SIGINFO | SA_ONSTACK;
+			sigaltstack (&ss, 0);
+			sigaction (SIGSEGV, &sa, 0);]])],
+     [emacs_cv_alternate_stack=yes],
+     [emacs_cv_alternate_stack=no])])
+
 # Do we have res_init, for detecting changes in /etc/resolv.conf?
 # On Darwin, res_init appears not to be useful: see bug#562 and
 # http://lists.gnu.org/archive/html/emacs-devel/2007-11/msg01467.html
@@ -3867,43 +3900,7 @@ AC_SUBST(KRB4LIB)
 
 AC_CHECK_HEADERS(valgrind/valgrind.h)
 
-AC_CHECK_FUNCS_ONCE(tzset)
-AC_MSG_CHECKING(whether localtime caches TZ)
-AC_CACHE_VAL(emacs_cv_localtime_cache,
-[if test x$ac_cv_func_tzset = xyes; then
-AC_RUN_IFELSE([AC_LANG_SOURCE([[#include <time.h>
-char TZ_GMT0[] = "TZ=GMT0";
-char TZ_PST8[] = "TZ=PST8";
-main()
-{
-  time_t now = time ((time_t *) 0);
-  int hour_GMT0, hour_unset;
-  if (putenv (TZ_GMT0) != 0)
-    exit (1);
-  hour_GMT0 = localtime (&now)->tm_hour;
-  unsetenv("TZ");
-  hour_unset = localtime (&now)->tm_hour;
-  if (putenv (TZ_PST8) != 0)
-    exit (1);
-  if (localtime (&now)->tm_hour == hour_GMT0)
-    exit (1);
-  unsetenv("TZ");
-  if (localtime (&now)->tm_hour != hour_unset)
-    exit (1);
-  exit (0);
-}]])], emacs_cv_localtime_cache=no, emacs_cv_localtime_cache=yes,
-[# If we have tzset, assume the worst when cross-compiling.
-emacs_cv_localtime_cache=yes])
-else
-	# If we lack tzset, report that localtime does not cache TZ,
-	# since we can't invalidate the cache if we don't have tzset.
-	emacs_cv_localtime_cache=no
-fi])dnl
-AC_MSG_RESULT($emacs_cv_localtime_cache)
-if test $emacs_cv_localtime_cache = yes; then
-  AC_DEFINE(LOCALTIME_CACHE, 1,
-	    [Define to 1 if localtime caches TZ.])
-fi
+AC_CHECK_FUNCS_ONCE(tzalloc tzset)
 
 ok_so_far=yes
 AC_CHECK_FUNC(socket, , ok_so_far=no)
@@ -3969,15 +3966,6 @@ if test $emacs_cv_langinfo_codeset = yes; then
 fi
 
 AC_TYPE_MBSTATE_T
-
-AC_CACHE_CHECK([for C restricted array declarations], emacs_cv_c_restrict_arr,
-  [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[void fred (int x[__restrict]);]], [[]])],
-                  emacs_cv_c_restrict_arr=yes, emacs_cv_c_restrict_arr=no)])
-if test "$emacs_cv_c_restrict_arr" = yes; then
-  AC_DEFINE(__restrict_arr, __restrict,
-    [Define to compiler's equivalent of C99 restrict keyword in array
-     declarations.  Define as empty for no equivalent.])
-fi
 
 dnl Fixme: AC_SYS_POSIX_TERMIOS should probably be used, but it's not clear
 dnl how the tty code is related to POSIX and/or other versions of termios.
@@ -4447,22 +4435,31 @@ AC_CACHE_CHECK([for _setjmp], [emacs_cv_func__setjmp],
      [emacs_cv_func__setjmp=no])])
 if test $emacs_cv_func__setjmp = yes; then
   AC_DEFINE([HAVE__SETJMP], 1, [Define to 1 if _setjmp and _longjmp work.])
-else
-  AC_CACHE_CHECK([for sigsetjmp], [emacs_cv_func_sigsetjmp],
-    [AC_LINK_IFELSE(
-       [AC_LANG_PROGRAM(
-	 [[#include <setjmp.h>
-	 ]],
-	 [[sigjmp_buf j;
-	   if (! sigsetjmp (j, 1))
-	     siglongjmp (j, 1);]])],
-       [emacs_cv_func_sigsetjmp=yes],
-       [emacs_cv_func_sigsetjmp=no])])
-  if test $emacs_cv_func_sigsetjmp = yes; then
-    AC_DEFINE([HAVE_SIGSETJMP], 1,
-      [Define to 1 if sigsetjmp and siglongjmp work.
-       The value of this symbol is irrelevant if HAVE__SETJMP is defined.])
-  fi
+fi
+
+# We need to preserve signal mask to handle C stack overflows.
+AC_CACHE_CHECK([for sigsetjmp], [emacs_cv_func_sigsetjmp],
+  [AC_LINK_IFELSE(
+     [AC_LANG_PROGRAM(
+       [[#include <setjmp.h>
+       ]],
+       [[sigjmp_buf j;
+         if (! sigsetjmp (j, 1))
+	   siglongjmp (j, 1);]])],
+     [emacs_cv_func_sigsetjmp=yes],
+     [emacs_cv_func_sigsetjmp=no])])
+if test $emacs_cv_func_sigsetjmp = yes; then
+  AC_DEFINE([HAVE_SIGSETJMP], 1,
+    [Define to 1 if sigsetjmp and siglongjmp work.])
+fi
+
+# We need all of these features to handle C stack overflows.
+if test "$ac_cv_header_sys_resource_h" = "yes" -a \
+	"$ac_cv_func_getrlimit" = "yes" -a \
+	"$emacs_cv_func_sigsetjmp" = "yes" -a \
+	"$emacs_cv_alternate_stack" = yes; then
+  AC_DEFINE([HAVE_STACK_OVERFLOW_HANDLING], 1,
+    [Define to 1 if C stack overflow can be handled in some cases.])
 fi
 
 case $opsys in
@@ -4593,20 +4590,7 @@ if test $emacs_cv_usable_FIONREAD = yes; then
   fi
 fi
 
-
 case $opsys in
-  dnl Emacs supplies its own malloc, but glib calls posix_memalign,
-  dnl and on Cygwin prior to version 1.7.24 that becomes the
-  dnl Cygwin-supplied posix_memalign.  As malloc is not the Cygwin
-  dnl malloc, the Cygwin posix_memalign always returns ENOSYS.  A
-  dnl workaround is to set G_SLICE=always-malloc.  This is no longer
-  dnl needed starting with cygwin-1.7.24, and it is no longer
-  dnl effective starting with glib-2.36. */
-  cygwin)
-    AC_DEFINE(G_SLICE_ALWAYS_MALLOC, 1, [Define to set the
-      G_SLICE environment variable to "always-malloc" at startup.])
-    ;;
-
   hpux11)
     dnl It works to open the pty's tty in the parent (Emacs), then
     dnl close and reopen it in the child.
@@ -4793,6 +4777,22 @@ else
 fi
 AC_SUBST(LIBXMENU)
 
+AC_CACHE_CHECK([for struct alignment],
+  [emacs_cv_struct_alignment],
+  [AC_COMPILE_IFELSE(
+     [AC_LANG_PROGRAM([[#include <stddef.h>
+     		        struct __attribute__ ((aligned (8))) s { char c; };
+     			struct t { char c; struct s s; };
+			char verify[offsetof (struct t, s) == 8 ? 1 : -1];
+		      ]])],
+     [emacs_cv_struct_alignment=yes],
+     [emacs_cv_struct_alignment=no])])
+if test "$emacs_cv_struct_alignment" = yes; then
+  AC_DEFINE([HAVE_STRUCT_ATTRIBUTE_ALIGNED], 1,
+    [Define to 1 if 'struct __attribute__ ((aligned (N)))' aligns the
+     structure to an N-byte boundary.])
+fi
+
 if test "${GNU_MALLOC}" = "yes" ; then
   AC_DEFINE(GNU_MALLOC, 1,
 	    [Define to 1 if you want to use the GNU memory allocator.])
@@ -4877,20 +4877,24 @@ fi
 case "$opsys" in
   aix4-2) LD_SWITCH_SYSTEM_TEMACS="-Wl,-bnodelcsect" ;;
 
+  cygwin) LD_SWITCH_SYSTEM_TEMACS="-Wl,-stack,0x00800000" ;;
+
   darwin)
    ## The -headerpad option tells ld (see man page) to leave room at the
    ## end of the header for adding load commands.  Needed for dumping.
-   ## 0x690 is the total size of 30 segment load commands (at 56
-   ## each); under Cocoa 31 commands are required.
+   ## 0x1000 is enough for roughly 52 load commands on the x86_64
+   ## architecture (where they are 78 bytes each). The actual number of
+   ## load commands added is not consistent but normally ranges from
+   ## about 14 to about 34. Setting it high gets us plenty of slop and
+   ## only costs about 1.5K of wasted binary space.
+   headerpad_extra=1000
    if test "$HAVE_NS" = "yes"; then
      libs_nsgui="-framework AppKit"
      if test "$NS_IMPL_COCOA" = "yes"; then
         libs_nsgui="$libs_nsgui -framework IOKit"
      fi
-     headerpad_extra=6C8
    else
      libs_nsgui=
-     headerpad_extra=690
    fi
    LD_SWITCH_SYSTEM_TEMACS="-fno-pie -prebind $libs_nsgui -Xlinker -headerpad -Xlinker $headerpad_extra"
 

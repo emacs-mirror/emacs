@@ -132,6 +132,7 @@ lisp = \
 	$(lispsource)/textmodes/paragraphs.elc \
 	$(lispsource)/progmodes/prog-mode.elc \
 	$(lispsource)/emacs-lisp/lisp-mode.elc \
+	$(lispsource)/progmodes/elisp-mode.elc \
 	$(lispsource)/textmodes/text-mode.elc \
 	$(lispsource)/textmodes/fill.elc \
 	$(lispsource)/newcomment.elc \
@@ -152,7 +153,6 @@ lisp = \
 	$(lispsource)/term/w32-win.elc \
 	$(lispsource)/ls-lisp.elc \
 	$(lispsource)/disp-table.elc \
-	$(lispsource)/w32-common-fns.elc \
 	$(lispsource)/dos-w32.elc \
 	$(lispsource)/w32-fns.elc \
 	$(lispsource)/dos-fns.elc \

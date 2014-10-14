@@ -1,4 +1,54 @@
-2014-08-13  Kelvin White  <kwhite@gnu.org> 
+2014-10-10  Kelvin White  <kwhite@gnu.org>
+
+	* erc.el (erc-initialize-log-marker): Only initialize
+	  erc-last-saved-position if not already a marker.
+
+2014-10-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* erc.el (erc-channel-receive-names): Silence compiler warning.
+	(erc-format-@nick, erc-update-modes): Idem.
+
+2014-10-03  Kelvin White  <kwhite@gnu.org>
+
+	* erc.el (erc-rename-buffers): Use defcustom instead of defvar for
+	buffer renaming configuration option.
+
+2014-10-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* erc.el (erc-nick-at-point): Fix format-string typo (Bug#17755).
+
+2014-10-02  Kelvin White  <kwhite@gnu.org>
+
+	* erc.el (erc-rename-buffer-p): When set to t buffers will be
+	renamed to the current irc network.
+	(erc-format-target-and/or-network): Use `erc-rename-buffer-p' when
+	renaming buffers.
+
+	* erc-ring.el (erc-input-ring-setup): Fixes Bug #18599
+
+2014-09-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* erc-track.el (erc-modified-channels-display): Update all mode lines
+	if needed (bug#18510).  Remove call to erc-modified-channels-object
+	where we ignored the return value.
+	(erc-modified-channels-update): Don't force-mode-line-update here
+	any more.
+
+2014-09-26  Kelvin White  <kwhite@gnu.org>
+
+	* erc.el (erc-format-nick): Fix code regression - Bug #18551
+
+2014-09-25  Kelvin White  <kwhite@gnu.org>
+
+	* erc.el: Follow Emacs version instead of tracking it seperately.
+	(erc-quit/part-reason-default) : Clean up quit/part message
+	functions by abstracting repetitive code, change version string.
+	(erc-quit-reason-various, erc-quit-reason-normal, erc-quit-reason-zippy)
+	(erc-part-reason-normal, erc-part-reason-zippy, erc-part-reason-various)
+	(erc-cmd-SV, erc-ctcp-query-VERSION, erc-version, erc-version-string):
+	Change version string.
+
+2014-08-13  Kelvin White  <kwhite@gnu.org>
 
 	* erc.el (erc-send-input): Disable display commands in current buffer
 	(erc-format-target-and/or-network): Fix cases when buffer name is set

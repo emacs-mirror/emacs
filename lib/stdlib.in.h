@@ -520,6 +520,29 @@ _GL_CXXALIAS_SYS (putenv, int, (char *string));
 _GL_CXXALIASWARN (putenv);
 #endif
 
+#if @GNULIB_QSORT_R@
+# if @REPLACE_QSORT_R@
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef qsort_r
+#   define qsort_r rpl_qsort_r
+#  endif
+_GL_FUNCDECL_RPL (qsort_r, void, (void *base, size_t nmemb, size_t size,
+                                  int (*compare) (void const *, void const *,
+                                                  void *),
+                                  void *arg) _GL_ARG_NONNULL ((1, 4)));
+_GL_CXXALIAS_RPL (qsort_r, void, (void *base, size_t nmemb, size_t size,
+                                  int (*compare) (void const *, void const *,
+                                                  void *),
+                                  void *arg));
+# else
+_GL_CXXALIAS_SYS (qsort_r, void, (void *base, size_t nmemb, size_t size,
+                                  int (*compare) (void const *, void const *,
+                                                  void *),
+                                  void *arg));
+# endif
+_GL_CXXALIASWARN (qsort_r);
+#endif
+
 
 #if @GNULIB_RANDOM_R@
 # if !@HAVE_RANDOM_R@

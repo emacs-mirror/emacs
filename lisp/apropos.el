@@ -718,7 +718,7 @@ the output includes key-bindings of commands."
 		 (setq doc (list (car properties)))
 		 (while (setq properties (cdr (cdr properties)))
 		   (setq doc (cons (car properties) doc)))
-		 (mapconcat #'symbol-name (nreverse doc) " "))
+		 (mapconcat (lambda (p) (format "%s" p)) (nreverse doc) " "))
 	       (when (get symbol 'widget-type)
 		 (apropos-documentation-property
 		  symbol 'widget-documentation t))

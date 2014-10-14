@@ -146,7 +146,9 @@ AC_DEFUN([gl_EARLY],
   # Code from module unsetenv:
   # Code from module update-copyright:
   # Code from module utimens:
+  # Code from module vararrays:
   # Code from module verify:
+  # Code from module vla:
   # Code from module warnings:
   # Code from module xalloc-oversized:
 ])
@@ -383,6 +385,7 @@ AC_DEFUN([gl_INIT],
   fi
   gl_STDLIB_MODULE_INDICATOR([unsetenv])
   gl_UTIMENS
+  AC_C_VARARRAYS
   gl_gnulib_enabled_260941c0e5dc67ec9e87d1fb321c300b=false
   gl_gnulib_enabled_dosname=false
   gl_gnulib_enabled_euidaccess=false
@@ -916,6 +919,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/utimens.c
   lib/utimens.h
   lib/verify.h
+  lib/vla.h
   lib/xalloc-oversized.h
   m4/00gnulib.m4
   m4/absolute-header.m4
@@ -1013,6 +1017,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/utimbuf.m4
   m4/utimens.m4
   m4/utimes.m4
+  m4/vararrays.m4
   m4/warn-on-use.m4
   m4/warnings.m4
   m4/wchar_t.m4

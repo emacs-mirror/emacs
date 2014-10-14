@@ -60,7 +60,7 @@ The package's version number (e.g., @samp{11.86}).
 @item
 The package's status---normally one of @samp{available} (can be
 downloaded from the package archive), @samp{installed},
-@samp{unsigned} (installed, but not signed; @pxref{Package Signing}),
+@c @samp{unsigned} (installed, but not signed; @pxref{Package Signing}),
 or @samp{built-in} (included in Emacs by default).
 
 The status can also be @samp{new}.  This is equivalent to
@@ -184,11 +184,8 @@ key from a server such as @url{http://pgp.mit.edu/}.
 Use @kbd{M-x package-import-keyring} to import the key into Emacs.
 Emacs stores package keys in the @file{gnupg} subdirectory
 of @code{package-user-dir}.
-@c Uncomment this if it becomes true.
-@ignore
 The public key for the GNU package archive is distributed with Emacs,
 in the @file{etc/package-keyring.gpg}.  Emacs uses it automatically.
-@end ignore
 
 @vindex package-check-signature
 @vindex package-unsigned-archives

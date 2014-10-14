@@ -2228,7 +2228,7 @@ x_draw_stretch_glyph_string (struct glyph_string *s)
 	{
 	  /* In R2L rows, draw the cursor on the right edge of the
 	     stretch glyph.  */
-	  int right_x = window_box_right_offset (s->w, TEXT_AREA);
+	  int right_x = window_box_right (s->w, TEXT_AREA);
 
 	  if (x + background_width > right_x)
 	    background_width -= x - right_x;
@@ -3344,11 +3344,11 @@ static struct scroll_bar *x_window_to_scroll_bar (Window, int);
 static void x_scroll_bar_report_motion (struct frame **, Lisp_Object *,
 					enum scroll_bar_part *,
 					Lisp_Object *, Lisp_Object *,
-					unsigned long *);
+					Time *);
 static void x_horizontal_scroll_bar_report_motion (struct frame **, Lisp_Object *,
 						   enum scroll_bar_part *,
 						   Lisp_Object *, Lisp_Object *,
-						   unsigned long *);
+						   Time *);
 static void x_check_fullscreen (struct frame *);
 
 static void
@@ -3380,7 +3380,7 @@ w32_define_cursor (Window window, Cursor cursor)
 static void
 w32_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 		    enum scroll_bar_part *part, Lisp_Object *x, Lisp_Object *y,
-		    unsigned long *time)
+		    Time *time)
 {
   struct frame *f1;
   struct w32_display_info *dpyinfo = FRAME_DISPLAY_INFO (*fp);
@@ -3448,7 +3448,7 @@ w32_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 	    dpyinfo->last_mouse_glyph_frame = f1;
 
 	    *bar_window = Qnil;
-	    *part = 0;
+	    *part = scroll_bar_above_handle;
 	    *fp = f1;
 	    XSETINT (*x, pt.x);
 	    XSETINT (*y, pt.y);
@@ -4293,7 +4293,7 @@ w32_horizontal_scroll_bar_handle_click (struct scroll_bar *bar, W32Msg *msg,
       x = si.nTrackPos;
     else
       x = si.nPos;
-    y = si.nMax - x - si.nPage;
+    y = si.nMax - si.nPage;
 
     bar->dragging = 0;
     FRAME_DISPLAY_INFO (f)->last_mouse_scroll_bar_pos = msg->msg.wParam;
@@ -4350,12 +4350,9 @@ w32_horizontal_scroll_bar_handle_click (struct scroll_bar *bar, W32Msg *msg,
 	    int end = bar->end;
 
 	    si.cbSize = sizeof (si);
-/** 	    si.fMask = SIF_PAGE | SIF_POS; **/
 	    si.fMask = SIF_POS;
-/** 	    si.nPage = end - start + HORIZONTAL_SCROLL_BAR_MIN_HANDLE; **/
 	    si.nPos = min (last_scroll_bar_drag_pos,
 			   XWINDOW (bar->window)->hscroll_whole - 1);
-/** 	    si.nPos = last_scroll_bar_drag_pos; **/
 	    SetScrollInfo (SCROLL_BAR_W32_WINDOW (bar), SB_CTL, &si, TRUE);
 	  }
 	/* fall through */
@@ -4377,7 +4374,7 @@ static void
 x_scroll_bar_report_motion (struct frame **fp, Lisp_Object *bar_window,
 			    enum scroll_bar_part *part,
 			    Lisp_Object *x, Lisp_Object *y,
-			    unsigned long *time)
+			    Time *time)
 {
   struct w32_display_info *dpyinfo = FRAME_DISPLAY_INFO (*fp);
   struct scroll_bar *bar = dpyinfo->last_mouse_scroll_bar;
@@ -4427,7 +4424,7 @@ static void
 x_horizontal_scroll_bar_report_motion (struct frame **fp, Lisp_Object *bar_window,
 				       enum scroll_bar_part *part,
 				       Lisp_Object *x, Lisp_Object *y,
-				       unsigned long *time)
+				       Time *time)
 {
   struct w32_display_info *dpyinfo = FRAME_DISPLAY_INFO (*fp);
   struct scroll_bar *bar = dpyinfo->last_mouse_scroll_bar;
@@ -5147,30 +5144,38 @@ w32_read_socket (struct terminal *terminal,
 	      RECT rect;
 	      int rows, columns, width, height, text_width, text_height;
 
-	      GetClientRect (msg.msg.hwnd, &rect);
-
-	      height = rect.bottom - rect.top;
-	      width = rect.right - rect.left;
-	      text_width = FRAME_PIXEL_TO_TEXT_WIDTH (f, width);
-	      text_height = FRAME_PIXEL_TO_TEXT_HEIGHT (f, height);
-	      /* rows = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, height); */
-	      /* columns = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, width); */
-
-	      /* TODO: Clip size to the screen dimensions.  */
-
-	      /* Even if the number of character rows and columns has
-		 not changed, the font size may have changed, so we need
-		 to check the pixel dimensions as well.  */
-
-	      if (width != FRAME_PIXEL_WIDTH (f)
-		  || height != FRAME_PIXEL_HEIGHT (f)
-		  || text_width != FRAME_TEXT_WIDTH (f)
-		  || text_height != FRAME_TEXT_HEIGHT (f))
+	      if (GetClientRect (msg.msg.hwnd, &rect)
+		  /* GetClientRect evidently returns (0, 0, 0, 0) if
+		     called on a minimized frame.  Such "dimensions"
+		     aren't useful anyway.  */
+		  && !(rect.bottom == 0
+		       && rect.top == 0
+		       && rect.left == 0
+		       && rect.right == 0))
 		{
-		  change_frame_size (f, text_width, text_height, 0, 1, 0, 1);
-		  SET_FRAME_GARBAGED (f);
-		  cancel_mouse_face (f);
-		  f->win_gravity = NorthWestGravity;
+		  height = rect.bottom - rect.top;
+		  width = rect.right - rect.left;
+		  text_width = FRAME_PIXEL_TO_TEXT_WIDTH (f, width);
+		  text_height = FRAME_PIXEL_TO_TEXT_HEIGHT (f, height);
+		  /* rows = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, height); */
+		  /* columns = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, width); */
+
+		  /* TODO: Clip size to the screen dimensions.  */
+
+		  /* Even if the number of character rows and columns
+		     has not changed, the font size may have changed,
+		     so we need to check the pixel dimensions as well.  */
+
+		  if (width != FRAME_PIXEL_WIDTH (f)
+		      || height != FRAME_PIXEL_HEIGHT (f)
+		      || text_width != FRAME_TEXT_WIDTH (f)
+		      || text_height != FRAME_TEXT_HEIGHT (f))
+		    {
+		      change_frame_size (f, text_width, text_height, 0, 1, 0, 1);
+		      SET_FRAME_GARBAGED (f);
+		      cancel_mouse_face (f);
+		      f->win_gravity = NorthWestGravity;
+		    }
 		}
 	    }
 
@@ -5475,6 +5480,12 @@ x_draw_hollow_cursor (struct window *w, struct glyph_row *row)
   /* Compute frame-relative coordinates for phys cursor.  */
   get_phys_cursor_geometry (w, row, cursor_glyph, &left, &top, &h);
   rect.left = left;
+  /* When on R2L character, show cursor at the right edge of the
+     glyph, unless the cursor box is as wide as the glyph or wider
+     (the latter happens when x-stretch-cursor is non-nil).  */
+  if ((cursor_glyph->resolved_level & 1) != 0
+      && cursor_glyph->pixel_width > w->phys_cursor_width)
+    rect.left += cursor_glyph->pixel_width - w->phys_cursor_width;
   rect.top = top;
   rect.bottom = rect.top + h;
   rect.right = rect.left + w->phys_cursor_width;
@@ -5556,7 +5567,7 @@ x_draw_bar_cursor (struct window *w, struct glyph_row *row,
 			 WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y),
 			 width, row->height);
 	}
-      else
+      else	/* HBAR_CURSOR */
 	{
 	  int dummy_x, dummy_y, dummy_h;
 
@@ -5567,6 +5578,9 @@ x_draw_bar_cursor (struct window *w, struct glyph_row *row,
 
 	  get_phys_cursor_geometry (w, row, cursor_glyph, &dummy_x,
 				    &dummy_y, &dummy_h);
+	  if ((cursor_glyph->resolved_level & 1) != 0
+	      && cursor_glyph->pixel_width > w->phys_cursor_width)
+	    x += cursor_glyph->pixel_width - w->phys_cursor_width;
 	  w32_fill_area (f, hdc, cursor_color, x,
 			 WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y +
 						  row->height - width),
@@ -6333,7 +6347,7 @@ x_make_frame_visible (struct frame *f)
 	  RECT window_rect;
 
 	  /* Adjust vertical window position in order to avoid being
-	     covered by a task bar placed at the bottom of the desktop. */
+	     covered by a taskbar placed at the bottom of the desktop. */
 	  SystemParametersInfo (SPI_GETWORKAREA, 0, &workarea_rect, 0);
 	  GetWindowRect (FRAME_W32_WINDOW (f), &window_rect);
 	  if (window_rect.bottom > workarea_rect.bottom

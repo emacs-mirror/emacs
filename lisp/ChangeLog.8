@@ -3,13 +3,13 @@
 	* echistory.el (electric-command-history): Call Command-history-setup
 	and command-history-mode using their new conventions.
 
-	* chistory.el (Command-history-setup): Don't switch buffers.  Take
-	no args, and do not set major-mode, mode-name or the local map.
+	* chistory.el (Command-history-setup): Don't switch buffers.
+	Take no args, and do not set major-mode, mode-name or the local map.
 	(command-history-mode): New function, does some of those things
 	Command-history-setup used to do.
 	(list-command-history): Call command-history-mode, not
 	Command-history-setup.
-	(command-history): Renamed from command-history-mode.
+	(command-history): Rename from command-history-mode.
 
 1999-12-31  Richard M. Stallman  <rms@gnu.org>
 
@@ -91,9 +91,9 @@
 
 1999-12-27  Jari Aalto  <jari.aalto@poboxes.com>
 
-	* add-log.el (change-log-version-number-regexp-list): Added tag
+	* add-log.el (change-log-version-number-regexp-list): Add tag
 	:version 20.6.
-	(change-log-version-info-enabled): Added tag :version 20.6.
+	(change-log-version-info-enabled): Add tag :version 20.6.
 
 1999-12-27  Jari Aalto  <jari.aalto@poboxes.com>
 
@@ -103,13 +103,13 @@
 	(change-log-find-version): Rewritten.  Use user-configurable
 	version numbering regexp list
 	change-log-version-number-regexp-list.
-	(change-log-find-version): Renamed to
+	(change-log-find-version): Rename to
 	change-log-version-number-search.
 	(add-log-file-name-function): New.
-	(change-log-search-vc-number): Added END parameter.  Added doc
+	(change-log-search-vc-number): Add END parameter.  Added doc
 	string to function.
-	(change-log-version-rcs): Renamed.  Was
-	change-log-search-vc-number.
+	(change-log-version-rcs): Rename.
+	Was change-log-search-vc-number.
 
 1999-12-26  Thien-Thi Nguyen  <ttn@delysid.gnu.org>
 
@@ -144,7 +144,7 @@
 	(hs-hide-block, hs-show-block, hs-show-region, hs-hide-level)
 	(hs-mouse-toggle-hiding, hs-minor-mode): Rewrite.
 
-	(hs-isearch-show): Renamed from `hs-isearch-open-invisible'.
+	(hs-isearch-show): Rename from `hs-isearch-open-invisible'.
 	(hs-isearch-show-temporary): New funcs.
 
 	(hs-show-block-at-point, java-hs-forward-sexp): Delete funcs.
@@ -214,9 +214,9 @@
 
 	* progmodes/antlr-mode.el: Minor syntax highlighting changes.
 	(antlr-font-lock-default-face): Deletia.
-	(antlr-font-lock-tokendef-face): Changed color.
-	(antlr-font-lock-tokenref-face): Changed color.
-	(antlr-font-lock-literal-face): Changed color.
+	(antlr-font-lock-tokendef-face): Change color.
+	(antlr-font-lock-tokenref-face): Change color.
+	(antlr-font-lock-literal-face): Change color.
 	(antlr-font-lock-additional-keywords): Minor changes.
 
 1999-12-20  Carsten Dominik  <cd@gnu.org>
@@ -351,7 +351,7 @@
 	(reftex-index-phrases-sort-prefers-entry)
 	(reftex-index-phrases-sort-in-blocks): New options.
 	(reftex-index-macros): Option structure changed.
-	(reftex-index-macros-builtin): Added `repeat' item to each entry.
+	(reftex-index-macros-builtin): Add `repeat' item to each entry.
 	(reftex-label-alist): Additional item in each entry to specify if
 	the environment should be listed in the TOC.
 	(eval-when-compile (require 'cl)) added.
@@ -415,8 +415,8 @@
 	Additional argument FORMAT-KEY to preselect a citation format;
 	(eval-when-compile (require 'cl)) added.
 
-	* textmodes/reftex-parse.el (reftex-context-substring): Optional
-	parameter to-end.
+	* textmodes/reftex-parse.el (reftex-context-substring):
+	Optional parameter to-end.
 	(reftex-section-info): Deal with environment matches;
 	(eval-when-compile (require 'cl)) added.
 
@@ -440,12 +440,12 @@
 	(ps-mule-plot-composition): New function.
 	(ps-mule-prepare-font-for-components): New function.
 	(ps-mule-plot-components): New function.
-	(ps-mule-composition-prologue-generated): Renamed from
+	(ps-mule-composition-prologue-generated): Rename from
 	ps-mule-cmpchar-prologue-generated.
 	(ps-mule-composition-prologue): New named from
 	ps-mule-cmpchar-prologue.  Modified for new composition.
 	(ps-mule-plot-rule-cmpchar, ps-mule-plot-cmpchar)
-	(ps-mule-prepare-cmpchar-font): Deleted.
+	(ps-mule-prepare-cmpchar-font): Delete.
 	(ps-mule-string-encoding): New arg NO-SETFONT.
 	(ps-mule-bitmap-prologue): In PostScript code of BuildGlyphCommon,
 	check Composing, not Cmpchar.
@@ -463,8 +463,8 @@
 	* international/fontset.el (vertical-centering-font-regexp):
 	New variable.
 
-	* international/mule.el (mule-version): Updated to 5.0 (AOI).
-	(mule-version-date): Updated to 1999.12.7.
+	* international/mule.el (mule-version): Update to 5.0 (AOI).
+	(mule-version-date): Update to 1999.12.7.
 	(with-category-table): New macro.
 
 	* international/mule-cmds.el (encode-coding-char): Don't check
@@ -477,9 +477,9 @@
 	* international/mule-util.el (set-nested-alist): Set BRANCHES (if
 	non-nil) at the tail of ALIST.
 	(compose-region, decompose-region, decompose-string)
-	(reference-point-alist, compose-chars): Moved to composite.el.
+	(reference-point-alist, compose-chars): Move to composite.el.
 	(compose-chars-component, compose-chars-rule, decompose-composite-char):
-	Deleted.
+	Delete.
 
 	* international/quail.el (quail-install-map): New optional arg NAME.
 	(quail-get-translation): If DEF is a symbol but not a function,
@@ -513,16 +513,16 @@
 	* language/thai-util.el (thai-category-table): Make it by
 	make-category-table.
 	(thai-composition-pattern): New variable.
-	(thai-compose-region, thai-compose-string): Use
-	with-category-table.
+	(thai-compose-region, thai-compose-string):
+	Use with-category-table.
 	(thai-post-read-conversion): Just call thai-compose-region.
-	(thai-pre-write-conversion): Deleted.
+	(thai-pre-write-conversion): Delete.
 	(thai-composition-function): New function.
 
 	* language/tibet-util.el: Most functions rewritten.
-	(tibetan-char-p): Renamed from tibetan-char-examin.
+	(tibetan-char-p): Rename from tibetan-char-examin.
 	(tibetan-composable-examin, tibetan-complete-char-examin)
-	(tibetan-vertical-stacking, tibetan-composition): Deleted.
+	(tibetan-vertical-stacking, tibetan-composition): Delete.
 	(tibetan-add-components): New function.
 	(tibetan-composition-function): New function.
 
@@ -543,8 +543,8 @@
 
 1999-12-14  Gerd Moellmann  <gerd@gnu.org>
 
-	* international/mule-cmds.el (default-input-method): Specify
-	that it should be set after current-language-environment.
+	* international/mule-cmds.el (default-input-method):
+	Specify that it should be set after current-language-environment.
 
 	* custom.el (custom-handle-keyword): Add :set-after.
 	(custom-add-dependencies): New function.
@@ -556,11 +556,11 @@
 
 	* progmodes/cc-make.el: Removed.
 
-1999-12-12  Martin Stjernholm  <bug-cc-mode@gnu.org>
+1999-12-12  Martin Stjernholm  <mast@lysator.liu.se>
 
 	* Release of cc-mode 5.26
 
-1999-12-12  Martin Stjernholm  <bug-cc-mode@gnu.org>
+1999-12-12  Martin Stjernholm  <mast@lysator.liu.se>
 
 	* cc-cmds.el (c-forward-conditional): Handle an arbitrary
 	target depth.  Optionally count #else lines as clause limits,
@@ -571,35 +571,35 @@
 	(c-down-conditional-with-else): New commands that uses the
 	added functionality in `c-forward-conditional'.
 
-1999-12-12  Martin Stjernholm  <bug-cc-mode@gnu.org>
+1999-12-12  Martin Stjernholm  <mast@lysator.liu.se>
 
 	* cc-align.el (c-lineup-comment): Preserve the alignment with
 	a comment on the previous line instead of preserving the
 	comment-column.
 
-1999-12-12  Martin Stjernholm  <bug-cc-mode@gnu.org>
+1999-12-12  Martin Stjernholm  <mast@lysator.liu.se>
 
 	Fixes to IDL mode after input from Eric Eide <eeide@cs.utah.edu>:
-	* cc-engine.el (c-beginning-of-statement-1): Allow
-	`c-conditional-key' to be nil, for the benefit of IDL mode.
+	* cc-engine.el (c-beginning-of-statement-1):
+	Allow `c-conditional-key' to be nil, for the benefit of IDL mode.
 	* cc-engine.el (c-guess-basic-syntax): Ditto.
-	cc-langs.el (C-IDL-class-key): Fixed.  Don't match `class'
+	cc-langs.el (C-IDL-class-key): Fix.  Don't match `class'
 	but do match CORBA 2.3 `valuetype'.
 	* cc-langs.el (c-IDL-access-key): New defconst.  Should be nil
 	for IDL.
-	* cc-langs.el (c-IDL-conditional-key): New defconst.  Should
-	be nil for IDL.
+	* cc-langs.el (c-IDL-conditional-key): New defconst.
+	Should be nil for IDL.
 	* cc-langs.el (c-IDL-comment-start-regexp): New defconst.
 	Like C++.
 	* cc-mode.el (idl-mode): Use new `c-IDL-*' defconsts.  Also,
 	set `c-method-key' and `c-baseclass-key' to nil.
 
-1999-12-12  Martin Stjernholm  <bug-cc-mode@gnu.org>
+1999-12-12  Martin Stjernholm  <mast@lysator.liu.se>
 
 	* cc-menus.el (cc-imenu-c++-generic-expression): Match classes
 	with nonhanging open braces.
 
-1999-12-12  Martin Stjernholm  <bug-cc-mode@gnu.org>
+1999-12-12  Martin Stjernholm  <mast@lysator.liu.se>
 
 	* cc-align.el: Added docstrings to all lineup functions.
 
@@ -610,12 +610,12 @@
 	comments.  Use c-comment-prefix-regexp and comment-start-skip
 	instead of hardcoded regexps.
 
-1999-12-12  Martin Stjernholm  <bug-cc-mode@gnu.org>
+1999-12-12  Martin Stjernholm  <mast@lysator.liu.se>
 
-	* cc-cmds.el (c-beginning-of-defun, c-end-of-defun): Fixed eob
+	* cc-cmds.el (c-beginning-of-defun, c-end-of-defun): Fix eob
 	behavior and return value as documented.
 
-1999-12-12  Martin Stjernholm  <bug-cc-mode@gnu.org>
+1999-12-12  Martin Stjernholm  <mast@lysator.liu.se>
 
 	Changes for new style variable init system:
 	* cc-langs.el (c-common-init): Dito.
@@ -639,12 +639,12 @@
 	the throws clause that might follow the function prototype in
 	C++.
 
-1999-12-12  Martin Stjernholm  <bug-cc-mode@gnu.org>
+1999-12-12  Martin Stjernholm  <mast@lysator.liu.se>
 
-	* cc-defs.el (c-beginning-of-macro): Fixed bug where point
+	* cc-defs.el (c-beginning-of-macro): Fix bug where point
 	could move forward for macros that doesn't start in column 0.
 
-1999-12-12  Martin Stjernholm  <bug-cc-mode@gnu.org>
+1999-12-12  Martin Stjernholm  <mast@lysator.liu.se>
 
 	* cc-align.el (c-indent-multi-line-block)
 	(c-lineup-whitesmith-in-block): Two new lineup functions for
@@ -654,7 +654,7 @@
 	style.  It should now handle all different braces uniformly in
 	both hanging and non-hanging cases.
 
-1999-12-12  Martin Stjernholm  <bug-cc-mode@gnu.org>
+1999-12-12  Martin Stjernholm  <mast@lysator.liu.se>
 
 	* cc-cmds.el (c-indent-exp): Use a marker to save point to
 	make it stay in the same position relative to the surrounding
@@ -676,7 +676,7 @@
 	<seanl@cs.umd.edu>.  Also extended the bsd and whitesmith
 	styles with consistent brace placement for all constructs.
 
-1999-12-12  Martin Stjernholm  <bug-cc-mode@gnu.org>
+1999-12-12  Martin Stjernholm  <mast@lysator.liu.se>
 
 	* cc-cmds.el (c-context-line-break): Continue C++ comments too
 	when point is in the middle of them.
@@ -702,8 +702,8 @@
 	`normal-auto-fill-function' to implement the
 	`c-ignore-auto-fill' variable.
 
-	* cc-cmds.el (c-beginning-of-statement): Use
-	`c-comment-prefix-regexp' to avoid ending up inside the
+	* cc-cmds.el (c-beginning-of-statement):
+	Use `c-comment-prefix-regexp' to avoid ending up inside the
 	comment prefix.  Better handling of comment starters and
 	enders. Catch comments better when traversing code.  Stop at
 	preprocessor directives.
@@ -711,7 +711,7 @@
 	* cc-defs.el (c-forward-comment): New subst to hide platform
 	dependent quirks in `forward-comment'.
 
-	* cc-engine.el (c-literal-limits): Added NOT-IN-DELIMITER
+	* cc-engine.el (c-literal-limits): Add NOT-IN-DELIMITER
 	argument.
 	(c-literal-limits-fast): Implemented NEAR and NOT-IN-DELIMITER
 	arguments. Activate this function by default when
@@ -722,16 +722,16 @@
 	arguments.
 
 	* cc-align.el (c-lineup-C-comments): Fixes to handle the
-	changed anchor position in the `c' syntactic symbol.  Handle
-	more than stars in the comment prefix; use the new variable
+	changed anchor position in the `c' syntactic symbol.
+	Handle more than stars in the comment prefix; use the new variable
 	`c-comment-prefix-regexp'.  Don't indent text not preceded by
 	a comment prefix to the right of the comment opener if it's
 	long.
 
 	* cc-langs.el: Fixes to mode initialization for new line
 	breaking and paragraph filling method.  Adaptive fill mode is
-	now activated at startup instead of deactivated.  The
-	variables used for adaptive filling and paragraph movement are
+	now activated at startup instead of deactivated.
+	The variables used for adaptive filling and paragraph movement are
 	also changed to incorporate the value of
 	`c-comment-prefix-regexp'.  `substitute-key-definition' is
 	used to override some functions in the global map instead of
@@ -741,31 +741,31 @@
 	javadoc markup at mode init.
 
 	* cc-mode.el (c-setup-filladapt): A new convenience function
-	to configure Kyle E. Jones' Filladapt mode for CC Mode.  This
-	function is intended to be used explicitly by the end user
+	to configure Kyle E. Jones' Filladapt mode for CC Mode.
+	This function is intended to be used explicitly by the end user
 	only.
 
 	* cc-vars.el (c-comment-prefix-regexp): New variable used to
 	recognize the comment fill prefix inside comments.
 	(c-block-comment-prefix): New name for
-	`c-comment-continuation-stars', which is now obsolete.  It's
-	generalized to handle any character sequence.
+	`c-comment-continuation-stars', which is now obsolete.
+	It's generalized to handle any character sequence.
 	(c-ignore-auto-fill): New variable used to selectively disable
 	Auto Fill mode in specific contexts.
 
-1999-12-12  Martin Stjernholm  <bug-cc-mode@gnu.org>
+1999-12-12  Martin Stjernholm  <mast@lysator.liu.se>
 
 	* cc-cmds.el (c-comment-indent): Leave at least one space
 	between the comment and the last nonblank character in the
 	case where we look at the indentation of the comment on the
 	previous line (case 4).
 
-	* cc-engine.el (c-beginning-of-statement-1): Added ``' to the
+	* cc-engine.el (c-beginning-of-statement-1): Add ``' to the
 	list of characters that may start a statement (it's a sort of
 	prefix operator in Pike, and isn't used at all in any of the
 	other languages).
 
-1999-12-12  Martin Stjernholm  <bug-cc-mode@gnu.org>
+1999-12-12  Martin Stjernholm  <mast@lysator.liu.se>
 
 	* cc-engine.el (c-guess-basic-syntax): Report brace list opens
 	inside continued statements as statement-cont instead of
@@ -775,12 +775,12 @@
 	context.  Case 10B.2 changed.  Also changed (the somewhat
 	esoteric) case 9A to cope with this.
 
-1999-12-12  Martin Stjernholm  <bug-cc-mode@gnu.org>
+1999-12-12  Martin Stjernholm  <mast@lysator.liu.se>
 
-	* cc-cmds.el (c-electric-brace): Added electric handling of
+	* cc-cmds.el (c-electric-brace): Add electric handling of
 	the open brace for brace-elseif-brace.
 
-1999-12-12  Martin Stjernholm  <bug-cc-mode@gnu.org>
+1999-12-12  Martin Stjernholm  <mast@lysator.liu.se>
 
 	* cc-defs.el (c-with-syntax-table): New macro to easily switch
 	syntax tables temporarily.
@@ -789,26 +789,26 @@
 	member init argument lists split over several lines.  Case 5D
 	changed.
 
-	* cc-langs.el (c-Java-javadoc-paragraph-start): Added new tag
+	* cc-langs.el (c-Java-javadoc-paragraph-start): Add new tag
 	@throws introduced in Javadoc 1.2.
 
-	* cc-menus.el (cc-imenu-java-generic-expression): Applied
-	patch from RMS to avoid infinite backtracking.
+	* cc-menus.el (cc-imenu-java-generic-expression):
+	Applied patch from RMS to avoid infinite backtracking.
 
-1999-12-12  Martin Stjernholm  <bug-cc-mode@gnu.org>
+1999-12-12  Martin Stjernholm  <mast@lysator.liu.se>
 
 	* cc-align.el (c-lineup-arglist): Handle "arglists" surrounded
 	by [ ].
 
-1999-12-12  Martin Stjernholm  <bug-cc-mode@gnu.org>
+1999-12-12  Martin Stjernholm  <mast@lysator.liu.se>
 
 	* cc-align.el (c-lineup-dont-change): Compensate properly for
 	the column in langelem.
 
-	* cc-engine.el (c-syntactic-information-on-region): New
-	function to help debugging the syntactic analysis.
+	* cc-engine.el (c-syntactic-information-on-region):
+	New function to help debugging the syntactic analysis.
 
-1999-12-12  Martin Stjernholm  <bug-cc-mode@gnu.org>
+1999-12-12  Martin Stjernholm  <mast@lysator.liu.se>
 
 	* cc-align.el (c-lineup-template-args): Handle nested template
 	arglists.
@@ -824,18 +824,18 @@
 	* cc-styles.el (c-offsets-alist): Use `c-lineup-template-args'
 	by default.
 
-1999-12-12  Martin Stjernholm  <bug-cc-mode@gnu.org>
+1999-12-12  Martin Stjernholm  <mast@lysator.liu.se>
 
 	* cc-engine.el (c-guess-basic-syntax): Pike allows a comma
 	immediately before the closing paren in an arglist, so don't
 	check that in Pike mode.  Case 7A changed.
 
-1999-12-12  Martin Stjernholm  <bug-cc-mode@gnu.org>
+1999-12-12  Martin Stjernholm  <mast@lysator.liu.se>
 
-	* cc-cmds.el (c-indent-region): Fixed bug where comment-only
+	* cc-cmds.el (c-indent-region): Fix bug where comment-only
 	lines were ignored under certain conditions.
 
-1999-12-12  Martin Stjernholm  <bug-cc-mode@gnu.org>
+1999-12-12  Martin Stjernholm  <mast@lysator.liu.se>
 
 	* cc-align.el (c-lineup-template-args): New function for
 	aligning continued template argument lists.
@@ -844,68 +844,68 @@
 	lists containing function arglists split over several lines.
 	Case 5D.1 changed.
 
-	* cc-engine.el (c-guess-basic-syntax): Fixed bug where
+	* cc-engine.el (c-guess-basic-syntax): Fix bug where
 	template-args-cont didn't get recognized when the first
-	arglist opener line doesn't contain a template argument.  New
-	case 5K.
+	arglist opener line doesn't contain a template argument.
+	New case 5K.
 
-1999-12-12  Martin Stjernholm  <bug-cc-mode@gnu.org>
+1999-12-12  Martin Stjernholm  <mast@lysator.liu.se>
 
-	* cc-defs.el (c-point): Changed from subst to macro for
+	* cc-defs.el (c-point): Change from subst to macro for
 	efficiency.
-	(c-beginning-of-defun-1, c-end-of-defun-1): New
-	beginning-of-defun/end-of-defun wrappers separated from
+	(c-beginning-of-defun-1, c-end-of-defun-1):
+	New beginning-of-defun/end-of-defun wrappers separated from
 	c-point.
 
 	* cc-menus.el (imenu-generic-expression)
-	(imenu-case-fold-search, imenu-progress-message): Dummy
-	definitions to avoid compiler warnings if imenu can't be
+	(imenu-case-fold-search, imenu-progress-message):
+	Dummy definitions to avoid compiler warnings if imenu can't be
 	loaded.
 	* cc-menus.el (cc-imenu-init): New function called at mode
 	init.
-	* cc-mode.el (c-mode, c++-mode, objc-mode, java-mode): Moved
-	imenu initializations to cc-imenu-init.
+	* cc-mode.el (c-mode, c++-mode, objc-mode, java-mode):
+	Move imenu initializations to cc-imenu-init.
 
-1999-12-12  Martin Stjernholm  <bug-cc-mode@gnu.org>
+1999-12-12  Martin Stjernholm  <mast@lysator.liu.se>
 
 	* cc-engine.el (c-guess-basic-syntax): Slightly better check
 	for lambda-intro-cont in Pike mode.  Case 6 changed.
 
-	* cc-engine.el (c-looking-at-inexpr-block): Fixed bug where
+	* cc-engine.el (c-looking-at-inexpr-block): Fix bug where
 	anything following "new Foo()" was considered an anonymous
 	class body in Java mode.
 
-1999-12-12  Barry A. Warsaw  <bug-cc-mode@gnu.org>
+1999-12-12  Barry A. Warsaw  <bwarsaw@cnri.reston.va.us>
 
 	* cc-cmds.el (c-comment-line-break-function): When breaking in
 	a string, don't insert a new line.
 
-1999-12-12  Barry A. Warsaw  <bug-cc-mode@gnu.org>
+1999-12-12  Barry A. Warsaw  <bwarsaw@cnri.reston.va.us>
 
 	* cc-engine.el (c-at-toplevel-p): New interface function which
 	returns information useful to add-on authors.  It tells you
 	whether you're at a toplevel statement or not.
 
-1999-12-12  Barry A. Warsaw  <bug-cc-mode@gnu.org>
+1999-12-12  Barry A. Warsaw  <bwarsaw@cnri.reston.va.us>
 
 	* cc-cmds.el (c-comment-line-break-function): It is possible
 	that forward-line does not land us at the bol, say if we're on
 	the last line in a file.  In that case, do a
 	back-to-indentation instead of a forward-comment -1.
 
-1999-12-12  Martin Stjernholm  <bug-cc-mode@gnu.org>
+1999-12-12  Martin Stjernholm  <mast@lysator.liu.se>
 
 	* cc-engine.el (c-beginning-of-statement-1): Don't catch
 	"default:" as normal label in case 4.
 
-1999-12-12  Martin Stjernholm  <bug-cc-mode@gnu.org>
+1999-12-12  Martin Stjernholm  <mast@lysator.liu.se>
 
 	* cc-engine.el (c-guess-basic-syntax): Use c-bitfield-key to
 	recognize continued bitfield declarations.  Case 5D.1 changed.
 	* cc-langs.el: New variable c-bitfield-key.
 	* cc-mode.el: New variable c-bitfield-key.
 
-1999-12-12  Martin Stjernholm  <bug-cc-mode@gnu.org>
+1999-12-12  Martin Stjernholm  <mast@lysator.liu.se>
 
 	* cc-engine.el (c-inside-bracelist-p): Tighter test for Java
 	anonymous array expressions (i.e. "new Foo[] {.. bracelist
@@ -917,8 +917,8 @@
 	keymap and minor-mode-alist stuff.  Don't set zmacs-region-stays.
 	(footnote-insert-text-marker, Footnote-insert-pointer-marker):
 	Avoid `acons'.
-	(footnote-mode-line-string, Footnote-add-footnote): Remove
-	autoload cookie.
+	(footnote-mode-line-string, Footnote-add-footnote):
+	Remove autoload cookie.
 
 1999-12-12  Richard Sharman  <rsharman@pobox.com>
 
@@ -967,8 +967,8 @@
 	* files.el (after-find-file): Use auto-save-visited-file-name if
 	set.
 
-	* mail/feedmail.el (feedmail-find-eoh): Take
-	feedmail-queue-alternative-mail-header-separator into account.
+	* mail/feedmail.el (feedmail-find-eoh):
+	Take feedmail-queue-alternative-mail-header-separator into account.
 
 1999-12-09  Stefan Monnier  <monnier@cs.yale.edu>
 
@@ -976,7 +976,7 @@
 
 	* font-lock.el (font-lock-multiline): New variable.
 	(font-lock-add-keywords): Rename `major-mode' into `mode'.
-	(font-lock-remove-keywords): Added a dummy `mode' argument for
+	(font-lock-remove-keywords): Add a dummy `mode' argument for
 	potential future support.
 	(font-lock-fontify-anchored-keywords)
 	(font-lock-fontify-keywords-region): Only handle multiline strings
@@ -1059,8 +1059,8 @@
 	(x-defined-colors, face-color-supported-p, face-color-gray-p):
 	Remove.
 
-	* facemenu.el (facemenu-read-color, list-colors-display): Use
-	defined-colors for all frame types.
+	* facemenu.el (facemenu-read-color, list-colors-display):
+	Use defined-colors for all frame types.
 	(facemenu-color-equal): Use color-values for all frame types.
 
 	* faces.el (read-face-attribute): For :foreground and :background
@@ -1078,7 +1078,7 @@
 	types other than x and w32, but only if the terminal supports
 	colors.  Call tty-color-define instead of face-register-tty-color.
 
-	* term/x-win.el (xw-defined-colors): Renamed from
+	* term/x-win.el (xw-defined-colors): Rename from
 	x-defined-colors.
 	* term/w32-win.el (xw-defined-colors): Likewise.
 
@@ -1091,7 +1091,7 @@
 
 1999-12-06  Inge Frick  <inge@nada.kth.se>
 
-	* dired-aux.el (dired-do-shell-command): Changed documentation.
+	* dired-aux.el (dired-do-shell-command): Change documentation.
 	(dired-shell-stuff-it): A `?' in COMMAND has now the same
 	meaning as `*'.
 
@@ -1103,11 +1103,11 @@
 
 1999-12-06  Sam Steingold  <sds@goems.com>
 
-	* progmodes/etags.el (etags-tags-completion-table): Modified the
+	* progmodes/etags.el (etags-tags-completion-table): Modify the
 	regexp to allow for the CL symbols starting with `+*'.
 	(tags-completion-table): Doc fix (it's an obarray, not an alist).
-	(tags-completion-table, tags-recognize-empty-tags-table): Remove
-	`function' quoting lambda.
+	(tags-completion-table, tags-recognize-empty-tags-table):
+	Remove `function' quoting lambda.
 	(tags-with-face): New macro.
 	(list-tags, tags-apropos): Use it.
 	(tags-apropos-additional-actions): New user option.
@@ -1116,31 +1116,31 @@
 	(tags-apropos-verbose): New user option.
 	(etags-tags-apropos): Use it.
 	(visit-tags-table-buffer, next-file): Use `unless'.
-	(recognize-empty-tags-table): Renamed to
+	(recognize-empty-tags-table): Rename to
 	tags-recognize-empty-tags-table.
 	(complete-tag): Call tags-complete-tag bypassing try-completion.
 
 1999-12-06  Kenichi Handa  <handa@etl.go.jp>
 
-	* international/mule.el (set-buffer-file-coding-system): Docstring
-	modified.
+	* international/mule.el (set-buffer-file-coding-system):
+	Docstring modified.
 
 1999-12-05  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
-	* textmodes/bibtex.el (bibtex-hs-forward-sexp): Added to support
+	* textmodes/bibtex.el (bibtex-hs-forward-sexp): Add to support
 	using the hideshow package.
-	(hs-special-modes-alist): Added entry for bibtex to allow the use
+	(hs-special-modes-alist): Add entry for bibtex to allow the use
 	of the hideshow package.
-	(bibtex-hide-entry-bodies): Deleted as hiding of entry bodies is
+	(bibtex-hide-entry-bodies): Delete as hiding of entry bodies is
 	not longer provided by bibtex.el directly.  Instead the hideshow
 	package should be used.
-	(bibtex-mode-map, bibtex-edit-menu, bibtex-mode): Delete
-	references to bibtex-hide-entry-bodies.
+	(bibtex-mode-map, bibtex-edit-menu, bibtex-mode):
+	Delete references to bibtex-hide-entry-bodies.
 
 1999-12-05  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
-	* textmodes/bibtex.el: Copyright notice is up to date.  Moved
-	maintainer information closer to the beginning of the bibtex.el
+	* textmodes/bibtex.el: Copyright notice is up to date.
+	Moved maintainer information closer to the beginning of the bibtex.el
 	file.
 	(bibtex-maintainer-salutation): New constant.
 	(bibtex-version): New constant.
@@ -1148,16 +1148,16 @@
 	bibtex-maintainer-salutation.
 	(bibtex-entry-field-alist): Made booktitle field optional for
 	@inproceedings entries when crossreferenced.
-	(bibtex-entry-field-alist): Added booktitle field to proceedings
+	(bibtex-entry-field-alist): Add booktitle field to proceedings
 	entry type (for cross referencing). Thanks to Wagner Toledo Correa
 	for the suggestion.
-	(bibtex-string-file-path): Fixed typo.
+	(bibtex-string-file-path): Fix typo.
 
 1999-12-05  Carsten Dominik  <dominik@strw.leidenuniv.nl>
 
 	* textmodes/bibtex.el (bibtex-mode-map): Reserved the key `C-c &'
 	for reftex.el.
-	(bibtex-edit-menu): Added `reftex-view-crossref-from-bibtex' to menu.
+	(bibtex-edit-menu): Add `reftex-view-crossref-from-bibtex' to menu.
 
 1999-12-04  Dave Love  <fx@gnu.org>
 
@@ -1166,14 +1166,14 @@
 
 1999-12-04  Michael Kifer  <kifer@cs.sunysb.edu>
 
-	* viper-cmd.el (viper-change-state): Use
-	viper-ESC-moves-cursor-back to decide whether to move the cursor
+	* viper-cmd.el (viper-change-state):
+	Use viper-ESC-moves-cursor-back to decide whether to move the cursor
 	back.
 
 1999-12-03  Kenichi Handa  <handa@mule.m17n.org>
 
-	* international/mule-util.el (truncate-string-to-width): Docstring
-	fixed.
+	* international/mule-util.el (truncate-string-to-width):
+	Docstring fixed.
 
 1999-12-02  Stefan Monnier  <monnier@cs.yale.edu>
 
@@ -1200,8 +1200,8 @@
 	* vc.el (vc-update-change-log): Look for rcs2log under
 	exec-directory.
 
-	* emacs-lisp/lisp-mode.el (lisp-mode-variables): Change
-	outline-regexp, add outline-level.
+	* emacs-lisp/lisp-mode.el (lisp-mode-variables):
+	Change outline-regexp, add outline-level.
 	(lisp-outline-level): New.
 
 	* calendar/appt.el (appt-convert-time): Handle "12:MMam",
@@ -1284,8 +1284,8 @@
 	* cus-start.el: Add use-dialog-box.
 
 	* add-log.el (change-log-mode-hook): Customize.
-	(add-log-current-defun): Use
-	fortran-{beginning,end}-of-subprogram.
+	(add-log-current-defun):
+	Use fortran-{beginning,end}-of-subprogram.
 
 1999-11-26  Richard M. Stallman  <rms@gnu.org>
 
@@ -1330,10 +1330,10 @@
 
 	* ediff-merge.el (ediff-looks-like-combined-merge)
 	(ediff-get-combined-region):
-	Changed to support the new format for ediff-combination-pattern.
+	Change to support the new format for ediff-combination-pattern.
 
 	* ediff-diff.el (ediff-set-fine-overlays-in-one-buffer):
-	Changed to support the new format for ediff-combination-pattern.
+	Change to support the new format for ediff-combination-pattern.
 
 1999-11-24  Dave Love  <fx@gnu.org>
 
@@ -1368,8 +1368,8 @@
 	imenu-generic-expression.
 
 	* sql.el (sql-mode): Use ?_ and ?. instead of 95 and 46 when
-	setting font-lock-defaults' SYNTAX-ALIST.  Set
-	imenu-generic-expression, imenu-case-fold-search, and
+	setting font-lock-defaults' SYNTAX-ALIST.
+	Set imenu-generic-expression, imenu-case-fold-search, and
 	imenu-syntax-alist.
 
 	* sql.el (sql-interactive-mode): Use ?_ and ?. instead of 95
@@ -1389,30 +1389,30 @@
 
 1999-11-23  Dave Love  <fx@gnu.org>
 
-	* progmodes/fortran.el (fortran-comment-line-start): Renamed from
+	* progmodes/fortran.el (fortran-comment-line-start): Rename from
 	comment-line-start.
-	(fortran-comment-line-start-skip): Renamed from
+	(fortran-comment-line-start-skip): Rename from
 	comment-line-start-skip.
 	(fortran-mode-map): Use renamed functions.  Add manual and custom
 	entries to menu.
 	(fortran-mode-hook): Customize.
-	(fortran-comment-indent-function): Renamed from
+	(fortran-comment-indent-function): Rename from
 	fortran-comment-hook.
 	(delete-horizontal-regexp): Function deleted.
-	(fortran-electric-line-number): Simplified.
-	(fortran-beginning-of-subprogram): Renamed from
+	(fortran-electric-line-number): Simplify.
+	(fortran-beginning-of-subprogram): Rename from
 	beginning-of-fortran-subprogram.
-	(fortran-end-of-subprogram): Renamed from
+	(fortran-end-of-subprogram): Rename from
 	end-of-fortran-subprogram.
-	(fortran-mark-subprogram): Renamed from mark-fortran-subprogram.
-	(fortran-previous-statement, fortran-next-statement): Simplified.
+	(fortran-mark-subprogram): Rename from mark-fortran-subprogram.
+	(fortran-previous-statement, fortran-next-statement): Simplify.
 	(fortran-blink-match): New function.
 	(fortran-blink-matching-if, fortran-blink-matching-do): Use it.
 	(fortran-indent-to-column): Don't use delete-horizontal-regexp.
-	(fortran-find-comment-start-skip, fortran-is-in-string-p): Use
-	line-end-position.
+	(fortran-find-comment-start-skip, fortran-is-in-string-p):
+	Use line-end-position.
 	(fortran-fill): No longer interactive.  Simplified.
-	(fortran-break-line): Simplified.
+	(fortran-break-line): Simplify.
 	(fortran-analyze-file-format): Use char-after, not looking-at.
 
 	* emacs-lisp/find-func.el (find-function-regexp):
@@ -1432,7 +1432,7 @@
 	* emacs-lisp/easy-mmode.el: Changed maintainer.
 	(easy-mmode-define-toggle): New BODY arg; Never append `-mode';
 	Use defcustom for the hooks; Improve the auto-generated docstrings.
-	(easy-mmode-define-minor-mode): Renamed `define-minor-mode'.
+	(easy-mmode-define-minor-mode): Rename `define-minor-mode'.
 	(define-minor-mode): Add BODY arg; Only declare the keymap if
 	provided; Improve the auto-generated docstrings.
 
@@ -1498,8 +1498,8 @@
 	* speedbar.el: Clean up comment at the start of the file.
 	Remove RCS id.
 
-	* progmodes/compile.el (compilation-parse-errors): Use
-	compilation-buffer-p instead of testing major-mode.
+	* progmodes/compile.el (compilation-parse-errors):
+	Use compilation-buffer-p instead of testing major-mode.
 
 1999-11-18  Dave Pearson  <davep@hagbard.demon.co.uk>
 
@@ -1546,9 +1546,9 @@
 
 	* goto-addr.el (goto-address-at-mouse)
 	(goto-address-find-address-at-point): Use compose-mail.
-	(goto-address-mail-method): Removed variable.
+	(goto-address-mail-method): Remove variable.
 	(goto-address-send-using-mh-e, goto-address-send-using-mhe)
-	(goto-address-send-using-mail): Removed functions.
+	(goto-address-send-using-mail): Remove functions.
 
 1998-11-15  Sam Steingold  <sds@goems.com>
 
@@ -1583,7 +1583,7 @@
 
 1999-11-14  Alex Schroeder  <alex@gnu.org>
 
-	* ansi-color.el (ansi-color-apply): Updated regexps to include
+	* ansi-color.el (ansi-color-apply): Update regexps to include
 	highlighted face.
 
 1999-01-14  Johan Vromans  <jvromans@squirrel.nl>
@@ -1599,11 +1599,11 @@
 
 1999-11-13  Peter Breton  <pbreton@ne.mediaone.net>
 
-	* net-utils.el (run-network-program, net-utils-run-program): Use
-	the new backquote syntax.
+	* net-utils.el (run-network-program, net-utils-run-program):
+	Use the new backquote syntax.
 	(smbclient-program, smbclient-program-options)
-	(smbclient-prompt-regexp, smbclient-font-lock-keywords): New
-	variables.
+	(smbclient-prompt-regexp, smbclient-font-lock-keywords):
+	New variables.
 	(smbclient, smbclient-list-shares): New functions
 
 1999-11-12  Sam Steingold  <sds@ksp.com>
@@ -1638,7 +1638,7 @@
 
 1999-11-12  Peter Kleiweg  <kleiweg@let.rug.nl>
 
-	* progmodes/ps-mode.el (ps-mode-submit-bug-report): Added list
+	* progmodes/ps-mode.el (ps-mode-submit-bug-report): Add list
 	of customizable variables to bug report message. Added
 	system-type to package name in bug report.
 
@@ -1655,8 +1655,8 @@
 
 1999-11-10  Peter Kleiweg  <kleiweg@let.rug.nl>
 
-	* progmodes/ps-mode.el (ps-mode-maintainer-address): New
-	constant.
+	* progmodes/ps-mode.el (ps-mode-maintainer-address):
+	New constant.
 	(ps-mode-submit-bug-report): New function. Entry added to menu.
 
 1999-11-10  William M. Perry  <wmperry@aventail.com>
@@ -1685,7 +1685,7 @@
 
 1999-11-08  Peter Kleiweg  <kleiweg@let.rug.nl>
 
-	* progmodes/ps-mode.el (ps-mode-print-function): Changed default
+	* progmodes/ps-mode.el (ps-mode-print-function): Change default
 	lpr-command to "lp" for some system-types. (copied from lpr.el
 	Emacs version 20.2.1).
 
@@ -1727,8 +1727,8 @@
 	* isearch.el (isearch-complete-edit, isearch-ring-advance-edit):
 	Use erase-field instead of erase-buffer.
 
-	* frame.el (blink-cursor-mode, blink-cursor-end): Use
-	internal-show-cursor with new interface.
+	* frame.el (blink-cursor-mode, blink-cursor-end):
+	Use internal-show-cursor with new interface.
 	(blink-cursor-timer-function): New.
 	(blink-cursor-start): Use blink-cursor-timer-function.
 
@@ -1760,8 +1760,8 @@
 
 1999-11-01  Markus Rost  <rost@ias.edu>
 
-	* dired-x.el (dired-smart-shell-command): Use
-	shell-command-history as in shell-command.
+	* dired-x.el (dired-smart-shell-command):
+	Use shell-command-history as in shell-command.
 
 1999-11-01  Richard M. Stallman  <rms@gnu.org>
 
@@ -1775,7 +1775,7 @@
 	of show-cursor.
 	(blink-cursor-start, blink-cursor-end): Ditto.
 
-	* textmodes/tex-mode.el (tex-default-mode): Changed to latex-mode.
+	* textmodes/tex-mode.el (tex-default-mode): Change to latex-mode.
 
 1999-11-01  Richard M. Stallman  <rms@gnu.org>
 
@@ -1792,7 +1792,7 @@
 
 	* ediff.el: Version change.
 
-	* ediff-util.el (ediff-cleanup-mess): Fixed the case of dead windows.
+	* ediff-util.el (ediff-cleanup-mess): Fix the case of dead windows.
 	make sure you are in a good frame before deleting other
 	windows.
 	(ediff-file-checked-in-p): Don't consider CVS
@@ -1816,10 +1816,10 @@
 
 	* viper-keym.el: Fixed calls to viper-ex, change key C-c g to C-c C-g.
 
-	* viper-util.el (viper-nontrivial-find-file-function): Deleted.
+	* viper-util.el (viper-nontrivial-find-file-function): Delete.
 	(viper-glob-unix-files, viper-glob-mswindows-files): New functions.
 	(viper-save-cursor-color, viper-restore-cursor-color):
-	Improved cursor color handling.
+	Improve cursor color handling.
 	(viper-get-saved-cursor-color-in-replace-mode)
 	(viper-get-saved-cursor-color-in-insert-mode): New functions for
 	better cursor color handling.
@@ -1874,7 +1874,7 @@
 	`whitespace-check-<whitespace-type>' to nil.
 	(whitespace-unchecked-whitespaces): New function to return the
 	list of whitespaces for whom checks have been suppressed.
-	(whitespace-display-unchecked-whitespaces): Renamed to
+	(whitespace-display-unchecked-whitespaces): Rename to
 	`whitespace-update-modeline' to reflect its functionality.
 
 1999-10-30  Gerd Moellmann  <gerd@gnu.org>
@@ -1895,8 +1895,8 @@
 	* progmodes/ada-stmt.el, progmodes/ada-xref.el: Doc-string and
 	comment fixes.
 
-	* progmodes/compile.el (compilation-error-regexp-alist): Recognize
-	MIPS Pro 7.3 compiler error message syntax.
+	* progmodes/compile.el (compilation-error-regexp-alist):
+	Recognize MIPS Pro 7.3 compiler error message syntax.
 
 1999-10-27  Dave Love  <fx@gnu.org>
 
@@ -1909,7 +1909,7 @@
 1999-10-27  Dave Love  <fx@gnu.org>
 
 	* emacs-lisp/advice.el: Doc fixes.
-	(ad-lemacs-p): Removed.
+	(ad-lemacs-p): Remove.
 	(advice): Add :link to defgroup.
 
 1999-10-27  Kenichi Handa  <handa@etl.go.jp>
@@ -1924,11 +1924,11 @@
 
 1999-10-27  Richard M. Stallman  <rms@gnu.org>
 
-	* emacs-lisp/advice.el (ad-activate-internal): Renamed from
+	* emacs-lisp/advice.el (ad-activate-internal): Rename from
 	ad-activate.  All callers changed, including those in data.c.
-	(ad-activate-internal-off): Renamed from ad-activate-off.
+	(ad-activate-internal-off): Rename from ad-activate-off.
 	All uses changed.
-	(ad-activate): Renamed from ad-activate-on.  All uses changed.
+	(ad-activate): Rename from ad-activate-on.  All uses changed.
 	(ad-start-advice, ad-stop-advice, ad-recover-normality):
 	Alter the definition of ad-activate-internal, not ad-activate.
 
@@ -1951,7 +1951,7 @@
 
 1999-10-25  Sam Steingold  <sds@ksp.com>
 
-	* Makefile (compile-files): Fixed the "tr" strings.
+	* Makefile (compile-files): Fix the "tr" strings.
 	(EMACS): Set to ../src/emacs.
 
 1999-10-25  Gerd Moellmann  <gerd@gnu.org>
@@ -2037,10 +2037,10 @@
 
 	* ps-print-def.el: New file: common definitions for all parts of
 	ps-print.
-	(ps-multibyte-buffer): Moved from ps-mule.
+	(ps-multibyte-buffer): Move from ps-mule.
 
 	* ps-mule.el: File dependence fix.
-	(ps-multibyte-buffer): Moved to ps-print-def.
+	(ps-multibyte-buffer): Move to ps-print-def.
 
 	* ps-print.el: Doc fix, better customization.
 	(ps-print-region-function, ps-number-of-columns, ps-spool-tumble)
@@ -2070,7 +2070,7 @@
 
 	* ps-print.el: Doc fix, n-up printing.
 	(ps-print-version): New version number (5.0).
-	(ps-page-dimensions-database): Added document media.
+	(ps-page-dimensions-database): Add document media.
 	(ps-n-up-printing, ps-n-up-margin, ps-n-up-border-p, ps-n-up-filling)
 	(ps-page-order, ps-printing-region-p): New vars.
 	(ps-n-up-printing, ps-n-up-filling, ps-header-sheet, ps-end-job):
@@ -2085,8 +2085,8 @@
 	(ps-setup, ps-begin-file, ps-get-buffer-name, ps-begin-job)
 	(ps-end-file, ps-dummy-page, ps-generate): Fix funs.
 	(ps-print-prologue-1): Adjust PostScript programming for n-up printing.
-	(ps-count-lines): Changed to defun.
-	(ps-header-page): Changed to defsubst, fix fun.
+	(ps-count-lines): Change to defun.
+	(ps-header-page): Change to defsubst, fix fun.
 	(ps-printing-region): Doc fix, adjust programming code.
 	(ps-output-boolean, ps-background-pages, ps-background-text)
 	(ps-background-image, ps-background, ps-get-boundingbox):
@@ -2097,9 +2097,9 @@
 	* ps-print.el: Doc fix, duplex and setpagedevice configuration.
 	(ps-print-version): New version number (4.2).
 	(ps-spool-config, ps-spool-tumble): New vars.
-	(ps-print-prologue-1): Changed to defconst, adjust PostScript
+	(ps-print-prologue-1): Change to defconst, adjust PostScript
 	programming, new PostScript procedure to handle errors.
-	(ps-print-prologue-2): Changed to defconst.
+	(ps-print-prologue-2): Change to defconst.
 	(ps-print-duplex-feature): New const: duplex and tumble setting.
 	(ps-setup, ps-begin-file): Fix funs.
 	(ps-boolean-capitalized): New fun.
@@ -2107,9 +2107,9 @@
 1999-10-19  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* Makefile (dontcompilefiles): Obsoleted.
-	(DONTCOMPILE): Added emacs-lisp/cl-specs.el.
+	(DONTCOMPILE): Add emacs-lisp/cl-specs.el.
 	(EL): Unused.
-	(temacs): Removed (unused).
+	(temacs): Remove (unused).
 	(cus-load.el, finder-inf.el, loaddefs.el): New targets to build a dummy
 	version of the file (necessary for the update to work properly).
 	(autoloads): Force the use of `pwd`/loaddefs.el.
@@ -2139,18 +2139,18 @@
 	value: \"lpr\" changed to "lpr".
 	(ps-mode-version): New constant.
 	(ps-mode-show-version): New function, added key in ps-mode-map.
-	(ps-run-messages): Removed.
+	(ps-run-messages): Remove.
 	(ps-run-font-lock-keywords-2): New defcustom variable replacing
 	ps-run-messages.  These keywords now include the value of
 	ps-run-prompt, making its fontification customizable.
-	(ps-run-init): Removed \\n from docstring, it is now added when
+	(ps-run-init): Remove \\n from docstring, it is now added when
 	the value is used.
-	(ps-run-font-lock-keywords-1): Added checking for initial ^ in
+	(ps-run-font-lock-keywords-1): Add checking for initial ^ in
 	ps-run-prompt.
-	(ps-mode): Added ps-run-font-lock-keywords-2 to list of
+	(ps-mode): Add ps-run-font-lock-keywords-2 to list of
 	customizable variables in doc-string (its equivalent
 	ps-run-messages was missing in previous version of the doc-string).
-	(ps-run-mode): Simplified assignment to font-lock-defaults, using
+	(ps-run-mode): Simplify assignment to font-lock-defaults, using
 	symbols only.
 
 1999-10-19  Alex Schroeder  <alex@gnu.org>
@@ -2177,7 +2177,7 @@
 	(set-display-table-and-terminal-coding-system): New function,
 	containing code migrated out of set-language-environment.
 	(set-language-environment, set-locale-environment): Use it.
-	(locale-translation-file-name): Moved here from startup.el.
+	(locale-translation-file-name): Move here from startup.el.
 	(locale-language-names, locale-preferred-coding-systems):
 	New vars.
 	(locale-name-match, set-locale-environment): New functions.
@@ -2253,7 +2253,7 @@
 
 1999-10-17  Sam Steingold  <sds@ksp.com>
 
-	* bindings.el (completion-ignored-extensions): Added ".sparcf"
+	* bindings.el (completion-ignored-extensions): Add ".sparcf"
 	for CMUCL on sparc and ".ufsl" for LispWorks.
 	(bound-and-true-p): Bugfix: free variable `v'.
 
@@ -2342,8 +2342,8 @@
 
 1999-10-12  Stefan Monnier  <monnier@cs.yale.edu>
 
-	* simple.el (shell-command, shell-command-on-region): Use
-	make-temp-file.
+	* simple.el (shell-command, shell-command-on-region):
+	Use make-temp-file.
 	(clone-buffer, clone-process, clone-buffer-hook): New functions.
 
 	* subr.el (with-current-buffer): Don't use backquotes to avoid
@@ -2369,16 +2369,16 @@
 1999-10-12  Richard Sharman  <rsharman@pobox.com>
 
 	* sh-script.el: Added support for indenting existing scripts.
-	(sh-mode-map): Added new bindings.
-	(sh-mode): Updated mode doc-string for new commands, added
+	(sh-mode-map): Add new bindings.
+	(sh-mode): Update mode doc-string for new commands, added
 	make-local-variable calls, initialize mode-specific variables.
-	(sh-indent-line): Renamed to sh-basic-indent-line; sh-indent-line
+	(sh-indent-line): Rename to sh-basic-indent-line; sh-indent-line
 	is now a different function.
-	(sh-header-marker): Changed docstring.
+	(sh-header-marker): Change docstring.
 	(sh-set-shell): Initialize mode-specific variables.
 	(sh-case, sh-for, sh-if, sh-indexed-loop, sh-repeat, sh-select)
 	(sh-tmp-file, sh-until, sh-until, sh-while, sh-while-getopts):
-	Changed these define-skeleton calls to work with user-specified
+	Change these define-skeleton calls to work with user-specified
 	indentation settings.
 	(sh-basic-indent-line, sh-blink, sh-calculate-indent)
 	(sh-check-paren-in-case, sh-check-rule, sh-do-nothing)
@@ -2602,9 +2602,9 @@
 	(isearch-yank-x-selection, isearch-ring-advance-edit): Doc fix.
 	(isearch-ring-retreat-edit): Doc fix.
 	(isearch-mouse-yank): New command.
-	(isearch-last-command-char): Removed.  Callers changed to use
+	(isearch-last-command-char): Remove.  Callers changed to use
 	last-command-char.
-	(isearch-char-to-string): Removed.  Callers changed to use
+	(isearch-char-to-string): Remove.  Callers changed to use
 	char-to-string.
 
 1999-09-26  Oleg S. Tihonov  <tihonov@ffke-campus.mipt.ru>
@@ -2652,7 +2652,7 @@
 	* textmodes/reftex-parse.el (reftex-parse-from-file): Scan for
 	multiple thebibliography environments.
 
-	* textmodes/reftex-cite.el (reftex-pop-to-bibtex-entry): Fixed bug
+	* textmodes/reftex-cite.el (reftex-pop-to-bibtex-entry): Fix bug
 	with recentering window.
 	(reftex-extract-bib-entries-from-thebibliography)
 	(reftex-offer-bib-menu, reftex-bibtex-selection-callback):
@@ -2749,7 +2749,7 @@
 	`copy-file'.
 	(dired-copy-file-recursive): New function.  Copy directories
 	recursively.
-	(dired-do-create-files): Added support for generalized directory
+	(dired-do-create-files): Add support for generalized directory
 	target.  How-to function may now return a function.  New fluid
 	variable `dired-one-file'.
 	(dired-copy-how-to-fn): New variable.
@@ -2770,8 +2770,8 @@
 	* whitespace.el (whitespace-modes): Add `change-log-mode' to the
 	list of modes to be checked for bogus whitespaces.
 
-	* whitespace.el (whitespace-rescan-timer-time): Update
-	documentation.
+	* whitespace.el (whitespace-rescan-timer-time):
+	Update documentation.
 
 	* whitespace.el (whitespace-display-unchecked-whitespaces):
 	New function to update modeline with untested whitespaces.
@@ -2816,8 +2816,8 @@
 	(widget-button-pressed-face): New variable.
 	(widget-button-click): Use it.
 	(widget-documentation-link-add): Specify mouse and button faces.
-	(widget-echo-help-mouse, widget-stop-mouse-tracking): Functions
-	removed now the functionality is built in.
+	(widget-echo-help-mouse, widget-stop-mouse-tracking):
+	Functions removed now the functionality is built in.
 
 	* cus-edit.el: Don't define-widget-keywords.
 	(multimedia): New group.
@@ -2842,8 +2842,8 @@
 	(custom-variable-set, custom-variable-save, custom-face-state-set)
 	(custom-variable-reset-saved, custom-variable-reset-standard)
 	(custom-face-set, custom-face-save, custom-face-reset-saved)
-	(custom-face-reset-standard, customize-save-customized): Handle
-	custom comments.
+	(custom-face-reset-standard, customize-save-customized):
+	Handle custom comments.
 	(custom-comment-face, custom-comment-tag-face): New face.
 	(custom-comment): New widget.
 	(custom-comment-create, custom-comment-delete)
@@ -2936,8 +2936,8 @@
 
 	* emacs-lisp/byte-opt.el (byte-optimize-backward-char):
 	(byte-optimize-backward-word): New optimizations.
-	(side-effect-free-fns, side-effect-and-error-free-fns): Add
-	entries.
+	(side-effect-free-fns, side-effect-and-error-free-fns):
+	Add entries.
 
 1999-09-09  Gerd Moellmann  <gerd@gnu.org>
 
@@ -2973,7 +2973,7 @@
 
 1999-09-08  Peter Breton  <pbreton@ne.mediaone.net>
 
-	* generic-x.el (generic-define-unix-modes): Added new modes:
+	* generic-x.el (generic-define-unix-modes): Add new modes:
 	inetd-conf-generic-mode, etc-services-generic-mode,
 	etc-passwd-generic-mode.  These are all defined for Unix by default.
 	(apache-generic-mode): Use an imenu-generic-expression to list
@@ -2985,11 +2985,11 @@
 	font-lock-defaults setting.
 	(java-properties-generic-mode): Supports both ! and # as comment
 	characters.
-	(java-properties-generic-mode): Added an imenu-generic-expression.
-	(java-properties-generic-mode): Reworked to support the various
+	(java-properties-generic-mode): Add an imenu-generic-expression.
+	(java-properties-generic-mode): Rework to support the various
 	different ways to separate name and value (viz, '=', ':' and
 	whitespace).
-	(show-tabs-generic-mode): Added this new generic-mode.
+	(show-tabs-generic-mode): Add this new generic-mode.
 
 1999-09-08  Richard Stallman  <rms@gnu.org>
 
@@ -3059,7 +3059,7 @@
 
 1999-09-07  Dave Pearson  <davep@hagbard.demon.co.uk>
 
-	* quickurl.el (quickurl-list-focused-line): Removed.
+	* quickurl.el (quickurl-list-focused-line): Remove.
 	(quickurl-list-insert): Now works out the focused line using
 	`count-lines' instead of using `quickurl-list-focused-line'.
 
@@ -3072,7 +3072,7 @@
 
 	* isearch.el (isearch-mode-map): Add mouse-2.
 
-	* mail/rmail.el (rmail-read-password): Deleted.
+	* mail/rmail.el (rmail-read-password): Delete.
 	(rmail-get-pop-password): Use read-password.
 
 	* quickurl.el: Don't conditionally define caddr.
@@ -3085,8 +3085,8 @@
 
 1999-09-06  Stephen Eglen  <stephen@gnu.org>
 
-	* progmodes/octave-inf.el (inferior-octave-startup-args): Add
-	--no-line-editing so that TABs in source files are not interpreted
+	* progmodes/octave-inf.el (inferior-octave-startup-args):
+	Add --no-line-editing so that TABs in source files are not interpreted
 	as completion requests.
 
 1999-09-06  Gerd Moellmann  <gerd@gnu.org>
@@ -3112,7 +3112,7 @@
 
 1999-09-06  Dave Love  <fx@gnu.org>
 
-	* emacs-lisp/byte-opt.el (byte-boolean-vars): Removed.  (Now primitive.)
+	* emacs-lisp/byte-opt.el (byte-boolean-vars): Remove.  (Now primitive.)
 
 1999-09-05  Richard Stallman  <rms@gnu.org>
 
@@ -3128,7 +3128,7 @@
 
 1999-09-05  Gerd Moellmann  <gerd@gnu.org>
 
-	* faces.el (header-line): Renamed from `top-line'.
+	* faces.el (header-line): Rename from `top-line'.
 
 1999-09-05  Gerd Moellmann  <gerd@gnu.org>
 
@@ -3183,20 +3183,20 @@
 	* startup.el (command-line): Compute the value of
 	small-temporary-file-directory.
 
-	* ediff-init.el (ediff-temp-file-prefix): Use
-	small-temporary-file-directory if non-nil.
+	* ediff-init.el (ediff-temp-file-prefix):
+	Use small-temporary-file-directory if non-nil.
 
 	* vc.el (vc-update-change-log): Likewise.
 
 	* progmodes/cmacexp.el (c-macro-expansion): Likewise.
 
-	* simple.el (shell-command, shell-command-on-region): Use
-	make-temp-name properly.  Use small-temporary-file-directory if
+	* simple.el (shell-command, shell-command-on-region):
+	Use make-temp-name properly.  Use small-temporary-file-directory if
 	non-nil, otherwise temporary-file-directory, to generate temporary
 	files.
 
-	* dos-w32.el (direct-print-region-helper): Use
-	temporary-file-directory.  (From Stefan Monnier.)
+	* dos-w32.el (direct-print-region-helper):
+	Use temporary-file-directory.  (From Stefan Monnier.)
 
 1999-09-02  Richard Stallman  <rms@gnu.org>
 
@@ -3237,8 +3237,8 @@
 	* progmodes/compile.el (compilation-error-regexp-alist):
 	New item for SGI IRIX MipsPro compilers.
 
-	* speedbar.el (speedbar-directory-buttons): Recognize
-	device names when checking for file names.
+	* speedbar.el (speedbar-directory-buttons):
+	Recognize device names when checking for file names.
 
 	* array.el (array-reconfigure-rows): Use generate-new-buffer.
 
@@ -3271,8 +3271,8 @@
 	* comint.el (comint-input-ring-separator): New variable.
 	(comint-read-input-ring): Doc change; use
 	comint-input-ring-separator when reading file.
-	(comint-write-input-ring): Use
-	comint-input-ring-separator when writing file.
+	(comint-write-input-ring):
+	Use comint-input-ring-separator when writing file.
 
 1999-08-29  Marc Girod  <girod@shire.ntc.nokia.com>
 
@@ -3306,8 +3306,8 @@
 
 	* calendar/cal-move.el: Call the new hook in every movement function.
 
-	* calendar/calendar.el (calendar-goto-astro-day-number): Autoload
-	the right function name.
+	* calendar/calendar.el (calendar-goto-astro-day-number):
+	Autoload the right function name.
 
 1999-08-26  Stephen Gildea  <gildea@stop.mail-abuse.org>
 
@@ -3316,7 +3316,7 @@
 	(time-stamp): Support multi-line patterns.
 	(time-stamp-inserts-lines): New variable.
 	(time-stamp-count): New variable.
-	(time-stamp-string-preprocess): Fixed bug where "%%a" becomes
+	(time-stamp-string-preprocess): Fix bug where "%%a" becomes
 	"Thu" instead of "%a".
 
 1999-08-25  Gerd Moellmann  <gerd@gnu.org>
@@ -3338,7 +3338,7 @@
 
 1999-08-24  Gerd Moellmann  <gerd@gnu.org>
 
-	* faces.el (margin): Renamed from bitmap-area.
+	* faces.el (margin): Rename from bitmap-area.
 
 1999-08-24  Alex Schroeder  <alex@gnu.org>
 
@@ -3423,8 +3423,8 @@
 
 1999-08-16  Karl Heuer  <kwzh@gnu.org>
 
-	* subr.el (assoc-ignore-case, assoc-ignore-representation): Moved
-	here from simple.el.
+	* subr.el (assoc-ignore-case, assoc-ignore-representation):
+	Move here from simple.el.
 
 1999-08-16  Dave Love  <fx@gnu.org>
 
@@ -3461,17 +3461,17 @@
 
 1999-08-16  Carsten Dominik  <cd@gnu.org>
 
-	* textmodes/reftex.el (reftex-pop-to-bibtex-entry): Fixed
-	conflict with pop-up-frames.
+	* textmodes/reftex.el (reftex-pop-to-bibtex-entry):
+	Fix conflict with pop-up-frames.
 	(reftex-special-environment-parsers): New constant.
 	(reftex-label-alist): car of an entry can also be a function.
 	(reftex-what-special-env): Cew function.
 	(reftex-label-location): Call `reftex-what-special-env'.
 	(reftex-compile-variables): Check for symbol in `reftex-label-alist'.
-	(reftex-what-environment): Fixed bug with stacked environments of
+	(reftex-what-environment): Fix bug with stacked environments of
 	same kind (e.g. enumerate).
 	(reftex-process-string): Preserve default directory.
-	(reftex-label-alist-builtin): Changed prefixes of endnote and footnote.
+	(reftex-label-alist-builtin): Change prefixes of endnote and footnote.
 	Also the magic words.
 	(reftex-reference): Interpret new option `reftex-fref-is-default'.
 	(reftex-replace-prefix-escapes): Interpret new `%S' format.
@@ -3486,7 +3486,7 @@
 	boundaries has been moved to `F'.
 	(reftex-select-label-map): Toggling display of file boundaries is
 	now on the `F' key, for consistency with `reftex-toc-map'.
-	(reftex-erase-all-selection-and-index-buffers): Renamed from
+	(reftex-erase-all-selection-and-index-buffers): Rename from
 	`reftex-erase-all-selection-buffer'.  Now also kills the index
 	buffers.
 	(reftex-viewing-cross-references): Customization group renamed
@@ -3604,7 +3604,7 @@
 	be the same size when necessary to fit all the rings in the
 	window; and poles can be oriented horizontally.  Face support is
 	thrown in gratuitously.
-	(hanoi): Changed default number of rings back to 3.
+	(hanoi): Change default number of rings back to 3.
 	(hanoi-unix, hanoi-unix-64): New commands.
 	(hanoi-horizontal-flag, hanoi-move-period, hanoi-use-faces)
 	(hanoi-pole-face, hanoi-base-face, hanoi-even-ring-face)
@@ -3612,15 +3612,15 @@
 	(hanoi-internal, hanoi-current-time-float, hanoi-put-face)
 	(hanoi-n, hanoi-insert-ring, hanoi-goto-char, hanoi-sit-for)
 	(hanoi-ring-to-pos, hanoi-pos-on-tower-p): New functions.
-	(hanoi-0): Renamed from hanoi0, for symmetry with hanoi-n.
-	(hanoi-topos, hanoi-draw-ring): Removed.
+	(hanoi-0): Rename from hanoi0, for symmetry with hanoi-n.
+	(hanoi-topos, hanoi-draw-ring): Remove.
 
 1999-08-12  Gerd Moellmann  <gerd@gnu.org>
 
 	* faces.el (face-valid-attribute-values): Return an alist for
 	families on ttys.
-	(face-read-integer): Handle unspecified face attributes.  Add
-	completion for `unspecified'.
+	(face-read-integer): Handle unspecified face attributes.
+	Add completion for `unspecified'.
 	(read-face-attribute): Handle unspecified font attributes.
 	(face-valid-attribute-values): Add `unspecified' to lists so that
 	it can be chosen via completion.
@@ -3658,7 +3658,7 @@
 	(easy-menu-change): Doc fix.
 
 	* info-look.el (info-lookup-guess-c-symbol): Use skip-syntax-backward.
-	(info-lookup-guess-default): Simplified and cleaned up.
+	(info-lookup-guess-default): Simplify and cleaned up.
 	(info-lookup-guess-default*): Preserve point.
 
 	* view.el (view-mode-disable): If buffer-read-only is nil,
@@ -3678,13 +3678,13 @@
 
 1999-08-10  Alex Schroeder  <asc@bsiag.com>
 
-	* ansi-color.el (ansi-color-to-text-properties): Added New state 5
+	* ansi-color.el (ansi-color-to-text-properties): Add New state 5
 	to prevent m-eating-bug.
 
 1999-08-10  Eli Zaretskii  <eliz@gnu.org>
 
-	* term/pc-win.el (msdos-bg-mode): Remove.  Call
-	frame-set-background-mode instead.  All callers changed.
+	* term/pc-win.el (msdos-bg-mode): Remove.
+	Call frame-set-background-mode instead.  All callers changed.
 	(msdos-face-setup): Don't force color display parameter, it is set
 	by frame-set-background-mode.
 	(make-msdos-frame): Call x-handle-reverse-video and
@@ -3695,8 +3695,8 @@
 
 1999-08-10  Dave Love  <fx@melange.gnu.org>
 
-	* emacs-lisp/advice.el (ad-make-single-advice-docstring): Treat
-	case with no docstring specially.
+	* emacs-lisp/advice.el (ad-make-single-advice-docstring):
+	Treat case with no docstring specially.
 
 1999-08-09  Eli Zaretskii  <eliz@gnu.org>
 
@@ -3705,8 +3705,8 @@
 
 1999-08-07  Dave Love  <fx@gnu.org>
 
-	* man.el (Man-softhyphen-to-minus): Revert previous change.  Avoid
-	unibyte to multibyte conversion of search-forward (from Handa),
+	* man.el (Man-softhyphen-to-minus): Revert previous change.
+	Avoid unibyte to multibyte conversion of search-forward (from Handa),
 	but avoid the replacement if the language is Latin-N.
 
 1999-08-06  Richard Stallman  <rms@gnu.org>
@@ -3811,14 +3811,14 @@
 	(apply-on-rectangle): New function, mostly replaces
 	`operate-on-rectangle'.  All callers changed.
 	(move-to-column-force): Pass new second argument to `move-to-column'.
-	(kill-rectangle): Added optional prefix arg to fill lines.
+	(kill-rectangle): Add optional prefix arg to fill lines.
 	(delete-rectangle): Ditto.
 	(delete-whitespace-rectangle): Ditto.
 	(delete-extract-rectangle): Ditto.
 	(open-rectangle): Ditto.
 	(clear-rectangle): Ditto.
 	(delete-whitespace-rectangle-line): New function.
-	(delete-rectangle-line): Added third arg FILL.
+	(delete-rectangle-line): Add third arg FILL.
 	(delete-extract-rectangle-line): Ditto.
 	(open-rectangle-line): Ditto.
 	(clear-rectangle-line): Ditto.
@@ -3876,7 +3876,7 @@
 	frame-delete-all.
 
 	* frame.el: Change comments to doc strings and other doc fixes.
-	(frame-delete-all): Moved to subr.el as `assoc-delete-all'.
+	(frame-delete-all): Move to subr.el as `assoc-delete-all'.
 	Callers changed.
 	(set-background-color, set-foreground-color, set-cursor-color)
 	(set-mouse-color, set-border-color): Offer completion of colors.
@@ -3948,7 +3948,7 @@
 	* mouse.el (x-fixed-font-alist): Add lucidasanstypewriter.
 
 	* msb.el: Require cl only when compiling.
-	(msb--home-dir): Deleted.
+	(msb--home-dir): Delete.
 	(msb--format-title): Use abbreviate-file-name.
 	(msb--choose-file-menu): Simplify string comparison.
 
@@ -3980,7 +3980,7 @@
 1999-07-26  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/ccl.el (ccl-embed-symbol): New function.
-	(ccl-program-p): Deleted.  Now it's implemented in C code.
+	(ccl-program-p): Delete.  Now it's implemented in C code.
 	(ccl-compile-call): Use ccl-embed-symbol to embed a symbol.
 	(ccl-compile-translate-character): Likewise.
 	(ccl-compile-map-single): Likewise.
@@ -4021,19 +4021,19 @@
 
 	* fortran.el (fortran-mode-syntax-table): Change `\' to `\'
 	syntax.
-	(fortran-fontify-string, fortran-match-!-comment): Deleted.
+	(fortran-fontify-string, fortran-match-!-comment): Delete.
 	(fortran-font-lock-syntactic-keywords): New variable.
 	(fortran-mode): Use it.
 	(fortran-font-lock-keywords-1): Don't do comments.
-	(beginning-of-fortran-subprogram, end-of-fortran-subprogram): Save
-	match data.
+	(beginning-of-fortran-subprogram, end-of-fortran-subprogram):
+	Save match data.
 
 	* textmodes/sgml-mode.el (sgml-validate-command): Use nsgmls.
 
-	* msb.el (msb-menu-bar-update-buffers): Renamed from
+	* msb.el (msb-menu-bar-update-buffers): Rename from
 	menu-bar-update-buffers.
-	(msb-custom-set, msb--toggle-menu-type): Call
-	msb-menu-bar-update-buffers.
+	(msb-custom-set, msb--toggle-menu-type):
+	Call msb-menu-bar-update-buffers.
 	(msb-mode): Revise the hook setting.
 
 	* font-lock.el (turn-on-font-lock): Use tty-display-color-p.
@@ -4079,9 +4079,9 @@
 
 1999-07-21  Gerd Moellmann  <gerd@gnu.org>
 
-	* cl-extra.el (cl-make-hash-table): Renamed from make-hash-table.
-	(cl-hash-table-p): Renamed from hash-table-p.
-	(cl-hash-table-count): Renamed from hash-table-count.
+	* cl-extra.el (cl-make-hash-table): Rename from make-hash-table.
+	(cl-hash-table-p): Rename from hash-table-p.
+	(cl-hash-table-count): Rename from hash-table-count.
 	(maphash): Alias to cl-maphash removed.
 	(gethash): Likewise.
 	(puthash): Likewise.
@@ -4148,7 +4148,7 @@
 
 1999-07-21  Gerd Moellmann  <gerd@gnu.org>
 
-	* faces.el (face-underline): Removed.
+	* faces.el (face-underline): Remove.
 	(face-underline-color): Ditto.
 
 1999-07-21  Gerd Moellmann  <gerd@gnu.org>
@@ -4319,10 +4319,10 @@
 
 	* bindings.el (make-mode-line-mouse-sensitive): Use down-mouse-3
 	instead of mouse-3 to pop up menus.
-	(mode-line-kill-buffer): Removed.
+	(mode-line-kill-buffer): Remove.
 	(make-mode-line-mouse-sensitive): Pop mouse buffer menu over
 	buffer name.
-	(mode-line-buffer-menu-1): Removed.
+	(mode-line-buffer-menu-1): Remove.
 
 	* startup.el (command-line-1): Call make-mode-line-mouse-sensitive.
 
@@ -4405,7 +4405,7 @@
 
 1999-07-21  Gerd Moellmann  <gerd@gnu.org>
 
-	* faces.el (frame-update-faces): Copied from 20.2.
+	* faces.el (frame-update-faces): Copy from 20.2.
 	(frame-update-face-colors): Ditto.  Code removed that isn't
 	applicable in the new face implementation.
 
@@ -4424,12 +4424,12 @@
 
 1999-07-21  Gerd Moellmann  <gerd@gnu.org>
 
-	* faces.el (face-charset-registries): Removed since fontset.el
+	* faces.el (face-charset-registries): Remove since fontset.el
 	is no always loaded.
 
 1999-07-21  Gerd Moellmann  <gerd@gnu.org>
 
-	* faces.el (internal-get-face): Added as obsolete function for
+	* faces.el (internal-get-face): Add as obsolete function for
 	compatibility.
 
 1999-07-21  Gerd Moellmann  <gerd@gnu.org>
@@ -4458,7 +4458,7 @@
 
 	* faces.el (face-id): Return the ID of a realized face for ASCII.
 
-	* fontset.el (x-charset-registries): Removed.  Now in faces.el.
+	* fontset.el (x-charset-registries): Remove.  Now in faces.el.
 	(x-complement-fontset-spec): Use face-charset-registries.
 
 	* faces.el (face-font-selection-order): Set font selection order
@@ -4486,14 +4486,14 @@
 	* cus-face.el (custom-face-attributes): Add :bold and :italic
 	for compatibility with old code.
 
-	* faces.el (set-face-attributes-from-resources): Additional
-	frame parameter.
+	* faces.el (set-face-attributes-from-resources):
+	Additional frame parameter.
 	(make-face-x-resource-internal): Set attributes from resources
 	for a given frame or all frames.
 
 1999-07-21  Gerd Moellmann  <gerd@gnu.org>
 
-	* faces.el (all-faces): Removed.
+	* faces.el (all-faces): Remove.
 
 	* custom.el (defface): Add new face attributes to function
 	comment.
@@ -4512,8 +4512,8 @@
 
 	* cus-face.el (custom-face-attributes): Use new face attributes.
 
-	* faces.el (set-face-attribute-from-resource): Initialize
-	from resources only for X and W32.
+	* faces.el (set-face-attribute-from-resource):
+	Initialize from resources only for X and W32.
 
 	* cus-face.el (custom-declare-face): Don't make frame-local
 	faces.
@@ -4599,8 +4599,8 @@
 	* faces.el (eval-when-compile): Add set-face-shadow-thickness.
 	(internal-facep): Increase vector size.
 	(make-face): Ditto.
-	(face-shadow-thickness): Added.
-	(set-face-shadow-thickness): Added.
+	(face-shadow-thickness): Add.
+	(set-face-shadow-thickness): Add.
 	(modify-face): Add optional shadow-thickness parameter.
 	(make-face-x-resource-internal): Add shadows.
 	(copy-face): Ditto.
@@ -4646,8 +4646,8 @@
 	* fill.el (canonically-space-region, justify-current-line): Add *
 	to interactive spec.
 	(fill-region-as-paragraph, fill-paragraph, fill-region)
-	(fill-nonuniform-paragraphs, fill-individual-paragraphs): Check
-	readonly buffer in interactive spec.
+	(fill-nonuniform-paragraphs, fill-individual-paragraphs):
+	Check readonly buffer in interactive spec.
 
 	* paragraphs.el (kill-paragraph, backward-kill-paragraph)
 	(backward-kill-sentence, kill-sentence): Add * to interactive spec.
@@ -4662,7 +4662,7 @@
 
 1999-07-19  John Wiegley  <jwiegley@borland.com>
 
-	* term.el (ansi-term-fg-faces-vector): Added support for ANSI
+	* term.el (ansi-term-fg-faces-vector): Add support for ANSI
 	color codes 39 and 49, which by the way lynx uses them seem to
 	mean "foreground reset" and "background reset".
 
@@ -4727,7 +4727,7 @@
 
 1999-07-08  Espen Skoglund  <espensk@stud.cs.uit.no>
 
-	* pascal.el (pascal-calculate-indent): Fixed a bug occurring when
+	* pascal.el (pascal-calculate-indent): Fix a bug occurring when
 	the `end' keyword was in the very beginning of the buffer.
 
 1999-07-08  Richard Stallman  <rms@gnu.org>
@@ -4759,8 +4759,8 @@
 
 	* isearch.el (isearch-process-search-char): Write octal 200 correctly.
 
-	* startup.el (normal-top-level-add-subdirs-to-load-path): Avoid
-	doing a `stat' when it isn't necessary because that can cause
+	* startup.el (normal-top-level-add-subdirs-to-load-path):
+	Avoid doing a `stat' when it isn't necessary because that can cause
 	trouble when an NFS server is down.
 
 1999-07-04  Richard Stallman  <rms@gnu.org>
@@ -4869,8 +4869,8 @@
 
 1999-06-18  Andrew Innes  <andrewi@gnu.org>
 
-	* mail/smtpmail.el (smtpmail-send-it): Use
-	convert-standard-filename to make file names for queued mail safe
+	* mail/smtpmail.el (smtpmail-send-it):
+	Use convert-standard-filename to make file names for queued mail safe
 	on Windows (`:' is invalid in file names on Windows).
 
 1999-06-17  Kenichi Handa  <handa@etl.go.jp>
@@ -4911,8 +4911,8 @@
 
 1999-06-15  Markus Rost  <markus.rost@mathematik.uni-regensburg.de>
 
-	* mail/rmailsum.el (rmail-summary-output-to-rmail-file): Avoid
-	multiple output of the last message.
+	* mail/rmailsum.el (rmail-summary-output-to-rmail-file):
+	Avoid multiple output of the last message.
 
 1999-06-14  Eli Zaretskii  <eliz@gnu.org>
 
@@ -4977,8 +4977,8 @@
 
 1999-06-09  Dave Love  <fx@gnu.org>
 
-	* progmodes/compile.el (compilation-error-regexp-alist): Allow
-	digits in program name in first pattern.
+	* progmodes/compile.el (compilation-error-regexp-alist):
+	Allow digits in program name in first pattern.
 
 1999-06-09  Andre Spiegel  <spiegel@inf.fu-berlin.de>
 
@@ -4992,8 +4992,8 @@
 
 1999-06-05  Stephen Eglen  <stephen@gnu.org>
 
-	* iswitchb.el (iswitchb-default-keybindings): Add
-	iswitchb-minibuffer-setup to minibuffer-setup-hook here rather
+	* iswitchb.el (iswitchb-default-keybindings):
+	Add iswitchb-minibuffer-setup to minibuffer-setup-hook here rather
 	than when package is loaded.
 
 1999-06-04  Richard M. Stallman  <rms@gnu.org>
@@ -5033,7 +5033,7 @@
 
 1999-06-04  Eric M. Ludlam  <zappo@ultranet.com>
 
-	* speedbar.el (speedbar-hack-buffer-menu): Fixed so if the user
+	* speedbar.el (speedbar-hack-buffer-menu): Fix so if the user
 	does not select a buffer from the buffers menu, then the attached
 	frame is not switched to anything.
 
@@ -5128,8 +5128,8 @@
 
 1999-05-25  Ken'ichi Handa  <handa@gnu.org>
 
-	* mail/smtpmail.el (smtpmail-send-it): Bind
-	smtpmail-code-conv-from properly.
+	* mail/smtpmail.el (smtpmail-send-it):
+	Bind smtpmail-code-conv-from properly.
 	(smtpmail-send-data-1): If DATA is a multibyte string, encode it
 	by smtpmail-code-conv-from.
 
@@ -5238,13 +5238,13 @@
 
 1995-05-11  Joel N. Weber II  <devnull@melange.gnu.org>
 
-	* comint.el (comint-password-prompt-regexp): Modified to match the
+	* comint.el (comint-password-prompt-regexp): Modify to match the
 	output of ksu and ssh-add.
 
 1999-05-11  Kenichi HANDA  <handa@etl.go.jp>
 
 	* language/korea-util.el (isearch-toggle-korean-input-method):
-	Adjusted for the change of input method handling in isearch.el.
+	Adjust for the change of input method handling in isearch.el.
 	(isearch-hangul-switch-symbol-ksc): Likewise.
 	(isearch-hangul-switch-hanja): Likewise.
 
@@ -5266,8 +5266,8 @@
 
 1999-05-09  Ken'ichi Handa  <handa@gnu.org>
 
-	* ps-print.el (ps-control-character): Call
-	ps-mule-prepare-ascii-font to setup ASCII fonts.
+	* ps-print.el (ps-control-character):
+	Call ps-mule-prepare-ascii-font to setup ASCII fonts.
 
 	* ps-mule.el (ps-mule-begin-job): Redo this change "if
 	ps-multibyte-buffer is nil, use
@@ -5278,16 +5278,16 @@
 	* ispell.el (ispell-local-dictionary-alist): New variable for
 	customizing local dictionaries not accessible by everyone.
 	(ispell-dictionary-alist): Loads `ispell-local-dictionary-alist'.
-	(ispell-required-version): Changed format `(major minor
+	(ispell-required-version): Change format `(major minor
 	revision)' to support general pattern matching.
 	(ispell-tex-skip-alists): AMS Tex block comment and `\author'
 	skip region commented out due to incorrect skip potential in std latex.
-	(ispell-word): Removed `when' macro.  Fixed bug of not restoring
+	(ispell-word): Remove `when' macro.  Fixed bug of not restoring
 	cursor point on small words for calls from `ispell-minor-mode'.
 	(check-ispell-version): Tests and accepts versions major.minor
 	and above, with adjustments for interactions in 3.1.0-3.1.11.
 	(ispell-get-line): No longer skips ispell process special characters.
-	(ispell-comments-and-strings): Removed `when' macro call.
+	(ispell-comments-and-strings): Remove `when' macro call.
 	(ispell-minor-check): Requires ispell-word to restore cursor point.
 	(ispell-buffer-local-parsing): Supports checking comments only.
 
@@ -5308,7 +5308,7 @@
 
 1999-05-07  Joel N. Weber II  <devnull@melange.gnu.org>
 
-	* comint.el (comint-password-prompt-regexp): Modified so that it
+	* comint.el (comint-password-prompt-regexp): Modify so that it
 	matches the output of kinit.
 
 1999-05-06  Greg Stark  <gsstark@mit.edu>
@@ -5450,8 +5450,8 @@
 
 1999-04-26  John Wiegley  <johnw@borland.com>
 
-	* progmodes/compile.el (compilation-error-regexp-alist): Recognize
-	C++Builder 4.0 error message syntax.
+	* progmodes/compile.el (compilation-error-regexp-alist):
+	Recognize C++Builder 4.0 error message syntax.
 
 1999-04-26  Mark Diekhans  <markd@Grizzly.COM>
 
@@ -5460,8 +5460,8 @@
 
 1999-04-26  Yoshiki Hayashi  <g740685@komaba.ecc.u-tokyo.ac.jp>
 
-	* textmodes/texinfmt.el (texinfo-format-buffer): Bind
-	coding-system-for-write, to avoid hanging when non-interactive.
+	* textmodes/texinfmt.el (texinfo-format-buffer):
+	Bind coding-system-for-write, to avoid hanging when non-interactive.
 
 1999-04-26  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
@@ -5666,12 +5666,12 @@
 
 1999-03-25  Andrew Innes  <andrewi@gnu.org>
 
-	* w32-fns.el (set-default-process-coding-system): Copied from
+	* w32-fns.el (set-default-process-coding-system): Copy from
 	dos-w32.el, but modified to use Unix line endings for process
 	input, and to add a suitable entry to process-coding-system-alist
 	for DOS shells.
 
-	* dos-fns.el (set-default-process-coding-system): Copied from
+	* dos-fns.el (set-default-process-coding-system): Copy from
 	dos-w32.el.
 
 	* dos-w32.el (set-default-process-coding-system): Move function to
@@ -5712,8 +5712,8 @@
 
 1999-03-18  Simon Marshall  <simon@gnu.org>
 
-	* font-lock.el (c-font-lock-keywords-2): Added "complex" type.
-	(java-font-lock-keywords-2): Added "strictfp" keyword.
+	* font-lock.el (c-font-lock-keywords-2): Add "complex" type.
+	(java-font-lock-keywords-2): Add "strictfp" keyword.
 
 1999-03-17  Jason Rumney  <jasonr@altavista.net>
 
@@ -5722,8 +5722,8 @@
 
 1999-03-17  Eli Zaretskii  <eliz@gnu.org>
 
-	* international/mule-cmds.el (set-language-environment): Fix
-	previous change: don't use dos-codepage when unbound.
+	* international/mule-cmds.el (set-language-environment):
+	Fix previous change: don't use dos-codepage when unbound.
 
 1999-03-17  Karl Heuer  <kwzh@gnu.org>
 
@@ -5747,7 +5747,7 @@
 
 1999-03-15  Simon Marshall  <simon@gnu.org>
 
-	* font-lock.el (c-font-lock-keywords-2): Added "restrict" keyword.
+	* font-lock.el (c-font-lock-keywords-2): Add "restrict" keyword.
 
 1999-03-14  Milan Zamazal  <pdm@pvt.net>
 
@@ -5777,7 +5777,7 @@
 	* speedbar.el: Added commentary about stealthy functions.
 	(speedbar-message): New function.
 	(speedbar-y-or-n-p): New function.
-	(speedbar-with-attached-buffer): Moved macro before reference.
+	(speedbar-with-attached-buffer): Move macro before reference.
 	Now uses `save-selected-window'.
 	(speedbar-mouse-hscroll, speedbar-track-mouse, speedbar-refresh)
 	(speedbar-generic-item-info, speedbar-item-info-file-helper)
@@ -5820,8 +5820,8 @@
 
 1999-03-09  Dave Love  <fx@gnu.org>
 
-	* textmodes/sgml-mode.el (html-mode): Use
-	sentence-end-double-space when setting sentence-end.
+	* textmodes/sgml-mode.el (html-mode):
+	Use sentence-end-double-space when setting sentence-end.
 
 1999-03-09  Ken'ichi Handa  <handa@gnu.org>
 
@@ -5864,8 +5864,8 @@
 
 1999-03-06  Dave Love  <fx@gnu.org>
 
-	* progmodes/cc-cmds.el (c-outline-level): Bind
-	buffer-invisibility-spec.
+	* progmodes/cc-cmds.el (c-outline-level):
+	Bind buffer-invisibility-spec.
 
 	* progmodes/c-mode.el (c-outline-level): Likewise.
 
@@ -5905,8 +5905,8 @@
 1999-03-03  Dave Love  <fx@gnu.org>
 
 	* options.el (edit-options): Doc fix.
-	(list-options): Don't lose with unbound symbols.  Maintain
-	Edit-options-mode.
+	(list-options): Don't lose with unbound symbols.
+	Maintain Edit-options-mode.
 
 1999-03-01  Dave Love  <fx@gnu.org>
 
@@ -5918,7 +5918,7 @@
 	(ispell-dictionary-alist): Don't setq it,
 	if ispell-dictionary-alist-override is set.
 
-	* simple.el (shell-command-default-error-buffer): Renamed from
+	* simple.el (shell-command-default-error-buffer): Rename from
 	shell-command-on-region-default-error-buffer.
 	(shell-command-on-region): Mention in echo area when there
 	is some error output.  Mention success or failure, too.
@@ -5964,8 +5964,8 @@
 	(ps-font-size, ps-header-font-size, ps-header-title-font-size):
 	Specifies landscape and portrait sizes.
 	(ps-setup, ps-print-quote, ps-line-lengths-internal, ps-nb-pages)
-	(ps-get-page-dimensions, ps-begin-file, ps-begin-job, ps-generate): Fun
-	fix.
+	(ps-get-page-dimensions, ps-begin-file, ps-begin-job, ps-generate):
+	Fun fix.
 	(ps-get-font-size): New fun.
 	(ps-font-size-internal, ps-header-font-size-internal)
 	(ps-header-title-font-size-internal): New vars.
@@ -6009,8 +6009,8 @@
 
 1999-02-23  Ken'ichi Handa  <handa@gnu.org>
 
-	* international/encoded-kb.el (encoded-kbd-handle-8bit): Allow
-	inputting ?\240.
+	* international/encoded-kb.el (encoded-kbd-handle-8bit):
+	Allow inputting ?\240.
 
 1999-02-23  Karl Heuer  <kwzh@gnu.org>
 
@@ -6027,8 +6027,8 @@
 
 1999-02-22  Eli Zaretskii  <eliz@gnu.org>
 
-	* arc-mode.el (archive-set-buffer-as-visiting-file): Save
-	excursion while calling set-auto-coding-function.
+	* arc-mode.el (archive-set-buffer-as-visiting-file):
+	Save excursion while calling set-auto-coding-function.
 
 	* play/handwrite.el (handwrite): Require ps-print, and use
 	ps-printer-name and ps-lpr-command.  Call ps-print-region-function
@@ -6036,8 +6036,8 @@
 
 1999-02-22  Kenichi Handa  <handa@etl.go.jp>
 
-	* international/codepage.el (cp-coding-system-for-codepage-1): Put
-	charset-origin-alist property to a coding system for the codepage.
+	* international/codepage.el (cp-coding-system-for-codepage-1):
+	Put charset-origin-alist property to a coding system for the codepage.
 
 	* international/mule.el: Modify comment for charset-origin-alist
 	property of a coding system.
@@ -6053,7 +6053,7 @@
 
 1999-02-21  Peter Breton  <pbreton@ne.mediaone.net>
 
-	* dirtrack.el (dirtrack): Added docstring.  Now returns input.
+	* dirtrack.el (dirtrack): Add docstring.  Now returns input.
 
 1999-02-18  Peter Breton  <pbreton@ne.mediaone.net>
 
@@ -6090,7 +6090,7 @@
 	(sql-stop): Use sql-input-ring-separator and sql-input-ring-file-name.
 	(sql-input-ring-file-name): New variable with customization.
 	(sql-input-ring-separator): New variable with customization.
-	(sql-set-sqli-buffer): Renamed from sql-change-sqli-buffer.
+	(sql-set-sqli-buffer): Rename from sql-change-sqli-buffer.
 	Callers changed.
 	(sql-show-sqli-buffer): The message for "sql-buffer is not set"
 	now includes the name of the current buffer.
@@ -6106,7 +6106,7 @@
 
 1999-02-18  Ken'ichi Handa  <handa@gnu.org>
 
-	* international/mule.el (coding-system-list): Moved here from
+	* international/mule.el (coding-system-list): Move here from
 	mule-util.el to avoid autoloading mule-util by the call of
 	select-safe-coding-system.
 
@@ -6122,12 +6122,12 @@
 
 1999-02-17  Peter Breton  <pbreton@ne.mediaone.net>
 
-	* filecache.el (file-cache-filter-regexps): Added .class.
+	* filecache.el (file-cache-filter-regexps): Add .class.
 
 1999-02-17  Ken'ichi Handa  <handa@gnu.org>
 
-	* international/mule-util.el (decompose-region): Use
-	insert-buffer-substring instead of insert-buffer to avoid putting
+	* international/mule-util.el (decompose-region):
+	Use insert-buffer-substring instead of insert-buffer to avoid putting
 	mark.
 
 1999-02-17  Andreas Schwab  <schwab@gnu.org>
@@ -6179,8 +6179,8 @@
 
 1999-02-16  Ken'ichi Handa  <handa@gnu.org>
 
-	* language/japanese.el (japanese-shift-jis): Add
-	charset-origin-alist property.
+	* language/japanese.el (japanese-shift-jis):
+	Add charset-origin-alist property.
 
 1999-02-15  Richard Stallman  <rms@gnu.org>
 
@@ -6209,10 +6209,10 @@
 1999-02-14  Richard Stallman  <rms@gnu.org>
 
 	* international/iso-transl.el:
-	(iso-transl-ae): Renamed from iso-transl-e-slash.
-	(iso-transl-a-ring): Renamed from iso-transl-a-slash.
-	(iso-transl-AE): Renamed from iso-transl-E-slash.
-	(iso-transl-A-ring): Renamed from iso-transl-A-slash.
+	(iso-transl-ae): Rename from iso-transl-e-slash.
+	(iso-transl-a-ring): Rename from iso-transl-a-slash.
+	(iso-transl-AE): Rename from iso-transl-E-slash.
+	(iso-transl-A-ring): Rename from iso-transl-A-slash.
 	(iso-transl-char-map): Related changes.
 
 	* format.el (format-replace-strings): Fix value of TO in REVERSE case.
@@ -6229,7 +6229,7 @@
 1999-02-12  Alex Schroeder  <a.schroeder@bsiag.ch>
 
 	* sql.el: Set version to 1.3.2.
-	(sql-solid-program): Added support for solid.
+	(sql-solid-program): Add support for solid.
 	(sql-help): Doc mentions sql-solid.
 	(sql-solid): Entry function for Solid.
 	(sql-buffer): Doc explains the use of the variable and how to
@@ -6243,16 +6243,16 @@
 	(sql-change-sqli-buffer): New function to change sql-buffer.
 	(sql-mode): Doc explains how to change sql-buffer.
 	(sql-send-paragraph): New function to send a paragraph.
-	(sql-mode-map): Added keybinding for sql-send-paragraph.
+	(sql-mode-map): Add keybinding for sql-send-paragraph.
 	(sql-mysql): Doc corrected.
 	(sql-ms): Doc corrected.
 
 	* sql.el (sql-server): Doc fix.
-	(sql-mysql): Added the use of sql-server to specify the host,
+	(sql-mysql): Add the use of sql-server to specify the host,
 	sql-database now specifies database instead of host.
 	(sql-mode-menu): Send... menu items are only active if sql-buffer
 	is non-nil.
-	(sql-help): Changed tag of entry functions a bit.
+	(sql-help): Change tag of entry functions a bit.
 
 	* sql.el: Added keywords from `finder-by-keyword'.
 	(sql-mode): Made sql-buffer a local variable, changed the
@@ -6267,10 +6267,10 @@
 	sql-user and sql-password used during login.
 	(sql-sybase): Quoted *SQL* in doc string, added comma.
 	(sql-oracle): Likewise.
-	(sql-interactive-mode): Added extensive documentation for having
+	(sql-interactive-mode): Add extensive documentation for having
 	multiple SQL buffers sending their stuff to different SQLi
 	buffers, each running a different process.
-	(sql-buffer): Changed doc from *SQL* to SQLi.
+	(sql-buffer): Change doc from *SQL* to SQLi.
 	(sql-get-login): Doc fix.
 
 1999-02-12  Ken'ichi Handa  <handa@gnu.org>
@@ -6301,8 +6301,8 @@
 
 1999-02-12  Ken'ichi Handa  <handa@gnu.org>
 
-	* international/quail.el (quail-show-kbd-layout): Bind
-	blink-matching-paren to nil.
+	* international/quail.el (quail-show-kbd-layout):
+	Bind blink-matching-paren to nil.
 
 	* ps-mule.el (ps-mule-font-info-database-bdf): Fix ENCODING field
 	for ASCII and Latin-1.
@@ -6313,8 +6313,8 @@
 
 1999-02-12  Kenichi Handa  <handa@etl.go.jp>
 
-	* international/mule-cmds.el (language-info-alist): Remove
-	description about charset-origin-alist.
+	* international/mule-cmds.el (language-info-alist):
+	Remove description about charset-origin-alist.
 
 	* international/mule.el: Comment added for a new coding system
 	property `charset-origin-alist'.
@@ -6330,8 +6330,8 @@
 	("Cyrillic-KOI8"): Remove charset-origin-alist property.
 	("Cyrillic-ALT"): Likewise.
 
-	* language/vietnamese.el (vietnamese-viqr): Add
-	charset-origin-alist property.
+	* language/vietnamese.el (vietnamese-viqr):
+	Add charset-origin-alist property.
 	("Vietnamese"): Remove charset-origin-alist property.
 
 	* simple.el (what-cursor-position): Don't use the variable
@@ -6371,8 +6371,8 @@
 
 1999-02-08  Eli Zaretskii  <eliz@gnu.org>
 
-	* international/codepage.el (cp-coding-system-for-codepage-1): On
-	MS-DOS, use dos-unsupported-char-glyph for characters not
+	* international/codepage.el (cp-coding-system-for-codepage-1):
+	On MS-DOS, use dos-unsupported-char-glyph for characters not
 	supported by the codepage.
 	(cp-make-coding-systems-for-codepage): Likewise.
 
@@ -6381,7 +6381,7 @@
 	* international/mule-util.el (coding-system-list): Don't sort
 	coding-system-list here.
 
-	* international/mule.el (coding-system-lessp): Moved here from
+	* international/mule.el (coding-system-lessp): Move here from
 	mule-util.el.
 	(add-to-coding-system-list): New function.
 	(make-subsidiary-coding-system, make-coding-system)
@@ -6427,18 +6427,18 @@
 1999-02-05  Alex Schroeder  <asc@bsiag.com>
 
 	* progmodes/sql.el: Changed version to 1.2.1.
-	(sql-pop-to-buffer-after-send-region): Improved documentation.
-	(sql-mysql-program): Added MySQL support.
+	(sql-pop-to-buffer-after-send-region): Improve documentation.
+	(sql-mysql-program): Add MySQL support.
 	(sql-prompt-length): Made prompt-length configurable.
 	(sql-mode-syntax-table): Made apostrophe (') be a string delimiter.
-	(sql-help): Added MySQL support, changed documentation.
+	(sql-help): Add MySQL support, changed documentation.
 	(sql-send-region): A message is displayed if something is sent.
-	(sql-mode): Added buffer-local comment-start.
+	(sql-mode): Add buffer-local comment-start.
 	(sql-interactive-mode): Use sql-prompt-length to set left-margin.
-	(sql-interactive-mode): Added buffer-local comment-start.
+	(sql-interactive-mode): Add buffer-local comment-start.
 	(sql-oracle): Set sql-prompt-length.
 	(sql-sybase): Set sql-prompt-length.
-	(sql-mysql): Added MySQL support.
+	(sql-mysql): Add MySQL support.
 	(sql-ingres): Set sql-prompt-length.
 	(sql-ms): Set sql-prompt-length.
 	(sql-postgres): Set sql-prompt-length.
@@ -6495,8 +6495,8 @@
 
 1999-02-01  Ken'ichi Handa  <handa@gnu.org>
 
-	* international/mule-util.el (compose-chars-component): Add
-	autoload cookie.
+	* international/mule-util.el (compose-chars-component):
+	Add autoload cookie.
 
 1999-01-31  Ken'ichi Handa  <handa@gnu.org>
 
@@ -6506,8 +6506,8 @@
 
 1999-01-31  Markus Rost  <markus.rost@mathematik.uni-regensburg.de>
 
-	* progmodes/compile.el (compilation-next-error-locus): Don't
-	decrease argument FIND-AT-LEAST of compilation-next-error-locus.
+	* progmodes/compile.el (compilation-next-error-locus):
+	Don't decrease argument FIND-AT-LEAST of compilation-next-error-locus.
 
 1999-01-31  Eli Zaretskii  <eliz@gnu.org>
 
@@ -6538,8 +6538,8 @@
 	* tex-mode.el (tex-mode-map): Replace validate-tex-buffer by
 	tex-validate-buffer.
 	(plain-tex-mode, latex-mode, slitex-mode): Likewise.
-	(tex-validate-buffer): Renamed from validate-tex-buffer.  Works
-	now with recent occur-mode.
+	(tex-validate-buffer): Rename from validate-tex-buffer.
+	Works now with recent occur-mode.
 	(tex-validate-region): Really walk through all Sexps.
 	(tex-region): Bind shell-dirtrack-verbose.
 	(tex-file, tex-bibtex-file): Likewise.
@@ -6639,8 +6639,8 @@
 
 1999-01-25  Edward M. Reingold  <reingold@emr.cs.uiuc.edu>
 
-	* calendar/diary-lib.el (mark-diary-entries): Use
-	assoc-ignore-case and do not capitalize when matching month and
+	* calendar/diary-lib.el (mark-diary-entries):
+	Use assoc-ignore-case and do not capitalize when matching month and
 	day names.
 
 	* calendar/calendar.el (calendar-read-date): Ditto.
@@ -6734,8 +6734,8 @@
 
 1999-01-23  Ken'ichi Handa  <handa@gnu.org>
 
-	* international/fontset.el (create-fontset-from-x-resource): Make
-	style variants.
+	* international/fontset.el (create-fontset-from-x-resource):
+	Make style variants.
 
 1999-01-22  Dave Love  <fx@gnu.org>
 
@@ -6748,7 +6748,7 @@
 
 1999-01-22  Jason Rumney  <jasonr@altavista.net>
 
-	* term/w32-win.el (w32-standard-fontset-spec): Simplified.
+	* term/w32-win.el (w32-standard-fontset-spec): Simplify.
 
 1999-01-22  Felix Lee  <flee@cygnus.com>
 
@@ -6782,8 +6782,8 @@
 
 1999-01-19  Jason Rumney  <jasonr@altavista.net>
 
-	* term/w32-win.el (w32-standard-fontspec-spec): Change
-	iso8859-5 to koi8-r.  Add iso8859-9.
+	* term/w32-win.el (w32-standard-fontspec-spec):
+	Change iso8859-5 to koi8-r.  Add iso8859-9.
 
 1999-01-19  Dave Love  <fx@gnu.org>
 
@@ -6807,8 +6807,8 @@
 	* textmodes/tex-mode.el (tex-define-common-keys):
 	Remove key binding of tex-feed-input.
 	(tex-mode-map): Bind tex-feed-input here.
-	(tex-start-shell): Use compilation-shell-minor-mode.  Set
-	comint-input-filter-functions before running tex-shell-hook.
+	(tex-start-shell): Use compilation-shell-minor-mode.
+	Set comint-input-filter-functions before running tex-shell-hook.
 	(tex-start-tex): Forget compilation errors.
 	(tex-compilation-parse-errors): Rewritten to work also with
 	compile-mouse-goto-error and compile-goto-error.  Adjusted to
@@ -6827,8 +6827,8 @@
 
 1999-01-18  Ken'ichi Handa  <handa@gnu.org>
 
-	* international/ccl.el (ccl-compile-translate-character): Handle
-	the case that a translation table is CCL register correctly.
+	* international/ccl.el (ccl-compile-translate-character):
+	Handle the case that a translation table is CCL register correctly.
 
 	* international/mule-cmds.el (select-safe-coding-system):
 	Highlight at most 256 characters.
@@ -6893,8 +6893,8 @@
 
 1999-01-17  Andrew Innes  <andrewi@gnu.org>
 
-	* dos-w32.el (find-buffer-file-type-coding-system): Use
-	default-buffer-file-coding-system when file doesn't exist (and
+	* dos-w32.el (find-buffer-file-type-coding-system):
+	Use default-buffer-file-coding-system when file doesn't exist (and
 	isn't covered by a special case) instead of forcing undecided-dos
 	against the user's wishes.
 
@@ -6916,8 +6916,8 @@
 	* lpr.el (printer-name): Update docstring about usage on MS-DOS
 	and MS-Windows.
 	(lpr-command) [ms-dos, windows-nt]: Initialize to empty string on
-	DOS and Windows platforms, to indicate direct printing.  Update
-	the docstring accordingly.
+	DOS and Windows platforms, to indicate direct printing.
+	Update the docstring accordingly.
 
 	* ps-print.el (ps-printer-name): Update docstring about usage on
 	MS-DOS and MS-Windows.
@@ -6952,8 +6952,8 @@
 
 1999-01-16  Dave Love  <fx@gnu.org>
 
-	* help.el (temp-buffer-setup-hook, temp-buffer-show-hook): Revert
-	last change.
+	* help.el (temp-buffer-setup-hook, temp-buffer-show-hook):
+	Revert last change.
 
 1999-01-15  Dave Love  <fx@gnu.org>
 
@@ -7002,8 +7002,8 @@
 1999-01-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* international/codepage.el (cp850-decode-table): Replace nil
-	entries with codes of similary looking glyphs.  (Suggested by
-	Jason Rumney <jasonr@altavista.net>.)
+	entries with codes of similary looking glyphs.  (
+	Suggested by Jason Rumney <jasonr@altavista.net>.)
 
 1999-01-13  Dave Love  <fx@gnu.org>
 
@@ -7026,12 +7026,12 @@
 
 	* cus-start.el: Add inhibit-eol-conversion.
 
-	* help.el (temp-buffer-setup-hook, temp-buffer-show-hook): Swap
-	the values round.
+	* help.el (temp-buffer-setup-hook, temp-buffer-show-hook):
+	Swap the values round.
 
 1999-01-11  Richard Stallman  <rms@psilocin.ai.mit.edu>
 
-	* help.el (help-mode-finish): Renamed from help-mode-maybe.
+	* help.el (help-mode-finish): Rename from help-mode-maybe.
 	Don't switch to Help mode here.
 	(temp-buffer-setup-hook): Use help-mode-finish.
 	(help-mode-setup): New function.
@@ -7145,11 +7145,11 @@
 
 1999-01-06  Eli Zaretskii  <eliz@gnu.org>
 
-	* international/codepage.el (cp-coding-system-for-codepage-1): Add
-	the valid-codes property.
+	* international/codepage.el (cp-coding-system-for-codepage-1):
+	Add the valid-codes property.
 
-	* international/mule-cmds.el (prefer-coding-system): Call
-	set-coding-priority, so that the internal array of priorities is
+	* international/mule-cmds.el (prefer-coding-system):
+	Call set-coding-priority, so that the internal array of priorities is
 	also updated.
 
 	* international/mule-util.el
@@ -7164,8 +7164,8 @@
 	* emacs-lisp/debug.el (debug): Leave recursive minibuffer enabled
 	if it was enabled before.
 
-	* view.el (View-revert-buffer-scroll-page-forward): Bind
-	view-scroll-auto-exit instead of obsolete view-mode-auto-exit.
+	* view.el (View-revert-buffer-scroll-page-forward):
+	Bind view-scroll-auto-exit instead of obsolete view-mode-auto-exit.
 
 	* files.el (recover-session): Preserve point when inserting
 	explanation.
@@ -7438,9 +7438,9 @@
 	(cperl-syntaxify-by-font-lock): Set to t, should be safe now.
 	Better default, customizes to `message' too, off in text-mode.
 
-	(cperl-array-face): Renamed from `font-lock-emphasized-face',
+	(cperl-array-face): Rename from `font-lock-emphasized-face',
 	`defface'd.
-	(cperl-hash-face): Renamed from `font-lock-other-emphasized-face'.
+	(cperl-hash-face): Rename from `font-lock-other-emphasized-face'.
 	`defface'd.
 	(cperl-emacs-can-parse): New state variable.
 	(cperl-indent-line): Corrected to use global state.
@@ -7488,7 +7488,7 @@
 	inside of POD too.
 	(cperl-backward-to-noncomment): Better treatment of PODs and HEREs.
 	(cperl-clobber-mode-lists): New configuration variable.
-	(cperl-not-bad-style-regexp): Updated.
+	(cperl-not-bad-style-regexp): Update.
 	Init: `cperl-is-face' was busted.
 	(cperl-make-face): New macros.
 	(cperl-force-face): New macros.
@@ -7503,7 +7503,7 @@
 	(cperl-tags-hier-init): Gross hack to pretend we work (are we?).
 	Another try to work around XEmacs problems.  Better progress messages.
 	(toplevel): Require custom unprotected => failure on 19.28.
-	(cperl-xemacs-p): Defined when compile too.
+	(cperl-xemacs-p): Define when compile too.
 	(cperl-find-tags): Was writing line/pos in a wrong order,
 	pos off by 1 and not at beg-of-line.
 	(cperl-etags-snarf-tag): New macro.
@@ -7599,8 +7599,8 @@
 	(speedbar-this-file-in-vc) Fix SCCS to use s. not p. files.
 	(speedbar-tag-group-name-minimum-length): New variable.
 	(speedbar-frame-parameter): New compatibility function.
-	(speedbar-frame-mode): Updated to use speedbar-frame-parameter.
-	(speedbar-apply-one-tag-hierarchy-method): Fixed up taging sub
+	(speedbar-frame-mode): Update to use speedbar-frame-parameter.
+	(speedbar-apply-one-tag-hierarchy-method): Fix up taging sub
 	groups to keep things in the right order, and to help with some
 	naming conventions.
 	(speedbar-create-tag-hierarchy): Enable buffer local version of
@@ -7726,8 +7726,8 @@
 	(ps-mule-plot-string): Set ps-mule-current-charset.
 	(ps-mule-initialize): Add autoload cookie.  Don't set
 	ps-mule-font-info-database here.
-	(ps-mule-begin-job): Renamed from ps-mule-begin.  Update
-	ps-mule-font-info-database and ps-control-or-escape-regexp.
+	(ps-mule-begin-job): Rename from ps-mule-begin.
+	Update ps-mule-font-info-database and ps-control-or-escape-regexp.
 	(ps-mule-begin-page): New fun.
 
 	* ps-print.el: Mule related code moved to ps-mule.el.
@@ -7749,7 +7749,7 @@
 
 	* ps-print.el (ps-mule-font-info-database): Doc-string modified.
 	(ps-mule-external-libraries): New element FEATURE.
-	(ps-mule-init-external-library): Adjusted for the above change.
+	(ps-mule-init-external-library): Adjust for the above change.
 	(ps-mule-generate-font): Likewise.
 	(ps-mule-generate-glyphs): Likewise.
 	(ps-mule-prepare-font): Likewise.
@@ -7766,7 +7766,7 @@
 	Handle the case of unknown charset.
 	(find-multibyte-characters): If invalid multibyte characters are
 	found, return the corresponding strings instead of character codes.
-	(find-multibyte-characters): Adjusted for the above change.
+	(find-multibyte-characters): Adjust for the above change.
 	(select-safe-coding-system): For a unibyte buffer, always returns
 	DEFAULT-CODING-SYSTEM.
 	(get-charset-property): Fix previous change.  Make it a function.
@@ -7786,8 +7786,8 @@
 
 1998-12-14  Andreas Schwab  <schwab@delysid.gnu.org>
 
-	* textmodes/texinfo.el (texinfo-tex-buffer): Bind
-	tex-start-options-string to empty string.
+	* textmodes/texinfo.el (texinfo-tex-buffer):
+	Bind tex-start-options-string to empty string.
 	(texinfo-tex-region): Use texinfo-tex-trailer as documented.
 
 1998-12-14  Andrew Innes  <andrewi@delysid.gnu.org>
@@ -7839,7 +7839,7 @@
 
 	* help.el (symbol-file-load-history-loaded): Variable renamed,
 	and defvar moved from loadhist.el.
-	(symbol-file): Renamed from describe-function-find-file.
+	(symbol-file): Rename from describe-function-find-file.
 	Load fns-VERSION.el here.
 	(describe-variable, describe-function-1): Use symbol-file.
 
@@ -7968,7 +7968,7 @@
 
 	* vc.el (vc-dired-window-configuration, vc-ediff-windows)
 	(vc-ediff-result, vc-dired-switches, vc-dired-terse-mode):
-	Added defvars to suppress compilation warnings.
+	Add defvars to suppress compilation warnings.
 
 1998-11-30  Ken Stevens  <k.stevens@ieee.org>
 
@@ -7984,13 +7984,13 @@
 	ispell-message-text-end, ispell-add-per-file-word-list.
 	(ispell-dictionary-alist-1, ispell-dictionary-alist2): A coding
 	system is now required for all languages.  Casechars improved for
-	castellano, castellano8, and norsk dictionaries.  Dictionary
-	norsk7-tex added.  Dictionary polish added.
+	castellano, castellano8, and norsk dictionaries.
+	Dictionary norsk7-tex added.  Dictionary polish added.
 	(ispell-dictionary-alist): Redefined at load-time to support
 	dictionary changes.
 	(ispell-menu-map): Redefined at load-time to support menu changes.
 	(ispell-check-version): New alias for `check-ispell-version'.
-	(ispell-parse-output): Fixed matching for ispell error messages.
+	(ispell-parse-output): Fix matching for ispell error messages.
 	Correctly returns spelling suggestions in order generated by ispell
 	process.
 	(check-ispell-version): Ensure `case-fold-search' doesn't get
@@ -8002,12 +8002,12 @@
 	(ispell-kill-ispell): Ensures ispell process has terminated before
 	starting new process.  This can otherwise confuse process filters
 	and hang the ispell process.
-	(ispell-begin-skip-region-regexp, ispell-skip-region): Improved
-	skipping support for sgml.
+	(ispell-begin-skip-region-regexp, ispell-skip-region):
+	Improve skipping support for sgml.
 	(ispell-minor-check): Support sgml labels.  Fix mapping ^M to \r
 	which could cause `ispell-complete-word' to hang.
-	(ispell-message): Improved message reference matching.  Ensure
-	`case-fold-search' doesn't get redefined.
+	(ispell-message): Improve message reference matching.
+	Ensure `case-fold-search' doesn't get redefined.
 	(ispell-buffer-local-parsing): Ensure `case-fold-search' doesn't
 	get redefined.  Fixed bug in returning to nroff mode from tex mode.
 	(ispell-add-per-file-word-list): Ensure `case-fold-search' doesn't
@@ -8108,8 +8108,8 @@
 
 1998-11-22  Andrew Innes  <andrewi@delysid.gnu.org>
 
-	* mail/rmail.el (rmail-set-message-counters-counter): Detect
-	messages that have been added with DOS line endings and convert
+	* mail/rmail.el (rmail-set-message-counters-counter):
+	Detect messages that have been added with DOS line endings and convert
 	the line endings for such messages.
 
 1998-11-22  Emilio Lopes  <Emilio.Lopes@Physik.TU-Muenchen.DE>
@@ -8131,8 +8131,8 @@
 
 1998-11-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* message.el (message-ignored-supersedes-headers): Remove
-	NNTP-Posting-Date.
+	* message.el (message-ignored-supersedes-headers):
+	Remove NNTP-Posting-Date.
 
 1998-11-21  Richard Stallman  <rms@psilocin.ai.mit.edu>
 
@@ -8243,8 +8243,8 @@
 	(tar-extract): Avoid multibyte<->unibyte conversion in
 	insert-buffer-substring by setting both buffers unibyte
 	temporarily.
-	(tar-copy): Set the buffer unibyte while doing a work.  Write
-	without code conversion.
+	(tar-copy): Set the buffer unibyte while doing a work.
+	Write without code conversion.
 	(tar-expunge): Set the buffer unibyte while doing a work.
 	(tar-alter-one-field): Likewise.
 	(tar-clear-modification-flags): Compare byte position with
@@ -8262,7 +8262,7 @@
 1998-11-15  Dave Love  <fx@gnu.org>
 
 	* progmodes/fortran.el: Fix previous change:
-	(fortran-end-prog-re1): Changed.
+	(fortran-end-prog-re1): Change.
 	(fortran-check-end-prog-re): New function.
 	(beginning-of-fortran-subprogram, end-of-fortran-subprogram): Use it.
 
@@ -8281,15 +8281,15 @@
 	New options.
 	(reftex-use-text-after-label-as-context): Option removed.
 	(reftex-extract-bib-entries): Protect use in non-latex buffers.
-	(reftex-toc-visit-location): Renamed from `reftex-toc-visit-line'.
+	(reftex-toc-visit-location): Rename from `reftex-toc-visit-line'.
 	(reftex-latin1-to-ascii): Works now with and without Mule.
-	(reftex-truncate): Removed special stuff for Emacs 20.2.
+	(reftex-truncate): Remove special stuff for Emacs 20.2.
 	(reftex-get-offset): Made more general.
-	(reftex-show-label-location): Renamed from
+	(reftex-show-label-location): Rename from
 	`reftex-select-label-callback'.
 	(reftex-pop-to-label): Function removed (using
 	`reftex-show-label-location' instead.
-	(reftex-insert-docstruct): Renamed from
+	(reftex-insert-docstruct): Rename from
 	`reftex-make-and-insert-label-list'.  Function args changed.
 	(reftex-toc): Now uses `reftex-insert-docstruct' and
 	`reftex-find-start-point'.
@@ -8327,7 +8327,7 @@
 
 1998-11-11  Per Starbäck  <starback@update.uu.se>
 
-	* ispell.el (ispell-dictionary-alist-2): Removed svenska, renamed
+	* ispell.el (ispell-dictionary-alist-2): Remove svenska, renamed
 	svenska8 to svenska, and fixed and extended CASECHARS for it.
 
 1998-11-11  Andrew Innes  <andrewi@delysid.gnu.org>
@@ -8338,8 +8338,8 @@
 
 1998-11-11  Kenichi Handa  <handa@etl.go.jp>
 
-	* international/mule-util.el (compose-chars-component): Signal
-	error if CH is a rule-based composition character.
+	* international/mule-util.el (compose-chars-component):
+	Signal error if CH is a rule-based composition character.
 	(compose-chars): Signal error if an already composed character is
 	going to be composed by rule-base.
 
@@ -8465,8 +8465,8 @@
 
 1998-11-04  Kenichi Handa  <handa@etl.go.jp>
 
-	* international/quail.el (quail-show-guidance-buf): Call
-	set-minibuffer-window to set minibuffer window of the current
+	* international/quail.el (quail-show-guidance-buf):
+	Call set-minibuffer-window to set minibuffer window of the current
 	frame correctly.
 
 1998-11-03  Theodore Jump  <tjump@tertius.com>
@@ -8527,13 +8527,13 @@
 
 1998-10-30  Kenichi Handa  <handa@etl.go.jp>
 
-	* international/quail.el (quail-start-translation): Handle
-	switching of the frame in read-key-sequence.
+	* international/quail.el (quail-start-translation):
+	Handle switching of the frame in read-key-sequence.
 	(quail-start-conversion): Likewise.
 	(quail-show-guidance-buf): Detach quail-guidance-buf from any
 	windows before setting an appropriate window for it.
-	(quail-hide-guidance-buf): Use window-minibuffer-p.  Set
-	quail-guidance-win to nil.
+	(quail-hide-guidance-buf): Use window-minibuffer-p.
+	Set quail-guidance-win to nil.
 	(quail-update-guidance): If quail-guidance-buf is not in the
 	selected frame, call quail-show-guidance-buf again.
 
@@ -8565,14 +8565,14 @@
 
 	* emacs-lisp/eldoc.el (eldoc-argument-case): Fix customize type.
 
-	* emacs-lisp/lisp-mnt.el (lm-report-bug): Use
-	report-emacs-bug-address instead of undefined bug-gnu-emacs.
+	* emacs-lisp/lisp-mnt.el (lm-report-bug):
+	Use report-emacs-bug-address instead of undefined bug-gnu-emacs.
 
-	* international/mule-cmds.el (select-message-coding-system): Doc
-	fix.
+	* international/mule-cmds.el (select-message-coding-system):
+	Doc fix.
 
-	* international/mule-diag.el (describe-coding-system): Describe
-	all flags.
+	* international/mule-diag.el (describe-coding-system):
+	Describe all flags.
 
 	* mail/sendmail.el (sendmail-coding-system)
 	(default-sendmail-coding-system): Doc fix.
@@ -8580,8 +8580,8 @@
 	* simple.el (shell-command-on-region): Doc fix.
 
 	* loadup.el: Write fns-*.el in current directory instead of
-	data-directory since no installation directory exists yet.  Mark
-	buffer unmodified afterwards.
+	data-directory since no installation directory exists yet.
+	Mark buffer unmodified afterwards.
 
 	* loadhist.el (symbol-file): Load fns-*.el from exec-directory
 	instead of data-directory since it is architecture dependent.
@@ -8597,11 +8597,11 @@
 
 1998-10-27  Richard Stallman  <rms@psilocin.ai.mit.edu>
 
-	* progmodes/tcl-mode.el (tcl-font-lock-keywords): Added itcl and
+	* progmodes/tcl-mode.el (tcl-font-lock-keywords): Add itcl and
 	namespace related keywords such as `class', `body', `private',
 	`variable', `namespace eval', etc.
 	(tcl-imenu-generic-expression): Handle itcl body and class definitions.
-	(tcl-mode): Added ":" as a word constituent to the syntax-alist of
+	(tcl-mode): Add ":" as a word constituent to the syntax-alist of
 	imenu and font-lock so that searches for \sw would find words
 	containing colons.
 
@@ -8730,9 +8730,9 @@
 	(profile-functions): Simplify.
 	(profile-print): Use float.  Make output include space separators.
 	(profile-add-time): New helper function.
-	(profile-function-prolog): Renamed from profile-start-function.
+	(profile-function-prolog): Rename from profile-start-function.
 	Handle profile-distinct.
-	(profile-function-epilog): Renamed from profile-update-function.
+	(profile-function-epilog): Rename from profile-update-function.
 	Handle profile-distinct.
 	(profile-a-function): If the function to be profiled is an
 	autoload form, load it.  If it's lazy-loaded, fetch it.
@@ -8882,8 +8882,8 @@
 
 1998-10-14  Emilio Lopes  <Emilio.Lopes@Physik.TU-Muenchen.DE>
 
-	* progmodes/fortran.el (fortran-join-line): Use
-	`delete-indentation' instead of issuing an error message if not on
+	* progmodes/fortran.el (fortran-join-line):
+	Use `delete-indentation' instead of issuing an error message if not on
 	a continuation line.  Provide for joining several lines using
 	prefix arg.
 
@@ -8916,7 +8916,7 @@
 1998-10-13  Geoff Voelker  <voelker@cs.washington.edu>
 
 	* ls-lisp.el (ls-lisp-use-insert-directory-program): New variable.
-	(ls-lisp-insert-directory): Renamed from insert-directory.
+	(ls-lisp-insert-directory): Rename from insert-directory.
 	(insert-directory): New function.
 
 1998-10-13  Richard Stallman  <rms@psilocin.ai.mit.edu>
@@ -9049,7 +9049,7 @@
 
 1998-10-06  Peter Breton  <pbreton@ne.mediaone.net>
 
-	* generic.el (generic-mode-with-type): Added hooks for generic-modes.
+	* generic.el (generic-mode-with-type): Add hooks for generic-modes.
 
 	* net-utils.el (ftp, nslookup): Require comint.
 	(network-service-connection): Likewise.
@@ -9059,7 +9059,7 @@
 	(whois-get-tld): New function.
 
 	* dirtrack.el: Mentioned dirtrack-debug-toggle in the docs.
-	(dirtrack-debug-toggle): Added this function.
+	(dirtrack-debug-toggle): Add this function.
 
 1998-10-06  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
@@ -9074,9 +9074,9 @@
 	* arc-mode.el (archive-mode-revert): Arg no-auto-save renamed from
 	no-autosave.
 	* tar-mode.el (tar-mode-revert): Likewise.
-	* ediff-util.el (ediff-arrange-auto-save-in-merge-jobs): Renamed
-	from ediff-arrange-autosave-in-merge-jobs.  Callers changed.
-	* gnus/message.el (message-auto-save-directory): Renamed from
+	* ediff-util.el (ediff-arrange-auto-save-in-merge-jobs):
+	Rename from ediff-arrange-autosave-in-merge-jobs.  Callers changed.
+	* gnus/message.el (message-auto-save-directory): Rename from
 	message-autosave-directory.  All references changed.
 
 1998-10-06  Jonathan I. Kamens  <jik@kamens.brookline.ma.us>
@@ -9091,15 +9091,15 @@
 	* replace.el (perform-replace): Position point properly
 	before and after the recursive edit of C-r.
 
-	* progmodes/etags.el (tags-reset-tags-tables): Properly
-	find the markers in the old rings that are being discarded.
+	* progmodes/etags.el (tags-reset-tags-tables):
+	Properly find the markers in the old rings that are being discarded.
 
 1998-10-06  Markus Rost  <markus.rost@mathematik.uni-regensburg.de>
 
 	* apropos.el (apropos-print): Control invalid characters.
 
 	* play/landmark.el (lm-font-lock-face-O, lm-font-lock-face-X):
-	Renamed from lm-font-lock-O-face, lm-font-lock-X-face to avoid
+	Rename from lm-font-lock-O-face, lm-font-lock-X-face to avoid
 	confusing customize.
 
 1998-10-06  Eli Zaretskii  <eliz@mescaline.gnu.org>
@@ -9109,12 +9109,12 @@
 
 1998-10-05  Simon Marshall  <simon@gnu.org>
 
-	* menu-bar.el (menu-bar-tools-menu): Added entry for Speedbar.
+	* menu-bar.el (menu-bar-tools-menu): Add entry for Speedbar.
 
 1998-10-04  Eric Ludlam  <zappo@gnu.org>
 
-	* speedbar.el (speedbar-initial-expansion-list-name): Remove
-	customization since it is not useful in this case.
+	* speedbar.el (speedbar-initial-expansion-list-name):
+	Remove customization since it is not useful in this case.
 	(speedbar-frame-mode): Check if cfx or cfy is a list, and make
 	sure it gets evalled to a number.  Also verify that set-frame-name
 	fn exists before calling it.
@@ -9133,8 +9133,8 @@
 
 1998-10-02  Dave Love  <fx@gnu.org>
 
-	* outline.el (hide-region-body): Bind
-	outline-view-change-hook to nil while making repeated calls to
+	* outline.el (hide-region-body):
+	Bind outline-view-change-hook to nil while making repeated calls to
 	outline-flag-region.  Run it once at the end.
 	(hide-other, hide-sublevels, show-children): Likewise.
 
@@ -9240,8 +9240,8 @@
 	* textmodes/texinfo.el (texinfo-show-structure):
 	Bind inhibit-read-only.
 
-	* isearch.el (isearch-search-and-update): Properly
-	handle upper case letters in the reverse-search special case.
+	* isearch.el (isearch-search-and-update):
+	Properly handle upper case letters in the reverse-search special case.
 
 1998-09-25  Markus Rost  <markus.rost@mathematik.uni-regensburg.de>
 
@@ -9329,14 +9329,14 @@
 	whenever appt-mode-string has changed.
 	(appt-add, appt-delete): Add autoload cookies.
 	(appt-check): Catch errors from calling `diary'.
-	(appt-max-time): Renamed from max-time.
+	(appt-max-time): Rename from max-time.
 	(appt-now-displayed, appt-display-count): New variables.
 	(appt-timer): Don't create one if we already have one.
 
 	* textmodes/tex-mode.el (tex-compilation-parse-errors):
 	More general code to use the source buffer instead of the zap file.
 
-	* hilit-chg.el (highlight-compare-with-file): Renamed from
+	* hilit-chg.el (highlight-compare-with-file): Rename from
 	compare-with-file.
 
 	* loadhist.el (load-history-loaded): New variable.
@@ -9368,9 +9368,9 @@
 	* emacs-lisp/eldoc.el (eldoc-message): Check for 1-arg case, and
 	store string in eldoc-last-message without consing a new string.
 	Rearrange logic from nested if's into cond's.
-	(eldoc-print-fnsym-args): Renamed to eldoc-get-fnsym-args-string.
+	(eldoc-print-fnsym-args): Rename to eldoc-get-fnsym-args-string.
 	Do not print message; just return string.
-	(eldoc-get-var-docstring): Renamed from eldoc-print-var-docstring.
+	(eldoc-get-var-docstring): Rename from eldoc-print-var-docstring.
 	Do not print message; just return string.
 	Cache that string in eldoc-last-data.
 	(eldoc-last-data): Make into a vector.
@@ -9395,14 +9395,14 @@
 
 	* progmodes/vhdl-mode.el (vhdl-header-file): Fix customize type.
 
-	* progmodes/cpp.el (cpp-face-light-list, cpp-face-dark-list): Fix
-	customize type.
+	* progmodes/cpp.el (cpp-face-light-list, cpp-face-dark-list):
+	Fix customize type.
 
 	* progmodes/cperl-mode.el (cperl-lazy-help-time): Fix customize
 	type.
 
-	* progmodes/compile.el (compilation-error-screen-columns): New
-	variable.
+	* progmodes/compile.el (compilation-error-screen-columns):
+	New variable.
 	(compilation-next-error-locus): Use it to decide whether to use
 	forward-char or move-to-column.
 
@@ -9419,8 +9419,8 @@
 
 	* startup.el (site-run-file): Fix customize type.
 
-	* speedbar.el (speedbar-initial-expansion-list-name): Fix
-	customize type.
+	* speedbar.el (speedbar-initial-expansion-list-name):
+	Fix customize type.
 
 	* shell.el (shell-input-autoexpand): Fix customize type.
 
@@ -9445,24 +9445,24 @@
 
 1998-09-16  Kenichi Handa  <handa@etl.go.jp>
 
-	* international/mule-cmds.el (reset-language-environment): Call
-	update-coding-systems-internal.
+	* international/mule-cmds.el (reset-language-environment):
+	Call update-coding-systems-internal.
 
 	* international/mule-conf.el: Call update-coding-systems-internal
 	at the tail.
 
 1998-09-14  Dave Love  <fx@gnu.org>
 
-	* vc-hooks.el (vc-menu-map): Change the vc-directory label.  Don't
-	use the menu-enable properties, pending doing it correctly and
+	* vc-hooks.el (vc-menu-map): Change the vc-directory label.
+	Don't use the menu-enable properties, pending doing it correctly and
 	acceptably fast.
 
 	* map-ynp.el (map-y-or-n-p): Mention RET, `q' in the help text.
 
 1998-09-13  Dave Love  <d.love@dl.ac.uk>
 
-	* progmodes/hideshow.el (hs-grok-mode-type): Check
-	comment-{start,end} non-nil as well as bound.  Report an error if
+	* progmodes/hideshow.el (hs-grok-mode-type):
+	Check comment-{start,end} non-nil as well as bound.  Report an error if
 	we can't grok the mode.
 
 1998-09-13  Richard Stallman  <rms@gnu.org>
@@ -9603,9 +9603,9 @@
 	(reftex-label-illegal-re): Default changed, removed Latin1.
 	(reftex-latin1-to-ascii): New function.
 	(reftex-what-environment): Check for section regexp before use.
-	(reftex-find-tex-file, reftex-find-bib-file): Fixed bug with
+	(reftex-find-tex-file, reftex-find-bib-file): Fix bug with
 	absolute path names.
-	(reftex-TeX-master-file): Changed sequence of file checks.
+	(reftex-TeX-master-file): Change sequence of file checks.
 	(reftex-do-citation): Bibview cache only with RefTeX mode on.
 
 1998-09-06  Richard Stallman  <rms@gnu.org>
@@ -9679,7 +9679,7 @@
 
 1998-09-04  Peter Breton  <pbreton@ne.mediaone.net>
 
-	* net-utils.el (netstat-program-options): Changed from nil to "-a"
+	* net-utils.el (netstat-program-options): Change from nil to "-a"
 	so that by default netstat shows all network connections.
 
 1998-09-04  Bob Weiner  <weiner@altrasoft.com>
@@ -9699,8 +9699,8 @@
 
 1998-09-03  Bill Richter  <richter@brouwer.math.nwu.edu>
 
-	* international/quail.el (quail-choose-completion-string): Store
-	completion `choice' in `quail-current-str'; don't insert it.
+	* international/quail.el (quail-choose-completion-string):
+	Store completion `choice' in `quail-current-str'; don't insert it.
 
 1998-09-02  Kenichi Handa  <handa@etl.go.jp>
 
@@ -9727,8 +9727,8 @@
 
 1998-09-01  Dave Love  <fx@gnu.org>
 
-	* international/mule-cmds.el (current-language-environment): Fix
-	setter function.
+	* international/mule-cmds.el (current-language-environment):
+	Fix setter function.
 
 1998-09-01  Simon Marshall  <simon@gnu.org>
 
@@ -9808,8 +9808,8 @@
 	* ange-ftp.el (ange-ftp-allow-child-lookup): Reinstate checking
 	dired-local-variables-file for dired-x.
 
-	* emacs-lisp/find-func.el (find-function-search-for-symbol): Look
-	for compressed library files too.
+	* emacs-lisp/find-func.el (find-function-search-for-symbol):
+	Look for compressed library files too.
 
 1998-08-26  Kenichi Handa  <handa@etl.go.jp>
 
@@ -9842,8 +9842,8 @@
 
 1998-08-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* gnus/gnus-start.el (gnus-save-newsrc-file): Bind
-	coding-system-for-write before saving.
+	* gnus/gnus-start.el (gnus-save-newsrc-file):
+	Bind coding-system-for-write before saving.
 
 1998-08-26  Kevin Rodgers  <kevinr@ihs.com>  (tiny change)
 
@@ -9861,15 +9861,15 @@
 	* repeat.el (repeat): Doc fix.
 	[From rms:]
 	(repeat-previous-repeated-command): New variable.
-	(repeat): Check for real-last-command being null or repeat.  Set
-	repeat-previous-repeated-command.
+	(repeat): Check for real-last-command being null or repeat.
+	Set repeat-previous-repeated-command.
 
 	* browse-url.el (browse-url-netscape): Fix format for hex escapes.
 
 1998-08-25  Kenichi Handa  <handa@etl.go.jp>
 
-	* gnus/message.el (message-send-mail-with-sendmail): Bind
-	coding-system-for-write by the return value of
+	* gnus/message.el (message-send-mail-with-sendmail):
+	Bind coding-system-for-write by the return value of
 	select-message-coding-system.
 	(message-send-mail-with-qmail): Likewise.
 
@@ -9904,7 +9904,7 @@
 
 	* ps-print.el: Add codes to make ps-print.el work also on Emacs
 	20.2 and the earlier version.
-	(ps-mule-encode-7bit, ps-mule-encode-8bit): Modified for 20.2.
+	(ps-mule-encode-7bit, ps-mule-encode-8bit): Modify for 20.2.
 	(ccl-encode-ethio-unicode, ps-mule-encode-ethiopic): Likewise.
 	(ps-mule-find-wrappoint): Likewise.
 	(ps-mule-generate-font): Change `X' to `x' in format control-string.
@@ -9940,8 +9940,8 @@
 	New vars.
 	(ps-mule-plot-rule-cmpchar, ps-mule-plot-cmpchar)
 	(ps-mule-prepare-cmpchar-font): New funs.
-	(ps-mule-bitmap-prologue-generated, ps-mule-bitmap-prologue): New
-	vars.
+	(ps-mule-bitmap-prologue-generated, ps-mule-bitmap-prologue):
+	New vars.
 	(ps-mule-generate-bitmap-prologue, ps-mule-generate-bitmap-font)
 	(ps-mule-generate-bitmap-glyph): New funs.
 	(ps-mule-initialize, ps-mule-begin): New funs.
@@ -9963,10 +9963,10 @@
 
 1998-08-23  Kenichi HANDA  <handa@etl.go.jp>
 
-	* international/mule-cmds.el (select-message-coding-system): New
-	function.
-	(set-language-environment-coding-systems): Set
-	default-sendmail-coding-system.
+	* international/mule-cmds.el (select-message-coding-system):
+	New function.
+	(set-language-environment-coding-systems):
+	Set default-sendmail-coding-system.
 
 	* mail/sendmail.el (sendmail-coding-system): Doc-string modified.
 	(default-sendmail-coding-system): New variable.

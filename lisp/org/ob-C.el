@@ -30,6 +30,8 @@
 ;; - not much in the way of error feedback
 
 ;;; Code:
+(eval-when-compile
+  (require 'cl))
 (require 'ob)
 (require 'cc-mode)
 

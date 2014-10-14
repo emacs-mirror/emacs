@@ -1,7 +1,6 @@
 ;;; lunar.el --- calendar functions for phases of the moon
 
-;; Copyright (C) 1992-1993, 1995, 1997, 2001-2014 Free Software
-;; Foundation, Inc.
+;; Copyright (C) 1992-1993, 1995, 1997, 2001-2014 Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Maintainer: Glenn Morris <rgm@gnu.org>
@@ -228,10 +227,6 @@ use instead of point."
           (lunar-phase-list m1 y1) "\n")))
       (message "Computing phases of the moon...done"))))
 
-;;;###cal-autoload
-(define-obsolete-function-alias 'calendar-phases-of-moon
-  'calendar-lunar-phases "23.1")
-
 ;;;###autoload
 (defun lunar-phases (&optional arg)
   "Display the quarters of the moon for last month, this month, and next month.
@@ -244,9 +239,6 @@ This function is suitable for execution in an init file."
            (displayed-month (calendar-extract-month date))
            (displayed-year (calendar-extract-year date)))
       (calendar-lunar-phases))))
-
-;;;###autoload
-(define-obsolete-function-alias 'phases-of-moon 'lunar-phases "23.1")
 
 (defvar date)
 
@@ -265,10 +257,6 @@ use when highlighting the day in the calendar."
     (if (calendar-date-equal (car phase) date)
         (cons mark (concat (lunar-phase-name (nth 2 phase)) " "
                            (cadr phase))))))
-
-;;;###diary-autoload
-(define-obsolete-function-alias 'diary-phases-of-moon
-  'diary-lunar-phases "23.1")
 
 ;; For the Chinese calendar the calculations for the new moon need to be more
 ;; accurate than those above, so we use more terms in the approximation.

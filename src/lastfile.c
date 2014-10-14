@@ -36,6 +36,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
+#include "lisp.h"
+
 char my_edata[] = "End of Emacs initialized data";
 
 /* Help unexec locate the end of the .bss area used by Emacs (which

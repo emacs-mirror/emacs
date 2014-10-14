@@ -275,13 +275,18 @@ nil."
   "*Controls the operation of the TAB key.
 If t, hitting TAB always just indents the current line.  If nil, hitting
 TAB indents the current line if point is at the left margin or in the
-line's indentation, otherwise it calls `c-insert-tab-function' to
-insert a `real' tab character.  If some other value (neither nil nor t),
-then inserts a tab only within literals (comments and strings), but
-always reindents the line.
+line's indentation, otherwise it inserts a `real' tab character \(see
+note\).	 If some other value (not nil or t), then tab is inserted only
+within literals \(comments and strings), but the line is always
+reindented.
 
-Note: the variable `c-comment-only-line-offset' also controls the
-indentation of lines containing only comments."
+Note: The value of `indent-tabs-mode' will determine whether a real
+tab character will be inserted, or the equivalent number of spaces.
+When inserting a tab, actually the function stored in the variable
+`c-insert-tab-function' is called.
+
+Note: indentation of lines containing only comments is also controlled
+by the `c-comment-only-line-offset' variable."
   :type '(radio
 	  (const :tag "TAB key always indents, never inserts TAB" t)
 	  (const :tag "TAB key indents in left margin, otherwise inserts TAB" nil)
@@ -920,7 +925,7 @@ Only currently supported behavior is `alignleft'."
 (defcustom c-special-indent-hook nil
   "*Hook for user defined special indentation adjustments.
 This hook gets called after each line is indented by the mode.  It is only
-called if `c-syntactic-indentation' is non-nil."
+called when `c-syntactic-indentation' is non-nil."
   :type 'hook
   :group 'c)
 
@@ -1689,7 +1694,8 @@ as designated in the variable `c-file-style'.")
 ;; It isn't possible to specify a doc-string without specifying an
 ;; initial value with `defvar', so the following two variables have been
 ;; given doc-strings by setting the property `variable-documentation'
-;; directly.  It's really good not to have an initial value for
+;; directly.  C-h v will read this documentation only for versions of GNU
+;; Emacs from 22.1.  It's really good not to have an initial value for
 ;; variables like these that always should be dynamically bound, so it's
 ;; worth the inconvenience.
 

@@ -1,4 +1,4 @@
-;;; mpc.el --- A client for the Music Player Daemon   -*- coding: utf-8; lexical-binding: t -*-
+;;; mpc.el --- A client for the Music Player Daemon   -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2006-2014 Free Software Foundation, Inc.
 
@@ -891,9 +891,7 @@ If PLAYLIST is t or nil or missing, use the main playlist."
   :type '(choice (const nil) directory))
 
 (defcustom mpc-data-directory
-  (if (and (not (file-directory-p "~/.mpc"))
-           (file-directory-p "~/.emacs.d"))
-      "~/.emacs.d/mpc" "~/.mpc")
+  (locate-user-emacs-file "mpc" ".mpc")
   "Directory where MPC.el stores auxiliary data."
   :type 'directory)
 
@@ -1807,7 +1805,9 @@ A value of t means the main playlist.")
   ;; Maintain the volume.
   (setq mpc-volume
         (mpc-volume-widget
-         (string-to-number (cdr (assq 'volume mpc-status))))))
+         (string-to-number (cdr (assq 'volume mpc-status)))))
+  (let ((status-buf (mpc-proc-buffer (mpc-proc) 'status)))
+    (when status-buf (with-current-buffer status-buf (force-mode-line-update)))))
 
 (defvar mpc-volume-step 5)
 
@@ -2036,7 +2036,7 @@ This is used so that they can be compared with `eq', which is needed for
                  (match-string 1)))))
     (cond
      ((null re) (posn-set-point posn))
-     ((null sn) (error "This song is not in the playlist"))
+     ((null sn) (user-error "This song is not in the playlist"))
      ((null (with-current-buffer plbuf (re-search-forward re nil t)))
       ;; song-file only appears once in the playlist: no ambiguity,
       ;; we're good to go!
@@ -2346,7 +2346,7 @@ This is used so that they can be compared with `eq', which is needed for
     (if (mpc-playlist-add)
         (if (member (cdr (assq 'state (mpc-cmd-status))) '("stop"))
             (mpc-cmd-play))
-      (error "Don't know what to play"))))
+      (user-error "Don't know what to play"))))
 
 (defun mpc-next ()
   "Jump to the next song in the queue."
@@ -2610,7 +2610,8 @@ This is used so that they can be compared with `eq', which is needed for
             (mpc-cmd-move (let ((poss '()))
                             (dotimes (i (length songs))
                                      (push (+ i (length pl)) poss))
-                            (nreverse poss)) dest-pos mpc-songs-playlist)
+                            (nreverse poss))
+                            dest-pos mpc-songs-playlist)
             (message "Added %d songs" (length songs)))))
         (mpc-songs-refresh))
       (t

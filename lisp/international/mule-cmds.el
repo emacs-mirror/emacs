@@ -2776,11 +2776,7 @@ See also the documentation of `get-char-code-property' and
     (or (stringp table)
 	(error "Not a char-table nor a file name: %s" table)))
   (if (stringp table) (setq table (purecopy table)))
-  (let ((slot (assq name char-code-property-alist)))
-    (if slot
-	(setcdr slot table)
-      (setq char-code-property-alist
-	    (cons (cons name table) char-code-property-alist))))
+  (setf (alist-get name char-code-property-alist) table)
   (put name 'char-code-property-documentation (purecopy docstring)))
 
 (defvar char-code-property-table

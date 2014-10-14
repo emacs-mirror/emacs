@@ -245,18 +245,20 @@ do_scrolling (struct frame *frame, struct glyph_matrix *current_matrix,
 {
   struct matrix_elt *p;
   int i, j, k;
+  USE_SAFE_ALLOCA;
 
   /* True if we have set a terminal window with set_terminal_window.  */
   bool terminal_window_p = 0;
 
   /* A queue for line insertions to be done.  */
   struct queue { int count, pos; };
-  struct queue *queue_start
-    = alloca (current_matrix->nrows * sizeof *queue_start);
+  struct queue *queue_start;
+  SAFE_NALLOCA (queue_start, 1, current_matrix->nrows);
   struct queue *queue = queue_start;
 
-  char *retained_p = alloca (window_size * sizeof *retained_p);
-  int *copy_from = alloca (window_size * sizeof *copy_from);
+  char *retained_p = SAFE_ALLOCA (window_size);
+  int *copy_from;
+  SAFE_NALLOCA (copy_from, 1, window_size);
 
   /* Zero means line is empty.  */
   memset (retained_p, 0, window_size * sizeof (char));
@@ -378,6 +380,7 @@ do_scrolling (struct frame *frame, struct glyph_matrix *current_matrix,
 
   if (terminal_window_p)
     set_terminal_window (frame, 0);
+  SAFE_FREE ();
 }
 
 
@@ -649,10 +652,12 @@ do_direct_scrolling (struct frame *frame, struct glyph_matrix *current_matrix,
 {
   struct matrix_elt *p;
   int i, j;
+  USE_SAFE_ALLOCA;
 
   /* A queue of deletions and insertions to be performed.  */
   struct alt_queue { int count, pos, window; };
-  struct alt_queue *queue_start = alloca (window_size * sizeof *queue_start);
+  struct alt_queue *queue_start;
+  SAFE_NALLOCA (queue_start, 1, window_size);
   struct alt_queue *queue = queue_start;
 
   /* True if a terminal window has been set with set_terminal_window.  */
@@ -667,11 +672,12 @@ do_direct_scrolling (struct frame *frame, struct glyph_matrix *current_matrix,
   bool write_follows_p = 1;
 
   /* For each row in the new matrix what row of the old matrix it is.  */
-  int *copy_from = alloca (window_size * sizeof *copy_from);
+  int *copy_from;
+  SAFE_NALLOCA (copy_from, 1, window_size);
 
   /* Non-zero for each row in the new matrix that is retained from the
      old matrix.  Lines not retained are empty.  */
-  char *retained_p = alloca (window_size * sizeof *retained_p);
+  char *retained_p = SAFE_ALLOCA (window_size);
 
   memset (retained_p, 0, window_size * sizeof (char));
 
@@ -787,6 +793,7 @@ do_direct_scrolling (struct frame *frame, struct glyph_matrix *current_matrix,
 
   if (terminal_window_p)
     set_terminal_window (frame, 0);
+  SAFE_FREE ();
 }
 
 
@@ -796,8 +803,9 @@ scrolling_1 (struct frame *frame, int window_size, int unchanged_at_top,
 	     int unchanged_at_bottom, int *draw_cost, int *old_draw_cost,
 	     unsigned *old_hash, unsigned *new_hash, int free_at_end)
 {
-  struct matrix_elt *matrix
-    = alloca ((window_size + 1) * (window_size + 1) * sizeof *matrix);
+  USE_SAFE_ALLOCA;
+  struct matrix_elt *matrix;
+  SAFE_NALLOCA (matrix, window_size + 1, window_size + 1);
 
   if (FRAME_SCROLL_REGION_OK (frame))
     {
@@ -817,6 +825,8 @@ scrolling_1 (struct frame *frame, int window_size, int unchanged_at_top,
                     frame->current_matrix, matrix, window_size,
 		    unchanged_at_top);
     }
+
+  SAFE_FREE ();
 }
 
 

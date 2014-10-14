@@ -139,6 +139,7 @@
 					 "calc-"))))
       (let* ((kmap (calc-user-key-map))
 	     (old (assq key kmap)))
+        ;; FIXME: Why not (define-key kmap (vector key) func)?
 	(if old
 	    (setcdr old func)
 	  (setcdr kmap (cons (cons key func) (cdr kmap))))))))
@@ -322,6 +323,7 @@
      (if key
 	 (let* ((kmap (calc-user-key-map))
 		(old (assq key kmap)))
+           ;; FIXME: Why not (define-key kmap (vector key) cmd)?
 	   (if old
 	       (setcdr old cmd)
 	     (setcdr kmap (cons (cons key cmd) (cdr kmap)))))))
@@ -467,6 +469,7 @@
 			      (format "z%c" key)))))
       (let* ((kmap (calc-user-key-map))
 	     (old (assq key kmap)))
+        ;; FIXME: Why not (define-key kmap (vector key) func)?
 	(if old
 	    (setcdr old cmd)
 	  (setcdr kmap (cons (cons key cmd) (cdr kmap))))))))

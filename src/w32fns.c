@@ -263,9 +263,9 @@ static unsigned int sound_type = 0xFFFFFFFF;
    the first display on the list.  */
 
 struct w32_display_info *
-check_x_display_info (Lisp_Object frame)
+check_x_display_info (Lisp_Object object)
 {
-  if (NILP (frame))
+  if (NILP (object))
     {
       struct frame *sf = XFRAME (selected_frame);
 
@@ -274,14 +274,23 @@ check_x_display_info (Lisp_Object frame)
       else
 	return &one_w32_display_info;
     }
-  else if (STRINGP (frame))
-    return x_display_info_for_name (frame);
+  else if (TERMINALP (object))
+    {
+      struct terminal *t = decode_live_terminal (object);
+
+      if (t->type != output_w32)
+        error ("Terminal %d is not a W32 display", t->id);
+
+      return t->display_info.w32;
+    }
+  else if (STRINGP (object))
+    return x_display_info_for_name (object);
   else
     {
       struct frame *f;
 
-      CHECK_LIVE_FRAME (frame);
-      f = XFRAME (frame);
+      CHECK_LIVE_FRAME (object);
+      f = XFRAME (object);
       if (! FRAME_W32_P (f))
 	error ("Non-W32 frame used");
       return FRAME_DISPLAY_INFO (f);
@@ -1956,13 +1965,12 @@ w32_createhscrollbar (struct frame *f, struct scroll_bar * bar)
 }
 
 static void
-w32_createwindow (struct frame *f)
+w32_createwindow (struct frame *f, int *coords)
 {
   HWND hwnd;
   RECT rect;
-  Lisp_Object top = Qunbound;
-  Lisp_Object left = Qunbound;
-  struct w32_display_info *dpyinfo = &one_w32_display_info;
+  int top;
+  int left;
 
   rect.left = rect.top = 0;
   rect.right = FRAME_PIXEL_WIDTH (f);
@@ -1977,25 +1985,21 @@ w32_createwindow (struct frame *f)
 
   if (f->size_hint_flags & USPosition || f->size_hint_flags & PPosition)
     {
-      XSETINT (left, f->left_pos);
-      XSETINT (top, f->top_pos);
+      left = f->left_pos;
+      top = f->top_pos;
     }
-  else if (EQ (left, Qunbound) && EQ (top, Qunbound))
+  else
     {
-      /* When called with RES_TYPE_NUMBER, w32_get_arg will return zero
-	 for anything that is not a number and is not Qunbound.  */
-      left = x_get_arg (dpyinfo, Qnil, Qleft, "left", "Left", RES_TYPE_NUMBER);
-      top = x_get_arg (dpyinfo, Qnil, Qtop, "top", "Top", RES_TYPE_NUMBER);
+      left = coords[0];
+      top = coords[1];
     }
 
   FRAME_W32_WINDOW (f) = hwnd
     = CreateWindow (EMACS_CLASS,
 		    f->namebuf,
 		    f->output_data.w32->dwStyle | WS_CLIPCHILDREN,
-		    EQ (left, Qunbound) ? CW_USEDEFAULT : XINT (left),
-		    EQ (top, Qunbound) ? CW_USEDEFAULT : XINT (top),
-		    rect.right - rect.left,
-		    rect.bottom - rect.top,
+		    left, top,
+		    rect.right - rect.left, rect.bottom - rect.top,
 		    NULL,
 		    NULL,
 		    hinst,
@@ -2516,7 +2520,8 @@ w32_msg_pump (deferred_msg * msg_buf)
                  the patch for XP is not publicly available until XP SP3,
                  and older versions will never be patched.  */
               CoInitialize (NULL);
-	      w32_createwindow ((struct frame *) msg.wParam);
+	      w32_createwindow ((struct frame *) msg.wParam,
+				(int *) msg.lParam);
 	      if (!PostThreadMessage (dwMainThreadId, WM_EMACS_DONE, 0, 0))
 		emacs_abort ();
 	      break;
@@ -4136,8 +4141,25 @@ static void
 my_create_window (struct frame * f)
 {
   MSG msg;
+  static int coords[2];
+  Lisp_Object left, top;
+  struct w32_display_info *dpyinfo = &one_w32_display_info;
 
-  if (!PostThreadMessage (dwWindowsThreadId, WM_EMACS_CREATEWINDOW, (WPARAM)f, 0))
+  /* When called with RES_TYPE_NUMBER, x_get_arg will return zero for
+     anything that is not a number and is not Qunbound.  */
+  left = x_get_arg (dpyinfo, Qnil, Qleft, "left", "Left", RES_TYPE_NUMBER);
+  top = x_get_arg (dpyinfo, Qnil, Qtop, "top", "Top", RES_TYPE_NUMBER);
+  if (EQ (left, Qunbound))
+    coords[0] = CW_USEDEFAULT;
+  else
+    coords[0] = XINT (left);
+  if (EQ (top, Qunbound))
+    coords[1] = CW_USEDEFAULT;
+  else
+    coords[1] = XINT (top);
+
+  if (!PostThreadMessage (dwWindowsThreadId, WM_EMACS_CREATEWINDOW,
+			  (WPARAM)f, (LPARAM)coords))
     emacs_abort ();
   GetMessage (&msg, NULL, WM_EMACS_DONE, WM_EMACS_DONE);
 }
@@ -4569,7 +4591,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
 		       NULL, NULL, RES_TYPE_NUMBER);
   x_default_parameter (f, parameters, Qvertical_scroll_bars, Qright,
 		       "verticalScrollBars", "ScrollBars", RES_TYPE_SYMBOL);
-  x_default_parameter (f, parameters, Qhorizontal_scroll_bars, Qbottom,
+  x_default_parameter (f, parameters, Qhorizontal_scroll_bars, Qnil,
 		       "horizontalScrollBars", "ScrollBars", RES_TYPE_SYMBOL);
 
   /* Also do the stuff which must be set before the window exists.  */
@@ -5012,7 +5034,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
   return Qnil;
 }
 
-static BOOL CALLBACK
+static BOOL CALLBACK ALIGN_STACK
 w32_monitor_enum (HMONITOR monitor, HDC hdc, RECT *rcMonitor, LPARAM dwData)
 {
   Lisp_Object *monitor_list = (Lisp_Object *) dwData;
@@ -5339,7 +5361,7 @@ terminate Emacs if we can't open the connection.
   {
     char basename[ MAX_PATH ], *str;
 
-    strcpy (basename, SDATA (Vinvocation_name));
+    lispstpcpy (basename, Vinvocation_name);
     str = strrchr (basename, '.');
     if (str) *str = 0;
     Vinvocation_name = build_string (basename);
@@ -5640,7 +5662,8 @@ x_create_tip_frame (struct w32_display_info *dpyinfo,
   f->wants_modeline = 0;
   XSETFRAME (frame, f);
 
-  buffer = Fget_buffer_create (build_string (" *tip*"));
+  AUTO_STRING (tip, " *tip*");
+  buffer = Fget_buffer_create (tip);
   /* Use set_window_buffer instead of Fset_window_buffer (see
      discussion of bug#11984, bug#12025, bug#12026).  */
   set_window_buffer (FRAME_ROOT_WINDOW (f), buffer, 0, 0);

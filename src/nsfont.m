@@ -627,8 +627,8 @@ static Lisp_Object nsfont_open (struct frame *f, Lisp_Object font_entity,
 static void nsfont_close (struct font *font);
 static int nsfont_has_char (Lisp_Object entity, int c);
 static unsigned int nsfont_encode_char (struct font *font, int c);
-static int nsfont_text_extents (struct font *font, unsigned int *code,
-                                int nglyphs, struct font_metrics *metrics);
+static void nsfont_text_extents (struct font *font, unsigned int *code,
+				 int nglyphs, struct font_metrics *metrics);
 static int nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
                         bool with_background);
 
@@ -988,9 +988,9 @@ nsfont_encode_char (struct font *font, int c)
 /* Perform the size computation of glyphs of FONT and fill in members
    of METRICS.  The glyphs are specified by their glyph codes in
    CODE (length NGLYPHS). */
-static int
-nsfont_text_extents (struct font *font, unsigned int *code, int nglyphs,
-                     struct font_metrics *metrics)
+static void
+nsfont_text_extents (struct font *font, unsigned int *code,
+		     int nglyphs, struct font_metrics *metrics)
 {
   struct nsfont_info *font_info = (struct nsfont_info *)font;
   struct font_metrics *pcm;
@@ -1000,7 +1000,7 @@ nsfont_text_extents (struct font *font, unsigned int *code, int nglyphs,
 
   memset (metrics, 0, sizeof (struct font_metrics));
 
-  for (i =0; i<nglyphs; i++)
+  for (i = 0; i < nglyphs; i++)
     {
       /* get metrics for this glyph, filling cache if need be */
       /* TODO: get metrics for whole string from an NSLayoutManager
@@ -1024,8 +1024,6 @@ nsfont_text_extents (struct font *font, unsigned int *code, int nglyphs,
     }
 
   metrics->width = totalWidth;
-
-  return totalWidth; /* not specified in doc, but xfont.c does it */
 }
 
 
@@ -1041,8 +1039,13 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
   static unsigned char cbuf[1024];
   unsigned char *c = cbuf;
 #ifdef NS_IMPL_GNUSTEP
+#if GNUSTEP_GUI_MAJOR_VERSION > 0 || GNUSTEP_GUI_MINOR_VERSION > 22
+  static CGFloat advances[1024];
+  CGFloat *adv = advances;
+#else
   static float advances[1024];
   float *adv = advances;
+#endif
 #else
   static CGSize advances[1024];
   CGSize *adv = advances;

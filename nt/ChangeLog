@@ -1,3 +1,17 @@
+2014-09-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (VERSION): Bump version to 25.0.50.
+
+	* emacsclient.rc: Bump version to 25.0.50.
+
+	* emacs.rc: Bump version to 25.0.50.
+
+	* config.nt (VERSION): Bump version to 25.0.50.
+
+2014-09-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* gnulib.mk: Synchronize with lib/gnulib.mk.
+
 2014-06-15  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (LDFLAGS): Explicitly set via configure.
@@ -18,8 +32,7 @@
 
 	* Makefile.in (DONT_INSTALL): Now empty.
 	(addsection${EXEEXT}): Remove target.
-
-	* addsection.c: File removed.
+	* addsection.c: Remove file.
 
 2014-05-27  Fabrice Popineau  <fabrice.popineau@gmail.com>
 

@@ -24,67 +24,6 @@
 
 ;;; Code:
 
-(defcustom x-select-enable-clipboard t
-  "Non-nil means cutting and pasting uses the clipboard.
-This is in addition to, but in preference to, the primary selection.
-
-Note that MS-Windows does not support selection types other than the
-clipboard.  (The primary selection that is set by Emacs is not
-accessible to other programs on MS-Windows.)
-
-This variable is not used by the Nextstep port."
-  :type 'boolean
-  :group 'killing
-  ;; The GNU/Linux version changed in 24.1, the MS-Windows version did not.
-  :version "24.1")
-
-(defvar x-last-selected-text)		; w32-fns.el
-(declare-function w32-set-clipboard-data "w32select.c"
-		  (string &optional ignored))
-(defvar ns-last-selected-text)		; ns-win.el
-(declare-function ns-set-pasteboard "ns-win" (string))
-
-(defvar x-select-enable-primary)	; x-win.el
-(defvar x-last-selected-text-primary)
-(defvar x-last-selected-text-clipboard)
-(defvar saved-region-selection) 	; simple.el
-
-(defun x-select-text (text)
-  "Select TEXT, a string, according to the window system.
-
-On X, if `x-select-enable-clipboard' is non-nil, copy TEXT to the
-clipboard.  If `x-select-enable-primary' is non-nil, put TEXT in
-the primary selection.
-
-On MS-Windows, make TEXT the current selection.  If
-`x-select-enable-clipboard' is non-nil, copy the text to the
-clipboard as well.
-
-On Nextstep, put TEXT in the pasteboard (`x-select-enable-clipboard'
-is not used)."
-  (cond ((eq (framep (selected-frame)) 'w32)
-	 (if x-select-enable-clipboard
-	     (w32-set-clipboard-data text))
-	 (setq x-last-selected-text text))
-	((featurep 'ns)
-	 ;; Don't send the pasteboard too much text.
-	 ;; It becomes slow, and if really big it causes errors.
-	 (ns-set-pasteboard text)
-	 (setq ns-last-selected-text text))
-	(t
-	 ;; With multi-tty, this function may be called from a tty frame.
-	 (when (eq (framep (selected-frame)) 'x)
-	   (when x-select-enable-primary
-	     (x-set-selection 'PRIMARY text)
-	     (setq x-last-selected-text-primary text))
-	   (when x-select-enable-clipboard
-	     ;; When cutting, the selection is cleared and PRIMARY set to
-	     ;; the empty string.  Prevent that, PRIMARY should not be reset
-	     ;; by cut (Bug#16382).
-	     (setq saved-region-selection text)
-	     (x-set-selection 'CLIPBOARD text)
-	     (setq x-last-selected-text-clipboard text))))))
-
 ;;;; Function keys
 
 (defvar x-alternatives-map
@@ -117,9 +56,7 @@ is not used)."
         (set-keymap-parent map (keymap-parent local-function-key-map))
         (set-keymap-parent local-function-key-map map))
       (when (featurep 'ns)
-	(setq interprogram-cut-function 'x-select-text
-	      interprogram-paste-function 'x-selection-value
-	      system-key-alist
+	(setq system-key-alist
 	      (list
 	       ;; These are special "keys" used to pass events from C to lisp.
 	       (cons (logior (lsh 0 16)   1) 'ns-power-off)

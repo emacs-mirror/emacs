@@ -27,12 +27,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef HAVE_NS
 
 #ifdef NS_IMPL_COCOA
-#ifndef MAC_OS_X_VERSION_10_4
-#define MAC_OS_X_VERSION_10_4 1040
-#endif
-#ifndef MAC_OS_X_VERSION_10_5
-#define MAC_OS_X_VERSION_10_5 1050
-#endif
 #ifndef MAC_OS_X_VERSION_10_6
 #define MAC_OS_X_VERSION_10_6 1060
 #endif
@@ -58,21 +52,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    versions.
    On Cocoa >= 10.5, functions expect CGFloat*. Make compatible type.  */
 #ifdef NS_IMPL_COCOA
-
-#ifndef NS_HAVE_NSINTEGER
-#if defined (__LP64__) && __LP64__
-typedef double CGFloat;
-typedef long NSInteger;
-typedef unsigned long NSUInteger;
-#else
-typedef float CGFloat;
-typedef int NSInteger;
-typedef unsigned int NSUInteger;
-#endif /* not LP64 */
-#endif /* not NS_HAVE_NSINTEGER */
-
 typedef CGFloat EmacsCGFloat;
-
 #elif GNUSTEP_GUI_MAJOR_VERSION > 0 || GNUSTEP_GUI_MINOR_VERSION >= 22
 typedef CGFloat EmacsCGFloat;
 #else
@@ -139,7 +119,7 @@ typedef float EmacsCGFloat;
 
 @class EmacsToolbar;
 
-#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+#ifdef NS_IMPL_COCOA
 @interface EmacsView : NSView <NSTextInput, NSWindowDelegate>
 #else
 @interface EmacsView : NSView <NSTextInput>
@@ -217,7 +197,7 @@ typedef float EmacsCGFloat;
 
    ========================================================================== */
 
-#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+#ifdef NS_IMPL_COCOA
 @interface EmacsMenu : NSMenu  <NSMenuDelegate>
 #else
 @interface EmacsMenu : NSMenu
@@ -249,7 +229,7 @@ typedef float EmacsCGFloat;
 
 @class EmacsImage;
 
-#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+#ifdef NS_IMPL_COCOA
 @interface EmacsToolbar : NSToolbar <NSToolbarDelegate>
 #else
 @interface EmacsToolbar : NSToolbar
@@ -305,7 +285,7 @@ typedef float EmacsCGFloat;
 - (void)timeout_handler: (NSTimer *)timedEntry;
 @end
 
-#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+#ifdef NS_IMPL_COCOA
 @interface EmacsTooltip : NSObject <NSWindowDelegate>
 #else
 @interface EmacsTooltip : NSObject
@@ -401,7 +381,7 @@ typedef float EmacsCGFloat;
    CGFloat last_mouse_offset;
    float min_portion;
    int pixel_height;
-   int last_hit_part;
+   enum scroll_bar_part last_hit_part;
 
    BOOL condemned;
 

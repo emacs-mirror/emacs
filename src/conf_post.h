@@ -80,6 +80,23 @@ typedef bool bool_bf;
 #define vfork fork
 #endif  /* DARWIN_OS */
 
+/* If HYBRID_MALLOC is defined (e.g., on Cygwin), emacs will use
+   gmalloc before dumping and the system malloc after dumping.
+   hybrid_malloc and friends, defined in gmalloc.c, are wrappers that
+   accomplish this.  */
+#ifdef HYBRID_MALLOC
+#ifdef emacs
+#define malloc hybrid_malloc
+#define realloc hybrid_realloc
+#define calloc hybrid_calloc
+#define free hybrid_free
+#if defined HAVE_GET_CURRENT_DIR_NAME && !defined BROKEN_GET_CURRENT_DIR_NAME
+#define HYBRID_GET_CURRENT_DIR_NAME 1
+#define get_current_dir_name hybrid_get_current_dir_name
+#endif
+#endif
+#endif	/* HYBRID_MALLOC */
+
 /* We have to go this route, rather than the old hpux9 approach of
    renaming the functions via macros.  The system's stdlib.h has fully
    prototyped declarations, which yields a conflicting definition of
@@ -123,13 +140,6 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
    so we could reuse it in readlinkat; see msdos.c.  */
 #define opendir sys_opendir
 
-/* The "portable" definition of _GL_INLINE on config.h does not work
-   with DJGPP GCC 3.4.4: it causes unresolved externals in sysdep.c,
-   although lib/execinfo.h is included and the inline functions there
-   are visible.  */
-#if __GNUC__ < 4
-# define _GL_EXECINFO_INLINE inline
-#endif
 /* End of gnulib-related stuff.  */
 
 #define emacs_raise(sig) msdos_fatal_signal (sig)
@@ -183,6 +193,10 @@ extern void _DebPrint (const char *fmt, ...);
 #if defined CYGWIN && defined HAVE_NTGUI
 # define NTGUI_UNICODE /* Cygwin runs only on UNICODE-supporting systems */
 # define _WIN32_WINNT 0x500 /* Win2k */
+/* The following was in /usr/include/string.h prior to Cygwin 1.7.33.  */
+#ifndef strnicmp
+#define strnicmp strncasecmp
+#endif
 #endif
 
 #ifdef emacs /* Don't do this for lib-src.  */

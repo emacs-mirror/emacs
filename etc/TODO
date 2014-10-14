@@ -26,12 +26,62 @@ are the ones we consider more important, but these also may be
 difficult to fix.  Bugs with severity "minor" may be simpler, but this
 is not always true.
 
-* Tentative plan for Emacs-24
+* Speed up Elisp execution
+** Speed up function calls
+Change src/bytecode.c so that calls from byte-code functions to byte-code
+functions don't go through Ffuncall/funcall_lambda/exec_byte_code but instead
+stay within exec_byte_code.
+
+** Add new `switch' byte-code
+This byte-code would take one argument from the stack (the object to test)
+and one argument from the constant-pool (a switch table, implemented as an
+eq-hashtable) and would jump to the "label" contained in the hashtable.
+
+Then add a `case' special-form that can be compiled to this byte-code.
+This would behave just like cl-case, but instead of expanding to cond+eq it
+would be its own special form and would be compiled specially.
+
+Then change pcase to use `case' when applicable.
+
+Then change the byte-compiler to recognize (cond ((eq x 'foo) bar) ...)
+and turn it into a `case' for more efficient execution.
+
+** Improve the byte-compiler to recognize immutable (lexical) bindings
+and get rid of them if they're used only once and/or they're bound to
+a constant expression.
+
+Such things aren't present in hand-written code, but macro expansion and
+defsubst can often end up generating things like
+(funcall (lambda (arg) (body)) actual) which then get optimized to
+(let ((arg actual)) (body)) but should additionally get optimized further
+when `actual' is a constant/copyable expression.
+
+** Add an "indirect goto" byte-code and use it for local lambda expressions.
+E.g. when you have code like
+
+   (let ((foo (lambda (x) bar)))
+     (dosomething
+      (funcall foo toto)
+      (blabla (funcall foo titi))))
+
+turn those `funcalls' into jumps and their return into indirect jumps back.
+
+** Compile efficiently local recursive functions
+
+Similar to the previous point, we should be able to handle something like
+
+   (letrec ((loop () (blabla) (if (toto) (loop))))
+     (loop))
+
+which ideally should generate the same byte-code as
+
+   (while (progn (blabla) (toto)))
+
+* Things that were planned for Emacs-24
 
 ** concurrency: including it as an "experimental" compile-time option
-  sounds good.  Of course there might still be big questions around
-  "which form of concurrency" we'll want.
-** Overhaul of customize: sounds wonderful.
+  sounds good.  Of course there might still be big questions around "which form
+  of concurrency" we'll want.
 ** better support for dynamic embedded graphics: I like this idea (my
   mpc.el code could use it for the volume widget), though I wonder if the
   resulting efficiency will be sufficient.
@@ -43,10 +93,6 @@ is not always true.
 ** Random things that cross my mind right now that I'd like to see (some of
 them from my local hacks), but it's not obvious at all whether they'll
 make it.
-*** multiple inheritance for keymaps (to get rid of the
-  fix_submap_inheritance hack and to more cleanly express the
-  relationship between minibuffer-local-*-map): I've had this locally
-  for a long time, but the details of the semantics is somewhat ... delicate.
 *** prog-mode could/should provide a better fill-paragraph default
   that uses syntax-tables to recognize string/comment boundaries.
 *** provide more completion-at-point-functions.  Make existing
@@ -102,8 +148,6 @@ I suggest totally rewriting that part of Flymake, using the simplest
 mechanism that suffices for the specific needs.  That will be easy
 for users to customize.
 
-** Compute the list of active keymaps *after* reading the first event.
-
 ** Distribute a bar cursor of width > 1 evenly between the two glyphs
    on each side of the bar (what to do at the edges?).
 
@@ -118,10 +162,6 @@ for users to customize.
   the ring may not correspond to the text as displayed to the user.
   It ought to be possible to omit text which is invisible (due to a
   text-property, overlay, or selective display) from the kill-ring.
-
-** Change the way define-minor-mode handles autoloading.
-  It should not generate :require.  Or :require in defcustom
-  should not be recorded in the user's custom-set-variables call.
 
 ** Feature to change cursor shape when Emacs is idle (for more than
   a specified time).
@@ -195,14 +235,63 @@ http://lists.gnu.org/archive/html/emacs-devel/2013-11/msg00515.html
     processing.  That is why we added text properties and variable
     width fonts.  However, more features are still needed to achieve this.
 
-** Extended text-properties (to make overlays "obsolete")
+** Extend text-properties and overlays
 *** Several text-property planes
 This would get us rid of font-lock-face property (and I'd be happy to
 get rid of char-property-alias-alist as well) since font-lock would
 simply use the `face' property in the `font-lock' plane.
-Each property would come with an Elisp merge-function.  The merge
-would be performed in add-text-properties.
-*** zero-width text-properties.
+
+Basically `put-text-property' and friends would take an extra argument PLANE
+(maybe the best backward-compatible way to do that is to make it so that
+PROPERTY can be a cons cell (PLANE . PROP)).  So font-lock would
+do (put-text-property start end '(font-lock . face) value).
+
+All the properties coming from the various planes would get merged via an Elisp
+function (so it can merge `face' differently than `keymap' or it could give
+different priorities to different planes (we could imagine enabling/disabling
+planes)).  The merging would not happen lazily while looking up properties but
+instead it would take place eagerly in `add-text-properties'.  This is based on
+the idea that it's much more frequent to lookup properties than to
+modify them.  Also, when properties are looked up during redisplay, we
+generally can't run Elisp code, whereas we generally can do that when
+properties are added.
+
+*** Move overlays to intervals.c
+
+Currently overlays are implemented as (two) sorted singly linked lists (one
+for overlays_before some position and one for overlay_after that
+position, for some quirky definition of "before" and "after").
+The function `overlay-recenter' changes the position used for the split
+(and is called internally in various situations).
+
+Each overlay is itself implemented with two markers (which keep track of
+the overlay-start and overlay-end).  Markers are implemented as
+a non-sorted singly linked list of markers.  So every text
+insertion/deletion requires O(N) time, where N is the number of markers
+since we have to go down that list to update those markers that are
+affected by the modification.
+
+You can start in src/buffer.[ch], maybe grepping for overlays_before for
+a starting point.
+
+Text-properties, OTOH, are implemented with a (mostly) balanced binary
+tree.  This is implemented in src/intervals.[ch].
+
+So we'd like to change overlays so that they don't use markers (and we
+don't keep them in two sorted singly-linked lists) any more.  Instead,
+we'll store them inside the balanced binary tree used for
+text-properties.  I think we can use the "augmented tree" approach
+described in https://en.wikipedia.org/wiki/Interval_tree.
+
+To ease up debugging during development, I'd guess the implementation
+would first add the new stuff, keeping the old stuff (i.e. add to
+Lisp_Overlay whichever fields are needed for the new code, while keeping
+the old ones, add needed overlay fields to the intervals tree, but keep
+the old fields, the overlays_before etc...).  This way, you can add
+consistency checks that make sure the new code computes the same results
+as the old code.  And once that works well, we can remove the old code
+and old fields.
+
 ** Having tabs above a window to switch buffers in it.
 
 ** "Perspectives" are named persistent window configurations.  We have
@@ -442,12 +531,6 @@ rather than interactively.  This a trivial one-liner in easy-mode.el.
   [Basic support added 2013/10:
   http://lists.gnu.org/archive/html/emacs-devel/2013-10/msg00904.html ]
 
-** Eliminate the storm of warnings concerning char/unsigned char
-  mismatches that we get with GCC 4.x and proprietary compilers on
-  various systems.  They make it difficult to spot the important warnings.
-
-** Fix anything necessary to use `long long' EMACS_INTs with GCC.
-
 ** Split out parts of lisp.h.
 
 ** Update the FAQ.
@@ -467,7 +550,8 @@ rather than interactively.  This a trivial one-liner in easy-mode.el.
 
 ** Add definitions for symbol properties, for documentation purposes.
 
-** Add horizontal scroll bars.
+** Temporarily remove scroll bars when they are not needed, typically
+  when a buffer can be fully displayed in its window.
 
 ** Provide an optional feature which computes a scroll bar slider's
   size and its position from lines instead of characters.
@@ -1205,10 +1289,6 @@ systems for HTML/XML files automatically."
 ** Replace linum.el with nlinum.el
    http://lists.gnu.org/archive/html/emacs-devel/2013-08/msg00379.html
 
-** Use pcomplete by default in shell-mode.
-   This means to make it behave (by default) more like the current code.
-   Use it also for read-shell-command, M-x compile, ...
-
 ** Merge sendmail.el and messages.el.
    Probably not a complete merge, but at least arrange for messages.el to be
    a derived mode of sendmail.el.  Or arrange for messages.el to be split
@@ -1250,9 +1330,6 @@ for vc-rcs-update-changelog.
 
 ** a two-char comment-starter whose two chars are symbol constituents will
 not be noticed if it appears within a word.
-
-** Fix unexelf.c to handle the .data.rel and .data.rel.local
-   sections made by GCC 3.4 on IRIX.
 
 
 This file is part of GNU Emacs.

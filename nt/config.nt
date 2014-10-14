@@ -1576,7 +1576,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef USG_SUBTTY_WORKS
 
 /* Version number of package */
-#define VERSION "24.4.50"
+#define VERSION "25.0.50"
 
 /* Define to 1 if unsetenv returns void instead of int. */
 #undef VOID_UNSETENV

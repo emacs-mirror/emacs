@@ -37,7 +37,9 @@ static int next_terminal_id;
 /* The initial terminal device, created by initial_term_init.  */
 struct terminal *initial_terminal;
 
+Lisp_Object Qrun_hook_with_args;
 static Lisp_Object Qterminal_live_p;
+static Lisp_Object Qdelete_terminal_functions;
 
 static void delete_initial_terminal (struct terminal *);
 
@@ -194,34 +196,66 @@ ins_del_lines (struct frame *f, int vpos, int n)
     (*FRAME_TERMINAL (f)->ins_del_lines_hook) (f, vpos, n);
 }
 
+/* Return the terminal object specified by TERMINAL.  TERMINAL may
+   be a terminal object, a frame, or nil for the terminal device of
+   the current frame.  If TERMINAL is neither from the above or the
+   resulting terminal object is deleted, return NULL.  */
 
-
-
-/* Return the terminal object specified by TERMINAL.  TERMINAL may be
-   a terminal object, a frame, or nil for the terminal device of the
-   current frame.  If THROW is false, return NULL for failure,
-   otherwise throw an error.  */
-
-struct terminal *
-get_terminal (Lisp_Object terminal, bool throw)
+static struct terminal *
+decode_terminal (Lisp_Object terminal)
 {
-  struct terminal *result = NULL;
+  struct terminal *t;
 
   if (NILP (terminal))
     terminal = selected_frame;
+  t = (TERMINALP (terminal)
+       ? XTERMINAL (terminal)
+       : FRAMEP (terminal) ? FRAME_TERMINAL (XFRAME (terminal)) : NULL);
+  return t && t->name ? t : NULL;
+}
 
-  if (TERMINALP (terminal))
-    result = XTERMINAL (terminal);
-  else if (FRAMEP (terminal))
-    result = FRAME_TERMINAL (XFRAME (terminal));
+/* Like above, but throw an error if TERMINAL is not valid or deleted.  */
 
-  if (result && !result->name)
-    result = NULL;
+struct terminal *
+decode_live_terminal (Lisp_Object terminal)
+{
+  struct terminal *t = decode_terminal (terminal);
 
-  if (result == NULL && throw)
+  if (!t)
     wrong_type_argument (Qterminal_live_p, terminal);
+  return t;
+}
 
-  return result;
+/* Like decode_terminal, but ensure that the resulting terminal object refers
+   to a text-based terminal device.  */
+
+struct terminal *
+decode_tty_terminal (Lisp_Object terminal)
+{
+  struct terminal *t = decode_live_terminal (terminal);
+
+  return (t->type == output_termcap || t->type == output_msdos_raw) ? t : NULL;
+}
+
+/* Return an active (not suspended) text-based terminal device that uses
+   the tty device with the given NAME, or NULL if the named terminal device
+   is not opened.  */
+
+struct terminal *
+get_named_terminal (const char *name)
+{
+  struct terminal *t;
+
+  eassert (name);
+
+  for (t = terminal_list; t; t = t->next_terminal)
+    {
+      if ((t->type == output_termcap || t->type == output_msdos_raw)
+          && !strcmp (t->display_info.tty->name, name)
+          && TERMINAL_ACTIVE_P (t))
+        return t;
+    }
+  return NULL;
 }
 
 /* Create a new terminal object of TYPE and add it to the terminal list.  RIF
@@ -308,8 +342,6 @@ delete_terminal (struct terminal *terminal)
     }
 }
 
-Lisp_Object Qrun_hook_with_args;
-static Lisp_Object Qdelete_terminal_functions;
 DEFUN ("delete-terminal", Fdelete_terminal, Sdelete_terminal, 0, 2, 0,
        doc: /* Delete TERMINAL by deleting all frames on it and closing the terminal.
 TERMINAL may be a terminal object, a frame, or nil (meaning the
@@ -319,7 +351,7 @@ Normally, you may not delete a display if all other displays are suspended,
 but if the second argument FORCE is non-nil, you may do so. */)
   (Lisp_Object terminal, Lisp_Object force)
 {
-  struct terminal *t = get_terminal (terminal, 0);
+  struct terminal *t = decode_terminal (terminal);
 
   if (!t)
     return Qnil;
@@ -380,9 +412,7 @@ sort of output terminal it uses.  See the documentation of `framep' for
 possible return values.  */)
   (Lisp_Object object)
 {
-  struct terminal *t;
-
-  t = get_terminal (object, 0);
+  struct terminal *t = decode_terminal (object);
 
   if (!t)
     return Qnil;
@@ -429,8 +459,7 @@ TERMINAL may be a terminal object, a frame, or nil (meaning the
 selected frame's terminal). */)
   (Lisp_Object terminal)
 {
-  struct terminal *t
-    = TERMINALP (terminal) ? XTERMINAL (terminal) : get_terminal (terminal, 1);
+  struct terminal *t = decode_live_terminal (terminal);
 
   return t->name ? build_string (t->name) : Qnil;
 }
@@ -467,9 +496,7 @@ TERMINAL can be a terminal object, a frame, or nil (meaning the
 selected frame's terminal).  */)
   (Lisp_Object terminal)
 {
-  struct terminal *t
-    = TERMINALP (terminal) ? XTERMINAL (terminal) : get_terminal (terminal, 1);
-  return Fcopy_alist (t->param_alist);
+  return Fcopy_alist (decode_live_terminal (terminal)->param_alist);
 }
 
 DEFUN ("terminal-parameter", Fterminal_parameter, Sterminal_parameter, 2, 2, 0,
@@ -478,12 +505,8 @@ TERMINAL can be a terminal object, a frame, or nil (meaning the
 selected frame's terminal).  */)
   (Lisp_Object terminal, Lisp_Object parameter)
 {
-  Lisp_Object value;
-  struct terminal *t
-    = TERMINALP (terminal) ? XTERMINAL (terminal) : get_terminal (terminal, 1);
   CHECK_SYMBOL (parameter);
-  value = Fcdr (Fassq (parameter, t->param_alist));
-  return value;
+  return Fcdr (Fassq (parameter, decode_live_terminal (terminal)->param_alist));
 }
 
 DEFUN ("set-terminal-parameter", Fset_terminal_parameter,
@@ -495,9 +518,7 @@ TERMINAL can be a terminal object, a frame or nil (meaning the
 selected frame's terminal).  */)
   (Lisp_Object terminal, Lisp_Object parameter, Lisp_Object value)
 {
-  struct terminal *t
-    = TERMINALP (terminal) ? XTERMINAL (terminal) : get_terminal (terminal, 1);
-  return store_terminal_param (t, parameter, value);
+  return store_terminal_param (decode_live_terminal (terminal), parameter, value);
 }
 
 /* Initial frame has no device-dependent output data, but has

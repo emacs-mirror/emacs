@@ -47,7 +47,7 @@ last.  FORMS are the expressions to be threaded."
     (_ (car forms))))
 
 (defmacro thread-first (&rest forms)
-  "Thread FORMS elements as the first argument of their succesor.
+  "Thread FORMS elements as the first argument of their successor.
 Example:
     (thread-first
       5
@@ -64,7 +64,7 @@ threading."
   `(internal--thread-argument t ,@forms))
 
 (defmacro thread-last (&rest forms)
-  "Thread FORMS elements as the last argument of their succesor.
+  "Thread FORMS elements as the last argument of their successor.
 Example:
     (thread-last
       5
@@ -118,7 +118,7 @@ threading."
   "Process BINDINGS and if all values are non-nil eval THEN, else ELSE.
 Argument BINDINGS is a list of tuples whose car is a symbol to be
 bound and (optionally) used in THEN, and its cadr is a sexp to be
-evaled to set symbol's value.  In the special case you only want
+evalled to set symbol's value.  In the special case you only want
 to bind a single value, BINDINGS can just be a plain tuple."
   (declare (indent 2) (debug ((&rest (symbolp form)) form body)))
   (when (and (<= (length bindings) 2)
@@ -134,7 +134,7 @@ to bind a single value, BINDINGS can just be a plain tuple."
   "Process BINDINGS and if all values are non-nil eval BODY.
 Argument BINDINGS is a list of tuples whose car is a symbol to be
 bound and (optionally) used in BODY, and its cadr is a sexp to be
-evaled to set symbol's value.  In the special case you only want
+evalled to set symbol's value.  In the special case you only want
 to bind a single value, BINDINGS can just be a plain tuple."
   (declare (indent 1) (debug if-let))
   (list 'if-let bindings (macroexp-progn body)))
@@ -159,7 +159,7 @@ to bind a single value, BINDINGS can just be a plain tuple."
   "Join all STRINGS using SEPARATOR."
   (mapconcat 'identity strings separator))
 
-(define-obsolete-function-alias 'string-reverse 'reverse "24.5")
+(define-obsolete-function-alias 'string-reverse 'reverse "25.1")
 
 (defsubst string-trim-left (string)
   "Remove leading whitespace from STRING."

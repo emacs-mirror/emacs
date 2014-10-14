@@ -986,10 +986,10 @@ textual parts.")
 		    (setq target nil))
 		(nnheader-message 7 "Expiring article %s:%d" group article))
 	      (when target
-		(push article deleted-articles))))))))
+		(push article deleted-articles))))))
+      (setq deleted-articles (nreverse deleted-articles))))
     ;; Change back to the current group again.
     (nnimap-change-group group server)
-    (setq deleted-articles (nreverse deleted-articles))
     (nnimap-delete-article (gnus-compress-sequence deleted-articles))
     deleted-articles))
 

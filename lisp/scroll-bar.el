@@ -79,7 +79,7 @@ SIDE must be the symbol `left' or `right'."
      (htype lines)
      ((frame-parameter nil 'horizontal-scroll-bars)
       ;; nil means it's a non-toolkit scroll bar (which is currently
-      ;; impossible), and its width in columns is 14 pixels rounded up.
+      ;; impossible), and its height in lines is 14 pixels rounded up.
       (ceiling (or (frame-parameter nil 'scroll-bar-height) 14)
                (frame-char-width)))
      (0))))
@@ -90,14 +90,9 @@ SIDE must be the symbol `left' or `right'."
 (defvar scroll-bar-mode)
 (defvar horizontal-scroll-bar-mode)
 (defvar previous-scroll-bar-mode nil)
-(defvar previous-horizontal-scroll-bar-mode nil)
 
 (defvar scroll-bar-mode-explicit nil
   "Non-nil means `set-scroll-bar-mode' should really do something.
-This is nil while loading `scroll-bar.el', and t afterward.")
-
-(defvar horizontal-scroll-bar-mode-explicit nil
-  "Non-nil means `set-horizontal-scroll-bar-mode' should really do something.
 This is nil while loading `scroll-bar.el', and t afterward.")
 
 (defun set-scroll-bar-mode (value)
@@ -111,18 +106,6 @@ See the `scroll-bar-mode' variable for possible values to use."
   (when scroll-bar-mode-explicit
     (modify-all-frames-parameters (list (cons 'vertical-scroll-bars
 					      scroll-bar-mode)))))
-
-(defun set-horizontal-scroll-bar-mode (value)
-  "Set the horizontal scroll bar mode to VALUE and put the new value into effect.
-See the `horizontal-scroll-bar-mode' variable for possible values to use."
-  (if horizontal-scroll-bar-mode
-      (setq previous-horizontal-scroll-bar-mode horizontal-scroll-bar-mode))
-
-  (setq horizontal-scroll-bar-mode value)
-
-  (when horizontal-scroll-bar-mode-explicit
-    (modify-all-frames-parameters (list (cons 'horizontal-scroll-bars
-					      horizontal-scroll-bar-mode)))))
 
 (defcustom scroll-bar-mode default-frame-scroll-bars
   "Specify whether to have vertical scroll bars, and on which side.
@@ -140,31 +123,13 @@ Setting the variable with a customization buffer also takes effect."
   :initialize 'custom-initialize-default
   :set (lambda (_sym val) (set-scroll-bar-mode val)))
 
-(defcustom horizontal-scroll-bar-mode default-frame-horizontal-scroll-bars
-  "Specify whether to have horizontal scroll bars, and on which side.
-To set this variable in a Lisp program, use `set-horizontal-scroll-bar-mode'
-to make it take real effect.
-Setting the variable with a customization buffer also takes effect."
-  :type '(choice (const :tag "none (nil)" nil)
-		 (const t))
-  :group 'frames
-  ;; The default value for :initialize would try to use :set
-  ;; when processing the file in cus-dep.el.
-  :initialize 'custom-initialize-default
-  :set (lambda (_sym val) (set-horizontal-scroll-bar-mode val)))
-
 ;; We just set scroll-bar-mode, but that was the default.
 ;; If it is set again, that is for real.
 (setq scroll-bar-mode-explicit t)
-(setq horizontal-scroll-bar-mode-explicit t)
 
 (defun get-scroll-bar-mode ()
   (declare (gv-setter set-scroll-bar-mode))
   scroll-bar-mode)
-
-(defun get-horizontal-scroll-bar-mode ()
-  (declare (gv-setter set-horizontal-scroll-bar-mode))
-  horizontal-scroll-bar-mode)
 
 (define-minor-mode scroll-bar-mode
   "Toggle vertical scroll bars on all frames (Scroll Bar mode).
@@ -179,6 +144,13 @@ created in the future."
 			    (if v (or previous-scroll-bar-mode
 				      default-frame-scroll-bars))))))
 
+(defun horizontal-scroll-bars-available-p ()
+  "Return non-nil when horizontal scroll bars are available on this system."
+  (and (display-graphic-p)
+       (boundp 'x-toolkit-scroll-bars)
+       x-toolkit-scroll-bars
+       (not (eq (window-system) 'ns))))
+
 (define-minor-mode horizontal-scroll-bar-mode
   "Toggle horizontal scroll bars on all frames (Horizontal Scroll Bar mode).
 With a prefix argument ARG, enable Horizontal Scroll Bar mode if
@@ -187,14 +159,26 @@ enable the mode if ARG is omitted or nil.
 
 This command applies to all frames that exist and frames to be
 created in the future."
-  :variable ((get-horizontal-scroll-bar-mode)
-             . (lambda (v) (set-horizontal-scroll-bar-mode
-			    (if v (or previous-scroll-bar-mode
-				      default-frame-horizontal-scroll-bars))))))
+  :init-value nil
+  :global t
+  :group 'frames
+  (if (and horizontal-scroll-bar-mode
+	   (not (horizontal-scroll-bars-available-p)))
+      (progn
+	(setq horizontal-scroll-bar-mode nil)
+	(message "Horizontal scroll bars are not implemented on this system"))
+    (dolist (frame (frame-list))
+      (set-frame-parameter
+       frame 'horizontal-scroll-bars horizontal-scroll-bar-mode))
+    ;; Handle `default-frame-alist' entry.
+    (setq default-frame-alist
+	  (cons (cons 'horizontal-scroll-bars horizontal-scroll-bar-mode)
+		(assq-delete-all 'horizontal-scroll-bars
+				 default-frame-alist)))))
 
 (defun toggle-scroll-bar (arg)
   "Toggle whether or not the selected frame has vertical scroll bars.
-With arg, turn vertical scroll bars on if and only if arg is positive.
+With ARG, turn vertical scroll bars on if and only if ARG is positive.
 The variable `scroll-bar-mode' controls which side the scroll bars are on
 when they are turned on; if it is nil, they go on the left."
   (interactive "P")
@@ -212,7 +196,7 @@ when they are turned on; if it is nil, they go on the left."
 
 (defun toggle-horizontal-scroll-bar (arg)
   "Toggle whether or not the selected frame has horizontal scroll bars.
-With arg, turn horizontal scroll bars on if and only if arg is positive."
+With ARG, turn vertical scroll bars on if and only if ARG is positive."
   (interactive "P")
   (if (null arg)
       (setq arg
@@ -223,8 +207,7 @@ With arg, turn horizontal scroll bars on if and only if arg is positive."
   (modify-frame-parameters
    (selected-frame)
    (list (cons 'horizontal-scroll-bars
-	       (if (> arg 0)
-		   (or horizontal-scroll-bar-mode default-frame-horizontal-scroll-bars))))))
+	       (when (> arg 0) 'bottom)))))
 
 ;;;; Buffer navigation using the scroll bar.
 
@@ -330,9 +313,11 @@ If you click outside the slider, the window scrolls to bring the slider there."
     (if (eq (current-bidi-paragraph-direction (window-buffer window))
 	    'left-to-right)
 	(set-window-hscroll
-	 window (/ (1- (+ (car portion-whole) unit)) unit))
+	 window (/ (+ (car portion-whole) (1- unit)) unit))
       (set-window-hscroll
-	 window (/ (1- (+ (cdr portion-whole) unit)) unit)))))
+       window (/ (+ (- (cdr portion-whole) (car portion-whole))
+		    (1- unit))
+		 unit)))))
 
 (defun scroll-bar-horizontal-drag (event)
   "Scroll the window horizontally by dragging the scroll bar slider.
@@ -410,6 +395,7 @@ EVENT should be a scroll bar click."
 ;;; Tookit scroll bars.
 
 (defun scroll-bar-toolkit-scroll (event)
+  "Handle event EVENT on vertical scroll bar."
   (interactive "e")
   (let* ((end-position (event-end event))
 	 (window (nth 0 end-position))
@@ -451,6 +437,7 @@ EVENT should be a scroll bar click."
 	(setq point-before-scroll before-scroll))))))
 
 (defun scroll-bar-toolkit-horizontal-scroll (event)
+  "Handle event EVENT on horizontal scroll bar."
   (interactive "e")
   (let* ((end-position (event-end event))
 	 (window (nth 0 end-position))

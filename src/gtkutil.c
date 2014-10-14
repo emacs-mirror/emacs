@@ -508,16 +508,16 @@ get_utf8_string (const char *str)
              && err->code == G_CONVERT_ERROR_ILLEGAL_SEQUENCE)
         {
           memcpy (up, p, bytes_written);
-          sprintf (up + bytes_written, "\\%03o", p[bytes_written]);
-          up += bytes_written+4;
-          p += bytes_written+1;
+          up += bytes_written;
+          up += sprintf (up, "\\%03o", p[bytes_written]);
+          p += bytes_written + 1;
           g_error_free (err);
           err = NULL;
         }
 
       if (cp)
         {
-          strcat (utf8_str, cp);
+          strcpy (up, cp);
           g_free (cp);
         }
       if (err)
@@ -1324,7 +1324,7 @@ x_wm_set_size_hint (struct frame *f, long int flags, bool user_position)
 
   size_hints.base_width = base_width;
   size_hints.base_height = base_height;
-  size_hints.min_width  = base_width + min_cols * FRAME_COLUMN_WIDTH (f);;
+  size_hints.min_width  = base_width + min_cols * FRAME_COLUMN_WIDTH (f);
   size_hints.min_height = base_height + min_rows * FRAME_LINE_HEIGHT (f);
 
   /* These currently have a one to one mapping with the X values, but I
@@ -2554,11 +2554,18 @@ create_menus (widget_value *data,
 #ifdef HAVE_GTK_TEAROFF_MENU_ITEM_NEW
   if (! menu_bar_p && add_tearoff_p)
     {
-      GtkWidget *tearoff = gtk_tearoff_menu_item_new ();
-      gtk_menu_shell_append (GTK_MENU_SHELL (wmenu), tearoff);
+      // Only add tearoff if menu is empty.
+      GList *list = gtk_container_get_children (GTK_CONTAINER (wmenu));
+      if (! list)
+        {
+          GtkWidget *tearoff = gtk_tearoff_menu_item_new ();
+          gtk_menu_shell_append (GTK_MENU_SHELL (wmenu), tearoff);
 
-      g_signal_connect (G_OBJECT (tearoff), "activate",
-                        G_CALLBACK (tearoff_activate), 0);
+          g_signal_connect (G_OBJECT (tearoff), "activate",
+                            G_CALLBACK (tearoff_activate), 0);
+        }
+      else
+        g_list_free (list);
     }
 #endif
 
@@ -3088,7 +3095,6 @@ xg_update_submenu (GtkWidget *submenu,
   GList *list = 0;
   GList *iter;
   widget_value *cur;
-  bool has_tearoff_p = 0;
   GList *first_radio = 0;
 
   if (submenu)
@@ -3104,7 +3110,6 @@ xg_update_submenu (GtkWidget *submenu,
   /* Skip tearoff items, they have no counterpart in val.  */
     if (GTK_IS_TEAROFF_MENU_ITEM (w))
       {
-        has_tearoff_p = 1;
         iter = g_list_next (iter);
         if (iter) w = GTK_WIDGET (iter->data);
         else break;
@@ -3198,7 +3203,7 @@ xg_update_submenu (GtkWidget *submenu,
                              highlight_cb,
                              0,
                              0,
-                             ! has_tearoff_p,
+                             1,
                              submenu,
                              cl_data,
                              0);
@@ -3993,17 +3998,18 @@ xg_set_toolkit_horizontal_scroll_bar_thumb (struct scroll_bar *bar,
 
       block_input ();
       adj = gtk_range_get_adjustment (GTK_RANGE (wscroll));
-
-      /*      gtk_adjustment_set_lower (adj, (gdouble) lower);
+#if GTK_CHECK_VERSION (2, 3, 16)
+      gtk_adjustment_configure (adj, (gdouble) value, (gdouble) lower,
+				(gdouble) upper, (gdouble) step_increment,
+				(gdouble) page_increment, (gdouble) pagesize);
+#else
+      gtk_adjustment_set_lower (adj, (gdouble) lower);
       gtk_adjustment_set_upper (adj, (gdouble) upper);
       gtk_adjustment_set_page_size (adj, (gdouble) pagesize);
       gtk_adjustment_set_value (adj, (gdouble) value);
       gtk_adjustment_set_page_increment (adj, (gdouble) page_increment);
-      gtk_adjustment_set_step_increment (adj, (gdouble)
-      step_increment); */
-      gtk_adjustment_configure (adj, (gdouble) value, (gdouble) lower,
-				(gdouble) upper, (gdouble) step_increment,
-				(gdouble) page_increment, (gdouble) pagesize);
+      gtk_adjustment_set_step_increment (adj, (gdouble) step_increment);
+#endif
       gtk_adjustment_changed (adj);
       unblock_input ();
     }

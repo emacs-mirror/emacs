@@ -46,9 +46,7 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 
 #ifdef NS_IMPL_COCOA
 #include <IOKit/graphics/IOGraphicsLib.h>
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5
 #include "macfont.h"
-#endif
 #endif
 
 #if 0
@@ -135,7 +133,7 @@ check_ns_display_info (Lisp_Object object)
     }
   else if (TERMINALP (object))
     {
-      struct terminal *t = get_terminal (object, 1);
+      struct terminal *t = decode_live_terminal (object);
 
       if (t->type != output_ns)
         error ("Terminal %d is not a Nextstep display", t->id);
@@ -197,7 +195,7 @@ ns_display_info_for_name (Lisp_Object name)
 static NSString *
 ns_filename_from_panel (NSSavePanel *panel)
 {
-#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+#ifdef NS_IMPL_COCOA
   NSURL *url = [panel URL];
   NSString *str = [url path];
   return str;
@@ -209,7 +207,7 @@ ns_filename_from_panel (NSSavePanel *panel)
 static NSString *
 ns_directory_from_panel (NSSavePanel *panel)
 {
-#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+#ifdef NS_IMPL_COCOA
   NSURL *url = [panel directoryURL];
   NSString *str = [url path];
   return str;
@@ -1197,13 +1195,10 @@ This function is an internal primitive--use `make-frame' instead.  */)
   block_input ();
 
 #ifdef NS_IMPL_COCOA
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5
-  if (CTGetCoreTextVersion != NULL
-      && CTGetCoreTextVersion () >= kCTVersionNumber10_5)
     mac_register_font_driver (f);
+#else
+    register_font_driver (&nsfont_driver, f);
 #endif
-#endif
-  register_font_driver (&nsfont_driver, f);
 
   x_default_parameter (f, parms, Qfont_backend, Qnil,
 			"fontBackend", "FontBackend", RES_TYPE_STRING);
@@ -1244,7 +1239,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
 			   "verticalScrollBars", "VerticalScrollBars",
 			   RES_TYPE_SYMBOL);
   }
-  x_default_parameter (f, parms, Qhorizontal_scroll_bars, Qt,
+  x_default_parameter (f, parms, Qhorizontal_scroll_bars, Qnil,
 		       "horizontalScrollBars", "HorizontalScrollBars",
 		       RES_TYPE_SYMBOL);
   x_default_parameter (f, parms, Qforeground_color, build_string ("Black"),
@@ -1414,13 +1409,11 @@ DEFUN ("ns-popup-font-panel", Fns_popup_font_panel, Sns_popup_font_panel,
   id fm = [NSFontManager sharedFontManager];
   struct font *font = f->output_data.ns->font;
   NSFont *nsfont;
-  if (EQ (font->driver->type, Qns))
-    nsfont = ((struct nsfont_info *)font)->nsfont;
-#ifdef NS_IMPL_COCOA
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5
-  else
-    nsfont = (NSFont *) macfont_get_nsctfont (font);
+#ifdef NS_IMPL_GNUSTEP
+  nsfont = ((struct nsfont_info *)font)->nsfont;
 #endif
+#ifdef NS_IMPL_COCOA
+  nsfont = (NSFont *) macfont_get_nsctfont (font);
 #endif
   [fm setSelectedFont: nsfont isMultiple: NO];
   [fm orderFrontFontPanel: NSApp];
@@ -1442,8 +1435,7 @@ static struct
 {
   id panel;
   BOOL ret;
-#if ! defined (NS_IMPL_COCOA) || \
-  MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_6
+#ifdef NS_IMPL_GNUSTEP
   NSString *dirS, *initS;
   BOOL no_types;
 #endif
@@ -1453,8 +1445,7 @@ void
 ns_run_file_dialog (void)
 {
   if (ns_fd_data.panel == nil) return;
-#if defined (NS_IMPL_COCOA) && \
-  MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+#ifdef NS_IMPL_COCOA
   ns_fd_data.ret = [ns_fd_data.panel runModal];
 #else
   if (ns_fd_data.no_types)
@@ -1534,8 +1525,7 @@ Optional arg DIR_ONLY_P, if non-nil, means choose only directories.  */)
   block_input ();
   ns_fd_data.panel = panel;
   ns_fd_data.ret = NO;
-#if defined (NS_IMPL_COCOA) && \
-  MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+#ifdef NS_IMPL_COCOA
   if (! NILP (mustmatch) || ! NILP (dir_only_p))
     [panel setAllowedFileTypes: nil];
   if (dirS) [panel setDirectoryURL: [NSURL fileURLWithPath: dirS]];
@@ -1995,7 +1985,7 @@ DEFUN ("ns-list-services", Fns_list_services, Sns_list_services, 0, 0, 0,
        doc: /* List available Nextstep services by querying NSApp.  */)
      (void)
 {
-#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+#ifdef NS_IMPL_COCOA
   /* You can't get services like this in 10.6+.  */
   return Qnil;
 #else
@@ -2551,7 +2541,7 @@ the attributes:
 Internal use only, use `display-monitor-attributes-list' instead.  */)
   (Lisp_Object terminal)
 {
-  struct terminal *term = get_terminal (terminal, 1);
+  struct terminal *term = decode_live_terminal (terminal);
   NSArray *screens;
   NSUInteger i, n_monitors;
   struct MonitorInfo *monitors;

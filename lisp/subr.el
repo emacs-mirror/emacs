@@ -555,6 +555,15 @@ Elements of ALIST that are not conses are ignored."
 	(setq tail tail-cdr))))
   alist)
 
+(defun alist-get (key alist &optional default remove)
+  "Get the value associated to KEY in ALIST.
+DEFAULT is the value to return if KEY is not found in ALIST.
+REMOVE, if non-nil, means that when setting this element, we should
+remove the entry if the new value is `eql' to DEFAULT."
+  (ignore remove) ;;Silence byte-compiler.
+  (let ((x (assq key alist)))
+    (if x (cdr x) default)))
+
 (defun remove (elt seq)
   "Return a copy of SEQ with all occurrences of ELT removed.
 SEQ must be a list, vector, or string.  The comparison is done with `equal'."
@@ -1156,18 +1165,20 @@ and `event-end' functions."
 	      ((null spacing)
 	       (setq spacing 0)))
 	(cons (/ (car pair) (frame-char-width frame))
-	      (- (/ (cdr pair) (+ (frame-char-height frame) spacing))
-		 (if (null (with-current-buffer (window-buffer window)
-			     header-line-format))
-		     0 1))))))))
+	      (/ (cdr pair) (+ (frame-char-height frame) spacing))))))))
 
 (defun posn-actual-col-row (position)
-  "Return the actual column and row in POSITION, measured in characters.
-These are the actual row number in the window and character number in that row.
+  "Return the window row number in POSITION and character number in that row.
+
 Return nil if POSITION does not contain the actual position; in that case
-`posn-col-row' can be used to get approximate values.
+\`posn-col-row' can be used to get approximate values.
 POSITION should be a list of the form returned by the `event-start'
-and `event-end' functions."
+and `event-end' functions.
+
+This function does not account for the width on display, like the
+number of visual columns taken by a TAB or image.  If you need
+the coordinates of POSITION in character units, you should use
+\`posn-col-row', not this function."
   (nth 6 position))
 
 (defsubst posn-timestamp (position)
@@ -2880,23 +2891,21 @@ COMMAND is the shell command to run.
 An old calling convention accepted any number of arguments after COMMAND,
 which were just concatenated to COMMAND.  This is still supported but strongly
 discouraged."
-   ;; We used to use `exec' to replace the shell with the command,
-   ;; but that failed to handle (...) and semicolon, etc.
+  (declare (advertised-calling-convention (name buffer command) "23.1"))
+  ;; We used to use `exec' to replace the shell with the command,
+  ;; but that failed to handle (...) and semicolon, etc.
   (start-process name buffer shell-file-name shell-command-switch
 		 (mapconcat 'identity args " ")))
-(set-advertised-calling-convention 'start-process-shell-command
-                                   '(name buffer command) "23.1")
 
 (defun start-file-process-shell-command (name buffer &rest args)
   "Start a program in a subprocess.  Return the process object for it.
 Similar to `start-process-shell-command', but calls `start-file-process'."
+  (declare (advertised-calling-convention (name buffer command) "23.1"))
   (start-file-process
    name buffer
    (if (file-remote-p default-directory) "/bin/sh" shell-file-name)
    (if (file-remote-p default-directory) "-c" shell-command-switch)
    (mapconcat 'identity args " ")))
-(set-advertised-calling-convention 'start-file-process-shell-command
-                                   '(name buffer command) "23.1")
 
 (defun call-process-shell-command (command &optional infile buffer display
 					   &rest args)
@@ -2912,13 +2921,18 @@ STDERR-FILE may be nil (discard standard error output),
 t (mix it with ordinary output), or a file name string.
 
 Fourth arg DISPLAY non-nil means redisplay buffer as output is inserted.
-Remaining arguments are strings passed as additional arguments for COMMAND.
 Wildcards and redirection are handled as usual in the shell.
 
 If BUFFER is 0, `call-process-shell-command' returns immediately with value nil.
 Otherwise it waits for COMMAND to terminate and returns a numeric exit
 status or a signal description string.
-If you quit, the process is killed with SIGINT, or SIGKILL if you quit again."
+If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.
+
+An old calling convention accepted any number of arguments after DISPLAY,
+which were just concatenated to COMMAND.  This is still supported but strongly
+discouraged."
+  (declare (advertised-calling-convention
+            (command &optional infile buffer display) "24.5"))
   ;; We used to use `exec' to replace the shell with the command,
   ;; but that failed to handle (...) and semicolon, etc.
   (call-process shell-file-name
@@ -2930,6 +2944,8 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again."
 					   &rest args)
   "Process files synchronously in a separate process.
 Similar to `call-process-shell-command', but calls `process-file'."
+  (declare (advertised-calling-convention
+            (command &optional infile buffer display) "24.5"))
   (process-file
    (if (file-remote-p default-directory) "/bin/sh" shell-file-name)
    infile buffer display
@@ -2937,6 +2953,14 @@ Similar to `call-process-shell-command', but calls `process-file'."
    (mapconcat 'identity (cons command args) " ")))
 
 ;;;; Lisp macros to do various things temporarily.
+
+(defmacro track-mouse (&rest body)
+  "Evaluate BODY with mouse movement events enabled.
+Within a `track-mouse' form, mouse motion generates input events that
+ you can read with `read-event'.
+Normally, mouse motion is ignored."
+  (declare (debug t) (indent 0))
+  `(internal--track-mouse (lambda () ,@body)))
 
 (defmacro with-current-buffer (buffer-or-name &rest body)
   "Execute the forms in BODY with BUFFER-OR-NAME temporarily current.
@@ -3855,7 +3879,9 @@ This function is called directly from the C code."
       ;; discard the file name regexp
       (mapc #'funcall (cdr a-l-element))))
   ;; Complain when the user uses obsolete files.
-  (when (string-match-p "/obsolete/[^/]*\\'" abs-file)
+  (when (save-match-data
+          (and (string-match "/obsolete/\\([^/]*\\)\\'" abs-file)
+               (not (equal "loaddefs.el" (match-string 1 abs-file)))))
     ;; Maybe we should just use display-warning?  This seems yucky...
     (let* ((file (file-name-nondirectory abs-file))
 	   (msg (format "Package %s is obsolete!"
@@ -4775,6 +4801,21 @@ string \"1\" is higher (newer) than \"1pre\", which is higher than \"1beta\",
 which is higher than \"1alpha\", which is higher than \"1snapshot\".
 Also, \"-GIT\", \"-CVS\" and \"-NNN\" are treated as snapshot versions."
   (version-list-= (version-to-list v1) (version-to-list v2)))
+
+(defvar package--builtin-versions
+  ;; Mostly populated by loaddefs.el via autoload-builtin-package-versions.
+  (purecopy `((emacs . ,(version-to-list emacs-version))))
+  "Alist giving the version of each versioned builtin package.
+I.e. each element of the list is of the form (NAME . VERSION) where
+NAME is the package name as a symbol, and VERSION is its version
+as a list.")
+
+(defun package--description-file (dir)
+  (concat (let ((subdir (file-name-nondirectory
+                         (directory-file-name dir))))
+            (if (string-match "\\([^.].*?\\)-\\([0-9]+\\(?:[.][0-9]+\\|\\(?:pre\\|beta\\|alpha\\)[0-9]+\\)*\\)" subdir)
+                (match-string 1 subdir) subdir))
+          "-pkg.el"))
 
 
 ;;; Misc.

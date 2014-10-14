@@ -129,14 +129,6 @@
     (if test-not (not (funcall test-not item elt))
       (funcall (or test 'eql) item elt))))
 
-
-;;; Rounding functions with old-style multiple value returns.
-
-(defun cl-floor (a &optional b) (Values-list (floor* a b)))
-(defun cl-ceiling (a &optional b) (Values-list (ceiling* a b)))
-(defun cl-round (a &optional b) (Values-list (round* a b)))
-(defun cl-truncate (a &optional b) (Values-list (truncate* a b)))
-
 (defun safe-idiv (a b)
   (let* ((q (/ (abs a) (abs b)))
          (s (* (signum a) (signum b))))

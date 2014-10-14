@@ -64,10 +64,16 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 extern Lisp_Object w32_get_internal_run_time (void);
 #endif
 
+static void set_time_zone_rule (char const *);
 static Lisp_Object format_time_string (char const *, ptrdiff_t, struct timespec,
 				       bool, struct tm *);
+static long int tm_gmtoff (struct tm *);
 static int tm_diff (struct tm *, struct tm *);
 static void update_buffer_properties (ptrdiff_t, ptrdiff_t);
+
+#ifndef HAVE_TM_GMTOFF
+# define HAVE_TM_GMTOFF false
+#endif
 
 static Lisp_Object Qbuffer_access_fontify_functions;
 
@@ -79,15 +85,12 @@ Lisp_Object Qfield;
 
 static Lisp_Object Qboundary;
 
-/* The startup value of the TZ environment variable so it can be
-   restored if the user calls set-time-zone-rule with a nil
-   argument.  If null, the TZ environment variable was unset.  */
+/* The startup value of the TZ environment variable; null if unset.  */
 static char const *initial_tz;
 
-/* True if the static variable tzvalbuf (defined in
-   set_time_zone_rule) is part of 'environ'.  */
-static bool tzvalbuf_in_environ;
-
+/* A valid but unlikely setting for the TZ environment variable.
+   It is OK (though a bit slower) if the user chooses this value.  */
+static char dump_tz_string[] = "TZ=UtC0";
 
 void
 init_editfns (void)
@@ -101,13 +104,38 @@ init_editfns (void)
   init_system_name ();
 
 #ifndef CANNOT_DUMP
-  /* Don't bother with this on initial start when just dumping out */
+  /* When just dumping out, set the time zone to a known unlikely value
+     and skip the rest of this function.  */
   if (!initialized)
-    return;
-#endif /* not CANNOT_DUMP */
+    {
+# ifdef HAVE_TZSET
+      xputenv (dump_tz_string);
+      tzset ();
+# endif
+      return;
+    }
+#endif
 
-  initial_tz = getenv ("TZ");
-  tzvalbuf_in_environ = 0;
+  char *tz = getenv ("TZ");
+  initial_tz = tz;
+
+#if !defined CANNOT_DUMP && defined HAVE_TZSET
+  /* If the execution TZ happens to be the same as the dump TZ,
+     change it to some other value and then change it back,
+     to force the underlying implementation to reload the TZ info.
+     This is needed on implementations that load TZ info from files,
+     since the TZ file contents may differ between dump and execution.  */
+  if (tz && strcmp (tz, &dump_tz_string[sizeof "TZ=" - 1]) == 0)
+    {
+      ++*tz;
+      tzset ();
+      --*tz;
+    }
+#endif
+
+  /* Call set_time_zone_rule now, so that its call to putenv is done
+     before multiple threads are active.  */
+  set_time_zone_rule (tz);
 
   pw = getpwuid (getuid ());
 #ifdef MSDOS
@@ -376,13 +404,14 @@ at POSITION.  */)
       set_buffer_temp (XBUFFER (object));
 
       /* First try with room for 40 overlays.  */
-      noverlays = 40;
-      overlay_vec = alloca (noverlays * sizeof *overlay_vec);
+      Lisp_Object overlay_vecbuf[40];
+      noverlays = ARRAYELTS (overlay_vecbuf);
+      overlay_vec = overlay_vecbuf;
       noverlays = overlays_around (posn, overlay_vec, noverlays);
 
       /* If there are more than 40,
 	 make enough space for all, and try again.  */
-      if (noverlays > 40)
+      if (ARRAYELTS (overlay_vecbuf) < noverlays)
 	{
 	  SAFE_ALLOCA_LISP (overlay_vec, noverlays);
 	  noverlays = overlays_around (posn, overlay_vec, noverlays);
@@ -1325,17 +1354,16 @@ name, or nil if there is no such user.  */)
   /* Substitute the login name for the &, upcasing the first character.  */
   if (q)
     {
-      register char *r;
-      Lisp_Object login;
-
-      login = Fuser_login_name (make_number (pw->pw_uid));
-      r = alloca (strlen (p) + SCHARS (login) + 1);
+      Lisp_Object login = Fuser_login_name (make_number (pw->pw_uid));
+      USE_SAFE_ALLOCA;
+      char *r = SAFE_ALLOCA (strlen (p) + SBYTES (login) + 1);
       memcpy (r, p, q - p);
       r[q - p] = 0;
       strcat (r, SSDATA (login));
       r[q - p] = upcase ((unsigned char) r[q - p]);
       strcat (r, q + 1);
       full = build_string (r);
+      SAFE_FREE ();
     }
 #endif /* AMPERSAND_FULL_NAME */
 
@@ -1372,6 +1400,30 @@ time_overflow (void)
 {
   error ("Specified time is not representable");
 }
+
+/* A substitute for mktime_z on platforms that lack it.  It's not
+   thread-safe, but should be good enough for Emacs in typical use.  */
+#ifndef HAVE_TZALLOC
+time_t
+mktime_z (timezone_t tz, struct tm *tm)
+{
+  char *oldtz = getenv ("TZ");
+  USE_SAFE_ALLOCA;
+  if (oldtz)
+    {
+      size_t oldtzsize = strlen (oldtz) + 1;
+      char *oldtzcopy = SAFE_ALLOCA (oldtzsize);
+      oldtz = strcpy (oldtzcopy, oldtz);
+    }
+  block_input ();
+  set_time_zone_rule (tz);
+  time_t t = mktime (tm);
+  set_time_zone_rule (oldtz);
+  unblock_input ();
+  SAFE_FREE ();
+  return t;
+}
+#endif
 
 /* Return the upper part of the time T (everything but the bottom 16 bits).  */
 static EMACS_INT
@@ -1768,39 +1820,28 @@ format_time_string (char const *format, ptrdiff_t formatlen,
   size_t len;
   Lisp_Object bufstring;
   int ns = t.tv_nsec;
-  struct tm *tm;
   USE_SAFE_ALLOCA;
 
-  while (1)
+  tmp = ut ? gmtime_r (&t.tv_sec, tmp) : localtime_r (&t.tv_sec, tmp);
+  if (! tmp)
+    time_overflow ();
+  synchronize_system_time_locale ();
+
+  while (true)
     {
-      time_t *taddr = &t.tv_sec;
-      block_input ();
-
-      synchronize_system_time_locale ();
-
-      tm = ut ? gmtime (taddr) : localtime (taddr);
-      if (! tm)
-	{
-	  unblock_input ();
-	  time_overflow ();
-	}
-      *tmp = *tm;
-
       buf[0] = '\1';
-      len = emacs_nmemftime (buf, size, format, formatlen, tm, ut, ns);
+      len = emacs_nmemftime (buf, size, format, formatlen, tmp, ut, ns);
       if ((0 < len && len < size) || (len == 0 && buf[0] == '\0'))
 	break;
 
       /* Buffer was too small, so make it bigger and try again.  */
-      len = emacs_nmemftime (NULL, SIZE_MAX, format, formatlen, tm, ut, ns);
-      unblock_input ();
+      len = emacs_nmemftime (NULL, SIZE_MAX, format, formatlen, tmp, ut, ns);
       if (STRING_BYTES_BOUND <= len)
 	string_overflow ();
       size = len + 1;
       buf = SAFE_ALLOCA (size);
     }
 
-  unblock_input ();
   bufstring = make_unibyte_string (buf, len);
   SAFE_FREE ();
   return code_convert_string_norecord (bufstring, Vlocale_coding_system, 0);
@@ -1824,38 +1865,30 @@ DOW and ZONE.)  */)
   (Lisp_Object specified_time)
 {
   time_t time_spec = lisp_seconds_argument (specified_time);
-  struct tm save_tm;
-  struct tm *decoded_time;
-  Lisp_Object list_args[9];
+  struct tm local_tm, gmt_tm;
 
-  block_input ();
-  decoded_time = localtime (&time_spec);
-  if (decoded_time)
-    save_tm = *decoded_time;
-  unblock_input ();
-  if (! (decoded_time
-	 && MOST_NEGATIVE_FIXNUM - TM_YEAR_BASE <= save_tm.tm_year
-	 && save_tm.tm_year <= MOST_POSITIVE_FIXNUM - TM_YEAR_BASE))
+  if (! (localtime_r (&time_spec, &local_tm)
+	 && MOST_NEGATIVE_FIXNUM - TM_YEAR_BASE <= local_tm.tm_year
+	 && local_tm.tm_year <= MOST_POSITIVE_FIXNUM - TM_YEAR_BASE))
     time_overflow ();
-  XSETFASTINT (list_args[0], save_tm.tm_sec);
-  XSETFASTINT (list_args[1], save_tm.tm_min);
-  XSETFASTINT (list_args[2], save_tm.tm_hour);
-  XSETFASTINT (list_args[3], save_tm.tm_mday);
-  XSETFASTINT (list_args[4], save_tm.tm_mon + 1);
-  /* On 64-bit machines an int is narrower than EMACS_INT, thus the
-     cast below avoids overflow in int arithmetics.  */
-  XSETINT (list_args[5], TM_YEAR_BASE + (EMACS_INT) save_tm.tm_year);
-  XSETFASTINT (list_args[6], save_tm.tm_wday);
-  list_args[7] = save_tm.tm_isdst ? Qt : Qnil;
 
-  block_input ();
-  decoded_time = gmtime (&time_spec);
-  if (decoded_time == 0)
-    list_args[8] = Qnil;
-  else
-    XSETINT (list_args[8], tm_diff (&save_tm, decoded_time));
-  unblock_input ();
-  return Flist (9, list_args);
+  /* Avoid overflow when INT_MAX < EMACS_INT_MAX.  */
+  EMACS_INT tm_year_base = TM_YEAR_BASE;
+
+  return Flist (9, ((Lisp_Object [])
+		    {make_number (local_tm.tm_sec),
+		     make_number (local_tm.tm_min),
+		     make_number (local_tm.tm_hour),
+		     make_number (local_tm.tm_mday),
+		     make_number (local_tm.tm_mon + 1),
+		     make_number (local_tm.tm_year + tm_year_base),
+		     make_number (local_tm.tm_wday),
+		     local_tm.tm_isdst ? Qt : Qnil,
+		     (HAVE_TM_GMTOFF
+		      ? make_number (tm_gmtoff (&local_tm))
+		      : gmtime_r (&time_spec, &gmt_tm)
+		      ? make_number (tm_diff (&local_tm, &gmt_tm))
+		      : Qnil)}));
 }
 
 /* Return OBJ - OFFSET, checking that OBJ is a valid fixnum and that
@@ -1911,18 +1944,12 @@ usage: (encode-time SECOND MINUTE HOUR DAY MONTH YEAR &optional ZONE)  */)
   if (CONSP (zone))
     zone = XCAR (zone);
   if (NILP (zone))
-    {
-      block_input ();
-      value = mktime (&tm);
-      unblock_input ();
-    }
+    value = mktime (&tm);
   else
     {
       static char const tzbuf_format[] = "XXX%s%"pI"d:%02d:%02d";
       char tzbuf[sizeof tzbuf_format + INT_STRLEN_BOUND (EMACS_INT)];
-      char *old_tzstring;
       const char *tzstring;
-      USE_SAFE_ALLOCA;
 
       if (EQ (zone, Qt))
 	tzstring = "UTC0";
@@ -1939,29 +1966,13 @@ usage: (encode-time SECOND MINUTE HOUR DAY MONTH YEAR &optional ZONE)  */)
 	  tzstring = tzbuf;
 	}
       else
+	tzstring = 0;
+
+      timezone_t tz = tzstring ? tzalloc (tzstring) : 0;
+      if (! tz)
 	error ("Invalid time zone specification");
-
-      old_tzstring = getenv ("TZ");
-      if (old_tzstring)
-	{
-	  char *buf = SAFE_ALLOCA (strlen (old_tzstring) + 1);
-	  old_tzstring = strcpy (buf, old_tzstring);
-	}
-
-      block_input ();
-
-      /* Set TZ before calling mktime; merely adjusting mktime's returned
-	 value doesn't suffice, since that would mishandle leap seconds.  */
-      set_time_zone_rule (tzstring);
-
-      value = mktime (&tm);
-
-      set_time_zone_rule (old_tzstring);
-#ifdef LOCALTIME_CACHE
-      tzset ();
-#endif
-      unblock_input ();
-      SAFE_FREE ();
+      value = mktime_z (tz, &tm);
+      tzfree (tz);
     }
 
   if (value == (time_t) -1)
@@ -1987,33 +1998,26 @@ but this is considered obsolete.  */)
   (Lisp_Object specified_time)
 {
   time_t value = lisp_seconds_argument (specified_time);
-  struct tm *tm;
-  char buf[sizeof "Mon Apr 30 12:49:17 " + INT_STRLEN_BOUND (int) + 1];
-  int len IF_LINT (= 0);
 
   /* Convert to a string in ctime format, except without the trailing
      newline, and without the 4-digit year limit.  Don't use asctime
      or ctime, as they might dump core if the year is outside the
      range -999 .. 9999.  */
-  block_input ();
-  tm = localtime (&value);
-  if (tm)
-    {
-      static char const wday_name[][4] =
-	{ "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
-      static char const mon_name[][4] =
-	{ "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-	  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
-      printmax_t year_base = TM_YEAR_BASE;
-
-      len = sprintf (buf, "%s %s%3d %02d:%02d:%02d %"pMd,
-		     wday_name[tm->tm_wday], mon_name[tm->tm_mon], tm->tm_mday,
-		     tm->tm_hour, tm->tm_min, tm->tm_sec,
-		     tm->tm_year + year_base);
-    }
-  unblock_input ();
-  if (! tm)
+  struct tm tm;
+  if (! localtime_r (&value, &tm))
     time_overflow ();
+
+  static char const wday_name[][4] =
+    { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
+  static char const mon_name[][4] =
+    { "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+  printmax_t year_base = TM_YEAR_BASE;
+  char buf[sizeof "Mon Apr 30 12:49:17 " + INT_STRLEN_BOUND (int) + 1];
+  int len = sprintf (buf, "%s %s%3d %02d:%02d:%02d %"pMd,
+		     wday_name[tm.tm_wday], mon_name[tm.tm_mon], tm.tm_mday,
+		     tm.tm_hour, tm.tm_min, tm.tm_sec,
+		     tm.tm_year + year_base);
 
   return make_unibyte_string (buf, len);
 }
@@ -2041,6 +2045,17 @@ tm_diff (struct tm *a, struct tm *b)
 	  + (a->tm_sec - b->tm_sec));
 }
 
+/* Yield A's UTC offset, or an unspecified value if unknown.  */
+static long int
+tm_gmtoff (struct tm *a)
+{
+#if HAVE_TM_GMTOFF
+  return a->tm_gmtoff;
+#else
+  return 0;
+#endif
+}
+
 DEFUN ("current-time-zone", Fcurrent_time_zone, Scurrent_time_zone, 0, 1, 0,
        doc: /* Return the offset and name for the local time zone.
 This returns a list of the form (OFFSET NAME).
@@ -2059,32 +2074,30 @@ the data it can't find.  */)
   (Lisp_Object specified_time)
 {
   struct timespec value;
-  int offset;
-  struct tm *t;
-  struct tm localtm;
+  struct tm local_tm, gmt_tm;
   Lisp_Object zone_offset, zone_name;
 
   zone_offset = Qnil;
   value = make_timespec (lisp_seconds_argument (specified_time), 0);
-  zone_name = format_time_string ("%Z", sizeof "%Z" - 1, value, 0, &localtm);
-  block_input ();
-  t = gmtime (&value.tv_sec);
-  if (t)
-    offset = tm_diff (&localtm, t);
-  unblock_input ();
+  zone_name = format_time_string ("%Z", sizeof "%Z" - 1, value, 0, &local_tm);
 
-  if (t)
+  if (HAVE_TM_GMTOFF || gmtime_r (&value.tv_sec, &gmt_tm))
     {
+      long int offset = (HAVE_TM_GMTOFF
+			 ? tm_gmtoff (&local_tm)
+			 : tm_diff (&local_tm, &gmt_tm));
       zone_offset = make_number (offset);
       if (SCHARS (zone_name) == 0)
 	{
 	  /* No local time zone name is available; use "+-NNNN" instead.  */
-	  int m = offset / 60;
-	  int am = offset < 0 ? - m : m;
-	  char buf[sizeof "+00" + INT_STRLEN_BOUND (int)];
-	  zone_name = make_formatted_string (buf, "%c%02d%02d",
+	  long int m = offset / 60;
+	  long int am = offset < 0 ? - m : m;
+	  long int hour = am / 60;
+	  int min = am % 60;
+	  char buf[sizeof "+00" + INT_STRLEN_BOUND (long int)];
+	  zone_name = make_formatted_string (buf, "%c%02ld%02d",
 					     (offset < 0 ? '-' : '+'),
-					     am / 60, am % 60);
+					     hour, min);
 	}
     }
 
@@ -2123,12 +2136,12 @@ only the former.  */)
 
 /* Set the local time zone rule to TZSTRING.
 
-   This function is not thread-safe, partly because putenv, unsetenv
-   and tzset are not, and partly because of the static storage it
-   updates.  Other threads that invoke localtime etc. may be adversely
-   affected while this function is executing.  */
+   This function is not thread-safe, in theory because putenv is not,
+   but mostly because of the static storage it updates.  Other threads
+   that invoke localtime etc. may be adversely affected while this
+   function is executing.  */
 
-void
+static void
 set_time_zone_rule (const char *tzstring)
 {
   /* A buffer holding a string of the form "TZ=value", intended
@@ -2137,75 +2150,47 @@ set_time_zone_rule (const char *tzstring)
   static ptrdiff_t tzvalbufsize;
 
   int tzeqlen = sizeof "TZ=" - 1;
+  ptrdiff_t tzstringlen = tzstring ? strlen (tzstring) : 0;
+  char *tzval = tzvalbuf;
+  bool new_tzvalbuf = tzvalbufsize <= tzeqlen + tzstringlen;
 
-#ifdef LOCALTIME_CACHE
-  /* These two values are known to load tz files in buggy implementations,
-     i.e., Solaris 1 executables running under either Solaris 1 or Solaris 2.
-     Their values shouldn't matter in non-buggy implementations.
-     We don't use string literals for these strings,
-     since if a string in the environment is in readonly
-     storage, it runs afoul of bugs in SVR4 and Solaris 2.3.
-     See Sun bugs 1113095 and 1114114, ``Timezone routines
-     improperly modify environment''.  */
-
-  static char set_time_zone_rule_tz[][sizeof "TZ=GMT+0"]
-    = { "TZ=GMT+0", "TZ=GMT+1" };
-
-  /* In SunOS 4.1.3_U1 and 4.1.4, if TZ has a value like
-     "US/Pacific" that loads a tz file, then changes to a value like
-     "XXX0" that does not load a tz file, and then changes back to
-     its original value, the last change is (incorrectly) ignored.
-     Also, if TZ changes twice in succession to values that do
-     not load a tz file, tzset can dump core (see Sun bug#1225179).
-     The following code works around these bugs.  */
+  if (new_tzvalbuf)
+    {
+      /* Do not attempt to free the old tzvalbuf, since another thread
+	 may be using it.  In practice, the first allocation is large
+	 enough and memory does not leak.  */
+      tzval = xpalloc (NULL, &tzvalbufsize,
+		       tzeqlen + tzstringlen - tzvalbufsize + 1, -1, 1);
+      tzvalbuf = tzval;
+      tzval[1] = 'Z';
+      tzval[2] = '=';
+    }
 
   if (tzstring)
     {
-      /* Temporarily set TZ to a value that loads a tz file
-	 and that differs from tzstring.  */
-      bool eq0 = strcmp (tzstring, set_time_zone_rule_tz[0] + tzeqlen) == 0;
-      xputenv (set_time_zone_rule_tz[eq0]);
+      /* Modify TZVAL in place.  Although this is dicey in a
+	 multithreaded environment, we know of no portable alternative.
+	 Calling putenv or setenv could crash some other thread.  */
+      tzval[0] = 'T';
+      strcpy (tzval + tzeqlen, tzstring);
     }
   else
     {
-      /* The implied tzstring is unknown, so temporarily set TZ to
-	 two different values that each load a tz file.  */
-      xputenv (set_time_zone_rule_tz[0]);
-      tzset ();
-      xputenv (set_time_zone_rule_tz[1]);
+      /* Turn 'TZ=whatever' into an empty environment variable 'tZ='.
+	 Although this is also dicey, calling unsetenv here can crash Emacs.
+	 See Bug#8705.  */
+      tzval[0] = 't';
+      tzval[tzeqlen] = 0;
     }
-  tzset ();
-  tzvalbuf_in_environ = 0;
-#endif
 
-  if (!tzstring)
+  if (new_tzvalbuf)
     {
-      unsetenv ("TZ");
-      tzvalbuf_in_environ = 0;
-    }
-  else
-    {
-      ptrdiff_t tzstringlen = strlen (tzstring);
-
-      if (tzvalbufsize <= tzeqlen + tzstringlen)
-	{
-	  unsetenv ("TZ");
-	  tzvalbuf_in_environ = 0;
-	  tzvalbuf = xpalloc (tzvalbuf, &tzvalbufsize,
-			      tzeqlen + tzstringlen - tzvalbufsize + 1, -1, 1);
-	  memcpy (tzvalbuf, "TZ=", tzeqlen);
-	}
-
-      strcpy (tzvalbuf + tzeqlen, tzstring);
-
-      if (!tzvalbuf_in_environ)
-	{
-	  xputenv (tzvalbuf);
-	  tzvalbuf_in_environ = 1;
-	}
+      /* Although this is not thread-safe, in practice this runs only
+	 on startup when there is only one thread.  */
+      xputenv (tzval);
     }
 
-#ifdef LOCALTIME_CACHE
+#ifdef HAVE_TZSET
   tzset ();
 #endif
 }
@@ -3012,8 +2997,12 @@ static Lisp_Object
 check_translation (ptrdiff_t pos, ptrdiff_t pos_byte, ptrdiff_t end,
 		   Lisp_Object val)
 {
-  int buf_size = 16, buf_used = 0;
-  int *buf = alloca (sizeof (int) * buf_size);
+  int initial_buf[16];
+  int *buf = initial_buf;
+  ptrdiff_t buf_size = ARRAYELTS (initial_buf);
+  int *bufalloc = 0;
+  ptrdiff_t buf_used = 0;
+  Lisp_Object result = Qnil;
 
   for (; CONSP (val); val = XCDR (val))
     {
@@ -3038,12 +3027,11 @@ check_translation (ptrdiff_t pos, ptrdiff_t pos_byte, ptrdiff_t end,
 
 		  if (buf_used == buf_size)
 		    {
-		      int *newbuf;
-
-		      buf_size += 16;
-		      newbuf = alloca (sizeof (int) * buf_size);
-		      memcpy (newbuf, buf, sizeof (int) * buf_used);
-		      buf = newbuf;
+		      bufalloc = xpalloc (bufalloc, &buf_size, 1, -1,
+					  sizeof *bufalloc);
+		      if (buf == initial_buf)
+			memcpy (bufalloc, buf, sizeof initial_buf);
+		      buf = bufalloc;
 		    }
 		  buf[buf_used++] = STRING_CHAR_AND_LENGTH (p, len1);
 		  pos_byte += len1;
@@ -3052,10 +3040,15 @@ check_translation (ptrdiff_t pos, ptrdiff_t pos_byte, ptrdiff_t end,
 		break;
 	    }
 	  if (i == len)
-	    return XCAR (val);
+	    {
+	      result = XCAR (val);
+	      break;
+	    }
 	}
     }
-  return Qnil;
+
+  xfree (bufalloc);
+  return result;
 }
 
 
@@ -4354,11 +4347,8 @@ usage: (format STRING &rest OBJECTS)  */)
 Lisp_Object
 format2 (const char *string1, Lisp_Object arg0, Lisp_Object arg1)
 {
-  Lisp_Object args[3];
-  args[0] = build_string (string1);
-  args[1] = arg0;
-  args[2] = arg1;
-  return Fformat (3, args);
+  AUTO_STRING (format, string1);
+  return Fformat (3, (Lisp_Object []) {format, arg0, arg1});
 }
 
 DEFUN ("char-equal", Fchar_equal, Schar_equal, 2, 2, 0,
@@ -4617,11 +4607,11 @@ Transposing beyond buffer boundaries is an error.  */)
       if (tmp_interval3)
 	set_text_properties_1 (startr1, endr2, Qnil, buf, tmp_interval3);
 
+      USE_SAFE_ALLOCA;
+
       /* First region smaller than second.  */
       if (len1_byte < len2_byte)
         {
-	  USE_SAFE_ALLOCA;
-
 	  temp = SAFE_ALLOCA (len2_byte);
 
 	  /* Don't precompute these addresses.  We have to compute them
@@ -4633,21 +4623,19 @@ Transposing beyond buffer boundaries is an error.  */)
           memcpy (temp, start2_addr, len2_byte);
           memcpy (start1_addr + len2_byte, start1_addr, len1_byte);
           memcpy (start1_addr, temp, len2_byte);
-	  SAFE_FREE ();
         }
       else
 	/* First region not smaller than second.  */
         {
-	  USE_SAFE_ALLOCA;
-
 	  temp = SAFE_ALLOCA (len1_byte);
 	  start1_addr = BYTE_POS_ADDR (start1_byte);
 	  start2_addr = BYTE_POS_ADDR (start2_byte);
           memcpy (temp, start1_addr, len1_byte);
           memcpy (start1_addr, start2_addr, len2_byte);
           memcpy (start1_addr + len2_byte, temp, len1_byte);
-	  SAFE_FREE ();
         }
+
+      SAFE_FREE ();
       graft_intervals_into_buffer (tmp_interval1, start1 + len2,
                                    len1, current_buffer, 0);
       graft_intervals_into_buffer (tmp_interval2, start1,

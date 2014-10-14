@@ -2556,13 +2556,10 @@ from the dynamic block definition."
     total-time))
 
 (defun org-clocktable-indent-string (level)
-  (if (= level 1)
-      ""
-    (let ((str "\\__"))
-      (while (> level 2)
-	(setq level (1- level)
-	      str (concat str "___")))
-      (concat str " "))))
+  (if (= level 1) ""
+    (let ((str " "))
+      (dotimes (k (1- level) str)
+	(setq str (concat "\\emsp" str))))))
 
 (defun org-clocktable-steps (params)
   "Step through the range to make a number of clock tables."

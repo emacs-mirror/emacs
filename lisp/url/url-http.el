@@ -171,7 +171,7 @@ request.")
 	     url-http-open-connections))
   nil)
 
-(defun url-http-find-free-connection (host port)
+(defun url-http-find-free-connection (host port &optional gateway-method)
   (let ((conns (gethash (cons host port) url-http-open-connections))
 	(connection nil))
     (while (and conns (not connection))
@@ -193,7 +193,7 @@ request.")
 	;; `url-open-stream' needs a buffer in which to do things
 	;; like authentication.  But we use another buffer afterwards.
 	(unwind-protect
-	    (let ((proc (url-open-stream host buf host port)))
+	    (let ((proc (url-open-stream host buf host port gateway-method)))
 	      ;; url-open-stream might return nil.
 	      (when (processp proc)
 		;; Drop the temp buffer link before killing the buffer.
@@ -313,7 +313,14 @@ request.")
                  (concat
                   "From: " url-personal-mail-address "\r\n"))
              ;; Encodings we understand
-             (if url-mime-encoding-string
+             (if (or url-mime-encoding-string
+		     ;; MS-Windows loads zlib dynamically, so recheck
+		     ;; in case they made it available since
+		     ;; initialization in url-vars.el.
+		     (and (eq 'system-type 'windows-nt)
+			  (fboundp 'zlib-available-p)
+			  (zlib-available-p)
+			  (setq url-mime-encoding-string "gzip")))
                  (concat
                   "Accept-encoding: " url-mime-encoding-string "\r\n"))
              (if url-mime-charset-string
@@ -1167,22 +1174,25 @@ the end of the document."
     (when (eq process-buffer (current-buffer))
       (goto-char (point-max)))))
 
-(defun url-http (url callback cbargs &optional retry-buffer)
+(defun url-http (url callback cbargs &optional retry-buffer gateway-method)
   "Retrieve URL via HTTP asynchronously.
 URL must be a parsed URL.  See `url-generic-parse-url' for details.
 
-When retrieval is completed, execute the function CALLBACK, using
-the arguments listed in CBARGS.  The first element in CBARGS
+When retrieval is completed, execute the function CALLBACK, passing it
+an updated value of CBARGS as arguments.  The first element in CBARGS
 should be a plist describing what has happened so far during the
 request, as described in the docstring of `url-retrieve' (if in
 doubt, specify nil).
 
 Optional arg RETRY-BUFFER, if non-nil, specifies the buffer of a
-previous `url-http' call, which is being re-attempted."
+previous `url-http' call, which is being re-attempted.
+
+Optional arg GATEWAY-METHOD specifies the gateway to be used,
+overriding the value of `url-gateway-method'."
   (cl-check-type url vector "Need a pre-parsed URL.")
   (let* ((host (url-host (or url-using-proxy url)))
 	 (port (url-port (or url-using-proxy url)))
-	 (connection (url-http-find-free-connection host port))
+	 (connection (url-http-find-free-connection host port gateway-method))
 	 (buffer (or retry-buffer
 		     (generate-new-buffer
                       (format " *http %s:%d*" host port)))))
@@ -1440,9 +1450,8 @@ p3p
 (defmacro url-https-create-secure-wrapper (method args)
   `(defun ,(intern (format (if method "url-https-%s" "url-https") method)) ,args
     ,(format "HTTPS wrapper around `%s' call." (or method "url-http"))
-    (let ((url-gateway-method 'tls))
-      (,(intern (format (if method "url-http-%s" "url-http") method))
-       ,@(remove '&rest (remove '&optional args))))))
+    (,(intern (format (if method "url-http-%s" "url-http") method))
+     ,@(remove '&rest (remove '&optional (append args (if method nil '(nil 'tls))))))))
 
 ;;;###autoload (autoload 'url-https "url-http")
 (url-https-create-secure-wrapper nil (url callback cbargs))

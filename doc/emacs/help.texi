@@ -129,7 +129,7 @@ Display news of recent Emacs changes (@code{view-emacs-news}).
 Find packages by topic keyword (@code{finder-by-keyword}).  This lists
 packages using a package menu buffer.  @xref{Packages}.
 @item C-h P @var{package} @key{RET}
-Display documentation about the package named @var{package}
+Display documentation about the specified package
 (@code{describe-package}).
 @item C-h r
 Display the Emacs manual in Info (@code{info-emacs-manual}).

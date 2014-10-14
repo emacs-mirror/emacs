@@ -761,7 +761,7 @@ xd_append_arg (int dtype, Lisp_Object object, DBusMessageIter *iter)
 		&& STRINGP (CAR_SAFE (XD_NEXT_VALUE (object)))
 		&& NILP (CDR_SAFE (XD_NEXT_VALUE (object))))
 	      {
-		strcpy (signature, SSDATA (CAR_SAFE (XD_NEXT_VALUE (object))));
+		lispstpcpy (signature, CAR_SAFE (XD_NEXT_VALUE (object)));
 		object = CDR_SAFE (XD_NEXT_VALUE (object));
 	      }
 
@@ -1054,6 +1054,7 @@ xd_remove_watch (DBusWatch *watch, void *data)
 
   /* Unset session environment.  */
 #if 0
+  /* This is buggy, since unsetenv is not thread-safe.  */
   if (XSYMBOL (QCdbus_session_bus) == data)
     {
       XD_DEBUG_MESSAGE ("unsetenv DBUS_SESSION_BUS_ADDRESS");
@@ -1218,9 +1219,6 @@ this connection to those buses.  */)
       /* Add bus to list of registered buses.  */
       XSETFASTINT (val, (intptr_t) connection);
       xd_registered_buses = Fcons (Fcons (bus, val), xd_registered_buses);
-
-      /* We do not want to abort.  */
-      xputenv ("DBUS_FATAL_WARNINGS=0");
 
       /* Cleanup.  */
       dbus_error_free (&derror);
@@ -1737,6 +1735,13 @@ xd_read_queued_messages (int fd, void *data)
 }
 
 
+void
+init_dbusbind (void)
+{
+  /* We do not want to abort.  */
+  xputenv ("DBUS_FATAL_WARNINGS=0");
+}
+
 void
 syms_of_dbusbind (void)
 {

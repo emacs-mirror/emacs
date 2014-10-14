@@ -26,7 +26,7 @@
 	(find-file-read-only-other-window): Likewise.
 	(find-file-read-only-other-frame): Likewise.
 
-	* timer.el (cancel-function-timers): Renamed from spurious duplicate
+	* timer.el (cancel-function-timers): Rename from spurious duplicate
 	definition of cancel-timer.
 
 	* add-log.el (find-change-log): Use file-chase-links.
@@ -82,7 +82,7 @@
 
 	* paths.el (Info-default-directory-list): Take out ../../info.
 	Avoid duplication.
-	(manual-formatted-dirlist, manual-formatted-dir-prefix): Deleted.
+	(manual-formatted-dirlist, manual-formatted-dir-prefix): Delete.
 
 	* subr.el (baud-rate): Doc fix.
 
@@ -137,7 +137,7 @@
 	Delete the "local thinking machines" definitions at the end
 	since they caused compilation failure.
 
-	* cl.el (cl-member): Renamed from member.
+	* cl.el (cl-member): Rename from member.
 
 	* time.el (display-time-day-and-date): Use defvar, not defconst.
 
@@ -163,7 +163,7 @@
 	(timezone-make-date-sortable): Make autoload for this.
 	(rmail-sort-by-recipient): Downcase the strings for sorting.
 	(rmail-sort-by-recipient): Likewise.
-	(rmail-sort-by-lines): Renamed from rmail-sort-by-size-lines.
+	(rmail-sort-by-lines): Rename from rmail-sort-by-size-lines.
 	Use numbers to sort by.
 	(rmail-summary-...): New functions.  Bind in rmail-summary-mode-map.
 	(rmail-sort-from-summary): New function.
@@ -172,10 +172,10 @@
 	Choose string< or < as predicate.
 	Reorder messages by exchanging them, with inhibit-quit bound.
 	(rmail-fetch-field): Start by widening.
-	(rmail-sortable-date-string): Deleted.
+	(rmail-sortable-date-string): Delete.
 	(rmail-make-date-sortable): New function, used instead.
 
-	* paths.el (gnus-local-organization): Renamed from ...-your-...
+	* paths.el (gnus-local-organization): Rename from ...-your-...
 	(gnus-local-domain): Likewise.
 
 1993-05-26  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
@@ -185,8 +185,8 @@
 	(set-face-font): Only use x-resolve-font-name if FONT is a string.
 	Copying a faces shouldn't resolve the font.
 
-	* paths.el (Info-default-directory-list): Add
-	configure-info-directory to this list.
+	* paths.el (Info-default-directory-list):
+	Add configure-info-directory to this list.
 
 1993-05-26  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
@@ -247,15 +247,15 @@
 
 1993-05-25  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
-	* term/x-win.el (command-switch-alist, x-switch-definitions): Treat
-	`-i' like `-itype', as in Emacs 18.
+	* term/x-win.el (command-switch-alist, x-switch-definitions):
+	Treat `-i' like `-itype', as in Emacs 18.
 
 1993-05-25  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
 	* Version 19.8 released.
 
-	* startup.el (command-line-1): Don't handle `-i'.  We're
-	abandoning the `insert file' meaning in favor of the `use a
+	* startup.el (command-line-1): Don't handle `-i'.
+	We're abandoning the `insert file' meaning in favor of the `use a
 	bitmapped icon' meaning.
 
 	* faces.el (set-face-font): Call x-resolve-font-name on the font
@@ -265,8 +265,8 @@
 	* iso-syntax.el: Make downcase into a proper case table before
 	passing it to set-standard-case-table.
 
-	* disp-table.el (standard-display-european): Doc fix.  Make
-	it autoload.  Make it respond to prefix arg like a minor mode.
+	* disp-table.el (standard-display-european): Doc fix.
+	Make it autoload.  Make it respond to prefix arg like a minor mode.
 
 1993-05-24  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
@@ -360,8 +360,8 @@
 
 1993-05-22  Jim Blandy  (jimb@geech.gnu.ai.mit.edu)
 
-	* cl.el (cl-floor, cl-ceiling, cl-truncate, cl-round): Renamed
-	from floor, ceiling, truncate, and round; the old names conflict
+	* cl.el (cl-floor, cl-ceiling, cl-truncate, cl-round):
+	Rename from floor, ceiling, truncate, and round; the old names conflict
 	with built-in functions.
 
 1993-05-22  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
@@ -524,7 +524,7 @@
 
 1993-05-16  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
-	* texinfo.el (texinfo-chapter-level-regexp): Copied here.
+	* texinfo.el (texinfo-chapter-level-regexp): Copy here.
 
 1993-05-17  Roland McGrath  (roland@geech.gnu.ai.mit.edu)
 
@@ -536,7 +536,7 @@
 	* gnus.el, gnuspost.el, gnusmail.el, gnusmisc.el,
 	* nntp.el, nnspool.el, mhspool.el: Version 3.15 from Umeda.
 
-	* frame.el (toggle-scroll-bar): Renamed from toggle-vertical-scroll...
+	* frame.el (toggle-scroll-bar): Rename from toggle-vertical-scroll...
 
 1993-05-16  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
@@ -623,14 +623,14 @@
 	* menu-bar.el (menu-bar-mode): New command.  Use for initialization.
 
 	* faces.el (make-face): Add interactive spec.
-	(set-default-font): Deleted.
+	(set-default-font): Delete.
 
 	* isearch.el (isearch-mode-map): Handle any length vector in keymap.
 	(isearch-char-to-string): Handle non-character events properly.
 
 1993-05-14  Jim Blandy  (jimb@geech.gnu.ai.mit.edu)
 
-	* subr.el (overlay-start, overlay-end, overlay-buffer): Removed.
+	* subr.el (overlay-start, overlay-end, overlay-buffer): Remove.
 
 	* vc.el (vc-version-diff): Match parens.
 
@@ -643,26 +643,26 @@
 
 	* emerge.el: Installed version 5 from drw.
 	Merged in previous FSF changes, plus new changes:
-	(emerge-count-matches-string): Renamed from count-matches-string.
+	(emerge-count-matches-string): Rename from count-matches-string.
 	(emerge-command-prefix): Now C-c C-c.
-	(emerge-shadow-key-definition): Deleted.
+	(emerge-shadow-key-definition): Delete.
 	Callers use substitute-key-definition.
-	(emerge-recursively-substitute-key-definition): Deleted.
+	(emerge-recursively-substitute-key-definition): Delete.
 	Callers use substitute-key-definition.
-	(emerge-unselect-hook): Renamed from emerge-unselect-hooks.
+	(emerge-unselect-hook): Rename from emerge-unselect-hooks.
 	(emerge-files-internal): Use file-local-copy to handle remote files.
 	(emerge-files-with-ancestor-internal): Likewise.
-	(emerge-remote-file-p): Deleted.
+	(emerge-remote-file-p): Delete.
 	(emerge-abort): New command.
-	(describe-mode): Deleted.
-	(emerge-hash-string-into-string): Renamed from hash-string-into-string.
-	(emerge-unslashify-name): Renamed from unslashify-name.
+	(describe-mode): Delete.
+	(emerge-hash-string-into-string): Rename from hash-string-into-string.
+	(emerge-unslashify-name): Rename from unslashify-name.
 	(emerge-write-and-delete): Don't write-file if file-out is nil.
 	(emerge-setup-fixed-keymaps): Put emerge-abort on C-].
-	(emerge-find-difference-diff): Renamed from emerge-find-difference.
+	(emerge-find-difference-diff): Rename from emerge-find-difference.
 	(emerge-find-difference): New command.  Now on `.'.
-	(emerge-diff-ok-lines-regexp): Renamed from emerge-diff-ok-lines.
-	(emerge-diff3-ok-lines-regexp): Renamed from emerge-diff3-ok-lines.
+	(emerge-diff-ok-lines-regexp): Rename from emerge-diff-ok-lines.
+	(emerge-diff3-ok-lines-regexp): Rename from emerge-diff3-ok-lines.
 
 1993-05-13  Paul Eggert  (eggert@twinsun.com)
 
@@ -877,9 +877,9 @@
 
 	* comint.el (comint-previous-matching-input): New command, on M-r.
 	(comint-next-matching-input): New command, on M-s.
-	(comint-previous-similar-input): Commented out.
+	(comint-previous-similar-input): Comment out.
 	(comint-next-similar-input): Likewise.
-	(comint-previous-input-matching): Deleted.
+	(comint-previous-input-matching): Delete.
 	(comint-last-input-match): Var commented out.
 	(comint-mode): Don't make comint-last-input-match local.
 
@@ -911,8 +911,8 @@
 
 	* help.el (help-for-help): Use lower case letters for help options.
 
-	* rect.el (string-rectangle): Renamed from fill-rectangle.
-	(string-rectangle-line): Renamed from fill-rectangle-line.
+	* rect.el (string-rectangle): Rename from fill-rectangle.
+	(string-rectangle-line): Rename from fill-rectangle-line.
 
 1993-05-01  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
@@ -944,8 +944,8 @@
 	FORCE argument non-nil, so that we don't get an error if the mark
 	isn't set yet.
 
-	* edebug.el (global-edebug-prefix, global-edebug-map): Add
-	autoload cookies for these, so they are present when Emacs starts
+	* edebug.el (global-edebug-prefix, global-edebug-map):
+	Add autoload cookies for these, so they are present when Emacs starts
 	up.
 
 	* edebug.el (global-edebug-map): Bind `C-x X d' to edebug-defun in
@@ -957,7 +957,7 @@
 
 	* complete.el: New file.
 
-	* vc.el (vc-match-substring): Renamed from match-substring.
+	* vc.el (vc-match-substring): Rename from match-substring.
 	(vc-parse-buffer): Use new name.
 
 	* shell.el (shell-prompt-pattern): Undo last change.
@@ -965,7 +965,7 @@
 	* files.el (file-truename): Redo esr's change.
 
 	* loaddefs.el: Put arrow key bindings back to the ordinary Emacs cmds.
-	* simple.el (up-arrow, down-arrow, left-arrow, right-arrow): Deleted.
+	* simple.el (up-arrow, down-arrow, left-arrow, right-arrow): Delete.
 
 	* simple.el (kill-line, next-line-add-newlines): Doc fix.
 	(kill-whole-line): Doc fix.
@@ -1089,42 +1089,42 @@
 
 	* gud.el: Set no-byte-compile local variable t to work around a
 	byte-compiler bug.
-	(gud-def, global-map): Move C-x C-a commands to global map.  Restore
-	original C-x SPC global binding.
+	(gud-def, global-map): Move C-x C-a commands to global map.
+	Restore original C-x SPC global binding.
 
 	* vc.el (vc-diff): Get proper error message when you run this with
 	no prefix arg on an empty buffer.
 	(vc-directory): Better directory format --- replace the user and
 	group IDs with locking-user (if any).
-	(vc-finish-logentry, vc-next-comment, vc-previous-comment): Replace
-	*VC-comment-buffer* with a ring vector.
+	(vc-finish-logentry, vc-next-comment, vc-previous-comment):
+	Replace *VC-comment-buffer* with a ring vector.
 
 1993-04-25  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
 
-	* simple.el (down-arrow): New function.  Uses
-	next-line-add-newlines to suppress addition of new lines at end of
+	* simple.el (down-arrow): New function.
+	Uses next-line-add-newlines to suppress addition of new lines at end of
 	buffer.
 	(up-arrow): Alias of previous-line, added for consistency.
 	These changes complete terminal-type-independent support for arrow
 	keys.
 
-	* tex-mode.el (tex-compilation-parse-errors): Added.  At the
+	* tex-mode.el (tex-compilation-parse-errors): Add.  At the
 	moment, this would have to be applied manually.  It's not worth
 	trying to integrate this with the rest of the mode more tightly
 	until we decide whether and how compile's interface is going to
 	change away from a closed subsystem.
 
-	* files.el (cd): Changed to use to resolve relative cd calls.
-	(cd-absolute): Added.  This is actually the old cd code with a
+	* files.el (cd): Change to use to resolve relative cd calls.
+	(cd-absolute): Add.  This is actually the old cd code with a
 	changed doc string.
-	(parse-colon-path): Added. Path-to-string exploder --- may be
+	(parse-colon-path): Add. Path-to-string exploder --- may be
 	useful elsewhere.
 
 	* ring.el: Added and fixed documentation.
 	(ring-rotate): Nuked.  It was (a) unused, and (b) totally broken (as
 	in, any attempt to use it died with a type error, and when I patched
 	it to fix that I found its algorithm was broken).
-	(ring-ref): Added doc string.
+	(ring-ref): Add doc string.
 
 1993-04-25  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
@@ -1144,7 +1144,7 @@
 
 1993-04-23  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
 
-	* bytecomp.el (define-function): Changed name back to defaliases
+	* bytecomp.el (define-function): Change name back to defaliases
 	to get things in a known-good state.  The unload patch had been
 	half-applied, leading to lossage.
 
@@ -1158,7 +1158,7 @@
 
 	* telnet.el: Commentary added.
 	(telnet): Doc fix.
-	(rsh): Added entry point for rsh to remote host, per suggestion by
+	(rsh): Add entry point for rsh to remote host, per suggestion by
 	Michael McNamara <mac@ardent.com>.  No change to any other code.
 
 	* info.el (Info-find-node, Info-insert-subfile): Do the right
@@ -1166,15 +1166,15 @@
 	saving me lots of disk space.
 
 	* simple.el: All fsets changed to defaliases.
-	(kill-forward-chars, kill-backward-chars): Deleted.  These were
+	(kill-forward-chars, kill-backward-chars): Delete.  These were
 	internal subroutines used by delete-char and delete-backward-char
 	before those functions were moved into the C kernel.  Now nothing
 	uses them.
-	(kill-line): Added kill-whole-line variable.  Defaults to nil; a
+	(kill-line): Add kill-whole-line variable.  Defaults to nil; a
 	non-nil value causes a kill-line at the beginning of a line to
 	kill the newline as well as the line.  I find it very convenient.
 	Emulates Unipress' &kill-lines-magic variable.
-	(next-line): Added next-line-add-newlines variable.  If nil,
+	(next-line): Add next-line-add-newlines variable.  If nil,
 	next-line will not insert newlines when invoked at the end of a
 	buffer.  This obviates three LCD packages.
 	(left-arrow, right-arrow): New functions.  These do backward-char
@@ -1182,7 +1182,7 @@
 	left or right as necessary to make sure point is visible.
 
 	* loaddefs.el: All fsets changes to defaliases.
-	(global-map): Changed bindings of [left] and [right] to left-arrow and
+	(global-map): Change bindings of [left] and [right] to left-arrow and
 	right-arrow respectively.
 
 1993-04-22  Roland McGrath  (roland@mole.gnu.ai.mit.edu)
@@ -1240,7 +1240,7 @@
 1993-04-16  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
 
 	* electric.el (shrink-window-if-larger-than-buffer):
-	Moved to window.el.
+	Move to window.el.
 
 1993-04-16  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
@@ -1267,12 +1267,12 @@
 
 1993-04-14  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
-	* resume.el (resume-suspend-hook): Renamed from empty-args-file.
+	* resume.el (resume-suspend-hook): Rename from empty-args-file.
 	Add autoload cookie.
-	(resume-emacs-args-buffer): Renamed.
-	(resume-write-buffer-to-file): Renamed.
+	(resume-emacs-args-buffer): Rename.
+	(resume-write-buffer-to-file): Rename.
 
-	* two-column.el (tc-dissociate): Renamed from tc-kill-association.
+	* two-column.el (tc-dissociate): Rename from tc-kill-association.
 	Move binding to C-x 6 d.
 
 1993-04-14  Roland McGrath  (roland@churchy.gnu.ai.mit.edu)
@@ -1291,7 +1291,7 @@
 	* gud.el (gud-mode): Created C-c synonym bindings in the GUD
 	buffer's local map.
 
-	(gud-key-prefix): Changed to C-x C-a.
+	(gud-key-prefix): Change to C-x C-a.
 
 1993-04-14  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
 
@@ -1307,11 +1307,11 @@
 	ability to browse package commentary sections and a completely
 	point-and-shoot interface similar to Dired's.
 
-	* window.el (shrink-window-if-larger-than-buffer): Moved from
+	* window.el (shrink-window-if-larger-than-buffer): Move from
 	electric.el to windows.el, minor bug fix.  This is to avoid code
 	duplication between vc.el, electric.el, and finder.el.
 
-	(ctl-x-map): Added C-x - and C-x + as experimental bindings for
+	(ctl-x-map): Add C-x - and C-x + as experimental bindings for
 	shrink-window-if-larger-than-buffer and balance-windows
 	respectively.  Since shrink-window-if-larger-than-buffer has to
 	live here anyhow, let users use it to manage screen space.
@@ -1354,7 +1354,7 @@
 
 1993-04-10  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
 
-	* gud.el (gdb, sdb, dbx): Improved prompting a la grep.
+	* gud.el (gdb, sdb, dbx): Improve prompting a la grep.
 
 	* comint.el: Clean up cmu* uses in header comments.
 
@@ -1380,8 +1380,8 @@
 
 1993-04-09  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
-	* subr.el (overlay-start, overlay-end, overlay-buffer): New
-	defsubsts.
+	* subr.el (overlay-start, overlay-end, overlay-buffer):
+	New defsubsts.
 
 	* finder.el (finder-by-keyword): Build an alist to pass to
 	completing-read, instead of building an invalid obarray.
@@ -1443,7 +1443,7 @@
 	(compile-internal): Make it the process's filter.
 
 	* compile.el (compilation-error-regexp-alist):
-	Fixed MIPS CC regexp to match file
+	Fix MIPS CC regexp to match file
 	names longer than one char.
 	(compilation-parse-errors): Error if compilation-error-regexp-alist is nil.
 
@@ -1473,7 +1473,7 @@
 	* compile.el (compilation-filter): New function.
 	(compile-internal): Make it the process's filter.
 
-	* compile.el (compilation-error-regexp-alist): Fixed MIPS CC
+	* compile.el (compilation-error-regexp-alist): Fix MIPS CC
 	regexp to match file names longer than one char.
 	(compilation-parse-errors): Error if
 	compilation-error-regexp-alist is nil.
@@ -1492,7 +1492,7 @@
 	(add-change-log-entry): FILE-NAME frobnicating code moved there;
 	call it.
 	* vc.el (vc-comment-to-change-log):
-	Renamed from vc-comment-to-changelog.
+	Rename from vc-comment-to-changelog.
 	Take optional arg and pass it to find-change-log.
 	Added docstring and interactive spec.
 
@@ -1505,7 +1505,7 @@
 	Apollo cc regexp: make "s optional, and don't anchor to bol.
 
 	* compile.el (compilation-error-regexp-alist):
-	Changed MIPS RISC CC regexp (last one) to
+	Change MIPS RISC CC regexp (last one) to
 	be anchored at bol, and to never match multiple lines.
 
 1993-04-03  Eric S. Raymond  (eric@geech.gnu.ai.mit.edu)
@@ -1528,7 +1528,7 @@
 
 	* mpuz.el (mpuz-try-letter): Use read-char to read digit.
 	Use message directly also.  Use downcase.
-	(mpuz-read-map): Deleted.
+	(mpuz-read-map): Delete.
 
 	* dired.el (dired-unmark-all-files): Read the arg as just a char.
 
@@ -1614,7 +1614,7 @@
 1993-03-29  Eric S. Raymond  (eric@geech.gnu.ai.mit.edu)
 
 	* vc.el (vc-next-action, vc-print-log, vc-diff, vc-revert-buffer):
-	Improved logic for parent buffer finding.
+	Improve logic for parent buffer finding.
 
 	(vc-cancel-version): Bug fix.
 
@@ -1627,7 +1627,7 @@
 	* fill.el (fill-individual-paragraphs): When skipping mail headers,
 	skip to a blank line.
 
-	* env.el (setenv): Renamed back from putenv.
+	* env.el (setenv): Rename back from putenv.
 
 	* replace.el (regexp-history): New history list.
 	(occur, flush-lines, keep-lines, how-many): Use it.
@@ -1638,7 +1638,7 @@
 1993-03-28  Noah Friedman  (friedman@splode.com)
 
 	* setenv.el: Renamed to env.el.  Provide `env', not `setenv'.
-	(setenv): Renamed to `putenv', which is the more proper complement
+	(setenv): Rename to `putenv', which is the more proper complement
 	of `getenv'.  `setenv' retained as an alias.
 	Make VALUE parameter optional; if not set, remove VARIABLE from
 	process-environment.
@@ -1664,10 +1664,10 @@
 
 	* makefile.el: Added autoload cookie for entry point.
 
-	* files.el (auto-mode-alist): Added pairs for .ms, .man, .mk,
+	* files.el (auto-mode-alist): Add pairs for .ms, .man, .mk,
 	[Mm]akefile, .lex.
 
-	* electric.el (shrink-window-if-larger-than-buffer): Added doc
+	* electric.el (shrink-window-if-larger-than-buffer): Add doc
 	string.  Made argument optional, because window-buffer does the
 	right thing with nil.
 
@@ -1691,8 +1691,8 @@
 
 	* rlogin.el: Updated copyright year and added autoload cookies.
 	(rlogin): Set process marker to beginning of buffer.
-	(rlogin-filter): Use unwind-protect to restore match-data.  Use
-	insert-before-markers instead of insert to keep input and output
+	(rlogin-filter): Use unwind-protect to restore match-data.
+	Use insert-before-markers instead of insert to keep input and output
 	from getting garbled.  Delete spurious ?\C-m chars in output
 	instead of replacing them with ?\ .
 
@@ -1710,26 +1710,26 @@
 
 1993-03-27  Eric S. Raymond  (eric@geech.gnu.ai.mit.edu)
 
-	* lpr.el (printify-buffer): Added, debugged from Roland McGrath's
+	* lpr.el (printify-buffer): Add, debugged from Roland McGrath's
 	printify-buffer code in LCD.
 
-	* cookie.el (cookie): Enhanced it to handle both LINS files and
+	* cookie.el (cookie): Enhance it to handle both LINS files and
 	UNIX fortune files.
 
-	* rect.el (fill-rectangle): Added.  Inspired by Lynn Slater's
+	* rect.el (fill-rectangle): Add.  Inspired by Lynn Slater's
 	insert-box package in LCD, but the interface and implementation
 	are different.
 
-	* loaddefs.el (ctl-x-map): Added binding for fill-rectangle.
+	* loaddefs.el (ctl-x-map): Add binding for fill-rectangle.
 
-	* buff-menu.el (Buffer-menu-toggle-read-only): Added, per Rob
+	* buff-menu.el (Buffer-menu-toggle-read-only): Add, per Rob
 	Austein's suggestion in the LCD package bm-toggle.el.
 
-	* subr.el (add-hook): Added optional arg to cause hook to be
+	* subr.el (add-hook): Add optional arg to cause hook to be
 	appended rather than prepended to the hook list.  This obviates
 	the 23 different hook-bashing packages in LCD.
 
-	* subr.el (current-word): Added.  Lots of help and default-generator
+	* subr.el (current-word): Add.  Lots of help and default-generator
 	functions in LCD use it, and it's remarkably difficult to get
 	right, especially given the new syntax primitives.
 
@@ -1741,8 +1741,8 @@
 
 1993-03-26  Eric S. Raymond  (eric@geech.gnu.ai.mit.edu)
 
-	* yow.el (psychoanalyze-pinhead): Needed a prefrontal lobotomy.  I
-	gave it one.
+	* yow.el (psychoanalyze-pinhead): Needed a prefrontal lobotomy.
+	I gave it one.
 
 	* two-column.el: Added Commentary.
 
@@ -1754,13 +1754,13 @@
 
 1993-03-25  Eric S. Raymond  (eric@geech.gnu.ai.mit.edu)
 
-	* lisp-mnt.el (lm-last-modified-date): Fixed return bug.
+	* lisp-mnt.el (lm-last-modified-date): Fix return bug.
 
 	(lm-author, lm-maintainer): These now return cons pairs, not strings.
 
 	* shell.el: Brent Benson's patch to support `cd -'.
 
-	* mh-e.el (mh-unshar): Added.
+	* mh-e.el (mh-unshar): Add.
 
 	* emacsbug.el: Added a (provide 'emacsbug); lisp-mnt.el needs this.
 
@@ -1873,8 +1873,8 @@
 
 	* time.el (display-time): Doc fix.
 
-	* isearch.el (isearch-switch-frame-handler): Call
-	handle-switch-frame instead of select-frame; it has been renamed.
+	* isearch.el (isearch-switch-frame-handler):
+	Call handle-switch-frame instead of select-frame; it has been renamed.
 
 	* simple.el (comment-indent-function): New variable, intended to
 	replace comment-indent-hook.
@@ -1930,7 +1930,7 @@
 
 1993-03-18  Richard Stallman  (rms@geech.gnu.ai.mit.edu)
 
-	* frame.el (make-frame): Renamed from new-frame.
+	* frame.el (make-frame): Rename from new-frame.
 	(new-frame): Alias for make-frame.
 
 1993-03-18  Edward M. Reingold  (reingold@emr.cs.uiuc.edu)
@@ -2048,8 +2048,8 @@
 
 1993-03-14  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
-	* sort.el (sort-float-fields, sort-numeric-fields): Use
-	string-to-number, not string-to-float or string-to-int.
+	* sort.el (sort-float-fields, sort-numeric-fields):
+	Use string-to-number, not string-to-float or string-to-int.
 
 	* sort.el (sort-float-fields): Make this autoloaded.
 
@@ -2080,7 +2080,7 @@
 
 1993-03-12  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
 
-	* loaddefs.el (global-map): Fixed a typo in the binding of
+	* loaddefs.el (global-map): Fix a typo in the binding of
 	[kp-backtab].
 
 	* term/x-win.el: Added library headers back in. Didn't touch
@@ -2122,8 +2122,8 @@
 	and featureful interface across many different keyboard types.
 
 	* loaddefs.el (global-map): Natural default keybindings set up for
-	almost all supported keysyms other than function keys.  All
-	other keysyms are now default-bound to a function which explains
+	almost all supported keysyms other than function keys.
+	All other keysyms are now default-bound to a function which explains
 	that the key is not bound to anything, then raises an error.
 
 	* term/README: Terminal package conventions and standard keysym
@@ -2144,8 +2144,8 @@
 
 	* term/news.el: Cleaned up, headers added.
 
-	* term/sun.el: Headers added, [again] changed to [redo].  This
-	package is a hairball and should probably be scrapped if we
+	* term/sun.el: Headers added, [again] changed to [redo].
+	This package is a hairball and should probably be scrapped if we
 	can find or built a better one.
 
 	* term/tvi970.el: Headers added, [enter] changed to [kp-enter].
@@ -2170,7 +2170,7 @@
 	* help.el: Added binding and menu line for new `P' package-finder
 	command.  Won't actually take effect till the next Emacs build.
 
-	* vc.el (vc-backend-checkin): Fixed bizarre POM-dependent bug
+	* vc.el (vc-backend-checkin): Fix bizarre POM-dependent bug
 	introduced into VC by a bad patch.  This was one for the
 	books....badly corrupted vc-checkin code somehow mostly functioned
 	for three days.  The Code That Would Not Die...
@@ -2252,7 +2252,7 @@
 1993-03-08  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
 	* subr.el (posn-timestamp, posn-col-row, posn-point, posn-window)
-	(event-end, event-start, mouse-movement-p): Moved from mouse.el.
+	(event-end, event-start, mouse-movement-p): Move from mouse.el.
 	* mouse.el: Functions moved to subr.el.
 
 1993-03-07  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
@@ -2363,7 +2363,7 @@
 1993-03-05  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
 	* disp-table.el: Add autoload comments.
-	(rope-to-vector): Deleted.
+	(rope-to-vector): Delete.
 	(describe-display-table): Don't use rope-to-vector.
 
 	* compare-w.el (compare-windows): Use compare-buffer-substrings.
@@ -2424,7 +2424,7 @@
 	(rmail-undelete-previous-message, rmail-delete-forward)
 	(rmail-get-new-mail, rmail-show-message): Update summary buffer if any.
 	Call rmail-maybe-display-summary to put it back on screen.
-	(rmail-only-expunge): Renamed from rmail-expunge.
+	(rmail-only-expunge): Rename from rmail-expunge.
 	(rmail-expunge): New function.
 	(rmail-message-recipients-p, rmail-message-regexp-p): New functions.
 	(rmail-summary-exists, rmail-summary-displayed): New functions.
@@ -2470,7 +2470,7 @@
 1993-03-01  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
 	* frame.el: Doc fixes.
-	(set-pointer-color): Renamed to set-mouse-color.
+	(set-pointer-color): Rename to set-mouse-color.
 	(set-border-color): New function.
 
 	* info.el (Info-insert-dir): Make menu items in Top node
@@ -2510,8 +2510,8 @@
 
 1993-02-26  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
-	* frame.el (auto-raise-mode): Renamed from toggle-auto-raise.
-	(auto-lower-mode): Renamed from toggle-auto-lower.
+	* frame.el (auto-raise-mode): Rename from toggle-auto-raise.
+	(auto-lower-mode): Rename from toggle-auto-lower.
 
 1993-02-26  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
@@ -2550,8 +2550,8 @@
 
 	* gud.el (gud-break): With a prefix argument, set a temporary
 	breakpoint.
-	(gud-apply-from-source): New argument ARGS, to pass to FUNC.  Now
-	it's really like `apply'.
+	(gud-apply-from-source): New argument ARGS, to pass to FUNC.
+	Now it's really like `apply'.
 	(gud-set-break): Add another argument to this method.
 	Document it in the section describing how the methods are supposed
 	to be used.
@@ -2614,11 +2614,11 @@
 
 	* frame.el (frame-initialize): Fix error syntax.
 	(toggle-horizontal-scroll-bar): Likewise.
-	(toggle-horizontal-scroll-bar): Renamed from set-horizontal-bar.
+	(toggle-horizontal-scroll-bar): Rename from set-horizontal-bar.
 	(toggle-vertical-scroll-bar): Likewise.
 	(toggle-auto-lower, toggle-auto-raise): Likewise.
 	(set-foreground-color, set-background-color):
-	Renamed from set-frame-{fore,back}ground.
+	Rename from set-frame-{fore,back}ground.
 
 1993-02-15  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
@@ -2674,7 +2674,7 @@
 
 1993-02-11  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
-	* flow-ctrl.el (enable-flow-control...): Renamed from evade...
+	* flow-ctrl.el (enable-flow-control...): Rename from evade...
 	(enable-flow-control): Add autoload.
 
 1993-02-10  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
@@ -2691,7 +2691,7 @@
 	* fortran.el (fortran-prepare-abbrev-list-buffer): Put quote in
 	front of first argument to `insert-abbrev-table-description'.
 
-	* fortran.el (fortran-is-in-string-p): Fixed incorrect behavior
+	* fortran.el (fortran-is-in-string-p): Fix incorrect behavior
 	when in first statement of a buffer.
 
 1993-02-08  Roland McGrath  (roland@geech.gnu.ai.mit.edu)
@@ -2737,7 +2737,7 @@
 
 1993-02-05  Roland McGrath  (roland@geech.gnu.ai.mit.edu)
 
-	* comint.el (make-comint): Added docstring.
+	* comint.el (make-comint): Add docstring.
 
 1993-02-05  Roland McGrath  (roland@geech.gnu.ai.mit.edu)
 
@@ -2766,7 +2766,7 @@
 1993-01-31  Roland McGrath  (roland@geech.gnu.ai.mit.edu)
 
 	* mailabbrev.el (mail-abbrev-end-of-buffer):
-	Changed interactive spec from "P" to "p".
+	Change interactive spec from "P" to "p".
 
 1993-01-29  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
@@ -2789,7 +2789,7 @@
 	x-own-selection has been renamed to x-set-selection, and the order
 	of its arguments has been reversed, for consistency with other
 	lisp functions like put and aset.
-	* term/x-win.el (x-select-text): Adjusted.
+	* term/x-win.el (x-select-text): Adjust.
 	(x-cut-buffer-or-selection-value): Check the primary selection,
 	using x-selection, instead of checking the cut buffer again.
 
@@ -2804,7 +2804,7 @@
 	x-own-selection has been renamed to x-set-selection, and the order
 	of its arguments has been reversed, for consistency with other
 	lisp functions like put and aset.
-	* term/x-win.el (x-select-text): Adjusted.
+	* term/x-win.el (x-select-text): Adjust.
 	(x-cut-buffer-or-selection-value): Check the primary selection,
 	using x-selection, instead of checking the cut buffer again.
 
@@ -3070,13 +3070,13 @@
 	* etags.el: Many comments added and docstrings fixed.
 	(tags-table-list): Elt of nil is not special.
 	(tags-expand-table-name): Value of nil is not special.
-	(tags-next-table): Removed arg RESET; no caller used it.
+	(tags-next-table): Remove arg RESET; no caller used it.
 	(visit-tags-table-buffer): Don't need to do tags-expand-table-name
 	in or form. When table is invalid, only set tags-file-name to nil
 	globally if its global value contained the losing table file name.
 	(find-tag-tag): Return a string, not a list.
 	(find-tag-noselect, find-tag, find-tag-other-window)
-	(find-tag-other-frame): Changed callers.
+	(find-tag-other-frame): Change callers.
 	(etags-recognize-tags-table): Call etags-verify-tags-table, rather than
 	duplicating its functionality.
 	(visit-tags-table-buffer): When CONT is 'same, set it to nil after the
@@ -3153,7 +3153,7 @@
 
 1992-12-09  Roland McGrath  (roland@wookumz.gnu.ai.mit.edu)
 
-	* info.el (Info-{first,second,third,fourth,fifth}-menu-item): Removed.
+	* info.el (Info-{first,second,third,fourth,fifth}-menu-item): Remove.
 	(Info-nth-menu-item): New function; bound to 1..9.
 
 1992-12-08  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
@@ -3167,8 +3167,8 @@
 	Just that.
 	* ls-lisp.el (insert-directory): Just that.
 
-	* ange-ftp.el (ange-ftp-unhandled-file-name-directory): New
-	function.  Set ange-ftp's `unhandled-file-name-property' to its
+	* ange-ftp.el (ange-ftp-unhandled-file-name-directory):
+	New function.  Set ange-ftp's `unhandled-file-name-property' to its
 	name.
 
 1992-12-07  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
@@ -3238,7 +3238,7 @@
 	* paths.el (rmail-spool-directory): Add dgux-unix to the list of
 	systems which put their mail in "/usr/mail".
 
-	* lpr.el (lpr-command, lpr-switches): Removed strings starting
+	* lpr.el (lpr-command, lpr-switches): Remove strings starting
 	with \newline; this file is loaded in loaddefs.el, and doesn't
 	need to follow that convention.
 
@@ -3351,8 +3351,8 @@
 	* fortran.el: Version 1.28.7a.
 	Cleaned up some doc strings.
 
-	(fortran-abbrev-help, fortran-prepare-abbrev-list-buffer): Use
-	`insert-abbrev-table-description' and make buffer in abbrevs-mode.
+	(fortran-abbrev-help, fortran-prepare-abbrev-list-buffer):
+	Use `insert-abbrev-table-description' and make buffer in abbrevs-mode.
 
 	* fortran.el: Version 1.28.7.
 	Many changes since version 1.28.3.  Added auto-fill-mode, support
@@ -3366,7 +3366,7 @@
 	New functions to implement auto fill.
 
 	(fortran-indent-line, fortran-reindent-then-newline-and-indent):
-	Added auto fill support.
+	Add auto fill support.
 
 	(find-comment-start-skip, is-in-fortran-string-p): New functions.
 
@@ -3376,7 +3376,7 @@
 	(fortran-indent-to-column): Use find-comment-start-skip instead of
 	searching for `comment-start-skip'.
 
-	(fortran-mode, calculate-fortran-indent): Added indentation
+	(fortran-mode, calculate-fortran-indent): Add indentation
 	for fortran 90 statements.
 
 	(fortran-next-statement, fortran-previous-statement): Bug fixes.
@@ -3431,7 +3431,7 @@
 
 1992-10-31  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
-	* files.el (make-directory): Renamed from make-directory-path.
+	* files.el (make-directory): Rename from make-directory-path.
 	Optional argument says whether to create parent dirs.
 	Invoke file-name handler here.
 	(after-find-file): Delete code that offers to create dir.
@@ -3469,7 +3469,7 @@
 
 	* info.el: Rename buffer-flush-undo to buffer-disable-undo.
 	(Info-goto-emacs-key-command-node): Fix typo.
-	(Info-menu-item-sequence): Commented out.
+	(Info-menu-item-sequence): Comment out.
 	(Info-follow-nearest-node): Use new event format.
 	Select the window clicked on.
 
@@ -3561,9 +3561,9 @@
 
 	* mailabbrev.el: Delete version 18 compatibility stuff.
 	(mail-abbrevs, build-mail-abbrevs, rebuild-mail-abbrevs)
-	(merge-mail-abbrevs): Renamed `mail-aliases' to `mail-abbrevs'.
-	(mail-abbrev-end-of-buffer): Renamed from abbrev-hacking-end-of-buffer.
-	(mail-abbrev-next-line): Renamed from abbrev-hacking-next-line.
+	(merge-mail-abbrevs): Rename `mail-aliases' to `mail-abbrevs'.
+	(mail-abbrev-end-of-buffer): Rename from abbrev-hacking-end-of-buffer.
+	(mail-abbrev-next-line): Rename from abbrev-hacking-next-line.
 
 	* isearch-mode.el (isearch-mode-map): Use sparse keymaps.
 	Start printing-char loop at SPC.
@@ -3729,7 +3729,7 @@
 
 1992-10-05  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
-	* ls-lisp.el (insert-directory): Renamed from dired-ls.
+	* ls-lisp.el (insert-directory): Rename from dired-ls.
 	All other functions renamed to start with ls-lisp.
 
 	* ls-lisp.el: New file from Kremer.
@@ -3748,7 +3748,7 @@
 
 	* mouse.el: Begin adapting this to the new event format.
 	(event-window, event-point, mouse-coords, mouse-timestamp):
-	Removed.
+	Remove.
 	(event-start, event-end, posn-window, posn-point, posn-col-row)
 	(posn-timestamp): New accessors; these are defsubsts.
 	(mouse-delete-window, mouse-delete-other-windows)
@@ -3783,7 +3783,7 @@
 
 1992-09-30  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
-	* gud.el (gud-last-frame): Added defvar for this.
+	* gud.el (gud-last-frame): Add defvar for this.
 
 1992-09-29  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
@@ -3814,8 +3814,8 @@
 	Use x-get-cut-buffer and x-set-cut-buffer, instead of expecting
 	x-selection-value to manipulate the cut buffers.
 
-	* term/x-win.el (x-cut-buffer-or-selection-value): Treat
-	selections whose value is the empty string like unset selections.
+	* term/x-win.el (x-cut-buffer-or-selection-value):
+	Treat selections whose value is the empty string like unset selections.
 	This allows us to truncate cut buffers to the empty string (if the
 	text is too large, say) without causing
 	interprogram-paste-function to wipe out the latest kill.
@@ -3841,13 +3841,13 @@
 	latter doesn't exist.
 	(gud-dbx-debugger-setup): Use the argument `f', not the variable
 	`file', which happens to be bound in the caller.
-	(gud-filter-insert): The variable `start' is never used.  The
-	variable `moving' is unnecessary.  The variable `old-buffer' and
+	(gud-filter-insert): The variable `start' is never used.
+	The variable `moving' is unnecessary.  The variable `old-buffer' and
 	the unwind-protect form are unneeded, since save-excursion can do
 	their work.  The binding of output-after-point should be done after
 	switching to the process's buffer, not in whatever random buffer
-	happens to be current when the process filter is called.  There's
-	no need to set the process mark if we've just inserted at its
+	happens to be current when the process filter is called.
+	There's no need to set the process mark if we've just inserted at its
 	location using insert-before-markers.
 	(gud-read-address): Don't bother setting the variable `result'; it
 	is never used.
@@ -3920,8 +3920,8 @@
 
 	* two-column.el (tc-window-width, tc-separator, tc-other):
 	Add permanent-local property.
-	(tc-two-columns): Renamed from tc-split.
-	(tc-split): Renamed from tc-unmerge.  Put it on C-x 6 s.
+	(tc-two-columns): Rename from tc-split.
+	(tc-split): Rename from tc-unmerge.  Put it on C-x 6 s.
 	Use make-local-variable on tc-separator.
 
 	* spook.el (spook): Make it autoload.
@@ -3929,7 +3929,7 @@
 	* gomoku.el (gomoku): Make it autoload.
 
 	* mpuz.el: Fix setup of mpuz-read-map not to depend on keymap format.
-	(mpuz): Renamed from mult-puzzle.  Make it autoload.
+	(mpuz): Rename from mult-puzzle.  Make it autoload.
 
 	* setenv.el (setenv): Doc fix.  Make it autoload.
 
@@ -3969,9 +3969,9 @@
 
 	* texinfo.el (texinfo-mode): Capitalize the mode name string.
 
-	* mail-extr.el (mail-undo-backslash-quoting): Renamed from undo-...
-	(mail-safe-move-sexp): Renamed from safe-...
-	(mail-variant-method): Renamed from variant-method.
+	* mail-extr.el (mail-undo-backslash-quoting): Rename from undo-...
+	(mail-safe-move-sexp): Rename from safe-...
+	(mail-variant-method): Rename from variant-method.
 
 	* tq.el: Doc fixes.  Make tq-create autoload.
 
@@ -3994,7 +3994,7 @@
 
 	* prompt.el: File deleted.
 
-	* find-dired.el (start-process-shell-command): Deleted.
+	* find-dired.el (start-process-shell-command): Delete.
 
 	* diff.el (diff-switches): Default is now -c.
 	(diff-parse-differences): Use line beg as location of message.
@@ -4028,7 +4028,7 @@
 	(search-last-string, search-last-regexp): Vars deleted.
 	(search-highlight): No longer a user option.
 
-	* subr.el (baud-rate): Defined.
+	* subr.el (baud-rate): Define.
 	(substitute-key-definition): Understand today's keymap format.
 	New arg OLDMAP.  Operate recursively on prefix keys.
 
@@ -4060,7 +4060,7 @@
 
 1992-09-16  Joseph Arceneaux  (jla@churchy.gnu.ai.mit.edu)
 
-	* isearch-mode.el (isearch-ring-advance-edit): Added missing
+	* isearch-mode.el (isearch-ring-advance-edit): Add missing
 	closing paren to end of this function.
 
 1992-09-16  Roland McGrath  (roland@geech.gnu.ai.mit.edu)
@@ -4087,7 +4087,7 @@
 	* simple.el (previous-history-element): Doc fix.
 
 	* isearch-mode.el (isearch-event-data-type):
-	Renamed from isearch-events-exist.
+	Rename from isearch-events-exist.
 	(isearch-frames-exist): Set properly in Emacs 18.
 	(isearch-mode): Use baud-rate as variable, not function.
 	(isearch-abort): Use nil as 2nd arg to `signal'.
@@ -4137,8 +4137,8 @@
 	Don't try using length of keymap.
 	(isearch-update): Handle unread-command-char properly for Emacs 19.
 	(isearch-switch-frame-handler): Use select-frame to switch frames.
-	(isearch-pre-command-hook): Commented out.
-	(search-upper-case): Renamed from search-caps-disable-folding.
+	(isearch-pre-command-hook): Comment out.
+	(search-upper-case): Rename from search-caps-disable-folding.
 
 1992-09-14  Roland McGrath  (roland@geech.gnu.ai.mit.edu)
 
@@ -4240,7 +4240,7 @@
 	* dired-aux.el (dired-add-entry, dired-insert-subdir-doinsert):
 	Use insert-directory.
 	* dired.el (dired-readin-insert): Use insert-directory.
-	(dired-ls, dired-ls-program): Deleted.
+	(dired-ls, dired-ls-program): Delete.
 
 1992-09-12  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
@@ -4264,7 +4264,7 @@
 
 	* term/x-win.el (scroll-bar-mode): New function (and variable too).
 
-	* dired.el (dired-next-subdir, dired-subdir-index): Moved here
+	* dired.el (dired-next-subdir, dired-subdir-index): Move here
 	* dired-aux.el: From here.
 	* dired.el (dired-build-subdir-alist): Don't print msg after each dir.
 	Clarify final message.
@@ -4296,7 +4296,7 @@
 
 1992-09-08  Joseph Arceneaux  (jla@geech.gnu.ai.mit.edu)
 
-	* mailabbrev.el (sendmail-pre-abbrev-expand-hook): Changed the
+	* mailabbrev.el (sendmail-pre-abbrev-expand-hook): Change the
 	structure of this function: don't check to call
 	mail-resolve-all-aliases unless we are actually in a header field
 	where an abbrev should be expanded.
@@ -4345,7 +4345,7 @@
 
 1992-09-02  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
-	* c-mode.el (c-auto-newline): Added backslashed before quotes in
+	* c-mode.el (c-auto-newline): Add backslashed before quotes in
 	docstring.
 
 1992-09-01  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
@@ -4446,7 +4446,7 @@
 	(mail-signature-file): This, since this is the way all the
 	other lisp packages do it, and it's how people always say they
 	want it on the mailing lists.
-	(mail-setup, mail-signature): Adjusted accordingly.
+	(mail-setup, mail-signature): Adjust accordingly.
 	(mail): Doc fix.
 
 1992-08-17  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
@@ -4544,9 +4544,9 @@
 
 	* calendar.el (calendar-interval): Fix doc string.
 
-	* calendar.el (calendar): Changed use of prefix arg--now it causes
+	* calendar.el (calendar): Change use of prefix arg--now it causes
 	prompting for the month and year.
-	(regenerate-calendar-window): Renamed generate-calendar-window.
+	(regenerate-calendar-window): Rename generate-calendar-window.
 	Changed optional argument from an offset from the current month to
 	a month, year pair.
 	(redraw-calendar, calendar-current-month, scroll-calendar-left)
@@ -4562,7 +4562,7 @@
 
 1992-08-08  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
-	* frame.el (set-screen-width, set-screen-height): Changed these
+	* frame.el (set-screen-width, set-screen-height): Change these
 	from fset aliases to actual functions, since they aren't supposed
 	to take a frame argument, while set-frame-{width,height} do.
 
@@ -4595,8 +4595,8 @@
 
 	* appt.el (appt-issue-message, appt-message-warning-time)
 	(appt-audible, appt-visible, appt-display-mode-line)
-	(appt-msg-window, appt-display-duration, appt-display-diary): Added
-	;;;###autoload cookies for these variables, since they are options
+	(appt-msg-window, appt-display-duration, appt-display-diary):
+	Add ;;;###autoload cookies for these variables, since they are options
 	for the user to set.
 	* tex-mode.el (tex-shell-file-name, tex-directory, tex-offer-save)
 	(tex-run-command, latex-run-command, latex-block-names)
@@ -4610,29 +4610,29 @@
 	* add-log.el (add-log-current-defun): Use eq instead of = when one
 	side might be nil.
 
-	* compile.el (compilation-mode-map): Change
-	compilation-previous/next-file bindings to M-{ and M-}.
+	* compile.el (compilation-mode-map):
+	Change compilation-previous/next-file bindings to M-{ and M-}.
 
 1992-08-05  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
 	* cl.el (*cl-valid-named-list-accessors*, *cl-valid-nth-offsets*)
-	(byte-compile-named-accessors): Deleted.
+	(byte-compile-named-accessors): Delete.
 	(first, second, ... tenth, rest): Define these with defsubst, to
 	get the same effect.
-	(byte-compile-ca*d*r): Deleted.
+	(byte-compile-ca*d*r): Delete.
 	(caar, cadr, ..., cddddr): Define these using defsubst.
 
 	Installed changes from Zawinski-Furuseth 2.04 to 2.07:
 	* byte-run.el (dont-compile): Doc fix.
 	(make-obsolete-variable): New function.
-	* bytecomp.el (byte-compile-log-1): Added new optional argument,
+	* bytecomp.el (byte-compile-log-1): Add new optional argument,
 	FILL; if it is non-nil, reformat the error message.
 	(byte-compile-warn): Use that flag.
 	(byte-recompile-directory): Offer to recompile subdirectories.
 	If prefix argument is zero, create .elc files for those .el files
 	which lack them, without asking.
-	(byte-compile-output-form, byte-compile-output-docform): Disable
-	print-gensym while writing the form.
+	(byte-compile-output-form, byte-compile-output-docform):
+	Disable print-gensym while writing the form.
 	(byte-compile-form): Warn if t or nil are called as functions.
 	(byte-compile-variable-ref): Check for, and warn about, obsolete
 	variable uses.
@@ -4649,7 +4649,7 @@
 
 	* inf-lisp.el (inferior-lisp-filter-regexp, inferior-lisp-program)
 	(inferior-lisp-load-command, inferior-lisp-prompt)
-	(inferior-lisp-mode-hook, inferior-lisp): Added ;;;###autoload
+	(inferior-lisp-mode-hook, inferior-lisp): Add ;;;###autoload
 	cookies for these.
 
 	* bytecomp.el (byte-compile-warnings): When choosing the default
@@ -4685,8 +4685,8 @@
 
 	* info.el (Info-mode): scroll-up, scroll-down now do the right
 	thing for preorder browsing when the beginning/end of the node
-	is visible.  RET now goes to the next preorder node.  These
-	changes make sequential reading of info subtrees easier.
+	is visible.  RET now goes to the next preorder node.
+	These changes make sequential reading of info subtrees easier.
 
 1992-08-04  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
@@ -4698,7 +4698,7 @@
 	* vc.el (vc-next-action, vc-register, vc-diff, vc-insert-headers)
 	(vc-directory, vc-create-snapshot, vc-retrieve-snapshot)
 	(vc-print-log, vc-revert-buffer, vc-cancel-version)
-	(vc-update-change-log): Added the ;;;###autoload cookies to these
+	(vc-update-change-log): Add the ;;;###autoload cookies to these
 	functions, since they get bound to keys in the global keymap.
 	* loadup.el: Load vc-hooks.el.
 
@@ -4773,7 +4773,7 @@
 	(medit-zap-define-to-mdl): Change `medit-save-defun' to
 	`medit-save-define'.
 	(medit-save-region, medit-save-buffer, medit-zap-define-to-mdl):
-	Changed `medit-go-to-mdl' to `medit-goto-mdl'.  Did anyone ever
+	Change `medit-go-to-mdl' to `medit-goto-mdl'.  Did anyone ever
 	try this code?
 
 1992-08-02  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
@@ -4805,13 +4805,13 @@
 	(dired-create-files, dired-handle-overwrite):
 	Rename overwrite-confirmed to dired-overwrite-confirmed.
 	(dired-do-kill-lines): Handle prefix arg as number of lines to kill.
-	(dired-kill-line-or-subdir): Deleted.
+	(dired-kill-line-or-subdir): Delete.
 
 1992-08-01  Roland McGrath  (roland@churchy.gnu.ai.mit.edu)
 
-	* mailabbrev.el [from jwz] (mail-interactive-insert-alias): Do
-	mail-aliases-setup if necessary before completing for interactive.
-	(build-mail-aliases): Changed parsing regexp.
+	* mailabbrev.el [from jwz] (mail-interactive-insert-alias):
+	Do mail-aliases-setup if necessary before completing for interactive.
+	(build-mail-aliases): Change parsing regexp.
 
 	* compile.el (compilation-parse-errors): Take 2nd arg FIND-AT-LEAST.
 	If non-nil, stop after parsing that many new errors.
@@ -4826,7 +4826,7 @@
 
 	* comint.el: ring-* functions deleted--get them from ring.el.
 
-	* ring.el (ring-mod): Renamed from comint-mod.
+	* ring.el (ring-mod): Rename from comint-mod.
 	Provide `ring', not history'.
 	(make-ring, ring-p): Add autoloads.
 	* history.el: Link deleted.
@@ -4846,7 +4846,7 @@
 	Use buffer-disable-undo instead of buffer-flush-undo; the latter
 	is obsolete.
 
-	* lpr.el (print-region-new-buffer): Added arguments START and END;
+	* lpr.el (print-region-new-buffer): Add arguments START and END;
 	this used to use dynamic scope, but it makes things less readable.
 	(print-region-1): Always call this with two arguments, not
 	sometimes two and sometimes none.
@@ -4877,7 +4877,7 @@
 	* hideif.el (hif-endif-to-ifdef): Fix munged comment which was
 	interfering with parsing.
 
-	* hexl.el (hexl-next-line): Fixed up malformed let binding.
+	* hexl.el (hexl-next-line): Fix up malformed let binding.
 
 	* bytecomp.el (byte-compile-file): Catch errors that occur during
 	compilation, and record them in the compilation log.  This allows
@@ -5042,10 +5042,10 @@
 
 1992-07-28  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
-	* files.el (backup-extract-version): Copied from Emacs 18.
+	* files.el (backup-extract-version): Copy from Emacs 18.
 	(find-backup-file-name): Use that.
 
-	* dired-aux.el (dired-clean-directory): Moved here.
+	* dired-aux.el (dired-clean-directory): Move here.
 	(dired-map-dired-file-lines, dired-collect-file-versions)
 	(dired-trample-file-versions): Likewise.
 	* dired.el: Moved from here.
@@ -5070,7 +5070,7 @@
 
 	* compile.el (compile-goto-error): Doc fix.
 
-	* etags.el (find-tag): Fixed prompt.
+	* etags.el (find-tag): Fix prompt.
 	(tag-exact-match-p): Rewritten (again).
 
 	* startup.el (command-line): Load site-start here.
@@ -5082,7 +5082,7 @@
 
 	* completion.el: Moved to external-lisp.
 
-	* diff.el (diff-rcs, diff-sccs): Deleted.
+	* diff.el (diff-rcs, diff-sccs): Delete.
 
 1992-07-27  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
 
@@ -5127,9 +5127,9 @@
 1992-07-26  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
 	* diff.el (diff-backup): New function.
-	(diff-last-backup-file): Renamed from dired-last-backup-file.
+	(diff-last-backup-file): Rename from dired-last-backup-file.
 	* dired-aux.el (dired-backup-diff): Use diff-backup.
-	(dired-last-backup-file): Moved and renamed.
+	(dired-last-backup-file): Move and renamed.
 	* dired.el, dired-aux.el (dired-diff, dired-backup-diff): Doc fixes.
 
 	* help.el (command-apropos): Fix call to apropos for new arg.
@@ -5185,9 +5185,9 @@
 	* replace.el (perform-replace): Fix typo: match-after => match-again.
 	(map-query-replace-regexp): Delete duplicate definition.
 
-	* subr.el (defun-inline): Commented out.
+	* subr.el (defun-inline): Comment out.
 
-	* comint.el (comint-input-ring*): Renamed from input-ring*.
+	* comint.el (comint-input-ring*): Rename from input-ring*.
 	(ring-remove, ring-rotate): Use setcar, not set-car.
 	* co-isearch.el: input-ring* renamed to comint-input-ring*.
 
@@ -5227,7 +5227,7 @@
 1992-07-22  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
 	* emerge.el (emerge-startup-hook, emerge-quit-hook):
-	Renamed from ...-hooks.
+	Rename from ...-hooks.
 
 	* dired.el (dired-display-file): New command, on C-o.
 
@@ -5282,15 +5282,15 @@
 	* c-mode.el (c-backslash-region): New command.
 	(c-append-backslash, c-delete-backslash): New functions.
 	* c++-mode.el (c++-macroize-region, backslashify-current-line):
-	Deleted.
-	(c++-comment-region, c++-uncomment-region): Deleted.
+	Delete.
+	(c++-comment-region, c++-uncomment-region): Delete.
 	comment-region works just fine.
-	(c++-beginning-of-defun, c++-end-defun, c++-indent-defun): Deleted.
-	(c++-point-bol): Renamed from point-bol.
-	(c++-within-string-p): Renamed from within-string-p.
-	(c++-count-char-in-string): Renamed from count-char-in-string.
-	(fill-c++-comment): Renamed from fill-C-comment.
-	(c++-insert-header): Deleted.
+	(c++-beginning-of-defun, c++-end-defun, c++-indent-defun): Delete.
+	(c++-point-bol): Rename from point-bol.
+	(c++-within-string-p): Rename from within-string-p.
+	(c++-count-char-in-string): Rename from count-char-in-string.
+	(fill-c++-comment): Rename from fill-C-comment.
+	(c++-insert-header): Delete.
 
 1992-07-21  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
@@ -5329,7 +5329,7 @@
 
 	* simple.el (end-of-buffer): If buffer end is on screen, don't scroll.
 
-	* c-mode.el (set-c-style): Deleted the first version of this function.
+	* c-mode.el (set-c-style): Delete the first version of this function.
 	It was badly written.
 	Modified the remaining version by adding new argument GLOBAL
 	and setting the parameters locally if GLOBAL is nil.
@@ -5343,7 +5343,7 @@
 
 1992-07-21  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
-	* frame.el (get-frame): Renamed to get-other-frame; get-frame
+	* frame.el (get-frame): Rename to get-other-frame; get-frame
 	sounds like a parallel to get-buffer or get-process.
 
 	* c-mode.el (set-c-style): Remove the extraneous copy of this
@@ -5352,7 +5352,7 @@
 	* c++-mode.el (within-string-p): Use `%', not `mod', as the name
 	of the modulus function.
 
-	* frame.el (frame-height, frame-width): Fixed several confusions
+	* frame.el (frame-height, frame-width): Fix several confusions
 	here.
 
 	* blackbox.el: When building blackbox-mode-map, locally rebind all
@@ -5384,7 +5384,7 @@
 	(visit-tags-file): If find-file-noselect changed the file name,
 	propagate the change to tags-file-name and tags-table-list.
 
-	* startup.el (command-line): Fixed typo in comment.
+	* startup.el (command-line): Fix typo in comment.
 
 1992-07-20  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
@@ -5406,7 +5406,7 @@
 	(frame-configuration-to-register): New function.
 	* loaddefs.el: Put them on C-x r w, C-x r f.
 	* window.el (window-config-to-register, register-to-window-config):
-	Deleted, along with keybindings C-x 6 and C-x 7.
+	Delete, along with keybindings C-x 6 and C-x 7.
 
 1992-07-19  Edward M. Reingold  (reingold@emr.cs.uiuc.edu)
 
@@ -5431,7 +5431,7 @@
 	(calendar-mode-map): Put it on a key.
 	(calendar-mode): Describe it.
 
-	* cal-french.el (diary-french-date): Moved from diary.el and fixed
+	* cal-french.el (diary-french-date): Move from diary.el and fixed
 	accent.
 	* diary.el: Move dairy-french-date to cal-french.el and autoload it.
 
@@ -5469,7 +5469,7 @@
 
 	* files.el (auto-mode-alist): Recognize .texi.
 
-	* rmail.el (rmail-delete-forward): Removed the feature
+	* rmail.el (rmail-delete-forward): Remove the feature
 	of moving back if there's nowhere to go forward.
 
 1992-07-17  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
@@ -5519,12 +5519,12 @@
 	form so that it returns a list containing the filename and the
 	prefix argument, not just the prefix argument by itself.
 
-	* bytecomp.el (byte-compile-file): Changed reference to
+	* bytecomp.el (byte-compile-file): Change reference to
 	byte-compile-report-call-tree to use display-call-tree.
 
 	* bytecomp.el (byte-recompile-directory, byte-compile-file)
 	(batch-byte-compile, byte-compile, compile-defun)
-	(display-call-tree): Added autoload cookies for these functions.
+	(display-call-tree): Add autoload cookies for these functions.
 
 1992-07-16  Roland McGrath  (roland@churchy.gnu.ai.mit.edu)
 
@@ -5533,7 +5533,7 @@
 
 1992-07-16  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
-	* byte-run.el (defsubst): Removed extra closing paren at the end
+	* byte-run.el (defsubst): Remove extra closing paren at the end
 	of this function.
 
 1992-07-16  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
@@ -5567,7 +5567,7 @@
 	* bytecomp.el: Deleted support for running compiler in Emacs 18.
 	Spell "Emacs 18" properly.
 	(byte-compile-version): FSF 2.1.
-	(byte-compiler-valid-options): Deleted.
+	(byte-compiler-valid-options): Delete.
 	(byte-compile-single-version): Always return nil.
 	(byte-compiler-version-cond): Always return the argument.
 
@@ -5588,7 +5588,7 @@
 	* buff-menu.el, bg-mouse.el, appt.el, abbrevlist.el, term/x-win.el,
 	* term/wyse50.el, term/vt200.el, term/vt100.el: All uses changed.
 	* screen.el (screen-height, screen-width, set-screen-height)
-	(set-screen-width): Defined as aliases for frame-height,
+	(set-screen-width): Define as aliases for frame-height,
 	frame-width, set-frame-height, and set-frame-width.
 	(set-frame-height, set-frame-width): Functions deleted; they are
 	defined in frame.c.
@@ -5613,8 +5613,8 @@
 	* rmailsort.el: Change copyright to FSF; update permission notice.
 
 	* byte-run.el: Delete compatibility definition of make-byte-code.
-	(byte-compiler-options): Commented out.
-	(proclaim-inline, proclaim-notinline): Commented out.
+	(byte-compiler-options): Comment out.
+	(proclaim-inline, proclaim-notinline): Comment out.
 
 	* byte-opt.el: Change several doc strings to comments.
 	They had the wrong format anyway.
@@ -5623,22 +5623,22 @@
 	* disass.el: Require just bytecomp, not byte-opt.
 
 	* bytecomp.el (emacs-lisp-file-regexp):
-	Renamed from elisp-source-file-re.  All uses changed.
+	Rename from elisp-source-file-re.  All uses changed.
 	(byte-compile-dest-file): Don't use that var.
-	(compile-defun): Renamed from elisp-compile-defun.
+	(compile-defun): Rename from elisp-compile-defun.
 	(byte-compile-report-ops): Define unconditionally.
 	It's a bad idea to make function definitions of moderate size
 	conditional on anything.
-	(byte-compile-and-load-file): Commented out.
+	(byte-compile-and-load-file): Comment out.
 	(byte-compiler-valid-options):
-	Renamed from byte-compiler-legal-options.
+	Rename from byte-compiler-legal-options.
 	(byte-compile-overwrite-file): Variable deleted.
 	(byte-compile-file): Don't use that var.
 	(byte-compile-compatibility):
-	Renamed from byte-compile-emacs18-compatibility.
+	Rename from byte-compile-emacs18-compatibility.
 	(byte-compile-generate-emacs19-bytecodes): Variable deleted.
 	Use byte-compile-compatibility instead.
-	(byte-compiler-options-handler): Deleted.
+	(byte-compiler-options-handler): Delete.
 	(byte-compile-body-do-effect, byte-compile-form-do-effect):
 	Use defsubst, not proclaim-inline.
 
@@ -5694,7 +5694,7 @@
 	* disass.el: New version of the disassembler, to fit with the new
 	compiler.
 
-	* mouse.el (mouse-select-buffer-line): Removed extraneous setting
+	* mouse.el (mouse-select-buffer-line): Remove extraneous setting
 	of the variable `the-buffer'; it's never used elsewhere.
 
 	* mouse.el (mouse-kill): Don't set the mark; pass point and the
@@ -5702,7 +5702,7 @@
 
 1992-07-09  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
-	* abbrev.el (write-abbrev-file): Removed extraneous interactive spec.
+	* abbrev.el (write-abbrev-file): Remove extraneous interactive spec.
 
 	* screen.el (current-screen-configuration,
 	set-screen-configuration): New functions.
@@ -5713,8 +5713,8 @@
 	instead of `deiconify-screen'; the latter no longer exists.
 
 	* files.el (find-backup-file-name): Replace the reference to
-	`backup-extract-version' with a literal `function' form.  This
-	eliminates the use of dynamic binding, and allows us to remove
+	`backup-extract-version' with a literal `function' form.
+	This eliminates the use of dynamic binding, and allows us to remove
 	backup-extract-version, which doesn't really want to be its own
 	function.
 	(backup-extract-version): Function removed.
@@ -5766,7 +5766,7 @@
 
 	* tex-mode.el: Require comint instead of oshell.
 	(tex-start-shell): Use comint, not oshell.
-	(tex-filter): Deleted function; no filter is now longer needed.
+	(tex-filter): Delete function; no filter is now longer needed.
 
 	* tex-mode.el (tex-run-command, latex-run-command, slitex-run-command)
 	(tex-bibtex-run-command, tex-dvi-print-command)
@@ -5843,7 +5843,7 @@
 1992-06-28  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* completion.el (completion-separator-self-insert-autofilling):
-	Changed references to `auto-fill-hook' to `auto-fill-function'.
+	Change references to `auto-fill-hook' to `auto-fill-function'.
 	* mh-e.el (mh-letter-mode): Same thing.
 	* texinfo-upd.el (texinfo-update-node,
 	texinfo-sequential-node-update): Same thing.
@@ -5863,7 +5863,7 @@
 	calendar-daylight-savings-starts, calendar-daylight-savings-ends.
 	Add autoload of calendar-sunrise-sunset.
 	(calendar-mode): Add description of sunrise/sunset capability.
-	(calendar-version): Changed to 5.
+	(calendar-version): Change to 5.
 
 	* diary.el: Autoload diary-sunrise-sunset and diary-sabbath-candles.
 
@@ -5915,10 +5915,10 @@
 	(all-christian-calendar-holidays, all-islamic-calendar-holidays)
 	(list-diary-entries-hook, diary-display-hook)
 	(nongregorian-diary-listing-hook, nongregorian-diary-marking-hook)
-	(diary-list-include-blanks): Added autoload cookie for these;
+	(diary-list-include-blanks): Add autoload cookie for these;
 	Reingold's distribution suggests that these variables are ones
 	that you are especially likely to want to customize.
-	* holiday.el (holidays): Added autoload cookie for this.
+	* holiday.el (holidays): Add autoload cookie for this.
 
 1992-06-25  Edward M. Reingold  (reingold@emr.cs.uiuc.edu)
 
@@ -5953,7 +5953,7 @@
 	* dired.el: Complete rewrite, mostly by sk@thp.uni-koeln.de.
 	* dired-aux.el: Other parts of dired.
 
-	* files.el (enable-local-eval): Renamed from `ignore-local-eval';
+	* files.el (enable-local-eval): Rename from `ignore-local-eval';
 	now has values like `enable-local-variables'.
 	(hack-local-variables): Test `enable-local-eval' properly.
 
@@ -5974,7 +5974,7 @@
 
 1992-06-21  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
-	* screen.el (ctl-x-5-map): Removed declaration and initialization
+	* screen.el (ctl-x-5-map): Remove declaration and initialization
 	of this here; it's done in subr.el, alongside ctl-x-4-map.
 
 	* autoload.el (generate-file-autoloads): If FILE is in the same
@@ -6003,7 +6003,7 @@
 
 1992-06-18  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
-	* edebug.el (edebug-debug): Added autoload cookie for this.
+	* edebug.el (edebug-debug): Add autoload cookie for this.
 
 	* etags.el (find-tag-other-frame): New function.  Bind it to
 	`C-x 5 .'.
@@ -6043,7 +6043,7 @@
 	now the keymap `isearch-mode-map' controls special characters in
 	isearch-mode.
 
-	* blackbox.el (blackbox): Added ;;;###autoload cookie.
+	* blackbox.el (blackbox): Add ;;;###autoload cookie.
 
 	* add-log.el (change-log-mode): Integrated some code from the
 	`change-log-mode' function in `text-mode.el'.  Docstring now
@@ -6085,7 +6085,7 @@
 
 1992-06-12  Joseph Arceneaux  (jla@churchy.gnu.ai.mit.edu)
 
-	* simple.el (current-kill): Fixed misnamed parameter and
+	* simple.el (current-kill): Fix misnamed parameter and
 	reorganized code slightly.
 
 1992-06-11  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
@@ -6122,7 +6122,7 @@
 
 1992-06-08  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
-	* csharp.el (c-find-nesting): Renamed from csharp-find-nesting.
+	* csharp.el (c-find-nesting): Rename from csharp-find-nesting.
 	Add autoload.
 	All other functions in this file renamed to start with c-find-nesting.
 
@@ -6204,7 +6204,7 @@
 1992-06-02  Roland McGrath  (roland@geech.gnu.ai.mit.edu)
 
 	* add-log.el: Fixed copyright years to not use a range.
-	(change-log-mode): Added docstring.
+	(change-log-mode): Add docstring.
 	(add-change-log-entry): Put a space between the file name and
 	"(function name):".  Put a colon after the file name if we have
 	found no function name.
@@ -6247,7 +6247,7 @@
 	* fill.el (fill-region-as-paragraph): Treat } like closeparen.
 	If a fill prefix is specified globally, always use that one.
 
-	* flow-ctrl.el (evade-flow-control-memstr=): Renamed from memstr=.
+	* flow-ctrl.el (evade-flow-control-memstr=): Rename from memstr=.
 
 1992-05-31  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
 
@@ -6258,7 +6258,7 @@
 
 1992-05-31  Noah Friedman  (friedman@splode.com)
 
-	* subr.el (lambda): Added docstring.
+	* subr.el (lambda): Add docstring.
 
 1992-05-31  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
 
@@ -6286,7 +6286,7 @@
 	of writing out its code.
 
 	* comint.el: Merged with Olin Shivers' comint version 2.03.
-	(comint-version): Changed accordingly.
+	(comint-version): Change accordingly.
 	(comint-previous-input-matching): Bind this to c-m-r, rather
 	than c-c c-r.
 	(comint-exec-hook): Make this variable buffer-local.
@@ -6300,8 +6300,8 @@
 	to "Non-echoed text: ".  This conforms with the convention
 	used by existing prompts, and gives more room to type stuff.
 
-	* comint.el (comint-last-input-start): New variable.  In
-	particular, this helps support subprocesses that insist on echoing
+	* comint.el (comint-last-input-start): New variable.
+	In particular, this helps support subprocesses that insist on echoing
 	their input.  Added comments to porting guide indicating that
 	this should probably not be used for implementing history stuff.
 	(comint-mode): Create and initialize comint-last-input-start as a
@@ -6340,9 +6340,9 @@
 1992-05-24  Edward M. Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* calendar.el (list-yahrzeit-dates): New function.
-	(hebrew-calendar-yahrzeit): Moved from diary.el.
+	(hebrew-calendar-yahrzeit): Move from diary.el.
 
-	* diary.el (hebrew-calendar-yahrzeit): Moved to calendar.el.
+	* diary.el (hebrew-calendar-yahrzeit): Move to calendar.el.
 	(diary-ordinal-suffix): Give correct suffix for 111, 112, 113, 211,
 	212, 213, etc.
 
@@ -6361,7 +6361,7 @@
 	below instead of manipulating the kill ring directly, since the
 	functions correctly deal with interprogram cutting and pasting.
 	(kill-new): New function.
-	(kill-append): Added doc string.  Be sure to call the
+	(kill-append): Add doc string.  Be sure to call the
 	interprogram-cut-function on the new string.
 	(current-kill): New function.
 	(rotate-yank-pointer): New optional argument do-not-move, to
@@ -6388,7 +6388,7 @@
 	how many characters were saved, and it's hard to interpret
 	intuitively.
 
-	* screen.el (ctl-x-3-map): Renamed to ctl-x-5-map, and now bound
+	* screen.el (ctl-x-3-map): Rename to ctl-x-5-map, and now bound
 	to C-x 5, not C-x 3.  This makes a nicer analogy with C-x 4.
 	Moving split-window-horizontally to C-x 3 also makes a nicer
 	analogy with C-x 2.
@@ -6503,7 +6503,7 @@
 
 1992-04-21  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
-	* doctor.el (doctor-svo): Deleted second expression from top let
+	* doctor.el (doctor-svo): Delete second expression from top let
 	binding; it used to read "(let ((foo <exp> sent)) ...)"; let
 	bindings can only have one expression.
 
@@ -6649,7 +6649,7 @@
 	* compile.el (compilation-mode-hook): New variable.
 	(compilation-mode): Run it.
 	(compilation-search-path): Made user variable, added autoload cookie.
-	(compilation-window-height): Added autoload cookie.
+	(compilation-window-height): Add autoload cookie.
 
 1992-02-27  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
@@ -6720,7 +6720,7 @@
 
 1992-01-08  Jim Blandy  (jimb@occs.cs.oberlin.edu)
 
-	* simple.el (temporary-goal-column): Added missing closing paren.
+	* simple.el (temporary-goal-column): Add missing closing paren.
 
 1991-12-25  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
@@ -6752,7 +6752,7 @@
 
 1991-12-14  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
 
-	* etags.el (find-tag-noselect): Fixed subtle bug due to
+	* etags.el (find-tag-noselect): Fix subtle bug due to
 	save-excursion.
 
 	(tags-tag-match): New function, made smarter about exact matches.
@@ -6803,7 +6803,7 @@
 1991-12-08  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
 	* diff.el (diff-internal-diff): New subroutine.
-	(diff): Removed from here.
+	(diff): Remove from here.
 	(diff-sccs, diff-rcs): New commands using diff-internal-diff.
 	(diff-rcs-extension): New variable.
 
@@ -6855,7 +6855,7 @@
 1991-11-06  Jim Blandy  (jimb@pogo.gnu.ai.mit.edu)
 
 	* screen.el (screen-initialize, screen-notice-user-settings):
-	Renamed global-minibuffer-screen to default-minibuffer-screen.
+	Rename global-minibuffer-screen to default-minibuffer-screen.
 
 1991-11-05  Edward M. Reingold  (reingold@emr.cs.uiuc.edu)
 
@@ -6864,8 +6864,8 @@
 
 1991-10-31  Richard Mlynarik  (mly@peduncle)
 
-	* ebuff-menu.el (electric-buffer-menu-mode-map): Define
-	< and > to scroll-left and scroll-right per user suggestion.
+	* ebuff-menu.el (electric-buffer-menu-mode-map):
+	Define < and > to scroll-left and scroll-right per user suggestion.
 
 1991-10-31  Jim Blandy  (jimb@pogo.gnu.ai.mit.edu)
 
@@ -6881,7 +6881,7 @@
 
 	* cmushell.el: This is now the real shell.el.  Removed the "cmu"
 	prefix from names.
-	(shell): Marked this to be autoloaded.
+	(shell): Mark this to be autoloaded.
 
 1991-10-29  Jim Blandy  (jimb@pogo.gnu.ai.mit.edu)
 
@@ -6902,8 +6902,8 @@
 1991-10-26  Jim Blandy  (jimb@pogo.gnu.ai.mit.edu)
 
 	* disass.el (disassemble): Correctly distinguish functions with no
-	interactive spec and functions that are (interactive).  Correctly
-	extract components of explicit calls to byte-code (old-style
+	interactive spec and functions that are (interactive).
+	Correctly extract components of explicit calls to byte-code (old-style
 	compiled functions).  Correctly pass byte code of function to
 	disassemble-1.
 	(disassemble-1): Use nth to extract components of explicit call to
@@ -6923,14 +6923,14 @@
 
 1991-10-15  Jim Blandy  (jimb@pogo.gnu.ai.mit.edu)
 
-	* info.el (Info-follow-nearest-node): Adjusted for new return
+	* info.el (Info-follow-nearest-node): Adjust for new return
 	value format from coordinates-in-window-p.
 
 1991-10-08  Roland McGrath  (roland@albert.gnu.ai.mit.edu)
 
 	* add-log.el (change-log-name): New fn.
-	(add-change-log-entry, add-change-log-entry-other-window): All
-	args optional.  FILE-NAME defaults to new var
+	(add-change-log-entry, add-change-log-entry-other-window):
+	All args optional.  FILE-NAME defaults to new var
 	`change-log-default-name'.  Give this var a local value in the
 	buffer we were run from, pointing to the file we found.
 
@@ -6972,7 +6972,7 @@
 
 1991-09-26  Roland McGrath  (roland@churchy.gnu.ai.mit.edu)
 
-	* map-ynp.el (map-y-or-n-p): Fixed for lists containing nil.
+	* map-ynp.el (map-y-or-n-p): Fix for lists containing nil.
 
 1991-09-10  Roland McGrath  (roland@wookumz.gnu.ai.mit.edu)
 
@@ -7034,7 +7034,7 @@
 	* rmail.el (rmail-convert-to-babyl-format): Roland added the
 	missing paren in the wrong place; fixed.
 
-	* screen.el (screen-initialize): Added missing `function' around
+	* screen.el (screen-initialize): Add missing `function' around
 	lambda expression.
 
 1991-08-20  Roland McGrath  (roland@churchy.gnu.ai.mit.edu)
@@ -7063,7 +7063,7 @@
 1991-08-17  Roland McGrath  (roland@geech.gnu.ai.mit.edu)
 
 	* doctor.el (doctor-strangelove): New fn.
-	(doctor-member): Removed.
+	(doctor-member): Remove.
 	(doctor-doc): Use member instead of doctor-member.
 	(doctor-rms): Restored.
 
@@ -7073,7 +7073,7 @@
 
 1991-08-15  Jim Blandy  (jimb@pogo.gnu.ai.mit.edu)
 
-	* screen.el (screen-create-initial-screen): Renamed to
+	* screen.el (screen-create-initial-screen): Rename to
 	screen-initialize.  Arrange to cause errors if people try to
 	create screens when no window system is running.
 
@@ -7085,14 +7085,14 @@
 	* loaddefs.el (ctl-x-4-map): Move definition from here...
 	* subr.el (ctl-x-4-map): To here.
 	(ctl-x-3-map): New prefix.
-	(mouse-map): Deleted.
+	(mouse-map): Delete.
 
 	* screen.el (new-screen-x-delta, new-screen-y-delta)
-	(new-screen-position): Removed.
-	(new-screen): Simplified.
-	(split-to-other-screen): Removed.
+	(new-screen-position): Remove.
+	(new-screen): Simplify.
+	(split-to-other-screen): Remove.
 	(switch-to-buffer-other-screen, find-file-other-screen)
-	(find-file-read-only-other-screen, mail-other-screen): Moved, along
+	(find-file-read-only-other-screen, mail-other-screen): Move, along
 	with their keybindings, to...
 	* files.el (switch-to-buffer-other-screen, find-file-other-screen)
 	(find-file-read-only-other-screen): Here...
@@ -7136,11 +7136,11 @@
 
 	* screen.el, term/x-win.el: Renamed screen-default-alist to
 	default-screen-alist.
-	(default-screen-alist): Moved declaration to screen.c; the
+	(default-screen-alist): Move declaration to screen.c; the
 	screen creation subrs should consult this transparently.
 
-	* term/x-win.el (x-get-resources, x-pop-initial-window): Functions
-	deleted.  Don't call them at the bottom of the file anymore.
+	* term/x-win.el (x-get-resources, x-pop-initial-window):
+	Functions deleted.  Don't call them at the bottom of the file anymore.
 
 1991-08-12  Roland McGrath  (roland@geech.gnu.ai.mit.edu)
 
@@ -7152,15 +7152,15 @@
 1991-08-12  Jim Blandy  (jimb@pogo.gnu.ai.mit.edu)
 
 	* window.el (split-window-keep-point): New user option.
-	(split-window-vertically): Modified to support it.
+	(split-window-vertically): Modify to support it.
 	* startup.el (command-line): Choose a default value for
 	split-window-keep-point according to the baud rate.
 	* term/x-win.el: Set split-window-keep-point.
 
 1991-08-10  Jim Blandy  (jimb@pogo.gnu.ai.mit.edu)
 
-	* term/x-win.el (x-daemon-mode, x-establish-daemon-mode): Removed
-	these functions; we do this differently now.
+	* term/x-win.el (x-daemon-mode, x-establish-daemon-mode):
+	Remove these functions; we do this differently now.
 
 1991-08-07  Roland McGrath  (roland@geech.gnu.ai.mit.edu)
 
@@ -7169,7 +7169,7 @@
 
 1991-08-05  Jim Blandy  (jimb@pogo.gnu.ai.mit.edu)
 
-	* screen.el (screen-creation-func): Renamed to
+	* screen.el (screen-creation-func): Rename to
 	screen-creation-function, as per the convention.
 
 	* screen.el (screen-creation-func): Do not initialize this
@@ -7184,7 +7184,7 @@
 	* startup.el (pre-init-hook): New variable.
 	(window-setup-hook): Doc fix.
 	(command-line): Call pre-init-hook.
-	(command-line-1): Updated copyright date.
+	(command-line-1): Update copyright date.
 
 1991-07-31  Jim Blandy  (jimb@pogo.gnu.ai.mit.edu)
 
@@ -7193,7 +7193,7 @@
 
 1991-07-31  Roland McGrath  (roland@churchy.gnu.ai.mit.edu)
 
-	* screen.el (auto-new-screen-function): Renamed to
+	* screen.el (auto-new-screen-function): Rename to
 	pop-up-screen-function.
 	(buffer-in-other-screen): Use pop-up-screens, not auto-new-screen.
 
@@ -7239,12 +7239,12 @@
 
 	* view.el: (define-key "C-xv" 'view-file).
 	(view-file-other-window, view-buffer-other-window): New functions.
-	(view-prev-buffer): Renamed to view-return-here.
+	(view-prev-buffer): Rename to view-return-here.
 	(view-exit): If view-return-here is a buffer, switch to it;
 	if it is a window configuration, apply it.
 
-	* subr.el (search-forward-regexp, search-backward-regexp): Added
-	alternate names.
+	* subr.el (search-forward-regexp, search-backward-regexp):
+	Add alternate names.
 
 1991-07-24  Jim Blandy  (jimb@pogo.gnu.ai.mit.edu)
 
@@ -7256,7 +7256,7 @@
 	* isearch.el (isearch): If the user switches to a different
 	screen, exit the isearch.
 
-	* isearch.el (isearch): Changed reference to `cmds' to use
+	* isearch.el (isearch): Change reference to `cmds' to use
 	variable's new name `history'.
 
 1991-07-23  Roland McGrath  (roland@churchy.gnu.ai.mit.edu)
@@ -7264,7 +7264,7 @@
 	* rmail.el (rmail-first-unseen-message): Make loop looking for
 	unseen msgs not skip the first one.
 
-	* rmail.el (rmail-widen-to-current-msgbeg): Added missing close paren.
+	* rmail.el (rmail-widen-to-current-msgbeg): Add missing close paren.
 
 1991-07-21  Jim Blandy  (jimb@pogo.gnu.ai.mit.edu)
 
@@ -7286,7 +7286,7 @@
 
 1991-07-19  Roland McGrath  (roland@albert.gnu.ai.mit.edu)
 
-	* files.el (save-some-buffers): Added save-excursions around code
+	* files.el (save-some-buffers): Add save-excursions around code
 	that does set-buffer.
 
 1991-07-15  Roland McGrath  (roland@churchy.gnu.ai.mit.edu)
@@ -7297,7 +7297,7 @@
 	(find-tag-tag): Pass 'tags-completion-alist as TABLE to
 	completing-read, so the table is built on demand.
 
-	* sendmail.el (mail-do-fcc): Added missing close paren.
+	* sendmail.el (mail-do-fcc): Add missing close paren.
 
 1991-07-15  Jim Blandy  (jimb@pogo.gnu.ai.mit.edu)
 
@@ -7313,8 +7313,8 @@
 	* fortran.el version 1.28.3
 	Now works in either mode when `tab-width' is not 8.
 
-	(fortran-electric-line-number, fortran-indent-to-column): Use
-	`fortran-minimum-statement-indent' instead of 8.
+	(fortran-electric-line-number, fortran-indent-to-column):
+	Use `fortran-minimum-statement-indent' instead of 8.
 
 	(fortran-current-line-indentation): Now skips over line number
 	and whitespace correctly when tab-width is not 8.
@@ -7331,7 +7331,7 @@
 
 	* startup.el (command-line): Remove the arguments from
 	command-line-args as we process them.
-	(command-line-1): Removed code to ignore the arguments processed
+	(command-line-1): Remove code to ignore the arguments processed
 	in command-line, because they're all deleted now.
 
 	* replace.el (occur): Set tem to the location of the match before
@@ -7351,7 +7351,7 @@
 
 1991-07-09  Roland McGrath  (roland@albert.gnu.ai.mit.edu)
 
-	* map-ynp.el (map-y-or-n-p): Fixed lossage on ? or random char.
+	* map-ynp.el (map-y-or-n-p): Fix lossage on ? or random char.
 
 1991-07-08  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
@@ -7368,8 +7368,8 @@
 	* fortran.el: Added ;;;###autoload definition for
 	fortran-tab-mode-default variable.
 
-	* fortran.el (fortran-numerical-continuation-char): Replace
-	(backward-line 1) with (forward-line -1) since backward-line is
+	* fortran.el (fortran-numerical-continuation-char):
+	Replace (backward-line 1) with (forward-line -1) since backward-line is
 	defined only in edt.
 	(fortran-previous-statement): Fix error in parens.
 	(fortran-indent-to-column): Likewise.
@@ -7378,7 +7378,7 @@
 
 	* files.el (save-some-buffers): Use map-y-or-n-p return value.
 
-	* map-ynp.el (map-y-or-n-p): Fixed bug that caused first elt on !
+	* map-ynp.el (map-y-or-n-p): Fix bug that caused first elt on !
 	hit not get acted on.
 
 1991-07-04  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
@@ -7390,7 +7390,7 @@
 
 1991-07-01  Roland McGrath  (roland@churchy.gnu.ai.mit.edu)
 
-	* map-ynp.el (map-y-or-n-p): Fixed misplaced paren.
+	* map-ynp.el (map-y-or-n-p): Fix misplaced paren.
 	Fixed list-eating bug.
 
 1991-07-01  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
@@ -7425,7 +7425,7 @@
 
 1991-06-20  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
-	* subr.el (ignore): Added docstring for this; it appears as a key
+	* subr.el (ignore): Add docstring for this; it appears as a key
 	binding, so it ought to be described.
 
 1991-06-19  Roland McGrath  (roland@albert.gnu.ai.mit.edu)
@@ -7443,16 +7443,16 @@
 
 1991-06-12  Roland McGrath  (roland@albert.gnu.ai.mit.edu)
 
-	* upd-copyr.el (update-copyright): Fixed typo in help text.
+	* upd-copyr.el (update-copyright): Fix typo in help text.
 
 1991-05-26  Roland McGrath  (roland@albert.gnu.ai.mit.edu)
 
-	* disass.el (disassemble-internal): Fixed typo string? -> stringp.
+	* disass.el (disassemble-internal): Fix typo string? -> stringp.
 
 1991-05-26  Edward M. Reingold  (reingold@emr.cs.uiuc.edu)
 
-	* holiday.el (calendar-holiday-function-passover-etc): Correct
-	date and spelling of Yom HaAtzma'ut.
+	* holiday.el (calendar-holiday-function-passover-etc):
+	Correct date and spelling of Yom HaAtzma'ut.
 
 1991-05-23  Jim Blandy  (jimb@pogo.gnu.ai.mit.edu)
 
@@ -7501,14 +7501,14 @@
 	screen-default-alist alone; don't use x-switches-specified.
 	(x-read-resources): New function to read the X defaults and put
 	them in screen-default-alist.  Call this function at the bottom.
-	* screen.el (death-function): Removed, because this is now handled
+	* screen.el (death-function): Remove, because this is now handled
 	better in startup.el.
 	(pop-initial-screen): Don't do a condition-case to call
 	death-function.
 
 1991-05-18  Jim Blandy  (jimb@pogo.gnu.ai.mit.edu)
 
-	* macros.el (apply-macro-to-region-lines): Added a save-excursion
+	* macros.el (apply-macro-to-region-lines): Add a save-excursion
 	around the macro invocation, so that the macro doesn't need to
 	stay on the same line.
 
@@ -7614,7 +7614,7 @@
 
 	* find-dired.el (find-dired-filter): Don't search; use
 	forward-line instead.
-	(find-dired-filter, find-dired-sentinel): Changed docstrings to
+	(find-dired-filter, find-dired-sentinel): Change docstrings to
 	comments.
 
 1991-05-11  Roland McGrath  (roland@albert.gnu.ai.mit.edu)
@@ -7755,8 +7755,8 @@
 	Now supports tab or fixed format style of continuation control and
 	indentation.  In tab style, lines start with a tab, or a line
 	number followed by a tab.  If the first character after the tab is
-	a digit from 1 to 9, the line is a continuation line.  When
-	entering fortran mode for a file, the first line that begins with
+	a digit from 1 to 9, the line is a continuation line.
+	When entering fortran mode for a file, the first line that begins with
 	6 spaces or a tab is found.  The buffer is then set respectively
 	to either fixed format or tab format style.  The mode may be
 	toggled with the command fortran-tab-mode.
@@ -7965,7 +7965,7 @@
 
 1991-02-25  Paul Hilfinger  (hilfingr@hilfinger.cs.nyu.edu)
 
-	* fill.el (fill-individual-paragraphs): Changed response to mailp
+	* fill.el (fill-individual-paragraphs): Change response to mailp
 	to effect only leading lines in a region (was getting confused
 	about colons embedded in ordinary text).  Changed method of
 	moving to next paragraph in the main loop to use forward-paragraph
@@ -7978,7 +7978,7 @@
 
 1991-02-23  Roland McGrath  (mcgrath@cygint.cygnus.com)
 
-	* compile.el (next-error): Fixed bug in rms's optimization.
+	* compile.el (next-error): Fix bug in rms's optimization.
 
 1991-02-23  Richard Stallman  (rms@mole.ai.mit.edu)
 
@@ -8040,7 +8040,7 @@
 
 1991-02-04  Jim Blandy  (jimb@gnu.ai.mit.edu)
 
-	* simple.el (eval-current-buffer): Removed, since it has been
+	* simple.el (eval-current-buffer): Remove, since it has been
 	reintroduced to the C code.
 
 1991-02-02  Jim Blandy  (jimb@gnu.ai.mit.edu)
@@ -8114,8 +8114,8 @@
 	* bibtex.el: Expanded the various bibtex-field-* patterns to
 	allow fields like 'title = poft # "Fifth Triquaterly" # random-conf,'.
 	Needs to have more work done to accept all cases.  Added code for
-	the bibtex 'crossref' command, which subsumes other options.  Made
-	field ordering different when this option on.  Also allow user to
+	the bibtex 'crossref' command, which subsumes other options.
+	Made field ordering different when this option on.  Also allow user to
 	have a list of field to be added to all entries
 	(bibtex-mode-user-optional-fields).  Merged in Bengt Martensson's
 	changes.
@@ -8148,13 +8148,13 @@
 
 1991-01-08  Roland McGrath  (roland@albert.ai.mit.edu)
 
-	* compile.el (compilation-parse-errors): Fixed maintenance of
+	* compile.el (compilation-parse-errors): Fix maintenance of
 	last-linenum, so dups are really found.
 
 1991-01-08  Jim Blandy  (jimb@pogo.ai.mit.edu)
 
-	* bytecomp.el (byte-compile-byte-code-maker): Since
-	byte-compile-lambda is free to return the original lambda
+	* bytecomp.el (byte-compile-byte-code-maker):
+	Since byte-compile-lambda is free to return the original lambda
 	expression, we'd better be prepared to handle things that aren't
 	bytecode objects.
 
@@ -8242,8 +8242,8 @@
 
 1990-12-20  Chris Hanson  (cph@kleph)
 
-	* texnfo-upd.el (texinfo-update-menu-region-beginning): Change
-	code that searches for "top" node so it returns the position of
+	* texnfo-upd.el (texinfo-update-menu-region-beginning):
+	Change code that searches for "top" node so it returns the position of
 	the beginning of the node line.  Always search from the buffer's
 	start when looking for that node.
 	(texinfo-make-one-menu): Bump forward over the outer node line.
@@ -8317,7 +8317,7 @@
 
 1990-12-12  Roland McGrath  (roland@albert.ai.mit.edu)
 
-	* compile.el (compilation-error-buffer): Removed.
+	* compile.el (compilation-error-buffer): Remove.
 	(compilation-last-buffer): Now last buffer in which any of: started
 	compilation; C-x `; C-c C-c; was done.
 	(compile-internal): Don't set compilation-error-buffer.
@@ -8340,7 +8340,7 @@
 	error-message, and regexp-alist.
 	(compile-internal): Do it here, after calling compilation-mode.
 
-	* compile.el (compilation-error-list): Changed elt format.
+	* compile.el (compilation-error-list): Change elt format.
 	(compilation-parse-errors): Don't find files when parsing.
 	Instead record ((DIR . FILE) . LINENO) structures to describe each
 	error.
@@ -8401,35 +8401,35 @@
 
 1990-11-30  Mike Newton  (newton@gumby.cs.caltech.edu)
 
-	* bibtex.el (start comments): Added earlier comments of Bengt
+	* bibtex.el (start comments): Add earlier comments of Bengt
 	Martensson.  Some of the changes listed below are originally
 	his (including clean-entry, OPTkey and OPTannote, the function
 	renaming and the preamble code).
 
-	* bibtex.el (bibtex-field-* patterns): Expanded to allow fields
+	* bibtex.el (bibtex-field-* patterns): Expand to allow fields
 	like 'title = poft # "Fifth Triquaterly" # random-conf,'.
 	Needs to have more work done to accept all cases.
 
-	* bibtex.el (bibtex-clean-entry-zap-empty-opts): Added.
+	* bibtex.el (bibtex-clean-entry-zap-empty-opts): Add.
 
-	* bibtex.el (bibtex-include-OPTcrossref): Added.  If set, changes
+	* bibtex.el (bibtex-include-OPTcrossref): Add.  If set, changes
 	order of the lists presented to luser.
 
-	* bibtex.el (bibtex-include-OPTkey & bibtex-include-OPTannote): Added.
+	* bibtex.el (bibtex-include-OPTkey & bibtex-include-OPTannote): Add.
 
 	* bibtex.el (bibtex-mode-user-optional-fields): Can be set to a list
 	of field the user wants to add to entries.
 
-	* bibtex.el (bibtex-mode documentation string): Updated for new changes,
+	* bibtex.el (bibtex-mode documentation string): Update for new changes,
 	DEAthesis added back in, bibtex-preamble call added.
 
 	* bibtex.el (bibtex-entry): Add OPTkey/annote.  If OPTcrossref set
 	then put it in.
 
-	* bibtex.el (bibtex-make-entry): Renamed bibtex-make-field.
+	* bibtex.el (bibtex-make-entry): Rename bibtex-make-field.
 
-	* bibtex.el (bibtex-make-optional-entry): Renamed
-	bibtex-make-optional-field.
+	* bibtex.el (bibtex-make-optional-entry):
+	Rename bibtex-make-optional-field.
 
 	* bibtex.el (bibtex-Article): Change order of presentation
 	if OPTcrossref is set.
@@ -8443,16 +8443,16 @@
 	* bibtex.el (bibtex-InProceedings): Change order of presentation
 	if OPTcrossref is set.
 
-	* bibtex.el (bibtex-MastersThesis): Added "note".
+	* bibtex.el (bibtex-MastersThesis): Add "note".
 
-	* bibtex.el (bibtex-preamble): Added.
+	* bibtex.el (bibtex-preamble): Add.
 
 	* bibtex.el (bibtex-inside-field): Only go backwards if quote is there.
 
-	* bibtex.el (bibtex-clean-entry): Added call to
+	* bibtex.el (bibtex-clean-entry): Add call to
 	bibtex-clean-entry-zap-empty-opts, OPT field testing for errors.
 
-	* bibtex.el (bibtex-x-help): Added options Conference and preamble,
+	* bibtex.el (bibtex-x-help): Add options Conference and preamble,
 	restored DEAthesis.
 
 1990-11-30  Richard Stallman  (rms@mole.ai.mit.edu)
@@ -8552,7 +8552,7 @@
 	(insert-hebrew-diary-entry, insert-monthly-hebrew-diary-entry)
 	(insert-yearly-hebrew-diary-entry, insert-islamic-diary-entry)
 	(insert-monthly-islamic-diary-entry)
-	(insert-yearly-islamic-diary-entry): Modified so that if a prefix arg
+	(insert-yearly-islamic-diary-entry): Modify so that if a prefix arg
 	is supplied these make nonmarking diary entries; otherwise the entries
 	made are marking.
 	(insert-block-diary-entry, insert-anniversary-diary-entry)
@@ -8572,27 +8572,27 @@
 1990-11-06  Ed Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* calendar.el (sexp-diary-entry-symbol): New variable.
-	(cursor-to-iso-calendar-date): Simplified, slightly.
-	(cursor-to-calendar-day-of-year): Fixed punctuation.
-	(cursor-to-french-calendar-date): Moved French names to arrays.
+	(cursor-to-iso-calendar-date): Simplify, slightly.
+	(cursor-to-calendar-day-of-year): Fix punctuation.
+	(cursor-to-french-calendar-date): Move French names to arrays.
 
 	* diary.el (list-sexp-diary-entries, diary-sexp-entry, diary-cyclic)
 	(diary-hebrew-date, diary-iso-date, diary-day-of-year)
 	(diary-float, diary-islamic-date, diary-anniversary, diary-block)
 	(diary-french-date, diary-omer, diary-yahrzeit, diary-parasha)
 	(diary-rosh-hodesh, hebrew-calendar-parasha-name): New functions.
-	(list-diary-entries): Added call to (list-sexp-diary-entries) and
+	(list-diary-entries): Add call to (list-sexp-diary-entries) and
 	fixed an obscure error that caused a diary entry to be missed if it
 	was preceded by an empty entry of the same style.
-	(list-hebrew-diary-entries, list-islamic-diary-entries): Fixed an
+	(list-hebrew-diary-entries, list-islamic-diary-entries): Fix an
 	obscure error that caused a diary entry to be missed if it was
 	preceded by an empty entry of the same style.
-	(mark-islamic-calendar-date-pattern): Renamed some local variables
+	(mark-islamic-calendar-date-pattern): Rename some local variables
 	more appropriately.
 
 1990-11-05  Roland McGrath  (roland@geech.ai.mit.edu)
 
-	* compile.el (compilation-window-height): Added defconst for this,
+	* compile.el (compilation-window-height): Add defconst for this,
 	since it somehow disappeared.
 
 	* compile.el: Unoverhauled.  Restored from old 19 compile.el, plus
@@ -8622,7 +8622,7 @@
 	called to generate a name for a compilation buffer.  Passed one arg,
 	the name of the major mode of the buffer.  (compile-internal): Use it.
 	[From tale's changes:]
-	(compile): Moved window enlarging to compile-internal.
+	(compile): Move window enlarging to compile-internal.
 	(compile-internal): Don't use with-output-to-temp-buffer.
 	Use display-buffer instead.
 
@@ -8704,10 +8704,10 @@
 
 1990-10-23  David Lawrence  (tale@pogo.ai.mit.edu)
 
-	* emerge.el (emerge-setup, emerge-setup-with-ancestor): Moved
-	insert-buffer calls back before call to emerge-extract-diffs where
+	* emerge.el (emerge-setup, emerge-setup-with-ancestor):
+	Move insert-buffer calls back before call to emerge-extract-diffs where
 	the merge-buffer really needs to have something in it.
-	(emerge-extract-diffs,emerge-extract-diffs3): Moved errant
+	(emerge-extract-diffs,emerge-extract-diffs3): Move errant
 	kill-buffer which interfered with return value of functions.
 
 1990-10-22  David Lawrence  (tale@pogo.ai.mit.edu)
@@ -8782,7 +8782,7 @@
 	(texinfo-menu-locate-entry-p, texinfo-copy-menu-title)
 	(texinfo-update-menu-region-beginning, texinfo-update-menu-region-end):
 	Handle `@ifinfo' as well as comment line following node line.
-	(texinfo-multiple-files-update and aux. files): Added to handle
+	(texinfo-multiple-files-update and aux. files): Add to handle
 	multi-file Texinfo sources.
 
 1990-10-18  Richard Stallman  (rms@mole.ai.mit.edu)
@@ -8830,9 +8830,9 @@
 	* dired.el (dired-compress, dired-uncompress): Put output from
 	subprocess in a buffer to display it.
 
-	* appt.el (fix-time): Deleted.
-	(appt-select-lowest-window): Renamed from select-lowest-window.
-	(appt-visible): Renamed from appt-visable.
+	* appt.el (fix-time): Delete.
+	(appt-select-lowest-window): Rename from select-lowest-window.
+	(appt-visible): Rename from appt-visable.
 
 	* time.el (display-time-filter): Run display-time-hook.
 
@@ -8842,10 +8842,10 @@
 
 1990-10-08  Ed Reingold  (reingold@emr.cs.uiuc.edu)
 
-	* holiday.el (calendar-holiday-function-hebrew): Fixed minor problem
+	* holiday.el (calendar-holiday-function-hebrew): Fix minor problem
 	with the code to short-circuit the calculations to save time.
 
-	* diary.el (mark-hebrew-calendar-date-pattern): Fixed minor problem
+	* diary.el (mark-hebrew-calendar-date-pattern): Fix minor problem
 	with the code to short-circuit the calculations to save time.
 
 1990-10-08  Richard Stallman  (rms@mole.ai.mit.edu)
@@ -8957,7 +8957,7 @@
 
 1990-09-18  Richard Stallman  (rms@mole.ai.mit.edu)
 
-	* doctor.el (doctor-caddr, doctor-cadr, doctor-cddr): Renamed.
+	* doctor.el (doctor-caddr, doctor-cadr, doctor-cddr): Rename.
 
 1990-09-13  Richard Stallman  (rms@mole.ai.mit.edu)
 
@@ -8979,7 +8979,7 @@
 1990-09-10  Ed Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* diary.el (list-diary-entries, list-hebrew-diary-entries)
-	(list-islamic-diary-entries): Fixed to use add-to-diary-list.
+	(list-islamic-diary-entries): Fix to use add-to-diary-list.
 
 1990-09-10  Chris Hanson  (cph@kleph)
 
@@ -9039,7 +9039,7 @@
 	* diary.el (mark-diary-entries, mark-islamic-diary-entries)
 	(mark-hebrew-diary-entries): Eliminated use of constant alists for
 	month and day names.
-	(prepare-fancy-diary-buffer): Fixed the way holidays are displayed
+	(prepare-fancy-diary-buffer): Fix the way holidays are displayed
 	when there are no diary entries but lots of holidays.
 	(ordinary-list-diary-hook, add-to-diary-list): New functions.
 
@@ -9049,21 +9049,21 @@
 	Changed reference at beginning of file from the report to the
 	published version of the paper.
 	Changed all calls to `mod' to call `%' to avoid problem with cl.
-	(calendar-date-string): Added optional parameter `nodayname'.
-	(cursor-to-islamic-calendar-date): Fixed so that
+	(calendar-date-string): Add optional parameter `nodayname'.
+	(cursor-to-islamic-calendar-date): Fix so that
 	calendar-date-string doesn't try find the day name.
-	(cursor-to-hebrew-calendar-date): Fixed so that
+	(cursor-to-hebrew-calendar-date): Fix so that
 	calendar-date-string doesn't try find the day name.
 	nongregorian-diary-marking-hook: Fixed typo in doc string.
-	(calendar-mode): Fixed a typo in doc string.
+	(calendar-mode): Fix a typo in doc string.
 	(cursor-to-iso-calendar-date): Made message consistent with
 	similar functions for Julian, Islamic, Hebrew, and French calendars.
-	(calendar-absolute-from-gregorian): Simplified calculation.
-	(calendar-mark-today): Changed today mark to `=' to avoid
+	(calendar-absolute-from-gregorian): Simplify calculation.
+	(calendar-mark-today): Change today mark to `=' to avoid
 	confusion with the default holiday mark.
 	(calendar-julian-from-absolute): Rewrote parallel to other functions.
 	(calendar-islamic-from-absolute): Rewrote parallel to other functions.
-	(calendar-forward-day): Fixed movement when cursor is not on a date
+	(calendar-forward-day): Fix movement when cursor is not on a date
 	and arg is negative.
 	Added description of new `if' form to doc string for calendar-holidays.
 
@@ -9074,10 +9074,10 @@
 
 	* holiday.el:
 	Changed all calls to `mod' to call `%' to avoid problem with cl.
-	(calendar-holiday-function-rosh-hashanah-etc): Fixed grammatical
+	(calendar-holiday-function-rosh-hashanah-etc): Fix grammatical
 	error in a comment.
-	(calendar-holiday-function-hebrew): Fixed typo in doc string.
-	(calendar-holiday-function-islamic): Fixed typo in doc string.
+	(calendar-holiday-function-hebrew): Fix typo in doc string.
+	(calendar-holiday-function-islamic): Fix typo in doc string.
 	(calendar-holiday-function-if): New function.
 
 1990-09-06  Richard Stallman  (rms@mole.ai.mit.edu)
@@ -9114,12 +9114,12 @@
 	* loaddefs.el:
 	(gnus, gnus-post-news): Autoload gnus.
 	(sendnews, postnews): fset to gnus-post-news instead of news-post-news.
-	(rnews, news-post-news): Removed autoloads.
+	(rnews, news-post-news): Remove autoloads.
 
 	* gnus.el: New file.
-	(gnus-make-newsrc-file): Removed.
+	(gnus-make-newsrc-file): Remove.
 	(gnus-read-newsrc-file): Work without above.
-	(gnus-Info-directory): Removed.
+	(gnus-Info-directory): Remove.
 	(gnus-Info-find-node): Work without above.
 	(lots of variables): Made non-interactive.  Some doc fixes.
 
@@ -9151,7 +9151,7 @@
 	(fortran-current-line-indentation): Only skip over continuation
 	char or line number for statements.  It was giving back wrong
 	values for statements which started in columns 1-6.
-	(fortran-mode-version): Removed.
+	(fortran-mode-version): Remove.
 
 1990-08-28  David Lawrence  (tale@pogo.ai.mit.edu)
 
@@ -9161,8 +9161,8 @@
 	copy-vector.  Calling copy-sequence does the job.
 	(defsetf for point): Point's inverse is goto-char.  Of course,
 	what do we do with the other basic types of Emacs Lisp?
-	(member): Another, perhaps counterproductive, speed hack.  When
-	test or testnot are symbols (hopefully, non-null), they are
+	(member): Another, perhaps counterproductive, speed hack.
+	When test or testnot are symbols (hopefully, non-null), they are
 	replaced by their symbol-function slots.  This presumably reduces
 	one indirection per each funcall in the inner loop.
 	(byte-compile-named-list-accessors): Another byte-compile
@@ -9172,7 +9172,7 @@
 	(with-keyword-args): Macro that simplifies most of the handling of
 	klists.  The only neglected functionality is that no supplied-p
 	forms exist (although that is true also of lambda lists in Emacs Lisp).
-	(cl-eval-print-last-sexp): Added half-hearted support for -, +,
+	(cl-eval-print-last-sexp): Add half-hearted support for -, +,
 	++, +++, *, **, ***, /, //, ///; and cleared the mvalues mechanism
 	at every call.
 	(declare, proclaim, the): Make some more CL codes easy to load.
@@ -9183,7 +9183,7 @@
 	(byte-compile-ca*d*r): New function, used as a handler from
 	byte-compile-form to eliminate the extra call to the c*r functions
 	in compiled code.
-	(adjoin, map): Changed to use `memq' instead of `member', too.
+	(adjoin, map): Change to use `memq' instead of `member', too.
 	(case, ecase): Via a change in case-clausify, these macros now
 	generate tests using the primitive `memq', instead of the heavier
 	`member'.
@@ -9203,8 +9203,8 @@
 	functions.
 	(build-klist): Better error messages.
 	(psetf): Rewrote, patterned after the new psetq.
-	(psetq): Added early check for even number of arguments.  This
-	causes a better error message than previously.
+	(psetq): Add early check for even number of arguments.
+	This causes a better error message than previously.
 	(defstruct, parse$defstruct$options): asp@CS.CMU.EDU (James
 	Aspnes) reported that defstruct wasn't handling properly the use
 	of accessors of an :included definition applied to instances of
@@ -9252,8 +9252,8 @@
 	*Completions* not *Help*.
 
 	* help.el (describe-mode): Use Dale Worley's version to also show
-	minor mode documentation if argument is given.  Fset
-	defining-keyboard-macro to start-keyboard-macro so its
+	minor mode documentation if argument is given.
+	Fset defining-keyboard-macro to start-keyboard-macro so its
 	documentation can be found.  Currently does not work with
 	auto-fill-mode because of the hook nature of its minor mode
 	indicator variable.
@@ -9357,7 +9357,7 @@
 1990-07-26  David Lawrence  (tale@pogo.ai.mit.edu)
 
 	* c-mode.el (c-auto-newline): Doc addition.
-	(electric-c-terminator): Removed bogus set-marker.
+	(electric-c-terminator): Remove bogus set-marker.
 	(electric-c-sharp-sign): Make sure c-auto-newline is nil for call
 	to electric-c-terminator.
 
@@ -9464,7 +9464,7 @@
 	* compile.el (grep): Use `grep-command' to also hold args for
 	grep, like compile-command.
 
-	* simple.el (kill-ring-save): Fixed to not reference free
+	* simple.el (kill-ring-save): Fix to not reference free
 	variable `verbose' but to just unconditionally echo message.
 	(shell-command): Use new `last-shell-command' interactively.
 	(shell-command-on-region): Use new `last-shell-command-on-region'
@@ -9478,7 +9478,7 @@
 
 1990-06-23  Randall Smith  (randy@substantia-nigra)
 
-	* dired.el (dired-flag-regexp-files): Added function to flag all
+	* dired.el (dired-flag-regexp-files): Add function to flag all
 	files matching a REGEXP for deletion.
 	(): Bound this function to key "F" in dired-mode ("D" was already
 	taken).
@@ -9506,8 +9506,8 @@
 	* isearch.el (isearch): Do exit on meta keys.
 	Also exit on function keys and mouse clicks.
 	* loaddefs.el (search-exit-char): Change back to escape.
-	(search-ring-advance-char): Moved from isearch.el.
-	(search-ring-retreat-char): Renamed from ...-recline-char and moved.
+	(search-ring-advance-char): Move from isearch.el.
+	(search-ring-retreat-char): Rename from ...-recline-char and moved.
 
 	* float.el: Provide 'float.
 
@@ -9561,7 +9561,7 @@
 	updated all existing menus (very time consuming).
 
 	(texinfo-all-menus-update, texinfo-every-node-update):
-	Added a save-excursion to each so that point does not move when
+	Add a save-excursion to each so that point does not move when
 	you update the menus or nodes.
 
 	* texinfmt.el (texinfo-format-parse-args): Expand arguments so
@@ -9572,16 +9572,16 @@
 	* backquote.el (bq-splicequote): Correctly splice in elements
 	when followed by constant elements; don't list the constant elements.
 
-	* add-log.el (add-change-log-entry): Fixed match test for full name.
+	* add-log.el (add-change-log-entry): Fix match test for full name.
 
-	* lpr.el (print-buffer): Removed an extra trailing parenthesis.
+	* lpr.el (print-buffer): Remove an extra trailing parenthesis.
 
 1990-05-30  David Lawrence  (tale@geech)
 
 	* comint.el (comint-load-hook): Superseded by eval-after-load.
 
-	* inf-lisp.el (lisp-eval-region, lisp-compile-region): Use
-	temporary files instead of send-string to avoid problems with pty
+	* inf-lisp.el (lisp-eval-region, lisp-compile-region):
+	Use temporary files instead of send-string to avoid problems with pty
 	buffering.
 
 	* tex-mode.el (tex-close-latex-block): Allow whitespace after
@@ -9629,7 +9629,7 @@
 
 	* informat.el (Info-tagify): Give status messages before and
 	after tagifying.
-	(batch-info-validate): Removed status messages around Info-tagify.
+	(batch-info-validate): Remove status messages around Info-tagify.
 
 	* rmailout.el (rmail-output): Check for From:, Really-From: and
 	Sender: fields, in that order, and run mail-strip-quoted-names on
@@ -9637,13 +9637,13 @@
 
 1990-05-21  Richard Stallman  (rms@mole.ai.mit.edu)
 
-	* buff-menu.el (Buffer-menu-buffer): Simplified.
+	* buff-menu.el (Buffer-menu-buffer): Simplify.
 	Set Buffer-menu-buffer-column initially.
 
 1990-05-18  Robert J. Chassell  (bob@apple-gunkies)
 
 	* page-ext.el (pages-addresses-file-name):
-	Renamed from addresses-file-name.
+	Rename from addresses-file-name.
 
 1990-05-17  Robert J. Chassell  (bob@apple-gunkies)
 
@@ -9990,12 +9990,12 @@
 	* screen.el (iconify-function, iconify-emacs, deiconify-function):
 	New functions.
 
-	* files.el (save-some-buffers): Removed last parameter skip-list.
+	* files.el (save-some-buffers): Remove last parameter skip-list.
 	Now this checks for buffer-local variable save-buffers-skip to
 	determine whether or not to avoid asking to save the buffer.
-	* rmail.el (rmail-mode): Removed skip-list stuff.
+	* rmail.el (rmail-mode): Remove skip-list stuff.
 	(rmail-variables): make-local-variable save-buffers-skip.
-	* compile.el (compile): Removed additional parameter to save-buffers.
+	* compile.el (compile): Remove additional parameter to save-buffers.
 
 1990-02-26  David Lawrence  (tale@pogo.ai.mit.edu)
 
@@ -10004,21 +10004,21 @@
 	display-time-string.
 	(rmail-pop-up): Default display-time-hook to automatically retrieve
 	new mail if the variable rmail-pop-up is non-nil.
-	(add-clock-handler): Removed; superseded by timer.el.
+	(add-clock-handler): Remove; superseded by timer.el.
 
 	* loaddefs.el: Removed add-clock-handler.
 
 1990-02-25  David Lawrence  (tale@pogo.ai.mit.edu)
 
 	* c++-mode.el: New file.
-	(point-bol): Removed this function.
+	(point-bol): Remove this function.
 
 	* loaddefs.el: Autoload C++-mode.
 	(auto-mode-alist): c++-mode for .C and .cc files.
 
 1990-02-25  Joseph Arceneaux  (jla@gnu.ai.mit.edu)
 
-	* lisp-mode.el (indent-sexp): Changed opoint to last-point.
+	* lisp-mode.el (indent-sexp): Change opoint to last-point.
 	Very strange, I thought I'd already fixed this.
 
 	* screen.el: New file.
@@ -10048,11 +10048,11 @@
 	* files.el (file-newest-backup): Return either the name of an
 	existing backup file or nil if none exists.
 
-	* server.el (server-program): Renamed from "server" to "emacsserver".
+	* server.el (server-program): Rename from "server" to "emacsserver".
 
 1990-02-20  Joseph Arceneaux  (jla@gnu.ai.mit.edu)
 
-	* fill.el (fill-region-as-paragraph): Fixed regexp typo in call to
+	* fill.el (fill-region-as-paragraph): Fix regexp typo in call to
 	re-search-forward.
 
 1990-02-19  David Lawrence  (tale@pogo.ai.mit.edu)
@@ -10110,9 +10110,9 @@
 
 	* calendar.el (french-calendar-leap-year-p):
 	Rewritten with corrected rule.
-	(calendar-absolute-from-french): Fixed comments.
+	(calendar-absolute-from-french): Fix comments.
 	(calendar-french-from-absolute): Rewrote using calendar-sum.
-	(cursor-to-french-calendar-date): Simplified and corrected spelling.
+	(cursor-to-french-calendar-date): Simplify and corrected spelling.
 
 1990-02-06  Richard Stallman  (rms@mole.ai.mit.edu)
 
@@ -10151,9 +10151,9 @@
 
 1990-01-27  Ed Reingold  (reingold@emr.cs.uiuc.edu)
 
-	* calendar.el (scroll-calendar-left): Fixed so it works when the cursor
+	* calendar.el (scroll-calendar-left): Fix so it works when the cursor
 	is not positioned on a day.
-	(cursor-to-calendar-day-of-year): Fixed so that "day" is properly
+	(cursor-to-calendar-day-of-year): Fix so that "day" is properly
 	pluralized, depending how many days remain in the year.
 	(french-calendar-leap-year-p): New function.
 	(french-calendar-last-day-of-month): New function.
@@ -10222,14 +10222,14 @@
 
 1990-01-11  Ed Reingold  (reingold@emr.cs.uiuc.edu)
 
-	* diary.el (list-diary-entries): Deleted several lines of extraneous
+	* diary.el (list-diary-entries): Delete several lines of extraneous
 	code and added `nongregorian-diary-listing-hook' to the list of hooks
 	called@the end; this is for use in including Hebrew, Islamic,
 	Julian, or ISO diary entries.  A similar
 	`nongregorian-diary-marking-hook' was added to the list of hooks
 	called at the end of mark-diary-entries for the same reason.
 
-	(diary-name-pattern): Fixed the documentation and added an optional
+	(diary-name-pattern): Fix the documentation and added an optional
 	parameter FULLNAME which insists on the full spelling of the name;
 	this is also for use in marking Hebrew or Islamic diary entries
 	(those month names are not unique in the first three characters).
@@ -10241,8 +10241,8 @@
 	(list-islamic-diary-entries): New function.
 	(mark-islamic-calendar-date-pattern): New function.
 
-	(list-diary-entries): Added nongregorian-diary-listing-hook.
-	(mark-diary-entries): Added nongregorian-diary-marking-hook.
+	(list-diary-entries): Add nongregorian-diary-listing-hook.
+	(mark-diary-entries): Add nongregorian-diary-marking-hook.
 
 	* calendar.el: Added documentation for the hooks described above.
 
@@ -10256,7 +10256,7 @@
 1990-01-08  Robert J. Chassell  (bob@apple-gunkies.ai.mit.edu)
 
 	* texnfo-upd.el (texinfo-update-node, texinfo-sequential-node-update):
-	Fixed auto-fill-hook bug.
+	Fix auto-fill-hook bug.
 
 1990-01-08  Joseph Arceneaux  (jla@spiff)
 
@@ -10265,7 +10265,7 @@
 1990-01-08  Ed Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* calendar.el (calendar-date-is-visible-p):
-	Fixed so it does not switch to the calendar buffer.
+	Fix so it does not switch to the calendar buffer.
 
 	* diary.el (prepare-fancy-diary-buffer): Compute the list of
 	holidays only once for each three-month period, not once for each date
@@ -10275,12 +10275,12 @@
 1990-01-07  Ed Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* calendar.el: Fixed the value of list-diary-entries-hook.
-	(regenerate-calendar-window): Changed (update-display) to (sit-for 0).
+	(regenerate-calendar-window): Change (update-display) to (sit-for 0).
 	Corrected several instances of "dairy" to "diary".
-	(describe-calendar-mode): Added this function to issue the message
+	(describe-calendar-mode): Add this function to issue the message
 	"Preparing..." to `?' key in calendar-mode because it's so incredibly
 	slow for describe-mode to prepare the help buffer.
-	(calendar-holidays): Fixed the examples in the doc-string.
+	(calendar-holidays): Fix the examples in the doc-string.
 
 	* diary.el: Corrected several instances of "dairy" to "diary".
 
@@ -10323,7 +10323,7 @@
 
 	(calendar-iso-from-absolute): New function.
 	(calendar-absolute-from-iso): New function.
-	(cursor-to-iso-calendar-date): Added `D' calendar command to give
+	(cursor-to-iso-calendar-date): Add `D' calendar command to give
 	the day number in the Gregorian year and number of days remaining.
 	(mark-diary-entries): Made two-digit abbreviated years acceptable
 	in diary entries.  Changed possible diary entry styles: DAY
@@ -10338,11 +10338,11 @@
 	(all functions containing the word `hebrew').
 	(list-diary-entries, mark-diary-entries)
 	(include-other-diary-files, mark-included-diary-files):
-	Added the possibility of `shared diary files' with a recursive
+	Add the possibility of `shared diary files' with a recursive
 	include mechanism like the C preprocessor.
 	(list-calendar-holidays): Eliminated the 'special class of holidays,
 	rewriting the entire mechanism to make it more general.
-	(calendar-holiday-function-float): Changed the 'float class of
+	(calendar-holiday-function-float): Change the 'float class of
 	holidays so that negative values count backward from end of month: 5
 	is no longer used for the last occurrence of a day in a month; -1 is
 	used instead.
@@ -10408,8 +10408,8 @@
 
 1989-12-11  David Lawrence  (tale@cocoa-puffs)
 
-	* telnet.el: Converted to use comint.  Removed
-	delete-char-or-send-eof and telnet-copy-last-input.  Added
+	* telnet.el: Converted to use comint.
+	Removed delete-char-or-send-eof and telnet-copy-last-input.  Added
 	telnet-mode-hook.  Modified telnet-filter to insert-before-markers
 	at the process-mark.
 
@@ -10418,8 +10418,8 @@
 	* prolog.el: Converted to use comint.  Replaced copy-keymap for
 	copy-alist of comint-mode-map.
 
-	* kermit.el: Converted to use comint.  Replaced
-	kermit-clean-filter with a more efficient version.
+	* kermit.el: Converted to use comint.
+	Replaced kermit-clean-filter with a more efficient version.
 
 	* comint.el: Added optional arguments ``terminator'' and
 	``delete'' to comint-send-input, for processes that want to see
@@ -10449,7 +10449,7 @@
 1989-12-05  David Lawrence  (tale@wheat-chex)
 
 	* comint.el (new file):
-	Added FSF copyright.
+	Add FSF copyright.
 	Moved bindings off of C-c LETTER.
 	Cleaned up references to cmu* files.
 	Made comint-send-input do unconditional end-of-line before processing.
@@ -10594,7 +10594,7 @@
 
 	* x-mouse.el (x-paste-text): push-mark before inserting text.
 	(x-insert-selection, x-select):
-	Moved these functions over from mouse.el.
+	Move these functions over from mouse.el.
 
 1989-10-12  Richard Stallman  (rms@mole.ai.mit.edu)
 
@@ -10768,7 +10768,7 @@
 1989-09-11  Robert J. Chassell  (bob@apple-gunkies.ai.mit.edu)
 
 	* texinfo.el (texinfo-update-node, texinfo-make-menu)
-	(texinfo-master-menu, texinfo-sequential-node-update): Added functions
+	(texinfo-master-menu, texinfo-sequential-node-update): Add functions
 	to insert or update the next, previous, and up node pointers in a
 	Texinfo file, or alternatively to insert node pointers as a depth-first
 	traversal---sequentially through the file, each pointing to the next
@@ -10953,7 +10953,7 @@
 
 1989-07-12  Joseph Arceneaux  (jla@spiff)
 
-	* lisp.el (insert-parentheses): Changed conditions for pre- and
+	* lisp.el (insert-parentheses): Change conditions for pre- and
 	post- insertion of blanks.
 
 	* bytecomp.el (byte-compile-file): If current buffer is in
@@ -11072,7 +11072,7 @@
 
 1989-06-08  Joseph Arceneaux  (jla@apple-gunkies.ai.mit.edu)
 
-	* term/x-win.el (new-screen): Added this function, which is the default
+	* term/x-win.el (new-screen): Add this function, which is the default
 	auto-screen function.  It uses new variables new-screen-x-delta
 	and new-screen-y-delta.
 	(next-multiscreen-window, previous-multiscreen-window):
@@ -11200,7 +11200,7 @@
 
 1989-05-15  Joseph Arceneaux  (jla@apple-gunkies.ai.mit.edu)
 
-	* tags.el (next-file): Fixed typo: " *next-file*" --> "*next-file*"
+	* tags.el (next-file): Fix typo: " *next-file*" --> "*next-file*"
 
 1989-05-14  Richard Stallman  (rms@mole.ai.mit.edu)
 
@@ -11280,7 +11280,7 @@
 	confusing and incompatible with xterm.
 
 	* mouse.el (mouse-scroll, mouse-del-char, mouse-kill-line)
-	(narrow-window-to-region, mouse-window-to-region): Added these
+	(narrow-window-to-region, mouse-window-to-region): Add these
 	new functions.
 
 1989-05-08  Richard Stallman  (rms@mole.ai.mit.edu)
@@ -11439,7 +11439,7 @@
 	* replace.el (occur-mode-goto-occurrence): Insure arg to
 	count-lines is@start of line.
 
-	* replace.el (occur): Removed an extraneous save-excursion.
+	* replace.el (occur): Remove an extraneous save-excursion.
 
 	* replace.el (perform-replace): Make ! undo as a unit.
 
@@ -11530,7 +11530,7 @@
 	(view-exit): Restore old mode from those local variables.
 	Apply specified fn to buffer that was viewed.
 	This is on C-c and q.
-	(view-command-loop): Deleted.
+	(view-command-loop): Delete.
 	(view-window-size): Now applies to selected window.
 
 	* startup.el (normal-top-level): Use PWD envvar to set default dir.
@@ -11651,8 +11651,8 @@
 	(bibtex-enclosing-reference, bibtex-enclosing-regexp, bibtex-flash-entr)
 	(bibtex-flash-head, bibtex-inside-field, bibtex-make-optional-entry)
 	(bibtex-remove-OPT): New functions.
-	(bibtex-find-it, bibtex-make-OPT-entry, bibtex-next-position): Deleted.
-	(kill-current-line): Deleted.
+	(bibtex-find-it, bibtex-make-OPT-entry, bibtex-next-position): Delete.
+	(kill-current-line): Delete.
 	(bibtex-mode-map): C-c keys to make entries moved to C-c C-e.
 	(general): Use regexps instead of simple-minded cursor motion.
 	New keys include C-c C-p, C-c C-n, C-c C-k, C-c C-d, C-c C-c, TAB, LF.
@@ -12400,7 +12400,7 @@
 
 	* compile.el (grep): Use grep-command for program.
 	* loaddefs.el (grep-command): New variable.
-	(compile-command): Moved to compile.el.
+	(compile-command): Move to compile.el.
 
 	* c-mode.el (electric-c-terminator): Make insertpos a marker.
 

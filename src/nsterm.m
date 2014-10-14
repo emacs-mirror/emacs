@@ -65,9 +65,7 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 #endif
 
 #ifdef NS_IMPL_COCOA
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5
 #include "macfont.h"
-#endif
 #endif
 
 /* call tracing */
@@ -706,7 +704,6 @@ static void
 ns_update_auto_hide_menu_bar (void)
 {
 #ifdef NS_IMPL_COCOA
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
   block_input ();
 
   NSTRACE (ns_update_auto_hide_menu_bar);
@@ -738,7 +735,6 @@ ns_update_auto_hide_menu_bar (void)
     }
 
   unblock_input ();
-#endif
 #endif
 }
 
@@ -1930,10 +1926,9 @@ ns_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
           position = [view convertPoint: position fromView: nil];
           remember_mouse_glyph (f, position.x, position.y,
 				&dpyinfo->last_mouse_glyph);
-/*fprintf (stderr, "ns_mouse_position: %.0f, %.0f\n", position.x, position.y); */
 
           if (bar_window) *bar_window = Qnil;
-          if (part) *part = 0; /*scroll_bar_handle; */
+          if (part) *part = scroll_bar_above_handle;
 
           if (x) XSETINT (*x, lrint (position.x));
           if (y) XSETINT (*y, lrint (position.y));
@@ -2347,8 +2342,19 @@ ns_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
          to erase the whole background. */
       [ns_lookup_indexed_color(face->background, f) set];
       NSRectFill (r);
-      [img setXBMColor: ns_lookup_indexed_color(face->foreground, f)];
-#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+
+      {
+        NSColor *bm_color;
+        if (!p->cursor_p)
+          bm_color = ns_lookup_indexed_color(face->foreground, f);
+        else if (p->overlay_p)
+          bm_color = ns_lookup_indexed_color(face->background, f);
+        else
+          bm_color = f->output_data.ns->cursor_color;
+        [img setXBMColor: bm_color];
+      }
+
+#ifdef NS_IMPL_COCOA
       [img drawInRect: r
               fromRect: NSZeroRect
              operation: NSCompositeSourceOver
@@ -2431,7 +2437,10 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
   else if (cursor_type == HBAR_CURSOR)
     {
       cursor_height = (cursor_width < 1) ? lrint (0.25 * h) : cursor_width;
-      fy += h - cursor_height;
+      if (cursor_height > glyph_row->height)
+        cursor_height = glyph_row->height;
+      if (h > cursor_height) // Cursor smaller than line height, move down
+        fy += h - cursor_height;
       h = cursor_height;
     }
 
@@ -3024,7 +3033,7 @@ ns_dumpglyphs_image (struct glyph_string *s, NSRect r)
   /* Draw the image.. do we need to draw placeholder if img ==nil? */
   if (img != nil)
     {
-#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+#ifdef NS_IMPL_COCOA
       NSRect dr = NSMakeRect (x, y, s->slice.width, s->slice.height);
       NSRect ir = NSMakeRect (s->slice.x, s->slice.y,
                               s->slice.width, s->slice.height);
@@ -3436,9 +3445,8 @@ check_native_fs ()
 }
 #endif
 
-/* GNUstep and OSX <= 10.4 does not have cancelTracking.  */
-#if defined (NS_IMPL_COCOA) && \
-  MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5
+/* GNUstep does not have cancelTracking.  */
+#ifdef NS_IMPL_COCOA
 /* Check if menu open should be canceled or continued as normal.  */
 void
 ns_check_menu_open (NSMenu *menu)
@@ -3501,7 +3509,16 @@ ns_check_pending_open_menu ()
       menu_will_open_state = MENU_OPENING;
     }
 }
-#endif /* NS_IMPL_COCOA) && >= MAC_OS_X_VERSION_10_5 */
+#endif /* NS_IMPL_COCOA */
+
+static void
+unwind_apploopnr (Lisp_Object not_used)
+{
+  --apploopnr;
+  n_emacs_events_pending = 0;
+  ns_finish_events ();
+  q_event_ptr = NULL;
+}
 
 static int
 ns_read_socket (struct terminal *terminal, struct input_event *hold_quit)
@@ -3560,6 +3577,7 @@ ns_read_socket (struct terminal *terminal, struct input_event *hold_quit)
     }
   else
     {
+      ptrdiff_t specpdl_count = SPECPDL_INDEX ();
       /* Run and wait for events.  We must always send one NX_APPDEFINED event
          to ourself, otherwise [NXApp run] will never exit.  */
       send_appdefined = YES;
@@ -3569,8 +3587,9 @@ ns_read_socket (struct terminal *terminal, struct input_event *hold_quit)
         {
           emacs_abort ();
         }
+      record_unwind_protect (unwind_apploopnr, Qt);
       [NSApp run];
-      --apploopnr;
+      unbind_to (specpdl_count, Qnil);  /* calls unwind_apploopnr */
     }
 
   nevents = n_emacs_events_pending;
@@ -3677,8 +3696,14 @@ ns_select (int nfds, fd_set *readfds, fd_set *writefds,
     {
       emacs_abort ();
     }
-  [NSApp run];
-  --apploopnr;
+
+  {
+    ptrdiff_t specpdl_count = SPECPDL_INDEX ();
+    record_unwind_protect (unwind_apploopnr, Qt);
+    [NSApp run];
+    unbind_to (specpdl_count, Qnil);  /* calls unwind_apploopnr */
+  }
+
   ns_finish_events ();
   if (nr > 0 && readfds)
     {
@@ -4493,7 +4518,7 @@ ns_term_shutdown (int sig)
 #define NSAppKitVersionNumber10_8 1187
 #endif
 
-  if (NSAppKitVersionNumber <= NSAppKitVersionNumber10_8) 
+  if (NSAppKitVersionNumber <= NSAppKitVersionNumber10_8)
     {
       [super run];
       return;
@@ -4690,13 +4715,11 @@ ns_term_shutdown (int sig)
 
   [self antialiasThresholdDidChange:nil];
 #ifdef NS_IMPL_COCOA
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5
   [[NSNotificationCenter defaultCenter]
     addObserver:self
        selector:@selector(antialiasThresholdDidChange:)
 	   name:NSAntialiasThresholdChangedNotification
 	 object:nil];
-#endif
 #endif
 
   ns_send_appdefined (-2);
@@ -4705,9 +4728,7 @@ ns_term_shutdown (int sig)
 - (void)antialiasThresholdDidChange:(NSNotification *)notification
 {
 #ifdef NS_IMPL_COCOA
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5
   macfont_update_antialias_threshold ();
-#endif
 #endif
 }
 
@@ -5048,13 +5069,11 @@ not_in_argv (NSString *arg)
   if (!emacs_event)
     return;
 
-  if (EQ (font->driver->type, Qns))
-    nsfont = ((struct nsfont_info *)font)->nsfont;
-#ifdef NS_IMPL_COCOA
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5
-  else
-    nsfont = (NSFont *) macfont_get_nsctfont (font);
+#ifdef NS_IMPL_GNUSTEP
+  nsfont = ((struct nsfont_info *)font)->nsfont;
 #endif
+#ifdef NS_IMPL_COCOA
+  nsfont = (NSFont *) macfont_get_nsctfont (font);
 #endif
 
   if ((newFont = [sender convertFont: nsfont]))
@@ -5106,7 +5125,7 @@ not_in_argv (NSString *arg)
   int code;
   unsigned fnKeysym = 0;
   static NSMutableArray *nsEvArray;
-#if !defined (NS_IMPL_COCOA) || MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_6
+#ifdef NS_IMPL_GNUSTEP
   static BOOL firstTime = YES;
 #endif
   int left_is_none;
@@ -5337,7 +5356,7 @@ not_in_argv (NSString *arg)
     }
 
 
-#if !defined (NS_IMPL_COCOA) || MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_6
+#ifdef NS_IMPL_GNUSTEP
   /* if we get here we should send the key for input manager processing */
   /* Disable warning, there is nothing a user can do about it anyway, and
      it does not seem to matter.  */
@@ -5797,7 +5816,8 @@ not_in_argv (NSString *arg)
     {
 #ifdef NS_IMPL_GNUSTEP
       // GNUstep does not always update the tool bar height.  Force it.
-      if (toolbar) update_frame_tool_bar (emacsframe);
+      if (toolbar && [toolbar isVisible])
+          update_frame_tool_bar (emacsframe);
 #endif
 
       extra = FRAME_NS_TITLEBAR_HEIGHT (emacsframe)
@@ -5838,10 +5858,13 @@ not_in_argv (NSString *arg)
 
       // Did resize increments change because of a font change?
       if (sz.width != FRAME_COLUMN_WIDTH (emacsframe) ||
-          sz.height != FRAME_LINE_HEIGHT (emacsframe))
+          sz.height != FRAME_LINE_HEIGHT (emacsframe) ||
+          (frame_resize_pixelwise && sz.width != 1))
         {
-          sz.width = FRAME_COLUMN_WIDTH (emacsframe);
-          sz.height = FRAME_LINE_HEIGHT (emacsframe);
+          sz.width = frame_resize_pixelwise
+            ? 1 : FRAME_COLUMN_WIDTH (emacsframe);
+          sz.height = frame_resize_pixelwise
+            ? 1 : FRAME_LINE_HEIGHT (emacsframe);
           [win setResizeIncrements: sz];
 
           NSTRACE_SIZE ("New size", NSMakeSize (neww, newh));
@@ -6111,8 +6134,8 @@ if (cols > 0 && rows > 0)
   [win setDelegate: self];
   [win useOptimizedDrawing: YES];
 
-  sz.width = FRAME_COLUMN_WIDTH (f);
-  sz.height = FRAME_LINE_HEIGHT (f);
+  sz.width = frame_resize_pixelwise ? 1 : FRAME_COLUMN_WIDTH (f);
+  sz.height = frame_resize_pixelwise ? 1 : FRAME_LINE_HEIGHT (f);
   [win setResizeIncrements: sz];
 
   [[win contentView] addSubview: self];
@@ -6459,8 +6482,8 @@ if (cols > 0 && rows > 0)
                                  (FRAME_DEFAULT_FACE (f)),
                                  f);
 
-  sz.width = FRAME_COLUMN_WIDTH (f);
-  sz.height = FRAME_LINE_HEIGHT (f);
+  sz.width = frame_resize_pixelwise ? 1 : FRAME_COLUMN_WIDTH (f);
+  sz.height = frame_resize_pixelwise ? 1 : FRAME_LINE_HEIGHT (f);
 
   if (fs_state != FULLSCREEN_BOTH)
     {
@@ -6475,8 +6498,7 @@ if (cols > 0 && rows > 0)
       /* Hide dock and menubar if we are on the primary screen.  */
       if (onFirstScreen)
         {
-#if defined (NS_IMPL_COCOA) && \
-  MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+#ifdef NS_IMPL_COCOA
           NSApplicationPresentationOptions options
             = NSApplicationPresentationAutoHideDock
             | NSApplicationPresentationAutoHideMenuBar;
@@ -6516,7 +6538,7 @@ if (cols > 0 && rows > 0)
       [fw makeFirstResponder:self];
       [w orderOut:self];
       r = [fw frameRectForContentRect:[screen frame]];
-      [fw setFrame: r display:YES animate:YES];
+      [fw setFrame: r display:YES animate:ns_use_fullscreen_animation];
       [self windowDidEnterFullScreen:nil];
       [fw display];
     }
@@ -6528,8 +6550,7 @@ if (cols > 0 && rows > 0)
 
       if (onFirstScreen)
         {
-#if defined (NS_IMPL_COCOA) && \
-  MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+#ifdef NS_IMPL_COCOA
           [NSApp setPresentationOptions: NSApplicationPresentationDefault];
 #else
           [NSMenu setMenuBarVisible:YES];
@@ -6548,7 +6569,7 @@ if (cols > 0 && rows > 0)
         FRAME_TOOLBAR_HEIGHT (f) = tobar_height;
 
       [self windowWillExitFullScreen:nil];
-      [fw setFrame: [w frame] display:YES animate:YES];
+      [fw setFrame: [w frame] display:YES animate:ns_use_fullscreen_animation];
       [fw close];
       [w makeKeyAndOrderFront:NSApp];
       [self windowDidExitFullScreen:nil];
@@ -6854,7 +6875,7 @@ if (cols > 0 && rows > 0)
     }
   else
     {
-      error ("Invalid data type in dragging pasteboard");
+      fprintf (stderr, "Invalid data type in dragging pasteboard");
       return NO;
     }
 }
@@ -7044,7 +7065,7 @@ if (cols > 0 && rows > 0)
 #endif
 #endif
 
-  for (i = 0; i < nr_screens; ++i) 
+  for (i = 0; i < nr_screens; ++i)
     {
       NSScreen *s = [screens objectAtIndex: i];
       NSRect scrrect = [s frame];
@@ -7251,7 +7272,7 @@ if (cols > 0 && rows > 0)
 
   if (portion >= whole)
     {
-#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED > MAC_OS_X_VERSION_10_5
+#ifdef NS_IMPL_COCOA
       [self setKnobProportion: 1.0];
       [self setDoubleValue: 1.0];
 #else
@@ -7265,7 +7286,7 @@ if (cols > 0 && rows > 0)
       portion = max ((float)whole*min_portion/pixel_height, portion);
       pos = (float)position / (whole - portion);
       por = (CGFloat)portion/whole;
-#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED > MAC_OS_X_VERSION_10_5
+#ifdef NS_IMPL_COCOA
       [self setKnobProportion: por];
       [self setDoubleValue: pos];
 #else
@@ -7491,7 +7512,7 @@ if (cols > 0 && rows > 0)
       [scroll_repeat_entry release];
       scroll_repeat_entry = nil;
     }
-  last_hit_part = 0;
+  last_hit_part = scroll_bar_above_handle;
 }
 
 
@@ -7752,6 +7773,12 @@ Default is t for OSX >= 10.7, nil otherwise.  */);
 #endif
   ns_last_use_native_fullscreen = ns_use_native_fullscreen;
 
+  DEFVAR_BOOL ("ns-use-fullscreen-animation", ns_use_fullscreen_animation,
+     doc: /*Non-nil means use animation on non-native fullscreen.
+For native fullscreen, this does nothing.
+Default is nil.  */);
+  ns_use_fullscreen_animation = NO;
+
   DEFVAR_BOOL ("ns-use-srgb-colorspace", ns_use_srgb_colorspace,
      doc: /*Non-nil means to use sRGB colorspace on OSX >= 10.7.
 Note that this does not apply to images.
@@ -7789,14 +7816,12 @@ baseline level.  The default value is nil.  */);
   DEFSYM (Qcocoa, "cocoa");
   DEFSYM (Qgnustep, "gnustep");
 
-  syms_of_nsfont ();
 #ifdef NS_IMPL_COCOA
   Fprovide (Qcocoa, Qnil);
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1050
   syms_of_macfont ();
-#endif
 #else
   Fprovide (Qgnustep, Qnil);
+  syms_of_nsfont ();
 #endif
 
 }

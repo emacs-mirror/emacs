@@ -328,13 +328,13 @@ lexical binding):
 @example
 (defun evaluate (exp env)
   (pcase exp
-    (`(add ,x ,y)         (+ (evaluate x env) (evaluate y env)))
-    (`(call ,fun ,arg)    (funcall (evaluate fun env) (evaluate arg env)))
-    (`(fn ,arg ,body)     (lambda (val)
-                            (evaluate body (cons (cons arg val) env))))
-    ((pred numberp)       exp)
-    ((pred symbolp)       (cdr (assq exp env)))
-    (_                    (error "Unknown expression %S" exp))))
+    (`(add ,x ,y)       (+ (evaluate x env) (evaluate y env)))
+    (`(call ,fun ,arg)  (funcall (evaluate fun env) (evaluate arg env)))
+    (`(fn ,arg ,body)   (lambda (val)
+                          (evaluate body (cons (cons arg val) env))))
+    ((pred numberp)     exp)
+    ((pred symbolp)     (cdr (assq exp env)))
+    (_                  (error "Unknown expression %S" exp))))
 @end example
 
 Where @code{`(add ,x ,y)} is a pattern that checks that @code{exp} is a three
@@ -370,6 +370,10 @@ More specifically, a Q-pattern can take the following forms:
 @item (@var{qpattern1} . @var{qpattern2})
 This pattern matches any cons cell whose @code{car} matches @var{QPATTERN1} and
 whose @code{cdr} matches @var{PATTERN2}.
+@item [@var{qpattern1 qpattern2..qpatternm}]
+This pattern matches a vector of length @code{M} whose 0..(M-1)th
+elements match @var{QPATTERN1}, @var{QPATTERN2}..@var{QPATTERNm},
+respectively.
 @item @var{atom}
 This pattern matches any atom @code{equal} to @var{atom}.
 @item ,@var{upattern}

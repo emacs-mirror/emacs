@@ -185,17 +185,6 @@ autoloads: $(LOADDEFS)
 	    --eval '(setq autoload-builtin-package-versions t)' \
 	    --eval '(setq generated-autoload-file (expand-file-name (unmsys--file-name "$(srcdir)/loaddefs.el")))' \
 	    -f batch-update-autoloads $$wins
-	$(MAKE) obsolete-autoloads
-
-# The obsolete/ subdirectory is normally not scanned for autoloads.
-# Sometimes we still want to autoload something from that directory,
-# eg iswitchb.
-.PHONY: obsolete-autoloads
-obsolete-autoloads: ${lisp}/obsolete/*.el
-	$(emacs) -l autoload \
-	    --eval '(setq generate-autoload-cookie ";;;###obsolete-autoload")' \
-	    --eval '(setq generated-autoload-file (expand-file-name (unmsys--file-name "$(srcdir)/loaddefs.el")))' \
-	    -f batch-update-autoloads ${lisp}/obsolete
 
 # This is required by the bootstrap-emacs target in ../src/Makefile, so
 # we know that if we have an emacs executable, we also have a subdirs.el.
@@ -387,7 +376,7 @@ compile-after-backup: backup-compiled-files compile-always
 # There is no reason to use this rule unless you only have a single
 # core and CPU time is an issue.
 .PHONY: compile-one-process
-compile-one-process: $(LOADDEFS) compile-first $(lisp)/progmodes/cc-mode.elc
+compile-one-process: $(LOADDEFS) compile-first
 	$(emacs) $(BYTE_COMPILE_FLAGS) \
 	    --eval "(batch-byte-recompile-directory 0)" $(lisp)
 
@@ -495,7 +484,7 @@ check-declare:
 # CC Mode uses a compile time macro system which causes a compile time
 # dependency in cc-*.elc files on the macros in other cc-*.el and the
 # version string in cc-defs.el.
-$(lisp)/progmodes/cc-align.elc $(lisp)/progmodes/cc-awk.elc\
+$(lisp)/progmodes/cc-align.elc\
  $(lisp)/progmodes/cc-cmds.elc $(lisp)/progmodes/cc-compat.elc\
  $(lisp)/progmodes/cc-engine.elc $(lisp)/progmodes/cc-fonts.elc\
  $(lisp)/progmodes/cc-langs.elc $(lisp)/progmodes/cc-menus.elc\

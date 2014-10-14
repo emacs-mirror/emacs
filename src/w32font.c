@@ -115,15 +115,15 @@ static void compute_metrics (HDC, struct w32font_info *, unsigned int,
 static Lisp_Object w32_registry (LONG, DWORD);
 
 /* EnumFontFamiliesEx callbacks.  */
-static int CALLBACK add_font_entity_to_list (ENUMLOGFONTEX *,
-                                             NEWTEXTMETRICEX *,
-                                             DWORD, LPARAM);
-static int CALLBACK add_one_font_entity_to_list (ENUMLOGFONTEX *,
-                                                 NEWTEXTMETRICEX *,
-                                                 DWORD, LPARAM);
-static int CALLBACK add_font_name_to_list (ENUMLOGFONTEX *,
-                                           NEWTEXTMETRICEX *,
-                                           DWORD, LPARAM);
+static int CALLBACK ALIGN_STACK add_font_entity_to_list (ENUMLOGFONTEX *,
+							 NEWTEXTMETRICEX *,
+							 DWORD, LPARAM);
+static int CALLBACK ALIGN_STACK add_one_font_entity_to_list (ENUMLOGFONTEX *,
+							     NEWTEXTMETRICEX *,
+							     DWORD, LPARAM);
+static int CALLBACK ALIGN_STACK add_font_name_to_list (ENUMLOGFONTEX *,
+						       NEWTEXTMETRICEX *,
+						       DWORD, LPARAM);
 
 /* struct passed in as LPARAM arg to EnumFontFamiliesEx, for keeping track
    of what we really want.  */
@@ -287,11 +287,11 @@ Lisp_Object
 intern_font_name (char * string)
 {
   Lisp_Object str = DECODE_SYSTEM (build_string (string));
-  int len = SCHARS (str);
+  ptrdiff_t len = SCHARS (str);
   Lisp_Object obarray = check_obarray (Vobarray);
   Lisp_Object tem = oblookup (obarray, SDATA (str), len, len);
   /* This code is similar to intern function from lread.c.  */
-  return SYMBOLP (tem) ? tem : Fintern (str, obarray);
+  return SYMBOLP (tem) ? tem : intern_driver (str, obarray, XINT (tem));
 }
 
 /* w32 implementation of get_cache for font backend.
@@ -473,7 +473,7 @@ w32font_encode_char (struct font *font, int c)
    of METRICS.  The glyphs are specified by their glyph codes in
    CODE (length NGLYPHS).  Apparently metrics can be NULL, in this
    case just return the overall width.  */
-int
+void
 w32font_text_extents (struct font *font, unsigned *code,
 		      int nglyphs, struct font_metrics *metrics)
 {
@@ -487,84 +487,80 @@ w32font_text_extents (struct font *font, unsigned *code,
 
   struct w32font_info *w32_font = (struct w32font_info *) font;
 
-  if (metrics)
+  memset (metrics, 0, sizeof (struct font_metrics));
+  metrics->ascent = font->ascent;
+  metrics->descent = font->descent;
+
+  for (i = 0; i < nglyphs; i++)
     {
-      memset (metrics, 0, sizeof (struct font_metrics));
-      metrics->ascent = font->ascent;
-      metrics->descent = font->descent;
+      struct w32_metric_cache *char_metric;
+      int block = *(code + i) / CACHE_BLOCKSIZE;
+      int pos_in_block = *(code + i) % CACHE_BLOCKSIZE;
 
-      for (i = 0; i < nglyphs; i++)
-        {
-	  struct w32_metric_cache *char_metric;
-	  int block = *(code + i) / CACHE_BLOCKSIZE;
-	  int pos_in_block = *(code + i) % CACHE_BLOCKSIZE;
-
-	  if (block >= w32_font->n_cache_blocks)
-	    {
-	      if (!w32_font->cached_metrics)
-		w32_font->cached_metrics
-		  = xmalloc ((block + 1)
-			     * sizeof (struct w32_metric_cache *));
-	      else
-		w32_font->cached_metrics
-		  = xrealloc (w32_font->cached_metrics,
-			      (block + 1)
-			      * sizeof (struct w32_metric_cache *));
-	      memset (w32_font->cached_metrics + w32_font->n_cache_blocks, 0,
-		      ((block + 1 - w32_font->n_cache_blocks)
-		       * sizeof (struct w32_metric_cache *)));
-	      w32_font->n_cache_blocks = block + 1;
-	    }
-
-	  if (!w32_font->cached_metrics[block])
-	    {
-	      w32_font->cached_metrics[block]
-		= xzalloc (CACHE_BLOCKSIZE * sizeof (struct w32_metric_cache));
-	    }
-
-	  char_metric = w32_font->cached_metrics[block] + pos_in_block;
-
-	  if (char_metric->status == W32METRIC_NO_ATTEMPT)
-	    {
-	      if (dc == NULL)
-		{
-		  /* TODO: Frames can come and go, and their fonts
-		     outlive them. So we can't cache the frame in the
-		     font structure.  Use selected_frame until the API
-		     is updated to pass in a frame.  */
-		  f = XFRAME (selected_frame);
-
-                  dc = get_frame_dc (f);
-                  old_font = SelectObject (dc, w32_font->hfont);
-		}
-	      compute_metrics (dc, w32_font, *(code + i), char_metric);
-	    }
-
-	  if (char_metric->status == W32METRIC_SUCCESS)
-	    {
-	      metrics->lbearing = min (metrics->lbearing,
-				       metrics->width + char_metric->lbearing);
-	      metrics->rbearing = max (metrics->rbearing,
-				       metrics->width + char_metric->rbearing);
-	      metrics->width += char_metric->width;
-	    }
+      if (block >= w32_font->n_cache_blocks)
+	{
+	  if (!w32_font->cached_metrics)
+	    w32_font->cached_metrics
+	      = xmalloc ((block + 1)
+			 * sizeof (struct w32_metric_cache *));
 	  else
-	    /* If we couldn't get metrics for a char,
-	       use alternative method.  */
-	    break;
+	    w32_font->cached_metrics
+	      = xrealloc (w32_font->cached_metrics,
+			  (block + 1)
+			  * sizeof (struct w32_metric_cache *));
+	  memset (w32_font->cached_metrics + w32_font->n_cache_blocks, 0,
+		  ((block + 1 - w32_font->n_cache_blocks)
+		   * sizeof (struct w32_metric_cache *)));
+	  w32_font->n_cache_blocks = block + 1;
 	}
-      /* If we got through everything, return.  */
-      if (i == nglyphs)
-        {
-          if (dc != NULL)
-            {
-              /* Restore state and release DC.  */
-              SelectObject (dc, old_font);
-              release_frame_dc (f, dc);
-            }
 
-          return metrics->width;
-        }
+      if (!w32_font->cached_metrics[block])
+	{
+	  w32_font->cached_metrics[block]
+	    = xzalloc (CACHE_BLOCKSIZE * sizeof (struct w32_metric_cache));
+	}
+
+      char_metric = w32_font->cached_metrics[block] + pos_in_block;
+
+      if (char_metric->status == W32METRIC_NO_ATTEMPT)
+	{
+	  if (dc == NULL)
+	    {
+	      /* TODO: Frames can come and go, and their fonts
+		 outlive them. So we can't cache the frame in the
+		 font structure.  Use selected_frame until the API
+		 is updated to pass in a frame.  */
+	      f = XFRAME (selected_frame);
+
+	      dc = get_frame_dc (f);
+	      old_font = SelectObject (dc, w32_font->hfont);
+	    }
+	  compute_metrics (dc, w32_font, *(code + i), char_metric);
+	}
+
+      if (char_metric->status == W32METRIC_SUCCESS)
+	{
+	  metrics->lbearing = min (metrics->lbearing,
+				   metrics->width + char_metric->lbearing);
+	  metrics->rbearing = max (metrics->rbearing,
+				   metrics->width + char_metric->rbearing);
+	  metrics->width += char_metric->width;
+	}
+      else
+	/* If we couldn't get metrics for a char,
+	   use alternative method.  */
+	break;
+    }
+  /* If we got through everything, return.  */
+  if (i == nglyphs)
+    {
+      if (dc != NULL)
+	{
+	  /* Restore state and release DC.  */
+	  SelectObject (dc, old_font);
+	  release_frame_dc (f, dc);
+	}
+      return;
     }
 
   /* For non-truetype fonts, GetGlyphOutlineW is not supported, so
@@ -620,18 +616,13 @@ w32font_text_extents (struct font *font, unsigned *code,
     }
 
   /* Give our best estimate of the metrics, based on what we know.  */
-  if (metrics)
-    {
-      metrics->width = total_width - w32_font->metrics.tmOverhang;
-      metrics->lbearing = 0;
-      metrics->rbearing = total_width;
-    }
+  metrics->width = total_width - w32_font->metrics.tmOverhang;
+  metrics->lbearing = 0;
+  metrics->rbearing = total_width;
 
   /* Restore state and release DC.  */
   SelectObject (dc, old_font);
   release_frame_dc (f, dc);
-
-  return total_width;
 }
 
 /* w32 implementation of draw for font backend.
@@ -1009,7 +1000,7 @@ w32font_open_internal (struct frame *f, Lisp_Object font_entity,
 
 /* Callback function for EnumFontFamiliesEx.
  * Adds the name of a font to a Lisp list (passed in as the lParam arg).  */
-static int CALLBACK
+static int CALLBACK ALIGN_STACK
 add_font_name_to_list (ENUMLOGFONTEX *logical_font,
 		       NEWTEXTMETRICEX *physical_font,
 		       DWORD font_type, LPARAM list_object)
@@ -1455,7 +1446,7 @@ check_face_name (LOGFONT *font, char *full_name)
  * and if so, adds it to a list. Both the data we are checking against
  * and the list to which the fonts are added are passed in via the
  * lparam argument, in the form of a font_callback_data struct. */
-static int CALLBACK
+static int CALLBACK ALIGN_STACK
 add_font_entity_to_list (ENUMLOGFONTEX *logical_font,
 			 NEWTEXTMETRICEX *physical_font,
 			 DWORD font_type, LPARAM lParam)
@@ -1574,7 +1565,7 @@ add_font_entity_to_list (ENUMLOGFONTEX *logical_font,
 
 /* Callback function for EnumFontFamiliesEx.
  * Terminates the search once we have a match. */
-static int CALLBACK
+static int CALLBACK ALIGN_STACK
 add_one_font_entity_to_list (ENUMLOGFONTEX *logical_font,
 			     NEWTEXTMETRICEX *physical_font,
 			     DWORD font_type, LPARAM lParam)

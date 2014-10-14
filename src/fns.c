@@ -24,6 +24,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <time.h>
 
 #include <intprops.h>
+#include <vla.h>
 
 #include "lisp.h"
 #include "commands.h"
@@ -41,6 +42,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 Lisp_Object Qstring_lessp;
+static Lisp_Object Qstring_collate_lessp, Qstring_collate_equalp;
 static Lisp_Object Qprovide, Qrequire;
 static Lisp_Object Qyes_or_no_p_history;
 Lisp_Object Qcursor_in_echo_area;
@@ -49,6 +51,8 @@ static Lisp_Object Qcodeset, Qdays, Qmonths, Qpaper;
 
 static Lisp_Object Qmd5, Qsha1, Qsha224, Qsha256, Qsha384, Qsha512;
 
+static void sort_vector_copy (Lisp_Object, ptrdiff_t,
+			      Lisp_Object [restrict], Lisp_Object [restrict]);
 static bool internal_equal (Lisp_Object, Lisp_Object, int, bool, Lisp_Object);
 
 DEFUN ("identity", Fidentity, Sidentity, 1, 1, 0,
@@ -342,6 +346,100 @@ Symbols are also allowed; their print names are used instead.  */)
 	return c1 < c2 ? Qt : Qnil;
     }
   return i1 < SCHARS (s2) ? Qt : Qnil;
+}
+
+DEFUN ("string-collate-lessp", Fstring_collate_lessp, Sstring_collate_lessp, 2, 4, 0,
+       doc: /* Return t if first arg string is less than second in collation order.
+Symbols are also allowed; their print names are used instead.
+
+This function obeys the conventions for collation order in your
+locale settings.  For example, punctuation and whitespace characters
+might be considered less significant for sorting:
+
+\(sort '\("11" "12" "1 1" "1 2" "1.1" "1.2") 'string-collate-lessp)
+  => \("11" "1 1" "1.1" "12" "1 2" "1.2")
+
+The optional argument LOCALE, a string, overrides the setting of your
+current locale identifier for collation.  The value is system
+dependent; a LOCALE \"en_US.UTF-8\" is applicable on POSIX systems,
+while it would be, e.g., \"enu_USA.1252\" on MS-Windows systems.
+
+If IGNORE-CASE is non-nil, characters are converted to lower-case
+before comparing them.
+
+To emulate Unicode-compliant collation on MS-Windows systems,
+bind `w32-collate-ignore-punctuation' to a non-nil value, since
+the codeset part of the locale cannot be \"UTF-8\" on MS-Windows.
+
+If your system does not support a locale environment, this function
+behaves like `string-lessp'.  */)
+  (Lisp_Object s1, Lisp_Object s2, Lisp_Object locale, Lisp_Object ignore_case)
+{
+#if defined __STDC_ISO_10646__ || defined WINDOWSNT
+  /* Check parameters.  */
+  if (SYMBOLP (s1))
+    s1 = SYMBOL_NAME (s1);
+  if (SYMBOLP (s2))
+    s2 = SYMBOL_NAME (s2);
+  CHECK_STRING (s1);
+  CHECK_STRING (s2);
+  if (!NILP (locale))
+    CHECK_STRING (locale);
+
+  return (str_collate (s1, s2, locale, ignore_case) < 0) ? Qt : Qnil;
+
+#else  /* !__STDC_ISO_10646__, !WINDOWSNT */
+  return Fstring_lessp (s1, s2);
+#endif /* !__STDC_ISO_10646__, !WINDOWSNT */
+}
+
+DEFUN ("string-collate-equalp", Fstring_collate_equalp, Sstring_collate_equalp, 2, 4, 0,
+       doc: /* Return t if two strings have identical contents.
+Symbols are also allowed; their print names are used instead.
+
+This function obeys the conventions for collation order in your locale
+settings.  For example, characters with different coding points but
+the same meaning might be considered as equal, like different grave
+accent Unicode characters:
+
+\(string-collate-equalp \(string ?\\uFF40) \(string ?\\u1FEF))
+  => t
+
+The optional argument LOCALE, a string, overrides the setting of your
+current locale identifier for collation.  The value is system
+dependent; a LOCALE \"en_US.UTF-8\" is applicable on POSIX systems,
+while it would be \"enu_USA.1252\" on MS Windows systems.
+
+If IGNORE-CASE is non-nil, characters are converted to lower-case
+before comparing them.
+
+To emulate Unicode-compliant collation on MS-Windows systems,
+bind `w32-collate-ignore-punctuation' to a non-nil value, since
+the codeset part of the locale cannot be \"UTF-8\" on MS-Windows.
+
+If your system does not support a locale environment, this function
+behaves like `string-equal'.
+
+Do NOT use this function to compare file names for equality, only
+for sorting them.  */)
+  (Lisp_Object s1, Lisp_Object s2, Lisp_Object locale, Lisp_Object ignore_case)
+{
+#if defined __STDC_ISO_10646__ || defined WINDOWSNT
+  /* Check parameters.  */
+  if (SYMBOLP (s1))
+    s1 = SYMBOL_NAME (s1);
+  if (SYMBOLP (s2))
+    s2 = SYMBOL_NAME (s2);
+  CHECK_STRING (s1);
+  CHECK_STRING (s2);
+  if (!NILP (locale))
+    CHECK_STRING (locale);
+
+  return (str_collate (s1, s2, locale, ignore_case) == 0) ? Qt : Qnil;
+
+#else  /* !__STDC_ISO_10646__, !WINDOWSNT */
+  return Fstring_equal (s1, s2);
+#endif /* !__STDC_ISO_10646__, !WINDOWSNT */
 }
 
 static Lisp_Object concat (ptrdiff_t nargs, Lisp_Object *args,
@@ -1773,13 +1871,12 @@ See also the function `nreverse', which is used more often.  */)
     wrong_type_argument (Qsequencep, seq);
   return new;
 }
-
-DEFUN ("sort", Fsort, Ssort, 2, 2, 0,
-       doc: /* Sort LIST, stably, comparing elements using PREDICATE.
-Returns the sorted list.  LIST is modified by side effects.
-PREDICATE is called with two elements of LIST, and should return non-nil
-if the first element should sort before the second.  */)
-  (Lisp_Object list, Lisp_Object predicate)
+
+/* Sort LIST using PREDICATE, preserving original order of elements
+   considered as equal.  */
+
+static Lisp_Object
+sort_list (Lisp_Object list, Lisp_Object predicate)
 {
   Lisp_Object front, back;
   register Lisp_Object len, tem;
@@ -1802,6 +1899,126 @@ if the first element should sort before the second.  */)
   back = Fsort (back, predicate);
   UNGCPRO;
   return merge (front, back, predicate);
+}
+
+/* Using PRED to compare, return whether A and B are in order.
+   Compare stably when A appeared before B in the input.  */
+static bool
+inorder (Lisp_Object pred, Lisp_Object a, Lisp_Object b)
+{
+  return NILP (call2 (pred, b, a));
+}
+
+/* Using PRED to compare, merge from ALEN-length A and BLEN-length B
+   into DEST.  Argument arrays must be nonempty and must not overlap,
+   except that B might be the last part of DEST.  */
+static void
+merge_vectors (Lisp_Object pred,
+	       ptrdiff_t alen, Lisp_Object const a[restrict VLA_ELEMS (alen)],
+	       ptrdiff_t blen, Lisp_Object const b[VLA_ELEMS (blen)],
+	       Lisp_Object dest[VLA_ELEMS (alen + blen)])
+{
+  eassume (0 < alen && 0 < blen);
+  Lisp_Object const *alim = a + alen;
+  Lisp_Object const *blim = b + blen;
+
+  while (true)
+    {
+      if (inorder (pred, a[0], b[0]))
+	{
+	  *dest++ = *a++;
+	  if (a == alim)
+	    {
+	      if (dest != b)
+		memcpy (dest, b, (blim - b) * sizeof *dest);
+	      return;
+	    }
+	}
+      else
+	{
+	  *dest++ = *b++;
+	  if (b == blim)
+	    {
+	      memcpy (dest, a, (alim - a) * sizeof *dest);
+	      return;
+	    }
+	}
+    }
+}
+
+/* Using PRED to compare, sort LEN-length VEC in place, using TMP for
+   temporary storage.  LEN must be at least 2.  */
+static void
+sort_vector_inplace (Lisp_Object pred, ptrdiff_t len,
+		     Lisp_Object vec[restrict VLA_ELEMS (len)],
+		     Lisp_Object tmp[restrict VLA_ELEMS (len >> 1)])
+{
+  eassume (2 <= len);
+  ptrdiff_t halflen = len >> 1;
+  sort_vector_copy (pred, halflen, vec, tmp);
+  if (1 < len - halflen)
+    sort_vector_inplace (pred, len - halflen, vec + halflen, vec);
+  merge_vectors (pred, halflen, tmp, len - halflen, vec + halflen, vec);
+}
+
+/* Using PRED to compare, sort from LEN-length SRC into DST.
+   Len must be positive.  */
+static void
+sort_vector_copy (Lisp_Object pred, ptrdiff_t len,
+		  Lisp_Object src[restrict VLA_ELEMS (len)],
+		  Lisp_Object dest[restrict VLA_ELEMS (len)])
+{
+  eassume (0 < len);
+  ptrdiff_t halflen = len >> 1;
+  if (halflen < 1)
+    dest[0] = src[0];
+  else
+    {
+      if (1 < halflen)
+	sort_vector_inplace (pred, halflen, src, dest);
+      if (1 < len - halflen)
+	sort_vector_inplace (pred, len - halflen, src + halflen, dest);
+      merge_vectors (pred, halflen, src, len - halflen, src + halflen, dest);
+    }
+}
+
+/* Sort VECTOR in place using PREDICATE, preserving original order of
+   elements considered as equal.  */
+
+static void
+sort_vector (Lisp_Object vector, Lisp_Object predicate)
+{
+  ptrdiff_t len = ASIZE (vector);
+  if (len < 2)
+    return;
+  ptrdiff_t halflen = len >> 1;
+  Lisp_Object *tmp;
+  struct gcpro gcpro1, gcpro2;
+  GCPRO2 (vector, predicate);
+  USE_SAFE_ALLOCA;
+  SAFE_ALLOCA_LISP (tmp, halflen);
+  for (ptrdiff_t i = 0; i < halflen; i++)
+    tmp[i] = make_number (0);
+  sort_vector_inplace (predicate, len, XVECTOR (vector)->contents, tmp);
+  SAFE_FREE ();
+  UNGCPRO;
+}
+
+DEFUN ("sort", Fsort, Ssort, 2, 2, 0,
+       doc: /* Sort SEQ, stably, comparing elements using PREDICATE.
+Returns the sorted sequence.  SEQ should be a list or vector.  SEQ is
+modified by side effects.  PREDICATE is called with two elements of
+SEQ, and should return non-nil if the first element should sort before
+the second.  */)
+  (Lisp_Object seq, Lisp_Object predicate)
+{
+  if (CONSP (seq))
+    seq = sort_list (seq, predicate);
+  else if (VECTORP (seq))
+    sort_vector (seq, predicate);
+  else if (!NILP (seq))
+    wrong_type_argument (Qsequencep, seq);
+  return seq;
 }
 
 Lisp_Object
@@ -1841,8 +2058,7 @@ merge (Lisp_Object org_l1, Lisp_Object org_l2, Lisp_Object pred)
 	  Fsetcdr (tail, l1);
 	  return value;
 	}
-      tem = call2 (pred, Fcar (l2), Fcar (l1));
-      if (NILP (tem))
+      if (inorder (pred, Fcar (l1), Fcar (l2)))
 	{
 	  tem = l1;
 	  l1 = Fcdr (l1);
@@ -2490,8 +2706,7 @@ If dialog boxes are supported, a dialog box will be used
 if `last-nonmenu-event' is nil, and `use-dialog-box' is non-nil.  */)
   (Lisp_Object prompt)
 {
-  register Lisp_Object ans;
-  Lisp_Object args[2];
+  Lisp_Object ans;
   struct gcpro gcpro1;
 
   CHECK_STRING (prompt);
@@ -2510,10 +2725,8 @@ if `last-nonmenu-event' is nil, and `use-dialog-box' is non-nil.  */)
       return obj;
     }
 
-  args[0] = prompt;
-  args[1] = build_string ("(yes or no) ");
-  prompt = Fconcat (2, args);
-
+  AUTO_STRING (yes_or_no, "(yes or no) ");
+  prompt = Fconcat (2, (Lisp_Object []) {prompt, yes_or_no});
   GCPRO1 (prompt);
 
   while (1)
@@ -3071,7 +3284,6 @@ into shorter lines.  */)
   if (encoded_length < 0)
     {
       /* The encoding wasn't possible. */
-      SAFE_FREE ();
       error ("Multibyte character in data for base64 encoding");
     }
 
@@ -3216,7 +3428,6 @@ If the region can't be decoded, signal an error and don't modify the buffer.  */
   if (decoded_length < 0)
     {
       /* The decoding wasn't possible. */
-      SAFE_FREE ();
       error ("Invalid base64 data");
     }
 
@@ -3784,12 +3995,9 @@ maybe_resize_hash_table (struct Lisp_Hash_Table *h)
 #ifdef ENABLE_CHECKING
       if (HASH_TABLE_P (Vpurify_flag)
 	  && XHASH_TABLE (Vpurify_flag) == h)
-	{
-	  Lisp_Object args[2];
-	  args[0] = build_string ("Growing hash table to: %d");
-	  args[1] = make_number (new_size);
-	  Fmessage (2, args);
-	}
+	Fmessage (2, ((Lisp_Object [])
+	  { build_string ("Growing hash table to: %d"),
+	    make_number (new_size) }));
 #endif
 
       set_hash_key_and_value (h, larger_vector (h->key_and_value,
@@ -4269,12 +4477,9 @@ sxhash (Lisp_Object obj, int depth)
       break;
 
     case Lisp_Misc:
+    case Lisp_Symbol:
       hash = XHASH (obj);
       break;
-
-    case Lisp_Symbol:
-      obj = SYMBOL_NAME (obj);
-      /* Fall through.  */
 
     case Lisp_String:
       hash = sxhash_string (SSDATA (obj), SBYTES (obj));
@@ -4363,12 +4568,12 @@ usage: (make-hash-table &rest KEYWORD-ARGS)  */)
 {
   Lisp_Object test, size, rehash_size, rehash_threshold, weak;
   struct hash_table_test testdesc;
-  char *used;
   ptrdiff_t i;
+  USE_SAFE_ALLOCA;
 
   /* The vector `used' is used to keep track of arguments that
      have been consumed.  */
-  used = alloca (nargs * sizeof *used);
+  char *used = SAFE_ALLOCA (nargs * sizeof *used);
   memset (used, 0, nargs * sizeof *used);
 
   /* See if there's a `:test TEST' among the arguments.  */
@@ -4435,6 +4640,7 @@ usage: (make-hash-table &rest KEYWORD-ARGS)  */)
     if (!used[i])
       signal_error ("Invalid argument list", args[i]);
 
+  SAFE_FREE ();
   return make_hash_table (testdesc, size, rehash_size, rehash_threshold, weak);
 }
 
@@ -4919,6 +5125,8 @@ syms_of_fns (void)
   defsubr (&Sdefine_hash_table_test);
 
   DEFSYM (Qstring_lessp, "string-lessp");
+  DEFSYM (Qstring_collate_lessp, "string-collate-lessp");
+  DEFSYM (Qstring_collate_equalp, "string-collate-equalp");
   DEFSYM (Qprovide, "provide");
   DEFSYM (Qrequire, "require");
   DEFSYM (Qyes_or_no_p_history, "yes-or-no-p-history");
@@ -4972,6 +5180,8 @@ this variable.  */);
   defsubr (&Sstring_equal);
   defsubr (&Scompare_strings);
   defsubr (&Sstring_lessp);
+  defsubr (&Sstring_collate_lessp);
+  defsubr (&Sstring_collate_equalp);
   defsubr (&Sappend);
   defsubr (&Sconcat);
   defsubr (&Svconcat);

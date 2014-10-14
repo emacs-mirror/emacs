@@ -40,8 +40,8 @@
 	* progmodes/fortran.el (fortran-mode): Use mode-require-final-newline.
 	* progmodes/f90.el (f90-mode): Use mode-require-final-newline.
 	* progmodes/cperl-mode.el (cperl-mode): Use mode-require-final-newline.
-	* progmodes/cfengine.el (cfengine-mode): Use
-	mode-require-final-newline.
+	* progmodes/cfengine.el (cfengine-mode):
+	Use mode-require-final-newline.
 	* progmodes/ada-mode.el (ada-mode): Use mode-require-final-newline.
 	* textmodes/text-mode.el (text-mode): Use mode-require-final-newline.
 	* textmodes/texinfo.el (texinfo-mode): Use mode-require-final-newline.
@@ -438,8 +438,8 @@
 
 	* net/tramp-smb.el (tramp-smb-advice-PC-do-completion): Make the
 	advice less fragile.  Surround temporary redefinition of
-	`substitute-in-file-name' with `unwind-protect'.  Suggested by
-	Matt Hodges <MPHodges@member.fsf.org>.
+	`substitute-in-file-name' with `unwind-protect'.
+	Suggested by Matt Hodges <MPHodges@member.fsf.org>.
 
 2004-12-17  Juri Linkov  <juri@jurta.org>
 
@@ -1608,9 +1608,9 @@
 
 2004-11-24  Jay Belanger  <belanger@truman.edu>
 
-	* calc/calc.el (calc-embedded-active): Removed unnecessary
+	* calc/calc.el (calc-embedded-active): Remove unnecessary
 	declaration.
-	(calc-show-banner): Removed redundant declaration.
+	(calc-show-banner): Remove redundant declaration.
 
 	* calc/calc-graph.el (calc-gnuplot-default-device)
 	(calc-gnuplot-default-output, calc-gnuplot-print-device)
@@ -1662,7 +1662,7 @@
 	(math-nri-n): New variable.
 	(math-nth-root-integer, math-nth-root-int-iter): Replace variable
 	n by declared variable.
-	(calcFunc-log): Removed misplaced condition.
+	(calcFunc-log): Remove misplaced condition.
 
 2004-11-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -3366,8 +3366,8 @@
 
 2004-10-24  Kai Grossjohann  <kai.grossjohann@gmx.net>
 
-	* simple.el (process-file): Accept nil for INFILE.  Reported by
-	Luc Teirlinck.
+	* simple.el (process-file): Accept nil for INFILE.
+	Reported by Luc Teirlinck.
 
 2004-10-24  Masatake YAMATO  <jet@gyve.org>
 
@@ -3969,7 +3969,7 @@
 	* indent.el (set-left-margin, set-right-margin): Rename `lm' arg
 	to `width' for consistency with docstring.  Doc fix.
 
-2004-10-01  Martin Stjernholm  <bug-cc-mode@gnu.org>
+2004-10-01  Martin Stjernholm  <mast@lysator.liu.se>
 
 	* progmodes/cc-langs.el: Load cl here since cc-defs doesn't do it.
 	This is necessary for derived modes.
@@ -4330,8 +4330,8 @@
 	(calc-mode): Compare `calc-settings-file' to `user-init-file' rather
 	than "\\.emacs" to determine if it is the user-init-file.
 
-	* calc/calc-embed.el (calc-embedded-set-modes): Use
-	`calc-mode-var-list' correctly.
+	* calc/calc-embed.el (calc-embedded-set-modes):
+	Use `calc-mode-var-list' correctly.
 
 2004-09-15  Thien-Thi Nguyen  <ttn@gnu.org>
 
@@ -5129,7 +5129,7 @@
 	(speedbar-directory): New image (unused pixmap already existed).
 	(speedbar-expand-image-button-alist): Use it.
 
-2004-08-11  Martin Stjernholm  <bug-cc-mode@gnu.org>
+2004-08-11  Martin Stjernholm  <mast@lysator.liu.se>
 
 	CC Mode update to 5.30.9:
 
@@ -5212,7 +5212,7 @@
 	Fix bug that could cause an error from `after-change-functions' when
 	the changed region is at bob.
 
-2004-08-11  Alan Mackenzie  <bug-cc-mode@gnu.org>
+2004-08-11  Alan Mackenzie  <acm@muc.de>
 
 	CC Mode update to 5.30.9:
 
@@ -5503,8 +5503,8 @@
 	since Emacs 22.1 only (XEmacs has it).  Implementation rewritten
 	in order to avoid this function.
 	(tramp-handle-write-region): Set current buffer.  If connection
-	wasn't open, `file-modes' has changed it accidentally.  Reported by
-	David Kastrup <dak@gnu.org>.
+	wasn't open, `file-modes' has changed it accidentally.
+	Reported by David Kastrup <dak@gnu.org>.
 	(tramp-enter-password, tramp-read-passwd): New arguments USER and
 	HOST.
 	(tramp-action-password, tramp-multi-action-password): Apply it.
@@ -8532,8 +8532,8 @@
 
 2004-04-16  Dave Love  <fx@gnu.org>
 
-	* progmodes/python.el (python-compilation-line-number): Fix
-	braindamage.
+	* progmodes/python.el (python-compilation-line-number):
+	Fix braindamage.
 	(python-load-file): Fix python-orig-start setting.
 
 	* progmodes/compile.el: Doc fixes.
@@ -9482,8 +9482,8 @@
 
 2004-03-22  Luc Teirlinck  <teirllm@auburn.edu>
 
-	* autorevert.el (global-auto-revert-non-file-buffers): Expand
-	docstring.
+	* autorevert.el (global-auto-revert-non-file-buffers):
+	Expand docstring.
 	(buffer-stale-function): New variable.
 	(auto-revert-list-diff, auto-revert-dired-file-list)
 	(auto-revert-dired-changed-p, auto-revert-buffer-p): Delete.
@@ -10230,8 +10230,8 @@
 
 	* progmodes/ebnf-abn.el: New file, implements an ABNF parser.
 
-	* progmodes/ebnf2ps.el: Doc fix.  Accept ABNF (Augmented BNF).  New
-	arrow shapes: semi-up-hollow, semi-up-full, semi-down-hollow and
+	* progmodes/ebnf2ps.el: Doc fix.  Accept ABNF (Augmented BNF).
+	New arrow shapes: semi-up-hollow, semi-up-full, semi-down-hollow and
 	semi-down-full.  Fix a bug on productions like test = {"test"}* | (
 	"tt" ["test"] ).  Reported by Markus Dreyer
 	<mdreyer@ix.urz.uni-heidelberg.de>.
@@ -10568,7 +10568,7 @@
 	(ses-mode-map): Use them.
 	(ses-read-number) New fun.  Duplicates code from interactive "N" spec.
 
-2004-02-14  Martin Stjernholm  <bug-cc-mode@gnu.org>
+2004-02-14  Martin Stjernholm  <mast@lysator.liu.se>
 
 	* Makefile.in: Fix the CC Mode recompile kludge so it works
 	when building in a different directory.
@@ -10642,7 +10642,7 @@
 	* tar-mode.el (tar-extract): Fix for the case that a file doesn't
 	have end-of-line.
 
-2004-02-09  Martin Stjernholm  <bug-cc-mode@gnu.org>
+2004-02-09  Martin Stjernholm  <mast@lysator.liu.se>
 
 	* Makefile.in: Added extra dependencies in the recompile target
 	needed to cope with the compile time macro expansions in CC Mode.
@@ -11034,8 +11034,8 @@
 
 2004-01-21  Jan Djärv  <jan.h.d@swipnet.se>
 
-	* term/x-win.el (x-clipboard-yank, menu-bar-edit-menu): Call
-	menu-bar-enable-clipboard and make Paste use clipboard first.
+	* term/x-win.el (x-clipboard-yank, menu-bar-edit-menu):
+	Call menu-bar-enable-clipboard and make Paste use clipboard first.
 
 2004-01-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -11714,8 +11714,8 @@
 2003-11-30  Kai Grossjohann  <kai.grossjohann@gmx.net>
 	Version 2.0.38 of Tramp released.
 
-	* net/tramp.el (tramp-chunksize): Extend docstring.  Suggested by
-	Charles Curley <charlescurley@charlescurley.com>.
+	* net/tramp.el (tramp-chunksize): Extend docstring.
+	Suggested by Charles Curley <charlescurley@charlescurley.com>.
 	(tramp-multi-connection-function-alist): Add ssht entry which adds
 	"-e none -t -t" to the list of ssh args.  Suggested by Adrian
 	Aichner.
@@ -11932,7 +11932,7 @@
 	by returning the original value of 8 in all cases, but 99% of the
 	time this is a waste of whitespace).
 
-2003-11-16  Martin Stjernholm  <bug-cc-mode@gnu.org>
+2003-11-16  Martin Stjernholm  <mast@lysator.liu.se>
 
 	* progmodes/cc-engine.el (c-guess-continued-construct)
 	(c-guess-basic-syntax): Check a little more carefully if it's a
@@ -12696,13 +12696,13 @@
 
 	* window.el (window-current-scroll-bars): New defun.
 
-2003-09-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
+2003-09-24  Martin Stjernholm  <mast@lysator.liu.se>
 
 	* progmodes/cc-engine.el (c-parse-state): Fix bug that could
 	cause errors when the state cache contains info on parts that have
 	been narrowed out.
 
-2003-09-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
+2003-09-24  Martin Stjernholm  <mast@lysator.liu.se>
 
 	* progmodes/cc-vars.el (c-comment-prefix-regexp): Document that
 	`c-setup-paragraph-variables' has to be used when this variable is
@@ -12712,7 +12712,7 @@
 	* progmodes/cc-styles.el (c-setup-paragraph-variables):
 	Make it interactive.
 
-2003-09-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
+2003-09-24  Martin Stjernholm  <mast@lysator.liu.se>
 
 	* progmodes/cc-fonts.el (c-font-lock-declarations):
 	Fix recognition of constructors and destructors for classes whose
@@ -12721,14 +12721,14 @@
 	* progmodes/cc-langs.el (c-type-list-kwds): If "operator" is
 	followed by an identifier in C++ then it's a type.
 
-2003-09-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
+2003-09-24  Martin Stjernholm  <mast@lysator.liu.se>
 
 	* progmodes/cc-fonts.el (c-font-lock-invalid-string): Fix eob
 	problem that primarily affected XEmacs.  Don't use faces to find
 	unterminated strings since Emacs and XEmacs fontify strings
 	differently - this function should now work better in XEmacs.
 
-2003-09-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
+2003-09-24  Martin Stjernholm  <mast@lysator.liu.se>
 
 	* progmodes/cc-cmds.el (c-electric-brace): Fix a bug in the
 	`expand-abbrev' workaround which caused braces to misbehave inside
@@ -12737,7 +12737,7 @@
 	* progmodes/cc-engine.el (c-forward-keyword-clause): Fix error
 	handling.  This bug could cause interactive font locking to bail out.
 
-2003-09-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
+2003-09-24  Martin Stjernholm  <mast@lysator.liu.se>
 
 	* progmodes/cc-engine.el (c-just-after-func-arglist-p):
 	Handle paren-style types in Pike.  Also fixed some cases of
@@ -13113,13 +13113,13 @@
 
 	* image.el (image-jpeg-p): Don't search beyond length of data.
 
-2003-08-26  Martin Stjernholm  <bug-cc-mode@gnu.org>
+2003-08-26  Martin Stjernholm  <mast@lysator.liu.se>
 
 	* progmodes/cc-cmds.el (c-electric-brace): Work around for a
 	misfeature in `expand-abbrev' which caused electric keywords like
 	"else" to disappear if an open brace was typed directly afterwards.
 
-2003-08-26  Martin Stjernholm  <bug-cc-mode@gnu.org>
+2003-08-26  Martin Stjernholm  <mast@lysator.liu.se>
 
 	* progmodes/cc-vars.el (c-extra-types-widget): The doc string is
 	mandatory in `define-widget'.
@@ -13132,7 +13132,7 @@
 
 	(c-assignment-op-regexp): New language var used by `c-lineup-math'.
 
-2003-08-26  Martin Stjernholm  <bug-cc-mode@gnu.org>
+2003-08-26  Martin Stjernholm  <mast@lysator.liu.se>
 
 	* progmodes/cc-engine.el (c-just-after-func-arglist-p):
 	Safeguard against unbalanced sexps.
@@ -13467,12 +13467,12 @@
 
 	* textmodes/reftex.el (reftex-region-active-p): New function.
 
-	* textmodes/reftex-parse.el (reftex-locate-bibliography-files): Improved the
+	* textmodes/reftex-parse.el (reftex-locate-bibliography-files): Improve the
 	regexp to find the \bibliography macro.
 
-	* textmodes/reftex-vars.el (reftex-section-levels): Removed subsubparagraph,
+	* textmodes/reftex-vars.el (reftex-section-levels): Remove subsubparagraph,
 	which does not exist in LaTeX.
-	(reftex-cite-format-builtin): Added amsrefs support.
+	(reftex-cite-format-builtin): Add amsrefs support.
 	(reftex-toc-confirm-promotion): New option
 
 	* textmodes/reftex-toc.el
@@ -13482,7 +13482,7 @@
 	(reftex-toc-promote-action, reftex-toc-extract-section-number)
 	(reftex-toc-newhead-from-alist)
 	(reftex-toc-load-all-files-for-promotion): New functions.
-	(reftex-toc-help): Added description of new keys.
+	(reftex-toc-help): Add description of new keys.
 	(reftex-toc-split-windows-fraction): New option.
 	(reftex-recenter-toc-when-idle): Search *toc* window on all
 	visible frames.
@@ -13498,8 +13498,8 @@
 	(reftex-toc-quit): Adapted to delete frame when called in
 	dedicated frame.
 
-	* textmodes/reftex-index.el (reftex-index-phrase-match-is-indexed): Check
-	all enclosing macros.
+	* textmodes/reftex-index.el (reftex-index-phrase-match-is-indexed):
+	Check all enclosing macros.
 
 2003-08-08  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
@@ -13618,7 +13618,7 @@
 	* calendar/holidays.el, calendar/lunar.el, calendar/solar.el:
 	(displayed-month, displayed-year): Define for compiler.
 
-2003-08-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+2003-08-03  Martin Stjernholm  <mast@lysator.liu.se>
 
 	* progmodes/cc-mode.el (c-init-language-vars-for): Add argument
 	MODE.  Renamed from c-init-c-language-vars'.
@@ -13632,7 +13632,7 @@
 	(pike-mode): Ditto.
 	(awk-mode): Ditto.
 
-2003-08-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+2003-08-03  Martin Stjernholm  <mast@lysator.liu.se>
 
 	* progmodes/cc-engine.el (c-end-of-current-token): Return whether
 	or not the point moved.
@@ -13850,7 +13850,7 @@
 	* simple.el (current-word): Don't include punctuation char when
 	`really-word' arg is non-nil.
 
-2003-07-17  Martin Stjernholm  <bug-cc-mode@gnu.org>
+2003-07-17  Martin Stjernholm  <mast@lysator.liu.se>
 
 	* progmodes/awk-mode.el: Obsoleted by the AWK support in CC Mode -
 	moved to the directory obsolete.
@@ -13865,12 +13865,12 @@
 	(syntax-ppss-after-change-function): New alias.  Update uses.
 	(syntax-ppss): Catch the case where the buffer is narrowed.
 
-2003-07-16  Martin Stjernholm  <bug-cc-mode@gnu.org>
+2003-07-16  Martin Stjernholm  <mast@lysator.liu.se>
 
 	* progmodes/cc-defs.el (c-langelem-sym, c-langelem-pos)
 	(c-langelem-2nd-pos): Add accessor functions for syntactic elements.
 
-2003-07-16  Martin Stjernholm  <bug-cc-mode@gnu.org>
+2003-07-16  Martin Stjernholm  <mast@lysator.liu.se>
 
 	* progmodes/cc-engine.el (c-literal-faces): Declare as a variable
 	since it might be modified.
@@ -13964,8 +13964,8 @@
 
 2003-07-10  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
-	* ps-print.el: Print line number correctly in a region.  Reported by
-	Tim Allen <timallen@ls83.fsnet.co.uk>.
+	* ps-print.el: Print line number correctly in a region.
+	Reported by Tim Allen <timallen@ls83.fsnet.co.uk>.
 	(ps-print-version): New version number (6.6.2).
 	(ps-printing-region): Code fix.
 
@@ -14004,24 +14004,24 @@
 
 	* dired.el (dired-move-to-filename-regexp): Allow quote in months.
 
-2003-07-08  Martin Stjernholm  <bug-cc-mode@gnu.org>
+2003-07-08  Martin Stjernholm  <mast@lysator.liu.se>
 
 	* progmodes/cc-engine.el (c-guess-basic-syntax): Do not do hidden
 	buffer changes; there's third party code that calls this function
 	directly.
 
-2003-07-08  Martin Stjernholm  <bug-cc-mode@gnu.org>
+2003-07-08  Martin Stjernholm  <mast@lysator.liu.se>
 
 	* progmodes/cc-fonts.el (javadoc-font-lock-keywords)
 	(autodoc-font-lock-keywords): Don't byte compile on font lock
 	initialization when running from byte compiled files.
 
-2003-07-08  Alan Mackenzie  <bug-cc-mode@gnu.org>
+2003-07-08  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-engine.el: Fix AWK mode indentation when previous
 	statement ends with auto-increment "++".
 
-2003-07-08  Martin Stjernholm  <bug-cc-mode@gnu.org>
+2003-07-08  Martin Stjernholm  <mast@lysator.liu.se>
 
 	* progmodes/cc-langs.el, progmodes/cc-styles.el (c-style-alist)
 	(c-lang-variable-inits, c-lang-variable-inits-tail): The values of
@@ -14110,13 +14110,13 @@
 	* info.el (Info-menu-entry-name-re): Add `:' to second [] part.
 	This should fix the infinite loop when extracting menu names.
 
-2003-07-05  Martin Stjernholm  <bug-cc-mode@gnu.org>
+2003-07-05  Martin Stjernholm  <mast@lysator.liu.se>
 
 	* files.el (auto-mode-alist, interpreter-mode-alist):
 	Remove entries to CC Mode modes to avoid duplicates; they are now added
 	with autoload directives in cc-mode.el.
 
-2003-07-05  Martin Stjernholm  <bug-cc-mode@gnu.org>
+2003-07-05  Martin Stjernholm  <mast@lysator.liu.se>
 
 	* progmodes/cc-langs.el, progmodes/cc-styles.el (c-style-alist)
 	(c-lang-variable-inits, c-lang-variable-inits-tail): The values of

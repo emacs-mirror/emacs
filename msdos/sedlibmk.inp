@@ -315,6 +315,7 @@ am__cd = cd
 /^BYTESWAP_H *=/s/@[^@\n]*@/byteswap.h/
 /^DIRENT_H *=/s/@[^@\n]*@//
 /^ERRNO_H *=/s/@[^@\n]*@//
+/^EXECINFO_H *=/s/@[^@\n]*@/execinfo.h/
 /^STDBOOL_H *=/s/@[^@\n]*@//
 /^STDALIGN_H *=/s/@[^@\n]*@/stdalign.h/
 /^STDARG_H *=/s/@[^@\n]*@//
@@ -333,7 +334,7 @@ am__cd = cd
 /am__append_[1-9][0-9]* *=.*gettext\.h/s/@[^@\n]*@/\#/
 /am__append_2 *=.*verify\.h/s/@[^@\n]*@//
 /^@gl_GNULIB_ENABLED_tempname_TRUE@/s/@[^@\n]*@//
-/^gl_LIBOBJS *=/s/@[^@\n]*@/getopt.o getopt1.o memrchr.o sig2str.o time_r.o getloadavg.o pthread_sigmask.o mkostemp.o fpending.o fdatasync.o/
+/^gl_LIBOBJS *=/s/@[^@\n]*@/getopt.o getopt1.o memrchr.o sig2str.o time_r.o getloadavg.o pthread_sigmask.o mkostemp.o fpending.o fdatasync.o execinfo.o/
 /^am__append_[1-9][0-9]* *=/,/^[^ 	]/{
   s/ *inttypes\.h//
   s| *sys/select\.h||

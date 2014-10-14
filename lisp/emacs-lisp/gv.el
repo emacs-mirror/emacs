@@ -357,6 +357,34 @@ The return value is the last VAL in the list.
   (macroexp-let2 nil v val
     `(with-current-buffer ,buf (set (make-local-variable ,var) ,v))))
 
+(gv-define-expander alist-get
+  (lambda (do key alist &optional default remove)
+    (macroexp-let2 macroexp-copyable-p k key
+      (gv-letplace (getter setter) alist
+        (macroexp-let2 nil p `(assq ,k ,getter)
+          (funcall do (if (null default) `(cdr ,p)
+                        `(if ,p (cdr ,p) ,default))
+                   (lambda (v)
+                     (macroexp-let2 nil v v
+                       (let ((set-exp
+                              `(if ,p (setcdr ,p ,v)
+                                 ,(funcall setter
+                                           `(cons (setq ,p (cons ,k ,v))
+                                                  ,getter)))))
+                         (cond
+                          ((null remove) set-exp)
+                          ((or (eql v default)
+                               (and (eq (car-safe v) 'quote)
+                                    (eq (car-safe default) 'quote)
+                                    (eql (cadr v) (cadr default))))
+                           `(if ,p ,(funcall setter `(delq ,p ,getter))))
+                          (t
+                           `(cond
+                             ((not (eql ,default ,v)) ,set-exp)
+                             (,p ,(funcall setter
+                                           `(delq ,p ,getter)))))))))))))))
+
+
 ;;; Some occasionally handy extensions.
 
 ;; While several of the "places" below are not terribly useful for direct use,
@@ -479,22 +507,13 @@ REF must have been previously obtained with `gv-ref'."
 ;;  … => (load "gv.el") => (macroexpand-all (defsubst gv-deref …)) => (macroexpand (defun …)) => (load "gv.el")
 (gv-define-setter gv-deref (v ref) `(funcall (cdr ,ref) ,v))
 
-;;; Vaguely related definitions that should be moved elsewhere.
-
-;; (defun alist-get (key alist)
-;;   "Get the value associated to KEY in ALIST."
-;;   (declare
-;;    (gv-expander
-;;     (lambda (do)
-;;       (macroexp-let2 macroexp-copyable-p k key
-;;         (gv-letplace (getter setter) alist
-;;           (macroexp-let2 nil p `(assoc ,k ,getter)
-;;             (funcall do `(cdr ,p)
-;;                      (lambda (v)
-;;                        `(if ,p (setcdr ,p ,v)
-;;                           ,(funcall setter
-;;                                     `(cons (cons ,k ,v) ,getter)))))))))))
-;;   (cdr (assoc key alist)))
+;; (defmacro gv-letref (vars place &rest body)
+;;   (declare (indent 2) (debug (sexp form &rest body)))
+;;   (require 'cl-lib) ;Can't require cl-lib at top-level for bootstrap reasons!
+;;   (gv-letplace (getter setter) place
+;;     `(cl-macrolet ((,(nth 0 vars) () ',getter)
+;;                    (,(nth 1 vars) (v) (funcall ',setter v)))
+;;        ,@body)))
 
 (provide 'gv)
 ;;; gv.el ends here

@@ -56,7 +56,7 @@
 @c (See comments for EDITION in emacs.texi)
 @set VERSION  3.1
 @include emacsver.texi
-@set DATE January 2013
+@set DATE October 2014
 
 @c in general, keep the following line commented out, unless doing a
 @c copy of this manual that will be published.  The manual should go
@@ -1343,7 +1343,7 @@ Emacs Display
 * Faces::                   A face defines a graphics style
                               for text characters: font, colors, etc.
 * Fringes::                 Controlling window fringes.
-* Scroll Bars::             Controlling vertical scroll bars.
+* Scroll Bars::             Controlling scroll bars.
 * Window Dividers::         Separating windows visually.
 * Display Property::        Enabling special display features.
 * Images::                  Displaying images in Emacs buffers.

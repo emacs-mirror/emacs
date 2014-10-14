@@ -44,6 +44,8 @@ int debug_sheap = 0;
 #define BLOCKSIZE 4096
 
 char bss_sbrk_buffer[STATIC_HEAP_SIZE];
+/* The following is needed in gmalloc.c */
+void *bss_sbrk_buffer_end = bss_sbrk_buffer + STATIC_HEAP_SIZE;
 char *bss_sbrk_ptr;
 char *max_bss_sbrk_ptr;
 int bss_sbrk_did_unexec;

@@ -212,11 +212,11 @@
 ;; Michael Mauger <michael@mauger.com> -- improved product support
 ;; Drew Adams <drew.adams@oracle.com> -- Emacs 20 support
 ;; Harald Maier <maierh@myself.com> -- sql-send-string
-;; Stefan Monnier <monnier@iro.umontreal.ca> -- font-lock corrections; 
+;; Stefan Monnier <monnier@iro.umontreal.ca> -- font-lock corrections;
 ;;      code polish
 ;; Paul Sleigh <bat@flurf.net> -- MySQL keyword enhancement
 ;; Andrew Schein <andrew@andrewschein.com> -- sql-port bug
-;; Ian Bjorhovde <idbjorh@dataproxy.com> -- db2 escape newlines 
+;; Ian Bjorhovde <idbjorh@dataproxy.com> -- db2 escape newlines
 ;;      incorrectly enabled by default
 ;; Roman Scherer <roman.scherer@nugg.ad> -- Connection documentation
 ;; Mark Wilkinson <wilkinsonmr@gmail.com> -- file-local variables ignored
@@ -281,6 +281,13 @@ file.  Since that is a plaintext file, this could be dangerous."
   :type 'number
   :group 'SQL
   :safe 'numberp)
+
+(defcustom sql-default-directory nil
+  "Default directory for SQL processes."
+  :version "25.1"
+  :type '(choice (const nil) string)
+  :group 'SQL
+  :safe 'stringp)
 
 ;; Login parameter type
 
@@ -498,6 +505,18 @@ file.  Since that is a plaintext file, this could be dangerous."
      :prompt-length 5
      :syntax-alist ((?@ . "_"))
      :terminator ("^go" . "go"))
+
+    (vertica
+     :name "Vertica"
+     :sqli-program sql-vertica-program
+     :sqli-options sql-vertica-options
+     :sqli-login sql-vertica-login-params
+     :sqli-comint-func sql-comint-vertica
+     :list-all ("\\d" . "\\dS")
+     :list-table "\\d %s"
+     :prompt-regexp "^\\w*=[#>] "
+     :prompt-length 5
+     :prompt-cont-regexp "^\\w*[-(][#>] ")
     )
   "An alist of product specific configuration settings.
 
@@ -1221,7 +1240,9 @@ Based on `comint-mode-map'.")
     (define-key map (kbd "C-c C-r") 'sql-send-region)
     (define-key map (kbd "C-c C-s") 'sql-send-string)
     (define-key map (kbd "C-c C-b") 'sql-send-buffer)
+    (define-key map (kbd "C-c C-n") 'sql-send-line-and-next)
     (define-key map (kbd "C-c C-i") 'sql-product-interactive)
+    (define-key map (kbd "C-c C-z") 'sql-show-sqli-buffer)
     (define-key map (kbd "C-c C-l a") 'sql-list-all)
     (define-key map (kbd "C-c C-l t") 'sql-list-table)
     (define-key map [remap beginning-of-defun] 'sql-beginning-of-statement)
@@ -3050,7 +3071,7 @@ If you call it from anywhere else, it sets the global copy of
   (interactive)
   (let ((default-buffer (sql-find-sqli-buffer)))
     (if (null default-buffer)
-        (user-error "There is no suitable SQLi buffer")
+        (sql-product-interactive)
       (let ((new-buffer (read-buffer "New SQLi buffer: " default-buffer t)))
         (if (null (sql-buffer-live-p new-buffer))
             (user-error "Buffer %s is not a working SQLi buffer" new-buffer)
@@ -3059,21 +3080,20 @@ If you call it from anywhere else, it sets the global copy of
             (run-hooks 'sql-set-sqli-hook)))))))
 
 (defun sql-show-sqli-buffer ()
-  "Show the name of current SQLi buffer.
+  "Display the current SQLi buffer.
 
-This is the buffer SQL strings are sent to.  It is stored in the
-variable `sql-buffer'.  See `sql-help' on how to create such a buffer."
+This is the buffer SQL strings are sent to.
+It is stored in the variable `sql-buffer'.
+I
+See also `sql-help' on how to create such a buffer."
   (interactive)
-  (if (or (null sql-buffer)
-          (null (buffer-live-p (get-buffer sql-buffer))))
-      (user-error "%s has no SQLi buffer set" (buffer-name (current-buffer)))
-    (if (null (get-buffer-process sql-buffer))
-	(user-error "Buffer %s has no process" sql-buffer)
-      (user-error "Current SQLi buffer is %s" sql-buffer))))
+  (unless (and sql-buffer (buffer-live-p (get-buffer sql-buffer))
+               (get-buffer-process sql-buffer))
+    (sql-set-sqli-buffer))
+  (display-buffer sql-buffer))
 
 (defun sql-make-alternate-buffer-name ()
   "Return a string that can be used to rename a SQLi buffer.
-
 This is used to set `sql-alternate-buffer-name' within
 `sql-interactive-mode'.
 
@@ -3323,7 +3343,7 @@ to avoid deleting non-prompt output."
               (setq oline (replace-match "" nil nil oline)
                     sql-output-newline-count (1- sql-output-newline-count)
                     prompt-found t)))
-          
+
           ;; If we've found all the expected prompts, stop looking
           (if (= sql-output-newline-count 0)
               (setq sql-output-newline-count nil
@@ -3402,6 +3422,13 @@ to avoid deleting non-prompt output."
   "Send the buffer contents to the SQL process."
   (interactive)
   (sql-send-region (point-min) (point-max)))
+
+(defun sql-send-line-and-next ()
+  "Send the current line to the SQL process and go to the next line."
+  (interactive)
+  (sql-send-region (line-beginning-position 1) (line-beginning-position 2))
+  (beginning-of-line 2)
+  (while (forward-comment 1)))  ; skip all comments and whitespace
 
 (defun sql-send-magic-terminator (buf str terminator)
   "Send TERMINATOR to buffer BUF if its not present in STR."
@@ -3589,7 +3616,7 @@ buffer is popped into a view window."
          (apply c sqlbuf outbuf enhanced arg nil))
         (t (error "Unknown sql-execute item %s" c))))
    (if (consp command) command (cons command nil)))
-  
+
   (setq outbuf (get-buffer outbuf))
   (if (zerop (buffer-size outbuf))
       (kill-buffer outbuf)
@@ -3597,7 +3624,11 @@ buffer is popped into a view window."
                        (get-lru-window))))
       (with-current-buffer outbuf
         (set-buffer-modified-p nil)
-        (read-only-mode +1))
+        (setq-local revert-buffer-function
+                    (lambda (_ignore-auto _noconfirm)
+                      (sql-execute sqlbuf (buffer-name outbuf)
+                                   command enhanced arg)))
+        (special-mode))
       (pop-to-buffer outbuf)
       (when one-win
         (shrink-window-if-larger-than-buffer)))))
@@ -4164,7 +4195,9 @@ the call to \\[sql-product-interactive] with
                     (sql-password   (default-value 'sql-password))
                     (sql-server     (default-value 'sql-server))
                     (sql-database   (default-value 'sql-database))
-                    (sql-port       (default-value 'sql-port)))
+                    (sql-port       (default-value 'sql-port))
+                    (default-directory (or sql-default-directory
+                                           default-directory)))
                 (funcall (sql-get-product-feature product :sqli-comint-func)
                          product
                          (sql-get-product-feature product :sqli-options)))
@@ -5039,6 +5072,46 @@ buffer.
 
 
 
+(defcustom sql-vertica-program "vsql"
+  "Command to start the Vertica client."
+  :version "25.1"
+  :type 'file
+  :group 'SQL)
+
+(defcustom sql-vertica-options '("-P" "pager=off")
+  "List of additional options for `sql-vertica-program'.
+The default value disables the internal pager."
+  :version "25.1"
+  :type '(repeat string)
+  :group 'SQL)
+
+(defcustom sql-vertica-login-params '(user password database server)
+  "List of login parameters needed to connect to Vertica."
+  :version "25.1"
+  :type 'sql-login-params
+  :group 'SQL)
+
+(defun sql-comint-vertica (product options)
+  "Create comint buffer and connect to Vertica."
+  (sql-comint product
+              (nconc
+               (and (not (string= "" sql-server))
+                    (list "-h" sql-server))
+               (and (not (string= "" sql-database))
+                    (list "-d" sql-database))
+               (and (not (string= "" sql-password))
+                    (list "-w" sql-password))
+               (and (not (string= "" sql-user))
+                    (list "-U" sql-user))
+               options)))
+
+;;;###autoload
+(defun sql-vertica (&optional buffer)
+  "Run vsql as an inferior process."
+  (interactive "P")
+  (sql-product-interactive 'vertica buffer))
+
+
 (provide 'sql)
 
 ;;; sql.el ends here

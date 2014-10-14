@@ -52,11 +52,6 @@ If either of the above partial procedures fails, try 'make bootstrap'.
 If CPU time is not an issue, 'make bootstrap' is the most thorough way
 to rebuild, and avoid any spurious problems.
 
-Users of non-Posix systems (MS-Windows, etc.) should run the
-platform-specific configuration scripts ('nt/configure.bat',
-'config.bat', etc.) before 'make'; the rest of the procedure is
-applicable to those systems as well.
-
 Because the repository version of Emacs is a work in progress, it will
 sometimes fail to build.  Please wait a day or so (and check the
 archives of the emacs-buildstatus, emacs-devel, and bug-gnu-emacs

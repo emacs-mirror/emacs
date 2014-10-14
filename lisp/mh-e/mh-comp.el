@@ -411,6 +411,7 @@ See also `mh-send'."
   (interactive (list (mh-get-msg-num t)))
   (let* ((from-folder mh-current-folder)
          (config (current-window-configuration))
+         (components-file (mh-bare-components))
          (draft
           (cond ((and mh-draft-folder (equal from-folder mh-draft-folder))
                  (pop-to-buffer (find-file-noselect (mh-msg-filename message))
@@ -467,7 +468,8 @@ See also `mh-send'."
            ;; Text field, that's an easy case
            (t
             (mh-modify-header-field field value))))))
-     (mh-components-to-list (mh-find-components)))
+     (mh-components-to-list components-file))
+    (delete-file components-file)
     (goto-char (point-min))
     (save-buffer)
     (mh-compose-and-send-mail
@@ -885,22 +887,6 @@ Optional argument BUFFER can be used to specify the buffer."
           (t
            nil))))
 
-(defun mh-find-components ()
-  "Return the path to the components file."
-  (let (components)
-    (cond
-     ((file-exists-p
-       (setq components
-             (expand-file-name mh-comp-formfile mh-user-path)))
-      components)
-     ((file-exists-p
-       (setq components
-             (expand-file-name mh-comp-formfile mh-lib)))
-      components)
-     (t
-      (error "Can't find %s in %s or %s"
-             mh-comp-formfile mh-user-path mh-lib)))))
-
 (defun mh-send-sub (to cc subject config)
   "Do the real work of composing and sending a letter.
 Expects the TO, CC, and SUBJECT fields as arguments.
@@ -910,8 +896,8 @@ CONFIG is the window configuration before sending mail."
     (message "Composing a message...")
     (let ((draft (mh-read-draft
                   "message"
-                  (mh-find-components)
-                  nil)))
+                  (mh-bare-components)
+                  t)))
       (mh-insert-fields "To:" to "Subject:" subject "Cc:" cc)
       (goto-char (point-max))
       (mh-compose-and-send-mail draft "" folder msg-num
@@ -919,6 +905,29 @@ CONFIG is the window configuration before sending mail."
                                 nil nil config)
       (mh-letter-mode-message)
       (mh-letter-adjust-point))))
+
+(defun mh-bare-components ()
+  "Generate a temporary, clean components file and return its path."
+  ;; Let comp(1) create the skeleton for us.  This is particularly
+  ;; important with nmh-1.5, because its default "components" needs
+  ;; some processing before it can be used.  Unfortunately, comp(1)
+  ;; doesn't have a -build option.  So, to avoid the possibility of
+  ;; clobbering an existing draft, create a temporary directory and
+  ;; use it as the drafts folder.  Then copy the skeleton to a regular
+  ;; temp file, and return the regular temp file.
+  (let (new
+        (temp-folder (mm-make-temp-file
+                      (concat mh-user-path "draftfolder.") t)))
+    (mh-exec-cmd "comp" "-nowhatnowproc"
+                 "-draftfolder" (format "+%s"
+                                        (file-name-nondirectory temp-folder))
+                 (if (stringp mh-comp-formfile)
+                     (list "-form" mh-comp-formfile)))
+    (setq new (mm-make-temp-file "comp."))
+    (rename-file (concat temp-folder "/" "1") new t)
+    (delete-file (concat temp-folder "/" ".mh_sequences"))
+    (delete-directory temp-folder)
+    new))
 
 (defun mh-read-draft (use initial-contents delete-contents-file)
   "Read draft file into a draft buffer and make that buffer the current one.
@@ -1069,7 +1078,8 @@ The versions of MH-E, Emacs, and MH are shown."
 (defun mh-insert-x-face ()
   "Append X-Face, Face or X-Image-URL field to header.
 If the field already exists, this function does nothing."
-  (when (and (file-exists-p mh-x-face-file)
+  (when (and (stringp mh-x-face-file)
+             (file-exists-p mh-x-face-file)
              (file-readable-p mh-x-face-file))
     (save-excursion
       (unless (or (mh-position-on-field "X-Face")

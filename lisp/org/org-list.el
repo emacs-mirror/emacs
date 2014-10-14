@@ -2237,7 +2237,7 @@ item is invisible."
 	  t)))))
 
 (defun org-list-repair ()
-  "Fix indentation, bullets and checkboxes is the list at point."
+  "Fix indentation, bullets and checkboxes in the list at point."
   (interactive)
   (unless (org-at-item-p) (error "This is not a list"))
   (let* ((struct (org-list-struct))

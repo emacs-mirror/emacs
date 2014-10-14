@@ -611,11 +611,7 @@ function or string that is used by `\\[tempo-complete-tag]' to find a
 string to match the tag against.  It has the same definition as the
 variable `tempo-match-finder'.  In this version, supplying a
 COMPLETION-FUNCTION just sets `tempo-match-finder' locally."
-  (let ((old (assq tag-list tempo-local-tags)))
-    (if old
-	(setcdr old completion-function)
-      (setq tempo-local-tags (cons (cons tag-list completion-function)
-				   tempo-local-tags))))
+  (setf (alist-get tag-list tempo-local-tags) completion-function)
   (if completion-function
       (setq tempo-match-finder completion-function))
   (tempo-invalidate-collection))

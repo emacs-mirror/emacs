@@ -53,7 +53,7 @@ This means to treat a terminal of type TYPE as if it were of type ALIAS."
   :type '(alist :key-type (string :tag "Terminal")
 		:value-type (string :tag "Alias"))
   :group 'terminals
-  :version "24.5")
+  :version "25.1")
 
 (declare-function xw-defined-colors "term/common-win" (&optional frame))
 
@@ -1825,7 +1825,9 @@ If omitted or nil, that stands for the selected frame's display."
 (declare-function x-display-grayscale-p "xfns.c" (&optional terminal))
 
 (defun display-grayscale-p (&optional display)
-  "Return non-nil if frames on DISPLAY can display shades of gray."
+  "Return non-nil if frames on DISPLAY can display shades of gray.
+DISPLAY should be either a frame or a display name (a string).
+If omitted or nil, that stands for the selected frame's display."
   (let ((frame-type (framep-on-display display)))
     (cond
      ((memq frame-type '(x w32 ns))

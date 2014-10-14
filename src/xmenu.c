@@ -627,7 +627,6 @@ update_frame_menubar (struct frame *f)
   xg_update_frame_menubar (f);
 #else
   struct x_output *x;
-/**   int columns, rows; **/
 
   eassert (FRAME_X_P (f));
 
@@ -637,10 +636,6 @@ update_frame_menubar (struct frame *f)
     return;
 
   block_input ();
-  /* Save the size of the frame because the pane widget doesn't accept
-     to resize itself. So force it.  */
-/**   columns = FRAME_COLS (f); **/
-/**   rows = FRAME_LINES (f); **/
 
   /* Do the voodoo which means "I'm changing lots of things, don't try
      to refigure sizes until I'm done."  */
@@ -661,8 +656,7 @@ update_frame_menubar (struct frame *f)
   XtManageChild (x->edit_widget);
   lw_refigure_widget (x->column_widget, True);
 
-  /* Force the pane widget to resize itself with the right values.  */
-/**   EmacsFrameSetCharSize (x->edit_widget, columns, rows); **/
+  /* Force the pane widget to resize itself.  */
   adjust_frame_size (f, FRAME_TEXT_WIDTH (f), FRAME_TEXT_HEIGHT (f), 2, 0);
   unblock_input ();
 #endif
@@ -2023,7 +2017,8 @@ x_menu_show (struct frame *f, int x, int y, int menuflags,
   Window root;
   XMenu *menu;
   int pane, selidx, lpane, status;
-  Lisp_Object entry, pane_prefix;
+  Lisp_Object entry = Qnil;
+  Lisp_Object pane_prefix;
   char *datap;
   int ulx, uly, width, height;
   int dispwidth, dispheight;
@@ -2045,6 +2040,7 @@ x_menu_show (struct frame *f, int x, int y, int menuflags,
       return Qnil;
     }
 
+  USE_SAFE_ALLOCA;
   block_input ();
 
   /* Figure out which root window F is on.  */
@@ -2057,8 +2053,7 @@ x_menu_show (struct frame *f, int x, int y, int menuflags,
   if (menu == NULL)
     {
       *error_name = "Can't create menu";
-      unblock_input ();
-      return Qnil;
+      goto return_entry;
     }
 
   /* Don't GC while we prepare and show the menu,
@@ -2101,8 +2096,7 @@ x_menu_show (struct frame *f, int x, int y, int menuflags,
 	    {
 	      XMenuDestroy (FRAME_X_DISPLAY (f), menu);
 	      *error_name = "Can't create pane";
-	      unblock_input ();
-	      return Qnil;
+	      goto return_entry;
 	    }
 	  i += MENU_ITEMS_PANE_LENGTH;
 
@@ -2146,9 +2140,7 @@ x_menu_show (struct frame *f, int x, int y, int menuflags,
 
 	  if (!NILP (descrip))
 	    {
-	      /* if alloca is fast, use that to make the space,
-		 to reduce gc needs.  */
-	      item_data = alloca (maxwidth + SBYTES (descrip) + 1);
+	      item_data = SAFE_ALLOCA (maxwidth + SBYTES (descrip) + 1);
 	      memcpy (item_data, SSDATA (item_name), SBYTES (item_name));
 	      for (j = SCHARS (item_name); j < maxwidth; j++)
 		item_data[j] = ' ';
@@ -2166,8 +2158,7 @@ x_menu_show (struct frame *f, int x, int y, int menuflags,
 	    {
 	      XMenuDestroy (FRAME_X_DISPLAY (f), menu);
 	      *error_name = "Can't add selection to menu";
-	      unblock_input ();
-	      return Qnil;
+	      goto return_entry;
 	    }
 	  i += MENU_ITEMS_ITEM_LENGTH;
           lines++;
@@ -2241,7 +2232,7 @@ x_menu_show (struct frame *f, int x, int y, int menuflags,
   status = XMenuActivate (FRAME_X_DISPLAY (f), menu, &pane, &selidx,
                           x, y, ButtonReleaseMask, &datap,
                           menu_help_callback);
-  entry = pane_prefix = Qnil;
+  pane_prefix = Qnil;
 
   switch (status)
     {
@@ -2300,10 +2291,10 @@ x_menu_show (struct frame *f, int x, int y, int menuflags,
       break;
     }
 
+ return_entry:
   unblock_input ();
-  unbind_to (specpdl_count, Qnil);
-
-  return entry;
+  SAFE_FREE ();
+  return unbind_to (specpdl_count, entry);
 }
 
 #endif /* not USE_X_TOOLKIT */

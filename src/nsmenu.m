@@ -492,10 +492,8 @@ void
 x_activate_menubar (struct frame *f)
 {
 #ifdef NS_IMPL_COCOA
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5
   ns_update_menubar (f, true, nil);
   ns_check_pending_open_menu ();
-#endif
 #endif
 }
 
@@ -542,23 +540,14 @@ x_activate_menubar (struct frame *f)
 }
 
 #ifdef NS_IMPL_COCOA
-#if MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_5
-extern NSString *NSMenuDidBeginTrackingNotification;
-#endif
-#endif
-
-#ifdef NS_IMPL_COCOA
 -(void)trackingNotification:(NSNotification *)notification
 {
   /* Update menu in menuNeedsUpdate only while tracking menus.  */
   trackingMenu = ([notification name] == NSMenuDidBeginTrackingNotification
                   ? 1 : 0);
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5
   if (! trackingMenu) ns_check_menu_open (nil);
-#endif
 }
 
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5
 - (void)menuWillOpen:(NSMenu *)menu
 {
   ++trackingMenu;
@@ -579,7 +568,6 @@ extern NSString *NSMenuDidBeginTrackingNotification;
 {
   --trackingMenu;
 }
-#endif /* OSX >= 10.5 */
 
 #endif /* NS_IMPL_COCOA */
 
@@ -608,8 +596,7 @@ extern NSString *NSMenuDidBeginTrackingNotification;
   if (trackingMenu == 0)
     return;
 /*fprintf (stderr, "Updating menu '%s'\n", [[self title] UTF8String]); NSLog (@"%@\n", event); */
-#if (! defined (NS_IMPL_COCOA) \
-     || MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_5)
+#ifdef NS_IMPL_GNUSTEP
   /* Don't know how to do this for anything other than OSX >= 10.5
      This is wrong, as it might run Lisp code in the event loop.  */
   ns_update_menubar (frame, true, self);
@@ -706,9 +693,7 @@ extern NSString *NSMenuDidBeginTrackingNotification;
     {
       NSMenuItem *item = [self itemAtIndex: n];
       NSString *title = [item title];
-      if (([title length] == 0  /* OSX 10.5 */
-	   || [ns_app_name isEqualToString: title]  /* from 10.6 on */
-	   || [@"Apple" isEqualToString: title]) /* older */
+      if ([ns_app_name isEqualToString: title]
           && ![item isSeparatorItem])
         continue;
       [self removeItemAtIndex: n];

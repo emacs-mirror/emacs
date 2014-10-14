@@ -485,14 +485,12 @@ load_charset_map_from_file (struct charset *charset, Lisp_Object mapfile,
   unsigned max_code = CHARSET_MAX_CODE (charset);
   int fd;
   FILE *fp;
-  Lisp_Object suffixes;
   struct charset_map_entries *head, *entries;
   int n_entries;
-  ptrdiff_t count;
-
-  suffixes = list2 (build_string (".map"), build_string (".TXT"));
-
-  count = SPECPDL_INDEX ();
+  AUTO_STRING (map, ".map");
+  AUTO_STRING (txt, ".txt");
+  AUTO_LIST2 (suffixes, map, txt);
+  ptrdiff_t count = SPECPDL_INDEX ();
   record_unwind_protect_nothing ();
   specbind (Qfile_name_handler_alist, Qnil);
   fd = openp (Vcharset_map_path, mapfile, suffixes, NULL, Qnil, false);
@@ -667,12 +665,8 @@ map_charset_for_dump (void (*c_function) (Lisp_Object, Lisp_Object),
 {
   int from_idx = CODE_POINT_TO_INDEX (temp_charset_work->current, from);
   int to_idx = CODE_POINT_TO_INDEX (temp_charset_work->current, to);
-  Lisp_Object range;
+  Lisp_Object range = Fcons (Qnil, Qnil);
   int c, stop;
-  struct gcpro gcpro1;
-
-  range = Fcons (Qnil, Qnil);
-  GCPRO1 (range);
 
   c = temp_charset_work->min_char;
   stop = (temp_charset_work->max_char < 0x20000
@@ -715,7 +709,6 @@ map_charset_for_dump (void (*c_function) (Lisp_Object, Lisp_Object),
 	}
       c++;
     }
-  UNGCPRO;
 }
 
 void
@@ -1400,6 +1393,32 @@ Optional third argument DEUNIFY, if non-nil, means to de-unify CHARSET.  */)
   return Qnil;
 }
 
+/* Check that DIMENSION, CHARS, and FINAL_CHAR specify a valid ISO charset.
+   Return true if it's a 96-character set, false if 94.  */
+
+static bool
+check_iso_charset_parameter (Lisp_Object dimension, Lisp_Object chars,
+			     Lisp_Object final_char)
+{
+  CHECK_NUMBER (dimension);
+  CHECK_NUMBER (chars);
+  CHECK_CHARACTER (final_char);
+
+  if (! (1 <= XINT (dimension) && XINT (dimension) <= 3))
+    error ("Invalid DIMENSION %"pI"d, it should be 1, 2, or 3",
+	   XINT (dimension));
+
+  bool chars_flag = XINT (chars) == 96;
+  if (! (chars_flag || XINT (chars) == 94))
+    error ("Invalid CHARS %"pI"d, it should be 94 or 96", XINT (chars));
+
+  int final_ch = XFASTINT (final_char);
+  if (! ('0' <= final_ch && final_ch <= '~'))
+    error ("Invalid FINAL-CHAR '%c', it should be '0'..'~'", final_ch);
+
+  return chars_flag;
+}
+
 DEFUN ("get-unused-iso-final-char", Fget_unused_iso_final_char,
        Sget_unused_iso_final_char, 2, 2, 0,
        doc: /*
@@ -1412,35 +1431,12 @@ If there's no unused final char for the specified kind of charset,
 return nil.  */)
   (Lisp_Object dimension, Lisp_Object chars)
 {
-  int final_char;
-
-  CHECK_NUMBER (dimension);
-  CHECK_NUMBER (chars);
-  if (XINT (dimension) != 1 && XINT (dimension) != 2 && XINT (dimension) != 3)
-    args_out_of_range_3 (dimension, make_number (1), make_number (3));
-  if (XINT (chars) != 94 && XINT (chars) != 96)
-    args_out_of_range_3 (chars, make_number (94), make_number (96));
-  for (final_char = '0'; final_char <= '?'; final_char++)
-    if (ISO_CHARSET_TABLE (XINT (dimension), XINT (chars), final_char) < 0)
-      break;
-  return (final_char <= '?' ? make_number (final_char) : Qnil);
-}
-
-static void
-check_iso_charset_parameter (Lisp_Object dimension, Lisp_Object chars, Lisp_Object final_char)
-{
-  CHECK_NATNUM (dimension);
-  CHECK_NATNUM (chars);
-  CHECK_CHARACTER (final_char);
-
-  if (XINT (dimension) > 3)
-    error ("Invalid DIMENSION %"pI"d, it should be 1, 2, or 3",
-	   XINT (dimension));
-  if (XINT (chars) != 94 && XINT (chars) != 96)
-    error ("Invalid CHARS %"pI"d, it should be 94 or 96", XINT (chars));
-  if (XINT (final_char) < '0' || XINT (final_char) > '~')
-    error ("Invalid FINAL-CHAR %c, it should be `0'..`~'",
-	   (int)XINT (final_char));
+  bool chars_flag = check_iso_charset_parameter (dimension, chars,
+						 make_number ('0'));
+  for (int final_char = '0'; final_char <= '?'; final_char++)
+    if (ISO_CHARSET_TABLE (XINT (dimension), chars_flag, final_char) < 0)
+      return make_number (final_char);
+  return Qnil;
 }
 
 
@@ -1454,12 +1450,10 @@ if CHARSET is designated instead.  */)
   (Lisp_Object dimension, Lisp_Object chars, Lisp_Object final_char, Lisp_Object charset)
 {
   int id;
-  bool chars_flag;
 
   CHECK_CHARSET_GET_ID (charset, id);
-  check_iso_charset_parameter (dimension, chars, final_char);
-  chars_flag = XINT (chars) == 96;
-  ISO_CHARSET_TABLE (XINT (dimension), chars_flag, XINT (final_char)) = id;
+  bool chars_flag = check_iso_charset_parameter (dimension, chars, final_char);
+  ISO_CHARSET_TABLE (XINT (dimension), chars_flag, XFASTINT (final_char)) = id;
   return Qnil;
 }
 
@@ -2113,13 +2107,9 @@ See the documentation of the function `charset-info' for the meanings of
 DIMENSION, CHARS, and FINAL-CHAR.  */)
   (Lisp_Object dimension, Lisp_Object chars, Lisp_Object final_char)
 {
-  int id;
-  bool chars_flag;
-
-  check_iso_charset_parameter (dimension, chars, final_char);
-  chars_flag = XFASTINT (chars) == 96;
-  id = ISO_CHARSET_TABLE (XFASTINT (dimension), chars_flag,
-			  XFASTINT (final_char));
+  bool chars_flag = check_iso_charset_parameter (dimension, chars, final_char);
+  int id = ISO_CHARSET_TABLE (XINT (dimension), chars_flag,
+			      XFASTINT (final_char));
   return (id >= 0 ? CHARSET_NAME (CHARSET_FROM_ID (id)) : Qnil);
 }
 
@@ -2298,7 +2288,7 @@ init_charset (void)
 {
   Lisp_Object tempdir;
   tempdir = Fexpand_file_name (build_string ("charsets"), Vdata_directory);
-  if (! file_accessible_directory_p (SSDATA (tempdir)))
+  if (! file_accessible_directory_p (tempdir))
     {
       /* This used to be non-fatal (dir_warning), but it should not
          happen, and if it does sooner or later it will cause some

@@ -1375,6 +1375,9 @@ return value, which may be passed as the REQUIRE-MATCH arg to
 
 (defmacro minibuffer-with-setup-hook (fun &rest body)
   "Temporarily add FUN to `minibuffer-setup-hook' while executing BODY.
+FUN can also be (:append FUN1), in which case FUN1 is appended to
+`minibuffer-setup-hook'.
+
 BODY should use the minibuffer at most once.
 Recursive uses of the minibuffer are unaffected (FUN is not
 called additional times).
@@ -1383,20 +1386,23 @@ This macro actually adds an auxiliary function that calls FUN,
 rather than FUN itself, to `minibuffer-setup-hook'."
   (declare (indent 1) (debug t))
   (let ((hook (make-symbol "setup-hook"))
-        (funsym (make-symbol "fun")))
+        (funsym (make-symbol "fun"))
+        (append nil))
+    (when (eq (car-safe fun) :append)
+      (setq append '(t) fun (cadr fun)))
     `(let ((,funsym ,fun)
            ,hook)
        (setq ,hook
-	     (lambda ()
-	       ;; Clear out this hook so it does not interfere
-	       ;; with any recursive minibuffer usage.
-	       (remove-hook 'minibuffer-setup-hook ,hook)
-	       (funcall ,funsym)))
+             (lambda ()
+               ;; Clear out this hook so it does not interfere
+               ;; with any recursive minibuffer usage.
+               (remove-hook 'minibuffer-setup-hook ,hook)
+               (funcall ,funsym)))
        (unwind-protect
-	   (progn
-	     (add-hook 'minibuffer-setup-hook ,hook)
-	     ,@body)
-	 (remove-hook 'minibuffer-setup-hook ,hook)))))
+           (progn
+             (add-hook 'minibuffer-setup-hook ,hook ,@append)
+             ,@body)
+         (remove-hook 'minibuffer-setup-hook ,hook)))))
 
 (defun find-file-read-args (prompt mustmatch)
   (list (read-file-name prompt nil default-directory mustmatch)
@@ -1792,7 +1798,7 @@ When nil, never issue warning.  Beware: This probably doesn't do what you
 think it does, because \"free\" is pretty hard to define in practice."
   :group 'files
   :group 'find-file
-  :version "24.5"
+  :version "25.1"
   :type '(choice integer (const :tag "Never issue warning" nil)))
 
 (defun abort-if-file-too-large (size op-type filename)
@@ -2351,7 +2357,7 @@ since only a single case-insensitive search through the alist is made."
      ("[cC]hange[lL]og[-.][0-9]+\\'" . change-log-mode)
      ("\\$CHANGE_LOG\\$\\.TXT" . change-log-mode)
      ("\\.scm\\.[0-9]*\\'" . scheme-mode)
-     ("\\.[ck]?sh\\'\\|\\.shar\\'\\|/\\.z?profile\\'" . sh-mode)
+     ("\\.[ckz]?sh\\'\\|\\.shar\\'\\|/\\.z?profile\\'" . sh-mode)
      ("\\.bash\\'" . sh-mode)
      ("\\(/\\|\\`\\)\\.\\(bash_\\(profile\\|history\\|log\\(in\\|out\\)\\)\\|z?log\\(in\\|out\\)\\)\\'" . sh-mode)
      ("\\(/\\|\\`\\)\\.\\(shrc\\|[kz]shrc\\|bashrc\\|t?cshrc\\|esrc\\)\\'" . sh-mode)
@@ -3643,10 +3649,7 @@ VARIABLES list of the class.  The list is processed in order.
 * If the element is of the form (DIRECTORY . LIST), and DIRECTORY
   is an initial substring of the file's directory, then LIST is
   applied by recursively following these rules."
-  (let ((elt (assq class dir-locals-class-alist)))
-    (if elt
-	(setcdr elt variables)
-      (push (cons class variables) dir-locals-class-alist))))
+  (setf (alist-get class dir-locals-class-alist) variables))
 
 (defconst dir-locals-file ".dir-locals.el"
   "File that contains directory-local variables.

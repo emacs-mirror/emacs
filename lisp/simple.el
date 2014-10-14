@@ -374,6 +374,13 @@ Other major modes are defined by comparison with this one."
 
 ;; Making and deleting lines.
 
+(defvar self-insert-uses-region-functions nil
+  "Special hook to tell if `self-insert-command' will use the region.
+It must be called via `run-hook-with-args-until-success' with no arguments.
+Any `post-self-insert-command' which consumes the region should
+register a function on this hook so that things like `delete-selection-mode'
+can refrain from consuming the region.")
+
 (defvar hard-newline (propertize "\n" 'hard t 'rear-nonsticky '(hard))
   "Propertized string representing a hard newline character.")
 
@@ -1393,8 +1400,11 @@ display the result of expression evaluation."
   (let ((minibuffer-completing-symbol t))
     (minibuffer-with-setup-hook
         (lambda ()
+          ;; FIXME: call emacs-lisp-mode?
+          (setq-local eldoc-documentation-function
+                      #'elisp-eldoc-documentation-function)
           (add-hook 'completion-at-point-functions
-                    #'lisp-completion-at-point nil t)
+                    #'elisp-completion-at-point nil t)
           (run-hooks 'eval-expression-minibuffer-setup-hook))
       (read-from-minibuffer prompt initial-contents
                             read-expression-map t
@@ -2511,6 +2521,7 @@ marker adjustment's corresponding (TEXT . POS) element."
   "Test whether UNDO-ELT crosses one edge of that region START ... END.
 This assumes we have already decided that UNDO-ELT
 is not *inside* the region START...END."
+  (declare (obsolete nil "25.1"))
   (cond ((atom undo-elt) nil)
 	((null (car undo-elt))
 	 ;; (nil PROPERTY VALUE BEG . END)
@@ -2521,7 +2532,6 @@ is not *inside* the region START...END."
 	 ;; (BEGIN . END)
 	 (and (< (car undo-elt) end)
 	      (> (cdr undo-elt) start)))))
-(make-obsolete 'undo-elt-crosses-region nil "24.5")
 
 (defun undo-adjust-elt (elt deltas)
   "Return adjustment of undo element ELT by the undo DELTAS
@@ -3625,7 +3635,7 @@ No filtering is done unless a hook says to."
 
 ;;;; Window system cut and paste hooks.
 
-(defvar interprogram-cut-function nil
+(defvar interprogram-cut-function #'gui-select-text
   "Function to call to make a killed region available to other programs.
 Most window systems provide a facility for cutting and pasting
 text between different programs, such as the clipboard on X and
@@ -3636,7 +3646,7 @@ put in the kill ring, to make the new kill available to other
 programs.  The function takes one argument, TEXT, which is a
 string containing the text which should be made available.")
 
-(defvar interprogram-paste-function nil
+(defvar interprogram-paste-function #'gui-selection-value
   "Function to call to get text cut from other programs.
 Most window systems provide a facility for cutting and pasting
 text between different programs, such as the clipboard on X and
@@ -3754,7 +3764,7 @@ argument should still be a \"useful\" string for such uses."
   "Whether appending to kill ring also makes \\[undo] restore both pieces of text simultaneously."
   :type 'boolean
   :group 'killing
-  :version "24.5")
+  :version "25.1")
 
 (defun kill-append (string before-p)
   "Append STRING to the end of the latest kill in the kill ring.
@@ -4493,10 +4503,6 @@ a mistake; see the documentation of `set-mark'."
     (signal 'mark-inactive nil)))
 
 ;; Behind display-selections-p.
-(declare-function x-selection-owner-p "xselect.c"
-                  (&optional selection terminal))
-(declare-function x-selection-exists-p "xselect.c"
-                  (&optional selection terminal))
 
 (defun deactivate-mark (&optional force)
   "Deactivate the mark.
@@ -4521,15 +4527,15 @@ run `deactivate-mark-hook'."
       ;; the region prior to the last command modifying the buffer.
       ;; Set the selection to that, or to the current region.
       (cond (saved-region-selection
-	     (x-set-selection 'PRIMARY saved-region-selection)
+	     (gui-set-selection 'PRIMARY saved-region-selection)
 	     (setq saved-region-selection nil))
 	    ;; If another program has acquired the selection, region
 	    ;; deactivation should not clobber it (Bug#11772).
 	    ((and (/= (region-beginning) (region-end))
-		  (or (x-selection-owner-p 'PRIMARY)
-		      (null (x-selection-exists-p 'PRIMARY))))
-	     (x-set-selection 'PRIMARY
-                              (funcall region-extract-function nil)))))
+		  (or (gui-call gui-selection-owner-p 'PRIMARY)
+		      (null (gui-call gui-selection-exists-p 'PRIMARY))))
+	     (gui-set-selection 'PRIMARY
+                                (funcall region-extract-function nil)))))
     (when mark-active (force-mode-line-update)) ;Refresh toolbar (bug#16382).
     (cond
      ((eq (car-safe transient-mark-mode) 'only)
@@ -7576,7 +7582,9 @@ DISPLAY-FLAG non-nil means show the new buffer with `pop-to-buffer'.
 This is always done when called interactively.
 
 Optional third arg NORECORD non-nil means do not put this buffer at the
-front of the list of recently selected ones."
+front of the list of recently selected ones.
+
+Returns the newly created indirect buffer."
   (interactive
    (progn
      (if (get major-mode 'no-clone-indirect)

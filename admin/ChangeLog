@@ -1,3 +1,71 @@
+2014-10-13  Glenn Morris  <rgm@gnu.org>
+
+	* authors.el (authors-aliases, authors-fixed-case)
+	(authors-obsolete-files-regexps): Additions.
+	(authors-no-scan-regexps): New constant.
+	(authors-no-scan-file-p): New function.
+	(authors): Respect authors-no-scan-file-p.
+
+2014-10-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix putenv race conditions with undefined behavior (Bug#8705).
+	* merge-gnulib (GNULIB_MODULES): Add time_r, since Emacs now
+	calls localtime_r and gmtime_r directly.
+
+2014-10-07  Glenn Morris  <rgm@gnu.org>
+
+	* unidata/Makefile.in: Check for deleted uni- files.  (Bug#18489)
+	(all): Use unifiles rather than charprop.el.
+	(FORCE): New variable and phony rule.
+	(${unidir}/charprop.el): Respect FORCE.
+	(unifiles): New rule.
+
+	* unidata/Makefile.in (unidir): Rename from DSTDIR.  Change all uses.
+	(charprop.el, install): Remove rules.
+	(clean): Simplify.
+
+2014-10-04  Glenn Morris  <rgm@gnu.org>
+
+	* authors.el (authors-renamed-files-alist): Add package-x-test.el
+
+2014-10-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* unidata/unidata-gen.el (unidata-gen-table-word-list): Use alist-get
+	and cl-incf.
+
+2014-09-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* unidata/unidata-gen.el (unidata-check): Bring this function up
+	to date with the currently supported methods of generating Unicode
+	property tables.  Add a comment with a description how to invoke
+	the check.  Update the copyright years in the reference to the
+	Unicode data files we use.
+
+2014-08-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Vector-sorting fixes (Bug#18361).
+	* merge-gnulib (GNULIB_MODULES): Add vla.
+
+2014-08-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* authors.el (authors): Fix last change so it works for MS-Windows
+	as well.
+
+2014-08-29  Michael Albinus  <michael.albinus@gmx.de>
+
+	* authors.el (authors): Use LOCALE argument of `string-collate-lessp'.
+
+2014-08-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* authors.el (authors-aliases): Addition.
+
+2014-08-26  Glenn Morris  <rgm@gnu.org>
+
+	* authors.el (authors-ignored-files, authors-valid-file-names)
+	(authors-renamed-files-alist): Additions.
+	(authors-renamed-files-alist): Revert 2014-08-09 change.
+	(authors): Sort authors in utf-8 order.  (Bug#2263)
+
 2014-08-09  Reuben Thomas  <rrt@sc3d.org>
 
 	* notes/copyright: Remove mention of msdos/is_exec.c and

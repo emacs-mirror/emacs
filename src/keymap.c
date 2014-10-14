@@ -1299,11 +1299,8 @@ define_as_prefix (Lisp_Object keymap, Lisp_Object c)
 static Lisp_Object
 append_key (Lisp_Object key_sequence, Lisp_Object key)
 {
-  Lisp_Object args[2];
-
-  args[0] = key_sequence;
-  args[1] = list1 (key);
-  return Fvconcat (2, args);
+  AUTO_LIST1 (key_list, key);
+  return Fvconcat (2, ((Lisp_Object []) { key_sequence, key_list }));
 }
 
 /* Given a event type C which is a symbol,
@@ -1342,7 +1339,8 @@ silly_event_symbol_error (Lisp_Object c)
       *p = 0;
 
       c = reorder_modifiers (c);
-      keystring = concat2 (build_string (new_mods), XCDR (assoc));
+      AUTO_STRING (new_mods_string, new_mods);
+      keystring = concat2 (new_mods_string, XCDR (assoc));
 
       error ("To bind the key %s, use [?%s], not [%s]",
 	     SDATA (SYMBOL_NAME (c)), SDATA (keystring),
@@ -2239,14 +2237,19 @@ Optional argument NO-ANGLES non-nil means don't put angle brackets
 around function keys and event symbols.  */)
   (Lisp_Object key, Lisp_Object no_angles)
 {
+  USE_SAFE_ALLOCA;
+
   if (CONSP (key) && lucid_event_type_list_p (key))
     key = Fevent_convert_list (key);
 
   if (CONSP (key) && INTEGERP (XCAR (key)) && INTEGERP (XCDR (key)))
     /* An interval from a map-char-table.  */
-    return concat3 (Fsingle_key_description (XCAR (key), no_angles),
-		    build_string (".."),
-		    Fsingle_key_description (XCDR (key), no_angles));
+    {
+      AUTO_STRING (dot_dot, "..");
+      return concat3 (Fsingle_key_description (XCAR (key), no_angles),
+		      dot_dot,
+		      Fsingle_key_description (XCDR (key), no_angles));
+    }
 
   key = EVENT_HEAD (key);
 
@@ -2262,7 +2265,6 @@ around function keys and event symbols.  */)
       if (NILP (no_angles))
 	{
 	  Lisp_Object result;
-	  USE_SAFE_ALLOCA;
 	  char *buffer = SAFE_ALLOCA (sizeof "<>"
 				      + SBYTES (SYMBOL_NAME (key)));
 	  esprintf (buffer, "<%s>", SDATA (SYMBOL_NAME (key)));
@@ -2883,13 +2885,14 @@ You type        Translation\n\
 	  if (!SYMBOLP (modes[i]))
 	    emacs_abort ();
 
-	  p = title = alloca (42 + SCHARS (SYMBOL_NAME (modes[i])));
+	  USE_SAFE_ALLOCA;
+	  p = title = SAFE_ALLOCA (42 + SBYTES (SYMBOL_NAME (modes[i])));
 	  *p++ = '\f';
 	  *p++ = '\n';
 	  *p++ = '`';
 	  memcpy (p, SDATA (SYMBOL_NAME (modes[i])),
-		  SCHARS (SYMBOL_NAME (modes[i])));
-	  p += SCHARS (SYMBOL_NAME (modes[i]));
+		  SBYTES (SYMBOL_NAME (modes[i])));
+	  p += SBYTES (SYMBOL_NAME (modes[i]));
 	  *p++ = '\'';
 	  memcpy (p, " Minor Mode Bindings", strlen (" Minor Mode Bindings"));
 	  p += strlen (" Minor Mode Bindings");
@@ -2898,6 +2901,7 @@ You type        Translation\n\
 	  describe_map_tree (maps[i], 1, shadow, prefix,
 			     title, nomenu, 0, 0, 0);
 	  shadow = Fcons (maps[i], shadow);
+	  SAFE_FREE ();
 	}
 
       start1 = get_local_map (BUF_PT (XBUFFER (buffer)),
@@ -3184,10 +3188,10 @@ describe_map (Lisp_Object map, Lisp_Object prefix,
 
   /* These accumulate the values from sparse keymap bindings,
      so we can sort them and handle them in order.  */
-  int length_needed = 0;
+  ptrdiff_t length_needed = 0;
   struct describe_map_elt *vect;
-  int slots_used = 0;
-  int i;
+  ptrdiff_t slots_used = 0;
+  ptrdiff_t i;
 
   suppress = Qnil;
 
@@ -3207,7 +3211,8 @@ describe_map (Lisp_Object map, Lisp_Object prefix,
   for (tail = map; CONSP (tail); tail = XCDR (tail))
     length_needed++;
 
-  vect = alloca (length_needed * sizeof *vect);
+  USE_SAFE_ALLOCA;
+  SAFE_NALLOCA (vect, 1, length_needed);
 
   for (tail = map; CONSP (tail); tail = XCDR (tail))
     {
@@ -3350,6 +3355,7 @@ describe_map (Lisp_Object map, Lisp_Object prefix,
 	}
     }
 
+  SAFE_FREE ();
   UNGCPRO;
 }
 
@@ -3358,7 +3364,7 @@ describe_vector_princ (Lisp_Object elt, Lisp_Object fun)
 {
   Findent_to (make_number (16), make_number (1));
   call1 (fun, elt);
-  Fterpri (Qnil);
+  Fterpri (Qnil, Qnil);
 }
 
 DEFUN ("describe-vector", Fdescribe_vector, Sdescribe_vector, 1, 2, 0,
@@ -3438,9 +3444,9 @@ describe_vector (Lisp_Object vector, Lisp_Object prefix, Lisp_Object args,
       /* Call Fkey_description first, to avoid GC bug for the other string.  */
       if (!NILP (prefix) && XFASTINT (Flength (prefix)) > 0)
 	{
-	  Lisp_Object tem;
-	  tem = Fkey_description (prefix, Qnil);
-	  elt_prefix = concat2 (tem, build_string (" "));
+	  Lisp_Object tem = Fkey_description (prefix, Qnil);
+	  AUTO_STRING (space, " ");
+	  elt_prefix = concat2 (tem, space);
 	}
       prefix = Qnil;
     }

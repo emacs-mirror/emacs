@@ -470,17 +470,14 @@
                        [paste-from-menu])
       ;; ns-win.el said: Change text to be more consistent with
       ;; surrounding menu items `paste', etc."
-      `(menu-item ,(if (featurep 'ns) "Select and Paste"
-                     "Paste from Kill Menu") yank-menu
+      `(menu-item ,(if (featurep 'ns) "Select and Paste" "Paste from Kill Menu")
+                  yank-menu
                   :enable (and (cdr yank-menu) (not buffer-read-only))
                   :help "Choose a string from the kill ring and paste it"))
     (bindings--define-key menu [paste]
       '(menu-item "Paste" yank
                   :enable (and (or
-                                ;; Emacs compiled --without-x (or --with-ns)
-                                ;; doesn't have x-selection-exists-p.
-                                (and (fboundp 'x-selection-exists-p)
-                                     (x-selection-exists-p 'CLIPBOARD))
+                                (gui-call gui-selection-exists-p 'CLIPBOARD)
                                 (if (featurep 'ns) ; like paste-from-menu
                                     (cdr yank-menu)
                                   kill-ring))
@@ -537,27 +534,26 @@
      '(and mark-active (not buffer-read-only)))
 (put 'clipboard-kill-ring-save 'menu-enable 'mark-active)
 (put 'clipboard-yank 'menu-enable
-     '(and (or (not (fboundp 'x-selection-exists-p))
-	       (x-selection-exists-p)
-	       (x-selection-exists-p 'CLIPBOARD))
+     '(and (or (gui-call gui-selection-exists-p 'PRIMARY)
+	       (gui-call gui-selection-exists-p 'CLIPBOARD))
  	   (not buffer-read-only)))
 
 (defun clipboard-yank ()
   "Insert the clipboard contents, or the last stretch of killed text."
   (interactive "*")
-  (let ((x-select-enable-clipboard t))
+  (let ((gui-select-enable-clipboard t))
     (yank)))
 
 (defun clipboard-kill-ring-save (beg end &optional region)
-  "Copy region to kill ring, and save in the X clipboard."
+  "Copy region to kill ring, and save in the GUI's clipboard."
   (interactive "r\np")
-  (let ((x-select-enable-clipboard t))
+  (let ((gui-select-enable-clipboard t))
     (kill-ring-save beg end region)))
 
 (defun clipboard-kill-region (beg end &optional region)
-  "Kill the region, and save it in the X clipboard."
+  "Kill the region, and save it in the GUI's clipboard."
   (interactive "r\np")
-  (let ((x-select-enable-clipboard t))
+  (let ((gui-select-enable-clipboard t))
     (kill-region beg end region)))
 
 (defun menu-bar-enable-clipboard ()
@@ -903,19 +899,17 @@ by \"Save Options\" in Custom buffers.")
       '(menu-item "Horizontal"
                   menu-bar-horizontal-scroll-bar
                   :help "Horizontal scroll bar"
-                  :visible (display-graphic-p)
-                  :button (:radio . (eq (cdr (assq 'horizontal-scroll-bars
-                                                   (frame-parameters)))
-					t))))
+                  :visible (horizontal-scroll-bars-available-p)
+                  :button (:radio . (cdr (assq 'horizontal-scroll-bars
+					       (frame-parameters))))))
 
     (bindings--define-key menu [none-horizontal]
       '(menu-item "None-horizontal"
                   menu-bar-no-horizontal-scroll-bar
                   :help "Turn off horizontal scroll bars"
-                  :visible (display-graphic-p)
-                  :button (:radio . (eq (cdr (assq 'horizontal-scroll-bars
-                                                   (frame-parameters)))
-					nil))))
+                  :visible (horizontal-scroll-bars-available-p)
+                  :button (:radio . (not (cdr (assq 'horizontal-scroll-bars
+                                                   (frame-parameters)))))))
 
     (bindings--define-key menu [right]
       '(menu-item "On the Right"
@@ -1332,9 +1326,6 @@ mail status in mode line"))
     (bindings--define-key menu [life]
       '(menu-item "Life"  life
                   :help "Watch how John Conway's cellular automaton evolves"))
-    (bindings--define-key menu [land]
-      '(menu-item "Landmark" landmark
-                  :help "Watch a neural-network robot learn landmarks"))
     (bindings--define-key menu [hanoi]
       '(menu-item "Towers of Hanoi" hanoi
                   :help "Watch Towers-of-Hanoi puzzle solved by Emacs"))

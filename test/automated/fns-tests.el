@@ -79,12 +79,12 @@
   (should-error (compare-strings "xyzzy" 0 'foo "zyxxy" 2 3))
   (should-error (compare-strings "xyzzy" 0 2 "zyxxy" 'foo 3))
   (should-error (compare-strings "xyzzy" nil 3 "zyxxy" 4 'foo))
-  (should (compare-strings "" nil nil "" nil nil))
-  (should (compare-strings "" 0 0 "" 0 0))
-  (should (compare-strings "test" nil nil "test" nil nil))
-  (should (compare-strings "test" nil nil "test" nil nil t))
-  (should (compare-strings "test" nil nil "test" nil nil nil))
-  (should (compare-strings "Test" nil nil "test" nil nil t))
+  (should (eq (compare-strings "" nil nil "" nil nil) t))
+  (should (eq (compare-strings "" 0 0 "" 0 0) t))
+  (should (eq (compare-strings "test" nil nil "test" nil nil) t))
+  (should (eq (compare-strings "test" nil nil "test" nil nil t) t))
+  (should (eq (compare-strings "test" nil nil "test" nil nil nil) t))
+  (should (eq (compare-strings "Test" nil nil "test" nil nil t) t))
   (should (= (compare-strings "Test" nil nil "test" nil nil) -1))
   (should (= (compare-strings "Test" nil nil "test" nil nil) -1))
   (should (= (compare-strings "test" nil nil "Test" nil nil) 1))
@@ -92,11 +92,100 @@
   (should (= (compare-strings "barbaz" nil nil "foobar" nil nil) -1))
   (should (= (compare-strings "foobaz" nil nil "farbaz" nil nil) 2))
   (should (= (compare-strings "farbaz" nil nil "foobar" nil nil) -2))
-  (should (compare-strings "abcxyz" 0 2 "abcprq" 0 2))
-  (should (compare-strings "abcxyz" 0 -3 "abcprq" 0 -3))
+  (should (eq (compare-strings "abcxyz" 0 2 "abcprq" 0 2) t))
+  (should (eq (compare-strings "abcxyz" 0 -3 "abcprq" 0 -3) t))
   (should (= (compare-strings "abcxyz" 0 6 "abcprq" 0 6) 4))
   (should (= (compare-strings "abcprq" 0 6 "abcxyz" 0 6) -4))
-  (should (compare-strings "xyzzy" -3 4 "azza" -3 3))
-  (should (compare-strings "こんにちはｺﾝﾆﾁﾊ" nil nil "こんにちはｺﾝﾆﾁﾊ" nil nil))
+  (should (eq (compare-strings "xyzzy" -3 4 "azza" -3 3) t))
+  (should (eq (compare-strings "こんにちはｺﾝﾆﾁﾊ" nil nil "こんにちはｺﾝﾆﾁﾊ" nil nil) t))
   (should (= (compare-strings "んにちはｺﾝﾆﾁﾊこ" nil nil "こんにちはｺﾝﾆﾁﾊ" nil nil) 1))
   (should (= (compare-strings "こんにちはｺﾝﾆﾁﾊ" nil nil "んにちはｺﾝﾆﾁﾊこ" nil nil) -1)))
+
+(defun fns-tests--collate-enabled-p ()
+  "Check whether collation functions are enabled."
+  (and
+   ;; When there is no collation library, collation functions fall back
+   ;; to their lexicographic counterparts.  We don't need to test then.
+   (not (ignore-errors (string-collate-equalp "" "" t)))
+   ;; We use a locale, which might not be installed.  Check it.
+   (ignore-errors
+     (string-collate-equalp
+      "" "" (if (eq system-type 'windows-nt) "enu_USA" "en_US.UTF-8")))))
+
+(ert-deftest fns-tests-collate-strings ()
+  (skip-unless (fns-tests--collate-enabled-p))
+
+  (should (string-collate-equalp "xyzzy" "xyzzy"))
+  (should-not (string-collate-equalp "xyzzy" "XYZZY"))
+
+  ;; In POSIX or C locales, collation order is lexicographic.
+  (should (string-collate-lessp "XYZZY" "xyzzy" "POSIX"))
+  ;; In a language specific locale, collation order is different.
+  (should (string-collate-lessp
+	   "xyzzy" "XYZZY"
+	   (if (eq system-type 'windows-nt) "enu_USA" "en_US.UTF-8")))
+
+  ;; Ignore case.
+  (should (string-collate-equalp "xyzzy" "XYZZY" nil t))
+
+  ;; Locale must be valid.
+  (should-error (string-collate-equalp "xyzzy" "xyzzy" "en_DE.UTF-8")))
+
+;; There must be a check for valid codepoints.  (Check not implemented yet)
+;  (should-error
+;   (string-collate-equalp (string ?\x00110000) (string ?\x00110000)))
+;; Invalid UTF-8 sequences shall be indicated.  How to create such strings?
+
+(ert-deftest fns-tests-sort ()
+  (should (equal (sort '(9 5 2 -1 5 3 8 7 4) (lambda (x y) (< x y)))
+		 '(-1 2 3 4 5 5 7 8 9)))
+  (should (equal (sort '(9 5 2 -1 5 3 8 7 4) (lambda (x y) (> x y)))
+		 '(9 8 7 5 5 4 3 2 -1)))
+  (should (equal (sort '[9 5 2 -1 5 3 8 7 4] (lambda (x y) (< x y)))
+		 [-1 2 3 4 5 5 7 8 9]))
+  (should (equal (sort '[9 5 2 -1 5 3 8 7 4] (lambda (x y) (> x y)))
+		 [9 8 7 5 5 4 3 2 -1]))
+  (should (equal
+	   (sort
+	    (vector
+	     '(8 . "xxx") '(9 . "aaa") '(8 . "bbb") '(9 . "zzz")
+	     '(9 . "ppp") '(8 . "ttt") '(8 . "eee") '(9 . "fff"))
+	    (lambda (x y) (< (car x) (car y))))
+	   [(8 . "xxx") (8 . "bbb") (8 . "ttt") (8 . "eee")
+	    (9 . "aaa") (9 . "zzz") (9 . "ppp") (9 . "fff")])))
+
+(ert-deftest fns-tests-collate-sort ()
+  (skip-unless (fns-tests--collate-enabled-p))
+
+  ;; Punctuation and whitespace characters are relevant for POSIX.
+  (should
+   (equal
+    (sort '("11" "12" "1 1" "1 2" "1.1" "1.2")
+	  (lambda (a b) (string-collate-lessp a b "POSIX")))
+    '("1 1" "1 2" "1.1" "1.2" "11" "12")))
+  ;; Punctuation and whitespace characters are not taken into account
+  ;; for collation in other locales.
+  (should
+   (equal
+    (sort '("11" "12" "1 1" "1 2" "1.1" "1.2")
+	  (lambda (a b)
+	    (let ((w32-collate-ignore-punctuation t))
+	      (string-collate-lessp
+	       a b (if (eq system-type 'windows-nt) "enu_USA" "en_US.UTF-8")))))
+    '("11" "1 1" "1.1" "12" "1 2" "1.2")))
+
+  ;; Diacritics are different letters for POSIX, they sort lexicographical.
+  (should
+   (equal
+    (sort '("Ævar" "Agustín" "Adrian" "Eli")
+	  (lambda (a b) (string-collate-lessp a b "POSIX")))
+    '("Adrian" "Agustín" "Eli" "Ævar")))
+  ;; Diacritics are sorted between similar letters for other locales.
+  (should
+   (equal
+    (sort '("Ævar" "Agustín" "Adrian" "Eli")
+	  (lambda (a b)
+	    (let ((w32-collate-ignore-punctuation t))
+	      (string-collate-lessp
+	       a b (if (eq system-type 'windows-nt) "enu_USA" "en_US.UTF-8")))))
+    '("Adrian" "Ævar" "Agustín" "Eli"))))

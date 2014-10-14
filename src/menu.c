@@ -354,7 +354,7 @@ single_menu_item (Lisp_Object key, Lisp_Object item, Lisp_Object dummy, void *sk
      front of them.  */
   if (!have_boxes ())
     {
-      Lisp_Object prefix = Qnil;
+      char const *prefix = 0;
       Lisp_Object type = AREF (item_properties, ITEM_PROPERTY_TYPE);
       if (!NILP (type))
 	{
@@ -389,8 +389,11 @@ single_menu_item (Lisp_Object key, Lisp_Object item, Lisp_Object dummy, void *sk
 		    {
 		      if (!submenu && SREF (tem, 0) != '\0'
 			  && SREF (tem, 0) != '-')
-			ASET (menu_items, idx + MENU_ITEMS_ITEM_NAME,
-			      concat2 (build_string ("    "), tem));
+			{
+			  AUTO_STRING (spaces, "    ");
+			  ASET (menu_items, idx + MENU_ITEMS_ITEM_NAME,
+				concat2 (spaces, tem));
+			}
 		      idx += MENU_ITEMS_ITEM_LENGTH;
 		    }
 		}
@@ -399,24 +402,30 @@ single_menu_item (Lisp_Object key, Lisp_Object item, Lisp_Object dummy, void *sk
 
 	  /* Calculate prefix, if any, for this item.  */
 	  if (EQ (type, QCtoggle))
-	    prefix = build_string (NILP (selected) ? "[ ] " : "[X] ");
+	    prefix = NILP (selected) ? "[ ] " : "[X] ";
 	  else if (EQ (type, QCradio))
-	    prefix = build_string (NILP (selected) ? "( ) " : "(*) ");
+	    prefix = NILP (selected) ? "( ) " : "(*) ";
 	}
       /* Not a button. If we have earlier buttons, then we need a prefix.  */
       else if (!skp->notbuttons && SREF (item_string, 0) != '\0'
 	       && SREF (item_string, 0) != '-')
-	prefix = build_string ("    ");
+	prefix = "    ";
 
-      if (!NILP (prefix))
-	item_string = concat2 (prefix, item_string);
+      if (prefix)
+	{
+	  AUTO_STRING (prefix_obj, prefix);
+	  item_string = concat2 (prefix_obj, item_string);
+	}
   }
 
   if ((FRAME_TERMCAP_P (XFRAME (Vmenu_updating_frame))
        || FRAME_MSDOS_P (XFRAME (Vmenu_updating_frame)))
       && !NILP (map))
     /* Indicate visually that this is a submenu.  */
-    item_string = concat2 (item_string, build_string (" >"));
+    {
+      AUTO_STRING (space_gt, " >");
+      item_string = concat2 (item_string, space_gt);
+    }
 
   push_menu_item (item_string, enabled, key,
 		  AREF (item_properties, ITEM_PROPERTY_DEF),
@@ -632,8 +641,9 @@ digest_single_submenu (int start, int end, bool top_level_items)
   widget_value **submenu_stack;
   bool panes_seen = 0;
   struct frame *f = XFRAME (Vmenu_updating_frame);
+  USE_SAFE_ALLOCA;
 
-  submenu_stack = alloca (menu_items_used * sizeof *submenu_stack);
+  SAFE_NALLOCA (submenu_stack, 1, menu_items_used);
   wv = make_widget_value ("menu", NULL, true, Qnil);
   wv->button_type = BUTTON_TYPE_NONE;
   first_wv = wv;
@@ -835,11 +845,12 @@ digest_single_submenu (int start, int end, bool top_level_items)
      that was originally a button, return it by itself.  */
   if (top_level_items && first_wv->contents && first_wv->contents->next == 0)
     {
-      wv = first_wv->contents;
-      xfree (first_wv);
-      return wv;
+      wv = first_wv;
+      first_wv = first_wv->contents;
+      xfree (wv);
     }
 
+  SAFE_FREE ();
   return first_wv;
 }
 
@@ -890,9 +901,10 @@ find_and_call_menu_selection (struct frame *f, int menu_bar_items_used,
   Lisp_Object *subprefix_stack;
   int submenu_depth = 0;
   int i;
+  USE_SAFE_ALLOCA;
 
   entry = Qnil;
-  subprefix_stack = alloca (menu_bar_items_used * sizeof *subprefix_stack);
+  SAFE_NALLOCA (subprefix_stack, 1, menu_bar_items_used);
   prefix = Qnil;
   i = 0;
 
@@ -954,11 +966,13 @@ find_and_call_menu_selection (struct frame *f, int menu_bar_items_used,
 	      buf.arg = entry;
 	      kbd_buffer_store_event (&buf);
 
-	      return;
+	      break;
 	    }
 	  i += MENU_ITEMS_ITEM_LENGTH;
 	}
     }
+
+  SAFE_FREE ();
 }
 
 #endif /* USE_X_TOOLKIT || USE_GTK || HAVE_NS || HAVE_NTGUI */
@@ -973,10 +987,11 @@ find_and_return_menu_selection (struct frame *f, bool keymaps, void *client_data
   int i;
   Lisp_Object *subprefix_stack;
   int submenu_depth = 0;
+  USE_SAFE_ALLOCA;
 
   prefix = entry = Qnil;
   i = 0;
-  subprefix_stack = alloca (menu_items_used * word_size);
+  SAFE_ALLOCA_LISP (subprefix_stack, menu_items_used);
 
   while (i < menu_items_used)
     {
@@ -1018,11 +1033,13 @@ find_and_return_menu_selection (struct frame *f, bool keymaps, void *client_data
                     if (!NILP (subprefix_stack[j]))
                       entry = Fcons (subprefix_stack[j], entry);
                 }
+	      SAFE_FREE ();
               return entry;
             }
           i += MENU_ITEMS_ITEM_LENGTH;
         }
     }
+  SAFE_FREE ();
   return Qnil;
 }
 #endif  /* HAVE_NS */

@@ -97,8 +97,8 @@
 ;; 	 In this mode, mouse-insert-selection just calls mouse-yank-at-click.
 ;;
 ;;       Selection/kill-ring interaction is retained
-;;         interprogram-cut-function   = x-select-text
-;;         interprogram-paste-function = x-selection-value
+;;         interprogram-cut-function   = gui-select-text
+;;         interprogram-paste-function = gui-selection-value
 ;;
 ;;       What you lose is the ability to select some text in
 ;;       delete-selection-mode and yank over the top of it.
@@ -292,15 +292,13 @@ where   SELECTION-NAME          = name of selection
 	SELECTION-THING-SYMBOL 	= name of variable where the current selection
  				  type for this selection should be stored.")
 
-(declare-function x-select-text "term/common-win" (text))
-
 (defvar mouse-sel-set-selection-function
   (if (eq mouse-sel-default-bindings 'interprogram-cut-paste)
-      'x-set-selection
+      'gui-set-selection
     (lambda (selection value)
       (if (eq selection 'PRIMARY)
-	  (x-select-text value)
-	(x-set-selection selection value))))
+	  (gui-select-text value)
+	(gui-set-selection selection value))))
   "Function to call to set selection.
 Called with two arguments:
 
@@ -310,14 +308,13 @@ Called with two arguments:
 This sets the selection, unless `mouse-sel-default-bindings'
 is `interprogram-cut-paste'.")
 
-(declare-function x-selection-value "term/x-win" ())
 
 (defvar mouse-sel-get-selection-function
   (lambda (selection)
     (if (eq selection 'PRIMARY)
-	(or (x-selection-value)
-	    (bound-and-true-p x-last-selected-text)
-	    (bound-and-true-p x-last-selected-text-primary))
+	(or (gui-selection-value)
+	    (bound-and-true-p x-last-selected-text-primary)
+            gui-last-selected-text)
       (x-get-selection selection)))
   "Function to call to get the selection.
 Called with one argument:

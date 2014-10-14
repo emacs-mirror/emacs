@@ -642,15 +642,6 @@ static enum coding_category coding_priorities[coding_category_max];
    Nth coding category.  */
 static struct coding_system coding_categories[coding_category_max];
 
-/*** Commonly used macros and functions ***/
-
-#ifndef min
-#define min(a, b) ((a) < (b) ? (a) : (b))
-#endif
-#ifndef max
-#define max(a, b) ((a) > (b) ? (a) : (b))
-#endif
-
 /* Encode a flag that can be nil, something else, or t as -1, 0, 1.  */
 
 static int
@@ -688,6 +679,14 @@ CHECK_NATNUM_CDR (Lisp_Object x)
   Lisp_Object tmp = XCDR (x);
   CHECK_NATNUM (tmp);
   XSETCDR (x, tmp);
+}
+
+/* True if CODING's destination can be grown.  */
+
+static bool
+growable_destination (struct coding_system *coding)
+{
+  return STRINGP (coding->dst_object) || BUFFERP (coding->dst_object);
 }
 
 
@@ -3074,8 +3073,13 @@ detect_coding_iso_2022 (struct coding_system *coding,
 		  ONE_MORE_BYTE (c1);
 		  if (c1 < ' ' || c1 >= 0x80
 		      || (id = iso_charset_table[0][c >= ','][c1]) < 0)
-		    /* Invalid designation sequence.  Just ignore.  */
-		    break;
+		    {
+		      /* Invalid designation sequence.  Just ignore.  */
+		      if (c1 >= 0x80)
+			rejected |= (CATEGORY_MASK_ISO_7BIT
+				     | CATEGORY_MASK_ISO_7_ELSE);
+		      break;
+		    }
 		}
 	      else if (c == '$')
 		{
@@ -3089,16 +3093,29 @@ detect_coding_iso_2022 (struct coding_system *coding,
 		      ONE_MORE_BYTE (c1);
 		      if (c1 < ' ' || c1 >= 0x80
 			  || (id = iso_charset_table[1][c >= ','][c1]) < 0)
-			/* Invalid designation sequence.  Just ignore.  */
-			break;
+			{
+			  /* Invalid designation sequence.  Just ignore.  */
+			  if (c1 >= 0x80)
+			    rejected |= (CATEGORY_MASK_ISO_7BIT
+					 | CATEGORY_MASK_ISO_7_ELSE);
+			  break;
+			}
 		    }
 		  else
-		    /* Invalid designation sequence.  Just ignore it.  */
-		    break;
+		    {
+		      /* Invalid designation sequence.  Just ignore it.  */
+		      if (c >= 0x80)
+			rejected |= (CATEGORY_MASK_ISO_7BIT
+				     | CATEGORY_MASK_ISO_7_ELSE);
+		      break;
+		    }
 		}
 	      else
 		{
 		  /* Invalid escape sequence.  Just ignore it.  */
+		  if (c >= 0x80)
+		    rejected |= (CATEGORY_MASK_ISO_7BIT
+				 | CATEGORY_MASK_ISO_7_ELSE);
 		  break;
 		}
 
@@ -3149,7 +3166,7 @@ detect_coding_iso_2022 (struct coding_system *coding,
 	  if (inhibit_iso_escape_detection)
 	    break;
 	  single_shifting = 0;
-	  rejected |= CATEGORY_MASK_ISO_7BIT;
+	  rejected |= CATEGORY_MASK_ISO_7BIT | CATEGORY_MASK_ISO_7_ELSE;
 	  if (CODING_ISO_FLAGS (&coding_categories[coding_category_iso_8_1])
 	      & CODING_ISO_FLAG_SINGLE_SHIFT)
 	    {
@@ -3176,9 +3193,9 @@ detect_coding_iso_2022 (struct coding_system *coding,
 	      single_shifting = 0;
 	      break;
 	    }
+	  rejected |= CATEGORY_MASK_ISO_7BIT | CATEGORY_MASK_ISO_7_ELSE;
 	  if (c >= 0xA0)
 	    {
-	      rejected |= CATEGORY_MASK_ISO_7BIT | CATEGORY_MASK_ISO_7_ELSE;
 	      found |= CATEGORY_MASK_ISO_8_1;
 	      /* Check the length of succeeding codes of the range
                  0xA0..0FF.  If the byte length is even, we include
@@ -6867,6 +6884,11 @@ decode_eol (struct coding_system *coding)
 }
 
 
+/* MAX_LOOKUP's maximum value.  MAX_LOOKUP is an int and so cannot
+   exceed INT_MAX.  Also, MAX_LOOKUP is multiplied by sizeof (int) for
+   alloca, so it cannot exceed MAX_ALLOCA / sizeof (int).  */
+enum { MAX_LOOKUP_MAX = min (INT_MAX, MAX_ALLOCA / sizeof (int)) };
+
 /* Return a translation table (or list of them) from coding system
    attribute vector ATTRS for encoding (if ENCODEP) or decoding (if
    not ENCODEP). */
@@ -6919,7 +6941,7 @@ get_translation_table (Lisp_Object attrs, bool encodep, int *max_lookup)
 	{
 	  val = XCHAR_TABLE (translation_table)->extras[1];
 	  if (NATNUMP (val) && *max_lookup < XFASTINT (val))
-	    *max_lookup = XFASTINT (val);
+	    *max_lookup = min (XFASTINT (val), MAX_LOOKUP_MAX);
 	}
       else if (CONSP (translation_table))
 	{
@@ -6931,7 +6953,7 @@ get_translation_table (Lisp_Object attrs, bool encodep, int *max_lookup)
 	      {
 		Lisp_Object tailval = XCHAR_TABLE (XCAR (tail))->extras[1];
 		if (NATNUMP (tailval) && *max_lookup < XFASTINT (tailval))
-		  *max_lookup = XFASTINT (tailval);
+		  *max_lookup = min (XFASTINT (tailval), MAX_LOOKUP_MAX);
 	      }
 	}
     }
@@ -7014,8 +7036,10 @@ produce_chars (struct coding_system *coding, Lisp_Object translation_table,
       int *buf = coding->charbuf;
       int *buf_end = buf + coding->charbuf_used;
 
-      if (EQ (coding->src_object, coding->dst_object))
+      if (EQ (coding->src_object, coding->dst_object)
+	  && ! NILP (coding->dst_object))
 	{
+	  eassert (growable_destination (coding));
 	  coding_set_source (coding);
 	  dst_end = ((unsigned char *) coding->source) + coding->consumed;
 	}
@@ -7054,6 +7078,7 @@ produce_chars (struct coding_system *coding, Lisp_Object translation_table,
 
 	      if ((dst_end - dst) / MAX_MULTIBYTE_LENGTH < to_nchars)
 		{
+		  eassert (growable_destination (coding));
 		  if (((min (PTRDIFF_MAX, SIZE_MAX) - (buf_end - buf))
 		       / MAX_MULTIBYTE_LENGTH)
 		      < to_nchars)
@@ -7098,7 +7123,10 @@ produce_chars (struct coding_system *coding, Lisp_Object translation_table,
       const unsigned char *src_end = src + coding->consumed;
 
       if (EQ (coding->dst_object, coding->src_object))
-	dst_end = (unsigned char *) src;
+	{
+	  eassert (growable_destination (coding));
+	  dst_end = (unsigned char *) src;
+	}
       if (coding->src_multibyte != coding->dst_multibyte)
 	{
 	  if (coding->src_multibyte)
@@ -7114,6 +7142,7 @@ produce_chars (struct coding_system *coding, Lisp_Object translation_table,
 		  ONE_MORE_BYTE (c);
 		  if (dst == dst_end)
 		    {
+		      eassert (growable_destination (coding));
 		      if (EQ (coding->src_object, coding->dst_object))
 			dst_end = (unsigned char *) src;
 		      if (dst == dst_end)
@@ -7144,6 +7173,7 @@ produce_chars (struct coding_system *coding, Lisp_Object translation_table,
 
 		if (dst >= dst_end - 1)
 		  {
+		    eassert (growable_destination (coding));
 		    if (EQ (coding->src_object, coding->dst_object))
 		      dst_end = (unsigned char *) src;
 		    if (dst >= dst_end - 1)
@@ -9729,7 +9759,7 @@ DEFUN ("set-terminal-coding-system-internal", Fset_terminal_coding_system_intern
        doc: /* Internal use only.  */)
   (Lisp_Object coding_system, Lisp_Object terminal)
 {
-  struct terminal *term = get_terminal (terminal, 1);
+  struct terminal *term = decode_live_terminal (terminal);
   struct coding_system *terminal_coding = TERMINAL_TERMINAL_CODING (term);
   CHECK_SYMBOL (coding_system);
   setup_coding_system (Fcheck_coding_system (coding_system), terminal_coding);
@@ -9770,7 +9800,7 @@ frame's terminal device.  */)
   (Lisp_Object terminal)
 {
   struct coding_system *terminal_coding
-    = TERMINAL_TERMINAL_CODING (get_terminal (terminal, 1));
+    = TERMINAL_TERMINAL_CODING (decode_live_terminal (terminal));
   Lisp_Object coding_system = CODING_ID_NAME (terminal_coding->id);
 
   /* For backward compatibility, return nil if it is `undecided'.  */
@@ -9782,7 +9812,7 @@ DEFUN ("set-keyboard-coding-system-internal", Fset_keyboard_coding_system_intern
        doc: /* Internal use only.  */)
   (Lisp_Object coding_system, Lisp_Object terminal)
 {
-  struct terminal *t = get_terminal (terminal, 1);
+  struct terminal *t = decode_live_terminal (terminal);
   CHECK_SYMBOL (coding_system);
   if (NILP (coding_system))
     coding_system = Qno_conversion;
@@ -9801,7 +9831,7 @@ DEFUN ("keyboard-coding-system",
   (Lisp_Object terminal)
 {
   return CODING_ID_NAME (TERMINAL_KEYBOARD_CODING
-			 (get_terminal (terminal, 1))->id);
+			 (decode_live_terminal (terminal))->id);
 }
 
 
@@ -10011,7 +10041,8 @@ make_subsidiaries (Lisp_Object base)
 {
   Lisp_Object subsidiaries;
   ptrdiff_t base_name_len = SBYTES (SYMBOL_NAME (base));
-  char *buf = alloca (base_name_len + 6);
+  USE_SAFE_ALLOCA;
+  char *buf = SAFE_ALLOCA (base_name_len + 6);
   int i;
 
   memcpy (buf, SDATA (SYMBOL_NAME (base)), base_name_len);
@@ -10021,6 +10052,7 @@ make_subsidiaries (Lisp_Object base)
       strcpy (buf + base_name_len, suffixes[i]);
       ASET (subsidiaries, i, intern (buf));
     }
+  SAFE_FREE ();
   return subsidiaries;
 }
 

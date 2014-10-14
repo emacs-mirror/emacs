@@ -49,7 +49,7 @@ static struct input_event emacs_event;
 
 /* The descriptor that we use to check for data from the session manager.  */
 
-static int ice_fd;
+static int ice_fd = -1;
 
 /* A flag that says if we are in shutdown interactions or not.  */
 
@@ -415,11 +415,11 @@ x_session_initialize (struct x_display_info *dpyinfo)
   /* This malloc will not be freed, but it is only done once, and hopefully
      not very large   */
   emacs_program = xmalloc (name_len + 1);
-  emacs_program[0] = '\0';
+  char *z = emacs_program;
 
   if (! EQ (Vinvocation_directory, Qnil))
-    strcpy (emacs_program, SSDATA (Vinvocation_directory));
-  strcat (emacs_program, SSDATA (Vinvocation_name));
+    z = lispstpcpy (z, Vinvocation_directory);
+  lispstpcpy (z, Vinvocation_name);
 
   /* The SM protocol says all callbacks are mandatory, so set up all
      here and in the mask passed to SmcOpenConnection.  */

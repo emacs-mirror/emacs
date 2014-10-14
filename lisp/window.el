@@ -108,7 +108,7 @@ Return the buffer."
       ;; Return the buffer.
       buffer)))
 
-(defun temp-buffer-window-show (&optional buffer action)
+(defun temp-buffer-window-show (buffer &optional action)
   "Show temporary buffer BUFFER in a window.
 Return the window showing BUFFER.  Pass ACTION as action argument
 to `display-buffer'."
@@ -1745,9 +1745,6 @@ doc-string of `window-resizable'."
 (defalias 'window-height 'window-total-height)
 (defalias 'window-width 'window-body-width)
 
-;; Eventually the following two should work pixelwise.
-
-;; See discussion in bug#4543.
 (defun window-full-height-p (&optional window)
   "Return t if WINDOW is as high as its containing frame.
 More precisely, return t if and only if the total height of
@@ -1755,8 +1752,10 @@ WINDOW equals the total height of the root window of WINDOW's
 frame.  WINDOW must be a valid window and defaults to the
 selected one."
   (setq window (window-normalize-window window))
-  (= (window-pixel-height window)
-     (window-pixel-height (frame-root-window window))))
+  (if (window-minibuffer-p window)
+      (eq window (frame-root-window (window-frame window)))
+    (= (window-pixel-height window)
+       (window-pixel-height (frame-root-window window)))))
 
 (defun window-full-width-p (&optional window)
   "Return t if WINDOW is as wide as its containing frame.
@@ -1780,28 +1779,26 @@ optional argument PIXELWISE is passed to the functions."
     (window-body-height window pixelwise)))
 
 (defun window-current-scroll-bars (&optional window)
-  "Return the current scroll bar settings for WINDOW.
+  "Return the current scroll bar types for WINDOW.
 WINDOW must be a live window and defaults to the selected one.
 
 The return value is a cons cell (VERTICAL . HORIZONTAL) where
 VERTICAL specifies the current location of the vertical scroll
-bars (`left', `right', or nil), and HORIZONTAL specifies the
-current location of the horizontal scroll bars (`top', `bottom',
-or nil).
+bar (`left', `right' or nil), and HORIZONTAL specifies the
+current location of the horizontal scroll bar (`bottom' or nil).
 
 Unlike `window-scroll-bars', this function reports the scroll bar
 type actually used, once frame defaults and `scroll-bar-mode' are
 taken into account."
   (setq window (window-normalize-window window t))
-  (let ((vert (nth 2 (window-scroll-bars window)))
-	(hor nil))
-    (when (or (eq vert t) (eq hor t))
-      (let ((fcsb (frame-current-scroll-bars (window-frame window))))
-	(if (eq vert t)
-	    (setq vert (car fcsb)))
-	(if (eq hor t)
-	    (setq hor (cdr fcsb)))))
-    (cons vert hor)))
+  (let ((vertical (nth 2 (window-scroll-bars window)))
+	(horizontal (nth 5 (window-scroll-bars window)))
+	(inherited (frame-current-scroll-bars (window-frame window))))
+    (when (eq vertical t)
+      (setq vertical (car inherited)))
+    (when (eq horizontal t)
+      (setq horizontal (cdr inherited)))
+    (cons vertical (and horizontal 'bottom))))
 
 (defun walk-windows (fun &optional minibuf all-frames)
   "Cycle through all live windows, calling FUN for each one.
@@ -3026,12 +3023,12 @@ routines."
 If necessary and possible, make sure that every window on frame
 FRAME has its minimum height.  Optional argument HORIZONTAL
 non-nil means to make sure that every window on frame FRAME has
-its minimum width.  The minimumm height/width of a window is the
+its minimum width.  The minimum height/width of a window is the
 respective value returned by `window-min-size' for that window.
 
 Return t if all windows were resized appropriately.  Return nil
 if at least one window could not be resized as requested, which
-may happen when the FRAME is not large enough to accomodate it."
+may happen when the FRAME is not large enough to accommodate it."
   (let ((value t))
     (walk-window-tree
      (lambda (window)
@@ -6469,13 +6466,26 @@ the selected one."
 
 (defun display-buffer-at-bottom (buffer alist)
   "Try displaying BUFFER in a window at the bottom of the selected frame.
-This either splits the window at the bottom of the frame or the
-frame's root window, or reuses an existing window at the bottom
-of the selected frame."
-  (let (bottom-window window)
+This either reuses such a window provided it shows BUFFER
+already, splits a window at the bottom of the frame or the
+frame's root window, or reuses some window at the bottom of the
+selected frame."
+  (let (bottom-window bottom-window-shows-buffer window)
     (walk-window-tree
-     (lambda (window) (setq bottom-window window)) nil nil 'nomini)
-    (or (and (not (frame-parameter nil 'unsplittable))
+     (lambda (window)
+       (cond
+	((window-in-direction 'below window))
+	((and (not bottom-window-shows-buffer)
+	      (eq buffer (window-buffer window)))
+	 (setq bottom-window-shows-buffer t)
+	 (setq bottom-window window))
+	((not bottom-window)
+	 (setq bottom-window window)))
+       nil nil 'nomini))
+    (or (and bottom-window-shows-buffer
+	     (window--display-buffer
+	      buffer bottom-window 'reuse alist display-buffer-mark-dedicated))
+     (and (not (frame-parameter nil 'unsplittable))
 	     (let (split-width-threshold)
 	       (setq window (window--try-to-split-window bottom-window alist)))
 	     (window--display-buffer
@@ -7163,7 +7173,7 @@ FRAME."
 	     (height
 	      (+ (cdr value)
 		 (window-bottom-divider-width)
-		 (nth 3 (window-scroll-bars)))))
+		 (window-scroll-bar-height))))
 	;; Don't change height or width when the window's size is fixed
 	;; in either direction or ONLY forbids it.
 	(cond
@@ -7247,7 +7257,7 @@ and header line and a bottom divider, if any.
 
 If WINDOW is part of a horizontal combination and the value of
 the option `fit-window-to-buffer-horizontally' is non-nil, adjust
-WINDOW's height.  The new width of WINDOW is calculated from the
+WINDOW's width.  The new width of WINDOW is calculated from the
 maximum length of its buffer's lines that follow the current
 start position of WINDOW.  The optional argument MAX-WIDTH
 specifies a maximum width and defaults to the width of WINDOW's
@@ -7322,7 +7332,7 @@ accessible position."
 	  ;; height.  Its width remains fixed.
 	  (setq height (+ (cdr (window-text-pixel-size
 				nil nil t nil (frame-pixel-height) t))
-			  (nth 3 (window-scroll-bars window))
+			  (window-scroll-bar-height window)
 			  (window-bottom-divider-width)))
 	  ;; Round height.
 	  (unless pixelwise
@@ -7364,10 +7374,10 @@ accessible position."
 			     max-width))
 		    (+ total-width (window-max-delta
 				    nil t nil nil nil nil pixelwise))))
-		 ;; When fitting vertically, assume that WINDOW's start
-		 ;; position remains unaltered.  WINDOW can't get wider
-		 ;; than its frame's pixel width, its height remains
-		 ;; unaltered.
+		 ;; When fitting horizontally, assume that WINDOW's
+		 ;; start position remains unaltered.  WINDOW can't get
+		 ;; wider than its frame's pixel width, its height
+		 ;; remains unaltered.
 		 (width (+ (car (window-text-pixel-size
 				 nil (window-start) (point-max)
 				 (frame-pixel-width)
@@ -7376,7 +7386,7 @@ accessible position."
 				 ;; overshoots when the first line below
 				 ;; the bottom is wider than the window.
 				 (* body-height
-				    (if pixelwise char-height 1))))
+				    (if pixelwise 1 char-height))))
 			   (window-right-divider-width))))
 	    (unless pixelwise
 	      (setq width (/ (+ width char-width -1) char-width)))

@@ -122,7 +122,7 @@ regular expression avoids conflicts with local files that look
 like URLs \(Gnus is particularly bad at this\)."
   :group 'url
   :type 'regexp
-  :version "24.5"
+  :version "25.1"
   :set (lambda (symbol value)
 	 (let ((enable url-handler-mode))
 	   (url-handler-mode 0)

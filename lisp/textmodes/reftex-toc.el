@@ -129,7 +129,7 @@
 (defvar reftex-toc-include-index-indicator nil)
 (defvar reftex-toc-max-level-indicator nil)
 
-(define-derived-mode reftex-toc-mode fundamental-mode "TOC"
+(define-derived-mode reftex-toc-mode special-mode "TOC"
   "Major mode for managing Table of Contents for LaTeX files.
 This buffer was created with RefTeX.
 Press `?' for a summary of important key bindings.
@@ -279,7 +279,7 @@ SPC=view TAB=goto RET=goto+hide [q]uit [r]escan [l]abels [f]ollow [x]r [?]Help
 " (abbreviate-file-name reftex-last-toc-master)))
 
       (if (reftex-use-fonts)
-          (put-text-property (point-min) (point) 'face reftex-toc-header-face))
+          (put-text-property (point-min) (point) 'font-lock-face reftex-toc-header-face))
       (put-text-property (point-min) (point) 'intangible t)
       (put-text-property (point-min) (1+ (point-min)) 'xr-alist xr-alist)
 

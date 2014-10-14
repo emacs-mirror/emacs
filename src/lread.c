@@ -970,10 +970,8 @@ load_warn_old_style_backquotes (Lisp_Object file)
 {
   if (!NILP (Vold_style_backquotes))
     {
-      Lisp_Object args[2];
-      args[0] = build_string ("Loading `%s': old-style backquotes detected!");
-      args[1] = file;
-      Fmessage (2, args);
+      AUTO_STRING (format, "Loading `%s': old-style backquotes detected!");
+      Fmessage (2, (Lisp_Object []) {format, file});
     }
 }
 
@@ -1473,6 +1471,7 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes,
   ptrdiff_t max_suffix_len = 0;
   int last_errno = ENOENT;
   int save_fd = -1;
+  USE_SAFE_ALLOCA;
 
   /* The last-modified time of the newest matching file found.
      Initialize it to something less than all valid timestamps.  */
@@ -1513,7 +1512,10 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes,
 	 this path element/specified file name and any possible suffix.  */
       want_length = max_suffix_len + SBYTES (filename);
       if (fn_size <= want_length)
-	fn = alloca (fn_size = 100 + want_length);
+	{
+	  fn_size = 100 + want_length;
+	  fn = SAFE_ALLOCA (fn_size);
+	}
 
       /* Loop over suffixes.  */
       for (tail = NILP (suffixes) ? list1 (empty_unibyte_string) : suffixes;
@@ -1579,6 +1581,7 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes,
                   /* We succeeded; return this descriptor and filename.  */
                   if (storeptr)
                     *storeptr = string;
+		  SAFE_FREE ();
                   UNGCPRO;
                   return -2;
 		}
@@ -1651,6 +1654,7 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes,
                       /* We succeeded; return this descriptor and filename.  */
                       if (storeptr)
                         *storeptr = string;
+		      SAFE_FREE ();
                       UNGCPRO;
                       return fd;
                     }
@@ -1661,6 +1665,7 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes,
                 {
                   if (storeptr)
                     *storeptr = save_string;
+		  SAFE_FREE ();
                   UNGCPRO;
                   return save_fd;
                 }
@@ -1670,6 +1675,7 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes,
 	break;
     }
 
+  SAFE_FREE ();
   UNGCPRO;
   errno = last_errno;
   return -1;
@@ -1774,15 +1780,17 @@ readevalloop_eager_expand_eval (Lisp_Object val, Lisp_Object macroexpand)
   val = call2 (macroexpand, val, Qnil);
   if (EQ (CAR_SAFE (val), Qprogn))
     {
+      struct gcpro gcpro1;
       Lisp_Object subforms = XCDR (val);
-      val = Qnil;
-      for (; CONSP (subforms); subforms = XCDR (subforms))
+
+      GCPRO1 (subforms);
+      for (val = Qnil; CONSP (subforms); subforms = XCDR (subforms))
           val = readevalloop_eager_expand_eval (XCAR (subforms),
                                                 macroexpand);
+      UNGCPRO;
     }
   else
       val = eval_sub (call2 (macroexpand, val, Qt));
-
   return val;
 }
 
@@ -2088,9 +2096,10 @@ DEFUN ("read-from-string", Fread_from_string, Sread_from_string, 1, 3, 0,
        doc: /* Read one Lisp expression which is represented as text by STRING.
 Returns a cons: (OBJECT-READ . FINAL-STRING-INDEX).
 FINAL-STRING-INDEX is an integer giving the position of the next
- remaining character in STRING.
-START and END optionally delimit a substring of STRING from which to read;
- they default to 0 and (length STRING) respectively.  */)
+remaining character in STRING.  START and END optionally delimit
+a substring of STRING from which to read;  they default to 0 and
+(length STRING) respectively.  Negative values are counted from
+the end of STRING.  */)
   (Lisp_Object string, Lisp_Object start, Lisp_Object end)
 {
   Lisp_Object ret;
@@ -2101,10 +2110,9 @@ START and END optionally delimit a substring of STRING from which to read;
 }
 
 /* Function to set up the global context we need in toplevel read
-   calls.  */
+   calls.  START and END only used when STREAM is a string.  */
 static Lisp_Object
 read_internal_start (Lisp_Object stream, Lisp_Object start, Lisp_Object end)
-/* `start', `end' only used when stream is a string.  */
 {
   Lisp_Object retval;
 
@@ -2126,25 +2134,9 @@ read_internal_start (Lisp_Object stream, Lisp_Object start, Lisp_Object end)
       else
 	string = XCAR (stream);
 
-      if (NILP (end))
-	endval = SCHARS (string);
-      else
-	{
-	  CHECK_NUMBER (end);
-	  if (! (0 <= XINT (end) && XINT (end) <= SCHARS (string)))
-	    args_out_of_range (string, end);
-	  endval = XINT (end);
-	}
+      validate_subarray (string, start, end, SCHARS (string),
+			 &startval, &endval);
 
-      if (NILP (start))
-	startval = 0;
-      else
-	{
-	  CHECK_NUMBER (start);
-	  if (! (0 <= XINT (start) && XINT (start) <= endval))
-	    args_out_of_range (string, start);
-	  startval = XINT (start);
-	}
       read_from_string_index = startval;
       read_from_string_index_byte = string_char_to_byte (string, startval);
       read_from_string_limit = endval;
@@ -2881,11 +2873,8 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
 		  if (c == '=')
 		    {
 		      /* Make a placeholder for #n# to use temporarily.  */
-		      Lisp_Object placeholder;
-		      Lisp_Object cell;
-
-		      placeholder = Fcons (Qnil, Qnil);
-		      cell = Fcons (make_number (n), placeholder);
+		      AUTO_CONS (placeholder, Qnil, Qnil);
+		      Lisp_Object cell = Fcons (make_number (n), placeholder);
 		      read_objects = Fcons (cell, read_objects);
 
 		      /* Read the object itself.  */
@@ -3364,7 +3353,7 @@ substitute_object_recurse (Lisp_Object object, Lisp_Object placeholder, Lisp_Obj
 	   substitute_in_interval contains part of the logic.  */
 
 	INTERVAL root_interval = string_intervals (subtree);
-	Lisp_Object arg = Fcons (object, placeholder);
+	AUTO_CONS (arg, object, placeholder);
 
 	traverse_intervals_noorder (root_interval,
 				    &substitute_in_interval, arg);
@@ -3671,8 +3660,10 @@ read_list (bool flag, Lisp_Object readcharfun)
 	       in the installed Lisp directory.
 	       We don't use Fexpand_file_name because that would make
 	       the directory absolute now.  */
-	    elt = concat2 (build_string ("../lisp/"),
-			 Ffile_name_nondirectory (elt));
+	    {
+	      AUTO_STRING (dot_dot_lisp, "../lisp/");
+	      elt = concat2 (dot_dot_lisp, Ffile_name_nondirectory (elt));
+	    }
 	}
       else if (EQ (elt, Vload_file_name)
 	       && ! NILP (elt)
@@ -3800,6 +3791,30 @@ check_obarray (Lisp_Object obarray)
   return obarray;
 }
 
+/* Intern a symbol with name STRING in OBARRAY using bucket INDEX.  */
+
+Lisp_Object
+intern_driver (Lisp_Object string, Lisp_Object obarray, ptrdiff_t index)
+{
+  Lisp_Object *ptr, sym = Fmake_symbol (string);
+
+  XSYMBOL (sym)->interned = (EQ (obarray, initial_obarray)
+			     ? SYMBOL_INTERNED_IN_INITIAL_OBARRAY
+			     : SYMBOL_INTERNED);
+
+  if ((SREF (string, 0) == ':') && EQ (obarray, initial_obarray))
+    {
+      XSYMBOL (sym)->constant = 1;
+      XSYMBOL (sym)->redirect = SYMBOL_PLAINVAL;
+      SET_SYMBOL_VAL (XSYMBOL (sym), sym);
+    }
+
+  ptr = aref_addr (obarray, index);
+  set_symbol_next (sym, SYMBOLP (*ptr) ? XSYMBOL (*ptr) : NULL);
+  *ptr = sym;
+  return sym;
+}
+
 /* Intern the C string STR: return a symbol with that name,
    interned in the current obarray.  */
 
@@ -3809,7 +3824,8 @@ intern_1 (const char *str, ptrdiff_t len)
   Lisp_Object obarray = check_obarray (Vobarray);
   Lisp_Object tem = oblookup (obarray, str, len, len);
 
-  return SYMBOLP (tem) ? tem : Fintern (make_string (str, len), obarray);
+  return SYMBOLP (tem) ? tem : intern_driver (make_string (str, len),
+					      obarray, XINT (tem));
 }
 
 Lisp_Object
@@ -3818,16 +3834,14 @@ intern_c_string_1 (const char *str, ptrdiff_t len)
   Lisp_Object obarray = check_obarray (Vobarray);
   Lisp_Object tem = oblookup (obarray, str, len, len);
 
-  if (SYMBOLP (tem))
-    return tem;
-
-  if (NILP (Vpurify_flag))
-    /* Creating a non-pure string from a string literal not
-       implemented yet.  We could just use make_string here and live
-       with the extra copy.  */
-    emacs_abort ();
-
-  return Fintern (make_pure_c_string (str, len), obarray);
+  if (!SYMBOLP (tem))
+    {
+      /* Creating a non-pure string from a string literal not implemented yet.
+	 We could just use make_string here and live with the extra copy.  */
+      eassert (!NILP (Vpurify_flag));
+      tem = intern_driver (make_pure_c_string (str, len), obarray, XINT (tem));
+    }
+  return tem;
 }
 
 DEFUN ("intern", Fintern, Sintern, 1, 2, 0,
@@ -3837,43 +3851,16 @@ A second optional argument specifies the obarray to use;
 it defaults to the value of `obarray'.  */)
   (Lisp_Object string, Lisp_Object obarray)
 {
-  register Lisp_Object tem, sym, *ptr;
+  Lisp_Object tem;
 
-  if (NILP (obarray)) obarray = Vobarray;
-  obarray = check_obarray (obarray);
-
+  obarray = check_obarray (NILP (obarray) ? Vobarray : obarray);
   CHECK_STRING (string);
 
-  tem = oblookup (obarray, SSDATA (string),
-		  SCHARS (string),
-		  SBYTES (string));
-  if (!INTEGERP (tem))
-    return tem;
-
-  if (!NILP (Vpurify_flag))
-    string = Fpurecopy (string);
-  sym = Fmake_symbol (string);
-
-  if (EQ (obarray, initial_obarray))
-    XSYMBOL (sym)->interned = SYMBOL_INTERNED_IN_INITIAL_OBARRAY;
-  else
-    XSYMBOL (sym)->interned = SYMBOL_INTERNED;
-
-  if ((SREF (string, 0) == ':')
-      && EQ (obarray, initial_obarray))
-    {
-      XSYMBOL (sym)->constant = 1;
-      XSYMBOL (sym)->redirect = SYMBOL_PLAINVAL;
-      SET_SYMBOL_VAL (XSYMBOL (sym), sym);
-    }
-
-  ptr = aref_addr (obarray, XINT (tem));
-  if (SYMBOLP (*ptr))
-    set_symbol_next (sym, XSYMBOL (*ptr));
-  else
-    set_symbol_next (sym, NULL);
-  *ptr = sym;
-  return sym;
+  tem = oblookup (obarray, SSDATA (string), SCHARS (string), SBYTES (string));
+  if (!SYMBOLP (tem))
+    tem = intern_driver (NILP (Vpurify_flag) ? string
+			 : Fpurecopy (string), obarray, XINT (tem));
+  return tem;
 }
 
 DEFUN ("intern-soft", Fintern_soft, Sintern_soft, 1, 2, 0,
@@ -4213,7 +4200,7 @@ load_path_check (Lisp_Object lpath)
       if (STRINGP (dirfile))
         {
           dirfile = Fdirectory_file_name (dirfile);
-          if (! file_accessible_directory_p (SSDATA (dirfile)))
+          if (! file_accessible_directory_p (dirfile))
             dir_warning ("Lisp directory", XCAR (path_tail));
         }
     }

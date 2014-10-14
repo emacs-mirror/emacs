@@ -309,6 +309,8 @@ static BOOL g_b_init_set_named_security_info_w;
 static BOOL g_b_init_set_named_security_info_a;
 static BOOL g_b_init_get_adapters_info;
 
+BOOL g_b_init_compare_string_w;
+
 /*
   BEGIN: Wrapper functions around OpenProcessToken
   and other functions in advapi32.dll that are only
@@ -2292,7 +2294,7 @@ get_long_basename (char * name, char * buf, int size)
 
 /* Get long name for file, if possible (assumed to be absolute).  */
 BOOL
-w32_get_long_filename (char * name, char * buf, int size)
+w32_get_long_filename (const char * name, char * buf, int size)
 {
   char * o = buf;
   char * p;
@@ -2343,7 +2345,7 @@ w32_get_long_filename (char * name, char * buf, int size)
 }
 
 unsigned int
-w32_get_short_filename (char * name, char * buf, int size)
+w32_get_short_filename (const char * name, char * buf, int size)
 {
   if (w32_unicode_filenames)
     {
@@ -2389,6 +2391,8 @@ ansi_encode_filename (Lisp_Object filename)
 	  dostounix_filename (shortname);
 	  encoded_filename = build_string (shortname);
 	}
+      else
+	encoded_filename = build_unibyte_string (fname);
     }
   else
     encoded_filename = build_unibyte_string (fname);
@@ -7718,15 +7722,15 @@ fcntl (int s, int cmd, int options)
   if (cmd == F_DUPFD_CLOEXEC)
     return sys_dup (s);
 
-  if (winsock_lib == NULL)
-    {
-      errno = ENETDOWN;
-      return -1;
-    }
-
   check_errno ();
   if (fd_info[s].flags & FILE_SOCKET)
     {
+      if (winsock_lib == NULL)
+	{
+	  errno = ENETDOWN;
+	  return -1;
+	}
+
       if (cmd == F_SETFL && options == O_NONBLOCK)
 	{
 	  unsigned long nblock = 1;
@@ -7743,13 +7747,36 @@ fcntl (int s, int cmd, int options)
 	  return SOCKET_ERROR;
 	}
     }
+  else if ((fd_info[s].flags & (FILE_PIPE | FILE_WRITE))
+	   == (FILE_PIPE | FILE_WRITE))
+    {
+      /* Force our writes to pipes be non-blocking.  */
+      if (cmd == F_SETFL && options == O_NONBLOCK)
+	{
+	  HANDLE h = (HANDLE)_get_osfhandle (s);
+	  DWORD pipe_mode = PIPE_NOWAIT;
+
+	  if (!SetNamedPipeHandleState (h, &pipe_mode, NULL, NULL))
+	    {
+	      DebPrint (("SetNamedPipeHandleState: %lu\n", GetLastError ()));
+	      return SOCKET_ERROR;
+	    }
+	  fd_info[s].flags |= FILE_NDELAY;
+	  return 0;
+	}
+      else
+	{
+	  errno = EINVAL;
+	  return SOCKET_ERROR;
+	}
+    }
   errno = ENOTSOCK;
   return SOCKET_ERROR;
 }
 
 
 /* Shadow main io functions: we need to handle pipes and sockets more
-   intelligently, and implement non-blocking mode as well. */
+   intelligently.  */
 
 int
 sys_close (int fd)
@@ -8234,11 +8261,11 @@ sys_read (int fd, char * buffer, unsigned int count)
 /* From w32xfns.c */
 extern HANDLE interrupt_handle;
 
-/* For now, don't bother with a non-blocking mode */
 int
 sys_write (int fd, const void * buffer, unsigned int count)
 {
   int nchars;
+  USE_SAFE_ALLOCA;
 
   if (fd < 0)
     {
@@ -8257,30 +8284,33 @@ sys_write (int fd, const void * buffer, unsigned int count)
       /* Perform text mode translation if required.  */
       if ((fd_info[fd].flags & FILE_BINARY) == 0)
 	{
-	  char * tmpbuf = alloca (count * 2);
-	  unsigned char * src = (void *)buffer;
-	  unsigned char * dst = tmpbuf;
+	  char * tmpbuf;
+	  const unsigned char * src = buffer;
+	  unsigned char * dst;
 	  int nbytes = count;
+
+	  SAFE_NALLOCA (tmpbuf, 2, count);
+	  dst = tmpbuf;
 
 	  while (1)
 	    {
 	      unsigned char *next;
-	      /* copy next line or remaining bytes */
+	      /* Copy next line or remaining bytes.  */
 	      next = _memccpy (dst, src, '\n', nbytes);
 	      if (next)
 		{
-		  /* copied one line ending with '\n' */
+		  /* Copied one line ending with '\n'.  */
 		  int copied = next - dst;
 		  nbytes -= copied;
 		  src += copied;
-		  /* insert '\r' before '\n' */
+		  /* Insert '\r' before '\n'.  */
 		  next[-1] = '\r';
 		  next[0] = '\n';
 		  dst = next + 1;
 		  count++;
 		}
 	      else
-		/* copied remaining partial line -> now finished */
+		/* Copied remaining partial line -> now finished.  */
 		break;
 	    }
 	  buffer = tmpbuf;
@@ -8294,31 +8324,44 @@ sys_write (int fd, const void * buffer, unsigned int count)
       HANDLE wait_hnd[2] = { interrupt_handle, ovl->hEvent };
       DWORD active = 0;
 
+      /* This is async (a.k.a. "overlapped") I/O, so the return value
+	 of FALSE from WriteFile means either an error or the output
+	 will be completed asynchronously (ERROR_IO_PENDING).  */
       if (!WriteFile (hnd, buffer, count, (DWORD*) &nchars, ovl))
 	{
 	  if (GetLastError () != ERROR_IO_PENDING)
 	    {
 	      errno = EIO;
-	      return -1;
+	      nchars = -1;
 	    }
-	  if (detect_input_pending ())
-	    active = MsgWaitForMultipleObjects (2, wait_hnd, FALSE, INFINITE,
-						QS_ALLINPUT);
 	  else
-	    active = WaitForMultipleObjects (2, wait_hnd, FALSE, INFINITE);
-	  if (active == WAIT_OBJECT_0)
-	    { /* User pressed C-g, cancel write, then leave.  Don't bother
-		 cleaning up as we may only get stuck in buggy drivers.  */
-	      PurgeComm (hnd, PURGE_TXABORT | PURGE_TXCLEAR);
-	      CancelIo (hnd);
-	      errno = EIO;
-	      return -1;
-	    }
-	  if (active == WAIT_OBJECT_0 + 1
-	      && !GetOverlappedResult (hnd, ovl, (DWORD*) &nchars, TRUE))
 	    {
-	      errno = EIO;
-	      return -1;
+	      /* Wait for the write to complete, and watch C-g while
+		 at that.  */
+	      if (detect_input_pending ())
+		active = MsgWaitForMultipleObjects (2, wait_hnd, FALSE,
+						    INFINITE, QS_ALLINPUT);
+	      else
+		active = WaitForMultipleObjects (2, wait_hnd, FALSE, INFINITE);
+	      switch (active)
+		{
+		case WAIT_OBJECT_0:
+		  /* User pressed C-g, cancel write, then leave.
+		     Don't bother cleaning up as we may only get stuck
+		     in buggy drivers.  */
+		  PurgeComm (hnd, PURGE_TXABORT | PURGE_TXCLEAR);
+		  CancelIo (hnd);
+		  errno = EIO;	/* Why not EINTR? */
+		  nchars = -1;
+		  break;
+		case WAIT_OBJECT_0 + 1:
+		  if (!GetOverlappedResult (hnd, ovl, (DWORD*) &nchars, TRUE))
+		    {
+		      errno = EIO;
+		      nchars = -1;
+		    }
+		  break;
+		}
 	    }
 	}
     }
@@ -8369,6 +8412,22 @@ sys_write (int fd, const void * buffer, unsigned int count)
 	  nchars += n;
 	  if (n < 0)
 	    {
+	      /* When there's no buffer space in a pipe that is in the
+		 non-blocking mode, _write returns ENOSPC.  We return
+		 EAGAIN instead, which should trigger the logic in
+		 send_process that enters waiting loop and calls
+		 wait_reading_process_output to allow process input to
+		 be accepted during the wait.  Those calls to
+		 wait_reading_process_output allow sys_select to
+		 notice when process input becomes available, thus
+		 avoiding deadlock whereby each side of the pipe is
+		 blocked on write, waiting for the other party to read
+		 its end of the pipe.  */
+	      if (errno == ENOSPC
+		  && fd < MAXDESC
+		  && ((fd_info[fd].flags & (FILE_PIPE | FILE_NDELAY))
+		      == (FILE_PIPE | FILE_NDELAY)))
+		errno = EAGAIN;
 	      nchars = n;
 	      break;
 	    }
@@ -8379,6 +8438,7 @@ sys_write (int fd, const void * buffer, unsigned int count)
 	}
     }
 
+  SAFE_FREE ();
   return nchars;
 }
 
@@ -9068,6 +9128,7 @@ globals_of_w32 (void)
   g_b_init_set_named_security_info_w = 0;
   g_b_init_set_named_security_info_a = 0;
   g_b_init_get_adapters_info = 0;
+  g_b_init_compare_string_w = 0;
   num_of_processors = 0;
   /* The following sets a handler for shutdown notifications for
      console apps. This actually applies to Emacs in both console and

@@ -35,7 +35,7 @@
 
 (defgroup rectangle nil
   "Operations on rectangles."
-  :version "24.5"
+  :version "25.1"
   :group 'editing)
 
 ;; FIXME: this function should be replaced by `apply-on-rectangle'
@@ -113,7 +113,7 @@ Point is at the end of the segment of this line within the rectangle."
             (if (window-parameter nil 'rectangle--point-crutches)
                 (setf (window-parameter nil 'rectangle--point-crutches) nil))
           (if rectangle--mark-crutches (setq rectangle--mark-crutches nil)))
-      ;; If move-to-column over-shooted, move back one char so we're
+      ;; If move-to-column overshot, move back one char so we're
       ;; at the position where rectangle--highlight-for-redisplay
       ;; will add the overlay (so that the cursor can be drawn at the
       ;; right place).

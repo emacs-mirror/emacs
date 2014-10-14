@@ -89,6 +89,8 @@
   "Set up temporary locations and variables for testing."
   (declare (indent 1))
   `(let* ((package-test-user-dir (make-temp-file "pkg-test-user-dir-" t))
+          (process-environment (cons (format "HOME=%s" package-test-user-dir)
+                                     process-environment))
           (package-user-dir package-test-user-dir)
           (package-archives `(("gnu" . ,package-test-data-dir)))
           (old-yes-no-defn (symbol-function 'yes-or-no-p))
@@ -361,11 +363,15 @@ Must called from within a `tar-mode' buffer."
 
 (ert-deftest package-test-signed ()
   "Test verifying package signature."
-  :expected-result (condition-case nil
-		       (progn
+  (skip-unless (ignore-errors
+		 (let ((homedir (make-temp-file "package-test" t)))
+		   (unwind-protect
+		       (let ((process-environment
+			      (cons (format "HOME=%s" homedir)
+				    process-environment)))
 			 (epg-check-configuration (epg-configuration))
-			 :passed)
-		     (error :failed))
+			 t)
+		     (delete-directory homedir t)))))
   (let* ((keyring (expand-file-name "key.pub" package-test-data-dir))
 	 (package-test-data-dir
 	   (expand-file-name "data/package/signed" package-test-file-dir)))
@@ -389,6 +395,73 @@ Must called from within a `tar-mode' buffer."
 		(format "Status: Installed in `%s/'."
 			(expand-file-name "signed-good-1.0" package-user-dir))
 		nil t))))))
+
+
+
+;;; Tests for package-x features.
+
+(require 'package-x)
+
+(defvar package-x-test--single-archive-entry-1-3
+  (cons 'simple-single
+        (package-make-ac-desc '(1 3) nil
+                              "A single-file package with no dependencies"
+                              'single
+                              '((:url . "http://doodles.au"))))
+  "Expected contents of the archive entry from the \"simple-single\" package.")
+
+(defvar package-x-test--single-archive-entry-1-4
+  (cons 'simple-single
+        (package-make-ac-desc '(1 4) nil
+                              "A single-file package with no dependencies"
+                              'single
+                              nil))
+  "Expected contents of the archive entry from the updated \"simple-single\" package.")
+
+(ert-deftest package-x-test-upload-buffer ()
+  "Test creating an \"archive-contents\" file"
+  (with-package-test (:basedir "data/package"
+                               :file "simple-single-1.3.el"
+                               :upload-base t)
+    (package-upload-buffer)
+    (should (file-exists-p (expand-file-name "archive-contents"
+                                             package-archive-upload-base)))
+    (should (file-exists-p (expand-file-name "simple-single-1.3.el"
+                                             package-archive-upload-base)))
+    (should (file-exists-p (expand-file-name "simple-single-readme.txt"
+                                             package-archive-upload-base)))
+
+    (let (archive-contents)
+      (with-temp-buffer
+        (insert-file-contents
+         (expand-file-name "archive-contents"
+                           package-archive-upload-base))
+        (setq archive-contents
+              (package-read-from-string
+               (buffer-substring (point-min) (point-max)))))
+      (should (equal archive-contents
+                     (list 1 package-x-test--single-archive-entry-1-3))))))
+
+(ert-deftest package-x-test-upload-new-version ()
+  "Test uploading a new version of a package"
+  (with-package-test (:basedir "data/package"
+                               :file "simple-single-1.3.el"
+                               :upload-base t)
+    (package-upload-buffer)
+    (with-temp-buffer
+      (insert-file-contents "newer-versions/simple-single-1.4.el")
+      (package-upload-buffer))
+
+    (let (archive-contents)
+      (with-temp-buffer
+        (insert-file-contents
+         (expand-file-name "archive-contents"
+                           package-archive-upload-base))
+        (setq archive-contents
+              (package-read-from-string
+               (buffer-substring (point-min) (point-max)))))
+      (should (equal archive-contents
+                     (list 1 package-x-test--single-archive-entry-1-4))))))
 
 (provide 'package-test)
 

@@ -86,6 +86,11 @@
 	       font-lock-keywords)))
       (cc-load "cc-fix")))
 
+;; XEmacs 21.4 doesn't have `delete-dups'.
+(eval-and-compile
+  (if (and (not (fboundp 'delete-dups))
+	   (not (featurep 'cc-fix)))
+      (cc-load "cc-fix")))
 
 ;;; Variables also used at compile time.
 
@@ -913,6 +918,12 @@ MODE is either a mode symbol or a list of mode symbols."
 			       (cc-bytecomp-fboundp 'delete-extent)
 			       (cc-bytecomp-fboundp 'map-extents))))
 
+(defconst c-<-as-paren-syntax '(4 . ?>))
+(put 'c-<-as-paren-syntax 'syntax-table c-<-as-paren-syntax)
+
+(defconst c->-as-paren-syntax '(5 . ?<))
+(put 'c->-as-paren-syntax 'syntax-table c->-as-paren-syntax)
+
 ;; `c-put-char-property' is complex enough in XEmacs and Emacs < 21 to
 ;; make it a function.
 (defalias 'c-put-char-property-fun
@@ -1188,9 +1199,6 @@ been put there by c-put-char-property.  POINT remains unchanged."
     (if (< (point) start)
 	(goto-char (point-max)))))
 
-(defconst c-<-as-paren-syntax '(4 . ?>))
-(put 'c-<-as-paren-syntax 'syntax-table c-<-as-paren-syntax)
-
 (defsubst c-mark-<-as-paren (pos)
   ;; Mark the "<" character at POS as a template opener using the
   ;; `syntax-table' property via the `category' property.
@@ -1200,9 +1208,6 @@ been put there by c-put-char-property.  POINT remains unchanged."
   ;; toggle the property in all template brackets simultaneously and
   ;; cheaply.  We use this, for instance, in `c-parse-state'.
   (c-put-char-property pos 'category 'c-<-as-paren-syntax))
-
-(defconst c->-as-paren-syntax '(5 . ?<))
-(put 'c->-as-paren-syntax 'syntax-table c->-as-paren-syntax)
 
 (defsubst c-mark->-as-paren (pos)
   ;; Mark the ">" character at POS as an sexp list closer using the
@@ -1419,8 +1424,8 @@ Notably, null elements in LIST are ignored."
 
 (defun c-make-keywords-re (adorn list &optional mode)
   "Make a regexp that matches all the strings the list.
-Duplicates and nil elements in the list are removed.  The resulting
-regexp may contain zero or more submatch expressions.
+Duplicates and nil elements in the list are removed.  The
+resulting regexp may contain zero or more submatch expressions.
 
 If ADORN is t there will be at least one submatch and the first
 surrounds the matched alternative, and the regexp will also not match
@@ -1438,11 +1443,7 @@ The optional MODE specifies the language to get `c-nonsymbol-key' from
 when it's needed.  The default is the current language taken from
 `c-buffer-is-cc-mode'."
 
-  (let (unique)
-    (dolist (elt list)
-      (unless (member elt unique)
-	(push elt unique)))
-    (setq list (delete nil unique)))
+  (setq list (delete nil (delete-dups list)))
   (if list
       (let (re)
 
@@ -1556,6 +1557,8 @@ non-nil, a caret is prepended to invert the set."
 
 (cc-bytecomp-defvar open-paren-in-column-0-is-defun-start)
 
+(defvar lookup-syntax-properties)       ;XEmacs.
+
 (defconst c-emacs-features
   (let (list)
 
@@ -1636,13 +1639,13 @@ non-nil, a caret is prepended to invert the set."
 		  "support for the `syntax-table' text property "
 		  "is required.")))
 
-	;; Find out if generic comment delimiters work.
+	;; Find out if "\\s!" (generic comment delimiters) work.
 	(c-safe
 	  (modify-syntax-entry ?x "!")
 	  (if (string-match "\\s!" "x")
 	      (setq list (cons 'gen-comment-delim list))))
 
-	;; Find out if generic string delimiters work.
+	;; Find out if "\\s|" (generic string delimiters) work.
 	(c-safe
 	  (modify-syntax-entry ?x "|")
 	  (if (string-match "\\s|" "x")
@@ -1689,7 +1692,8 @@ non-nil, a caret is prepended to invert the set."
       (kill-buffer buf))
 
     ;; See if `parse-partial-sexp' returns the eighth element.
-    (if (c-safe (>= (length (save-excursion (parse-partial-sexp (point) (point))))
+    (if (c-safe (>= (length (save-excursion
+			      (parse-partial-sexp (point) (point))))
 		    10))
 	(setq list (cons 'pps-extended-state list))
       (error (concat
@@ -1705,9 +1709,8 @@ might be present:
 
 '8-bit              8 bit syntax entry flags (XEmacs style).
 '1-bit              1 bit syntax entry flags (Emacs style).
-'argumentative-bod-function         beginning-of-defun passes ARG through
-                    to a non-null beginning-of-defun-function.  It is assumed
-		    the end-of-defun does the same thing.
+'argumentative-bod-function	    beginning-of-defun and end-of-defun pass
+		    ARG through to beginning/end-of-defun-function.
 'syntax-properties  It works to override the syntax for specific characters
 		    in the buffer with the 'syntax-table property.  It's
 		    always set - CC Mode no longer works in emacsen without
@@ -1802,11 +1805,11 @@ system."
   (put mode 'c-fallback-mode base-mode))
 
 (defvar c-lang-constants (make-vector 151 0))
-;; This obarray is a cache to keep track of the language constants
-;; defined by `c-lang-defconst' and the evaluated values returned by
-;; `c-lang-const'.  It's mostly used at compile time but it's not
+;;   Obarray used as a cache to keep track of the language constants.
+;; The constants stored are those defined by `c-lang-defconst' and the values
+;; computed by `c-lang-const'.  It's mostly used at compile time but it's not
 ;; stored in compiled files.
-;;
+
 ;; The obarray contains all the language constants as symbols.  The
 ;; value cells hold the evaluated values as alists where each car is
 ;; the mode name symbol and the corresponding cdr is the evaluated
@@ -1829,7 +1832,9 @@ system."
 	       (t
 		;; Being evaluated interactively.
 		(buffer-file-name)))))
-    (and file (file-name-base file))))
+    (and file
+	 (file-name-sans-extension
+	  (file-name-nondirectory file)))))
 
 (defmacro c-lang-defconst-eval-immediately (form)
   "Can be used inside a VAL in `c-lang-defconst' to evaluate FORM
@@ -1897,7 +1902,7 @@ constant.  A file is identified by its base name."
 	 pre-files)
 
     (or (symbolp name)
-	(error "Not a symbol: %s" name))
+	(error "Not a symbol: %S" name))
 
     (when (stringp (car-safe args))
       ;; The docstring is hardly used anywhere since there's no normal
@@ -1907,7 +1912,7 @@ constant.  A file is identified by its base name."
       (setq args (cdr args)))
 
     (or args
-	(error "No assignments in `c-lang-defconst' for %s" name))
+	(error "No assignments in `c-lang-defconst' for %S" name))
 
     ;; Rework ARGS to an association list to make it easier to handle.
     ;; It's reversed at the same time to make it easier to implement
@@ -1921,17 +1926,17 @@ constant.  A file is identified by its base name."
 		   ((listp (car args))
 		    (mapcar (lambda (lang)
 			      (or (symbolp lang)
-				  (error "Not a list of symbols: %s"
+				  (error "Not a list of symbols: %S"
 					 (car args)))
 			      (intern (concat (symbol-name lang)
 					      "-mode")))
 			    (car args)))
-		   (t (error "Not a symbol or a list of symbols: %s"
+		   (t (error "Not a symbol or a list of symbols: %S"
 			     (car args)))))
 	    val)
 
 	(or (cdr args)
-	    (error "No value for %s" (car args)))
+	    (error "No value for %S" (car args)))
 	(setq args (cdr args)
 	      val (car args))
 
@@ -1945,7 +1950,7 @@ constant.  A file is identified by its base name."
 	;; dependencies on the `c-lang-const's in VAL.)
 	(setq val (macroexpand-all val))
 
-	(setq bindings (cons (cons assigned-mode val) bindings)
+	(setq bindings `(cons (cons ',assigned-mode (lambda () ,val)) ,bindings)
 	      args (cdr args))))
 
     ;; Compile in the other files that have provided source
@@ -1957,7 +1962,7 @@ constant.  A file is identified by its base name."
 		     (mapcar 'car (get sym 'source))))
 
     `(eval-and-compile
-       (c-define-lang-constant ',name ',bindings
+       (c-define-lang-constant ',name ,bindings
 			       ,@(and pre-files `(',pre-files))))))
 
 (put 'c-lang-defconst 'lisp-indent-function 1)
@@ -2022,19 +2027,16 @@ language.  NAME and LANG are not evaluated so they should not be
 quoted."
 
   (or (symbolp name)
-      (error "Not a symbol: %s" name))
+      (error "Not a symbol: %S" name))
   (or (symbolp lang)
-      (error "Not a symbol: %s" lang))
+      (error "Not a symbol: %S" lang))
 
   (let ((sym (intern (symbol-name name) c-lang-constants))
-	mode source-files args)
+	(mode (when lang (intern (concat (symbol-name lang) "-mode")))))
 
-    (when lang
-      (setq mode (intern (concat (symbol-name lang) "-mode")))
-      (unless (get mode 'c-mode-prefix)
-	(error
-	 "Unknown language %S since it got no `c-mode-prefix' property"
-	 (symbol-name lang))))
+    (or (get mode 'c-mode-prefix) (null mode)
+        (error "Unknown language %S: no `c-mode-prefix' property"
+               lang))
 
     (if (eq c-lang-const-expansion 'immediate)
 	;; No need to find out the source file(s) when we evaluate
@@ -2042,49 +2044,56 @@ quoted."
 	;; `source' property.
 	`',(c-get-lang-constant name nil mode)
 
-      (let ((file (c-get-current-file)))
-	(if file (setq file (intern file)))
-	;; Get the source file(s) that must be loaded to get the value
-	;; of the constant.  If the symbol isn't defined yet we assume
-	;; that its definition will come later in this file, and thus
-	;; are no file dependencies needed.
-	(setq source-files (nreverse
-			    ;; Reverse to get the right load order.
-			    (apply 'nconc
-				   (mapcar (lambda (elem)
-					     (if (eq file (car elem))
-						 nil ; Exclude our own file.
-					       (list (car elem))))
-					   (get sym 'source))))))
+      (let ((source-files
+             (let ((file (c-get-current-file)))
+               (if file (setq file (intern file)))
+               ;; Get the source file(s) that must be loaded to get the value
+               ;; of the constant.  If the symbol isn't defined yet we assume
+               ;; that its definition will come later in this file, and thus
+               ;; are no file dependencies needed.
+               (nreverse
+                ;; Reverse to get the right load order.
+                (apply 'nconc
+                       (mapcar (lambda (elem)
+                                 (if (eq file (car elem))
+                                     nil ; Exclude our own file.
+                                   (list (car elem))))
+                               (get sym 'source))))))
+            ;; Make some effort to do a compact call to
+            ;; `c-get-lang-constant' since it will be compiled in.
+            (args (and mode `(',mode))))
 
-      ;; Make some effort to do a compact call to
-      ;; `c-get-lang-constant' since it will be compiled in.
-      (setq args (and mode `(',mode)))
-      (if (or source-files args)
-	  (setq args (cons (and source-files `',source-files)
-			   args)))
+        (if (or source-files args)
+            (push (and source-files `',source-files) args))
 
-      (if (or (eq c-lang-const-expansion 'call)
-	      (and (not c-lang-const-expansion)
-		   (not mode))
-	      load-in-progress
-	      (not (boundp 'byte-compile-dest-file))
-	      (not (stringp byte-compile-dest-file)))
-	  ;; Either a straight call is requested in the context, or
-	  ;; we're in an "uncontrolled" context and got no language,
-	  ;; or we're not being byte compiled so the compile time
-	  ;; stuff below is unnecessary.
-	  `(c-get-lang-constant ',name ,@args)
+        (if (or (eq c-lang-const-expansion 'call)
+                (and (not c-lang-const-expansion)
+                     (not mode))
+                load-in-progress
+                (not (boundp 'byte-compile-dest-file))
+                (not (stringp byte-compile-dest-file)))
+            ;; Either a straight call is requested in the context, or
+            ;; we're in an "uncontrolled" context and got no language,
+            ;; or we're not being byte compiled so the compile time
+            ;; stuff below is unnecessary.
+            `(c-get-lang-constant ',name ,@args)
 
-	;; Being compiled.  If the loading and compiling version is
-	;; the same we use a value that is evaluated at compile time,
-	;; otherwise it's evaluated at runtime.
-	`(if (eq c-version-sym ',c-version-sym)
-	     (cc-eval-when-compile
-	       (c-get-lang-constant ',name ,@args))
-	   (c-get-lang-constant ',name ,@args))))))
+          ;; Being compiled.  If the loading and compiling version is
+          ;; the same we use a value that is evaluated at compile time,
+          ;; otherwise it's evaluated at runtime.
+          `(if (eq c-version-sym ',c-version-sym)
+               (cc-eval-when-compile
+                 (c-get-lang-constant ',name ,@args))
+             (c-get-lang-constant ',name ,@args)))))))
 
-(defvar c-lang-constants-under-evaluation nil)
+(defvar c-lang-constants-under-evaluation nil
+  "Alist of constants in the process of being evaluated.
+The `cdr' of each entry indicates how far we've looked in the list
+of definitions, so that the def for var FOO in c-mode can be defined in
+terms of the def for that same var FOO (which will then rely on the
+fallback definition for all modes, to break the cycle).")
+
+(defconst c-lang--novalue "novalue")
 
 (defun c-get-lang-constant (name &optional source-files mode)
   ;; Used by `c-lang-const'.
@@ -2150,7 +2159,7 @@ quoted."
 		   ;; mode might have an explicit entry before that.
 		   (eq (setq value (c-find-assignment-for-mode
 				    (cdr source-pos) mode nil name))
-		       c-lang-constants)
+		       c-lang--novalue)
 		   ;; Try again with the fallback mode from the
 		   ;; original position.  Note that
 		   ;; `c-buffer-is-cc-mode' still is the real mode if
@@ -2158,22 +2167,22 @@ quoted."
 		   (eq (setq value (c-find-assignment-for-mode
 				    (setcdr source-pos backup-source-pos)
 				    fallback t name))
-		       c-lang-constants)))
+		       c-lang--novalue)))
 	      ;; A simple lookup with no fallback mode.
 	      (eq (setq value (c-find-assignment-for-mode
 			       (cdr source-pos) mode t name))
-		  c-lang-constants))
+		  c-lang--novalue))
 	    (error
-	     "`%s' got no (prior) value in %s (might be a cyclic reference)"
+	     "`%s' got no (prior) value in %S (might be a cyclic reference)"
 	     name mode))
 
 	(condition-case err
-	    (setq value (eval value))
+	    (setq value (funcall value))
 	  (error
 	   ;; Print a message to aid in locating the error.  We don't
 	   ;; print the error itself since that will be done later by
 	   ;; some caller higher up.
-	   (message "Eval error in the `c-lang-defconst' for `%s' in %s:"
+	   (message "Eval error in the `c-lang-defconst' for `%S' in %s:"
 		    sym mode)
 	   (makunbound sym)
 	   (signal (car err) (cdr err))))
@@ -2181,13 +2190,13 @@ quoted."
 	(set sym (cons (cons mode value) (symbol-value sym)))
 	value))))
 
-(defun c-find-assignment-for-mode (source-pos mode match-any-lang name)
+(defun c-find-assignment-for-mode (source-pos mode match-any-lang _name)
   ;; Find the first assignment entry that applies to MODE at or after
   ;; SOURCE-POS.  If MATCH-ANY-LANG is non-nil, entries with `t' as
   ;; the language list are considered to match, otherwise they don't.
   ;; On return SOURCE-POS is updated to point to the next assignment
   ;; after the returned one.  If no assignment is found,
-  ;; `c-lang-constants' is returned as a magic value.
+  ;; `c-lang--novalue' is returned as a magic value.
   ;;
   ;; SOURCE-POS is a vector that points out a specific assignment in
   ;; the double alist that's used in the `source' property.  The first
@@ -2243,7 +2252,7 @@ quoted."
 		match-any-lang)
 	  (throw 'found (cdr assignment))))
 
-      c-lang-constants)))
+      c-lang--novalue)))
 
 (defun c-lang-major-mode-is (mode)
   ;; `c-major-mode-is' expands to a call to this function inside

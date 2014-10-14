@@ -588,6 +588,16 @@ In the latter case, if the first nick in the list is already in use,
 other nicks are tried in the list order.
 @end defopt
 
+@defopt erc-format-nick-function
+A function to format a nickname for message display
+
+You can set this to @code{erc-format-@@nick} to display user mode prefix
+@end defopt
+
+@example
+(setq erc-format-nick-function 'erc-format-@@nick)
+@end example
+
 @defopt erc-nick-uniquifier
 The string to append to the nick if it is already in use.
 @end defopt
@@ -661,7 +671,8 @@ your Emacs configuration file.  Everything after the @code{(require
 ;; using the version of ERC that comes with Emacs
 (add-to-list 'load-path "~/elisp/erc")
 
-;; Load ERC
+;; Load ERC -- again, you don't need this if you are using the version
+;; of ERC that comes with Emacs
 (require 'erc)
 
 ;; Load authentication info from an external source.  Put sensitive
@@ -712,6 +723,12 @@ stuff, to the current ERC buffer."
 ;; Join the #emacs and #erc channels whenever connecting to Freenode.
 (setq erc-autojoin-channels-alist '(("freenode.net" "#emacs" "#erc")))
 
+;; Rename server buffers to reflect the current network name instead
+;; of IP:PORT. (e.g. "freenode" instead of "84.240.3.129:6667"). This
+;; is useful when using a bouncer like ZNC where you have multiple
+;; connections to the same server.
+(setq erc-rename-buffers t)
+
 ;; Interpret mIRC-style color commands in IRC chats
 (setq erc-interpret-mirc-color t)
 
@@ -750,6 +767,14 @@ lurkers.  The function @code{erc-lurker-p} determines whether a given
 nickname is considered a lurker.
 @end defopt
 
+@defopt erc-rename-buffers
+If non, @code{nil}, this will rename server buffers to reflect the
+current network name instead of IP:PORT
+
+@example
+(setq erc-rename-buffers t)
+@end example
+@end defopt
 
 @node Getting Help and Reporting Bugs
 @chapter Getting Help and Reporting Bugs

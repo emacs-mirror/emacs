@@ -28,7 +28,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 INLINE_HEADER_BEGIN
 
 enum scroll_bar_part {
-  scroll_bar_nowhere = -1,
+  scroll_bar_nowhere,
   scroll_bar_above_handle,
   scroll_bar_handle,
   scroll_bar_below_handle,
@@ -255,28 +255,36 @@ enum event_kind
 struct input_event
 {
   /* What kind of event was this?  */
-  enum event_kind kind;
+  ENUM_BF (event_kind) kind : 16;
+
+  /* Used in scroll back click events.  */
+  ENUM_BF (scroll_bar_part) part : 16;
 
   /* For an ASCII_KEYSTROKE_EVENT and MULTIBYTE_CHAR_KEYSTROKE_EVENT,
      this is the character.
      For a NON_ASCII_KEYSTROKE_EVENT, this is the keysym code.
-     For a mouse event, this is the button number.
-     For a HELP_EVENT, this is the position within the object
-      (stored in ARG below) where the help was found.  */
-  ptrdiff_t code;
-  enum scroll_bar_part part;
+     For a mouse event, this is the button number.  */
+  unsigned code;
 
-  int modifiers;		/* See enum below for interpretation.  */
+  /* See enum below for interpretation.  */
+  unsigned modifiers;
 
+  /* One would prefer C integers, but HELP_EVENT uses these to
+     record frame or window object and a help form, respectively.  */
   Lisp_Object x, y;
+
+  /* Usually a time as reported by window system-specific event loop.
+     For a HELP_EVENT, this is the position within the object (stored
+     in ARG below) where the help was found.  */
   Time timestamp;
 
   /* This field is copied into a vector while the event is in
      the queue, so that garbage collections won't kill it.  */
   Lisp_Object frame_or_window;
 
-  /* Additional event argument.  This is used for TOOL_BAR_EVENTs and
-     HELP_EVENTs and avoids calling Fcons during signal handling.  */
+  /* This additional argument is used in attempt to avoid extra consing
+     when building events.  Unfortunately some events have to pass much
+     more data than it's reasonable to pack directly into this structure.  */
   Lisp_Object arg;
 };
 
@@ -673,7 +681,9 @@ extern struct terminal *terminal_list;
   (t->type == output_ns ? t->display_info.ns->name_list_element : Qnil)
 #endif
 
-extern struct terminal *get_terminal (Lisp_Object terminal, bool);
+extern struct terminal *decode_live_terminal (Lisp_Object);
+extern struct terminal *decode_tty_terminal (Lisp_Object);
+extern struct terminal *get_named_terminal (const char *);
 extern struct terminal *create_terminal (enum output_method,
 					 struct redisplay_interface *);
 extern void delete_terminal (struct terminal *);

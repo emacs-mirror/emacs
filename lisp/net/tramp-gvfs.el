@@ -1108,7 +1108,7 @@ is no information where to trace the message.")
 (defun tramp-gvfs-url-file-name (filename)
   "Return FILENAME in URL syntax."
   ;; "/" must NOT be hexlified.
-  (let ((url-unreserved-chars (append '(?/) url-unreserved-chars))
+  (let ((url-unreserved-chars (cons ?/ url-unreserved-chars))
 	result)
     (setq
      result

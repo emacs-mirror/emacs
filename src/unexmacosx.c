@@ -107,9 +107,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <mach/mach.h>
 #include <mach-o/loader.h>
 #include <mach-o/reloc.h>
-#if defined (__ppc__)
-#include <mach-o/ppc/reloc.h>
-#endif
 #ifdef HAVE_MALLOC_MALLOC_H
 #include <malloc/malloc.h>
 #else
@@ -826,7 +823,6 @@ copy_data_segment (struct load_command *lc)
 	 file.  */
       if (strncmp (sectp->sectname, SECT_DATA, 16) == 0)
 	{
-	  extern char my_edata[];
 	  unsigned long my_size;
 
 	  /* The __data section is basically dumped from memory.  But
@@ -857,7 +853,6 @@ copy_data_segment (struct load_command *lc)
 	}
       else if (strncmp (sectp->sectname, SECT_BSS, 16) == 0)
 	{
-	  extern char *my_endbss_static;
 	  unsigned long my_size;
 
 	  sectp->flags = S_REGULAR;
@@ -881,6 +876,27 @@ copy_data_segment (struct load_command *lc)
 	  if (!unexec_write (header_offset, sectp, sizeof (struct section)))
 	    unexec_error ("cannot write section %.16s's header", sectp->sectname);
 	}
+      else if (strncmp (sectp->sectname, "__bss", 5) == 0
+	       || strncmp (sectp->sectname, "__pu_bss", 8) == 0)
+	{
+	  sectp->flags = S_REGULAR;
+
+	  /* These sections are produced by GCC 4.6+.
+
+	     FIXME: We possibly ought to clear uninitialized local
+	     variables in statically linked libraries like for
+	     SECT_BSS (__bss) above, but setting up the markers we
+	     need in lastfile.c would be rather messy. See
+	     darwin_output_aligned_bss () in gcc/config/darwin.c for
+	     the root of the problem, keeping in mind that the
+	     sections are numbered by their alignment in GCC 4.6, but
+	     by log2(alignment) in GCC 4.7. */
+
+	  if (!unexec_write (sectp->offset, (void *) sectp->addr, sectp->size))
+	    unexec_error ("cannot copy section %.16s", sectp->sectname);
+	  if (!unexec_write (header_offset, sectp, sizeof (struct section)))
+	    unexec_error ("cannot write section %.16s's header", sectp->sectname);
+	}
       else if (strncmp (sectp->sectname, "__la_symbol_ptr", 16) == 0
 	       || strncmp (sectp->sectname, "__nl_symbol_ptr", 16) == 0
 	       || strncmp (sectp->sectname, "__got", 16) == 0
@@ -892,6 +908,7 @@ copy_data_segment (struct load_command *lc)
 	       || strncmp (sectp->sectname, "__program_vars", 16) == 0
 	       || strncmp (sectp->sectname, "__mod_init_func", 16) == 0
 	       || strncmp (sectp->sectname, "__mod_term_func", 16) == 0
+	       || strncmp (sectp->sectname, "__static_data", 16) == 0
 	       || strncmp (sectp->sectname, "__objc_", 7) == 0)
 	{
 	  if (!unexec_copy (sectp->offset, old_file_offset, sectp->size))
@@ -1013,52 +1030,14 @@ unrelocate (const char *name, off_t reloff, int nrel, vm_address_t base)
 			  name, i, reloc_info.r_type);
 	  }
       else
-	switch (sc_reloc_info->r_type)
-	  {
-#if defined (__ppc__)
-	  case PPC_RELOC_PB_LA_PTR:
-	    /* nothing to do for prebound lazy pointer */
-	    break;
-#endif
-	  default:
-	    unexec_error ("unrelocate: %s:%d cannot handle scattered type = %d",
-			  name, i, sc_reloc_info->r_type);
-	  }
+        unexec_error ("unrelocate: %s:%d cannot handle scattered type = %d",
+                      name, i, sc_reloc_info->r_type);
     }
 
   if (nrel > 0)
     printf ("Fixed up %d/%d %s relocation entries in data segment.\n",
 	    unreloc_count, nrel, name);
 }
-
-#if __ppc64__
-/* Rebase r_address in the relocation table.  */
-static void
-rebase_reloc_address (off_t reloff, int nrel, long linkedit_delta, long diff)
-{
-  int i;
-  struct relocation_info reloc_info;
-  struct scattered_relocation_info *sc_reloc_info
-    = (struct scattered_relocation_info *) &reloc_info;
-
-  for (i = 0; i < nrel; i++, reloff += sizeof (reloc_info))
-    {
-      if (lseek (infd, reloff - linkedit_delta, L_SET)
-	  != reloff - linkedit_delta)
-	unexec_error ("rebase_reloc_table: cannot seek to reloc_info");
-      if (!unexec_read (&reloc_info, sizeof (reloc_info)))
-	unexec_error ("rebase_reloc_table: cannot read reloc_info");
-
-      if (sc_reloc_info->r_scattered == 0
-	  && reloc_info.r_type == GENERIC_RELOC_VANILLA)
-	{
-	  reloc_info.r_address -= diff;
-	  if (!unexec_write (reloff, &reloc_info, sizeof (reloc_info)))
-	    unexec_error ("rebase_reloc_table: cannot write reloc_info");
-	}
-    }
-}
-#endif
 
 /* Copy a LC_DYSYMTAB load command from the input file to the output
    file, adjusting the file offset fields.  */
@@ -1069,28 +1048,8 @@ copy_dysymtab (struct load_command *lc, long delta)
   vm_address_t base;
 
 #ifdef _LP64
-#if __ppc64__
-  {
-    int i;
-
-    base = 0;
-    for (i = 0; i < nlc; i++)
-      if (lca[i]->cmd == LC_SEGMENT)
-	{
-	  struct segment_command *scp = (struct segment_command *) lca[i];
-
-	  if (scp->vmaddr + scp->vmsize > 0x100000000
-	      && (scp->initprot & VM_PROT_WRITE) != 0)
-	    {
-	      base = data_segment_scp->vmaddr;
-	      break;
-	    }
-	}
-  }
-#else
   /* First writable segment address.  */
   base = data_segment_scp->vmaddr;
-#endif
 #else
   /* First segment address in the file (unless MH_SPLIT_SEGS set). */
   base = 0;
@@ -1116,29 +1075,6 @@ copy_dysymtab (struct load_command *lc, long delta)
     unexec_error ("cannot write symtab command to header");
 
   curr_header_offset += lc->cmdsize;
-
-#if __ppc64__
-  /* Check if the relocation base needs to be changed.  */
-  if (base == 0)
-    {
-      vm_address_t newbase = 0;
-      int i;
-
-      for (i = 0; i < num_unexec_regions; i++)
-	if (unexec_regions[i].range.address + unexec_regions[i].range.size
-	    > 0x100000000)
-	  {
-	    newbase = data_segment_scp->vmaddr;
-	    break;
-	  }
-
-      if (newbase)
-	{
-	  rebase_reloc_address (dstp->locreloff, dstp->nlocrel, delta, newbase);
-	  rebase_reloc_address (dstp->extreloff, dstp->nextrel, delta, newbase);
-	}
-    }
-#endif
 }
 
 /* Copy a LC_TWOLEVEL_HINTS load command from the input file to the output
@@ -1302,7 +1238,9 @@ dump_it (void)
       }
 
   if (curr_header_offset > text_seg_lowest_offset)
-    unexec_error ("not enough room for load commands for new __DATA segments");
+    unexec_error ("not enough room for load commands for new __DATA segments"
+		  " (increase headerpad_extra in configure.in to at least %lX)",
+		  num_unexec_regions * sizeof (struct segment_command));
 
   printf ("%ld unused bytes follow Mach-O header\n",
 	  text_seg_lowest_offset - curr_header_offset);

@@ -1,4 +1,4 @@
-# gnulib-common.m4 serial 35
+# gnulib-common.m4 serial 36
 dnl Copyright (C) 2007-2014 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -319,26 +319,28 @@ m4_ifdef([AC_PROG_MKDIR_P], [
 ])
 
 # AC_C_RESTRICT
-# This definition overrides the AC_C_RESTRICT macro from autoconf 2.60..2.61,
-# so that mixed use of GNU C and GNU C++ and mixed use of Sun C and Sun C++
-# works.
-# This definition can be removed once autoconf >= 2.62 can be assumed.
-# AC_AUTOCONF_VERSION was introduced in 2.62, so use that as the witness.
-m4_ifndef([AC_AUTOCONF_VERSION],[
+# This definition is copied from post-2.69 Autoconf and overrides the
+# AC_C_RESTRICT macro from autoconf 2.60..2.69.  It can be removed
+# once autoconf >= 2.70 can be assumed.  It's painful to check version
+# numbers, and in practice this macro is more up-to-date than Autoconf
+# is, so override Autoconf unconditionally.
 AC_DEFUN([AC_C_RESTRICT],
 [AC_CACHE_CHECK([for C/C++ restrict keyword], [ac_cv_c_restrict],
   [ac_cv_c_restrict=no
    # The order here caters to the fact that C++ does not require restrict.
    for ac_kw in __restrict __restrict__ _Restrict restrict; do
-     AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
-      [[typedef int * int_ptr;
-        int foo (int_ptr $ac_kw ip) {
-        return ip[0];
-       }]],
-      [[int s[1];
-        int * $ac_kw t = s;
-        t[0] = 0;
-        return foo(t)]])],
+     AC_COMPILE_IFELSE(
+      [AC_LANG_PROGRAM(
+	 [[typedef int *int_ptr;
+	   int foo (int_ptr $ac_kw ip) { return ip[0]; }
+	   int bar (int [$ac_kw]); /* Catch GCC bug 14050.  */
+	   int bar (int ip[$ac_kw]) { return ip[0]; }
+	 ]],
+	 [[int s[1];
+	   int *$ac_kw t = s;
+	   t[0] = 0;
+	   return foo (t) + bar (t);
+	 ]])],
       [ac_cv_c_restrict=$ac_kw])
      test "$ac_cv_c_restrict" != no && break
    done
@@ -348,21 +350,21 @@ AC_DEFUN([AC_C_RESTRICT],
    nothing if this is not supported.  Do not define if restrict is
    supported directly.  */
 #undef restrict
-/* Work around a bug in Sun C++: it does not support _Restrict, even
-   though the corresponding Sun C compiler does, which causes
-   "#define restrict _Restrict" in the previous line.  Perhaps some future
-   version of Sun C++ will work with _Restrict; if so, it'll probably
-   define __RESTRICT, just as Sun C does.  */
+/* Work around a bug in Sun C++: it does not support _Restrict or
+   __restrict__, even though the corresponding Sun C compiler ends up with
+   "#define restrict _Restrict" or "#define restrict __restrict__" in the
+   previous line.  Perhaps some future version of Sun C++ will work with
+   restrict; if so, hopefully it defines __RESTRICT like Sun C does.  */
 #if defined __SUNPRO_CC && !defined __RESTRICT
 # define _Restrict
+# define __restrict__
 #endif])
  case $ac_cv_c_restrict in
    restrict) ;;
    no) AC_DEFINE([restrict], []) ;;
    *)  AC_DEFINE_UNQUOTED([restrict], [$ac_cv_c_restrict]) ;;
  esac
-])
-])
+])# AC_C_RESTRICT
 
 # gl_BIGENDIAN
 # is like AC_C_BIGENDIAN, except that it can be AC_REQUIREd.

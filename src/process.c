@@ -173,6 +173,9 @@ close_on_exec (int fd)
   return fd;
 }
 
+# undef accept4
+# define accept4(sockfd, addr, addrlen, flags) \
+    process_accept4 (sockfd, addr, addrlen, flags)
 static int
 accept4 (int sockfd, struct sockaddr *addr, socklen_t *addrlen, int flags)
 {
@@ -596,7 +599,7 @@ status_message (struct Lisp_Process *p)
   Lisp_Object symbol;
   int code;
   bool coredump;
-  Lisp_Object string, string2;
+  Lisp_Object string;
 
   decode_status (status, &symbol, &code, &coredump);
 
@@ -620,8 +623,8 @@ status_message (struct Lisp_Process *p)
 	  if (c1 != c2)
 	    Faset (string, make_number (0), make_number (c2));
 	}
-      string2 = build_string (coredump ? " (core dumped)\n" : "\n");
-      return concat2 (string, string2);
+      AUTO_STRING (suffix, coredump ? " (core dumped)\n" : "\n");
+      return concat2 (string, suffix);
     }
   else if (EQ (symbol, Qexit))
     {
@@ -629,17 +632,17 @@ status_message (struct Lisp_Process *p)
 	return build_string (code == 0 ? "deleted\n" : "connection broken by remote peer\n");
       if (code == 0)
 	return build_string ("finished\n");
+      AUTO_STRING (prefix, "exited abnormally with code ");
       string = Fnumber_to_string (make_number (code));
-      string2 = build_string (coredump ? " (core dumped)\n" : "\n");
-      return concat3 (build_string ("exited abnormally with code "),
-		      string, string2);
+      AUTO_STRING (suffix, coredump ? " (core dumped)\n" : "\n");
+      return concat3 (prefix, string, suffix);
     }
   else if (EQ (symbol, Qfailed))
     {
+      AUTO_STRING (prefix, "failed with code ");
       string = Fnumber_to_string (make_number (code));
-      string2 = build_string ("\n");
-      return concat3 (build_string ("failed with code "),
-		      string, string2);
+      AUTO_STRING (suffix, "\n");
+      return concat3 (prefix, string, suffix);
     }
   else
     return Fcopy_sequence (Fsymbol_name (symbol));
@@ -1302,29 +1305,33 @@ Returns nil if format of ADDRESS is invalid.  */)
       ptrdiff_t size = p->header.size;
       Lisp_Object args[10];
       int nargs, i;
+      char const *format;
 
       if (size == 4 || (size == 5 && !NILP (omit_port)))
 	{
-	  args[0] = build_string ("%d.%d.%d.%d");
+	  format = "%d.%d.%d.%d";
 	  nargs = 4;
 	}
       else if (size == 5)
 	{
-	  args[0] = build_string ("%d.%d.%d.%d:%d");
+	  format = "%d.%d.%d.%d:%d";
 	  nargs = 5;
 	}
       else if (size == 8 || (size == 9 && !NILP (omit_port)))
 	{
-	  args[0] = build_string ("%x:%x:%x:%x:%x:%x:%x:%x");
+	  format = "%x:%x:%x:%x:%x:%x:%x:%x";
 	  nargs = 8;
 	}
       else if (size == 9)
 	{
-	  args[0] = build_string ("[%x:%x:%x:%x:%x:%x:%x:%x]:%d");
+	  format = "[%x:%x:%x:%x:%x:%x:%x:%x]:%d";
 	  nargs = 9;
 	}
       else
 	return Qnil;
+
+      AUTO_STRING (format_obj, format);
+      args[0] = format_obj;
 
       for (i = 0; i < nargs; i++)
 	{
@@ -1339,15 +1346,13 @@ Returns nil if format of ADDRESS is invalid.  */)
 	  args[i+1] = p->contents[i];
 	}
 
-      return Fformat (nargs+1, args);
+      return Fformat (nargs + 1, args);
     }
 
   if (CONSP (address))
     {
-      Lisp_Object args[2];
-      args[0] = build_string ("<Family %d>");
-      args[1] = Fcar (address);
-      return Fformat (2, args);
+      AUTO_STRING (format, "<Family %d>");
+      return Fformat (2, (Lisp_Object []) {format, Fcar (address)});
     }
 
   return Qnil;
@@ -1386,9 +1391,10 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
   Lisp_Object buffer, name, program, proc, current_dir, tem;
-  register unsigned char **new_argv;
+  unsigned char **new_argv;
   ptrdiff_t i;
   ptrdiff_t count = SPECPDL_INDEX ();
+  USE_SAFE_ALLOCA;
 
   buffer = args[1];
   if (!NILP (buffer))
@@ -1464,7 +1470,7 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
     val = Vcoding_system_for_read;
     if (NILP (val))
       {
-	args2 = alloca ((nargs + 1) * sizeof *args2);
+	SAFE_ALLOCA_LISP (args2, nargs + 1);
 	args2[0] = Qstart_process;
 	for (i = 0; i < nargs; i++) args2[i + 1] = args[i];
 	GCPRO2 (proc, current_dir);
@@ -1483,7 +1489,7 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
       {
 	if (EQ (coding_systems, Qt))
 	  {
-	    args2 = alloca ((nargs + 1) * sizeof *args2);
+	    SAFE_ALLOCA_LISP (args2, nargs + 1);
 	    args2[0] = Qstart_process;
 	    for (i = 0; i < nargs; i++) args2[i + 1] = args[i];
 	    GCPRO2 (proc, current_dir);
@@ -1578,7 +1584,7 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
 
       /* Now that everything is encoded we can collect the strings into
 	 NEW_ARGV.  */
-      new_argv = alloca ((nargs - 1) * sizeof *new_argv);
+      SAFE_NALLOCA (new_argv, 1, nargs - 1);
       new_argv[nargs - 2] = 0;
 
       for (i = nargs - 2; i-- != 0; )
@@ -1592,6 +1598,7 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
   else
     create_pty (proc);
 
+  SAFE_FREE ();
   return unbind_to (count, proc);
 }
 
@@ -2071,8 +2078,10 @@ get_lisp_to_sockaddr_size (Lisp_Object address, int *familyp)
 	   && VECTORP (XCDR (address)))
     {
       struct sockaddr *sa;
-      *familyp = XINT (XCAR (address));
       p = XVECTOR (XCDR (address));
+      if (MAX_ALLOCA - sizeof sa->sa_family < p->header.size)
+	return 0;
+      *familyp = XINT (XCAR (address));
       return p->header.size + sizeof (sa->sa_family);
     }
   return 0;
@@ -2989,7 +2998,7 @@ usage: (make-network-process &rest ARGS)  */)
       address_un.sun_family = AF_LOCAL;
       if (sizeof address_un.sun_path <= SBYTES (service))
 	error ("Service name too long");
-      strcpy (address_un.sun_path, SSDATA (service));
+      lispstpcpy (address_un.sun_path, service);
       ai.ai_addr = (struct sockaddr *) &address_un;
       ai.ai_addrlen = sizeof address_un;
       goto open_socket;
@@ -3680,7 +3689,7 @@ network_interface_info (Lisp_Object ifname)
 
   if (sizeof rq.ifr_name <= SBYTES (ifname))
     error ("interface name too long");
-  strcpy (rq.ifr_name, SSDATA (ifname));
+  lispstpcpy (rq.ifr_name, ifname);
 
   s = socket (AF_INET, SOCK_STREAM | SOCK_CLOEXEC, 0);
   if (s < 0)
@@ -4057,20 +4066,15 @@ server_accept_connection (Lisp_Object server, int channel)
     {
     case AF_INET:
       {
-	Lisp_Object args[5];
 	unsigned char *ip = (unsigned char *)&saddr.in.sin_addr.s_addr;
-	args[0] = build_string ("%d.%d.%d.%d");
-	args[1] = make_number (*ip++);
-	args[2] = make_number (*ip++);
-	args[3] = make_number (*ip++);
-	args[4] = make_number (*ip++);
-	host = Fformat (5, args);
-	service = make_number (ntohs (saddr.in.sin_port));
 
-	args[0] = build_string (" <%s:%d>");
-	args[1] = host;
-	args[2] = service;
-	caller = Fformat (3, args);
+	AUTO_STRING (ipv4_format, "%d.%d.%d.%d");
+	host = Fformat (5, ((Lisp_Object [])
+	  { ipv4_format, make_number (ip[0]),
+	    make_number (ip[1]), make_number (ip[2]), make_number (ip[3]) }));
+	service = make_number (ntohs (saddr.in.sin_port));
+	AUTO_STRING (caller_format, " <%s:%d>");
+	caller = Fformat (3, (Lisp_Object []) {caller_format, host, service});
       }
       break;
 
@@ -4080,16 +4084,15 @@ server_accept_connection (Lisp_Object server, int channel)
 	Lisp_Object args[9];
 	uint16_t *ip6 = (uint16_t *)&saddr.in6.sin6_addr;
 	int i;
-	args[0] = build_string ("%x:%x:%x:%x:%x:%x:%x:%x");
+
+	AUTO_STRING (ipv6_format, "%x:%x:%x:%x:%x:%x:%x:%x");
+	args[0] = ipv6_format;
 	for (i = 0; i < 8; i++)
-	  args[i+1] = make_number (ntohs (ip6[i]));
+	  args[i + 1] = make_number (ntohs (ip6[i]));
 	host = Fformat (9, args);
 	service = make_number (ntohs (saddr.in.sin_port));
-
-	args[0] = build_string (" <[%s]:%d>");
-	args[1] = host;
-	args[2] = service;
-	caller = Fformat (3, args);
+	AUTO_STRING (caller_format, " <[%s]:%d>");
+	caller = Fformat (3, (Lisp_Object []) {caller_format, host, service});
       }
       break;
 #endif
@@ -4099,7 +4102,9 @@ server_accept_connection (Lisp_Object server, int channel)
 #endif
     default:
       caller = Fnumber_to_string (make_number (connect_counter));
-      caller = concat3 (build_string (" <"), caller, build_string (">"));
+      AUTO_STRING (space_less_than, " <");
+      AUTO_STRING (greater_than, ">");
+      caller = concat3 (space_less_than, caller, greater_than);
       break;
     }
 
@@ -4196,16 +4201,18 @@ server_accept_connection (Lisp_Object server, int channel)
   p->inherit_coding_system_flag
     = (NILP (buffer) ? 0 : ps->inherit_coding_system_flag);
 
-  if (!NILP (ps->log))
-      call3 (ps->log, server, proc,
-	     concat3 (build_string ("accept from "),
-		      (STRINGP (host) ? host : build_string ("-")),
-		      build_string ("\n")));
+  AUTO_STRING (dash, "-");
+  AUTO_STRING (nl, "\n");
+  Lisp_Object host_string = STRINGP (host) ? host : dash;
 
-  exec_sentinel (proc,
-		 concat3 (build_string ("open from "),
-			  (STRINGP (host) ? host : build_string ("-")),
-			  build_string ("\n")));
+  if (!NILP (ps->log))
+    {
+      AUTO_STRING (accept_from, "accept from ");
+      call3 (ps->log, server, proc, concat3 (accept_from, host_string, nl));
+    }
+
+  AUTO_STRING (open_from, "open from ");
+  exec_sentinel (proc, concat3 (open_from, host_string, nl));
 }
 
 /* This variable is different from waiting_for_input in keyboard.c.
@@ -4973,18 +4980,17 @@ read_and_dispose_of_process_output (struct Lisp_Process *p, char *chars,
    for decoding.  */
 
 static int
-read_process_output (Lisp_Object proc, register int channel)
+read_process_output (Lisp_Object proc, int channel)
 {
-  register ssize_t nbytes;
-  char *chars;
-  register struct Lisp_Process *p = XPROCESS (proc);
+  ssize_t nbytes;
+  struct Lisp_Process *p = XPROCESS (proc);
   struct coding_system *coding = proc_decode_coding_system[channel];
   int carryover = p->decoding_carryover;
-  int readmax = 4096;
+  enum { readmax = 4096 };
   ptrdiff_t count = SPECPDL_INDEX ();
   Lisp_Object odeactivate;
+  char chars[sizeof coding->carryover + readmax];
 
-  chars = alloca (carryover + readmax);
   if (carryover)
     /* See the comment above.  */
     memcpy (chars, SDATA (p->decoding_buf), carryover);
@@ -6837,7 +6843,7 @@ add_timer_wait_descriptor (int fd)
 {
   FD_SET (fd, &input_wait_mask);
   FD_SET (fd, &non_keyboard_wait_mask);
-  FD_SET (fd, &non_process_wait_mask);  
+  FD_SET (fd, &non_process_wait_mask);
   fd_callback_info[fd].func = timerfd_callback;
   fd_callback_info[fd].data = NULL;
   fd_callback_info[fd].condition |= FOR_READ;

@@ -615,10 +615,13 @@ spacing between calls.
 @end example
 @end defun
 
-@defun terpri &optional stream
+@defun terpri &optional stream ensure
 @cindex newline in print
-This function outputs a newline to @var{stream}.  The name stands
-for ``terminate print''.
+This function outputs a newline to @var{stream}.  The name stands for
+``terminate print''.  If @var{ensure} is non-nil no newline is printed
+if @var{stream} is already at the beginning of a line.  Note in this
+case @var{stream} can not be a function and an error is signalled if
+it is.  This function returns @code{t} if a newline is printed.
 @end defun
 
 @defun write-char character &optional stream

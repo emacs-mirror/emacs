@@ -172,6 +172,9 @@ extern reg_syntax_t re_syntax_options;
 extern Lisp_Object re_match_object;
 #endif
 
+/* Roughly the maximum number of failure points on the stack.  */
+extern size_t re_max_failures;
+
 
 /* Define combinations of the above bits for the standard possibilities.
    (The [[[ comments delimit what gets put into the Texinfo file, so

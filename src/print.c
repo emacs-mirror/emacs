@@ -58,6 +58,9 @@ static ptrdiff_t new_backquote_output;
 #define PRINT_CIRCLE 200
 static Lisp_Object being_printed[PRINT_CIRCLE];
 
+/* Last char printed to stdout by printchar.  */
+static unsigned int printchar_stdout_last;
+
 /* When printing into a buffer, first we put the text in this
    block, then insert it all at once.  */
 static char *print_buffer;
@@ -169,11 +172,13 @@ bool print_output_debug_flag EXTERNALLY_VISIBLE = 1;
        if (print_buffer_pos != print_buffer_pos_byte			\
 	   && NILP (BVAR (current_buffer, enable_multibyte_characters)))\
 	 {								\
-	   unsigned char *temp = alloca (print_buffer_pos + 1);		\
+	   USE_SAFE_ALLOCA;						\
+	   unsigned char *temp = SAFE_ALLOCA (print_buffer_pos + 1);	\
 	   copy_text ((unsigned char *) print_buffer, temp,		\
 		      print_buffer_pos_byte, 1, 0);			\
 	   insert_1_both ((char *) temp, print_buffer_pos,		\
 			  print_buffer_pos, 0, 1, 0);			\
+	   SAFE_FREE ();						\
 	 }								\
        else								\
 	 insert_1_both (print_buffer, print_buffer_pos,			\
@@ -236,6 +241,7 @@ printchar (unsigned int ch, Lisp_Object fun)
 	}
       else if (noninteractive)
 	{
+	  printchar_stdout_last = ch;
 	  fwrite (str, 1, len, stdout);
 	  noninteractive_need_newline = 1;
 	}
@@ -513,19 +519,33 @@ static void print_preprocess (Lisp_Object);
 static void print_preprocess_string (INTERVAL, Lisp_Object);
 static void print_object (Lisp_Object, Lisp_Object, bool);
 
-DEFUN ("terpri", Fterpri, Sterpri, 0, 1, 0,
+DEFUN ("terpri", Fterpri, Sterpri, 0, 2, 0,
        doc: /* Output a newline to stream PRINTCHARFUN.
+If ENSURE is non-nil only output a newline if not already at the
+beginning of a line.  Value is non-nil if a newline is printed.
 If PRINTCHARFUN is omitted or nil, the value of `standard-output' is used.  */)
-  (Lisp_Object printcharfun)
+  (Lisp_Object printcharfun, Lisp_Object ensure)
 {
-  PRINTDECLARE;
+  Lisp_Object val = Qnil;
 
+  PRINTDECLARE;
   if (NILP (printcharfun))
     printcharfun = Vstandard_output;
   PRINTPREPARE;
-  PRINTCHAR ('\n');
+
+  if (NILP (ensure))
+    val = Qt;
+  /* Difficult to check if at line beginning so abort.  */
+  else if (FUNCTIONP (printcharfun))
+    signal_error ("Unsupported function argument", printcharfun);
+  else if (noninteractive && !NILP (printcharfun))
+    val = printchar_stdout_last == 10 ? Qnil : Qt;
+  else if (NILP (Fbolp ()))
+    val = Qt;
+
+  if (!NILP (val)) PRINTCHAR ('\n');
   PRINTFINISH;
-  return Qt;
+  return val;
 }
 
 DEFUN ("prin1", Fprin1, Sprin1, 1, 2, 0,
@@ -581,7 +601,6 @@ A printed representation of an object is text which describes that object.  */)
 {
   Lisp_Object printcharfun;
   bool prev_abort_on_gc;
-  /* struct gcpro gcpro1, gcpro2; */
   Lisp_Object save_deactivate_mark;
   ptrdiff_t count = SPECPDL_INDEX ();
   struct buffer *previous;
@@ -595,7 +614,6 @@ A printed representation of an object is text which describes that object.  */)
        but we don't want to deactivate the mark just for that.
        No need for specbind, since errors deactivate the mark.  */
     save_deactivate_mark = Vdeactivate_mark;
-    /* GCPRO2 (object, save_deactivate_mark); */
     prev_abort_on_gc = abort_on_gc;
     abort_on_gc = 1;
 
@@ -619,7 +637,6 @@ A printed representation of an object is text which describes that object.  */)
   set_buffer_internal (previous);
 
   Vdeactivate_mark = save_deactivate_mark;
-  /* UNGCPRO; */
 
   abort_on_gc = prev_abort_on_gc;
   return unbind_to (count, object);

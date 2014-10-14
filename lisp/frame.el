@@ -1,4 +1,4 @@
-;;; frame.el --- multi-frame management independent of window systems
+;;; frame.el --- multi-frame management independent of window systems  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1993-1994, 1996-1997, 2000-2014 Free Software Foundation, Inc.
 
@@ -26,21 +26,39 @@
 ;;; Code:
 (eval-when-compile (require 'cl-lib))
 
-(defvar frame-creation-function-alist
-  (list (cons nil
-	      (if (fboundp 'tty-create-frame-with-faces)
-		  'tty-create-frame-with-faces
-                (lambda (_parameters)
-                  (error "Can't create multiple frames without a window system")))))
-  "Alist of window-system dependent functions to call to create a new frame.
+;; Dispatch tables for GUI methods.
+
+(defun gui-method--name (base)
+  (intern (format "%s-alist" base)))
+
+(defmacro gui-method (name &optional type)
+  (macroexp-let2 nil type (or type `(framep (selected-frame)))
+    `(alist-get ,type ,(gui-method--name name)
+                (lambda (&rest _args)
+                  (error "No method %S for %S frame" ',name ,type)))))
+
+(defmacro gui-method-define (name type fun)
+  `(setf (gui-method ,name ',type) ,fun))
+
+(defmacro gui-method-declare (name &optional tty-fun doc)
+  (declare (doc-string 3) (indent 2))
+  `(defvar ,(gui-method--name name)
+     ,(if tty-fun `(list (cons t ,tty-fun))) ,doc))
+
+(defmacro gui-call (name &rest args)
+  `(funcall (gui-method ,name) ,@args))
+
+(gui-method-declare frame-creation-function
+    #'tty-create-frame-with-faces
+  "Method for window-system dependent functions to create a new frame.
 The window system startup file should add its frame creation
-function to this list, which should take an alist of parameters
+function to this method, which should take an alist of parameters
 as its argument.")
 
 (defvar window-system-default-frame-alist nil
   "Window-system dependent default frame parameters.
 The value should be an alist of elements (WINDOW-SYSTEM . ALIST),
-where WINDOW-SYSTEM is a window system symbol (see `window-system')
+where WINDOW-SYSTEM is a window system symbol (as returned by `framep')
 and ALIST is a frame parameter alist like `default-frame-alist'.
 Then, for frames on WINDOW-SYSTEM, any parameters specified in
 ALIST supersede the corresponding parameters specified in
@@ -174,10 +192,6 @@ This function runs the hook `focus-out-hook'."
 	    (progn
 	      (setq frame-initial-frame-alist
 		    (append initial-frame-alist default-frame-alist nil))
-	      (or (assq 'horizontal-scroll-bars frame-initial-frame-alist)
-		  (setq frame-initial-frame-alist
-			(cons '(horizontal-scroll-bars . t)
-			      frame-initial-frame-alist)))
 	      (setq frame-initial-frame-alist
 		    (cons (cons 'window-system initial-window-system)
 			  frame-initial-frame-alist))
@@ -632,30 +646,29 @@ frame the selected frame.  However, the window system may select
 the new frame according to its own rules."
   (interactive)
   (let* ((display (cdr (assq 'display parameters)))
-         (w (cond
-	     ((assq 'terminal parameters)
-	      (let ((type (terminal-live-p (cdr (assq 'terminal parameters)))))
-		(cond
-		 ((eq type t) nil)
-		 ((eq type nil) (error "Terminal %s does not exist"
-                                       (cdr (assq 'terminal parameters))))
-		 (t type))))
-	     ((assq 'window-system parameters)
-	      (cdr (assq 'window-system parameters)))
-             (display
-              (or (window-system-for-display display)
-                  (error "Don't know how to interpret display %S"
-                         display)))
-	     (t window-system)))
-	 (frame-creation-function (cdr (assq w frame-creation-function-alist)))
+         (w (or
+             (cond
+              ((assq 'terminal parameters)
+               (let ((type (terminal-live-p
+                            (cdr (assq 'terminal parameters)))))
+                 (cond
+                  ((null type) (error "Terminal %s does not exist"
+                                      (cdr (assq 'terminal parameters))))
+                  (t type))))
+              ((assq 'window-system parameters)
+               (cdr (assq 'window-system parameters)))
+              (display
+               (or (window-system-for-display display)
+                   (error "Don't know how to interpret display %S"
+                          display)))
+              (t window-system))
+             t))
 	 (oldframe (selected-frame))
 	 (params parameters)
 	 frame)
-    (unless frame-creation-function
-      (error "Don't know how to create a frame on window system %s" w))
 
     (unless (get w 'window-system-initialized)
-      (funcall (cdr (assq w window-system-initialization-alist)) display)
+      (funcall (gui-method window-system-initialization w) display)
       (setq x-display-name display)
       (put w 'window-system-initialized t))
 
@@ -669,7 +682,8 @@ the new frame according to its own rules."
 	(push p params)))
     ;; Now make the frame.
     (run-hooks 'before-make-frame-hook)
-    (setq frame (funcall frame-creation-function params))
+    (setq frame
+          (funcall (gui-method frame-creation-function w) params))
     (normal-erase-is-backspace-setup-frame frame)
     ;; Inherit the original frame's parameters.
     (dolist (param frame-inherited-parameters)
@@ -1252,20 +1266,22 @@ On graphical displays, it is displayed on the frame's title bar."
 			   (list (cons 'name name))))
 
 (defun frame-current-scroll-bars (&optional frame)
-  "Return the current scroll-bar settings in frame FRAME.
-Value is a cons (VERTICAL . HORIZ0NTAL) where VERTICAL specifies the
-current location of the vertical scroll-bars (left, right, or nil),
-and HORIZONTAL specifies the current location of the horizontal scroll
-bars (top, bottom, or nil)."
-  (let ((vert (frame-parameter frame 'vertical-scroll-bars))
-	(hor nil))
-    (unless (memq vert '(left right nil))
-      (setq vert default-frame-scroll-bars))
-    (cons vert hor)))
+  "Return the current scroll-bar types for frame FRAME.
+Value is a cons (VERTICAL . HORIZ0NTAL) where VERTICAL specifies
+the current location of the vertical scroll-bars (`left', `right'
+or nil), and HORIZONTAL specifies the current location of the
+horizontal scroll bars (`bottom' or nil).  FRAME must specify a
+live frame and defaults to the selected one."
+  (let* ((frame (window-normalize-frame frame))
+	 (vertical (frame-parameter frame 'vertical-scroll-bars))
+	 (horizontal (frame-parameter frame 'horizontal-scroll-bars)))
+    (unless (memq vertical '(left right nil))
+      (setq vertical default-frame-scroll-bars))
+    (cons vertical (and horizontal 'bottom))))
 
 (defun frame-monitor-attributes (&optional frame)
   "Return the attributes of the physical monitor dominating FRAME.
-If FRAME is omitted, describe the currently selected frame.
+If FRAME is omitted or nil, describe the currently selected frame.
 
 A frame is dominated by a physical monitor when either the
 largest area of the frame resides in the monitor, or the monitor
@@ -1357,6 +1373,7 @@ frame's display)."
 
 (defun display-screens (&optional display)
   "Return the number of screens associated with DISPLAY.
+DISPLAY should be either a frame or a display name (a string).
 If DISPLAY is omitted or nil, it defaults to the selected frame's display."
   (let ((frame-type (framep-on-display display)))
     (cond
@@ -1369,6 +1386,7 @@ If DISPLAY is omitted or nil, it defaults to the selected frame's display."
 
 (defun display-pixel-height (&optional display)
   "Return the height of DISPLAY's screen in pixels.
+DISPLAY can be a display name or a frame.
 If DISPLAY is omitted or nil, it defaults to the selected frame's display.
 
 For character terminals, each character counts as a single pixel.
@@ -1388,6 +1406,7 @@ with DISPLAY.  To get information for each physical monitor, use
 
 (defun display-pixel-width (&optional display)
   "Return the width of DISPLAY's screen in pixels.
+DISPLAY can be a display name or a frame.
 If DISPLAY is omitted or nil, it defaults to the selected frame's display.
 
 For character terminals, each character counts as a single pixel.
@@ -1426,6 +1445,7 @@ not explicitly specified."
 (defun display-mm-height (&optional display)
   "Return the height of DISPLAY's screen in millimeters.
 If the information is unavailable, this function returns nil.
+DISPLAY can be a display name or a frame.
 If DISPLAY is omitted or nil, it defaults to the selected frame's display.
 
 You can override what the system thinks the result should be by
@@ -1446,6 +1466,7 @@ monitor, use `display-monitor-attributes-list'."
 (defun display-mm-width (&optional display)
   "Return the width of DISPLAY's screen in millimeters.
 If the information is unavailable, this function returns nil.
+DISPLAY can be a display name or a frame.
 If DISPLAY is omitted or nil, it defaults to the selected frame's display.
 
 You can override what the system thinks the result should be by
@@ -1469,6 +1490,7 @@ monitor, use `display-monitor-attributes-list'."
   "Return the backing store capability of DISPLAY's screen.
 The value may be `always', `when-mapped', `not-useful', or nil if
 the question is inapplicable to a certain kind of display.
+DISPLAY can be a display name or a frame.
 If DISPLAY is omitted or nil, it defaults to the selected frame's display."
   (let ((frame-type (framep-on-display display)))
     (cond
@@ -1481,6 +1503,7 @@ If DISPLAY is omitted or nil, it defaults to the selected frame's display."
 
 (defun display-save-under (&optional display)
   "Return non-nil if DISPLAY's screen supports the SaveUnder feature.
+DISPLAY can be a display name or a frame.
 If DISPLAY is omitted or nil, it defaults to the selected frame's display."
   (let ((frame-type (framep-on-display display)))
     (cond
@@ -1493,6 +1516,7 @@ If DISPLAY is omitted or nil, it defaults to the selected frame's display."
 
 (defun display-planes (&optional display)
   "Return the number of planes supported by DISPLAY.
+DISPLAY can be a display name or a frame.
 If DISPLAY is omitted or nil, it defaults to the selected frame's display."
   (let ((frame-type (framep-on-display display)))
     (cond
@@ -1507,6 +1531,7 @@ If DISPLAY is omitted or nil, it defaults to the selected frame's display."
 
 (defun display-color-cells (&optional display)
   "Return the number of color cells supported by DISPLAY.
+DISPLAY can be a display name or a frame.
 If DISPLAY is omitted or nil, it defaults to the selected frame's display."
   (let ((frame-type (framep-on-display display)))
     (cond
@@ -1523,6 +1548,7 @@ If DISPLAY is omitted or nil, it defaults to the selected frame's display."
   "Return the visual class of DISPLAY.
 The value is one of the symbols `static-gray', `gray-scale',
 `static-color', `pseudo-color', `true-color', or `direct-color'.
+DISPLAY can be a display name or a frame.
 If DISPLAY is omitted or nil, it defaults to the selected frame's display."
   (let ((frame-type (framep-on-display display)))
     (cond
@@ -1543,33 +1569,43 @@ If DISPLAY is omitted or nil, it defaults to the selected frame's display."
 
 (defun display-monitor-attributes-list (&optional display)
   "Return a list of physical monitor attributes on DISPLAY.
-Each element of the list represents the attributes of each
-physical monitor.  The first element corresponds to the primary
-monitor.
+DISPLAY can be a display name, a terminal name, or a frame.
+If DISPLAY is omitted or nil, it defaults to the selected frame's display.
+Each element of the list represents the attributes of a physical
+monitor.  The first element corresponds to the primary monitor.
 
-Attributes for a physical monitor is represented as an alist of
-attribute keys and values as follows:
+The attributes for a physical monitor are represented as an alist
+of attribute keys and values as follows:
 
- geometry -- Position and size in pixels in the form of
-	     (X Y WIDTH HEIGHT)
- workarea -- Position and size of the workarea in pixels in the
+ geometry -- Position and size in pixels in the form of (X Y WIDTH HEIGHT)
+ workarea -- Position and size of the work area in pixels in the
 	     form of (X Y WIDTH HEIGHT)
  mm-size  -- Width and height in millimeters in the form of
  	     (WIDTH HEIGHT)
  frames   -- List of frames dominated by the physical monitor
  name (*) -- Name of the physical monitor as a string
+ source (*) -- Source of multi-monitor information as a string
 
-where X, Y, WIDTH, and HEIGHT are integers.  Keys labeled
-with (*) are optional.
+where X, Y, WIDTH, and HEIGHT are integers.  X and Y are coordinates
+of the top-left corner, and might be negative for monitors other than
+the primary one.  Keys labeled with (*) are optional.
+
+The \"work area\" is a measure of the \"usable\" display space.
+It may be less than the total screen size, owing to space taken up
+by window manager features (docks, taskbars, etc.).  The precise
+details depend on the platform and environment.
+
+The `source' attribute describes the source from which the information
+was obtained.  On X, this may be one of: \"Gdk\", \"XRandr\", \"Xinerama\",
+or \"fallback\".
 
 A frame is dominated by a physical monitor when either the
 largest area of the frame resides in the monitor, or the monitor
 is the closest to the frame if the frame does not intersect any
-physical monitors.  Every non-tip frame (including invisible one)
+physical monitors.  Every (non-tooltip) frame (including invisible ones)
 in a graphical display is dominated by exactly one physical
 monitor at a time, though it can span multiple (or no) physical
-monitors.
-If DISPLAY is omitted or nil, it defaults to the selected frame's display."
+monitors."
   (let ((frame-type (framep-on-display display)))
     (cond
      ((eq frame-type 'x)
@@ -1820,6 +1856,11 @@ If the frame is in fullscreen mode, don't change its mode,
 just toggle the temporary frame parameter `maximized',
 so the frame will go to the right maximization state
 after disabling fullscreen mode.
+
+Note that with some window managers you may have to set
+`frame-resize-pixelwise' to non-nil in order to make a frame
+appear truly maximized.
+
 See also `toggle-frame-fullscreen'."
   (interactive)
   (if (memq (frame-parameter nil 'fullscreen) '(fullscreen fullboth))
@@ -1841,6 +1882,11 @@ already fullscreen.  Ignore window manager screen decorations.
 When turning on fullscreen mode, remember the previous value of the
 maximization state in the temporary frame parameter `maximized'.
 Restore the maximization state when turning off fullscreen mode.
+
+Note that with some window managers you may have to set
+`frame-resize-pixelwise' to non-nil in order to make a frame
+appear truly fullscreen.
+
 See also `toggle-frame-maximized'."
   (interactive)
   (modify-frame-parameters

@@ -1,4 +1,4 @@
-;;; ibuf-macs.el --- macros for ibuffer
+;;; ibuf-macs.el --- macros for ibuffer  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2000-2014 Free Software Foundation, Inc.
 
@@ -111,6 +111,7 @@ change its definition, you should explicitly call
        ,(if inline
 	    `(push '(,sym ,bod) ibuffer-inline-columns)
 	  `(defun ,sym (buffer mark)
+             (ignore mark)            ;Silence byte-compiler if mark is unused.
 	     ,bod))
        (put (quote ,sym) 'ibuffer-column-name
 	    ,(if (stringp name)
@@ -204,7 +205,8 @@ macro for exactly what it does.
   (declare (indent 2) (doc-string 3))
   `(progn
      (defun ,(intern (concat (if (string-match "^ibuffer-do" (symbol-name op))
-				 "" "ibuffer-do-") (symbol-name op)))
+				 "" "ibuffer-do-")
+                             (symbol-name op)))
        ,args
        ,(if (stringp documentation)
 	    documentation
@@ -247,6 +249,9 @@ macro for exactly what it does.
 				   (_
 				    'ibuffer-map-marked-lines))
 				#'(lambda (buf mark)
+                                    ;; Silence warning for code that doesn't
+                                    ;; use `mark'.
+                                    (ignore mark)
 				    ,(if (eq modifier-p :maybe)
 					 `(let ((ibuffer-tmp-previous-buffer-modification
 						 (buffer-modified-p buf)))

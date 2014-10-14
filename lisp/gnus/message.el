@@ -619,7 +619,7 @@ This may also be a list of regexps."
   "If non-nil, delete non-matching headers when forwarding a message.
 Only headers that match this regexp will be included.  This
 variable should be a regexp or a list of regexps."
-  :version "24.5"
+  :version "25.1"
   :group 'message-forwarding
   :type '(repeat :value-to-internal (lambda (widget value)
 				      (custom-split-regexp-maybe value))

@@ -1,8 +1,8 @@
 \input texinfo   @c -*-texinfo-*-
 @comment %**start of header
 @setfilename ../../info/newsticker.info
-@set VERSION 1.99
-@set UPDATED June 2008
+@include emacsver.texi
+@set VERSION @value{EMACSVER}
 @settitle Newsticker @value{VERSION}
 @syncodeindex vr cp
 @syncodeindex fn cp
@@ -11,7 +11,8 @@
 @comment %**end of header
 
 @copying
-This manual is for Newsticker (version @value{VERSION}, @value{UPDATED}).
+This manual documents Newsticker, a feed reader for Emacs.  It
+corresponds to Emacs version @value{EMACSVER}.
 
 @noindent
 Copyright @copyright{} 2004--2014 Free Software Foundation, Inc.
@@ -31,12 +32,11 @@ modify this GNU manual.''
 
 @dircategory Emacs network features
 @direntry
-* Newsticker: (newsticker).     A Newsticker for Emacs.
+* Newsticker: (newsticker).     A feed reader for Emacs.
 @end direntry
 
 @titlepage
-@title Newsticker---a Newsticker for Emacs
-@subtitle for version @value{VERSION}, @value{UPDATED}
+@title Newsticker---a feed reader for Emacs
 @author Ulf Jasper
 @author @email{ulf.jasper@@web.de}
 @author @uref{http://ulf.epplejasper.de/}
@@ -56,136 +56,419 @@ modify this GNU manual.''
 @end ifnottex
 
 @menu
-* Overview::        General description of newsticker.
-* Requirements::    Requirements for using newsticker.
-* Installation::    Installing newsticker on your system.
-* Usage::           Basic newsticker instructions.
-* Configuration::   Customizable newsticker settings.
-* Remarks::         Remarks about newsticker.
+* Overview::             What is Newsticker?
+* Installation::         Things to do before starting Newsticker the first time.
+* Retrieving News::      How Newsticker fetches headlines.
+* Headline Management::  How Newsticker stores headlines.
+* Reading News::         How to read RSS and Atom feeds with Newsticker.
+* Automatic Processing:: Automatically process news items.
+* Configuration::        Customize Newsticker to your liking.
+* Supported Formats::    RSS and Atom formats supported by Newsticker.
+
 * GNU Free Documentation License:: The license for this documentation.
-* Index::           Variable, function, and concept index.
+* Index::                          Variable, function, and concept index.
 @end menu
 
 @node Overview
 @chapter Overview
 
-Newsticker provides a newsticker for Emacs.  A newsticker is a thing
-that asynchronously retrieves headlines from a list of news sites,
-prepares these headlines for reading, and allows for loading the
-corresponding articles in a web browser.
+Newsticker provides a @b{Feed Reader} for Emacs.  It retrieves
+headlines from a list of news sites, processes them, and provides
+frontends for reading and managing them. (Standard headline formats
+are RSS and Atom which makes Newsticker an ``RSS Reader'', ``Atom
+Reader'' or ``Feed Aggregator''.)
 
+Headlines (or news items) consist of a title, (mostly) a description,
+and a link to the full story. The description may be a brief summary
+in plain text or a full HTML-formatted article.  A headline may carry
+enclosed data such as images, audio or video files, typically in the
+case of so ``podcast feeds''.
 
-Headlines consist of a title and (possibly) a small description.  They
-are contained in ``RSS'' (RDF Site Summary) or ``Atom'' files.  Newsticker
-works with the following RSS formats:
-
-@itemize
-@item RSS 0.91 (see @uref{http://backend.userland.com/rss091} or
-@uref{http://my.netscape.com/publish/formats/rss-spec-0.91.html}),
-@item RSS 0.92 (see @uref{http://backend.userland.com/rss092}),
-@item RSS 1.0 (see @uref{http://purl.org/rss/1.0/spec}
-@item RSS 2.0 (see @uref{http://blogs.law.harvard.edu/tech/rss}),
-@end itemize
-@itemize
-as well as the following Atom formats:
-@item Atom 0.3
-@item Atom 1.0 (see
-@uref{https://datatracker.ietf.org/doc/rfc4287/}).
-@end itemize
-
-That makes Newsticker.el an ``Atom aggregator'', ``RSS reader'', ``Feed
-aggregator'', or ``Feed reader''.
-
-Newsticker provides several commands for reading headlines, navigating
-through them, marking them as read/unread, hiding old headlines etc.
-Headlines can be displayed as plain text or as rendered HTML.
-
-Headlines can be displayed in the echo area, either scrolling like
-messages in a stock-quote ticker, or just changing.
-
-Newsticker allows for automatic processing of headlines by providing
-hooks and (sample) functions for automatically downloading images and
-enclosed files (as delivered by, e.g., podcasts).
-
-@ignore
-@ifhtml
-Here are screen shots of the @uref{newsticker-1.7.png, version 1.7
-(current version)} and some older screen shots:
-@uref{newsticker-1.6.png, version 1.6},
-@uref{newsticker-1.5.png, version 1.5},
-@uref{newsticker-1.4.png, version 1.4}
-@uref{newsticker-1.3.png, version 1.3},
-@uref{newsticker-1.0.png, version 1.0}.
-@end ifhtml
-@end ignore
-
-@node Requirements
-@chapter Requirements
-
-Newsticker can be used with
-@uref{http://www.gnu.org/software/emacs/emacs.html, GNU Emacs} version
-21.1 or later as well as @uref{http://www.xemacs.org, XEmacs}.  It
-requires an XML-parser (@file{xml.el}), which is part of GNU Emacs.  If
-you are using XEmacs you want to get the @file{net-utils} package
-which contains @file{xml.el} for XEmacs.
-
-Newsticker retrieves headlines either via Emacs's built-in retrieval
-functions, by an arbitrary external program that retrieves files via
-http and prints them to stdout (like
-@uref{http://www.gnu.org/software/wget/wget.html, wget}, or---on a
-per feed basis---via an arbitrary Lisp command.
-
+Newsticker downloads headlines asynchronously at configurable times,
+processes and stores them so that you can read them later.  The list
+of subscribed feeds, the headline processing, the presentation of the
+headlines and almost all other aspects of Newsticker can be
+customized to your liking.
 
 @node Installation
 @chapter Installation
 
 As Newsticker is part of GNU Emacs there is no need to perform any
-installation steps in order to use Newsticker.
+installation steps in order to use it.
 
-However, if you are using imenu, which allows for navigating with the
-help of a menu, you should add the following to your Emacs startup file
-(@file{~/.emacs}).
+Newsticker is highly customizable. All options have reasonable default
+values, so that (in most cases) it is not necessary to customize
+anything before you start Newsticker for the first time.
+
+@node Retrieving News
+@chapter Retrieving News
+
+Newsticker downloads news periodically in the background.  This is
+triggered as soon as you start reading news (@ref{Reading News}).
+
+@findex newsticker-start
+@findex newsticker-stop
+Alternatively you may use the command @code{newsticker-start}
+(@code{newsticker-stop}) in order to start (stop) the periodic
+download of news without opening the reader.
+
+The following variables define which feeds are fetched and how this is
+done.
+
+@table @code
+@vindex newsticker-url-list-defaults
+@item newsticker-url-list-defaults
+You may select any number of feeds from this list of (sample) news feeds.
+
+@vindex newsticker-url-list
+@item newsticker-url-list
+All your personal news feeds are defined here.  Each feed is
+identified by its name and an URL.  You may set the start-time and the
+retrieval interval for each feed as well as the retrieval command
+arguments in case that the default values do not fit a certain feed.
+
+@vindex newsticker-retrieval-method
+@vindex newsticker-wget-name
+@vindex newsticker-wget-arguments
+@item newsticker-retrieval-method
+By default Newsticker uses Emacs's built-in download capabilities for
+fetching headlines.  You may change this to use an external tool like
+@code{wget}.  In this case you need to set @code{newsticker-wget-name}
+and possibly @code{newsticker-wget-arguments}.
+
+@vindex newsticker-retrieval-interval
+@item newsticker-retrieval-interval
+The number of seconds between headline retrievals.
+@end table
+
+@node Headline Management
+@chapter Headline Management
+
+@cindex Age
+@cindex Status
+
+Newsticker assigns a status (or ``age'') to each headline which you
+can modify manually.  This makes it easy to distinguish new headlines
+from old ones, to keep important headlines, to hide boring headlines
+etc.  An item is ``new'' when it has just arrived and has not been
+read.  You can mark it as ``old'' when you have read it or -- if you
+want to keep it -- you can mark it as ``immortal''.  You can do that
+manually and you can define filters which do that automatically, see
+below.  When a headline has vanished from the feed it is automatically
+marked as ``obsolete'' unless it has the status ``immortal''.
+``Obsolete'' headlines get removed automatically after a certain time.
+
+@table @code
+@cindex Filter
+@vindex newsticker-auto-mark-filter-list
+@item newsticker-auto-mark-filter-list
+You may define any number of filters for automatically marking newly
+arrived headlines as ``immortal'' or ``old''.  A filter looks for a
+regular expression in either the title or the description of a
+headline and then, if the expression matches, marks the headline as
+``immortal'' or as ``old''.  This is done only once, when a headline
+is fetched for the very first time.
+
+@vindex newsticker-keep-obsolete-items
+@vindex newsticker-obsolete-item-max-age
+@item newsticker-keep-obsolete-items
+Obsolete headlines are removed immediately unless
+@code{newsticker-keep-obsolete-items} is non-nil in which case they
+are kept until @code{newsticker-obsolete-item-max-age} is reached.
+
+@vindex newsticker-automatically-mark-items-as-old
+@item newsticker-automatically-mark-items-as-old
+If this is set to `t' then a ``new'' item becomes ``old'' as soon as
+it is retrieved a second time.
+
+@end table
+
+@node Reading News
+@chapter Reading News
+
+@findex newsticker-show-news
+Start Newsticker with the command @kbd{M-x newsticker-show-news}. This
+will start the asynchronous news download and displays all available
+headlines.
+
+@menu
+* Frontends::        Select the way headlines are displayed.
+* Navigation::       Move to the next unread headline etc.
+* Marking::          Mark important headlines.
+* More Actions::     Add new feeds etc..
+@end menu
+
+@node Frontends
+@section Frontends
+@cindex Frontends
+
+@vindex newsticker-frontend
+Newsticker provides two different @i{views} for browsing, marking and
+reading news.  The variable @code{newsticker-frontend} determines the
+actual headline reader.
+
+@subheading Treeview
+@cindex Treeview
+
+In this view separate windows are used for displaying feeds, headlines
+and their descriptions.  The feeds are shown as a tree on the left
+hand side, headlines of the currently selected feed are shown on the
+upper right side, and the full contents of the currently selected
+headline is shown on the lower right side.
+
+Feeds can be placed into groups, which themselves can be placed in
+groups and so on.  This results in the tree which is displayed on the
+left.  A node represents either a feed or a group of feeds holding a
+subtree.  The following commands allow for managing groups.
+
+@table @kbd
+@item M-a
+@kindex M-a
+@findex newsticker-group-add-group
+Add a new feed group. Name of the new group and of the parent group
+must be entered.  If The name of the parent group is the new group
+becomes a top-level group. (@code{newsticker-group-add-group})
+@item M-m
+@kindex M-m
+@findex newsticker-group-move-feed
+Moves a feed into a group. The name of the group must be
+entered. (@code{newsticker-group-move-feed})
+@end table
+
+The position of groups and feeds within the tree can be changed with these
+commands:
+
+@table @kbd
+@item M-up
+@itemx M-down
+@kindex M-up
+@kindex M-down
+@findex newsticker-group-shift-feed-up
+@findex newsticker-group-shift-feed-down
+Shift the currently selected feed up and down within its group.
+@item M-S-up
+@itemx M-S-down
+@kindex M-S-up
+@kindex M-S-down
+@findex newsticker-group-shift-group-up
+@findex newsticker-group-shift-group-down
+Shift the currently selected group up and down within its parent group.
+@end table
+
+The group settings are saved to a file either automatically when
+newsticker is being quit or manually when the following command is
+executed.
+
+@table @kbd
+@item s
+@kindex s
+@findex newsticker-treeview-save
+Save treeview group settings.
+@end table
+
+The Treeview is updated automatically as soon as new headlines have
+arrived.
+
+The Treeview is used when the variable @code{newsticker-frontend} is
+set to the value @code{newsticker-treeview}. (Alternatively it can be
+started with the command @code{newsticker-treeview}.)
+
+@subheading Plainview
+@cindex Plainview
+
+In this view all headlines of all feeds are displayed in a single
+buffer (@file{*newsticker*}). The modeline in the @file{*newsticker*}
+buffer informs you whenever new headlines have arrived.
+
+You may want to use imenu with Plainview, which allows for navigating
+with the help of a menu. In this case add the following to your Emacs
+startup file (@file{~/.emacs}).
 
 @lisp
 (add-hook 'newsticker-mode-hook 'imenu-add-menubar-index)
 @end lisp
 
-That's it.
+(Note that preparing the Plainview takes significantly more time than
+starting the Treeview because all headlines are displayed in a single
+buffer.  When you have subscribed to a large amount of feeds you may
+find that Newsticker's efforts of minimizing rendering times, caching
+rendered items and so on  you may find However, when you have
+subscribed to a large amount of feeds you may want to give the
+Treeview a try.)
 
-@node Usage
-@chapter Usage
+The Plainview is used when the variable @code{newsticker-frontend} is
+set to the value @code{newsticker-plainview}. (Alternatively it can be
+started with the command @code{newsticker-plainview}.)
 
-@findex newsticker-show-news
-The command @code{newsticker-show-news} will display all available
-headlines.  It will also start the asynchronous download of headlines.
+@subheading Ticker
+@cindex Ticker
 
-You can choose between two different frontends for reading headlines:
-@itemize
-@item Newsticker's @emph{treeview} uses separate windows for the
-feeds (in tree form), a list of headlines for the current feed, and
-the content of the current headline.  Feeds can be placed into groups,
-which themselves can be placed in groups and so on.
-@item Newsticker's @emph{plainview} displays all headlines in a
-single buffer, called @file{*newsticker*}.  The modeline in the
-@file{*newsticker*} buffer informs you whenever new headlines have
-arrived.
-@end itemize
-In both views clicking mouse-button 2 or pressing @key{RET} on a
-headline will call @code{browse-url} to load the corresponding news
-story in your favorite web browser.
+Additionally, headlines can be displayed in the echo area in the style of a
+news ticker.
 
 @findex newsticker-start-ticker
 @findex newsticker-stop-ticker
-The scrolling, or flashing of headlines in the echo area, can be
+Headlines can be displayed in the echo area, either scrolling like
+messages in a stock-quote ticker, or just changing.  This can be
 started with the command @code{newsticker-start-ticker}.  It can be
 stopped with @code{newsticker-stop-ticker}.
 
-@findex newsticker-start
-@findex newsticker-stop
-If you just want to start the periodic download of headlines use the
-command @code{newsticker-start}.  Calling @code{newsticker-stop} will
-stop the periodic download, but will call
-@code{newsticker-stop-ticker} as well.
+
+@node Navigation
+@section Navigation
+@cindex Navigation
+
+Navigating through the list of feeds and headlines is rather
+straightforward.  You may do this either with the mouse or with the
+keyboard.  The following key bindings are provided in both, the
+Treeview as well as the Plainview.
+
+@table @kbd
+@item f
+@findex newsticker-next-feed
+@findex newsticker-treeview-next-feed
+Move to next feed (@code{newsticker-next-feed},
+@code{newsticker-treeview-next-feed}).
+@item F
+@findex newsticker-previous-feed
+@findex newsticker-treeview-prev-feed
+Move to previous feed (@code{newsticker-previous-feed},
+@code{newsticker-treeview-prev-feed}).
+@item n
+@findex newsticker-next-item
+@findex newsticker-treeview-next-item
+Move to next item (@code{newsticker-next-item},
+@code{newsticker-treeview-next-item}).
+@item N
+@findex newsticker-next-new-item
+@findex newsticker-treeview-next-new-item
+Move to next new item (possibly in another feed)
+(@code{newsticker-next-new-item},
+@code{newsticker-treeview-next-new-item}).
+@item p
+@findex newsticker-previous-item
+@findex newsticker-treeview-prev-item
+Move to previous item (@code{newsticker-previous-item},
+@code{newsticker-treeview-prev-item}).
+@item P
+@findex newsticker-previous-new-item
+@findex newsticker-treeview-prev-new-item
+Move to previous new item (possibly in another feed)
+(@code{newsticker-previous-new-item},
+@code{newsticker-treeview-prev-new-item}).
+@end table
+
+@subheading Treeview
+@table @kbd
+@item j
+@findex newsticker-treeview-jump
+Enter the name of a feed and jump to it
+(@code{newsticker-treeview-jump}).
+@end table
+
+
+@node Marking
+@section Marking
+@cindex Marking
+
+The following key bindings are provided in both, the Treeview as well
+as the Plainview.
+
+@table @kbd
+@item o
+@findex newsticker-mark-item-at-point-as-read
+@findex newsticker-treeview-mark-item-old
+Mark current item as old.
+(@code{newsticker-mark-item-at-point-as-read},
+@code{newsticker-treeview-mark-item-old}).
+@item i
+@findex newsticker-mark-item-at-point-as-immortal
+@findex newsticker-treeview-mark-item-immortal
+Mark current item as immortal.  Immortal items are kept forever.
+(@code{newsticker-mark-item-at-point-as-immortal},
+@code{newsticker-treeview-mark-item-immortal}).
+@end table
+
+@node More Actions
+@section More Actions
+@cindex More Actions
+
+@subheading View full article
+@table @kbd
+@cindex Get News
+@item v
+@itemx RET
+@itemx <mouse-1>
+@findex newsticker-treeview-browse-url
+Open the link to the full article (as contained in the current
+headline) in your web browser @code{newsticker-treeview-browse-url}).
+@end table
+
+@subheading Get News
+@cindex Get News
+
+You can force immediate download of news with the following commands.
+
+@table @kbd
+@item g
+@findex newsticker-treeview-get-news
+Get news for currently shown feed (@code{newsticker-treeview-get-news}).
+@item G
+@findex newsticker-get-all-news
+Get news for all feeds (@code{newsticker-get-all-news}).
+@end table
+
+@subheading Add More Feeds
+@cindex Add More Feeds
+
+@table @kbd
+@item a
+@findex newsticker-add-url
+The command @code{newsticker-add-url} prompts for an URL and a name of
+a new feed.  It then prepares a customization buffer where the details
+of the new feed can be set.
+@end table
+
+
+@node Automatic Processing
+@chapter Automatic Processing
+@cindex Automatic Processing
+
+Apart from automatic marking of headlines (by means of filters)
+Newsticker provides the possibility to fully process newly arrived
+headlines.  Instead of reading headlines yourself you can tell
+Newsticker to do that for you.
+
+@vindex newsticker-new-item-functions
+In order to do so write a function which takes three arguments
+
+@table @var
+@item FEED
+the name of the corresponding news feed,
+@item TITLE
+the title of the headline,
+@item DESC
+the decoded description of the headline.
+@end table
+
+and add it to @code{newsticker-new-item-functions}.  Each function
+contained in this list is called once for each new headline.
+Depending on the feed, the title and the description of a headline you
+can
+
+@itemize
+@item
+automatically download images referenced in HTML-formatted
+descriptions (for which a function already exists, see
+@code{newsticker-download-images}),
+@item
+automatically save enclosed audio and video files (for which another
+function exists as well, see @code{newsticker-download-images}),
+@item
+flash the screen while playing some sound,
+@item
+whatever you want.
+@end itemize
 
 @node Configuration
 @chapter Configuration
@@ -195,11 +478,8 @@ Emacs customization methods.  Call the command
 @code{customize-group} and enter @samp{newsticker} for the customization
 group.
 
-All Newsticker options have reasonable default values, so that in most
-cases it is not necessary to customize settings before starting Newsticker
-for the first time.
-
-The following list shows the available groups of newsticker options
+@noindent
+The following list shows the available groups of Newsticker options
 and some of the most important options.
 
 @itemize
@@ -296,13 +576,35 @@ treeview reader.
 
 @end itemize
 
+@noindent
 For the complete list of options please have a look at the
 customization buffers.
 
-@node Remarks
-@chapter Remarks
+@node Supported Formats
+@appendix Supported Formats
+@cindex Supported Formats
 
-Byte-compiling newsticker.el is recommended.
+Newsticker works with the standard RSS and Atom formats listed below
+(being lenient with feeds which break the specifications).
+
+@subheading RSS formats
+
+@itemize
+@item RSS 0.91 (see @uref{http://backend.userland.com/rss091} or
+@uref{http://my.netscape.com/publish/formats/rss-spec-0.91.html})
+@item RSS 0.92 (see @uref{http://backend.userland.com/rss092})
+@item RSS 1.0 (see @uref{http://purl.org/rss/1.0/spec})
+@item RSS 2.0 (see @uref{http://blogs.law.harvard.edu/tech/rss})
+@end itemize
+
+@subheading Atom formats
+
+@itemize
+@item Atom 0.3
+@item Atom 1.0 (see
+@uref{https://datatracker.ietf.org/doc/rfc4287/})
+@end itemize
+
 
 @node GNU Free Documentation License
 @appendix GNU Free Documentation License
@@ -310,7 +612,7 @@ Byte-compiling newsticker.el is recommended.
 
 @node Index
 @unnumbered Index
-
 @printindex cp
+
 
 @bye

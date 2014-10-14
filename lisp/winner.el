@@ -112,10 +112,7 @@ You may want to include buffer names such as *Help*, *Apropos*,
 ;; Save current configuration.
 ;; (Called below by `winner-save-old-configurations').
 (defun winner-remember ()
-  (let ((entry (assq (selected-frame) winner-currents)))
-    (if entry (setcdr entry (winner-conf))
-      (push (cons (selected-frame) (winner-conf))
-	    winner-currents))))
+  (setf (alist-get (selected-frame) winner-currents) (winner-conf)))
 
 ;; Consult `winner-currents'.
 (defun winner-configuration (&optional frame)

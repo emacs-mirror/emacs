@@ -2221,13 +2221,10 @@ is the same as for @code{mode-line-format} (@pxref{Mode Line Data}).
 It is normally @code{nil}, so that ordinary buffers have no header line.
 @end defvar
 
-The function @code{window-header-line-height} returns the height of
-the header line:
-
 @defun window-header-line-height &optional window
-Return the height of @var{window}'s header line, in pixels.
-@var{window} must be a live window.  If @var{window} is @code{nil} or
-omitted, it will be the selected window.
+This function returns the height in pixels of @var{window}'s header
+line.  @var{window} must be a live window, and defaults to the
+selected window.
 @end defun
 
   A window that is just one line tall never displays a header line.  A

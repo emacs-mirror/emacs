@@ -6,7 +6,6 @@
 ;; Filename:    newst-ticker.el
 ;; URL:         http://www.nongnu.org/newsticker
 ;; Keywords:    News, RSS, Atom
-;; Time-stamp:  "6. Dezember 2009, 19:16:00 (ulf)"
 ;; Package:     newsticker
 
 ;; ======================================================================
@@ -37,6 +36,14 @@
 
 (require 'newst-backend)
 
+(defvar newsticker--item-list nil
+  "List of newsticker items.")
+(defvar newsticker--item-position 0
+  "Actual position in list of newsticker items.")
+(defvar newsticker--prev-message "There was no previous message yet!"
+  "Last message that the newsticker displayed.")
+(defvar newsticker--scrollable-text ""
+  "The text which is scrolled smoothly in the echo area.")
 (defvar newsticker--ticker-timer nil
   "Timer for newsticker ticker.")
 

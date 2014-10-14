@@ -219,146 +219,53 @@ the operating system.")
 ;
 ;;;; Selections
 ;
-;;; We keep track of the last text selected here, so we can check the
-;;; current selection against it, and avoid passing back our own text
-;;; from x-selection-value.
-(defvar x-last-selected-text nil)
-
-(defcustom x-select-enable-clipboard t
-  "Non-nil means cutting and pasting uses the clipboard.
-This is in addition to, but in preference to, the primary selection.
-
-Note that MS-Windows does not support selection types other than the
-clipboard.  (The primary selection that is set by Emacs is not
-accessible to other programs on MS-Windows.)
-
-This variable is not used by the Nextstep port."
-  :type 'boolean
-  :group 'killing)
-
-(defun x-select-text (text)
-  "Select TEXT, a string, according to the window system.
-
-On X, if `x-select-enable-clipboard' is non-nil, copy TEXT to the
-clipboard.  If `x-select-enable-primary' is non-nil, put TEXT in
-the primary selection.
-
-On MS-Windows, make TEXT the current selection.  If
-`x-select-enable-clipboard' is non-nil, copy the text to the
-clipboard as well.
-
-On Nextstep, put TEXT in the pasteboard (`x-select-enable-clipboard'
-is not used)."
-  (if x-select-enable-clipboard
-      (w16-set-clipboard-data text))
-  (setq x-last-selected-text text))
-
-(defun x-get-selection-value ()
+(defun w16-get-selection-value ()
   "Return the value of the current selection.
 Consult the selection.  Treat empty strings as if they were unset."
-  (if x-select-enable-clipboard
-      (let (text)
-	;; Don't die if x-get-selection signals an error.
-	(with-demoted-errors "w16-get-clipboard-data:%s"
-          (setq text (w16-get-clipboard-data)))
-	(if (string= text "") (setq text nil))
-	(cond
-	 ((not text) nil)
-	 ((eq text x-last-selected-text) nil)
-	 ((string= text x-last-selected-text)
-	  ;; Record the newer string, so subsequent calls can use the 'eq' test.
-	  (setq x-last-selected-text text)
-	  nil)
-	 (t
-	  (setq x-last-selected-text text))))))
+  (if gui-select-enable-clipboard
+      ;; Don't die if x-get-selection signals an error.
+      (with-demoted-errors "w16-get-clipboard-data:%s"
+        (w16-get-clipboard-data))))
 
-;; x-selection-owner-p is used in simple.el.
-(defun x-selection-owner-p (&optional _selection _terminal)
-  "Whether the current Emacs process owns the given X Selection.
-The arg should be the name of the selection in question, typically one of
-the symbols `PRIMARY', `SECONDARY', or `CLIPBOARD'.
-\(Those are literal upper-case symbol names, since that's what X expects.)
-For convenience, the symbol nil is the same as `PRIMARY',
-and t is the same as `SECONDARY'.
+;; gui-selection-owner-p is used in simple.el.
+(gui-method-define gui-selection-exists-p pc #'x-selection-exists-p)
+(gui-method-define gui-selection-owner-p pc #'w16-selection-owner-p)
+(defun w16-selection-owner-p (_selection)
+  ;; FIXME: Other systems don't obey gui-select-enable-clipboard here.
+  (if gui-select-enable-clipboard
+      (let ((text
+             ;; Don't die if w16-get-clipboard-data signals an error.
+             (ignore-errors
+               (w16-get-clipboard-data))))
+        ;; We consider ourselves the owner of the selection
+        ;; if it does not exist, or exists and compares
+        ;; equal with the last text we've put into the
+        ;; Windows clipboard.
+        (cond
+         ((not text) t)
+         ((or (eq text gui-last-selected-text)
+              (string= text gui-last-selected-text))
+          text)
+         (t nil)))))
 
-TERMINAL should be a terminal object or a frame specifying the X
-server to query.  If omitted or nil, that stands for the selected
-frame's display, or the first available X display.
+;; gui-own-selection and gui-disown-selection are used in gui-set-selection.
+(gui-method-define gui-own-selection pc
+                   (lambda (_selection value)
+                     ;; FIXME: Other systems don't obey
+                     ;; gui-select-enable-clipboard here.
+                     (ignore-errors
+                       (w16--select-text value))
+                     value))
 
-On Nextstep, TERMINAL is unused.
+(gui-method-define gui-disown-selection pc
+                   (lambda (selection &optional _time-object _terminal)
+                     (if (w16-selection-owner-p selection)
+                         t)))
 
-\(fn &optional SELECTION TERMINAL)"
-    (if x-select-enable-clipboard
-      (let (text)
-	;; Don't die if w16-get-clipboard-data signals an error.
-	(ignore-errors
-	  (setq text (w16-get-clipboard-data)))
-	;; We consider ourselves the owner of the selection if it does
-	;; not exist, or exists and compares equal with the last text
-	;; we've put into the Windows clipboard.
-	(cond
-	 ((not text) t)
-	 ((or (eq text x-last-selected-text)
-	      (string= text x-last-selected-text))
-	  text)
-	 (t nil)))))
-
-;; x-own-selection-internal and x-disown-selection-internal are used
-;; in select.el:x-set-selection.
-(defun x-own-selection-internal (_selection value &optional _frame)
-  "Assert an X selection of the type SELECTION with and value VALUE.
-SELECTION is a symbol, typically `PRIMARY', `SECONDARY', or `CLIPBOARD'.
-\(Those are literal upper-case symbol names, since that's what X expects.)
-VALUE is typically a string, or a cons of two markers, but may be
-anything that the functions on `selection-converter-alist' know about.
-
-FRAME should be a frame that should own the selection.  If omitted or
-nil, it defaults to the selected frame.
-
-On Nextstep, FRAME is unused.
-
-\(fn SELECTION VALUE &optional FRAME)"
-  (ignore-errors
-    (x-select-text value))
-  value)
-
-(defun x-disown-selection-internal (selection &optional _time-object _terminal)
-  "If we own the selection SELECTION, disown it.
-Disowning it means there is no such selection.
-
-Sets the last-change time for the selection to TIME-OBJECT (by default
-the time of the last event).
-
-TERMINAL should be a terminal object or a frame specifying the X
-server to query.  If omitted or nil, that stands for the selected
-frame's display, or the first available X display.
-
-On Nextstep, the TIME-OBJECT and TERMINAL arguments are unused.
-On MS-DOS, all this does is return non-nil if we own the selection.
-
-\(fn SELECTION &optional TIME-OBJECT TERMINAL)"
-  (if (x-selection-owner-p selection)
-      t))
-
-;; x-get-selection-internal is used in select.el
-(defun x-get-selection-internal (_selection-symbol _target-type
-						  &optional _time-stamp _terminal)
-  "Return text selected from some X window.
-SELECTION-SYMBOL is typically `PRIMARY', `SECONDARY', or `CLIPBOARD'.
-\(Those are literal upper-case symbol names, since that's what X expects.)
-TARGET-TYPE is the type of data desired, typically `STRING'.
-
-TIME-STAMP is the time to use in the XConvertSelection call for foreign
-selections.  If omitted, defaults to the time for the last event.
-
-TERMINAL should be a terminal object or a frame specifying the X
-server to query.  If omitted or nil, that stands for the selected
-frame's display, or the first available X display.
-
-On Nextstep, TIME-STAMP and TERMINAL are unused.
-
-\(fn SELECTION-SYMBOL TARGET-TYPE &optional TIME-STAMP TERMINAL)"
-  (x-get-selection-value))
+;; gui-get-selection is used in select.el
+(gui-method-define gui-get-selection pc
+                   (lambda (selection-symbol target-type)
+                     (w16-get-selection-value)))
 
 ;; From src/fontset.c:
 (fset 'query-fontset 'ignore)
@@ -463,20 +370,27 @@ Errors out because it is not supposed to be called, ever."
   (setq split-window-keep-point t)
   ;; Arrange for the kill and yank functions to set and check the
   ;; clipboard.
-  (setq interprogram-cut-function 'x-select-text)
-  (setq interprogram-paste-function 'x-get-selection-value)
   (menu-bar-enable-clipboard)
   (run-hooks 'terminal-init-msdos-hook))
 
 ;; frame-creation-function-alist is examined by frame.el:make-frame.
-(add-to-list 'frame-creation-function-alist
-	     '(pc . msdos-create-frame-with-faces))
+(gui-method-define frame-creation-function
+                   pc #'msdos-create-frame-with-faces)
 ;; window-system-initialization-alist is examined by startup.el:command-line.
-(add-to-list 'window-system-initialization-alist
-	     '(pc . msdos-initialize-window-system))
+(gui-method-define window-system-initialization
+                   pc #'msdos-initialize-window-system)
 ;; We don't need anything beyond tty-handle-args for handling
 ;; command-line argument; see startup.el.
-(add-to-list 'handle-args-function-alist '(pc . tty-handle-args))
+(gui-method-define handle-args-function pc #'tty-handle-args)
+
+
+(declare-function w16-set-clipboard-data "w16select.c"
+		  (string &optional ignored))
+(gui-method-define gui-select-text pc #'w16--select-text)
+(gui-method-define gui-selection-value pc #'w16-get-selection-value)
+(defun w16--select-text (text)
+  (when gui-select-enable-clipboard
+    (w16-set-clipboard-data text)))
 
 ;; ---------------------------------------------------------------------------
 

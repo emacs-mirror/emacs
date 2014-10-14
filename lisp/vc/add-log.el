@@ -1097,12 +1097,17 @@ file were isearch was started."
                                    (ignore-errors
                                      (version< (substring b (length name))
                                                (substring a (length name))))))))
-	 (files (if isearch-forward files (reverse files))))
-    (find-file-noselect
-     (if wrap
-	 (car files)
-       (cadr (member (file-name-nondirectory (buffer-file-name buffer))
-		     files))))))
+	 (files (if isearch-forward files (reverse files)))
+	 (file (if wrap
+		   (car files)
+		 (cadr (member (file-name-nondirectory (buffer-file-name buffer))
+			       files)))))
+    ;; If there are no files that match the default pattern ChangeLog.[0-9],
+    ;; return the current buffer to force isearch wrapping to its beginning.
+    ;; If file is nil, multi-isearch-search-fun will signal "end of multi".
+    (if (file-exists-p file)
+	(find-file-noselect file)
+      (current-buffer))))
 
 (defun change-log-fill-forward-paragraph (n)
   "Cut paragraphs so filling preserves open parentheses at beginning of lines."

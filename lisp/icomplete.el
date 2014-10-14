@@ -487,6 +487,19 @@ matches exist."
 		    "}")
 	  (concat determ " [Matched]"))))))
 
+;;; Iswitchb compatibility
+
+;; We moved Iswitchb to `obsolete' in 24.4, but autoloads in files in
+;; `obsolete' aren't obeyed (since that would encourage people to keep using
+;; those packages, oblivious to their obsolescence).  Given the fact that
+;; Iswitchb was very popular, we decided to keep its autoload for a bit longer,
+;; so we moved it here.
+
+;;;###autoload(when (locate-library "obsolete/iswitchb")
+;;;###autoload  (autoload 'iswitchb-mode "iswitchb" "Toggle Iswitchb mode." t)
+;;;###autoload  (make-obsolete 'iswitchb-mode
+;;;###autoload    "use `icomplete-mode' or `ido-mode' instead." "24.4"))
+
 ;;;_* Provide
 (provide 'icomplete)
 

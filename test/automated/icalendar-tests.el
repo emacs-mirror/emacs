@@ -80,18 +80,6 @@
     (should (string=  (concat "yyyDTSTARTyyy")
                       (icalendar--create-uid entry-full contents)))))
 
-(ert-deftest icalendar--calendar-style ()
-  "Test for `icalendar--date-style'."
-  (dolist (calendar-date-style '(iso american european))
-    (should (eq (icalendar--date-style) calendar-date-style)))
-  (let ((cds calendar-date-style)
-        (european-calendar-style t))
-    (makunbound 'calendar-date-style)
-    (should (eq (icalendar--date-style) 'european))
-    (with-no-warnings (setq european-calendar-style nil)) ;still get warning!?! FIXME
-    (should (eq (icalendar--date-style) 'american))
-    (setq calendar-date-style cds)))
-
 (ert-deftest icalendar-convert-anniversary-to-ical ()
   "Test method for `icalendar--convert-anniversary-to-ical'."
   (let* ((calendar-date-style 'iso)

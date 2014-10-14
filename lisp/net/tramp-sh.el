@@ -2811,7 +2811,7 @@ the result will be a local, non-Tramp, file name."
 ;; connection has been setup.
 (defun tramp-sh-handle-start-file-process (name buffer program &rest args)
   "Like `start-file-process' for Tramp files."
-  (with-parsed-tramp-file-name default-directory nil
+  (with-parsed-tramp-file-name (expand-file-name default-directory) nil
     (let* (;; When PROGRAM matches "*sh", and the first arg is "-c",
 	   ;; it might be that the arguments exceed the command line
 	   ;; length.  Therefore, we modify the command.
@@ -3464,19 +3464,19 @@ the result will be a local, non-Tramp, file name."
 		     (not (with-tramp-connection-property v vc-bzr-program
 			    (tramp-find-executable
 			     v vc-bzr-program (tramp-get-remote-path v)))))
-	    (setq vc-handled-backends (delq 'Bzr vc-handled-backends)))
+	    (setq vc-handled-backends (remq 'Bzr vc-handled-backends)))
 	  (when (and (memq 'Git vc-handled-backends)
 		     (boundp 'vc-git-program)
 		     (not (with-tramp-connection-property v vc-git-program
 			    (tramp-find-executable
 			     v vc-git-program (tramp-get-remote-path v)))))
-	    (setq vc-handled-backends (delq 'Git vc-handled-backends)))
+	    (setq vc-handled-backends (remq 'Git vc-handled-backends)))
 	  (when (and (memq 'Hg vc-handled-backends)
 		     (boundp 'vc-hg-program)
 		     (not (with-tramp-connection-property v vc-hg-program
 			    (tramp-find-executable
 			     v vc-hg-program (tramp-get-remote-path v)))))
-	    (setq vc-handled-backends (delq 'Hg vc-handled-backends)))
+	    (setq vc-handled-backends (remq 'Hg vc-handled-backends)))
 	  ;; Run.
 	  (ignore-errors
 	    (tramp-run-real-handler 'vc-registered (list file))))))))
@@ -3955,10 +3955,8 @@ process to set up.  VEC specifies the connection."
 
   (tramp-message vec 5 "Setting shell prompt")
   (tramp-send-command
-   vec (format "PS1=%s" (tramp-shell-quote-argument tramp-end-of-output)) t)
-  (tramp-send-command vec "PS2=''" t)
-  (tramp-send-command vec "PS3=''" t)
-  (tramp-send-command vec "PROMPT_COMMAND=''" t)
+   vec (format "PS1=%s PS2='' PS3='' PROMPT_COMMAND=''"
+	       (tramp-shell-quote-argument tramp-end-of-output)) t)
 
   ;; Try to set up the coding system correctly.
   ;; CCC this can't be the right way to do it.  Hm.
@@ -4078,15 +4076,22 @@ process to set up.  VEC specifies the connection."
   (let ((env (append (when (tramp-get-remote-locale vec) ; Discard `(nil)'.
 		       `(,(tramp-get-remote-locale vec)))
 		     (copy-sequence tramp-remote-process-environment)))
-	unset item)
+	unset vars item)
     (while env
       (setq item (tramp-compat-split-string (car env) "="))
       (setcdr item (mapconcat 'identity (cdr item) "="))
       (if (and (stringp (cdr item)) (not (string-equal (cdr item) "")))
-	  (tramp-send-command
-	   vec (format "%s=%s; export %s" (car item) (cdr item) (car item)) t)
+	  (push (format "%s %s" (car item) (cdr item)) vars)
 	(push (car item) unset))
       (setq env (cdr env)))
+    (when vars
+      (tramp-send-command
+       vec
+       (format "while read var val; do export $var=$val; done <<'%s'\n%s\n%s"
+	       tramp-end-of-heredoc
+	       (mapconcat 'identity vars "\n")
+	       tramp-end-of-heredoc)
+       t))
     (when unset
       (tramp-send-command
        vec (format "unset %s" (mapconcat 'identity unset " ")) t))))
@@ -5228,13 +5233,14 @@ Return ATTR."
   (with-tramp-connection-property vec "id"
     (tramp-message vec 5 "Finding POSIX `id' command")
     (catch 'id-found
-      (let ((dl (tramp-get-remote-path vec))
-	    result)
-	(while (and dl (setq result (tramp-find-executable vec "id" dl t t)))
-	  ;; Check POSIX parameter.
-	  (when (tramp-send-command-and-check vec (format "%s -u" result))
-	    (throw 'id-found result))
-	  (setq dl (cdr dl)))))))
+      (dolist (cmd '("id" "gid"))
+	(let ((dl (tramp-get-remote-path vec))
+	      result)
+	  (while (and dl (setq result (tramp-find-executable vec cmd dl t t)))
+	    ;; Check POSIX parameter.
+	    (when (tramp-send-command-and-check vec (format "%s -u" result))
+	      (throw 'id-found result))
+	    (setq dl (cdr dl))))))))
 
 (defun tramp-get-remote-uid-with-id (vec id-format)
   (tramp-send-command-and-read

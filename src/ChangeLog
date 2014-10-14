@@ -1,3 +1,1648 @@
+2014-10-14  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Cleanup terminal handling code.
+	* dispextern.h (get_named_tty): Remove prototype but...
+	* termhooks.h (get_named_terminal): ...resurrect it under
+	more meaningful name.
+	(get_terminal): Likewise, but with...
+	(decode_live_terminal): ...this name.
+	(decode_tty_terminal): Add prototype.
+	* term.c (get_tty_terminal): Remove.
+	(get_named_tty): Remove.
+	(Ftty_display_color_p, Ftty_display_color_cells, Ftty_type)
+	(Fcontrolling_tty_p, Fsuspend_tty, Fresume_tty):
+	Use decode_tty_terminal.
+	(Ftty_no_underline, Ftty_top_frame): Use decode_live_terminal.
+	* terminal.c (get_terminal): Refactor to...
+	(decode_terminal, decode_live_terminal): ...new functions.
+	(decode_tty_terminal): Replacement for get_tty_terminal.
+	(get_named_terminal): Likewise for get_named_tty.
+	* coding.c (Fset_terminal_coding_system_internal)
+	(Fterminal_coding_system, Fset_keyboard_coding_system_internal):
+	(Fkeyboard_coding_system):
+	* composite.c (Fcomposition_get_gstring):
+	* dispnew.c (Fsend_string_to_terminal):
+	* frame.c (Fmake_terminal_frame):
+	* nsfns.m (check_ns_display_info):
+	* w32fns.c, xfns.c (check_x_display_info):
+	* xselect.c (frame_for_x_selection): Use decode_live_terminal.
+	* keyboard.c (handle_interrupt_signal, handle_interrupt)
+	(Fset_quit_char): Use get_named_terminal.
+	(Fset_output_flow_control, Fset_input_meta_mode):
+	Use decode_tty_terminal.
+
+2014-10-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32term.h (ALIGN_STACK): Use _WIN64, not _W64, to distinguish
+	between 32-bit and 64-bit MinGW builds.  (Bug#18699)
+
+2014-10-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix port to Debian GNU/kFreeBSD 7 (wheezy) (Bug#18666).
+	* process.c (accept4) [!HAVE_ACCEPT4]: New macro.
+
+2014-10-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* frame.c (Fmouse_pixel_position): Call Vmouse_position_function
+	(bug#18638).
+
+2014-10-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* editfns.c (dump_tz_string): No longer const.
+	It might be modified.
+
+	* nsmenu.m (clear): Assume OS X 10.6 or later.
+
+2014-10-12  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* unexmacosx.c: Remove include ppc/reloc.h.
+	(unrelocate, copy_dysymtab): Remove PPC code.
+	(rebase_reloc_address): Remove, only used for PPC:
+
+	* nsterm.m: Always include macfont.h on COCOA.
+	(ns_update_auto_hide_menu_bar, ns_draw_fringe_bitmap)
+	(ns_dumpglyphs_image, ns_check_menu_open)
+	(applicationDidFinishLaunching)
+	(antialiasThresholdDidChange:)
+	(keyDown:, toggleFullScreen:, setPosition:portion:whole:): Remove
+	checks for OSX <= 10.5/10.6.
+	(changeFont:): Use macfont on COCOA, nsfont on GNUSTEP.
+	(syms_of_nsterm): Call syms_of_macfont on COCOA, syms_of_nsfont on
+	GNUSTEP.
+
+	* nsterm.h (MAC_OS_X_VERSION_10_4, MAC_OS_X_VERSION_10_5): Remove.
+	(NS_HAVE_NSINTEGER): Remove block.
+	Remove >= OSX 10.6 tests.
+
+	* nsmenu.m (NSMenuDidBeginTrackingNotification): Remove.
+	(x_activate_menubar, trackingNotification:): Remove check for
+	OSX >= 10.5.
+	(menuNeedsUpdate:): Remove check for OSX < 10.5.
+
+	* nsimage.m (allocInitFromFile:): Remove code for OSX < 10.6.
+
+	* nsfns.m: Always include macfont.h on COCOA.
+	(ns_filename_from_panel, ns_directory_from_panel)
+	(Fx_create_frame, Fns_popup_font_panel, ns_run_file_dialog)
+	(Fns_read_file_name, Fns_list_services): Remove code for OSX < 10.6
+
+	* macfont.m: Remove >= 1050 check.
+	(macfont_create_family_with_symbol)
+	(macfont_get_glyph_for_character)
+	(mac_font_get_glyphs_for_variants)
+	(mac_ctfont_create_available_families, syms_of_macfont): Remove
+	code for OSX < 10.6.
+	(mac_font_family_group, mac_font_family_compare): Remove, only used
+	for OSX < 10.6.
+
+	* macfont.h (MAC_FONT_FORMAT_ATTRIBUTE, MAC_FONT_FORMAT_BITMAP)
+	(mac_font_copy_non_synthetic_table): Remove versions for OSX < 10.6
+
+	* Makefile.in: Replace nsfont.o macfont.o with ns_fontfile in
+	comment.
+
+2014-10-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix putenv race conditions with undefined behavior (Bug#8705).
+	Do all putenv calls before Emacs creates any threads.
+	Use a safer way to modify the TZ environment variable in the
+	presence of multiple threads.  For further thread-safety,
+	prefer localtime_r and gmtime_r to localtime and gmtime,
+	and prefer struct tm's tm_gmtoff (if available) to calling
+	both localtime_r and gmtime_r.
+	* dbusbind.c (Fdbus__init_bus): Move xputenv call from here ...
+	(init_dbusbind): ... to this new function.
+	* emacs.c (main) [HAVE_DBUS]: Call it before creating threads.
+	* xterm.c (x_term_init): Move xputenv call from here ...
+	(init_xterm): ... to this new function.
+	* emacs.c (main) [USE_GTK]: Call it before creating threads.
+	* editfns.c (HAVE_TM_GMTOFF): Default to false.
+	(dump_tz_string): New constant.
+	(init_editfns): Use it.  This centralizes the dump_tz stuff.
+	Call set_time_zone_rule here, so that its xputenv is done
+	before Emacs goes multithreaded.
+	(mktime_z) [!HAVE_TZALLOC]: New function, which is typically
+	thread-safe enough for Emacs.
+	(format_time_string, Fdecode_time, Fcurrent_time_string)
+	(Fcurrent_time_zone):
+	Prefer localtime_r and gmtime_r, which are more thread-safe, to
+	localtime and gmtime.  Remove now-unnecessary calls to block_input.
+	(tm_gmtoff): New static function.
+	(Fdecode_time, Fcurrent_time_zone): Use it.
+	(Fencode_time): Use mktime_z, for better thread-safety.
+	(set_time_zone_rule): Now static.  Rewrite to be mostly thread-safe,
+	i.e., not quite thread-safe but good enough for Emacs typical usage.
+	Do not reclaim storage that is in the environment; let it leak.
+	Always call tzset, since localtime_r does not.
+	* emacs.c (dump_tz, Fdump_emacs) [HAVE_TZSET]: Remove dump_tz stuff.
+	This is now done in init_editfns.
+	* systime.h (mktime_z, timezone_t, tzalloc, tzfree) [!HAVE_TZALLOC]:
+	New macros and declarations, for platforms lacking tzalloc & friends.
+
+2014-10-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* lisp.h (USE_STACK_STRING): Now true only if USE_STACK CONS.
+	On x86 platforms this works around GCC bug 63495
+	<https://gcc.gnu.org/bugzilla/show_bug.cgi?id=63495>,
+	and more generally should fix a portability problem in Emacs.
+	Problem reported by Stefan Monnier in:
+	http://lists.gnu.org/archive/html/emacs-devel/2014-10/msg00261.html
+
+2014-10-08  Leo Liu  <sdl.web@gmail.com>
+
+	Enhance terpri to allow conditionally output a newline.  (Bug#18652)
+	* keymap.c (describe_vector_princ):
+	* keyboard.c (Fcommand_error_default_function): Adapt to change to
+	Fterpri.
+
+	* print.c (printchar_stdout_last): Declare.
+	(printchar): Record the last char written to stdout.
+	(Fterpri): Add optional argument ENSURE.
+
+2014-10-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32inevt.c (maybe_generate_resize_event): Pass non-zero as the
+	DELAY argument to change_frame_size, so that the frame size
+	changes, if any are needed, are delayed until the next redisplay.
+	This is to avoid a too early QUIT inside change_frame_size, when
+	it calls Lisp in frame_windows_min_size, in case one of the events
+	we've read sets the quit-flag.  (Bug#18649)
+
+	* w32fns.c (check_x_display_info): Accept terminal objects as
+	argument, to follow what xfns.c does.
+
+2014-10-07  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in ($(srcdir)/macuvs.h)
+	($(lispsource)/international/charprop.el): Add explicit FORCE.
+
+2014-10-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* decompress.c (init_zlib_functions): Move the message about zlib
+	being unavailable from here...
+	(Fzlib_decompress_region): ...to here.  (Bug#18650)
+
+2014-10-07  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* font.c (Ffont_get_glyphs): Use validate_subarray and fix
+	the case where an optional string is used.  Adjust docstring.
+
+2014-10-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp.mk (lisp): Remove w32-common-fns.elc.
+
+2014-10-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* keyboard.c (Qleft, Qright): Remove duplicate definitions (Bug#9927).
+	These were already defined in buffer.c, and the duplicate
+	definitions cause problems on platforms like 'gcc -fno-common'.
+	Reported by Peter Dyballa in: http://bugs.gnu.org/9927#137
+
+2014-10-05  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (updateFrameSize:): Only call update_frame_tool_bar
+	if toolbar is visible.
+
+	* nsfont.m (nsfont_draw): Use CGFloat for GNUstep newer than
+	0.23 (Bug#18030).
+
+	* nsterm.m (syms_of_nsterm): ns-use-fullscreen-animation is new.
+	(toggleFullScreen:): Use ns-use-fullscreen-animation for animate.
+	(ns_select, ns_read_socket): Use unwind_protect to decrease
+	apploopnr (Bug#18345).
+	(ns_draw_window_cursor): Adjust y for hbar cursor only if smaller than
+	line height (Bug#17977).
+
+	* macfont.m: Fix indentation and import changes from macport 24.3.94.
+	(macfont_closest_traits_index): New function.
+	(macfont_closest_traits_index_p): Rename from
+	macfont_closest_traits_index.
+	(macfont_list): Use macfont_closest_traits_index_p.
+
+2014-10-05  K. Handa  <handa@gnu.org>
+
+	* coding.c (detect_coding_iso_2022): Set coding->rejected
+	correctly when an invalid escape sequence is found (Bug#18610).
+
+2014-10-04  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (create_menus): Only add tearoffs to empty menus.
+	(xg_update_submenu): Remove has_tearoff_p, pass 1 to create_menus
+	for add_tearoff_p.
+
+2014-10-04  Martin Rudalics  <rudalics@gmx.at>
+
+	* buffer.c (scroll_bar_width, scroll_bar_height):
+	Fix doc-strings.
+	* window.c (Fset_window_scroll_bars): Fix doc-string.
+	(Fwindow_scroll_bars): Have it return what the doc-string says.
+
+2014-10-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (move_it_by_lines): Call reseat_1 after moving the
+	iterator backwards, to resync the bidi iterator.  (Bug#18584)
+
+2014-10-03  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Consistently use min and max macros from lisp.h.
+	* coding.c (min, max):
+	* font.c (MAX):
+	* unexhp9k800.c (min):
+	* unexw32.c (min, max): Use definitions from lisp.h.
+	* regex.c (MAX, MIN) [!emacs]: Define own max and min as such.
+	Adjust users.
+	* gmalloc.c (min): Tiny style change.
+
+	* fileio.c (emacs_readlinkat, Finsert_file_contents):
+	* w32fns.c, xfns.c (x_create_tip_frame): Use AUTO_STRING.
+
+2014-10-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix x-focus-frame bug with "Not an in-range integer" (Bug#18586).
+	* xselect.c (X_SHRT_MAX, X_SHRT_MIN, X_LONG_MAX, X_LONG_MIN)
+	(X_ULONG_MAX): Move these macros to xterm.h.
+	(x_fill_property_data): Be more generous about allowing either
+	signed or unsigned data of the appropriate width.
+	* xterm.h (x_display_set_last_user_time): New function.
+	All setters of last_user_time changd to use this function.
+	If ENABLE_CHECKING, check that the times are in range.
+
+2014-10-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* dispnew.c (adjust_decode_mode_spec_buffer): Use 'int' instead of
+	'ssize_t'.  Suggested by Paul Eggert <eggert@cs.ucla.edu>.
+
+2014-10-02  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xfaces.c (Finternal_set_lisp_face_attribute): Don't try to
+	make a font_object from a tty frame (Bug#18573).
+	(Finternal_set_lisp_face_attribute): Add FIXME comment.
+
+2014-10-02  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* alloc.c (mark_overlay): Assume that overlay boundaries are
+	always markers.  Add comment.
+	* lread.c (read_internal_start): Use convenient validate_subarray.
+	Adjust docstring.
+	(Fread_from_string): Adjust docstring.
+
+2014-10-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp.h: Fix up compilation for USE_STACK_LISP_OBJECTS=false.
+
+	* nsselect.m (ns-own-selection-internal, ns-disown-selection-internal):
+	Rename from the "x-" prefix.
+
+2014-10-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xselect.c (selection-converter-alist): Fix docstring.
+
+2014-10-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32proc.c (sys_spawnve): Avoid modification of the CMDNAME
+	argument passed by the caller, when we mirror all slashes into
+	backslashes.
+
+2014-10-01  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* gtkutil.c (xg_set_toolkit_horizontal_scroll_bar_thumb):
+	Resurrect old code and fix compilation with GTK < 2.13.6.
+
+2014-10-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use AUTO_CONS instead of SCOPED_CONS, etc.
+	* frame.h (AUTO_FRAME_ARG): Rename from FRAME_PARAMETER.
+	* lisp.h (AUTO_CONS): Rename from scoped_cons.
+	(AUTO_LIST1): Rename from scoped_list1.
+	(AUTO_LIST2): Rename from scoped_list2.
+	(AUTO_LIST3): Rename from scoped_list3.
+	(AUTO_LIST4): Rename from scoped_list4.
+	(AUTO_STRING): Rename from SCOPED_STRING.
+	* frame.h (AUTO_FRAME_ARG):
+	* lisp.h (AUTO_CONS, AUTO_LIST1, AUTO_LIST2, AUTO_LIST3)
+	(AUTO_LIST4, AUTO_STRING):
+	Prepend a new argument 'name'.
+	Declare a variable instead of yielding a value.
+	All uses changed.
+	* lisp.h (STACK_CONS, AUTO_CONS_EXPR): New internal macros.
+
+2014-09-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32fns.c (w32_createwindow): Accept an additional argument, an
+	array of 2 values specifying the coordinates of the frame's
+	top-left corner.  Use these values instead of calling x_get_arg,
+	which can cons Lisp objects, and therefore cannot be called except
+	from the main thread.  Remove redundant tests for the default
+	values.
+	(my_create_window): Move the calculation of the coordinates of the
+	frame's top-left edge here.  Pass them to the input thread via the
+	second parameter of the WM_EMACS_CREATEWINDOW message.
+	See http://lists.gnu.org/archive/html/emacs-devel/2014-09/msg00892.html
+	for the details.
+
+2014-09-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (cursor_row_fully_visible_p): Update commentary.
+	(redisplay_window): Treat the frame's frozen_window_starts flag
+	the same way as the optional_new_start flag for the window: only
+	obey it if the glyph row showing point will be fully visible.
+	Likewise when the window start is in a continuation line.  If,
+	after trying everything under the 'force_start' label, point is
+	still not fully visible, give up and scroll the window.
+	Add debugging traces.  (Bug#18545)
+
+	* window.c (Frecenter): Set the window's redisplay flag.
+
+2014-09-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32term.c (w32_read_socket): Don't use frame dimensions for
+	resizing if GetClientRect returned an empty (0, 0, 0, 0)
+	rectangle.  Check the return value of GetClientRect, and don't use
+	the results if it didn't succeed.
+
+	* dispnew.c (change_frame_size_1): Recompute the frame dimensions
+	in columns and lines after correcting the pixel dimensions in
+	check_frame_size.
+	(adjust_decode_mode_spec_buffer): Add assertion to avoid passing
+	negative values to xrealloc.  (Bug#18528)
+
+2014-09-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* alloc.c: Remove now-unnecessary check.
+	Suggested by Dmitry Antipov in:
+	http://lists.gnu.org/archive/html/emacs-devel/2014-09/msg00891.html
+
+	* xterm.c (x_term_init): Allocate temps on stack, not on heap.
+
+	* frame.c (x_set_frame_parameters): Port --enable-gcc-warnings
+	to Ubuntu 14.04.1 x86-64.
+
+	Simplify stack-allocated Lisp objects, and make them more portable.
+	The build_local_string macro was used in two ways: (1) string
+	literals for which scoped allocation suffices, and (2) file name
+	components, where it's not safe in general to assume bounded-size
+	ASCII data.  Simplify by defining a new macro SCOPED_STRING that
+	allocates a block-scope string, and by using SCOPED_STRING for (1)
+	and build_string for (2).  Furthermore, actually use stack
+	allocation only for objects known to have sufficient alignment.
+	This simpler implementation means Emacs can make
+	USE_STACK_LISP_OBJECTS the default unless GC_MARK_STACK !=
+	GC_MAKE_GCPROS_NOOPS.
+	* lisp.h (GCALIGNED): Align even if !USE_STACK_LISP_OBJECTS,
+	for fewer differences among implementations.
+	(struct Lisp_String): Now GCALIGNED.
+	(USE_STACK_LISP_OBJECTS): Default to true, since the
+	implementation no longer insists on a nonempty GCALIGNED.
+	But make it false if GC_MARK_STACK != GC_MAKE_GCPROS_NOOPS.
+	(SCOPED_CONS_INITIALIZER): Remove, since it's no longer needed
+	separately.  Move definiens to scoped_cons.  The old definition
+	was incorrect when GCALIGNED was defined to be empty.
+	(union Aligned_String): New type.
+	(USE_STACK_CONS, USE_STACK_STRING): New constants, so that the
+	implementation ports to compilers that don't align strictly enough.
+	Don't worry about the union sizes; it's not worth bothering about.
+	(scoped_cons, scoped_list1, scoped_list3, scoped_list4):
+	Rewrite using USE_STACK_CONS.
+	(scoped_cons): Assume the use of union Aligned_Cons.
+	(lisp_string_size, make_local_string, build_local_string): Remove.
+	Unless otherwise specified, all callers of build_local_string
+	changed to use SCOPED_STRING.
+	(SCOPED_STRING): New macro.
+	* data.c (wrong_choice):
+	* menu.c (single_menu_item):
+	* process.c (Fformat_network_address):
+	Hoist use of SCOPED_STRING out of a scope, so that its returned
+	object lives long enough.
+	* fileio.c (Fexpand_file_name): Use build_string, not SCOPED_STRING,
+	as the string might be long or might not be ASCII.
+
+2014-09-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdos.c (internal_terminal_init): Bump version to 25.
+
+2014-09-29  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Keep stack-allocated Lisp objects fast rather than versatile.
+	* lisp.h (union Aligned_Cons) [!GCALIGNED]: Define as such.
+	(SCOPED_CONS_INITIALIZER): New macro.
+	(scoped_cons) [USE_STACK_LISP_OBJECTS]: Use it.
+	(USE_LOCAL_ALLOCA): Remove.
+	(local_cons, local_list1, local_list2, local_list3, local_list4):
+	Remove.  Stack overflow checking makes them too slow.
+	(make_local_vector): Likewise.  Also we just don't have enough
+	users for it.
+	(enum LISP_STRING_OVERHEAD): Remove.
+	(local_string_init, local_vector_init): Remove prototypes.
+	(make_local_string, build_local_string): Redesign to target short
+	compile-time string constants, fall back to regular string allocation
+	where appropriate.
+	(lisp_string_size): New function.
+	(verify_ascii) [ENABLE_CHECKING]: Add prototype.
+	* alloc.c (local_string_init, local_vector_init): Remove.
+	(verify_ascii) [ENABLE_CHECKING]: New function.
+	* buffer.c, charset.c, chartab.c, data.c, editfns.c, emacs.c, fileio.c:
+	* fns.c, font.c, fontset.c, frame.c, keyboard.c, keymap.c, lread.c:
+	* menu.c, minibuf.c, process.c, textprop.c, xdisp.c, xfns.c, xfont.c:
+	* xselect.c, xterm.c: All related users changed.
+
+2014-09-28  Ken Brown  <kbrown@cornell.edu>
+
+	* sheap.c (bss_sbrk_buffer_beg): Remove redundant variable.
+	* gmalloc.c [CYGWIN]: Adapt to change in sheap.c.
+
+2014-09-27  Ken Brown  <kbrown@cornell.edu>
+
+	Fix implementation of HYBRID_MALLOC on Cygwin.
+	* sheap.c (bss_sbrk_buffer_end): Cast to void *.
+	(bss_sbrk_buffer_beg): New variable.  Use it...
+	* gmalloc.c (ALLOCATED_BEFORE_DUMPING) [CYGWIN]: ...here, to fix
+	incorrect definition.
+
+2014-09-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c (track-mouse): Rename to internal--track-mouse.
+	Make it into a function and change arg to be a function.
+
+	* lisp.mk (lisp): Add elisp-mode.elc.
+
+2014-09-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* xfns.c (x_default_scroll_bar_color_parameter):
+	Use USE_LOCAL_ALLOCA only if USE_TOOLKIT_SCROLL_BARS,
+	to pacify --enable-gcc-warnings in non-scrollbar builds.
+
+2014-09-26  Ken Brown  <kbrown@cornell.edu>
+
+	* w32term.h (ALIGN_STACK): Fix the cpp condition.
+
+2014-09-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* lisp.h (USE_STACK_LISP_OBJECTS): Default to false for 32-bit
+	MinGW builds that use GCC before 4.2.
+
+	Default to stack objects on DOS_NT platforms as well.
+	* w32term.h (ALIGN_STACK) [__GNUC__]: Define to
+	__attribute__((force_align_arg_pointer)) for GCC 4.2 and later.
+
+	* lisp.h (USE_STACK_LISP_OBJECTS): Remove the !DOS_NT condition.
+
+	* w32proc.c (enum_locale_fn, enum_codepage_fn): Add the
+	ALIGN_STACK attribute.
+
+	* w32fns.c (w32_monitor_enum): Add the ALIGN_STACK attribute.
+
+	* w32uniscribe.c (add_opentype_font_name_to_list): Add the
+	ALIGN_STACK attribute.
+
+	* w32font.c (add_font_name_to_list, add_font_entity_to_list)
+	(add_one_font_entity_to_list): Add the ALIGN_STACK attribute.
+
+2014-09-25  Martin Rudalics  <rudalics@gmx.at>
+
+	* frame.c (frame_inhibit_resize):
+	* widget.c (EmacsFrameResize):
+	* window.c (resize_frame_windows, Fset_window_configuration):
+	* xdisp.c (expose_frame):
+	* xfns.c (x_change_tool_bar_height):
+	* xmenu.c (update_frame_menubar):
+	* xterm.c (handle_one_xevent, x_new_font, x_set_window_size_1):
+	Remove code left dead after 2014-07-27 changes.
+
+2014-09-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix local_cons etc. to not exhaust the stack when in a loop.
+	Problem reported in:
+	http://lists.gnu.org/archive/html/emacs-devel/2014-09/msg00696.html
+	* buffer.c (Fother_buffer, other_buffer_safely, init_buffer):
+	* charset.c (load_charset_map_from_file, Ffind_charset_region)
+	(Ffind_charset_string):
+	* chartab.c (uniprop_encode_value_numeric, uniprop_table):
+	* data.c (wrong_range):
+	* editfns.c (Fpropertize, format2):
+	* emacs.c (init_cmdargs, decode_env_path):
+	* fileio.c (auto_save_error):
+	* fns.c (Fyes_or_no_p):
+	* font.c (font_style_to_value, font_parse_xlfd)
+	(font_parse_family_registry, font_delete_unmatched)
+	(font_add_log):
+	* fontset.c (Fset_fontset_font):
+	* frame.c (x_get_arg):
+	* keyboard.c (echo_dash, safe_run_hooks_error, parse_menu_item)
+	(read_char_minibuf_menu_prompt):
+	* keymap.c (silly_event_symbol_error, describe_vector):
+	* lread.c (load_warn_old_style_backquotes):
+	* menu.c (single_menu_item):
+	* minibuf.c (Fread_buffer):
+	* process.c (status_message, Fformat_network_address)
+	(server_accept_connection):
+	* textprop.c (copy_text_properties):
+	* xdisp.c (Fcurrent_bidi_paragraph_direction):
+	* xfns.c (x_default_scroll_bar_color_parameter):
+	* xfont.c (xfont_open):
+	* xselect.c (x_clipboard_manager_error_1):
+	* xterm.c (x_term_init):
+	Put USE_LOCAL_ALLOCA at the start of the function.
+	* fns.c (maybe_resize_hash_table): Use build_string instead of
+	build_local_string, since we'd otherwise need a conditional
+	USE_LOCAL_ALLOCA here, but this is just debugging output and is
+	not worth the bother of optimization.
+	* font.c (font_delete_unmatched): Remove by-hand code that
+	observed MAX_ALLOCA limit, since it's now done automatically.
+	* keymap.c (Fsingle_key_description): Put USE_SAFE_ALLOCA at top,
+	since build_local_string needs its sa_alloc.
+	* lisp.h (lisp_word_count): New function.
+	(SAFE_ALLOCA_LISP): Use it.
+	(USE_LOCAL_ALLOCA): New macro.
+	(local_cons, make_local_vector, make_local_string):
+	Observe the MAX_ALLOCA limit.
+	(LISP_STRING_OVERHEAD): New constant.
+	(make_local_string): Use it.
+
+2014-09-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Default to stack objects on non-GNU/Linux, non-DOS_NT platforms.
+	* lisp.h (USE_STACK_LISP_OBJECTS): Also default to true
+	if !defined DOS_NT && !defined GNU_LINUX.  I've tested this on AIX
+	and Solaris and it's likely to work on similar platforms.
+
+	Avoid signed integer overflow when converting Time to ptrdiff_t.
+	* keyboard.c (INPUT_EVENT_POS_MAX, INPUT_EVENT_POS_MIN):
+	New macros.
+	(position_to_Time, Time_to_position): New functions.
+	(gen_help_event, kbd_buffer_get_event): Use them.
+	* systime.h (Time) [emacs && !HAVE_X_WINDOWS]:
+	Go back to plain 'unsigned long', so that 'Time' is the same
+	for both X and non-X builds; this is less likely to cause surprise.
+	* termhooks.h: Remove compile-time check that Time and ptrdiff_t
+	are the same size; this is no longer required.
+
+	* keyboard.c (make_lispy_event): Avoid unnecessary tests
+	of bit 28 and of whether an unsigned value is negative.
+	This simplifies the code a bit, and pacifies clang 3.4.
+
+2014-09-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* systime.h (Time): Define as size_t, to be consistent with 64-bit
+	Windows builds, where 'long' is a 32-bit type.
+
+	* w32inevt.h (w32_console_mouse_position): Update the argument
+	types to use 'Time'.
+
+	* w32term.c (w32_mouse_position)
+	(x_horizontal_scroll_bar_report_motion)
+	(x_scroll_bar_report_motion): Update the argument types to use
+	'Time'.
+
+2014-09-24  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* termhooks.h (enum scroll_bar_part): Begin from 0 to allow...
+	(struct input_event): ...unsigned bitfields.  Likewise for
+	`event_kind' member.  Prefer unsigned for `code' and 'modifiers'.
+	Use `timestamp' for HELP_EVENT position.  Add compile-time assert.
+	* keyboard.c (gen_help_event, kbd_buffer_store_help_event)
+	(kbd_buffer_get_event): Adjust users.
+	(scroll_bar_parts): Add Qnil to match scroll_bar_nowhere.
+	(make_scroll_bar_position): New function, refactored out of...
+	(make_lispy_event): ...adjusted user.
+	* nsterm.h (EmacsScroller): Use enum for `last_hit_part' member.
+	* nsterm.m (ns_mouse_position, mouseUp):
+	* term.c (term_mouse_position):
+	* w32inevt.c (w32_console_mouse_position):
+	* w32term.c (w32_mouse_position):
+	* xterm.c (XTmouse_position): Use scroll_bar_above_handle.
+	(x_send_scroll_bar_event, xm_scroll_callback, xg_scroll_callback):
+	Prefer enum and explicit enum members to integers and numeric values.
+
+	* chartab.c (uniprop_encode_value_numeric):
+	* font.c (font_style_to_value): Use make_local_vector.
+	(font_delete_unmatched): Use local_cons but respect MAX_ALLOCA.
+	* keymap.c (append_key): Use scoped_list1.
+
+	* lisp.h (USE_STACK_LISP_OBJECTS): Enable by default if GNU_LINUX
+	&& __GNUC__ && !__clang__.  Mention known problems.  Adjust comment.
+
+2014-09-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix some slow uses and misuses of strcat.
+	* doc.c (get_doc_string):
+	* gtkutil.c (get_utf8_string):
+	* xsmfns.c (x_session_initialize):
+	Avoid recomputation of string length.
+	* ftfont.c (ftfont_spec_pattern):
+	* xfns.c (xic_create_fontsetname):
+	Don't assume output buffer is initially zero.
+
+2014-09-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* lisp.h (lispstpcpy): Rename from lispstrcpy, and act like stpcpy.
+	All callers changed.
+	* xterm.c (x_term_init): Use new functionality to avoid two needs
+	to compute a string length.
+
+	* dispextern.h, xdisp.c (window_box_right_offset): Now static.
+
+2014-09-23  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Use known length of a Lisp string to copy it faster.
+	* lisp.h (lispstrcpy): New function.  Add comment.
+	* callproc.c (child_setup):
+	* dbusbind.c (xd_append_arg):
+	* doc.c (get_doc_string):
+	* font.c (Ffont_xlfd_name):
+	* frame.c (xrdb_get_resource):
+	* process.c (Fmake_network_process, network_interface_info):
+	* w32fns.c (Fx_open_connection):
+	* w32proc.c (sys_spawnve):
+	* xfns.c (select_visual):
+	* xfont.c (xfont_list):
+	* xsmfns.c (x_session_initialize):
+	* xterm.c (x_term_init): Use it.
+
+2014-09-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix SAFE_ALLOCA to not exhaust the stack when in a loop.
+	Problem reported by Dmitry Antipov in thread leading to:
+	http://lists.gnu.org/archive/html/emacs-devel/2014-09/msg00713.html
+	This patch fixes only SAFE_ALLOCA, SAFE_NALLOCA, and SAFE_ALLOCA_LISP;
+	the experimental local_* macros enabled by USE_LOCAL_ALLOCATORS
+	remain unfixed.
+	* callproc.c (call_process): Save and restore sa_avail.
+	* lisp.h (USE_SAFE_ALLOCA): Define sa_avail.
+	(AVAIL_ALLOCA): New macro.
+	(SAFE_ALLOCA, SAFE_NALLOCA, SAFE_ALLOCA_LISP):
+	Use it, and check against sa_avail rather than MAX_ALLOCA.
+
+2014-09-22  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	On OSX, do not free font-specific data more than once (Bug#18501).
+	* macfont.m (macfont_close): Release and free font-specific data
+	only if it wasn't previously freed.
+
+2014-09-22  David Caldwell <david@porkrind.org>  (tiny change)
+
+	* unexmacosx.c (dump_it): Improve error message.
+
+2014-09-22  Juri Linkov  <juri@jurta.org>
+
+	* image.c (imagemagick_load_image): Add delay to imagemagick metadata.
+	(Bug#10747, bug#18334)
+
+2014-09-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* frame.c (Fmouse_position, Fset_mouse_position): Clarify the
+	units in which the position is measured.  (Bug#18493)
+
+	* xdisp.c (redisplay_internal): Force redisplay of all windows
+	that show a buffer whose narrowing has changed.  (Bug#18490)
+
+2014-09-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* xterm.c (x_draw_hollow_cursor, x_draw_bar_cursor):
+	* w32term.c (x_draw_hollow_cursor, x_draw_bar_cursor): In R2L
+	lines, draw the hollow-box and hbar cursors on the right side of
+	cursor-glyph.  Thanks to martin rudalics <rudalics@gmx.at> for
+	testing on X.
+
+	* xterm.c (x_draw_stretch_glyph_string):
+	* w32term.c (x_draw_stretch_glyph_string): Fix a thinko that
+	caused the block cursor to disappear on a TAB in R2L lines in
+	every window except the leftmost one.  Reported by Martin Rudalics
+	<rudalics@gmx.at>.
+
+2014-09-22  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Always use matched specpdl entry to record call arguments (Bug#18473).
+	* lisp.h (record_in_backtrace): Adjust prototype.
+	* eval.c (record_in_backtrace): Return current specpdl level.
+	(set_backtrace_args, set_backtrace_nargs): Merge.  Adjust all users.
+	(eval_sub, Ffuncall): Record call arguments in matched specpdl
+	entry and use that entry in call to backtrace_debug_on_exit.
+	(apply_lambda): Likewise.  Get current specpdl level as 3rd arg.
+	(do_debug_on_call): Get current specpdl level as 2nd arg.
+
+	Prefer ptrdiff_t to int and avoid integer overflows.
+	* fileio.c (make_temp_name):
+	* font.c (font_parse_family_registry): Avoid integer
+	overflow on string size calculation.
+	* data.c (Faset): Likewise for byte index.
+
+2014-09-22  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix display of R2L lines in partial-width windows.
+	* xdisp.c (init_iterator): Don't use it->bidi_p before it is
+	assigned the correct value.
+	(extend_face_to_end_of_line): Account for truncation and
+	continuation glyphs in R2L rows when one of the fringes is not
+	displayed.
+	(display_line): Don't assign negative X offset to a row if we are
+	going to produce a truncation glyph for it.  When handling
+	truncated R2L rows, consider the width of the left fringe instead
+	of the right one.
+	(produce_special_glyphs): Fix bogus assignments.
+
+2014-09-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (fcntl): Support O_NONBLOCK fcntl on the write side of pipes.
+
+2014-09-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* fileio.c (Fexpand_file_name) [DOS_NT]: Make sure newdirlim is
+	always set to a valid value.  Make sure the size passed to alloca
+	is always positive.  (Bug#18516)
+
+2014-09-22  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Avoid extra call to oblookup when interning symbols.
+	* lisp.h (intern_driver): Add prototype.
+	* lread.c (intern_driver): New function.
+	(intern1, intern_c_string_1, Fintern):
+	* font.c (font_intern_prop):
+	* w32font.c (intern_font_name): Use it.
+
+2014-09-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Minor improvements to new stack-allocated Lisp objects.
+	* frame.h (FRAME_PARAMETER):
+	Prefer scoped_list1 to local_list1 where either would do.
+	* lisp.h (scoped_list4): New macro.
+	(local_cons, local_list1, local_list2, local_list3, local_list4)
+	(make_local_vector, make_local_string, build_local_string):
+	Prefer functions to macros where either would do.
+	* xdisp.c (build_desired_tool_bar_string):
+	Prefer scoped_list4 to local_list4 where either would do.
+
+2014-09-18  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	More and more stack-allocated Lisp objects if USE_LOCAL_ALLOCATORS.
+	* lisp.h (local_list4) [USE_LOCAL_ALLOCATORS]: New macro.
+	[!USE_LOCAL_ALLOCATORS]: Fall back to regular list4.
+	* frame.h (FRAME_PARAMETER): New macro.
+	* dispnew.c (init_display):
+	* fontset.c (Fset_fontset_font):
+	* frame.c (x_default_parameter):
+	* xfaces.c (set_font_frame_param, Finternal_merge_in_global_face):
+	* xfns.c (x_default_scroll_bar_color_parameter)
+	(x_default_font_parameter, x_create_tip_frame): Use it.
+	* editfns.c (Fpropertize): Use local_cons.
+	* process.c (status_message): Use build_local_string.
+	* xfont.c (xfont_open): Use make_local_string.
+	* xdisp.c (build_desired_tool_bar_string): Use local_list4.
+
+2014-09-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port USE_LOCAL_ALLOCATORS code to clang 3.4 x86-64.
+	* lisp.h (USE_LOCAL_ALLOCATORS): Define only if __GNUC__ &&
+	!__clang__.  This works with GCC and with clang and is safer for
+	compilers we don't know about.
+	(local_cons): Rename parameter to make capture less likely.
+
+2014-09-17  Samuel Bronson  <naesten@gmail.com>
+
+	* unexmacosx.c (copy_data_segment): Port to GCC 4.6+ (Bug#9927).
+
+2014-09-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix minor problems found by static checking.
+	* alloc.c, lisp.h (SAVE_TYPE_INT_OBJ, make_save_int_obj):
+	Remove; now unused.
+	* buffer.h (decode_buffer): Doc and indentation fixes.
+	* fns.c (Qstring_collate_lessp, Qstring_collate_equalp): Now static.
+
+2014-09-17  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Avoid clang-specific warnings.
+	* buffer.c (init_buffer): Shut up -Wself-assign.
+	* process.c (server_accept_connection): Shut up -Wunsequenced.
+
+2014-09-16  Daniel Colascione  <dancol@dancol.org>
+
+	* fns.c (sxhash): For symbols, use address as hash code.
+
+2014-09-16  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	If USE_LOCAL_ALLOCATORS, allocate even more Lisp objects on stack.
+	* charset.c (load_charset_map_from_file): Use scoped_list2
+	and build_local_string.
+	* buffer.c (Fother_buffer, other_buffer_safely, init_buffer):
+	* emacs.c (init_cmdargs, decode_env_path):
+	* fileio.c (Fexpand_file_name):
+	* fns.c (maybe_resize_hash_table) [ENABLE_CHECKING]:
+	* frame.c (x_get_arg):
+	* keyboard.c (safe_run_hooks_error):
+	* lread.c (load_warn_old_style_backquotes):
+	* xdisp.c (Fcurrent_bidi_paragraph_direction):
+	* xfns.c (x_default_scroll_bar_color_parameter, select_visual):
+	* xselect.c (x_clipboard_manager_error_1)
+	(x_clipboard_manager_save_all):
+	* xterm.c (x_term_init): Use build_local_string.
+
+	Avoid more integer overflows on string size calculations.
+	* category.c (Fmake_category_set):
+	* xdisp.c (get_overlay_arrow_glyph_row):
+	* w32font.c (intern_font_name): Prefer ptrdiff_t to int.
+
+2014-09-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* sound.c [WINDOWSNT]: Include w32common.h and mbstring.h.
+	(SOUND_WARNING) [WINDOWSNT]: Include in do..while and improve the
+	error message format.  Use message_with_string to have non-ASCII
+	file names properly displayed.
+	(do_play_sound) [WINDOWSNT]: Use Unicode APIs to play sound files
+	when w32-unicode-filenames is non-nil, but not on Windows 9X,
+	where these APIs are not available even in UNICOWS.DLL.
+	Improve the format of error messages and include the file name in them
+	where appropriate.
+	(Fplay_sound_internal) [WINDOWSNT]: Make the MS-Windows branch
+	call play-sound-functions, per documentation.
+
+	* w32.c (w32_get_long_filename, w32_get_short_filename):
+	Constify the input file name arguments.
+
+	* w32.h (w32_get_long_filename, w32_get_short_filename):
+	Update prototypes.
+
+2014-09-15  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	If USE_LOCAL_ALLOCATORS, allocate some Lisp objects on stack.
+	* lisp.h (local_cons, local_list1, local_list2, local_list3)
+	[USE_LOCAL_ALLOCATORS]: New macros.
+	[!USE_LOCAL_ALLOCATORS]: Fall back to regular functions.
+	(build_local_string): Avoid argument name expansion clash with
+	make_local_string.
+	* alloc.c (toplevel)
+	[USE_LOCAL_ALLOCATORS && GC_MARK_STACK != GC_MAKE_GCPROS_NOOPS]:
+	Preprocessor guard to avoid impossible configuration.
+	* charset.c (Ffind_charset_region, Ffind_charset_string):
+	Use make_local_vector.
+	* lread.c (read1, substitute_object_recurse): Use scoped_cons.
+	* textprop.c (Fput_text_property, Fadd_face_text_property):
+	Use scoped_list2.
+	(copy_text_properties): Use local_cons and local_list3.
+	* chartab.c (uniprop_table):
+	* data.c (wrong_choice, wrong_range):
+	* doc.c (get_doc_string):
+	* editfns.c (format2):
+	* fileio.c (Fexpand_file_name, auto_save_error):
+	* fns.c (Fyes_or_no_p):
+	* font.c (font_parse_xlfd, font_parse_family_registry, font_add_log):
+	* fontset.c (Fset_fontset_font):
+	* keyboard.c (echo_add_key, echo_dash, parse_menu_item)
+	(read_char_minibuf_menu_prompt):
+	* keymap.c (silly_event_symbol_error, describe_vector):
+	* menu.c (single_menu_item):
+	* minibuf.c (Fread_buffer):
+	* process.c (status_message, Fformat_network_address)
+	(server_accept_connection): Use make_local_string and
+	build_local_string.  Prefer compound literals where appropriate.
+
+2014-09-15  Daniel Colascione  <dancol@dancol.org>
+
+	* fns.c (Fsort): Tweak sort docstring.
+
+2014-09-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (fcntl): Support O_NONBLOCK fcntl on the write side of pipes.
+	(sys_write): When a write to a non-blocking pipe returns ENOSPC,
+	set errno to EAGAIN instead, to allow the caller to retry the
+	write after some waiting.  Fixes deadlocks when Emacs exchanges a
+	lot of data through the pipe.  (Bug#18420)
+
+	* sound.c (Fplay_sound_internal): Encode the sound file name in
+	the ANSI codepage.  Expand it against data-directory, as per docs,
+	not against the current directory.  No need to make a local copy
+	of the file name; pass the encoded file name directly to
+	do_play_sound.  (Bug#18463)
+
+	* w32.c (ansi_encode_filename): If w32_get_short_filename returns
+	NULL, and the file name is not encodable in ANSI codepage, return
+	the string with "?" replacement characters, which will fail the
+	caller.  This avoids returning a random value in that case.
+
+2014-09-15  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (Fresize_mini_window_internal): Set w->total_lines
+	from w->pixel_height (Bug#18422).
+
+2014-09-15  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (updateFrameSize:, initFrameFromEmacs:)
+	(toggleFullScreen:): Take frame_resize_pixelwise into account when
+	setting resize increments (Bug#18435).
+
+2014-09-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (pos_visible_p): Properly save and restore the iterator
+	state around the call to line_bottom, since it can move the
+	iterator to another screen line.  This fixes off-by-one errors in
+	the reported row in some rare cases.
+
+2014-09-14  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* callproc.c (init_callproc): Fix bug introduced at
+	2014-09-07 (Bug#18474).
+
+2014-09-13  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Prefer ptrdiff_t to int and avoid integer overflows.
+	* fileio.c (make_temp_name):
+	* font.c (font_parse_family_registry): Avoid integer
+	overflow on string size calculation.
+	* data.c (Faset): Likewise for byte index.
+
+2014-09-12  Detlev Zundel  <dzu@member.fsf.org>
+
+	* buffer.c (syms_of_buffer): DEFSYM Qchoice (Bug#18337).
+
+2014-09-11  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* lisp.h (make_local_string): Nitpick indent.
+	* print.c (Fprin1_to_string): Remove unused GCPROs.
+
+	More debugging aids around GCPROs.
+	* lisp.h (struct gcpro) [DEBUG_GCPRO]: Add extra members.
+	(GCPRO1, GCPRO2, GCPRO3, GCPRO4, GCPRO5, GCPRO6, GCPRO7):
+	Minor restyle.  If DEBUG_GCPRO, initialize extra fields.
+
+	* lread.c (readevalloop_eager_expand_eval): Add GCPRO and fix
+	bootstrap broken if GC_MARK_STACK == GC_USE_GCPROS_AS_BEFORE.
+
+	Remove redundant GCPROs around Ffuncall and Fapply calls.
+	This is safe because Ffuncall protects all of its arguments by itself.
+	* charset.c (map_charset_for_dump): Remove redundant GCPRO.
+	* eval.c (Fapply, apply1, call0, call1, call2, call3, call4, call5)
+	(call6, call7): Likewise.  Use compound literals where applicable.
+	(run_hook_with_args_2): Use compound literal.
+
+2014-09-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Pacify --enable-gcc-warnings when no window system is used.
+	These warnings found that subscript error, so they seem worthwhile.
+	* composite.c (char_composable_p): Simplify a bit.
+	* frame.c (x_set_frame_parameters): Add an IF_LINT.
+	* frame.c (x_set_horizontal_scroll_bars, x_set_scroll_bar_height):
+	* frame.h (FRAME_HAS_HORIZONTAL_SCROLL_BARS):
+	* window.c (set_window_scroll_bars):
+	Use USE_HORIZONTAL_SCROLL_BARS for simplicity.
+	* frame.h [! USE_HORIZONTAL_SCROLL_BARS]:
+	Ignore -Wsuggest-attribute=const.
+	* window.h (USE_HORIZONTAL_SCROLL_BARS): New macro.
+	(WINDOW_HAS_HORIZONTAL_SCROLL_BAR): Use it.
+
+2014-09-10  Paul Eggert  <eggert@penguin.cs.ucla.edu>
+
+	* charset.c (Fget_unused_iso_final_char): Fix subscript error.
+	Use check_iso_charset_parameter instead of doing the checks by hand.
+	(check_iso_charset_parameter): Move up.  Check parameters a bit
+	more carefully, and return true for 96-char sets.  All callers changed.
+
+2014-09-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Simplify lisp.h by removing the __COUNTER__ business.
+	Problem reported by Dmitry Antipov in:
+	http://lists.gnu.org/archive/html/emacs-devel/2014-09/msg00220.html
+	* lisp.h (make_local_vector, make_local_string)
+	(build_local_string): Simplify by not bothering with __COUNTER__.
+	The __COUNTER__ business wasn't working properly, and was needed
+	only for hypothetical future expansion anyway.
+
+2014-09-10  Alp Aker  <alp.tekin.aker@gmail.com>
+
+	* nsterm.m (ns_draw_fringe_bitmap): Use the same logic as other
+	terms to determine bitmap color.  (Bug#18437)
+
+2014-09-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (sys_write): Use SAFE_NALLOCA for the NL -> CRLF
+	translation buffer.
+
+2014-09-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* xterm.c (handle_one_xevent): Add braces to pacify gcc -Wall.
+
+2014-09-10  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.c (handle_one_xevent): Detect iconified by looking at
+	_NET_WM_STATE_HIDDEN.
+
+2014-09-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* lisp.h (DEFINE_GDB_SYMBOL_ENUM): Remove.
+	These can generate a constant with the correct value but the wrong
+	width, which doesn't work as a printf argument.  All uses removed.
+	Problem reported by Dmitry Antipov in:
+	http://lists.gnu.org/archive/html/emacs-devel/2014-09/msg00213.html
+	(ENUMABLE): Remove; no longer needed.
+	(ARRAY_MARK_FLAG_val, PSEUDOVECTOR_FLAG_val, VALMASK_val):
+	Remove; no longer needed because of the above change.
+	Each definiens moved to the only use.
+
+	Improve the experimental local and scoped allocation.
+	* alloc.c (local_string_init, local_vector_init):
+	New functions, defined if USE_LOCAL_ALLOCATORS.
+	Mostly, these are moved here from lisp.h, as it's not
+	clear it's worth making them inline.
+	* lisp.h (USE_STACK_LISP_OBJECTS): Default to false.
+	(GCALIGNED): Depend on HAVE_STRUCT_ATTRIBUTE_ALIGNED and
+	USE_STACK_LISP_OBJECTS, not on a laundry list.
+	(local_string_init, local_vector_init): New decls.
+	(union Aligned_Cons): New type.
+	(scoped_cons): Use it.  Give up on the char trick, as it's a too
+	much of a maintenance hassle; if someone wants this speedup
+	they'll just need to convince their compiler to align properly.
+	Conversely, use the speedup if struct Lisp_Cons happens to
+	be aligned even without a directive.  Better yet, help it along
+	by using union Aligned_Cons rather than struct Lisp_Cons.
+	(pointer_valid_for_lisp_object): Remove.  This check is not
+	necessary, since make_lisp_ptr is already doing it.  All uses removed.
+	(local_vector_init, local_string_init): Move to alloc.c.
+	(build_local_vector): Remove this awkward macro, replacing with ...
+	(make_local_vector): New macro, which acts more like a function.
+	Use statement expressions and use __COUNTER__ to avoid macro
+	capture.  Fall back on functions if these features are not supported.
+	(build_local_string, make_local_string): Likewise.
+
+2014-09-09  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xterm.c (x_term_init): Consolidate duplicated code.
+	[USE_LUCID]: Revert 2014-04-02 change (Bug#18403).  Add comment.
+	(x_delete_terminal): Do not close X connection fd (Bug#18403).
+	Add eassert and mark dpyinfo as dead only if it was alive.
+
+	Add macros to allocate temporary Lisp objects with alloca.
+	Respect MAX_ALLOCA and fall back to regular GC for large objects.
+	* character.h (parse_str_as_multibyte): Move prototype to ...
+	* lisp.h (parse_str_as_multibyte): ... here.
+	(struct Lisp_Cons): Add GCALIGNED attribute if supported.
+	(scoped_cons, scoped_list2, build_local_vector, build_local_string):
+	New macros.
+	(scoped_cons_init, pointer_valid_for_lisp_object, local_vector_init)
+	(local_string_init): New functions.
+	* alloc.c (verify_alloca) [ENABLE_CHECKING]: New function.
+	(init_alloc_once): Call it.
+
+	Cleanup last change and make all new stuff conditional.
+	* lisp.h (build_local_string): Rename to ...
+	(make_local_string): ... this macro.
+	(build_local_string, scoped_list1, scoped_list3): New macros.
+	(toplevel) [USE_STACK_LISP_OBJECTS]: Define all new macros
+	and functions as such, use regular fallbacks otherwise.
+	* alloc.c (verify_alloca) [USE_STACK_LISP_OBJECTS]: Define
+	conditionally.
+
+2014-09-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* dispnew.c (prepare_desired_row): When MODE_LINE_P is zero,
+	always make sure the marginal areas of the row are in sync with
+	what the window wants.  (Bug#18419)
+
+	* data.c (set_internal): Use assq_no_quit, not Fassq, to find an
+	existing binding of a variable, to avoid silently aborting
+	commands that use specbind.  (Bug#18331)
+
+2014-09-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix bug uncovered by changing alloca to auto buffer (Bug#18410).
+	* coding.c (growable_destination): New function.
+	(produce_chars): Use it for sanity checks.  Do not fiddle with
+	dst_end if the source and destination are both nil, as it's
+	the caller's responsibility to avoid overlap.
+	* keyboard.c (read_decoded_event_from_main_queue):
+	The destination must be MAX_MULTIBYTE_LENGTH times the max source
+	length, not 4 times, to prevent decode_coding_c_string from trying
+	to reallocate a destination.  This removes the need for the FIXME.
+
+	* callproc.c (exec_failed) [DOS_NT]: Define a dummy.
+	All callers simplified.  Add a comment about exec_failed, vfork,
+	and alloca.
+
+	Adjust drag-and-drop fix when window is above top (Bug#18303).
+	* xselect.c (x_fill_property_data): Don't let sign bit of negative
+	XCDR bleed into XCAR's encoded value.  Improve checks for
+	out-of-range data while we're at it.
+
+2014-09-07  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xselect.c (x_fill_property_data): Handle negative XCDR when data
+	is CONSP (Bug#18303).
+
+2014-09-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* callproc.c (child_setup) [WINDOWSNT]: Don't call exec_failed if
+	'alloca' gets passed arguments larger than MAX_ALLOCA.
+
+	* font.c (MAX): Define if not defined elsewhere.
+
+2014-09-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* keyboard.c (read_decoded_event_from_main_queue): Reinstitute alloca
+	here for destination buffer, to work around what appears to be a
+	bug in decode_coding_c_string when the source and destination are
+	both C strings.
+
+	Use SAFE_ALLOCA etc. to avoid unbounded stack allocation (Bug#18410).
+	This follows up on the recent thread in emacs-devel on alloca; see:
+	http://lists.gnu.org/archive/html/emacs-devel/2014-09/msg00042.html
+	This patch also cleans up alloca-related glitches noted while
+	examining the code looking for unbounded alloca.
+	* alloc.c (listn):
+	* callproc.c (init_callproc):
+	Rewrite to avoid need for alloca.
+	* buffer.c (mouse_face_overlay_overlaps)
+	(report_overlay_modification):
+	* buffer.h (GET_OVERLAYS_AT):
+	* coding.c (make_subsidiaries):
+	* doc.c (Fsnarf_documentation):
+	* editfns.c (Fuser_full_name):
+	* fileio.c (Ffile_name_directory, Fexpand_file_name)
+	(search_embedded_absfilename, Fsubstitute_in_file_name):
+	* fns.c (Fmake_hash_table):
+	* font.c (font_vconcat_entity_vectors, font_update_drivers):
+	* fontset.c (fontset_pattern_regexp, Ffontset_info):
+	* frame.c (Fmake_terminal_frame, x_set_frame_parameters)
+	(xrdb_get_resource, x_get_resource_string):
+	* ftfont.c (ftfont_get_charset, ftfont_check_otf, ftfont_drive_otf):
+	* ftxfont.c (ftxfont_draw):
+	* image.c (xbm_load, xpm_load, jpeg_load_body):
+	* keyboard.c (echo_add_key, menu_bar_items, tool_bar_items)
+
+	* keymap.c (Fdescribe_buffer_bindings, describe_map):
+	* lread.c (openp):
+	* menu.c (digest_single_submenu, find_and_call_menu_selection)
+	(find_and_return_menu_selection):
+	* print.c (PRINTFINISH):
+	* process.c (Fformat_network_address):
+	* scroll.c (do_scrolling, do_direct_scrolling, scrolling_1):
+	* search.c (search_buffer, Fmatch_data, Fregexp_quote):
+	* sound.c (wav_play, au_play):
+	* syntax.c (skip_chars):
+	* term.c (tty_menu_activate, tty_menu_show):
+	* textprop.c (get_char_property_and_overlay):
+	* window.c (Fset_window_configuration):
+	* xdisp.c (safe__call, next_overlay_change, vmessage)
+	(compute_overhangs_and_x, draw_glyphs, note_mouse_highlight):
+	* xfaces.c (face_at_buffer_position):
+	* xmenu.c (x_menu_show):
+	Use SAFE_ALLOCA etc. instead of plain alloca, since the
+	allocation size isn't bounded.
+	* callint.c (Fcall_interactively): Redo memory_full check
+	so that it can be done at compile-time on some platforms.
+	* coding.c (MAX_LOOKUP_MAX): New constant.
+	(get_translation_table): Use it.
+	* callproc.c (call_process): Use SAFE_NALLOCA instead of
+	SAFE_ALLOCA, to catch integer overflows on size calculation.
+	(exec_failed) [!DOS_NT]: New function.
+	(child_setup) [!DOS_NT]: Use it.
+	* editfns.c (Ftranspose_regions):
+	Hoist USE_SAFE_ALLOC + SAFE_FREE out of 'if'.
+	* editfns.c (check_translation):
+	Allocate larger buffers on the heap.
+	* eval.c (internal_lisp_condition_case):
+	Check for MAX_ALLOCA overflow.
+	* fns.c (sort_vector): Use SAFE_ALLOCA_LISP rather than Fmake_vector.
+	(Fbase64_encode_region, Fbase64_decode_region):
+	Avoid unnecessary calls to SAFE_FREE before 'error'.
+	* buffer.c (mouse_face_overlay_overlaps):
+	* editfns.c (Fget_pos_property, check_translation):
+	* eval.c (Ffuncall):
+	* font.c (font_unparse_xlfd, font_find_for_lface):
+	* ftfont.c (ftfont_drive_otf):
+	* keyboard.c (echo_add_key, read_decoded_event_from_main_queue)
+	(menu_bar_items, tool_bar_items):
+	* sound.c (Fplay_sound_internal):
+	* xdisp.c (load_overlay_strings, dump_glyph_row):
+	Use an ordinary auto buffer rather than alloca, since the
+	allocation size is fixed and small.
+	* ftfont.c: Include <c-strcase.h>.
+	(matching_prefix): New function.
+	(get_adstyle_property): Use it, to avoid need for alloca.
+	* keyboard.c (echo_add_key):
+	* keymap.c (describe_map): Use ptrdiff_t, not int.
+	* keyboard.c (echo_add_key): Prefer sizeof to strlen.
+	* keymap.c (Fdescribe_buffer_bindings): Use SBYTES, not SCHARS,
+	when counting bytes.
+	* lisp.h (xlispstrdupa): Remove, replacing with ...
+	(SAFE_ALLOCA_STRING): ... new macro with different API.
+	This fixes a portability problem, namely, alloca result
+	passed to another function.  All uses changed.
+	(SAFE_ALLOCA, SAFE_ALLOCA_LISP): Check for MAX_ALLOCA,
+	not MAX_ALLOCA - 1.
+	* regex.c (REGEX_USE_SAFE_ALLOCA, REGEX_SAFE_FREE)
+	(REGEX_ALLOCATE): New macros.
+	(REGEX_REALLOCATE, REGEX_ALLOCATE_STACK, REGEX_REALLOCATE_STACK)
+	(REGEX_FREE_STACK, FREE_VARIABLES, re_match_2_internal):
+	Use them.
+	* xdisp.c (message3): Use SAFE_ALLOCA_STRING rather than doing it
+	by hand.
+	(decode_mode_spec_coding): Store directly into buf rather than
+	into an alloca temporary and copying the temporary to the buf.
+
+2014-09-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (EMACS_HEAPSIZE): Remove, no longer used.  (Bug#18416)
+
+2014-09-04  Jan D  <jan.h.d@swipnet.se>
+
+	* xterm.c (x_term_init): Don't call x_session_initialize if running
+	as a daemon (Bug#18375).
+
+	* xsmfns.c: Initialize ice_fd.
+
+2014-09-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Less chatter in 'make' output.
+	* Makefile.in (AM_V_GEN, am__v_GEN_, am__v_GEN_0, am__v_GEN_1, AM_V_at)
+	(am__v_at_, am__v_at_0, am__v_at_1):  New macros, taken from Automake.
+	($(etc)/DOC, buildobj.h, gl-stamp): Use them.
+
+2014-09-03  Martin Rudalics  <rudalics@gmx.at>
+
+	* buffer.c (scroll-bar-height): Fix typo in doc-string.
+	* frame.c (Vdefault_frame_horizontal_scroll_bars):
+	Remove variable.
+	* nsfns.m (Fx_create_frame):
+	* w32fns.c (Fx_create_frame):
+	* xfns.c (Fx_create_frame): Default horizontal scroll bars to
+	nil.
+
+2014-09-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* dispnew.c (buffer_posn_from_coords): Fix an off-by-one error in
+	the reported row in the case of a window with a header line, by
+	improving on the fix committed in r106022
+	eliz@gnu.org-20111008105850-ht4tvsayohvr1kjc.  (Bug#18384)
+
+2014-09-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* eval.c (internal_lisp_condition_case): Don't overrun the stack
+	when configured --with-wide-int on typical 32-bit platforms.
+
+2014-09-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (display_and_set_cursor): Call erase_phys_cursor also
+	when HPOS is negative, for the benefit of R2L glyph rows whose
+	newline overflows into the fringe.
+
+2014-09-03  Ken Brown  <kbrown@cornell.edu>
+
+	* conf_post.h (strnicmp) [CYGWIN && HAVE_NTGUI]: Define.  (Bug#18366)
+
+2014-09-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Minor cleanup of recent strlen-avoiding patch.
+	* fileio.c (CHECK_LENGTH): Remove.
+	Rewrite callers so that they don't need it.
+	(Fexpand_file_name) [DOS_NT]: Fix a case where directory length
+	variable wasn't set.
+
+2014-09-02  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* fileio.c (CHECK_LENGTH): New macro.
+	(Fexpand_file_name): Use it and get rid of a few more calls
+	to strlen and strcat.
+	* callproc.c (egetenv_internal): Add arg and rename from egetenv ...
+	* lisp.h (egetenv): ... because of a new inline function used to
+	avoid calls to strlen for a compile-time constants.
+
+	* buffer.h (decode_buffer): New function.
+	* buffer.c (Fbuffer_name, Fbuffer_file_name, Fbuffer_base_buffer)
+	(Fbuffer_local_variables, Fbuffer_modified_p, Fbuffer_modified_tick)
+	(Fbuffer_chars_modified_tick, Fdelete_all_overlays):
+	* data.c (Flocal_variables_p):
+	* fileio.c (Fverify_visited_file_modtime):
+	* marker.c (live_buffer): Use it.
+
+2014-09-01  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Avoid extra calls to strlen in filesystem I/O routines.
+	* fileio.c (Fexpand_file_name): Avoid calls to strlen if
+	the length of 'newdir' is known or may be precalculated.
+	(file_accessible_directory_p): Prefer to pass Lisp_Object,
+	not 'char *', and so use precalculated length.
+	(Ffile_accessible_directory_p):
+	* callproc.c (encode_current_directory, init_callproc):
+	* charset.c (init_charset):
+	* lread.c (load_path_check, load_path_default): Adjust users.
+	* lisp.h (file_accessible_directory_p): Tweak prototype.
+
+2014-09-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32proc.c (w32_compare_strings): Support "C" and "POSIX"
+	locales.
+
+2014-09-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	--enable-silent-rules now suppresses more chatter.
+	* Makefile.in (AM_DEFAULT_VERBOSITY, AM_V_CC, am__v_CC_)
+	(am__v_CC_0, am__v_CC_1, AM_V_CCLD, am__v_CCLD_, am__v_CCLD_0)
+	(am__v_CCLD_1): New macros, taken from Automake.
+	(.c.o, .m.o, temacs$(EXEEXT)): Use them.
+
+	Clean up extern decls a bit.
+	* bytecode.c: Include blockinput.h and keyboard.h rather
+	than rolling their APIs by hand.
+	* emacs.c: Include regex.h and rely on its and lisp.h's API
+	rather than rolling them by hand.
+	* lastfile.c: Include lisp.h, to check this file's API.
+	* lisp.h (lisp_eval_depth, my_edata, my_endbss, my_endbss_static):
+	New decls.
+	* regex.h (re_max_failures): New decl.
+	* unexcw.c, unexmacosx.c, unexw32.c:
+	Rely on lisp.h's API rather than rolling it by hand.
+	* vm-limit.c (__after_morecore_hook, __morecore, real_morecore):
+	Declare at top level, to pacify GCC -Wnested-externs.
+
+2014-08-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (get_glyph_string_clip_rects): Don't let the width of a
+	clipping rectangle become negative (i.e. large positive, since
+	it's an unsigned data type).  This can happen in R2L hscrolled
+	glyph rows, and caused us to draw the cursor glyph on the fringe.
+	For the details, see
+	http://lists.gnu.org/archive/html/emacs-devel/2014-08/msg00543.html.
+
+2014-08-31  Ken Brown  <kbrown@cornell.edu>
+
+	* gmalloc.c: Don't include <stdlib.h>.  Declare system malloc and
+	friends before defining hybrid_malloc and friends if HYBRID_MALLOC
+	is defined.  (Bug#18368)
+
+2014-08-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Vector-sorting fixes (Bug#18361).
+	It's not safe to call qsort or qsort_r, since they have undefined
+	behavior if the user-specified predicate is not a total order.
+	Also, watch out for garbage-collection while sorting vectors.
+	* fns.c: Include <vla.h>.
+	(sort_vector_predicate) [!HAVE_QSORT_R]: Remove.
+	(sort_vector_compare): Remove, replacing with ....
+	(inorder, merge_vectors, sort_vector_inplace, sort_vector_copy):
+	... these new functions.
+	(sort_vector): Rewrite to use the new functions.
+	GCPRO locals, since the predicate can invoke the GC.
+	Since it's in-place return void; caller changed.
+	(merge): Use 'inorder', for clarity.
+
+	* sysdep.c (str_collate): Clear errno just before wcscoll(_l).
+	One can't hoist this out of the 'if', because intervening calls to
+	newlocale, twolower, etc. can change errno.
+
+2014-08-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* sysdep.c (str_collate) [__STDC_ISO_10646__]: Improve the
+	wording of the error messages.
+	(str_collate) [WINDOWSNT]: Signal an error if w32_compare_strings
+	sets errno.
+
+	* w32proc.c (get_lcid_callback): Accept locale specifications
+	without the country part, as in "enu" vs "enu_USA".
+	(w32_compare_strings): Signal an error if a locale was specified,
+	but couldn't be translated into a valid LCID.
+
+2014-08-29  Michael Albinus  <michael.albinus@gmx.de>
+
+	* sysdep.c (str_collate) [__STDC_ISO_10646__]: Move up setting errno.
+
+2014-08-29  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* sysdep.c (str_collate) [__STDC_ISO_10646__]: Do not look at
+	errno after towlower_l.  errno's value is not specified after
+	towlower_l.  Instead, assume that towlower_l returns its argument
+	on failure, which is portable in practice.
+
+2014-08-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* fns.c (Fstring_collate_lessp, Fstring_collate_equalp): Doc fix.
+
+	* w32proc.c (w32_compare_strings): Accept additional argument
+	IGNORE_CASE.  Set up the flags for CompareStringW to ignore case
+	if requested.  If w32-collate-ignore-punctuation is non-nil, add
+	NORM_IGNORESYMBOLS to the flags.
+	(LINGUISTIC_IGNORECASE): Define if not already defined.
+	(syms_of_ntproc) <Vw32_collate_ignore_punctuation>: New variable.
+
+	* sysdep.c (str_collate) [WINDOWSNT]: Adapt to the interface
+	change.
+
+2014-08-29  Michael Albinus  <michael.albinus@gmx.de>
+
+	* sysdep.c (LC_CTYPE, LC_CTYPE_MASK, towlower_l):
+	Define substitutes for platforms that lack them.
+	(str_collate): Add arguments locale and ignore_case.
+
+	* fns.c (Fstring_collate_lessp, Fstring_collate_equalp):
+	Add optional arguments LOCALE and IGNORE-CASE.
+
+	* lisp.h (str_collate): Adapt argument list.
+
+2014-08-29  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Add vectors support to Fsort.
+	* fns.c (sort_vector, sort_vector_compare): New functions.
+	(sort_list): Likewise, refactored out of ...
+	(Fsort): ... adjusted user.  Mention vectors in docstring.
+	(sort_vector_predicate) [!HAVE_QSORT_R]: New variable.
+	* alloc.c (make_save_int_obj): New function.
+	* lisp.h (enum Lisp_Save_Type): New member SAVE_TYPE_INT_OBJ.
+	(make_save_int_obj): Add prototype.
+
+	Fix last change to support Darwin/OSX and FreeBSD (Bug#18354).
+	* sysdep.c (sort_vector_compare) [DARWIN_OS || __FreeBSD__]:
+	Conditionally define to match system's qsort_r signature.
+	(sort_vector) [DARWIN_OS || __FreeBSD__]: Likewise in call to qsort_r.
+
+2014-08-28  Ken Brown  <kbrown@cornell.edu>
+
+	Add support for HYBRID_MALLOC, allowing the use of gmalloc before
+	dumping and the system malloc after dumping.  (Bug#18222)
+
+	* conf_post.h (malloc, realloc, calloc, free) [HYBRID_MALLOC]:
+	Define as macros, expanding to hybrid_malloc, etc.
+	(HYBRID_GET_CURRENT_DIR_NAME): New macro.
+	(get_current_dir_name) [HYBRID_GET_CURRENT_DIR_NAME]: Define as
+	macro.
+	* gmalloc.c: Set up the infrastructure for HYBRID_MALLOC, with a
+	full implementation on Cygwin.  Remove Cygwin-specific code that
+	is no longer needed.
+	(malloc, realloc, calloc, free, aligned_alloc) [HYBRID_MALLOC]:
+	Redefine as macros expanding to gmalloc, grealloc, etc.
+	(DUMPED, ALLOCATED_BEFORE_DUMPING) [CYGWIN]: New macros.
+	(get_current_dir_name) [HYBRID_GET_CURRENT_DIR_NAME]: Undefine.
+	(USE_PTHREAD, posix_memalign) [HYBRID_MALLOC]: Don't define.
+	(hybrid_malloc, hybrid_calloc, hybrid_free, hybrid_realloc)
+	[HYBRID_MALLOC]:
+	(hybrid_get_current_dir_name) [HYBRID_GET_CURRENT_DIR_NAME]:
+	(hybrid_aligned_alloc) [HYBRID_MALLOC && (HAVE_ALIGNED_ALLOC ||
+	HAVE_POSIX_MEMALIGN)]: New functions.
+	* alloc.c (aligned_alloc) [HYBRID_MALLOC && (ALIGNED_ALLOC ||
+	HAVE_POSIX_MEMALIGN)]: Define as macro expanding to
+	hybrid_aligned_alloc; declare.
+	(USE_ALIGNED_ALLOC) [HYBRID_MALLOC && (ALIGNED_ALLOC ||
+	HAVE_POSIX_MEMALIGN)]: Define.
+	(refill_memory_reserve) [HYBRID_MALLOC]: Do nothing.
+	* sysdep.c (get_current_dir_name) [HYBRID_GET_CURRENT_DIR_NAME]:
+	Define as macro, expanding to gget_current_dir_name, and define
+	the latter.
+	* emacs.c (main) [HYBRID_MALLOC]: Don't call memory_warnings() or
+	malloc_enable_thread().  Don't initialize malloc.
+	* lisp.h (NONPOINTER_BITS) [CYGWIN]: Define (because GNU_MALLOC is
+	no longer defined on Cygwin).
+	(refill_memory_reserve) [HYBRID_MALLOC]: Don't declare.
+	* sheap.c (bss_sbrk_buffer_end): New variable.
+	* unexcw.c (__malloc_initialized): Remove variable.
+	* ralloc.c: Throughout, treat HYBRID_MALLOC the same as
+	SYSTEM_MALLOC.
+	* xdisp.c (decode_mode_spec) [HYBRID_MALLOC]: Don't check
+	Vmemory_full.
+
+2014-08-28  Martin Rudalics  <rudalics@gmx.at>
+
+	* w32term.c (w32_horizontal_scroll_bar_handle_click):
+	In `event->y' return entire range (the size of the scroll bar minus
+	that of the thumb).
+	* xterm.c (xm_scroll_callback, xaw_jump_callback): In `whole'
+	return entire range (the scaled size of the scroll bar minus
+	that of the slider).  In `portion' return the scaled position of
+	the slider.
+	(xaw_jump_callback): Restore part of code for vertical scroll
+	bar broken in change from 2014-07-27.
+	(xaw_scroll_callback): Provide incremental scrolling with
+	horizontal scroll bars.
+
+2014-08-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* conf_post.h (_GL_EXECINFO_INLINE) [MSDOS]: Don't define.
+
+	* indent.c (Fvertical_motion): Fix vertical motion up through a
+	display property after a newline.  (Bug#18276)
+
+	* xdisp.c (display_line): Don't assume that the call to
+	reseat_at_next_visible_line_start ends up at a character
+	immediately following the newline on the previous line.
+	Avoids setting the ends_at_zv_p flag on screen lines that are not at or
+	beyond ZV, which causes infloop in redisplay.  For the details, see
+	http://lists.gnu.org/archive/html/emacs-devel/2014-08/msg00368.html.
+
+	* dispnew.c (buffer_posn_from_coords): Fix mirroring of X
+	coordinate for hscrolled R2L screen lines.  (Bug#18277)
+
+2014-08-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* sysdep.c (LC_COLLATE, LC_COLLATE_MASK): Give individual defaults
+	(Bug#18051).
+
+2014-08-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* syntax.c (scan_lists): Don't examine positions before BEGV.
+	(Bug#18339)
+
+2014-08-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Improve robustness of new string-collation code (Bug#18051).
+	* sysdep.c (LC_COLLATE, LC_COLLATE_MASK, freelocale, locale_t)
+	(newlocale, wcscoll_l): Define substitutes for platforms that
+	lack them, so as to simplify the mainline code.
+	(str_collate): Simplify the code by assuming the above definitions.
+	Use wcscoll_l, not uselocale, as uselocale is too fragile.
+	For example, the old version left the Emacs in the wrong locale if
+	wcscoll reported an error.  Use 'int', not ptrdiff_t, for the int
+	result.  Report an error if newlocale fails.
+
+2014-08-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	* lisp.h (str_collate):
+	* sysdep.c (str_collate): Return int.
+	(str_collate) [__STDC_ISO_10646__]: Propagate error of wcscoll.
+
+2014-08-27  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Fix some glitches in previous change.
+	* sysdep.c (stack_direction): Replace stack_grows_down
+	to simplify calculation of stack boundaries.
+	(handle_sigsegv): Check whether we really crash somewhere near
+	to stack boundary, and handle fatal signal as usual if not.
+	(init_sigsegv): Adjust accordingly.
+	* keyboard.c (Vtop_level_message): Rename to
+	Vinternal__top_level_message, as suggested by Stefan Monnier in
+	http://lists.gnu.org/archive/html/emacs-devel/2014-08/msg00493.html
+	All related users changed.
+
+2014-08-26  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Handle C stack overflow caused by too nested Lisp evaluation.
+	* lisp.h (toplevel) [HAVE_STACK_OVERFLOW_HANDLING]: Declare
+	siglongjmp point to transfer control from SIGSEGV handler.
+	* keyboard.c (return_to_command_loop, recover_top_level_message)
+	[HAVE_STACK_OVERFLOW_HANDLING]: New variables.
+	(regular_top_level_message): New variable.
+	(command_loop) [HAVE_STACK_OVERFLOW_HANDLING]: Handle non-local
+	exit from SIGSEGV handler and adjust message displayed by Vtop_level
+	if appropriate.
+	(syms_of_keyboard): DEFVAR Vtop_level_message and initialize
+	new variables described above.
+	* sysdep.c [HAVE_SYS_RESOURCE_H]: Include sys/resource.h as such.
+	(stack_grows_down, sigsegv_stack, handle_sigsegv)
+	[HAVE_STACK_OVERFLOW_HANDLING]: New variables and function.
+	(init_sigsegv): New function.
+	(init_signals): Use it.
+
+2014-08-25  Ken Brown  <kbrown@cornell.edu>
+
+	* emacs.c (main): Remove use of obsolete macro
+	G_SLICE_ALWAYS_MALLOC.
+
+2014-08-25  Eli Zaretskii  <eliz@gnu.org>
+
+	Implement locale-sensitive string collation for MS-Windows.
+	* w32proc.c (get_lcid_callback, get_lcid, w32_compare_strings):
+	New functions.  (Bug#18051)
+
+	* w32.h (w32_compare_strings): Add prototype.
+
+	* w32.c <g_b_init_compare_string_w>: New global flag.
+	(globals_of_w32): Initialize it.
+
+	* sysdep.c (str_collate) [WINDOWSNT]: Implementation for MS-Windows.
+
+	* fns.c (Fstring_collate_lessp, Fstring_collate_equalp)
+	[WINDOWSNT]: Call str_collate on MS-Windows.
+
+2014-08-25  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	One more minor cleanup of font subsystem.
+	* font.h (struct font_driver): Convert text_extents to
+	return void because returned value is never actually used.
+	* macfont.m (macfont_text_extents):
+	* w32font.c (w32font_text_extents):
+	* xftfont.c (xftfont_text_extents): Adjust to return void
+	and assume that 'metrics' argument is always non-NULL.
+	* ftfont.c (ftfont_text_extents):
+	* xfont.c (xfont_text_extents): Likewise.  Avoid redundant memset.
+
+2014-08-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Minor cleanups of str_collate fix (Bug#18051).
+	* fns.c (str_collate): Move decl from here ...
+	* lisp.h (str_collate): ... to here.
+	* sysdep.c (str_collate): Prune away some of the forest of ifdefs.
+	Remove unnecessary casts.  Use SAFE_NALLOCA to avoid
+	potential problems with integer overflow.  Don't assume
+	setlocale succeeds.  Remove unnecessary test before restoring
+	locale via setlocale, and free the copied setlocale string
+	when done with it.
+
+2014-08-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	* fns.c (Fstring_collate_lessp, Fstring_collate_equalp): New DEFUNs.
+
+	* sysdep.c (str_collate): New function.  (Bug#18051)
+
+2014-08-23  Karol Ostrovsky  <karol.ostrovsky@gmail.com>  (tiny change)
+
+	* Makefile.in (emacs$(EXEEXT)): Retry deletion of bootstrap-emacs
+	if the initial "rm -f" fails.  This is for MinGW builds, where
+	MS-Windows will not allow deleting the executable file of a
+	running program.
+
 2014-08-20  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32term.c (w32_scroll_bar_handle_click)
@@ -117,8 +1762,8 @@
 	* term.c (OUTPUT, tty_set_terminal_modes)
 	(tty_set_terminal_window, tty_set_scroll_region)
 	(tty_clear_to_end, tty_write_glyphs, tty_write_glyphs_with_face)
-	(tty_ins_del_lines, tty_menu_display, tty_menu_activate): Use
-	FRAME_TOTAL_LINES instead of FRAME_LINES.
+	(tty_ins_del_lines, tty_menu_display, tty_menu_activate):
+	Use FRAME_TOTAL_LINES instead of FRAME_LINES.
 	(Fresume_tty): Use FRAME_TOTAL_LINES instead of FRAME_LINES.
 	Call change_frame_size with frame's menu bar lines subtracted
 	from height.
@@ -129,9 +1774,10 @@
 2014-08-09  Reuben Thomas  <rrt@sc3d.org>
 
 	* alloc.c (Fmemory_info): Remove a stray brace.
+
 	* process.c: Fix a comment typo.
-	* msdos.c:
-	* dosfns.c (init_dosfns): Remove support for DJGPP < 2.02.
+
+	* msdos.c, dosfns.c (init_dosfns): Remove support for DJGPP < 2.02.
 
 2014-08-09  Jan Djärv  <jan.h.d@swipnet.se>
 
@@ -168,14 +1814,14 @@
 
 2014-08-04  Martin Rudalics  <rudalics@gmx.at>
 
-	* frame.h (FRAME_HAS_HORIZONTAL_SCROLL_BARS): Condition
-	correctly according to toolkit used.
+	* frame.h (FRAME_HAS_HORIZONTAL_SCROLL_BARS):
+	Condition correctly according to toolkit used.
 	* frame.c (make_initial_frame, make_terminal_frame)
 	(x_set_horizontal_scroll_bars, x_set_scroll_bar_height)
 	(Vdefault_frame_horizontal_scroll_bars): Correctly condition
 	assignments according to presence of toolkit scrollbars.
-	* window.h (WINDOW_HAS_HORIZONTAL_SCROLL_BAR): Condition
-	correctly according to toolkit used.
+	* window.h (WINDOW_HAS_HORIZONTAL_SCROLL_BAR):
+	Condition correctly according to toolkit used.
 	* window.c (set_window_scroll_bars): Set horizontal scroll bar
 	only if toolkit supports it.
 	* w32term.c (w32_redeem_scroll_bar): Always redeem scroll bar if
@@ -431,15 +2077,15 @@
 	(x_set_scroll_bar_height): Add external declarations.
 	* frame.c: (frame_inhibit_resize, frame_windows_min_size)
 	(adjust_frame_size): New functions.
-	(make_frame): Initial horizontal_scroll_bars field.  Use
-	SET_FRAME_LINES.  Don't allow horizontal scroll bar in
+	(make_frame): Initial horizontal_scroll_bars field.
+	Use SET_FRAME_LINES.  Don't allow horizontal scroll bar in
 	minibuffer window.
 	(make_initial_frame, make_terminal_frame): No horizontal scroll
 	bar in initial and terminal frames.  Use adjust_frame_size.
 	(Fframe_total_cols): Fix doc-string.
 	(Fframe_total_lines, Fscroll_bar_height): New Lisp functions.
-	(Fset_frame_height, Fset_frame_width, Fset_frame_size): Rewrite
-	using adjust_frame_size.
+	(Fset_frame_height, Fset_frame_width, Fset_frame_size):
+	Rewrite using adjust_frame_size.
 	(Qscroll_bar_height, Qhorizontal_scroll_bars)
 	(Qframe_windows_min_size): New symbols.
 	(x_set_frame_parameters): Remove call of check_frame_size.
@@ -450,8 +2096,8 @@
 	(x_set_internal_border_width, x_set_vertical_scroll_bars)
 	(x_set_scroll_bar_width, x_set_right_divider_width)
 	(x_set_bottom_divider_width): Rewrite using adjust_frame_size.
-	(x_set_horizontal_scroll_bars, x_set_scroll_bar_height): New
-	functions.
+	(x_set_horizontal_scroll_bars, x_set_scroll_bar_height):
+	New functions.
 	(x_figure_window_size): Rewrite to make frame display the
 	expected number of lines.
 	(Vdefault_frame_scroll_bars): Rewrite doc-string.
@@ -498,8 +2144,8 @@
 	compute_fringe_widths.
 	* term.c (Fresume_tty): When changing the size of a tty frame do
 	not pass height of menu bar.
-	(clear_tty_hooks, set_tty_hooks): Clear
-	horizontal_scroll_bar_hook.
+	(clear_tty_hooks, set_tty_hooks):
+	Clear horizontal_scroll_bar_hook.
 	(init_tty): Frame has no horizontal scroll bars.
 	* termhooks.h (enum scroll_bar_part): Add scroll_bar_move_ratio,
 	scroll_bar_before_handle, scroll_bar_horizontal_handle,
@@ -508,25 +2154,25 @@
 	scroll_bar_to_rightmost entries.
 	(enum event_kind): Add HORIZONTAL_SCROLL_BAR_CLICK_EVENT
 	(struct terminal): Add set_horizontal_scroll_bar_hook.
-	* w32console.c (initialize_w32_display): Clear
-	horizontal_scroll_bar_hook.
+	* w32console.c (initialize_w32_display):
+	Clear horizontal_scroll_bar_hook.
 	* w32fns.c (x_set_mouse_color): Use FRAME_W32_DISPLAY instead of
 	FRAME_X_DISPLAY.
 	(x_clear_under_internal_border, x_set_internal_border_width):
 	New functions.
-	(x_set_menu_bar_lines): Rewrite using frame_inhibit_resize.  Set
-	windows_or_buffers_changed when adding the menu bar.
+	(x_set_menu_bar_lines): Rewrite using frame_inhibit_resize.
+	Set windows_or_buffers_changed when adding the menu bar.
 	(x_set_tool_bar_lines): Rewrite using adjust_frame_size.
 	(x_change_tool_bar_height, x_set_scroll_bar_default_height)
 	(w32_createhscrollbar): New functions.
 	(w32_createscrollbar): Rename to w32_createvscrollbar.
 	(w32_createwindow): Init WND_HSCROLLBAR_INDEX.
 	(w32_name_of_message): Replace WM_EMACS_CREATESCROLLBAR by
-	WM_EMACS_CREATEVSCROLLBAR and WM_EMACS_CREATEHSCROLLBAR.  Add
-	WM_EMACS_SHOWCURSOR.
+	WM_EMACS_CREATEVSCROLLBAR and WM_EMACS_CREATEHSCROLLBAR.
+	Add WM_EMACS_SHOWCURSOR.
 	(w32_wnd_proc): Handle WM_HSCROLL case.  In WM_WINDOWPOSCHANGING
-	case do not artificially impose WM size hints.  Handle
-	WM_EMACS_SHOWCURSOR case.  Replace WM_EMACS_CREATESCROLLBAR case
+	case do not artificially impose WM size hints.
+	Handle WM_EMACS_SHOWCURSOR case.  Replace WM_EMACS_CREATESCROLLBAR case
 	by WM_EMACS_CREATEVSCROLLBAR and WM_EMACS_CREATEHSCROLLBAR
 	cases.
 	(my_create_tip_window): Replace WND_SCROLLBAR_INDEX by
@@ -545,8 +2191,8 @@
 	pass height of menu bar to change_frame_size.
 	* w32menu.c (set_frame_menubar): Rewrite using
 	frame_inhibit_resize.
-	* w32term.h (struct w32_display_info): Add
-	horizontal_scroll_bar_cursor and cursor_display_counter.
+	* w32term.h (struct w32_display_info):
+	Add horizontal_scroll_bar_cursor and cursor_display_counter.
 	(struct scroll_bar): Add horizontal.
 	(HORIZONTAL_SCROLL_BAR_INSIDE_HEIGHT)
 	(HORIZONTAL_SCROLL_BAR_LEFT_RANGE)
@@ -556,8 +2202,8 @@
 	(HORIZONTAL_SCROLL_BAR_TOP_BORDER)
 	(HORIZONTAL_SCROLL_BAR_BOTTOM_BORDER)
 	(HORIZONTAL_SCROLL_BAR_MIN_HANDLE): New macros.
-	(WM_EMACS_CREATEVSCROLLBAR, WM_EMACS_CREATEHSCROLLBAR): Define
-	instead of WM_EMACS_CREATESCROLLBAR.
+	(WM_EMACS_CREATEVSCROLLBAR, WM_EMACS_CREATEHSCROLLBAR):
+	Define instead of WM_EMACS_CREATESCROLLBAR.
 	(WND_VSCROLLBAR_INDEX, WND_HSCROLLBAR_INDEX): Define instead of
 	WND_SCROLLBAR_INDEX.
 	* w32term.c (horizontal_scroll_bar_min_handle)
@@ -576,18 +2222,18 @@
 	scrollbar cases.
 	(my_create_scrollbar): Replace with two new functions
 	my_create_vscrollbar and my_create_hscrollbar.
-	(x_scroll_bar_create): New argument "horizontal".  Update
-	callers accordingly.
+	(x_scroll_bar_create): New argument "horizontal".
+	Update callers accordingly.
 	(x_scroll_bar_remove, w32_condemn_scroll_bars)
 	(w32_redeem_scroll_bar, x_scroll_bar_clear): Handle horizontal
 	scroll bar case.
 	(w32_read_socket): Handle WM_HSCROLL cae.
-	(x_new_font): Don't recompute fringe widths.  Use
-	frame_inhibit_resize.  Calculate new menu bar height iff we
+	(x_new_font): Don't recompute fringe widths.
+	Use frame_inhibit_resize.  Calculate new menu bar height iff we
 	build without toolkit.  Always clear under internal border.
 	(x_set_window_size): Don't check frame size or recompute
-	fringes.  Reset fullscreen status before applying sizes.  Always
-	resize as requested by pixelwise argument.  Don't call
+	fringes.  Reset fullscreen status before applying sizes.
+	Always resize as requested by pixelwise argument.  Don't call
 	do_pending_window_change.
 	(x_wm_set_size_hint): Add call for FRAME_SCROLL_BAR_AREA_HEIGHT.
 	(w32_initialize_display_info): Initialize dpyinfo's
@@ -613,8 +2259,8 @@
 	(WINDOW_TOPMOST_P, WINDOW_HAS_HORIZONTAL_SCROLL_BAR)
 	(WINDOW_CONFIG_SCROLL_BAR_HEIGHT)
 	(WINDOW_CONFIG_SCROLL_BAR_LINES)
-	(WINDOW_SCROLL_BAR_LINES, WINDOW_SCROLL_BAR_AREA_HEIGHT): New
-	macros.
+	(WINDOW_SCROLL_BAR_LINES, WINDOW_SCROLL_BAR_AREA_HEIGHT):
+	New macros.
 	(WINDOW_LEFT_FRINGE_COLS, WINDOW_RIGHT_FRINGE_COLS)
 	(WINDOW_FRINGE_COLS, WINDOW_FRINGE_EXTENDED_P): Remove macros.
 	(WINDOW_VERTICAL_SCROLL_BAR_TYPE)
@@ -627,11 +2273,11 @@
 	(Fwindow_old_point, sanitize_window_sizes): New functions.
 	(Qwindow_sanitize_window_sizes): New symbol.
 	(window_body_height): Count in horizontal scroll bar.
-	(set_window_hscroll, Fscroll_left, Fscroll_right): Set
-	suspend_auto_hscroll slot.
+	(set_window_hscroll, Fscroll_left, Fscroll_right):
+	Set suspend_auto_hscroll slot.
 	(Fwindow_inside_edges): Count fringes pixelwise.
-	(coordinates_in_window, Fcoordinates_in_window_p): Consider
-	horizontal scroll bar.
+	(coordinates_in_window, Fcoordinates_in_window_p):
+	Consider horizontal scroll bar.
 	(check_frame_size, adjust_window_margins): Remove functions and
 	corresponding calls.
 	(set_window_buffer): Initialize old_pointm and horizontal scroll
@@ -647,8 +2293,8 @@
 	(Fsplit_window_internal): Inherit horizontal scroll bar type and
 	height.
 	(Fdelete_window_internal): Unchain old_pointm marker.
-	(window_scroll_pixel_based, Fscroll_other_window): Adjust
-	old_pointm.
+	(window_scroll_pixel_based, Fscroll_other_window):
+	Adjust old_pointm.
 	(Fwindow_text_width, Fwindow_text_height): New argument
 	"pixelwise".
 	(struct saved_window): New fields, old_pointm, hscroll_whole,
@@ -703,10 +2349,10 @@
 	(x_frame_parm_handlers): Add x_set_scroll_bar_height,
 	x_set_horizontal_scroll_bars, x_set_left_fringe,
 	x_set_right_fringe.
-	* xmenu.c (update_frame_menubar, free_frame_menubar): Use
-	adjust_frame_size.
-	* xterm.h (struct x_display_info): Add
-	horizontal_scroll_bar_cursor and Xatom_Horizontal_Scrollbar
+	* xmenu.c (update_frame_menubar, free_frame_menubar):
+	Use adjust_frame_size.
+	* xterm.h (struct x_display_info):
+	Add horizontal_scroll_bar_cursor and Xatom_Horizontal_Scrollbar
 	slots.
 	(struct scroll_bar): Add horizontal slot.
 	(HORIZONTAL_SCROLL_BAR_INSIDE_HEIGHT)
@@ -729,15 +2375,15 @@
 	(x_set_toolkit_horizontal_scroll_bar_thumb)
 	(XTset_horizontal_scroll_bar, x_net_wm_state)
 	(x_horizontal_scroll_bar_report_motion): New functions.
-	(xg_scroll_callback, x_scroll_bar_handle_click): Handle
-	horizontal scroll bars.
+	(xg_scroll_callback, x_scroll_bar_handle_click):
+	Handle horizontal scroll bars.
 	(SCROLL_BAR_HORIZONTAL_NAME): Define.
 	(XTset_vertical_scroll_bar): Attempt to clear areas not covered
 	by scroll bar.
-	(XTcondemn_scroll_bars, XTredeem_scroll_bar): Rewrite.  Handle
-	horizontal scroll bars.
-	(handle_one_xevent): Handle horizontal scroll bar events.  Call
-	x_net_wm_state.
+	(XTcondemn_scroll_bars, XTredeem_scroll_bar): Rewrite.
+	Handle horizontal scroll bars.
+	(handle_one_xevent): Handle horizontal scroll bar events.
+	Call x_net_wm_state.
 	(x_set_window_size_1, x_wm_set_size_hint): Don't call
 	check_frame_size.
 	(x_set_window_size): Don't call check_frame_size and
@@ -787,8 +2433,8 @@
 
 2014-07-25  Eli Zaretskii  <eliz@gnu.org>
 
-	* w32term.h (current_popup_menu, menubar_in_use): Move
-	declarations from w32term.c.
+	* w32term.h (current_popup_menu, menubar_in_use):
+	Move declarations from w32term.c.
 
 2014-07-25  Martin Rudalics  <rudalics@gmx.at>
 
@@ -842,8 +2488,8 @@
 	* xterm.c (handle_one_xevent):
 	* gtkutil.c (xg_event_is_for_menubar):
 	* xfns.c (x_window) [USE_X_TOOLKIT]:
-	* xmenu.c (set_frame_menubar, free_frame_menubar): Prefer
-	to use FRAME_MENUBAR_HEIGHT.
+	* xmenu.c (set_frame_menubar, free_frame_menubar):
+	Prefer to use FRAME_MENUBAR_HEIGHT.
 
 2014-07-21  Dmitry Antipov  <dmantipov@yandex.ru>
 
@@ -864,12 +2510,12 @@
 
 2014-07-21  Eli Zaretskii  <eliz@gnu.org>
 
-	* w32select.c (setup_windows_coding_system): Apply
-	CODING_ANNOTATION_MASK to the common_flags member of struct
+	* w32select.c (setup_windows_coding_system):
+	Apply CODING_ANNOTATION_MASK to the common_flags member of struct
 	coding_system.  Reported by martin rudalics <rudalics@gmx.at>.
 
-	* w16select.c (Fw16_get_clipboard_data): Apply
-	CODING_ANNOTATION_MASK to the common_flags member of struct
+	* w16select.c (Fw16_get_clipboard_data):
+	Apply CODING_ANNOTATION_MASK to the common_flags member of struct
 	coding_system.
 
 	* xdisp.c (init_iterator): Initialize it->stop_charpos to the
@@ -877,8 +2523,8 @@
 	(handle_invisible_prop): Record in it->stop_charpos the position
 	where the invisible text ends.  (Bug#18035)
 	(hscroll_window_tree): Don't try hscrolling windows whose cursor
-	row has zero buffer position as their start position.  Reported by
-	martin rudalics <rudalics@gmx.at>.
+	row has zero buffer position as their start position.
+	Reported by martin rudalics <rudalics@gmx.at>.
 
 	* xdisp.c (move_it_vertically_backward, move_it_by_lines): Prevent
 	infinite looping in redisplay when display lines don't have enough
@@ -1318,8 +2964,8 @@
 	are in sync with what the window wants.
 	(Bug#17892)
 
-	* xdisp.c (display_line, display_mode_line): Call
-	prepare_desired_row with additional arguments, as appropriate.
+	* xdisp.c (display_line, display_mode_line):
+	Call prepare_desired_row with additional arguments, as appropriate.
 
 	* dispextern.h (prepare_desired_row): Adjust prototype.
 
@@ -1408,7 +3054,7 @@
 
 2014-06-28  K. Handa  <handa@gnu.org>
 
-	* coding.c (MAX_CHARBUF_SIZE): Renamed from CHARBUF_SIZE.
+	* coding.c (MAX_CHARBUF_SIZE): Rename from CHARBUF_SIZE.
 	(MIN_CHARBUF_SIZE): New macro.
 	(ALLOC_CONVERSION_WORK_AREA): New arg SIZE.  Callers changed.
 
@@ -1674,7 +3320,7 @@
 
 	* dispextern.h (struct face) [HAVE_XFT]: Ifdef 'extra' member.
 	* font.c (font_done_for_face):
-	* xface.c (realize_non_ascii_face): Adjust user.
+	* xfaces.c (realize_non_ascii_face): Adjust user.
 	* font.h (struct font_driver): Convert 'prepare_face' to return
 	void because its return value is never used anyway.
 	* xfont.c (xfont_prepare_face): Return void.
@@ -2167,7 +3813,7 @@
 
 	Use mmap(2) emulation for allocating buffer text on MS-Windows.
 	* Makefile.in (C_HEAP_SWITCH): Get the predefined heap size from
-	configure.
+	configure, not from HEAPSIZE.
 	(ADDSECTION, MINGW_TEMACS_POST_LINK): Remove, no longer used.
 
 	* lisp.h (NONPOINTER_BITS): Modify the condition to define to zero
@@ -3211,8 +4857,7 @@
 	* doc.c (store_function_docstring): Warn when we don't know where to
 	put a docstring.
 	(Fsubstitute_command_keys): Don't advertise the fact that
-	text-properties are dropped, since we think it's a bug that we'll fix
-	in 24.5.
+	text-properties are dropped, since we think it's a bug that we'll fix.
 
 	* frame.h (SET_FRAME_VISIBLE): Keep frame_garbaged up to date.
 	* xterm.c (handle_one_xevent) <MapNotify>: Don't garbage the frame.
@@ -8443,7 +10088,7 @@
 	* eval.c (Ffuncall): Fix handling of ((lambda ..) ..) in lexically
 	scoped code (bug#11258).
 
-2013-08-28  Davor Cubranic  <cubranic@stat.ubc.ca> (tiny change)
+2013-08-28  Davor Cubranic  <cubranic@stat.ubc.ca>  (tiny change)
 
 	* nsterm.m (last_window): New variable.
 	(EV_TRAILER2): New macro.
@@ -8851,7 +10496,7 @@
 	(imagemagick_get_animation_cache): Fix a double-free error.
 	(imagemagick_load_image): Remove the ping_wand code, which only
 	apparently saved time on invalid animated images, and slowed down
-	everything else.  Optimise for the common case.
+	everything else.  Optimize for the common case.
 
 2013-08-16  Xue Fuqiao  <xfq.free@gmail.com>
 

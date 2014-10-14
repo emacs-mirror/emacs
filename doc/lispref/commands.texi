@@ -589,31 +589,26 @@ Put them into three windows, selecting the last one."
 @cindex alternatives, defining
 
 The macro @code{define-alternatives} can be used to define
-@dfn{generic commands}.  Generic commands are interactive functions
-whose implementation can be selected among several alternatives, as a
-matter of user preference.
+@dfn{generic commands}.  These are interactive functions whose
+implementation can be selected from several alternatives, as a matter
+of user preference.
 
 @defmac define-alternatives command &rest customizations
-Define the new command `COMMAND'.
+Define the new command @var{command}, a symbol.
 
-The argument `COMMAND' should be a symbol.
+When a user runs @kbd{M-x @var{command} @key{RET}} for the first time,
+Emacs prompts for which real form of the command to use, and records
+the selection by way of a custom variable.  Using a prefix argument
+repeats this process of choosing an alternative.
 
-When a user runs @kbd{M-x COMMAND @key{RET}} for the first time, Emacs
-will prompt for which alternative to use and record the selected
-command as a custom variable.
+The variable @code{@var{command}-alternatives} should contain an alist
+with alternative implementations of @var{command}.
+Until this variable is set, @code{define-alternatives} has no effect.
 
-Running @kbd{C-u M-x COMMAND @key{RET}} prompts again for an
-alternative and overwrites the previous choice.
-
-The variable @code{COMMAND-alternatives} contains an alist
-(@pxref{Association Lists}) with alternative implementations of
-`COMMAND'.  @code{define-alternatives} does not have any effect until
-this variable is set.
-
-If @var{customizations} is non-@var{nil}, it should be composed of
-alternating @code{defcustom} keywords and values to add to the
-declaration of @code{COMMAND-alternatives} (typically :group and
-:version).
+If @var{customizations} is non-@code{nil}, it should consist of
+alternating @code{defcustom} keywords (typically @code{:group} and
+@code{:version}) and values to add to the declaration of
+@code{@var{command}-alternatives}.
 @end defmac
 
 @node Interactive Call

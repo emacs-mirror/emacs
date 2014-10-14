@@ -65,9 +65,6 @@ Relevant if `calendar-setup' has the value `one-frame'."
              (vertical-scroll-bars boolean))
   :group 'calendar)
 
-(define-obsolete-variable-alias 'calendar-after-frame-setup-hooks
-  'calendar-after-frame-setup-hook "23.1")
-
 (defcustom calendar-after-frame-setup-hook nil
   "List of functions to be run after creating a calendar and/or diary frame."
   :type 'hook
@@ -96,13 +93,9 @@ Runs `calendar-after-frame-setup-hook', selects frame, iconifies if needed."
   "Display and dedicate the window associated with the diary buffer."
   (set-window-dedicated-p
    (display-buffer
-    (if (if (listp diary-display-function)
-            (or (memq 'diary-fancy-display diary-display-function)
-                (memq 'fancy-diary-display diary-display-function))
-          (memq diary-display-function '(diary-fancy-display
-                                         fancy-diary-display)))
+    (if (eq diary-display-function 'diary-fancy-display)
         (progn
-          ;; If there are no diary entries, there won't be a fancy-diary
+          ;; If there are no diary entries, there won't be a buffer
           ;; to dedicate, so make a basic one.
           (or (get-buffer diary-fancy-buffer)
               (calendar-in-read-only-buffer diary-fancy-buffer
@@ -149,36 +142,6 @@ If PROMPT is non-nil, prompt for the month and year to use."
         (set-window-dedicated-p (selected-window) t)
         (if (eq config 'one-frame)
             (calendar-dedicate-diary))))))
-
-
-;;;###cal-autoload
-(defun calendar-one-frame-setup (&optional prompt)
-  "Display calendar and diary in a single dedicated frame.
-See `calendar-frame-setup' for more information."
-  (declare (obsolete calendar-frame-setup "23.1"))
-  (calendar-frame-setup 'one-frame prompt))
-
-;;;###cal-autoload
-(defun calendar-only-one-frame-setup (&optional prompt)
-  "Display calendar in a dedicated frame.
-See `calendar-frame-setup' for more information."
-  (declare (obsolete calendar-frame-setup "23.1"))
-  (calendar-frame-setup 'calendar-only prompt))
-
-;;;###cal-autoload
-(defun calendar-two-frame-setup (&optional prompt)
-  "Display calendar and diary in separate, dedicated frames.
-See `calendar-frame-setup' for more information."
-  (declare (obsolete calendar-frame-setup "23.1"))
-  (calendar-frame-setup 'two-frames prompt))
-
-;; Undocumented and probably useless.
-(defvar cal-x-load-hook nil
-  "Hook run on loading of the `cal-x' package.")
-(make-obsolete-variable 'cal-x-load-hook "it will be removed in future." "23.1")
-
-(run-hooks 'cal-x-load-hook)
-
 
 (provide 'cal-x)
 

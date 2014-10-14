@@ -60,7 +60,7 @@ is applied to the background."
 	   (with-demoted-errors
 	     ;; Update the value of the dependent variable.
 	     (custom-reevaluate-setting 'vc-annotate-color-map))))
-  :version "24.5"
+  :version "25.1"
   :group 'vc)
 
 (defcustom vc-annotate-color-map

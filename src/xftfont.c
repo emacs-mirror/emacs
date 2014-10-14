@@ -557,8 +557,9 @@ xftfont_encode_char (struct font *font, int c)
   return (code ? code : FONT_INVALID_CODE);
 }
 
-static int
-xftfont_text_extents (struct font *font, unsigned int *code, int nglyphs, struct font_metrics *metrics)
+static void
+xftfont_text_extents (struct font *font, unsigned int *code,
+		      int nglyphs, struct font_metrics *metrics)
 {
   struct xftfont_info *xftfont_info = (struct xftfont_info *) font;
   XGlyphInfo extents;
@@ -567,15 +568,12 @@ xftfont_text_extents (struct font *font, unsigned int *code, int nglyphs, struct
   XftGlyphExtents (xftfont_info->display, xftfont_info->xftfont, code, nglyphs,
 		   &extents);
   unblock_input ();
-  if (metrics)
-    {
-      metrics->lbearing = - extents.x;
-      metrics->rbearing = - extents.x + extents.width;
-      metrics->width = extents.xOff;
-      metrics->ascent = extents.y;
-      metrics->descent = extents.height - extents.y;
-    }
-  return extents.xOff;
+
+  metrics->lbearing = - extents.x;
+  metrics->rbearing = - extents.x + extents.width;
+  metrics->width = extents.xOff;
+  metrics->ascent = extents.y;
+  metrics->descent = extents.height - extents.y;
 }
 
 static XftDraw *

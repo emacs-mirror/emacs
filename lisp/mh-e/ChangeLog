@@ -1,3 +1,21 @@
+2014-09-30  Bill Wohler	 <wohler@newt.com>
+
+	Release MH-E version 8.6.
+
+	* mh-e.el (Version, mh-version): Update for release 8.6.
+
+2014-09-30  Mike Kupfer  <m.kupfer@acm.org>
+
+	* mh-comp.el (mh-insert-x-face): Ensure that mh-x-face-file is a
+	string before trying to use it (closes SF #474).
+	(mh-bare-components): New function to create a temporary initial
+	components file; replaces mh-find-components.  Improve the temp
+	folder and file names as per a suggestion from Bill Wohler.  Also
+	address XEmacs compatibility issues: use mm-make-temp-file instead
+	of make-temp-file, and only pass one argument to delete-directory.
+	(mh-edit-again, mh-send-sub): Use mh-bare-components instead of
+	mh-find-components (partially closes SF #468).
+
 2014-05-09  Glenn Morris  <rgm@gnu.org>
 
 	* mh-e.el (mh-variants): Use file-accessible-directory-p.

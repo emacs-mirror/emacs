@@ -1,3 +1,10 @@
+2014-09-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	--enable-silent-rules now suppresses more chatter.
+	* Makefile.in (AM_DEFAULT_VERBOSITY, AM_V_CC, am__v_CC_)
+	(am__v_CC_0, am__v_CC_1): New macros, taken from Automake.
+	(.c.o): Use them.
+
 2014-07-15  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* lwlib.h (toplevel): Use unsigned int for LWLIB_ID.

@@ -93,6 +93,22 @@ extern bool decode_time_components (Lisp_Object, Lisp_Object, Lisp_Object,
 extern struct timespec lisp_time_argument (Lisp_Object);
 #endif
 
+#ifndef HAVE_TZALLOC
+# undef mktime_z
+# undef timezone_t
+# undef tzalloc
+# undef tzfree
+# define mktime_z emacs_mktime_z
+# define timezone_t emacs_timezone_t
+# define tzalloc emacs_tzalloc
+# define tzfree emacs_tzfree
+typedef char const *timezone_t;
+INLINE timezone_t tzalloc (char const *name) { return name; }
+INLINE void tzfree (timezone_t tz) { }
+/* Defined in editfns.c.  */
+extern time_t mktime_z (timezone_t, struct tm *);
+#endif
+
 INLINE_HEADER_END
 
 #endif /* EMACS_SYSTIME_H */

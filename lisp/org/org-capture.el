@@ -1529,8 +1529,8 @@ The template may still contain \"%?\" for cursor positioning."
 	 (v-x (or (org-get-x-clipboard 'PRIMARY)
 		  (org-get-x-clipboard 'CLIPBOARD)
 		  (org-get-x-clipboard 'SECONDARY)))
-	 (v-t (format-time-string (car org-time-stamp-formats) ct))
-	 (v-T (format-time-string (cdr org-time-stamp-formats) ct))
+	 (v-t (format-time-string (car org-time-stamp-formats) ct1))
+	 (v-T (format-time-string (cdr org-time-stamp-formats) ct1))
 	 (v-u (concat "[" (substring v-t 1 -1) "]"))
 	 (v-U (concat "[" (substring v-T 1 -1) "]"))
 	 ;; `initial' and `annotation' might habe been passed.
@@ -1587,7 +1587,7 @@ The template may still contain \"%?\" for cursor positioning."
       (insert template)
       (goto-char (point-min))
       (org-capture-steal-local-variables buffer)
-      (setq buffer-file-name nil)
+      (setq buffer-file-name nil mark-active nil)
 
       ;; %[] Insert contents of a file.
       (goto-char (point-min))
@@ -1674,7 +1674,9 @@ The template may still contain \"%?\" for cursor positioning."
 		(or (equal (char-before) ?:) (insert ":"))
 		(insert ins)
 		(or (equal (char-after) ?:) (insert ":"))
-		(and (org-at-heading-p) (org-set-tags nil 'align)))))
+		(and (org-at-heading-p)
+		     (let ((org-ignore-region t))
+		       (org-set-tags nil 'align))))))
 	   ((equal char "C")
 	    (cond ((= (length clipboards) 1) (insert (car clipboards)))
 		  ((> (length clipboards) 1)

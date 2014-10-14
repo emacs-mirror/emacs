@@ -339,8 +339,6 @@ static char *skip_non_spaces (char *);
 static char *skip_name (char *);
 static char *savenstr (const char *, int);
 static char *savestr (const char *);
-static char *etags_strchr (const char *, int);
-static char *etags_strrchr (const char *, int);
 static char *etags_getcwd (void);
 static char *relative_filename (char *, char *);
 static char *absolute_filename (char *, char *);
@@ -1334,8 +1332,8 @@ get_compressor_from_suffix (char *file, char **extptr)
 
   /* File has been processed by canonicalize_filename,
      so we don't need to consider backslashes on DOS_NT.  */
-  slash = etags_strrchr (file, '/');
-  suffix = etags_strrchr (file, '.');
+  slash = strrchr (file, '/');
+  suffix = strrchr (file, '.');
   if (suffix == NULL || suffix < slash)
     return NULL;
   if (extptr != NULL)
@@ -1422,7 +1420,7 @@ get_language_from_filename (char *file, int case_sensitive)
 	  return lang;
 
   /* If not found, try suffix after last dot. */
-  suffix = etags_strrchr (file, '.');
+  suffix = strrchr (file, '.');
   if (suffix == NULL)
     return NULL;
   suffix += 1;
@@ -1699,7 +1697,7 @@ find_entries (FILE *inf)
       /* Set lp to point at the first char after the last slash in the
          line or, if no slashes, at the first nonblank.  Then set cp to
 	 the first successive blank and terminate the string. */
-      lp = etags_strrchr (lb.buffer+2, '/');
+      lp = strrchr (lb.buffer+2, '/');
       if (lp != NULL)
 	lp += 1;
       else
@@ -1884,9 +1882,9 @@ pfnote (char *name, bool is_func, char *linestart, int linelen, int lno,
   /* If ctags mode, change name "main" to M<thisfilename>. */
   if (CTAGS && !cxref_style && streq (name, "main"))
     {
-      register char *fp = etags_strrchr (curfdp->taggedfname, '/');
+      char *fp = strrchr (curfdp->taggedfname, '/');
       np->name = concat ("M", fp == NULL ? curfdp->taggedfname : fp + 1, "");
-      fp = etags_strrchr (np->name, '.');
+      fp = strrchr (np->name, '.');
       if (fp != NULL && fp[1] != '\0' && fp[2] == '\0')
 	fp[0] = '\0';
     }
@@ -4116,7 +4114,7 @@ Ada_funcs (FILE *inf)
 	  /* Skip a string i.e. "abcd". */
 	  if (inquote || (*dbp == '"'))
 	    {
-	      dbp = etags_strchr (dbp + !inquote, '"');
+	      dbp = strchr (dbp + !inquote, '"');
 	      if (dbp != NULL)
 		{
 		  inquote = false;
@@ -4274,7 +4272,7 @@ Perl_functions (FILE *inf)
 	    cp++;
 	  if (cp == sp)
 	    continue;		/* nothing found */
-	  if ((pos = etags_strchr (sp, ':')) != NULL
+	  if ((pos = strchr (sp, ':')) != NULL
 	      && pos < cp && pos[1] == ':')
 	    /* The name is already qualified. */
 	    make_tag (sp, cp - sp, true,
@@ -5029,7 +5027,7 @@ TEX_decode_env (const char *evarname, const char *defenv)
 
   /* Allocate a token table */
   for (len = 1, p = env; p;)
-    if ((p = etags_strchr (p, ':')) && *++p != '\0')
+    if ((p = strchr (p, ':')) && *++p != '\0')
       len++;
   TEX_toktab = xnew (len, linebuffer);
 
@@ -5037,7 +5035,7 @@ TEX_decode_env (const char *evarname, const char *defenv)
   /* zero-length strings (leading ':', "::" and trailing ':') */
   for (i = 0; *env != '\0';)
     {
-      p = etags_strchr (env, ':');
+      p = strchr (env, ':');
       if (!p)			/* End of environment string. */
 	p = env + strlen (env);
       if (p - env > 0)
@@ -5767,9 +5765,9 @@ substitute (char *in, char *out, struct re_registers *regs)
   /* Pass 1: figure out how much to allocate by finding all \N strings. */
   if (out[size - 1] == '\\')
     fatal ("pattern error in \"%s\"", out);
-  for (t = etags_strchr (out, '\\');
+  for (t = strchr (out, '\\');
        t != NULL;
-       t = etags_strchr (t + 2, '\\'))
+       t = strchr (t + 2, '\\'))
     if (ISDIGIT (t[1]))
       {
 	dig = t[1] - '0';
@@ -6051,7 +6049,7 @@ readline (linebuffer *lbp, FILE *stream)
 	    {
 	      char *endp = lbp->buffer + start;
 
-	      while ((endp = etags_strchr (endp, '"')) != NULL
+	      while ((endp = strchr (endp, '"')) != NULL
 		     && endp[-1] == '\\')
 		endp++;
 	      if (endp != NULL)
@@ -6236,43 +6234,6 @@ savenstr (const char *cp, int len)
   return memcpy (dp, cp, len);
 }
 
-/*
- * Return the ptr in sp at which the character c last
- * appears; NULL if not found
- *
- * Identical to POSIX strrchr, included for portability.
- */
-static char *
-etags_strrchr (register const char *sp, register int c)
-{
-  register const char *r;
-
-  r = NULL;
-  do
-    {
-      if (*sp == c)
-	r = sp;
-  } while (*sp++);
-  return (char *)r;
-}
-
-/*
- * Return the ptr in sp at which the character c first
- * appears; NULL if not found
- *
- * Identical to POSIX strchr, included for portability.
- */
-static char *
-etags_strchr (register const char *sp, register int c)
-{
-  do
-    {
-      if (*sp == c)
-	return (char *)sp;
-    } while (*sp++);
-  return NULL;
-}
-
 /* Skip spaces (end of string is not space), return new pointer. */
 static char *
 skip_spaces (char *cp)
@@ -6398,7 +6359,7 @@ relative_filename (char *file, char *dir)
 
   /* Build a sequence of "../" strings for the resulting relative file name. */
   i = 0;
-  while ((dp = etags_strchr (dp + 1, '/')) != NULL)
+  while ((dp = strchr (dp + 1, '/')) != NULL)
     i += 1;
   res = xnew (3*i + strlen (fp + 1) + 1, char);
   res[0] = '\0';
@@ -6431,7 +6392,7 @@ absolute_filename (char *file, char *dir)
     res = concat (dir, file, "");
 
   /* Delete the "/dirname/.." and "/." substrings. */
-  slashp = etags_strchr (res, '/');
+  slashp = strchr (res, '/');
   while (slashp != NULL && slashp[0] != '\0')
     {
       if (slashp[1] == '.')
@@ -6463,7 +6424,7 @@ absolute_filename (char *file, char *dir)
 	    }
 	}
 
-      slashp = etags_strchr (slashp + 1, '/');
+      slashp = strchr (slashp + 1, '/');
     }
 
   if (res[0] == '\0')		/* just a safety net: should never happen */
@@ -6484,7 +6445,7 @@ absolute_dirname (char *file, char *dir)
   char *slashp, *res;
   char save;
 
-  slashp = etags_strrchr (file, '/');
+  slashp = strrchr (file, '/');
   if (slashp == NULL)
     return savestr (dir);
   save = slashp[1];

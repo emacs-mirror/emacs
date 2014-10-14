@@ -1,3 +1,87 @@
+2014-10-13  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* NEWS: Move and clarify OSX >= 10.6.
+
+2014-10-12  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* NEWS: OSX required is 10.6 or newer.
+
+2014-10-09  Leo Liu  <sdl.web@gmail.com>
+
+	* NEWS: Mention optional arg to terpri and new cl-lib functions.
+
+2014-10-05  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* NEWS: Mention ns-use-fullscreen-animation.
+
+2014-09-30  Bill Wohler	 <wohler@newt.com>
+
+	Release MH-E version 8.6
+
+	* NEWS, MH-E-NEWS: Update for MH-E release 8.6.
+
+2014-09-30  Fabrice Niessen  <fniessen@pirilampo.org>
+
+	* themes/leuven-theme.el: Updates.
+
+2014-09-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* package-keyring.gpg: New file.
+
+2014-09-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* TODO: Remove char/unsigned char, long long, IRIX unexelf.c.
+	The first two are done, and IRIX support has been dropped.
+
+2014-09-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* refcards/ru-refcard.tex: Bump version to 25.0.50.
+
+	* refcards/emacsver.tex: Bump version to 25.0.50.
+
+2014-09-14  Daniel Colascione  <dancol@dancol.org>
+
+	* NEWS: Mention changes to `insert-register'
+
+2014-09-13  Christopher Schmidt  <ch@ristopher.com>
+
+	* NEWS: Mention nil `calendar-mode-line-format' will not modify
+	the mode line of the calendar buffer.  (Bug#18467)
+
+2014-09-06  Leo Liu  <sdl.web@gmail.com>
+
+	* NEWS: Mention vector qpattern for pcase.  (Bug#18327).
+
+2014-09-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* NEWS: Mention that ls-lisp uses string-collate-lessp.
+
+2014-09-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	--enable-silent-rules now suppresses more chatter.
+	* NEWS: Document this.
+
+2014-08-29  Leo Liu  <sdl.web@gmail.com>
+
+	* NEWS: Mention (:append FUN) to minibuffer-with-setup-hook.
+
+2014-08-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* NEWS: Mention w32-collate-ignore-punctuation.
+
+2014-08-29  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* NEWS: Mention that `sort' can handle vectors.
+
+2014-08-28  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.appdata.xml: New file; description from Emacs's homepage.
+
+2014-08-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* NEWS: Mention that string-collate-* functions are supported on
+	MS-Windows as well.
+
 2014-10-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* NEWS: Mention the UBA implementation update.

@@ -51,6 +51,15 @@ char data_start[1] = { 1 };
 # endif
 #endif
 
+/* From gmalloc.c.  */
+extern void (* __after_morecore_hook) (void);
+extern void *(*__morecore) (ptrdiff_t);
+
+/* From ralloc.c.  */
+#ifdef REL_ALLOC
+extern void *(*real_morecore) (ptrdiff_t);
+#endif
+
 /*
   Level number of warnings already issued.
   0 -- no warnings issued.
@@ -130,12 +139,9 @@ ret_lim_data (void)
 static void
 check_memory_limits (void)
 {
-#ifdef REL_ALLOC
-  extern void *(*real_morecore) (ptrdiff_t);
-#else
+#ifndef REL_ALLOC
   void *(*real_morecore) (ptrdiff_t) = 0;
 #endif
-  extern void *(*__morecore) (ptrdiff_t);
 
   char *cp;
   size_t five_percent;
@@ -203,8 +209,6 @@ check_memory_limits (void)
 void
 memory_warnings (void *start, void (*warnfun) (const char *))
 {
-  extern void (* __after_morecore_hook) (void);     /* From gmalloc.c */
-
   data_space_start = start ? start : data_start;
 
   warn_function = warnfun;

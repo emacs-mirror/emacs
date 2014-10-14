@@ -1,14 +1,29 @@
+2014-09-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* sed2v2.inp: Bump version to 25.0.50.
+
+2014-08-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* sedlibmk.inp (gl_LIBOBJS): Add execinfo.o.  Reported by Juan
+	Manuel Guerrero <juan.guerrero@gmx.de>.
+
+	* sed2v2.inp [DJGPP <= 2.03]: Add a prototype for snprintf, to
+	avoid compilation warning from newer GCC versions that have
+	snprintf as a built-in.  Reported by Juan Manuel Guerrero
+	<juan.guerrero@gmx.de>.
+
 2014-08-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* INSTALL: Fix last change.
 
 2014-08-09  Reuben Thomas  <rrt@sc3d.org>
 
+	* is_exec.c, sigaction.c: Remove files.
 	* sed2v2.inp: Remove support for DJGPP 2.01.
 	* INSTALL: Don't mention removed files msdos/is_exec.c and
 	sigaction.c, and increase minimum version of DJGPP to 2.02.
 	* README: Remove note on legal status of removed files
-	msdos/is_exec.c and sigaction.c.
+	is_exec.c and sigaction.c.
 
 2014-04-16  Eli Zaretskii  <eliz@gnu.org>
 

@@ -3139,7 +3139,7 @@ the following comma and whitespace, if any."
                  (eq (char-before) ?_)
                  (save-excursion
                    (skip-chars-backward "[:alpha:]_")
-                   (looking-at "\\<_[_[:upper:]][[:alnum:]_]*\\_>")))
+                   (looking-at "\\_<[_[:upper:]][[:alnum:]_]*\\_>")))
         (replace-match "_")
         (skip-chars-forward ", \t\n")))))
 

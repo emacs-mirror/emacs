@@ -28,12 +28,12 @@ top_srcdir = @top_srcdir@
 top_builddir = @top_builddir@
 
 EMACS = ${top_builddir}/src/emacs
-DSTDIR = ${top_srcdir}/lisp/international
+unidir = ${top_srcdir}/lisp/international
 emacs = "${EMACS}" -batch --no-site-file --no-site-lisp
 
-.PHONY: all compile install
+.PHONY: all unifiles
 
-all: ${top_srcdir}/src/macuvs.h ${DSTDIR}/charprop.el
+all: ${top_srcdir}/src/macuvs.h unifiles
 
 ## Specify .elc as an order-only prereq so as to not needlessly rebuild
 ## target just because the .elc is missing.
@@ -50,31 +50,33 @@ ${top_srcdir}/src/macuvs.h: ${srcdir}/uvs.el ${srcdir}/IVD_Sequences.txt | \
 unidata.txt: ${srcdir}/UnicodeData.txt
 	sed -e 's/\([^;]*\);\(.*\)/(#x\1 "\2")/' -e 's/;/" "/g' < $< > $@
 
-${DSTDIR}/charprop.el: ${srcdir}/unidata-gen.el ${srcdir}/UnicodeData.txt \
-  ${srcdir}/BidiMirroring.txt ${srcdir}/BidiBrackets.txt | \
+FORCE =
+FORCE:
+.PHONY: FORCE
+
+${unidir}/charprop.el: ${FORCE} ${srcdir}/unidata-gen.el \
+  ${srcdir}/UnicodeData.txt ${srcdir}/BidiMirroring.txt \
+  ${srcdir}/BidiBrackets.txt | \
   ${srcdir}/unidata-gen.elc unidata.txt
 	-if [ -f "$@" ]; then \
-	  cd ${DSTDIR} && chmod +w charprop.el `sed -n 's/^;; FILE: //p' < charprop.el`; \
+	  cd ${unidir} && chmod +w charprop.el `sed -n 's/^;; FILE: //p' < charprop.el`; \
 	fi
 	${emacs} -L ${srcdir} -l unidata-gen -f unidata-gen-files \
-	  ${srcdir} "${DSTDIR}"
+	  ${srcdir} "${unidir}"
 
-## Like the above, but generate in PWD rather than lisp/international.
-charprop.el: ${srcdir}/unidata-gen.elc unidata.txt BidiMirroring.txt BidiBrackets.txt
-	${emacs} -L ${srcdir} -l unidata-gen -f unidata-gen-files \
-	  ${srcdir}
+## Check for deleted uni- files, and if any such, force a rebuild.
+## Perhaps a more elegant way would be for the previous rule
+## to generate a Makefile fragment explicitly listing the uni- files,
+## which this file could include.  If no fragment, rebuild everything.
+unifiles: ${unidir}/charprop.el
+	for f in `sed -n 's/^;; FILE: //p' < $<`; do \
+	  [ -f ${unidir}/$$f ] || { ${MAKE} $< FORCE=FORCE || exit 1; break; };\
+	done
 
 .PHONY: clean bootstrap-clean distclean maintainer-clean extraclean
 
-install: charprop.el
-	cp charprop.el ${DSTDIR}
-	cp `sed -n 's/^;; FILE: //p' < charprop.el` ${DSTDIR}
-
 clean:
-	if test -f charprop.el; then \
-	  rm -f `sed -n 's/^;; FILE: //p' < charprop.el`; \
-	fi
-	rm -f charprop.el ${srcdir}/*.elc unidata.txt
+	rm -f ${srcdir}/*.elc unidata.txt
 
 bootstrap-clean: clean
 
@@ -88,7 +90,7 @@ maintainer-clean: distclean
 ## Cf leim/ja-dic (which is much slower).
 extraclean:
 	rm -f ${top_srcdir}/src/macuvs.h
-	if test -f ${DSTDIR}/charprop.el; then \
-	  (cd ${DSTDIR} && rm -f `sed -n 's/^;; FILE: //p' < charprop.el`); \
-	  rm -f ${DSTDIR}/charprop.el; \
+	if test -f ${unidir}/charprop.el; then \
+	  (cd ${unidir} && rm -f `sed -n 's/^;; FILE: //p' < charprop.el`); \
+	  rm -f ${unidir}/charprop.el; \
 	fi

@@ -77,7 +77,6 @@ static void tty_turn_off_highlight (struct tty_display_info *);
 static void tty_show_cursor (struct tty_display_info *);
 static void tty_hide_cursor (struct tty_display_info *);
 static void tty_background_highlight (struct tty_display_info *tty);
-static struct terminal *get_tty_terminal (Lisp_Object, bool);
 static void clear_tty_hooks (struct terminal *terminal);
 static void set_tty_hooks (struct terminal *terminal);
 static void dissociate_if_controlling_tty (int fd);
@@ -2029,11 +2028,9 @@ selected frame's terminal).  This function always returns nil if
 TERMINAL does not refer to a text terminal.  */)
   (Lisp_Object terminal)
 {
-  struct terminal *t = get_tty_terminal (terminal, 0);
-  if (!t)
-    return Qnil;
-  else
-    return t->display_info.tty->TN_max_colors > 0 ? Qt : Qnil;
+  struct terminal *t = decode_tty_terminal (terminal);
+
+  return (t && t->display_info.tty->TN_max_colors > 0) ? Qt : Qnil;
 }
 
 /* Return the number of supported colors.  */
@@ -2046,11 +2043,9 @@ selected frame's terminal).  This function always returns 0 if
 TERMINAL does not refer to a text terminal.  */)
   (Lisp_Object terminal)
 {
-  struct terminal *t = get_tty_terminal (terminal, 0);
-  if (!t)
-    return make_number (0);
-  else
-    return make_number (t->display_info.tty->TN_max_colors);
+  struct terminal *t = decode_tty_terminal (terminal);
+
+  return make_number (t ? t->display_info.tty->TN_max_colors : 0);
 }
 
 #ifndef DOS_NT
@@ -2165,52 +2160,6 @@ set_tty_color_mode (struct tty_display_info *tty, struct frame *f)
 
 #endif /* !DOS_NT */
 
-
-
-/* Return the tty display object specified by TERMINAL. */
-
-static struct terminal *
-get_tty_terminal (Lisp_Object terminal, bool throw)
-{
-  struct terminal *t = get_terminal (terminal, throw);
-
-  if (t && t->type != output_termcap && t->type != output_msdos_raw)
-    {
-      if (throw)
-        error ("Device %d is not a termcap terminal device", t->id);
-      else
-        return NULL;
-    }
-
-  return t;
-}
-
-/* Return an active termcap device that uses the tty device with the
-   given name.
-
-   This function ignores suspended devices.
-
-   Returns NULL if the named terminal device is not opened.  */
-
-struct terminal *
-get_named_tty (const char *name)
-{
-  struct terminal *t;
-
-  eassert (name);
-
-  for (t = terminal_list; t; t = t->next_terminal)
-    {
-      if ((t->type == output_termcap || t->type == output_msdos_raw)
-          && !strcmp (t->display_info.tty->name, name)
-          && TERMINAL_ACTIVE_P (t))
-        return t;
-    }
-
-  return 0;
-}
-
-
 DEFUN ("tty-type", Ftty_type, Stty_type, 0, 1, 0,
        doc: /* Return the type of the tty device that TERMINAL uses.
 Returns nil if TERMINAL is not on a tty device.
@@ -2219,15 +2168,10 @@ TERMINAL can be a terminal object, a frame, or nil (meaning the
 selected frame's terminal).  */)
   (Lisp_Object terminal)
 {
-  struct terminal *t = get_terminal (terminal, 1);
+  struct terminal *t = decode_tty_terminal (terminal);
 
-  if (t->type != output_termcap && t->type != output_msdos_raw)
-    return Qnil;
-
-  if (t->display_info.tty->type)
-    return build_string (t->display_info.tty->type);
-  else
-    return Qnil;
+  return (t && t->display_info.tty->type
+	  ? build_string (t->display_info.tty->type) : Qnil);
 }
 
 DEFUN ("controlling-tty-p", Fcontrolling_tty_p, Scontrolling_tty_p, 0, 1, 0,
@@ -2238,13 +2182,9 @@ selected frame's terminal).  This function always returns nil if
 TERMINAL is not on a tty device.  */)
   (Lisp_Object terminal)
 {
-  struct terminal *t = get_terminal (terminal, 1);
+  struct terminal *t = decode_tty_terminal (terminal);
 
-  if ((t->type != output_termcap && t->type != output_msdos_raw)
-      || strcmp (t->display_info.tty->name, DEV_TTY) != 0)
-    return Qnil;
-  else
-    return Qt;
+  return (t && !strcmp (t->display_info.tty->name, DEV_TTY) ? Qt : Qnil);
 }
 
 DEFUN ("tty-no-underline", Ftty_no_underline, Stty_no_underline, 0, 1, 0,
@@ -2258,7 +2198,7 @@ selected frame's terminal).  This function always returns nil if
 TERMINAL does not refer to a text terminal.  */)
   (Lisp_Object terminal)
 {
-  struct terminal *t = get_terminal (terminal, 1);
+  struct terminal *t = decode_live_terminal (terminal);
 
   if (t->type == output_termcap)
     t->display_info.tty->TS_enter_underline_mode = 0;
@@ -2273,7 +2213,7 @@ does not refer to a text terminal.  Otherwise, it returns the
 top-most frame on the text terminal.  */)
   (Lisp_Object terminal)
 {
-  struct terminal *t = get_terminal (terminal, 1);
+  struct terminal *t = decode_live_terminal (terminal);
 
   if (t->type == output_termcap)
     return t->display_info.tty->top_frame;
@@ -2303,11 +2243,11 @@ suspended.
 A suspended tty may be resumed by calling `resume-tty' on it.  */)
   (Lisp_Object tty)
 {
-  struct terminal *t = get_tty_terminal (tty, 1);
+  struct terminal *t = decode_tty_terminal (tty);
   FILE *f;
 
   if (!t)
-    error ("Unknown tty device");
+    error ("Attempt to suspend a non-text terminal device");
 
   f = t->display_info.tty->input;
 
@@ -2363,15 +2303,15 @@ TTY may be a terminal object, a frame, or nil (meaning the selected
 frame's terminal). */)
   (Lisp_Object tty)
 {
-  struct terminal *t = get_tty_terminal (tty, 1);
+  struct terminal *t = decode_tty_terminal (tty);
   int fd;
 
   if (!t)
-    error ("Unknown tty device");
+    error ("Attempt to resume a non-text terminal device");
 
   if (!t->display_info.tty->input)
     {
-      if (get_named_tty (t->display_info.tty->name))
+      if (get_named_terminal (t->display_info.tty->name))
         error ("Cannot resume display while another display is active on the same device");
 
 #ifdef MSDOS
@@ -2537,7 +2477,7 @@ term_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
   (*fp)->mouse_moved = 0;
 
   *bar_window = Qnil;
-  *part = 0;
+  *part = scroll_bar_above_handle;
 
   XSETINT (*x, last_mouse_x);
   XSETINT (*y, last_mouse_y);
@@ -3188,6 +3128,7 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
   Lisp_Object selectface;
   int first_item = 0;
   int col, row;
+  USE_SAFE_ALLOCA;
 
   /* Don't allow non-positive x0 and y0, lest the menu will wrap
      around the display.  */
@@ -3196,7 +3137,7 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
   if (y0 <= 0)
     y0 = 1;
 
-  state = alloca (menu->panecount * sizeof (struct tty_menu_state));
+  SAFE_NALLOCA (state, 1, menu->panecount);
   memset (state, 0, sizeof (*state));
   faces[0]
     = lookup_derived_face (sf, intern ("tty-menu-disabled-face"),
@@ -3418,6 +3359,7 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
   discard_mouse_events ();
   if (!kbd_buffer_events_waiting ())
     clear_input_pending ();
+  SAFE_FREE ();
   return result;
 }
 
@@ -3603,6 +3545,7 @@ tty_menu_show (struct frame *f, int x, int y, int menuflags,
   item_y = y += f->top_pos;
 
   /* Create all the necessary panes and their items.  */
+  USE_SAFE_ALLOCA;
   maxwidth = maxlines = lines = i = 0;
   lpane = TTYM_FAILURE;
   while (i < menu_items_used)
@@ -3671,9 +3614,7 @@ tty_menu_show (struct frame *f, int x, int y, int menuflags,
 
 	  if (!NILP (descrip))
 	    {
-	      /* If alloca is fast, use that to make the space,
-		 to reduce gc needs.  */
-	      item_data = (char *) alloca (maxwidth + SBYTES (descrip) + 1);
+	      item_data = SAFE_ALLOCA (maxwidth + SBYTES (descrip) + 1);
 	      memcpy (item_data, SSDATA (item_name), SBYTES (item_name));
 	      for (j = SCHARS (item_name); j < maxwidth; j++)
 		item_data[j] = ' ';
@@ -3826,6 +3767,7 @@ tty_menu_show (struct frame *f, int x, int y, int menuflags,
 
  tty_menu_end:
 
+  SAFE_FREE ();
   unbind_to (specpdl_count, Qnil);
   return entry;
 }
@@ -4002,7 +3944,7 @@ init_tty (const char *name, const char *terminal_type, bool must_succeed)
   /* XXX Perhaps this should be made explicit by having init_tty
      always create a new terminal and separating terminal and frame
      creation on Lisp level.  */
-  terminal = get_named_tty (name);
+  terminal = get_named_terminal (name);
   if (terminal)
     return terminal;
 

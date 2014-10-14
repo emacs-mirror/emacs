@@ -1,7 +1,7 @@
 ;;; cal-french.el --- calendar functions for the French Revolutionary calendar
 
-;; Copyright (C) 1988-1989, 1992, 1994-1995, 1997, 2001-2014 Free
-;; Software Foundation, Inc.
+;; Copyright (C) 1988-1989, 1992, 1994-1995, 1997, 2001-2014
+;;   Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Maintainer: Glenn Morris <rgm@gnu.org>
@@ -129,9 +129,6 @@ Gregorian date Sunday, December 31, 1 BC."
        day                            ; days so far this month
        (1- calendar-french-epoch))))  ; days before start of calendar
 
-(define-obsolete-function-alias 'calendar-absolute-from-french
-  'calendar-french-to-absolute "23.1")
-
 (defun calendar-french-from-absolute (date)
   "Compute the French Revolutionary equivalent for absolute date DATE.
 The result is a list of the form (MONTH DAY YEAR).
@@ -196,9 +193,6 @@ Defaults to today's date if DATE is not given."
         (message "Date is pre-French Revolution")
       (message "French Revolutionary date: %s" f))))
 
-(define-obsolete-function-alias 'calendar-print-french-date
-  'calendar-french-print-date "23.1")
-
 ;;;###cal-autoload
 (defun calendar-french-goto-date (date &optional noecho)
   "Move cursor to French Revolutionary date DATE.
@@ -248,9 +242,6 @@ Echo French Revolutionary date unless NOECHO is non-nil."
   (calendar-goto-date (calendar-gregorian-from-absolute
                        (calendar-french-to-absolute date)))
   (or noecho (calendar-french-print-date)))
-
-(define-obsolete-function-alias 'calendar-goto-french-date
-  'calendar-french-goto-date "23.1")
 
 (defvar date)
 

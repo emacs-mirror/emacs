@@ -714,8 +714,8 @@ popmail (char *mailbox, char *outfile, int preserve, char *password, int reverse
 
   for (i = start; i * increment <= end * increment; i += increment)
     {
-      mbx_delimit_begin (mbf);
-      if (pop_retr (server, i, mbf) != OK)
+      if (mbx_delimit_begin (mbf) != OK
+	  || pop_retr (server, i, mbf) != OK)
 	{
 	  error ("%s", Errmsg, 0);
 	  close (mbfi);
@@ -832,15 +832,15 @@ mbx_write (char *line, int len, FILE *mbf)
 static int
 mbx_delimit_begin (FILE *mbf)
 {
-  time_t now;
-  struct tm *ltime;
-  char fromline[40] = "From movemail ";
+  time_t now = time (NULL);
+  struct tm *ltime = localtime (&now);
+  if (!ltime)
+    return NOTOK;
 
-  now = time (NULL);
-  ltime = localtime (&now);
-
-  strcat (fromline, asctime (ltime));
-
+  char fromline[100];
+  if (! strftime (fromline, sizeof fromline,
+		  "From movemail %a %b %e %T %Y\n", ltime))
+    return NOTOK;
   if (fputs (fromline, mbf) == EOF)
     return (NOTOK);
   return (OK);

@@ -88,6 +88,8 @@
 ;; CHAR-or-RANGE: a character code or a cons of character codes
 ;; PROPn: string representing the nth property value
 
+(eval-when-compile (require 'cl-lib))
+
 (defvar unidata-list nil)
 
 ;; Name of the directory containing files of Unicode Character Database.
@@ -943,11 +945,7 @@ Property value is a symbol `o' (Open), `c' (Close), or `n' (None)."
 	      (dotimes (i (length vec))
 		(dolist (elt (aref vec i))
 		  (if (symbolp elt)
-		      (let ((slot (assq elt word-list)))
-			(if slot
-			    (setcdr slot (1+ (cdr slot)))
-			  (setcdr word-list
-				  (cons (cons elt 1) (cdr word-list))))))))
+                      (cl-incf (alist-get elt (cdr word-list) 0)))))
 	      (set-char-table-range table (cons start limit) vec))))))
     (setq word-list (sort (cdr word-list)
 			  #'(lambda (x y) (> (cdr x) (cdr y)))))
@@ -1230,6 +1228,12 @@ Property value is a symbol `o' (Open), `c' (Close), or `n' (None)."
 
 ;; Verify if we can retrieve correct values from the generated
 ;; char-tables.
+;;
+;; Use like this:
+;;
+;; (let ((unidata-dir "/path/to/admin/unidata"))
+;;   (unidata-setup-list "unidata.txt")
+;;   (unidata-check))
 
 (defun unidata-check ()
   (dolist (elt unidata-prop-alist)

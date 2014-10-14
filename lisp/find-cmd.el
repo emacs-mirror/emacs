@@ -39,6 +39,8 @@
 
 ;;; Code:
 
+(require 'grep)
+
 (defconst find-constituents
   '((and . find-and)
     (not . find-not)
@@ -145,13 +147,15 @@ For example:
 
 `default-directory' is used as the initial search path.  The
 result is a string that should be ready for the command line."
-  (concat
-   "find " (shell-quote-argument (expand-file-name default-directory)) " "
-           (cond
-            ((cdr subfinds)
-             (mapconcat 'find-to-string subfinds ""))
-            (t
-             (find-to-string (car subfinds))))))
+  ;; FIXME: Provide a version that returns a list of strings (ready to pass to
+  ;; call-process).
+  (concat find-program " "
+          (shell-quote-argument (expand-file-name default-directory)) " "
+          (cond
+           ((cdr subfinds)
+            (mapconcat #'find-to-string subfinds ""))
+           (t
+            (find-to-string (car subfinds))))))
 
 (defun find-and (form)
   "And FORMs together, so:
@@ -161,7 +165,7 @@ will produce:
   (if (< (length form) 2)
       (find-to-string (car form))
       (concat "\\( "
-              (mapconcat 'find-to-string form "-and ")
+              (mapconcat #'find-to-string form "-and ")
               "\\) ")))
 
 (defun find-or (form)
@@ -172,7 +176,7 @@ will produce:
   (if (< (length form) 2)
       (find-to-string (car form))
       (concat "\\( "
-              (mapconcat 'find-to-string form "-or ")
+              (mapconcat #'find-to-string form "-or ")
               "\\) ")))
 
 (defun find-not (form)
@@ -183,7 +187,7 @@ will produce:
 If you wanted the FORMs -and(ed) together instead then this would
 suffice:
   \(not \(and \(mtime \"+1\"\) \(name \"something\"\)\)\)"
-  (concat "-not " (find-or (mapcar 'find-to-string form))))
+  (concat "-not " (find-or (mapcar #'find-to-string form))))
 
 (defun find-prune (form)
   "-or together FORMs postfix '-prune' and then -or that with a
@@ -194,7 +198,7 @@ will produce (unwrapped):
   -prune -or -true \\\) -and -name '*.pm' \\\)"
   (find-or
    (list
-    (concat (find-or (mapcar 'find-to-string form)) (find-generic "prune"))
+    (concat (find-or (mapcar #'find-to-string form)) (find-generic "prune"))
     (find-generic "true"))))
 
 (defun find-generic (option &optional oper argcount args dont-quote)

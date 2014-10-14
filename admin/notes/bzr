@@ -307,6 +307,18 @@ When finished, use
 
 or simply delete the entire branch if you created it just for this.
 
+** Some tips for speeding up bisections:
+
+*** Use ./configure --without-all --cache-file=/tmp/config.cache
+(assuming the thing you are testing for does not need a feature that
+--without-all disables).
+
+*** Rather than `make', use `make -C lib && make -C src bootstrap-emacs
+&& make -C src emacs', to avoid compiling the non-essential lisp files
+(unless the thing you are testing for only shows up in compiled files;
+if so compile just the relevant ones).  Obviously use whatever make -j
+option is appropriate for your system.
+
 * Commit emails
 
 ** Old method: bzr-hookless-email

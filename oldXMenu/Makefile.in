@@ -93,6 +93,14 @@ OBJS =  Activate.o \
 all: libXMenu11.a
 .PHONY: all
 
+# 'make' verbosity.
+AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
+
+AM_V_CC = $(am__v_CC_@AM_V@)
+am__v_CC_ = $(am__v_CC_@AM_DEFAULT_V@)
+am__v_CC_0 = @echo "  CC      " $@;
+am__v_CC_1 =
+
 DEPDIR = deps
 ## -MMD -MF $(DEPDIR)/$*.d if AUTO_DEPEND; else empty.
 DEPFLAGS = @DEPFLAGS@
@@ -107,7 +115,7 @@ ALL_CFLAGS=$(C_SWITCH_SYSTEM) $(C_SWITCH_MACHINE) \
 
 .c.o:
 	@$(MKDEPDIR)
-	$(CC) -c ${ALL_CFLAGS} $<
+	$(AM_V_CC)$(CC) -c ${ALL_CFLAGS} $<
 
 libXMenu11.a: $(OBJS) $(EXTRA)
 	$(RM) $@
@@ -120,7 +128,7 @@ libXMenu11.a: $(OBJS) $(EXTRA)
 .PHONY: mostlyclean clean distclean bootstrap-clean maintainer-clean
 
 clean mostlyclean:
-	rm -f libXMenu11.a ${OBJS} ${EXTRA}
+	rm -f libXMenu11.a *.o
 	-rm -rf ${DEPDIR}
 
 bootstrap-clean maintainer-clean distclean: clean

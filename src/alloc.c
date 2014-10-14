@@ -80,7 +80,7 @@ static bool valgrind_p;
    marked objects.  */
 
 #if (defined SYSTEM_MALLOC || defined DOUG_LEA_MALLOC \
-     || defined GC_CHECK_MARKED_OBJECTS)
+     || defined HYBRID_MALLOC || defined GC_CHECK_MARKED_OBJECTS)
 #undef GC_MALLOC_CHECK
 #endif
 
@@ -285,7 +285,7 @@ static void gc_sweep (void);
 static Lisp_Object make_pure_vector (ptrdiff_t);
 static void mark_buffer (struct buffer *);
 
-#if !defined REL_ALLOC || defined SYSTEM_MALLOC
+#if !defined REL_ALLOC || defined SYSTEM_MALLOC || defined HYBRID_MALLOC
 static void refill_memory_reserve (void);
 #endif
 static void compact_small_strings (void);
@@ -453,7 +453,7 @@ mmap_lisp_allowed_p (void)
   /* If we can't store all memory addresses in our lisp objects, it's
      risky to let the heap use mmap and give us addresses from all
      over our address space.  We also can't use mmap for lisp objects
-     if we might dump: unexec doesn't preserve the contents of mmaped
+     if we might dump: unexec doesn't preserve the contents of mmapped
      regions.  */
   return pointers_fit_in_lispobj_p () && !might_dump;
 }
@@ -1014,10 +1014,17 @@ lisp_free (void *block)
    clang 3.3 anyway.  */
 
 #if ! ADDRESS_SANITIZER
-# if !defined SYSTEM_MALLOC && !defined DOUG_LEA_MALLOC
+# if !defined SYSTEM_MALLOC && !defined DOUG_LEA_MALLOC && !defined HYBRID_MALLOC
 #  define USE_ALIGNED_ALLOC 1
 /* Defined in gmalloc.c.  */
 void *aligned_alloc (size_t, size_t);
+# elif defined HYBRID_MALLOC
+#  if defined ALIGNED_ALLOC || defined HAVE_POSIX_MEMALIGN
+#   define USE_ALIGNED_ALLOC 1
+#   define aligned_alloc hybrid_aligned_alloc
+/* Defined in gmalloc.c.  */
+void *aligned_alloc (size_t, size_t);
+#  endif
 # elif defined HAVE_ALIGNED_ALLOC
 #  define USE_ALIGNED_ALLOC 1
 # elif defined HAVE_POSIX_MEMALIGN
@@ -2219,7 +2226,6 @@ make_string (const char *contents, ptrdiff_t nbytes)
   return val;
 }
 
-
 /* Make an unibyte string from LENGTH bytes at CONTENTS.  */
 
 Lisp_Object
@@ -2611,29 +2617,28 @@ list5 (Lisp_Object arg1, Lisp_Object arg2, Lisp_Object arg3, Lisp_Object arg4, L
 Lisp_Object
 listn (enum constype type, ptrdiff_t count, Lisp_Object arg, ...)
 {
+  Lisp_Object (*cons) (Lisp_Object, Lisp_Object);
+  switch (type)
+    {
+    case CONSTYPE_PURE: cons = pure_cons; break;
+    case CONSTYPE_HEAP: cons = Fcons; break;
+    default: emacs_abort ();
+    }
+
+  eassume (0 < count);
+  Lisp_Object val = cons (arg, Qnil);
+  Lisp_Object tail = val;
+
   va_list ap;
-  ptrdiff_t i;
-  Lisp_Object val, *objp;
-
-  /* Change to SAFE_ALLOCA if you hit this eassert.  */
-  eassert (count <= MAX_ALLOCA / word_size);
-
-  objp = alloca (count * word_size);
-  objp[0] = arg;
   va_start (ap, arg);
-  for (i = 1; i < count; i++)
-    objp[i] = va_arg (ap, Lisp_Object);
+  for (ptrdiff_t i = 1; i < count; i++)
+    {
+      Lisp_Object elem = cons (va_arg (ap, Lisp_Object), Qnil);
+      XSETCDR (tail, elem);
+      tail = elem;
+    }
   va_end (ap);
 
-  for (val = Qnil, i = count - 1; i >= 0; i--)
-    {
-      if (type == CONSTYPE_PURE)
-	val = pure_cons (objp[i], val);
-      else if (type == CONSTYPE_HEAP)
-	val = Fcons (objp[i], val);
-      else
-	emacs_abort ();
-    }
   return val;
 }
 
@@ -3282,7 +3287,6 @@ See also the function `vector'.  */)
   return vector;
 }
 
-
 DEFUN ("vector", Fvector, Svector, 0, MANY, 0,
        doc: /* Return a newly created vector with specified arguments as elements.
 Any number of arguments, even zero arguments, are allowed.
@@ -3829,7 +3833,7 @@ memory_full (size_t nbytes)
 void
 refill_memory_reserve (void)
 {
-#ifndef SYSTEM_MALLOC
+#if !defined SYSTEM_MALLOC && !defined HYBRID_MALLOC
   if (spare_memory[0] == 0)
     spare_memory[0] = malloc (SPARE_MEMORY);
   if (spare_memory[1] == 0)
@@ -6011,8 +6015,9 @@ mark_overlay (struct Lisp_Overlay *ptr)
   for (; ptr && !ptr->gcmarkbit; ptr = ptr->next)
     {
       ptr->gcmarkbit = 1;
-      mark_object (ptr->start);
-      mark_object (ptr->end);
+      /* These two are always markers and can be marked fast.  */
+      XMARKER (ptr->start)->gcmarkbit = 1;
+      XMARKER (ptr->end)->gcmarkbit = 1;
       mark_object (ptr->plist);
     }
 }
@@ -7072,7 +7077,7 @@ detect_suspicious_free (void* ptr)
 
 DEFUN ("suspicious-object", Fsuspicious_object, Ssuspicious_object, 1, 1, 0,
        doc: /* Return OBJ, maybe marking it for extra scrutiny.
-If Emacs is compiled with suspicous object checking, capture
+If Emacs is compiled with suspicious object checking, capture
 a stack trace when OBJ is freed in order to help track down
 garbage collection bugs.  Otherwise, do nothing and return OBJ.   */)
    (Lisp_Object obj)
@@ -7100,8 +7105,48 @@ die (const char *msg, const char *file, int line)
 	   file, line, msg);
   terminate_due_to_signal (SIGABRT, INT_MAX);
 }
-#endif
-
+
+#endif /* ENABLE_CHECKING */
+
+#if defined (ENABLE_CHECKING) && USE_STACK_LISP_OBJECTS
+
+/* Debugging check whether STR is ASCII-only.  */
+
+const char *
+verify_ascii (const char *str)
+{
+  const unsigned char *ptr = (unsigned char *) str, *end = ptr + strlen (str);
+  while (ptr < end)
+    {
+      int c = STRING_CHAR_ADVANCE (ptr);
+      if (!ASCII_CHAR_P (c))
+	emacs_abort ();
+    }
+  return str;
+}
+
+/* Stress alloca with inconveniently sized requests and check
+   whether all allocated areas may be used for Lisp_Object.  */
+
+NO_INLINE static void
+verify_alloca (void)
+{
+  int i;
+  enum { ALLOCA_CHECK_MAX = 256 };
+  /* Start from size of the smallest Lisp object.  */
+  for (i = sizeof (struct Lisp_Cons); i <= ALLOCA_CHECK_MAX; i++)
+    {
+      void *ptr = alloca (i);
+      make_lisp_ptr (ptr, Lisp_Cons);
+    }
+}
+
+#else /* not ENABLE_CHECKING && USE_STACK_LISP_OBJECTS */
+
+#define verify_alloca() ((void) 0)
+
+#endif /* ENABLE_CHECKING && USE_STACK_LISP_OBJECTS */
+
 /* Initialization.  */
 
 void
@@ -7110,6 +7155,8 @@ init_alloc_once (void)
   /* Used to do Vpurify_flag = Qt here, but Qt isn't set up yet!  */
   purebeg = PUREBEG;
   pure_size = PURESIZE;
+
+  verify_alloca ();
 
 #if GC_MARK_STACK || defined GC_MALLOC_CHECK
   mem_init ();

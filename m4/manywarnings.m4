@@ -1,4 +1,4 @@
-# manywarnings.m4 serial 6
+# manywarnings.m4 serial 7
 dnl Copyright (C) 2008-2014 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -93,6 +93,14 @@ AC_DEFUN([gl_MANYWARN_ALL_GCC],
   fi
 
   # List all gcc warning categories.
+  # To compare this list to your installed GCC's, run this Bash command:
+  #
+  # comm -3 \
+  #  <(sed -n 's/^  *\(-[^ ]*\) .*/\1/p' manywarnings.m4 | sort) \
+  #  <(gcc --help=warnings | sed -n 's/^  \(-[^ ]*\) .*/\1/p' | sort |
+  #      grep -v -x -f <(
+  #         awk '/^[^#]/ {print $1}' ../build-aux/gcc-warning.spec))
+
   gl_manywarn_set=
   for gl_manywarn_item in \
     -W \
@@ -111,6 +119,7 @@ AC_DEFUN([gl_MANYWARN_ALL_GCC],
     -Wcomments \
     -Wcoverage-mismatch \
     -Wcpp \
+    -Wdate-time \
     -Wdeprecated \
     -Wdeprecated-declarations \
     -Wdisabled-optimization \
@@ -150,9 +159,9 @@ AC_DEFUN([gl_MANYWARN_ALL_GCC],
     -Wnarrowing \
     -Wnested-externs \
     -Wnonnull \
-    -Wnormalized=nfc \
     -Wold-style-declaration \
     -Wold-style-definition \
+    -Wopenmp-simd \
     -Woverflow \
     -Woverlength-strings \
     -Woverride-init \
@@ -203,12 +212,25 @@ AC_DEFUN([gl_MANYWARN_ALL_GCC],
     -Wvla \
     -Wvolatile-register-var \
     -Wwrite-strings \
-    -fdiagnostics-show-option \
-    -funit-at-a-time \
     \
     ; do
     gl_manywarn_set="$gl_manywarn_set $gl_manywarn_item"
   done
+
+  # gcc --help=warnings outputs an unusual form for this option; list
+  # it here so that the above 'comm' command doesn't report a false match.
+  gl_manywarn_set="$gl_manywarn_set -Wnormalized=nfc"
+
+  # These are needed for older GCC versions.
+  if test -n "$GCC"; then
+    case `($CC --version) 2>/dev/null` in
+      'gcc (GCC) '[[0-3]].* | \
+      'gcc (GCC) '4.[[0-7]].*)
+        gl_manywarn_set="$gl_manywarn_set -fdiagnostics-show-option"
+        gl_manywarn_set="$gl_manywarn_set -funit-at-a-time"
+          ;;
+    esac
+  fi
 
   # Disable specific options as needed.
   if test "$gl_cv_cc_nomfi_needed" = yes; then

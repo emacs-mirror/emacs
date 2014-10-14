@@ -1318,6 +1318,7 @@ search_buffer (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
 	 translation.  Otherwise set to zero later.  */
       int char_base = -1;
       bool boyer_moore_ok = 1;
+      USE_SAFE_ALLOCA;
 
       /* MULTIBYTE says whether the text to be searched is multibyte.
 	 We must convert PATTERN to match that, or we will not really
@@ -1335,7 +1336,7 @@ search_buffer (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
 	  raw_pattern_size_byte
 	    = count_size_as_multibyte (SDATA (string),
 				       raw_pattern_size);
-	  raw_pattern = alloca (raw_pattern_size_byte + 1);
+	  raw_pattern = SAFE_ALLOCA (raw_pattern_size_byte + 1);
 	  copy_text (SDATA (string), raw_pattern,
 		     SCHARS (string), 0, 1);
 	}
@@ -1349,7 +1350,7 @@ search_buffer (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
 	     the chosen single-byte character set can possibly match.  */
 	  raw_pattern_size = SCHARS (string);
 	  raw_pattern_size_byte = SCHARS (string);
-	  raw_pattern = alloca (raw_pattern_size + 1);
+	  raw_pattern = SAFE_ALLOCA (raw_pattern_size + 1);
 	  copy_text (SDATA (string), raw_pattern,
 		     SBYTES (string), 1, 0);
 	}
@@ -1357,7 +1358,7 @@ search_buffer (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
       /* Copy and optionally translate the pattern.  */
       len = raw_pattern_size;
       len_byte = raw_pattern_size_byte;
-      patbuf = alloca (len * MAX_MULTIBYTE_LENGTH);
+      SAFE_NALLOCA (patbuf, MAX_MULTIBYTE_LENGTH, len);
       pat = patbuf;
       base_pat = raw_pattern;
       if (multibyte)
@@ -1497,13 +1498,15 @@ search_buffer (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
       len_byte = pat - patbuf;
       pat = base_pat = patbuf;
 
-      if (boyer_moore_ok)
-	return boyer_moore (n, pat, len_byte, trt, inverse_trt,
-			    pos_byte, lim_byte,
-			    char_base);
-      else
-	return simple_search (n, pat, raw_pattern_size, len_byte, trt,
-			      pos, pos_byte, lim, lim_byte);
+      EMACS_INT result
+	= (boyer_moore_ok
+	   ? boyer_moore (n, pat, len_byte, trt, inverse_trt,
+			  pos_byte, lim_byte,
+			  char_base)
+	   : simple_search (n, pat, raw_pattern_size, len_byte, trt,
+			    pos, pos_byte, lim, lim_byte));
+      SAFE_FREE ();
+      return result;
     }
 }
 
@@ -2809,7 +2812,8 @@ Return value is undefined if the last search failed.  */)
 
   prev = Qnil;
 
-  data = alloca ((2 * search_regs.num_regs + 1) * sizeof *data);
+  USE_SAFE_ALLOCA;
+  SAFE_NALLOCA (data, 1, 2 * search_regs.num_regs + 1);
 
   len = 0;
   for (i = 0; i < search_regs.num_regs; i++)
@@ -2852,25 +2856,28 @@ Return value is undefined if the last search failed.  */)
 
   /* If REUSE is not usable, cons up the values and return them.  */
   if (! CONSP (reuse))
-    return Flist (len, data);
-
-  /* If REUSE is a list, store as many value elements as will fit
-     into the elements of REUSE.  */
-  for (i = 0, tail = reuse; CONSP (tail);
-       i++, tail = XCDR (tail))
+    reuse = Flist (len, data);
+  else
     {
+      /* If REUSE is a list, store as many value elements as will fit
+	 into the elements of REUSE.  */
+      for (i = 0, tail = reuse; CONSP (tail);
+	   i++, tail = XCDR (tail))
+	{
+	  if (i < len)
+	    XSETCAR (tail, data[i]);
+	  else
+	    XSETCAR (tail, Qnil);
+	  prev = tail;
+	}
+
+      /* If we couldn't fit all value elements into REUSE,
+	 cons up the rest of them and add them to the end of REUSE.  */
       if (i < len)
-	XSETCAR (tail, data[i]);
-      else
-	XSETCAR (tail, Qnil);
-      prev = tail;
+	XSETCDR (prev, Flist (len - i, data + i));
     }
 
-  /* If we couldn't fit all value elements into REUSE,
-     cons up the rest of them and add them to the end of REUSE.  */
-  if (i < len)
-    XSETCDR (prev, Flist (len - i, data + i));
-
+  SAFE_FREE ();
   return reuse;
 }
 
@@ -3075,7 +3082,8 @@ DEFUN ("regexp-quote", Fregexp_quote, Sregexp_quote, 1, 1, 0,
 
   CHECK_STRING (string);
 
-  temp = alloca (SBYTES (string) * 2);
+  USE_SAFE_ALLOCA;
+  SAFE_NALLOCA (temp, 2, SBYTES (string));
 
   /* Now copy the data into the new string, inserting escapes. */
 
@@ -3093,10 +3101,13 @@ DEFUN ("regexp-quote", Fregexp_quote, Sregexp_quote, 1, 1, 0,
       *out++ = *in;
     }
 
-  return make_specified_string (temp,
-				SCHARS (string) + backslashes_added,
-				out - temp,
-				STRING_MULTIBYTE (string));
+  Lisp_Object result
+    = make_specified_string (temp,
+			     SCHARS (string) + backslashes_added,
+			     out - temp,
+			     STRING_MULTIBYTE (string));
+  SAFE_FREE ();
+  return result;
 }
 
 /* Like find_newline, but doesn't use the cache, and only searches forward.  */

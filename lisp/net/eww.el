@@ -59,7 +59,7 @@
 
 (defcustom eww-bookmarks-directory user-emacs-directory
   "Directory where bookmark files will be stored."
-  :version "24.5"
+  :version "25.1"
   :group 'eww
   :type 'string)
 
@@ -270,7 +270,6 @@ word(s) will be searched for via `eww-search-prefix'."
     (setq eww-current-dom document)
     (let ((inhibit-read-only t)
 	  (after-change-functions nil)
-	  (shr-width nil)
 	  (shr-target-id (url-target (url-generic-parse-url url)))
 	  (shr-external-rendering-functions
 	   '((title . eww-tag-title)

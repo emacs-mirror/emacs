@@ -179,6 +179,9 @@ x_default_search_path=@x_default_search_path@
 # Where the etc/emacs.desktop file is to be installed.
 desktopdir=$(datarootdir)/applications
 
+# Where the etc/emacs.appdata.xml file is to be installed.
+appdatadir=$(datarootdir)/appdata
+
 # Where the etc/images/icons/hicolor directory is to be installed.
 icondir=$(datarootdir)/icons
 
@@ -687,6 +690,12 @@ install-etc:
 	  ${srcdir}/etc/emacs.desktop > $${tmp}; \
 	${INSTALL_DATA} $${tmp} "$(DESTDIR)${desktopdir}/${EMACS_NAME}.desktop"; \
 	rm -f $${tmp}
+	umask 022; ${MKDIR_P} "$(DESTDIR)${appdatadir}"
+	tmp=etc/emacs.tmpappdata; rm -f $${tmp}; \
+	sed -e "s/emacs\.desktop/${EMACS_NAME}.desktop/" \
+	  ${srcdir}/etc/emacs.appdata.xml > $${tmp}; \
+	${INSTALL_DATA} $${tmp} "$(DESTDIR)${appdatadir}/${EMACS_NAME}.appdata.xml"; \
+	rm -f $${tmp}
 	thisdir=`/bin/pwd`; \
 	cd ${iconsrcdir} || exit 1; umask 022 ; \
 	for dir in */*/apps */*/mimetypes; do \
@@ -751,6 +760,7 @@ uninstall: uninstall-$(NTDIR) uninstall-doc
 	     hicolor/scalable/mimetypes/`echo emacs-document | sed '$(TRANSFORM)'`.svg; \
 	fi)
 	-rm -f "$(DESTDIR)${desktopdir}/${EMACS_NAME}.desktop"
+	-rm -f "$(DESTDIR)${appdatadir}/${EMACS_NAME}.appdata.xml"
 	for file in snake-scores tetris-scores; do \
 	  file="$(DESTDIR)${gamedir}/$${file}"; \
 	  [ -s "$${file}" ] || rm -f "$$file"; \
@@ -806,7 +816,7 @@ clean: $(clean_dirs:=_clean)
 	for dir in test/automated; do \
 	  [ ! -d $$dir ] || $(MAKE) -C $$dir clean; \
 	done
-	-rm -f etc/emacs.tmpdesktop
+	-rm -f etc/emacs.tmpdesktop etc/emacs.tmpappdata
 
 ### `bootclean'
 ###      Delete all files that need to be remade for a clean bootstrap.

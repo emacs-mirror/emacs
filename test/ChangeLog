@@ -1,3 +1,67 @@
+2014-10-08  Leo Liu  <sdl.web@gmail.com>
+
+	* automated/print-tests.el: New file.
+	(terpri): Tests for terpri.  (Bug#18652)
+
+2014-10-06  Glenn Morris  <rgm@gnu.org>
+
+	* automated/icalendar-tests.el (icalendar--calendar-style):
+	Remove test, no longer relevant.
+
+2014-10-04  Glenn Morris  <rgm@gnu.org>
+
+	* automated/package-x-test.el: Remove file...
+	* automated/package-test.el: ... merge package-x-test.el.  (Bug#18574)
+
+2014-10-02  Glenn Morris  <rgm@gnu.org>
+
+	* automated/package-test.el (with-package-test, package-test-signed):
+	Also set HOME to a temp value, in case the real one is absent (e.g.
+	hydra) or read-only.  (Bug#18575)
+	(package-test-signed): Use skip-unless rather than expected-result.
+
+2014-09-26  Leo Liu  <sdl.web@gmail.com>
+
+	* automated/cl-lib.el (cl-digit-char-p, cl-parse-integer): New
+	tests.  (Bug#18557)
+
+2014-09-24  Ulf Jasper  <ulf.jasper@web.de>
+
+	* automated/newsticker-tests.el
+	(newsticker--group-find-parent-group),
+	(newsticker--group-do-rename-group): New tests.
+
+2014-09-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* automated/fns-tests.el (fns-tests-collate-sort): Bind
+	w32-collate-ignore-punctuation to t when sorting according to
+	UTS#10 rules.
+
+2014-09-07  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/fns-tests.el (fns-tests--collate-enabled-p): New function.
+	(fns-tests-collate-strings, fns-tests-collate-sort): Use it.
+
+2014-09-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/fns-tests.el (fns-tests-compare-strings): In case
+	`compare-strings' shall return t, check for this.
+	(fns-tests-collate-strings, fns-tests-collate-sort): New tests.
+
+2014-09-03  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	* automated/python-tests.el (python-indent-electric-colon-1):
+	New test.  (Bug#18228)
+
+2014-08-29  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* automated/fns-tests.el (fns-tests-sort): New test.
+
+2014-08-28  Glenn Morris  <rgm@gnu.org>
+
+	* automated/python-tests.el (python-shell-calculate-exec-path-2):
+	Update test for today's python.el changes.
+
 2014-08-13  Jan Nieuwenhuizen  <janneke@gnu.org>
 
 	* automated/compile-tests.el (compile--test-error-line): Grok FILE
@@ -249,7 +313,7 @@
 
 2014-06-05  Michal Nazarewicz  <mina86@mina86.com>
 
-	* automated/tildify-tests.el (tildify-test--test): Optimise the test
+	* automated/tildify-tests.el (tildify-test--test): Optimize the test
 	slightly by reusing the same temporary buffer across multiple test
 	cases.
 

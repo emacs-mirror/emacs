@@ -33,7 +33,7 @@
   "List of URL protocols the work is handled by Tramp.
 They must also be covered by `url-handler-regexp'."
   :group 'url
-  :version "24.5"
+  :version "25.1"
   :type '(list string))
 
 (defun url-tramp-convert-url-to-tramp (url)

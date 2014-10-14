@@ -987,10 +987,10 @@ size with no tool bar, use an X resource to specify ``no tool bar''
 (@pxref{Table of Resources}); then Emacs will already know there's no
 tool bar when it processes the specified geometry.
 
-  When using one of @samp{--fullscreen}, @samp{--maximized}, @samp{--fullwidth}
-or @samp{--fullheight} there may be some space around the frame
-anyway.  That is because Emacs rounds the sizes so they are an
-even number of character heights and widths.
+  When using one of @samp{--fullscreen}, @samp{--maximized},
+@samp{--fullwidth} or @samp{--fullheight}, some window managers require
+you to set the variable @code{frame-resize-pixelwise} to a non-@code{nil}
+value to make a frame appear truly ``maximized'' or ``fullscreen''.
 
  Some window managers have options that can make them ignore both
 program-specified and user-specified positions.  If these are set,
@@ -1106,8 +1106,8 @@ rectangle containing the frame's title.
 @c Enable horizontal scroll bars.  Since horizontal scroll bars
 @c are not yet implemented, this actually does nothing.
 
-@item --parent-id @var{ID}
-Open Emacs as a client X window via the XEmbed protocol, with @var{ID}
+@item --parent-id @var{id}
+Open Emacs as a client X window via the XEmbed protocol, with @var{id}
 as the parent X window id.  Currently, this option is mainly useful
 for developers.
 

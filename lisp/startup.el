@@ -421,21 +421,6 @@ Warning Warning!!!  Pure space overflow    !!!Warning Warning
   :type 'directory
   :initialize 'custom-initialize-delay)
 
-(defvar package--builtin-versions
-  ;; Mostly populated by loaddefs.el via autoload-builtin-package-versions.
-  (purecopy `((emacs . ,(version-to-list emacs-version))))
-  "Alist giving the version of each versioned builtin package.
-I.e. each element of the list is of the form (NAME . VERSION) where
-NAME is the package name as a symbol, and VERSION is its version
-as a list.")
-
-(defun package--description-file (dir)
-  (concat (let ((subdir (file-name-nondirectory
-                         (directory-file-name dir))))
-            (if (string-match "\\([^.].*?\\)-\\([0-9]+\\(?:[.][0-9]+\\|\\(?:pre\\|beta\\|alpha\\)[0-9]+\\)*\\)" subdir)
-                (match-string 1 subdir) subdir))
-          "-pkg.el"))
-
 (defun normal-top-level-add-subdirs-to-load-path ()
   "Add all subdirectories of `default-directory' to `load-path'.
 More precisely, this uses only the subdirectories whose names
@@ -497,7 +482,7 @@ It sets `command-line-processed', processes the command-line,
 reads the initialization files, etc.
 It is the default value of the variable `top-level'."
   (if command-line-processed
-      (message "Back to top level.")
+      (message internal--top-level-message)
     (setq command-line-processed t)
 
     ;; Look in each dir in load-path for a subdirs.el file.  If we
@@ -719,17 +704,17 @@ It is the default value of the variable `top-level'."
 (defconst tool-bar-images-pixel-height 24
   "Height in pixels of images in the tool-bar.")
 
-(defvar handle-args-function-alist '((nil . tty-handle-args))
-  "Functions for processing window-system dependent command-line arguments.
+(gui-method-declare handle-args-function #'tty-handle-args
+  "Method for processing window-system dependent command-line arguments.
 Window system startup files should add their own function to this
-alist, which should parse the command line arguments.  Those
+method, which should parse the command line arguments.  Those
 pertaining to the window system should be processed and removed
 from the returned command line.")
 
-(defvar window-system-initialization-alist '((nil . ignore))
-  "Alist of window-system initialization functions.
-Window-system startup files should add their own initialization
-function to this list.  The function should take no arguments,
+(gui-method-declare window-system-initialization #'ignore
+  "Method for window-system initialization.
+Window-system startup files should add their own implementation
+to this method.  The function should take no arguments,
 and initialize the window system environment to prepare for
 opening the first frame (e.g. open a connection to an X server).")
 
@@ -965,13 +950,11 @@ please check its value")
       ;; Process window-system specific command line parameters.
       (setq command-line-args
 	    (funcall
-	     (or (cdr (assq initial-window-system handle-args-function-alist))
-		 (error "Unsupported window system `%s'" initial-window-system))
+             (gui-method handle-args-function (or initial-window-system t))
 	     command-line-args))
       ;; Initialize the window system. (Open connection, etc.)
       (funcall
-       (or (cdr (assq initial-window-system window-system-initialization-alist))
-	   (error "Unsupported window system `%s'" initial-window-system)))
+       (gui-method window-system-initialization (or initial-window-system t)))
       (put initial-window-system 'window-system-initialized t))
     ;; If there was an error, print the error message and exit.
     (error
@@ -1303,7 +1286,11 @@ the `--debug-init' option to view a complete error backtrace."
   (let (warned)
     (dolist (dir load-path)
       (and (not warned)
-	   (string-match-p "/[._]emacs\\.d/?\\'" dir)
+	   (string-match-p
+	    (format "/%s/?\\'"
+		    (regexp-quote
+		     (file-name-nondirectory
+		      (directory-file-name user-emacs-directory)))) dir)
 	   (string-equal (file-name-as-directory (expand-file-name dir))
 			 (expand-file-name user-emacs-directory))
 	   (setq warned t)
@@ -1311,9 +1298,10 @@ the `--debug-init' option to view a complete error backtrace."
 			    (format "Your `load-path' seems to contain
 your `.emacs.d' directory: %s\n\
 This is likely to cause problems...\n\
-Consider using a subdirectory instead, e.g.: %s" dir
-(expand-file-name "lisp" user-emacs-directory))
-			     :warning))))
+Consider using a subdirectory instead, e.g.: %s"
+                                    dir (expand-file-name
+                                         "lisp" user-emacs-directory))
+                            :warning))))
 
   ;; If -batch, terminate after processing the command options.
   (if noninteractive (kill-emacs t))
@@ -1797,7 +1785,7 @@ we put it on this frame."
   (let (chosen-frame)
     ;; MS-Windows needs this to have a chance to make the initial
     ;; frame visible.
-    (if (eq system-type 'windows-nt)
+    (if (eq (window-system) 'w32)
 	(sit-for 0 t))
     (dolist (frame (append (frame-list) (list (selected-frame))))
       (if (and (frame-visible-p frame)

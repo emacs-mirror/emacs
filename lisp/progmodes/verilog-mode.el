@@ -123,7 +123,7 @@
 ;;; Code:
 
 ;; This variable will always hold the version number of the mode
-(defconst verilog-mode-version "2014-05-31-3cd8144-vpo"
+(defconst verilog-mode-version "2014-10-03-c075a49-vpo"
   "Version of this Verilog mode.")
 (defconst verilog-mode-release-emacs t
   "If non-nil, this version of Verilog mode was released with Emacs itself.")
@@ -1027,7 +1027,7 @@ If 'packed', then as many inputs and outputs that fit within
 
 If 'single', then a single input or output will be put onto each
 line."
-  :version "24.5"
+  :version "25.1"
   :type '(radio (const :tag "Line up Assignments and Declarations" packed)
 		(const :tag "Line up Assignment statements" single))
   :group 'verilog-mode-auto)
@@ -1474,6 +1474,8 @@ If set will become buffer local.")
        :help		"Help on AUTOINPUT - adding inputs from cells"]
       ["AUTOINSERTLISP"			(describe-function 'verilog-auto-insert-lisp)
        :help		"Help on AUTOINSERTLISP - insert text from a lisp function"]
+      ["AUTOINSERTLAST"			(describe-function 'verilog-auto-insert-last)
+       :help		"Help on AUTOINSERTLISPLAST - insert text from a lisp function"]
       ["AUTOINST"			(describe-function 'verilog-auto-inst)
        :help		"Help on AUTOINST - adding pins for cells"]
       ["AUTOINST (.*)"			(describe-function 'verilog-auto-star)
@@ -2265,7 +2267,10 @@ find the errors."
 	  ;;  "\\(assert\\|assume\\|cover\\)\\s-+property\\>"
 
 (defconst verilog-no-indent-begin-re
-  "\\<\\(if\\|else\\|while\\|for\\|repeat\\|always\\|always_comb\\|always_ff\\|always_latch\\)\\>")
+  (eval-when-compile
+    (verilog-regexp-words
+     '( "if" "else" "while" "for" "repeat" "always" "always_comb" "always_ff" "always_latch"
+	"initial" "final"))))
 
 (defconst verilog-ends-re
   ;; Parenthesis indicate type of keyword found
@@ -2719,9 +2724,9 @@ find the errors."
 (defconst verilog-disable-fork-re "\\(disable\\|wait\\)\\s-+fork\\>")
 (defconst verilog-extended-case-re "\\(\\(unique0?\\s-+\\|priority\\s-+\\)?case[xz]?\\)")
 (defconst verilog-extended-complete-re
-  (concat "\\(\\(\\<extern\\s-+\\|\\<\\(\\<pure\\>\\s-+\\)?virtual\\s-+\\|\\<protected\\s-+\\)*\\(\\<function\\>\\|\\<task\\>\\)\\)"
+  (concat "\\(\\(\\<extern\\s-+\\|\\<\\(\\<\\(pure\\|context\\)\\>\\s-+\\)?virtual\\s-+\\|\\<protected\\s-+\\)*\\(\\<function\\>\\|\\<task\\>\\)\\)"
 	  "\\|\\(\\(\\<typedef\\>\\s-+\\)*\\(\\<struct\\>\\|\\<union\\>\\|\\<class\\>\\)\\)"
-	  "\\|\\(\\(\\<import\\>\\s-+\\)?\\(\"DPI-C\"\\s-+\\)?\\(\\<pure\\>\\s-+\\)?\\(function\\>\\|task\\>\\)\\)"
+	  "\\|\\(\\(\\<import\\>\\s-+\\)?\\(\"DPI-C\"\\s-+\\)?\\(\\<\\(pure\\|context\\)\\>\\s-+\\)?\\([A-Za-z_][A-Za-z0-9_]*\\s-+=\\s-+\\)?\\(function\\>\\|task\\>\\)\\)"
 	  "\\|" verilog-extended-case-re ))
 (defconst verilog-basic-complete-re
   (eval-when-compile
@@ -8258,7 +8263,8 @@ Return an array of [outputs inouts inputs wire reg assign const]."
 			(setq typedefed
 			      (if typedefed (concat typedefed " " keywd) keywd)))
 		       (t (setq vec nil  enum nil  rvalue nil  signed nil
-				typedefed nil  multidim nil  sig-paren paren
+				typedefed keywd  ; Have a type
+				multidim nil  sig-paren paren
 				expect-signal 'sigs-var  modport nil))))
 		;; Interface with optional modport in v2k arglist?
 		;; Skip over parsing modport, and take the interface name as the type
@@ -10650,6 +10656,7 @@ Takes SIGS list, adds MESSAGE to front and inserts each at INDENT-PT."
       (indent-to indent-pt)
       (while sigs
 	(cond ((equal verilog-auto-arg-format 'single)
+	       (insert space)
 	       (indent-to indent-pt)
 	       (setq space "\n"))
 	      ;; verilog-auto-arg-format 'packed
@@ -11816,10 +11823,18 @@ Typing \\[verilog-auto] will make this into:
 	   wire tempa = i;
 	   wire tempb = tempa;
 	   wire o = tempb;
-	endmodule"
+	endmodule
+
+You may also provide an optional regular expression, in which case only
+signals matching the regular expression will be included.  For example the
+same expansion will result from only extracting outputs starting with ov:
+
+	   /*AUTOOUTPUTEVERY(\"^ov\")*/"
   (save-excursion
     ;;Point must be at insertion point
     (let* ((indent-pt (current-indentation))
+	   (params (verilog-read-auto-params 0 1))
+	   (regexp (nth 0 params))
 	   (v2k  (verilog-in-paren-quick))
 	   (modi (verilog-modi-current))
 	   (moddecls (verilog-modi-get-decls modi))
@@ -11827,6 +11842,11 @@ Typing \\[verilog-auto] will make this into:
 		      (verilog-signals-not-in
 		       (verilog-decls-get-signals moddecls)
 		       (verilog-decls-get-ports moddecls)))))
+      (when regexp
+	(setq sig-list (verilog-signals-matching-regexp
+			sig-list regexp)))
+      (setq sig-list (verilog-signals-not-matching-regexp
+		      sig-list verilog-auto-output-ignore-regexp))
       (verilog-forward-or-insert-line)
       (when v2k (verilog-repair-open-comma))
       (when sig-list
@@ -12417,9 +12437,13 @@ driver/monitor using AUTOINST in the testbench."
 
 (defun verilog-auto-insert-lisp ()
   "Expand AUTOINSERTLISP statements, as part of \\[verilog-auto].
-The Lisp code provided is called, and the Lisp code calls
-`insert` to insert text into the current file beginning on the
-line after the AUTOINSERTLISP.
+The Lisp code provided is called before other AUTOS are expanded,
+and the Lisp code generally will call `insert` to insert text
+into the current file beginning on the line after the
+AUTOINSERTLISP.
+
+See also AUTOINSERTLAST and `verilog-auto-insert-last' which
+executes after (as opposed to before) other AUTOs.
 
 See also AUTO_LISP, which takes a Lisp expression and evaluates
 it during `verilog-auto-inst' but does not insert any text.
@@ -12475,6 +12499,20 @@ text:
       (forward-line -1)
       (setq verilog-scan-cache-tick nil) ;; Clear cache; inserted unknown text
       (verilog-delete-empty-auto-pair))))
+
+(defun verilog-auto-insert-last ()
+  "Expand AUTOINSERTLAST statements, as part of \\[verilog-auto].
+The Lisp code provided is called after all other AUTOS have been
+expanded, and the Lisp code generally will call `insert` to
+insert text into the current file beginning on the line after the
+AUTOINSERTLAST.
+
+Other than when called (after AUTOs are expanded), the functionality
+is otherwise identical to AUTOINSERTLISP and `verilog-auto-insert-lisp' which
+executes before (as opposed to after) other AUTOs.
+
+See `verilog-auto-insert-lisp' for examples."
+  (verilog-auto-insert-lisp))
 
 (defun verilog-auto-sense-sigs (moddecls presense-sigs)
   "Return list of signals for current AUTOSENSE block."
@@ -13202,6 +13240,7 @@ Using \\[describe-function], see also:
     `verilog-auto-inout-param'  for AUTOINOUTPARAM copying params from elsewhere
     `verilog-auto-input'        for AUTOINPUT making hierarchy inputs
     `verilog-auto-insert-lisp'  for AUTOINSERTLISP insert code from lisp function
+    `verilog-auto-insert-last'  for AUTOINSERTLAST insert code from lisp function
     `verilog-auto-inst'         for AUTOINST instantiation pins
     `verilog-auto-star'         for AUTOINST .* SystemVerilog pins
     `verilog-auto-inst-param'   for AUTOINSTPARAM instantiation params
@@ -13278,7 +13317,6 @@ Wilson Snyder (wsnyder@wsnyder.org)."
 		 (verilog-inject-arg))
 	       ;;
 	       ;; Do user inserts first, so their code can insert AUTOs
-	       ;; We may provide an AUTOINSERTLISPLAST if another cleanup pass is needed
 	       (verilog-auto-re-search-do "/\\*AUTOINSERTLISP(.*?)\\*/"
 					  'verilog-auto-insert-lisp)
 	       ;; Expand instances before need the signals the instances input/output
@@ -13312,11 +13350,13 @@ Wilson Snyder (wsnyder@wsnyder.org)."
 	       (verilog-auto-re-search-do "/\\*AUTOREG\\*/" 'verilog-auto-reg)
 	       (verilog-auto-re-search-do "/\\*AUTOREGINPUT\\*/" 'verilog-auto-reg-input)
 	       ;; outputevery needs AUTOOUTPUTs done first
-	       (verilog-auto-re-search-do "/\\*AUTOOUTPUTEVERY\\*/" 'verilog-auto-output-every)
+	       (verilog-auto-re-search-do "/\\*AUTOOUTPUTEVERY\\((.*?)\\)?\\*/" 'verilog-auto-output-every)
 	       ;; After we've created all new variables
 	       (verilog-auto-re-search-do "/\\*AUTOUNUSED\\*/" 'verilog-auto-unused)
 	       ;; Must be after all inputs outputs are generated
 	       (verilog-auto-re-search-do "/\\*AUTOARG\\*/" 'verilog-auto-arg)
+	       ;; User inserts
+	       (verilog-auto-re-search-do "/\\*AUTOINSERTLAST(.*?)\\*/" 'verilog-auto-insert-last)
 	       ;; Fix line numbers (comments only)
 	       (when verilog-auto-inst-template-numbers
 		 (verilog-auto-templated-rel))
@@ -13485,7 +13525,7 @@ See also `verilog-header' for an alternative format."
   > "`ovm_object_utils_begin(" name ")" \n
   > (- verilog-indent-level) " `ovm_object_utils_end" \n
   > _ \n
-  > "function new(name=\"" name "\");" \n
+  > "function new(string name=\"" name "\");" \n
   > "super.new(name);" \n
   > (- verilog-indent-level) "endfunction" \n
   > _ \n
@@ -13499,7 +13539,7 @@ See also `verilog-header' for an alternative format."
   > "`uvm_object_utils_begin(" name ")" \n
   > (- verilog-indent-level) "`uvm_object_utils_end" \n
   > _ \n
-  > "function new(name=\"" name "\");" \n
+  > "function new(string name=\"" name "\");" \n
   > "super.new(name);" \n
   > (- verilog-indent-level) "endfunction" \n
   > _ \n
@@ -13513,7 +13553,7 @@ See also `verilog-header' for an alternative format."
   > "`uvm_component_utils_begin(" name ")" \n
   > (- verilog-indent-level) "`uvm_component_utils_end" \n
   > _ \n
-  > "function new(name=\"\", uvm_component parent);" \n
+  > "function new(string name=\"\", uvm_component parent);" \n
   > "super.new(name, parent);" \n
   > (- verilog-indent-level) "endfunction" \n
   > _ \n

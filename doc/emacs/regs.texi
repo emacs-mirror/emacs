@@ -149,9 +149,9 @@ during the collection process, you can use the following setting.
 @kindex C-x r i
 @findex insert-register
   @kbd{C-x r i @var{r}} inserts in the buffer the text from register
-@var{r}.  Normally it leaves point before the text and sets the mark
-after, without activating it.  With a numeric argument, it instead
-puts point after the text and the mark before.
+@var{r}.  Normally it leaves point after the text and sets the mark
+before, without activating it.  With a numeric argument, it instead
+puts before after the text and the mark after.
 
 @node Rectangle Registers
 @section Saving Rectangles in Registers

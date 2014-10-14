@@ -153,7 +153,7 @@ DELAY is a string, giving the length of the time.  Possible values are:
       (when (gnus-group-entry group)
 	(gnus-activate-group group)
 	(add-hook 'message-send-hook
-		  (lambda () (message-remove-header gnus-delay-header)))
+		  (lambda () (message-remove-header gnus-delay-header)) t)
 	(setq articles (nndraft-articles))
 	(while (setq article (pop articles))
 	  (gnus-request-head article group)

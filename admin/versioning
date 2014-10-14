@@ -1,0 +1,49 @@
+GNU EMACS VERSIONING                                   -*- org -*-
+
+The version number scheme of Emacs, including how to determine when to
+bump various components of the version number, has evolved over the
+years.  This file defines the current method, explains why it was
+chosen, and lightly documents the previous schemes.  It was prompted
+by http://lists.gnu.org/archive/html/emacs-devel/2014-09/msg00872.html.
+
+Related info:
+- [[file:FOR-RELEASE][FOR-RELEASE]]
+- [[file:make-tarball.txt][make-tarball.txt]]
+
+* what: MAJOR.MINOR
+
+This has always been the case (see [[was]], below).  MINOR is 1 or more,
+usually, the exception being for pretest releases, where there is
+an additional trailing ".ALPHA" (e.g., 24.3.95 prior to 24.4).
+
+To determine any release's version, we follow this algorithm:
+
+- If MAJOR-CHANGES, increment MAJOR and set MINOR to 1.
+- Otherwise, increment MINOR.
+
+where MAJOR-CHANGES is defined roughly as the union of:
+
+- dropped support for IMPORTANT
+  - platforms (almost never happens)
+  - Emacs Lisp features
+  - non-programming features/packages
+- IMPORTANT additions and changes
+  - Emacs Lisp features
+  - non-programming features/packages
+
+and IMPORTANT is defined through discussion on the [[http://mail.gnu.org/archive/html/emacs-devel/][emacs-devel]]
+mailing list and/or private arm-twisting (although this latter
+method is somewhat discouraged :-D).
+
+* why
+
+People expect bumps in MINOR for "minor" changes.  This typically
+includes bugfixes, doc improvements, or fully-backward-compatible
+additions and changes, only.
+
+Anything else is actually IMPORTANT, to the user.  [Actually, who
+really knows what the user thinks?  I certainly don't. --ttn]
+
+* was
+
+TODO (be sure to include "ad-hoc" :-D)

@@ -1,4 +1,4 @@
-;;; ibuffer.el --- operate on buffers like dired
+;;; ibuffer.el --- operate on buffers like dired  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2000-2014 Free Software Foundation, Inc.
 
@@ -540,10 +540,6 @@ directory, like `default-directory'."
     (define-key map (kbd "/ X") 'ibuffer-delete-saved-filter-groups)
     (define-key map (kbd "/ \\") 'ibuffer-clear-filter-groups)
 
-    (define-key map (kbd "q") 'ibuffer-quit)
-    (define-key map (kbd "h") 'describe-mode)
-    (define-key map (kbd "?") 'describe-mode)
-
     (define-key map (kbd "% n") 'ibuffer-mark-by-name-regexp)
     (define-key map (kbd "% m") 'ibuffer-mark-by-mode-regexp)
     (define-key map (kbd "% f") 'ibuffer-mark-by-file-name-regexp)
@@ -878,12 +874,6 @@ directory, like `default-directory'."
     (define-key map [down-mouse-3] 'ibuffer-mouse-popup-menu)
     map))
 
-(defvar ibuffer-restore-window-config-on-quit nil
-  "If non-nil, restore previous window configuration upon exiting `ibuffer'.")
-
-(defvar ibuffer-prev-window-config nil
-  "Window configuration before starting Ibuffer.")
-
 (defvar ibuffer-did-modification nil)
 
 (defvar ibuffer-compiled-formats nil)
@@ -917,7 +907,7 @@ width and the longest string in LIST."
       (when (zerop columns)
 	(setq columns 1))
       (while list
-	(dotimes (i (1- columns))
+	(dotimes (_ (1- columns))
 	  (insert (concat (car list) (make-string (- max (length (car list)))
 						  ?\s)))
 	  (setq list (cdr list)))
@@ -1285,7 +1275,7 @@ a new window in the current frame, splitting vertically."
    :modifier-p t)
   (set-buffer-modified-p (not (buffer-modified-p))))
 
-(define-ibuffer-op ibuffer-do-toggle-read-only (&optional arg)
+(define-ibuffer-op ibuffer-do-toggle-read-only (&optional _arg);FIXME:arg unused!
   "Toggle read only status in marked buffers.
 With optional ARG, make read-only only if ARG is not negative."
   (:opstring "toggled read only status in"
@@ -1530,7 +1520,7 @@ If point is on a group name, this function operates on that group."
 	;; We use these variables to keep track of which variables
 	;; inside the generated function we need to bind, since
 	;; binding variables in Emacs takes time.
-	str-used tmp1-used tmp2-used global-strlen-used)
+	(vars-used ()))
     (dolist (form format)
       (push
        ;; Generate a form based on a particular format entry, like
@@ -1556,8 +1546,8 @@ If point is on a group name, this function operates on that group."
 	       ;; This is a complex case; they want it limited to a
 	       ;; minimum size.
 	       (setq min-used t)
-	       (setq str-used t strlen-used t global-strlen-used t
-		     tmp1-used t tmp2-used t)
+               (setq strlen-used t)
+	       (setq vars-used '(str strlen tmp1 tmp2))
 	       ;; Generate code to limit the string to a minimum size.
 	       (setq minform `(progn
 				(setq str
@@ -1569,7 +1559,8 @@ If point is on a group name, this function operates on that group."
 					    strlen)
 					align)))))
 	     (when (or (not (integerp max)) (> max 0))
-	       (setq str-used t max-used t)
+	       (setq max-used t)
+               (cl-pushnew 'str vars-used)
 	       ;; Generate code to limit the string to a maximum size.
 	       (setq maxform `(progn
 				(setq str
@@ -1597,8 +1588,9 @@ If point is on a group name, this function operates on that group."
 		   ;; don't even understand it, and I wrote it five
 		   ;; minutes ago.
 		   (insertgenfn
-                    (ibuffer-aif (get sym 'ibuffer-column-summarizer)
+                    (if (get sym 'ibuffer-column-summarizer)
                         ;; I really, really wish Emacs Lisp had closures.
+                        ;; FIXME: Elisp does have them now.
                         (lambda (arg sym)
                           `(insert
                             (let ((ret ,arg))
@@ -1606,7 +1598,7 @@ If point is on a group name, this function operates on that group."
                                    (cons ret (get ',sym
                                                   'ibuffer-column-summary)))
                               ret)))
-                      (lambda (arg sym)
+                      (lambda (arg _sym)
                         `(insert ,arg))))
 		   (mincompform `(< strlen ,(if (integerp min)
 						min
@@ -1634,10 +1626,9 @@ If point is on a group name, this function operates on that group."
 			  `(when ,maxcompform
 			     ,maxform)))
 		      outforms)
-		     (push (append
-			    `(setq str ,callform)
-			    (when strlen-used
-			      `(strlen (length str))))
+		     (push `(setq str ,callform
+                                  ,@(when strlen-used
+                                      `(strlen (length str))))
 			   outforms)
 		     (setq outforms
 			   (append outforms
@@ -1650,25 +1641,17 @@ If point is on a group name, this function operates on that group."
 	       `(let ,letbindings
 		  ,@outforms)))))
        result))
-    (setq result
-	  ;; We don't want to unconditionally load the byte-compiler.
-	  (funcall (if (or ibuffer-always-compile-formats
-			   (featurep 'bytecomp))
-		       #'byte-compile
-		     #'identity)
-		   ;; Here, we actually create a lambda form which
-		   ;; inserts all the generated forms for each entry
-		   ;; in the format string.
-		   (nconc (list 'lambda '(buffer mark))
-			  `((let ,(append (when str-used
-					    '(str))
-					  (when global-strlen-used
-					    '(strlen))
-					  (when tmp1-used
-					    '(tmp1))
-					  (when tmp2-used
-					    '(tmp2)))
-			      ,@(nreverse result))))))))
+    ;; We don't want to unconditionally load the byte-compiler.
+    (funcall (if (or ibuffer-always-compile-formats
+                     (featurep 'bytecomp))
+                 #'byte-compile
+               #'identity)
+             ;; Here, we actually create a lambda form which
+             ;; inserts all the generated forms for each entry
+             ;; in the format string.
+             `(lambda (buffer mark)
+                (let ,vars-used
+                  ,@(nreverse result))))))
 
 (defun ibuffer-recompile-formats ()
   "Recompile `ibuffer-formats'."
@@ -1686,8 +1669,8 @@ If point is on a group name, this function operates on that group."
 
 (defun ibuffer-clear-summary-columns (format)
   (dolist (form format)
-    (ibuffer-awhen (and (consp form)
-			(get (car form) 'ibuffer-column-summarizer))
+    (when (and (consp form)
+               (get (car form) 'ibuffer-column-summarizer))
       (put (car form) 'ibuffer-column-summary nil))))
 
 (defun ibuffer-check-formats ()
@@ -2298,18 +2281,6 @@ If optional arg SILENT is non-nil, do not display progress messages."
       (goto-char (point-min))
       (forward-line orig))))
 
-(defun ibuffer-quit ()
-  "Quit this `ibuffer' session.
-Try to restore the previous window configuration if
-`ibuffer-restore-window-config-on-quit' is non-nil."
-  (interactive)
-  (if ibuffer-restore-window-config-on-quit
-      (progn
-	(bury-buffer)
-	(unless (= (count-windows) 1)
-	  (set-window-configuration ibuffer-prev-window-config)))
-    (bury-buffer)))
-
 ;;;###autoload
 (defun ibuffer-list-buffers (&optional files-only)
   "Display a list of buffers, in another window.
@@ -2350,7 +2321,6 @@ FORMATS is the value to use for `ibuffer-formats'.
   (interactive "P")
   (when ibuffer-use-other-window
     (setq other-window-p t))
-  (setq ibuffer-prev-window-config (current-window-configuration))
   (let ((buf (get-buffer-create (or name "*Ibuffer*"))))
     (if other-window-p
 	(funcall (if noselect (lambda (buf) (display-buffer buf t)) #'pop-to-buffer) buf)
@@ -2362,8 +2332,7 @@ FORMATS is the value to use for `ibuffer-formats'.
 	(select-window (get-buffer-window buf 0))
 	(or (derived-mode-p 'ibuffer-mode)
 	    (ibuffer-mode))
-	(setq ibuffer-restore-window-config-on-quit other-window-p)
-	(when shrink
+ 	(when shrink
 	  (setq ibuffer-shrink-to-minimum-size shrink))
 	(when qualifiers
 	  (require 'ibuf-ext)
@@ -2501,7 +2470,6 @@ Other commands:
   '\\[ibuffer-switch-format]' - Change the current display format.
   '\\[forward-line]' - Move point to the next line.
   '\\[previous-line]' - Move point to the previous line.
-  '\\[ibuffer-quit]' - Bury the Ibuffer buffer.
   '\\[describe-mode]' - This help.
   '\\[ibuffer-diff-with-file]' - View the differences between this buffer
           and its associated file.
@@ -2616,7 +2584,6 @@ will be inserted before the group at point."
   (set (make-local-variable 'ibuffer-cached-eliding-string) nil)
   (set (make-local-variable 'ibuffer-cached-elide-long-columns) nil)
   (set (make-local-variable 'ibuffer-current-format) nil)
-  (set (make-local-variable 'ibuffer-restore-window-config-on-quit) nil)
   (set (make-local-variable 'ibuffer-did-modification) nil)
   (set (make-local-variable 'ibuffer-tmp-hide-regexps) nil)
   (set (make-local-variable 'ibuffer-tmp-show-regexps) nil)
@@ -2630,7 +2597,7 @@ will be inserted before the group at point."
 
 ;;; Start of automatically extracted autoloads.
 
-;;;### (autoloads nil "ibuf-ext" "ibuf-ext.el" "e8ce929c4c76419f8d355b444f722c3a")
+;;;### (autoloads nil "ibuf-ext" "ibuf-ext.el" "0d2393d1b47136bc7b1ac41593527f02")
 ;;; Generated autoloads from ibuf-ext.el
 
 (autoload 'ibuffer-auto-mode "ibuf-ext" "\

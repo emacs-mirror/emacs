@@ -1,3 +1,126 @@
+2014-10-13  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (dist): Update for new output variables.
+
+2014-10-12  Glenn Morris  <rgm@gnu.org>
+
+	* elisp.texi (DATE): Bump to October 2014.
+
+2014-10-09  Glenn Morris  <rgm@gnu.org>
+
+	* frames.texi (Multiple Terminals): Copyedits.
+
+2014-10-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* frames.texi (Multiple Terminals): Improve the description of X
+	display names.  Add index entries.
+	(Basic Parameters): Add a cross-reference to where X display names
+	are described.
+	(Position Parameters): Mention that positional parameters of the
+	form (+ POS) can be negative if they are on a non-primary monitor
+	of a multi-monitor display.  (Bug#18636)
+	(Creating Frames): Mention that on multi-monitor displays the
+	frame might be positioned differently than specified by the frame
+	parameters alist.
+
+2014-10-08  Leo Liu  <sdl.web@gmail.com>
+
+	* streams.texi (Output Functions): Document new argument ENSURE to
+	terpri.  (Bug#18652)
+
+2014-10-04  Martin Rudalics  <rudalics@gmx.at>
+
+	* display.texi (Scroll Bars): Add description of horizontal scroll
+	bars and associated functions.
+	* frames.texi (Layout Parameters): Add horizontal scroll bar
+	entries.  Remove paragraph on "combined fringe widths".
+	* windows.texi (Window Sizes): Describe affects of horizontal
+	scroll bars on window layout and sizes.  Fix description of
+	window-full-height-p.
+	(Resizing Windows): Mention horizontal scroll bar.
+
+2014-10-04  Glenn Morris  <rgm@gnu.org>
+
+	* commands.texi (Generic Commands): Copyedits.
+
+	* display.texi (Scroll Bars):
+	* modes.texi (Header Lines): Copyedits.
+
+	* buffers.texi (Buffer List):
+	* display.texi (Image Descriptors, Defining Images):
+	* functions.texi (Core Advising Primitives): Small fixes re @var usage.
+
+	* windows.texi (Window Sizes, Resizing Windows): Copyedits.
+
+	* frames.texi (Multiple Terminals): Copyedits re multiple monitors.
+
+2014-10-03  Martin Rudalics  <rudalics@gmx.at>
+
+	* frames.texi (Size Parameters, Size and Position): Mention that
+	with some window managers you have to set `frame-resize-pixelwise'
+	in order make a frame truly fullscreen or maximized.
+
+2014-10-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Improve doc for use of 'int', and discuss 'ssize_t'.
+	* internals.texi (C Integer Types): Mention 'int' for other
+	randomish values that lie in 'int' range.  Mention 'ssize_t'.  See:
+	http://lists.gnu.org/archive/html/emacs-devel/2014-10/msg00019.html
+
+	Use AUTO_CONS instead of SCOPED_CONS, etc.
+	* internals.texi (Stack-allocated Objects):
+	Adjust to match the revised, less error-prone macros.
+
+2014-09-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* internals.texi (Stack-allocated Objects): Further improvements.
+	Give an example of misuse.
+
+2014-09-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* internals.texi (Stack-allocated Objects): Minor improvements of
+	the wording and the indexing.
+
+2014-09-30  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* internals.texi (Stack-allocated Objects): Describe this feature.
+
+2014-09-15  Daniel Colascione  <dancol@dancol.org>
+
+	* text.texi (Registers): Make `insert-register' documentation
+	reflect interface change.
+
+2014-09-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* functions.texi (Core Advising Primitives): Add a note about the
+	confusing treatment of `interactive' for :filter-args (bug#18399).
+
+2014-09-07  Michael Albinus  <michael.albinus@gmx.de>
+
+	* strings.texi (Text Comparison): Describe `string-collate-equalp'
+	and `string-collate-lessp'.
+
+2014-09-06  Leo Liu  <sdl.web@gmail.com>
+
+	* control.texi (Pattern matching case statement): Document vector
+	qpattern.  (Bug#18327)
+
+2014-08-29  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* lists.texi (Functions that Rearrange Lists): Remove
+	description of sort ...
+	* sequences.texi (Sequence Functions): ... and generalize
+	it for sequences.  Add an example.
+
+2014-08-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* display.texi (Bidirectional Display): Update the Emacs's class
+	of bidirectional conformance.
+
+2014-08-27  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* eval.texi (Eval): Mention possible recovery from stack overflow.
+
 2014-10-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* display.texi (Bidirectional Display): Update the version of the

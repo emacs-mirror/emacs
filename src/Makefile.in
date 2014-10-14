@@ -250,7 +250,7 @@ MSDOS_OBJ =
 MSDOS_X_OBJ =
 
 NS_OBJ=@NS_OBJ@
-## nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o nsfont.o macfont.o if HAVE_NS.
+## nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o ns_fontfile if HAVE_NS.
 NS_OBJC_OBJ=@NS_OBJC_OBJ@
 ## Only set if NS_IMPL_GNUSTEP.
 GNU_OBJC_CFLAGS=@GNU_OBJC_CFLAGS@
@@ -297,12 +297,32 @@ GETLOADAVG_LIBS = @GETLOADAVG_LIBS@
 
 RUN_TEMACS = ./temacs
 
-## Static heap size for temacs on MinGW.
-EMACS_HEAPSIZE = @EMACS_HEAPSIZE@
-
 UNEXEC_OBJ = @UNEXEC_OBJ@
 
 CANNOT_DUMP=@CANNOT_DUMP@
+
+# 'make' verbosity.
+AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
+
+AM_V_CC = $(am__v_CC_@AM_V@)
+am__v_CC_ = $(am__v_CC_@AM_DEFAULT_V@)
+am__v_CC_0 = @echo "  CC      " $@;
+am__v_CC_1 =
+
+AM_V_CCLD = $(am__v_CCLD_@AM_V@)
+am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
+am__v_CCLD_0 = @echo "  CCLD    " $@;
+am__v_CCLD_1 =
+
+AM_V_GEN = $(am__v_GEN_@AM_V@)
+am__v_GEN_ = $(am__v_GEN_@AM_DEFAULT_V@)
+am__v_GEN_0 = @echo "  GEN     " $@;
+am__v_GEN_1 =
+
+AM_V_at = $(am__v_at_@AM_V@)
+am__v_at_ = $(am__v_at_@AM_DEFAULT_V@)
+am__v_at_0 = @
+am__v_at_1 =
 
 DEPDIR=deps
 ## -MMD -MF $(DEPDIR)/$*.d if AUTO_DEPEND; else empty.
@@ -334,10 +354,10 @@ ALL_OBJC_CFLAGS=$(ALL_CFLAGS) $(GNU_OBJC_CFLAGS)
 .SUFFIXES: .m
 .c.o:
 	@$(MKDEPDIR)
-	$(CC) -c $(CPPFLAGS) $(ALL_CFLAGS) $(PROFILING_CFLAGS) $<
+	$(AM_V_CC)$(CC) -c $(CPPFLAGS) $(ALL_CFLAGS) $(PROFILING_CFLAGS) $<
 .m.o:
 	@$(MKDEPDIR)
-	$(CC) -c $(CPPFLAGS) $(ALL_OBJC_CFLAGS) $(PROFILING_CFLAGS) $<
+	$(AM_V_CC)$(CC) -c $(CPPFLAGS) $(ALL_OBJC_CFLAGS) $(PROFILING_CFLAGS) $<
 
 ## lastfile must follow all files whose initialized data areas should
 ## be dumped as pure by dump-emacs.
@@ -417,8 +437,12 @@ all: emacs$(EXEEXT) $(OTHER_FILES)
 $(leimdir)/leim-list.el: bootstrap-emacs$(EXEEXT)
 	$(MAKE) -C ../leim leim-list.el EMACS="$(bootstrap_exe)"
 
+## FORCE it so that admin/unidata can decide whether these files
+## are up-to-date.  Although since charprop depends on bootstrap-emacs,
+## and emacs (which recreates bootstrap-emacs) depends on charprop,
+## in practice this rule was always run anyway.
 $(srcdir)/macuvs.h $(lispsource)/international/charprop.el: \
-  bootstrap-emacs$(EXEEXT)
+  bootstrap-emacs$(EXEEXT) FORCE
 	$(MAKE) -C ../admin/unidata all EMACS="../$(bootstrap_exe)"
 
 ## The dumped Emacs is as functional and more efficient than
@@ -435,7 +459,9 @@ emacs$(EXEEXT): temacs$(EXEEXT) \
 	else \
 	  LC_ALL=C $(RUN_TEMACS) -batch -l loadup dump || exit 1; \
 	  test "X$(PAXCTL)" = X || $(PAXCTL) -zex emacs$(EXEEXT); \
-	  rm -f bootstrap-emacs$(EXEEXT); \
+	  while test -f bootstrap-emacs$(EXEEXT); do \
+	    rm -f bootstrap-emacs$(EXEEXT); \
+	  done; \
 	  ln emacs$(EXEEXT) bootstrap-emacs$(EXEEXT); \
 	fi
 
@@ -454,29 +480,32 @@ emacs$(EXEEXT): temacs$(EXEEXT) \
 ## in the contents of the DOC file.
 ##
 $(etc)/DOC: $(libsrc)/make-docfile$(EXEEXT) $(obj) $(lisp)
-	$(MKDIR_P) $(etc)
-	-rm -f $(etc)/DOC
-	$(libsrc)/make-docfile -d $(srcdir) $(SOME_MACHINE_OBJECTS) $(obj) > $(etc)/DOC
-	$(libsrc)/make-docfile -a $(etc)/DOC -d $(lispsource) `sed -n -e 's| \\\\||' -e 's|^[ 	]*$$(lispsource)/||p' $(srcdir)/lisp.mk`
+	$(AM_V_GEN)$(MKDIR_P) $(etc)
+	-$(AM_V_at)rm -f $(etc)/DOC
+	$(AM_V_at)$(libsrc)/make-docfile -d $(srcdir) \
+	  $(SOME_MACHINE_OBJECTS) $(obj) > $(etc)/DOC
+	$(AM_V_at)$(libsrc)/make-docfile -a $(etc)/DOC -d $(lispsource) \
+	  `sed -n -e 's| \\\\||' -e 's|^[ 	]*$$(lispsource)/||p' \
+	     $(srcdir)/lisp.mk`
 
 $(libsrc)/make-docfile$(EXEEXT):
 	$(MAKE) -C $(libsrc) make-docfile$(EXEEXT)
 
 buildobj.h: Makefile
-	for i in $(ALLOBJS); do \
+	$(AM_V_GEN)for i in $(ALLOBJS); do \
 	  echo "$$i" | sed 's,.*/,,; s/\.obj$$/\.o/; s/^/"/; s/$$/",/' \
 	    || exit; \
 	done >$@.tmp
-	mv $@.tmp $@
+	$(AM_V_at)mv $@.tmp $@
 
 globals.h: gl-stamp; @true
 
 GLOBAL_SOURCES = $(base_obj:.o=.c) $(NS_OBJC_OBJ:.o=.m)
 
 gl-stamp: $(libsrc)/make-docfile$(EXEEXT) $(GLOBAL_SOURCES)
-	$(libsrc)/make-docfile -d $(srcdir) -g $(obj) > gl.tmp
-	$(top_srcdir)/build-aux/move-if-change gl.tmp globals.h
-	echo timestamp > $@
+	$(AM_V_GEN)$(libsrc)/make-docfile -d $(srcdir) -g $(obj) > gl.tmp
+	$(AM_V_at)$(top_srcdir)/build-aux/move-if-change gl.tmp globals.h
+	$(AM_V_at)echo timestamp > $@
 
 $(ALLOBJS): globals.h
 
@@ -489,7 +518,7 @@ $(lib)/libgnu.a: $(config_h)
 ## to start if Vinstallation_directory has the wrong value.
 temacs$(EXEEXT): $(LIBXMENU) $(ALLOBJS) \
 	         $(lib)/libgnu.a $(EMACSRES)
-	$(CC) $(ALL_CFLAGS) $(TEMACS_LDFLAGS) $(LDFLAGS) \
+	$(AM_V_CCLD)$(CC) $(ALL_CFLAGS) $(TEMACS_LDFLAGS) $(LDFLAGS) \
 	  -o temacs $(ALLOBJS) $(lib)/libgnu.a $(W32_RES_LINK) $(LIBES)
 	$(MKDIR_P) $(etc)
 	test "$(CANNOT_DUMP)" = "yes" || \

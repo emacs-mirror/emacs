@@ -34,12 +34,6 @@ extern void report_sheap_usage (int);
 
 extern int bss_sbrk_did_unexec;
 
-extern int __malloc_initialized;
-
-/* emacs symbols that indicate where bss and data end for emacs internals */
-extern char my_endbss[];
-extern char my_edata[];
-
 /*
 ** header for Windows executable files
 */
@@ -233,12 +227,9 @@ fixup_executable (int fd)
 	    lseek (fd, (long) (exe_header->section_header[i].s_scnptr),
 		   SEEK_SET);
 	  assert (ret != -1);
-	  /* force the dumped emacs to reinitialize malloc */
-	  __malloc_initialized = 0;
 	  ret =
 	    write (fd, (char *) start_address,
 		   my_endbss - (char *) start_address);
-	  __malloc_initialized = 1;
 	  assert (ret == (my_endbss - (char *) start_address));
 	  if (debug_unexcw)
 	    printf ("         .bss, mem start %#lx mem length %d\n",

@@ -279,6 +279,25 @@ so that they are registered at compile-time as well as run-time."
   "Return t if INTEGER is even."
   (eq (logand integer 1) 0))
 
+(defconst cl-digit-char-table
+  (let* ((digits (make-vector 256 nil))
+         (populate (lambda (start end base)
+                     (mapc (lambda (i)
+                             (aset digits i (+ base (- i start))))
+                           (number-sequence start end)))))
+    (funcall populate ?0 ?9 0)
+    (funcall populate ?A ?Z 10)
+    (funcall populate ?a ?z 10)
+    digits))
+
+(defun cl-digit-char-p (char &optional radix)
+  "Test if CHAR is a digit in the specified RADIX (default 10).
+If true return the decimal value of digit CHAR in RADIX."
+  (or (<= 2 (or radix 10) 36)
+      (signal 'args-out-of-range (list 'radix radix '(2 36))))
+  (let ((n (aref cl-digit-char-table char)))
+    (and n (< n (or radix 10)) n)))
+
 (defvar cl--random-state
   (vector 'cl--random-state-tag -1 30 (cl--random-time)))
 
@@ -682,7 +701,6 @@ If ALIST is non-nil, the new pairs are prepended to it."
 (gv-define-setter window-width (store)
   `(progn (enlarge-window (- ,store (window-width)) t) ,store))
 (gv-define-simple-setter x-get-secondary-selection x-own-secondary-selection t)
-(gv-define-simple-setter x-get-selection x-own-selection t)
 
 ;; More complex setf-methods.
 

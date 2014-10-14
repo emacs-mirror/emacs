@@ -1,6 +1,6 @@
 2013-03-11  Glenn Morris  <rgm@gnu.org>
 
-        * Version 24.3 released.
+	* Version 24.3 released.
 
 2013-03-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -5052,7 +5052,7 @@
 	(w32-handle-dropped-file): Convert incoming dropped files from
 	Windows paths to Cygwin ones before passing them on to the rest of
 	Emacs.
-	(w32-drag-n-drop): New paramter new-frame.  Simplify logic.
+	(w32-drag-n-drop): New parameter new-frame.  Simplify logic.
 	(w32-initialize-window-system): Assert we're not initialized twice.
 
 	* term/x-win.el: Require cl-lib; add ourselves to display-format-alist.
@@ -7534,7 +7534,7 @@
 	In doc-strings state whether the argument window has to denote a
 	live, valid or any window.
 
-2012-08-16  Phil Sainty  <psainty@orcon.net.nz>  (tiny change)
+2012-08-16  Phil Sainty  <psainty@orcon.net.nz>
 
 	* progmodes/subword.el (subword-forward-function)
 	(subword-backward-function, subword-forward-regexp)
@@ -17100,7 +17100,7 @@
 	* vc/ediff-init.el (ediff-toggle-read-only-function):
 	Use toggle-read-only.
 
-2011-10-22  Alan Mackenzie  <bug-cc-mode@gnu.org>
+2011-10-22  Alan Mackenzie  <acm@muc.de>
 
 	Fix bug #9560, sporadic wrong indentation; improve instrumentation
 	of c-parse-state.

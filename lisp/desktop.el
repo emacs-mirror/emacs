@@ -1375,7 +1375,9 @@ after that many seconds of idle time."
 	;; Restore buffer list order with new buffer at end. Don't change
 	;; the order for old desktop files (old desktop module behavior).
 	(unless (< desktop-file-version 206)
-	  (mapc 'bury-buffer buffer-list)
+	  (dolist (buf buffer-list)
+            (and (buffer-live-p buf)
+                 (bury-buffer buf)))
 	  (when result (bury-buffer result)))
 	(when result
 	  (unless (or desktop-first-buffer (< desktop-file-version 206))

@@ -278,14 +278,6 @@ is non-nil."
     ["Show diary" diary-show-all-entries]
     ["Exit calendar" calendar-exit]))
 
-;; Undocumented and probably useless.
-(defvar cal-menu-load-hook nil
-  "Hook run on loading of the `cal-menu' package.")
-(make-obsolete-variable 'cal-menu-load-hook
-                        "it will be removed in future." "23.1")
-
-(run-hooks 'cal-menu-load-hook)
-
 (provide 'cal-menu)
 
 ;; Local Variables:

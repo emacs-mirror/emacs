@@ -469,6 +469,10 @@ hides window manager decorations, giving slightly more screen space to
 Emacs itself.)
 @end table
 
+  Note that with some window managers you may have to customize the
+variable @code{frame-resize-pixelwise} to a non-@code{nil} value in
+order to make a frame truly ``maximized'' or ``fullscreen''.
+
   The @kbd{C-x 5 0} (@code{delete-frame}) command deletes the selected
 frame.  However, it will refuse to delete the last frame in an Emacs
 session, to prevent you from losing the ability to interact with the
@@ -900,10 +904,11 @@ those are drawn by the toolkit and not directly by Emacs.
 @section Scroll Bars
 @cindex Scroll Bar mode
 @cindex mode, Scroll Bar
+@cindex Vertical Scroll Bar
 
-  On graphical displays, there is a @dfn{scroll bar} on the side of
-each Emacs window.  Clicking @kbd{Mouse-1} on the scroll bar's up and
-down buttons scrolls the window by one line at a time.  Clicking
+  On graphical displays, there is a @dfn{vertical scroll bar} on the
+side of each Emacs window.  Clicking @kbd{Mouse-1} on the scroll bar's
+up and down buttons scrolls the window by one line at a time.  Clicking
 @kbd{Mouse-1} above or below the scroll bar's inner box scrolls the
 window by nearly the entire height of the window, like @kbd{M-v} and
 @kbd{C-v} respectively (@pxref{Moving Point}).  Dragging the inner box
@@ -917,23 +922,23 @@ in the scroll bar lets you drag the inner box up and down.
 
 @findex scroll-bar-mode
 @findex toggle-scroll-bar
-  To toggle the use of scroll bars, type @kbd{M-x scroll-bar-mode}.
-This command applies to all frames, including frames yet to be
-created.  To toggle scroll bars for just the selected frame, use the
-command @kbd{M-x toggle-scroll-bar}.
+  To toggle the use of vertical scroll bars, type @kbd{M-x
+scroll-bar-mode}.  This command applies to all frames, including frames
+yet to be created.  To toggle vertical scroll bars for just the selected
+frame, use the command @kbd{M-x toggle-scroll-bar}.
 
 @vindex scroll-bar-mode
-  To control the use of scroll bars at startup, customize the variable
-@code{scroll-bar-mode}.  Its value should be either @code{right} (put
-scroll bars on the right side of windows), @code{left} (put them on
-the left), or @code{nil} (disable scroll bars).  By default, Emacs
-puts scroll bars on the right if it was compiled with GTK+ support on
-the X Window System, and on MS-Windows or Mac OS; Emacs puts scroll
-bars on the left if compiled on the X Window System without GTK+
-support (following the old convention for X applications).
+  To control the use of vertical scroll bars at startup, customize the
+variable @code{scroll-bar-mode}.  Its value should be either
+@code{right} (put scroll bars on the right side of windows), @code{left}
+(put them on the left), or @code{nil} (disable vertical scroll bars).
+By default, Emacs puts scroll bars on the right if it was compiled with
+GTK+ support on the X Window System, and on MS-Windows or Mac OS; Emacs
+puts scroll bars on the left if compiled on the X Window System without
+GTK+ support (following the old convention for X applications).
 
 @vindex scroll-bar-width
-@cindex width of the scroll bar
+@cindex width of the vertical scroll bar
   You can also use the X resource @samp{verticalScrollBars} to enable
 or disable the scroll bars (@pxref{Resources}).  To control the scroll
 bar width, change the @code{scroll-bar-width} frame parameter
@@ -949,6 +954,39 @@ non-@code{nil}, the scroll bar can be dragged downwards even if the
 end of the buffer is shown; if @code{nil}, the thumb will be at the
 bottom when the end of the buffer is shown.  You can not over-scroll
 when the entire buffer is visible.
+
+@cindex Horizontal Scroll Bar
+@cindex Horizontal Scroll Bar mode
+  On graphical displays with toolkit support, Emacs may also supply a
+@dfn{horizontal scroll bar} on the bottom of each window.  Clicking
+@kbd{Mouse-1} on the that scroll bar's left and right buttons scrolls
+the window horizontally by one column at a time.  Clicking @kbd{Mouse-1}
+on the left or right of the scroll bar's inner box scrolls the window by
+four columns.  Dragging the inner box scrolls the window continuously.
+
+  Note that such horizontal scrolling can make the window's position of
+point disappear on the left or the right.  Typing a character to insert
+text or moving point with a keyboard command will usually bring it back
+into view.
+
+@findex horizontal-scroll-bar-mode
+  To toggle the use of horizontal scroll bars, type @kbd{M-x
+horizontal-scroll-bar-mode}.  This command applies to all frames,
+including frames yet to be created.  To toggle horizontal scroll bars
+for just the selected frame, use the command @kbd{M-x
+toggle-horizontal-scroll-bar}.
+
+@vindex horizontal-scroll-bar-mode
+  To control the use of horizontal scroll bars at startup, customize the
+variable @code{horizontal-scroll-bar-mode}.
+
+@vindex scroll-bar-height
+@cindex height of the horizontal scroll bar
+  You can also use the X resource @samp{horizontalScrollBars} to enable
+or disable horizontal scroll bars (@pxref{Resources}).  To control the
+scroll bar height, change the @code{scroll-bar-height} frame parameter
+(@pxref{Frame Parameters,,, elisp, The Emacs Lisp Reference Manual}).
+
 
 @node Drag and Drop
 @section Drag and Drop

@@ -223,6 +223,25 @@
     (should (= (cl-the integer (cl-incf side-effect)) 1))
     (should (= side-effect 1))))
 
+(ert-deftest cl-digit-char-p ()
+  (should (cl-digit-char-p ?3))
+  (should (cl-digit-char-p ?a 11))
+  (should-not (cl-digit-char-p ?a))
+  (should (cl-digit-char-p ?w 36))
+  (should-error (cl-digit-char-p ?a 37))
+  (should-error (cl-digit-char-p ?a 1)))
+
+(ert-deftest cl-parse-integer ()
+  (should-error (cl-parse-integer "abc"))
+  (should (null (cl-parse-integer "abc" :junk-allowed t)))
+  (should (null (cl-parse-integer "" :junk-allowed t)))
+  (should (= 342391 (cl-parse-integer "0123456789" :radix 8 :junk-allowed t)))
+  (should-error (cl-parse-integer "0123456789" :radix 8))
+  (should (= -239 (cl-parse-integer "-efz" :radix 16 :junk-allowed t)))
+  (should-error (cl-parse-integer "efz" :radix 16))
+  (should (= 239 (cl-parse-integer "zzef" :radix 16 :start 2)))
+  (should (= -123 (cl-parse-integer "	-123  "))))
+
 (ert-deftest cl-loop-destructuring-with ()
   (should (equal (cl-loop with (a b c) = '(1 2 3) return (+ a b c)) 6)))
 

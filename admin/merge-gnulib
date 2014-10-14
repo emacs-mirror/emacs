@@ -37,9 +37,9 @@ GNULIB_MODULES='
   pipe2 pselect pthread_sigmask putenv qacl readlink readlinkat
   sig2str socklen stat-time stdalign stdio
   strftime strtoimax strtoumax symlink sys_stat
-  sys_time time timer-time timespec-add timespec-sub
+  sys_time time time_r timer-time timespec-add timespec-sub
   unsetenv update-copyright utimens
-  warnings
+  vla warnings
 '
 
 GNULIB_TOOL_FLAGS='

@@ -139,7 +139,7 @@
 (defcustom hide-ifdef-exclude-define-regexp nil
   "Ignore #define names if those names match this exclusion pattern."
   :type 'string
-  :version "24.5")
+  :version "25.1")
 
 (defcustom hide-ifdef-expand-reinclusion-protection t
   "Non-nil means don't hide an entire header file enclosed by #ifndef...#endif.
@@ -161,7 +161,7 @@ be hidden.
 This behavior is generally undesirable.  If this option is non-nil, the outermost
 #if is always visible."
   :type 'boolean
-  :version "24.5")
+  :version "25.1")
 
 (defcustom hide-ifdef-header-regexp
   "\\.h\\(h\\|xx\\|pp\\)?\\'"
@@ -169,7 +169,7 @@ This behavior is generally undesirable.  If this option is non-nil, the outermos
 Effective only if `hide-ifdef-expand-reinclusion-protection' is t."
   :type 'string
   :group 'hide-ifdef
-  :version "24.5")
+  :version "25.1")
 
 (defvar hide-ifdef-mode-submap
   ;; Set up the submap that goes after the prefix key.
@@ -653,7 +653,7 @@ that form should be displayed.")
            (stringp id))))
 
 (defun hif-define-operator (tokens)
-  "`Upgrade' hif-define xxx to '(hif-define xxx)' so it won't be subsitituted."
+  "`Upgrade' hif-define xxx to '(hif-define xxx)' so it won't be substituted."
   (let ((result nil)
         (tok nil))
     (while (setq tok (pop tokens))
@@ -975,7 +975,7 @@ factor : '!' factor | '~' factor | '(' expr ')' | 'defined(' id ')' |
 
 (defun hif-define-macro (_parmlist _token-body)
   "A marker for defined macro with arguments.
-This macro cannot be evaluated alone without parameters inputed."
+This macro cannot be evaluated alone without parameters input."
   ;;TODO: input arguments at run time, use minibuffer to query all arguments
   (error
    "Argumented macro cannot be evaluated without passing any parameter"))
@@ -1144,14 +1144,14 @@ preprocessing token"
             actual-count (length actual-parms))
 
       (if (> formal-count actual-count)
-          (error "Too few parmameter for macro %S" macro-name)
+          (error "Too few parameters for macro %S" macro-name)
         (if (< formal-count actual-count)
             (or etc
                 (error "Too many parameters for macro %S" macro-name))))
 
       ;; Perform token replacement on the MACRO-BODY with the parameters
       (while (setq formal (pop formal-parms))
-        ;; Prevent repetitive substitutation, thus cannot use `subst'
+        ;; Prevent repetitive substitution, thus cannot use `subst'
         ;; for example:
         ;; #define mac(a,b) (a+b)
         ;; #define testmac mac(b,y)
@@ -1734,7 +1734,7 @@ first arg will be `hif-etc'."
                              (or (setcdr SA expr) t)
                            ;; Lazy evaluation, eval only if hif-lookup find it.
                            ;; Define it anyway, even if nil it's still in list
-                           ;; and therefore considerred defined
+                           ;; and therefore considered defined.
                            (push (cons (intern name) expr) hide-ifdef-env)))))
             ;; #undef
             (and name
@@ -1912,7 +1912,7 @@ Return as (TOP . BOTTOM) the extent of ifdef block."
 
 (defun hide-ifdef-block (&optional arg start end)
   "Hide the ifdef block (true or false part) enclosing or before the cursor.
-With optional prefix agument ARG, also hide the #ifdefs themselves."
+With optional prefix argument ARG, also hide the #ifdefs themselves."
   (interactive "P\nr")
   (let ((hide-ifdef-lines arg))
     (if mark-active

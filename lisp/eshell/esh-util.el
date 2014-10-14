@@ -539,7 +539,7 @@ Unless optional argument INPLACE is non-nil, return a new string."
 
 (defmacro eshell-with-file-modes (modes &rest forms)
   "Evaluate, with file-modes set to MODES, the given FORMS."
-  (declare (obsolete with-file-modes "24.5"))
+  (declare (obsolete with-file-modes "25.1"))
   `(with-file-modes ,modes ,@forms))
 
 (defmacro eshell-with-private-file-modes (&rest forms)

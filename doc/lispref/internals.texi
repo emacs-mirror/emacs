@@ -14,6 +14,7 @@ internal aspects of GNU Emacs that may be of interest to C programmers.
 * Building Emacs::      How the dumped Emacs is made.
 * Pure Storage::        Kludge to make preloaded Lisp functions shareable.
 * Garbage Collection::  Reclaiming space for Lisp objects no longer used.
+* Stack-allocated Objects::    Temporary conses and strings on C stack.
 * Memory Usage::        Info about total size of Lisp objects made so far.
 * C Dialect::           What C variant Emacs is written in.
 * Writing Emacs Primitives::   Writing C code for Emacs.
@@ -528,6 +529,35 @@ This variable contains the total number of seconds of elapsed time
 during garbage collection so far in this Emacs session, as a
 floating-point number.
 @end defvar
+
+@node Stack-allocated Objects
+@section Stack-allocated Objects
+
+@cindex stack allocated Lisp objects
+@cindex Lisp objects, stack-allocated
+  The garbage collector described above is used to manage data visible
+from Lisp programs, as well as most of the data internally used by the
+Lisp interpreter.  Sometimes it may be useful to allocate temporary
+internal objects using the C stack of the interpreter.  This can help
+performance, as stack allocation is typically faster than using heap
+memory to allocate and the garbage collector to free.  The downside is
+that using such objects after they are freed results in undefined
+behavior, so uses should be well thought out and carefully debugged by
+using the @code{GC_CHECK_MARKED_OBJECTS} feature (see
+@file{src/alloc.c}).  In particular, stack-allocated objects should
+never be made visible to user Lisp code.
+
+  Currently, cons cells and strings can be allocated this way.  This
+is implemented by C macros like @code{AUTO_CONS} and
+@code{AUTO_STRING} that define a named @code{Lisp_Object} with block
+lifetime.  These objects are not freed by the garbage collector;
+instead, they have automatic storage duration, i.e., they are
+allocated like local variables and are automatically freed at the end
+of execution of the C block that defined the object.
+
+  For performance reasons, stack-allocated strings are limited to
+@acronym{ASCII} characters, and many of these strings are immutable,
+i.e., calling @code{ASET} on them produces undefined behavior.
 
 @node Memory Usage
 @section Memory Usage
@@ -1595,6 +1625,8 @@ of @code{intptr_t}).
 
 @item
 Prefer @code{int} for Emacs character codes, in the range 0 ..@: 0x3FFFFF.
+More generally, prefer @code{int} for integers known to be in
+@code{int} range, e.g., screen column counts.
 
 @item
 Prefer @code{ptrdiff_t} for sizes, i.e., for integers bounded by the
@@ -1604,6 +1636,17 @@ for signed types.  Using @code{ptrdiff_t} limits objects to
 @code{PTRDIFF_MAX} bytes, but larger objects would cause trouble
 anyway since they would break pointer subtraction, so this does not
 impose an arbitrary limit.
+
+@item
+Avoid @code{ssize_t} except when communicating to low-level APIs that
+have @code{ssize_t}-related limitations.  Although it's equivalent to
+@code{ptrdiff_t} on typical platforms, @code{ssize_t} is occasionally
+narrower, so using it for size-related calculations could overflow.
+Also, @code{ptrdiff_t} is more ubiquitous and better-standardized, has
+standard @code{printf} formats, and is the basis for Emacs's internal
+size-overflow checking.  When using @code{ssize_t}, please note that
+POSIX requires support only for values in the range @minus{}1 ..@:
+@code{SSIZE_MAX}.
 
 @item
 Prefer @code{intptr_t} for internal representations of pointers, or

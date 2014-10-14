@@ -188,7 +188,7 @@ static EmacsImage *ImageList = nil;
   image = [[EmacsImage alloc] initByReferencingFile:
                      [NSString stringWithUTF8String: SSDATA (found)]];
 
-#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+#ifdef NS_IMPL_COCOA
   imgRep = [NSBitmapImageRep imageRepWithData:[image TIFFRepresentation]];
 #else
   imgRep = [image bestRepresentationForDevice: nil];

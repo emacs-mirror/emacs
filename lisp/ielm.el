@@ -541,7 +541,9 @@ Customized bindings may be defined in `ielm-map', which currently contains:
   (setq comint-process-echoes nil)
   (set (make-local-variable 'completion-at-point-functions)
        '(comint-replace-by-expanded-history
-         ielm-complete-filename lisp-completion-at-point))
+         ielm-complete-filename elisp-completion-at-point))
+  (setq-local eldoc-documentation-function
+              #'elisp-eldoc-documentation-function)
   (set (make-local-variable 'ielm-prompt-internal) ielm-prompt)
   (set (make-local-variable 'comint-prompt-read-only) ielm-prompt-read-only)
   (setq comint-get-old-input 'ielm-get-old-input)

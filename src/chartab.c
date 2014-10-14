@@ -1258,13 +1258,8 @@ uniprop_encode_value_numeric (Lisp_Object table, Lisp_Object value)
       break;
   value = make_number (i);
   if (i == size)
-    {
-      Lisp_Object args[2];
-
-      args[0] = XCHAR_TABLE (table)->extras[4];
-      args[1] = Fmake_vector (make_number (1), value);
-      set_char_table_extras (table, 4, Fvconcat (2, args));
-    }
+    set_char_table_extras (table, 4, Fvconcat (2, ((Lisp_Object []) {
+      XCHAR_TABLE (table)->extras[4], Fmake_vector (make_number (1), value) })));
   return make_number (i);
 }
 
@@ -1307,8 +1302,8 @@ uniprop_table (Lisp_Object prop)
     {
       struct gcpro gcpro1;
       GCPRO1 (val);
-      result = Fload (concat2 (build_string ("international/"), table),
-		      Qt, Qt, Qt, Qt);
+      AUTO_STRING (intl, "international/");
+      result = Fload (concat2 (intl, table), Qt, Qt, Qt, Qt);
       UNGCPRO;
       if (NILP (result))
 	return Qnil;

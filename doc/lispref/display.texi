@@ -23,7 +23,7 @@ that Emacs presents to the user.
 * Faces::               A face defines a graphics style for text characters:
                           font, colors, etc.
 * Fringes::             Controlling window fringes.
-* Scroll Bars::         Controlling vertical scroll bars.
+* Scroll Bars::         Controlling scroll bars.
 * Window Dividers::     Separating windows visually.
 * Display Property::    Enabling special display features.
 * Images::              Displaying images in Emacs buffers.
@@ -3866,101 +3866,163 @@ arrow position.  If either property is not set, the default
 @code{overlay-arrow-string} or @code{overlay-arrow} fringe indicator
 is used.
 
+
 @node Scroll Bars
 @section Scroll Bars
 @cindex scroll bars
 
 Normally the frame parameter @code{vertical-scroll-bars} controls
-whether the windows in the frame have vertical scroll bars, and
-whether they are on the left or right.  The frame parameter
-@code{scroll-bar-width} specifies how wide they are (@code{nil}
-meaning the default).  @xref{Layout Parameters}.
+whether the windows in the frame have vertical scroll bars, and whether
+they are on the left or right.  The frame parameter
+@code{scroll-bar-width} specifies how wide they are (@code{nil} meaning
+the default).
+
+   The frame parameter @code{horizontal-scroll-bars} controls whether
+the windows in the frame have horizontal scroll bars.  The frame
+parameter @code{scroll-bar-height} specifies how high they are
+(@code{nil} meaning the default).  @xref{Layout Parameters}.
+
+@vindex horizontal-scroll-bars-available-p
+   Horizontal scroll bars are not available on all platforms.  The
+function @code{horizontal-scroll-bars-available-p} which takes no
+argument returns non-@code{nil} if they are available on your system.
+
+   The following three functions take as argument a live frame which
+defaults to the selected one.
 
 @defun frame-current-scroll-bars &optional frame
-This function reports the scroll bar type settings for frame
-@var{frame}.  The value is a cons cell
-@code{(@var{vertical-type} .@: @var{horizontal-type})}, where
-@var{vertical-type} is either @code{left}, @code{right}, or @code{nil}
-(which means no scroll bar.)  @var{horizontal-type} is meant to
-specify the horizontal scroll bar type, but since they are not
-implemented, it is always @code{nil}.
+This function reports the scroll bar types for frame @var{frame}.  The
+value is a cons cell @code{(@var{vertical-type} .@:
+@var{horizontal-type})}, where @var{vertical-type} is either
+@code{left}, @code{right}, or @code{nil} (which means no vertical scroll
+bar.)  @var{horizontal-type} is either @code{bottom} or @code{nil}
+(which means no horizontal scroll bar).
 @end defun
 
-@vindex vertical-scroll-bar
-  You can enable or disable scroll bars for a particular buffer,
-by setting the variable @code{vertical-scroll-bar}.  This variable
-automatically becomes buffer-local when set.  The possible values are
-@code{left}, @code{right}, @code{t}, which means to use the
-frame's default, and @code{nil} for no scroll bar.
-
-  You can also control this for individual windows.  Call the function
-@code{set-window-scroll-bars} to specify what to do for a specific window:
-
-@defun set-window-scroll-bars window width &optional vertical-type horizontal-type
-This function sets the width and type of scroll bars for window
-@var{window}.
-
-@var{width} specifies the scroll bar width in pixels (@code{nil} means
-use the width specified for the frame).  @var{vertical-type} specifies
-whether to have a vertical scroll bar and, if so, where.  The possible
-values are @code{left}, @code{right} and @code{nil}, just like the
-values of the @code{vertical-scroll-bars} frame parameter.
-
-The argument @var{horizontal-type} is meant to specify whether and
-where to have horizontal scroll bars, but since they are not
-implemented, it has no effect.  If @var{window} is @code{nil}, the
-selected window is used.
+@defun frame-scroll-bar-width &optional Lisp_Object &optional frame
+This function returns the width of vertical scroll bars of @var{frame}
+in pixels.
 @end defun
+
+@defun frame-scroll-bar-height &optional Lisp_Object &optional frame
+This function returns the height of horizontal scroll bars of
+@var{frame} in pixels.
+@end defun
+
+You can override the frame specific settings for individual windows by
+using the following function:
+
+@defun set-window-scroll-bars window &optional width vertical-type height horizontal-type
+This function sets the width and/or height and the types of scroll bars
+for window @var{window}.
+
+@var{width} specifies the width of the vertical scroll bar in pixels
+(@code{nil} means use the width specified for the frame).
+@var{vertical-type} specifies whether to have a vertical scroll bar and,
+if so, where.  The possible values are @code{left}, @code{right},
+@code{t}, which means to use the frame's default, and @code{nil} for no
+vertical scroll bar.
+
+@var{height} specifies the height of the horizontal scroll bar in pixels
+(@code{nil} means use the height specified for the frame).
+@var{horizontal-type} specifies whether to have a horizontal scroll bar.
+The possible values are @code{bottom}, @code{t}, which means to use the
+frame's default, and @code{nil} for no horizontal scroll bar.
+
+If @var{window} is @code{nil}, the selected window is used.
+@end defun
+
+The following four functions take as argument a live window which
+defaults to the selected one.
 
 @defun window-scroll-bars &optional window
-Report the width and type of scroll bars specified for @var{window}.
-If @var{window} is omitted or @code{nil}, the selected window is used.
-The value is a list of the form @code{(@var{width}
-@var{cols} @var{vertical-type} @var{horizontal-type})}.  The value
-@var{width} is the value that was specified for the width (which may
-be @code{nil}); @var{cols} is the number of columns that the scroll
-bar actually occupies.
+This function returns a list of the form @code{(@var{width}
+@var{columns} @var{vertical-type} @var{height} @var{lines}
+@var{horizontal-type})}.
 
-@var{horizontal-type} is not actually meaningful.
+The value @var{width} is the value that was specified for the width of
+the vertical scroll bar (which may be @code{nil}); @var{columns} is the
+(possibly rounded) number of columns that the vertical scroll bar
+actually occupies.
+
+The value @var{height} is the value that was specified for the height of
+the horizontal scroll bar (which may be @code{nil}); @var{lines} is the
+(possibly rounded) number of lines that the horizontally scroll bar
+actually occupies.
+@end defun
+
+@defun window-current-scroll-bars &optional window
+This function reports the scroll bar type for window @var{window}.  The
+value is a cons cell @code{(@var{vertical-type} .@:
+@var{horizontal-type})}.  Unlike @code{window-scroll-bars}, this reports
+the scroll bar type actually used, once frame defaults and
+@code{scroll-bar-mode} are taken into account.
 @end defun
 
 @defun window-scroll-bar-width &optional window
-This function returns the width of @var{window}'s vertical scrollbar,
-in pixels.  @var{window} must be a live window.  If @var{window} is
-@code{nil} or omitted, it will be the selected window.
+This function returns the width in pixels of @var{window}'s vertical
+scrollbar.
+@end defun
+
+@defun window-scroll-bar-height &optional window
+This function returns the height in pixels of @var{window}'s horizontal
+scrollbar.
 @end defun
 
 If you don't specify these values for a window with
 @code{set-window-scroll-bars}, the buffer-local variables
-@code{scroll-bar-mode} and @code{scroll-bar-width} in the buffer being
-displayed control the window's vertical scroll bars.  The function
+@code{vertical-scroll-bar}, @code{horizontal-scroll-bar},
+@code{scroll-bar-width} and @code{scroll-bar-height} in the buffer being
+displayed control the window's scroll bars.  The function
 @code{set-window-buffer} examines these variables.  If you change them
-in a buffer that is already visible in a window, you can make the
-window take note of the new values by calling @code{set-window-buffer}
+in a buffer that is already visible in a window, you can make the window
+take note of the new values by calling @code{set-window-buffer}
 specifying the same buffer that is already displayed.
 
-@defopt scroll-bar-mode
-This variable, always local in all buffers, controls whether and where
-to put scroll bars in windows displaying the buffer.  The possible values
-are @code{nil} for no scroll bar, @code{left} to put a scroll bar on
-the left, and @code{right} to put a scroll bar on the right.
-@end defopt
+You can control the appearance of scroll bars for a particular buffer by
+setting the following variables which automatically become buffer-local
+when set.
 
-@defun window-current-scroll-bars &optional window
-This function reports the scroll bar type for window @var{window}.
-If @var{window} is omitted or @code{nil}, the selected window is used.
-The value is a cons cell
-@code{(@var{vertical-type} .@: @var{horizontal-type})}.  Unlike
-@code{window-scroll-bars}, this reports the scroll bar type actually
-used, once frame defaults and @code{scroll-bar-mode} are taken into
-account.
-@end defun
+@defvar vertical-scroll-bar
+This variable specifies the location of the vertical scroll bar.  The
+possible values are @code{left}, @code{right}, @code{t}, which means to
+use the frame's default, and @code{nil} for no scroll bar.
+@end defvar
+
+@defvar horizontal-scroll-bar
+This variable specifies the location of the horizontal scroll bar.  The
+possible values are @code{bottom}, @code{t}, which means to use the
+frame's default, and @code{nil} for no scroll bar.
+@end defvar
 
 @defvar scroll-bar-width
-This variable, always local in all buffers, specifies the width of the
-buffer's scroll bars, measured in pixels.  A value of @code{nil} means
-to use the value specified by the frame.
+This variable specifies the width of the buffer's vertical scroll bars,
+measured in pixels.  A value of @code{nil} means to use the value
+specified by the frame.
 @end defvar
+
+@defvar scroll-bar-height
+This variable specifies the height of the buffer's horizontal scroll
+bar, measured in pixels.  A value of @code{nil} means to use the value
+specified by the frame.
+@end defvar
+
+Finally you can toggle the display of scroll bars on all frames by
+customizing the variables @code{scroll-bar-mode} and
+@code{horizontal-scroll-bar-mode}.
+
+@defopt scroll-bar-mode
+This variable controls whether and where to put vertical scroll bars in
+all frames.  The possible values are @code{nil} for no scroll bars,
+@code{left} to put scroll bars on the left and @code{right} to put
+scroll bars on the right.
+@end defopt
+
+@defopt horizontal-scroll-bar-mode
+This variable controls whether to display horizontal scroll bars on all
+frames.
+@end defopt
+
 
 @node Window Dividers
 @section Window Dividers
@@ -4503,7 +4565,7 @@ functions to insert images into buffers.
 
   Each image descriptor has the form @code{(image . @var{props})},
 where @var{props} is a property list of alternating keyword symbols
-and values, including at least the pair @code{:type @var{TYPE}} which
+and values, including at least the pair @code{:type @var{type}} that
 specifies the image type.
 
   The following is a list of properties that are meaningful for all
@@ -4995,7 +5057,7 @@ of a list of image specifications @var{specs}.
 Each specification in @var{specs} is a property list with contents
 depending on image type.  All specifications must at least contain the
 properties @code{:type @var{type}} and either @w{@code{:file @var{file}}}
-or @w{@code{:data @var{DATA}}}, where @var{type} is a symbol specifying
+or @w{@code{:data @var{data}}}, where @var{type} is a symbol specifying
 the image type, e.g., @code{xbm}, @var{file} is the file to load the
 image from, and @var{data} is a string containing the actual image data.
 The first specification in the list whose @var{type} is supported, and
