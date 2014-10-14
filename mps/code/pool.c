@@ -97,10 +97,6 @@ Bool PoolCheck(Pool pool)
   /* normally pool->format iff PoolHasAttr(pool, AttrFMT), but during
    * pool initialization pool->format may not yet be set. */
   CHECKL(pool->format == NULL || PoolHasAttr(pool, AttrFMT));
-  CHECKL(pool->fillMutatorSize >= 0.0);
-  CHECKL(pool->emptyMutatorSize >= 0.0);
-  CHECKL(pool->fillInternalSize >= 0.0);
-  CHECKL(pool->emptyInternalSize >= 0.0);
   return TRUE;
 }
 
@@ -157,10 +153,6 @@ Res PoolInit(Pool pool, Arena arena, PoolClass class, ArgList args)
   pool->alignment = MPS_PF_ALIGN;
   pool->format = NULL;
   pool->fix = class->fix;
-  pool->fillMutatorSize = 0.0;
-  pool->emptyMutatorSize = 0.0;
-  pool->fillInternalSize = 0.0;
-  pool->emptyInternalSize = 0.0;
 
   /* Initialise signature last; see <design/sig/> */
   pool->sig = PoolSig;
@@ -304,7 +296,6 @@ Res PoolAlloc(Addr *pReturn, Pool pool, Size size,
 
   /* All PoolAllocs should advance the allocation clock, so we count */
   /* it all in the fillMutatorSize field. */
-  pool->fillMutatorSize += size;
   ArenaGlobals(PoolArena(pool))->fillMutatorSize += size;
 
   EVENT3(PoolAlloc, pool, *pReturn, size);
@@ -569,18 +560,6 @@ Res PoolDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
     if (res != ResOK)
       return res;
   }
-  res = WriteF(stream, depth + 2,
-               "fillMutatorSize $UKb\n",
-               (WriteFU)(pool->fillMutatorSize / 1024),
-               "emptyMutatorSize $UKb\n",
-               (WriteFU)(pool->emptyMutatorSize / 1024),
-               "fillInternalSize $UKb\n",
-               (WriteFU)(pool->fillInternalSize / 1024),
-               "emptyInternalSize $UKb\n",
-               (WriteFU)(pool->emptyInternalSize / 1024),
-               NULL);
-  if (res != ResOK)
-    return res;
 
   res = (*pool->class->describe)(pool, stream, depth + 2);
   if (res != ResOK)

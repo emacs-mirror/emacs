@@ -111,10 +111,6 @@ typedef struct mps_pool_s {     /* generic structure */
   Align alignment;              /* alignment for units */
   Format format;                /* format only if class->attr&AttrFMT */
   PoolFixMethod fix;            /* fix method */
-  double fillMutatorSize;       /* bytes filled, mutator buffers */
-  double emptyMutatorSize;      /* bytes emptied, mutator buffers */
-  double fillInternalSize;      /* bytes filled, internal buffers */
-  double emptyInternalSize;     /* bytes emptied, internal buffers */
 } PoolStruct;
 
 

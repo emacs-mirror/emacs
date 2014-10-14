@@ -328,12 +328,10 @@ void BufferDetach(Buffer buffer, Pool pool)
     spare = AddrOffset(init, limit);
     buffer->emptySize += spare;
     if (buffer->isMutator) {
-      buffer->pool->emptyMutatorSize += spare;
       ArenaGlobals(buffer->arena)->emptyMutatorSize += spare;
       ArenaGlobals(buffer->arena)->allocMutatorSize +=
         AddrOffset(buffer->base, init);
     } else {
-      buffer->pool->emptyInternalSize += spare;
       ArenaGlobals(buffer->arena)->emptyInternalSize += spare;
     }
 
@@ -657,10 +655,8 @@ void BufferAttach(Buffer buffer, Addr base, Addr limit,
       Size prealloc = AddrOffset(base, init);
       ArenaGlobals(buffer->arena)->allocMutatorSize -= prealloc;
     }
-    buffer->pool->fillMutatorSize += filled;
     ArenaGlobals(buffer->arena)->fillMutatorSize += filled;
   } else {
-    buffer->pool->fillInternalSize += filled;
     ArenaGlobals(buffer->arena)->fillInternalSize += filled;
   }
 
