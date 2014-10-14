@@ -304,6 +304,7 @@ Res RootCreateReg(Root *rootReturn, Arena arena,
   AVERT(Arena, arena);
   AVERT(Rank, rank);
   AVERT(Thread, thread);
+  AVER(ThreadArena(thread) == arena);
   AVER(scan != NULL);
 
   theUnion.reg.scan = scan;

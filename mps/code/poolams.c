@@ -831,13 +831,15 @@ Res AMSInitInternal(AMS ams, Format format, Chain chain, unsigned gen,
   Res res;
 
   /* Can't check ams, it's not initialized. */
-  AVERT(Format, format);
-  AVERT(Chain, chain);
-  AVER(gen <= ChainGens(chain));
-
   pool = AMSPool(ams);
   AVERT(Pool, pool);
+  AVERT(Format, format);
+  AVER(FormatArena(format) == PoolArena(pool));
   pool->format = format;
+  AVERT(Chain, chain);
+  AVER(gen <= ChainGens(chain));
+  AVER(chain->arena == PoolArena(pool));
+
   pool->alignment = pool->format->alignment;
   ams->grainShift = SizeLog2(PoolAlignment(pool));
 
