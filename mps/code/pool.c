@@ -178,6 +178,11 @@ Res PoolInit(Pool pool, Arena arena, PoolClass class, ArgList args)
   /* Add initialized pool to list of pools in arena. */
   RingAppend(&globals->poolRing, &pool->arenaRing);
 
+  /* Add initialized pool to list of pools using format. */
+  if (pool->format) {
+    RingAppend(&pool->format->poolRing, &pool->formatRing);
+  }
+
   return ResOK;
 
 failInit:
