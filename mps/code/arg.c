@@ -105,7 +105,7 @@ Bool ArgCheckPool(Arg arg) {
 }
 
 
-ARG_DEFINE_KEY(args_end, Shouldnt);
+ARG_DEFINE_KEY(ARGS_END, Shouldnt);
 
 ArgStruct mps_args_none[] = {{MPS_KEY_ARGS_END, {0}}};
 
@@ -174,9 +174,8 @@ found:
 /* ArgRequire -- take a required argument out of the argument list by keyword */
 
 void ArgRequire(ArgStruct *argOut, ArgList args, Key key) {
-  if (ArgPick(argOut, args, key))
-    return;
-  NOTREACHED;
+  Bool b = ArgPick(argOut, args, key);
+  ASSERT(b, key->name);
 }
 
 

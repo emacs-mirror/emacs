@@ -88,14 +88,14 @@ static mps_addr_t FormatDefaultClass(mps_addr_t object)
 
 /* FormatCreate -- create a format */
 
-ARG_DEFINE_KEY(fmt_align, Align);
-ARG_DEFINE_KEY(fmt_scan, Fun);
-ARG_DEFINE_KEY(fmt_skip, Fun);
-ARG_DEFINE_KEY(fmt_fwd, Fun);
-ARG_DEFINE_KEY(fmt_isfwd, Fun);
-ARG_DEFINE_KEY(fmt_pad, Fun);
-ARG_DEFINE_KEY(fmt_header_size, Size);
-ARG_DEFINE_KEY(fmt_class, Fun);
+ARG_DEFINE_KEY(FMT_ALIGN, Align);
+ARG_DEFINE_KEY(FMT_SCAN, Fun);
+ARG_DEFINE_KEY(FMT_SKIP, Fun);
+ARG_DEFINE_KEY(FMT_FWD, Fun);
+ARG_DEFINE_KEY(FMT_ISFWD, Fun);
+ARG_DEFINE_KEY(FMT_PAD, Fun);
+ARG_DEFINE_KEY(FMT_HEADER_SIZE, Size);
+ARG_DEFINE_KEY(FMT_CLASS, Fun);
 
 Res FormatCreate(Format *formatReturn, Arena arena, ArgList args)
 {

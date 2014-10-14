@@ -29,7 +29,7 @@ typedef struct mps_key_s {
 
 #define ARG_DEFINE_KEY(id, type) \
   extern const KeyStruct _mps_key_##id; \
-  const KeyStruct _mps_key_##id = {KeySig, #id, ArgCheck##type}
+  const KeyStruct _mps_key_##id = {KeySig, "MPS_KEY_" #id, ArgCheck##type}
 
 #define argsNone mps_args_none
 

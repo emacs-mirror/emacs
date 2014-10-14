@@ -238,6 +238,12 @@ assertion that is listed here but for which you discovered a different
 cause), please :ref:`let us know <contact>` so that we can improve
 this documentation.
 
+``arg.c: MPS_KEY_...``
+
+    A required :term:`keyword argument` was omitted from a call to
+    :c:func:`mps_ap_create_k`, :c:func:`mps_arena_create_k`,
+    :c:func:`mps_fmt_create_k`, or :c:func:`mps_pool_create_k`.
+
 
 ``buffer.c: BufferIsReady(buffer)``
 
@@ -275,13 +281,11 @@ this documentation.
     :term:`format methods` and :term:`stepper functions`.
 
 
-``locus.c: chain->activeTraces == TraceSetEMPTY)``
+``locus.c: chain->activeTraces == TraceSetEMPTY``
 
     The client program called :c:func:`mps_chain_destroy`, but there
-    was a garbage collection in progress on that chain.
-
-    Park the arena before destroying the chain by calling
-    :c:func:`mps_arena_park`.
+    was a garbage collection in progress on that chain. Park the arena
+    before destroying the chain, by calling :c:func:`mps_arena_park`.
 
 
 ``mpsi.c: SizeIsAligned(size, BufferPool(buf)->alignment)``
@@ -289,13 +293,6 @@ this documentation.
     The client program reserved a block by calling
     :c:func:`mps_reserve` but neglected to round the size up to the
     alignment required by the pool's :term:`object format`.
-
-
-``pool.c: PoolHasAttr(pool, AttrALLOC)``
-
-    The client program called :c:func:`mps_alloc` on a pool that does
-    not support this form of allocation. Use an :term:`allocation
-    point` instead.
 
 
 ``poolams.c: AMS_ALLOCED(seg, i)``

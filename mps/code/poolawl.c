@@ -544,7 +544,7 @@ static Addr awlNoDependent(Addr addr)
 
 /* AWLInit -- initialize an AWL pool */
 
-ARG_DEFINE_KEY(awl_find_dependent, Fun);
+ARG_DEFINE_KEY(AWL_FIND_DEPENDENT, Fun);
 
 static Res AWLInit(Pool pool, ArgList args)
 {

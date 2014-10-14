@@ -72,7 +72,7 @@ static void MFSVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
   AVERT(ArgList, args);
 }
 
-ARG_DEFINE_KEY(mfs_unit_size, Size);
+ARG_DEFINE_KEY(MFS_UNIT_SIZE, Size);
 ARG_DEFINE_KEY(MFSExtendSelf, Bool);
 
 static Res MFSInit(Pool pool, ArgList args)

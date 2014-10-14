@@ -10,8 +10,8 @@
 
 #include "mps.h"
 
-extern const struct mps_key_s _mps_key_ams_support_ambiguous;
-#define MPS_KEY_AMS_SUPPORT_AMBIGUOUS (&_mps_key_ams_support_ambiguous)
+extern const struct mps_key_s _mps_key_AMS_SUPPORT_AMBIGUOUS;
+#define MPS_KEY_AMS_SUPPORT_AMBIGUOUS (&_mps_key_AMS_SUPPORT_AMBIGUOUS)
 #define MPS_KEY_AMS_SUPPORT_AMBIGUOUS_FIELD b
 
 extern mps_pool_class_t mps_class_ams(void);
