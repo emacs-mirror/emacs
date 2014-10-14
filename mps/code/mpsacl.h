@@ -1,7 +1,7 @@
 /* mpsacl.h: MEMORY POOL SYSTEM ARENA CLASS "CL"
  *
  * $Id$
- * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  */
 
 #ifndef mpsacl_h
@@ -10,8 +10,8 @@
 #include "mps.h"
 
 /* Client arena base address argument */
-extern const struct mps_key_s _mps_key_arena_cl_addr;
-#define MPS_KEY_ARENA_CL_BASE (&_mps_key_arena_cl_addr)
+extern const struct mps_key_s _mps_key_ARENA_CL_BASE;
+#define MPS_KEY_ARENA_CL_BASE (&_mps_key_ARENA_CL_BASE)
 #define MPS_KEY_ARENA_CL_BASE_FIELD addr
 
 extern mps_arena_class_t mps_arena_class_cl(void);
@@ -22,7 +22,7 @@ extern mps_arena_class_t mps_arena_class_cl(void);
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

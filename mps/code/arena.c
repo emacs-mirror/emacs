@@ -290,14 +290,14 @@ failGlobalsInit:
  * platforms, knowing that it has no effect.  To do that, the key must
  * exist on all platforms. */
 
-ARG_DEFINE_KEY(vmw3_top_down, Bool);
+ARG_DEFINE_KEY(VMW3_TOP_DOWN, Bool);
 
 
 /* ArenaCreate -- create the arena and call initializers */
 
-ARG_DEFINE_KEY(arena_size, Size);
-ARG_DEFINE_KEY(arena_grain_size, Size);
-ARG_DEFINE_KEY(arena_zoned, Bool);
+ARG_DEFINE_KEY(ARENA_SIZE, Size);
+ARG_DEFINE_KEY(ARENA_GRAIN_SIZE, Size);
+ARG_DEFINE_KEY(ARENA_ZONED, Bool);
 
 Res ArenaCreate(Arena *arenaReturn, ArenaClass class, ArgList args)
 {

@@ -785,7 +785,7 @@ static void AMSDebugVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
  *  allocated in the pool.  See <design/poolams/#init>.
  */
 
-ARG_DEFINE_KEY(ams_support_ambiguous, Bool);
+ARG_DEFINE_KEY(AMS_SUPPORT_AMBIGUOUS, Bool);
 
 static Res AMSInit(Pool pool, ArgList args)
 {
