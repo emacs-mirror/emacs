@@ -1,6 +1,7 @@
 2014-10-14  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.ac: apple-darwin powerpc is unported.
+	Require OSX >= 10.6 even if --with-ns is not given.
 
 2014-10-12  Ken Brown  <kbrown@cornell.edu>
 

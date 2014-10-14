@@ -705,6 +705,13 @@ If you think it should, please send a report to ${PACKAGE_BUGREPORT}.
 Check `etc/MACHINES' for recognized configuration names.])
 fi
 
+case "$canonical" in
+  *-apple-darwin* )
+  x="`uname -r`"
+    case "$x" in
+      [[0-9]].*) AC_MSG_ERROR([OSX 10.6 or later required]) ;;
+    esac
+esac
 
 #### Choose a compiler.
 
