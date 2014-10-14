@@ -1,3 +1,36 @@
+2014-10-14  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Cleanup terminal handling code.
+	* dispextern.h (get_named_tty): Remove prototype but...
+	* termhooks.h (get_named_terminal): ...resurrect it under
+	more meaningful name.
+	(get_terminal): Likewise, but with...
+	(decode_live_terminal): ...this name.
+	(decode_tty_terminal): Add prototype.
+	* term.c (get_tty_terminal): Remove.
+	(get_named_tty): Remove.
+	(Ftty_display_color_p, Ftty_display_color_cells, Ftty_type)
+	(Fcontrolling_tty_p, Fsuspend_tty, Fresume_tty):
+	Use decode_tty_terminal.
+	(Ftty_no_underline, Ftty_top_frame): Use decode_live_terminal.
+	* terminal.c (get_terminal): Refactor to...
+	(decode_terminal, decode_live_terminal): ...new functions.
+	(decode_tty_terminal): Replacement for get_tty_terminal.
+	(get_named_terminal): Likewise for get_named_tty.
+	* coding.c (Fset_terminal_coding_system_internal)
+	(Fterminal_coding_system, Fset_keyboard_coding_system_internal):
+	(Fkeyboard_coding_system):
+	* composite.c (Fcomposition_get_gstring):
+	* dispnew.c (Fsend_string_to_terminal):
+	* frame.c (Fmake_terminal_frame):
+	* nsfns.m (check_ns_display_info):
+	* w32fns.c, xfns.c (check_x_display_info):
+	* xselect.c (frame_for_x_selection): Use decode_live_terminal.
+	* keyboard.c (handle_interrupt_signal, handle_interrupt)
+	(Fset_quit_char): Use get_named_terminal.
+	(Fset_output_flow_control, Fset_input_meta_mode):
+	Use decode_tty_terminal.
+
 2014-10-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32term.h (ALIGN_STACK): Use _WIN64, not _W64, to distinguish

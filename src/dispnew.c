@@ -5611,15 +5611,12 @@ the currently selected frame.  In batch mode, STRING is sent to stdout
 when TERMINAL is nil.  */)
   (Lisp_Object string, Lisp_Object terminal)
 {
-  struct terminal *t = get_terminal (terminal, 1);
+  struct terminal *t = decode_live_terminal (terminal);
   FILE *out;
 
   /* ??? Perhaps we should do something special for multibyte strings here.  */
   CHECK_STRING (string);
   block_input ();
-
-  if (!t)
-    error ("Unknown terminal device");
 
   if (t->type == output_initial)
     out = stdout;

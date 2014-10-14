@@ -133,7 +133,7 @@ check_ns_display_info (Lisp_Object object)
     }
   else if (TERMINALP (object))
     {
-      struct terminal *t = get_terminal (object, 1);
+      struct terminal *t = decode_live_terminal (object);
 
       if (t->type != output_ns)
         error ("Terminal %d is not a Nextstep display", t->id);
@@ -2541,7 +2541,7 @@ the attributes:
 Internal use only, use `display-monitor-attributes-list' instead.  */)
   (Lisp_Object terminal)
 {
-  struct terminal *term = get_terminal (terminal, 1);
+  struct terminal *term = decode_live_terminal (terminal);
   NSArray *screens;
   NSUInteger i, n_monitors;
   struct MonitorInfo *monitors;

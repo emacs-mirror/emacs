@@ -964,7 +964,7 @@ affects all frames on the same terminal device.  */)
     if (CONSP (terminal))
       {
         terminal = XCDR (terminal);
-        t = get_terminal (terminal, 1);
+        t = decode_live_terminal (terminal);
       }
 #ifdef MSDOS
     if (t && t != the_only_display_info.terminal)

@@ -1901,7 +1901,7 @@ frame_for_x_selection (Lisp_Object object)
     }
   else if (TERMINALP (object))
     {
-      struct terminal *t = get_terminal (object, 1);
+      struct terminal *t = decode_live_terminal (object);
 
       if (t->type == output_x_window)
 	FOR_EACH_FRAME (tail, frame)

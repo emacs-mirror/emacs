@@ -1719,7 +1719,7 @@ should be ignored.  */)
   if (! FONT_OBJECT_P (font_object))
     {
       struct coding_system *coding;
-      struct terminal *terminal = get_terminal (font_object, 1);
+      struct terminal *terminal = decode_live_terminal (font_object);
 
       coding = ((TERMINAL_TERMINAL_CODING (terminal)->common_flags
 		 & CODING_REQUIRE_ENCODING_MASK)

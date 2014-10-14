@@ -276,7 +276,7 @@ check_x_display_info (Lisp_Object object)
     }
   else if (TERMINALP (object))
     {
-      struct terminal *t = get_terminal (object, 1);
+      struct terminal *t = decode_live_terminal (object);
 
       if (t->type != output_w32)
         error ("Terminal %d is not a W32 display", t->id);

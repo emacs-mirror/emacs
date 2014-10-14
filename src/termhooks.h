@@ -681,7 +681,9 @@ extern struct terminal *terminal_list;
   (t->type == output_ns ? t->display_info.ns->name_list_element : Qnil)
 #endif
 
-extern struct terminal *get_terminal (Lisp_Object terminal, bool);
+extern struct terminal *decode_live_terminal (Lisp_Object);
+extern struct terminal *decode_tty_terminal (Lisp_Object);
+extern struct terminal *get_named_terminal (const char *);
 extern struct terminal *create_terminal (enum output_method,
 					 struct redisplay_interface *);
 extern void delete_terminal (struct terminal *);

@@ -159,7 +159,7 @@ check_x_display_info (Lisp_Object object)
     }
   else if (TERMINALP (object))
     {
-      struct terminal *t = get_terminal (object, 1);
+      struct terminal *t = decode_live_terminal (object);
 
       if (t->type != output_x_window)
         error ("Terminal %d is not an X display", t->id);

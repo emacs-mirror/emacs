@@ -10349,7 +10349,7 @@ static void
 handle_interrupt_signal (int sig)
 {
   /* See if we have an active terminal on our controlling tty.  */
-  struct terminal *terminal = get_named_tty ("/dev/tty");
+  struct terminal *terminal = get_named_terminal ("/dev/tty");
   if (!terminal)
     {
       /* If there are no frames there, let's pretend that we are a
@@ -10403,7 +10403,7 @@ handle_interrupt (bool in_signal_handler)
   cancel_echoing ();
 
   /* XXX This code needs to be revised for multi-tty support.  */
-  if (!NILP (Vquit_flag) && get_named_tty ("/dev/tty"))
+  if (!NILP (Vquit_flag) && get_named_terminal ("/dev/tty"))
     {
       if (! in_signal_handler)
 	{
@@ -10615,9 +10615,10 @@ Emacs reads input in CBREAK mode; see `set-input-interrupt-mode'.
 See also `current-input-mode'.  */)
   (Lisp_Object flow, Lisp_Object terminal)
 {
-  struct terminal *t = get_terminal (terminal, 1);
+  struct terminal *t = decode_tty_terminal (terminal);
   struct tty_display_info *tty;
-  if (t == NULL || (t->type != output_termcap && t->type != output_msdos_raw))
+
+  if (!t)
     return Qnil;
   tty = t->display_info.tty;
 
@@ -10657,11 +10658,11 @@ the currently selected frame.
 See also `current-input-mode'.  */)
   (Lisp_Object meta, Lisp_Object terminal)
 {
-  struct terminal *t = get_terminal (terminal, 1);
+  struct terminal *t = decode_tty_terminal (terminal);
   struct tty_display_info *tty;
   int new_meta;
 
-  if (t == NULL || (t->type != output_termcap && t->type != output_msdos_raw))
+  if (!t)
     return Qnil;
   tty = t->display_info.tty;
 
@@ -10698,9 +10699,10 @@ process.
 See also `current-input-mode'.  */)
   (Lisp_Object quit)
 {
-  struct terminal *t = get_named_tty ("/dev/tty");
+  struct terminal *t = get_named_terminal ("/dev/tty");
   struct tty_display_info *tty;
-  if (t == NULL || (t->type != output_termcap && t->type != output_msdos_raw))
+
+  if (!t)
     return Qnil;
   tty = t->display_info.tty;
 

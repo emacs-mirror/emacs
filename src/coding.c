@@ -9759,7 +9759,7 @@ DEFUN ("set-terminal-coding-system-internal", Fset_terminal_coding_system_intern
        doc: /* Internal use only.  */)
   (Lisp_Object coding_system, Lisp_Object terminal)
 {
-  struct terminal *term = get_terminal (terminal, 1);
+  struct terminal *term = decode_live_terminal (terminal);
   struct coding_system *terminal_coding = TERMINAL_TERMINAL_CODING (term);
   CHECK_SYMBOL (coding_system);
   setup_coding_system (Fcheck_coding_system (coding_system), terminal_coding);
@@ -9800,7 +9800,7 @@ frame's terminal device.  */)
   (Lisp_Object terminal)
 {
   struct coding_system *terminal_coding
-    = TERMINAL_TERMINAL_CODING (get_terminal (terminal, 1));
+    = TERMINAL_TERMINAL_CODING (decode_live_terminal (terminal));
   Lisp_Object coding_system = CODING_ID_NAME (terminal_coding->id);
 
   /* For backward compatibility, return nil if it is `undecided'.  */
@@ -9812,7 +9812,7 @@ DEFUN ("set-keyboard-coding-system-internal", Fset_keyboard_coding_system_intern
        doc: /* Internal use only.  */)
   (Lisp_Object coding_system, Lisp_Object terminal)
 {
-  struct terminal *t = get_terminal (terminal, 1);
+  struct terminal *t = decode_live_terminal (terminal);
   CHECK_SYMBOL (coding_system);
   if (NILP (coding_system))
     coding_system = Qno_conversion;
@@ -9831,7 +9831,7 @@ DEFUN ("keyboard-coding-system",
   (Lisp_Object terminal)
 {
   return CODING_ID_NAME (TERMINAL_KEYBOARD_CODING
-			 (get_terminal (terminal, 1))->id);
+			 (decode_live_terminal (terminal))->id);
 }
 
 
