@@ -1,6 +1,5 @@
 GNU Emacs Installation Guide
-Copyright (C) 1992, 1994, 1996-1997, 2000-2014 Free Software Foundation,
-Inc.
+Copyright (C) 1992, 1994, 1996-1997, 2000-2014 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 
@@ -209,20 +208,7 @@ DETAILED BUILDING AND INSTALLATION:
 see msdos/INSTALL.  For later versions of MS Windows, see the file
 nt/INSTALL.  For GNUstep and Mac OS X, see nextstep/INSTALL.)
 
-1) Make sure your system has enough swapping space allocated to handle
-a program whose pure code is 1.5 MB and whose data area is at
-least 2.8 MB and can reach 100 MB or more.  If the swapping space is
-insufficient, you will get an error in the command `temacs -batch -l
-loadup dump', found in `./src/Makefile.in', or possibly when
-running the final dumped Emacs.  (This should not be an issue
-on any recent system.)
-
-Building Emacs requires about 230 MB of disk space (including the
-Emacs sources).  Once installed, Emacs occupies about 120 MB in the file
-system where it is installed; this includes the executable files, Lisp
-libraries, miscellaneous data files, and on-line documentation.  If
-the building and installation take place in different directories,
-then the installation procedure momentarily requires 230+120 MB.
+1) See the basic installation summary above for the disk space requirements.
 
 2) In the unlikely event that `configure' does not detect your system
 type correctly, consult `./etc/MACHINES' to see what --host, --build
@@ -262,7 +248,7 @@ Gtk or Motif, if you have the Xaw3d library installed (see
 
 You can tell configure where to search for GTK by specifying
 `--with-pkg-config-prog=PATH' where PATH is the pathname to
-pkg-config.  Note that GTK version 2.6 or newer is required for Emacs.
+pkg-config.
 
 Emacs will autolaunch a D-Bus session bus, when the environment
 variable DISPLAY is set, but no session bus is running.  This might be
