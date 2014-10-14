@@ -575,6 +575,7 @@ static Res AWLInit(Pool pool, ArgList args)
     gen = arg.val.u;
 
   AVERT(Format, format);
+  AVER(FormatArena(format) == PoolArena(pool));
   pool->format = format;
   pool->alignment = format->alignment;
 
@@ -583,6 +584,7 @@ static Res AWLInit(Pool pool, ArgList args)
 
   AVERT(Chain, chain);
   AVER(gen <= ChainGens(chain));
+  AVER(chain->arena == PoolArena(pool));
 
   res = PoolGenInit(&awl->pgen, ChainGen(chain, gen), pool);
   if (res != ResOK)

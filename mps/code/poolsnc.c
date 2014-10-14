@@ -387,6 +387,7 @@ static Res SNCInit(Pool pool, ArgList args)
   format = arg.val.format;
 
   AVERT(Format, format);
+  AVER(FormatArena(format) == PoolArena(pool));
   pool->format = format;
   snc->freeSegs = NULL;
   snc->sig = SNCSig;

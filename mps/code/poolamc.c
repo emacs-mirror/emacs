@@ -844,7 +844,9 @@ static Res amcInitComm(Pool pool, RankSet rankSet, ArgList args)
     largeSize = arg.val.size;
   
   AVERT(Format, pool->format);
+  AVER(FormatArena(pool->format) == arena);
   AVERT(Chain, chain);
+  AVER(chain->arena == arena);
   AVER(extendBy > 0);
   AVER(largeSize > 0);
   /* TODO: it would be nice to be able to manage large objects that
