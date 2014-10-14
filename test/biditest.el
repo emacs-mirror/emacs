@@ -1,6 +1,6 @@
 ;;; biditest.el --- test bidi reordering in GNU Emacs display engine.
 
-;; Copyright (C) 2013 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2014 Free Software Foundation, Inc.
 
 ;; Author: Eli Zaretskii
 ;; Maintainer: FSF
@@ -30,7 +30,13 @@
 ;;; Code:
 
 (defun biditest-generate-testfile (input-file output-file)
-  ""
+  "Generate a bidi test file OUTPUT-FILE from data in INPUT-FILE.
+
+INPUT-FILE should be in the format of the BidiCharacterTest.txt file
+available from the Unicode site, as part of the UCD database, see
+http://www.unicode.org/Public/UCD/latest/ucd/BidiCharacterTest.txt.
+
+The resulting file should be viewed with `inhibit-bidi-mirroring' set to t."
   (let ((output-buf (get-buffer-create "*biditest-output*"))
 	(lnum 1)
 	tbuf)
@@ -96,7 +102,20 @@
       (message "Generating output in %s ... done" output-file))))
 
 (defun biditest-create-test ()
-  ""
+  "Create a test file for testing the Emacs bidirectional display.
+
+The resulting file should be viewed with `inhibit-bidi-mirroring' set to t."
   (biditest-generate-testfile (pop command-line-args-left)
 			      (or (pop command-line-args-left)
 				  "biditest.txt")))
+
+;; A handy function for displaying the resolved bidi levels.
+(defun bidi-levels ()
+  "Display the resolved bidirectional levels of characters on current line.
+
+The results can be compared with the levels stated in the
+BidiCharacterTest.txt file."
+  (interactive)
+  (message "%s" (bidi-resolved-levels)))
+
+(define-key global-map [f8] 'bidi-levels)

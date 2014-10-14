@@ -6876,7 +6876,8 @@ get_next_display_element (struct it *it)
 	 is R..."  */
       /* FIXME: Do we need an exception for characters from display
 	 tables?  */
-      if (it->bidi_p && it->bidi_it.type == STRONG_R)
+      if (it->bidi_p && it->bidi_it.type == STRONG_R
+	  && !inhibit_bidi_mirroring)
 	it->c = bidi_mirror_char (it->c);
       /* Map via display table or translate control characters.
 	 IT->c, IT->len etc. have been set to the next character by
@@ -30802,6 +30803,12 @@ To add a prefix to continuation lines, use `wrap-prefix'.  */);
   DEFVAR_BOOL ("inhibit-free-realized-faces", inhibit_free_realized_faces,
     doc: /* Non-nil means don't free realized faces.  Internal use only.  */);
   inhibit_free_realized_faces = 0;
+
+  DEFVAR_BOOL ("inhibit-bidi-mirroring", inhibit_bidi_mirroring,
+    doc: /* Non-nil means don't mirror characters even when bidi context requires that.
+Intended for use during debugging and for testing bidi display;
+see biditest.el in the test suite.  */);
+  inhibit_bidi_mirroring = 0;
 
 #ifdef GLYPH_DEBUG
   DEFVAR_BOOL ("inhibit-try-window-id", inhibit_try_window_id,
