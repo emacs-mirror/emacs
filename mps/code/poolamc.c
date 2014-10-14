@@ -394,71 +394,6 @@ static amcGen amcSegGen(Seg seg)
 
 #define AMCSig          ((Sig)0x519A3C99) /* SIGnature AMC */
 
-typedef struct PageRetStruct {
-  Count pCond;     /* pages Condemned */
-  Count pRet;      /* pages Retained (in place) */
-  /* Small */
-  Count pCS;       /* pages Condemned in Small segments */
-  Count pRS;       /* pages Retained in Small segments */
-  /* Medium */
-  Count sCM;       /* segments Condemned: Medium */
-                   /* ...= upper bound of how many extra pages it */
-                   /*    would have cost, had we chosen to LSP-pad */
-                   /*    all these segments. */
-  Count pCM;       /* pages Condemned in Medium segments */
-  Count sRM;       /* segments Retained: Medium */
-  Count pRM;       /* pages Retained in Medium segments: */
-  Count pRM1;      /*   ...because obj 1 was preserved in place */
-                   /*   ...because a rest obj was pip, causing: */
-  Count pRMrr;     /*     ...retained rest pages (page where rest obj is) */
-  Count pRMr1;     /*     ...retained obj 1 pages (purely NMR pad) */
-  /* Large */
-  Count sCL;       /* segments Condemned: Large */
-                   /* ...= upper bound of how many extra pages it */
-                   /*    has cost to LSP-pad all these segments. */
-  Count pCL;       /* pages Condemned in Large segments */
-  Count sRL;       /* segments Retained: Large */
-  Count pRL;       /* pages Retained in Large segments */
-  Count pRLr;      /*   ...because a rest obj (actually LSP) was pip */
-
-  /* The interesting things about this report are:
-   *   - How many pages are actually being retained? (pRet)
-   *   - Percentage? (pRet/pCond)
-   *   - Is the major contribution from Small, Medium, or Large segs?
-   *
-   * Generally, pages retained because obj 1 needed to be preserved in 
-   * place are ok (because no alternative placement could have retained 
-   * fewer pages), but pages retained by a rest obj are unfortunate 
-   * (better placement, putting the small rest objs in their own seg, 
-   * would have retained fewer pages).  In particular:
-   *
-   * The LSP threshold is a payoff between the wasted space from 
-   * LSP-padding, versus the risk of increased page-retention (due to 
-   * rest objs) from not LSP-padding.
-   *
-   * For Medium segs, where we do not do LSP-padding:
-   *   - LSP would have required at most sCM extra pages;
-   *   - the extra retention incurred by not LSP-padding is pRMr1.
-   * A high pRMr1 => lots of Medium segs getting retained by the rest 
-   * objs tacked on after obj 1.  Consider lowering LSP-threshold.
-   *
-   * For Large segs we do LSP padding.  This has a cost; upper bound is 
-   * sCL extra pages.  But the benefit should be greatly reduced ambig 
-   * refs to rest objs.  With LSP, the only rest obj is the LSP pad 
-   * itself.  We expect that ambig refs to this are rare, so currently 
-   * we do not implement .large.lsp-no-retain.  But we do record the 
-   * occurrence of pages retained by a ref to an LSP pad: pPLr.  A high 
-   * pRLr => perhaps .large.lsp-no-retain should be implemented?
-   *
-   * If the mutator is causing a lot of page retention, then sRM/pRM
-   * and sRL/pRL should give some picture of the number of retained 
-   * objects and their average size.
-   */
-} PageRetStruct;
-
-/* static => init'd to zero */
-static struct PageRetStruct pageretstruct_Zero;
-
 typedef struct AMCStruct { /* <design/poolamc/#struct> */
   PoolStruct poolStruct;   /* generic pool structure */
   RankSet rankSet;         /* rankSet for entire pool */
@@ -474,10 +409,6 @@ typedef struct AMCStruct { /* <design/poolamc/#struct> */
   amcPinnedFunction pinned; /* function determining if block is pinned */
   Size extendBy;           /* segment size to extend pool by */
   Size largeSize;          /* min size of "large" segments */
-
-  /* page retention in an in-progress trace */
-  STATISTIC_DECL(PageRetStruct pageretstruct[TraceLIMIT]);
-
   Sig sig;                 /* <design/pool/#outer-structure.sig> */
 } AMCStruct;
 
@@ -804,8 +735,6 @@ static Res amcInitComm(Pool pool, RankSet rankSet, ArgList args)
   AMC amc;
   Res res;
   Arena arena;
-  TraceId ti;
-  Trace trace;
   Index i;
   size_t genArraySize;
   size_t genCount;
@@ -815,16 +744,6 @@ static Res amcInitComm(Pool pool, RankSet rankSet, ArgList args)
   Size largeSize = AMC_LARGE_SIZE_DEFAULT;
   ArgStruct arg;
   
-  /* Suppress a warning about this structure not being used when there
-     are no statistics.  Note that simply making the declaration conditional
-     does not work, because we carefully reference expressions inside
-     STATISTICS to prevent such warnings on parameters and local variables.
-     It's just that clang 4.0 on Mac OS X does some sort of extra check
-     that produces a special warnings about static variables. */
-#if !defined(STATISTICS)
-  UNUSED(pageretstruct_Zero);
-#endif
-
   AVER(pool != NULL);
 
   amc = PoolAMC(pool);
@@ -868,10 +787,6 @@ static Res amcInitComm(Pool pool, RankSet rankSet, ArgList args)
 
   amc->rampCount = 0;
   amc->rampMode = RampOUTSIDE;
-
-  TRACE_SET_ITER(ti, trace, TraceSetUNIV, arena)
-    STATISTIC(amc->pageretstruct[ti] = pageretstruct_Zero);
-  TRACE_SET_ITER_END(ti, trace, TraceSetUNIV, arena);
 
   if(pool->format->headerSize == 0) {
     pool->fix = AMCFix;
@@ -1309,24 +1224,6 @@ static Res AMCWhiten(Pool pool, Trace trace, Seg seg)
 
   amc = PoolAMC(pool);
   AVERT(AMC, amc);
-
-  STATISTIC_STAT( {
-    Count pages;
-    Size size = SegSize(seg);
-    AVER(SizeIsArenaGrains(size, pool->arena));
-    pages = size / ArenaGrainSize(pool->arena);
-    AVER(pages != 0);
-    amc->pageretstruct[trace->ti].pCond += pages;
-    if(pages == 1) {
-      amc->pageretstruct[trace->ti].pCS += pages;
-    } else if(size < amc->largeSize) {
-      amc->pageretstruct[trace->ti].sCM += 1;
-      amc->pageretstruct[trace->ti].pCM += pages;
-    } else {
-      amc->pageretstruct[trace->ti].sCL += 1;
-      amc->pageretstruct[trace->ti].pCL += pages;
-    }
-  } );
 
   gen = amcSegGen(seg);
   AVERT(amcGen, gen);
@@ -2059,38 +1956,6 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
     AVER(SegBuffer(seg) == NULL);
 
     PoolGenFree(&gen->pgen, seg, 0, SegSize(seg), 0, Seg2amcSeg(seg)->deferred);
-  } else {
-    /* Seg retained */
-    STATISTIC_STAT( {
-      Count pages;
-      Size size = SegSize(seg);
-      AVER(SizeIsArenaGrains(size, pool->arena));
-      pages = size / ArenaGrainSize(pool->arena);
-      AVER(pages != 0);
-      amc->pageretstruct[trace->ti].pRet += pages;
-      if(pages == 1) {
-        amc->pageretstruct[trace->ti].pRS += pages;
-      } else if(size < amc->largeSize) {
-        amc->pageretstruct[trace->ti].sRM += 1;
-        amc->pageretstruct[trace->ti].pRM += pages;
-        if(obj1pip) {
-          amc->pageretstruct[trace->ti].pRM1 += pages;
-        } else {
-          /* Seg retained by a rest obj.  Cost: one rest page, */
-          /* plus pages-1 pages of pure padding. */
-          amc->pageretstruct[trace->ti].pRMrr += 1;
-          amc->pageretstruct[trace->ti].pRMr1 += pages - 1;
-        }
-      } else {
-        amc->pageretstruct[trace->ti].sRL += 1;
-        amc->pageretstruct[trace->ti].pRL += pages;
-        if(!obj1pip) {
-          /* Seg retained by a rest obj */
-          amc->pageretstruct[trace->ti].pRLr += pages;
-        }
-      }
-    } );
-
   }
 }
 
@@ -2138,37 +2003,6 @@ static void AMCReclaim(Pool pool, Trace trace, Seg seg)
   trace->reclaimSize += SegSize(seg);
 
   PoolGenFree(&gen->pgen, seg, 0, SegSize(seg), 0, Seg2amcSeg(seg)->deferred);
-}
-
-
-/* AMCTraceEnd -- emit end-of-trace event */
-
-static void AMCTraceEnd(Pool pool, Trace trace)
-{
-  AMC amc;
-  TraceId ti;
-  
-  AVERT(Pool, pool);
-  AVERT(Trace, trace);
-
-  amc = PoolAMC(pool);
-  AVERT(AMC, amc);
-  ti = trace->ti;
-  AVERT(TraceId, ti);
-
-  STATISTIC_STAT ({
-    Count pRetMin = 100;
-    PageRetStruct *pr = &amc->pageretstruct[ti];
-    if(pr->pRet >= pRetMin) {
-      EVENT21(AMCTraceEnd, ArenaEpoch(pool->arena), (EventFU)trace->why,
-              ArenaGrainSize(pool->arena), amc->largeSize, pRetMin, pr->pCond,
-
-              pr->pRet, pr->pCS, pr->pRS, pr->sCM, pr->pCM, pr->sRM, pr->pRM,
-              pr->pRM1, pr->pRMrr, pr->pRMr1, pr->sCL, pr->pCL, pr->sRL,
-              pr->pRL, pr->pRLr);
-    }
-    *pr = pageretstruct_Zero;
-  });
 }
 
 
@@ -2458,7 +2292,6 @@ DEFINE_POOL_CLASS(AMCZPoolClass, this)
   this->fix = AMCFix;
   this->fixEmergency = AMCFixEmergency;
   this->reclaim = AMCReclaim;
-  this->traceEnd = AMCTraceEnd;
   this->rampBegin = AMCRampBegin;
   this->rampEnd = AMCRampEnd;
   this->addrObject = AMCAddrObject;
@@ -2579,7 +2412,6 @@ static Bool AMCCheck(AMC amc)
   /* if BEGIN or RAMPING, count must not be zero. */
   CHECKL((amc->rampCount != 0) || ((amc->rampMode != RampBEGIN) &&
                                    (amc->rampMode != RampRAMPING)));
-  /* pageretstruct[ti] is statistics only, currently unchecked */
 
   return TRUE;
 }
