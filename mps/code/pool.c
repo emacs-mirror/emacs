@@ -321,6 +321,7 @@ void PoolFree(Pool pool, Addr old, Size size)
   AVER(old != NULL);
   /* The pool methods should check that old is in pool. */
   AVER(size > 0);
+  AVER(AddrIsAligned(old, pool->alignment));
   AVER(PoolHasRange(pool, old, AddrAdd(old, size)));
 
   (*pool->class->free)(pool, old, size);
