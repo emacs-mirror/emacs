@@ -242,8 +242,8 @@ allowing the MPS to detect whether they have changed.
     The type of :term:`root modes`.
 
     It should be zero (meaning neither constant or protectable), or
-    the sum of some subset of :c:macro:`MPS_RM_CONST` and
-    :c:macro:`MPS_RM_PROT`.
+    the sum of some of :c:macro:`MPS_RM_CONST`,
+    :c:macro:`MPS_RM_PROT`, and :c:macro:`MPS_RM_PROT_INNER`.
 
 
 .. c:macro:: MPS_RM_CONST
@@ -288,6 +288,14 @@ allowing the MPS to detect whether they have changed.
         This mode may not be suitable if the :term:`client program`
         wants the operating system to be able to access the root. Many
         operating systems can't cope with writing to protected pages.
+
+.. c:macro:: MPS_RM_PROT_INNER
+
+    The :term:`root mode` for :term:`protectable roots` whose inner
+    pages (only) may be protected. This mode must not be specified
+    unless :c:macro:`MPS_RM_PROT` is also specified. It tells the MPS
+    that it may not place a :term:`barrier (1)` on a :term:`page`
+    that's partly (but not wholly) covered by the :term:`root`.
 
 
 .. index::
