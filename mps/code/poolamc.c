@@ -832,7 +832,6 @@ static Res amcInitComm(Pool pool, RankSet rankSet, ArgList args)
 
   ArgRequire(&arg, args, MPS_KEY_FORMAT);
   pool->format = arg.val.format;
-  RingAppend(&pool->format->poolRing, &pool->formatRing);
   if (ArgPick(&arg, args, MPS_KEY_CHAIN))
     chain = arg.val.chain;
   else
