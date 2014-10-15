@@ -519,7 +519,10 @@ as the ewoc pretty-printer."
   (setq-local buffer-read-only t)
   (setq-local buffer-undo-list t)
   (setq-local revert-buffer-function #'tabulated-list-revert)
-  (setq-local glyphless-char-display tabulated-list-glyphless-char-display))
+  (setq-local glyphless-char-display tabulated-list-glyphless-char-display)
+  ;; Avoid messing up the entries' display just because the first
+  ;; column of the first entry happens to begin with a R2L letter.
+  (setq bidi-paragraph-direction 'left-to-right))
 
 (put 'tabulated-list-mode 'mode-class 'special)
 

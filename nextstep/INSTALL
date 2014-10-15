@@ -2,6 +2,16 @@ Copyright (C) 2008-2014 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 
+Requirements
+------------
+Mac OS X 10.6 or later
+
+- or -
+
+GNUstep "Startup 0.23" or later
+Tested on GNU/Linux, may work on other systems.
+
+
 Compilation
 -----------
 

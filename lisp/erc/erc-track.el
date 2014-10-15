@@ -860,7 +860,7 @@ Use `erc-make-mode-line-buffer-name' to create buttons."
 			faces (cdr faces)))
 		strings)))
 	   (newobject (erc-modified-channels-object strings)))
-      (unless (equal oldobject newobject)
+      (unless (equal-including-properties oldobject newobject)
 	(setq erc-modified-channels-object newobject)
 	(force-mode-line-update t)))))
 

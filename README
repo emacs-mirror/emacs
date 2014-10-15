@@ -39,10 +39,7 @@ process of building and installing Emacs.  See INSTALL for more
 detailed information.
 
 The file `configure.ac' is the input used by the autoconf program to
-construct the `configure' script.  Since Emacs has some configuration
-requirements that autoconf can't meet directly, and for historical
-reasons, `configure.ac' uses an unholy marriage of custom-baked
-configuration code and autoconf macros.
+construct the `configure' script.
 
 The shell script `autogen.sh' generates 'configure' and other files by
 running the GNU build tools autoconf and automake, which in turn use

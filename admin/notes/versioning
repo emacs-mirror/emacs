@@ -1,0 +1,26 @@
+GNU EMACS VERSIONING                                   -*- org -*-
+
+Ref: http://lists.gnu.org/archive/html/emacs-devel/2014-09/msg00872.html
+
+Emacs version numbers have the form
+
+  major.minor[.devel].build
+
+"build" increments each time Emacs is built in the same location
+(without cleaning) and isn't really part of the version.
+
+bugfix releases increase "minor" by 1.
+non-bugfix releases increase "major" by 1, and reset "minor" to 1.
+(The division between bugfix and non-bugfix has not always been clear
+historically.)
+
+Unreleased (development) versions have an extra "devel" component.
+This is a fairly meaningless number that may be unchanged for a long time.
+It is normally 50.
+When the release process starts, it changes to 90, 91, ...
+When the actual release is made, this component is removed.
+
+The development version for a new major release has "minor" = 0.
+The development version for a new minor release has "minor" = that of
+the previous release.
+

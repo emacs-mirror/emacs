@@ -255,18 +255,27 @@ Blank lines separate paragraphs.  Semicolons start comments.
                        (dolist (binding bindings)
                          (push (or (car-safe binding) binding) vars))
                        (elisp--local-variables-1 vars (car (last body)))))
-                    (`(lambda ,_) (setq sexp nil))
+                    (`(lambda ,_args)
+                     ;; FIXME: Look for the witness inside `args'.
+                     (setq sexp nil))
                     (`(lambda ,args . ,body)
                      (elisp--local-variables-1
-                      (append args vars) (car (last body))))
+                      (append (remq '&optional (remq '&rest args)) vars)
+                      (car (last body))))
                     (`(condition-case ,_ ,e) (elisp--local-variables-1 vars e))
                     (`(condition-case ,v ,_ . ,catches)
                      (elisp--local-variables-1
                       (cons v vars) (cdr (car (last catches)))))
+                    (`(quote . ,_)
+                     ;; FIXME: Look for the witness inside sexp.
+                     (setq sexp nil))
+                    ;; FIXME: Handle `cond'.
                     (`(,_ . ,_)
                      (elisp--local-variables-1 vars (car (last sexp))))
                     (`elisp--witness--lisp (or vars '(nil)))
                     (_ nil)))
+          ;; We didn't find the witness in the last element so we try to
+          ;; backtrack to the last-but-one.
           (setq sexp (ignore-errors (butlast sexp)))))
     res))
 

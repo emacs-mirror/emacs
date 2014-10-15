@@ -1,6 +1,5 @@
 GNU Emacs Installation Guide
-Copyright (C) 1992, 1994, 1996-1997, 2000-2014 Free Software Foundation,
-Inc.
+Copyright (C) 1992, 1994, 1996-1997, 2000-2014 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 
@@ -34,9 +33,9 @@ some of the steps manually.  The more detailed description in the other
 sections of this guide will help you do that, so please refer to those
 sections if you need to.
 
-  1. Unpacking the Emacs 24.1 release requires about 180 MB of free
-  disk space.  Building Emacs uses about another 70 MB of space.
-  The final installed Emacs uses about 110 MB of disk space.
+  1. Unpacking the Emacs 24 release requires about 200 MB of free
+  disk space.  Building Emacs uses about another 200 MB of space.
+  The final installed Emacs uses about 150 MB of disk space.
   This includes the space-saving that comes from automatically
   compressing the Lisp source files on installation.
 
@@ -208,24 +207,11 @@ corresponding command is `yum-builddep emacs'.
 
 DETAILED BUILDING AND INSTALLATION:
 
-(This is for a Unix or Unix-like system.  For MS-DOS and MS Windows 3.X,
-see msdos/INSTALL.  For later versions of MS Windows, see the file
-nt/INSTALL.  For GNUstep and Mac OS X, see nextstep/INSTALL.)
+(This is for a Unix or Unix-like system.  For GNUstep and Mac OS X,
+see nextstep/INSTALL.  For non-ancient versions of MS Windows, see
+the file nt/INSTALL.  For MS-DOS and MS Windows 3.X, see msdos/INSTALL.)
 
-1) Make sure your system has enough swapping space allocated to handle
-a program whose pure code is 1.5 MB and whose data area is at
-least 2.8 MB and can reach 100 MB or more.  If the swapping space is
-insufficient, you will get an error in the command `temacs -batch -l
-loadup dump', found in `./src/Makefile.in', or possibly when
-running the final dumped Emacs.  (This should not be an issue
-on any recent system.)
-
-Building Emacs requires about 230 MB of disk space (including the
-Emacs sources).  Once installed, Emacs occupies about 120 MB in the file
-system where it is installed; this includes the executable files, Lisp
-libraries, miscellaneous data files, and on-line documentation.  If
-the building and installation take place in different directories,
-then the installation procedure momentarily requires 230+120 MB.
+1) See the basic installation summary above for the disk space requirements.
 
 2) In the unlikely event that `configure' does not detect your system
 type correctly, consult `./etc/MACHINES' to see what --host, --build
@@ -264,8 +250,7 @@ Gtk or Motif, if you have the Xaw3d library installed (see
 "Image support libraries" above for Xaw3d availability).
 
 You can tell configure where to search for GTK by giving it the
-argument PKG_CONFIG='/full/name/of/pkg-config'.  GTK version 2.6 or
-newer is required for Emacs.
+argument PKG_CONFIG='/full/name/of/pkg-config'.
 
 Emacs will autolaunch a D-Bus session bus, when the environment
 variable DISPLAY is set, but no session bus is running.  This might be
@@ -374,8 +359,7 @@ without sound support.
 `configure' doesn't do any compilation or installation itself.
 It just creates the files that influence those things:
 `./Makefile' in the top-level directory and several subdirectories;
-and `./src/config.h'.  For details on exactly what it does, see the
-section called `CONFIGURATION BY HAND', below.
+and `./src/config.h'.
 
 When it is done, `configure' prints a description of what it did and
 creates a shell script `config.status' which, when run, recreates the
@@ -430,11 +414,6 @@ those libraries are.  For example:
   ./configure \
     PKG_CONFIG_PATH='/usr/local/alsa/lib/pkgconfig:/opt/gtk+-2.8/lib/pkgconfig'
 
-The work of `configure' can be done by editing various files in the
-distribution, but using `configure' is easier.  See the section called
-"CONFIGURATION BY HAND" below if you want to do the configuration
-yourself.
-
 3b) To build in a separate directory, go to that directory
 and run the program `configure' as follows:
 
@@ -443,9 +422,6 @@ and run the program `configure' as follows:
 SOURCE-DIR refers to the top-level Emacs source directory which is
 where Emacs's configure script is located.  `configure' looks for the
 Emacs source code in the directory that `configure' is in.
-
-(Do not try to build in a separate directory by creating many links to
-the real source directory--there is no need, and installation will fail.)
 
 4) Put into `./lisp/site-init.el' or `./lisp/site-load.el' any Emacs
 Lisp code you want Emacs to load before it is dumped out.  Use
@@ -559,11 +535,7 @@ to enable it to write the lock files.  We believe this is safe.
 9) You are done!  You can remove executables and object files from
 the build directory by typing `make clean'.  To also remove the files
 that `configure' created (so you can compile Emacs for a different
-configuration), type `make distclean'.  If you don't need some, or all
-of the input methods from the Leim package, you can remove the
-unneeded files in the leim subdirectories of your site's lisp
-directory (usually /usr/local/share/emacs/VERSION/).
-
+configuration), type `make distclean'.
 
 
 MAKE VARIABLES
@@ -669,94 +641,6 @@ before you run `make'.
 The top-level Makefile stores the variable settings it used in the
 Makefiles for the subdirectories, so you don't have to specify them
 when running make in the subdirectories.
-
-
-CONFIGURATION BY HAND
-
-This should not be necessary and is not recommended.  Instead of
-running the `configure' program, you have to perform the following steps.
-
-1) Copy `./src/config.in' to `./src/config.h'.
-
-2) Edit `./src/config.h' to set the right options for your system.
-
-3) Create `Makefile' files in various directories from the
-corresponding `Makefile.in' files.  This isn't so hard, just a matter
-of editing in appropriate substitutions for the @...@ constructs.
-
-The `configure' script is built from `configure.ac' by the
-`autogen.sh' script, which checks that `autoconf' and other build
-tools are sufficiently up to date and then runs the build tools.
-
-BUILDING GNU EMACS BY HAND
-
-Once Emacs is configured, running `make' in the top directory performs
-the following steps.
-
-1) Run `make epaths-force' in the top directory.  This produces
-`./src/epaths.h' from the template file `./src/epaths.in', changing
-the paths to the values specified in `./Makefile'.
-
-2) Go to directory `./lib' and run `make'.  This creates include files
-and libraries used in later steps.
-
-3) Go to directory `./lib-src' and run `make'.  This creates
-executables named `etags', `make-docfile', and others.
-
-4) Go to directory `./src' and run `make'.  This refers to files in
-the `./lisp', `./lib', and `./lib-src' subdirectories using names
-`../lisp', `../lib', and `../lib-src'.
-
-This creates a file `./src/emacs' which is the runnable Emacs,
-which has another name that contains a version number.
-Each time you do this, that version number increments in the last place.
-
-It also creates a file in `./etc' whose name is `DOC' followed by the
-current Emacs version.  This file contains documentation strings for
-all the functions in Emacs.  Each time you run make to make a new
-emacs, a new DOC file with a new name is made.  You must keep the DOC
-file for an Emacs version as long as you keep using that Emacs version.
-
-
-INSTALLATION BY HAND
-
-The steps below are done by running `make install' in the main
-directory of the Emacs distribution.
-
-1) Copy `./lisp' and its subdirectories, `./etc', and the executables
-in `./lib-src' to their final destinations, as selected in `./src/epaths.h'.
-
-Strictly speaking, not all of the executables in `./lib-src' need be copied.
-- The programs `hexl', `movemail', `profile', and `rcs2log'
-    are used by Emacs; they do need to be copied.
-- The programs `etags', `ctags', and `emacsclient' are intended to be
-    run by users; they are handled below.
-- The program `make-docfile' was used in building Emacs, and is
-    not needed any more.
-
-2) Copy the files in `./info' to the place specified in
-`./lisp/site-init.el' or `./lisp/info.el'.  Note that if the
-destination directory already contains a file named `dir', you
-probably don't want to replace it with the `dir' file in the Emacs
-distribution.  Instead, you should make sure that the existing `dir'
-file contains an appropriate menu entry for the Emacs info.
-
-3) Copy `./src/emacs' to `/usr/local/bin', or to some other directory
-in users' search paths.  `./src/emacs' has an alternate name
-`./src/emacs-EMACSVERSION'; you may wish to make a symbolic link named
-`/usr/local/bin/emacs' pointing to that alternate name, as an easy way
-of installing different versions.
-
-You can delete `./src/temacs'.
-
-4) Copy the programs `emacsclient', `ctags', and `etags' from `./lib-src'
-to `/usr/local/bin'.  These programs are intended for users to run.
-
-5) Copy the man pages in `./doc/man' into the appropriate man directory.
-
-6) The files in the `./src' subdirectory, except for `emacs', are not
-used by Emacs once it is built.  However, it is very desirable to keep
-the source on line for debugging.
 
 
 PROBLEMS
