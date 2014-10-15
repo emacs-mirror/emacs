@@ -779,7 +779,8 @@ when the action is chosen.")
   "Call function FUN on all widgets in `custom-options'.
 If there is more than one widget, ask user for confirmation using
 the query string QUERY, using `y-or-n-p' if STRONG-QUERY is nil,
-and `yes-or-no-p' otherwise."
+and `yes-or-no-p' otherwise.  Return non-nil if the functionality
+has been executed, nil otherwise."
   (if (or (and (= 1 (length custom-options))
 	       (memq (widget-type (car custom-options))
 		     '(custom-variable custom-face)))
@@ -892,16 +893,16 @@ making them as if they had never been customized at all."
   ;; Bind these temporarily.
   (let ((custom-reset-standard-variables-list '(t))
 	(custom-reset-standard-faces-list '(t)))
-    (custom-command-apply
-     (lambda (widget)
-       (and (or (null (widget-get widget :custom-standard-value))
-		(widget-apply widget :custom-standard-value))
-	    (memq (widget-get widget :custom-state)
-		  '(modified set changed saved rogue))
-	    (widget-apply widget :custom-mark-to-reset-standard)))
-     "The settings will revert to their default values, in this
+    (if (custom-command-apply
+	 (lambda (widget)
+	   (and (or (null (widget-get widget :custom-standard-value))
+		    (widget-apply widget :custom-standard-value))
+		(memq (widget-get widget :custom-state)
+		      '(modified set changed saved rogue))
+		(widget-apply widget :custom-mark-to-reset-standard)))
+	 "The settings will revert to their default values, in this
 and future sessions.  Really erase customizations? " t)
-    (custom-reset-standard-save-and-update)))
+	(custom-reset-standard-save-and-update))))
 
 ;;; The Customize Commands
 

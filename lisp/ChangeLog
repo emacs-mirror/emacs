@@ -1,3 +1,10 @@
+2014-10-15  Alan Mackenzie  <acm@muc.de>
+
+	* cus-edit.el (custom-command-apply): Specify the return value in
+	the doc string.
+	(Custom-reset-standard): Save custom-file (e.g. .emacs) only when
+	custom-command-apply has returned non-nil.
+
 2014-10-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/lisp.el (lisp--local-variables-1): Handle `quote'.
