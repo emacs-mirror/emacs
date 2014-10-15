@@ -1,3 +1,11 @@
+2014-10-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* semantic/wisent/comp.el (wisent-defcontext): Move declarations
+	outside of eval-when-compile.  Use `declare'.
+	(wisent-with-context): Add `defvar' declarations in case this macro is
+	used in a file compiled with lexical-binding.
+	(wisent-semantic-action-expand-body): Avoid add-to-list on local var.
+
 2014-09-22  David Engster  <deng@randomsample.de>
 
 	* ede/emacs.el (ede-emacs-version): Do not call 'egrep' to

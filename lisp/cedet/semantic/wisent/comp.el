@@ -41,6 +41,7 @@
 
 ;;; Code:
 (require 'semantic/wisent)
+(eval-when-compile (require 'cl))
 
 ;;;; -------------------
 ;;;; Misc. useful things
@@ -66,18 +67,23 @@
 
 (defmacro wisent-defcontext (name &rest vars)
   "Define a context NAME that will bind variables VARS."
+  (declare (indent 1))
   (let* ((context (wisent-context-name name))
-         (bindings (mapcar #'(lambda (v) (list 'defvar v)) vars)))
-    `(eval-when-compile
-       ,@bindings
-       (defvar ,context ',vars))))
-(put 'wisent-defcontext 'lisp-indent-function 1)
+         (declarations (mapcar #'(lambda (v) (list 'defvar v)) vars)))
+    `(progn
+       ,@declarations
+       (eval-when-compile
+         (defvar ,context ',vars)))))
 
 (defmacro wisent-with-context (name &rest body)
   "Bind variables in context NAME then eval BODY."
-  `(let* ,(wisent-context-bindings name)
-     ,@body))
-(put 'wisent-with-context 'lisp-indent-function 1)
+  (declare (indent 1))
+  (let ((bindings (wisent-context-bindings name)))
+    `(progn
+       ,@(mapcar (lambda (binding) `(defvar ,(or (car-safe binding) binding)))
+                 bindings)
+       (let* ,bindings
+         ,@body))))
 
 ;; A naive implementation of data structures!  But it suffice here ;-)
 
@@ -2896,7 +2902,7 @@ references found in BODY, and XBODY is BODY expression with
       (progn
         (if (wisent-check-$N body n)
             ;; Accumulate $i symbol
-            (add-to-list 'found body))
+            (pushnew body found :test #'equal))
         (cons found body))
     ;; BODY is a list, expand inside it
     (let (xbody sexpr)
@@ -2916,7 +2922,7 @@ references found in BODY, and XBODY is BODY expression with
          ;; $i symbol
          ((wisent-check-$N sexpr n)
           ;; Accumulate $i symbol
-          (add-to-list 'found sexpr))
+          (pushnew sexpr found :test #'equal))
          )
         ;; Accumulate expanded forms
         (setq xbody (nconc xbody (list sexpr))))
