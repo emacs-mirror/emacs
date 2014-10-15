@@ -127,6 +127,11 @@ Unicode standards.
 *** New minor mode global-eldoc-mode
 *** eldoc-documentation-function now defaults to nil
 
+** Message mode
+
+*** text/html messages that contain inline image parts will be
+transformed into multipart/related messages before sending.
+
 ** pcase
 *** New UPatterns `quote' and `app'.
 *** New UPatterns can be defined with `pcase-defmacro'.
