@@ -1,5 +1,12 @@
 2014-10-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/m4-mode.el (m4-syntax-propertize): New var.
+	(m4-mode): Use it.
+	(m4--quoted-p): New function.
+	(m4-font-lock-keywords): Don't handle #..\n comments any more.
+	(m4-mode-syntax-table): Use punctuation syntax (according to m4 manual)
+	for most special characters.
+
 	* progmodes/compile.el (compilation--previous-directory): Simplify.
 	(compilation-next-error): Ensure the parse before we look at
 	compilation-message property.
