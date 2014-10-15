@@ -2359,6 +2359,7 @@ typedef struct bpa_stack_entry {
      }									\
    bpa_stack[bpa_sp].close_bracket_char = bidi_mirror_char (bidi_it->ch); \
    bpa_stack[bpa_sp].open_bracket_idx = bidi_cache_last_idx;		\
+   bpa_stack[bpa_sp].flags = 0;						\
    STORE_BRACKET_CHARPOS;						\
   } while (0)
 
