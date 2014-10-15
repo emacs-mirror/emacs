@@ -54,7 +54,9 @@ FORCE =
 FORCE:
 .PHONY: FORCE
 
-${unidir}/charprop.el: ${FORCE} ${srcdir}/unidata-gen.el ${srcdir}/UnicodeData.txt | \
+${unidir}/charprop.el: ${FORCE} ${srcdir}/unidata-gen.el \
+  ${srcdir}/UnicodeData.txt ${srcdir}/BidiMirroring.txt \
+  ${srcdir}/BidiBrackets.txt | \
   ${srcdir}/unidata-gen.elc unidata.txt
 	-if [ -f "$@" ]; then \
 	  cd ${unidir} && chmod +w charprop.el `sed -n 's/^;; FILE: //p' < charprop.el`; \

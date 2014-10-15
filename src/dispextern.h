@@ -445,8 +445,8 @@ struct glyph
   /* True means don't display cursor here.  */
   bool_bf avoid_cursor_p : 1;
 
-  /* Resolved bidirectional level of this character [0..63].  */
-  unsigned resolved_level : 5;
+  /* Resolved bidirectional level of this character [0..127].  */
+  unsigned resolved_level : 7;
 
   /* Resolved bidirectional type of this character, see enum
      bidi_type_t below.  Note that according to UAX#9, only some
@@ -1857,7 +1857,9 @@ GLYPH_CODE_P (Lisp_Object gc)
 extern int face_change_count;
 
 /* For reordering of bidirectional text.  */
-#define BIDI_MAXLEVEL 64
+
+/* UAX#9's max_depth value.  */
+#define BIDI_MAXDEPTH 125
 
 /* Data type for describing the bidirectional character types.  The
    first 7 must be at the beginning, because they are the only values
@@ -1894,23 +1896,39 @@ typedef enum {
   NEUTRAL_ON	/* other neutrals */
 } bidi_type_t;
 
+/* Data type for describing the Bidi Paired Bracket Type of a character.
+
+   The order of members must be in sync with the 8th element of the
+   member of unidata-prop-alist (in admin/unidata/unidata-gen.el) for
+   Unicode character property `bracket-type'.  */
+typedef enum {
+  BIDI_BRACKET_NONE = 1,
+  BIDI_BRACKET_OPEN,
+  BIDI_BRACKET_CLOSE
+} bidi_bracket_type_t;
+
 /* The basic directionality data type.  */
 typedef enum { NEUTRAL_DIR, L2R, R2L } bidi_dir_t;
 
 /* Data type for storing information about characters we need to
    remember.  */
 struct bidi_saved_info {
-  ptrdiff_t bytepos, charpos;	/* character's buffer position */
+  ptrdiff_t charpos;		/* character's buffer position */
   bidi_type_t type;		/* character's resolved bidi type */
-  bidi_type_t type_after_w1;	/* original type of the character, after W1 */
-  bidi_type_t orig_type;	/* type as we found it in the buffer */
+  bidi_type_t orig_type;	/* bidi type as we found it in the buffer */
 };
 
-/* Data type for keeping track of saved embedding levels and override
-   status information.  */
+/* Data type for keeping track of information about saved embedding
+   levels, override status, isolate status, and isolating sequence
+   runs.  */
 struct bidi_stack {
-  int level;
-  bidi_dir_t override;
+  struct bidi_saved_info last_strong;
+  struct bidi_saved_info next_for_neutral;
+  struct bidi_saved_info prev_for_neutral;
+  unsigned level : 7;
+  bool_bf isolate_status : 1;
+  unsigned override : 2;
+  unsigned sos : 2;
 };
 
 /* Data type for storing information about a string being iterated on.  */
@@ -1935,22 +1953,24 @@ struct bidi_it {
   ptrdiff_t nchars;		/* its "length", usually 1; it's > 1 for a run
 				   of characters covered by a display string */
   ptrdiff_t ch_len;		/* its length in bytes */
-  bidi_type_t type;		/* bidi type of this character, after
+  bidi_type_t type;		/* final bidi type of this character, after
 				   resolving weak and neutral types */
-  bidi_type_t type_after_w1;	/* original type, after overrides and W1 */
-  bidi_type_t orig_type;	/* original type, as found in the buffer */
-  int resolved_level;		/* final resolved level of this character */
-  int invalid_levels;		/* how many PDFs to ignore */
-  int invalid_rl_levels;	/* how many PDFs from RLE/RLO to ignore */
+  bidi_type_t type_after_wn;	/* bidi type after overrides and Wn */
+  bidi_type_t orig_type;	/* original bidi type, as found in the buffer */
+  char resolved_level;		/* final resolved level of this character */
+  char isolate_level;		/* count of isolate initiators unmatched by PDI */
+  ptrdiff_t invalid_levels;	/* how many PDFs to ignore */
+  ptrdiff_t invalid_isolates;	/* how many PDIs to ignore */
   struct bidi_saved_info prev;	/* info about previous character */
   struct bidi_saved_info last_strong; /* last-seen strong directional char */
   struct bidi_saved_info next_for_neutral; /* surrounding characters for... */
   struct bidi_saved_info prev_for_neutral; /* ...resolving neutrals */
   struct bidi_saved_info next_for_ws; /* character after sequence of ws */
+  ptrdiff_t bracket_pairing_pos;	/* position of pairing bracket */
+  bidi_type_t bracket_enclosed_type;	/* type for bracket resolution */
   ptrdiff_t next_en_pos;	/* pos. of next char for determining ET type */
   bidi_type_t next_en_type;	/* type of char at next_en_pos */
-  ptrdiff_t ignore_bn_limit;	/* position until which to ignore BNs */
-  bidi_dir_t sor;		/* direction of start-of-run in effect */
+  bidi_dir_t sos;		/* direction of start-of-sequence in effect */
   int scan_dir;			/* direction of text scan, 1: forw, -1: back */
   ptrdiff_t disp_pos;		/* position of display string after ch */
   int disp_prop;		/* if non-zero, there really is a
@@ -1960,12 +1980,11 @@ struct bidi_it {
   /* Note: Everything from here on is not copied/saved when the bidi
      iterator state is saved, pushed, or popped.  So only put here
      stuff that is not part of the bidi iterator's state!  */
-  struct bidi_stack level_stack[BIDI_MAXLEVEL]; /* stack of embedding levels */
+  struct bidi_stack level_stack[BIDI_MAXDEPTH+2+1]; /* directional status stack */
   struct bidi_string_data string;	/* string to reorder */
   struct window *w;		/* the window being displayed */
   bidi_dir_t paragraph_dir;	/* current paragraph direction */
   ptrdiff_t separator_limit;	/* where paragraph separator should end */
-  bool_bf prev_was_pdf : 1;	/* if true, previous char was PDF */
   bool_bf first_elt : 1;	/* if true, examine current char first */
   bool_bf new_paragraph : 1;	/* if true, we expect a new paragraph */
   bool_bf frame_window_p : 1;	/* true if displaying on a GUI frame */

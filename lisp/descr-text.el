@@ -434,13 +434,26 @@ relevant to POS."
                     code (encode-char char charset)))
         (setq code char))
       (cond
-       ;; Append a PDF character to directional embeddings and
-       ;; overrides, to prevent potential messup of the following
-       ;; text.
-       ((memq char '(?\x202a ?\x202b ?\x202d ?\x202e))
+       ;; Append a PDF character to left-to-right directional
+       ;; embeddings and overrides, to prevent potential messup of the
+       ;; following text.
+       ((memq char '(?\x202a ?\x202d))
 	(setq char-description
 	      (concat char-description
 		      (propertize (string ?\x202c) 'invisible t))))
+       ;; Append a PDF character followed by LRM to right-to-left
+       ;; directional embeddings and overrides, to prevent potential
+       ;; messup of the following numerical text.
+       ((memq char '(?\x202b ?\x202e))
+	(setq char-description
+	      (concat char-description
+		      (propertize (string ?\x202c ?\x200e) 'invisible t))))
+       ;; Append a PDI character to directional isolate initiators, to
+       ;; prevent potential messup of the following numerical text
+       ((memq char '(?\x2066 ?\x2067 ?\x2068))
+	(setq char-description
+	      (concat char-description
+		      (propertize (string ?\x2069) 'invisible t))))
        ;; Append a LRM character to any strong character to avoid
        ;; messing up the numerical codepoint.
        ((memq (get-char-code-property char 'bidi-class) '(R AL))

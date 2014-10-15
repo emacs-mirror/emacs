@@ -468,18 +468,18 @@ define pgx
   end
   # GLYPHLESS_GLYPH
   if ($g.type == 2)
-    printf "GLYPHLESS["
+    printf "G-LESS["
     if ($g.u.glyphless.method == 0)
-      printf "THIN]"
+      printf "THIN;0x%x]", $g.u.glyphless.ch
     end
     if ($g.u.glyphless.method == 1)
-      printf "EMPTY]"
+      printf "EMPTY;0x%x]", $g.u.glyphless.ch
     end
     if ($g.u.glyphless.method == 2)
-      printf "ACRO]"
+      printf "ACRO;0x%x]", $g.u.glyphless.ch
     end
     if ($g.u.glyphless.method == 3)
-      printf "HEX]"
+      printf "HEX;0x%x]", $g.u.glyphless.ch
     end
   end
   # IMAGE_GLYPH
@@ -498,7 +498,7 @@ define pgx
     printf " pos=%d", $g.charpos
   end
   # For characters, print their resolved level and bidi type
-  if ($g.type == 0)
+  if ($g.type == 0 || $g.type == 2)
     printf " blev=%d,btyp=", $g.resolved_level
     pbiditype $g.bidi_type
   end

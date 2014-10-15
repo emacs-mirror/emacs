@@ -110,6 +110,14 @@ character in the pasted text as actual user input.  This results in a
 paste experience similar to that under a window system, and significant
 performance improvements when pasting large amounts of text.
 
+** Emacs now supports the latest version of the UBA.
+The Emacs implementation of the Unicode Bidirectional Algorithm (UBA)
+was updated to support all the latest additions and changes introduced
+in Unicode Standard versions 6.3 and 7.0, and a few changes suggested
+for Unicode 8.0.  This includes full support for directional isolates
+and the Bidirectional Parentheses Algorithm (BPA) specified by these
+Unicode standards.
+
 
 * Changes in Specialized Modes and Packages in Emacs 25.1
 

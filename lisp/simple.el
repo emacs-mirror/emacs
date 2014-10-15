@@ -1223,15 +1223,21 @@ in *Help* buffer.  See also the command `describe-char'."
   (interactive "P")
   (let* ((char (following-char))
 	 (bidi-fixer
-	  (cond ((memq char '(?\x202a ?\x202b ?\x202d ?\x202e))
-		 ;; If the character is one of LRE, LRO, RLE, RLO, it
-		 ;; will start a directional embedding, which could
-		 ;; completely disrupt the rest of the line (e.g., RLO
-		 ;; will display the rest of the line right-to-left).
-		 ;; So we put an invisible PDF character after these
-		 ;; characters, to end the embedding, which eliminates
-		 ;; any effects on the rest of the line.
+	  ;; If the character is one of LRE, LRO, RLE, RLO, it will
+	  ;; start a directional embedding, which could completely
+	  ;; disrupt the rest of the line (e.g., RLO will display the
+	  ;; rest of the line right-to-left).  So we put an invisible
+	  ;; PDF character after these characters, to end the
+	  ;; embedding, which eliminates any effects on the rest of
+	  ;; the line.  For RLE and RLO we also append an invisible
+	  ;; LRM, to avoid reordering the following numerical
+	  ;; characters.  For LRI/RLI/FSI we append a PDI.
+	  (cond ((memq char '(?\x202a ?\x202d))
 		 (propertize (string ?\x202c) 'invisible t))
+		((memq char '(?\x202b ?\x202e))
+		 (propertize (string ?\x202c ?\x200e) 'invisible t))
+		((memq char '(?\x2066 ?\x2067 ?\x2068))
+		 (propertize (string ?\x2069) 'invisible t))
 		;; Strong right-to-left characters cause reordering of
 		;; the following numerical characters which show the
 		;; codepoint, so append LRM to countermand that.

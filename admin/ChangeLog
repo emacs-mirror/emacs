@@ -1,3 +1,18 @@
+2014-10-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* unidata/unidata-gen.el (unidata-prop-alist): New properties
+	'paired-bracket' and 'bracket-type', in support of the UBA 6.3.
+	(unidata-gen-table): Support PROP-IDX being a function.
+	(unidata-describe-bidi-bracket-type, unidata-gen-brackets-list)
+	(unidata-gen-bracket-type-list): New functions.
+	(unidata-check): Support checking the 'bracket-type' attribute.
+	(unidata-gen-files): Don't create backups for uni-*.el files.
+
+	* unidata/Makefile.in (${unidir}/charprop.el): Depend on
+	BidiMirroring.txt and BidiBrackets.txt.
+
+	* unidata/BidiBrackets.txt: New file, from Unicode.
+
 2014-10-13  Glenn Morris  <rgm@gnu.org>
 
 	* authors.el (authors-aliases, authors-fixed-case)

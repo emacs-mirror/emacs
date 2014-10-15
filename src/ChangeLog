@@ -1,3 +1,70 @@
+2014-10-15  Eli Zaretskii  <eliz@gnu.org>
+
+	Update the bidirectional reordering engine for Unicode 6.3 and 7.0.
+	* bidi.c (bidi_ignore_explicit_marks_for_paragraph_level): Remove
+	variable.
+	(bidi_get_type): Return the isolate initiators and terminator
+	types.
+	(bidi_isolate_fmt_char, bidi_paired_bracket_type)
+	(bidi_fetch_char_skip_isolates, find_first_strong_char)
+	(bidi_find_bracket_pairs, bidi_resolve_brackets): New functions.
+	(bidi_set_sos_type): Renamed from bidi_set_sor_type and updated
+	for the new features.
+	(bidi_push_embedding_level, bidi_pop_embedding_level): Update to
+	push and pop correctly for isolates.
+	(bidi_remember_char): Modified to accept an additional argument
+	and record the bidi type according to its value.
+	(bidi_cache_iterator_state): Accept an additional argument to only
+	update an existing state.  Handle the new members of struct bidi_it.
+	(bidi_cache_find): Arguments changed: no lnger accepts a level,
+	instead accepts a flag telling it whether it is okay to return
+	unresolved neutrals.
+	(bidi_initialize): Initiate and staticpro the bracket-type uniprop
+	table.  Initialize new isolate-related members.
+	(bidi_paragraph_init): Some code factored out into
+	find_first_strong_char.
+	(bidi_resolve_explicit_1): Function deleted, its code incorporated
+	into bidi_resolve_explicit.
+	(bidi_resolve_explicit): Support the isolate initiators and
+	terminator.  Fix handling of embeddings and overrides according to
+	new UBA requirements.  Record information about previously seen
+	characters here (moved from bidi_level_of_next_char).
+	(bidi_resolve_weak): Adapt to changes in struct members.
+	(FLAG_EMBEDDING_INSIDE, FLAG_OPPOSITE_INSIDE, MAX_BPA_STACK)
+	(STORE_BRACKET_CHARPOS, PUSH_BPA_STACK): New macros.
+	(bidi_resolve_neutral): Call bidi_resolve_brackets to handle the
+	paired bracket resolution.  Handle isolate initiators and
+	terminator.
+	(bidi_type_of_next_char): Remove unneeded code for BN limit.
+	(bidi_level_of_next_char): Move the code that records information
+	about previous characters to bidi_resolve_explicit.  Fix logic of
+	resolving neutrals and make sure their cache entries are updated.
+	Remove now unneeded special handling of PDF level.
+
+	* dispextern.h (struct glyph): Enlarge the width of resolved_level.
+	(BIDI_MAXDEPTH): New macro, renamed from BIDI_MAXLEVEL and
+	enlarged per Unicode 6.3.
+	(enum bidi_bracket_type_t): New data type.
+	(struct bidi_saved_info): Leave only 2 type members out of 4.
+	Remove bytepos.
+	(struct bidi_stack): Add members necessary to support isolating
+	sequences.
+	(struct bidi_it): Add new members necessary to support isolating
+	sequences and bracket pair resolution.
+
+	* xdisp.c (Fbidi_resolved_levels): New function.
+	(syms_of_xdisp): Defsubr it.
+	(append_glyph, append_composite_glyph, produce_image_glyph)
+	(append_stretch_glyph, append_glyphless_glyph): Convert aborts to
+	assertions.
+	(syms_of_xdisp) <inhibit-bidi-mirroring>: New variable.
+
+	* term.c (append_glyph, append_composite_glyph)
+	(append_glyphless_glyph): Convert aborts to assertions.
+
+	* .gdbinit (pgx): Display the character codepoint, resolved level,
+	and bidi type also for glyphless glyphs.
+
 2014-10-15  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Avoid unwanted point motion in Fline_beginning_position.

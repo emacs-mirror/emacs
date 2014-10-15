@@ -1,3 +1,9 @@
+2014-10-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* BidiCharacterTest.txt: New file, from Unicode.
+
+	* biditest.el: New file.
+
 2014-10-08  Leo Liu  <sdl.web@gmail.com>
 
 	* automated/print-tests.el: New file.

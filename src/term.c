@@ -1513,8 +1513,7 @@ append_glyph (struct it *it)
       if (it->bidi_p)
 	{
 	  glyph->resolved_level = it->bidi_it.resolved_level;
-	  if ((it->bidi_it.type & 7) != it->bidi_it.type)
-	    emacs_abort ();
+	  eassert ((it->bidi_it.type & 7) == it->bidi_it.type);
 	  glyph->bidi_type = it->bidi_it.type;
 	}
       else
@@ -1710,8 +1709,7 @@ append_composite_glyph (struct it *it)
       if (it->bidi_p)
 	{
 	  glyph->resolved_level = it->bidi_it.resolved_level;
-	  if ((it->bidi_it.type & 7) != it->bidi_it.type)
-	    emacs_abort ();
+	  eassert ((it->bidi_it.type & 7) == it->bidi_it.type);
 	  glyph->bidi_type = it->bidi_it.type;
 	}
       else
@@ -1795,8 +1793,7 @@ append_glyphless_glyph (struct it *it, int face_id, const char *str)
   if (it->bidi_p)
     {
       glyph->resolved_level = it->bidi_it.resolved_level;
-      if ((it->bidi_it.type & 7) != it->bidi_it.type)
-	emacs_abort ();
+      eassert ((it->bidi_it.type & 7) == it->bidi_it.type);
       glyph->bidi_type = it->bidi_it.type;
     }
   else

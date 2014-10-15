@@ -1,3 +1,9 @@
+2014-10-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* NEWS: Mention the UBA implementation update.
+
+	* HELLO: Remove now unneeded directional control characters.
+
 2014-10-13  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* NEWS: Move and clarify OSX >= 10.6.

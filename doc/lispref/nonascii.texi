@@ -520,6 +520,24 @@ property to display mirror images of characters when appropriate
 (@pxref{Bidirectional Display}).  For unassigned codepoints, the value
 is @code{nil}.
 
+@item paired-bracket
+Corresponds to the Unicode @code{Bidi_Paired_Bracket} property.  The
+value of this property is the codepoint of a character's @dfn{paired
+bracket}, or @code{nil} if the character is not a bracket character.
+This establishes a mapping between characters that are treated as
+bracket pairs by the Unicode Bidirectional Algorithm; Emacs uses this
+property when it decides how to reorder for display parentheses,
+braces, and other similar characters (@pxref{Bidirectional Display}).
+
+@item bracket-type
+Corresponds to the Unicode @code{Bidi_Paired_Bracket_Type} property.
+For characters whose @code{paired-bracket} property is non-@code{nil},
+the value of this property is a symbol, either @code{o} (for opening
+bracket characters) or @code{c} (for closing bracket characters).  For
+characters whose @code{paired-bracket} property is @code{nil}, the
+value is the symbol @code{n} (None).  Like @code{paired-bracket}, this
+property is used for bidirectional display.
+
 @item old-name
 Corresponds to the Unicode @code{Unicode_1_Name} property.  The value
 is a string.  Unassigned codepoints, and characters that have no value
@@ -573,6 +591,14 @@ This function returns the value of @var{char}'s @var{propname} property.
 ;; Roman IV
 (get-char-code-property ?\u2163 'numeric-value)
      @result{} 4
+@end group
+@group
+(get-char-code-property ?\( 'paired-bracket)
+     @result{} 41  ;; closing parenthesis
+@end group
+@group
+(get-char-code-property ?\) 'bracket-type)
+     @result{} c
 @end group
 @end example
 @end defun
