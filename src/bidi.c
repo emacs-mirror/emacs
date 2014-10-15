@@ -2450,7 +2450,7 @@ bidi_find_bracket_pairs (struct bidi_it *bidi_it)
 	    }
 	  else if (bidi_get_category (bidi_it->type_after_wn) != NEUTRAL)
 	    {
-	      unsigned flag;
+	      unsigned flag = 0;
 	      int sp;
 
 	      /* Whenever we see a strong type, update the flags of

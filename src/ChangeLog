@@ -1,3 +1,10 @@
+2014-10-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* bidi.c (bidi_find_bracket_pairs): Initialize local var.
+	This pacifies GCC 4.9.1 with --enable-gcc-warnings.
+	It's not clear to me whether the initialization is needed,
+	but it can't hurt so I played it safe.
+
 2014-10-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* lisp.mk (lisp): Add emacs-lisp/eldoc.elc.
