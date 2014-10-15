@@ -1,3 +1,8 @@
+2014-10-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/elisp-mode.el (elisp--local-variables-1):
+	Handle quoted expressions (bug#18688).
+
 2014-10-14  Jérémy Compostella  <jeremy.compostella@intel.com>
 	    Michael Albinus  <michael.albinus@gmx.de>
 
