@@ -1,3 +1,7 @@
+2014-10-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* .bzrignore: Add uni-brackets.el.
+
 2014-10-14  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.ac: apple-darwin powerpc is unported.

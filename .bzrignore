@@ -156,6 +156,7 @@ lisp/gnus/_dir-locals.el
 # Generated Unicode files.
 lisp/international/charprop.el
 lisp/international/uni-bidi.el
+lisp/international/uni-brackets.el
 lisp/international/uni-category.el
 lisp/international/uni-combining.el
 lisp/international/uni-comment.el
