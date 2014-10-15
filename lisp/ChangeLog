@@ -1,3 +1,10 @@
+2014-10-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacs-lisp/tabulated-list.el (tabulated-list-mode): Force
+	bidi-paragraph-direction to 'left-to-right'.  This fixes
+	buffer-menu display when the first buffer happens to start with
+	R2L letter.
+
 2014-10-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/elisp-mode.el (elisp--local-variables-1):

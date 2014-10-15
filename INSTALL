@@ -1,6 +1,5 @@
 GNU Emacs Installation Guide
-Copyright (C) 1992, 1994, 1996-1997, 2000-2014 Free Software Foundation,
-Inc.
+Copyright (C) 1992, 1994, 1996-1997, 2000-2014 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 
@@ -34,9 +33,9 @@ some of the steps manually.  The more detailed description in the other
 sections of this guide will help you do that, so please refer to those
 sections if you need to.
 
-  1. Unpacking the Emacs 24.1 release requires about 180 MB of free
-  disk space.  Building Emacs uses about another 70 MB of space.
-  The final installed Emacs uses about 110 MB of disk space.
+  1. Unpacking the Emacs 24 release requires about 200 MB of free
+  disk space.  Building Emacs uses about another 200 MB of space.
+  The final installed Emacs uses about 150 MB of disk space.
   This includes the space-saving that comes from automatically
   compressing the Lisp source files on installation.
 
@@ -212,20 +211,7 @@ DETAILED BUILDING AND INSTALLATION:
 see msdos/INSTALL.  For later versions of MS Windows, see the file
 nt/INSTALL.  For GNUstep and Mac OS X, see nextstep/INSTALL.)
 
-1) Make sure your system has enough swapping space allocated to handle
-a program whose pure code is 1.5 MB and whose data area is at
-least 2.8 MB and can reach 100 MB or more.  If the swapping space is
-insufficient, you will get an error in the command `temacs -batch -l
-loadup dump', found in `./src/Makefile.in', or possibly when
-running the final dumped Emacs.  (This should not be an issue
-on any recent system.)
-
-Building Emacs requires about 230 MB of disk space (including the
-Emacs sources).  Once installed, Emacs occupies about 120 MB in the file
-system where it is installed; this includes the executable files, Lisp
-libraries, miscellaneous data files, and on-line documentation.  If
-the building and installation take place in different directories,
-then the installation procedure momentarily requires 230+120 MB.
+1) See the basic installation summary above for the disk space requirements.
 
 2) In the unlikely event that `configure' does not detect your system
 type correctly, consult `./etc/MACHINES' to see what --host, --build
@@ -264,8 +250,7 @@ Gtk or Motif, if you have the Xaw3d library installed (see
 "Image support libraries" above for Xaw3d availability).
 
 You can tell configure where to search for GTK by giving it the
-argument PKG_CONFIG='/full/name/of/pkg-config'.  GTK version 2.6 or
-newer is required for Emacs.
+argument PKG_CONFIG='/full/name/of/pkg-config'.
 
 Emacs will autolaunch a D-Bus session bus, when the environment
 variable DISPLAY is set, but no session bus is running.  This might be
