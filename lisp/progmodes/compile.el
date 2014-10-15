@@ -969,19 +969,12 @@ POS and RES.")
                     (cons (copy-marker pos) (if prev (copy-marker prev))))
               prev)
              ((and prev (= prev cache))
-              (if cache
-                  (set-marker (car compilation--previous-directory-cache) pos)
-                (setq compilation--previous-directory-cache
-                      (cons (copy-marker pos) nil)))
+              (set-marker (car compilation--previous-directory-cache) pos)
               (cdr compilation--previous-directory-cache))
              (t
-              (if cache
-                  (progn
-                    (set-marker cache pos)
-                    (setcdr compilation--previous-directory-cache
-                            (copy-marker prev)))
-                (setq compilation--previous-directory-cache
-                      (cons (copy-marker pos) (if prev (copy-marker prev)))))
+              (set-marker cache pos)
+              (setcdr compilation--previous-directory-cache
+                      (copy-marker prev))
               prev))))
       (if (markerp res) (marker-position res) res))))
 
@@ -2286,6 +2279,7 @@ looking for the next message."
   (or (compilation-buffer-p (current-buffer))
       (error "Not in a compilation buffer"))
   (or pt (setq pt (point)))
+  (compilation--ensure-parse pt)
   (let* ((msg (get-text-property pt 'compilation-message))
          ;; `loc', `msg', and `last' are used by the compilation-loop macro.
 	 (loc (and msg (compilation--message->loc msg)))
@@ -2298,7 +2292,8 @@ looking for the next message."
 						    (line-beginning-position)))
 	  (unless (setq msg (get-text-property (max (1- pt) (point-min))
                                                'compilation-message))
-	    (setq pt (next-single-property-change pt 'compilation-message nil
+	    (setq pt (compilation-next-single-property-change
+                      pt 'compilation-message nil
 						  (line-end-position)))
 	    (or (setq msg (get-text-property pt 'compilation-message))
 		(setq pt (point)))))
@@ -2309,7 +2304,6 @@ looking for the next message."
 				"No more %ss yet"
 			      "Moved past last %s")
 			    (point-max))
-        (compilation--ensure-parse pt)
 	;; Don't move "back" to message at or before point.
 	;; Pass an explicit (point-min) to make sure pt is non-nil.
 	(setq pt (previous-single-property-change

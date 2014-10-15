@@ -1,13 +1,17 @@
+2014-10-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/compile.el (compilation--previous-directory): Simplify.
+	(compilation-next-error): Ensure the parse before we look at
+	compilation-message property.
+
 2014-10-15  Eli Zaretskii  <eliz@gnu.org>
 
-	* simple.el (what-cursor-position): Update to support the new bidi
-	characters.
-
+	* simple.el (what-cursor-position):
 	* descr-text.el (describe-char): Update to support the new bidi
 	characters.
 
-	* emacs-lisp/tabulated-list.el (tabulated-list-mode): Force
-	bidi-paragraph-direction to 'left-to-right'.  This fixes
+	* emacs-lisp/tabulated-list.el (tabulated-list-mode):
+	Force bidi-paragraph-direction to 'left-to-right'.  This fixes
 	buffer-menu display when the first buffer happens to start with
 	R2L letter.
 
