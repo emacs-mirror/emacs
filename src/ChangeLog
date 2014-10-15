@@ -1,3 +1,12 @@
+2014-10-15  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Avoid unwanted point motion in Fline_beginning_position.
+	* lisp.h (scan_newline_from_point): Add prototype.
+	* search.c (scan_newline_from_point): New function, refactored from...
+	* cmds.c (Fforward_line): ...adjusted user.
+	* editfns.c (Fline_beginning_position): Use scan_newline_from_point
+	and simplify the former since the latter doesn't move point.
+
 2014-10-14  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Cleanup terminal handling code.

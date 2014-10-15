@@ -131,12 +131,7 @@ successfully moved (for the return value).  */)
       count = XINT (n);
     }
 
-  if (count <= 0)
-    pos = find_newline (PT, PT_BYTE, BEGV, BEGV_BYTE, count - 1,
-			&shortage, &pos_byte, 1);
-  else
-    pos = find_newline (PT, PT_BYTE, ZV, ZV_BYTE, count,
-			&shortage, &pos_byte, 1);
+  shortage = scan_newline_from_point (count, &pos, &pos_byte);
 
   SET_PT_BOTH (pos, pos_byte);
 

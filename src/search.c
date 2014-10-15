@@ -985,6 +985,24 @@ scan_newline (ptrdiff_t start, ptrdiff_t start_byte,
   return shortage;
 }
 
+/* Like above, but always scan from point and report the
+   resulting position in *CHARPOS and *BYTEPOS.  */
+
+ptrdiff_t
+scan_newline_from_point (ptrdiff_t count, ptrdiff_t *charpos,
+			 ptrdiff_t *bytepos)
+{
+  ptrdiff_t shortage;
+
+  if (count <= 0)
+    *charpos = find_newline (PT, PT_BYTE, BEGV, BEGV_BYTE, count - 1,
+			     &shortage, bytepos, 1);
+  else
+    *charpos = find_newline (PT, PT_BYTE, ZV, ZV_BYTE, count,
+			     &shortage, bytepos, 1);
+  return shortage;
+}
+
 /* Like find_newline, but doesn't allow QUITting and doesn't return
    SHORTAGE.  */
 ptrdiff_t
