@@ -47,9 +47,6 @@
 
 ;;; Code:
 
-(require 'help-fns)		       ;For fundoc-usage handling functions.
-(require 'cl-lib)
-
 (defgroup eldoc nil
   "Show function arglist or variable docstring in echo area."
   :group 'lisp
@@ -129,7 +126,8 @@ choose to increase the number of buckets, you must do so before loading
 this file since the obarray is initialized at load time.
 Remember to keep it a prime number to improve hash performance.")
 
-(defconst eldoc-message-commands
+(defvar eldoc-message-commands
+  ;; Don't define as `defconst' since it would then go to (read-only) purespace.
   (make-vector eldoc-message-commands-table-size 0)
   "Commands after which it is appropriate to print in the echo area.
 ElDoc does not try to print function arglists, etc., after just any command,
@@ -140,12 +138,14 @@ This variable contains an obarray of symbols; do not manipulate it
 directly.  Instead, use `eldoc-add-command' and `eldoc-remove-command'.")
 
 ;; Not a constant.
-(defconst eldoc-last-data (make-vector 3 nil)
+(defvar eldoc-last-data (make-vector 3 nil)
+  ;; Don't define as `defconst' since it would then go to (read-only) purespace.
   "Bookkeeping; elements are as follows:
   0 - contains the last symbol read from the buffer.
   1 - contains the string last displayed in the echo area for variables,
       or argument string for functions.
-  2 - 'function if function args, 'variable if variable documentation.")
+  2 - `function' if function args, `variable' if variable documentation.")
+(make-obsolete-variable 'eldoc-last-data "use your own instead" "25.1")
 
 (defvar eldoc-last-message nil)
 
@@ -203,14 +203,13 @@ expression point is on."
 (define-minor-mode global-eldoc-mode
   "Enable `eldoc-mode' in all buffers where it's applicable."
   :group 'eldoc :global t
+  :initialize 'custom-initialize-delay
+  :init-value t
   (setq eldoc-last-message nil)
   (if global-eldoc-mode
       (progn
-	(when eldoc-print-after-edit
-	  (setq-local eldoc-message-commands (eldoc-edit-message-commands)))
 	(add-hook 'post-command-hook #'eldoc-schedule-timer)
 	(add-hook 'pre-command-hook #'eldoc-pre-command-refresh-echo-area))
-    (kill-local-variable 'eldoc-message-commands)
     (remove-hook 'post-command-hook #'eldoc-schedule-timer)
     (remove-hook 'pre-command-hook #'eldoc-pre-command-refresh-echo-area)))
 

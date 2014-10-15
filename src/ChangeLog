@@ -1,18 +1,21 @@
+2014-10-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp.mk (lisp): Add emacs-lisp/eldoc.elc.
+
 2014-10-15  Eli Zaretskii  <eliz@gnu.org>
 
 	Update the bidirectional reordering engine for Unicode 6.3 and 7.0.
-	* bidi.c (bidi_ignore_explicit_marks_for_paragraph_level): Remove
-	variable.
-	(bidi_get_type): Return the isolate initiators and terminator
-	types.
+	* bidi.c (bidi_ignore_explicit_marks_for_paragraph_level):
+	Remove variable.
+	(bidi_get_type): Return the isolate initiators and terminator types.
 	(bidi_isolate_fmt_char, bidi_paired_bracket_type)
 	(bidi_fetch_char_skip_isolates, find_first_strong_char)
 	(bidi_find_bracket_pairs, bidi_resolve_brackets): New functions.
-	(bidi_set_sos_type): Renamed from bidi_set_sor_type and updated
+	(bidi_set_sos_type): Rename from bidi_set_sor_type and updated
 	for the new features.
 	(bidi_push_embedding_level, bidi_pop_embedding_level): Update to
 	push and pop correctly for isolates.
-	(bidi_remember_char): Modified to accept an additional argument
+	(bidi_remember_char): Modify to accept an additional argument
 	and record the bidi type according to its value.
 	(bidi_cache_iterator_state): Accept an additional argument to only
 	update an existing state.  Handle the new members of struct bidi_it.
@@ -140,8 +143,8 @@
 	(ns_dumpglyphs_image, ns_check_menu_open)
 	(applicationDidFinishLaunching)
 	(antialiasThresholdDidChange:)
-	(keyDown:, toggleFullScreen:, setPosition:portion:whole:): Remove
-	checks for OSX <= 10.5/10.6.
+	(keyDown:, toggleFullScreen:, setPosition:portion:whole:):
+	Remove checks for OSX <= 10.5/10.6.
 	(changeFont:): Use macfont on COCOA, nsfont on GNUSTEP.
 	(syms_of_nsterm): Call syms_of_macfont on COCOA, syms_of_nsfont on
 	GNUSTEP.
@@ -166,8 +169,8 @@
 	(macfont_create_family_with_symbol)
 	(macfont_get_glyph_for_character)
 	(mac_font_get_glyphs_for_variants)
-	(mac_ctfont_create_available_families, syms_of_macfont): Remove
-	code for OSX < 10.6.
+	(mac_ctfont_create_available_families, syms_of_macfont):
+	Remove code for OSX < 10.6.
 	(mac_font_family_group, mac_font_family_compare): Remove, only used
 	for OSX < 10.6.
 

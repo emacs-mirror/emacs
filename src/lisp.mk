@@ -165,6 +165,7 @@ lisp = \
 	$(lispsource)/vc/vc-hooks.elc \
 	$(lispsource)/vc/ediff-hook.elc \
 	$(lispsource)/electric.elc \
+	$(lispsource)/emacs-lisp/eldoc.elc \
 	$(lispsource)/uniquify.elc \
 	$(lispsource)/tooltip.elc
 

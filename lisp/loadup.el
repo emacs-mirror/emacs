@@ -282,6 +282,7 @@
 (load "vc/ediff-hook")
 (load "uniquify")
 (load "electric")
+(load "emacs-lisp/eldoc")
 (if (not (eq system-type 'ms-dos)) (load "tooltip"))
 
 ;; This file doesn't exist when building a development version of Emacs

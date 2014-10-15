@@ -1,5 +1,10 @@
 2014-10-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/eldoc.el (global-eldoc-mode): Enable by default.
+	Remove incorrect handling of eldoc-print-after-edit.
+	(eldoc-message-commands, eldoc-last-data): Use defvar.
+	* loadup.el (emacs-lisp/eldoc): Load it.
+
 	* progmodes/m4-mode.el (m4-syntax-propertize): New var.
 	(m4-mode): Use it.
 	(m4--quoted-p): New function.
