@@ -16,7 +16,7 @@
 	and record the bidi type according to its value.
 	(bidi_cache_iterator_state): Accept an additional argument to only
 	update an existing state.  Handle the new members of struct bidi_it.
-	(bidi_cache_find): Arguments changed: no lnger accepts a level,
+	(bidi_cache_find): Arguments changed: no longer accepts a level,
 	instead accepts a flag telling it whether it is okay to return
 	unresolved neutrals.
 	(bidi_initialize): Initiate and staticpro the bracket-type uniprop
