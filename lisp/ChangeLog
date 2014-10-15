@@ -1,7 +1,12 @@
+2014-10-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/lisp.el (lisp--local-variables-1): Handle `quote'.
+	Backported (bug#18688).
+
 2014-10-14  Eli Zaretskii  <eliz@gnu.org>
 
-	* emacs-lisp/tabulated-list.el (tabulated-list-mode): Force
-	bidi-paragraph-direction to 'left-to-right'.  This fixes
+	* emacs-lisp/tabulated-list.el (tabulated-list-mode):
+	Force bidi-paragraph-direction to 'left-to-right'.  This fixes
 	buffer-menu display when the first buffer happens to start with
 	R2L letter.
 

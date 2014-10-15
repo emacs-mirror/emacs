@@ -711,6 +711,7 @@ considered."
                     (`(condition-case ,v ,_ . ,catches)
                      (lisp--local-variables-1
                       (cons v vars) (cdr (car (last catches)))))
+                    (`(quote . ,_) (setq sexp nil))
                     (`(,_ . ,_)
                      (lisp--local-variables-1 vars (car (last sexp))))
                     (`lisp--witness--lisp (or vars '(nil)))
