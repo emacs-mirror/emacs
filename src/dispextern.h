@@ -1966,6 +1966,8 @@ struct bidi_it {
   struct bidi_saved_info next_for_neutral; /* surrounding characters for... */
   struct bidi_saved_info prev_for_neutral; /* ...resolving neutrals */
   struct bidi_saved_info next_for_ws; /* character after sequence of ws */
+  ptrdiff_t bracket_pairing_pos;	/* position of pairing bracket */
+  bidi_type_t bracket_enclosed_type;	/* type for bracket resolution */
   ptrdiff_t next_en_pos;	/* pos. of next char for determining ET type */
   bidi_type_t next_en_type;	/* type of char at next_en_pos */
   bidi_dir_t sos;		/* direction of start-of-sequence in effect */
@@ -1974,7 +1976,6 @@ struct bidi_it {
   int disp_prop;		/* if non-zero, there really is a
 				   `display' property/string at disp_pos;
 				   if 2, the property is a `space' spec */
-  bool_bf bracket_resolved : 1;	/* if 1, this bracket's type is BPA-resolved */
   int stack_idx;		/* index of current data on the stack */
   /* Note: Everything from here on is not copied/saved when the bidi
      iterator state is saved, pushed, or popped.  So only put here

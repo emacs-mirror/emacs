@@ -76,6 +76,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
      bidi_fetch_char         -- fetch next character
      bidi_resolve_explicit   -- resolve explicit levels and directions
      bidi_resolve_weak       -- resolve weak types
+     bidi_resolve_brackets   -- resolve "paired brackets" neutral types
      bidi_resolve_neutral    -- resolve neutral types
      bidi_level_of_next_char -- resolve implicit levels
 
@@ -788,7 +789,8 @@ bidi_cache_iterator_state (struct bidi_it *bidi_it, bool resolved,
       bidi_cache[idx].next_for_ws = bidi_it->next_for_ws;
       bidi_cache[idx].disp_pos = bidi_it->disp_pos;
       bidi_cache[idx].disp_prop = bidi_it->disp_prop;
-      bidi_cache[idx].bracket_resolved = bidi_it->bracket_resolved;
+      bidi_cache[idx].bracket_pairing_pos = bidi_it->bracket_pairing_pos;
+      bidi_cache[idx].bracket_enclosed_type = bidi_it->bracket_enclosed_type;
     }
 
   bidi_cache_last_idx = idx;
@@ -1743,7 +1745,6 @@ bidi_resolve_explicit (struct bidi_it *bidi_it)
 	 correction to N0, as implemented in bidi_resolve_weak/W1
 	 below.  */
       if (bidi_it->type_after_wn == NEUTRAL_ON
-	  && bidi_it->bracket_resolved
 	  && bidi_get_category (bidi_it->type) == STRONG
 	  && bidi_paired_bracket_type (bidi_it->ch) == BIDI_BRACKET_CLOSE)
 	bidi_remember_char (&bidi_it->prev, bidi_it, 1);
@@ -1769,8 +1770,9 @@ bidi_resolve_explicit (struct bidi_it *bidi_it)
       bidi_it->next_en_type = UNKNOWN_BT;
     }
 
-  /* Reset the bracket_resolved flag.  */
-  bidi_it->bracket_resolved = 0;
+  /* Reset the bracket resolution info.  */
+  bidi_it->bracket_pairing_pos = -1;
+  bidi_it->bracket_enclosed_type = UNKNOWN_BT;
 
   /* If reseat()'ed, don't advance, so as to start iteration from the
      position where we were reseated.  bidi_it->bytepos can be less
@@ -2324,18 +2326,16 @@ bidi_resolve_neutral_1 (bidi_type_t prev_type, bidi_type_t next_type, int lev)
 
 #define FLAG_EMBEDDING_INSIDE  1
 #define FLAG_OPPOSITE_INSIDE   2
-#define FLAG_EMBEDDING_OUTSIDE 4
-#define FLAG_OPPOSITE_OUTSIDE  8
 
 /* A data type used in the stack maintained by
-   bidi_resolve_bracket_pairs below.  */
+   bidi_find_bracket_pairs below.  */
 typedef struct bpa_stack_entry {
   int close_bracket_char;
   int open_bracket_idx;
 #ifdef ENABLE_CHECKING
   ptrdiff_t open_bracket_pos;
 #endif
-  unsigned flags : 4;
+  unsigned flags : 2;
 } bpa_stack_entry;
 
 /* With MAX_ALLOCA of 16KB, this should allow at least 1K slots in the
@@ -2349,7 +2349,7 @@ typedef struct bpa_stack_entry {
 # define STORE_BRACKET_CHARPOS	/* nothing */
 #endif
 
-#define PUSH_BPA_STACK(EMBEDDING_LEVEL, LAST_STRONG) \
+#define PUSH_BPA_STACK							\
   do {									\
    bpa_sp++;								\
    if (bpa_sp >= MAX_BPA_STACK)						\
@@ -2360,24 +2360,22 @@ typedef struct bpa_stack_entry {
    bpa_stack[bpa_sp].close_bracket_char = bidi_mirror_char (bidi_it->ch); \
    bpa_stack[bpa_sp].open_bracket_idx = bidi_cache_last_idx;		\
    STORE_BRACKET_CHARPOS;						\
-   if (((EMBEDDING_LEVEL) & 1) == 0)					\
-     bpa_stack[bpa_sp].flags = ((LAST_STRONG) == STRONG_L		\
-				? FLAG_EMBEDDING_OUTSIDE		\
-				: FLAG_OPPOSITE_OUTSIDE);		\
-   else									\
-     bpa_stack[bpa_sp].flags = ((LAST_STRONG) == STRONG_L		\
-				? FLAG_OPPOSITE_OUTSIDE			\
-				: FLAG_EMBEDDING_OUTSIDE);		\
   } while (0)
 
 
 /* This function implements BPA, the Bidi Parenthesis Algorithm,
-   described in BD16 and N0 of UAX#9.  */
-static bidi_type_t
-bidi_resolve_bracket_pairs (struct bidi_it *bidi_it)
+   described in BD16 and N0 of UAX#9.  It finds all the bracket pairs
+   in the current isolating sequence, and records the enclosed type
+   and the position of the matching bracket in the cache.  It returns
+   non-zero if called with the iterator on the opening bracket which
+   has a matching closing bracket in the current isolating sequence,
+   zero otherwise.  */
+static bool
+bidi_find_bracket_pairs (struct bidi_it *bidi_it)
 {
   bidi_bracket_type_t btype;
   bidi_type_t type = bidi_it->type;
+  bool retval = false;
 
   /* When scanning backwards, we don't expect any unresolved bidi
      bracket characters.  */
@@ -2390,13 +2388,12 @@ bidi_resolve_bracket_pairs (struct bidi_it *bidi_it)
       bpa_stack_entry bpa_stack[MAX_BPA_STACK];
       int bpa_sp = -1;
       struct bidi_it saved_it;
-      bidi_type_t last_strong;
       int embedding_level = bidi_it->level_stack[bidi_it->stack_idx].level;
+      bidi_type_t embedding_type = (embedding_level & 1) ? STRONG_R : STRONG_L;
       struct bidi_it tem_it;
 
       eassert (MAX_BPA_STACK >= 100);
       bidi_copy_it (&saved_it, bidi_it);
-      last_strong = bidi_it->prev_for_neutral.type;
       /* bidi_cache_iterator_state refuses to cache on backward scans,
 	 and bidi_cache_fetch_state doesn't bring scan_dir from the
 	 cache, so we must initialize this explicitly.  */
@@ -2409,7 +2406,7 @@ bidi_resolve_bracket_pairs (struct bidi_it *bidi_it)
 
 	  bidi_cache_iterator_state (bidi_it, type == NEUTRAL_B, 0);
 	  if (btype == BIDI_BRACKET_OPEN)
-	    PUSH_BPA_STACK (embedding_level, last_strong);
+	    PUSH_BPA_STACK;
 	  else if (btype == BIDI_BRACKET_CLOSE)
 	    {
 	      int sp = bpa_sp;
@@ -2420,62 +2417,49 @@ bidi_resolve_bracket_pairs (struct bidi_it *bidi_it)
 		sp--;
 	      if (sp >= 0)
 		{
-		  /* Resolve the bracket type according to N0.  */
-		  if (bpa_stack[sp].flags & FLAG_EMBEDDING_INSIDE) /* N0b */
-		    type = ((embedding_level & 1) ? STRONG_R : STRONG_L);
-		  else if ((bpa_stack[sp].flags /* N0c1 */
-			    & (FLAG_OPPOSITE_INSIDE | FLAG_OPPOSITE_OUTSIDE))
-			   == (FLAG_OPPOSITE_INSIDE | FLAG_OPPOSITE_OUTSIDE))
-		    type = ((embedding_level & 1) ? STRONG_L : STRONG_R);
-		  else if (bpa_stack[sp].flags & FLAG_OPPOSITE_INSIDE) /*N0c2*/
-		    type = ((embedding_level & 1) ? STRONG_R : STRONG_L);
-
-		  /* Update the type of the closing bracket.  */
-		  bidi_it->type = type;
 		  /* Update and cache the corresponding opening bracket.  */
 		  bidi_cache_fetch_state (bpa_stack[sp].open_bracket_idx,
 					  &tem_it);
 #ifdef ENABLE_CHECKING
 		  eassert (bpa_stack[sp].open_bracket_pos == tem_it.charpos);
 #endif
-		  tem_it.type = type;
-		  tem_it.bracket_resolved = 1;
-		  bidi_cache_iterator_state (&tem_it, 0, 0);
-		  /* Mark as resolved the unmatched brackets we are
-		     about to pop from the stack.  */
-		  while (bpa_sp > sp)
-		    {
-		      bidi_cache_fetch_state
-			(bpa_stack[bpa_sp].open_bracket_idx, &tem_it);
-#ifdef ENABLE_CHECKING
-		      eassert (bpa_stack[bpa_sp].open_bracket_pos
-			       == tem_it.charpos);
-#endif
-		      tem_it.bracket_resolved = 1;
-		      bidi_cache_iterator_state (&tem_it, 0, 0);
-		      bpa_sp--;
-		    }
+		  /* Determine the enclosed type for this bracket
+		     pair's type resolution according to N0.  */
+		  if (bpa_stack[sp].flags & FLAG_EMBEDDING_INSIDE)
+		    tem_it.bracket_enclosed_type = embedding_type; /* N0b */
+		  else if (bpa_stack[sp].flags & FLAG_OPPOSITE_INSIDE)
+		    tem_it.bracket_enclosed_type		   /* N0c */
+		      = (embedding_type == STRONG_L ? STRONG_R : STRONG_L);
+		  else						   /* N0d */
+		    tem_it.bracket_enclosed_type = UNKNOWN_BT;
+
+		  /* Record the position of the matching closing
+		     bracket, and update the cache.  */
+		  tem_it.bracket_pairing_pos = bidi_it->charpos;
+		  bidi_cache_iterator_state (&tem_it, 0, 1);
+
 		  /* Pop the BPA stack.  */
 		  bpa_sp = sp - 1;
 		}
-	      bidi_it->bracket_resolved = 1;
-	      bidi_cache_iterator_state (bidi_it, 0, 0);
 	      if (bpa_sp < 0)
-		break;
+		{
+		  retval = true;
+		  break;
+		}
 	    }
 	  else if (bidi_get_category (bidi_it->type_after_wn) != NEUTRAL)
 	    {
 	      unsigned flag;
 	      int sp;
 
-	      /* Update the "inside" flags of all the slots on the stack.  */
+	      /* Whenever we see a strong type, update the flags of
+		 all the slots on the stack.  */
 	      switch (bidi_it->type)
 		{
 		case STRONG_L:
 		  flag = ((embedding_level & 1) == 0
 			  ? FLAG_EMBEDDING_INSIDE
 			  : FLAG_OPPOSITE_INSIDE);
-		  last_strong = STRONG_L;
 		  break;
 		case STRONG_R:
 		case WEAK_EN:
@@ -2483,7 +2467,6 @@ bidi_resolve_bracket_pairs (struct bidi_it *bidi_it)
 		  flag = ((embedding_level & 1) == 1
 			  ? FLAG_EMBEDDING_INSIDE
 			  : FLAG_OPPOSITE_INSIDE);
-		  last_strong = STRONG_R;
 		  break;
 		default:
 		  break;
@@ -2514,23 +2497,8 @@ bidi_resolve_bracket_pairs (struct bidi_it *bidi_it)
 	    bpa_give_up:
 	      /* We've marched all the way to the end of this
 		 isolating run sequence, and didn't find matching
-		 closing brackets for some opening brackets.  Unwind
-		 whatever is left on the BPA stack, and mark each
-		 bracket there as BPA-resolved, leaving their type
-		 unchanged.  */
-	      while (bpa_sp >= 0)
-		{
-		  bidi_cache_fetch_state (bpa_stack[bpa_sp].open_bracket_idx,
-					  &tem_it);
-#ifdef ENABLE_CHECKING
-		  eassert (bpa_stack[bpa_sp].open_bracket_pos
-			   == tem_it.charpos);
-#endif
-		  tem_it.bracket_resolved = 1;
-		  bidi_cache_iterator_state (&tem_it, 0, 0);
-		  bpa_sp--;
-		}
-	      type = saved_it.type;
+		 closing brackets for some opening brackets.  Leave
+		 their type unchanged.  */
 	      break;
 	    }
 	  if (bidi_it->type_after_wn == NEUTRAL_ON) /* Unicode 8.0 correction */
@@ -2538,31 +2506,117 @@ bidi_resolve_bracket_pairs (struct bidi_it *bidi_it)
 	  else
 	    btype = BIDI_BRACKET_NONE;
 	}
-      bidi_check_type (type);
 
-      bidi_copy_it (bidi_it, &saved_it);
-      bidi_it->type = type;
-      bidi_it->bracket_resolved = 1;
+      /* Restore bidi_it from the cache, which should have the bracket
+	 resolution members set as determined by the above loop.  */
+      type = bidi_cache_find (saved_it.charpos, 1, bidi_it);
+      eassert (type == NEUTRAL_ON);
     }
 
-  return type;
+  return retval;
 }
 
 static bidi_type_t
 bidi_resolve_brackets (struct bidi_it *bidi_it)
 {
-  bidi_type_t type = bidi_resolve_weak (bidi_it);
-  int ch = bidi_it->ch;
+  int prev_level = bidi_it->level_stack[bidi_it->stack_idx].level;
+  bool resolve_bracket = false;
+  bidi_type_t type = UNKNOWN_BT;
+  int ch;
+  struct bidi_saved_info tem_info;
 
-  if (type == NEUTRAL_ON
-      && bidi_paired_bracket_type (ch) != BIDI_BRACKET_NONE)
+  bidi_remember_char (&tem_info, bidi_it, 1);
+  if (!bidi_it->first_elt)
     {
-      if (bidi_cache_idx > bidi_cache_start
-	  && bidi_cache_find (bidi_it->charpos, 1, bidi_it) != UNKNOWN_BT
-	  && bidi_it->bracket_resolved)
-	type = bidi_it->type;
+      type = bidi_cache_find (bidi_it->charpos + bidi_it->nchars, 1, bidi_it);
+      ch = bidi_it->ch;
+    }
+  if (type == UNKNOWN_BT)
+    {
+      type = bidi_resolve_weak (bidi_it);
+      if (type == NEUTRAL_ON && bidi_find_bracket_pairs (bidi_it))
+	resolve_bracket = true;
+    }
+  else
+    {
+      if (type == NEUTRAL_ON
+	  && bidi_paired_bracket_type (ch) == BIDI_BRACKET_OPEN)
+	{
+	  if (bidi_it->level_stack[bidi_it->stack_idx].level == prev_level)
+	    {
+	      if (bidi_it->bracket_pairing_pos > 0)
+		{
+		  /* A cached opening bracket that wasn't completely
+		     resolved yet.  */
+		  resolve_bracket = true;
+		}
+	    }
+	  else
+	    {
+	      /* Higher levels were not BPA-resolved yet, even if
+		 cached by bidi_find_bracket_pairs.  Lower levels were
+		 probably processed by bidi_find_bracket_pairs, but we
+		 have no easy way of retaining the prev_for_neutral
+		 from the previous level run of the isolating
+		 sequence.  Force application of BPA now.  */
+	      if (bidi_find_bracket_pairs (bidi_it))
+		resolve_bracket = true;
+	    }
+	}
+      /* Keep track of the prev_for_neutral type, needed for resolving
+	 brackets below and for resolving neutrals in bidi_resolve_neutral.  */
+      if (bidi_it->level_stack[bidi_it->stack_idx].level == prev_level
+	  && (tem_info.type == STRONG_L || tem_info.type == STRONG_R
+	      || tem_info.type == WEAK_AN || tem_info.type == WEAK_EN))
+	bidi_it->prev_for_neutral = tem_info;
+    }
+
+  /* If needed, resolve the bracket type according to N0.  */
+  if (resolve_bracket)
+    {
+      int embedding_level = bidi_it->level_stack[bidi_it->stack_idx].level;
+      bidi_type_t embedding_type = (embedding_level & 1) ? STRONG_R : STRONG_L;
+
+      eassert (bidi_it->prev_for_neutral.type != UNKNOWN_BT);
+      eassert (bidi_it->bracket_pairing_pos > bidi_it->charpos);
+      if (bidi_it->bracket_enclosed_type == embedding_type) /* N0b */
+	type = embedding_type;
       else
-	type = bidi_resolve_bracket_pairs (bidi_it);
+	{
+	  switch (bidi_it->prev_for_neutral.type)
+	    {
+	    case STRONG_R:
+	    case WEAK_EN:
+	    case WEAK_AN:
+	      type =
+		(bidi_it->bracket_enclosed_type == STRONG_R) /* N0c */
+		? STRONG_R				     /* N0c1 */
+		: embedding_type;			     /* N0c2 */
+	      break;
+	    case STRONG_L:
+	      type =
+		(bidi_it->bracket_enclosed_type == STRONG_L) /* N0c */
+		? STRONG_L				     /* N0c1 */
+		: embedding_type;			     /* N0c2 */
+	      break;
+	    default:
+	      /* N0d: Do not set the type for that bracket pair.  */
+	      break;
+	    }
+	}
+      eassert (type == STRONG_L || type == STRONG_R || type == NEUTRAL_ON);
+
+      /* Update the type of the paired closing bracket to the same
+	 type as for the resolved opening bracket.  */
+      if (type != NEUTRAL_ON)
+	{
+	  ptrdiff_t idx = bidi_cache_search (bidi_it->bracket_pairing_pos,
+					     -1, 1);
+
+	  if (idx < bidi_cache_start)
+	    emacs_abort ();
+	  bidi_cache[idx].type = type;
+	}
     }
 
   return type;
@@ -2571,27 +2625,9 @@ bidi_resolve_brackets (struct bidi_it *bidi_it)
 static bidi_type_t
 bidi_resolve_neutral (struct bidi_it *bidi_it)
 {
-  bool string_p = bidi_it->string.s || STRINGP (bidi_it->string.lstring);
-  int prev_level = bidi_it->level_stack[bidi_it->stack_idx].level;
-  bidi_type_t type = UNKNOWN_BT;
+  bidi_type_t type = bidi_resolve_brackets (bidi_it);
   int current_level;
   bool is_neutral;
-
-  if (bidi_cache_idx > bidi_cache_start && !bidi_it->first_elt)
-    {
-      struct bidi_it tem_it;
-
-      if (bidi_it->nchars <= 0)
-	emacs_abort ();
-      bidi_copy_it (&tem_it, bidi_it);
-      type = bidi_cache_find (bidi_it->charpos + bidi_it->nchars, 1, bidi_it);
-      if (type != UNKNOWN_BT
-	  && (tem_it.type == STRONG_R || tem_it.type == STRONG_L
-	      || tem_it.type == WEAK_EN || tem_it.type == WEAK_AN))
-	bidi_remember_char (&bidi_it->prev_for_neutral, &tem_it, 1);
-    }
-  if (type == UNKNOWN_BT)
-    type = bidi_resolve_brackets (bidi_it);
 
   eassert (type == STRONG_R
 	   || type == STRONG_L
@@ -2606,7 +2642,6 @@ bidi_resolve_neutral (struct bidi_it *bidi_it)
 	   || type == RLI
 	   || type == PDI);
 
-  eassert (prev_level >= 0);
   current_level = bidi_it->level_stack[bidi_it->stack_idx].level;
   eassert (current_level >= 0);
   is_neutral = bidi_get_category (type) == NEUTRAL;
