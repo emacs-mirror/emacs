@@ -7,7 +7,7 @@ TEST_HEADER
 OUTPUT_SPEC
  assert = true
  assertfile P= format.c
- assertcond = RingIsSingle(&format->poolRing)
+ assertcond = format->poolCount == 0
 END_HEADER
 */
 
