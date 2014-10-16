@@ -1,3 +1,10 @@
+2014-10-16  Alan Mackenzie  <acm@muc.de>
+
+	* cus-edit.el (custom-command-apply): Specify the return value in
+	the doc string.
+	(Custom-reset-standard): Save custom-file (e.g. .emacs) only when
+	custom-command-apply has returned non-nil.
+
 2014-10-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/eldoc.el (global-eldoc-mode): Enable by default.
