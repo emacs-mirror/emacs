@@ -2450,7 +2450,7 @@ bidi_find_bracket_pairs (struct bidi_it *bidi_it)
 	    }
 	  else if (bidi_get_category (bidi_it->type_after_wn) != NEUTRAL)
 	    {
-	      unsigned flag;
+	      unsigned flag = 0;
 	      int sp;
 
 	      /* Whenever we see a strong type, update the flags of
@@ -2472,8 +2472,11 @@ bidi_find_bracket_pairs (struct bidi_it *bidi_it)
 		default:
 		  break;
 		}
-	      for (sp = bpa_sp; sp >= 0; sp--)
-		bpa_stack[sp].flags |= flag;
+	      if (flag)
+		{
+		  for (sp = bpa_sp; sp >= 0; sp--)
+		    bpa_stack[sp].flags |= flag;
+		}
 	    }
 	  old_sidx = bidi_it->stack_idx;
 	  type = bidi_resolve_weak (bidi_it);
@@ -2517,6 +2520,27 @@ bidi_find_bracket_pairs (struct bidi_it *bidi_it)
   return retval;
 }
 
+static void
+bidi_record_prev_for_neutral (struct bidi_saved_info *info, int level)
+{
+  int idx;
+
+  for (idx = bidi_cache_last_idx + 1; idx < bidi_cache_idx; idx++)
+    {
+      int lev = bidi_cache[idx].level_stack[bidi_cache[idx].stack_idx].level;
+
+      if (bidi_cache[idx].type_after_wn == NEUTRAL_B)
+	return;		/* no cache slot to update */
+      if (lev <= level)
+	{
+	  eassert (lev == level);
+	  bidi_cache[idx].prev_for_neutral = *info;
+	  break;
+	}
+    }
+  eassert (idx < bidi_cache_idx);
+}
+
 static bidi_type_t
 bidi_resolve_brackets (struct bidi_it *bidi_it)
 {
@@ -2526,7 +2550,14 @@ bidi_resolve_brackets (struct bidi_it *bidi_it)
   int ch;
   struct bidi_saved_info tem_info;
 
-  bidi_remember_char (&tem_info, bidi_it, 1);
+  /* Record the prev_for_neutral type either from the previous
+     character, if it was a strong or AN/EN, or from the
+     prev_for_neutral information recvorded previously.  */
+  if (bidi_it->type == STRONG_L || bidi_it->type == STRONG_R
+      || bidi_it->type == WEAK_AN || bidi_it->type == WEAK_EN)
+    bidi_remember_char (&tem_info, bidi_it, 1);
+  else
+    tem_info = bidi_it->prev_for_neutral;
   if (!bidi_it->first_elt)
     {
       type = bidi_cache_find (bidi_it->charpos + bidi_it->nchars, 1, bidi_it);
@@ -2540,10 +2571,18 @@ bidi_resolve_brackets (struct bidi_it *bidi_it)
     }
   else
     {
+      /* If the cached state shows an increase of embedding level due
+	 to an isolate initiator, we need to update the 1st cached
+	 state of the next run of the current isolating sequence with
+	 the prev_for_neutral information, so that it will be picked
+	 up when we advanced to that next run.  */
+      if (bidi_it->level_stack[bidi_it->stack_idx].level > prev_level
+	  && bidi_it->level_stack[bidi_it->stack_idx].isolate_status)
+	bidi_record_prev_for_neutral (&tem_info, prev_level);
       if (type == NEUTRAL_ON
 	  && bidi_paired_bracket_type (ch) == BIDI_BRACKET_OPEN)
 	{
-	  if (bidi_it->level_stack[bidi_it->stack_idx].level == prev_level)
+	  if (bidi_it->level_stack[bidi_it->stack_idx].level <= prev_level)
 	    {
 	      if (bidi_it->bracket_pairing_pos > 0)
 		{
@@ -2555,20 +2594,15 @@ bidi_resolve_brackets (struct bidi_it *bidi_it)
 	  else
 	    {
 	      /* Higher levels were not BPA-resolved yet, even if
-		 cached by bidi_find_bracket_pairs.  Lower levels were
-		 probably processed by bidi_find_bracket_pairs, but we
-		 have no easy way of retaining the prev_for_neutral
-		 from the previous level run of the isolating
-		 sequence.  Force application of BPA now.  */
+		 cached by bidi_find_bracket_pairs.  Force application
+		 of BPA to the new level now.  */
 	      if (bidi_find_bracket_pairs (bidi_it))
 		resolve_bracket = true;
 	    }
 	}
       /* Keep track of the prev_for_neutral type, needed for resolving
 	 brackets below and for resolving neutrals in bidi_resolve_neutral.  */
-      if (bidi_it->level_stack[bidi_it->stack_idx].level == prev_level
-	  && (tem_info.type == STRONG_L || tem_info.type == STRONG_R
-	      || tem_info.type == WEAK_AN || tem_info.type == WEAK_EN))
+      if (bidi_it->level_stack[bidi_it->stack_idx].level == prev_level)
 	bidi_it->prev_for_neutral = tem_info;
     }
 
