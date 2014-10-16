@@ -3531,15 +3531,16 @@ Message buffers and is not meant to be called directly."
       (goto-char (point-max))
       ;; Insert the signature.
       (unless (bolp)
-	(insert "\n"))
+	(newline))
       (when message-signature-insert-empty-line
-	(insert "\n"))
-      (insert "-- \n")
+	(newline))
+      (insert "-- ")
+      (newline)
       (if (eq signature t)
 	  (insert-file-contents signature-file)
 	(insert signature))
       (goto-char (point-max))
-      (or (bolp) (insert "\n")))))
+      (or (bolp) (newline)))))
 
 (defun message-insert-importance-high ()
   "Insert header to mark message as important."

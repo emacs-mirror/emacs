@@ -1,3 +1,8 @@
+2014-10-15  Jorge A. Alfaro-Murillo  <jorge.alfaro-murillo@yale.edu>  (tiny change)
+
+	* message.el (message-insert-signature): Use `newline' instead of
+	inserting explicit "\n".
+
 2014-10-15  Sylvain Chouleur  <sylvain.chouleur@gmail.com>
 
 	* gnus-icalendar.el: Support vcal format timezones
