@@ -1,3 +1,19 @@
+2014-10-16  Alan Mackenzie  <acm@muc.de>
+
+	Trigger showing when point is in the "periphery" of a line or just
+	inside a paren.
+	* paren.el (show-paren-style, show-paren-delay)
+	(show-paren-priority, show-paren-ring-bell-on-mismatch): Remove
+	superfluous :group specifications.
+	(show-paren-when-point-inside-paren)
+	(show-paren-when-point-in-periphery): New customizable variables.
+	(show-paren-highlight-openparen): Make into a defcustom.
+	(show-paren--unescaped-p, show-paren--categorize-paren)
+	(show-paren--locate-near-paren): New defuns.
+	(show-paren--default): Refaactor and trigger on more paren
+	positions.
+	(show-paren-function): Small consequential changes.
+
 2014-10-16  Tom Tromey  <tom@tromey.com>
 
 	* files.el (auto-mode-alist): Use javascript-mode for .jsm

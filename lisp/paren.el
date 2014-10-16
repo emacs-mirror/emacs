@@ -43,8 +43,7 @@ Valid styles are `parenthesis' (meaning show the matching paren),
 `expression' (meaning show the entire expression enclosed by the paren) and
 `mixed' (meaning show the matching paren if it is visible, and the expression
 otherwise)."
-  :type '(choice (const parenthesis) (const expression) (const mixed))
-  :group 'paren-showing)
+  :type '(choice (const parenthesis) (const expression) (const mixed)))
 
 (defcustom show-paren-delay 0.125
   "Time in seconds to delay before showing a matching paren.
@@ -57,28 +56,39 @@ active, you must toggle the mode off and on again for this to take effect."
 	     (set sym val)
 	   (show-paren-mode -1)
 	   (set sym val)
-	   (show-paren-mode 1)))
-  :group 'paren-showing)
+	   (show-paren-mode 1))))
 
 (defcustom show-paren-priority 1000
   "Priority of paren highlighting overlays."
-  :type 'integer
-  :group 'paren-showing
+  :type 'integer 
   :version "21.1")
 
 (defcustom show-paren-ring-bell-on-mismatch nil
   "If non-nil, beep if mismatched paren is detected."
   :type 'boolean
-  :group 'paren-showing
   :version "20.3")
+
+(defcustom show-paren-when-point-inside-paren nil
+  "If non-nil, show parens when point is just inside one.
+This will only be done when point isn't also just outside a paren."
+  :type 'boolean
+  :version "25.1")
+
+(defcustom show-paren-when-point-in-periphery nil
+  "If non-nil, show parens when point is in the line's periphery.
+The periphery is at the beginning or end of a line or in any
+whitespace there."
+  :type 'boolean
+  :version "25.1")
 
 (define-obsolete-face-alias 'show-paren-match-face 'show-paren-match "22.1")
 
 (define-obsolete-face-alias 'show-paren-mismatch-face
   'show-paren-mismatch "22.1")
 
-(defvar show-paren-highlight-openparen t
-  "Non-nil turns on openparen highlighting when matching forward.")
+(defcustom show-paren-highlight-openparen t
+  "Non-nil turns on openparen highlighting when matching forward."
+  :type 'boolean)
 
 (defvar show-paren--idle-timer nil)
 (defvar show-paren--overlay
@@ -112,76 +122,113 @@ matching parenthesis is highlighted in `show-paren-style' after
     (delete-overlay show-paren--overlay)
     (delete-overlay show-paren--overlay-1)))
 
+(defun show-paren--unescaped-p (pos)
+  "Determine whether the paren after POS is unescaped."
+  (save-excursion
+    (goto-char pos)
+    (= (logand (skip-syntax-backward "/\\") 1) 0)))
+
+(defun show-paren--categorize-paren (pos)
+  "Determine whether the character after POS has paren syntax,
+and if so, return a cons (DIR . OUTSIDE), where DIR is 1 for an
+open paren, -1 for a close paren, and OUTSIDE is the buffer
+position of the outside of the paren.  If the character isn't a
+paren, or it is an escaped paren, return nil."
+  (cond
+   ((and (eq (syntax-class (syntax-after pos)) 4)
+	 (show-paren--unescaped-p pos))
+    (cons 1 pos))
+   ((and (eq (syntax-class (syntax-after pos)) 5)
+	 (show-paren--unescaped-p pos))
+    (cons -1 (1+ pos)))))
+
+(defun show-paren--locate-near-paren ()
+  "Locate an unescaped paren \"near\" point to show.
+If one is found, return the cons (DIR . OUTSIDE), where DIR is 1
+for an open paren, -1 for a close paren, and OUTSIDE is the buffer
+position of the outside of the paren.  Otherwise return nil."
+  (let* ((ind-pos (save-excursion (back-to-indentation) (point)))
+	 (eol-pos
+	  (save-excursion
+	    (end-of-line) (skip-chars-backward " \t" ind-pos) (point)))
+	 (before (show-paren--categorize-paren (1- (point))))
+	 (after (show-paren--categorize-paren (point))))
+    (cond
+     ;; Point is immediately outside a paren.
+     ((eq (car before) -1) before)
+     ((eq (car after) 1) after)
+     ;; Point is immediately inside a paren.
+     ((and show-paren-when-point-inside-paren before))
+     ((and show-paren-when-point-inside-paren after))
+     ;; Point is in the whitespace before the code.
+     ((and show-paren-when-point-in-periphery
+	   (<= (point) ind-pos))
+      (or (show-paren--categorize-paren ind-pos)
+	  (show-paren--categorize-paren (1- eol-pos))))
+     ;; Point is in the whitespace after the code.
+     ((and show-paren-when-point-in-periphery
+	   (>= (point) eol-pos))
+      (show-paren--categorize-paren (1- eol-pos))))))
+
 (defvar show-paren-data-function #'show-paren--default
-  "Function to find the opener/closer at point and its match.
+  "Function to find the opener/closer \"near\" point and its match.
 The function is called with no argument and should return either nil
-if there's no opener/closer at point, or a list of the form
+if there's no opener/closer near point, or a list of the form
 \(HERE-BEG HERE-END THERE-BEG THERE-END MISMATCH)
-Where HERE-BEG..HERE-END is expected to be around point.")
+Where HERE-BEG..HERE-END is expected to be near point.")
 
 (defun show-paren--default ()
-  (let* ((oldpos (point))
-         (dir (cond ((eq (syntax-class (syntax-after (1- (point)))) 5) -1)
-                    ((eq (syntax-class (syntax-after (point)))      4) 1)))
-         (unescaped
-          (when dir
-            ;; Verify an even number of quoting characters precede the paren.
-            ;; Follow the same logic as in `blink-matching-open'.
-            (= (if (= dir -1) 1 0)
-               (logand 1 (- (point)
-                            (save-excursion
-                              (if (= dir -1) (forward-char -1))
-                              (skip-syntax-backward "/\\")
-                              (point)))))))
-         (here-beg (if (eq dir 1) (point) (1- (point))))
-         (here-end (if (eq dir 1) (1+ (point)) (point)))
-         pos mismatch)
+  (let* ((temp (show-paren--locate-near-paren))
+	 (dir (car temp))
+	 (outside (cdr temp))
+	 pos mismatch here-beg here-end)
     ;;
     ;; Find the other end of the sexp.
-    (when unescaped
-      (save-excursion
-        (save-restriction
-          ;; Determine the range within which to look for a match.
-          (when blink-matching-paren-distance
-            (narrow-to-region
-             (max (point-min) (- (point) blink-matching-paren-distance))
-             (min (point-max) (+ (point) blink-matching-paren-distance))))
-          ;; Scan across one sexp within that range.
-          ;; Errors or nil mean there is a mismatch.
-          (condition-case ()
-              (setq pos (scan-sexps (point) dir))
-            (error (setq pos t mismatch t)))
-          ;; Move back the other way and verify we get back to the
-          ;; starting point.  If not, these two parens don't really match.
-          ;; Maybe the one at point is escaped and doesn't really count,
-          ;; or one is inside a comment.
-          (when (integerp pos)
-            (unless (condition-case ()
-                        (eq (point) (scan-sexps pos (- dir)))
-                      (error nil))
-              (setq pos nil)))
-          ;; If found a "matching" paren, see if it is the right
-          ;; kind of paren to match the one we started at.
-          (if (not (integerp pos))
-              (if mismatch (list here-beg here-end nil nil t))
-            (let ((beg (min pos oldpos)) (end (max pos oldpos)))
-              (unless (eq (syntax-class (syntax-after beg)) 8)
-                (setq mismatch
-                      (not (or (eq (char-before end)
-                                   ;; This can give nil.
-                                   (cdr (syntax-after beg)))
-                               (eq (char-after beg)
-                                   ;; This can give nil.
-                                   (cdr (syntax-after (1- end))))
-                               ;; The cdr might hold a new paren-class
-                               ;; info rather than a matching-char info,
-                               ;; in which case the two CDRs should match.
-                               (eq (cdr (syntax-after (1- end)))
-                                   (cdr (syntax-after beg)))))))
-              (list here-beg here-end
-                    (if (= dir 1) (1- pos) pos)
-                    (if (= dir 1) pos (1+ pos))
-                    mismatch))))))))
+    (when dir
+      (setq here-beg (if (eq dir 1) outside (1- outside))
+	    here-end (if (eq dir 1) (1+ outside) outside))
+      (save-restriction
+	;; Determine the range within which to look for a match.
+	(when blink-matching-paren-distance
+	  (narrow-to-region
+	   (max (point-min) (- (point) blink-matching-paren-distance))
+	   (min (point-max) (+ (point) blink-matching-paren-distance))))
+	;; Scan across one sexp within that range.
+	;; Errors or nil mean there is a mismatch.
+	(condition-case ()
+	    (setq pos (scan-sexps outside dir))
+	  (error (setq pos t mismatch t)))
+	;; Move back the other way and verify we get back to the
+	;; starting point.  If not, these two parens don't really match.
+	;; Maybe the one at point is escaped and doesn't really count,
+	;; or one is inside a comment.
+	(when (integerp pos)
+	  (unless (condition-case ()
+		      (eq outside (scan-sexps pos (- dir)))
+		    (error nil))
+	    (setq pos nil)))
+	;; If found a "matching" paren, see if it is the right
+	;; kind of paren to match the one we started at.
+	(if (not (integerp pos))
+	    (if mismatch (list here-beg here-end nil nil t))
+	  (let ((beg (min pos outside)) (end (max pos outside)))
+	    (unless (eq (syntax-class (syntax-after beg)) 8)
+	      (setq mismatch
+		    (not (or (eq (char-before end)
+				 ;; This can give nil.
+				 (cdr (syntax-after beg)))
+			     (eq (char-after beg)
+				 ;; This can give nil.
+				 (cdr (syntax-after (1- end))))
+			     ;; The cdr might hold a new paren-class
+			     ;; info rather than a matching-char info,
+			     ;; in which case the two CDRs should match.
+			     (eq (cdr (syntax-after (1- end)))
+				 (cdr (syntax-after beg)))))))
+	    (list here-beg here-end
+		  (if (= dir 1) (1- pos) pos)
+		  (if (= dir 1) pos (1+ pos))
+		  mismatch)))))))
 
 ;; Find the place to show, if there is one,
 ;; and show it until input arrives.
@@ -215,7 +262,8 @@ Where HERE-BEG..HERE-END is expected to be around point.")
         ;; Otherwise, turn off any such highlighting.
         (if (or (not here-beg)
                 (and (not show-paren-highlight-openparen)
-                     (> here-end (point))
+		     (> here-end (point))
+		     (<= here-beg (point))
                      (integerp there-beg)))
             (delete-overlay show-paren--overlay-1)
           (move-overlay show-paren--overlay-1
@@ -234,7 +282,7 @@ Where HERE-BEG..HERE-END is expected to be around point.")
                                           (1- there-end) (1+ there-beg))))
                          (not (pos-visible-in-window-p closest)))))
               (move-overlay show-paren--overlay
-                            (point)
+			    (if (< there-beg here-beg) here-end here-beg)
                             (if (< there-beg here-beg) there-beg there-end)
                             (current-buffer))
             (move-overlay show-paren--overlay
