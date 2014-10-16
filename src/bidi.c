@@ -2472,8 +2472,11 @@ bidi_find_bracket_pairs (struct bidi_it *bidi_it)
 		default:
 		  break;
 		}
-	      for (sp = bpa_sp; sp >= 0; sp--)
-		bpa_stack[sp].flags |= flag;
+	      if (flag)
+		{
+		  for (sp = bpa_sp; sp >= 0; sp--)
+		    bpa_stack[sp].flags |= flag;
+		}
 	    }
 	  old_sidx = bidi_it->stack_idx;
 	  type = bidi_resolve_weak (bidi_it);

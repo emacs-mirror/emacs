@@ -1,3 +1,8 @@
+2014-10-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* bidi.c (bidi_find_bracket_pairs): Avoid a loop that does nothing
+	useful.
+
 2014-10-15  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* bidi.c (bidi_find_bracket_pairs): Initialize local var.
