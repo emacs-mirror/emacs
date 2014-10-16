@@ -2552,7 +2552,7 @@ bidi_resolve_brackets (struct bidi_it *bidi_it)
 
   /* Record the prev_for_neutral type either from the previous
      character, if it was a strong or AN/EN, or from the
-     prev_for_neutral information recvorded previously.  */
+     prev_for_neutral information recorded previously.  */
   if (bidi_it->type == STRONG_L || bidi_it->type == STRONG_R
       || bidi_it->type == WEAK_AN || bidi_it->type == WEAK_EN)
     bidi_remember_char (&tem_info, bidi_it, 1);
