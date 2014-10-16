@@ -150,7 +150,8 @@
 
 	      ;; There is only one database result because we never enabled
 	      ;; semanticdb minor mode.
-	      (if (not (object-of-class-p (car (car res)) semanticdbclass))
+	      (if (or (not res)
+		      (not (object-of-class-p (car (car res)) semanticdbclass)))
 		  (error "Did not find %s results table." symrefsym))
 
 	      (when (/= (semanticdb-find-result-length res) 1)
