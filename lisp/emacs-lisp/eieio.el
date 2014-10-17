@@ -1,4 +1,4 @@
-;;; eieio.el --- Enhanced Implementation of Emacs Interpreted Objects
+;;; eieio.el --- Enhanced Implementation of Emacs Interpreted Objects  -*- lexical-binding:t -*-
 ;;;              or maybe Eric's Implementation of Emacs Interpreted Objects
 
 ;; Copyright (C) 1995-1996, 1998-2014 Free Software Foundation, Inc.
@@ -43,8 +43,6 @@
 ;; @TODO - Prefix non-clos functions with `eieio-'.
 
 ;;; Code:
-
-(eval-when-compile (require 'cl))       ;FIXME: Use cl-lib!
 
 (defvar eieio-version "1.4"
   "Current version of EIEIO.")
@@ -115,6 +113,7 @@ Options in CLOS not supported in EIEIO:
 
 Due to the way class options are set up, you can add any tags you wish,
 and reference them using the function `class-option'."
+  (declare (doc-string 4))
   ;; This is eval-and-compile only to silence spurious compiler warnings
   ;; about functions and variables not known to be defined.
   ;; When eieio-defclass code is merged here and this becomes
@@ -155,7 +154,7 @@ a string."
 
 ;;; CLOS methods and generics
 ;;
-(defmacro defgeneric (method args &optional doc-string)
+(defmacro defgeneric (method _args &optional doc-string)
   "Create a generic function METHOD.
 DOC-STRING is the base documentation for this class.  A generic
 function has no body, as its purpose is to decide which method body
@@ -163,6 +162,7 @@ is appropriate to use.  Uses `defmethod' to create methods, and calls
 `defgeneric' for you.  With this implementation the ARGS are
 currently ignored.  You can use `defgeneric' to apply specialized
 top level documentation to a method."
+  (declare (doc-string 3))
   `(eieio--defalias ',method
                     (eieio--defgeneric-init-form ',method ,doc-string)))
 
@@ -191,6 +191,7 @@ Summary:
                      ((typearg class-name) arg2 &optional opt &rest rest)
     \"doc-string\"
      body)"
+  (declare (doc-string 3))
   (let* ((key (if (keywordp (car args)) (pop args)))
 	 (params (car args))
 	 (arg1 (car params))
@@ -246,6 +247,7 @@ Where each VAR is the local variable given to the associated
 SLOT.  A slot specified without a variable name is given a
 variable name of the same name as the slot."
   (declare (indent 2))
+  (require 'cl-lib)
   ;; Transform the spec-list into a cl-symbol-macrolet spec-list.
   (let ((mappings (mapcar (lambda (entry)
 			    (let ((var  (if (listp entry) (car entry) entry))
@@ -523,7 +525,7 @@ Use `next-method-p' to find out if there is a next method to call."
 	(next (car eieio-generic-call-next-method-list))
 	)
     (if (or (not next) (not (car next)))
-	(apply 'no-next-method (car newargs) (cdr newargs))
+	(apply #'no-next-method (car newargs) (cdr newargs))
       (let* ((eieio-generic-call-next-method-list
 	      (cdr eieio-generic-call-next-method-list))
 	     (eieio-generic-call-arglst newargs)
@@ -535,27 +537,7 @@ Use `next-method-p' to find out if there is a next method to call."
 ;;; Here are some CLOS items that need the CL package
 ;;
 
-(defsetf eieio-oref eieio-oset)
-
-(if (eval-when-compile (fboundp 'gv-define-expander))
-    ;; Not needed for Emacs>=24.3 since gv.el's setf expands macros and
-    ;; follows aliases.
-    nil
-(defsetf slot-value eieio-oset)
-
-;; The below setf method was written by Arnd Kohrs <kohrs@acm.org>
-(define-setf-method oref (obj slot)
-  (with-no-warnings
-    (require 'cl)
-    (let ((obj-temp (gensym))
-	  (slot-temp (gensym))
-	  (store-temp (gensym)))
-      (list (list obj-temp slot-temp)
-	    (list obj `(quote ,slot))
-	    (list store-temp)
-	    (list 'set-slot-value obj-temp slot-temp
-		  store-temp)
-	    (list 'slot-value obj-temp slot-temp))))))
+(gv-define-simple-setter eieio-oref eieio-oset)
 
 
 ;;;
@@ -651,7 +633,7 @@ dynamically set from SLOTS."
   "Method invoked when an attempt to access a slot in OBJECT fails.")
 
 (defmethod slot-missing ((object eieio-default-superclass) slot-name
-			 operation &optional new-value)
+			 _operation &optional _new-value)
   "Method invoked when an attempt to access a slot in OBJECT fails.
 SLOT-NAME is the name of the failed slot, OPERATION is the type of access
 that was requested, and optional NEW-VALUE is the value that was desired
@@ -684,7 +666,7 @@ EIEIO can only dispatch on the first argument, so the first two are swapped."
   "Called if there are no implementations for OBJECT in METHOD.")
 
 (defmethod no-applicable-method ((object eieio-default-superclass)
-				 method &rest args)
+				 method &rest _args)
   "Called if there are no implementations for OBJECT in METHOD.
 OBJECT is the object which has no method implementation.
 ARGS are the arguments that were passed to METHOD.
@@ -734,7 +716,7 @@ first and modify the returned object.")
 (defgeneric destructor (this &rest params)
   "Destructor for cleaning up any dynamic links to our object.")
 
-(defmethod destructor ((this eieio-default-superclass) &rest params)
+(defmethod destructor ((_this eieio-default-superclass) &rest _params)
   "Destructor for cleaning up any dynamic links to our object.
 Argument THIS is the object being destroyed.  PARAMS are additional
 ignored parameters."
@@ -760,7 +742,7 @@ Implement this function and specify STRINGS in a call to
 `call-next-method' to provide additional summary information.
 When passing in extra strings from child classes, always remember
 to prepend a space."
-  (eieio-object-name this (apply 'concat strings)))
+  (eieio-object-name this (apply #'concat strings)))
 
 (defvar eieio-print-depth 0
   "When printing, keep track of the current indentation depth.")
@@ -859,7 +841,7 @@ this object."
 
 ;;; Unimplemented functions from CLOS
 ;;
-(defun change-class (obj class)
+(defun change-class (_obj _class)
   "Change the class of OBJ to type CLASS.
 This may create or delete slots, but does not affect the return value
 of `eq'."
@@ -879,7 +861,8 @@ Optional argument NOESCAPE is passed to `prin1-to-string' when appropriate."
 	((eieio-object-p object) (object-print object))
 	((and (listp object) (or (class-p (car object))
 				 (eieio-object-p (car object))))
-	 (concat "(" (mapconcat 'eieio-edebug-prin1-to-string object " ") ")"))
+	 (concat "(" (mapconcat #'eieio-edebug-prin1-to-string object " ")
+                 ")"))
 	(t (prin1-to-string object noescape))))
 
 (add-hook 'edebug-setup-hook

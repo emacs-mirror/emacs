@@ -822,7 +822,8 @@ For more details, see Info node `(cl)Loop Facility'.
                                "repeat" "while" "until" "always" "never"
                                "thereis" "collect" "append" "nconc" "sum"
                                "count" "maximize" "minimize" "if" "unless"
-                               "return"] form]
+                               "return"]
+                          form]
                          ;; Simple default, which covers 99% of the cases.
                          symbolp form)))
   (if (not (memq t (mapcar #'symbolp
@@ -1136,7 +1137,8 @@ For more details, see Info node `(cl)Loop Facility'.
 		  (if end
 		      (push (list
 			     (if down (if excl '> '>=) (if excl '< '<=))
-			     var (or end-var end)) cl--loop-body))
+			     var (or end-var end))
+                            cl--loop-body))
 		  (push (list var (list (if down '- '+) var
 					(or step-var step 1)))
 			loop-for-steps)))
@@ -1194,7 +1196,8 @@ For more details, see Info node `(cl)Loop Facility'.
 		  (push (list temp-vec (pop cl--loop-args)) loop-for-bindings)
 		  (push (list temp-idx -1) loop-for-bindings)
 		  (push `(< (setq ,temp-idx (1+ ,temp-idx))
-                            (length ,temp-vec)) cl--loop-body)
+                            (length ,temp-vec))
+                        cl--loop-body)
 		  (if (eq word 'across-ref)
 		      (push (list var `(aref ,temp-vec ,temp-idx))
 			    cl--loop-symbol-macs)
@@ -1370,7 +1373,8 @@ For more details, see Info node `(cl)Loop Facility'.
 	(if loop-for-sets
 	    (push `(progn
                      ,(cl--loop-let (nreverse loop-for-sets) 'setq ands)
-                     t) cl--loop-body))
+                     t)
+                  cl--loop-body))
 	(if loop-for-steps
 	    (push (cons (if ands 'cl-psetq 'setq)
 			(apply 'append (nreverse loop-for-steps)))
@@ -1388,7 +1392,8 @@ For more details, see Info node `(cl)Loop Facility'.
 	    (push `(progn (push ,what ,var) t) cl--loop-body)
 	  (push `(progn
                    (setq ,var (nconc ,var (list ,what)))
-                   t) cl--loop-body))))
+                   t)
+                cl--loop-body))))
 
      ((memq word '(nconc nconcing append appending))
       (let ((what (pop cl--loop-args))
@@ -1403,7 +1408,9 @@ For more details, see Info node `(cl)Loop Facility'.
                               ,var)
                           `(,(if (memq word '(nconc nconcing))
                                  #'nconc #'append)
-                            ,var ,what))) t) cl--loop-body)))
+                            ,var ,what)))
+                 t)
+              cl--loop-body)))
 
      ((memq word '(concat concating))
       (let ((what (pop cl--loop-args))
@@ -1434,7 +1441,8 @@ For more details, see Info node `(cl)Loop Facility'.
 	     (set `(setq ,var (if ,var (,func ,var ,temp) ,temp))))
 	(push `(progn ,(if (eq temp what) set
                          `(let ((,temp ,what)) ,set))
-                      t) cl--loop-body)))
+                      t)
+              cl--loop-body)))
 
      ((eq word 'with)
       (let ((bindings nil))
@@ -1505,7 +1513,8 @@ For more details, see Info node `(cl)Loop Facility'.
       (or cl--loop-result-var
           (setq cl--loop-result-var (make-symbol "--cl-var--")))
       (push `(setq ,cl--loop-result-var ,(pop cl--loop-args)
-                   ,cl--loop-finish-flag nil) cl--loop-body))
+                   ,cl--loop-finish-flag nil)
+            cl--loop-body))
 
      (t
       ;; This is an advertised interface: (info "(cl)Other Clauses").
@@ -2398,7 +2407,8 @@ non-nil value, that slot cannot be set via `setf'.
 	 pred-form pred-check)
     (if (stringp (car descs))
 	(push `(put ',name 'structure-documentation
-                    ,(pop descs)) forms))
+                    ,(pop descs))
+              forms))
     (setq descs (cons '(cl-tag-slot)
 		      (mapcar (function (lambda (x) (if (consp x) x (list x))))
 			      descs)))
@@ -2551,7 +2561,8 @@ non-nil value, that slot cannot be set via `setf'.
 	 (progn (push `(cl-defsubst ,predicate (cl-x)
                          ,(if (eq (car pred-form) 'and)
                               (append pred-form '(t))
-                            `(and ,pred-form t))) forms)
+                            `(and ,pred-form t)))
+                      forms)
 		(push (cons predicate 'error-free) side-eff)))
     (and copier
 	 (progn (push `(defun ,copier (x) (copy-sequence x)) forms)
@@ -2568,7 +2579,8 @@ non-nil value, that slot cannot be set via `setf'.
 			    slots defaults)))
 	(push `(cl-defsubst ,name
                  (&cl-defs '(nil ,@descs) ,@args)
-                 (,type ,@make)) forms)
+                 (,type ,@make))
+              forms)
 	(if (cl--safe-expr-p `(progn ,@(mapcar #'cl-second descs)))
 	    (push (cons name t) side-eff))))
     (if print-auto (nconc print-func (list '(princ ")" cl-s) t)))
@@ -2673,7 +2685,7 @@ Of course, we really can't know that for sure, so it's just a heuristic."
 			 (cdr type))))
 	  ((memq (car type) '(member cl-member))
 	   `(and (cl-member ,val ',(cdr type)) t))
-	  ((eq (car type) 'satisfies) (list (cadr type) val))
+	  ((eq (car type) 'satisfies) `(funcall #',(cadr type) ,val))
 	  (t (error "Bad type spec: %s" type)))))
 
 (defvar cl--object)

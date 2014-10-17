@@ -1,4 +1,4 @@
-;;; eieio-base.el --- Base classes for EIEIO.
+;;; eieio-base.el --- Base classes for EIEIO.  -*- lexical-binding:t -*-
 
 ;;; Copyright (C) 2000-2002, 2004-2005, 2007-2014 Free Software
 ;;; Foundation, Inc.
@@ -31,7 +31,7 @@
 ;;; Code:
 
 (require 'eieio)
-(eval-when-compile (require 'cl))       ;FIXME: Use cl-lib!
+(eval-when-compile (require 'cl-lib))
 
 ;;; eieio-instance-inheritor
 ;;
@@ -52,7 +52,8 @@ a parent instance.  When a slot in the child is referenced, and has
 not been set, use values from the parent."
   :abstract t)
 
-(defmethod slot-unbound ((object eieio-instance-inheritor) class slot-name fn)
+(defmethod slot-unbound ((object eieio-instance-inheritor)
+                         _class slot-name _fn)
   "If a slot OBJECT in this CLASS is unbound, try to inherit, or throw a signal.
 SLOT-NAME is the offending slot.  FN is the function signaling the error."
   (if (slot-boundp object 'parent-instance)
@@ -118,7 +119,7 @@ a variable symbol used to store a list of all instances."
   :abstract t)
 
 (defmethod initialize-instance :AFTER ((this eieio-instance-tracker)
-				       &rest slots)
+				       &rest _slots)
   "Make sure THIS is in our master list of this class.
 Optional argument SLOTS are the initialization arguments."
   ;; Theoretically, this is never called twice for a given instance.
@@ -154,7 +155,7 @@ Multiple calls to `make-instance' will return this object."))
 A singleton is a class which will only ever have one instance."
   :abstract t)
 
-(defmethod constructor :STATIC ((class eieio-singleton) name &rest slots)
+(defmethod constructor :STATIC ((class eieio-singleton) _name &rest _slots)
   "Constructor for singleton CLASS.
 NAME and SLOTS initialize the new object.
 This constructor guarantees that no matter how many you request,

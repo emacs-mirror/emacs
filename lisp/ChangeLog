@@ -1,10 +1,25 @@
+2014-10-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/eieio.el: Use lexical-binding drop non-GV fallback.
+	(defclass, defgeneric, defmethod): Add doc-string position.
+	(with-slots): Require cl-lib.
+
+	* emacs-lisp/eieio-core.el: Use lexical-binding and cl-lib.
+	(list-of): New type.
+	(eieio--typep): Remove.
+	(eieio-perform-slot-validation): Use cl-typep instead.
+
+	* emacs-lisp/eieio-base.el: Use lexical-binding and cl-lib.
+
+	* emacs-lisp/cl-macs.el (cl--make-type-test): Avoid ((lambda ..) ..).
+
 2014-10-16  Alan Mackenzie  <acm@muc.de>
 
 	Trigger showing when point is in the "periphery" of a line or just
 	inside a paren.
 	* paren.el (show-paren-style, show-paren-delay)
-	(show-paren-priority, show-paren-ring-bell-on-mismatch): Remove
-	superfluous :group specifications.
+	(show-paren-priority, show-paren-ring-bell-on-mismatch):
+	Remove superfluous :group specifications.
 	(show-paren-when-point-inside-paren)
 	(show-paren-when-point-in-periphery): New customizable variables.
 	(show-paren-highlight-openparen): Make into a defcustom.
@@ -532,7 +547,7 @@
 	* term.el (term-mouse-paste):
 	* mouse.el (mouse-yank-primary): Use gui-get-primary-selection.
 
-2014-10-02  H. Dieter Wilhelm <dieter@duenenhof-wilhelm.de>  (tiny change)
+2014-10-02  H. Dieter Wilhelm  <dieter@duenenhof-wilhelm.de>
 
 	* calc/calc-help.el (calc-describe-thing): Quote strings
 	which could look like regexps.

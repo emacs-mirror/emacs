@@ -1,4 +1,4 @@
-;;; eieio-core.el --- Core implementation for eieio
+;;; eieio-core.el --- Core implementation for eieio  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1995-1996, 1998-2014 Free Software Foundation, Inc.
 
@@ -31,7 +31,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))       ;FIXME: Use cl-lib!
+(require 'cl-lib)
 
 ;; Compatibility
 (if (fboundp 'compiled-function-arglist)
@@ -408,6 +408,12 @@ It creates an autoload function for CNAME's constructor."
   (when (eq (car-safe (symbol-function cname)) 'autoload)
     (load-library (car (cdr (symbol-function cname))))))
 
+(cl-deftype list-of (elem-type)
+  `(and list
+        (satisfies (lambda (list)
+                     (cl-every (lambda (elem) (cl-typep elem ',elem-type))
+                               list)))))
+
 (defun eieio-defclass (cname superclasses slots options-and-doc)
   ;; FIXME: Most of this should be moved to the `defclass' macro.
   "Define CNAME as a new subclass of SUPERCLASSES.
@@ -476,7 +482,7 @@ See `defclass' for more information."
 		    (setf (eieio--class-children (class-v (car pname)))
 			  (cons cname (eieio--class-children (class-v (car pname))))))
 		  ;; Get custom groups, and store them into our local copy.
-		  (mapc (lambda (g) (pushnew g groups :test #'equal))
+		  (mapc (lambda (g) (cl-pushnew g groups :test #'equal))
 			(class-option (car pname) :custom-groups))
 		  ;; save parent in child
 		  (setf (eieio--class-parent newc) (cons (car pname) (eieio--class-parent newc))))
@@ -553,8 +559,7 @@ See `defclass' for more information."
       ;; test, so we can let typep have the CLOS documented behavior
       ;; while keeping our above predicate clean.
 
-      ;; It would be cleaner to use `defsetf' here, but that requires cl
-      ;; at runtime.
+      ;; FIXME: It would be cleaner to use `cl-deftype' here.
       (put cname 'cl-deftype-handler
 	   (list 'lambda () `(list 'satisfies (quote ,csym)))))
 
@@ -655,7 +660,7 @@ See `defclass' for more information."
 			     prot initarg alloc 'defaultoverride skip-nil)
 
 	;; We need to id the group, and store them in a group list attribute.
-	(mapc (lambda (cg) (pushnew cg groups :test 'equal)) customg)
+	(mapc (lambda (cg) (cl-pushnew cg groups :test 'equal)) customg)
 
 	;; Anyone can have an accessor function.  This creates a function
 	;; of the specified name, and also performs a `defsetf' if applicable
@@ -721,7 +726,7 @@ See `defclass' for more information."
     (setf (eieio--class-public-d newc) (nreverse (eieio--class-public-d newc)))
     (setf (eieio--class-public-doc newc) (nreverse (eieio--class-public-doc newc)))
     (setf (eieio--class-public-type newc)
-	  (apply 'vector (nreverse (eieio--class-public-type newc))))
+	  (apply #'vector (nreverse (eieio--class-public-type newc))))
     (setf (eieio--class-public-custom newc) (nreverse (eieio--class-public-custom newc)))
     (setf (eieio--class-public-custom-label newc) (nreverse (eieio--class-public-custom-label newc)))
     (setf (eieio--class-public-custom-group newc) (nreverse (eieio--class-public-custom-group newc)))
@@ -732,11 +737,11 @@ See `defclass' for more information."
     ;; The storage for class-class-allocation-type needs to be turned into
     ;; a vector now.
     (setf (eieio--class-class-allocation-type newc)
-	  (apply 'vector (eieio--class-class-allocation-type newc)))
+	  (apply #'vector (eieio--class-class-allocation-type newc)))
 
     ;; Also, take class allocated values, and vectorize them for speed.
     (setf (eieio--class-class-allocation-values newc)
-	  (apply 'vector (eieio--class-class-allocation-values newc)))
+	  (apply #'vector (eieio--class-class-allocation-values newc)))
 
     ;; Attach slot symbols into an obarray, and store the index of
     ;; this slot as the variable slot in this new symbol.  We need to
@@ -779,7 +784,7 @@ See `defclass' for more information."
       (fset cname
 	    `(lambda (newname &rest slots)
 	       ,(format "Create a new object with name NAME of class type %s" cname)
-	       (apply 'constructor ,cname newname slots)))
+	       (apply #'constructor ,cname newname slots)))
       )
 
     ;; Set up a specialized doc string.
@@ -798,7 +803,7 @@ See `defclass' for more information."
 
     ;; We have a list of custom groups.  Store them into the options.
     (let ((g (class-option-assoc options :custom-groups)))
-      (mapc (lambda (cg) (pushnew cg g :test 'equal)) groups)
+      (mapc (lambda (cg) (cl-pushnew cg g :test 'equal)) groups)
       (if (memq :custom-groups options)
 	  (setcar (cdr (memq :custom-groups options)) g)
 	(setq options (cons :custom-groups (cons g options)))))
@@ -1065,7 +1070,7 @@ if default value is nil."
 	))
     ))
 
-(defun eieio-copy-parents-into-subclass (newc parents)
+(defun eieio-copy-parents-into-subclass (newc _parents)
   "Copy into NEWC the slots of PARENTS.
 Follow the rules of not overwriting early parents when applying to
 the new child class."
@@ -1178,6 +1183,8 @@ DOC-STRING is the documentation attached to METHOD."
   (let ((doc-string (documentation method)))
     (fset method (eieio-defgeneric-form-primary-only method doc-string))))
 
+(declare-function no-applicable-method "eieio" (object method &rest args))
+
 (defun eieio-defgeneric-form-primary-only-one (method doc-string
 						      class
 						      impl
@@ -1212,7 +1219,7 @@ IMPL is the symbol holding the method implementation."
 					 ',class)))
 
 	      ;; If not the right kind of object, call no applicable
-	      (apply 'no-applicable-method (car local-args)
+	      (apply #'no-applicable-method (car local-args)
 		     ',method local-args)
 
 	    ;; It is ok, do the call.
@@ -1299,53 +1306,12 @@ but remove reference to all implementations of METHOD."
 ;; This is a hideous hack for replacing `typep' from cl-macs, to avoid
 ;; requiring the CL library at run-time.  It can be eliminated if/when
 ;; `typep' is merged into Emacs core.
-(defun eieio--typep (val type)
-  (if (symbolp type)
-      (cond ((get type 'cl-deftype-handler)
-	     (eieio--typep val (funcall (get type 'cl-deftype-handler))))
-	    ((eq type t) t)
-	    ((eq type 'null)   (null val))
-	    ((eq type 'atom)   (atom val))
-	    ((eq type 'float)  (and (numberp val) (not (integerp val))))
-	    ((eq type 'real)   (numberp val))
-	    ((eq type 'fixnum) (integerp val))
-	    ((memq type '(character string-char)) (characterp val))
-	    (t
-	     (let* ((name (symbol-name type))
-		    (namep (intern (concat name "p"))))
-	       (if (fboundp namep)
-		   (funcall `(lambda () (,namep val)))
-		 (funcall `(lambda ()
-			     (,(intern (concat name "-p")) val)))))))
-    (cond ((get (car type) 'cl-deftype-handler)
-	   (eieio--typep val (apply (get (car type) 'cl-deftype-handler)
-				    (cdr type))))
-	  ((memq (car type) '(integer float real number))
-	   (and (eieio--typep val (car type))
-		(or (memq (cadr type) '(* nil))
-		    (if (consp (cadr type))
-			(> val (car (cadr type)))
-		      (>= val (cadr type))))
-		(or (memq (caddr type) '(* nil))
-		    (if (consp (car (cddr type)))
-			(< val (caar (cddr type)))
-		      (<= val (car (cddr type)))))))
-	  ((memq (car type) '(and or not))
-	   (eval (cons (car type)
-		       (mapcar (lambda (x)
-				 `(eieio--typep (quote ,val) (quote ,x)))
-			       (cdr type)))))
-	  ((memq (car type) '(member member*))
-	   (memql val (cdr type)))
-	  ((eq (car type) 'satisfies)
-	   (funcall `(lambda () (,(cadr type) val))))
-	  (t (error "Bad type spec: %s" type)))))
 
 (defun eieio-perform-slot-validation (spec value)
   "Return non-nil if SPEC does not match VALUE."
   (or (eq spec t)			; t always passes
       (eq value eieio-unbound)		; unbound always passes
-      (eieio--typep value spec)))
+      (cl-typep value spec)))
 
 (defun eieio-validate-slot-value (class slot-idx value slot)
   "Make sure that for CLASS referencing SLOT-IDX, VALUE is valid.
@@ -1632,7 +1598,7 @@ If a consistent order does not exist, signal an error."
 	  ;; applicable.
 	  (eieio-c3-merge-lists
 	   (cons next reversed-partial-result)
-	   (mapcar (lambda (l) (if (eq (first l) next) (rest l) l))
+	   (mapcar (lambda (l) (if (eq (cl-first l) next) (cl-rest l) l))
 		   remaining-inputs))
 	;; The graph is inconsistent, give up
 	(signal 'inconsistent-class-hierarchy (list remaining-inputs))))))
@@ -1700,7 +1666,7 @@ The order, in which the parents are returned depends on the
 method invocation orders of the involved classes."
   (if (or (null class) (eq class 'eieio-default-superclass))
       nil
-    (case (class-method-invocation-order class)
+    (cl-case (class-method-invocation-order class)
       (:depth-first
        (eieio-class-precedence-dfs class))
       (:breadth-first
@@ -1839,7 +1805,7 @@ This should only be called from a generic function."
 
     ;; Now loop through all occurrences forms which we must execute
     ;; (which are happily sorted now) and execute them all!
-    (let ((rval nil) (lastval nil) (rvalever nil) (found nil))
+    (let ((rval nil) (lastval nil) (found nil))
       (while lambdas
 	(if (car lambdas)
 	    (eieio--with-scoped-class (cdr (car lambdas))
@@ -1856,20 +1822,16 @@ This should only be called from a generic function."
 		;;(setq rval (apply (car (car lambdas)) newargs))
 		(setq lastval (apply (car (car lambdas)) newargs))
 		(when has-return-val
-		  (setq rval lastval
-			rvalever t))
+		  (setq rval lastval))
 		)))
 	(setq lambdas (cdr lambdas)
 	      keys (cdr keys)))
       (if (not found)
 	  (if (eieio-object-p (car args))
-	      (setq rval (apply 'no-applicable-method (car args) method args)
-		    rvalever t)
+	      (setq rval (apply #'no-applicable-method (car args) method args))
 	    (signal
 	     'no-method-definition
 	     (list method args))))
-      ;; Right Here... it could be that lastval is returned when
-      ;; rvalever is nil.  Is that right?
       rval)))
 
 (defun eieio-generic-call-primary-only (method args)
@@ -1920,7 +1882,7 @@ for this common case to improve performance."
     ;; Now loop through all occurrences forms which we must execute
     ;; (which are happily sorted now) and execute them all!
     (eieio--with-scoped-class (cdr lambdas)
-      (let* ((rval nil) (lastval nil) (rvalever nil)
+      (let* ((rval nil) (lastval nil)
 	     (eieio-generic-call-key method-primary)
 	     ;; Use the cdr, as the first element is the fcn
 	     ;; we are calling right now.
@@ -1931,8 +1893,8 @@ for this common case to improve performance."
 
 	    ;; No methods found for this impl...
 	    (if (eieio-object-p (car args))
-		(setq rval (apply 'no-applicable-method (car args) method args)
-		      rvalever t)
+		(setq rval (apply #'no-applicable-method
+                                  (car args) method args))
 	      (signal
 	       'no-method-definition
 	       (list method args)))
@@ -1943,12 +1905,8 @@ for this common case to improve performance."
 			      lambdas)
 
 	  (setq lastval (apply (car lambdas) newargs))
-	  (setq rval lastval
-		rvalever t)
-	  )
+	  (setq rval lastval))
 
-	;; Right Here... it could be that lastval is returned when
-	;; rvalever is nil.  Is that right?
 	rval))))
 
 (defun eieiomt-method-list (method key class)
@@ -2054,7 +2012,7 @@ CLASS is the class this method is associated with."
 	(when (string-match "\\.elc$" fname)
 	  (setq fname (substring fname 0 (1- (length fname)))))
 	(setq loc (get method-name 'method-locations))
-	(pushnew (list class fname) loc :test 'equal)
+	(cl-pushnew (list class fname) loc :test 'equal)
 	(put method-name 'method-locations loc)))
     ;; Now optimize the entire obarray
     (if (< key method-num-lists)
@@ -2084,7 +2042,8 @@ nil for superclasses.  This function performs no type checking!"
   ;; we replace the nil from above.
   (let ((external-symbol (intern-soft (symbol-name s))))
     (catch 'done
-      (dolist (ancestor (rest (eieio-class-precedence-list external-symbol)))
+      (dolist (ancestor
+               (cl-rest (eieio-class-precedence-list external-symbol)))
 	(let ((ov (intern-soft (symbol-name ancestor)
 			       eieiomt-optimizing-obarray)))
 	  (when (fboundp ov)
