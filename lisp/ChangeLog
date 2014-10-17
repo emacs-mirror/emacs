@@ -1,3 +1,8 @@
+2014-06-05  Michal Nazarewicz  <mina86@mina86.com>
+
+	* textmodes/tildify.el (tildify--pick-alist-entry): rename from
+	tildify-mode-alist.
+
 2014-10-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/eieio.el: Use lexical-binding drop non-GV fallback.

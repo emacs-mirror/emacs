@@ -4,7 +4,7 @@
 
 ;; Author:     Milan Zamazal <pdm@zamazal.org>
 ;;             Michal Nazarewicz <mina86@mina86.com>
-;; Version:    4.5.3
+;; Version:    4.5.4
 ;; Keywords:   text, TeX, SGML, wp
 
 ;; This file is part of GNU Emacs.
@@ -226,13 +226,13 @@ won't be prompted for confirmation of each substitution."
 
 ;;; *** Auxiliary functions ***
 
-(defun tildify-mode-alist (mode-alist &optional mode)
+(defun tildify--pick-alist-entry (mode-alist &optional mode)
   "Return alist item for the MODE-ALIST in the current major MODE."
   (let ((alist (cdr (or (assoc (or mode major-mode) mode-alist)
 			(assoc t mode-alist)))))
     (if (and alist
 	     (symbolp alist))
-	(tildify-mode-alist mode-alist alist)
+	(tildify--pick-alist-entry mode-alist alist)
       alist)))
 
 (defun tildify-foreach-region-outside-env (beg end callback)
@@ -244,7 +244,7 @@ arguments specifying the region to operate on.  Stop scanning the
 region as soon as CALLBACK returns nil.  Environments to ignore
 are determined from `tildify-ignored-environments-alist'."
   (declare (indent 2))
-  (let ((pairs (tildify-mode-alist tildify-ignored-environments-alist)))
+  (let ((pairs (tildify--pick-alist-entry tildify-ignored-environments-alist)))
     (if (not pairs)
         (funcall callback beg end)
       (let ((func (lambda (b e)
@@ -300,10 +300,10 @@ replacements done and response is one of symbols: t (all right), nil
 (quit), force (replace without further questions)."
   (save-excursion
     (goto-char beg)
-    (let* ((alist (tildify-mode-alist tildify-pattern-alist))
+    (let* ((alist (tildify--pick-alist-entry tildify-pattern-alist))
 	   (regexp (car alist))
 	   (match-number (cadr alist))
-	   (tilde (tildify-mode-alist tildify-string-alist))
+	   (tilde (tildify--pick-alist-entry tildify-string-alist))
 	   (end-marker (copy-marker end))
 	   answer
 	   bad-answer
