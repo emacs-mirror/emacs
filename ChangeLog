@@ -1,3 +1,7 @@
+2014-10-17  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac: Simplify OS X $canonical tests.
+
 2014-10-15  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.ac: Move the OSX 10.6 test.

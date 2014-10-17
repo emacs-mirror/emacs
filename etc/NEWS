@@ -388,8 +388,9 @@ fullwidth frames, the behavior may depend on the toolkit used.
 or Windows Server 2003.  The built binaries still run on all versions
 of Windows starting with Windows 9X.
 
-** Building Emacs on OSX with Coca (--with-ns) now requires 10.6 or newer.
-PowerPC on OSX is not supported.
+** OS X 10.5 or older is no longer supported.
+
+** OS X on PowerPC is no longer supported.
 
 
 ----------------------------------------------------------------------

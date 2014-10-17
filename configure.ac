@@ -556,13 +556,9 @@ case "${canonical}" in
   ## Apple Darwin / Mac OS X
   *-apple-darwin* )
     case "${canonical}" in
-      i[3456]86-* )  ;;
-      powerpc-* )    unported=yes ;;
-      x86_64-* )     ;;
-      * )            unported=yes ;;
-    esac
-    case "$canonical" in
       *-apple-darwin[0-9].*) unported=yes ;;
+      i[3456]86-* | x86_64-* )  ;;
+      * )            unported=yes ;;
     esac
     opsys=darwin
     ## Use fink packages if available.
