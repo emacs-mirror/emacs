@@ -1,3 +1,10 @@
+2014-10-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* xterm.c (x_draw_hollow_cursor): Fix display of hollow cursor on
+	1-pixel R2L characters.
+	Reported by Dmitry Antipov <dmantipov@yandex.ru>, see
+	http://lists.gnu.org/archive/html/emacs-devel/2014-10/msg00518.html.
+
 2014-10-10  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix port to Debian GNU/kFreeBSD 7 (wheezy) (Bug#18666).

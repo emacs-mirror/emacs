@@ -7133,7 +7133,8 @@ x_draw_hollow_cursor (struct window *w, struct glyph_row *row)
       && cursor_glyph->pixel_width > w->phys_cursor_width)
     {
       x += cursor_glyph->pixel_width - w->phys_cursor_width;
-      wd -= 1;
+      if (wd > 0)
+	wd -= 1;
     }
   /* Set clipping, draw the rectangle, and reset clipping again.  */
   x_clip_to_row (w, row, TEXT_AREA, gc);
