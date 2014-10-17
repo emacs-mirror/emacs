@@ -1,4 +1,4 @@
-2014-06-05  Michal Nazarewicz  <mina86@mina86.com>
+2014-10-17  Michal Nazarewicz  <mina86@mina86.com>
 
 	* textmodes/tildify.el (tildify--pick-alist-entry): rename from
 	tildify-mode-alist.
