@@ -1781,8 +1781,8 @@ definition of \"random distance\".)
 
 ;;;***
 
-;;;### (autoloads nil "bat-mode" "progmodes/bat-mode.el" (21291 53104
-;;;;;;  431149 0))
+;;;### (autoloads nil "bat-mode" "progmodes/bat-mode.el" (21559 25723
+;;;;;;  227256 0))
 ;;; Generated autoloads from progmodes/bat-mode.el
 
 (add-to-list 'auto-mode-alist '("\\.\\(bat\\|cmd\\)\\'" . bat-mode))
@@ -5113,8 +5113,8 @@ Activates the region if needed.  Only lasts until the region is deactivated.
 
 ;;;***
 
-;;;### (autoloads nil "cus-edit" "cus-edit.el" (21423 31150 636189
-;;;;;;  289000))
+;;;### (autoloads nil "cus-edit" "cus-edit.el" (21567 27231 41069
+;;;;;;  0))
 ;;; Generated autoloads from cus-edit.el
 
 (defvar custom-browse-sort-alphabetically nil "\
@@ -15336,7 +15336,7 @@ on these modes.
 
 ;;;***
 
-;;;### (autoloads nil "imenu" "imenu.el" (21291 53104 431149 0))
+;;;### (autoloads nil "imenu" "imenu.el" (21552 42336 217430 0))
 ;;; Generated autoloads from imenu.el
 
 (defvar imenu-sort-function nil "\
@@ -19422,7 +19422,7 @@ Coloring:
 
 ;;;***
 
-;;;### (autoloads nil "org" "org/org.el" (21341 23900 988149 0))
+;;;### (autoloads nil "org" "org/org.el" (21562 51850 729888 0))
 ;;; Generated autoloads from org/org.el
 
 (autoload 'org-babel-do-load-languages "org" "\
@@ -19643,8 +19643,8 @@ Call the customize function with org as argument.
 
 ;;;***
 
-;;;### (autoloads nil "org-agenda" "org/org-agenda.el" (21341 23900
-;;;;;;  988149 0))
+;;;### (autoloads nil "org-agenda" "org/org-agenda.el" (21563 5239
+;;;;;;  893217 0))
 ;;; Generated autoloads from org/org-agenda.el
 
 (autoload 'org-toggle-sticky-agenda "org-agenda" "\
@@ -19917,8 +19917,8 @@ to override `appt-message-warning-time'.
 
 ;;;***
 
-;;;### (autoloads nil "org-capture" "org/org-capture.el" (21341 23900
-;;;;;;  988149 0))
+;;;### (autoloads nil "org-capture" "org/org-capture.el" (21550 48530
+;;;;;;  321434 0))
 ;;; Generated autoloads from org/org-capture.el
 
 (autoload 'org-capture-string "org-capture" "\
@@ -20024,8 +20024,8 @@ Turn on or update column view in the agenda.
 
 ;;;***
 
-;;;### (autoloads nil "org-compat" "org/org-compat.el" (21341 23900
-;;;;;;  988149 0))
+;;;### (autoloads nil "org-compat" "org/org-compat.el" (21550 48530
+;;;;;;  321434 0))
 ;;; Generated autoloads from org/org-compat.el
 
 (autoload 'org-check-version "org-compat" "\
@@ -20035,7 +20035,7 @@ Try very hard to provide sensible version strings.
 
 ;;;***
 
-;;;### (autoloads nil "org-macs" "org/org-macs.el" (21291 53104 431149
+;;;### (autoloads nil "org-macs" "org/org-macs.el" (21550 48530 321434
 ;;;;;;  0))
 ;;; Generated autoloads from org/org-macs.el
 
@@ -20046,8 +20046,8 @@ Load FILE with optional arguments NOERROR and MUSTSUFFIX.  Drop the MUSTSUFFIX a
 
 ;;;***
 
-;;;### (autoloads nil "org-version" "org/org-version.el" (21341 23900
-;;;;;;  988149 0))
+;;;### (autoloads nil "org-version" "org/org-version.el" (21563 5239
+;;;;;;  893217 0))
 ;;; Generated autoloads from org/org-version.el
 
 (autoload 'org-release "org-version" "\
@@ -21552,8 +21552,8 @@ Open profile FILENAME.
 
 ;;;***
 
-;;;### (autoloads nil "prolog" "progmodes/prolog.el" (21458 5037
-;;;;;;  542417 679000))
+;;;### (autoloads nil "prolog" "progmodes/prolog.el" (21559 25723
+;;;;;;  227256 0))
 ;;; Generated autoloads from progmodes/prolog.el
 
 (autoload 'prolog-mode "prolog" "\
@@ -21850,8 +21850,8 @@ If EXTENSION is any other symbol, it is ignored.
 
 ;;;***
 
-;;;### (autoloads nil "python" "progmodes/python.el" (21548 39298
-;;;;;;  812747 0))
+;;;### (autoloads nil "python" "progmodes/python.el" (21562 51850
+;;;;;;  729888 0))
 ;;; Generated autoloads from progmodes/python.el
 (push (purecopy '(python 0 24 4)) package--builtin-versions)
 
@@ -26829,7 +26829,7 @@ Normally input is edited in Emacs and sent a line at a time.
 
 ;;;***
 
-;;;### (autoloads nil "term" "term.el" (21341 23900 988149 0))
+;;;### (autoloads nil "term" "term.el" (21556 55872 481216 0))
 ;;; Generated autoloads from term.el
 
 (autoload 'make-term "term" "\
@@ -29897,7 +29897,7 @@ find any project directory." (let ((project-dir (getenv "PROJECTDIR")) dirs dir)
 
 ;;;***
 
-;;;### (autoloads nil "vc-svn" "vc/vc-svn.el" (21291 53104 431149
+;;;### (autoloads nil "vc-svn" "vc/vc-svn.el" (21550 48530 321434
 ;;;;;;  0))
 ;;; Generated autoloads from vc/vc-svn.el
  (defun vc-svn-registered (f)
@@ -32088,20 +32088,20 @@ Zone out, completely.
 ;;;;;;  "international/uni-old-name.el" "international/uni-titlecase.el"
 ;;;;;;  "international/uni-uppercase.el" "kermit.el" "language/hanja-util.el"
 ;;;;;;  "language/thai-word.el" "ldefs-boot.el" "leim/ja-dic/ja-dic.el"
-;;;;;;  "leim/quail/4Corner.el" "leim/quail/arabic.el" "leim/quail/croatian.el"
-;;;;;;  "leim/quail/cyril-jis.el" "leim/quail/cyrillic.el" "leim/quail/czech.el"
-;;;;;;  "leim/quail/ethiopic.el" "leim/quail/georgian.el" "leim/quail/greek.el"
-;;;;;;  "leim/quail/hanja-jis.el" "leim/quail/hanja.el" "leim/quail/hanja3.el"
-;;;;;;  "leim/quail/hebrew.el" "leim/quail/indian.el" "leim/quail/ipa-praat.el"
-;;;;;;  "leim/quail/ipa.el" "leim/quail/japanese.el" "leim/quail/lao.el"
-;;;;;;  "leim/quail/latin-alt.el" "leim/quail/latin-ltx.el" "leim/quail/latin-post.el"
-;;;;;;  "leim/quail/latin-pre.el" "leim/quail/lrt.el" "leim/quail/persian.el"
-;;;;;;  "leim/quail/py-punct.el" "leim/quail/pypunct-b5.el" "leim/quail/rfc1345.el"
-;;;;;;  "leim/quail/sgml-input.el" "leim/quail/sisheng.el" "leim/quail/slovak.el"
-;;;;;;  "leim/quail/symbol-ksc.el" "leim/quail/thai.el" "leim/quail/tibetan.el"
-;;;;;;  "leim/quail/viqr.el" "leim/quail/vntelex.el" "leim/quail/vnvni.el"
-;;;;;;  "leim/quail/welsh.el" "loadup.el" "mail/blessmail.el" "mail/mailheader.el"
-;;;;;;  "mail/mspools.el" "mail/rfc2368.el" "mail/rfc822.el" "mail/rmail-spam-filter.el"
+;;;;;;  "leim/quail/arabic.el" "leim/quail/croatian.el" "leim/quail/cyril-jis.el"
+;;;;;;  "leim/quail/cyrillic.el" "leim/quail/czech.el" "leim/quail/ethiopic.el"
+;;;;;;  "leim/quail/georgian.el" "leim/quail/greek.el" "leim/quail/hanja-jis.el"
+;;;;;;  "leim/quail/hanja.el" "leim/quail/hanja3.el" "leim/quail/hebrew.el"
+;;;;;;  "leim/quail/indian.el" "leim/quail/ipa-praat.el" "leim/quail/ipa.el"
+;;;;;;  "leim/quail/japanese.el" "leim/quail/lao.el" "leim/quail/latin-alt.el"
+;;;;;;  "leim/quail/latin-ltx.el" "leim/quail/latin-post.el" "leim/quail/latin-pre.el"
+;;;;;;  "leim/quail/lrt.el" "leim/quail/persian.el" "leim/quail/py-punct.el"
+;;;;;;  "leim/quail/pypunct-b5.el" "leim/quail/rfc1345.el" "leim/quail/sgml-input.el"
+;;;;;;  "leim/quail/sisheng.el" "leim/quail/slovak.el" "leim/quail/symbol-ksc.el"
+;;;;;;  "leim/quail/thai.el" "leim/quail/tibetan.el" "leim/quail/viqr.el"
+;;;;;;  "leim/quail/vntelex.el" "leim/quail/vnvni.el" "leim/quail/welsh.el"
+;;;;;;  "loadup.el" "mail/blessmail.el" "mail/mailheader.el" "mail/mspools.el"
+;;;;;;  "mail/rfc2368.el" "mail/rfc822.el" "mail/rmail-spam-filter.el"
 ;;;;;;  "mail/rmailedit.el" "mail/rmailkwd.el" "mail/rmailmm.el"
 ;;;;;;  "mail/rmailmsc.el" "mail/rmailsort.el" "mail/rmailsum.el"
 ;;;;;;  "mail/undigest.el" "mh-e/mh-acros.el" "mh-e/mh-alias.el"
@@ -32175,8 +32175,8 @@ Zone out, completely.
 ;;;;;;  "vc/ediff-ptch.el" "vc/ediff-vers.el" "vc/ediff-wind.el"
 ;;;;;;  "vc/pcvs-info.el" "vc/pcvs-parse.el" "vc/pcvs-util.el" "vc/vc-dav.el"
 ;;;;;;  "vcursor.el" "vt-control.el" "vt100-led.el" "w32-common-fns.el"
-;;;;;;  "w32-fns.el" "w32-vars.el" "x-dnd.el") (21548 39937 969940
-;;;;;;  896000))
+;;;;;;  "w32-fns.el" "w32-vars.el" "x-dnd.el") (21568 40785 709844
+;;;;;;  391000))
 
 ;;;***
 
