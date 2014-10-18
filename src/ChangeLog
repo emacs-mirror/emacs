@@ -1,3 +1,34 @@
+2014-10-18  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.h (handlebox_widget): Remove.
+
+	* xmenu.c (set_frame_menubar): Remove GTK block that calls
+	xg_have_tear_offs.
+
+	* gtkutil.h (xg_have_tear_offs): Remove declaration.
+
+	* gtkutil.c (XG_TEXT_CANCEL, XG_TEXT_OPEN, XG_TEXT_OK): New defines
+	to handle Gtk versions.
+	(xg_get_file_with_chooser): Use them.
+	(xg_have_tear_offs, tearoff_remove, tearoff_activate): Remove
+	(create_menus): Remove teroff argument and code.
+	Remove call to gtk_menu_set_title.
+	(xg_update_menubar, xg_update_submenu): Remove tearoff code.  Adjust
+	args to create_menus.
+	(xg_tool_bar_menu_proxy, xg_tool_bar_detach_callback)
+	(xg_tool_bar_attach_callback, TOOLBAR_TOP_WIDGET): Remove.
+	(xg_pack_tool_bar): Replace TOOLBAR_TOP_WIDGET, remove detach code.
+	(xg_make_tool_item): Remove detach code.
+	(xg_update_tool_bar_sizes): Replace TOOLBAR_TOP_WIDGET.
+	(find_icon_from_name): New function.
+	(update_frame_tool_bar): Remove GtkStockItem code, move to
+	find_icon_from_name.  Let stock be a list of icon names to try.
+	Only use gtk_image_new_from_stock on Gtk+ < 3.10.
+	Replace TOOLBAR_TOP_WIDGET.
+	(free_frame_tool_bar, xg_change_toolbar_position ): Replace
+	TOOLBAR_TOP_WIDGET.
+	(xg_initialize): Remove tearoff code.
+
 2014-10-18  Eli Zaretskii  <eliz@gnu.org>
 
 	* xterm.c (x_draw_bar_cursor, x_draw_hollow_cursor): Subtract 1

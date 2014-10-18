@@ -93,6 +93,16 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 #endif /* HAVE_FREETYPE */
 
+#if GTK_CHECK_VERSION (3, 10, 0)
+#define XG_TEXT_CANCEL "Cancel"
+#define XG_TEXT_OK     "OK"
+#define XG_TEXT_OPEN   "Open"
+#else
+#define XG_TEXT_CANCEL GTK_STOCK_CANCEL
+#define XG_TEXT_OK     GTK_STOCK_OK
+#define XG_TEXT_OPEN   GTK_STOCK_OPEN
+#endif
+
 #ifndef HAVE_GTK3
 #ifdef USE_GTK_TOOLTIP
 #define gdk_window_get_screen(w) gdk_drawable_get_screen (w)
@@ -1774,9 +1784,9 @@ xg_get_file_with_chooser (struct frame *f,
     action = GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER;
 
   filewin = gtk_file_chooser_dialog_new (prompt, gwin, action,
-                                         GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+                                         XG_TEXT_CANCEL, GTK_RESPONSE_CANCEL,
                                          (mustmatch_p || only_dir_p ?
-                                          GTK_STOCK_OPEN : GTK_STOCK_OK),
+                                          XG_TEXT_OPEN : XG_TEXT_OK),
                                          GTK_RESPONSE_OK,
                                          NULL);
   gtk_file_chooser_set_local_only (GTK_FILE_CHOOSER (filewin), TRUE);
@@ -2356,57 +2366,6 @@ make_menu_item (const char *utf8_label,
   return w;
 }
 
-#ifdef HAVE_GTK_TEAROFF_MENU_ITEM_NEW
-
-static int xg_detached_menus;
-
-/* Return true if there are detached menus.  */
-
-bool
-xg_have_tear_offs (struct frame *f)
-{
-  /* If the frame's menubar height is zero, the menu bar is probably
-     being redirected outside the window to some kind of global menu;
-     this situation is the moral equivalent of a tear-off.  */
-  return FRAME_MENUBAR_HEIGHT (f) == 0 || xg_detached_menus > 0;
-}
-
-/* Callback invoked when a detached menu window is removed.  Here we
-   decrease the xg_detached_menus count.
-   WIDGET is the top level window that is removed (the parent of the menu).
-   CLIENT_DATA is not used.  */
-
-static void
-tearoff_remove (GtkWidget *widget, gpointer client_data)
-{
-  if (xg_detached_menus > 0) --xg_detached_menus;
-}
-
-/* Callback invoked when a menu is detached.  It increases the
-   xg_detached_menus count.
-   WIDGET is the GtkTearoffMenuItem.
-   CLIENT_DATA is not used.  */
-
-static void
-tearoff_activate (GtkWidget *widget, gpointer client_data)
-{
-  GtkWidget *menu = gtk_widget_get_parent (widget);
-  if (gtk_menu_get_tearoff_state (GTK_MENU (menu)))
-    {
-      ++xg_detached_menus;
-      g_signal_connect (G_OBJECT (gtk_widget_get_toplevel (widget)),
-                        "destroy",
-                        G_CALLBACK (tearoff_remove), 0);
-    }
-}
-#else /* ! HAVE_GTK_TEAROFF_MENU_ITEM_NEW */
-bool
-xg_have_tear_offs (struct frame *f)
-{
-  return FRAME_MENUBAR_HEIGHT (f) == 0;
-}
-#endif /* ! HAVE_GTK_TEAROFF_MENU_ITEM_NEW */
-
 /* Create a menu item widget, and connect the callbacks.
    ITEM describes the menu item.
    F is the frame the created menu belongs to.
@@ -2477,8 +2436,6 @@ xg_create_one_menuitem (widget_value *item,
    HIGHLIGHT_CB is the callback to call when entering/leaving menu items.
    If POP_UP_P, create a popup menu.
    If MENU_BAR_P, create a menu bar.
-   If ADD_TEAROFF_P, add a tearoff menu item.  Ignored if MENU_BAR_P or
-   the Gtk+ version used does not have tearoffs.
    TOPMENU is the topmost GtkWidget that others shall be placed under.
    It may be NULL, in that case we create the appropriate widget
    (menu bar or menu item depending on POP_UP_P and MENU_BAR_P)
@@ -2500,7 +2457,6 @@ create_menus (widget_value *data,
               GCallback highlight_cb,
               bool pop_up_p,
               bool menu_bar_p,
-              bool add_tearoff_p,
               GtkWidget *topmenu,
               xg_menu_cb_data *cl_data,
               const char *name)
@@ -2551,24 +2507,6 @@ create_menus (widget_value *data,
                           "selection-done", deactivate_cb, 0);
     }
 
-#ifdef HAVE_GTK_TEAROFF_MENU_ITEM_NEW
-  if (! menu_bar_p && add_tearoff_p)
-    {
-      // Only add tearoff if menu is empty.
-      GList *list = gtk_container_get_children (GTK_CONTAINER (wmenu));
-      if (! list)
-        {
-          GtkWidget *tearoff = gtk_tearoff_menu_item_new ();
-          gtk_menu_shell_append (GTK_MENU_SHELL (wmenu), tearoff);
-
-          g_signal_connect (G_OBJECT (tearoff), "activate",
-                            G_CALLBACK (tearoff_activate), 0);
-        }
-      else
-        g_list_free (list);
-    }
-#endif
-
   for (item = data; item; item = item->next)
     {
       GtkWidget *w;
@@ -2582,7 +2520,6 @@ create_menus (widget_value *data,
           group = NULL;
           utf8_label = get_utf8_string (item->name);
 
-          gtk_menu_set_title (GTK_MENU (wmenu), utf8_label);
           w = gtk_menu_item_new_with_label (utf8_label);
           gtk_widget_set_sensitive (w, FALSE);
           if (utf8_label) g_free (utf8_label);
@@ -2613,7 +2550,6 @@ create_menus (widget_value *data,
                                                  highlight_cb,
                                                  0,
                                                  0,
-                                                 add_tearoff_p,
                                                  0,
                                                  cl_data,
                                                  0);
@@ -2670,7 +2606,6 @@ xg_create_widget (const char *type, const char *name, struct frame *f,
                         deactivate_cb,
                         highlight_cb,
                         pop_up_p,
-                        menu_bar_p,
                         menu_bar_p,
                         0,
                         0,
@@ -2781,7 +2716,7 @@ xg_update_menubar (GtkWidget *menubar,
     {
       /* Item(s) added.  Add all new items in one call.  */
       create_menus (val, f, select_cb, deactivate_cb, highlight_cb,
-                    0, 1, 0, menubar, cl_data, 0);
+                    0, 1, menubar, cl_data, 0);
 
       /* All updated.  */
       val = 0;
@@ -2864,14 +2799,6 @@ xg_update_menubar (GtkWidget *menubar,
           gtk_label_set_text (wlabel, utf8_label);
           g_object_notify (G_OBJECT (witem), "label");
 
-#ifdef HAVE_GTK_TEAROFF_MENU_ITEM_NEW
-          /* If this item has a submenu that has been detached, change
-             the title in the WM decorations also.  */
-          if (submenu && gtk_menu_get_tearoff_state (GTK_MENU (submenu)))
-            /* Set the title of the detached window.  */
-            gtk_menu_set_title (GTK_MENU (submenu), utf8_label);
-#endif
-
           if (utf8_label) g_free (utf8_label);
           iter = g_list_next (iter);
           val = val->next;
@@ -2898,7 +2825,7 @@ xg_update_menubar (GtkWidget *menubar,
           GtkWidget *submenu = create_menus (NULL, f,
                                              select_cb, deactivate_cb,
                                              highlight_cb,
-                                             0, 0, 0, 0, cl_data, 0);
+                                             0, 0, 0, cl_data, 0);
 
           gtk_widget_set_name (w, MENU_ITEM_NAME);
           gtk_menu_shell_insert (GTK_MENU_SHELL (menubar), w, pos);
@@ -3106,16 +3033,6 @@ xg_update_submenu (GtkWidget *submenu,
   {
     GtkWidget *w = GTK_WIDGET (iter->data);
 
-#ifdef HAVE_GTK_TEAROFF_MENU_ITEM_NEW
-  /* Skip tearoff items, they have no counterpart in val.  */
-    if (GTK_IS_TEAROFF_MENU_ITEM (w))
-      {
-        iter = g_list_next (iter);
-        if (iter) w = GTK_WIDGET (iter->data);
-        else break;
-      }
-#endif
-
     /* Remember first radio button in a group.  If we get a mismatch in
        a radio group we must rebuild the whole group so that the connections
        in GTK becomes correct.  */
@@ -3203,7 +3120,6 @@ xg_update_submenu (GtkWidget *submenu,
                              highlight_cb,
                              0,
                              0,
-                             1,
                              submenu,
                              cl_data,
                              0);
@@ -4188,187 +4104,6 @@ xg_get_tool_bar_widgets (GtkWidget *vb, GtkWidget **wimage)
 }
 
 
-/* This callback is called when a tool item should create a proxy item,
-   such as for the overflow menu.  Also called when the tool bar is detached.
-   If we don't create a proxy menu item, the detached tool bar will be
-   blank.  */
-
-static gboolean
-xg_tool_bar_menu_proxy (GtkToolItem *toolitem, gpointer user_data)
-{
-  GtkButton *wbutton = GTK_BUTTON (XG_BIN_CHILD (XG_BIN_CHILD (toolitem)));
-  GtkWidget *vb = XG_BIN_CHILD (wbutton);
-  GtkWidget *c1;
-  GtkLabel *wlbl = GTK_LABEL (xg_get_tool_bar_widgets (vb, &c1));
-  GtkImage *wimage = GTK_IMAGE (c1);
-  GtkWidget *wmenuitem = gtk_image_menu_item_new_with_label
-    (wlbl ? gtk_label_get_text (wlbl) : "");
-  GtkWidget *wmenuimage;
-
-
-  if (gtk_button_get_use_stock (wbutton))
-    wmenuimage = gtk_image_new_from_stock (gtk_button_get_label (wbutton),
-                                           GTK_ICON_SIZE_MENU);
-  else
-    {
-      GtkSettings *settings = gtk_widget_get_settings (GTK_WIDGET (wbutton));
-      GtkImageType store_type = gtk_image_get_storage_type (wimage);
-
-      g_object_set (G_OBJECT (settings), "gtk-menu-images", TRUE, NULL);
-
-      if (store_type == GTK_IMAGE_STOCK)
-        {
-          gchar *stock_id;
-          gtk_image_get_stock (wimage, &stock_id, NULL);
-          wmenuimage = gtk_image_new_from_stock (stock_id, GTK_ICON_SIZE_MENU);
-        }
-      else if (store_type == GTK_IMAGE_ICON_SET)
-        {
-          GtkIconSet *icon_set;
-          gtk_image_get_icon_set (wimage, &icon_set, NULL);
-          wmenuimage = gtk_image_new_from_icon_set (icon_set,
-                                                    GTK_ICON_SIZE_MENU);
-        }
-      else if (store_type == GTK_IMAGE_PIXBUF)
-        {
-          gint width, height;
-
-          if (settings &&
-              gtk_icon_size_lookup_for_settings (settings, GTK_ICON_SIZE_MENU,
-                                                 &width, &height))
-            {
-              GdkPixbuf *src_pixbuf, *dest_pixbuf;
-
-              src_pixbuf = gtk_image_get_pixbuf (wimage);
-              dest_pixbuf = gdk_pixbuf_scale_simple (src_pixbuf, width, height,
-                                                     GDK_INTERP_BILINEAR);
-
-              wmenuimage = gtk_image_new_from_pixbuf (dest_pixbuf);
-            }
-          else
-            {
-              fprintf (stderr, "internal error: GTK_IMAGE_PIXBUF failed\n");
-              emacs_abort ();
-            }
-        }
-      else if (store_type == GTK_IMAGE_ICON_NAME)
-        {
-          const gchar *icon_name;
-          GtkIconSize icon_size;
-
-          gtk_image_get_icon_name (wimage, &icon_name, &icon_size);
-          wmenuimage = gtk_image_new_from_icon_name (icon_name,
-                                                     GTK_ICON_SIZE_MENU);
-        }
-      else
-        {
-          fprintf (stderr, "internal error: store_type is %d\n", store_type);
-          emacs_abort ();
-        }
-    }
-  if (wmenuimage)
-    gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (wmenuitem), wmenuimage);
-
-  g_signal_connect (G_OBJECT (wmenuitem),
-                    "activate",
-                    G_CALLBACK (xg_tool_bar_proxy_callback),
-                    user_data);
-
-
-  g_object_set_data (G_OBJECT (wmenuitem), XG_TOOL_BAR_PROXY_BUTTON,
-                     (gpointer) wbutton);
-  gtk_tool_item_set_proxy_menu_item (toolitem, "Emacs toolbar item", wmenuitem);
-  gtk_widget_set_sensitive (wmenuitem,
-                            gtk_widget_get_sensitive (GTK_WIDGET (wbutton)));
-
-  /* Use enter/leave notify to show help.  We use the events
-     rather than the GtkButton specific signals "enter" and
-     "leave", so we can have only one callback.  The event
-     will tell us what kind of event it is.  */
-  g_signal_connect (G_OBJECT (wmenuitem),
-                    "enter-notify-event",
-                    G_CALLBACK (xg_tool_bar_proxy_help_callback),
-                    user_data);
-  g_signal_connect (G_OBJECT (wmenuitem),
-                    "leave-notify-event",
-                    G_CALLBACK (xg_tool_bar_proxy_help_callback),
-                    user_data);
-
-  return TRUE;
-}
-
-/* This callback is called when a tool bar is detached.  We must set
-   the height of the tool bar to zero when this happens so frame sizes
-   are correctly calculated.
-   WBOX is the handle box widget that enables detach/attach of the tool bar.
-   W is the tool bar widget.
-   CLIENT_DATA is a pointer to the frame the tool bar belongs to.  */
-
-static void
-xg_tool_bar_detach_callback (GtkHandleBox *wbox,
-                             GtkWidget *w,
-                             gpointer client_data)
-{
-  struct frame *f = client_data;
-
-  g_object_set (G_OBJECT (w), "show-arrow", !x_gtk_whole_detached_tool_bar,
-		NULL);
-
-  if (f)
-    {
-      GtkRequisition req, req2;
-
-      gtk_widget_get_preferred_size (GTK_WIDGET (wbox), NULL, &req);
-      gtk_widget_get_preferred_size (w, NULL, &req2);
-      req.width -= req2.width;
-      req.height -= req2.height;
-      if (FRAME_TOOLBAR_TOP_HEIGHT (f) != 0)
-        FRAME_TOOLBAR_TOP_HEIGHT (f) = req.height;
-      else if (FRAME_TOOLBAR_BOTTOM_HEIGHT (f) != 0)
-        FRAME_TOOLBAR_BOTTOM_HEIGHT (f) = req.height;
-      else if (FRAME_TOOLBAR_RIGHT_WIDTH (f) != 0)
-        FRAME_TOOLBAR_RIGHT_WIDTH (f) = req.width;
-      else if (FRAME_TOOLBAR_LEFT_WIDTH (f) != 0)
-        FRAME_TOOLBAR_LEFT_WIDTH (f) = req.width;
-      xg_height_or_width_changed (f);
-    }
-}
-
-/* This callback is called when a tool bar is reattached.  We must set
-   the height of the tool bar when this happens so frame sizes
-   are correctly calculated.
-   WBOX is the handle box widget that enables detach/attach of the tool bar.
-   W is the tool bar widget.
-   CLIENT_DATA is a pointer to the frame the tool bar belongs to.  */
-
-static void
-xg_tool_bar_attach_callback (GtkHandleBox *wbox,
-                             GtkWidget *w,
-                             gpointer client_data)
-{
-  struct frame *f = client_data;
-  g_object_set (G_OBJECT (w), "show-arrow", TRUE, NULL);
-
-  if (f)
-    {
-      GtkRequisition req, req2;
-
-      gtk_widget_get_preferred_size (GTK_WIDGET (wbox), NULL, &req);
-      gtk_widget_get_preferred_size (w, NULL, &req2);
-      req.width += req2.width;
-      req.height += req2.height;
-      if (FRAME_TOOLBAR_TOP_HEIGHT (f) != 0)
-        FRAME_TOOLBAR_TOP_HEIGHT (f) = req.height;
-      else if (FRAME_TOOLBAR_BOTTOM_HEIGHT (f) != 0)
-        FRAME_TOOLBAR_BOTTOM_HEIGHT (f) = req.height;
-      else if (FRAME_TOOLBAR_RIGHT_WIDTH (f) != 0)
-        FRAME_TOOLBAR_RIGHT_WIDTH (f) = req.width;
-      else if (FRAME_TOOLBAR_LEFT_WIDTH (f) != 0)
-        FRAME_TOOLBAR_LEFT_WIDTH (f) = req.width;
-      xg_height_or_width_changed (f);
-    }
-}
-
 /* This callback is called when the mouse enters or leaves a tool bar item.
    It is used for displaying and hiding the help text.
    W is the tool bar item, a button.
@@ -4448,11 +4183,7 @@ xg_tool_bar_item_expose_callback (GtkWidget *w,
   gtk_toolbar_set_orientation (GTK_TOOLBAR (w), o)
 #endif
 
-#ifdef HAVE_GTK_HANDLE_BOX_NEW
-#define TOOLBAR_TOP_WIDGET(x) ((x)->handlebox_widget)
-#else
 #define TOOLBAR_TOP_WIDGET(x) ((x)->toolbar_widget)
-#endif
 
 /* Attach a tool bar to frame F.  */
 
@@ -4461,31 +4192,15 @@ xg_pack_tool_bar (struct frame *f, Lisp_Object pos)
 {
   struct x_output *x = f->output_data.x;
   bool into_hbox = EQ (pos, Qleft) || EQ (pos, Qright);
-  GtkWidget *top_widget = TOOLBAR_TOP_WIDGET (x);
+  GtkWidget *top_widget = x->toolbar_widget;
 
   toolbar_set_orientation (x->toolbar_widget,
                            into_hbox
                            ? GTK_ORIENTATION_VERTICAL
                            : GTK_ORIENTATION_HORIZONTAL);
-#ifdef HAVE_GTK_HANDLE_BOX_NEW
-  if (!x->handlebox_widget)
-    {
-      top_widget = x->handlebox_widget = gtk_handle_box_new ();
-      g_signal_connect (G_OBJECT (x->handlebox_widget), "child-detached",
-                        G_CALLBACK (xg_tool_bar_detach_callback), f);
-      g_signal_connect (G_OBJECT (x->handlebox_widget), "child-attached",
-                        G_CALLBACK (xg_tool_bar_attach_callback), f);
-      gtk_container_add (GTK_CONTAINER (x->handlebox_widget),
-                         x->toolbar_widget);
-    }
-#endif
 
   if (into_hbox)
     {
-#ifdef HAVE_GTK_HANDLE_BOX_NEW
-      gtk_handle_box_set_handle_position (GTK_HANDLE_BOX (x->handlebox_widget),
-                                          GTK_POS_TOP);
-#endif
       gtk_box_pack_start (GTK_BOX (x->hbox_widget), top_widget,
                           FALSE, FALSE, 0);
 
@@ -4498,10 +4213,6 @@ xg_pack_tool_bar (struct frame *f, Lisp_Object pos)
   else
     {
       bool vbox_pos = x->menubar_widget != 0;
-#ifdef HAVE_GTK_HANDLE_BOX_NEW
-      gtk_handle_box_set_handle_position (GTK_HANDLE_BOX (x->handlebox_widget),
-                                          GTK_POS_LEFT);
-#endif
       gtk_box_pack_start (GTK_BOX (x->vbox_widget), top_widget,
                           FALSE, FALSE, 0);
 
@@ -4654,10 +4365,6 @@ xg_make_tool_item (struct frame *f,
       intptr_t ii = i;
       gpointer gi = (gpointer) ii;
 
-      g_signal_connect (G_OBJECT (ti), "create-menu-proxy",
-                        G_CALLBACK (xg_tool_bar_menu_proxy),
-                        gi);
-
       g_signal_connect (G_OBJECT (wb), "clicked",
                         G_CALLBACK (xg_tool_bar_callback),
                         gi);
@@ -4771,7 +4478,7 @@ xg_update_tool_bar_sizes (struct frame *f)
   struct x_output *x = f->output_data.x;
   GtkRequisition req;
   int nl = 0, nr = 0, nt = 0, nb = 0;
-  GtkWidget *top_widget = TOOLBAR_TOP_WIDGET (x);
+  GtkWidget *top_widget = x->toolbar_widget;
 
   gtk_widget_get_preferred_size (GTK_WIDGET (top_widget), NULL, &req);
   if (x->toolbar_in_hbox)
@@ -4810,6 +4517,42 @@ xg_update_tool_bar_sizes (struct frame *f)
   return 0;
 }
 
+static char *
+find_icon_from_name (char *name,
+                     GtkIconTheme *icon_theme,
+                     char **icon_name)
+{
+#if ! GTK_CHECK_VERSION (3, 10, 0)
+  GtkStockItem stock_item;
+#endif
+
+  if (name[0] == 'n' && name[1] == ':')
+    {
+      *icon_name = name + 2;
+      name = NULL;
+
+      if (! gtk_icon_theme_has_icon (icon_theme, *icon_name))
+        *icon_name = NULL;
+    }
+
+#if ! GTK_CHECK_VERSION (3, 10, 0)
+  else if (gtk_stock_lookup (name, &stock_item))
+    *icon_name = NULL;
+#endif
+  else if (gtk_icon_theme_has_icon (icon_theme, name))
+    {
+      *icon_name = name;
+      name = NULL;
+    }
+  else
+    {
+      name = NULL;
+      *icon_name = NULL;
+    }
+
+  return name;
+}
+
 
 /* Update the tool bar for frame F.  Add new buttons and remove old.  */
 
@@ -4825,6 +4568,9 @@ update_frame_tool_bar (struct frame *f)
   Lisp_Object style;
   bool text_image, horiz;
   struct xg_frame_tb_info *tbinfo;
+  GdkScreen *screen;
+  GtkIconTheme *icon_theme;
+
 
   if (! FRAME_GTK_WIDGET (f))
     return;
@@ -4859,6 +4605,8 @@ update_frame_tool_bar (struct frame *f)
   dir = gtk_widget_get_direction (GTK_WIDGET (wtoolbar));
 
   style = Ftool_bar_get_system_style ();
+  screen = gtk_widget_get_screen (GTK_WIDGET (wtoolbar));
+  icon_theme = gtk_icon_theme_get_for_screen (screen);
 
   /* Are we up to date? */
   tbinfo = g_object_get_data (G_OBJECT (FRAME_GTK_OUTER_WIDGET (f)),
@@ -4895,7 +4643,6 @@ update_frame_tool_bar (struct frame *f)
       struct image *img = NULL;
       Lisp_Object image;
       Lisp_Object stock = Qnil;
-      GtkStockItem stock_item;
       char *stock_name = NULL;
       char *icon_name = NULL;
       Lisp_Object rtl;
@@ -4949,31 +4696,27 @@ update_frame_tool_bar (struct frame *f)
       if (!NILP (specified_file) && !NILP (Ffboundp (Qx_gtk_map_stock)))
         stock = call1 (Qx_gtk_map_stock, specified_file);
 
-      if (STRINGP (stock))
+      if (CONSP (stock)) 
         {
-          stock_name = SSDATA (stock);
-          if (stock_name[0] == 'n' && stock_name[1] == ':')
-            {
-              GdkScreen *screen = gtk_widget_get_screen (GTK_WIDGET (wtoolbar));
-              GtkIconTheme *icon_theme = gtk_icon_theme_get_for_screen (screen);
-
-              icon_name = stock_name + 2;
-              stock_name = NULL;
-              stock = Qnil;
-
-              if (! gtk_icon_theme_has_icon (icon_theme, icon_name))
-                icon_name = NULL;
-              else
-                icon_size = gtk_toolbar_get_icon_size (wtoolbar);
-            }
-          else if (gtk_stock_lookup (SSDATA (stock), &stock_item))
-            icon_size = gtk_toolbar_get_icon_size (wtoolbar);
-          else
-            {
-              stock = Qnil;
-              stock_name = NULL;
-            }
+          Lisp_Object tem;
+          for (tem = stock; CONSP (tem); tem = XCDR (tem))
+            if (! NILP (tem) && STRINGP (XCAR (tem)))
+              {
+                stock_name = find_icon_from_name (SSDATA (XCAR (tem)),
+                                                  icon_theme,
+                                                  &icon_name);
+                if (stock_name || icon_name) break;
+              }
         }
+      else if (STRINGP (stock))
+        {
+          stock_name = find_icon_from_name (SSDATA (stock),
+                                            icon_theme,
+                                            &icon_name);
+        }
+
+      if (stock_name || icon_name)
+        icon_size = gtk_toolbar_get_icon_size (wtoolbar);
 
       if (stock_name == NULL && icon_name == NULL)
         {
@@ -5035,7 +4778,12 @@ update_frame_tool_bar (struct frame *f)
 	    w = NULL;
 	  else if (stock_name)
             {
+
+#if GTK_CHECK_VERSION (3, 10, 0)
+              w = gtk_image_new_from_icon_name (stock_name, icon_size);
+#else
               w = gtk_image_new_from_stock (stock_name, icon_size);
+#endif
               g_object_set_data_full (G_OBJECT (w), XG_TOOL_BAR_STOCK_NAME,
                                       (gpointer) xstrdup (stock_name),
                                       (GDestroyNotify) xfree);
@@ -5077,7 +4825,7 @@ update_frame_tool_bar (struct frame *f)
     {
       if (! x->toolbar_is_packed)
         xg_pack_tool_bar (f, FRAME_TOOL_BAR_POSITION (f));
-      gtk_widget_show_all (TOOLBAR_TOP_WIDGET (x));
+      gtk_widget_show_all (x->toolbar_widget);
       if (xg_update_tool_bar_sizes (f))
         xg_height_or_width_changed (f);
     }
@@ -5096,11 +4844,9 @@ free_frame_tool_bar (struct frame *f)
   if (x->toolbar_widget)
     {
       struct xg_frame_tb_info *tbinfo;
-      GtkWidget *top_widget = TOOLBAR_TOP_WIDGET (x);
+      GtkWidget *top_widget = x->toolbar_widget;
 
       block_input ();
-      /* We may have created the toolbar_widget in xg_create_tool_bar, but
-         not the x->handlebox_widget which is created in xg_pack_tool_bar.  */
       if (x->toolbar_is_packed)
         {
           if (x->toolbar_in_hbox)
@@ -5114,7 +4860,7 @@ free_frame_tool_bar (struct frame *f)
         gtk_widget_destroy (x->toolbar_widget);
 
       x->toolbar_widget = 0;
-      TOOLBAR_TOP_WIDGET (x) = 0;
+      x->toolbar_widget = 0;
       x->toolbar_is_packed = false;
       FRAME_TOOLBAR_TOP_HEIGHT (f) = FRAME_TOOLBAR_BOTTOM_HEIGHT (f) = 0;
       FRAME_TOOLBAR_LEFT_WIDTH (f) = FRAME_TOOLBAR_RIGHT_WIDTH (f) = 0;
@@ -5139,7 +4885,7 @@ void
 xg_change_toolbar_position (struct frame *f, Lisp_Object pos)
 {
   struct x_output *x = f->output_data.x;
-  GtkWidget *top_widget = TOOLBAR_TOP_WIDGET (x);
+  GtkWidget *top_widget = x->toolbar_widget;
 
   if (! x->toolbar_widget || ! top_widget)
     return;
@@ -5183,9 +4929,6 @@ xg_initialize (void)
 
   gdpy_def = NULL;
   xg_ignore_gtk_scrollbar = 0;
-#ifdef HAVE_GTK_TEAROFF_MENU_ITEM_NEW
-  xg_detached_menus = 0;
-#endif
   xg_menu_cb_list.prev = xg_menu_cb_list.next =
     xg_menu_item_cb_list.prev = xg_menu_item_cb_list.next = 0;
 

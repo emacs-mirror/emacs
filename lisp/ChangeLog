@@ -1,3 +1,9 @@
+2014-10-18  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* term/x-win.el (x-gtk-stock-map): Add icon names suggested as
+	replacements to stock names before stock names in a list.
+	Cdr may be a list, each name is tried in turn until one is found.
+
 2014-10-18  Alan Mackenzie  <acm@muc.de>
 
 	Check that a "macro" found near point-min isn't a ## operator.

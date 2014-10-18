@@ -499,10 +499,6 @@ struct x_output
   GtkWidget *menubar_widget;
   /* The tool bar in this frame  */
   GtkWidget *toolbar_widget;
-#ifdef HAVE_GTK_HANDLE_BOX_NEW
-/* The handle box that makes the tool bar detachable.  */
-  GtkWidget *handlebox_widget;
-#endif
   /* True if tool bar is packed into the hbox widget (i.e. vertical).  */
   bool_bf toolbar_in_hbox : 1;
   bool_bf toolbar_is_packed : 1;

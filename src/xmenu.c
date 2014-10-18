@@ -733,12 +733,6 @@ set_frame_menubar (struct frame *f, bool first_time, bool deep_p)
       f->output_data.x->saved_menu_event->type = 0;
     }
 
-#ifdef USE_GTK
-  /* If we have detached menus, we must update deep so detached menus
-     also gets updated.  */
-  deep_p = deep_p || xg_have_tear_offs (f);
-#endif
-
   if (deep_p)
     {
       /* Make a widget-value tree representing the entire menu trees.  */

@@ -108,8 +108,6 @@ extern void xg_update_frame_menubar (struct frame *f);
 
 extern bool xg_event_is_for_menubar (struct frame *, const XEvent *);
 
-extern bool xg_have_tear_offs (struct frame *f);
-
 extern ptrdiff_t xg_get_scroll_id_for_window (Display *dpy, Window wid);
 
 extern void xg_create_scroll_bar (struct frame *f,
