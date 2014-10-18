@@ -800,26 +800,22 @@ bidi_cache_iterator_state (struct bidi_it *bidi_it, bool resolved,
 
 /* Look for a cached iterator state that corresponds to CHARPOS.  If
    found, copy the cached state into BIDI_IT and return the type of
-   the cached entry.  If not found, return UNKNOWN_BT.  NEUTRALS_OK
-   non-zero means it is OK to return cached state for neutral
-   characters that have no valid next_for_neutral member, and
-   therefore cannot be resolved.  This can happen if the state was
-   cached before it was resolved in bidi_resolve_neutral.  */
+   the cached entry.  If not found, return UNKNOWN_BT.  RESOLVED_ONLY
+   zero means it is OK to return cached states tyhat were not fully
+   resolved yet.  This can happen if the state was cached before it
+   was resolved in bidi_resolve_neutral.  */
 static bidi_type_t
-bidi_cache_find (ptrdiff_t charpos, bool neutrals_ok, struct bidi_it *bidi_it)
+bidi_cache_find (ptrdiff_t charpos, bool resolved_only, struct bidi_it *bidi_it)
 {
   ptrdiff_t i = bidi_cache_search (charpos, -1, bidi_it->scan_dir);
 
   if (i >= bidi_cache_start
-      && (neutrals_ok
-	  /* Callers that don't want to resolve neutrals (and set
-	     neutrals_ok = false) need to be sure that there's enough
-	     info in the cached state to resolve the neutrals and
-	     isolates, and if not, they don't want the cached state.  */
-	  || !(bidi_cache[i].resolved_level == -1
-	       && (bidi_get_category (bidi_cache[i].type) == NEUTRAL
-		   || bidi_isolate_fmt_char (bidi_cache[i].type))
-	       && bidi_cache[i].next_for_neutral.type == UNKNOWN_BT)))
+      && (!resolved_only
+	  /* Callers that want only fully resolved states (and set
+	     resolved_only = true) need to be sure that there's enough
+	     info in the cached state to return the state as final,
+	     and if not, they don't want the cached state.  */
+	  || bidi_cache[i].resolved_level >= 0))
     {
       bidi_dir_t current_scan_dir = bidi_it->scan_dir;
 
@@ -2342,6 +2338,41 @@ typedef struct bpa_stack_entry {
    BPA stack, which should be more than enough for actual bidi text.  */
 #define MAX_BPA_STACK (max (MAX_ALLOCA / sizeof (bpa_stack_entry), 1))
 
+/* UAX#9 says to match opening brackets with the matching closing
+   brackets or their canonical equivalents.  As of Unicode 7.0, there
+   are only 2 bracket characters that have canonical equivalence
+   decompositions: u+2329 and u+232A.  So instead of accessing the
+   table in uni-decomposition.el, we just handle these 2 characters
+   with this simple macro.  Note that ASCII characters don't have
+   canonical equivalents by definition.  */
+
+/* To find all the characters that need to be processed by
+   CANONICAL_EQU, first find all the characters which have
+   decompositions in UnicodeData.txt, with this Awk script:
+
+    awk -F ";" " {if ($6 != \"\") print $1, $6}" UnicodeData.txt
+
+   Then produce a list of all the bracket characters in BidiBrackets.txt:
+
+    awk -F "[ ;]" " {if ($1 != \"#\" && $1 != \"\") print $1}" BidiBrackets.txt
+
+   And finally, cross-reference these two:
+
+    fgrep -w -f brackets.txt decompositions.txt
+
+   where "decompositions.txt" was produced by the 1st script, and
+   "brackets.txt" by the 2nd script.  In the output of fgrep, look
+   only for decompositions that don't begin with some compatibility
+   formatting tag, such as "<compat>".  Only decompositions that
+   consist solely of character codepoints are relevant to bidi
+   brackets processing.  */
+
+#define CANONICAL_EQU(c)					\
+  ( ASCII_CHAR_P (c) ? c					\
+    : (c) == 0x2329 ? 0x3008					\
+    : (c) == 0x232a ? 0x3009					\
+    : c )
+
 #ifdef ENABLE_CHECKING
 # define STORE_BRACKET_CHARPOS \
    bpa_stack[bpa_sp].open_bracket_pos = bidi_it->charpos
@@ -2351,16 +2382,18 @@ typedef struct bpa_stack_entry {
 
 #define PUSH_BPA_STACK							\
   do {									\
-   bpa_sp++;								\
-   if (bpa_sp >= MAX_BPA_STACK)						\
-     {									\
-       bpa_sp = MAX_BPA_STACK - 1;					\
-       goto bpa_give_up;						\
-     }									\
-   bpa_stack[bpa_sp].close_bracket_char = bidi_mirror_char (bidi_it->ch); \
-   bpa_stack[bpa_sp].open_bracket_idx = bidi_cache_last_idx;		\
-   bpa_stack[bpa_sp].flags = 0;						\
-   STORE_BRACKET_CHARPOS;						\
+    int ch;								\
+    bpa_sp++;								\
+    if (bpa_sp >= MAX_BPA_STACK)					\
+      {									\
+	bpa_sp = MAX_BPA_STACK - 1;					\
+	goto bpa_give_up;						\
+      }									\
+    ch = CANONICAL_EQU (bidi_it->ch);					\
+    bpa_stack[bpa_sp].close_bracket_char = bidi_mirror_char (ch);	\
+    bpa_stack[bpa_sp].open_bracket_idx = bidi_cache_last_idx;		\
+    bpa_stack[bpa_sp].flags = 0;					\
+    STORE_BRACKET_CHARPOS;						\
   } while (0)
 
 
@@ -2405,13 +2438,22 @@ bidi_find_bracket_pairs (struct bidi_it *bidi_it)
 	  int old_sidx, new_sidx;
 	  int current_level = bidi_it->level_stack[bidi_it->stack_idx].level;
 
+	  /* Mark every opening bracket character we've traversed by
+	     putting its own position into bracket_pairing_pos.  This
+	     is examined in bidi_resolve_brackets to distinguish
+	     brackets that were already resolved to stay NEUTRAL_ON,
+	     and those that were not yet processed by this function
+	     (because they were skipped when we skip higher embedding
+	     levels below).  */
+	  if (btype == BIDI_BRACKET_OPEN && bidi_it->bracket_pairing_pos == -1)
+	    bidi_it->bracket_pairing_pos = bidi_it->charpos;
 	  bidi_cache_iterator_state (bidi_it, type == NEUTRAL_B, 0);
 	  if (btype == BIDI_BRACKET_OPEN)
 	    PUSH_BPA_STACK;
 	  else if (btype == BIDI_BRACKET_CLOSE)
 	    {
 	      int sp = bpa_sp;
-	      int curchar = bidi_it->ch;
+	      int curchar = CANONICAL_EQU (bidi_it->ch);
 
 	      eassert (sp >= 0);
 	      while (sp >= 0 && bpa_stack[sp].close_bracket_char != curchar)
@@ -2513,11 +2555,33 @@ bidi_find_bracket_pairs (struct bidi_it *bidi_it)
 
       /* Restore bidi_it from the cache, which should have the bracket
 	 resolution members set as determined by the above loop.  */
-      type = bidi_cache_find (saved_it.charpos, 1, bidi_it);
+      type = bidi_cache_find (saved_it.charpos, 0, bidi_it);
       eassert (type == NEUTRAL_ON);
     }
 
   return retval;
+}
+
+static void
+bidi_record_type_for_neutral (struct bidi_saved_info *info, int level,
+			      bool nextp)
+{
+  int idx;
+
+  for (idx = bidi_cache_last_idx + 1; idx < bidi_cache_idx; idx++)
+    {
+      int lev = bidi_cache[idx].level_stack[bidi_cache[idx].stack_idx].level;
+
+      if (lev <= level)
+	{
+	  eassert (lev == level);
+	  if (nextp)
+	    bidi_cache[idx].next_for_neutral = *info;
+	  else
+	    bidi_cache[idx].prev_for_neutral = *info;
+	  break;
+	}
+    }
 }
 
 static bidi_type_t
@@ -2527,12 +2591,24 @@ bidi_resolve_brackets (struct bidi_it *bidi_it)
   bool resolve_bracket = false;
   bidi_type_t type = UNKNOWN_BT;
   int ch;
-  struct bidi_saved_info tem_info;
+  struct bidi_saved_info prev_for_neutral, next_for_neutral;
 
-  bidi_remember_char (&tem_info, bidi_it, 1);
+  /* Record the prev_for_neutral type either from the previous
+     character, if it was a strong or AN/EN, or from the
+     prev_for_neutral information recorded previously.  */
+  if (bidi_it->type == STRONG_L || bidi_it->type == STRONG_R
+      || bidi_it->type == WEAK_AN || bidi_it->type == WEAK_EN)
+    bidi_remember_char (&prev_for_neutral, bidi_it, 1);
+  else
+    prev_for_neutral = bidi_it->prev_for_neutral;
+  /* Record the next_for_neutral type information.  */
+  if (bidi_it->next_for_neutral.charpos > bidi_it->charpos)
+    next_for_neutral = bidi_it->next_for_neutral;
+  else
+    next_for_neutral.charpos = -1;
   if (!bidi_it->first_elt)
     {
-      type = bidi_cache_find (bidi_it->charpos + bidi_it->nchars, 1, bidi_it);
+      type = bidi_cache_find (bidi_it->charpos + bidi_it->nchars, 0, bidi_it);
       ch = bidi_it->ch;
     }
   if (type == UNKNOWN_BT)
@@ -2543,36 +2619,45 @@ bidi_resolve_brackets (struct bidi_it *bidi_it)
     }
   else
     {
+      eassert (bidi_it->resolved_level == -1);
+      /* If the cached state shows an increase of embedding level due
+	 to an isolate initiator, we need to update the 1st cached
+	 state of the next run of the current isolating sequence with
+	 the prev_for_neutral and next_for_neutral information, so
+	 that it will be picked up when we advance to that next run.  */
+      if (bidi_it->level_stack[bidi_it->stack_idx].level > prev_level
+	  && bidi_it->level_stack[bidi_it->stack_idx].isolate_status)
+	{
+	  bidi_record_type_for_neutral (&prev_for_neutral, prev_level, 0);
+	  bidi_record_type_for_neutral (&next_for_neutral, prev_level, 1);
+	}
       if (type == NEUTRAL_ON
 	  && bidi_paired_bracket_type (ch) == BIDI_BRACKET_OPEN)
 	{
-	  if (bidi_it->level_stack[bidi_it->stack_idx].level == prev_level)
+	  if (bidi_it->bracket_pairing_pos > bidi_it->charpos)
 	    {
-	      if (bidi_it->bracket_pairing_pos > 0)
-		{
-		  /* A cached opening bracket that wasn't completely
-		     resolved yet.  */
-		  resolve_bracket = true;
-		}
+	      /* A cached opening bracket that wasn't completely
+		 resolved yet.  */
+	      resolve_bracket = true;
 	    }
-	  else
+	  else if (bidi_it->bracket_pairing_pos == -1)
 	    {
 	      /* Higher levels were not BPA-resolved yet, even if
-		 cached by bidi_find_bracket_pairs.  Lower levels were
-		 probably processed by bidi_find_bracket_pairs, but we
-		 have no easy way of retaining the prev_for_neutral
-		 from the previous level run of the isolating
-		 sequence.  Force application of BPA now.  */
+		 cached by bidi_find_bracket_pairs.  Force application
+		 of BPA to the new level now.  */
 	      if (bidi_find_bracket_pairs (bidi_it))
 		resolve_bracket = true;
 	    }
 	}
-      /* Keep track of the prev_for_neutral type, needed for resolving
-	 brackets below and for resolving neutrals in bidi_resolve_neutral.  */
-      if (bidi_it->level_stack[bidi_it->stack_idx].level == prev_level
-	  && (tem_info.type == STRONG_L || tem_info.type == STRONG_R
-	      || tem_info.type == WEAK_AN || tem_info.type == WEAK_EN))
-	bidi_it->prev_for_neutral = tem_info;
+      /* Keep track of the prev_for_neutral and next_for_neutral
+	 types, needed for resolving brackets below and for resolving
+	 neutrals in bidi_resolve_neutral.  */
+      if (bidi_it->level_stack[bidi_it->stack_idx].level == prev_level)
+	{
+	  bidi_it->prev_for_neutral = prev_for_neutral;
+	  if (next_for_neutral.charpos > 0)
+	    bidi_it->next_for_neutral = next_for_neutral;
+	}
     }
 
   /* If needed, resolve the bracket type according to N0.  */
@@ -2657,9 +2742,18 @@ bidi_resolve_neutral (struct bidi_it *bidi_it)
       || (type == WEAK_BN && bidi_explicit_dir_char (bidi_it->ch)))
     {
       if (bidi_it->next_for_neutral.type != UNKNOWN_BT)
-	type = bidi_resolve_neutral_1 (bidi_it->prev_for_neutral.type,
-				       bidi_it->next_for_neutral.type,
-				       current_level);
+	{
+	  /* Make sure the data for resolving neutrals we are
+	     about to use is valid.  */
+	  eassert (bidi_it->next_for_neutral.charpos > bidi_it->charpos
+		   /* PDI defines an eos, so it's OK for it to
+		      serve as its own next_for_neutral.  */
+		   || (bidi_it->next_for_neutral.charpos == bidi_it->charpos
+		       && bidi_it->type == PDI));
+	  type = bidi_resolve_neutral_1 (bidi_it->prev_for_neutral.type,
+					 bidi_it->next_for_neutral.type,
+					 current_level);
+	}
       /* The next two "else if" clauses are shortcuts for the
 	 important special case when we have a long sequence of
 	 neutral or WEAK_BN characters, such as whitespace or nulls or
@@ -2855,16 +2949,13 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
 	}
     }
 
-  /* Perhaps the character we want is already cached.  If it is, the
-     call to bidi_cache_find below will return a type other than
-     UNKNOWN_BT.  */
+  /* Perhaps the character we want is already cached s fully resolved.
+     If it is, the call to bidi_cache_find below will return a type
+     other than UNKNOWN_BT.  */
   if (bidi_cache_idx > bidi_cache_start && !bidi_it->first_elt)
     {
       int bob = ((bidi_it->string.s || STRINGP (bidi_it->string.lstring))
 		 ? 0 : 1);
-      bidi_type_t prev_type = bidi_it->type;
-      bidi_type_t type_for_neutral = bidi_it->next_for_neutral.type;
-      ptrdiff_t pos_for_neutral = bidi_it->next_for_neutral.charpos;
 
       if (bidi_it->scan_dir > 0)
 	{
@@ -2879,57 +2970,12 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
 	   cached at the beginning of the iteration.  */
 	next_char_pos = bidi_it->charpos - 1;
       if (next_char_pos >= bob - 1)
-	type = bidi_cache_find (next_char_pos, 0, bidi_it);
-
-      /* For a sequence of BN and NI, copy the type from the previous
-	 character.  This is because the loop in bidi_resolve_neutral
-	 that handles such sequences caches the characters it
-	 traverses, but does not (and cannot) store the
-	 next_for_neutral member for them, because it is only known
-	 when the loop ends.  So when we find them in the cache, their
-	 type needs to be updated, but we don't have next_for_neutral
-	 to do that.  However, whatever type is resolved as result of
-	 that loop, it will be the same for all the traversed
-	 characters, by virtue of N1 and N2.  */
-      if (type == WEAK_BN && bidi_it->scan_dir > 0
-	  && bidi_explicit_dir_char (bidi_it->ch)
-	  && type_for_neutral != UNKNOWN_BT
-	  && bidi_it->charpos < pos_for_neutral)
-	{
-	  type = prev_type;
-	  eassert (type != UNKNOWN_BT);
-	}
+	type = bidi_cache_find (next_char_pos, 1, bidi_it);
       if (type != UNKNOWN_BT)
 	{
-	  /* If resolved_level is -1, it means this state was cached
-	     before it was completely resolved, so we cannot return
-	     it.  */
-	  if (bidi_it->resolved_level != -1)
-	    {
-	      eassert (bidi_it->resolved_level >= 0);
-	      return bidi_it->resolved_level;
-	    }
-	  else
-	    {
-	      level = bidi_it->level_stack[bidi_it->stack_idx].level;
-	      if (bidi_get_category (type) == NEUTRAL
-		  || bidi_isolate_fmt_char (type))
-		{
-		  /* Make sure the data for resolving neutrals we are
-		     about to use is valid.  */
-		  if (bidi_it->next_for_neutral.charpos < bidi_it->charpos
-		      /* PDI defines an eos, so it's OK for it to
-			 serve as its own next_for_neutral.  */
-		      || (bidi_it->next_for_neutral.charpos == bidi_it->charpos
-			  && bidi_it->type != PDI)
-		      || bidi_it->next_for_neutral.type == UNKNOWN_BT)
-		    emacs_abort ();
-
-		  type = bidi_resolve_neutral_1 (bidi_it->prev_for_neutral.type,
-						 bidi_it->next_for_neutral.type,
-						 level);
-		}
-	    }
+	  /* We asked the cache for fully resolved states.  */
+	  eassert (bidi_it->resolved_level >= 0);
+	  return bidi_it->resolved_level;
 	}
     }
 

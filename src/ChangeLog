@@ -1,5 +1,27 @@
 2014-10-18  Eli Zaretskii  <eliz@gnu.org>
 
+	Fix reordering of bracket characters in isolates.
+	* bidi.c (bidi_cache_find): Rename the argument NEUTRALS_OK to
+	RESOLVED_ONLY; when non-zero, return from the cache only fully
+	resolved states.  All callers changed.
+	(CANONICAL_EQU): New macro.
+	(PUSH_BPA_STACK): Use it to push onto the BPA stack the canonical
+	equivalent of the paired closing bracket character.
+	(bidi_find_bracket_pairs): Set the bracket_pairing_pos member to
+	the default non-negative value, to be checked later in
+	bidi_resolve_brackets.  Use CANONICAL_EQU to test candidate
+	characters against those pushed onto the BPA stack.
+	(bidi_record_type_for_neutral): New function.
+	(bidi_resolve_brackets): Record next_for_neutral and
+	prev_for_neutral when embedding level gets pushed.  Force
+	resolution of bracket pairs when entering a level run that was not
+	yet BPA-resolved.
+	(bidi_resolve_neutral): Add assertions before calling
+	bidi_resolve_neutral_1.
+	(bidi_level_of_next_char): Remove the code that attempted to
+	resolve unresolved neutrals; that is now done by
+	bidi_resolve_neutral.
+
 	* w32select.c (owner_callback): Mark with ALIGN_STACK attribute.
 
 2014-10-17  Eli Zaretskii  <eliz@gnu.org>
