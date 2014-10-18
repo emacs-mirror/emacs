@@ -1,5 +1,7 @@
 2014-10-18  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* xfns.c (syms_of_xfns): Remove x-gtk-whole-detached-tool-bar.
+
 	* xterm.h (handlebox_widget): Remove.
 
 	* xmenu.c (set_frame_menubar): Remove GTK block that calls
