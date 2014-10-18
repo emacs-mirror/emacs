@@ -1,3 +1,10 @@
+2014-10-18  Alan Mackenzie  <acm@muc.de>
+
+	Check that a "macro" found near point-min isn't a ## operator.
+	Fixes bug #18749.
+	* progmodes/cc-engine.el (c-macro-is-genuine-p): New function.
+	(c-beginning-of-macro): Use the above new function.
+
 2014-10-18  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* net/gnutls.el (gnutls-negotiate): Don't use cl-mapcan; pass
