@@ -266,6 +266,8 @@
 ;; `whitespace-indentation'	Face used to visualize 8 or more
 ;;				SPACEs at beginning of line.
 ;;
+;; `whitespace-big-indent'	Face used to visualize big indentation.
+;;
 ;; `whitespace-empty'		Face used to visualize empty lines at
 ;;				beginning and/or end of buffer.
 ;;
@@ -285,6 +287,9 @@
 ;;
 ;; `whitespace-indentation-regexp'	Specify regexp for 8 or more
 ;;					SPACEs at beginning of line.
+;;
+;; `whitespace-big-indent-regexp'	Specify big indentation at beginning of line
+;;					regexp.
 ;;
 ;; `whitespace-empty-at-bob-regexp'	Specify regexp for empty lines
 ;;					at beginning of buffer.
@@ -452,6 +457,10 @@ It's a list containing some or all of the following values:
 			It has effect only if `face' (see above)
 			is present in `whitespace-style'.
 
+   big-indent		Big indentations are visualized via faces.
+			It has effect only if `face' (see above)
+			is present in `whitespace-style'.
+
    space-after-tab::tab		8 or more SPACEs after a TAB are
 				visualized via faces.
 				It has effect only if `face' (see above)
@@ -544,6 +553,8 @@ See also `whitespace-display-mappings' for documentation."
 			 (const :tag "(Face) NEWLINEs" newline)
 			 (const :tag "(Face) Indentation SPACEs"
 				indentation)
+			 (const :tag "(Face) Too much line indentation"
+				big-indent)
 			 (const :tag "(Face) Empty Lines At BOB And/Or EOB"
 				empty)
 			 (const :tag "(Face) SPACEs after TAB"
@@ -671,6 +682,12 @@ Used when `whitespace-style' includes the value `indentation'.")
   '((((class mono)) :inverse-video t :weight bold :underline t)
     (t :background "yellow" :foreground "firebrick"))
   "Face used to visualize 8 or more SPACEs at beginning of line."
+  :group 'whitespace)
+
+(defface whitespace-big-indent
+  '((((class mono)) :inverse-video t :weight bold :underline t)
+    (t :background "red" :foreground "firebrick"))
+  "Face used to visualize big indentation."
   :group 'whitespace)
 
 
@@ -836,6 +853,20 @@ Used when `whitespace-style' includes `space-after-tab',
 `space-after-tab::tab' or `space-after-tab::space'."
   :type '(cons (string :tag "SPACEs After TAB")
 	       string)
+  :group 'whitespace)
+
+(defcustom whitespace-big-indent-regexp
+  "^\\(\\(?:\t\\{4,\\}\\| \\{32,\\}\\)[\t ]*\\)"
+  "Specify big indentation regexp.
+
+If you're using `mule' package, there may be other characters
+besides \"\\t\" that should be considered TAB.
+
+NOTE: Enclose always by \\\\( and \\\\) the elements to highlight.
+      Use exactly one pair of enclosing \\\\( and \\\\).
+
+Used when `whitespace-style' includes `big-indent'."
+  :type '(regexp :tag "Detect too much indentation at the beginning of a line")
   :group 'whitespace)
 
 
@@ -1141,6 +1172,7 @@ See also `whitespace-newline' and `whitespace-display-mappings'."
     indentation
     indentation::tab
     indentation::space
+    big-indent
     space-after-tab
     space-after-tab::tab
     space-after-tab::space
@@ -1167,6 +1199,7 @@ See also `whitespace-newline' and `whitespace-display-mappings'."
     (?\C-i . indentation)
     (?I    . indentation::tab)
     (?i    . indentation::space)
+    (?\C-t . big-indent)
     (?\C-a . space-after-tab)
     (?A    . space-after-tab::tab)
     (?a    . space-after-tab::space)
@@ -1250,6 +1283,7 @@ Interactively, it reads one of the following chars:
    C-i	toggle indentation SPACEs visualization (via `indent-tabs-mode')
    I	toggle indentation SPACEs visualization
    i	toggle indentation TABs visualization
+   C-t	toggle big indentation visualization
    C-a	toggle SPACEs after TAB visualization (via `indent-tabs-mode')
    A	toggle SPACEs after TAB: SPACEs visualization
    a	toggle SPACEs after TAB: TABs visualization
@@ -1279,6 +1313,7 @@ The valid symbols are:
    indentation		toggle indentation SPACEs visualization
    indentation::tab	toggle indentation SPACEs visualization
    indentation::space	toggle indentation TABs visualization
+   big-indent		toggle big indentation visualization
    space-after-tab		toggle SPACEs after TAB visualization
    space-after-tab::tab		toggle SPACEs after TAB: SPACEs visualization
    space-after-tab::space	toggle SPACEs after TAB: TABs visualization
@@ -1329,6 +1364,7 @@ Interactively, it accepts one of the following chars:
    C-i	toggle indentation SPACEs visualization (via `indent-tabs-mode')
    I	toggle indentation SPACEs visualization
    i	toggle indentation TABs visualization
+   C-t	toggle big indentation visualization
    C-a	toggle SPACEs after TAB visualization (via `indent-tabs-mode')
    A	toggle SPACEs after TAB: SPACEs visualization
    a	toggle SPACEs after TAB: TABs visualization
@@ -1358,6 +1394,7 @@ The valid symbols are:
    indentation		toggle indentation SPACEs visualization
    indentation::tab	toggle indentation SPACEs visualization
    indentation::space	toggle indentation TABs visualization
+   big-indent		toggle big indentation visualization
    space-after-tab		toggle SPACEs after TAB visualization
    space-after-tab::tab		toggle SPACEs after TAB: SPACEs visualization
    space-after-tab::space	toggle SPACEs after TAB: TABs visualization
@@ -1856,6 +1893,7 @@ cleaning up these problems."
  []  C-i - toggle indentation SPACEs visualization (via `indent-tabs-mode')
  []  I   - toggle indentation SPACEs visualization
  []  i   - toggle indentation TABs visualization
+ []  C-t - toggle big indentation visualization
  []  C-a - toggle SPACEs after TAB visualization (via `indent-tabs-mode')
  []  A   - toggle SPACEs after TAB: SPACEs visualization
  []  a   - toggle SPACEs after TAB: TABs visualization
@@ -2109,6 +2147,7 @@ resultant list will be returned."
 	   (memq 'indentation             whitespace-active-style)
 	   (memq 'indentation::tab        whitespace-active-style)
 	   (memq 'indentation::space      whitespace-active-style)
+	   (memq 'big-indent              whitespace-active-style)
 	   (memq 'space-after-tab         whitespace-active-style)
 	   (memq 'space-after-tab::tab    whitespace-active-style)
 	   (memq 'space-after-tab::space  whitespace-active-style)
@@ -2196,6 +2235,9 @@ resultant list will be returned."
                  ;; Show indentation SPACEs (TABs).
                  (whitespace-indentation-regexp 'space)))
               1 whitespace-indentation t)))
+       ,@(when (memq 'big-indent whitespace-active-style)
+           ;; Show big indentation.
+           `((,whitespace-big-indent-regexp 1 'whitespace-big-indent t)))
        ,@(when (memq 'empty whitespace-active-style)
            ;; Show empty lines at beginning of buffer.
            `((,#'whitespace-empty-at-bob-regexp

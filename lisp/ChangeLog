@@ -1,3 +1,15 @@
+2014-10-18  Michal Nazarewicz  <mina86@mina86.com>
+
+	* whitespace.el (whitespace-style, whitespace-big-indent)
+	(whitespace-big-indent-regexp, whitespace-style-value-list)
+	(whitespace-toggle-option-alist, whitespace-interactive-char)
+	(whitespace-toggle-options)
+	(global-whitespace-toggle-options, whitespace-help-text)
+	(whitespace-style-face-p, whitespace-color-on): Add a 'big-indent
+	style to `whitespace-mode' to indicate that the line indentation
+	is too deep.  By default, 32 SPACEs or four TABs are considered
+	too many but `whitespace-big-indent-regexp' can be configured.
+
 2014-10-17  Michal Nazarewicz  <mina86@mina86.com>
 
 	* textmodes/tildify.el (tildify--pick-alist-entry): rename from
