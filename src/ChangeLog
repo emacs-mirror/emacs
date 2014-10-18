@@ -1,5 +1,12 @@
 2014-10-18  Eli Zaretskii  <eliz@gnu.org>
 
+	* xterm.c (x_draw_bar_cursor, x_draw_hollow_cursor): Subtract 1
+	pixel from the window's cursor glyph width, since X renders hollow
+	blocks 1 pixel wider than the 'width' parameter.
+
+	* xdisp.c (get_phys_cursor_geometry): Don't subtract 1 pixel from
+	glyph->pixel_width; this is now done in xterm.c.
+
 	Fix reordering of bracket characters in isolates.
 	* bidi.c (bidi_cache_find): Rename the argument NEUTRALS_OK to
 	RESOLVED_ONLY; when non-zero, return from the cache only fully

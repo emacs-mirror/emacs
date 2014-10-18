@@ -7965,7 +7965,7 @@ x_draw_hollow_cursor (struct window *w, struct glyph_row *row)
 
   /* Compute frame-relative coordinates for phys cursor.  */
   get_phys_cursor_geometry (w, row, cursor_glyph, &x, &y, &h);
-  wd = w->phys_cursor_width;
+  wd = w->phys_cursor_width - 1;
 
   /* The foreground of cursor_gc is typically the same as the normal
      background color, which can cause the cursor box to be invisible.  */
@@ -7981,9 +7981,9 @@ x_draw_hollow_cursor (struct window *w, struct glyph_row *row)
      glyph, unless the cursor box is as wide as the glyph or wider
      (the latter happens when x-stretch-cursor is non-nil).  */
   if ((cursor_glyph->resolved_level & 1) != 0
-      && cursor_glyph->pixel_width > w->phys_cursor_width)
+      && cursor_glyph->pixel_width > wd)
     {
-      x += cursor_glyph->pixel_width - w->phys_cursor_width;
+      x += cursor_glyph->pixel_width - wd;
       if (wd > 0)
 	wd -= 1;
     }
@@ -8086,12 +8086,12 @@ x_draw_bar_cursor (struct window *w, struct glyph_row *row, int width, enum text
 				    &dummy_y, &dummy_h);
 
 	  if ((cursor_glyph->resolved_level & 1) != 0
-	      && cursor_glyph->pixel_width > w->phys_cursor_width)
-	    x += cursor_glyph->pixel_width - w->phys_cursor_width;
+	      && cursor_glyph->pixel_width > w->phys_cursor_width - 1)
+	    x += cursor_glyph->pixel_width - w->phys_cursor_width + 1;
 	  XFillRectangle (dpy, window, gc, x,
 			  WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y +
 						   row->height - width),
-			  w->phys_cursor_width, width);
+			  w->phys_cursor_width - 1, width);
 	}
 
       XSetClipMask (dpy, gc, None);

@@ -2302,10 +2302,7 @@ get_phys_cursor_geometry (struct window *w, struct glyph_row *row,
      glyph, and `x-stretch-block-cursor' is nil, don't draw a
      rectangle as wide as the glyph, but use a canonical character
      width instead.  */
-  wd = glyph->pixel_width - 1;
-#if defined (HAVE_NTGUI) || defined (HAVE_NS)
-  wd++; /* Why? */
-#endif
+  wd = glyph->pixel_width;
 
   x = w->phys_cursor.x;
   if (x < 0)
