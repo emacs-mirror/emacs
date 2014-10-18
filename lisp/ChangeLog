@@ -1,3 +1,9 @@
+2014-10-18  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* net/gnutls.el (gnutls-negotiate): Don't use cl-mapcan; pass
+	correct data to `gnutls-boot' (Bug#18664).
+	Reported by Toke Høiland-Jørgensen <toke@toke.dk>.
+
 2014-10-18  Michal Nazarewicz  <mina86@mina86.com>
 
 	* whitespace.el (whitespace-style, whitespace-big-indent)

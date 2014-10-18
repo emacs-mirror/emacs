@@ -211,11 +211,13 @@ defaults to GNUTLS_VERIFY_ALLOW_X509_V1_CA_CRT."
                              t)
                             ;; if a list, look for hostname matches
                             ((listp gnutls-verify-error)
-                             (cl-mapcan
-                              (lambda (check)
-                                (when (string-match (car check) hostname)
-                                  (copy-sequence (cdr check))))
-                              gnutls-verify-error))
+                             (apply 'append
+                                    (mapcar
+                                     (lambda (check)
+                                       (when (string-match (nth 0 check)
+                                                           hostname)
+                                         (nth 1 check)))
+                                     gnutls-verify-error)))
                             ;; else it's nil
                             (t nil))))
          (min-prime-bits (or min-prime-bits gnutls-min-prime-bits))
