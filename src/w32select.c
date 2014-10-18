@@ -95,8 +95,8 @@ static Lisp_Object render_locale (void);
 static Lisp_Object render_all (Lisp_Object ignore);
 static void run_protected (Lisp_Object (*code) (Lisp_Object), Lisp_Object arg);
 static Lisp_Object lisp_error_handler (Lisp_Object error);
-static LRESULT CALLBACK owner_callback (HWND win, UINT msg,
-					WPARAM wp, LPARAM lp);
+static LRESULT CALLBACK ALIGN_STACK owner_callback (HWND win, UINT msg,
+						    WPARAM wp, LPARAM lp);
 static HWND create_owner (void);
 
 static void setup_config (void);
@@ -420,7 +420,7 @@ lisp_error_handler (Lisp_Object error)
 }
 
 
-static LRESULT CALLBACK
+static LRESULT CALLBACK ALIGN_STACK
 owner_callback (HWND win, UINT msg, WPARAM wp, LPARAM lp)
 {
   switch (msg)

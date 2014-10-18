@@ -2405,6 +2405,15 @@ bidi_find_bracket_pairs (struct bidi_it *bidi_it)
 	  int old_sidx, new_sidx;
 	  int current_level = bidi_it->level_stack[bidi_it->stack_idx].level;
 
+	  /* Mark every opening bracket character we've traversed by
+	     putting its own position into bracket_pairing_pos.  This
+	     is examined in bidi_resolve_brackets to distinguish
+	     brackets that were already resolved to stay NEUTRAL_ON,
+	     and those that were not yet processed by this function
+	     (because they were skipped when we skip higher embedding
+	     levels below).  */
+	  if (btype == BIDI_BRACKET_OPEN && bidi_it->bracket_pairing_pos == -1)
+	    bidi_it->bracket_pairing_pos = bidi_it->charpos;
 	  bidi_cache_iterator_state (bidi_it, type == NEUTRAL_B, 0);
 	  if (btype == BIDI_BRACKET_OPEN)
 	    PUSH_BPA_STACK;
@@ -2575,23 +2584,20 @@ bidi_resolve_brackets (struct bidi_it *bidi_it)
 	 to an isolate initiator, we need to update the 1st cached
 	 state of the next run of the current isolating sequence with
 	 the prev_for_neutral information, so that it will be picked
-	 up when we advanced to that next run.  */
+	 up when we advance to that next run.  */
       if (bidi_it->level_stack[bidi_it->stack_idx].level > prev_level
 	  && bidi_it->level_stack[bidi_it->stack_idx].isolate_status)
 	bidi_record_prev_for_neutral (&tem_info, prev_level);
       if (type == NEUTRAL_ON
 	  && bidi_paired_bracket_type (ch) == BIDI_BRACKET_OPEN)
 	{
-	  if (bidi_it->level_stack[bidi_it->stack_idx].level <= prev_level)
+	  if (bidi_it->bracket_pairing_pos > bidi_it->charpos)
 	    {
-	      if (bidi_it->bracket_pairing_pos > 0)
-		{
-		  /* A cached opening bracket that wasn't completely
-		     resolved yet.  */
-		  resolve_bracket = true;
-		}
+	      /* A cached opening bracket that wasn't completely
+		 resolved yet.  */
+	      resolve_bracket = true;
 	    }
-	  else
+	  else if (bidi_it->bracket_pairing_pos == -1)
 	    {
 	      /* Higher levels were not BPA-resolved yet, even if
 		 cached by bidi_find_bracket_pairs.  Force application
