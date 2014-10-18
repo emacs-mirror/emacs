@@ -2338,6 +2338,41 @@ typedef struct bpa_stack_entry {
    BPA stack, which should be more than enough for actual bidi text.  */
 #define MAX_BPA_STACK (max (MAX_ALLOCA / sizeof (bpa_stack_entry), 1))
 
+/* UAX#9 says to match opening brackets with the matching closing
+   brackets or their canonical equivalents.  As of Unicode 7.0, there
+   are only 2 bracket characters that have canonical equivalence
+   decompositions: u+2329 and u+232A.  So instead of accessing the
+   table in uni-decomposition.el, we just handle these 2 characters
+   with this simple macro.  Note that ASCII characters don't have
+   canonical equivalents by definition.  */
+
+/* To find all the characters that need to be processed by
+   CANONICAL_EQU, first find all the characters which have
+   decompositions in UnicodeData.txt, with this Awk script:
+
+    awk -F ";" " {if ($6 != \"\") print $1, $6}" UnicodeData.txt
+
+   Then produce a list of all the bracket characters in BidiBrackets.txt:
+
+    awk -F "[ ;]" " {if ($1 != \"#\" && $1 != \"\") print $1}" BidiBrackets.txt
+
+   And finally, cross-reference these two:
+
+    fgrep -w -f brackets.txt decompositions.txt
+
+   where "decompositions.txt" was produced by the 1st script, and
+   "brackets.txt" by the 2nd script.  In the output of fgrep, look
+   only for decompositions that don't begin with some compatibility
+   formatting tag, such as "<compat>".  Only decompositions that
+   consist solely of character codepoints are relevant to bidi
+   brackets processing.  */
+
+#define CANONICAL_EQU(c)					\
+  ( ASCII_CHAR_P (c) ? c					\
+    : (c) == 0x2329 ? 0x3008					\
+    : (c) == 0x232a ? 0x3009					\
+    : c )
+
 #ifdef ENABLE_CHECKING
 # define STORE_BRACKET_CHARPOS \
    bpa_stack[bpa_sp].open_bracket_pos = bidi_it->charpos
@@ -2347,16 +2382,18 @@ typedef struct bpa_stack_entry {
 
 #define PUSH_BPA_STACK							\
   do {									\
-   bpa_sp++;								\
-   if (bpa_sp >= MAX_BPA_STACK)						\
-     {									\
-       bpa_sp = MAX_BPA_STACK - 1;					\
-       goto bpa_give_up;						\
-     }									\
-   bpa_stack[bpa_sp].close_bracket_char = bidi_mirror_char (bidi_it->ch); \
-   bpa_stack[bpa_sp].open_bracket_idx = bidi_cache_last_idx;		\
-   bpa_stack[bpa_sp].flags = 0;						\
-   STORE_BRACKET_CHARPOS;						\
+    int ch;								\
+    bpa_sp++;								\
+    if (bpa_sp >= MAX_BPA_STACK)					\
+      {									\
+	bpa_sp = MAX_BPA_STACK - 1;					\
+	goto bpa_give_up;						\
+      }									\
+    ch = CANONICAL_EQU (bidi_it->ch);					\
+    bpa_stack[bpa_sp].close_bracket_char = bidi_mirror_char (ch);	\
+    bpa_stack[bpa_sp].open_bracket_idx = bidi_cache_last_idx;		\
+    bpa_stack[bpa_sp].flags = 0;					\
+    STORE_BRACKET_CHARPOS;						\
   } while (0)
 
 
@@ -2416,7 +2453,7 @@ bidi_find_bracket_pairs (struct bidi_it *bidi_it)
 	  else if (btype == BIDI_BRACKET_CLOSE)
 	    {
 	      int sp = bpa_sp;
-	      int curchar = bidi_it->ch;
+	      int curchar = CANONICAL_EQU (bidi_it->ch);
 
 	      eassert (sp >= 0);
 	      while (sp >= 0 && bpa_stack[sp].close_bracket_char != curchar)
