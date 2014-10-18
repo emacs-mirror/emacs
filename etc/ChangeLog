@@ -1,3 +1,7 @@
+2014-10-18  Michal Nazarewicz  <mina86@mina86.com>
+
+	* NEWS: Mention new whitespace-mode option: big-indent.
+
 2014-10-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* NEWS: Mention multipart/related.

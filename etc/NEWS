@@ -253,6 +253,10 @@ name patterns (e.x. all "FOR_DOXYGEN_ONLY_*") to be excluded.
 *** New custom variable `tex-print-file-extension' to help users who
 use PDF instead of DVI.
 
+** whitespace-mode: new 'big-indent style highlighting too much indentation.
+By default, 32 spaces and four TABs are considered to be too much but
+`whitespace-big-indent-regexp' can be configured to change that.
+
 ** Obsolete packages
 
 ---
