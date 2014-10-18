@@ -1,3 +1,7 @@
+2014-10-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32select.c (owner_callback): Mark with ALIGN_STACK attribute.
+
 2014-10-17  Eli Zaretskii  <eliz@gnu.org>
 
 	* xterm.c (x_draw_hollow_cursor): Fix display of hollow cursor on
