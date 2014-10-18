@@ -1,3 +1,12 @@
+2014-10-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* gtkutil.c: Remove no-longer-used code.
+	(xg_update_menubar): Remove unused local and unnecessary call to
+	gtk_menu_item_get_submenu.
+	(XG_TOOL_BAR_PROXY_BUTTON, xg_tool_bar_proxy_callback)
+	(xg_get_tool_bar_widgets, xg_tool_bar_proxy_help_callback)
+	(TOOLBAR_TOP_WIDGET): Remove; no longer used.
+
 2014-10-18  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xfns.c (syms_of_xfns): Remove x-gtk-whole-detached-tool-bar.

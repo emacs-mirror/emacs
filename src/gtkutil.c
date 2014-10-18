@@ -2789,7 +2789,6 @@ xg_update_menubar (GtkWidget *menubar,
               is up to date when leaving the minibuffer.  */
           GtkLabel *wlabel = GTK_LABEL (XG_BIN_CHILD (witem));
           char *utf8_label = get_utf8_string (val->name);
-          GtkWidget *submenu = gtk_menu_item_get_submenu (witem);
 
           /* GTK menu items don't notice when their labels have been
              changed from underneath them, so we have to explicitly
@@ -3981,9 +3980,6 @@ xg_event_is_for_scrollbar (struct frame *f, const XEvent *event)
    get them.  */
 #define XG_TOOL_BAR_LAST_MODIFIER "emacs-tool-bar-modifier"
 
-/* The key for storing the button widget in its proxy menu item. */
-#define XG_TOOL_BAR_PROXY_BUTTON "emacs-tool-bar-proxy-button"
-
 /* The key for the data we put in the GtkImage widgets.  The data is
    the stock name used by Emacs.  We use this to see if we need to update
    the GtkImage with a new image.  */
@@ -4054,41 +4050,6 @@ xg_tool_bar_callback (GtkWidget *w, gpointer client_data)
   /* Return focus to the frame after we have clicked on a detached
      tool bar button. */
   x_focus_frame (f);
-}
-
-/* Callback function invoked when a tool bar item is pressed in a detached
-   tool bar or the overflow drop down menu.
-   We just call xg_tool_bar_callback.
-   W is the menu item widget that got pressed,
-   CLIENT_DATA is an integer that is the index of the button in the
-   tool bar.  0 is the first button.  */
-
-static void
-xg_tool_bar_proxy_callback (GtkWidget *w, gpointer client_data)
-{
-  GtkWidget *wbutton = GTK_WIDGET (g_object_get_data (G_OBJECT (w),
-                                                      XG_TOOL_BAR_PROXY_BUTTON));
-  xg_tool_bar_callback (wbutton, client_data);
-}
-
-
-static gboolean
-xg_tool_bar_help_callback (GtkWidget *w,
-                           GdkEventCrossing *event,
-                           gpointer client_data);
-
-/* This callback is called when a help is to be shown for an item in
-   the detached tool bar when the detached tool bar it is not expanded.  */
-
-static gboolean
-xg_tool_bar_proxy_help_callback (GtkWidget *w,
-                                 GdkEventCrossing *event,
-                                 gpointer client_data)
-{
-  GtkWidget *wbutton = GTK_WIDGET (g_object_get_data (G_OBJECT (w),
-                                                      XG_TOOL_BAR_PROXY_BUTTON));
-
-  return xg_tool_bar_help_callback (wbutton, event, client_data);
 }
 
 static GtkWidget *
@@ -4182,8 +4143,6 @@ xg_tool_bar_item_expose_callback (GtkWidget *w,
 #define toolbar_set_orientation(w, o) \
   gtk_toolbar_set_orientation (GTK_TOOLBAR (w), o)
 #endif
-
-#define TOOLBAR_TOP_WIDGET(x) ((x)->toolbar_widget)
 
 /* Attach a tool bar to frame F.  */
 
@@ -4696,7 +4655,7 @@ update_frame_tool_bar (struct frame *f)
       if (!NILP (specified_file) && !NILP (Ffboundp (Qx_gtk_map_stock)))
         stock = call1 (Qx_gtk_map_stock, specified_file);
 
-      if (CONSP (stock)) 
+      if (CONSP (stock))
         {
           Lisp_Object tem;
           for (tem = stock; CONSP (tem); tem = XCDR (tem))
