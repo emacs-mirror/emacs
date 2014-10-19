@@ -520,7 +520,7 @@ static Res MVFFInit(Pool pool, ArgList args)
 
   LocusPrefInit(MVFFLocusPref(mvff));
   LocusPrefExpress(MVFFLocusPref(mvff),
-                   arenaHigh ? LocusPrefHigh : LocusPrefLow, NULL);
+                   arenaHigh ? LocusPrefHIGH : LocusPrefLOW, NULL);
 
   /* An MFS pool is explicitly initialised for the two CBSs partly to
    * share space, but mostly to avoid a call to PoolCreate, so that

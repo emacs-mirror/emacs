@@ -307,9 +307,9 @@ typedef Res (*LandDescribeMethod)(Land land, mps_lib_FILE *stream, Count depth);
 
 /* Locus preferences */
 enum {
-  LocusPrefHigh = 1,
-  LocusPrefLow, 
-  LocusPrefZoneSet,
+  LocusPrefHIGH = 1,
+  LocusPrefLOW, 
+  LocusPrefZONESET,
   LocusPrefLIMIT
 };
 
