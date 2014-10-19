@@ -1489,13 +1489,23 @@ create_dialog (widget_value *wv,
   int button_spacing = 10;
   GtkWidget *wdialog = gtk_dialog_new ();
   GtkDialog *wd = GTK_DIALOG (wdialog);
-  GtkBox *cur_box = GTK_BOX (gtk_dialog_get_action_area (wd));
   widget_value *item;
   GtkWidget *whbox_down;
 
   /* If the number of buttons is greater than 4, make two rows of buttons
      instead.  This looks better.  */
   bool make_two_rows = total_buttons > 4;
+
+#if GTK_CHECK_VERSION (3, 12, 0)
+  GtkBuilder *gbld = gtk_builder_new ();
+  GObject *go = gtk_buildable_get_internal_child (GTK_BUILDABLE (wd),
+                                                  gbld,
+                                                  "action_area");
+  GtkBox *cur_box = GTK_BOX (go);
+  g_object_unref (G_OBJECT (gbld));
+#else
+  GtkBox *cur_box = GTK_BOX (gtk_dialog_get_action_area (wd));
+#endif
 
   if (right_buttons == 0) right_buttons = total_buttons/2;
   left_buttons = total_buttons - right_buttons;
@@ -1542,8 +1552,12 @@ create_dialog (widget_value *wv,
           w = gtk_label_new (utf8_label);
           gtk_box_pack_start (wvbox, gtk_label_new (""), FALSE, FALSE, 0);
           gtk_box_pack_start (wvbox, w, TRUE, TRUE, 0);
+#if GTK_CHECK_VERSION (3, 14, 0)
+          gtk_widget_set_halign (w, GTK_ALIGN_START);
+          gtk_widget_set_valign (w, GTK_ALIGN_CENTER);
+#else
           gtk_misc_set_alignment (GTK_MISC (w), 0.1, 0.5);
-
+#endif
           /* Try to make dialog look better.  Must realize first so
              the widget can calculate the size it needs.  */
           gtk_widget_realize (w);
@@ -2293,9 +2307,15 @@ make_widget_for_menu_item (const char *utf8_label, const char *utf8_key)
   wlbl = gtk_label_new (utf8_label);
   wkey = gtk_label_new (utf8_key);
 
+#if GTK_CHECK_VERSION (3, 14, 0)
+  gtk_widget_set_halign (wlbl, GTK_ALIGN_START);
+  gtk_widget_set_valign (wlbl, GTK_ALIGN_CENTER);
+  gtk_widget_set_halign (wkey, GTK_ALIGN_START);
+  gtk_widget_set_valign (wkey, GTK_ALIGN_CENTER);
+#else
   gtk_misc_set_alignment (GTK_MISC (wlbl), 0.0, 0.5);
   gtk_misc_set_alignment (GTK_MISC (wkey), 0.0, 0.5);
-
+#endif
   gtk_box_pack_start (GTK_BOX (wbox), wlbl, TRUE, TRUE, 0);
   gtk_box_pack_start (GTK_BOX (wbox), wkey, FALSE, FALSE, 0);
 
@@ -4761,7 +4781,17 @@ update_frame_tool_bar (struct frame *f)
                                  (gpointer)img->pixmap);
             }
 
+#if GTK_CHECK_VERSION (3, 14, 0)
+          if (w)
+            {
+              gtk_widget_set_margin_start (w, hmargin);
+              gtk_widget_set_margin_end (w, hmargin);
+              gtk_widget_set_margin_top (w, vmargin);
+              gtk_widget_set_margin_bottom (w, vmargin);
+            }
+#else
 	  if (w) gtk_misc_set_padding (GTK_MISC (w), hmargin, vmargin);
+#endif
           ti = xg_make_tool_item (f, w, &wbutton, label, i, horiz, text_image);
           gtk_toolbar_insert (GTK_TOOLBAR (wtoolbar), ti, j);
         }
