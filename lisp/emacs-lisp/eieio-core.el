@@ -33,20 +33,6 @@
 
 (require 'cl-lib)
 
-;; Compatibility
-(if (fboundp 'compiled-function-arglist)
-
-    ;; XEmacs can only access a compiled functions arglist like this:
-    (defalias 'eieio-compiled-function-arglist 'compiled-function-arglist)
-
-  ;; Emacs doesn't have this function, but since FUNC is a vector, we can just
-  ;; grab the appropriate element.
-  (defun eieio-compiled-function-arglist (func)
-    "Return the argument list for the compiled function FUNC."
-    (aref func 0))
-
-  )
-
 (put 'eieio--defalias 'byte-hunk-handler
      #'byte-compile-file-form-defalias) ;;(get 'defalias 'byte-hunk-handler)
 (defun eieio--defalias (name body)
@@ -117,12 +103,12 @@ default setting for optimization purposes.")
 
 (defmacro eieio--with-scoped-class (class &rest forms)
   "Set CLASS as the currently scoped class while executing FORMS."
+  (declare (indent 1))
   `(unwind-protect
        (progn
 	 (push ,class eieio--scoped-class-stack)
 	 ,@forms)
      (pop eieio--scoped-class-stack)))
-(put 'eieio--with-scoped-class 'lisp-indent-function 1)
 
 ;;;
 ;; Field Accessors
@@ -678,26 +664,12 @@ See `defclass' for more information."
 			    ;; Else - Some error?  nil?
 			    nil)))
 
-              (if (fboundp 'gv-define-setter)
-                  ;; FIXME: We should move more of eieio-defclass into the
-                  ;; defclass macro so we don't have to use `eval' and require
-                  ;; `gv' at run-time.
-                  (eval `(gv-define-setter ,acces (eieio--store eieio--object)
-                           (list 'eieio-oset eieio--object '',name
-                                 eieio--store)))
-                ;; Provide a setf method.  It would be cleaner to use
-                ;; defsetf, but that would require CL at runtime.
-                (put acces 'setf-method
-                     `(lambda (widget)
-                        (let* ((--widget-sym-- (make-symbol "--widget--"))
-                               (--store-sym-- (make-symbol "--store--")))
-                          (list
-                           (list --widget-sym--)
-                           (list widget)
-                           (list --store-sym--)
-                           (list 'eieio-oset --widget-sym-- '',name
-                                 --store-sym--)
-                           (list 'getfoo --widget-sym--))))))))
+              ;; FIXME: We should move more of eieio-defclass into the
+              ;; defclass macro so we don't have to use `eval' and require
+              ;; `gv' at run-time.
+              (eval `(gv-define-setter ,acces (eieio--store eieio--object)
+                       (list 'eieio-oset eieio--object '',name
+                             eieio--store)))))
 
 	;; If a writer is defined, then create a generic method of that
 	;; name whose purpose is to set the value of the slot.
@@ -2099,30 +2071,12 @@ is memorized for faster future use."
 
 ;;; Here are some special types of errors
 ;;
-(intern "no-method-definition")
-(put 'no-method-definition 'error-conditions '(no-method-definition error))
-(put 'no-method-definition 'error-message "No method definition")
-
-(intern "no-next-method")
-(put 'no-next-method 'error-conditions '(no-next-method error))
-(put 'no-next-method 'error-message "No next method")
-
-(intern "invalid-slot-name")
-(put 'invalid-slot-name 'error-conditions '(invalid-slot-name error))
-(put 'invalid-slot-name 'error-message "Invalid slot name")
-
-(intern "invalid-slot-type")
-(put 'invalid-slot-type 'error-conditions '(invalid-slot-type error nil))
-(put 'invalid-slot-type 'error-message "Invalid slot type")
-
-(intern "unbound-slot")
-(put 'unbound-slot 'error-conditions '(unbound-slot error nil))
-(put 'unbound-slot 'error-message "Unbound slot")
-
-(intern "inconsistent-class-hierarchy")
-(put 'inconsistent-class-hierarchy 'error-conditions
-     '(inconsistent-class-hierarchy error nil))
-(put 'inconsistent-class-hierarchy 'error-message "Inconsistent class hierarchy")
+(define-error 'no-method-definition "No method definition")
+(define-error 'no-next-method "No next method")
+(define-error 'invalid-slot-name "Invalid slot name")
+(define-error 'invalid-slot-type "Invalid slot type")
+(define-error 'unbound-slot "Unbound slot")
+(define-error 'inconsistent-class-hierarchy "Inconsistent class hierarchy")
 
 ;;; Obsolete backward compatibility functions.
 ;; Needed to run byte-code compiled with the EIEIO of Emacs-23.

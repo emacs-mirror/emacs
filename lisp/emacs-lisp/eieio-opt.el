@@ -356,7 +356,7 @@ are not abstract."
 	      (insert "' " (aref prefix i) " ")
 	      ;; argument list
 	      (let* ((func (cdr (car gm)))
-		     (arglst (eieio-lambda-arglist func)))
+		     (arglst (help-function-arglist func)))
 		(prin1 arglst (current-buffer)))
 	      (insert "\n"
 		      (or (documentation (cdr (car gm)))
@@ -373,13 +373,6 @@ are not abstract."
 	      (setq gm (cdr gm))
 	      (insert "\n")))
 	  (setq i (1+ i)))))))
-
-(defun eieio-lambda-arglist (func)
-  "Return the argument list of FUNC, a function body."
-  (if (symbolp func) (setq func (symbol-function func)))
-  (if (byte-code-function-p func)
-      (eieio-compiled-function-arglist func)
-    (car (cdr func))))
 
 (defun eieio-all-generic-functions (&optional class)
   "Return a list of all generic functions.
@@ -419,15 +412,15 @@ function has no documentation, then return nil."
 		   (fboundp after)))
 	  nil
 	(list (if (fboundp before)
-		  (cons (eieio-lambda-arglist before)
+		  (cons (help-function-arglist before)
 			(documentation before))
 		nil)
 	      (if (fboundp primary)
-		  (cons (eieio-lambda-arglist primary)
+		  (cons (help-function-arglist primary)
 			(documentation primary))
 		nil)
 	      (if (fboundp after)
-		  (cons (eieio-lambda-arglist after)
+		  (cons (help-function-arglist after)
 			(documentation after))
 		nil))))))
 

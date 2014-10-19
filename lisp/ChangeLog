@@ -1,3 +1,14 @@
+2014-10-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/eieio-opt.el (eieio-lambda-arglist): Remove.
+	Use help-function-arglist instead.
+
+	* emacs-lisp/eieio-core.el (eieio-compiled-function-arglist): Remove.
+	(eieio--with-scoped-class): Use `declare'.
+	(eieio-defclass): Remove compatibility code.
+	(no-method-definition, no-next-method, inconsistent-class-hierarchy)
+	(invalid-slot-type, unbound-slot, invalid-slot-name): Use define-error.
+
 2014-10-18  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* cus-start.el (x-gtk-whole-detached-tool-bar): Remove.
@@ -33,7 +44,7 @@
 
 2014-10-17  Michal Nazarewicz  <mina86@mina86.com>
 
-	* textmodes/tildify.el (tildify--pick-alist-entry): rename from
+	* textmodes/tildify.el (tildify--pick-alist-entry): Rename from
 	tildify-mode-alist.
 
 2014-10-17  Stefan Monnier  <monnier@iro.umontreal.ca>
