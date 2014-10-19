@@ -191,7 +191,6 @@ It is passed the root project found.")
    (ede-detect-entry "java-root" :file "src/javaroot/README"
 		     :classp 'ede-java-root-project-p
 		     :dorescan nil)
-
    )
   "List of testing entries that do not use `diretest' feature.")
 
@@ -441,6 +440,9 @@ It is passed the root project found.")
       (dolist (fle test-entries)
 	(ede-detect-show-state fle))
       (cedet-utest-log ".")
+
+      ;; Do a final sanity check.
+      (ede-global-list-sanity-check)
 
       ))
 
