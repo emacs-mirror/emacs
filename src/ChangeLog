@@ -1,5 +1,11 @@
 2014-10-19  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* xterm.h (x_output): Remove net_wm_state_hidden_seen.
+
+	* xterm.c (handle_one_xevent): Check return value from
+	x_handle_net_wm_state, remove net_wm_state_hidden_seen (Bug#18722).
+	(get_current_wm_state): Remove net_wm_state_hidden_seen setting.
+
 	* gtkutil.c (create_dialog): Don't use gtk_dialog_get_action_area on
 	Gt+ >= 3.12, or gtk_misc_set_alignment on Gtk+ >= 3.14 (Bug#18674).
 	(make_widget_for_menu_item): Don't use gtk_misc_set_alignment on

@@ -609,9 +609,6 @@ struct x_output
      false, tell Xt not to wait.  */
   bool_bf wait_for_wm : 1;
 
-  /* True if _NET_WM_STATE_HIDDEN is set for this frame.  */
-  bool_bf net_wm_state_hidden_seen : 1;
-
 #ifdef HAVE_X_I18N
   /* Input context (currently, this means Compose key handler setup).  */
   XIC xic;
