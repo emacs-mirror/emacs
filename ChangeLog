@@ -1,3 +1,12 @@
+2014-10-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	2014-10-18 readlinkat: port to AIX 7.1
+	2014-10-07 fcntl: fix error reporting by dupfd
+	* lib/fcntl.c, lib/readlinkat.c, lib/unistd.in.h, m4/readlinkat.m4:
+	* m4/unistd_h.m4: Update from gnulib.
+	* lib/gnulib.mk, m4/gnulib-comp.m4: Regenerate.
+
 2014-10-17  Glenn Morris  <rgm@gnu.org>
 
 	* configure.ac: Simplify OS X $canonical tests.

@@ -20,6 +20,18 @@
 
 #include <unistd.h>
 
+#if HAVE_READLINKAT
+
+# undef readlinkat
+
+ssize_t
+rpl_readlinkat (int fd, char const *file, char *buf, size_t len)
+{
+  return readlinkat (fd, file, buf, len);
+}
+
+#else
+
 /* Gnulib provides a readlink stub for mingw; use it for distinction
    between EINVAL and ENOENT, rather than always failing with ENOSYS.  */
 
@@ -34,14 +46,16 @@
    then readlink/restore_cwd.  If either the save_cwd or the restore_cwd
    fails, then give a diagnostic and exit nonzero.  */
 
-#define AT_FUNC_NAME readlinkat
-#define AT_FUNC_F1 readlink
-#define AT_FUNC_POST_FILE_PARAM_DECLS , char *buf, size_t len
-#define AT_FUNC_POST_FILE_ARGS        , buf, len
-#define AT_FUNC_RESULT ssize_t
-#include "at-func.c"
-#undef AT_FUNC_NAME
-#undef AT_FUNC_F1
-#undef AT_FUNC_POST_FILE_PARAM_DECLS
-#undef AT_FUNC_POST_FILE_ARGS
-#undef AT_FUNC_RESULT
+# define AT_FUNC_NAME readlinkat
+# define AT_FUNC_F1 readlink
+# define AT_FUNC_POST_FILE_PARAM_DECLS , char *buf, size_t len
+# define AT_FUNC_POST_FILE_ARGS        , buf, len
+# define AT_FUNC_RESULT ssize_t
+# include "at-func.c"
+# undef AT_FUNC_NAME
+# undef AT_FUNC_F1
+# undef AT_FUNC_POST_FILE_PARAM_DECLS
+# undef AT_FUNC_POST_FILE_ARGS
+# undef AT_FUNC_RESULT
+
+#endif

@@ -1,4 +1,4 @@
-# unistd_h.m4 serial 67
+# unistd_h.m4 serial 68
 dnl Copyright (C) 2006-2014 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -173,9 +173,11 @@ AC_DEFUN([gl_UNISTD_H_DEFAULTS],
   REPLACE_PWRITE=0;       AC_SUBST([REPLACE_PWRITE])
   REPLACE_READ=0;         AC_SUBST([REPLACE_READ])
   REPLACE_READLINK=0;     AC_SUBST([REPLACE_READLINK])
+  REPLACE_READLINKAT=0;   AC_SUBST([REPLACE_READLINKAT])
   REPLACE_RMDIR=0;        AC_SUBST([REPLACE_RMDIR])
   REPLACE_SLEEP=0;        AC_SUBST([REPLACE_SLEEP])
   REPLACE_SYMLINK=0;      AC_SUBST([REPLACE_SYMLINK])
+  REPLACE_SYMLINKAT=0;    AC_SUBST([REPLACE_SYMLINKAT])
   REPLACE_TTYNAME_R=0;    AC_SUBST([REPLACE_TTYNAME_R])
   REPLACE_UNLINK=0;       AC_SUBST([REPLACE_UNLINK])
   REPLACE_UNLINKAT=0;     AC_SUBST([REPLACE_UNLINKAT])
