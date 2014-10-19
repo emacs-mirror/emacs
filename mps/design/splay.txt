@@ -877,8 +877,10 @@ Testing
 -------
 
 _`.test`: There is no plan to test splay trees directly. It is
-believed that the testing described in design.mps.cbs.test will be
+believed that the testing described in design.mps.cbs.test_ will be
 sufficient to test this implementation.
+
+.. _design.mps.cbs.test: cbs#test
 
 
 Error Handling

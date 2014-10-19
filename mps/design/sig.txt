@@ -111,14 +111,14 @@ checks that ``val->sig`` is the correct signature for ``type``.
 _`.check.arg.locked`: A function that holds the arena lock should
 check the argument using the ``AVERT`` macro. This macro has different
 definitions depending on how the MPS is compiled (see
-`design.mps.config.def.var`_). It may simply check the signature, or
+design.mps.config.def.var_). It may simply check the signature, or
 call the full checking function for the structure.
 
 .. _design.mps.config.def.var: config#def-var
 
 _`.check.sig`: The checking function for the structure should also
 validate the signature as its first step using the ``CHECKS()`` macro
-(see `check.h`_). For example::
+(see check.h_). For example::
 
     Bool MessageCheck(Message message)
     {

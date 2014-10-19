@@ -73,18 +73,18 @@ Interface
 Types
 .....
 
-``typedef LandStruct *Land;``
+``typedef LandStruct *Land``
 
 _`.type.land`: The type of a generic land instance.
 
-``typedef Bool (*LandVisitor)(Land land, Range range, void *closureP, Size closureS);``
+``typedef Bool (*LandVisitor)(Land land, Range range, void *closureP, Size closureS)``
 
 _`.type.visitor`: Type ``LandVisitor`` is a callback function that may
 be passed to ``LandIterate()``. It is called for every isolated
 contiguous range in address order. The function must return a ``Bool``
 indicating whether to continue with the iteration.
 
-``typedef Bool (*LandDeleteVisitor)(Bool *deleteReturn, Land land, Range range, void *closureP, Size closureS);``
+``typedef Bool (*LandDeleteVisitor)(Bool *deleteReturn, Land land, Range range, void *closureP, Size closureS)``
 
 _`.type.visitor`: Type ``LandDeleteVisitor`` is a callback function that may
 be passed to ``LandIterateAndDelete()``. It is called for every isolated

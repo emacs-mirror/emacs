@@ -82,8 +82,10 @@ letter that it deserves it.
 --------
 
 _`.change`: This transliteration differs from the old transliteration
-used for signatures (see design.mps.sig(0)), as follows: J:6->1;
+used for signatures (see design.mps.sig_), as follows: J:6->1;
 L:1->7; N:9->4; R:4->6; W:8->3; X:5->8; Y:E->I.
+
+.. _design.mps.sig: sig
 
 _`.problem.mw`: There is a known problem that M and W are both common,
 map to the same digit (3), and are hard to distinguish in context.

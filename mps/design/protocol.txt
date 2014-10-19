@@ -519,7 +519,9 @@ macro uses a global recursive lock instead. The lock is only claimed
 after an initial unlocked access of the guard variable shows that the
 class is not initialized. This avoids any locking overhead for the
 common case where the class is already initialized. This lock is
-provided by the lock module -- see design.mps.lock(0).
+provided by the lock module -- see design.mps.lock_.
+
+.. _design.mps.lock: lock
 
 
 Document History
