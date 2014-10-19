@@ -735,7 +735,7 @@ for the button."
         (goto-char (point-min))
         ;; insert logo at top
         (let* ((newsticker-enable-logo-manipulations nil)
-               (img (newsticker--image-read feed-name-symbol nil)))
+               (img (newsticker--image-read feed-name-symbol nil 40)))
           (if (and (display-images-p) img)
               (newsticker--insert-image img (car item))
             (insert (newsticker--real-feed-name feed-name-symbol))))
@@ -829,6 +829,7 @@ Callback function for tree widget that adds nodes for feeds and subgroups."
                       :nt-group ,(cdr g)
                       :nt-feed ,g-name
                       :nt-id ,nt-id
+                      :leaf-icon newsticker--tree-widget-leaf-icon
                       :keep (:nt-feed :num-new :nt-id :open);;  :nt-group
                       :open nil))
                 (let ((tag (newsticker--treeview-tree-get-tag g nil nt-id)))
@@ -840,6 +841,23 @@ Callback function for tree widget that adds nodes for feeds and subgroups."
                        :keep (:nt-id)
                        :open t))))
             group)))
+
+(defun newsticker--tree-widget-icon-create (icon)
+  "Create the ICON widget."
+  (let* ((g (widget-get (widget-get icon :node) :nt-feed))
+         (ico (and g (newsticker--icon-read (intern g)))))
+    (if ico
+        (progn
+          (widget-put icon :tag-glyph ico)
+          (widget-default-create icon)
+          ;; Insert space between the icon and the node widget.
+          (insert-char ?  1)
+          (put-text-property
+           (1- (point)) (point)
+           'display (list 'space :width tree-widget-space-width)))
+      ;; fallback: default icon
+      (widget-put icon :leaf-icon 'tree-widget-leaf-icon)
+      (tree-widget-icon-create icon))))
 
 (defun newsticker--treeview-tree-expand-status (tree &optional changed-widget
                                                      event)
@@ -875,6 +893,7 @@ Optional arguments CHANGED-WIDGET and EVENT are ignored."
   "Icon for a tree-widget leaf node."
   :tag        "O"
   :glyph-name "leaf"
+  :create 'newsticker--tree-widget-icon-create
   :button-face 'default)
 
 (defun newsticker--treeview-tree-update ()

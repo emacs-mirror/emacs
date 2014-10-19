@@ -36,6 +36,7 @@
 
 (require 'derived)
 (require 'xml)
+(require 'url-parse)
 
 ;; Silence warnings
 (defvar w3-mode-map)
@@ -776,6 +777,7 @@ See `newsticker-get-news'."
                           newsticker-wget-name args)))
         (set-process-coding-system proc 'no-conversion 'no-conversion)
         (set-process-sentinel proc 'newsticker--sentinel)
+        (process-put proc 'nt-feed-name feed-name)
         (setq newsticker--process-ids (cons (process-id proc)
                                             newsticker--process-ids))
         (force-mode-line-update)))))
@@ -811,24 +813,24 @@ Argument PROCESS is the process which has just changed its state.
 Argument EVENT tells what has happened to the process."
   (let ((p-status (process-status process))
         (exit-status (process-exit-status process))
-        (name (process-name process))
+        (feed-name (process-get  process 'nt-feed-name))
         (command (process-command process))
         (buffer (process-buffer process)))
     (newsticker--sentinel-work event
                                (and (eq p-status 'exit)
                                     (= exit-status 0))
-                               name command buffer)))
+                               feed-name command buffer)))
 
-(defun newsticker--sentinel-work (event status-ok name command buffer)
+(defun newsticker--sentinel-work (event status-ok feed-name command buffer)
   "Actually do the sentinel work.
 Argument EVENT tells what has happened to the retrieval process.
 Argument STATUS-OK is the final status of the retrieval process,
 non-nil meaning retrieval was successful.
-Argument NAME is the name of the retrieval process.
+Argument FEED-NAME is the name of the retrieved feed.
 Argument COMMAND is the command of the retrieval process.
 Argument BUFFER is the buffer of the retrieval process."
   (let ((time (current-time))
-        (name-symbol (intern name))
+        (name-symbol (intern feed-name))
         (something-was-added nil))
     ;; catch known errors (zombie processes, rubbish-xml etc.
     ;; if an error occurs the news feed is not updated!
@@ -844,14 +846,14 @@ Argument BUFFER is the buffer of the retrieval process."
                         "Return status: `%s'\n"
                         "Command was `%s'")
                 (format-time-string "%A, %H:%M" (current-time))
-                name event command)
+                feed-name event command)
                ""
                (current-time)
                'new
                0 nil))
         (message "%s: Error while retrieving news from %s"
                  (format-time-string "%A, %H:%M" (current-time))
-                 name)
+                 feed-name)
         (throw 'oops nil))
       (let* ((coding-system 'utf-8)
              (node-list
@@ -870,7 +872,7 @@ Argument BUFFER is the buffer of the retrieval process."
                           (coding-system-error
                            (message
                             "newsticker.el: ignoring coding system %s for %s"
-                            coding-system name)
+                            coding-system feed-name)
                            nil))))
                 ;; Decode if possible
                 (when coding-system
@@ -886,7 +888,8 @@ Argument BUFFER is the buffer of the retrieval process."
                                   (buffer-name) (cadr errordata))
                          (throw 'oops nil)))))
              (topnode (car node-list))
-             (imageurl nil))
+             (image-url nil)
+             (icon-url nil))
         ;; mark all items as obsolete
         (newsticker--cache-replace-age newsticker--cache
                                        name-symbol
@@ -904,29 +907,29 @@ Argument BUFFER is the buffer of the retrieval process."
                  ;; RSS 0.91
                  ((and (eq 'rss (xml-node-name topnode))
                        (string= "0.91" (xml-get-attribute topnode 'version)))
-                  (setq imageurl (newsticker--get-logo-url-rss-0.91 topnode))
-                  (newsticker--parse-rss-0.91 name time topnode))
+                  (setq image-url (newsticker--get-logo-url-rss-0.91 topnode))
+                  (newsticker--parse-rss-0.91 feed-name time topnode))
                  ;; RSS 0.92
                  ((and (eq 'rss (xml-node-name topnode))
                        (string= "0.92" (xml-get-attribute topnode 'version)))
-                  (setq imageurl (newsticker--get-logo-url-rss-0.92 topnode))
-                  (newsticker--parse-rss-0.92 name time topnode))
+                  (setq image-url (newsticker--get-logo-url-rss-0.92 topnode))
+                  (newsticker--parse-rss-0.92 feed-name time topnode))
                  ;; RSS 1.0
                  ((or (eq 'RDF (xml-node-name topnode))
                       (eq 'rdf:RDF (xml-node-name topnode)))
-                  (setq imageurl (newsticker--get-logo-url-rss-1.0 topnode))
-                  (newsticker--parse-rss-1.0 name time topnode))
+                  (setq image-url (newsticker--get-logo-url-rss-1.0 topnode))
+                  (newsticker--parse-rss-1.0 feed-name time topnode))
                  ;; RSS 2.0
                  ((and (eq 'rss (xml-node-name topnode))
                        (string= "2.0" (xml-get-attribute topnode 'version)))
-                  (setq imageurl (newsticker--get-logo-url-rss-2.0 topnode))
-                  (newsticker--parse-rss-2.0 name time topnode))
+                  (setq image-url (newsticker--get-logo-url-rss-2.0 topnode))
+                  (newsticker--parse-rss-2.0 feed-name time topnode))
                  ;; Atom 0.3
                  ((and (eq 'feed (xml-node-name topnode))
                        (string= "http://purl.org/atom/ns#"
                                 (xml-get-attribute topnode 'xmlns)))
-                  (setq imageurl (newsticker--get-logo-url-atom-0.3 topnode))
-                  (newsticker--parse-atom-0.3 name time topnode))
+                  (setq image-url (newsticker--get-logo-url-atom-0.3 topnode))
+                  (newsticker--parse-atom-0.3 feed-name time topnode))
                  ;; Atom 1.0
                  (t
                   ;; The test for Atom 1.0 does not work when using
@@ -938,16 +941,17 @@ Argument BUFFER is the buffer of the retrieval process."
                   ;; (and (eq 'feed (xml-node-name topnode))
                   ;;      (string= "http://www.w3.org/2005/Atom"
                   ;;               (xml-get-attribute topnode 'xmlns)))
-                  (setq imageurl (newsticker--get-logo-url-atom-1.0 topnode))
-                  (newsticker--parse-atom-1.0 name time topnode))
+                  (setq image-url (newsticker--get-logo-url-atom-1.0 topnode))
+                  (setq icon-url (newsticker--get-icon-url-atom-1.0 topnode))
+                  (newsticker--parse-atom-1.0 feed-name time topnode))
                  ;; unknown feed type
                  ;; (t
                  ;;  (newsticker--debug-msg "Feed type unknown: %s: %s"
-                 ;;                         (xml-node-name topnode) name)
+                 ;;                         (xml-node-name topnode) feed-name)
                  ;;  nil)
                  )
                 (setq something-was-added t))
-          (error (message "sentinelerror in %s: %s" name error-data)))
+          (error (message "sentinelerror in %s: %s" feed-name error-data)))
 
         ;; Remove those old items from cache which have been removed from
         ;; the feed
@@ -988,10 +992,29 @@ Argument BUFFER is the buffer of the retrieval process."
         ;; kill the process buffer if wanted
         (unless newsticker-debug
           (kill-buffer buffer))
-        ;; launch retrieval of image
-        (when (and imageurl (boundp 'newsticker-download-logos)
+        ;; launch retrieval of images
+        (when (and (boundp 'newsticker-download-logos)
                    newsticker-download-logos)
-          (newsticker--image-get name imageurl)))))
+          ;; feed logo
+          (when image-url
+            (newsticker--image-get feed-name feed-name (newsticker--images-dir)
+                                   image-url))
+          ;; icon / favicon
+          (setq icon-url
+                (or icon-url
+                    (let* ((feed-url (newsticker--link (cadr (newsticker--cache-get-feed
+                                                              (intern feed-name)))))
+                           (uri (url-generic-parse-url feed-url)))
+                      (when (and feed-url uri)
+                        (setf (url-filename uri) nil)
+                        (setf (url-target uri) nil)
+                        (concat (url-recreate-url uri) "favicon.ico")))))
+          (when icon-url
+            (newsticker--image-get feed-name
+                                   (concat feed-name "."
+                                           (file-name-extension icon-url))
+                                   (newsticker--icons-dir)
+                                   icon-url))))))
   (when newsticker--sentinel-callback
     (funcall newsticker--sentinel-callback)))
 
@@ -1054,6 +1077,11 @@ Argument BUFFER is the buffer of the retrieval process."
   "Return logo URL from atom 1.0 data in NODE."
   (car (xml-node-children
         (car (xml-get-children node 'logo)))))
+
+(defun newsticker--get-icon-url-atom-1.0 (node)
+  "Return icon URL from atom 1.0 data in NODE."
+  (car (xml-node-children
+        (car (xml-get-children node 'icon)))))
 
 (defun newsticker--get-logo-url-atom-0.3 (node)
   "Return logo URL from atom 0.3 data in NODE."
@@ -1133,13 +1161,13 @@ same as in `newsticker--parse-atom-1.0'."
 
 (defun newsticker--unxml (node)
   "Reverse parsing of an xml string.
-Restore an xml-string from a an xml-node that was returned by xml-parse..."
+Restore an xml-string from a an xml NODE that was returned by xml-parse..."
   (if (or (not node) (stringp node))
       node
     (newsticker--unxml-node node)))
 
 (defun newsticker--unxml-node (node)
-  "Actually restore xml-string of an xml node."
+  "Actually restore xml-string of an xml NODE."
   (let ((qname (symbol-name (car node)))
         (att-list (cadr node))
         (children (cddr node)))
@@ -1149,10 +1177,10 @@ Restore an xml-string from a an xml-node that was returned by xml-parse..."
             ">"
             (mapconcat 'newsticker--unxml children "") "</" qname ">")))
 
-(defun newsticker--unxml-attribute (att)
-  "Actually restore xml-string of an attribute of an xml node."
-  (let ((name (symbol-name (car att)))
-        (value (cdr att)))
+(defun newsticker--unxml-attribute (attribute)
+  "Actually restore xml-string of an ATTRIBUTE of an xml node."
+  (let ((name (symbol-name (car attribute)))
+        (value (cdr attribute)))
     (concat name "=\"" value "\"")))
 
 (defun newsticker--parse-atom-1.0 (name time topnode)
@@ -1766,14 +1794,19 @@ Checks list of active processes against list of newsticker processes."
   "Return directory where feed images are saved."
   (concat newsticker-dir "/images/"))
 
-(defun newsticker--image-get (feed-name url)
-  "Get image of the news site FEED-NAME from URL.
-If the image has been downloaded in the last 24h do nothing."
-  (let ((image-name (concat (newsticker--images-dir) feed-name)))
+(defun newsticker--icons-dir ()
+  "Return directory where feed icons are saved."
+  (concat newsticker-dir "/icons/"))
+
+(defun newsticker--image-get (feed-name filename directory url)
+  "Get image for FEED-NAME by returning FILENAME from DIRECTORY.
+If the file does no exist or if it is older than 24 hours
+download it from URL first."
+  (let ((image-name (concat directory feed-name)))
     (if (and (file-exists-p image-name)
              (time-less-p (current-time)
                           (time-add (nth 5 (file-attributes image-name))
-                                    (seconds-to-time 86400))))
+                                     (seconds-to-time 86400))))
         (newsticker--debug-msg "%s: Getting image for %s skipped"
                                (format-time-string "%A, %H:%M" (current-time))
                                feed-name)
@@ -1781,14 +1814,22 @@ If the image has been downloaded in the last 24h do nothing."
       (newsticker--debug-msg "%s: Getting image for %s"
                              (format-time-string "%A, %H:%M" (current-time))
                              feed-name)
-      (let* ((buffername (concat " *newsticker-wget-image-" feed-name "*"))
-             (item (or (assoc feed-name newsticker-url-list)
+      (if (eq newsticker-retrieval-method 'intern)
+          (newsticker--image-download-by-url feed-name filename directory url)
+        (newsticker--image-download-by-wget feed-name filename directory url)))))
+
+(defun newsticker--image-download-by-wget (feed-name filename directory url)
+  "Download image for FEED-NAME using external program.
+Save image as FILENAME in DIRECTORY, download it from URL."
+  (let* ((proc-name (concat feed-name "-" filename))
+         (buffername (concat " *newsticker-wget-image-" proc-name "*"))
+         (item (or (assoc feed-name newsticker-url-list)
                        (assoc feed-name newsticker-url-list-defaults)
                        (error
                         "Cannot get image for %s: Check newsticker-url-list"
                         feed-name)))
-             (wget-arguments (or (car (cdr (cdr (cdr (cdr item)))))
-                                 newsticker-wget-arguments)))
+         (wget-arguments (or (car (cdr (cdr (cdr (cdr item)))))
+                             newsticker-wget-arguments)))
         (with-current-buffer (get-buffer-create buffername)
           (erase-buffer)
           ;; throw an error if there is an old wget-process around
@@ -1797,16 +1838,21 @@ If the image has been downloaded in the last 24h do nothing."
                      feed-name))
           ;; start wget
           (let* ((args (append wget-arguments (list url)))
-                 (proc (apply 'start-process feed-name buffername
+                 (proc (apply 'start-process proc-name buffername
                               newsticker-wget-name args)))
             (set-process-coding-system proc 'no-conversion 'no-conversion)
-            (set-process-sentinel proc 'newsticker--image-sentinel)))))))
+            (set-process-sentinel proc 'newsticker--image-sentinel)
+            (process-put proc 'nt-directory directory)
+            (process-put proc 'nt-feed-name feed-name)
+            (process-put proc 'nt-filename filename)))))
 
 (defun newsticker--image-sentinel (process event)
   "Sentinel for image-retrieving PROCESS caused by EVENT."
   (let* ((p-status (process-status process))
          (exit-status (process-exit-status process))
-         (feed-name (process-name process)))
+         (feed-name (process-get process 'nt-feed-name))
+         (directory (process-get process 'nt-directory))
+         (filename (process-get process 'nt-filename)))
     ;; catch known errors (zombie processes, rubbish-xml, etc.)
     ;; if an error occurs the news feed is not updated!
     (catch 'oops
@@ -1815,21 +1861,67 @@ If the image has been downloaded in the last 24h do nothing."
         (message "%s: Error while retrieving image from %s"
                  (format-time-string "%A, %H:%M" (current-time))
                  feed-name)
+        (newsticker--image-remove directory feed-name)
         (throw 'oops nil))
-      (let (image-name)
-        (with-current-buffer (process-buffer process)
-          (setq image-name (concat (newsticker--images-dir) feed-name))
-          (set-buffer-file-coding-system 'no-conversion)
-          ;; make sure the cache dir exists
-          (unless (file-directory-p (newsticker--images-dir))
-            (make-directory (newsticker--images-dir)))
-          ;; write and close buffer
-          (let ((require-final-newline nil)
-                (backup-inhibited t)
-                (coding-system-for-write 'no-conversion))
-            (write-region nil nil image-name nil 'quiet))
-          (set-buffer-modified-p nil)
-          (kill-buffer (current-buffer)))))))
+      (newsticker--image-save (process-buffer process) directory filename))))
+
+(defun newsticker--image-save (buffer directory file-name)
+  "Save contents of BUFFER in DIRECTORY as FILE-NAME.
+Finally kill buffer."
+  (with-current-buffer buffer
+      (let ((image-name (concat directory file-name)))
+        (set-buffer-file-coding-system 'no-conversion)
+        ;; make sure the cache dir exists
+        (unless (file-directory-p directory)
+          (make-directory directory))
+        ;; write and close buffer
+        (let ((require-final-newline nil)
+              (backup-inhibited t)
+              (coding-system-for-write 'no-conversion))
+          (write-region nil nil image-name nil 'quiet))
+        (set-buffer-modified-p nil)
+        (kill-buffer buffer))))
+
+(defun newsticker--image-remove (directory file-name)
+  "In DIRECTORY remove FILE-NAME."
+  (let ((image-name (concat directory file-name)))
+    (when (file-exists-p file-name)
+      (delete-file image-name))))
+
+(defun newsticker--image-download-by-url (feed-name filename directory url)
+  "Download image for FEED-NAME using `url-retrieve'.
+Save image as FILENAME in DIRECTORY, download it from URL."
+  (let ((coding-system-for-read 'no-conversion))
+    (condition-case error-data
+        (url-retrieve url 'newsticker--image-download-by-url-callback
+                      (list feed-name directory filename))
+          (error (message "Error retrieving image from %s: %s" feed-name
+                          error-data))))
+  (force-mode-line-update))
+
+(defun newsticker--image-download-by-url-callback (status feed-name directory filename)
+  "Callback function for `newsticker--image-download-by-url'.
+STATUS is the return status as delivered by `url-retrieve'.
+FEED-NAME is the name of the feed that the news were retrieved
+from.
+The image is saved in DIRECTORY as FILENAME."
+  (when status
+    (let ((status-type (car status))
+          (status-details (cdr status)))
+      (cond ((eq status-type :error)
+             (newsticker--image-remove directory feed-name))
+            (t
+             (let ((buf (get-buffer-create (concat " *newsticker-url-image-" feed-name "-" directory "*")))
+                   (result (string-to-multibyte (buffer-string))))
+               (set-buffer buf)
+               (erase-buffer)
+               (insert result)
+               ;; remove MIME header
+               (goto-char (point-min))
+               (search-forward "\n\n")
+               (delete-region (point-min) (point))
+               ;; save
+               (newsticker--image-save buf directory filename)))))))
 
 (defun newsticker--insert-image (img string)
   "Insert IMG with STRING at point."
@@ -2244,6 +2336,7 @@ If AGE is nil, the total number of items is returned."
 (defun newsticker-opml-export ()
   "OPML subscription export.
 Export subscriptions to a buffer in OPML Format."
+  ;; FIXME: use newsticker-groups
   (interactive)
   (with-current-buffer (get-buffer-create "*OPML Export*")
     (set-buffer-file-coding-system 'utf-8)
@@ -2263,7 +2356,8 @@ Export subscriptions to a buffer in OPML Format."
             (insert "    <outline text=\"")
             (insert (newsticker--title sub))
             (insert "\" xmlUrl=\"")
-            (insert (cadr sub))
+            (insert (xml-escape-string (let ((url (cadr sub)))
+                                      (if (stringp url) url (prin1-to-string url)))))
             (insert "\"/>\n"))
           (append newsticker-url-list newsticker-url-list-defaults))
     (insert "  </body>\n</opml>\n"))

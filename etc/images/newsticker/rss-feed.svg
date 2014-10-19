@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="16px"
+   height="16px"
+   id="svg3028"
+   version="1.1"
+   inkscape:version="0.48.5 r10040"
+   sodipodi:docname="newst-rss.svg">
+  <defs
+     id="defs3030" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="22.197802"
+     inkscape:cx="-0.87475255"
+     inkscape:cy="-1.0099011"
+     inkscape:current-layer="layer1"
+     showgrid="true"
+     inkscape:grid-bbox="true"
+     inkscape:document-units="px"
+     inkscape:snap-global="true"
+     inkscape:snap-object-midpoints="false"
+     inkscape:window-width="1680"
+     inkscape:window-height="1026"
+     inkscape:window-x="0"
+     inkscape:window-y="24"
+     inkscape:window-maximized="0">
+    <inkscape:grid
+       type="xygrid"
+       id="grid3036" />
+  </sodipodi:namedview>
+  <metadata
+     id="metadata3033">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     id="layer1"
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer">
+    <rect
+       style="fill:#ff8000;fill-opacity:1;stroke:#0000ff;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       id="rect3038"
+       width="16"
+       height="16"
+       x="0"
+       y="0"
+       ry="2"
+       rx="2" />
+    <path
+       sodipodi:type="arc"
+       style="fill:#ffffff;fill-opacity:1;stroke:#ffffff;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       id="path3814"
+       sodipodi:cx="-4.5"
+       sodipodi:cy="7.5"
+       sodipodi:rx="2"
+       sodipodi:ry="2"
+       d="m -2.5,7.5 a 2,2 0 1 1 -4,0 2,2 0 1 1 4,0 z"
+       transform="matrix(0,1,-1,0,11.5,16.5)" />
+    <path
+       sodipodi:type="arc"
+       style="fill:none;stroke:#ffffff;stroke-width:1.89999996;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       id="path3847"
+       sodipodi:cx="8.5"
+       sodipodi:cy="7.5"
+       sodipodi:rx="9.5"
+       sodipodi:ry="9.5"
+       d="m 18,7.5 a 9.5,9.5 0 1 1 -19,0 9.5,9.5 0 1 1 19,0 z"
+       transform="matrix(1.0526316,0,0,1.0526316,-8.9473684,8.1052632)" />
+    <path
+       sodipodi:type="arc"
+       style="fill:none;stroke:#ffffff;stroke-width:0.96362412;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       id="path3849"
+       sodipodi:cx="2"
+       sodipodi:cy="14.5"
+       sodipodi:rx="7"
+       sodipodi:ry="6.5"
+       d="m 9,14.5 a 7,6.5 0 1 1 -14,0 7,6.5 0 1 1 14,0 z"
+       transform="matrix(2,0,0,2.1538461,-3.9999999,-15.230768)" />
+    <rect
+       style="fill:none;fill-opacity:1;stroke:#ff8000;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       id="rect3869"
+       width="15"
+       height="15"
+       x="2"
+       y="-1"
+       rx="0"
+       ry="0" />
+    <path
+       style="fill:#ff8000;fill-opacity:1;stroke:none"
+       d="M 2 0 C 0.892 0 0 0.892 0 2 L 0 14 C 0 15.108 0.892 16 2 16 L 2 0 z "
+       id="rect3891" />
+    <path
+       style="fill:#ff8000;fill-opacity:1;stroke:none"
+       d="M 0 14 C 0 15.108 0.892 16 2 16 L 14 16 C 15.108 16 16 15.108 16 14 L 0 14 z "
+       id="rect3913" />
+  </g>
+  <g
+     inkscape:groupmode="layer"
+     id="layer2"
+     inkscape:label="Ebene" />
+</svg>

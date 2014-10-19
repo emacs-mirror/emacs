@@ -1,3 +1,40 @@
+2014-10-19  Ulf Jasper  <ulf.jasper@web.de>
+
+	* net/newst-backend.el: Require url-parse.
+	(newsticker--get-news-by-wget): Store feed name as process property.
+	(newsticker--sentinel): Read feed name from process property.
+	(newsticker--sentinel-work): Rename argument name to feed-name.
+	Rename variable imageurl to image-url.  Pick icon url from Atom
+	1.0 data.  Launch download of feed icon.
+	(newsticker--get-icon-url-atom-1.0): New.
+	(newsticker--unxml)
+	(newsticker--unxml-node)
+	(newsticker--unxml-attribute): Documentation.
+	(newsticker--icons-dir): New.
+	(newsticker--image-get): New arguments FILENAME and DIRECTORY.
+	Use `url-retrieve' if `newsticker-retrieval-method' is 'intern.
+	(newsticker--image-download-by-wget): New.  Use process properties
+	for storing informations.
+	(newsticker--image-sentinel): Read informations from process properties.
+	(newsticker--image-save)
+	(newsticker--image-remove)
+	(newsticker--image-download-by-url)
+	(newsticker--image-download-by-url-callback): New.
+	(newsticker-opml-export): Handle url list entries containing a
+	function instead of an url string.
+
+	* net/newst-reader.el (newsticker-html-renderer): Whitespace.
+	(newsticker--print-extra-elements)
+	(newsticker--do-print-extra-element): Documentation
+	(newsticker--image-read): Optionally limit image height.  Use
+	imagemagick if possible.
+	(newsticker--icon-read): New.
+
+	* net/newst-treeview.el (newsticker--treeview-item-show): Limit height of feed logo.
+	(newsticker--treeview-tree-expand): Use feed icons in treeview.
+	(newsticker--tree-widget-icon-create): New.  Set the tree widget icon.
+	(newsticker--tree-widget-leaf-icon): Use feed icon.
+
 2014-10-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/eieio-opt.el (eieio-lambda-arglist): Remove.
