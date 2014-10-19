@@ -384,6 +384,9 @@ fullwidth frames, the behavior may depend on the toolkit used.
    specific frame does not resize that frame in order to preserve the
    number of columns or lines it displays.
 
+** Teroff menus and detachable toolbars for Gtk+ has been removed.
+Those features have been deprecated in Gtk+ for a long time.
+
 
 * Changes in Emacs 25.1 on Non-Free Operating Systems
 
