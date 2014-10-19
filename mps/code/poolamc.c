@@ -71,7 +71,7 @@ enum {
 
 /* amcSegStruct -- AMC-specific fields appended to GCSegStruct
  *
- * .seq.old: The "old" flag is FALSE if the segment has never been
+ * .seg.old: The "old" flag is FALSE if the segment has never been
  * collected, and so its size is accounted against the pool
  * generation's newSize; it is TRUE if the segment has been collected
  * at least once, and so its size is accounted against the pool

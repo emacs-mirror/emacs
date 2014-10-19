@@ -397,7 +397,7 @@ static void testAllocAndIterate(Arena arena, Pool pool,
         allocator->free(&offsetRegion);
       }
     }
-    LocusPrefExpress(&pref, LocusPrefZoneSet, &zone);
+    LocusPrefExpress(&pref, LocusPrefZONESET, &zone);
   }
 }
 

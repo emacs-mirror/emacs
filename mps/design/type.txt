@@ -323,6 +323,21 @@ determined then the smallest unsigned integer with a large enough
 range may be used instead.
 
 
+``typedef int LocusPrefKind``
+
+_`.segprefkind`: The type ``LocusPrefKind`` expresses a preference for
+addresses within an address space. It takes one of the following
+values:
+
+====================  ====================================
+Kind                  Description
+====================  ====================================
+``LocusPrefHIGH``     Prefer high addresses.
+``LocusPrefLOW``      Prefer low addresses.
+``LocusPrefZONESET``  Prefer addresses in specified zones.
+====================  ====================================
+
+
 ``typedef unsigned MessageType``
 
 _`.messagetype`: ``MessageType`` is the type of a message. See
@@ -491,21 +506,6 @@ MPS C Interface.
 
 _`.rootvar`: The type ``RootVar`` is the type of the discriminator for
 the union within ``RootStruct``.
-
-
-``typedef int LocusPrefKind``
-
-_`.segprefkind`: The type ``LocusPrefKind`` expresses a preference for
-addresses within an address space. It takes one of the following
-values:
-
-====================  ====================================
-Kind                  Description
-====================  ====================================
-``LocusPrefHigh``     Prefer high addresses.
-``LocusPrefLow``      Prefer low addresses.
-``LocusPrefZoneSet``  Prefer addresses in specified zones.
-====================  ====================================
 
 
 ``typedef unsigned Serial``
