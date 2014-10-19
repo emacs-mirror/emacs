@@ -2816,8 +2816,9 @@ xg_update_menubar (GtkWidget *menubar,
              bridge that might be loaded) that the item's label has
              changed.  */
           gtk_label_set_text (wlabel, utf8_label);
+#if GTK_CHECK_VERSION (2, 16, 0)
           g_object_notify (G_OBJECT (witem), "label");
-
+#endif
           if (utf8_label) g_free (utf8_label);
           iter = g_list_next (iter);
           val = val->next;
@@ -2996,8 +2997,10 @@ xg_update_menu_item (widget_value *val,
         }
     }
 
+#if GTK_CHECK_VERSION (2, 16, 0)
   if (label_changed) /* See comment in xg_update_menubar.  */
     g_object_notify (G_OBJECT (w), "label");
+#endif
 }
 
 /* Update the toggle menu item W so it corresponds to VAL.  */

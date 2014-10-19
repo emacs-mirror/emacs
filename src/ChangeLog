@@ -1,5 +1,8 @@
 2014-10-19  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* gtkutil.c (xg_update_menubar, xg_update_menu_item): Only call
+	g_object_notify for label if Gtk+ >= 2.16 (Bug#16522).
+
 	* xterm.h (x_output): Remove net_wm_state_hidden_seen.
 
 	* xterm.c (handle_one_xevent): Check return value from
