@@ -28,7 +28,9 @@ Requirements
 ------------
 
 _`.req.general`: Required to implement the general protection
-interface defined in design.mps.prot.if.
+interface defined in design.mps.prot.if_.
+
+.. _design.mps.prot.if: prot#if
 
 
 Data structures
@@ -68,7 +70,7 @@ _`.fun.set`: ``ProtSet()`` uses ``mprotect()`` to adjust the
 protection for pages.
 
 _`.fun.set.convert`: The requested protection (which is expressed in
-the ``mode`` parameter, see design.mps.prot.if.set) is translated into
+the ``mode`` parameter, see design.mps.prot.if.set_) is translated into
 an operating system protection. If read accesses are to be forbidden
 then all accesses are forbidden, this is done by setting the
 protection of the page to ``PROT_NONE``. If write accesses are to be
@@ -76,6 +78,8 @@ forbidden (and not read accesses) then write accesses are forbidden
 and read accesses are allowed, this is done by setting the protection
 of the page to ``PROT_READ|PROT_EXEC``. Otherwise (all access are
 okay), the protection is set to ``PROT_READ|PROT_WRITE|PROT_EXEC``.
+
+.. _design.mps.prot.if.set: prot#if.set
 
 _`.fun.set.assume.mprotect`: We assume that the call to ``mprotect()``
 always succeeds.
@@ -94,23 +98,30 @@ Threads
 
 _`.threads`: The design must operate in a multi-threaded environment
 (with LinuxThreads) and cooperate with the Linux support for locks
-(see design.mps.lock) and the thread suspension mechanism (see
-design.mps.pthreadext ).
+(see design.mps.lock_) and the thread suspension mechanism (see
+design.mps.pthreadext_ ).
+
+.. _design.mps.pthreadext: pthreadext
+.. _design.mps.lock: lock
 
 _`.threads.suspend`: The ``SIGSEGV`` signal handler does not mask out
 any signals, so a thread may be suspended while the handler is active,
 as required by the design (see
-design.mps.pthreadext.req.suspend.protection). The signal handlers
+design.mps.pthreadext.req.suspend.protection_). The signal handlers
 simply nest at top of stack.
+
+.. _design.mps.pthreadext.req.suspend.protection: pthreadext#req.suspend.protection
 
 _`.threads.async`: POSIX (and hence Linux) imposes some restrictions
 on signal handler functions (see
-design.mps.pthreadext.anal.signal.safety). Basically the rules say the
+design.mps.pthreadext.anal.signal.safety_). Basically the rules say the
 behaviour of almost all POSIX functions inside a signal handler is
 undefined, except for a handful of functions which are known to be
 "async-signal safe". However, if it's known that the signal didn't
 happen inside a POSIX function, then it is safe to call arbitrary
 POSIX functions inside a handler.
+
+.. _design.mps.pthreadext.anal.signal.safety: pthreadext#anal.signal.safety
 
 _`.threads.async.protection`: If the signal handler is invoked because
 of an MPS access, then we know the access must have been caused by

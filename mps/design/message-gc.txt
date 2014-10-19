@@ -75,10 +75,13 @@ be extra content that is only meaningful to MPS staff, to help us
 diagnose client problems.
 
 While there is some overlap with the Diagnostic Feedback system
-(design.mps.diag) and the Telemetry system (design.mps.telemetry), the
+(design.mps.diag_) and the Telemetry system (design.mps.telemetry_), the
 main contrasts are that these GC messages are present in release
 builds, are stable from release to release, and are designed to be
 parsed by the client program.
+
+.. _design.mps.telemetry: telemetry
+.. _design.mps.diag: diag
 
 
 Names and parts

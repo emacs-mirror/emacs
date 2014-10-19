@@ -105,7 +105,9 @@ In ``than.c``.
 POSIX threads implementation
 ............................
 
-In ``thix.c``. See design.mps.pthreadext.
+In ``thix.c``. See design.mps.pthreadext_.
+
+.. _design.mps.pthreadext: pthreadext
 
 
 Win32 implementation

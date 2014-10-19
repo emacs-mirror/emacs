@@ -13,7 +13,7 @@ ANSI fake VM
 
 
 _`.intro`: The ANSI fake VM is an implementation of the MPS VM
-interface (see `design.mps.vm`_) using only services provided by the
+interface (see design.mps.vm_) using only services provided by the
 ANSI C Library (standard.ansic.7).
 
 .. _design.mps.vm: vm

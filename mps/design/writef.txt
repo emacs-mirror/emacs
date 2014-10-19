@@ -20,9 +20,11 @@ allows formatted output in a manner similar to ANSI C ``printf``, but
 allows the MPM to operate in a freestanding environment (see
 design.mps.exec-env).
 
-_`.background`: The documents design.mps.exec-env and design.mps.lib
+_`.background`: The documents design.mps.exec-env and design.mps.lib_
 describe the design of the library interface and the reason that it
 exists.
+
+.. _design.mps.lib: lib
 
 
 Design
@@ -30,7 +32,7 @@ Design
 
 _`.no-printf`: There is no dependency on ``printf()``. The MPM only
 depends on ``fputc()`` and ``fputs()``, via the Library Interface
-(design.mps.lib). This makes it much easier to deploy the MPS in a
+(design.mps.lib_). This makes it much easier to deploy the MPS in a
 freestanding environment. This is achieved by implementing our own
 internal output routines in mpm.c.
 

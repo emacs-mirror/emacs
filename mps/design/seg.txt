@@ -43,11 +43,13 @@ methods SegBase, SegLimit, and SegSize which map a segment onto the
 addresses of the memory block it represents.
 
 _`.over.hierarchy`: The Segment datastructure is designed to be
-subclassable (see design.mps.protocol). The basic segment class
+subclassable (see design.mps.protocol_). The basic segment class
 (``Seg``) supports colour and protection for use by the tracer, as
 well as support for a pool ring, and all generic segment functions.
 Clients may use ``Seg`` directly, but will most probably want to use a
 subclass with additional properties.
+
+.. _design.mps.protocol: protocol
 
 _`.over.hierarchy.gcseg`: The segment module provides ``GCSeg`` - a
 subclass of ``Seg`` which has full support for GC including buffering
@@ -246,7 +248,9 @@ allocation, which may use the reservoir if ``withReservoirPermit`` is
 
 _`.method.split.next`: A split method should always call the next
 method, either before or after any class-specific code (see
-design.mps.protocol.overview.next-method).
+design.mps.protocol.overview.next-method_).
+
+.. _design.mps.protocol.overview.next-method: protocol#overview.next-method
 
 ``typedef Res (*SegMergeMethod)(Seg seg, Seg segHi, Addr base, Addr mid, Addr limit, Bool withReservoirPermit)``
 
@@ -262,7 +266,9 @@ reservoir if ``withReservoirPermit`` is ``TRUE``.
 
 _`.method.merge.next`: A merge method should always call the next
 method, either before or after any class-specific code (see
-design.mps.protocol.overview.next-method).
+design.mps.protocol.overview.next-method_).
+
+.. _design.mps.protocol.overview.next-method: protocol#overview.next-method
 
 _`.split-merge.shield`: Split and merge methods may assume that the
 segments they are manipulating are not in the shield cache.
@@ -283,8 +289,10 @@ method (for example, by allocating any objects early in the method).
 
 _`.split-merge.fail.anti`: If it's not possible to detect failure
 before calling the next method, the appropriate anti-method must be
-used (see design.mps.protocol.guide.fail.after-next). Split methods
+used (see design.mps.protocol.guide.fail.after-next_). Split methods
 are anti-methods for merge methods, and vice-versa.
+
+.. _design.mps.protocol.guide.fail.after-next: protocol#guide.fail.after-next
 
 _`.split-merge.fail.anti.constrain`: In general, care should be taken
 when writing split and merge methods to ensure that they really are

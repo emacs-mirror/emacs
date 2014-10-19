@@ -20,8 +20,10 @@ the MPM and the pool class implementations.
 
 .. note::
 
-    This document should be merged into design.mps.pool. Pekka P.
+    This document should be merged into design.mps.pool_. Pekka P.
     Pirinen, 1999-07-20.
+
+    .. _design.mps.pool: pool
 
 
 Fields
@@ -37,7 +39,7 @@ memory is managed by the garbage collector, and ``"M"`` if memory is
 managed by alloc/free. Examples are "AMC", "MV".
 
 _`.field.attr`: The ``attr`` field must be a bitset of pool class
-attributes. See `design.mps.type.attr`_.
+attributes. See design.mps.type.attr_.
 
 .. _design.mps.type.attr: type
 
@@ -152,7 +154,7 @@ belonging to a pool. This method is called via the generic function
 (excepting any set that has been condemned in this trace) to be grey,
 that is, ready for scanning. The pool should arrange that any
 appropriate invariants are preserved, possibly by using the protection
-interface (see `design.mps.prot`_). Pool classes are not required to
+interface (see design.mps.prot_). Pool classes are not required to
 provide this method, and not doing so indicates that all instances of
 this class will have no fixable or traceable references in them.
 
@@ -220,11 +222,13 @@ Events
 ------
 
 _`.replay`: To work with the allocation replayer (see
-design.mps.telemetry.replayer), the pool has to emit an event for each
+design.mps.telemetry.replayer_), the pool has to emit an event for each
 call to an external interface, containing all the parameters passed by
 the user. If a new event type is required to carry this information,
 the replayer (impl.c.eventrep) must then be extended to recreate the
 call.
+
+.. _design.mps.telemetry.replayer: telemetry#replayer
 
 _`.replay.Init`: In particular, the ``init`` method should emit a
 ``PoolInit<foo>`` event with all the pool parameters.

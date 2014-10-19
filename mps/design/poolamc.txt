@@ -481,8 +481,10 @@ which is how segments get allocated in that generation.
 
 _`.buffer.condemn`: We condemn buffered segments, but not the contents
 of the buffers themselves, because we can't reclaim uncommitted
-buffers (see design.mps.buffer for details). If the segment has a
+buffers (see design.mps.buffer_ for details). If the segment has a
 forwarding buffer on it, we detach it.
+
+.. _design.mps.buffer: buffer
 
 .. note::
 
