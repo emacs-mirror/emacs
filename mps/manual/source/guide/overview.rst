@@ -37,7 +37,7 @@ Ravenbrook by arrangement. Please :ref:`contact us <contact>` at
 `mps-questions@ravenbrook.com <mailto:mps-questions@ravenbrook.com>`_
 for details.
 
-.. comment:: Keep this section synchronized with readme.txt
+.. comment: Keep this section synchronized with readme.txt
 
 .. index::
    single: Memory Pool System; supported target platforms
