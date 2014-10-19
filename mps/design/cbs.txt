@@ -197,7 +197,9 @@ Testing
 _`.test`: The following testing will be performed on this module:
 
 _`.test.land`: A generic test for land implementations. See
-design.mps.land.test.
+design.mps.land.test_.
+
+.. _design.mps.land.test: land#test
 
 _`.test.pool`: The arena and two pools (MVT_ and MVFF_) are
 implemented on top of a CBS. These are subject to testing in
@@ -243,7 +245,9 @@ Document History
 ----------------
 
 - 1998-05-01 Gavin Matthews. This document was derived from the
-  outline in design.mps.poolmv2(2).
+  outline in design.mps.poolmv2_.
+
+.. _design.mps.poolmv2: poolmv2
 
 - 1998-07-22 Gavin Matthews. Updated in response to approval comments
   in change.epcore.anchovy.160040. There is too much fragmentation in

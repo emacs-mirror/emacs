@@ -515,7 +515,7 @@ _`.arch.chunk`: Arenas may allocate more address space in additional
 chunks, which may be disjoint from the existing chunks. Inter-chunk
 space will be represented by dummy regions. There are also sentinel
 regions at both ends of the address space. See
-`design.mps.arena.chunk`_.
+design.mps.arena.chunk_.
 
 .. _design.mps.arena.chunk: arena#chunk
 

@@ -42,7 +42,9 @@ any progress.
 
 _`.req.suspend.why`: Needed by the thread manager so that other
 threads registered with an arena can be suspended (see
-design.mps.thread-manager). Not directly provided by Pthreads.
+design.mps.thread-manager_). Not directly provided by Pthreads.
+
+.. _design.mps.thread-manager: thread-manager
 
 _`.req.resume`: A means to resume suspended threads, so that they are
 able to make progress again. _`.req.resume.why`: Needed by the thread

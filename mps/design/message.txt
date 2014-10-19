@@ -35,7 +35,7 @@ message should be critical.
 _`.contents`: This document describes the design of the external and
 internal interfaces and concludes with a sketch of an example design
 of an internal client. The example is that of implementing
-finalization using PoolMRG.
+finalization using ``PoolMRG``.
 
 _`.readership`: Any MPS developer.
 
@@ -44,9 +44,11 @@ Requirements
 ------------
 
 _`.req`: The client message protocol will be used for implementing
-finalization (see design.mps.finalize and req.dylan.fun.final). It
+finalization (see design.mps.finalize_ and req.dylan.fun.final). It
 will also be used for implementing the notification of various
 conditions (possibly req.dylan.prot.consult is relevant here).
+
+.. _design.mps.finalize: finalize
 
 
 External interface
@@ -139,7 +141,9 @@ abstractly: ``FinalizationMessage(Ref)``.
 
 _`.type.finalization.semantics`: A finalization message indicates that
 an object has been discovered to be finalizable (see
-design.mps.poolmrg.def.final.object for a definition of finalizable).
+design.mps.poolmrg.def.final.object_ for a definition of finalizable).
+
+.. _design.mps.poolmrg.def.final.object: poolmrg#def.final.object
 
 _`.type.finalization.ref`: There is an accessor to get the reference
 of the finalization message (i.e. a reference to the object which is
@@ -184,10 +188,12 @@ _`.message.instance`: Messages are instances of Message Classes.
 
 _`.message.concrete`: Concretely a message is represented by a
 ``MessageStruct``. A ``MessageStruct`` has the usual signature field
-(see design.mps.sig). A ``MessageStruct`` has a type field which
+(see design.mps.sig_). A ``MessageStruct`` has a type field which
 defines its type, a ring node, which is used to attach the message to
 the queue of pending messages, a class field, which identifies a
 ``MessageClass`` object.
+
+.. _design.mps.sig: sig
 
 _`.message.intent`: The intention is that a ``MessageStruct`` will be
 embedded in some richer object which contains information relevant to
@@ -347,15 +353,20 @@ Finalization
 
 .. note::
 
-    Possibly out of date, see design.mps.finalize and
-    design.mps.poolmrg instead. David Jones, 1997-08-28.
+    Possibly out of date, see design.mps.finalize_ and
+    design.mps.poolmrg_ instead. David Jones, 1997-08-28.
+
+    .. _design.mps.poolmrg: poolmrg
+    .. _design.mps.finalize: finalize
 
 This subsection is a sketch of how PoolMRG will use Messages for
-finalization (see design.mps.poolmrg).
+finalization (see design.mps.poolmrg_).
 
-PoolMRG has guardians (see design.mps.poolmrg.guardian). Guardians are
-used to manage final references and detect when an object is
+PoolMRG has guardians (see design.mps.poolmrg.guardian_). Guardians
+are used to manage final references and detect when an object is
 finalizable.
+
+.. _design.mps.poolmrg.guardian: poolmrg#guardian
 
 The link part of a guardian will include a ``MessageStruct``.
 

@@ -26,12 +26,14 @@ particular:
   the client.
 
 _`.context`: The MPS has to be able to operate in a multi-threaded
-environment. The thread-safe design (design.mps.thread-safety)
+environment. The thread-safe design (design.mps.thread-safety_)
 requires client-allocatable binary locks, a global binary lock and a
 global recursive lock. An interface to client-allocatable recursive
 locks is also present to support any potential use, because of
 historic requirements, and because the implementation will presumably
 be necessary anyway for the global recursive lock.
+
+.. _design.mps.thread-safety: thread-safety
 
 
 Background
@@ -79,12 +81,14 @@ locking the initialization of the allocator itself. The binary global
 lock is intended to protect mutable data, possibly in conjunction with
 other local locking strategies. The recursive global lock is intended
 to protect static read-only data during one-off initialization. See
-design.mps.thread-safety.
+design.mps.thread-safety_.
 
 _`.deadlock`: This module does not provide any deadlock protection.
 Clients are responsible for avoiding deadlock by using traditional
 strategies such as ordering of locks. (See
-design.mps.thread-safety.deadlock.)
+design.mps.thread-safety.deadlock_.)
+
+.. _design.mps.thread-safety.deadlock: thread-safety#deadlock
 
 _`.single-thread`: In the single-threaded configuration, locks are not
 needed and the claim/release interfaces defined to be no-ops.

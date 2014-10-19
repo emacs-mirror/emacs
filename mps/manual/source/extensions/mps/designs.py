@@ -42,6 +42,8 @@ typedef = re.compile(r'^``typedef ([^`]*)``$', re.MULTILINE)
 func = re.compile(r'``([A-Za-z][A-Za-z0-9_]+\(\))``')
 typename = re.compile(r'``({0}|[A-Z][A-Za-z0-9_]*(?:Class|Struct|Method)|mps_[a-z_]+_[stu])``(?:      )?'
                       .format('|'.join(map(re.escape, TYPES.split()))))
+design_ref = re.compile(r'^( *\.\. _design\.mps\.(?:[^:\n]+): (?:[^#:\n]+))$', re.MULTILINE)
+design_frag_ref = re.compile(r'^( *\.\. _design\.mps\.([^:\n]+)\.([^:\n]+): (?:[^#:\n]+))#\3$', re.MULTILINE)
 history = re.compile(r'^Document History\n.*',
                      re.MULTILINE | re.IGNORECASE | re.DOTALL)
 
@@ -116,6 +118,8 @@ def convert_file(name, source, dest):
     s = macro.sub(r':c:macro:`\1`', s)
     s = secnum.sub(secnum_sub, s)
     s = citation.sub(citation_sub, s)
+    s = design_ref.sub(r'\1.html', s)
+    s = design_frag_ref.sub(r'\1.html#design.mps.\2.\3', s)
     s = history.sub('', s)
     try:
         os.makedirs(os.path.dirname(dest))
