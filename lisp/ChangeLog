@@ -1,3 +1,7 @@
+2014-03-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* skeleton.el (skeleton-autowrap): Mark as obsolete.  Doc fix.
+
 2014-10-20  Glenn Morris  <rgm@gnu.org>
 
 	* dired.el (dired-read-regexp): Make obsolete.

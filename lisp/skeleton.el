@@ -55,11 +55,8 @@ Typical examples might be `upcase' or `capitalize'.")
 When the region is visible (due to `transient-mark-mode' or marking a region
 with the mouse) and this is non-nil and the function was called without an
 explicit ARG, then the ARG defaults to -1, i.e. wrapping around the visible
-region.
-
-We will probably delete this variable in a future Emacs version
-unless we get a substantial number of complaints about the auto-wrap
-feature.")
+region.")
+(make-obsolete-variable 'skeleton-autowrap nil "24.5")
 
 (defvar skeleton-end-newline t
   "If non-nil, make sure that the skeleton inserted ends with a newline.
