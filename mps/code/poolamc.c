@@ -1706,7 +1706,6 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
   AMC amc;
   Size headerSize;
   Addr p1;  /* first obj in seg */
-  Bool obj1pip = FALSE;  /* first obj was preserved in place */
   Addr padBase;          /* base of next padding object */
   Size padLength;        /* length of next padding object */
 
@@ -1750,8 +1749,6 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
     if(preserve) {
       ++preservedInPlaceCount;
       preservedInPlaceSize += length;
-      if(p == p1)
-        obj1pip = TRUE;
       if (padLength > 0) {
         /* Replace run of forwarding pointers and unreachable objects
          * with a padding object. */
