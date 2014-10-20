@@ -1805,9 +1805,6 @@ with references to further information.
 @item custom-variable-p
 @xref{Variable Definitions, custom-variable-p}.
 
-@item display-table-p
-@xref{Display Tables, display-table-p}.
-
 @item floatp
 @xref{Predicates on Numbers, floatp}.
 
