@@ -1905,23 +1905,29 @@ STATUS is the return status as delivered by `url-retrieve'.
 FEED-NAME is the name of the feed that the news were retrieved
 from.
 The image is saved in DIRECTORY as FILENAME."
+  (let ((buf (get-buffer-create (concat " *newsticker-url-image-" feed-name "-"
+                                        directory "*")))
+        (result (string-to-multibyte (buffer-string))))
+    (set-buffer buf)
+    (erase-buffer)
+    (insert result)
+    ;; remove MIME header
+    (goto-char (point-min))
+    (search-forward "\n\n")
+    (delete-region (point-min) (point))
+    ;; save
+    (newsticker--image-save buf directory filename))
   (when status
     (let ((status-type (car status))
           (status-details (cdr status)))
-      (cond ((eq status-type :error)
-             (newsticker--image-remove directory feed-name))
-            (t
-             (let ((buf (get-buffer-create (concat " *newsticker-url-image-" feed-name "-" directory "*")))
-                   (result (string-to-multibyte (buffer-string))))
-               (set-buffer buf)
-               (erase-buffer)
-               (insert result)
-               ;; remove MIME header
-               (goto-char (point-min))
-               (search-forward "\n\n")
-               (delete-region (point-min) (point))
-               ;; save
-               (newsticker--image-save buf directory filename)))))))
+      (cond ((eq status-type :redirect)
+             ;; don't care about redirects
+             )
+            ((eq status-type :error)
+             (message "%s: Error while retrieving image from %s: %s: \"%s\""
+                      (format-time-string "%A, %H:%M" (current-time))
+                      feed-name
+                      (car status-details) (cdr status-details)))))))
 
 (defun newsticker--insert-image (img string)
   "Insert IMG with STRING at point."
