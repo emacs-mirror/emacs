@@ -1970,7 +1970,7 @@ A value of t means no truncation.
 This variable only affects history lists that don't specify their own
 maximum lengths.  Setting the `history-length' property of a history
 variable overrides this default.  */);
-  XSETFASTINT (Vhistory_length, 30);
+  XSETFASTINT (Vhistory_length, 100);
 
   DEFVAR_BOOL ("history-delete-duplicates", history_delete_duplicates,
 	       doc: /* Non-nil means to delete duplicates in history.

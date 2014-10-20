@@ -1,3 +1,8 @@
+2014-10-20  Glenn Morris  <rgm@gnu.org>
+
+	* minibuf.c (history-length): Increase default from 30 to 100.
+	[Backport]
+
 2014-10-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* xdisp.c (redisplay_window): Re-run pre-redisplay-function after we
@@ -52,8 +57,7 @@
 	array of 2 values specifying the coordinates of the frame's
 	top-left corner.  Use these values instead of calling x_get_arg,
 	which can cons Lisp objects, and therefore cannot be called except
-	from the main thread.  Remove redundant tests for the default
-	values.
+	from the main thread.  Remove redundant tests for the default values.
 	(my_create_window): Move the calculation of the coordinates of the
 	frame's top-left edge here.  Pass them to the input thread via the
 	second parameter of the WM_EMACS_CREATEWINDOW message.

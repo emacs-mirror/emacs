@@ -1,3 +1,7 @@
+2014-10-20  Glenn Morris  <rgm@gnu.org>
+
+	* cus-start.el (history-length): Bump :version.  [Backport]
+
 2014-10-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* obsolete/cc-compat.el: Make obsolete (bug#18561).
