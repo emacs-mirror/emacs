@@ -1,3 +1,7 @@
+2014-10-20  Glenn Morris  <rgm@gnu.org>
+
+	* Version 24.4 released.
+
 2013-12-14  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Use bool for boolean, focusing on headers.

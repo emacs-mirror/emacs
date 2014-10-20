@@ -1,3 +1,7 @@
+2014-10-20  Glenn Morris  <rgm@gnu.org>
+
+	* Version 24.4 released.
+
 2014-09-19  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* url.el (url-retrieve-internal): Clarify the docstring.

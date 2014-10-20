@@ -1,3 +1,7 @@
+2014-10-20  Glenn Morris  <rgm@gnu.org>
+
+	* Version 24.4 released.
+
 2014-04-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* cmdproxy.c (make_absolute): Don't copy more characters from PATH

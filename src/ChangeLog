@@ -1,3 +1,7 @@
+2014-10-20  Glenn Morris  <rgm@gnu.org>
+
+	* Version 24.4 released.
+
 2014-10-17  Eli Zaretskii  <eliz@gnu.org>
 
 	* xterm.c (x_draw_hollow_cursor): Fix display of hollow cursor on

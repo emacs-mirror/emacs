@@ -1,3 +1,7 @@
+2014-10-20  Glenn Morris  <rgm@gnu.org>
+
+	* Version 24.4 released.
+
 2014-09-18  David Engster  <deng@randomsample.de>
 
 	* ede/emacs.el (ede-emacs-version): Do not call 'egrep' to

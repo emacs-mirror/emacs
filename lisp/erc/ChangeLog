@@ -1,3 +1,7 @@
+2014-10-20  Glenn Morris  <rgm@gnu.org>
+
+	* Version 24.4 released.
+
 2014-09-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* erc-track.el (erc-modified-channels-display): Update all mode lines

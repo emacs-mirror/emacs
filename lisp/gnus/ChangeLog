@@ -1,3 +1,7 @@
+2014-10-20  Glenn Morris  <rgm@gnu.org>
+
+	* Version 24.4 released.
+
 2014-09-29  Daiki Ueno  <ueno@gnu.org>
 
 	* mml.el (mml-parse-1): Error out if unknown mode is specified in
