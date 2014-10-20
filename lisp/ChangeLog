@@ -2,7 +2,7 @@
 
 	* net/newst-backend.el
 	(newsticker--image-download-by-url-callback): Make this function
-	actually work: First save image then check status.
+	actually work: Check status properly, then save image.
 
 2014-10-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 

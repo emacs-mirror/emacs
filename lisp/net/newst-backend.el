@@ -1806,7 +1806,7 @@ download it from URL first."
     (if (and (file-exists-p image-name)
              (time-less-p (current-time)
                           (time-add (nth 5 (file-attributes image-name))
-                                     (seconds-to-time 86400))))
+                                    (seconds-to-time 86400))))
         (newsticker--debug-msg "%s: Getting image for %s skipped"
                                (format-time-string "%A, %H:%M" (current-time))
                                feed-name)
@@ -1905,29 +1905,29 @@ STATUS is the return status as delivered by `url-retrieve'.
 FEED-NAME is the name of the feed that the news were retrieved
 from.
 The image is saved in DIRECTORY as FILENAME."
-  (let ((buf (get-buffer-create (concat " *newsticker-url-image-" feed-name "-"
-                                        directory "*")))
-        (result (string-to-multibyte (buffer-string))))
-    (set-buffer buf)
-    (erase-buffer)
-    (insert result)
-    ;; remove MIME header
-    (goto-char (point-min))
-    (search-forward "\n\n")
-    (delete-region (point-min) (point))
-    ;; save
-    (newsticker--image-save buf directory filename))
-  (when status
-    (let ((status-type (car status))
-          (status-details (cdr status)))
-      (cond ((eq status-type :redirect)
-             ;; don't care about redirects
-             )
-            ((eq status-type :error)
-             (message "%s: Error while retrieving image from %s: %s: \"%s\""
-                      (format-time-string "%A, %H:%M" (current-time))
-                      feed-name
-                      (car status-details) (cdr status-details)))))))
+  (let ((do-save
+         (or (not status)
+             (let ((status-type (car status))
+                   (status-details (cdr status)))
+               (cond ((eq status-type :redirect)
+                      ;; don't care about redirects
+                      t)
+                     ((eq status-type :error)
+                      ;; silently ignore errors
+                      nil))))))
+    (when do-save
+      (let ((buf (get-buffer-create (concat " *newsticker-url-image-" feed-name "-"
+                                            directory "*")))
+            (result (string-to-multibyte (buffer-string))))
+        (set-buffer buf)
+        (erase-buffer)
+        (insert result)
+        ;; remove MIME header
+        (goto-char (point-min))
+        (search-forward "\n\n")
+        (delete-region (point-min) (point))
+        ;; save
+        (newsticker--image-save buf directory filename)))))
 
 (defun newsticker--insert-image (img string)
   "Insert IMG with STRING at point."
