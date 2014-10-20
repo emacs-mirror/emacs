@@ -1705,7 +1705,6 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
   Size preservedInPlaceSize = (Size)0;
   AMC amc;
   Size headerSize;
-  Addr p1;  /* first obj in seg */
   Addr padBase;          /* base of next padding object */
   Size padLength;        /* length of next padding object */
 
@@ -1727,7 +1726,6 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
   } else {
     limit = SegLimit(seg);
   }
-  p1 = p;
   padBase = p;
   padLength = 0;
   while(p < limit) {
