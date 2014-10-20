@@ -801,7 +801,7 @@ bidi_cache_iterator_state (struct bidi_it *bidi_it, bool resolved,
 /* Look for a cached iterator state that corresponds to CHARPOS.  If
    found, copy the cached state into BIDI_IT and return the type of
    the cached entry.  If not found, return UNKNOWN_BT.  RESOLVED_ONLY
-   zero means it is OK to return cached states tyhat were not fully
+   zero means it is OK to return cached states that were not fully
    resolved yet.  This can happen if the state was cached before it
    was resolved in bidi_resolve_neutral.  */
 static bidi_type_t
@@ -1799,9 +1799,9 @@ bidi_resolve_explicit (struct bidi_it *bidi_it)
 	    }
 	  eassert (bidi_it->bytepos == CHAR_TO_BYTE (bidi_it->charpos));
 	}
-      /* Determine the orginal bidi type of the previous character,
+      /* Determine the original bidi type of the previous character,
 	 which is needed for handling isolate initiators and PDF.  The
-	 type of the previous character will only be non-trivial if
+	 type of the previous character will be non-trivial only if
 	 our caller moved through some previous text in
 	 get_visually_first_element, in which case bidi_it->prev holds
 	 the information we want.  */
