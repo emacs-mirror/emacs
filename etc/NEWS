@@ -273,6 +273,7 @@ These emulations of old editors are believed to be no longer relevant
 
 * New Modes and Packages in Emacs 25.1
 
+** scss-mode (a minor variant of css-mode)
 
 * Incompatible Lisp Changes in Emacs 25.1
 

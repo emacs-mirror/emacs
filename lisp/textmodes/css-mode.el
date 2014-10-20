@@ -185,7 +185,7 @@
   (let ((st (make-syntax-table)))
     ;; C-style comments.
     (modify-syntax-entry ?/ ". 14" st)
-    (modify-syntax-entry ?* ". 23" st)
+    (modify-syntax-entry ?* ". 23b" st)
     ;; Strings.
     (modify-syntax-entry ?\" "\"" st)
     (modify-syntax-entry ?\' "\"" st)
@@ -210,10 +210,14 @@
   "\\\\\\(?:[^\000-\037\177]\\|[0-9a-fA-F]+[ \n\t\r\f]?\\)")
 (defconst css-nmchar-re (concat "\\(?:[-[:alnum:]]\\|" css-escapes-re "\\)"))
 (defconst css-nmstart-re (concat "\\(?:[[:alpha:]]\\|" css-escapes-re "\\)"))
-(defconst css-ident-re (concat css-nmstart-re css-nmchar-re "*"))
+(defconst css-ident-re ;; (concat css-nmstart-re css-nmchar-re "*")
+  ;; Apparently, "at rules" names can start with a dash, e.g. @-moz-keyframes.
+  (concat css-nmchar-re "+"))
 (defconst css-proprietary-nmstart-re ;; Vendor-specific properties.
   (concat "[-_]" (regexp-opt '("ms" "moz" "o" "khtml" "webkit")) "-"))
 (defconst css-name-re (concat css-nmchar-re "+"))
+
+(defconst scss--hash-re "#\\(?:{[$-_[:alnum:]]+}\\|[[:alnum:]]+\\)")
 
 (defface css-selector '((t :inherit font-lock-function-name-face))
   "Face to use for selectors."
@@ -224,24 +228,44 @@
 (defface css-proprietary-property '((t :inherit (css-property italic)))
   "Face to use for vendor-specific properties.")
 
-(defvar css-font-lock-keywords
-  `(("!\\s-*important" . font-lock-builtin-face)
+(defun css--font-lock-keywords (&optional sassy)
+  `((,(concat "!\\s-*"
+              (regexp-opt (append (if sassy '("global"))
+                                  '("important"))))
+     (0 font-lock-builtin-face))
     ;; Atrules keywords.  IDs not in css-at-ids are valid (ignored).
     ;; In fact the regexp should probably be
     ;; (,(concat "\\(@" css-ident-re "\\)\\([ \t\n][^;{]*\\)[;{]")
     ;;  (1 font-lock-builtin-face))
     ;; Since "An at-rule consists of everything up to and including the next
     ;; semicolon (;) or the next block, whichever comes first."
-    (,(concat "@" css-ident-re) . font-lock-builtin-face)
+    (,(concat "@" css-ident-re) (0 font-lock-builtin-face))
     ;; Selectors.
     ;; FIXME: attribute selectors don't work well because they may contain
     ;; strings which have already been highlighted as f-l-string-face and
     ;; thus prevent this highlighting from being applied (actually now that
-    ;; I use `append' this should work better).  But really the part of the
+    ;; I use `keep' this should work better).  But really the part of the
     ;; selector between [...] should simply not be highlighted.
-    (,(concat "^\\([ \t]*[^@:{}\n][^:{}]+\\(?::" (regexp-opt css-pseudo-ids t)
-              "\\(?:([^)]+)\\)?[^:{\n]*\\)*\\)\\(?:\n[ \t]*\\)*{")
-     (1 'css-selector append))
+    (,(concat
+       "^[ \t]*\\("
+       (if (not sassy)
+           ;; We don't allow / as first char, so as not to
+           ;; take a comment as the beginning of a selector.
+           "[^@/:{} \t\n][^:{}]+"
+         ;; Same as for non-sassy except we do want to allow { and }
+         ;; chars in selectors in the case of #{$foo}
+         ;; variable interpolation!
+         (concat "\\(?:" scss--hash-re
+                 "\\|[^@/:{} \t\n#]\\)"
+                 "[^:{}#]*\\(?:" scss--hash-re "[^:{}#]*\\)*"))
+       "\\(?::" (regexp-opt css-pseudo-ids t)
+       "\\(?:([^\)]+)\\)?"
+       (if (not sassy)
+           "[^:{}\n]*"
+         (concat "[^:{}\n#]*\\(?:" scss--hash-re "[^:{}\n#]*\\)*"))
+       "\\)*"
+       "\\)\\(?:\n[ \t]*\\)*{")
+     (1 'css-selector keep))
     ;; In the above rule, we allow the open-brace to be on some subsequent
     ;; line.  This will only work if we properly mark the intervening text
     ;; as being part of a multiline element (and even then, this only
@@ -260,6 +284,8 @@
               "\\)\\s-*:")
      (1 (if (match-end 2) 'css-proprietary-property 'css-property)))))
 
+(defvar css-font-lock-keywords (css--font-lock-keywords))
+
 (defvar css-font-lock-defaults
   '(css-font-lock-keywords nil t))
 
@@ -277,6 +303,7 @@
 (defun css-smie--forward-token ()
   (cond
    ((and (eq (char-before) ?\})
+         (scss-smie--not-interpolation-p)
          ;; FIXME: If the next char is not whitespace, what should we do?
          (or (memq (char-after) '(?\s ?\t ?\n))
              (looking-at comment-start-skip)))
@@ -293,7 +320,8 @@
     (forward-comment (- (point)))
     (cond
      ;; FIXME: If the next char is not whitespace, what should we do?
-     ((and (eq (char-before) ?\}) (> pos (point))) ";")
+     ((and (eq (char-before) ?\}) (scss-smie--not-interpolation-p)
+           (> pos (point))) ";")
      ((memq (char-before) '(?\; ?\, ?\:))
       (forward-char -1) (string (char-after)))
      (t (smie-default-backward-token)))))
@@ -315,7 +343,6 @@
   (setq-local comment-end "*/")
   (setq-local comment-end-skip "[ \t]*\\*+/")
   (setq-local parse-sexp-ignore-comments t)
-  (setq-local indent-line-function 'css-indent-line)
   (setq-local fill-paragraph-function 'css-fill-paragraph)
   (setq-local add-log-current-defun-function #'css-current-defun-name)
   (smie-setup css-smie-grammar #'css-smie-rules
@@ -405,6 +432,36 @@
 	(beginning-of-line)
 	(if (looking-at "^[ \t]*\\([^{\r\n]*[^ {\t\r\n]\\)")
 	    (match-string-no-properties 1))))))
+
+;;; SCSS mode
+
+(defvar scss-mode-syntax-table
+  (let ((st (make-syntax-table css-mode-syntax-table)))
+    (modify-syntax-entry ?/ ". 124" st)
+    (modify-syntax-entry ?\n ">" st)
+    st))
+
+(defvar scss-font-lock-keywords
+  (append `((,(concat "$" css-ident-re) (0 font-lock-variable-name-face)))
+          (css--font-lock-keywords 'sassy)
+          `((,(concat "@mixin[ \t]+\\(" css-ident-re "\\)[ \t]*(")
+             (1 font-lock-function-name-face)))))
+
+(defun scss-smie--not-interpolation-p ()
+  (save-excursion
+    (forward-char -1)
+    (or (zerop (skip-chars-backward "[:alnum:]"))
+        (not (looking-back "#{\\$" (- (point) 3))))))
+
+;;;###autoload (add-to-list 'auto-mode-alist '("\\.scss\\'" . scss-mode))
+;;;###autoload
+(define-derived-mode scss-mode css-mode "SCSS"
+  "Major mode to edit \"Sassy CSS\" files."
+  (setq-local comment-start "// ")
+  (setq-local comment-end "")
+  (setq-local comment-start-skip "/[*/]+[ t]*")
+  (setq-local comment-end-skip "[ \t]*\\(?:\n\\|\\*+/\\)")
+  (setq-local font-lock-defaults '(scss-font-lock-keywords nil t)))
 
 (provide 'css-mode)
 ;;; css-mode.el ends here

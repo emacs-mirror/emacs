@@ -1,3 +1,8 @@
+2014-10-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* indent/scss-mode.scss: New file.
+	* indent/css-mode.css: Add a few uneventful examples.
+
 2014-10-15  Eli Zaretskii  <eliz@gnu.org>
 
 	* BidiCharacterTest.txt: New file, from Unicode.
@@ -28,8 +33,8 @@
 
 2014-09-26  Leo Liu  <sdl.web@gmail.com>
 
-	* automated/cl-lib.el (cl-digit-char-p, cl-parse-integer): New
-	tests.  (Bug#18557)
+	* automated/cl-lib.el (cl-digit-char-p, cl-parse-integer):
+	New tests.  (Bug#18557)
 
 2014-09-24  Ulf Jasper  <ulf.jasper@web.de>
 
@@ -39,8 +44,8 @@
 
 2014-09-09  Eli Zaretskii  <eliz@gnu.org>
 
-	* automated/fns-tests.el (fns-tests-collate-sort): Bind
-	w32-collate-ignore-punctuation to t when sorting according to
+	* automated/fns-tests.el (fns-tests-collate-sort):
+	Bind w32-collate-ignore-punctuation to t when sorting according to
 	UTS#10 rules.
 
 2014-09-07  Michael Albinus  <michael.albinus@gmx.de>
@@ -555,8 +560,8 @@
 
 	* automated/subword-tests.el (subword-tests2): More subword tests.
 
-	* automated/cl-lib.el (cl-lib-keyword-names-versus-values): New
-	test: correct parsing of keyword arguments.
+	* automated/cl-lib.el (cl-lib-keyword-names-versus-values):
+	New test: correct parsing of keyword arguments.
 
 2014-03-22  Dmitry Gutov  <dgutov@yandex.ru>
 
@@ -651,8 +656,8 @@
 
 2014-02-17  Michael Albinus  <michael.albinus@gmx.de>
 
-	* automated/tramp-tests.el (tramp-test28-shell-command): Perform
-	an initial `sit-for' prior the while loop.
+	* automated/tramp-tests.el (tramp-test28-shell-command):
+	Perform an initial `sit-for' prior the while loop.
 
 2014-02-16  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -674,8 +679,8 @@
 
 	* automated/tramp-tests.el (tramp-test26-process-file): Improve test.
 	(tramp-test27-start-file-process): Use "_p" as argument of lambda.
-	(tramp-test28-shell-command): Improve `shell-command' test.  Add
-	`async-shell-command' tests.
+	(tramp-test28-shell-command): Improve `shell-command' test.
+	Add `async-shell-command' tests.
 
 2014-02-04  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -731,8 +736,8 @@
 
 2014-01-13  Michael Albinus  <michael.albinus@gmx.de>
 
-	* automated/ert-tests.el (ert-test-record-backtrace): Reenable
-	test case with adapted test string.  (Bug#13064)
+	* automated/ert-tests.el (ert-test-record-backtrace):
+	Reenable test case with adapted test string.  (Bug#13064)
 
 2013-12-28  Glenn Morris  <rgm@gnu.org>
 

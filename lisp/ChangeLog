@@ -1,3 +1,12 @@
+2014-10-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/css-mode.el (scss-mode): New major-mode.
+	(css-mode-syntax-table): Use d style comment, to ease the scss case.
+	(css-ident-re): Allow things like @-moz-keyframes.
+	(scss--hash-re): New const.
+	(css--font-lock-keywords): New function, extracted from
+	css-font-lock-keywords.
+
 2014-10-19  Ulf Jasper  <ulf.jasper@web.de>
 
 	* net/newst-backend.el: Require url-parse.
@@ -26,8 +35,8 @@
 	* net/newst-reader.el (newsticker-html-renderer): Whitespace.
 	(newsticker--print-extra-elements)
 	(newsticker--do-print-extra-element): Documentation
-	(newsticker--image-read): Optionally limit image height.  Use
-	imagemagick if possible.
+	(newsticker--image-read): Optionally limit image height.
+	Use imagemagick if possible.
 	(newsticker--icon-read): New.
 
 	* net/newst-treeview.el (newsticker--treeview-item-show): Limit height of feed logo.

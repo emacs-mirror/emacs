@@ -1,7 +1,17 @@
+/* asdfasdf */
+
 .xxx
 {
 }
 
+article[role="main"] {
+    width: 60%;
+}
+
+/* asdfasdf */
+@foo x2 {
+    bla:toto;
+}
 .x2
 {
     foo: bar;
