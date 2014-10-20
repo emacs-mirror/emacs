@@ -984,7 +984,7 @@ Otherwise return the normal value."
 ;; macros, since it enables certain macros to be shared between X and TTY modes
 ;; by correctly mapping key sequences for Left/Right/... (on an ascii
 ;; terminal) into logical keys left, right, etc.
-(defun viper-read-key ()
+(defun viper-read-key () ;; FIXME: Use `read-key'?
   (let ((overriding-local-map viper-overriding-map)
 	(inhibit-quit t)
 	help-char key)
