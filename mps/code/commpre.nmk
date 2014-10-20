@@ -19,7 +19,7 @@
 #              to the compiler.  Eg "/DOS_NT /DARCH_386 /DBUILD_MVC"
 #   MPMCOMMON  list of sources which make up the "mpm" part for all
 #              platforms.  Each source is stripped of its .c extension
-#              and surrounded in angle brackets (<>)
+#              and surrounded with [brackets].
 #   MPM        as above, plus sources for the "mpm" part for the current
 #              platform.
 #   PLINTH     as above for the "plinth" part
@@ -119,69 +119,69 @@ ALL_TARGETS=$(LIB_TARGETS) $(TEST_TARGETS) $(EXTRA_TARGETS)
 # %%PART: When adding a new part, add the sources for the new part here.
 
 MPMCOMMON=\
-    <abq> \
-    <arena> \
-    <arenacl> \
-    <arenavm> \
-    <arg> \
-    <boot> \
-    <bt> \
-    <buffer> \
-    <cbs> \
-    <dbgpool> \
-    <dbgpooli> \
-    <event> \
-    <failover> \
-    <format> \
-    <freelist> \
-    <global> \
-    <land> \
-    <ld> \
-    <locus> \
-    <message> \
-    <meter> \
-    <mpm> \
-    <mpsi> \
-    <nailboard> \
-    <pool> \
-    <poolabs> \
-    <poolmfs> \
-    <poolmrg> \
-    <poolmv2> \
-    <poolmv> \
-    <protocol> \
-    <range> \
-    <ref> \
-    <reserv> \
-    <ring> \
-    <root> \
-    <sa> \
-    <sac> \
-    <seg> \
-    <shield> \
-    <splay> \
-    <ss> \
-    <table> \
-    <trace> \
-    <traceanc> \
-    <tract> \
-    <tree> \
-    <version> \
-    <vm> \
-    <walk>
-PLINTH = <mpsliban> <mpsioan>
-AMC = <poolamc>
-AMS = <poolams> <poolamsi>
-AWL = <poolawl>
-LO = <poollo>
-MVFF = <poolmvff>
-POOLN = <pooln>
-SNC = <poolsnc>
-FMTDY = <fmtdy> <fmtno>
-FMTTEST = <fmthe> <fmtdy> <fmtno> <fmtdytst>
-FMTSCHEME = <fmtscheme>
-TESTLIB = <testlib> <getoptl>
-TESTTHR = <testthrw3>
+    [abq] \
+    [arena] \
+    [arenacl] \
+    [arenavm] \
+    [arg] \
+    [boot] \
+    [bt] \
+    [buffer] \
+    [cbs] \
+    [dbgpool] \
+    [dbgpooli] \
+    [event] \
+    [failover] \
+    [format] \
+    [freelist] \
+    [global] \
+    [land] \
+    [ld] \
+    [locus] \
+    [message] \
+    [meter] \
+    [mpm] \
+    [mpsi] \
+    [nailboard] \
+    [pool] \
+    [poolabs] \
+    [poolmfs] \
+    [poolmrg] \
+    [poolmv2] \
+    [poolmv] \
+    [protocol] \
+    [range] \
+    [ref] \
+    [reserv] \
+    [ring] \
+    [root] \
+    [sa] \
+    [sac] \
+    [seg] \
+    [shield] \
+    [splay] \
+    [ss] \
+    [table] \
+    [trace] \
+    [traceanc] \
+    [tract] \
+    [tree] \
+    [version] \
+    [vm] \
+    [walk]
+PLINTH = [mpsliban] [mpsioan]
+AMC = [poolamc]
+AMS = [poolams] [poolamsi]
+AWL = [poolawl]
+LO = [poollo]
+MVFF = [poolmvff]
+POOLN = [pooln]
+SNC = [poolsnc]
+FMTDY = [fmtdy] [fmtno]
+FMTTEST = [fmthe] [fmtdy] [fmtno] [fmtdytst]
+FMTSCHEME = [fmtscheme]
+TESTLIB = [testlib] [getoptl]
+TESTTHR = [testthrw3]
 POOLS = $(AMC) $(AMS) $(AWL) $(LO) $(MV2) $(MVFF) $(SNC)
 MPM = $(MPMCOMMON) $(MPMPF) $(POOLS) $(PLINTH)
 
