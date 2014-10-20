@@ -244,7 +244,7 @@ Virtual memory arenas
     accepts two optional :term:`keyword arguments` on all platforms:
 
     * :c:macro:`MPS_KEY_ARENA_SIZE` (type :c:type:`size_t`, default
-      256\ :term:`megabytes`) is the initial amount of virtual address
+      256 :term:`megabytes`) is the initial amount of virtual address
       space, in :term:`bytes (1)`, that the arena will reserve (this
       space is initially reserved so that the arena can subsequently
       use it without interference from other parts of the program, but
@@ -259,7 +259,7 @@ Virtual memory arenas
       up to the minimum and continues. The minimum size for the
       virtual memory arena is :c:macro:`MPS_WORD_WIDTH` ×
       :c:macro:`MPS_KEY_ARENA_GRAIN_SIZE` bytes. For example, on a
-      64-bit platform with a 4\ :term:`kilobyte` page size, this is
+      64-bit platform with a 4 :term:`kilobyte` page size, this is
       256\ :term:`kilobytes`.
 
       .. note::
@@ -308,7 +308,7 @@ Virtual memory arenas
 
         MPS_ARGS_BEGIN(args) {
             MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, size);
-            res = mps_arena_create_k(&arena, mps_arena_class_cl(), args);
+            res = mps_arena_create_k(&arena, mps_arena_class_vm(), args);
         } MPS_ARGS_END(args);
 
     .. deprecated:: starting with version 1.112.
