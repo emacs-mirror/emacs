@@ -180,7 +180,7 @@ so that it cannot move.
 
 You could use this fact to optimize the scan by avoiding the need to
 reassemble and store the updated reference after calling
-:c:func:`MPS_FIX2`
+:c:func:`MPS_FIX2`.
 
 .. note::
 
@@ -370,8 +370,6 @@ Scanning interface
     ``call`` is an expression containing a function call where ``ss``
     is one of the arguments.
 
-    Returns the result of evaluating the expression ``call``.
-
     Between :c:func:`MPS_SCAN_BEGIN` and :c:func:`MPS_SCAN_END`, the
     scan state is in a special state, and must not be passed to a
     function. If you really need to do so, for example because you
@@ -392,12 +390,14 @@ Scanning interface
             mps_res_t res;
             MPS_SCAN_BEGIN(ss) {
                 for (obj = base; obj < limit; obj++) {
-                    if (MPS_FIX12(ss, &obj->left) != MPS_RES_OK)
+                    res = MPS_FIX12(ss, &obj->left);
+                    if (res != MPS_RES_OK)
                         return res;
                     MPS_FIX_CALL(ss, res = data_scan(ss, &obj->data));
                     if (res != MPS_RES_OK)
                         return res;
-                    if (MPS_FIX12(ss, &obj->right) != MPS_RES_OK)
+                    res = MPS_FIX12(ss, &obj->right);
+                    if (res != MPS_RES_OK)
                         return res;
                 }
             } MPS_SCAN_END(ss);
@@ -509,8 +509,9 @@ Fixing interface
     This is a function equivalent to::
 
         MPS_SCAN_BEGIN(ss);
-        MPS_FIX12(ss, ref_io);
+        res = MPS_FIX12(ss, ref_io);
         MPS_SCAN_END(ss);
+        return res;
 
     Because :term:`scanning <scan>` is an operation on the
     :term:`critical path`, we recommend that you use
