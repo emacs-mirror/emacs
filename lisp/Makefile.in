@@ -74,7 +74,6 @@ AUTOGENEL = loaddefs.el \
 # Note that update_loaddefs parses this.
 AUTOGEN_VCS = \
 	ps-print.el \
-	emulation/tpu-edt.el \
 	mail/rmail.el \
 	dired.el \
 	ibuffer.el \

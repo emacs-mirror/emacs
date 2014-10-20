@@ -1,3 +1,7 @@
+2014-10-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* Makefile.in (AUTOGEN_VCS): Remove emulation/tpu-edt.el.
+
 2014-10-20  Glenn Morris  <rgm@gnu.org>
 
 	* emulation/crisp.el, emulation/tpu-edt.el, emulation/tpu-extras.el:
@@ -12,7 +16,7 @@
 
 	* obsolete/cc-compat.el: Make obsolete (bug#18561).
 
-	* epg-config.el (epg-gpg-program): Don't use the absolute names by default.
+	* epg-config.el (epg-gpg-program): Don't use absolute names by default.
 
 	* emacs-lisp/bytecomp.el (=, <, >, <=, >=): Don't optimize multi-arg
 	case (bug#18767).
