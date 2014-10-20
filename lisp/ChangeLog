@@ -1,5 +1,7 @@
 2014-10-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* epg-config.el (epg-gpg-program): Don't use the absolute names by default.
+
 	* emacs-lisp/bytecomp.el (=, <, >, <=, >=): Don't optimize multi-arg
 	case (bug#18767).
 
