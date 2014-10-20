@@ -1,3 +1,7 @@
+2014-10-20  Glenn Morris  <rgm@gnu.org>
+
+	* Merge in all changes up to 24.4 release.
+
 2014-10-15  Ivan Shmakov  <ivan@siamics.net>
 
 	* erc-track.el (erc-modified-channels-display): Update mode line

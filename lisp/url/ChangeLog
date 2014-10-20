@@ -1,3 +1,7 @@
+2014-10-20  Glenn Morris  <rgm@gnu.org>
+
+	* Merge in all changes up to 24.4 release.
+
 2014-10-07  Eli Zaretskii  <eliz@gnu.org>
 
 	* url-http.el (url-http-create-request): Recheck zlib availability

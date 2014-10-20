@@ -1,3 +1,7 @@
+2014-10-20  Glenn Morris  <rgm@gnu.org>
+
+	* Merge in all changes up to 24.4 release.
+
 2014-09-01  Paul Eggert  <eggert@cs.ucla.edu>
 
 	--enable-silent-rules now suppresses more chatter.
