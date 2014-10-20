@@ -16,10 +16,19 @@ with a prefix argument or by typing C-u C-h C-n.
 
 * Changes in Emacs-24.5
 
+---
 ** The default value of `history-length' has increased to 100.
 
 
 * Changes in Specialized Modes and Packages in Emacs 24.5
+
+---
+*** vi.el, vip.el (try M-x viper instead)
+
+---
+*** crisp.el, tpu-edt.el, ws-mode.el
+These emulations of old editors are believed to be no longer relevant
+ - contact emacs-devel@gnu.org if you disagree.
 
 ** cc-compat.el is marked as obsolete.
 

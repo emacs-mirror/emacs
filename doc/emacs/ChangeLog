@@ -1,5 +1,10 @@
 2014-10-20  Glenn Morris  <rgm@gnu.org>
 
+	* ack.texi (Acknowledgments): Remove some obsolete items.
+	* misc.texi (Emulation): Remove section.
+
+2014-10-20  Glenn Morris  <rgm@gnu.org>
+
 	* Version 24.4 released.
 
 2014-10-13  Glenn Morris  <rgm@gnu.org>

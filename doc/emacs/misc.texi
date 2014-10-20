@@ -2268,17 +2268,17 @@ new major mode which provides a command to switch back.  These
 approaches give you more flexibility to go back to unfinished tasks in
 the order you choose.
 
+@ignore
+@c Apart from edt and viper, this is all obsolete.
+@c (Can't believe we were saying ``most other editors'' into 2014!)
+@c There seems no point having a node just for those, which both have
+@c their own manuals.
 @node Emulation
 @section Emulation
 @cindex emulating other editors
 @cindex other editors
 @cindex EDT
 @cindex vi
-@cindex PC key bindings
-@cindex scrolling all windows
-@cindex PC selection
-@cindex Motif key bindings
-@cindex Macintosh key bindings
 @cindex WordStar
 
   GNU Emacs can be programmed to emulate (more or less) some other
@@ -2318,7 +2318,7 @@ buffers or major modes while in EDT emulation.
 
 @item vi (Berkeley editor)
 @findex viper-mode
-Viper is the newest emulator for vi.  It implements several levels of
+Viper is an emulator for vi.  It implements several levels of
 emulation; level 1 is closest to vi itself, while level 5 departs
 somewhat from strict emulation to take advantage of the capabilities of
 Emacs.  To invoke Viper, type @kbd{M-x viper-mode}; it will guide you
@@ -2359,6 +2359,8 @@ not use it.
 @kbd{M-x wordstar-mode} provides a major mode with WordStar-like
 key bindings.
 @end table
+@end ignore
+
 
 @node Hyperlinking
 @section Hyperlinking and Navigation Features

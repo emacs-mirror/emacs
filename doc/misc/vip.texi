@@ -38,7 +38,7 @@ modify this GNU manual.''
 
 @dircategory Emacs misc features
 @direntry
-* VIP: (vip).                   An older VI-emulation for Emacs.
+* VIP: (vip).                   An obsolete VI-emulation for Emacs.
 @end direntry
 
 @ifnottex
@@ -52,6 +52,9 @@ environment.  This info file describes the usage of VIP assuming that you
 are fairly accustomed to Vi but not so much with Emacs.  Also we will
 concentrate mainly on differences from Vi, especially features unique to
 VIP.
+
+VIP is obsolete since Emacs 24.5---consider using Viper instead.
+@xref{Top, Viper,, viper, The Viper VI-emulation mode for Emacs}.
 
 It is recommended that you read nodes on survey and on customization before
 you start using VIP@.  Other nodes may be visited as needed.
@@ -82,6 +85,9 @@ environment.  This manual describes the usage of VIP assuming that you are
 fairly accustomed to Vi but not so much with Emacs.  Also we will
 concentrate mainly on differences from Vi, especially features unique to
 VIP.
+
+VIP is obsolete since Emacs 24.5---consider using Viper instead.
+@xref{Top, Viper,, viper, The Viper VI-emulation mode for Emacs}.
 
 It is recommended that you read chapters on survey and on customization
 before you start using VIP@.  Other chapters may be used as future

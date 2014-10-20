@@ -201,7 +201,6 @@ Advanced Features
 * Editing Binary Files::  Editing binary files with Hexl mode.
 * Saving Emacs Sessions:: Saving Emacs state from one session to the next.
 * Recursive Edit::      Performing edits while "within another command".
-* Emulation::           Emulating some other editors with Emacs.
 * Hyperlinking::        Following links in buffers.
 * Amusements::          Various games and hacks.
 * Packages::            Installing additional features.

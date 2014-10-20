@@ -1,5 +1,11 @@
 2014-10-20  Glenn Morris  <rgm@gnu.org>
 
+	* efaq.texi (Finding a package with particular functionality):
+	Update example.
+	* vip.texi: Mention this is obsolete.
+
+2014-10-20  Glenn Morris  <rgm@gnu.org>
+
 	* Version 24.4 released.
 
 2014-10-13  Glenn Morris  <rgm@gnu.org>

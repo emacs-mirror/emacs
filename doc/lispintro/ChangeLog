@@ -1,5 +1,9 @@
 2014-10-20  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp-intro.texi (Autoload): Update loaddefs.el details.
+
+2014-10-20  Glenn Morris  <rgm@gnu.org>
+
 	* Version 24.4 released.
 
 2014-10-13  Glenn Morris  <rgm@gnu.org>

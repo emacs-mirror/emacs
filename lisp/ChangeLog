@@ -1,5 +1,11 @@
 2014-10-20  Glenn Morris  <rgm@gnu.org>
 
+	* emulation/crisp.el, emulation/tpu-edt.el, emulation/tpu-extras.el:
+	* emulation/tpu-mapper.el, emulation/vi.el, emulation/vip.el:
+	* emulation/ws-mode.el: Move to obsolete/.  [Backport]
+
+2014-10-20  Glenn Morris  <rgm@gnu.org>
+
 	* cus-start.el (history-length): Bump :version.  [Backport]
 
 2014-10-20  Stefan Monnier  <monnier@iro.umontreal.ca>

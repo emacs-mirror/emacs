@@ -6,6 +6,7 @@
 ;; Maintainer: Rob Riepel <riepel@networking.stanford.edu>
 ;; Keywords: emulations
 ;; Package: tpu-edt
+;; Obsolete-since: 24.5
 
 ;; This file is part of GNU Emacs.
 
