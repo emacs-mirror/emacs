@@ -265,9 +265,7 @@ nil           - don't add to mode line."
 	   (erc-track-add-to-mode-line val))))
 
 (defun erc-modified-channels-object (strings)
-  "Generate a new `erc-modified-channels-object' based on STRINGS.
-If STRINGS is nil, we initialize `erc-modified-channels-object' to
-an appropriate initial value for this flavor of Emacs."
+  "Generate a new `erc-modified-channels-object' based on STRINGS."
   (if strings
       (if (featurep 'xemacs)
 	  (let ((e-m-c-s '("[")))
@@ -743,7 +741,7 @@ only consider active buffers visible.")
 (defvar erc-modified-channels-update-inside nil
   "Variable to prevent running `erc-modified-channels-update' multiple
 times.  Without it, you cannot debug `erc-modified-channels-display',
-because the debugger also cases changes to the window-configuration.")
+because the debugger also causes changes to the window-configuration.")
 
 (defun erc-modified-channels-update (&rest _args)
   "This function updates the information in `erc-modified-channels-alist'
