@@ -755,8 +755,8 @@ Unlike @code{oref}, the symbol for @var{slot} must be quoted.
 
 @defun set-slot-value object slot value
 @anchor{set-slot-value}
-This is not a CLOS function, but is meant to mirror @code{slot-value} if
-you don't want to use the cl package's @code{setf} function.  This
+This is not a CLOS function, but is the setter for @code{slot-value}
+used by the @code{setf} macro.  This
 function sets the value of @var{slot} from @var{object}.  Unlike
 @code{oset}, the symbol for @var{slot} must be quoted.
 @end defun
@@ -790,7 +790,7 @@ This establishes a lexical environment for referring to the slots in
 the instance named by the given slot-names as though they were
 variables.  Within such a context the value of the slot can be
 specified by using its slot name, as if it were a lexically bound
-variable.  Both setf and setq can be used to set the value of the
+variable.  Both @code{setf} and @code{setq} can be used to set the value of the
 slot.
 
 @var{spec-list} is of a form similar to @dfn{let}.  For example:
@@ -1850,10 +1850,6 @@ for the given object.  This is different than that found in CLOS because
 in @eieio{} this function accepts replacement arguments.  This permits
 subclasses to modify arguments as they are passed up the tree.  If no
 arguments are given, the expected CLOS behavior is used.
-@item setf
-If the common-lisp subsystem is loaded, the setf parameters are also
-loaded so the form @code{(setf (slot-value object slot) t)} should
-work.
 @end table
 
 CLOS supports the @code{describe} command, but @eieio{} provides

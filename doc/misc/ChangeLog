@@ -1,3 +1,8 @@
+2014-10-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eieio.texi (Accessing Slots, CLOS compatibility): Adjust wording
+	since `setf' is in core rather than in CL nowadays.
+
 2014-10-20  Glenn Morris  <rgm@gnu.org>
 
 	* efaq.texi (Finding a package with particular functionality):
