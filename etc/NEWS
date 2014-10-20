@@ -31,6 +31,10 @@ These emulations of old editors are believed to be no longer relevant
  - contact emacs-devel@gnu.org if you disagree.
 
 ** cc-compat.el is marked as obsolete.
+
+** call-process-shell-command and process-file-shell-command
+don't take "&rest args" any more.
+
 
 * Installation Changes in Emacs 24.4
 

@@ -1,4 +1,11 @@
-2014-03-20  Juanma Barranquero  <lekktu@gmail.com>
+2014-09-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (call-process-shell-command, process-file-shell-command):
+	Make the `args' obsolete (bug#18409).
+	(start-process-shell-command, start-file-process-shell-command):
+	Use `declare'.
+
+2014-10-20  Juanma Barranquero  <lekktu@gmail.com>
 
 	* skeleton.el (skeleton-autowrap): Mark as obsolete.  Doc fix.
 
