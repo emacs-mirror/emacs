@@ -1,3 +1,8 @@
+2014-10-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xdisp.c (redisplay_window): Re-run pre-redisplay-function after we
+	move point.
+
 2014-10-20  Glenn Morris  <rgm@gnu.org>
 
 	* Version 24.4 released.
@@ -39,7 +44,7 @@
 
 	* xfaces.c (Finternal_set_lisp_face_attribute): Don't try to
 	make a font_object from a tty frame (Bug#18573).
-	(Finternal_set_lisp_face_attribute): Added FIXME comment.
+	(Finternal_set_lisp_face_attribute): Add FIXME comment.
 
 2014-09-30  Eli Zaretskii  <eliz@gnu.org>
 
@@ -51,8 +56,8 @@
 	values.
 	(my_create_window): Move the calculation of the coordinates of the
 	frame's top-left edge here.  Pass them to the input thread via the
-	second parameter of the WM_EMACS_CREATEWINDOW message.  See
-	http://lists.gnu.org/archive/html/emacs-devel/2014-09/msg00892.html
+	second parameter of the WM_EMACS_CREATEWINDOW message.
+	See http://lists.gnu.org/archive/html/emacs-devel/2014-09/msg00892.html
 	for the details.
 
 2014-09-29  Eli Zaretskii  <eliz@gnu.org>
@@ -63,8 +68,8 @@
 	obey it if the glyph row showing point will be fully visible.
 	Likewise when the window start is in a continuation line.  If,
 	after trying everything under the 'force_start' label, point is
-	still not fully visible, give up and scroll the window.  Add
-	debugging traces.  (Bug#18545)
+	still not fully visible, give up and scroll the window.
+	Add debugging traces.  (Bug#18545)
 
 	* window.c (Frecenter): Set the window's redisplay flag.
 
@@ -244,8 +249,8 @@
 
 	* xdisp.c (display_line): Don't assume that the call to
 	reseat_at_next_visible_line_start ends up at a character
-	immediately following the newline on the previous line.  Avoids
-	setting the ends_at_zv_p flag on screen lines that are not at or
+	immediately following the newline on the previous line.
+	Avoids setting the ends_at_zv_p flag on screen lines that are not at or
 	beyond ZV, which causes infloop in redisplay.  For the details, see
 	http://lists.gnu.org/archive/html/emacs-devel/2014-08/msg00368.html.
 
@@ -364,12 +369,12 @@
 
 2014-07-17  Eli Zaretskii  <eliz@gnu.org>
 
-	* w32select.c (setup_windows_coding_system): Apply
-	CODING_ANNOTATION_MASK to the common_flags member of struct
+	* w32select.c (setup_windows_coding_system):
+	Apply CODING_ANNOTATION_MASK to the common_flags member of struct
 	coding_system.  Reported by martin rudalics <rudalics@gmx.at>.
 
-	* w16select.c (Fw16_get_clipboard_data): Apply
-	CODING_ANNOTATION_MASK to the common_flags member of struct
+	* w16select.c (Fw16_get_clipboard_data):
+	Apply CODING_ANNOTATION_MASK to the common_flags member of struct
 	coding_system.
 
 	* xdisp.c (init_iterator): Initialize it->stop_charpos to the
@@ -377,8 +382,8 @@
 	(handle_invisible_prop): Record in it->stop_charpos the position
 	where the invisible text ends.  (Bug#18035)
 	(hscroll_window_tree): Don't try hscrolling windows whose cursor
-	row has zero buffer position as their start position.  Reported by
-	martin rudalics <rudalics@gmx.at>.
+	row has zero buffer position as their start position.
+	Reported by martin rudalics <rudalics@gmx.at>.
 
 2014-07-16  Eli Zaretskii  <eliz@gnu.org>
 
@@ -458,8 +463,8 @@
 	are in sync with what the window wants.
 	(Bug#17892)
 
-	* xdisp.c (display_line, display_mode_line): Call
-	prepare_desired_row with additional arguments, as appropriate.
+	* xdisp.c (display_line, display_mode_line):
+	Call prepare_desired_row with additional arguments, as appropriate.
 
 	* dispextern.h (prepare_desired_row): Adjust prototype.
 
@@ -791,11 +796,10 @@
 
 2014-04-29  Eli Zaretskii  <eliz@gnu.org>
 
-	* term.c (tty_menu_display): Move the cursor to the active menu
-	item.
+	* term.c (tty_menu_display): Move the cursor to the active menu item.
 	(tty_menu_activate): Return the cursor to the active menu item
-	after displaying the menu and after displaying help-echo.  See
-	http://lists.gnu.org/archive/html/emacs-devel/2014-04/msg00402.html
+	after displaying the menu and after displaying help-echo.
+	See http://lists.gnu.org/archive/html/emacs-devel/2014-04/msg00402.html
 	for the details of why this is needed by screen readers and
 	Braille displays.
 

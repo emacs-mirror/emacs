@@ -16309,16 +16309,24 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
 
 	  set_cursor_from_row (w, row, w->desired_matrix, 0, 0, 0, 0);
 
-	  /* If we are highlighting the region, then we just changed
-	     the region, so redisplay to show it.  */
-	  /* FIXME: We need to (re)run pre-redisplay-function!  */
-	  /* if (markpos_of_region () >= 0)
+	  /* Re-run pre-redisplay-function so it can update the region
+	     according to the new position of point.  */
+	  /* Other than the cursor, w's redisplay is done so we can set its
+	     redisplay to false.  Also the buffer's redisplay can be set to
+	     false, since propagate_buffer_redisplay should have already
+	     propagated its info to `w' anyway.  */
+	  w->redisplay = false;
+	  XBUFFER (w->contents)->text->redisplay = false;
+	  safe__call1 (true, Vpre_redisplay_function, Fcons (window, Qnil));
+
+	  if (w->redisplay || XBUFFER (w->contents)->text->redisplay)
 	    {
+	      /* pre-redisplay-function made changes (e.g. move the region)
+		 that require another round of redisplay.  */
 	      clear_glyph_matrix (w->desired_matrix);
 	      if (!try_window (window, startp, 0))
 		goto need_larger_matrices;
 	    }
-	  */
 	}
       if (w->cursor.vpos < 0 || !cursor_row_fully_visible_p (w, 0, 0))
 	{
