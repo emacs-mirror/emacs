@@ -279,7 +279,7 @@ Virtual memory arenas
       that's smaller than the operating system page size, the MPS
       rounds it up to the page size and continues.
 
-    A second optional :term:`keyword argument` may be passed, but it
+    A third optional :term:`keyword argument` may be passed, but it
     only has any effect on the Windows operating system:
 
     * :c:macro:`MPS_KEY_VMW3_TOP_DOWN` (type :c:type:`mps_bool_t`). If
