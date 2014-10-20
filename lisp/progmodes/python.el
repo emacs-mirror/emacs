@@ -2165,9 +2165,9 @@ variable.
   (define-key inferior-python-mode-map [remap complete-symbol]
     'completion-at-point)
   (add-hook 'completion-at-point-functions
-            'python-shell-completion-complete-at-point nil 'local)
-  (add-to-list (make-local-variable 'comint-dynamic-complete-functions)
-               'python-shell-completion-complete-at-point)
+            #'python-shell-completion-complete-at-point nil 'local)
+  (add-hook 'comint-dynamic-complete-functions ;FIXME: really?
+            #'python-shell-completion-complete-at-point nil 'local)
   (define-key inferior-python-mode-map "\t"
     'python-shell-completion-complete-or-indent)
   (make-local-variable 'python-pdbtrack-buffers-to-kill)

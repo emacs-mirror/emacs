@@ -1,5 +1,7 @@
 2014-10-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/python.el (inferior-python-mode): Use add-hook.
+
 	* Makefile.in (AUTOGEN_VCS): Remove emulation/tpu-edt.el.
 
 2014-10-20  Glenn Morris  <rgm@gnu.org>
