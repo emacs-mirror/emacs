@@ -1123,8 +1123,10 @@ static Bool vmChunkCompact(Tree tree, void *closureP, Size closureS)
   {
     Addr base = chunk->base;
     Size size = ChunkSize(chunk);
+    /* Callback before destroying the chunk, as the arena is (briefly)
+       invalid afterwards. See job003893. */
+    (*vmArena->contracted)(arena, base, size);
     vmChunkDestroy(tree, UNUSED_POINTER, UNUSED_SIZE);
-    vmArena->contracted(arena, base, size);
     return TRUE;
   } else {
     /* Keep this chunk. */
