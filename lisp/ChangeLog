@@ -1,5 +1,7 @@
 2014-10-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* obsolete/cc-compat.el: Make obsolete (bug#18561).
+
 	* epg-config.el (epg-gpg-program): Don't use the absolute names by default.
 
 	* emacs-lisp/bytecomp.el (=, <, >, <=, >=): Don't optimize multi-arg
