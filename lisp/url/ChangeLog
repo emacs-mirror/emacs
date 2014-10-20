@@ -1,5 +1,12 @@
 2014-10-20  Glenn Morris  <rgm@gnu.org>
 
+	* url-vars.el (url-bug-address): Make into an obsolete alias.
+	* url-http.el (url-http-handle-authentication):
+	* url-news.el (url-news-fetch-message-id):
+	Use M-x report-emacs-bug in help messages.
+
+2014-10-20  Glenn Morris  <rgm@gnu.org>
+
 	* Version 24.4 released.
 
 2014-09-19  Dmitry Gutov  <dgutov@yandex.ru>
