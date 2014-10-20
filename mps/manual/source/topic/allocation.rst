@@ -119,12 +119,6 @@ many small objects. They must be used according to the
         :term:`thread`: each thread must create its own allocation
         point or points.
 
-    .. note::
-
-        There's an alternative function :c:func:`mps_ap_create_v` that
-        takes its extra arguments using the standard :term:`C`
-        ``va_list`` mechanism.
-
 
 .. c:function:: mps_res_t mps_ap_create(mps_ap_t *ap_o, mps_pool_t pool, ...)
 
@@ -595,8 +589,9 @@ The *reserve* operation thus looks like this::
         }
     }
 
-The critical path consists of an add, a store, and a branch (and
-branch prediction should work well since the test usually succeeds).
+The critical path consists of three loads, an add, two stores, and a
+branch (and branch prediction should work well since the test usually
+succeeds).
 
 .. note::
 
@@ -629,8 +624,9 @@ The *commit* operation thus looks like this::
         /* p is valid */
     }
 
-The critical path here consists of a store and a branch (and again,
-branch prediction should work well since the test almost never fails).
+The critical path here consists of three loads, a store and a branch
+(and again, branch prediction should work well since the test almost
+never fails).
 
 .. note::
 
