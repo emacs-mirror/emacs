@@ -1,3 +1,16 @@
+2014-10-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* obsolete/cc-compat.el: Make obsolete (bug#18561).
+
+	* epg-config.el (epg-gpg-program): Don't use absolute names by default.
+
+	* emacs-lisp/bytecomp.el (=, <, >, <=, >=): Don't optimize multi-arg
+	case (bug#18767).
+
+2014-10-21  Glenn Morris  <rgm@gnu.org>
+
+	* Merge in all changes up to version 24.4 release.
+
 2014-10-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/bytecomp.el (=, <, >, <=, >=): Don't optimize multi-arg

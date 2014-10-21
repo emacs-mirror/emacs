@@ -9,10 +9,10 @@
 
 2014-10-15  Sylvain Chouleur  <sylvain.chouleur@gmail.com>
 
-	* gnus-icalendar.el: Support vcal format timezones
-	(gnus-icalendar-event--decode-datefield): use icalendar functions to
-	compute dates with associated timezone
-	(gnus-icalendar-event-from-ical): compute all timezones
+	* gnus-icalendar.el: Support vcal format timezones.
+	(gnus-icalendar-event--decode-datefield): Use icalendar functions to
+	compute dates with associated timezone.
+	(gnus-icalendar-event-from-ical): Compute all timezones.
 
 2014-10-14  Teodor Zlatanov  <tzz@lifelogs.com>
 
@@ -24290,10 +24290,10 @@
 
 	* gnus-group.el: Require gnus-sum and autoload functions to
 	resolve warnings when gnus-group.el compiled alone.
-	(gnus-group-line-format): Documented new %F.
+	(gnus-group-line-format): Document new %F.
 	(size of Fetched data) group line format; identifies disk space
 	used by agent and cache.
-	(gnus-group-line-format-alist): Defined new F format.
+	(gnus-group-line-format-alist): Define new F format.
 	(gnus-total-fetched-for): New function.
 	(gnus-group-delete-group): No longer update
 	gnus-cache-active-altered as gnus-request-delete-group now keeps

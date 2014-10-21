@@ -20,7 +20,8 @@
 
 	* semantic/ia.el (semantic-ia-complete-symbol-menu): Use posn-at-point
 	instead of senator-completion-menu-point-as-event; un-comment, tho keep
-	the "no smart completion" fallback commented since it still doesn't work.
+	the "no smart completion" fallback commented since it still doesn't
+	work.
 
 2014-05-01  Glenn Morris  <rgm@gnu.org>
 
@@ -83,8 +84,8 @@
 	structure tags are not analyzed correctly.  Also, always search
 	the extended miniscope even when not dealing with types.
 
-	* semantic/ctxt.el (semantic-get-local-variables-default): Also
-	try to parse local variables for buffers which are currently
+	* semantic/ctxt.el (semantic-get-local-variables-default):
+	Also try to parse local variables for buffers which are currently
 	marked as unparseable.  Otherwise, it is often impossible to
 	complete local variables.
 
@@ -125,8 +126,8 @@
 	(semantic-cpp-lexer): Use new `semantic-lex-spp-paren-or-list'.
 
 	* semantic/bovine/gcc.el (semantic-gcc-setup): Add 'features.h' to
-	the list of files whose preprocessor symbols are included.  This
-	pulls in things like __USE_POSIX and similar.
+	the list of files whose preprocessor symbols are included.
+	This pulls in things like __USE_POSIX and similar.
 
 	* semantic/format.el (semantic-format-tag-prototype-default):
 	Display default values if available.
@@ -135,11 +136,11 @@
 	(semantic-analyze-refs-proto): Add 'default-value' as ignorable in
 	call to `semantic-tag-similar-p'.
 
-	* semantic/db-mode.el (semanticdb-semantic-init-hook-fcn): Always
-	set buffer for `semanticdb-current-table'.
+	* semantic/db-mode.el (semanticdb-semantic-init-hook-fcn):
+	Always set buffer for `semanticdb-current-table'.
 
-	* semantic/db.el (semanticdb-table::semanticdb-refresh-table): The
-	previous change turned up a bug in this method.  Since the current
+	* semantic/db.el (semanticdb-table::semanticdb-refresh-table):
+	The previous change turned up a bug in this method.  Since the current
 	table now correctly has a buffer set, the first clause in the
 	`cond' would be taken, but there was a `save-excursion' missing.
 
@@ -163,8 +164,8 @@
 	impossible to find project includes.
 
 	* semantic/decorate/include.el
-	(semantic-decoration-on-includes-highlight-default): Remove
-	'unloaded' from throttle when decorating includes, otherwise all
+	(semantic-decoration-on-includes-highlight-default):
+	Remove 'unloaded' from throttle when decorating includes, otherwise all
 	would be loaded.  Rename 'table' to 'currenttable' to make things
 	clearer.
 
@@ -179,7 +180,7 @@
 	architecture).
 	(ede-linux--get-build-directory, ede-linux--get-archs)
 	(ede-linux--detect-architecture, ede-linux--get-architecture)
-	(ede-linux--include-path): Added function to detect Linux-specific
+	(ede-linux--include-path): Add function to detect Linux-specific
 	information.
 	(ede-linux-load): Set new Linux-specific information when creating
 	a project.
@@ -197,8 +198,8 @@
 
 	* ede/generic.el (project-run-target): Remove incorrect require.
 
-	* semantic/format.el (semantic-format-tag-prototype-default): Use
-	concat only for strings.
+	* semantic/format.el (semantic-format-tag-prototype-default):
+	Use concat only for strings.
 
 2013-11-30  Glenn Morris  <rgm@gnu.org>
 

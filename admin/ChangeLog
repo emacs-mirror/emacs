@@ -89,7 +89,7 @@
 
 	* notes/copyright: Remove mention of msdos/is_exec.c and
 	sigaction.c.
-	* authors.el (authors-renamed-files-alist): Removed is_exec.c.
+	* authors.el (authors-renamed-files-alist): Remove is_exec.c.
 
 2014-08-07  Reuben Thomas  <rrt@sc3d.org>
 
@@ -2039,7 +2039,7 @@
 
 2006-04-17  Ramprasad B  <ramprasad_i82@yahoo.com>
 
-	* ./* (Copyright): Updated Copyright year(s).
+	* ./* (Copyright): Update Copyright year(s).
 
 2006-02-24  Reiner Steib  <Reiner.Steib@gmx.de>
 

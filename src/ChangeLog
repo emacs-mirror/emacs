@@ -1,3 +1,8 @@
+2014-10-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xdisp.c (redisplay_window): Re-run pre-redisplay-function after we
+	move point.
+
 2014-10-20  Glenn Morris  <rgm@gnu.org>
 
 	* Merge in all changes up to 24.4 release.
@@ -43,11 +48,11 @@
 	* gtkutil.c (XG_TEXT_CANCEL, XG_TEXT_OPEN, XG_TEXT_OK): New defines
 	to handle Gtk versions.
 	(xg_get_file_with_chooser): Use them.
-	(xg_have_tear_offs, tearoff_remove, tearoff_activate): Remove
-	(create_menus): Remove teroff argument and code.
+	(xg_have_tear_offs, tearoff_remove, tearoff_activate):
+	Remove (create_menus): Remove teroff argument and code.
 	Remove call to gtk_menu_set_title.
-	(xg_update_menubar, xg_update_submenu): Remove tearoff code.  Adjust
-	args to create_menus.
+	(xg_update_menubar, xg_update_submenu): Remove tearoff code.
+	Adjust args to create_menus.
 	(xg_tool_bar_menu_proxy, xg_tool_bar_detach_callback)
 	(xg_tool_bar_attach_callback, TOOLBAR_TOP_WIDGET): Remove.
 	(xg_pack_tool_bar): Replace TOOLBAR_TOP_WIDGET, remove detach code.
@@ -58,8 +63,8 @@
 	find_icon_from_name.  Let stock be a list of icon names to try.
 	Only use gtk_image_new_from_stock on Gtk+ < 3.10.
 	Replace TOOLBAR_TOP_WIDGET.
-	(free_frame_tool_bar, xg_change_toolbar_position ): Replace
-	TOOLBAR_TOP_WIDGET.
+	(free_frame_tool_bar, xg_change_toolbar_position ):
+	Replace TOOLBAR_TOP_WIDGET.
 	(xg_initialize): Remove tearoff code.
 
 2014-10-18  Eli Zaretskii  <eliz@gnu.org>

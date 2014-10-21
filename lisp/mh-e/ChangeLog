@@ -14,8 +14,8 @@
 	string before trying to use it (closes SF #474).
 	(mh-bare-components): New function to create a temporary initial
 	components file; replaces mh-find-components.  Improve the temp
-	folder and file names as per a suggestion from Bill Wohler.  Also
-	address XEmacs compatibility issues: use mm-make-temp-file instead
+	folder and file names as per a suggestion from Bill Wohler.
+	Also address XEmacs compatibility issues: use mm-make-temp-file instead
 	of make-temp-file, and only pass one argument to delete-directory.
 	(mh-edit-again, mh-send-sub): Use mh-bare-components instead of
 	mh-find-components (partially closes SF #468).
@@ -103,8 +103,8 @@
 	* mh-letter.el (mh-yank-hooks): Use new mh-make-obsolete-variable
 	macro.
 
-	* mh-e.el (mh-kill-folder-suppress-prompt-hooks): Use
-	new mh-define-obsolete-variable-alias macro.
+	* mh-e.el (mh-kill-folder-suppress-prompt-hooks):
+	Use new mh-define-obsolete-variable-alias macro.
 
 	* mh-compat.el (mh-cl-flet): New alias for cl-flet on Emacs 24 and
 	flet elsewhere.
@@ -116,8 +116,8 @@
 	Replace flet with new alias mh-cl-flet.
 
 	* mh-mime.el (mh-display-with-external-viewer, mh-mime-display)
-	(mh-press-button, mh-push-button, mh-display-emphasis): Replace
-	flet with new alias mh-cl-flet.
+	(mh-press-button, mh-push-button, mh-display-emphasis):
+	Replace flet with new alias mh-cl-flet.
 
 	* mh-e.el (mh-invisible-header-fields-internal):
 	Remove trailing whitespace.
@@ -159,16 +159,16 @@
 	(mh-folder-mode): Add mh-blacklist and mh-whitelist variables.
 	(mh-execute-commands): Update documentation.
 	(mh-undo, mh-outstanding-commands-p, mh-process-commands)
-	(mh-delete-a-msg, mh-refile-a-msg, mh-undo-msg): Handle
-	blacklisted and whitelisted messages.
+	(mh-delete-a-msg, mh-refile-a-msg, mh-undo-msg):
+	Handle blacklisted and whitelisted messages.
 	* mh-junk.el (mh-junk-blacklist, mh-junk-whitelist): Update to put
 	messages in blacklist and whitelist respectively for latter
 	processing.
 	(mh-blacklist-a-msg, mh-junk-whitelist-a-msg): New function to
 	support previous functions.
 	(mh-junk-blacklist-disposition): New function.
-	(mh-junk-process-blacklist, mh-junk-process-whitelist): New
-	functions that perform the blacklisting and whitelisting
+	(mh-junk-process-blacklist, mh-junk-process-whitelist):
+	New functions that perform the blacklisting and whitelisting
 	respectively that used to be performed by mh-junk-blacklist and
 	mh-junk-whitelist.
 	* mh-scan.el (mh-scan-blacklisted-msg-regexp)
@@ -191,18 +191,18 @@
 	X-MaxCode-Template:, X-ME-Bayesian:, X-Sendergroup:, X-SFDC-,
 	X-SMFBL:, X-SMHeaderMap:, X-VGI-OESCD:, X-VirtualServer:,
 	X-VirtualServerGroup:, X-XPT-XSL-Name:, X-Y-GMX-Trusted:,
-	X-XWALL-, X-ZixNet:. Changed X-Habeas-SWE- to X-Habeas-.  Updated
-	the comment.  (addresses SF #1916032).
+	X-XWALL-, X-ZixNet:. Changed X-Habeas-SWE- to X-Habeas-.
+	Updated the comment.  (addresses SF #1916032).
 
 2012-11-25  Bill Wohler  <wohler@newt.com>
 
-	* mh-e.el (mh-invisible-header-fields-internal): Add
-	X-AnalysisOut, X-Authentication-Info, X-Auto-Response-Suppress,
+	* mh-e.el (mh-invisible-header-fields-internal):
+	Add X-AnalysisOut, X-Authentication-Info, X-Auto-Response-Suppress,
 	X-Bayes-Prob, X-Cam-, X-CanIt-Geo, X-Completed, X-Facebook,
 	X-Forwarded-, X-Generated-By, X-Headers-End, X-IEEE-UCE,
 	X-Jira-Fingerprint, X-Junkmail-, X-Launchpad-, X-MXL-Hash,
-	X-Notification-, X-Notifications, X-Oracle-Calendar.  Replace
-	X-DCC-Usenix-Metrics with X-DCC- (addresses SF #1916032).
+	X-Notification-, X-Notifications, X-Oracle-Calendar.
+	Replace X-DCC-Usenix-Metrics with X-DCC- (addresses SF #1916032).
 
 2012-11-25  Jeffrey C Honig  <jch@honig.net>
 
@@ -1260,8 +1260,8 @@
 	(mh-show-subject, mh-show-to, mh-show-xface)
 	(mh-speedbar-folder, mh-speedbar-folder-with-unseen-messages)
 	(mh-speedbar-selected-folder)
-	(mh-speedbar-selected-folder-with-unseen-messages): Add
-	:package-version keyword to these faces (closes SF #1452724).
+	(mh-speedbar-selected-folder-with-unseen-messages):
+	Add :package-version keyword to these faces (closes SF #1452724).
 
 	* mh-tool-bar.el (mh-tool-bar-define): Add commented-out
 	:package-version keywords (closes SF #1452724).

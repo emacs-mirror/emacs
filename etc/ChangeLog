@@ -3875,7 +3875,7 @@
 
 	* orgcard.tex (section{Motion}): Add the item navigation commands.
 	(section{Publishing}): New section.
-	(section{Links}): Documented elisp and shell links.
+	(section{Links}): Document elisp and shell links.
 
 2006-05-20  Rodrigo Real  <rreal@ucpel.tche.br>
 

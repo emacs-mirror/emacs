@@ -4,18 +4,17 @@
 
 2014-10-12  Marco Wahl  <marcowahlsoft@gmail.com>
 
-        * org-agenda.el (org-get-entries-from-diary): Use
-	`diary-fancy-display' instead of the obsolete
+	* org-agenda.el (org-get-entries-from-diary):
+	Use `diary-fancy-display' instead of the obsolete
 	`diary-display-hook'.
 
 2014-10-12  Nicolas Goaziou  <mail@nicolasgoaziou.fr>
 
-        * ox.el (org-export-async-start): Limit first argument to lambda
+	* ox.el (org-export-async-start): Limit first argument to lambda
 	expressions.
 
-        * ox-publish.el (org-publish, org-publish-all)
-	(org-publish-current-file): Replace `ignore', per limit stated
-	above.
+	* ox-publish.el (org-publish, org-publish-all)
+	(org-publish-current-file): Replace `ignore', per limit stated above.
 
 2014-10-12  Christopher Schmidt  <ch@ristopher.com>
 
@@ -89,8 +88,8 @@
 	* org-agenda.el (org-agenda-get-sexps): Don't add tags as text
 	properties.
 
-	* org-capture.el (org-capture-fill-template): Take
-	`org-extend-today-until' into account when setting the format time
+	* org-capture.el (org-capture-fill-template):
+	Take `org-extend-today-until' into account when setting the format time
 	string.
 
 	* org.el (org-paste-subtree): Fix match subexpression.
@@ -115,8 +114,8 @@
 	(org-agenda-tag-filter-while-redo): Delete.
 	(org-agenda-list, org-agenda-redo, org-agenda-filter-by-tag):
 	Remove unused code.
-	(org-agenda-clockreport-mode, org-agenda-set-mode-name): Don't
-	consider tag filters.
+	(org-agenda-clockreport-mode, org-agenda-set-mode-name):
+	Don't consider tag filters.
 
 	* org.el (org-fix-ellipsis-at-bol)
 	(org-first-headline-recenter): Use `set-window-start' instead
@@ -137,8 +136,8 @@
 
 	* org.el (org-overview): Don't call `recenter'.
 
-	* org-agenda.el (org-agenda-custom-commands-local-options): Fix
-	misquoted values.
+	* org-agenda.el (org-agenda-custom-commands-local-options):
+	Fix misquoted values.
 
 	* org.el (org-property-re): Also match null properties by default.
 	(org-entry-delete): Also delete null properties.
@@ -146,8 +145,8 @@
 	(org-delete-property): Throw a message when there is not property
 	to delete.
 
-	* org-agenda.el (org-agenda-insert-diary-make-new-entry): Fix
-	docstring.
+	* org-agenda.el (org-agenda-insert-diary-make-new-entry):
+	Fix docstring.
 
 	* org.el (org-re-property): New parameter `allow-null' to match
 	property with a null value.
@@ -174,8 +173,8 @@
 	`buffer-invisibility-spec'.
 
 	* org-agenda.el (org-agenda-mode): Add buffer invisibility specs.
-	(org-agenda-filter-hide-line, org-agenda-remove-filter): Set
-	the 'invisible text property to 'org-filtered.
+	(org-agenda-filter-hide-line, org-agenda-remove-filter):
+	Set the 'invisible text property to 'org-filtered.
 	(org-agenda-show-new-time): Add the default face to avoid the
 	foreground of the last character on the line to leak into the
 	timestamp notification.
@@ -195,8 +194,8 @@
 	of `outline-end-of-subtree'.
 	(outline-end-of-subtree): Remove advice.
 
-	* org-mouse.el (org-mouse-move-tree, org-mouse-do-remotely): Use
-	`org-end-of-subtree' instead of `outline-end-of-subtree'.
+	* org-mouse.el (org-mouse-move-tree, org-mouse-do-remotely):
+	Use `org-end-of-subtree' instead of `outline-end-of-subtree'.
 
 	* org-agenda.el (org-cmp-ts): Argument `type' is not optional.
 	Don't quote it.
@@ -204,8 +203,8 @@
 	* org-habit.el (org-habit-insert-consistency-graphs): Don't remove
 	filter overlays as we don't use overlays for filters anymore.
 
-	* org-agenda.el (org-agenda-local-vars): Add
-	`org-agenda-top-headline-filter'.
+	* org-agenda.el (org-agenda-local-vars):
+	Add `org-agenda-top-headline-filter'.
 	(org-agenda-filter-by-category): Fix syntax.
 	(org-agenda-filter-show-all-top-filter): New function.
 	(org-agenda-filter-by-top-headline)
@@ -246,8 +245,8 @@
 	* org-table.el (org-table-eval-formula): Fix conversion of
 	inactive timestamps to active ones.
 
-	* org.el (org-set-regexps-and-options): Allow
-	`org-complex-heading-regexp-format' to match [/] and [%] cookies
+	* org.el (org-set-regexps-and-options):
+	Allow `org-complex-heading-regexp-format' to match [/] and [%] cookies
 	when they are both before and after the heading.
 
 	* org-agenda.el (org-agenda-max-todos, org-agenda-max-tags)
@@ -272,8 +271,8 @@
 	* ob-screen.el (org-babel-screen-test): Use unpredictable name for
 	temporary file.
 
-	* ob-screen.el (org-babel-screen-session-write-temp-file): Use
-	unpredictable temp file name, fixes bug#17416.
+	* ob-screen.el (org-babel-screen-session-write-temp-file):
+	Use unpredictable temp file name, fixes bug#17416.
 
 2014-10-03  Ian Kelling  <ian@iankelling.org>
 
@@ -367,8 +366,8 @@
 	* org-agenda.el (org-agenda-write): Write headings in proper
 	order.
 
-	* org-element.el (org-element-table-interpreter): Enhance
-	docstring.
+	* org-element.el (org-element-table-interpreter):
+	Enhance docstring.
 
 	* ox-md.el (org-md-link): Allow custom link type export function.
 
@@ -390,8 +389,8 @@
 	empty.  Refactoring.
 	(org-texinfo-src-block): Refactor code.  Comply to predicate naming.
 
-	* ox-texinfo.el (org-texinfo--sanitize-node): Handle
-	" (not)allowed" case.
+	* ox-texinfo.el (org-texinfo--sanitize-node):
+	Handle " (not)allowed" case.
 
 	* ox-texinfo.el (org-texinfo-headline): Remove wrong code
 	comments.
@@ -414,8 +413,8 @@
 
 	* ox-texinfo.el (org-texinfo--sanitize-node): "@", "{" and "}"
 	characters are allowed in a node name.  So are "(" and ")" unless
-	"(" starts the name and there is ")" somewhere in the name.  Also
-	trim and collapse whitespace characters.  Renamed from
+	"(" starts the name and there is ")" somewhere in the name.
+	Also trim and collapse whitespace characters.  Renamed from
 	`org-texinfo--sanitize-menu'.
 	(org-texinfo--get-node): Do not sanitize node names over zealously.
 	Ensure returned node names are unique.
@@ -427,17 +426,17 @@
 	* ox-texinfo.el (org-texinfo--normalize-headlines): Make sure a
 	blank line always follows nodes.
 
-	* ox-texinfo.el (org-texinfo-make-menu): Change signature.  Remove
-	some intermediate functions.  Generate the full master menu when
+	* ox-texinfo.el (org-texinfo-make-menu): Change signature.
+	Remove some intermediate functions.  Generate the full master menu when
 	asked.
 	(org-texinfo--build-menu): Use a simpler algorithm.
 	(org-texinfo--format-entries): Fix entries when both node and title
 	are different.
-	(org-texinfo--menu-entries): Renamed from `org-texinfo--generate-menu-list'.
+	(org-texinfo--menu-entries): Rename from `org-texinfo--generate-menu-list'.
 	(org-texinfo-headline): Move menu handling to next function.
 	(org-texinfo-section): Handle menu for current parent.
-	(org-texinfo--menu-headlines, org-texinfo--generate-detailed): Remove
-	functions.
+	(org-texinfo--menu-headlines, org-texinfo--generate-detailed):
+	Remove functions.
 	(org-texinfo--normalize-headlines): New function.
 
 	* ox-texinfo.el (org-texinfo-headline): Fix @appendix command.
@@ -517,8 +516,8 @@
 	* org-element.el (org-element-headline-parser): Add missing
 	`:post-blank' property in docstring.
 
-	* ox-latex.el (org-latex-table-scientific-notation): Set
-	appropriate value.
+	* ox-latex.el (org-latex-table-scientific-notation):
+	Set appropriate value.
 	(org-latex-listings-options): Fix docstring.
 
 	* ox.el (org-export-raw-special-block-p): New function.
@@ -555,8 +554,8 @@
 
 	* org.el (org-insert-heading): Fix error when inserting a headline
 	before first headline, with point not at bol.  Remove source block
-	check for consistency with behavior after first headline.  Tiny
-	fix to docstring.
+	check for consistency with behavior after first headline.
+	Tiny fix to docstring.
 
 	* org.el (org-scan-tags): Fix typo in docstring.
 
@@ -589,8 +588,8 @@
 	empty.
 
 	* ox-html.el (org-html-standalone-image-p): Ensure paragraph
-	contains at least a link before return a non-nil value.  Clarify
-	docstring.
+	contains at least a link before return a non-nil value.
+	Clarify docstring.
 
 	* ox.el (org-export-data): Always return a string, as specified
 	by the docstring.
@@ -604,8 +603,8 @@
 	org-icalendar-blocked-headline-p): Fix docstrings.
 	(org-icalendar-clear-blank-lines): Fix docstring and regexp.
 
-	* ox-icalendar.el (org-icalendar-entry): Use
-	`org-icalendar-with-timestamps'.
+	* ox-icalendar.el (org-icalendar-entry):
+	Use `org-icalendar-with-timestamps'.
 
 2014-10-03  Nicolas Richard  <theonewiththeevillook@yahoo.fr>
 
@@ -621,8 +620,8 @@
 2014-10-03  Marco Wahl  <marcowahlsoft@gmail.com>  (tiny change)
 
 	* org-agenda.el (org-agenda-bulk-mark)
-	(org-agenda-bulk-mark-regexp, org-agenda-bulk-toggle-all): Fix
-	org-agenda-bulk-mark-all when time-grid is shown.
+	(org-agenda-bulk-mark-regexp, org-agenda-bulk-toggle-all):
+	Fix org-agenda-bulk-mark-all when time-grid is shown.
 
 2014-06-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -13609,7 +13608,7 @@
 
 	* ob.el (org-babel-params-from-properties): Now splits
 	multiple var arguments behind a single ":var".
-	(org-babel-balanced-split): Separated balanced splitting of
+	(org-babel-balanced-split): Separate balanced splitting of
 	strings out into a new function.
 	(org-babel-parse-multiple-vars): Splits multiple var arguments
 	behind a single ":var".
@@ -21400,7 +21399,7 @@
 
 2010-11-11  Eric Schulte  <schulte.eric@gmail.com>
 
-	* ob-exp.el (org-babel-exp-results): Replaced old function call.
+	* ob-exp.el (org-babel-exp-results): Replace old function call.
 
 2010-11-11  Eric Schulte  <schulte.eric@gmail.com>
 
@@ -21593,7 +21592,7 @@
 
 2010-11-11  Noorul Islam  <noorul@noorul.com>
 
-	* org-latex.el (org-export-latex-links): Replaced hard coded
+	* org-latex.el (org-export-latex-links): Replace hard coded
 	hyperref format with custom variable
 	`org-export-latex-hyperref-format'.
 

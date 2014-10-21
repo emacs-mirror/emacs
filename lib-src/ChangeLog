@@ -7739,7 +7739,7 @@
 	(consider_token): DEFUNs now treated like funcs in ctags mode.
 
 	* etags.c (LEVEL_OK_FOR_FUNCDEF): Remove.
-	(C_entries): Optimized the test that used LEVEL_OK_FOR_FUNCDEF.
+	(C_entries): Optimize the test that used LEVEL_OK_FOR_FUNCDEF.
 	(C_entries): Remove a piece of useless code.
 	(C_entries): Making typedef tags is delayed until a semicolon
 	is met.  This handles "typedef int X, Y, Z;" correctly.
@@ -8139,7 +8139,7 @@
 	* Makefile.in (prefix, bindir, libdir, srcdir): New variables, as
 	described in the top-level Makefile.
 	(UTILITIES): Add make-path to the list of utility programs.
-	(../arch-lib): Replaced by the ${archlibdir} target, which places
+	(../arch-lib): Replace by the ${archlibdir} target, which places
 	the executables in their permanent home.
 	(install, install.sysv, install.xenix): Consolidated into one
 	target which should work under all circumstances, modulo a few

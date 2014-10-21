@@ -57,8 +57,8 @@
 2014-09-24  Ulf Jasper  <ulf.jasper@web.de>
 
 	* newsticker.texi: Reworked.  Document new treeview group
-	commands.  Remove VERSION, UPDATED, use EMACSVER instead.  Use
-	term 'feed reader'.
+	commands.  Remove VERSION, UPDATED, use EMACSVER instead.
+	Use term 'feed reader'.
 
 2014-09-04  Paul Eggert  <eggert@cs.ucla.edu>
 

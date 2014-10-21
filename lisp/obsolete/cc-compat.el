@@ -8,6 +8,7 @@
 ;; Created:    August 1994, split from cc-mode.el
 ;; Keywords:   c languages
 ;; Package:    cc-mode
+;; Obsolete-Since: 24.5
 
 ;; This file is part of GNU Emacs.
 

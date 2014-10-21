@@ -575,8 +575,8 @@
 2006-11-05  Robert J. Chassell  <bob@rattlesnake.com>
 
 	* emacs-lisp-intro.texi: Yet more minor changes:
-	(defcustom): Said that `:options' is usually for a hook.  Remove
-	extraneous space in parenthetical remark concerning
+	(defcustom): Said that `:options' is usually for a hook.
+	Remove extraneous space in parenthetical remark concerning
 	`text-mode-hook-identify'.  At end, mention other defines, too.
 	(Beginning a .emacs File): Reverse words about comments so they
 	parallel numbers of listed semi-colons.
@@ -598,12 +598,12 @@
 	Center images for TeX output.
 	(kill-new function): Remove indentation for sentence talking about
 	momentarily skipping code.
-	(cons & search-fwd Review): Document @code{funcall}.  Document
-	@code{re-search-forward} with existing @code{search-forward}.
+	(cons & search-fwd Review): Document @code{funcall}.
+	Document @code{re-search-forward} with existing @code{search-forward}.
 	Reference chapter on regular expression searches.
 	(Recursion with list): Specify a more recent version as being Emacs.
-	(Recursion with list, Every, recursive-graph-body-print): Change
-	`if ... progn' expression to `when'.
+	(Recursion with list, Every, recursive-graph-body-print):
+	Change `if ... progn' expression to `when'.
 	(Recursive triangle function): For printing in small book, ensure
 	section name is not last on bottom of preceding page.
 	(Keep): Remove extraneous space in function definition example.
@@ -612,11 +612,11 @@
 	function.
 	(fwd-sentence while loops): Write a function as one, not as a form.
 	(fwd-para let): Add `which' to sentence with `parstart' and `parsep'.
-	(etags): Move sentences involving `find-tag' and sources.  State
-	location of Emacs `src' directory.
+	(etags): Move sentences involving `find-tag' and sources.
+	State location of Emacs `src' directory.
 	(Design count-words-region): Better explain two backslashes in a row.
-	(Find a File): Fix grammar; add a `to' and write `to visit'.  Change
-	`named' to `selected'.
+	(Find a File): Fix grammar; add a `to' and write `to visit'.
+	Change `named' to `selected'.
 	(lengths-list-file): Remove extraneous parenthesis from reference.
 	(lengths-list-many-files): Explain `expand-file-name' better.
 	(Files List): Rephrase sentence regarding Lisp sources directory.
@@ -644,8 +644,8 @@
 	seen' the @code{eq} function.
 	(kill-append function): Reformat `kill-append' function definition so
 	it prints well.
-	(kill-new function): Indent the sentence beginning `notice'.  Replace
-	`the same as' with `similar to'.  Repair typo.  Remove obsolete
+	(kill-new function): Indent the sentence beginning `notice'.
+	Replace `the same as' with `similar to'.  Repair typo.  Remove obsolete
 	references to `yank' and `yank-pop.  End section with a note that `we
 	will digress into C.'
 
@@ -669,8 +669,8 @@
 	is 3.00.  Did not update ISBN number.
 
 	* emacs-lisp-intro.texi: Remove version reference for X colors.
-	Document `='.  Remove mention that :eval was new in 21.  Updated
-	instance's edition-number to 3.01.
+	Document `='.  Remove mention that :eval was new in 21.
+	Updated instance's edition-number to 3.01.
 
 2006-10-30  Robert J. Chassell  <bob@rattlesnake.com>
 
