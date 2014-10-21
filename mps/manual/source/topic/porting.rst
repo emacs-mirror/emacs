@@ -12,10 +12,10 @@ chapter.
 Platform code
 -------------
 
-First, pick two-character codes for your operating system, processor
+Pick two-character codes for your operating system, processor
 architecture, and compiler toolchain, as described under
 :ref:`topic-platform`, and concatenate them to get a six-character
-code "``osarct``" for the new platform.
+platform code "``osarct``".
 
 
 Functional modules
@@ -184,9 +184,9 @@ Add a makefile even if you expect to use an integrated development
 environment like Visual Studio or Xcode. Makefiles make it easier to
 carry out continuous integration and delivery.
 
-The makefile must named ``osarct.gmk``, and must define ``PFM`` to be
-the platform code, ``MPMPF`` to be the list of platform modules (the
-same files included by ``mps.c``), and ``LIBS`` to be the linker
+The makefile must be named ``osarct.gmk``, and must define ``PFM`` to
+be the platform code, ``MPMPF`` to be the list of platform modules
+(the same files included by ``mps.c``), and ``LIBS`` to be the linker
 options for the libraries required by your port. Then it must include
 the compiler-specific makefile and ``comm.gmk``. For example,
 ``xci6ll.gmk`` looks like this::
@@ -209,9 +209,13 @@ the compiler-specific makefile and ``comm.gmk``. For example,
     include ll.gmk
     include comm.gmk
 
-If you need platform-specific compiler flags, then define ``PFMDEFS``
-accordingly, but you should do your best to avoid this: we'd like to
-be able to build the MPS with a simple command like ``cc -c mps.c``.
+If you need platform-specific compilation options, then define
+``PFMDEFS`` accordingly, but you should do your best to avoid this. We
+recommend in :ref:`guide-build` that users compile the MPS using a
+simple command like ``cc -c mps.c``, and we suggest that they can
+improve performance by compiling the MPS and their object format in
+the same compilation unit. These steps would be more complicated
+if the MPS required particular compilation options.
 
 
 Test
@@ -220,6 +224,20 @@ Test
 Check that the "smoke tests" pass on your platform::
 
     make -f osarct.gmk testrun
+
+
+Update the documentation
+------------------------
+
+The following sections of the manual need to be updated to mention the
+new platform:
+
+- :ref:`guide-build`
+- :ref:`topic-platforms`
+
+In addition, if aspects of the port were especially tricky, then
+consider writing a design document (see :ref:`design`) justifying the
+implementation.
 
 
 Contribute
