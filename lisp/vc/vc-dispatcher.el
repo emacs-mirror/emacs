@@ -429,7 +429,7 @@ If the current buffer is a Dired buffer, revert it."
 ;; even if the dispatcher client mode has messed with file contents (as in,
 ;; for example, VCS keyword expansion).
 
-(declare-function view-mode-exit "view" (&optional return-to-alist exit-action all-win))
+(declare-function view-mode-exit "view" (&optional exit-only exit-action all-win))
 
 (defun vc-position-context (posn)
   "Save a bit of the text around POSN in the current buffer.
@@ -543,7 +543,7 @@ editing!"
                   (if (file-writable-p file)
                       (and view-mode
                            (let ((view-old-buffer-read-only nil))
-                             (view-mode-exit)))
+                             (view-mode-exit t)))
                     (and (not view-mode)
                          (not (eq (get major-mode 'mode-class) 'special))
                          (view-mode-enter))))
