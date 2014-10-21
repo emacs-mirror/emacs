@@ -72,9 +72,9 @@ _`.suffix.struct`: The type of a structure must be the same as the
 structure tag, and must consist of the type of the pointer to the
 structure concatenated with ``Struct``. For example, ``ArenaStruct``.
 
-_`.suffix.union`: The type of a structure must be the same as the
-structure tag, and must consist of the type of the pointer to the
-structure concatenated with ``Union``. For example, ``PageUnion``.
+_`.suffix.union`: The type of a union must be the same as the union
+tag, and must consist of the type of the pointer to the union
+concatenated with ``Union``. For example, ``PageUnion``.
 
 _`.suffix.class`: The type of a class (see design.mps.protocol_)
 must end with ``Class``. For example, ``ArenaClass``.
