@@ -54,16 +54,6 @@ _`.overview.hosted.indirect`: The core MPS does not make any direct
 use of hosted ISO C library facilities. Instead, it indirects through
 the MPS Library Interface, impl.h.mpslib.
 
-_`.overview.free`: The core MPS can make direct use of freestanding
-ISO C library facilities and does not need to include any of the
-header files ``<limits.h>``, ``<stdarg.h>``, and ``<stddef.h>``
-directly.
-
-_`.overview.complete`: The MPS Library Interface can be considered as
-the complete "interface to ISO" (in that it provides direct access to
-facilities that we get in a freestanding environment and equivalents
-of any functionality we require from the hosted environment).
-
 _`.overview.provision.client`: In a freestanding environment the
 client is expected to provide functions meeting this interface to the
 MPS.
@@ -71,19 +61,6 @@ MPS.
 _`.overview.provision.hosted`: In a hosted environment,
 impl.c.mpsliban may be used. It just maps impl.h.mpslib directly onto
 the ISO C library equivalents.
-
-[missing diagram]
-
-
-Outside the interface
-.....................
-
-We provide impl.c.mpsliban to the client, for two reasons:
-
-#. the client can use it to connect the MPS to the ISO C library if it
-   exists;
-
-#. as an example implementation of the MPS Library Interface.
 
 
 Implementation
@@ -97,8 +74,7 @@ which parallel those parts of the non-freestanding ISO headers which
 are used by the MPS.
 
 _`.impl.include`: The header file also includes the freestanding
-headers ``<limits.h>``, ``<stdarg.h>``, and ``<stddef.h>`` (and not
-``<float.h>``, though perhaps it should).
+header ``<stddef.h>``.
 
 
 Document History

@@ -1,7 +1,7 @@
 .. mode: -*- rst -*-
 
-MPS Configuration
-=================
+Locus manager
+=============
 
 :Tag: design.mps.locus
 :Author: Gavin Matthews
