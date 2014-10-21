@@ -1,6 +1,6 @@
 .. mode: -*- rst -*-
 
-Thread Manager
+Thread manager
 ==============
 
 :Tag: design.mps.thread-manager
@@ -47,7 +47,7 @@ context. Thread "registration" adds or removes the current thread to
 the ``Thread`` list in the arena.
 
 
-Detailed Design
+Detailed design
 ---------------
 
 Stack scan
