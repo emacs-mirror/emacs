@@ -7366,6 +7366,34 @@ This is a direct interface to the Windows API FindWindow function.  */)
   return Qt;
 }
 
+DEFUN ("w32-frame-menu-bar-size", Fw32_frame_menu_bar_size, Sw32_frame_menu_bar_size, 0, 1, 0,
+       doc: /* Return sizes of menu bar on frame FRAME.
+The return value is a list of three elements: The current width and
+height of FRAME's menu bar in pixels and the default height of the menu
+bar in pixels.  If FRAME is omitted or nil, the selected frame is
+used.  */)
+  (Lisp_Object frame)
+{
+  struct frame *f = decode_any_frame (frame);
+  MENUBARINFO info;
+  int width, height, default_height;
+
+  block_input ();
+
+  default_height = GetSystemMetrics (SM_CYMENUSIZE);
+  info.cbSize = sizeof (info);
+  info.rcBar.right = info.rcBar.left = 0;
+  info.rcBar.top = info.rcBar.bottom = 0;
+  GetMenuBarInfo (FRAME_W32_WINDOW (f), 0xFFFFFFFD, 0, &info);
+  width = info.rcBar.right - info.rcBar.left;
+  height = info.rcBar.bottom - info.rcBar.top;
+
+  unblock_input ();
+
+  return list3 (make_number (width), make_number (height),
+		make_number (default_height));
+}
+
 DEFUN ("w32-frame-rect", Fw32_frame_rect, Sw32_frame_rect, 0, 2, 0,
        doc: /* Return boundary rectangle of FRAME in screen coordinates.
 FRAME must be a live frame and defaults to the selected one.
@@ -8399,6 +8427,7 @@ only be necessary if the default setting causes problems.  */);
   defsubr (&Sw32_toggle_lock_key);
   defsubr (&Sw32_window_exists_p);
   defsubr (&Sw32_frame_rect);
+  defsubr (&Sw32_frame_menu_bar_size);
   defsubr (&Sw32_battery_status);
 
 #ifdef WINDOWSNT

@@ -6119,6 +6119,30 @@ x_set_window_size (struct frame *f, int change_gravity, int width, int height, b
       pixelheight = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, height);
     }
 
+  if (w32_add_wrapped_menu_bar_lines)
+    {
+      /* When the menu bar wraps sending a SetWindowPos shrinks the
+	 height of the frame when the wrapped menu bar lines are not
+	 accounted for (Bug#15174 and Bug#18720).  Here we add these
+	 extra lines to the frame height.  */
+      MENUBARINFO info;
+      int default_menu_bar_height;
+      int menu_bar_height;
+
+      /* Why is (apparently) SM_CYMENUSIZE needed here instead of
+	 SM_CYMENU ??  */
+      default_menu_bar_height = GetSystemMetrics (SM_CYMENUSIZE);
+      info.cbSize = sizeof (info);
+      info.rcBar.top = info.rcBar.bottom = 0;
+      GetMenuBarInfo (FRAME_W32_WINDOW (f), 0xFFFFFFFD, 0, &info);
+      menu_bar_height = info.rcBar.bottom - info.rcBar.top;
+
+      if ((default_menu_bar_height > 0)
+	  && (menu_bar_height > default_menu_bar_height)
+	  && ((menu_bar_height % default_menu_bar_height) == 0))
+	pixelheight = pixelheight + menu_bar_height - default_menu_bar_height;
+    }
+
   f->win_gravity = NorthWestGravity;
   x_wm_set_size_hint (f, (long) 0, 0);
 
@@ -7079,6 +7103,21 @@ This variable is set to non-nil by default when Emacs runs on Windows
 systems of the NT family, including W2K, XP, Vista, Windows 7 and
 Windows 8.  It is set to nil on Windows 9X.  */);
   w32_unicode_filenames = 0;
+
+
+  /* FIXME: The following two variables will be (hopefully) removed
+     before Emacs 25.1 gets released.  */
+
+  DEFVAR_BOOL ("w32-add-wrapped-menu-bar-lines",
+	       w32_add_wrapped_menu_bar_lines,
+     doc: /* Non-nil means frame resizing accounts for wrapped menu bar lines.
+A value of nil means frame resizing does not add the height of wrapped
+menu bar lines when sending a frame resize request to the Windows API.
+This usually means that the resulting frame height is off by the number
+of wrapped menu bar lines.  If this is non-nil, Emacs adds the height of
+wrapped menu bar lines when sending frame resize requests to the Windows
+API.  */);
+  w32_add_wrapped_menu_bar_lines = 1;
 
   DEFVAR_BOOL ("w32-enable-frame-resize-hack",
 	       w32_enable_frame_resize_hack,

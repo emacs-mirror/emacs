@@ -1,3 +1,10 @@
+2014-10-21  Martin Rudalics  <rudalics@gmx.at>
+
+	* w32fns.c (Fw32_frame_menu_bar_size): New function.
+	* w32term.c (x_set_window_size): Account for wrapped menu bar
+	lines when setting up frame height (Bug#15174 and Bug#18720).
+	(w32_add_wrapped_menu_bar_lines): New variable.
+
 2014-10-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* xdisp.c (redisplay_window): Re-run pre-redisplay-function after we
