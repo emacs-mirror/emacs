@@ -52,7 +52,7 @@ design.mps.thread-safety_.
 
 _`.req.binary`: Provide *binary* locks: that is, locks that can be
 claimed, and until released, other attempts to claim them block. (This
-is need to implement
+is needed to implement the arena lock.)
 
 _`.req.recursive`: Provide *recursive* locks: that is, locks that can
 be claimed again by the thread currently holding them, without
