@@ -1,5 +1,8 @@
 2014-10-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* net/newst-reader.el (newsticker--image-read): Simplify.
+	(newsticker--icon-read): Use dolist and fix free var error.
+
 	* imenu.el (imenu--menubar-keymap): New var.
 	(imenu-add-to-menubar): Set it to remember the keymap we used.
 	(imenu-update-menubar): Use it instead of asking lookup-key.

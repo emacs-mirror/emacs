@@ -262,50 +262,46 @@ If DISABLED is non-nil the image will be converted to a disabled look
 Optional argument MAX-HEIGHT specifies the maximal image height.
 Return the image."
   (let ((image-name (concat (newsticker--images-dir)
-                            (symbol-name feed-name-symbol)))
-        (img nil))
+                            (symbol-name feed-name-symbol))))
     (when (file-exists-p image-name)
       (condition-case error-data
-          (setq img (create-image
-                     image-name
-                     (and (fboundp 'imagemagick-types)
-                          (imagemagick-types)
-                          'imagemagick)
-                     nil
-                     :conversion (and newsticker-enable-logo-manipulations
-                                      disabled
-                                      'disabled)
-                     :mask (and newsticker-enable-logo-manipulations
-                                'heuristic)
-                     :ascent 100
-                     :max-height max-height))
+          (create-image
+           image-name
+           (and (fboundp 'imagemagick-types)
+                (imagemagick-types)
+                'imagemagick)
+           nil
+           :conversion (and newsticker-enable-logo-manipulations
+                            disabled
+                            'disabled)
+           :mask (and newsticker-enable-logo-manipulations
+                      'heuristic)
+           :ascent 100
+           :max-height max-height)
         (error
          (message "Error: cannot create image for %s: %s"
-                  feed-name-symbol error-data))))
-    img))
+                  feed-name-symbol error-data))))))
 
 (defun newsticker--icon-read (feed-name-symbol)
   "Read the cached icon for FEED-NAME-SYMBOL from disk.
 Return the image."
   (catch 'icon
     (when (file-exists-p (newsticker--icons-dir))
-      (mapc (lambda (file)
-              (condition-case error-data
-                  (progn (setq img (create-image
-                                    file (and (fboundp 'imagemagick-types)
-                                              (imagemagick-types)
-                                              'imagemagick)
-                                    nil
-                                    :ascent 'center
-                                    :max-width 16
-                                    :max-height 16))
-                         (throw 'icon img))
-                (error
-                 (message "Error: cannot create icon for %s: %s"
-                          feed-name-symbol error-data))))
-            (directory-files (newsticker--icons-dir) t
-                             (concat (symbol-name feed-name-symbol) "\\..*"))))
-    ;; fallback: default icon
+      (dolist (file (directory-files (newsticker--icons-dir) t
+                             (concat (symbol-name feed-name-symbol) "\\..*")))
+        (condition-case error-data
+            (throw 'icon (create-image
+                          file (and (fboundp 'imagemagick-types)
+                                    (imagemagick-types)
+                                    'imagemagick)
+                          nil
+                          :ascent 'center
+                          :max-width 16
+                          :max-height 16))
+          (error
+           (message "Error: cannot create icon for %s: %s"
+                    feed-name-symbol error-data)))))
+    ;; Fallback: default icon.
     (find-image '((:type png :file "newsticker/rss-feed.png" :ascent center)))))
 
 ;; the functions we need for retrieval and display
