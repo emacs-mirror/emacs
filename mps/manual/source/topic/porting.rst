@@ -50,14 +50,6 @@ a new port if none of the existing implementations is usable.
    ``thw3.c``. There is an "ANSI" implementation in ``than.c``, which
    necessarily only supports a single thread.
 
-#. The **multi-threaded testing** module provides an interface for
-   creating and joining :term:`threads`, to enable us to write
-   multi-threaded test cases.
-   
-   See :ref:`design-testthr` for the design, ``testthr.h`` for the
-   interface. There are implementations for POSIX in ``testthrix.c``,
-   and Windows in ``testthrw3.c``.
-
 #. The **virtual mapping** module reserves :term:`address space` from
    the operating system (and returns it), and :term:`maps <mapping>`
    address space to :term:`main memory` (and unmaps it).
