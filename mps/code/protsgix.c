@@ -3,9 +3,11 @@
  *  $Id$
  *  Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
- * Would ordinarily be part of protix.c (as the code is common to more
- * than one Unix-like operating system), but PowerPC Darwin requires a
- * different implementation of this module.
+ * This implements protection exception handling using POSIX signals.
+ * It is designed to run on any POSIX-compliant Unix, but currently is
+ * only used on FreeBSD, as we have separate implementions for OS X
+ * (see protxc.c) and Linux (see protli.c).
+ *
  *
  * SOURCES
  *
@@ -18,11 +20,8 @@
 
 #include "mpm.h"
 
-#if !defined(MPS_OS_XC) && !defined(MPS_OS_FR)
-#error "protsgix.c is Unix-specific, currently for MPS_OS_FR or XC"
-#endif
-#if defined(MPS_OS_XC) && defined(MPS_ARCH_PP)
-#error "protsgix.c does not work on Darwin on PowerPC.  Use protxcpp.c"
+#if !defined(MPS_OS_FR)
+#error "protsgix.c is Unix-specific, currently for MPS_OS_FR"
 #endif
 
 #include <signal.h>    /* for many functions */
