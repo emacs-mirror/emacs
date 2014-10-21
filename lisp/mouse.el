@@ -102,8 +102,7 @@ Expects to be bound to `down-mouse-1' in `key-translation-map'."
              (or mouse-1-click-in-non-selected-windows
                  (eq (selected-window)
                      (posn-window (event-start last-input-event)))))
-    (let ((this-event last-input-event)
-          (timedout
+    (let ((timedout
            (sit-for (if (numberp mouse-1-click-follows-link)
                      (/ (abs mouse-1-click-follows-link) 1000.0)
                      0))))
@@ -112,7 +111,7 @@ Expects to be bound to `down-mouse-1' in `key-translation-map'."
               timedout (not timedout))
           nil
 
-        (let ((event (read-event)))
+        (let ((event (read-key))) ;Use read-key so it works for xterm-mouse-mode!
           (if (eq (car-safe event) (if (eq mouse-1-click-follows-link 'double)
                                        'double-mouse-1 'mouse-1))
               ;; Turn the mouse-1 into a mouse-2 to follow links.
@@ -390,7 +389,7 @@ must be one of the symbols `header', `mode', or `vertical'."
 				   (frame-parameters frame)))
 			'right)))
 	 (draggable t)
-	 height finished event position growth dragged)
+	 height growth dragged)
     (cond
      ((eq line 'header)
       ;; Check whether header-line can be dragged at all.
@@ -435,65 +434,81 @@ must be one of the symbols `header', `mode', or `vertical'."
 		  (not (zerop (window-right-divider-width window))))
 	(setq window (window-in-direction 'left window t)))))
 
+    (let* ((exitfun nil)
+           (move
+           (lambda (event) (interactive "e")
+             (let ((position
+                    ;; For graphic terminals, we're better off using
+                    ;; mouse-pixel-position for the following reasons:
+                    ;; - when the mouse has moved outside of the frame, `event'
+                    ;;   does not contain any useful pixel position any more.
+                    ;; - mouse-pixel-position is a bit more uptodate (the mouse
+                    ;;   may have moved still a bit further since the event was
+                    ;;   generated).
+                    (if (display-mouse-p)
+                        (mouse-pixel-position)
+                      (let* ((posn (event-end event))
+                             (pos (posn-x-y posn))
+                             (w (posn-window posn))
+                             (pe (if (windowp w) (window-pixel-edges w))))
+                        (cons (if (windowp w) (window-frame w) w)
+                              (if pe
+                                  (cons (+ (car pos) (nth 0 pe))
+                                        (+ (cdr pos) (nth 1 pe)))))))))
+               (cond
+                ((not (and (eq (car position) frame)
+                           (cadr position)))
+                 nil)
+                ((eq line 'vertical)
+                 ;; Drag vertical divider.  This must be probably fixed like
+                 ;; for the mode-line.
+                 (setq growth (- (cadr position)
+                                 (if (eq side 'right) 0 2)
+                                 (nth 2 (window-pixel-edges window))
+                                 -1))
+                 (unless (zerop growth)
+                   (setq dragged t)
+                   (adjust-window-trailing-edge window growth t t)))
+                (draggable
+                 ;; Drag horizontal divider.
+                 (setq growth
+                       (if (eq line 'mode)
+                           (- (+ (cddr position) height)
+                              (nth 3 (window-pixel-edges window)))
+                         ;; The window's top includes the header line!
+                         (- (+ (nth 3 (window-pixel-edges window)) height)
+                            (cddr position))))
+                 (unless (zerop growth)
+                   (setq dragged t)
+                   (adjust-window-trailing-edge
+                    window (if (eq line 'mode) growth (- growth)) nil t))))))))
+
     ;; Start tracking.
-    (track-mouse
-      ;; Loop reading events and sampling the position of the mouse.
-      (while (not finished)
-	(setq event (read-event))
-	(setq position (mouse-pixel-position))
-	;; Do nothing if
-	;;   - there is a switch-frame event.
-	;;   - the mouse isn't in the frame that we started in
-	;;   - the mouse isn't in any Emacs frame
-	;; Drag if
-	;;   - there is a mouse-movement event
-	;;   - there is a scroll-bar-movement event (Why? -- cyd)
-	;;     (same as mouse movement for our purposes)
-	;; Quit if
-	;;   - there is a keyboard event or some other unknown event.
-	(cond
-	 ((not (consp event))
-	  (setq finished t))
-	 ((memq (car event) '(switch-frame select-window))
-	  nil)
-	 ((not (memq (car event) '(mouse-movement scroll-bar-movement)))
-	  (when (consp event)
-	    ;; Do not unread a drag-mouse-1 event to avoid selecting
-	    ;; some other window.  For vertical line dragging do not
-	    ;; unread mouse-1 events either (but only if we dragged at
-	    ;; least once to allow mouse-1 clicks get through).
-	    (unless (and dragged
-			 (if (eq line 'vertical)
-			     (memq (car event) '(drag-mouse-1 mouse-1))
-			   (eq (car event) 'drag-mouse-1)))
-	      (push event unread-command-events)))
-	  (setq finished t))
-	 ((not (and (eq (car position) frame)
-		    (cadr position)))
-	  nil)
-	 ((eq line 'vertical)
-	  ;; Drag vertical divider.  This must be probably fixed like
-	  ;; for the mode-line.
-	  (setq growth (- (cadr position)
-			  (if (eq side 'right) 0 2)
-			  (nth 2 (window-pixel-edges window))
-			  -1))
-	  (unless (zerop growth)
-	    (setq dragged t)
-	    (adjust-window-trailing-edge window growth t t)))
-	 (draggable
-	  ;; Drag horizontal divider.
-	  (setq growth
-		(if (eq line 'mode)
-		    (- (+ (cddr position) height)
-		       (nth 3 (window-pixel-edges window)))
-		  ;; The window's top includes the header line!
-		  (- (+ (nth 3 (window-pixel-edges window)) height)
-		     (cddr position))))
-	  (unless (zerop growth)
-	    (setq dragged t)
-	    (adjust-window-trailing-edge
-	     window (if (eq line 'mode) growth (- growth)) nil t))))))))
+    (setq track-mouse t)
+    ;; Loop reading events and sampling the position of the mouse.
+    (setq exitfun
+          (set-transient-map
+           (let ((map (make-sparse-keymap)))
+             (define-key map [switch-frame] #'ignore)
+             (define-key map [select-window] #'ignore)
+             (define-key map [mouse-movement] move)
+             (define-key map [scroll-bar-movement] move)
+             ;; Swallow drag-mouse-1 events to avoid selecting some other window.
+             (define-key map [drag-mouse-1]
+               (lambda () (interactive) (funcall exitfun)))
+             ;; For vertical line dragging swallow also a mouse-1
+             ;; event (but only if we dragged at least once to allow mouse-1
+             ;; clicks to get through).
+             (when (eq line 'vertical)
+               (define-key map [mouse-1]
+                 `(menu-item "" ,(lambda () (interactive) (funcall exitfun))
+                             :filter ,(lambda (cmd) (if dragged cmd)))))
+             ;; Some of the events will of course end up looked up
+             ;; with a mode-line or header-line prefix.
+             (define-key map [mode-line] map)
+             (define-key map [header-line] map)
+             map)
+           t (lambda () (setq track-mouse nil)))))))
 
 (defun mouse-drag-mode-line (start-event)
   "Change the height of a window by dragging on the mode line."
@@ -1292,6 +1307,7 @@ The function returns a non-nil value if it creates a secondary selection."
 	    (setq mouse-secondary-start (make-marker)))
 	(set-marker mouse-secondary-start start-point)
 	(delete-overlay mouse-secondary-overlay))
+      ;; FIXME: Use mouse-drag-track!
       (let (event end end-point)
 	(track-mouse
 	  (while (progn
@@ -1350,7 +1366,7 @@ regardless of where you click."
   ;; Give temporary modes such as isearch a chance to turn off.
   (run-hooks 'mouse-leave-buffer-hook)
   (or mouse-yank-at-point (mouse-set-point click))
-  (let ((secondary (x-get-selection 'SECONDARY)))
+  (let ((secondary (gui-get-selection 'SECONDARY)))
     (if secondary
         (insert-for-yank secondary)
       (error "No secondary selection"))))

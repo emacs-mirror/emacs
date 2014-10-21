@@ -2008,7 +2008,14 @@ some sort of escape sequence, the ambiguity is resolved via `read-key-delay'."
 	       (or (cdr (assq 'tool-bar global-map))
 		   (lookup-key global-map [tool-bar])))
              map))
-	  (aref	(catch 'read-key (read-key-sequence-vector prompt nil t)) 0))
+          (let* ((keys
+                  (catch 'read-key (read-key-sequence-vector prompt nil t)))
+                 (key (aref keys 0)))
+            (if (and (> (length keys) 1)
+                     (memq key '(mode-line header-line
+                                 left-fringe right-fringe)))
+                (aref keys 1)
+              key)))
       (cancel-timer timer)
       (use-global-map old-global-map))))
 
@@ -4348,20 +4355,27 @@ use `called-interactively-p'."
 Normally, MAP is used only once, to look up the very next key.
 However, if the optional argument KEEP-PRED is t, MAP stays
 active if a key from MAP is used.  KEEP-PRED can also be a
-function of no arguments: if it returns non-nil, then MAP stays
-active.
+function of no arguments: it is called from `pre-command-hook' and
+if it returns non-nil, then MAP stays active.
 
 Optional arg ON-EXIT, if non-nil, specifies a function that is
 called, with no arguments, after MAP is deactivated.
 
 This uses `overriding-terminal-local-map' which takes precedence over all other
 keymaps.  As usual, if no match for a key is found in MAP, the normal key
-lookup sequence then continues."
-  (let ((clearfun (make-symbol "clear-transient-map")))
+lookup sequence then continues.
+
+This returns an \"exit function\", which can be called with no argument
+to deactivate this transient map, regardless of KEEP-PRED."
+  (let* ((clearfun (make-symbol "clear-transient-map"))
+         (exitfun
+          (lambda ()
+            (internal-pop-keymap map 'overriding-terminal-local-map)
+            (remove-hook 'pre-command-hook clearfun)
+            (when on-exit (funcall on-exit)))))
     ;; Don't use letrec, because equal (in add/remove-hook) would get trapped
     ;; in a cycle.
     (fset clearfun
-          (suspicious-object
           (lambda ()
             (with-demoted-errors "set-transient-map PCH: %S"
               (unless (cond
@@ -4382,15 +4396,10 @@ lookup sequence then continues."
                         (eq this-command
                             (lookup-key map (this-command-keys-vector))))
                        (t (funcall keep-pred)))
-                (internal-pop-keymap map 'overriding-terminal-local-map)
-                (remove-hook 'pre-command-hook clearfun)
-                 (when on-exit (funcall on-exit))
-                 ;; Comment out the fset if you want to debug the GC bug.
-;;;		(fset clearfun nil)
-;;;             (set clearfun nil)
-                 )))))
+                (funcall exitfun)))))
     (add-hook 'pre-command-hook clearfun)
-    (internal-push-keymap map 'overriding-terminal-local-map)))
+    (internal-push-keymap map 'overriding-terminal-local-map)
+    exitfun))
 
 ;;;; Progress reporters.
 

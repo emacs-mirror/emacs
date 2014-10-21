@@ -1,3 +1,16 @@
+2014-10-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (read-key): Fix clicks on the mode-line.
+	(set-transient-map): Return exit function.
+
+	* mouse.el (mouse-drag-line): Use set-transient-map (bug#18015).
+	(mouse--down-1-maybe-follows-link): Remove unused var `this-event'.
+	(mouse-yank-secondary): Use gui-get-selection.
+	(mouse--down-1-maybe-follows-link): Use read-key.
+
+	* xt-mouse.el: Add `event-kind' property on the fly from
+	xterm-mouse-translate-1 rather than statically at the outset.
+
 2014-10-21  Daniel Colascione  <dancol@dancol.org>
 
 	* vc/vc-dispatcher.el (vc-resynch-window): Tell view-mode not to
@@ -106,7 +119,7 @@
 
 	* mouse.el (mouse--down-1-maybe-follows-link): Remove unused var
 	`this-event'.
-	(mouse-drag-line): Use there's no actual mouse, use the event's
+	(mouse-drag-line): Unless there's no actual mouse, use the event's
 	position info.
 
 2014-10-20  Stefan Monnier  <monnier@iro.umontreal.ca>

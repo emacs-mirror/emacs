@@ -42,13 +42,6 @@
 
 (defvar xterm-mouse-debug-buffer nil)
 
-;; Mouse events symbols must have an 'event-kind property with
-;; the value 'mouse-click.
-(dolist (event '(mouse-1 mouse-2 mouse-3 mouse-4 mouse-5))
-  (let ((M-event (intern (concat "M-" (symbol-name event)))))
-    (put event 'event-kind 'mouse-click)
-    (put M-event 'event-kind 'mouse-click)))
-
 (defun xterm-mouse-translate (_event)
   "Read a click and release event from XTerm."
   (xterm-mouse-translate-1))
@@ -68,6 +61,10 @@ http://invisible-island.net/xterm/ctlseqs/ctlseqs.html)."
 	   (ev-where   (nth 1 ev-data))
 	   (vec (vector event))
 	   (is-down (string-match "down-" (symbol-name ev-command))))
+
+      ;; Mouse events symbols must have an 'event-kind property with
+      ;; the value 'mouse-click.
+      (when ev-command (put ev-command 'event-kind 'mouse-click))
 
       (cond
        ((null event) nil)		;Unknown/bogus byte sequence!
