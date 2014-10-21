@@ -1,28 +1,35 @@
-/* spw3i6.c: STACK PROBE FOR 64-BIT WINDOWS
+/* sp.h: STACK PROBE INTERFACE
  *
- * $Id$
- * Copyright (c) 2013-2014 Ravenbrook Limited.  See end of file for license.
- *
- * The function StackProbe ensures that the stack has at least depth
- * words available. It achieves this by exploiting an obscure but
- * documented feature of Microsoft's function _alloca: "A stack
- * overflow exception is generated if the space cannot be allocated."
- * _alloca: http://msdn.microsoft.com/en-us/library/wb1s57t5.aspx
+ * $Id: //info.ravenbrook.com/project/mps/master/code/sp.h#1 $
+ * Copyright (c) 2014 Ravenbrook Limited.  See end of file for license.
  */
 
-#include <stdlib.h> /* _alloca */
+#ifndef sp_h
+#define sp_h
 
-#include "mpm.h"
+#include "mpmtypes.h"
 
-void StackProbe(Size depth)
-{
-  (void)_alloca(depth*sizeof(Word));
-}
+
+/* StackProbe -- probe above the stack to provoke early stack overflow
+ *
+ * This function should check that the stack has at least depth words
+ * available, and if not, then provoke a stack overflow exception or
+ * protection fault. The purpose is to ensure that the exception is
+ * generated before taking the arena lock where it can be handled
+ * safely, rather than at some later point where the arena lock is
+ * held and so handling the exception may cause the MPS to be entered
+ * recursively.
+ */
+
+extern void StackProbe(Size depth);
+
+
+#endif /* sp_h */
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2013-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
