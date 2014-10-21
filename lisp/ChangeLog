@@ -1,5 +1,9 @@
 2014-10-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* imenu.el (imenu--menubar-keymap): New var.
+	(imenu-add-to-menubar): Set it to remember the keymap we used.
+	(imenu-update-menubar): Use it instead of asking lookup-key.
+
 	* obsolete/cc-compat.el: Make obsolete (bug#18561).
 
 	* epg-config.el (epg-gpg-program): Don't use absolute names by default.
@@ -25,6 +29,13 @@
 	* net/newst-backend.el
 	(newsticker--image-download-by-url-callback): Make this function
 	actually work: Check status properly, then save image.
+
+2014-10-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mouse.el (mouse--down-1-maybe-follows-link): Remove unused var
+	`this-event'.
+	(mouse-drag-line): Use there's no actual mouse, use the event's
+	position info.
 
 2014-10-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 

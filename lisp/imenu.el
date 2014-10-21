@@ -936,6 +936,8 @@ The returned value is of the form (INDEX-NAME . INDEX-POSITION)."
 	   (setq result t imenu--index-alist nil)))
     result))
 
+(defvar-local imenu--menubar-keymap nil)
+
 ;;;###autoload
 (defun imenu-add-to-menubar (name)
   "Add an `imenu' entry to the menu bar for the current buffer.
@@ -952,8 +954,9 @@ See the command `imenu' for more information."
 	(let ((newmap (make-sparse-keymap)))
 	  (set-keymap-parent newmap (current-local-map))
 	  (setq imenu--last-menubar-index-alist nil)
+          (setq imenu--menubar-keymap (make-sparse-keymap "Imenu"))
 	  (define-key newmap [menu-bar index]
-	    `(menu-item ,name ,(make-sparse-keymap "Imenu")))
+	    `(menu-item ,name ,imenu--menubar-keymap))
 	  (use-local-map newmap)
 	  (add-hook 'menu-bar-update-hook 'imenu-update-menubar)))
     (user-error "The mode `%s' does not support Imenu"
@@ -975,28 +978,23 @@ to `imenu-update-menubar'.")
 
 (defun imenu-update-menubar ()
   (when (and (current-local-map)
-	     (keymapp (lookup-key (current-local-map) [menu-bar index]))
+             imenu--menubar-keymap
 	     (/= (buffer-chars-modified-tick) imenu-menubar-modified-tick))
     (setq imenu-menubar-modified-tick (buffer-chars-modified-tick))
     (let ((index-alist (imenu--make-index-alist t)))
       ;; Don't bother updating if the index-alist has not changed
       ;; since the last time we did it.
       (unless (equal index-alist imenu--last-menubar-index-alist)
-	(let (menu menu1 old)
-	  (setq imenu--last-menubar-index-alist index-alist)
-	  (setq index-alist (imenu--split-submenus index-alist))
-	  (setq menu (imenu--split-menu index-alist
-					(buffer-name)))
-	  (setq menu1 (imenu--create-keymap (car menu)
+        (setq imenu--last-menubar-index-alist index-alist)
+        (setq index-alist (imenu--split-submenus index-alist))
+	(let* ((menu (imenu--split-menu index-alist
+                                        (buffer-name)))
+               (menu1 (imenu--create-keymap (car menu)
 					    (cdr (if (< 1 (length (cdr menu)))
 						     menu
 						   (car (cdr menu))))
-					    'imenu--menubar-select))
-	  (setq old (lookup-key (current-local-map) [menu-bar index]))
-	  ;; This should never happen, but in some odd cases, potentially,
-	  ;; lookup-key may return a dynamically composed keymap.
-	  (if (keymapp (cadr old)) (setq old (cadr old)))
-	  (setcdr old (cdr menu1)))))))
+					    'imenu--menubar-select)))
+	  (setcdr imenu--menubar-keymap (cdr menu1)))))))
 
 (defun imenu--menubar-select (item)
   "Use Imenu to select the function or variable named in this menu ITEM."
