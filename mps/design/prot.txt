@@ -1,7 +1,7 @@
 .. mode: -*- rst -*-
 
-The protection module
-=====================
+Memory protection
+=================
 
 :Tag: design.mps.prot
 :Author: David Jones
@@ -15,7 +15,7 @@ The protection module
 Introduction
 ------------
 
-_`.intro`: This is the generic design of the Protection Module. The
+_`.intro`: This is the generic design of the protection module. The
 protection module provides protection services to other parts of the
 MPS. It is expected that different operating systems will have
 different implementations of this module.
