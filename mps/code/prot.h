@@ -1,28 +1,44 @@
-/* spw3i6.c: STACK PROBE FOR 64-BIT WINDOWS
+/* prot.h: MEMORY PROTECTION INTERFACE
  *
- * $Id$
- * Copyright (c) 2013-2014 Ravenbrook Limited.  See end of file for license.
+ * $Id: //info.ravenbrook.com/project/mps/master/code/prot.h#1 $
+ * Copyright (c) 2014 Ravenbrook Limited.  See end of file for license.
  *
- * The function StackProbe ensures that the stack has at least depth
- * words available. It achieves this by exploiting an obscure but
- * documented feature of Microsoft's function _alloca: "A stack
- * overflow exception is generated if the space cannot be allocated."
- * _alloca: http://msdn.microsoft.com/en-us/library/wb1s57t5.aspx
+ * See <design/prot/> for the design of the generic interface including
+ * the contracts for these functions.
+ *
+ * This interface has several different implementations, typically one
+ * per platform, see <code/prot*.c> for the various implementations,
+ * and <design/prot*> for the corresponding designs.
  */
 
-#include <stdlib.h> /* _alloca */
+#ifndef prot_h
+#define prot_h
 
-#include "mpm.h"
+#include "mpmtypes.h"
 
-void StackProbe(Size depth)
-{
-  (void)_alloca(depth*sizeof(Word));
-}
+
+/* Protection Interface */
+
+extern void ProtSetup(void);
+extern Size ProtGranularity(void);
+extern void ProtSet(Addr base, Addr limit, AccessSet mode);
+extern void ProtSync(Arena arena);
+
+
+/* Mutator Fault Context */
+
+extern Bool ProtCanStepInstruction(MutatorFaultContext context);
+extern Res ProtStepInstruction(MutatorFaultContext context);
+extern Addr MutatorFaultContextSP(MutatorFaultContext mfc);
+extern Res MutatorFaultContextScan(ScanState ss, MutatorFaultContext mfc);
+
+
+#endif /* prot_h */
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2013-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
