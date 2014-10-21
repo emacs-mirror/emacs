@@ -116,7 +116,7 @@ Before finalisation the lock must not beowned by any thread.
 Claims ownership of a lock that was previously not held by current
 thread.
 
-``void LockReleaseMPM(Lock lock)``
+``void LockRelease(Lock lock)``
 
 Releases ownership of a lock that is currently owned.
 
