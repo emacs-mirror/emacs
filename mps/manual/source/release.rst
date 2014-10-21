@@ -16,6 +16,24 @@ Interface changes
    name :c:type:`mps_class_t` is still available via a ``typedef``,
    but is deprecated.
 
+#. The :ref:`pool-snc` pool class now implements the
+   :c:func:`mps_pool_total_size` and :c:func:`mps_pool_free_size`.
+
+
+Other changes
+.............
+
+#. Objects in :ref:`pool-snc` pools now die immediately when their
+   :term:`allocation frame` is popped. See job003883_.
+
+   .. _job003883: https://www.ravenbrook.com/project/mps/issue/job003883/
+
+#. In the :term:`hot` (production) variety,
+   :c:func:`mps_pool_free_size` now returns the correct result for
+   :ref:`pool-awl` and :ref:`pool-lo` pools. See job003884_.
+
+   .. _job003884: https://www.ravenbrook.com/project/mps/issue/job003884/
+
 
 .. _release-notes-1.114:
 
