@@ -18,6 +18,7 @@ Design
     interface-c
     keyword-arguments
     land
+    lock
     nailboard
     range
     ring

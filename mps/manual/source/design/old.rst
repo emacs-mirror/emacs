@@ -27,7 +27,6 @@ Old design
     fix
     io
     lib
-    lock
     locus
     message
     message-gc
