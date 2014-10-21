@@ -1,0 +1,157 @@
+.. mode: -*- rst -*-
+
+Multi-threaded testing
+======================
+
+:Tag: design.mps.testthr
+:Author: Gareth Rees
+:Date: 2014-10-21
+:Status: complete design
+:Revision: $Id: //info.ravenbrook.com/project/mps/master/design/nailboard.txt#3 $
+:Copyright: See section `Copyright and License`_.
+:Index terms: pair: threads; testing
+
+
+Introduction
+------------
+
+_`.intro`: This document describes the design for multi-threaded
+testing in the Memory Pool System.
+
+_`.readership`: Any MPS developer.
+
+_`.overview`: The MPS is designed to work in a multi-threaded
+environment (see design.mps.thread-safety_) and this needs to be
+tested on all supported platforms. The multi-threaded testing module
+provides an interface for creating and joining threads, so that
+multi-threaded test cases are portable to all platforms on which the
+MPS runs.
+
+.. _design.mps.thread-safety: thread-safety
+
+
+Requirements
+------------
+
+_`.req.create`: The module must provide an interface for creating
+threads and running code in them. (Because there is no such interface
+in the Standard C Library.)
+
+_`.req.join`: The module must provide an interface for joining a
+running thread: that is, waiting for the thread to finish and
+collecting a result. (Because we want to be able to test that the MPS
+behaves correctly when interacting with a finished thread.)
+
+_`.req.portable`: The module must be easily portable to all the
+platforms on which the MPS runs.
+
+_`.req.usable`: The module must be simple to use, not requiring
+elaborate setup or tear-down or error handling. (Because we want test
+cases to be easy to write.)
+
+
+Implementation
+--------------
+
+_`.impl.posix`: To meet `.req.portable`_ and `.req.usable`_, the
+module presents an interface that is essentially identical to the
+POSIX Threads interface [pthreads]_, except for the names. On POSIX
+platforms the implementation is trivial; on Windows it is
+necessary to translate the concepts back and forth.
+
+_`.impl.storage`: To meet `.req.usable`_, the module defines the
+``testthr_t`` type in the header ``testthr.h`` (even though this
+requires an ``#if``), so that test cases can easily declare variables
+and allocate storage for thread identifiers.
+
+_`.impl.error`: To meet `.req.usable`_, the module does not propagate
+error codes, but calls ``error()`` from the test library if anything
+goes wrong. There is thus no need for the test cases to check result
+codes.
+
+
+Interface
+---------
+
+``typedef testthr_t``
+
+The type of thread identifiers.
+
+``typedef void *(*testthr_routine_t)(void *)``
+
+The type of a function that can be called when a thread is created.
+
+``void testthr_create(testthr_t *thread_o, testthr_routine_t start, void *arg)``
+
+Create a thread. Store the identifier of the newly created thread in
+``*thread_o``, and call ``start()``, passing ``arg`` as the single
+parameter.
+
+``void testthr_join(testthr_t *thread, void **result_o)``
+
+Wait for a thread to complete. Suspend execution of the calling thread
+until the target thread terminates (if necessary), and if ``result_o``
+is non-NULL, update ``*result_o`` with the return value of the
+thread's ``start()`` function.
+
+
+References
+----------
+
+.. [pthreads]
+   The Open Group;
+   "The Single UNIX Specification, Version 2---Threads";
+   <http://pubs.opengroup.org/onlinepubs/7990989775/xsh/threads.html>
+
+
+Document History
+----------------
+
+- 2014-10-21 GDR_ Initial draft.
+
+.. _GDR: http://www.ravenbrook.com/consultants/gdr/
+
+
+Copyright and License
+---------------------
+
+Copyright © 2014 Ravenbrook Limited. All rights reserved.
+<http://www.ravenbrook.com/>. This is an open source license. Contact
+Ravenbrook for commercial licensing options.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+#. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+#. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+
+#. Redistributions in any form must be accompanied by information on how
+   to obtain complete source code for this software and any
+   accompanying software that uses this software.  The source code must
+   either be included in the distribution or be available for no more than
+   the cost of distribution plus a nominal fee, and must be freely
+   redistributable under reasonable conditions.  For an executable file,
+   complete source code means the source code for all modules it contains.
+   It does not include source code for modules or files that typically
+   accompany the major components of the operating system on which the
+   executable file runs.
+
+**This software is provided by the copyright holders and contributors
+"as is" and any express or implied warranties, including, but not
+limited to, the implied warranties of merchantability, fitness for a
+particular purpose, or non-infringement, are disclaimed.  In no event
+shall the copyright holders and contributors be liable for any direct,
+indirect, incidental, special, exemplary, or consequential damages
+(including, but not limited to, procurement of substitute goods or
+services; loss of use, data, or profits; or business interruption)
+however caused and on any theory of liability, whether in contract,
+strict liability, or tort (including negligence or otherwise) arising in
+any way out of the use of this software, even if advised of the
+possibility of such damage.**
+
+

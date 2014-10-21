@@ -23,4 +23,5 @@ Design
     ring
     sig
     splay
+    testthr
     type
