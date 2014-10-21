@@ -1,3 +1,10 @@
+2014-10-20  Santiago Payà i Miralta  <santiagopim@gmail.com>
+
+	* vc/vc-hg.el (vc-hg-log-graph): New var.
+	(vc-hg-print-log): Use it.
+	(vc-hg-root-log-format): Include branch name and bookmarks; ignore
+	graph output (bug#17515).
+
 2014-10-20  Juri Linkov  <juri@jurta.org>
 
 	* vc/diff-mode.el (diff-refine-changed): Rename from
@@ -1182,7 +1189,7 @@
 	* emacs-lisp/nadvice.el (advice--interactive-form): Don't get fooled
 	into autoloading just because of a silly indirection.
 
-2014-05-11  Santiago Payà i Miralta  <santiagopim@gmail.com>  (tiny change)
+2014-05-12  Santiago Payà i Miralta  <santiagopim@gmail.com>
 
 	* vc/vc-hg.el (vc-hg-unregister): New function.  (Bug#17454)
 

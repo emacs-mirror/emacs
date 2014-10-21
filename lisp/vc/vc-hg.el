@@ -146,12 +146,19 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
   :group 'vc-hg)
 
 (defcustom vc-hg-root-log-format
-  '("{rev}:{tags}: {author|person} {date|shortdate} {desc|firstline}\\n"
-    "^\\([0-9]+\\):\\([^:]*\\): \\(.*?\\)[ \t]+\\([0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}\\)"
+  `(,(concat "{rev}:{ifeq(branch, 'default','', '{branch}')}"
+             ":{bookmarks}:{tags}:{author|person}"
+             " {date|shortdate} {desc|firstline}\\n")
+    ,(concat "^\\(?:[+@o x|-]*\\)"      ;Graph data.
+             "\\([0-9]+\\):\\([^:]*\\)"
+             ":\\([^:]*\\):\\([^:]*\\):\\(.*?\\)"
+             "[ \t]+\\([0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}\\)")
     ((1 'log-view-message-face)
-     (2 'change-log-list)
-     (3 'change-log-name)
-     (4 'change-log-date)))
+     (2 'change-log-file)
+     (3 'change-log-list)
+     (4 'change-log-conditionals)
+     (5 'change-log-name)
+     (6 'change-log-date)))
   "Mercurial log template for `vc-hg-print-log' short format.
 This should be a list (TEMPLATE REGEXP KEYWORDS), where TEMPLATE
 is the \"--template\" argument string to pass to Mercurial,
@@ -160,7 +167,7 @@ output, and KEYWORDS is a list of `font-lock-keywords' for
 highlighting the Log View buffer."
   :type '(list string string (repeat sexp))
   :group 'vc-hg
-  :version "24.1")
+  :version "24.5")
 
 
 ;;; Properties of the backend
@@ -244,6 +251,9 @@ highlighting the Log View buffer."
 
 (autoload 'vc-setup-buffer "vc-dispatcher")
 
+(defvar vc-hg-log-graph nil
+  "If non-nil, use `--graph' in the short log output.")
+
 (defun vc-hg-print-log (files buffer &optional shortlog start-revision limit)
   "Print commit log associated with FILES into specified BUFFER.
 If SHORTLOG is non-nil, use a short format based on `vc-hg-root-log-format'.
@@ -261,7 +271,9 @@ If LIMIT is non-nil, show no more than this many entries."
 	     (nconc
 	      (when start-revision (list (format "-r%s:0" start-revision)))
 	      (when limit (list "-l" (format "%s" limit)))
-	      (when shortlog (list "--template" (car vc-hg-root-log-format)))
+	      (when shortlog `(,@(if vc-hg-log-graph '("--graph"))
+                               "--template"
+                               ,(car vc-hg-root-log-format)))
 	      vc-hg-log-switches)))))
 
 (defvar log-view-message-re)
