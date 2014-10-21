@@ -1,13 +1,13 @@
 /* ssixi6.c: UNIX/x64 STACK SCANNING
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
  *  This scans the stack and fixes the registers which may contain
  *  roots.  See <design/thread-manager/>
  *
  *  This code was branched from ssixi3.c (32-bit Intel) initially for the
- *  port to W3I6LL (Mac OS X on x86_64 with Clang).
+ *  port to XCI6LL (Mac OS X on x86_64 with Clang).
  *
  *  This code is common to more than one Unix implementation on
  *  Intel hardware (but is not portable Unix code).  According to Wikipedia,
@@ -68,7 +68,7 @@ Res StackScan(ScanState ss, Addr *stackBot)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
