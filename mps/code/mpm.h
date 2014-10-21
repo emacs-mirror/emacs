@@ -18,6 +18,8 @@
 
 #include "event.h"
 #include "lock.h"
+#include "prot.h"
+#include "sp.h"
 #include "th.h"
 #include "ss.h"
 #include "mpslib.h"
@@ -931,30 +933,6 @@ extern void (ShieldFlush)(Arena arena);
 #endif  /* SHIELD */
 
 
-/* Protection Interface
- *
- * See <design/prot/> for the design of the generic interface including
- * the contracts for these functions.
- *
- * This interface has several different implementations, typically one
- * per platform, see <code/prot.c>* for the various implementations, and
- * <design/prot/>* for the corresponding designs. */
-
-extern void ProtSetup(void);
-
-extern Size ProtGranularity(void);
-extern void ProtSet(Addr base, Addr limit, AccessSet mode);
-extern void ProtSync(Arena arena);
-extern Bool ProtCanStepInstruction(MutatorFaultContext context);
-extern Res ProtStepInstruction(MutatorFaultContext context);
-
-
-/* Mutator Fault Context */
-
-extern Addr MutatorFaultContextSP(MutatorFaultContext mfc);
-extern Res MutatorFaultContextScan(ScanState ss, MutatorFaultContext mfc);
-
-
 /* Location Dependency -- see <code/ld.c> */
 
 extern void LDReset(mps_ld_t ld, Arena arena);
@@ -1031,11 +1009,6 @@ extern LandClass LandClassGet(void);
   DEFINE_ALIAS_CLASS(className, LandClass, var)
 #define IsLandSubclass(land, className) \
   IsSubclassPoly((land)->class, className ## Get())
-
-
-/* Stack Probe */
-
-extern void StackProbe(Size depth);
 
 
 /* STATISTIC -- gather statistics (in some varieties)
