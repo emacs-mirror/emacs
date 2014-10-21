@@ -91,8 +91,8 @@ _`.suffix.function`: The type of other functions must end with
 ``Function``. For example, ``TreeKeyFunction``.
 
 
-History
--------
+Document History
+----------------
 
 - 2014-10-07  GDR_  Created based on job003693_.
 
