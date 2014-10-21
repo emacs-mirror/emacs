@@ -438,7 +438,7 @@ void GlobalsPrepareToDestroy(Globals arenaGlobals)
   arenaGlobals->defaultChain = NULL;
   ChainDestroy(defaultChain);
 
-  LockReleaseMPM(arenaGlobals->lock);
+  LockRelease(arenaGlobals->lock);
   /* Theoretically, another thread could grab the lock here, but it's */
   /* not worth worrying about, since an attempt after the lock has been */
   /* destroyed would lead to a crash just the same. */
@@ -591,7 +591,7 @@ void ArenaLeaveLock(Arena arena, Bool recursive)
   if(recursive) {
     LockReleaseRecursive(lock);
   } else {
-    LockReleaseMPM(lock);
+    LockRelease(lock);
   }
   return;
 }

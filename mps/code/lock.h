@@ -1,7 +1,7 @@
 /* lock.h: RECURSIVE LOCKS
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
  * .description: [@@@@ Should be combined with <design/lock/>]
  *  This defines the type Lock, which supports simple recursive
@@ -32,10 +32,10 @@
  *  There is a limit on the number of recursive claims which
  *  depends on the implementation.  See issue.lock-claim-limit.
  *
- *  LockClaim and LockReleaseMPM are the same as the Recursive versions,
+ *  LockClaim and LockRelease are the same as the Recursive versions,
  *  except that LockClaim may only be used by a thread that doesn't
- *  already own the lock, and LockReleaseMPM may only be used to release
- *  a lock with one claim.  LockClaim and LockReleaseMPM if used, must
+ *  already own the lock, and LockRelease may only be used to release
+ *  a lock with one claim.  LockClaim and LockRelease if used, must
  *  be used symmetrically in pairs.
  *
  *  There are two intended uses.  Here is an example:
@@ -48,7 +48,7 @@
  *    ;; lock owned by this thread.
  *    ;; Cannot call binaryUse() at this point.
  *    ;; only one thread at a time may be at this point.
- *    LockReleaseMPM(&lockStruct);
+ *    LockRelease(&lockStruct);
  *    ;; lock not owned by this thread.
  *  }
  *
@@ -129,20 +129,20 @@ extern void LockReleaseRecursive(Lock lock);
  *  This may only be used when the lock is not already owned by
  *  the calling thread.
  *  When used it behaves like LockClaimRecursive, but must be
- *  matched by a call to LockReleaseMPM.
+ *  matched by a call to LockRelease.
  */
 
 extern void LockClaim(Lock lock);
 
 
-/*  LockReleaseMPM
+/*  LockRelease
  *
  *  This must only be used to release a Lock symmetrically
  *  with LockClaim.  It therefore should only be called with
  *  a single claim.
  */
 
-extern void LockReleaseMPM(Lock lock);
+extern void LockRelease(Lock lock);
 
 
 /*  LockCheck -- Validation */
@@ -204,7 +204,7 @@ extern void LockReleaseGlobal(void);
 #define LockClaimRecursive(lock) UNUSED(lock)
 #define LockReleaseRecursive(lock) UNUSED(lock)
 #define LockClaim(lock) UNUSED(lock)
-#define LockReleaseMPM(lock) UNUSED(lock)
+#define LockRelease(lock) UNUSED(lock)
 #define LockCheck(lock) ((void)lock, TRUE)
 #define LockClaimGlobalRecursive()
 #define LockReleaseGlobalRecursive()
@@ -220,7 +220,7 @@ extern void LockReleaseGlobal(void);
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

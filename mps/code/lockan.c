@@ -1,7 +1,7 @@
 /* lockan.c: ANSI RECURSIVE LOCKS
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: This is a trivial implementation of recursive locks
  * that assumes we are not running in a multi-threaded environment.
@@ -58,7 +58,7 @@ void (LockClaim)(Lock lock)
   lock->claims = 1;
 }
 
-void (LockReleaseMPM)(Lock lock)
+void (LockRelease)(Lock lock)
 {
   AVERT(Lock, lock);
   AVER(lock->claims == 1);
@@ -118,13 +118,13 @@ void (LockClaimGlobal)(void)
 
 void (LockReleaseGlobal)(void)
 {
-  LockReleaseMPM(globalLock);
+  LockRelease(globalLock);
 }
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
