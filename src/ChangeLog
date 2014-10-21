@@ -1,3 +1,21 @@
+2014-10-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* w32select.c (Fw32_selection_exists_p): Rename from
+	Fx_selection_exists_p.
+	(syms_of_w32select): Adjust accordingly.
+
+	* w16select.c (Fw16_selection_exists_p): Rename from
+	Fx_selection_exists_p.
+	(syms_of_win16select): Adjust accordingly.
+
+	* nsselect.m (ns_get_local_selection): Signal error rather than `quit'.
+	(Fns_own_selection_internal): Tighten scoping.
+	(Fns_selection_exists_p): Rename from Fx_selection_exists_p.
+	(Fns_get_selection): Rename from Fx_get_selection_internal.
+	(Fns_get_selection_internal, Fns_store_selection_internal):
+	Remove functions.
+	(syms_of_nsselect): Adjust accordingly.
+
 2014-10-21  Martin Rudalics  <rudalics@gmx.at>
 
 	* w32fns.c (Fw32_frame_menu_bar_size): New function.

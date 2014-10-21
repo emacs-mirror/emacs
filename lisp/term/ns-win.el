@@ -726,25 +726,6 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
   'ns-store-selection-internal "24.1")
 
 
-(defun ns-get-pasteboard ()
-  "Returns the value of the pasteboard."
-  (ns-get-selection-internal 'CLIPBOARD))
-
-(defun ns-set-pasteboard (string)
-  "Store STRING into the pasteboard of the Nextstep display server."
-  ;; Check the data type of STRING.
-  (if (not (stringp string)) (error "Nonstring given to pasteboard"))
-  (ns-store-selection-internal 'CLIPBOARD string))
-
-;; Return the value of the current Nextstep selection.  For
-;; compatibility with older Nextstep applications, this checks cut
-;; buffer 0 before retrieving the value of the primary selection.
-(gui-method-define gui-selection-value ns #'ns-selection-value)
-(defun ns-selection-value ()
-  ;; Consult the selection.  Treat empty strings as if they were unset.
-  (if gui-select-enable-clipboard
-      (ns-get-pasteboard)))
-
 (defun ns-copy-including-secondary ()
   (interactive)
   (call-interactively 'kill-ring-save)
@@ -950,19 +931,13 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 (gui-method-define window-system-initialization ns
                    #'ns-initialize-window-system)
 
-(declare-function ns-set-pasteboard "ns-win" (string))
-(gui-method-define gui-select-text ns
-                   (lambda (text)
-                     ;; Don't send the pasteboard too much text.
-                     ;; It becomes slow, and if really big it causes errors.
-                     (when gui-select-enable-clipboard
-                       (ns-set-pasteboard text))))
-
-(gui-method-define gui-own-selection ns #'ns-own-selection-internal)
-(gui-method-define gui-disown-selection ns #'ns-disown-selection-internal)
+(gui-method-define gui-set-selection ns
+                   (lambda (selection value)
+                     (if value (ns-own-selection-internal selection value)
+                       (ns-disown-selection-internal selection))))
 (gui-method-define gui-selection-owner-p ns #'ns-selection-owner-p)
-(gui-method-define gui-selection-exists-p ns #'x-selection-exists-p)
-(gui-method-define gui-get-selection ns #'x-get-selection-internal) ;FIXME:name!
+(gui-method-define gui-selection-exists-p ns #'ns-selection-exists-p)
+(gui-method-define gui-get-selection ns #'ns-get-selection)
 
 (provide 'ns-win)
 

@@ -219,16 +219,15 @@ the operating system.")
 ;
 ;;;; Selections
 ;
-(defun w16-get-selection-value ()
+(defun w16-get-selection-value (_selection-symbol _target-type)
   "Return the value of the current selection.
 Consult the selection.  Treat empty strings as if they were unset."
-  (if gui-select-enable-clipboard
-      ;; Don't die if x-get-selection signals an error.
-      (with-demoted-errors "w16-get-clipboard-data:%s"
-        (w16-get-clipboard-data))))
+  ;; Don't die if x-get-selection signals an error.
+  (with-demoted-errors "w16-get-clipboard-data:%s"
+    (w16-get-clipboard-data)))
 
 ;; gui-selection-owner-p is used in simple.el.
-(gui-method-define gui-selection-exists-p pc #'x-selection-exists-p)
+(gui-method-define gui-selection-exists-p pc #'w16-selection-exists-p)
 (gui-method-define gui-selection-owner-p pc #'w16-selection-owner-p)
 (defun w16-selection-owner-p (_selection)
   ;; FIXME: Other systems don't obey gui-select-enable-clipboard here.
@@ -248,24 +247,22 @@ Consult the selection.  Treat empty strings as if they were unset."
           text)
          (t nil)))))
 
-;; gui-own-selection and gui-disown-selection are used in gui-set-selection.
-(gui-method-define gui-own-selection pc
-                   (lambda (_selection value)
-                     ;; FIXME: Other systems don't obey
-                     ;; gui-select-enable-clipboard here.
-                     (ignore-errors
-                       (w16--select-text value))
-                     value))
-
-(gui-method-define gui-disown-selection pc
-                   (lambda (selection &optional _time-object _terminal)
-                     (if (w16-selection-owner-p selection)
-                         t)))
+;; gui-set-selection is used in gui-set-selection.
+(declare-function w16-set-clipboard-data "w16select.c"
+		  (string &optional ignored))
+(gui-method-define gui-set-selection pc
+                   (lambda (selection value)
+                     (if (not value)
+                         (if (w16-selection-owner-p selection)
+                             t)
+                       ;; FIXME: Other systems don't obey
+                       ;; gui-select-enable-clipboard here.
+                       (with-demoted-errors "w16-set-clipboard-data: %S"
+                         (w16-set-clipboard-data value))
+                       value)))
 
 ;; gui-get-selection is used in select.el
-(gui-method-define gui-get-selection pc
-                   (lambda (selection-symbol target-type)
-                     (w16-get-selection-value)))
+(gui-method-define gui-get-selection pc #'w16-get-selection-value)
 
 ;; From src/fontset.c:
 (fset 'query-fontset 'ignore)
@@ -384,13 +381,6 @@ Errors out because it is not supposed to be called, ever."
 (gui-method-define handle-args-function pc #'tty-handle-args)
 
 
-(declare-function w16-set-clipboard-data "w16select.c"
-		  (string &optional ignored))
-(gui-method-define gui-select-text pc #'w16--select-text)
-(gui-method-define gui-selection-value pc #'w16-get-selection-value)
-(defun w16--select-text (text)
-  (when gui-select-enable-clipboard
-    (w16-set-clipboard-data text)))
 
 ;; ---------------------------------------------------------------------------
 

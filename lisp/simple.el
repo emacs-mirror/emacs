@@ -5363,7 +5363,8 @@ If NOERROR, don't signal an error if we can't move that many lines."
 	 ((car (posn-x-y posn))
 	  (setq temporary-goal-column
 		(cons (/ (float (car (posn-x-y posn)))
-			 (frame-char-width)) hscroll))))))
+			 (frame-char-width))
+                      hscroll))))))
     (if target-hscroll
 	(set-window-hscroll (selected-window) target-hscroll))
     ;; vertical-motion can move more than it was asked to if it moves

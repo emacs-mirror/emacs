@@ -1154,136 +1154,6 @@ as returned by `x-server-vendor'."
 
 ;;;; Selections
 
-;; We keep track of the last text selected here, so we can check the
-;; current selection against it, and avoid passing back our own text
-;; from x--selection-value.  We track both
-;; separately in case another X application only sets one of them
-;; we aren't fooled by the PRIMARY or CLIPBOARD selection staying the same.
-(defvar x-last-selected-text-clipboard nil
-  "The value of the CLIPBOARD X selection last time we selected or
-pasted text.")
-(defvar x-last-selected-text-primary nil
-  "The value of the PRIMARY X selection last time we selected or
-pasted text.")
-
-(defcustom x-select-enable-primary nil
-  "Non-nil means cutting and pasting uses the primary selection."
-  :type 'boolean
-  :group 'killing
-  :version "24.1")
-
-(defcustom x-select-request-type nil
-  "Data type request for X selection.
-The value is one of the following data types, a list of them, or nil:
-  `COMPOUND_TEXT', `UTF8_STRING', `STRING', `TEXT'
-
-If the value is one of the above symbols, try only the specified type.
-
-If the value is a list of them, try each of them in the specified
-order until succeed.
-
-The value nil is the same as the list (UTF8_STRING COMPOUND_TEXT STRING)."
-  :type '(choice (const :tag "Default" nil)
-		 (const COMPOUND_TEXT)
-		 (const UTF8_STRING)
-		 (const STRING)
-		 (const TEXT)
-		 (set :tag "List of values"
-		      (const COMPOUND_TEXT)
-		      (const UTF8_STRING)
-		      (const STRING)
-		      (const TEXT)))
-  :group 'killing)
-
-;; Get a selection value of type TYPE by calling x-get-selection with
-;; an appropriate DATA-TYPE argument decided by `x-select-request-type'.
-;; The return value is already decoded.  If x-get-selection causes an
-;; error, this function return nil.
-
-(defun x-selection-value-internal (type)
-  (let ((request-type (or x-select-request-type
-			  '(UTF8_STRING COMPOUND_TEXT STRING)))
-	text)
-    (if (consp request-type)
-	(while (and request-type (not text))
-	  (condition-case nil
-	      (setq text (x-get-selection type (car request-type)))
-	    (error nil))
-	  (setq request-type (cdr request-type)))
-      (condition-case nil
-	  (setq text (x-get-selection type request-type))
-	(error nil)))
-    (if text
-	(remove-text-properties 0 (length text) '(foreign-selection nil) text))
-    text))
-
-;; Return the value of the current X selection.
-;; Consult the selection.  Treat empty strings as if they were unset.
-;; If this function is called twice and finds the same text,
-;; it returns nil the second time.  This is so that a single
-;; selection won't be added to the kill ring over and over.
-(gui-method-define gui-selection-value x #'x--selection-value)
-(defun x--selection-value ()
-  ;; With multi-tty, this function may be called from a tty frame.
-  (let (clip-text primary-text)
-    (when x-select-enable-clipboard
-      (setq clip-text (x-selection-value-internal 'CLIPBOARD))
-      (if (string= clip-text "") (setq clip-text nil))
-
-      ;; Check the CLIPBOARD selection for 'newness', is it different
-      ;; from what we remembered them to be last time we did a
-      ;; cut/paste operation.
-      (setq clip-text
-            (cond ;; check clipboard
-             ((or (not clip-text) (string= clip-text ""))
-              (setq x-last-selected-text-clipboard nil))
-             ((eq      clip-text x-last-selected-text-clipboard) nil)
-             ((string= clip-text x-last-selected-text-clipboard)
-              ;; Record the newer string,
-              ;; so subsequent calls can use the `eq' test.
-              (setq x-last-selected-text-clipboard clip-text)
-              nil)
-             (t (setq x-last-selected-text-clipboard clip-text)))))
-
-    (when x-select-enable-primary
-      (setq primary-text (x-selection-value-internal 'PRIMARY))
-      ;; Check the PRIMARY selection for 'newness', is it different
-      ;; from what we remembered them to be last time we did a
-      ;; cut/paste operation.
-      (setq primary-text
-            (cond ;; check primary selection
-             ((or (not primary-text) (string= primary-text ""))
-              (setq x-last-selected-text-primary nil))
-             ((eq      primary-text x-last-selected-text-primary) nil)
-             ((string= primary-text x-last-selected-text-primary)
-              ;; Record the newer string,
-              ;; so subsequent calls can use the `eq' test.
-              (setq x-last-selected-text-primary primary-text)
-              nil)
-             (t
-              (setq x-last-selected-text-primary primary-text)))))
-
-    ;; As we have done one selection, clear this now.
-    (setq next-selection-coding-system nil)
-
-    ;; At this point we have recorded the current values for the
-    ;; selection from clipboard (if we are supposed to) and primary.
-    ;; So return the first one that has changed
-    ;; (which is the first non-null one).
-    ;;
-    ;; NOTE: There will be cases where more than one of these has
-    ;; changed and the new values differ.  This indicates that
-    ;; something like the following has happened since the last time
-    ;; we looked at the selections: Application X set all the
-    ;; selections, then Application Y set only one of them.
-    ;; In this case since we don't have
-    ;; timestamps there is no way to know what the 'correct' value to
-    ;; return is.  The nice thing to do would be to tell the user we
-    ;; saw multiple possible selections and ask the user which was the
-    ;; one they wanted.
-    (or clip-text primary-text)
-    ))
-
 (define-obsolete-function-alias 'x-cut-buffer-or-selection-value
   'x-selection-value "24.1")
 
@@ -1457,21 +1327,10 @@ This returns an error if any Emacs frames are X frames."
 (gui-method-define frame-creation-function x #'x-create-frame-with-faces)
 (gui-method-define window-system-initialization x #'x-initialize-window-system)
 
-(defvar x-select-enable-primary)	; x-win.el
-(gui-method-define gui-select-text x
-                   (lambda (text)
-                     (when x-select-enable-primary
-                       (gui-set-selection 'PRIMARY text)
-                       (setq x-last-selected-text-primary text))
-                     (when x-select-enable-clipboard
-                       ;; When cutting, the selection is cleared and PRIMARY
-                       ;; set to the empty string.  Prevent that, PRIMARY
-                       ;; should not be reset by cut (Bug#16382).
-                       (setq saved-region-selection text)
-                       (gui-set-selection 'CLIPBOARD text)
-                       (setq x-last-selected-text-clipboard text))))
-(gui-method-define gui-own-selection x #'x-own-selection-internal)
-(gui-method-define gui-disown-selection x #'x-disown-selection-internal)
+(gui-method-define gui-set-selection x
+                   (lambda (selection value)
+                     (if value (x-own-selection-internal selection value)
+                       (x-disown-selection-internal selection))))
 (gui-method-define gui-selection-owner-p x #'x-selection-owner-p)
 (gui-method-define gui-selection-exists-p x #'x-selection-exists-p)
 (gui-method-define gui-get-selection x #'x-get-selection-internal)

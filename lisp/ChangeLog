@@ -1,5 +1,69 @@
 2014-10-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	Get rid of backend-dependent selection-handling functions for kill/yank
+	and make it generic instead by relying on the lower-level selection
+	management functions.
+
+	* select.el (select-enable-clipboard): Rename from
+	gui-select-enable-clipboard.
+	(select-enable-primary): Move from x-win.el and rename from
+	x-select-enable-primary.
+	(gui-last-selected-text): Remove.
+	(gui--last-selected-text-clipboard, gui--last-selected-text-primary):
+	New vars.
+	(gui-select-text): Rewrite, based on x-win.el's old x-select-text.
+	(gui-select-text-alist, gui-selection-value-alist): Remove.
+	(x-select-request-type): Move from x-win.el.
+	(gui--selection-value-internal): New function, taken from x-win's
+	x-selection-value-internal.
+	(gui-selection-value): Rewrite, based on x-win.el's old x-selection-value.
+	(gui-set-selection-alist): Rename from gui-own-selection-alist and
+	extend it to handle a nil value as a "disown" request.
+	(gui-disown-selection-alist): Remove.
+	(xselect-convert-to-delete): Adjust accordingly.
+	(gui-set-selection): Simplify accordingly as well.  Use dotimes.
+
+	* term/x-win.el (x-last-selected-text-primary)
+	(x-select-enable-primary): Remove (moved to select.el).
+	(x-select-request-type): Move to select.el.
+	(x-selection-value-internal, x--selection-value): Remove functions.
+	(gui-selection-value, gui-select-text): Remove moethods.
+	(gui-set-selection): Merge own and disown methods.
+
+	* term/w32-win.el (w32--select-text, w32--get-selection-value):
+	Delete function (move functionality into w32--set-selection and
+	w32--get-selection).
+	(gui-select-text, gui-selection-value): Don't define methods.
+	(w32--set-selection, w32--get-selection, w32--selection-owner-p):
+	New functions.
+	(gui-get-selection, gui-selection-owner-p, gui-selection-exists-p):
+	Use them.
+	(gui-selection-exists-p): Adjust to new name of C primitive.
+
+	* term/pc-win.el (w16-get-selection-value): Add dummy argument and drop
+	test of gui-select-enable-clipboard, to make it usable as
+	a gui-get-selection method.
+	(gui-selection-exists-p): Adjust to new name of C primitive.
+	(gui-set-selection): Merge own and disown methods.
+	(gui-select-text, gui-selection-value): Delete methods.
+	(w16--select-text): Delete function.
+
+	* term/ns-win.el (ns-get-pasteboard, ns-set-pasteboard)
+	(ns-selection-value): Remove functions.
+	(gui-select-text, gui-selection-value): Don't define method any more.
+	(gui-set-selection): Merge the old own and disown methods.
+	(gui-selection-exists-p, gui-get-selection): Adjust to new name of
+	underlying C primitive.
+
+	* startup.el (command-line): Adjust now that `gui-method' expects nil
+	for ttys.
+
+	* frame.el (gui-method): Use window-system rather than framep.
+	(gui-method-declare): The tty case is now nil rather than t.
+	(make-frame): Adjust accordingly.
+
+2014-10-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
 	* net/newst-reader.el (newsticker--image-read): Simplify.
 	(newsticker--icon-read): Use dolist and fix free var error.
 

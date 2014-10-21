@@ -32,7 +32,7 @@
   (intern (format "%s-alist" base)))
 
 (defmacro gui-method (name &optional type)
-  (macroexp-let2 nil type (or type `(framep (selected-frame)))
+  (macroexp-let2 nil type (or type `window-system)
     `(alist-get ,type ,(gui-method--name name)
                 (lambda (&rest _args)
                   (error "No method %S for %S frame" ',name ,type)))))
@@ -43,7 +43,7 @@
 (defmacro gui-method-declare (name &optional tty-fun doc)
   (declare (doc-string 3) (indent 2))
   `(defvar ,(gui-method--name name)
-     ,(if tty-fun `(list (cons t ,tty-fun))) ,doc))
+     ,(if tty-fun `(list (cons nil ,tty-fun))) ,doc))
 
 (defmacro gui-call (name &rest args)
   `(funcall (gui-method ,name) ,@args))
@@ -646,23 +646,22 @@ frame the selected frame.  However, the window system may select
 the new frame according to its own rules."
   (interactive)
   (let* ((display (cdr (assq 'display parameters)))
-         (w (or
-             (cond
-              ((assq 'terminal parameters)
-               (let ((type (terminal-live-p
-                            (cdr (assq 'terminal parameters)))))
-                 (cond
-                  ((null type) (error "Terminal %s does not exist"
-                                      (cdr (assq 'terminal parameters))))
-                  (t type))))
-              ((assq 'window-system parameters)
-               (cdr (assq 'window-system parameters)))
-              (display
-               (or (window-system-for-display display)
-                   (error "Don't know how to interpret display %S"
-                          display)))
-              (t window-system))
-             t))
+         (w (cond
+             ((assq 'terminal parameters)
+              (let ((type (terminal-live-p
+                           (cdr (assq 'terminal parameters)))))
+                (cond
+                 ((eq t type) nil)
+                 ((null type) (error "Terminal %s does not exist"
+                                     (cdr (assq 'terminal parameters))))
+                 (t type))))
+             ((assq 'window-system parameters)
+              (cdr (assq 'window-system parameters)))
+             (display
+              (or (window-system-for-display display)
+                  (error "Don't know how to interpret display %S"
+                         display)))
+             (t window-system)))
 	 (oldframe (selected-frame))
 	 (params parameters)
 	 frame)

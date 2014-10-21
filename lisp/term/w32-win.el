@@ -382,45 +382,35 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 		  (string &optional ignored))
 (declare-function w32-get-clipboard-data "w32select.c")
 
-(defun w32--select-text (text)
-  (if gui-select-enable-clipboard (w32-set-clipboard-data text)))
+;;; Fix interface to (X-specific) mouse.el
+(defun w32--set-selection (type value)
+  (if (eq type 'CLIPBOARD)
+      (w32-set-clipboard-data text)
+    (put 'x-selections (or type 'PRIMARY) data)))
 
-(defun w32--get-selection-value ()
-  "Return the value of the current selection.
-Consult the selection.  Treat empty strings as if they were unset."
-  (if gui-select-enable-clipboard
-      ;; Don't die if x-get-selection signals an error.
+(defun w32--get-selection  (&optional type data-type)
+  (if (and (eq type 'CLIPBOARD)
+           (eq data-type 'STRING))
       (with-demoted-errors "w32-get-clipboard-data:%S"
-        (w32-get-clipboard-data))))
+        (w32-get-clipboard-data))
+    (get 'x-selections (or type 'PRIMARY))))
 
-;; Arrange for the kill and yank functions to set and check the clipboard.
-(gui-method-define gui-select-text w32 #'w32--select-text)
-(gui-method-define gui-selection-value w32 #'w32--get-selection-value)
+(defun w32--selection-owner-p (selection)
+  (and (memq selection '(nil PRIMARY SECONDARY))
+       (get 'x-selections (or selection 'PRIMARY))))
+
+(gui-method-define gui-set-selection w32 #'w32--set-selection)
+(gui-method-define gui-get-selection w32 #'w32--get-selection)
+
+(gui-method-define gui-selection-owner-p w32 #'w32--selection-owner-p)
+(gui-method-define gui-selection-exists-p w32 #'w32-selection-exists-p)
 
 (when (eq system-type 'windows-nt)
   ;; Make copy&pasting in w32's console interact with the system's clipboard!
-  (gui-method-define gui-select-text t #'w32--select-text)
-  (gui-method-define gui-selection-value t #'w32--get-selection-value))
-
-;;; Fix interface to (X-specific) mouse.el
-(gui-method-define gui-own-selection w32
-                   (lambda (type value)
-                     (put 'x-selections (or type 'PRIMARY) data)))
-
-(gui-method-define gui-disown-selection w32
-                   (lambda (type)
-                     (put 'x-selections (or type 'PRIMARY) nil)))
-
-(gui-method-define gui-get-selection w32
-                   (lambda (&optional type _data-type)
-                     (get 'x-selections (or type 'PRIMARY))))
-
-;; gui-selection-owner-p is used in simple.el
-(gui-method-define gui-selection-owner-p w32
-                   (lambda (selection)
-                     (and (memq selection '(nil PRIMARY SECONDARY))
-                          (get 'x-selections (or selection 'PRIMARY)))))
-(gui-method-define gui-selection-exists-p w32 #'x-selection-exists-p)
+  (gui-method-define gui-set-selection nil #'w32--set-selection)
+  (gui-method-define gui-get-selection nil #'w32--get-selection)
+  (gui-method-define gui-selection-owner-p nil #'w32--selection-owner-p)
+  (gui-method-define gui-selection-exists-p nil #'w32-selection-exists-p))
 
 ;; The "Windows" keys on newer keyboards bring up the Start menu
 ;; whether you want it or not - make Emacs ignore these keystrokes

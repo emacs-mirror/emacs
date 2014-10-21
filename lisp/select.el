@@ -24,30 +24,17 @@
 
 ;; Based partially on earlier release by Lucid.
 
-;; The functionality here is pretty messy, because there are different
-;; functions that claim to get or set the "selection", with no clear
-;; distinction between them.  Here's my best understanding of it:
-;; - gui-select-text and gui-selection-value go together to access the general
-;;   notion of "GUI selection" for interoperation with other applications.
-;;   This can use either the clipboard or the primary selection, or both or
-;;   none according to gui-select-enable-clipboard and x-select-enable-primary.
-;;   These are the default values of interprogram-cut/paste-function.
-;; - gui-get-primary-selection is used to get the PRIMARY selection,
-;;   specifically for mouse-yank-primary.
-;; - gui-get-selection and gui-set-selection are lower-level functions meant to
-;;   access various kinds of selections (CLIPBOARD, PRIMARY, SECONDARY).
-
-;; Currently gui-select-text and gui-selection-value provide gui-methods so the
-;; actual backend can do it whichever way it wants.  This means for example
-;; that gui-select-enable-clipboard is defined here but implemented in each and
-;; every backend.
-;; Maybe a better structure would be to make gui-select-text and
-;; gui-selection-value have no associated gui-method, and implement
-;; gui-select-enable-clipboard (and x-select-enable-clipboard) themselves.
-;; This would instead rely on gui-get/set-selection being implemented well
-;; (e.g. currently w32's implementation thereof sucks, for example,
-;; since it doesn't access the system's clipboard when setting/getting the
-;; CLIPBOARD selection).
+;; The functionality here is divided in two parts:
+;; - Low-level: gui-get-selection, gui-set-selection, gui-selection-owner-p,
+;;   gui-selection-exists-p are the backend-dependent functions meant to access
+;;   various kinds of selections (CLIPBOARD, PRIMARY, SECONDARY).
+;; - Higher-level: gui-select-text and gui-selection-value go together to
+;;   access the general notion of "GUI selection" for interoperation with other
+;;   applications.  This can use either the clipboard or the primary selection,
+;;   or both or none according to select-enable-clipboard/primary.  These are
+;;   the default values of interprogram-cut/paste-function.
+;;   Additionally, there's gui-get-primary-selection which is used to get the
+;;   PRIMARY selection, specifically for mouse-yank-primary.
 
 ;;; Code:
 
@@ -99,7 +86,7 @@ After the communication, this variable is set to nil.")
 ;; Only declared obsolete in 23.3.
 (define-obsolete-function-alias 'x-selection 'x-get-selection "at least 19.34")
 
-(defcustom gui-select-enable-clipboard t
+(defcustom select-enable-clipboard t
   "Non-nil means cutting and pasting uses the clipboard.
 This can be in addition to, but in preference to, the primary selection,
 if applicable (i.e. under X11)."
@@ -108,12 +95,158 @@ if applicable (i.e. under X11)."
   ;; The GNU/Linux version changed in 24.1, the MS-Windows version did not.
   :version "24.1")
 (define-obsolete-variable-alias 'x-select-enable-clipboard
-  'gui-select-enable-clipboard "25.1")
+  'select-enable-clipboard "25.1")
 
-(gui-method-declare gui-select-text #'ignore
-  "Method used to pass the current selection to the system.
-Called with one argument (the text selected).
-Should obey `gui-select-enable-clipboard' where applicable.")
+(defcustom select-enable-primary nil
+  "Non-nil means cutting and pasting uses the primary selection
+The existence of a primary selection depends on the underlying GUI you use.
+E.g. it doesn't exist under MS-Windows."
+  :type 'boolean
+  :group 'killing
+  :version "24.1")
+(define-obsolete-variable-alias 'x-select-enable-primary
+  'select-enable-primary "25.1")
+
+;; We keep track of the last text selected here, so we can check the
+;; current selection against it, and avoid passing back our own text
+;; from gui-selection-value.  We track both
+;; separately in case another X application only sets one of them
+;; we aren't fooled by the PRIMARY or CLIPBOARD selection staying the same.
+
+(defvar gui--last-selected-text-clipboard nil
+  "The value of the CLIPBOARD selection last seen.")
+(defvar gui--last-selected-text-primary nil
+  "The value of the PRIMARY selection last seen.")
+
+(defun gui-select-text (text)
+  "Select TEXT, a string, according to the window system.
+if `select-enable-clipboard' is non-nil, copy TEXT to the system's clipboard.
+If `select-enable-primary' is non-nil, put TEXT in the primary selection.
+
+MS-Windows does not have a \"primary\" selection."
+  (when select-enable-primary
+    (gui-set-selection 'PRIMARY text)
+    (setq gui--last-selected-text-primary text))
+  (when select-enable-clipboard
+    ;; When cutting, the selection is cleared and PRIMARY
+    ;; set to the empty string.  Prevent that, PRIMARY
+    ;; should not be reset by cut (Bug#16382).
+    (setq saved-region-selection text)
+    (gui-set-selection 'CLIPBOARD text)
+    (setq gui--last-selected-text-clipboard text)))
+(define-obsolete-function-alias 'x-select-text 'gui-select-text "25.1")
+
+(defcustom x-select-request-type nil
+  "Data type request for X selection.
+The value is one of the following data types, a list of them, or nil:
+  `COMPOUND_TEXT', `UTF8_STRING', `STRING', `TEXT'
+
+If the value is one of the above symbols, try only the specified type.
+
+If the value is a list of them, try each of them in the specified
+order until succeed.
+
+The value nil is the same as the list (UTF8_STRING COMPOUND_TEXT STRING)."
+  :type '(choice (const :tag "Default" nil)
+		 (const COMPOUND_TEXT)
+		 (const UTF8_STRING)
+		 (const STRING)
+		 (const TEXT)
+		 (set :tag "List of values"
+		      (const COMPOUND_TEXT)
+		      (const UTF8_STRING)
+		      (const STRING)
+		      (const TEXT)))
+  :group 'killing)
+
+;; Get a selection value of type TYPE by calling gui-get-selection with
+;; an appropriate DATA-TYPE argument decided by `x-select-request-type'.
+;; The return value is already decoded.  If gui-get-selection causes an
+;; error, this function return nil.
+
+(defun gui--selection-value-internal (type)
+  (let ((request-type (if (eq window-system 'x)
+                          (or x-select-request-type
+                              '(UTF8_STRING COMPOUND_TEXT STRING))
+                        'STRING))
+	text)
+    (with-demoted-errors "gui-get-selection: %S"
+      (if (consp request-type)
+          (while (and request-type (not text))
+            (setq text (gui-get-selection type (car request-type)))
+            (setq request-type (cdr request-type)))
+        (setq text (gui-get-selection type request-type))))
+    (if text
+	(remove-text-properties 0 (length text) '(foreign-selection nil) text))
+    text))
+
+(defun gui-selection-value ()
+  (let ((clip-text
+         (when select-enable-clipboard
+           (let ((text (gui--selection-value-internal 'CLIPBOARD)))
+             (if (string= text "") (setq text nil))
+
+             ;; Check the CLIPBOARD selection for 'newness', is it different
+             ;; from what we remembered them to be last time we did a
+             ;; cut/paste operation.
+             (prog1
+                 (unless (equal text gui--last-selected-text-clipboard)
+                   text)
+               (setq gui--last-selected-text-clipboard text)))))
+        (primary-text
+         (when select-enable-primary
+           (let ((text (gui--selection-value-internal 'PRIMARY)))
+             (if (string= text "") (setq text nil))
+             ;; Check the PRIMARY selection for 'newness', is it different
+             ;; from what we remembered them to be last time we did a
+             ;; cut/paste operation.
+             (prog1
+                 (unless (equal text gui--last-selected-text-primary)
+                   text)
+               (setq gui--last-selected-text-primary text))))))
+
+    ;; As we have done one selection, clear this now.
+    (setq next-selection-coding-system nil)
+
+    ;; At this point we have recorded the current values for the
+    ;; selection from clipboard (if we are supposed to) and primary.
+    ;; So return the first one that has changed
+    ;; (which is the first non-null one).
+    ;;
+    ;; NOTE: There will be cases where more than one of these has
+    ;; changed and the new values differ.  This indicates that
+    ;; something like the following has happened since the last time
+    ;; we looked at the selections: Application X set all the
+    ;; selections, then Application Y set only one of them.
+    ;; In this case since we don't have
+    ;; timestamps there is no way to know what the 'correct' value to
+    ;; return is.  The nice thing to do would be to tell the user we
+    ;; saw multiple possible selections and ask the user which was the
+    ;; one they wanted.
+    (or clip-text primary-text)
+    ))
+
+(define-obsolete-function-alias 'x-selection-value 'gui-selection-value "25.1")
+
+(defun x-get-clipboard ()
+  "Return text pasted to the clipboard."
+  (declare (obsolete gui-get-selection "25.1"))
+  (gui-call gui-get-selection 'CLIPBOARD 'STRING))
+
+(defun gui-get-primary-selection ()
+  "Return the PRIMARY selection, or the best emulation thereof."
+  (or (gui-get-selection 'PRIMARY)
+      (and (fboundp 'w32-get-selection-value)
+           (eq (framep (selected-frame)) 'w32)
+           ;; MS-Windows emulates PRIMARY in x-get-selection, but only
+           ;; within the Emacs session, so consult the clipboard if
+           ;; primary is not found.
+           (w32-get-selection-value))
+      (error "No selection is available")))
+(define-obsolete-function-alias 'x-get-selection-value
+  'gui-get-primary-selection "25.1")
+
+;;; Lower-level, backend dependent selection handling.
 
 (gui-method-declare gui-get-selection #'ignore
   "Return selected text.
@@ -122,46 +255,30 @@ SELECTION-SYMBOL is typically `PRIMARY', `SECONDARY', or `CLIPBOARD'.
 \(Those are literal upper-case symbol names, since that's what X expects.)
 TARGET-TYPE is the type of data desired, typically `STRING'.")
 
-(defvar gui-last-selected-text nil
-  ;; We keep track of the last text selected here, so we can check the
-  ;; current selection against it, and avoid passing back our own text
-  ;; from gui-selection-value.
-  "Last text passed to `gui-select-text'.")
+(gui-method-declare gui-set-selection nil
+  "Method to assert a selection of type SELECTION and value VALUE.
+SELECTION is a symbol, typically `PRIMARY', `SECONDARY', or `CLIPBOARD'.
+If VALUE is nil and we own the selection SELECTION, disown it instead.
+Disowning it means there is no such selection.
+\(Those are literal upper-case symbol names, since that's what X expects.)
+VALUE is typically a string, or a cons of two markers, but may be
+anything that the functions on `selection-converter-alist' know about.
 
-(defun gui-select-text (text)
-  "Select TEXT, a string, according to the window system.
-if `gui-select-enable-clipboard' is non-nil, copy TEXT to the system's clipboard.
+Called with 2 args: (SELECTION VALUE).")
 
-On X, if `x-select-enable-primary' is non-nil, put TEXT in
-the primary selection.
+(gui-method-declare gui-selection-owner-p #'ignore
+  "Whether the current Emacs process owns the given X Selection.
+Called with one argument: (SELECTION).
+The arg should be the name of the selection in question, typically one of
+the symbols `PRIMARY', `SECONDARY', or `CLIPBOARD'.
+\(Those are literal upper-case symbol names, since that's what X expects.)")
 
-On MS-Windows, make TEXT the current selection."
-  ;; FIXME: We should test gui-select-enable-clipboard here!
-  ;; But that would break the independence between x-select-enable-primary
-  ;; and x-select-enable-clipboard!
-  ;;(when gui-select-enable-clipboard
-    (gui-call gui-select-text text) ;;)
-  (setq gui-last-selected-text text))
-(define-obsolete-function-alias 'x-select-text 'gui-select-text "25.1")
-
-(gui-method-declare gui-selection-value #'ignore
-  "Method to return the GUI's selection.
-Takes no argument, and returns a string.
-Should obey `gui-select-enable-clipboard'.")
-
-(defun gui-selection-value ()
-  (let ((text (gui-call gui-selection-value)))
-    (if (string= text "") (setq text nil))
-    (cond
-     ((not text) nil)
-     ((eq text gui-last-selected-text) nil)
-     ((string= text gui-last-selected-text)
-      ;; Record the newer string, so subsequent calls can use the `eq' test.
-      (setq gui-last-selected-text text)
-      nil)
-     (t
-      (setq gui-last-selected-text text)))))
-(define-obsolete-function-alias 'x-selection-value 'gui-selection-value "25.1")
+(gui-method-declare gui-selection-exists-p #'ignore
+  "Whether there is an owner for the given X Selection.
+Called with one argument: (SELECTION).
+The arg should be the name of the selection in question, typically one of
+the symbols `PRIMARY', `SECONDARY', or `CLIPBOARD'.
+\(Those are literal upper-case symbol names, since that's what X expects.)")
 
 (defun gui-get-selection (&optional type data-type)
   "Return the value of an X Windows selection.
@@ -197,53 +314,6 @@ ignored on MS-Windows and MS-DOS."
     data))
 (define-obsolete-function-alias 'x-get-selection 'gui-get-selection "25.1")
 
-(defun x-get-clipboard ()
-  "Return text pasted to the clipboard."
-  (declare (obsolete gui-get-selection "25.1"))
-  (gui-call gui-get-selection 'CLIPBOARD 'STRING))
-
-(defun gui-get-primary-selection ()
-  "Return the PRIMARY selection, or the best emulation thereof."
-  (or (gui-get-selection 'PRIMARY)
-      (and (fboundp 'w32-get-selection-value)
-           (eq (framep (selected-frame)) 'w32)
-           ;; MS-Windows emulates PRIMARY in x-get-selection, but only
-           ;; within the Emacs session, so consult the clipboard if
-           ;; primary is not found.
-           (w32-get-selection-value))
-      (error "No selection is available")))
-(define-obsolete-function-alias 'x-get-selection-value
-  'gui-get-primary-selection "25.1")
-
-(gui-method-declare gui-own-selection nil
-  "Method to assert a selection of type SELECTION and value VALUE.
-SELECTION is a symbol, typically `PRIMARY', `SECONDARY', or `CLIPBOARD'.
-(Those are literal upper-case symbol names, since that's what X expects.)
-VALUE is typically a string, or a cons of two markers, but may be
-anything that the functions on `selection-converter-alist' know about.
-
-Called with 2 args: (SELECTION VALUE).")
-
-(gui-method-declare gui-disown-selection nil
-  "If we own the selection SELECTION, disown it.
-Disowning it means there is no such selection.
-
-Called with one argument: (SELECTION)")
-
-(gui-method-declare gui-selection-owner-p #'ignore
-  "Whether the current Emacs process owns the given X Selection.
-Called with one argument: (SELECTION).
-The arg should be the name of the selection in question, typically one of
-the symbols `PRIMARY', `SECONDARY', or `CLIPBOARD'.
-(Those are literal upper-case symbol names, since that's what X expects.)")
-
-(gui-method-declare gui-selection-exists-p #'ignore
-  "Whether there is an owner for the given X Selection.
-Called with one argument: (SELECTION).
-The arg should be the name of the selection in question, typically one of
-the symbols `PRIMARY', `SECONDARY', or `CLIPBOARD'.
-(Those are literal upper-case symbol names, since that's what X expects.)")
-
 (defun gui-set-selection (type data)
   "Make an X selection of type TYPE and value DATA.
 The argument TYPE (nil means `PRIMARY') says which selection, and
@@ -274,18 +344,14 @@ are not available to other programs."
   (if (stringp type) (setq type (intern type)))
   (or (gui--valid-simple-selection-p data)
       (and (vectorp data)
-	   (let ((valid t)
-		 (i (1- (length data))))
-	     (while (>= i 0)
+	   (let ((valid t))
+	     (dotimes (i (length data))
 	       (or (gui--valid-simple-selection-p (aref data i))
-		   (setq valid nil))
-	       (setq i (1- i)))
+		   (setq valid nil)))
 	     valid))
       (signal 'error (list "invalid selection" data)))
   (or type (setq type 'PRIMARY))
-  (if data
-      (gui-call gui-own-selection type data)
-    (gui-call gui-disown-selection type))
+  (gui-call gui-set-selection type data)
   data)
 (define-obsolete-function-alias 'x-set-selection 'gui-set-selection "25.1")
 
@@ -295,13 +361,13 @@ are not available to other programs."
 	   (markerp (car data))
 	   (markerp (cdr data))
 	   (marker-buffer (car data))
-	   (buffer-name (marker-buffer (car data)))
+	   (buffer-live-p (marker-buffer (car data)))
 	   (eq (marker-buffer (car data))
 	       (marker-buffer (cdr data))))
       (stringp data)
       (and (overlayp data)
 	   (overlay-buffer data)
-	   (buffer-name (overlay-buffer data)))
+	   (buffer-live-p (overlay-buffer data)))
       (symbolp data)
       (integerp data)))
 
@@ -445,7 +511,7 @@ two markers or an overlay.  Otherwise, it is nil."
     (apply 'vector all)))
 
 (defun xselect-convert-to-delete (selection _type _value)
-  (gui-call gui-disown-selection selection)
+  (gui-call gui-set-selection selection nil)
   ;; A return value of nil means that we do not know how to do this conversion,
   ;; and replies with an "error".  A return value of NULL means that we have
   ;; done the conversion (and any side-effects) but have no value to return.

@@ -950,11 +950,11 @@ please check its value")
       ;; Process window-system specific command line parameters.
       (setq command-line-args
 	    (funcall
-             (gui-method handle-args-function (or initial-window-system t))
+             (gui-method handle-args-function initial-window-system)
 	     command-line-args))
       ;; Initialize the window system. (Open connection, etc.)
       (funcall
-       (gui-method window-system-initialization (or initial-window-system t)))
+       (gui-method window-system-initialization initial-window-system))
       (put initial-window-system 'window-system-initialized t))
     ;; If there was an error, print the error message and exit.
     (error

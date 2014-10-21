@@ -625,9 +625,9 @@ DEFUN ("w16-get-clipboard-data", Fw16_get_clipboard_data, Sw16_get_clipboard_dat
   return (ret);
 }
 
-/* Support checking for a clipboard selection. */
+/* Support checking for a clipboard selection.  */
 
-DEFUN ("x-selection-exists-p", Fx_selection_exists_p, Sx_selection_exists_p,
+DEFUN ("w16-selection-exists-p", Fw16_selection_exists_p, Sw16_selection_exists_p,
        0, 2, 0,
        doc: /* Whether there is an owner for the given X selection.
 SELECTION should be the name of the selection in question, typically
@@ -677,7 +677,7 @@ syms_of_win16select (void)
 {
   defsubr (&Sw16_set_clipboard_data);
   defsubr (&Sw16_get_clipboard_data);
-  defsubr (&Sx_selection_exists_p);
+  defsubr (&Sw16_selection_exists_p);
 
   DEFVAR_LISP ("selection-coding-system", Vselection_coding_system,
 	       doc: /* Coding system for communicating with other programs.
