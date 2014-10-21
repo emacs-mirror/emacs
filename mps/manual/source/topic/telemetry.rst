@@ -68,7 +68,7 @@ The telemetry system relies on three utility programs:
   SQLite database for further analysis.
 
 You must build and install these programs as described in
-:ref:`guide-build`. Thee programs are described in more detail below.
+:ref:`guide-build`. These programs are described in more detail below.
 
 
 .. index::
