@@ -164,7 +164,10 @@ design.mps.pthreadext_.
 _`.impl.ix.multi`: Supports multiple threads.
 
 _`.impl.ix.register`: ``ThreadRegister()`` records the thread id
-the current thread by calling ``pthread_self()``.
+the current thread by calling |pthread_self|_.
+
+.. |pthread_self| replace:: ``pthread_self()``
+.. _pthread_self: http://pubs.opengroup.org/onlinepubs/9699919799/functions/pthread_self.html
 
 _`.impl.ix.register.multi`: Multiply-registered threads are handled
 specially by the POSIX thread extensions. See
@@ -210,27 +213,38 @@ information for the current thread:
 
   - A ``HANDLE`` to the process, with access flags
     ``THREAD_SUSPEND_RESUME`` and ``THREAD_GET_CONTEXT``. This handle
-    is needed as parameter to ``SuspendThread()`` and
-    ``ResumeThread()``.
-  - The result of ``GetCurrentThreadId()``, so that the current thread
+    is needed as parameter to |SuspendThread|_ and
+    |ResumeThread|_.
+
+  - The result of |GetCurrentThreadId|_, so that the current thread
     may be identified in the ring of threads.
+
+.. |SuspendThread| replace:: ``SuspendThread()``
+.. _SuspendThread: http://msdn.microsoft.com/en-us/library/windows/desktop/ms686345.aspx
+.. |ResumeThread| replace:: ``ResumeThread()``
+.. _ResumeThread: http://msdn.microsoft.com/en-us/library/windows/desktop/ms685086.aspx
+.. |GetCurrentThreadId| replace:: ``GetCurrentThreadId()``
+.. _GetCurrentThreadId: http://msdn.microsoft.com/en-us/library/windows/desktop/ms683183.aspx
 
 _`.impl.w3.register.multi`: There is no need for any special treatment
 of multiple threads, because Windows maintains a suspend count that is
-incremented on ``SuspendThread()`` and decremented on
-``ResumeThread()``.
+incremented on |SuspendThread|_ and decremented on
+|ResumeThread|_.
 
-_`.impl.w3.suspend`: ``ThreadRingSuspend()`` calls ``SuspendThread()``.
+_`.impl.w3.suspend`: ``ThreadRingSuspend()`` calls |SuspendThread|_.
 
-_`.impl.w3.resume`: ``ThreadRingResume()`` calls ``ResumeThread()``.
+_`.impl.w3.resume`: ``ThreadRingResume()`` calls |ResumeThread|_.
 
 _`.impl.w3.scan.current`: ``ThreadScan()`` calls ``StackScan()`` if
-the thread is current. This is because ``GetThreadContext()`` doesn't
+the thread is current. This is because |GetThreadContext|_ doesn't
 work on the current thread: the context would not necessarily have the
 values which were in the saved registers on entry to the MPS.
 
+.. |GetThreadContext| replace:: ``GetThreadContext()``
+.. _GetThreadContext: http://msdn.microsoft.com/en-us/library/windows/desktop/ms679362.aspx
+
 _`.impl.w3.scan.suspended`: Otherwise, ``ThreadScan()`` calls
-``GetThreadContext()`` to get the root registers and the stack
+|GetThreadContext|_ to get the root registers and the stack
 pointer. The thread's registers are dumped into a ``CONTEXT``
 structure and fixed in memory. The stack pointer is obtained from
 ``CONTEXT.Rsp`` (on IA-32) or ``CONTEXT.Rsp`` (on x86-64) and then the
@@ -245,27 +259,38 @@ _`.impl.xc`: In ``thxc.c``.
 _`.impl.xc.multi`: Supports multiple threads.
 
 _`.impl.xc.register`: ``ThreadRegister()`` records the Mach port of
-the current thread by calling ``mach_thread_self()``.
+the current thread by calling |mach_thread_self|_.
+
+.. |mach_thread_self| replace:: ``mach_thread_self()``
+.. _mach_thread_self: http://www.gnu.org/software/hurd/gnumach-doc/Thread-Information.html
 
 _`.impl.xc.register.multi`: There is no need for any special treatment
 of multiple threads, because Mach maintains a suspend count that is
-incremented on ``thread_suspend()`` and decremented on
-``thread_resume()``.
+incremented on |thread_suspend|_ and decremented on
+|thread_resume|_.
+
+.. |thread_suspend| replace:: ``thread_suspend()``
+.. _thread_suspend: http://www.gnu.org/software/hurd/gnumach-doc/Thread-Execution.html
+.. |thread_resume| replace:: ``thread_resume()``
+.. _thread_resume: http://www.gnu.org/software/hurd/gnumach-doc/Thread-Execution.html
 
 _`.impl.xc.suspend`: ``ThreadRingSuspend()`` calls
-``thread_suspend()``.
+|thread_suspend|_.
 
-_`.impl.xc.resume`: ``ThreadRingResume()`` calls ``thread_resume()``.
+_`.impl.xc.resume`: ``ThreadRingResume()`` calls |thread_resume|_.
 
 _`.impl.xc.scan.current`: ``ThreadScan()`` calls ``StackScan()`` if
 the thread is current.
 
 _`.impl.xc.scan.suspended`: Otherwise, ``ThreadScan()`` calls
-``thread_get_state()`` to get the root registers and the stack
-pointer. The thread's registers are dumped into a ``THREAD_STATE_S``
-structure and fixed in memory. The stack pointer is obtained from
+|thread_get_state|_ to get the root registers and the stack pointer.
+The thread's registers are dumped into a ``THREAD_STATE_S`` structure
+and fixed in memory. The stack pointer is obtained from
 ``THREAD_STATE_S.__esp`` (on IA-32) or ``THREAD_STATE_S.__rsp`` (on
 x86-64) and then the stack is scanned.
+
+.. |thread_get_state| replace:: ``thread_get_state()``
+.. _thread_get_state: http://www.gnu.org/software/hurd/gnumach-doc/Thread-Execution.html
 
 
 Document History

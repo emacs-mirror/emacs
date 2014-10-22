@@ -229,6 +229,93 @@ mapped into memory by the VM.
 _`.if.copy`: Copy the VM descriptor from ``src`` to ``dest``.
 
 
+Implementations
+---------------
+
+
+Generic implementation
+......................
+
+_`.impl.an`: In ``vman.c``.
+
+_`.impl.an.page.size`: The generic VM uses a fake page size, given by
+the constant ``VMAN_PAGE_SIZE`` in ``config.h``.
+
+_`.impl.an.reserve`: Address space is "reserved" by calling
+``malloc()``.
+
+_`.impl.an.release`: Address space is "released" by calling
+``free()``.
+
+_`.impl.an.map`: Mapping (and unmapping) just fills the mapped region
+with copies of ``VMJunkBYTE`` to emulate the erasure of freshly mapped
+pages by virtual memory systems.
+
+
+POSIX implementation
+....................
+
+_`.impl.ix`: In ``vmix.c``.
+
+_`.impl.ix.page.size`: The page size is given by ``getpagesize()``.
+
+_`.impl.ix.reserve`: Address space is reserved by calling |mmap|_,
+passing ``PROT_NONE`` and ``MAP_PRIVATE | MAP_ANON``.
+
+.. |mmap| replace:: ``mmap()``
+.. _mmap: http://pubs.opengroup.org/onlinepubs/9699919799/functions/mmap.html
+
+_`.impl.ix.anon.trans`: Note that ``MAP_ANON`` ("map anonymous
+memory not associated with any specific file") is an extension to
+POSIX, but it is supported by FreeBSD, Linux, and OS X. A work-around
+that was formerly used on systems lacking ``MAP_ANON`` was to map
+the file ``/dev/zero``.
+
+_`.impl.ix.release`: Address space is released by calling |munmap|_.
+
+.. |munmap| replace:: ``munmap()``
+.. _munmap: http://pubs.opengroup.org/onlinepubs/9699919799/functions/munmap.html
+
+_`.impl.ix.map`: Address space is mapped to main memory by calling
+|mmap|_, passing ``PROT_READ | PROT_WRITE | PROT_EXEC`` and
+``MAP_ANON | MAP_PRIVATE | MAP_FIXED``.
+
+_`.impl.ix.unmap`: Address space is unmapped from main memory by
+calling |mmap|_, passing ``PROT_NONE`` and ``MAP_ANON | MAP_PRIVATE |
+MAP_FIXED``.
+
+
+Windows implementation
+......................
+
+_`.impl.w3`: In ``vmw3.c``.
+
+_`.impl.w3.page.size`: The page size is retrieved by calling
+|GetSystemInfo|_ and consulting ``SYSTEMINFO.dwPageSize``.
+
+.. |GetSystemInfo| replace:: ``GetSystemInfo()``
+.. _GetSystemInfo: http://msdn.microsoft.com/en-gb/library/windows/desktop/ms724381.aspx
+
+_`.impl.w3.reserve`: Address space is reserved by calling
+|VirtualAlloc|_, passing ``PAGE_NOACCESS``.
+
+.. |VirtualAlloc| replace:: ``VirtualAlloc()``
+.. _VirtualAlloc: http://msdn.microsoft.com/en-us/library/windows/desktop/aa366887.aspx
+
+_`.impl.w3.release`: Address space is released by calling
+|VirtualFree|_, passing ``MEM_RELEASE``.
+
+.. |VirtualFree| replace:: ``VirtualFree()``
+.. _VirtualFree: http://msdn.microsoft.com/en-us/library/windows/desktop/aa366892.aspx
+
+_`.impl.w3.map`: Address space is mapped to main memory by calling
+|VirtualAlloc|_, passing ``MEM_COMMIT`` and
+``PAGE_EXECUTE_READWRITE``.
+
+_`.impl.w3.unmap`: Address space is unmapped from main memory by
+calling |VirtualFree|_, passing ``MEM_DECOMMIT``.
+
+
 Testing
 -------
 
