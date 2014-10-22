@@ -42,8 +42,10 @@ usable.
    generic implementation in ``lockan.c``, which cannot actually take
    any locks and so only works for a single thread.
 
-#. The **threads** module suspends and resumes :term:`threads`, so
-   that the MPS can gain exclusive access to :term:`memory (2)`.
+#. The **thread manager** module suspends and resumes :term:`threads`,
+   so that the MPS can gain exclusive access to :term:`memory (2)`,
+   and so that it can scan the :term:`registers` and :term:`control
+   stack` of suspended threads.
 
    See :ref:`design-thread-manager` for the design, and ``th.h`` for
    the interface. There are implementations for POSIX in ``thix.c``
@@ -75,8 +77,10 @@ usable.
 
 #. The **protection mutator context** module figures out what the
    :term:`mutator` was doing when it caused a :term:`protection
-   fault`, so that the access can be emulated as described at
-   :ref:`pool-awl-barrier`.
+   fault`, or when a thread was suspended, so that its
+   :term:`registers` and :term:`control stack` can be scanned, and so
+   that access to a protected region of memory can be emulated as
+   described at :ref:`pool-awl-barrier`.
 
    See :ref:`design-prot` for the design, and ``prot.h`` for the
    interface. There are eight implementations, a typical example being

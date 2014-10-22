@@ -25,6 +25,7 @@ Design
     sig
     splay
     testthr
+    thread-manager
     type
     vm
     vman

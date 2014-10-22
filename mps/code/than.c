@@ -5,11 +5,7 @@
  *
  *  This is a single-threaded implementation of the threads manager.
  *  Has stubs for thread suspension.
- *  See <design/thread-manager/>.
- *
- *  .single: We only expect at most one thread on the ring.
- *
- *  This supports the <code/th.h>
+ *  See <design/thread-manager/#impl.an>.
  */
 
 #include "mpm.h"
@@ -67,7 +63,6 @@ Res ThreadRegister(Thread *threadReturn, Arena arena)
   AVERT(Thread, thread);
 
   ring = ArenaThreadRing(arena);
-  AVER(RingCheckSingle(ring));  /* .single */
 
   RingAppend(ring, &thread->arenaRing);
 
