@@ -24,7 +24,7 @@ Functional modules
 The MPS requires platform-specific implementations of the functional
 modules in the list below. You'll probably find that it's unnecessary
 to port them all: unless the new platform is very exotic, some of the
-existing implementations ought to be usable. In most cases there is an
+existing implementations ought to be usable. In most cases there is a
 generic ("ANSI") implementation of the module, that uses only the
 features of the Standard C Library. These generic implementations are
 partially functional or non-functional, but can be used as a starting
@@ -38,7 +38,7 @@ usable.
 
    See :ref:`design-lock` for the design, and ``lock.h`` for the
    interface. There are implementations for Linux in ``lockli.c``,
-   POSIX in ``lockix.c``, and Windows in ``lockw3.c``. There is an
+   POSIX in ``lockix.c``, and Windows in ``lockw3.c``. There is a
    generic implementation in ``lockan.c``, which cannot actually take
    any locks and so only works for a single thread.
 
@@ -48,7 +48,7 @@ usable.
    See :ref:`design-thread-manager` for the design, and ``th.h`` for
    the interface. There are implementations for POSIX in ``thix.c``
    plus ``pthrdext.c``, OS X using Mach in ``thxc.c``, Windows in
-   ``thw3.c``. There is an generic implementation in ``than.c``, which
+   ``thw3.c``. There is a generic implementation in ``than.c``, which
    necessarily only supports a single thread.
 
 #. The **virtual mapping** module reserves :term:`address space` from
@@ -57,7 +57,7 @@ usable.
 
    See :ref:`design-vm` for the design, and ``vm.h`` for the
    interface. There are implementations for POSIX in ``vmix.c``, and
-   Windows in ``vmw3.c``. There is an generic implementation in
+   Windows in ``vmw3.c``. There is a generic implementation in
    ``vman.c``, which fakes virtual memory by calling ``malloc``.
 
 #. The **memory protection** module applies :term:`protection` to
@@ -68,7 +68,7 @@ usable.
    See :ref:`design-prot` for the design, and ``prot.h`` for the
    interface. There are implementations for POSIX in ``protix.c`` plus
    ``protsgix.c``, Linux in ``protli.c``, Windows in ``protw3.c``, and
-   OS X using Mach in ``protxc.c``. There is an generic implementation
+   OS X using Mach in ``protxc.c``. There is a generic implementation
    in ``protan.c``, which can't provide memory protection, so it
    forces memory to be scanned until that there is no further need to
    protect it.
@@ -80,7 +80,7 @@ usable.
 
    See :ref:`design-prot` for the design, and ``prot.h`` for the
    interface. There are eight implementations, a typical example being
-   ``prmci3w3.c`` for Windows on IA-32. There is an generic
+   ``prmci3w3.c`` for Windows on IA-32. There is a generic
    implementation in ``prmcan.c``, which can't provide this feature.
 
 #. The **stack probe** module checks that there is enough space on the
@@ -90,7 +90,7 @@ usable.
 
    See ``sp.h`` for the interface. There are implementations on
    Windows on IA-32 in ``spi3w3.c`` and x86-64 in ``spi6w3.c``. There
-   is an generic implementation in ``span.c``, which can't provide
+   is a generic implementation in ``span.c``, which can't provide
    this feature.
 
 #. The **stack and register scanning** module :term:`scans` the
@@ -100,7 +100,7 @@ usable.
    the interface. There are implementations for POSIX on IA-32 in
    ``ssixi3.c`` and x86-64 in ``ssixi6.c``, and for Windows with
    Microsoft Visual C/C++ on IA-32 in ``ssw3i3mv.c`` and x86-64 in
-   ``ssw3i6mv.c``. There is an generic implementation in ``ssan.c``,
+   ``ssw3i6mv.c``. There is a generic implementation in ``ssan.c``,
    which calls ``setjmp`` to spill the registers.
 
 
@@ -148,19 +148,19 @@ Platform configuration
 ----------------------
 
 The new platform may be configured, if necessary, in ``config.h``. See
-:ref:`design-config` for the design of this header. You should try to
-keep the amount of platform-specific configuration as small as you
-can, to reduce the risk of errors being introduced in one platform and
-so not detected when other platforms are tested.
+:ref:`design-config` for the design of this header. Avoid
+platform-specific configuration if possible, to reduce the risk of
+errors being introduced on one platform and not detected when other
+platforms are tested.
 
 
 Module selection
 ----------------
 
-In ``mps.c``, add a section for your platform. This must test the
-platform constant ``MPS_PF_OSARCT`` that you defined in ``mpstd.h``,
-and then include all the module sources for your platform. For
-example::
+In ``mps.c``, add a section for the new platform. This must test the
+platform constant ``MPS_PF_OSARCT`` that is now defined in
+``mpstd.h``, and then include all the module sources for the platform.
+For example::
 
     /* Linux on 64-bit Intel with GCC or Clang */
 
@@ -188,35 +188,36 @@ carry out continuous integration and delivery.
 The makefile must be named ``osarct.gmk``, and must define ``PFM`` to
 be the platform code, ``MPMPF`` to be the list of platform modules
 (the same files included by ``mps.c``), and ``LIBS`` to be the linker
-options for the libraries required by your port. Then it must include
-the compiler-specific makefile and ``comm.gmk``. For example,
-``xci6ll.gmk`` looks like this::
+options for any libraries required by the test cases. Then it must
+include the compiler-specific makefile and ``comm.gmk``. For example,
+``lii6ll.gmk`` looks like this::
 
-    PFM = xci6ll
+    PFM = lii6ll
 
     MPMPF = \
-        lockix.c \
-        prmci6xc.c \
+        lockli.c \
+        prmci6li.c \
         proti6.c \
         protix.c \
-        protxc.c \
+        protli.c \
+        pthrdext.c \
         span.c \
         ssixi6.c \
-        thxc.c \
+        thix.c \
         vmix.c
 
-    LIBS = -lm
+    LIBS = -lm -lpthread
 
     include ll.gmk
     include comm.gmk
 
-If you need platform-specific compilation options, then define
-``PFMDEFS`` accordingly, but you should do your best to avoid this. We
+If the platform needs specific compilation options, then define
+``PFMDEFS`` accordingly, but avoid this if at all possible. We
 recommend in :ref:`guide-build` that users compile the MPS using a
 simple command like ``cc -c mps.c``, and we suggest that they can
 improve performance by compiling the MPS and their object format in
-the same compilation unit. These steps would be more complicated
-if the MPS required particular compilation options.
+the same compilation unit. These steps would be more complicated if
+the MPS required particular compilation options.
 
 
 Porting strategy
@@ -229,24 +230,25 @@ Then check that the "smoke tests" pass, by running::
     make -f osarct.gmk testrun
 
 Most or all of the test cases should pass at this point (if you're
-using the generic threading implementation then the multi-threaded
+using the generic threading implementation, then the multi-threaded
 test cases ``amcssth`` and ``awlutth`` are expected to fail; and if
-you're using the generic lock implementation then the lock utilization
-test case ``lockut`` is expected to fail). However, performance will
-be very poor if you're using the generic memory protection module.
+you're using the generic lock implementation, then the lock
+utilization test case ``lockut`` is expected to fail). However,
+performance will be very poor if you're using the generic memory
+protection implementation.
 
-Now that you have a working system to build on, porting the necessary
-modules to the new platform can be done incrementally. Measure the
-performance as you go along (for example, using the ``gcbench``
-benchmark) to check that the new memory protection module is
-effective.
+Now that there is a working system to build on, porting the necessary
+modules to the new platform can be done incrementally. It's a good
+idea to measure the performance as you go along (for example, using
+the ``gcbench`` benchmark) to check that the new memory protection
+module is effective.
 
 
 Update the documentation
 ------------------------
 
-The following sections of the manual need to be updated to mention the
-new platform:
+These sections of the manual should be updated to mention the new
+platform:
 
 - :ref:`guide-build`
 - :ref:`topic-platform`
@@ -259,5 +261,5 @@ implementation.
 Contribute
 ----------
 
-Consider contributing your new platform to the MPS. See
+Consider contributing the new platform to the MPS. See
 :ref:`contributing`.
