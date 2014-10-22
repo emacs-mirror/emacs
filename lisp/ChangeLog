@@ -1,3 +1,9 @@
+2014-10-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el (byte-compile-and-folded): Optimize case where
+	all args are copyable (bug#18767).
+	(=, <, >, <=, >=): Re-enable the optimization.
+
 2014-10-20  Santiago Payà i Miralta  <santiagopim@gmail.com>
 
 	* vc/vc-hg.el (vc-hg-log-graph): New var.

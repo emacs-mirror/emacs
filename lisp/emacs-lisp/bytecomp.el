@@ -120,7 +120,7 @@
 (require 'backquote)
 (require 'macroexp)
 (require 'cconv)
-(eval-when-compile (require 'cl-lib))
+(require 'cl-lib)
 
 (or (fboundp 'defsubst)
     ;; This really ought to be loaded already!
@@ -3261,11 +3261,11 @@ If it is nil, then the handler is \"byte-compile-SYMBOL.\""
 (byte-defop-compiler cons		2)
 (byte-defop-compiler aref		2)
 (byte-defop-compiler set		2)
-(byte-defop-compiler (= byte-eqlsign)	2) ;; -and  bug#18767
-(byte-defop-compiler (< byte-lss)	2) ;; -and  bug#18767
-(byte-defop-compiler (> byte-gtr)	2) ;; -and  bug#18767
-(byte-defop-compiler (<= byte-leq)	2) ;; -and  bug#18767
-(byte-defop-compiler (>= byte-geq)	2) ;; -and  bug#18767
+(byte-defop-compiler (= byte-eqlsign)	2-and)
+(byte-defop-compiler (< byte-lss)	2-and)
+(byte-defop-compiler (> byte-gtr)	2-and)
+(byte-defop-compiler (<= byte-leq)	2-and)
+(byte-defop-compiler (>= byte-geq)	2-and)
 (byte-defop-compiler get		2)
 (byte-defop-compiler nth		2)
 (byte-defop-compiler substring		2-3)
@@ -3332,13 +3332,14 @@ If it is nil, then the handler is \"byte-compile-SYMBOL.\""
 (defun byte-compile-and-folded (form)
   "Compile calls to functions like `<='.
 These implicitly `and' together a bunch of two-arg bytecodes."
-  ;; FIXME: bug#18767 means we can't do it this way!
   (let ((l (length form)))
     (cond
      ((< l 3) (byte-compile-form `(progn ,(nth 1 form) t)))
      ((= l 3) (byte-compile-two-args form))
-     (t (byte-compile-form `(and (,(car form) ,(nth 1 form) ,(nth 2 form))
-				 (,(car form) ,@(nthcdr 2 form))))))))
+     ((cl-every #'macroexp-copyable-p (nthcdr 2 form))
+      (byte-compile-form `(and (,(car form) ,(nth 1 form) ,(nth 2 form))
+			       (,(car form) ,@(nthcdr 2 form)))))
+     (t (byte-compile-normal-call form)))))
 
 (defun byte-compile-three-args (form)
   (if (not (= (length form) 4))
