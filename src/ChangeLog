@@ -2,6 +2,8 @@
 
 	* xdisp.c (draw_glyphs): Set clipping to highlight boundaries.
 	[Backport]
+	(erase_phys_cursor): Fix confusion between window-relative and
+	text area-relative x-coordinates.  [Backport]
 
 2014-10-20  Glenn Morris  <rgm@gnu.org>
 
