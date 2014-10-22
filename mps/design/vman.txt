@@ -1,32 +1,42 @@
 .. mode: -*- rst -*-
 
-ANSI fake VM
-============
+Generic virtual mapping
+=======================
 
 :Tag: design.mps.vman
 :Author: David Jones
 :Date: 1996-11-07
-:Status: incomplete document
+:Status: complete document
 :Revision: $Id$
 :Copyright: See `Copyright and License`_.
-:Index terms:   pair: ANSI fake VM; design
+:Index terms: pair: ANSI fake VM; design
 
 
-_`.intro`: The ANSI fake VM is an implementation of the MPS VM
-interface (see design.mps.vm_) using only services provided by the
-ANSI C Library (standard.ansic.7).
+Introduction
+------------
+
+_`.intro`: The generic virtual mapping module implements the virtual
+mapping interface (see design.mps.vm_) using only services provided by
+the Standard C Library (standard.ansic.7).
 
 .. _design.mps.vm: vm
 
-_`.page.size`: The VM uses a fake page size, given by the constant
-``VMAN_PAGE_SIZE`` in ``config.h``.
+_`.readership`: Any MPS developer.
 
-_`.align`: The VM is aligned to the arena grain size by adding the
-grain size to the requested size, allocating a block that large using
-``malloc()``, then rounding the pointer to the block up to a multiple
-of the grain size and storing the result in ``vm->base``. The block is
-stored in ``vm->block``, which is passed to ``free()`` in
-``VMFinish()``.
+
+Design
+------
+
+_`.page.size`: The generic VM uses a fake page size, given by the
+constant ``VMAN_PAGE_SIZE`` in ``config.h``.
+
+_`.reserve`: Address space is "reserved" by calling ``malloc()``.
+
+_`.release`: Address space is "released" by calling ``free()``.
+
+_`.map`: Mapping (and unmapping) fills the mapped region with copies
+of ``VMJunkBYTE`` to emulate the erasure of freshly mapped pages by
+virtual memory systems.
 
 
 Document History
@@ -38,6 +48,8 @@ Document History
 - 2013-05-23 GDR_ Converted to reStructuredText.
 
 - 2014-06-18 GDR_ Bring up to date.
+
+- 2014-10-22 GDR_ Complete design.
 
 .. _RB: http://www.ravenbrook.com/consultants/rb/
 .. _GDR: http://www.ravenbrook.com/consultants/gdr/
