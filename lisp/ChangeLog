@@ -1,3 +1,14 @@
+2014-10-22  Tassilo Horn  <tsdh@gnu.org>
+
+	* doc-view.el (doc-view-open-text): View the document's plain text
+	in the current buffer instead of a new one.
+	(doc-view-toggle-display): Handle the case where the current
+	buffer contains the plain text contents of the document.
+	(doc-view-initiate-display): Don't switch to fallback mode if the
+	user wants to view the doc's plain text.
+	(doc-view-set-doc-type): Use assoc-string instead of
+	assoc-ignore-case.
+
 2014-10-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* subr.el (read-key): Fix clicks on the mode-line.
