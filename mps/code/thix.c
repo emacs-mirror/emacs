@@ -210,12 +210,12 @@ Thread ThreadRingThread(Ring threadRing)
 
 /* ThreadArena -- get the arena of a thread
  *
- * Must be thread-safe.  See <design/interface-c/#thread-safety>.
+ * Must be thread-safe. See <design/interface-c/#check.testt>.
  */
 
 Arena ThreadArena(Thread thread)
 {
-  /* Can't check thread as that would not be thread-safe. */
+  AVER(TESTT(Thread, thread));
   return thread->arena;
 }
 
