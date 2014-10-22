@@ -61,7 +61,6 @@ Old design
     trace
     version-library
     version
-    vman
     vmo1
     vmso
     writef

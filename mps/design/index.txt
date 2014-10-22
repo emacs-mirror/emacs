@@ -107,7 +107,7 @@ type_                   General MPS types
 version-library_        Library version mechanism
 version_                Software versions
 vm_                     Virtual mapping
-vman_                   ANSI fake VM
+vman_                   Generic virtual mapping
 vmo1_                   VM Module on DEC Unix
 vmso_                   VM Design for Solaris
 writef_                 The WriteF function 

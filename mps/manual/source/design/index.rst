@@ -27,3 +27,4 @@ Design
     testthr
     type
     vm
+    vman

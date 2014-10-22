@@ -85,6 +85,10 @@ subsystems of the client program. (This is needed to support client
 programs on systems where address space is tight, and the client's
 subsystems need to co-operate in their use of address space.)
 
+_`.req.reserved`: The virtual mapping module must report the total
+amount of reserved memory in each chunk of address space. (This is
+needed to implement ``mps_arena_reserved()``.)
+
 _`.req.map`: The *map* operation must arrange for a (previously
 reserved) range of address space to be mapped into main memory or swap
 space, so that addresses in the range can be read and written.
@@ -94,6 +98,11 @@ mapped range of address space to no longer be mapped into main memory
 or swap space. (This is needed to support client programs on systems
 where main memory is scarce, and the client's subsystems need to
 co-operate in their use of main memory.)
+
+_`.req.mapped`: The virtual mapping module must maintain the total
+amount of mapped memory in each chunk of address space. (This is
+needed to allow the client program to limit the use of main memory by
+the MPS via the "commit limit" mechanism.)
 
 _`.req.bootstrap`: The virtual mapping module must be usable without
 allocating heap memory. (This is necessary for the VM arena to get off
