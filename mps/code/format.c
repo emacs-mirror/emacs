@@ -181,12 +181,11 @@ void FormatDestroy(Format format)
 
 /* FormatArena -- find the arena of a format
  *
- * Must be thread-safe.  See <design/interface-c/#thread-safety>. */
+ * Must be thread-safe. See <design/interface-c/#check.testt>. */
 
 Arena FormatArena(Format format)
 {
-  /* Can't AVER format as that would not be thread-safe */
-  /* AVERT(Format, format); */
+  AVER(TESTT(Format, format));
   return format->arena;
 }
 
