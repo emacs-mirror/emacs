@@ -45,10 +45,6 @@ loaded the first time.")
 	       "Non-nil if this entry has a config file.  These projects
 are considered SAFE, but will skip loading thier config file until explicitly
 permitted.")
-   ;; RESULTS
-   (init-state :initform nil)
-   (without-permission :initform nil)
-   (with-permission :initform nil)
    )
   "A testing entry for the security unit tests.")
 
@@ -58,7 +54,18 @@ permitted.")
 		       :classp 'ede-proj-project-p
 		       :hazzard t
 		       :has-config nil)
-
+   (ede-security-entry "generic make" :file "src/generic/gen_make/sub/test.cpp"
+		     :classp 'ede-generic-makefile-project-p
+		     :hazzard nil
+		     :has-config t)
+   (ede-security-entry "generic scons" :file "src/generic/gen_scons/sub/test.cpp"
+		     :classp 'ede-generic-scons-project-p
+		     :hazzard nil
+		     :has-config t)
+   (ede-security-entry "generic cmake" :file "src/generic/gen_cmake/sub/test.cpp"
+		     :classp 'ede-generic-cmake-project-p
+		     :hazzard nil
+		     :has-config t)
    )
   "List of project test entries to try.")
 
@@ -131,34 +138,109 @@ permitted.")
       (save-excursion
 	(set-buffer b)
 
-	;; Run the EDE detection code.  Firing up the mode isn't really needed.
-	;; Don't protect this as with the detect-utest.el stuff.  That should
-	;; have vetted these projects.  Now we are only testing if they detected.
-	(ede-initialize-state-current-buffer)
-	(when (not (eq b (current-buffer)))
-	  (error "Buffer changed during init!"))
+	(when (oref fle :hazzard)
+	  ;; Projects that might load dangerous code should be protected.
+	  ;; This section makes sure it doesn't load.
 
-	(when ede-object-root-project
-	  (error "Unsafe project was loaded without asking!"))
+	  ;; Run the EDE detection code.  Firing up the mode isn't really needed.
+	  ;; Don't protect this as with the detect-utest.el stuff.  That should
+	  ;; have vetted these projects.  Now we are only testing if they detected.
+	  (ede-initialize-state-current-buffer)
+	  (when (not (eq b (current-buffer)))
+	    (error "Buffer changed during init!"))
 
-	;; Now do the same thing again, but this time by using the
-	;; security fcn direcly, which is similar to forcing EDE to
-	;; load the project by using the `ede' function.  Say NO when
-	;; it wants to ask the security question.
-	(setq ede-check-project-query-fcn 'ede-security-question-no)
-	(if (ede-check-project-directory default-directory)
-	    (error "Unsafe project would have loaded even though we said no!"))
+	  (when ede-object-root-project
+	    (error "Unsafe project was loaded without asking!"))
 
-	;; Try again, this time really try to load the project, and also
-	;; say YES when it asks the question.
-	(setq ede-check-project-query-fcn 'ede-security-question-yes)
-	(ede default-directory)
+	  ;; Now do the same thing again, but this time by using the
+	  ;; security fcn direcly, which is similar to forcing EDE to
+	  ;; load the project by using the `ede' function.  Say NO when
+	  ;; it wants to ask the security question.
+	  (setq ede-check-project-query-fcn 'ede-security-question-no)
+	  (if (ede-check-project-directory default-directory)
+	      (error "Unsafe project would have loaded even though we said no!"))
 
-	(when (not ede-object-root-project)
-	  (error "Unsafe project was NOT loaded even though we said yes!"))
+	  (when (member (directory-file-name default-directory) ede-project-directories)
+	    (error "We asked to not load this project, but it was added to the project directories."))
 
-	(unless (member (directory-file-name default-directory) ede-project-directories)
-	  (error "We asked to make it safe, but it wasn't added to the safe dirs list."))
+	  ;; Try again, this time really try to load the project, and also
+	  ;; say YES when it asks the question.
+	  (setq ede-check-project-query-fcn 'ede-security-question-yes)
+	  (ede default-directory)
+
+	  (when (not ede-object-root-project)
+	    (error "Unsafe project was NOT loaded even though we said yes!"))
+
+	  (unless (member (directory-file-name default-directory) ede-project-directories)
+	    (error "We asked to make it safe, but it wasn't added to the safe dirs list."))
+	  )
+
+	(when (not (oref fle :hazzard))
+	  ;; Code that is not hazzardous should get created automatically
+	  ;; during buffer initialization.
+
+	  ;; Run the EDE detection code.  Firing up the mode isn't really needed.
+	  ;; This should load one of these non-hazzard modes.
+	  (ede-initialize-state-current-buffer)
+	  (when (not (eq b (current-buffer)))
+	    (error "Buffer changed during init!"))
+
+	  (unless ede-object-root-project
+	    (error "Safe project was not loaded!"))
+	  )
+
+	(when (oref fle :has-config)
+	  ;; In both cases (hazzard and non-hazzard projects) the project should
+	  ;; be loaded now.  Next, we need to force the configuration to get
+	  ;; loaded from disk
+
+	  (let ((config (ede-config-get-configuration ede-object-root-project)))
+
+	    ;; Make sure there is a config
+	    (when (not config)
+	      (error "No configuration for project %S"
+		     (eieio-object-name ede-object-root-project)))
+
+	    ;; Make sure the config was automatically ignored.
+	    (unless (and (oref config ignored-file)
+			 (eq (oref config ignored-file) 'auto))
+	      (error "Configuration was not auto-ignored."))
+
+	    ;; Force loading a project, but say no.
+	    (setq ede-check-project-query-fcn 'ede-security-question-no)
+	    (project-rescan ede-object-root-project)
+	    (setq config (ede-config-get-configuration ede-object-root-project))
+
+	    ;; Make sure there is a config
+	    (when (not config)
+	      (error "No configuration (part 2) for project %S"
+		     (eieio-object-name ede-object-root-project)))
+
+	    ;; Make sure the config was manually ignored via our NO fcn.
+	    (unless (and (oref config ignored-file)
+			 (eq (oref config ignored-file) 'manual))
+	      (error "Configuration was not manually-ignored."))
+
+
+	    ;; Now agree to load the config.
+	    (setq ede-check-project-query-fcn 'ede-security-question-yes)
+	    (project-rescan ede-object-root-project)
+	    (setq config (ede-config-get-configuration ede-object-root-project))
+
+	    ;; Make sure there is a config
+	    (when (not config)
+	      (error "No configuration (part 3) for project %S"
+		     (eieio-object-name ede-object-root-project)))
+
+	    ;; Make sure the config was manually ignored via our NO fcn.
+	    (when (oref config ignored-file)
+	      (error "Configuration was ignored instead of loaded."))
+
+	    (unless (and (oref config c-preprocessor-table)
+			 (string= "TEST" (car (car (oref config c-preprocessor-table)))))
+	      (error "Config claimed to be loaded, but stored setting was ignored."))
+
+	    ))
 
 	)
       ;; If it wasn't already in memory, whack it.
