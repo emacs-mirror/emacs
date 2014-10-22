@@ -61,7 +61,6 @@ Old design
     trace
     version-library
     version
-    vm
     vman
     vmo1
     vmso
