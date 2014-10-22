@@ -375,9 +375,9 @@ void RootDestroy(Root root)
 }
 
 
-/* RootArena -- return the rank of a root
+/* RootArena -- return the arena of a root
  *
- * Must be thread-safe.  */
+ * Must be thread-safe. See <design/interface-c/#check.testt> */
 
 Arena RootArena(Root root)
 {
