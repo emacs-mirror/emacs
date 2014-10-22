@@ -32,6 +32,7 @@
 (require 'cedet-files-utests)
 (require 'cedet-compat)
 (require 'cedet/ede/detect-utest)
+(require 'cedet/ede/secure-utest)
 (require 'cedet/semantic/lex-utest)
 (require 'cedet/semantic/lex-spp-utest)
 (require 'cedet/semantic/utest-parse)
@@ -85,7 +86,8 @@
     ;;
     ;; EDE
     ;;
-    ("ede: project detection tests" . ede-detect-utest)
+    ("ede: project detection tests" . ede-detect-utest) ;; NOTE: must be before other EDE tests.
+    ("ede: security tests" . ede-security-utest)
 
     ;;
     ;; SEMANTIC
