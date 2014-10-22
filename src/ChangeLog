@@ -1,3 +1,24 @@
+2014-10-22  Eli Zaretskii  <eliz@gnu.org>
+
+	Optimize redisplay of simple bracketed text.
+	* bidi.c (bidi_cache_reset_to): New function.
+	(bidi_cache_reset): Call it.
+	(bidi_init_it, bidi_line_init): Initialize the bracket_pairing_pos
+	member to -1.
+	(bidi_resolve_explicit): Reset bracket_pairing_pos and
+	bracket_enclosed_type only if bracket_pairing_pos's value is not
+	ZV.
+	(MAX_BPA_STACK): Make sure the value is signed.
+	(PUSH_BPA_STACK): If the BPA stack overflows, don't bail out, but
+	stop pushing values onto the stack.
+	(bidi_find_bracket_pairs): If the bracketed text is only on the
+	base embedding level, remove all the states cached by this
+	function from the cache, and return zero, so that the brackets in
+	this segment of text are processed as normal neutrals.
+	(bidi_resolve_brackets): Detect the brackets that are to be
+	processed as neutrals, and don't call bidi_find_bracket_pairs on
+	them.  (Bug#18778)
+
 2014-10-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* w32select.c (Fw32_selection_exists_p): Rename from
