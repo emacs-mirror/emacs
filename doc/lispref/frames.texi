@@ -709,13 +709,13 @@ pixel sizes of these character units (@pxref{Face Attributes}).
 @table @code
 @vindex height, a frame parameter
 @item height
-The height of the frame contents, in characters.  (To get the height in
-pixels, call @code{frame-pixel-height}; see @ref{Size and Position}.)
+The height of the frame's text area (@pxref{Size and Position}), in
+characters.
 
 @vindex width, a frame parameter
 @item width
-The width of the frame contents, in characters.  (To get the width in
-pixels, call @code{frame-pixel-width}; see @ref{Size and Position}.)
+The width of the frame's text area (@pxref{Size and Position}), in
+characters.
 
 @vindex user-size, a frame parameter
 @item user-size
@@ -739,9 +739,9 @@ with the mouse, while the latter really covers the whole screen and
 does not allow resizing by mouse dragging.
 
 With some window managers you may have to customize the variable
-@code{frame-resize-pixelwise} to a non-@code{nil} value in order to make
-a frame appear ``maximized'' or ``fullscreen''.
-
+@code{frame-resize-pixelwise} (@pxref{Size and Position}) to a
+non-@code{nil} value in order to make a frame appear ``maximized'' or
+``fullscreen''.
 @end table
 
 @node Layout Parameters
@@ -1136,65 +1136,137 @@ equivalent to the @code{:background} attribute of the
 @code{scroll-bar} face.
 @end table
 
+
 @node Size and Position
-@subsection Frame Size And Position
+@subsection Frame Size and Position
 @cindex size of frame
 @cindex screen size
 @cindex frame size
 @cindex resize frame
 
-  You can read or change the size and position of a frame using the
-frame parameters @code{left}, @code{top}, @code{height}, and
-@code{width}.  Whatever geometry parameters you don't specify are chosen
-by the window manager in its usual fashion.
+You can read or change the size and position of a frame using the frame
+parameters @code{left}, @code{top}, @code{height}, and @code{width}.
+Whatever geometry parameters you don't specify are chosen by the window
+manager in its usual fashion.
 
   Here are some special features for working with sizes and positions.
-(For the precise meaning of ``selected frame'' used by these functions,
-see @ref{Input Focus}.)
+Most of the functions described below use a @var{frame} argument which
+has to specify a live frame.  If omitted or @code{nil}, it specifies the
+selected frame, see @ref{Input Focus}.
 
 @defun set-frame-position frame left top
 This function sets the position of the top left corner of @var{frame} to
 @var{left} and @var{top}.  These arguments are measured in pixels, and
-normally count from the top left corner of the screen.
+normally count from the top left corner of the screen to the top left
+corner of the rectangle allotted to the frame by the window manager.
 
-Negative parameter values position the bottom edge of the window up from
-the bottom edge of the screen, or the right window edge to the left of
-the right edge of the screen.  It would probably be better if the values
-were always counted from the left and top, so that negative arguments
-would position the frame partly off the top or left edge of the screen,
-but it seems inadvisable to change that now.
+Negative parameter values position the bottom edge of that rectangle up
+from the bottom edge of the screen, or the right rectangle edge to the
+left of the right edge of the screen.  It would probably be better if
+the values were always counted from the left and top, so that negative
+arguments would position the frame partly off the top or left edge of
+the screen, but it seems inadvisable to change that now.
+@end defun
+
+@cindex frame default font
+@cindex default font of a frame
+Each frame has a @dfn{default font} which specifies the canonical height
+and width of a character on that frame.  The default font is used when
+retrieving or changing the size of a frame in terms of columns or lines.
+It is also used when resizing (@pxref{Window Sizes}) or splitting
+(@pxref{Splitting Windows}) windows.
+
+@defun frame-char-height &optional frame
+@defunx frame-char-width &optional frame
+These functions return the canonical height and width of a character in
+@var{frame}, measured in pixels.  Together, these values establish the
+size of the default font on @var{frame}.  The values depend on the
+choice of font for @var{frame}, see @ref{Font and Color Parameters}.
+@end defun                                                                      
+
+The default font can be also set directly with the following function:
+
+@deffn Command set-frame-font font &optional keep-size frames
+This sets the default font to @var{font}.  When called interactively, it
+prompts for the name of a font, and uses that font on the selected
+frame.  When called from Lisp, @var{font} should be a font name (a
+string), a font object, font entity, or a font spec.
+
+If the optional argument @var{keep-size} is @code{nil}, this keeps the
+number of frame lines and columns fixed.  (If non-@code{nil}, the option
+@code{frame-inhibit-implied-resize} described below will override this.)
+If @var{keep-size} is non-@code{nil} (or with a prefix argument), it
+tries to keep the size of the display area of the current frame fixed by
+adjusting the number of lines and columns.
+
+If the optional argument @var{frames} is @code{nil}, this applies the
+font to the selected frame only.  If @var{frames} is non-@code{nil}, it
+should be a list of frames to act upon, or @code{t} meaning all existing
+graphical frames.
+@end deffn
+
+@cindex frame display area
+@cindex display area of a frame
+The @dfn{display area} of a frame is a rectangular area within the area
+allotted to the frame by the window manager.  The display area neither
+includes the title bar (@pxref{Frame Titles}) nor any other decorations
+provided by the window manager (like an external border used for
+resizing frames via mouse dragging).
+
+   The actual height of the display area depends on the window-system
+and toolkit in use.  With GTK+, the display area does not include any
+tool bar or menu bar.  With the Motif or Lucid toolkits and with
+Windows, the display area includes the tool bar but not the menu bar.
+In a graphical version with no toolkit, it includes both the tool bar
+and menu bar.  On a text terminal, the display area includes the menu
+bar.
+
+@defun frame-pixel-height &optional frame
+@defunx frame-pixel-width &optional frame
+   These functions return the height and width of the display area of
+@var{frame}, measured in pixels.  For a text terminal, the results are
+in characters rather than pixels.
+@end defun
+
+@cindex frame text area
+@cindex text area of a frame
+   The @dfn{text area} of a frame is a concept implicitly used by all
+functions that change a frame's height or width.  It is a rectangle
+located within the display area.  Its size is obtained from that of the
+display area by subtracting the sizes of any tool or menu bars that are
+part of the display area, any internal borders, one vertical and one
+horizontal scroll bar, and one left and one right fringe as specified
+for this frame, see @ref{Layout Parameters}.
+
+@defun frame-text-height &optional frame
+@defunx frame-text-width &optional frame
+These functions return the height and width of the text area of
+@var{frame}, measured in pixels.  For a text terminal, the results are
+in characters rather than pixels.
+
+The value returned by @code{frame-text-height} differs from that
+returned by @code{frame-pixel-height} by not including the heights of
+any tool bar or menu bar, the height of one horizontal scroll bar and
+the widths of the internal border.
+
+The value returned by @code{frame-text-width} differs from that returned
+by @code{frame-pixel-width} by not including the width of one vertical
+scroll bar, the widths of one left and one right fringe and the widths
+of the internal border.
 @end defun
 
 @defun frame-height &optional frame
 @defunx frame-width &optional frame
-These functions return the height and width of @var{frame}, measured in
-lines and columns.  If you don't supply @var{frame}, they use the
-selected frame.
-@end defun
+These functions return the height and width of the text area of
+@var{frame}, measured in units of the default font height and width of
+@var{frame}.  These functions are plain shorthands for writing
+@code{(frame-parameter frame 'height)} and @code{(frame-parameter frame
+'width)}.
 
-@defun frame-pixel-height &optional frame
-@defunx frame-pixel-width &optional frame
-These functions return the height and width of the main display area
-of @var{frame}, measured in pixels.  If you don't supply @var{frame},
-they use the selected frame.  For a text terminal, the results are in
-characters rather than pixels.
-
-These values include the internal borders, and windows' scroll bars
-and fringes (which belong to individual windows, not to the frame
-itself).  The exact value of the heights depends on the window-system
-and toolkit in use.  With GTK+, the height does not include any tool
-bar or menu bar.  With the Motif or Lucid toolkits, it includes the
-tool bar but not the menu bar.  In a graphical version with no
-toolkit, it includes both the tool bar and menu bar.  For a text
-terminal, the result includes the menu bar.
-@end defun
-
-@defun frame-char-height &optional frame
-@defunx frame-char-width &optional frame
-These functions return the height and width of a character in
-@var{frame}, measured in pixels.  The values depend on the choice of
-font.  If you don't supply @var{frame}, these functions use the selected
-frame.
+If the text area of @var{frame} measured in pixles is not a multiple of
+its default font size, the values returned by this functions are rounded
+down to the number of characters of the default font that fully fit into
+the text area.
 @end defun
 
 @defopt frame-resize-pixelwise
@@ -1220,9 +1292,9 @@ order to make a frame appear truly ``maximized'' or ``fullscreen''.
 @end defopt
 
 @defun set-frame-size frame width height pixelwise
-This function sets the size of @var{frame}, measured in characters;
-@var{width} and @var{height} specify the new width in columns and the
-new height in lines.
+This function sets the size of the text area of @var{frame}, measured in
+characters; @var{width} and @var{height} specify the new width in
+columns and the new height in lines.
 
 The optional argument @var{pixelwise} non-@code{nil} means to measure
 the new width and height in units of pixels instead.  Note that if
@@ -1232,9 +1304,9 @@ to a multiple of its character size.
 @end defun
 
 @defun set-frame-height frame height &optional pretend pixelwise
-This function resizes @var{frame} to a height of @var{height} lines.  The
-sizes of existing windows in @var{frame} are altered proportionally to
-fit.
+This function resizes the text area of @var{frame} to a height of
+@var{height} lines.  The sizes of existing windows in @var{frame} are
+altered proportionally to fit.
 
 If @var{pretend} is non-@code{nil}, then Emacs displays @var{height}
 lines of output in @var{frame}, but does not change its value for the
@@ -1254,8 +1326,8 @@ height to a multiple of its character height.
 @end defun
 
 @defun set-frame-width frame width &optional pretend pixelwise
-This function sets the width of @var{frame}, measured in characters.
-The argument @var{pretend} has the same meaning as in
+This function sets the width of the text area of @var{frame}, measured
+in characters.  The argument @var{pretend} has the same meaning as in
 @code{set-frame-height}.
 
 The optional fourth argument @var{pixelwise} non-@code{nil} means that
@@ -1264,6 +1336,41 @@ The optional fourth argument @var{pixelwise} non-@code{nil} means that
 fully honor the request if it does not increase/decrease the frame width
 to a multiple of its character width.
 @end defun
+
+None of these three functions will make a frame smaller than needed to
+display all of its windows together with their scroll bars, fringes,
+margins, dividers, mode and header lines.  This contrasts with requests
+by the window manager triggered, for example, by dragging the external
+border of a frame with the mouse.  Such requests are always honored by
+clipping, if necessary, portions that cannot be displayed at the right,
+bottom corner of the frame.
+
+   By default, Emacs tries to keep the number of lines and columns of a
+frame's text area unaltered when, for example, adding or removing a menu
+bar, changing the default font or setting the width of the frame's
+scroll bars.  This means, however, that in such case Emacs must ask the
+window manager to resize the display area of the frame in order to
+accommodate the size change.  (Note that with the exception of GTK+
+builds, adding, removing or wrapping the tool bar usually do not resize
+the frame's display area, hence these may alter the number of displayed
+lines.)
+
+   Occasionally, such implied resizing of the display area may be
+unwanted, for example, when the frame is maximized or made fullscreen
+where it's turned off by default.  In other cases you can disable
+implied resizing with the following option:
+
+@defopt frame-inhibit-implied-resize
+If this option is @code{nil}, changing default font, menu bar mode,
+fringe width, or scroll bars of a specific frame may resize the frame's
+display area in order to preserve the number of columns or lines the
+frame displays.  If this option is non-@code{nil}, no such resizing is
+done.
+
+When you add a tool bar or scroll bar to a frame that is not large
+enough to accommodate one, Emacs will try to enlarge the frame even if
+this option is non-@code{nil}.
+@end defopt
 
 @c FIXME?  Belongs more in Emacs manual than here?
 @c But, e.g., fit-window-to-buffer is in this manual.

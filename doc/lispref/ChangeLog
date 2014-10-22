@@ -1,3 +1,13 @@
+2014-10-22  Martin Rudalics  <rudalics@gmx.at>
+
+	* frames.texi (Size Parameters): Replace "frame contents" by
+	"frame's text area".  Add reference to Size and Position
+	section.
+	(Size and Position): Major rewrite.  Add explanations for
+	frame's default font, text and display areas.  Add descriptions
+	for `set-frame-font', `frame-text-height', `frame-text-width'
+	and `frame-inhibit-implied-resize'.
+
 2014-10-20  Glenn Morris  <rgm@gnu.org>
 
 	* Merge in all changes up to 24.4 release.
