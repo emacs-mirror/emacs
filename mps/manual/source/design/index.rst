@@ -28,4 +28,3 @@ Design
     thread-manager
     type
     vm
-    vman

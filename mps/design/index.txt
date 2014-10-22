@@ -180,7 +180,6 @@ writef_                 The WriteF function
 .. _version-library: version-library
 .. _version: version
 .. _vm: vm
-.. _vman: vman
 .. _vmo1: vmo1
 .. _vmso: vmso
 .. _writef: writef
