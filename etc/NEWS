@@ -372,6 +372,7 @@ Horizontal scroll bars are turned off by default.
 *** New buffer-local variables `horizontal-scroll-bar' and
     `scroll-bar-height'.
 
++++
 ** The height of a frame's menu and tool bar are no more counted in the
 frame's text height.  This means that the text height stands only for
 the height of the frame's root window plus that of the echo area (if
@@ -379,6 +380,7 @@ present).  This was already the behavior for frames with external tool
 and menu bars (like in the Gtk builds) but has now been extended to all
 builds.
 
++++
 ** Frames now do not necessarily preserve the number of columns or lines
 they display when setting default font, menu bar, fringe width, or
 scroll bars.  In particular, maximized and fullscreen frames are
