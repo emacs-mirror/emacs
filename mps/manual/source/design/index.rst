@@ -26,3 +26,4 @@ Design
     splay
     testthr
     type
+    vm

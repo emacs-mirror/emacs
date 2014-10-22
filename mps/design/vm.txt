@@ -6,118 +6,186 @@ Virtual mapping
 :Tag: design.mps.vm
 :Author: richard
 :Date: 1998-05-11
-:Status: incomplete design
+:Status: complete design
 :Revision: $Id$
 :Copyright: See `Copyright and License`_.
-:Index terms:    pair: virtual mapping; design
+:Index terms: pair: virtual mapping; design
 
 
 Introduction
 ------------
 
-_`.intro`: This the design of the VM interface. The VM interface
-provides a simple, low-level, operating-system independent interface
-to address-space. Each call to ``VMInit()`` reserves (from the
-operating-system) a single contiguous range of addresses, and updates
-a ``VMStruct`` thereafter used to manage this address-space. The VM
-interface has separate implementations for each platform that supports
-it (at least conceptually, in practice some of them may be the same).
-The VM module provides a mechanism to reserve large (relative to the
-amount of RAM) amounts of address space, and functions to map (back
-with RAM) and unmap portions of this address space.
+_`.intro`: This document describes the design of the virtual mapping
+module.
 
-_`.motivation`: The VM is used by the VM Arena Class. It provides the
-basic substrate to provide sparse address maps. Sparse address maps
-have at least two uses: to encode information into the address of an
-object which is used in tracing (the Zone Test) to speed things up; to
-avoid fragmentation at the segment level and above (since the amount
-of address space reserved is large compared to the RAM, the hope is
-that there will also be enough address space somewhere to fit any
-particular segment in).
+_`.readership`: Any MPS developer.
+
+_`.overview`: The virtual mapping module provides a simple, portable,
+low-level interface to address space, with functions for reserving,
+releasing, mapping and unmapping ranges of addresses.
+
+_`.motivation`: The virtual mapping module is heavily used by the VM
+Arena Class (see design.mps.arena.vm_).
+
+.. _design.mps.arena.vm: arenavm
 
 
-Definitions
------------
+Requirements
+------------
 
-_`.def.reserve`: The *reserve* operation: exclusively reserve a
-portion of the virtual address space without arranging RAM or backing
-store for the virtual addresses. The intention is that no other
-component in the process will make use of the reserved virtual
-addresses, but in practice this may entail assuming a certain amount
-of cooperation. When reserving address space, the requester simply
-asks for a particular size, not a particular range of virtual
-addresses. Accessing (read/write/execute) reserved addresses is
-illegal unless those addresses have been mapped.
+_`.req.granularity`: The virtual mapping module must report the
+*granularity* with which address space can be managed. (This is
+necessary for the arena to be able to portably determine its grain
+size; see design.mps.arena.def.grain_.)
 
-_`.def.map`: The *map* operation: arrange that a specified portion of
-the virtual address space is mapped from the swap, effectively
-allocating RAM and/or swap space for a particular range of addresses.
-If successful, accessing the addresses is now legal. Only reserved
-addresses should be mapped.
+.. _design.mps.arena.def.grain: arena#def.grain
 
-_`.def.unmap`: The *unmap* operation: the inverse of the map
-operation. Arrange that a specified portion of the virtual address
-space is no longer mapped, effectively freeing up the RAM and swap
-space that was in use. Accessing the addresses is now illegal. The
-addresses return to the reserved state.
+_`.req.reserve`: The *reserve* operation must reserves a chunk of
+address space.
 
-_`.def.vm`: "VM" stands for Virtual Memory. Various meanings: a
-processor architecture's virtual space and structure; the generic
-idea, interface, or implementation of the MPS VM module; the C
-structure (``struct VMStruct``) used to encapsulate the functionality
-of the MPS VM module; an instance of such a structure.
+_`.req.reserve.exclusive`: The MPS should have exclusive use of the
+reserved chunk. (None of our supported operating systems can actually
+provide this feature, alas. We rely on co-operation with the client
+program.)
 
-_`.def.vm.mps`: In the MPS, a "VM" is a ``VMStruct``, providing access
-to the single contiguous range of address-space that was reserved
-(from the operating-system) when ``VMInit()`` was called.
+_`.req.reserve.continguous`: The reserved chunk is a *contiguous*
+portion of address space. (Contiguity is needed for zones to work; see
+design.mps.arena.vm.overview.gc.zone_.)
+
+.. _design.mps.arena.vm.overview.gc.zone: arenavm#overview.gc.zone
+
+_`.req.reserve.size`: The reserved chunk is at least a *specified
+size*. (This is necessary for zones to work.)
+
+_`.req.reserve.align`: The reserved chunk is aligned to a *specified
+alignment*. (This is necessary for the arena to be able to manage
+address space in terms of grains.)
+
+_`.req.reserve.overhead`: The reserved chunk is not much larger than
+specified, preferably with no more than a grain of overhead. (This is
+necessary in order to allow the client program to specify the amount
+of address space the MPS uses, so that it can co-operate with other
+subsystems that use address space.)
+
+.. _design.mps.arena.vm.overview.gc.zone: arenavm#overview.gc.zone
+
+_`.req.reserve.address.not`: There is no requirement to be able to
+reserve address space at a particular address. (The zone
+implementation uses bits from the middle of the address, so can cope
+wherever the portion is placed in the address space.)
+
+_`.req.reserve.map.not`: The reserve operation should not map the
+chunk into main memory or swap space. (The zone strategy is most
+efficient if address space is use sparsely, but main memory is a
+limited resource.)
+
+_`.req.release`: The *release* operation should release a previously
+reserved chunk of address space so that it may be used by other
+subsystems of the client program. (This is needed to support client
+programs on systems where address space is tight, and the client's
+subsystems need to co-operate in their use of address space.)
+
+_`.req.map`: The *map* operation must arrange for a (previously
+reserved) range of address space to be mapped into main memory or swap
+space, so that addresses in the range can be read and written.
+
+_`.req.unmap`: The *unmap* operation should arrange for a previously
+mapped range of address space to no longer be mapped into main memory
+or swap space. (This is needed to support client programs on systems
+where main memory is scarce, and the client's subsystems need to
+co-operate in their use of main memory.)
+
+_`.req.bootstrap`: The virtual mapping module must be usable without
+allocating heap memory. (This is necessary for the VM arena to get off
+the ground.)
+
+_`.req.params`: The interface should make it possible for MPS to allow
+the client program to modify the behaviour of the virtual mapping
+implementation. (This is needed to implement the
+``MPS_KEY_VMW3_MEM_TOP_DOWN`` keyword argument, which allows a client
+program on Windows to tell the virtual mapping module to pass the
+``MEM_TOP_DOWN`` flag to ``VirtualAlloc()``.)
+
+
+Design
+------
+
+_`.sol.overhead`: To meet `.req.contiguous`_, `.req.align`_ and
+`.req.overhead`_, most VM implementations ask the operating system for
+``size + grainSize - pageSize`` bytes of address space. This ensures
+that wherever the operating system places the reserved address space,
+it contains a continguous region of ``size`` bytes aligned to a
+multiple of ``grainSize``. The overhead is thus ``grainSize -
+pageSize``, and in the common case where ``grainSize`` is equal to
+``pageSize``, this is zero.
+
+_`.sol.bootstrap`: To meet `.req.bootstrap`_, the interface provides
+the function ``VMCopy()``. This allows the initialization of a
+``VMChunk`` to proceed in four steps. First, allocate space for a
+temporary VM descriptor on the stack. Second, call ``VMInit()`` to
+reserve address space and initialize the temporary VM descriptor.
+Third, call ``VMMap()`` on the new VM to map enough memory to store a
+``VMChunkStruct``. Fourth, call ``VMCopy()`` to copy the temporary VM
+descriptor into its place in the ``VMChunkStruct``.
+
+_`.sol.params`: To meet `.req.params`_, the interface provides the
+function ``VMParamFromArgs()``, which decodes relevant keyword
+arguments into a temporary buffer provided by the caller; this buffer
+is then passed to ``VMInit()``. The size of the buffer must be
+statically determinable so that the caller can allocate it on the
+stack: it is given by the constant ``VMParamSize``. Since this is
+potentially platform-dependent it is defined in ``config.h``.
 
 
 Interface
 ---------
 
+``typedef VMStruct *VM``
+
+_`.if.vm`: ``VM`` is a descriptor for a reserved chunk of address
+space. It points to a ``VMStruct`` structure, which is defined in
+``vm.h`` so that it can be inlined in the ``VMChunkStruct`` by the VM
+arena class.
+
 ``Size PageSize(void)``
 
-_`.if.page.size`: Return the operating system's "page size", that is,
-the granularity with which the operating system can map and unmap
-virtual memory. For speed (on systems like Windows where determining
-the page size involves a system call), this is cached in each VM
-descriptor and accessible via the ``VMPageSize()`` function.
+_`.if.page.size`: Return the "page size": that is, the granularity
+with which the operating system can reserve and map address space.
+
+_`.if.page.size.cache`: On some systems (for example, Windows),
+determining the page size requires a system call, so for speed the
+page size is cached in each VM descriptor and should be retrieved by
+calling the ``VMPageSize()`` function.
 
 ``Res VMParamFromArgs(void *params, size_t paramSize, ArgList args)``
 
-_`.if.param.from.args`: This function processes the keyword arguments
-(the ones that are relevant to the VM implementation) in the ``args``
-parameter and stores a description of them in the buffer pointed to by
-``params`` (which is ``paramSize`` bytes long). It is an error if the
-buffer is not big enough store the parameters for this VM
+_`.if.param.from.args`: Decode the relevant keyword arguments in the
+``args`` parameter, and store a description of them in the buffer
+pointed to by ``params`` (which is ``paramSize`` bytes long). It is an
+error if the buffer is not big enough store the parameters for the VM
 implementation.
 
 ``Res VMInit(VM vm, Size size, Size grainSize, void *params)``
 
-_`.if.init`: ``VMInit()`` is responsible for reserving an amount
-of virtual address space. The ``params`` argument points to a
-parameter block initialized by a call to ``VMParamFromArgs()``. If
-successful, the VM descriptor given by the parameter ``vm`` is
-updated to describe the address space, and ``ResOK`` is returned. The
-created VM has at least ``size`` bytes of virtual memory reserved
-starting at an address which is a multiple of ``grainSize``.
-
-If there's not enough address space to reserve a block of the given
-size, ``ResRESOURCE`` is returned. The reserved virtual memory can be
-mapped and unmapped by calling ``VMMap()`` and ``VMUnmap()``.
+_`.if.init`: Reserve a chunk of address space that contains at least
+``size`` addresses, starting at an address which is a multiple of
+``grainSize``. The ``params`` argument points to a parameter block
+that was initialized by a call to ``VMParamFromArgs()``. If
+successful, update ``vm`` to describe the reserved chunk, and
+return ``ResOK``. Otherwise, return ``ResRESOURCE``.
 
 ``void VMFinish(VM vm)``
 
-_`.if.finish`: A VM is destroyed by calling ``VMFinish()``. Any
-address space that was mapped through this VM is unmapped.
+_`.if.finish`: Release the chunk of address space described by ``vm``.
+Any addresses that were mapped through this VM are now unmapped.
 
 ``Res VMMap(VM vm, Addr base, Addr limit)``
 
 _`.if.map`: Map the range of addresses from ``base`` (inclusive) to
-``limit`` (exclusive) into memory. It is an error if the range does
-not lie between ``VMBase(vm)`` and ``VMLimit(vm)``, or if ``base`` and
-``limit`` are not multiples of ``VMPageSize(vm)``. Return ``ResOK``
-if successful, ``ResMEMORY`` if not.
+``limit`` (exclusive) into main memory. It is an error if the range
+does not lie between ``VMBase(vm)`` and ``VMLimit(vm)``, or if
+``base`` and ``limit`` are not multiples of ``VMPageSize(vm)``. Return
+``ResOK`` if successful, ``ResMEMORY`` otherwise.
 
 ``void VMUnmap(VM vm, Addr base, Addr limit)``
 
@@ -137,22 +205,26 @@ last grain that is wholly inside the VM).
 
 ``Size VMReserved(VM vm)``
 
-_`.if.reserved`: Return the total number of bytes of address space
-reserved by the VM. (This may include addresses that are not available
+_`.if.reserved`: Return the amount of address space (in bytes)
+reserved by the VM. This may include addresses that are not available
 for mapping because of the requirement for ``VMBase(vm)`` and
-``VMLimit(vm)`` to be multiples of the grain size.)
+``VMLimit(vm)`` to be multiples of the grain size.
 
 ``Size VMMapped(VM vm)``
 
-_`.if.mapped`: Return the total number of bytes of address space
-currently mapped into memory by the VM.
+_`.if.mapped`: Return the amount of address space (in bytes) currently
+mapped into memory by the VM.
+
+``void VMCopy(VM dest, VM src)``
+
+_`.if.copy`: Copy the VM descriptor from ``src`` to ``dest``.
 
 
-Notes
------
+Testing
+-------
 
-_`.testing`: It is important to test that a VM implementation will
-work in extreme cases.
+_`.testing`: It is important to test that a VM implementation works in
+extreme cases.
 
 _`.testing.large`: It must be able to reserve a large address space.
 Clients will want multi-GB spaces, more than that OSs will allow. If
@@ -160,7 +232,7 @@ they ask for too much, ``mps_arena_create()`` (and hence
 ``VMInit()``) must fail in a predictable way.
 
 _`.testing.larger`: It must be possible to allocate in a large space;
-sometimes commiting will fail, because there's not enough space to
+sometimes committing will fail, because there's not enough space to
 replace the "reserve" mapping. See request.epcore.160201_ for details.
 
 .. _request.epcore.160201: https://info.ravenbrook.com/project/mps/import/2001-11-05/mmprevol/request/epcore/160201
@@ -183,6 +255,8 @@ Document History
 - 2013-05-23 GDR_ Converted to reStructuredText.
 
 - 2014-06-16 GDR_ Document the whole interface.
+
+- 2014-10-22 GDR_ Refactor module description into requirements.
 
 .. _RB: http://www.ravenbrook.com/consultants/rb/
 .. _GDR: http://www.ravenbrook.com/consultants/gdr/
