@@ -1,3 +1,8 @@
+2014-10-22  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* xdisp.c (draw_glyphs): Set clipping to highlight boundaries.
+	[Backport]
+
 2014-10-20  Glenn Morris  <rgm@gnu.org>
 
 	* minibuf.c (history-length): Increase default from 30 to 100.
