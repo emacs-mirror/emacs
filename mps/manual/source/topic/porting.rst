@@ -12,8 +12,8 @@ chapter.
 Platform code
 -------------
 
-Pick two-character codes for your operating system, processor
-architecture, and compiler toolchain, as described under
+Pick two-character codes for the new platform's operating system,
+processor architecture, and compiler toolchain, as described under
 :ref:`topic-platform`, and concatenate them to get a six-character
 platform code "``osarct``".
 
@@ -22,13 +22,14 @@ Functional modules
 ------------------
 
 The MPS requires platform-specific implementations of the functional
-modules in the list below. You'll probably find that you don't need to
-port them all: unless your platform is very exotic, some of the
+modules in the list below. You'll probably find that it's unnecessary
+to port them all: unless the new platform is very exotic, some of the
 existing implementations ought to be usable. In most cases there is an
-"ANSI" implementation of the module, that uses only the features of
-the Standard C Library. These "ANSI" implementations are partially
-functional or non-functional, but can be used as a starting point for
-a new port if none of the existing implementations is usable.
+generic ("ANSI") implementation of the module, that uses only the
+features of the Standard C Library. These generic implementations are
+partially functional or non-functional, but can be used as a starting
+point for a new port if none of the existing implementations is
+usable.
 
 #. The **lock** module provides binary locks that ensure that only a
    single :term:`thread` may be running with a lock held, and
@@ -38,7 +39,7 @@ a new port if none of the existing implementations is usable.
    See :ref:`design-lock` for the design, and ``lock.h`` for the
    interface. There are implementations for Linux in ``lockli.c``,
    POSIX in ``lockix.c``, and Windows in ``lockw3.c``. There is an
-   "ANSI" implementation in ``lockan.c``, which cannot actually take
+   generic implementation in ``lockan.c``, which cannot actually take
    any locks and so only works for a single thread.
 
 #. The **threads** module suspends and resumes :term:`threads`, so
@@ -47,7 +48,7 @@ a new port if none of the existing implementations is usable.
    See :ref:`design-thread-manager` for the design, and ``th.h`` for
    the interface. There are implementations for POSIX in ``thix.c``
    plus ``pthrdext.c``, OS X using Mach in ``thxc.c``, Windows in
-   ``thw3.c``. There is an "ANSI" implementation in ``than.c``, which
+   ``thw3.c``. There is an generic implementation in ``than.c``, which
    necessarily only supports a single thread.
 
 #. The **virtual mapping** module reserves :term:`address space` from
@@ -56,7 +57,7 @@ a new port if none of the existing implementations is usable.
 
    See :ref:`design-vm` for the design, and ``vm.h`` for the
    interface. There are implementations for POSIX in ``vmix.c``, and
-   Windows in ``vmw3.c``. There is an "ANSI" implementation in
+   Windows in ``vmw3.c``. There is an generic implementation in
    ``vman.c``, which fakes virtual memory by calling ``malloc``.
 
 #. The **memory protection** module applies :term:`protection` to
@@ -67,7 +68,7 @@ a new port if none of the existing implementations is usable.
    See :ref:`design-prot` for the design, and ``prot.h`` for the
    interface. There are implementations for POSIX in ``protix.c`` plus
    ``protsgix.c``, Linux in ``protli.c``, Windows in ``protw3.c``, and
-   OS X using Mach in ``protxc.c``. There is an "ANSI" implementation
+   OS X using Mach in ``protxc.c``. There is an generic implementation
    in ``protan.c``, which can't provide memory protection, so it
    forces memory to be scanned until that there is no further need to
    protect it.
@@ -79,7 +80,7 @@ a new port if none of the existing implementations is usable.
 
    See :ref:`design-prot` for the design, and ``prot.h`` for the
    interface. There are eight implementations, a typical example being
-   ``prmci3w3.c`` for Windows on IA-32. There is an "ANSI"
+   ``prmci3w3.c`` for Windows on IA-32. There is an generic
    implementation in ``prmcan.c``, which can't provide this feature.
 
 #. The **stack probe** module checks that there is enough space on the
@@ -89,8 +90,8 @@ a new port if none of the existing implementations is usable.
 
    See ``sp.h`` for the interface. There are implementations on
    Windows on IA-32 in ``spi3w3.c`` and x86-64 in ``spi6w3.c``. There
-   is an "ANSI" implementation in ``span.c``, which can't provide this
-   feature.
+   is an generic implementation in ``span.c``, which can't provide
+   this feature.
 
 #. The **stack and register scanning** module :term:`scans` the
    :term:`registers` and :term:`control stack` of a thread.
@@ -99,7 +100,7 @@ a new port if none of the existing implementations is usable.
    the interface. There are implementations for POSIX on IA-32 in
    ``ssixi3.c`` and x86-64 in ``ssixi6.c``, and for Windows with
    Microsoft Visual C/C++ on IA-32 in ``ssw3i3mv.c`` and x86-64 in
-   ``ssw3i6mv.c``. There is an "ANSI" implementation in ``ssan.c``,
+   ``ssw3i6mv.c``. There is an generic implementation in ``ssan.c``,
    which calls ``setjmp`` to spill the registers.
 
 
@@ -218,12 +219,27 @@ the same compilation unit. These steps would be more complicated
 if the MPS required particular compilation options.
 
 
-Test
-----
+Porting strategy
+----------------
 
-Check that the "smoke tests" pass on your platform::
+Start the port by selecting existing implementations of the functional
+modules, using the generic implementations where nothing else will do.
+Then check that the "smoke tests" pass, by running::
 
     make -f osarct.gmk testrun
+
+Most or all of the test cases should pass at this point (if you're
+using the generic threading implementation then the multi-threaded
+test cases ``amcssth`` and ``awlutth`` are expected to fail; and if
+you're using the generic lock implementation then the lock utilization
+test case ``lockut`` is expected to fail). However, performance will
+be very poor if you're using the generic memory protection module.
+
+Now that you have a working system to build on, porting the necessary
+modules to the new platform can be done incrementally. Measure the
+performance as you go along (for example, using the ``gcbench``
+benchmark) to check that the new memory protection module is
+effective.
 
 
 Update the documentation
@@ -233,7 +249,7 @@ The following sections of the manual need to be updated to mention the
 new platform:
 
 - :ref:`guide-build`
-- :ref:`topic-platforms`
+- :ref:`topic-platform`
 
 In addition, if aspects of the port were especially tricky, then
 consider writing a design document (see :ref:`design`) justifying the
