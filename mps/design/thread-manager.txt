@@ -9,60 +9,95 @@ Thread manager
 :Status: incomplete design
 :Revision: $Id$
 :Copyright: See `Copyright and License`_.
-:Index terms:   pair: thread manager; design
+:Index terms: pair: thread manager; design
 
 
-Purpose
--------
+Introduction
+------------
 
-The Thread Manager handles various thread-related functions required
-by the MPS. These are:
+_`.intro`: This document describes the design of the thread manager
+module.
 
-- stack scanning;
-- suspension and resumption of the mutator threads.
+_`.readership`: Any MPS developer.
 
-
-Context
--------
-
-The barrier requires suspension and resumption of threads in order to
-ensure that the collector has exclusive access to part of memory.
-[design.mps.barrier.@@@@]
-
-Stack scanning is provided as a service to the client. [Link?@@@@]
+_`.overview`: The thread manager implements two features that allow
+the MPS to work in a multi-threaded environment: exclusive access to
+memory, and scanning of roots in a thread's registers and control
+stack.
 
 
-Overview
---------
+Requirements
+------------
+
+_`.req.exclusive`: The thread manager must provide the MPS with
+exclusive access to the memory it manages in critical sections of the
+code. (This is necessary to avoid for the MPS to be able to flip
+atomically from the point of view of the mutator.)
+
+_`.req.scan`: The thread manager must be able to locate references in
+the registers and control stack of the current thread, or of a
+suspended thread. (This is necessary in order to implement
+conservative collection, in environments where the registers and
+control stack contain ambiguous roots. Scanning of roots is carried
+out during the flip, hence while other threads are suspended.)
+
+_`.req.register.multi`: It must be possible to register the same
+thread multiple times. (This is needed to support the situation where
+a program that does not use the MPS is calling into MPS-using code
+from multiple threads. On entry to the MPS-using code, the thread can
+be registered, but it may not be possible to ensure that the thread is
+deregistered on exit, because control may be transferred by some
+non-local mechanism such as an exception or ``longjmp()``. We don't
+want to insist that the client program keep a table of threads it has
+registered, because maintaining the table might require allocation,
+which might provoke a collection. See request.dylan.160252_.)
+
+.. _request.dylan.160252: https://info.ravenbrook.com/project/mps/import/2001-11-05/mmprevol/request/dylan/160252/
+
+
+Design
+------
+
+_`.sol.exclusive`: In order to meet `.req.exclusive`_, the arena
+maintains a ring of threads (in ``arena->threadRing``) that have been
+registered by the client program. When the MPS needs exclusive access
+to memory, it suspends all the threads in the ring except for the
+currently running thread. When the MPS no longer needs exclusive
+access to memory, it resumes all threads in the ring.
+
+_`.sol.exclusive.assumption`: This relies on the assumption that any
+thread that might refer to, read from, or write to memory in
+automatically managed pool classes is registered with the MPS. This is
+documented in the manual under ``mps_thread_reg()``.
+
+
+Interface
+---------
 
 ``typedef struct mps_thr_s *Thread``
 
-Each thread is represented by an object of type ``Thread``. The
-``Thread`` type is implemented as an ADT. A list of ``Thread`` objects
-is maintained in the arena (as the ``Ring`` structure
-``arena->threadRing``). The ``Thread`` object contains
-operating-system-dependent information about the thread -- information
-necessary for manipulating the thread and for scanning the thread
-context. Thread "registration" adds or removes the current thread to
-the ``Thread`` list in the arena.
+The type of threads. It is a pointer to an opaque structure, which
+must be defined by the implementation.
 
+``Bool ThreadCheck(Thread thread)``
 
-Detailed design
----------------
+The check function for threads. See design.mps.check_.
 
-Stack scan
-..........
+.. _design.mps.check: check
 
-This is a module providing a stack scanning function. The scanning is
-architecture and operating system dependent. Typically the function
-will push the subste of the save registers (those preserved across
-function calls) which may contain pointers (that is, neither
-floating-point or debugging registers) and call ``TraceScanStack()``
-on the appropriate range.
+``Bool ThreadCheckSimple(Thread thread)``
 
+A thread-safe check function for threads, for use by
+``mps_thread_dereg()``. It can't use ``AVER(TESTT(Thread, thread))``,
+as recommended by design.mps.sig.check.arg.unlocked_, since ``Thread``
+is an opaque type.
 
-Thread interface
-................
+.. _design.mps.sig.check.arg.unlocked: sig#check.arg.unlocked
+
+``Arena ThreadArena(Thread thread)``
+
+Return the arena that the thread is registered with. Must be
+thread-safe as it is necessarily called before taking the arena lock.
 
 ``Res ThreadRegister(Thread *threadReturn, Arena arena)``
 
@@ -76,84 +111,161 @@ free it.
 
 ``void ThreadRingSuspend(Ring threadRing)``
 
-Suspend all the threads on the list ``threadRing``, except for the
-current thread.
+Suspend all the threads on ``threadRing``, except for the current
+thread.
 
 ``void ThreadRingResume(Ring threadRing)``
 
-Resume all the threads on the list ``threadRing``.
+Resume all the threads on ``threadRing``.
+
+``Thread ThreadRingThread(Ring threadRing)``
+
+Return the thread that owns an element of the thread ring.
 
 ``Res ThreadScan(ScanState ss, Thread thread, void *stackBot)``
 
 Scan the stacks and root registers of ``thread``, treating each value
-found as an ambiguous reference. The exact definition is operating
-system and architecture dependent
+found as an ambiguous reference.
 
 
-Single-threaded generic implementation
-......................................
+Implementations
+---------------
 
-In ``than.c``.
+Generic implementation
+......................
 
-- Single threaded (calling ``ThreadRegister()`` on a second thread
-  causes an assertion failure).
-- ``ThreadRingSuspend()`` and ``ThreadRingResume()`` do nothing
-  because there are no other threads.
-- ``ThreadScan()`` calls ``StackScan()``.
+_`.impl.an`: In ``than.c``.
+
+_`.impl.an.single`: Supports a single thread. (This cannot be enforced
+because of `.req.register.multi`_.)
+
+_`.impl.an.register.multi`: There is no need for any special treatment
+of multiple threads, because ``ThreadRingSuspend()`` and
+``ThreadRingResume()`` do nothing.
+
+_`.impl.an.suspend`: ``ThreadRingSuspend()`` does nothing because
+there are no other threads.
+
+_`.impl.an.resume`: ``ThreadRingResume()`` does nothing because no
+threads are ever suspended.
+
+_`.impl.an.scan`: Just calls ``StackScan()`` since there are no
+suspended threads.
 
 
 POSIX threads implementation
 ............................
 
-In ``thix.c``. See design.mps.pthreadext_.
+_`.impl.ix`: In ``thix.c`` and ``pthrdext.c``. See
+design.mps.pthreadext_.
 
 .. _design.mps.pthreadext: pthreadext
 
+_`.impl.ix.multi`: Supports multiple threads.
 
-Win32 implementation
-....................
+_`.impl.ix.register`: ``ThreadRegister()`` records the thread id
+the current thread by calling ``pthread_self()``.
 
-In ``thw3.c``.
+_`.impl.ix.register.multi`: Multiply-registered threads are handled
+specially by the POSIX thread extensions. See
+design.mps.pthreadext.req.suspend.multiple_ and
+design.mps.pthreadext.req.resume.multiple_.
 
-- Supports multiple threads.
-- Structured exception style faults are expected.
-- ``ThreadRingSuspend()`` and ``ThreadRingResume()`` loop over threads
-  and call Win32 API functions ``SuspendThread()`` and
-  ``ResumeThread()``.
-- ``ThreadRegister()`` records information for the current thread:
+.. _design.mps.pthreadext.req.suspend.multiple: pthreadext#req.suspend.multiple
+.. _design.mps.pthreadext.req.resume.multiple: pthreadext#req.resume.multiple
 
-  - A Win32 "handle" with access flags ``THREAD_SUSPEND_RESUME`` and
-    ``THREAD_GET_CONTEXT``. This handle is needed as parameter to
-    ``SuspendThread()`` and ``ResumeThread()``.
-  - The Win32 ``GetCurrentThreadId()`` so that the current thread may
-    be identified.
+_`.impl.ix.suspend`: ``ThreadRingSuspend()`` calls
+``PThreadextSuspend()``. See design.mps.pthreadext.if.suspend_.
 
-- Stack scanning is Win32 specific:
+.. _design.mps.pthreadext.if.suspend: pthreadext#if.suspend
 
-  - ``ThreadScan()`` calls ``StackScan()`` if the thread is current.
-    ``GetThreadContext()`` doesn't work on the current thread (the
-    context would not necessarily have the values which were in the
-    saved registers on entry to the MM).
-  - Otherwise it calls ``GetThreadContext()`` to get the root
-    registers and the stack pointer.
-  - The thread's registers are dumped into a ``CONTEXT`` structure and
-    fixed in memory.
-  - Scan the stack (getting the stack pointer from ``CONTEXT.Rsp``).
+_`.impl.ix.resume`: ``ThreadRingResume()`` calls
+``PThreadextResume()``. See design.mps.pthreadext.if.resume_.
+
+.. _design.mps.pthreadext.if.resume: pthreadext#if.resume
+
+_`.impl.ix.scan.current`: ``ThreadScan()`` calls ``StackScan()`` if
+the thread is current.
+
+_`.impl.ix.scan.suspended`: ``PThreadextSuspend()`` records the
+context of each suspended thread, and ``ThreadRingSuspend()`` stores
+this in the ``Thread`` structure, so that is available by the time
+``ThreadScan()`` is called. The thread's registers are dumped into a
+``ucontext_t`` structure and fixed in memory. The stack pointer is
+obtained from ``ucontext_t.uc_mcontext.mc_esp`` (FreeBSD on IA-32),
+``uc_mcontext.gregs[REG_ESP]`` (Linux on IA-32),
+``ucontext_t.uc_mcontext.mc_rsp`` (FreeBSD on x86-64), or
+``uc_mcontext.gregs[REG_RSP]`` (Linux on x86-64).
 
 
-Issues
-------
+Windows implementation
+......................
 
-#. Scanning after exceptions. ``StackScan()`` relies on the
-   non-preserved registers having been pushed on the stack. If we want
-   to scan after a fault we must make sure that these registers are
-   either already stored on the stack, or, have an extra function to
-   do this explicitly.
+_`.impl.w3`: In ``thw3.c``.
 
-#. Multiple registration. It is not clear whether a thread should be
-   allowed to be registered multiple times. We do not provide a
-   mechanism for knowing whether a thread is already registered with
-   an arena.
+_`.impl.w3.multi`: Supports multiple threads.
+
+_`.impl.w3.register`: ``ThreadRegister()`` records the following
+information for the current thread:
+
+  - A ``HANDLE`` to the process, with access flags
+    ``THREAD_SUSPEND_RESUME`` and ``THREAD_GET_CONTEXT``. This handle
+    is needed as parameter to ``SuspendThread()`` and
+    ``ResumeThread()``.
+  - The result of ``GetCurrentThreadId()``, so that the current thread
+    may be identified in the ring of threads.
+
+_`.impl.w3.register.multi`: There is no need for any special treatment
+of multiple threads, because Windows maintains a suspend count that is
+incremented on ``SuspendThread()`` and decremented on
+``ResumeThread()``.
+
+_`.impl.w3.suspend`: ``ThreadRingSuspend()`` calls ``SuspendThread()``.
+
+_`.impl.w3.resume`: ``ThreadRingResume()`` calls ``ResumeThread()``.
+
+_`.impl.w3.scan.current`: ``ThreadScan()`` calls ``StackScan()`` if
+the thread is current. This is because ``GetThreadContext()`` doesn't
+work on the current thread: the context would not necessarily have the
+values which were in the saved registers on entry to the MPS.
+
+_`.impl.w3.scan.suspended`: Otherwise, ``ThreadScan()`` calls
+``GetThreadContext()`` to get the root registers and the stack
+pointer. The thread's registers are dumped into a ``CONTEXT``
+structure and fixed in memory. The stack pointer is obtained from
+``CONTEXT.Rsp`` (on IA-32) or ``CONTEXT.Rsp`` (on x86-64) and then the
+stack is scanned.
+
+
+OS X implementation
+...................
+
+_`.impl.xc`: In ``thxc.c``.
+
+_`.impl.xc.multi`: Supports multiple threads.
+
+_`.impl.xc.register`: ``ThreadRegister()`` records the Mach port of
+the current thread by calling ``mach_thread_self()``.
+
+_`.impl.xc.register.multi`: There is no need for any special treatment
+of multiple threads, because Mach maintains a suspend count that is
+incremented on ``thread_suspend()`` and decremented on
+``thread_resume()``.
+
+_`.impl.xc.suspend`: ``ThreadRingSuspend()`` calls
+``thread_suspend()``.
+
+_`.impl.xc.resume`: ``ThreadRingResume()`` calls ``thread_resume()``.
+
+_`.impl.xc.scan.current`: ``ThreadScan()`` calls ``StackScan()`` if
+the thread is current.
+
+_`.impl.xc.scan.suspended`: Otherwise, ``ThreadScan()`` calls
+``thread_get_state()`` to get the root registers and the stack
+pointer. The thread's registers are dumped into a ``THREAD_STATE_S``
+structure and fixed in memory. The stack pointer is obtained from
+``THREAD_STATE_S.__esp`` (on IA-32) or ``THREAD_STATE_S.__rsp`` (on
+x86-64) and then the stack is scanned.
 
 
 Document History
@@ -164,6 +276,8 @@ Document History
 - 2002-06-21 RB_ Converted from MMInfo database design document.
 
 - 2013-05-26 GDR_ Converted to reStructuredText.
+
+- 2014-10-22 GDR_ Complete design.
 
 .. _RB: http://www.ravenbrook.com/consultants/rb/
 .. _GDR: http://www.ravenbrook.com/consultants/gdr/

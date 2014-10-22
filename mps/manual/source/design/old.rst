@@ -56,7 +56,6 @@ Old design
     strategy
     telemetry
     tests
-    thread-manager
     thread-safety
     trace
     version-library
