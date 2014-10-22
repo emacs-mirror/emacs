@@ -1,3 +1,8 @@
+2014-10-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* configure.ac: Bump version to 24.4.51 to avoid ambiguity with the old
+	trunk's 24.4.50.
+
 2014-10-20  Glenn Morris  <rgm@gnu.org>
 
 	* Version 24.4 released.
