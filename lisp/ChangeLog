@@ -1,3 +1,10 @@
+2014-10-23  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/cfengine.el (cfengine3-defun-full-re): New var.
+	(cfengine3-create-imenu-index): Use it and use ` ' for separation.
+	(cfengine3-current-defun): New function.
+	(cfengine3-mode): Set add-log-current-defun-function.
+
 2014-10-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* select.el: Use lexical-binding.

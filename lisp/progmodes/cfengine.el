@@ -817,6 +817,12 @@ This includes those for cfservd as well as cfagent.")
   (defconst cfengine3-defuns-regex (regexp-opt cfengine3-defuns t)
     "Regex to match the CFEngine 3.x defuns.")
 
+  (defconst cfengine3-defun-full-re (concat "^\\s-*" cfengine3-defuns-regex
+                                            "\\s-+\\(\\(?:\\w\\|\\s_\\)+\\)" ;type
+                                            "\\s-+\\(\\(?:\\w\\|\\s_\\)+\\)" ;id
+                                            )
+    "Regexp matching full defun declaration (excluding argument list).")
+
   (defconst cfengine3-class-selector-regex "\\([[:alnum:]_().&|!:]+\\)::")
 
   (defconst cfengine3-category-regex "\\([[:alnum:]_]+\\):")
@@ -1299,18 +1305,24 @@ Use it by enabling `eldoc-mode'."
     ("::" . ?∷)))
 
 (defun cfengine3-create-imenu-index ()
-  "A function for `imenu-create-index-function'."
+  "A function for `imenu-create-index-function'.
+Note: defun name is separated by space such as `body
+package_method opencsw' and imenu will replace spaces according
+to `imenu-space-replacement' (which see)."
   (goto-char (point-min))
-  (let ((re (concat "^\\s-*" cfengine3-defuns-regex
-                    "\\s-+\\(\\(?:\\w\\|\\s_\\)+\\)" ;type
-                    "\\s-+\\(\\(?:\\w\\|\\s_\\)+\\)" ;id
-                    ))
-        (defuns ()))
-    (while (re-search-forward re nil t)
-      (push (cons (mapconcat #'match-string '(1 2 3) ".")
+  (let ((defuns ()))
+    (while (re-search-forward cfengine3-defun-full-re nil t)
+      (push (cons (mapconcat #'match-string '(1 2 3) " ")
                   (copy-marker (match-beginning 3)))
             defuns))
     (nreverse defuns)))
+
+(defun cfengine3-current-defun ()
+  "A function for `add-log-current-defun-function'."
+  (end-of-line)
+  (beginning-of-defun)
+  (and (looking-at cfengine3-defun-full-re)
+       (mapconcat #'match-string '(1 2 3) " ")))
 
 ;;;###autoload
 (define-derived-mode cfengine3-mode prog-mode "CFE3"
@@ -1347,7 +1359,8 @@ to the action header."
   (setq-local beginning-of-defun-function #'cfengine3-beginning-of-defun)
   (setq-local end-of-defun-function #'cfengine3-end-of-defun)
 
-  (setq-local imenu-create-index-function #'cfengine3-create-imenu-index))
+  (setq-local imenu-create-index-function #'cfengine3-create-imenu-index)
+  (setq-local add-log-current-defun-function #'cfengine3-current-defun))
 
 ;;;###autoload
 (define-derived-mode cfengine2-mode prog-mode "CFE2"
