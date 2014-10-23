@@ -981,6 +981,7 @@ info_dir_deps = ${srcdir}/build-aux/dir_top \
 ## but then we would need to depend on info-real, which would
 ## slow down parallelization.
 ${srcdir}/info/dir: ${info_dir_deps}
+	${MKDIR_P} ${srcdir}/info
 	tempfile=info-dir.$$$$; \
 	rm -f $${tempfile}; \
 	thisdir=`pwd`; \
