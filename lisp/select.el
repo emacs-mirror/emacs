@@ -1,4 +1,4 @@
-;;; select.el --- lisp portion of standard selection support
+;;; select.el --- lisp portion of standard selection support  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1993-1994, 2001-2014 Free Software Foundation, Inc.
 
@@ -255,7 +255,7 @@ SELECTION-SYMBOL is typically `PRIMARY', `SECONDARY', or `CLIPBOARD'.
 \(Those are literal upper-case symbol names, since that's what X expects.)
 TARGET-TYPE is the type of data desired, typically `STRING'.")
 
-(gui-method-declare gui-set-selection nil
+(gui-method-declare gui-set-selection #'ignore
   "Method to assert a selection of type SELECTION and value VALUE.
 SELECTION is a symbol, typically `PRIMARY', `SECONDARY', or `CLIPBOARD'.
 If VALUE is nil and we own the selection SELECTION, disown it instead.

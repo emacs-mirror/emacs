@@ -1,4 +1,4 @@
-;;; pc-win.el --- setup support for `PC windows' (whatever that is)
+;;; pc-win.el --- setup support for `PC windows' (whatever that is)  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1994, 1996-1997, 1999, 2001-2014 Free Software
 ;; Foundation, Inc.
@@ -45,20 +45,20 @@
 (declare-function w16-get-clipboard-data "w16select.c")
 (declare-function msdos-setup-keyboard "internal" (frame))
 
-;;; This was copied from etc/rgb.txt, except that some values were changed
-;;; a bit to make them consistent with DOS console colors, and the RGB
-;;; values were scaled up to 16 bits, as `tty-define-color' requires.
+;; This was copied from etc/rgb.txt, except that some values were changed
+;; a bit to make them consistent with DOS console colors, and the RGB
+;; values were scaled up to 16 bits, as `tty-define-color' requires.
 ;;;
-;;; The mapping between the 16 standard EGA/VGA colors and X color names
-;;; was done by running a Unix version of Emacs inside an X client and a
-;;; DJGPP-compiled Emacs on the same PC.  The names of X colors used to
-;;; define the pixel values are shown as comments to each color below.
+;; The mapping between the 16 standard EGA/VGA colors and X color names
+;; was done by running a Unix version of Emacs inside an X client and a
+;; DJGPP-compiled Emacs on the same PC.  The names of X colors used to
+;; define the pixel values are shown as comments to each color below.
 ;;;
-;;; If you want to change the RGB values, keep in mind that various pieces
-;;; of Emacs think that a color whose RGB values add up to less than 0.6 of
-;;; the values for WHITE (i.e. less than 117963) are ``dark'', otherwise the
-;;; color is ``light''; see `frame-set-background-mode' in lisp/faces.el for
-;;; an example.
+;; If you want to change the RGB values, keep in mind that various pieces
+;; of Emacs think that a color whose RGB values add up to less than 0.6 of
+;; the values for WHITE (i.e. less than 117963) are ``dark'', otherwise the
+;; color is ``light''; see `frame-set-background-mode' in lisp/faces.el for
+;; an example.
 (defvar msdos-color-values
   '(("black"          0     0     0     0)
     ("blue"           1     0     0 52480) ; MediumBlue
@@ -226,15 +226,17 @@ Consult the selection.  Treat empty strings as if they were unset."
   (with-demoted-errors "w16-get-clipboard-data:%s"
     (w16-get-clipboard-data)))
 
+(declare-function w16-selection-exists-p "w16select.c")
 ;; gui-selection-owner-p is used in simple.el.
 (gui-method-define gui-selection-exists-p pc #'w16-selection-exists-p)
 (gui-method-define gui-selection-owner-p pc #'w16-selection-owner-p)
+
 (defun w16-selection-owner-p (_selection)
-  ;; FIXME: Other systems don't obey gui-select-enable-clipboard here.
-  (if gui-select-enable-clipboard
+  ;; FIXME: Other systems don't obey select-enable-clipboard here.
+  (if select-enable-clipboard
       (let ((text
              ;; Don't die if w16-get-clipboard-data signals an error.
-             (ignore-errors
+             (with-demoted-errors "w16-get-clipboard-data: %S"
                (w16-get-clipboard-data))))
         ;; We consider ourselves the owner of the selection
         ;; if it does not exist, or exists and compares
@@ -242,9 +244,7 @@ Consult the selection.  Treat empty strings as if they were unset."
         ;; Windows clipboard.
         (cond
          ((not text) t)
-         ((or (eq text gui-last-selected-text)
-              (string= text gui-last-selected-text))
-          text)
+         ((equal text gui--last-selected-text-clipboard) text)
          (t nil)))))
 
 ;; gui-set-selection is used in gui-set-selection.

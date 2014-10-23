@@ -616,7 +616,7 @@
 	* gnus-icalendar.el (gnus-icalendar-event:org-timestamp):
 	Fix org-timestamp for events ending at midnight.
 
-2013-11-21  Ivan Shmakov  <ivan@siamics.net>  (tiny change)
+2013-11-21  Ivan Shmakov  <ivan@siamics.net>
 
 	* nndoc.el (nndoc-type-alist, nndoc-debbugs-db-type-p):
 	Support debbugs .log files.

@@ -1,3 +1,20 @@
+2014-10-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* select.el: Use lexical-binding.
+	(gui-set-selection): Provide an implementation for non-GUI frames
+	(bug#18791).
+	* term/x-win.el: Use lexical-binding.
+	(x-clipboard-yank): Fix up missed renamings.
+	* term/w32-win.el (libgif-version, libjpeg-version): Silence compiler.
+	(w32--set-selection): Fix up var names.
+	* term/pc-win.el: Use lexical-binding.
+	(w16-selection-exists-p): Silence compiler warning.
+	(w16-selection-owner-p): Fix up missed renamings.
+
+	* emacs-lisp/bytecomp.el (byte-compile-form): Remove left-over debug.
+
+	* frame.el (frame-notice-user-settings): Fix excessive quoting.
+
 2014-10-22  Tassilo Horn  <tsdh@gnu.org>
 
 	* doc-view.el (doc-view-open-text): View the document's plain text

@@ -211,6 +211,8 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 
 (defvar dynamic-library-alist)
 (defvar libpng-version)                 ; image.c #ifdef HAVE_NTGUI
+(defvar libgif-version)
+(defvar libjpeg-version)
 
 ;;; Set default known names for external libraries
 (setq dynamic-library-alist
@@ -381,12 +383,13 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 (declare-function w32-set-clipboard-data "w32select.c"
 		  (string &optional ignored))
 (declare-function w32-get-clipboard-data "w32select.c")
+(declare-function w32-selection-exists-p "w32select.c")
 
 ;;; Fix interface to (X-specific) mouse.el
 (defun w32--set-selection (type value)
   (if (eq type 'CLIPBOARD)
-      (w32-set-clipboard-data text)
-    (put 'x-selections (or type 'PRIMARY) data)))
+      (w32-set-clipboard-data value)
+    (put 'x-selections (or type 'PRIMARY) value)))
 
 (defun w32--get-selection  (&optional type data-type)
   (if (and (eq type 'CLIPBOARD)

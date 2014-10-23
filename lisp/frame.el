@@ -305,7 +305,7 @@ there (in decreasing order of priority)."
 				     frame-initial-frame-tool-bar-height)))
 			(t (+ top frame-initial-frame-tool-bar-height)))))
 		  (modify-frame-parameters
-		   frame-initial-frame '((top . adjusted-top))))))
+		   frame-initial-frame `((top . ,adjusted-top))))))
 	    (tool-bar-mode -1))))
 
       ;; The initial frame we create above always has a minibuffer.

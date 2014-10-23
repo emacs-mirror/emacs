@@ -6680,7 +6680,7 @@
 	(org-mew-open-by-message-id, org-mew-search, org-mew-capture)
 	(org-mew-capture-guess-selection-keys): New functions.
 
-2013-11-12  Trevor Murphy  <trevor.m.murphy@gmail.com>  (tiny change)
+2013-11-12  Trevor Murphy  <trevor.m.murphy@gmail.com>
 
 	* org.el (org-get-compact-tod): Always pad minutes to two places.
 

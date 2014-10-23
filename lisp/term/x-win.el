@@ -1,4 +1,4 @@
-;;; x-win.el --- parse relevant switches and set up for X  -*-coding: iso-2022-7bit;-*-
+;;; x-win.el --- parse relevant switches and set up for X  -*-coding: iso-2022-7bit; lexical-binding:t -*-
 
 ;; Copyright (C) 1993-1994, 2001-2014 Free Software Foundation, Inc.
 
@@ -1163,8 +1163,8 @@ as returned by `x-server-vendor'."
   "Insert the clipboard contents, or the last stretch of killed text."
   (declare (obsolete clipboard-yank "25.1"))
   (interactive "*")
-  (let ((clipboard-text (x-selection-value-internal 'CLIPBOARD))
-	(x-select-enable-clipboard t))
+  (let ((clipboard-text (gui--selection-value-internal 'CLIPBOARD))
+	(select-enable-clipboard t))
     (if (and clipboard-text (> (length clipboard-text) 0))
 	(kill-new clipboard-text))
     (yank)))
