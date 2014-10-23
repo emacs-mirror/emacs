@@ -21,6 +21,7 @@ Design
     lock
     nailboard
     prmc
+    prot
     range
     ring
     sp
