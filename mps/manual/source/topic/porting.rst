@@ -60,7 +60,7 @@ usable.
    See :ref:`design-vm` for the design, and ``vm.h`` for the
    interface. There are implementations for POSIX in ``vmix.c``, and
    Windows in ``vmw3.c``. There is a generic implementation in
-   ``vman.c``, which fakes virtual memory by calling ``malloc``.
+   ``vman.c``, which fakes virtual memory by calling :c:func:`malloc`.
 
 #. The **memory protection** module applies :term:`protection` to
    areas of :term:`memory (2)`, ensuring that attempts to read or
@@ -99,12 +99,12 @@ usable.
 #. The **stack and register scanning** module :term:`scans` the
    :term:`registers` and :term:`control stack` of a thread.
 
-   See :ref:`design-thread-manager` for the design, and ``ss.h`` for
-   the interface. There are implementations for POSIX on IA-32 in
+   See :ref:`design-ss` for the design, and ``ss.h`` for the
+   interface. There are implementations for POSIX on IA-32 in
    ``ssixi3.c`` and x86-64 in ``ssixi6.c``, and for Windows with
    Microsoft Visual C/C++ on IA-32 in ``ssw3i3mv.c`` and x86-64 in
    ``ssw3i6mv.c``. There is a generic implementation in ``ssan.c``,
-   which calls ``setjmp`` to spill the registers.
+   which calls :c:func:`setjmp` to spill the registers.
 
 
 Platform detection

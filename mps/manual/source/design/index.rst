@@ -25,6 +25,7 @@ Design
     ring
     sig
     splay
+    ss
     testthr
     thread-manager
     type
