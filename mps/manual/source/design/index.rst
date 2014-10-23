@@ -20,6 +20,7 @@ Design
     land
     lock
     nailboard
+    prmc
     range
     ring
     sig
