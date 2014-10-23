@@ -108,7 +108,6 @@ type_                   General MPS types
 version-library_        Library version mechanism
 version_                Software versions
 vm_                     Virtual mapping
-vman_                   Generic virtual mapping
 vmo1_                   VM Module on DEC Unix
 vmso_                   VM Design for Solaris
 writef_                 The WriteF function 
@@ -175,6 +174,7 @@ writef_                 The WriteF function
 .. _strategy: strategy
 .. _telemetry: telemetry
 .. _tests: tests
+.. _testthr: testthr
 .. _thread-manager: thread-manager
 .. _thread-safety: thread-safety
 .. _trace: trace
