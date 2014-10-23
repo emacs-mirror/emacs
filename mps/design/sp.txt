@@ -1,0 +1,173 @@
+.. mode: -*- rst -*-
+
+Stack probe
+===========
+
+:Tag: design.mps.sp
+:Author: Gareth Rees
+:Date: 2014-10-23
+:Status: complete design
+:Revision: $Id: //info.ravenbrook.com/project/mps/master/design/thread-manager.txt#7 $
+:Copyright: See `Copyright and License`_.
+:Index terms: pair: stack probe; design
+
+
+Introduction
+------------
+
+_`.intro`: This document describes the design of the stack probe
+module.
+
+_`.readership`: Any MPS developer.
+
+_`.overview`: This module ensures that the stack cannot overflow while
+the MPS is holding a lock.
+
+
+Requirements
+------------
+
+_`.req.complete`: When the MPS takes a lock, it must be able to
+complete the operation and release the lock without running out of
+stack. (This is because running out of stack would cause a protection
+fault, which would enter the MPS recursively, which would fail because
+the lock is held.)
+
+
+Design
+------
+
+_`.sol.probe`: Before taking the arena lock in ``ArenaEnterLock()``,
+the MPS *probes* the stack: that is, it checks whether there are at
+least ``StackProbeDEPTH`` words available, and provokes a stack
+overflow fault if there are not. (This ensures that the fault occurs
+outside of the arena lock where it can be handled safely.)
+
+_`.sol.depth`: The configuration parameter ``StackProbeDEPTH``
+specifies the maximum number of words of stack that the MPS might use.
+(It is simpler, faster, and more reliable, to determine this globally
+than to try to figure it out dynamically.)
+
+_`.sol.depth.constraint`: Operating systems typically use a single
+"guard page" to detect stack overflow and grow the stack. (See for
+example the documentation for Windows_.) This means that the probe
+will be ineffective if it skips over the guard page into the memory
+beyond. If ``StackProbeDEPTH`` is greater than or equal to the page
+size, the implementation needs to carry out multiple probes.
+
+.. _Windows: http://support.microsoft.com/kb/100775
+
+_`.sol.no-recursion`: In order to implement this design, the MPS must
+have constant bounded stack depth, and therefore, no recursion.
+
+
+Interface
+---------
+
+``void StackProbe(Size depth)``
+
+_`.if.probe`: If there are at least ``depth`` words of stack
+available, return. If not, provoke a stack overflow fault.
+
+
+Issues
+------
+
+_`.issue.an`: The generic implementation is non-functional and so does
+not meet `.req.complete`_.
+
+_`.issue.depth`: The value for ``StackProbeDEPTH`` is just a guess:
+there is no assurance that it is correct. See job003639_.
+
+.. _job003639: http://www.ravenbrook.com/project/mps/issue/job003639/
+
+_`.issue.depth.constraint`: None of the implementations take account
+of `.sol.depth.constraint`_. (This is harmless for now as
+``StackProbeDEPTH`` is smaller than the page size on all supported
+platforms.)
+
+
+Implementations
+---------------
+
+Generic implementation
+......................
+
+_`.impl.an`: In ``span.c``.
+
+_`.impl.an.probe`: This implementation does nothing. See `.issue.an`_.
+
+
+Windows implementation on IA-32
+...............................
+
+_`.impl.w3i3`: In ``spw3i3.c``.
+
+_`.impl.w3i3.probe`: This uses assembly to get the stack pointer (from
+the ESP register) and to read the location ``depth`` words below the
+stack pointer.
+
+
+Windows implementation on x86-64
+................................
+
+_`.impl.w3i6`: In ``spw3i6.c``.
+
+_`.impl.w3i6.probe`: This passes the argument ``depth*sizeof(Word)``
+to the Windows function |alloca|_, for which the documentation says,
+"A stack overflow exception is generated if the space cannot be
+allocated."
+
+.. |alloca| replace:: ``_alloca()``
+.. _alloca: http://msdn.microsoft.com/en-us/library/wb1s57t5.aspx
+
+
+Document History
+----------------
+
+- 2014-10-23 GDR_ Initial draft.
+
+.. _GDR: http://www.ravenbrook.com/consultants/gdr/
+
+
+Copyright and License
+---------------------
+
+Copyright © 2014 Ravenbrook Limited. All rights reserved.
+<http://www.ravenbrook.com/>. This is an open source license. Contact
+Ravenbrook for commercial licensing options.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+#. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+#. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+
+#. Redistributions in any form must be accompanied by information on how
+   to obtain complete source code for this software and any
+   accompanying software that uses this software.  The source code must
+   either be included in the distribution or be available for no more than
+   the cost of distribution plus a nominal fee, and must be freely
+   redistributable under reasonable conditions.  For an executable file,
+   complete source code means the source code for all modules it contains.
+   It does not include source code for modules or files that typically
+   accompany the major components of the operating system on which the
+   executable file runs.
+
+**This software is provided by the copyright holders and contributors
+"as is" and any express or implied warranties, including, but not
+limited to, the implied warranties of merchantability, fitness for a
+particular purpose, or non-infringement, are disclaimed.  In no event
+shall the copyright holders and contributors be liable for any direct,
+indirect, incidental, special, exemplary, or consequential damages
+(including, but not limited to, procurement of substitute goods or
+services; loss of use, data, or profits; or business interruption)
+however caused and on any theory of liability, whether in contract,
+strict liability, or tort (including negligence or otherwise) arising in
+any way out of the use of this software, even if advised of the
+possibility of such damage.**
