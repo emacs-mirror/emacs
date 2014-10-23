@@ -832,7 +832,7 @@ splay around the same key. The new root will be the last node in the
 sub-tree and will have a null right child; this is set to be the right
 child of the node to be deleted.
 
-_`.impl.search`: ``SplayTreeSearch()``: Splay the node around the
+_`.impl.find`: ``SplayTreeFind()``: Splay the node around the
 supplied key. If the splay found a matching node, return it; otherwise
 return failure.
 
