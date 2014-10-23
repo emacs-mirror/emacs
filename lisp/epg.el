@@ -23,6 +23,7 @@
 ;;; Code:
 
 (require 'epg-config)
+(eval-when-compile (require 'cl-lib))
 
 (defvar epg-user-id nil
   "GnuPG ID of your default identity.")
@@ -164,210 +165,73 @@
 
 (define-error 'epg-error "GPG error")
 
-(defun epg-make-data-from-file (file)
-  "Make a data object from FILE."
-  (cons 'epg-data (vector file nil)))
+(cl-defstruct (epg-data
+               (:constructor nil)
+               (:constructor epg-make-data-from-file (file))
+               (:constructor epg-make-data-from-string (string))
+               (:copier nil)
+               (:predicate nil))
+  (file nil :read-only t)
+  (string nil :read-only t))
 
-(defun epg-make-data-from-string (string)
-  "Make a data object from STRING."
-  (cons 'epg-data (vector nil string)))
+(defmacro epg--gv-nreverse (place)
+  (gv-letplace (getter setter) place
+    (funcall setter `(nreverse ,getter))))
 
-(defun epg-data-file (data)
-  "Return the file of DATA."
-  (unless (eq (car-safe data) 'epg-data)
-    (signal 'wrong-type-argument (list 'epg-data-p data)))
-  (aref (cdr data) 0))
+(cl-defstruct (epg-context
+               (:constructor nil)
+               (:constructor epg-context--make
+                (protocol &optional armor textmode include-certs
+                          cipher-algorithm digest-algorithm
+                          compress-algorithm
+                 &aux
+                 (program
+                  (pcase protocol
+                    (`OpenPGP epg-gpg-program)
+                    (`CMS epg-gpgsm-program)
+                    (_ (signal 'epg-error
+                               (list "unknown protocol" protocol)))))))
+               (:copier nil)
+               (:predicate nil))
+  protocol
+  program
+  (home-directory epg-gpg-home-directory)
+  armor
+  textmode
+  include-certs
+  cipher-algorithm
+  digest-algorithm
+  compress-algorithm
+  (passphrase-callback (list #'epg-passphrase-callback-function))
+  progress-callback
+  signers
+  sig-notations
+  process
+  output-file
+  result
+  operation
+  pinentry-mode)
 
-(defun epg-data-string (data)
-  "Return the string of DATA."
-  (unless (eq (car-safe data) 'epg-data)
-    (signal 'wrong-type-argument (list 'epg-data-p data)))
-  (aref (cdr data) 1))
-
+;; This is not an alias, just so we can mark it as autoloaded.
 ;;;###autoload
 (defun epg-make-context (&optional protocol armor textmode include-certs
 				   cipher-algorithm digest-algorithm
 				   compress-algorithm)
   "Return a context object."
-  (unless protocol
-    (setq protocol 'OpenPGP))
-  (unless (memq protocol '(OpenPGP CMS))
-    (signal 'epg-error (list "unknown protocol" protocol)))
-  (cons 'epg-context
-	(vector protocol
-		(if (eq protocol 'OpenPGP)
-		    epg-gpg-program
-		  epg-gpgsm-program)
-		epg-gpg-home-directory
-		armor textmode include-certs
-		cipher-algorithm digest-algorithm compress-algorithm
-		(list #'epg-passphrase-callback-function)
-		nil
-		nil nil nil nil nil nil nil)))
-
-(defun epg-context-protocol (context)
-  "Return the protocol used within CONTEXT."
-  (unless (eq (car-safe context) 'epg-context)
-    (signal 'wrong-type-argument (list 'epg-context-p context)))
-  (aref (cdr context) 0))
-
-(defun epg-context-program (context)
-  "Return the gpg or gpgsm executable used within CONTEXT."
-  (unless (eq (car-safe context) 'epg-context)
-    (signal 'wrong-type-argument (list 'epg-context-p context)))
-  (aref (cdr context) 1))
-
-(defun epg-context-home-directory (context)
-  "Return the GnuPG home directory used in CONTEXT."
-  (unless (eq (car-safe context) 'epg-context)
-    (signal 'wrong-type-argument (list 'epg-context-p context)))
-  (aref (cdr context) 2))
-
-(defun epg-context-armor (context)
-  "Return t if the output should be ASCII armored in CONTEXT."
-  (unless (eq (car-safe context) 'epg-context)
-    (signal 'wrong-type-argument (list 'epg-context-p context)))
-  (aref (cdr context) 3))
-
-(defun epg-context-textmode (context)
-  "Return t if canonical text mode should be used in CONTEXT."
-  (unless (eq (car-safe context) 'epg-context)
-    (signal 'wrong-type-argument (list 'epg-context-p context)))
-  (aref (cdr context) 4))
-
-(defun epg-context-include-certs (context)
-  "Return how many certificates should be included in an S/MIME signed message."
-  (unless (eq (car-safe context) 'epg-context)
-    (signal 'wrong-type-argument (list 'epg-context-p context)))
-  (aref (cdr context) 5))
-
-(defun epg-context-cipher-algorithm (context)
-  "Return the cipher algorithm in CONTEXT."
-  (unless (eq (car-safe context) 'epg-context)
-    (signal 'wrong-type-argument (list 'epg-context-p context)))
-  (aref (cdr context) 6))
-
-(defun epg-context-digest-algorithm (context)
-  "Return the digest algorithm in CONTEXT."
-  (unless (eq (car-safe context) 'epg-context)
-    (signal 'wrong-type-argument (list 'epg-context-p context)))
-  (aref (cdr context) 7))
-
-(defun epg-context-compress-algorithm (context)
-  "Return the compress algorithm in CONTEXT."
-  (unless (eq (car-safe context) 'epg-context)
-    (signal 'wrong-type-argument (list 'epg-context-p context)))
-  (aref (cdr context) 8))
-
-(defun epg-context-passphrase-callback (context)
-  "Return the function used to query passphrase."
-  (unless (eq (car-safe context) 'epg-context)
-    (signal 'wrong-type-argument (list 'epg-context-p context)))
-  (aref (cdr context) 9))
-
-(defun epg-context-progress-callback (context)
-  "Return the function which handles progress update."
-  (unless (eq (car-safe context) 'epg-context)
-    (signal 'wrong-type-argument (list 'epg-context-p context)))
-  (aref (cdr context) 10))
-
-(defun epg-context-signers (context)
-  "Return the list of key-id for signing."
-  (unless (eq (car-safe context) 'epg-context)
-    (signal 'wrong-type-argument (list 'epg-context-p context)))
-  (aref (cdr context) 11))
-
-(defun epg-context-sig-notations (context)
-  "Return the list of notations for signing."
-  (unless (eq (car-safe context) 'epg-context)
-    (signal 'wrong-type-argument (list 'epg-context-p context)))
-  (aref (cdr context) 12))
-
-(defun epg-context-process (context)
-  "Return the process object of `epg-gpg-program'.
-This function is for internal use only."
-  (unless (eq (car-safe context) 'epg-context)
-    (signal 'wrong-type-argument (list 'epg-context-p context)))
-  (aref (cdr context) 13))
-
-(defun epg-context-output-file (context)
-  "Return the output file of `epg-gpg-program'.
-This function is for internal use only."
-  (unless (eq (car-safe context) 'epg-context)
-    (signal 'wrong-type-argument (list 'epg-context-p context)))
-  (aref (cdr context) 14))
-
-(defun epg-context-result (context)
-  "Return the result of the previous cryptographic operation."
-  (unless (eq (car-safe context) 'epg-context)
-    (signal 'wrong-type-argument (list 'epg-context-p context)))
-  (aref (cdr context) 15))
-
-(defun epg-context-operation (context)
-  "Return the name of the current cryptographic operation."
-  (unless (eq (car-safe context) 'epg-context)
-    (signal 'wrong-type-argument (list 'epg-context-p context)))
-  (aref (cdr context) 16))
-
-(defun epg-context-pinentry-mode (context)
-  "Return the mode of pinentry invocation."
-  (unless (eq (car-safe context) 'epg-context)
-    (signal 'wrong-type-argument (list 'epg-context-p context)))
-  (aref (cdr context) 17))
-
-(defun epg-context-set-protocol (context protocol)
-  "Set the protocol used within CONTEXT."
-  (unless (eq (car-safe context) 'epg-context)
-    (signal 'wrong-type-argument (list 'epg-context-p context)))
-  (aset (cdr context) 0 protocol))
-
-(defun epg-context-set-program (context protocol)
-  "Set the gpg or gpgsm executable used within CONTEXT."
-  (unless (eq (car-safe context) 'epg-context)
-    (signal 'wrong-type-argument (list 'epg-context-p context)))
-  (aset (cdr context) 1 protocol))
-
-(defun epg-context-set-home-directory (context directory)
-  "Set the GnuPG home directory."
-  (unless (eq (car-safe context) 'epg-context)
-    (signal 'wrong-type-argument (list 'epg-context-p context)))
-  (aset (cdr context) 2 directory))
+  (epg-context--make (or protocol 'OpenPGP)
+                     armor textmode include-certs
+                     cipher-algorithm digest-algorithm
+                     compress-algorithm))
 
 (defun epg-context-set-armor (context armor)
   "Specify if the output should be ASCII armored in CONTEXT."
-  (unless (eq (car-safe context) 'epg-context)
-    (signal 'wrong-type-argument (list 'epg-context-p context)))
-  (aset (cdr context) 3 armor))
+  (declare (obsolete setf "25.1"))
+  (setf (epg-context-armor context) armor))
 
 (defun epg-context-set-textmode (context textmode)
   "Specify if canonical text mode should be used in CONTEXT."
-  (unless (eq (car-safe context) 'epg-context)
-    (signal 'wrong-type-argument (list 'epg-context-p context)))
-  (aset (cdr context) 4 textmode))
-
-(defun epg-context-set-include-certs (context include-certs)
- "Set how many certificates should be included in an S/MIME signed message."
-  (unless (eq (car-safe context) 'epg-context)
-    (signal 'wrong-type-argument (list 'epg-context-p context)))
-  (aset (cdr context) 5 include-certs))
-
-(defun epg-context-set-cipher-algorithm (context cipher-algorithm)
- "Set the cipher algorithm in CONTEXT."
-  (unless (eq (car-safe context) 'epg-context)
-    (signal 'wrong-type-argument (list 'epg-context-p context)))
-  (aset (cdr context) 6 cipher-algorithm))
-
-(defun epg-context-set-digest-algorithm (context digest-algorithm)
- "Set the digest algorithm in CONTEXT."
-  (unless (eq (car-safe context) 'epg-context)
-    (signal 'wrong-type-argument (list 'epg-context-p context)))
-  (aset (cdr context) 7 digest-algorithm))
-
-(defun epg-context-set-compress-algorithm (context compress-algorithm)
- "Set the compress algorithm in CONTEXT."
-  (unless (eq (car-safe context) 'epg-context)
-    (signal 'wrong-type-argument (list 'epg-context-p context)))
-  (aset (cdr context) 8 compress-algorithm))
+  (declare (obsolete setf "25.1"))
+  (setf (epg-context-textmode context) textmode))
 
 (defun epg-context-set-passphrase-callback (context
 					    passphrase-callback)
@@ -384,11 +248,11 @@ on the external program called `gpg-agent' for passphrase query.
 If you really want to intercept passphrase query, consider
 installing GnuPG 1.x _along with_ GnuPG 2.x, which does passphrase
 query by itself and Emacs can intercept them."
-  (unless (eq (car-safe context) 'epg-context)
-    (signal 'wrong-type-argument (list 'epg-context-p context)))
-  (aset (cdr context) 9 (if (consp passphrase-callback)
-			    passphrase-callback
-			  (list passphrase-callback))))
+  ;; (declare (obsolete setf "25.1"))
+  (setf (epg-context-passphrase-callback context)
+        (if (consp passphrase-callback) ;FIXME: functions can also be consp!
+            passphrase-callback
+          (list passphrase-callback))))
 
 (defun epg-context-set-progress-callback (context
 					  progress-callback)
@@ -401,607 +265,119 @@ The function gets six arguments: the context, the operation
 description, the character to display a progress unit, the
 current amount done, the total amount to be done, and the
 callback data (if any)."
-  (unless (eq (car-safe context) 'epg-context)
-    (signal 'wrong-type-argument (list 'epg-context-p context)))
-  (aset (cdr context) 10 (if (consp progress-callback)
-			    progress-callback
-			  (list progress-callback))))
+  (setf (epg-context-progress-callback context)
+        (if (consp progress-callback) ;FIXME: could be a function!
+            progress-callback
+          (list progress-callback))))
 
 (defun epg-context-set-signers (context signers)
   "Set the list of key-id for signing."
-  (unless (eq (car-safe context) 'epg-context)
-    (signal 'wrong-type-argument (list 'epg-context-p context)))
-  (aset (cdr context) 11 signers))
-
-(defun epg-context-set-sig-notations (context notations)
-  "Set the list of notations for signing."
-  (unless (eq (car-safe context) 'epg-context)
-    (signal 'wrong-type-argument (list 'epg-context-p context)))
-  (aset (cdr context) 12 notations))
-
-(defun epg-context-set-process (context process)
-  "Set the process object of `epg-gpg-program'.
-This function is for internal use only."
-  (unless (eq (car-safe context) 'epg-context)
-    (signal 'wrong-type-argument (list 'epg-context-p context)))
-  (aset (cdr context) 13 process))
-
-(defun epg-context-set-output-file (context output-file)
-  "Set the output file of `epg-gpg-program'.
-This function is for internal use only."
-  (unless (eq (car-safe context) 'epg-context)
-    (signal 'wrong-type-argument (list 'epg-context-p context)))
-  (aset (cdr context) 14 output-file))
-
-(defun epg-context-set-result (context result)
-  "Set the result of the previous cryptographic operation."
-  (unless (eq (car-safe context) 'epg-context)
-    (signal 'wrong-type-argument (list 'epg-context-p context)))
-  (aset (cdr context) 15 result))
-
-(defun epg-context-set-operation (context operation)
-  "Set the name of the current cryptographic operation."
-  (unless (eq (car-safe context) 'epg-context)
-    (signal 'wrong-type-argument (list 'epg-context-p context)))
-  (aset (cdr context) 16 operation))
-
-(defun epg-context-set-pinentry-mode (context mode)
-  "Set the mode of pinentry invocation."
-  (unless (eq (car-safe context) 'epg-context)
-    (signal 'wrong-type-argument (list 'epg-context-p context)))
-  (unless (memq mode '(nil ask cancel error loopback))
-    (signal 'epg-error (list "Unknown pinentry mode" mode)))
-  (aset (cdr context) 17 mode))
-
-(defun epg-make-signature (status &optional key-id)
-  "Return a signature object."
-  (cons 'epg-signature (vector status key-id nil nil nil nil nil nil nil nil
-			       nil)))
-
-(defun epg-signature-status (signature)
-  "Return the status code of SIGNATURE."
-  (unless (eq (car-safe signature) 'epg-signature)
-    (signal 'wrong-type-argument (list 'epg-signature-p signature)))
-  (aref (cdr signature) 0))
-
-(defun epg-signature-key-id (signature)
-  "Return the key-id of SIGNATURE."
-  (unless (eq (car-safe signature) 'epg-signature)
-    (signal 'wrong-type-argument (list 'epg-signature-p signature)))
-  (aref (cdr signature) 1))
-
-(defun epg-signature-validity (signature)
-  "Return the validity of SIGNATURE."
-  (unless (eq (car-safe signature) 'epg-signature)
-    (signal 'wrong-type-argument (list 'epg-signature-p signature)))
-  (aref (cdr signature) 2))
-
-(defun epg-signature-fingerprint (signature)
-  "Return the fingerprint of SIGNATURE."
-  (unless (eq (car-safe signature) 'epg-signature)
-    (signal 'wrong-type-argument (list 'epg-signature-p signature)))
-  (aref (cdr signature) 3))
-
-(defun epg-signature-creation-time (signature)
-  "Return the creation time of SIGNATURE."
-  (unless (eq (car-safe signature) 'epg-signature)
-    (signal 'wrong-type-argument (list 'epg-signature-p signature)))
-  (aref (cdr signature) 4))
-
-(defun epg-signature-expiration-time (signature)
-  "Return the expiration time of SIGNATURE."
-  (unless (eq (car-safe signature) 'epg-signature)
-    (signal 'wrong-type-argument (list 'epg-signature-p signature)))
-  (aref (cdr signature) 5))
-
-(defun epg-signature-pubkey-algorithm (signature)
-  "Return the public key algorithm of SIGNATURE."
-  (unless (eq (car-safe signature) 'epg-signature)
-    (signal 'wrong-type-argument (list 'epg-signature-p signature)))
-  (aref (cdr signature) 6))
-
-(defun epg-signature-digest-algorithm (signature)
-  "Return the digest algorithm of SIGNATURE."
-  (unless (eq (car-safe signature) 'epg-signature)
-    (signal 'wrong-type-argument (list 'epg-signature-p signature)))
-  (aref (cdr signature) 7))
-
-(defun epg-signature-class (signature)
-  "Return the class of SIGNATURE."
-  (unless (eq (car-safe signature) 'epg-signature)
-    (signal 'wrong-type-argument (list 'epg-signature-p signature)))
-  (aref (cdr signature) 8))
-
-(defun epg-signature-version (signature)
-  "Return the version of SIGNATURE."
-  (unless (eq (car-safe signature) 'epg-signature)
-    (signal 'wrong-type-argument (list 'epg-signature-p signature)))
-  (aref (cdr signature) 9))
-
-(defun epg-sig-notations (signature)
-  "Return the list of notations of SIGNATURE."
-  (unless (eq (car-safe signature) 'epg-signature)
-    (signal 'wrong-type-argument (list 'epg-signature-p signature)))
-  (aref (cdr signature) 10))
-
-(defun epg-signature-set-status (signature status)
- "Set the status code of SIGNATURE."
-  (unless (eq (car-safe signature) 'epg-signature)
-    (signal 'wrong-type-argument (list 'epg-signature-p signature)))
-  (aset (cdr signature) 0 status))
-
-(defun epg-signature-set-key-id (signature key-id)
- "Set the key-id of SIGNATURE."
-  (unless (eq (car-safe signature) 'epg-signature)
-    (signal 'wrong-type-argument (list 'epg-signature-p signature)))
-  (aset (cdr signature) 1 key-id))
-
-(defun epg-signature-set-validity (signature validity)
- "Set the validity of SIGNATURE."
-  (unless (eq (car-safe signature) 'epg-signature)
-    (signal 'wrong-type-argument (list 'epg-signature-p signature)))
-  (aset (cdr signature) 2 validity))
-
-(defun epg-signature-set-fingerprint (signature fingerprint)
- "Set the fingerprint of SIGNATURE."
-  (unless (eq (car-safe signature) 'epg-signature)
-    (signal 'wrong-type-argument (list 'epg-signature-p signature)))
-  (aset (cdr signature) 3 fingerprint))
-
-(defun epg-signature-set-creation-time (signature creation-time)
-  "Set the creation time of SIGNATURE."
-  (unless (eq (car-safe signature) 'epg-signature)
-    (signal 'wrong-type-argument (list 'epg-signature-p signature)))
-  (aset (cdr signature) 4 creation-time))
-
-(defun epg-signature-set-expiration-time (signature expiration-time)
-  "Set the expiration time of SIGNATURE."
-  (unless (eq (car-safe signature) 'epg-signature)
-    (signal 'wrong-type-argument (list 'epg-signature-p signature)))
-  (aset (cdr signature) 5 expiration-time))
-
-(defun epg-signature-set-pubkey-algorithm (signature pubkey-algorithm)
-  "Set the public key algorithm of SIGNATURE."
-  (unless (eq (car-safe signature) 'epg-signature)
-    (signal 'wrong-type-argument (list 'epg-signature-p signature)))
-  (aset (cdr signature) 6 pubkey-algorithm))
-
-(defun epg-signature-set-digest-algorithm (signature digest-algorithm)
-  "Set the digest algorithm of SIGNATURE."
-  (unless (eq (car-safe signature) 'epg-signature)
-    (signal 'wrong-type-argument (list 'epg-signature-p signature)))
-  (aset (cdr signature) 7 digest-algorithm))
-
-(defun epg-signature-set-class (signature class)
-  "Set the class of SIGNATURE."
-  (unless (eq (car-safe signature) 'epg-signature)
-    (signal 'wrong-type-argument (list 'epg-signature-p signature)))
-  (aset (cdr signature) 8 class))
-
-(defun epg-signature-set-version (signature version)
-  "Set the version of SIGNATURE."
-  (unless (eq (car-safe signature) 'epg-signature)
-    (signal 'wrong-type-argument (list 'epg-signature-p signature)))
-  (aset (cdr signature) 9 version))
-
-(defun epg-signature-set-notations (signature notations)
-  "Set the list of notations of SIGNATURE."
-  (unless (eq (car-safe signature) 'epg-signature)
-    (signal 'wrong-type-argument (list 'epg-signature-p signature)))
-  (aset (cdr signature) 10 notations))
-
-(defun epg-make-new-signature (type pubkey-algorithm digest-algorithm
-				    class creation-time fingerprint)
-  "Return a new signature object."
-  (cons 'epg-new-signature (vector type pubkey-algorithm digest-algorithm
-				   class creation-time fingerprint)))
-
-(defun epg-new-signature-type (new-signature)
-  "Return the type of NEW-SIGNATURE."
-  (unless (eq (car-safe new-signature) 'epg-new-signature)
-    (signal 'wrong-type-argument (list 'epg-new-signature-p new-signature)))
-  (aref (cdr new-signature) 0))
-
-(defun epg-new-signature-pubkey-algorithm (new-signature)
-  "Return the public key algorithm of NEW-SIGNATURE."
-  (unless (eq (car-safe new-signature) 'epg-new-signature)
-    (signal 'wrong-type-argument (list 'epg-new-signature-p new-signature)))
-  (aref (cdr new-signature) 1))
-
-(defun epg-new-signature-digest-algorithm (new-signature)
-  "Return the digest algorithm of NEW-SIGNATURE."
-  (unless (eq (car-safe new-signature) 'epg-new-signature)
-    (signal 'wrong-type-argument (list 'epg-new-signature-p new-signature)))
-  (aref (cdr new-signature) 2))
-
-(defun epg-new-signature-class (new-signature)
-  "Return the class of NEW-SIGNATURE."
-  (unless (eq (car-safe new-signature) 'epg-new-signature)
-    (signal 'wrong-type-argument (list 'epg-new-signature-p new-signature)))
-  (aref (cdr new-signature) 3))
-
-(defun epg-new-signature-creation-time (new-signature)
-  "Return the creation time of NEW-SIGNATURE."
-  (unless (eq (car-safe new-signature) 'epg-new-signature)
-    (signal 'wrong-type-argument (list 'epg-new-signature-p new-signature)))
-  (aref (cdr new-signature) 4))
-
-(defun epg-new-signature-fingerprint (new-signature)
-  "Return the fingerprint of NEW-SIGNATURE."
-  (unless (eq (car-safe new-signature) 'epg-new-signature)
-    (signal 'wrong-type-argument (list 'epg-new-signature-p new-signature)))
-  (aref (cdr new-signature) 5))
-
-(defun epg-make-key (owner-trust)
-  "Return a key object."
-  (cons 'epg-key (vector owner-trust nil nil)))
-
-(defun epg-key-owner-trust (key)
-  "Return the owner trust of KEY."
-  (unless (eq (car-safe key) 'epg-key)
-    (signal 'wrong-type-argument (list 'epg-key-p key)))
-  (aref (cdr key) 0))
-
-(defun epg-key-sub-key-list (key)
-  "Return the sub key list of KEY."
-  (unless (eq (car-safe key) 'epg-key)
-    (signal 'wrong-type-argument (list 'epg-key-p key)))
-  (aref (cdr key) 1))
-
-(defun epg-key-user-id-list (key)
-  "Return the user ID list of KEY."
-  (unless (eq (car-safe key) 'epg-key)
-    (signal 'wrong-type-argument (list 'epg-key-p key)))
-  (aref (cdr key) 2))
-
-(defun epg-key-set-sub-key-list (key sub-key-list)
-  "Set the sub key list of KEY."
-  (unless (eq (car-safe key) 'epg-key)
-    (signal 'wrong-type-argument (list 'epg-key-p key)))
-  (aset (cdr key) 1 sub-key-list))
-
-(defun epg-key-set-user-id-list (key user-id-list)
-  "Set the user ID list of KEY."
-  (unless (eq (car-safe key) 'epg-key)
-    (signal 'wrong-type-argument (list 'epg-key-p key)))
-  (aset (cdr key) 2 user-id-list))
-
-(defun epg-make-sub-key (validity capability secret-p algorithm length id
-				  creation-time expiration-time)
-  "Return a sub key object."
-  (cons 'epg-sub-key
-	(vector validity capability secret-p algorithm length id creation-time
-		expiration-time nil)))
-
-(defun epg-sub-key-validity (sub-key)
-  "Return the validity of SUB-KEY."
-  (unless (eq (car-safe sub-key) 'epg-sub-key)
-    (signal 'wrong-type-argument (list 'epg-sub-key-p sub-key)))
-  (aref (cdr sub-key) 0))
-
-(defun epg-sub-key-capability (sub-key)
-  "Return the capability of SUB-KEY."
-  (unless (eq (car-safe sub-key) 'epg-sub-key)
-    (signal 'wrong-type-argument (list 'epg-sub-key-p sub-key)))
-  (aref (cdr sub-key) 1))
-
-(defun epg-sub-key-secret-p (sub-key)
-  "Return non-nil if SUB-KEY is a secret key."
-  (unless (eq (car-safe sub-key) 'epg-sub-key)
-    (signal 'wrong-type-argument (list 'epg-sub-key-p sub-key)))
-  (aref (cdr sub-key) 2))
-
-(defun epg-sub-key-algorithm (sub-key)
-  "Return the algorithm of SUB-KEY."
-  (unless (eq (car-safe sub-key) 'epg-sub-key)
-    (signal 'wrong-type-argument (list 'epg-sub-key-p sub-key)))
-  (aref (cdr sub-key) 3))
-
-(defun epg-sub-key-length (sub-key)
-  "Return the length of SUB-KEY."
-  (unless (eq (car-safe sub-key) 'epg-sub-key)
-    (signal 'wrong-type-argument (list 'epg-sub-key-p sub-key)))
-  (aref (cdr sub-key) 4))
-
-(defun epg-sub-key-id (sub-key)
-  "Return the ID of SUB-KEY."
-  (unless (eq (car-safe sub-key) 'epg-sub-key)
-    (signal 'wrong-type-argument (list 'epg-sub-key-p sub-key)))
-  (aref (cdr sub-key) 5))
-
-(defun epg-sub-key-creation-time (sub-key)
-  "Return the creation time of SUB-KEY."
-  (unless (eq (car-safe sub-key) 'epg-sub-key)
-    (signal 'wrong-type-argument (list 'epg-sub-key-p sub-key)))
-  (aref (cdr sub-key) 6))
-
-(defun epg-sub-key-expiration-time (sub-key)
-  "Return the expiration time of SUB-KEY."
-  (unless (eq (car-safe sub-key) 'epg-sub-key)
-    (signal 'wrong-type-argument (list 'epg-sub-key-p sub-key)))
-  (aref (cdr sub-key) 7))
-
-(defun epg-sub-key-fingerprint (sub-key)
-  "Return the fingerprint of SUB-KEY."
-  (unless (eq (car-safe sub-key) 'epg-sub-key)
-    (signal 'wrong-type-argument (list 'epg-sub-key-p sub-key)))
-  (aref (cdr sub-key) 8))
-
-(defun epg-sub-key-set-fingerprint (sub-key fingerprint)
-  "Set the fingerprint of SUB-KEY.
-This function is for internal use only."
-  (unless (eq (car-safe sub-key) 'epg-sub-key)
-    (signal 'wrong-type-argument (list 'epg-sub-key-p sub-key)))
-  (aset (cdr sub-key) 8 fingerprint))
-
-(defun epg-make-user-id (validity string)
-  "Return a user ID object."
-  (cons 'epg-user-id (vector validity string nil)))
-
-(defun epg-user-id-validity (user-id)
-  "Return the validity of USER-ID."
-  (unless (eq (car-safe user-id) 'epg-user-id)
-    (signal 'wrong-type-argument (list 'epg-user-id-p user-id)))
-  (aref (cdr user-id) 0))
-
-(defun epg-user-id-string (user-id)
-  "Return the name of USER-ID."
-  (unless (eq (car-safe user-id) 'epg-user-id)
-    (signal 'wrong-type-argument (list 'epg-user-id-p user-id)))
-  (aref (cdr user-id) 1))
-
-(defun epg-user-id-signature-list (user-id)
-  "Return the signature list of USER-ID."
-  (unless (eq (car-safe user-id) 'epg-user-id)
-    (signal 'wrong-type-argument (list 'epg-user-id-p user-id)))
-  (aref (cdr user-id) 2))
-
-(defun epg-user-id-set-signature-list (user-id signature-list)
-  "Set the signature list of USER-ID."
-  (unless (eq (car-safe user-id) 'epg-user-id)
-    (signal 'wrong-type-argument (list 'epg-user-id-p user-id)))
-  (aset (cdr user-id) 2 signature-list))
-
-(defun epg-make-key-signature (validity pubkey-algorithm key-id creation-time
-					expiration-time	user-id class
-					exportable-p)
-  "Return a key signature object."
-  (cons 'epg-key-signature
-	(vector validity pubkey-algorithm key-id creation-time expiration-time
-		user-id class exportable-p)))
-
-(defun epg-key-signature-validity (key-signature)
-  "Return the validity of KEY-SIGNATURE."
-  (unless (eq (car-safe key-signature) 'epg-key-signature)
-    (signal 'wrong-type-argument (list 'epg-key-signature-p key-signature)))
-  (aref (cdr key-signature) 0))
-
-(defun epg-key-signature-pubkey-algorithm (key-signature)
-  "Return the public key algorithm of KEY-SIGNATURE."
-  (unless (eq (car-safe key-signature) 'epg-key-signature)
-    (signal 'wrong-type-argument (list 'epg-key-signature-p key-signature)))
-  (aref (cdr key-signature) 1))
-
-(defun epg-key-signature-key-id (key-signature)
-  "Return the key-id of KEY-SIGNATURE."
-  (unless (eq (car-safe key-signature) 'epg-key-signature)
-    (signal 'wrong-type-argument (list 'epg-key-signature-p key-signature)))
-  (aref (cdr key-signature) 2))
-
-(defun epg-key-signature-creation-time (key-signature)
-  "Return the creation time of KEY-SIGNATURE."
-  (unless (eq (car-safe key-signature) 'epg-key-signature)
-    (signal 'wrong-type-argument (list 'epg-key-signature-p key-signature)))
-  (aref (cdr key-signature) 3))
-
-(defun epg-key-signature-expiration-time (key-signature)
-  "Return the expiration time of KEY-SIGNATURE."
-  (unless (eq (car-safe key-signature) 'epg-key-signature)
-    (signal 'wrong-type-argument (list 'epg-key-signature-p key-signature)))
-  (aref (cdr key-signature) 4))
-
-(defun epg-key-signature-user-id (key-signature)
-  "Return the user-id of KEY-SIGNATURE."
-  (unless (eq (car-safe key-signature) 'epg-key-signature)
-    (signal 'wrong-type-argument (list 'epg-key-signature-p key-signature)))
-  (aref (cdr key-signature) 5))
-
-(defun epg-key-signature-class (key-signature)
-  "Return the class of KEY-SIGNATURE."
-  (unless (eq (car-safe key-signature) 'epg-key-signature)
-    (signal 'wrong-type-argument (list 'epg-key-signature-p key-signature)))
-  (aref (cdr key-signature) 6))
-
-(defun epg-key-signature-exportable-p (key-signature)
-  "Return t if KEY-SIGNATURE is exportable."
-  (unless (eq (car-safe key-signature) 'epg-key-signature)
-    (signal 'wrong-type-argument (list 'epg-key-signature-p key-signature)))
-  (aref (cdr key-signature) 7))
-
-(defun epg-make-sig-notation (name value &optional human-readable
-					 critical)
-  "Return a notation object."
-  (cons 'epg-sig-notation (vector name value human-readable critical)))
-
-(defun epg-sig-notation-name (sig-notation)
-  "Return the name of SIG-NOTATION."
-  (unless (eq (car-safe sig-notation) 'epg-sig-notation)
-    (signal 'wrong-type-argument (list 'epg-sig-notation-p
-				       sig-notation)))
-  (aref (cdr sig-notation) 0))
-
-(defun epg-sig-notation-value (sig-notation)
-  "Return the value of SIG-NOTATION."
-  (unless (eq (car-safe sig-notation) 'epg-sig-notation)
-    (signal 'wrong-type-argument (list 'epg-sig-notation-p
-				       sig-notation)))
-  (aref (cdr sig-notation) 1))
-
-(defun epg-sig-notation-human-readable (sig-notation)
-  "Return the human-readable of SIG-NOTATION."
-  (unless (eq (car-safe sig-notation) 'epg-sig-notation)
-    (signal 'wrong-type-argument (list 'epg-sig-notation-p
-				       sig-notation)))
-  (aref (cdr sig-notation) 2))
-
-(defun epg-sig-notation-critical (sig-notation)
-  "Return the critical of SIG-NOTATION."
-  (unless (eq (car-safe sig-notation) 'epg-sig-notation)
-    (signal 'wrong-type-argument (list 'epg-sig-notation-p
-				       sig-notation)))
-  (aref (cdr sig-notation) 3))
-
-(defun epg-sig-notation-set-value (sig-notation value)
-  "Set the value of SIG-NOTATION."
-  (unless (eq (car-safe sig-notation) 'epg-sig-notation)
-    (signal 'wrong-type-argument (list 'epg-sig-notation-p
-				       sig-notation)))
-  (aset (cdr sig-notation) 1 value))
-
-(defun epg-make-import-status (fingerprint &optional reason new user-id
-					   signature sub-key secret)
-  "Return an import status object."
-  (cons 'epg-import-status (vector fingerprint reason new user-id signature
-				   sub-key secret)))
-
-(defun epg-import-status-fingerprint (import-status)
-  "Return the fingerprint of the key that was considered."
-  (unless (eq (car-safe import-status) 'epg-import-status)
-    (signal 'wrong-type-argument (list 'epg-import-status-p import-status)))
-  (aref (cdr import-status) 0))
-
-(defun epg-import-status-reason (import-status)
-  "Return the reason code for import failure."
-  (unless (eq (car-safe import-status) 'epg-import-status)
-    (signal 'wrong-type-argument (list 'epg-import-status-p import-status)))
-  (aref (cdr import-status) 1))
-
-(defun epg-import-status-new (import-status)
-  "Return t if the imported key was new."
-  (unless (eq (car-safe import-status) 'epg-import-status)
-    (signal 'wrong-type-argument (list 'epg-import-status-p import-status)))
-  (aref (cdr import-status) 2))
-
-(defun epg-import-status-user-id (import-status)
-  "Return t if the imported key contained new user IDs."
-  (unless (eq (car-safe import-status) 'epg-import-status)
-    (signal 'wrong-type-argument (list 'epg-import-status-p import-status)))
-  (aref (cdr import-status) 3))
-
-(defun epg-import-status-signature (import-status)
-  "Return t if the imported key contained new signatures."
-  (unless (eq (car-safe import-status) 'epg-import-status)
-    (signal 'wrong-type-argument (list 'epg-import-status-p import-status)))
-  (aref (cdr import-status) 4))
-
-(defun epg-import-status-sub-key (import-status)
-  "Return t if the imported key contained new sub keys."
-  (unless (eq (car-safe import-status) 'epg-import-status)
-    (signal 'wrong-type-argument (list 'epg-import-status-p import-status)))
-  (aref (cdr import-status) 5))
-
-(defun epg-import-status-secret (import-status)
-  "Return t if the imported key contained a secret key."
-  (unless (eq (car-safe import-status) 'epg-import-status)
-    (signal 'wrong-type-argument (list 'epg-import-status-p import-status)))
-  (aref (cdr import-status) 6))
-
-(defun epg-make-import-result (considered no-user-id imported imported-rsa
-					  unchanged new-user-ids new-sub-keys
-					  new-signatures new-revocations
-					  secret-read secret-imported
-					  secret-unchanged not-imported
-					  imports)
-  "Return an import result object."
-  (cons 'epg-import-result (vector considered no-user-id imported imported-rsa
-				   unchanged new-user-ids new-sub-keys
-				   new-signatures new-revocations secret-read
-				   secret-imported secret-unchanged
-				   not-imported imports)))
-
-(defun epg-import-result-considered (import-result)
-  "Return the total number of considered keys."
-  (unless (eq (car-safe import-result) 'epg-import-result)
-    (signal 'wrong-type-argument (list 'epg-import-result-p import-result)))
-  (aref (cdr import-result) 0))
-
-(defun epg-import-result-no-user-id (import-result)
-  "Return the number of keys without user ID."
-  (unless (eq (car-safe import-result) 'epg-import-result)
-    (signal 'wrong-type-argument (list 'epg-import-result-p import-result)))
-  (aref (cdr import-result) 1))
-
-(defun epg-import-result-imported (import-result)
-  "Return the number of imported keys."
-  (unless (eq (car-safe import-result) 'epg-import-result)
-    (signal 'wrong-type-argument (list 'epg-import-result-p import-result)))
-  (aref (cdr import-result) 2))
-
-(defun epg-import-result-imported-rsa (import-result)
-  "Return the number of imported RSA keys."
-  (unless (eq (car-safe import-result) 'epg-import-result)
-    (signal 'wrong-type-argument (list 'epg-import-result-p import-result)))
-  (aref (cdr import-result) 3))
-
-(defun epg-import-result-unchanged (import-result)
-  "Return the number of unchanged keys."
-  (unless (eq (car-safe import-result) 'epg-import-result)
-    (signal 'wrong-type-argument (list 'epg-import-result-p import-result)))
-  (aref (cdr import-result) 4))
-
-(defun epg-import-result-new-user-ids (import-result)
-  "Return the number of new user IDs."
-  (unless (eq (car-safe import-result) 'epg-import-result)
-    (signal 'wrong-type-argument (list 'epg-import-result-p import-result)))
-  (aref (cdr import-result) 5))
-
-(defun epg-import-result-new-sub-keys (import-result)
-  "Return the number of new sub keys."
-  (unless (eq (car-safe import-result) 'epg-import-result)
-    (signal 'wrong-type-argument (list 'epg-import-result-p import-result)))
-  (aref (cdr import-result) 6))
-
-(defun epg-import-result-new-signatures (import-result)
-  "Return the number of new signatures."
-  (unless (eq (car-safe import-result) 'epg-import-result)
-    (signal 'wrong-type-argument (list 'epg-import-result-p import-result)))
-  (aref (cdr import-result) 7))
-
-(defun epg-import-result-new-revocations (import-result)
-  "Return the number of new revocations."
-  (unless (eq (car-safe import-result) 'epg-import-result)
-    (signal 'wrong-type-argument (list 'epg-import-result-p import-result)))
-  (aref (cdr import-result) 8))
-
-(defun epg-import-result-secret-read (import-result)
-  "Return the total number of secret keys read."
-  (unless (eq (car-safe import-result) 'epg-import-result)
-    (signal 'wrong-type-argument (list 'epg-import-result-p import-result)))
-  (aref (cdr import-result) 9))
-
-(defun epg-import-result-secret-imported (import-result)
-  "Return the number of imported secret keys."
-  (unless (eq (car-safe import-result) 'epg-import-result)
-    (signal 'wrong-type-argument (list 'epg-import-result-p import-result)))
-  (aref (cdr import-result) 10))
-
-(defun epg-import-result-secret-unchanged (import-result)
-  "Return the number of unchanged secret keys."
-  (unless (eq (car-safe import-result) 'epg-import-result)
-    (signal 'wrong-type-argument (list 'epg-import-result-p import-result)))
-  (aref (cdr import-result) 11))
-
-(defun epg-import-result-not-imported (import-result)
-  "Return the number of keys not imported."
-  (unless (eq (car-safe import-result) 'epg-import-result)
-    (signal 'wrong-type-argument (list 'epg-import-result-p import-result)))
-  (aref (cdr import-result) 12))
-
-(defun epg-import-result-imports (import-result)
-  "Return the list of `epg-import-status' objects."
-  (unless (eq (car-safe import-result) 'epg-import-result)
-    (signal 'wrong-type-argument (list 'epg-import-result-p import-result)))
-  (aref (cdr import-result) 13))
+  (declare (obsolete setf "25.1"))
+  (setf (epg-context-signers context) signers))
+
+(cl-defstruct (epg-signature
+               (:constructor nil)
+               (:constructor epg-make-signature
+                (status &optional key-id))
+               (:copier nil)
+               (:predicate nil))
+  status
+  key-id
+  validity
+  fingerprint
+  creation-time
+  expiration-time
+  pubkey-algorithm
+  digest-algorithm
+  class
+  version
+  notations)
+
+(cl-defstruct (epg-new-signature
+               (:constructor nil)
+               (:constructor epg-make-new-signature
+                (type pubkey-algorithm digest-algorithm
+                      class creation-time fingerprint))
+               (:copier nil)
+               (:predicate nil))
+  (type nil :read-only t)
+  (pubkey-algorithm nil :read-only t)
+  (digest-algorithm nil :read-only t)
+  (class nil :read-only t)
+  (creation-time nil :read-only t)
+  (fingerprint nil :read-only t))
+
+(cl-defstruct (epg-key
+               (:constructor nil)
+               (:constructor epg-make-key (owner-trust))
+               (:copier nil)
+               (:predicate nil))
+  (owner-trust nil :read-only t)
+  sub-key-list user-id-list)
+
+(cl-defstruct (epg-sub-key
+               (:constructor nil)
+               (:constructor epg-make-sub-key
+                (validity capability secret-p algorithm length id
+                          creation-time expiration-time))
+               (:copier nil)
+               (:predicate nil))
+  validity capability secret-p algorithm length id
+  creation-time expiration-time fingerprint)
+
+(cl-defstruct (epg-user-id
+               (:constructor nil)
+               (:constructor epg-make-user-id (validity string))
+               (:copier nil)
+               (:predicate nil))
+  validity string signature-list)
+
+(cl-defstruct (epg-key-signature
+               (:constructor nil)
+               (:constructor epg-make-key-signature
+                (validity pubkey-algorithm key-id creation-time
+                          expiration-time user-id class
+                          exportable-p))
+               (:copier nil)
+               (:predicate nil))
+  validity pubkey-algorithm key-id creation-time
+  expiration-time user-id class
+  exportable-p)
+
+(cl-defstruct (epg-sig-notation
+               (:constructor nil)
+               (:constructor epg-make-sig-notation
+                (name value &optional human-readable critical))
+               (:copier nil)
+               (:predicate nil))
+  name value human-readable critical)
+
+(cl-defstruct (epg-import-status
+               (:constructor nil)
+               (:constructor epg-make-import-status
+                (fingerprint
+                 &optional reason new user-id signature sub-key secret))
+               (:copier nil)
+               (:predicate nil))
+  fingerprint reason new user-id signature sub-key secret)
+
+(cl-defstruct (epg-import-result
+               (:constructor nil)
+               (:constructor epg-make-import-result
+                (considered no-user-id imported imported-rsa
+                            unchanged new-user-ids new-sub-keys
+                            new-signatures new-revocations
+                            secret-read secret-imported
+                            secret-unchanged not-imported
+                            imports))
+               (:copier nil)
+               (:predicate nil))
+  considered no-user-id imported imported-rsa
+  unchanged new-user-ids new-sub-keys
+  new-signatures new-revocations
+  secret-read secret-imported
+  secret-unchanged not-imported
+  imports)
 
 (defun epg-context-result-for (context name)
   "Return the result of CONTEXT associated with NAME."
@@ -1013,7 +389,7 @@ This function is for internal use only."
 	 (entry (assq name result)))
     (if entry
 	(setcdr entry value)
-      (epg-context-set-result context (cons (cons name value) result)))))
+      (setf (epg-context-result context) (cons (cons name value) result)))))
 
 (defun epg-signature-to-string (signature)
   "Convert SIGNATURE to a human readable string."
@@ -1268,7 +644,7 @@ This function is for internal use only."
       (setq process (apply #'start-process "epg" buffer
 			   (epg-context-program context) args)))
     (set-process-filter process #'epg--process-filter)
-    (epg-context-set-process context process)))
+    (setf (epg-context-process context) process)))
 
 (defun epg--process-filter (process input)
   (if epg-debug
@@ -1346,7 +722,7 @@ This function is for internal use only."
   (if (and (epg-context-process context)
 	   (buffer-live-p (process-buffer (epg-context-process context))))
       (kill-buffer (process-buffer (epg-context-process context))))
-  (epg-context-set-process context nil))
+  (setf (epg-context-process context) nil))
 
 (defun epg-delete-output-file (context)
   "Delete the output file of CONTEXT."
@@ -1540,7 +916,7 @@ This function is for internal use only."
 	(if (and signature
 		 (eq (epg-signature-status signature) 'error)
 		 (equal (epg-signature-key-id signature) string))
-	    (epg-signature-set-status signature 'no-pubkey)))
+	    (setf (epg-signature-status signature) 'no-pubkey)))
     (epg-context-set-result-for
      context 'error
      (cons (cons 'no-pubkey string)
@@ -1567,21 +943,16 @@ This function is for internal use only."
 	 'verify
 	 (cons signature
 	       (epg-context-result-for context 'verify)))
-	(epg-signature-set-key-id
-	 signature
-	 (match-string 1 string))
-	(epg-signature-set-pubkey-algorithm
-	 signature
-	 (string-to-number (match-string 2 string)))
-	(epg-signature-set-digest-algorithm
-	 signature
-	 (string-to-number (match-string 3 string)))
-	(epg-signature-set-class
-	 signature
-	 (string-to-number (match-string 4 string) 16))
-	(epg-signature-set-creation-time
-	 signature
-	 (epg--time-from-seconds (match-string 5 string))))))
+	(setf (epg-signature-key-id signature)
+              (match-string 1 string))
+	(setf (epg-signature-pubkey-algorithm signature)
+              (string-to-number (match-string 2 string)))
+	(setf (epg-signature-digest-algorithm signature)
+              (string-to-number (match-string 3 string)))
+	(setf (epg-signature-class signature)
+              (string-to-number (match-string 4 string) 16))
+	(setf (epg-signature-creation-time signature)
+              (epg--time-from-seconds (match-string 5 string))))))
 
 (defun epg--status-VALIDSIG (context string)
   (let ((signature (car (epg-context-result-for context 'verify))))
@@ -1591,81 +962,70 @@ This function is for internal use only."
 \\([0-9]+\\) [^ ]+ \\([0-9]+\\) \\([0-9]+\\) \\([0-9A-Fa-f][0-9A-Fa-f]\\) \
 \\(.*\\)"
 			   string))
-      (epg-signature-set-fingerprint
-       signature
-       (match-string 1 string))
-      (epg-signature-set-creation-time
-       signature
-       (epg--time-from-seconds (match-string 2 string)))
+      (setf (epg-signature-fingerprint signature)
+            (match-string 1 string))
+      (setf (epg-signature-creation-time signature)
+            (epg--time-from-seconds (match-string 2 string)))
       (unless (equal (match-string 3 string) "0")
-	(epg-signature-set-expiration-time
-	 signature
-	 (epg--time-from-seconds (match-string 3 string))))
-      (epg-signature-set-version
-       signature
-       (string-to-number (match-string 4 string)))
-      (epg-signature-set-pubkey-algorithm
-       signature
-       (string-to-number (match-string 5 string)))
-      (epg-signature-set-digest-algorithm
-       signature
-       (string-to-number (match-string 6 string)))
-      (epg-signature-set-class
-       signature
-       (string-to-number (match-string 7 string) 16)))))
+	(setf (epg-signature-expiration-time signature)
+              (epg--time-from-seconds (match-string 3 string))))
+      (setf (epg-signature-version signature)
+            (string-to-number (match-string 4 string)))
+      (setf (epg-signature-pubkey-algorithm signature)
+            (string-to-number (match-string 5 string)))
+      (setf (epg-signature-digest-algorithm signature)
+            (string-to-number (match-string 6 string)))
+      (setf (epg-signature-class signature)
+            (string-to-number (match-string 7 string) 16)))))
 
 (defun epg--status-TRUST_UNDEFINED (context _string)
   (let ((signature (car (epg-context-result-for context 'verify))))
     (if (and signature
 	     (eq (epg-signature-status signature) 'good))
-	(epg-signature-set-validity signature 'undefined))))
+	(setf (epg-signature-validity signature) 'undefined))))
 
 (defun epg--status-TRUST_NEVER (context _string)
   (let ((signature (car (epg-context-result-for context 'verify))))
     (if (and signature
 	     (eq (epg-signature-status signature) 'good))
-	(epg-signature-set-validity signature 'never))))
+	(setf (epg-signature-validity signature) 'never))))
 
 (defun epg--status-TRUST_MARGINAL (context _string)
   (let ((signature (car (epg-context-result-for context 'verify))))
     (if (and signature
 	     (eq (epg-signature-status signature) 'marginal))
-	(epg-signature-set-validity signature 'marginal))))
+	(setf (epg-signature-validity signature) 'marginal))))
 
 (defun epg--status-TRUST_FULLY (context _string)
   (let ((signature (car (epg-context-result-for context 'verify))))
     (if (and signature
 	     (eq (epg-signature-status signature) 'good))
-	(epg-signature-set-validity signature 'full))))
+	(setf (epg-signature-validity signature) 'full))))
 
 (defun epg--status-TRUST_ULTIMATE (context _string)
   (let ((signature (car (epg-context-result-for context 'verify))))
     (if (and signature
 	     (eq (epg-signature-status signature) 'good))
-	(epg-signature-set-validity signature 'ultimate))))
+	(setf (epg-signature-validity signature) 'ultimate))))
 
 (defun epg--status-NOTATION_NAME (context string)
   (let ((signature (car (epg-context-result-for context 'verify))))
     (if signature
-	(epg-signature-set-notations
-	 signature
-	 (cons (epg-make-sig-notation string nil t nil)
-	       (epg-sig-notations signature))))))
+        (push (epg-make-sig-notation string nil t nil)
+              (epg-signature-notations signature)))))
 
 (defun epg--status-NOTATION_DATA (context string)
   (let ((signature (car (epg-context-result-for context 'verify)))
 	notation)
     (if (and signature
-	     (setq notation (car (epg-sig-notations signature))))
-	(epg-sig-notation-set-value notation string))))
+	     (setq notation (car (epg-signature-notations signature))))
+	(setf (epg-sig-notation-value notation) string))))
 
 (defun epg--status-POLICY_URL (context string)
   (let ((signature (car (epg-context-result-for context 'verify))))
     (if signature
-	(epg-signature-set-notations
-	 signature
-	 (cons (epg-make-sig-notation nil string t nil)
-	       (epg-sig-notations signature))))))
+        (push (epg-make-sig-notation nil string t nil)
+              (epg-signature-notations signature)))))
 
 (defun epg--status-PROGRESS (context string)
   (if (and (epg-context-progress-callback context)
@@ -1944,15 +1304,11 @@ NAME is either a string or a list of strings."
 			      (cdr (assq (string-to-char (aref (car lines) 8))
 					 epg-key-validity-alist))))
 			 keys))
-	(epg-key-set-sub-key-list
-	 (car keys)
-	 (cons (epg--make-sub-key-1 (car lines))
-	       (epg-key-sub-key-list (car keys)))))
+        (push (epg--make-sub-key-1 (car lines))
+              (epg-key-sub-key-list (car keys))))
        ((member (aref (car lines) 0) '("sub" "ssb"))
-	(epg-key-set-sub-key-list
-	 (car keys)
-	 (cons (epg--make-sub-key-1 (car lines))
-	       (epg-key-sub-key-list (car keys)))))
+        (push (epg--make-sub-key-1 (car lines))
+              (epg-key-sub-key-list (car keys))))
        ((equal (aref (car lines) 0) "uid")
 	;; Decode the UID name as a backslash escaped UTF-8 string,
 	;; generated by GnuPG/GpgSM.
@@ -1967,52 +1323,42 @@ NAME is either a string or a list of strings."
 			  'utf-8))
 	  (error
 	   (setq string (aref (car lines) 9))))
-	(epg-key-set-user-id-list
-	 (car keys)
-	 (cons (epg-make-user-id
-		(if (aref (car lines) 1)
-		    (cdr (assq (string-to-char (aref (car lines) 1))
-			       epg-key-validity-alist)))
-		(if cert
-		    (condition-case nil
-			(epg-dn-from-string string)
-		      (error string))
-		  string))
-	       (epg-key-user-id-list (car keys)))))
+        (push (epg-make-user-id
+               (if (aref (car lines) 1)
+                   (cdr (assq (string-to-char (aref (car lines) 1))
+                              epg-key-validity-alist)))
+               (if cert
+                   (condition-case nil
+                       (epg-dn-from-string string)
+                     (error string))
+                 string))
+              (epg-key-user-id-list (car keys))))
        ((equal (aref (car lines) 0) "fpr")
-	(epg-sub-key-set-fingerprint (car (epg-key-sub-key-list (car keys)))
-				     (aref (car lines) 9)))
+	(setf (epg-sub-key-fingerprint (car (epg-key-sub-key-list (car keys))))
+              (aref (car lines) 9)))
        ((equal (aref (car lines) 0) "sig")
-	(epg-user-id-set-signature-list
-	 (car (epg-key-user-id-list (car keys)))
-	 (cons
-	  (epg-make-key-signature
-	   (if (aref (car lines) 1)
-	       (cdr (assq (string-to-char (aref (car lines) 1))
-			  epg-key-validity-alist)))
-	   (string-to-number (aref (car lines) 3))
-	   (aref (car lines) 4)
-	   (epg--time-from-seconds (aref (car lines) 5))
-	   (epg--time-from-seconds (aref (car lines) 6))
-	   (aref (car lines) 9)
-	   (string-to-number (aref (car lines) 10) 16)
-	   (eq (aref (aref (car lines) 10) 2) ?x))
-	  (epg-user-id-signature-list
-	   (car (epg-key-user-id-list (car keys))))))))
+        (push
+         (epg-make-key-signature
+          (if (aref (car lines) 1)
+              (cdr (assq (string-to-char (aref (car lines) 1))
+                         epg-key-validity-alist)))
+          (string-to-number (aref (car lines) 3))
+          (aref (car lines) 4)
+          (epg--time-from-seconds (aref (car lines) 5))
+          (epg--time-from-seconds (aref (car lines) 6))
+          (aref (car lines) 9)
+          (string-to-number (aref (car lines) 10) 16)
+          (eq (aref (aref (car lines) 10) 2) ?x))
+         (epg-user-id-signature-list
+          (car (epg-key-user-id-list (car keys)))))))
       (setq lines (cdr lines)))
     (setq keys (nreverse keys)
 	  pointer keys)
     (while pointer
-      (epg-key-set-sub-key-list
-       (car pointer)
-       (nreverse (epg-key-sub-key-list (car pointer))))
-      (setq pointer-1 (epg-key-set-user-id-list
-			  (car pointer)
-			  (nreverse (epg-key-user-id-list (car pointer)))))
+      (epg--gv-nreverse (epg-key-sub-key-list (car pointer)))
+      (setq pointer-1 (epg--gv-nreverse (epg-key-user-id-list (car pointer))))
       (while pointer-1
-	(epg-user-id-set-signature-list
-	 (car pointer-1)
-	 (nreverse (epg-user-id-signature-list (car pointer-1))))
+	(epg--gv-nreverse (epg-user-id-signature-list (car pointer-1)))
 	(setq pointer-1 (cdr pointer-1)))
       (setq pointer (cdr pointer)))
     keys))
@@ -2114,8 +1460,8 @@ If you are unsure, use synchronous version of this function
 `epg-decrypt-file' or `epg-decrypt-string' instead."
   (unless (epg-data-file cipher)
     (error "Not a file"))
-  (epg-context-set-operation context 'decrypt)
-  (epg-context-set-result context nil)
+  (setf (epg-context-operation context) 'decrypt)
+  (setf (epg-context-result context) nil)
   (epg--start context (list "--decrypt" "--" (epg-data-file cipher)))
   ;; `gpgsm' does not read passphrase from stdin, so waiting is not needed.
   (unless (eq (epg-context-protocol context) 'CMS)
@@ -2135,10 +1481,8 @@ If you are unsure, use synchronous version of this function
 If PLAIN is nil, it returns the result as a string."
   (unwind-protect
       (progn
-	(if plain
-	    (epg-context-set-output-file context plain)
-	  (epg-context-set-output-file context
-				       (epg--make-temp-file "epg-output")))
+	(setf (epg-context-output-file context)
+              (or plain (epg--make-temp-file "epg-output")))
 	(epg-start-decrypt context (epg-make-data-from-file cipher))
 	(epg-wait-for-completion context)
 	(epg--check-error-for-decrypt context)
@@ -2155,8 +1499,8 @@ If PLAIN is nil, it returns the result as a string."
     (unwind-protect
 	(progn
 	  (write-region cipher nil input-file nil 'quiet)
-	  (epg-context-set-output-file context
-				       (epg--make-temp-file "epg-output"))
+	  (setf (epg-context-output-file context)
+                (epg--make-temp-file "epg-output"))
 	  (epg-start-decrypt context (epg-make-data-from-file input-file))
 	  (epg-wait-for-completion context)
 	  (epg--check-error-for-decrypt context)
@@ -2178,8 +1522,8 @@ If you use this function, you will need to wait for the completion of
 `epg-reset' to clear a temporary output file.
 If you are unsure, use synchronous version of this function
 `epg-verify-file' or `epg-verify-string' instead."
-  (epg-context-set-operation context 'verify)
-  (epg-context-set-result context nil)
+  (setf (epg-context-operation context) 'verify)
+  (setf (epg-context-result context) nil)
   (if signed-text
       ;; Detached signature.
       (if (epg-data-file signed-text)
@@ -2226,10 +1570,8 @@ To check the verification results, use `epg-context-result-for' as follows:
 which will return a list of `epg-signature' object."
   (unwind-protect
       (progn
-	(if plain
-	    (epg-context-set-output-file context plain)
-	  (epg-context-set-output-file context
-				       (epg--make-temp-file "epg-output")))
+        (setf (epg-context-output-file context)
+              (or plain (epg--make-temp-file "epg-output")))
 	(if signed-text
 	    (epg-start-verify context
 			      (epg-make-data-from-file signature)
@@ -2265,8 +1607,8 @@ which will return a list of `epg-signature' object."
 	input-file)
     (unwind-protect
 	(progn
-	  (epg-context-set-output-file context
-				       (epg--make-temp-file "epg-output"))
+	  (setf (epg-context-output-file context)
+                (epg--make-temp-file "epg-output"))
 	  (if signed-text
 	      (progn
 		(setq input-file (epg--make-temp-file "epg-signature"))
@@ -2296,8 +1638,8 @@ If you use this function, you will need to wait for the completion of
 `epg-reset' to clear a temporary output file.
 If you are unsure, use synchronous version of this function
 `epg-sign-file' or `epg-sign-string' instead."
-  (epg-context-set-operation context 'sign)
-  (epg-context-set-result context nil)
+  (setf (epg-context-operation context) 'sign)
+  (setf (epg-context-result context) nil)
   (unless (memq mode '(t detached nil normal)) ;i.e. cleartext
     (epg-context-set-armor context nil)
     (epg-context-set-textmode context nil))
@@ -2336,10 +1678,8 @@ If it is nil or 'normal, it makes a normal signature.
 Otherwise, it makes a cleartext signature."
   (unwind-protect
       (progn
-	(if signature
-	    (epg-context-set-output-file context signature)
-	  (epg-context-set-output-file context
-				       (epg--make-temp-file "epg-output")))
+        (setf (epg-context-output-file context)
+              (or signature (epg--make-temp-file "epg-output")))
 	(epg-start-sign context (epg-make-data-from-file plain) mode)
 	(epg-wait-for-completion context)
 	(unless (epg-context-result-for context 'sign)
@@ -2368,8 +1708,8 @@ Otherwise, it makes a cleartext signature."
 	(coding-system-for-write 'binary))
     (unwind-protect
 	(progn
-	  (epg-context-set-output-file context
-				       (epg--make-temp-file "epg-output"))
+	  (setf (epg-context-output-file context)
+                (epg--make-temp-file "epg-output"))
 	  (if input-file
 	      (write-region plain nil input-file nil 'quiet))
 	  (epg-start-sign context
@@ -2400,8 +1740,8 @@ If you use this function, you will need to wait for the completion of
 `epg-reset' to clear a temporary output file.
 If you are unsure, use synchronous version of this function
 `epg-encrypt-file' or `epg-encrypt-string' instead."
-  (epg-context-set-operation context 'encrypt)
-  (epg-context-set-result context nil)
+  (setf (epg-context-operation context) 'encrypt)
+  (setf (epg-context-result context) nil)
   (epg--start context
 	     (append (if always-trust '("--always-trust"))
 		     (if recipients '("--encrypt") '("--symmetric"))
@@ -2445,10 +1785,8 @@ If CIPHER is nil, it returns the result as a string.
 If RECIPIENTS is nil, it performs symmetric encryption."
   (unwind-protect
       (progn
-	(if cipher
-	    (epg-context-set-output-file context cipher)
-	  (epg-context-set-output-file context
-				       (epg--make-temp-file "epg-output")))
+        (setf (epg-context-output-file context)
+              (or cipher (epg--make-temp-file "epg-output")))
 	(epg-start-encrypt context (epg-make-data-from-file plain)
 			   recipients sign always-trust)
 	(epg-wait-for-completion context)
@@ -2482,8 +1820,8 @@ If RECIPIENTS is nil, it performs symmetric encryption."
 	(coding-system-for-write 'binary))
     (unwind-protect
 	(progn
-	  (epg-context-set-output-file context
-				       (epg--make-temp-file "epg-output"))
+	  (setf (epg-context-output-file context)
+                (epg--make-temp-file "epg-output"))
 	  (if input-file
 	      (write-region plain nil input-file nil 'quiet))
 	  (epg-start-encrypt context
@@ -2514,8 +1852,8 @@ If you use this function, you will need to wait for the completion of
 `epg-reset' to clear a temporary output file.
 If you are unsure, use synchronous version of this function
 `epg-export-keys-to-file' or `epg-export-keys-to-string' instead."
-  (epg-context-set-operation context 'export-keys)
-  (epg-context-set-result context nil)
+  (setf (epg-context-operation context) 'export-keys)
+  (setf (epg-context-result context) nil)
   (epg--start context (cons "--export"
 			   (mapcar
 			    (lambda (key)
@@ -2527,10 +1865,8 @@ If you are unsure, use synchronous version of this function
   "Extract public KEYS."
   (unwind-protect
       (progn
-	(if file
-	    (epg-context-set-output-file context file)
-	  (epg-context-set-output-file context
-				       (epg--make-temp-file "epg-output")))
+	(setf (epg-context-output-file context)
+              (or file (epg--make-temp-file "epg-output")))
 	(epg-start-export-keys context keys)
 	(epg-wait-for-completion context)
 	(let ((errors (epg-context-result-for context 'error)))
@@ -2557,8 +1893,8 @@ If you use this function, you will need to wait for the completion of
 `epg-reset' to clear a temporary output file.
 If you are unsure, use synchronous version of this function
 `epg-import-keys-from-file' or `epg-import-keys-from-string' instead."
-  (epg-context-set-operation context 'import-keys)
-  (epg-context-set-result context nil)
+  (setf (epg-context-operation context) 'import-keys)
+  (setf (epg-context-result context) nil)
   (epg--start context (if (epg-data-file keys)
 			  (list "--import" "--" (epg-data-file keys))
 			(list "--import")))
@@ -2598,8 +1934,8 @@ If you use this function, you will need to wait for the completion of
 `epg-reset' to clear a temporary output file.
 If you are unsure, use synchronous version of this function
 `epg-receive-keys' instead."
-  (epg-context-set-operation context 'receive-keys)
-  (epg-context-set-result context nil)
+  (setf (epg-context-operation context) 'receive-keys)
+  (setf (epg-context-result context) nil)
   (epg--start context (cons "--recv-keys" key-id-list)))
 
 (defun epg-receive-keys (context keys)
@@ -2626,8 +1962,8 @@ If you use this function, you will need to wait for the completion of
 `epg-reset' to clear a temporary output file.
 If you are unsure, use synchronous version of this function
 `epg-delete-keys' instead."
-  (epg-context-set-operation context 'delete-keys)
-  (epg-context-set-result context nil)
+  (setf (epg-context-operation context) 'delete-keys)
+  (setf (epg-context-result context) nil)
   (epg--start context (cons (if allow-secret
 			       "--delete-secret-key"
 			     "--delete-key")
@@ -2659,8 +1995,8 @@ If you use this function, you will need to wait for the completion of
 If you are unsure, use synchronous version of this function
 `epg-sign-keys' instead."
   (declare (obsolete nil "23.1"))
-  (epg-context-set-operation context 'sign-keys)
-  (epg-context-set-result context nil)
+  (setf (epg-context-operation context) 'sign-keys)
+  (setf (epg-context-result context) nil)
   (epg--start context (cons (if local
 			       "--lsign-key"
 			     "--sign-key")
@@ -2693,8 +2029,8 @@ If you use this function, you will need to wait for the completion of
 `epg-reset' to clear a temporary output file.
 If you are unsure, use synchronous version of this function
 `epg-generate-key-from-file' or `epg-generate-key-from-string' instead."
-  (epg-context-set-operation context 'generate-key)
-  (epg-context-set-result context nil)
+  (setf (epg-context-operation context) 'generate-key)
+  (setf (epg-context-result context) nil)
   (if (epg-data-file parameters)
       (epg--start context (list "--batch" "--genkey" "--"
 			       (epg-data-file parameters)))

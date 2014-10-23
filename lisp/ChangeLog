@@ -1,5 +1,91 @@
 2014-10-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* epg.el: Use cl-defstruct.
+	(epg-make-data-from-file, epg-make-data-from-string, epg-data-file)
+	(epg-data-string): Define via cl-defstruct.
+	(epg--gv-nreverse): New macro.
+	(epg-context--make): New constructor (provided vi cl-defstruct).
+	(epg-make-context): Rewrite using it.
+	(epg-context-protocol, epg-context-program)
+	(epg-context-home-directory, epg-context-armor, epg-context-textmode)
+	(epg-context-include-certs, epg-context-cipher-algorithm)
+	(epg-context-digest-algorithm, epg-context-compress-algorithm)
+	(epg-context-passphrase-callback, epg-context-progress-callback)
+	(epg-context-signers, epg-context-sig-notations, epg-context-process)
+	(epg-context-output-file, epg-context-result, epg-context-operation)
+	(epg-context-pinentry-mode): Define using cl-defstruct.
+	(epg-context-set-protocol, epg-context-set-program)
+	(epg-context-set-include-certs, epg-context-set-cipher-algorithm)
+	(epg-context-set-digest-algorithm)
+	(epg-context-set-sig-notations, epg-context-set-process)
+	(epg-context-set-output-file, epg-context-set-result)
+	(epg-context-set-operation, epg-context-set-pinentry-mode)
+	(epg-context-set-compress-algorithm): Remove.  Use setf instead.
+	(epg-context-set-armor, epg-context-set-textmode)
+	(epg-context-set-signers): Redefine using setf
+	and declare as obsolete.
+	(epg-context-set-passphrase-callback)
+	(epg-context-set-progress-callback): Use setf.
+	(epg-signature-notations): Rename from epg-sig-notations.
+	(epg-make-signature, epg-signature-status, epg-signature-key-id)
+	(epg-signature-validity, epg-signature-fingerprint)
+	(epg-signature-creation-time, epg-signature-expiration-time)
+	(epg-signature-pubkey-algorithm, epg-signature-digest-algorithm)
+	(epg-signature-class, epg-signature-version): Define vi cl-defstruct.
+	(epg-signature-set-status, epg-signature-set-key-id)
+	(epg-signature-set-validity, epg-signature-set-fingerprint)
+	(epg-signature-set-creation-time, epg-signature-set-expiration-time)
+	(epg-signature-set-pubkey-algorithm)
+	(epg-signature-set-digest-algorithm, epg-signature-set-class)
+	(epg-signature-set-version, epg-signature-set-notations): Remove.
+	Use setf instead.
+	(epg-make-new-signature, epg-new-signature-type)
+	(epg-new-signature-pubkey-algorithm)
+	(epg-new-signature-digest-algorithm, epg-new-signature-class)
+	(epg-new-signature-creation-time, epg-new-signature-fingerprint):
+	Define using cl-defstruct.
+	(epg-make-key, epg-key-owner-trust, epg-key-sub-key-list)
+	(epg-key-user-id-list): Define using cl-defstruct.
+	(epg-key-set-sub-key-list, epg-key-set-user-id-list): Remove.
+	Use setf instead.
+	(epg-make-sub-key, epg-sub-key-validity, epg-sub-key-capability)
+	(epg-sub-key-secret-p, epg-sub-key-algorithm, epg-sub-key-length)
+	(epg-sub-key-id, epg-sub-key-creation-time)
+	(epg-sub-key-expiration-time, epg-sub-key-fingerprint): Define using
+	cl-defstruct.
+	(epg-sub-key-set-fingerprint): Remove.  Use setf instead.
+	(epg-make-user-id, epg-user-id-validity, epg-user-id-string)
+	(epg-user-id-signature-list): Define using cl-defstruct.
+	(epg-user-id-set-signature-list): Remove.  Use setf instead.
+	(epg-make-key-signature, epg-key-signature-validity)
+	(epg-key-signature-pubkey-algorithm, epg-key-signature-key-id)
+	(epg-key-signature-creation-time, epg-key-signature-expiration-time)
+	(epg-key-signature-user-id, epg-key-signature-class)
+	(epg-key-signature-exportable-p): Define using cl-defstruct.
+	(epg-make-sig-notation, epg-sig-notation-name)
+	(epg-sig-notation-value, epg-sig-notation-human-readable)
+	(epg-sig-notation-critical): Define using cl-defstruct.
+	(epg-sig-notation-set-value): Remove.  Use setf instead.
+	(epg-make-import-status, epg-import-status-fingerprint)
+	(epg-import-status-reason, epg-import-status-new)
+	(epg-import-status-user-id, epg-import-status-signature)
+	(epg-import-status-sub-key, epg-import-status-secret): Define using
+	cl-defstruct.
+	(epg-make-import-result, epg-import-result-considered)
+	(epg-import-result-no-user-id, epg-import-result-imported)
+	(epg-import-result-imported-rsa, epg-import-result-unchanged)
+	(epg-import-result-new-user-ids, epg-import-result-new-sub-keys)
+	(epg-import-result-new-signatures, epg-import-result-new-revocations)
+	(epg-import-result-secret-read, epg-import-result-secret-imported)
+	(epg-import-result-secret-unchanged, epg-import-result-not-imported)
+	(epg-import-result-imports): Define using cl-defstruct.
+
+	* emacs-lisp/package.el: Require EPG during macroexpansion.
+	(package--check-signature, package-import-keyring): Use setf instead of
+	epg-context-set-home-directory.
+
+2014-10-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
 	* emacs-lisp/bytecomp.el (byte-compile--use-old-handlers): Change default.
 
 2014-10-23  Leo Liu  <sdl.web@gmail.com>
