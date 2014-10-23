@@ -1,3 +1,11 @@
+2014-10-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* frames.texi (Frame Commands): Document and index
+	'frame-resize-pixelwise'.
+
+	* windows.texi (Split Window): Document and index
+	'window-resize-pixelwise'.
+
 2014-10-20  Glenn Morris  <rgm@gnu.org>
 
 	* ack.texi (Acknowledgments): Remove some obsolete items.
