@@ -9,6 +9,7 @@ Protection mutator context
 :Status: complete design
 :Revision: $Id: //info.ravenbrook.com/project/mps/master/design/tests.txt#2 $
 :Copyright: See `Copyright and License`_.
+:Index terms: pair: protection mutator context; design
 
 
 Introduction
