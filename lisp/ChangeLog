@@ -1,5 +1,11 @@
 2014-10-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/cl-macs.el (cl-defstruct): Define an internal predicate
+	even if :predicate was nil, for the benefit of typep.
+	Record the name of the predicate for typep's use.
+	(cl--make-type-test): Use pcase.  Obey new
+	cl-deftype-satisfies property.
+
 	* epg.el: Use cl-defstruct.
 	(epg-make-data-from-file, epg-make-data-from-string, epg-data-file)
 	(epg-data-string): Define via cl-defstruct.
