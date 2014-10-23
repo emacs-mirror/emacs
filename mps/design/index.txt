@@ -96,6 +96,7 @@ seg_                    Segment data structure
 shield_                 Shield
 sig_                    Signatures in the MPS
 splay_                  Splay trees
+ss_                     Stack and register scanning
 sso1al_                 Stack scanner for Digital Unix / Alpha systems
 strategy_               Collection strategy
 telemetry_              Telemetry
@@ -170,6 +171,7 @@ writef_                 The WriteF function
 .. _shield: shield
 .. _sig: sig
 .. _splay: splay
+.. _ss: ss
 .. _sso1al: sso1al
 .. _strategy: strategy
 .. _telemetry: telemetry
