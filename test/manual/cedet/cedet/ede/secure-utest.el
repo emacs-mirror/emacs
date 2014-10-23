@@ -66,6 +66,10 @@ permitted.")
 		     :classp 'ede-generic-cmake-project-p
 		     :hazzard nil
 		     :has-config t)
+   (ede-security-entry "arduino" :file "src/arduino/Blink/Blink.ino"
+		     :classp 'ede-arduino-project-p
+		     :hazzard nil
+		     :has-config t)
    )
   "List of project test entries to try.")
 
@@ -204,7 +208,8 @@ permitted.")
 	    ;; Make sure the config was automatically ignored.
 	    (unless (and (oref config ignored-file)
 			 (eq (oref config ignored-file) 'auto))
-	      (error "Configuration was not auto-ignored."))
+	      (error "Configuration was not auto-ignored. [%S]"
+		     (oref config ignored-file)))
 
 	    ;; Force loading a project, but say no.
 	    (setq ede-check-project-query-fcn 'ede-security-question-no)
@@ -219,7 +224,11 @@ permitted.")
 	    ;; Make sure the config was manually ignored via our NO fcn.
 	    (unless (and (oref config ignored-file)
 			 (eq (oref config ignored-file) 'manual))
-	      (error "Configuration was not manually-ignored."))
+	      (if (eq (oref config ignored-file) 'auto)
+		  (error "Configuration was not manually ignored.
+Make sure project-rescan has (call-next-method)")
+		(error "Configuration was not manually-ignored. [%S]"
+		       (oref config ignored-file))))
 
 
 	    ;; Now agree to load the config.
