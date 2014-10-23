@@ -700,4 +700,5 @@ including `cl-block' and `cl-eval-when'."
 ;; generated-autoload-file: "cl-loaddefs.el"
 ;; End:
 
+(provide 'cl-extra)
 ;;; cl-extra.el ends here
