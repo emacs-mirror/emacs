@@ -2828,11 +2828,15 @@ DEFUN ("frame-bottom-divider-width", Fbottom_divider_width, Sbottom_divider_widt
 }
 
 DEFUN ("set-frame-height", Fset_frame_height, Sset_frame_height, 2, 4, 0,
-       doc: /* Specify that the frame FRAME has HEIGHT text lines.
+       doc: /* Set height of frame FRAME to HEIGHT lines.
 Optional third arg PRETEND non-nil means that redisplay should use
 HEIGHT lines but that the idea of the actual height of the frame should
-not be changed.  Optional fourth argument PIXELWISE non-nil means that
-FRAME should be HEIGHT pixels high.  */)
+not be changed.
+
+Optional fourth argument PIXELWISE non-nil means that FRAME should be
+HEIGHT pixels high.  Note: When `frame-resize-pixelwise' is nil, some
+window managers may refuse to honor a HEIGHT that is not an integer
+multiple of the default frame font height.  */)
   (Lisp_Object frame, Lisp_Object height, Lisp_Object pretend, Lisp_Object pixelwise)
 {
   struct frame *f = decode_live_frame (frame);
@@ -2850,11 +2854,15 @@ FRAME should be HEIGHT pixels high.  */)
 }
 
 DEFUN ("set-frame-width", Fset_frame_width, Sset_frame_width, 2, 4, 0,
-       doc: /* Specify that the frame FRAME has WIDTH columns.
+       doc: /* Set width of frame FRAME to WIDTH columns.
 Optional third arg PRETEND non-nil means that redisplay should use WIDTH
 columns but that the idea of the actual width of the frame should not
-be changed.  Optional fourth argument PIXELWISE non-nil means that FRAME
-should be WIDTH pixels wide.  */)
+be changed.
+
+Optional fourth argument PIXELWISE non-nil means that FRAME should be
+WIDTH pixels wide.  Note: When `frame-resize-pixelwise' is nil, some
+window managers may refuse to honor a WIDTH that is not an integer
+multiple of the default frame font width.  */)
   (Lisp_Object frame, Lisp_Object width, Lisp_Object pretend, Lisp_Object pixelwise)
 {
   struct frame *f = decode_live_frame (frame);
@@ -2872,8 +2880,12 @@ should be WIDTH pixels wide.  */)
 }
 
 DEFUN ("set-frame-size", Fset_frame_size, Sset_frame_size, 3, 4, 0,
-       doc: /* Sets size of FRAME to WIDTH by HEIGHT, measured in characters.
-Optional argument PIXELWISE non-nil means to measure in pixels.  */)
+       doc: /* Set size of FRAME to WIDTH by HEIGHT, measured in characters.
+Optional argument PIXELWISE non-nil means to measure in pixels.  Note:
+When `frame-resize-pixelwise' is nil, some window managers may refuse to
+honor a WIDTH that is not an integer multiple of the default frame font
+width or a HEIGHT that is not an integer multiple of the default frame
+font height.  */)
   (Lisp_Object frame, Lisp_Object width, Lisp_Object height, Lisp_Object pixelwise)
 {
   struct frame *f = decode_live_frame (frame);
@@ -4968,12 +4980,13 @@ is non-nil, no rounding occurs, hence frame sizes can increase/decrease
 by one pixel.
 
 With some window managers you may have to set this to non-nil in order
-to fully maximize frames.  To resize your initial frame pixelwise, set
-this option to a non-nil value in your init file.  */);
+to set the size of a frame in pixels, to maximize frames or to make them
+fullscreen.  To resize your initial frame pixelwise, set this option to
+a non-nil value in your init file.  */);
   frame_resize_pixelwise = 0;
 
   DEFVAR_BOOL ("frame-inhibit-implied-resize", frame_inhibit_implied_resize,
-	       doc: /* Non-nil means do not resize frame implicitly.
+	       doc: /* Non-nil means do not resize frames implicitly.
 If this option is nil, setting default font, menubar mode, fringe width,
 or scroll bar mode of a specific frame may resize the frame in order to
 preserve the number of columns or lines it displays.  If this option is
