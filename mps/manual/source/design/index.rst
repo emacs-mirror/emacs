@@ -23,6 +23,7 @@ Design
     prmc
     range
     ring
+    sp
     sig
     splay
     ss

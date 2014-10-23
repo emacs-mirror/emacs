@@ -39,7 +39,7 @@ code, where references might be stored by mutator on its stack.)
 
 _`.req.stack.bottom.not`: There is no requirement to locate the bottom
 of the stack. (The mutator supplies this as an argument to
-``mps_root_create_reg``.)
+``mps_root_create_reg()``.)
 
 _`.req.registers`: Must locate and scan all references in the *root
 registers*, the subset of registers which might contain references
@@ -51,19 +51,19 @@ references might appear in registers.)
 Design
 ------
 
-_`.registers`: The root registers are the subset of the callee-save
-registers that may contain pointers.
-
-_`.registers.not`: The caller-save registers will have been spilled
-onto the stack by the time the MPS is entered, so will be scanned by
-the stack scan. Floating-point registers and debugging registers do
-not, as far as we are aware, contain pointers.
-
 _`.sol.stack.top`: Implementations find the top of the stack by
 taking the address of a local variable.
 
 _`.sol.registers`: Implementations spill the root registers onto the
 stack so that they can be scanned there.
+
+_`.sol.registers.root`: The *root registers* are the subset of the
+callee-save registers that may contain pointers.
+
+_`.sol.registers.root.justify`: The caller-save registers will have
+been spilled onto the stack by the time the MPS is entered, so will be
+scanned by the stack scan. Floating-point registers and debugging
+registers do not, as far as we are aware, contain pointers.
 
 _`.sol.inner`: Having located the top of the stack (``stackTop``), and
 spilled the root registers into the next ``n`` words, implementations
