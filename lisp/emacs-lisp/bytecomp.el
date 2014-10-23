@@ -4072,7 +4072,7 @@ binding slots have been popped."
 ;; (byte-defop-compiler-1 save-window-excursion)      ;Obsolete: now a macro.
 ;; (byte-defop-compiler-1 with-output-to-temp-buffer) ;Obsolete: now a macro.
 
-(defvar byte-compile--use-old-handlers t
+(defvar byte-compile--use-old-handlers nil
   "If nil, use new byte codes introduced in Emacs-24.4.")
 
 (defun byte-compile-catch (form)

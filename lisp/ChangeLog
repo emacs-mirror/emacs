@@ -1,3 +1,7 @@
+2014-10-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el (byte-compile--use-old-handlers): Change default.
+
 2014-10-23  Leo Liu  <sdl.web@gmail.com>
 
 	* progmodes/cfengine.el (cfengine3-defun-full-re): New var.
