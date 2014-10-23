@@ -95,6 +95,7 @@ scan_                   The generic scanner
 seg_                    Segment data structure
 shield_                 Shield
 sig_                    Signatures in the MPS
+sp_                     Stack probe
 splay_                  Splay trees
 ss_                     Stack and register scanning
 sso1al_                 Stack scanner for Digital Unix / Alpha systems
@@ -170,6 +171,7 @@ writef_                 The WriteF function
 .. _seg: seg
 .. _shield: shield
 .. _sig: sig
+.. _sp: sp
 .. _splay: splay
 .. _ss: ss
 .. _sso1al: sso1al

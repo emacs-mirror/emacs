@@ -91,10 +91,10 @@ usable.
    might start. The purpose is to provoke a stack overflow exception,
    if necessary, before taking the arena lock.
 
-   See ``sp.h`` for the interface. There are implementations on
-   Windows on IA-32 in ``spi3w3.c`` and x86-64 in ``spi6w3.c``. There
-   is a generic implementation in ``span.c``, which can't provide
-   this feature.
+   See :ref:`design-sp` for the design, and ``sp.h`` for the
+   interface. There are implementations on Windows on IA-32 in
+   ``spi3w3.c`` and x86-64 in ``spi6w3.c``. There is a generic
+   implementation in ``span.c``, which can't provide this feature.
 
 #. The **stack and register scanning** module :term:`scans` the
    :term:`registers` and :term:`control stack` of a thread.
