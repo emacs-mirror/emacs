@@ -111,22 +111,21 @@ the ground.)
 _`.req.params`: The interface should make it possible for MPS to allow
 the client program to modify the behaviour of the virtual mapping
 implementation. (This is needed to implement the
-``MPS_KEY_VMW3_MEM_TOP_DOWN`` keyword argument, which allows a client
-program on Windows to tell the virtual mapping module to pass the
-``MEM_TOP_DOWN`` flag to ``VirtualAlloc()``.)
+``MPS_KEY_VMW3_MEM_TOP_DOWN`` keyword argument.)
 
 
 Design
 ------
 
-_`.sol.overhead`: To meet `.req.contiguous`_, `.req.align`_ and
-`.req.overhead`_, most VM implementations ask the operating system for
-``size + grainSize - pageSize`` bytes of address space. This ensures
-that wherever the operating system places the reserved address space,
-it contains a continguous region of ``size`` bytes aligned to a
-multiple of ``grainSize``. The overhead is thus ``grainSize -
-pageSize``, and in the common case where ``grainSize`` is equal to
-``pageSize``, this is zero.
+_`.sol.overhead`: To meet `.req.reserve.contiguous`_,
+`.req.reserve.align`_ and `.req.reserve.overhead`_, most VM
+implementations ask the operating system for ``size + grainSize -
+pageSize`` bytes of address space. This ensures that wherever the
+operating system places the reserved address space, it contains a
+continguous region of ``size`` bytes aligned to a multiple of
+``grainSize``. The overhead is thus ``grainSize - pageSize``, and in
+the common case where ``grainSize`` is equal to ``pageSize``, this is
+zero.
 
 _`.sol.bootstrap`: To meet `.req.bootstrap`_, the interface provides
 the function ``VMCopy()``. This allows the initialization of a
@@ -241,6 +240,8 @@ _`.impl.an`: In ``vman.c``.
 _`.impl.an.page.size`: The generic VM uses a fake page size, given by
 the constant ``VMAN_PAGE_SIZE`` in ``config.h``.
 
+_`.impl.an.param`: Decodes no keyword arguments.
+
 _`.impl.an.reserve`: Address space is "reserved" by calling
 ``malloc()``.
 
@@ -252,12 +253,14 @@ with copies of ``VMJunkBYTE`` to emulate the erasure of freshly mapped
 pages by virtual memory systems.
 
 
-POSIX implementation
-....................
+Unix implementation
+...................
 
 _`.impl.ix`: In ``vmix.c``.
 
 _`.impl.ix.page.size`: The page size is given by ``getpagesize()``.
+
+_`.impl.ix.param`: Decodes no keyword arguments.
 
 _`.impl.ix.reserve`: Address space is reserved by calling |mmap|_,
 passing ``PROT_NONE`` and ``MAP_PRIVATE | MAP_ANON``.
@@ -296,8 +299,13 @@ _`.impl.w3.page.size`: The page size is retrieved by calling
 .. |GetSystemInfo| replace:: ``GetSystemInfo()``
 .. _GetSystemInfo: http://msdn.microsoft.com/en-gb/library/windows/desktop/ms724381.aspx
 
+_`.impl.w3.param`: Decodes the keyword argument
+``MPS_KEY_VMW3_MEM_TOP_DOWN``, and if it is set, arranges for
+``VMInit()`` to pass the ``MEM_TOP_DOWN`` flag to |VirtualAlloc|_.
+
 _`.impl.w3.reserve`: Address space is reserved by calling
-|VirtualAlloc|_, passing ``PAGE_NOACCESS``.
+|VirtualAlloc|_, passing ``MEM_RESERVE`` (and optionally
+``MEM_TOP_DOWN``) and ``PAGE_NOACCESS``.
 
 .. |VirtualAlloc| replace:: ``VirtualAlloc()``
 .. _VirtualAlloc: http://msdn.microsoft.com/en-us/library/windows/desktop/aa366887.aspx
