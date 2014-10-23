@@ -31,76 +31,44 @@
 ## installation directory.  It does not handle info/dir being present
 ## but missing some entries.
 
-### Code:
-
-if test $# -ne 1; then
-    echo "Specify destination file"
-    exit 1
-fi
-
-outfile=$1
-
-echo "Creating $outfile..."
-
-if test -f "$outfile"; then
-    echo "$outfile already present"
-    exit 1
-fi
-
 ## Header contains non-printing characters, so this is more
-## reliable than using echo.
-basefile=build-aux/dir_top
+## reliable than using awk.
+cat <"${1?}" || exit
+shift
 
-if test ! -f "$basefile"; then
-    echo "$basefile not found"
-    exit 1
-fi
-
-
-cp $basefile $outfile
-
-
-## FIXME inefficient looping.
-## What we should do is loop once over files, collecting topic and
-## direntry information for each.  Then loop over topics and write
-## out the results.  But that seems to require associative arrays,
-## and I do not know how to do that with portable sh.
-## Could use Emacs instead of sh, but till now info generation does
-## not require Emacs to have been built.
-for topic in "Texinfo documentation system" "Emacs" "Emacs lisp" \
-    "Emacs editing modes" "Emacs network features" "Emacs misc features" \
-    "Emacs lisp libraries"; do
-
-    cat - <<EOF >> $outfile
-
-$topic
-EOF
-    ## Bit faster than doc/*/*.texi.
-    for file in doc/emacs/emacs.texi doc/lispintro/emacs-lisp-intro.texi \
-        doc/lispref/elisp.texi doc/misc/*.texi; do
-
-        ## FIXME do not ignore w32 if OS is w32.
-        case $file in
-            *-xtra.texi|*efaq-w32.texi|*doclicense.texi) continue ;;
-        esac
-
-        dircat=`sed -n -e 's/@value{emacsname}/Emacs/' -e 's/^@dircategory //p' $file`
-
-        ## TODO warn about unknown topics.
-        ## (check-info in top-level Makefile does that.)
-        test "$dircat" = "$topic" || continue
-
-
-        sed -n -e 's/@value{emacsname}/Emacs/' \
-            -e 's/@acronym{\([A-Z]*\)}/\1/' \
-            -e '/^@direntry/,/^@end direntry/ s/^\([^@]\)/\1/p' \
-            $file >> $outfile
-
-    done
-done
-
-echo "Created $outfile"
-
-exit 0
-
-### make-info-dir ends here
+exec "${AWK-awk}" '
+  function detexinfo() {
+    gsub(/@value{emacsname}/, "Emacs")
+    gsub(/@[^{]*\{/, "")
+    gsub(/}/, "")
+  }
+  BEGIN {
+    ntopics = 0
+    topic[ntopics++] = "Texinfo documentation system"
+    topic[ntopics++] = "Emacs"
+    topic[ntopics++] = "Emacs lisp"
+    topic[ntopics++] = "Emacs editing modes"
+    topic[ntopics++] = "Emacs network features"
+    topic[ntopics++] = "Emacs misc features"
+    topic[ntopics++] = "Emacs lisp libraries"
+    topic[ntopics] = "Unknown category"
+  }
+  /^@dircategory / {
+    sub(/^@dircategory /, "")
+    detexinfo()
+    for (dircat = 0; dircat < ntopics && topic[dircat] != $0; dircat++)
+      continue;
+  }
+  /^@direntry/, /^@end direntry/ {
+    # FIXME do not ignore w32 if OS is w32.
+    if ($0 !~ /^@/ && $0 !~ /w32/) {
+      detexinfo()
+      data[dircat] = data[dircat] $0 "\n"
+    }
+  }
+  END {
+    for (dircat = 0; dircat <= ntopics; dircat++)
+      if (data[dircat])
+        printf "\n%s\n%s", topic[dircat], data[dircat]
+  }
+' "${@?}"

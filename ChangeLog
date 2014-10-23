@@ -1,3 +1,19 @@
+2014-10-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix race in 'make info/dir', and speed it up.
+	* Makefile.in (AWK, srcdir_doc_info_dir_inputs, info_dir_inputs):
+	New macros.
+	(clean): Remove info-dir.*.
+	(info_dir_deps): Depend on make-info-dir too.
+	Fix bug with wildcards that weren't expanded.
+	(${srcdir}/info/dir): Make sure info directory exists.
+	Don't call pwd; just redirect make-info-dir's stdout to temp file.
+	* build-aux/make-info-dir: Send output to stdout.
+	Take input file names from args.
+	Fix a "FIXME inefficient looping" by using awk's associative arrays.
+	Basically, this rewrites the script from scratch, and speeds up
+	'make info/dir' from 2.6s to 0.07s on my platform.
+
 2014-10-20  Glenn Morris  <rgm@gnu.org>
 
 	* Merge in all changes up to 24.4 release.

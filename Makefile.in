@@ -80,6 +80,7 @@ AUTOCONF = @AUTOCONF@
 AUTOMAKE = @AUTOMAKE@
 AUTOHEADER = @AUTOHEADER@
 ACLOCAL = @ACLOCAL@
+AWK = @AWK@
 
 EXEEXT=@EXEEXT@
 
@@ -817,6 +818,7 @@ clean: $(clean_dirs:=_clean)
 	  [ ! -d $$dir ] || $(MAKE) -C $$dir clean; \
 	done
 	-rm -f etc/emacs.tmpdesktop etc/emacs.tmpappdata
+	-rm -rf info-dir.*
 
 ### `bootclean'
 ###      Delete all files that need to be remade for a clean bootstrap.
@@ -935,13 +937,19 @@ ps: $(PSS)
 
 info-dir: ${srcdir}/info/dir
 
-## Not strictly necessary, but speeds things up a bit by stopping
-## the info-dir rule from running when not needed.
 ## Hopefully doc/misc/*.texi is not too long for some systems?
-info_dir_deps = ${srcdir}/build-aux/dir_top \
-	${srcdir}/doc/emacs/emacs.texi \
-	${srcdir}/doc/lispintro/emacs-lisp-intro.texi \
-	${srcdir}/doc/lispref/elisp.texi ${srcdir}/doc/misc/*.texi
+srcdir_doc_info_dir_inputs = \
+  ${srcdir}/doc/emacs/emacs.texi \
+  ${srcdir}/doc/lispintro/emacs-lisp-intro.texi \
+  ${srcdir}/doc/lispref/elisp.texi \
+  $(sort $(wildcard ${srcdir}/doc/misc/*.texi))
+info_dir_inputs = \
+  ../build-aux/dir_top \
+  $(subst ${srcdir}/doc/,,${srcdir_doc_info_dir_inputs})
+info_dir_deps = \
+  ${srcdir}/build-aux/make-info-dir \
+  ${srcdir}/build-aux/dir_top \
+  ${srcdir_doc_info_dir_inputs}
 
 ## It would be much simpler if info/dir was only created in the
 ## installation location by the install-info rule, but we also
@@ -950,10 +958,12 @@ info_dir_deps = ${srcdir}/build-aux/dir_top \
 ## but then we would need to depend on info-real, which would
 ## slow down parallelization.
 ${srcdir}/info/dir: ${info_dir_deps}
+	${MKDIR_P} ${srcdir}/info
 	tempfile=info-dir.$$$$; \
 	rm -f $${tempfile}; \
-	thisdir=`pwd`; \
-	(cd ${srcdir} && ./build-aux/make-info-dir $${thisdir}/$${tempfile}); \
+	(cd ${srcdir}/doc && \
+	 AWK='${AWK}' ../build-aux/make-info-dir ${info_dir_inputs} \
+	) >$$tempfile && \
 	${srcdir}/build-aux/move-if-change $${tempfile} ${srcdir}/info/dir
 
 INSTALL_DVI = install-emacs-dvi install-lispref-dvi \
