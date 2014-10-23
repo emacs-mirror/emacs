@@ -15,8 +15,7 @@ Thread manager
 Introduction
 ------------
 
-_`.intro`: This document describes the design of the thread manager
-module.
+_`.intro`: This is the design of the thread manager module.
 
 _`.readership`: Any MPS developer.
 
@@ -76,56 +75,65 @@ Interface
 
 ``typedef struct mps_thr_s *Thread``
 
-The type of threads. It is a pointer to an opaque structure, which
-must be defined by the implementation.
+_`.if.thread`: The type of threads. It is a pointer to an opaque
+structure, which must be defined by the implementation.
 
 ``Bool ThreadCheck(Thread thread)``
 
-The check function for threads. See design.mps.check_.
+_`.if.check`: The check function for threads. See design.mps.check_.
 
 .. _design.mps.check: check
 
 ``Bool ThreadCheckSimple(Thread thread)``
 
-A thread-safe check function for threads, for use by
-``mps_thread_dereg()``. It can't use ``AVER(TESTT(Thread, thread))``,
-as recommended by design.mps.sig.check.arg.unlocked_, since ``Thread``
-is an opaque type.
+_`.if.check.simple`: A thread-safe check function for threads, for use
+by ``mps_thread_dereg()``. It can't use ``AVER(TESTT(Thread,
+thread))``, as recommended by design.mps.sig.check.arg.unlocked_,
+since ``Thread`` is an opaque type.
 
 .. _design.mps.sig.check.arg.unlocked: sig#check.arg.unlocked
 
 ``Arena ThreadArena(Thread thread)``
 
-Return the arena that the thread is registered with. Must be
-thread-safe as it is necessarily called before taking the arena lock.
+_`.if.arena`: Return the arena that the thread is registered with.
+Must be thread-safe as it needs to be called by ``mps_thread_dereg()``
+before taking the arena lock.
 
 ``Res ThreadRegister(Thread *threadReturn, Arena arena)``
 
-Register the current thread with the arena, allocating a new
-``*threadReturn`` to point to it.
+_`.if.register`: Register the current thread with the arena,
+allocating a new ``Thread`` object. If successful, update
+``*threadReturn`` to point to the new thread and return ``ResOK``.
+Otherwise, return a result code indicating the cause of the error.
 
 ``void ThreadDeregister(Thread thread, Arena arena)``
 
-Remove ``thread`` from the list of threads managed by the arena and
-free it.
+_`.if.deregister`: Remove ``thread`` from the list of threads managed
+by the arena and free it.
 
 ``void ThreadRingSuspend(Ring threadRing)``
 
-Suspend all the threads on ``threadRing``, except for the current
-thread.
+_`.if.ring.suspend`: Suspend all the threads on ``threadRing``, except
+for the current thread.
 
 ``void ThreadRingResume(Ring threadRing)``
 
-Resume all the threads on ``threadRing``.
+_`.if.ring.resume`: Resume all the threads on ``threadRing``.
 
 ``Thread ThreadRingThread(Ring threadRing)``
 
-Return the thread that owns an element of the thread ring.
+_`.if.ring.thread`: Return the thread that owns the given element of
+the thread ring.
 
 ``Res ThreadScan(ScanState ss, Thread thread, void *stackBot)``
 
-Scan the stacks and root registers of ``thread``, treating each value
-found as an ambiguous reference.
+_`.if.scan`: Scan the stacks and root registers of ``thread``,
+treating each value found as an ambiguous reference. ``stackBot``
+points to the "bottom" of the thread's stack---this is the value that
+was supplied by the client program when it called
+``mps_root_create_reg()``. In the common case, where the stack grows
+downwards, ``stackBot`` is actually the highest stack address. Return
+``ResOK`` if successful, another result code otherwise.
 
 
 Implementations
@@ -193,12 +201,7 @@ the thread is current.
 _`.impl.ix.scan.suspended`: ``PThreadextSuspend()`` records the
 context of each suspended thread, and ``ThreadRingSuspend()`` stores
 this in the ``Thread`` structure, so that is available by the time
-``ThreadScan()`` is called. The thread's registers are dumped into a
-``ucontext_t`` structure and fixed in memory. The stack pointer is
-obtained from ``ucontext_t.uc_mcontext.mc_esp`` (FreeBSD on IA-32),
-``uc_mcontext.gregs[REG_ESP]`` (Linux on IA-32),
-``ucontext_t.uc_mcontext.mc_rsp`` (FreeBSD on x86-64), or
-``uc_mcontext.gregs[REG_RSP]`` (Linux on x86-64).
+``ThreadScan()`` is called.
 
 
 Windows implementation
@@ -245,10 +248,7 @@ values which were in the saved registers on entry to the MPS.
 
 _`.impl.w3.scan.suspended`: Otherwise, ``ThreadScan()`` calls
 |GetThreadContext|_ to get the root registers and the stack
-pointer. The thread's registers are dumped into a ``CONTEXT``
-structure and fixed in memory. The stack pointer is obtained from
-``CONTEXT.Rsp`` (on IA-32) or ``CONTEXT.Rsp`` (on x86-64) and then the
-stack is scanned.
+pointer.
 
 
 OS X implementation
@@ -284,10 +284,6 @@ the thread is current.
 
 _`.impl.xc.scan.suspended`: Otherwise, ``ThreadScan()`` calls
 |thread_get_state|_ to get the root registers and the stack pointer.
-The thread's registers are dumped into a ``THREAD_STATE_S`` structure
-and fixed in memory. The stack pointer is obtained from
-``THREAD_STATE_S.__esp`` (on IA-32) or ``THREAD_STATE_S.__rsp`` (on
-x86-64) and then the stack is scanned.
 
 .. |thread_get_state| replace:: ``thread_get_state()``
 .. _thread_get_state: http://www.gnu.org/software/hurd/gnumach-doc/Thread-Execution.html

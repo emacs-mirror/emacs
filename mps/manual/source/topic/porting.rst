@@ -77,15 +77,14 @@ usable.
 
 #. The **protection mutator context** module figures out what the
    :term:`mutator` was doing when it caused a :term:`protection
-   fault`, or when a thread was suspended, so that its
-   :term:`registers` and :term:`control stack` can be scanned, and so
-   that access to a protected region of memory can be emulated as
-   described at :ref:`pool-awl-barrier`.
+   fault`, so that access to a protected region of memory can be
+   handled, or when a thread was suspended, so that its
+   :term:`registers` and :term:`control stack` can be scanned.
 
-   See :ref:`design-prot` for the design, and ``prot.h`` for the
-   interface. There are eight implementations, a typical example being
-   ``prmci3w3.c`` for Windows on IA-32. There is a generic
-   implementation in ``prmcan.c``, which can't provide this feature.
+   See :ref:`design-prmc` for the design, and ``prot.h`` for the
+   interface. There are implementations on Unix, Windows, and OS X for
+   IA-32 and x86-64. There is a generic implementation in
+   ``prmcan.c``, which can't provide these features.
 
 #. The **stack probe** module checks that there is enough space on the
    :term:`control stack` for the MPS to complete any operation that it

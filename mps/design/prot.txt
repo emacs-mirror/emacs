@@ -53,34 +53,6 @@ _`.if.sync`: ``ProtSync()`` is called to ensure that the actual
 protection of each segment (as determined by the OS) is in accordance
 with the segments's ``pm`` field.
 
-``typedef struct MutatorFaultContextStruct *MutatorFaultContext``
-
-_`.if.context-type`: This abstract type is implemented by the
-protection module (impl.c.prot*). It represents the continuation of
-the mutator which is restored after a mutator fault has been handled.
-The functions ``ProtCanStepInstruction()`` (`.if.canstep`_ below) and
-``ProtStepInstruction()`` (`.if.step`_ below) inspect and manipulate
-the context.
-
-``Bool ProtCanStepInstruction(MutatorFaultContext context)``
-
-_`.if.canstep`: Examines the context to determine whether the
-protection module can single-step the instruction which is causing the
-fault. Should return ``TRUE`` if and only if the instruction can be
-single-stepped (that is, ``ProtStepInstruction()`` can be called).
-
-``Bool Res ProtStepInstruction(MutatorFaultContext context)``
-
-_`.if.step`: Single-steps the instruction which is causing the fault.
-This function should only be called if ``ProtCanStepInstruction()``
-applied to the context returned ``TRUE``. It should return
-``ResUNIMPL`` if the instruction cannot be single-stepped. It should
-return ``ResOK`` if the instruction is single-stepped.
-
-The mutator context will be updated by the emulation/execution of the
-instruction such that resuming the mutator will not cause the
-instruction which was causing the fault to be executed.
-
 
 Document History
 ----------------
@@ -90,6 +62,11 @@ Document History
 - 2002-06-07 RB_ Converted from MMInfo database design document.
 
 - 2013-05-23 GDR_ Converted to reStructuredText.
+
+- 2014-10-23 GDR_ Move protection mutator context interface to
+  design.mps.prmc_.
+
+  .. _design.mps.prmc: prmc
 
 .. _RB: http://www.ravenbrook.com/consultants/rb/
 .. _GDR: http://www.ravenbrook.com/consultants/gdr/
