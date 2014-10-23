@@ -1,3 +1,8 @@
+2014-10-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* startup.el (fancy-about-text): Read the entire tutorial, not
+	just its first 256 bytes.  (Bug#18760)
+
 2014-10-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/bytecomp.el: Require cl-extra (bug#18804).
