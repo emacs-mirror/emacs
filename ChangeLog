@@ -1,11 +1,12 @@
 2014-10-23  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* Makefile.in (ACLOCAL_INPUTS): Omit unnecessary use of 'wildcard'.
+
 	Fix race in 'make info/dir', and speed it up.
 	* Makefile.in (AWK, srcdir_doc_info_dir_inputs, info_dir_inputs):
 	New macros.
 	(clean): Remove info-dir.*.
 	(info_dir_deps): Depend on make-info-dir too.
-	Fix bug with wildcards that weren't expanded.
 	(${srcdir}/info/dir): Make sure info directory exists.
 	Don't call pwd; just redirect make-info-dir's stdout to temp file.
 	* build-aux/make-info-dir: Send output to stdout.

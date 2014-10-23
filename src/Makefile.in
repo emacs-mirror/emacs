@@ -535,7 +535,7 @@ $(oldXMenudir)/libXMenu11.a: FORCE
 FORCE:
 .PHONY: FORCE
 
-ACLOCAL_INPUTS = $(top_srcdir)/configure.ac $(wildcard $(top_srcdir)/m4/*.m4)
+ACLOCAL_INPUTS = $(top_srcdir)/configure.ac $(top_srcdir)/m4/*.m4
 AUTOCONF_INPUTS = $(top_srcdir)/configure.ac $(top_srcdir)/aclocal.m4
 $(top_srcdir)/aclocal.m4: $(ACLOCAL_INPUTS)
 $(top_srcdir)/configure config.in: $(AUTOCONF_INPUTS)
