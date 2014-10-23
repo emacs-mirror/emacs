@@ -80,6 +80,7 @@ poolmrg_                Manual Rank Guardian pool class
 poolmv_                 Manual Variable pool class
 poolmvt_                Manual Variable Temporal pool class
 poolmvff_               Manual Variable First-Fit pool class
+prmc_                   Protection mutator context
 prot_                   Memory protection
 protan_                 ANSI implementation of protection module
 protli_                 Linux implementation of protection module
@@ -154,6 +155,7 @@ writef_                 The WriteF function
 .. _poolmv: poolmv
 .. _poolmvt: poolmvt
 .. _poolmvff: poolmvff
+.. _prmc: prmc
 .. _prot: prot
 .. _protan: protan
 .. _protli: protli
