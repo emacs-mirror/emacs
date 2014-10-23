@@ -266,9 +266,10 @@ Exit the summary buffer and return to the group buffer.
 OpenDocument, and Microsoft Office documents.  It provides features
 such as slicing, zooming, and searching inside documents.  It works by
 converting the document to a set of images using the @command{gs}
-(GhostScript) command and other external tools @footnote{@code{gs} is
-a hard requirement.  For DVI files, @code{dvipdf} or @code{dvipdfm} is
-needed.  For OpenDocument and Microsoft Office documents, the
+(GhostScript) or @command{mudraw}/@command{pdfdraw} (MuPDF) commands
+and other external tools @footnote{For PostScript files, GhostScript
+is a hard requirement.  For DVI files, @code{dvipdf} or @code{dvipdfm}
+is needed.  For OpenDocument and Microsoft Office documents, the
 @code{unoconv} tool is needed.}, and displaying those images.
 
 @findex doc-view-toggle-display
@@ -286,6 +287,17 @@ text; however, it also enables DocView minor mode, so you can type
 mode or DocView minor mode, repeating @kbd{C-c C-c}
 (@code{doc-view-toggle-display}) toggles between DocView and the
 underlying file contents.
+
+@findex doc-view-open-text
+  When you visit a file which would normally be handled by DocView
+mode but some requirement is not met (e.g., you operate in a terminal
+frame or emacs has no PNG support), you are queried if you want to
+view the document's contents as plain text.  If you confirm, the
+buffer is put in text mode and DocView minor mode is activated.  Thus,
+by typing @kbd{C-c C-c} you switch to the fallback mode.  With another
+@kbd{C-c C-c} you return to DocView mode.  The plain text contents can
+also be displayed from within DocView mode by typing @kbd{C-c C-t}
+(@code{doc-view-open-text}).
 
   You can explicitly enable DocView mode with the command @code{M-x
 doc-view-mode}.  You can toggle DocView minor mode with @code{M-x
