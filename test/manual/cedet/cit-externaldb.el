@@ -90,14 +90,26 @@
 	  (message "Skipping %s test -- tool not installed." (nth 0 TOOL))
 	  (sit-for 1))
 
-      ;; Call to test this instance.
-      (cit-gnu-externaldb-test-one (nth 0 TOOL)
-				   (nth 3 TOOL)
-				   (nth 4 TOOL)
-				   (nth 6 TOOL)
-				   (nth 7 TOOL)
-				   (nth 8 TOOL)
-				   ))))
+      (catch 'abort-test-for-good-reason
+	;; Call to test this instance.
+	(cit-gnu-externaldb-test-one (nth 0 TOOL)
+				     (nth 3 TOOL)
+				     (nth 4 TOOL)
+				     (nth 6 TOOL)
+				     (nth 7 TOOL)
+				     (nth 8 TOOL)
+				     ))
+      )))
+
+(defun cit-externaldb-cleanup (cleanupfiles)
+  "Clean up the files created by a database."
+  ;; Delete the files created by external tool.
+  (dolist (F cleanupfiles)
+    (if (file-exists-p F)
+	(progn
+	  (message "DB Cleanup:  delete-file %s" F)
+	  (delete-file F))
+      (message "DB Cleanup: File not found to delete: %s" F))))
 
 (defun cit-gnu-externaldb-test-one (symrefsym
 				    createfcn
@@ -107,11 +119,22 @@
 				    cleanupfiles)
   "Test external database tooling integration if it is available."
   (let ((bufftokill (find-file (cit-file "Project.ede"))))
-
     ;; 1) Create
     ;; We are at the root of the created CIT project.  Lets create a
     ;; database.
-    (funcall createfcn default-directory)
+    (condition-case findcrash
+	(funcall createfcn default-directory)
+      (error
+       (if (and (eq (car findcrash) 'error)
+		(string-match "^Output:" (cadr findcrash)))
+	   (progn
+	     (message " !! Database create external program crashed !!  Aborting test for %S\n"
+		      symrefsym)
+	     (message "%S" (cadr findcrash))
+	     (cit-externaldb-cleanup cleanupfiles)
+	     (throw 'abort-test-for-good-reason t))
+	 ;; ELSE, throw the actual error.
+	 (message "An error occured creating the database.\n %S" findcrash))))
 
     ;; 2) force ede's find file to use external tool
     (require 'ede/locate)
@@ -170,18 +193,18 @@
 
     ;; 4) Symref symbol lookup via our external tool
     (setq semantic-symref-tool 'detect)
-    (when (not (eq (semantic-symref-detect-symref-tool) symrefsym))
-      (error "Symref doesn't recognize %s backend." symrefsym))
+    (let ((detectedtool (semantic-symref-detect-symref-tool)))
+      (when (not (eq detectedtool symrefsym))
+	(error "Symref doesn't recognize %s backend.  Found %s instead"
+	       symrefsym detectedtool)))
 
     ;; Do the tests again.
     (cit-symref-quick-find-test)
 
-    ;; Delete the files created by external tool.
-    (dolist (F cleanupfiles)
-      (when (file-exists-p F)
-	(delete-file F)))
+    (cit-externaldb-cleanup cleanupfiles)
 
-    (kill-buffer bufftokill)))
+    (kill-buffer bufftokill))
+  )
 
 (provide 'cit-externaldb)
 
