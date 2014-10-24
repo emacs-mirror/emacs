@@ -84,7 +84,11 @@ Bool MPMCheck(void)
    * arena grain). */
   CHECKL(PageSize() % ProtGranularity() == 0);
 
-  return TRUE; 
+  /* StackProbe mustn't skip over the stack guard page. See
+   * <design/sp/#sol.depth.constraint>. */
+  CHECKL(StackProbeDEPTH * sizeof(Word) < PageSize());
+
+  return TRUE;
 }
 
 

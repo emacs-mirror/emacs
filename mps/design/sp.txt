@@ -54,7 +54,7 @@ example the documentation for Windows_.) This means that the probe
 will be ineffective if it skips over the guard page into the memory
 beyond. If ``StackProbeDEPTH`` is greater than or equal to the number
 of words per page, the implementation might need to carry out multiple
-probes.
+probes. (This constraint is checked in ``MPMCheck()``.)
 
 .. _Windows: http://support.microsoft.com/kb/100775
 
@@ -73,7 +73,9 @@ searching the splay tree representing free memory.
 The "Args" column gives the number of arguments to the function (all
 arguments to functions in the MPS are word-sized or smaller, since we
 prohibit passing structures by value), and the "Locals" column gives
-the number of words in local variables.
+the number of words in local variables. The value "≤64" for the stack
+usage of the object format's scan method is the limit that's
+documented in the manual.
 
 ====  ======  ========================
 Args  Locals  Function
@@ -85,7 +87,7 @@ Args  Locals  Function
    4       8  ``traceScanSegRes()``
    4       0  ``PoolScan()``
    4       5  ``AMCScan()``
-   3     ???  ``format->scan()``
+   3     ≤64  ``format->scan()``
    4      15  ``AMCFix()``
    4       5  ``BufferFill()``
    6      10  ``AMCBufferFill()``
@@ -101,18 +103,19 @@ Args  Locals  Function
    3       7  ``SplaySplay()``
    4       8  ``SplaySplitDown()``
    3       0  ``SplayZig()``
- 109     126  **Total**
+ 109    ≤190  **Total**
 ====  ======  ========================
 
 We expect that a compiler will often be able to share stack space
 between function arguments and local variables, but in the worst case
-where it cannot, this call requires 235 words of stack space, plus
-whatever stack space is required by the client program's scanning
-function.
+where it cannot, this call requires no more than 299 words of stack
+space.
 
-This isn't necessarily the deepest call into the MPS, but it's
-probably close. The value for ``StackProbeDEPTH`` is thus chosen to be
-a round number that's comfortably larger than this.
+This isn't necessarily the deepest call into the MPS (the MPS's
+modular design and class system makes it hard to do a complete
+analysis using call graph tools), but it's probably close. The value
+for ``StackProbeDEPTH`` is thus chosen to be a round number that's
+comfortably larger than this.
 
 
 Interface
@@ -129,19 +132,6 @@ Issues
 
 _`.issue.an`: The generic implementation is non-functional and so does
 not meet `.req.complete`_.
-
-_`.issue.depth`: The analysis in `.sol.depth.analysis`_ does not
-guarantee that the value for ``StackProbeDEPTH`` is correct.
-
-_`.issue.depth.client`: The design relies on the client program's
-object format methods not using too much stack. This restriction needs
-to be documented.
-
-_`.issue.depth.constraint`: None of the implementations take account
-of `.sol.depth.constraint`_. (This is harmless for now as
-``StackProbeDEPTH`` is smaller than the number of words per page on
-all supported platforms, but there should at least be an assertion
-somewhere.)
 
 
 Implementations

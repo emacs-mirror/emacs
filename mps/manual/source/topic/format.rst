@@ -218,6 +218,13 @@ Cautions
 
 #. Format methods must be re-entrant.
 
+#. Format methods must use no more than 64 words of stack space.
+
+   This restriction is necessary to avoid stack overflow in the MPS;
+   see :mps:ref:`design.mps.sp` for details. If your application has
+   format methods that need more stack space than this, :ref:`contact
+   us <contact>`.
+
 #. Format methods must not:
 
    a. call library code;
