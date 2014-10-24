@@ -1,3 +1,9 @@
+2014-10-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* bidi.c (bidi_resolve_explicit, bidi_find_bracket_pairs)
+	(bidi_resolve_brackets): Use end of string position rather than ZV
+	when iterating over a string.  (Bug#18815)
+
 2014-10-24  Martin Rudalics  <rudalics@gmx.at>
 
 	* keyboard.c (make_lispy_position): Return coordinates also when

@@ -1743,6 +1743,9 @@ bidi_resolve_explicit (struct bidi_it *bidi_it)
   bool string_p = bidi_it->string.s || STRINGP (bidi_it->string.lstring);
   ptrdiff_t ch_len, nchars, disp_pos, end;
   int disp_prop;
+  ptrdiff_t eob
+    = ((bidi_it->string.s || STRINGP (bidi_it->string.lstring))
+       ? bidi_it->string.schars : ZV);
 
   /* Record the info about the previous character.  */
   if (bidi_it->type_after_wn != WEAK_BN /* W1/Retaining */
@@ -1774,7 +1777,7 @@ bidi_resolve_explicit (struct bidi_it *bidi_it)
       /* If needed, reset the "magical" value of pairing bracket
 	 position, so that bidi_resolve_brackets will resume
 	 resolution of brackets according to BPA.  */
-      if (bidi_it->bracket_pairing_pos == ZV)
+      if (bidi_it->bracket_pairing_pos == eob)
 	bidi_it->bracket_pairing_pos = -1;
     }
   if (bidi_it->next_en_pos >= 0
@@ -1787,7 +1790,7 @@ bidi_resolve_explicit (struct bidi_it *bidi_it)
   /* Reset the bracket resolution info, unless we previously decided
      (in bidi_find_bracket_pairs) that brackets in this level run
      should be resolved as neutrals.  */
-  if (bidi_it->bracket_pairing_pos != ZV)
+  if (bidi_it->bracket_pairing_pos != eob)
     {
       bidi_it->bracket_pairing_pos = -1;
       bidi_it->bracket_enclosed_type = UNKNOWN_BT;
@@ -2608,6 +2611,10 @@ bidi_find_bracket_pairs (struct bidi_it *bidi_it)
 	  && ((base_level == 0 && !r2l_seen)
 	      || (base_level == 1 && !l2r_seen)))
 	{
+	  ptrdiff_t eob
+	    = ((bidi_it->string.s || STRINGP (bidi_it->string.lstring))
+	       ? bidi_it->string.schars : ZV);
+
 	  if (retval)
 	    pairing_pos = bidi_it->bracket_pairing_pos;
 
@@ -2616,7 +2623,7 @@ bidi_find_bracket_pairs (struct bidi_it *bidi_it)
 	     will be noticed by bidi_resolve_explicit, and will be
 	     copied to the following iterator states, instead of being
 	     reset to -1.  */
-	  bidi_it->bracket_pairing_pos = ZV;
+	  bidi_it->bracket_pairing_pos = eob;
 	  /* This type value will be used for resolving the outermost
 	     closing bracket in bidi_resolve_brackets.  */
 	  bidi_it->bracket_enclosed_type = embedding_type;
@@ -2669,6 +2676,9 @@ bidi_resolve_brackets (struct bidi_it *bidi_it)
   bidi_type_t type = UNKNOWN_BT;
   int ch;
   struct bidi_saved_info prev_for_neutral, next_for_neutral;
+  ptrdiff_t eob
+    = ((bidi_it->string.s || STRINGP (bidi_it->string.lstring))
+       ? bidi_it->string.schars : ZV);
 
   /* Record the prev_for_neutral type either from the previous
      character, if it was a strong or AN/EN, or from the
@@ -2693,11 +2703,11 @@ bidi_resolve_brackets (struct bidi_it *bidi_it)
       type = bidi_resolve_weak (bidi_it);
       if (type == NEUTRAL_ON)
 	{
-	  /* bracket_pairing_pos == ZV means this bracket does not
+	  /* bracket_pairing_pos == eob means this bracket does not
 	     need to be resolved as a bracket, but as a neutral, see
 	     the optimization trick we play near the end of
 	     bidi_find_bracket_pairs.  */
-	  if (bidi_it->bracket_pairing_pos == ZV)
+	  if (bidi_it->bracket_pairing_pos == eob)
 	    {
 	      /* If this is the outermost closing bracket of a run of
 		 characters in which we decided to resolve brackets as
@@ -2711,7 +2721,7 @@ bidi_resolve_brackets (struct bidi_it *bidi_it)
 	    resolve_bracket = true;
 	}
     }
-  else if (bidi_it->bracket_pairing_pos != ZV)
+  else if (bidi_it->bracket_pairing_pos != eob)
     {
       eassert (bidi_it->resolved_level == -1);
       /* If the cached state shows an increase of embedding level due
