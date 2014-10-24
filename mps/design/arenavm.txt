@@ -17,10 +17,9 @@ Virtual Memory Arena
 Introduction
 ------------
 
-_`.intro`: This document describes the detailed design of the Virtual
-Memory Arena Class of the Memory Pool System. The VM Arena Class is
-just one class available in the MPS. The generic arena part is
-described in design.mps.arena_.
+_`.intro`: This is the design of the Virtual Memory Arena Class of the
+Memory Pool System. The VM Arena Class is just one class available in
+the MPS. The generic arena part is described in design.mps.arena_.
 
 .. _design.mps.arena: arena
 

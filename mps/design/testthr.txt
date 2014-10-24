@@ -15,8 +15,8 @@ Multi-threaded testing
 Introduction
 ------------
 
-_`.intro`: This document describes the design for multi-threaded
-testing in the Memory Pool System.
+_`.intro`: This is the design of the multi-threaded testing module
+in the Memory Pool System.
 
 _`.readership`: Any MPS developer.
 

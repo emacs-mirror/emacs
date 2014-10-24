@@ -15,8 +15,7 @@ Nailboards for ambiguously referenced segments
 Introduction
 ------------
 
-_`.intro`: This document describes the nailboard design for the Memory
-Pool System.
+_`.intro`: This is the design of the nailboard module.
 
 _`.readership`: Any MPS developer.
 
