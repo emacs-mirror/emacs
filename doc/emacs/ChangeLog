@@ -1,3 +1,14 @@
+2014-10-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* frames.texi (Scroll Bars): Improve indexing of faces.
+
+	* killing.texi (Secondary Selection): Improve indexing of faces.
+
+	* search.texi (Basic Isearch, Query Replace): Improve indexing of faces.
+
+	* display.texi (Standard Faces, Text Display)
+	(Useless Whitespace): Improve indexing of faces.
+
 2014-10-23  Tassilo Horn  <tsdh@gnu.org>
 
 	* misc.texi (Document View): Adapt to latest doc-view changes wrt

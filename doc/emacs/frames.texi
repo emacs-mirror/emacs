@@ -961,6 +961,10 @@ end of the buffer is shown; if @code{nil}, the thumb will be at the
 bottom when the end of the buffer is shown.  You can not over-scroll
 when the entire buffer is visible.
 
+@cindex scroll-bar face
+  The visual appearance of the scroll bars is controlled by the
+@code{scroll-bar} face.
+
 @node Drag and Drop
 @section Drag and Drop
 @cindex drag and drop
