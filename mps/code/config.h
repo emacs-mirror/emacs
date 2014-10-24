@@ -427,14 +427,11 @@
 #define VM_ARENA_SIZE_DEFAULT ((Size)1 << 28)
 
 
-/* Stack configuration */
+/* Stack configuration -- see <code/sp*.c> */
 
 /* Currently StackProbe has a useful implementation only on Windows. */
-#if defined(PLATFORM_ANSI)
-#define StackProbeDEPTH ((Size)0)
-#elif defined(MPS_OS_W3) && defined(MPS_ARCH_I3)
-#define StackProbeDEPTH ((Size)500)
-#elif defined(MPS_OS_W3) && defined(MPS_ARCH_I6)
+#if defined(MPS_OS_W3)
+/* See <design/sp/#sol.depth.analysis> for a justification of this value. */
 #define StackProbeDEPTH ((Size)500)
 #else
 #define StackProbeDEPTH ((Size)0)
