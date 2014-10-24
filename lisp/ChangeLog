@@ -1,3 +1,22 @@
+2014-10-24  Vincent Belaïche  <vincentb1@users.sourceforge.net>
+
+	* ses.el (macroexp): add require for this package, so that function
+	`ses--cell gets macroexp-quote.
+	(ses--cell): makes formula a macroexp-quote of value when formula
+	is nil. The rationale of this changr is to allow in the future
+	shorter SES files, e.g. we could have only `(ses-cell A1 1.0)'
+	instead of `(ses-cell A1 1.0 1.0 nil REFLIST)'. In such a case
+	reference list REFLIST would be re-computed after load --- thus
+	trading off load time against file size.
+
+	* emacs-lisp/package.el (package--alist-to-plist-args): use
+	macroexp-quote instead of a lambda expression which has the same
+	content as macroexp-quote.
+	(macroexp): add require for this package, so that function
+	`package--alist-to-plist-args' gets macroexp-quote.
+
+	* emacs-lisp/macroexp.el (macroexp-quote): new defun.
+
 2014-10-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* term/ns-win.el (ns-store-cut-buffer-internal)

@@ -165,6 +165,7 @@
 (eval-when-compile (require 'epg))      ;For setf accessors.
 
 (require 'tabulated-list)
+(require 'macroexp)
 
 (defgroup package nil
   "Manager for Emacs Lisp packages."
@@ -723,12 +724,7 @@ untar into a directory named DIR; otherwise, signal an error."
        nil pkg-file nil 'silent))))
 
 (defun package--alist-to-plist-args (alist)
-  (mapcar (lambda (x)
-            (if (and (not (consp x))
-                     (or (keywordp x)
-                         (not (symbolp x))
-                         (memq x '(nil t))))
-                x `',x))
+  (mapcar 'macroexp-quote
           (apply #'nconc
                  (mapcar (lambda (pair) (list (car pair) (cdr pair))) alist))))
 (defun package-unpack (pkg-desc)

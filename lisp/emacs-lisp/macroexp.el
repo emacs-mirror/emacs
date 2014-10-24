@@ -370,6 +370,18 @@ symbol itself."
   "Return non-nil if EXP can be copied without extra cost."
   (or (symbolp exp) (macroexp-const-p exp)))
 
+(defun macroexp-quote (v)
+  "Returns an expression E such that `(eval E)' is V.
+
+E is either V or (quote V) depending on whether V evaluates to
+itself or not."
+  (if (and (not (consp v))
+	   (or (keywordp v)
+	       (not (symbolp v))
+	       (memq v '(nil t))))
+      v
+    (list 'quote v)))
+
 ;;; Load-time macro-expansion.
 
 ;; Because macro-expansion used to be more lazy, eager macro-expansion
