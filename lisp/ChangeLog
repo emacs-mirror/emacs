@@ -1,3 +1,8 @@
+2014-10-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* term/ns-win.el (ns-store-cut-buffer-internal)
+	(ns-copy-including-secondary): Use gui-set-selection (bug#18816).
+
 2014-10-24  Martin Rudalics  <rudalics@gmx.at>
 
 	* mouse.el (mouse-drag-line): Don't use mouse-pixel-position.

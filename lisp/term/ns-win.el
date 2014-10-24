@@ -718,19 +718,18 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 ;;;; Pasteboard support.
 
 (declare-function ns-get-selection-internal "nsselect.m" (buffer))
-(declare-function ns-store-selection-internal "nsselect.m" (buffer string))
 
 (define-obsolete-function-alias 'ns-get-cut-buffer-internal
   'ns-get-selection-internal "24.1")
 (define-obsolete-function-alias 'ns-store-cut-buffer-internal
-  'ns-store-selection-internal "24.1")
+  'gui-set-selection "24.1")
 
 
 (defun ns-copy-including-secondary ()
   (interactive)
   (call-interactively 'kill-ring-save)
-  (ns-store-selection-internal 'SECONDARY
-			       (buffer-substring (point) (mark t))))
+  (gui-set-selection 'SECONDARY (buffer-substring (point) (mark t))))
+
 (defun ns-paste-secondary ()
   (interactive)
   (insert (ns-get-selection-internal 'SECONDARY)))
