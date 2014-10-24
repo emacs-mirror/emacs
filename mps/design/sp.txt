@@ -52,8 +52,9 @@ _`.sol.depth.constraint`: Operating systems typically use a single
 "guard page" to detect stack overflow and grow the stack. (See for
 example the documentation for Windows_.) This means that the probe
 will be ineffective if it skips over the guard page into the memory
-beyond. If ``StackProbeDEPTH`` is greater than or equal to the page
-size, the implementation needs to carry out multiple probes.
+beyond. If ``StackProbeDEPTH`` is greater than or equal to the number
+of words per page, the implementation might need to carry out multiple
+probes.
 
 .. _Windows: http://support.microsoft.com/kb/100775
 
@@ -83,40 +84,24 @@ there is no assurance that it is correct. See job003639_.
 
 _`.issue.depth.constraint`: None of the implementations take account
 of `.sol.depth.constraint`_. (This is harmless for now as
-``StackProbeDEPTH`` is smaller than the page size on all supported
-platforms.)
+``StackProbeDEPTH`` is smaller than the number of words per page on
+all supported platforms.)
 
 
 Implementations
 ---------------
 
-Generic implementation
-......................
+_`.impl.an`: Generic implementation in ``span.c``. This implementation
+does nothing. See `.issue.an`_.
 
-_`.impl.an`: In ``span.c``.
+_`.impl.w3i3`: Implementation for Windows on IA-32 in ``spw3i3.c``.
+This uses assembly to get the stack pointer (from the ESP register)
+and to read the location ``depth`` words below the stack pointer.
 
-_`.impl.an.probe`: This implementation does nothing. See `.issue.an`_.
-
-
-Windows implementation on IA-32
-...............................
-
-_`.impl.w3i3`: In ``spw3i3.c``.
-
-_`.impl.w3i3.probe`: This uses assembly to get the stack pointer (from
-the ESP register) and to read the location ``depth`` words below the
-stack pointer.
-
-
-Windows implementation on x86-64
-................................
-
-_`.impl.w3i6`: In ``spw3i6.c``.
-
-_`.impl.w3i6.probe`: This passes the argument ``depth*sizeof(Word)``
-to the Windows function |alloca|_, for which the documentation says,
-"A stack overflow exception is generated if the space cannot be
-allocated."
+_`.impl.w3i6`: Implementation for Windows on x86-64 in ``spw3i6.c``.
+This passes the argument ``depth*sizeof(Word)`` to the Windows
+function |alloca|_, for which the documentation says, "A stack
+overflow exception is generated if the space cannot be allocated."
 
 .. |alloca| replace:: ``_alloca()``
 .. _alloca: http://msdn.microsoft.com/en-us/library/wb1s57t5.aspx
