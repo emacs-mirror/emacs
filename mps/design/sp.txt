@@ -58,8 +58,61 @@ probes.
 
 .. _Windows: http://support.microsoft.com/kb/100775
 
-_`.sol.no-recursion`: In order to implement this design, the MPS must
-have constant bounded stack depth, and therefore, no recursion.
+_`.sol.depth.no-recursion`: In order to implement this design, the MPS
+must have constant bounded stack depth, and therefore, no recursion.
+
+_`.sol.depth.analysis`: Here's a table showing a deep call into the
+MPS (in the master sources at changelevel 187378), starting in
+``ArenaAccess()`` at the point where the arena ring lock is taken. The
+access forces a scan of a segment in an AMC pool, which fixes a
+reference to an object in an AMC pool's oldspace, which has to be
+forwarded, and this overflows the forwarding buffer, which requires
+the arena to allocate a new buffer in an appropriate zone, by
+searching the splay tree representing free memory.
+
+The "Args" column gives the number of arguments to the function (all
+arguments to functions in the MPS are word-sized or smaller, since we
+prohibit passing structures by value), and the "Locals" column gives
+the number of words in local variables.
+
+====  ======  ========================
+Args  Locals  Function
+====  ======  ========================
+   5       0  ``PoolAccess()``
+   5       0  ``PoolSegAccess()``
+   3       5  ``TraceSegAccess()``
+   4       1  ``traceScanSeg()``
+   4       8  ``traceScanSegRes()``
+   4       0  ``PoolScan()``
+   4       5  ``AMCScan()``
+   3     ???  ``format->scan()``
+   4      15  ``AMCFix()``
+   4       5  ``BufferFill()``
+   6      10  ``AMCBufferFill()``
+   6       9  ``PoolGenAlloc()``
+   7       5  ``SegAlloc()``
+   5       5  ``ArenaAlloc()``
+   5       5  ``arenaAllocPolicy()``
+   5      11  ``arenaAllocFromLand()``
+   7       1  ``LandFindInZones()``
+   7      16  ``cbsFindInZones()``
+   5       3  ``cbsFindFirst()``
+   6       7  ``SplayFindFirst()``
+   3       7  ``SplaySplay()``
+   4       8  ``SplaySplitDown()``
+   3       0  ``SplayZig()``
+ 109     126  **Total**
+====  ======  ========================
+
+We expect that a compiler will often be able to share stack space
+between function arguments and local variables, but in the worst case
+where it cannot, this call requires 235 words of stack space, plus
+whatever stack space is required by the client program's scanning
+function.
+
+This isn't necessarily the deepest call into the MPS, but it's
+probably close. The value for ``StackProbeDEPTH`` is thus chosen to be
+a round number that's comfortably larger than this.
 
 
 Interface
@@ -77,15 +130,18 @@ Issues
 _`.issue.an`: The generic implementation is non-functional and so does
 not meet `.req.complete`_.
 
-_`.issue.depth`: The value for ``StackProbeDEPTH`` is just a guess:
-there is no assurance that it is correct. See job003639_.
+_`.issue.depth`: The analysis in `.sol.depth.analysis`_ does not
+guarantee that the value for ``StackProbeDEPTH`` is correct.
 
-.. _job003639: http://www.ravenbrook.com/project/mps/issue/job003639/
+_`.issue.depth.client`: The design relies on the client program's
+object format methods not using too much stack. This restriction needs
+to be documented.
 
 _`.issue.depth.constraint`: None of the implementations take account
 of `.sol.depth.constraint`_. (This is harmless for now as
 ``StackProbeDEPTH`` is smaller than the number of words per page on
-all supported platforms.)
+all supported platforms, but there should at least be an assertion
+somewhere.)
 
 
 Implementations
