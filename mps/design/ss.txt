@@ -97,43 +97,26 @@ not to the mutator. See job003525_.
 Implementations
 ---------------
 
-Generic implementation
-......................
+_`.impl.an`: Generic implementation in ``ssan.c``. This calls
+``setjmp()`` with a stack-allocated ``jmp_buf`` to spill the registers
+onto the stack. The C standard specifies that ``jmp_buf`` "is an array
+type suitable for holding the information needed to restore a calling
+environment. The environment of a call to the ``setjmp`` macro
+consists of information sufficient for a call to the ``longjmp``
+function to return execution to the correct block and invocation of
+that block, were it called recursively." Note that the C standard does
+not specify where the callee-save registers appear in the ``jmp_buf``,
+so the whole buffer must be scanned.
 
-_`.impl.an`: In ``ssan.c``.
+_`.impl.ix`: Unix implementation in ``ssixi3.c`` and ``ssixi6.c``.
+Assembler instructions are used to spill exactly the callee-save
+registers. (Clang and GCC support a common assembler syntax.)
 
-_`.impl.an.registers`: This calls ``setjmp()`` with a stack-allocated
-``jmp_buf`` to spill the registers onto the stack. The C standard
-specifies that ``jmp_buf`` "is an array type suitable for holding the
-information needed to restore a calling environment. The environment
-of a call to the ``setjmp`` macro consists of information sufficient
-for a call to the ``longjmp`` function to return execution to the
-correct block and invocation of that block, were it called
-recursively." Note that the C standard does not specify where the
-callee-save registers appear in the ``jmp_buf``, so the whole buffer
-must be scanned.
-
-
-Unix implementation
-...................
-
-_`.impl.ix`: In ``ssixi3.c`` and ``ssixi6.c``.
-
-_`.impl.ix.registers`: Assembler instructions are used to spill
-exactly the callee-save registers. (Clang and GCC support a common
-assembler syntax.)
-
-
-Windows implementation
-......................
-
-_`.impl.w3`: In ``ssw3i3mv.c`` and ``ssw3i6mv.c``.
-
-_`.impl.w3.registers`: This implementation uses ``setjmp()`` with a
-stack-allocated ``jmp_buf`` to spill the registers onto the stack, as
-for `.impl.an.registers`_. However, we know the layout of the
-``jmp_buf`` used by Microsoft C/C++, and so can scan exactly the
-subset of registers we need.
+_`.impl.w3`: Windows implementation in ``ssw3i3mv.c`` and
+``ssw3i6mv.c``. Like `.impl.an`_, this implementation uses
+``setjmp()`` with a stack-allocated ``jmp_buf`` to spill the registers
+onto the stack. However, we know the layout of the ``jmp_buf`` used by
+the compiler, and so can scan exactly the subset of registers we need.
 
 
 Document History
