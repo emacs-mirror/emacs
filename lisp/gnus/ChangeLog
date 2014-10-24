@@ -6,7 +6,7 @@
 2014-10-24  enami tsugutomo  <tsugutomo.enami@jp.sony.com>
 
 	* nnimap.el (nnimap-wait-for-response): Ignore NOOP response requested
-	to keep connection open.
+	to keep connection open (bug#18728).
 
 2014-10-20  Glenn Morris  <rgm@gnu.org>
 
