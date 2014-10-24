@@ -21,17 +21,25 @@ _`.readership`: Any MPS developer; anyone porting the MPS to a new
 platform.
 
 _`.overview`: This module ensures that the stack cannot overflow while
-the MPS is holding a lock.
+the MPS is holding a lock, so that a mutator can handle stack overflow
+faults and call into the MPS from the handler.
 
 
 Requirements
 ------------
 
-_`.req.complete`: When the MPS takes a lock, it must be able to
-complete the operation and release the lock without running out of
-stack. (This is because running out of stack would cause a protection
-fault, which would enter the MPS recursively, which would fail because
-the lock is held.)
+_`.req.overflow`: The mutator should be able to call into the MPS from
+a stack overflow fault handler. (This is a convenient way to handle
+stack overflows in dynamic language implementations: if the stack
+overflow exception and associated backtrace are to be represented as
+objects, this may require allocation, and hence a call into the MPS.)
+
+_`.req.complete`: In an application where the mutator might call into
+the MPS from a stack overflow fault handler, then whenever the MPS
+takes a lock, it must complete the operation and release the lock
+without running out of stack. (This is because running out of stack
+would cause a stack overflow fault, causing the mutator would enter
+the MPS recursively, which would fail because the lock is held.)
 
 
 Design
@@ -130,8 +138,21 @@ available, return. If not, provoke a stack overflow fault.
 Issues
 ------
 
-_`.issue.an`: The generic implementation is non-functional and so does
-not meet `.req.complete`_.
+_`.issue.an`: The generic implementation is non-functional. This means
+that it is only suitable for use with programs that do not handle
+stack overflow faults, or do not call into the MPS from the handler.
+This is because our customers have only required `.req.overflow`_ on
+Windows so far. If this becomes a requirement on other platforms, the
+following Standard C implementation is likely to work::
+
+    void StackProbe(Size depth) {
+      volatile Word w;
+      Word *p = &w - depth;
+      w = *p;
+    }
+
+(The use of ``volatile`` is to prevent compilers from warning about
+the variable ``w`` being written but never read.)
 
 
 Implementations
