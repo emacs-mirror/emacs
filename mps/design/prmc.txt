@@ -18,7 +18,8 @@ Introduction
 _`.intro`: This is the design of the protection mutator context
 module.
 
-_`.readership`: Any MPS developer.
+_`.readership`: Any MPS developer; anyone porting the MPS to a new
+platform.
 
 _`.overview`: The protection mutator context module decodes the
 *context* of a mutator thread at the point when it caused a protection

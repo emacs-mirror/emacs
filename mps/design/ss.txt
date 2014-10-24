@@ -15,10 +15,11 @@ Stack and register scanning
 Introduction
 ------------
 
-_`.intro`: This document describes the design of the stack and
-register scanning module.
+_`.intro`: This is the design of the stack and register scanning
+module.
 
-_`.readership`: Any MPS developer.
+_`.readership`: Any MPS developer; anyone porting the MPS to a new
+platform.
 
 _`.overview`: This module locates and scans references in the control
 stack and registers of the *current* thread.

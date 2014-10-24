@@ -20,6 +20,9 @@ _`.intro`: This document describes how the `Memory Pool System
 that it can target different architectures, operating systems, build
 environments, varieties, and products.
 
+_`.readership`: Any MPS developer; anyone porting the MPS to a new
+platform.
+
 
 
 Requirements

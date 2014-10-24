@@ -15,8 +15,7 @@ Free list allocator
 Introduction
 ------------
 
-_`.intro`: This document describes the free list allocator for the
-Memory Pool System.
+_`.intro`: This is the design of the free list allocator.
 
 _`.readership`: Any MPS developer.
 

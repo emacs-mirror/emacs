@@ -36,11 +36,10 @@ req.mps that captures the commonalities between the products -- pekka
 Overview
 --------
 
-_`.overview`: This document describes the design of the AMS (Automatic
-Mark-and-Sweep) pool class. The AMS pool is a proof-of-concept design
-for a mark-sweep pool in the MPS. It's not meant to be efficient, but
-it could serve as a model for an implementation of a more advanced
-pool (such as EPVM).
+_`.overview`: This is the design of the AMS (Automatic Mark-and-Sweep)
+pool class. The AMS pool is a proof-of-concept design for a mark-sweep
+pool in the MPS. It's not meant to be efficient, but it could serve as
+a model for an implementation of a more advanced pool (such as EPVM).
 
 
 Requirements

@@ -15,7 +15,7 @@ Segment data structure
 Introduction
 ------------
 
-_`.intro`: This document describes the MPS Segment data structure.
+_`.intro`: This is the design of the segment data structure.
 
 
 Overview

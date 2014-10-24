@@ -15,10 +15,10 @@ Lock module
 Introduction
 ------------
 
-_`.intro`: This document describes the design of the lock module in
-the Memory Pool System.
+_`.intro`: This is the design of the lock module.
 
-_`.readership`: Any MPS developer.
+_`.readership`: Any MPS developer; anyone porting the MPS to a new
+platform.
 
 
 Background
