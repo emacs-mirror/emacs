@@ -48,6 +48,7 @@
       (error "WARNING: Failed cedet-gnu-global-version-check "))
 
   ;; Create directory for the project
+  (message "Globalref test in: %S" cit-integ-target-globalref)
   (cit-make-dir cit-integ-target-globalref)
 
   ;; Copy source files into the globalref directory
