@@ -355,24 +355,6 @@ This command must be bound to a mouse click."
 	(split-window-horizontally
 	 (min (max new-width first-col) last-col))))))
 
-;; `mouse-drag-line' is now the common routine for handling all line
-;; dragging events combining the earlier `mouse-drag-mode-line-1' and
-;; `mouse-drag-vertical-line'.  It should improve the behavior of line
-;; dragging wrt Emacs 23 as follows:
-
-;; (1) Gratuitous error messages and restrictions have been (hopefully)
-;; removed.  (The help-echo that dragging the mode-line can resize a
-;; one-window-frame's window will still show through via bindings.el.)
-
-;; (2) No gratuitous selection of other windows should happen.  (This
-;; has not been completely fixed for mouse-autoselected windows yet.)
-
-;; (3) Mouse clicks below a scroll-bar should pass through via unread
-;; command events.
-
-;; Note that `window-in-direction' replaces `mouse-drag-window-above'
-;; and `mouse-drag-vertical-line-rightward-window' with Emacs 24.1.
-
 (defun mouse-drag-line (start-event line)
   "Drag a mode line, header line, or vertical line with the mouse.
 START-EVENT is the starting mouse-event of the drag action.  LINE
@@ -383,132 +365,136 @@ must be one of the symbols `header', `mode', or `vertical'."
 	 (start (event-start start-event))
 	 (window (posn-window start))
 	 (frame (window-frame window))
-	 (minibuffer-window (minibuffer-window frame))
-	 (side (and (eq line 'vertical)
-		    (or (cdr (assq 'vertical-scroll-bars
-				   (frame-parameters frame)))
-			'right)))
+	 ;; `position' records the x- or y-coordinate of the last
+	 ;; sampled position.
+	 (position (if (eq line 'vertical)
+		       (+ (window-pixel-left window)
+			  (car (posn-x-y start)))
+		     (+ (window-pixel-top window)
+			(cdr (posn-x-y start)))))
+	 ;; `last-position' records the x- or y-coordinate of the
+	 ;; previously sampled position.  The difference of `position'
+	 ;; and `last-position' determines the size change of WINDOW.
+	 (last-position position)
 	 (draggable t)
-	 height growth dragged)
+	 posn-window growth dragged)
+    ;; Decide on whether we are allowed to track at all and whose
+    ;; window's edge we drag.
     (cond
      ((eq line 'header)
-      ;; Check whether header-line can be dragged at all.
       (if (window-at-side-p window 'top)
+	  ;; We can't drag the header line of a topmost window.
 	  (setq draggable nil)
-	;; window-pixel-edges includes the header and mode lines, so
-	;; we need to account for that when calculating window growth.
-	;; On GUI frames, assume the mouse is approximately in the
-	;; middle of the header/mode line, so we need only half the
-	;; height in pixels.
-	(setq height
-	      (cond
-	       ((display-graphic-p frame)
-		(/ (window-header-line-height window) 2))
-	       (t  (window-header-line-height window))))
+	;; Drag bottom edge of window above the header line.
 	(setq window (window-in-direction 'above window t))))
      ((eq line 'mode)
-      ;; Check whether mode-line can be dragged at all.
       (if (and (window-at-side-p window 'bottom)
-	       ;; Allow resizing the minibuffer window if it's on the same
-	       ;; frame as and immediately below the clicked window, and
-	       ;; it's active or `resize-mini-windows' is nil.
-	       (not (and (eq (window-frame minibuffer-window) frame)
-			 (= (nth 1 (window-pixel-edges minibuffer-window))
-			    (nth 3 (window-pixel-edges window)))
-			 (or (not resize-mini-windows)
-			     (eq minibuffer-window
-				 (active-minibuffer-window))))))
-	  (setq draggable nil)
-	(setq height
-	      (cond
-	       ((display-graphic-p frame)
-		(/ (window-mode-line-height window) 2))
-	       (t  (window-mode-line-height window))))))
-     ((eq line 'vertical)
-      ;; Get the window to adjust for the vertical case.  If the scroll
-      ;; bar is on the window's right or we drag a vertical divider,
-      ;; adjust the window where the start-event occurred.  If the
-      ;; scroll bar is on the start-event window's left or there are no
-      ;; scrollbars, adjust the window on the left of it.
-      (unless (or (eq side 'right)
-		  (not (zerop (window-right-divider-width window))))
-	(setq window (window-in-direction 'left window t)))))
+	       ;; Allow resizing the minibuffer window if it's on the
+	       ;; same frame as and immediately below `window', and it's
+	       ;; either active or `resize-mini-windows' is nil.
+	       (let ((minibuffer-window (minibuffer-window frame)))
+		 (not (and (eq (window-frame minibuffer-window) frame)
+			   (or (not resize-mini-windows)
+			       (eq minibuffer-window
+				   (active-minibuffer-window)))))))
+	  (setq draggable nil))))
 
     (let* ((exitfun nil)
            (move
-           (lambda (event) (interactive "e")
-             (let ((position
-                    ;; For graphic terminals, we're better off using
-                    ;; mouse-pixel-position for the following reasons:
-                    ;; - when the mouse has moved outside of the frame, `event'
-                    ;;   does not contain any useful pixel position any more.
-                    ;; - mouse-pixel-position is a bit more uptodate (the mouse
-                    ;;   may have moved still a bit further since the event was
-                    ;;   generated).
-                    (if (display-mouse-p)
-                        (mouse-pixel-position)
-                      (let* ((posn (event-end event))
-                             (pos (posn-x-y posn))
-                             (w (posn-window posn))
-                             (pe (if (windowp w) (window-pixel-edges w))))
-                        (cons (if (windowp w) (window-frame w) w)
-                              (if pe
-                                  (cons (+ (car pos) (nth 0 pe))
-                                        (+ (cdr pos) (nth 1 pe)))))))))
-               (cond
-                ((not (and (eq (car position) frame)
-                           (cadr position)))
-                 nil)
-                ((eq line 'vertical)
-                 ;; Drag vertical divider.  This must be probably fixed like
-                 ;; for the mode-line.
-                 (setq growth (- (cadr position)
-                                 (if (eq side 'right) 0 2)
-                                 (nth 2 (window-pixel-edges window))
-                                 -1))
-                 (unless (zerop growth)
-                   (setq dragged t)
-                   (adjust-window-trailing-edge window growth t t)))
-                (draggable
-                 ;; Drag horizontal divider.
-                 (setq growth
-                       (if (eq line 'mode)
-                           (- (+ (cddr position) height)
-                              (nth 3 (window-pixel-edges window)))
-                         ;; The window's top includes the header line!
-                         (- (+ (nth 3 (window-pixel-edges window)) height)
-                            (cddr position))))
-                 (unless (zerop growth)
-                   (setq dragged t)
-                   (adjust-window-trailing-edge
-                    window (if (eq line 'mode) growth (- growth)) nil t))))))))
-
-    ;; Start tracking.
-    (setq track-mouse t)
-    ;; Loop reading events and sampling the position of the mouse.
-    (setq exitfun
-          (set-transient-map
-           (let ((map (make-sparse-keymap)))
-             (define-key map [switch-frame] #'ignore)
-             (define-key map [select-window] #'ignore)
-             (define-key map [mouse-movement] move)
-             (define-key map [scroll-bar-movement] move)
-             ;; Swallow drag-mouse-1 events to avoid selecting some other window.
-             (define-key map [drag-mouse-1]
-               (lambda () (interactive) (funcall exitfun)))
-             ;; For vertical line dragging swallow also a mouse-1
-             ;; event (but only if we dragged at least once to allow mouse-1
-             ;; clicks to get through).
-             (when (eq line 'vertical)
-               (define-key map [mouse-1]
-                 `(menu-item "" ,(lambda () (interactive) (funcall exitfun))
-                             :filter ,(lambda (cmd) (if dragged cmd)))))
-             ;; Some of the events will of course end up looked up
-             ;; with a mode-line or header-line prefix.
-             (define-key map [mode-line] map)
-             (define-key map [header-line] map)
-             map)
-           t (lambda () (setq track-mouse nil)))))))
+	    (lambda (event) (interactive "e")
+	      (cond
+	       ((not (consp event))
+		nil)
+	       ((eq line 'vertical)
+		;; Drag right edge of `window'.
+		(setq start (event-start event))
+		(setq position (car (posn-x-y start)))
+		;; Set `posn-window' to the window where `event' was recorded.
+		;; This can be `window' or the window on the left or right of
+		;; `window'.
+		(when (window-live-p (setq posn-window (posn-window start)))
+		  ;; Add left edge of `posn-window' to `position'.
+		  (setq position (+ (window-pixel-left posn-window) position))
+		  (unless (nth 1 start)
+		    ;; Add width of objects on the left of the text area to
+		    ;; `position'.
+		    (when (eq (window-current-scroll-bars posn-window) 'left)
+		      (setq position (+ (window-scroll-bar-width posn-window)
+					position)))
+		    (setq position (+ (car (window-fringes posn-window))
+				      (or (car (window-margins posn-window)) 0)
+				      position))))
+		;; When the cursor overshoots after shrinking a window to its
+		;; minimum size and the dragging direction changes, have the
+		;; cursor first catch up with the window edge.
+		(unless (or (zerop (setq growth (- position last-position)))
+			    (and (> growth 0)
+				 (< position (+ (window-pixel-left window)
+						(window-pixel-width window))))
+			    (and (< growth 0)
+				 (> position (+ (window-pixel-left window)
+						(window-pixel-width window)))))
+		  (setq dragged t)
+		  (adjust-window-trailing-edge window growth t t))
+		(setq last-position position))
+	       (draggable
+		;; Drag bottom edge of `window'.
+		(setq start (event-start event))
+		;; Set `posn-window' to the window where `event' was recorded.
+		;; This can be either `window' or the window above or below of
+		;; `window'.
+		(setq posn-window (posn-window start))
+		(setq position (cdr (posn-x-y start)))
+		(when (window-live-p posn-window)
+		  ;; Add top edge of `posn-window' to `position'.
+		  (setq position (+ (window-pixel-top posn-window) position))
+		  ;; If necessary, add height of header line to `position'
+		  (when (memq (posn-area start)
+			      '(nil left-fringe right-frings left-margin right-margin))
+		    (setq position (+ (window-header-line-height posn-window) position))))
+		;; When the cursor overshoots after shrinking a window to its
+		;; minimum size and the dragging direction changes, have the
+		;; cursor first catch up with the window edge.
+		(unless (or (zerop (setq growth (- position last-position)))
+			    (and (> growth 0)
+				 (< position (+ (window-pixel-top window)
+						(window-pixel-height window))))
+			    (and (< growth 0)
+				 (> position (+ (window-pixel-top window)
+						(window-pixel-height window)))))
+		  (setq dragged t)
+		  (adjust-window-trailing-edge window growth nil t))
+		(setq last-position position))))))
+      ;; Start tracking.
+      (setq track-mouse t)
+      ;; Loop reading events and sampling the position of the mouse.
+      (setq exitfun
+	    (set-transient-map
+	     (let ((map (make-sparse-keymap)))
+	       (define-key map [switch-frame] #'ignore)
+	       (define-key map [select-window] #'ignore)
+	       (define-key map [scroll-bar-movement] #'ignore)
+	       (define-key map [mouse-movement] move)
+	       ;; Swallow drag-mouse-1 events to avoid selecting some other window.
+	       (define-key map [drag-mouse-1]
+		 (lambda () (interactive) (funcall exitfun)))
+	       ;; For vertical line dragging swallow also a mouse-1
+	       ;; event (but only if we dragged at least once to allow mouse-1
+	       ;; clicks to get through).
+	       (when (eq line 'vertical)
+		 (define-key map [mouse-1]
+		   `(menu-item "" ,(lambda () (interactive) (funcall exitfun))
+			       :filter ,(lambda (cmd) (if dragged cmd)))))
+	       ;; Some of the events will of course end up looked up
+	       ;; with a mode-line or header-line prefix ...
+	       (define-key map [mode-line] map)
+	       (define-key map [header-line] map)
+	       ;; ... and some maybe even with a right- or bottom-divider
+	       ;; prefix.
+	       (define-key map [right-divider] map)
+	       (define-key map [bottom-divider] map)
+	       map)
+	     t (lambda () (setq track-mouse nil)))))))
 
 (defun mouse-drag-mode-line (start-event)
   "Change the height of a window by dragging on the mode line."

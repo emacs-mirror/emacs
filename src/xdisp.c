@@ -27961,7 +27961,7 @@ show_mouse_face (Mouse_HLInfo *hlinfo, enum draw_glyphs_face draw)
 
 #ifdef HAVE_WINDOW_SYSTEM
   /* Change the mouse cursor.  */
-  if (FRAME_WINDOW_P (f))
+  if (FRAME_WINDOW_P (f) && NILP (do_mouse_tracking))
     {
 #if ! defined (USE_GTK) && ! defined (HAVE_NS)
       if (draw == DRAW_NORMAL_TEXT

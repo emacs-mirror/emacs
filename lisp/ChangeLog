@@ -1,3 +1,9 @@
+2014-10-24  Martin Rudalics  <rudalics@gmx.at>
+
+	* mouse.el (mouse-drag-line): Don't use mouse-pixel-position.
+	Calculate increment from last position instead of window edge.
+	Add right- and bottom-divider bindings to transient map.
+
 2014-10-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/cl-macs.el (cl-defstruct): Define an internal predicate

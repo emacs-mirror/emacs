@@ -5332,12 +5332,14 @@ make_lispy_position (struct frame *f, Lisp_Object x, Lisp_Object y,
 					 &object, &dx, &dy, &width, &height);
 	  if (STRINGP (string))
 	    string_info = Fcons (string, make_number (charpos));
+	  xret = wx;
 	  yret = wy - WINDOW_HEADER_LINE_HEIGHT (w);
 	}
       else if (part == ON_LEFT_FRINGE)
 	{
 	  posn = Qleft_fringe;
 	  col = 0;
+	  xret = wx;
 	  dx = wx
 	    - (WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (w)
 	       ? 0 : window_box_width (w, LEFT_MARGIN_AREA));
@@ -5347,6 +5349,7 @@ make_lispy_position (struct frame *f, Lisp_Object x, Lisp_Object y,
 	{
 	  posn = Qright_fringe;
 	  col = 0;
+	  xret = wx;
 	  dx = wx
 	    - window_box_width (w, LEFT_MARGIN_AREA)
 	    - window_box_width (w, TEXT_AREA)
@@ -5360,9 +5363,23 @@ make_lispy_position (struct frame *f, Lisp_Object x, Lisp_Object y,
 	  posn = Qvertical_line;
 	  width = 1;
 	  dx = 0;
+	  xret = wx;
 	  dy = yret = wy;
 	}
-      /* Nothing special for part == ON_SCROLL_BAR.  */
+      else if (part == ON_VERTICAL_SCROLL_BAR)
+	{
+	  posn = Qvertical_scroll_bar;
+	  width = WINDOW_SCROLL_BAR_AREA_WIDTH (w);
+	  dx = xret = wx;
+	  dy = yret = wy;
+	}
+      else if (part == ON_HORIZONTAL_SCROLL_BAR)
+	{
+	  posn = Qhorizontal_scroll_bar;
+	  width = WINDOW_SCROLL_BAR_AREA_HEIGHT (w);
+	  dx = xret = wx;
+	  dy = yret = wy;
+	}
       else if (part == ON_RIGHT_DIVIDER)
 	{
 	  posn = Qright_divider;
@@ -5446,7 +5463,12 @@ make_lispy_position (struct frame *f, Lisp_Object x, Lisp_Object y,
 					extra_info)));
     }
   else if (f != 0)
-    XSETFRAME (window, f);
+    {
+      /* Return mouse pixel coordinates here.  */
+      XSETFRAME (window, f);
+      xret = XINT (x);
+      yret = XINT (y);
+    }
   else
     window = Qnil;
 

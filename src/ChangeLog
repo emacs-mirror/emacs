@@ -1,3 +1,10 @@
+2014-10-24  Martin Rudalics  <rudalics@gmx.at>
+
+	* keyboard.c (make_lispy_position): Return coordinates also when
+	on scroll bars, fringes, margins or not in a window.
+	* xdisp.c (show_mouse_face): Don't change cursor face during
+	mouse tracking.
+
 2014-10-23  Martin Rudalics  <rudalics@gmx.at>
 
 	* frame.c (Fset_frame_height, Fset_frame_width, Fset_frame_size)
