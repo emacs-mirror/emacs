@@ -15,10 +15,10 @@ Virtual mapping
 Introduction
 ------------
 
-_`.intro`: This document describes the design of the virtual mapping
-module.
+_`.intro`: This is the design of the virtual mapping module.
 
-_`.readership`: Any MPS developer.
+_`.readership`: Any MPS developer; anyone porting the MPS to a new
+platform.
 
 _`.overview`: The virtual mapping module provides a simple, portable,
 low-level interface to address space, with functions for reserving,

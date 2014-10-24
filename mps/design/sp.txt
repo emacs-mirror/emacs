@@ -15,10 +15,10 @@ Stack probe
 Introduction
 ------------
 
-_`.intro`: This document describes the design of the stack probe
-module.
+_`.intro`: This is the design of the stack probe module.
 
-_`.readership`: Any MPS developer.
+_`.readership`: Any MPS developer; anyone porting the MPS to a new
+platform.
 
 _`.overview`: This module ensures that the stack cannot overflow while
 the MPS is holding a lock.

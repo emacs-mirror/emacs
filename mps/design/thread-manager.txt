@@ -17,7 +17,8 @@ Introduction
 
 _`.intro`: This is the design of the thread manager module.
 
-_`.readership`: Any MPS developer.
+_`.readership`: Any MPS developer; anyone porting the MPS to a new
+platform.
 
 _`.overview`: The thread manager implements two features that allow
 the MPS to work in a multi-threaded environment: exclusive access to

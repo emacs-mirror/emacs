@@ -15,8 +15,8 @@ Allocation buffers and allocation points
 Introduction
 ------------
 
-_`.scope`: This document describes the design of allocation buffers
-and allocation points.
+_`.scope`: This is the design of allocation buffers and allocation
+points.
 
 _`.purpose`: The purpose of this document is to record design
 decisions made concerning allocation buffers and allocation points and

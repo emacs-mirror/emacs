@@ -15,10 +15,10 @@ Memory protection
 Introduction
 ------------
 
-_`.intro`: This document describes the design of the memory protection
-module.
+_`.intro`: This is the design of the memory protection module.
 
-_`.readership`: Any MPS developer.
+_`.readership`: Any MPS developer; anyone porting the MPS to a new
+platform.
 
 _`.overview`: The memory protection module ensures that the mutator
 sees a consistent view of memory during incremental collection, by
