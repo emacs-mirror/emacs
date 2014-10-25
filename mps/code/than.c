@@ -86,14 +86,16 @@ void ThreadDeregister(Thread thread, Arena arena)
 }
 
 
-void ThreadRingSuspend(Ring threadRing)
+void ThreadRingSuspend(Ring threadRing, Ring deadRing)
 {
   AVERT(Ring, threadRing);
+  AVERT(Ring, deadRing);
 }
 
-void ThreadRingResume(Ring threadRing)
+void ThreadRingResume(Ring threadRing, Ring deadRing)
 {
   AVERT(Ring, threadRing);
+  AVERT(Ring, deadRing);
 }
 
 Thread ThreadRingThread(Ring threadRing)
