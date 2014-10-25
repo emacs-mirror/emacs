@@ -45,6 +45,7 @@ NSString *NXPrimaryPboard;
 NSString *NXSecondaryPboard;
 
 
+static NSMutableDictionary *pasteboard_changecount;
 
 /* ==========================================================================
 
@@ -140,6 +141,29 @@ ns_undeclare_pasteboard (id pb)
   [pb declareTypes: [NSArray array] owner: nil];
 }
 
+static void
+ns_store_pb_change_count (id pb)
+{
+  [pasteboard_changecount
+        setObject: [NSNumber numberWithLong: [pb changeCount]]
+           forKey: [pb name]];
+}
+
+static NSInteger
+ns_get_pb_change_count (Lisp_Object selection)
+{
+  id pb = ns_symbol_to_pb (selection);
+  return pb != nil ? [pb changeCount] : -1;
+}
+
+static NSInteger
+ns_get_our_change_count_for (Lisp_Object selection)
+{
+  NSNumber *num = [pasteboard_changecount
+                    objectForKey: symbol_to_nsstring (selection)];
+  return num != nil ? (NSInteger)[num longValue] : -1;
+}
+
 
 static void
 ns_string_to_pasteboard_internal (id pb, Lisp_Object str, NSString *gtype)
@@ -164,7 +188,7 @@ ns_string_to_pasteboard_internal (id pb, Lisp_Object str, NSString *gtype)
       // FIXME: Why those 2 different code paths?
       if (gtype == nil)
         {
-	  // Used for ns-store-selection-internal.
+	  // Used for ns_string_to_pasteboard
           [pb declareTypes: ns_send_types owner: nil];
           tenum = [ns_send_types objectEnumerator];
           while ( (type = [tenum nextObject]) )
@@ -173,10 +197,11 @@ ns_string_to_pasteboard_internal (id pb, Lisp_Object str, NSString *gtype)
       else
         {
 	  // Used for ns-own-selection-internal.
-	  eassert (type == NSStringPboardType);
+	  eassert (gtype == NSStringPboardType);
           [pb setString: nsStr forType: gtype];
         }
       [nsStr release];
+      ns_store_pb_change_count (pb);
     }
 }
 
@@ -340,7 +365,7 @@ anything that the functions on `selection-converter-alist' know about.  */)
   id pb;
   NSString *type;
   Lisp_Object successful_p = Qnil, rest;
-  Lisp_Object target_symbol, data;
+  Lisp_Object target_symbol;
 
   check_window_system (NULL);
   CHECK_SYMBOL (selection);
@@ -363,11 +388,9 @@ anything that the functions on `selection-converter-alist' know about.  */)
   /* We only support copy of text.  */
   type = NSStringPboardType;
   target_symbol = ns_string_to_symbol (type);
-  data = ns_get_local_selection (selection, target_symbol);
-  if (!NILP (data))
+  if (STRINGP (value))
     {
-      if (STRINGP (data))
-        ns_string_to_pasteboard_internal (pb, data, type);
+      ns_string_to_pasteboard_internal (pb, value, type);
       successful_p = Qt;
     }
 
@@ -391,7 +414,10 @@ Disowning it means there is no such selection.  */)
   id pb;
   check_window_system (NULL);
   CHECK_SYMBOL (selection);
-  if (NILP (assq_no_quit (selection, Vselection_alist))) return Qnil;
+
+  if (ns_get_pb_change_count (selection)
+      != ns_get_our_change_count_for (selection))
+      return Qnil;
 
   pb = ns_symbol_to_pb (selection);
   if (pb != nil) ns_undeclare_pasteboard (pb);
@@ -450,7 +476,8 @@ On Nextstep, TERMINAL is unused.  */)
   CHECK_SYMBOL (selection);
   if (EQ (selection, Qnil)) selection = QPRIMARY;
   if (EQ (selection, Qt)) selection = QSECONDARY;
-  return (NILP (Fassq (selection, Vselection_alist))) ? Qnil : Qt;
+  return ns_get_pb_change_count (selection)
+    == ns_get_our_change_count_for (selection);
 }
 
 
@@ -472,12 +499,15 @@ On Nextstep, TIME-STAMP and TERMINAL are unused.  */)
      (Lisp_Object selection_name, Lisp_Object target_type,
       Lisp_Object time_stamp, Lisp_Object terminal)
 {
-  Lisp_Object val;
+  Lisp_Object val = Qnil;
 
   check_window_system (NULL);
   CHECK_SYMBOL (selection_name);
   CHECK_SYMBOL (target_type);
-  val = ns_get_local_selection (selection_name, target_type);
+
+  if (ns_get_pb_change_count (selection_name)
+      == ns_get_our_change_count_for (selection_name))
+      val = ns_get_local_selection (selection_name, target_type);
   if (NILP (val))
     val = ns_get_foreign_selection (selection_name, target_type);
   if (CONSP (val) && SYMBOLP (Fcar (val)))
@@ -496,6 +526,18 @@ nxatoms_of_nsselect (void)
 {
   NXPrimaryPboard = @"Selection";
   NXSecondaryPboard = @"Secondary";
+
+  // This is a memory loss, never released.
+  pasteboard_changecount =
+    [[NSMutableDictionary
+       dictionaryWithObjectsAndKeys:
+            [NSNumber numberWithLong:0], NSGeneralPboard,
+            [NSNumber numberWithLong:0], NXPrimaryPboard,
+            [NSNumber numberWithLong:0], NXSecondaryPboard,
+            [NSNumber numberWithLong:0], NSStringPboardType,
+            [NSNumber numberWithLong:0], NSFilenamesPboardType,
+            [NSNumber numberWithLong:0], NSTabularTextPboardType,
+       nil] retain];
 }
 
 void

@@ -1,3 +1,17 @@
+2014-10-25  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsselect.m: pasteboard_changecount is new.
+	(ns_store_pb_change_count, ns_get_pb_change_count)
+	(ns_get_our_change_count_for): New functions.
+	(ns_string_to_pasteboard_internal): Correct comment.
+	type => gtype in eassert, Call ns_store_pb_change_count.
+	(Fns_own_selection_internal): Remove data, use value (Bug#18799).
+	(Fns_disown_selection_internal, Fns_selection_owner_p): Replace
+	Vselection_alist check, with change count check.
+	(Fns_get_selection): Initialize val to Qnil.  Only get local
+	selection if change counts match (Bug#18799).
+	(nxatoms_of_nsselect): Initialize pasteboard_changecount.
+
 2014-10-25  Noam Postavsky  <npostavs@users.sourceforget.net>
 
 	* src/w32proc.c (create_child): If calling a quoted batch file,
