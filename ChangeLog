@@ -1,3 +1,7 @@
+2014-10-25  Eric S. Raymond  <esr@thyrsus.com>
+
+	* autogen.sh: Neutralize language specific to a repository type.
+
 2014-10-23  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* Makefile.in (ACLOCAL_INPUTS): Omit unnecessary use of 'wildcard'.
