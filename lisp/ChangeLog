@@ -1,3 +1,11 @@
+2014-10-25  Vincent Belaïche  <vincentb1@users.sourceforge.net>
+
+	* ses.el (macroexp): add require for this package, so that
+	function `ses--cell' gets macroexp-quote --- this change was
+	supposed to be in my previous commit, but left out by mistake.
+	(ses--cell): Do not make formula a macroexp-quote of value when
+	value, not formula, is *skip*.
+
 2014-10-24  Vincent Belaïche  <vincentb1@users.sourceforge.net>
 
 	* ses.el (macroexp): add require for this package, so that function
