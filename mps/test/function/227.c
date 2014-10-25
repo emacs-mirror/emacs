@@ -96,12 +96,16 @@ static void test(void) {
   mps_fmt_create_A(&format2, arena2, &fmtA),
   "create format");
 
- cdie(
-  mps_pool_create(&poolamc1, arena1, mps_class_amc(), format1),
-  "create pool");
- cdie(
-  mps_pool_create(&poolamc2, arena2, mps_class_amc(), format2),
-  "create pool");
+ MPS_ARGS_BEGIN(args) {
+   MPS_ARGS_ADD(args, MPS_KEY_FORMAT, format1);
+   cdie(mps_pool_create_k(&poolamc1, arena1, mps_class_amc(), args),
+        "create pool");
+ } MPS_ARGS_END(args);
+ MPS_ARGS_BEGIN(args) {
+   MPS_ARGS_ADD(args, MPS_KEY_FORMAT, format2);
+   cdie(mps_pool_create_k(&poolamc2, arena2, mps_class_amc(), args),
+        "create pool");
+ } MPS_ARGS_END(args);
 
  cdie(
   mps_ap_create(&apamc1, poolamc1, mps_rank_exact()),
@@ -164,7 +168,8 @@ static void test(void) {
   }
  }
 
- mps_arena_park(arena);
+ mps_arena_park(arena1);
+ mps_arena_park(arena2);
  mps_ap_destroy(apamc1);
  mps_ap_destroy(apamc2);
  comment("Destroyed ap.");
