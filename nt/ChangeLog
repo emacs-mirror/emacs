@@ -1,3 +1,9 @@
+2014-10-22  Noam Postavsky  <npostavs@users.sourceforget.net>
+
+	* nt/cmdproxy.c (batch_file_p): New function.
+	(spawn): If calling a quoted batch file pass NULL for progname.
+	(Bug#18745)
+
 2014-10-20  Glenn Morris  <rgm@gnu.org>
 
 	* Merge in all changes up to 24.4 release.

@@ -1,3 +1,8 @@
+2014-10-22  Noam Postavsky  <npostavs@users.sourceforget.net>
+
+	* test/automated/process-tests.el (process-test-quoted-batfile):
+	New test.
+
 2014-10-20  Glenn Morris  <rgm@gnu.org>
 
 	* Merge in all changes up to 24.4 release.

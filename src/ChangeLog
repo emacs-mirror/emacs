@@ -1,3 +1,8 @@
+2014-10-25  Noam Postavsky  <npostavs@users.sourceforget.net>
+
+	* src/w32proc.c (create_child): If calling a quoted batch file,
+	pass NULL for exe.  (Bug#18745)
+
 2014-10-24  Eli Zaretskii  <eliz@gnu.org>
 
 	* bidi.c (bidi_resolve_explicit, bidi_find_bracket_pairs)

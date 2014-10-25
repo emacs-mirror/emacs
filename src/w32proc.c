@@ -1078,6 +1078,7 @@ create_child (char *exe, char *cmdline, char *env, int is_gui_app,
   DWORD flags;
   char dir[ MAX_PATH ];
   char *p;
+  const char *ext;
 
   if (cp == NULL) emacs_abort ();
 
@@ -1115,6 +1116,15 @@ create_child (char *exe, char *cmdline, char *env, int is_gui_app,
   for (p = dir; *p; p = CharNextA (p))
     if (*p == '/')
       *p = '\\';
+
+  /* CreateProcess handles batch files as exe specially.  This special
+     handling fails when both the batch file and arguments are quoted.
+     We pass NULL as exe to avoid the special handling. */
+  if (exe && cmdline[0] == '"' &&
+      (ext = strrchr (exe, '.')) &&
+      (xstrcasecmp (ext, ".bat") == 0
+       || xstrcasecmp (ext, ".cmd") == 0))
+      exe = NULL;
 
   flags = (!NILP (Vw32_start_process_share_console)
 	   ? CREATE_NEW_PROCESS_GROUP
