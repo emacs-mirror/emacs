@@ -313,17 +313,17 @@ If it's a file which is thought of as being outside of Gnus (e.g., the
 new @file{encrypt.el}), you should probably make the change in the Emacs
 tree, and it will show up in the Gnus tree a few days later.
 
-If you don't have Emacs bzr access (or it's inconvenient), you can
-change such a file in the v5-10 branch, and it should propagate to Emacs
-bzr---however, it will get some extra scrutiny (by Miles) to see if the
-changes are possibly controversial and need discussion on the mailing
-list.  Many changes are obvious bug-fixes however, so often there won't
-be any problem.
+If you don't have Emacs repository access (or it's inconvenient), you
+can change such a file in the v5-10 branch, and it should propagate to
+the Emacs repository---however, it will get some extra scrutiny (by
+Miles) to see if the changes are possibly controversial and need
+discussion on the mailing list.  Many changes are obvious bug-fixes
+however, so often there won't be any problem.
 
 @item
 If it's to a Gnus file, and it's important enough that it should be part
 of Emacs and the v5-10 branch, then you can make the change on the v5-10
-branch, and it will go into Emacs bzr and the Gnus git trunk (a few days
+branch, and it will go into Emacs and the Gnus git trunk (a few days
 later).  The most prominent examples for such changes are bug-fixed
 including improvements on the documentation.
 
