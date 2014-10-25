@@ -755,6 +755,7 @@ typedef struct mps_arena_s {
 
   /* thread fields (<code/thread.c>) */
   RingStruct threadRing;        /* ring of attached threads */
+  RingStruct deadRing;          /* ring of dead threads */
   Serial threadSerial;          /* serial of next thread */
  
   /* shield fields (<code/shield.c>) */

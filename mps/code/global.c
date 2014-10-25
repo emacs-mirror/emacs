@@ -153,6 +153,7 @@ Bool GlobalsCheck(Globals arenaGlobals)
   }
 
   CHECKD_NOSIG(Ring, &arena->threadRing);
+  CHECKD_NOSIG(Ring, &arena->deadRing);
 
   CHECKL(BoolCheck(arena->insideShield));
   CHECKL(arena->shCacheLimit <= ShieldCacheSIZE);
@@ -277,6 +278,7 @@ Res GlobalsInit(Globals arenaGlobals)
   arenaGlobals->rememberedSummaryIndex = 0;
 
   RingInit(&arena->threadRing);
+  RingInit(&arena->deadRing);
   arena->threadSerial = (Serial)0;
   RingInit(&arena->formatRing);
   arena->formatSerial = (Serial)0;
@@ -405,6 +407,7 @@ void GlobalsFinish(Globals arenaGlobals)
   RingFinish(&arena->chainRing);
   RingFinish(&arena->messageRing);
   RingFinish(&arena->threadRing);
+  RingFinish(&arena->deadRing);
   for(rank = RankMIN; rank < RankLIMIT; ++rank)
     RingFinish(&arena->greyRing[rank]);
   RingFinish(&arenaGlobals->rootRing);
@@ -495,6 +498,7 @@ void GlobalsPrepareToDestroy(Globals arenaGlobals)
   AVER(RingIsSingle(&arena->chainRing));
   AVER(RingIsSingle(&arena->messageRing));
   AVER(RingIsSingle(&arena->threadRing));
+  AVER(RingIsSingle(&arena->deadRing));
   AVER(RingIsSingle(&arenaGlobals->rootRing));
   for(rank = RankMIN; rank < RankLIMIT; ++rank)
     AVER(RingIsSingle(&arena->greyRing[rank]));
