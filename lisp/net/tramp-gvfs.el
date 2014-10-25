@@ -167,9 +167,10 @@
 ;; Introspection data exist since GVFS 1.14.  If there are no such
 ;; data, we expect an earlier interface.
 (defconst tramp-gvfs-methods-mounttracker
-  (dbus-introspect-get-method-names
-   :session tramp-gvfs-service-daemon tramp-gvfs-path-mounttracker
-   tramp-gvfs-interface-mounttracker)
+  (and tramp-gvfs-enabled
+       (dbus-introspect-get-method-names
+	:session tramp-gvfs-service-daemon tramp-gvfs-path-mounttracker
+	tramp-gvfs-interface-mounttracker))
   "The list of supported methods of the mount tracking interface.")
 
 (defconst tramp-gvfs-listmounts
@@ -187,9 +188,10 @@ It has been changed in GVFS 1.14.")
 It has been changed in GVFS 1.14.")
 
 (defconst tramp-gvfs-mountlocation-signature
-  (dbus-introspect-get-signature
-   :session tramp-gvfs-service-daemon tramp-gvfs-path-mounttracker
-   tramp-gvfs-interface-mounttracker tramp-gvfs-mountlocation)
+  (and tramp-gvfs-enabled
+       (dbus-introspect-get-signature
+	:session tramp-gvfs-service-daemon tramp-gvfs-path-mounttracker
+	tramp-gvfs-interface-mounttracker tramp-gvfs-mountlocation))
   "The D-Bus signature of the \"mountLocation\" method.
 It has been changed in GVFS 1.14.")
 
