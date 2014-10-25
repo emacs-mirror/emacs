@@ -24,7 +24,7 @@ the file.
 
 2. When installing code written by someone else, the ChangeLog entry
 should be in the name of the author of the code, not the person who
-installs it.  Also use bzr commit's "--author" option.
+installs it.  Also use commit's "--author" option.
 Do not install any of your own changes in the same commit.
 
 3. With images, add the legal info to a README file in the directory
@@ -484,10 +484,10 @@ system)
     obviously good):
 
 
-Is it OK to just `bzr remove' a file for legal reasons, or is
-something more drastic needed? A removed file is still available from
-the repository, if suitable options are applied. (This issue obviously
-does not affect a release).
+Is it OK to just remove a file for legal reasons, or is something more
+drastic (excision from the entire repository history) needed? A
+removed file is still available from the repository, if suitable
+options are applied. (This issue obviously does not affect a release).
   rms: will ask lawyer
 
 
