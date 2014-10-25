@@ -837,7 +837,7 @@ foo[, bar [, ...]] [other stuff] (sec) - description
 foo(sec)[, bar(sec) [, ...]] [other stuff] - description
 
 For more details and some regression tests, please see
-test/automated/man-tests.el in the emacs bzr repository."
+test/automated/man-tests.el in the emacs repository."
   (goto-char (point-min))
   ;; See man-tests for data about which systems use which format (hopefully we
   ;; will be able to simplify the code if/when some of those formats aren't
