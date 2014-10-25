@@ -1,3 +1,7 @@
+2014-10-25  Eric S. Raymond  <esr@thyrsus.com>
+
+	* Neutralize language specific to a repository type.
+
 2014-10-22  Noam Postavsky  <npostavs@users.sourceforget.net>
 
 	* nt/cmdproxy.c (batch_file_p): New function.

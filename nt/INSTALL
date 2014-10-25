@@ -169,7 +169,7 @@ build will run on Windows 9X and newer systems).
   you are building from the repository:
 
    . Texinfo (needed to produce the Info manuals when building from
-     bzr/git, and for "make install")
+     the repository, and for "make install")
 
      Available from http://sourceforge.net/projects/ezwinports/files/.
 
