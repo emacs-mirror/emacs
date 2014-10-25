@@ -203,6 +203,7 @@ Res FormatDescribe(Format format, mps_lib_FILE *stream, Count depth)
                "Format $P ($U) {\n", (WriteFP)format, (WriteFU)format->serial,
                "  arena $P ($U)\n",
                (WriteFP)format->arena, (WriteFU)format->arena->serial,
+               "  poolCount $U\n", (WriteFU)format->poolCount,
                "  alignment $W\n", (WriteFW)format->alignment,
                "  scan $F\n", (WriteFF)format->scan,
                "  skip $F\n", (WriteFF)format->skip,
