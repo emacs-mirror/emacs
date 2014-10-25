@@ -266,6 +266,25 @@ code for creating the object format for the toy Scheme interpreter::
     } MPS_ARGS_END(args);
     if (res != MPS_RES_OK) error("Couldn't create obj format");
 
+The keyword arguments specify the :term:`alignment` and the
+:term:`format methods` required by the AMC pool class. These are
+described in the following sections.
+
+.. topics::
+
+    :ref:`topic-format`.
+
+
+.. index::
+   single: alignment
+   single: alignment; object
+   single: Scheme; object alignment
+
+.. _guide-lang-alignment:
+
+Alignment
+^^^^^^^^^
+
 The argument for the keyword :c:macro:`MPS_KEY_FMT_ALIGN` is the
 :term:`alignment` of objects belonging to this format. Determining the
 alignment is hard to do portably, because it depends on the target
@@ -294,13 +313,19 @@ memory. Here are some things you might try:
 
         #define ALIGNMENT sizeof(mps_word_t)
 
-The other keyword arguments specify the :term:`format methods`
-required by the AMC pool class, which are described in the following
-sections.
+#. The MPS interface provides the type :c:type:`MPS_PF_ALIGN`, which
+   is the :term:`natural alignment` of the platform: the largest
+   alignment that might be required. So as a last resort, you can
+   use::
 
-.. topics::
+        #define ALIGNMENT MPS_PF_ALIGN
 
-    :ref:`topic-format`.
+   But this may be larger than necessary and so waste space. For
+   example, on Windows on x86-64, :c:type:`MPS_PF_ALIGN` is 16 bytes,
+   but this is only necessary for SSE_ types; ordinary types on this
+   platform require no more than 8-byte alignment.
+
+   .. _SSE: http://msdn.microsoft.com/en-us/library/t467de55.aspx
 
 
 .. index::
