@@ -26,7 +26,7 @@ http://lists.gnu.org/mailman/listinfo/emacs-buildstatus
 * The Emacs jobset consists of the following jobs:
 
 ** The `tarball' job
-which gets a checkout from bzr, and does a bootstrap followed
+which gets a checkout from the repository, and does a bootstrap followed
 by running make-dist to create a tarball.  If this job fails, all the
 others will too (because they use the tarball as input).
 
