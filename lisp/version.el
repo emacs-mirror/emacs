@@ -91,7 +91,7 @@ Value is nil if Emacs was not built from a repository checkout,
 or if we could not determine the revision.")
 
 (define-obsolete-variable-alias 'emacs-bzr-version
-                                'emacs-repository-version "24.4")
+                                'emacs-repository-version "25.1")
 
 (defun emacs-bzr-version-dirstate (dir)
   "Try to return as a string the bzr revision ID of directory DIR.
@@ -129,7 +129,7 @@ Returns nil if unable to find this information."
         (buffer-string))))
 
 (define-obsolete-function-alias 'emacs-bzr-get-version
-                                'emacs-repository-get-version "24.4")
+                                'emacs-repository-get-version "25.1")
 
 (defun emacs-repository-get-version (&optional dir external)
   "Try to return as a string the repository revision of the Emacs sources.
