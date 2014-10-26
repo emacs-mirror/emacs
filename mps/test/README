@@ -26,4 +26,4 @@ so you can debug it with::
     lldb test/obj/$(uname -s)_$(uname -r)_$(uname -p)__unix/tmp_test
 
 Or ``gdb`` instead of ``lldb``. MMQA sets its own assertion handler,
-so you'll probaly want to set a breakpoint on mmqa_assert_handler.
+so you'll probably want to set a breakpoint on mmqa_assert_handler.
