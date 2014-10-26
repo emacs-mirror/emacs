@@ -1,47 +1,50 @@
-/* ssan.c: ANSI STACK SCANNER
+/* ssan.c: GENERIC STACK SCANNING
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
- * This module makes a best effort to scan the stack and fix the
+ * This makes a best effort to decode the stack context and scan the
  * registers which may contain roots, using only the features of the
- * Standard C library.
- * 
- * .assume.setjmp: The implementation assumes that setjmp stores all
- * the registers that need to be scanned in the jmp_buf.
+ * Standard C library. See <design/ss/>.
  */
 
-#include <setjmp.h>
-
-#include "mpmtypes.h"
-#include "misc.h"
 #include "ss.h"
-
 
 SRCID(ssan, "$Id$");
 
 
-Res StackScan(ScanState ss, Addr *stackBot)
+/* StackContextStackTop -- return the "top" of the mutator's stack at
+ * the point when the context was saved by STACK_CONTEXT_BEGIN.
+ *
+ * .assume: This assumes that the structure pointed to by sc is
+ * stack-allocated "above" the mutator's stack, and so its address is
+ * a conservative approximation to the top of the mutator's stack. The
+ * use of STACK_CONTEXT_BEGIN in mpsi.c assures this.
+ */
+
+Addr *StackContextStackTop(StackContext sc)
 {
-  jmp_buf jb;
-  void *stackTop = &jb;
+  return (void *)sc;
+}
 
-  /* .assume.stack: This implementation assumes that the stack grows
-   * downwards, so that the address of the jmp_buf is the limit of the
-   * part of the stack that needs to be scanned. (StackScanInner makes
-   * the same assumption.)
-   */
-  AVER(stackTop < (void *)stackBot);
 
-  (void)setjmp(jb);
+/* StackContextScan -- scan references in the stack context
+ *
+ * This conservatively scans the whole of the StackContext. The
+ * PointerAlignDown is necessary in case the size of the jump buffer
+ * is not a multiple of sizeof(Addr).
+ */
 
-  return StackScanInner(ss, stackBot, stackTop, sizeof jb / sizeof(Addr*));
+Res StackContextScan(ScanState ss, StackContext sc)
+{
+  return TraceScanAreaTagged(ss, (void *)sc,
+                             PointerAlignDown(sc + 1, sizeof(Addr)));
 }
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
