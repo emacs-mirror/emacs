@@ -41,8 +41,7 @@ Addr *StackContextStackTop(StackContext sc)
  * The PointerAlignDown is necessary because the size of the jump
  * buffer is not a multiple of sizeof(Addr) on this platform: see
  * setjmp.h, where _JBLEN is 37.
- * <http://www.opensource.apple.com/source/xnu/xnu-1456.1.26/bsd/i386/setjmp.h>
- * _setjmp.s,
+ * <http://www.opensource.apple.com/source/Libc/Libc-825.24/include/setjmp.h>
  */
 
 Res StackContextScan(ScanState ss, StackContext sc)
