@@ -122,7 +122,7 @@
 #include "proti3.c"     /* 32-bit Intel mutator context decoding */
 #include "prmci3xc.c"   /* 32-bit Intel for Mac OS X mutator context */
 #include "span.c"       /* generic stack probe */
-#include "ssixi3.c"     /* Posix on 32-bit Intel stack scan */
+#include "ssxci3.c"     /* OS X on 32-bit Intel stack scan */
 
 /* Mac OS X on 64-bit Intel build with Clang or GCC */
 
@@ -136,7 +136,7 @@
 #include "proti6.c"     /* 64-bit Intel mutator context decoding */
 #include "prmci6xc.c"   /* 64-bit Intel for Mac OS X mutator context */
 #include "span.c"       /* generic stack probe */
-#include "ssixi6.c"     /* Posix on 64-bit Intel stack scan */
+#include "ssxci6.c"     /* OS X on 64-bit Intel stack scan */
 
 /* FreeBSD on 32-bit Intel built with GCC */
 
@@ -151,7 +151,7 @@
 #include "prmcan.c"     /* generic mutator context */
 #include "prmci3fr.c"   /* 32-bit Intel for FreeBSD mutator context */
 #include "span.c"       /* generic stack probe */
-#include "ssixi3.c"     /* Posix on 32-bit Intel stack scan */
+#include "ssan.c"       /* generic stack scan */
 
 /* FreeBSD on 64-bit Intel built with GCC */
 
@@ -166,7 +166,7 @@
 #include "prmcan.c"     /* generic mutator context */
 #include "prmci6fr.c"   /* 64-bit Intel for FreeBSD mutator context */
 #include "span.c"       /* generic stack probe */
-#include "ssixi6.c"     /* Posix on 64-bit Intel stack scan */
+#include "ssan.c"       /* generic stack scan */
 
 /* Linux on 32-bit Intel with GCC */
 
@@ -181,7 +181,7 @@
 #include "proti3.c"     /* 32-bit Intel mutator context */
 #include "prmci3li.c"   /* 32-bit Intel for Linux mutator context */
 #include "span.c"       /* generic stack probe */
-#include "ssixi3.c"     /* Posix on 32-bit Intel stack scan */
+#include "ssan.c"       /* generic stack scan */
 
 /* Linux on 64-bit Intel with GCC or Clang */
 
@@ -196,7 +196,7 @@
 #include "proti6.c"     /* 64-bit Intel mutator context */
 #include "prmci6li.c"   /* 64-bit Intel for Linux mutator context */
 #include "span.c"       /* generic stack probe */
-#include "ssixi6.c"     /* Posix on 64-bit Intel stack scan */
+#include "ssan.c"       /* generic stack scan */
 
 /* Windows on 32-bit Intel with Microsoft Visual Studio */
 

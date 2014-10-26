@@ -7,7 +7,7 @@ Stack and register scanning
 :Author: Gareth Rees
 :Date: 2014-10-22
 :Status: complete design
-:Revision: $Id: //info.ravenbrook.com/project/mps/master/design/thread-manager.txt#7 $
+:Revision: $Id$
 :Copyright: See `Copyright and License`_.
 :Index terms: pair: stack and register scanning; design
 
@@ -35,25 +35,40 @@ Requirements
 ------------
 
 _`.req.stack.top`: Must locate the top of the mutator's stack. (This
-is needed to support conservative garbage collection of uncooperative
-code, where references might be stored by mutator on its stack.)
+is needed for conservative garbage collection of uncooperative code,
+where references might be stored by mutator on its stack, to work.)
+
+.. _job003525: http://www.ravenbrook.com/project/mps/issue/job003525/
 
 _`.req.stack.bottom.not`: There is no requirement to locate the bottom
 of the stack. (The mutator supplies this as an argument to
 ``mps_root_create_reg()``.)
 
-_`.req.registers`: Must locate and scan all references in the *root
-registers*, the subset of registers which might contain references
-that do not also appear on the stack. (This is needed to support
-conservative garbage collection of uncooperative code, where
-references might appear in registers.)
+_`.req.registers`: Must locate and scan all references in the
+mutator's *root registers*, the subset of registers which might
+contain references that do not also appear on the stack. (This is
+needed for conservative garbage collection of uncooperative code,
+where references might appear in registers, to work.)
+
+_`.req.entry`: Should save the mutator's context (stack and registers)
+at the point where it enters the MPS. (This avoids scanning registers
+and stack that belong to the MPS rather than the mutator, leading to
+unnecessary pinning and zone pollution; see job003525_.)
+
+_`.req.setjmp`: The implementation must follow the C Standard in its
+use of the ``setjmp`` macro. (So that it is reliable and portable.)
 
 
 Design
 ------
 
-_`.sol.stack.top`: Implementations find the top of the stack by
-taking the address of a local variable.
+_`.origin`: The design was originally proposed in
+mail.richard.2012-08-03.14-36_.
+
+.. _mail.richard.2012-08-03.14-36: https://info.ravenbrook.com/mail/2012/08/03/14-36-35/0/
+
+_`.sol.entry-points`: To meet `.req.stack.entry`_, the mutator's
+registers and stack must be recorded when the mutator enters the MPS.
 
 _`.sol.registers`: Implementations spill the root registers onto the
 stack so that they can be scanned there.
@@ -66,57 +81,179 @@ been spilled onto the stack by the time the MPS is entered, so will be
 scanned by the stack scan. Floating-point registers and debugging
 registers do not, as far as we are aware, contain pointers.
 
-_`.sol.inner`: Having located the top of the stack (``stackTop``), and
-spilled the root registers into the next ``n`` words, implementations
-call the generic function ``StackScanInner(ss, stackBot, stackTop,
-n)`` to actually do the scanning.
+_`.sol.setjmp`: The C standard specifies that ``jmp_buf``
+"is an array type suitable for holding the information needed to
+restore a calling environment. The environment of a call to the
+``setjmp`` macro consists of information sufficient for a call to the
+``longjmp`` function to return execution to the correct block and
+invocation of that block, were it called recursively." This is what we
+need: the jump buffer needs to include the root registers in order to
+work as described. (A sufficiently perverse implementation could
+defeat this, but it works on all our supported platforms.)
+
+_`.sol.setjmp.scan`: An implementation can decode the jump
+buffer and scan just the root registers, or it can conservatively scan
+the whole of the jump buffer.
+
+_`.sol.stack.top`: Similarly, an implementation can decode the jump
+buffer and get the top of the mutator's stack from the stack pointer
+register, or it can conservatively use the address of a local variable
+in the entry point to the MPS.
+
+_`.sol.xc.alternative`: On OS X, we could use ``getcontext()`` from
+libunwind (see here_), but that produces deprecation warnings and
+introduces a dependency on that library.
+
+.. _here: http://stackoverflow.com/questions/3592914/how-can-i-implement-cooperative-lightweight-threading-with-c-on-mac-os-x
+
+
+Analysis
+--------
+
+_`.anal.setjmp`: The C90 Standard says:
+
+    An invocation of the ``setjmp`` macro shall appear only in one of
+    the following contexts:
+
+    - the entire controlling expression of a selection or iteration
+      statement;
+
+    - one operand of a relational or equality operator with the other
+      operand an integral constant expression, with the resulting
+      expression being the entire controlling expression of a
+      selection or iteration statement;
+
+    - the operand of a unary ``!`` operator with the resulting
+      expression being the entire controlling expression of a
+      selection or iteration statement; or
+
+    - the entire expression of an expression statement (possibly cast
+      to ``void``).
+
+And C99 adds:
+
+    If the invocation appears in any other context, the behavior is
+    undefined.
+
+_`.anal.entry-points`: Here's a reverse call graph (in the master
+sources at changelevel 187410) showing which entry points might call
+``StackScan()`` and so need to record the stack context::
+
+    StackScan
+     └ThreadScan
+       └mps_stack_scan_ambig
+         └RootScan
+           └traceScanRootRes
+             └traceScanRoot
+               └rootFlip
+                 └traceFlip
+                   └TraceStart
+                     ├TracePoll
+                     │ ├ArenaStep
+                     │ │ └mps_arena_step
+                     │ └ArenaPoll
+                     │   ├mps_alloc
+                     │   ├mps_ap_fill
+                     │   ├mps_ap_fill_with_reservoir_permit
+                     │   ├mps_ap_alloc_pattern_end
+                     │   ├mps_ap_alloc_pattern_reset
+                     │   └ArenaRelease
+                     │     ├mps_arena_release
+                     │     └ArenaStartCollect
+                     │       ├mps_arena_start_collect
+                     │       └ArenaCollect
+                     │         └mps_arena_collect
+                     └TraceStartCollectAll
+                       ├ArenaStep ⤴
+                       ├ArenaStartCollect ⤴
+                       └TracePoll ⤴
+
+So the entry points that need to save the stack context are
+``mps_arena_step()``, ``mps_alloc()``, ``mps_ap_fill()``,
+``mps_ap_fill_with_reservoir_permit()``,
+``mps_ap_alloc_pattern_end()``, ``mps_ap_alloc_pattern_reset()``,
+``mps_arena_release()``, ``mps_arena_start_collect()``, and
+``mps_arena_collect()``.
 
 
 Interface
 ---------
 
+``typedef StackContextStruct *StackContext``
+
+_`.if.sc`: A structure encapsulating the mutator context.
+
+``Addr StackContextStackTop(StackContext sc)``
+
+_`.if.stack.top`: Return (a conservative approximation to) the address
+of the "top" of the mutator's stack at the point where ``sc`` was
+stored. In the common case, where the stack grows downwards, this is
+actually the lowest stack address.
+
 ``Res StackScan(ScanState ss, Addr *stackBot)``
 
-_`.if.scan`: Scan the root registers of the current thread, and the
-control stack between ``stackBot`` and the top of the stack, in the
-context of the given scan state. Return ``ResOK`` if successful, or
-another result code if not.
+_`.if.scan`: Scan the stack between ``stackBot`` and the "top" of the
+mutator's stack that was recorded by ``STACK_CONTEXT_BEGIN()`` when
+the arena was entered. Also scan any roots which were in the mutator's
+callee-save registers at that point. Return ``ResOK`` if successful,
+or another result code if not.
 
+``STACK_CONTEXT_SAVE(StackContext sc)``
 
-Issue
------
+_`.if.save`: Store the mutator context in the structure ``sc``.
 
-_`.issue.overscan`: This design leads to over-scanning, because by the
-time ``StackScan()`` is called, there are several MPS functions on the
-stack. The scan thus ends up scanning references that belong the MPS,
-not to the mutator. See job003525_.
+_`.if.save.macro`: This must be implemented as a macro because it
+needs to run in the stack frame of the entry point (if it runs in some
+other function it does not necessarily get the mutator's registers).
+This necessity to have the definition in scope in ``mpsi.c``, while
+also having different definitions on different platforms, requires a
+violation of design.mps.config.no-spaghetti_.
 
-.. _job003525: http://www.ravenbrook.com/project/mps/issue/job003525/
+.. _design.mps.config.no-spaghetti: config#no-spaghetti
+
+``STACK_CONTEXT_BEGIN(Arena arena)``
+
+_`.if.begin`: Start an MPS operation that needs to know the mutator
+context. This macro must be used like this::
+
+    Res res;
+    STACK_CONTEXT_BEGIN(arena) {
+      res = ArenaStartCollect(arena);
+    } STACK_CONTEXT_END(arena);
+    return res;
+
+That is, it must be paired with ``STACK_CONTEXT_END()``, and there
+must be no ``return`` between the two macro invocations.
+
+This macro takes the arena lock, stores the mutator context in a
+``StackContext`` structure allocated on the stack, and sets
+``arena->stackAtArenaEnter`` to the address of the top of the
+mutator's stack.
+
+``STACK_CONTEXT_END(Arena arena)``
+
+_`.if.end`: Finish the MPS operation that was started by ``STACK_CONTEXT_BEGIN()``.
+
+This macro sets ``arena->stackAtArenaEnter`` to ``NULL`` and releases
+the arena lock.
 
 
 Implementations
 ---------------
 
-_`.impl.an`: Generic implementation in ``ssan.c``. This calls
-``setjmp()`` with a stack-allocated ``jmp_buf`` to spill the registers
-onto the stack. The C standard specifies that ``jmp_buf`` "is an array
-type suitable for holding the information needed to restore a calling
-environment. The environment of a call to the ``setjmp`` macro
-consists of information sufficient for a call to the ``longjmp``
-function to return execution to the correct block and invocation of
-that block, were it called recursively." Note that the C standard does
-not specify where the callee-save registers appear in the ``jmp_buf``,
-so the whole buffer must be scanned.
-
-_`.impl.ix`: Unix implementation in ``ssixi3.c`` and ``ssixi6.c``.
-Assembler instructions are used to spill exactly the callee-save
-registers. (Clang and GCC support a common assembler syntax.)
+_`.impl.an`: Generic implementation in ``ssan.c``. Since the C
+standard does not specify where the callee-save registers appear in
+the jump buffer, the whole buffer must be scanned, and the top of the
+stack must be taken conservatively from a local variable.
 
 _`.impl.w3`: Windows implementation in ``ssw3i3mv.c`` and
-``ssw3i6mv.c``. Like `.impl.an`_, this implementation uses
-``setjmp()`` with a stack-allocated ``jmp_buf`` to spill the registers
-onto the stack. However, we know the layout of the ``jmp_buf`` used by
-the compiler, and so can scan exactly the subset of registers we need.
+``ssw3i6mv.c``. We know the layout of the jump buffer used by the
+compiler, and so can scan exactly the subset of registers we need, and
+decode the stack pointer from ESP (on IA-32) or RSP (on x86-64).
+
+_`.impl.xc`: OS X implementation in ``ssxci3.c`` and ``ssxci6.c``.
+Scans the jump buffer conservatively as for `.impl.an`_, but decodes
+the stack pointer from ESP (on IA-32) or RSP (on x86-64).
 
 
 Document History

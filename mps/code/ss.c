@@ -3,13 +3,8 @@
  * $Id$
  * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
- *  This is part of the code that scans the stack and fixes the registers
- *  that may contain roots.  See <design/thread-manager/>
- *
- *  Each platform ABI has a set of callee-save registers that may still
- *  contain roots.  The StackScan function is defined for each ABI in source
- *  files like ss*.c and ss*.asm.  That function saves the callee save
- *  registers in its frame, then calls StackScanInner to do the scanning.
+ * This scans the mutator's stack and fixes the registers that may
+ * contain roots. See <design/ss/>.
  */
 
 #include "mpm.h"
@@ -17,51 +12,60 @@
 SRCID(ss, "$Id$");
 
 
-/* StackScanInner -- carry out stack scanning
+/* StackScan -- scan the mutator's stack and registers
  *
- * This function should be called by StackScan once it has saved the
- * callee-save registers for the platform ABI in order to do the actual
- * scanning.
+ * StackScan scans the stack between stackBot and the top of the
+ * mutator's stack that was recorded by STACK_CONTEXT_BEGIN when the
+ * arena was entered. It also scans any roots which were in the
+ * mutator's callee-save registers at that point.
+ *
+ * See the specific implementations of StackContextScan for the exact
+ * registers which are scanned.
  */
 
-Res StackScanInner(ScanState ss,
-                   Addr *stackBot,
-                   Addr *stackTop,
-                   Count nSavedRegs)
+static Res stackScanInner(Arena arena, ScanState ss, Addr *stackBot,
+                          StackContext sc)
+{
+  Addr *stackTop;
+  Res res;
+
+  AVERT(Arena, arena);
+  AVERT(ScanState, ss);
+
+  stackTop = StackContextStackTop(sc);
+  AVER(stackTop < stackBot);
+  AVER(AddrIsAligned((Addr)stackTop, sizeof(Addr)));  /* .assume.align */
+
+  res = TraceScanAreaTagged(ss, stackTop, stackBot);
+  if (res != ResOK)
+    return res;
+
+  res = StackContextScan(ss, sc);
+  if (res != ResOK)
+    return res;
+
+  return ResOK;
+}
+
+Res StackScan(ScanState ss, Addr *stackBot)
 {
   Arena arena;
   Res res;
 
   AVERT(ScanState, ss);
-  AVER(stackTop < stackBot);
-  AVER(AddrIsAligned((Addr)stackTop, sizeof(Addr)));  /* .assume.align */
-  AVER(0 < nSavedRegs);
-  AVER(nSavedRegs < 128);       /* sanity check */
-
   arena = ss->arena;
 
-  /* If a stack pointer was stored when we entered the arena (through the
-     MPS interface in mpsi*.c) then we scan just the saved registers and
-     the stack starting there, in order to avoid false ambiguous references
-     in the MPS stack.  This is particularly important for transforms
-     (trans.c).  Otherwise, scan the whole stack. */
-
-  if (arena->stackAtArenaEnter != NULL) {
-    AVER(stackTop < arena->stackAtArenaEnter);
-    AVER(arena->stackAtArenaEnter < stackBot);
-    res = TraceScanAreaTagged(ss, stackTop, stackTop + nSavedRegs);
-    if (res != ResOK)
-      return res;
-    res = TraceScanAreaTagged(ss, arena->stackAtArenaEnter, stackBot);
-    if (res != ResOK)
-      return res;
+  /* See <design/ss/#anal.entry-points> */
+  AVER(arena->scAtArenaEnter);
+  if (arena->scAtArenaEnter) {
+    res = stackScanInner(arena, ss, stackBot, arena->scAtArenaEnter);
   } else {
-    res = TraceScanAreaTagged(ss, stackTop, stackBot);
-    if (res != ResOK)
-      return res;
+    /* Somehow missed saving the context at the entry point: do it now. */
+    StackContextStruct sc;
+    STACK_CONTEXT_SAVE(&sc);
+    res = stackScanInner(arena, ss, stackBot, &sc);
   }
-
-  return ResOK;
+  return res;
 }
 
 

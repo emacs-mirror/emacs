@@ -218,7 +218,7 @@ Bool GlobalsCheck(Globals arenaGlobals)
   if (arenaGlobals->defaultChain != NULL)
     CHECKD(Chain, arenaGlobals->defaultChain);
 
-  /* can't check arena->stackAtArenaEnter */
+  /* can't check arena->scAtArenaEnter */
   
   return TRUE;
 }
@@ -320,7 +320,7 @@ Res GlobalsInit(Globals arenaGlobals)
 
   arena->emergency = FALSE;
 
-  arena->stackAtArenaEnter = NULL;
+  arena->scAtArenaEnter = NULL;
   
   arenaGlobals->defaultChain = NULL;
 

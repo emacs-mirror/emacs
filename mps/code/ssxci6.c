@@ -1,74 +1,60 @@
-/* ssixi3.c: UNIX/INTEL STACK SCANNING
+/* ssxci6.c: STACK SCANNING FOR OS X ON x86-64
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2012-2014 Ravenbrook Limited.  See end of file for license.
  *
- *  This scans the stack and fixes the registers which may contain
- *  roots.  See <design/thread-manager/>
- *
- *  This code was originally developed and tested on Linux, and then
- *  copied to the FreeBSD and Darwin (OS X) operating systems where it
- *  also seems to work.  Note that on FreeBSD and Darwin it has not
- *  been indepently verified with respect to any ABI documentation.
- *
- *  This code is common to more than one Unix implementation on
- *  Intel hardware (but is not portable Unix code).
- *
- *  The registers edi, esi, ebx are the registers defined to be preserved
- *  across function calls and therefore may contain roots.
- *  These are pushed on the stack for scanning.
- *
- * SOURCES
- *
- * .source.callees.saves: Set of callee-saved registers taken from
- * CALL_USED_REGISTERS in <gcc-sources>/config/i386/i386.h.
- * ebp added to the list because gcc now doesn't always use it as
- * a frame pointer so it could contain a root.
- *
- * ASSUMPTIONS
- *
- * .assume.align: The stack pointer is assumed to be aligned on a word
- * boundary.
- *
- * .assume.asm.stack: The compiler must not do wacky things with the
- * stack pointer around a call since we need to ensure that the
- * callee-save regs are visible during TraceScanArea.
- *
- * .assume.asm.order: The volatile modifier should prevent movement
- * of code, which might break .assume.asm.stack.
- *
+ * This decodes the stack context and scans the registers which may
+ * contain roots. See <design/ss/>.
  */
-
 
 #include "mpm.h"
 
-SRCID(ssixi3, "$Id$");
+SRCID(ssxci6, "$Id$");
+
+#if !defined(MPS_OS_XC) || !defined(MPS_ARCH_I6)
+#error "ssxci6.c is specific to MPS_OS_XC and MPS_ARCH_I6."
+#endif
 
 
-/* .assume.asm.order */
-#define ASMV(x) __asm__ volatile (x)
+/* Offset of RSP in the jmp_buf in bytes, as defined in _setjmp.s.
+ * See the implementation of _setjmp in
+ * <http://www.opensource.apple.com/source/Libc/Libc-825.24/x86_64/sys/_setjmp.s> */
+
+#define JB_RSP 16
 
 
-Res StackScan(ScanState ss, Addr *stackBot)
+/* StackContextStackTop -- return the "top" of the mutator's stack at
+ * the point when the context was saved by STACK_CONTEXT_BEGIN. */
+
+Addr *StackContextStackTop(StackContext sc)
 {
-  Addr calleeSaveRegs[4];
+  Addr **p_rsp = PointerAdd(&(sc)->jumpBuffer, JB_RSP);
+  return *p_rsp;
+}
 
-  /* .assume.asm.stack */
-  /* Store the callee save registers on the stack so they get scanned 
-   * as they may contain roots.
-   */
-  ASMV("mov %%ebx, %0" : "=m" (calleeSaveRegs[0]));
-  ASMV("mov %%esi, %0" : "=m" (calleeSaveRegs[1]));
-  ASMV("mov %%edi, %0" : "=m" (calleeSaveRegs[2]));
-  ASMV("mov %%ebp, %0" : "=m" (calleeSaveRegs[3]));
-  
-  return StackScanInner(ss, stackBot, calleeSaveRegs, NELEMS(calleeSaveRegs));
+
+/* StackContextScan -- scan references in the stack context
+ *
+ * We conservatively scan the whole of the jump buffer, assuming that
+ * all references are stored at aligned positions.
+ *
+ * The PointerAlignDown is necessary because the size of the jump
+ * buffer is not a multiple of sizeof(Addr) on this platform: see
+ * setjmp.h, where _JBLEN is 37.
+ * <http://www.opensource.apple.com/source/xnu/xnu-1456.1.26/bsd/i386/setjmp.h>
+ * _setjmp.s,
+ */
+
+Res StackContextScan(ScanState ss, StackContext sc)
+{
+  return TraceScanAreaTagged(ss, (void *)sc,
+                             PointerAlignDown(sc + 1, sizeof(Addr)));
 }
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2012-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

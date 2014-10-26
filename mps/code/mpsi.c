@@ -231,9 +231,9 @@ void mps_arena_clamp(mps_arena_t arena)
 
 void mps_arena_release(mps_arena_t arena)
 {
-  ArenaEnter(arena);
-  ArenaRelease(ArenaGlobals(arena));
-  ArenaLeave(arena);
+  STACK_CONTEXT_BEGIN(arena) {
+    ArenaRelease(ArenaGlobals(arena));
+  } STACK_CONTEXT_END(arena);
 }
 
 
@@ -271,18 +271,19 @@ void mps_arena_unsafe_restore_protection(mps_arena_t arena)
 mps_res_t mps_arena_start_collect(mps_arena_t arena)
 {
   Res res;
-  ArenaEnter(arena);
-  res = ArenaStartCollect(ArenaGlobals(arena), TraceStartWhyCLIENTFULL_INCREMENTAL);
-  ArenaLeave(arena);
+  STACK_CONTEXT_BEGIN(arena) {
+    res = ArenaStartCollect(ArenaGlobals(arena),
+                            TraceStartWhyCLIENTFULL_INCREMENTAL);
+  } STACK_CONTEXT_END(arena);
   return (mps_res_t)res;
 }
 
 mps_res_t mps_arena_collect(mps_arena_t arena)
 {
   Res res;
-  ArenaEnter(arena);
-  res = ArenaCollect(ArenaGlobals(arena), TraceStartWhyCLIENTFULL_BLOCK);
-  ArenaLeave(arena);
+  STACK_CONTEXT_BEGIN(arena) {
+    res = ArenaCollect(ArenaGlobals(arena), TraceStartWhyCLIENTFULL_BLOCK);
+  } STACK_CONTEXT_END(arena);
   return (mps_res_t)res;
 }
 
@@ -291,9 +292,9 @@ mps_bool_t mps_arena_step(mps_arena_t arena,
                           double multiplier)
 {
   Bool b;
-  ArenaEnter(arena);
-  b = ArenaStep(ArenaGlobals(arena), interval, multiplier);
-  ArenaLeave(arena);
+  STACK_CONTEXT_BEGIN(arena) {
+    b = ArenaStep(ArenaGlobals(arena), interval, multiplier);
+  } STACK_CONTEXT_END(arena);
   return b;
 }
 
@@ -733,22 +734,22 @@ mps_res_t mps_alloc(mps_addr_t *p_o, mps_pool_t pool, size_t size)
   AVER(TESTT(Pool, pool));
   arena = PoolArena(pool);
 
-  ArenaEnter(arena);
+  STACK_CONTEXT_BEGIN(arena) {
 
-  ArenaPoll(ArenaGlobals(arena)); /* .poll */
+    ArenaPoll(ArenaGlobals(arena)); /* .poll */
 
-  AVER(p_o != NULL);
-  AVERT(Pool, pool);
-  AVER(size > 0);
-  /* Note: class may allow unaligned size, see */
-  /* <design/class-interface/#alloc.size.align>. */
-  /* Rest ignored, see .varargs. */
+    AVER(p_o != NULL);
+    AVERT(Pool, pool);
+    AVER(size > 0);
+    /* Note: class may allow unaligned size, see */
+    /* <design/class-interface/#alloc.size.align>. */
+    /* Rest ignored, see .varargs. */
 
-  /* @@@@ There is currently no requirement for reservoirs to work */
-  /* with unbuffered allocation. */
-  res = PoolAlloc(&p, pool, size, FALSE);
+    /* @@@@ There is currently no requirement for reservoirs to work */
+    /* with unbuffered allocation. */
+    res = PoolAlloc(&p, pool, size, FALSE);
 
-  ArenaLeave(arena);
+  } STACK_CONTEXT_END(arena);
 
   if (res != ResOK)
     return (mps_res_t)res;
@@ -1040,18 +1041,18 @@ mps_res_t mps_ap_fill(mps_addr_t *p_o, mps_ap_t mps_ap, size_t size)
   AVER(TESTT(Buffer, buf));
   arena = BufferArena(buf);
 
-  ArenaEnter(arena);
+  STACK_CONTEXT_BEGIN(arena) {
 
-  ArenaPoll(ArenaGlobals(arena)); /* .poll */
+    ArenaPoll(ArenaGlobals(arena)); /* .poll */
 
-  AVER(p_o != NULL);
-  AVERT(Buffer, buf);
-  AVER(size > 0);
-  AVER(SizeIsAligned(size, BufferPool(buf)->alignment));
+    AVER(p_o != NULL);
+    AVERT(Buffer, buf);
+    AVER(size > 0);
+    AVER(SizeIsAligned(size, BufferPool(buf)->alignment));
 
-  res = BufferFill(&p, buf, size, FALSE);
+    res = BufferFill(&p, buf, size, FALSE);
 
-  ArenaLeave(arena);
+  } STACK_CONTEXT_END(arena);
 
   if (res != ResOK)
     return (mps_res_t)res;
@@ -1072,18 +1073,18 @@ mps_res_t mps_ap_fill_with_reservoir_permit(mps_addr_t *p_o, mps_ap_t mps_ap,
   AVER(TESTT(Buffer, buf));
   arena = BufferArena(buf);
 
-  ArenaEnter(arena);
+  STACK_CONTEXT_BEGIN(arena) {
 
-  ArenaPoll(ArenaGlobals(arena)); /* .poll */
+    ArenaPoll(ArenaGlobals(arena)); /* .poll */
 
-  AVER(p_o != NULL);
-  AVERT(Buffer, buf);
-  AVER(size > 0);
-  AVER(SizeIsAligned(size, BufferPool(buf)->alignment));
+    AVER(p_o != NULL);
+    AVERT(Buffer, buf);
+    AVER(size > 0);
+    AVER(SizeIsAligned(size, BufferPool(buf)->alignment));
 
-  res = BufferFill(&p, buf, size, TRUE);
+    res = BufferFill(&p, buf, size, TRUE);
 
-  ArenaLeave(arena);
+  } STACK_CONTEXT_END(arena);
 
   if (res != ResOK)
     return (mps_res_t)res;
@@ -1873,12 +1874,12 @@ mps_res_t mps_ap_alloc_pattern_end(mps_ap_t mps_ap,
   UNUSED(alloc_pattern); /* .ramp.hack */
 
   arena = BufferArena(buf);
-  ArenaEnter(arena);
 
-  res = BufferRampEnd(buf);
-  ArenaPoll(ArenaGlobals(arena)); /* .poll */
+  STACK_CONTEXT_BEGIN(arena) {
+    res = BufferRampEnd(buf);
+    ArenaPoll(ArenaGlobals(arena)); /* .poll */
+  } STACK_CONTEXT_END(arena);
 
-  ArenaLeave(arena);
   return (mps_res_t)res;
 }
 
@@ -1893,12 +1894,12 @@ mps_res_t mps_ap_alloc_pattern_reset(mps_ap_t mps_ap)
   AVER(TESTT(Buffer, buf));
 
   arena = BufferArena(buf);
-  ArenaEnter(arena);
 
-  BufferRampReset(buf);
-  ArenaPoll(ArenaGlobals(arena)); /* .poll */
+  STACK_CONTEXT_BEGIN(arena) {
+    BufferRampReset(buf);
+    ArenaPoll(ArenaGlobals(arena)); /* .poll */
+  } STACK_CONTEXT_END(arena);
 
-  ArenaLeave(arena);
   return MPS_RES_OK;
 }
 
