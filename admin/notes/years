@@ -2,7 +2,7 @@ HOW TO MAINTAIN COPYRIGHT YEARS FOR GNU EMACS
 
 Maintaining copyright years is now very simple: every time a new year
 rolls around, add that year to every FSF (and AIST) copyright notice.
-Do this by running the 'admin/update-copyright' script on a fresh bzr
+Do this by running the 'admin/update-copyright' script on a fresh repo
 checkout.  Inspect the results for plausibility, then commit them.
 
 There's no need to worry about whether an individual file has changed
