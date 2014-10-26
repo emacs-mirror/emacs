@@ -1,4 +1,4 @@
-NOTES ON COMMITTING TO EMACS'S BAZAAR REPO    -*- outline -*-
+NOTES ON COMMITTING TO EMACS'S REPOSITORY    -*- outline -*-
 
 * Install changes only on one branch, let them get merged elsewhere if needed.
 In particular, install bug-fixes only on the release branch (if there
