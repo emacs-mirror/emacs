@@ -21,13 +21,16 @@ See the end of the file for license conditions.
 
 * Preliminaries
 
-  Along with this file should be four subdirectories (bin, libexec,
-  share, and var).
+  The binary distribution has these top-level directories:
+  + bin
+  + libexec
+  + share
+  + var
 
 * Setting up Emacs
 
-  To install Emacs, simply unpack all the files into a directory of
-  your choice.  To complete the installation process, you can
+  To install Emacs, simply unpack the binary package into a directory
+  of your choice.  To complete the installation process, you can
   optionally run the program addpm.exe in the bin subdirectory.  This
   will put an icon for Emacs in the Start Menu under
   "Start -> Programs -> Gnu Emacs".
