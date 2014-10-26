@@ -145,7 +145,7 @@ if [ x"$missing" != x ]; then
 
     cat <<EOF
 
-Building Emacs from Bzr requires the following specialized programs:
+Building Emacs from the repository requires the following specialized programs:
 EOF
 
     for prog in $progs; do
