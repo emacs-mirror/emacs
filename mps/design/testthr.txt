@@ -7,7 +7,7 @@ Multi-threaded testing
 :Author: Gareth Rees
 :Date: 2014-10-21
 :Status: complete design
-:Revision: $Id: //info.ravenbrook.com/project/mps/master/design/nailboard.txt#3 $
+:Revision: $Id$
 :Copyright: See section `Copyright and License`_.
 :Index terms: pair: threads; testing
 

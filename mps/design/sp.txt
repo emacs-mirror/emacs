@@ -7,7 +7,7 @@ Stack probe
 :Author: Gareth Rees
 :Date: 2014-10-23
 :Status: complete design
-:Revision: $Id: //info.ravenbrook.com/project/mps/master/design/thread-manager.txt#7 $
+:Revision: $Id$
 :Copyright: See `Copyright and License`_.
 :Index terms: pair: stack probe; design
 
