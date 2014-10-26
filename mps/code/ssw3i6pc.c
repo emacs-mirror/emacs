@@ -3,8 +3,8 @@
  * $Id$
  * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
- * This scans the stack and fixes the registers which may contain roots.
- * See <design/thread-manager/>.
+ * This decodes the stack context and scans the registers which may
+ * contain roots. See <design/ss/>.
  *
  * .assume.ms-compat: We rely on the fact that Pelles C's setjmp stores
  * the callee-save registers in the jmp_buf and is compatible with Microsoft
@@ -32,6 +32,10 @@
 #include <setjmp.h>
 
 SRCID(ssw3i6pc, "$Id$");
+
+#if !defined(MPS_PF_W3I6PC)
+#error "ssw3i6pc.c is specific to MPS_PF_W3I6PC."
+#endif
 
 
 /* This definition isn't in the Pelles C headers, so we reproduce it here.
@@ -68,24 +72,34 @@ typedef struct _JUMP_BUFFER {
 } _JUMP_BUFFER;
 
 
-Res StackScan(ScanState ss, Addr *stackBot)
-{
-  jmp_buf jb;
+/* StackContextStackTop -- return the "top" of the mutator's stack at
+ * the point when the context was saved by STACK_CONTEXT_BEGIN. */
 
-  /* We rely on the fact that Pelles C's setjmp stores the callee-save
-     registers in the jmp_buf. */
-  (void)setjmp(jb);
+Addr *StackContextStackTop(StackContext sc)
+{
+  _JUMP_BUFFER *jb = &sc->jumpBuffer;
+  Addr **p_rsp = (void *)&jb->Rsp;
+  return *p_rsp;
+}
+
+
+/* StackContextScan -- scan references in the stack context */
+
+Res StackContextScan(ScanState ss, StackContext sc)
+{
+  _JUMP_BUFFER *jb = &sc->jumpBuffer;
+  Addr **p_rbx = (void *)&jb->Rbx;
 
   /* These checks will just serve to warn us at compile-time if the
      setjmp.h header changes to indicate that the registers we want aren't
      saved any more. */
-  AVER(sizeof(((_JUMP_BUFFER *)jb)->Rdi) == sizeof(Addr));
-  AVER(sizeof(((_JUMP_BUFFER *)jb)->Rsi) == sizeof(Addr));
-  AVER(sizeof(((_JUMP_BUFFER *)jb)->Rbp) == sizeof(Addr));
-  AVER(sizeof(((_JUMP_BUFFER *)jb)->R12) == sizeof(Addr));
-  AVER(sizeof(((_JUMP_BUFFER *)jb)->R13) == sizeof(Addr));
-  AVER(sizeof(((_JUMP_BUFFER *)jb)->R14) == sizeof(Addr));
-  AVER(sizeof(((_JUMP_BUFFER *)jb)->R15) == sizeof(Addr));
+  AVER(sizeof jb->Rdi == sizeof(Addr));
+  AVER(sizeof jb->Rsi == sizeof(Addr));
+  AVER(sizeof jb->Rbp == sizeof(Addr));
+  AVER(sizeof jb->R12 == sizeof(Addr));
+  AVER(sizeof jb->R13 == sizeof(Addr));
+  AVER(sizeof jb->R14 == sizeof(Addr));
+  AVER(sizeof jb->R15 == sizeof(Addr));
 
   /* The layout of the jmp_buf forces us to harmlessly scan Rsp as well. */
   AVER(offsetof(_JUMP_BUFFER, Rsp) == offsetof(_JUMP_BUFFER, Rbx) + 8);
@@ -97,7 +111,7 @@ Res StackScan(ScanState ss, Addr *stackBot)
   AVER(offsetof(_JUMP_BUFFER, R14) == offsetof(_JUMP_BUFFER, Rbx) + 56);
   AVER(offsetof(_JUMP_BUFFER, R15) == offsetof(_JUMP_BUFFER, Rbx) + 64);
 
-  return StackScanInner(ss, stackBot, (Addr *)&((_JUMP_BUFFER *)jb)->Rbx, 9);
+  return TraceScanAreaTagged(ss, p_rbx, p_rbx + 9);
 }
 
 

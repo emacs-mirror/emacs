@@ -1,10 +1,10 @@
-/* ssw3i3mv.c: STACK SCANNING FOR WIN32 WITH MICROSOFT C
+/* ssw3i3mv.c: STACK SCANNING FOR WINDOWS ON IA-32 WITH MICROSOFT VISUAL C
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
- * This scans the stack and fixes the registers which may contain roots.
- * See <design/thread-manager/>.
+ * This decodes the stack context and scans the registers which may
+ * contain roots. See <design/ss/>.
  *
  * REFERENCES
  *
@@ -17,33 +17,48 @@
  */
 
 #include "mpm.h"
-#include <setjmp.h>
 
 SRCID(ssw3i3mv, "$Id$");
 
+#if !defined(MPS_PF_W3I3MV)
+#error "ssw3i3mv.c is specific to MPS_PF_W3I3MV."
+#endif
 
-Res StackScan(ScanState ss, Addr *stackBot)
+
+/* StackContextStackTop -- return the "top" of the mutator's stack at
+ * the point when the context was saved by STACK_CONTEXT_BEGIN. */
+
+Addr *StackContextStackTop(StackContext sc)
 {
-  jmp_buf jb;
+  _JUMP_BUFFER *jb = &sc->jumpBuffer;
+  Addr **p_esp = (void *)&jb->Esp;
+  return *p_esp;
+}
 
-  /* We rely on the fact that Microsoft C's setjmp stores the callee-save
-     registers in the jmp_buf. */
-  (void)setjmp(jb);
+
+/* StackContextScan -- scan references in the stack context */
+
+Res StackContextScan(ScanState ss, StackContext sc)
+{
+  _JUMP_BUFFER *jb = &sc->jumpBuffer;
+  Addr *p_ebx = (void *)&jb->Ebx;
 
   /* These checks will just serve to warn us at compile-time if the
      setjmp.h header changes to indicate that the registers we want aren't
      saved any more. */
-  AVER(sizeof(((_JUMP_BUFFER *)jb)->Edi) == sizeof(Addr));
-  AVER(sizeof(((_JUMP_BUFFER *)jb)->Esi) == sizeof(Addr));
-  AVER(sizeof(((_JUMP_BUFFER *)jb)->Ebx) == sizeof(Addr));
+  AVER(sizeof jb->Edi == sizeof(Addr));
+  AVER(sizeof jb->Esi == sizeof(Addr));
+  AVER(sizeof jb->Ebx == sizeof(Addr));
 
   /* Ensure that the callee-save registers will be found by
-     StackScanInner when it's passed the address of the Ebx field. */
+     TraceScanAreaTagged when it's passed the address of the Ebx
+     field. */
   AVER(offsetof(_JUMP_BUFFER, Edi) == offsetof(_JUMP_BUFFER, Ebx) + 4);
   AVER(offsetof(_JUMP_BUFFER, Esi) == offsetof(_JUMP_BUFFER, Ebx) + 8);
 
-  return StackScanInner(ss, stackBot, (Addr *)&((_JUMP_BUFFER *)jb)->Ebx, 3);
+  return TraceScanAreaTagged(ss, p_ebx, p_ebx + 3);
 }
+
 
 /* C. COPYRIGHT AND LICENSE
  *

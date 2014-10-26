@@ -1,10 +1,10 @@
-/* ssw3i3pc.c: STACK SCANNING FOR WIN32 WITH PELLES C
+/* ssw3i3pc.c: STACK SCANNING FOR WINDOWS ON IA-32 WITH PELLES C
  *
  * $Id$
  * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
- * This scans the stack and fixes the registers which may contain roots.
- * See <design/thread-manager/>.
+ * This decodes the stack context and scans the registers which may
+ * contain roots. See <design/ss/>.
  *
  * .assume.ms-compat: We rely on the fact that Pelles C's setjmp stores
  * the callee-save registers in the jmp_buf and is compatible with Microsoft
@@ -27,6 +27,10 @@
 
 SRCID(ssw3i3pc, "$Id$");
 
+#if !defined(MPS_PF_W3I3PC)
+#error "ssw3i3pc.c is specific to MPS_PF_W3I3PC."
+#endif
+
 
 /* This definition isn't in the Pelles C headers, so we reproduce it here.
  * See .assume.ms-compat. */
@@ -46,19 +50,31 @@ typedef struct __JUMP_BUFFER {
 } _JUMP_BUFFER;
 
 
-Res StackScan(ScanState ss, Addr *stackBot)
-{
-  jmp_buf jb;
+/* StackContextStackTop -- return the "top" of the mutator's stack at
+ * the point when the context was saved by STACK_CONTEXT_BEGIN. */
 
+Addr *StackContextStackTop(StackContext sc)
+{
+  _JUMP_BUFFER *jb = &sc->jumpBuffer;
+  Addr **p_esp = (void *)&jb->Esp;
+  return *p_esp;
+}
+
+
+/* StackContextScan -- scan references in the stack context */
+
+Res StackContextScan(ScanState ss, StackContext sc)
+{
   /* .assume.ms-compat */
-  (void)setjmp(jb);
+  _JUMP_BUFFER *jb = &sc->jumpBuffer;
+  Addr *p_ebx = (void *)&jb->Ebx;
 
   /* Ensure that the callee-save registers will be found by
      StackScanInner when it's passed the address of the Ebx field. */
   AVER(offsetof(_JUMP_BUFFER, Edi) == offsetof(_JUMP_BUFFER, Ebx) + 4);
   AVER(offsetof(_JUMP_BUFFER, Esi) == offsetof(_JUMP_BUFFER, Ebx) + 8);
 
-  return StackScanInner(ss, stackBot, (Addr *)&((_JUMP_BUFFER *)jb)->Ebx, 3);
+  return TraceScanAreaTagged(ss, p_ebx, p_ebx + 3);
 }
 
 

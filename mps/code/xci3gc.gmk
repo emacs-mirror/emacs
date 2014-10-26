@@ -9,17 +9,18 @@
 
 PFM = xci3gc
 
-MPMPF = lockix.c thxc.c vmix.c protix.c proti3.c prmci3xc.c span.c ssixi3.c \
-        protxc.c
-
-LIBS =
-
-RANLIB=ranlib
+MPMPF = \
+    lockix.c \
+    prmci3xc.c \
+    proti3.c \
+    protix.c \
+    protxc.c \
+    span.c \
+    ssxci3.c \
+    thxc.c \
+    vmix.c
 
 include gc.gmk
-
-CC = gcc -arch i386
-
 include comm.gmk
 
 

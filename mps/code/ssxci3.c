@@ -1,74 +1,49 @@
-/* ssixi6.c: UNIX/x64 STACK SCANNING
+/* ssxci3.c: STACK SCANNING FOR OS X ON IA-32
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2012-2014 Ravenbrook Limited.  See end of file for license.
  *
- *  This scans the stack and fixes the registers which may contain
- *  roots.  See <design/thread-manager/>
- *
- *  This code was branched from ssixi3.c (32-bit Intel) initially for the
- *  port to XCI6LL (Mac OS X on x86_64 with Clang).
- *
- *  This code is common to more than one Unix implementation on
- *  Intel hardware (but is not portable Unix code).  According to Wikipedia,
- *  all the non-Windows platforms use the System V AMD64 ABI.  See
- *  .sources.callees.saves.
- *
- * SOURCES
- *
- * .sources.callees.saves:
- *  "Registers %rbp, %rbx and %r12 through %r15 "belong" to the calling
- *   function and the called function is required to preserve their values.
- *   In other words, a called function must preserve these registers’ values
- *   for its caller." -- System V AMD64 ABI
- *  <http://x86-64.org/documentation/abi.pdf>
- *
- * ASSUMPTIONS
- *
- * .assume.align: The stack pointer is assumed to be aligned on a word
- * boundary.
- *
- * .assume.asm.stack: The compiler must not do wacky things with the
- * stack pointer around a call since we need to ensure that the
- * callee-save regs are visible during TraceScanArea.
- *
- * .assume.asm.order: The volatile modifier should prevent movement
- * of code, which might break .assume.asm.stack.
- *
+ * This decodes the stack context and scans the registers which may
+ * contain roots. See <design/ss/>.
  */
-
 
 #include "mpm.h"
 
-SRCID(ssixi6, "$Id$");
+SRCID(ssxci3, "$Id$");
+
+#if !defined(MPS_OS_XC) || !defined(MPS_ARCH_I3)
+#error "ssxci3.c is specific to MPS_OS_XC and MPS_ARCH_I3."
+#endif
 
 
-/* .assume.asm.order */
-#define ASMV(x) __asm__ volatile (x)
+/* Offset of ESP in the jmp_buf in bytes, as defined in _setjmp.s.
+ * See the implementation of _setjmp in
+ * <http://www.opensource.apple.com/source/Libc/Libc-825.24/i386/sys/_setjmp.s> */
+
+#define JB_ESP 36
 
 
-Res StackScan(ScanState ss, Addr *stackBot)
+/* StackContextStackTop -- return the "top" of the mutator's stack at
+ * the point when the context was saved by STACK_CONTEXT_BEGIN. */
+
+Addr *StackContextStackTop(StackContext sc)
 {
-  Addr calleeSaveRegs[6];
-  
-  /* .assume.asm.stack */
-  /* Store the callee save registers on the stack so they get scanned
-   * as they may contain roots.
-   */
-  ASMV("mov %%rbp, %0" : "=m" (calleeSaveRegs[0]));
-  ASMV("mov %%rbx, %0" : "=m" (calleeSaveRegs[1]));
-  ASMV("mov %%r12, %0" : "=m" (calleeSaveRegs[2]));
-  ASMV("mov %%r13, %0" : "=m" (calleeSaveRegs[3]));
-  ASMV("mov %%r14, %0" : "=m" (calleeSaveRegs[4]));
-  ASMV("mov %%r15, %0" : "=m" (calleeSaveRegs[5]));
-  
-  return StackScanInner(ss, stackBot, calleeSaveRegs, NELEMS(calleeSaveRegs));
+  Addr **p_esp = PointerAdd(&sc->jumpBuffer, JB_ESP);
+  return *p_esp;
+}
+
+
+/* StackContextScan -- scan references in the stack context */
+
+Res StackContextScan(ScanState ss, StackContext sc)
+{
+  return TraceScanAreaTagged(ss, (void *)sc, (void *)(sc + 1));
 }
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2012-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

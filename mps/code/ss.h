@@ -3,13 +3,72 @@
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
- * Provides a function for scanning the stack and registers
+ * This module saves the mutator context on entry to the MPS, and
+ * provides functsions for decoding the context and scanning the root
+ * registers. See <design/ss/>.
  */
 
 #ifndef ss_h
 #define ss_h
 
 #include "mpm.h"
+
+     
+/* StackContext -- structure containing the callee-save registers and
+ * the stack pointer */
+
+#include <setjmp.h>
+
+typedef struct StackContextStruct {
+  jmp_buf jumpBuffer;
+} StackContextStruct;
+
+
+/* STACK_CONTEXT_BEGIN -- enter arena and save context */
+
+#define STACK_CONTEXT_BEGIN(arena) BEGIN \
+  StackContextStruct _sc; \
+  ArenaEnter(arena); \
+  STACK_CONTEXT_SAVE(&_sc); \
+  AVER(arena->scAtArenaEnter == NULL); \
+  arena->scAtArenaEnter = &_sc; \
+  BEGIN
+
+
+/* STACK_CONTEXT_END -- clear context and leave arena */
+
+#define STACK_CONTEXT_END(arena) END; \
+  arena->scAtArenaEnter = NULL; \
+  ArenaLeave(arena); \
+  END
+
+
+/* StackContextStackTop -- return the "top" of the mutator's stack at
+ * the point when the context was saved by STACK_CONTEXT_BEGIN. */
+
+extern Addr *StackContextStackTop(StackContext sc);
+
+
+/* StackContextScan -- scan references in the stack context */
+
+extern Res StackContextScan(ScanState ss, StackContext sc);
+
+
+/* STACK_CONTEXT_SAVE -- save the callee-saves and stack pointer */
+
+#if defined(MPS_OS_XC)
+
+/* We call _setjmp rather than setjmp because _setjmp saves only the
+ * register set and the stack while setjmp also saves the signal mask.
+ * See _setjmp(2). */
+
+#define STACK_CONTEXT_SAVE(sc) ((void)_setjmp((sc)->jumpBuffer))
+
+#else  /* other platforms */
+
+#define STACK_CONTEXT_SAVE(sc) ((void)setjmp((sc)->jumpBuffer))
+
+#endif /* platform defines */
 
 
 /* StackScan -- scan the current thread's stack
