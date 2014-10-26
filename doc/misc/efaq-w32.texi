@@ -176,7 +176,7 @@ The latest source is available from
 distributed as a compressed tar file, digitally signed by the maintainer
 who made the release.
 
-@cindex Bzr, getting Emacs
+@cindex getting Emacs
 @cindex latest development version of Emacs
 @cindex Emacs Development
 The development version of Emacs is available from
@@ -199,8 +199,8 @@ of GNU @command{rm} and @command{cp}, as the Windows native
 equivalents are not consistent between versions.  GNU texinfo will be
 required to build the manuals.  @xref{Other useful ports}.
 
-After unpacking the source, or checking out of Bzr, be sure to read the
-instructions in @file{nt/README} and @file{nt/INSTALL}.
+After unpacking the source, or checking out of the repository, be sure
+to read the instructions in @file{nt/README} and @file{nt/INSTALL}.
 
 @node Debugging
 @section How do I use a debugger on Emacs?
