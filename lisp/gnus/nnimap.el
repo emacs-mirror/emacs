@@ -1872,7 +1872,7 @@ Return the server's response to the SELECT or EXAMINE command."
 			(while (and (not (bobp))
 				    (progn
 				      (forward-line -1)
-				      (looking-at "\\*"))))
+				      (looking-at "\\*\\|[0-9]+ OK NOOP"))))
 			(not (looking-at (format "%d .*\n" sequence)))))
 	    (when messagep
 	      (nnheader-message-maybe
