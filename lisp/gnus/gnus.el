@@ -327,7 +327,8 @@ be set in `.emacs' instead."
       (defun gnus-mode-line-buffer-identification (line)
 	(let ((str (car-safe line))
 	      (load-path (append (mm-image-load-path) load-path)))
-	  (if (and (stringp str)
+	  (if (and (display-graphic-p)
+		   (stringp str)
 		   (string-match "^Gnus:" str))
 	      (progn (add-text-properties
 		      0 5
