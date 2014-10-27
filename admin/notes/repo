@@ -1,5 +1,23 @@
 NOTES ON COMMITTING TO EMACS'S REPOSITORY    -*- outline -*-
 
+* Use DVCS commenting conventions
+
+Commits should follow the conventions used in all modern distributed
+version-control systems. That is, they should consist of
+
+- A self-contained topic line no more than 75 chars long.
+
+- If other content follows the topic line, there should be
+  a blank line separating the two.
+
+Try to keep your commits - and your commit comments - small.  If
+you feel an urge to put a bullet list in your commit comment, it's
+doing too many things at once.
+
+Yes, these directins are a departure from historical Emacs practice,
+but it helps modern log-viewing and summary tools work better so that
+other people can comprehend your code.
+
 * Commit to the right branch
 
 You can view the available Emacs branches at

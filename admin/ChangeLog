@@ -1,7 +1,8 @@
 2014-10-27  Eric S. Raymond  <esr@thyrsus.com>
 
 	* notes/bzr: Renamed to notes/repo, reorganixed to separate
-	VCS-dependent from VCS-independent stuff.
+	VCS-dependent from VCS-independent stuff.  Added guidance about
+	commit-comment format under DVCSes.
 
 	* notes/BRANCH: Merged into notes/repo.
 
