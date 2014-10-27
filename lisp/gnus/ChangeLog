@@ -1,3 +1,9 @@
+2014-10-27  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.el (gnus-mode-line-buffer-identification):
+	Don't add image data for a non-graphic display;
+	Don't shadow load-path, it blocks autoloading of find-image (bug#18813).
+
 2014-10-27  enami tsugutomo  <tsugutomo.enami@jp.sony.com>
 
 	* nnimap.el (nnimap-wait-for-response): Ignore NOOP response requested
