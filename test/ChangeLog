@@ -1,3 +1,7 @@
+2014-10-28  Ulf Jasper  <ulf.jasper@web.de>
+
+	* automated/libxml-tests.el: New file.
+
 2014-10-22  Noam Postavsky  <npostavs@users.sourceforget.net>
 
 	* test/automated/process-tests.el (process-test-quoted-batfile):

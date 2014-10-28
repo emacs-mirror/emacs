@@ -1,3 +1,7 @@
+2014-10-28  Ulf Jasper  <ulf.jasper@web.de>
+
+	* xml.c (parse_region): Do not forget the first document child.
+
 2014-10-25  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsselect.m: pasteboard_changecount is new.

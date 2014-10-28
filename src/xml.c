@@ -216,7 +216,7 @@ parse_region (Lisp_Object start, Lisp_Object end, Lisp_Object base_url, int html
     {
       /* If the document is just comments, then this should get us the
 	 nodes anyway. */
-      xmlNode *n = doc->children->next;
+      xmlNode *n = doc->children;
       Lisp_Object r = Qnil;
 
       while (n) {
