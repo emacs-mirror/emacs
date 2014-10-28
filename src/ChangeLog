@@ -1,3 +1,8 @@
+2014-10-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* fileio.c (Fexpand_file_name): Use make_unibyte_string, not
+	build_string, when importing a home directory.  (Bug#18873)
+
 2014-10-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* dispnew.c (buffer_posn_from_coords): Use
