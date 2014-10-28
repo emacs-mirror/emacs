@@ -145,10 +145,12 @@ for connections using SSL/TLS."
 
 (defcustom rcirc-fill-column nil
   "Column beyond which automatic line-wrapping should happen.
-If nil, use value of `fill-column'.  If 'frame-width, use the
-maximum frame width."
-  :type '(choice (const :tag "Value of `fill-column'")
-		 (const :tag "Full frame width" frame-width)
+If nil, use value of `fill-column'.
+If a symbol (e.g., `frame-width' or `window-body-width'), call it
+to compute the number of columns."
+  :version "25.1"
+  :type '(choice (const :tag "Value of `fill-column'" nil)
+		 (symbol :tag "Function returning the number of columns")
 		 (integer :tag "Number of columns"))
   :group 'rcirc)
 
@@ -2533,11 +2535,10 @@ If ARG is given, opens the URL in a new browser window."
     (let ((fill-prefix
 	   (or rcirc-fill-prefix
 	       (make-string (- (point) (line-beginning-position)) ?\s)))
-	  (fill-column (- (cond ((eq rcirc-fill-column 'frame-width)
-				 (1- (frame-width)))
-				(rcirc-fill-column
-				 rcirc-fill-column)
-				(t fill-column))
+	  (fill-column (- (cond ((null rcirc-fill-column) fill-column)
+                                ((symbolp rcirc-fill-column)
+                                 (1- (funcall rcirc-fill-column)))
+				(t rcirc-fill-column))
 			  ;; make sure ... doesn't cause line wrapping
 			  3)))
       (fill-region (point) (point-max) nil t))))

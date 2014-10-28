@@ -1,3 +1,8 @@
+2014-10-28  Sam Steingold  <sds@gnu.org>
+
+	* net/rcirc.el (rcirc-fill-column): Allow any symbolic value for
+	the sake of `window-body-width' (in addition to `frame-width').
+
 2014-10-26  Eric S. Raymond  <esr@thyrsus.com>
 
 	* version.el: Fix some fallback values to conform to the actual
