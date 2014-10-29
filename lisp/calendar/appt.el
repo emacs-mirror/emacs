@@ -228,7 +228,7 @@ also calls `beep' for an audible reminder."
              string (car string)))
   (cond ((eq appt-display-format 'window)
          ;; TODO use calendar-month-abbrev-array rather than %b?
-         (let ((time (format-time-string "%a %b %e " (current-time)))
+         (let ((time (format-time-string "%a %b %e "))
                err)
            (condition-case err
                (funcall appt-disp-window-function

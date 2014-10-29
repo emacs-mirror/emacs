@@ -313,14 +313,12 @@ Symbols are also allowed; their print names are used instead."
 
 ;; Every version of Emacs Gnus supports has built-in float-time.
 ;; The featurep test silences an irritating compiler warning.
-(eval-and-compile
+(defalias 'gnus-float-time
   (if (or (featurep 'emacs)
 	  (fboundp 'float-time))
-      (defalias 'gnus-float-time 'float-time)
-    (defun gnus-float-time (&optional time)
-      "Convert time value TIME to a floating point number.
-TIME defaults to the current time."
-      (time-to-seconds (or time (current-time))))))
+      'float-time 'time-to-seconds)
+  "Convert time value TIME to a floating point number.
+TIME defaults to the current time.")
 
 ;;; Keymap macros.
 
@@ -389,19 +387,20 @@ TIME defaults to the current time."
 
 (defun gnus-seconds-today ()
   "Return the number of seconds passed today."
-  (let ((now (decode-time (current-time))))
+  (let ((now (decode-time)))
     (+ (car now) (* (car (cdr now)) 60) (* (car (nthcdr 2 now)) 3600))))
 
 (defun gnus-seconds-month ()
   "Return the number of seconds passed this month."
-  (let ((now (decode-time (current-time))))
+  (let ((now (decode-time)))
     (+ (car now) (* (car (cdr now)) 60) (* (car (nthcdr 2 now)) 3600)
        (* (- (car (nthcdr 3 now)) 1) 3600 24))))
 
 (defun gnus-seconds-year ()
   "Return the number of seconds passed this year."
-  (let ((now (decode-time (current-time)))
-	(days (format-time-string "%j" (current-time))))
+  (let* ((current (current-time))
+	 (now (decode-time current))
+	 (days (format-time-string "%j" current)))
     (+ (car now) (* (car (cdr now)) 60) (* (car (nthcdr 2 now)) 3600)
        (* (- (string-to-number days) 1) 3600 24))))
 

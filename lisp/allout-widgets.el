@@ -902,7 +902,7 @@ encompassing condition-case."
          (header
           (format "allout-widgets-last-hook-error stored, %s/%s %s %s"
                   this mode args
-                  (format-time-string "%e-%b-%Y %r" (current-time)))))
+                  (format-time-string "%e-%b-%Y %r"))))
     ;; post to *Messages* then immediately replace with more compact notice:
     (message "%s" (setq allout-widgets-last-hook-error
                         (format "%s:\n%s" header bt)))

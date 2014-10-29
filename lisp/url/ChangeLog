@@ -1,3 +1,11 @@
+2014-10-29  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Simplify use of current-time and friends.
+	* url-cache.el (url-cache-prune-cache):
+	Rename local var to avoid confusion.
+	* url-util.el (url-get-normalized-date):
+	Omit unnecessary call to current-time.
+
 2014-10-20  Glenn Morris  <rgm@gnu.org>
 
 	* Merge in all changes up to 24.4 release.

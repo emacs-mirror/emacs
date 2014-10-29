@@ -98,7 +98,7 @@ DELAY is a string, giving the length of the time.  Possible values are:
 	   (setq hour   (string-to-number (match-string 1 delay))
 		 minute (string-to-number (match-string 2 delay)))
 	   ;; Use current time, except...
-	   (setq deadline (apply 'vector (decode-time (current-time))))
+	   (setq deadline (apply 'vector (decode-time)))
 	   ;; ... for minute and hour.
 	   (aset deadline 1 minute)
 	   (aset deadline 2 hour)

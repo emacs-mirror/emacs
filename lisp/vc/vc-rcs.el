@@ -811,7 +811,7 @@ Optional arg REVISION is a revision to annotate from."
   "Return the current time, based at midnight of the current day, and
 encoded as fractional days."
   (vc-annotate-convert-time
-   (apply #'encode-time 0 0 0 (nthcdr 3 (decode-time (current-time))))))
+   (apply #'encode-time 0 0 0 (nthcdr 3 (decode-time)))))
 
 (defun vc-rcs-annotate-time ()
   "Return the time of the next annotation (as fraction of days)

@@ -4507,11 +4507,10 @@ NEW-MESSAGE, if non-nil, sets a new message for the reporter."
 	 (min-value    (aref parameters 1))
 	 (max-value    (aref parameters 2))
 	 (text         (aref parameters 3))
-	 (current-time (float-time))
 	 (enough-time-passed
 	  ;; See if enough time has passed since the last update.
 	  (or (not update-time)
-	      (when (>= current-time update-time)
+	      (when (>= (float-time) update-time)
 		;; Calculate time for the next update
 		(aset parameters 0 (+ update-time (aref parameters 5)))))))
     (cond ((and min-value max-value)

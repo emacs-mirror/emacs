@@ -435,8 +435,7 @@ Used to decide whether to save completions.")
 
 
 (defun cmpl-hours-since-origin ()
-  (let ((time (current-time)))
-    (floor (+ (* 65536.0 (nth 0 time)) (nth 1 time)) 3600)))
+  (floor (float-time) 3600))
 
 ;;---------------------------------------------------------------------------
 ;; "Symbol" parsing functions
@@ -1950,7 +1949,7 @@ If file name is not specified, use `save-completions-file-name'."
 	       (kept-old-versions 0)
 	       (kept-new-versions completions-file-versions-kept)
 	       last-use-time
-	       (current-time (cmpl-hours-since-origin))
+	       (this-use-time (cmpl-hours-since-origin))
 	       (total-in-db 0)
 	       (total-perm 0)
 	       (total-saved 0)
@@ -1982,13 +1981,13 @@ If file name is not specified, use `save-completions-file-name'."
 		      ;; or if
 		      (if (> (completion-num-uses completion) 0)
 			  ;; it's been used
-			  (setq last-use-time current-time)
+			  (setq last-use-time this-use-time)
 			;; or it was saved before and
 			(and last-use-time
 			     ;; save-completions-retention-time is nil
 			     (or (not save-completions-retention-time)
 				 ;; or time since last use is < ...retention-time*
-				 (< (- current-time last-use-time)
+				 (< (- this-use-time last-use-time)
 				    save-completions-retention-time)))))
 		     ;; write to file
 		     (setq total-saved (1+ total-saved))

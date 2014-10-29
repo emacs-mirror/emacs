@@ -101,35 +101,35 @@ do not contain any text from preceding or following text."
 (defun srecode-semantic-handle-:time (dict)
   "Add macros into the dictionary DICT based on the current :time."
   ;; DATE Values
-  (srecode-dictionary-set-value
-   dict "YEAR" (format-time-string "%Y" (current-time)))
-  (srecode-dictionary-set-value
-   dict "MONTHNAME" (format-time-string "%B" (current-time)))
-  (srecode-dictionary-set-value
-   dict "MONTH" (format-time-string "%m" (current-time)))
-  (srecode-dictionary-set-value
-   dict "DAY" (format-time-string "%d" (current-time)))
-  (srecode-dictionary-set-value
-   dict "WEEKDAY" (format-time-string "%a" (current-time)))
-  ;; Time Values
-  (srecode-dictionary-set-value
-   dict "HOUR" (format-time-string "%H" (current-time)))
-  (srecode-dictionary-set-value
-   dict "HOUR12" (format-time-string "%l" (current-time)))
-  (srecode-dictionary-set-value
-   dict "AMPM" (format-time-string "%p" (current-time)))
-  (srecode-dictionary-set-value
-   dict "MINUTE" (format-time-string "%M" (current-time)))
-  (srecode-dictionary-set-value
-   dict "SECOND" (format-time-string "%S" (current-time)))
-  (srecode-dictionary-set-value
-   dict "TIMEZONE" (format-time-string "%Z" (current-time)))
-  ;; Convenience pre-packed date/time
-  (srecode-dictionary-set-value
-   dict "DATE" (format-time-string "%D" (current-time)))
-  (srecode-dictionary-set-value
-   dict "TIME" (format-time-string "%X" (current-time)))
-  )
+  (let ((now (current-time)))
+    (srecode-dictionary-set-value
+     dict "YEAR" (format-time-string "%Y" now))
+    (srecode-dictionary-set-value
+     dict "MONTHNAME" (format-time-string "%B" now))
+    (srecode-dictionary-set-value
+     dict "MONTH" (format-time-string "%m" now))
+    (srecode-dictionary-set-value
+     dict "DAY" (format-time-string "%d" now))
+    (srecode-dictionary-set-value
+     dict "WEEKDAY" (format-time-string "%a" now))
+    ;; Time Values
+    (srecode-dictionary-set-value
+     dict "HOUR" (format-time-string "%H" now))
+    (srecode-dictionary-set-value
+     dict "HOUR12" (format-time-string "%l" now))
+    (srecode-dictionary-set-value
+     dict "AMPM" (format-time-string "%p" now))
+    (srecode-dictionary-set-value
+     dict "MINUTE" (format-time-string "%M" now))
+    (srecode-dictionary-set-value
+     dict "SECOND" (format-time-string "%S" now))
+    (srecode-dictionary-set-value
+     dict "TIMEZONE" (format-time-string "%Z" now))
+    ;; Convenience pre-packed date/time
+    (srecode-dictionary-set-value
+     dict "DATE" (format-time-string "%D" now))
+    (srecode-dictionary-set-value
+     dict "TIME" (format-time-string "%X" now))))
 
 ;;; :file ARGUMENT HANDLING
 ;;

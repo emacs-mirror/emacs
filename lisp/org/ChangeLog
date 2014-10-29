@@ -1,3 +1,24 @@
+2014-10-29  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Simplify use of current-time and friends.
+	* org-archive.el (org-archive-subtree)
+	(org-archive-to-archive-sibling):
+	* org-clock.el (org-resolve-clocks, org-clock-get-sum-start)
+	(org-clock-special-range):
+	* org-timer.el (org-timer-seconds):
+	* org.el (org-read-date-analyze, org-get-cursor-date):
+	* ox-html.el (org-html-format-spec):
+	* ox-icalendar.el (org-icalendar--vtodo):
+	Omit unnecessary call to current-time.
+	* org-clock.el (org-clock-get-table-data): Omit unnecessary, lossy
+	conversion from floating point to Emacs time and back.
+	(org-resolve-clocks): Prefer two-argument floor.
+	* org-compat.el (org-float-time): Simplify to an alias because
+	time-to-seconds now behaves like float-time with respect to nil arg.
+	* org.el (org-get-cursor-date):
+	Don't call current-time twice to get the current time stamp,
+	as this can lead to inconsistent results.
+
 2014-10-20  Glenn Morris  <rgm@gnu.org>
 
 	* Merge in all changes up to 24.4 release.

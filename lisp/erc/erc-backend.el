@@ -1465,8 +1465,7 @@ add things to `%s' instead."
   "The channel topic has changed." nil
   (let* ((ch (car (erc-response.command-args parsed)))
          (topic (erc-trim-string (erc-response.contents parsed)))
-         (time (format-time-string erc-server-timestamp-format
-                                   (current-time))))
+         (time (format-time-string erc-server-timestamp-format)))
     (pcase-let ((`(,nick ,login ,host)
                  (erc-parse-user (erc-response.sender parsed))))
       (erc-update-channel-member ch nick nick nil nil nil nil nil nil host login)

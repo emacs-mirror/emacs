@@ -44,7 +44,7 @@ The value of the last form in BODY is returned.
 
 Each element of the list VARLIST is a list of the form
 \(HIGH-SYMBOL LOW-SYMBOL MICRO-SYMBOL [PICO-SYMBOL [TYPE-SYMBOL]] TIME-VALUE).
-The time value TIME-VALUE is decoded and the result it bound to
+The time value TIME-VALUE is decoded and the result is bound to
 the symbols HIGH-SYMBOL, LOW-SYMBOL and MICRO-SYMBOL.
 The optional PICO-SYMBOL is bound to the picoseconds part.
 
@@ -147,10 +147,12 @@ If DATE lacks timezone information, GMT is assumed."
   (or (featurep 'emacs)
       (and (fboundp 'float-time)
            (subrp (symbol-function 'float-time)))
-      (defun time-to-seconds (time)
-        "Convert time value TIME to a floating point number."
-        (with-decoded-time-value ((high low micro pico type time))
-          (+ (* 1.0 high 65536)
+      (defun time-to-seconds (&optional time)
+        "Convert optional value TIME to a floating point number.
+TIME defaults to the current time."
+        (with-decoded-time-value ((high low micro pico type
+				   (or time (current-time))))
+          (+ (* high 65536.0)
              low
 	     (/ (+ (* micro 1e6) pico) 1e12))))))
 
@@ -272,11 +274,9 @@ DATE1 and DATE2 should be date-time strings."
 	   (not (zerop (% year 100))))
       (zerop (% year 400))))
 
-;;;###autoload
-(defun time-to-day-in-year (time)
-  "Return the day number within the year corresponding to TIME."
-  (let* ((tim (decode-time time))
-	 (month (nth 4 tim))
+(defun time-date--day-in-year (tim)
+  "Return the day number within the year corresponding to the decoded time TIM."
+  (let* ((month (nth 4 tim))
 	 (day (nth 3 tim))
 	 (year (nth 5 tim))
 	 (day-of-year (+ day (* 31 (1- month)))))
@@ -287,13 +287,18 @@ DATE1 and DATE2 should be date-time strings."
     day-of-year))
 
 ;;;###autoload
+(defun time-to-day-in-year (time)
+  "Return the day number within the year corresponding to TIME."
+  (time-date--day-in-year (decode-time time)))
+
+;;;###autoload
 (defun time-to-days (time)
   "The number of days between the Gregorian date 0001-12-31bce and TIME.
 TIME should be a time value.
 The Gregorian date Sunday, December 31, 1bce is imaginary."
   (let* ((tim (decode-time time))
 	 (year (nth 5 tim)))
-    (+ (time-to-day-in-year time)	; 	Days this year
+    (+ (time-date--day-in-year tim)	;	Days this year
        (* 365 (1- year))		;	+ Days in prior years
        (/ (1- year) 4)			;	+ Julian leap years
        (- (/ (1- year) 100))		;	- century years

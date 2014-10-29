@@ -757,7 +757,7 @@ from."
                )
               ((eq status-type :error)
                (message "%s: Error while retrieving news from %s: %s: \"%s\""
-                        (format-time-string "%A, %H:%M" (current-time))
+                        (format-time-string "%A, %H:%M")
                         feed-name
                         (car status-details) (cdr status-details))))))))
 
@@ -787,7 +787,7 @@ See `newsticker-get-news'."
 FEED-NAME must be a string which occurs as the label (i.e. the first element)
 in an element of `newsticker-url-list' or `newsticker-url-list-defaults'."
   (newsticker--debug-msg "%s: Getting news for %s"
-                         (format-time-string "%A, %H:%M" (current-time))
+                         (format-time-string "%A, %H:%M")
                          feed-name)
   (let* ((item (or (assoc feed-name newsticker-url-list)
                    (assoc feed-name newsticker-url-list-defaults)
@@ -845,14 +845,14 @@ Argument BUFFER is the buffer of the retrieval process."
                 (concat "%s: Newsticker could not retrieve news from %s.\n"
                         "Return status: `%s'\n"
                         "Command was `%s'")
-                (format-time-string "%A, %H:%M" (current-time))
+                (format-time-string "%A, %H:%M")
                 feed-name event command)
                ""
                (current-time)
                'new
                0 nil))
         (message "%s: Error while retrieving news from %s"
-                 (format-time-string "%A, %H:%M" (current-time))
+                 (format-time-string "%A, %H:%M")
                  feed-name)
         (throw 'oops nil))
       (let* ((coding-system 'utf-8)
@@ -1020,7 +1020,7 @@ Argument BUFFER is the buffer of the retrieval process."
 
 (defun newsticker--do-xml-workarounds ()
   "Fix all issues which `xml-parse-region' could be choking on."
-  
+
   ;; a very very dirty workaround to overcome the
   ;; problems with the newest (20030621) xml.el:
   ;; remove all unnecessary whitespace
@@ -1808,11 +1808,11 @@ download it from URL first."
                           (time-add (nth 5 (file-attributes image-name))
                                     (seconds-to-time 86400))))
         (newsticker--debug-msg "%s: Getting image for %s skipped"
-                               (format-time-string "%A, %H:%M" (current-time))
+                               (format-time-string "%A, %H:%M")
                                feed-name)
       ;; download
       (newsticker--debug-msg "%s: Getting image for %s"
-                             (format-time-string "%A, %H:%M" (current-time))
+                             (format-time-string "%A, %H:%M")
                              feed-name)
       (if (eq newsticker-retrieval-method 'intern)
           (newsticker--image-download-by-url feed-name filename directory url)
@@ -1859,7 +1859,7 @@ Save image as FILENAME in DIRECTORY, download it from URL."
       (unless (and (eq p-status 'exit)
                    (= exit-status 0))
         (message "%s: Error while retrieving image from %s"
-                 (format-time-string "%A, %H:%M" (current-time))
+                 (format-time-string "%A, %H:%M")
                  feed-name)
         (newsticker--image-remove directory feed-name)
         (throw 'oops nil))

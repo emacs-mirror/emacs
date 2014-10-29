@@ -490,7 +490,7 @@ whose cdr is the list of file attributes."
 		" " (format-time-string
 		     (concat
 		      eshell-ls-date-format " "
-		      (if (= (nth 5 (decode-time (current-time)))
+		      (if (= (nth 5 (decode-time))
 			     (nth 5 (decode-time
 				     (nth (cond
 					   ((eq sort-method 'by-atime) 4)

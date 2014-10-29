@@ -5213,7 +5213,7 @@ Return ATTR."
 	  (format
 	   "%s -t %s %s"
 	   result
-	   (format-time-string "%Y%m%d%H%M.%S" (current-time))
+	   (format-time-string "%Y%m%d%H%M.%S")
 	   (tramp-file-name-handler 'file-remote-p tmpfile 'localname))))
 	(delete-file tmpfile))
       result)))

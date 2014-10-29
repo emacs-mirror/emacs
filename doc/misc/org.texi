@@ -13126,7 +13126,7 @@ Here is a thorough example, taken from @inforef{GNU Sample Texts,,texinfo}.
 #+TEXINFO_PRINTED_TITLE: GNU Sample
 #+SUBTITLE: for version 2.0, last updated 4 March 2014
 
-* Copying 
+* Copying
   :PROPERTIES:
   :COPYING:  t
   :END:
@@ -17538,7 +17538,7 @@ The corresponding block writer function could look like this:
 (defun org-dblock-write:block-update-time (params)
   (let ((fmt (or (plist-get params :format) "%d. %m. %Y")))
     (insert "Last block update at: "
-            (format-time-string fmt (current-time)))))
+            (format-time-string fmt))))
 @end lisp
 
 If you want to make sure that all dynamic blocks are always up-to-date,

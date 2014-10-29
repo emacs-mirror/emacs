@@ -1630,8 +1630,7 @@ used in the preamble or postamble."
     (?c . ,(plist-get info :creator))
     (?C . ,(let ((file (plist-get info :input-file)))
 	     (format-time-string org-html-metadata-timestamp-format
-				 (if file (nth 5 (file-attributes file))
-				   (current-time)))))
+				 (if file (nth 5 (file-attributes file))))))
     (?v . ,(or org-html-validation-link ""))))
 
 (defun org-html--build-pre/postamble (type info)

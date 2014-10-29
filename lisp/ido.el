@@ -1306,8 +1306,7 @@ Only used if `ido-use-virtual-buffers' is non-nil.")
 
 (defun ido-time-stamp (&optional time)
   ;; Time is a floating point number (fractions of 1 hour)
-  (setq time (or time (current-time)))
-  (/ (+ (* (car time) 65536.0) (car (cdr time))) 3600.0))
+  (/ (float-time time) 3600))
 
 (defun ido-cache-ftp-valid (&optional time)
   (and (numberp ido-cache-ftp-work-directory-time)

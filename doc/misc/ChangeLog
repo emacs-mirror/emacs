@@ -1,3 +1,9 @@
+2014-10-29  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Simplify use of current-time and friends.
+	* org.texi (Dynamic blocks): Omit unnecessary call to current-time
+	in example.
+
 2014-10-28  Christopher Schmidt  <ch@ristopher.com>
 
 	* calc.texi (Quick Calculator): Mention prefix argument of

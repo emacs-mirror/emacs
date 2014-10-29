@@ -1682,7 +1682,7 @@ entries.  ENTRY-MAIN is the first line of the diary entry."
           (cons (concat
                  ;;Start today (yes this is an arbitrary choice):
                  "\nDTSTART;VALUE=DATE:"
-                 (format-time-string "%Y%m%d" (current-time))
+                 (format-time-string "%Y%m%d")
                  ;;BUT remove today if `diary-float'
                  ;;expression does not hold true for today:
                  (when
@@ -1691,7 +1691,7 @@ entries.  ENTRY-MAIN is the first line of the diary entry."
                              (diary-float month dayname n)))
                    (concat
                     "\nEXDATE;VALUE=DATE:"
-                    (format-time-string "%Y%m%d" (current-time))))
+                    (format-time-string "%Y%m%d")))
                  "\nRRULE:"
                  (if (or (numberp month) (listp month))
                      "FREQ=YEARLY;BYMONTH="

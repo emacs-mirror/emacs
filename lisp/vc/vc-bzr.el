@@ -1167,10 +1167,7 @@ stream.  Standard error output is discarded."
   "Create a stash with the current tree state."
   (interactive)
   (vc-bzr-command "shelve" nil 0 nil "--all" "-m"
-		  (let ((ct (current-time)))
-		    (concat
-		     (format-time-string "Snapshot on %Y-%m-%d" ct)
-		     (format-time-string " at %H:%M" ct))))
+		  (format-time-string "Snapshot on %Y-%m-%d at %H:%M"))
   (vc-bzr-command "unshelve" nil 0 nil "--apply" "--keep")
   (vc-resynch-buffer (vc-bzr-root default-directory) t t))
 

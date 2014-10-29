@@ -1,3 +1,10 @@
+2014-10-29  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Simplify use of current-time and friends.
+	* erc-backend.el (TOPIC): Omit unnecessary call to current-time.
+	* erc.el (erc-emacs-time-to-erc-time): Simplify by using float-time.
+	(erc-current-time): Simplify by using erc-emacs-time-to-erc-time.
+
 2014-10-20  Glenn Morris  <rgm@gnu.org>
 
 	* Merge in all changes up to 24.4 release.

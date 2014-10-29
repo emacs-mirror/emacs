@@ -320,7 +320,7 @@ display (non-nil means on)."
       (cancel-timer timeclock-update-timer)
       (setq timeclock-update-timer nil))))
 
-(defsubst timeclock-time-to-date (time)
+(defsubst timeclock-time-to-date (&optional time)
   "Convert the TIME value to a textual date string."
   (format-time-string "%Y/%m/%d" time))
 
@@ -351,7 +351,7 @@ discover the name of the project."
     (unless (and timeclock-last-event
                  (equal (timeclock-time-to-date
                          (cadr timeclock-last-event))
-                        (timeclock-time-to-date (current-time))))
+                        (timeclock-time-to-date)))
       (let ((workday (or (and (numberp arg) arg)
 			 (and arg 0)
 			 (and timeclock-get-workday-function
@@ -543,7 +543,7 @@ non-nil, the amount returned will be relative to past time worked."
 If TODAY-ONLY is non-nil, the value returned will be relative only to
 the time worked today, and not to past time."
   (timeclock-seconds-to-time
-   (- (timeclock-time-to-seconds (current-time))
+   (- (timeclock-time-to-seconds)
       (let ((discrep (timeclock-find-discrep)))
 	(if discrep
 	    (if today-only
@@ -647,14 +647,12 @@ that variable's documentation."
 	 (if timeclock-use-elapsed
 	     (timeclock-workday-elapsed)
 	   (timeclock-workday-remaining (not timeclock-relative))))
-        (last-in (equal (car timeclock-last-event) "i")))
+	(last-in (equal (car timeclock-last-event) "i"))
+	(todays-date (timeclock-time-to-date)))
     (when (and (< remainder 0)
 	       (not (and timeclock-day-over
-			 (equal timeclock-day-over
-				(timeclock-time-to-date
-				 (current-time))))))
-      (setq timeclock-day-over
-	    (timeclock-time-to-date (current-time)))
+			 (equal timeclock-day-over todays-date))))
+      (setq timeclock-day-over todays-date)
       (run-hooks 'timeclock-day-over-hook))
     (setq timeclock-mode-string
           (propertize
@@ -725,9 +723,8 @@ recorded to disk.  If MOMENT is non-nil, use that as the current time.
 This is only provided for coherency when used by
 `timeclock-discrepancy'."
   (if (equal (car timeclock-last-event) "i")
-      (- (timeclock-time-to-seconds (or moment (current-time)))
-	 (timeclock-time-to-seconds
-	  (cadr timeclock-last-event)))
+      (- (timeclock-time-to-seconds moment)
+	 (timeclock-time-to-seconds (cadr timeclock-last-event)))
     timeclock-last-period))
 
 (defsubst timeclock-entry-length (entry)
@@ -1156,7 +1153,7 @@ discrepancy, today's discrepancy, and the time worked today."
 			     (+ timeclock-last-period timeclock-elapsed)))))
 	    (setq timeclock-last-event event
 		  timeclock-last-event-workday
-		  (if (equal (timeclock-time-to-date now) last-date-limited)
+		  (if (equal todays-date last-date-limited)
 		      last-date-seconds
 		    timeclock-workday))
 	    (forward-line))
@@ -1182,7 +1179,7 @@ discrepancy, today's discrepancy, and the time worked today."
 (defun timeclock-day-base (&optional time)
   "Given a time within a day, return 0:0:0 within that day.
 If optional argument TIME is non-nil, use that instead of the current time."
-  (let ((decoded (decode-time (or time (current-time)))))
+  (let ((decoded (decode-time time)))
     (setcar (nthcdr 0 decoded) 0)
     (setcar (nthcdr 1 decoded) 0)
     (setcar (nthcdr 2 decoded) 0)

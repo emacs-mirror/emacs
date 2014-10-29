@@ -653,7 +653,7 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
 				   (match-string 6))))
 		      (if (nth 0 moment)
 			  (setcar (nthcdr 5 moment)
-				  (nth 5 (decode-time (current-time))))
+				  (nth 5 (decode-time)))
 			(setcar (nthcdr 0 moment) 0)
 			(setcar (nthcdr 1 moment) 0)
 			(setcar (nthcdr 2 moment) 0))

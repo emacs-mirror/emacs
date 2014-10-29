@@ -1,3 +1,16 @@
+2014-10-29  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Simplify use of current-time and friends.
+	* gnus-delay.el (gnus-delay-article):
+	* gnus-sum.el (gnus-summary-read-document):
+	* gnus-util.el (gnus-seconds-today, gnus-seconds-month):
+	* message.el (message-make-expires-date):
+	Omit unnecessary call to current-time.
+	* gnus-util.el (gnus-float-time): Simplify to an alias because
+	time-to-seconds now behaves like float-time with respect to nil arg.
+	(gnus-seconds-year): Don't call current-time twice to get the current
+	time stamp, as this can lead to inconsistent results.
+
 2014-10-27  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus.el (gnus-mode-line-buffer-identification):

@@ -678,7 +678,7 @@ Return VTODO component as a string."
 			(org-element-property :scheduled entry))
 		   ;; If we can't use a scheduled time for some
 		   ;; reason, start task now.
-		   (let ((now (decode-time (current-time))))
+		   (let ((now (decode-time)))
 		     (list 'timestamp
 			   (list :type 'active
 				 :minute-start (nth 1 now)

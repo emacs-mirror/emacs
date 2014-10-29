@@ -599,10 +599,10 @@ If ARG is non-nil, instead prompt for connection parameters."
   `(with-current-buffer rcirc-server-buffer
      ,@body))
 
-(defun rcirc-float-time ()
+(defalias 'rcirc-float-time
   (if (featurep 'xemacs)
-      (time-to-seconds (current-time))
-    (float-time)))
+      'time-to-seconds
+    'float-time))
 
 (defun rcirc-prompt-for-encryption (server-plist)
   "Prompt the user for the encryption method to use.

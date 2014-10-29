@@ -189,8 +189,7 @@ Will not do anything if `url-show-status' is nil."
 (defun url-get-normalized-date (&optional specified-time)
  "Return a 'real' date string that most HTTP servers can understand."
  (let ((system-time-locale "C"))
-  (format-time-string "%a, %d %b %Y %T GMT"
-   (or specified-time (current-time)) t)))
+  (format-time-string "%a, %d %b %Y %T GMT" specified-time t)))
 
 ;;;###autoload
 (defun url-eat-trailing-space (x)

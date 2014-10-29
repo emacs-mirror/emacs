@@ -212,7 +212,7 @@ If `url-standalone-mode' is non-nil, cached items never expire."
   "Remove all expired files from the cache.
 `url-cache-expire-time' says how old a file has to be to be
 considered \"expired\"."
-  (let ((current-time (current-time))
+  (let ((now (current-time))
 	(total-files 0)
 	(deleted-files 0))
     (setq directory (or directory url-cache-directory))
@@ -228,7 +228,7 @@ considered \"expired\"."
 	     (time-add
 	      (nth 5 (file-attributes file))
 	      (seconds-to-time url-cache-expire-time))
-	     current-time)
+	     now)
 	    (delete-file file)
 	    (setq deleted-files (1+ deleted-files))))))
       (if (< deleted-files total-files)

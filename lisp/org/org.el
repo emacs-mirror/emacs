@@ -16490,7 +16490,7 @@ user."
 (defun org-read-date-analyze (ans org-def org-defdecode)
   "Analyze the combined answer of the date prompt."
   ;; FIXME: cleanup and comment
-  (let ((nowdecode (decode-time (current-time)))
+  (let ((nowdecode (decode-time))
 	delta deltan deltaw deltadef year month day
 	hour minute second wday pm h2 m2 tl wday1
 	iso-year iso-weekday iso-week iso-year iso-date futurep kill-year)
@@ -16648,7 +16648,7 @@ user."
      (deltan
       (setq futurep nil)
       (unless deltadef
-	(let ((now (decode-time (current-time))))
+	(let ((now (decode-time)))
 	  (setq day (nth 3 now) month (nth 4 now) year (nth 5 now))))
       (cond ((member deltaw '("d" "")) (setq day (+ day deltan)))
 	    ((equal deltaw "w") (setq day (+ day (* 7 deltan))))
@@ -22062,8 +22062,9 @@ the agenda) or the current time of the day."
       (when (and tp (string-match "\\([0-9][0-9]\\):\\([0-9][0-9]\\)" tp))
 	(setq hod (string-to-number (match-string 1 tp))
 	      mod (string-to-number (match-string 2 tp))))
-      (or tp (setq hod (nth 2 (decode-time (current-time)))
-		   mod (nth 1 (decode-time (current-time))))))
+      (or tp (let ((now (decode-time)))
+	       (setq hod (nth 2 now)
+		     mod (nth 1 now)))))
     (cond
      ((eq major-mode 'calendar-mode)
       (setq date (calendar-cursor-to-date)

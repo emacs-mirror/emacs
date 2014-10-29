@@ -1,3 +1,50 @@
+2014-10-29  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Simplify use of current-time and friends.
+	* allout-widgets.el (allout-widgets-hook-error-handler):
+	* calendar/appt.el (appt-display-message):
+	* calendar/icalendar.el (icalendar--convert-float-to-ical):
+	* calendar/timeclock.el (timeclock-in, timeclock-when-to-leave)
+	(timeclock-last-period, timeclock-day-base):
+	* eshell/em-ls.el (eshell-ls-file):
+	* eshell/esh-util.el (eshell-parse-ange-ls):
+	* generic-x.el (named-database-print-serial):
+	* net/newst-backend.el (newsticker--get-news-by-url-callback)
+	(newsticker-get-news, newsticker--sentinel-work)
+	(newsticker--image-get, newsticker--image-sentinel):
+	* net/tramp-sh.el (tramp-get-remote-touch):
+	* progmodes/opascal.el (opascal-debug-log):
+	* textmodes/remember.el (remember-mail-date)
+	(remember-store-in-files):
+	* vc/vc-annotate.el (vc-annotate-display-autoscale)
+	(vc-default-annotate-current-time):
+	* vc/vc-bzr.el (vc-bzr-shelve-snapshot):
+	* vc/vc-cvs.el (vc-cvs-annotate-current-time):
+	* vc/vc-rcs.el (vc-rcs-annotate-current-time):
+	Omit unnecessary call to current-time.
+	* calendar/time-date.el (time-to-seconds) [!float-time]:
+	* vc/vc-annotate.el (vc-annotate-convert-time):
+	Use current time if arg is nil, to be compatible with float-time.
+	(time-date--day-in-year): New function, with most of the guts of
+	the old time-to-day-in-year.
+	(time-to-day-in-year): Use it.
+	(time-to-days): Use it, to avoid decoding the same time stamp twice.
+	* calendar/timeclock.el (timeclock-time-to-date):
+	Arg is now optional, like current-time-string.
+	(timeclock-update-mode-line):
+	Don't call current-time twice to get the current time stamp,
+	as this can lead to inconsistent results.
+	* completion.el (cmpl-hours-since-origin):
+	* ido.el (ido-time-stamp):
+	* vc/vc-annotate.el (vc-annotate-convert-time):
+	Simplify by using float-time.
+	* completion.el (save-completions-to-file):
+	Rename local var to avoid confusion.
+	* net/rcirc.el (rcirc-float-time): Simplify to an alias because
+	time-to-seconds now behaves like float-time with respect to nil arg.
+	* subr.el (progress-reporter-do-update):
+	Don't call float-time unless needed.
+
 2014-10-29  Leo Liu  <sdl.web@gmail.com>
 
 	* net/rcirc.el (rcirc-fill-column): Use function.

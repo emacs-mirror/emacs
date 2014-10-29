@@ -231,8 +231,7 @@ this heading."
 		       (error "No file associated to buffer"))))
 	    (olpath (mapconcat 'identity (org-get-outline-path) "/"))
 	    (time (format-time-string
-		   (substring (cdr org-time-stamp-formats) 1 -1)
-		   (current-time)))
+		   (substring (cdr org-time-stamp-formats) 1 -1)))
 	    category todo priority ltags itags atags
 	    ;; end of variables that will be used for saving context
 	    location afile heading buffer level newfile-p infile-p visiting
@@ -441,8 +440,7 @@ sibling does not exist, it will be created at the end of the subtree."
 	(org-set-property
 	 "ARCHIVE_TIME"
 	 (format-time-string
-	  (substring (cdr org-time-stamp-formats) 1 -1)
-	  (current-time)))
+	  (substring (cdr org-time-stamp-formats) 1 -1)))
 	(outline-up-heading 1 t)
 	(hide-subtree)
 	(org-cycle-show-empty-lines 'folded)

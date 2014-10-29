@@ -9333,7 +9333,7 @@ Obeys the standard process/prefix convention."
      ((gnus-group-read-ephemeral-group
        (setq vgroup (format
 		     "nnvirtual:%s-%s" gnus-newsgroup-name
-		     (format-time-string "%Y%m%dT%H%M%S" (current-time))))
+		     (format-time-string "%Y%m%dT%H%M%S")))
        `(nnvirtual ,vgroup (nnvirtual-component-groups ,groups))
        t
        (cons (current-buffer) 'summary)))

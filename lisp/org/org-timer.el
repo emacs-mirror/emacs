@@ -195,8 +195,8 @@ it in the buffer."
 (defun org-timer-seconds ()
   (if org-timer-timer-is-countdown
       (- (org-float-time org-timer-start-time)
-	 (org-float-time (current-time)))
-    (- (org-float-time (or org-timer-pause-time (current-time)))
+	 (org-float-time))
+    (- (org-float-time org-timer-pause-time)
        (org-float-time org-timer-start-time))))
 
 ;;;###autoload
