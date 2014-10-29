@@ -148,7 +148,7 @@ for connections using SSL/TLS."
 If nil, use value of `fill-column'.
 If a function (e.g., `frame-text-width' or `window-text-width'),
 call it to compute the number of columns."
-  :version "25.1"
+  :risky t                              ; can get funcalled
   :type '(choice (const :tag "Value of `fill-column'" nil)
 		 (integer :tag "Number of columns")
 		 (function :tag "Function returning the number of columns"))

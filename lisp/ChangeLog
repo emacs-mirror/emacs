@@ -1,5 +1,7 @@
 2014-10-29  Glenn Morris  <rgm@gnu.org>
 
+	* net/rcirc.el (rcirc-fill-column): Unbump :version.  Mark :risky.
+
 	* version.el (emacs-bzr-version, emacs-bzr-get-version):
 	Revert 2014-10-26 change.
 
