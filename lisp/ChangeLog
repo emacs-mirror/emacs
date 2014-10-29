@@ -1,3 +1,8 @@
+2014-10-29  Glenn Morris  <rgm@gnu.org>
+
+	* version.el (emacs-bzr-version, emacs-bzr-get-version):
+	Revert 2014-10-26 change.
+
 2014-10-29  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Simplify use of current-time and friends.
