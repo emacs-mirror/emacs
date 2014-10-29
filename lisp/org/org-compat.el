@@ -412,9 +412,7 @@ Pass BUFFER to the XEmacs version of `move-to-column'."
 	   (set-mouse-position frame (1- (frame-width frame)) 0)))))
 
 (defalias 'org-float-time
-  (if (featurep 'xemacs) 'time-to-seconds 'float-time)
-  "Convert time value TIME to a floating point number.
-TIME defaults to the current time.")
+  (if (featurep 'xemacs) 'time-to-seconds 'float-time))
 
 ;; `user-error' is only available from 24.2.50 on
 (unless (fboundp 'user-error)

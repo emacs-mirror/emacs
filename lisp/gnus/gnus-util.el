@@ -316,9 +316,7 @@ Symbols are also allowed; their print names are used instead."
 (defalias 'gnus-float-time
   (if (or (featurep 'emacs)
 	  (fboundp 'float-time))
-      'float-time 'time-to-seconds)
-  "Convert time value TIME to a floating point number.
-TIME defaults to the current time.")
+      'float-time 'time-to-seconds))
 
 ;;; Keymap macros.
 
