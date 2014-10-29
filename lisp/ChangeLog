@@ -1,3 +1,8 @@
+2014-10-29  Leo Liu  <sdl.web@gmail.com>
+
+	* net/rcirc.el (rcirc-fill-column): Use function.
+	(rcirc-markup-fill): Remove adjustment.
+
 2014-10-28  Christopher Schmidt  <ch@ristopher.com>
 
 	* calc/calc.el (quick-calc):
