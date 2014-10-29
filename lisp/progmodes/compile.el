@@ -1651,7 +1651,16 @@ Returns the compilation buffer created."
 	     (list command mode name-function highlight-regexp))
 	(set (make-local-variable 'revert-buffer-function)
 	     'compilation-revert-buffer)
-	(and outwin (set-window-start outwin (point-min)))
+	(and outwin
+	     ;; Forcing the window-start overrides the usual redisplay
+	     ;; feature of bringing point into view, so setting the
+	     ;; window-start to top of the buffer risks losing the
+	     ;; effect of moving point to EOB below, per
+	     ;; compilation-scroll-output, if the command is long
+	     ;; enough to push point outside of the window.  This
+	     ;; could happen, e.g., in `rgrep'.
+	     (not compilation-scroll-output)
+	     (set-window-start outwin (point-min)))
 
 	;; Position point as the user will see it.
 	(let ((desired-visible-point
