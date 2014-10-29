@@ -127,6 +127,11 @@ Unicode standards.
 
 * Changes in Specialized Modes and Packages in Emacs 25.1
 
+** Calc
++++
+*** If `quick-calc' is called with a prefix argument, insert the
+result of the calculation into the current buffer.
+
 ** ElDoc
 *** New minor mode global-eldoc-mode
 *** eldoc-documentation-function now defaults to nil

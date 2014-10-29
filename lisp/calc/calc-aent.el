@@ -52,7 +52,7 @@
   "The history list for quick-calc.")
 
 ;;;###autoload
-(defun calc-do-quick-calc ()
+(defun calc-do-quick-calc (&optional insert)
   (require 'calc-ext)
   (calc-check-defines)
   (if (eq major-mode 'calc-mode)
@@ -108,7 +108,8 @@
 		    (setq buf long))))
 	  (calc-handle-whys)
 	  (message "Result: %s" buf)))
-      (if (eq last-command-event 10)
+      (if (or insert
+              (eq last-command-event 10))
 	  (insert shortbuf)
         (kill-new shortbuf)))))
 

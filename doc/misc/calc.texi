@@ -10168,9 +10168,10 @@ to yank the result into the next @kbd{C-x * q} input line as a more
 explicit alternative to @kbd{$} notation, or to yank the result
 into the Calculator stack after typing @kbd{C-x * c}.
 
-If you finish your formula by typing @key{LFD} (or @kbd{C-j}) instead
-of @key{RET}, the result is inserted immediately into the current
-buffer rather than going into the kill ring.
+If you give a prefix argument to @kbd{C-x * q} or finish your formula
+by typing @key{LFD} (or @kbd{C-j}) instead of @key{RET}, the result is
+inserted immediately into the current buffer rather than going into
+the kill ring.
 
 Quick Calculator results are actually evaluated as if by the @kbd{=}
 key (which replaces variable names by their stored values, if any).

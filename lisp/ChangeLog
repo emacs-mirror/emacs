@@ -1,3 +1,8 @@
+2014-10-28  Christopher Schmidt  <ch@ristopher.com>
+
+	* calc/calc.el (quick-calc):
+	* calc/calc-aent.el (calc-do-quick-calc): New argument INSERT.
+
 2014-10-28  Sam Steingold  <sds@gnu.org>
 
 	* net/rcirc.el (rcirc-fill-column): Allow any symbolic value for

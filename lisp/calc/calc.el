@@ -147,7 +147,7 @@
 (declare-function calc-edit-finish "calc-yank" (&optional keep))
 (declare-function calc-edit-cancel "calc-yank" ())
 (declare-function calc-locate-cursor-element "calc-yank" (pt))
-(declare-function calc-do-quick-calc "calc-aent" ())
+(declare-function calc-do-quick-calc "calc-aent" (&optional insert))
 (declare-function calc-do-calc-eval "calc-aent" (str separator args))
 (declare-function calc-do-keypad "calc-keypd" (&optional full-display interactive))
 (declare-function calcFunc-unixtime "calc-forms" (date &optional zone))
@@ -1549,10 +1549,12 @@ commands given here will actually operate on the *Calculator* stack."
         (and kbuf (bury-buffer kbuf))))))
 
 ;;;###autoload
-(defun quick-calc ()
-  "Do a quick calculation in the minibuffer without invoking full Calculator."
-  (interactive)
-  (calc-do-quick-calc))
+(defun quick-calc (&optional insert)
+  "Do a quick calculation in the minibuffer without invoking full Calculator.
+With prefix argument INSERT, insert the result in the current
+buffer.  Otherwise, the result is copied into the kill ring."
+  (interactive "P")
+  (calc-do-quick-calc insert))
 
 ;;;###autoload
 (defun calc-eval (str &optional separator &rest args)
