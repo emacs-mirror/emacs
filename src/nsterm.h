@@ -818,7 +818,7 @@ extern void nxatoms_of_nsselect (void);
 extern int ns_lisp_to_cursor_type (Lisp_Object arg);
 extern Lisp_Object ns_cursor_type_to_lisp (int arg);
 extern void ns_set_name_as_filename (struct frame *f);
-extern void ns_set_doc_edited (struct frame *f, Lisp_Object arg);
+extern void ns_set_doc_edited (void);
 
 extern bool
 ns_defined_color (struct frame *f,

@@ -1,5 +1,13 @@
 2014-10-30  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* nsterm.h (ns_set_doc_edited): Declare taking no args.
+
+	* nsfns.m (ns_set_doc_edited): Do all logic (check frames) here
+	instead of in xdisp.c, function now takes void. (Bug#18884).
+
+	* xdisp.c (prepare_menu_bars): Remove HAVE_NS code.
+	(redisplay_internal): Call ns_set_doc_edited if HAVE_NS (Bug#18884).
+
 	* nsterm.h (EmacsScroller): Replace Lisp_Object win with
 	struct window* (Bug#18889).
 	Remove getMouseMotionPart.
