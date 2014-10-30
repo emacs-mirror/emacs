@@ -572,7 +572,7 @@ static void
 bidi_cache_reset_to (int n)
 {
   bidi_cache_idx = bidi_cache_start + n;
-  bidi_cache_last_idx = n - 1;
+  bidi_cache_last_idx = -1;
 }
 
 /* Reset the cache state to the empty state.  We only reset the part
@@ -2629,11 +2629,10 @@ bidi_find_bracket_pairs (struct bidi_it *bidi_it)
 	  bidi_it->bracket_enclosed_type = embedding_type;
 	  /* bidi_cache_last_idx is set to the index of the current
 	     state, because we just called bidi_cache_find above.
-	     Force the cache to "forget" all the cached states
-	     starting from the one corresponding to the outermost
-	     opening bracket, which is what the current state
-	     describes.  */
-	  bidi_cache_reset_to (bidi_cache_last_idx);
+	     That state describes the outermost opening bracket, the
+	     one with which we entered this function.  Force the cache
+	     to "forget" all the cached states starting from that state.  */
+	  bidi_cache_reset_to (bidi_cache_last_idx - bidi_cache_start);
 	  /* Set up the next_for_neutral member, to help
 	     bidi_resolve_neutral.  */
 	  bidi_it->next_for_neutral.type = embedding_type;
