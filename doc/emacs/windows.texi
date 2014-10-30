@@ -134,6 +134,18 @@ clicking @kbd{C-Mouse-2} in the scroll bar, which puts a horizontal
 divider where you click (this feature does not work when Emacs uses
 GTK+ scroll bars).
 
+@vindex window-resize-pixelwise
+  By default, when you split a window, Emacs gives each of the
+resulting windows dimensions that are an integral multiple of the
+default font size of the frame.  That might subdivide the screen
+estate unevenly between the resulting windows.  If you set the
+variable @code{window-resize-pixelwise} to a non-@code{nil} value,
+Emacs will give each window the same number of pixels (give or take
+one pixel if the initial dimension was an odd number of pixels).  Note
+that when a frame's pixel size is not a multiple of the frame's
+character size, at least one window may get resized pixelwise even if
+this option is @code{nil}.
+
 @node Other Window
 @section Using Other Windows
 

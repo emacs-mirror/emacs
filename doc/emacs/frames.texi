@@ -376,6 +376,9 @@ position (@pxref{Split Window}).
 between two side-by-side mode lines, you can move the vertical
 boundary to the left or right.
 
+  Note that resizing windows is affected by the value of
+@code{window-resize-pixelwise}, see @ref{Split Window}.
+
 @node Creating Frames
 @section Creating Frames
 @cindex creating frames
@@ -469,9 +472,13 @@ hides window manager decorations, giving slightly more screen space to
 Emacs itself.)
 @end table
 
+@vindex frame-resize-pixelwise
   Note that with some window managers you may have to customize the
 variable @code{frame-resize-pixelwise} to a non-@code{nil} value in
-order to make a frame truly ``maximized'' or ``fullscreen''.
+order to make a frame truly ``maximized'' or ``fullscreen''.  This
+variable, when set to a non-@code{nil} value, in general allows
+resizing frames at pixel resolution, rather than in integral multiples
+of lines and columns.
 
   The @kbd{C-x 5 0} (@code{delete-frame}) command deletes the selected
 frame.  However, it will refuse to delete the last frame in an Emacs
@@ -955,6 +962,10 @@ end of the buffer is shown; if @code{nil}, the thumb will be at the
 bottom when the end of the buffer is shown.  You can not over-scroll
 when the entire buffer is visible.
 
+@cindex scroll-bar face
+  The visual appearance of the scroll bars is controlled by the
+@code{scroll-bar} face.
+
 @cindex Horizontal Scroll Bar
 @cindex Horizontal Scroll Bar mode
   On graphical displays with toolkit support, Emacs may also supply a
@@ -986,7 +997,6 @@ variable @code{horizontal-scroll-bar-mode}.
 or disable horizontal scroll bars (@pxref{Resources}).  To control the
 scroll bar height, change the @code{scroll-bar-height} frame parameter
 (@pxref{Frame Parameters,,, elisp, The Emacs Lisp Reference Manual}).
-
 
 @node Drag and Drop
 @section Drag and Drop

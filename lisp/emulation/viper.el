@@ -531,6 +531,7 @@ If Viper is enabled, turn it off.  Otherwise, turn it on."
 	(if viper-mode
 	    ()
 	  (setq viper-mode t)
+          ;; FIXME: Don't reload!
 	  (load-library "viper"))
 
 	(if viper-first-time ; Important check.  Prevents mix-up of startup
@@ -887,6 +888,7 @@ Two differences:
   ;; When viper-mode is executed in such a case, it will set the major mode
   ;; back to fundamental-mode.
   (if (eq (default-value 'major-mode) 'fundamental-mode)
+      ;; FIXME: We should use after-change-major-mode-hook instead!
       (setq-default major-mode 'viper-mode))
 
   (viper-setup-ESC-to-escape t)
@@ -936,6 +938,7 @@ Two differences:
 
   (defadvice self-insert-command (around viper-self-insert-ad activate)
     "Ignore all self-inserting keys in the vi-state."
+    ;; FIXME: Use remapping?
     (if (and (eq viper-current-state 'vi-state)
 	     ;; Do not use called-interactively-p here. XEmacs does not have it
 	     ;; and interactive-p is just fine.

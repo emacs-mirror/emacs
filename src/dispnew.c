@@ -5205,7 +5205,7 @@ buffer_posn_from_coords (struct window *w, int *x, int *y, struct display_pos *p
      start position, i.e. it excludes the header-line row, but
      MATRIX_ROW includes the header-line row.  Adjust for a possible
      header-line row.  */
-  it_vpos = it.vpos + WINDOW_WANTS_MODELINE_P (w);
+  it_vpos = it.vpos + WINDOW_WANTS_HEADER_LINE_P (w);
   if (it_vpos < w->current_matrix->nrows
       && (row = MATRIX_ROW (w->current_matrix, it_vpos),
 	  row->enabled_p))

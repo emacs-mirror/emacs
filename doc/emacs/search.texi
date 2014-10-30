@@ -86,6 +86,7 @@ not be the first @samp{F} previously found.  After another @kbd{O},
 the cursor moves to just after the first @samp{FOO}.
 
 @cindex faces for highlighting search matches
+@cindex isearch face
   At each step, Emacs highlights the @dfn{current match}---the buffer
 text that matches the search string---using the @code{isearch} face
 (@pxref{Faces}).  The current search string is also displayed in the
@@ -1280,6 +1281,8 @@ It works like @code{replace-regexp} except that it queries
 like @code{query-replace}.
 
 @cindex faces for highlighting query replace
+@cindex query-replace face
+@cindex lazy-highlight face
   These commands highlight the current match using the face
 @code{query-replace}.  They highlight other matches using
 @code{lazy-highlight} just like incremental search (@pxref{Incremental

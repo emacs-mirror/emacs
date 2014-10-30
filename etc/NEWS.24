@@ -14,6 +14,37 @@ and NEWS.1-17 for changes in older Emacs versions.
 You can narrow news to a specific version by calling `view-emacs-news'
 with a prefix argument or by typing C-u C-h C-n.
 
+Temporary note:
++++ indicates that all necessary documentation updates are complete.
+    (This means all relevant manuals in doc/ AND lisp doc-strings.)
+--- means no change in the manuals is needed.
+When you add a new item, use the appropriate mark if you are sure it applies,
+otherwise leave it unmarked.
+
+
+* Changes in Emacs 24.5
+
+---
+** The default value of `history-length' has increased to 100.
+
+
+* Changes in Specialized Modes and Packages in Emacs 24.5
+
+** `call-process-shell-command' and `process-file-shell-command'
+don't take "&rest args" any more.
+
+** Obsolete packages
+
+*** cc-compat.el
+
+---
+*** crisp.el, tpu-edt.el, ws-mode.el
+These emulations of old editors are believed to be no longer relevant
+ - contact emacs-devel@gnu.org if you disagree.
+
+---
+*** vi.el, vip.el (try M-x viper instead)
+
 
 * Installation Changes in Emacs 24.4
 

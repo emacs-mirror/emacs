@@ -174,6 +174,10 @@ This variant works around bugs in `eval-when-compile' in various
 
   (put 'cc-eval-when-compile 'lisp-indent-hook 0))
 
+(eval-and-compile
+  (defalias 'c--macroexpand-all
+    (if (fboundp 'macroexpand-all)
+        'macroexpand-all 'cl-macroexpand-all)))
 
 ;;; Macros.
 
@@ -1841,7 +1845,7 @@ system."
 immediately, i.e. at the same time as the `c-lang-defconst' form
 itself is evaluated."
   ;; Evaluate at macro expansion time, i.e. in the
-  ;; `macroexpand-all' inside `c-lang-defconst'.
+  ;; `c--macroexpand-all' inside `c-lang-defconst'.
   (eval form))
 
 (defmacro c-lang-defconst (name &rest args)
@@ -1885,7 +1889,7 @@ constant.  A file is identified by its base name."
 
   (let* ((sym (intern (symbol-name name) c-lang-constants))
 	 ;; Make `c-lang-const' expand to a straightforward call to
-	 ;; `c-get-lang-constant' in `macroexpand-all' below.
+	 ;; `c-get-lang-constant' in `c--macroexpand-all' below.
 	 ;;
 	 ;; (The default behavior, i.e. to expand to a call inside
 	 ;; `eval-when-compile' should be equivalent, since that macro
@@ -1948,7 +1952,7 @@ constant.  A file is identified by its base name."
 	;; reason, but we also use this expansion handle
 	;; `c-lang-defconst-eval-immediately' and to register
 	;; dependencies on the `c-lang-const's in VAL.)
-	(setq val (macroexpand-all val))
+	(setq val (c--macroexpand-all val))
 
 	(setq bindings `(cons (cons ',assigned-mode (lambda () ,val)) ,bindings)
 	      args (cdr args))))

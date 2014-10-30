@@ -1,3 +1,27 @@
+2014-10-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/cc-defs.el (c--macroexpand-all): New function (bug#18845).
+	(c-lang-defconst):
+	* progmodes/cc-langs.el (c-make-init-lang-vars-fun): Use it.
+
+2014-10-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* progmodes/compile.el (compilation-start):
+	If compilation-scroll-output is non-nil, don't force window-start of
+	the compilation buffer to be at beginning of buffer.  (Bug#18874)
+
+	* startup.el (fancy-about-text): Read the entire tutorial, not
+	just its first 256 bytes.  (Bug#18760)
+
+2014-10-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el: Require cl-extra (bug#18804).
+	* emacs-lisp/cl-extra.el: Add missing provide.
+
+	* emacs-lisp/bytecomp.el (byte-compile-and-folded): Optimize case where
+	all args are copyable (bug#18767).
+	(=, <, >, <=, >=): Re-enable the optimization.
+
 2014-10-29  Glenn Morris  <rgm@gnu.org>
 
 	* net/rcirc.el (rcirc-fill-column): Unbump :version.  Mark :risky.

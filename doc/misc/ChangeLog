@@ -1,3 +1,12 @@
+2014-10-30  Glenn Morris  <rgm@gnu.org>
+
+	* efaq.texi (Gnus does not work with NNTP): Remove; ancient.
+
+2014-10-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eieio.texi (Accessing Slots, CLOS compatibility): Adjust wording
+	since `setf' is in core rather than in CL nowadays.
+
 2014-10-29  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Simplify use of current-time and friends.

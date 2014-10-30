@@ -588,6 +588,7 @@ you can access it using the following Emacs commands:
 @table @kbd
 @findex mouse-set-secondary
 @kindex M-Drag-Mouse-1
+@cindex secondary-selection face
 @item M-Drag-Mouse-1
 Set the secondary selection, with one end at the place where you press
 down the button, and the other end at the place where you release it

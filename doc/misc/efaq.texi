@@ -4190,7 +4190,6 @@ fontset, or you can select it by setting the default font in your
 * Replying to the sender of a message::
 * Automatically starting a mail or news reader::
 * Reading news with Emacs::
-* Gnus does not work with NNTP::
 * Making Gnus faster::
 * Catching up in all newsgroups::
 @end menu
@@ -4383,27 +4382,6 @@ Use @kbd{M-x gnus}.  For more information on Gnus, @pxref{Top,, the Gnus
 Manual, gnus, The Gnus Manual}, which includes @ref{Frequently Asked
 Questions,, the Gnus FAQ, gnus, The Gnus Manual}.
 
-
-@node Gnus does not work with NNTP
-@section Why doesn't Gnus work via NNTP?
-@cindex Gnus and NNTP
-@cindex NNTP, Gnus fails to work with
-
-There is a bug in NNTP version 1.5.10, such that when multiple requests
-are sent to the NNTP server, the server only handles the first one
-before blocking waiting for more input which never comes.  NNTP version
-1.5.11 claims to fix this.
-
-You can work around the bug inside Emacs like this:
-
-@lisp
-(setq nntp-maximum-request 1)
-@end lisp
-
-You can find out what version of NNTP your news server is running by
-telnetting to the NNTP port (usually 119) on the news server machine
-(i.e., @kbd{telnet server-machine 119}).  The server should give its
-version number in the welcome message.  Type @kbd{quit} to get out.
 
 @node Making Gnus faster
 @section How do I make Gnus faster?

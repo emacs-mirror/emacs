@@ -1,3 +1,20 @@
+2014-10-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* frames.texi (Scroll Bars): Improve indexing of faces.
+
+	* killing.texi (Secondary Selection): Improve indexing of faces.
+
+	* search.texi (Basic Isearch, Query Replace): Improve indexing of faces.
+
+	* display.texi (Standard Faces, Text Display)
+	(Useless Whitespace): Improve indexing of faces.
+
+	* frames.texi (Frame Commands): Document and index
+	'frame-resize-pixelwise'.
+
+	* windows.texi (Split Window): Document and index
+	'window-resize-pixelwise'.
+
 2014-10-22  Tassilo Horn  <tsdh@gnu.org>
 
 	* misc.texi (Document View): Adapt to latest doc-view changes wrt

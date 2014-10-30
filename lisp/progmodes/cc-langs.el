@@ -3238,7 +3238,7 @@ accomplish that conveniently."
       `(lambda ()
 
 	 ;; This let sets up the context for `c-mode-var' and similar
-	 ;; that could be in the result from `macroexpand-all'.
+	 ;; that could be in the result from `c--macroexpand-all'.
 	 (let ((c-buffer-is-cc-mode ',mode)
 	       current-var source-eval)
 	   (c-make-emacs-variables-local)
@@ -3248,12 +3248,12 @@ accomplish that conveniently."
 		   (setq ,@(let ((c-buffer-is-cc-mode mode)
 				 (c-lang-const-expansion 'immediate))
 			     ;; `c-lang-const' will expand to the evaluated
-			     ;; constant immediately in `macroexpand-all'
+			     ;; constant immediately in `c--macroexpand-all'
 			     ;; below.
 			      (mapcan
 			       (lambda (init)
 				 `(current-var ',(car init)
-				   ,(car init) ,(macroexpand-all
+				   ,(car init) ,(c--macroexpand-all
 						 (elt init 1))))
 			       ;; Note: The following `append' copies the
 			       ;; first argument.  That list is small, so

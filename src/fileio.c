@@ -1163,7 +1163,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	      char newdir_utf8[MAX_UTF8_PATH];
 
 	      filename_from_ansi (newdir, newdir_utf8);
-	      tem = build_string (newdir_utf8);
+	      tem = make_unibyte_string (newdir_utf8, strlen (newdir_utf8));
 	    }
 	  else
 #endif
@@ -1199,7 +1199,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	      /* `getpwnam' may return a unibyte string, which will
 		 bite us since we expect the directory to be
 		 multibyte.  */
-	      tem = build_string (newdir);
+	      tem = make_unibyte_string (newdir, strlen (newdir));
 	      newdirlim = newdir + SBYTES (tem);
 	      if (multibyte && !STRING_MULTIBYTE (tem))
 		{

@@ -1,3 +1,12 @@
+2014-10-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* fileio.c (Fexpand_file_name): Use make_unibyte_string, not
+	build_string, when importing a home directory.  (Bug#18873)
+
+	* dispnew.c (buffer_posn_from_coords): Use
+	WINDOW_WANTS_HEADER_LINE_P, not WINDOW_WANTS_MODELINE_P, to
+	account for the header-line height.  (Bug#18839)
+
 2014-10-28  Ulf Jasper  <ulf.jasper@web.de>
 
 	* xml.c (parse_region): Do not forget the first document child.
