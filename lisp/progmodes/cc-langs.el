@@ -213,7 +213,6 @@ the evaluated constant value at compile time."
 ;; These are defined in cl as aliases to the cl- versions.
 ;(declare-function delete-duplicates "cl-seq" (cl-seq &rest cl-keys) t)
 ;(declare-function mapcan "cl-extra" (cl-func cl-seq &rest cl-rest) t)
-;(declare-function cl-macroexpand-all "cl" (form &optional env))
 
 (eval-and-compile
   ;; Some helper functions used when building the language constants.
@@ -3183,7 +3182,7 @@ accomplish that conveniently."
       `(lambda ()
 
 	 ;; This let sets up the context for `c-mode-var' and similar
-	 ;; that could be in the result from `cl-macroexpand-all'.
+	 ;; that could be in the result from `c--macroexpand-all'.
 	 (let ((c-buffer-is-cc-mode ',mode)
 	       current-var source-eval)
 	   (c-make-emacs-variables-local)
@@ -3193,12 +3192,12 @@ accomplish that conveniently."
 		   (setq ,@(let ((c-buffer-is-cc-mode mode)
 				 (c-lang-const-expansion 'immediate))
 			     ;; `c-lang-const' will expand to the evaluated
-			     ;; constant immediately in `cl-macroexpand-all'
+			     ;; constant immediately in `c--macroexpand-all'
 			     ;; below.
 			      (cl-mapcan
 			       (lambda (init)
 				 `(current-var ',(car init)
-				   ,(car init) ,(macroexpand-all
+				   ,(car init) ,(c--macroexpand-all
 						 (elt init 1))))
 			       ;; Note: The following `append' copies the
 			       ;; first argument.  That list is small, so

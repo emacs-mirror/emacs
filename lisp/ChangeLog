@@ -1,7 +1,14 @@
+2014-10-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+
+	* progmodes/cc-defs.el (c--macroexpand-all): New function (bug#18845).
+	(c-lang-defconst):
+	* progmodes/cc-langs.el (c-make-init-lang-vars-fun): Use it.
+
 2014-10-29  Eli Zaretskii  <eliz@gnu.org>
 
-	* progmodes/compile.el (compilation-start): If
-	compilation-scroll-output is non-nil, don't force window-start of
+	* progmodes/compile.el (compilation-start):
+	If compilation-scroll-output is non-nil, don't force window-start of
 	the compilation buffer to be at beginning of buffer.  (Bug#18874)
 
 2014-10-23  Tassilo Horn  <tsdh@gnu.org>
