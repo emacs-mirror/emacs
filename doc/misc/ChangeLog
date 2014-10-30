@@ -1,3 +1,7 @@
+2014-10-30  Glenn Morris  <rgm@gnu.org>
+
+	* efaq.texi (Gnus does not work with NNTP): Remove; ancient.
+
 2014-10-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* eieio.texi (Accessing Slots, CLOS compatibility): Adjust wording
