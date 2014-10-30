@@ -64,9 +64,6 @@ when called interactively.  A prefix argument toggles this behavior.
 
 ** New var `truncate-string-ellipsis' to choose how to indicate truncation.
 
----
-** The default value of `history-length' has increased to 100.
-
 +++
 ** The new variable `term-file-aliases' replaces some files from lisp/term.
 The function `tty-run-terminal-initialization' consults this variable
@@ -271,14 +268,6 @@ By default, 32 spaces and four TABs are considered to be too much but
 ---
 *** gulp.el
 
----
-*** crisp.el, tpu-edt.el, ws-mode.el
-These emulations of old editors are believed to be no longer relevant
- - contact emacs-devel@gnu.org if you disagree.
-
----
-*** vi.el, vip.el (try M-x viper instead)
-
 
 * New Modes and Packages in Emacs 25.1
 
@@ -314,9 +303,6 @@ Emacs-21.
 *** x-get-clipboard and x-clipboard-yank are marked obsolete.
 *** x-get-selection-value is renamed to gui-get-primary-selection.
 *** x-set-selection is renamed to gui-set-selection
-
-** call-process-shell-command and process-file-shell-command
-don't take "&rest args" any more.
 
 ** New function `alist-get', which is also a valid place (aka lvalue).
 
