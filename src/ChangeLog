@@ -1,3 +1,8 @@
+2014-10-30  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xfaces.c (Finternal_set_lisp_face_attribute): Don't try to realize
+	font on an initial frame when running as a daemon (Bug#18869).
+
 2014-10-30  Eli Zaretskii  <eliz@gnu.org>
 
 	* fileio.c (Fexpand_file_name): Use make_unibyte_string, not

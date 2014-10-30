@@ -3116,9 +3116,9 @@ FRAME 0 means change the face on all frames, and change the default
               /* FIXME:
                  If frame is t, and selected frame is a tty frame, the font
                  can't be realized.  An improvement would be to loop over frames
-                 for a non-tty frame and use that.  See discussion in
-                 bug#18573.  */
-              if (f->terminal->type != output_termcap)
+                 for a non-tty frame and use that.  See discussion in Bug#18573.
+                 For a daemon, frame may be an initial frame (Bug#18869).  */
+              if (FRAME_WINDOW_P (f))
                 {
                   if (! FONT_OBJECT_P (value))
                     {
