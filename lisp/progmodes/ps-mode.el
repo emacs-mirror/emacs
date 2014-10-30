@@ -61,7 +61,7 @@
 
 ;; User variables.
 
-(make-obsolete-variable 'ps-mode-auto-indent 'electric-indent-mode "24.5")
+(make-obsolete-variable 'ps-mode-auto-indent 'electric-indent-mode "25.1")
 
 (defcustom ps-mode-tab 4
   "Number of spaces to use when indenting."

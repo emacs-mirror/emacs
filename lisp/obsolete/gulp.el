@@ -5,7 +5,7 @@
 ;; Author: Sam Shteingold <shteingd@math.ucla.edu>
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: maint
-;; Obsolete-since: 24.5
+;; Obsolete-since: 25.1
 
 ;; This file is part of GNU Emacs.
 
