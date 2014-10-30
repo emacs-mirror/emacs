@@ -1,3 +1,14 @@
+2014-10-30  Alan Mackenzie  <acm@muc.de>
+
+	Add "enum classs" support to C++ mode.
+	* progmodes/cc-langs.el (c-after-brace-list-decl-kwds)
+	(c-after-brace-list-key): New language consts/variables.
+	* progmodes/cc-engine.el (c-looking-at-decl-block): Exclude
+	spurious match of "enum struct" from decl-block recognition.
+	(c-backward-colon-prefixed-type): New function.
+	(c-backward-over-enum-header): Call above function to extend
+	recognition of enum structure.
+
 2014-10-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/cc-defs.el (c--macroexpand-all): New function (bug#18845).

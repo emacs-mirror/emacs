@@ -8460,31 +8460,44 @@ comment at the start of cc-engine.el for more info."
 	   (cond
 	    ((c-syntactic-re-search-forward c-decl-block-key open-brace t t t)
 	     (goto-char (setq kwd-start (match-beginning 0)))
-	     (or
+	     (and
+	      ;; Exclude cases where we matched what would ordinarily
+	      ;; be a block declaration keyword, except where it's not
+	      ;; legal because it's part of a "compound keyword" like
+	      ;; "enum class".	Of course, if c-after-brace-list-key
+	      ;; is nil, we can skip the test.
+	      (or (equal c-after-brace-list-key "\\<\\>")
+		  (save-match-data
+		    (save-excursion
+		      (not
+		       (and
+			(looking-at c-after-brace-list-key)
+			(= (c-backward-token-2 1 t) 0)
+			(looking-at c-brace-list-key))))))
+	      (or
+	       ;; Found a keyword that can't be a type?
+	       (match-beginning 1)
 
-	      ;; Found a keyword that can't be a type?
-	      (match-beginning 1)
+	       ;; Can be a type too, in which case it's the return type of a
+	       ;; function (under the assumption that no declaration level
+	       ;; block construct starts with a type).
+	       (not (c-forward-type))
 
-	      ;; Can be a type too, in which case it's the return type of a
-	      ;; function (under the assumption that no declaration level
-	      ;; block construct starts with a type).
-	      (not (c-forward-type))
-
-	      ;; Jumped over a type, but it could be a declaration keyword
-	      ;; followed by the declared identifier that we've jumped over
-	      ;; instead (e.g. in "class Foo {").  If it indeed is a type
-	      ;; then we should be at the declarator now, so check for a
-	      ;; valid declarator start.
-	      ;;
-	      ;; Note: This doesn't cope with the case when a declared
-	      ;; identifier is followed by e.g. '(' in a language where '('
-	      ;; also might be part of a declarator expression.  Currently
-	      ;; there's no such language.
-	      (not (or (looking-at c-symbol-start)
-		       (looking-at c-type-decl-prefix-key)))))
+	       ;; Jumped over a type, but it could be a declaration keyword
+	       ;; followed by the declared identifier that we've jumped over
+	       ;; instead (e.g. in "class Foo {").  If it indeed is a type
+	       ;; then we should be at the declarator now, so check for a
+	       ;; valid declarator start.
+	       ;;
+	       ;; Note: This doesn't cope with the case when a declared
+	       ;; identifier is followed by e.g. '(' in a language where '('
+	       ;; also might be part of a declarator expression.  Currently
+	       ;; there's no such language.
+	       (not (or (looking-at c-symbol-start)
+			(looking-at c-type-decl-prefix-key))))))
 
 	    ;; In Pike a list of modifiers may be followed by a brace
-	    ;; to make them apply to many identifiers.  Note that the
+	    ;; to make them apply to many identifiers.	Note that the
 	    ;; match data will be empty on return in this case.
 	    ((and (c-major-mode-is 'pike-mode)
 		  (progn
@@ -8586,11 +8599,44 @@ comment at the start of cc-engine.el for more info."
 		      (not (looking-at "=")))))
       b-pos)))
 
+(defun c-backward-colon-prefixed-type ()
+  ;; We're at the token after what might be a type prefixed with a colon.  Try
+  ;; moving backward over this type and the colon.  On success, return t and
+  ;; leave point before colon, on falure, leave point unchanged.  Will clobber
+  ;; match data.
+  (let ((here (point))
+	(colon-pos nil))
+    (save-excursion
+      (while
+	  (and (eql (c-backward-token-2) 0)
+	       (or (not (looking-at "\\s)"))
+		   (c-go-up-list-backward))
+	       (cond
+		((eql (char-after) ?:)
+		 (setq colon-pos (point))
+		 (forward-char)
+		 (c-forward-syntactic-ws)
+		 (or (and (c-forward-type)
+			  (progn (c-forward-syntactic-ws)
+				 (eq (point) here)))
+		     (setq colon-pos nil))
+		 nil)
+		((eql (char-after) ?\()
+		 t)
+		((looking-at c-symbol-key)
+		 t)
+		(t nil)))))
+    (when colon-pos
+      (goto-char colon-pos)
+      t)))
+
 (defun c-backward-over-enum-header ()
   ;; We're at a "{".  Move back to the enum-like keyword that starts this
   ;; declaration and return t, otherwise don't move and return nil.
   (let ((here (point))
 	up-sexp-pos before-identifier)
+    (when c-recognize-post-brace-list-type-p
+      (c-backward-colon-prefixed-type))
     (while
 	(and
 	 (eq (c-backward-token-2) 0)
@@ -8601,10 +8647,11 @@ comment at the start of cc-engine.el for more info."
 		(not before-identifier))
 	   (setq before-identifier t))
 	  ((and before-identifier
-		(or (eq (char-after) ?,)
+		(or (eql (char-after) ?,)
 		    (looking-at c-postfix-decl-spec-key)))
 	   (setq before-identifier nil)
 	   t)
+	  ((looking-at c-after-brace-list-key) t)
 	  ((looking-at c-brace-list-key) nil)
 	  ((and c-recognize-<>-arglists
 		(eq (char-after) ?<)
