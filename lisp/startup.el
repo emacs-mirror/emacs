@@ -1286,11 +1286,6 @@ the `--debug-init' option to view a complete error backtrace."
   (let (warned)
     (dolist (dir load-path)
       (and (not warned)
-	   (string-match-p
-	    (format "/%s/?\\'"
-		    (regexp-quote
-		     (file-name-nondirectory
-		      (directory-file-name user-emacs-directory)))) dir)
 	   (string-equal (file-name-as-directory (expand-file-name dir))
 			 (expand-file-name user-emacs-directory))
 	   (setq warned t)
