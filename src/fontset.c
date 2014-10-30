@@ -92,26 +92,27 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    range of characters in this fontset, but may be available in the
    default fontset.
 
+   A fontset has 8 extra slots.
 
-   A fontset has 9 extra slots.
-
-   The 1st slot: the ID number of the fontset
+   The 1st slot:
+	base: the ID number of the fontset
+	realized: Likewise
 
    The 2nd slot:
 	base: the name of the fontset
 	realized: nil
 
    The 3rd slot:
-	base: nil
-	realized: the base fontset
+	base: the font name for ASCII characters
+	realized: nil
 
    The 4th slot:
 	base: nil
-	realized: the frame that the fontset belongs to
+	realized: the base fontset
 
    The 5th slot:
-	base: the font name for ASCII characters
-	realized: nil
+	base: nil
+	realized: the frame that the fontset belongs to
 
    The 6th slot:
 	base: nil
@@ -120,15 +121,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
    The 7th slot:
 	base: nil
-	realized: Alist of font index vs the corresponding repertory
-	char-table.
+	realized: If the base is not the default fontset, a fontset
+		  realized from the default fontset, else nil.
 
    The 8th slot:
-	base: nil
-	realized: If the base is not the default fontset, a fontset
-	realized from the default fontset, else nil.
-
-   The 9th slot:
 	base: Same as element value (but for fallback fonts).
 	realized: Likewise.
 
