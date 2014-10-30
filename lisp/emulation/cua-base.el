@@ -277,7 +277,7 @@ enabled."
 
 (defcustom cua-remap-control-v t
   "If non-nil, C-v binding is used for paste (yank).
-Also, M-v is mapped to `cua-repeat-replace-region'."
+Also, M-v is mapped to `delete-selection-repeat-replace-region'."
   :type 'boolean
   :group 'cua)
 
@@ -350,6 +350,8 @@ interpreted as a register number."
   :group 'cua)
 
 (defcustom cua-delete-copy-to-register-0 t
+  ;; FIXME: Obey delete-selection-save-to-register rather than hardcoding
+  ;; register 0.
   "If non-nil, save last deleted region or rectangle to register 0."
   :type 'boolean
   :group 'cua)
@@ -958,48 +960,8 @@ See also `exchange-point-and-mark'."
 	(t
 	 (let (mark-active)
 	   (exchange-point-and-mark)
-	   (if cua--rectangle
-	       (cua--rectangle-corner 0))))))
-
-;; Typed text that replaced the highlighted region.
-(defvar cua--repeat-replace-text nil)
-
-(defun cua-repeat-replace-region (arg)
-  "Repeat replacing text of highlighted region with typed text.
-Searches for the next stretch of text identical to the region last
-replaced by typing text over it and replaces it with the same stretch
-of text."
-  (interactive "P")
-  (when cua--last-deleted-region-pos
-    (with-current-buffer (car cua--last-deleted-region-pos)
-      (save-restriction
-	(widen)
-	;; Find the text that replaced the region via the undo list.
-	(let ((ul buffer-undo-list)
-	      (elt (cdr cua--last-deleted-region-pos))
-	      u s e)
-	  (when elt
-	    (while (consp ul)
-	      (setq u (car ul) ul (cdr ul))
-	      (cond
-	       ((eq u elt) ;; got it
-		(setq ul nil))
-	       ((and (consp u) (integerp (car u)) (integerp (cdr u)))
-		(if (and s (= (cdr u) s))
-		    (setq s (car u))
-		  (setq s (car u) e (cdr u)))))))
-	  (cond ((and s e (<= s e) (= s (mark t)))
-		 (setq cua--repeat-replace-text (cua--filter-buffer-noprops s e)))
-		((and (null s) (eq u elt)) ;; nothing inserted
-		 (setq cua--repeat-replace-text
-		       ""))
-		(t
-		 (message "Cannot locate replacement text"))))))
-    (setq cua--last-deleted-region-pos nil))
-  (if (and cua--last-deleted-region-text
-	   cua--repeat-replace-text
-	   (search-forward cua--last-deleted-region-text nil t nil))
-      (replace-match cua--repeat-replace-text arg t)))
+       (if cua--rectangle
+           (cua--rectangle-corner 0))))))
 
 (defun cua-help-for-region (&optional help)
   "Show region specific help in echo area."
@@ -1333,7 +1295,8 @@ If ARG is the atom `-', scroll upward by nearly full screen."
     (define-key cua--cua-keys-keymap [(control z)] 'undo))
   (when cua-remap-control-v
     (define-key cua--cua-keys-keymap [(control v)] 'yank)
-    (define-key cua--cua-keys-keymap [(meta v)] 'cua-repeat-replace-region))
+    (define-key cua--cua-keys-keymap [(meta v)]
+      'delete-selection-repeat-replace-region))
 
   (define-key cua--prefix-override-keymap [(control x)] 'cua--prefix-override-handler)
   (define-key cua--prefix-override-keymap [(control c)] 'cua--prefix-override-handler)
@@ -1402,6 +1365,7 @@ If ARG is the atom `-', scroll upward by nearly full screen."
 ;;   delete-selection-mode
 
 (defvar cua--saved-state nil)
+(defvar delete-selection-save-to-register)
 
 ;;;###autoload
 (define-minor-mode cua-mode
@@ -1469,6 +1433,8 @@ the prefix fallback behavior."
       (if (and (boundp 'delete-selection-mode) delete-selection-mode)
           (delete-selection-mode -1)))
     (if cua-highlight-region-shift-only (transient-mark-mode -1))
+    (if cua-delete-copy-to-register-0
+        (setq delete-selection-save-to-register ?0))
     (cua--deactivate))
    (cua--saved-state
     (if (nth 0 cua--saved-state)

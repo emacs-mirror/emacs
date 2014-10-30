@@ -1,5 +1,17 @@
-2014-10-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+2014-10-30  Kim F. Storm  <storm@cua.dk>
 
+	Restore cua-delete-copy-to-register-0 and M-v command (bug#18886).
+	* delsel.el (delete-selection-save-to-register)
+	(delsel--replace-text-or-position): New vars.
+	(delete-active-region): Use them.
+	(delete-selection-repeat-replace-region): New command, moved from
+	cua-base.el.
+	* emulation/cua-base.el (cua--repeat-replace-text): Remove var.
+	(cua-repeat-replace-region): Move command to delsel.el.
+	(cua--init-keymaps): Update binding accordingly.
+	(cua-mode): Set delete-selection-save-to-register.
+
+2014-10-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/cc-defs.el (c--macroexpand-all): New function (bug#18845).
 	(c-lang-defconst):

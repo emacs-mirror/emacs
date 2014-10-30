@@ -54,6 +54,10 @@
 
 ;;; Code:
 
+(defvar delete-selection-save-to-register nil
+  "If non-nil, deleted region text is stored in this register.
+Value must be the register (key) to use.")
+
 ;;;###autoload
 (defalias 'pending-delete-mode 'delete-selection-mode)
 
@@ -72,15 +76,77 @@ point regardless of any selection."
       (remove-hook 'pre-command-hook 'delete-selection-pre-hook)
     (add-hook 'pre-command-hook 'delete-selection-pre-hook)))
 
+(defvar delsel--replace-text-or-position nil)
+
 (defun delete-active-region (&optional killp)
   "Delete the active region.
 If KILLP in not-nil, the active region is killed instead of deleted."
-  (if killp
-      ;; Don't allow `kill-region' to change the value of `this-command'.
-      (let (this-command)
-	(kill-region (point) (mark) t))
-    (funcall region-extract-function 'delete-only))
+  (cond
+   (killp
+    ;; Don't allow `kill-region' to change the value of `this-command'.
+    (let (this-command)
+      (kill-region (point) (mark) t)))
+   (delete-selection-save-to-register
+    (set-register delete-selection-save-to-register
+                  (funcall region-extract-function t))
+    (setq delsel--replace-text-or-position
+          (cons (current-buffer)
+                (and (consp buffer-undo-list) (car buffer-undo-list)))))
+   (t
+    (funcall region-extract-function 'delete-only)))
   t)
+
+(defun delete-selection-repeat-replace-region (arg)
+  "Repeat replacing text of highlighted region with typed text.
+Search for the next stretch of text identical to the region last replaced
+by typing text over it and replaces it with the same stretch of text.
+With ARG, repeat that many times.  `C-u' means until end of buffer."
+  (interactive "P")
+  (let ((old-text (and delete-selection-save-to-register
+                       (get-register delete-selection-save-to-register)))
+        (count (if (consp arg) (point-max)
+                 (prefix-numeric-value current-prefix-arg))))
+    (if (not (and old-text
+                  (> (length old-text) 0)
+                  (or (stringp delsel--replace-text-or-position)
+                      (buffer-live-p (car delsel--replace-text-or-position)))))
+        (message "No known previous replacement")
+      ;; If this is the first use after overwriting regions,
+      ;; find the replacement text by looking at the undo list.
+      (when (consp delsel--replace-text-or-position)
+        (let ((buffer (car delsel--replace-text-or-position))
+              (elt (cdr delsel--replace-text-or-position)))
+          (setq delsel--replace-text-or-position nil)
+          (with-current-buffer buffer
+            (save-restriction
+              (widen)
+              ;; Find the text that replaced the region via the undo list.
+              (let ((ul buffer-undo-list) u s e)
+                (when elt
+                  (while (consp ul)
+                    (setq u (car ul) ul (cdr ul))
+                    (cond
+                     ((eq u elt) ;; got it
+                      (setq ul nil))
+                     ((and (consp u) (integerp (car u)) (integerp (cdr u)))
+                      (if (and s (= (cdr u) s))
+                          (setq s (car u))
+                        (setq s (car u) e (cdr u)))))))
+                (cond ((and s e (<= s e) (= s (mark t)))
+                       (setq delsel--replace-text-or-position
+                             (filter-buffer-substring s e))
+                       (set-text-properties
+                        0 (length delsel--replace-text-or-position)
+                        nil delsel--replace-text-or-position))
+                      ((and (null s) (eq u elt)) ;; Nothing inserted.
+                       (setq delsel--replace-text-or-position ""))
+                      (t
+                       (message "Cannot locate replacement text"))))))))
+      (while (and (> count 0)
+                  delsel--replace-text-or-position
+                  (search-forward old-text nil t))
+        (replace-match delsel--replace-text-or-position nil t)
+        (setq count (1- count))))))
 
 (defun delete-selection-helper (type)
   "Delete selection according to TYPE:
