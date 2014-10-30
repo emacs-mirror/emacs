@@ -1,3 +1,7 @@
+2014-10-30  Samuel Bronson  <naesten@gmail.com>
+
+	* unexmacosx.c (copy_data_segment): Port to GCC 4.6+ (Bug#9927).
+
 2014-10-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* fileio.c (Fexpand_file_name): Use make_unibyte_string, not

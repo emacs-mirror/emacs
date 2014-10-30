@@ -881,6 +881,27 @@ copy_data_segment (struct load_command *lc)
 	  if (!unexec_write (header_offset, sectp, sizeof (struct section)))
 	    unexec_error ("cannot write section %.16s's header", sectp->sectname);
 	}
+      else if (strncmp (sectp->sectname, "__bss", 5) == 0
+	       || strncmp (sectp->sectname, "__pu_bss", 8) == 0)
+	{
+	  sectp->flags = S_REGULAR;
+
+	  /* These sections are produced by GCC 4.6+.
+
+	     FIXME: We possibly ought to clear uninitialized local
+	     variables in statically linked libraries like for
+	     SECT_BSS (__bss) above, but setting up the markers we
+	     need in lastfile.c would be rather messy. See
+	     darwin_output_aligned_bss () in gcc/config/darwin.c for
+	     the root of the problem, keeping in mind that the
+	     sections are numbered by their alignment in GCC 4.6, but
+	     by log2(alignment) in GCC 4.7. */
+
+	  if (!unexec_write (sectp->offset, (void *) sectp->addr, sectp->size))
+	    unexec_error ("cannot copy section %.16s", sectp->sectname);
+	  if (!unexec_write (header_offset, sectp, sizeof (struct section)))
+	    unexec_error ("cannot write section %.16s's header", sectp->sectname);
+	}
       else if (strncmp (sectp->sectname, "__la_symbol_ptr", 16) == 0
 	       || strncmp (sectp->sectname, "__nl_symbol_ptr", 16) == 0
 	       || strncmp (sectp->sectname, "__got", 16) == 0
@@ -892,6 +913,7 @@ copy_data_segment (struct load_command *lc)
 	       || strncmp (sectp->sectname, "__program_vars", 16) == 0
 	       || strncmp (sectp->sectname, "__mod_init_func", 16) == 0
 	       || strncmp (sectp->sectname, "__mod_term_func", 16) == 0
+	       || strncmp (sectp->sectname, "__static_data", 16) == 0
 	       || strncmp (sectp->sectname, "__objc_", 7) == 0)
 	{
 	  if (!unexec_copy (sectp->offset, old_file_offset, sectp->size))
