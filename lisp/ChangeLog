@@ -46,7 +46,7 @@
 	`smerge-refined-change'.
 	(smerge-refined-change): Add obsolete face alias.
 
-2014-09-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+2014-10-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* subr.el (call-process-shell-command, process-file-shell-command):
 	Make the `args' obsolete (bug#18409).
