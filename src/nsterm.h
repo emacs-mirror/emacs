@@ -393,7 +393,7 @@ typedef float EmacsCGFloat;
 
 @interface EmacsScroller : NSScroller
   {
-   Lisp_Object win;
+   struct window *window;
    struct frame *frame;
    NSResponder *prevResponder;
 
@@ -418,8 +418,6 @@ typedef float EmacsCGFloat;
 - setPosition: (int) position portion: (int) portion whole: (int) whole;
 - (int) checkSamePosition: (int)position portion: (int)portion
                     whole: (int)whole;
-- (void) getMouseMotionPart: (int *)part window: (Lisp_Object *)window
-                          x: (Lisp_Object *)x y: ( Lisp_Object *)y;
 - (void) sendScrollEventAtLoc: (float)loc fromEvent: (NSEvent *)e;
 - repeatScroll: (NSTimer *)sender;
 - condemn;
@@ -685,8 +683,8 @@ struct ns_output
      value contains an ID of the fontset, else -1.  */
   int fontset; /* only used with font_backend */
 
-  Lisp_Object icon_top;
-  Lisp_Object icon_left;
+  int icon_top;
+  int icon_left;
 
   /* The size of the extra width currently allotted for vertical
      scroll bars, in pixels.  */

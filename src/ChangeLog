@@ -1,3 +1,17 @@
+2014-10-30  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.h (EmacsScroller): Replace Lisp_Object win with
+	struct window* (Bug#18889).
+	Remove getMouseMotionPart.
+	(ns_output): Make icon_top/left int.
+
+	* nsfns.m (x_icon): icon_top/left is int.
+
+	* nsterm.m (ns_mouse_position): Remove unused code.
+	(initFrame:window:, dealloc): Use window instead of win.
+	(getMouseMotionPart:window:x:y:): Remove, unused.
+	(sendScrollEventAtLoc:fromEvent:): Make Lisp_Object win from window.
+
 2014-10-30  Samuel Bronson  <naesten@gmail.com>
 
 	* unexmacosx.c (copy_data_segment): Port to GCC 4.6+ (Bug#9927).

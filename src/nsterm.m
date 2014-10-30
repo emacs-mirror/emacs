@@ -1902,51 +1902,37 @@ ns_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 
   block_input ();
 
-  if (dpyinfo->last_mouse_scroll_bar != nil && insist == 0)
-    {
-      /* TODO: we do not use this path at the moment because drag events will
-           go directly to the EmacsScroller.  Leaving code in for now. */
-      [dpyinfo->last_mouse_scroll_bar
-	  getMouseMotionPart: (int *)part window: bar_window x: x y: y];
-      if (time)
-	*time = dpyinfo->last_mouse_movement_time;
-      dpyinfo->last_mouse_scroll_bar = nil;
-    }
+  /* Clear the mouse-moved flag for every frame on this display.  */
+  FOR_EACH_FRAME (tail, frame)
+    if (FRAME_NS_P (XFRAME (frame))
+        && FRAME_NS_DISPLAY (XFRAME (frame)) == FRAME_NS_DISPLAY (*fp))
+      XFRAME (frame)->mouse_moved = 0;
+
+  dpyinfo->last_mouse_scroll_bar = nil;
+  if (dpyinfo->last_mouse_frame
+      && FRAME_LIVE_P (dpyinfo->last_mouse_frame))
+    f = dpyinfo->last_mouse_frame;
   else
+    f = dpyinfo->x_focus_frame ? dpyinfo->x_focus_frame : SELECTED_FRAME ();
+
+  if (f && FRAME_NS_P (f))
     {
-      /* Clear the mouse-moved flag for every frame on this display.  */
-      FOR_EACH_FRAME (tail, frame)
-        if (FRAME_NS_P (XFRAME (frame))
-            && FRAME_NS_DISPLAY (XFRAME (frame)) == FRAME_NS_DISPLAY (*fp))
-          XFRAME (frame)->mouse_moved = 0;
+      view = FRAME_NS_VIEW (*fp);
 
-      dpyinfo->last_mouse_scroll_bar = nil;
-      if (dpyinfo->last_mouse_frame
-	  && FRAME_LIVE_P (dpyinfo->last_mouse_frame))
-        f = dpyinfo->last_mouse_frame;
-      else
-        f = dpyinfo->x_focus_frame ? dpyinfo->x_focus_frame
-                                    : SELECTED_FRAME ();
-
-      if (f && FRAME_NS_P (f))
-        {
-          view = FRAME_NS_VIEW (*fp);
-
-          position = [[view window] mouseLocationOutsideOfEventStream];
-          position = [view convertPoint: position fromView: nil];
-          remember_mouse_glyph (f, position.x, position.y,
-				&dpyinfo->last_mouse_glyph);
+      position = [[view window] mouseLocationOutsideOfEventStream];
+      position = [view convertPoint: position fromView: nil];
+      remember_mouse_glyph (f, position.x, position.y,
+                            &dpyinfo->last_mouse_glyph);
 /*fprintf (stderr, "ns_mouse_position: %.0f, %.0f\n", position.x, position.y); */
 
-          if (bar_window) *bar_window = Qnil;
-          if (part) *part = 0; /*scroll_bar_handle; */
+      if (bar_window) *bar_window = Qnil;
+      if (part) *part = 0; /*scroll_bar_handle; */
 
-          if (x) XSETINT (*x, lrint (position.x));
-          if (y) XSETINT (*y, lrint (position.y));
-          if (time)
-	    *time = dpyinfo->last_mouse_movement_time;
-          *fp = f;
-        }
+      if (x) XSETINT (*x, lrint (position.x));
+      if (y) XSETINT (*y, lrint (position.y));
+      if (time)
+        *time = dpyinfo->last_mouse_movement_time;
+      *fp = f;
     }
 
   unblock_input ();
@@ -7121,13 +7107,13 @@ if (cols > 0 && rows > 0)
   [self setAutoresizingMask: NSViewMinXMargin | NSViewHeightSizable];
 #endif
 
-  win = nwin;
+  window = XWINDOW (nwin);
   condemned = NO;
   pixel_height = NSHeight (r);
   if (pixel_height == 0) pixel_height = 1;
   min_portion = 20 / pixel_height;
 
-  frame = XFRAME (XWINDOW (win)->frame);
+  frame = XFRAME (window->frame);
   if (FRAME_LIVE_P (frame))
     {
       int i;
@@ -7165,8 +7151,9 @@ if (cols > 0 && rows > 0)
 - (void)dealloc
 {
   NSTRACE (EmacsScroller_dealloc);
-  if (!NILP (win))
-    wset_vertical_scroll_bar (XWINDOW (win), Qnil);
+  if (window)
+    wset_vertical_scroll_bar (window, Qnil);
+  window = 0;
   [super dealloc];
 }
 
@@ -7265,30 +7252,17 @@ if (cols > 0 && rows > 0)
   return self;
 }
 
-/* FIXME: unused at moment (see ns_mouse_position) at the moment because
-     drag events will go directly to the EmacsScroller.  Leaving in for now. */
--(void)getMouseMotionPart: (int *)part window: (Lisp_Object *)window
-                        x: (Lisp_Object *)x y: ( Lisp_Object *)y
-{
-  *part = last_hit_part;
-  *window = win;
-  XSETINT (*y, pixel_height);
-  if ([self floatValue] > 0.999F)
-    XSETINT (*x, pixel_height);
-  else
-    XSETINT (*x, pixel_height * [self floatValue]);
-}
-
-
 /* set up emacs_event */
 - (void) sendScrollEventAtLoc: (float)loc fromEvent: (NSEvent *)e
 {
+  Lisp_Object win;
   if (!emacs_event)
     return;
 
   emacs_event->part = last_hit_part;
   emacs_event->code = 0;
   emacs_event->modifiers = EV_MODIFIERS (e) | down_modifier;
+  XSETWINDOW (win, window);
   emacs_event->frame_or_window = win;
   emacs_event->timestamp = EV_TIMESTAMP (e);
   emacs_event->kind = SCROLL_BAR_CLICK_EVENT;

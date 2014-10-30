@@ -913,8 +913,8 @@ x_icon (struct frame *f, Lisp_Object parms)
   Lisp_Object icon_x, icon_y;
   struct ns_display_info *dpyinfo = check_ns_display_info (Qnil);
 
-  f->output_data.ns->icon_top = Qnil;
-  f->output_data.ns->icon_left = Qnil;
+  f->output_data.ns->icon_top = -1;
+  f->output_data.ns->icon_left = -1;
 
   /* Set the position of the icon.  */
   icon_x = x_get_arg (dpyinfo, parms, Qicon_left, 0, 0, RES_TYPE_NUMBER);
@@ -923,8 +923,8 @@ x_icon (struct frame *f, Lisp_Object parms)
     {
       CHECK_NUMBER (icon_x);
       CHECK_NUMBER (icon_y);
-      f->output_data.ns->icon_top = icon_y;
-      f->output_data.ns->icon_left = icon_x;
+      f->output_data.ns->icon_top = XINT (icon_y);
+      f->output_data.ns->icon_left = XINT (icon_x);
     }
   else if (!EQ (icon_x, Qunbound) || !EQ (icon_y, Qunbound))
     error ("Both left and top icon corners of icon must be specified");
