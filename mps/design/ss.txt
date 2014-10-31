@@ -110,6 +110,14 @@ introduces a dependency on that library.
 
 .. _here: http://stackoverflow.com/questions/3592914/how-can-i-implement-cooperative-lightweight-threading-with-c-on-mac-os-x
 
+_`.sol.entry-points.fragile`: The analysis of which entry points might
+need to save the context (see `.anal.entry-points`_ below) is fragile.
+It might be incorrect now, or become incomplete if we refactor the
+internals of tracing and polling. As a defence against errors of this
+form, ``StackScan()`` asserts that the context was saved, but if the
+client program continues from the assertion, it saves the context
+anyway and continues.
+
 
 Analysis
 --------
@@ -196,11 +204,16 @@ actually the lowest stack address.
 
 ``Res StackScan(ScanState ss, Addr *stackBot)``
 
-_`.if.scan`: Scan the stack between ``stackBot`` and the "top" of the
-mutator's stack that was recorded by ``STACK_CONTEXT_BEGIN()`` when
-the arena was entered. Also scan any roots which were in the mutator's
-callee-save registers at that point. Return ``ResOK`` if successful,
-or another result code if not.
+_`.if.scan`: Scan the stack of the current thread, between
+``stackBot`` and the "top" of the mutator's stack that was recorded by
+``STACK_CONTEXT_BEGIN()`` when the arena was entered. Also scan any
+roots which were in the mutator's callee-save registers at that point.
+Return ``ResOK`` if successful, or another result code if not. See the
+platform-specific implementation of ``StackContextScan()`` for the
+exact registers which are scanned.
+
+_`.if.scan.bottom`: Note that the word pointed to by ``stackBot`` is
+not fixed.
 
 ``STACK_CONTEXT_SAVE(StackContext sc)``
 
