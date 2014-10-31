@@ -1,3 +1,8 @@
+2014-10-31  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* emacs.c (main): Don't chdir to $HOME on Cocoa if --chdir
+	was given (Bug#18846).
+
 2014-10-30  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.h (ns_set_doc_edited): Declare taking no args.
