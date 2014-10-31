@@ -3944,29 +3944,37 @@ usage: (font-spec ARGS...)  */)
   return spec;
 }
 
-/* Return a copy of FONT as a font-spec.  */
+/* Return a copy of FONT as a font-spec.  For the sake of speed, this code
+   relies on an internal stuff exposed from alloc.c and should be handled
+   with care. */
+
 Lisp_Object
 copy_font_spec (Lisp_Object font)
 {
-  Lisp_Object new_spec, tail, prev, extra;
-  int i;
+  enum { font_spec_size = VECSIZE (struct font_spec) };
+  Lisp_Object new_spec, tail, *pcdr;
+  struct font_spec *spec;
 
   CHECK_FONT (font);
-  new_spec = font_make_spec ();
-  for (i = 1; i < FONT_EXTRA_INDEX; i++)
-    ASET (new_spec, i, AREF (font, i));
-  extra = Fcopy_alist (AREF (font, FONT_EXTRA_INDEX));
-  /* We must remove :font-entity property.  */
-  for (prev = Qnil, tail = extra; CONSP (tail); prev = tail, tail = XCDR (tail))
-    if (EQ (XCAR (XCAR (tail)), QCfont_entity))
-      {
-	if (NILP (prev))
-	  extra = XCDR (extra);
-	else
-	  XSETCDR (prev, XCDR (tail));
-	break;
-      }
-  ASET (new_spec, FONT_EXTRA_INDEX, extra);
+
+  /* Make an uninitialized font-spec object.  */
+  spec = (struct font_spec *) allocate_vector (font_spec_size);
+  XSETPVECTYPESIZE (spec, PVEC_FONT, FONT_SPEC_MAX,
+		    font_spec_size - FONT_SPEC_MAX);
+
+  spec->props[FONT_TYPE_INDEX] = spec->props[FONT_EXTRA_INDEX] = Qnil;
+
+  /* Copy basic properties FONT_FOUNDRY_INDEX..FONT_AVGWIDTH_INDEX.  */
+  memcpy (spec->props + 1, XVECTOR (font)->contents + 1,
+	  (FONT_EXTRA_INDEX - 1) * word_size);
+
+  /* Copy an alist of extra information but discard :font-entity property.  */
+  pcdr = spec->props + FONT_EXTRA_INDEX;
+  for (tail = AREF (font, FONT_EXTRA_INDEX); CONSP (tail); tail = XCDR (tail))
+    if (!EQ (XCAR (XCAR (tail)), QCfont_entity))
+      *pcdr = Fcons (XCAR (tail), Qnil), pcdr = xcdr_addr (*pcdr);
+
+  XSETFONT (new_spec, spec);
   return new_spec;
 }
 
