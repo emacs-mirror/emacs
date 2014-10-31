@@ -4,7 +4,7 @@
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * This module saves the mutator context on entry to the MPS, and
- * provides functsions for decoding the context and scanning the root
+ * provides functions for decoding the context and scanning the root
  * registers. See <design/ss/>.
  */
 

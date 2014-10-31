@@ -212,9 +212,6 @@ Return ``ResOK`` if successful, or another result code if not. See the
 platform-specific implementation of ``StackContextScan()`` for the
 exact registers which are scanned.
 
-_`.if.scan.bottom`: Note that the word pointed to by ``stackBot`` is
-not fixed.
-
 ``STACK_CONTEXT_SAVE(StackContext sc)``
 
 _`.if.save`: Store the mutator context in the structure ``sc``.
