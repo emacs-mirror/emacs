@@ -211,12 +211,12 @@ update-subdirs: doit
 # Some modes of make-dist use this.
 updates: update-subdirs autoloads finder-data custom-deps
 
-# This is useful after a repostiory fetch; but it doesn't do anything that a
-# plain "make" at top-level doesn't.
-# The only difference between this and this directory's "all" rule
-# is that this runs "autoloads" as well (because it uses "compile"
-# rather than "compile-main").  In a bootstrap, $(lisp) in src/Makefile
-# triggers this directory's autoloads rule.
+# This is useful after updating from the repository; but it doesn't do
+# anything that a plain "make" at top-level doesn't.  The only
+# difference between this and this directory's "all" rule is that this
+# runs "autoloads" as well (because it uses "compile" rather than
+# "compile-main").  In a bootstrap, $(lisp) in src/Makefile triggers
+# this directory's autoloads rule.
 repo-update: compile finder-data custom-deps
 
 # Update the AUTHORS file.

@@ -1,3 +1,8 @@
+2014-10-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (repo-update): Fix a typo and slightly reword
+	commentary.
+
 2014-10-31  Glenn Morris  <rgm@gnu.org>
 
 	* version.el (emacs-bzr-version, emacs-bzr-get-version):

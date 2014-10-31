@@ -1,3 +1,9 @@
+2014-10-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* notes/repo (Notes): Reword the stylistic guidance for commit log
+	messages so that they are in line with Emacs development practices
+	and style guidance.
+
 2014-10-31  Eric S. Raymond  <esr@thyrsus.com>
 
 	* notes/bzr: Renamed to notes/repo, reorganixed to separate
