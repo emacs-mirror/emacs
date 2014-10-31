@@ -14,12 +14,12 @@ SRCID(ssan, "$Id$");
 
 
 /* StackContextStackTop -- return the "top" of the mutator's stack at
- * the point when the context was saved by STACK_CONTEXT_BEGIN.
+ * the point when the context was saved by STACK_CONTEXT_SAVE.
  *
  * .assume: This assumes that the structure pointed to by sc is
  * stack-allocated "above" the mutator's stack, and so its address is
  * a conservative approximation to the top of the mutator's stack. The
- * use of STACK_CONTEXT_BEGIN in mpsi.c assures this.
+ * use of STACK_CONTEXT_SAVE in mpsi.c assures this.
  */
 
 Addr *StackContextStackTop(StackContext sc)
