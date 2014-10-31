@@ -1,3 +1,9 @@
+2014-10-31  Eric S. Raymond  <esr@thyrsus.com>
+
+	* efaq-w32.texi: Neutralized language specific to a repository type.
+
+	* gnus-coding.txt: Neutralized language specific to a repository type.
+
 2014-10-30  Glenn Morris  <rgm@gnu.org>
 
 	* efaq.texi (Gnus does not work with NNTP): Remove; ancient.

@@ -18,7 +18,7 @@ formal parameters, docstrings, and lispref texi.
 This program is in the public domain.\n";
 
 die $usage if @ARGV;
-die $usage unless -r "src/alloc.c" && -d ".bzr" && -d "lisp";
+die $usage unless -r "src/alloc.c" && -d "lisp";
 
 my %texi_funtype;
 my %texi_arglist;

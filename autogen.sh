@@ -1,5 +1,5 @@
 #!/bin/sh
-### autogen.sh - tool to help build Emacs from a bzr checkout
+### autogen.sh - tool to help build Emacs from a repository checkout
 
 ## Copyright (C) 2011-2014 Free Software Foundation, Inc.
 
@@ -23,8 +23,8 @@
 
 ### Commentary:
 
-## The Emacs bzr repository does not include the configure script
-## (and associated helpers).  The first time you fetch Emacs from bzr,
+## The Emacs repository does not include the configure script (and
+## associated helpers).  The first time you fetch Emacs from the repo,
 ## run this script to generate the necessary files.
 ## For more details, see the file INSTALL.REPO.
 
@@ -143,7 +143,7 @@ if [ x"$missing" != x ]; then
 
     cat <<EOF
 
-Building Emacs from Bzr requires the following specialized programs:
+Building Emacs from the repository requires the following specialized programs:
 EOF
 
     for prog in $progs; do

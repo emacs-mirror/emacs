@@ -126,7 +126,7 @@
     http://sourceforge.net/projects/ezwinports/files/
 
   In addition to this file, if you build a development snapshot, you
-  should also read INSTALL.BZR in the parent directory.
+  should also read INSTALL.REPO in the parent directory.
 
 * Supported development environments
 
@@ -575,7 +575,7 @@
 * Creating binary distributions
 
   Binary distributions (full and barebin distributions) can be
-  automatically built and packaged from source tarballs or a bzr
+  automatically built and packaged from source tarballs or a repository
   checkout.
 
   When building Emacs binary distributions, the --distfiles argument

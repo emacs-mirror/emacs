@@ -206,18 +206,18 @@ update-subdirs: doit
 	   $(srcdir)/../build-aux/update-subdirs $$file; \
 	done;
 
-.PHONY: updates bzr-update update-authors
+.PHONY: updates repo-update update-authors
 
 # Some modes of make-dist use this.
 updates: update-subdirs autoloads finder-data custom-deps
 
-# This is useful after "bzr up"; but it doesn't do anything that a
+# This is useful after a repostiory fetch; but it doesn't do anything that a
 # plain "make" at top-level doesn't.
 # The only difference between this and this directory's "all" rule
 # is that this runs "autoloads" as well (because it uses "compile"
 # rather than "compile-main").  In a bootstrap, $(lisp) in src/Makefile
 # triggers this directory's autoloads rule.
-bzr-update: compile finder-data custom-deps
+repo-update: compile finder-data custom-deps
 
 # Update the AUTHORS file.
 

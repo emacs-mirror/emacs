@@ -986,10 +986,8 @@ version; three components indicate a development
 version (e.g., @samp{23.0.50} is what will eventually become @samp{23.1}).
 
 Emacs is under active development, hosted at
-@uref{http://savannah.gnu.org/projects/emacs/, Savannah}.  The source
-code can be retrieved anonymously following the
-@uref{http://savannah.gnu.org/bzr/?group=emacs, instructions}.
-The repository is GNU Bazaar.
+@uref{http://savannah.gnu.org/projects/emacs/, Savannah}.
+Follow the instructions given there to clone the project repository.
 
 Because Emacs undergoes many changes before a release, the version
 number of a development version is not especially meaningful.  It is

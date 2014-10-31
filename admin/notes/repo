@@ -1,6 +1,39 @@
-NOTES ON COMMITTING TO EMACS'S BAZAAR REPO    -*- outline -*-
+NOTES ON COMMITTING TO EMACS'S REPOSITORY    -*- outline -*-
+
+* Commit to the right branch
+
+You can view the available Emacs branches at
+
+http://bzr.savannah.gnu.org/r/emacs/
+
+Development normally takes places on the trunk.
+Sometimes specialized features are developed on separate branches
+before possibly being merged to the trunk.
+
+Development is discussed on the emacs-devel mailing list.
+
+Sometime before the release of a new major version of Emacs
+a "feature freeze" is imposed on the trunk.  No new features may be
+added after this point.  This is usually some months before the release.
+
+Shortly before the release, a release branch is created, and the
+trunk is then free for development.
+
+For example, "emacs-23" for Emacs 23.2 and later, "EMACS_23_1_RC" for
+23.1, "EMACS_22_BASE" for 22.x, and "EMACS_21_1_RC" for 21.x.
+
+Consult emacs-devel for exactly what kinds of changes are allowed
+on what branch at any time.
+
+** elpa
+
+This branch does not contain a copy of Emacs, but of the Emacs Lisp
+package archive (elpa.gnu.org).  See admin/notes/elpa for further
+explanation, and the README file in the branch for usage
+instructions.
 
 * Install changes only on one branch, let them get merged elsewhere if needed.
+
 In particular, install bug-fixes only on the release branch (if there
 is one) and let them get synced to the trunk; do not install them by
 hand on the trunk as well.  E.g. if there is an active "emacs-24" branch
@@ -19,6 +52,7 @@ and branch yourself (when committing the branch change, indicate
 in the commit log that it should not be merged to the trunk; see below).
 
 * Backporting a bug-fix from the trunk to a branch (e.g. "emacs-24").
+
 Indicate in the commit log that there is no need to merge the commit
 to the trunk.  Anything that matches `bzrmerge-skip-regexp' will do;
 eg start the commit message with "Backport:".  This is helpful for the
@@ -27,6 +61,7 @@ person merging the release branch to the trunk.
 http://lists.gnu.org/archive/html/emacs-devel/2010-05/msg00262.html
 
 * Installing changes from your personal branches.
+
 If your branch has only a single commit, or many different real
 commits, it is fine to do a merge.  If your branch has only a very
 small number of "real" commits, but several "merge from trunks", it is
@@ -47,6 +82,7 @@ yet another fun excursion into the exciting world of version control.
 http://lists.gnu.org/archive/html/emacs-devel/2010-04/msg00086.html
 
 * Installing changes from gnulib
+
 Some of the files in Emacs are copied from gnulib.  To synchronize
 these files from the version of gnulib that you have checked out into
 a sibling directory of your branch, type "admin/merge-gnulib"; this

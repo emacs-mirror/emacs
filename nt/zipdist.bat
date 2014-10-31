@@ -36,7 +36,7 @@ goto EXIT
 
 rem Build and verify the binary distribution
 :ZIP_DIST
-7z a -bd -tZIP -mx=9 -x!.bzrignore -x!.gitignore -xr!emacs.mdp -xr!*.pdb -xr!*.opt -xr!*~ -xr!CVS -xr!.arch-inventory emacs-%EMACS_VER%-bin-i386.zip %TMP_DIST_DIR%
+7z a -bd -tZIP -mx=9 -x!.gitignore -xr!emacs.mdp -xr!*.pdb -xr!*.opt -xr!*~ -xr!CVS -xr!.arch-inventory emacs-%EMACS_VER%-bin-i386.zip %TMP_DIST_DIR%
 7z t emacs-%EMACS_VER%-bin-i386.zip
 goto EXIT
 

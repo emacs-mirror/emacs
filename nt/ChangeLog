@@ -1,3 +1,7 @@
+2014-10-31  Eric S. Raymond  <esr@thyrsus.com>
+
+	* Neutralize language specific to a repository type.
+
 2014-10-26  Dani Moncayo <dmoncayo@gmail.com>
 
 	* README.W32 (Preliminaries): Don't assume that this file is at

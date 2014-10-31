@@ -257,11 +257,11 @@ update-subdirs-SH: doit
 
 updates: $(lisp)/subdirs.el autoloads mh-autoloads finder-data custom-deps
 
-# This is useful after "bzr up".
-bzr-update: recompile autoloads finder-data custom-deps
+# This is useful after a repository fetch.
+repo-update: recompile autoloads finder-data custom-deps
 
 # For backwards compatibility:
-cvs-update: bzr-update
+cvs-update: repo-update
 
 # Update the AUTHORS file.
 

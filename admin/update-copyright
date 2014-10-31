@@ -45,14 +45,15 @@ sed 's/\\def\\year[{][0-9]*[}]/\\def\\year{'"$UPDATE_COPYRIGHT_YEAR"'}'/g \
 } &&
 rm $emacsver.aux &&
 
-bzr_files=$(bzr ls -RV --kind file) &&
+# FIXME: command will soon need to be replaced with "git ls-files"
+repo_files=$(bzr ls -RV --kind file) &&
 
 # Do not update the copyright of files that have one or more of the
 # following problems:
 # . They are license files, maintained by the FSF, with their own dates.
 # . Their format cannot withstand changing the contents of copyright strings.
 
-updatable_files=$(find $bzr_files \
+updatable_files=$(find $repo_files \
   ! -name COPYING \
   ! -name doclicense.texi \
   ! -name gpl.texi \

@@ -1,3 +1,8 @@
+2014-10-31  Eric S. Raymond  <esr@thyrsus.com>
+
+	* Makefile.in: Change some production names so they're neutral
+	about the repository type.
+
 2014-10-30  Kim F. Storm  <storm@cua.dk>
 
 	Restore cua-delete-copy-to-register-0 and M-v command (bug#18886).
