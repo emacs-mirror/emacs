@@ -55,7 +55,7 @@ typedef struct __JUMP_BUFFER {
 
 Addr *StackContextStackTop(StackContext sc)
 {
-  _JUMP_BUFFER *jb = &sc->jumpBuffer;
+  _JUMP_BUFFER *jb = (_JUMP_BUFFER *)&sc->jumpBuffer;
   Addr **p_esp = (void *)&jb->Esp;
   return *p_esp;
 }
@@ -66,11 +66,12 @@ Addr *StackContextStackTop(StackContext sc)
 Res StackContextScan(ScanState ss, StackContext sc)
 {
   /* .assume.ms-compat */
-  _JUMP_BUFFER *jb = &sc->jumpBuffer;
+  _JUMP_BUFFER *jb = (_JUMP_BUFFER *)&sc->jumpBuffer;
   Addr *p_ebx = (void *)&jb->Ebx;
 
   /* Ensure that the callee-save registers will be found by
-     StackScanInner when it's passed the address of the Ebx field. */
+     TraceScanAreaTagged when it's passed the address of the Ebx
+     field. */
   AVER(offsetof(_JUMP_BUFFER, Edi) == offsetof(_JUMP_BUFFER, Ebx) + 4);
   AVER(offsetof(_JUMP_BUFFER, Esi) == offsetof(_JUMP_BUFFER, Ebx) + 8);
 

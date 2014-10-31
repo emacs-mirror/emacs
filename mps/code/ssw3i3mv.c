@@ -30,7 +30,7 @@ SRCID(ssw3i3mv, "$Id$");
 
 Addr *StackContextStackTop(StackContext sc)
 {
-  _JUMP_BUFFER *jb = &sc->jumpBuffer;
+  _JUMP_BUFFER *jb = (_JUMP_BUFFER *)&sc->jumpBuffer;
   Addr **p_esp = (void *)&jb->Esp;
   return *p_esp;
 }
@@ -40,7 +40,7 @@ Addr *StackContextStackTop(StackContext sc)
 
 Res StackContextScan(ScanState ss, StackContext sc)
 {
-  _JUMP_BUFFER *jb = &sc->jumpBuffer;
+  _JUMP_BUFFER *jb = (_JUMP_BUFFER *)&sc->jumpBuffer;
   Addr *p_ebx = (void *)&jb->Ebx;
 
   /* These checks will just serve to warn us at compile-time if the
