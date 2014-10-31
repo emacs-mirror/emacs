@@ -1,3 +1,8 @@
+2014-10-31  Glenn Morris  <rgm@gnu.org>
+
+	* version.el (emacs-bzr-version, emacs-bzr-get-version):
+	Revert 2014-10-31 change.
+
 2014-10-31  Eric S. Raymond  <esr@thyrsus.com>
 
 	* version.el: Fix some fallback values to conform to the actual
