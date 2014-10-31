@@ -74,6 +74,14 @@ mail.richard.2012-08-03.14-36_.
 _`.sol.entry-points`: To meet `.req.stack.entry`_, the mutator's
 registers and stack must be recorded when the mutator enters the MPS.
 
+_`.sol.entry-points.fragile`: The analysis of which entry points might
+need to save the context (see `.anal.entry-points`_ below) is fragile.
+It might be incorrect now, or become incomplete if we refactor the
+internals of tracing and polling. As a defence against errors of this
+form, ``StackScan()`` asserts that the context was saved, but if the
+client program continues from the assertion, it saves the context
+anyway and continues.
+
 _`.sol.registers`: Implementations spill the root registers onto the
 stack so that they can be scanned there.
 
@@ -109,14 +117,6 @@ libunwind (see here_), but that produces deprecation warnings and
 introduces a dependency on that library.
 
 .. _here: http://stackoverflow.com/questions/3592914/how-can-i-implement-cooperative-lightweight-threading-with-c-on-mac-os-x
-
-_`.sol.entry-points.fragile`: The analysis of which entry points might
-need to save the context (see `.anal.entry-points`_ below) is fragile.
-It might be incorrect now, or become incomplete if we refactor the
-internals of tracing and polling. As a defence against errors of this
-form, ``StackScan()`` asserts that the context was saved, but if the
-client program continues from the assertion, it saves the context
-anyway and continues.
 
 
 Analysis
