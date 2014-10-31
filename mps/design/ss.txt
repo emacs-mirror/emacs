@@ -30,6 +30,11 @@ design.mps.thread-manager.if.scan_.
 
 .. _design.mps.thread-manager.if.scan: thread-manager#if.scan
 
+_`.origin`: This design was originally proposed in
+mail.richard.2012-08-03.14-36_.
+
+.. _mail.richard.2012-08-03.14-36: https://info.ravenbrook.com/mail/2012/08/03/14-36-35/0/
+
 
 Requirements
 ------------
@@ -37,8 +42,6 @@ Requirements
 _`.req.stack.top`: Must locate the top of the mutator's stack. (This
 is needed for conservative garbage collection of uncooperative code,
 where references might be stored by mutator on its stack, to work.)
-
-.. _job003525: http://www.ravenbrook.com/project/mps/issue/job003525/
 
 _`.req.stack.bottom.not`: There is no requirement to locate the bottom
 of the stack. (The mutator supplies this as an argument to
@@ -55,6 +58,8 @@ at the point where it enters the MPS. (This avoids scanning registers
 and stack that belong to the MPS rather than the mutator, leading to
 unnecessary pinning and zone pollution; see job003525_.)
 
+.. _job003525: http://www.ravenbrook.com/project/mps/issue/job003525/
+
 _`.req.setjmp`: The implementation must follow the C Standard in its
 use of the ``setjmp`` macro. (So that it is reliable and portable.)
 
@@ -65,11 +70,6 @@ that don't support this.)
 
 Design
 ------
-
-_`.origin`: The design was originally proposed in
-mail.richard.2012-08-03.14-36_.
-
-.. _mail.richard.2012-08-03.14-36: https://info.ravenbrook.com/mail/2012/08/03/14-36-35/0/
 
 _`.sol.entry-points`: To meet `.req.stack.entry`_, the mutator's
 registers and stack must be recorded when the mutator enters the MPS.
