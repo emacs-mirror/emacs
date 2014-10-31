@@ -1,5 +1,10 @@
 2014-10-31  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* macfont.m (macfont_glyph_extents): Turn off syntetic bold
+	if force_integral_p (i.e. no antialias).
+	(macfont_draw): Check ns_antialias_text, also turn off syntetic
+	bold if no antialias (Bug#18876).
+
 	* emacs.c (main): Don't chdir to $HOME on Cocoa if --chdir
 	was given (Bug#18846).
 
