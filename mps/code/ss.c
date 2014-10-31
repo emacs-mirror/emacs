@@ -46,7 +46,7 @@ Res StackScan(ScanState ss, Addr *stackBot)
   AVERT(ScanState, ss);
   arena = ss->arena;
 
-  /* See <design/ss/#anal.entry-points> */
+  /* See <design/ss/#sol.entry-points.fragile> */
   AVER(arena->scAtArenaEnter);
   if (arena->scAtArenaEnter) {
     res = stackScanInner(arena, ss, stackBot, arena->scAtArenaEnter);
