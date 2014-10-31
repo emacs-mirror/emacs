@@ -89,10 +89,10 @@ DO must return an Elisp expression."
     (let* ((head (car place))
            (gf (function-get head 'gv-expander 'autoload)))
       (if gf (apply gf do (cdr place))
-        (let ((me (macroexpand place    ;FIXME: expand one step at a time!
-                               ;; (append macroexpand-all-environment
-                               ;;         gv--macro-environment)
-                               macroexpand-all-environment)))
+        (let ((me (macroexpand-1 place
+                                 ;; (append macroexpand-all-environment
+                                 ;;         gv--macro-environment)
+                                 macroexpand-all-environment)))
           (if (and (eq me place) (get head 'compiler-macro))
               ;; Expand compiler macros: this takes care of all the accessors
               ;; defined via cl-defsubst, such as cXXXr and defstruct slots.

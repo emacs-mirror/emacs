@@ -296,6 +296,8 @@ Emacs-21.
 
 * Lisp Changes in Emacs 25.1
 
+** New function macroexpand-1 to perform a single step of macroexpansion.
+
 ** Some "x-*" were obsoleted:
 *** x-select-text is renamed gui-select-text.
 *** x-selection-value is renamed gui-selection-value.

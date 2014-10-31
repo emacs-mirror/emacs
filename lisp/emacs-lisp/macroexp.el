@@ -25,7 +25,6 @@
 ;; This file contains macro-expansions functions that are not defined in
 ;; the Lisp core, namely `macroexpand-all', which expands all macros in
 ;; a form, not just a top-level one.
-;;
 
 ;;; Code:
 
@@ -147,11 +146,35 @@ and also to avoid outputting the warning during normal execution."
                   (instead (format "; use `%s' instead." instead))
                   (t ".")))))
 
+(defun macroexpand-1 (form &optional environment)
+  "Perform (at most) one step of macroexpansion."
+  (cond
+   ((consp form)
+    (let* ((head (car form))
+           (env-expander (assq head environment)))
+      (if env-expander
+          (if (cdr env-expander)
+              (apply (cdr env-expander) (cdr form))
+            form)
+        (if (not (and (symbolp head) (fboundp head)))
+            form
+          (let ((def (autoload-do-load (symbol-function head) head 'macro)))
+            (cond
+             ;; Follow alias, but only for macros, otherwise we may end up
+             ;; skipping an important compiler-macro (e.g. cl--block-wrapper).
+             ((and (symbolp def) (macrop def)) (cons def (cdr form)))
+             ((not (consp def)) form)
+             (t
+              (if (eq 'macro (car def))
+                  (apply (cdr def) (cdr form))
+                form))))))))
+   (t form)))
+
 (defun macroexp--expand-all (form)
   "Expand all macros in FORM.
 This is an internal version of `macroexpand-all'.
 Assumes the caller has bound `macroexpand-all-environment'."
-  (if (and (listp form) (eq (car form) 'backquote-list*))
+  (if (eq (car-safe form) 'backquote-list*)
       ;; Special-case `backquote-list*', as it is normally a macro that
       ;; generates exceedingly deep expansions from relatively shallow input
       ;; forms.  We just process it `in reverse' -- first we expand all the
@@ -241,7 +264,7 @@ Assumes the caller has bound `macroexpand-all-environment'."
            ;; If the handler is not loaded yet, try (auto)loading the
            ;; function itself, which may in turn load the handler.
            (unless (functionp handler)
-             (ignore-errors
+             (with-demoted-errors "macroexp--expand-all: %S"
                (autoload-do-load (indirect-function func) func)))
            (let ((newform (macroexp--compiler-macro handler form)))
              (if (eq form newform)
