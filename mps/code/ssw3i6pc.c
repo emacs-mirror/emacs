@@ -77,7 +77,7 @@ typedef struct _JUMP_BUFFER {
 
 Addr *StackContextStackTop(StackContext sc)
 {
-  _JUMP_BUFFER *jb = &sc->jumpBuffer;
+  _JUMP_BUFFER *jb = (_JUMP_BUFFER *)&sc->jumpBuffer;
   Addr **p_rsp = (void *)&jb->Rsp;
   return *p_rsp;
 }
@@ -87,8 +87,8 @@ Addr *StackContextStackTop(StackContext sc)
 
 Res StackContextScan(ScanState ss, StackContext sc)
 {
-  _JUMP_BUFFER *jb = &sc->jumpBuffer;
-  Addr **p_rbx = (void *)&jb->Rbx;
+  _JUMP_BUFFER *jb = (_JUMP_BUFFER *)&sc->jumpBuffer;
+  Addr *p_rbx = (void *)&jb->Rbx;
 
   /* These checks will just serve to warn us at compile-time if the
      setjmp.h header changes to indicate that the registers we want aren't
