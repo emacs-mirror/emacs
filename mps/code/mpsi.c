@@ -1864,19 +1864,17 @@ mps_res_t mps_ap_alloc_pattern_begin(mps_ap_t mps_ap,
 mps_res_t mps_ap_alloc_pattern_end(mps_ap_t mps_ap,
                                    mps_alloc_pattern_t alloc_pattern)
 {
-  Buffer buf;
   Arena arena;
   Res res;
 
   AVER(mps_ap != NULL);
-  buf = BufferOfAP(mps_ap);
-  AVER(TESTT(Buffer, buf));
+  AVER(TESTT(Buffer, BufferOfAP(mps_ap)));
   UNUSED(alloc_pattern); /* .ramp.hack */
 
-  arena = BufferArena(buf);
+  arena = BufferArena(BufferOfAP(mps_ap));
 
   STACK_CONTEXT_BEGIN(arena) {
-    res = BufferRampEnd(buf);
+    res = BufferRampEnd(BufferOfAP(mps_ap));
     ArenaPoll(ArenaGlobals(arena)); /* .poll */
   } STACK_CONTEXT_END(arena);
 
@@ -1886,17 +1884,15 @@ mps_res_t mps_ap_alloc_pattern_end(mps_ap_t mps_ap,
 
 mps_res_t mps_ap_alloc_pattern_reset(mps_ap_t mps_ap)
 {
-  Buffer buf;
   Arena arena;
 
   AVER(mps_ap != NULL);
-  buf = BufferOfAP(mps_ap);
-  AVER(TESTT(Buffer, buf));
+  AVER(TESTT(Buffer, BufferOfAP(mps_ap)));
 
-  arena = BufferArena(buf);
+  arena = BufferArena(BufferOfAP(mps_ap));
 
   STACK_CONTEXT_BEGIN(arena) {
-    BufferRampReset(buf);
+    BufferRampReset(BufferOfAP(mps_ap));
     ArenaPoll(ArenaGlobals(arena)); /* .poll */
   } STACK_CONTEXT_END(arena);
 

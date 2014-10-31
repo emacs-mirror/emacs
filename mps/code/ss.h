@@ -62,11 +62,17 @@ extern Res StackContextScan(ScanState ss, StackContext sc);
  * register set and the stack while setjmp also saves the signal mask.
  * See _setjmp(2). */
 
-#define STACK_CONTEXT_SAVE(sc) ((void)_setjmp((sc)->jumpBuffer))
+#define STACK_CONTEXT_SAVE(sc) BEGIN \
+  int _set = _setjmp((sc)->jumpBuffer); \
+  AVER(_set == 0); \
+  END
 
 #else  /* other platforms */
 
-#define STACK_CONTEXT_SAVE(sc) ((void)setjmp((sc)->jumpBuffer))
+#define STACK_CONTEXT_SAVE(sc) BEGIN \
+  int _set = setjmp((sc)->jumpBuffer); \
+  AVER(_set == 0); \
+  END
 
 #endif /* platform defines */
 
