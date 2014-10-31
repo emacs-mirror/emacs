@@ -51,7 +51,7 @@ typedef struct __JUMP_BUFFER {
 
 
 /* StackContextStackTop -- return the "top" of the mutator's stack at
- * the point when the context was saved by STACK_CONTEXT_BEGIN. */
+ * the point when the context was saved by STACK_CONTEXT_SAVE. */
 
 Addr *StackContextStackTop(StackContext sc)
 {
