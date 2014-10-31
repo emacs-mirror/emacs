@@ -5,6 +5,17 @@
  *
  * This scans the mutator's stack and fixes the registers that may
  * contain roots. See <design/ss/>.
+ *
+ * This is a generic implementation, but it makes assumptions that,
+ * while true on all the platforms we currently (version 1.115)
+ * support, may not be true on all platforms.
+ * 
+ * .assume.down: The stack grows downwards.
+ *
+ * .assume.bottom: There is no need to scan the word pointed to by
+ * stackBot.
+ *
+ * .assume.align: Addresses on the stack are aligned to sizeof(Addr).
  */
 
 #include "mpm.h"
@@ -24,10 +35,10 @@ static Res stackScanInner(Arena arena, ScanState ss, Addr *stackBot,
   AVERT(ScanState, ss);
 
   stackTop = StackContextStackTop(sc);
-  AVER(stackTop < stackBot);
+  AVER(stackTop < stackBot);                          /* .assume.down */
   AVER(AddrIsAligned((Addr)stackTop, sizeof(Addr)));  /* .assume.align */
 
-  res = TraceScanAreaTagged(ss, stackTop, stackBot);
+  res = TraceScanAreaTagged(ss, stackTop, stackBot);  /* .assume.bottom */
   if (res != ResOK)
     return res;
 
