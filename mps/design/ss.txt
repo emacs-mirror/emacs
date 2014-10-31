@@ -58,6 +58,10 @@ unnecessary pinning and zone pollution; see job003525_.)
 _`.req.setjmp`: The implementation must follow the C Standard in its
 use of the ``setjmp`` macro. (So that it is reliable and portable.)
 
+_`.req.assembly`: The implementation should not use assembly language.
+(So that it can be developed in tools like Microsoft Visual Studio
+that don't support this.)
+
 
 Design
 ------
