@@ -28,6 +28,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl-lib))
+
 (declare-function widget-convert "wid-edit" (type &rest args))
 (declare-function shell-mode "shell" ())
 
@@ -410,6 +412,7 @@ A non-nil INTERACTIVE argument means to run the `post-self-insert-hook'."
           ;; Do the rest in post-self-insert-hook, because we want to do it
           ;; *before* other functions on that hook.
           (lambda ()
+            (cl-assert (eq ?\n (char-before)))
             ;; Mark the newline(s) `hard'.
             (if use-hard-newlines
                 (set-hard-newline-properties
@@ -428,7 +431,8 @@ A non-nil INTERACTIVE argument means to run the `post-self-insert-hook'."
             ;; starts a page.
             (or was-page-start
                 (move-to-left-margin nil t)))))
-    (if (not interactive)
+    (unwind-protect
+        (if (not interactive)
         ;; FIXME: For non-interactive uses, many calls actually just want
         ;; (insert "\n"), so maybe we should do just that, so as to avoid
         ;; the risk of filling or running abbrevs unexpectedly.
@@ -441,7 +445,9 @@ A non-nil INTERACTIVE argument means to run the `post-self-insert-hook'."
         ;; We first used let-binding to protect the hook, but that was naive
         ;; since add-hook affects the symbol-default value of the variable,
         ;; whereas the let-binding might only protect the buffer-local value.
-        (remove-hook 'post-self-insert-hook postproc))))
+        (remove-hook 'post-self-insert-hook postproc)))
+      (cl-assert (not (member postproc post-self-insert-hook)))
+      (cl-assert (not (member postproc (default-value 'post-self-insert-hook))))))
   nil)
 
 (defun set-hard-newline-properties (from to)

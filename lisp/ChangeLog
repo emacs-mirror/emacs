@@ -1,5 +1,7 @@
 2014-10-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* simple.el (newline): Add assertions to try and help catch bug#18913.
+
 	* emulation/cua-base.el (cua-delete-region): Use delete-active-region
 	(bug#18886).
 	(cua--last-deleted-region-pos, cua--last-deleted-region-text): Remove.
