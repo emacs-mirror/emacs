@@ -790,26 +790,12 @@ Repeating prefix key when region is active works as a single prefix key."
 
 ;;; Region specific commands
 
-(defvar cua--last-deleted-region-pos nil)
-(defvar cua--last-deleted-region-text nil)
-
 (defun cua-delete-region ()
   "Delete the active region.
 Save a copy in register 0 if `cua-delete-copy-to-register-0' is non-nil."
   (interactive)
-  (let ((start (mark)) (end (point)))
-    (or (<= start end)
-	(setq start (prog1 end (setq end start))))
-    (setq cua--last-deleted-region-text
-          (funcall region-extract-function t))
-    (if cua-delete-copy-to-register-0
-	(set-register ?0 cua--last-deleted-region-text))
-    (setq cua--last-deleted-region-pos
-	  (cons (current-buffer)
-		(and (consp buffer-undo-list)
-		     (car buffer-undo-list))))
-    (cua--deactivate)
-    (/= start end)))
+  (require 'delsel)
+  (delete-active-region))
 
 (defun cua-copy-region (arg)
   "Copy the region to the kill ring.
@@ -1356,9 +1342,6 @@ If ARG is the atom `-', scroll upward by nearly full screen."
    c-down-conditional-with-else c-up-conditional-with-else
    c-beginning-of-statement c-end-of-statement))
   (put cmd 'CUA 'move))
-
-;; Only called if pc-selection-mode is t, which means pc-select is loaded.
-(declare-function pc-selection-mode "pc-select" (&optional arg))
 
 ;; State prior to enabling cua-mode
 ;; Value is a list with the following elements:

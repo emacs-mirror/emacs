@@ -1,3 +1,9 @@
+2014-10-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emulation/cua-base.el (cua-delete-region): Use delete-active-region
+	(bug#18886).
+	(cua--last-deleted-region-pos, cua--last-deleted-region-text): Remove.
+
 2014-10-31  Eli Zaretskii  <eliz@gnu.org>
 
 	* Makefile.in (repo-update): Fix a typo and slightly reword
