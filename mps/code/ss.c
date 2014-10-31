@@ -12,16 +12,7 @@
 SRCID(ss, "$Id$");
 
 
-/* StackScan -- scan the mutator's stack and registers
- *
- * StackScan scans the stack between stackBot and the top of the
- * mutator's stack that was recorded by STACK_CONTEXT_BEGIN when the
- * arena was entered. It also scans any roots which were in the
- * mutator's callee-save registers at that point.
- *
- * See the specific implementations of StackContextScan for the exact
- * registers which are scanned.
- */
+/* StackScan -- scan the mutator's stack and registers */
 
 static Res stackScanInner(Arena arena, ScanState ss, Addr *stackBot,
                           StackContext sc)

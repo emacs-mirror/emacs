@@ -77,33 +77,10 @@ extern Res StackContextScan(ScanState ss, StackContext sc);
 #endif /* platform defines */
 
 
-/* StackScan -- scan the current thread's stack
- *
- * StackScan scans the stack of the current thread, Between stackBot and the
- * current top of stack. It also fixes any roots which may be in callee-save
- * registers.
- *
- * See the specific implementation for the exact registers which are scanned.
- *
- * If a stack pointer has been stashed at arena entry (through the MPS
- * interface in mpsi*.c) then only the registers and the stack between
- * stackAtArenaEnter and stackBot is scanned, to avoid scanning false
- * ambiguous references on the MPS's own stack.  This is particularly
- * important for transforms (trans.c).
- *
- * The word pointed to by stackBot is fixed if the stack is by convention
- * empty, and not fixed if it is full.  Where empty means sp points to first
- * free word beyond the top of stack.  Full means sp points to the top of
- * stack itself.
- */
+/* StackScan -- scan the mutator's stack and registers */
 
 extern Res StackScan(ScanState ss, Addr *stackBot);
 
-
-extern Res StackScanInner(ScanState ss,
-                          Addr *stackBot,
-                          Addr *stackTop,
-                          Count nSavedRegs);
 
 #endif /* ss_h */
 
