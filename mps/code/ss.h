@@ -44,7 +44,7 @@ typedef struct StackContextStruct {
 
 
 /* StackContextStackTop -- return the "top" of the mutator's stack at
- * the point when the context was saved by STACK_CONTEXT_BEGIN. */
+ * the point when the context was saved by STACK_CONTEXT_SAVE. */
 
 extern Addr *StackContextStackTop(StackContext sc);
 
@@ -63,15 +63,15 @@ extern Res StackContextScan(ScanState ss, StackContext sc);
  * See _setjmp(2). */
 
 #define STACK_CONTEXT_SAVE(sc) BEGIN \
-  int _set = _setjmp((sc)->jumpBuffer); \
-  AVER(_set == 0); \
+  int _rc = _setjmp((sc)->jumpBuffer); \
+  AVER(_rc == 0); \
   END
 
 #else  /* other platforms */
 
 #define STACK_CONTEXT_SAVE(sc) BEGIN \
-  int _set = setjmp((sc)->jumpBuffer); \
-  AVER(_set == 0); \
+  int _rc = setjmp((sc)->jumpBuffer); \
+  AVER(_rc == 0); \
   END
 
 #endif /* platform defines */
