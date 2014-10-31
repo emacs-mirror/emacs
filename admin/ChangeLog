@@ -1,3 +1,11 @@
+2014-10-31  Eric S. Raymond  <esr@thyrsus.com>
+
+	* notes/bzr: Renamed to notes/repo, reorganixed to separate
+	VCS-dependent from VCS-independent stuff.  Added guidance about
+	commit-comment format under DVCSes.
+
+	* notes/BRANCH: Merged into notes/repo.
+
 2014-10-20  Glenn Morris  <rgm@gnu.org>
 
 	* Version 24.4 released.

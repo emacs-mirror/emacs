@@ -1,5 +1,23 @@
 NOTES ON COMMITTING TO EMACS'S REPOSITORY    -*- outline -*-
 
+* Use DVCS commenting conventions
+
+Commits should follow the conventions used in all modern distributed
+version-control systems. That is, they should consist of
+
+- A self-contained topic line no more than 75 chars long.
+
+- If other content follows the topic line, there should be
+  a blank line separating the two.
+
+Try to keep your commits - and your commit comments - small.  If
+you feel an urge to put a bullet list in your commit comment, it's
+doing too many things at once.
+
+Yes, these directins are a departure from historical Emacs practice,
+but it helps modern log-viewing and summary tools work better so that
+other people can comprehend your code.
+
 * Commit to the right branch
 
 You can view the available Emacs branches at
@@ -51,15 +69,6 @@ In that case, it's helpful if you can apply the change to both trunk
 and branch yourself (when committing the branch change, indicate
 in the commit log that it should not be merged to the trunk; see below).
 
-* Backporting a bug-fix from the trunk to a branch (e.g. "emacs-24").
-
-Indicate in the commit log that there is no need to merge the commit
-to the trunk.  Anything that matches `bzrmerge-skip-regexp' will do;
-eg start the commit message with "Backport:".  This is helpful for the
-person merging the release branch to the trunk.
-
-http://lists.gnu.org/archive/html/emacs-devel/2010-05/msg00262.html
-
 * Installing changes from your personal branches.
 
 If your branch has only a single commit, or many different real
@@ -97,6 +106,15 @@ variable in admin/merge-gnulib before running it.
 
 If you remove a gnulib module, or if a gnulib module
 removes a file, then remove the corresponding files by hand.
+
+* Backporting a bug-fix from the trunk to a branch (e.g. "emacs-24").
+
+Indicate in the commit log that there is no need to merge the commit
+to the trunk.  Anything that matches `bzrmerge-skip-regexp' will do;
+eg start the commit message with "Backport:".  This is helpful for the
+person merging the release branch to the trunk.
+
+http://lists.gnu.org/archive/html/emacs-devel/2010-05/msg00262.html
 
 * How to merge changes from emacs-24 to trunk
 
@@ -158,18 +176,6 @@ and is due to a technical limitation of bzr.  The log data for those
 revisions gets merged, the actual changes themselves do not.
 http://lists.gnu.org/archive/html/emacs-devel/2011-01/msg00609.html )
 
-In particular, check the ChangeLog entries (eg in case too many
-entries have been included or whitespace between entries needs fixing).
-bzrmerge tries to fix up the dates to today's date, but it only does
-this where there are conflicts.  If you used the changelog_merge plugin,
-there won't be any conflicts, and (at time of writing) you will need
-to adjust dates by hand.  In any case, if someone made multiple
-ChangeLog entries on different days in the branch, you may wish to
-collapse them all to a single entry for that author in the trunk
-(because in the trunk they all appear under the same date).
-Obviously, if there are multiple changes to the same file by different
-authors, don't break the logical ordering in doing this.
-
 Notes:
 
 1) If a file is modified in emacs-24, and deleted in the trunk, you
@@ -178,11 +184,25 @@ the trunk at all, use `bzr resolve path/to/file --take-this' to keep the
 trunk version.  Prior to bzr 2.2.3, this may fail.  You can just
 delete the .OTHER etc files by hand and use bzr resolve path/to/file.
 
-2) Conflicts in autoload md5sums in comments.  Strictly speaking, the
-right thing to do is merge everything else, resolve the conflict by
-choosing either the trunk or branch version, then run `make -C lisp
-autoloads' to update the md5sums to the correct trunk value before
-committing.
+* Sanity-checking branch merges 
+
+Inspect the ChangeLog entries (e.g. in case too many entries have been
+included or whitespace between entries needs fixing).  bzrmerge tries
+to fix up the dates to today's date, but it only does this where there
+are conflicts.  If you used the changelog_merge plugin, there won't be
+any conflicts, and (at time of writing) you will need to adjust dates
+by hand.  In any case, if someone made multiple ChangeLog entries on
+different days in the branch, you may wish to collapse them all to a
+single entry for that author in the trunk (because in the trunk they
+all appear under the same date).  Obviously, if there are multiple
+changes to the same file by different authors, don't break the logical
+ordering in doing this.
+
+You may see conflicts in autoload md5sums in comments.  Strictly
+speaking, the right thing to do is merge everything else, resolve the
+conflict by choosing either the trunk or branch version, then run
+`make -C lisp autoloads' to update the md5sums to the correct trunk
+value before committing.
 
 * Re-adding a file that has been removed from the repository
 

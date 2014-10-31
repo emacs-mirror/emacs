@@ -1,5 +1,8 @@
 2014-10-31  Eric S. Raymond  <esr@thyrsus.com>
 
+	* version.el: Fix some fallback values to conform to the actual
+	release number.
+
 	* Makefile.in: Change some production names so they're neutral
 	about the repository type.
 
