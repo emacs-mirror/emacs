@@ -6,7 +6,7 @@
 
 2014-10-31  Eric S. Raymond  <esr@thyrsus.com>
 
-	* notes/bzr: Renamed to notes/repo, reorganixed to separate
+	* notes/bzr: Renamed to notes/repo, reorganized to separate
 	VCS-dependent from VCS-independent stuff.  Added guidance about
 	commit-comment format under DVCSes.
 
