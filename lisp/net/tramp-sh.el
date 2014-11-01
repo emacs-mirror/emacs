@@ -4769,6 +4769,17 @@ function waits for output unless NOOUTPUT is set."
     (when (tramp-get-connection-property p "remote-echo" nil)
       ;; We mark the command string that it can be erased in the output buffer.
       (tramp-set-connection-property p "check-remote-echo" t)
+      ;; If we put `tramp-echo-mark' after a trailing newline (which
+      ;; is assumed to be unquoted) `tramp-send-string' doesn't see
+      ;; that newline and adds `tramp-rsh-end-of-line' right after
+      ;; `tramp-echo-mark', so the remote shell sees two consecutive
+      ;; trailing line endings and sends two prompts after executing
+      ;; the command, which confuses `tramp-wait-for-output'.
+      (when (and (not (string= command ""))
+		 (string-equal (substring command -1) "\n"))
+	(setq command (substring command 0 -1)))
+      ;; No need to restore a trailing newline here since `tramp-send-string'
+      ;; makes sure that the string ends in `tramp-rsh-end-of-line', anyway.
       (setq command (format "%s%s%s" tramp-echo-mark command tramp-echo-mark)))
     ;; Send the command.
     (tramp-message vec 6 "%s" command)
@@ -5278,17 +5289,20 @@ Return ATTR."
 
 (defun tramp-get-remote-uid (vec id-format)
   (with-tramp-connection-property vec (format "uid-%s" id-format)
-    (let ((res (cond
-		((tramp-get-remote-id vec)
-		 (tramp-get-remote-uid-with-id vec id-format))
-		((tramp-get-remote-perl vec)
-		 (tramp-get-remote-uid-with-perl vec id-format))
-		((tramp-get-remote-python vec)
-		 (tramp-get-remote-uid-with-python vec id-format))
-		(t (tramp-error
-		    vec 'file-error "Cannot determine remote uid")))))
-      ;; The command might not always return a number.
-      (if (and (equal id-format 'integer) (not (integerp res))) -1 res))))
+    (let ((res
+	   (ignore-errors
+	     (cond
+	      ((tramp-get-remote-id vec)
+	       (tramp-get-remote-uid-with-id vec id-format))
+	      ((tramp-get-remote-perl vec)
+	       (tramp-get-remote-uid-with-perl vec id-format))
+	      ((tramp-get-remote-python vec)
+	       (tramp-get-remote-uid-with-python vec id-format))))))
+      ;; Ensure there is a valid result.
+      (cond
+       ((and (equal id-format 'integer) (not (integerp res))) -1)
+       ((and (equal id-format 'string) (not (stringp res))) "UNKNOWN")
+       (t res)))))
 
 (defun tramp-get-remote-gid-with-id (vec id-format)
   (tramp-send-command-and-read
@@ -5319,17 +5333,20 @@ Return ATTR."
 
 (defun tramp-get-remote-gid (vec id-format)
   (with-tramp-connection-property vec (format "gid-%s" id-format)
-    (let ((res (cond
-		((tramp-get-remote-id vec)
-		 (tramp-get-remote-gid-with-id vec id-format))
-		((tramp-get-remote-perl vec)
-		 (tramp-get-remote-gid-with-perl vec id-format))
-		((tramp-get-remote-python vec)
-		 (tramp-get-remote-gid-with-python vec id-format))
-		(t (tramp-error
-		    vec 'file-error "Cannot determine remote gid")))))
-      ;; The command might not always return a number.
-      (if (and (equal id-format 'integer) (not (integerp res))) -1 res))))
+    (let ((res
+	   (ignore-errors
+	     (cond
+	      ((tramp-get-remote-id vec)
+	       (tramp-get-remote-gid-with-id vec id-format))
+	      ((tramp-get-remote-perl vec)
+	       (tramp-get-remote-gid-with-perl vec id-format))
+	      ((tramp-get-remote-python vec)
+	       (tramp-get-remote-gid-with-python vec id-format))))))
+      ;; Ensure there is a valid result.
+      (cond
+       ((and (equal id-format 'integer) (not (integerp res))) -1)
+       ((and (equal id-format 'string) (not (stringp res))) "UNKNOWN")
+       (t res)))))
 
 ;; Some predefined connection properties.
 (defun tramp-get-inline-compress (vec prop size)

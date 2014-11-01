@@ -11785,12 +11785,6 @@ prepare_menu_bars (void)
 #ifdef HAVE_WINDOW_SYSTEM
 	  update_tool_bar (f, 0);
 #endif
-#ifdef HAVE_NS
-          if (windows_or_buffers_changed
-	      && FRAME_NS_P (f))
-            ns_set_doc_edited
-	      (f, Fbuffer_modified_p (XWINDOW (f->selected_window)->contents));
-#endif
 	  UNGCPRO;
 	}
 
@@ -14121,6 +14115,9 @@ redisplay_internal (void)
 #endif /* HAVE_WINDOW_SYSTEM */
 
  end_of_redisplay:
+#ifdef HAVE_NS
+  ns_set_doc_edited ();
+#endif
   if (interrupt_input && interrupts_deferred)
     request_sigio ();
 

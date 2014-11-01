@@ -1,3 +1,44 @@
+2014-11-01  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-cache.el (tramp-get-file-property)
+	(tramp-set-file-property): Check that `tramp-cache-get-count-*'
+	and `tramp-cache-set-count-*' are bound.  Otherwise, there might
+	be compiler warnings.
+
+	* net/tramp-sh.el (tramp-get-remote-uid, tramp-get-remote-gid):
+	Return -1 respective "UNKNOWN", if uid or gid cannot be determined.
+
+2014-11-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* progmodes/compile.el (compilation-mode): Turn off deferred
+	fontifications locally.  (Bug#18856)
+
+2014-11-01  Wolfgang Jenkner  <wjenkner@inode.at>
+
+	* net/tramp-sh.el (tramp-send-command): Fix the case where the
+	remote-echo connection property is non-nil (bug#18858).
+
+2014-11-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (newline): Add assertions to try and help catch bug#18913.
+
+	* emulation/cua-base.el (cua-delete-region): Use delete-active-region
+	(bug#18886).
+	(cua--last-deleted-region-pos, cua--last-deleted-region-text): Remove.
+
+2014-11-01  Kim F. Storm  <storm@cua.dk>
+
+	Restore cua-delete-copy-to-register-0 and M-v command (bug#18886).
+	* delsel.el (delete-selection-save-to-register)
+	(delsel--replace-text-or-position): New vars.
+	(delete-active-region): Use them.
+	(delete-selection-repeat-replace-region): New command, moved from
+	cua-base.el.
+	* emulation/cua-base.el (cua--repeat-replace-text): Remove var.
+	(cua-repeat-replace-region): Move command to delsel.el.
+	(cua--init-keymaps): Update binding accordingly.
+	(cua-mode): Set delete-selection-save-to-register.
+
 2014-11-01  Alan Mackenzie  <acm@muc.de>
 
 	Make blink-parens work with a closing template delimiter.

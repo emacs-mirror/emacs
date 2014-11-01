@@ -629,18 +629,26 @@ ns_set_name_as_filename (struct frame *f)
 
 
 void
-ns_set_doc_edited (struct frame *f, Lisp_Object arg)
+ns_set_doc_edited (void)
 {
-  NSView *view = FRAME_NS_VIEW (f);
   NSAutoreleasePool *pool;
-  if (!MINI_WINDOW_P (XWINDOW (f->selected_window)))
+  Lisp_Object tail, frame;
+  block_input ();
+  pool = [[NSAutoreleasePool alloc] init];
+  FOR_EACH_FRAME (tail, frame)
     {
-      block_input ();
-      pool = [[NSAutoreleasePool alloc] init];
-      [[view window] setDocumentEdited: !NILP (arg)];
-      [pool release];
-      unblock_input ();
+      BOOL edited = NO;
+      struct frame *f = XFRAME (frame);
+      struct window *w = XWINDOW (FRAME_SELECTED_WINDOW (f));
+      NSView *view = FRAME_NS_VIEW (f);
+      if (!MINI_WINDOW_P (w))
+        edited = ! NILP (Fbuffer_modified_p (w->contents)) &&
+          ! NILP (Fbuffer_file_name (w->contents));
+      [[view window] setDocumentEdited: edited];
     }
+
+  [pool release];
+  unblock_input ();
 }
 
 
@@ -935,8 +943,8 @@ x_icon (struct frame *f, Lisp_Object parms)
   Lisp_Object icon_x, icon_y;
   struct ns_display_info *dpyinfo = check_ns_display_info (Qnil);
 
-  f->output_data.ns->icon_top = Qnil;
-  f->output_data.ns->icon_left = Qnil;
+  f->output_data.ns->icon_top = -1;
+  f->output_data.ns->icon_left = -1;
 
   /* Set the position of the icon.  */
   icon_x = x_get_arg (dpyinfo, parms, Qicon_left, 0, 0, RES_TYPE_NUMBER);
@@ -945,8 +953,8 @@ x_icon (struct frame *f, Lisp_Object parms)
     {
       CHECK_NUMBER (icon_x);
       CHECK_NUMBER (icon_y);
-      f->output_data.ns->icon_top = icon_y;
-      f->output_data.ns->icon_left = icon_x;
+      f->output_data.ns->icon_top = XINT (icon_y);
+      f->output_data.ns->icon_left = XINT (icon_x);
     }
   else if (!EQ (icon_x, Qunbound) || !EQ (icon_y, Qunbound))
     error ("Both left and top icon corners of icon must be specified");

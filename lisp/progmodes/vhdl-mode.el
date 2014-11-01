@@ -503,7 +503,7 @@ NOTE: Activate the new setting by restarting Emacs."
   "List of default target names in Makefiles.
 Automatically generated Makefiles include three default targets to compile
 the entire design, clean the entire design and to create the design library.
-This option allows to change the names of these targets to avoid conflicts
+This option allows you to change the names of these targets to avoid conflicts
 with other user Makefiles."
   :type '(list (string :tag "Compile entire design")
 	       (string :tag "Clean entire design  ")
@@ -513,7 +513,7 @@ with other user Makefiles."
 
 (defcustom vhdl-makefile-generation-hook nil
   "Functions to run at the end of Makefile generation.
-Allows to insert user specific parts into a Makefile.
+Allows you to insert user specific parts into a Makefile.
 
 Example:
   \(lambda nil
@@ -590,8 +590,8 @@ well as \"./\" and \"../\" (\"sh\" syntax).  Paths can also be absolute.
 Environment variables (e.g. \"$EXAMPLE2\") are resolved.  If no sources are
 specified, the default directory is taken as source directory.  Otherwise,
 the default directory is only taken as source directory if there is a sources
-entry with the empty string or \"./\".  Exclude regexp allows to filter out
-specific file and directory names from the list of sources (e.g. CVS
+entry with the empty string or \"./\".  Exclude regexp allows you to filter
+out specific file and directory names from the list of sources (e.g. CVS
 directories).
 
 Files are compiled in the compile directory.  Makefiles are also placed into
@@ -606,7 +606,7 @@ overwrite the settings of the current compiler.
 
 File-specific compiler options (highest priority) overwrite project-specific
 options which overwrite default options (lowest priority).  Lower priority
-options can be inserted in higher priority options.  This allows to reuse
+options can be inserted in higher priority options.  This allows you to reuse
 default options (e.g. \"-file\") in project- or file-specific options (e.g.
 \"-93 -file\").
 
@@ -671,7 +671,7 @@ browser.  The current project can also be changed temporarily in the menu."
 (defcustom vhdl-project-file-name '("\\1.prj")
   "List of file names/paths for importing/exporting project setups.
 \"\\1\" is replaced by the project name (SPC is replaced by `_'), \"\\2\" is
-replaced by the user name (allows to have user-specific project setups).
+replaced by the user name (allows you to have user-specific project setups).
 The first entry is used as file name to import/export individual project
 setups.  All entries are used to automatically import project setups at
 startup (see option `vhdl-project-auto-load').  Projects loaded from the
@@ -1540,8 +1540,8 @@ Option `vhdl-align-groups' still applies within these blocks."
   :group 'vhdl-beautify)
 
 (defcustom vhdl-beautify-options '(t t t t t)
-  "List of options for beautifying code.  Allows to disable individual
-features of code beautification."
+  "List of options for beautifying code.
+Allows you to disable individual features of code beautification."
   :type '(list (boolean :tag "Whitespace cleanup       ")
 	       (boolean :tag "Single statement per line")
 	       (boolean :tag "Indentation              ")
@@ -4449,7 +4449,7 @@ Usage:
     and vice versa.
 
       Syntax-based indentation can be very slow in large files.  Option
-    `vhdl-indent-syntax-based' allows to use faster but simpler indentation.
+    `vhdl-indent-syntax-based' allows you to use faster but simpler indentation.
 
       Option `vhdl-indent-comment-like-next-code-line' controls whether
     comment lines are indented like the preceding or like the following code
@@ -4482,7 +4482,7 @@ Usage:
 
 
   CODE FILLING:
-    Code filling allows to condense code (e.g. sensitivity lists or port
+    Code filling allows you to condense code (e.g. sensitivity lists or port
     maps) by removing comments and newlines and re-wrapping so that all
     lines are maximally filled (block filling).  `C-c C-f C-f' fills a list
     enclosed by parenthesis, `C-c C-f C-g' a group of lines separated by
@@ -4742,7 +4742,7 @@ Usage:
 
       Words with special syntax can be highlighted by specifying their
     syntax and color in option `vhdl-special-syntax-alist' and by setting
-    option `vhdl-highlight-special-words' to non-nil.  This allows to
+    option `vhdl-highlight-special-words' to non-nil.  This allows you to
     establish some naming conventions (e.g. to distinguish different kinds
     of signals or other objects by using name suffices) and to support them
     visually.
@@ -16964,7 +16964,7 @@ do not print any file names."
 
 (defun vhdl-make (&optional target)
   "Call make command for compilation of all updated source files (requires
-`Makefile').  Optional argument TARGET allows to compile the design
+`Makefile').  Optional argument TARGET allows you to compile the design
 specified by a target."
   (interactive)
   (setq vhdl-make-target

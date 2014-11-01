@@ -373,7 +373,7 @@ typedef float EmacsCGFloat;
 
 @interface EmacsScroller : NSScroller
   {
-   Lisp_Object win;
+   struct window *window;
    struct frame *frame;
    NSResponder *prevResponder;
 
@@ -397,8 +397,6 @@ typedef float EmacsCGFloat;
 - setPosition: (int) position portion: (int) portion whole: (int) whole;
 - (int) checkSamePosition: (int)position portion: (int)portion
                     whole: (int)whole;
-- (void) getMouseMotionPart: (int *)part window: (Lisp_Object *)window
-                          x: (Lisp_Object *)x y: ( Lisp_Object *)y;
 - (void) sendScrollEventAtLoc: (float)loc fromEvent: (NSEvent *)e;
 - repeatScroll: (NSTimer *)sender;
 - condemn;
@@ -667,8 +665,8 @@ struct ns_output
      value contains an ID of the fontset, else -1.  */
   int fontset; /* only used with font_backend */
 
-  Lisp_Object icon_top;
-  Lisp_Object icon_left;
+  int icon_top;
+  int icon_left;
 
   /* The size of the extra width currently allotted for vertical
      scroll bars, in pixels.  */
@@ -817,7 +815,7 @@ extern void nxatoms_of_nsselect (void);
 extern int ns_lisp_to_cursor_type (Lisp_Object arg);
 extern Lisp_Object ns_cursor_type_to_lisp (int arg);
 extern void ns_set_name_as_filename (struct frame *f);
-extern void ns_set_doc_edited (struct frame *f, Lisp_Object arg);
+extern void ns_set_doc_edited (void);
 
 extern bool
 ns_defined_color (struct frame *f,

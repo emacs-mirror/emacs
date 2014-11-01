@@ -1,7 +1,13 @@
+2014-11-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* notes/repo (Notes): Reword the stylistic guidance for commit log
+	messages so that they are in line with Emacs development practices
+	and style guidance.
+
 2014-10-27  Eric S. Raymond  <esr@thyrsus.com>
 
-	* notes/bzr: Renamed to notes/repo, reorganixed to separate
-	VCS-dependent from VCS-independent stuff.  Added guidance about
+	* notes/bzr: Rename to notes/repo, reorganize to separate
+	VCS-dependent from VCS-independent stuff.  Add guidance about
 	commit-comment format under DVCSes.
 
 	* notes/BRANCH: Merged into notes/repo.

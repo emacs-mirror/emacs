@@ -721,7 +721,7 @@ main (int argc, char **argv)
 #ifdef DAEMON_MUST_EXEC
   char dname_arg2[80];
 #endif
-  char *ch_to_dir;
+  char *ch_to_dir = 0;
 
   /* If we use --chdir, this records the original directory.  */
   char *original_pwd = 0;
@@ -1230,19 +1230,19 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
       /* Started from GUI? */
       /* FIXME: Do the right thing if getenv returns NULL, or if
          chdir fails.  */
-      if (! inhibit_window_system && ! isatty (0))
+      if (! inhibit_window_system && ! isatty (0) && ! ch_to_dir)
         chdir (getenv ("HOME"));
       if (skip_args < argc)
         {
           if (!strncmp (argv[skip_args], "-psn", 4))
             {
               skip_args += 1;
-              chdir (getenv ("HOME"));
+              if (! ch_to_dir) chdir (getenv ("HOME"));
             }
           else if (skip_args+1 < argc && !strncmp (argv[skip_args+1], "-psn", 4))
             {
               skip_args += 2;
-              chdir (getenv ("HOME"));
+              if (! ch_to_dir) chdir (getenv ("HOME"));
             }
         }
 #endif  /* COCOA */
