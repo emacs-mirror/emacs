@@ -200,7 +200,7 @@ an address as a parameter and makes the frame of that address the
 current frame. It does not indicate that any children of the current
 frame contain objects which are likely to be dead.
 
-_`.operation.in-frame`: The *FrameHasAddr()* operation determines
+_`.operation.in-frame`: The *FrameHasAddr* operation determines
 whether the supplied address is the address of an object allocated in
 the supplied frame, or any child of that frame.
 
@@ -251,7 +251,7 @@ the *FrameSelectOfAddr* operation.
 ``mps_res_t mps_ap_addr_in_frame(mps_bool_t *inframe_o, mps_ap_t buf, mps_addr_t *addrref, mps_frame_t frame)``
 
 _`.fn.client.in-frame`: This function is used by clients to invoke the
-*FrameHasAddr()* operation.
+*FrameHasAddr* operation.
 
 ``mps_res_t mps_ap_set_frame_class(mps_ap_t buf, mps_frame_class_t class)``
 
@@ -298,7 +298,7 @@ _`.fn.select-addr`: A pool method of this type is called to invoke the
 ``typedef Res (*PoolFrameHasAddrMethod)(Bool *inframeReturn, Pool pool, Seg seg, Addr *addrref, AllocFrame frame)``
 
 _`.fn.in-frame`: A pool method of this type is called to invoke the 
-*FrameHasAddr()* operation.
+*FrameHasAddr* operation.
 
 ``typedef Res (*PoolSetFrameClassMethod)(Pool pool, Buffer buf, AllocFrameClass class)``
 
