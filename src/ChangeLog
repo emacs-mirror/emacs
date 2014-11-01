@@ -1,10 +1,16 @@
 2014-11-01  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* nsselect.m (QCLIPBOARD, QSECONDARY, QTEXT, QFILE_NAME)
+	(NXPrimaryPboard, NXSecondaryPboard): Declare static.
+	(Qforeign_selection): Remove.
+	(ns_get_local_selection): Identation fix.
+	(syms_of_nsselect): Remove Qforeign_selection, ns-lost-selection-hooks
+
 	* nsselect.m (ns_get_local_selection): Remove calling of
 	functions in Vselection_converter_alist (Bug#18911).
 	(syms_of_nsselect): Remove Vselection_converter_alist.
 
-2014-10-31  Dmitry Antipov  <dmantipov@yandex.ru>
+(2014-10-31  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* font.c (copy_font_spec): Redesign to avoid Fcopy_alist
 	and unnecessary initialization.  Adjust comments.

@@ -34,15 +34,13 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 #include "termhooks.h"
 #include "keyboard.h"
 
-Lisp_Object QCLIPBOARD, QSECONDARY, QTEXT, QFILE_NAME;
+static Lisp_Object QCLIPBOARD, QSECONDARY, QTEXT, QFILE_NAME;
 
 static Lisp_Object Vselection_alist;
 
-static Lisp_Object Qforeign_selection;
-
 /* NSGeneralPboard is pretty much analogous to X11 CLIPBOARD */
-NSString *NXPrimaryPboard;
-NSString *NXSecondaryPboard;
+static NSString *NXPrimaryPboard;
+static NSString *NXSecondaryPboard;
 
 
 static NSMutableDictionary *pasteboard_changecount;
@@ -208,7 +206,7 @@ ns_string_to_pasteboard_internal (id pb, Lisp_Object str, NSString *gtype)
 
 Lisp_Object
 ns_get_local_selection (Lisp_Object selection_name,
-                       Lisp_Object target_type)
+                        Lisp_Object target_type)
 {
   Lisp_Object local_value;
   local_value = assq_no_quit (selection_name, Vselection_alist);
@@ -533,15 +531,4 @@ to convert into a type that we don't know about or that is inappropriate.\n\
 This hook doesn't let you change the behavior of Emacs's selection replies,\n\
 it merely informs you that they have happened.");
   Vns_sent_selection_hooks = Qnil;
-
-  DEFVAR_LISP ("ns-lost-selection-hooks", Vns_lost_selection_hooks,
-               "A list of functions to be called when Emacs loses an X selection.\n\
-\(This happens when some other X client makes its own selection\n\
-or when a Lisp program explicitly clears the selection.)\n\
-The functions are called with one argument, the selection type\n\
-\(a symbol, typically `PRIMARY', `SECONDARY', or `CLIPBOARD').");
-  Vns_lost_selection_hooks = Qnil;
-
-  Qforeign_selection = intern_c_string ("foreign-selection");
-  staticpro (&Qforeign_selection);
 }
