@@ -10,7 +10,7 @@
 	* startup.el (command-line): Remove pointless attempt to avoid
 	statting the file-system (which expand-file-name doesn't do).
 
-2014-10-30  Alan Mackenzie  <acm@muc.de>
+2014-10-30  Daniel Colascione  <dancol@dancol.org>
 
 	Add "enum classs" support to C++ mode.
 	* progmodes/cc-langs.el (c-after-brace-list-decl-kwds)
