@@ -211,45 +211,8 @@ ns_get_local_selection (Lisp_Object selection_name,
                        Lisp_Object target_type)
 {
   Lisp_Object local_value;
-  Lisp_Object handler_fn, value, check;
-  ptrdiff_t count = specpdl_ptr - specpdl;
-
   local_value = assq_no_quit (selection_name, Vselection_alist);
-
-  if (NILP (local_value)) return Qnil;
-
-  specbind (Qinhibit_quit, Qt);
-  CHECK_SYMBOL (target_type);
-  handler_fn = Fcdr (Fassq (target_type, Vselection_converter_alist));
-  if (!NILP (handler_fn))
-    value = call3 (handler_fn, selection_name, target_type,
-                XCAR (XCDR (local_value)));
-  else
-    value = Qnil;
-  unbind_to (count, Qnil);
-
-  check = value;
-  if (CONSP (value) && SYMBOLP (XCAR (value)))
-    {
-      check = XCDR (value);
-    }
-
-  if (STRINGP (check) || VECTORP (check) || SYMBOLP (check)
-      || INTEGERP (check) || NILP (value))
-    return value;
-
-  if (CONSP (check)
-      && INTEGERP (XCAR (check))
-      && (INTEGERP (XCDR (check))
-	  || (CONSP (XCDR (check))
-	      && INTEGERP (XCAR (XCDR (check)))
-	      && NILP (XCDR (XCDR (check))))))
-    return value;
-
-  Fsignal (Qerror,
-	   list3 (build_string ("invalid data returned by"
-				" selection-conversion function"),
-		  handler_fn, value));
+  return local_value;
 }
 
 
@@ -570,21 +533,6 @@ to convert into a type that we don't know about or that is inappropriate.\n\
 This hook doesn't let you change the behavior of Emacs's selection replies,\n\
 it merely informs you that they have happened.");
   Vns_sent_selection_hooks = Qnil;
-
-  DEFVAR_LISP ("selection-converter-alist", Vselection_converter_alist,
-               "An alist associating X Windows selection-types with functions.\n\
-These functions are called to convert the selection, with three args:\n\
-the name of the selection (typically `PRIMARY', `SECONDARY', or `CLIPBOARD');\n\
-a desired type to which the selection should be converted;\n\
-and the local selection value (whatever was given to `x-own-selection').\n\
-\n\
-The function should return the value to send to the X server\n\
-\(typically a string).  A return value of nil\n\
-means that the conversion could not be done.\n\
-A return value which is the symbol `NULL'\n\
-means that a side-effect was executed,\n\
-and there is no meaningful selection value.");
-  Vselection_converter_alist = Qnil;
 
   DEFVAR_LISP ("ns-lost-selection-hooks", Vns_lost_selection_hooks,
                "A list of functions to be called when Emacs loses an X selection.\n\

@@ -1,3 +1,7 @@
+2014-11-01  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* select.el (gui-get-selection): Comment: data-type ignored on NS.
+
 2014-10-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/macroexp.el (macroexpand-1): New function (bug#18821).

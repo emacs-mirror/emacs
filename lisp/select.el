@@ -293,7 +293,7 @@ all upper-case names.  The most often used ones, in addition to
 
 DATA-TYPE is usually `STRING', but can also be one of the symbols
 in `selection-converter-alist', which see.  This argument is
-ignored on MS-Windows and MS-DOS."
+ignored on NS, MS-Windows and MS-DOS."
   (let ((data (gui-call gui-get-selection (or type 'PRIMARY)
                         (or data-type 'STRING))))
     (when (and (stringp data)
