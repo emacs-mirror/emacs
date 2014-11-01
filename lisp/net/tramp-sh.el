@@ -5289,17 +5289,20 @@ Return ATTR."
 
 (defun tramp-get-remote-uid (vec id-format)
   (with-tramp-connection-property vec (format "uid-%s" id-format)
-    (let ((res (cond
-		((tramp-get-remote-id vec)
-		 (tramp-get-remote-uid-with-id vec id-format))
-		((tramp-get-remote-perl vec)
-		 (tramp-get-remote-uid-with-perl vec id-format))
-		((tramp-get-remote-python vec)
-		 (tramp-get-remote-uid-with-python vec id-format))
-		(t (tramp-error
-		    vec 'file-error "Cannot determine remote uid")))))
-      ;; The command might not always return a number.
-      (if (and (equal id-format 'integer) (not (integerp res))) -1 res))))
+    (let ((res
+	   (ignore-errors
+	     (cond
+	      ((tramp-get-remote-id vec)
+	       (tramp-get-remote-uid-with-id vec id-format))
+	      ((tramp-get-remote-perl vec)
+	       (tramp-get-remote-uid-with-perl vec id-format))
+	      ((tramp-get-remote-python vec)
+	       (tramp-get-remote-uid-with-python vec id-format))))))
+      ;; Ensure there is a valid result.
+      (cond
+       ((and (equal id-format 'integer) (not (integerp res))) -1)
+       ((and (equal id-format 'string) (not (stringp res))) "UNKNOWN")
+       (t res)))))
 
 (defun tramp-get-remote-gid-with-id (vec id-format)
   (tramp-send-command-and-read
@@ -5330,17 +5333,20 @@ Return ATTR."
 
 (defun tramp-get-remote-gid (vec id-format)
   (with-tramp-connection-property vec (format "gid-%s" id-format)
-    (let ((res (cond
-		((tramp-get-remote-id vec)
-		 (tramp-get-remote-gid-with-id vec id-format))
-		((tramp-get-remote-perl vec)
-		 (tramp-get-remote-gid-with-perl vec id-format))
-		((tramp-get-remote-python vec)
-		 (tramp-get-remote-gid-with-python vec id-format))
-		(t (tramp-error
-		    vec 'file-error "Cannot determine remote gid")))))
-      ;; The command might not always return a number.
-      (if (and (equal id-format 'integer) (not (integerp res))) -1 res))))
+    (let ((res
+	   (ignore-errors
+	     (cond
+	      ((tramp-get-remote-id vec)
+	       (tramp-get-remote-gid-with-id vec id-format))
+	      ((tramp-get-remote-perl vec)
+	       (tramp-get-remote-gid-with-perl vec id-format))
+	      ((tramp-get-remote-python vec)
+	       (tramp-get-remote-gid-with-python vec id-format))))))
+      ;; Ensure there is a valid result.
+      (cond
+       ((and (equal id-format 'integer) (not (integerp res))) -1)
+       ((and (equal id-format 'string) (not (stringp res))) "UNKNOWN")
+       (t res)))))
 
 ;; Some predefined connection properties.
 (defun tramp-get-inline-compress (vec prop size)
