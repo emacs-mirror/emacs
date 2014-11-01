@@ -180,8 +180,8 @@ Mode                      Description
 ========================  ==============================================
 ``BufferModeATTACHED``    Buffer is attached to a region of memory.
 ``BufferModeFLIPPED``     Buffer has been flipped.
-``BufferModeLOGGED``      Buffer emits the events ``BufferReserve`` and 
-                          ``BufferCommit``.
+``BufferModeLOGGED``      Buffer remains permanently trapped, so that
+                          all reserve and commit events can be logged.
 ``BufferModeTRANSITION``  Buffer is in the process of being detached.
 ========================  ==============================================
 
