@@ -19,10 +19,8 @@
  *
  * TRANSGRESSIONS
  *
- * .trans.mod: There are several instances where pool structures are
- * directly accessed by this module because <code/pool.c> does not provide
- * an adequate (or adequately documented) interface.  They bear this
- * tag.
+ * .trans.mod: pool->bufferSerial is directly accessed by this module
+ * because <code/pool.c> does not provide an interface.
  */
 
 #include "mpm.h"
@@ -221,7 +219,7 @@ static Res BufferInit(Buffer buffer, BufferClass class,
   }
   buffer->fillSize = 0.0;
   buffer->emptySize = 0.0;
-  buffer->alignment = pool->alignment; /* .trans.mod */
+  buffer->alignment = PoolAlignment(pool);
   buffer->base = (Addr)0;
   buffer->initAtFlip = (Addr)0;
   /* In the next three assignments we really mean zero, not NULL, because
