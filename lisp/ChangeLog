@@ -1,3 +1,111 @@
+2014-11-01  Michael Albinus  <michael.albinus@gmx.de>
+
+	Backport Tramp changes from trunk.
+
+	* net/tramp.el (tramp-methods): Tweak docstring.
+	(tramp-file-name-handler): Apply `cons' where appropriate.
+	(tramp-handle-file-accessible-directory-p): Check for
+	`file-readable-p' instead of `file-executable-p'.
+	(tramp-handle-shell-command): Use `display-buffer'.  (Bug#18326)
+	(tramp-handle-unhandled-file-name-directory): Return "/".
+	(tramp-check-cached-permissions):
+	Use `tramp-compat-file-attributes'.
+	(tramp-call-process): Add new argument VEC.  Adapt callees in all
+	tramp*.el files.
+
+	* net/tramp-adb.el (tramp-adb-sh-fix-ls-output): Use `bolp'.
+	(tramp-adb-handle-write-region): Improve messages.
+	(tramp-adb-maybe-open-connection): Don't set
+	`tramp-current-*' variables.
+
+	* net/tramp-cache.el (tramp-flush-file-function): Simplify check.
+	Suppress debug messages.
+
+	* net/tramp-ftp.el (top): Remove special handling for URL syntax.
+	(tramp-ftp-file-name-handler):
+
+	* net/tramp-gvfs.el (tramp-gvfs-methods) <sftp>: Add.
+	(tramp-gvfs-methods-mounttracker)
+	(tramp-gvfs-mountlocation-signature): Check `tramp-gvfs-enabled'
+	during initialization.  (Bug#18774)
+	(tramp-gvfs-handle-delete-file): Flush file properties, not
+	directory properties.
+	(tramp-gvfs-handle-file-attributes): Use `string-to-number' when
+	reading "unix::mode".
+	(tramp-gvfs-handle-file-name-all-completions):
+	Use "-h" option for "gvfs-ls".
+	(tramp-gvfs-url-file-name): Apply `cons' where appropriate.
+	`user' and `localname' could be nil.
+	(tramp-gvfs-send-command): Simplify traces.
+
+	* net/tramp-sh.el (vc-handled-backends, vc-bzr-program)
+	(vc-git-program, vc-hg-program): Declare.
+	(tramp-methods) <sftp>: Remove.  It has never worked satisfactorily.
+	(tramp-methods) <nc>: Add new method.
+	(tramp-methods) <telnet>: Redirect stderr to "/dev/null".
+	(tramp-methods) <plink, plinkx, pscp, psftp>: Improve
+	`tramp-login-args'.
+	(tramp-default-user-alist): Add "nc".
+	(top): Remove completion function for "sftp".  Add completion
+	functions for "nc" and "psftp".
+	(tramp-sh-handle-set-visited-file-modtime):
+	(tramp-sh-handle-verify-visited-file-modtime): Use `point-at-eol'.
+	(tramp-do-copy-or-rename-file-out-of-band):
+	Use cached "remote-copy-args" value, if available.  (Bug#18199)
+	Tweak docstring.  Implement support for "nc" method.
+	(tramp-sh-handle-expand-file-name, tramp-local-coding-commands)
+	(tramp-remote-coding-commands, tramp-call-local-coding-command):
+	Tweak docstring.
+	(tramp-sh-handle-start-file-process): Expand `default-directory'.
+	(tramp-sh-handle-write-region): Tweak error message.
+	(tramp-sh-handle-vc-registered): Remove backends when the remote
+	binary does not exist.
+	(tramp-open-connection-setup-interactive-shell):
+	Prefer utf-8 coding.  (Bug#17859)
+	(tramp-find-inline-encoding): Do not raise an error.
+	(tramp-make-copy-program-file-name): Tweak docstring.  Handle also
+	the "nc" case.  Quote result also locally.
+	(tramp-get-remote-id): Check also for "gid".
+	(tramp-get-remote-python):
+
+	* net/tramp-smb.el (tramp-smb-handle-copy-directory)
+	(tramp-smb-handle-set-file-acl): Use `start-process'.
+	(tramp-smb-handle-insert-directory): Use progress reporter.
+	(tramp-smb-handle-rename-file): Flush also file properties of
+	FILENAME.
+
+	* net/trampver.el: Update release number.
+
+2014-11-01  Reuben Thomas  <rrt@sc3d.org>
+
+	* net/tramp.el (tramp-handle-file-symlink-p):
+	* net/tramp-ftp.el (tramp-ftp-file-name-handler): Remove a comment
+	about VMS, which we no longer support.
+
+2014-11-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* net/tramp-sh.el (tramp-sh-handle-vc-registered): Don't modify
+	the global vc-handled-backends (bug#18535).
+
+2014-11-01  Jérémy Compostella  <jeremy.compostella@intel.com>
+	    Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-open-connection-setup-interactive-shell):
+	Reduce the amount of set environment variable commands.
+
+2014-11-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* net/tramp-sh.el (tramp-get-remote-touch): Omit unnecessary call to
+	current-time.
+
+2014-11-01  Emilio C. Lopes  <eclig@gmx.net>
+
+	* net/tramp-sh.el (tramp-get-remote-python): Also search for
+	executables named "python2" or "python3".
+	(tramp-get-remote-uid-with-python): Use parentheses around
+	arguments to `print' to make it compatible with Python 3.
+	(tramp-get-remote-gid-with-python): Ditto.  (Bug#18118)
+
 2014-10-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* simple.el (newline): Add assertions to try and help catch bug#18913.

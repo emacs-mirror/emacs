@@ -240,7 +240,7 @@ pair of the form (KEY VALUE).  The following KEYs are defined:
     tamper the process output.
   * `tramp-copy-program'
     This specifies the name of the program to use for remotely copying
-    the file; this might be the absolute filename of rcp or the name of
+    the file; this might be the absolute filename of scp or the name of
     a workalike program.  It is always applied on the local host.
   * `tramp-copy-args'
     This specifies the list of parameters to pass to the above mentioned
@@ -248,6 +248,13 @@ pair of the form (KEY VALUE).  The following KEYs are defined:
   * `tramp-copy-env'
      A list of environment variables and their values, which will
      be set when calling `tramp-copy-program'.
+  * `tramp-remote-copy-program'
+    The listener program to be applied on remote side, if needed.
+  * `tramp-remote-copy-args'
+    The list of parameters to pass to the listener program, the hints
+    for `tramp-login-args' also apply here.  Additionally, \"%r\" could
+    be used here and in `tramp-copy-args'.  It denotes a randomly
+    chosen port for the remote listener.
   * `tramp-copy-keep-date'
     This specifies whether the copying program when the preserves the
     timestamp of the original file.
@@ -275,7 +282,7 @@ pair of the form (KEY VALUE).  The following KEYs are defined:
 What does all this mean?  Well, you should specify `tramp-login-program'
 for all methods; this program is used to log in to the remote site.  Then,
 there are two ways to actually transfer the files between the local and the
-remote side.  One way is using an additional rcp-like program.  If you want
+remote side.  One way is using an additional scp-like program.  If you want
 to do this, set `tramp-copy-program' in the method.
 
 Another possibility for file transfer is inline transfer, i.e. the
@@ -1762,7 +1769,7 @@ Example:
 		       (and (memq system-type '(cygwin windows-nt))
 			    (zerop
 			     (tramp-call-process
-			      "reg" nil nil nil "query" (nth 1 (car v)))))
+			      v "reg" nil nil nil "query" (nth 1 (car v)))))
 		     ;; Configuration file.
 		     (file-exists-p (nth 1 (car v)))))
 	(setq r (delete (car v) r)))
@@ -2141,13 +2148,13 @@ Falls back to normal file name handler if no Tramp file name handler exists."
 		       ((eq result 'non-essential)
 			(tramp-message
 			 v 5 "Non-essential received in operation %s"
-			 (append (list operation) args))
+			 (cons operation args))
 			(tramp-run-real-handler operation args))
 		       ((eq result 'suppress)
 			(let (tramp-message-show-message)
 			  (tramp-message
 			   v 1 "Suppress received in operation %s"
-			   (append (list operation) args))
+			   (cons operation args))
 			  (tramp-cleanup-connection v t)
 			  (tramp-run-real-handler operation args)))
 		       (t result)))
@@ -2157,7 +2164,7 @@ Falls back to normal file name handler if no Tramp file name handler exists."
 		   (let (tramp-message-show-message)
 		     (tramp-message
 		      v 1 "Interrupt received in operation %s"
-		      (append (list operation) args)))
+		      (cons operation args)))
 		   ;; Propagate the quit signal.
 		   (signal (car err) (cdr err)))
 
@@ -2816,7 +2823,7 @@ User is always nil."
   (if (memq system-type '(windows-nt))
       (with-temp-buffer
 	(when (zerop (tramp-call-process
-		      "reg" nil t nil "query" registry-or-dirname))
+		      nil "reg" nil t nil "query" registry-or-dirname))
 	  (goto-char (point-min))
 	  (loop while (not (eobp)) collect
 		(tramp-parse-putty-group registry-or-dirname))))
@@ -2895,7 +2902,7 @@ User is always nil."
 (defun tramp-handle-file-accessible-directory-p (filename)
   "Like `file-accessible-directory-p' for Tramp files."
   (and (file-directory-p filename)
-       (file-executable-p filename)))
+       (file-readable-p filename)))
 
 (defun tramp-handle-file-exists-p (filename)
   "Like `file-exists-p' for Tramp files."
@@ -2991,8 +2998,6 @@ User is always nil."
   (with-parsed-tramp-file-name filename nil
     (let ((x (car (file-attributes filename))))
       (when (stringp x)
-	;; When Tramp is running on VMS, then `file-name-absolute-p'
-	;; might do weird things.
 	(if (file-name-absolute-p x)
 	    (tramp-make-tramp-file-name method user host x)
 	  x)))))
@@ -3284,11 +3289,12 @@ User is always nil."
 	    ;; Run the process.
 	    (setq p (apply 'start-file-process "*Async Shell*" buffer args))
 	  ;; Display output.
-	  (pop-to-buffer output-buffer)
-	  (setq mode-line-process '(":%s"))
-	  (shell-mode)
-	  (set-process-sentinel p 'shell-command-sentinel)
-	  (set-process-filter p 'comint-output-filter))
+	  (with-current-buffer output-buffer
+	    (display-buffer output-buffer '(nil (allow-no-window . t)))
+	    (setq mode-line-process '(":%s"))
+	    (shell-mode)
+	    (set-process-sentinel p 'shell-command-sentinel)
+	    (set-process-filter p 'comint-output-filter)))
 
       (prog1
 	  ;; Run the process.
@@ -3333,8 +3339,9 @@ User is always nil."
 (defun tramp-handle-unhandled-file-name-directory (_filename)
   "Like `unhandled-file-name-directory' for Tramp files."
   ;; With Emacs 23, we could simply return `nil'.  But we must keep it
-  ;; for backward compatibility.
-  (expand-file-name "~/"))
+  ;; for backward compatibility.  "~/" cannot be returned, because
+  ;; there might be machines without a HOME directory (like hydra).
+  "/")
 
 (defun tramp-handle-set-visited-file-modtime (&optional time-list)
   "Like `set-visited-file-modtime' for Tramp files."
@@ -3905,7 +3912,7 @@ be granted."
 		(tramp-get-file-property
 		 vec (tramp-file-name-localname vec)
 		 (concat "file-attributes-" suffix) nil)
-		(file-attributes
+		(tramp-compat-file-attributes
 		 (tramp-make-tramp-file-name
 		  (tramp-file-name-method vec)
 		  (tramp-file-name-user vec)
@@ -4117,18 +4124,34 @@ ALIST is of the form ((FROM . TO) ...)."
 ;;; Compatibility functions section:
 
 (defun tramp-call-process
-  (program &optional infile destination display &rest args)
+  (vec program &optional infile destination display &rest args)
   "Calls `call-process' on the local host.
-This is needed because for some Emacs flavors Tramp has
-defadvised `call-process' to behave like `process-file'.  The
-Lisp error raised when PROGRAM is nil is trapped also, returning 1.
-Furthermore, traces are written with verbosity of 6."
-  (tramp-message
-   (vector tramp-current-method tramp-current-user tramp-current-host nil nil)
-   6 "`%s %s' %s %s" program (mapconcat 'identity args " ") infile destination)
-  (if (executable-find program)
-      (apply 'call-process program infile destination display args)
-    1))
+It always returns a return code.  The Lisp error raised when
+PROGRAM is nil is trapped also, returning 1.  Furthermore, traces
+are written with verbosity of 6."
+  (let ((v (or vec
+	       (vector tramp-current-method tramp-current-user
+		       tramp-current-host nil nil)))
+	(destination (if (eq destination t) (current-buffer) destination))
+	result)
+    (tramp-message
+     v 6 "`%s %s' %s %s"
+     program (mapconcat 'identity args " ") infile destination)
+    (condition-case err
+	(with-temp-buffer
+	  (setq result
+		(apply
+		 'call-process program infile (or destination t) display args))
+	  ;; `result' could also be an error string.
+	  (when (stringp result)
+	    (signal 'file-error (list result)))
+	  (with-current-buffer
+	      (if (bufferp destination) destination (current-buffer))
+	    (tramp-message v 6 "%d\n%s" result (buffer-string))))
+      (error
+       (setq result 1)
+       (tramp-message v 6 "%d\n%s" result (error-message-string err))))
+    result))
 
 ;;;###tramp-autoload
 (defun tramp-read-passwd (proc &optional prompt)

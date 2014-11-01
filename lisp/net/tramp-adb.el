@@ -458,9 +458,7 @@ Emacs dired can't find files."
       (insert "  " (mapconcat 'identity sorted-lines "\n  ")))
     ;; Add final newline.
     (goto-char (point-max))
-    (unless (= (point) (line-beginning-position))
-      (insert "\n"))))
-
+    (unless (bolp) (insert "\n"))))
 
 (defun tramp-adb-ls-output-time-less-p (a b)
   "Sort \"ls\" output by time, descending."
@@ -609,10 +607,10 @@ But handle the case, if the \"test\" command is not available."
        'write-region
        (list start end tmpfile append 'no-message lockname confirm))
       (with-tramp-progress-reporter
-	  v 3 (format "Moving tmp file %s to %s" tmpfile filename)
+	  v 3 (format "Moving tmp file `%s' to `%s'" tmpfile filename)
 	(unwind-protect
 	    (when (tramp-adb-execute-adb-command v "push" tmpfile localname)
-	      (tramp-error v 'file-error "Cannot write: `%s' filename"))
+	      (tramp-error v 'file-error "Cannot write: `%s'" filename))
 	  (delete-file tmpfile)))
 
       (when (or (eq visit t) (stringp visit))
@@ -998,7 +996,8 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
   (with-temp-buffer
     (prog1
 	(unless
-	    (zerop (apply 'tramp-call-process tramp-adb-program nil t nil args))
+	    (zerop
+	     (apply 'tramp-call-process vec tramp-adb-program nil t nil args))
 	  (buffer-string))
       (tramp-message vec 6 "%s" (buffer-string)))))
 
@@ -1031,7 +1030,7 @@ This happens for Android >= 4.0."
 
 (defun tramp-adb-send-command-and-check
   (vec command)
-  "Run COMMAND and and check its exit status.
+  "Run COMMAND and check its exit status.
 Sends `echo $?' along with the COMMAND for checking the exit status.  If
 COMMAND is nil, just sends `echo $?'.  Returns the exit status found."
   (tramp-adb-send-command
@@ -1107,10 +1106,7 @@ connection if a previous connection has died for some reason."
 	(and p (processp p) (memq (process-status p) '(run open)))
       (save-match-data
 	(when (and p (processp p)) (delete-process p))
-	(setq tramp-current-method (tramp-file-name-method vec)
-	      tramp-current-user (tramp-file-name-user vec)
-	      tramp-current-host (tramp-file-name-host vec)
-	      devices (mapcar 'cadr (tramp-adb-parse-device-names nil)))
+	(setq devices (mapcar 'cadr (tramp-adb-parse-device-names nil)))
 	(if (not devices)
 	    (tramp-error vec 'file-error "No device connected"))
 	(if (and (> (length host) 0) (not (member host devices)))
