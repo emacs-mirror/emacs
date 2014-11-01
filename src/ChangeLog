@@ -1,5 +1,8 @@
 2014-11-01  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* macfont.m (macfont_draw):
+	* nsterm.m (ns_mouse_position, judge): Clean up merge conflict.
+
 	* macfont.m (macfont_glyph_extents): Turn off synthetic bold
 	if force_integral_p (i.e. no antialias).
 	(macfont_draw): Check ns_antialias_text, also turn off synthetic

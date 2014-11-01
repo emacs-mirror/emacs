@@ -1916,48 +1916,13 @@ ns_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 /*fprintf (stderr, "ns_mouse_position: %.0f, %.0f\n", position.x, position.y); */
 
       if (bar_window) *bar_window = Qnil;
-      if (part) *part = 0; /*scroll_bar_handle; */
+      if (part) *part = scroll_bar_above_handle;
 
       if (x) XSETINT (*x, lrint (position.x));
       if (y) XSETINT (*y, lrint (position.y));
       if (time)
         *time = dpyinfo->last_mouse_movement_time;
-      dpyinfo->last_mouse_scroll_bar = nil;
-    }
-  else
-    {
-      /* Clear the mouse-moved flag for every frame on this display.  */
-      FOR_EACH_FRAME (tail, frame)
-        if (FRAME_NS_P (XFRAME (frame))
-            && FRAME_NS_DISPLAY (XFRAME (frame)) == FRAME_NS_DISPLAY (*fp))
-          XFRAME (frame)->mouse_moved = 0;
-
-      dpyinfo->last_mouse_scroll_bar = nil;
-      if (dpyinfo->last_mouse_frame
-	  && FRAME_LIVE_P (dpyinfo->last_mouse_frame))
-        f = dpyinfo->last_mouse_frame;
-      else
-        f = dpyinfo->x_focus_frame ? dpyinfo->x_focus_frame
-                                    : SELECTED_FRAME ();
-
-      if (f && FRAME_NS_P (f))
-        {
-          view = FRAME_NS_VIEW (*fp);
-
-          position = [[view window] mouseLocationOutsideOfEventStream];
-          position = [view convertPoint: position fromView: nil];
-          remember_mouse_glyph (f, position.x, position.y,
-				&dpyinfo->last_mouse_glyph);
-
-          if (bar_window) *bar_window = Qnil;
-          if (part) *part = scroll_bar_above_handle;
-
-          if (x) XSETINT (*x, lrint (position.x));
-          if (y) XSETINT (*y, lrint (position.y));
-          if (time)
-	    *time = dpyinfo->last_mouse_movement_time;
-          *fp = f;
-        }
+      *fp = f;
     }
 
   unblock_input ();
@@ -7254,9 +7219,6 @@ if (cols > 0 && rows > 0)
       view = (EmacsView *)FRAME_NS_VIEW (frame);
       if (view != nil)
         view->scrollbarsNeedingUpdate++;
-      if (!NILP (win))
-        wset_vertical_scroll_bar (XWINDOW (win), Qnil);
-      win = Qnil;
       [self removeFromSuperview];
       [self release];
       unblock_input ();

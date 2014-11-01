@@ -2756,7 +2756,7 @@ macfont_draw (struct glyph_string *s, int from, int to, int x, int y,
         atfm = synthetic_italic_atfm;
       else
         atfm = CGAffineTransformIdentity;
-      if (macfont_info->synthetic_bold_p && ! no_antialias_p))
+      if (macfont_info->synthetic_bold_p && ! no_antialias_p)
         {
           CGContextSetTextDrawingMode (context, kCGTextFillStroke);
           CGContextSetLineWidth (context, synthetic_bold_factor * font_size);
