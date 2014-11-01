@@ -1,3 +1,10 @@
+2014-11-01  Alan Mackenzie  <acm@muc.de>
+
+	Make blink-parens work with a closing template delimiter.
+	* progmodes/cc-cmds.el (c-electric-lt-gt): Cause a redisplay
+	before calling blink-paren-function, so as to apply syntax-table
+	properties to the ">".
+
 2014-11-01  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* select.el (gui-get-selection): Comment: data-type ignored on NS.

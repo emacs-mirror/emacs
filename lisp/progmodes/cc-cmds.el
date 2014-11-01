@@ -1155,11 +1155,12 @@ numeric argument is supplied, or the point is inside a literal."
       (when (and (eq (char-before) ?>)
 		 (not executing-kbd-macro)
 		 blink-paren-function)
-	    ;; Note: Most paren blink functions, such as the standard
-	    ;; `blink-matching-open', currently doesn't handle paren chars
-	    ;; marked with text properties very well.  Maybe we should avoid
-	    ;; this call for the time being?
-	    (funcall blink-paren-function)))))
+	;; Currently (2014-10-19), the syntax-table text properties on < and >
+	;; are only applied in code called during Emacs redisplay.  We thus
+	;; explicitly cause a redisplay so that these properties have been
+	;; applied when `blink-paren-function' gets called.
+	(sit-for 0)
+	(funcall blink-paren-function)))))
 
 (defun c-electric-paren (arg)
   "Insert a parenthesis.
