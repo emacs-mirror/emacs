@@ -3495,7 +3495,8 @@ readable_events (int flags)
 		       && event->part == scroll_bar_handle
 		       && event->modifiers == 0)
 #endif
-		  )
+		  && !((flags & READABLE_EVENTS_FILTER_EVENTS)
+		       && event->kind == BUFFER_SWITCH_EVENT))
 		return 1;
 	      event++;
               if (event == kbd_buffer + KBD_BUFFER_SIZE)
