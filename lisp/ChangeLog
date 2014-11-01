@@ -1,3 +1,9 @@
+2014-11-01  Michael R. Mauger  <michael@mauger.com>
+
+	* sql.el (sql-interactive-mode, sql-stop): Correct fix for
+	Bug#16814 with let-bind of comint-input-ring variables around read
+	and save functions.
+
 2014-11-01  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-cache.el (tramp-get-file-property)

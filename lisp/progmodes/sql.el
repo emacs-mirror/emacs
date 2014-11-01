@@ -3959,11 +3959,10 @@ you entered, right above the output it created.
   ;; People wanting a different history file for each
   ;; buffer/process/client/whatever can change separator and file-name
   ;; on the sql-interactive-mode-hook.
-  (setq-local comint-input-ring-separator sql-input-ring-separator)
-  (setq comint-input-ring-file-name sql-input-ring-file-name)
-  ;; Calling the hook before calling comint-read-input-ring allows users
-  ;; to set comint-input-ring-file-name in sql-interactive-mode-hook.
-  (comint-read-input-ring t))
+  (let
+      ((comint-input-ring-separator sql-input-ring-separator)
+       (comint-input-ring-file-name sql-input-ring-file-name))
+    (comint-read-input-ring t)))
 
 (defun sql-stop (process event)
   "Called when the SQL process is stopped.
@@ -3973,11 +3972,15 @@ Writes the input history to a history file using
 
 This function is a sentinel watching the SQL interpreter process.
 Sentinels will always get the two parameters PROCESS and EVENT."
-  (comint-write-input-ring)
-  (if (and (eq (current-buffer) sql-buffer)
-	   (not buffer-read-only))
-      (insert (format "\nProcess %s %s\n" process event))
-    (message "Process %s %s" process event)))
+  (with-current-buffer (process-buffer process)
+    (let
+        ((comint-input-ring-separator sql-input-ring-separator)
+         (comint-input-ring-file-name sql-input-ring-file-name))
+      (comint-write-input-ring))
+
+    (if (not buffer-read-only)
+        (insert (format "\nProcess %s %s\n" process event))
+      (message "Process %s %s" process event))))
 
 
 
