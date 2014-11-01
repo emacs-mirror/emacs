@@ -1,3 +1,7 @@
+2014-11-01  Glenn Morris  <rgm@gnu.org>
+
+	* programs.texi (Misc for Programs): Fix typo.
+
 2014-10-24  Eli Zaretskii  <eliz@gnu.org>
 
 	* frames.texi (Scroll Bars): Improve indexing of faces.

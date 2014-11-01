@@ -1453,7 +1453,7 @@ creates.
 @findex superword-mode
  Superword mode is a buffer-local minor mode that causes editing and
 motion commands to treat symbols (e.g., @samp{this_is_a_symbol}) as words.
-When Subword mode is enabled, the minor mode indicator
+When Superword mode is enabled, the minor mode indicator
 @iftex
 @samp{@math{^2}}
 @end iftex
