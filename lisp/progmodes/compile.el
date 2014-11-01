@@ -1959,6 +1959,12 @@ Runs `compilation-mode-hook' with `run-mode-hooks' (which see).
        compilation-page-delimiter)
   ;; (set (make-local-variable 'compilation-buffer-modtime) nil)
   (compilation-setup)
+  ;; Turn off deferred fontifications in the compilation buffer, if
+  ;; the user turned them on globally.  This is because idle timers
+  ;; aren't re-run after receiving input from a subprocess, so the
+  ;; buffer is left unfontified after the compilation exits, until
+  ;; some other input event happens.
+  (set (make-local-variable 'jit-lock-defer-time) nil)
   (setq buffer-read-only t)
   (run-mode-hooks 'compilation-mode-hook))
 

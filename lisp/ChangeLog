@@ -1,3 +1,8 @@
+2014-11-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* progmodes/compile.el (compilation-mode): Turn off deferred
+	fontifications locally.  (Bug#18856)
+
 2014-11-01  Wolfgang Jenkner  <wjenkner@inode.at>
 
 	* net/tramp-sh.el (tramp-send-command): Fix the case where the
