@@ -23,7 +23,7 @@
 
 2014-10-30  Daniel Colascione  <dancol@dancol.org>
 
-	Add "enum classs" support to C++ mode.
+	Add "enum class" support to C++ mode.
 	* progmodes/cc-langs.el (c-after-brace-list-decl-kwds)
 	(c-after-brace-list-key): New language consts/variables.
 	* progmodes/cc-engine.el (c-looking-at-decl-block):
