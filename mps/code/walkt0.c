@@ -91,7 +91,7 @@ static mps_addr_t make(void)
  *   pool
  *   fmt
  *
- * .. 3: accumulating the count and size of objects found
+ * ...3: accumulating the count and size of objects found
  */
 struct stepper_data {
   mps_arena_t arena;

@@ -23,8 +23,9 @@ Interface changes
 Other changes
 .............
 
-#. Objects in :ref:`pool-snc` pools now die immediately when their
-   :term:`allocation frame` is popped. See job003883_.
+#. Objects in :ref:`pool-snc` pools are no longer scanned after their
+   :term:`allocation frame` is popped, and so do not keep objects in
+   automatically managed pools alive. See job003883_.
 
    .. _job003883: https://www.ravenbrook.com/project/mps/issue/job003883/
 
