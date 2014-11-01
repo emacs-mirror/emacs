@@ -1,4 +1,4 @@
-/* framess.c: ALLOCATION FRAME STRESS TEST
+/* sncss.c: SNC STRESS TEST
  *
  * $Id$
  * Copyright (c) 2014 Ravenbrook Limited.  See end of file for license.
