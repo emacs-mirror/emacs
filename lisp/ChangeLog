@@ -1,3 +1,8 @@
+2014-11-01  Wolfgang Jenkner  <wjenkner@inode.at>
+
+	* net/tramp-sh.el (tramp-send-command): Fix the case where the
+	remote-echo connection property is non-nil (bug#18858).
+
 2014-11-01  Michael Albinus  <michael.albinus@gmx.de>
 
 	Backport Tramp changes from trunk.
