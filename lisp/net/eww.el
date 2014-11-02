@@ -165,7 +165,7 @@ word(s) will be searched for via `eww-search-prefix'."
         (t
          (if (and (= (length (split-string url)) 1)
                  (or (and (not (string-match-p "\\`[\"\'].*[\"\']\\'" url))
-                          (> (length (split-string url "\\.")) 1))
+                          (> (length (split-string url "[.:]")) 1))
                      (string-match eww-local-regex url)))
              (progn
                (unless (string-match-p "\\`[a-zA-Z][-a-zA-Z0-9+.]*://" url)
