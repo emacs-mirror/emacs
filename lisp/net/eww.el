@@ -443,7 +443,7 @@ word(s) will be searched for via `eww-search-prefix'."
 
     (easy-menu-define nil map ""
       '("Eww"
-	["Exit" eww-quit t]
+	["Exit" quit-window t]
 	["Close browser" quit-window t]
 	["Reload" eww-reload t]
 	["Back to previous page" eww-back-url
@@ -463,7 +463,7 @@ word(s) will be searched for via `eww-search-prefix'."
 (defvar eww-tool-bar-map
   (let ((map (make-sparse-keymap)))
     (dolist (tool-bar-item
-             '((eww-quit . "close")
+             '((quit-window . "close")
                (eww-reload . "refresh")
                (eww-back-url . "left-arrow")
                (eww-forward-url . "right-arrow")
