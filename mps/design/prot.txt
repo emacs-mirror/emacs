@@ -116,9 +116,22 @@ _`.if.sync.noop`: ``ProtSync()`` is permitted to be a no-op if
 Implementations
 ---------------
 
-_`.impl.an`: Generic implementation. See design.mps.protan_.
+_`.impl.an`: Generic implementation in ``protan.c``.
 
-.. _design.mps.protan: protan
+_`.impl.an.set`: ``ProtSet()`` does nothing.
+
+_`.impl.an.sync`: ``ProtSync()`` has no way of changing the protection
+of a segment, so it simulates faults on all segments that are supposed
+to be protected, by calling ``TraceSegAccess()``, until it determines
+that no segments require protection any more. This forces the trace to
+proceed until it is completed, preventing incremental collection.
+
+_`.impl.an.sync.issue`: This relies on the pool actually removing the
+protection, otherwise there is an infinite loop here. This is
+therefore not compatible with implementations of the protection
+mutator context module that support single-stepping of accesses (see design.mps.prmc.req.fault.step_).
+
+.. _design.mps.prmc.req.fault.step: prmc#req.fault.step
 
 _`.impl.ix`: POSIX implementation.
 
