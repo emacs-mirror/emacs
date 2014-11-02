@@ -1577,8 +1577,6 @@ to add functions and PL/SQL keywords.")
      ;; Oracle SQL*Plus Commands
      ;;   Only recognized in they start in column 1 and the
      ;;   abbreviation is followed by a space or the end of line.
-
-     "\\|"
      (list (concat "^" (sql-regexp-abbrev "rem~ark") "\\(?:\\s-.*\\)?$")
            0 'font-lock-comment-face t)
 
@@ -1626,6 +1624,11 @@ to add functions and PL/SQL keywords.")
       0 'font-lock-doc-face t)
      '("&?&\\(?:\\sw\\|\\s_\\)+[.]?" 0 font-lock-preprocessor-face t)
 
+     ;; Oracle PL/SQL Attributes (Declare these first to match %TYPE correctly)
+     (sql-font-lock-keywords-builder 'font-lock-builtin-face '("%" . "\\b")
+"bulk_exceptions" "bulk_rowcount" "found" "isopen" "notfound"
+"rowcount" "rowtype" "type"
+)
      ;; Oracle Functions
      (sql-font-lock-keywords-builder 'font-lock-builtin-face nil
 "abs" "acos" "add_months" "appendchildxml" "ascii" "asciistr" "asin"
@@ -1655,7 +1658,7 @@ to add functions and PL/SQL keywords.")
 "prediction" "prediction_bounds" "prediction_cost"
 "prediction_details" "prediction_probability" "prediction_set"
 "presentnnv" "presentv" "previous" "rank" "ratio_to_report" "rawtohex"
-"rawtonhex" "ref" "reftohex" "regexp_count" "regexp_instr"
+"rawtonhex" "ref" "reftohex" "regexp_count" "regexp_instr" "regexp_like"
 "regexp_replace" "regexp_substr" "regr_avgx" "regr_avgy" "regr_count"
 "regr_intercept" "regr_r2" "regr_slope" "regr_sxx" "regr_sxy"
 "regr_syy" "remainder" "replace" "round" "rowidtochar" "rowidtonchar"
@@ -1740,7 +1743,7 @@ to add functions and PL/SQL keywords.")
 "password_life_time" "password_lock_time" "password_reuse_max"
 "password_reuse_time" "password_verify_function" "pctfree"
 "pctincrease" "pctthreshold" "pctused" "pctversion" "percent"
-"performance" "permanent" "pfile" "physical" "pipelined" "plan"
+"performance" "permanent" "pfile" "physical" "pipelined" "pivot" "plan"
 "post_transaction" "pragma" "prebuilt" "preserve" "primary" "private"
 "private_sga" "privileges" "procedure" "profile" "protection" "public"
 "purge" "query" "quiesce" "quota" "range" "read" "reads" "rebuild"
@@ -1763,7 +1766,7 @@ to add functions and PL/SQL keywords.")
 "temporary" "test" "than" "then" "thread" "through" "time_zone"
 "timeout" "to" "trace" "transaction" "trigger" "triggers" "truncate"
 "trust" "type" "types" "unarchived" "under" "under_path" "undo"
-"uniform" "union" "unique" "unlimited" "unlock" "unquiesce"
+"uniform" "union" "unique" "unlimited" "unlock" "unpivot" "unquiesce"
 "unrecoverable" "until" "unusable" "unused" "update" "upgrade" "usage"
 "use" "using" "validate" "validation" "value" "values" "variable"
 "varray" "version" "view" "wait" "when" "whenever" "where" "with"
@@ -1776,12 +1779,6 @@ to add functions and PL/SQL keywords.")
 "clob" "date" "day" "float" "interval" "local" "long" "longraw"
 "minute" "month" "nchar" "nclob" "number" "nvarchar2" "raw" "rowid" "second"
 "time" "timestamp" "urowid" "varchar2" "with" "year" "zone"
-)
-
-     ;; Oracle PL/SQL Attributes
-     (sql-font-lock-keywords-builder 'font-lock-builtin-face '("%" . "\\b")
-"bulk_exceptions" "bulk_rowcount" "found" "isopen" "notfound"
-"rowcount" "rowtype" "type"
 )
 
      ;; Oracle PL/SQL Functions
@@ -3507,45 +3504,51 @@ list of SQLi command strings."
       (message "Executing SQL command...done"))))
 
 (defun sql-redirect-one (sqlbuf command outbuf save-prior)
-  (with-current-buffer sqlbuf
-    (let ((buf  (get-buffer-create (or outbuf " *SQL-Redirect*")))
-          (proc (get-buffer-process (current-buffer)))
-          (comint-prompt-regexp (sql-get-product-feature sql-product
-                                                         :prompt-regexp))
-          (start nil))
-      (with-current-buffer buf
-        (setq-local view-no-disable-on-exit t)
-        (read-only-mode -1)
-        (unless save-prior
-          (erase-buffer))
-        (goto-char (point-max))
-        (unless (zerop (buffer-size))
-          (insert "\n"))
-        (setq start (point)))
+  (when command
+    (with-current-buffer sqlbuf
+      (let ((buf  (get-buffer-create (or outbuf " *SQL-Redirect*")))
+            (proc (get-buffer-process (current-buffer)))
+            (comint-prompt-regexp (sql-get-product-feature sql-product
+                                                           :prompt-regexp))
+            (start nil))
+        (with-current-buffer buf
+          (setq-local view-no-disable-on-exit t)
+          (read-only-mode -1)
+          (unless save-prior
+            (erase-buffer))
+          (goto-char (point-max))
+          (unless (zerop (buffer-size))
+            (insert "\n"))
+          (setq start (point)))
 
-      (when sql-debug-redirect
-        (message ">>SQL> %S" command))
+        (when sql-debug-redirect
+          (message ">>SQL> %S" command))
 
-      ;; Run the command
-      (comint-redirect-send-command-to-process command buf proc nil t)
-      (while (null comint-redirect-completed)
-	(accept-process-output nil 1))
+        ;; Run the command
+        (let ((inhibit-quit t)
+              comint-preoutput-filter-functions)
+          (with-local-quit
+            (comint-redirect-send-command-to-process command buf proc nil t)
+            (while (or quit-flag (null comint-redirect-completed))
+              (accept-process-output nil 1)))
 
-      ;; Clean up the output results
-      (with-current-buffer buf
-        ;; Remove trailing whitespace
-        (goto-char (point-max))
-        (when (looking-back "[ \t\f\n\r]*" start)
-          (delete-region (match-beginning 0) (match-end 0)))
-        ;; Remove echo if there was one
-        (goto-char start)
-        (when (looking-at (concat "^" (regexp-quote command) "[\\n]"))
-          (delete-region (match-beginning 0) (match-end 0)))
-        ;; Remove Ctrl-Ms
-        (goto-char start)
-        (while (re-search-forward "\r+$" nil t)
-          (replace-match "" t t))
-        (goto-char start)))))
+          (if quit-flag
+              (comint-redirect-cleanup)
+            ;; Clean up the output results
+            (with-current-buffer buf
+              ;; Remove trailing whitespace
+              (goto-char (point-max))
+              (when (looking-back "[ \t\f\n\r]*" start)
+                (delete-region (match-beginning 0) (match-end 0)))
+              ;; Remove echo if there was one
+              (goto-char start)
+              (when (looking-at (concat "^" (regexp-quote command) "[\\n]"))
+                (delete-region (match-beginning 0) (match-end 0)))
+              ;; Remove Ctrl-Ms
+              (goto-char start)
+              (while (re-search-forward "\r+$" nil t)
+                (replace-match "" t t))
+              (goto-char start))))))))
 
 (defun sql-redirect-value (sqlbuf command regexp &optional regexp-groups)
   "Execute the SQL command and return part of result.
@@ -3786,7 +3789,9 @@ must tell Emacs.  Here's how to do that in your init file:
 \(add-hook 'sql-mode-hook
           (lambda ()
 	    (modify-syntax-entry ?\\\\ \".\" sql-mode-syntax-table)))"
+  :group 'SQL
   :abbrev-table sql-mode-abbrev-table
+
   (if sql-mode-menu
       (easy-menu-add sql-mode-menu)); XEmacs
 
@@ -3817,6 +3822,7 @@ must tell Emacs.  Here's how to do that in your init file:
 ;;; SQL interactive mode
 
 (put 'sql-interactive-mode 'mode-class 'special)
+(put 'sql-interactive-mode 'custom-mode-group 'SQL)
 
 (defun sql-interactive-mode ()
   "Major mode to use a SQL interpreter interactively.
