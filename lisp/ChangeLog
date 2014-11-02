@@ -1,3 +1,7 @@
+2014-11-02  Brian McKenna <brian@brianmckenna.org>  (tiny change)
+
+	* net/eww.el (eww-submit): Encode empty form values as "".
+
 2014-11-02  Ivan Shmakov <ivan@siamics.net>
 
 	* net/eww.el (eww): Allow "file:/file/name" URLs.
