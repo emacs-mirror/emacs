@@ -794,11 +794,13 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
       ;; directory.
       (condition-case nil
 	  (progn
-	    (setq ret 0)
-	    (tramp-adb-barf-unless-okay
-	     v (format "(cd %s; %s)"
-		       (tramp-shell-quote-argument localname) command)
-	     "")
+	    (setq ret
+		  (if (tramp-adb-send-command-and-check
+		       v
+		       (format "(cd %s; %s)"
+			       (tramp-shell-quote-argument localname) command))
+		      ;; Set return status accordingly.
+		      0 1))
 	    ;; We should add the output anyway.
 	    (when outbuf
 	      (with-current-buffer outbuf
@@ -1031,8 +1033,9 @@ This happens for Android >= 4.0."
 (defun tramp-adb-send-command-and-check
   (vec command)
   "Run COMMAND and check its exit status.
-Sends `echo $?' along with the COMMAND for checking the exit status.  If
-COMMAND is nil, just sends `echo $?'.  Returns the exit status found."
+Sends `echo $?' along with the COMMAND for checking the exit
+status.  If COMMAND is nil, just sends `echo $?'.  Returns nil if
+the exit status is not equal 0, and t otherwise."
   (tramp-adb-send-command
    vec (if command
 	   (format "%s; echo tramp_exit_status $?" command)
