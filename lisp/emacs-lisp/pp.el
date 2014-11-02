@@ -137,7 +137,7 @@ Also add the value to the front of the list in the variable `values'."
   "Macroexpand EXPRESSION and pretty-print its value."
   (interactive
    (list (read--expression "Macroexpand: ")))
-  (pp-display-expression (macroexpand expression) "*Pp Macroexpand Output*"))
+  (pp-display-expression (macroexpand-1 expression) "*Pp Macroexpand Output*"))
 
 (defun pp-last-sexp ()
   "Read sexp before point.  Ignores leading comment characters."
@@ -175,7 +175,7 @@ With argument, pretty-print output into current buffer.
 Ignores leading comment characters."
   (interactive "P")
   (if arg
-      (insert (pp-to-string (macroexpand (pp-last-sexp))))
+      (insert (pp-to-string (macroexpand-1 (pp-last-sexp))))
     (pp-macroexpand-expression (pp-last-sexp))))
 
 ;;; Test cases for quote

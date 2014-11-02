@@ -204,7 +204,7 @@ Comments in the form will be lost."
   (let* ((start (point))
          (exp (read (current-buffer)))
          ;; Compute it before, since it may signal errors.
-         (new (macroexpand exp)))
+         (new (macroexpand-1 exp)))
     (if (equal exp new)
         (message "Not a macro call, nothing to expand")
       (delete-region start (point))

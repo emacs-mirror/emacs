@@ -394,7 +394,7 @@ symbol itself."
   (or (symbolp exp) (macroexp-const-p exp)))
 
 (defun macroexp-quote (v)
-  "Returns an expression E such that `(eval E)' is V.
+  "Return an expression E such that `(eval E)' is V.
 
 E is either V or (quote V) depending on whether V evaluates to
 itself or not."

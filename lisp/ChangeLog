@@ -1,3 +1,9 @@
+2014-11-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/pp.el (pp-macroexpand-expression): Use macroexpand-1
+	(bug#18821).
+	* progmodes/elisp-mode.el (emacs-lisp-macroexpand): Idem.
+
 2014-11-01  Michael R. Mauger  <michael@mauger.com>
 
 	* sql.el (sql-mode-oracle-font-lock-keywords): Correct regexp
