@@ -1,3 +1,9 @@
+2014-11-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/eww.el (eww-display-html): Set `eww-current-source' in the
+	correct buffer.
+	(eww-view-source): Use it.
+
 2014-11-02  Ivan Shmakov <ivan@siamics.net>
 
 	* net/eww.el (eww): Recognize colon-delimited IPv6 addresses.

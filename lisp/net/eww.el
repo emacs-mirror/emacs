@@ -264,10 +264,11 @@ word(s) will be searched for via `eww-search-prefix'."
 	 (or document
 	     (list
 	      'base (list (cons 'href url))
-	      (libxml-parse-html-region (point) (point-max))))))
-    (setq eww-current-source (buffer-substring (point) (point-max)))
+	      (libxml-parse-html-region (point) (point-max)))))
+	(source (buffer-substring (point) (point-max))))
     (eww-setup-buffer)
-    (setq eww-current-dom document)
+    (setq eww-current-source source
+	  eww-current-dom document)
     (let ((inhibit-read-only t)
 	  (after-change-functions nil)
 	  (shr-target-id (url-target (url-generic-parse-url url)))
@@ -406,7 +407,7 @@ word(s) will be searched for via `eww-search-prefix'."
         (source eww-current-source))
     (with-current-buffer buf
       (delete-region (point-min) (point-max))
-      (insert (or eww-current-source "no source"))
+      (insert (or source "no source"))
       (goto-char (point-min))
       (when (fboundp 'html-mode)
         (html-mode)))
