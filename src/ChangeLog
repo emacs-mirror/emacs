@@ -1,3 +1,7 @@
+2014-11-02  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* process.c (catch_child_signal): Fix incorrect assertion.
+
 2014-11-01  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* macfont.m (macfont_draw):
