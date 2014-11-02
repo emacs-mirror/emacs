@@ -1,3 +1,14 @@
+2014-11-02  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.h (EmacsImage): Remove imageListNext, refCount, reference,
+	imageListSetNext, imageListNext.
+
+	* nsimage.m (ImageList, imageListNext, imageListSetNext:)
+	(reference): Remove.
+	(allocInitFromFile:): Remove searching ImageList and calling
+	reference (Bug#18918).
+	(dealloc): Remove handling if ImageList.
+
 2014-11-02  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* process.c (catch_child_signal): Fix incorrect assertion.

@@ -160,25 +160,11 @@ ns_set_alpha (void *img, int x, int y, unsigned char a)
 
 @implementation EmacsImage
 
-static EmacsImage *ImageList = nil;
-
 + allocInitFromFile: (Lisp_Object)file
 {
-  EmacsImage *image = ImageList;
   NSImageRep *imgRep;
   Lisp_Object found;
-
-  /* look for an existing image of the same name */
-  while (image != nil &&
-         [[image name] compare: [NSString stringWithUTF8String: SSDATA (file)]]
-             != NSOrderedSame)
-    image = [image imageListNext];
-
-  if (image != nil)
-    {
-      [image reference];
-      return image;
-    }
+  EmacsImage *image;
 
   /* Search bitmap-file-path for the file, if appropriate.  */
   found = x_find_image_file (file);
@@ -205,54 +191,14 @@ static EmacsImage *ImageList = nil;
   [image setSize: NSMakeSize([imgRep pixelsWide], [imgRep pixelsHigh])];
 
   [image setName: [NSString stringWithUTF8String: SSDATA (file)]];
-  [image reference];
-  ImageList = [image imageListSetNext: ImageList];
 
   return image;
 }
 
 
-- reference
-{
-  refCount++;
-  return self;
-}
-
-
-- imageListSetNext: (id)arg
-{
-  imageListNext = arg;
-  return self;
-}
-
-
-- imageListNext
-{
-  return imageListNext;
-}
-
-
 - (void)dealloc
 {
-  id list = ImageList;
-
-  if (refCount > 1)
-    {
-      refCount--;
-      return;
-    }
-
   [stippleMask release];
-
-  if (list == self)
-    ImageList = imageListNext;
-  else
-    {
-      while (list != nil && [list imageListNext] != self)
-        list = [list imageListNext];
-      [list imageListSetNext: imageListNext];
-    }
-
   [super dealloc];
 }
 

@@ -338,16 +338,11 @@ typedef float EmacsCGFloat;
 
 @interface EmacsImage : NSImage
 {
-  id imageListNext;
-  int refCount;
   NSBitmapImageRep *bmRep; /* used for accessing pixel data */
   unsigned char *pixmapData[5]; /* shortcut to access pixel data */
   NSColor *stippleMask;
 }
 + allocInitFromFile: (Lisp_Object)file;
-- reference;
-- imageListSetNext: (id)arg;
-- imageListNext;
 - (void)dealloc;
 - initFromXBM: (unsigned char *)bits width: (int)w height: (int)h
          flip: (BOOL)flip;
