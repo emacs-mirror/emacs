@@ -1,5 +1,9 @@
 2014-11-02  Ivan Shmakov <ivan@siamics.net>
 
+	* net/eww.el (eww): Allow "file:/file/name" URLs.
+
+2014-11-02  Ivan Shmakov <ivan@siamics.net>
+
 	* net/eww.el (eww-mode-map): Remove mentions of `eww-quit'.
 
 2014-11-02  Eric Abrahamsen  <eric@ericabrahamsen.net>
