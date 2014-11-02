@@ -38,11 +38,11 @@ if [ $# -eq 1 ]; then
     TEST_SUITE=$1
     echo "Test suite: $TEST_SUITE"
     case $TEST_SUITE in
-        testrun)  EXCLUDE="LNW"  ;;
-        testci)   EXCLUDE="BNW"  ;;
-        testall)  EXCLUDE="NW"   ;;
-        testansi) EXCLUDE="LNTW" ;;
-        testpoll) EXCLUDE="LNPTW" ;;
+        testrun)      EXCLUDE="LNW"  ;;
+        testci)       EXCLUDE="BNW"  ;;
+        testall)      EXCLUDE="NW"   ;;
+        testansi)     EXCLUDE="LNTW" ;;
+        testpollnone) EXCLUDE="LNPTW" ;;
         *)
             echo "Test suite $TEST_SUITE not recognized."
             exit 1 ;;

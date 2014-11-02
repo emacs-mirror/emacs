@@ -43,16 +43,16 @@
 			name = testall;
 			productName = testrun;
 		};
-		2215A9C1192A47D500E9E2CE /* testpoll */ = {
+		2215A9C1192A47D500E9E2CE /* testpollnone */ = {
 			isa = PBXAggregateTarget;
-			buildConfigurationList = 2215A9C5192A47D500E9E2CE /* Build configuration list for PBXAggregateTarget "testpoll" */;
+			buildConfigurationList = 2215A9C5192A47D500E9E2CE /* Build configuration list for PBXAggregateTarget "testpollnone" */;
 			buildPhases = (
 				2215A9C4192A47D500E9E2CE /* ShellScript */,
 			);
 			dependencies = (
 				2215A9C2192A47D500E9E2CE /* PBXTargetDependency */,
 			);
-			name = testpoll;
+			name = testpollnone;
 			productName = testrun;
 		};
 		22CDE8EF16E9E97D00366D0A /* testrun */ = {
@@ -3403,7 +3403,7 @@
 				2215A9B9192A47CE00E9E2CE /* testall */,
 				2215A9B1192A47C500E9E2CE /* testansi */,
 				2215A9A9192A47BB00E9E2CE /* testci */,
-				2215A9C1192A47D500E9E2CE /* testpoll */,
+				2215A9C1192A47D500E9E2CE /* testpollnone */,
 				22CDE8EF16E9E97D00366D0A /* testrun */,
 				31EEABFA156AAF9D00714D05 /* mps */,
 				3114A632156E94DB001E0AA3 /* abqtest */,
@@ -5810,7 +5810,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		2215A9C5192A47D500E9E2CE /* Build configuration list for PBXAggregateTarget "testpoll" */ = {
+		2215A9C5192A47D500E9E2CE /* Build configuration list for PBXAggregateTarget "testpollnone" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				2215A9C6192A47D500E9E2CE /* Debug */,
