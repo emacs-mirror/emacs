@@ -1,5 +1,8 @@
 2014-11-02  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* nsimage.m (allocInitFromFile:): Initialize bmRep.
+	(dealloc): Release bmRep.
+
 	* nsterm.h (EmacsImage): Remove imageListNext, refCount, reference,
 	imageListSetNext, imageListNext.
 

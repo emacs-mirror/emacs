@@ -174,6 +174,7 @@ ns_set_alpha (void *img, int x, int y, unsigned char a)
   image = [[EmacsImage alloc] initByReferencingFile:
                      [NSString stringWithUTF8String: SSDATA (found)]];
 
+  image->bmRep = nil;
 #ifdef NS_IMPL_COCOA
   imgRep = [NSBitmapImageRep imageRepWithData:[image TIFFRepresentation]];
 #else
@@ -199,6 +200,7 @@ ns_set_alpha (void *img, int x, int y, unsigned char a)
 - (void)dealloc
 {
   [stippleMask release];
+  [bmRep release];
   [super dealloc];
 }
 
