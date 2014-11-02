@@ -5,15 +5,16 @@
 
 2014-11-02  Brian McKenna <brian@brianmckenna.org>  (tiny change)
 
-	* net/eww.el (eww-submit): Encode empty form values as "".
+	* net/eww.el (eww-submit): Encode empty form values as "".  (Bug#17785).
 
 2014-11-02  Ivan Shmakov <ivan@siamics.net>
 
-	* net/eww.el (eww): Allow "file:/file/name" URLs.
+	* net/eww.el (eww): Allow "file:/file/name" URLs.  (Bug#18825).
 
 2014-11-02  Ivan Shmakov <ivan@siamics.net>
 
 	* net/eww.el (eww-mode-map): Remove mentions of `eww-quit'.
+	(Bug#18834).
 
 2014-11-02  Eric Abrahamsen  <eric@ericabrahamsen.net>
 
