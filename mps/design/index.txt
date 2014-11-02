@@ -41,6 +41,7 @@ Designs
 ======================  ================================================
 abq_                    Fixed-length queues
 alloc-frame_            Allocation frame protocol
+an_                     Generic modules
 arena_                  Arena
 arenavm_                Virtual memory arena
 bt_                     Bit tables
@@ -82,7 +83,6 @@ poolmvt_                Manual Variable Temporal pool class
 poolmvff_               Manual Variable First-Fit pool class
 prmc_                   Protection mutator context
 prot_                   Memory protection
-protan_                 ANSI implementation of protection module
 protli_                 Linux implementation of protection module
 protocol_               Protocol inheritance
 protsu_                 SunOS 4 implementation of protection module
@@ -117,6 +117,7 @@ writef_                 The WriteF function
 
 .. _abq: abq
 .. _alloc-frame: alloc-frame
+.. _an: an
 .. _arena: arena
 .. _arenavm: arenavm
 .. _bt: bt
@@ -158,7 +159,6 @@ writef_                 The WriteF function
 .. _poolmvff: poolmvff
 .. _prmc: prmc
 .. _prot: prot
-.. _protan: protan
 .. _protli: protli
 .. _protocol: protocol
 .. _protsu: protsu
