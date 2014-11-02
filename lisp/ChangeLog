@@ -1,3 +1,9 @@
+2014-11-02  Eric Abrahamsen  <eric@ericabrahamsen.net>
+
+	* emacs-lisp/eieio.el (eieio-edebug-prin1-to-string): Adjust for
+	use as advice.
+	(edebug-setup-hook): Advise `edebug-prin1-to-string'.  (Bug#18897)
+
 2014-11-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/pp.el (pp-macroexpand-expression): Use macroexpand-1

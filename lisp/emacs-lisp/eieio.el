@@ -853,17 +853,19 @@ of `eq'."
 
 ;;; Interfacing with edebug
 ;;
-(defun eieio-edebug-prin1-to-string (object &optional noescape)
+(defun eieio-edebug-prin1-to-string (print-function object &optional noescape)
   "Display EIEIO OBJECT in fancy format.
-Overrides the edebug default.
-Optional argument NOESCAPE is passed to `prin1-to-string' when appropriate."
+
+Used as advice around `edebug-prin1-to-string', held in the
+variable PRINT-FUNCTION.  Optional argument NOESCAPE is passed to
+`prin1-to-string' when appropriate."
   (cond ((class-p object) (eieio-class-name object))
 	((eieio-object-p object) (object-print object))
 	((and (listp object) (or (class-p (car object))
 				 (eieio-object-p (car object))))
 	 (concat "(" (mapconcat #'eieio-edebug-prin1-to-string object " ")
                  ")"))
-	(t (prin1-to-string object noescape))))
+	(t (funcall print-function object noescape))))
 
 (add-hook 'edebug-setup-hook
 	  (lambda ()
@@ -887,14 +889,8 @@ Optional argument NOESCAPE is passed to `prin1-to-string' when appropriate."
 	    (def-edebug-spec class-constructor form)
 	    (def-edebug-spec generic-p form)
 	    (def-edebug-spec with-slots (list list def-body))
-	    ;; I suspect this isn't the best way to do this, but when
-	    ;; cust-print was used on my system all my objects
-	    ;; appeared as "#1 =" which was not useful.  This allows
-	    ;; edebug to print my objects in the nice way they were
-	    ;; meant to with `object-print' and `class-name'
-	    ;; (defalias 'edebug-prin1-to-string 'eieio-edebug-prin1-to-string)
-	    )
-	  )
+	    (advice-add 'edebug-prin1-to-string
+			:around #'eieio-edebug-prin1-to-string)))
 
 
 ;;; Start of automatically extracted autoloads.
