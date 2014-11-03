@@ -1,5 +1,7 @@
 2014-11-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* net/eww.el (eww-score-readability): Don't count comments positively.
+
 	* net/shr.el (shr-retransform-dom): Typo fix.
 
 	* net/eww.el (eww-score-readability): Parse SVC images correctly.

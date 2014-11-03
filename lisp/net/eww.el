@@ -452,7 +452,7 @@ the like."
 (defun eww-score-readability (node)
   (let ((score -1))
     (cond
-     ((memq (car node) '(script head))
+     ((memq (car node) '(script head comment))
       (setq score -2))
      ((eq (car node) 'meta)
       (setq score -1))
