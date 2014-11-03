@@ -1,3 +1,7 @@
+2014-11-02  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth.texi (Help for users): Explain quoting rules better.
+
 2014-10-30  Glenn Morris  <rgm@gnu.org>
 
 	* efaq.texi (Gnus does not work with NNTP): Remove; ancient.

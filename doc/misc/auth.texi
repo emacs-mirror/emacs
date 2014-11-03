@@ -106,12 +106,17 @@ The @code{user} is the user name.  It's known as @var{:user} in
 @code{auth-source-search} queries.  You can also use @code{login} and
 @code{account}.
 
-Spaces are always OK as far as auth-source is concerned (but other
-programs may not like them).  Just put the data in quotes, escaping
-quotes as you'd expect with @samp{\}.
+You can use spaces inside a password or other token by surrounding the
+token with either single or double quotes.
 
-All these are optional.  You could just say (but we don't recommend
-it, we're just showing that it's possible)
+You can use single quotes inside a password or other token by
+surrounding it with double quotes, e.g. @code{"he'llo"}. Similarly you
+can use double quotes inside a password or other token by surrounding
+it with single quotes, e.g. @code{'he"llo'}. You can't mix both (so a
+password or other token can't have both single and double quotes).
+
+All this is optional. You could just say (but we don't recommend it,
+we're just showing that it's possible)
 
 @example
 password @var{mypassword}
