@@ -1,3 +1,13 @@
+2014-11-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (execute-extended-command--last-typed): New var.
+	(read-extended-command): Set it.
+	Don't complete obsolete commands.
+	(execute-extended-command--shorter-1)
+	(execute-extended-command--shorter): New functions.
+	(execute-extended-command): Use them to suggest shorter names.
+	(indicate-copied-region, deactivate-mark): Use region-active-p.
+
 2014-11-03  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-sh.el (tramp-do-copy-or-rename-file-via-buffer): Use a

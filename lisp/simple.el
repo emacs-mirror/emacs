@@ -1539,11 +1539,17 @@ to get different commands to edit and resubmit."
 
 
 (defvar extended-command-history nil)
+(defvar execute-extended-command--last-typed nil)
 
 (defun read-extended-command ()
   "Read command name to invoke in `execute-extended-command'."
   (minibuffer-with-setup-hook
       (lambda ()
+        (add-hook 'post-self-insert-hook
+                  (lambda ()
+                    (setq execute-extended-command--last-typed
+                              (minibuffer-contents)))
+                  nil 'local)
 	(set (make-local-variable 'minibuffer-default-add-function)
 	     (lambda ()
 	       ;; Get a command name at point in the original buffer
@@ -1571,7 +1577,17 @@ to get different commands to edit and resubmit."
 	     ;; because "M-x" is a well-known prompt to read a command
 	     ;; and it serves as a shorthand for "Extended command: ".
 	     "M-x ")
-     obarray 'commandp t nil 'extended-command-history)))
+     (lambda (string pred action)
+       (let ((pred
+              (if (memq action '(nil t))
+                  ;; Exclude obsolete commands from completions.
+                  (lambda (sym)
+                    (and (funcall pred sym)
+                         (or (equal string (symbol-name sym))
+                             (not (get sym 'byte-obsolete-info)))))
+                pred)))
+         (complete-with-action action obarray string pred)))
+     #'commandp t nil 'extended-command-history)))
 
 (defcustom suggest-key-bindings t
   "Non-nil means show the equivalent key-binding when M-x command has one.
@@ -1582,19 +1598,57 @@ If the value is non-nil and not a number, we wait 2 seconds."
                  (integer :tag "time" 2)
                  (other :tag "on")))
 
-(defun execute-extended-command (prefixarg &optional command-name)
+(defun execute-extended-command--shorter-1 (name length)
+  (cond
+   ((zerop length) (list ""))
+   ((equal name "") nil)
+   (t
+    (nconc (mapcar (lambda (s) (concat (substring name 0 1) s))
+                   (execute-extended-command--shorter-1
+                    (substring name 1) (1- length)))
+           (when (string-match "\\`\\(-\\)?[^-]*" name)
+             (execute-extended-command--shorter-1
+              (substring name (match-end 0)) length))))))
+
+(defun execute-extended-command--shorter (name typed)
+  (let ((candidates '())
+        (max (length (or typed name)))
+        (len 1)
+        binding)
+    (while (and (not binding)
+                (progn
+                  (unless candidates
+                    (setq len (1+ len))
+                    (setq candidates (execute-extended-command--shorter-1
+                                      name len)))
+                  (< len max)))
+      (let ((candidate (pop candidates)))
+        (when (equal name
+                       (car-safe (completion-try-completion
+                                  candidate obarray 'commandp len)))
+          (setq binding candidate))))
+    binding))
+
+(defun execute-extended-command (prefixarg &optional command-name typed)
   ;; Based on Fexecute_extended_command in keyboard.c of Emacs.
   ;; Aaron S. Hawley <aaron.s.hawley(at)gmail.com> 2009-08-24
   "Read a command name, then read the arguments and call the command.
-Interactively, to pass a prefix argument to the command you are
-invoking, give a prefix argument to `execute-extended-command'.
-Noninteractively, the argument PREFIXARG is the prefix argument to
-give to the command you invoke."
-  (interactive (list current-prefix-arg (read-extended-command)))
+To pass a prefix argument to the command you are
+invoking, give a prefix argument to `execute-extended-command'."
+  (declare (interactive-only command-execute))
+  ;; FIXME: Remember the actual text typed by the user before completion,
+  ;; so that we don't later on suggest the same shortening.
+  (interactive
+   (let ((execute-extended-command--last-typed nil))
+     (list current-prefix-arg
+           (read-extended-command)
+           execute-extended-command--last-typed)))
   ;; Emacs<24 calling-convention was with a single `prefixarg' argument.
-  (if (null command-name)
-      (setq command-name (let ((current-prefix-arg prefixarg)) ; for prompt
-                           (read-extended-command))))
+  (unless command-name
+    (let ((current-prefix-arg prefixarg) ; for prompt
+          (execute-extended-command--last-typed nil))
+      (setq command-name (read-extended-command))
+      (setq typed execute-extended-command--last-typed)))
   (let* ((function (and (stringp command-name) (intern-soft command-name)))
          (binding (and suggest-key-bindings
 		       (not executing-kbd-macro)
@@ -1611,19 +1665,34 @@ give to the command you invoke."
     (let ((prefix-arg prefixarg))
       (command-execute function 'record))
     ;; If enabled, show which key runs this command.
-    (when binding
-      ;; But first wait, and skip the message if there is input.
-      (let* ((waited
-              ;; If this command displayed something in the echo area;
-              ;; wait a few seconds, then display our suggestion message.
-              (sit-for (cond
-                        ((zerop (length (current-message))) 0)
-                        ((numberp suggest-key-bindings) suggest-key-bindings)
-                        (t 2)))))
-        (when (and waited (not (consp unread-command-events)))
+    ;; (when binding
+    ;; But first wait, and skip the message if there is input.
+    (let* ((waited
+            ;; If this command displayed something in the echo area;
+            ;; wait a few seconds, then display our suggestion message.
+            ;; FIXME: Wait *after* running post-command-hook!
+            ;; FIXME: Don't wait if execute-extended-command--shorter won't
+            ;; find a better answer anyway!
+            (sit-for (cond
+                      ((zerop (length (current-message))) 0)
+                      ((numberp suggest-key-bindings) suggest-key-bindings)
+                      (t 2)))))
+      (when (and waited (not (consp unread-command-events)))
+        (unless (or binding executing-kbd-macro (not (symbolp function))
+                    (<= (length (symbol-name function)) 2))
+          ;; There's no binding for CMD.  Let's try and find the shortest
+          ;; string to use in M-x.
+          ;; FIXME: Can be slow.  Cache it maybe?
+          (while-no-input
+            (setq binding (execute-extended-command--shorter
+                           (symbol-name function) typed))))
+        (when binding
           (with-temp-message
               (format "You can run the command `%s' with %s"
-                      function (key-description binding))
+                      function
+                      (if (stringp binding)
+                          (concat "M-x " binding " RET")
+                        (key-description binding)))
             (sit-for (if (numberp suggest-key-bindings)
                          suggest-key-bindings
                        2))))))))
@@ -3990,7 +4059,7 @@ of this sample text; it defaults to 40."
 	  (goto-char point)
 	  ;; If user quit, deactivate the mark
 	  ;; as C-g would as a command.
-	  (and quit-flag mark-active
+	  (and quit-flag (region-active-p)
 	       (deactivate-mark)))
       (let ((len (min (abs (- mark point))
 		      (or message-len 40))))
@@ -4523,7 +4592,7 @@ If Transient Mark mode was temporarily enabled, reset the value
 of the variable `transient-mark-mode'; if this causes Transient
 Mark mode to be disabled, don't change `mark-active' to nil or
 run `deactivate-mark-hook'."
-  (when (or transient-mark-mode force)
+  (when (or (region-active-p) force)
     (when (and (if (eq select-active-regions 'only)
 		   (eq (car-safe transient-mark-mode) 'only)
 		 select-active-regions)
