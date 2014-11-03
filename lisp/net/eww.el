@@ -300,7 +300,12 @@ word(s) will be searched for via `eww-search-prefix'."
 	  (when point
 	    (goto-char point))))
        (t
-	(goto-char (point-min)))))
+	(goto-char (point-min))
+	;; Don't leave point inside forms, because the normal eww
+	;; commands aren't available there.
+	(while (and (not (eobp))
+		    (get-text-property (point) 'eww-form))
+	  (forward-line 1)))))
     (setq eww-current-url url
 	  eww-history-position 0)
     (eww-update-header-line-format)))

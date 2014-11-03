@@ -1,6 +1,7 @@
 2014-11-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* net/eww.el (eww-score-readability): Parse SVC images correctly.
+	(eww-display-html): Don't leave point inside forms.
 
 	* net/shr.el: Ditto.
 
