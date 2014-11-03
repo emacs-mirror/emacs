@@ -378,7 +378,7 @@ size, and full-buffer size."
     (dolist (elem (cdr dom))
       (cond
        ((and (stringp (cdr elem))
-	     (eq (car elem) 'text)
+	     (eq (car elem) 'text))
 	(push (cdr elem) sub-nodes))
        ((not (listp (cdr elem)))
 	(push (cons (intern (substring (symbol-name (car elem)) 1) obarray)
