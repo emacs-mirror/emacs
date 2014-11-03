@@ -256,16 +256,18 @@ word(s) will be searched for via `eww-search-prefix'."
 (defun eww-display-html (charset url &optional document point)
   (or (fboundp 'libxml-parse-html-region)
       (error "This function requires Emacs to be compiled with libxml2"))
-  (unless (eq charset 'utf-8)
-    (condition-case nil
-	(decode-coding-region (point) (point-max) charset)
-      (coding-system-error nil)))
   (let ((document
 	 (or document
 	     (list
 	      'base (list (cons 'href url))
-	      (libxml-parse-html-region (point) (point-max)))))
-	(source (buffer-substring (point) (point-max))))
+	      (progn
+		(unless (eq charset 'utf-8)
+		  (condition-case nil
+		      (decode-coding-region (point) (point-max) charset)
+		    (coding-system-error nil)))
+		(libxml-parse-html-region (point) (point-max))))))
+	(source (and (null document)
+		     (buffer-substring (point) (point-max)))))
     (eww-setup-buffer)
     (setq eww-current-source source
 	  eww-current-dom document)

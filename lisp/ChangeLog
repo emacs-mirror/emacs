@@ -5,6 +5,8 @@
 	(eww-readable): Decode the saved text correctly.
 	(eww-readable): Save the history before displaying so that we can
 	go back to the non-readable version.
+	(eww-display-html): Don't try to decode the text if we've been
+	passed in a pre-parsed DOM.
 
 2014-11-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
