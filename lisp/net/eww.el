@@ -370,20 +370,7 @@ word(s) will be searched for via `eww-search-prefix'."
 	 (shr-stylesheet (list (cons 'color fgcolor)
 			       (cons 'background-color bgcolor))))
     (shr-generic cont)
-    (eww-colorize-region start (point) fgcolor bgcolor)))
-
-(defun eww-colorize-region (start end fg &optional bg)
-  (when (or fg bg)
-    (let ((new-colors (shr-color-check fg bg)))
-      (when new-colors
-	(when fg
-	  (add-face-text-property start end
-				  (list :foreground (cadr new-colors))
-				  t))
-	(when bg
-	  (add-face-text-property start end
-				  (list :background (car new-colors))
-				  t))))))
+    (shr-colorize-region start (point) fgcolor bgcolor)))
 
 (defun eww-display-raw ()
   (let ((data (buffer-substring (point) (point-max))))

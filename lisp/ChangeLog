@@ -4,6 +4,8 @@
 	(eww-display-pdf): New function.
 	(eww-render): Display PDFs with `doc-view'.
 	(url-queue): Require `url-queue' to avoid compilation warning.
+	(eww-colorize-region): Remove duplicate function.
+	(eww-tag-body): Use `shr-colorize-region'.
 
 2014-11-03  Yoni Rabkin <yrk@gnu.org>
 
