@@ -3,6 +3,8 @@
 	* net/eww.el (eww-display-html): The charset is called `utf-8',
 	not `utf8'.
 	(eww-readable): Decode the saved text correctly.
+	(eww-readable): Save the history before displaying so that we can
+	go back to the non-readable version.
 
 2014-11-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 

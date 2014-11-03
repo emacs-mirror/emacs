@@ -429,6 +429,7 @@ the like."
 		   (coding-system-error nil))
 		 (libxml-parse-html-region (point-min) (point-max))))))
     (eww-score-readability dom)
+    (eww-save-history)
     (eww-display-html nil nil
 		      (shr-retransform-dom
 		       (eww-highest-readability dom)))
