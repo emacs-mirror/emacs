@@ -112,12 +112,21 @@ This may shift errors from run-time to compile-time.")
 If `error-free', drop calls even if `byte-compile-delete-errors' is nil.")
    (list 'compiler-macro
          #'(lambda (f args compiler-function)
-             `(eval-and-compile
-                (function-put ',f 'compiler-macro
-                              ,(if (eq (car-safe compiler-function) 'lambda)
-                                   `(lambda ,(append (cadr compiler-function) args)
-                                      ,@(cddr compiler-function))
-                                 `#',compiler-function)))))
+             (if (not (eq (car-safe compiler-function) 'lambda))
+                 `(eval-and-compile
+                    (function-put ',f 'compiler-macro #',compiler-function))
+               (let ((cfname (intern (concat (symbol-name f)
+                                             "--anon-compiler-macro"))))
+                 `(progn
+                    (eval-and-compile
+                      (function-put ',f 'compiler-macro #',cfname))
+                    ;; Don't autoload the compiler-macro itself, since the
+                    ;; macroexpander will find this file via `f's autoload,
+                    ;; if needed.
+                    :autoload-end
+                    (eval-and-compile
+                      (defun ,cfname (,@(cadr compiler-function) ,@args)
+                        ,@(cddr compiler-function))))))))
    (list 'doc-string
          #'(lambda (f _args pos)
              (list 'function-put (list 'quote f)

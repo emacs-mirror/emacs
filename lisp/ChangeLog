@@ -1,5 +1,11 @@
 2014-11-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/edebug.el (edebug-safe-prin1-to-string): Assume that
+	edebug-prin1-to-string already handles circularity.
+
+	* emacs-lisp/byte-run.el (defun-declarations-alist): Fix compiler-macro
+	autoloading when specified as a lambda.
+
 	* simple.el (execute-extended-command--last-typed): New var.
 	(read-extended-command): Set it.
 	Don't complete obsolete commands.
