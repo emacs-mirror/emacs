@@ -1,3 +1,9 @@
+2014-11-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/eww.el (eww-display-html): The charset is called `utf-8',
+	not `utf8'.
+	(eww-readable): Decode the saved text correctly.
+
 2014-11-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* net/eww.el (eww-readable): New command and keystroke.

@@ -256,7 +256,7 @@ word(s) will be searched for via `eww-search-prefix'."
 (defun eww-display-html (charset url &optional document point)
   (or (fboundp 'libxml-parse-html-region)
       (error "This function requires Emacs to be compiled with libxml2"))
-  (unless (eq charset 'utf8)
+  (unless (eq charset 'utf-8)
     (condition-case nil
 	(decode-coding-region (point) (point-max) charset)
       (coding-system-error nil)))
@@ -424,10 +424,14 @@ the like."
 	 (dom (shr-transform-dom
 	       (with-temp-buffer
 		 (insert source)
+		 (condition-case nil
+		     (decode-coding-region (point-min) (point-max) 'utf-8)
+		   (coding-system-error nil))
 		 (libxml-parse-html-region (point-min) (point-max))))))
     (eww-score-readability dom)
-    (eww-display-html 'utf-8 nil (shr-retransform-dom
-				  (eww-highest-readability dom)))
+    (eww-display-html nil nil
+		      (shr-retransform-dom
+		       (eww-highest-readability dom)))
     (setq eww-current-source source)))
 
 (defun eww-score-readability (node)
@@ -437,6 +441,8 @@ the like."
       (setq score -2))
      ((eq (car node) 'meta)
       (setq score -1))
+     ((eq (car node) 'img)
+      (setq score 2))
      ((eq (car node) 'a)
       (setq score (- (length (split-string
 			      (or (cdr (assoc 'text (cdr node))) ""))))))
@@ -579,8 +585,8 @@ the like."
   (let ((inhibit-read-only t))
     (erase-buffer)
     (insert (plist-get elem :text))
-    (setq eww-current-source (plist-get elem :source))
-    (setq eww-current-dom (plist-get elem :dom))
+    (setq eww-current-source (plist-get elem :source)
+	  eww-current-dom (plist-get elem :dom))
     (goto-char (plist-get elem :point))
     (setq eww-current-url (plist-get elem :url)
 	  eww-current-title (plist-get elem :title))
@@ -1105,7 +1111,7 @@ If EXTERNAL, browse the URL using `shr-external-browser'."
      ((and (url-target (url-generic-parse-url url))
 	   (eww-same-page-p url eww-current-url))
       (eww-save-history)
-      (eww-display-html 'utf8 url eww-current-dom))
+      (eww-display-html 'utf-8 url eww-current-dom))
      (t
       (eww-browse-url url)))))
 
