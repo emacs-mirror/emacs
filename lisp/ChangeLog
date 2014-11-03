@@ -3,6 +3,7 @@
 	* net/eww.el (eww-display-html): Clear `url-queue'.
 	(eww-display-pdf): New function.
 	(eww-render): Display PDFs with `doc-view'.
+	(url-queue): Require `url-queue' to avoid compilation warning.
 
 2014-11-03  Yoni Rabkin <yrk@gnu.org>
 

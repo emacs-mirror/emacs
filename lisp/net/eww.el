@@ -28,6 +28,7 @@
 (require 'format-spec)
 (require 'shr)
 (require 'url)
+(require 'url-queue)
 (require 'mm-url)
 
 (defgroup eww nil
