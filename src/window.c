@@ -4937,8 +4937,8 @@ window_scroll_pixel_based (Lisp_Object window, int n, bool whole, int noerror)
       /* The function move_iterator_vertically may move over more than
 	 the specified y-distance.  If it->w is small, e.g. a
 	 mini-buffer window, we may end up in front of the window's
-	 display area.  This is the case when Start displaying at the
-	 start of the line containing PT in this case.  */
+	 display area.  Start displaying at the start of the line
+	 containing PT in this case.  */
       if (it.current_y <= 0)
 	{
 	  init_iterator (&it, w, PT, PT_BYTE, NULL, DEFAULT_FACE_ID);
