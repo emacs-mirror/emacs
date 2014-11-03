@@ -41,13 +41,6 @@ Installation
 Move nextstep/Emacs.app to any desired install location.
 
 
-Distributions and Universal Binaries
-------------------------------------
-
-Building as outlined above will create ordinary binaries running on your
-architecture only.  To create universal binaries, set CFLAGS to include
-"-arch ppc -arch i386".
-
 
 This file is part of GNU Emacs.
 
