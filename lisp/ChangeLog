@@ -7,6 +7,8 @@
 	go back to the non-readable version.
 	(eww-display-html): Don't try to decode the text if we've been
 	passed in a pre-parsed DOM.
+	(eww-tag-title): Remove newlines and extra whitespace from the
+	displayed title.
 
 2014-11-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 

@@ -350,6 +350,10 @@ word(s) will be searched for via `eww-search-prefix'."
   (dolist (sub cont)
     (when (eq (car sub) 'text)
       (setq eww-current-title (concat eww-current-title (cdr sub)))))
+  (setq eww-current-title
+	(replace-regexp-in-string
+	 "^ \\| $" ""
+	 (replace-regexp-in-string "[ \t\r\n]+" " " eww-current-title)))
   (eww-update-header-line-format))
 
 (defun eww-tag-body (cont)
