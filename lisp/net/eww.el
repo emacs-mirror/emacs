@@ -459,7 +459,8 @@ the like."
      (t
       (dolist (elem (cdr node))
 	(cond
-	 ((eq (car elem) 'text)
+	 ((and (stringp (cdr elem))
+	       (eq (car elem) 'text))
 	  (setq score (+ score (length (split-string (cdr elem))))))
 	 ((consp (cdr elem))
 	  (setq score (+ score
