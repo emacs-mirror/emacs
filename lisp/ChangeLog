@@ -1,3 +1,7 @@
+2014-11-03  Yoni Rabkin <yrk@gnu.org>
+
+	* net/eww.el (eww-list-bookmarks): Autoload.
+
 2014-11-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* net/shr.el (shr-retransform-dom): Allow several text sub-nodes.

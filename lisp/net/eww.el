@@ -1205,6 +1205,7 @@ Differences in #targets are ignored."
 	      (insert-file-contents file)
 	      (read (current-buffer)))))))
 
+;;;###autoload
 (defun eww-list-bookmarks ()
   "Display the bookmarks."
   (interactive)
