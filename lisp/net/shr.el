@@ -379,7 +379,7 @@ size, and full-buffer size."
       (cond
        ((eq (car elem) 'text)
 	(push (cdr elem) sub-nodes))
-       ((not (consp (cdr elem)))
+       ((not (listp (cdr elem)))
 	(push (cons (intern (substring (symbol-name (car elem)) 1) obarray)
 		    (cdr elem))
 	      attributes))

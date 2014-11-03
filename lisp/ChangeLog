@@ -19,6 +19,9 @@
 
 2014-11-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* net/shr.el (shr-retransform-dom): Don't ignore elements that
+	have no children like <br />.
+
 	* net/eww.el (eww-display-html): Clear `url-queue'.
 	(eww-display-pdf): New function.
 	(eww-render): Display PDFs with `doc-view'.
