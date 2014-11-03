@@ -1,3 +1,7 @@
+2014-11-03  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsfns.m (ns_set_doc_edited): Check for FRAME_NS (Bug#18925).
+
 2014-10-31  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* macfont.m (macfont_glyph_extents): Turn off syntetic bold
