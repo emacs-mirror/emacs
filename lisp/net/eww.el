@@ -402,6 +402,7 @@ word(s) will be searched for via `eww-search-prefix'."
   (setq-local eww-contents-url nil))
 
 (defun eww-view-source ()
+  "View the HTML source code of the current page."
   (interactive)
   (let ((buf (get-buffer-create "*eww-source*"))
         (source eww-current-source))
@@ -412,6 +413,60 @@ word(s) will be searched for via `eww-search-prefix'."
       (when (fboundp 'html-mode)
         (html-mode)))
     (view-buffer buf)))
+
+(defun eww-readable ()
+  "View the main \"readable\" parts of the current web page.
+This command uses heuristics to find the parts of the web page that
+contains the main textual portion, leaving out navigation menus and
+the like."
+  (interactive)
+  (let* ((source eww-current-source)
+	 (dom (shr-transform-dom
+	       (with-temp-buffer
+		 (insert source)
+		 (libxml-parse-html-region (point-min) (point-max))))))
+    (eww-score-readability dom)
+    (eww-display-html 'utf-8 nil (shr-retransform-dom
+				  (eww-highest-readability dom)))
+    (setq eww-current-source source)))
+
+(defun eww-score-readability (node)
+  (let ((score -1))
+    (cond
+     ((memq (car node) '(script head))
+      (setq score -2))
+     ((eq (car node) 'meta)
+      (setq score -1))
+     ((eq (car node) 'a)
+      (setq score (- (length (split-string
+			      (or (cdr (assoc 'text (cdr node))) ""))))))
+     (t
+      (dolist (elem (cdr node))
+	(cond
+	 ((eq (car elem) 'text)
+	  (setq score (+ score (length (split-string (cdr elem))))))
+	 ((consp (cdr elem))
+	  (setq score (+ score
+			 (or (cdr (assoc :eww-readability-score (cdr elem)))
+			     (eww-score-readability elem)))))))))
+    ;; Cache the score of the node to avoid recomputing all the time.
+    (setcdr node (cons (cons :eww-readability-score score) (cdr node)))
+    score))
+
+(defun eww-highest-readability (node)
+  (let ((result node)
+	highest)
+    (dolist (elem (cdr node))
+      (when (and (consp (cdr elem))
+		 (> (or (cdr (assoc
+			      :eww-readability-score
+			      (setq highest
+				    (eww-highest-readability elem))))
+			most-negative-fixnum)
+		    (or (cdr (assoc :eww-readability-score (cdr result)))
+			most-negative-fixnum)))
+	(setq result highest)))
+    result))
 
 (defvar eww-mode-map
   (let ((map (make-sparse-keymap)))
@@ -435,6 +490,7 @@ word(s) will be searched for via `eww-search-prefix'."
     (define-key map "w" 'eww-copy-page-url)
     (define-key map "C" 'url-cookie-list)
     (define-key map "v" 'eww-view-source)
+    (define-key map "R" 'eww-readable)
     (define-key map "H" 'eww-list-histories)
 
     (define-key map "b" 'eww-add-bookmark)

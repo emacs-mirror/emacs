@@ -133,6 +133,12 @@ result of the calculation into the current buffer.
 *** New minor mode global-eldoc-mode
 *** eldoc-documentation-function now defaults to nil
 
+** eww
+
+*** A new command `R' (`eww-readable') will try do identify the main
+textual parts of a web page and display only that, leaving menus and
+the like off the page.
+
 ** Message mode
 
 *** text/html messages that contain inline image parts will be

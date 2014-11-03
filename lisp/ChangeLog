@@ -1,5 +1,9 @@
 2014-11-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* net/eww.el (eww-readable): New command and keystroke.
+
+	* net/shr.el (shr-retransform-dom): New function.
+
 	* net/eww.el (eww-display-html): Set `eww-current-source' in the
 	correct buffer.
 	(eww-view-source): Use it.

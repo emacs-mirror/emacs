@@ -370,6 +370,26 @@ size, and full-buffer size."
 	(push (shr-transform-dom sub) result)))
     (nreverse result)))
 
+(defun shr-retransform-dom (dom)
+  "Transform the shr DOM back into the libxml DOM."
+  (let ((tag (car dom))
+	(attributes nil)
+	(text nil)
+	(sub-nodes nil))
+    (dolist (elem (cdr dom))
+      (cond
+       ((eq (car elem) 'text)
+	(setq text (cdr elem)))
+       ((not (consp (cdr elem)))
+	(push (cons (intern (substring (symbol-name (car elem)) 1) obarray)
+		    (cdr elem))
+	      attributes))
+       (t
+	(push (shr-retransform-dom elem) sub-nodes))))
+    (append (list tag (nreverse attributes))
+	    (nreverse sub-nodes)
+	    (and text (list text)))))
+
 (defsubst shr-generic (cont)
   (dolist (sub cont)
     (cond
