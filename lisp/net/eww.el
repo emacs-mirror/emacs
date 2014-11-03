@@ -214,6 +214,8 @@ word(s) will be searched for via `eww-search-prefix'."
             (eww-browse-with-external-browser url))
 	   ((equal (car content-type) "text/html")
 	    (eww-display-html charset url nil point))
+	   ((equal (car content-type) "application/pdf")
+	    (eww-display-pdf))
 	   ((string-match-p "\\`image/" (car content-type))
 	    (eww-display-image)
 	    (eww-update-header-line-format))
@@ -256,6 +258,9 @@ word(s) will be searched for via `eww-search-prefix'."
 (defun eww-display-html (charset url &optional document point)
   (or (fboundp 'libxml-parse-html-region)
       (error "This function requires Emacs to be compiled with libxml2"))
+  ;; There should be a better way to abort loading images
+  ;; asynchronously.
+  (setq url-queue nil)
   (let ((document
 	 (or document
 	     (list
@@ -392,6 +397,16 @@ word(s) will be searched for via `eww-search-prefix'."
     (let ((inhibit-read-only t))
       (shr-put-image data nil))
     (goto-char (point-min))))
+
+(defun eww-display-pdf ()
+  (let ((data (buffer-substring (point) (point-max))))
+    (switch-to-buffer (get-buffer-create "*eww pdf*"))
+    (let ((coding-system-for-write 'raw-text)
+	  (inhibit-read-only t))
+      (erase-buffer)
+      (insert data)
+      (doc-view-mode)))
+  (goto-char (point-min)))
 
 (defun eww-setup-buffer ()
   (switch-to-buffer (get-buffer-create "*eww*"))

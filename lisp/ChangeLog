@@ -1,3 +1,9 @@
+2014-11-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/eww.el (eww-display-html): Clear `url-queue'.
+	(eww-display-pdf): New function.
+	(eww-render): Display PDFs with `doc-view'.
+
 2014-11-03  Yoni Rabkin <yrk@gnu.org>
 
 	* net/eww.el (eww-list-bookmarks): Autoload.
