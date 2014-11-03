@@ -1,3 +1,13 @@
+2014-11-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (Fdump_glyph_matrix, Fdump_frame_glyph_matrix): Doc fix.
+	(Fdump_frame_glyph_matrix): Don't segfault if invoked on a GUI
+	frame; instead, print an error message.
+
+2014-11-03  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsfns.m (ns_set_doc_edited): Check for FRAME_NS (Bug#18925).
+
 2014-11-02  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsimage.m (allocInitFromFile:): Initialize bmRep.

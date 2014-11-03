@@ -639,8 +639,12 @@ ns_set_doc_edited (void)
     {
       BOOL edited = NO;
       struct frame *f = XFRAME (frame);
-      struct window *w = XWINDOW (FRAME_SELECTED_WINDOW (f));
-      NSView *view = FRAME_NS_VIEW (f);
+      struct window *w;
+      NSView *view;
+
+      if (! FRAME_NS_P (f)) continue;
+      w = XWINDOW (FRAME_SELECTED_WINDOW (f));
+      view = FRAME_NS_VIEW (f);
       if (!MINI_WINDOW_P (w))
         edited = ! NILP (Fbuffer_modified_p (w->contents)) &&
           ! NILP (Fbuffer_file_name (w->contents));

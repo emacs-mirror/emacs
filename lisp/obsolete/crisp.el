@@ -23,6 +23,8 @@
 
 ;;; Commentary:
 
+;; *Note: This package has now moved to elpa.gnu.org.*
+
 ;; Keybindings and minor functions to duplicate the functionality and
 ;; finger-feel of the CRiSP/Brief editor.  This package is designed to
 ;; facilitate transitioning from Brief to (XE|E)macs with a minimum

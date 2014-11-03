@@ -38,7 +38,10 @@ don't take "&rest args" any more.
 *** cc-compat.el
 
 ---
-*** crisp.el, tpu-edt.el, ws-mode.el
+*** crisp.el - moved to elpa.gnu.org.
+
+---
+*** tpu-edt.el, ws-mode.el
 These emulations of old editors are believed to be no longer relevant
  - contact emacs-devel@gnu.org if you disagree.
 

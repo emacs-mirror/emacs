@@ -18803,7 +18803,10 @@ DEFUN ("dump-glyph-matrix", Fdump_glyph_matrix,
        doc: /* Dump the current matrix of the selected window to stderr.
 Shows contents of glyph row structures.  With non-nil
 parameter GLYPHS, dump glyphs as well.  If GLYPHS is 1 show
-glyphs in short form, otherwise show glyphs in long form.  */)
+glyphs in short form, otherwise show glyphs in long form.
+
+Interactively, no argument means show glyphs in short form;
+with numeric argument, its value is passed as the GLYPHS flag.  */)
   (Lisp_Object glyphs)
 {
   struct window *w = XWINDOW (selected_window);
@@ -18821,11 +18824,16 @@ glyphs in short form, otherwise show glyphs in long form.  */)
 
 
 DEFUN ("dump-frame-glyph-matrix", Fdump_frame_glyph_matrix,
-       Sdump_frame_glyph_matrix, 0, 0, "", doc: /* */)
+       Sdump_frame_glyph_matrix, 0, 0, "", doc: /* Dump the current glyph matrix of the selected frame to stderr.
+Only text-mode frames have frame glyph matrices.  */)
   (void)
 {
   struct frame *f = XFRAME (selected_frame);
-  dump_glyph_matrix (f->current_matrix, 1);
+
+  if (f->current_matrix)
+    dump_glyph_matrix (f->current_matrix, 1);
+  else
+    fprintf (stderr, "*** This frame doesn't have a frame glyph matrix ***\n");
   return Qnil;
 }
 
