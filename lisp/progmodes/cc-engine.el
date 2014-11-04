@@ -8602,7 +8602,7 @@ comment at the start of cc-engine.el for more info."
 (defun c-backward-colon-prefixed-type ()
   ;; We're at the token after what might be a type prefixed with a colon.  Try
   ;; moving backward over this type and the colon.  On success, return t and
-  ;; leave point before colon, on falure, leave point unchanged.  Will clobber
+  ;; leave point before colon; on failure, leave point unchanged.  Will clobber
   ;; match data.
   (let ((here (point))
 	(colon-pos nil))

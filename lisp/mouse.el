@@ -450,7 +450,7 @@ must be one of the symbols `header', `mode', or `vertical'."
 		  (setq position (+ (window-pixel-top posn-window) position))
 		  ;; If necessary, add height of header line to `position'
 		  (when (memq (posn-area start)
-			      '(nil left-fringe right-frings left-margin right-margin))
+			      '(nil left-fringe right-fringe left-margin right-margin))
 		    (setq position (+ (window-header-line-height posn-window) position))))
 		;; When the cursor overshoots after shrinking a window to its
 		;; minimum size and the dragging direction changes, have the

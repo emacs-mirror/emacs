@@ -1491,7 +1491,7 @@ Each element in the list should be a list of strings or pairs
 	      (title (with-temp-buffer
 		       (insert-file-contents
 			(expand-file-name tut tutorial-directory)
-			;; Reat the entire file, to make sure any
+			;; Read the entire file, to make sure any
 			;; coding cookies and other local variables
 			;; get acted upon.
 			nil)

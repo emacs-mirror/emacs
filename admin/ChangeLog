@@ -1,3 +1,10 @@
+2014-11-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Spelling fixes; tweak explanation of commit messages.
+	* notes/repo: Avoid "DVCS" acronym without first explaining it.
+	Mention using the first line of a ChangeLog as the topic line,
+	and that commit messages should use UTF-8.
+
 2014-11-01  Eli Zaretskii  <eliz@gnu.org>
 
 	* notes/repo (Notes): Reword the stylistic guidance for commit log

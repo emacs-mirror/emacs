@@ -1,19 +1,22 @@
 NOTES ON COMMITTING TO EMACS'S REPOSITORY    -*- outline -*-
 
-* Use DVCS commenting conventions
+* Use conventions in commit messages
 
-Commits should follow the conventions used in all modern distributed
-version-control systems. That is, they should consist of
+Commit messages should follow conventions used in modern distributed
+version control systems.
 
-- A self-contained topic line, preferably no more than 75 chars long.
+- Start with a self-contained topic line, preferably no longer than 75 chars.
 
-- If other content follows the topic line, there should be a blank
-  line separating the two.
+- Make the second line blank, if there are two or more lines.
 
 - Follow the blank line with ChangeLog-like entries for the specific
-  changes you made, if any.  (As long as Emacs maintains ChangeLog
+  changes you made, if any.  As long as Emacs maintains ChangeLog
   files, just copy the entries you made in them to the commit message
-  after the blank line.)
+  after the blank line.  Often, the first line of a ChangeLog entry
+  can serve as the topic line, so you can merely insert a blank line
+  after it.
+
+- Use UTF-8 encoding in the commit message.
 
 * Commit to the right branch
 
