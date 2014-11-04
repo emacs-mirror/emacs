@@ -1,3 +1,8 @@
+2014-11-04  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* net/eww.el (eww): Trim URL with `string-trim'.
+	Suggested by Vibhav Pant <vibhavp@gmail.com>.
+
 2014-11-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* net/eww.el (eww-score-readability): Don't count comments positively.

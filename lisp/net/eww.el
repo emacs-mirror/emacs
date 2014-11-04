@@ -160,6 +160,7 @@ See also `eww-form-checkbox-selected-symbol'."
 If the input doesn't look like an URL or a domain name, the
 word(s) will be searched for via `eww-search-prefix'."
   (interactive "sEnter URL or keywords: ")
+  (setq url (string-trim url))
   (cond ((string-match-p "\\`file:/" url))
         ((string-match-p "\\`ftp://" url)
          (user-error "FTP is not supported."))
