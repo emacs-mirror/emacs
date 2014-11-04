@@ -143,11 +143,12 @@ This requires either the OS X \"open\" command, or the freedesktop
 	(error "Subject, To or body not found")))))
 
 ;;;###autoload
-(defun report-emacs-bug (topic &optional recent-keys)
+(defun report-emacs-bug (topic &optional unused)
   "Report a bug in GNU Emacs.
 Prompts for bug subject.  Leaves you in a mail buffer."
   ;; This strange form ensures that (recent-keys) is the value before
   ;; the bug subject string is read.
+  (declare (advertised-calling-convention (topic) "24.5"))
   (interactive (reverse (list (recent-keys) (read-string "Bug Subject: "))))
   ;; The syntax `version;' is preferred to `[version]' because the
   ;; latter could be mistakenly stripped by mailing software.
@@ -276,23 +277,6 @@ usually do not have translators for other languages.\n\n")))
       (and (boundp mode) (buffer-local-value mode from-buffer)
 	   (insert (format "  %s: %s\n" mode
 			   (buffer-local-value mode from-buffer)))))
-    (insert "\n")
-    (insert "Recent input:\n")
-    (let ((before-keys (point)))
-      (insert (mapconcat (lambda (key)
-			   (if (or (integerp key)
-				   (symbolp key)
-				   (listp key))
-			       (single-key-description key)
-			     (prin1-to-string key nil)))
-			 (or recent-keys (recent-keys))
-			 " "))
-      (save-restriction
-	(narrow-to-region before-keys (point))
-	(goto-char before-keys)
-	(while (progn (move-to-column 50) (not (eobp)))
-	  (search-forward " " nil t)
-	  (insert "\n"))))
     (let ((message-buf (get-buffer "*Messages*")))
       (if message-buf
 	  (let (beg-pos
@@ -301,7 +285,7 @@ usually do not have translators for other languages.\n\n")))
 	      (goto-char end-pos)
 	      (forward-line -10)
 	      (setq beg-pos (point)))
-	    (insert "\n\nRecent messages:\n")
+	    (insert "\nRecent messages:\n")
 	    (insert-buffer-substring message-buf beg-pos end-pos))))
     ;; After Recent messages, to avoid the messages produced by
     ;; list-load-path-shadows.
