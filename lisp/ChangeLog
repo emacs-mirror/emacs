@@ -1,3 +1,8 @@
+2014-11-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* jit-lock.el (jit-lock-stealth-fontify): Be tolerant to nil being
+	returned by load-average.
+
 2014-11-04  Michael Albinus  <michael.albinus@gmx.de>
 
         * net/tramp-sh.el (tramp-do-copy-or-rename-file-via-buffer): Don't use
