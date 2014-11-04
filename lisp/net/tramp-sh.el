@@ -2061,15 +2061,16 @@ FILENAME is the source file, NEWNAME the target file.
 KEEP-DATE is non-nil if NEWNAME should have the same timestamp as FILENAME."
   (with-temp-buffer
     ;; We must disable multibyte, because binary data shall not be
-    ;; converted.  `insert-file-contents-literally' does not support
-    ;; file name handlers for GNU Emacs; we must create a local copy
-    ;; therefore.
+    ;; converted.  We remove `tramp-file-name-handler' from
+    ;; `inhibit-file-name-handlers'; otherwise the file name handler
+    ;; for `insert-file-contents' might be deactivated in some corner
+    ;; cases.
     (set-buffer-multibyte nil)
     (let ((coding-system-for-read 'binary)
 	  (jka-compr-inhibit t)
-	  (tmpfile (file-local-copy filename)))
-      (insert-file-contents-literally (or tmpfile filename))
-      (when tmpfile (delete-file tmpfile)))
+	  (inhibit-file-name-handlers
+	   (remq 'tramp-file-name-handler inhibit-file-name-handlers)))
+      (insert-file-contents-literally filename))
     ;; We don't want the target file to be compressed, so we let-bind
     ;; `jka-compr-inhibit' to t.
     (let ((coding-system-for-write 'binary)

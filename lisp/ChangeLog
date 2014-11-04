@@ -1,3 +1,9 @@
+2014-11-04  Michael Albinus  <michael.albinus@gmx.de>
+
+        * net/tramp-sh.el (tramp-do-copy-or-rename-file-via-buffer): Don't use
+        a local copy; setting `inhibit-file-name-handlers' proper might be
+        more performant.  (Bug#18751)
+
 2014-11-04  Glenn Morris  <rgm@gnu.org>
 
 	* mail/emacsbug.el (report-emacs-bug): No longer include
