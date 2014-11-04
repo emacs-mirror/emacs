@@ -1,3 +1,7 @@
+2014-11-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* erc.el (erc-send-input): Bind `str' dynamically (bug#18936).
+
 2014-10-20  Glenn Morris  <rgm@gnu.org>
 
 	* Version 24.4 released.
