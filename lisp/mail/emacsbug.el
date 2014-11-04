@@ -146,10 +146,8 @@ This requires either the OS X \"open\" command, or the freedesktop
 (defun report-emacs-bug (topic &optional unused)
   "Report a bug in GNU Emacs.
 Prompts for bug subject.  Leaves you in a mail buffer."
-  ;; This strange form ensures that (recent-keys) is the value before
-  ;; the bug subject string is read.
   (declare (advertised-calling-convention (topic) "24.5"))
-  (interactive (reverse (list (recent-keys) (read-string "Bug Subject: "))))
+  (interactive "sBug Subject: ")
   ;; The syntax `version;' is preferred to `[version]' because the
   ;; latter could be mistakenly stripped by mailing software.
   (if (eq system-type 'ms-dos)
