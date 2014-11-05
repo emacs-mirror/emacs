@@ -2198,21 +2198,22 @@ Does nothing if IS-START-REVISION is non-nil, or if LIMIT is nil,
 or if PL-RETURN is 'limit-unsupported."
   (when (and limit (not (eq 'limit-unsupported pl-return))
 	     (not is-start-revision))
-    (goto-char (point-max))
-    (insert "\n")
-    (insert-text-button "Show 2X entries"
-                        'action (lambda (&rest _ignore)
+    (save-excursion
+      (goto-char (point-max))
+      (insert "\n")
+      (insert-text-button "Show 2X entries"
+                          'action (lambda (&rest _ignore)
                                   (vc-print-log-internal
                                    log-view-vc-backend log-view-vc-fileset
                                    working-revision nil (* 2 limit)))
-                        'help-echo "Show the log again, and double the number of log entries shown")
-    (insert "    ")
-    (insert-text-button "Show unlimited entries"
-                        'action (lambda (&rest _ignore)
-                                  (vc-print-log-internal
-                                   log-view-vc-backend log-view-vc-fileset
-                                   working-revision nil nil))
-                        'help-echo "Show the log again, including all entries")))
+                          'help-echo "Show the log again, and double the number of log entries shown")
+      (insert "    ")
+      (insert-text-button "Show unlimited entries"
+                          'action (lambda (&rest _ignore)
+                                    (vc-print-log-internal
+                                     log-view-vc-backend log-view-vc-fileset
+                                     working-revision nil nil))
+                          'help-echo "Show the log again, including all entries"))))
 
 (defun vc-print-log-internal (backend files working-revision
                                       &optional is-start-revision limit)
@@ -2249,7 +2250,8 @@ earlier revisions.  Show up to LIMIT entries (non-nil means unlimited)."
 	 (vc-print-log-setup-buttons working-revision
 				     is-start-revision limit ret))
        (lambda (bk)
-	 (vc-call-backend bk 'show-log-entry working-revision))
+         (if (or working-revision (eobp))
+             (vc-call-backend bk 'show-log-entry working-revision)))
        (lambda (_ignore-auto _noconfirm)
 	 (vc-print-log-internal backend files working-revision
                                 is-start-revision limit))))))

@@ -978,6 +978,7 @@ When called interactively, prompt for REGEXP."
 
 ;; Binhex treatment - not very advanced.
 
+;; FIXME? This duplicates binhex-begin-line etc from binhex.el.
 (defvar gnus-uu-binhex-body-line
   "^[^:]...............................................................$")
 (defvar gnus-uu-binhex-begin-line

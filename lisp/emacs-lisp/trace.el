@@ -139,7 +139,6 @@
   :prefix "trace-"
   :group 'lisp)
 
-;;;###autoload
 (defcustom trace-buffer "*trace-output*"
   "Trace output will by default go to that buffer."
   :type 'string)

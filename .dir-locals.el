@@ -1,6 +1,5 @@
 ((nil . ((tab-width . 8)
-         (sentence-end-double-space . t)
-         (fill-column . 70)))
+         (sentence-end-double-space . t)))
  (c-mode . ((c-file-style . "GNU")))
  (objc-mode . ((c-file-style . "GNU")))
  ;; You must set bugtracker_debbugs_url in your bazaar.conf for this to work.
@@ -10,7 +9,6 @@
                    (log-edit-font-lock-gnu-style . t)
                    (log-edit-setup-add-author . t)))
  (change-log-mode . ((add-log-time-zone-rule . t)
-		     (fill-column . 74)
 		     (bug-reference-url-format . "http://debbugs.gnu.org/%s")
-		     (mode . bug-reference)))
- (diff-mode . ((mode . whitespace))))
+                     (mode . bug-reference)
+		     )))

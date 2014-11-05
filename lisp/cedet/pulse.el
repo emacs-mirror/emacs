@@ -91,6 +91,8 @@ Face used for temporary highlighting of tags for effect."
 
 ;;; Code:
 ;;
+
+;;FIXME
 (defun pulse-int-to-hex (int &optional nb-digits)
   "Convert integer argument INT to a #XXXXXXXXXXXX format hex string.
 Each X in the output string is a hexadecimal digit.
