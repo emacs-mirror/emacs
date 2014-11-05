@@ -1,3 +1,11 @@
+2014-11-05  Alan Mackenzie  <acm@muc.de>
+
+	Fix wrong bound to c-font-lock-declarators.  Fixes bug #18948.
+	* progmodes/cc-fonts.el (c-font-lock-declarations): Pass
+	"(point-max)" as bound to c-font-lock-declarators, not "limit", as
+	the buffer is sometimes narrowed to less than "limit" (e.g., in
+	the presence of macros).
+
 2014-11-05  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-error-with-buffer): Show connection buffer

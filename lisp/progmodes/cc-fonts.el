@@ -1279,6 +1279,8 @@ casts and declarations are fontified.  Used on level 2 and higher."
        c-font-lock-maybe-decl-faces
 
        (lambda (match-pos inside-macro)
+	 ;; Note to maintainers: don't use `limit' inside this lambda form;
+	 ;; c-find-decl-spots sometimes narrows to less than `limit'.
 	 (setq start-pos (point))
 	 (when
 	  ;; The result of the form below is true when we don't recognize a
@@ -1507,7 +1509,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
 			;; At a real declaration?
 			(if (memq (c-forward-type t) '(t known found))
 			    (progn
-			      (c-font-lock-declarators limit t is-typedef)
+			      (c-font-lock-declarators (point-max) t is-typedef)
 			      nil)
 			  ;; False alarm.  Return t to go on to the next check.
 			  (goto-char start-pos)
