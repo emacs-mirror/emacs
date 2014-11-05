@@ -140,6 +140,7 @@ request.")
   "User Agent used by the URL package."
   :type '(choice (string :tag "A static User-Agent string")
                  (function :tag "Call a function to get the User-Agent string"))
+  :version "25.1"
   :group 'url)
 
 ;(eval-when-compile
