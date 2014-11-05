@@ -479,28 +479,27 @@ FILE is created there."
 ;;        FILE in the user's home directory.  There is presumably no
 ;;        shared game directory.
 
+(defvar gamegrid-shared-game-dir)
+
 (defun gamegrid-add-score-with-update-game-score (file score)
-  (let ((setuid
+  (let ((gamegrid-shared-game-dir
 	 (not (zerop (logand (file-modes
 			      (expand-file-name "update-game-score"
 						exec-directory))
 			     #o4000)))))
     (cond ((file-name-absolute-p file)
 	   (gamegrid-add-score-insecure file score))
-	  ;; Use the setuid "update-game-score" program to update a
-	  ;; pre-existing system-wide score file.
-	  ((and setuid
+	  ((and gamegrid-shared-game-dir
 		(file-exists-p (expand-file-name file shared-game-score-directory)))
+	   ;; Use the setuid "update-game-score" program to update a
+	   ;; system-wide score file.
 	   (gamegrid-add-score-with-update-game-score-1 file
-	    (expand-file-name file shared-game-score-directory) score setuid))
-	  ;; We have setuid, but the score file does not exist.
-	  ;; FIXME - Why not try to create it?
-	  ;; Maybe the logic is that this is being called by a game
-	  ;; that is not part of the standard Emacs install?
-	  ;; I see no reason why we should not try to use a shared
-	  ;; score file though, and fall back to a private one if we
-	  ;; lack permission to create a shared file.
-	  (setuid
+	    (expand-file-name file shared-game-score-directory) score))
+	  ;; Else: Add the score to a score file in the user's home
+	  ;; directory.
+	  (gamegrid-shared-game-dir
+	   ;; If `gamegrid-shared-game-dir' is non-nil, then
+	   ;; "update-gamescore" program is setuid, so don't use it.
 	   (unless (file-exists-p
 		    (directory-file-name gamegrid-user-score-file-directory))
 	     (make-directory gamegrid-user-score-file-directory t))
@@ -516,8 +515,7 @@ FILE is created there."
 	       (write-region "" nil f nil 'silent nil 'excl))
 	     (gamegrid-add-score-with-update-game-score-1 file f score))))))
 
-(defun gamegrid-add-score-with-update-game-score-1 (file target score
-							 &optional setuid)
+(defun gamegrid-add-score-with-update-game-score-1 (file target score)
   (let ((default-directory "/")
 	(errbuf (generate-new-buffer " *update-game-score loss*"))
         (marker-string (concat
@@ -539,7 +537,7 @@ FILE is created there."
 	 (expand-file-name "update-game-score" exec-directory)
 	 nil errbuf nil
 	 "-m" (int-to-string gamegrid-score-file-length)
-	 "-d" (if setuid
+	 "-d" (if gamegrid-shared-game-dir
 		  (expand-file-name shared-game-score-directory)
 		(file-name-directory target))
 	 file

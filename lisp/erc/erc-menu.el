@@ -34,12 +34,8 @@
   "ERC menu support."
   :group 'erc)
 
-(defvar erc-menu-visible t
-  "Non-nil if the Erc menu is visible.")
-
 (defvar erc-menu-definition
   (list "ERC"
-	:visible (lambda () erc-menu-visible)
 	["Connect to server..." erc t]
 	["Disconnect from server..." erc-quit-server erc-server-connected]
 	"-"
@@ -108,31 +104,33 @@
   "ERC menu definition.")
 
 (defvar erc-menu-defined nil
-  "Internal ERC variable, non-nil if the ERC menu has been defined.")
+  "Internal variable used to keep track of whether we've defined the
+ERC menu yet.")
 
 ;;;###autoload (autoload 'erc-menu-mode "erc-menu" nil t)
 (define-erc-module menu nil
   "Enable a menu in ERC buffers."
   ((unless erc-menu-defined
-     ;; Make sure the menu only gets defined once, since Emacs
-     ;; activates it immediately.
+     ;; make sure the menu only gets defined once, since Emacs 22
+     ;; activates it immediately
      (easy-menu-define erc-menu erc-mode-map "ERC menu" erc-menu-definition)
      (setq erc-menu-defined t))
    (if (featurep 'xemacs)
        (progn
-	 ;; The menu isn't automatically added to the menu bar in XEmacs.
+	 ;; the menu isn't automatically added to the menu bar in
+	 ;; XEmacs
 	 (add-hook 'erc-mode-hook 'erc-menu-add)
 	 (dolist (buffer (erc-buffer-list))
 	   (with-current-buffer buffer (erc-menu-add))))
-     (setq erc-menu-visible t)
      (erc-menu-add)))
   ((if (featurep 'xemacs)
        (progn
 	 (remove-hook 'erc-mode-hook 'erc-menu-add)
 	 (dolist (buffer (erc-buffer-list))
 	   (with-current-buffer buffer (erc-menu-remove))))
-     (setq erc-menu-visible nil)
-     (erc-menu-remove))))
+     (erc-menu-remove)
+     ;; `easy-menu-remove' is a no-op in Emacs 22
+     (message "You might have to restart Emacs to remove the ERC menu"))))
 
 ;; silence byte-compiler warning
 (defvar erc-menu)
@@ -147,10 +145,10 @@
 
 (provide 'erc-menu)
 
-
+;;; erc-menu.el ends here
+;;
 ;; Local Variables:
 ;; indent-tabs-mode: t
 ;; tab-width: 8
 ;; End:
 
-;;; erc-menu.el ends here

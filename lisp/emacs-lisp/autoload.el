@@ -812,40 +812,14 @@ write its autoloads into the specified file instead."
 	    (setq files (delete file files)))))
       ;; Elements remaining in FILES have no existing autoload sections yet.
       (dolist (file files)
-        (unless (member (expand-file-name file) autoload-excludes)
-	  ;; Passing nil as second argument forces
-	  ;; autoload-generate-file-autoloads to look for the right
-	  ;; spot where to insert each autoloads section.
-	  (let ((obuf
-		 (autoload-generate-file-autoloads file nil buffer-file-name))
-		ofile ofound oform opoint)
-	    (when obuf
-	      (push file no-autoloads)
-	      ;; Did processing file update some other ofile?
-	      (when (bufferp obuf)
-		(with-current-buffer obuf
-		  (setq ofile (file-relative-name buffer-file-name)))
-		;; Did we already scan ofile?
-		(and (member ofile done)
-		     (not (member ofile no-autoloads))
-		     (save-excursion
-		       (goto-char (point-min))
-		       (while
-			   (and
-			    (not ofound)
-			    (search-forward
-			     generate-autoload-section-header nil t))
-			 (setq opoint (point)
-			       oform (autoload-read-section-header))
-			 (when (setq ofound
-				     (string= ofile (nth 3 oform)))
-			   (delete-region opoint (point))
-			   (autoload-insert-section-header
-			    (current-buffer)
-			    (nth 1 oform)
-			    (nth 2 oform)
-			    (nth 3 oform)
-			    (nth 5 (file-attributes ofile))))))))))))
+        (cond
+         ((member (expand-file-name file) autoload-excludes) nil)
+         ;; Passing nil as second argument forces
+         ;; autoload-generate-file-autoloads to look for the right
+         ;; spot where to insert each autoloads section.
+         ((autoload-generate-file-autoloads file nil buffer-file-name)
+          (push file no-autoloads))))
+
       (when no-autoloads
 	;; Sort them for better readability.
 	(setq no-autoloads (sort no-autoloads 'string<))

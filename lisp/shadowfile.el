@@ -117,7 +117,6 @@ ensure consistency.  Default: ~/.emacs.d/shadows"
   :type '(choice (const nil) file)
   :group 'shadow)
 
-;; FIXME use .emacs.d
 (defcustom shadow-todo-file nil
   "File to store the list of uncopied shadows in.
 This means that if a remote system is down, or for any reason you cannot or
@@ -439,17 +438,14 @@ It may have different filenames on each site.  When this file is edited, the
 new version will be copied to each of the other locations.  Sites can be
 specific hostnames, or names of clusters (see `shadow-define-cluster')."
   (interactive)
-  (let ((name (if (buffer-file-name)
-		  (nth 2 (shadow-parse-fullname
-			  (shadow-contract-file-name (buffer-file-name))))))
-	user site group)
+  (let* ((hup (shadow-parse-fullname
+	       (shadow-contract-file-name (buffer-file-name))))
+	 (name (nth 2 hup))
+	 user site group)
     (while (setq site (shadow-read-site))
-      ;; FIXME fix read-string calls
       (setq user (read-string (format "Username (default %s): "
 				      (shadow-get-user site)))
-	    name (read-string "Filename: " nil nil name))
-      (if (zerop (length name))
-	  (error "You must specify a filename"))
+	    name (read-string "Filename: " name))
       (setq group (cons (shadow-make-fullname site
 					      (if (string-equal "" user)
 						  (shadow-get-user site)

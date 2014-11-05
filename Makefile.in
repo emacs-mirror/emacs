@@ -721,8 +721,8 @@ uninstall: uninstall-$(NTDIR) uninstall-doc
 	-unset CDPATH; \
 	for dir in "$(DESTDIR)${lispdir}" "$(DESTDIR)${etcdir}" ; do 	\
 	  if [ -d "$${dir}" ]; then			\
-	    case `cd "$${dir}" && /bin/pwd` in		\
-	      "`cd ${srcdir} && /bin/pwd`"* ) ;;		\
+	    case `cd "$${dir}" ; /bin/pwd` in		\
+	      "`cd ${srcdir} ; /bin/pwd`"* ) ;;		\
 	      * ) rm -rf "$${dir}" ;;			\
 	    esac ;					\
 	    case "$${dir}" in				\

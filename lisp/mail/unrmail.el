@@ -241,8 +241,8 @@ The variable `unrmail-mbox-format' controls which mbox format to use."
 	    ;; Convert From to >From, etc.
 	    (let ((case-fold-search nil)
 		  (fromline (if (eq 'mboxrd unrmail-mbox-format)
-			    "\n>*From "
-			  "\nFrom ")))
+			    "^>*From "
+			  "^From ")))
 	      (while (re-search-forward fromline nil t)
 		(beginning-of-line)
 		(insert ?>)

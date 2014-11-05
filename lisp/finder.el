@@ -429,7 +429,6 @@ FILE should be in a form suitable for passing to `locate-library'."
     (goto-char (posn-point (event-start event)))
     (finder-select)))
 
-;; FIXME why does this even exist - it's just an alias for finder-list-keywords?
 ;;;###autoload
 (defun finder-by-keyword ()
   "Find packages matching a given keyword."
