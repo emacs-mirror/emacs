@@ -67,10 +67,6 @@ CDPATH=
 # If Make doesn't predefine MAKE, set it here.
 @SET_MAKE@
 
-# Prevent submakes from outputting "Entering directory ..." and
-# "Leaving directory..." diagnostics that would mess up 'make echo-info'.
-QUIET_SUBMAKE = MAKELEVEL=0
-
 # ==================== Things `configure' Might Edit ====================
 
 cache_file = @cache_file@
@@ -641,7 +637,7 @@ install-info: info
 	   [ -f "$(DESTDIR)${infodir}/dir" ] || \
 	      [ ! -f ${srcdir}/info/dir ] || \
 	      ${INSTALL_DATA} ${srcdir}/info/dir "$(DESTDIR)${infodir}/dir"; \
-	   info_misc=`$(QUIET_SUBMAKE) $(MAKE) -s -C doc/misc echo-info`; \
+	   info_misc=`$(MAKE) --no-print-directory -s -C doc/misc echo-info`; \
 	   cd ${srcdir}/info ; \
 	   for elt in ${INFO_NONMISC} $${info_misc}; do \
 	      test "$(HAVE_MAKEINFO)" = "no" && test ! -f $$elt && continue; \
@@ -738,7 +734,7 @@ uninstall: uninstall-$(NTDIR) uninstall-doc
 	done
 	-rm -rf "$(DESTDIR)${libexecdir}/emacs/${version}"
 	thisdir=`/bin/pwd`; \
-	(info_misc=`$(QUIET_SUBMAKE) $(MAKE) -s -C doc/misc echo-info`; \
+	(info_misc=`$(MAKE) --no-print-directory -s -C doc/misc echo-info`; \
 	 if cd "$(DESTDIR)${infodir}"; then \
 	   for elt in ${INFO_NONMISC} $${info_misc}; do \
 	     (cd "$${thisdir}"; \
