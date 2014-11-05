@@ -1,3 +1,11 @@
+2014-11-05  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* url-http.el (url-user-agent): New variable, can be function or
+	string.  Suggested by Vibhav Pant <vibhavp@ubuntu.com>.
+	(Bug#16498)
+
+	(url-http-user-agent-string): Use it.
+
 2014-10-29  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Simplify use of current-time and friends.
