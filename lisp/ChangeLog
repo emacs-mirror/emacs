@@ -1,3 +1,8 @@
+2014-11-05  Tassilo Horn  <tsdh@gnu.org>
+
+	* net/eww.el (subr-x): Require subr-x because eww uses
+	string-trim.
+
 2014-11-05  Daiki Ueno  <ueno@gnu.org>
 
 	* epg.el (epg-context): Add new slot ERROR-OUTPUT.

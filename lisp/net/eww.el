@@ -30,6 +30,7 @@
 (require 'url)
 (require 'url-queue)
 (require 'mm-url)
+(require 'subr-x) ;; for string-trim
 
 (defgroup eww nil
   "Emacs Web Wowser"
@@ -166,9 +167,9 @@ word(s) will be searched for via `eww-search-prefix'."
          (user-error "FTP is not supported."))
         (t
          (if (and (= (length (split-string url)) 1)
-                 (or (and (not (string-match-p "\\`[\"\'].*[\"\']\\'" url))
-                          (> (length (split-string url "[.:]")) 1))
-                     (string-match eww-local-regex url)))
+		  (or (and (not (string-match-p "\\`[\"\'].*[\"\']\\'" url))
+			   (> (length (split-string url "[.:]")) 1))
+		      (string-match eww-local-regex url)))
              (progn
                (unless (string-match-p "\\`[a-zA-Z][-a-zA-Z0-9+.]*://" url)
                  (setq url (concat "http://" url)))
