@@ -499,7 +499,10 @@ non-nil in a repeated invocation of this function."
 	  message-log-max
 	  start)
       (if (and jit-lock-stealth-load
-	       (> (car (load-average)) jit-lock-stealth-load))
+	       ;; load-average can return nil.  The w32 emulation does
+	       ;; that during the first few dozens of seconds after
+	       ;; startup.
+	       (> (or (car (load-average)) 0) jit-lock-stealth-load))
 	  ;; Wait a little if load is too high.
 	  (setq delay jit-lock-stealth-time)
 	(if (buffer-live-p buffer)

@@ -1,3 +1,7 @@
+2014-11-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* erc.el (erc-send-input): Bind `str' dynamically (bug#18936).
+
 2014-10-29  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Simplify use of current-time and friends.

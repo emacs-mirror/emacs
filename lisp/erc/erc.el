@@ -1005,7 +1005,7 @@ display of that particular string at all."
   "Hook called first when some text is sent through `erc-send-current-line'.
 It gets called with one argument, STRING.
 
-To change the text that will be sent, set the variable STR which is
+To change the text that will be sent, set the variable `str' which is
 used in `erc-send-current-line'.
 
 To change the text inserted into the buffer without changing the text
@@ -5361,6 +5361,7 @@ This returns non-nil only if we actually send anything."
       (beep))
     nil)
    (t
+    (defvar str) ;; FIXME: Make it obey the "erc-" prefix convention.
     (let ((str input)
           (erc-insert-this t))
       (setq erc-send-this t)
