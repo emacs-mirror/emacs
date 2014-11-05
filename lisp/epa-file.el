@@ -162,6 +162,11 @@ encryption is used."
 	       (add-hook 'find-file-not-found-functions
 			 'epa-file--find-file-not-found-function
 			 nil t))
+	     (if (epg-context-error-output context)
+		 (epa-display-info
+		  (concat (format "Error while executing \"%s\":\n\n"
+				  epg-gpg-program)
+			  (epg-context-error-output context))))
 	     (signal 'file-error
 		     (cons "Opening input file" (cdr error)))))
           (set-buffer buf) ;In case timer/filter changed/killed it (bug#16029)!
@@ -257,6 +262,11 @@ If no one is selected, symmetric encryption will be performed.  "
       (error
        (if (setq entry (assoc file epa-file-passphrase-alist))
 	   (setcdr entry nil))
+       (if (epg-context-error-output context)
+	   (epa-display-info
+	    (concat (format "Error while executing \"%s\":\n\n"
+			    epg-gpg-program)
+		    (epg-context-error-output context))))
        (signal 'file-error (cons "Opening output file" (cdr error)))))
     (epa-file-run-real-handler
      #'write-region

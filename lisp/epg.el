@@ -40,6 +40,7 @@
 (defvar epg-debug-buffer nil)
 (defvar epg-agent-file nil)
 (defvar epg-agent-mtime nil)
+(defvar epg-error-output nil)
 
 ;; from gnupg/include/cipher.h
 (defconst epg-cipher-algorithm-alist
@@ -210,7 +211,8 @@
   output-file
   result
   operation
-  pinentry-mode)
+  pinentry-mode
+  error-output)
 
 ;; This is not an alias, just so we can mark it as autoloaded.
 ;;;###autoload
@@ -639,7 +641,9 @@ callback data (if any)."
       (make-local-variable 'epg-agent-file)
       (setq epg-agent-file agent-file)
       (make-local-variable 'epg-agent-mtime)
-      (setq epg-agent-mtime agent-mtime))
+      (setq epg-agent-mtime agent-mtime)
+      (make-local-variable 'epg-error-output)
+      (setq epg-error-output nil))
     (with-file-modes 448
       (setq process (apply #'start-process "epg" buffer
 			   (epg-context-program context) args)))
@@ -673,7 +677,14 @@ callback data (if any)."
                       (if (and symbol
                                (fboundp symbol))
                           (funcall symbol epg-context string))
-                      (setq epg-last-status (cons status string))))
+                      (setq epg-last-status (cons status string)))
+		  ;; Record other lines sent to stderr.  This assumes
+		  ;; that the process-filter receives output only from
+		  ;; stderr and the FD specified with --status-fd.
+		  (setq epg-error-output
+			(cons (buffer-substring (point)
+						(line-end-position))
+			      epg-error-output)))
                 (forward-line)
                 (setq epg-read-point (point)))))))))
 
@@ -715,7 +726,10 @@ callback data (if any)."
       (redraw-frame))
   (epg-context-set-result-for
    context 'error
-   (nreverse (epg-context-result-for context 'error))))
+   (nreverse (epg-context-result-for context 'error)))
+  (with-current-buffer (process-buffer (epg-context-process context))
+    (setf (epg-context-error-output context)
+	(mapconcat #'identity (nreverse epg-error-output) "\n"))))
 
 (defun epg-reset (context)
   "Reset the CONTEXT."

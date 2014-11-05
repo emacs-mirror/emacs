@@ -1,3 +1,16 @@
+2014-11-05  Daiki Ueno  <ueno@gnu.org>
+
+	* epg.el (epg-context): Add new slot ERROR-OUTPUT.
+	(epg-error-output): New buffer-local variable.
+	(epg--start): Initialize epg-error-output.
+	(epg--process-filter): Record output lines sent to stderr, in
+	epg-error-output.
+	(epg-wait-for-completion): Copy epg-error-output to ERROR-OUTPUT
+	slot of context.
+	* epa-file.el (epa-file-insert-file-contents): On error, display
+	output sent to stderr.
+	(epa-file-write-region): Likewise.
+
 2014-11-05  Eli Zaretskii  <eliz@gnu.org>
 
 	* jit-lock.el (jit-lock-stealth-fontify): Be tolerant to nil being
