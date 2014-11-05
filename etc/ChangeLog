@@ -1,3 +1,7 @@
+2014-11-05  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* NEWS: Mention `url-user-agent'.  (Bug#16498)
+
 2014-09-13  Christopher Schmidt  <ch@ristopher.com>
 
 	* NEWS: Mention prefix argument of `quick-calc'.
