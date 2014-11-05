@@ -869,6 +869,52 @@ If LIMIT is non-nil, show no more than this many entries."
 			"@{upstream}"
 		      remote-location))))
 
+(defun vc-git-region-history (file buffer lfrom lto)
+  (vc-git-command buffer 'async nil "log" "-p" ;"--follow" ;FIXME: not supported?
+                  (format "-L%d,%d:%s" lfrom lto (file-relative-name file))))
+
+(require 'diff-mode)
+
+(defvar vc-git-region-history-mode-map
+  (let ((map (make-composed-keymap
+              nil (make-composed-keymap
+                   (list diff-mode-map vc-git-log-view-mode-map)))))
+    map))
+
+(defvar vc-git--log-view-long-font-lock-keywords nil)
+(defvar font-lock-keywords)
+(defvar vc-git-region-history-font-lock-keywords
+  `((vc-git-region-history-font-lock)))
+
+(defun vc-git-region-history-font-lock (limit)
+  (let ((in-diff (save-excursion
+                   (beginning-of-line)
+                   (or (looking-at "^\\(?:diff\\|commit\\)\\>")
+                       (re-search-backward "^\\(?:diff\\|commit\\)\\>" nil t))
+                   (eq ?d (char-after (match-beginning 0))))))
+    (while
+        (let ((end (save-excursion
+                     (if (re-search-forward "\n\\(diff\\|commit\\)\\>"
+                                            limit t)
+                         (match-beginning 1)
+                       limit))))
+          (let ((font-lock-keywords (if in-diff diff-font-lock-keywords
+                                      vc-git--log-view-long-font-lock-keywords)))
+            (font-lock-fontify-keywords-region (point) end))
+          (goto-char end)
+          (prog1 (< (point) limit)
+            (setq in-diff (eq ?d (char-after))))))
+    nil))
+
+(define-derived-mode vc-git-region-history-mode
+    vc-git-log-view-mode "Git-Region-History"
+  "Major mode to browse Git's \"log -p\" output."
+  (setq-local vc-git--log-view-long-font-lock-keywords
+              log-view-font-lock-keywords)
+  (setq-local font-lock-defaults
+              (cons 'vc-git-region-history-font-lock-keywords
+                    (cdr font-lock-defaults))))
+
 (defvar log-view-message-re)
 (defvar log-view-file-re)
 (defvar log-view-font-lock-keywords)
@@ -884,7 +930,7 @@ If LIMIT is non-nil, show no more than this many entries."
        (if (not (eq vc-log-view-type 'long))
 	   (cadr vc-git-root-log-format)
 	 "^commit *\\([0-9a-z]+\\)"))
-  ;; Allow expanding short log entries
+  ;; Allow expanding short log entries.
   (when (eq vc-log-view-type 'short)
     (setq truncate-lines t)
     (set (make-local-variable 'log-view-expanded-log-entry-function)

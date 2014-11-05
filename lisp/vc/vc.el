@@ -1,4 +1,4 @@
-;;; vc.el --- drive a version-control system from within Emacs  -*- lexical-binding: t -*-
+;;; vc.el --- drive a version-control system from within Emacs  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1992-1998, 2000-2014 Free Software Foundation, Inc.
 
@@ -458,6 +458,15 @@
 ;;   If the backend supports annotating through copies and renames,
 ;;   and displays a file name and a revision, then return a cons
 ;;   (REVISION . FILENAME).
+;;
+;; - region-history (FILE BUFFER LFROM LTO)
+;;
+;;   Insert into BUFFER the history (log comments and diffs) of the content of
+;;   FILE between lines LFROM and LTO.  This is typically done asynchronously.
+;;
+;; - region-history-mode ()
+;;
+;;   Major mode to use for the output of `region-history'.
 
 ;; TAG SYSTEM
 ;;
@@ -673,6 +682,7 @@
 
 (require 'vc-hooks)
 (require 'vc-dispatcher)
+(require 'cl-lib)
 
 (declare-function diff-setup-whitespace "diff-mode" ())
 
@@ -2227,19 +2237,11 @@ earlier revisions.  Show up to LIMIT entries (non-nil means unlimited)."
   ;; Don't switch to the output buffer before running the command,
   ;; so that any buffer-local settings in the vc-controlled
   ;; buffer can be accessed by the command.
-  (let ((dir-present nil)
-	(vc-short-log nil)
+  (let* ((dir-present (cl-some #'file-directory-p files))
+         (shortlog (not (null (memq (if dir-present 'directory 'file)
+                                    vc-log-short-style))))
 	(buffer-name "*vc-change-log*")
-	type)
-    (dolist (file files)
-      (when (file-directory-p file)
-	(setq dir-present t)))
-    (setq vc-short-log
-	  (not (null (if dir-present
-			 (memq 'directory vc-log-short-style)
-		       (memq 'file vc-log-short-style)))))
-    (setq type (if vc-short-log 'short 'long))
-    (let ((shortlog vc-short-log))
+         (type (if shortlog 'short 'long)))
       (vc-log-internal-common
        backend buffer-name files type
        (lambda (bk buf _type-arg files-arg)
@@ -2252,7 +2254,7 @@ earlier revisions.  Show up to LIMIT entries (non-nil means unlimited)."
 	 (vc-call-backend bk 'show-log-entry working-revision))
        (lambda (_ignore-auto _noconfirm)
 	 (vc-print-log-internal backend files working-revision
-                                is-start-revision limit))))))
+                              is-start-revision limit)))))
 
 (defvar vc-log-view-type nil
   "Set this to differentiate the different types of logs.")
@@ -2271,7 +2273,6 @@ earlier revisions.  Show up to LIMIT entries (non-nil means unlimited)."
     (with-current-buffer (get-buffer-create buffer-name)
       (set (make-local-variable 'vc-log-view-type) type))
     (setq retval (funcall backend-func backend buffer-name type files))
-    (pop-to-buffer buffer-name)
     (let ((inhibit-read-only t))
       ;; log-view-mode used to be called with inhibit-read-only bound
       ;; to t, so let's keep doing it, just in case.
@@ -2280,6 +2281,9 @@ earlier revisions.  Show up to LIMIT entries (non-nil means unlimited)."
       (set (make-local-variable 'log-view-vc-fileset) files)
       (set (make-local-variable 'revert-buffer-function)
 	   rev-buff-func))
+    ;; Display after setting up major-mode, so display-buffer-alist can know
+    ;; the major-mode.
+    (pop-to-buffer buffer-name)         
     (vc-run-delayed
      (let ((inhibit-read-only t))
        (funcall setup-buttons-func backend files retval)
@@ -2385,6 +2389,29 @@ When called interactively with a prefix argument, prompt for REMOTE-LOCATION."
       (error "Buffer is not version controlled"))
     (vc-incoming-outgoing-internal backend remote-location "*vc-outgoing*"
                                    'log-outgoing)))
+
+;;;###autoload
+(defun vc-region-history (from to)
+  "Show the history of the region FROM..TO."
+  (interactive "r")
+  (let* ((lfrom (line-number-at-pos from))
+         (lto   (line-number-at-pos to))
+         (file buffer-file-name)
+         (backend (vc-backend file))
+         (buf (get-buffer-create "*VC-history*")))
+    (with-current-buffer buf
+      (setq-local vc-log-view-type 'long))
+    (vc-call region-history file buf lfrom lto)
+    (with-current-buffer buf
+      (vc-call-backend backend 'region-history-mode)
+      (set (make-local-variable 'log-view-vc-backend) backend)
+      (set (make-local-variable 'log-view-vc-fileset) file)
+      (set (make-local-variable 'revert-buffer-function)
+	   (lambda (_ignore-auto _noconfirm)
+             (with-current-buffer buf
+               (let ((inhibit-read-only t)) (erase-buffer)))
+             (vc-call region-history file buf lfrom lto))))
+    (display-buffer buf)))
 
 ;;;###autoload
 (defun vc-revert ()

@@ -1,3 +1,15 @@
+2014-11-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc/vc.el (vc-region-history): New command.
+	(vc-print-log-internal): Use cl-some.
+
+	* vc/vc-git.el (vc-git-region-history): New function.
+	(vc-git-region-history-mode-map)
+	(vc-git--log-view-long-font-lock-keywords)
+	(vc-git-region-history-font-lock-keywords): New vars.
+	(vc-git-region-history-font-lock): New function.
+	(vc-git-region-history-mode): New major mode.
+
 2014-11-05  Tassilo Horn  <tsdh@gnu.org>
 
 	* net/eww.el (subr-x): Require subr-x at compile-time because eww
@@ -23,9 +35,9 @@
 
 2014-11-05  Michael Albinus  <michael.albinus@gmx.de>
 
-        * net/tramp-sh.el (tramp-do-copy-or-rename-file-via-buffer): Don't use
-        a local copy; setting `inhibit-file-name-handlers' proper might be
-        more performant.  (Bug#18751)
+	* net/tramp-sh.el (tramp-do-copy-or-rename-file-via-buffer): Don't use
+	a local copy; setting `inhibit-file-name-handlers' proper might be
+	more performant.  (Bug#18751)
 
 2014-11-05  Glenn Morris  <rgm@gnu.org>
 
