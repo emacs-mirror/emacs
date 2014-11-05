@@ -909,7 +909,10 @@ so last access time will always be midnight of that day.  */)
   Lisp_Object encoded;
   Lisp_Object handler;
 
-  filename = Fexpand_file_name (filename, Qnil);
+  filename = internal_condition_case_2 (Fexpand_file_name, filename, Qnil,
+					Qt, Fidentity);
+  if (!STRINGP (filename))
+    return Qnil;
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */

@@ -1,3 +1,8 @@
+2014-11-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dired.c (Ffile_attributes): Return Qnil, if Fexpand_file_name
+	raises an error.  (Bug#18891)
+
 2014-11-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (Fdump_glyph_matrix, Fdump_frame_glyph_matrix): Doc fix.
