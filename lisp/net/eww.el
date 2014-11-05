@@ -30,7 +30,7 @@
 (require 'url)
 (require 'url-queue)
 (require 'mm-url)
-(require 'subr-x) ;; for string-trim
+(eval-when-compile (require 'subr-x)) ;; for string-trim
 
 (defgroup eww nil
   "Emacs Web Wowser"
