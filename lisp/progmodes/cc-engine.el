@@ -248,6 +248,24 @@
     (setq c-macro-cache-start-pos beg
 	  c-macro-cache-syntactic nil))))
 
+(defun c-macro-is-genuine-p ()
+  ;; Check that the ostensible CPP construct at point is a real one.  In
+  ;; particular, if point is on the first line of a narrowed buffer, make sure
+  ;; that the "#" isn't, say, the second character of a "##" operator.  Return
+  ;; t when the macro is real, nil otherwise.
+  (let ((here (point)))
+    (beginning-of-line)
+    (prog1
+	(if (and (eq (point) (point-min))
+		 (/= (point) 1))
+	    (save-restriction
+	      (widen)
+	      (beginning-of-line)
+	      (and (looking-at c-anchored-cpp-prefix)
+		   (eq (match-beginning 1) here)))
+	  t)
+      (goto-char here))))
+
 (defun c-beginning-of-macro (&optional lim)
   "Go to the beginning of a preprocessor directive.
 Leave point at the beginning of the directive and return t if in one,
@@ -278,7 +296,8 @@ comment at the start of cc-engine.el for more info."
 	    (forward-line -1))
 	  (back-to-indentation)
 	  (if (and (<= (point) here)
-		   (looking-at c-opt-cpp-start))
+		   (looking-at c-opt-cpp-start)
+		   (c-macro-is-genuine-p))
 	      (progn
 		(setq c-macro-cache (cons (point) nil)
 		      c-macro-cache-start-pos here)

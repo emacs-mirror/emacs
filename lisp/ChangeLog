@@ -1,3 +1,10 @@
+2014-10-18  Alan Mackenzie  <acm@muc.de>
+
+	Check that a "macro" found near point-min isn't a ## operator.
+	Fixes bug #18749.  Backported from trunk, 2014-11-05.
+	* progmodes/cc-engine.el (c-macro-is-genuine-p): New function.
+	(c-beginning-of-macro): Use the above new function.
+
 2014-11-05  Alan Mackenzie  <acm@muc.de>
 
 	Fix wrong bound to c-font-lock-declarators.  Fixes bug #18948.
