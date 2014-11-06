@@ -1,3 +1,18 @@
+2014-11-06  Daiki Ueno  <ueno@gnu.org>
+
+	* epa.el (epa-error-buffer): New variable.
+	(epa-display-error): New function.
+	(epa-decrypt-file, epa-verify-file, epa-verify-region)
+	(epa-delete-keys, epa-import-keys): Display output sent to stderr.
+	(epa-sign-file, epa-sign-region, epa-encrypt-region)
+	(epa-export-keys, epa-insert-keys): Display output sent to stderr.
+	Use setf instead of epg-context-set-*.
+	* epa-file.el (epa-file-insert-file-contents): Use
+	epa-display-error instead of epa-display-info.  Mimic the behavior
+	of jka-compr when decryption program is not found.
+	(epa-file-write-region): Use epa-display-error instead of
+	epa-display-info.
+
 2014-11-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc/vc.el (vc-region-history): New command.

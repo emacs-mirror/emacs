@@ -105,9 +105,9 @@ encryption is used."
 	(insert (if enable-multibyte-characters
 		    (string-to-multibyte string)
 		  string))
-	  (decode-coding-inserted-region
-	   (point-min) (point-max)
-	   (substring file 0 (string-match epa-file-name-regexp file))
+	(decode-coding-inserted-region
+	 (point-min) (point-max)
+	 (substring file 0 (string-match epa-file-name-regexp file))
 	 visit beg end replace))
     (insert (epa-file--decode-coding-string string (or coding-system-for-read
 						       'undecided)))))
@@ -151,8 +151,17 @@ encryption is used."
 	  (condition-case error
 	      (setq string (epg-decrypt-file context local-file nil))
 	    (error
+	     (epa-display-error context)
 	     (if (setq entry (assoc file epa-file-passphrase-alist))
 		 (setcdr entry nil))
+	     ;; If the decryption program can't be found,
+	     ;; signal that as a non-file error
+	     ;; so that find-file-noselect-1 won't handle it.
+	     ;; Borrowed from jka-compr.el.
+	     (if (and (eq (car error) 'file-error)
+		      (equal (cadr error) "Searching for program"))
+		 (error "Decryption program `%s' not found"
+			(nth 3 error)))
 	     ;; Hack to prevent find-file from opening empty buffer
 	     ;; when decryption failed (bug#6568).  See the place
 	     ;; where `find-file-not-found-functions' are called in
@@ -162,11 +171,6 @@ encryption is used."
 	       (add-hook 'find-file-not-found-functions
 			 'epa-file--find-file-not-found-function
 			 nil t))
-	     (if (epg-context-error-output context)
-		 (epa-display-info
-		  (concat (format "Error while executing \"%s\":\n\n"
-				  epg-gpg-program)
-			  (epg-context-error-output context))))
 	     (signal 'file-error
 		     (cons "Opening input file" (cdr error)))))
           (set-buffer buf) ;In case timer/filter changed/killed it (bug#16029)!
@@ -226,7 +230,7 @@ encryption is used."
      context
      (cons #'epa-progress-callback-function
 	   (format "Encrypting %s" file)))
-    (epg-context-set-armor context epa-armor)
+    (setf (epg-context-armor context) epa-armor)
     (condition-case error
 	(setq string
 	      (epg-encrypt-string
@@ -260,13 +264,9 @@ If no one is selected, symmetric encryption will be performed.  "
 		 (if epa-file-encrypt-to
 		     (epg-list-keys context recipients)))))
       (error
+       (epa-display-error context)
        (if (setq entry (assoc file epa-file-passphrase-alist))
 	   (setcdr entry nil))
-       (if (epg-context-error-output context)
-	   (epa-display-info
-	    (concat (format "Error while executing \"%s\":\n\n"
-			    epg-gpg-program)
-		    (epg-context-error-output context))))
        (signal 'file-error (cons "Opening output file" (cdr error)))))
     (epa-file-run-real-handler
      #'write-region

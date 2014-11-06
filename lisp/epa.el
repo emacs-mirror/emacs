@@ -166,6 +166,7 @@ You should bind this variable with `let', but do not set it globally.")
 (defvar epa-key nil)
 (defvar epa-list-keys-arguments nil)
 (defvar epa-info-buffer nil)
+(defvar epa-error-buffer nil)
 (defvar epa-last-coding-system-specified nil)
 
 (defvar epa-key-list-mode-map
@@ -578,6 +579,34 @@ If SECRET is non-nil, list secret keys instead of public keys."
 	      (shrink-window (- (window-height) epa-info-window-height)))))
     (message "%s" info)))
 
+(defun epa-display-error (context)
+  (unless (equal (epg-context-error-output context) "")
+    (let ((buffer (get-buffer-create "*Error*")))
+      (save-selected-window
+	(unless (and epa-error-buffer (buffer-live-p epa-error-buffer))
+	  (setq epa-error-buffer (generate-new-buffer "*Error*")))
+	(if (get-buffer-window epa-error-buffer)
+	    (delete-window (get-buffer-window epa-error-buffer)))
+	(with-current-buffer buffer
+	  (let ((inhibit-read-only t)
+		buffer-read-only)
+	    (erase-buffer)
+	    (insert (format
+		     (pcase (epg-context-operation context)
+		       (`decrypt "Error while decrypting with \"%s\":")
+		       (`verify "Error while verifying with \"%s\":")
+		       (`sign "Error while signing with \"%s\":")
+		       (`encrypt "Error while encrypting with \"%s\":")
+		       (`import-keys "Error while importing keys with \"%s\":")
+		       (`export-keys "Error while exporting keys with \"%s\":")
+		       (_ "Error while executing \"%s\":\n\n"))
+		     epg-gpg-program)
+		    "\n\n"
+		    (epg-context-error-output context)))
+	  (epa-info-mode)
+	  (goto-char (point-min)))
+	(display-buffer buffer)))))
+
 (defun epa-display-verify-result (verify-result)
   (declare (obsolete epa-display-info "23.1"))
   (epa-display-info (epg-verify-result-to-string verify-result)))
@@ -593,14 +622,14 @@ If SECRET is non-nil, list secret keys instead of public keys."
        (eq (epg-context-operation context) 'encrypt))
     (read-passwd
      (if (eq key-id 'PIN)
-	"Passphrase for PIN: "
+	 "Passphrase for PIN: "
        (let ((entry (assoc key-id epg-user-id-alist)))
 	 (if entry
 	     (format "Passphrase for %s %s: " key-id (cdr entry))
 	   (format "Passphrase for %s: " key-id)))))))
 
 (defun epa-progress-callback-function (_context what _char current total
-					       handback)
+						handback)
   (let ((prompt (or handback
 		    (format "Processing %s: " what))))
     ;; According to gnupg/doc/DETAIL: a "total" of 0 indicates that
@@ -641,7 +670,11 @@ If you do not specify PLAIN-FILE, this functions prompts for the value to use."
 					(format "Decrypting %s..."
 						(file-name-nondirectory decrypt-file))))
     (message "Decrypting %s..." (file-name-nondirectory decrypt-file))
-    (epg-decrypt-file context decrypt-file plain-file)
+    (condition-case error
+	(epg-decrypt-file context decrypt-file plain-file)
+      (error
+       (epa-display-error context)
+       (signal (car error) (cdr error))))
     (message "Decrypting %s...wrote %s" (file-name-nondirectory decrypt-file)
 	     (file-name-nondirectory plain-file))
     (if (epg-context-result-for context 'verify)
@@ -662,7 +695,11 @@ If you do not specify PLAIN-FILE, this functions prompts for the value to use."
 					(format "Verifying %s..."
 						(file-name-nondirectory file))))
     (message "Verifying %s..." (file-name-nondirectory file))
-    (epg-verify-file context file plain)
+    (condition-case error
+	(epg-verify-file context file plain)
+      (error
+       (epa-display-error context)
+       (signal (car error) (cdr error))))
     (message "Verifying %s...done" (file-name-nondirectory file))
     (if (epg-context-result-for context 'verify)
 	(epa-display-info (epg-verify-result-to-string
@@ -717,18 +754,22 @@ If no one is selected, default secret key is used.  "
 				 ".p7s"
 			       ".p7m"))))
 	(context (epg-make-context epa-protocol)))
-    (epg-context-set-armor context epa-armor)
-    (epg-context-set-textmode context epa-textmode)
-    (epg-context-set-signers context signers)
-    (epg-context-set-passphrase-callback context
-					 #'epa-passphrase-callback-function)
-    (epg-context-set-progress-callback context
-				       (cons
-					#'epa-progress-callback-function
-					(format "Signing %s..."
-						(file-name-nondirectory file))))
+    (setf (epg-context-armor context) epa-armor)
+    (setf (epg-context-textmode context) epa-textmode)
+    (setf (epg-context-signers context) signers)
+    (setf (epg-context-passphrase-callback context)
+	  #'epa-passphrase-callback-function)
+    (setf (epg-context-progress-callback context)
+	  (cons
+	   #'epa-progress-callback-function
+	   (format "Signing %s..."
+		   (file-name-nondirectory file))))
     (message "Signing %s..." (file-name-nondirectory file))
-    (epg-sign-file context file signature mode)
+    (condition-case error
+	(epg-sign-file context file signature mode)
+      (error
+       (epa-display-error context)
+       (signal (car error) (cdr error))))
     (message "Signing %s...wrote %s" (file-name-nondirectory file)
 	     (file-name-nondirectory signature))))
 
@@ -744,17 +785,21 @@ If no one is selected, symmetric encryption will be performed.  ")))
 				 (if epa-armor ".asc" ".gpg")
 			       ".p7m")))
 	(context (epg-make-context epa-protocol)))
-    (epg-context-set-armor context epa-armor)
-    (epg-context-set-textmode context epa-textmode)
-    (epg-context-set-passphrase-callback context
-					 #'epa-passphrase-callback-function)
-    (epg-context-set-progress-callback context
-				       (cons
-					#'epa-progress-callback-function
-					(format "Encrypting %s..."
-						(file-name-nondirectory file))))
+    (setf (epg-context-armor context) epa-armor)
+    (setf (epg-context-textmode context) epa-textmode)
+    (setf (epg-context-passphrase-callback context)
+	  #'epa-passphrase-callback-function)
+    (setf (epg-context-progress-callback context)
+	  (cons
+	   #'epa-progress-callback-function
+	   (format "Encrypting %s..."
+		   (file-name-nondirectory file))))
     (message "Encrypting %s..." (file-name-nondirectory file))
-    (epg-encrypt-file context file recipients cipher)
+    (condition-case error
+	(epg-encrypt-file context file recipients cipher)
+      (error
+       (epa-display-error context)
+       (signal (car error) (cdr error))))
     (message "Encrypting %s...wrote %s" (file-name-nondirectory file)
 	     (file-name-nondirectory cipher))))
 
@@ -785,14 +830,18 @@ For example:
   (save-excursion
     (let ((context (epg-make-context epa-protocol))
 	  plain)
-      (epg-context-set-passphrase-callback context
-					   #'epa-passphrase-callback-function)
-      (epg-context-set-progress-callback context
-					 (cons
-					  #'epa-progress-callback-function
-					  "Decrypting..."))
+      (setf (epg-context-passphrase-callback context)
+	    #'epa-passphrase-callback-function)
+      (setf (epg-context-progress-callback context)
+	    (cons
+	     #'epa-progress-callback-function
+	     "Decrypting..."))
       (message "Decrypting...")
-      (setq plain (epg-decrypt-string context (buffer-substring start end)))
+      (condition-case error
+	  (setq plain (epg-decrypt-string context (buffer-substring start end)))
+	(error
+	 (epa-display-error context)
+	 (signal (car error) (cdr error))))
       (message "Decrypting...done")
       (setq plain (epa--decode-coding-string
 		   plain
@@ -810,8 +859,8 @@ For example:
 	      (insert plain))
 	  (with-output-to-temp-buffer "*Temp*"
 	    (set-buffer standard-output)
-	      (insert plain)
-	      (epa-info-mode))))
+	    (insert plain)
+	    (epa-info-mode))))
       (if (epg-context-result-for context 'verify)
 	  (epa-display-info (epg-verify-result-to-string
 			     (epg-context-result-for context 'verify)))))))
@@ -878,17 +927,21 @@ For example:
   (interactive "r")
   (let ((context (epg-make-context epa-protocol))
 	plain)
-    (epg-context-set-progress-callback context
-				       (cons
-					#'epa-progress-callback-function
-					"Verifying..."))
+    (setf (epg-context-progress-callback context)
+	  (cons
+	   #'epa-progress-callback-function
+	   "Verifying..."))
     (message "Verifying...")
-    (setq plain (epg-verify-string
-		 context
-		 (epa--encode-coding-string
-		  (buffer-substring start end)
-		  (or coding-system-for-write
-		      (get-text-property start 'epa-coding-system-used)))))
+    (condition-case error
+	(setq plain (epg-verify-string
+		     context
+		     (epa--encode-coding-string
+		      (buffer-substring start end)
+		      (or coding-system-for-write
+			  (get-text-property start 'epa-coding-system-used)))))
+      (error
+       (epa-display-error context)
+       (signal (car error) (cdr error))))
     (message "Verifying...done")
     (setq plain (epa--decode-coding-string
 		 plain
@@ -927,11 +980,11 @@ See the reason described in the `epa-verify-region' documentation."
 				  nil t)
 	  (setq cleartext-start (match-beginning 0))
 	  (unless (re-search-forward "^-----BEGIN PGP SIGNATURE-----$"
-					   nil t)
+				     nil t)
 	    (error "Invalid cleartext signed message"))
 	  (setq cleartext-end (re-search-forward
-			   "^-----END PGP SIGNATURE-----$"
-			   nil t))
+			       "^-----END PGP SIGNATURE-----$"
+			       nil t))
 	  (unless cleartext-end
 	    (error "No cleartext tail"))
 	  (epa-verify-region cleartext-start cleartext-end))))))
@@ -978,23 +1031,27 @@ If no one is selected, default secret key is used.  "
   (save-excursion
     (let ((context (epg-make-context epa-protocol))
 	  signature)
-      ;;(epg-context-set-armor context epa-armor)
-      (epg-context-set-armor context t)
-      ;;(epg-context-set-textmode context epa-textmode)
-      (epg-context-set-textmode context t)
-      (epg-context-set-signers context signers)
-      (epg-context-set-passphrase-callback context
-					   #'epa-passphrase-callback-function)
-      (epg-context-set-progress-callback context
-					 (cons
-					  #'epa-progress-callback-function
-					  "Signing..."))
+      ;;(setf (epg-context-armor context) epa-armor)
+      (setf (epg-context-armor context) t)
+      ;;(setf (epg-context-textmode context) epa-textmode)
+      (setf (epg-context-textmode context) t)
+      (setf (epg-context-signers context) signers)
+      (setf (epg-context-passphrase-callback context)
+	    #'epa-passphrase-callback-function)
+      (setf (epg-context-progress-callback context)
+	    (cons
+	     #'epa-progress-callback-function
+	     "Signing..."))
       (message "Signing...")
-      (setq signature (epg-sign-string context
-				       (epa--encode-coding-string
-					(buffer-substring start end)
-					epa-last-coding-system-specified)
-				       mode))
+      (condition-case error
+	  (setq signature (epg-sign-string context
+					   (epa--encode-coding-string
+					    (buffer-substring start end)
+					    epa-last-coding-system-specified)
+					   mode))
+	(error
+	 (epa-display-error context)
+	 (signal (car error) (cdr error))))
       (message "Signing...done")
       (delete-region start end)
       (goto-char start)
@@ -1061,25 +1118,29 @@ If no one is selected, symmetric encryption will be performed.  ")
   (save-excursion
     (let ((context (epg-make-context epa-protocol))
 	  cipher)
-      ;;(epg-context-set-armor context epa-armor)
-      (epg-context-set-armor context t)
-      ;;(epg-context-set-textmode context epa-textmode)
-      (epg-context-set-textmode context t)
+      ;;(setf (epg-context-armor context) epa-armor)
+      (setf (epg-context-armor context) t)
+      ;;(setf (epg-context-textmode context) epa-textmode)
+      (setf (epg-context-textmode context) t)
       (if sign
-	  (epg-context-set-signers context signers))
-      (epg-context-set-passphrase-callback context
-					   #'epa-passphrase-callback-function)
-      (epg-context-set-progress-callback context
-					 (cons
-					  #'epa-progress-callback-function
-					  "Encrypting..."))
+	  (setf (epg-context-signers context) signers))
+      (setf (epg-context-passphrase-callback context)
+	    #'epa-passphrase-callback-function)
+      (setf (epg-context-progress-callback context)
+	    (cons
+	     #'epa-progress-callback-function
+	     "Encrypting..."))
       (message "Encrypting...")
-      (setq cipher (epg-encrypt-string context
-				       (epa--encode-coding-string
-					(buffer-substring start end)
-					epa-last-coding-system-specified)
-				       recipients
-				       sign))
+      (condition-case error
+	  (setq cipher (epg-encrypt-string context
+					   (epa--encode-coding-string
+					    (buffer-substring start end)
+					    epa-last-coding-system-specified)
+					   recipients
+					   sign))
+	(error
+	 (epa-display-error context)
+	 (signal (car error) (cdr error))))
       (message "Encrypting...done")
       (delete-region start end)
       (goto-char start)
@@ -1105,7 +1166,11 @@ If no one is selected, symmetric encryption will be performed.  ")
 	   (eq (nth 1 epa-list-keys-arguments) t))))
   (let ((context (epg-make-context epa-protocol)))
     (message "Deleting...")
-    (epg-delete-keys context keys allow-secret)
+    (condition-case error
+	(epg-delete-keys context keys allow-secret)
+      (error
+       (epa-display-error context)
+       (signal (car error) (cdr error))))
     (message "Deleting...done")
     (apply #'epa--list-keys epa-list-keys-arguments)))
 
@@ -1121,6 +1186,7 @@ If no one is selected, symmetric encryption will be performed.  ")
 	  (epg-import-keys-from-file context file)
 	  (message "Importing %s...done" (file-name-nondirectory file)))
       (error
+       (epa-display-error context)
        (message "Importing %s...failed" (file-name-nondirectory file))))
     (if (epg-context-result-for context 'import)
 	(epa-display-info (epg-import-result-to-string
@@ -1140,6 +1206,7 @@ If no one is selected, symmetric encryption will be performed.  ")
 	  (epg-import-keys-from-string context (buffer-substring start end))
 	  (message "Importing...done"))
       (error
+       (epa-display-error context)
        (message "Importing...failed")))
     (if (epg-context-result-for context 'import)
 	(epa-display-info (epg-import-result-to-string
@@ -1188,9 +1255,13 @@ between START and END."
 	     (file-name-directory default-name)
 	     default-name)))))
   (let ((context (epg-make-context epa-protocol)))
-    (epg-context-set-armor context epa-armor)
+    (setf (epg-context-armor context) epa-armor)
     (message "Exporting to %s..." (file-name-nondirectory file))
-    (epg-export-keys-to-file context keys file)
+    (condition-case error
+	(epg-export-keys-to-file context keys file)
+      (error
+       (epa-display-error context)
+       (signal (car error) (cdr error))))
     (message "Exporting to %s...done" (file-name-nondirectory file))))
 
 ;;;###autoload
@@ -1198,12 +1269,16 @@ between START and END."
   "Insert selected KEYS after the point."
   (interactive
    (list (epa-select-keys (epg-make-context epa-protocol)
-				"Select keys to export.
+			  "Select keys to export.
 If no one is selected, default public key is exported.  ")))
   (let ((context (epg-make-context epa-protocol)))
-    ;;(epg-context-set-armor context epa-armor)
-    (epg-context-set-armor context t)
-    (insert (epg-export-keys-to-string context keys))))
+    ;;(setf (epg-context-armor context) epa-armor)
+    (setf (epg-context-armor context) t)
+    (condition-case error
+	(insert (epg-export-keys-to-string context keys))
+      (error
+       (epa-display-error context)
+       (signal (car error) (cdr error))))))
 
 ;; (defun epa-sign-keys (keys &optional local)
 ;;   "Sign selected KEYS.
@@ -1217,12 +1292,12 @@ If no one is selected, default public key is exported.  ")))
 ;;        (error "No keys selected"))
 ;;      (list keys current-prefix-arg)))
 ;;   (let ((context (epg-make-context epa-protocol)))
-;;     (epg-context-set-passphrase-callback context
-;; 					 #'epa-passphrase-callback-function)
-;;     (epg-context-set-progress-callback context
-;; 				       (cons
-;; 					#'epa-progress-callback-function
-;; 					"Signing keys..."))
+;;     (setf (epg-context-passphrase-callback context)
+;; 	     #'epa-passphrase-callback-function)
+;;     (setf (epg-context-progress-callback context)
+;; 	     (cons
+;; 	       #'epa-progress-callback-function
+;; 	       "Signing keys..."))
 ;;     (message "Signing keys...")
 ;;     (epg-sign-keys context keys local)
 ;;     (message "Signing keys...done")))
