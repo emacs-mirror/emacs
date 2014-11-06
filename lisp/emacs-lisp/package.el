@@ -853,9 +853,7 @@ GnuPG keyring is located under \"gnupg\" in `package-user-dir'."
 	    (setq had-fatal-error t))))
       (when (and (null good-signatures) had-fatal-error)
 	(package--display-verify-error context sig-file)
-	(error "Failed to verify signature %s: %S"
-	       sig-file
-	       ))
+	(error "Failed to verify signature %s" sig-file))
       good-signatures)))
 
 (defun package-install-from-archive (pkg-desc)
