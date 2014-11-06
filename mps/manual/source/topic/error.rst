@@ -76,7 +76,8 @@ Result codes
     A :term:`result code` indicating that an operation could not be
     completed as requested without exceeding the :term:`commit limit`.
 
-    You need to deallocate something to make more space, or increase
+    You need to deallocate something or allow the :term:`garbage
+    collector` to reclaim something, to make more space, or increase
     the commit limit by calling :c:func:`mps_arena_commit_limit_set`.
 
 
@@ -109,7 +110,7 @@ Result codes
     completed because there wasn't enough memory available.
 
     You need to deallocate something or allow the :term:`garbage
-    collector` to reclaim something to free enough memory, or expand
+    collector` to reclaim something to free enough memory, or extend
     the :term:`arena` (if you're using an arena for which that does
     not happen automatically).
 
@@ -148,18 +149,15 @@ Result codes
 
     A :term:`result code` indicating that an operation could not be
     completed as requested because the MPS could not obtain a needed
-    resource. The resource in question depends on the operation.
+    resource. The resource in question depends on the operation, but
+    it can be returned when the MPS runs out of :term:`address space`.
+    If this happens, you need to reclaim memory within your process
+    (as for the result code :c:macro:`MPS_RES_MEMORY`).
 
     Two special cases have their own result codes: when the MPS runs
     out of committed memory, it returns :c:macro:`MPS_RES_MEMORY`, and
     when it cannot proceed without exceeding the :term:`commit limit`,
     it returns :c:macro:`MPS_RES_COMMIT_LIMIT`.
-
-    This result code can be returned when the MPS runs out of
-    :term:`virtual memory`. If this happens, you need to reclaim
-    memory within your process (as for the result code
-    :c:macro:`MPS_RES_MEMORY`), or terminate other processes running
-    on the same machine.
 
 
 .. c:macro:: MPS_RES_UNIMPL
@@ -277,8 +275,8 @@ this documentation.
 ``lockw3.c: lock->claims == 0``
 
     The client program has made a re-entrant call into the MPS. Look
-    at the backtrace to see what it was. Common culprits are
-    :term:`format methods` and :term:`stepper functions`.
+    at the backtrace to see what it was. Common culprits are signal
+    handlers, :term:`format methods` and :term:`stepper functions`.
 
 
 ``locus.c: chain->activeTraces == TraceSetEMPTY``
@@ -307,11 +305,11 @@ this documentation.
 
 ``ring.c: ring->next == ring``
 
-    The client program destroyed an object without having destroyed
-    all the objects that it owns first. For example, it destroyed an
-    arena without first destroying all pools in that arena, or it
-    destroyed a pool without first destroying all allocation points
-    created on that pool.
+    The client program destroyed an MPS data structure without having
+    destroyed all the data structures that it owns first. For example,
+    it destroyed an arena without first destroying all pools in that
+    arena, or it destroyed a pool without first destroying all
+    allocation points created on that pool.
 
 
 ``trace.c: ss->rank < RankEXACT``
@@ -320,7 +318,7 @@ this documentation.
     for finalization, and then continued to run the garbage collector.
     See :ref:`topic-finalization-cautions` under
     :ref:`topic-finalization`, which says, "You must destroy these
-    pools by following the “safe tear-down” procedure described under
+    pools by following the ‘safe tear-down’ procedure described under
     :c:func:`mps_pool_destroy`."
 
 
@@ -330,8 +328,8 @@ this documentation.
     reference to an object that moved. See
     :ref:`topic-scanning-protocol`, which says, "If :c:func:`MPS_FIX2`
     returns :c:macro:`MPS_RES_OK`, it may have updated the reference.
-    If necessary, make sure that the updated reference is stored back
-    to the region being scanned."
+    Make sure that the updated reference is stored back to the region
+    being scanned."
 
 
 .. index::
@@ -341,11 +339,11 @@ this documentation.
 Varieties
 ---------
 
-The MPS has three behaviours with respect to internal checking and
-:ref:`telemetry <topic-telemetry>`, which need to be selected at
-compile time, by defining one of the following preprocessor
-constants. If none is specified then :c:macro:`CONFIG_VAR_HOT` is the
-default.
+The MPS has three *varieties* which have different levels of internal
+checking and :ref:`telemetry <topic-telemetry>`. The variety can be
+selected at compile time, by defining one of the following
+preprocessor constants. If none is specified then
+:c:macro:`CONFIG_VAR_HOT` is the default.
 
 
 .. index::
@@ -354,7 +352,7 @@ default.
 
 .. c:macro:: CONFIG_VAR_COOL
 
-    The cool variety is intended for development and testing.
+    The *cool variety* is intended for development and testing.
 
     All functions check the consistency of their data structures and may
     assert, including functions on the :term:`critical path`.
@@ -372,7 +370,7 @@ default.
 
 .. c:macro:: CONFIG_VAR_HOT
 
-    The hot variety is intended for production and deployment.
+    The *hot variety* is intended for production and deployment.
 
     Some functions check the consistency of their data structures and
     may assert, namely those not on the :term:`critical path`.  However,
@@ -389,7 +387,7 @@ default.
 
 .. c:macro:: CONFIG_VAR_RASH
 
-    The rash variety is intended for mature integrations, or for
+    The *rash variety* is intended for mature integrations, or for
     developers who like living dangerously.
 
     No functions check the consistency of their data structures and
