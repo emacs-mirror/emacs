@@ -784,7 +784,9 @@ static Res pageDescMap(VMChunk vmChunk, Index basePI, Index limitPI)
   Size before = VMMapped(VMChunkVM(vmChunk));
   Arena arena = VMArena2Arena(VMChunkVMArena(vmChunk));
   Res res = SparseArrayMap(&vmChunk->pages, basePI, limitPI);
-  arena->committed += VMMapped(VMChunkVM(vmChunk)) - before;
+  Size after = VMMapped(VMChunkVM(vmChunk));
+  AVER(before <= after);
+  arena->committed += after - before;
   return res;
 }
 
