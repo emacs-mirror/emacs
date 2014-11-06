@@ -40,31 +40,6 @@ making it available for allocation.
     :c:func:`mps_pool_destroy`.
 
 
-.. c:function:: mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, mps_pool_class_t pool_class, ...)
-
-    .. deprecated:: starting with version 1.112.
-
-        Use :c:func:`mps_pool_create_k` instead: the :term:`keyword
-        arguments` interface is more reliable and produces better
-        error messages.
-
-    An alternative to :c:func:`mps_pool_create_k` that takes its
-    extra arguments using the standard :term:`C` variable argument
-    list mechanism.
-
-
-.. c:function:: mps_res_t mps_pool_create_v(mps_pool_t *pool_o, mps_arena_t arena, mps_pool_class_t pool_class, va_list args)
-
-    .. deprecated:: starting with version 1.112.
-
-        Use :c:func:`mps_pool_create_k` instead: the :term:`keyword
-        arguments` interface is more reliable and produces better
-        error messages.
-
-    An alternative to :c:func:`mps_pool_create_k` that takes its extra
-    arguments using the standard :term:`C` ``va_list`` mechanism.
-
-
 .. c:function:: void mps_pool_destroy(mps_pool_t pool)
 
     Destroy a :term:`pool`.
@@ -122,13 +97,6 @@ See the :ref:`pool` for a list of pool classes.
 .. c:type:: mps_pool_class_t
 
     The type of :term:`pool classes`.
-
-.. c:type:: typedef mps_pool_class_t mps_class_t
-
-    .. deprecated:: starting with version 1.115.
-
-        The former name for ``mps_pool_class_t``, chosen when pools
-        were the only objects in the MPS that belonged to classes.
 
 
 .. index::

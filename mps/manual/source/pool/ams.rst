@@ -41,7 +41,8 @@ AMS properties
 
 * Supports allocation via :term:`allocation points`. If an allocation
   point is created in an AMS pool, the call to
-  :c:func:`mps_ap_create_k` takes no keyword arguments.
+  :c:func:`mps_ap_create_k` takes one optional keyword argument,
+  :c:macro:`MPS_KEY_RANK`.
 
 * Supports :term:`allocation frames` but does not use them to improve
   the efficiency of stack-like allocation.
@@ -137,19 +138,8 @@ AMS interface
             res = mps_pool_create_k(&pool, arena, mps_class_ams(), args);
         } MPS_ARGS_END(args);
 
-    .. deprecated:: starting with version 1.112.
-
-        When using :c:func:`mps_pool_create`, pass the format,
-        chain, and ambiguous flag like this::
-
-            mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, 
-                                      mps_pool_class_t mps_class_ams(),
-                                      mps_fmt_t fmt,
-                                      mps_chain_t chain,
-                                      mps_bool_t support_ambiguous)
-
     When creating an :term:`allocation point` on an AMS pool,
-    :c:func:`mps_ap_create_k` accepts one keyword argument:
+    :c:func:`mps_ap_create_k` accepts one optional keyword argument:
 
     * :c:macro:`MPS_KEY_RANK` (type :c:type:`mps_rank_t`, default
       :c:func:`mps_rank_exact`) specifies the :term:`rank` of references
@@ -166,13 +156,6 @@ AMS interface
             res = mps_ap_create_k(&ap, ams_pool, args);
         } MPS_ARGS_END(args);
 
-    .. deprecated:: starting with version 1.112.
-
-        When using :c:func:`mps_ap_create`, pass the rank like this::
-
-            mps_res_t mps_ap_create(mps_ap_t *ap_o, mps_pool_t pool,
-                                    mps_rank_t rank)
-
 
 .. c:function:: mps_pool_class_t mps_class_ams_debug(void)
 
@@ -186,15 +169,3 @@ AMS interface
     :c:macro:`MPS_KEY_AMS_SUPPORT_AMBIGUOUS` are as described above,
     and :c:macro:`MPS_KEY_POOL_DEBUG_OPTIONS` specifies the debugging
     options. See :c:type:`mps_pool_debug_option_s`.
-
-    .. deprecated:: starting with version 1.112.
-
-        When using :c:func:`mps_pool_create`, pass the arguments like
-        this::
-
-            mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, 
-                                      mps_pool_class_t mps_class_ams_debug(),
-                                      mps_pool_debug_option_s debug_option,
-                                      mps_fmt_t fmt,
-                                      mps_chain_t chain,
-                                      mps_bool_t support_ambiguous)

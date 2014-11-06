@@ -35,6 +35,10 @@ Support policy
     a version in which the symbol (or reliance on some of its
     behaviour) is deprecated.
 
+    Symbols may be deprecated in their old place in the reference
+    manual, or they may be moved to the :ref:`topic-deprecated`
+    chapter.
+
     .. note::
 
         If you are relying on a feature and you see that it's

@@ -16,6 +16,12 @@ Interface changes
    name :c:type:`mps_class_t` is still available via a ``typedef``,
    but is deprecated.
 
+#. The functions :c:func:`mps_mv_free_size`, :c:func:`mps_mv_size`,
+   :c:func:`mps_mvff_free_size`, :c:func:`mps_mvff_size`,
+   :c:func:`mps_mvt_free_size` and :c:func:`mps_mvt_size` are now
+   deprecated in favour of the generic functions
+   :c:func:`mps_pool_free_size` and :c:func:`mps_pool_total_size`.
+
 
 .. _release-notes-1.114:
 
@@ -57,8 +63,8 @@ New features
    generation sizes. (This is not necessary, but may improve
    performance.)
 
-#. New pool introspection functions :c:func:`mps_pool_total_size` and
-   :c:func:`mps_pool_free_size`.
+#. New pool introspection functions :c:func:`mps_pool_free_size` and
+   :c:func:`mps_pool_total_size`.
 
 
 Interface changes
