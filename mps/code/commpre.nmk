@@ -16,18 +16,21 @@
 # Parameters:
 #   PFM        platform code, e.g. "w3i3mv"
 #   PFMDEFS    /D options to define platforms preprocessor symbols
-#              to the compiler.  Eg "/DOS_NT /DARCH_386 /DBUILD_MVC"
+#              to the compiler. Avoid using this if possible, as it
+#              prevents the MPS being built with a simple command like
+#              "cl mps.c".
 #   MPMCOMMON  list of sources which make up the "mpm" part for all
-#              platforms.  Each source is stripped of its .c extension
+#              platforms. Each source is stripped of its .c extension
 #              and surrounded with [brackets].
-#   MPM        as above, plus sources for the "mpm" part for the current
-#              platform.
+#   MPMPF      as above for the current platform.
 #   PLINTH     as above for the "plinth" part
 #   AMC        as above for the "amc" part
 #   AMS        as above for the "ams" part
 #   LO         as above for the "lo" part
 #   POOLN      as above for the "pooln" part
 #   SNC        as above for the "snc" part
+#   POOLS      as above for all pools included in the target
+#   MPM        as above for the MPMCOMMON + MPMPF + PLINTH + POOLS 
 #   DW         as above for the "dw" part
 #   FMTTEST    as above for the "fmttest" part
 #   FMTSCHEME  as above for the "fmtscheme" part
@@ -194,9 +197,6 @@ MPM = $(MPMCOMMON) $(MPMPF) $(POOLS) $(PLINTH)
 
 !IFNDEF PFM
 !ERROR commpre.nmk: PFM not defined
-!ENDIF
-!IFNDEF PFMDEFS
-!ERROR commpre.nmk: PFMDEFS not defined
 !ENDIF
 !IFNDEF MPM
 !ERROR commpre.nmk: MPM not defined

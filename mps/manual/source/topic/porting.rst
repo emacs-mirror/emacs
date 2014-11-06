@@ -240,6 +240,32 @@ improve performance by compiling the MPS and their object format in
 the same compilation unit. These steps would be more complicated if
 the MPS required particular compilation options.
 
+On Windows, the makefile must be named ``osarct.nmk``, and must define
+``PFM`` to be the platform code, and ``MPMPF`` to be the list of
+platform modules (the same files included by ``mps.c``) in square
+brackets. Then it must include ``commpre.nmk``, the compiler-specific
+makefile and ``commpost.nmk``. For example, ``w3i6mv.nmk`` looks like
+this::
+
+    PFM = w3i6mv
+
+    MPMPF = \
+        [lockw3] \
+        [mpsiw3] \
+        [prmci6w3] \
+        [proti6] \
+        [protw3] \
+        [spw3i6] \
+        [ssw3i6mv] \
+        [thw3] \
+        [thw3i6] \
+        [vmw3]
+
+    !INCLUDE commpre.nmk
+    !INCLUDE mv.nmk
+    !INCLUDE commpost.nmk
+
+
 
 Porting strategy
 ----------------
