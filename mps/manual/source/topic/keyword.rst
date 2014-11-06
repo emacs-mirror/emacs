@@ -192,11 +192,3 @@ now :c:macro:`MPS_KEY_ARGS_END`.
     ``args`` is the name of array that contains the keyword arguments.
     It must match the argument to the preceding call to
     :c:func:`MPS_ARGS_BEGIN`.
-
-
-.. c:function:: MPS_ARGS_DONE(args)
-
-    .. deprecated:: starting with version 1.113.
-
-        Formerly this was used to finalize a list of keyword arguments
-        before passing it to a function. It is no longer needed.
