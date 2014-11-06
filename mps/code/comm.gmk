@@ -36,7 +36,6 @@
 # NOISY   if defined and non-empty, causes commands to be emitted
 # MPMPF   platform-dependent C sources for the "mpm" part
 # MPMS    assembler sources for the "mpm" part (.s files)
-# MPMPS   pre-processor assembler sources for the "mpm" part (.S files)
 #
 # %%PART: When adding a new part, add a new parameter above for the
 # files included in the part.

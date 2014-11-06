@@ -5,9 +5,6 @@
 
 PFM = w3i3mv
 
-PFMDEFS = /DCONFIG_PF_STRING="w3i3mv" /DCONFIG_PF_W3I3MV /DWIN32 /D_WINDOWS
-
-# MPM platform-specific sources.
 MPMPF = \
     [lockw3] \
     [mpsiw3] \
