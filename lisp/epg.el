@@ -212,7 +212,7 @@
   result
   operation
   pinentry-mode
-  error-output)
+  (error-output ""))
 
 ;; This is not an alias, just so we can mark it as autoloaded.
 ;;;###autoload
