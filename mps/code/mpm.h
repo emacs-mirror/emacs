@@ -561,7 +561,7 @@ extern Bool (ArenaStep)(Globals globals, double interval, double multiplier);
 extern void ArenaClamp(Globals globals);
 extern void ArenaRelease(Globals globals);
 extern void ArenaPark(Globals globals);
-extern void ArenaExposeRemember(Globals globals, int remember);
+extern void ArenaExposeRemember(Globals globals, Bool remember);
 extern void ArenaRestoreProtection(Globals globals);
 extern Res ArenaStartCollect(Globals globals, int why);
 extern Res ArenaCollect(Globals globals, int why);

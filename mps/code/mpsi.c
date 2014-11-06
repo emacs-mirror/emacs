@@ -248,7 +248,7 @@ void mps_arena_park(mps_arena_t arena)
 void mps_arena_expose(mps_arena_t arena)
 {
   ArenaEnter(arena);
-  ArenaExposeRemember(ArenaGlobals(arena), 0);
+  ArenaExposeRemember(ArenaGlobals(arena), FALSE);
   ArenaLeave(arena);
 }
 
@@ -256,7 +256,7 @@ void mps_arena_expose(mps_arena_t arena)
 void mps_arena_unsafe_expose_remember_protection(mps_arena_t arena)
 {
   ArenaEnter(arena);
-  ArenaExposeRemember(ArenaGlobals(arena), 1);
+  ArenaExposeRemember(ArenaGlobals(arena), TRUE);
   ArenaLeave(arena);
 }
 
