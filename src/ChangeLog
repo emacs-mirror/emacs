@@ -1,3 +1,7 @@
+2014-11-06  Alan Mackenzie  <acm@muc.de>
+
+	* syntax.c (back_comment): Fix off-by-one error (bug#18022).
+
 2014-11-06  Dima Kogan  <dima@secretsauce.net>
 
 	* xgselect.c (xg_select): Use g_main_context_acquire (bug#18861).
