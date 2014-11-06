@@ -659,7 +659,6 @@ branch prediction should work well since the test almost never fails).
              mps_addr_t init;
              mps_addr_t alloc;
              mps_addr_t limit;
-             /* ... private fields ... */
          } mps_ap_s;
 
     ``init`` is the limit of initialized memory.
