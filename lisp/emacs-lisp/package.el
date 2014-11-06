@@ -812,6 +812,18 @@ buffer is killed afterwards.  Return the last value in BODY."
 (declare-function epg-signature-status "epg" (signature))
 (declare-function epg-signature-to-string "epg" (signature))
 
+(defun package--display-verify-error (context sig-file)
+  (unless (equal (epg-context-error-output context) "")
+    (with-output-to-temp-buffer "*Error*"
+      (with-current-buffer standard-output
+	(if (epg-context-result-for context 'verify)
+	    (insert (format "Failed to verify signature %s:\n" sig-file)
+		    (mapconcat #'epg-signature-to-string
+			       (epg-context-result-for context 'verify)
+			       "\n"))
+	  (insert (format "Error while verifying signature %s:\n" sig-file)))
+	(insert "\nCommand output:\n" (epg-context-error-output context))))))
+
 (defun package--check-signature (location file)
   "Check signature of the current buffer.
 GnuPG keyring is located under \"gnupg\" in `package-user-dir'."
@@ -821,7 +833,11 @@ GnuPG keyring is located under \"gnupg\" in `package-user-dir'."
          (sig-content (package--with-work-buffer location sig-file
 			(buffer-string))))
     (setf (epg-context-home-directory context) homedir)
-    (epg-verify-string context sig-content (buffer-string))
+    (condition-case error
+	(epg-verify-string context sig-content (buffer-string))
+      (error
+       (package--display-verify-error context sig-file)
+       (signal (car error) (cdr error))))
     (let (good-signatures had-fatal-error)
       ;; The .sig file may contain multiple signatures.  Success if one
       ;; of the signatures is good.
@@ -835,12 +851,12 @@ GnuPG keyring is located under \"gnupg\" in `package-user-dir'."
 	  (unless (and (eq package-check-signature 'allow-unsigned)
 		       (eq (epg-signature-status sig) 'no-pubkey))
 	    (setq had-fatal-error t))))
-      (if (and (null good-signatures) had-fatal-error)
-          (error "Failed to verify signature %s: %S"
-                 sig-file
-                 (mapcar #'epg-signature-to-string
-                         (epg-context-result-for context 'verify)))
-        good-signatures))))
+      (when (and (null good-signatures) had-fatal-error)
+	(package--display-verify-error context sig-file)
+	(error "Failed to verify signature %s: %S"
+	       sig-file
+	       ))
+      good-signatures)))
 
 (defun package-install-from-archive (pkg-desc)
   "Download and install a tar package."
