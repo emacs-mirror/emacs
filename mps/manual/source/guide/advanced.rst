@@ -146,7 +146,7 @@ toy Scheme interpreter does so by setting ``stream`` to ``NULL``: this
 ensures that the file handle won't be closed more than once.
 
 .. code-block:: c
-    :emphasize-lines: 8
+    :emphasize-lines: 6
 
     static void port_close(obj_t port)
     {
