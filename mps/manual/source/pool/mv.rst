@@ -108,7 +108,7 @@ MV interface
     class.
 
     When creating a debugging MV pool, :c:func:`mps_pool_create_k`
-    takes four optional keyword arguments: :c:macro:`MPS_KEY_ALIGN`,
+    takes five optional keyword arguments: :c:macro:`MPS_KEY_ALIGN`,
     :c:macro:`MPS_KEY_EXTEND_SIZE`, :c:macro:`MPS_KEY_MEAN_SIZE`,
     :c:macro:`MPS_KEY_MAX_SIZE` are as described above, and
     :c:macro:`MPS_KEY_POOL_DEBUG_OPTIONS` specifies the debugging
