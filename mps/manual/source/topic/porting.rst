@@ -279,11 +279,12 @@ Then check that the "smoke tests" pass, by running::
 
 Most or all of the test cases should pass at this point. If you're
 using the generic threading implementation, then the multi-threaded
-test cases ``amcssth`` and ``awlutth`` are expected to fail. If you're
-using the generic lock implementation, then the lock utilization test
-case ``lockut`` is expected to fail. If you're using the generic
-memory protection implementation, performance is expected to be poor,
-as it does not support incremental collection.
+test cases are expected to fail. If you're using the generic lock
+implementation, then the lock utilization test case ``lockut`` is
+expected to fail. If you're using the generic memory protection
+implementation, all the tests that rely on incremental collection are
+expected to fail. See ``tool/testcases.txt`` for a database of test
+cases and the configurations in which they are expected to pass.
 
 Now that there is a working system to build on, porting the necessary
 modules to the new platform can be done incrementally. It's a good

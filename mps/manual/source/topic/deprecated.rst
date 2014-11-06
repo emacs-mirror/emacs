@@ -218,7 +218,7 @@ Deprecated in version 1.112
 
         mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena,
                                   mps_pool_class_t mps_class_ams_debug(),
-                                  mps_pool_debug_option_s pool_debug_options,
+                                  mps_pool_debug_option_s *pool_debug_options,
                                   mps_fmt_t format,
                                   mps_chain_t chain,
                                   mps_bool_t ams_support_ambiguous)
@@ -268,7 +268,7 @@ Deprecated in version 1.112
 
         mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena,
                                   mps_pool_class_t mps_class_mv_debug(),
-                                  mps_pool_debug_option_s pool_debug_options,
+                                  mps_pool_debug_option_s *pool_debug_options,
                                   size_t extend_by,
                                   size_t mean_size,
                                   size_t max_size)
@@ -299,7 +299,7 @@ Deprecated in version 1.112
 
         mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena,
                                   mps_pool_class_t mps_class_mvff_debug(),
-                                  mps_pool_debug_option_s pool_debug_options,
+                                  mps_pool_debug_option_s *pool_debug_options,
                                   size_t extend_by,
                                   size_t mean_size,
                                   mps_align_t align,

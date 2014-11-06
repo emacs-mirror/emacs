@@ -215,7 +215,8 @@ is thus::
     size_t aligned_size = ALIGN(size); /* see note 1 */
     do {
         mps_res_t res = mps_reserve(&p, ap, aligned_size);
-        if (res != MPS_RES_OK) /* handle the error */;
+        if (res != MPS_RES_OK)
+            /* handle the error */;
         /* p is now an ambiguous reference to the reserved block */
         obj = p;
         /* initialize obj */

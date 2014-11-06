@@ -208,7 +208,8 @@ Instead, we recommend this approach::
     mps_addr_t p;
     struct foo *fp;
     res = mps_alloc(&p, pool, sizeof(struct foo));
-    if(res) /* handle error case */;
+    if (res != MPS_RES_OK)
+        /* handle error case */;
     fp = p;
 
 This has defined behaviour because conversion from ``void *`` to any
