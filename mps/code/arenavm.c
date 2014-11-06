@@ -790,11 +790,13 @@ static Res pageDescMap(VMChunk vmChunk, Index basePI, Index limitPI)
 
 static void pageDescUnmap(VMChunk vmChunk, Index basePI, Index limitPI)
 {
-  Size size;
+  Size size, after;
   Size before = VMMapped(VMChunkVM(vmChunk));
   Arena arena = VMArena2Arena(VMChunkVMArena(vmChunk));
   SparseArrayUnmap(&vmChunk->pages, basePI, limitPI);
-  size = before - VMMapped(VMChunkVM(vmChunk));
+  after = VMMapped(VMChunkVM(vmChunk));
+  AVER(after <= before);
+  size = before - after;
   AVER(arena->committed >= size);
   arena->committed -= size;
 }
