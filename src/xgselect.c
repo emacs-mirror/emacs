@@ -55,19 +55,28 @@ xg_select (int fds_lim, fd_set *rfds, fd_set *wfds, fd_set *efds,
   GPollFD *gfds = gfds_buf;
   int gfds_size = sizeof gfds_buf / sizeof *gfds_buf;
   int n_gfds, retval = 0, our_fds = 0, max_fds = fds_lim - 1;
-  int i, nfds, tmo_in_millisec;
+  bool context_acquired = false;
+  int i, nfds, tmo_in_millisec = -1;
   bool need_to_dispatch;
   USE_SAFE_ALLOCA;
 
   context = g_main_context_default ();
+  context_acquired = g_main_context_acquire (context);
+  /* FIXME: If we couldn't acquire the context, we just silently proceed
+     because this function handles more than just glib file descriptors.
+     Note that, as implemented, this failure is completely silent: there is
+     no feedback to the caller.  */
 
   if (rfds) all_rfds = *rfds;
   else FD_ZERO (&all_rfds);
   if (wfds) all_wfds = *wfds;
   else FD_ZERO (&all_wfds);
 
-  n_gfds = g_main_context_query (context, G_PRIORITY_LOW, &tmo_in_millisec,
-				 gfds, gfds_size);
+  n_gfds = (context_acquired
+	    ? g_main_context_query (context, G_PRIORITY_LOW, &tmo_in_millisec,
+				    gfds, gfds_size)
+	    : -1);
+
   if (gfds_size < n_gfds)
     {
       SAFE_NALLOCA (gfds, sizeof *gfds, n_gfds);
@@ -151,6 +160,9 @@ xg_select (int fds_lim, fd_set *rfds, fd_set *wfds, fd_set *efds,
       unblock_input ();
       errno = pselect_errno;
     }
+
+  if (context_acquired)
+    g_main_context_release (context);
 
   /* To not have to recalculate timeout, return like this.  */
   if ((our_fds > 0 || (nfds == 0 && tmop == &tmo)) && (retval == 0))

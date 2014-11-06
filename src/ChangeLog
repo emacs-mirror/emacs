@@ -1,3 +1,7 @@
+2014-11-06  Dima Kogan  <dima@secretsauce.net>
+
+	* xgselect.c (xg_select): Use g_main_context_acquire (bug#18861).
+
 2014-11-05  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dired.c (Ffile_attributes): Return Qnil, if Fexpand_file_name
