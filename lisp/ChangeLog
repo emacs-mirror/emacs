@@ -1,3 +1,8 @@
+2014-11-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/macroexp.el (macroexp--expand-all): Optimize away trivial
+	uses of `funcall'.
+
 2014-11-06  Daiki Ueno  <ueno@gnu.org>
 
 	* epa.el (epa-error-buffer): New variable.
@@ -7,8 +12,8 @@
 	(epa-sign-file, epa-sign-region, epa-encrypt-region)
 	(epa-export-keys, epa-insert-keys): Display output sent to stderr.
 	Use setf instead of epg-context-set-*.
-	* epa-file.el (epa-file-insert-file-contents): Use
-	epa-display-error instead of epa-display-info.  Mimic the behavior
+	* epa-file.el (epa-file-insert-file-contents):
+	Use epa-display-error instead of epa-display-info.  Mimic the behavior
 	of jka-compr when decryption program is not found.
 	(epa-file-write-region): Use epa-display-error instead of
 	epa-display-info.
