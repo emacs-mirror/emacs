@@ -1,5 +1,7 @@
 2014-11-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* subr.el (pop): Don't call the getter twice (bug#18968).
+
 	* emacs-lisp/macroexp.el (macroexp--expand-all): Optimize away trivial
 	uses of `funcall'.
 

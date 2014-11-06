@@ -169,7 +169,8 @@ change the list."
          ;; So we can use `pop' in the bootstrap before `gv' can be used.
          (list 'prog1 place (list 'setq place (list 'cdr place)))
        (gv-letplace (getter setter) place
-         `(prog1 ,getter ,(funcall setter `(cdr ,getter)))))))
+         (macroexp-let2 macroexp-copyable-p x getter
+           `(prog1 ,x ,(funcall setter `(cdr ,x))))))))
 
 (defmacro when (cond &rest body)
   "If COND yields non-nil, do BODY, else return nil.
