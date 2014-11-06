@@ -274,7 +274,8 @@ Start the port by selecting existing implementations of the functional
 modules, using the generic implementations where nothing else will do.
 Then check that the "smoke tests" pass, by running::
 
-    make -f osarct.gmk testrun
+    make -f osarct.gmk testrun    # Unix
+    nmake /f osarct.nmk testrun   # Windows
 
 Most or all of the test cases should pass at this point. If you're
 using the generic threading implementation, then the multi-threaded
