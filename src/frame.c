@@ -77,7 +77,7 @@ Lisp_Object Qterminal;
 Lisp_Object Qauto_raise, Qauto_lower;
 Lisp_Object Qborder_color, Qborder_width;
 Lisp_Object Qcursor_color, Qcursor_type;
-Lisp_Object Qheight, Qwidth;
+Lisp_Object Qheight, Qwidth, Qsize;
 Lisp_Object Qicon_left, Qicon_top, Qicon_type, Qicon_name;
 Lisp_Object Qtooltip;
 Lisp_Object Qinternal_border_width;
@@ -119,6 +119,11 @@ static Lisp_Object Qfocus_out_hook;
 static Lisp_Object Qdelete_frame_functions;
 static Lisp_Object Qframe_windows_min_size;
 static Lisp_Object Qgeometry, Qworkarea, Qmm_size, Qframes, Qsource;
+
+Lisp_Object Qframe_position, Qframe_outer_size, Qframe_inner_size;
+Lisp_Object Qexternal_border_size, Qtitle_height;
+Lisp_Object Qmenu_bar_external, Qmenu_bar_size;
+Lisp_Object Qtool_bar_external, Qtool_bar_size;
 
 /* The currently selected frame.  */
 
@@ -209,12 +214,14 @@ get_frame_param (register struct frame *frame, Lisp_Object prop)
 
 /* Return 1 if `frame-inhibit-implied-resize' is non-nil or fullscreen
    state of frame F would be affected by a vertical (horizontal if
-   HORIZONTAL is true) resize.  */
+   HORIZONTAL is true) resize.  PARAMETER is the symbol of the frame
+   parameter that is changed.  */
 bool
-frame_inhibit_resize (struct frame *f, bool horizontal)
+frame_inhibit_resize (struct frame *f, bool horizontal, Lisp_Object parameter)
 {
-
-  return (frame_inhibit_implied_resize
+  return (EQ (frame_inhibit_implied_resize, Qt)
+	  || (CONSP (frame_inhibit_implied_resize)
+	      && !NILP (Fmemq (parameter, frame_inhibit_implied_resize)))
 	  || !NILP (get_frame_param (f, Qfullscreen))
 	  || FRAME_TERMCAP_P (f) || FRAME_MSDOS_P (f));
 }
@@ -337,40 +344,46 @@ frame_windows_min_size (Lisp_Object frame, Lisp_Object horizontal, Lisp_Object p
 /* Make sure windows sizes of frame F are OK.  new_width and new_height
    are in pixels.  A value of -1 means no change is requested for that
    size (but the frame may still have to be resized to accommodate
-   windows with their minimum sizes.
+   windows with their minimum sizes).  This can either issue a request
+   to resize the frame externally (via x_set_window_size), to resize the
+   frame internally (via resize_frame_windows) or do nothing at all.
 
    The argument INHIBIT can assume the following values:
 
    0 means to unconditionally call x_set_window_size even if sizes
-   apparently do not change.  Fx_create_frame uses this to pass the
-   initial size to the window manager.
+     apparently do not change.  Fx_create_frame uses this to pass the
+     initial size to the window manager.
 
-   1 means to call x_set_window_size iff the pixel size really changes.
-   Fset_frame_size, Fset_frame_height, ... use this.
+   1 means to call x_set_window_size if the outer frame size really
+     changes.  Fset_frame_size, Fset_frame_height, ... use this.
 
-   2 means to unconditionally call x_set_window_size provided
-   frame_inhibit_resize allows it.  The menu bar code uses this.
+   2 means to call x_set_window_size provided frame_inhibit_resize
+     allows it.  The menu and tool bar code use this ("3" won't work
+     here in general because menu and tool bar are often not counted in
+     the frame's text height).
 
-   3 means call x_set_window_size iff window minimum sizes must be
-   preserved or frame_inhibit_resize allows it, x_set_left_fringe,
-   x_set_scroll_bar_width, ... use this.
+   3 means call x_set_window_size if window minimum sizes must be
+     preserved or frame_inhibit_resize allows it.  x_set_left_fringe,
+     x_set_scroll_bar_width, x_new_font ... use (or should use) this.
 
-   4 means call x_set_window_size iff window minimum sizes must be
-   preserved.  x_set_tool_bar_lines, x_set_right_divider_width, ... use
-   this.  BUT maybe the toolbar code shouldn't ....
+   4 means call x_set_window_size only if window minimum sizes must be
+     preserved.  x_set_right_divider_width, x_set_border_width and the
+     code responsible for wrapping the tool bar use this.
 
    5 means to never call x_set_window_size.  change_frame_size uses
-   this.
+     this.
 
-   For 2 and 3 note that if frame_inhibit_resize inhibits resizing and
-   minimum sizes are not violated no internal resizing takes place
-   either.  For 2, 3, 4 and 5 note that even if no x_set_window_size
-   call is issued, window sizes may have to be adjusted in order to
-   support minimum size constraints for the frame's windows.
+   Note that even when x_set_window_size is not called, individual
+   windows may have to be resized (via `window--sanitize-window-sizes')
+   in order to support minimum size constraints.
 
-   PRETEND is as for change_frame_size.  */
+   PRETEND is as for change_frame_size.  PARAMETER, if non-nil, is the
+   symbol of the parameter changed (like `menu-bar-lines', `font', ...).
+   This is passed on to frame_inhibit_resize to let the latter decide on
+   a case-by-case basis whether the frame may be resized externally.  */
 void
-adjust_frame_size (struct frame *f, int new_width, int new_height, int inhibit, bool pretend)
+adjust_frame_size (struct frame *f, int new_width, int new_height, int inhibit,
+		   bool pretend, Lisp_Object parameter)
 {
   int unit_width = FRAME_COLUMN_WIDTH (f);
   int unit_height = FRAME_LINE_HEIGHT (f);
@@ -415,10 +428,12 @@ adjust_frame_size (struct frame *f, int new_width, int new_height, int inhibit, 
        so or INHIBIT equals 4.  */
     {
       inhibit_horizontal = ((windows_width >= min_windows_width
-			     && (inhibit == 4 || frame_inhibit_resize (f, true)))
+			     && (inhibit == 4
+				 || frame_inhibit_resize (f, true, parameter)))
 			    ? true : false);
       inhibit_vertical = ((windows_height >= min_windows_height
-			   && (inhibit == 4 || frame_inhibit_resize (f, false)))
+			   && (inhibit == 4
+			       || frame_inhibit_resize (f, false, parameter)))
 			  ? true : false);
     }
   else
@@ -1004,7 +1019,7 @@ affects all frames on the same terminal device.  */)
   {
     int width, height;
     get_tty_size (fileno (FRAME_TTY (f)->input), &width, &height);
-    adjust_frame_size (f, width, height - FRAME_MENU_BAR_LINES (f), 5, 0);
+    adjust_frame_size (f, width, height - FRAME_MENU_BAR_LINES (f), 5, 0, Qnil);
   }
 
   adjust_frame_glyphs (f);
@@ -2848,7 +2863,7 @@ multiple of the default frame font height.  */)
 		  ? XINT (height)
 		  : XINT (height) * FRAME_LINE_HEIGHT (f));
   if (pixel_height != FRAME_TEXT_HEIGHT (f))
-    adjust_frame_size (f, -1, pixel_height, 1, !NILP (pretend));
+    adjust_frame_size (f, -1, pixel_height, 1, !NILP (pretend), Qheight);
 
   return Qnil;
 }
@@ -2874,7 +2889,7 @@ multiple of the default frame font width.  */)
 		 ? XINT (width)
 		 : XINT (width) * FRAME_COLUMN_WIDTH (f));
   if (pixel_width != FRAME_TEXT_WIDTH (f))
-    adjust_frame_size (f, pixel_width, -1, 1, !NILP (pretend));
+    adjust_frame_size (f, pixel_width, -1, 1, !NILP (pretend), Qwidth);
 
   return Qnil;
 }
@@ -2903,7 +2918,7 @@ font height.  */)
 
   if (pixel_width != FRAME_TEXT_WIDTH (f)
       || pixel_height != FRAME_TEXT_HEIGHT (f))
-    adjust_frame_size (f, pixel_width, pixel_height, 1, 0);
+    adjust_frame_size (f, pixel_width, pixel_height, 1, 0, Qsize);
 
   return Qnil;
 }
@@ -3627,7 +3642,7 @@ x_set_left_fringe (struct frame *f, Lisp_Object new_value, Lisp_Object old_value
 	= (new_width + FRAME_RIGHT_FRINGE_WIDTH (f) + unit - 1) / unit;
 
       if (FRAME_X_WINDOW (f) != 0)
-	adjust_frame_size (f, -1, -1, 3, 0);
+	adjust_frame_size (f, -1, -1, 3, 0, Qleft_fringe);
 
       SET_FRAME_GARBAGED (f);
     }
@@ -3651,7 +3666,7 @@ x_set_right_fringe (struct frame *f, Lisp_Object new_value, Lisp_Object old_valu
 	= (new_width + FRAME_LEFT_FRINGE_WIDTH (f) + unit - 1) / unit;
 
       if (FRAME_X_WINDOW (f) != 0)
-	adjust_frame_size (f, -1, -1, 3, 0);
+	adjust_frame_size (f, -1, -1, 3, 0, Qright_fringe);
 
       SET_FRAME_GARBAGED (f);
     }
@@ -3683,7 +3698,7 @@ x_set_right_divider_width (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
     FRAME_RIGHT_DIVIDER_WIDTH (f) = 0;
   if (FRAME_RIGHT_DIVIDER_WIDTH (f) != old)
     {
-      adjust_frame_size (f, -1, -1, 4, 0);
+      adjust_frame_size (f, -1, -1, 4, 0, Qright_divider_width);
       adjust_frame_glyphs (f);
       SET_FRAME_GARBAGED (f);
     }
@@ -3701,7 +3716,7 @@ x_set_bottom_divider_width (struct frame *f, Lisp_Object arg, Lisp_Object oldval
     FRAME_BOTTOM_DIVIDER_WIDTH (f) = 0;
   if (FRAME_BOTTOM_DIVIDER_WIDTH (f) != old)
     {
-      adjust_frame_size (f, -1, -1, 4, 0);
+      adjust_frame_size (f, -1, -1, 4, 0, Qbottom_divider_width);
       adjust_frame_glyphs (f);
       SET_FRAME_GARBAGED (f);
     }
@@ -3765,7 +3780,7 @@ x_set_vertical_scroll_bars (struct frame *f, Lisp_Object arg, Lisp_Object oldval
 	 However, if the window hasn't been created yet, we shouldn't
 	 call x_set_window_size.  */
       if (FRAME_X_WINDOW (f))
-	adjust_frame_size (f, -1, -1, 3, 0);
+	adjust_frame_size (f, -1, -1, 3, 0, Qvertical_scroll_bars);
 
       SET_FRAME_GARBAGED (f);
     }
@@ -3785,7 +3800,7 @@ x_set_horizontal_scroll_bars (struct frame *f, Lisp_Object arg, Lisp_Object oldv
 	 However, if the window hasn't been created yet, we shouldn't
 	 call x_set_window_size.  */
       if (FRAME_X_WINDOW (f))
-	adjust_frame_size (f, -1, -1, 3, 0);
+	adjust_frame_size (f, -1, -1, 3, 0, Qhorizontal_scroll_bars);
 
       SET_FRAME_GARBAGED (f);
     }
@@ -3802,7 +3817,7 @@ x_set_scroll_bar_width (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
       x_set_scroll_bar_default_width (f);
 
       if (FRAME_X_WINDOW (f))
-	adjust_frame_size (f, -1, -1, 3, 0);
+	adjust_frame_size (f, -1, -1, 3, 0, Qscroll_bar_width);
 
       SET_FRAME_GARBAGED (f);
     }
@@ -3812,7 +3827,7 @@ x_set_scroll_bar_width (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
       FRAME_CONFIG_SCROLL_BAR_WIDTH (f) = XFASTINT (arg);
       FRAME_CONFIG_SCROLL_BAR_COLS (f) = (XFASTINT (arg) + unit - 1) / unit;
       if (FRAME_X_WINDOW (f))
-	adjust_frame_size (f, -1, -1, 3, 0);
+	adjust_frame_size (f, -1, -1, 3, 0, Qscroll_bar_width);
 
       SET_FRAME_GARBAGED (f);
     }
@@ -3832,7 +3847,7 @@ x_set_scroll_bar_height (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
       x_set_scroll_bar_default_height (f);
 
       if (FRAME_X_WINDOW (f))
-	adjust_frame_size (f, -1, -1, 3, 0);
+	adjust_frame_size (f, -1, -1, 3, 0, Qscroll_bar_height);
 
       SET_FRAME_GARBAGED (f);
     }
@@ -3842,7 +3857,7 @@ x_set_scroll_bar_height (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
       FRAME_CONFIG_SCROLL_BAR_HEIGHT (f) = XFASTINT (arg);
       FRAME_CONFIG_SCROLL_BAR_LINES (f) = (XFASTINT (arg) + unit - 1) / unit;
       if (FRAME_X_WINDOW (f))
-	adjust_frame_size (f, -1, -1, 3, 0);
+	adjust_frame_size (f, -1, -1, 3, 0, Qscroll_bar_height);
 
       SET_FRAME_GARBAGED (f);
     }
@@ -4785,11 +4800,20 @@ syms_of_frame (void)
 
   DEFSYM (Qterminal, "terminal");
 
-  DEFSYM (Qgeometry, "geometry");
   DEFSYM (Qworkarea, "workarea");
   DEFSYM (Qmm_size, "mm-size");
   DEFSYM (Qframes, "frames");
   DEFSYM (Qsource, "source");
+
+  DEFSYM (Qframe_position, "frame-position");
+  DEFSYM (Qframe_outer_size, "frame-outer-size");
+  DEFSYM (Qexternal_border_size, "external-border-size");
+  DEFSYM (Qtitle_height, "title-height");
+  DEFSYM (Qmenu_bar_external, "menu-bar-external");
+  DEFSYM (Qmenu_bar_size, "menu-bar-size");
+  DEFSYM (Qtool_bar_external, "tool-bar-external");
+  DEFSYM (Qtool_bar_size, "tool-bar-size");
+  DEFSYM (Qframe_inner_size, "frame-inner-size");
 
 #ifdef HAVE_NS
   DEFSYM (Qns_parse_geometry, "ns-parse-geometry");
@@ -4985,13 +5009,49 @@ fullscreen.  To resize your initial frame pixelwise, set this option to
 a non-nil value in your init file.  */);
   frame_resize_pixelwise = 0;
 
-  DEFVAR_BOOL ("frame-inhibit-implied-resize", frame_inhibit_implied_resize,
-	       doc: /* Non-nil means do not resize frames implicitly.
-If this option is nil, setting default font, menubar mode, fringe width,
-or scroll bar mode of a specific frame may resize the frame in order to
-preserve the number of columns or lines it displays.  If this option is
-non-nil, no such resizing is done.  */);
-  frame_inhibit_implied_resize = 0;
+  DEFVAR_LISP ("frame-inhibit-implied-resize", frame_inhibit_implied_resize,
+	       doc: /* Whether frames should be resized implicitly.
+If this option is nil, setting font, menu bar, tool bar, internal
+borders, fringes or scroll bars of a specific frame may resize the frame
+in order to preserve the number of columns or lines it displays.  If
+this option is `t', no such resizing is done.  Note that the size of
+fullscreen and maximized frames, the height of fullheight frames and the
+width of fullwidth frames never change implicitly.
+
+The value of this option can be also be a list of frame parameters.  In
+this case, resizing is inhibited when changing a parameter that appears
+in that list.  The parameters currently handled by this option include
+`font', `font-backend', `internal-border-width', `menu-bar-lines' and
+`tool-bar-lines'.
+
+Changing any of the parameters `scroll-bar-width', `scroll-bar-height',
+`vertical-scroll-bars', `horizontal-scroll-bars', `left-fringe' and
+`right-fringe' is handled as if the frame contained just one live
+window.  This means, for example, that removing vertical scroll bars on
+a frame containing several side by side windows will shrink the frame
+width by the width of one scroll bar provided this option is nil and
+keep it unchanged if this option is either `t' or a list containing
+`vertical-scroll-bars'.
+
+The default value is '(tool-bar-lines) on Lucid, Motif and Windows
+(which means that adding/removing a tool bar does not change the frame
+height), nil on all other window systems including GTK+ (which means
+that changing any of the parameters listed above may change the size of
+the frame), and `t' otherwise (which means the frame size never changes
+implicitly when there's no window system support).
+
+Note that when a frame is not large enough to accommodate a change of
+any of the parameters listed above, Emacs may try to enlarge the frame
+even if this option is non-nil.  */);
+#if defined (HAVE_WINDOW_SYSTEM)
+#if defined (USE_LUCID) || defined (USE_MOTIF) || defined (HAVE_NTGUI)
+  frame_inhibit_implied_resize = list1 (Qtool_bar_lines);
+#else
+  frame_inhibit_implied_resize = Qnil;
+#endif
+#else
+  frame_inhibit_implied_resize = Qt;
+#endif
 
   staticpro (&Vframe_list);
 

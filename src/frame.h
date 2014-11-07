@@ -1117,8 +1117,8 @@ extern void check_window_system (struct frame *);
 extern void frame_make_pointer_invisible (struct frame *);
 extern void frame_make_pointer_visible (struct frame *);
 extern Lisp_Object delete_frame (Lisp_Object, Lisp_Object);
-extern bool frame_inhibit_resize (struct frame *, bool);
-extern void adjust_frame_size (struct frame *, int, int, int, bool);
+extern bool frame_inhibit_resize (struct frame *, bool, Lisp_Object);
+extern void adjust_frame_size (struct frame *, int, int, int, bool, Lisp_Object);
 
 extern Lisp_Object Vframe_list;
 
@@ -1379,6 +1379,11 @@ extern Lisp_Object Qx_resource_name;
 
 extern Lisp_Object Qtop, Qbox, Qbottom;
 extern Lisp_Object Qdisplay;
+
+extern Lisp_Object Qframe_position, Qframe_outer_size, Qframe_inner_size;
+extern Lisp_Object Qexternal_border_size, Qtitle_height;
+extern Lisp_Object Qmenu_bar_external, Qmenu_bar_size;
+extern Lisp_Object Qtool_bar_external, Qtool_bar_size;
 
 extern Lisp_Object Qrun_hook_with_args;
 

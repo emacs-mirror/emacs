@@ -644,7 +644,8 @@ EmacsFrameSetCharSize (Widget widget, int columns, int rows)
   EmacsFrame ew = (EmacsFrame) widget;
   struct frame *f = ew->emacs_frame.frame;
 
-  if (!frame_inhibit_resize (f, 0) && !frame_inhibit_resize (f, 1))
+  if (!frame_inhibit_resize (f, 0, Qfont)
+      && !frame_inhibit_resize (f, 1, Qfont))
     x_set_window_size (f, 0, columns, rows, 0);
 }
 

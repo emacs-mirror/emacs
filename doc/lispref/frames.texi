@@ -1350,10 +1350,9 @@ frame's text area unaltered when, for example, adding or removing a menu
 bar, changing the default font or setting the width of the frame's
 scroll bars.  This means, however, that in such case Emacs must ask the
 window manager to resize the display area of the frame in order to
-accommodate the size change.  (Note that with the exception of GTK+
-builds, adding, removing or wrapping the tool bar usually do not resize
-the frame's display area, hence these may alter the number of displayed
-lines.)
+accommodate the size change.  Note that wrapping a menu or tool bar
+usually does not resize the frame's display area, hence this will alter
+the number of displayed lines.
 
    Occasionally, such implied resizing of the display area may be
 unwanted, for example, when the frame is maximized or made fullscreen
@@ -1361,15 +1360,40 @@ where it's turned off by default.  In other cases you can disable
 implied resizing with the following option:
 
 @defopt frame-inhibit-implied-resize
-If this option is @code{nil}, changing default font, menu bar mode,
-fringe width, or scroll bars of a specific frame may resize the frame's
-display area in order to preserve the number of columns or lines the
-frame displays.  If this option is non-@code{nil}, no such resizing is
-done.
+If this option is @code{nil}, changing font, menu bar, tool bar,
+internal borders, fringes or scroll bars of a specific frame may
+implicitly resize the frame's display area in order to preserve the
+number of columns or lines the frame displays.  If this option is
+non-@code{nil}, no implied resizing is done.
 
-When you add a tool bar or scroll bar to a frame that is not large
-enough to accommodate one, Emacs will try to enlarge the frame even if
-this option is non-@code{nil}.
+The value of this option can be also be a list of frame parameters.  In
+that case, implied resizing is inhibited when changing a parameter that
+appears in this list.  The frame parameters currently handled by this
+option are: @code{font}, @code{font-backend},
+@code{internal-border-width}, @code{menu-bar-lines} and
+@code{tool-bar-lines}.
+
+Changing any of the @code{scroll-bar-width}, @code{scroll-bar-height},
+@code{vertical-scroll-bars}, @code{horizontal-scroll-bars},
+@code{left-fringe} and @code{right-fringe} frame parameters is handled
+as if the frame contained just one live window.  This means, for
+example, that removing vertical scroll bars on a frame containing
+several side by side windows will shrink the frame width by the width of
+one scroll bar provided this option is @code{nil} and keep it unchanged
+if this option is either @code{t} or a list containing
+@code{vertical-scroll-bars}.
+
+The default value is @code{'(tool-bar-lines)} for Lucid, Motif and
+Windows (which means that adding/removing a tool bar there does not
+change the frame height), @code{nil} on all other window systems
+including GTK+ (which means that changing any of the parameters listed
+above may change the size of the frame), and @code{t} otherwise (which
+means the frame size never changes implicitly when there's no window
+system support).
+
+Note that when a frame is not large enough to accommodate a change of
+any of the parameters listed above, Emacs may try to enlarge the frame
+even if this option is non-@code{nil}.
 @end defopt
 
 @c FIXME?  Belongs more in Emacs manual than here?

@@ -1009,7 +1009,7 @@ x_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 #else /* not USE_X_TOOLKIT && not USE_GTK */
   FRAME_MENU_BAR_LINES (f) = nlines;
   FRAME_MENU_BAR_HEIGHT (f) = nlines * FRAME_LINE_HEIGHT (f);
-  adjust_frame_size (f, -1, -1, 2, 1);
+  adjust_frame_size (f, -1, -1, 2, 1, Qmenu_bar_lines);
   if (FRAME_X_WINDOW (f))
     x_clear_under_internal_border (f);
 
@@ -1075,7 +1075,19 @@ x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
   else
     nlines = 0;
 
+#ifdef USE_GTK
   x_change_tool_bar_height (f, nlines * FRAME_LINE_HEIGHT (f));
+#else /* !USE_GTK */
+  if (nlines == 0)
+    x_change_tool_bar_height (f, nlines * FRAME_LINE_HEIGHT (f));
+  else
+    {
+      f->n_tool_bar_rows = 0;
+      FRAME_TOOL_BAR_LINES (f) = nlines;
+      adjust_frame_glyphs (f);
+      SET_FRAME_GARBAGED (f);
+    }
+#endif /* USE_GTK */
 }
 
 
@@ -1112,10 +1124,10 @@ x_change_tool_bar_height (struct frame *f, int height)
   /* Recalculate tool bar and frame text sizes.  */
   FRAME_TOOL_BAR_HEIGHT (f) = height;
   FRAME_TOOL_BAR_LINES (f) = lines;
-  FRAME_TEXT_HEIGHT (f)
-    = FRAME_PIXEL_TO_TEXT_HEIGHT (f, FRAME_PIXEL_HEIGHT (f));
-  FRAME_LINES (f)
-    = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, FRAME_PIXEL_HEIGHT (f));
+/**   FRAME_TEXT_HEIGHT (f) **/
+/**     = FRAME_PIXEL_TO_TEXT_HEIGHT (f, FRAME_PIXEL_HEIGHT (f)); **/
+/**   FRAME_LINES (f) **/
+/**     = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, FRAME_PIXEL_HEIGHT (f)); **/
   /* Store the `tool-bar-lines' and `height' frame parameters.  */
   store_frame_param (f, Qtool_bar_lines, make_number (lines));
   store_frame_param (f, Qheight, make_number (FRAME_LINES (f)));
@@ -1138,7 +1150,8 @@ x_change_tool_bar_height (struct frame *f, int height)
   /* Recalculate toolbar height.  */
   f->n_tool_bar_rows = 0;
 
-  adjust_frame_size (f, -1, -1, 4, 0);
+  adjust_frame_size (f, -1, -1, (old_height == 0 || height == 0) ? 2 : 4, 0,
+		     Qtool_bar_lines);
 
   if (FRAME_X_WINDOW (f))
     x_clear_under_internal_border (f);
@@ -1166,7 +1179,7 @@ x_set_internal_border_width (struct frame *f, Lisp_Object arg, Lisp_Object oldva
 
       if (FRAME_X_WINDOW (f) != 0)
 	{
-	  adjust_frame_size (f, -1, -1, 3, 0);
+	  adjust_frame_size (f, -1, -1, 3, 0, Qinternal_border_width);
 
 #ifdef USE_GTK
 	  xg_clear_under_internal_border (f);
@@ -3163,7 +3176,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
      had one frame line vs one toolbar line which left us with a zero
      root window height which was obviously wrong as well ...  */
   adjust_frame_size (f, FRAME_COLS (f) * FRAME_COLUMN_WIDTH (f),
-		     FRAME_LINES (f) * FRAME_LINE_HEIGHT (f), 5, 1);
+		     FRAME_LINES (f) * FRAME_LINE_HEIGHT (f), 5, 1, Qnil);
 
   /* Set the menu-bar-lines and tool-bar-lines parameters.  We don't
      look up the X resources controlling the menu-bar and tool-bar
@@ -3237,7 +3250,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   /* Consider frame official, now.  */
   f->official = true;
 
-  adjust_frame_size (f, FRAME_TEXT_WIDTH (f), FRAME_TEXT_HEIGHT (f), 0, 1);
+  adjust_frame_size (f, FRAME_TEXT_WIDTH (f), FRAME_TEXT_HEIGHT (f), 0, 1, Qnil);
 
 #if defined (USE_X_TOOLKIT) || defined (USE_GTK)
   /* Create the menu bar.  */
@@ -4219,6 +4232,124 @@ Internal use only, use `display-monitor-attributes-list' instead.  */)
 #endif	/* not USE_GTK */
 
   return attributes_list;
+}
+
+DEFUN ("x-frame-geometry", Fx_frame_geometry, Sx_frame_geometry, 0, 1, 0,
+       doc: /* Return geometric atributes of frame FRAME.
+
+FRAME must be a live frame and defaults to the selected one.
+
+The return value is an association list containing the following
+elements (all size values are in pixels).
+
+- `frame-outer-size' is a cons of the outer width and height of FRAME.
+  The outer size include the title bar and the external borders as well
+  as any menu and/or tool bar of frame.
+
+- `border' is a cons of the horizontal and vertical width of FRAME's
+  external borders.
+
+- `title-bar-height' is the height of the title bar of FRAME.
+
+- `menu-bar-external' if `t' means the menu bar is external (not
+  included in the inner edges of FRAME).
+
+- `menu-bar-size' is a cons of the width and height of the menu bar of
+  FRAME.
+
+- `tool-bar-external' if `t' means the tool bar is external (not
+  included in the inner edges of FRAME).
+
+- `tool-bar-side' tells tells on which side the tool bar on FRAME is and
+  can be one of `left', `top', `right' or `bottom'.
+
+- `tool-bar-size' is a cons of the width and height of the tool bar of
+  FRAME.
+
+- `frame-inner-size' is a cons of the inner width and height of FRAME.
+  This excludes FRAME's title bar and external border as well as any
+  external menu and/or tool bar.  */)
+  (Lisp_Object frame)
+{
+  struct frame *f = decode_live_frame (frame);
+  int inner_width = FRAME_PIXEL_WIDTH (f);
+  int inner_height = FRAME_PIXEL_HEIGHT (f);
+  int outer_width, outer_height, border, title;
+  Lisp_Object fullscreen = Fframe_parameter (frame, Qfullscreen);
+  int menu_bar_height, menu_bar_width, tool_bar_height, tool_bar_width;
+
+  border = FRAME_OUTER_TO_INNER_DIFF_X (f);
+  title = FRAME_X_OUTPUT (f)->y_pixels_outer_diff - border;
+
+  outer_width = FRAME_PIXEL_WIDTH (f) + 2 * border;
+  outer_height = (FRAME_PIXEL_HEIGHT (f)
+		  + FRAME_OUTER_TO_INNER_DIFF_Y (f)
+		  + FRAME_OUTER_TO_INNER_DIFF_X (f));
+
+#if defined (USE_GTK)
+  {
+    bool tool_bar_left_right = (EQ (FRAME_TOOL_BAR_POSITION (f), Qleft)
+				|| EQ (FRAME_TOOL_BAR_POSITION (f), Qright));
+
+    tool_bar_width = (tool_bar_left_right
+		      ? FRAME_TOOLBAR_WIDTH (f)
+		      : FRAME_PIXEL_WIDTH (f));
+    tool_bar_height = (tool_bar_left_right
+		       ? FRAME_PIXEL_HEIGHT (f)
+		       : FRAME_TOOLBAR_HEIGHT (f));
+    if (tool_bar_left_right)
+      /* For some reason FRAME_OUTER_TO_INNER_DIFF_X does not count the
+	 width of a tool bar.  */
+      outer_width += FRAME_TOOLBAR_WIDTH (f);
+  }
+#else
+  tool_bar_height = FRAME_TOOL_BAR_HEIGHT (f);
+  tool_bar_width = ((tool_bar_height > 0)
+		    ? outer_width - 2 * FRAME_INTERNAL_BORDER_WIDTH (f)
+		    : 0);
+#endif
+
+#if defined (USE_X_TOOLKIT) || defined (USE_GTK)
+  menu_bar_height = FRAME_MENUBAR_HEIGHT (f);
+#else
+  menu_bar_height = FRAME_MENU_BAR_HEIGHT (f);
+#endif
+
+  menu_bar_width = ((menu_bar_height > 0)
+		    ? outer_width - 2 * border
+		    : 0);
+
+  if (!FRAME_EXTERNAL_MENU_BAR (f))
+    inner_height -= menu_bar_height;
+  if (!FRAME_EXTERNAL_TOOL_BAR (f))
+    inner_height -= tool_bar_height;
+
+  return
+    listn (CONSTYPE_PURE, 10,
+	   Fcons (Qframe_position,
+		  Fcons (make_number (f->left_pos), make_number (f->top_pos))),
+	   Fcons (Qframe_outer_size,
+		  Fcons (make_number (outer_width), make_number (outer_height))),
+	   Fcons (Qexternal_border_size,
+		  ((EQ (fullscreen, Qfullboth) || EQ (fullscreen, Qfullscreen))
+		   ? Fcons (make_number (0), make_number (0))
+		   : Fcons (make_number (border), make_number (border)))),
+ 	   Fcons (Qtitle_height,
+		  ((EQ (fullscreen, Qfullboth) || EQ (fullscreen, Qfullscreen))
+		   ? make_number (0)
+		   : make_number (title))),
+	   Fcons (Qmenu_bar_external, FRAME_EXTERNAL_MENU_BAR (f) ? Qt : Qnil),
+	   Fcons (Qmenu_bar_size,
+		  Fcons (make_number (menu_bar_width),
+			 make_number (menu_bar_height))),
+	   Fcons (Qtool_bar_external, FRAME_EXTERNAL_TOOL_BAR (f) ? Qt : Qnil),
+	   Fcons (Qtool_bar_position, FRAME_TOOL_BAR_POSITION (f)),
+	   Fcons (Qtool_bar_size,
+		  Fcons (make_number (tool_bar_width),
+			 make_number (tool_bar_height))),
+	   Fcons (Qframe_inner_size,
+		  Fcons (make_number (inner_width),
+			 make_number (inner_height))));
 }
 
 /************************************************************************
@@ -6224,6 +6355,7 @@ When using Gtk+ tooltips, the tooltip face is not used.  */);
   defsubr (&Sx_display_backing_store);
   defsubr (&Sx_display_save_under);
   defsubr (&Sx_display_monitor_attributes_list);
+  defsubr (&Sx_frame_geometry);
   defsubr (&Sx_wm_set_size_hint);
   defsubr (&Sx_create_frame);
   defsubr (&Sx_open_connection);

@@ -6417,7 +6417,7 @@ the return value is nil.  Otherwise the value is t.  */)
       /* Make frame official again and apply frame size changes if
 	 needed.  */
       f->official = true;
-      adjust_frame_size (f, -1, -1, 1, 0);
+      adjust_frame_size (f, -1, -1, 1, 0, Qnil);
 
       adjust_frame_glyphs (f);
       unblock_input ();

@@ -50,11 +50,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "emacsgtkfixed.h"
 #endif
 
-#define FRAME_TOTAL_PIXEL_HEIGHT(f) \
-  (FRAME_PIXEL_HEIGHT (f) + FRAME_MENUBAR_HEIGHT (f) + FRAME_TOOLBAR_HEIGHT (f))
+/** #define FRAME_TOTAL_PIXEL_HEIGHT(f) \ **/
+/**   (FRAME_PIXEL_HEIGHT (f) + FRAME_MENUBAR_HEIGHT (f) + FRAME_TOOLBAR_HEIGHT (f)) **/
 
-#define FRAME_TOTAL_PIXEL_WIDTH(f) \
-  (FRAME_PIXEL_WIDTH (f) + FRAME_TOOLBAR_WIDTH (f))
+/** #define FRAME_TOTAL_PIXEL_WIDTH(f) \ **/
+/**   (FRAME_PIXEL_WIDTH (f) + FRAME_TOOLBAR_WIDTH (f)) **/
 
 #ifndef HAVE_GTK_WIDGET_SET_HAS_WINDOW
 #define gtk_widget_set_has_window(w, b) \
@@ -940,12 +940,13 @@ xg_frame_set_char_size (struct frame *f, int width, int height)
       x_wait_for_event (f, ConfigureNotify);
     }
   else
-    adjust_frame_size (f, -1, -1, 5, 0);
+    adjust_frame_size (f, -1, -1, 5, 0, Qnil);
 }
 
 /* Handle height/width changes (i.e. add/remove/move menu/toolbar).
    The policy is to keep the number of editable lines.  */
 
+#if 0
 static void
 xg_height_or_width_changed (struct frame *f)
 {
@@ -955,6 +956,7 @@ xg_height_or_width_changed (struct frame *f)
   f->output_data.x->hint_flags = 0;
   x_wm_set_size_hint (f, 0, 0);
 }
+#endif
 
 /* Convert an X Window WSESC on display DPY to its corresponding GtkWidget.
    Must be done like this, because GtkWidget:s can have "hidden"
@@ -3241,7 +3243,7 @@ menubar_map_cb (GtkWidget *w, gpointer user_data)
   if (FRAME_MENUBAR_HEIGHT (f) != req.height)
     {
       FRAME_MENUBAR_HEIGHT (f) = req.height;
-      xg_height_or_width_changed (f);
+      adjust_frame_size (f, -1, -1, 2, 0, Qmenu_bar_lines);
     }
 }
 
@@ -3273,7 +3275,7 @@ xg_update_frame_menubar (struct frame *f)
   if (FRAME_MENUBAR_HEIGHT (f) != req.height)
     {
       FRAME_MENUBAR_HEIGHT (f) = req.height;
-      xg_height_or_width_changed (f);
+      adjust_frame_size (f, -1, -1, 2, 0, Qmenu_bar_lines);
     }
   unblock_input ();
 }
@@ -3295,7 +3297,7 @@ free_frame_menubar (struct frame *f)
           the container.  */
       x->menubar_widget = 0;
       FRAME_MENUBAR_HEIGHT (f) = 0;
-      xg_height_or_width_changed (f);
+      adjust_frame_size (f, -1, -1, 2, 0, Qmenu_bar_lines);
       unblock_input ();
     }
 }
@@ -4219,7 +4221,7 @@ tb_size_cb (GtkWidget    *widget,
      size hints if tool bar size changes.  Seen on Fedora 18 at least.  */
   struct frame *f = user_data;
   if (xg_update_tool_bar_sizes (f))
-    xg_height_or_width_changed (f);
+    adjust_frame_size (f, -1, -1, 2, 0, Qtool_bar_lines);
 }
 
 /* Create a tool bar for frame F.  */
@@ -4819,7 +4821,7 @@ update_frame_tool_bar (struct frame *f)
         xg_pack_tool_bar (f, FRAME_TOOL_BAR_POSITION (f));
       gtk_widget_show_all (x->toolbar_widget);
       if (xg_update_tool_bar_sizes (f))
-        xg_height_or_width_changed (f);
+	adjust_frame_size (f, -1, -1, 2, 0, Qtool_bar_lines);
     }
 
   unblock_input ();
@@ -4867,7 +4869,7 @@ free_frame_tool_bar (struct frame *f)
                              NULL);
         }
 
-      xg_height_or_width_changed (f);
+      adjust_frame_size (f, -1, -1, 2, 0, Qtool_bar_lines);
 
       unblock_input ();
     }
@@ -4897,7 +4899,7 @@ xg_change_toolbar_position (struct frame *f, Lisp_Object pos)
   xg_pack_tool_bar (f, pos);
   g_object_unref (top_widget);
   if (xg_update_tool_bar_sizes (f))
-    xg_height_or_width_changed (f);
+    adjust_frame_size (f, -1, -1, 2, 0, Qtool_bar_lines);
 
   unblock_input ();
 }

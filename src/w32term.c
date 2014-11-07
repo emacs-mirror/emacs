@@ -5843,7 +5843,7 @@ x_new_font (struct frame *f, Lisp_Object font_object, int fontset)
 	 problems because the tip frame has no widget.  */
       if (NILP (tip_frame) || XFRAME (tip_frame) != f)
 	adjust_frame_size (f, FRAME_COLS (f) * FRAME_COLUMN_WIDTH (f),
-			   FRAME_LINES (f) * FRAME_LINE_HEIGHT (f), 3, 0);
+			   FRAME_LINES (f) * FRAME_LINE_HEIGHT (f), 3, 0, Qfont);
     }
 
   /* X version sets font of input methods here also.  */

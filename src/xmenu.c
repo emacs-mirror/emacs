@@ -657,9 +657,15 @@ update_frame_menubar (struct frame *f)
   lw_refigure_widget (x->column_widget, True);
 
   /* Force the pane widget to resize itself.  */
-  adjust_frame_size (f, FRAME_TEXT_WIDTH (f), FRAME_TEXT_HEIGHT (f), 2, 0);
+#ifdef USE_LUCID
+  /* For reasons I don't know Lucid wants to add one pixel to the frame
+     height when adding the menu bar.  Compensate that here.  */
+  adjust_frame_size (f, -1, FRAME_TEXT_HEIGHT (f) - 1, 2, 0, Qmenu_bar_lines);
+#else
+  adjust_frame_size (f, -1, -1, 2, 0, Qmenu_bar_lines);
+#endif /* USE_LUCID */
   unblock_input ();
-#endif
+#endif /* USE_GTK */
 }
 
 #ifdef USE_LUCID
@@ -1050,6 +1056,12 @@ void
 free_frame_menubar (struct frame *f)
 {
   Widget menubar_widget;
+#ifdef USE_MOTIF
+  /* Motif automatically shrinks the frame in lw_destroy_all_widgets.
+     If we want to preserve the old height, calculate it now so we can
+     restore it below.  */
+  int old_height = FRAME_TEXT_HEIGHT (f) + FRAME_MENUBAR_HEIGHT (f);
+#endif
 
   eassert (FRAME_X_P (f));
 
@@ -1087,17 +1099,20 @@ free_frame_menubar (struct frame *f)
 	  XtVaGetValues (f->output_data.x->widget, XtNx, &x1, XtNy, &y1, NULL);
 	  if (x1 == 0 && y1 == 0)
 	    XtVaSetValues (f->output_data.x->widget, XtNx, x0, XtNy, y0, NULL);
-#endif
-	  adjust_frame_size (f, FRAME_TEXT_WIDTH (f),
-			     FRAME_TEXT_HEIGHT (f), 2, 0);
-	  /*
-	    if (frame_inhibit_resize (f, 0))
-	    change_frame_size (f, 0, 0, 0, 0, 0, 1);
+	  if (frame_inhibit_resize (f, 0, Qmenu_bar_lines))
+	    adjust_frame_size (f, -1, old_height, 1, 0, Qmenu_bar_lines);
 	  else
-	    x_set_window_size (f, 0, FRAME_TEXT_WIDTH (f),
-	    FRAME_TEXT_HEIGHT (f), 1);
-	  */
+#endif /* USE_MOTIF */
+	    adjust_frame_size (f, -1, -1, 2, 0, Qmenu_bar_lines);
 	}
+      else
+	{
+#ifdef USE_MOTIF
+	  if (frame_inhibit_resize (f, 0, Qmenu_bar_lines))
+	    adjust_frame_size (f, -1, old_height, 1, 0, Qmenu_bar_lines);
+#endif
+	}
+
       unblock_input ();
     }
 }

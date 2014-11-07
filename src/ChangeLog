@@ -1,3 +1,62 @@
+2014-11-07  Martin Rudalics  <rudalics@gmx.at>
+
+	* dispnew.c (change_frame_size_1): Fix call of
+	adjust_frame_size.
+	* frame.c (Qsize, Qframe_position, Qframe_outer_size)
+	(Qframe_inner_size, Qexternal_border_size, Qtitle_height)
+	(Qmenu_bar_external, Qmenu_bar_size, Qtool_bar_external)
+	(Qtool_bar_size): New constants.
+	(frame_inhibit_resize, adjust_frame_size): New argument to
+	handle case where frame_inhibit_implied_resize is a list.
+	(Fmake_terminal_frame, Fset_frame_height, Fset_frame_width)
+	(Fset_frame_size, x_set_left_fringe, x_set_right_fringe)
+	(x_set_right_divider_width, x_set_bottom_divider_width)
+	(x_set_vertical_scroll_bars, x_set_horizontal_scroll_bars)
+	(x_set_scroll_bar_width, x_set_scroll_bar_height): Update
+	callers.
+	(frame-inhibit-implied-resize): Rewrite doc-string.
+	* frame.h (frame_inhibit_resize, adjust_frame_size): Fix
+	external declarations.
+	(Qframe_position, Qframe_outer_size)
+	(Qframe_inner_size, Qexternal_border_size, Qtitle_height)
+	(Qmenu_bar_external, Qmenu_bar_size, Qtool_bar_external)
+	(Qtool_bar_size): Extern them.
+	* gtkutil.c (FRAME_TOTAL_PIXEL_HEIGHT, FRAME_TOTAL_PIXEL_WIDTH)
+	(xg_height_or_width_changed): Remove.
+	(xg_frame_set_char_size): Adjust adjust_frame_size calls.
+	(menubar_map_cb, xg_update_frame_menubar, free_frame_menubar)
+	(tb_size_cb, update_frame_tool_bar, free_frame_tool_bar)
+	(xg_change_toolbar_position): Call adjust_frame_size directly.
+	* nsfns.m (x_set_internal_border_width, Fx_create_frame): Fix
+	calls of adjust_frame_size.
+	* w32fns.c (x_set_internal_border_width, x_set_menu_bar_lines)
+	(Fx_create_frame, x_create_tip_frame): Adjust adjust_frame_size
+	calls.
+	(x_set_tool_bar_lines, x_change_tool_bar_height): Make sure that
+	frame can get resized when tool-bar-lines parameter changes from
+	or to zero.
+	(Fw32_frame_menu_bar_size): Return fourth value.
+	(Fw32_frame_rect): Block input around system calls
+	(Fx_frame_geometry): New function.
+	* w32menu.c (set_frame_menubar): Adjust adjust_frame_size call.
+	* w32term.c (x_new_font): Adjust adjust_frame_size call.
+	* widget.c (EmacsFrameSetCharSize): Adjust frame_inhibit_resize
+	call.
+	* window.c (Fset_window_configuration): Adjust adjust_frame_size
+	call.
+	* xfns.c (x_set_menu_bar_lines, x_set_internal_border_width)
+	(Fx_create_frame): Adjust adjust_frame_size calls.
+	(x_set_tool_bar_lines, x_change_tool_bar_height): Make sure that
+	frame can get resized when tool-bar-lines parameter changes from
+	or to zero.
+	(Fx_frame_geometry): New function.
+	* xmenu.c (update_frame_menubar): On Lucid call
+	adjust_frame_size with one pixel less height to avoid that
+	repeatedly adding/removing the menu bar grows the frame.
+	(free_frame_menubar): On Motif arrange to optionally preserve
+	the old frame height when removing the menu bar.
+	* xterm.c (x_new_font): Adjust adjust_frame_size call.
+
 2014-11-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (Fdump_glyph_matrix, Fdump_frame_glyph_matrix): Doc fix.

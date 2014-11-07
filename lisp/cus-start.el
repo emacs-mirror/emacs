@@ -274,7 +274,13 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     (tool-bar-mode (frames mouse) boolean nil
 ;			    :initialize custom-initialize-default
 			    :set custom-set-minor-mode)
-	     (frame-resize-pixelwise windows boolean "24.4")
+	     (frame-resize-pixelwise frames boolean "24.4")
+	     (frame-inhibit-implied-resize frames
+					   (choice
+					    (const :tag "Never" nil)
+					    (const :tag "Always" t)
+					    (repeat (symbol :tag "Parameter")))
+					   "25.1")
 	     ;; fringe.c
 	     (overflow-newline-into-fringe fringe boolean)
 	     ;; image.c

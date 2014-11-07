@@ -1,3 +1,8 @@
+2014-11-07  Martin Rudalics  <rudalics@gmx.at>
+
+	* cus-start.el (frame-resize-pixelwise): Fix group.
+	(frame-inhibit-implied-resize): Add entry.
+
 2014-11-07  Daiki Ueno  <ueno@gnu.org>
 
 	* epa.el (epa-pinentry-mode): New user option.

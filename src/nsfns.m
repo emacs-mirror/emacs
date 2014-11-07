@@ -731,7 +731,7 @@ x_set_internal_border_width (struct frame *f, Lisp_Object arg, Lisp_Object oldva
     return;
 
   if (FRAME_X_WINDOW (f) != 0)
-    adjust_frame_size (f, -1, -1, 3, 0);
+    adjust_frame_size (f, -1, -1, 3, 0, Qinternal_border_width);
 
   SET_FRAME_GARBAGED (f);
 }
@@ -1275,7 +1275,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
 
   /* Read comment about this code in corresponding place in xfns.c.  */
   adjust_frame_size (f, FRAME_COLS (f) * FRAME_COLUMN_WIDTH (f),
-		     FRAME_LINES (f) * FRAME_LINE_HEIGHT (f), 5, 1);
+		     FRAME_LINES (f) * FRAME_LINE_HEIGHT (f), 5, 1, Qnil);
 
   /* The resources controlling the menu-bar and tool-bar are
      processed specially at startup, and reflected in the mode
@@ -1349,7 +1349,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   /* Consider frame official, now.  */
   f->official = true;
 
-  adjust_frame_size (f, FRAME_TEXT_WIDTH (f), FRAME_TEXT_HEIGHT (f), 0, 1);
+  adjust_frame_size (f, FRAME_TEXT_WIDTH (f), FRAME_TEXT_HEIGHT (f), 0, 1, Qnil);
 
   if (! f->output_data.ns->explicit_parent)
     {

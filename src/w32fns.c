@@ -1645,7 +1645,7 @@ x_set_internal_border_width (struct frame *f, Lisp_Object arg, Lisp_Object oldva
 
       if (FRAME_X_WINDOW (f) != 0)
 	{
-	  adjust_frame_size (f, -1, -1, 3, 0);
+	  adjust_frame_size (f, -1, -1, 3, 0, Qinternal_border_width);
 
 	  if (FRAME_VISIBLE_P (f))
 	    x_clear_under_internal_border (f);
@@ -1691,7 +1691,7 @@ x_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 	 of the outer rectangle (including decorations) unchanged, and a
 	 second time because we want to keep the height of the inner
 	 rectangle (without the decorations unchanged).  */
-      adjust_frame_size (f, -1, -1, 2, 1);
+      adjust_frame_size (f, -1, -1, 2, 1, Qmenu_bar_lines);
 
       /* Not sure whether this is needed.  */
       x_clear_under_internal_border (f);
@@ -1721,7 +1721,15 @@ x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
   else
     nlines = 0;
 
-  x_change_tool_bar_height (f, nlines * FRAME_LINE_HEIGHT (f));
+  if (nlines == 0)
+    x_change_tool_bar_height (f, nlines * FRAME_LINE_HEIGHT (f));
+  else
+    {
+      f->n_tool_bar_rows = 0;
+      FRAME_TOOL_BAR_LINES (f) = nlines;
+      adjust_frame_glyphs (f);
+      SET_FRAME_GARBAGED (f);
+    }
 }
 
 
@@ -1741,10 +1749,10 @@ x_change_tool_bar_height (struct frame *f, int height)
   /* Recalculate tool bar and frame text sizes.  */
   FRAME_TOOL_BAR_HEIGHT (f) = height;
   FRAME_TOOL_BAR_LINES (f) = lines;
-  FRAME_TEXT_HEIGHT (f)
-    = FRAME_PIXEL_TO_TEXT_HEIGHT (f, FRAME_PIXEL_HEIGHT (f));
-  FRAME_LINES (f)
-    = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, FRAME_PIXEL_HEIGHT (f));
+/**   FRAME_TEXT_HEIGHT (f) **/
+/**     = FRAME_PIXEL_TO_TEXT_HEIGHT (f, FRAME_PIXEL_HEIGHT (f)); **/
+/**   FRAME_LINES (f) **/
+/**     = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, FRAME_PIXEL_HEIGHT (f)); **/
   /* Store the `tool-bar-lines' and `height' frame parameters.  */
   store_frame_param (f, Qtool_bar_lines, make_number (lines));
   store_frame_param (f, Qheight, make_number (FRAME_LINES (f)));
@@ -1761,7 +1769,8 @@ x_change_tool_bar_height (struct frame *f, int height)
   /* Recalculate toolbar height.  */
   f->n_tool_bar_rows = 0;
 
-  adjust_frame_size (f, -1, -1, 4, 0);
+  adjust_frame_size (f, -1, -1, (old_height == 0 || height == 0) ? 2 : 4, 0,
+		     Qtool_bar_lines);
 
   if (FRAME_X_WINDOW (f))
     x_clear_under_internal_border (f);
@@ -4629,7 +4638,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
      had one frame line vs one toolbar line which left us with a zero
      root window height which was obviously wrong as well ...  */
   adjust_frame_size (f, FRAME_COLS (f) * FRAME_COLUMN_WIDTH (f),
-		     FRAME_LINES (f) * FRAME_LINE_HEIGHT (f), 5, 1);
+		     FRAME_LINES (f) * FRAME_LINE_HEIGHT (f), 5, 1, Qnil);
 
   /* The X resources controlling the menu-bar and tool-bar are
      processed specially at startup, and reflected in the mode
@@ -4697,7 +4706,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   /* Consider frame official, now.  */
   f->official = true;
 
-  adjust_frame_size (f, FRAME_TEXT_WIDTH (f), FRAME_TEXT_HEIGHT (f), 0, 1);
+  adjust_frame_size (f, FRAME_TEXT_WIDTH (f), FRAME_TEXT_HEIGHT (f), 0, 1, Qnil);
 
   /* Tell the server what size and position, etc, we want, and how
      badly we want them.  This should be done after we have the menu
@@ -5797,7 +5806,7 @@ x_create_tip_frame (struct w32_display_info *dpyinfo,
   SET_FRAME_COLS (f, 0);
   SET_FRAME_LINES (f, 0);
   adjust_frame_size (f, width * FRAME_COLUMN_WIDTH (f),
-		     height * FRAME_LINE_HEIGHT (f), 0, 1);
+		     height * FRAME_LINE_HEIGHT (f), 0, 1, Qnil);
 
   /* Add `tooltip' frame parameter's default value. */
   if (NILP (Fframe_parameter (frame, Qtooltip)))
@@ -7368,30 +7377,33 @@ This is a direct interface to the Windows API FindWindow function.  */)
 
 DEFUN ("w32-frame-menu-bar-size", Fw32_frame_menu_bar_size, Sw32_frame_menu_bar_size, 0, 1, 0,
        doc: /* Return sizes of menu bar on frame FRAME.
-The return value is a list of three elements: The current width and
-height of FRAME's menu bar in pixels and the default height of the menu
-bar in pixels.  If FRAME is omitted or nil, the selected frame is
-used.  */)
+The return value is a list of four elements: The current width and
+height of FRAME's menu bar in pixels, the height of one menu bar line in
+a wrapped menu bar in pixels, and the height of a single line menu bar
+in pixels.
+
+If FRAME is omitted or nil, the selected frame is used.  */)
   (Lisp_Object frame)
 {
   struct frame *f = decode_any_frame (frame);
-  MENUBARINFO info;
-  int width, height, default_height;
+  MENUBARINFO menu_bar;
+  int width, height, single_height, wrapped_height;
 
   block_input ();
 
-  default_height = GetSystemMetrics (SM_CYMENUSIZE);
-  info.cbSize = sizeof (info);
-  info.rcBar.right = info.rcBar.left = 0;
-  info.rcBar.top = info.rcBar.bottom = 0;
-  GetMenuBarInfo (FRAME_W32_WINDOW (f), 0xFFFFFFFD, 0, &info);
-  width = info.rcBar.right - info.rcBar.left;
-  height = info.rcBar.bottom - info.rcBar.top;
+  single_height = GetSystemMetrics (SM_CYMENU);
+  wrapped_height = GetSystemMetrics (SM_CYMENUSIZE);
+  menu_bar.cbSize = sizeof (menu_bar);
+  menu_bar.rcBar.right = menu_bar.rcBar.left = 0;
+  menu_bar.rcBar.top = menu_bar.rcBar.bottom = 0;
+  GetMenuBarInfo (FRAME_W32_WINDOW (f), 0xFFFFFFFD, 0, &menu_bar);
+  width = menu_bar.rcBar.right - menu_bar.rcBar.left;
+  height = menu_bar.rcBar.bottom - menu_bar.rcBar.top;
 
   unblock_input ();
 
-  return list3 (make_number (width), make_number (height),
-		make_number (default_height));
+  return list4 (make_number (width), make_number (height),
+		make_number (wrapped_height), make_number (single_height));
 }
 
 DEFUN ("w32-frame-rect", Fw32_frame_rect, Sw32_frame_rect, 0, 2, 0,
@@ -7408,13 +7420,129 @@ title bar and decorations.  */)
   struct frame *f = decode_live_frame (frame);
   RECT rect;
 
+  block_input ();
+
   if (!NILP (client))
     GetClientRect (FRAME_W32_WINDOW (f), &rect);
   else
     GetWindowRect (FRAME_W32_WINDOW (f), &rect);
 
+  unblock_input ();
+
   return list4 (make_number (rect.left), make_number (rect.top),
 		make_number (rect.right), make_number (rect.bottom));
+}
+
+DEFUN ("x-frame-geometry", Fx_frame_geometry, Sx_frame_geometry, 0, 1, 0,
+       doc: /* Return geometric atributes of frame FRAME.
+FRAME must be a live frame and defaults to the selected one.
+
+The return value is an association list containing the following
+elements (all size values are in pixels).
+
+- `frame-outer-size' is a cons of the outer width and height of FRAME.
+  The outer size includes the title bar and the external borders as well
+  as any menu and/or tool bar of frame.
+
+- `border' is a cons of the horizontal and vertical width of FRAME's
+  external borders.
+
+- `title-bar-height' is the height of the title bar of FRAME.
+
+- `menu-bar-external' if `t' means the menu bar is by default external
+  (not included in the inner size of FRAME).
+
+- `menu-bar-size' is a cons of the width and height of the menu bar of
+  FRAME.
+
+- `tool-bar-external' if `t' means the tool bar is by default external
+  (not included in the inner size of FRAME).
+
+- `tool-bar-side' tells tells on which side the tool bar on FRAME is by
+  default and can be one of `left', `top', `right' or `bottom'.
+
+- `tool-bar-size' is a cons of the width and height of the tool bar of
+  FRAME.
+
+- `frame-inner-size' is a cons of the inner width and height of FRAME.
+  This excludes FRAME's title bar and external border as well as any
+  external menu and/or tool bar.  */)
+  (Lisp_Object frame)
+{
+  struct frame *f = decode_live_frame (frame);
+  Lisp_Object geometry = Qnil;
+  RECT frame_outer_edges, frame_inner_edges;
+  MENUBARINFO menu_bar;
+  int  border_width, border_height, title_height;
+  int single_bar_height, wrapped_bar_height, menu_bar_height;
+  Lisp_Object fullscreen = Fframe_parameter (frame, Qfullscreen);
+
+  block_input ();
+
+  /* Outer frame rectangle, including outer borders and title bar. */
+  GetWindowRect (FRAME_W32_WINDOW (f), &frame_outer_edges);
+  /* Inner frame rectangle, excluding borders and title bar.  */
+  GetClientRect (FRAME_W32_WINDOW (f), &frame_inner_edges);
+  /* Outer border.  */
+  border_width = GetSystemMetrics (SM_CXFRAME);
+  border_height = GetSystemMetrics (SM_CYFRAME);
+  /* Title bar.  */
+  title_height = GetSystemMetrics (SM_CYCAPTION);
+  /* Menu bar.  */
+  menu_bar.cbSize = sizeof (menu_bar);
+  menu_bar.rcBar.right = menu_bar.rcBar.left = 0;
+  menu_bar.rcBar.top = menu_bar.rcBar.bottom = 0;
+  GetMenuBarInfo (FRAME_W32_WINDOW (f), 0xFFFFFFFD, 0, &menu_bar);
+  single_bar_height = GetSystemMetrics (SM_CYMENU);
+  wrapped_bar_height = GetSystemMetrics (SM_CYMENUSIZE);
+  unblock_input ();
+
+  menu_bar_height = menu_bar.rcBar.bottom - menu_bar.rcBar.top;
+  /* Fix menu bar height reported by GetMenuBarInfo.  */
+  if (menu_bar_height > single_bar_height)
+    /* A wrapped menu bar.  */
+    menu_bar_height += single_bar_height - wrapped_bar_height;
+  else if (menu_bar_height > 0)
+    /* A single line menu bar.  */
+    menu_bar_height = single_bar_height;
+
+  return
+    listn (CONSTYPE_PURE, 10,
+	   Fcons (Qframe_position,
+		  Fcons (make_number (frame_outer_edges.left),
+			 make_number (frame_outer_edges.top))),
+	   Fcons (Qframe_outer_size,
+		  Fcons (make_number
+			 (frame_outer_edges.right - frame_outer_edges.left),
+			 make_number
+			 (frame_outer_edges.bottom - frame_outer_edges.top))),
+	   Fcons (Qexternal_border_size,
+		  ((EQ (fullscreen, Qfullboth) || EQ (fullscreen, Qfullscreen))
+		   ? Fcons (make_number (0), make_number (0))
+		   : Fcons (make_number (border_width),
+			    make_number (border_height)))),
+ 	   Fcons (Qtitle_height,
+		  ((EQ (fullscreen, Qfullboth) || EQ (fullscreen, Qfullscreen))
+		   ? make_number (0)
+		   : make_number (title_height))),
+	   Fcons (Qmenu_bar_external, Qt),
+	   Fcons (Qmenu_bar_size,
+		  Fcons (make_number
+			 (menu_bar.rcBar.right - menu_bar.rcBar.left),
+			 make_number (menu_bar_height))),
+	   Fcons (Qtool_bar_external, Qnil),
+	   Fcons (Qtool_bar_position, Qtop),
+	   Fcons (Qtool_bar_size,
+		  Fcons (make_number (FRAME_TOOL_BAR_LINES (f)
+				      ? (FRAME_PIXEL_WIDTH (f)
+					 - 2 * FRAME_INTERNAL_BORDER_WIDTH (f))
+				      : 0),
+			 make_number (FRAME_TOOL_BAR_HEIGHT (f)))),
+	   Fcons (Qframe_inner_size,
+		  Fcons (make_number
+			 (frame_inner_edges.right - frame_inner_edges.left),
+			 make_number
+			 (frame_inner_edges.bottom - frame_inner_edges.top))));
 }
 
 DEFUN ("w32-battery-status", Fw32_battery_status, Sw32_battery_status, 0, 0, 0,
@@ -8411,6 +8539,7 @@ only be necessary if the default setting causes problems.  */);
   defsubr (&Sx_open_connection);
   defsubr (&Sx_close_connection);
   defsubr (&Sx_display_list);
+  defsubr (&Sx_frame_geometry);
   defsubr (&Sx_synchronize);
 
   /* W32 specific functions */
