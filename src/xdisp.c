@@ -15196,8 +15196,8 @@ try_scrolling (Lisp_Object window, int just_this_one_p,
 		 non-zero margins, because scroll_up_aggressively
 		 means put point that fraction of window height
 		 _from_the_bottom_margin_.  */
-	      if (aggressive_scroll + 2*this_scroll_margin > height)
-		aggressive_scroll = height - 2*this_scroll_margin;
+	      if (aggressive_scroll + 2 * this_scroll_margin > height)
+		aggressive_scroll = height - 2 * this_scroll_margin;
 	      amount_to_scroll = dy + aggressive_scroll;
 	    }
 	}
@@ -15290,8 +15290,8 @@ try_scrolling (Lisp_Object window, int just_this_one_p,
 	  start_display (&it, w, startp);
 
 	  if (arg_scroll_conservatively)
-	    amount_to_scroll = max (dy, frame_line_height *
-				    max (scroll_step, temp_scroll_step));
+	    amount_to_scroll = max (dy, frame_line_height
+				    * max (scroll_step, temp_scroll_step));
 	  else if (scroll_step || temp_scroll_step)
 	    amount_to_scroll = scroll_max;
 	  else
@@ -15308,8 +15308,8 @@ try_scrolling (Lisp_Object window, int just_this_one_p,
 		     bottom of the window, if the value of
 		     scroll_down_aggressively happens to be too
 		     large.  */
-		  if (aggressive_scroll + 2*this_scroll_margin > height)
-		    aggressive_scroll = height - 2*this_scroll_margin;
+		  if (aggressive_scroll + 2 * this_scroll_margin > height)
+		    aggressive_scroll = height - 2 * this_scroll_margin;
 		  amount_to_scroll = dy + aggressive_scroll;
 		}
 	    }
@@ -16580,8 +16580,8 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
     {
       int window_total_lines
 	= WINDOW_TOTAL_LINES (w) * FRAME_LINE_HEIGHT (f) / frame_line_height;
-      int margin =
-	scroll_margin > 0
+      int margin
+	= scroll_margin > 0
 	? min (scroll_margin, window_total_lines / 4)
 	: 0;
       ptrdiff_t margin_pos = CHARPOS (startp);
@@ -30731,9 +30731,12 @@ all the functions in the list are called, with the frame as argument.  */);
   DEFVAR_LISP ("window-scroll-functions", Vwindow_scroll_functions,
     doc: /* List of functions to call before redisplaying a window with scrolling.
 Each function is called with two arguments, the window and its new
-display-start position.  Note that these functions are also called by
-`set-window-buffer'.  Also note that the value of `window-end' is not
-valid when these functions are called.
+display-start position.
+These functions are called whenever the `window-start' marker is modified,
+either to point into another buffer (e.g. via `set-window-buffer') or another
+place in the same buffer.
+Note that the value of `window-end' is not valid when these functions are
+called.
 
 Warning: Do not use this feature to alter the way the window
 is scrolled.  It is not designed for that, and such use probably won't

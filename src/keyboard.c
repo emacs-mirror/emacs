@@ -231,7 +231,7 @@ static ptrdiff_t last_point_position;
    'volatile' here.  */
 Lisp_Object internal_last_event_frame;
 
-static Lisp_Object Qx_set_selection, Qhandle_switch_frame;
+static Lisp_Object Qgui_set_selection, Qhandle_switch_frame;
 static Lisp_Object Qhandle_select_window;
 Lisp_Object QPRIMARY;
 
@@ -1653,7 +1653,7 @@ command_loop_1 (void)
 		    = call1 (Fsymbol_value (Qregion_extract_function), Qnil);
 		  if (XINT (Flength (txt)) > 0)
 		    /* Don't set empty selections.  */
-		    call2 (Qx_set_selection, QPRIMARY, txt);
+		    call2 (Qgui_set_selection, QPRIMARY, txt);
 		}
 
 	      if (current_buffer != prev_buffer || MODIFF != prev_modiff)
@@ -11167,7 +11167,7 @@ syms_of_keyboard (void)
 
   DEFSYM (Qpolling_period, "polling-period");
 
-  DEFSYM (Qx_set_selection, "x-set-selection");
+  DEFSYM (Qgui_set_selection, "gui-set-selection");
   DEFSYM (QPRIMARY, "PRIMARY");
   DEFSYM (Qhandle_switch_frame, "handle-switch-frame");
   DEFSYM (Qhandle_select_window, "handle-select-window");
