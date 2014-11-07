@@ -1,5 +1,13 @@
 2014-11-07  Daiki Ueno  <ueno@gnu.org>
 
+	* epa.el (epa-pinentry-mode): New user option.
+	(epa-sign-file, epa-encrypt-file, epa-decrypt-region)
+	(epa-sign-region, epa-encrypt-region): Respect epa-pinentry-mode.
+	* epa-file.el (epa-file-insert-file-contents)
+	(epa-file-write-region): Respect epa-pinentry-mode.
+
+2014-11-07  Daiki Ueno  <ueno@gnu.org>
+
 	* epg.el (epg--list-keys-1): Ignore fields after the 15th field
 	(bug#18979).  Reported by Hideki Saito.
 

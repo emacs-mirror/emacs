@@ -144,6 +144,8 @@ encryption is used."
      context
      (cons #'epa-progress-callback-function
 	   (format "Decrypting %s" file)))
+    (if epa-pinentry-mode
+	(setf (epg-context-pinentry-mode context) epa-pinentry-mode))
     (unwind-protect
 	(progn
 	  (if replace
@@ -231,6 +233,8 @@ encryption is used."
      (cons #'epa-progress-callback-function
 	   (format "Encrypting %s" file)))
     (setf (epg-context-armor context) epa-armor)
+    (if epa-pinentry-mode
+	(setf (epg-context-pinentry-mode context) epa-pinentry-mode))
     (condition-case error
 	(setq string
 	      (epg-encrypt-string

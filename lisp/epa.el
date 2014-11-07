@@ -44,6 +44,25 @@
   :type 'integer
   :group 'epa)
 
+(defcustom epa-pinentry-mode nil
+  "The pinentry mode.
+
+GnuPG 2.1 or later has an option to control the behavior of
+Pinentry invocation.  Possible modes are: `ask', `cancel',
+`error', and `loopback'.  See the GnuPG manual for the meanings.
+
+In epa commands, a particularly useful mode is `loopback', which
+redirects all Pinentry queries to the caller, so Emacs can query
+passphrase through the minibuffer, instead of external Pinentry
+program."
+  :type '(choice (const nil)
+		 (const ask)
+		 (const cancel)
+		 (const error)
+		 (const loopback))
+  :group 'epa
+  :version "25.1")
+
 (defgroup epa-faces nil
   "Faces for epa-mode."
   :version "23.1"
@@ -764,6 +783,8 @@ If no one is selected, default secret key is used.  "
 	   #'epa-progress-callback-function
 	   (format "Signing %s..."
 		   (file-name-nondirectory file))))
+    (if epa-pinentry-mode
+	(setf (epg-context-pinentry-mode context) epa-pinentry-mode))
     (message "Signing %s..." (file-name-nondirectory file))
     (condition-case error
 	(epg-sign-file context file signature mode)
@@ -794,6 +815,8 @@ If no one is selected, symmetric encryption will be performed.  ")))
 	   #'epa-progress-callback-function
 	   (format "Encrypting %s..."
 		   (file-name-nondirectory file))))
+    (if epa-pinentry-mode
+	(setf (epg-context-pinentry-mode context) epa-pinentry-mode))
     (message "Encrypting %s..." (file-name-nondirectory file))
     (condition-case error
 	(epg-encrypt-file context file recipients cipher)
@@ -836,6 +859,8 @@ For example:
 	    (cons
 	     #'epa-progress-callback-function
 	     "Decrypting..."))
+      (if epa-pinentry-mode
+	  (setf (epg-context-pinentry-mode context) epa-pinentry-mode))
       (message "Decrypting...")
       (condition-case error
 	  (setq plain (epg-decrypt-string context (buffer-substring start end)))
@@ -1042,6 +1067,8 @@ If no one is selected, default secret key is used.  "
 	    (cons
 	     #'epa-progress-callback-function
 	     "Signing..."))
+      (if epa-pinentry-mode
+	  (setf (epg-context-pinentry-mode context) epa-pinentry-mode))
       (message "Signing...")
       (condition-case error
 	  (setq signature (epg-sign-string context
@@ -1130,6 +1157,8 @@ If no one is selected, symmetric encryption will be performed.  ")
 	    (cons
 	     #'epa-progress-callback-function
 	     "Encrypting..."))
+      (if epa-pinentry-mode
+	  (setf (epg-context-pinentry-mode context) epa-pinentry-mode))
       (message "Encrypting...")
       (condition-case error
 	  (setq cipher (epg-encrypt-string context
@@ -1298,6 +1327,8 @@ If no one is selected, default public key is exported.  ")))
 ;; 	     (cons
 ;; 	       #'epa-progress-callback-function
 ;; 	       "Signing keys..."))
+;;     (if epa-pinentry-mode
+;;	   (setf (epg-context-pinentry-mode context) epa-pinentry-mode))
 ;;     (message "Signing keys...")
 ;;     (epg-sign-keys context keys local)
 ;;     (message "Signing keys...done")))
