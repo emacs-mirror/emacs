@@ -737,13 +737,13 @@ static Res VMArenaGrow(Arena arena, LocusPref pref, Size size)
     if (chunkSize < chunkMin)
       chunkSize = chunkMin;
     
+    res = ResRESOURCE;
     for(;; chunkSize = chunkHalf) {
       chunkHalf = chunkSize / 2;
       sliceSize = chunkHalf / fidelity;
       AVER(sliceSize > 0);
       
       /* remove slices, down to chunkHalf but no further */
-      res = ResRESOURCE;
       for(; chunkSize > chunkHalf; chunkSize -= sliceSize) {
         if(chunkSize < chunkMin) {
           EVENT2(vmArenaExtendFail, chunkMin,
