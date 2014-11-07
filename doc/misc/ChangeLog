@@ -1,3 +1,9 @@
+2014-11-07  Tassilo Horn  <tsdh@gnu.org>
+
+	* eww.texi (Advanced): Document increasing contrast with
+	shr-color-visible-distance-min and
+	shr-color-visible-luminance-min.
+
 2014-11-02  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* auth.texi (Help for users): Explain quoting rules better.
