@@ -157,7 +157,7 @@ encode_current_directory (void)
 		       BVAR (current_buffer, directory));
 
   /* Remove "/:" from dir.  */
-  if (Fstring_match (build_string ("^/:"), dir, Qnil))
+  if (! NILP (Fstring_match (build_string ("^/:"), dir, Qnil)))
     dir = Fsubstring (dir, make_number (2), Qnil);
 
   RETURN_UNGCPRO (dir);
