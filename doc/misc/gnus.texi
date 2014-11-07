@@ -11771,7 +11771,7 @@ Emacs' built-in, plain elisp Simple HTML Renderer @code{shr}
 article but tries to adjust them in order to be readable.  If you
 prefer more contrast, have a look at question 4.16 in the
 @xref{Frequently Asked Questions}.} which is also used by Emacs'
-browser EWW (@xref{Top,,,eww}).
+browser EWW (@pxref{EWW, ,EWW, emacs, The Emacs Manual}).
 
 If your Emacs copy lacks libxml2 support but you have @code{w3m}
 installed on your system, Gnus uses that to render @acronym{HTML} mail
