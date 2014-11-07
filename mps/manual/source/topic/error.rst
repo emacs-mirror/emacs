@@ -336,6 +336,8 @@ this documentation.
    single: error handling; varieties
    single: variety
 
+.. _topic-error-variety:
+   
 Varieties
 ---------
 
