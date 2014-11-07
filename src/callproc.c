@@ -152,9 +152,13 @@ encode_current_directory (void)
 
   if (STRING_MULTIBYTE (dir))
     dir = ENCODE_FILE (dir);
-  if (! file_accessible_directory_p (SSDATA (dir)))
+  if (NILP (Ffile_accessible_directory_p (dir)))
     report_file_error ("Setting current directory",
 		       BVAR (current_buffer, directory));
+
+  /* Remove "/:" from dir.  */
+  if (Fstring_match (build_string ("^/:"), dir, Qnil))
+    dir = Fsubstring (dir, make_number (2), Qnil);
 
   RETURN_UNGCPRO (dir);
 }

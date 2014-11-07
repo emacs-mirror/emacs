@@ -1,3 +1,8 @@
+2014-11-07  Michael Albinus  <michael.albinus@gmx.de>
+
+	* callproc.c (encode_current_directory): Support handling of file
+	names prepended by "/:".  (Bug#18891)
+
 2014-11-06  Alan Mackenzie  <acm@muc.de>
 
 	* syntax.c (back_comment): Fix off-by-one error (bug#18022).
