@@ -1,3 +1,9 @@
+2014-11-07  Tassilo Horn  <tsdh@gnu.org>
+
+	* eww.texi (Advanced): Document increasing contrast with
+	shr-color-visible-distance-min and
+	shr-color-visible-luminance-min.
+
 2014-10-31  Eric S. Raymond  <esr@thyrsus.com>
 
 	* efaq-w32.texi: Neutralized language specific to a repository type.
