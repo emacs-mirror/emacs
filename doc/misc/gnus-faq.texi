@@ -742,6 +742,7 @@ POP3 mail source.  See @pxref{Mail Source Specifiers} for VALUE.
 * FAQ 4-14::    I don't like the way the Summary buffer looks, how to
                 tweak it?
 * FAQ 4-15::    How to split incoming mails in several groups?
+* FAQ 4-16::    How can I ensure more contrast when viewing HTML mail?
 @end menu
 
 @node FAQ 4-1
@@ -1184,6 +1185,21 @@ from using them):
     ("Spam" "")))
 @end example
 @noindent
+
+@node FAQ 4-16
+@subsubheading Question 4.16
+
+How can I ensure more contrast when viewing HTML mail?
+
+@subsubheading Answer
+
+Gnus' built-in simple HTML renderer (you use it if the value of
+@code{mm-text-html-renderer} is @code{shr}) uses the colors which are
+declared in the HTML mail.  However, it adjusts them in order to
+prevent situations like dark gray text on black background.  In case
+the results still have a too low contrast for you, increase the values
+of the variables @code{shr-color-visible-distance-min} and
+@code{shr-color-visible-luminance-min}.
 
 @node FAQ 5 - Composing messages
 @subsection Composing messages

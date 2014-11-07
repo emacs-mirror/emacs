@@ -11761,20 +11761,31 @@ Also @pxref{MIME Commands}.
 @section @acronym{HTML}
 @cindex @acronym{HTML}
 
-If you have @code{w3m} installed on your system, Gnus can display
-@acronym{HTML} articles in the article buffer.  There are many Gnus
-add-ons for doing this, using various approaches, but there's one
-(sort of) built-in method that's used by default.
+Gnus can display @acronym{HTML} articles nicely formatted in the
+article buffer.  There are many methods for doing that, but two of
+them are kind of default methods.
 
-For a complete overview, consult @xref{Display Customization,
-,Display Customization, emacs-mime, The Emacs MIME Manual}.  This
-section only describes the default method.
+If your Emacs copy has been built with libxml2 support, then Gnus uses
+Emacs' built-in, plain elisp Simple HTML Renderer @code{shr}
+@footnote{@code{shr} displays colors as declared in the @acronym{HTML}
+article but tries to adjust them in order to be readable.  If you
+prefer more contrast, have a look at question 4.16 in the
+@xref{Frequently Asked Questions}.} which is also used by Emacs'
+browser EWW (@xref{Top,,,eww}).
+
+If your Emacs copy lacks libxml2 support but you have @code{w3m}
+installed on your system, Gnus uses that to render @acronym{HTML} mail
+and display the results in the article buffer (@code{gnus-w3m}).
+
+For a complete overview, consult @xref{Display Customization, ,Display
+Customization, emacs-mime, The Emacs MIME Manual}.  This section only
+describes the default method.
 
 @table @code
 @item mm-text-html-renderer
 @vindex mm-text-html-renderer
-If set to @code{gnus-article-html}, Gnus will use the built-in method,
-that's based on @code{w3m}.
+If set to @code{shr}, Gnus uses its own simple @acronym{HTML}
+renderer.  If set to @code{gnus-w3m}, it uses @code{w3m}.
 
 @item gnus-blocked-images
 @vindex gnus-blocked-images

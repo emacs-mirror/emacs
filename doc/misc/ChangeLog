@@ -1,5 +1,11 @@
 2014-11-07  Tassilo Horn  <tsdh@gnu.org>
 
+	* gnus.texi (HTML): Update section so that it mentions shr and w3m.
+	Also link the full EWW manual that explains more on shr, too.
+
+	* gnus-faq.texi (FAQ 4 - Reading messages, FAQ 4-16): Add Q&A on how to
+	increase contrast when displaying HTML mail with shr.
+
 	* eww.texi (Advanced): Document increasing contrast with
 	shr-color-visible-distance-min and
 	shr-color-visible-luminance-min.
