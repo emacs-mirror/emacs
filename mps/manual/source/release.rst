@@ -169,8 +169,8 @@ Other changes
    around 25% faster (in our benchmarks) than they were in release
    1.113.0.
 
-#. The default assertion handler in the ANSI plinth now flushes the
-   telemetry stream before aborting. See
+#. The default assertion handler in the default :term:`plinth` now
+   flushes the telemetry stream before aborting. See
    :c:func:`mps_lib_assert_fail`.
 
 
@@ -284,8 +284,8 @@ Interface changes
    along indefinitely.  See :ref:`topic-error-assertion-handling`.
 
 #. The behaviour when an assertion is triggered is now configurable in
-   the standard ANSI :term:`plinth` by installing an assertion
-   handler. See :c:func:`mps_lib_assert_fail_install`.
+   the default :term:`plinth` by installing an assertion handler. See
+   :c:func:`mps_lib_assert_fail_install`.
 
 #. Functions that take a variable number of arguments
    (:c:func:`mps_arena_create`, :c:func:`mps_pool_create`,
@@ -443,3 +443,74 @@ Other changes
    later. See job003473_.
 
    .. _job003473: https://www.ravenbrook.com/project/mps/issue/job003473/
+
+
+.. _release-notes-1.110:
+
+Release 1.110.0
+---------------
+
+New features
+............
+
+#. New supported platforms:
+
+   * ``fri6gc`` (FreeBSD, x86-64, GCC)
+   * ``lii6gc`` (Linux, x86-64, GCC)
+   * ``w3i6mv`` (Windows, x86-64, Microsoft Visual C)
+   * ``xci3ll`` (OS X, IA-32, Clang/LLVM)
+   * ``xci6gc`` (OS X, x86-64, GCC)
+   * ``xci6ll`` (OS X, x86-64, Clang/LLVM)
+
+#. Support removed for platforms:
+
+   * ``iam4cc`` (Irix 6, MIPS R4000, MIPSpro C)
+   * ``lii3eg`` (Linux, IA-32, EGCS)
+   * ``lippgc`` (Linux, PowerPC, GCC)
+   * ``o1alcc`` (OSF/1, Alpha, Digital C)
+   * ``o1algc`` (OSF/1, Alpha, GCC)
+   * ``s7ppmw`` (System 7, PowerPC, MetroWerks C)
+   * ``sos8gc`` (Solaris, SPARC 8, GCC)
+   * ``sos9sc`` (Solaris, SPARC 9, SunPro C)
+   * ``sus8gc`` (SunOS, SPARC 8, GCC)
+   * ``xcppgc`` (OS X, PowerPC, GCC)
+
+#. On Unix platforms, the MPS can now be built and installed by
+   running ``./configure && make install``. See :ref:`guide-build`.
+
+#. The MPS can be compiled in a single step via the new source file
+   ``mps.c``. This also allows you to compile the MPS in the same
+   compilation unit as your object format, allowing the compiler to
+   perform global optimizations between the two. See
+   :ref:`guide-build`.
+
+#. The set of build varieties has been reduced to three: the
+   :term:`cool` variety for development and debugging, the :term:`hot`
+   variety for production, and the :term:`rash` variety for people who
+   like to live dangerously. See :ref:`topic-error-variety`.
+
+#. The environment variable :envvar:`MPS_TELEMETRY_CONTROL` can now be
+   set to a space-separated list of event kinds. See
+   :ref:`topic-telemetry`.
+
+#. Telemetry output is now emitted to the file named by the
+   environment variable :envvar:`MPS_TELEMETRY_FILENAME`, if it is
+   set. See :ref:`topic-telemetry`.
+
+
+Interface changes
+.................
+
+#. Deprecated constants ``MPS_MESSAGE_TYPE_FINALIZATION``,
+   ``MPS_MESSAGE_TYPE_GC`` and ``MPS_MESSAGE_TYPE_GC_START`` have been
+   removed. Use :c:func:`mps_message_type_finalization`,
+   :c:func:`mps_message_type_gc` and
+   :c:func:`mps_message_type_gc_start` instead.
+
+#. Deprecated constants ``MPS_RANK_AMBIG``, ``MPS_RANK_EXACT`` and
+   ``MPS_RANK_WEAK`` have been removed. Use :c:func:`mps_rank_ambig`,
+   :c:func:`mps_rank_exact` and :c:func:`mps_rank_weak` instead.
+
+#. Deprecated functions with names starting ``mps_space_`` have been
+   removed. Use the functions with names starting ``mps_arena_``
+   instead.
