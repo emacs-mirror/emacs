@@ -1,3 +1,9 @@
+2014-11-07  Michael Albinus  <michael.albinus@gmx.de>
+
+	* files.el (file-name-non-special): Wrap the call of
+	`insert-file-contents' by `unwind-protect', in order to set the
+	buffer's file name anyway.  (Bug#18891)
+
 2014-11-07  Daiki Ueno  <ueno@gnu.org>
 
 	* epg.el (epg--list-keys-1): Ignore fields after the 15th field

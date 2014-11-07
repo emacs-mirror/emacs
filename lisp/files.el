@@ -6664,7 +6664,7 @@ only these files will be asked to be saved."
       (`add (concat "/:" (apply operation arguments)))
       (`insert-file-contents
        (let ((visit (nth 1 arguments)))
-         (prog1
+         (unwind-protect
              (apply operation arguments)
            (when (and visit buffer-file-name)
              (setq buffer-file-name (concat "/:" buffer-file-name))))))
