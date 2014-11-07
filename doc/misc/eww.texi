@@ -198,11 +198,11 @@ specific images completely by customizing @code{shr-blocked-images}.
 @vindex shr-color-visible-distance-min
 @vindex shr-color-visible-luminance-min
 @cindex Contrast
-  EWW (or rather its HTML renderer @code{shr}) use the colors declared
-in the HTML page but adjust them if needed to keep a certain minimum
-contrast.  If that is still to low for you, have a look at the
+  EWW (or rather its HTML renderer @code{shr}) uses the colors declared
+in the HTML page, but adjusts them if needed to keep a certain minimum
+contrast.  If that is still too low for you, you can customize the
 variables @code{shr-color-visible-distance-min} and
-@code{shr-color-visible-luminance-min}.
+@code{shr-color-visible-luminance-min} to get a better contrast.
 
 @node History and Acknowledgments
 @appendix History and Acknowledgments
