@@ -94,10 +94,12 @@ static void report(mps_arena_t arena)
 
 static mps_addr_t make(size_t rootsCount)
 {
+  static unsigned long calls = 0;
   size_t length = rnd() % (scale * avLEN);
   size_t size = (length+2) * sizeof(mps_word_t);
   mps_addr_t p;
   mps_res_t res;
+  ++ calls;
 
   do {
     MPS_RESERVE_BLOCK(res, p, ap, size);
