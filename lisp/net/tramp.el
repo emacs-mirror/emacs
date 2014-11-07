@@ -3919,7 +3919,8 @@ be granted."
 		  (tramp-file-name-method vec)
 		  (tramp-file-name-user vec)
 		  (tramp-file-name-host vec)
-		  (tramp-file-name-localname vec))
+		  (tramp-file-name-localname vec)
+		  (tramp-file-name-hop vec))
 		 (intern suffix))))
               (remote-uid
                (tramp-get-connection-property
