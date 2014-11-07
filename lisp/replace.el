@@ -56,8 +56,8 @@ See `query-replace-from-history-variable' and
 
 (defvar query-replace-defaults nil
   "Default values of FROM-STRING and TO-STRING for `query-replace'.
-This is a cons cell (FROM-STRING . TO-STRING), or nil if there is
-no default value.")
+This is a list of cons cells (FROM-STRING . TO-STRING), or nil
+if there are no default values.")
 
 (defvar query-replace-interactive nil
   "Non-nil means `query-replace' uses the last search string.
@@ -66,6 +66,12 @@ That becomes the \"string to replace\".")
 			"use `M-n' to pull the last incremental search string
 to the minibuffer that reads the string to replace, or invoke replacements
 from Isearch by using a key sequence like `C-s C-s M-%'." "24.3")
+
+(defvar query-replace-from-to-separator
+  (propertize "\0"
+	      'display (propertize " \u2192 " 'face 'minibuffer-prompt)
+	      'separator t)
+  "String that separates FROM and TO in the history of replacement pairs.")
 
 (defcustom query-replace-from-history-variable 'query-replace-history
   "History list to use for the FROM argument of `query-replace' commands.
@@ -132,11 +138,19 @@ wants to replace FROM with TO."
   (if query-replace-interactive
       (car (if regexp-flag regexp-search-ring search-ring))
     (let* ((history-add-new-input nil)
+	   (query-replace-from-to-history
+	    (append
+	     (when query-replace-from-to-separator
+	       (mapcar (lambda (from-to)
+			 (concat (query-replace-descr (car from-to))
+				 query-replace-from-to-separator
+				 (query-replace-descr (cdr from-to))))
+		       query-replace-defaults))
+	     (symbol-value query-replace-from-history-variable)))
+	   (minibuffer-allow-text-properties t) ; separator uses text-properties
 	   (prompt
-	    (if query-replace-defaults
-		(format "%s (default %s -> %s): " prompt
-			(query-replace-descr (car query-replace-defaults))
-			(query-replace-descr (cdr query-replace-defaults)))
+	    (if (and query-replace-defaults query-replace-from-to-separator)
+		(format "%s (default %s): " prompt (car query-replace-from-to-history))
 	      (format "%s: " prompt)))
 	   (from
 	    ;; The save-excursion here is in case the user marks and copies
@@ -144,26 +158,36 @@ wants to replace FROM with TO."
 	    ;; That should not clobber the region for the query-replace itself.
 	    (save-excursion
 	      (if regexp-flag
-		  (read-regexp prompt nil query-replace-from-history-variable)
+		  (read-regexp prompt nil 'query-replace-from-to-history)
 		(read-from-minibuffer
-		 prompt nil nil nil query-replace-from-history-variable
+		 prompt nil nil nil 'query-replace-from-to-history
 		 (car (if regexp-flag regexp-search-ring search-ring)) t)))))
       (if (and (zerop (length from)) query-replace-defaults)
-	  (cons (car query-replace-defaults)
+	  (cons (caar query-replace-defaults)
 		(query-replace-compile-replacement
-		 (cdr query-replace-defaults) regexp-flag))
-	(add-to-history query-replace-from-history-variable from nil t)
-	;; Warn if user types \n or \t, but don't reject the input.
-	(and regexp-flag
-	     (string-match "\\(\\`\\|[^\\]\\)\\(\\\\\\\\\\)*\\(\\\\[nt]\\)" from)
-	     (let ((match (match-string 3 from)))
-	       (cond
-		((string= match "\\n")
-		 (message "Note: `\\n' here doesn't match a newline; to do that, type C-q C-j instead"))
-		((string= match "\\t")
-		 (message "Note: `\\t' here doesn't match a tab; to do that, just type TAB")))
-	       (sit-for 2)))
-	from))))
+		 (cdar query-replace-defaults) regexp-flag))
+	(let* ((to (if (and (string-match query-replace-from-to-separator from)
+			    (get-text-property (match-beginning 0) 'separator from))
+		       (query-replace-compile-replacement
+			(substring-no-properties from (match-end 0)) regexp-flag)))
+	       (from (if to (substring-no-properties from 0 (match-beginning 0))
+		       (substring-no-properties from))))
+	  (add-to-history query-replace-from-history-variable from nil t)
+	  ;; Warn if user types \n or \t, but don't reject the input.
+	  (and regexp-flag
+	       (string-match "\\(\\`\\|[^\\]\\)\\(\\\\\\\\\\)*\\(\\\\[nt]\\)" from)
+	       (let ((match (match-string 3 from)))
+		 (cond
+		  ((string= match "\\n")
+		   (message "Note: `\\n' here doesn't match a newline; to do that, type C-q C-j instead"))
+		  ((string= match "\\t")
+		   (message "Note: `\\t' here doesn't match a tab; to do that, just type TAB")))
+		 (sit-for 2)))
+	  (if (not to)
+	      from
+	    (add-to-history query-replace-to-history-variable to nil t)
+	    (add-to-history 'query-replace-defaults (cons from to) nil t)
+	    (cons from to)))))))
 
 (defun query-replace-compile-replacement (to regexp-flag)
   "Maybe convert a regexp replacement TO to Lisp.
@@ -216,7 +240,7 @@ the original string if not."
 		 nil nil nil
 		 query-replace-to-history-variable from t)))
        (add-to-history query-replace-to-history-variable to nil t)
-       (setq query-replace-defaults (cons from to))
+       (add-to-history 'query-replace-defaults (cons from to) nil t)
        to))
    regexp-flag))
 
@@ -421,7 +445,7 @@ for Lisp calls." "22.1"))
 	     ;; Let-bind the history var to disable the "foo -> bar"
 	     ;; default.  Maybe we shouldn't disable this default, but
 	     ;; for now I'll leave it off.  --Stef
-	     (let ((query-replace-to-history-variable nil))
+	     (let ((query-replace-defaults nil))
 	       (query-replace-read-from "Query replace regexp" t)))
 	    (to (list (read-from-minibuffer
 		       (format "Query replace regexp %s with eval: "

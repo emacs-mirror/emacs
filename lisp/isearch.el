@@ -2873,8 +2873,12 @@ since they have special meaning in a regexp."
 
 (defun isearch-text-char-description (c)
   (cond
-   ((< c ?\s) (propertize (format "^%c" (+ c 64)) 'face 'escape-glyph))
-   ((= c ?\^?) (propertize "^?" 'face 'escape-glyph))
+   ((< c ?\s) (propertize
+	       (char-to-string c)
+	       'display (propertize (format "^%c" (+ c 64)) 'face 'escape-glyph)))
+   ((= c ?\^?) (propertize
+		(char-to-string c)
+		'display (propertize "^?" 'face 'escape-glyph)))
    (t (char-to-string c))))
 
 ;; General function to unread characters or events.

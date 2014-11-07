@@ -1,3 +1,21 @@
+2014-11-07  Juri Linkov  <juri@jurta.org>
+
+	* replace.el: History for query replace pairs.
+	(query-replace-defaults): Promote to a list of cons cell.  Doc fix.
+	(query-replace-from-to-separator): New variable.
+	(query-replace-read-from): Let-bind query-replace-from-to-history
+	to a list of FROM-TO strings created from query-replace-defaults
+	and separated by query-replace-from-to-separator.  Use it as
+	the history while reading from the minibuffer.  Split the returned
+	string by the separator to get FROM and TO parts, and add them
+	to the history variables.
+	(query-replace-read-to): Add FROM-TO pairs to query-replace-defaults.
+	(query-replace-regexp-eval): Let-bind query-replace-defaults to nil.
+	http://lists.gnu.org/archive/html/emacs-devel/2014-11/msg00253.html
+
+	* isearch.el (isearch-text-char-description): Keep characters
+	intact and put formatted strings with the `display' property.
+
 2014-11-07  Martin Rudalics  <rudalics@gmx.at>
 
 	* cus-start.el (frame-resize-pixelwise): Fix group.
