@@ -1910,8 +1910,9 @@ This function is for internal use only."
 	      string (match-string 0)
 	      index 0
 	      field 0)
-	(while (eq index
-		   (string-match "\\([^:]+\\)?:" string index))
+	(while (and (< field (length (car keys)))
+		    (eq index
+			(string-match "\\([^:]+\\)?:" string index)))
 	  (setq index (match-end 0))
 	  (aset (car keys) field (match-string 1 string))
 	  (setq field (1+ field))))
