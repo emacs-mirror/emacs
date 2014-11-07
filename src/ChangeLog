@@ -1,3 +1,12 @@
+2014-11-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Uniquify the 'size' symbol.
+	* frame.c (Qsize):
+	* w32notify.c (Qsize): Remove.
+	* lisp.h (Qsize): New decl.
+	* lread.c (Qsize): Now extern.
+	* w32notify.c (syms_of_w32notify): No need to defsym.
+
 2014-11-07  Martin Rudalics  <rudalics@gmx.at>
 
 	* dispnew.c (change_frame_size_1): Fix call of

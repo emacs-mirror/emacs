@@ -66,7 +66,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Hash table read constants.  */
 static Lisp_Object Qhash_table, Qdata;
-static Lisp_Object Qtest, Qsize;
+static Lisp_Object Qtest;
+Lisp_Object Qsize;
 static Lisp_Object Qweakness;
 static Lisp_Object Qrehash_size;
 static Lisp_Object Qrehash_threshold;

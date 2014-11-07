@@ -3863,7 +3863,7 @@ extern ptrdiff_t evxprintf (char **, ptrdiff_t *, char const *, ptrdiff_t,
   ATTRIBUTE_FORMAT_PRINTF (5, 0);
 
 /* Defined in lread.c.  */
-extern Lisp_Object Qvariable_documentation, Qstandard_input;
+extern Lisp_Object Qsize, Qvariable_documentation, Qstandard_input;
 extern Lisp_Object Qbackquote, Qcomma, Qcomma_at, Qcomma_dot, Qfunction;
 extern Lisp_Object Qlexical_binding;
 extern Lisp_Object check_obarray (Lisp_Object);

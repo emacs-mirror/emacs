@@ -77,7 +77,7 @@ Lisp_Object Qterminal;
 Lisp_Object Qauto_raise, Qauto_lower;
 Lisp_Object Qborder_color, Qborder_width;
 Lisp_Object Qcursor_color, Qcursor_type;
-Lisp_Object Qheight, Qwidth, Qsize;
+Lisp_Object Qheight, Qwidth;
 Lisp_Object Qicon_left, Qicon_top, Qicon_type, Qicon_name;
 Lisp_Object Qtooltip;
 Lisp_Object Qinternal_border_width;

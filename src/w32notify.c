@@ -118,7 +118,7 @@ BYTE file_notifications[16384];
 DWORD notifications_size;
 void *notifications_desc;
 
-static Lisp_Object Qfile_name, Qdirectory_name, Qattributes, Qsize;
+static Lisp_Object Qfile_name, Qdirectory_name, Qattributes;
 static Lisp_Object Qlast_write_time, Qlast_access_time, Qcreation_time;
 static Lisp_Object Qsecurity_desc, Qsubtree, watch_list;
 
@@ -642,7 +642,6 @@ syms_of_w32notify (void)
   DEFSYM (Qfile_name, "file-name");
   DEFSYM (Qdirectory_name, "directory-name");
   DEFSYM (Qattributes, "attributes");
-  DEFSYM (Qsize, "size");
   DEFSYM (Qlast_write_time, "last-write-time");
   DEFSYM (Qlast_access_time, "last-access-time");
   DEFSYM (Qcreation_time, "creation-time");
