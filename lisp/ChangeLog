@@ -1,3 +1,10 @@
+2014-11-08  Richard Stallman  <rms@gnu.org>
+
+	* mail/rmail.el (rmail-epa-decrypt): Detect armor with line prefixes.
+	Check more carefully for mime-part specified character set.
+	Check for mime-part Content Transfer Encoding.
+	Notify if no armor found.
+
 2014-11-08  Martin Rudalics  <rudalics@gmx.at>
 
 	* faces.el (face-set-after-frame-default): Enable running

@@ -4512,11 +4512,11 @@ encoded string (and the same mask) will decode the string."
   ;; change it in one of the calls to `epa-decrypt-region'.
 
   (save-excursion
-    (let (decrypts)
+    (let (decrypts (mime (rmail-mime-message-p)))
       (goto-char (point-min))
 
       ;; Turn off mime processing.
-      (when (and (rmail-mime-message-p)
+      (when (and mime
 		 (not (get-text-property (point-min) 'rmail-mime-hidden)))
 	(rmail-mime))
 
@@ -4525,10 +4525,19 @@ encoded string (and the same mask) will decode the string."
       (goto-char (point-min))
       (while (re-search-forward "-----BEGIN PGP MESSAGE-----$" nil t)
 	(let ((coding-system-for-read coding-system-for-read)
-	      armor-start armor-end after-end)
+	      (case-fold-search t)
+	      unquote
+	      armor-start armor-prefix armor-end after-end)
+
 	  (setq armor-start (match-beginning 0)
-		armor-end (re-search-forward "^-----END PGP MESSAGE-----$"
-					     nil t))
+		armor-prefix (buffer-substring
+			      (line-beginning-position)
+			      armor-start)
+		armor-end (re-search-forward
+			   (concat "^"
+				   armor-prefix
+				   "-----END PGP MESSAGE-----$")
+			   nil t))
 	  (unless armor-end
 	    (error "Encryption armor beginning has no matching end"))
 	  (goto-char armor-start)
@@ -4536,29 +4545,48 @@ encoded string (and the same mask) will decode the string."
 	  ;; Because epa--find-coding-system-for-mime-charset not autoloaded.
 	  (require 'epa)
 
-	  ;; Use the charset specified in the armor.
-	  (unless coding-system-for-read
-	    (if (re-search-forward "^Charset: \\(.*\\)" armor-end t)
-		(setq coding-system-for-read
-		      (epa--find-coding-system-for-mime-charset
-		       (intern (downcase (match-string 1)))))))
-
 	  ;; Advance over this armor.
 	  (goto-char armor-end)
 	  (setq after-end (- (point-max) armor-end))
 
+	  (when mime
+	    (save-excursion
+	      (goto-char armor-start)
+	      (re-search-backward "^--" nil t)
+	      (save-restriction
+		(narrow-to-region (point) armor-start)
+
+		;; Use the charset specified in the armor.
+		(unless coding-system-for-read
+		  (if (re-search-forward "^Charset: \\(.*\\)" nil t)
+		      (setq coding-system-for-read
+			    (epa--find-coding-system-for-mime-charset
+			     (intern (downcase (match-string 1)))))))
+
+		(goto-char (point-min))
+		(if (re-search-forward "^[ \t]*Content-transfer-encoding[ \t]*:[ \t]*quoted-printable[ \t]*$" nil t)
+		    (setq unquote t)))))
+
+	  (when unquote
+	    (let ((inhibit-read-only t))
+	      (mail-unquote-printable-region armor-start
+					     (- (point-max) after-end))))
+
 	  ;; Decrypt it, maybe in place, maybe making new buffer.
 	  (epa-decrypt-region
-	   armor-start armor-end
+	   armor-start (- (point-max) after-end)
 	   ;; Call back this function to prepare the output.
 	   (lambda ()
 	     (let ((inhibit-read-only t))
-	       (delete-region armor-start armor-end)
+	       (delete-region armor-start (- (point-max) after-end))
 	       (goto-char armor-start)
 	       (current-buffer))))
 
 	  (push (list armor-start (- (point-max) after-end))
 		decrypts)))
+
+      (unless decrypts
+	(error "Nothing to decrypt"))
 
       (when (and decrypts (rmail-buffers-swapped-p))
 	(when (y-or-n-p "Replace the original message? ")
