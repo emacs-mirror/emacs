@@ -1,3 +1,10 @@
+2014-11-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el (byte-compile-initial-macro-environment):
+	Don't compile before eval in `eval-and-compile'.
+	(byte-compile-arglist-warn): Add check for defining macros after their
+	first use.  Check call use even if the function is fboundp.
+
 2014-11-08  Richard Stallman  <rms@gnu.org>
 
 	* mail/rmail.el (rmail-epa-decrypt): Detect armor with line prefixes.

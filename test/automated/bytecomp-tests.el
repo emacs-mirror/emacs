@@ -316,12 +316,12 @@ Subtests signal errors if something goes wrong."
            (with-temp-buffer
              (dolist (form forms)
                (print form (current-buffer)))
-             (write-region (point-min) (point-max) elfile))
+             (write-region (point-min) (point-max) elfile nil 'silent))
            (if compile
                (let ((byte-compile-dest-file-function
                       (lambda (e) elcfile)))
                  (byte-compile-file elfile t))
-             (load elfile)))
+             (load elfile nil 'nomessage)))
       (when elfile (delete-file elfile))
       (when elcfile (delete-file elcfile)))))
 (put 'test-byte-comp-compile-and-load 'lisp-indent-function 1)
@@ -359,6 +359,28 @@ Subtests signal errors if something goes wrong."
       (defmacro m () 5)
       (defun def () (m))))
   (should (equal (funcall 'def) 4)))
+
+(ert-deftest bytecomp-tests--warnings ()
+  (with-current-buffer (get-buffer-create "*Compile-Log*")
+    (let ((inhibit-read-only t)) (erase-buffer)))
+  (test-byte-comp-compile-and-load t
+    '(progn
+       (defun my-test0 ()
+         (my--test11 3)
+         (my--test12 3)
+         (my--test2 5))
+       (defmacro my--test11 (arg) (+ arg 1))
+       (eval-and-compile
+         (defmacro my--test12 (arg) (+ arg 1))
+         (defun my--test2 (arg) (+ arg 1)))))
+  (with-current-buffer (get-buffer-create "*Compile-Log*")
+    (goto-char (point-min))
+    ;; Should warn that mt--test1[12] are first used as functions.
+    (should (re-search-forward "my--test11:\n.*macro" nil t))
+    (should (re-search-forward "my--test12:\n.*macro" nil t))
+    (goto-char (point-min))
+    ;; Should not warn that mt--test2 is not known to be defined.
+    (should-not (re-search-forward "my--test2" nil t))))
 
 (ert-deftest test-eager-load-macro-expansion ()
   (test-byte-comp-compile-and-load nil
