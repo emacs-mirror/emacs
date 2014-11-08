@@ -1,6 +1,5 @@
 #!/bin/bash
-# Take a list of MSYS-compatible paths and convert them to native
-# MS-Windows format.
+# Convert a MSYS path list to Windows-native format.
 # Status is zero if successful, nonzero otherwise.
 
 # Copyright (C) 2013-2014 Free Software Foundation, Inc.
@@ -38,9 +37,9 @@ written to the standard output after performing these transformations:
 Relative paths or paths starting with '%emacs_dir%' will be passed
 verbatim to the standard output.
 
-Each non existing absolute paths will be translated by looking for its
+Each non existing absolute path will be translated by looking for its
 deepest existing directory, which will be translated and the remainder
-will be appended.
+appended.
 
 Options:
   --help     display this help and exit
