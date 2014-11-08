@@ -323,14 +323,6 @@ epaths-force:
 	  -e 's;\(#.*PATH_DOC\).*$$;\1 "${etcdocdir}";') &&		\
 	${srcdir}/build-aux/move-if-change epaths.h.$$$$ src/epaths.h
 
-# Replace "${w32prefix}" with '%emacs_dir%' (which expands to install
-# directory at runtime).
-msys_w32prefix_subst=sed -e 's!\(^\|;\)'"$${w32prefixpattern}"'\([;/]\|$$\)!\1%emacs_dir%\2!g'
-
-# Quote Sed special characters (except backslash and newline) with
-# a double backslash.
-msys_sed_sh_escape=sed -e 's/[];$$*.^[]/\\\\&/g'
-
 # The w32 build needs a slightly different editing, and it uses
 # nt/epaths.nt as the template.
 #
@@ -344,8 +336,8 @@ msys_sed_sh_escape=sed -e 's/[];$$*.^[]/\\\\&/g'
 epaths-force-w32:
 	@(w32srcdir=`${srcdir}/build-aux/msys-to-w32 "${srcdir}"`; \
 	  w32prefix=`${srcdir}/build-aux/msys-to-w32 "${prefix}"`; \
-	  w32prefixpattern=`echo "$${w32prefix}" | ${msys_sed_sh_escape}` ; \
-	  w32locallisppath=`${srcdir}/build-aux/msys-to-w32 "${locallisppath}" | ${msys_w32prefix_subst}` ; \
+	  w32locallisppath=`${srcdir}/build-aux/msys-to-w32 "${locallisppath}"` ; \
+	  w32locallisppath=$${w32locallisppath//$${w32prefix}/"%emacs_dir%"} ; \
 	  sed < ${srcdir}/nt/epaths.nt > epaths.h.$$$$		\
 	  -e 's;\(#.*PATH_SITELOADSEARCH\).*$$;\1 "'"$${w32locallisppath//;/\\;}"'";' \
 	  -e '/^.*#/s/@VER@/${version}/g' 			\

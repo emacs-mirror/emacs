@@ -2,7 +2,11 @@
 
 	* build-aux/msys-to-w32: simplify the initial over-engineered
 	interface, and the implementation.
-	* Makefile.in (epaths-force-w32): Update for the above.
+	* Makefile.in (epaths-force-w32): Update for the above.  Also
+	simplify, assuming that the shell is bash (which is the case in
+	MSYS).
+	(msys_w32prefix_subst, msys_sed_sh_escape): Remove (no longer
+	used).
 
 2014-11-05  Glenn Morris  <rgm@gnu.org>
 
