@@ -1,3 +1,18 @@
+2014-11-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	Backport Tramp changes from trunk.
+
+	* tramp.texi (Inline methods): Remove restriction on "telnet".
+	Recommend sharing ssh connections for "plink".
+	(External methods): Remove "sftp".  Merge "pscp" and "psftp"
+	descriptions.  Recommend sharing ssh connections.  Add "nc" method.
+	(GVFS based methods): Add "sftp".
+	(Customizing Completion, External packages, Issues): Use @dots{}.
+	(Remote shell setup): Explain, how to change command line
+	arguments of remote "nc" listener.
+
+	* trampver.texi: Update release number.
+
 2014-11-07  Tassilo Horn  <tsdh@gnu.org>
 
 	* eww.texi (Advanced): Document increasing contrast with
