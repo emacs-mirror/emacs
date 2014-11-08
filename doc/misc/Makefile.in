@@ -176,12 +176,12 @@ $(buildinfodir)/semantic.info semantic.dvi semantic.pdf semantic.html: ${srcdir}
 
 
 ## Please can we just rename cc-mode.texi to ccmode.texi...
-${buildinfodir}/ccmode.info: ${srcdir}/cc-mode.texi ${gfdl}
+${buildinfodir}/ccmode.info: ${srcdir}/cc-mode.texi ${gfdl} | ${buildinfodir}
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ $<
 
 ## efaq, efaq_w32 do not depend on gfdl.
 ## Maybe we can use .SECONDEXPANSION for this.
-${buildinfodir}/efaq%.info: ${srcdir}/efaq%.texi
+${buildinfodir}/efaq%.info: ${srcdir}/efaq%.texi | ${buildinfodir}
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ $<
 
 efaq%.dvi: ${srcdir}/efaq%.texi

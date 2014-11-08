@@ -1,3 +1,8 @@
+2014-11-08  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (${buildinfodir}/ccmode.info)
+	(${buildinfodir}/efaq%.info): Ensure output directory exists.
+
 2014-11-07  Tassilo Horn  <tsdh@gnu.org>
 
 	* gnus.texi (HTML): Update section so that it mentions shr and w3m.
