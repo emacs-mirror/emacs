@@ -3077,12 +3077,14 @@ the use of a shell (with its need to quote arguments)."
 		    ;; If will create a new buffer, query first.
 		    (if (yes-or-no-p "A command is running in the default buffer.  Use a new buffer? ")
 			(setq buffer (generate-new-buffer
-				      (or output-buffer "*Async Shell Command*")))
+				      (or (and (bufferp output-buffer) (buffer-name output-buffer))
+					  output-buffer "*Async Shell Command*")))
 		      (error "Shell command in progress")))
 		   ((eq async-shell-command-buffer 'new-buffer)
 		    ;; It will create a new buffer.
 		    (setq buffer (generate-new-buffer
-				  (or output-buffer "*Async Shell Command*"))))
+				  (or (and (bufferp output-buffer) (buffer-name output-buffer))
+				      output-buffer "*Async Shell Command*"))))
 		   ((eq async-shell-command-buffer 'confirm-rename-buffer)
 		    ;; If will rename the buffer, query first.
 		    (if (yes-or-no-p "A command is running in the default buffer.  Rename it? ")
