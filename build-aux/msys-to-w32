@@ -1,5 +1,5 @@
 #!/bin/bash
-# Convert a MSYS path list to absolute, Windows-native format.
+# Convert a MSYS path list to Windows-native format.
 # Status is zero if successful, nonzero otherwise.
 
 # Copyright (C) 2013-2014 Free Software Foundation, Inc.
@@ -25,20 +25,20 @@ usage="usage: ${me} PATHLIST"
 help="$usage
   or:  ${me} OPTION
 
-Convert a MSYS path list to absolute, Windows-native format.
+Convert a MSYS path list to Windows-native format.
 
 PATHLIST should be a colon-separated list of MSYS paths, which will be
 written to the standard output after performing these transformations:
 
 1. Discard empty paths.
 2. Replace: '\' with '/', '//' with '/' and ':' with ';'.
-3. Translate each path to absolute, Windows-native format.
+3. Translate each path to Windows-native format.
 
-Paths starting with '%emacs_dir%' will be passed verbatim to the
-standard output.
+Relative paths or paths starting with '%emacs_dir%' will be passed
+verbatim to the standard output.
 
-Each non existing path will be translated by looking for its deepest
-existing directory, which will be translated and the remainder
+Each non existing absolute path will be translated by looking for its
+deepest existing directory, which will be translated and the remainder
 appended.
 
 Options:
@@ -81,6 +81,9 @@ do
     if [ "${p:0:11}" = "%emacs_dir%" ]
     then
 	w32p=$p
+    elif [ "${p:0:1}" != "/" ]
+    then
+	w32p=$p
     elif [ -d "$p" ]
     then
 	w32p=$(cd "$p" && pwd -W)
@@ -92,23 +95,17 @@ do
 	p=${p//\/\///}
 	p=${p%/}
 
-	p1=$p # last candidate tried
+	p1=$p
 	while :
 	do
-	    p2=${p1%/*} # next candidate to try
-	    [ "$p2" = "$p1" ] && {
-		# No more candidates to try
-		echo "Invalid path '$p'." >&2
-		exit 1
-	    }
-	    [ -z "$p2" ] && p2="/" && break
-	    [ -d "$p2" ] && break
-	    p1=$p2
+	    p1=${p1%/*}
+	    [ -z "$p1" ] && p1="/" && break
+	    [ -d "$p1" ] && break
 	done
 
 	# translate the existing part and append the rest
-	w32p=$(cd "${p2}" && pwd -W)
-	remainder=${p#$p2}
+	w32p=$(cd "${p1}" && pwd -W)
+	remainder=${p#$p1}
 	w32p+=/${remainder#/}
     fi
 
