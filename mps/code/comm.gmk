@@ -313,7 +313,7 @@ all: $(ALL_TARGETS)
 TEST_SUITES=testrun testci testall testansi testpollnone
 
 $(addprefix $(PFM)/$(VARIETY)/,$(TEST_SUITES)): $(TEST_TARGETS)
-	../tool/testrun.sh "$(PFM)/$(VARIETY)" "$(notdir $@)"
+	../tool/testrun.sh -s "$(notdir $@)" "$(PFM)/$(VARIETY)"
 
 
 # These convenience targets allow one to type "make foo" to build target
