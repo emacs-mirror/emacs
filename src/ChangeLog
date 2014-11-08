@@ -3,6 +3,8 @@
 	* nsterm.m (init): Replace OSX 10.9 check with IMPL_COCOA.
 	(run): Ditto.  Only use non-system event loop if OSX version is
 	exactly 10.9 (Bug#18993).
+	(ns_set_vertical_scroll_bar): Don't call bar setPosition: unless
+	needed (Bug#18757).
 
 2014-11-07  Michael Albinus  <michael.albinus@gmx.de>
 
