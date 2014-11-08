@@ -321,7 +321,7 @@ With prefix argument, don't jump to global mark when canceling it."
 (defun cua-cancel-global-mark ()
   "Cancel the global mark."
   (interactive)
-  (if mark-active
+  (if (region-active-p)
       (cua-cancel)
     (if (cua--global-mark-active)
 	(cua--deactivate-global-mark t)))

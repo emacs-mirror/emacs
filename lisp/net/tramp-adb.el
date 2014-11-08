@@ -316,17 +316,18 @@ pass to the OPERATION."
 (defun tramp-adb-handle-file-attributes (filename &optional id-format)
   "Like `file-attributes' for Tramp files."
   (unless id-format (setq id-format 'integer))
-  (with-parsed-tramp-file-name filename nil
-    (with-tramp-file-property
-	v localname (format "file-attributes-%s" id-format)
-      (and
-       (tramp-adb-send-command-and-check
-	v (format "%s -d -l %s"
-		  (tramp-adb-get-ls-command v)
-		  (tramp-shell-quote-argument localname)))
-       (with-current-buffer (tramp-get-buffer v)
-	 (tramp-adb-sh-fix-ls-output)
-	 (cdar (tramp-do-parse-file-attributes-with-ls v id-format)))))))
+  (ignore-errors
+    (with-parsed-tramp-file-name filename nil
+      (with-tramp-file-property
+	  v localname (format "file-attributes-%s" id-format)
+	(and
+	 (tramp-adb-send-command-and-check
+	  v (format "%s -d -l %s"
+		    (tramp-adb-get-ls-command v)
+		    (tramp-shell-quote-argument localname)))
+	 (with-current-buffer (tramp-get-buffer v)
+	   (tramp-adb-sh-fix-ls-output)
+	   (cdar (tramp-do-parse-file-attributes-with-ls v id-format))))))))
 
 (defun tramp-do-parse-file-attributes-with-ls (vec &optional id-format)
   "Parse `file-attributes' for Tramp files using the ls(1) command."

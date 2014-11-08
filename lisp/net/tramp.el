@@ -1604,7 +1604,9 @@ an input event arrives.  The other arguments are passed to `tramp-error'."
 	(when (and buf
 		   tramp-message-show-message
 		   (not (zerop tramp-verbose))
-		   (not (tramp-completion-mode-p)))
+		   (not (tramp-completion-mode-p))
+		   ;; Show only when Emacs has started already.
+		   (current-message))
 	  (let ((enable-recursive-minibuffers t))
 	    ;; `tramp-error' does not show messages.  So we must do it
 	    ;; ourselves.
@@ -3917,7 +3919,8 @@ be granted."
 		  (tramp-file-name-method vec)
 		  (tramp-file-name-user vec)
 		  (tramp-file-name-host vec)
-		  (tramp-file-name-localname vec))
+		  (tramp-file-name-localname vec)
+		  (tramp-file-name-hop vec))
 		 (intern suffix))))
               (remote-uid
                (tramp-get-connection-property

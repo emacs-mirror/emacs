@@ -1,3 +1,39 @@
+2014-11-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-check-cached-permissions): Include hop in
+	the constructed Tramp file name.  (Bug#18943)
+
+2014-11-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emulation/cua-base.el (cua--select-keymaps): Use region-active-p
+	(bug#18952).
+	(cua-set-mark, cua--post-command-handler-1):
+	* emulation/cua-gmrk.el (cua-cancel-global-mark): Same.
+
+2014-11-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	* files.el (file-name-non-special): Wrap the call of
+	`insert-file-contents' by `unwind-protect', in order to set the
+	buffer's file name anyway.  (Bug#18891)
+
+2014-11-08  Alan Mackenzie  <acm@muc.de>
+
+	Fix wrong bound to c-font-lock-declarators.  Fixes bug #18948.
+	* progmodes/cc-fonts.el (c-font-lock-declarations): Pass
+	"(point-max)" as bound to c-font-lock-declarators, not "limit", as
+	the buffer is sometimes narrowed to less than "limit" (e.g., in
+	the presence of macros).
+
+2014-11-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-error-with-buffer): Show connection buffer
+	only when message appeared in minibuffer.  (Bug#18891)
+
+	* net/tramp-adb.el (tramp-adb-handle-file-attributes):
+	* net/tramp-gvfs.el (tramp-gvfs-handle-file-attributes):
+	* net/tramp-sh.el (tramp-sh-handle-file-attributes): Return nil in
+	case of errors.
+
 2014-11-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/bytecomp.el (byte-compile-initial-macro-environment):

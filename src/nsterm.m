@@ -4501,15 +4501,15 @@ ns_term_shutdown (int sig)
 #ifdef NS_IMPL_COCOA
 - (void)run
 {
-#ifndef NSAppKitVersionNumber10_8
-#define NSAppKitVersionNumber10_8 1187
+#ifndef NSAppKitVersionNumber10_9
+#define NSAppKitVersionNumber10_9 1265
 #endif
 
-  if (NSAppKitVersionNumber <= NSAppKitVersionNumber10_8)
-    {
-      [super run];
-      return;
-    }
+    if ((int)NSAppKitVersionNumber != NSAppKitVersionNumber10_9)
+      {
+        [super run];
+        return;
+      }
 
   NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 

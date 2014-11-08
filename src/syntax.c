@@ -825,7 +825,7 @@ back_comment (ptrdiff_t from, ptrdiff_t from_byte, ptrdiff_t stop,
     {
       from = comment_end;
       from_byte = comment_end_byte;
-      UPDATE_SYNTAX_TABLE_FORWARD (comment_end - 1);
+      UPDATE_SYNTAX_TABLE_FORWARD (comment_end);
     }
   /* If comstart_pos is set and we get here (ie. didn't jump to `lossage'
      or `done'), then we've found the beginning of the non-nested comment.  */

@@ -1015,7 +1015,7 @@ With a double \\[universal-argument] prefix argument, unconditionally set mark."
     (or (and cua-auto-mark-last-change
 	     (cua-pop-to-last-change))
 	(pop-to-mark-command)))
-   ((and cua-toggle-set-mark mark-active)
+   ((and cua-toggle-set-mark (region-active-p))
     (cua--deactivate)
     (message "Mark cleared"))
    (t
@@ -1127,7 +1127,7 @@ If ARG is the atom `-', scroll upward by nearly full screen."
   (if cua--debug
       (cond
        (cua--rectangle (cua--rectangle-assert))
-       (mark-active (message "Mark=%d Point=%d" (mark t) (point)))))
+       ((region-active-p) (message "Mark=%d Point=%d" (mark t) (point)))))
 
   (if cua-enable-cursor-indications
       (cua--update-indications))
@@ -1186,7 +1186,7 @@ If ARG is the atom `-', scroll upward by nearly full screen."
 (defun cua--select-keymaps ()
   ;; Setup conditions for selecting the proper keymaps in cua--keymap-alist.
   (setq cua--ena-region-keymap
-	(and mark-active (not deactivate-mark)))
+	(and (region-active-p) (not deactivate-mark)))
   (setq cua--ena-prefix-override-keymap
 	(and cua--ena-region-keymap
 	     cua-enable-cua-keys

@@ -720,124 +720,128 @@ is no information where to trace the message.")
 (defun tramp-gvfs-handle-file-attributes (filename &optional id-format)
   "Like `file-attributes' for Tramp files."
   (unless id-format (setq id-format 'integer))
-  ;; Don't modify `last-coding-system-used' by accident.
-  (let ((last-coding-system-used last-coding-system-used)
-	dirp res-symlink-target res-numlinks res-uid res-gid res-access
-	res-mod res-change res-size res-filemodes res-inode res-device)
-    (with-parsed-tramp-file-name filename nil
-      (with-tramp-file-property
-	  v localname (format "file-attributes-%s" id-format)
-	(tramp-message v 5 "file attributes: %s" localname)
-	(tramp-gvfs-send-command
-	 v "gvfs-info" (tramp-gvfs-url-file-name filename))
-	;; Parse output ...
-	(with-current-buffer (tramp-get-connection-buffer v)
-	  (goto-char (point-min))
-	  (when (re-search-forward "attributes:" nil t)
-	    ;; ... directory or symlink
+  (ignore-errors
+    ;; Don't modify `last-coding-system-used' by accident.
+    (let ((last-coding-system-used last-coding-system-used)
+	  dirp res-symlink-target res-numlinks res-uid res-gid res-access
+	  res-mod res-change res-size res-filemodes res-inode res-device)
+      (with-parsed-tramp-file-name filename nil
+	(with-tramp-file-property
+	    v localname (format "file-attributes-%s" id-format)
+	  (tramp-message v 5 "file attributes: %s" localname)
+	  (tramp-gvfs-send-command
+	   v "gvfs-info" (tramp-gvfs-url-file-name filename))
+	  ;; Parse output ...
+	  (with-current-buffer (tramp-get-connection-buffer v)
 	    (goto-char (point-min))
-	    (setq dirp (if (re-search-forward "type:\\s-+directory" nil t) t))
-	    (goto-char (point-min))
-	    (setq res-symlink-target
-		  (if (re-search-forward
-		       "standard::symlink-target:\\s-+\\(\\S-+\\)" nil t)
-		      (match-string 1)))
-	    ;; ... number links
-	    (goto-char (point-min))
-	    (setq res-numlinks
-		  (if (re-search-forward "unix::nlink:\\s-+\\([0-9]+\\)" nil t)
-		      (string-to-number (match-string 1)) 0))
-	    ;; ... uid and gid
-	    (goto-char (point-min))
-	    (setq res-uid
-		  (or (if (eq id-format 'integer)
+	    (when (re-search-forward "attributes:" nil t)
+	      ;; ... directory or symlink
+	      (goto-char (point-min))
+	      (setq dirp (if (re-search-forward "type:\\s-+directory" nil t) t))
+	      (goto-char (point-min))
+	      (setq res-symlink-target
+		    (if (re-search-forward
+			 "standard::symlink-target:\\s-+\\(\\S-+\\)" nil t)
+			(match-string 1)))
+	      ;; ... number links
+	      (goto-char (point-min))
+	      (setq res-numlinks
+		    (if (re-search-forward
+			 "unix::nlink:\\s-+\\([0-9]+\\)" nil t)
+			(string-to-number (match-string 1)) 0))
+	      ;; ... uid and gid
+	      (goto-char (point-min))
+	      (setq res-uid
+		    (or (if (eq id-format 'integer)
+			    (if (re-search-forward
+				 "unix::uid:\\s-+\\([0-9]+\\)" nil t)
+				(string-to-number (match-string 1)))
 			  (if (re-search-forward
-			       "unix::uid:\\s-+\\([0-9]+\\)" nil t)
-			      (string-to-number (match-string 1)))
-			(if (re-search-forward
-			     "owner::user:\\s-+\\(\\S-+\\)" nil t)
-			    (match-string 1)))
-		      (tramp-get-local-uid id-format)))
-	    (setq res-gid
-		  (or (if (eq id-format 'integer)
+			       "owner::user:\\s-+\\(\\S-+\\)" nil t)
+			      (match-string 1)))
+			(tramp-get-local-uid id-format)))
+	      (setq res-gid
+		    (or (if (eq id-format 'integer)
+			    (if (re-search-forward
+				 "unix::gid:\\s-+\\([0-9]+\\)" nil t)
+				(string-to-number (match-string 1)))
 			  (if (re-search-forward
-			       "unix::gid:\\s-+\\([0-9]+\\)" nil t)
-			      (string-to-number (match-string 1)))
-			(if (re-search-forward
-			     "owner::group:\\s-+\\(\\S-+\\)" nil t)
-			    (match-string 1)))
-		      (tramp-get-local-gid id-format)))
-	    ;; ... last access, modification and change time
-	    (goto-char (point-min))
-	    (setq res-access
-		  (if (re-search-forward
-		       "time::access:\\s-+\\([0-9]+\\)" nil t)
-		      (seconds-to-time (string-to-number (match-string 1)))
-		    '(0 0)))
-	    (goto-char (point-min))
-	    (setq res-mod
-		  (if (re-search-forward
-		       "time::modified:\\s-+\\([0-9]+\\)" nil t)
-		      (seconds-to-time (string-to-number (match-string 1)))
-		    '(0 0)))
-	    (goto-char (point-min))
-	    (setq res-change
-		  (if (re-search-forward
-		       "time::changed:\\s-+\\([0-9]+\\)" nil t)
-		      (seconds-to-time (string-to-number (match-string 1)))
-		    '(0 0)))
-	    ;; ... size
-	    (goto-char (point-min))
-	    (setq res-size
-		  (if (re-search-forward
-		       "standard::size:\\s-+\\([0-9]+\\)" nil t)
-		      (string-to-number (match-string 1)) 0))
-	    ;; ... file mode flags
-	    (goto-char (point-min))
-	    (setq res-filemodes
-		  (if (re-search-forward "unix::mode:\\s-+\\([0-9]+\\)" nil t)
-		      (tramp-file-mode-from-int
-		       (string-to-number (match-string 1)))
-		    (if dirp "drwx------" "-rwx------")))
-	    ;; ... inode and device
-	    (goto-char (point-min))
-	    (setq res-inode
-		  (if (re-search-forward "unix::inode:\\s-+\\([0-9]+\\)" nil t)
-		      (string-to-number (match-string 1))
-		    (tramp-get-inode v)))
-	    (goto-char (point-min))
-	    (setq res-device
-		  (if (re-search-forward "unix::device:\\s-+\\([0-9]+\\)" nil t)
-		      (string-to-number (match-string 1))
-		    (tramp-get-device v)))
+			       "owner::group:\\s-+\\(\\S-+\\)" nil t)
+			      (match-string 1)))
+			(tramp-get-local-gid id-format)))
+	      ;; ... last access, modification and change time
+	      (goto-char (point-min))
+	      (setq res-access
+		    (if (re-search-forward
+			 "time::access:\\s-+\\([0-9]+\\)" nil t)
+			(seconds-to-time (string-to-number (match-string 1)))
+		      '(0 0)))
+	      (goto-char (point-min))
+	      (setq res-mod
+		    (if (re-search-forward
+			 "time::modified:\\s-+\\([0-9]+\\)" nil t)
+			(seconds-to-time (string-to-number (match-string 1)))
+		      '(0 0)))
+	      (goto-char (point-min))
+	      (setq res-change
+		    (if (re-search-forward
+			 "time::changed:\\s-+\\([0-9]+\\)" nil t)
+			(seconds-to-time (string-to-number (match-string 1)))
+		      '(0 0)))
+	      ;; ... size
+	      (goto-char (point-min))
+	      (setq res-size
+		    (if (re-search-forward
+			 "standard::size:\\s-+\\([0-9]+\\)" nil t)
+			(string-to-number (match-string 1)) 0))
+	      ;; ... file mode flags
+	      (goto-char (point-min))
+	      (setq res-filemodes
+		    (if (re-search-forward "unix::mode:\\s-+\\([0-9]+\\)" nil t)
+			(tramp-file-mode-from-int
+			 (string-to-number (match-string 1)))
+		      (if dirp "drwx------" "-rwx------")))
+	      ;; ... inode and device
+	      (goto-char (point-min))
+	      (setq res-inode
+		    (if (re-search-forward
+			 "unix::inode:\\s-+\\([0-9]+\\)" nil t)
+			(string-to-number (match-string 1))
+		      (tramp-get-inode v)))
+	      (goto-char (point-min))
+	      (setq res-device
+		    (if (re-search-forward
+			 "unix::device:\\s-+\\([0-9]+\\)" nil t)
+			(string-to-number (match-string 1))
+		      (tramp-get-device v)))
 
-	    ;; Return data gathered.
-	    (list
-	     ;; 0. t for directory, string (name linked to) for
-	     ;; symbolic link, or nil.
-	     (or dirp res-symlink-target)
-	     ;; 1. Number of links to file.
-	     res-numlinks
-	     ;; 2. File uid.
-	     res-uid
-	     ;; 3. File gid.
-	     res-gid
-	     ;; 4. Last access time, as a list of integers.
-	     ;; 5. Last modification time, likewise.
-	     ;; 6. Last status change time, likewise.
-	     res-access res-mod res-change
-	     ;; 7. Size in bytes (-1, if number is out of range).
-	     res-size
-	     ;; 8. File modes.
-	     res-filemodes
-	     ;; 9. t if file's gid would change if file were deleted
-	     ;; and recreated.
-	     nil
-	     ;; 10. Inode number.
-	     res-inode
-	     ;; 11. Device number.
-	     res-device
-	     )))))))
+	      ;; Return data gathered.
+	      (list
+	       ;; 0. t for directory, string (name linked to) for
+	       ;; symbolic link, or nil.
+	       (or dirp res-symlink-target)
+	       ;; 1. Number of links to file.
+	       res-numlinks
+	       ;; 2. File uid.
+	       res-uid
+	       ;; 3. File gid.
+	       res-gid
+	       ;; 4. Last access time, as a list of integers.
+	       ;; 5. Last modification time, likewise.
+	       ;; 6. Last status change time, likewise.
+	       res-access res-mod res-change
+	       ;; 7. Size in bytes (-1, if number is out of range).
+	       res-size
+	       ;; 8. File modes.
+	       res-filemodes
+	       ;; 9. t if file's gid would change if file were deleted
+	       ;; and recreated.
+	       nil
+	       ;; 10. Inode number.
+	       res-inode
+	       ;; 11. Device number.
+	       res-device
+	       ))))))))
 
 (defun tramp-gvfs-handle-file-directory-p (filename)
   "Like `file-directory-p' for Tramp files."

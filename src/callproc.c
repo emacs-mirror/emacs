@@ -127,6 +127,14 @@ encode_current_directory (void)
 
   dir = expand_and_dir_to_file (dir, Qnil);
 
+  if (NILP (Ffile_accessible_directory_p (dir)))
+    report_file_error ("Setting current directory",
+		       BVAR (current_buffer, directory));
+
+  /* Remove "/:" from dir.  */
+  if (! NILP (Fstring_match (build_string ("^/:"), dir, Qnil)))
+    dir = Fsubstring (dir, make_number (2), Qnil);
+
   if (STRING_MULTIBYTE (dir))
     dir = ENCODE_FILE (dir);
   if (! file_accessible_directory_p (dir))

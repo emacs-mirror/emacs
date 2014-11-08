@@ -1,3 +1,26 @@
+2014-11-08  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (run): Only use non-system event loop if OSX version is
+	exactly 10.9 (Bug#18993).
+
+2014-11-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	* callproc.c (encode_current_directory): Support handling of file
+	names prepended by "/:".  (Bug#18891)
+
+2014-11-08  Alan Mackenzie  <acm@muc.de>
+
+	* syntax.c (back_comment): Fix off-by-one error (bug#18022).
+
+2014-11-08  Dima Kogan  <dima@secretsauce.net>
+
+	* xgselect.c (xg_select): Use g_main_context_acquire (bug#18861).
+
+2014-11-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dired.c (Ffile_attributes): Return Qnil, if Fexpand_file_name
+	raises an error.  (Bug#18891)
+
 2014-11-08  Martin Rudalics  <rudalics@gmx.at>
 
 	* frame.c (adjust_frame_size): Call x_set_window_size only if
