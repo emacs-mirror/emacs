@@ -7192,6 +7192,16 @@ if (cols > 0 && rows > 0)
 }
 
 
+- (void)dealloc
+{
+  NSTRACE (EmacsScroller_dealloc);
+  if (window)
+    wset_vertical_scroll_bar (window, Qnil);
+  window = 0;
+  [super dealloc];
+}
+
+
 - condemn
 {
   NSTRACE (condemn);

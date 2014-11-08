@@ -1,3 +1,8 @@
+2014-11-08  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (EmacsScroller.dealloc): Reinstate, removed at merge
+	cleanup from 2014-11-01 (Bug#18972).
+
 2014-11-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* keyboard.c: Call gui-set-selection instead of x-set-selection.
