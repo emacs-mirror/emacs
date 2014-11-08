@@ -328,11 +328,13 @@ struct frame
      in pixels.  */
   bool_bf new_pixelwise : 1;
 
-  /* True if frame has been added to Vframe_list and is henceforth
-     considered official.  For in-official frames we neither process
-     x_set_window_size requests nor do we allow running
-     window-configuration-change-hook when resizing windows.  */
-  bool_bf official : 1;
+  /* True means x_set_window_size requests can be processed for this
+     frame.  */
+  bool_bf can_x_set_window_size : 1;
+
+  /* True means run_window_configuration_change_hook can be processed
+     for this frame.  */
+  bool_bf can_run_window_configuration_change_hook : 1;
 
   /* Bitfield area ends here.  */
 

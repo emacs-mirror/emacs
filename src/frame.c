@@ -463,7 +463,7 @@ adjust_frame_size (struct frame *f, int new_width, int new_height, int inhibit,
 
 #ifdef HAVE_WINDOW_SYSTEM
   if (FRAME_WINDOW_P (f)
-      && f->official
+      && f->can_x_set_window_size
       && ((!inhibit_horizontal
 	   && (new_pixel_width != old_pixel_width
 	       || inhibit == 0 || inhibit == 2))
@@ -608,7 +608,8 @@ make_frame (bool mini_p)
   f->wants_modeline = true;
   f->redisplay = true;
   f->garbaged = true;
-  f->official = false;
+  f->can_x_set_window_size = false;
+  f->can_run_window_configuration_change_hook = false;
   f->column_width = 1;  /* !FRAME_WINDOW_P value.  */
   f->line_height = 1;  /* !FRAME_WINDOW_P value.  */
 #ifdef HAVE_WINDOW_SYSTEM
@@ -2257,6 +2258,25 @@ If there is no window system support, this function does nothing.  */)
   x_focus_frame (decode_window_system_frame (frame));
 #endif
   return Qnil;
+}
+
+DEFUN ("frame-can-run-window-configuration-change-hook",
+       Fcan_run_window_configuration_change_hook,
+       Scan_run_window_configuration_change_hook, 2, 2, 0,
+       doc: /* Whether `window-configuration-change-hook' is run for frame FRAME.
+FRAME nil means use the selected frame.  Second argument ALLOW non-nil
+means functions on `window-configuration-change-hook' are called
+whenever the window configuration of FRAME changes.  ALLOW nil means
+these functions are not called.
+
+This function is currently called by `face-set-after-frame-default' only
+and should be otherwise used with utter care to avoid that running
+functions on `window-configuration-change-hook' is impeded forever.  */)
+  (Lisp_Object frame, Lisp_Object allow)
+{
+  struct frame *f = decode_live_frame (frame);
+
+  f->can_run_window_configuration_change_hook = NILP (allow) ? false : true;
 }
 
 
@@ -5083,6 +5103,7 @@ even if this option is non-nil.  */);
   defsubr (&Sraise_frame);
   defsubr (&Slower_frame);
   defsubr (&Sx_focus_frame);
+  defsubr (&Scan_run_window_configuration_change_hook);
   defsubr (&Sredirect_frame_focus);
   defsubr (&Sframe_focus);
   defsubr (&Sframe_parameters);

@@ -1346,8 +1346,8 @@ This function is an internal primitive--use `make-frame' instead.  */)
   x_default_parameter (f, parms, Qfullscreen, Qnil,
                        "fullscreen", "Fullscreen", RES_TYPE_SYMBOL);
 
-  /* Consider frame official, now.  */
-  f->official = true;
+  /* Allow x_set_window_size, now.  */
+  f->can_x_set_window_size = true;
 
   adjust_frame_size (f, FRAME_TEXT_WIDTH (f), FRAME_TEXT_HEIGHT (f), 0, 1, Qnil);
 

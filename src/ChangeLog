@@ -1,3 +1,23 @@
+2014-11-08  Martin Rudalics  <rudalics@gmx.at>
+
+	* frame.c (adjust_frame_size): Call x_set_window_size only if
+	f->can_x_set_window_size is set.
+	(make_frame): Initialize f->can_x_set_window_size and
+	f->can_run_window_configuration_change_hook.
+	(Fcan_run_window_configuration_change_hook): New function.
+	* frame.h (frame): Split `official' into `can_x_set_window_size'
+	and `can_run_window_configuration_change_hook'.
+	* nsfns.m (Fx_create_frame): Set f->can_x_set_window_size.
+	* w32fns.c (Fx_create_frame, x_create_tip_frame): Set
+	f->can_x_set_window_size.
+	* window.c (run_window_configuration_change_hook): Return
+	immediately if either f->can_x_set_window_size or
+	f->can_run_window_configuration_change_hook are false.
+	(Fset_window_configuration): Instead of f->official set
+	f->can_x_set_window_size.
+	* xfns.c (Fx_create_frame, x_create_tip_frame): Set
+	f->can_x_set_window_size.
+
 2014-11-08  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (EmacsScroller.dealloc): Reinstate, removed at merge

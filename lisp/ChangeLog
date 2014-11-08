@@ -1,3 +1,8 @@
+2014-11-08  Martin Rudalics  <rudalics@gmx.at>
+
+	* faces.el (face-set-after-frame-default): Enable running
+	`window-configuration-change-hook'.
+
 2014-11-07  Juri Linkov  <juri@jurta.org>
 
 	* replace.el: History for query replace pairs.

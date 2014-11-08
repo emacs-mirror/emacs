@@ -3248,7 +3248,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
 		       "alpha", "Alpha", RES_TYPE_NUMBER);
 
   /* Consider frame official, now.  */
-  f->official = true;
+  f->can_x_set_window_size = true;
 
   adjust_frame_size (f, FRAME_TEXT_WIDTH (f), FRAME_TEXT_HEIGHT (f), 0, 1, Qnil);
 
@@ -5233,7 +5233,7 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
      below.  And the frame needs to be on Vframe_list or making it
      visible won't work.  */
   Vframe_list = Fcons (frame, Vframe_list);
-  f->official = true;
+  f->can_x_set_window_size = true;
 
   /* Setting attributes of faces of the tooltip frame from resources
      and similar will increment face_change_count, which leads to the

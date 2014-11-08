@@ -3337,7 +3337,9 @@ run_window_configuration_change_hook (struct frame *f)
     = Fdefault_value (Qwindow_configuration_change_hook);
   XSETFRAME (frame, f);
 
-  if (NILP (Vrun_hooks) || !(f->official))
+  if (NILP (Vrun_hooks)
+      || !(f->can_x_set_window_size)
+      || !(f->can_run_window_configuration_change_hook))
     return;
 
   /* Use the right buffer.  Matters when running the local hooks.  */
@@ -6204,8 +6206,8 @@ the return value is nil.  Otherwise the value is t.  */)
 	    call1 (Qrecord_window_buffer, window);
 	}
 
-      /* Consider frame unofficial, temporarily.  */
-      f->official = false;
+      /* Disallow x_set_window_size, temporarily.  */
+      f->can_x_set_window_size = false;
       /* The mouse highlighting code could get screwed up
 	 if it runs during this.  */
       block_input ();
@@ -6414,9 +6416,9 @@ the return value is nil.  Otherwise the value is t.  */)
 	    ++n;
 	}
 
-      /* Make frame official again and apply frame size changes if
+      /* Allow x_set_window_size again and apply frame size changes if
 	 needed.  */
-      f->official = true;
+      f->can_x_set_window_size = true;
       adjust_frame_size (f, -1, -1, 1, 0, Qnil);
 
       adjust_frame_glyphs (f);

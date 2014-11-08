@@ -2092,7 +2092,8 @@ frame parameters in PARAMETERS."
   	     (value (cdr (assq param-name parameters))))
   	(if value
   	    (set-face-attribute (nth 1 param) frame
-				(nth 2 param) value))))))
+				(nth 2 param) value))))
+    (frame-can-run-window-configuration-change-hook frame t)))
 
 (defun tty-handle-reverse-video (frame parameters)
   "Handle the reverse-video frame parameter for terminal frames."
