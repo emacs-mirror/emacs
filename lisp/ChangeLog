@@ -1,3 +1,8 @@
+2014-11-08  Juri Linkov  <juri@jurta.org>
+
+	* minibuffer.el (minibuffer-completion-help): Compare this-command
+	with completion-at-point.  (Bug#17809)
+
 2014-11-08  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/bytecomp.el (byte-compile-report-error):
