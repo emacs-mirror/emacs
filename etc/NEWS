@@ -125,8 +125,15 @@ Unicode standards.
 
 * Changes in Specialized Modes and Packages in Emacs 25.1
 
-** VC
-*** The new command vc-region-history shows the log+diff of the active region.
+** Search and Replace
+
+*** `M-p' in query-replace minibuffer that reads the FROM string
+now moves through pairs of previous replacements where FROM and TO
+parts are separated by an arrow defined by the new variable
+`query-replace-from-to-separator'.  After exiting the minibuffer,
+replacement is performed with the FROM and TO values extracted
+from the strings before and after the separator.
+
 ** Calc
 +++
 *** If `quick-calc' is called with a prefix argument, insert the
@@ -248,6 +255,8 @@ and comments.
 *** Add support for Vertica SQL.
 
 ** VC and related modes
+
+*** The new command vc-region-history shows the log+diff of the active region.
 
 *** New option `vc-annotate-background-mode' controls whether
 the color range from `vc-annotate-color-map' is applied to the
