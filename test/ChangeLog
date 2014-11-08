@@ -1,3 +1,22 @@
+2014-11-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	Backport Tramp changes from trunk.
+
+	* automated/tramp-tests.el (tramp-remote-process-environment):
+	Declare.
+	(tramp--test-enabled): Ignore errors.
+	(tramp--instrument-test-case): Extend docstring.  Print debug
+	buffer in any case.
+	(tramp-test15-copy-directory): Skip for tramp-smb.el.
+	(tramp-test21-file-links): Use `file-truename' for directories.
+	(tramp-test26-process-file): Extend test according to Bug#17815.
+	(tramp-test27-start-file-process, tramp-test28-shell-command):
+	Retrieve process output more robustly.
+	(tramp-test29-vc-registered): Set $BZR_HOME.
+	(tramp--test-check-files): Extend test with `substitute-in-file-name'.
+	(tramp-test30-special-characters): Skip for tramp-adb.el,
+	tramp-gvfs.el and tramp-smb.el.  Add further file names.
+
 2014-10-20  Glenn Morris  <rgm@gnu.org>
 
 	* Version 24.4 released.
