@@ -334,7 +334,7 @@ epaths-force:
 # program that doesn't support MSYS-style paths (e.g. '/c/foo/bar' or
 # '/foo/bar').
 epaths-force-w32:
-	@(w32srcdir=`${srcdir}/build-aux/msys-to-w32 "${srcdir}"`; \
+	@(w32srcdir=`${srcdir}/build-aux/msys-to-w32 "${abs_srcdir}"`; \
 	  w32prefix=`${srcdir}/build-aux/msys-to-w32 "${prefix}"`; \
 	  w32locallisppath=`${srcdir}/build-aux/msys-to-w32 "${locallisppath}"` ; \
 	  w32locallisppath=$${w32locallisppath//$${w32prefix}/"%emacs_dir%"} ; \
