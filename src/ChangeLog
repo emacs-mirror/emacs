@@ -1,3 +1,9 @@
+2014-11-08  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (init): Replace OSX 10.9 check with IMPL_COCOA.
+	(run): Ditto.  Only use non-system event loop if OSX version is
+	exactly 10.9 (Bug#18993).
+
 2014-11-07  Michael Albinus  <michael.albinus@gmx.de>
 
 	* callproc.c (encode_current_directory): Support handling of file

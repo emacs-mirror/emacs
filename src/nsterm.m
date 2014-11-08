@@ -4452,7 +4452,7 @@ ns_term_shutdown (int sig)
 {
   if (self = [super init])
     {
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_9
+#ifdef NS_IMPL_COCOA
       self->isFirst = YES;
 #endif
 #ifdef NS_IMPL_GNUSTEP
@@ -4463,9 +4463,19 @@ ns_term_shutdown (int sig)
   return self;
 }
 
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_9
+#ifdef NS_IMPL_COCOA
 - (void)run
 {
+#ifndef NSAppKitVersionNumber10_9
+#define NSAppKitVersionNumber10_9 1265
+#endif
+
+    if ((int)NSAppKitVersionNumber != NSAppKitVersionNumber10_9)
+      {
+        [super run];
+        return;
+      }
+
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
     if (isFirst) [self finishLaunching];
@@ -4496,7 +4506,7 @@ ns_term_shutdown (int sig)
     // The file dialog still leaks 7k - 10k on 10.9 though.
     [super stop:sender];
 }
-#endif
+#endif /* NS_IMPL_COCOA */
 
 - (void)logNotification: (NSNotification *)notification
 {
