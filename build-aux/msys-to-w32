@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # Take a list of MSYS-compatible paths and convert them to native
 # MS-Windows format.
 # Status is zero if successful, nonzero otherwise.
@@ -21,36 +21,26 @@
 # Take only the basename from the full pathname
 me=${0//*\//}
 
-usage="usage: ${me} PATHLIST [MUSTEXIST] [SEPARATOR [SEPARATOR2]]"
+usage="usage: ${me} PATHLIST"
 
 help="$usage
   or:  ${me} OPTION
 
-Convert MSYS-compatible paths to MS-Windows native format.
+Convert a MSYS path list to Windows-native format.
 
-PATHLIST should be a list of paths separated by SEPARATOR.  This list
-will be written to the standard output after performing the following
-transformations:
+PATHLIST should be a colon-separated list of MSYS paths, which will be
+written to the standard output after performing these transformations:
+
 1. Discard empty paths.
-2. Replace backslashes with forward slashes.
-3. Replace two consecutive slashes with single ones.
-4. Translate to Windows-native format those paths that are not in such
-   format already. The translated paths will not end with a slash,
-   except for root directories (e.g. 'c:/' or 'c:/foo').  Paths
-   starting with '%emacs_dir%' will not be translated.
-5. Escape with backslashes every occurrence of SEPARATOR2 within the paths.
-6. Concatenate the translated paths with SEPARATOR2.
+2. Replace: '\' with '/', '//' with '/' and ':' with ';'.
+3. Translate each path to Windows-native format.
 
-If MUSTEXIST is 'Y' or not supplied, then each path in PATHLIST must
-exist.  Otherwise, only some part of each path is required to exist
-(the deepest existing subpath will be translated and the remainder
-concatenated to the translation).
+Relative paths or paths starting with '%emacs_dir%' will be passed
+verbatim to the standard output.
 
-If SEPARATOR is not supplied, PATHLIST will be regarded as a single
-path.
-
-If SEPARATOR2 is not supplied, it will take the same value as
-SEPARATOR.
+Each non existing absolute paths will be translated by looking for its
+deepest existing directory, which will be translated and the remainder
+will be appended.
 
 Options:
   --help     display this help and exit
@@ -73,98 +63,55 @@ do
   esac
 done
 
-{ test $# -ge 1 && test $# -le 4; } ||
-{ echo "${me}: $usage" >&2; exit 1; }
-
-# Arguments
-pathlist="$1"
-mustexist="${2:-Y}"
-separator="$3"
-separator2="${4:-${separator}}"
-
-# Split pathlist into its path components
-if test -n "$separator"
-then
-    IFS=${separator} patharray=( $pathlist )
-else
-    patharray=( "$pathlist" )
-fi
+[ $# -eq 1 ] || {
+    echo "${me}: $usage" >&2
+    exit 1
+}
 
 w32pathlist=""
 
-for p in "${patharray[@]}"
+# Put each MSYS path in one positional parameter and iterate through
+# them
+IFS=:
+set -- $1
+
+for p
 do
-    # Skip empty paths
-    test "$p" = "" && continue
+    [ -z "$p" ] && continue
 
-    # Replace '\' with '/' and '//' with '/'
-    p="${p//\\//}"
-    p="${p//\/\///}"
-
-    if test "${p:0:11}" = "%emacs_dir%"
+    if [ "${p:0:11}" = "%emacs_dir%" ]
     then
-	# Paths starting with "%emacs_dir%" will not be translated
 	w32p=$p
-    elif test -d "$p"
+    elif [ "${p:0:1}" != "/" ]
     then
-	# The path exists, so just translate it
-	w32p=`cd "$p" && pwd -W`
+	w32p=$p
+    elif [ -d "$p" ]
+    then
+	w32p=$(cd "$p" && pwd -W)
     else
-	# The path does not exist.  So, try to guess the
-	# Windows-native translation, by looking for the deepest
-	# existing directory in this path, and then translating the
-	# existing part and concatenating the remainder.
+	# Make some cleanup in the path and look for its deepest
+	# existing directory
 
-	test "${mustexist}" = "Y" &&
-	{ echo "${me}: invalid path: $p" >&2; exit 1; }
+	p=${p//\\//}
+	p=${p//\/\///}
+	p=${p%/}
 
 	p1=$p
-	IFS=/ pcomponents=( $p )
-
-	for (( i=${#pcomponents[@]}-1 ; i>=0 ; i-- ))
+	while :
 	do
-
-	    if test "${pcomponents[i]}" = ""
-	    then
-		# The path component is empty.  This can only mean
-		# that the path starts with "/" and all components
-		# have been stripped out already.  So in this case we
-		# want to test with the MSYS root directory
-		p1="/"
-	    else
-		p1="${p1%/}"
-		p1="${p1%${pcomponents[i]}}"
-	    fi
-
-	    if test -d "${p1}"
-	    then
-
-		# Existing path found
-
-		# Translate the existing part and concatenate the
-		# remainder (ensuring that only one slash is used in
-		# the join, and no trailing slash is left)
-		w32p1=`cd "${p1}" && pwd -W`
-		remainder="${p#${p1}}"
-		remainder="${remainder#/}"
-		remainder="${remainder%/}"
-		w32p="${w32p1%/}/${remainder}"
-
-		break
-	    fi
-
+	    p1=${p1%/*}
+	    [ -z "$p1" ] && p1="/" && break
+	    [ -d "$p1" ] && break
 	done
 
-	# If no existing directory was found, error out
-	test -e "${p1}" ||
-	{ echo "${me}: invalid path: ${p}" >&2; exit 1; }
+	# translate the existing part and append the rest
+	w32p=$(cd "${p1}" && pwd -W)
+	remainder=${p#$p1}
+	w32p+=/${remainder#/}
     fi
 
-    # Concatenate the translated path to the translated pathlist
-    test "${w32pathlist}" = "" || w32pathlist="${w32pathlist}${separator2}"
-    w32pathlist="${w32pathlist}${w32p//${separator2}/\\${separator2}}"
+    w32pathlist="${w32pathlist};${w32p}"
 
 done
 
-# Write the translated pathlist to the standard output
-printf "%s" "${w32pathlist}"
+echo "${w32pathlist:1}"
