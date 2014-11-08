@@ -1147,10 +1147,13 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
 	(byte-compile-warn "%s" msg)))))
 
 (defun byte-compile-report-error (error-info)
-  "Report Lisp error in compilation.  ERROR-INFO is the error data."
+  "Report Lisp error in compilation.
+ERROR-INFO is the error data, in the form of either (ERROR-SYMBOL . DATA)
+or STRING."
   (setq byte-compiler-error-flag t)
   (byte-compile-log-warning
-   (error-message-string error-info)
+   (if (stringp error-info) error-info
+     (error-message-string error-info))
    nil :error))
 
 ;;; sanity-checking arglists
