@@ -1,3 +1,8 @@
+2014-11-09  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (ns_set_vertical_scroll_bar)
+	(ns_set_horizontal_scroll_bar): Cleanup merge error.
+
 2014-11-09  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* xgselect.c (xg_select): Don't assume n_gfds is nonnegative

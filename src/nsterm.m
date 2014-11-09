@@ -3832,7 +3832,8 @@ ns_set_vertical_scroll_bar (struct window *window,
         }
     }
 
-  [bar setPosition: position portion: portion whole: whole];
+  if (update_p)
+    [bar setPosition: position portion: portion whole: whole];
   unblock_input ();
 }
 
@@ -3852,6 +3853,7 @@ ns_set_horizontal_scroll_bar (struct window *window,
   int top, height, left, width;
   int window_x, window_width;
   int pixel_width = WINDOW_PIXEL_WIDTH (window);
+  BOOL update_p = YES;
 
   /* optimization; display engine sends WAY too many of these.. */
   if (!NILP (window->horizontal_scroll_bar))
@@ -3866,6 +3868,7 @@ ns_set_horizontal_scroll_bar (struct window *window,
             }
           else
             view->scrollbarsNeedingUpdate--;
+          update_p = NO;
         }
     }
 
@@ -3907,6 +3910,7 @@ ns_set_horizontal_scroll_bar (struct window *window,
 
       bar = [[EmacsScroller alloc] initFrame: r window: win];
       wset_horizontal_scroll_bar (window, make_save_ptr (bar));
+      update_p = YES;
     }
   else
     {
