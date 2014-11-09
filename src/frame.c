@@ -2277,6 +2277,7 @@ functions on `window-configuration-change-hook' is impeded forever.  */)
   struct frame *f = decode_live_frame (frame);
 
   f->can_run_window_configuration_change_hook = NILP (allow) ? false : true;
+  return Qnil;
 }
 
 

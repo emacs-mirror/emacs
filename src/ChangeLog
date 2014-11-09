@@ -1,3 +1,7 @@
+2014-11-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* frame.c (Fcan_run_window_configuration_change_hook): Return a value.
+
 2014-11-08  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (run): Only use non-system event loop if OSX version is
