@@ -422,7 +422,7 @@ typedef float EmacsCGFloat;
 - repeatScroll: (NSTimer *)sender;
 - condemn;
 - reprieve;
-- judge;
+- (bool)judge;
 @end
 
 

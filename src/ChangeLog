@@ -1,3 +1,12 @@
+2014-11-09  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.h (EmacsScroller): judge returns bool.
+
+	* nsterm.m (ns_set_vertical_scroll_bar): Release bar.
+	(ns_judge_scroll_bars): Only set removed if judge returns true.
+	(judge): Returns bool == condemned.  Remove self from window.
+	(setPosition:portion:whole:): Remove raise SIGIO (Bug#18757).
+
 2014-11-08  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (init): Replace OSX 10.9 check with IMPL_COCOA.
