@@ -1,3 +1,8 @@
+2014-11-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32heap.c (allocate_heap): Set the lower limit of heap at 8MB.
+	(Bug#18995)
+
 2014-11-09  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.h (EmacsScroller): judge returns bool.

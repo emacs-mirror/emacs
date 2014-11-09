@@ -96,7 +96,7 @@ static char *
 allocate_heap (void)
 {
 #ifdef _WIN64
-  size_t size = 0x4000000000ull; /* start by asking for 32GB */
+  size_t size = 0x4000000000ull; /* start by asking for 256GB */
 #else
   /* We used to start with 2GB here, but on Windows 7 that would leave
      too little room in the address space for threads started by
@@ -106,7 +106,7 @@ allocate_heap (void)
 #endif
   void *ptr = NULL;
 
-  while (!ptr && size > 0x00100000)
+  while (!ptr && size >= 0x00800000)
     {
       reserved_heap_size = size;
       ptr = VirtualAlloc (NULL,
