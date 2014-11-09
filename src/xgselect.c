@@ -56,7 +56,7 @@ xg_select (int fds_lim, fd_set *rfds, fd_set *wfds, fd_set *efds,
   int gfds_size = ARRAYELTS (gfds_buf);
   int n_gfds, retval = 0, our_fds = 0, max_fds = fds_lim - 1;
   bool context_acquired = false;
-  int i, nfds, tmo_in_millisec = -1;
+  int i, nfds, tmo_in_millisec;
   bool need_to_dispatch;
   USE_SAFE_ALLOCA;
 
@@ -102,7 +102,7 @@ xg_select (int fds_lim, fd_set *rfds, fd_set *wfds, fd_set *efds,
 
   SAFE_FREE ();
 
-  if (tmo_in_millisec >= 0)
+  if (n_gfds >= 0 && tmo_in_millisec >= 0)
     {
       tmo = make_timespec (tmo_in_millisec / 1000,
 			   1000 * 1000 * (tmo_in_millisec % 1000));

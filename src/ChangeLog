@@ -1,5 +1,9 @@
 2014-11-09  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xgselect.c (xg_select): Don't assume n_gfds is nonnegative
+	merely because tmo_in_millisec is nonnegative.  The 1st call
+	to g_main_context_query could succeed while the 2nd one fails.
+
 	* frame.c (Fcan_run_window_configuration_change_hook): Return a value.
 
 2014-11-08  Jan Djärv  <jan.h.d@swipnet.se>
