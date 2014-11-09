@@ -26,9 +26,6 @@ SHELL = @SHELL@
 # of the source tree.  This is set by configure's `--srcdir' option.
 srcdir=@srcdir@
 
-# Only for make dist.
-version=@version@
-
 ## Where the output files go.
 ## Note that the setfilename command in the .texi files assumes this.
 ## This is a bit funny.  Because the info files are in the
@@ -192,7 +189,6 @@ mostlyclean:
 ## Products not in the release tarfiles.
 clean: mostlyclean
 	rm -f $(DVI_TARGETS) $(HTML_TARGETS) $(PDF_TARGETS) $(PS_TARGETS)
-	rm -f emacs-manual-${version}.tar*
 
 distclean: clean
 	rm -f Makefile
@@ -202,44 +198,6 @@ infoclean:
 	-cd $(buildinfodir) && rm -f emacs$(INFO_EXT) emacs$(INFO_EXT)-[1-9] emacs$(INFO_EXT)-[1-9][0-9]
 
 maintainer-clean: distclean infoclean
-
-.PHONY: dist
-
-## Make a standalone tarfile of the Emacs manual sources.
-## The [c] is a dumb way to prevent configure expanding it.
-## TODO this is getting increasingly lengthy; not sure it is worth keeping.
-dist:
-	rm -rf emacs-manual-${version}
-	mkdir emacs-manual-${version}
-	cp ${srcdir}/*.texi ${texinfodir}/texinfo.tex \
-	  ${srcdir}/ChangeLog* emacs-manual-${version}/
-	sed -e 's/@sr[c]dir@/./' -e 's/^\(texinfodir *=\).*/\1 ./' \
-	  -e 's/^\(buildinfodir *=\).*/\1 ./' \
-	  -e 's/^\(clean:.*\)/\1 infoclean/' \
-	  -e "s/@ver[s]ion@/${version}/" \
-	  -e 's/@MAKE[I]NFO@/makeinfo/' -e 's/@MK[D]IR_P@/mkdir -p/' \
-	  -e 's/@IN[F]O_EXT@/.info/' -e 's/@IN[F]O_OPTS@//' \
-	  -e 's|@SH[E]LL@|/bin/bash|' \
-	  -e 's|@[p]refix@|/usr/local|' \
-	  -e 's|@[d]atarootdir@|$${prefix}/share|' \
-	  -e 's|@[d]atadir@|$${datarootdir}|' \
-	  -e 's|@[P]ACKAGE_TARNAME@|emacs|' \
-	  -e 's|@[d]ocdir@|$${datarootdir}/doc/$${PACKAGE_TARNAME}|' \
-	  -e 's|@[d]vidir@|$${docdir}|' \
-	  -e 's|@[h]tmldir@|$${docdir}|' \
-	  -e 's|@[p]dfdir@|$${docdir}|' \
-	  -e 's|@[p]sdir@|$${docdir}|' \
-	  -e 's|@[G]ZIP_PROG@|gzip|' \
-	  -e 's|@IN[S]TALL@|install -c|' \
-	  -e 's|@IN[S]TALL_DATA@|$${INSTALL} -m 644|' \
-	  -e '/@[c]onfigure_input@/d' \
-	  ${srcdir}/Makefile.in > emacs-manual-${version}/Makefile
-	@if grep '@[a-zA-Z_]*@' emacs-manual-${version}/Makefile; then \
-	  echo "Unexpanded configure variables in Makefile?" 1>&2; exit 1; \
-	fi
-	tar -cf emacs-manual-${version}.tar emacs-manual-${version}
-	rm -rf emacs-manual-${version}
-
 
 .PHONY: install-dvi install-html install-pdf install-ps install-doc
 

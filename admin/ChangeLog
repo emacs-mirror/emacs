@@ -1,3 +1,9 @@
+2014-11-09  Glenn Morris  <rgm@gnu.org>
+
+	* admin.el (make-manuals-dist-output-variables)
+	(make-manuals-dist--1, make-manuals-dist): New.
+	Replaces doc/*/Makefile.in `dist' rules.
+
 2014-10-31  Eli Zaretskii  <eliz@gnu.org>
 
 	* notes/repo (Notes): Reword the stylistic guidance for commit log

@@ -24,8 +24,6 @@ SHELL = @SHELL@
 # set by the configure script's `--srcdir' option.
 srcdir=@srcdir@
 
-version=@version@
-
 ## Where the output files go.
 buildinfodir = $(srcdir)/../../info
 ## Directory with emacsver.texi.
@@ -863,7 +861,6 @@ mostlyclean:
 clean: mostlyclean
 	rm -f $(DVI_TARGETS) $(HTML_TARGETS) $(PDF_TARGETS) $(PS_TARGETS)
 	rm -f efaq-w32.dvi efaq-w32.html efaq-w32.pdf efaq-w32.ps
-	rm -f emacs-misc-${version}.tar*
 
 distclean: clean
 	rm -f Makefile
@@ -876,41 +873,6 @@ infoclean:
 	done
 
 maintainer-clean: distclean infoclean
-
-dist:
-	rm -rf emacs-misc-${version}
-	mkdir emacs-misc-${version}
-	cp ${srcdir}/*.texi ${srcdir}/texinfo.tex \
-	  $(emacsdir)/emacsver.texi ${srcdir}/ChangeLog* \
-	  emacs-misc-${version}/
-	sed -e 's/@sr[c]dir@/./' \
-	  -e 's/^\(emacsdir *=\).*/\1 ./' \
-	  -e 's/^\(buildinfodir *=\).*/\1 ./' \
-	  -e 's/^\(clean:.*\)/\1 infoclean/' \
-	  -e "s/@ver[s]ion@/${version}/" \
-	  -e 's/@MAKE[I]NFO@/makeinfo/' -e 's/@MK[D]IR_P@/mkdir -p/' \
-	  -e 's/@IN[F]O_EXT@/.info/' -e 's/@IN[F]O_OPTS@//' \
-	  -e 's|@SH[E]LL@|/bin/bash|' \
-	  -e 's|@[p]refix@|/usr/local|' \
-	  -e 's|@[d]atarootdir@|$${prefix}/share|' \
-	  -e 's|@[d]atadir@|$${datarootdir}|' \
-	  -e 's|@[P]ACKAGE_TARNAME@|emacs|' \
-	  -e 's|@[d]ocdir@|$${datarootdir}/doc/$${PACKAGE_TARNAME}|' \
-	  -e 's|@[d]vidir@|$${docdir}|' \
-	  -e 's|@[h]tmldir@|$${docdir}|' \
-	  -e 's|@[p]dfdir@|$${docdir}|' \
-	  -e 's|@[p]sdir@|$${docdir}|' \
-	  -e 's|@[G]ZIP_PROG@|gzip|' \
-	  -e 's|@IN[S]TALL@|install -c|' \
-	  -e 's|@IN[S]TALL_DATA@|$${INSTALL} -m 644|' \
-	  -e '/@[c]onfigure_input@/d' \
-	  ${srcdir}/Makefile.in > emacs-misc-${version}/Makefile
-	@if grep '@[a-zA-Z_]*@' emacs-misc-${version}/Makefile; then \
-	  echo "Unexpanded configure variables in Makefile?" 1>&2; exit 1; \
-	fi
-	tar -cf emacs-misc-${version}.tar emacs-misc-${version}
-	rm -rf emacs-misc-${version}
-
 
 .PHONY: install-dvi install-html install-pdf install-ps install-doc
 
