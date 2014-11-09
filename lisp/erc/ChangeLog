@@ -1,43 +1,28 @@
-2014-11-05  Stefan Monnier  <monnier@iro.umontreal.ca>
-
-	* erc.el (erc-send-input): Bind `str' dynamically (bug#18936).
-
-2014-10-29  Paul Eggert  <eggert@cs.ucla.edu>
-
-	Simplify use of current-time and friends.
-	* erc-backend.el (TOPIC): Omit unnecessary call to current-time.
-	* erc.el (erc-emacs-time-to-erc-time): Simplify by using float-time.
-	(erc-current-time): Simplify by using erc-emacs-time-to-erc-time.
-
-2014-10-20  Glenn Morris  <rgm@gnu.org>
-
-	* Merge in all changes up to 24.4 release.
-
-2014-10-15  Ivan Shmakov  <ivan@siamics.net>
+2014-11-09  Ivan Shmakov  <ivan@siamics.net>
 
 	* erc-track.el (erc-modified-channels-display): Update mode line
 	more frequently (bug#18510).
 
-2014-10-10  Kelvin White  <kwhite@gnu.org>
+2014-11-09  Kelvin White  <kwhite@gnu.org>
 
 	* erc.el (erc-initialize-log-marker): Only initialize
 	  erc-last-saved-position if not already a marker.
 
-2014-10-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+2014-11-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* erc.el (erc-channel-receive-names): Silence compiler warning.
 	(erc-format-@nick, erc-update-modes): Idem.
 
-2014-10-03  Kelvin White  <kwhite@gnu.org>
+2014-11-09  Kelvin White  <kwhite@gnu.org>
 
 	* erc.el (erc-rename-buffers): Use defcustom instead of defvar for
 	buffer renaming configuration option.
 
-2014-10-02  Paul Eggert  <eggert@cs.ucla.edu>
+2014-11-09  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* erc.el (erc-nick-at-point): Fix format-string typo (Bug#17755).
 
-2014-10-02  Kelvin White  <kwhite@gnu.org>
+2014-11-09  Kelvin White  <kwhite@gnu.org>
 
 	* erc.el (erc-rename-buffer-p): When set to t buffers will be
 	renamed to the current irc network.
@@ -46,7 +31,7 @@
 
 	* erc-ring.el (erc-input-ring-setup): Fixes Bug #18599
 
-2014-09-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+2014-11-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* erc-track.el (erc-modified-channels-display): Update all mode lines
 	if needed (bug#18510).  Remove call to erc-modified-channels-object
@@ -54,11 +39,11 @@
 	(erc-modified-channels-update): Don't force-mode-line-update here
 	any more.
 
-2014-09-26  Kelvin White  <kwhite@gnu.org>
+2014-11-09  Kelvin White  <kwhite@gnu.org>
 
 	* erc.el (erc-format-nick): Fix code regression - Bug #18551
 
-2014-09-25  Kelvin White  <kwhite@gnu.org>
+2014-11-09  Kelvin White  <kwhite@gnu.org>
 
 	* erc.el: Follow Emacs version instead of tracking it seperately.
 	(erc-quit/part-reason-default) : Clean up quit/part message
@@ -68,27 +53,27 @@
 	(erc-cmd-SV, erc-ctcp-query-VERSION, erc-version, erc-version-string):
 	Change version string.
 
-2014-08-13  Kelvin White  <kwhite@gnu.org>
+2014-11-09  Kelvin White  <kwhite@gnu.org>
 
 	* erc.el (erc-send-input): Disable display commands in current buffer
 	(erc-format-target-and/or-network): Fix cases when buffer name is set
 
-2014-08-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+2014-11-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* erc-stamp.el (erc-timestamp-intangible): Disable by default because
 	`intangible' is evil.
 
-2014-08-07  Kelvin White  <kwhite@gnu.org>
+2014-11-09  Kelvin White  <kwhite@gnu.org>
 
 	* erc.el (erc-channel-receive-names): Fix variable names
 	(erc-format-target-and/or-network): Rename server-buffers to
 	network name if possible
 
-2014-07-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+2014-11-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* erc.el (erc-channel-receive-names): Reduce redundancy.
 
-2014-06-19  Kelvin White  <kwhite@gnu.org>
+2014-11-09  Kelvin White  <kwhite@gnu.org>
 
 	* erc-backend.el: Handle user modes in relevant server responses
 	* erc.el: Better user mode support.
@@ -102,10 +87,20 @@
 	(erc-channel-receive-names): Update channel users.
 	(erc-nick-at-point): Return correct user info.
 
-2014-04-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+2014-11-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* erc.el (erc-invite-only-mode, erc-toggle-channel-mode): Simplify.
-	(erc-load-script): Tighten a regexp.
+	* erc.el (erc-send-input): Bind `str' dynamically (bug#18936).
+
+2014-10-20  Glenn Morris  <rgm@gnu.org>
+
+	* Version 24.4 released.
+
+2014-09-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* erc-track.el (erc-modified-channels-display): Update all mode lines
+	if needed (bug#18510).  Remove call to erc-modified-channels-object
+	where we ignored the return value.
+	(erc-modified-channels-update): Don't force-mode-line-update here any more.
 
 2014-02-25  Julien Danjou  <julien@danjou.info>
 
@@ -454,9 +449,9 @@
 
 2011-11-28  Mike Kazantsev  <mk.fraggod@gmail.com>  (tiny change)
 
-	* erc-dcc.el (erc-dcc-ctcp-query-send-regexp): Update regexp to
+	* erc-dcc.el (erc-dcc-ctcp-query-send-regexp): Updated regexp to
 	match quoted filenames with spaces inside.
-	(erc-dcc-handle-ctcp-send): Update regexp match group numbers,
+	(erc-dcc-handle-ctcp-send): Updated regexp match group numbers,
 	added processing of escaped quotes and backslashes if filename
 	itself was in quotes.
 
@@ -719,3 +714,4 @@ See ChangeLog.08 for earlier changes.
 ;; coding: utf-8
 ;; add-log-time-zone-rule: t
 ;; End:
+
