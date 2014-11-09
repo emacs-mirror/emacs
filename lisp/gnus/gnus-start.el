@@ -1475,7 +1475,7 @@ newsgroup."
   "Check whether a group has been activated or not.
 If SCAN, request a scan of that group as well.  If METHOD, use
 that select method instead of determining the method based on the
-group name.  If DONT-CHECK, don't check check whether the group
+group name.  If DONT-CHECK, don't check whether the group
 actually exists.  If DONT-SUB-CHECK or DONT-CHECK, don't let the
 backend check whether the group actually exists."
   (let ((method (or method (inline (gnus-find-method-for-group group))))
