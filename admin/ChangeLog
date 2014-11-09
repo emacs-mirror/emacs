@@ -1,3 +1,8 @@
+2014-11-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* unidata/Makefile.in (${top_srcdir}/src/macuvs.h): Use
+	unmsys--file-name.  (Bug#18955)
+
 2014-11-09  Glenn Morris  <rgm@gnu.org>
 
 	* admin.el (make-manuals-dist-output-variables)

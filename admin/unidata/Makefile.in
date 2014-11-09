@@ -37,7 +37,7 @@ all: ${top_srcdir}/src/macuvs.h ${DSTDIR}/charprop.el
 
 ${top_srcdir}/src/macuvs.h: ${srcdir}/uvs.el ${srcdir}/IVD_Sequences.txt
 	${EMACS} -batch -l "${srcdir}/uvs.el" \
-	  --eval '(uvs-print-table-ivd "${srcdir}/IVD_Sequences.txt" "Adobe-Japan1")' \
+	  --eval '(uvs-print-table-ivd (unmsys--file-name "${srcdir}/IVD_Sequences.txt") "Adobe-Japan1")' \
 	  > $@
 
 .el.elc:
