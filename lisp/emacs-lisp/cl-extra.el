@@ -588,7 +588,7 @@ If START or END is negative, it counts from the end."
   "Return the value of SYMBOL's PROPNAME property, or DEFAULT if none.
 \n(fn SYMBOL PROPNAME &optional DEFAULT)"
   (declare (compiler-macro cl--compiler-macro-get)
-           (gv-setter (lambda (store) `(put ,sym ,tag ,store))))
+           (gv-setter (lambda (store) (ignore def) `(put ,sym ,tag ,store))))
   (or (get sym tag)
       (and def
            ;; Make sure `def' is really absent as opposed to set to nil.

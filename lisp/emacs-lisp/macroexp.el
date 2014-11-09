@@ -97,8 +97,6 @@ each clause."
   (condition-case err
       (apply handler form (cdr form))
     (error
-     (message "--------------------------------------------------")
-     (backtrace)
      (message "Compiler-macro error for %S: %S" (car form) err)
            form)))
 
@@ -251,7 +249,7 @@ Assumes the caller has bound `macroexpand-all-environment'."
         (format "%s quoted with ' rather than with #'"
                 (list 'lambda (nth 1 f) '...))
         (macroexp--expand-all `(,fun ,arg1 ,f . ,args))))
-      (`(funcall (,(or 'quote 'function) ,(and f (pred symbolp) . ,_)) . ,args)
+      (`(funcall (,(or 'quote 'function) ,(and f (pred symbolp)) . ,_) . ,args)
        ;; Rewrite (funcall #'foo bar) to (foo bar), in case `foo'
        ;; has a compiler-macro.
        (macroexp--expand-all `(,f . ,args)))

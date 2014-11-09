@@ -115,8 +115,7 @@ If `error-free', drop calls even if `byte-compile-delete-errors' is nil.")
              (if (not (eq (car-safe compiler-function) 'lambda))
                  `(eval-and-compile
                     (function-put ',f 'compiler-macro #',compiler-function))
-               (let ((cfname (intern (concat (symbol-name f)
-                                             "--anon-compiler-macro"))))
+               (let ((cfname (intern (concat (symbol-name f) "--anon-cmacro"))))
                  `(progn
                     (eval-and-compile
                       (function-put ',f 'compiler-macro #',cfname))

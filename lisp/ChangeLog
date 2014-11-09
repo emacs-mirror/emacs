@@ -1,3 +1,17 @@
+2014-11-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el (byte-compile-initial-macro-environment):
+	Don't call byte-compile-preprocess since the result will go through
+	cconv.
+	(byte-compile-output-docform): Handle uninterned `name' correctly.
+	* emacs-lisp/cl-macs.el (cl-define-compiler-macro): Use interned name
+	to circumvent byte-compiler bug.
+
+	* emacs-lisp/macroexp.el (macroexp--expand-all): Fix typo.
+	(macroexp--compiler-macro): Remove left-over debug code.
+
+	* emacs-lisp/cl-extra.el (cl-get): Silence compiler warning.
+
 2014-11-08  Juri Linkov  <juri@jurta.org>
 
 	* simple.el (shell-command): Use buffer-name when output-buffer is

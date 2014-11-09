@@ -2767,7 +2767,12 @@ and then returning foo."
   (let ((p args) (res nil))
     (while (consp p) (push (pop p) res))
     (setq args (nconc (nreverse res) (and p (list '&rest p)))))
-  (let ((fname (make-symbol (concat (symbol-name func) "--cmacro"))))
+  ;; FIXME: The code in bytecomp mishandles top-level expressions that define
+  ;; uninterned functions.  E.g. it would generate code like:
+  ;;    (defalias '#1=#:foo--cmacro #[514 ...])
+  ;;    (put 'foo 'compiler-macro '#:foo--cmacro)
+  ;; So we circumvent this by using an interned name.
+  (let ((fname (intern (concat (symbol-name func) "--cmacro"))))
     `(eval-and-compile
        ;; Name the compiler-macro function, so that `symbol-file' can find it.
        (cl-defun ,fname ,(if (memq '&whole args) (delq '&whole args)

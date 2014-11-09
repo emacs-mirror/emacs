@@ -448,26 +448,28 @@ Return the compile-time value of FORM."
     ;;     		       (apply 'byte-compiler-options-handler forms)))
     (declare-function . byte-compile-macroexpand-declare-function)
     (eval-when-compile . ,(lambda (&rest body)
-                                  (let ((result nil))
-                                    (byte-compile-recurse-toplevel
-                                     (cons 'progn body)
-                                     (lambda (form)
-                                       (setf result
-                                             (byte-compile-eval
-                                              (byte-compile-top-level
-                                               (byte-compile-preprocess form))))))
-                                    (list 'quote result))))
+                            (let ((result nil))
+                              (byte-compile-recurse-toplevel
+                               (cons 'progn body)
+                               (lambda (form)
+                                 (setf result
+                                       (byte-compile-eval
+                                        (byte-compile-top-level
+                                         (byte-compile-preprocess form))))))
+                              (list 'quote result))))
     (eval-and-compile . ,(lambda (&rest body)
-                                 (byte-compile-recurse-toplevel
-                                  (cons 'progn body)
-                                  (lambda (form)
-                                    ;; Don't compile here, since we don't know
-                                    ;; whether to compile as byte-compile-form
-                                    ;; or byte-compile-file-form.
-                                    (let ((expanded
-                                           (byte-compile-preprocess form)))
-                                      (eval expanded lexical-binding)
-                                      expanded))))))
+                           (byte-compile-recurse-toplevel
+                            (cons 'progn body)
+                            (lambda (form)
+                              ;; Don't compile here, since we don't know
+                              ;; whether to compile as byte-compile-form
+                              ;; or byte-compile-file-form.
+                              (let ((expanded
+                                     (macroexpand-all
+                                      form
+                                      macroexpand-all-environment)))
+                                (eval expanded lexical-binding)
+                                expanded))))))
   "The default macro-environment passed to macroexpand by the compiler.
 Placing a macro here will cause a macro to have different semantics when
 expanded by the compiler as when expanded by the interpreter.")
@@ -2122,11 +2124,6 @@ list that represents a doc string reference.
                         (eq (aref (nth (nth 1 info) form) 0) ?*))
                    (setq position (- position)))))
 
-        (if preface
-            (progn
-              (insert preface)
-              (prin1 name byte-compile--outbuffer)))
-        (insert (car info))
         (let ((print-continuous-numbering t)
               print-number-table
               (index 0)
@@ -2139,6 +2136,15 @@ list that represents a doc string reference.
               (print-gensym t)
               (print-circle             ; Handle circular data structures.
                (not byte-compile-disable-print-circle)))
+          (if preface
+              (progn
+                ;; FIXME: We don't handle uninterned names correctly.
+                ;; E.g. if cl-define-compiler-macro uses uninterned name we get:
+                ;;    (defalias '#1=#:foo--cmacro #[514 ...])
+                ;;    (put 'foo 'compiler-macro '#:foo--cmacro)
+                (insert preface)
+                (prin1 name byte-compile--outbuffer)))
+          (insert (car info))
           (prin1 (car form) byte-compile--outbuffer)
           (while (setq form (cdr form))
             (setq index (1+ index))
