@@ -610,6 +610,87 @@ style=\"text-align:left\">")
 	(forward-line 1)))))
 
 
+(defconst make-manuals-dist-output-variables
+  `(("@srcdir@" . ".")
+    ("^\\(\\(?:texinfo\\|buildinfo\\|emacs\\)dir *=\\).*" . "\\1 .")
+    ("^\\(clean:.*\\)" . "\\1 infoclean")
+    ("@MAKEINFO@" . "makeinfo")
+    ("@MKDIR_P@" . "mkdir -p")
+    ("@INFO_EXT@" . ".info")
+    ("@INFO_OPTS@" . "")
+    ("@SHELL@" . "/bin/bash")
+    ("@prefix@" . "/usr/local")
+    ("@datarootdir@" . "${prefix}/share")
+    ("@datadir@" . "${datarootdir}")
+    ("@PACKAGE_TARNAME@" . "emacs")
+    ("@docdir@" . "${datarootdir}/doc/${PACKAGE_TARNAME}")
+    ("@\\(dvi\\|html\\|pdf\\|ps\\)dir@" . "${docdir}")
+    ("@GZIP_PROG@" . "gzip")
+    ("@INSTALL@" . "install -c")
+    ("@INSTALL_DATA@" . "${INSTALL} -m 644")
+    ("@configure_input@" . ""))
+  "Alist of (REGEXP . REPLACEMENT) pairs for `make-manuals-dist'.")
+
+(defun make-manuals-dist--1 (root type)
+  "Subroutine of `make-manuals-dist'."
+  (let* ((dest (expand-file-name "manual" root))
+	 (default-directory (progn (make-directory dest t)
+				   (file-name-as-directory dest)))
+	 (version (with-temp-buffer
+		    (insert-file-contents "../doc/emacs/emacsver.texi")
+		    (re-search-forward "@set EMACSVER \\([0-9.]+\\)")
+		    (match-string 1)))
+	 (stem (format "emacs-%s-%s" (if (equal type "emacs") "manual" type)
+		       version))
+	 (tarfile (format "%s.tar" stem)))
+    (message "Doing %s..." type)
+    (if (file-directory-p stem)
+	(delete-directory stem t))
+    (make-directory stem)
+    (copy-file "../doc/misc/texinfo.tex" stem)
+    (or (equal type "emacs") (copy-file "../doc/emacs/emacsver.texi" stem))
+    (dolist (file (directory-files (format "../doc/%s" type) t))
+      (if (or (string-match-p "\\(\\.texi\\'\\|/ChangeLog\\|/README\\'\\)" file)
+	      (and (equal type "lispintro")
+		   (string-match-p "\\.\\(eps\\|pdf\\)\\'" file)))
+	  (copy-file file stem)))
+    (with-temp-buffer
+      (insert-file-contents (format "../doc/%s/Makefile.in" type))
+      (dolist (cons make-manuals-dist-output-variables)
+	(while (re-search-forward (car cons) nil t)
+	  (replace-match (cdr cons) t))
+	(goto-char (point-min)))
+      (let (ats)
+	(while (re-search-forward "@[a-zA-Z_]+@" nil t)
+	  (setq ats t)
+	  (message "Unexpanded: %s" (match-string 0)))
+	(if ats (error "Unexpanded configure variables in Makefile?")))
+      (write-region nil nil (expand-file-name (format "%s/Makefile" stem))
+		    nil 'silent))
+    (call-process "tar" nil nil nil "-cf" tarfile stem)
+    (delete-directory stem t)
+    (message "...created %s" tarfile)))
+
+;; Does anyone actually use these tarfiles?
+(defun make-manuals-dist (root &optional type)
+  "Make the standalone manual source tarfiles for the Emacs webpage.
+ROOT should be the root of an Emacs source tree.
+Interactively with a prefix argument, prompt for TYPE.
+Optional argument TYPE is type of output (nil means all)."
+  (interactive (let ((root (read-directory-name "Emacs root directory: "
+						source-directory nil t)))
+		 (list root
+		       (if current-prefix-arg
+			   (completing-read
+			    "Type: "
+			    '("emacs" "lispref" "lispintro" "misc"))))))
+  (unless (file-exists-p (expand-file-name "src/emacs.c" root))
+    (user-error "%s doesn't seem to be the root of an Emacs source tree" root))
+  (dolist (m '("emacs" "lispref" "lispintro" "misc"))
+    (if (member type (list nil m))
+	(make-manuals-dist--1 root m))))
+
+
 ;; Stuff to check new `defcustom's got :version tags.
 ;; Adapted from check-declare.el.
 

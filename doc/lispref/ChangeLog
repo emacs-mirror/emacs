@@ -1,3 +1,9 @@
+2014-11-09  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (version): Remove variable.
+	(clean): No longer delete dist tarfile.
+	(dist): Remove rule; replace with code in admin.el.
+
 2014-11-07  Martin Rudalics  <rudalics@gmx.at>
 
 	* frames.texi (Size and Position): Rewrite description of
