@@ -1,5 +1,8 @@
 2014-11-09  Eli Zaretskii  <eliz@gnu.org>
 
+	* fileio.c (Finsert_file_contents): Invalidate buffer caches also
+	when the inserted text does not need decoding.  (Bug#18982)
+
 	* w32heap.c (allocate_heap): Set the lower limit of heap at 8MB.
 	(Bug#18995)
 

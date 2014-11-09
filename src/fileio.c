@@ -4308,8 +4308,11 @@ by calling `format-decode', which see.  */)
       coding_system = CODING_ID_NAME (coding.id);
     }
   else if (inserted > 0)
-    adjust_after_insert (PT, PT_BYTE, PT + inserted, PT_BYTE + inserted,
-			 inserted);
+    {
+      invalidate_buffer_caches (current_buffer, PT, PT + inserted);
+      adjust_after_insert (PT, PT_BYTE, PT + inserted, PT_BYTE + inserted,
+			   inserted);
+    }
 
   /* Call after-change hooks for the inserted text, aside from the case
      of normal visiting (not with REPLACE), which is done in a new buffer
