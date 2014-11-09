@@ -91,6 +91,11 @@ Isearch starts.")
   "The buffer where the search is currently searching.
 The value is nil when the search still is in the initial buffer.")
 
+;;;###autoload
+(defvar multi-isearch-buffer-list nil)
+;;;###autoload
+(defvar multi-isearch-file-list nil)
+
 (defvar multi-isearch-orig-search-fun nil)
 (defvar multi-isearch-orig-wrap nil)
 (defvar multi-isearch-orig-push-state nil)
@@ -119,7 +124,9 @@ Intended to be added to `isearch-mode-hook'."
 (defun multi-isearch-end ()
   "Clean up the multi-buffer search after terminating isearch."
   (setq multi-isearch-current-buffer nil
-	multi-isearch-next-buffer-current-function nil)
+	multi-isearch-next-buffer-current-function nil
+	multi-isearch-buffer-list nil
+	multi-isearch-file-list nil)
   (setq-default isearch-search-fun-function multi-isearch-orig-search-fun
 		isearch-wrap-function       multi-isearch-orig-wrap
 		isearch-push-state-function multi-isearch-orig-push-state)
@@ -204,8 +211,6 @@ Switch to the buffer restored from the search status stack."
 
 ;;; Global multi-buffer search invocations
 
-(defvar multi-isearch-buffer-list nil)
-
 (defun multi-isearch-next-buffer-from-list (&optional buffer wrap)
   "Return the next buffer in the series of buffers.
 This function is used for multiple buffers Isearch.  A sequence of
@@ -289,8 +294,6 @@ whose names match the specified regexp."
 
 
 ;;; Global multi-file search invocations
-
-(defvar multi-isearch-file-list nil)
 
 (defun multi-isearch-next-file-buffer-from-list (&optional buffer wrap)
   "Return the next buffer in the series of file buffers.

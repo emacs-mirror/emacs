@@ -1436,6 +1436,22 @@ matching that regexp.
 This command is just like @code{multi-isearch-buffers}, except it
 performs an incremental regexp search.
 
+@item M-x multi-isearch-files
+Prompt for one or more file names, ending with @key{RET}; then,
+begin a multi-file incremental search in those files.  (If the
+search fails in one file, the next @kbd{C-s} tries searching the
+next specified file, and so forth.)  With a prefix argument, prompt
+for a regexp and begin a multi-file incremental search in files
+matching that regexp.
+
+@item M-x multi-isearch-files-regexp
+This command is just like @code{multi-isearch-files}, except it
+performs an incremental regexp search.
+
+In some modes that set the buffer-local variable
+@code{multi-isearch-next-buffer-function} (e.g., in Change Log mode)
+a multi-file incremental search is activated automatically.
+
 @cindex Occur mode
 @cindex mode, Occur
 @item M-x occur

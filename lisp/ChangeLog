@@ -1,3 +1,13 @@
+2014-11-09  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-message-prefix): Show "Multi-file" and
+	"Multi-buffer" instead of "Multi".  (Bug#13592)
+
+	* misearch.el (multi-isearch-file-list): Autoload
+	multi-isearch-buffer-list and multi-isearch-file-list.
+	(multi-isearch-end): Reset multi-isearch-buffer-list and
+	multi-isearch-file-list to nil.
+
 2014-11-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/bytecomp.el (byte-compile-initial-macro-environment):

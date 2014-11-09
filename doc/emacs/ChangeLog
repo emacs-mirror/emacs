@@ -1,3 +1,8 @@
+2014-11-09  Juri Linkov  <juri@jurta.org>
+
+	* search.texi (Other Repeating Search): Add documentation for
+	multi-isearch-files and multi-isearch-files-regexp.  (Bug#13592)
+
 2014-11-09  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (version): Remove variable.

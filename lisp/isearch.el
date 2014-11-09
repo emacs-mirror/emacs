@@ -2514,7 +2514,10 @@ If there is no completion possible, say so and continue searching."
 			   "word ")
 		     "")
 		   (if isearch-regexp "regexp " "")
-		   (if multi-isearch-next-buffer-current-function "multi " "")
+		   (cond
+		    (multi-isearch-file-list "multi-file ")
+		    (multi-isearch-buffer-list "multi-buffer ")
+		    (t ""))
 		   (or isearch-message-prefix-add "")
 		   (if nonincremental "search" "I-search")
 		   (if isearch-forward "" " backward")
