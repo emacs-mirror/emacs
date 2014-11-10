@@ -100,6 +100,15 @@ See also `eww-form-checkbox-selected-symbol'."
   :version "24.4"
   :group 'eww)
 
+(defface eww-form-file
+  '((((type x w32 ns) (class color))	; Like default mode line
+     :box (:line-width 2 :style released-button)
+     :background "#808080" :foreground "black"))
+  "Face for eww buffer buttons."
+  :version "24.4"
+  :group 'eww
+  :type "Browse")
+
 (defface eww-form-checkbox
   '((((type x w32 ns) (class color))	; Like default mode line
      :box (:line-width 2 :style released-button)
@@ -653,6 +662,12 @@ appears in a <link> or <a> tag."
     (define-key map [(control c) (control c)] 'eww-submit)
     map))
 
+(defvar eww-submit-file
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\r" 'eww-select-file)
+    (define-key map [(control c) (control c)] 'eww-submit)
+    map))
+
 (defvar eww-checkbox-map
   (let ((map (make-sparse-keymap)))
     (define-key map " " 'eww-toggle-checkbox)
@@ -762,6 +777,34 @@ appears in a <link> or <a> tag."
 			     :name (cdr (assq :name cont))))
     (put-text-property start (point) 'keymap eww-checkbox-map)
     (insert " ")))
+
+(defun eww-form-file (cont)
+  (let ((start (point))
+	(value (cdr (assq :value cont))))
+    (setq value
+	  (if (zerop (length value))
+	      " No file selected"
+	    value))
+    (insert "Browse")
+    (add-face-text-property start (point) 'eww-form-file)
+    (insert value)
+    (put-text-property start (point) 'eww-form
+		       (list :eww-form eww-form
+			     :value (cdr (assq :value cont))
+			     :type (downcase (cdr (assq :type cont)))
+			     :name (cdr (assq :name cont))))
+    (put-text-property start (point) 'keymap eww-submit-file)
+    (insert " ")))
+
+(defun eww-select-file ()
+  "Change the value of the upload file menu under point."
+  (interactive)
+  (let*  ((input (get-text-property (point) 'eww-form)))
+    (let ((filename
+	   (let ((insert-default-directory t))
+	     (read-file-name "filename:  "))))
+      (eww-update-field filename (length "Browse"))
+              (plist-put input :filename filename))))
 
 (defun eww-form-text (cont)
   (let ((start (point))
@@ -879,6 +922,8 @@ See URL `https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Input'.")
      ((or (equal type "checkbox")
 	  (equal type "radio"))
       (eww-form-checkbox cont))
+     ((equal type "file")
+      (eww-form-file cont))
      ((equal type "submit")
       (eww-form-submit cont))
      ((equal type "hidden")
@@ -971,14 +1016,17 @@ See URL `https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Input'.")
     (goto-char
      (eww-update-field display))))
 
-(defun eww-update-field (string)
+(defun eww-update-field (string &optional offset)
+  (if (not offset) (setq offset 0))
   (let ((properties (text-properties-at (point)))
-	(start (eww-beginning-of-field))
-	(end (1+ (eww-end-of-field))))
-    (delete-region start end)
+	(start (+ (eww-beginning-of-field) offset))
+	(current-end (1+ (eww-end-of-field)))
+	(new-end (1+ (+ (eww-beginning-of-field) (length string)))))
+    (delete-region start current-end)
+    (forward-char offset)
     (insert string
-	    (make-string (- (- end start) (length string)) ? ))
-    (set-text-properties start end properties)
+	    (make-string (- (- (+ new-end offset) start) (length string)) ? ))
+    (if (= 0 offset) (set-text-properties start new-end properties))
     start))
 
 (defun eww-toggle-checkbox ()
@@ -1046,8 +1094,8 @@ See URL `https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Input'.")
 	 (form (plist-get this-input :eww-form))
 	 values next-submit)
     (dolist (elem (sort (eww-inputs form)
-			 (lambda (o1 o2)
-			   (< (car o1) (car o2)))))
+			(lambda (o1 o2)
+			  (< (car o1) (car o2)))))
       (let* ((input (cdr elem))
 	     (input-start (car elem))
 	     (name (plist-get input :name)))
@@ -1057,6 +1105,16 @@ See URL `https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Input'.")
 	    (when (plist-get input :checked)
 	      (push (cons name (plist-get input :value))
 		    values)))
+	   ((equal (plist-get input :type) "file")
+	    (push (cons "file"
+			(list (cons "filedata"
+				    (with-temp-buffer
+				      (insert-file-contents
+				       (plist-get input :filename))
+				      (buffer-string)))
+			      (cons "name" (plist-get input :name))
+			      (cons "filename" (plist-get input :filename))))
+		  values))
 	   ((equal (plist-get input :type) "submit")
 	    ;; We want the values from buttons if we hit a button if
 	    ;; we hit enter on it, or if it's the first button after
@@ -1079,12 +1137,33 @@ See URL `https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Input'.")
 	      values)))
     (if (and (stringp (cdr (assq :method form)))
 	     (equal (downcase (cdr (assq :method form))) "post"))
-	(let ((url-request-method "POST")
-	      (url-request-extra-headers
-	       '(("Content-Type" . "application/x-www-form-urlencoded")))
-	      (url-request-data (mm-url-encode-www-form-urlencoded values)))
-	  (eww-browse-url (shr-expand-url (cdr (assq :action form))
-					  (plist-get eww-data :url))))
+	(let ((mtype))
+	  (dolist (x values mtype)
+	    (if (equal (car x) "file")
+		(progn
+		  (setq mtype "multipart/form-data"))))
+	  (cond ((equal mtype "multipart/form-data")
+		 (let ((boundary (mml-compute-boundary '())))
+		   (let ((url-request-method "POST")
+			 (url-request-extra-headers
+			  (list (cons "Content-Type"
+				      (concat "multipart/form-data; boundary="
+					      boundary))))
+			 (url-request-data
+			  (mm-url-encode-multipart-form-data values boundary)))
+		     (eww-browse-url (shr-expand-url
+				      (cdr (assq :action form))
+				      (plist-get eww-data :url))))))
+		(t
+		 (let ((url-request-method "POST")
+		       (url-request-extra-headers
+			'(("Content-Type" .
+			   "application/x-www-form-urlencoded")))
+		       (url-request-data
+			(mm-url-encode-www-form-urlencoded values)))
+		   (eww-browse-url (shr-expand-url
+				    (cdr (assq :action form))
+				    (plist-get eww-data :url)))))))
       (eww-browse-url
        (concat
 	(if (cdr (assq :action form))

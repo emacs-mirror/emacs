@@ -1,3 +1,13 @@
+2014-11-10  Kenjiro NAKAYAMA  <nakayamakenjiro@gmail.com>
+
+        * net/eww.el(eww-form-file(defface)): New defface of file upload form.
+        (eww-submit-file): New key map of file upload.
+        (eww-form-file): New file upload button and file name context.
+        (eww-select-file): Select file and display selected file name.
+        (eww-tag-input): Handle input tag of file type.
+        (eww-update-field): Add point offset.
+        (eww-submit): Add submit with multipart/form-data.
+
 2014-11-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* net/eww.el (eww-render, eww-display-html, eww-setup-buffer):

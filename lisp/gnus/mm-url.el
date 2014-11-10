@@ -414,13 +414,51 @@ spaces.  Die Die Die."
 
 (autoload 'mml-compute-boundary "mml")
 
+(defun mm-url-encode-multipart-form-data (pairs &optional boundary)
+  "Return PAIRS encoded in multipart/form-data."
+  ;; RFC1867
+  ;; Get a good boundary
+  (unless boundary
+    (setq boundary (mml-compute-boundary '())))
+  (concat
+   ;; Start with the boundary
+   "--" boundary "\r\n"
+   ;; Create name value pairs
+   (mapconcat
+    'identity
+    ;; Delete any returned items that are empty
+    (delq nil
+          (mapcar (lambda (data)
+                    (cond ((equal (car data) "file")
+                           ;; For each pair
+                           (format
+                            ;; Encode the name
+                            "Content-Disposition: form-data; name=%S; filename=%S\r\nContent-Type: text/plain; charset=utf-8\r\nContent-Transfer-Encoding: binary\r\n\r\n%s"
+                            (cdr (assoc "name" (cdr data))) (cdr (assoc "filename" (cdr data)))
+                            (cond ((stringp (cdr (assoc "filedata" (cdr data))))
+                                   (cdr (assoc "filedata" (cdr data))))
+                                  ((integerp (cdr (assoc "filedata" (cdr data))))
+                                   (number-to-string (cdr (assoc "filedata" (cdr data))))))))
+                          ((equal (car data) "submit")
+                           "Content-Disposition: form-data; name=\"submit\"\r\n\r\nSubmit\r\n")
+                          (t
+                           (format
+                            "Content-Disposition: form-data;name=%S\r\n\r\n%s\r\n"
+                            (car data) (concat (mm-url-form-encode-xwfu (cdr data)))
+                            ))))
+                  pairs))
+    ;; use the boundary as a separator
+    (concat "\r\n--" boundary "\r\n"))
+   ;; put a boundary at the end.
+   "--" boundary "--\r\n"))
+
 (defun mm-url-remove-markup ()
   "Remove all HTML markup, leaving just plain text."
   (goto-char (point-min))
   (while (search-forward "<!--" nil t)
     (delete-region (match-beginning 0)
-		   (or (search-forward "-->" nil t)
-		       (point-max))))
+                   (or (search-forward "-->" nil t)
+                       (point-max))))
   (goto-char (point-min))
   (while (re-search-forward "<[^>]+>" nil t)
     (replace-match "" t t)))
