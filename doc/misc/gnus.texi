@@ -618,6 +618,7 @@ Article Buffer
 
 * Hiding Headers::              Deciding what headers should be displayed.
 * Using MIME::                  Pushing articles through @acronym{MIME} before reading them.
+* HTML::                        Reading @acronym{HTML} messages.
 * Customizing Articles::        Tailoring the look of the articles.
 * Article Keymap::              Keystrokes available in the article buffer.
 * Misc Article::                Other stuff.
@@ -11769,8 +11770,7 @@ If your Emacs copy has been built with libxml2 support, then Gnus uses
 Emacs' built-in, plain elisp Simple HTML Renderer @code{shr}
 @footnote{@code{shr} displays colors as declared in the @acronym{HTML}
 article but tries to adjust them in order to be readable.  If you
-prefer more contrast, have a look at question 4.16 in the
-@xref{Frequently Asked Questions}.} which is also used by Emacs'
+prefer more contrast, @xref{FAQ 4-16}.} which is also used by Emacs'
 browser EWW (@pxref{EWW, ,EWW, emacs, The Emacs Manual}).
 
 If your Emacs copy lacks libxml2 support but you have @code{w3m}
