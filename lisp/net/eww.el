@@ -106,8 +106,7 @@ See also `eww-form-checkbox-selected-symbol'."
      :background "#808080" :foreground "black"))
   "Face for eww buffer buttons."
   :version "24.4"
-  :group 'eww
-  :type "Browse")
+  :group 'eww)
 
 (defface eww-form-checkbox
   '((((type x w32 ns) (class color))	; Like default mode line

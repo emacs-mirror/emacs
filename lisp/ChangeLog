@@ -1,3 +1,7 @@
+2014-11-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/eww.el (eww-form-file): :type isn't a valid `defface' keyword.
+
 2014-11-10  Kenjiro NAKAYAMA  <nakayamakenjiro@gmail.com>
 
         * net/eww.el(eww-form-file(defface)): New defface of file upload form.
