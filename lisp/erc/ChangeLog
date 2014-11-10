@@ -1,6 +1,6 @@
 2014-11-10  Kelvin White  <kwhite@gnu.org>
 
-	* erc-stamp.el: change version tag to 24.5
+	* erc-stamp.el (erc-timestamp-intangible): Change version tag to 24.5.
 
 2014-11-09  Ivan Shmakov  <ivan@siamics.net>
 
