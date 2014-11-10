@@ -160,9 +160,6 @@ Root must be the root of an Emacs source tree."
 				    ?\( (submatch (1+ (in "0-9"))) ?\))))
       (set-version-in-file root "etc/refcards/ru-refcard.tex" version
 			   "\\\\newcommand{\\\\versionemacs}\\[0\\]\
-{\\([0-9]\\{2,\\}\\)}.+%.+version of Emacs")
-      (set-version-in-file root "etc/refcards/emacsver.tex" version
-			   "\\\\def\\\\versionemacs\
 {\\([0-9]\\{2,\\}\\)}.+%.+version of Emacs")))
   (message "Setting version numbers...done"))
 
@@ -198,7 +195,7 @@ Root must be the root of an Emacs source tree."
     (set-version-in-file root "etc/refcards/ru-refcard.tex" copyright
 			 "\\\\newcommand{\\\\cyear}\\[0\\]\
 {\\([0-9]\\{4\\}\\)}.+%.+copyright year")
-    (set-version-in-file root "etc/refcards/emacsver.tex" copyright
+    (set-version-in-file root "etc/refcards/emacsver.tex.in" copyright
 			 "\\\\def\\\\year\
 {\\([0-9]\\{4\\}\\)}.+%.+copyright year"))
   (message "Setting copyrights...done"))

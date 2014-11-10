@@ -288,7 +288,18 @@ COPYDESTS = "$(DESTDIR)${etcdir}" "$(DESTDIR)${lispdir}"
 
 all: ${SUBDIR} info
 
-.PHONY: all ${SUBDIR} blessmail epaths-force epaths-force-w32
+.PHONY: all ${SUBDIR} blessmail epaths-force epaths-force-w32 etc-emacsver
+
+# If configure were to just generate emacsver.tex from emacsver.tex.in
+# in the normal way, the timestamp of emacsver.tex would always be
+# newer than that of the pdf files, which are prebuilt in release tarfiles.
+# So we use this rule, and move-if-change, to avoid that.
+etc-emacsver:
+	majorversion=`echo ${version} | sed 's/\..*//'`; \
+	sed "s/[@]majorversion@/$${majorversion}/" \
+	  ${srcdir}/etc/refcards/emacsver.tex.in > emacsver.tex.$$$$ && \
+	  ${srcdir}/build-aux/move-if-change emacsver.tex.$$$$ \
+	  ${srcdir}/etc/refcards/emacsver.tex
 
 removenullpaths=sed -e 's/^:*//' -e 's/:*$$//g' -e 's/::*/:/g'
 
@@ -844,6 +855,7 @@ bootstrap-clean: $(distclean_dirs:=_bootstrap-clean)
 	done
 	[ ! -f config.log ] || mv -f config.log config.log~
 	rm -rf ${srcdir}/info
+	rm -f ${srcdir}/etc/refcards/emacsver.tex
 	${top_bootclean}
 
 ### `maintainer-clean'

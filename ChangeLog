@@ -1,5 +1,9 @@
 2014-11-10  Glenn Morris  <rgm@gnu.org>
 
+	* configure.ac (etc/refcards/emacsver.tex): Generate it.
+	* Makefile.in (etc-emacsver): New PHONY rule.
+	(bootstrap-clean): Delete etc/refcards/emacsver.tex.
+
 	* configure.ac (doc/emacs/emacsver.texi): Generate it.
 	* make-dist (doc/emacs/emacsver.texi) [update]: No longer check it.
 

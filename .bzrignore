@@ -81,6 +81,7 @@ doc/emacs/emacsver.texi
 !doc/lispintro/lambda-*.pdf
 etc/emacs.tmpdesktop
 !etc/refcards/Makefile
+etc/refcards/emacsver.tex
 etc/refcards/*.aux
 etc/refcards/*.log
 info/

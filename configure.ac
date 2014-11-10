@@ -5174,9 +5174,23 @@ if test ! -f src/.gdbinit && test -f "$srcdir/src/.gdbinit"; then
 fi
 ])
 
+dnl Perhaps this would be better named doc-emacs-emacsver.texi?
+dnl See comments for etc-refcards-emacsver.tex.
+dnl Since we get a doc/emacs directory generated anyway, for the Makefile,
+dnl it is not quite the same.  But we are generating in $srcdir.
 AC_CONFIG_COMMANDS([doc/emacs/emacsver.texi], [
 ${MAKE-make} -s --no-print-directory -C doc/emacs doc-emacsver || \
 AC_MSG_ERROR(['doc/emacs/emacsver.texi' could not be made.])
+])
+
+dnl If we give this the more natural name, etc/refcards/emacsver.texi,
+dnl then a directory etc/refcards is created in the build directory,
+dnl which is probably harmless, but confusing (in out-of-tree builds).
+dnl (If we were to generate etc/refcards/Makefile, this might change.)
+dnl It is really $srcdir/etc/refcards/emacsver.tex that we generate.
+AC_CONFIG_COMMANDS([etc-refcards-emacsver.tex], [
+${MAKE-make} -s MAKEFILE_NAME=do-not-make-Makefile etc-emacsver || \
+AC_MSG_ERROR(['etc/refcards/emacsver.tex' could not be made.])
 ])
 
 AC_OUTPUT

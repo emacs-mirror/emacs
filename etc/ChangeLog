@@ -1,3 +1,7 @@
+2014-11-10  Glenn Morris  <rgm@gnu.org>
+
+	* refcards/emacsver.tex.in: Rename from emacsver.tex.
+
 2014-11-09  Eric Ludlam <zappo@gnu.org>
 
 	* srecode/doc-cpp.srt (mode): Set to c mode so this works with
