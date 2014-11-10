@@ -183,7 +183,7 @@ PAR is a number of a regexp grouping whose text will be passed to
   'nicknames, these are ignored, and CALLBACK will be called with
   the nickname matched as the argument."
   :group 'erc-button
-  :version "24.5"                       ; remove finger (bug#4443)
+  :version "24.1"                       ; remove finger (bug#4443)
   :type '(repeat
           (list :tag "Button"
                 (choice :tag "Matches"

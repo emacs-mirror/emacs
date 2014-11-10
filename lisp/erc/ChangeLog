@@ -1,7 +1,6 @@
-2014-11-09  Kelvin White  <kwhite@gnu.org>
+2014-11-10  Kelvin White  <kwhite@gnu.org>
 
-	* erc-match.el, erc-join.el, erc-stamp.el, erc-backend.el, erc.el,
-	erc-button.el: Update version to 24.5.
+	* erc-stamp.el: change version tag to 24.5
 
 2014-11-09  Ivan Shmakov  <ivan@siamics.net>
 

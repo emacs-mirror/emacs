@@ -333,7 +333,7 @@ Good luck."
 This will only be consulted if the coding system in
 `erc-server-coding-system' is `undecided'."
   :group 'erc-server
-  :version "24.5"
+  :version "24.1"
   :type '(repeat coding-system))
 
 (defcustom erc-server-coding-system (if (and (fboundp 'coding-system-p)
@@ -400,7 +400,7 @@ isn't displayed."
 (defcustom erc-server-timestamp-format "%Y-%m-%d %T"
   "Timestamp format used with server response messages.
 This string is processed using `format-time-string'."
-  :version "24.5"
+  :version "24.3"
   :type 'string
   :group 'erc-server)
 

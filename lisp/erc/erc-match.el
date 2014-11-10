@@ -237,7 +237,7 @@ current-nick, keyword, pal, dangerous-host, fool"
 useful for excluding all the things like MOTDs from the server
 and other miscellaneous functions."
   :group 'erc-match
-  :version "24.5"
+  :version "24.3"
   :type 'boolean)
 
 ;; Internal variables:
