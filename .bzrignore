@@ -79,6 +79,7 @@ doc/emacs/emacsver.texi
 !doc/lispintro/cons-*.pdf
 !doc/lispintro/drawers.pdf
 !doc/lispintro/lambda-*.pdf
+doc/man/emacs.1
 etc/emacs.tmpdesktop
 !etc/refcards/Makefile
 etc/refcards/emacsver.tex

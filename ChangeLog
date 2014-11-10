@@ -1,5 +1,9 @@
 2014-11-10  Glenn Morris  <rgm@gnu.org>
 
+	* configure.ac (doc/man/emacs.1): Generate it.
+	* Makefile.in (top_bootclean): Remove doc/man/emacs.1.
+	* make-dist: Do not distribute doc/man/emacs.1.
+
 	* configure.ac (etc/refcards/emacsver.tex): Generate it.
 	* Makefile.in (etc-emacsver): New PHONY rule.
 	(bootstrap-clean): Delete etc/refcards/emacsver.tex.

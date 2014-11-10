@@ -1,5 +1,5 @@
 .\" See section COPYING for copyright and redistribution information.
-.TH EMACS 1 "2007 April 13" "GNU Emacs 25.0.50"
+.TH EMACS 1 "2007 April 13" "GNU Emacs @version@"
 .
 .
 .SH NAME
@@ -579,7 +579,7 @@ They are stored here to reduce the size of Emacs proper.
 .
 .
 .SH BUGS
-There is a mailing list, bug-gnu-emacs@gnu.org, for reporting Emacs
+There is a mailing list, @PACKAGE_BUGREPORT@, for reporting Emacs
 bugs and fixes.
 But before reporting something as a bug, please try to be sure that
 it really is a bug, not a misunderstanding or a deliberate feature.

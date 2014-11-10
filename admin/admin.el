@@ -94,10 +94,6 @@ Root must be the root of an Emacs source tree."
 		       (rx (and "AC_INIT" (1+ (not (in ?,)))
                                 ?, (0+ space)
                                 (submatch (1+ (in "0-9."))))))
-  (set-version-in-file root "doc/man/emacs.1" version
-		       (rx (and ".TH EMACS" (1+ not-newline)
-                                "GNU Emacs" (1+ space)
-				(submatch (1+ (in "0-9."))))))
   ;; No longer used, broken in multiple ways, updating version seems pointless.
   (set-version-in-file root "nt/config.nt" version
 		       (rx (and bol "#" (0+ blank) "define" (1+ blank)

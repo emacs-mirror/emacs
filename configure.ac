@@ -5111,6 +5111,9 @@ if test "$HAVE_NS" = "yes"; then
   AC_SUBST(ns_check_file)
 fi
 
+dnl config.status treats $srcdir specially, so I think this is ok...
+AC_CONFIG_FILES([$srcdir/doc/man/emacs.1])
+
 dnl Obviously there is duplication here wrt $SUBDIR_MAKEFILES.
 dnl You _can_ use that variable in AC_CONFIG_FILES, so long as any directory
 dnl using automake (ie lib/) is explicitly listed and not "hidden" in a variable

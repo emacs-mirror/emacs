@@ -822,7 +822,7 @@ clean: $(clean_dirs:=_clean)
 ### `bootclean'
 ###      Delete all files that need to be remade for a clean bootstrap.
 top_bootclean=\
-	rm -f config.cache config.log
+	rm -f config.cache config.log ${srcdir}/doc/man/emacs.1
 
 ### `distclean'
 ###      Delete all files from the current directory that are created by

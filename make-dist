@@ -503,8 +503,9 @@ echo "Making links to \`doc/lispintro'"
 
 echo "Making links to \`doc/man'"
 (cd doc/man
- ln ChangeLog* *.1 ../../${tempdir}/doc/man
- cd ../../${tempdir}/doc/man)
+ ln ChangeLog* *.1 *.in ../../${tempdir}/doc/man
+ cd ../../${tempdir}/doc/man
+ rm -f emacs.1)
 
 ### It would be nice if they could all be symlinks to top-level copy, but
 ### you're not supposed to have any symlinks in distribution tar files.

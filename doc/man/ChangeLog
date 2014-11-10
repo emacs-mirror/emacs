@@ -1,3 +1,7 @@
+2014-11-10  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.1.in: Rename from emacs.1.
+
 2014-10-20  Glenn Morris  <rgm@gnu.org>
 
 	* Merge in all changes up to 24.4 release.
