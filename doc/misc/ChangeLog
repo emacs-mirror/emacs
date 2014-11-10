@@ -1,4 +1,4 @@
-2014-11-07  Tassilo Horn  <tsdh@gnu.org>
+2014-11-10  Tassilo Horn  <tsdh@gnu.org>
 
 	* gnus.texi (HTML): Update section so that it mentions shr and w3m.
 	Also link the full EWW manual that explains more on shr, too.
