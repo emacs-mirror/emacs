@@ -1,3 +1,10 @@
+2014-11-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/eww.el (eww-data): New plist to store all the data relevant
+	to a single page, used throughout the file instead of the
+	variables `eww-current-url', `eww-current-dom',
+	`eww-current-source', and `eww-current-title'.
+
 2014-11-10  Sylvain Chouleur  <sylvain.chouleur@gmail.com>  (tiny change)
 
 	Allow VTIMEZONE where daylight and standard time zones are equal.
