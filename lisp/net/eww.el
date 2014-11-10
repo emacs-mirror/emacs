@@ -1344,7 +1344,11 @@ Differences in #targets are ignored."
   (plist-put eww-data :point (point))
   (plist-put eww-data :text (buffer-string))
   (push eww-data eww-history)
-  (setq eww-data (list :title "")))
+  (setq eww-data (list :title ""))
+  ;; Don't let the history grow infinitely.  We store quite a lot of
+  ;; data per page.
+  (when-let (tail (nthcdr 50 eww-history))
+    (setcdr tail nil)))
 
 (defun eww-list-histories ()
   "List the eww-histories."

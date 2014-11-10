@@ -5,6 +5,7 @@
 	variables `eww-current-url', `eww-current-dom',
 	`eww-current-source', and `eww-current-title'.
 	(eww-readable): Copy over pertinent data from the parent page.
+	(eww-save-history): Don't let the history grow infinitely.
 
 	* net/eww.el: Remove `eww-next-url', `eww-previous-url',
 	`eww-up-url', `eww-home-url', `eww-start-url' and
