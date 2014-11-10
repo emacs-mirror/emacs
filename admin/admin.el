@@ -98,6 +98,7 @@ Root must be the root of an Emacs source tree."
 		       (rx (and ".TH EMACS" (1+ not-newline)
                                 "GNU Emacs" (1+ space)
 				(submatch (1+ (in "0-9."))))))
+  ;; No longer used, broken in multiple ways, updating version seems pointless.
   (set-version-in-file root "nt/config.nt" version
 		       (rx (and bol "#" (0+ blank) "define" (1+ blank)
 				"VERSION" (1+ blank) "\""
@@ -106,6 +107,7 @@ Root must be the root of an Emacs source tree."
 		       (rx (and bol "/^#undef " (1+ not-newline)
 				"define VERSION" (1+ space) "\""
 				(submatch (1+ (in "0-9."))))))
+  ;; No longer used, broken in multiple ways, updating version seems pointless.
   (set-version-in-file root "nt/makefile.w32-in" version
 		       (rx (and "VERSION" (0+ space) "=" (0+ space)
 				(submatch (1+ (in "0-9."))))))
