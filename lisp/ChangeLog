@@ -1,3 +1,7 @@
+2014-11-10  Glenn Morris  <rgm@gnu.org>
+
+	* startup.el (command-line): Handle nil elements in load-path.
+
 2014-11-08  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/bytecomp.el (byte-compile-report-error):
