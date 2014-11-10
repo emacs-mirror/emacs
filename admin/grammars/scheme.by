@@ -25,6 +25,7 @@
 
 %token DEFINE        "define"
 %token DEFINE-MODULE "define-module"
+%token MODULE        "module"
 %token LOAD          "load"
 
 %put DEFINE        summary "Function: (define symbol expression)"
@@ -37,36 +38,50 @@
 %%
 
 scheme : semantic-list
-	 (EXPAND $1 scheme-list)
+	 ( ,(let ((expand (EXPAND $1 scheme-list)))
+	      (cond
+	       ((semantic-tag-of-class-p expand 'module)
+		(TYPE-TAG (semantic-tag-name expand)
+		     "module"
+		     (EXPANDFULL $1 scheme)
+		     nil) ;; Module contains more definitions like a type
+		)
+	       (t
+		expand))))
        ;
 
-scheme-list : OPENPAREN scheme-in-list CLOSEPAREN
+scheme-list : OPENPAREN scheme-in-list
 	      ( ,$2 )
 	    ;
 
+
 scheme-in-list: DEFINE symbol expression
 		(VARIABLE-TAG $2 nil $3 )
-	      | DEFINE name-args opt-doc sequence
+	      | DEFINE name-args opt-doc
 		(FUNCTION-TAG (car ,$2) nil (cdr ,$2) )
 	      | DEFINE-MODULE name-args
 		(PACKAGE-TAG (nth (length $2) $2 ) nil)
+	      | MODULE symbol
+		(TAG $1 'module :members nil)
 	      | LOAD string
 		(INCLUDE-TAG (file-name-nondirectory (read $2)) (read $2) )
-	      | symbol
+	      | symbol sequence
 		(CODE-TAG $1 nil)
 	      ;
 
 name-args: semantic-list
-	   (EXPAND $1 name-arg-expand)
+	   (EXPAND $1 name-arg-list)
 	 ;
 
-name-arg-expand : open-paren name-arg-expand
+name-arg-list : OPENPAREN name-arg-expand
 		  ( ,$2 )
-		| symbol name-arg-expand
-		  ( ,(cons $1 ,$2) )
-		| ;; EMPTY
-		  (  )
-		;
+	      ;
+
+name-arg-expand: symbol name-arg-expand
+		 ( ,(cons $1 ,$2) )
+	       | ;; EMPTY
+		 (  )
+	       ;
 
 opt-doc : string
 	| ;; EMPTY
@@ -83,3 +98,4 @@ expression : symbol
 	   ;
 
 ;;; scheme.by ends here
+

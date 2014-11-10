@@ -78,61 +78,18 @@
 ;; the above described support features.
 
 (require 'eieio-opt)
-(require 'ede)
+(require 'ede/config)
 (require 'ede/shell)
 (require 'semantic/db)
 
 ;;; Code:
 ;;
 ;; Start with the configuration system
-(defclass ede-generic-config (eieio-persistent)
-  ((extension :initform ".ede")
-   (file-header-line :initform ";; EDE Generic Project Configuration")
-   (project :initform nil
-	    :documentation
-	    "The project this config is bound to.")
-   ;; Generic customizations
-   (build-command :initarg :build-command
-		  :initform "make -k"
-		  :type string
-		  :custom string
-		  :group (default build)
-		  :documentation
-		  "Command used for building this project.")
-   (debug-command :initarg :debug-command
-		  :initform "gdb "
-		  :type string
-		  :custom string
-		  :group (default build)
-		  :documentation
-		  "Command used for debugging this project.")
-   (run-command :initarg :run-command
-		:initform nil
-		:type (or null string)
-		:custom string
-		:group (default build)
-		:documentation
-		"Command used to run something related to this project.")
-   ;; C target customizations
-   (c-include-path :initarg :c-include-path
-		   :initform nil
-		   :type list
-		   :custom (repeat (string :tag "Path"))
-		   :group c
-		   :documentation
-		   "The include path used by C/C++ projects.")
-   (c-preprocessor-table :initarg :c-preprocessor-table
-			 :initform nil
-			 :type list
-			 :custom (repeat (cons (string :tag "Macro")
-					       (string :tag "Value")))
-			 :group c
-			 :documentation
-			 "Preprocessor Symbols for this project.")
-   (c-preprocessor-files :initarg :c-preprocessor-files
-			 :initform nil
-			 :type list
-			 :custom (repeat (string :tag "Include File")))
+(defclass ede-generic-config (ede-extra-config
+			      ede-extra-config-build
+			      ede-extra-config-program
+			      ede-extra-config-c)
+  ((file-header-line :initform ";; EDE Generic Project Configuration")
    )
   "User Configuration object for a generic project.")
 
@@ -142,23 +99,24 @@ Return nil if there isn't one.
 Argument DIR is the directory it is created for.
 ROOTPROJ is nil, since there is only one project."
   ;; Doesn't already exist, so let's make one.
-  (let* ((alobj ede-constructing)
-	 (this nil))
+  (let* ((alobj ede-constructing))
     (when (not alobj) (error "Cannot load generic project without the autoload instance"))
-
-    (setq this
-	  (funcall (oref alobj class-sym)
-		   (symbol-name (oref alobj class-sym))
-		   :name (file-name-nondirectory
-			  (directory-file-name dir))
-		   :version "1.0"
-		   :directory (file-name-as-directory dir)
-		   :file (expand-file-name (oref alobj :proj-file)) ))
-    (ede-add-project-to-global-list this)
+    ;;;
+    ;; TODO - find the root dir. 
+    (let ((rootdir dir))
+      (funcall (oref alobj class-sym)
+	       (symbol-name (oref alobj class-sym))
+	       :name (file-name-nondirectory (directory-file-name dir))
+	       :version "1.0"
+	       :directory (file-name-as-directory rootdir)
+	       :file (expand-file-name (oref alobj :proj-file)
+				       rootdir)))
     ))
 
 ;;; Base Classes for the system
-(defclass ede-generic-target (ede-target)
+(defclass ede-generic-target (ede-target-with-config
+			      ede-target-with-config-build
+			      ede-target-with-config-program)
   ((shortname :initform ""
 	     :type string
 	     :allocation :class
@@ -174,16 +132,18 @@ subclasses of this base target will override the default value.")
   "Baseclass for all targets belonging to the generic ede system."
   :abstract t)
 
-(defclass ede-generic-project (ede-project)
-  ((buildfile :initform ""
+(defclass ede-generic-project (ede-project-with-config
+			       ede-project-with-config-build
+			       ede-project-with-config-program
+			       ede-project-with-config-c
+			       ede-project-with-config-java)
+  ((config-class :initform ede-generic-config)
+   (config-file-basename :initform "EDEConfig.el")
+   (buildfile :initform ""
 	      :type string
 	      :allocation :class
 	      :documentation "The file name that identifies a project of this type.
 The class allocated value is replace by different sub classes.")
-   (config :initform nil
-	   :type (or null ede-generic-config)
-	   :documentation
-	   "The configuration object for this project.")
    )
   "The baseclass for all generic EDE project types."
   :abstract t)
@@ -196,37 +156,18 @@ The class allocated value is replace by different sub classes.")
     (oset this :targets nil))
   )
 
-(defmethod ede-generic-get-configuration ((proj ede-generic-project))
-  "Return the configuration for the project PROJ."
-  (let ((config (oref proj config)))
-    (when (not config)
-      (let ((fname (expand-file-name "EDEConfig.el"
-				     (oref proj :directory))))
-	(if (file-exists-p fname)
-	    ;; Load in the configuration
-	    (setq config (eieio-persistent-read fname 'ede-generic-config))
-	  ;; Create a new one.
-	  (setq config (ede-generic-config
-			"Configuration"
-			:file fname))
-	  ;; Set initial values based on project.
-	  (ede-generic-setup-configuration proj config))
-	;; Link things together.
-	(oset proj config config)
-	(oset config project proj)))
-    config))
+(defmethod ede-project-root ((this ede-generic-project))
+  "Return my root."
+  this)
 
-(defmethod ede-generic-setup-configuration ((proj ede-generic-project) config)
-  "Default configuration setup method."
-  nil)
-
-(defmethod ede-commit-project ((proj ede-generic-project))
-  "Commit any change to PROJ to its file."
-  (let ((config (ede-generic-get-configuration proj)))
-    (ede-commit config)))
+(defmethod ede-find-subproject-for-directory ((proj ede-generic-project)
+					      dir)
+  "Return PROJ, for handling all subdirs below DIR."
+  proj)
 
 ;;; A list of different targets
-(defclass ede-generic-target-c-cpp (ede-generic-target)
+(defclass ede-generic-target-c-cpp (ede-generic-target
+				    ede-target-with-config-c)
   ((shortname :initform "C/C++")
    (extension :initform "\\([ch]\\(pp\\|xx\\|\\+\\+\\)?\\|cc\\|hh\\|CC?\\)"))
   "EDE Generic Project target for C and C++ code.
@@ -247,6 +188,13 @@ All directories need at least one target.")
 (defclass ede-generic-target-texi (ede-generic-target)
   ((shortname :initform "Texinfo")
    (extension :initform "texi"))
+  "EDE Generic Project target for texinfo code.
+All directories need at least one target.")
+
+(defclass ede-generic-target-java (ede-generic-target
+				   ede-target-with-config-java)
+  ((shortname :initform "Java")
+   (extension :initform "java"))
   "EDE Generic Project target for texinfo code.
 All directories need at least one target.")
 
@@ -300,103 +248,6 @@ If one doesn't exist, create a new one for this directory."
       )
     ans))
 
-;;; C/C++ support
-(defmethod ede-preprocessor-map ((this ede-generic-target-c-cpp))
-  "Get the pre-processor map for some generic C code."
-  (let* ((proj (ede-target-parent this))
-	 (root (ede-project-root proj))
-	 (config (ede-generic-get-configuration proj))
-	 filemap
-	 )
-    ;; Preprocessor files
-    (dolist (G (oref config :c-preprocessor-files))
-      (let ((table (semanticdb-file-table-object
-		    (ede-expand-filename root G))))
-	(when table
-	  (when (semanticdb-needs-refresh-p table)
-	    (semanticdb-refresh-table table))
-	  (setq filemap (append filemap (oref table lexical-table)))
-	  )))
-    ;; The core table
-    (setq filemap (append filemap (oref config :c-preprocessor-table)))
-
-    filemap
-    ))
-
-(defmethod ede-system-include-path ((this ede-generic-target-c-cpp))
-  "Get the system include path used by project THIS."
-  (let* ((proj (ede-target-parent this))
-	(config (ede-generic-get-configuration proj)))
-    (oref config c-include-path)))
-
-;;; Commands
-;;
-(defmethod project-compile-project ((proj ede-generic-project) &optional command)
-  "Compile the entire current project PROJ.
-Argument COMMAND is the command to use when compiling."
-  (let* ((config (ede-generic-get-configuration proj))
-	 (comp (oref config :build-command)))
-    (compile comp)))
-
-(defmethod project-compile-target ((obj ede-generic-target) &optional command)
-  "Compile the current target OBJ.
-Argument COMMAND is the command to use for compiling the target."
-  (project-compile-project (ede-current-project) command))
-
-(defmethod project-debug-target ((target ede-generic-target))
-  "Run the current project derived from TARGET in a debugger."
-  (let* ((proj (ede-target-parent target))
-	 (config (ede-generic-get-configuration proj))
-	 (debug (oref config :debug-command))
-	 (cmd (read-from-minibuffer
-	       "Debug Command: "
-	       debug))
-	 (cmdsplit (split-string cmd " " t))
-	 ;; @TODO - this depends on the user always typing in something good
-	 ;;  like "gdb" or "dbx" which also exists as a useful Emacs command.
-	 ;;  Is there a better way?
-	 (cmdsym (intern-soft (car cmdsplit))))
-    (call-interactively cmdsym t)))
-
-(defmethod project-run-target ((target ede-generic-target))
-  "Run the current project derived from TARGET."
-  (let* ((proj (ede-target-parent target))
-	 (config (ede-generic-get-configuration proj))
-	 (run (concat "./" (oref config :run-command)))
-	 (cmd (read-from-minibuffer "Run (like this): " run)))
-    (ede-shell-run-something target cmd)))
-
-;;; Customization
-;;
-(defmethod ede-customize ((proj ede-generic-project))
-  "Customize the EDE project PROJ."
-  (let ((config (ede-generic-get-configuration proj)))
-    (eieio-customize-object config)))
-
-(defmethod ede-customize ((target ede-generic-target))
-  "Customize the EDE TARGET."
-  ;; Nothing unique for the targets, use the project.
-  (ede-customize-project))
-
-(defmethod eieio-done-customizing ((config ede-generic-config))
-  "Called when EIEIO is done customizing the configuration object.
-We need to go back through the old buffers, and update them with
-the new configuration."
-  (ede-commit config)
-  ;; Loop over all the open buffers, and re-apply.
-  (ede-map-targets
-   (oref config project)
-   (lambda (target)
-     (ede-map-target-buffers
-      target
-      (lambda (b)
-	(with-current-buffer b
-	  (ede-apply-target-options)))))))
-
-(defmethod ede-commit ((config ede-generic-config))
-  "Commit all changes to the configuration to disk."
-  (eieio-persistent-save config))
-
 ;;; Creating Derived Projects:
 ;;
 ;; Derived projects need an autoloader so that EDE can find the
@@ -415,13 +266,16 @@ the class `ede-generic-project' project."
 			 :name external-name
 			 :file 'ede/generic
 			 :proj-file projectfile
+			 :root-only nil
 			 :load-type 'ede-generic-load
 			 :class-sym class
 			 :new-p nil
-			 :safe-p nil)	; @todo - could be
-					; safe if we do something
-					; about the loading of the
-					; generic config file.
+			 ;; NOTE: This project type is SAFE because it handles
+			 ;; the user-query before loading its config file.  These
+			 ;; project types are useful without the config file so
+			 ;; do the safe part until the user creates a saved config
+			 ;; file for it.
+			 :safe-p t)
    ;; Generics must go at the end, since more specific types
    ;; can create Makefiles also.
    'generic))
@@ -436,6 +290,25 @@ the class `ede-generic-project' project."
 			      "SConstruct" 'ede-generic-scons-project)
   (ede-generic-new-autoloader "generic-cmake" "CMake"
 			      "CMakeLists" 'ede-generic-cmake-project)
+
+  ;; Super Generic found via revision control tags.
+  (ede-generic-new-autoloader "generic-git" "Git"
+			      ".git" 'ede-generic-vc-project)
+  (ede-generic-new-autoloader "generic-bzr" "Bazaar"
+			      ".bzr" 'ede-generic-vc-project)
+  (ede-generic-new-autoloader "generic-hg" "Mercurial"
+			      ".hg" 'ede-generic-vc-project)
+  (ede-generic-new-autoloader "generic-svn" "Subversions"
+			      ".svn" 'ede-generic-vc-project)
+  (ede-generic-new-autoloader "generic-cvs" "CVS"
+			      "CVS" 'ede-generic-vc-project)
+
+  ;; Take advantage of existing 'projectile' based projects.
+  ;; @TODO - if projectile supports compile commands etc, can we
+  ;; read that out?  Howto if projectile is not part of core emacs.
+  (ede-generic-new-autoloader "generic-projectile" ".projectile"
+			      ".projectile" 'ede-generic-vc-project)
+
   )
 
 
@@ -479,6 +352,15 @@ the class `ede-generic-project' project."
   "Setup a configuration for CMake."
   (oset config build-command "cmake")
   (oset config debug-command "gdb ")
+  )
+
+;;; Generic Version Control System
+(defclass ede-generic-vc-project (ede-generic-project)
+  ()
+  "Generic project found via Version Control files.")
+
+(defmethod ede-generic-setup-configuration ((proj ede-generic-vc-project) config)
+  "Setup a configuration for projects identified by revision control."
   )
 
 (provide 'ede/generic)

@@ -1,3 +1,28 @@
+2014-11-09  Eric Ludlam <zappo@gnu.org>
+
+	* grammars/c.by (template-type): Add :template-specifier and
+	:typevar to capture extra details about the template.
+        (opt-post-fcn-modifiers): Splice in the found symbol into the
+	return value correctly.
+	(QUESTION): New punctuation.
+	(expression): Add ternary conditional support.
+
+	* grammars/scheme.by (MODULE): New token.
+	(scheme): Handle expanding the MODULE tag.
+	(scheme-list): Remove closeparen required match.
+	(scheme-in-list): Remove extraneous matches for DEFINE.  Add
+	support for MODULE Simplify matching for code & make work.
+	(name-args, name-arg-list, name-arg-expand): Make it work.
+
+2014-11-09  David Engster <dengste@eml.cc>
+
+	* lisp/cedet/sematic/bovine/c.by
+	(opt-brackets-after-symbol): New.
+	(multi-stage-dereference): Use it.  Add rules for explicit
+	matching the last dereference.  We cannot just juse
+	'namespace-symbol' as a single rule, since this would match too
+	greedy and mess with parsing default values of variables.
+
 2014-11-09  Glenn Morris  <rgm@gnu.org>
 
 	* admin.el (make-manuals-dist-output-variables)

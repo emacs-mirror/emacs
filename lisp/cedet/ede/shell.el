@@ -42,10 +42,15 @@ COMMAND is a text string representing the thing to be run."
     ;; Show the new buffer.
     (when (not (get-buffer-window buff))
       (switch-to-buffer-other-window buff t))
-    ;; Force a shell into the buffer.
-    (shell buff)
-    (while (eq (point-min) (point))
-      (accept-process-output))
+    ;; Force a shell into the buffer, but only if the buffer
+    ;; doesn't already have a shell in it.
+    ;; Newer versions of `shell' pop the window forward.
+    (set-buffer buff)
+    (when (not (eq major-mode 'shell-mode))
+      (shell buff)
+      ;; Make sure the shell has started.
+      (while (eq (point-min) (point))
+	(accept-process-output)))
     ;; Change the default directory
     (if (not (string= (file-name-as-directory (expand-file-name default-directory))
 		      (file-name-as-directory (expand-file-name dd))))

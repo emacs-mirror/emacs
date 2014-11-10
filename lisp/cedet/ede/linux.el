@@ -73,37 +73,6 @@
   :group 'project-linux
   :type 'string)
 
-(defvar ede-linux-project-list nil
-  "List of projects created by option `ede-linux-project'.")
-
-(defun ede-linux-file-existing (dir)
-  "Find a Linux project in the list of Linux projects.
-DIR is the directory to search from."
-  (let ((projs ede-linux-project-list)
-	(ans nil))
-    (while (and projs (not ans))
-      (let ((root (ede-project-root-directory (car projs))))
-	(when (string-match (concat "^" (regexp-quote root)) dir)
-	  (setq ans (car projs))))
-      (setq projs (cdr projs)))
-    ans))
-
-;;;###autoload
-(defun ede-linux-project-root (&optional dir)
-  "Get the root directory for DIR."
-  (when (not dir) (setq dir default-directory))
-  (let ((case-fold-search t)
-	(proj (ede-linux-file-existing dir)))
-    (if proj
-	(ede-up-directory (file-name-directory
-			   (oref proj :file)))
-      ;; No pre-existing project.  Let's take a wild-guess if we have
-      ;; an Linux project here.
-      (when (string-match "linux[^/]*" dir)
-	(let ((base (substring dir 0 (match-end 0))))
-	  (when (file-exists-p (expand-file-name "scripts/ver_linux" base))
-	      base))))))
-
 (defun ede-linux-version (dir)
   "Find the Linux version for the Linux src in DIR."
   (let ((buff (get-buffer-create " *linux-query*")))
@@ -124,9 +93,8 @@ DIR is the directory to search from."
 	  (kill-buffer buff)
 	  )))))
 
-(defclass ede-linux-project (ede-project eieio-instance-tracker)
-  ((tracking-symbol :initform 'ede-linux-project-list)
-   (build-directory :initarg :build-directory
+(defclass ede-linux-project (ede-project)
+  ((build-directory :initarg :build-directory
                     :type string
                     :documentation "Build directory.")
    (architecture :initarg :architecture
@@ -226,22 +194,20 @@ until Linux is built for the first time."
 Return nil if there isn't one.
 Argument DIR is the directory it is created for.
 ROOTPROJ is nil, since there is only one project."
-  (or (ede-linux-file-existing dir)
-      ;; Doesn't already exist, so let's make one.
-      (let* ((bdir (ede-linux--get-build-directory dir))
-             (arch (ede-linux--get-architecture dir bdir))
-             (include-path (ede-linux--include-path dir bdir arch))
-             (proj (ede-linux-project
-                    "Linux"
-                    :name "Linux"
-                    :version (ede-linux-version dir)
-                    :directory (file-name-as-directory dir)
-                    :file (expand-file-name "scripts/ver_linux"
-                                            dir)
-                    :build-directory bdir
-                    :architecture arch
-                    :include-path include-path)))
-        (ede-add-project-to-global-list proj))))
+  ;; Doesn't already exist, so let's make one.
+  (let* ((bdir (ede-linux--get-build-directory dir))
+	 (arch (ede-linux--get-architecture dir bdir))
+	 (include-path (ede-linux--include-path dir bdir arch)))
+    (ede-linux-project
+     "Linux"
+     :name "Linux"
+     :version (ede-linux-version dir)
+     :directory (file-name-as-directory dir)
+     :file (expand-file-name "scripts/ver_linux"
+			     dir)
+     :build-directory bdir
+     :architecture arch
+     :include-path include-path)))
 
 ;;;###autoload
 (ede-add-project-autoload
@@ -249,8 +215,6 @@ ROOTPROJ is nil, since there is only one project."
 		       :name "LINUX ROOT"
 		       :file 'ede/linux
 		       :proj-file "scripts/ver_linux"
-		       :proj-root-dirmatch "linux[^/]*"
-		       :proj-root 'ede-linux-project-root
 		       :load-type 'ede-linux-load
 		       :class-sym 'ede-linux-project
 		       :new-p nil
@@ -376,6 +340,8 @@ Knows about how the Linux source tree is organized."
              (t nil))))
     (or F (call-next-method))))
 
+;;; Command Support
+;;
 (defmethod project-compile-project ((proj ede-linux-project)
 				    &optional command)
   "Compile the entire current project.
@@ -411,6 +377,19 @@ Argument COMMAND is the command to use for compiling the target."
 	       dir subdir)))
 
     (compile command)))
+
+(defmethod project-rescan ((this ede-linux-project))
+  "Rescan this Linux project from the sources."
+  (let* ((dir (ede-project-root-directory this))
+	 (bdir (ede-linux--get-build-directory dir))
+	 (arch (ede-linux--get-architecture dir bdir))
+	 (inc (ede-linux--include-path dir bdir arch))
+	 (ver (ede-linux-version dir)))
+    (oset this version ver)
+    (oset this :build-directory bdir)
+    (oset this :architecture arch)
+    (oset this :include-path inc)
+    ))
 
 (provide 'ede/linux)
 

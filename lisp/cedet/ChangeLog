@@ -1,3 +1,254 @@
+2014-11-09  Eric Ludlam  <zappo@gnu.org>
+
+	* semantic.el (semantic-mode): Add/remove 3
+	completion-at-point-functions.
+	(semantic-completion-at-point-function): Removed.
+	(semantic-analyze-completion-at-point-function)
+	(semantic-analyze-notc-completion-at-point-function)
+	(semantic-analyze-nolongprefix-completion-at-point-function): New
+	completion at point functions.
+
+	* semantic/doc.el (semantic-doc-snarf-comment-for-tag): Fix case
+	when comment-end is empty string.
+
+	* semantic/debug.el
+	(semantic-debug-parser-debugger-source): New buffer local
+	variable.
+	(semantic-debug-interface): Add 'nil' initform to overlays.
+	(semantic-debug-mode): Remove read-only tags from buffers on exit.
+	(semantic-debug): Add autoload cookie.  Force the language
+	specific debugger to load.
+
+	* semantic/db.el (generic::semanticdb-full-filename): New generic
+	method to allow this method to be used on buffer names via an
+	associated database.
+
+	* semantic/symref.el
+	(semantic-symref-cleanup-recent-buffers-fcn): When cleaning up
+	buffers, don't clean up buffers that are being used (i.e., in a
+	window) when the hook fires.
+	(semantic-symref-recently-opened-buffers): New tracking variable.
+	(semantic-symref-cleanup-recent-buffers-fcn): New hook fcn.
+	(semantic-symref-result-get-tags): Move logic into
+	`semantic-symref-hit-to-tag-via-buffer', and cleanup buffers via
+	the symref cleanup function in post-command-hook.
+	(semantic-symref-hit-to-tag-via-buffer): Logic that used to be
+	from above.
+	(semantic-symref-hit-to-tag-via-db): New.
+
+	* semantic/analyze.el:
+	(semantic-analyze-find-tag-sequence-default): If first entry in
+	sequence is the only one, apply tagclass filter.
+	(semantic-analyze-princ-sequence): Show slot even if empty.
+	(semantic-analyze-find-tag-sequence)
+	(semantic-analyze-find-tag-sequence-default): Add flags argument.
+	Add support for forcing the final entry of the sequence to be of
+	class variable.
+	(semantic-analyze-find-tag): Fix bug where input class filter was
+	ignored if there was a typecache match.
+	(semantic-analyze-current-context-default): For assignments, the
+	assignee now must be of class variable.
+
+	* semantic/analyze/complete.el
+	(semantic-analyze-possible-completions-default): Add
+	'no-longprefix' flag.  When used, the prefix and prefixtypes are
+	shortened to just the last symbol.
+
+	* semantic/bovine/c.el (semantic-c-do-lex-if): Catch errors from
+	'hideif', and push to the parser warning stack.
+	(semantic-lex-cpp-define): When a comment is at the end of a
+	macro, do not subtract an extra 1 from the found position.  Fixes
+	bug with: #define foo (a)/**/ adding an extra ')' to the stream.
+
+	* semantic/bovine/scm.el (semantic-lex-scheme-symbol): Allow
+	symbols to be one char long.
+
+	* semantic/bovine/grammar.el
+	(bovine-grammar-calculate-source-on-path): New.
+	(bovine-grammar-setupcode-builder): Use it.
+
+	* ede.el (ede/detect): New require.
+	(ede-version): Bump version
+	(ede-initialize-state-current-buffer): Use new
+	`ede-detect-directory-for-project' to detect projects first
+	instead of depending on currente dir only.
+	(ede-delete-project-from-global-list): New.
+	(ede-flush-deleted-projects): Use above.
+	(ede-check-project-query-fcn): New variable
+	(ede-check-project-directory): Use above when querying the user.
+	Added to support unit testing of this security measure.
+	(ede-initialize-state-current-buffer): Use
+	`ede-directory-project-cons' instead of the -detect- fcn to take
+	advantage of the cache.  Pass found project into
+	`ede-load-project-file'.
+	(ede-load-project-file): Add new input DETECTIN.
+	(ede-rescan-toplevel): Get the proj root a better way.
+	(ede-load-project-file): Return the loaded object.  When asking
+	for existing project, ask for an exact match.
+	(ede-initialize-state-current-buffer): Simplify some conditional
+	logic.
+	(ede-load-project-file): Simplify conditional logic.
+	(ede-global-list-sanity-check): New Testing fcn.
+	(ede-parent-project): Replace old code with call to faster
+	`ede-find-subproject-for-directory'.
+	(ede-load-project-file): Use
+	`ede-directory-get-toplevel-open-project' instead of above
+	deleted.  Rename "pfc" to "autoloader".  Use
+	`ede-directory-project-cons' to detect a project.  Delete no
+	project found case where we search up the tree.
+
+	* ede/auto.el (ede-project-autoload): Fix doc typo.  Add
+	`:root-only' slot.
+	(ede-auto-load-project): Doc update: warn to not use.
+	(ede-dir-to-projectfile): Deleted.
+	(ede-project-autoload-dirmatch): Add subdir-only slot.  Make
+	configdatastash unbound by default.
+	(ede-do-dirmatch): If subdir-only is true, then don't allow exact
+	matches.  Account for configdatastash as unbound.  Assume value of
+	nil means no tool installed.  Make sure loaded path matches from
+	beginning.  Stash the regexp, not the raw string.
+	(ede-project-class-files): Note that makefile and automake are not
+	root only.
+	(ede-auto-detect-in-dir): New (for use with `ede/detect.el').
+	(ede-project-dirmatch-p): Deleted.
+	(ede-project-root-directory): Remove body, return nil.
+	(ede-project-autoload): :proj-root-dirmatch can be null & doc fix.
+	(ede-auto-detect-in-dir): If there is no :proj-file, check for a
+	dirmatch.
+
+	* ede/generic.el (ede/config): Replace require of ede.
+	(ede-generic-new-autoloader): Generic projects are now safe by
+	default.  Note this is NOT a root only project.
+	(project-rescan, ede-project-root, ede-generic-target-java)
+	(ede-java-classpath, ede-find-subproject-for-directory): New.
+	(ede-enable-generic-projects): Add new autoloaders for git, bzr,
+	hg, sv, CVS.
+	(ede-generic-vc-project)
+	(ede-generic-vc-project::ede-generic-setup-configuration): New.
+	(ede-generic-config): Remove slots: c-include-path,
+	c-preprocessor-table, c-preprocessor-files, classpath,
+	build-command, debug-command, run command.  Inherit from
+	ede-extra-config-build, ede-extra-config-program.  Make
+	run-command :value match :custom so only strings are accepted.
+	Add some more :group slot specifiers.
+	(ede-generic-project): Add mixins `ede-project-with-config-c' and
+	`ede-project-with-config-java'. Inherit from
+	`ede-project-with-config-build',
+	`ede-project-with-config-program'.  Subclass
+	`ede-project-with-config'.  Remove duplication from new baseclass.
+	(ede-generic-target): Inherit from `ede-target-with-config-build',
+	`ede-target-with-config-program'. Subclass `ede-target-with-config'.
+	(ede-generic-target-c-cpp): Add mixin `ede-target-with-config-c'.
+	(ede-generic-target-java): Add mixin `ede-target-with-config-java'.
+	(ede-preprocessor-map, ede-system-include-path)
+	(edejava-classpath): Deleted, moved to config.el.
+	(project-compile-project, project-compile-target)
+	(project-debug-target, project-run-target): Deleted.
+	(ede-generic-get-configuration, ede-generic-setup-configuration)
+	(ede-commit-project, project-rescan)
+	(ede-generic-project::ede-customize)
+	(ede-generic-target::ede-customize)
+	(ede-generic-config::eieio-done-customizing)
+	(ede-generic-config::ede-commit): Deleted.  Subsumed by new
+	baseclass.
+	(ede-preprocessor-map, ede-system-include-path)
+	(project-debug-target, project-run-target): Call new
+	`ede-config-get-configuration' instead of old version.
+	(ede-generic-load): Do not add to global list here.
+
+	* ede/files.el (ede-find-project-root)
+	(ede-files-find-existing)
+	(ede-directory-get-toplevel-open-project-new): Deleted.
+	(ede-project-root-directory): Use `ede-project-root' first.
+	(ede-project-directory-remove-hash)
+	(ede--directory-project-from-hash)
+	(ede--directory-project-add-description-to-hash): Rename to make
+	internal symbols (via --).  Expand input dir first.
+	(ede-directory-project-p): Doc fix (note obsoleted.)
+	(ede-toplevel-project-or-nil): Alias to `ede-toplevel-project'.
+	(ede-toplevel-project): Doc Fix.  Delete commented out old code.
+	Simplify returning result from ede-detect-directory-for-project.
+	(ede-directory-get-open-project): Support when
+	inodes are disabled.  If disabled to str compare on root project.
+	(ede-directory-get-toplevel-open-project): Enabled nested
+	projects.  When doing directory name matching, save the 'short'
+	version of an answer (non-exact match) and eventually select the
+	shortest answer at the end.  Expand the filename of tested
+	projects.  Better support for when inodes are disabled.  Add
+	'exact' option so that it will return a project that is an exact
+	match.
+	(ede-find-subproject-for-directory): Small optimization to run
+	`file-truename' less often.
+	(ede-directory-project-p): Move content, then use
+	`ede-directory-project-cons'.  Use
+	`ede-detect-directory-for-project', replacing old detection loop.
+	(ede-directory-project-cons): New, from above.
+	(ede-toplevel-project): Toss old scanning code.  Use
+	`ede-detect-directory-for-project' instead.
+	(ede-directory-get-toplevel-open-project-new): New.
+
+	* ede/linux.el (ede-linux-project-root): Deleted.
+	(ede-project-autoload): Remove dirmatch entry - it is no longer
+	needed.
+
+	* lisp/cedet/ede/proj.el (project-rescan): Replace direct
+	manipulation of `ede-projects' with equivalent and better
+	functions.
+	(ede-proj-load): Replace call to test if dir has project to
+	explicity ask filesystem if Project.ede is there.
+
+	* ede/config.el:
+	* ede/detect.el: New files.
+
+	* ede/project-am.el (project-run-target): Add "./" to program to
+	run for systems where '.' isn't in PATH.
+	(project-am-load): Remove old code regarding `ede-constructing'.
+	Just read in the makefiles.
+
+	* ede/linux.el (ede-linux-load): Do not add to global list here.
+	Don't check for existing anymore.
+	(project-rescan): New.
+	(ede-linux-project-list, ede-linux-file-existing): Deleted.
+	(ede-linux-project-root): Delete body.  Need symbol for autoloads
+	for now.
+	(ede-linux-project): No longer instance tracker.
+	(ede-project-autoload): Don't provide :proj-root
+
+	* ede/emacs.el (ede-emacs-load): Do not add project to global list
+	here.  Don't look for existing first.
+	(ede-project-autoload): Remove dirmatch entry - it is no longer
+	needed.  Don't provide proj-root anymore.
+	(ede-emacs-project-list, ede-emacs-file-existing): Delete.
+	(ede-emacs-project-root): Remove body (need symbol for loaddefs
+	still).
+	(ede-emacs-project): Do not instance track anymore.
+
+	* ede/cpp-root.el (initialize-instance): Remove commented code.
+	Add note about why we are adding the project to the master list.
+	Make sure if we are replacing a prev version, remove from global
+	list.
+         (ede-cpp-root-file-existing)
+	(ede-cpp-root-project-file-for-dir)
+	(ede-cpp-root-count, ede-cpp-root-project-root, ede-cpp-root-load)
+	(ede-project-autoload cpp-root): Deleted.
+	(ede-project-root-directory): Return :directory instead of
+	calculating from :file.
+	(project-rescan): New.
+
+	* ede/base.el (ede-toplevel): Only use buffer cached value if
+	subproj not passed in.
+
+	* srecode/java.el (srecode-semantic-handle-:java): Fix case when
+	an EDE project didn't support java paths.
+
+2014-11-09  David Engster  <dengste@eml.cc>
+
+	* lisp/cedet/ede/proj-elisp.el
+	(ede-proj-target-elisp::ede-proj-tweak-autoconf): Kill buffer
+	after saving modified elisp-comp script, as to avoid "file has
+	changed on disk; really edit the buffer" questions when script
+	gets rewritten.
+
 2014-10-29  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Simplify use of current-time and friends.

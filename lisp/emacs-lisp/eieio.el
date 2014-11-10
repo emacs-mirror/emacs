@@ -895,7 +895,7 @@ variable PRINT-FUNCTION.  Optional argument NOESCAPE is passed to
 
 ;;; Start of automatically extracted autoloads.
 
-;;;### (autoloads nil "eieio-custom" "eieio-custom.el" "5b0e7b1beea11f9e9de6887279f75d61")
+;;;### (autoloads nil "eieio-custom" "eieio-custom.el" "ab711689b2bae8a7d8c4b1e99c892306")
 ;;; Generated autoloads from eieio-custom.el
 
 (autoload 'customize-object "eieio-custom" "\

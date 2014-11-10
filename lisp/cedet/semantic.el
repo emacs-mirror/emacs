@@ -382,7 +382,7 @@ Arguments START and END bound the time being calculated."
 (defun bovinate (&optional clear)
   "Parse the current buffer.  Show output in a temp buffer.
 Optional argument CLEAR will clear the cache before parsing.
-If CLEAR is negative, it will do a full reparse, and also not display
+If CLEAR is negative, it will do a full reparse, and also display
 the output buffer."
   (interactive "P")
   (if clear (semantic-clear-toplevel-cache))
@@ -392,7 +392,8 @@ the output buffer."
 	 (end (current-time)))
     (message "Retrieving tags took %.2f seconds."
 	     (semantic-elapsed-time start end))
-    (when (or (null clear) (not (listp clear)))
+    (when (or (null clear) (not (listp clear))
+	      (and (numberp clear) (< 0 clear)))
       (pop-to-buffer "*Parser Output*")
       (require 'pp)
       (erase-buffer)
@@ -1126,8 +1127,16 @@ Semantic mode.
 	;; Add semantic-ia-complete-symbol to
 	;; completion-at-point-functions, so that it is run from
 	;; M-TAB.
+	;;
+	;; Note: The first entry added is the last entry run, so the
+	;;       most specific entry should be last.
 	(add-hook 'completion-at-point-functions
-		  'semantic-completion-at-point-function)
+		  'semantic-analyze-nolongprefix-completion-at-point-function)
+	(add-hook 'completion-at-point-functions
+		  'semantic-analyze-notc-completion-at-point-function)
+	(add-hook 'completion-at-point-functions
+		  'semantic-analyze-completion-at-point-function)
+	
 	(if global-ede-mode
 	    (define-key cedet-menu-map [cedet-menu-separator] '("--")))
 	(dolist (b (buffer-list))
@@ -1139,7 +1148,12 @@ Semantic mode.
     ;; Semantic can be re-activated cleanly.
     (remove-hook 'mode-local-init-hook 'semantic-new-buffer-fcn)
     (remove-hook 'completion-at-point-functions
-		 'semantic-completion-at-point-function)
+		 'semantic-analyze-completion-at-point-function)
+    (remove-hook 'completion-at-point-functions
+		 'semantic-analyze-notc-completion-at-point-function)
+    (remove-hook 'completion-at-point-functions
+		 'semantic-analyze-nolongprefix-completion-at-point-function)
+
     (remove-hook 'after-change-functions
 		 'semantic-change-function)
     (define-key cedet-menu-map [cedet-menu-separator] nil)
@@ -1155,8 +1169,53 @@ Semantic mode.
     ;; re-activated.
     (setq semantic-new-buffer-fcn-was-run nil)))
 
-(defun semantic-completion-at-point-function ()
-  'semantic-ia-complete-symbol)
+;;; Completion At Point functions
+(defun semantic-analyze-completion-at-point-function ()
+  "Return possible analasis completions at point.
+The completions provided are via `semantic-analyze-possible-completions'.
+This function can be used by `completion-at-point-functions'."
+  (let* ((ctxt (semantic-analyze-current-context))
+	 (possible (semantic-analyze-possible-completions ctxt)))
+
+    ;; The return from this is either:
+    ;; nil - not applicable here.
+    ;; A list: (START END COLLECTION . PROPS)
+    (when possible
+      (list (car (oref ctxt bounds))
+	    (cdr (oref ctxt bounds))
+	    possible))
+    ))
+
+(defun semantic-analyze-notc-completion-at-point-function ()
+  "Return possible analasis completions at point.
+The completions provided are via `semantic-analyze-possible-completions',
+but with the 'no-tc option passed in, which means constraints based
+on what is being assigned to are ignored.
+This function can be used by `completion-at-point-functions'."
+  (let* ((ctxt (semantic-analyze-current-context))
+	 (possible (semantic-analyze-possible-completions ctxt 'no-tc)))
+
+    (when possible
+      (list (car (oref ctxt bounds))
+	    (cdr (oref ctxt bounds))
+	    possible))
+    ))
+
+(defun semantic-analyze-nolongprefix-completion-at-point-function ()
+  "Return possible analasis completions at point.
+The completions provided are via `semantic-analyze-possible-completions',
+but with the 'no-tc and 'no-longprefix option passed in, which means
+constraints resulting in a long multi-symbol dereference are ignored.
+This function can be used by `completion-at-point-functions'."
+  (let* ((ctxt (semantic-analyze-current-context))
+	 (possible (semantic-analyze-possible-completions
+		    ctxt 'no-tc 'no-longprefix)))
+
+    (when possible
+      (list (car (oref ctxt bounds))
+	    (cdr (oref ctxt bounds))
+	    possible))
+    ))
 
 ;;; Autoload some functions that are not in semantic/loaddefs
 
