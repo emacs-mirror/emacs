@@ -57,6 +57,12 @@ to one of the parser generators.")
 ;;;###autoload
 (make-variable-buffer-local 'semantic-debug-parser-class)
 
+;;;###autoload
+(defvar semantic-debug-parser-debugger-source nil
+  "Location of the debug parser class.")
+;;;###autoload
+(make-variable-buffer-local 'semantic-debug-parser-source)
+
 (defvar semantic-debug-enabled nil
   "Non-nil when debugging a parser.")
 
@@ -104,6 +110,7 @@ These buffers are brought into view when layout occurs.")
 		  "The currently displayed frame.")
    (overlays :type list
 	     :initarg nil
+	     :initform nil
 	     :documentation
 	     "Any active overlays being used to show the debug position.")
    )
@@ -323,15 +330,18 @@ Argument ONOFF is non-nil when we are entering debug mode.
           (oref semantic-debug-current-interface parser-buffer)
 	(use-local-map
 	 (oref semantic-debug-current-interface parser-local-map))
+	(setq buffer-read-only nil)
 	)
       (with-current-buffer
           (oref semantic-debug-current-interface source-buffer)
 	(use-local-map
 	 (oref semantic-debug-current-interface source-local-map))
+	(setq buffer-read-only nil)
 	)
       (run-hooks 'semantic-debug-exit-hook)
       )))
 
+;;;###autoload
 (defun semantic-debug ()
   "Parse the current buffer and run in debug mode."
   (interactive)
@@ -341,6 +351,9 @@ Argument ONOFF is non-nil when we are entering debug mode.
       (error "This major mode does not support parser debugging"))
   ;; Clear the cache to force a full reparse.
   (semantic-clear-toplevel-cache)
+  ;; Load in the debugger for this file.
+  (when semantic-debug-parser-debugger-source
+    (require semantic-debug-parser-debugger-source))
   ;; Do the parse
   (let ((semantic-debug-enabled t)
 	;; Create an interface

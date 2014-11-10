@@ -60,6 +60,7 @@ configure the initial configure script using `autoconf-new-automake-string'"
 
 (defvar autoconf-preferred-macro-order
   '("AC_INIT"
+    "AC_CONFIG_SRCDIR"
     "AM_INIT_AUTOMAKE"
     "AM_CONFIG_HEADER"
     ;; Arg parsing

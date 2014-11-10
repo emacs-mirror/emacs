@@ -100,7 +100,7 @@ don't do it.  A value of nil means to just do it.")
        (ede-map-targets this 'ede-proj-tweak-autoconf)))
     ;; Now save
     (save-buffer)
-    (setq postcmd "autoreconf -i;")
+    (setq postcmd "autoreconf -f -i;")
 
     ;; Verify a bunch of files that are required by automake.
     (ede-proj-configure-test-required-file this "AUTHORS")
@@ -173,11 +173,14 @@ By flushing, remove any cruft that may be in the file.  Subsequent
 calls to `ede-proj-tweak-autoconf' can restore items removed by flush."
   nil)
 
+
+;; @TODO - No-one calls this ???
 (defmethod ede-proj-configure-add-missing ((this ede-proj-target))
   "Query if any files needed by THIS provided by automake are missing.
 Results in --add-missing being passed to automake."
   nil)
 
+;; @TODO - No-one implements this yet.
 (defmethod ede-proj-configure-create-missing ((this ede-proj-target))
   "Add any missing files for THIS by creating them."
   nil)

@@ -395,16 +395,33 @@ manual."
       (insert ")\n")
       (buffer-string))))
 
+(defun bovine-grammar-calculate-source-on-path ()
+  "Calculate the location of the source for current buffer.
+The source directory is relative to some root in the load path."
+  (condition-case nil
+      (let* ((dir (nreverse (split-string (buffer-file-name) "/")))
+	     (newdir (car dir)))
+	(setq dir (cdr dir))
+	;; Keep trying the file name until it is on the path.
+	(while (and (not (locate-library newdir)) dir)
+	  (setq newdir (concat (car dir) "/" newdir)
+		dir (cdr dir)))
+	(if (not dir)
+	    (buffer-name)
+	  newdir))
+      (error (buffer-name))))
+
 (defun bovine-grammar-setupcode-builder ()
   "Return the text of the setup code."
   (format
    "(setq semantic--parse-table %s\n\
           semantic-debug-parser-source %S\n\
           semantic-debug-parser-class 'semantic-bovine-debug-parser
+          semantic-debug-parser-debugger-source 'semantic/bovine/debug
           semantic-flex-keywords-obarray %s\n\
           %s)"
    (semantic-grammar-parsetable)
-   (buffer-name)
+   (bovine-grammar-calculate-source-on-path)
    (semantic-grammar-keywordtable)
    (let ((mode (semantic-grammar-languagemode)))
      ;; Is there more than one major mode?

@@ -69,7 +69,7 @@ Attempts a simple prototype for calling or using TAG."
 ;; Note: Analyzer from Henry S. Thompson
 (define-lex-regex-analyzer semantic-lex-scheme-symbol
   "Detect and create symbol and keyword tokens."
-  "\\(\\sw\\([:]\\|\\sw\\|\\s_\\)+\\)"
+  "\\(\\sw\\([:]\\|\\sw\\|\\s_\\)*\\)"
   ;; (message (format "symbol: %s" (match-string 0)))
   (semantic-lex-push-token
    (semantic-lex-token

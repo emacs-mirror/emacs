@@ -409,7 +409,7 @@ Argument COMMAND is the command to use for compiling the target."
 	  (setq default-directory dd)
 	  (setq cmd (read-from-minibuffer
 		     "Run (like this): "
-		     (concat (ede-target-name obj))))
+		     (concat "./" (ede-target-name obj))))
 	  (ede-shell-run-something obj cmd))
       (kill-buffer tb))))
 
@@ -428,12 +428,8 @@ Argument COMMAND is the command to use for compiling the target."
 If a given set of projects has already been loaded, then do nothing
 but return the project for the directory given.
 Optional ROOTPROJ is the root EDE project."
-  (let* ((ede-constructing t)
-	 (amo (object-assoc (expand-file-name "Makefile.am" directory)
-			    'file ede-projects)))
-    (when (not amo)
-      (setq amo (project-am-load-makefile directory)))
-    amo))
+  ;; Just jump into creating the project from the Makefiles.
+  (project-am-load-makefile directory))
 
 (defun project-am-find-topmost-level (dir)
   "Find the topmost automakefile starting with DIR."

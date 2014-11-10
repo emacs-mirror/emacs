@@ -333,6 +333,25 @@ Use the  `semantic-symref-hit-tags' method to get this list.")
       )
     ))
 
+(defvar semantic-symref-recently-opened-buffers nil
+  "List of buffers opened by `semantic-symref-result-get-tags'.")
+
+(defun semantic-symref-cleanup-recent-buffers-fcn ()
+  "Hook function to be used in 'post-command-hook' to cleanup buffers.
+Buffers collected during symref can result in some files being
+opened multiple times for one operation.  This will keep buffers open
+until the next command is executed."
+  ;;(message "To Clean Up: %S" semantic-symref-recently-opened-buffers)
+  (mapc (lambda (buff)
+	  ;; Don't delete any buffers which are being used
+	  ;; upon completion of some command.
+	  (when (not (get-buffer-window buff))
+	    (kill-buffer buff)))
+	semantic-symref-recently-opened-buffers)
+  (setq semantic-symref-recently-opened-buffers nil)
+  (remove-hook 'post-command-hook 'semantic-symref-cleanup-recent-buffers-fcn)
+  )
+  
 (defmethod semantic-symref-result-get-tags ((result semantic-symref-result)
 					    &optional open-buffers)
   "Get the list of tags from the symref result RESULT.
@@ -347,75 +366,19 @@ already."
 	  (txt (oref (oref result :created-by) :searchfor))
 	  (searchtype (oref (oref result :created-by) :searchtype))
 	  (ans nil)
-	  (out nil)
-	  (buffs-to-kill nil))
+	  (out nil))
       (save-excursion
-	(setq
-	 ans
-	 (mapcar
-	  (lambda (hit)
-	    (let* ((line (car hit))
-		   (file (cdr hit))
-		   (buff (find-buffer-visiting file))
-		   (tag nil)
-		   )
-	      (cond
-	       ;; We have a buffer already.  Check it out.
-	       (buff
-		(set-buffer buff))
-
-	       ;; We have a table, but it needs a refresh.
-	       ;; This means we should load in that buffer.
-	       (t
-		(let ((kbuff
-		       (if open-buffers
-			   ;; Even if we keep the buffers open, don't
-			   ;; let EDE ask lots of questions.
-			   (let ((ede-auto-add-method 'never))
-			     (find-file-noselect file t))
-			 ;; When not keeping the buffers open, then
-			 ;; don't setup all the fancy froo-froo features
-			 ;; either.
-			 (semantic-find-file-noselect file t))))
-		  (set-buffer kbuff)
-		  (setq buffs-to-kill (cons kbuff buffs-to-kill))
-		  (semantic-fetch-tags)
-		  ))
-	       )
-
-	      ;; Too much baggage in goto-line
-	      ;; (goto-line line)
-	      (goto-char (point-min))
-	      (forward-line (1- line))
-
-	      ;; Search forward for the matching text
-	      (when (re-search-forward (regexp-quote txt)
-				       (point-at-eol)
-				       t)
-		(goto-char (match-beginning 0))
-		)
-
-	      (setq tag (semantic-current-tag))
-
-	      ;; If we are searching for a tag, but bound the tag we are looking
-	      ;; for, see if it resides in some other parent tag.
-	      ;;
-	      ;; If there is no parent tag, then we still need to hang the originator
-	      ;; in our list.
-	      (when (and (eq searchtype 'symbol)
-			 (string= (semantic-tag-name tag) txt))
-		(setq tag (or (semantic-current-tag-parent) tag)))
-
-	      ;; Copy the tag, which adds a :filename property.
-	      (when tag
-		(setq tag (semantic-tag-copy tag nil t))
-		;; Ad this hit to the tag.
-		(semantic--tag-put-property tag :hit (list line)))
-	      tag))
-	  lines)))
+	(setq ans (mapcar
+		   (lambda (hit)
+		     (semantic-symref-hit-to-tag-via-buffer
+		      hit txt searchtype open-buffers))
+		   lines)))
       ;; Kill off dead buffers, unless we were requested to leave them open.
-      (when (not open-buffers)
-	(mapc 'kill-buffer buffs-to-kill))
+      (if (not open-buffers)
+	  (add-hook 'post-command-hook 'semantic-symref-cleanup-recent-buffers-fcn)
+	;; Else, just clear the saved buffers so they aren't deleted later.
+	(setq semantic-symref-recently-opened-buffers nil)
+	)
       ;; Strip out duplicates.
       (dolist (T ans)
 	(if (and T (not (semantic-equivalent-tag-p (car out) T)))
@@ -428,6 +391,111 @@ already."
 	  ))
       ;; Out is reversed... twice
       (oset result :hit-tags (nreverse out)))))
+
+(defun semantic-symref-hit-to-tag-via-db (hit searchtxt searchtype)
+  "Convert the symref HIT into a TAG by looking up the tag via a database.
+Return the Semantic tag associated with HIT.
+SEARCHTXT is the text that is being searched for.
+Used to narrow the in-buffer search.
+SEARCHTYPE is the type of search (such as 'symbol or 'tagname).
+If there is no database, of if the searchtype is wrong, return nil."
+  ;; Allowed search types for this mechanism:
+  ;; tagname, tagregexp, tagcompletions
+  (if (not (memq searchtype '(tagname tagregexp tagcompletions)))
+      nil
+    (let* ((line (car hit))
+	   (file (cdr hit))
+	   ;; FAIL here vv - don't load is not obeyed if no table found.
+	   (db (semanticdb-file-table-object file t))
+	   (found nil)
+	   (hit nil)
+	   )
+      (cond ((eq searchtype 'tagname)
+	     (setq found (semantic-find-tags-by-name searchtxt db)))
+	    ((eq searchtype 'tagregexp)
+	     (setq found (semantic-find-tags-by-name-regexp searchtxt db)))
+	    ((eq searchtype 'tagcompletions)
+	     (setq found (semantic-find-tags-for-completion searchtxt db)))
+	    )
+      ;; Loop over FOUND to see if we can line up a match with a line number.
+      (when (= (length found) 1)
+	(setq hit (car found)))
+
+      ;; FAIL here ^^ - symref finds line numbers, but our DB uses character locations.
+      ;;                as such, this is a cheat and we will need to give up.
+      hit)))
+
+(defun semantic-symref-hit-to-tag-via-buffer (hit searchtxt searchtype &optional open-buffers)
+  "Convert the symref HIT into a TAG by looking up the tag via a buffer.
+Return the Semantic tag associated with HIT.
+SEARCHTXT is the text that is being searched for.
+Used to narrow the in-buffer search.
+SEARCHTYPE is the type of search (such as 'symbol or 'tagname).
+Optional OPEN-BUFFERS, when nil will use a faster version of
+`find-file' when a file needs to be opened.  If non-nil, then
+normal buffer initialization will be used.
+This function will leave buffers loaded from a file open, but
+will add buffers that must be opened to `semantic-symref-recently-opened-buffers'.
+Any caller MUST deal with that variable, either clearing it, or deleting the
+buffers that were opened."
+  (let* ((line (car hit))
+	 (file (cdr hit))
+	 (buff (find-buffer-visiting file))
+	 (tag nil)
+	 )
+    (cond
+     ;; We have a buffer already.  Check it out.
+     (buff
+      (set-buffer buff))
+
+     ;; We have a table, but it needs a refresh.
+     ;; This means we should load in that buffer.
+     (t
+      (let ((kbuff
+	     (if open-buffers
+		 ;; Even if we keep the buffers open, don't
+		 ;; let EDE ask lots of questions.
+		 (let ((ede-auto-add-method 'never))
+		   (find-file-noselect file t))
+	       ;; When not keeping the buffers open, then
+	       ;; don't setup all the fancy froo-froo features
+	       ;; either.
+	       (semantic-find-file-noselect file t))))
+	(set-buffer kbuff)
+	(push kbuff semantic-symref-recently-opened-buffers)
+	(semantic-fetch-tags)
+	))
+     )
+
+    ;; Too much baggage in goto-line
+    ;; (goto-line line)
+    (goto-char (point-min))
+    (forward-line (1- line))
+
+    ;; Search forward for the matching text
+    (when (re-search-forward (regexp-quote searchtxt)
+			     (point-at-eol)
+			     t)
+      (goto-char (match-beginning 0))
+      )
+
+    (setq tag (semantic-current-tag))
+
+    ;; If we are searching for a tag, but bound the tag we are looking
+    ;; for, see if it resides in some other parent tag.
+    ;;
+    ;; If there is no parent tag, then we still need to hang the originator
+    ;; in our list.
+    (when (and (eq searchtype 'symbol)
+	       (string= (semantic-tag-name tag) searchtxt))
+      (setq tag (or (semantic-current-tag-parent) tag)))
+
+    ;; Copy the tag, which adds a :filename property.
+    (when tag
+      (setq tag (semantic-tag-copy tag nil t))
+      ;; Ad this hit to the tag.
+      (semantic--tag-put-property tag :hit (list line)))
+    tag))
 
 ;;; SYMREF TOOLS
 ;;

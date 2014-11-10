@@ -45,6 +45,7 @@
 (require 'ede/source)
 (require 'ede/base)
 (require 'ede/auto)
+(require 'ede/detect)
 
 (eval-and-compile
   (load "ede/loaddefs" nil 'nomessage))
@@ -61,7 +62,7 @@
 (declare-function ede-up-directory "ede/files")
 (declare-function semantic-lex-make-spp-table "semantic/lex-spp")
 
-(defconst ede-version "1.2"
+(defconst ede-version "2.0"
   "Current version of the Emacs EDE.")
 
 ;;; Code:
@@ -500,42 +501,50 @@ Sets buffer local variables for EDE."
   ;; Init the buffer.
   (let* ((ROOT nil)
 	 (proj (ede-directory-get-open-project default-directory
-					       'ROOT))
-	 (projauto nil))
+					       'ROOT)))
 
-    (when (or proj ROOT
-	      ;; If there is no open project, look up the project
-	      ;; autoloader to see if we should initialize.
-	      (setq projauto (ede-directory-project-p default-directory t)))
+    (when (not proj)
+      ;; If there is no open project, look up the project
+      ;; autoloader to see if we should initialize.
+      (let ((projdetect (ede-directory-project-cons default-directory)))
 
-      (when (and (not proj) projauto)
+	(when projdetect
+	  ;; No project was loaded, but we have a project description
+	  ;; object.  This means that we try to load it.
+	  ;; 
+	  ;; Before loading, we need to check if it is a safe
+	  ;; project to load before requesting it to be loaded.
 
-	;; No project was loaded, but we have a project description
-	;; object.  This means that we can check if it is a safe
-	;; project to load before requesting it to be loaded.
+	  (when (or (oref (cdr projdetect) safe-p)
+		    ;; The project style is not safe, so check if it is
+		    ;; in `ede-project-directories'.
+		    (let ((top (car projdetect)))
+		      (ede-directory-safe-p top)))
 
-	(when (or (oref projauto safe-p)
-		  ;; The project style is not safe, so check if it is
-		  ;; in `ede-project-directories'.
-		  (let ((top (ede-toplevel-project default-directory)))
-		    (ede-directory-safe-p top)))
+	    ;; The project is safe, so load it in.
+	    (setq proj (ede-load-project-file default-directory projdetect 'ROOT))))))
 
-	  ;; The project is safe, so load it in.
-	  (setq proj (ede-load-project-file default-directory 'ROOT))))
+    ;; If PROJ is now loaded in, we can initialize our buffer to it.
+    (when proj
 
-      ;; Only initialize EDE state in this buffer if we found a project.
-      (when proj
-
-	(setq ede-object (ede-buffer-object (current-buffer)
+      ;; ede-object represents the specific EDE related class that best
+      ;; represents this buffer.  It could be a project (for a project file)
+      ;; or a target.  Also save off ede-object-project, the project that
+      ;; the buffer belongs to for the case where ede-object is a target.
+      (setq ede-object (ede-buffer-object (current-buffer)
 					  'ede-object-project))
 
-	(setq ede-object-root-project
-	      (or ROOT (ede-project-root ede-object-project)))
+      ;; Every project has a root.  It might be the same as ede-object.
+      ;; Cache that also as the root is a very common thing to need.
+      (setq ede-object-root-project
+	    (or ROOT (ede-project-root ede-object-project)))
 
-	(if (and (not ede-object) ede-object-project)
-	    (ede-auto-add-to-target))
+      ;; Check to see if we want to add this buffer to a target.
+      (if (and (not ede-object) ede-object-project)
+	  (ede-auto-add-to-target))
 
-	(ede-apply-target-options)))))
+      ;; Apply any options from the found target.
+      (ede-apply-target-options))))
 
 (defun ede-reset-all-buffers ()
   "Reset all the buffers due to change in EDE."
@@ -679,6 +688,7 @@ Otherwise, create a new project for DIR."
   (if (ede-check-project-directory dir)
       (progn
 	;; Load the project in DIR, or make one.
+	;; @TODO - IS THIS REAL?
 	(ede-load-project-file dir)
 
 	;; Check if we loaded anything on the previous line.
@@ -700,6 +710,10 @@ Otherwise, create a new project for DIR."
     (error "%s is not an allowed project directory in `ede-project-directories'"
 	   dir)))
 
+(defvar ede-check-project-query-fcn 'y-or-n-p
+  "Function used to ask the user if they want to permit a project to load.
+This is abstracted out so that tests can answer this question.")
+
 (defun ede-check-project-directory (dir)
   "Check if DIR should be in `ede-project-directories'.
 If it is not, try asking the user if it should be added; if so,
@@ -712,9 +726,10 @@ Return nil if DIR should not be in `ede-project-directories'."
       ;; If `ede-project-directories' is a list, maybe add it.
       (when (listp ede-project-directories)
 	(or (member dir ede-project-directories)
-	    (when (y-or-n-p (format "`%s' is not listed in `ede-project-directories'.
+	    (when (funcall ede-check-project-query-fcn
+			   (format "`%s' is not listed in `ede-project-directories'.
 Add it to the list of allowed project directories? "
-				    dir))
+				   dir))
 	      (push dir ede-project-directories)
 	      ;; If possible, save `ede-project-directories'.
 	      (if (or custom-file user-init-file)
@@ -782,7 +797,9 @@ Optional argument NAME is the name to give this project."
 					     (error
 					      "Unknown file name specifier %S"
 					      pf)))
-				:targets nil)))
+				:targets nil)
+		 
+		 ))
 	 (inits (oref obj initializers)))
     ;; Force the name to match for new objects.
     (eieio-object-set-name-string nobj (oref nobj :name))
@@ -821,16 +838,17 @@ ARGS are additional arguments to pass to method SYM."
 (defun ede-rescan-toplevel ()
   "Rescan all project files."
   (interactive)
-  (if (not (ede-directory-get-open-project default-directory))
-      ;; This directory isn't open.  Can't rescan.
-      (error "Attempt to rescan a project that isn't open")
+  (when (not (ede-toplevel))
+    ;; This directory isn't open.  Can't rescan.
+    (error "Attempt to rescan a project that isn't open"))
 
-    ;; Continue
-    (let ((toppath (ede-toplevel-project default-directory))
-	  (ede-deep-rescan t))
+  ;; Continue
+  (let ((root (ede-toplevel))
+	(ede-deep-rescan t))
 
-      (project-rescan (ede-load-project-file toppath))
-      (ede-reset-all-buffers))))
+    (project-rescan root)
+    (ede-reset-all-buffers)
+    ))
 
 (defun ede-new-target (&rest args)
   "Create a new target specific to this type of project file.
@@ -918,6 +936,8 @@ Optional argument FORCE forces the file to be removed without asking."
   (interactive)
   (ede-invoke-method 'project-edit-file-target))
 
+;;; Compilation / Debug / Run
+;;
 (defun ede-compile-project ()
   "Compile the current project."
   (interactive)
@@ -1063,6 +1083,10 @@ On success, return the added project."
   (add-to-list 'ede-projects proj)
   proj)
 
+(defun ede-delete-project-from-global-list (proj)
+  "Remove project PROJ from the master list of projects."
+  (setq ede-projects (remove proj ede-projects)))
+
 (defun ede-flush-deleted-projects ()
   "Scan the projects list for projects which no longer exist.
 Flush the dead projects from the project cache."
@@ -1072,80 +1096,83 @@ Flush the dead projects from the project cache."
       (when (not (file-exists-p (oref P :file)))
 	(add-to-list 'dead P)))
     (dolist (D dead)
-      (setq ede-projects (remove D ede-projects)))
+      (ede-delete-project-from-global-list D))
     ))
 
-(defun ede-load-project-file (dir &optional rootreturn)
+(defun ede-global-list-sanity-check ()
+  "Perform a sanity check to make sure there are no duplicate projects."
+  (interactive)
+  (let ((scanned nil))
+    (dolist (P ede-projects)
+      (if (member (oref P :directory) scanned)
+	  (error "Duplicate project (by dir) found in %s!" (oref P :directory))
+	(push (oref P :directory) scanned)))
+    (unless ede--disable-inode
+      (setq scanned nil)
+      (dolist (P ede-projects)
+	(if (member (ede--project-inode P) scanned)
+	  (error "Duplicate project (by inode) found in %s!" (ede--project-inode P))
+	  (push (ede--project-inode P) scanned))))
+    (message "EDE by directory %sis still sane." (if ede--disable-inode "" "& inode "))))
+
+(defun ede-load-project-file (dir &optional detectin rootreturn)
   "Project file independent way to read a project in from DIR.
+Optional DETECTIN is an autoload cons from `ede-detect-directory-for-project'
+which can be passed in to save time.
 Optional ROOTRETURN will return the root project for DIR."
-  ;; Only load if something new is going on.  Flush the dirhash.
-  (ede-project-directory-remove-hash dir)
-  ;; Do the load
-  ;;(message "EDE LOAD : %S" file)
-  (let* ((file dir)
-	 (path (file-name-as-directory (expand-file-name dir)))
-	 (pfc (ede-directory-project-p path))
-	 (toppath nil)
-	 (o nil))
-    (cond
-     ((not pfc)
-      ;; @TODO - Do we really need to scan?  Is this a waste of time?
-      ;; Scan upward for a the next project file style.
-      (let ((p path))
-	(while (and p (not (ede-directory-project-p p)))
-	  (setq p (ede-up-directory p)))
-	(if p (ede-load-project-file p)
-	  nil)
-	;; recomment as we go
-	;;nil
-	))
-     ;; Do nothing if we are building an EDE project already.
-     (ede-constructing
-      nil)
-     ;; Load in the project in question.
-     (t
-      (setq toppath (ede-toplevel-project path))
-      ;; We found the top-most directory.  Check to see if we already
-      ;; have an object defining its project.
-      (setq pfc (ede-directory-project-p toppath t))
+  ;; Don't do anything if we are in the process of
+  ;; constructing an EDE object.
+  ;;
+  ;; Prevent recursion.
+  (unless ede-constructing
 
-      ;; See if it's been loaded before
-      (setq o (object-assoc (ede-dir-to-projectfile pfc toppath) 'file
-			    ede-projects))
+    ;; Only load if something new is going on.  Flush the dirhash.
+    (ede-project-directory-remove-hash dir)
 
-      ;; If not open yet, load it.
-      (unless o
-	(let ((ede-constructing pfc))
-	  (setq o (ede-auto-load-project pfc toppath))))
+    ;; Do the load
+    ;;(message "EDE LOAD : %S" file)
+    (let* ((file dir)
+	   (path (file-name-as-directory (expand-file-name dir)))
+	   (detect (or detectin (ede-directory-project-cons path)))
+	   (autoloader nil)
+	   (toppath nil)
+	   (o nil))
 
-      ;; Return the found root project.
-      (when rootreturn (set rootreturn o))
+      (when detect
+	(setq toppath (car detect))
+	(setq autoloader (cdr detect))
 
-      (let (tocheck found)
-	;; Now find the project file belonging to FILE!
-	(setq tocheck (list o))
-	(setq file (ede-dir-to-projectfile pfc (expand-file-name path)))
-	(while (and tocheck (not found))
-	  (let ((newbits nil))
-	    (when (car tocheck)
-	      (if (string= file (oref (car tocheck) file))
-		  (setq found (car tocheck)))
-	      (setq newbits (oref (car tocheck) subproj)))
-	    (setq tocheck
-		  (append (cdr tocheck) newbits))))
-	(if (not found)
-	    (message "No project for %s, but passes project-p test" file)
-	  ;; Now that the file has been reset inside the project object, do
-	  ;; the cache maintenance.
-	  (setq ede-project-cache-files
-		(delete (oref found file) ede-project-cache-files)))
-	found)))))
+	;; See if it's been loaded before.  Use exact matching since
+	;; know that 'toppath' is the root of the project.
+	(setq o (ede-directory-get-toplevel-open-project toppath 'exact))
+
+	;; If not open yet, load it.
+	(unless o
+	  ;; NOTE: We set ede-constructing to the autoloader we are using.
+	  ;;       Some project types have one class, but many autoloaders
+	  ;;       and this is how we tell the instantiation which kind of
+	  ;;       project to make.
+	  (let ((ede-constructing autoloader))
+
+	    ;; This is the only place `ede-auto-load-project' should be called.
+
+	    (setq o (ede-auto-load-project autoloader toppath))))
+
+	;; Return the found root project.
+	(when rootreturn (set rootreturn o))
+
+	;; The project has been found (in the global list) or loaded from
+	;; disk (via autoloader.)  We can now search for the project asked
+	;; for from DIR in the sub-list.
+	(ede-find-subproject-for-directory o path)
+
+	;; Return the project.
+	o))))
 
 ;;; PROJECT ASSOCIATIONS
 ;;
 ;; Moving between relative projects.  Associating between buffers and
 ;; projects.
-
 (defun ede-parent-project (&optional obj)
   "Return the project belonging to the parent directory.
 Return nil if there is no previous directory.

@@ -383,7 +383,7 @@ These groups are specified with the `:group' slot flag."
     (make-local-variable 'eieio-co)
     (setq eieio-co obj)
     (make-local-variable 'eieio-cog)
-    (setq eieio-cog group)))
+    (setq eieio-cog g)))
 
 (defmethod eieio-custom-object-apply-reset ((obj eieio-default-superclass))
   "Insert an Apply and Reset button into the object editor.

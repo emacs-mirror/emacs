@@ -112,8 +112,9 @@ in a buffer."
 Argument CONTEXT is an object specifying the locally derived context.
 The optional argument FLAGS changes which return options are returned.
 FLAGS can be any number of:
-  'no-tc     - do not apply data-type constraint.
-  'no-unique - do not apply unique by name filtering."
+  'no-tc         - do not apply data-type constraint.
+  'no-longprefix - ignore long multi-symbol prefixes.
+  'no-unique     - do not apply unique by name filtering."
   (let* ((a context)
 	 (desired-type (semantic-analyze-type-constraint a))
 	 (desired-class (oref a prefixclass))
@@ -127,8 +128,15 @@ FLAGS can be any number of:
 	 (c nil)
 	 (any nil)
 	 (do-typeconstraint (not (memq 'no-tc flags)))
+	 (do-longprefix (not (memq 'no-longprefix flags)))
 	 (do-unique (not (memq 'no-unique flags)))
 	 )
+
+    (when (not do-longprefix)
+      ;; If we are not doing the long prefix, shorten all the key
+      ;; elements.
+      (setq prefix (list (car (reverse prefix)))
+	    prefixtypes nil))
 
     ;; Calculate what our prefix string is so that we can
     ;; find all our matching text.

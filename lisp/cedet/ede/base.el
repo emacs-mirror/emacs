@@ -605,7 +605,7 @@ Display the results as a debug list."
   "Return the ede project which is the root of the current project.
 Optional argument SUBPROJ indicates a subproject to start from
 instead of the current project."
-  (or ede-object-root-project
+  (or (when (not subproj) ede-object-root-project)
       (let* ((cp (or subproj (ede-current-project))))
 	(or (and cp (ede-project-root cp))
 	    (progn
