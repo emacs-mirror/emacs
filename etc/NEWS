@@ -153,6 +153,9 @@ result of the calculation into the current buffer.
 textual parts of a web page and display only that, leaving menus and
 the like off the page.
 
+*** You can now use several eww buffers in parallel by renaming eww
+buffers you want to keep separate.
+
 ** Message mode
 
 *** text/html messages that contain inline image parts will be

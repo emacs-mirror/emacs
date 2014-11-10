@@ -1,3 +1,9 @@
+2014-11-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/eww.el (eww-render, eww-display-html, eww-setup-buffer):
+	Allow taking a buffer to render data in.  This allows using several
+	eww buffers (bug#16211).
+
 2014-11-10  Charles Rendleman  <carendle@gmail.com>  (tiny change)
 
 	* net/eww.el (eww-download-callback): Save only the file contents,

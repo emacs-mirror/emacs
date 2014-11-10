@@ -167,7 +167,10 @@ word(s) will be searched for via `eww-search-prefix'."
                  (setq url (concat url "/"))))
            (setq url (concat eww-search-prefix
                              (replace-regexp-in-string " " "+" url))))))
-  (url-retrieve url 'eww-render (list url)))
+  (url-retrieve url 'eww-render
+		(list url nil
+		      (and (eq major-mode 'eww-mode)
+			   (current-buffer)))))
 
 ;;;###autoload (defalias 'browse-web 'eww)
 
@@ -180,7 +183,7 @@ word(s) will be searched for via `eww-search-prefix'."
 		    "/")
 	       (expand-file-name file))))
 
-(defun eww-render (status url &optional point)
+(defun eww-render (status url &optional point buffer)
   (let ((redirect (plist-get status :redirect)))
     (when redirect
       (setq url redirect)))
@@ -205,14 +208,14 @@ word(s) will be searched for via `eww-search-prefix'."
                                  (car content-type)))
             (eww-browse-with-external-browser url))
 	   ((equal (car content-type) "text/html")
-	    (eww-display-html charset url nil point))
+	    (eww-display-html charset url nil point buffer))
 	   ((equal (car content-type) "application/pdf")
 	    (eww-display-pdf))
 	   ((string-match-p "\\`image/" (car content-type))
-	    (eww-display-image)
+	    (eww-display-image buffer)
 	    (eww-update-header-line-format))
 	   (t
-	    (eww-display-raw)
+	    (eww-display-raw buffer)
 	    (eww-update-header-line-format)))
 	  (plist-put eww-data :title url)
 	  (setq eww-history-position 0))
@@ -247,7 +250,7 @@ word(s) will be searched for via `eww-search-prefix'."
 (declare-function libxml-parse-html-region "xml.c"
 		  (start end &optional base-url))
 
-(defun eww-display-html (charset url &optional document point)
+(defun eww-display-html (charset url &optional document point buffer)
   (or (fboundp 'libxml-parse-html-region)
       (error "This function requires Emacs to be compiled with libxml2"))
   ;; There should be a better way to abort loading images
@@ -265,7 +268,7 @@ word(s) will be searched for via `eww-search-prefix'."
 		(libxml-parse-html-region (point) (point-max))))))
 	(source (and (null document)
 		     (buffer-substring (point) (point-max)))))
-    (eww-setup-buffer)
+    (eww-setup-buffer buffer)
     (plist-put eww-data :source source)
     (plist-put eww-data :dom document)
     (let ((inhibit-read-only t)
@@ -368,16 +371,16 @@ word(s) will be searched for via `eww-search-prefix'."
     (shr-generic cont)
     (shr-colorize-region start (point) fgcolor bgcolor)))
 
-(defun eww-display-raw ()
+(defun eww-display-raw (&optional buffer)
   (let ((data (buffer-substring (point) (point-max))))
-    (eww-setup-buffer)
+    (eww-setup-buffer buffer)
     (let ((inhibit-read-only t))
       (insert data))
     (goto-char (point-min))))
 
-(defun eww-display-image ()
+(defun eww-display-image (&optional buffer)
   (let ((data (shr-parse-image-data)))
-    (eww-setup-buffer)
+    (eww-setup-buffer buffer)
     (let ((inhibit-read-only t))
       (shr-put-image data nil))
     (goto-char (point-min))))
@@ -392,8 +395,11 @@ word(s) will be searched for via `eww-search-prefix'."
       (doc-view-mode)))
   (goto-char (point-min)))
 
-(defun eww-setup-buffer ()
-  (switch-to-buffer (get-buffer-create "*eww*"))
+(defun eww-setup-buffer (&optional buffer)
+  (switch-to-buffer
+   (if (buffer-live-p buffer)
+       buffer
+     (get-buffer-create "*eww*")))
   (let ((inhibit-read-only t))
     (remove-overlays)
     (erase-buffer))
@@ -431,7 +437,8 @@ the like."
     (eww-save-history)
     (eww-display-html nil nil
 		      (shr-retransform-dom
-		       (eww-highest-readability dom)))
+		       (eww-highest-readability dom))
+		      nil (current-buffer))
     (dolist (elem '(:source :url :title :next :previous :up))
       (plist-put eww-data elem (plist-get old-data elem)))
     (eww-update-header-line-format)))
@@ -1110,7 +1117,8 @@ If EXTERNAL, browse the URL using `shr-external-browser'."
      ((and (url-target (url-generic-parse-url url))
 	   (eww-same-page-p url (plist-get eww-data :url)))
       (eww-save-history)
-      (eww-display-html 'utf-8 url (plist-get eww-data :url)))
+      (eww-display-html 'utf-8 url (plist-get eww-data :url)
+			nil (current-buffer)))
      (t
       (eww-browse-url url)))))
 
