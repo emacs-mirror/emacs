@@ -1,7 +1,6 @@
 2014-11-10  Kelvin White  <kwhite@gnu.org>
 
-	* erc-match.el, erc-join.el, erc-stamp.el, erc-backend.el, erc.el:
-	* erc-button.el: Update version to 24.5.
+	* erc-stamp.el (erc-timestamp-intangible): Change version tag to 24.5.
 
 2014-11-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 

@@ -104,7 +104,7 @@
 
 (defgroup erc-lurker nil
   "Hide specified message types sent by lurkers"
-  :version "24.5"
+  :version "24.3"
   :group 'erc-ignore)
 
 (defgroup erc-query nil
@@ -5291,7 +5291,7 @@ into the ERC buffer, that text is not sent to the IRC server.
 If the value is nil, `erc-send-current-line' always considers any
 submitted line to be intentional."
   :group 'erc
-  :version "24.5"
+  :version "24.4"
   :type '(choice number (other :tag "disabled" nil)))
 
 (defun erc-send-current-line ()
