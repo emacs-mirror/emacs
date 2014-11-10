@@ -1534,6 +1534,13 @@ command_loop_1 (void)
 
       /* Execute the command.  */
 
+      {
+	total_keys += total_keys < NUM_RECENT_KEYS;
+	ASET (recent_keys, recent_keys_index,
+	      Fcons (Qnil, cmd));
+	if (++recent_keys_index >= NUM_RECENT_KEYS)
+	  recent_keys_index = 0;
+      }
       Vthis_command = cmd;
       Vreal_this_command = cmd;
       safe_run_hooks (Qpre_command_hook);
@@ -10048,23 +10055,34 @@ If CHECK-TIMERS is non-nil, timers that are ready to run will do so.  */)
 	  ? Qt : Qnil);
 }
 
-DEFUN ("recent-keys", Frecent_keys, Srecent_keys, 0, 0, 0,
-       doc: /* Return vector of last 300 events, not counting those from keyboard macros.  */)
-  (void)
+DEFUN ("recent-keys", Frecent_keys, Srecent_keys, 0, 1, 0,
+       doc: /* Return vector of last few events, not counting those from keyboard macros.
+If INCLUDE-CMDS is non-nil, include the commands that were run,
+represented as events of the form (nil . COMMAND).  */)
+  (Lisp_Object include_cmds)
 {
-  Lisp_Object *keys = XVECTOR (recent_keys)->contents;
-  Lisp_Object val;
+  bool cmds = !NILP (include_cmds);
 
-  if (total_keys < NUM_RECENT_KEYS)
-    return Fvector (total_keys, keys);
+  if (!total_keys
+      || (cmds && total_keys < NUM_RECENT_KEYS))
+    return Fvector (total_keys,
+		    XVECTOR (recent_keys)->contents);
   else
     {
-      val = Fvector (NUM_RECENT_KEYS, keys);
-      vcopy (val, 0, keys + recent_keys_index,
-	     NUM_RECENT_KEYS - recent_keys_index);
-      vcopy (val, NUM_RECENT_KEYS - recent_keys_index,
-	     keys, recent_keys_index);
-      return val;
+      Lisp_Object es = Qnil;
+      int i = (total_keys < NUM_RECENT_KEYS
+	       ? 0 : recent_keys_index);
+      eassert (recent_keys_index < NUM_RECENT_KEYS);
+      do
+	{
+	  Lisp_Object e = AREF (recent_keys, i);
+	  if (cmds || !CONSP (e) || !NILP (XCAR (e)))
+	    es = Fcons (e, es);
+	  if (++i >= NUM_RECENT_KEYS)
+	    i = 0;
+	} while (i != recent_keys_index);
+      es = Fnreverse (es);
+      return Fvconcat (1, &es);
     }
 }
 

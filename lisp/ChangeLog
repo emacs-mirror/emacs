@@ -1,3 +1,7 @@
+2014-11-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* help.el (view-lossage): Include the actual commands run.
+
 2014-11-10  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* vc/vc-dir.el (vc-dir-hide-state): Also hide `ignored' items when
@@ -5,8 +9,8 @@
 
 2014-11-09  Eric Ludlam  <zappo@gnu.org>
 
-	* emacs-lisp/eieio-custom.el (eieio-customize-object): Set
-	eieio-cog (current group) to g, which is an improved form of input
+	* emacs-lisp/eieio-custom.el (eieio-customize-object):
+	Set eieio-cog (current group) to g, which is an improved form of input
 	group.
 
 2014-11-09  Juri Linkov  <juri@jurta.org>
@@ -14,8 +18,8 @@
 	* isearch.el (isearch-message-prefix): Show "Multi-file" and
 	"Multi-buffer" instead of "Multi".  (Bug#13592)
 
-	* misearch.el (multi-isearch-file-list): Autoload
-	multi-isearch-buffer-list and multi-isearch-file-list.
+	* misearch.el (multi-isearch-file-list):
+	Autoload multi-isearch-buffer-list and multi-isearch-file-list.
 	(multi-isearch-end): Reset multi-isearch-buffer-list and
 	multi-isearch-file-list to nil.
 
@@ -70,8 +74,8 @@
 2014-11-08  Alan Mackenzie  <acm@muc.de>
 
 	Fix wrong bound to c-font-lock-declarators.  Fixes bug #18948.
-	* progmodes/cc-fonts.el (c-font-lock-declarations): Pass
-	"(point-max)" as bound to c-font-lock-declarators, not "limit", as
+	* progmodes/cc-fonts.el (c-font-lock-declarations):
+	Pass "(point-max)" as bound to c-font-lock-declarators, not "limit", as
 	the buffer is sometimes narrowed to less than "limit" (e.g., in
 	the presence of macros).
 

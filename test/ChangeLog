@@ -1,3 +1,8 @@
+2014-11-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* automated/bytecomp-tests.el (bytecomp-tests--warnings): New tests.
+	* automated/cl-lib-tests.el: Rename from cl-lib.el.
+
 2014-10-28  Ulf Jasper  <ulf.jasper@web.de>
 
 	* automated/libxml-tests.el: New file.

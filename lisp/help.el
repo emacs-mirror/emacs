@@ -448,25 +448,32 @@ is specified by the variable `message-log-max'."
   (info "(efaq)Packages that do not come with Emacs"))
 
 (defun view-lossage ()
-  "Display last 300 input keystrokes.
+  "Display last few input keystrokes and the commands run.
 
 To record all your input, use `open-dribble-file'."
   (interactive)
   (help-setup-xref (list #'view-lossage)
 		   (called-interactively-p 'interactive))
   (with-help-window (help-buffer)
+    (princ " ")
     (princ (mapconcat (lambda (key)
-			(if (or (integerp key) (symbolp key) (listp key))
-			    (single-key-description key)
-			  (prin1-to-string key nil)))
-		      (recent-keys)
+			(cond
+			 ((and (consp key) (null (car key)))
+			  (format "[%s]\n" (if (symbolp (cdr key)) (cdr key)
+					   "anonymous-command")))
+			 ((or (integerp key) (symbolp key) (listp key))
+			  (single-key-description key))
+			 (t
+			  (prin1-to-string key nil))))
+		      (recent-keys 'include-cmds)
 		      " "))
     (with-current-buffer standard-output
       (goto-char (point-min))
-      (while (progn (move-to-column 50) (not (eobp)))
-        (when (search-forward " " nil t)
-          (delete-char -1))
-        (insert "\n"))
+      (while (not (eobp))
+	(move-to-column 50)
+	(unless (eolp)
+	  (fill-region (line-beginning-position) (line-end-position)))
+	(forward-line 1))
       ;; jidanni wants to see the last keystrokes immediately.
       (set-marker help-window-point-marker (point)))))
 
