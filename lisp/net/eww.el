@@ -419,10 +419,10 @@ This command uses heuristics to find the parts of the web page that
 contains the main textual portion, leaving out navigation menus and
 the like."
   (interactive)
-  (let* ((source (plist-get eww-data :source))
+  (let* ((old-data eww-data)
 	 (dom (shr-transform-dom
 	       (with-temp-buffer
-		 (insert source)
+		 (insert (plist-get old-data :source))
 		 (condition-case nil
 		     (decode-coding-region (point-min) (point-max) 'utf-8)
 		   (coding-system-error nil))
@@ -432,7 +432,9 @@ the like."
     (eww-display-html nil nil
 		      (shr-retransform-dom
 		       (eww-highest-readability dom)))
-    (plist-put eww-data :source source)))
+    (dolist (elem '(:source :url :title :next :previous :up))
+      (plist-put eww-data elem (plist-get old-data elem)))
+    (eww-update-header-line-format)))
 
 (defun eww-score-readability (node)
   (let ((score -1))
