@@ -1142,7 +1142,9 @@ Differences in #targets are ignored."
            (path (car (url-path-and-query obj)))
            (file (eww-make-unique-file-name (file-name-nondirectory path)
 					    eww-download-directory)))
-      (write-file file)
+      (goto-char (point-min))
+      (re-search-forward "\r?\n\r?\n")
+      (write-region (point) (point-max) file)
       (message "Saved %s" file))))
 
 (defun eww-make-unique-file-name (file directory)

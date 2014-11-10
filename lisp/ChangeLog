@@ -1,3 +1,8 @@
+2014-11-10  Charles Rendleman  <carendle@gmail.com>  (tiny change)
+
+	* net/eww.el (eww-download-callback): Save only the file contents,
+	not the headers.
+
 2014-11-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* net/eww.el (eww-data): New plist to store all the data relevant
