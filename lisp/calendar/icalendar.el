@@ -485,45 +485,48 @@ children."
 ALIST is an alist entry from a VTIMEZONE, like STANDARD.
 DST-P is non-nil if this is for daylight savings time.
 The strings are suitable for assembling into a TZ variable."
-  (let ((offset (car (cddr (assq 'TZOFFSETTO alist))))
-	(rrule-value (car (cddr (assq 'RRULE alist))))
-	(dtstart (car (cddr (assq 'DTSTART alist)))))
+  (let* ((offsetto (car (cddr (assq 'TZOFFSETTO alist))))
+	 (offsetfrom (car (cddr (assq 'TZOFFSETFROM alist))))
+	 (rrule-value (car (cddr (assq 'RRULE alist))))
+	 (dtstart (car (cddr (assq 'DTSTART alist))))
+	 (no-dst (equal offsetto offsetfrom)))
     ;; FIXME: for now we only handle RRULE and not RDATE here.
-    (when (and offset rrule-value dtstart)
+    (when (and offsetto dtstart (or rrule-value no-dst))
       (let* ((rrule (icalendar--split-value rrule-value))
 	     (freq (cadr (assq 'FREQ rrule)))
 	     (bymonth (cadr (assq 'BYMONTH rrule)))
 	     (byday (cadr (assq 'BYDAY rrule))))
 	;; FIXME: we don't correctly handle WKST here.
-	(if (and (string= freq "YEARLY") bymonth)
+	(if (or no-dst (and (string= freq "YEARLY") bymonth))
 	    (cons
 	     (concat
 	      ;; Fake a name.
 	      (if dst-p "DST" "STD")
 	      ;; For TZ, OFFSET is added to the local time.  So,
 	      ;; invert the values.
-	      (if (eq (aref offset 0) ?-) "+" "-")
-	      (substring offset 1 3)
+	      (if (eq (aref offsetto 0) ?-) "+" "-")
+	      (substring offsetto 1 3)
 	      ":"
-	      (substring offset 3 5))
+	      (substring offsetto 3 5))
 	     ;; The start time.
-	     (let* ((day (icalendar--get-weekday-number (substring byday -2)))
-		    (week (if (eq day -1)
-			      byday
-			    (substring byday 0 -2))))
-               ;; "Translate" the iCalendar way to specify the last
-               ;; (sun|mon|...)day in month to the tzset way.
-               (if (string= week "-1")  ; last day as iCalendar calls it
-                   (setq week "5"))     ; last day as tzset calls it
-	       (concat "M" bymonth "." week "." (if (eq day -1) "0"
-						  (int-to-string day))
-		       ;; Start time.
-		       "/"
-		       (substring dtstart -6 -4)
-		       ":"
-		       (substring dtstart -4 -2)
-		       ":"
-		       (substring dtstart -2)))))))))
+	     (unless no-dst
+	       (let* ((day (icalendar--get-weekday-number (substring byday -2)))
+		      (week (if (eq day -1)
+				byday
+			      (substring byday 0 -2))))
+		 ;; "Translate" the iCalendar way to specify the last
+		 ;; (sun|mon|...)day in month to the tzset way.
+		 (if (string= week "-1")  ; last day as iCalendar calls it
+		     (setq week "5"))     ; last day as tzset calls it
+		 (concat "M" bymonth "." week "." (if (eq day -1) "0"
+						    (int-to-string day))
+			 ;; Start time.
+			 "/"
+			 (substring dtstart -6 -4)
+			 ":"
+			 (substring dtstart -4 -2)
+			 ":"
+			 (substring dtstart -2))))))))))
 
 (defun icalendar--parse-vtimezone (alist)
   "Turn a VTIMEZONE ALIST into a cons (ID . TZ-STRING).
