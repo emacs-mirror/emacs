@@ -169,9 +169,8 @@ fi
 echo Version number is $version
 
 if [ $update = yes ]; then
-  if ! grep -q "@set EMACSVER  *${version}" doc/emacs/emacsver.texi || \
-     ! grep -q "tree holds version  *${version}" README; then
-    echo "WARNING: README and/or emacsver.texi have the wrong version number"
+  if ! grep -q "tree holds version  *${version}" README; then
+    echo "WARNING: README has the wrong version number"
     echo "Consider running M-x set-version from admin/admin.el"
     sleep 5
   fi

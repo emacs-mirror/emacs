@@ -75,6 +75,7 @@ doc/**/*.dvi
 doc/**/*.html
 doc/**/*.pdf
 doc/**/*.ps
+doc/emacs/emacsver.texi
 !doc/lispintro/cons-*.pdf
 !doc/lispintro/drawers.pdf
 !doc/lispintro/lambda-*.pdf

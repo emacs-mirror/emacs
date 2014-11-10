@@ -5174,6 +5174,11 @@ if test ! -f src/.gdbinit && test -f "$srcdir/src/.gdbinit"; then
 fi
 ])
 
+AC_CONFIG_COMMANDS([doc/emacs/emacsver.texi], [
+${MAKE-make} -s --no-print-directory -C doc/emacs doc-emacsver || \
+AC_MSG_ERROR(['doc/emacs/emacsver.texi' could not be made.])
+])
+
 AC_OUTPUT
 
 test "$MAKE" = make || AC_MSG_NOTICE([Now you can run '$MAKE'.])

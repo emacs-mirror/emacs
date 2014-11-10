@@ -1,3 +1,9 @@
+2014-11-10  Glenn Morris  <rgm@gnu.org>
+
+	* admin.el (set-version): No need to update doc/emacs/emacsver.texi.
+	(make-manuals-dist-output-variables): Add top_srcdir.
+	(make-manuals-dist--1): Handle @version@ specially.
+
 2014-11-09  Eric Ludlam <zappo@gnu.org>
 
 	* grammars/c.by (template-type): Add :template-specifier and

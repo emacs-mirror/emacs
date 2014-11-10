@@ -1,12 +1,15 @@
+2014-11-10  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac (doc/emacs/emacsver.texi): Generate it.
+	* make-dist (doc/emacs/emacsver.texi) [update]: No longer check it.
+
 2014-11-08  Dani Moncayo  <dmoncayo@gmail.com>
 
-	* build-aux/msys-to-w32: simplify the initial over-engineered
+	* build-aux/msys-to-w32: Simplify the initial over-engineered
 	interface, and the implementation.
 	* Makefile.in (epaths-force-w32): Update for the above.  Also
-	simplify, assuming that the shell is bash (which is the case in
-	MSYS).
-	(msys_w32prefix_subst, msys_sed_sh_escape): Remove (no longer
-	used).
+	simplify, assuming that the shell is bash (which is the case in MSYS).
+	(msys_w32prefix_subst, msys_sed_sh_escape): Remove (no longer used).
 
 2014-11-05  Glenn Morris  <rgm@gnu.org>
 

@@ -94,9 +94,6 @@ Root must be the root of an Emacs source tree."
 		       (rx (and "AC_INIT" (1+ (not (in ?,)))
                                 ?, (0+ space)
                                 (submatch (1+ (in "0-9."))))))
-  (set-version-in-file root "doc/emacs/emacsver.texi" version
-		       (rx (and "EMACSVER" (1+ space)
-				(submatch (1+ (in "0-9."))))))
   (set-version-in-file root "doc/man/emacs.1" version
 		       (rx (and ".TH EMACS" (1+ not-newline)
                                 "GNU Emacs" (1+ space)
@@ -611,7 +608,7 @@ style=\"text-align:left\">")
 
 
 (defconst make-manuals-dist-output-variables
-  `(("@srcdir@" . ".")
+  `(("@\\(top_\\)?srcdir@" . ".")	; top_srcdir is wrong, but not used
     ("^\\(\\(?:texinfo\\|buildinfo\\|emacs\\)dir *=\\).*" . "\\1 .")
     ("^\\(clean:.*\\)" . "\\1 infoclean")
     ("@MAKEINFO@" . "makeinfo")
@@ -655,11 +652,13 @@ style=\"text-align:left\">")
 		   (string-match-p "\\.\\(eps\\|pdf\\)\\'" file)))
 	  (copy-file file stem)))
     (with-temp-buffer
-      (insert-file-contents (format "../doc/%s/Makefile.in" type))
-      (dolist (cons make-manuals-dist-output-variables)
-	(while (re-search-forward (car cons) nil t)
-	  (replace-match (cdr cons) t))
-	(goto-char (point-min)))
+      (let ((outvars make-manuals-dist-output-variables))
+	(push `("@version@" . ,version) outvars)
+	(insert-file-contents (format "../doc/%s/Makefile.in" type))
+	(dolist (cons outvars)
+	  (while (re-search-forward (car cons) nil t)
+	    (replace-match (cdr cons) t))
+	  (goto-char (point-min))))
       (let (ats)
 	(while (re-search-forward "@[a-zA-Z_]+@" nil t)
 	  (setq ats t)

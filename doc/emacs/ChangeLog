@@ -1,3 +1,10 @@
+2014-11-10  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (top_srcdir, version): New, set by configure.
+	(doc-emacsver): New rule.
+	(bootstrap-clean, maintainer-clean): Delete emacsver.texi.
+	(emacsver.texi.in): Rename from emacsver.texi.
+
 2014-11-09  Juri Linkov  <juri@jurta.org>
 
 	* search.texi (Other Repeating Search): Add documentation for

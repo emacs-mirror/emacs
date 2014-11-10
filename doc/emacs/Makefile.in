@@ -26,6 +26,10 @@ SHELL = @SHELL@
 # of the source tree.  This is set by configure's `--srcdir' option.
 srcdir=@srcdir@
 
+top_srcdir = @top_srcdir@
+
+version = @version@
+
 ## Where the output files go.
 ## Note that the setfilename command in the .texi files assumes this.
 ## This is a bit funny.  Because the info files are in the
@@ -178,6 +182,18 @@ emacs-xtra.pdf: $(EMACS_XTRA)
 %.ps: %.dvi
 	$(DVIPS) -o $@ $<
 
+.PHONY: doc-emacsver
+
+# If configure were to just generate emacsver.texi from emacsver.texi.in
+# in the normal way, the timestamp of emacsver.texi would always be
+# newer than that of the info files, which are prebuilt in release tarfiles.
+# So we use this rule, and move-if-change, to avoid that.
+doc-emacsver:
+	sed 's/[@]version@/${version}/' \
+	  ${srcdir}/emacsver.texi.in > emacsver.texi.in.$$$$ && \
+	  ${top_srcdir}/build-aux/move-if-change emacsver.texi.in.$$$$ \
+	  ${srcdir}/emacsver.texi
+
 .PHONY: mostlyclean clean distclean bootstrap-clean maintainer-clean infoclean
 
 ## Temp files.
@@ -200,6 +216,7 @@ infoclean:
 	  $(buildinfodir)/emacs.info-[1-9][0-9]
 
 bootstrap-clean maintainer-clean: distclean infoclean
+	rm -f ${srcdir}/emacsver.texi
 
 .PHONY: install-dvi install-html install-pdf install-ps install-doc
 
