@@ -136,13 +136,6 @@ See also `eww-form-checkbox-selected-symbol'."
 (defvar eww-history nil)
 (defvar eww-history-position 0)
 
-(defvar eww-next-url nil)
-(defvar eww-previous-url nil)
-(defvar eww-up-url nil)
-(defvar eww-home-url nil)
-(defvar eww-start-url nil)
-(defvar eww-contents-url nil)
-
 (defvar eww-local-regex "localhost"
   "When this regex is found in the URL, it's not a keyword but an address.")
 
@@ -314,23 +307,23 @@ word(s) will be searched for via `eww-search-prefix'."
 	(where (assoc
 		;; The text associated with :rel is case-insensitive.
 		(if rel (downcase (cdr rel)))
-		      '(("next" . eww-next-url)
+		      '(("next" . :next)
 			;; Texinfo uses "previous", but HTML specifies
 			;; "prev", so recognize both.
-			("previous" . eww-previous-url)
-			("prev" . eww-previous-url)
+			("previous" . :previous)
+			("prev" . :previous)
 			;; HTML specifies "start" but also "contents",
 			;; and Gtk seems to use "home".  Recognize
 			;; them all; but store them in different
 			;; variables so that we can readily choose the
 			;; "best" one.
-			("start" . eww-start-url)
-			("home" . eww-home-url)
-			("contents" . eww-contents-url)
-			("up" . eww-up-url)))))
+			("start" . :start)
+			("home" . :home)
+			("contents" . :contents)
+			("up" . up)))))
     (and href
 	 where
-	 (set (cdr where) (cdr href)))))
+	 (plist-put eww-data (cdr where) (cdr href)))))
 
 (defun eww-tag-link (cont)
   (eww-handle-link cont)
@@ -405,13 +398,7 @@ word(s) will be searched for via `eww-search-prefix'."
     (remove-overlays)
     (erase-buffer))
   (unless (eq major-mode 'eww-mode)
-    (eww-mode))
-  (setq-local eww-next-url nil)
-  (setq-local eww-previous-url nil)
-  (setq-local eww-up-url nil)
-  (setq-local eww-home-url nil)
-  (setq-local eww-start-url nil)
-  (setq-local eww-contents-url nil))
+    (eww-mode)))
 
 (defun eww-view-source ()
   "View the HTML source code of the current page."
@@ -604,8 +591,9 @@ the like."
 A page is marked `next' if rel=\"next\" appears in a <link>
 or <a> tag."
   (interactive)
-  (if eww-next-url
-      (eww-browse-url (shr-expand-url eww-next-url (plist-get eww-data :url)))
+  (if (plist-get eww-data :next)
+      (eww-browse-url (shr-expand-url (plist-get eww-data :next)
+				      (plist-get eww-data :url)))
     (user-error "No `next' on this page")))
 
 (defun eww-previous-url ()
@@ -613,8 +601,8 @@ or <a> tag."
 A page is marked `previous' if rel=\"previous\" appears in a <link>
 or <a> tag."
   (interactive)
-  (if eww-previous-url
-      (eww-browse-url (shr-expand-url eww-previous-url
+  (if (plist-get eww-data :previous)
+      (eww-browse-url (shr-expand-url (plist-get eww-data :previous)
 				      (plist-get eww-data :url)))
     (user-error "No `previous' on this page")))
 
@@ -623,8 +611,9 @@ or <a> tag."
 A page is marked `up' if rel=\"up\" appears in a <link>
 or <a> tag."
   (interactive)
-  (if eww-up-url
-      (eww-browse-url (shr-expand-url eww-up-url (plist-get eww-data :url)))
+  (if (plist-get eww-data :up)
+      (eww-browse-url (shr-expand-url (plist-get eww-data :up)
+				      (plist-get eww-data :url)))
     (user-error "No `up' on this page")))
 
 (defun eww-top-url ()
@@ -632,9 +621,9 @@ or <a> tag."
 A page is marked `top' if rel=\"start\", rel=\"home\", or rel=\"contents\"
 appears in a <link> or <a> tag."
   (interactive)
-  (let ((best-url (or eww-start-url
-		      eww-contents-url
-		      eww-home-url)))
+  (let ((best-url (or (plist-get eww-data :start)
+		      (plist-get eww-data :contents)
+		      (plist-get eww-data :home))))
     (if best-url
 	(eww-browse-url (shr-expand-url best-url (plist-get eww-data :url)))
       (user-error "No `top' for this page"))))

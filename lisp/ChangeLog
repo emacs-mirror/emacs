@@ -5,6 +5,11 @@
 	variables `eww-current-url', `eww-current-dom',
 	`eww-current-source', and `eww-current-title'.
 
+	* net/eww.el: Remove `eww-next-url', `eww-previous-url',
+	`eww-up-url', `eww-home-url', `eww-start-url' and
+	`eww-contents-url' and put the data into the `eww-data' plist.
+	This allow restoring these values after going back in the history.
+
 2014-11-10  Sylvain Chouleur  <sylvain.chouleur@gmail.com>  (tiny change)
 
 	Allow VTIMEZONE where daylight and standard time zones are equal.
