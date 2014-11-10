@@ -1125,18 +1125,18 @@ outside of VC) and one wants to do some operation on it."
   "Hide items that are in STATE from display.
 See `vc-state' for valid values of STATE.
 
-If STATE is nil, default it to up-to-date.
+If STATE is nil, hide both `up-to-date' and `ignored' items.
 
 Interactively, if `current-prefix-arg' is non-nil, set STATE to
-state of item at point.  Otherwise, set STATE to up-to-date."
+state of item at point, if any."
   (interactive (list
 		(and current-prefix-arg
 		     ;; Command is prefixed.  Infer STATE from point.
 		     (let ((node (ewoc-locate vc-ewoc)))
 		       (and node (vc-dir-fileinfo->state (ewoc-data node)))))))
-  ;; If STATE is un-specified, use up-to-date.
-  (setq state (or state 'up-to-date))
-  (message "Hiding items in state \"%s\"" state)
+  (if state
+      (message "Hiding items in state \"%s\"" state)
+    (message "Hiding up-to-date and ignored items"))
   (let ((crt (ewoc-nth vc-ewoc -1))
 	(first (ewoc-nth vc-ewoc 0)))
     ;; Go over from the last item to the first and remove the
@@ -1157,8 +1157,10 @@ state of item at point.  Otherwise, set STATE to up-to-date."
 		     ;; Next item is a directory.
 		     (vc-dir-fileinfo->directory (ewoc-data next))))
 	       ;; Remove files in specified STATE.  STATE can be a
-	       ;; symbol or a user-name.
-	       (equal (vc-dir-fileinfo->state data) state))
+	       ;; symbol, a user-name, or nil.
+               (if state
+                   (equal (vc-dir-fileinfo->state data) state)
+                 (memq (vc-dir-fileinfo->state data) '(up-to-date ignored))))
 	  (ewoc-delete vc-ewoc crt))
 	(setq crt prev)))))
 

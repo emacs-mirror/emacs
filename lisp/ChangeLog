@@ -1,3 +1,8 @@
+2014-11-10  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* vc/vc-dir.el (vc-dir-hide-state): Also hide `ignored' items when
+	no state is specified.  (Bug#18964)
+
 2014-11-09  Eric Ludlam  <zappo@gnu.org>
 
 	* emacs-lisp/eieio-custom.el (eieio-customize-object): Set
