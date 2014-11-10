@@ -1,3 +1,7 @@
+2014-11-10  Glenn Morris  <rgm@gnu.org>
+
+	* startup.el (command-line): Handle nil elements in load-path.
+
 2014-11-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* help.el (view-lossage): Include the actual commands run.

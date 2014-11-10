@@ -41,7 +41,7 @@ all: ${top_srcdir}/src/macuvs.h unifiles
 ${top_srcdir}/src/macuvs.h: ${srcdir}/uvs.el ${srcdir}/IVD_Sequences.txt | \
   ${srcdir}/uvs.elc
 	${emacs} -L ${srcdir} -l uvs \
-	  --eval '(uvs-print-table-ivd "${srcdir}/IVD_Sequences.txt" "Adobe-Japan1")' \
+	  --eval '(uvs-print-table-ivd (unmsys--file-name "${srcdir}/IVD_Sequences.txt") "Adobe-Japan1")' \
 	  > $@
 
 %.elc: %.el

@@ -3803,6 +3803,7 @@ ns_set_vertical_scroll_bar (struct window *window,
           bar = XNS_SCROLL_BAR (window->vertical_scroll_bar);
           [bar removeFromSuperview];
           wset_vertical_scroll_bar (window, Qnil);
+          [bar release];
         }
       ns_clear_frame_area (f, left, top, width, height);
       unblock_input ();
@@ -3996,8 +3997,8 @@ ns_judge_scroll_bars (struct frame *f)
     {
       view = [subviews objectAtIndex: i];
       if (![view isKindOfClass: [EmacsScroller class]]) continue;
-      [view judge];
-      removed = YES;
+      if ([view judge])
+        removed = YES;
     }
 
   if (removed)
@@ -7227,9 +7228,10 @@ if (cols > 0 && rows > 0)
 }
 
 
-- judge
+-(bool)judge
 {
   NSTRACE (judge);
+  bool ret = condemned;
   if (condemned)
     {
       EmacsView *view;
@@ -7238,11 +7240,14 @@ if (cols > 0 && rows > 0)
       view = (EmacsView *)FRAME_NS_VIEW (frame);
       if (view != nil)
         view->scrollbarsNeedingUpdate++;
+      if (window)
+        wset_vertical_scroll_bar (window, Qnil);
+      window = 0;
       [self removeFromSuperview];
       [self release];
       unblock_input ();
     }
-  return self;
+  return ret;
 }
 
 
@@ -7296,11 +7301,6 @@ if (cols > 0 && rows > 0)
       [self setFloatValue: pos knobProportion: por];
 #endif
     }
-
-  /* Events may come here even if the event loop is not running.
-     If we don't enter the event loop, the scroll bar will not update.
-     So send SIGIO to ourselves.  */
-  if (apploopnr == 0) raise (SIGIO);
 
   return self;
 }

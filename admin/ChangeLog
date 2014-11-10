@@ -1,3 +1,8 @@
+2014-11-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* unidata/Makefile.in (${top_srcdir}/src/macuvs.h): Use
+	unmsys--file-name.  (Bug#18955)
+
 2014-11-10  Glenn Morris  <rgm@gnu.org>
 
 	* admin.el (set-version): No need to update doc/man/emacs.1.

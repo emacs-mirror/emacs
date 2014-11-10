@@ -1,3 +1,8 @@
+2014-11-10  Kelvin White  <kwhite@gnu.org>
+
+	* erc-match.el, erc-join.el, erc-stamp.el, erc-backend.el, erc.el:
+	* erc-button.el: Update version to 24.5.
+
 2014-11-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* erc.el (erc-send-input): Bind `str' dynamically (bug#18936).
