@@ -25,8 +25,7 @@
 
 2014-11-09  David Engster <dengste@eml.cc>
 
-	* lisp/cedet/sematic/bovine/c.by
-	(opt-brackets-after-symbol): New.
+	* grammars/c.by (opt-brackets-after-symbol): New.
 	(multi-stage-dereference): Use it.  Add rules for explicit
 	matching the last dereference.  We cannot just juse
 	'namespace-symbol' as a single rule, since this would match too
