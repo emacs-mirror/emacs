@@ -190,8 +190,8 @@ emacs-xtra.pdf: $(EMACS_XTRA)
 # So we use this rule, and move-if-change, to avoid that.
 doc-emacsver:
 	sed 's/[@]version@/${version}/' \
-	  ${srcdir}/emacsver.texi.in > emacsver.texi.in.$$$$ && \
-	  ${top_srcdir}/build-aux/move-if-change emacsver.texi.in.$$$$ \
+	  ${srcdir}/emacsver.texi.in > emacsver.texi.$$$$ && \
+	  ${top_srcdir}/build-aux/move-if-change emacsver.texi.$$$$ \
 	  ${srcdir}/emacsver.texi
 
 .PHONY: mostlyclean clean distclean bootstrap-clean maintainer-clean infoclean
