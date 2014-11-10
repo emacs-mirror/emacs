@@ -97,6 +97,12 @@ and the web page is rendered in it.  You can leave EWW by pressing
 web page hit @kbd{g} (@code{eww-reload}).  Pressing @kbd{w}
 (@code{eww-copy-page-url}) will copy the current URL to the kill ring.
 
+@findex eww-readable
+@kindex R
+  The @kbd{R} command (@code{eww-readable}) will attempt to determine
+which part of the document contains the ``readable'' text, and will
+only display this part.  This usually gets rid of menus and the like.
+
 @findex eww-download
 @vindex eww-download-directory
 @kindex d

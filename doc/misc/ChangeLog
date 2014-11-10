@@ -1,3 +1,7 @@
+2014-11-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* eww.texi (Basics): Document `eww-readable'.
+
 2014-11-10  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus.texi (Top): Add missing `HTML' menu.
