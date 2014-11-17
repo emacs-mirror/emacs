@@ -945,7 +945,11 @@ Property value is a symbol `o' (Open), `c' (Close), or `n' (None)."
 	      (dotimes (i (length vec))
 		(dolist (elt (aref vec i))
 		  (if (symbolp elt)
-                      (cl-incf (alist-get elt (cdr word-list) 0)))))
+                       (let ((slot (assq elt word-list)))
+-			(if slot
+-			    (setcdr slot (1+ (cdr slot)))
+-			  	(setcdr word-list
+-				  (cons (cons elt 1) (cdr word-list))))))))
 	      (set-char-table-range table (cons start limit) vec))))))
     (setq word-list (sort (cdr word-list)
 			  #'(lambda (x y) (> (cdr x) (cdr y)))))
