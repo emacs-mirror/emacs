@@ -456,6 +456,8 @@ This function is designed for use in `fill-nobreak-predicate'.
 	 (skip-chars-backward "/?!")
 	 (eq (char-before) ?<))))
 
+(defvar tildify-space-string)
+
 ;;;###autoload
 (define-derived-mode sgml-mode text-mode '(sgml-xml-mode "XML" "SGML")
   "Major mode for editing SGML documents.
@@ -477,6 +479,13 @@ Do \\[describe-key] on the following bindings to discover what they do.
 \\{sgml-mode-map}"
   (make-local-variable 'sgml-saved-validate-command)
   (make-local-variable 'facemenu-end-add-face)
+  ;; If encoding does not allow non-break space character, use reference.
+  ;; FIXME: Perhaps use &nbsp; if possible (e.g. when we know its HTML)?
+  (setq-local tildify-space-string
+              (if (equal (decode-coding-string
+                          (encode-coding-string " " buffer-file-coding-system)
+                          buffer-file-coding-system) " ")
+                  " " "&#160;"))
   ;;(make-local-variable 'facemenu-remove-face-function)
   ;; A start or end tag by itself on a line separates a paragraph.
   ;; This is desirable because SGML discards a newline that appears

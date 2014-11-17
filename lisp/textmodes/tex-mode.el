@@ -1203,9 +1203,13 @@ Entering SliTeX mode runs the hook `text-mode-hook', then the hook
   (setq tex-command slitex-run-command)
   (setq tex-start-of-header "\\\\documentstyle{slides}\\|\\\\documentclass{slides}"))
 
+(defvar tildify-space-string)
+
 (defun tex-common-initialization ()
   ;; Regexp isearch should accept newline and formfeed as whitespace.
   (setq-local search-whitespace-regexp "[ \t\r\n\f]+")
+  ;; Use tilde as hard-space character in tildify package.
+  (setq-local tildify-space-string "~")
   ;; A line containing just $$ is treated as a paragraph separator.
   (setq-local paragraph-start "[ \t]*$\\|[\f\\\\%]\\|[ \t]*\\$\\$")
   ;; A line starting with $$ starts a paragraph,

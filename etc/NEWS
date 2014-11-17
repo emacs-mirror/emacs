@@ -292,6 +292,9 @@ use PDF instead of DVI.
 By default, 32 spaces and four TABs are considered to be too much but
 `whitespace-big-indent-regexp' can be configured to change that.
 
+** tildify: `tildify-space-string' variable has been added making
+`tildify-string-alist' obsolete.
+
 ** Obsolete packages
 
 ---

@@ -1,3 +1,26 @@
+2014-11-17  Michal Nazarewicz  <mina86@mina86.com>
+
+	* textmodes/tildify.el (tildify-space-string): New variable for
+	specifying representation of a hard space -- a no-break space by
+	default.  Being a buffer-local variable it is much easier to
+	handle than `tildify-string-alist' that has been used so far.  It
+	also works better with derived modes.
+	(tildify-string-alist): Mark as obsolete.
+
+	* textmodes/tex-mode.el (tex-common-initialization): Set
+	`tildify-space-string' variable in all variants of TeX mode since
+	`tildify-string-alist' is now empty by default.
+
+	* nxml/nxml-mode.el (nxml-mode): Ditto in `nxml-mode'.  If
+	encoding supports it use no-break space instead of character
+	entity; this changes previous default which used a numeric
+	reference.
+
+	* textmodes/sgml-mode.el (sgml-mode): ditto in `sgml-mode'.  If
+	encoding does not support no-break space, use numeric reference;
+	this changes previous default which used named entity (“&nbsp;”)
+	in HTML mode.
+
 2014-11-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* net/eww.el (eww-form-file): :type isn't a valid `defface' keyword.

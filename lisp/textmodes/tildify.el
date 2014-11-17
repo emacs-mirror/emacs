@@ -4,7 +4,7 @@
 
 ;; Author:     Milan Zamazal <pdm@zamazal.org>
 ;;             Michal Nazarewicz <mina86@mina86.com>
-;; Version:    4.5.4
+;; Version:    4.5.5
 ;; Keywords:   text, TeX, SGML, wp
 
 ;; This file is part of GNU Emacs.
@@ -86,15 +86,24 @@ mode, the item for the mode SYMBOL is looked up in the alist instead."
                                        (integer :tag "Group "))
                                (symbol :tag "Like other")))))
 
-(defcustom tildify-string-alist
-  '((latex-mode . "~")
-    (tex-mode . latex-mode)
-    (plain-tex-mode . latex-mode)
-    (sgml-mode . "&nbsp;")
-    (html-mode . sgml-mode)
-    (xml-mode . "&#160;") ; XML does not define &nbsp; use numeric reference
-    (nxml-mode . xml-mode)
-    (t . " "))
+(defcustom tildify-space-string "\u00A0"
+  "Representation of a hard (a.k.a. no-break) space in current major mode.
+
+Used by `tildify-buffer' in places where space is required but line
+cannot be broken.  For example \"~\" for TeX or \"&#160;\" for SGML,
+HTML and XML modes.  A no-break space Unicode character (\"\\u00A0\")
+might be used for other modes if compatible encoding is used.
+
+If nil, current major mode has no way to represent a hard space."
+  :version "25.1"
+  :group 'tildify
+  :type '(choice (const :tag "Space character (no hard-space representation)"
+                        " ")
+                 (const :tag "No-break space (U+00A0)" "\u00A0")
+                 (string :tag "Custom string"))
+  :safe t)
+
+(defcustom tildify-string-alist ()
   "Alist specifying what is a hard space in the current major mode.
 
 Each alist item is of the form (MAJOR-MODE . STRING) or
@@ -118,6 +127,8 @@ mode, the item for the mode SYMBOL is looked up in the alist instead."
                        (choice (const  :tag "No-break space (U+00A0)" "\u00A0")
                                (string :tag "String    ")
                                (symbol :tag "Like other")))))
+(make-obsolete-variable 'tildify-string-alist
+                        'tildify-space-string "25.1")
 
 (defcustom tildify-ignored-environments-alist
   `((latex-mode
@@ -193,7 +204,7 @@ END-REGEX defines end of the corresponding text part and can be either:
 ;;;###autoload
 (defun tildify-region (beg end &optional dont-ask)
   "Add hard spaces in the region between BEG and END.
-See variables `tildify-pattern-alist', `tildify-string-alist', and
+See variables `tildify-pattern-alist', `tildify-space-string', and
 `tildify-ignored-environments-alist' for information about configuration
 parameters.
 This function performs no refilling of the changed text.
@@ -214,7 +225,7 @@ won't be prompted for confirmation of each substitution."
 ;;;###autoload
 (defun tildify-buffer (&optional dont-ask)
   "Add hard spaces in the current buffer.
-See variables `tildify-pattern-alist', `tildify-string-alist', and
+See variables `tildify-pattern-alist', `tildify-space-string', and
 `tildify-ignored-environments-alist' for information about configuration
 parameters.
 This function performs no refilling of the changed text.
@@ -303,7 +314,8 @@ replacements done and response is one of symbols: t (all right), nil
     (let* ((alist (tildify--pick-alist-entry tildify-pattern-alist))
 	   (regexp (car alist))
 	   (match-number (cadr alist))
-	   (tilde (tildify--pick-alist-entry tildify-string-alist))
+	   (tilde (or (tildify--pick-alist-entry tildify-string-alist)
+	              tildify-space-string))
 	   (end-marker (copy-marker end))
 	   answer
 	   bad-answer

@@ -73,7 +73,7 @@ after `tildify-buffer' is run."
 (ert-deftest tildify-test-html ()
   "Tests tildification in an HTML document"
   (let* ((sentence (tildify-test--example-sentence " "))
-         (with-nbsp (tildify-test--example-sentence "&nbsp;")))
+         (with-nbsp (tildify-test--example-sentence " ")))
     (tildify-test--test '(html-mode sgml-mode)
                         (tildify-test--example-html sentence sentence)
                         (tildify-test--example-html sentence with-nbsp))))
@@ -81,7 +81,7 @@ after `tildify-buffer' is run."
 (ert-deftest tildify-test-xml ()
   "Tests tildification in an XML document"
   (let* ((sentence (tildify-test--example-sentence " "))
-         (with-nbsp (tildify-test--example-sentence "&#160;")))
+         (with-nbsp (tildify-test--example-sentence " ")))
     (tildify-test--test '(nxml-mode)
                         (tildify-test--example-html sentence sentence t)
                         (tildify-test--example-html sentence with-nbsp t))))
