@@ -1,11 +1,13 @@
 2014-11-17  Michal Nazarewicz  <mina86@mina86.com>
 
-	* textmodes/tildify.el (tildify-space-string): New variable for
-	specifying representation of a hard space -- a no-break space by
-	default.  Being a buffer-local variable it is much easier to
-	handle than `tildify-string-alist' that has been used so far.  It
-	also works better with derived modes.
-	(tildify-string-alist): Mark as obsolete.
+	* textmodes/tildify.el (tildify-pattern, tildify-space-string):
+	New variables for specifying tildify pattern and representation of
+	a hard space -- a no-break space by default -- respectively.
+	Being buffer-local they are much easier to handle than
+	`tildify-string-alist' and `tildify-pattern-alist' respectively
+	that have been used so far.  They also works better with derived
+	modes.
+	(tildify-pattern, tildify-string-alist): Mark as obsolete.
 
 	* textmodes/tex-mode.el (tex-common-initialization): Set
 	`tildify-space-string' variable in all variants of TeX mode since

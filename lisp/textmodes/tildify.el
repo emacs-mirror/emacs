@@ -4,7 +4,7 @@
 
 ;; Author:     Milan Zamazal <pdm@zamazal.org>
 ;;             Michal Nazarewicz <mina86@mina86.com>
-;; Version:    4.5.5
+;; Version:    4.5.6
 ;; Keywords:   text, TeX, SGML, wp
 
 ;; This file is part of GNU Emacs.
@@ -56,8 +56,21 @@
   :version "21.1"
   :group 'wp)
 
-(defcustom tildify-pattern-alist
-  '((t "\\([,:;(][ \t]*[a]\\|\\<[AIKOSUVZikosuvz]\\)\\([ \t]+\\|[ \t]*\n[ \t]*\\)\\(\\w\\|[([{\\]\\|<[a-zA-Z]\\)" 2))
+(defcustom tildify-pattern
+  "\\(?:[,:;(][ \t]*[a]\\|\\<[AIKOSUVZikosuvz]\\)\\([ \t]+\\|[ \t]*\n[ \t]*\\)\\(?:\\w\\|[([{\\]\\|<[a-zA-Z]\\)"
+  "A pattern specifying where to insert hard spaces.
+
+`tildify-buffer' function will replace first capturing group of the regexp with
+a hard space (as defined by `tildify-space-string' variable).  (Hint: \\(…\\)
+non-capturing groups can be used for grouping prior to the part of the regexp
+matching the white space).  The pattern is matched case-sensitive regardless of
+the value of `case-fold-search' setting."
+  :version "25.1"
+  :group 'tildify
+  :type 'string
+  :safe t)
+
+(defcustom tildify-pattern-alist ()
   "Alist specifying where to insert hard spaces.
 
 Each alist item is of the form (MAJOR-MODE REGEXP NUMBER) or
@@ -85,6 +98,7 @@ mode, the item for the mode SYMBOL is looked up in the alist instead."
                                        regexp
                                        (integer :tag "Group "))
                                (symbol :tag "Like other")))))
+(make-obsolete-variable 'tildify-pattern-alist 'tildify-pattern "25.1")
 
 (defcustom tildify-space-string "\u00A0"
   "Representation of a hard (a.k.a. no-break) space in current major mode.
@@ -115,8 +129,7 @@ MAJOR-MODE defines major mode, for which the item applies.  It can be either:
   alist item
 
 STRING defines the hard space, which is inserted at places defined by
-`tildify-pattern-alist'.  For example it can be \"~\" for TeX or \"&nbsp;\"
-for SGML.
+`tildify-pattern'.  For example it can be \"~\" for TeX or \"&nbsp;\" for SGML.
 
 The form (MAJOR-MODE . SYMBOL) defines alias item for MAJOR-MODE.  For this
 mode, the item for the mode SYMBOL is looked up in the alist instead."
@@ -204,7 +217,7 @@ END-REGEX defines end of the corresponding text part and can be either:
 ;;;###autoload
 (defun tildify-region (beg end &optional dont-ask)
   "Add hard spaces in the region between BEG and END.
-See variables `tildify-pattern-alist', `tildify-space-string', and
+See variables `tildify-pattern', `tildify-space-string', and
 `tildify-ignored-environments-alist' for information about configuration
 parameters.
 This function performs no refilling of the changed text.
@@ -225,7 +238,7 @@ won't be prompted for confirmation of each substitution."
 ;;;###autoload
 (defun tildify-buffer (&optional dont-ask)
   "Add hard spaces in the current buffer.
-See variables `tildify-pattern-alist', `tildify-space-string', and
+See variables `tildify-pattern', `tildify-space-string', and
 `tildify-ignored-environments-alist' for information about configuration
 parameters.
 This function performs no refilling of the changed text.
@@ -311,18 +324,21 @@ replacements done and response is one of symbols: t (all right), nil
 (quit), force (replace without further questions)."
   (save-excursion
     (goto-char beg)
-    (let* ((alist (tildify--pick-alist-entry tildify-pattern-alist))
-	   (regexp (car alist))
-	   (match-number (cadr alist))
-	   (tilde (or (tildify--pick-alist-entry tildify-string-alist)
-	              tildify-space-string))
-	   (end-marker (copy-marker end))
-	   answer
-	   bad-answer
-	   replace
-	   quit
-	   (message-log-max nil)
-	   (count 0))
+    (let ((regexp tildify-pattern)
+          (match-number 1)
+          (tilde (or (tildify--pick-alist-entry tildify-string-alist)
+                     tildify-space-string))
+          (end-marker (copy-marker end))
+          answer
+          bad-answer
+          replace
+          quit
+          (message-log-max nil)
+          (count 0))
+      ;; For the time being, tildify-pattern-alist overwrites tildify-pattern
+      (let ((alist (tildify--pick-alist-entry tildify-pattern-alist)))
+        (when alist
+          (setq regexp (car alist) match-number (cadr alist))))
       (while (and (not quit)
 		  (re-search-forward regexp (marker-position end-marker) t))
 	(when (or (not ask)
