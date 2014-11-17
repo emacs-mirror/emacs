@@ -1,10 +1,10 @@
-;;; tildify.el --- adding hard spaces into texts
+;;; tildify.el --- adding hard spaces into texts -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1997-2014 Free Software Foundation, Inc.
 
 ;; Author:     Milan Zamazal <pdm@zamazal.org>
 ;;             Michal Nazarewicz <mina86@mina86.com>
-;; Version:    4.5.6
+;; Version:    4.5.7
 ;; Keywords:   text, TeX, SGML, wp
 
 ;; This file is part of GNU Emacs.
@@ -143,36 +143,31 @@ mode, the item for the mode SYMBOL is looked up in the alist instead."
 (make-obsolete-variable 'tildify-string-alist
                         'tildify-space-string "25.1")
 
-(defcustom tildify-ignored-environments-alist
-  `((latex-mode
-     ("\\\\\\\\" . "")		; do not remove this
-     (,(eval-when-compile (concat
-                           "\\\\begin{\\("
-                           (regexp-opt '("verbatim" "math" "displaymath"
-                                         "equation" "eqnarray" "eqnarray*"))
-                           "\\)}"))
-      . ("\\\\end{" 1 "}"))
-     ("\\\\verb\\*?\\(.\\)" . (1))
-     ("\\$\\$?" . (0))
-     ("\\\\(" . "\\\\)")
-     ("\\\\[[]" . "\\\\[]]")
-     ("\\\\[a-zA-Z]+\\( +\\|{}\\)[a-zA-Z]*" . "")
-     ("%" . "$"))
-    (plain-tex-mode . latex-mode)
-    (html-mode
-     (,(eval-when-compile (concat
-                           "<\\("
-                           (regexp-opt '("pre" "dfn" "code" "samp" "kbd" "var"
-                                         "PRE" "DFN" "CODE" "SAMP" "KBD" "VAR"))
-                           "\\)\\>[^>]*>"))
-      . ("</" 1 ">"))
-     ("<! *--" . "-- *>")
-     ("<" . ">"))
-    (sgml-mode . html-mode)
-    (xml-mode
-     ("<! *--" . "-- *>")
-     ("<" . ">"))
-    (nxml-mode . xml-mode))
+(defcustom tildify-foreach-region-function
+  'tildify--deprecated-ignore-evironments
+  "A function calling a callback on portions of the buffer to tildify.
+
+The function is called from `tildify-buffer' function with three arguments: FUNC
+BEG END.  FUNC is a callback accepting two arguments -- REG-BEG REG-END --
+specifying a portion of buffer to operate on.
+
+The BEG and END arguments may be used to limit portion of the buffer being
+scanned, but the `tildify-foreach-region-function' is not required to make use
+of them.  IT must, however, terminate as soon as FUNC returns nil.
+
+For example, if `tildify-buffer' function should operate on the whole buffer,
+a simple pass through function could be used:
+    (setq-local tildify-foreach-region-function
+                (lambda (cb beg end) (funcall cb beg end)))
+or better still:
+    (setq-local tildify-foreach-region-function 'funcall)
+See `tildify-foreach-ignore-environments' function for other ways to use the
+variable."
+  :version "25.1"
+  :group 'tildify
+  :type 'function)
+
+(defcustom tildify-ignored-environments-alist ()
   "Alist specifying ignored structured text environments.
 Parts of text defined in this alist are skipped without performing hard space
 insertion on them.  These setting allow skipping text parts like verbatim or
@@ -186,13 +181,8 @@ MAJOR-MODE defines major mode, for which the item applies.  It can be either:
 - t for default item, this applies to all major modes not defined in another
   alist item
 
-BEG-REGEX is a regexp matching beginning of a text part to be skipped.
-END-REGEX defines end of the corresponding text part and can be either:
-- a regexp matching the end of the skipped text part
-- a list of regexps and numbers, which will compose the ending regexp by
-  concatenating themselves, while replacing the numbers with corresponding
-  subexpressions of BEG-REGEX (this is used to solve cases like
-  \\\\verb<character> in TeX)."
+See `tildify-foreach-ignore-environments' function for description of BEG-REGEX
+and END-REGEX."
   :group 'tildify
   :type '(repeat
           (cons :tag "Entry for major mode"
@@ -210,6 +200,8 @@ END-REGEX defines end of the corresponding text part and can be either:
                                       (choice (regexp  :tag "Regexp")
                                               (integer :tag "Group "))))))
                  (symbol :tag "Like other")))))
+(make-obsolete-variable 'tildify-ignored-environments-alist
+                        'tildify-foreach-region-function "25.1")
 
 
 ;;; *** Interactive functions ***
@@ -225,14 +217,15 @@ If DONT-ASK is set, or called interactively with prefix argument, user
 won't be prompted for confirmation of each substitution."
   (interactive "*rP")
   (let (case-fold-search (count 0) (ask (not dont-ask)))
-    (tildify-foreach-region-outside-env beg end
+    (tildify--foreach-region
       (lambda (beg end)
         (let ((aux (tildify-tildify beg end ask)))
           (setq count (+ count (car aux)))
           (if (not (eq (cdr aux) 'force))
               (cdr aux)
             (setq ask nil)
-            t))))
+            t)))
+      beg end)
     (message "%d spaces replaced." count)))
 
 ;;;###autoload
@@ -258,40 +251,76 @@ won't be prompted for confirmation of each substitution."
 	     (symbolp alist))
 	(tildify--pick-alist-entry mode-alist alist)
       alist)))
+(make-obsolete 'tildify--pick-alist-entry
+               "it should not be used in new code." "25.1")
 
-(defun tildify-foreach-region-outside-env (beg end callback)
-  "Scan region from BEG to END calling CALLBACK on portions out of environments.
-Call CALLBACK on each region outside of environment to ignore.
-CALLBACK will only be called for regions which have intersection
-with [BEG END].  It must be a function that takes two point
-arguments specifying the region to operate on.  Stop scanning the
-region as soon as CALLBACK returns nil.  Environments to ignore
-are determined from `tildify-ignored-environments-alist'."
-  (declare (indent 2))
+(defun tildify--deprecated-ignore-evironments (callback beg end)
+  "Call CALLBACK on regions between BEG and END.
+
+Call CALLBACK on each region outside of environment to ignore.  Stop scanning
+the region as soon as CALLBACK returns nil.  Environments to ignore are
+defined by deprecated `tildify-ignored-environments-alist'.   CALLBACK may be
+called on portions of the buffer outside of [BEG END)."
   (let ((pairs (tildify--pick-alist-entry tildify-ignored-environments-alist)))
-    (if (not pairs)
-        (funcall callback beg end)
-      (let ((func (lambda (b e)
-                    (let ((b (max b beg)) (e (min e end)))
-                    (if (< b e) (funcall callback b e) t))))
-            (beg-re (concat "\\(?:"
-                            (mapconcat 'car pairs "\\)\\|\\(?:")
-                            "\\)"))
-            p end-re)
-        (save-excursion
-          (save-restriction
-            (widen)
-            (goto-char (point-min))
-            (while (and (< (setq p (point)) end)
-                        (if (not (setq end-re
-                                       (tildify-find-env beg-re pairs)))
-                            (progn (funcall func p end) nil)
-                          (funcall func p (match-beginning 0))
-                          (when (< (point) end)
-                            (setq p (point))
-                            (re-search-forward end-re nil t)))))))))))
+    (if pairs
+        (tildify-foreach-ignore-environments pairs callback beg end)
+      (funcall callback beg end))))
+(make-obsolete 'tildify--deprecated-ignore-evironments
+               "it should not be used in new code." "25.1")
 
-(defun tildify-find-env (regexp pairs)
+(defun tildify-foreach-ignore-environments (pairs callback _beg end)
+  "Outside of environments defined by PAIRS call CALLBACK.
+
+PAIRS is a list of (BEG-REGEX . END-REGEX) cons.  BEG-REGEX is a regexp matching
+beginning of a text part to be skipped.  END-REGEX defines end of the
+corresponding text part and can be either:
+- a regexp matching the end of the skipped text part
+- a list of regexps and numbers, which will compose the ending regexp by
+  concatenating themselves, while replacing the numbers with corresponding
+  subexpressions of BEG-REGEX (this is used to solve cases like
+  \\\\verb<character> in TeX).
+
+CALLBACK is a function accepting two arguments -- REG-BEG and REG-END -- that
+will be called for portions of the buffer outside of the environments defined by
+PAIRS regexes.
+
+The function will return as soon as CALLBACK returns nil or point goes past END.
+CALLBACK may be called on portions of the buffer outside of [BEG END); in fact
+BEG argument is ignored.
+
+This function is meant to be used to set `tildify-foreach-region-function'
+variable.  For example, for an XML file one might use:
+  (setq-local tildify-foreach-region-function
+    (apply-partially 'tildify-foreach-ignore-environments
+                     '((\"<! *--\" . \"-- *>\") (\"<\" . \">\"))))"
+  (let ((beg-re (concat "\\(?:" (mapconcat 'car pairs "\\)\\|\\(?:") "\\)"))
+        p end-re)
+    (save-excursion
+      (save-restriction
+        (widen)
+        (goto-char (point-min))
+        (while (and (< (setq p (point)) end)
+                    (if (setq end-re (tildify--find-env beg-re pairs))
+                        (and (funcall callback p (match-beginning 0))
+                             (< (point) end)
+                             (re-search-forward end-re nil t))
+                      (funcall callback p end)
+                      nil)))))))
+
+(defun tildify--foreach-region (callback beg end)
+  "Call CALLBACK on portions of the buffer between BEG and END.
+
+Which portions to call CALLBACK on is determined by
+`tildify-foreach-region-function' variable.  This function merely makes sure
+CALLBACK is not called with portions of the buffer outside of [BEG END)."
+  (let ((func (lambda (reg-beg reg-end)
+                (setq reg-beg (max reg-beg beg) reg-end (min reg-end end))
+                (and (or (>= reg-beg reg-end)
+                         (funcall callback reg-beg reg-end))
+                     (< reg-end end)))))
+    (funcall tildify-foreach-region-function func beg end)))
+
+(defun tildify--find-env (regexp pairs)
   "Find environment using REGEXP.
 Return regexp for the end of the environment found in PAIRS or nil if
 no environment was found."

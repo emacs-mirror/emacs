@@ -450,6 +450,7 @@ reference.")
       (rng-validate-while-idle (current-buffer)))))
 
 (defvar tildify-space-string)
+(defvar tildify-foreach-region-function)
 
 ;;;###autoload
 (define-derived-mode nxml-mode text-mode "nXML"
@@ -515,6 +516,11 @@ Many aspects this mode can be customized using
                           (encode-coding-string " " buffer-file-coding-system)
                           buffer-file-coding-system) " ")
                   " " "&#160;"))
+  ;; FIXME: Use the fact that we're parsing the document already
+  ;; rather than using regex-based filtering.
+  (setq-local tildify-foreach-region-function
+              (apply-partially 'tildify-foreach-ignore-environments
+                               '(("<! *--" . "-- *>") ("<" . ">"))))
   (set (make-local-variable 'mode-line-process) '((nxml-degraded "/degraded")))
   ;; We'll determine the fill prefix ourselves
   (make-local-variable 'adaptive-fill-mode)

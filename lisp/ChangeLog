@@ -7,11 +7,29 @@
 	`tildify-string-alist' and `tildify-pattern-alist' respectively
 	that have been used so far.  They also works better with derived
 	modes.
-	(tildify-pattern, tildify-string-alist): Mark as obsolete.
+	(tildify-foreach-region-function): New variable specifying
+	a function determining portions of buffer that should be
+	tildified.  It allows major modes to create a filtering function
+	more elaborate than a set of regular expressions.  Initialised to
+	`tildify--deprecated-ignore-evironments' by default to handle now
+	deprecated `tildify-ignored-environments-alist' variable.
+	(tildify--foreach-region): A new function that takes
+	`tildify-foreach-region-function' into account and calls callback
+	for regions of the buffer that should be tildified.
+	(tildify-foreach-ignore-environments): A new function which can be
+	partially applied and used as `tildify-foreach-region-function'.
+	(tildify-ignored-environments-alist, tildify-pattern)
+	(tildify-string-alist, tildify--pick-alist-entry): Mark as obsolete.
+	(tildify--find-env): Rename from `tildify-find-env' and mark as
+	obsolete.
+	(tildify--deprecated-ignore-evironments): New function,
+	immediately marked as obsolete, used to handle deprecated
+	`tildify-ignored-environments-alist'.
 
 	* textmodes/tex-mode.el (tex-common-initialization): Set
-	`tildify-space-string' variable in all variants of TeX mode since
-	`tildify-string-alist' is now empty by default.
+	`tildify-space-string' and `tildify-foreach-region-function'
+	variables in all variants of TeX mode since `tildify-string-alist'
+	and `tildify-ignored-environments-alist' are now empty by default.
 
 	* nxml/nxml-mode.el (nxml-mode): Ditto in `nxml-mode'.  If
 	encoding supports it use no-break space instead of character

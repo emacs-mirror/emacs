@@ -1204,12 +1204,31 @@ Entering SliTeX mode runs the hook `text-mode-hook', then the hook
   (setq tex-start-of-header "\\\\documentstyle{slides}\\|\\\\documentclass{slides}"))
 
 (defvar tildify-space-string)
+(defvar tildify-foreach-region-function)
 
 (defun tex-common-initialization ()
   ;; Regexp isearch should accept newline and formfeed as whitespace.
   (setq-local search-whitespace-regexp "[ \t\r\n\f]+")
   ;; Use tilde as hard-space character in tildify package.
   (setq-local tildify-space-string "~")
+  ;; FIXME: Use the fact that we're parsing the document already
+  ;; rather than using regex-based filtering.
+  (setq-local tildify-foreach-region-function
+              (apply-partially
+               'tildify-foreach-ignore-environments
+               `(("\\\\\\\\" . "") ; do not remove this
+                 (,(eval-when-compile
+                     (concat "\\\\begin{\\("
+                             (regexp-opt '("verbatim" "math" "displaymath"
+                                           "equation" "eqnarray" "eqnarray*"))
+                             "\\)}"))
+                  . ("\\\\end{" 1 "}"))
+                 ("\\\\verb\\*?\\(.\\)" . (1))
+                 ("\\$\\$?" . (0))
+                 ("\\\\(" . "\\\\)")
+                 ("\\\\[[]" . "\\\\[]]")
+                 ("\\\\[a-zA-Z]+\\( +\\|{}\\)[a-zA-Z]*" . "")
+                 ("%" . "$"))))
   ;; A line containing just $$ is treated as a paragraph separator.
   (setq-local paragraph-start "[ \t]*$\\|[\f\\\\%]\\|[ \t]*\\$\\$")
   ;; A line starting with $$ starts a paragraph,

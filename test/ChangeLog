@@ -2,6 +2,14 @@
 
 	* automated/tildify-tests.el (tildify-test-html, tildify-test-xml):
 	HTML and XML now use no-break space as hard space.  Update tests.
+	(tildify-test-foreach-ignore-environments)
+	(tildify-test-foreach-ignore-environments-early-return,
+	(tildify-test-foreach-region)
+	(tildify-test-foreach-region-early-return)
+	(tildify-test-foreach-region-limit-region): New tests of
+	`tildify-foreach-ignore-environments' and
+	`tildify--foreach-region' functions.
+	(with-test-foreach): New helper macro for the above tests.
 
 2014-11-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 

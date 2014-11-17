@@ -457,6 +457,7 @@ This function is designed for use in `fill-nobreak-predicate'.
 	 (eq (char-before) ?<))))
 
 (defvar tildify-space-string)
+(defvar tildify-foreach-region-function)
 
 ;;;###autoload
 (define-derived-mode sgml-mode text-mode '(sgml-xml-mode "XML" "SGML")
@@ -486,6 +487,20 @@ Do \\[describe-key] on the following bindings to discover what they do.
                           (encode-coding-string " " buffer-file-coding-system)
                           buffer-file-coding-system) " ")
                   " " "&#160;"))
+  ;; FIXME: Use the fact that we're parsing the document already
+  ;; rather than using regex-based filtering.
+  (setq-local tildify-foreach-region-function
+              (apply-partially
+               'tildify-foreach-ignore-environments
+               `((,(eval-when-compile
+                     (concat
+                      "<\\("
+                      (regexp-opt '("pre" "dfn" "code" "samp" "kbd" "var"
+                                    "PRE" "DFN" "CODE" "SAMP" "KBD" "VAR"))
+                      "\\)\\>[^>]*>"))
+                  . ("</" 1 ">"))
+                 ("<! *--" . "-- *>")
+                 ("<" . ">"))))
   ;;(make-local-variable 'facemenu-remove-face-function)
   ;; A start or end tag by itself on a line separates a paragraph.
   ;; This is desirable because SGML discards a newline that appears
