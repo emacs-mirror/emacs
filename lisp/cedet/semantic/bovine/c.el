@@ -1422,8 +1422,18 @@ PARENT specifies a parent class.
 COLOR indicates that the text should be type colorized.
 Enhances the base class to search for the entire parent
 tree to make the name accurate."
-  (semantic-format-tag-canonical-name-default tag parent color)
-  )
+  (cond
+   ((and (semantic-tag-of-class-p tag 'type)
+	 (semantic-tag-get-attribute tag :parent))
+    ;; We nee to combine the :parent into the tag name and continue on.
+    (let* ((par (semantic-tag-get-attribute tag :parent))
+	   (parstr (if (stringp par) par
+		     (mapconcat 'identity par "::")))
+	   (clone (semantic-tag-clone
+		   tag (concat parstr "::" (semantic-tag-name tag)))))
+      (semantic-format-tag-canonical-name-default clone parent color)))
+   (t (semantic-format-tag-canonical-name-default tag parent color))
+  ))
 
 (define-mode-local-override semantic-format-tag-type c-mode (tag color)
   "Convert the data type of TAG to a string usable in tag formatting.
@@ -1653,6 +1663,8 @@ SCOPE is not used, and TYPE-DECLARATION is used only if TYPE is not a typedef."
 	       (let* ((fname (semantic-tag-file-name type))
 		      (def (semantic-tag-copy dt nil fname)))
 		 (list def def)))
+	      ((semantic-tag-p dt)
+	       (list (semantic-format-tag-canonical-name dt) dt))
               ((stringp dt) (list dt (semantic-tag dt 'type)))
               ((consp dt) (list (car dt) dt))))
 
