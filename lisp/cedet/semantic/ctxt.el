@@ -454,7 +454,8 @@ This will include a list of type/field names when applicable.
 Depends on `semantic-type-relation-separator-character'."
   (save-excursion
     (if point (goto-char point))
-    (let* ((fieldsep1 (mapconcat (lambda (a) (regexp-quote a))
+    (let* ((dosequence (not (null semantic-type-relation-separator-character)))
+	   (fieldsep1 (mapconcat (lambda (a) (regexp-quote a))
 				 semantic-type-relation-separator-character
 				 "\\|"))
 	   ;; NOTE: The [ \n] expression below should used \\s-, but that
@@ -491,9 +492,11 @@ Depends on `semantic-type-relation-separator-character'."
 
 	  ;; Now that we have gotten started, let's do the rest.
 	  (condition-case nil
-	      (while (save-excursion
-		       (forward-char -1)
-		       (looking-at "\\w\\|\\s_"))
+	      (while (and
+		      (or dosequence (not symlist))
+		      (save-excursion
+			(forward-char -1)
+			(looking-at "\\w\\|\\s_")))
 		;; We have a symbol.. Do symbol things
 		(forward-sexp -1)
 		(setq symlist (cons (buffer-substring-no-properties (point) end)
