@@ -923,6 +923,9 @@ See `semantic-format-tag-prototype' for Emacs Lisp for more details."
 (defvar-mode-local emacs-lisp-mode semantic-function-argument-separation-character
   " ")
 
+(defvar-mode-local emacs-lisp-mode semantic-type-relation-separator-character
+  nil)
+
 (defvar-mode-local emacs-lisp-mode semantic-symbol->name-assoc-list
   '(
     (type     . "Types")
