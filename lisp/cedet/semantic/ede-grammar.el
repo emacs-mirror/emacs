@@ -187,7 +187,7 @@ Lays claim to all -by.el, and -wy.el files."
     (insert
      (mapconcat (lambda (src)
 		  (with-current-buffer (find-file-noselect src)
-		    (concat (semantic-grammar-package) ".el")))
+		    (concat (semantic-grammar-package t) ".el")))
 		(oref this source)
 		" ")))
   )
