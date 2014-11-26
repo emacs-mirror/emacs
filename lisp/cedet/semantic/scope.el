@@ -415,7 +415,8 @@ implicit \"object\"."
     ;; the names in typelist.
     (while typelist
       (let ((tt (semantic-tag-type (car typelist))))
-	(when (and (stringp tt) (string= tt "namespace"))
+	(when (and (stringp tt) (or (string= tt "namespace")
+				    (string= tt "enum")))
 	  ;; By using the typecache, our namespaces are pre-merged.
 	  (setq typelist2 (cons (car typelist) typelist2))
 	  ))
