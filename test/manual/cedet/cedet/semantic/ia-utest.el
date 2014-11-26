@@ -52,6 +52,7 @@
     "tests/testjavacomp.java"
     "tests/testvarnames.java"
     "tests/testf90.f90"
+    "tests/testwisent.wy"
     )
   "List of files with analyzer completion test points.")
 
