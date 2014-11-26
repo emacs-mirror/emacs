@@ -319,10 +319,14 @@ classsubparts
  ;; For QT, they may put a `slot' keyword between the protection
  ;; and the COLON.  @todo - Have the QT stuff use macros.
     (TAG (car $1) 'label)
+  | FRIEND symbol SEMICOLON
+ ;; Like class, but w/out the CLASS symbol.  Add this to avoid
+ ;; it being detected as a variable with undeclared int type.
+    (TAG $2 'friend)
   | var-or-fun
-  | FRIEND func-decl
+  | FRIEND func-decl SEMICOLON
     (TAG (car $2) 'friend)
-  | FRIEND CLASS symbol
+  | FRIEND CLASS symbol SEMICOLON
     (TAG $3 'friend)
   | type
   | define
