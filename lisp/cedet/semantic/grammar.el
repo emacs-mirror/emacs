@@ -266,17 +266,19 @@ That is tag names plus names defined in tag attribute `:rest'."
 No argument or nil as argument means use the current buffer."
   (file-name-nondirectory (buffer-file-name buffer)))
 
-(defun semantic-grammar-package ()
+(defun semantic-grammar-package (&optional fromfile)
   "Return the %package value as a string.
-If there is no %package statement in the grammar, return a default
-package name derived from the grammar file name.  For example, the
-default package name for the grammar file foo.wy is foo-wy, and for
-foo.by it is foo-by."
-  (or (semantic-grammar-first-tag-name 'package)
+If there is no %package statement in the grammar, or if FROMFILE
+is non-nil, return a default package name derived from the
+grammar file name.  For example, the default package name for the
+grammar file foo.wy is foo-wy, and for foo.by it is foo-by."
+  (let ((pkgtoken (semantic-grammar-first-tag-name 'package)))
+    (if (and (not fromfile) pkgtoken)
+	pkgtoken
       (let* ((file (semantic-grammar-buffer-file))
              (ext  (file-name-extension file))
              (i    (string-match (format "\\([.]\\)%s\\'" ext) file)))
-        (concat (substring file 0 i) "-" ext))))
+        (concat (substring file 0 i) "-" ext)))))
 
 (defsubst semantic-grammar-languagemode ()
   "Return the %languagemode value as a list of symbols or nil."
