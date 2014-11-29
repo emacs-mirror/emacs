@@ -7,7 +7,7 @@
 #
 # This file is included by platform nmake files that use the Microsoft
 # Visual C/C+ compiler. It defines the compiler-specific variables
-# that the common nmake file fragment (<code/commpost.nmk>) requires.
+# that the common nmake fragment (comm.nmk) requires.
 
 CC = cl
 LIBMAN = lib
