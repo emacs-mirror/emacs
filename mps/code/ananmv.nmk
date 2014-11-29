@@ -16,9 +16,8 @@ MPMPF = \
     [than] \
     [vman]
 
-!INCLUDE commpre.nmk
 !INCLUDE mv.nmk
-!INCLUDE commpost.nmk
+!INCLUDE comm.nmk
 
 
 # C. COPYRIGHT AND LICENSE
