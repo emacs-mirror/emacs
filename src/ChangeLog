@@ -1,3 +1,20 @@
+2014-12-02  Aurélien Aptel  <aurelien.aptel@gmail.com>
+
+	* lread.c (Fget_load_suffixes, Fload_module, string_suffixes_p)
+	(string_suffix_p, Fload, intern_c_string_1, defsubr)
+	(syms_of_lread): Add loading of external modules and the
+	docstrings of their functions.
+
+	* lisp.h: Make the doc field of Lisp_Subr a Lisp_Object.
+
+	* doc.c (doc_is_from_module_p, get_doc_string, reread_doc_file)
+	(store_function_docstring, build_file_p, Fsnarf_documentation):
+	Support docstrings for external modules.
+
+	* alloc.c (mark_object): Mark the doc field of Lisp_Subr as object.
+
+	* Makefile.in: Support libtool.
+
 2014-12-02  Eli Zaretskii  <eliz@gnu.org>
 
 	* bidi.c (bidi_find_first_overridden): New function.

@@ -64,6 +64,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define file_tell ftell
 #endif
 
+#ifdef HAVE_LTDL
+#include <ltdl.h>
+#endif
+
 /* Hash table read constants.  */
 static Lisp_Object Qhash_table, Qdata;
 static Lisp_Object Qtest;
@@ -982,7 +986,15 @@ required.
 This uses the variables `load-suffixes' and `load-file-rep-suffixes'.  */)
   (void)
 {
-  Lisp_Object lst = Qnil, suffixes = Vload_suffixes, suffix, ext;
+  Lisp_Object lst = Qnil, suffixes, suffix, ext;
+
+  /* module suffixes, then regular elisp suffixes */
+
+  Lisp_Object args[2];
+  args[0] = Vload_module_suffixes;
+  args[1] = Vload_suffixes;
+  suffixes = Fappend (2, args);
+
   while (CONSP (suffixes))
     {
       Lisp_Object exts = Vload_file_rep_suffixes;
@@ -996,6 +1008,86 @@ This uses the variables `load-suffixes' and `load-file-rep-suffixes'.  */)
 	}
     }
   return Fnreverse (lst);
+}
+
+DEFUN ("load-module", Fload_module, Sload_module, 1, 1, 0,
+       doc: /* Dymamically load a compiled module. */)
+  (Lisp_Object file)
+{
+#ifdef HAVE_LTDL
+    static int lt_init_done = 0;
+    lt_dlhandle handle;
+    void (*module_init) ();
+    void *gpl_sym;
+    Lisp_Object doc_name, args[2];
+
+    /* init libtool once per emacs process */
+    if (!lt_init_done)
+      {
+        int ret = lt_dlinit ();
+        if (ret)
+          {
+            const char* s = lt_dlerror ();
+            error ("ltdl init fail: %s", s);
+          }
+        lt_init_done = 1;
+      }
+
+    CHECK_STRING (file);
+
+    handle = lt_dlopen (SDATA (file));
+    if (!handle)
+      error ("Cannot load file %s", SDATA (file));
+
+    gpl_sym = lt_dlsym (handle, "plugin_is_GPL_compatible");
+    if (!gpl_sym)
+      error ("Module %s is not GPL compatible", SDATA (file));
+
+    module_init = (void (*) ()) lt_dlsym (handle, "init");
+    if (!module_init)
+      error ("Module %s does not have an init function.", SDATA (file));
+
+    module_init ();
+
+    /* build doc file path and install it */
+    args[0] = Fsubstring (file, make_number (0), make_number (-3));
+    args[1] = build_string (".doc");
+    doc_name = Fconcat (2, args);
+    Fsnarf_documentation (doc_name, Qt);
+
+    return Qt;
+#else
+    return Qnil;
+#endif
+}
+
+
+/* Return true if STRING ends with SUFFIX.  */
+static bool string_suffix_p (Lisp_Object string, const char *suffix)
+{
+  const ptrdiff_t len = strlen (suffix);
+  return memcmp (SDATA (string) + SBYTES (string) - len, suffix, len) == 0;
+}
+
+/* Return true if STRING ends with any element of SUFFIXES.  */
+static bool string_suffixes_p (Lisp_Object string, Lisp_Object suffixes)
+{
+  ptrdiff_t length = SBYTES (string), suflen;
+  Lisp_Object tail, suffix;
+
+  for (tail = suffixes; CONSP (tail); tail = XCDR (tail))
+    {
+      suffix = XCAR (tail);
+      suflen = SBYTES (suffix);
+
+      if (suflen <= length)
+        {
+          if (memcmp (SDATA (string) + length - suflen, SDATA (suffix), suflen) == 0)
+            return true;
+        }
+    }
+
+  return false;
 }
 
 DEFUN ("load", Fload, Sload, 1, 5, 0,
@@ -1055,6 +1147,8 @@ Return t if the file exists and loads successfully.  */)
   bool newer = 0;
   /* True means we are loading a compiled file.  */
   bool compiled = 0;
+  /* True means we are loading a dynamic module.  */
+  bool module = 0;
   Lisp_Object handler;
   bool safe_p = 1;
   const char *fmode = "r";
@@ -1105,18 +1199,14 @@ Return t if the file exists and loads successfully.  */)
 
       if (! NILP (must_suffix))
 	{
-	  /* Don't insist on adding a suffix if FILE already ends with one.  */
-	  ptrdiff_t size = SBYTES (file);
-	  if (size > 3
-	      && !strcmp (SSDATA (file) + size - 3, ".el"))
-	    must_suffix = Qnil;
-	  else if (size > 4
-		   && !strcmp (SSDATA (file) + size - 4, ".elc"))
-	    must_suffix = Qnil;
-	  /* Don't insist on adding a suffix
-	     if the argument includes a directory name.  */
-	  else if (! NILP (Ffile_name_directory (file)))
-	    must_suffix = Qnil;
+          /* Don't insist on adding a suffix if FILE already ends with
+             one or if FILE includes a directory name.  */
+          if (string_suffixes_p (file, Vload_module_suffixes)
+              || string_suffixes_p (file, Vload_suffixes)
+              || ! NILP (Ffile_name_directory (file)))
+            {
+              must_suffix = Qnil;
+            }
 	}
 
       if (!NILP (nosuffix))
@@ -1227,7 +1317,7 @@ Return t if the file exists and loads successfully.  */)
   specbind (Qold_style_backquotes, Qnil);
   record_unwind_protect (load_warn_old_style_backquotes, file);
 
-  if (!memcmp (SDATA (found) + SBYTES (found) - 4, ".elc", 4)
+  if (string_suffix_p (found, ".elc")
       || (fd >= 0 && (version = safe_to_load_version (fd)) > 0))
     /* Load .elc files directly, but not when they are
        remote and have no handler!  */
@@ -1289,6 +1379,12 @@ Return t if the file exists and loads successfully.  */)
 	  UNGCPRO;
 	}
     }
+#ifdef HAVE_LTDL
+  else if (string_suffixes_p (found, Vload_module_suffixes))
+      {
+          module = 1;
+      }
+#endif
   else
     {
       /* We are loading a source file (*.el).  */
@@ -1338,7 +1434,9 @@ Return t if the file exists and loads successfully.  */)
 
   if (NILP (nomessage) || force_load_messages)
     {
-      if (!safe_p)
+      if (module)
+        message_with_string ("Loading %s (dymamic module)...", file, 1);
+      else if (!safe_p)
 	message_with_string ("Loading %s (compiled; note unsafe, not compiled in Emacs)...",
 		 file, 1);
       else if (!compiled)
@@ -1358,7 +1456,14 @@ Return t if the file exists and loads successfully.  */)
   if (lisp_file_lexically_bound_p (Qget_file_char))
     Fset (Qlexical_binding, Qt);
 
-  if (! version || version >= 22)
+#ifdef HAVE_LTDL
+  if (module)
+    {
+      /* XXX: should the fd/stream be closed before loading the module? */
+      Fload_module (found);
+    }
+#endif
+  else if (! version || version >= 22)
     readevalloop (Qget_file_char, stream, hist_file_name,
 		  0, Qnil, Qnil, Qnil, Qnil);
   else
@@ -1387,7 +1492,9 @@ Return t if the file exists and loads successfully.  */)
 
   if (!noninteractive && (NILP (nomessage) || force_load_messages))
     {
-      if (!safe_p)
+      if (module)
+        message_with_string ("Loading %s (dymamic module)...done", file, 1);
+      else if (!safe_p)
 	message_with_string ("Loading %s (compiled; note unsafe, not compiled in Emacs)...done",
 		 file, 1);
       else if (!compiled)
@@ -3837,9 +3944,6 @@ intern_c_string_1 (const char *str, ptrdiff_t len)
 
   if (!SYMBOLP (tem))
     {
-      /* Creating a non-pure string from a string literal not implemented yet.
-	 We could just use make_string here and live with the extra copy.  */
-      eassert (!NILP (Vpurify_flag));
       tem = intern_driver (make_pure_c_string (str, len), obarray, XINT (tem));
     }
   return tem;
@@ -4094,6 +4198,7 @@ void
 defsubr (struct Lisp_Subr *sname)
 {
   Lisp_Object sym, tem;
+  sname->doc = Qnil;
   sym = intern_c_string (sname->symbol_name);
   XSETPVECTYPE (sname, PVEC_SUBR);
   XSETSUBR (tem, sname);
@@ -4491,6 +4596,7 @@ syms_of_lread (void)
   defsubr (&Sget_file_char);
   defsubr (&Smapatoms);
   defsubr (&Slocate_file_internal);
+  defsubr (&Sload_module);
 
   DEFVAR_LISP ("obarray", Vobarray,
 	       doc: /* Symbol table for use by `intern' and `read'.
@@ -4551,8 +4657,22 @@ Initialized during startup as described in Info node `(elisp)Library Search'.  *
 This list should not include the empty string.
 `load' and related functions try to append these suffixes, in order,
 to the specified file name if a Lisp suffix is allowed or required.  */);
+
   Vload_suffixes = list2 (build_pure_c_string (".elc"),
-			  build_pure_c_string (".el"));
+                          build_pure_c_string (".el"));
+
+  DEFVAR_LISP ("load-module-suffixes", Vload_module_suffixes,
+               doc: /* List of suffixes for modules files.
+This list should not include the empty string. See `load-suffixes'.  */);
+
+#ifdef HAVE_LTDL
+  Vload_module_suffixes = list3 (build_pure_c_string (".dll"),
+                                 build_pure_c_string (".so"),
+                                 build_pure_c_string (".dylib"));
+#else
+  Vload_module_suffixes = Qnil;
+#endif
+
   DEFVAR_LISP ("load-file-rep-suffixes", Vload_file_rep_suffixes,
 	       doc: /* List of suffixes that indicate representations of \
 the same file.

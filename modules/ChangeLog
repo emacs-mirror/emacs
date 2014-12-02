@@ -1,0 +1,11 @@
+2014-12-02  Aurélien Aptel  <aurelien.aptel@gmail.com>
+
+	* curl: Add new module.
+
+	* elisp: Add new module.
+
+	* fmod: Add new module.
+
+	* yaml: Add new module.
+
+	* opaque: Add new module.

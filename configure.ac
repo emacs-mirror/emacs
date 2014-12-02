@@ -355,6 +355,8 @@ OPTION_DEFAULT_ON([gsettings],[don't compile with GSettings support])
 OPTION_DEFAULT_ON([selinux],[don't compile with SELinux support])
 OPTION_DEFAULT_ON([gnutls],[don't use -lgnutls for SSL/TLS support])
 OPTION_DEFAULT_ON([zlib],[don't compile with zlib decompression support])
+OPTION_DEFAULT_OFF([ltdl], [compile with dynamic module loading support])
+
 
 AC_ARG_WITH([file-notification],[AS_HELP_STRING([--with-file-notification=LIB],
  [use a file notification library (LIB one of: yes, gfile, inotify, w32, no)])],
@@ -3179,6 +3181,18 @@ if test "${HAVE_ZLIB}" = "yes"; then
 fi
 AC_SUBST(LIBZ)
 
+HAVE_LTDL=no
+LIBLTDL=
+if test "${with_ltdl}" != "no"; then
+  AC_CHECK_HEADER(ltdl.h, HAVE_LTDL=yes, HAVE_LTDL=no)
+  AC_CHECK_LIB(ltdl, lt_dlopen, HAVE_LTDL=yes, HAVE_LTDL=no)
+fi
+if test "${HAVE_LTDL}" = "yes"; then
+  AC_DEFINE(HAVE_LTDL, 1, [Define to 1 if you have the ltdl library (-lltdl).])
+  LIBLTDL="-lltdl -Wl,--export-dynamic"
+fi
+AC_SUBST(LIBLTDL)
+
 ### Use -lpng if available, unless `--with-png=no'.
 HAVE_PNG=no
 LIBPNG=
@@ -5049,7 +5063,7 @@ optsep=
 emacs_config_features=
 for opt in XAW3D XPM JPEG TIFF GIF PNG RSVG IMAGEMAGICK SOUND GPM DBUS \
   GCONF GSETTINGS NOTIFY ACL LIBSELINUX GNUTLS LIBXML2 FREETYPE M17N_FLT \
-  LIBOTF XFT ZLIB; do
+  LIBOTF XFT ZLIB LTDL; do
 
     case $opt in
       NOTIFY|ACL) eval val=\${${opt}_SUMMARY} ;;
@@ -5088,6 +5102,7 @@ echo "  Does Emacs use -lm17n-flt?                              ${HAVE_M17N_FLT}
 echo "  Does Emacs use -lotf?                                   ${HAVE_LIBOTF}"
 echo "  Does Emacs use -lxft?                                   ${HAVE_XFT}"
 echo "  Does Emacs directly use zlib?                           ${HAVE_ZLIB}"
+echo "  Does Emacs use -lltdl?                                  ${HAVE_LTDL}"
 
 echo "  Does Emacs use toolkit scroll bars?                     ${USE_TOOLKIT_SCROLL_BARS}"
 echo
@@ -5154,12 +5169,14 @@ dnl This will work, but you get a config.status that is not quite right
 dnl (see http://lists.gnu.org/archive/html/bug-autoconf/2008-08/msg00028.html).
 dnl That doesn't have any obvious consequences for Emacs, but on the whole
 dnl it seems better to just live with the duplication.
-SUBDIR_MAKEFILES="lib/Makefile lib-src/Makefile oldXMenu/Makefile doc/emacs/Makefile doc/misc/Makefile doc/lispintro/Makefile doc/lispref/Makefile src/Makefile lwlib/Makefile lisp/Makefile leim/Makefile nextstep/Makefile nt/Makefile"
+SUBDIR_MAKEFILES="lib/Makefile lib-src/Makefile oldXMenu/Makefile doc/emacs/Makefile doc/misc/Makefile doc/lispintro/Makefile doc/lispref/Makefile src/Makefile lwlib/Makefile lisp/Makefile leim/Makefile modules/curl/Makefile modules/elisp/Makefile modules/fmod/Makefile modules/opaque/Makefile modules/yaml/Makefile nextstep/Makefile nt/Makefile"
 
 AC_CONFIG_FILES([Makefile lib/Makefile lib-src/Makefile oldXMenu/Makefile \
        doc/emacs/Makefile doc/misc/Makefile doc/lispintro/Makefile \
        doc/lispref/Makefile src/Makefile lwlib/Makefile lisp/Makefile \
-       leim/Makefile nextstep/Makefile nt/Makefile])
+       leim/Makefile \
+       modules/curl/Makefile modules/elisp/Makefile modules/fmod/Makefile modules/yaml/Makefile \
+       nextstep/Makefile nt/Makefile])
 
 dnl test/ is not present in release tarfiles.
 opt_makefile=test/automated/Makefile

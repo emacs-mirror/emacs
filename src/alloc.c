@@ -6348,6 +6348,7 @@ mark_object (Lisp_Object arg)
 	    break;
 
 	  case PVEC_SUBR:
+	    mark_object (XSUBR (obj)->doc);
 	    break;
 
 	  case PVEC_FREE:

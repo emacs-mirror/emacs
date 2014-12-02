@@ -1513,7 +1513,7 @@ struct Lisp_Subr
     short min_args, max_args;
     const char *symbol_name;
     const char *intspec;
-    const char *doc;
+    Lisp_Object doc;
   };
 
 enum char_table_specials
