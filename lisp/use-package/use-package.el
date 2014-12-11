@@ -139,6 +139,13 @@ Return nil when the queue is empty."
       (cancel-timer use-package-idle-timer)
       (setq use-package-idle-timer nil))))
 
+(defun use-package-pin-package (package archive)
+  "Pin PACKAGE to ARCHIVE."
+  (unless (boundp 'package-pinned-packages)
+    (setq package-pinned-packages '()))
+  (add-to-list 'package-pinned-packages (cons package archive))
+  (package-initialize t))
+
 (defun use-package-ensure-elpa (package)
   (when (not (package-installed-p package))
     (package-install package)))
@@ -162,6 +169,7 @@ Return nil when the queue is empty."
      :interpreter
      :load-path
      :mode
+     :pin
      :pre-init
      :pre-load
      :requires
@@ -270,7 +278,8 @@ For full documentation. please see commentary.
        priority (lower priorities run first). Default priority
        is 5; forms with the same priority are run in the order in
        which they are evaluated.
-:ensure loads package using package.el if necessary."
+:ensure loads package using package.el if necessary.
+:pin pin package to archive."
   (use-package-validate-keywords args) ; error if any bad keyword, ignore result
   (let* ((commands (use-package-plist-get args :commands t t))
          (pre-init-body (use-package-plist-get args :pre-init))
@@ -291,6 +300,7 @@ For full documentation. please see commentary.
           (if (stringp interpreter) (cons interpreter name) interpreter))
          (predicate (use-package-plist-get args :if))
          (pkg-load-path (use-package-plist-get args :load-path t t))
+         (archive-name (use-package-plist-get args :pin))
          (defines-eval (if (null defines)
                            nil
                          (if (listp defines)
@@ -308,6 +318,9 @@ For full documentation. please see commentary.
 
     ;; force this immediately -- one off cost
     (unless (use-package-plist-get args :disabled)
+
+      (when archive-name
+        (use-package-pin-package name archive-name))
 
       (let* ((ensure (use-package-plist-get args :ensure))
              (package-name
