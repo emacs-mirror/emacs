@@ -450,8 +450,10 @@ For full documentation. please see commentary.
                    (not (use-package-plist-get args :demand)))
               (let (form)
                 (mapc #'(lambda (command)
-                          (push `(autoload (function ,command)
-                                   ,name-string nil t) form))
+                          (push `(unless (fboundp (quote ,command))
+                                   (autoload (function ,command)
+                                     ,name-string nil t))
+                                form))
                       commands)
 
                 `(when ,(or predicate t)
