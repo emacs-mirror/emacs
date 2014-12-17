@@ -142,9 +142,25 @@ Return nil when the queue is empty."
 (defun use-package-pin-package (package archive)
   "Pin PACKAGE to ARCHIVE."
   (unless (boundp 'package-pinned-packages)
-    (setq package-pinned-packages '()))
-  (add-to-list 'package-pinned-packages (cons package archive))
-  (package-initialize t))
+    (setq package-pinned-packages ()))
+  (let ((archive-symbol (if (symbolp archive) archive (intern archive)))
+        (archive-name   (if (stringp archive) archive (symbol-name archive))))
+    (if (use-package--archive-exists-p archive-symbol)
+        (add-to-list 'package-pinned-packages (cons package archive-name))
+      (error (message  "Archive '%s' requested for package '%s' is not available." archive-name package)))
+    (package-initialize t)))
+
+(defun use-package--archive-exists-p (archive)
+  "Check if a given ARCHIVE is enabled.
+
+ARCHIVE can be a string or a symbol or 'manual to indicate a manually updated package."
+  (if (member archive '(manual "manual"))
+      't
+    (let ((valid nil))
+      (dolist (pa package-archives)
+        (when (member archive (list (car pa) (intern (car pa))))
+          (setq valid 't)))
+      valid)))
 
 (defun use-package-ensure-elpa (package)
   (when (not (package-installed-p package))
