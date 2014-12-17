@@ -113,10 +113,10 @@ Return nil when the queue is empty."
          (forms           (gethash priority use-package-idle-forms))
          (first-form      (car forms))
          (forms-remaining (cdr forms)))
-      (if forms-remaining
-          (puthash priority forms-remaining use-package-idle-forms)
-        (remhash priority use-package-idle-forms))
-      first-form))
+    (if forms-remaining
+        (puthash priority forms-remaining use-package-idle-forms)
+      (remhash priority use-package-idle-forms))
+    first-form))
 
 (defun use-package-idle-eval()
   "Start to eval idle-commands from the idle queue."
@@ -142,9 +142,25 @@ Return nil when the queue is empty."
 (defun use-package-pin-package (package archive)
   "Pin PACKAGE to ARCHIVE."
   (unless (boundp 'package-pinned-packages)
-    (setq package-pinned-packages '()))
-  (add-to-list 'package-pinned-packages (cons package archive))
-  (package-initialize t))
+    (setq package-pinned-packages ()))
+  (let ((archive-symbol (if (symbolp archive) archive (intern archive)))
+        (archive-name   (if (stringp archive) archive (symbol-name archive))))
+    (if (use-package--archive-exists-p archive-symbol)
+        (add-to-list 'package-pinned-packages (cons package archive-name))
+      (error (message  "Archive '%s' requested for package '%s' is not available." archive-name package)))
+    (package-initialize t)))
+
+(defun use-package--archive-exists-p (archive)
+  "Check if a given ARCHIVE is enabled.
+
+ARCHIVE can be a string or a symbol or 'manual to indicate a manually updated package."
+  (if (member archive '(manual "manual"))
+      't
+    (let ((valid nil))
+      (dolist (pa package-archives)
+        (when (member archive (list (car pa) (intern (car pa))))
+          (setq valid 't)))
+      valid)))
 
 (defun use-package-ensure-elpa (package)
   (when (not (package-installed-p package))
@@ -152,28 +168,28 @@ Return nil when the queue is empty."
 
 (defvar use-package-keywords
   '(
-     :bind
-     :bind*
-     :commands
-     :config
-     :defer
-     :defines
-     :demand
-     :diminish
-     :disabled
-     :ensure
-     :idle
-     :idle-priority
-     :if
-     :init
-     :interpreter
-     :load-path
-     :mode
-     :pin
-     :pre-init
-     :pre-load
-     :requires
-  )
+    :bind
+    :bind*
+    :commands
+    :config
+    :defer
+    :defines
+    :demand
+    :diminish
+    :disabled
+    :ensure
+    :idle
+    :idle-priority
+    :if
+    :init
+    :interpreter
+    :load-path
+    :mode
+    :pin
+    :pre-init
+    :pre-load
+    :requires
+    )
   "Keywords recognized by `use-package'.")
 
 (defun use-package-mplist-get (plist prop)
@@ -239,11 +255,11 @@ are all non-keywords elements that follow it."
   "Error if any keyword given in ARGS is not recognized.
 Return the list of recognized keywords."
   (mapc
-    (function
-      (lambda (keyword)
-        (unless (memq keyword use-package-keywords)
-          (error "Unrecognized keyword: %s" keyword))))
-    (use-package-mplist-keys args)))
+   (function
+    (lambda (keyword)
+      (unless (memq keyword use-package-keywords)
+        (error "Unrecognized keyword: %s" keyword))))
+   (use-package-mplist-keys args)))
 
 (defmacro use-package (name &rest args)
   "Use a package with configuration options.
@@ -391,7 +407,7 @@ For full documentation. please see commentary.
         (funcall init-for-commands
                  #'(lambda (binding)
                      `(bind-key* ,(car binding)
-                                (quote ,(cdr binding))))
+                                 (quote ,(cdr binding))))
                  overriding-keybindings-alist)
 
         (funcall init-for-commands
