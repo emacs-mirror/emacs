@@ -393,43 +393,43 @@ For full documentation. please see commentary.
                      (setq init-body
                            `(progn
                               ,init-body
-                              ,@(mapcar #'(lambda (elem)
-                                            (push (cdr elem) commands)
-                                            (funcall func elem))
+                              ,@(mapcar (lambda (elem)
+                                          (push (cdr elem) commands)
+                                          (funcall func elem))
                                         cons-list))))))))
 
         (funcall init-for-commands
-                 #'(lambda (binding)
-                     `(bind-key ,(car binding)
-                                (quote ,(cdr binding))))
+                 (lambda (binding)
+                   `(bind-key ,(car binding)
+                              (quote ,(cdr binding))))
                  keybindings-alist)
 
         (funcall init-for-commands
-                 #'(lambda (binding)
-                     `(bind-key* ,(car binding)
-                                 (quote ,(cdr binding))))
+                 (lambda (binding)
+                   `(bind-key* ,(car binding)
+                               (quote ,(cdr binding))))
                  overriding-keybindings-alist)
 
         (funcall init-for-commands
-                 #'(lambda (mode)
-                     `(add-to-list 'auto-mode-alist
-                                   (quote ,mode)))
+                 (lambda (mode)
+                   `(add-to-list 'auto-mode-alist
+                                 (quote ,mode)))
                  mode-alist)
 
         (funcall init-for-commands
-                 #'(lambda (interpreter)
-                     `(add-to-list 'interpreter-mode-alist
-                                   (quote ,interpreter)))
+                 (lambda (interpreter)
+                   `(add-to-list 'interpreter-mode-alist
+                                 (quote ,interpreter)))
                  interpreter-alist))
 
       `(progn
          ,pre-load-body
          ,@(mapcar
-            #'(lambda (path)
-                `(add-to-list 'load-path
-                              ,(if (file-name-absolute-p path)
-                                   path
-                                 (expand-file-name path user-emacs-directory))))
+            (lambda (path)
+              `(add-to-list 'load-path
+                            ,(if (file-name-absolute-p path)
+                                 path
+                               (expand-file-name path user-emacs-directory))))
             (cond ((stringp pkg-load-path)
                    (list pkg-load-path))
                   ((functionp pkg-load-path)
@@ -449,11 +449,11 @@ For full documentation. please see commentary.
          ,(if (and (or commands (use-package-plist-get args :defer))
                    (not (use-package-plist-get args :demand)))
               (let (form)
-                (mapc #'(lambda (command)
-                          (push `(unless (fboundp (quote ,command))
-                                   (autoload (function ,command)
-                                     ,name-string nil t))
-                                form))
+                (mapc (lambda (command)
+                   (push `(unless (fboundp (quote ,command))
+                            (autoload (function ,command)
+                              ,name-string nil t))
+                         form))
                       commands)
 
                 `(when ,(or predicate t)
