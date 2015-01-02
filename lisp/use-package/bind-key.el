@@ -41,7 +41,7 @@
 ;;
 ;;   (bind-key* "<C-return>" 'other-window)
 ;;
-;; If you want to rebind a key only in a particular key, use:
+;; If you want to rebind a key only in a particular keymap, use:
 ;;
 ;;   (bind-key "C-c x" 'my-ctrl-c-x-command some-other-mode-map)
 ;;
