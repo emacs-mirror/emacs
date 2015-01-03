@@ -189,6 +189,8 @@ ARCHIVE can be a string or a symbol or 'manual to indicate a manually updated pa
     :pre-init
     :pre-load
     :requires
+    :bind-keymap
+    :bind-keymap*
     )
   "Keywords recognized by `use-package'.")
 
@@ -274,6 +276,10 @@ For full documentation. please see commentary.
       commands.
 :bind* Perform key bindings, and define autoload for bound
       commands, overriding all minor mode bindings.
+:bind-keymap Bind key prefix to an auto-loaded keymap that
+      is defined in the package.  Like bind but for keymaps
+      instead of commands.
+:bind-keymap* like bind-keymap, but overrides all minor mode bindings
 :commands Define autoloads for given commands.
 :pre-load Code to run when `use-package' form evals and before
        anything else. Unlike :init this form runs before the
@@ -308,6 +314,8 @@ For full documentation. please see commentary.
          (idle-priority (use-package-plist-get args :idle-priority))
          (keybindings-alist (use-package-plist-get args :bind t t))
          (overriding-keybindings-alist (use-package-plist-get args :bind* t t))
+         (keymap-alist (use-package-plist-get args :bind-keymap t t))
+         (overriding-keymap-alist (use-package-plist-get args :bind-keymap* t t))
          (mode (use-package-plist-get args :mode t t))
          (mode-alist
           (if (stringp mode) (cons mode name) mode))
@@ -382,9 +390,8 @@ For full documentation. please see commentary.
                  (use-package-init-on-idle (lambda () ,idle-body) ,idle-priority)
                  ,init-body)))
 
-
-      (let ((init-for-commands
-             (lambda (func sym-or-list)
+      (let ((init-for-commands-or-keymaps
+             (lambda (func sym-or-list &optional keymap)
                (let ((cons-list (if (and (consp sym-or-list)
                                          (stringp (car sym-or-list)))
                                     (list sym-or-list)
@@ -394,29 +401,50 @@ For full documentation. please see commentary.
                            `(progn
                               ,init-body
                               ,@(mapcar (lambda (elem)
-                                          (push (cdr elem) commands)
+                                          (when (not keymap)
+                                              (push (cdr elem) commands))
                                           (funcall func elem))
                                         cons-list))))))))
 
-        (funcall init-for-commands
+        (funcall init-for-commands-or-keymaps
+                 (lambda (binding)
+                   `(bind-key ,(car binding)
+                              (lambda () (interactive)
+                                (use-package-autoload-keymap
+                                 (quote ,(cdr binding))
+                                 ,(if (stringp name) name `',name)
+                                 nil))))
+                 keymap-alist)
+
+        (funcall init-for-commands-or-keymaps
+                 (lambda (binding)
+                   `(bind-key ,(car binding)
+                              (lambda () (interactive)
+                                (use-package-autoload-keymap
+                                 (quote ,(cdr binding))
+                                 ,(if (stringp name) name `',name)
+                                 t))))
+                 overriding-keymap-alist)
+
+        (funcall init-for-commands-or-keymaps
                  (lambda (binding)
                    `(bind-key ,(car binding)
                               (quote ,(cdr binding))))
                  keybindings-alist)
 
-        (funcall init-for-commands
+        (funcall init-for-commands-or-keymaps
                  (lambda (binding)
                    `(bind-key* ,(car binding)
                                (quote ,(cdr binding))))
                  overriding-keybindings-alist)
 
-        (funcall init-for-commands
+        (funcall init-for-commands-or-keymaps
                  (lambda (mode)
                    `(add-to-list 'auto-mode-alist
                                  (quote ,mode)))
                  mode-alist)
 
-        (funcall init-for-commands
+        (funcall init-for-commands-or-keymaps
                  (lambda (interpreter)
                    `(add-to-list 'interpreter-mode-alist
                                  (quote ,interpreter)))
@@ -446,7 +474,9 @@ For full documentation. please see commentary.
                     `(require ',name nil t))
                (error (message "Error requiring %s: %s" ',name err) nil))))
 
-         ,(if (and (or commands (use-package-plist-get args :defer))
+         ,(if (and (or commands (use-package-plist-get args :defer)
+                       (use-package-plist-get args :bind-keymap)
+                       (use-package-plist-get args :bind-keymap*))
                    (not (use-package-plist-get args :demand)))
               (let (form)
                 (mapc (lambda (command)
@@ -480,6 +510,31 @@ For full documentation. please see commentary.
                      ,init-body
                      ,config-body
                      t))))))))
+
+(defun use-package-autoload-keymap (keymap-symbol package override)
+  "Loads PACKAGE and then binds the key sequence used to invoke this function to
+KEYMAP-SYMBOL.  It then simulates pressing the same key sequence a again, so
+that the next key pressed is routed to the newly loaded keymap.
+
+This function supports use-package's :bind-keymap keyword.  It works
+by binding the given key sequence to an invocation of this function for a
+particular keymap.  The keymap is expected to be defined by the package.  In
+this way, loading the package is deferred until the prefix key sequence is
+pressed."
+  (if (if (stringp package) (load package t) (require package nil t))
+      (if (and (boundp keymap-symbol) (keymapp (symbol-value keymap-symbol)))
+          (let ((key (key-description (this-command-keys-vector)))
+                (keymap (symbol-value keymap-symbol)))
+            (progn
+              (if override
+                  `(eval `(bind-key* ,key ,keymap)) ; eval form is necessary to avoid compiler error
+                (bind-key key keymap))
+              (setq unread-command-events
+                    (listify-key-sequence (this-command-keys-vector)))))
+        (error
+         "use-package: package %s failed to define keymap %s"
+         package keymap-symbol))
+    (error "Could not load package %s" package)))
 
 (put 'use-package 'lisp-indent-function 'defun)
 
