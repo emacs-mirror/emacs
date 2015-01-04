@@ -414,7 +414,8 @@ For full documentation. please see commentary.
                                  (quote ,(cdr binding))
                                  ,(if (stringp name) name `',name)
                                  nil))))
-                 keymap-alist)
+                 keymap-alist
+                 t)
 
         (funcall init-for-commands-or-keymaps
                  (lambda (binding)
@@ -424,7 +425,8 @@ For full documentation. please see commentary.
                                  (quote ,(cdr binding))
                                  ,(if (stringp name) name `',name)
                                  t))))
-                 overriding-keymap-alist)
+                 overriding-keymap-alist
+                 t)
 
         (funcall init-for-commands-or-keymaps
                  (lambda (binding)
