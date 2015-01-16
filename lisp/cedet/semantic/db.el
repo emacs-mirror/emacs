@@ -60,7 +60,7 @@ mechanism.")
 (defvar semanticdb-default-find-index-class 'semanticdb-find-search-index
   "The default type of search index to use for a `semanticdb-table's.
 This can be changed to try out new types of search indices.")
-(make-variable-buffer-local 'semanticdb-default-find=index-class)
+(make-variable-buffer-local 'semanticdb-default-find-index-class)
 
 ;;;###autoload
 (defvar semanticdb-current-database nil
