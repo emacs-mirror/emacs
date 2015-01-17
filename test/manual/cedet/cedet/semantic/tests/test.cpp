@@ -161,6 +161,18 @@ void *class3::method5_for_class3( int a, int b) const
 {
 }
 
+void *class3::method6_for_class3( int a, int b) override
+{
+  int q = a;
+  return "Moose";
+}
+
+void *class3::method7_for_class3( int a, int b) final
+{
+  int q = a;
+  return "Moose";
+}
+
 /*
  * Namespace parsing tests
  */
