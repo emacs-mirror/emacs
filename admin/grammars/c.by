@@ -143,6 +143,10 @@
 %put THROW summary "<type> <methoddef> (<method args>) throw (<exception>) ..."
 %token REENTRANT "reentrant"
 %put REENTRANT summary "<type> <methoddef> (<method args>) reentrant ..."
+%token OVERRIDE "override"
+%put OVERRIDE summary "<type> <methoddef> (<method args>) override ..."
+%token FINAL "final"
+%put FINAL summary "<type> <methoddef> (<method args>) final ..."
 %token TRY "try"
 %token CATCH "catch"
 %put { TRY CATCH } summary "try { <body> } catch { <catch code> }"
@@ -852,6 +856,8 @@ opt-post-fcn-modifiers
 post-fcn-modifiers
   : REENTRANT
   | CONST
+  | OVERRIDE
+  | FINAL
   ;
 
 opt-throw
