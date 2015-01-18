@@ -48,12 +48,27 @@
   :group 'startup)
 
 (defcustom use-package-verbose nil
-  "Whether to report about loading and configuration details."
+  "Whether to report about loading and configuration details.
+
+If you customize this, then you should require the `use-package'
+feature in files that use one of the macros `use-package' or
+`use-package-with-elapsed-timer', even if these files only
+contain compiled expansions of the macros.  If you don't do so,
+then the expanded macros do their job silently."
   :type 'boolean
   :group 'use-package)
 
 (defcustom use-package-minimum-reported-time 0.01
-  "Minimal load time that will be reported"
+  "Minimal load time that will be reported.
+
+Note that `use-package-verbose' has to be set to t, for anything
+to be reported at all.
+
+If you customize this, then you should require the `use-package'
+feature in files that use one of the macros `use-package' or
+`use-package-with-elapsed-timer', even if these files only
+contain compiled expansions of the macros.  If you don't do so,
+then the expanded macros do their job silently."
   :type 'number
   :group 'use-package)
 
@@ -65,13 +80,15 @@
 (defmacro use-package-with-elapsed-timer (text &rest body)
   (declare (indent 1))
   (let ((nowvar (make-symbol "now")))
-    `(if use-package-verbose
+    `(if (bound-and-true-p use-package-verbose)
          (let ((,nowvar (current-time)))
            (message "%s..." ,text)
            (prog1 (progn ,@body)
              (let ((elapsed
                     (float-time (time-subtract (current-time) ,nowvar))))
-               (if (> elapsed ,use-package-minimum-reported-time)
+               (if (> elapsed
+                      (or (bound-and-true-p use-package-minimum-reported-time)
+                          "0.01"))
                    (message "%s...done (%.3fs)" ,text elapsed)
                  (message "%s...done" ,text)))))
        ,@body)))
