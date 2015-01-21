@@ -22,6 +22,11 @@ int simple1(int a) {
 
 }
 
+enum typedenum : unsigned {
+  FIRST = 0UL,
+  SECOND = ~0UL
+};
+
 struct foo1 {
   int test;
 };
