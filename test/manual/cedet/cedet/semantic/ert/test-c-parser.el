@@ -196,4 +196,30 @@
 	(setq actual (car actual))
 	(test-c-parser-compare-tag actual expect)))
 
+;;;; Typedef
+
+(ert-deftest test-c-parser-typedef-01 ()
+  (let ((actual
+	 (test-c-parser-bovinate "typedef int foo;"))
+	(expect '("foo" type (:typedef ("int") :type "typedef"))))
+    (should (test-c-check-tags-length actual 1))
+    (setq actual (car actual))
+    (test-c-parser-compare-tag actual expect)))
+
+(ert-deftest test-c-parser-typedef-02-pointer ()
+  (let ((actual
+	 (test-c-parser-bovinate "typedef int* foo;"))
+	(expect '("foo" type (:typedef ("int") :pointer 1 :type "typedef"))))
+    (should (test-c-check-tags-length actual 1))
+    (setq actual (car actual))
+    (test-c-parser-compare-tag actual expect)))
+
+(ert-deftest test-c-parser-typedef-03-reference ()
+  (let ((actual
+	 (test-c-parser-bovinate "typedef int& foo;"))
+	(expect '("foo" type (:typedef ("int") :reference 1 :type "typedef"))))
+    (should (test-c-check-tags-length actual 1))
+    (setq actual (car actual))
+    (test-c-parser-compare-tag actual expect)))
+
 (provide 'cedet/semantic/ert/test-c-parser)
