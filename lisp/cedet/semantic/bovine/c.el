@@ -1022,6 +1022,15 @@ now.
       (setq return-list (car tag))
       (setq tag (cdr tag)))
 
+    ;; Check if we have a typed enum, and if so, apply its type to all
+    ;; members.
+    (when (and (semantic-tag-of-type-p tag "enum")
+	       (semantic-tag-get-attribute tag :enum-type))
+      (let ((enumtype (semantic-tag-get-attribute tag :enum-type))
+	    (members (semantic-tag-get-attribute tag :members)))
+	(dolist (cur members)
+	  (semantic-tag-put-attribute cur :type enumtype))))
+
     ;; Name of the tag is a list, so expand it.  Tag lists occur
     ;; for variables like this: int var1, var2, var3;
     ;;
