@@ -450,8 +450,8 @@ typedef-symbol-list
 ;; TODO: Klaus Berndl: symbol -> namespace-symbol?!  Answer: Probably
 ;; symbol is correct here!
 typedefname
-  : opt-stars symbol opt-bits opt-array
-    ( $1 $2 )
+  : opt-stars opt-ref symbol opt-bits opt-array
+    ( $1 $2 $3 )
   ;
 
 struct-or-class

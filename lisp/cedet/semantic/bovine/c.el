@@ -1187,13 +1187,16 @@ is its own toplevel tag.  This function will return (cons A B)."
 	   (while names
 
 	     (setq vl (cons (semantic-tag-new-type
-			     (nth 1 (car names)) ; name
+			     (nth 2 (car names)) ; name
 			     "typedef"
 			     (semantic-tag-type-members tag)
 			     nil
 			     :pointer
 			     (let ((stars (car (car (car names)))))
 			       (if (= stars 0) nil stars))
+			     :reference
+			     (let ((refs (car (nth 1 (car names)))))
+			       (when (> refs 0) refs))
 			     ;; This specifies what the typedef
 			     ;; is expanded out as.  Just the
 			     ;; name shows up as a parent of this
