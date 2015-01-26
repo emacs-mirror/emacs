@@ -2041,10 +2041,12 @@ have to be wrapped in that namespace."
 	    (setq sv (cdr sv)))
 
 	  ;; This is optional, and potentially fraught w/ errors.
-	  (condition-case nil
-	      (dolist (lt sv)
-		(setq txt (concat txt " " (semantic-lex-token-text lt))))
-	    (error (setq txt (concat txt "  #error in summary fcn"))))
+	  (if (stringp sv)
+	      (setq txt (concat txt " " sv))
+	    (condition-case nil
+		(dolist (lt sv)
+		  (setq txt (concat txt " " (semantic-lex-token-text lt))))
+	      (error (setq txt (concat txt "  #error in summary fcn")))))
 
 	  txt)
       (semantic-idle-summary-current-symbol-info-default))))
