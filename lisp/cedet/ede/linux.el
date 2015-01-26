@@ -118,7 +118,8 @@ If DIR has not been used as a build directory, fall back to
    ;; use configuration
    (case project-linux-build-directory-default
      (same dir)
-     (ask (read-directory-name "Select Linux' build directory: " dir)))))
+     (ask (read-directory-name "Select Linux' build directory: " dir))
+     (t project-linux-build-directory-default))))
 
 
 (defun ede-linux--get-archs (dir)
