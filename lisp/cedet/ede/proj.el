@@ -184,7 +184,7 @@ Target variables are always renamed such as foo_CFLAGS, then included into
 commands where the variable would usually appear.")
    (rules :initarg :rules
 	  :initform nil
-	  :type list
+	  :type ede-makefile-rule-list
 	  :custom (repeat (object :objecttype ede-makefile-rule))
 	  :label "Additional Rules"
 	  :group (make)
@@ -251,6 +251,7 @@ in targets.")
 These variables are used in the makefile when a configuration becomes active.")
    (inference-rules :initarg :inference-rules
 		    :initform nil
+		    :type ede-makefile-rule-list
 		    :custom (repeat
 			     (object :objecttype ede-makefile-rule))
 		    :documentation "Inference rules to add to the makefile.")
