@@ -88,6 +88,7 @@
     ;; EDE
     ;;
     ("ede: project detection tests" . ede-detect-utest) ;; NOTE: must be before other EDE tests.
+    ("ede: project detect linux extra" . ede-detect-linux-utest)
     ("ede: security tests" . ede-security-utest)
 
     ;;
