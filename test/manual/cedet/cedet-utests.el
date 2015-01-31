@@ -206,16 +206,5 @@ of just logging the error."
     )
   )
 
-;;; HELPER FUNCTIONS FOR SOME TESTS
-(defun cedet-utest-eieio-classloader ()
-  "Try out the EIEIO tests, which just requires loading the test file."
-  (let ((lib (locate-library "eieio/eieio-tests.el" t)))
-    (unless lib
-      (error "Could not locate 'eieio/eieio-tests.el'"))
-    (message "EIEIO Base tests loading from: %S" lib)
-    (load-file lib)
-    ))
-
 (provide 'cedet-utests)
-
 ;;; cedet-utests.el ends here
