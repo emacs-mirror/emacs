@@ -1,3 +1,11 @@
+2015-02-01 Joakim Verona  <joakim@verona.se>
+	Support for testing xwidgets
+	* xwidget-test-manual.el:
+
+2015-02-01  Grégoire Jadi  <daimrod@gmail.com>
+	Support for testing xwidgets
+	* automated/xwidget-tests.el:
+
 2015-01-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* automated/eieio-tests.el (eieio-test-23-inheritance-check): Simplify.

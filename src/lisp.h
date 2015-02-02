@@ -781,6 +781,11 @@ enum pvec_type
   PVEC_WINDOW_CONFIGURATION,
   PVEC_SUBR,
   PVEC_OTHER,
+#ifdef HAVE_XWIDGETS
+  PVEC_XWIDGET,
+  PVEC_XWIDGET_VIEW,
+#endif
+
   /* These should be last, check internal_equal to see why.  */
   PVEC_COMPILED,
   PVEC_CHAR_TABLE,

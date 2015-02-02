@@ -37,6 +37,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "termhooks.h"		/* For struct terminal.  */
 #include "font.h"
 
+#ifdef HAVE_XWIDGETS
+#include "xwidget.h"
+#endif
+
 #include <float.h>
 #include <ftoastr.h>
 
@@ -1772,6 +1776,18 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 	  strout (XSUBR (obj)->symbol_name, -1, -1, printcharfun);
 	  PRINTCHAR ('>');
 	}
+#ifdef HAVE_XWIDGETS
+      else if (XWIDGETP (obj))
+	{
+	  strout ("#<xwidget ", -1, -1, printcharfun);
+	  PRINTCHAR ('>');
+	}
+      else if (XWIDGET_VIEW_P (obj))
+	{
+	  strout ("#<xwidget-view ", -1, -1, printcharfun);
+	  PRINTCHAR ('>');
+	}
+#endif
       else if (WINDOWP (obj))
 	{
 	  int len;

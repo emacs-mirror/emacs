@@ -1,0 +1,147 @@
+* Emacs Parallel
+
+  Emacs Parallel is yet another library to simulate parallel
+  computations in Emacs (because it lacks threads support in Elisp).
+
+* STARTED HowTo
+
+  You can execute a simple function a retrive the result like this:
+  #+BEGIN_SRC emacs-lisp
+    (parallel-get-result (parallel-start (lambda () (* 42 42))))
+    ⇒ 1764
+  #+END_SRC
+
+  Though you won't benefit from the parallelism because
+  ~parallel-get-result~ is blocking, that is it waits for the function
+  to be executed.
+
+  So you can use define a callback to be called when the function is
+  finished:
+  #+BEGIN_SRC emacs-lisp
+    (parallel-start (lambda () (sleep-for 4.2) "Hello World")
+                    :post-exec (lambda (results _status)
+                                 (message (first results))))
+    ⊣ Hello World
+  #+END_SRC
+
+  Here, why ~(first results)~ and not ~result~? Because you can send
+  data from the remote instance while it's running with
+  ~parallel-remote-send~:
+  #+BEGIN_SRC emacs-lisp
+    (parallel-start (lambda ()
+                      (parallel-remote-send "Hello")
+                      (sleep-for 4.2)
+                      "World")
+                    :post-exec (lambda (results _status)
+                                 (message "%s"
+                                          (mapconcat #'identity (reverse results) " "))))
+    ⊣ Hello World
+  #+END_SRC
+  As you may have noticed the results are pushed in a list, so the
+  first element is the result returned by the function called, the
+  second is the last piece of data send, and so on...
+
+  And of course you can execute some code when you receive data from
+  the remote instance:
+  #+BEGIN_SRC emacs-lisp
+    (parallel-start (lambda ()
+                      (parallel-remote-send 42)
+                      (sleep-for 4.2)         ; heavy computation to compute PI
+                      pi)
+                    :on-event (lambda (data)
+                                (message "Received %S" data)))
+    ⊣ Received 42
+    ⊣ Received 3.141592653589793
+  #+END_SRC
+
+  Because the function is executed in another Emacs instance (in Batch
+  Mode by default), the environment isn't the same. However you can
+  send some data with the ~env~ parameter:
+  #+BEGIN_SRC emacs-lisp
+    (let ((a 42)
+          (b 12))
+      (parallel-get-result (parallel-start (lambda (a b) (+ a b))
+                                           :env (list a b))))
+    ⇒ 54
+  #+END_SRC
+
+  By default, the remote Emacs instance is exited when the function is
+  executed, but you can keep it running with the
+  ~:continue-when-executed~ option and send new code to be executed
+  with ~parellel-send~.
+  #+BEGIN_SRC emacs-lisp
+    (let ((task (parallel-start (lambda () 42)
+                                :continue-when-executed t)))
+      (sleep-for 4.2)
+      (parallel-send task (lambda () (setq parallel-continue-when-executed nil) 12))
+      (parallel-get-results task))
+    ⇒ (12 42)
+  #+END_SRC
+
+  As you can see, to stop the remote instance you have to set the
+  variable ~parallel-continue-when-executed~ to nil.
+
+* Modules
+
+** Parallel XWidget
+
+   [[http://www.emacswiki.org/emacs/EmacsXWidgets][Emacs XWidget]] is an experimental branch which permits to embed GTK+
+   widget inside Emacs buffers. For instance, it is possible to use it
+   to render an HTML page using the webkit engine within an Emacs
+   buffer.
+
+   With this module, you can configure your "main" Emacs to use
+   another one to render web pages.
+
+   Let's assume that you've cloned [[https://github.com/jave/xwidget-emacs][the Emacs XWidget repository]] in
+   ~$HOME/src/emacs-xwidget/~. Once you've compiled it, an Emacs
+   executable is available ~$HOME/src/emacs-xwidget/src/emacs~.
+
+   Configure ~parallel-xwidget~ to use it:
+   #+BEGIN_SRC emacs-lisp
+     (setq parallel-xwidget-config (list :emacs-path
+                                         (concat (getenv "HOME")
+                                                 "/src/emacs-xwidget/src/emacs")))
+   #+END_SRC
+
+   Then configure your current Emacs to use it:
+   #+BEGIN_SRC emacs-lisp
+     (setq browse-url-browser-function 'parallel-xwidget-browse-url)
+   #+END_SRC
+
+   You can check it out with M-x browse-url RET google.com RET.
+
+* Tips & Tricks
+
+  If your windows manager is smart enough (like StumpwWM) you can use
+  it to move graphical windows (Emacs frames) in another desktop.
+
+  For example, I use this to move Emacs frames (with the title
+  "emacs-debug") to the group (aka desktop) 9:
+  #+BEGIN_SRC lisp
+    (define-frame-preference "9"
+      (0 nil t :title "emacs-debug"))
+  #+END_SRC
+
+  And this to specify the title of the frame:
+  #+BEGIN_SRC emacs-lisp
+    (parallel-start (lambda () 42)
+                    :no-batch t
+                    :emacs-args '("-T" "emacs-debug"))
+  #+END_SRC
+
+* TODO How does it work?
+
+* Known limitations
+
+  You can only send data to the remote (with the ~env~ parameter) or
+  from the remote (with ~parallel-send~ and ~parallel-remote-send~)
+  that have a printed representation (see [[info:elisp#Printed%20Representation][info:elisp#Printed
+  Representation]]).
+
+  So you can pass around numbers, symbols, strings, lists, vectors,
+  hash-table but you can't pass buffers, windows, frames...
+
+
+  It lacks documentation, tests and probably a clean API, but I'm
+  working on it!

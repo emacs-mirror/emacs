@@ -65,7 +65,9 @@ so if you want to use it, you can always take a copy from an older Emacs.
 
 
 * Changes in Emacs 25.1
-
+** Xwidgets : A new feature for embedding native widgets
+inside Emacs buffers. If you have gtk3 and webkit-devel installed,
+you can try the embedded webkit browser with m-x xwidget-webkit-browse-url.
 ** `package-install-from-buffer' and `package-install-file' work on directories.
 This follows the same rules as installing from a .tar file, except the
 -pkg file is optional.

@@ -374,6 +374,8 @@ otherwise for the first of `gfile' or `inotify' that is usable.])
  ],
  [with_file_notification=$with_features])
 
+OPTION_DEFAULT_OFF([xwidgets],[enable use of some gtk widgets in Emacs buffers])
+
 ## For the times when you want to build Emacs but don't have
 ## a suitable makeinfo, and can live without the manuals.
 dnl http://lists.gnu.org/archive/html/emacs-devel/2008-04/msg01844.html
@@ -2525,6 +2527,41 @@ if test "${HAVE_GTK}" = "yes"; then
 		 gtk_window_set_has_resize_grip)
 
  term_header=gtkutil.h
+fi
+
+
+HAVE_XWIDGETS=no
+HAVE_WEBKIT=no
+HAVE_GIR=no
+
+if test "${with_xwidgets}" != "no" && test "${USE_GTK_TOOLKIT}" = "GTK3"  && test "$window_system" != "none" ; then
+   echo "xwidgets enabled, checking webkit, and others"
+   HAVE_XWIDGETS=yes
+   AC_DEFINE(HAVE_XWIDGETS, 1, [Define to 1 if you have xwidgets support.])
+dnl xwidgets
+dnl - enable only if GTK3 is enabled, and we have a window system
+dnl - check for webkit and gobject introspection
+
+
+#webkit version for gtk3.
+  WEBKIT_REQUIRED=1.4.0
+  WEBKIT_MODULES="webkitgtk-3.0 >= $WEBKIT_REQUIRED"
+
+  if test "${with_gtk3}" = "yes"; then
+    PKG_CHECK_MODULES(WEBKIT, $WEBKIT_MODULES, HAVE_WEBKIT=yes, HAVE_WEBKIT=no)
+    if test $HAVE_WEBKIT = yes; then
+        AC_DEFINE(HAVE_WEBKIT_OSR, 1, [Define to 1 if you have webkit_osr support.])
+    fi
+  fi
+
+  GIR_REQUIRED=1.32.1
+  GIR_MODULES="gobject-introspection-1.0 >= $GIR_REQUIRED"
+  PKG_CHECK_MODULES(GIR, $GIR_MODULES, HAVE_GIR=yes, HAVE_GIR=no)
+  if test $HAVE_GIR = yes; then
+     AC_DEFINE(HAVE_GIR, 1, [Define to 1 if you have GIR support.])
+  fi
+
+
 fi
 
 CFLAGS=$OLD_CFLAGS
@@ -4806,7 +4843,7 @@ TOOLKIT_LIBW=
 case "$USE_X_TOOLKIT" in
   MOTIF) TOOLKIT_LIBW="$MOTIF_LIBW" ;;
   LUCID) TOOLKIT_LIBW="$LUCID_LIBW" ;;
-  none) test "x$HAVE_GTK" = "xyes" && TOOLKIT_LIBW="$GTK_LIBS" ;;
+  none) test "x$HAVE_GTK" = "xyes" && TOOLKIT_LIBW="$GTK_LIBS -lXcomposite" ;;
 esac
 AC_SUBST(TOOLKIT_LIBW)
 
@@ -5127,6 +5164,10 @@ echo "  Does Emacs use -lxft?                                   ${HAVE_XFT}"
 echo "  Does Emacs directly use zlib?                           ${HAVE_ZLIB}"
 
 echo "  Does Emacs use toolkit scroll bars?                     ${USE_TOOLKIT_SCROLL_BARS}"
+
+echo "  Does Emacs support Xwidgets?                            ${HAVE_XWIDGETS}"
+echo "       Does xwidgets support webkit(requires gtk3)?       ${HAVE_WEBKIT}"
+echo "       Does xwidgets support gobject introspection?       ${HAVE_GIR}"
 echo
 
 if test -n "${EMACSDATA}"; then

@@ -2,6 +2,23 @@
 
 	* xdisp.c (Fwindow_text_pixel_size): Add optional argument BUFFER.
 
+2015-02-01  Joakim Verona  <joakim@verona.se>
+	Support for the new Xwidget feature.
+	* window.c, Makefile.in, buffer.c, dispextern.h, dispnew.c, emacs.c:
+	* emacsgtkfixed.c, emacsgtkfixed.h, keyboard.c, lisp.h, print.c:
+	* termhooks.h, window.c, xdisp.c, xterm.c
+	New files for xwidgets:
+	* xwidget.c, xwidget.h:
+	Support for testing xwidgets
+	* xwidget-test-manual.el:
+
+2015-02-01  Grégoire Jadi  <daimrod@gmail.com>
+	Support for testing xwidgets
+	* parallell-remote.el, parallell-xwidget.el, parallell.el:
+	* xwidget-tests.el:
+	various improvements to xwidgets:
+	* xwidgets.c:
+
 2015-01-31  Eli Zaretskii  <eliz@gnu.org>
 
 	* coding.c (raw_text_coding_system_p): New function.
