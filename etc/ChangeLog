@@ -1,3 +1,7 @@
+2015-02-03  Artur Malabarba  <bruce.connor.am@gmail.com>
+
+	* NEWS: Document package.el's improved dependency-handling.
+
 2015-01-29  Francesc Rocher  <francesc.rocher@gmail.com>
 
 	* images/splash.svg, images/splash.png:

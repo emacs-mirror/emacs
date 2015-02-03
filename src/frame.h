@@ -1100,7 +1100,9 @@ SET_FRAME_VISIBLE (struct frame *f, int v)
 
 extern Lisp_Object selected_frame;
 
+#if ! (defined USE_GTK || defined HAVE_NS)
 extern int frame_default_tool_bar_height;
+#endif
 
 extern struct frame *decode_window_system_frame (Lisp_Object);
 extern struct frame *decode_live_frame (Lisp_Object);

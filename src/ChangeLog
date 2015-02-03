@@ -1,3 +1,9 @@
+2015-02-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Omit unnecessary var if GTK or NS
+	* frame.c, frame.h (frame_default_tool_bar_height) [USE_GTK||HAVE_NS]:
+	Now a constant zero on these platforms.
+
 2015-02-01  Martin Rudalics  <rudalics@gmx.at>
 
 	* xdisp.c (Fwindow_text_pixel_size): Add optional argument BUFFER.

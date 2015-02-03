@@ -340,7 +340,11 @@ when installing a new package.
 This variable will be used by `package-autoremove' to decide
 which packages are no more needed.
 You can use it to (re)install packages on other machines
-by running `package-user-selected-packages-install'."
+by running `package-user-selected-packages-install'.
+
+To check if a package is contained in this list here, use
+`package--user-selected-p', as it may populate the variable with
+a sane initial value."
   :group 'package
   :type '(repeat symbol))
 
@@ -1189,6 +1193,17 @@ number."
                nil))
       alist)))
 
+(defun package--user-selected-p (pkg)
+  "Return non-nil if PKG is a package was installed by the user.
+PKG is a package name.
+This looks into `package-selected-packages', populating it first
+if it is still empty."
+  (unless (consp package-selected-packages)
+    (customize-save-variable
+     'package-selected-packages
+     (setq package-selected-packages (package--find-non-dependencies))))
+  (memq pkg package-selected-packages))
+
 (defun package-download-transaction (packages)
   "Download and install all the packages in PACKAGES.
 PACKAGES should be a list of package-desc.
@@ -1222,9 +1237,12 @@ to `package-selected-packages'."
                                   package-archive-contents))
                     nil t))
            t)))
-  (when (and mark-selected (not (memq pkg package-selected-packages)))
-    (customize-save-variable 'package-selected-packages
-                            (cons pkg package-selected-packages)))
+  (let ((name (if (package-desc-p pkg)
+                  (package-desc-name pkg)
+                pkg)))
+    (when (and mark-selected (not (package--user-selected-p name)))
+      (customize-save-variable 'package-selected-packages
+                               (cons name package-selected-packages))))
   (package-download-transaction
    (if (package-desc-p pkg)
        (package-compute-transaction (list pkg)
@@ -1239,7 +1257,7 @@ to `package-selected-packages'."
                               "Reinstall package: "
                               (mapcar #'symbol-name
                                       (mapcar #'car package-alist))))))
-  (package-delete (cadr (assq pkg package-alist)) t)
+  (package-delete (cadr (assq pkg package-alist)) 'force 'nosave)
   (package-install pkg))
 
 (defun package-strip-rcs-id (str)
@@ -1327,7 +1345,9 @@ The return result is a `package-desc'."
       (error "No package descriptor file found"))
     (with-current-buffer (tar--extract tar-desc)
       (unwind-protect
-          (package--read-pkg-desc 'tar)
+          (or (package--read-pkg-desc 'tar)
+              (error "Can't find define-package in %s"
+                     (tar-header-name tar-desc)))
         (kill-buffer (current-buffer))))))
 
 (defun package-dir-info ()
@@ -1360,13 +1380,12 @@ Return the pkg-desc, with desc-kind set to KIND."
   (unwind-protect
       (let* ((pkg-def-parsed (read (current-buffer)))
              (pkg-desc
-              (if (not (eq (car pkg-def-parsed) 'define-package))
-                  (error "Can't find define-package in %s"
-                         (tar-header-name tar-desc))
+              (when (eq (car pkg-def-parsed) 'define-package)
                 (apply #'package-desc-from-define
                   (append (cdr pkg-def-parsed))))))
-        (setf (package-desc-kind pkg-desc) kind)
-        pkg-desc)))
+        (when pkg-desc
+          (setf (package-desc-kind pkg-desc) kind)
+          pkg-desc))))
 
 
 ;;;###autoload
@@ -1401,10 +1420,9 @@ Downloads and installs required packages as needed."
       (package-download-transaction transaction))
     ;; Install the package itself.
     (package-unpack pkg-desc)
-    (unless (memq name package-selected-packages)
-      (push name package-selected-packages)
+    (unless (package--user-selected-p name)
       (customize-save-variable 'package-selected-packages
-                               package-selected-packages))
+                               (cons name package-selected-packages)))
     pkg-desc))
 
 ;;;###autoload
@@ -1435,24 +1453,29 @@ The file can either be a tar file or an Emacs Lisp file."
       (direct   direct-deps)
       (separate (list direct-deps indirect-deps))
       (indirect indirect-deps)
-      (t        (append direct-deps indirect-deps)))))
+      (t        (delete-dups (append direct-deps indirect-deps))))))
 
 ;;;###autoload
 (defun package-install-user-selected-packages ()
   "Ensure packages in `package-selected-packages' are installed.
 If some packages are not installed propose to install them."
   (interactive)
-  (cl-loop for p in package-selected-packages
-           unless (package-installed-p p)
-           collect p into lst
-           finally
-           (if lst
-               (when (y-or-n-p
-                      (format "%s packages will be installed:\n%s, proceed?"
-                              (length lst)
-                              (mapconcat #'symbol-name lst ", ")))
-                 (mapc #'package-install lst))
-             (message "All your packages are already installed"))))
+  ;; We don't need to populate `package-selected-packages' before
+  ;; using here, because the outcome is the same either way (nothing
+  ;; gets installed).
+  (if (not package-selected-packages)
+      (message "`package-selected-packages' is empty, nothing to install")
+    (cl-loop for p in package-selected-packages
+             unless (package-installed-p p)
+             collect p into lst
+             finally
+             (if lst
+                 (when (y-or-n-p
+                        (format "%s packages will be installed:\n%s, proceed?"
+                          (length lst)
+                          (mapconcat #'symbol-name lst ", ")))
+                   (mapc #'package-install lst))
+               (message "All your packages are already installed")))))
 
 (defun package--used-elsewhere-p (pkg-desc &optional pkg-list)
   "Non-nil if PKG-DESC is a dependency of a package in PKG-LIST.
@@ -1470,14 +1493,16 @@ with PKG-DESC entry removed."
                (and (memq pkg (mapcar #'car (package-desc-reqs (cadr p))))
                     (car p))))))
 
-(defun package-delete (pkg-desc &optional force)
+(defun package-delete (pkg-desc &optional force nosave)
   "Delete package PKG-DESC.
 
 Argument PKG-DESC is a full description of package as vector.
 When package is used elsewhere as dependency of another package,
 refuse deleting it and return an error.
-If FORCE is non--nil package will be deleted even if it is used
-elsewhere."
+If FORCE is non-nil package will be deleted even if it is used
+elsewhere.
+If NOSAVE is non-nil, the package is not removed from
+`package-selected-packages'."
   (let ((dir (package-desc-dir pkg-desc))
         (name (package-desc-name pkg-desc))
         pkg-used-elsewhere-by)
@@ -1506,10 +1531,23 @@ elsewhere."
              (unless (cdr pkgs)
                (setq package-alist (delq pkgs package-alist))))
            ;; Update package-selected-packages.
-           (when (memq name package-selected-packages)
+           (when (and (null nosave)
+                      (package--user-selected-p name))
              (customize-save-variable
               'package-selected-packages (remove name package-selected-packages)))
            (message "Package `%s' deleted." (package-desc-full-name pkg-desc))))))
+
+(defun package--removable-packages ()
+  "Return a list of names of packages no longer needed.
+These are packages which are neither contained in
+`package-selected-packages' nor a dependency of one that is."
+  (let ((needed (cl-loop for p in package-selected-packages
+                         if (assq p package-alist)
+                         ;; `p' and its dependencies are needed.
+                         append (cons p (package--get-deps p)))))
+    (cl-loop for p in (mapcar #'car package-alist)
+             unless (memq p needed)
+             collect p)))
 
 ;;;###autoload
 (defun package-autoremove ()
@@ -1519,21 +1557,22 @@ Packages that are no more needed by other packages in
 `package-selected-packages' and their dependencies
 will be deleted."
   (interactive)
-  (let ((needed (cl-loop for p in package-selected-packages
-                      if (assq p package-alist)
-                      append (package--get-deps p))))
-    (cl-loop for p in (mapcar #'car package-alist)
-             unless (or (memq p needed)
-                        (memq p package-selected-packages))
-             collect p into lst
-             finally (if lst
-                         (when (y-or-n-p (format "%s packages will be deleted:\n%s, proceed? "
-                                                 (length lst)
-                                                 (mapconcat #'symbol-name lst ", ")))
-                           (mapc (lambda (p)
-                                   (package-delete (cadr (assq p package-alist)) t))
-                                 lst))
-                       (message "Nothing to autoremove")))))
+  ;; If `package-selected-packages' is nil, it would make no sense to
+  ;; try to populate it here, because then `package-autoremove' will
+  ;; do absolutely nothing.
+  (when (or package-selected-packages
+            (yes-or-no-p
+             "`package-selected-packages' is empty! Really remove ALL packages? "))
+    (let ((removable (package--removable-packages)))
+      (if removable
+          (when (y-or-n-p
+                 (format "%s packages will be deleted:\n%s, proceed? "
+                   (length removable)
+                   (mapconcat #'symbol-name removable ", ")))
+            (mapc (lambda (p)
+                    (package-delete (cadr (assq p package-alist)) t))
+              removable)
+            (message "Nothing to autoremove"))))))
 
 (defun package-archive-base (desc)
   "Return the archive containing the package NAME."
@@ -1659,9 +1698,6 @@ If optional arg NO-ACTIVATE is non-nil, don't activate packages."
   (unless no-activate
     (dolist (elt package-alist)
       (package-activate (car elt))))
-  (when (and package-alist (not package-selected-packages))
-    (customize-save-variable 'package-selected-packages
-                             (package--find-non-dependencies)))
   (setq package--initialized t))
 
 
@@ -1730,7 +1766,7 @@ If optional arg NO-ACTIVATE is non-nil, don't activate packages."
                                'font-lock-face 'font-lock-builtin-face)
                    "."))
           (pkg-dir
-           (insert (propertize (if (equal status "unsigned")
+           (insert (propertize (if (member status '("unsigned" "dependency"))
                                    "Installed"
                                  (capitalize status)) ;FIXME: Why comment-face?
                                'font-lock-face 'font-lock-comment-face))
@@ -1996,7 +2032,8 @@ package PKG-DESC, add one.  The alist is keyed with PKG-DESC."
          (lle (assq name package-load-list))
          (held (cadr lle))
          (version (package-desc-version pkg-desc))
-         (signed (package-desc-signed pkg-desc)))
+         (signed (or (not package-list-unsigned)
+                     (package-desc-signed pkg-desc))))
     (cond
      ((eq dir 'builtin) "built-in")
      ((and lle (null held)) "disabled")
@@ -2011,7 +2048,9 @@ package PKG-DESC, add one.  The alist is keyed with PKG-DESC."
       (cond
        ((not (file-exists-p (package-desc-dir pkg-desc))) "deleted")
        ((eq pkg-desc (cadr (assq name package-alist)))
-        (if (or (not package-list-unsigned) signed) "installed" "unsigned"))
+        (if (not signed) "unsigned"
+          (if (package--user-selected-p name)
+              "installed" "dependency")))
        (t "obsolete")))
      (t
       (let* ((ins (cadr (assq name package-alist)))
@@ -2022,8 +2061,9 @@ package PKG-DESC, add one.  The alist is keyed with PKG-DESC."
               "new" "available"))
          ((version-list-< version ins-v) "obsolete")
          ((version-list-= version ins-v)
-          (if (or (not package-list-unsigned) signed)
-              "installed" "unsigned"))))))))
+          (if (not signed) "unsigned"
+            (if (package--user-selected-p name)
+                "installed" "dependency")))))))))
 
 (defun package-menu--refresh (&optional packages keywords)
   "Re-populate the `tabulated-list-entries'.
@@ -2152,6 +2192,7 @@ Return (PKG-DESC [NAME VERSION STATUS DOC])."
                  (`"held"      'font-lock-constant-face)
                  (`"disabled"  'font-lock-warning-face)
                  (`"installed" 'font-lock-comment-face)
+                 (`"dependency" 'font-lock-comment-face)
                  (`"unsigned"  'font-lock-warning-face)
                  (_            'font-lock-warning-face)))) ; obsolete.
     (list pkg-desc
@@ -2194,7 +2235,8 @@ If optional arg BUTTON is non-nil, describe its associated package."
 (defun package-menu-mark-delete (&optional _num)
   "Mark a package for deletion and move to the next line."
   (interactive "p")
-  (if (member (package-menu-get-status) '("installed" "obsolete" "unsigned"))
+  (if (member (package-menu-get-status)
+              '("installed" "dependency" "obsolete" "unsigned"))
       (tabulated-list-put-tag "D" t)
     (forward-line)))
 
@@ -2248,7 +2290,7 @@ If optional arg BUTTON is non-nil, describe its associated package."
       ;; ENTRY is (PKG-DESC [NAME VERSION STATUS DOC])
       (let ((pkg-desc (car entry))
             (status (aref (cadr entry) 2)))
-        (cond ((member status '("installed" "unsigned"))
+        (cond ((member status '("installed" "dependency" "unsigned"))
                (push pkg-desc installed))
               ((member status '("available" "new"))
                (setq available (package--append-to-alist pkg-desc available))))))
@@ -2342,9 +2384,18 @@ Optional argument NOQUERY non-nil means do not ask the user to confirm."
                 (package-delete elt)
               (error (message (cadr err)))))
         (error "Aborted")))
-    (if (or delete-list install-list)
-        (package-menu--generate t t)
-      (message "No operations specified."))))
+    (if (not (or delete-list install-list))
+        (message "No operations specified.")
+      (when package-selected-packages
+        (let ((removable (package--removable-packages)))
+          (when (and removable
+                     (y-or-n-p
+                      (format "These %d packages are no longer needed, delete them (%s)? "
+                              (length removable)
+                              (mapconcat #'symbol-name removable ", "))))
+            (mapc (lambda (p) (package-delete (cadr (assq p package-alist))))
+                  removable))))
+      (package-menu--generate t t))))
 
 (defun package-menu--version-predicate (A B)
   (let ((vA (or (aref (cadr A) 1)  '(0)))
@@ -2364,6 +2415,8 @@ Optional argument NOQUERY non-nil means do not ask the user to confirm."
           ((string= sB "available") nil)
           ((string= sA "installed") t)
           ((string= sB "installed") nil)
+          ((string= sA "dependency") t)
+          ((string= sB "dependency") nil)
           ((string= sA "unsigned") t)
           ((string= sB "unsigned") nil)
           ((string= sA "held") t)

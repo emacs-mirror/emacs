@@ -65,12 +65,6 @@ so if you want to use it, you can always take a copy from an older Emacs.
 
 
 * Changes in Emacs 25.1
-** Xwidgets : A new feature for embedding native widgets
-inside Emacs buffers. If you have gtk3 and webkit-devel installed,
-you can try the embedded webkit browser with m-x xwidget-webkit-browse-url.
-** `package-install-from-buffer' and `package-install-file' work on directories.
-This follows the same rules as installing from a .tar file, except the
--pkg file is optional.
 
 ** New function `custom-prompt-customize-unsaved-options' checks for
 unsaved customizations and prompts user to customize (if found).
@@ -203,6 +197,24 @@ Unicode standards.
 
 
 * Changes in Specialized Modes and Packages in Emacs 25.1
+** package.el
+*** `package-install-from-buffer' and `package-install-file' work on directories.
+This follows the same rules as installing from a .tar file, except the
+-pkg file is optional.
+
+*** Packages which are dependencies of other packages cannot be deleted.
+The FORCE argument to `package-delete' overrides this.
+
+*** New custom variable `package-selected-packages' tracks packages
+which were installed by the user (as opposed to installed as
+dependencies). This variable can also be manually customized.
+
+*** New command `package-install-user-selected-packages' installs all
+packages from `package-selected-packages' which are currently missing.
+
+*** New command `package-autoremove' removes all packages which were
+installed strictly as dependencies but are no longer needed.
+
 ** Shell
 
 When you invoke `shell' interactively, the *shell* buffer will now

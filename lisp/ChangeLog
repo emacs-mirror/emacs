@@ -1,11 +1,102 @@
-2015-02-01  Joakim Verona  <joakim@verona.se>
-	Support for the new Xwidget feature.
-	* xwidget.el:
+2015-02-03  Artur Malabarba  <bruce.connor.am@gmail.com>
 
-2015-02-01  Grégoire Jadi  <daimrod@gmail.com>
-	Support for testing xwidgets
-	* emacs-parallel/parallell-remote.el, emacs-parallel/parallell-xwidget.el:
-	* emacs-parallel/parallell.el:
+	* emacs-lisp/package.el (package-delete): Document NOSAVE.
+	(package--get-deps): delete-dups when ONLY is nil.
+	(package-autoremove): Warn the user if `package-selected-packages'
+	is empty.
+
+	(package--user-selected-p): New function.
+	(package-delete, package-install, package-install-from-buffer):
+	Use it
+	(package-selected-packages): Mention it.
+
+	(package-initialize): Don't populate `package-selected-packages'.
+	(package-install-user-selected-packages, package-autoremove):
+	Special handling for empty `package-selected-packages'.
+	(package-install): Fix when PKG is a package-desc.
+
+	(package-desc-status): Add "dependency" status to the Package
+	Menu.
+	(package-menu--status-predicate, package-menu--print-info)
+	(package-menu-mark-delete, package-menu--find-upgrades)
+	(package-menu--status-predicate, describe-package-1): Use it
+
+	(package--removable-packages): New function.
+	(package-autoremove): Use it.
+	(package-menu-execute): Offer to remove unneeded packages.
+
+	(package--read-pkg-desc, package-tar-file-info): Fix reference to
+	tar-desc.
+
+2015-02-03  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
+
+	* emacs-lisp/package.el (package-reinstall): Don't change package's selected status.
+	(package-delete): New NOSAVE argument.
+
+2015-02-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-histfile-override): Fix docstring.
+	(tramp-open-shell, tramp-maybe-open-connection): Set also
+	HISTFILESIZE and HISTSIZE when needed.  (Bug#19731)
+
+2015-02-02  Artur Malabarba  <bruce.connor.am@gmail.com>
+
+	* emacs-lisp/package.el (package--find-non-dependencies): New
+	function.
+	(package-initialize): Use it to populate `package-selected-packages'.
+	(package-menu-execute): Clean unnecessary `and'.
+	(package--get-deps): Fix returning duplicates.
+
+2015-02-02  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-histfile-override): Add another choice t.
+	Use it as default.
+	(tramp-open-shell, tramp-maybe-open-connection): Support it.
+	(Bug#19731)
+
+2015-02-02  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
+
+	* emacs-lisp/package.el (package-delete): Remove package from
+	package-selected-packages.
+	(package-autoremove): Remove unneeded variable.
+
+2015-02-01  Artur Malabarba  <bruce.connor.am@gmail.com>
+
+	* emacs-lisp/package.el (package-selected-packages): Fix :type
+	(package-install): Rename ARG to MARK-SELECTED.
+	(package--get-deps): Fix for indirect dependencies.
+	(package-used-elsewhere-p): Rename to
+	(package--used-elsewhere-p): New function.
+	(package-reinstall, package-user-selected-packages-install)
+	(package-autoremove): Use sharp-quote.
+	(package-user-selected-packages-install): Reindent and rename to
+	(package-install-user-selected-packages): New function.
+
+2015-02-01  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
+
+	* emacs-lisp/package.el: Don't allow deleting dependencies.
+
+	(package-used-elsewhere-p): New function.
+	(package-delete): Use it, return now an error when trying to
+	delete a package used as dependency by another package.
+
+	Add a reinstall package command.
+	(package-reinstall): New function.
+
+	Add a package-autoremove command.
+	(package-selected-packages): New user var.
+	(package-install): Add an optional arg to notify interactive use.
+	Fix docstring. Save installed package to
+	packages-installed-directly.
+	(package-install-from-buffer): Same.
+	(package-user-selected-packages-install): Allow installing all
+	packages in packages-installed-directly at once.
+	(package--get-deps): New function.
+	(package-autoremove): New function.
+	(package-install-button-action): Call package-install with
+	interactive arg.
+	(package-menu-execute): Same but only for only for not installed
+	packages.
 
 2015-01-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 

@@ -68,7 +68,11 @@ static struct frame *last_nonminibuf_frame;
 bool frame_garbaged;
 
 /* The default tool bar height for future frames.  */
+#if defined USE_GTK || defined HAVE_NS
+enum { frame_default_tool_bar_height = 0 };
+#else
 int frame_default_tool_bar_height;
+#endif
 
 #ifdef HAVE_WINDOW_SYSTEM
 static void x_report_frame_params (struct frame *, Lisp_Object *);

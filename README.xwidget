@@ -1,2 +1,14 @@
 -*-org-*-
 Please see https://github.com/jave/xwidget-aux for documentation.
+
+* NEWS
+** Xwidgets : A new feature for embedding native widgets
+inside Emacs buffers. If you have gtk3 and webkit-devel installed,
+you can try the embedded webkit browser with m-x xwidget-webkit-browse-url.
+
+
+* lisp/Changelog
+
+2015-02-01  Joakim Verona  <joakim@verona.se>
+	Support for the new Xwidget feature.
+	* xwidget.el:
