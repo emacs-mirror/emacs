@@ -438,10 +438,15 @@ xwidget_slider_changed (GtkRange *range,
 /* when the off-screen webkit master view changes this signal is called.
    it copies the bitmap from the off-screen webkit instance */
 gboolean
-offscreen_damage_event (GtkWidget *widget, GdkEvent *event, gpointer data)
+offscreen_damage_event (GtkWidget *widget, GdkEvent *event, gpointer xv_widget)
 {
-  //TODO this is wrong! should just queu a redraw of onscreen widget
-  gtk_widget_queue_draw (GTK_WIDGET (data));
+  //queue a redraw of onscreen widget
+  if (GTK_IS_WIDGET (xv_widget))
+    gtk_widget_queue_draw (GTK_WIDGET (xv_widget));
+  else
+    printf("Warning, offscreen_damage_event received invalid xv pointer:%x\n",xv_widget);
+
+
   return FALSE;
 }
 
