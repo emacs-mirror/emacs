@@ -2,7 +2,7 @@
 #define XWIDGET_H_INCLUDED
 
 void x_draw_xwidget_glyph_string (struct glyph_string *s);
-void syms_of_xwidget ();
+void syms_of_xwidget (void);
 
 //extern Lisp_Object Qxwidget;
 
@@ -93,13 +93,12 @@ struct xwidget_type
   struct xwidget_type *next;
 };
 
-static struct xwidget_type *lookup_xwidget_type (Lisp_Object symbol);
 
 struct xwidget* xwidget_from_id(int id);
 
 //extern int xwidget_owns_kbd;
 
-void xwidget_start_redisplay();
+void xwidget_start_redisplay(void);
 void xwidget_end_redisplay (struct window *w, struct glyph_matrix *matrix);
 
 void xwidget_touch (struct xwidget_view *xw);

@@ -151,10 +151,8 @@ static void
 emacs_fixed_class_init (EmacsFixedClass *klass)
 {
   GtkWidgetClass *widget_class;
-  GtkFixedClass *fixed_class;
 
   widget_class = (GtkWidgetClass*) klass;
-  fixed_class = (GtkFixedClass*) klass;
 
   widget_class->get_preferred_width = emacs_fixed_get_preferred_width;
   widget_class->get_preferred_height = emacs_fixed_get_preferred_height;
@@ -164,11 +162,6 @@ emacs_fixed_class_init (EmacsFixedClass *klass)
   g_type_class_add_private (klass, sizeof (EmacsFixedPrivate));
 }
 
-static GType
-emacs_fixed_child_type (GtkFixed *container)
-{
-  return GTK_TYPE_WIDGET;
-}
 
 static void
 emacs_fixed_init (EmacsFixed *fixed)
