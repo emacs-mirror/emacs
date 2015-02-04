@@ -55,7 +55,7 @@
   "Wrap up a collection of semantic tag information.
 This class will be used to derive dictionary values.")
 
-(defmethod srecode-compound-toString((cp srecode-semantic-tag)
+(cl-defmethod srecode-compound-toString((cp srecode-semantic-tag)
 				     function
 				     dictionary)
   "Convert the compound dictionary value CP to a string.

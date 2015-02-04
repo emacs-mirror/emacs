@@ -42,7 +42,7 @@ the hit list.
 
 See the function `cedet-cscope-search' for more details.")
 
-(defmethod semantic-symref-perform-search ((tool semantic-symref-tool-cscope))
+(cl-defmethod semantic-symref-perform-search ((tool semantic-symref-tool-cscope))
   "Perform a search with GNU Global."
   (let* ((rootproj (when (and (featurep 'ede) ede-minor-mode)
 		     (ede-toplevel)))
@@ -60,7 +60,7 @@ See the function `cedet-cscope-search' for more details.")
     (semantic-symref-parse-tool-output tool b)
     ))
 
-(defmethod semantic-symref-parse-tool-output-one-line ((tool semantic-symref-tool-cscope))
+(cl-defmethod semantic-symref-parse-tool-output-one-line ((tool semantic-symref-tool-cscope))
   "Parse one line of grep output, and return it as a match list.
 Moves cursor to end of the match."
   (cond ((eq (oref tool :resulttype) 'file)

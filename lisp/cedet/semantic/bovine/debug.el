@@ -83,7 +83,7 @@ LEXTOKEN, is a token returned by the lexer which is being matched."
 			      frame)
     frame))
 
-(defmethod semantic-debug-frame-highlight ((frame semantic-debug-frame))
+(cl-defmethod semantic-debug-frame-highlight ((frame semantic-debug-frame))
   "Highlight one parser frame."
   (let* ((nonterm (oref frame nonterm))
 	 (pb (oref semantic-debug-current-interface parser-buffer))
@@ -102,7 +102,7 @@ LEXTOKEN, is a token returned by the lexer which is being matched."
 					    (oref frame lextoken))
     ))
 
-(defmethod semantic-debug-frame-info ((frame semantic-debug-frame))
+(cl-defmethod semantic-debug-frame-info ((frame semantic-debug-frame))
   "Display info about this one parser frame."
   (message "%S" (oref frame collection))
   )
@@ -125,12 +125,12 @@ Argument CONDITION is the thrown error condition."
 			      frame)
     frame))
 
-(defmethod semantic-debug-frame-highlight ((frame semantic-bovine-debug-error-frame))
+(cl-defmethod semantic-debug-frame-highlight ((frame semantic-bovine-debug-error-frame))
   "Highlight a frame from an action."
   ;; How do I get the location of the action in the source buffer?
   )
 
-(defmethod semantic-debug-frame-info ((frame semantic-bovine-debug-error-frame))
+(cl-defmethod semantic-debug-frame-info ((frame semantic-bovine-debug-error-frame))
   "Display info about the error thrown."
   (message "Error: %S" (oref frame condition)))
 

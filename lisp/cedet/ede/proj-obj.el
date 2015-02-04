@@ -275,9 +275,9 @@ No garbage pattern since it creates C or C++ code.")
 
 ;;; The EDE object compiler
 ;;
-(defmethod ede-proj-makefile-insert-variables ((this ede-object-compiler))
+(cl-defmethod ede-proj-makefile-insert-variables ((this ede-object-compiler))
   "Insert variables needed by the compiler THIS."
-  (call-next-method)
+  (cl-call-next-method)
   (if (eieio-instance-inheritor-slot-boundp this 'dependencyvar)
       (with-slots (dependencyvar) this
 	  (insert (car dependencyvar) "=")
@@ -289,30 +289,30 @@ No garbage pattern since it creates C or C++ code.")
 
 ;;; EDE Object target type methods
 ;;
-(defmethod ede-proj-makefile-sourcevar
+(cl-defmethod ede-proj-makefile-sourcevar
   ((this ede-proj-target-makefile-objectcode))
   "Return the variable name for THIS's sources."
   (require 'ede/pmake)
   (concat (ede-pmake-varname this) "_SOURCES"))
 
-(defmethod ede-proj-makefile-dependency-files
+(cl-defmethod ede-proj-makefile-dependency-files
   ((this ede-proj-target-makefile-objectcode))
   "Return a list of source files to convert to dependencies.
 Argument THIS is the target to get sources from."
   (append (oref this source) (oref this auxsource)))
 
-(defmethod ede-proj-makefile-insert-variables ((this ede-proj-target-makefile-objectcode)
+(cl-defmethod ede-proj-makefile-insert-variables ((this ede-proj-target-makefile-objectcode)
 					       &optional moresource)
   "Insert variables needed by target THIS.
 Optional argument MORESOURCE is not used."
   (let ((ede-proj-objectcode-dodependencies
 	 (oref (ede-target-parent this) automatic-dependencies)))
-    (call-next-method)))
+    (cl-call-next-method)))
 
-(defmethod ede-buffer-header-file((this ede-proj-target-makefile-objectcode)
+(cl-defmethod ede-buffer-header-file((this ede-proj-target-makefile-objectcode)
 				  buffer)
   "There are no default header files."
-  (or (call-next-method)
+  (or (cl-call-next-method)
       ;; Ok, nothing obvious. Try looking in ourselves.
       (let ((h (oref this auxsource)))
 	;; Add more logic here when the problem is better understood.

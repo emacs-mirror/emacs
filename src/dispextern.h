@@ -1313,9 +1313,6 @@ struct glyph_string
   /* True means the background of this string has been drawn.  */
   bool_bf background_filled_p : 1;
 
-  /* True means glyph string must be drawn with 16-bit functions.  */
-  bool_bf two_byte_p : 1;
-
   /* True means that the original font determined for drawing this glyph
      string could not be loaded.  The member `font' has been set to
      the frame's default font in this case.  */

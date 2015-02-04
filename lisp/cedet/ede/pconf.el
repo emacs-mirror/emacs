@@ -36,11 +36,11 @@ a file, such as AUTHORS.  A value of 'never means don't ask, and
 don't do it.  A value of nil means to just do it.")
 
 ;;; Code:
-(defmethod ede-proj-configure-file ((this ede-proj-project))
+(cl-defmethod ede-proj-configure-file ((this ede-proj-project))
   "The configure.ac script used by project THIS."
   (ede-expand-filename (ede-toplevel this) "configure.ac" t))
 
-(defmethod ede-proj-configure-test-required-file ((this ede-proj-project) file)
+(cl-defmethod ede-proj-configure-test-required-file ((this ede-proj-project) file)
   "For project THIS, test that the file FILE exists, or create it."
   (let ((f (ede-expand-filename (ede-toplevel this) file t)))
     (when (not (file-exists-p f))
@@ -60,7 +60,7 @@ don't do it.  A value of nil means to just do it.")
 		 (error "Quit")))))))
 
 
-(defmethod ede-proj-configure-synchronize ((this ede-proj-project))
+(cl-defmethod ede-proj-configure-synchronize ((this ede-proj-project))
   "Synchronize what we know about project THIS into configure.ac."
   (let ((b (find-file-noselect (ede-proj-configure-file this)))
 	;;(td (file-name-directory (ede-proj-configure-file this)))
@@ -149,7 +149,7 @@ don't do it.  A value of nil means to just do it.")
 
 	  ))))
 
-(defmethod ede-proj-configure-recreate ((this ede-proj-project))
+(cl-defmethod ede-proj-configure-recreate ((this ede-proj-project))
   "Delete project THIS's configure script and start over."
   (if (not (ede-proj-configure-file this))
       (error "Could not determine configure.ac for %S" (eieio-object-name this)))
@@ -159,7 +159,7 @@ don't do it.  A value of nil means to just do it.")
     (if b (kill-buffer b)))
   (ede-proj-configure-synchronize this))
 
-(defmethod ede-proj-tweak-autoconf ((this ede-proj-target))
+(cl-defmethod ede-proj-tweak-autoconf ((this ede-proj-target))
   "Tweak the configure file (current buffer) to accommodate THIS."
   ;; Check the compilers belonging to THIS, and call the autoconf
   ;; setup for those compilers.
@@ -167,7 +167,7 @@ don't do it.  A value of nil means to just do it.")
   (mapc 'ede-proj-tweak-autoconf (ede-proj-linkers this))
   )
 
-(defmethod ede-proj-flush-autoconf ((this ede-proj-target))
+(cl-defmethod ede-proj-flush-autoconf ((this ede-proj-target))
   "Flush the configure file (current buffer) to accommodate THIS.
 By flushing, remove any cruft that may be in the file.  Subsequent
 calls to `ede-proj-tweak-autoconf' can restore items removed by flush."
@@ -175,13 +175,13 @@ calls to `ede-proj-tweak-autoconf' can restore items removed by flush."
 
 
 ;; @TODO - No-one calls this ???
-(defmethod ede-proj-configure-add-missing ((this ede-proj-target))
+(cl-defmethod ede-proj-configure-add-missing ((this ede-proj-target))
   "Query if any files needed by THIS provided by automake are missing.
 Results in --add-missing being passed to automake."
   nil)
 
 ;; @TODO - No-one implements this yet.
-(defmethod ede-proj-configure-create-missing ((this ede-proj-target))
+(cl-defmethod ede-proj-configure-create-missing ((this ede-proj-target))
   "Add any missing files for THIS by creating them."
   nil)
 

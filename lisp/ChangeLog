@@ -1,3 +1,28 @@
+2015-02-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl-generic.el (cl--generic-member-method): Fix paren typo.
+
+	* textmodes/flyspell.el: Use lexical-binding and cl-lib.
+	(mail-mode-flyspell-verify): Fix last change.
+	(flyspell-external-point-words, flyspell-large-region):
+	Avoid add-to-list on local vars.
+
+2015-02-04  Tassilo Horn  <tsdh@gnu.org>
+
+	* emacs-lisp/package.el (package-installed-p): Fix typo causing
+	void-variable error.
+
+2015-02-04  Artur Malabarba  <bruce.connor.am@gmail.com>
+
+	* emacs-lisp/package.el (package-delete): Remove package from
+	`package-selected-packages' even if it can't be deleted.
+	(package-installed-p): Accept package-desc objects.
+	(package-install): Can be used to mark dependencies as
+	selected. When given a package-desc object which is already
+	installed, the package is not downloaded again, but it is marked
+	as selected (if it wasn't already).
+	(package-reinstall): Accept package-desc objects.
+
 2015-02-03  Artur Malabarba  <bruce.connor.am@gmail.com>
 
 	* emacs-lisp/package.el (package-delete): Document NOSAVE.
@@ -41,8 +66,8 @@
 
 2015-02-02  Artur Malabarba  <bruce.connor.am@gmail.com>
 
-	* emacs-lisp/package.el (package--find-non-dependencies): New
-	function.
+	* emacs-lisp/package.el (package--find-non-dependencies):
+	New function.
 	(package-initialize): Use it to populate `package-selected-packages'.
 	(package-menu-execute): Clean unnecessary `and'.
 	(package--get-deps): Fix returning duplicates.

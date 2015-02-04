@@ -1,3 +1,18 @@
+2015-02-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Use cl-generic instead of EIEIO's defgeneric/defmethod.
+	* **/*.el: Mechanically replace all calls to defmethod/defgeneric by
+	calls to cl-defmethod/cl-defgeneric.
+	* srecode/table.el:
+	* srecode/fields.el:
+	* srecode/dictionary.el:
+	* srecode/compile.el:
+	* semantic/debug.el:
+	* semantic/db-ref.el:
+	* ede/base.el:
+	* ede/auto.el:
+	* ede.el: Require `cl-generic'.
+
 2015-01-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Don't use <class> as a variable and don't assume that <class>-list-p is

@@ -46,19 +46,19 @@ Argument NEWVERSION is the version number to use in the current project."
       (project-update-version ede-object)
       (ede-update-version-in-source ede-object newversion))))
 
-(defmethod project-update-version ((ot ede-project))
+(cl-defmethod project-update-version ((ot ede-project))
   "The :version of the project OT has been updated.
 Handle saving, or other detail."
   (error "project-update-version not supported by %s" (eieio-object-name ot)))
 
-(defmethod ede-update-version-in-source ((this ede-project) version)
+(cl-defmethod ede-update-version-in-source ((this ede-project) version)
   "Change occurrences of a version string in sources.
 In project THIS, cycle over all targets to give them a chance to set
 their sources to VERSION."
   (ede-map-targets this (lambda (targ)
 			  (ede-update-version-in-source targ version))))
 
-(defmethod ede-update-version-in-source ((this ede-target) version)
+(cl-defmethod ede-update-version-in-source ((this ede-target) version)
   "In sources for THIS, change version numbers to VERSION."
   (if (and (slot-boundp this 'versionsource)
 	   (oref this versionsource))

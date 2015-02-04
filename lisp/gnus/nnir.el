@@ -284,8 +284,6 @@ is `(valuefunc member)'."
 (eval-when-compile
   (autoload 'nnimap-buffer "nnimap")
   (autoload 'nnimap-command "nnimap")
-  (autoload 'nnimap-capability "nnimap")
-  (autoload 'nnimap-wait-for-line "nnimap")
   (autoload 'nnimap-change-group "nnimap")
   (autoload 'nnimap-make-thread-query "nnimap")
   (autoload 'gnus-registry-action "gnus-registry")
@@ -970,52 +968,33 @@ details on the language and supported extensions."
        (catch 'found
          (mapcar
           #'(lambda (group)
-	      (let (artlist)
-		(condition-case ()
-		    (when (nnimap-change-group
-			   (gnus-group-short-name group) server)
-		      (with-current-buffer (nnimap-buffer)
-			(message "Searching %s..." group)
-			(let* ((arts 0)
-			       (literal+ (nnimap-capability "LITERAL+"))
-			       (search (split-string
-					(if (string= criteria "")
-					    qstring
-					  (nnir-imap-make-query
-					  criteria qstring))
-					"\n"))
-			       (coding (upcase
-					(replace-regexp-in-string
-					 "-\\(unix\\|dos\\|mac\\)" ""
-					 (symbol-name
-					  (cdr default-process-coding-system)))))
-			       call result)
-			  (setq call (nnimap-send-command
-					"UID SEARCH CHARSET %s %s" coding (pop search)))
-			  (while search ; Non-ascii search terms
-			    (unless literal+
-			      (nnimap-wait-for-line "^\\+\\(.*\\)\n"))
-			    (process-send-string (get-buffer-process (current-buffer)) (pop search))
-			    (process-send-string (get-buffer-process (current-buffer))
-			       (if (nnimap-newlinep nnimap-object)
-				   "\n"
-				 "\r\n")))
-			  (setq result (nnimap-get-response call))
-			  (mapc
-			   (lambda (artnum)
-			     (let ((artn (string-to-number artnum)))
-			       (when (> artn 0)
-				 (push (vector group artn 100)
-				       artlist)
-				 (when (assq 'shortcut query)
-				   (throw 'found (list artlist)))
-				 (setq arts (1+ arts)))))
-			   (and (car result)
-				(cdr (assoc "SEARCH" (cdr result)))))
-			  (message "Searching %s... %d matches" group arts)))
-		      (message "Searching %s...done" group))
-		  (quit nil))
-		(nreverse artlist)))
+            (let (artlist)
+              (condition-case ()
+                  (when (nnimap-change-group
+                         (gnus-group-short-name group) server)
+                    (with-current-buffer (nnimap-buffer)
+                      (message "Searching %s..." group)
+                      (let ((arts 0)
+                            (result (nnimap-command "UID SEARCH %s"
+                                                    (if (string= criteria "")
+                                                        qstring
+                                                      (nnir-imap-make-query
+                                                       criteria qstring)))))
+                        (mapc
+                         (lambda (artnum)
+                           (let ((artn (string-to-number artnum)))
+                             (when (> artn 0)
+                               (push (vector group artn 100)
+                                     artlist)
+                               (when (assq 'shortcut query)
+                                 (throw 'found (list artlist)))
+                               (setq arts (1+ arts)))))
+                         (and (car result)
+			      (cdr (assoc "SEARCH" (cdr result)))))
+                        (message "Searching %s... %d matches" group arts)))
+                    (message "Searching %s...done" group))
+                (quit nil))
+              (nreverse artlist)))
           groups))))))
 
 (defun nnir-imap-make-query (criteria qstring)
@@ -1069,30 +1048,25 @@ In future the following will be added to the language:
 (defun nnir-imap-expr-to-imap (criteria expr)
   "Convert EXPR into an IMAP search expression on CRITERIA"
   ;; What sort of expression is this, eh?
-  (let ((literal+ (nnimap-capability "LITERAL+")))
-    (cond
-     ;; Simple string term
-     ((stringp expr)
-      (format "%s %S" criteria expr))
-     ;; Trivial term: and
-     ((eq expr 'and) nil)
-     ;; Composite term: or expression
-     ((eq (car-safe expr) 'or)
-      (format "OR %s %s"
-	      (nnir-imap-expr-to-imap criteria (second expr))
-	      (nnir-imap-expr-to-imap criteria (third expr))))
-     ;; Composite term: just the fax, mam
-     ((eq (car-safe expr) 'not)
-      (format "NOT (%s)" (nnir-imap-query-to-imap criteria (rest expr))))
-     ;; Composite term: non-ascii search term
-     ((numberp (car-safe expr))
-      (format "%s {%d%s}\n%s" criteria (car expr)
-	      (if literal+ "+" "") (second expr)))
-     ;; Composite term: just expand it all.
-     ((and (not (null expr)) (listp expr))
-      (format "(%s)" (nnir-imap-query-to-imap criteria expr)))
-     ;; Complex value, give up for now.
-     (t (error "Unhandled input: %S" expr)))))
+  (cond
+   ;; Simple string term
+   ((stringp expr)
+    (format "%s %S" criteria expr))
+   ;; Trivial term: and
+   ((eq expr 'and) nil)
+   ;; Composite term: or expression
+   ((eq (car-safe expr) 'or)
+    (format "OR %s %s"
+	    (nnir-imap-expr-to-imap criteria (second expr))
+	    (nnir-imap-expr-to-imap criteria (third expr))))
+   ;; Composite term: just the fax, mam
+   ((eq (car-safe expr) 'not)
+    (format "NOT (%s)" (nnir-imap-query-to-imap criteria (rest expr))))
+   ;; Composite term: just expand it all.
+   ((and (not (null expr)) (listp expr))
+    (format "(%s)" (nnir-imap-query-to-imap criteria expr)))
+   ;; Complex value, give up for now.
+   (t (error "Unhandled input: %S" expr))))
 
 
 (defun nnir-imap-parse-query (string)
@@ -1134,11 +1108,6 @@ that the search language can then understand and use."
      ((eq term 'and) 'and)
      ;; negated term
      ((eq term 'not) (list 'not (nnir-imap-next-expr)))
-     ;; non-ascii search string
-     ((and (stringp term)
-	   (not (= (string-bytes term)
-		   (length term))))
-      (list (string-bytes term) term))
      ;; generic term
      (t term))))
 

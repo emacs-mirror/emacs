@@ -41,6 +41,7 @@
 
 (require 'cedet)
 (require 'eieio)
+(require 'cl-generic)
 (require 'eieio-speedbar)
 (require 'ede/source)
 (require 'ede/base)
@@ -430,7 +431,7 @@ version of the keymap."
 
 ;;; Menu building methods for building
 ;;
-(defmethod ede-menu-items-build ((obj ede-project) &optional current)
+(cl-defmethod ede-menu-items-build ((obj ede-project) &optional current)
   "Return a list of menu items for building project OBJ.
 If optional argument CURRENT is non-nil, return sub-menu code."
   (if current
@@ -440,7 +441,7 @@ If optional argument CURRENT is non-nil, return sub-menu code."
 	    (concat "Build Project " (ede-name obj))
 	    `(project-compile-project ,obj))))))
 
-(defmethod ede-menu-items-build ((obj ede-target) &optional current)
+(cl-defmethod ede-menu-items-build ((obj ede-target) &optional current)
   "Return a list of menu items for building target OBJ.
 If optional argument CURRENT is non-nil, return sub-menu code."
   (if current
@@ -821,7 +822,7 @@ Optional argument NAME is the name to give this project."
   ;; Allert the user
   (message "Project created and saved.  You may now create targets."))
 
-(defmethod ede-add-subproject ((proj-a ede-project) proj-b)
+(cl-defmethod ede-add-subproject ((proj-a ede-project) proj-b)
   "Add into PROJ-A, the subproject PROJ-B."
   (oset proj-a subproj (cons proj-b (oref proj-a subproj))))
 
@@ -986,75 +987,75 @@ Optional argument FORCE forces the file to be removed without asking."
 ;;  files should inherit from `ede-project'.  Create the appropriate
 ;;  methods based on those below.
 
-(defmethod project-interactive-select-target ((this ede-project-placeholder) prompt)
+(cl-defmethod project-interactive-select-target ((this ede-project-placeholder) prompt)
 					; checkdoc-params: (prompt)
   "Make sure placeholder THIS is replaced with the real thing, and pass through."
   (project-interactive-select-target this prompt))
 
-(defmethod project-interactive-select-target ((this ede-project) prompt)
+(cl-defmethod project-interactive-select-target ((this ede-project) prompt)
   "Interactively query for a target that exists in project THIS.
 Argument PROMPT is the prompt to use when querying the user for a target."
   (let ((ob (object-assoc-list 'name (oref this targets))))
     (cdr (assoc (completing-read prompt ob nil t) ob))))
 
-(defmethod project-add-file ((this ede-project-placeholder) file)
+(cl-defmethod project-add-file ((this ede-project-placeholder) file)
 					; checkdoc-params: (file)
   "Make sure placeholder THIS is replaced with the real thing, and pass through."
   (project-add-file this file))
 
-(defmethod project-add-file ((ot ede-target) file)
+(cl-defmethod project-add-file ((ot ede-target) file)
   "Add the current buffer into project project target OT.
 Argument FILE is the file to add."
   (error "add-file not supported by %s" (eieio-object-name ot)))
 
-(defmethod project-remove-file ((ot ede-target) fnnd)
+(cl-defmethod project-remove-file ((ot ede-target) fnnd)
   "Remove the current buffer from project target OT.
 Argument FNND is an argument."
   (error "remove-file not supported by %s" (eieio-object-name ot)))
 
-(defmethod project-edit-file-target ((ot ede-target))
+(cl-defmethod project-edit-file-target ((ot ede-target))
   "Edit the target OT associated with this file."
   (find-file (oref (ede-current-project) file)))
 
-(defmethod project-new-target ((proj ede-project) &rest args)
+(cl-defmethod project-new-target ((proj ede-project) &rest args)
   "Create a new target.  It is up to the project PROJ to get the name."
   (error "new-target not supported by %s" (eieio-object-name proj)))
 
-(defmethod project-new-target-custom ((proj ede-project))
+(cl-defmethod project-new-target-custom ((proj ede-project))
   "Create a new target.  It is up to the project PROJ to get the name."
   (error "New-target-custom not supported by %s" (eieio-object-name proj)))
 
-(defmethod project-delete-target ((ot ede-target))
+(cl-defmethod project-delete-target ((ot ede-target))
   "Delete the current target OT from its parent project."
   (error "add-file not supported by %s" (eieio-object-name ot)))
 
-(defmethod project-compile-project ((obj ede-project) &optional command)
+(cl-defmethod project-compile-project ((obj ede-project) &optional command)
   "Compile the entire current project OBJ.
 Argument COMMAND is the command to use when compiling."
   (error "compile-project not supported by %s" (eieio-object-name obj)))
 
-(defmethod project-compile-target ((obj ede-target) &optional command)
+(cl-defmethod project-compile-target ((obj ede-target) &optional command)
   "Compile the current target OBJ.
 Argument COMMAND is the command to use for compiling the target."
   (error "compile-target not supported by %s" (eieio-object-name obj)))
 
-(defmethod project-debug-target ((obj ede-target))
+(cl-defmethod project-debug-target ((obj ede-target))
   "Run the current project target OBJ in a debugger."
   (error "debug-target not supported by %s" (eieio-object-name obj)))
 
-(defmethod project-run-target ((obj ede-target))
+(cl-defmethod project-run-target ((obj ede-target))
   "Run the current project target OBJ."
   (error "run-target not supported by %s" (eieio-object-name obj)))
 
-(defmethod project-make-dist ((this ede-project))
+(cl-defmethod project-make-dist ((this ede-project))
   "Build a distribution for the project based on THIS project."
   (error "Make-dist not supported by %s" (eieio-object-name this)))
 
-(defmethod project-dist-files ((this ede-project))
+(cl-defmethod project-dist-files ((this ede-project))
   "Return a list of files that constitute a distribution of THIS project."
   (error "Dist-files is not supported by %s" (eieio-object-name this)))
 
-(defmethod project-rescan ((this ede-project))
+(cl-defmethod project-rescan ((this ede-project))
   "Rescan the EDE project THIS."
   (error "Rescanning a project is not supported by %s" (eieio-object-name this)))
 
@@ -1248,7 +1249,7 @@ that contains the target that becomes buffer's object."
     ;; Return our findings.
     ede-object))
 
-(defmethod ede-target-in-project-p ((proj ede-project) target)
+(cl-defmethod ede-target-in-project-p ((proj ede-project) target)
   "Is PROJ the parent of TARGET?
 If TARGET belongs to a subproject, return that project file."
   (if (and (slot-boundp proj 'targets)
@@ -1273,7 +1274,7 @@ could become slow in time."
 		projs (cdr projs)))
 	ans)))
 
-(defmethod ede-find-target ((proj ede-project) buffer)
+(cl-defmethod ede-find-target ((proj ede-project) buffer)
   "Fetch the target in PROJ belonging to BUFFER or nil."
   (with-current-buffer buffer
 
@@ -1295,16 +1296,16 @@ could become slow in time."
 	    (setq targets (cdr targets)))
 	  f)))))
 
-(defmethod ede-target-buffer-in-sourcelist ((this ede-target) buffer source)
+(cl-defmethod ede-target-buffer-in-sourcelist ((this ede-target) buffer source)
   "Return non-nil if object THIS is in BUFFER to a SOURCE list.
 Handles complex path issues."
   (member (ede-convert-path this (buffer-file-name buffer)) source))
 
-(defmethod ede-buffer-mine ((this ede-project) buffer)
+(cl-defmethod ede-buffer-mine ((this ede-project) buffer)
   "Return non-nil if object THIS lays claim to the file in BUFFER."
   nil)
 
-(defmethod ede-buffer-mine ((this ede-target) buffer)
+(cl-defmethod ede-buffer-mine ((this ede-target) buffer)
   "Return non-nil if object THIS lays claim to the file in BUFFER."
   (condition-case nil
       (ede-target-buffer-in-sourcelist this buffer (oref this source))
@@ -1354,22 +1355,22 @@ This includes buffers controlled by a specific target of PROJECT."
   "Execute PROC on all buffers controlled by EDE."
   (mapcar proc (ede-buffers)))
 
-(defmethod ede-map-project-buffers ((this ede-project) proc)
+(cl-defmethod ede-map-project-buffers ((this ede-project) proc)
   "For THIS, execute PROC on all buffers belonging to THIS."
   (mapcar proc (ede-project-buffers this)))
 
-(defmethod ede-map-target-buffers ((this ede-target) proc)
+(cl-defmethod ede-map-target-buffers ((this ede-target) proc)
   "For THIS, execute PROC on all buffers belonging to THIS."
   (mapcar proc (ede-target-buffers this)))
 
 ;; other types of mapping
-(defmethod ede-map-subprojects ((this ede-project) proc)
+(cl-defmethod ede-map-subprojects ((this ede-project) proc)
   "For object THIS, execute PROC on all direct subprojects.
 This function does not apply PROC to sub-sub projects.
 See also `ede-map-all-subprojects'."
   (mapcar proc (oref this subproj)))
 
-(defmethod ede-map-all-subprojects ((this ede-project) allproc)
+(cl-defmethod ede-map-all-subprojects ((this ede-project) allproc)
   "For object THIS, execute PROC on THIS and all subprojects.
 This function also applies PROC to sub-sub projects.
 See also `ede-map-subprojects'."
@@ -1383,11 +1384,11 @@ See also `ede-map-subprojects'."
 
 ;; (ede-map-all-subprojects (ede-load-project-file "../semantic/") (lambda (sp) (oref sp file)))
 
-(defmethod ede-map-targets ((this ede-project) proc)
+(cl-defmethod ede-map-targets ((this ede-project) proc)
   "For object THIS, execute PROC on all targets."
   (mapcar proc (oref this targets)))
 
-(defmethod ede-map-any-target-p ((this ede-project) proc)
+(cl-defmethod ede-map-any-target-p ((this ede-project) proc)
   "For project THIS, map PROC to all targets and return if any non-nil.
 Return the first non-nil value returned by PROC."
   (eval (cons 'or (ede-map-targets this proc))))
@@ -1399,15 +1400,15 @@ Return the first non-nil value returned by PROC."
 ;; configuring items for Semantic.
 
 ;; Generic paths
-(defmethod ede-system-include-path ((this ede-project))
+(cl-defmethod ede-system-include-path ((this ede-project))
   "Get the system include path used by project THIS."
   nil)
 
-(defmethod ede-system-include-path ((this ede-target))
+(cl-defmethod ede-system-include-path ((this ede-target))
   "Get the system include path used by project THIS."
   nil)
 
-(defmethod ede-source-paths ((this ede-project) mode)
+(cl-defmethod ede-source-paths ((this ede-project) mode)
   "Get the base to all source trees in the current project for MODE.
 For example, <root>/src for sources of c/c++, Java, etc,
 and <root>/doc for doc sources."
@@ -1435,20 +1436,20 @@ and <root>/doc for doc sources."
 	(message "Choosing preprocessor syms for project %s"
 		 (eieio-object-name (car objs)))))))
 
-(defmethod ede-system-include-path ((this ede-project))
+(cl-defmethod ede-system-include-path ((this ede-project))
   "Get the system include path used by project THIS."
   nil)
 
-(defmethod ede-preprocessor-map ((this ede-project))
+(cl-defmethod ede-preprocessor-map ((this ede-project))
   "Get the pre-processor map for project THIS."
   nil)
 
-(defmethod ede-preprocessor-map ((this ede-target))
+(cl-defmethod ede-preprocessor-map ((this ede-target))
   "Get the pre-processor map for project THIS."
   nil)
 
 ;; Java
-(defmethod ede-java-classpath ((this ede-project))
+(cl-defmethod ede-java-classpath ((this ede-project))
   "Return the classpath for this project."
   ;; @TODO - Can JDEE add something here?
   nil)
@@ -1504,7 +1505,7 @@ It does not apply the value to buffers."
       (error "Cannot set project variable until it is added with `ede-make-project-local-variable'"))
     (setcdr va value)))
 
-(defmethod ede-set-project-variables ((project ede-project) &optional buffer)
+(cl-defmethod ede-set-project-variables ((project ede-project) &optional buffer)
   "Set variables local to PROJECT in BUFFER."
   (if (not buffer) (setq buffer (current-buffer)))
   (with-current-buffer buffer
@@ -1512,7 +1513,7 @@ It does not apply the value to buffers."
       (make-local-variable (car v))
       (set (car v) (cdr v)))))
 
-(defmethod ede-commit-local-variables ((proj ede-project))
+(cl-defmethod ede-commit-local-variables ((proj ede-project))
   "Commit change to local variables in PROJ."
   nil)
 

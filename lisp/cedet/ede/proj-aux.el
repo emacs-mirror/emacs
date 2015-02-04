@@ -39,7 +39,7 @@
 		  :sourcepattern "^[A-Z]+$\\|\\.txt$")
   "Miscellaneous fields definition.")
 
-(defmethod ede-proj-makefile-sourcevar ((this ede-proj-target-aux))
+(cl-defmethod ede-proj-makefile-sourcevar ((this ede-proj-target-aux))
   "Return the variable name for THIS's sources."
   (concat (ede-pmake-varname this) "_AUX"))
 

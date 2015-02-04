@@ -194,7 +194,7 @@ other meta-variable based on this name.")
   "Encode one makefile.")
 
 ;;; Code:
-(defmethod project-add-file ((ot project-am-target))
+(cl-defmethod project-add-file ((ot project-am-target))
   "Add the current buffer into a project.
 OT is the object target.  DIR is the directory to start in."
   (let* ((target (if ede-object (error "Already associated w/ a target")
@@ -221,7 +221,7 @@ OT is the object target.  DIR is the directory to start in."
       (save-buffer))
     (setq ede-object ot)))
 
-(defmethod project-remove-file ((ot project-am-target) fnnd)
+(cl-defmethod project-remove-file ((ot project-am-target) fnnd)
   "Remove the current buffer from any project targets."
   (ede-with-projectfile ot
     (makefile-move-to-macro (project-am-macro ot))
@@ -232,7 +232,7 @@ OT is the object target.  DIR is the directory to start in."
     (save-buffer))
   (setq ede-object nil))
 
-(defmethod project-edit-file-target ((obj project-am-target))
+(cl-defmethod project-edit-file-target ((obj project-am-target))
   "Edit the target associated w/ this file."
   (find-file (concat (oref obj path) "Makefile.am"))
   (goto-char (point-min))
@@ -240,7 +240,7 @@ OT is the object target.  DIR is the directory to start in."
   (if (= (point-min) (point))
       (re-search-forward (ede-target-name obj))))
 
-(defmethod project-new-target ((proj project-am-makefile)
+(cl-defmethod project-new-target ((proj project-am-makefile)
 			       &optional name type)
   "Create a new target named NAME.
 Argument TYPE is the type of target to insert.  This is a string
@@ -300,7 +300,7 @@ buffer being in order to provide a smart default target type."
 ;;  This should be handled at the EDE level, calling a method of the
 ;; top most project.
 ;;
-(defmethod project-compile-project ((obj project-am-target) &optional command)
+(cl-defmethod project-compile-project ((obj project-am-target) &optional command)
   "Compile the entire current project.
 Argument COMMAND is the command to use when compiling."
   (require 'compile)
@@ -324,7 +324,7 @@ Argument COMMAND is the command to use when compiling."
   (let* ((default-directory (project-am-find-topmost-level default-directory)))
     (compile command)))
 
-(defmethod project-compile-project ((obj project-am-makefile)
+(cl-defmethod project-compile-project ((obj project-am-makefile)
 				    &optional command)
   "Compile the entire current project.
 Argument COMMAND is the command to use when compiling."
@@ -349,7 +349,7 @@ Argument COMMAND is the command to use when compiling."
   (let* ((default-directory (project-am-find-topmost-level default-directory)))
     (compile command)))
 
-(defmethod project-compile-target ((obj project-am-target) &optional command)
+(cl-defmethod project-compile-target ((obj project-am-target) &optional command)
   "Compile the current target.
 Argument COMMAND is the command to use for compiling the target."
   (require 'compile)
@@ -378,7 +378,7 @@ Argument COMMAND is the command to use for compiling the target."
   ;; We better be in the right place when compiling a specific target.
   (compile command))
 
-(defmethod project-debug-target ((obj project-am-objectcode))
+(cl-defmethod project-debug-target ((obj project-am-objectcode))
   "Run the current project target in a debugger."
   (let ((tb (get-buffer-create " *padt*"))
 	(dd (oref obj path))
@@ -397,7 +397,7 @@ Argument COMMAND is the command to use for compiling the target."
 
 (declare-function ede-shell-run-something "ede/shell")
 
-(defmethod project-run-target ((obj project-am-objectcode))
+(cl-defmethod project-run-target ((obj project-am-objectcode))
   "Run the current project target in comint buffer."
   (require 'ede/shell)
   (let ((tb (get-buffer-create " *padt*"))
@@ -413,7 +413,7 @@ Argument COMMAND is the command to use for compiling the target."
 	  (ede-shell-run-something obj cmd))
       (kill-buffer tb))))
 
-(defmethod project-make-dist ((this project-am-target))
+(cl-defmethod project-make-dist ((this project-am-target))
   "Run the current project in the debugger."
   (require 'compile)
   (if (not project-am-compile-project-command)
@@ -500,7 +500,7 @@ This is used when subprojects are made in named subdirectories."
 	ampf))))
 
 ;;; Methods:
-(defmethod project-targets-for-file ((proj project-am-makefile))
+(cl-defmethod project-targets-for-file ((proj project-am-makefile))
   "Return a list of targets the project PROJ."
   (oref proj targets))
 
@@ -612,7 +612,7 @@ Strip out duplicates, and recurse on variables."
 	subdirs)
   )
 
-(defmethod project-rescan ((this project-am-makefile) &optional suggestedname)
+(cl-defmethod project-rescan ((this project-am-makefile) &optional suggestedname)
   "Rescan the makefile for all targets and sub targets."
   (project-am-with-makefile-current (file-name-directory (oref this file))
     ;;(message "Scanning %s..." (oref this file))
@@ -692,7 +692,7 @@ Strip out duplicates, and recurse on variables."
       )))
 
 
-(defmethod project-rescan ((this project-am-program))
+(cl-defmethod project-rescan ((this project-am-program))
   "Rescan object THIS."
   (oset this :source (makefile-macro-file-list (project-am-macro this)))
   (unless (oref this :source)
@@ -700,65 +700,65 @@ Strip out duplicates, and recurse on variables."
   (oset this :ldadd (makefile-macro-file-list
 		     (concat (oref this :name) "_LDADD"))))
 
-(defmethod project-rescan ((this project-am-lib))
+(cl-defmethod project-rescan ((this project-am-lib))
   "Rescan object THIS."
   (oset this :source (makefile-macro-file-list (project-am-macro this)))
   (unless (oref this :source)
     (oset this :source (list (concat (file-name-sans-extension (oref this :name)) ".c")))))
 
-(defmethod project-rescan ((this project-am-texinfo))
+(cl-defmethod project-rescan ((this project-am-texinfo))
   "Rescan object THIS."
   (oset this :include (makefile-macro-file-list (project-am-macro this))))
 
-(defmethod project-rescan ((this project-am-man))
+(cl-defmethod project-rescan ((this project-am-man))
   "Rescan object THIS."
   (oset this :source (makefile-macro-file-list (project-am-macro this))))
 
-(defmethod project-rescan ((this project-am-lisp))
+(cl-defmethod project-rescan ((this project-am-lisp))
   "Rescan the lisp sources."
   (oset this :source (makefile-macro-file-list (project-am-macro this))))
 
-(defmethod project-rescan ((this project-am-header))
+(cl-defmethod project-rescan ((this project-am-header))
   "Rescan the Header sources for object THIS."
   (oset this :source (makefile-macro-file-list (project-am-macro this))))
 
-(defmethod project-rescan ((this project-am-built-src))
+(cl-defmethod project-rescan ((this project-am-built-src))
   "Rescan built sources for object THIS."
   (oset this :source (makefile-macro-file-list "BUILT_SOURCES")))
 
-(defmethod project-rescan ((this project-am-extra-dist))
+(cl-defmethod project-rescan ((this project-am-extra-dist))
   "Rescan object THIS."
   (oset this :source (makefile-macro-file-list "EXTRA_DIST")))
 
-(defmethod project-am-macro ((this project-am-objectcode))
+(cl-defmethod project-am-macro ((this project-am-objectcode))
   "Return the default macro to 'edit' for this object type."
   (concat (subst-char-in-string ?- ?_ (oref this :name)) "_SOURCES"))
 
-(defmethod project-am-macro ((this project-am-header-noinst))
+(cl-defmethod project-am-macro ((this project-am-header-noinst))
   "Return the default macro to 'edit' for this object."
   "noinst_HEADERS")
 
-(defmethod project-am-macro ((this project-am-header-inst))
+(cl-defmethod project-am-macro ((this project-am-header-inst))
   "Return the default macro to 'edit' for this object."
   "include_HEADERS")
 
-(defmethod project-am-macro ((this project-am-header-pkg))
+(cl-defmethod project-am-macro ((this project-am-header-pkg))
   "Return the default macro to 'edit' for this object."
   "pkginclude_HEADERS")
 
-(defmethod project-am-macro ((this project-am-header-chk))
+(cl-defmethod project-am-macro ((this project-am-header-chk))
   "Return the default macro to 'edit' for this object."
   "check_HEADERS")
 
-(defmethod project-am-macro ((this project-am-texinfo))
+(cl-defmethod project-am-macro ((this project-am-texinfo))
   "Return the default macro to 'edit' for this object type."
   (concat (file-name-sans-extension (oref this :name)) "_TEXINFOS"))
 
-(defmethod project-am-macro ((this project-am-man))
+(cl-defmethod project-am-macro ((this project-am-man))
   "Return the default macro to 'edit' for this object type."
   (oref this :name))
 
-(defmethod project-am-macro ((this project-am-lisp))
+(cl-defmethod project-am-macro ((this project-am-lisp))
   "Return the default macro to 'edit' for this object."
   "lisp_LISP")
 
@@ -781,7 +781,7 @@ nil means that this buffer belongs to no-one."
 		sobj (cdr sobj)))
 	obj))))
 
-(defmethod ede-buffer-mine ((this project-am-makefile) buffer)
+(cl-defmethod ede-buffer-mine ((this project-am-makefile) buffer)
   "Return t if object THIS lays claim to the file in BUFFER."
   (let ((efn  (expand-file-name (buffer-file-name buffer))))
     (or (string= (oref this :file) efn)
@@ -796,42 +796,42 @@ nil means that this buffer belongs to no-one."
 	  ans)
 	)))
 
-(defmethod ede-buffer-mine ((this project-am-objectcode) buffer)
+(cl-defmethod ede-buffer-mine ((this project-am-objectcode) buffer)
   "Return t if object THIS lays claim to the file in BUFFER."
   (member (file-relative-name (buffer-file-name buffer) (oref this :path))
 	  (oref this :source)))
 
-(defmethod ede-buffer-mine ((this project-am-texinfo) buffer)
+(cl-defmethod ede-buffer-mine ((this project-am-texinfo) buffer)
   "Return t if object THIS lays claim to the file in BUFFER."
   (let ((bfn (file-relative-name (buffer-file-name buffer)
 				 (oref this :path))))
     (or (string= (oref this :name)  bfn)
 	(member bfn (oref this :include)))))
 
-(defmethod ede-buffer-mine ((this project-am-man) buffer)
+(cl-defmethod ede-buffer-mine ((this project-am-man) buffer)
   "Return t if object THIS lays claim to the file in BUFFER."
   (string= (oref this :name)
 	   (file-relative-name (buffer-file-name buffer) (oref this :path))))
 
-(defmethod ede-buffer-mine ((this project-am-lisp) buffer)
+(cl-defmethod ede-buffer-mine ((this project-am-lisp) buffer)
   "Return t if object THIS lays claim to the file in BUFFER."
   (member (file-relative-name (buffer-file-name buffer) (oref this :path))
 	  (oref this :source)))
 
-(defmethod project-am-subtree ((ampf project-am-makefile) subdir)
+(cl-defmethod project-am-subtree ((ampf project-am-makefile) subdir)
   "Return the sub project in AMPF specified by SUBDIR."
   (object-assoc (expand-file-name subdir) 'file (oref ampf subproj)))
 
-(defmethod project-compile-target-command ((this project-am-target))
+(cl-defmethod project-compile-target-command ((this project-am-target))
   "Default target to use when compiling a given target."
   ;; This is a pretty good default for most.
   "")
 
-(defmethod project-compile-target-command ((this project-am-objectcode))
+(cl-defmethod project-compile-target-command ((this project-am-objectcode))
   "Default target to use when compiling an object code target."
   (oref this :name))
 
-(defmethod project-compile-target-command ((this project-am-texinfo))
+(cl-defmethod project-compile-target-command ((this project-am-texinfo))
   "Default target t- use when compiling a texinfo file."
   (let ((n (oref this :name)))
     (if (string-match "\\.texi?\\(nfo\\)?" n)
@@ -861,9 +861,9 @@ Argument FILE is the file to extract the end directory name from."
 	(t
 	 'project-am-program)))
 
-(defmethod ede-buffer-header-file((this project-am-objectcode) buffer)
+(cl-defmethod ede-buffer-header-file((this project-am-objectcode) buffer)
   "There are no default header files."
-  (or (call-next-method)
+  (or (cl-call-next-method)
       (let ((s (oref this source))
 	    (found nil))
 	(while (and s (not found))
@@ -873,7 +873,7 @@ Argument FILE is the file to extract the end directory name from."
 	  (setq s (cdr s)))
 	found)))
 
-(defmethod ede-documentation ((this project-am-texinfo))
+(cl-defmethod ede-documentation ((this project-am-texinfo))
   "Return a list of files that provides documentation.
 Documentation is not for object THIS, but is provided by THIS for other
 files in the project."
@@ -997,12 +997,12 @@ Calculates the info with `project-am-extract-package-info'."
     (project-am-extract-package-info dir)))
 
 ;; for simple per project include path extension
-(defmethod ede-system-include-path ((this project-am-makefile))
+(cl-defmethod ede-system-include-path ((this project-am-makefile))
   "Return `project-am-localvars-include-path', usually local variable
 per file or in .dir-locals.el or similar."
   (bound-and-true-p project-am-localvars-include-path))
 
-(defmethod ede-system-include-path ((this project-am-target))
+(cl-defmethod ede-system-include-path ((this project-am-target))
   "Return `project-am-localvars-include-path', usually local variable
 per file or in .dir-locals.el or similar."
   (bound-and-true-p project-am-localvars-include-path))

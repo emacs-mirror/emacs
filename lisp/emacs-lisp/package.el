@@ -996,15 +996,22 @@ GnuPG keyring is located under \"gnupg\" in `package-user-dir'."
 
 (defun package-installed-p (package &optional min-version)
   "Return true if PACKAGE, of MIN-VERSION or newer, is installed.
-MIN-VERSION should be a version list."
+If PACKAGE is a symbol, it is the package name and MIN-VERSION
+should be a version list.
+
+If PACKAGE is a package-desc object, MIN-VERSION is ignored."
   (unless package--initialized (error "package.el is not yet initialized!"))
-  (or
-   (let ((pkg-descs (cdr (assq package package-alist))))
-     (and pkg-descs
-          (version-list-<= min-version
-                           (package-desc-version (car pkg-descs)))))
-   ;; Also check built-in packages.
-   (package-built-in-p package min-version)))
+  (if (package-desc-p package)
+      (let ((dir (package-desc-dir package)))
+        (and (stringp dir)
+             (file-exists-p dir)))
+    (or
+     (let ((pkg-descs (cdr (assq package package-alist))))
+       (and pkg-descs
+            (version-list-<= min-version
+                             (package-desc-version (car pkg-descs)))))
+     ;; Also check built-in packages.
+     (package-built-in-p package min-version))))
 
 (defun package-compute-transaction (packages requirements &optional seen)
   "Return a list of packages to be installed, including PACKAGES.
@@ -1219,7 +1226,10 @@ PKG can be a package-desc or the package name of one the available packages
 in an archive in `package-archives'.  Interactively, prompt for its name.
 
 If called interactively or if MARK-SELECTED is non-nil, add PKG
-to `package-selected-packages'."
+to `package-selected-packages'.
+
+if PKG is a package-desc and it is already installed, don't try
+to install it but still mark it as selected."
   (interactive
    (progn
      ;; Initialize the package system to get the list of package
@@ -1243,21 +1253,28 @@ to `package-selected-packages'."
     (when (and mark-selected (not (package--user-selected-p name)))
       (customize-save-variable 'package-selected-packages
                                (cons name package-selected-packages))))
-  (package-download-transaction
-   (if (package-desc-p pkg)
-       (package-compute-transaction (list pkg)
-                                    (package-desc-reqs pkg))
+  (if (package-desc-p pkg)
+      (if (package-installed-p pkg)
+          (message "`%s' is already installed" (package-desc-full-name pkg))
+        (package-download-transaction
+         (package-compute-transaction (list pkg)
+                                      (package-desc-reqs pkg))))
+    (package-download-transaction
      (package-compute-transaction ()
                                   (list (list pkg))))))
 
 ;;;###autoload
 (defun package-reinstall (pkg)
-  "Reinstall package PKG."
+  "Reinstall package PKG.
+PKG shoul be either a symbol, the package name, or a package-desc
+object."
   (interactive (list (intern (completing-read
                               "Reinstall package: "
                               (mapcar #'symbol-name
                                       (mapcar #'car package-alist))))))
-  (package-delete (cadr (assq pkg package-alist)) 'force 'nosave)
+  (package-delete
+   (if (package-desc-p pkg) pkg (cadr (assq pkg package-alist)))
+   'force 'nosave)
   (package-install pkg))
 
 (defun package-strip-rcs-id (str)
@@ -1506,6 +1523,13 @@ If NOSAVE is non-nil, the package is not removed from
   (let ((dir (package-desc-dir pkg-desc))
         (name (package-desc-name pkg-desc))
         pkg-used-elsewhere-by)
+    ;; If the user is trying to delete this package, they definitely
+    ;; don't want it marked as selected, so we remove it from
+    ;; `package-selected-packages' even if it can't be deleted.
+    (when (and (null nosave)
+               (package--user-selected-p name))
+      (customize-save-variable
+       'package-selected-packages (remove name package-selected-packages)))
     (cond ((not (string-prefix-p (file-name-as-directory
                                   (expand-file-name package-user-dir))
                                  (expand-file-name dir)))
@@ -1530,11 +1554,6 @@ If NOSAVE is non-nil, the package is not removed from
              (delete pkg-desc pkgs)
              (unless (cdr pkgs)
                (setq package-alist (delq pkgs package-alist))))
-           ;; Update package-selected-packages.
-           (when (and (null nosave)
-                      (package--user-selected-p name))
-             (customize-save-variable
-              'package-selected-packages (remove name package-selected-packages)))
            (message "Package `%s' deleted." (package-desc-full-name pkg-desc))))))
 
 (defun package--removable-packages ()

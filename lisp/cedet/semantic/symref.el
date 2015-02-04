@@ -314,7 +314,7 @@ Use the  `semantic-symref-hit-tags' method to get this list.")
    )
   "The results from a symbol reference search.")
 
-(defmethod semantic-symref-result-get-files ((result semantic-symref-result))
+(cl-defmethod semantic-symref-result-get-files ((result semantic-symref-result))
   "Get the list of files from the symref result RESULT."
   (if (slot-boundp result :hit-files)
       (oref result hit-files)
@@ -352,7 +352,7 @@ until the next command is executed."
   (remove-hook 'post-command-hook 'semantic-symref-cleanup-recent-buffers-fcn)
   )
   
-(defmethod semantic-symref-result-get-tags ((result semantic-symref-result)
+(cl-defmethod semantic-symref-result-get-tags ((result semantic-symref-result)
 					    &optional open-buffers)
   "Get the list of tags from the symref result RESULT.
 Optional OPEN-BUFFERS indicates that the buffers that the hits are
@@ -531,7 +531,7 @@ NAME is the name of the tool used in the configuration variable
 `semantic-symref-tool'"
   :abstract t)
 
-(defmethod semantic-symref-get-result ((tool semantic-symref-tool-baseclass))
+(cl-defmethod semantic-symref-get-result ((tool semantic-symref-tool-baseclass))
   "Calculate the results of a search based on TOOL.
 The symref TOOL should already contain the search criteria."
   (let ((answer (semantic-symref-perform-search tool))
@@ -549,11 +549,11 @@ The symref TOOL should already contain the search criteria."
       )
     ))
 
-(defmethod semantic-symref-perform-search ((tool semantic-symref-tool-baseclass))
+(cl-defmethod semantic-symref-perform-search ((tool semantic-symref-tool-baseclass))
   "Base search for symref tools should throw an error."
   (error "Symref tool objects must implement `semantic-symref-perform-search'"))
 
-(defmethod semantic-symref-parse-tool-output ((tool semantic-symref-tool-baseclass)
+(cl-defmethod semantic-symref-parse-tool-output ((tool semantic-symref-tool-baseclass)
 					      outputbuffer)
   "Parse the entire OUTPUTBUFFER of a symref tool.
 Calls the method `semantic-symref-parse-tool-output-one-line' over and
@@ -567,7 +567,7 @@ over until it returns nil."
       (nreverse result)))
   )
 
-(defmethod semantic-symref-parse-tool-output-one-line ((tool semantic-symref-tool-baseclass))
+(cl-defmethod semantic-symref-parse-tool-output-one-line ((tool semantic-symref-tool-baseclass))
   "Base tool output parser is not implemented."
   (error "Symref tool objects must implement `semantic-symref-parse-tool-output-one-line'"))
 

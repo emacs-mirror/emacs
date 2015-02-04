@@ -121,7 +121,7 @@ This shell should support pipe redirect syntax."
   :group 'semantic
   :type 'string)
 
-(defmethod semantic-symref-perform-search ((tool semantic-symref-tool-grep))
+(cl-defmethod semantic-symref-perform-search ((tool semantic-symref-tool-grep))
   "Perform a search with Grep."
   ;; Grep doesn't support some types of searches.
   (let ((st (oref tool :searchtype)))
@@ -167,7 +167,7 @@ This shell should support pipe redirect syntax."
     ;; Return the answer
     ans))
 
-(defmethod semantic-symref-parse-tool-output-one-line ((tool semantic-symref-tool-grep))
+(cl-defmethod semantic-symref-parse-tool-output-one-line ((tool semantic-symref-tool-grep))
   "Parse one line of grep output, and return it as a match list.
 Moves cursor to end of the match."
   (cond ((eq (oref tool :resulttype) 'file)

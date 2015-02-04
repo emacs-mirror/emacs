@@ -38,7 +38,7 @@ the hit list.
 
 See the function `cedet-gnu-global-search' for more details.")
 
-(defmethod semantic-symref-perform-search ((tool semantic-symref-tool-global))
+(cl-defmethod semantic-symref-perform-search ((tool semantic-symref-tool-global))
   "Perform a search with GNU Global."
   (let ((b (cedet-gnu-global-search (oref tool :searchfor)
 				    (oref tool :searchtype)
@@ -49,7 +49,7 @@ See the function `cedet-gnu-global-search' for more details.")
     (semantic-symref-parse-tool-output tool b)
     ))
 
-(defmethod semantic-symref-parse-tool-output-one-line ((tool semantic-symref-tool-global))
+(cl-defmethod semantic-symref-parse-tool-output-one-line ((tool semantic-symref-tool-global))
   "Parse one line of grep output, and return it as a match list.
 Moves cursor to end of the match."
   (cond ((or (eq (oref tool :resulttype) 'file)

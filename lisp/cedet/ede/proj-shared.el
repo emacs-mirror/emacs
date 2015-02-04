@@ -171,14 +171,14 @@ Use ldlibs to add addition libraries.")
        "\t@-rm -f .deps/$(*F).p\n\n"))
   )
 
-(defmethod ede-proj-configure-add-missing
+(cl-defmethod ede-proj-configure-add-missing
   ((this ede-proj-target-makefile-shared-object))
   "Query if any files needed by THIS provided by automake are missing.
 Results in --add-missing being passed to automake."
   (not (and (ede-expand-filename (ede-toplevel) "ltconfig")
 	    (ede-expand-filename (ede-toplevel) "ltmain.sh"))))
 
-(defmethod ede-proj-makefile-insert-automake-pre-variables
+(cl-defmethod ede-proj-makefile-insert-automake-pre-variables
   ((this ede-proj-target-makefile-shared-object))
   "Insert bin_PROGRAMS variables needed by target THIS.
 We aren't actually inserting SOURCE details, but this is used by the
@@ -186,23 +186,23 @@ Makefile.am generator, so use it to add this important bin program."
   (ede-pmake-insert-variable-shared "lib_LTLIBRARIES"
      (insert (concat "lib" (ede-name this) ".la"))))
 
-(defmethod ede-proj-makefile-insert-automake-post-variables
+(cl-defmethod ede-proj-makefile-insert-automake-post-variables
   ((this ede-proj-target-makefile-shared-object))
   "Insert bin_PROGRAMS variables needed by target THIS.
 We need to override -program which has an LDADD element."
   nil)
 
-(defmethod ede-proj-makefile-target-name ((this ede-proj-target-makefile-shared-object))
+(cl-defmethod ede-proj-makefile-target-name ((this ede-proj-target-makefile-shared-object))
   "Return the name of the main target for THIS target."
   ;; We need some platform gunk to make the .so change to .sl, or .a,
   ;; depending on the platform we are going to compile against.
   (concat "lib" (ede-name this) ".la"))
 
-(defmethod ede-proj-makefile-sourcevar ((this ede-proj-target-makefile-shared-object))
+(cl-defmethod ede-proj-makefile-sourcevar ((this ede-proj-target-makefile-shared-object))
   "Return the variable name for THIS's sources."
   (if (eq (oref (ede-target-parent this) makefile-type) 'Makefile.am)
       (concat "lib" (oref this name) "_la_SOURCES")
-    (call-next-method)))
+    (cl-call-next-method)))
 
 
 (provide 'ede/proj-shared)

@@ -67,7 +67,7 @@ Said object must support `semantic-reset' methods.")
    )
   "Structure for maintaining a typecache.")
 
-(defmethod semantic-reset ((tc semanticdb-typecache))
+(cl-defmethod semantic-reset ((tc semanticdb-typecache))
   "Reset the object IDX."
   (oset tc filestream nil)
   (oset tc includestream nil)
@@ -78,14 +78,14 @@ Said object must support `semantic-reset' methods.")
   (oset tc dependants nil)
   )
 
-(defmethod semanticdb-typecache-notify-reset ((tc semanticdb-typecache))
+(cl-defmethod semanticdb-typecache-notify-reset ((tc semanticdb-typecache))
   "Do a reset from a notify from a table we depend on."
   (oset tc includestream nil)
   (mapc 'semantic-reset (oref tc dependants))
   (oset tc dependants nil)
   )
 
-(defmethod semanticdb-partial-synchronize ((tc semanticdb-typecache)
+(cl-defmethod semanticdb-partial-synchronize ((tc semanticdb-typecache)
 					   new-tags)
   "Reset the typecache based on a partial reparse."
   (when (semantic-find-tags-by-class 'include new-tags)
@@ -125,7 +125,7 @@ Debugging function."
 	(t -1)	))
 
 
-(defmethod semanticdb-get-typecache ((table semanticdb-abstract-table))
+(cl-defmethod semanticdb-get-typecache ((table semanticdb-abstract-table))
   "Retrieve the typecache from the semanticdb TABLE.
 If there is no table, create one, and fill it in."
   (semanticdb-refresh-table table)
@@ -141,7 +141,7 @@ If there is no table, create one, and fill it in."
 
     cache))
 
-(defmethod semanticdb-have-typecache-p ((table semanticdb-abstract-table))
+(cl-defmethod semanticdb-have-typecache-p ((table semanticdb-abstract-table))
   "Return non-nil (the typecache) if TABLE has a pre-calculated typecache."
   (let* ((idx (semanticdb-get-table-index table)))
     (oref idx type-cache)))
@@ -162,22 +162,22 @@ If there is no table, create one, and fill it in."
    )
   "Structure for maintaining a typecache.")
 
-(defmethod semantic-reset ((tc semanticdb-database-typecache))
+(cl-defmethod semantic-reset ((tc semanticdb-database-typecache))
   "Reset the object IDX."
   (oset tc stream nil)
   )
 
-(defmethod semanticdb-synchronize ((cache semanticdb-database-typecache)
+(cl-defmethod semanticdb-synchronize ((cache semanticdb-database-typecache)
 				   new-tags)
   "Synchronize a CACHE with some NEW-TAGS."
   )
 
-(defmethod semanticdb-partial-synchronize ((cache semanticdb-database-typecache)
+(cl-defmethod semanticdb-partial-synchronize ((cache semanticdb-database-typecache)
 					   new-tags)
   "Synchronize a CACHE with some changed NEW-TAGS."
   )
 
-(defmethod semanticdb-get-typecache ((db semanticdb-project-database))
+(cl-defmethod semanticdb-get-typecache ((db semanticdb-project-database))
   "Retrieve the typecache from the semantic database DB.
 If there is no table, create one, and fill it in."
   (semanticdb-cache-get db 'semanticdb-database-typecache)
@@ -312,11 +312,11 @@ If TAG has fully qualified names, expand it to a series of nested
 namespaces instead."
   tag)
 
-(defmethod semanticdb-typecache-file-tags ((table semanticdb-abstract-table))
+(cl-defmethod semanticdb-typecache-file-tags ((table semanticdb-abstract-table))
   "No tags available from non-file based tables."
   nil)
 
-(defmethod semanticdb-typecache-file-tags ((table semanticdb-table))
+(cl-defmethod semanticdb-typecache-file-tags ((table semanticdb-table))
   "Update the typecache for TABLE, and return the file-tags.
 File-tags are those that belong to this file only, and excludes
 all included files."
@@ -338,11 +338,11 @@ all included files."
     (oref cache filestream)
     ))
 
-(defmethod semanticdb-typecache-include-tags ((table semanticdb-abstract-table))
+(cl-defmethod semanticdb-typecache-include-tags ((table semanticdb-abstract-table))
   "No tags available from non-file based tables."
   nil)
 
-(defmethod semanticdb-typecache-include-tags ((table semanticdb-table))
+(cl-defmethod semanticdb-typecache-include-tags ((table semanticdb-table))
   "Update the typecache for TABLE, and return the merged types from the include tags.
 Include-tags are the tags brought in via includes, all merged together into
 a master list."
@@ -418,7 +418,7 @@ is of class 'type."
 	 (types (semantic-find-tags-by-class 'type nmerge)))
     (or (car-safe types) (car-safe nmerge))))
 
-(defmethod semanticdb-typecache-find-method ((table semanticdb-abstract-table)
+(cl-defmethod semanticdb-typecache-find-method ((table semanticdb-abstract-table)
 					     type find-file-match)
   "Search the typecache in TABLE for the datatype TYPE.
 If type is a string, split the string, and search for the parts.
@@ -544,7 +544,7 @@ found tag to be loaded."
 ;;
 ;; Routines for a typecache that crosses all tables in a given database
 ;; for a matching major-mode.
-(defmethod semanticdb-typecache-for-database ((db semanticdb-project-database)
+(cl-defmethod semanticdb-typecache-for-database ((db semanticdb-project-database)
 					      &optional mode)
   "Return the typecache for the project database DB.
 If there isn't one, create it.

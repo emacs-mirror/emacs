@@ -67,11 +67,11 @@ Each app keys to an alist of files and modes (as above.)")
    )
   "A map of srecode templates.")
 
-(defmethod srecode-map-entry-for-file ((map srecode-map) file)
+(cl-defmethod srecode-map-entry-for-file ((map srecode-map) file)
   "Return the entry in MAP for FILE."
   (assoc file (oref map files)))
 
-(defmethod srecode-map-entries-for-mode ((map srecode-map) mode)
+(cl-defmethod srecode-map-entries-for-mode ((map srecode-map) mode)
   "Return the entries in MAP for major MODE."
   (let ((ans nil))
     (dolist (f (oref map files))
@@ -79,12 +79,12 @@ Each app keys to an alist of files and modes (as above.)")
 	(setq ans (cons f ans))))
     ans))
 
-(defmethod srecode-map-entry-for-app ((map srecode-map) app)
+(cl-defmethod srecode-map-entry-for-app ((map srecode-map) app)
   "Return the entry in MAP for APP."
   (assoc app (oref map apps))
   )
 
-(defmethod srecode-map-entries-for-app-and-mode ((map srecode-map) app mode)
+(cl-defmethod srecode-map-entries-for-app-and-mode ((map srecode-map) app mode)
   "Return the entries in MAP for major MODE."
   (let ((ans nil)
 	(appentry (srecode-map-entry-for-app map app)))
@@ -93,7 +93,7 @@ Each app keys to an alist of files and modes (as above.)")
 	(setq ans (cons f ans))))
     ans))
 
-(defmethod srecode-map-entry-for-file-anywhere ((map srecode-map) file)
+(cl-defmethod srecode-map-entry-for-file-anywhere ((map srecode-map) file)
   "Search in all entry points in MAP for FILE.
 Return a list ( APP . FILE-ASSOC ) where APP is nil
 in the global map."
@@ -112,13 +112,13 @@ in the global map."
    ;; Other?
    ))
 
-(defmethod srecode-map-delete-file-entry ((map srecode-map) file)
+(cl-defmethod srecode-map-delete-file-entry ((map srecode-map) file)
   "Update MAP to exclude FILE from the file list."
   (let ((entry (srecode-map-entry-for-file map file)))
     (when entry
       (object-remove-from-list map 'files entry))))
 
-(defmethod srecode-map-update-file-entry ((map srecode-map) file mode)
+(cl-defmethod srecode-map-update-file-entry ((map srecode-map) file mode)
   "Update a MAP entry for FILE to be used with MODE.
 Return non-nil if the MAP was changed."
   (let ((entry (srecode-map-entry-for-file map file))
@@ -136,14 +136,14 @@ Return non-nil if the MAP was changed."
       ))
     dirty))
 
-(defmethod srecode-map-delete-file-entry-from-app ((map srecode-map) file app)
+(cl-defmethod srecode-map-delete-file-entry-from-app ((map srecode-map) file app)
   "Delete from MAP the FILE entry within the APP."
   (let* ((appe (srecode-map-entry-for-app map app))
 	 (fentry (assoc file (cdr appe))))
     (setcdr appe (delete fentry (cdr appe))))
   )
 
-(defmethod srecode-map-update-app-file-entry ((map srecode-map) file mode app)
+(cl-defmethod srecode-map-update-app-file-entry ((map srecode-map) file mode app)
   "Update the MAP entry for FILE to be used with MODE within APP.
 Return non-nil if the map was changed."
   (let* ((appentry (srecode-map-entry-for-app map app))

@@ -86,7 +86,7 @@ Nice values are 'edit, 'read, 'jump, and 'mark.
    )
   "A single bookmark.")
 
-(defmethod initialize-instance :AFTER ((sbm semantic-bookmark) &rest fields)
+(cl-defmethod initialize-instance :after ((sbm semantic-bookmark) &rest fields)
   "Initialize the bookmark SBM with details about :tag."
   (condition-case nil
       (save-excursion
@@ -96,7 +96,7 @@ Nice values are 'edit, 'read, 'jump, and 'mark.
     (error (message "Error bookmarking tag.")))
   )
 
-(defmethod semantic-mrub-visit ((sbm semantic-bookmark))
+(cl-defmethod semantic-mrub-visit ((sbm semantic-bookmark))
   "Visit the semantic tag bookmark SBM.
 Uses `semantic-go-to-tag' and highlighting."
   (require 'semantic/decorate)
@@ -117,7 +117,7 @@ Uses `semantic-go-to-tag' and highlighting."
     (semantic-momentary-highlight-tag tag)
     ))
 
-(defmethod semantic-mrub-update ((sbm semantic-bookmark) point reason)
+(cl-defmethod semantic-mrub-update ((sbm semantic-bookmark) point reason)
   "Update the existing bookmark SBM.
 POINT is some important location.
 REASON is a symbol.  See slot `reason' on `semantic-bookmark'."
@@ -132,7 +132,7 @@ REASON is a symbol.  See slot `reason' on `semantic-bookmark'."
     (error nil))
   )
 
-(defmethod semantic-mrub-preflush ((sbm semantic-bookmark))
+(cl-defmethod semantic-mrub-preflush ((sbm semantic-bookmark))
   "Method called on a tag before the current buffer list of tags is flushed.
 If there is a buffer match, unlink the tag."
   (let ((tag (oref sbm tag))
@@ -183,7 +183,7 @@ Argument POINT is where to find the tag near."
 	(when nearby (setq tag nearby))))
     tag))
 
-(defmethod semantic-mrub-push ((sbr semantic-bookmark-ring) point
+(cl-defmethod semantic-mrub-push ((sbr semantic-bookmark-ring) point
 			       &optional reason)
   "Add a bookmark to the ring SBR from POINT.
 REASON is why it is being pushed.  See doc for `semantic-bookmark'

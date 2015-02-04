@@ -33,7 +33,7 @@
 
 (declare-function comint-send-input "comint")
 
-(defmethod ede-shell-run-something ((target ede-target) command)
+(cl-defmethod ede-shell-run-something ((target ede-target) command)
   "Create a shell to run stuff for TARGET.
 COMMAND is a text string representing the thing to be run."
   (let* ((buff (ede-shell-buffer target))
@@ -72,7 +72,7 @@ COMMAND is a text string representing the thing to be run."
   (comint-send-input)
   )
 
-(defmethod ede-shell-buffer ((target ede-target))
+(cl-defmethod ede-shell-buffer ((target ede-target))
   "Get the buffer for running shell commands for TARGET."
   (let ((name (ede-name target)))
     (get-buffer-create (format "*EDE Shell %s*" name))))

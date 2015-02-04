@@ -231,25 +231,25 @@ All directories need at least one target.")
   "EDE Linux Project target for Misc files.
 All directories need at least one target.")
 
-(defmethod initialize-instance ((this ede-linux-project)
+(cl-defmethod initialize-instance ((this ede-linux-project)
 				&rest fields)
   "Make sure the targets slot is bound."
-  (call-next-method)
+  (cl-call-next-method)
   (unless (slot-boundp this 'targets)
     (oset this :targets nil)))
 
 ;;; File Stuff
 ;;
-(defmethod ede-project-root-directory ((this ede-linux-project)
+(cl-defmethod ede-project-root-directory ((this ede-linux-project)
 				       &optional file)
   "Return the root for THIS Linux project with file."
   (ede-up-directory (file-name-directory (oref this file))))
 
-(defmethod ede-project-root ((this ede-linux-project))
+(cl-defmethod ede-project-root ((this ede-linux-project))
   "Return my root."
   this)
 
-(defmethod ede-find-subproject-for-directory ((proj ede-linux-project)
+(cl-defmethod ede-find-subproject-for-directory ((proj ede-linux-project)
 					      dir)
   "Return PROJ, for handling all subdirs below DIR."
   proj)
@@ -266,7 +266,7 @@ All directories need at least one target.")
       ))
     match))
 
-(defmethod ede-find-target ((proj ede-linux-project) buffer)
+(cl-defmethod ede-find-target ((proj ede-linux-project) buffer)
   "Find an EDE target in PROJ for BUFFER.
 If one doesn't exist, create a new one for this directory."
   (let* ((ext (file-name-extension (buffer-file-name buffer)))
@@ -292,7 +292,7 @@ If one doesn't exist, create a new one for this directory."
 
 ;;; UTILITIES SUPPORT.
 ;;
-(defmethod ede-preprocessor-map ((this ede-linux-target-c))
+(cl-defmethod ede-preprocessor-map ((this ede-linux-target-c))
   "Get the pre-processor map for Linux C code.
 All files need the macros from lisp.h!"
   (require 'semantic/db)
@@ -317,7 +317,7 @@ All files need the macros from lisp.h!"
   (let ((F (expand-file-name name (expand-file-name subdir root))))
     (when (file-exists-p F) F)))
 
-(defmethod ede-expand-filename-impl ((proj ede-linux-project) name)
+(cl-defmethod ede-expand-filename-impl ((proj ede-linux-project) name)
   "Within this project PROJ, find the file NAME.
 Knows about how the Linux source tree is organized."
   (let* ((ext (file-name-extension name))
@@ -338,11 +338,11 @@ Knows about how the Linux source tree is organized."
              ((string-match "txt" ext)
               (ede-linux-file-exists-name name dir "Documentation"))
              (t nil))))
-    (or F (call-next-method))))
+    (or F (cl-call-next-method))))
 
 ;;; Command Support
 ;;
-(defmethod project-compile-project ((proj ede-linux-project)
+(cl-defmethod project-compile-project ((proj ede-linux-project)
 				    &optional command)
   "Compile the entire current project.
 Argument COMMAND is the command to use when compiling."
@@ -359,7 +359,7 @@ Argument COMMAND is the command to use when compiling."
 
     (compile command)))
 
-(defmethod project-compile-target ((obj ede-linux-target-c) &optional command)
+(cl-defmethod project-compile-target ((obj ede-linux-target-c) &optional command)
   "Compile the current target.
 Argument COMMAND is the command to use for compiling the target."
   (let* ((proj (ede-target-parent obj))
@@ -378,7 +378,7 @@ Argument COMMAND is the command to use for compiling the target."
 
     (compile command)))
 
-(defmethod project-rescan ((this ede-linux-project))
+(cl-defmethod project-rescan ((this ede-linux-project))
   "Rescan this Linux project from the sources."
   (let* ((dir (ede-project-root-directory this))
 	 (bdir (ede-linux--get-build-directory dir))

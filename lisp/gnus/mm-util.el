@@ -1241,9 +1241,9 @@ better ways to do a similar thing.  The previous version of this macro
 bound the default value of `enable-multibyte-characters' to nil while
 evaluating FORMS but it is no longer done.  So, some programs assuming
 it if any may malfunction."
+  (declare (obsolete nil "25.1") (indent 0) (debug t))
   (if (featurep 'xemacs)
       `(progn ,@forms)
-    (message "Warning: Using brain-dead macro `mm-with-unibyte-current-buffer'!")
     (let ((multibyte (make-symbol "multibyte")))
       `(let ((,multibyte enable-multibyte-characters))
 	 (when ,multibyte
@@ -1252,9 +1252,6 @@ it if any may malfunction."
 	     (progn ,@forms)
 	   (when ,multibyte
 	     (set-buffer-multibyte t)))))))
-(put 'mm-with-unibyte-current-buffer 'lisp-indent-function 0)
-(put 'mm-with-unibyte-current-buffer 'edebug-form-spec '(body))
-(make-obsolete 'mm-with-unibyte-current-buffer nil "25.1")
 
 (defun mm-find-charset-region (b e)
   "Return a list of Emacs charsets in the region B to E."

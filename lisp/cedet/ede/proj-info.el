@@ -72,17 +72,17 @@ All other sources should be included independently."))
 
 ;;; Makefile generation
 ;;
-(defmethod ede-proj-configure-add-missing
+(cl-defmethod ede-proj-configure-add-missing
   ((this ede-proj-target-makefile-info))
   "Query if any files needed by THIS provided by automake are missing.
 Results in --add-missing being passed to automake."
   (not (ede-expand-filename (ede-toplevel) "texinfo.tex")))
 
-(defmethod ede-proj-makefile-sourcevar ((this ede-proj-target-makefile-info))
+(cl-defmethod ede-proj-makefile-sourcevar ((this ede-proj-target-makefile-info))
   "Return the variable name for THIS's sources."
   (concat (ede-pmake-varname this) "_TEXINFOS"))
 
-(defmethod ede-proj-makefile-insert-source-variables
+(cl-defmethod ede-proj-makefile-insert-source-variables
   ((this ede-proj-target-makefile-info) &optional moresource)
   "Insert the source variables needed by THIS info target.
 Optional argument MORESOURCE is a list of additional sources to add to the
@@ -90,7 +90,7 @@ sources variable.
 Does the usual for Makefile mode, but splits source into two variables
 when working in Automake mode."
   (if (not (ede-proj-automake-p))
-      (call-next-method)
+      (cl-call-next-method)
     (let* ((sv (ede-proj-makefile-sourcevar this))
 	   (src (copy-sequence (oref this source)))
 	   (menu (or (oref this menu) (car src))))
@@ -119,7 +119,7 @@ when working in Automake mode."
       (kill-buffer buffer))
     info))
 
-(defmethod ede-proj-makefile-target-name ((this ede-proj-target-makefile-info))
+(cl-defmethod ede-proj-makefile-target-name ((this ede-proj-target-makefile-info))
   "Return the name of the main target for THIS target."
   ;; The target should be the main-menu file name translated to .info.
   (let* ((source (if (not (string= (oref this mainmenu) ""))
@@ -128,7 +128,7 @@ when working in Automake mode."
  	 (info (ede-makeinfo-find-info-filename source)))
     (concat (or info (file-name-sans-extension source)) ".info")))
 
-(defmethod ede-proj-makefile-insert-dist-dependencies ((this ede-proj-target-makefile-info))
+(cl-defmethod ede-proj-makefile-insert-dist-dependencies ((this ede-proj-target-makefile-info))
   "Insert any symbols that the DIST rule should depend on.
 Texinfo files want to insert generated `.info' files.
 Argument THIS is the target which needs to insert an info file."
@@ -137,7 +137,7 @@ Argument THIS is the target which needs to insert an info file."
   (insert " " (ede-proj-makefile-target-name this))
   )
 
-(defmethod ede-proj-makefile-insert-dist-filepatterns ((this ede-proj-target-makefile-info))
+(cl-defmethod ede-proj-makefile-insert-dist-filepatterns ((this ede-proj-target-makefile-info))
   "Insert any symbols that the DIST rule should depend on.
 Texinfo files want to insert generated `.info' files.
 Argument THIS is the target which needs to insert an info file."
@@ -151,7 +151,7 @@ Argument THIS is the target which needs to insert an info file."
 ;	n
 ;      (concat n ".info"))))
 
-(defmethod object-write ((this ede-proj-target-makefile-info))
+(cl-defmethod object-write ((this ede-proj-target-makefile-info))
   "Before committing any change to THIS, make sure the mainmenu is first."
    (let ((mm (oref this mainmenu))
 	 (s (oref this source))
@@ -161,9 +161,9 @@ Argument THIS is the target which needs to insert an info file."
        ;; Make sure that MM is first in the list of items.
        (setq nl (cons mm (delq mm s)))
        (oset this source nl)))
-   (call-next-method))
+   (cl-call-next-method))
 
-(defmethod ede-documentation ((this ede-proj-target-makefile-info))
+(cl-defmethod ede-documentation ((this ede-proj-target-makefile-info))
   "Return a list of files that provides documentation.
 Documentation is not for object THIS, but is provided by THIS for other
 files in the project."

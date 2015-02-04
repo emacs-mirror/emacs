@@ -37,6 +37,7 @@
 
 ;;; Code:
 (require 'eieio)
+(require 'cl-generic)
 (require 'semantic)
 (require 'semantic/db)
 (require 'semantic/tag)
@@ -44,7 +45,7 @@
 ;; For the semantic-find-tags-by-name-regexp macro.
 (eval-when-compile (require 'semantic/find))
 
-(defmethod semanticdb-add-reference ((dbt semanticdb-abstract-table)
+(cl-defmethod semanticdb-add-reference ((dbt semanticdb-abstract-table)
 				     include-tag)
   "Add a reference for the database table DBT based on INCLUDE-TAG.
 DBT is the database table that owns the INCLUDE-TAG.  The reference
@@ -66,18 +67,18 @@ will be added to the database that INCLUDE-TAG refers to."
       (object-add-to-list refdbt 'db-refs dbt)
       t)))
 
-(defmethod semanticdb-check-references ((dbt semanticdb-abstract-table))
+(cl-defmethod semanticdb-check-references ((dbt semanticdb-abstract-table))
   "Check and cleanup references in the database DBT.
 Abstract tables would be difficult to reference."
   ;; Not sure how an abstract table can have references.
   nil)
 
-(defmethod semanticdb-includes-in-table ((dbt semanticdb-abstract-table))
+(cl-defmethod semanticdb-includes-in-table ((dbt semanticdb-abstract-table))
   "Return a list of direct includes in table DBT."
   (semantic-find-tags-by-class 'include (semanticdb-get-tags dbt)))
 
 
-(defmethod semanticdb-check-references ((dbt semanticdb-table))
+(cl-defmethod semanticdb-check-references ((dbt semanticdb-table))
   "Check and cleanup references in the database DBT.
 Any reference to a file that cannot be found, or whos file no longer
 refers to DBT will be removed."
@@ -108,13 +109,13 @@ refers to DBT will be removed."
 	  ))
       (setq refs (cdr refs)))))
 
-(defmethod semanticdb-refresh-references ((dbt semanticdb-abstract-table))
+(cl-defmethod semanticdb-refresh-references ((dbt semanticdb-abstract-table))
   "Refresh references to DBT in other files."
   ;; alternate tables can't be edited, so can't be changed.
   nil
   )
 
-(defmethod semanticdb-refresh-references ((dbt semanticdb-table))
+(cl-defmethod semanticdb-refresh-references ((dbt semanticdb-table))
   "Refresh references to DBT in other files."
   (let ((refs (semanticdb-includes-in-table dbt))
 	)
@@ -127,7 +128,7 @@ refers to DBT will be removed."
       (setq refs (cdr refs)))
     ))
 
-(defmethod semanticdb-notify-references ((dbt semanticdb-table)
+(cl-defmethod semanticdb-notify-references ((dbt semanticdb-table)
 					 method)
   "Notify all references of the table DBT using method.
 METHOD takes two arguments.

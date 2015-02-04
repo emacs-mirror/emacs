@@ -113,7 +113,7 @@ initialize the :file slot of the persistent baseclass.")
 
 ;;; Rescanning
 
-(defmethod project-rescan ((this ede-project-with-config))
+(cl-defmethod project-rescan ((this ede-project-with-config))
   "Rescan this generic project from the sources."
   ;; Force the config to be rescanned.
   (oset this config nil)
@@ -123,7 +123,7 @@ initialize the :file slot of the persistent baseclass.")
 
 ;;; Project Methods for configuration
 
-(defmethod ede-config-get-configuration ((proj ede-project-with-config) &optional loadask)
+(cl-defmethod ede-config-get-configuration ((proj ede-project-with-config) &optional loadask)
   "Return the configuration for the project PROJ.
 If optional LOADASK is non-nil, then if a project file exists, and if
 the directory isn't on the `safe' list, ask to add it to the safe list."
@@ -170,28 +170,28 @@ the directory isn't on the `safe' list, ask to add it to the safe list."
 	(oset config project proj)))
     config))
 
-(defmethod ede-config-setup-configuration ((proj ede-project-with-config) config)
+(cl-defmethod ede-config-setup-configuration ((proj ede-project-with-config) config)
   "Default configuration setup method."
   nil)
 
-(defmethod ede-commit-project ((proj ede-project-with-config))
+(cl-defmethod ede-commit-project ((proj ede-project-with-config))
   "Commit any change to PROJ to its file."
   (let ((config (ede-config-get-configuration proj)))
     (ede-commit config)))
 
 ;;; Customization
 ;;
-(defmethod ede-customize ((proj ede-project-with-config))
+(cl-defmethod ede-customize ((proj ede-project-with-config))
   "Customize the EDE project PROJ by actually configuring the config object."
   (let ((config (ede-config-get-configuration proj t)))
     (eieio-customize-object config)))
 
-(defmethod ede-customize ((target ede-target-with-config))
+(cl-defmethod ede-customize ((target ede-target-with-config))
   "Customize the EDE TARGET by actually configuring the config object."
   ;; Nothing unique for the targets, use the project.
   (ede-customize-project))
 
-(defmethod eieio-done-customizing ((config ede-extra-config))
+(cl-defmethod eieio-done-customizing ((config ede-extra-config))
   "Called when EIEIO is done customizing the configuration object.
 We need to go back through the old buffers, and update them with
 the new configuration."
@@ -206,7 +206,7 @@ the new configuration."
 	(with-current-buffer b
 	  (ede-apply-target-options)))))))
 
-(defmethod ede-commit ((config ede-extra-config))
+(cl-defmethod ede-commit ((config ede-extra-config))
   "Commit all changes to the configuration to disk."
   ;; So long as the user is trying to safe this config, make sure they can
   ;; get at it again later.
@@ -253,7 +253,7 @@ the new configuration."
 This class brings in method overloads for running and debugging
 programs from a project.")
 
-(defmethod project-debug-target ((target ede-target-with-config-program))
+(cl-defmethod project-debug-target ((target ede-target-with-config-program))
   "Run the current project derived from TARGET in a debugger."
   (let* ((proj (ede-target-parent target))
 	 (config (ede-config-get-configuration proj t))
@@ -268,7 +268,7 @@ programs from a project.")
 	 (cmdsym (intern-soft (car cmdsplit))))
     (call-interactively cmdsym t)))
 
-(defmethod project-run-target ((target ede-target-with-config-program))
+(cl-defmethod project-run-target ((target ede-target-with-config-program))
   "Run the current project derived from TARGET."
   (let* ((proj (ede-target-parent target))
 	 (config (ede-config-get-configuration proj t))
@@ -299,14 +299,14 @@ This class brings in method overloads for building.")
   "Class to mix into a project with configuration for builds.
 This class brings in method overloads for for building.")
 
-(defmethod project-compile-project ((proj ede-project-with-config-build) &optional command)
+(cl-defmethod project-compile-project ((proj ede-project-with-config-build) &optional command)
   "Compile the entire current project PROJ.
 Argument COMMAND is the command to use when compiling."
   (let* ((config (ede-config-get-configuration proj t))
 	 (comp (oref config :build-command)))
     (compile comp)))
 
-(defmethod project-compile-target ((obj ede-target-with-config-build) &optional command)
+(cl-defmethod project-compile-target ((obj ede-target-with-config-build) &optional command)
   "Compile the current target OBJ.
 Argument COMMAND is the command to use for compiling the target."
   (project-compile-project (ede-current-project) command))
@@ -358,7 +358,7 @@ parsed again."))
 This target brings in methods used by Semantic to query
 the preprocessor map, and include paths.")
 
-(defmethod ede-preprocessor-map ((this ede-target-with-config-c))
+(cl-defmethod ede-preprocessor-map ((this ede-target-with-config-c))
   "Get the pre-processor map for some generic C code."
   (let* ((proj (ede-target-parent this))
 	 (root (ede-project-root proj))
@@ -380,7 +380,7 @@ the preprocessor map, and include paths.")
     filemap
     ))
 
-(defmethod ede-system-include-path ((this ede-target-with-config-c))
+(cl-defmethod ede-system-include-path ((this ede-target-with-config-c))
   "Get the system include path used by project THIS."
   (let* ((proj (ede-target-parent this))
 	(config (ede-config-get-configuration proj)))
@@ -402,7 +402,7 @@ java class path.")
   ()
   "Class to mix into a project to support java.")
 
-(defmethod ede-java-classpath ((proj ede-project-with-config-java))
+(cl-defmethod ede-java-classpath ((proj ede-project-with-config-java))
   "Return the classpath for this project."
   (oref (ede-config-get-configuration proj) :classpath))
 

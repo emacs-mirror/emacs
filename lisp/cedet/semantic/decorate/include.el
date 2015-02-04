@@ -831,7 +831,7 @@ When an include's referring file is parsed, we need to undecorate
 any decorated referring includes.")
 
 
-(defmethod semantic-reset ((obj semantic-decoration-unparsed-include-cache))
+(cl-defmethod semantic-reset ((obj semantic-decoration-unparsed-include-cache))
   "Reset OBJ back to it's empty settings."
   (let ((table (oref obj table)))
     ;; This is a hack.  Add in something better?
@@ -841,13 +841,13 @@ any decorated referring includes.")
 	     ))
     ))
 
-(defmethod semanticdb-partial-synchronize ((cache semantic-decoration-unparsed-include-cache)
+(cl-defmethod semanticdb-partial-synchronize ((cache semantic-decoration-unparsed-include-cache)
 					   new-tags)
   "Synchronize CACHE with some NEW-TAGS."
   (if (semantic-find-tags-by-class 'include new-tags)
       (semantic-reset cache)))
 
-(defmethod semanticdb-synchronize ((cache semantic-decoration-unparsed-include-cache)
+(cl-defmethod semanticdb-synchronize ((cache semantic-decoration-unparsed-include-cache)
 				   new-tags)
   "Synchronize a CACHE with some NEW-TAGS."
   (semantic-reset cache))

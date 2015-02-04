@@ -224,7 +224,7 @@ warn instead."
   ()
   "Search Ebrowse for symbols.")
 
-(defmethod semanticdb-needs-refresh-p ((table semanticdb-table-ebrowse))
+(cl-defmethod semanticdb-needs-refresh-p ((table semanticdb-table-ebrowse))
   "EBROWSE database do not need to be refreshed.
 
 JAVE: stub for needs-refresh, because, how do we know if BROWSE files
@@ -282,7 +282,7 @@ For instance: /home/<username>/.semanticdb/!usr!include!BROWSE"
 
 ;;; Methods for creating a database or tables
 ;;
-(defmethod semanticdb-create-database :STATIC ((dbeC semanticdb-project-database-ebrowse)
+(cl-defmethod semanticdb-create-database ((dbeC (subclass semanticdb-project-database-ebrowse))
 					       directory)
   "Create a new semantic database for DIRECTORY based on ebrowse.
 If there is no database for DIRECTORY available, then
@@ -325,7 +325,7 @@ If there is no database for DIRECTORY available, then
 
       db)))
 
-(defmethod semanticdb-ebrowse-strip-trees  ((dbe semanticdb-project-database-ebrowse)
+(cl-defmethod semanticdb-ebrowse-strip-trees  ((dbe semanticdb-project-database-ebrowse)
 						    data)
   "For the ebrowse database DBE, strip all tables from DATA."
 ;JAVE what it actually seems to do is split the original tree in "tables" associated with files
@@ -479,7 +479,7 @@ Optional argument BASECLASSES specifies a baseclass to the tree being provided."
 ;;;
 ;; Overload for converting the simple faux tag into something better.
 ;;
-(defmethod semanticdb-normalize-tags ((obj semanticdb-table-ebrowse) tags)
+(cl-defmethod semanticdb-normalize-tags ((obj semanticdb-table-ebrowse) tags)
   "Convert in Ebrowse database OBJ a list of TAGS into a complete tag.
 The default tag provided by searches exclude many features of a
 semantic parsed tag.  Look up the file for OBJ, and match TAGS
@@ -521,7 +521,7 @@ return that."
 	(setq tags (cdr tags))))
     tagret))
 
-(defmethod semanticdb-normalize-one-tag ((obj semanticdb-table-ebrowse) tag)
+(cl-defmethod semanticdb-normalize-one-tag ((obj semanticdb-table-ebrowse) tag)
   "Convert in Ebrowse database OBJ one TAG into a complete tag.
 The default tag provided by searches exclude many features of a
 semantic parsed tag.  Look up the file for OBJ, and match TAG
@@ -569,48 +569,48 @@ return that."
 ;; NOTE WHEN IMPLEMENTING: Be sure to add doc-string updates explaining
 ;; how your new search routines are implemented.
 ;;
-(defmethod semanticdb-find-tags-by-name-method
+(cl-defmethod semanticdb-find-tags-by-name-method
   ((table semanticdb-table-ebrowse) name &optional tags)
   "Find all tags named NAME in TABLE.
 Return a list of tags."
   ;;(message "semanticdb-find-tags-by-name-method name -- %s" name)
   (if tags
       ;; If TAGS are passed in, then we don't need to do work here.
-      (call-next-method)
+      (cl-call-next-method)
     ;; If we ever need to do something special, add here.
     ;; Since ebrowse tags are converted into semantic tags, we can
     ;; get away with this sort of thing.
-    (call-next-method)
+    (cl-call-next-method)
     )
   )
 
-(defmethod semanticdb-find-tags-by-name-regexp-method
+(cl-defmethod semanticdb-find-tags-by-name-regexp-method
   ((table semanticdb-table-ebrowse) regex &optional tags)
   "Find all tags with name matching REGEX in TABLE.
 Optional argument TAGS is a list of tags to search.
 Return a list of tags."
-  (if tags (call-next-method)
+  (if tags (cl-call-next-method)
     ;; YOUR IMPLEMENTATION HERE
-    (call-next-method)
+    (cl-call-next-method)
     ))
 
-(defmethod semanticdb-find-tags-for-completion-method
+(cl-defmethod semanticdb-find-tags-for-completion-method
   ((table semanticdb-table-ebrowse) prefix &optional tags)
   "In TABLE, find all occurrences of tags matching PREFIX.
 Optional argument TAGS is a list of tags to search.
 Returns a table of all matching tags."
-  (if tags (call-next-method)
+  (if tags (cl-call-next-method)
     ;; YOUR IMPLEMENTATION HERE
-    (call-next-method)
+    (cl-call-next-method)
     ))
 
-(defmethod semanticdb-find-tags-by-class-method
+(cl-defmethod semanticdb-find-tags-by-class-method
   ((table semanticdb-table-ebrowse) class &optional tags)
   "In TABLE, find all occurrences of tags of CLASS.
 Optional argument TAGS is a list of tags to search.
 Returns a table of all matching tags."
-  (if tags (call-next-method)
-    (call-next-method)))
+  (if tags (cl-call-next-method)
+    (cl-call-next-method)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -621,38 +621,38 @@ Returns a table of all matching tags."
 ;; above.
 ;;
 
-(defmethod semanticdb-deep-find-tags-by-name-method
+(cl-defmethod semanticdb-deep-find-tags-by-name-method
   ((table semanticdb-table-ebrowse) name &optional tags)
   "Find all tags name NAME in TABLE.
 Optional argument TAGS is a list of tags to search.
 Like `semanticdb-find-tags-by-name-method' for ebrowse."
   ;;(semanticdb-find-tags-by-name-method table name tags)
-  (call-next-method))
+  (cl-call-next-method))
 
-(defmethod semanticdb-deep-find-tags-by-name-regexp-method
+(cl-defmethod semanticdb-deep-find-tags-by-name-regexp-method
   ((table semanticdb-table-ebrowse) regex &optional tags)
   "Find all tags with name matching REGEX in TABLE.
 Optional argument TAGS is a list of tags to search.
 Like `semanticdb-find-tags-by-name-method' for ebrowse."
   ;;(semanticdb-find-tags-by-name-regexp-method table regex tags)
-  (call-next-method))
+  (cl-call-next-method))
 
-(defmethod semanticdb-deep-find-tags-for-completion-method
+(cl-defmethod semanticdb-deep-find-tags-for-completion-method
   ((table semanticdb-table-ebrowse) prefix &optional tags)
   "In TABLE, find all occurrences of tags matching PREFIX.
 Optional argument TAGS is a list of tags to search.
 Like `semanticdb-find-tags-for-completion-method' for ebrowse."
   ;;(semanticdb-find-tags-for-completion-method table prefix tags)
-  (call-next-method))
+  (cl-call-next-method))
 
 ;;; Advanced Searches
 ;;
-(defmethod semanticdb-find-tags-external-children-of-type-method
+(cl-defmethod semanticdb-find-tags-external-children-of-type-method
   ((table semanticdb-table-ebrowse) type &optional tags)
   "Find all nonterminals which are child elements of TYPE
 Optional argument TAGS is a list of tags to search.
 Return a list of tags."
-  (if tags (call-next-method)
+  (if tags (cl-call-next-method)
     ;; Ebrowse collects all this type of stuff together for us.
     ;; but we can't use it.... yet.
     nil

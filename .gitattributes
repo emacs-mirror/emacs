@@ -27,6 +27,9 @@ leim/MISC-DIC/pinyin.map -whitespace
 lib-src/update-game-score.exe.manifest -whitespace
 nt/nmake.defs -whitespace
 
+# The upstream maintainer does not want to remove trailing whitespace.
+doc/misc/texinfo.tex -whitespace=blank-at-eol
+
 # Some files should not be treated as text when diffing or merging.
 *.gpg binary
 *.gz binary

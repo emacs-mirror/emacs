@@ -355,8 +355,8 @@ which case this method will be invoked when the argument is `eql' to VAL.
            (let ((m (car methods)))
              (not (and (equal (cl--generic-method-specializers m) specializers)
                        (equal (cl--generic-method-qualifiers m) qualifiers)))))
-    (setq methods (cdr methods))
-    methods))
+    (setq methods (cdr methods)))
+  methods)
 
 ;;;###autoload
 (defun cl-generic-define-method (name qualifiers args uses-cnm function)

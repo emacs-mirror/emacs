@@ -69,12 +69,12 @@ the current EDE project."
 
 ;;; Placeholders for ROOT directory scanning on base objects
 ;;
-(defmethod ede-project-root ((this ede-project-placeholder))
+(cl-defmethod ede-project-root ((this ede-project-placeholder))
   "If a project knows its root, return it here.
 Allows for one-project-object-for-a-tree type systems."
   (oref this rootproject))
 
-(defmethod ede-project-root-directory ((this ede-project-placeholder)
+(cl-defmethod ede-project-root-directory ((this ede-project-placeholder)
 				       &optional file)
   "If a project knows its root, return it here.
 Allows for one-project-object-for-a-tree type systems.
@@ -116,7 +116,7 @@ of the anchor file for the project."
 	    (ede--put-inode-dir-hash dir (nth 10 fattr))
 	    )))))
 
-(defmethod ede--project-inode ((proj ede-project-placeholder))
+(cl-defmethod ede--project-inode ((proj ede-project-placeholder))
   "Get the inode of the directory project PROJ is in."
   (if (slot-boundp proj 'dirinode)
       (oref proj dirinode)
@@ -217,7 +217,7 @@ If optional EXACT is non-nil, only return exact matches for DIR."
     ;; the short answer we found -> ie - we are in a subproject.
     (or ans shortans)))
 
-(defmethod ede-find-subproject-for-directory ((proj ede-project-placeholder)
+(cl-defmethod ede-find-subproject-for-directory ((proj ede-project-placeholder)
 					      dir)
   "Find a subproject of PROJ that corresponds to DIR."
   (if ede--disable-inode
@@ -374,7 +374,7 @@ If DIR is not part of a project, return nil."
 
 ;;; DIRECTORY CONVERSION STUFF
 ;;
-(defmethod ede-convert-path ((this ede-project) path)
+(cl-defmethod ede-convert-path ((this ede-project) path)
   "Convert path in a standard way for a given project.
 Default to making it project relative.
 Argument THIS is the project to convert PATH to."
@@ -388,7 +388,7 @@ Argument THIS is the project to convert PATH to."
 	    (substring fptf (match-end 0))
 	  (error "Cannot convert relativize path %s" fp))))))
 
-(defmethod ede-convert-path ((this ede-target) path &optional project)
+(cl-defmethod ede-convert-path ((this ede-target) path &optional project)
   "Convert path in a standard way for a given project.
 Default to making it project relative.
 Argument THIS is the project to convert PATH to.
@@ -419,7 +419,7 @@ Get it from the toplevel project.  If it doesn't have one, make one."
       (oref top locate-obj)
       )))
 
-(defmethod ede-expand-filename ((this ede-project) filename &optional force)
+(cl-defmethod ede-expand-filename ((this ede-project) filename &optional force)
   "Return a fully qualified file name based on project THIS.
 FILENAME should be just a filename which occurs in a directory controlled
 by this project.
@@ -476,7 +476,7 @@ is returned."
 
     ans))
 
-(defmethod ede-expand-filename-impl ((this ede-project) filename &optional force)
+(cl-defmethod ede-expand-filename-impl ((this ede-project) filename &optional force)
   "Return a fully qualified file name based on project THIS.
 FILENAME should be just a filename which occurs in a directory controlled
 by this project.
@@ -496,7 +496,7 @@ doesn't exist."
     ;; Return it
     found))
 
-(defmethod ede-expand-filename-local ((this ede-project) filename)
+(cl-defmethod ede-expand-filename-local ((this ede-project) filename)
   "Expand filename locally to project THIS with filesystem tests."
   (let ((path (ede-project-root-directory this)))
     (cond ((file-exists-p (expand-file-name filename path))
@@ -504,7 +504,7 @@ doesn't exist."
 	  ((file-exists-p (expand-file-name  (concat "include/" filename) path))
 	   (expand-file-name (concat "include/" filename) path)))))
 
-(defmethod ede-expand-filename-impl-via-subproj ((this ede-project) filename)
+(cl-defmethod ede-expand-filename-impl-via-subproj ((this ede-project) filename)
   "Return a fully qualified file name based on project THIS.
 FILENAME should be just a filename which occurs in a directory controlled
 by this project."
@@ -520,7 +520,7 @@ by this project."
     ;; Return it
     found))
 
-(defmethod ede-expand-filename ((this ede-target) filename &optional force)
+(cl-defmethod ede-expand-filename ((this ede-target) filename &optional force)
   "Return a fully qualified file name based on target THIS.
 FILENAME should be a filename which occurs in a directory in which THIS works.
 Optional argument FORCE forces the default filename to be provided even if it

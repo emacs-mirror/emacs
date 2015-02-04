@@ -24330,7 +24330,7 @@ get_char_face_and_encoding (struct frame *f, int c, int face_id,
 
 static struct face *
 get_glyph_face_and_encoding (struct frame *f, struct glyph *glyph,
-			     XChar2b *char2b, int *two_byte_p)
+			     XChar2b *char2b)
 {
   struct face *face;
   unsigned code = 0;
@@ -24341,9 +24341,6 @@ get_glyph_face_and_encoding (struct frame *f, struct glyph *glyph,
   /* Make sure X resources of the face are allocated.  */
   eassert (face != NULL);
   prepare_face_for_display (f, face);
-
-  if (two_byte_p)
-    *two_byte_p = 0;
 
   if (face->font)
     {
@@ -24457,9 +24454,6 @@ fill_composite_glyph_string (struct glyph_string *s, struct face *base_face,
   /* Adjust base line for subscript/superscript text.  */
   s->ybase += s->first_glyph->voffset;
 
-  /* This glyph string must always be drawn with 16-bit functions.  */
-  s->two_byte_p = 1;
-
   return s->cmp_to;
 }
 
@@ -24570,12 +24564,8 @@ fill_glyph_string (struct glyph_string *s, int face_id,
 	 && glyph->face_id == face_id
 	 && glyph->glyph_not_available_p == glyph_not_available_p)
     {
-      int two_byte_p;
-
       s->face = get_glyph_face_and_encoding (s->f, glyph,
-					       s->char2b + s->nchars,
-					       &two_byte_p);
-      s->two_byte_p = two_byte_p;
+					     s->char2b + s->nchars);
       ++s->nchars;
       eassert (s->nchars <= end - start);
       s->width += glyph->pixel_width;
@@ -24701,17 +24691,18 @@ x_get_glyph_overhangs (struct glyph *glyph, struct frame *f, int *left, int *rig
 
   if (glyph->type == CHAR_GLYPH)
     {
-      struct face *face;
       XChar2b char2b;
-      struct font_metrics *pcm;
-
-      face = get_glyph_face_and_encoding (f, glyph, &char2b, NULL);
-      if (face->font && (pcm = get_per_char_metric (face->font, &char2b)))
+      struct face *face = get_glyph_face_and_encoding (f, glyph, &char2b);
+      if (face->font)
 	{
-	  if (pcm->rbearing > pcm->width)
-	    *right = pcm->rbearing - pcm->width;
-	  if (pcm->lbearing < 0)
-	    *left = -pcm->lbearing;
+	  struct font_metrics *pcm = get_per_char_metric (face->font, &char2b);
+	  if (pcm)
+	    {
+	      if (pcm->rbearing > pcm->width)
+		*right = pcm->rbearing - pcm->width;
+	      if (pcm->lbearing < 0)
+		*left = -pcm->lbearing;
+	    }
 	}
     }
   else if (glyph->type == COMPOSITE_GLYPH)

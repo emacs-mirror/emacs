@@ -173,12 +173,12 @@ Adds this rule to a .PHONY list."))
 This is used when creating a Makefile to prevent duplicate variables and
 rules from being created.")
 
-(defmethod initialize-instance :AFTER ((this ede-compiler) &rest fields)
+(cl-defmethod initialize-instance :after ((this ede-compiler) &rest fields)
   "Make sure that all ede compiler objects are cached in
 `ede-compiler-list'."
   (add-to-list 'ede-compiler-list this))
 
-(defmethod initialize-instance :AFTER ((this ede-linker) &rest fields)
+(cl-defmethod initialize-instance :after ((this ede-linker) &rest fields)
   "Make sure that all ede compiler objects are cached in
 `ede-linker-list'."
   (add-to-list 'ede-linker-list this))
@@ -235,7 +235,7 @@ This will prevent rules from creating duplicate variables or rules."
   (car-safe linkers))
 
 ;;; Methods:
-(defmethod ede-proj-tweak-autoconf ((this ede-compilation-program))
+(cl-defmethod ede-proj-tweak-autoconf ((this ede-compilation-program))
   "Tweak the configure file (current buffer) to accommodate THIS."
   (mapcar
    (lambda (obj)
@@ -247,7 +247,7 @@ This will prevent rules from creating duplicate variables or rules."
      )
    (oref this autoconf)))
 
-(defmethod ede-proj-flush-autoconf ((this ede-compilation-program))
+(cl-defmethod ede-proj-flush-autoconf ((this ede-compilation-program))
   "Flush the configure file (current buffer) to accommodate THIS."
   nil)
 
@@ -263,7 +263,7 @@ Execute BODY in a location where a value can be placed."
      ))
 (put 'proj-comp-insert-variable-once 'lisp-indent-function 1)
 
-(defmethod ede-proj-makefile-insert-variables ((this ede-compilation-program))
+(cl-defmethod ede-proj-makefile-insert-variables ((this ede-compilation-program))
   "Insert variables needed by the compiler THIS."
   (if (eieio-instance-inheritor-slot-boundp this 'variables)
       (with-slots (variables) this
@@ -276,19 +276,19 @@ Execute BODY in a location where a value can be placed."
 		 (insert cd)))))
 	 variables))))
 
-(defmethod ede-compiler-intermediate-objects-p ((this ede-compiler))
+(cl-defmethod ede-compiler-intermediate-objects-p ((this ede-compiler))
   "Return non-nil if THIS has intermediate object files.
 If this compiler creates code that can be linked together,
 then the object files created by the compiler are considered intermediate."
   (oref this uselinker))
 
-(defmethod ede-compiler-intermediate-object-variable ((this ede-compiler)
+(cl-defmethod ede-compiler-intermediate-object-variable ((this ede-compiler)
 						      targetname)
   "Return a string based on THIS representing a make object variable.
 TARGETNAME is the name of the target that these objects belong to."
   (concat targetname "_OBJ"))
 
-(defmethod ede-proj-makefile-insert-object-variables ((this ede-compiler)
+(cl-defmethod ede-proj-makefile-insert-object-variables ((this ede-compiler)
 						      targetname sourcefiles)
   "Insert an OBJ variable to specify object code to be generated for THIS.
 The name of the target is TARGETNAME as a string.  SOURCEFILES is the list of
@@ -312,19 +312,19 @@ Not all compilers do this."
 		sourcefiles)
 	  (insert "\n")))))
 
-(defmethod ede-proj-makefile-insert-rules ((this ede-compilation-program))
+(cl-defmethod ede-proj-makefile-insert-rules ((this ede-compilation-program))
   "Insert rules needed for THIS compiler object."
   (ede-compiler-only-once this
     (mapc 'ede-proj-makefile-insert-rules (oref this rules))))
 
-(defmethod ede-proj-makefile-insert-rules ((this ede-makefile-rule))
+(cl-defmethod ede-proj-makefile-insert-rules ((this ede-makefile-rule))
   "Insert rules needed for THIS rule object."
   (if (oref this phony) (insert ".PHONY: " (oref this target) "\n"))
   (insert (oref this target) ": " (oref this dependencies) "\n\t"
 	  (mapconcat (lambda (c) c) (oref this rules) "\n\t")
 	  "\n\n"))
 
-(defmethod ede-proj-makefile-insert-commands ((this ede-compilation-program))
+(cl-defmethod ede-proj-makefile-insert-commands ((this ede-compilation-program))
   "Insert the commands needed to use compiler THIS.
 The object creating makefile rules must call this method for the
 compiler it decides to use after inserting in the rule."

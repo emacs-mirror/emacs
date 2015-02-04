@@ -1,3 +1,12 @@
+2015-02-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mm-util.el (mm-with-unibyte-current-buffer): Don't emit a warning
+	message, since we already get an obsolescence message.  Use `declare'.
+
+2015-02-04  Eric Abrahamsen  <eric@ericabrahamsen.net>
+
+	* nnir.el: Revert "Enable non-ASCII IMAP searches".
+
 2015-01-30  Glenn Morris  <rgm@gnu.org>
 
 	* gnus-registry.el (gnus-registry-max-pruned-entries)

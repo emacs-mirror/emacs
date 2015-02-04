@@ -30,6 +30,7 @@
 
 (eval-when-compile (require 'cl))
 (require 'eieio)
+(require 'cl-generic)
 (require 'srecode)
 (require 'srecode/table)
 (eval-when-compile (require 'semantic))
@@ -103,7 +104,7 @@ set NAME \"str\" macro \"OTHERNAME\"
 
 with appending various parts together in a list.")
 
-(defmethod initialize-instance ((this srecode-dictionary-compound-variable)
+(cl-defmethod initialize-instance ((this srecode-dictionary-compound-variable)
 				&optional fields)
   "Initialize the compound variable THIS.
 Makes sure that :value is compiled."
@@ -120,7 +121,7 @@ Makes sure that :value is compiled."
     ;;(when (not state)
     ;;  (error "Cannot create compound variable outside of sectiondictionary"))
 
-    (call-next-method this (nreverse newfields))
+    (cl-call-next-method this (nreverse newfields))
     (when (not (slot-boundp this 'compiled))
       (let ((val (oref this :value))
 	    (comp nil))
@@ -215,7 +216,7 @@ associated with a buffer or parent."
 	    ))
 	dict))))
 
-(defmethod srecode-dictionary-add-template-table ((dict srecode-dictionary)
+(cl-defmethod srecode-dictionary-add-template-table ((dict srecode-dictionary)
 						  tpl)
   "Insert into DICT the variables found in table TPL.
 TPL is an object representing a compiled template file."
@@ -235,7 +236,7 @@ TPL is an object representing a compiled template file."
   	(setq tabs (cdr tabs))))))
 
 
-(defmethod srecode-dictionary-set-value ((dict srecode-dictionary)
+(cl-defmethod srecode-dictionary-set-value ((dict srecode-dictionary)
 					 name value)
   "In dictionary DICT, set NAME to have VALUE."
   ;; Validate inputs
@@ -247,7 +248,7 @@ TPL is an object representing a compiled template file."
     (puthash name value namehash))
   )
 
-(defmethod srecode-dictionary-add-section-dictionary ((dict srecode-dictionary)
+(cl-defmethod srecode-dictionary-add-section-dictionary ((dict srecode-dictionary)
 						      name &optional show-only force)
   "In dictionary DICT, add a section dictionary for section macro NAME.
 Return the new dictionary.
@@ -299,7 +300,7 @@ inserted dictionaries."
     ;; Return the new sub-dictionary.
     new))
 
-(defmethod srecode-dictionary-show-section ((dict srecode-dictionary) name)
+(cl-defmethod srecode-dictionary-show-section ((dict srecode-dictionary) name)
   "In dictionary DICT, indicate that the section NAME should be exposed."
   ;; Validate inputs
   (unless (stringp name)
@@ -310,7 +311,7 @@ inserted dictionaries."
   (srecode-dictionary-add-section-dictionary dict name t)
   nil)
 
-(defmethod srecode-dictionary-hide-section ((dict srecode-dictionary) name)
+(cl-defmethod srecode-dictionary-hide-section ((dict srecode-dictionary) name)
   "In dictionary DICT, indicate that the section NAME should be hidden."
   ;; We need to find the has value, and then delete it.
   ;; Validate inputs
@@ -322,7 +323,7 @@ inserted dictionaries."
     (remhash name namehash))
   nil)
 
-(defmethod srecode-dictionary-add-entries ((dict srecode-dictionary)
+(cl-defmethod srecode-dictionary-add-entries ((dict srecode-dictionary)
 					   entries &optional state)
   "Add ENTRIES to DICT.
 
@@ -373,7 +374,7 @@ values but STATE is nil."
     (setq entries (nthcdr 2 entries)))
   dict)
 
-(defmethod srecode-dictionary-merge ((dict srecode-dictionary) otherdict
+(cl-defmethod srecode-dictionary-merge ((dict srecode-dictionary) otherdict
 				     &optional force)
   "Merge into DICT the dictionary entries from OTHERDICT.
 Unless the optional argument FORCE is non-nil, values in DICT are
@@ -405,7 +406,7 @@ OTHERDICT."
 	   (srecode-dictionary-set-value dict key entry)))))
      (oref otherdict namehash))))
 
-(defmethod srecode-dictionary-lookup-name ((dict srecode-dictionary)
+(cl-defmethod srecode-dictionary-lookup-name ((dict srecode-dictionary)
 					   name &optional non-recursive)
   "Return information about DICT's value for NAME.
 DICT is a dictionary, and NAME is a string that is treated as the
@@ -429,7 +430,7 @@ This function derives values for some special NAMEs, such as
 	       (srecode-dictionary-lookup-name parent name)))))
   )
 
-(defmethod srecode-root-dictionary ((dict srecode-dictionary))
+(cl-defmethod srecode-root-dictionary ((dict srecode-dictionary))
   "For dictionary DICT, return the root dictionary.
 The root dictionary is usually for a current or active insertion."
   (let ((ans dict))
@@ -442,7 +443,7 @@ The root dictionary is usually for a current or active insertion."
 ;; Compound values must provide at least the toString method
 ;; for use in converting the compound value into something insertable.
 
-(defmethod srecode-compound-toString ((cp srecode-dictionary-compound-value)
+(cl-defmethod srecode-compound-toString ((cp srecode-dictionary-compound-value)
 				      function
 				      dictionary)
   "Convert the compound dictionary value CP to a string.
@@ -456,13 +457,13 @@ the value itself using `princ', or by detecting if the current
 standard out is a buffer, and using `insert'."
   (eieio-object-name cp))
 
-(defmethod srecode-dump ((cp srecode-dictionary-compound-value)
+(cl-defmethod srecode-dump ((cp srecode-dictionary-compound-value)
 			 &optional indent)
   "Display information about this compound value."
   (princ (eieio-object-name cp))
   )
 
-(defmethod srecode-compound-toString ((cp srecode-dictionary-compound-variable)
+(cl-defmethod srecode-compound-toString ((cp srecode-dictionary-compound-variable)
 				      function
 				      dictionary)
   "Convert the compound dictionary variable value CP into a string.
@@ -471,7 +472,7 @@ FUNCTION and DICTIONARY are as for the baseclass."
   (srecode-insert-code-stream (oref cp compiled) dictionary))
 
 
-(defmethod srecode-dump ((cp srecode-dictionary-compound-variable)
+(cl-defmethod srecode-dump ((cp srecode-dictionary-compound-variable)
 			 &optional indent)
   "Display information about this compound value."
   (require 'srecode/compile)
@@ -501,7 +502,7 @@ Compound values allow a field to be stored in the dictionary for when
 it is referenced a second time.  This compound value can then be
 inserted with a new editable field.")
 
-(defmethod srecode-compound-toString((cp srecode-field-value)
+(cl-defmethod srecode-compound-toString((cp srecode-field-value)
 				     function
 				     dictionary)
   "Convert this field into an insertable string."
@@ -639,7 +640,7 @@ STATE is the current compiler state."
 	  (srecode-dump dict))
 	))))
 
-(defmethod srecode-dump ((dict srecode-dictionary) &optional indent)
+(cl-defmethod srecode-dump ((dict srecode-dictionary) &optional indent)
   "Dump a dictionary."
   (if (not indent) (setq indent 0))
   (maphash (lambda (key entry)

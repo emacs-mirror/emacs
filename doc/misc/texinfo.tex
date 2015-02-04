@@ -3,11 +3,12 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2014-12-03.16}
+\def\texinfoversion{2015-01-31.10}
 %
 % Copyright 1985, 1986, 1988, 1990, 1991, 1992, 1993, 1994, 1995,
 % 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-% 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014 Free Software Foundation, Inc.
+% 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015
+% Free Software Foundation, Inc.
 %
 % This texinfo.tex file is free software: you can redistribute it and/or
 % modify it under the terms of the GNU General Public License as
@@ -8952,6 +8953,7 @@ directory should work if nowhere else does.}
       \catcode\count255=#1\relax
       \advance\count255 by 1
    \repeat
+
 }
 
 % @documentencoding sets the definition of non-ASCII characters
@@ -8986,10 +8988,12 @@ directory should work if nowhere else does.}
   %
   \else \ifx \declaredencoding \utfeight
      \setnonasciicharscatcode\active
-     \utfeightchardefs
+     % since we already invoked \utfeightchardefs at the top level
+     % (below), do not re-invoke it, then our check for duplicated
+     % definitions triggers.  Making non-ascii chars active is enough.
   %
   \else
-    \message{Unknown document encoding #1, ignoring.}%
+    \message{Ignoring unknown document encoding: #1.}%
   %
   \fi % utfeight
   \fi % latnine
@@ -8998,10 +9002,11 @@ directory should work if nowhere else does.}
   \fi % ascii
 }
 
+% emacs-page
 % A message to be logged when using a character that isn't available
 % the default font encoding (OT1).
 %
-\def\missingcharmsg#1{\message{Character missing in OT1 encoding: #1.}}
+\def\missingcharmsg#1{\message{Character missing, sorry: #1.}}
 
 % Take account of \c (plain) vs. \, (Texinfo) difference.
 \def\cedilla#1{\ifx\c\ptexc\c{#1}\else\,{#1}\fi}
@@ -9037,12 +9042,10 @@ directory should work if nowhere else does.}
   \gdef^^b4{\'{}}
   \gdef^^b5{$\mu$}
   \gdef^^b6{\P}
-  %
-  \gdef^^b7{$^.$}
+  \gdef^^b7{\ifmmode\cdot\else $\cdot$\fi}
   \gdef^^b8{\cedilla\ }
   \gdef^^b9{$^1$}
   \gdef^^ba{\ordm}
-  %
   \gdef^^bb{\guillemetright}
   \gdef^^bc{$1\over4$}
   \gdef^^bd{$1\over2$}
@@ -9331,6 +9334,11 @@ directory should work if nowhere else does.}
       \expandafter\expandafter\expandafter\expandafter
        \expandafter\expandafter\expandafter
        \gdef\UTFviiiTmp{#2}%
+      % 
+      \expandafter\ifx\csname uni:#1\endcsname \relax \else
+       \errmessage{Internal error, already defined: #1}%
+      \fi
+      %
       % define an additional control sequence for this code point.
       \expandafter\globallet\csname uni:#1\endcsname \UTFviiiTmp
     \endgroup}
@@ -9370,23 +9378,49 @@ directory should work if nowhere else does.}
     \uppercase{\gdef\UTFviiiTmp{#2#3#4}}}
 \endgroup
 
+% https://en.wikipedia.org/wiki/Plane_(Unicode)#Basic_M
+% U+0000..U+007F = https://en.wikipedia.org/wiki/Basic_Latin_(Unicode_block)
+% U+0080..U+00FF = https://en.wikipedia.org/wiki/Latin-1_Supplement_(Unicode_block)
+% U+0100..U+017F = https://en.wikipedia.org/wiki/Latin_Extended-A
+% U+0180..U+024F = https://en.wikipedia.org/wiki/Latin_Extended-B
+% 
+% Many of our renditions are less than wonderful, and all the missing
+% characters are available somewhere.  Loading the necessary fonts
+% awaits user request.  We can't truly support Unicode without
+% reimplementing everything that's been done in LaTeX for many years,
+% plus probably using luatex or xetex, and who knows what else.
+% We won't be doing that here in this simple file.  But we can try to at
+% least make most of the characters not bomb out.
+%
 \def\utfeightchardefs{%
   \DeclareUnicodeCharacter{00A0}{\tie}
   \DeclareUnicodeCharacter{00A1}{\exclamdown}
   \DeclareUnicodeCharacter{00A3}{\pounds}
+  \DeclareUnicodeCharacter{00A7}{\S}
   \DeclareUnicodeCharacter{00A8}{\"{ }}
   \DeclareUnicodeCharacter{00A9}{\copyright}
   \DeclareUnicodeCharacter{00AA}{\ordf}
   \DeclareUnicodeCharacter{00AB}{\guillemetleft}
+  \DeclareUnicodeCharacter{00AC}{\ifmmode\lnot\else $\lnot$\fi}
   \DeclareUnicodeCharacter{00AD}{\-}
   \DeclareUnicodeCharacter{00AE}{\registeredsymbol}
   \DeclareUnicodeCharacter{00AF}{\={ }}
 
   \DeclareUnicodeCharacter{00B0}{\ringaccent{ }}
+  \DeclareUnicodeCharacter{00B1}{\ifmmode\pm\else $\pm$\fi}
+  \DeclareUnicodeCharacter{00B2}{$^2$}
+  \DeclareUnicodeCharacter{00B3}{$^3$}
   \DeclareUnicodeCharacter{00B4}{\'{ }}
+  \DeclareUnicodeCharacter{00B5}{$\mu$}
+  \DeclareUnicodeCharacter{00B6}{\P}
+  \DeclareUnicodeCharacter{00B7}{\ifmmode\cdot\else $\cdot$\fi}
   \DeclareUnicodeCharacter{00B8}{\cedilla{ }}
+  \DeclareUnicodeCharacter{00B9}{$^1$}
   \DeclareUnicodeCharacter{00BA}{\ordm}
   \DeclareUnicodeCharacter{00BB}{\guillemetright}
+  \DeclareUnicodeCharacter{00BC}{$1\over4$}
+  \DeclareUnicodeCharacter{00BD}{$1\over2$}
+  \DeclareUnicodeCharacter{00BE}{$3\over4$}
   \DeclareUnicodeCharacter{00BF}{\questiondown}
 
   \DeclareUnicodeCharacter{00C0}{\`A}
@@ -9413,6 +9447,7 @@ directory should work if nowhere else does.}
   \DeclareUnicodeCharacter{00D4}{\^O}
   \DeclareUnicodeCharacter{00D5}{\~O}
   \DeclareUnicodeCharacter{00D6}{\"O}
+  \DeclareUnicodeCharacter{00D7}{\ifmmode\times\else $\times$\fi}
   \DeclareUnicodeCharacter{00D8}{\O}
   \DeclareUnicodeCharacter{00D9}{\`U}
   \DeclareUnicodeCharacter{00DA}{\'U}
@@ -9446,6 +9481,7 @@ directory should work if nowhere else does.}
   \DeclareUnicodeCharacter{00F4}{\^o}
   \DeclareUnicodeCharacter{00F5}{\~o}
   \DeclareUnicodeCharacter{00F6}{\"o}
+  \DeclareUnicodeCharacter{00F7}{\ifmmode\div\else $\div$\fi}
   \DeclareUnicodeCharacter{00F8}{\o}
   \DeclareUnicodeCharacter{00F9}{\`u}
   \DeclareUnicodeCharacter{00FA}{\'u}
@@ -9465,20 +9501,23 @@ directory should work if nowhere else does.}
   \DeclareUnicodeCharacter{0107}{\'c}
   \DeclareUnicodeCharacter{0108}{\^C}
   \DeclareUnicodeCharacter{0109}{\^c}
-  \DeclareUnicodeCharacter{0118}{\ogonek{E}}
-  \DeclareUnicodeCharacter{0119}{\ogonek{e}}
   \DeclareUnicodeCharacter{010A}{\dotaccent{C}}
   \DeclareUnicodeCharacter{010B}{\dotaccent{c}}
   \DeclareUnicodeCharacter{010C}{\v{C}}
   \DeclareUnicodeCharacter{010D}{\v{c}}
   \DeclareUnicodeCharacter{010E}{\v{D}}
+  \DeclareUnicodeCharacter{010F}{d'}
 
+  \DeclareUnicodeCharacter{0110}{\DH}
+  \DeclareUnicodeCharacter{0111}{\dh}
   \DeclareUnicodeCharacter{0112}{\=E}
   \DeclareUnicodeCharacter{0113}{\=e}
   \DeclareUnicodeCharacter{0114}{\u{E}}
   \DeclareUnicodeCharacter{0115}{\u{e}}
   \DeclareUnicodeCharacter{0116}{\dotaccent{E}}
   \DeclareUnicodeCharacter{0117}{\dotaccent{e}}
+  \DeclareUnicodeCharacter{0118}{\ogonek{E}}
+  \DeclareUnicodeCharacter{0119}{\ogonek{e}}
   \DeclareUnicodeCharacter{011A}{\v{E}}
   \DeclareUnicodeCharacter{011B}{\v{e}}
   \DeclareUnicodeCharacter{011C}{\^G}
@@ -9488,14 +9527,20 @@ directory should work if nowhere else does.}
 
   \DeclareUnicodeCharacter{0120}{\dotaccent{G}}
   \DeclareUnicodeCharacter{0121}{\dotaccent{g}}
+  \DeclareUnicodeCharacter{0122}{\cedilla{G}}
+  \DeclareUnicodeCharacter{0123}{\cedilla{g}}
   \DeclareUnicodeCharacter{0124}{\^H}
   \DeclareUnicodeCharacter{0125}{\^h}
+  \DeclareUnicodeCharacter{0126}{\missingcharmsg{H WITH STROKE}}
+  \DeclareUnicodeCharacter{0127}{\missingcharmsg{h WITH STROKE}}
   \DeclareUnicodeCharacter{0128}{\~I}
   \DeclareUnicodeCharacter{0129}{\~{\dotless{i}}}
   \DeclareUnicodeCharacter{012A}{\=I}
   \DeclareUnicodeCharacter{012B}{\={\dotless{i}}}
   \DeclareUnicodeCharacter{012C}{\u{I}}
   \DeclareUnicodeCharacter{012D}{\u{\dotless{i}}}
+  \DeclareUnicodeCharacter{012E}{\ogonek{I}}
+  \DeclareUnicodeCharacter{012F}{\ogonek{i}}
 
   \DeclareUnicodeCharacter{0130}{\dotaccent{I}}
   \DeclareUnicodeCharacter{0131}{\dotless{i}}
@@ -9503,15 +9548,29 @@ directory should work if nowhere else does.}
   \DeclareUnicodeCharacter{0133}{ij}
   \DeclareUnicodeCharacter{0134}{\^J}
   \DeclareUnicodeCharacter{0135}{\^{\dotless{j}}}
+  \DeclareUnicodeCharacter{0136}{\cedilla{K}}
+  \DeclareUnicodeCharacter{0137}{\cedilla{k}}
+  \DeclareUnicodeCharacter{0138}{\ifmmode\kappa\else $\kappa$\fi}  
   \DeclareUnicodeCharacter{0139}{\'L}
   \DeclareUnicodeCharacter{013A}{\'l}
+  \DeclareUnicodeCharacter{013B}{\cedilla{L}}
+  \DeclareUnicodeCharacter{013C}{\cedilla{l}}
+  \DeclareUnicodeCharacter{013D}{L'}% should kern
+  \DeclareUnicodeCharacter{013E}{l'}% should kern
+  \DeclareUnicodeCharacter{013F}{L\U{00B7}}
 
+  \DeclareUnicodeCharacter{0140}{l\U{00B7}}
   \DeclareUnicodeCharacter{0141}{\L}
   \DeclareUnicodeCharacter{0142}{\l}
   \DeclareUnicodeCharacter{0143}{\'N}
   \DeclareUnicodeCharacter{0144}{\'n}
+  \DeclareUnicodeCharacter{0145}{\cedilla{N}}
+  \DeclareUnicodeCharacter{0146}{\cedilla{n}}
   \DeclareUnicodeCharacter{0147}{\v{N}}
   \DeclareUnicodeCharacter{0148}{\v{n}}
+  \DeclareUnicodeCharacter{0149}{'n}
+  \DeclareUnicodeCharacter{014A}{\missingcharmsg{ENG}}
+  \DeclareUnicodeCharacter{014B}{\missingcharmsg{eng}}
   \DeclareUnicodeCharacter{014C}{\=O}
   \DeclareUnicodeCharacter{014D}{\=o}
   \DeclareUnicodeCharacter{014E}{\u{O}}
@@ -9523,6 +9582,8 @@ directory should work if nowhere else does.}
   \DeclareUnicodeCharacter{0153}{\oe}
   \DeclareUnicodeCharacter{0154}{\'R}
   \DeclareUnicodeCharacter{0155}{\'r}
+  \DeclareUnicodeCharacter{0156}{\cedilla{R}}
+  \DeclareUnicodeCharacter{0157}{\cedilla{r}}
   \DeclareUnicodeCharacter{0158}{\v{R}}
   \DeclareUnicodeCharacter{0159}{\v{r}}
   \DeclareUnicodeCharacter{015A}{\'S}
@@ -9534,10 +9595,12 @@ directory should work if nowhere else does.}
 
   \DeclareUnicodeCharacter{0160}{\v{S}}
   \DeclareUnicodeCharacter{0161}{\v{s}}
-  \DeclareUnicodeCharacter{0162}{\cedilla{t}}
-  \DeclareUnicodeCharacter{0163}{\cedilla{T}}
+  \DeclareUnicodeCharacter{0162}{\cedilla{T}}
+  \DeclareUnicodeCharacter{0163}{\cedilla{t}}
   \DeclareUnicodeCharacter{0164}{\v{T}}
-
+  \DeclareUnicodeCharacter{0165}{\v{t}}
+  \DeclareUnicodeCharacter{0166}{\missingcharmsg{H WITH STROKE}}
+  \DeclareUnicodeCharacter{0167}{\missingcharmsg{h WITH STROKE}}
   \DeclareUnicodeCharacter{0168}{\~U}
   \DeclareUnicodeCharacter{0169}{\~u}
   \DeclareUnicodeCharacter{016A}{\=U}
@@ -9549,6 +9612,8 @@ directory should work if nowhere else does.}
 
   \DeclareUnicodeCharacter{0170}{\H{U}}
   \DeclareUnicodeCharacter{0171}{\H{u}}
+  \DeclareUnicodeCharacter{0172}{\ogonek{U}}
+  \DeclareUnicodeCharacter{0173}{\ogonek{u}}
   \DeclareUnicodeCharacter{0174}{\^W}
   \DeclareUnicodeCharacter{0175}{\^w}
   \DeclareUnicodeCharacter{0176}{\^Y}
@@ -9560,6 +9625,7 @@ directory should work if nowhere else does.}
   \DeclareUnicodeCharacter{017C}{\dotaccent{z}}
   \DeclareUnicodeCharacter{017D}{\v{Z}}
   \DeclareUnicodeCharacter{017E}{\v{z}}
+  \DeclareUnicodeCharacter{017F}{\missingcharmsg{LONG S}}
 
   \DeclareUnicodeCharacter{01C4}{D\v{Z}}
   \DeclareUnicodeCharacter{01C5}{D\v{z}}
@@ -9770,6 +9836,9 @@ directory should work if nowhere else does.}
 \def\asciichardefs{% nothing need be done
    \relax
 }
+
+% define all the unicode characters we know about, for the sake of @U.
+\utfeightchardefs
 
 % Make non-ASCII characters printable again for compatibility with
 % existing Texinfo documents that may use them, even without declaring a
@@ -10192,7 +10261,7 @@ directory should work if nowhere else does.}
 
 @c Local variables:
 @c eval: (add-hook 'write-file-hooks 'time-stamp)
-@c page-delimiter: "^\\\\message"
+@c page-delimiter: "^\\\\message\\|emacs-page"
 @c time-stamp-start: "def\\\\texinfoversion{"
 @c time-stamp-format: "%:y-%02m-%02d.%02H"
 @c time-stamp-end: "}"

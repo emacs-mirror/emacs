@@ -123,7 +123,7 @@ To save the version number, we must hand-set this version string.")
 
 ;;; Code:
 ;;
-(defmethod semanticdb-create-database :STATIC ((dbc semanticdb-project-database-file)
+(cl-defmethod semanticdb-create-database ((dbc (subclass semanticdb-project-database-file))
 					       directory)
   "Create a new semantic database for DIRECTORY and return it.
 If a database for DIRECTORY has already been loaded, return it.
@@ -197,7 +197,7 @@ If DIRECTORY doesn't exist, create a new one."
   "Return the project belonging to FILENAME if it was already loaded."
   (eieio-instance-tracker-find filename 'file 'semanticdb-database-list))
 
-(defmethod semanticdb-file-directory-exists-p ((DB semanticdb-project-database-file)
+(cl-defmethod semanticdb-file-directory-exists-p ((DB semanticdb-project-database-file)
 					       &optional suppress-questions)
   "Does the directory the database DB needs to write to exist?
 If SUPPRESS-QUESTIONS, then do not ask to create the directory."
@@ -219,7 +219,7 @@ If SUPPRESS-QUESTIONS, then do not ask to create the directory."
 	       (setq semanticdb--inhibit-make-directory t))
 	   nil))))
 
-(defmethod semanticdb-save-db ((DB semanticdb-project-database-file)
+(cl-defmethod semanticdb-save-db ((DB semanticdb-project-database-file)
 			       &optional
 			       suppress-questions)
   "Write out the database DB to its file.
@@ -259,13 +259,13 @@ If DB is not specified, then use the current database."
       )
     ))
 
-(defmethod semanticdb-live-p ((obj semanticdb-project-database))
+(cl-defmethod semanticdb-live-p ((obj semanticdb-project-database))
   "Return non-nil if the file associated with OBJ is live.
 Live databases are objects associated with existing directories."
   (and (slot-boundp obj 'reference-directory)
        (file-exists-p (oref obj reference-directory))))
 
-(defmethod semanticdb-live-p ((obj semanticdb-table))
+(cl-defmethod semanticdb-live-p ((obj semanticdb-table))
   "Return non-nil if the file associated with OBJ is live.
 Live files are either buffers in Emacs, or files existing on the filesystem."
   (let ((full-filename (semanticdb-full-filename obj)))
@@ -279,7 +279,7 @@ to prevent overload.")
 
 (declare-function data-debug-insert-thing "data-debug")
 
-(defmethod object-write ((obj semanticdb-table))
+(cl-defmethod object-write ((obj semanticdb-table))
   "When writing a table, we have to make sure we deoverlay it first.
 Restore the overlays after writing.
 Argument OBJ is the object to write."
@@ -312,7 +312,7 @@ Argument OBJ is the object to write."
 
     ;; Do it!
     (condition-case tableerror
-	(call-next-method)
+	(cl-call-next-method)
       (error
        (when semanticdb-data-debug-on-write-error
 	 (require 'data-debug)
@@ -328,7 +328,7 @@ Argument OBJ is the object to write."
 
 ;;; State queries
 ;;
-(defmethod semanticdb-write-directory-p ((obj semanticdb-project-database-file))
+(cl-defmethod semanticdb-write-directory-p ((obj semanticdb-project-database-file))
   "Return non-nil if OBJ should be written to disk.
 Uses `semanticdb-persistent-path' to determine the return value."
   (let ((path semanticdb-persistent-path))
@@ -360,25 +360,25 @@ Uses `semanticdb-persistent-path' to determine the return value."
 	       (throw 'found t))
 	      (t (error "Invalid path %S" (car path))))
 	(setq path (cdr path)))
-      (call-next-method))
+      (cl-call-next-method))
     ))
 
 ;;; Filename manipulation
 ;;
-(defmethod semanticdb-file-table ((obj semanticdb-project-database-file) filename)
+(cl-defmethod semanticdb-file-table ((obj semanticdb-project-database-file) filename)
   "From OBJ, return FILENAME's associated table object."
   ;; Cheater option.  In this case, we always have files directly
   ;; under ourselves.  The main project type may not.
   (object-assoc (file-name-nondirectory filename) 'file (oref obj tables)))
 
-(defmethod semanticdb-file-name-non-directory :STATIC
-  ((dbclass semanticdb-project-database-file))
+(cl-defmethod semanticdb-file-name-non-directory
+  ((dbclass (subclass semanticdb-project-database-file)))
   "Return the file name DBCLASS will use.
 File name excludes any directory part."
   semanticdb-default-file-name)
 
-(defmethod semanticdb-file-name-directory :STATIC
-  ((dbclass semanticdb-project-database-file) directory)
+(cl-defmethod semanticdb-file-name-directory
+  ((dbclass (subclass semanticdb-project-database-file)) directory)
   "Return the relative directory to where DBCLASS will save its cache file.
 The returned path is related to DIRECTORY."
   (if semanticdb-default-save-directory
@@ -389,8 +389,8 @@ The returned path is related to DIRECTORY."
 	 file (file-name-as-directory semanticdb-default-save-directory)))
     directory))
 
-(defmethod semanticdb-cache-filename :STATIC
-  ((dbclass semanticdb-project-database-file) path)
+(cl-defmethod semanticdb-cache-filename
+  ((dbclass (subclass semanticdb-project-database-file)) path)
   "For DBCLASS, return a file to a cache file belonging to PATH.
 This could be a cache file in the current directory, or an encoded file
 name in a secondary directory."
@@ -399,7 +399,7 @@ name in a secondary directory."
   (concat (semanticdb-file-name-directory dbclass path)
 	  (semanticdb-file-name-non-directory dbclass)))
 
-(defmethod semanticdb-full-filename ((obj semanticdb-project-database-file))
+(cl-defmethod semanticdb-full-filename ((obj semanticdb-project-database-file))
   "Fetch the full filename that OBJ refers to."
   (oref obj file))
 

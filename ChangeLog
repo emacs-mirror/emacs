@@ -1,6 +1,6 @@
-2015-02-01  Joakim Verona  <joakim@verona.se>
-	Support for the new Xwidget feature.
-	* configure.ac:
+2015-02-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* .gitattributes: Ignore blanks at EOL in texinfo.tex.
 
 2015-01-28  Paul Eggert  <eggert@cs.ucla.edu>
 
