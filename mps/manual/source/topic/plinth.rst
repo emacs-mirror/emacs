@@ -262,6 +262,11 @@ Library module
         :c:func:`mps_lib_assert_fail_install`. For a discussion of the
         default behaviour, see :ref:`topic-error-assertion-handling`.
 
+    .. warning::
+
+        This function must not call any function in MPS, and it must
+        not access memory managed by the MPS.
+
 .. c:function:: extern mps_lib_assert_fail_t mps_lib_assert_fail_install(mps_lib_assert_fail_t handler)
 
     This function customises the behaviour of the default assertion handler
@@ -276,6 +281,11 @@ Library module
     ``handler`` is the assertion handler to install.
     
     Returns the previously installed handler.
+
+    .. warning::
+
+        The installed assertion handler must not call any function in
+        MPS, and it must not access memory managed by the MPS.
 
 .. c:type:: typedef void (*mps_lib_assert_fail_t)(const char *, unsigned, const char *)
 
