@@ -96,6 +96,14 @@
 #include <girepository.h>
 
 #include "xwidget.h"
+/* Convert STRING, a string constant, to a type acceptable as glib data.
+ Paul Eggert*/
+static char *
+gstr (char const *string)
+{
+  return (char *) string;
+}
+
 
 //TODO embryo of lisp allocators for xwidgets
 //TODO xwidget* should be Lisp_xwidget*
@@ -146,8 +154,7 @@ gboolean webkit_osr_navigation_policy_decision_requested_callback(WebKitWebView 
                                                         WebKitWebPolicyDecision   *policy_decision,
                                                                   gpointer                   user_data);
 
-static GtkWidget* xwgir_create(unsigned char* class, unsigned char* namespace);
-
+static GtkWidget *xwgir_create (char *, char *);
 
 
 static void
@@ -224,8 +231,8 @@ TYPE is a symbol which can take one of the following values:
       if(EQ(xw->type, Qsocket_osr))
           xw->widget_osr = gtk_socket_new();
       if(!NILP (Fget(xw->type, QCxwgir_class)))
-          xw->widget_osr = xwgir_create(SDATA(Fcar(Fcdr(Fget(xw->type, QCxwgir_class)))),
-                                        SDATA(Fcar(Fget(xw->type, QCxwgir_class))));
+          xw->widget_osr = xwgir_create(SSDATA(Fcar(Fcdr(Fget(xw->type, QCxwgir_class)))),
+                                        SSDATA(Fcar(Fget(xw->type, QCxwgir_class))));
 
       gtk_widget_set_size_request (GTK_WIDGET (xw->widget_osr), xw->width, xw->height);
 
@@ -610,7 +617,9 @@ DEFUN ("xwgir-require-namespace", Fxwgir_require_namespace, Sxwgir_require_names
   return Qt;
 }
 
-GtkWidget* xwgir_create(unsigned char* class, unsigned char* namespace){
+GtkWidget *
+xwgir_create (char *class, char *namespace)
+{
   //TODO this is more or less the same as xwgir-call-method, so should be refactored
   //create a gtk widget, given its name
   //find the constructor
@@ -838,16 +847,16 @@ xwidget_init_view (struct xwidget *xww,
   //widget creation
   if(EQ(xww->type, Qbutton))
     {
-      xv->widget = gtk_button_new_with_label (XSTRING(xww->title)->data);
+      xv->widget = gtk_button_new_with_label (SSDATA(xww->title));
       g_signal_connect (G_OBJECT (xv->widget), "clicked",
                         G_CALLBACK (buttonclick_handler), xv); // the view rather than the model
     } else if (EQ(xww->type, Qtoggle)) {
-    xv->widget = gtk_toggle_button_new_with_label (XSTRING(xww->title)->data);
+    xv->widget = gtk_toggle_button_new_with_label (SSDATA(xww->title));
     //xv->widget = gtk_entry_new ();//temp hack to experiment with key propagation TODO entry widget is useful for testing
   } else if (EQ(xww->type, Qsocket)) {
     xv->widget = gtk_socket_new ();
-    g_signal_connect_after(xv->widget, "plug-added", G_CALLBACK(xwidget_plug_added), "plug added");
-    g_signal_connect_after(xv->widget, "plug-removed", G_CALLBACK(xwidget_plug_removed), "plug removed");
+    g_signal_connect_after(xv->widget, "plug-added", G_CALLBACK(xwidget_plug_added), gstr("plug added"));
+    g_signal_connect_after(xv->widget, "plug-removed", G_CALLBACK(xwidget_plug_removed), gstr("plug removed"));
     //TODO these doesnt help
     gtk_widget_add_events(xv->widget, GDK_KEY_PRESS);
     gtk_widget_add_events(xv->widget, GDK_KEY_RELEASE);
@@ -856,7 +865,7 @@ xwidget_init_view (struct xwidget *xww,
       //gtk_hscale_new (GTK_ADJUSTMENT(gtk_adjustment_new (0.0, 0.0, 100.0, 1.0, 10.0, 10.0)));
       gtk_hscale_new_with_range ( 0.0, 100.0, 10.0);
     gtk_scale_set_draw_value (GTK_SCALE (xv->widget), FALSE);	//i think its emacs role to show text and stuff, so disable the widgets own text
-    xv->handler_id = g_signal_connect_after(xv->widget, "value-changed", G_CALLBACK(xwidget_slider_changed), "slider changed");
+    xv->handler_id = g_signal_connect_after(xv->widget, "value-changed", G_CALLBACK(xwidget_slider_changed), gstr("slider changed"));
   } else if (EQ(xww->type, Qcairo)) {
     //Cairo view
     //uhm cairo is differentish in gtk 3.
