@@ -445,10 +445,10 @@ Arena properties
 
     .. note::
 
-        For a :term:`client arena`, the reserved address may be lower
-        than the sum of the :c:macro:`MPS_KEY_ARENA_SIZE` keyword
-        argument passed to :c:func:`mps_arena_create_k` and the
-        ``size`` arguments passed to :c:func:`mps_arena_extend`,
+        For a :term:`client arena`, the reserved address space may be
+        lower than the sum of the :c:macro:`MPS_KEY_ARENA_SIZE`
+        keyword argument passed to :c:func:`mps_arena_create_k` and
+        the ``size`` arguments passed to :c:func:`mps_arena_extend`,
         because the arena may be unable to use the whole of each chunk
         for reasons of alignment.
 
