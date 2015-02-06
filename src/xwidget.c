@@ -1313,8 +1313,8 @@ DEFUN ("xwidget-resize", Fxwidget_resize, Sxwidget_resize, 3, 3, 0, doc:
       gtk_widget_set_size_request (GTK_WIDGET (xw->widget_osr), xw->width, xw->height);	//minimum size
       gtk_window_resize (GTK_WINDOW (xw->widgetwindow_osr), xw->width,
                          xw->height);
-      gtk_window_resize (GTK_WINDOW (xw->widgetscrolledwindow_osr), xw->width,
-                         xw->height);
+      /* gtk_window_resize (GTK_WINDOW (xw->widgetscrolledwindow_osr), xw->width, */
+      /*                    xw->height); */
       gtk_scrolled_window_set_min_content_height (GTK_SCROLLED_WINDOW
                                                   (xw->
                                                    widgetscrolledwindow_osr),
@@ -1335,8 +1335,8 @@ DEFUN ("xwidget-resize", Fxwidget_resize, Sxwidget_resize, 3, 3, 0, doc:
           xv = XXWIDGET_VIEW (XCAR (tail));
           if (XXWIDGET (xv->model) == xw)
             {
-              gtk_layout_set_size (GTK_LAYOUT (xv->widgetwindow), xw->width,
-                                   xw->height);
+              /* gtk_layout_set_size (GTK_CONTAINER (xv->widgetwindow), xw->width, */
+              /*                      xw->height); */
               gtk_widget_set_size_request (GTK_WIDGET (xv->widget), xw->width,
                                            xw->height);
             }
