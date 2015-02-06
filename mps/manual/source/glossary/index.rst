@@ -84,6 +84,7 @@ All
 :term:`bit table <bitmap>`
 :term:`bit vector <bitmap>`
 :term:`bitmap`
+:term:`bitmap marking`
 :term:`bitmapped fit`
 :term:`bitmask`
 :term:`bitset <bitmap>`
