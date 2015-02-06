@@ -182,9 +182,22 @@ Memory Management Glossary: B
         .. relevance::
 
             Bitmaps are sometimes used to represent the marks in a
-            :term:`mark-sweep` collector, or the used memory in a
-            :term:`bitmapped fits` :term:`allocator`.
+            :term:`mark-sweep` collector (see :term:`bitmap marking`),
+            or the used memory in a :term:`bitmapped fits`
+            :term:`allocator`.
 
+    bitmap marking
+
+        In :term:`mark-sweep` collectors, bitmap marking is a
+        technique for :term:`marking` objects that stores the mark
+        bits for the objects in a contiguous range of memory in a
+        separate :term:`bitmap`. This improves the collector's
+        :term:`locality of reference` and cache performance, because
+        it avoids setting the :term:`dirty bit` on the :term:`pages`
+        containing the marked objects.
+
+        .. bibref:: :ref:`Zorn (1989) <ZORN89>`.
+                  
     bitmapped fit
 
         A class of :term:`allocation mechanisms` that use a
