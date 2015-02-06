@@ -11,6 +11,7 @@ Design
     cbs
     config
     critical-path
+    exec-env
     failover
     freelist
     guide.hex.trans
@@ -33,3 +34,4 @@ Design
     thread-manager
     type
     vm
+    writef

@@ -53,6 +53,7 @@ collection_             Collection framework
 config_                 MPS configuration
 critical-path_          The critical path through the MPS
 diag_                   Diagnostic feedback
+exec-env_               Execution environment
 failover_               Fail-over allocator
 finalize_               Finalization
 fix_                    The generic fix function
@@ -129,6 +130,7 @@ writef_                 The WriteF function
 .. _config: config
 .. _critical-path: critical-path
 .. _diag: diag
+.. _exec-env: exec-env
 .. _failover: failover
 .. _finalize: finalize
 .. _fix: fix
@@ -231,7 +233,7 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2002-2014 Ravenbrook Limited. All rights reserved.
+Copyright © 2002-2015 Ravenbrook Limited. All rights reserved.
 <http://www.ravenbrook.com/>. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
