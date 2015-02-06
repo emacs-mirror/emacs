@@ -29,11 +29,13 @@ _`.goal`: The goals of the MPS library interface are:
 
 _`.goal.host`: To control the dependency of the MPS on the hosted ISO
 C library so that the core MPS remains freestanding (see
-design.mps.exec-env).
+design.mps.exec-env_).
+
+.. _design.mps.exec-env: exec-env
 
 _`.goal.free`: To allow the core MPS convenient access to ISO C
 functionality that is provided on freestanding platforms (see
-design.mps.exec-env.std.com.free).
+design.mps.exec-env_).
 
 
 Description
@@ -46,7 +48,7 @@ _`.overview.access`: The core MPS needs to access functionality that
 could be provided by an ISO C hosted environment.
 
 _`.overview.hosted`: The core MPS must not make direct use of any
-facilities in the hosted environment (design.mps.exec-env). However,
+facilities in the hosted environment (design.mps.exec-env_). However,
 it is sensible to make use of them when the MPS is deployed in a
 hosted environment.
 
@@ -93,7 +95,7 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2014 Ravenbrook Limited. All rights reserved.
+Copyright © 2013-2015 Ravenbrook Limited. All rights reserved.
 <http://www.ravenbrook.com/>. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 

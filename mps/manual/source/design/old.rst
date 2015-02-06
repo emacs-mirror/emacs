@@ -60,4 +60,3 @@ Old design
     version
     vmo1
     vmso
-    writef
