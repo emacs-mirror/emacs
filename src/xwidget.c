@@ -193,7 +193,6 @@ DEFUN ("make-xwidget", Fmake_xwidget, Smake_xwidget, 7, 8, 0, doc:	/* Make an xw
                                                                            - slider
                                                                            - socket
                                                                            - socket-osr
-                                                                           - cairo
                                                                          */
 )(Lisp_Object beg, Lisp_Object end,
   Lisp_Object type,
@@ -954,16 +953,6 @@ xwidget_init_view (struct xwidget *xww, struct glyph_string *s, int x, int y)
                                 G_CALLBACK (xwidget_slider_changed),
                                 gstr ("slider changed"));
     }
-  else if (EQ (xww->type, Qcairo))
-    {
-      //Cairo view
-      //uhm cairo is differentish in gtk 3.
-      //gdk_cairo_create (gtk_widget_get_window (FRAME_GTK_WIDGET (s->f)));
-      xv->widget = gtk_drawing_area_new ();
-      g_signal_connect (G_OBJECT (xv->widget), "draw",
-                        G_CALLBACK (xwidget_osr_draw_callback), NULL);
-
-    }
   else if (EQ (xww->type, Qwebkit_osr) || EQ (xww->type, Qsocket_osr) || (!NILP (Fget (xww->type, QCxwgir_class))))	//xwgir widgets are OSR
     {
       printf ("osr init:%s\n", SDATA (SYMBOL_NAME (xww->type)));
@@ -1705,7 +1694,6 @@ syms_of_xwidget (void)
   DEFSYM (Qslider, "slider");
   DEFSYM (Qsocket, "socket");
   DEFSYM (Qsocket_osr, "socket-osr");
-  DEFSYM (Qcairo, "cairo");
 
   DEFSYM (Qvertical, "vertical");
   DEFSYM (Qhorizontal, "horizontal");
