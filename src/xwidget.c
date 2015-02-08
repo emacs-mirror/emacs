@@ -96,14 +96,6 @@
 #include <girepository.h>
 
 #include "xwidget.h"
-/* Convert STRING, a string constant, to a type acceptable as glib data.
- Paul Eggert*/
-static char *
-gstr (char const *string)
-{
-  return (char *) string;
-}
-
 
 //TODO embryo of lisp allocators for xwidgets
 //TODO xwidget* should be Lisp_xwidget*
@@ -178,10 +170,7 @@ webkit_osr_navigation_policy_decision_requested_callback (WebKitWebView *
                                                           * policy_decision,
                                                           gpointer user_data);
 
-static GtkWidget *xwgir_create (char *, char *, char *, Lisp_Object);
 
-
-static void send_xembed_ready_event (struct xwidget *xw, int xembedid);
 
 DEFUN ("make-xwidget",
        Fmake_xwidget, Smake_xwidget,
@@ -200,7 +189,6 @@ DEFUN ("make-xwidget",
                            - socket
                            - socket-osr
 
-                           ARGUMENTS are xwgir constructor args
                         */
 )(Lisp_Object beg, Lisp_Object end,
   Lisp_Object type,
@@ -239,8 +227,7 @@ DEFUN ("make-xwidget",
   /* DIY mvc. widget is rendered offscreen,
      later bitmap copied to the views.
    */
-  if (EQ (xw->type, Qwebkit_osr) ||
-      EQ (xw->type, Qsocket_osr) || (!NILP (Fget (xw->type, QCxwgir_class))))
+  if (EQ (xw->type, Qwebkit_osr))
     {
       block_input ();
       xw->widgetwindow_osr = gtk_offscreen_window_new ();
@@ -268,15 +255,6 @@ DEFUN ("make-xwidget",
           gtk_container_add (GTK_CONTAINER (xw->widgetscrolledwindow_osr),
                              GTK_WIDGET (WEBKIT_WEB_VIEW (xw->widget_osr)));
         }
-      if (EQ (xw->type, Qsocket_osr))
-        xw->widget_osr = gtk_socket_new ();
-      if (!NILP (Fget (xw->type, QCxwgir_class)))
-        xw->widget_osr =
-          xwgir_create (SSDATA (Fcar (Fcdr (Fget (xw->type, QCxwgir_class)))), //class
-                        SSDATA (Fcar (Fget (xw->type, QCxwgir_class))), //namespace
-                        SSDATA (Fcar (Fcdr (Fcdr (Fget (xw->type, QCxwgir_class))))), //constructor
-                        arguments
-                        );
 
       gtk_widget_set_size_request (GTK_WIDGET (xw->widget_osr), xw->width,
                                    xw->height);
@@ -333,15 +311,6 @@ DEFUN ("make-xwidget",
                             xw);
         }
 
-      if (EQ (xw->type, Qsocket_osr))
-        {
-          send_xembed_ready_event (xw,
-                                   gtk_socket_get_id (GTK_SOCKET
-                                                      (xw->widget_osr)));
-          //gtk_widget_realize(xw->widget);
-        }
-
-
       unblock_input ();
 
     }
@@ -382,47 +351,6 @@ xwidget_hidden (struct xwidget_view *xv)
 }
 
 
-static void
-buttonclick_handler (GtkWidget * widget, gpointer data)
-{
-  Lisp_Object xwidget_view, xwidget;
-  XSETXWIDGET_VIEW (xwidget_view, (struct xwidget_view *) data);
-  xwidget = Fxwidget_view_model (xwidget_view);
-
-  struct input_event event;
-  Lisp_Object frame = Fwindow_frame (Fxwidget_view_window (xwidget_view));
-  EVENT_INIT (event);
-  event.kind = XWIDGET_EVENT;
-
-  event.frame_or_window = frame;
-
-  event.arg = Qnil;
-  event.arg = Fcons (xwidget, event.arg);
-  event.arg = Fcons (intern ("buttonclick"), event.arg);
-
-  kbd_buffer_store_event (&event);
-}
-
-
-static void
-send_xembed_ready_event (struct xwidget *xw, int xembedid)
-{
-  Lisp_Object xw_lo;
-  XSETXWIDGET (xw_lo, xw);
-  struct input_event event;
-  EVENT_INIT (event);
-  event.kind = XWIDGET_EVENT;
-  event.frame_or_window = Qnil;	//frame; //how to get the frame here? //TODO i store it in the xwidget now
-
-  event.arg = Qnil;
-  event.arg = Fcons (make_number (xembedid), event.arg);
-  event.arg = Fcons (xw_lo, event.arg);
-  event.arg = Fcons (intern ("xembed-ready"), event.arg);
-
-
-  kbd_buffer_store_event (&event);
-
-}
 
 static void
 xwidget_show_view (struct xwidget_view *xv)
@@ -443,60 +371,6 @@ xwidget_hide_view (struct xwidget_view *xv)
                   10000, 10000);
 }
 
-
-static void
-xwidget_plug_added (GtkSocket * socket, gpointer user_data)
-{
-  //hmm this doesnt seem to get called for foreign windows
-  printf ("xwidget_plug_added\n");
-}
-
-static gboolean
-xwidget_plug_removed (GtkSocket * socket, gpointer user_data)
-{
-  printf ("xwidget_plug_removed\n");
-  return TRUE;			/* dont run the default handler because that kills the socket and we want to reuse it */
-}
-
-
-static void
-xwidget_slider_changed (GtkRange * range, gpointer user_data)
-{
-  //slider value changed. change value of siblings
-  //correspondingly. but remember that changing value will again
-  //trigger signal
-
-  //TODO MVC view storage wont be an array futureish so the loop needs to change eventually
-  //TODO MVC it would be nice if this code could be reusable but, alas, C is not a functional language
-  //issues are:
-  // - the type of the controllers value (double, boolean etc)
-  // - the getter and setter (but they can be func pointers)
-  // a behemoth macro is always an option.
-  double v = gtk_range_get_value (range);
-  struct xwidget_view *xvp =
-    g_object_get_data (G_OBJECT (range), XG_XWIDGET_VIEW);
-  struct xwidget_view *xv;
-
-  printf ("slider changed val:%f\n", v);
-
-  for (Lisp_Object tail = Vxwidget_view_list; CONSP (tail);
-       tail = XCDR (tail))
-    {
-      if (XWIDGET_VIEW_P (XCAR (tail)))
-        {
-          xv = XXWIDGET_VIEW (XCAR (tail));
-          if (EQ (xvp->model, xv->model))
-            {
-              //block sibling views signal handlers
-              g_signal_handler_block (xv->widget, xv->handler_id);
-
-              //set values of sibling views and unblock
-              gtk_range_set_value (GTK_RANGE (xv->widget), v);
-              g_signal_handler_unblock (xv->widget, xv->handler_id);
-            }
-        }
-    }
-}
 
 
 /* when the off-screen webkit master view changes this signal is called.
@@ -682,278 +556,8 @@ xwidget_osr_event_forward (GtkWidget * widget,
 
 GIRepository *girepository;
 
-DEFUN ("xwgir-require-namespace", Fxwgir_require_namespace, Sxwgir_require_namespace, 2, 2, 0, doc:	/* Require a GObject Introspection namespace.
-                                                                                                           This must be done for all namespaces we want to use, before using other xwgir functions. */ )
-  (Lisp_Object lnamespace, Lisp_Object lnamespace_version)
-{
-  const gchar *namespace = SSDATA (lnamespace);
-  const gchar *namespace_version = SSDATA (lnamespace_version);
-  GError *error = NULL;
-
-  girepository = g_irepository_get_default ();
-  g_irepository_require (girepository, namespace, namespace_version, 0,
-                         &error);
-  if (error)
-    {
-      g_error ("ERROR: %s\n", error->message);
-      return Qnil;
-    }
-  return Qt;
-}
 
 
-static int
-xwgir_convert_lisp_to_gir_arg (GIArgument * giarg,
-                               GIArgInfo * arginfo, Lisp_Object lisparg)
-{
-
-  GITypeTag tag;
-  tag = g_type_info_get_tag (g_arg_info_get_type (arginfo));
-
-  switch (tag)
-    {
-    case GI_TYPE_TAG_BOOLEAN:
-      giarg->v_boolean = XFASTINT (lisparg);
-      break;
-    case GI_TYPE_TAG_INT8:
-      giarg->v_int8 = XFASTINT (lisparg);
-      break;
-    case GI_TYPE_TAG_UINT8:
-      giarg->v_uint8 = XFASTINT (lisparg);
-      break;
-    case GI_TYPE_TAG_INT16:
-      giarg->v_int16 = XFASTINT (lisparg);
-      break;
-    case GI_TYPE_TAG_UINT16:
-      giarg->v_uint16 = XFASTINT (lisparg);
-      break;
-    case GI_TYPE_TAG_INT32:
-      giarg->v_int32 = XFASTINT (lisparg);
-      break;
-    case GI_TYPE_TAG_UINT32:
-      giarg->v_uint32 = XFASTINT (lisparg);
-      break;
-
-    case GI_TYPE_TAG_INT64:
-      giarg->v_int64 = XFASTINT (lisparg);
-      break;
-    case GI_TYPE_TAG_UINT64:
-      giarg->v_uint64 = XFASTINT (lisparg);
-      break;
-
-
-    case GI_TYPE_TAG_FLOAT:
-      giarg->v_float = XFLOAT_DATA (lisparg);
-      break;
-
-    case GI_TYPE_TAG_DOUBLE:
-      giarg->v_double = XFLOAT_DATA (lisparg);
-      break;
-
-    case GI_TYPE_TAG_UTF8:
-    case GI_TYPE_TAG_FILENAME:
-      //giarg->v_string = SDATA(lisparg);
-      giarg->v_pointer = SDATA (lisparg);
-      break;
-
-    case GI_TYPE_TAG_ARRAY:
-    case GI_TYPE_TAG_GLIST:
-    case GI_TYPE_TAG_GSLIST:
-    case GI_TYPE_TAG_GHASH:
-    case GI_TYPE_TAG_ERROR:
-    case GI_TYPE_TAG_INTERFACE:
-    case GI_TYPE_TAG_VOID:
-    case GI_TYPE_TAG_UNICHAR:
-    case GI_TYPE_TAG_GTYPE:
-      //?? i dont know how to handle these yet TODO
-      printf ("failed in my lisp to gir arg conversion duties. sob!\n");
-      return -1;
-      break;
-    }
-  return 0;
-}
-
-GtkWidget *
-xwgir_create (char *class, char *namespace, char *constructor,
-              Lisp_Object arguments)
-{
-  //TODO this is more or less the same as xwgir-call-method,
-  //so should be refactored
-  //create a gtk widget, given its name
-  //find the constructor
-  //call it
-  //also figure out how to pass args
-
-  GIArgument return_value;
-
-  GIObjectInfo *obj_info =
-    g_irepository_find_by_name (girepository, namespace, class);
-  //some constructors are like "new_with_label etc
-  GIFunctionInfo *f_info = g_object_info_find_method (obj_info, constructor);
-  g_function_info_invoke (f_info, NULL, 0, NULL, 0, &return_value, NULL);
-
-
-  //////////////////////////////////////////////////////////////////////////////
-  // refactorable
-
-  //loop over args, convert from lisp to primitive type, given arg
-  //introspection data TODO g_callable_info_get_n_args(f_info) should
-  //match
-  GError *error = NULL;
-  GIArgument in_args[20];
-
-  int argscount = XFASTINT (Flength (arguments));
-  if (argscount != g_callable_info_get_n_args (f_info))
-    {
-      printf ("xwgir call method arg count doesn match! \n");
-      return NULL;
-    }
-  int i;
-  Lisp_Object n;
-  for (i = 0; i < argscount ; ++i)
-    {
-      XSETFASTINT (n, i);
-      xwgir_convert_lisp_to_gir_arg (&in_args[i],
-                                     g_callable_info_get_arg (f_info, i),
-                                     Fnth (n, arguments));
-    }
-
-  //in_args[0].v_pointer = widget;
-  //g_function_info_invoke (f_info, NULL, 0, NULL, 0, &return_value, NULL);
-  if (!g_function_info_invoke (f_info,
-                              in_args, argscount,
-                              NULL, 0, &return_value, &error))
-    {
-      //g_error("ERROR: %s\n", error->message);
-      printf ("invokation error\n");
-      return NULL;
-    }
-  ///////////////////////////////////////
-
-
-
-  return return_value.v_pointer;
-
-}
-
-
-DEFUN ("xwgir-xwidget-call-method",
-       Fxwgir_xwidget_call_method, Sxwgir_xwidget_call_method,
-       3, 3, 0, doc:	/* Call Xwidget object method using GObject
-                           Introspection.
-
-                           XWIDGET is the xwidget instance to act
-                           upon.
-
-                           METHOD is the Gobject intrsopsection method
-                           name.
-
-                           ARGUMENTS is a list of arguments for the
-                           call. They will be converted to GObject
-                           types from Lisp types.
-                        */ )
-  (Lisp_Object xwidget, Lisp_Object method, Lisp_Object arguments)
-{
-  CHECK_XWIDGET (xwidget);
-  GError *error = NULL;
-  GIArgument return_value;
-  GIArgument in_args[20];
-
-
-  struct xwidget *xw;
-  if (NILP (xwidget))
-    {
-      printf ("ERROR xwidget nil\n");
-      return Qnil;
-    };
-  xw = XXWIDGET (xwidget);
-  if (NULL == xw)
-    printf ("ERROR xw is 0\n");
-  char *namespace = SSDATA (Fcar (Fget (xw->type, QCxwgir_class)));
-  //we need the concrete widget, which happens in 2 ways depending on
-  //OSR or not TODO
-  GtkWidget *widget = NULL;
-  if (NULL == xw->widget_osr)
-    {
-      widget = xwidget_view_lookup (xw,
-                                    XWINDOW (FRAME_SELECTED_WINDOW
-                                             (SELECTED_FRAME ())))->widget;
-    }
-  else
-    {
-      widget = xw->widget_osr;
-    }
-
-
-  char *class = SSDATA (Fcar (Fcdr (Fget (xw->type, QCxwgir_class))));
-  //////////////////////////////////////////////////////////////////////////////
-  // class, namespace, argumentss
-  GIObjectInfo *obj_info =
-    g_irepository_find_by_name (girepository, namespace, class);
-  GIFunctionInfo *f_info =
-    g_object_info_find_method (obj_info, SSDATA (method));
-
-  //loop over args, convert from lisp to primitive type, given arg
-  //introspection data TODO g_callable_info_get_n_args(f_info) should
-  //match
-  int argscount = XFASTINT (Flength (arguments));
-  if (argscount != g_callable_info_get_n_args (f_info))
-    {
-      printf ("xwgir call method arg count doesn match! \n");
-      return Qnil;
-    }
-  int i;
-  Lisp_Object n;
-  for (i = 1; i < argscount + 1; ++i)
-    {
-      XSETFASTINT (n, i - 1);
-      xwgir_convert_lisp_to_gir_arg (&in_args[i],
-                                     g_callable_info_get_arg (f_info, i - 1),
-                                     Fnth (n, arguments));
-    }
-
-  in_args[0].v_pointer = widget;
-  if (!g_function_info_invoke (f_info,
-                              in_args, argscount + 1,
-                              NULL, 0, &return_value, &error))
-    {
-      //g_error("ERROR: %s\n", error->message);
-      printf ("invokation error\n");
-      return Qnil;
-    }
-  return Qt;
-}
-
-static GdkWindow *
-offscreen_pick_embedded_child (GdkWindow * window,
-                               double x, double y, gpointer * data)
-{
-  //in this simple case we assume the window contains a single widget. easy.
-  //but then we get the problem that the widget cant be embedded in several windows
-  return gtk_widget_get_window (GTK_WIDGET (data));
-}
-
-static void
-offscreen_to_embedder (GdkWindow * window,
-                       gdouble offscreen_x,
-                       gdouble offscreen_y,
-                       gpointer embedder_x,
-                       gpointer embedder_y, gpointer data)
-{
-  *(gdouble *) embedder_x = offscreen_x;
-  *(gdouble *) embedder_y = offscreen_y;
-}
-
-static void
-offscreen_from_embedder (GdkWindow * window,
-                         gdouble embedder_x,
-                         gdouble embedder_y,
-                         gpointer offscreen_x,
-                         gpointer offscreen_y, gpointer user_data)
-{
-  *(gdouble *) offscreen_x = embedder_x;
-  *(gdouble *) offscreen_y = embedder_y;
-}
 
 static gboolean
 xwidget_osr_event_set_embedder (GtkWidget * widget,
@@ -984,42 +588,7 @@ xwidget_init_view (struct xwidget *xww, struct glyph_string *s, int x, int y)
   XSETWINDOW (xv->w, s->w);
   XSETXWIDGET (xv->model, xww);
 
-  //widget creation
-  if (EQ (xww->type, Qbutton))
-    {
-      xv->widget = gtk_button_new_with_label (SSDATA (xww->title));
-      g_signal_connect (G_OBJECT (xv->widget), "clicked", G_CALLBACK (buttonclick_handler), xv);	// the view rather than the model
-    }
-  else if (EQ (xww->type, Qtoggle))
-    {
-      xv->widget = gtk_toggle_button_new_with_label (SSDATA (xww->title));
-      //xv->widget = gtk_entry_new ();//temp hack to experiment with key propagation TODO entry widget is useful for testing
-    }
-  else if (EQ (xww->type, Qsocket))
-    {
-      xv->widget = gtk_socket_new ();
-      g_signal_connect_after (xv->widget, "plug-added",
-                              G_CALLBACK (xwidget_plug_added),
-                              gstr ("plug added"));
-      g_signal_connect_after (xv->widget, "plug-removed",
-                              G_CALLBACK (xwidget_plug_removed),
-                              gstr ("plug removed"));
-      //TODO these doesnt help
-      gtk_widget_add_events (xv->widget, GDK_KEY_PRESS);
-      gtk_widget_add_events (xv->widget, GDK_KEY_RELEASE);
-    }
-  else if (EQ (xww->type, Qslider))
-    {
-      xv->widget =
-        //gtk_hscale_new (GTK_ADJUSTMENT(gtk_adjustment_new (0.0, 0.0, 100.0, 1.0, 10.0, 10.0)));
-        gtk_hscale_new_with_range (0.0, 100.0, 10.0);
-      gtk_scale_set_draw_value (GTK_SCALE (xv->widget), FALSE);	//i think its emacs role to show text and stuff, so disable the widgets own text
-      xv->handler_id =
-        g_signal_connect_after (xv->widget, "value-changed",
-                                G_CALLBACK (xwidget_slider_changed),
-                                gstr ("slider changed"));
-    }
-  else if (EQ (xww->type, Qwebkit_osr) || EQ (xww->type, Qsocket_osr) || (!NILP (Fget (xww->type, QCxwgir_class))))	//xwgir widgets are OSR
+  if (EQ (xww->type, Qwebkit_osr))
     {
       printf ("osr init:%s\n", SDATA (SYMBOL_NAME (xww->type)));
       xv->widget = gtk_drawing_area_new ();
@@ -1082,46 +651,6 @@ xwidget_init_view (struct xwidget *xww, struct glyph_string *s, int x, int y)
   gtk_widget_show_all (xv->widgetwindow);
 
 
-
-  //widgettype specific initialization only possible after realization
-  if (EQ (xww->type, Qsocket))
-    {
-      printf ("xwid:%p socket id:%p %p\n",
-              (void *) xww,
-              (void *) gtk_socket_get_id (GTK_SOCKET (xv->widget)),
-              (void *) gtk_socket_get_id (GTK_SOCKET (xv->widget)));
-      send_xembed_ready_event (xww,
-                               gtk_socket_get_id (GTK_SOCKET (xv->widget)));
-      //gtk_widget_realize(xw->widget);
-    }
-
-  //////////////////////////////////////////////////////////////
-  // xwgir debug
-  if (
-       EQ (xww->type, Qsocket_osr) || (!NILP (Fget (xww->type, QCxwgir_class))))
-    {
-      printf ("gdk_offscreen_window_set_embedder %d %d\n",
-              GDK_IS_WINDOW (gtk_widget_get_window (xww->widget_osr)),
-              GDK_IS_WINDOW (gtk_widget_get_window
-                             (GTK_WIDGET (xv->widget))));
-      // set_embedder needs to be called after xv->widget realization
-      gdk_offscreen_window_set_embedder (gtk_widget_get_window
-                                         (xww->widgetwindow_osr),
-                                         gtk_widget_get_window (xv->widget));
-      g_signal_connect (gtk_widget_get_window (xv->widget),
-                        "pick-embedded-child",
-                        G_CALLBACK (offscreen_pick_embedded_child),
-                        xww->widgetwindow_osr);
-
-      g_signal_connect (gtk_widget_get_window (xww->widgetwindow_osr),
-                        "from-embedder", G_CALLBACK (offscreen_from_embedder),
-                        NULL);
-      g_signal_connect (gtk_widget_get_window (xww->widgetwindow_osr),
-                        "to-embedder", G_CALLBACK (offscreen_to_embedder),
-                        NULL);
-    }
-  ////////////////////////////////////////
-
   return xv;
 }
 
@@ -1170,27 +699,32 @@ x_draw_xwidget_glyph_string (struct glyph_string *s)
          WINDOW_BOTTOM_EDGE_Y (s->w) - WINDOW_MODE_LINE_HEIGHT (s->w) - y);
   clip_top = max (0, WINDOW_TOP_EDGE_Y (s->w) - y);
 
-  //we are conserned with movement of the onscreen area. the area might sit still when the widget actually moves
-  //this happens when an emacs window border moves across a widget window
-  //so, if any corner of the outer widget clippng window moves, that counts as movement here, even
-  //if it looks like no movement happens because the widget sits still inside the clipping area.
-  //the widget can also move inside the clipping area, which happens later
+  //we are conserned with movement of the onscreen area. the area
+  //might sit still when the widget actually moves this happens when
+  //an emacs window border moves across a widget window so, if any
+  //corner of the outer widget clippng window moves, that counts as
+  //movement here, even if it looks like no movement happens because
+  //the widget sits still inside the clipping area.  the widget can
+  //also move inside the clipping area, which happens later
   moved = (xv->x + xv->clip_left != x + clip_left)
     || ((xv->y + xv->clip_top) != (y + clip_top));
   xv->x = x;
   xv->y = y;
   if (moved)			//has it moved?
     {
-      if (1)			//!xwidget_hidden(xv))      //hidden equals not being seen during redisplay
+      if (1)
+        //!xwidget_hidden(xv))
+        //hidden equals not being seen during redisplay
         {
           //TODO should be possible to use xwidget_show_view here
           gtk_fixed_move (GTK_FIXED (FRAME_GTK_WIDGET (s->f)),
                           xv->widgetwindow, x + clip_left, y + clip_top);
         }
     }
-  //clip the widget window if some parts happen to be outside drawable area
-  //an emacs window is not a gtk window, a gtk window covers the entire frame
-  //cliping might have changed even if we havent actualy moved, we try figure out when we need to reclip for real
+  //clip the widget window if some parts happen to be outside drawable
+  //area an emacs window is not a gtk window, a gtk window covers the
+  //entire frame cliping might have changed even if we havent actualy
+  //moved, we try figure out when we need to reclip for real
   if ((xv->clip_right != clip_right)
       || (xv->clip_bottom != clip_bottom)
       || (xv->clip_top != clip_top) || (xv->clip_left != clip_left))
@@ -1205,9 +739,10 @@ x_draw_xwidget_glyph_string (struct glyph_string *s)
       xv->clip_top = clip_top;
       xv->clip_left = clip_left;
     }
-  //if emacs wants to repaint the area where the widget lives, queue a redraw
-  //TODO it seems its possible to get out of sync with emacs redraws so emacs bg sometimes shows up instead of xwidget
-  //its just a visual glitch though
+  //if emacs wants to repaint the area where the widget lives, queue a
+  //redraw TODO it seems its possible to get out of sync with emacs
+  //redraws so emacs bg sometimes shows up instead of xwidget its just
+  //a visual glitch though
   if (!xwidget_hidden (xv))
     {
       gtk_widget_queue_draw (xv->widgetwindow);
@@ -1231,7 +766,10 @@ x_draw_xwidget_glyph_string (struct glyph_string *s)
   };
 
 
-DEFUN ("xwidget-webkit-goto-uri", Fxwidget_webkit_goto_uri, Sxwidget_webkit_goto_uri, 2, 2, 0, doc:	/* Make the webkit instance referenced by XWIDGET browse URI. */
+DEFUN ("xwidget-webkit-goto-uri",
+       Fxwidget_webkit_goto_uri, Sxwidget_webkit_goto_uri,
+       2, 2, 0, doc:	/* Make the webkit instance referenced by
+                           XWIDGET browse URI. */
        )
   (Lisp_Object xwidget, Lisp_Object uri)
 {
@@ -1242,7 +780,9 @@ DEFUN ("xwidget-webkit-goto-uri", Fxwidget_webkit_goto_uri, Sxwidget_webkit_goto
 }
 
 
-DEFUN ("xwidget-webkit-execute-script", Fxwidget_webkit_execute_script, Sxwidget_webkit_execute_script, 2, 2, 0, doc:	/* webkit exec js. */
+DEFUN ("xwidget-webkit-execute-script",
+       Fxwidget_webkit_execute_script, Sxwidget_webkit_execute_script,
+       2, 2, 0, doc:	/* webkit exec js. */
        )
   (Lisp_Object xwidget, Lisp_Object script)
 {
@@ -1253,9 +793,11 @@ DEFUN ("xwidget-webkit-execute-script", Fxwidget_webkit_execute_script, Sxwidget
   return Qnil;
 }
 
-DEFUN ("xwidget-webkit-get-title", Fxwidget_webkit_get_title, Sxwidget_webkit_get_title, 1, 1, 0, doc:	/* Get the title from the Webkit instance in XWIDGET.
-                                                                                                           This can be used to work around the lack of a return value from the exec method.
-                                                                                                         */ )
+DEFUN ("xwidget-webkit-get-title",
+       Fxwidget_webkit_get_title, Sxwidget_webkit_get_title,
+       1, 1, 0, doc:	/* Get the title from the Webkit instance in
+XWIDGET.  This can be used to work around the lack of a return value
+from the exec method.  */ )
   (Lisp_Object xwidget)
 {
   //TODO support multibyte strings
@@ -1265,7 +807,8 @@ DEFUN ("xwidget-webkit-get-title", Fxwidget_webkit_get_title, Sxwidget_webkit_ge
   //return make_string_from_bytes(str, wcslen((const wchar_t *)str), strlen(str));
   if (str == 0)
     {
-      //TODO maybe return Qnil instead. I suppose webkit returns nullpointer when doc is not properly loaded or something
+      //TODO maybe return Qnil instead. I suppose webkit returns
+      //nullpointer when doc is not properly loaded or something
       printf ("xwidget-webkit-get-title null webkit title\n");
       return build_string ("");
     }
@@ -1273,7 +816,9 @@ DEFUN ("xwidget-webkit-get-title", Fxwidget_webkit_get_title, Sxwidget_webkit_ge
 }
 
 //TODO missnamed
-DEFUN ("xwidget-disable-plugin-for-mime", Fxwidget_disable_plugin_for_mime, Sxwidget_disable_plugin_for_mime, 1, 1, 0, doc:	/* */ )
+DEFUN ("xwidget-disable-plugin-for-mime",
+       Fxwidget_disable_plugin_for_mime, Sxwidget_disable_plugin_for_mime,
+       1, 1, 0, doc:	/* */ )
   (Lisp_Object mime)
 {
   WebKitWebPlugin *wp = webkit_web_plugin_database_get_plugin_for_mimetype
@@ -1288,66 +833,6 @@ DEFUN ("xwidget-disable-plugin-for-mime", Fxwidget_disable_plugin_for_mime, Sxwi
   return Qnil;
 }
 
-#ifdef HAVE_XLXW_DOMDUMP
-/* dom dumping is work in progress.
-   2 of the methods used from webkit are deprecated nowm and replacements sought
- */
-static void
-xwidget_webkit_dom_dump (WebKitDOMNode * parent)
-{
-  WebKitDOMNodeList *list;
-  int length;
-  WebKitDOMNode *attribute;
-  WebKitDOMNamedNodeMap *attrs;
-  WebKitDOMNode *child;
-  printf ("node:%d type:%d name:%s content:%s\n", parent,
-          webkit_dom_node_get_node_type (parent),
-          //1 element 3 text 8 comment 2 attribute
-          webkit_dom_node_get_local_name (parent),
-          webkit_dom_node_get_text_content (parent));
-
-  if (webkit_dom_node_has_attributes (parent))
-    {
-      attrs = webkit_dom_node_get_attributes (parent);
-
-      length = webkit_dom_named_node_map_get_length (attrs);
-      for (int i = 0; i < length; i++)
-        {
-          attribute = webkit_dom_named_node_map_item (attrs, i);
-          printf (" attr node:%d type:%d name:%s content:%s\n",
-                  attribute, webkit_dom_node_get_node_type (attribute),
-                  //1 element 3 text 8 comment
-                  webkit_dom_node_get_local_name (attribute),
-                  webkit_dom_node_get_text_content (attribute));
-        }
-    }
-  list = webkit_dom_node_get_child_nodes (parent);
-  length = webkit_dom_node_list_get_length (list);
-
-  for (int i = 0; i < length; i++)
-    {
-      child = webkit_dom_node_list_item (list, i);
-      //if(webkit_dom_node_has_child_nodes(child))
-      xwidget_webkit_dom_dump (child);
-    }
-}
-
-
-DEFUN ("xwidget-webkit-dom-dump",
-       Fxwidget_webkit_dom_dump, Sxwidget_webkit_dom_dump,
-       1, 1, 0, doc:	/*Dump the DOM contained in the webkit
-                          instance in XWIDGET. */
-       )
-  (Lisp_Object xwidget)
-{
-  WEBKIT_FN_INIT ();
-  xwidget_webkit_dom_dump (WEBKIT_DOM_NODE
-                           (webkit_web_view_get_dom_document
-                            (WEBKIT_WEB_VIEW (xw->widget_osr))));
-  return Qnil;
-}
-
-#endif /* HAVE_XLXW_DOMDUMP */
 
 #endif /* HAVE_WEBKIT_OSR */
 
@@ -1564,75 +1049,6 @@ DEFUN ("xwidget-view-window",
   return XXWIDGET_VIEW (xwidget_view)->w;
 }
 
-DEFUN ("xwidget-send-keyboard-event",
-       Fxwidget_send_keyboard_event, Sxwidget_send_keyboard_event,
-       2, 2, 0, doc: /* Synthesize a kbd event for XWIDGET. TODO
-                        crashes atm.. */
-)(Lisp_Object xwidget,
-  Lisp_Object keydescriptor)
-{
-  //TODO this code crashes for offscreen widgets and ive tried many
-  //different strategies int keyval = 0x058; //X
-  int keyval = XFASTINT (keydescriptor);	//X
-  GdkKeymapKey *keys;
-  gint n_keys;
-  GdkDeviceManager *manager;
-  struct xwidget *xw;
-  GtkWidget *widget;
-  GdkEventKey *ev;
-  Lisp_Object window;
-  //popup_activated_flag = 1; //TODO just a hack
-  gdk_keymap_get_entries_for_keyval (gdk_keymap_get_default (), keyval, &keys,
-                                     &n_keys);
-
-  xw = XXWIDGET (xwidget);
-
-  ev = (GdkEventKey *) gdk_event_new (GDK_KEY_PRESS);
-
-
-  //todo what about windowless widgets?
-
-  window = FRAME_SELECTED_WINDOW (SELECTED_FRAME ());
-
-
-  //TODO maybe we also need to special case sockets by picking up the
-  //plug rather than the socket
-  if (xw->widget_osr)
-    widget = xw->widget_osr;
-  else
-    widget = xwidget_view_lookup (xw, XWINDOW (window))->widget;
-
-  ev->window = gtk_widget_get_window (widget);
-  gtk_widget_grab_focus (widget);
-  ev->send_event = FALSE;
-
-  ev->hardware_keycode = keys[0].keycode;
-  ev->group = keys[0].group;
-
-  ev->keyval = keyval;
-  ev->time = GDK_CURRENT_TIME;
-
-  //ev->device = gdk_device_get_core_pointer();
-  manager =
-    gdk_display_get_device_manager (gdk_window_get_display (ev->window));
-  gdk_event_set_device ((GdkEvent *) ev,
-                        gdk_device_manager_get_client_pointer (manager));
-  gdk_event_put ((GdkEvent *) ev);
-  //g_signal_emit_by_name(ev->window,"key-press-event", ev);
-
-  ev->type = GDK_KEY_RELEASE;
-  gdk_event_put ((GdkEvent *) ev);
-  //g_signal_emit_by_name(ev->window,"key-release-event", ev);
-  //gtk_main_do_event(ev);
-
-  //TODO
-  //if I delete the event the receiving component eventually crashes.
-  //it ough TDTRT since event_put is supposed to copy the event
-  //so probably this leaks events now
-  //gdk_event_free((GdkEvent*)ev);
-
-  return Qnil;
-}
 
 DEFUN ("delete-xwidget-view",
        Fdelete_xwidget_view, Sdelete_xwidget_view,
@@ -1781,16 +1197,9 @@ syms_of_xwidget (void)
   DEFSYM (Qwebkit_osr, "webkit-osr");
 #endif
 
-  defsubr (&Sxwgir_xwidget_call_method);
-  defsubr (&Sxwgir_require_namespace);
   defsubr (&Sxwidget_size_request);
   defsubr (&Sdelete_xwidget_view);
   defsubr (&Sxwidget_disable_plugin_for_mime);
-
-  defsubr (&Sxwidget_send_keyboard_event);
-#ifdef HAVE_XLXW_DOMDUMP
-  defsubr (&Sxwidget_webkit_dom_dump);
-#endif
 
   defsubr (&Sxwidget_plist);
   defsubr (&Sxwidget_buffer);
@@ -1801,16 +1210,10 @@ syms_of_xwidget (void)
   DEFSYM (Qxwidget, "xwidget");
 
   DEFSYM (QCxwidget, ":xwidget");
-  DEFSYM (QCxwgir_class, ":xwgir-class");
   DEFSYM (QCtitle, ":title");
 
   /* Do not forget to update the docstring of make-xwidget if you add
      new types. */
-  DEFSYM (Qbutton, "Button");
-  DEFSYM (Qtoggle, "ToggleButton");
-  DEFSYM (Qslider, "slider");
-  DEFSYM (Qsocket, "socket");
-  DEFSYM (Qsocket_osr, "socket-osr");
 
   DEFSYM (Qvertical, "vertical");
   DEFSYM (Qhorizontal, "horizontal");
