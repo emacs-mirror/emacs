@@ -668,7 +668,7 @@ regarding its parameter treatment."
 ;; functions allows them to be stand-alone commands, making it easier
 ;; to switch between browsers.
 
-(defun browse-url-interactive-arg (prompt &optional default-url)
+(defun browse-url-interactive-arg (prompt)
   "Read a URL from the minibuffer, prompting with PROMPT.
 If `transient-mark-mode' is non-nil and the mark is active,
 it defaults to the current region, else to the URL at or before
@@ -685,8 +685,7 @@ for use in `interactive'."
 				      "[\t\r\f\n ]+" ""
 				      (buffer-substring-no-properties
 				       (region-beginning) (region-end))))
-				(browse-url-url-at-point)
-                                default-url))
+				(browse-url-url-at-point)))
 	(not (eq (null browse-url-new-window-flag)
 		 (null current-prefix-arg)))))
 
@@ -796,13 +795,6 @@ narrowed."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Browser-independent commands
 
-(defun url-tidy (url)
-  "Tidy up URL as much as possible."
-  (if (equal 0 (string-match ".*://" url))
-      url
-    (concat "http://" url) ;;TODO guess more url forms, like mailto
-    ))
-
 ;; A generic command to call the current browse-url-browser-function
 
 ;;;###autoload
@@ -815,7 +807,6 @@ first, if that exists."
   (interactive (browse-url-interactive-arg "URL: "))
   (unless (called-interactively-p 'interactive)
     (setq args (or args (list browse-url-new-window-flag))))
-  (setq url (url-tidy url))
   (when (and url-handler-mode (not (file-name-absolute-p url)))
     (setq url (expand-file-name url)))
   (let ((process-environment (copy-sequence process-environment))
