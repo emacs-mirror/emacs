@@ -18,7 +18,7 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
-#ifdef HAVE_XWIDGETS
+
 
 #include <signal.h>
 
@@ -92,16 +92,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <gtk/gtk.h>
 #include <gdk/gdk.h>
 
-#ifdef HAVE_GTK3
-//for gtk3; sockets and plugs
 #include <gtk/gtkx.h>
 #include <gtk/gtkscrolledwindow.h>
 #include "emacsgtkfixed.h"
-#endif
 
 #include <wchar.h>
 
-#ifdef HAVE_WEBKIT_OSR
 #include <webkit/webkitwebview.h>
 #include <webkit/webkitwebplugindatabase.h>
 #include <webkit/webkitwebplugin.h>
@@ -109,22 +105,15 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <webkit/webkitwebnavigationaction.h>
 #include <webkit/webkitdownload.h>
 #include <webkit/webkitwebpolicydecision.h>
-#endif
-
-//for GIR
-#include <girepository.h>
 
 #include "xwidget.h"
 
-//TODO embryo of lisp allocators for xwidgets
-//TODO xwidget* should be Lisp_xwidget*
 static struct xwidget *
 allocate_xwidget (void)
 {
   return ALLOCATE_PSEUDOVECTOR (struct xwidget, height, PVEC_XWIDGET);
 }
 
-//TODO xwidget_view* should be Lisp_xwidget_view*
 static struct xwidget_view *
 allocate_xwidget_view (void)
 {
@@ -135,59 +124,36 @@ allocate_xwidget_view (void)
 #define XSETXWIDGET(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_XWIDGET))
 #define XSETXWIDGET_VIEW(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_XWIDGET_VIEW))
 
-struct xwidget_view *xwidget_view_lookup (struct xwidget *,
-                                          struct window *);
-Lisp_Object xwidget_spec_value (Lisp_Object , Lisp_Object ,
-                                int *);
-gboolean offscreen_damage_event (GtkWidget * , GdkEvent * ,
-                                 gpointer );
-void webkit_document_load_finished_cb (WebKitWebView *
-                                                 ,
-                                                 WebKitWebFrame *,
-                                                 gpointer );
-gboolean webkit_download_cb (WebKitWebView * ,
-                                       WebKitDownload * , gpointer);
+struct xwidget_view *xwidget_view_lookup (struct xwidget *, struct window *);
+Lisp_Object xwidget_spec_value (Lisp_Object , Lisp_Object , int *);
+gboolean offscreen_damage_event (GtkWidget * , GdkEvent * , gpointer );
+void webkit_document_load_finished_cb (WebKitWebView *, WebKitWebFrame *,
+                                       gpointer );
+gboolean webkit_download_cb (WebKitWebView *, WebKitDownload *, gpointer);
 
 gboolean
-webkit_mime_type_policy_typedecision_requested_cb (WebKitWebView *
-                                                             ,
-                                                             WebKitWebFrame *
-                                                             ,
-                                                             WebKitNetworkRequest
-                                                             * ,
-                                                             gchar * ,
-                                                             WebKitWebPolicyDecision
-                                                             *
-                                                             ,
-                                                             gpointer
-                                                             );
+webkit_mime_type_policy_typedecision_requested_cb (WebKitWebView *,
+                                                   WebKitWebFrame *,
+                                                   WebKitNetworkRequest *,
+                                                   gchar *,
+                                                   WebKitWebPolicyDecision *,
+                                                   gpointer);
 
 gboolean
-webkit_new_window_policy_decision_requested_cb (WebKitWebView *
-                                                          ,
-                                                          WebKitWebFrame *
-                                                          ,
-                                                          WebKitNetworkRequest
-                                                          * ,
-                                                          WebKitWebNavigationAction
-                                                          * ,
-                                                          WebKitWebPolicyDecision
-                                                          * ,
-                                                          gpointer );
-
+webkit_new_window_policy_decision_requested_cb (WebKitWebView *,
+                                                WebKitWebFrame *,
+                                                WebKitNetworkRequest *,
+                                                WebKitWebNavigationAction *,
+                                                WebKitWebPolicyDecision *,
+                                                gpointer);
 
 gboolean
-webkit_navigation_policy_decision_requested_cb (WebKitWebView *
-                                                          ,
-                                                          WebKitWebFrame *
-                                                          ,
-                                                          WebKitNetworkRequest
-                                                          * ,
-                                                          WebKitWebNavigationAction
-                                                          * ,
-                                                          WebKitWebPolicyDecision
-                                                          * ,
-                                                          gpointer );
+webkit_navigation_policy_decision_requested_cb (WebKitWebView *,
+                                                WebKitWebFrame *,
+                                                WebKitNetworkRequest *,
+                                                WebKitWebNavigationAction *,
+                                                WebKitWebPolicyDecision *,
+                                                gpointer);
 
 
 
@@ -202,12 +168,7 @@ DEFUN ("make-xwidget",
                            TYPE is a symbol which can take one of the
                            following values:
 
-                           - Button
-                           - ToggleButton
-                           - slider
-                           - socket
-                           - socket-osr
-
+                           - webkit_osr
                         */
 )(Lisp_Object beg, Lisp_Object end,
   Lisp_Object type,
@@ -242,12 +203,6 @@ DEFUN ("make-xwidget",
   xw->plist = Qnil;
 
 
-
-
-#ifdef HAVE_WEBKIT_OSR
-  /* DIY mvc. widget is rendered offscreen,
-     later bitmap copied to the views.
-   */
   if (EQ (xw->type, Qwebkit_osr))
     {
       block_input ();
@@ -310,44 +265,44 @@ DEFUN ("make-xwidget",
           g_signal_connect (G_OBJECT (xw->widget_osr),
                             "document-load-finished",
                             G_CALLBACK
-                            (webkit_osr_document_load_finished_cb), xw);
+                            (webkit_document_load_finished_cb), xw);
 
           g_signal_connect (G_OBJECT (xw->widget_osr),
                             "download-requested",
-                            G_CALLBACK (webkit_osr_download_cb), xw);
+                            G_CALLBACK (webkit_download_cb), xw);
 
           g_signal_connect (G_OBJECT (xw->widget_osr),
                             "mime-type-policy-decision-requested",
                             G_CALLBACK
-                            (webkit_osr_mime_type_policy_typedecision_requested_cb),
+                            (webkit_mime_type_policy_typedecision_requested_cb),
                             xw);
 
           g_signal_connect (G_OBJECT (xw->widget_osr),
                             "new-window-policy-decision-requested",
                             G_CALLBACK
-                            (webkit_osr_new_window_policy_decision_requested_cb),
+                            (webkit_new_window_policy_decision_requested_cb),
                             xw);
 
           g_signal_connect (G_OBJECT (xw->widget_osr),
                             "navigation-policy-decision-requested",
                             G_CALLBACK
-                            (webkit_osr_navigation_policy_decision_requested_cb),
+                            (webkit_navigation_policy_decision_requested_cb),
                             xw);
         }
 
       unblock_input ();
 
     }
-#endif /* HAVE_WEBKIT_OSR */
 
   return val;
 }
 
-DEFUN ("get-buffer-xwidgets", Fget_buffer_xwidgets, Sget_buffer_xwidgets, 1, 1, 0, doc:/* Return a list of xwidgets associated with BUFFER.
-                                                                                           BUFFER may be a buffer or the name of one.
-                                                                                         */
-)(Lisp_Object
-  buffer)
+DEFUN ("get-buffer-xwidgets", Fget_buffer_xwidgets, Sget_buffer_xwidgets,
+       1, 1, 0, doc:/* Return a list of xwidgets associated with BUFFER.
+                       BUFFER
+                       may be a buffer or the name of one.
+                    */)
+  (Lisp_Object buffer)
 {
   Lisp_Object xw, tail, xw_list;
 
@@ -381,7 +336,10 @@ xwidget_show_view (struct xwidget_view *xv)
 {
   xv->hidden = 0;
   gtk_widget_show (xv->widgetwindow);
-  gtk_fixed_move (GTK_FIXED (xv->emacswindow), xv->widgetwindow, xv->x + xv->clip_left, xv->y + xv->clip_top);	//TODO refactor
+  gtk_fixed_move (GTK_FIXED (xv->emacswindow),
+                  xv->widgetwindow,
+                  xv->x + xv->clip_left,
+                  xv->y + xv->clip_top);
 }
 
 
@@ -398,7 +356,7 @@ xwidget_hide_view (struct xwidget_view *xv)
 
 
 /* when the off-screen webkit master view changes this signal is called.
-   it copies the bitmap from the off-screen webkit instance */
+   it copies the bitmap from the off-screen instance */
 gboolean
 offscreen_damage_event (GtkWidget * widget, GdkEvent * event,
                         gpointer xv_widget)
@@ -413,7 +371,6 @@ offscreen_damage_event (GtkWidget * widget, GdkEvent * event,
     printf ("Warning, offscreen_damage_event received invalid xv pointer:%p\n",
             (void *) xv_widget);
 
-
   return FALSE;
 }
 
@@ -427,10 +384,10 @@ store_xwidget_event_string (struct xwidget *xw, const char *eventname,
   XSETXWIDGET (xwl, xw);
   EVENT_INIT (event);
   event.kind = XWIDGET_EVENT;
-  event.frame_or_window = Qnil;	//frame; //how to get the frame here? //TODO i store it in the xwidget now
+  event.frame_or_window = Qnil;	//frame;
 
   event.arg = Qnil;
-  event.arg = Fcons (build_string (eventstr), event.arg);	//string so dont intern
+  event.arg = Fcons (build_string (eventstr), event.arg);
   event.arg = Fcons (xwl, event.arg);	//TODO
   event.arg = Fcons (intern (eventname), event.arg);	//interning should be ok
   kbd_buffer_store_event (&event);
@@ -440,11 +397,9 @@ store_xwidget_event_string (struct xwidget *xw, const char *eventname,
 //TODO deprecated, use load-status
 void
 webkit_document_load_finished_cb (WebKitWebView * webkitwebview,
-                                            WebKitWebFrame * arg1,
-                                            gpointer data)
+                                  WebKitWebFrame * arg1,
+                                  gpointer data)
 {
-  //TODO this event sending code should be refactored
-  //  struct xwidget *xw = (struct xwidget *) data;
   struct xwidget *xw =
     (struct xwidget *) g_object_get_data (G_OBJECT (webkitwebview),
                                           XG_XWIDGET);
@@ -454,16 +409,12 @@ webkit_document_load_finished_cb (WebKitWebView * webkitwebview,
 
 gboolean
 webkit_download_cb (WebKitWebView * webkitwebview,
-                              WebKitDownload * arg1, gpointer data)
+                    WebKitDownload * arg1,
+                    gpointer data)
 {
   struct xwidget *xw =
     (struct xwidget *) g_object_get_data (G_OBJECT (webkitwebview),
                                           XG_XWIDGET);
-  printf ("download requested %s\n", webkit_download_get_uri (arg1));
-
-
-  printf ("webkit finished loading\n");
-
   store_xwidget_event_string (xw, "download-requested",
                               webkit_download_get_uri (arg1));
 
@@ -471,22 +422,17 @@ webkit_download_cb (WebKitWebView * webkitwebview,
 }
 
 gboolean
-webkit_mime_type_policy_typedecision_requested_cb (WebKitWebView *
-                                                             webView,
-                                                             WebKitWebFrame *
-                                                             frame,
-                                                             WebKitNetworkRequest
-                                                             * request,
-                                                             gchar * mimetype,
-                                                             WebKitWebPolicyDecision
-                                                             *
-                                                             policy_decision,
-                                                             gpointer
-                                                             user_data)
+webkit_mime_type_policy_typedecision_requested_cb (WebKitWebView *webView,
+                                                   WebKitWebFrame *frame,
+                                                   WebKitNetworkRequest * request,
+                                                   gchar * mimetype,
+                                                   WebKitWebPolicyDecision *policy_decision,
+                                                   gpointer user_data)
 {
   printf ("mime policy requested\n");
-  // this function makes webkit send a download signal for all unknown mime types
-  // TODO defer the decision to lisp, so that its possible to make Emacs handle text mime for instance
+  // this function makes webkit send a download signal for all unknown
+  // mime types TODO defer the decision to lisp, so that its possible
+  // to make Emacs handle text mime for instance
   if (!webkit_web_view_can_show_mime_type (webView, mimetype))
     {
       webkit_web_policy_decision_download (policy_decision);
@@ -566,7 +512,8 @@ xwidget_osr_draw_cb (GtkWidget * widget, cairo_t * cr, gpointer data)
 
 static gboolean
 xwidget_osr_event_forward (GtkWidget * widget,
-                           GdkEvent * event, gpointer user_data)
+                           GdkEvent * event,
+                           gpointer user_data)
 {
   /* copy events that arrive at the outer widget to the offscreen widget */
   struct xwidget *xw =
@@ -574,13 +521,11 @@ xwidget_osr_event_forward (GtkWidget * widget,
   GdkEvent *eventcopy = gdk_event_copy (event);
   eventcopy->any.window = gtk_widget_get_window (xw->widget_osr);	// works
 
-  gtk_main_do_event (eventcopy);	//TODO this will leak events. they should be deallocated later, perhaps in xwgir_event_cb
+  //TODO this might leak events. they should be deallocated later,
+  //perhaps in xwgir_event_cb
+  gtk_main_do_event (eventcopy);
   return TRUE;			//dont propagate this event furter
 }
-
-GIRepository *girepository;
-
-
 
 
 static gboolean
@@ -589,9 +534,6 @@ xwidget_osr_event_set_embedder (GtkWidget * widget,
 {
   struct xwidget_view *xv = (struct xwidget_view *) data;
   struct xwidget *xww = XXWIDGET (xv->model);
-  printf ("gdk_offscreen_window_set_embedder %d %d\n",
-          GDK_IS_WINDOW (gtk_widget_get_window (xww->widget_osr)),
-          GDK_IS_WINDOW (gtk_widget_get_window (GTK_WIDGET (xv->widget))));
   gdk_offscreen_window_set_embedder (gtk_widget_get_window
                                      (xww->widgetwindow_osr),
                                      gtk_widget_get_window (xv->widget));
@@ -599,9 +541,11 @@ xwidget_osr_event_set_embedder (GtkWidget * widget,
 }
 
 
-/* initializes and does initial placement of an xwidget view on screen */
+/* Initializes and does initial placement of an xwidget view on screen */
 static struct xwidget_view *
-xwidget_init_view (struct xwidget *xww, struct glyph_string *s, int x, int y)
+xwidget_init_view (struct xwidget *xww,
+                   struct glyph_string *s,
+                   int x, int y)
 {
   struct xwidget_view *xv = allocate_xwidget_view ();
   Lisp_Object val;
@@ -614,7 +558,6 @@ xwidget_init_view (struct xwidget *xww, struct glyph_string *s, int x, int y)
 
   if (EQ (xww->type, Qwebkit_osr))
     {
-      printf ("osr init:%s\n", SDATA (SYMBOL_NAME (xww->type)));
       xv->widget = gtk_drawing_area_new ();
       gtk_widget_set_app_paintable (xv->widget, TRUE);	//because expose event handling
       gtk_widget_add_events (xv->widget, GDK_ALL_EVENTS_MASK);
@@ -625,7 +568,6 @@ xwidget_init_view (struct xwidget *xww, struct glyph_string *s, int x, int y)
 
       if (EQ (xww->type, Qwebkit_osr))
         {
-          /* ///xwgir debug */
           /* //forward events. this isnt compatible with the set_embedded strategy */
           g_signal_connect (G_OBJECT (xv->widget), "button-press-event",
                             G_CALLBACK (xwidget_osr_event_forward), NULL);
@@ -649,10 +591,12 @@ xwidget_init_view (struct xwidget *xww, struct glyph_string *s, int x, int y)
   //else return NULL;
 
   //widget realization
-  //make container widget 1st, and put the actual widget inside the container
-  //later, drawing should crop container window if necessary to handle case where xwidget
-  //is partially obscured by other emacs windows
-  //other containers than gtk_fixed where explored, but gtk_fixed had the most predictable behaviour so far.
+
+  //make container widget 1st, and put the actual widget inside the
+  //container later, drawing should crop container window if necessary
+  //to handle case where xwidget is partially obscured by other emacs
+  //windows other containers than gtk_fixed where explored, but
+  //gtk_fixed had the most predictable behaviour so far.
   xv->emacswindow = FRAME_GTK_WIDGET (s->f);
   xv->widgetwindow = gtk_fixed_new ();
   gtk_widget_set_has_window (xv->widgetwindow, TRUE);
@@ -775,9 +719,7 @@ x_draw_xwidget_glyph_string (struct glyph_string *s)
 }
 
 
-#ifdef HAVE_WEBKIT_OSR
-
-//FUGLY macro that checks WEBKIT_IS_WEB_VIEW(xw->widget_osr) first
+// Macro that checks WEBKIT_IS_WEB_VIEW(xw->widget_osr) first
 #define WEBKIT_FN_INIT()                        \
   struct xwidget* xw; \
   CHECK_XWIDGET (xwidget); \
@@ -828,7 +770,6 @@ from the exec method.  */ )
   WEBKIT_FN_INIT ();
   const gchar *str =
     webkit_web_view_get_title (WEBKIT_WEB_VIEW (xw->widget_osr));
-  //return make_string_from_bytes(str, wcslen((const wchar_t *)str), strlen(str));
   if (str == 0)
     {
       //TODO maybe return Qnil instead. I suppose webkit returns
@@ -856,11 +797,6 @@ DEFUN ("xwidget-disable-plugin-for-mime",
     }
   return Qnil;
 }
-
-
-#endif /* HAVE_WEBKIT_OSR */
-
-
 
 DEFUN ("xwidget-resize", Fxwidget_resize, Sxwidget_resize, 3, 3, 0, doc:
        /* Resize XWIDGET.
@@ -1333,8 +1269,6 @@ xwidget_view_delete_all_in_window (struct window *w)
           xv = XXWIDGET_VIEW (XCAR (tail));
           if (XWINDOW (xv->w) == w)
             {
-              //gtk_widget_destroy (xv->widgetwindow);
-              //Vxwidget_view_list = Fdelq (XCAR (tail), Vxwidget_view_list);
               Fdelete_xwidget_view (XCAR (tail));
             }
         }
@@ -1359,10 +1293,6 @@ lookup_xwidget (Lisp_Object spec)
   /* When a xwidget lisp spec is found initialize the C struct that is
      used in the C code.  This is done by redisplay so values change
      if the spec changes.  So, take special care of one-shot events
-
-     TODO remove xwidget init from display spec. simply store an
-     xwidget reference only and set size etc when creating the
-     xwidget, which should happen before insertion into buffer
    */
   int found = 0;
   Lisp_Object value;
@@ -1374,7 +1304,7 @@ lookup_xwidget (Lisp_Object spec)
   return xw;
 }
 
-/*set up detection of touched xwidget*/
+/* Set up detection of touched xwidget*/
 void
 xwidget_start_redisplay (void)
 {
@@ -1386,7 +1316,7 @@ xwidget_start_redisplay (void)
     }
 }
 
-/* the xwidget was touched during redisplay, so it isnt a candidate for hiding*/
+/* The xwidget was touched during redisplay, so it isnt a candidate for hiding*/
 void
 xwidget_touch (struct xwidget_view *xv)
 {
@@ -1399,7 +1329,7 @@ xwidget_touched (struct xwidget_view *xv)
   return xv->redisplayed;
 }
 
-/* redisplay has ended, now we should hide untouched xwidgets
+/* Redisplay has ended, now we should hide untouched xwidgets
 */
 void
 xwidget_end_redisplay (struct window *w, struct glyph_matrix *matrix)
@@ -1485,5 +1415,3 @@ kill_buffer_xwidgets (Lisp_Object buffer)
       }
     }
 }
-
-#endif /* HAVE_XWIDGETS */
