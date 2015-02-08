@@ -135,59 +135,59 @@ allocate_xwidget_view (void)
 #define XSETXWIDGET(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_XWIDGET))
 #define XSETXWIDGET_VIEW(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_XWIDGET_VIEW))
 
-struct xwidget_view *xwidget_view_lookup (struct xwidget *xw,
-                                          struct window *w);
-Lisp_Object xwidget_spec_value (Lisp_Object spec, Lisp_Object key,
-                                int *found);
-gboolean offscreen_damage_event (GtkWidget * widget, GdkEvent * event,
-                                 gpointer data);
-void webkit_osr_document_load_finished_callback (WebKitWebView *
-                                                 webkitwebview,
-                                                 WebKitWebFrame * arg1,
-                                                 gpointer user_data);
-gboolean webkit_osr_download_callback (WebKitWebView * webkitwebview,
-                                       WebKitDownload * arg1, gpointer data);
+struct xwidget_view *xwidget_view_lookup (struct xwidget *,
+                                          struct window *);
+Lisp_Object xwidget_spec_value (Lisp_Object , Lisp_Object ,
+                                int *);
+gboolean offscreen_damage_event (GtkWidget * , GdkEvent * ,
+                                 gpointer );
+void webkit_document_load_finished_cb (WebKitWebView *
+                                                 ,
+                                                 WebKitWebFrame *,
+                                                 gpointer );
+gboolean webkit_download_cb (WebKitWebView * ,
+                                       WebKitDownload * , gpointer);
 
 gboolean
-webkit_osr_mime_type_policy_typedecision_requested_callback (WebKitWebView *
-                                                             webView,
+webkit_mime_type_policy_typedecision_requested_cb (WebKitWebView *
+                                                             ,
                                                              WebKitWebFrame *
-                                                             frame,
+                                                             ,
                                                              WebKitNetworkRequest
-                                                             * request,
-                                                             gchar * mimetype,
+                                                             * ,
+                                                             gchar * ,
                                                              WebKitWebPolicyDecision
                                                              *
-                                                             policy_decision,
+                                                             ,
                                                              gpointer
-                                                             user_data);
+                                                             );
 
 gboolean
-webkit_osr_new_window_policy_decision_requested_callback (WebKitWebView *
-                                                          webView,
+webkit_new_window_policy_decision_requested_cb (WebKitWebView *
+                                                          ,
                                                           WebKitWebFrame *
-                                                          frame,
+                                                          ,
                                                           WebKitNetworkRequest
-                                                          * request,
+                                                          * ,
                                                           WebKitWebNavigationAction
-                                                          * navigation_action,
+                                                          * ,
                                                           WebKitWebPolicyDecision
-                                                          * policy_decision,
-                                                          gpointer user_data);
+                                                          * ,
+                                                          gpointer );
 
 
 gboolean
-webkit_osr_navigation_policy_decision_requested_callback (WebKitWebView *
-                                                          webView,
+webkit_navigation_policy_decision_requested_cb (WebKitWebView *
+                                                          ,
                                                           WebKitWebFrame *
-                                                          frame,
+                                                          ,
                                                           WebKitNetworkRequest
-                                                          * request,
+                                                          * ,
                                                           WebKitWebNavigationAction
-                                                          * navigation_action,
+                                                          * ,
                                                           WebKitWebPolicyDecision
-                                                          * policy_decision,
-                                                          gpointer user_data);
+                                                          * ,
+                                                          gpointer );
 
 
 
@@ -224,7 +224,9 @@ DEFUN ("make-xwidget",
   xw->type = type;
   xw->title = title;
   if (NILP (buffer))
-    buffer = Fcurrent_buffer ();	// no need to gcpro because Fcurrent_buffer doesn't call Feval/eval_sub.
+    buffer = Fcurrent_buffer ();	// no need to gcpro because
+                                        // Fcurrent_buffer doesn't
+                                        // call Feval/eval_sub.
   else
     buffer = Fget_buffer_create (buffer);
   xw->buffer = buffer;
@@ -252,7 +254,9 @@ DEFUN ("make-xwidget",
       xw->widgetwindow_osr = gtk_offscreen_window_new ();
       gtk_window_resize (GTK_WINDOW (xw->widgetwindow_osr), xw->width,
                          xw->height);
-      xw->widgetscrolledwindow_osr = NULL;	//webkit osr is the only scrolled component atm
+      xw->widgetscrolledwindow_osr = NULL;	//webkit osr is the
+                                                //only scrolled
+                                                //component atm
 
       if (EQ (xw->type, Qwebkit_osr))
         {
@@ -293,7 +297,8 @@ DEFUN ("make-xwidget",
       gtk_widget_show (xw->widgetwindow_osr);
       gtk_widget_show (xw->widgetscrolledwindow_osr);
 
-      /* store some xwidget data in the gtk widgets for convenient retrieval in the event handlers. */
+      /* store some xwidget data in the gtk widgets for convenient
+         retrieval in the event handlers. */
       g_object_set_data (G_OBJECT (xw->widget_osr), XG_XWIDGET,
                          (gpointer) (xw));
       g_object_set_data (G_OBJECT (xw->widgetwindow_osr), XG_XWIDGET,
@@ -305,28 +310,28 @@ DEFUN ("make-xwidget",
           g_signal_connect (G_OBJECT (xw->widget_osr),
                             "document-load-finished",
                             G_CALLBACK
-                            (webkit_osr_document_load_finished_callback), xw);
+                            (webkit_osr_document_load_finished_cb), xw);
 
           g_signal_connect (G_OBJECT (xw->widget_osr),
                             "download-requested",
-                            G_CALLBACK (webkit_osr_download_callback), xw);
+                            G_CALLBACK (webkit_osr_download_cb), xw);
 
           g_signal_connect (G_OBJECT (xw->widget_osr),
                             "mime-type-policy-decision-requested",
                             G_CALLBACK
-                            (webkit_osr_mime_type_policy_typedecision_requested_callback),
+                            (webkit_osr_mime_type_policy_typedecision_requested_cb),
                             xw);
 
           g_signal_connect (G_OBJECT (xw->widget_osr),
                             "new-window-policy-decision-requested",
                             G_CALLBACK
-                            (webkit_osr_new_window_policy_decision_requested_callback),
+                            (webkit_osr_new_window_policy_decision_requested_cb),
                             xw);
 
           g_signal_connect (G_OBJECT (xw->widget_osr),
                             "navigation-policy-decision-requested",
                             G_CALLBACK
-                            (webkit_osr_navigation_policy_decision_requested_callback),
+                            (webkit_osr_navigation_policy_decision_requested_cb),
                             xw);
         }
 
@@ -434,7 +439,7 @@ store_xwidget_event_string (struct xwidget *xw, const char *eventname,
 
 //TODO deprecated, use load-status
 void
-webkit_osr_document_load_finished_callback (WebKitWebView * webkitwebview,
+webkit_document_load_finished_cb (WebKitWebView * webkitwebview,
                                             WebKitWebFrame * arg1,
                                             gpointer data)
 {
@@ -448,7 +453,7 @@ webkit_osr_document_load_finished_callback (WebKitWebView * webkitwebview,
 }
 
 gboolean
-webkit_osr_download_callback (WebKitWebView * webkitwebview,
+webkit_download_cb (WebKitWebView * webkitwebview,
                               WebKitDownload * arg1, gpointer data)
 {
   struct xwidget *xw =
@@ -466,7 +471,7 @@ webkit_osr_download_callback (WebKitWebView * webkitwebview,
 }
 
 gboolean
-webkit_osr_mime_type_policy_typedecision_requested_callback (WebKitWebView *
+webkit_mime_type_policy_typedecision_requested_cb (WebKitWebView *
                                                              webView,
                                                              WebKitWebFrame *
                                                              frame,
@@ -495,7 +500,7 @@ webkit_osr_mime_type_policy_typedecision_requested_callback (WebKitWebView *
 
 
 gboolean
-webkit_osr_new_window_policy_decision_requested_callback (WebKitWebView *
+webkit_new_window_policy_decision_requested_cb (WebKitWebView *
                                                           webView,
                                                           WebKitWebFrame *
                                                           frame,
@@ -509,7 +514,7 @@ webkit_osr_new_window_policy_decision_requested_callback (WebKitWebView *
 {
   struct xwidget *xw =
     (struct xwidget *) g_object_get_data (G_OBJECT (webView), XG_XWIDGET);
-  printf ("webkit_osr_new_window_policy_decision_requested_callback %s\n",
+  printf ("webkit_new_window_policy_decision_requested_cb %s\n",
           webkit_web_navigation_action_get_original_uri (navigation_action));
 
   store_xwidget_event_string (xw, "new-window-policy-decision-requested",
@@ -519,7 +524,7 @@ webkit_osr_new_window_policy_decision_requested_callback (WebKitWebView *
 }
 
 gboolean
-webkit_osr_navigation_policy_decision_requested_callback (WebKitWebView *
+webkit_navigation_policy_decision_requested_cb (WebKitWebView *
                                                           webView,
                                                           WebKitWebFrame *
                                                           frame,
@@ -541,7 +546,7 @@ webkit_osr_navigation_policy_decision_requested_callback (WebKitWebView *
 
 //for gtk3 offscreen rendered widgets
 static gboolean
-xwidget_osr_draw_callback (GtkWidget * widget, cairo_t * cr, gpointer data)
+xwidget_osr_draw_cb (GtkWidget * widget, cairo_t * cr, gpointer data)
 {
   struct xwidget *xw =
     (struct xwidget *) g_object_get_data (G_OBJECT (widget), XG_XWIDGET);
@@ -569,7 +574,7 @@ xwidget_osr_event_forward (GtkWidget * widget,
   GdkEvent *eventcopy = gdk_event_copy (event);
   eventcopy->any.window = gtk_widget_get_window (xw->widget_osr);	// works
 
-  gtk_main_do_event (eventcopy);	//TODO this will leak events. they should be deallocated later, perhaps in xwgir_event_callback
+  gtk_main_do_event (eventcopy);	//TODO this will leak events. they should be deallocated later, perhaps in xwgir_event_cb
   return TRUE;			//dont propagate this event furter
 }
 
@@ -638,7 +643,7 @@ xwidget_init_view (struct xwidget *xww, struct glyph_string *s, int x, int y)
 
       //draw
       g_signal_connect (G_OBJECT (xv->widget), "draw",
-                        G_CALLBACK (xwidget_osr_draw_callback), NULL);
+                        G_CALLBACK (xwidget_osr_draw_cb), NULL);
 
     }
   //else return NULL;
