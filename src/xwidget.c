@@ -178,26 +178,35 @@ webkit_osr_navigation_policy_decision_requested_callback (WebKitWebView *
                                                           * policy_decision,
                                                           gpointer user_data);
 
-static GtkWidget *xwgir_create (char *, char *);
+static GtkWidget *xwgir_create (char *, char *, char *, Lisp_Object);
 
 
 static void send_xembed_ready_event (struct xwidget *xw, int xembedid);
-DEFUN ("make-xwidget", Fmake_xwidget, Smake_xwidget, 7, 8, 0, doc:	/* Make an xwidget from BEG to END of TYPE.
 
-                                                                           If BUFFER is nil it uses the current buffer. If BUFFER is a string and
-                                                                           no such buffer exists, it is created.
+DEFUN ("make-xwidget",
+       Fmake_xwidget, Smake_xwidget,
+       7, 8, 0, doc:	/* Make an xwidget from BEG to END of TYPE.
 
-                                                                           TYPE is a symbol which can take one of the following values:
-                                                                           - Button
-                                                                           - ToggleButton
-                                                                           - slider
-                                                                           - socket
-                                                                           - socket-osr
-                                                                         */
+                           If BUFFER is nil it uses the current
+                           buffer. If BUFFER is a string and no such
+                           buffer exists, it is created.
+
+                           TYPE is a symbol which can take one of the
+                           following values:
+
+                           - Button
+                           - ToggleButton
+                           - slider
+                           - socket
+                           - socket-osr
+
+                           ARGUMENTS are xwgir constructor args
+                        */
 )(Lisp_Object beg, Lisp_Object end,
   Lisp_Object type,
   Lisp_Object title,
-  Lisp_Object width, Lisp_Object height, Lisp_Object data, Lisp_Object buffer)
+  Lisp_Object width, Lisp_Object height,
+  Lisp_Object arguments, Lisp_Object buffer)
 {
   //should work a bit like "make-button"(make-button BEG END &rest PROPERTIES)
   // arg "type" and fwd should be keyword args eventually
@@ -216,7 +225,8 @@ DEFUN ("make-xwidget", Fmake_xwidget, Smake_xwidget, 7, 8, 0, doc:	/* Make an xw
   xw->height = XFASTINT (height);
   xw->width = XFASTINT (width);
   xw->kill_without_query = 0;
-  XSETXWIDGET (val, xw);	// set the vectorlike_header of VAL with the correct value
+  XSETXWIDGET (val, xw);	// set the vectorlike_header of VAL
+                                // with the correct value
   Vxwidget_list = Fcons (val, Vxwidget_list);
   xw->widgetwindow_osr = NULL;
   xw->widget_osr = NULL;
@@ -262,8 +272,11 @@ DEFUN ("make-xwidget", Fmake_xwidget, Smake_xwidget, 7, 8, 0, doc:	/* Make an xw
         xw->widget_osr = gtk_socket_new ();
       if (!NILP (Fget (xw->type, QCxwgir_class)))
         xw->widget_osr =
-          xwgir_create (SSDATA (Fcar (Fcdr (Fget (xw->type, QCxwgir_class)))),
-                        SSDATA (Fcar (Fget (xw->type, QCxwgir_class))));
+          xwgir_create (SSDATA (Fcar (Fcdr (Fget (xw->type, QCxwgir_class)))), //class
+                        SSDATA (Fcar (Fget (xw->type, QCxwgir_class))), //namespace
+                        SSDATA (Fcar (Fcdr (Fcdr (Fget (xw->type, QCxwgir_class))))), //constructor
+                        arguments
+                        );
 
       gtk_widget_set_size_request (GTK_WIDGET (xw->widget_osr), xw->width,
                                    xw->height);
@@ -688,24 +701,6 @@ DEFUN ("xwgir-require-namespace", Fxwgir_require_namespace, Sxwgir_require_names
   return Qt;
 }
 
-GtkWidget *
-xwgir_create (char *class, char *namespace)
-{
-  //TODO this is more or less the same as xwgir-call-method, so should be refactored
-  //create a gtk widget, given its name
-  //find the constructor
-  //call it
-  //also figure out how to pass args
-
-  GIArgument return_value;
-
-  GIObjectInfo *obj_info =
-    g_irepository_find_by_name (girepository, namespace, class);
-  GIFunctionInfo *f_info = g_object_info_find_method (obj_info, "new");
-  g_function_info_invoke (f_info, NULL, 0, NULL, 0, &return_value, NULL);
-  return return_value.v_pointer;
-
-}
 
 static int
 xwgir_convert_lisp_to_gir_arg (GIArgument * giarg,
@@ -778,11 +773,85 @@ xwgir_convert_lisp_to_gir_arg (GIArgument * giarg,
   return 0;
 }
 
-DEFUN ("xwgir-xwidget-call-method", Fxwgir_xwidget_call_method, Sxwgir_xwidget_call_method, 3, 3, 0, doc:	/* Call Xwidget object method using GObject Introspection.
-                                                                                                                   XWIDGET is the xwidget instance to act upon.
-                                                                                                                   METHOD is the Gobject intrsopsection method name.
-                                                                                                                   ARGUMENTS is a list of arguments for the call. They will be converted to GObject types from Lisp types.
-                                                                                                                 */ )
+GtkWidget *
+xwgir_create (char *class, char *namespace, char *constructor,
+              Lisp_Object arguments)
+{
+  //TODO this is more or less the same as xwgir-call-method,
+  //so should be refactored
+  //create a gtk widget, given its name
+  //find the constructor
+  //call it
+  //also figure out how to pass args
+
+  GIArgument return_value;
+
+  GIObjectInfo *obj_info =
+    g_irepository_find_by_name (girepository, namespace, class);
+  //some constructors are like "new_with_label etc
+  GIFunctionInfo *f_info = g_object_info_find_method (obj_info, constructor);
+  g_function_info_invoke (f_info, NULL, 0, NULL, 0, &return_value, NULL);
+
+
+  //////////////////////////////////////////////////////////////////////////////
+  // refactorable
+
+  //loop over args, convert from lisp to primitive type, given arg
+  //introspection data TODO g_callable_info_get_n_args(f_info) should
+  //match
+  GError *error = NULL;
+  GIArgument in_args[20];
+
+  int argscount = XFASTINT (Flength (arguments));
+  if (argscount != g_callable_info_get_n_args (f_info))
+    {
+      printf ("xwgir call method arg count doesn match! \n");
+      return NULL;
+    }
+  int i;
+  Lisp_Object n;
+  for (i = 0; i < argscount ; ++i)
+    {
+      XSETFASTINT (n, i);
+      xwgir_convert_lisp_to_gir_arg (&in_args[i],
+                                     g_callable_info_get_arg (f_info, i),
+                                     Fnth (n, arguments));
+    }
+
+  //in_args[0].v_pointer = widget;
+  //g_function_info_invoke (f_info, NULL, 0, NULL, 0, &return_value, NULL);
+  if (!g_function_info_invoke (f_info,
+                              in_args, argscount,
+                              NULL, 0, &return_value, &error))
+    {
+      //g_error("ERROR: %s\n", error->message);
+      printf ("invokation error\n");
+      return NULL;
+    }
+  ///////////////////////////////////////
+
+
+
+  return return_value.v_pointer;
+
+}
+
+
+DEFUN ("xwgir-xwidget-call-method",
+       Fxwgir_xwidget_call_method, Sxwgir_xwidget_call_method,
+       3, 3, 0, doc:	/* Call Xwidget object method using GObject
+                           Introspection.
+
+                           XWIDGET is the xwidget instance to act
+                           upon.
+
+                           METHOD is the Gobject intrsopsection method
+                           name.
+
+                           ARGUMENTS is a list of arguments for the
+                           call. They will be converted to GObject
+                           types from Lisp types.
+                        */ )
   (Lisp_Object xwidget, Lisp_Object method, Lisp_Object arguments)
 {
   CHECK_XWIDGET (xwidget);
@@ -801,35 +870,32 @@ DEFUN ("xwgir-xwidget-call-method", Fxwgir_xwidget_call_method, Sxwgir_xwidget_c
   if (NULL == xw)
     printf ("ERROR xw is 0\n");
   char *namespace = SSDATA (Fcar (Fget (xw->type, QCxwgir_class)));
-  //we need the concrete widget, which happens in 2 ways depending on OSR or not TODO
+  //we need the concrete widget, which happens in 2 ways depending on
+  //OSR or not TODO
   GtkWidget *widget = NULL;
   if (NULL == xw->widget_osr)
     {
-      widget =
-        xwidget_view_lookup (xw,
-                             XWINDOW (FRAME_SELECTED_WINDOW
-                                      (SELECTED_FRAME ())))->widget;
+      widget = xwidget_view_lookup (xw,
+                                    XWINDOW (FRAME_SELECTED_WINDOW
+                                             (SELECTED_FRAME ())))->widget;
     }
   else
     {
       widget = xw->widget_osr;
     }
 
-  //char* class = SDATA(SYMBOL_NAME(xw->type)); //this works but is unflexible
-  //figure out the class from the widget instead
-  /* printf("type class: %s %s\n", G_OBJECT_TYPE_NAME(widget), G_OBJECT_CLASS_NAME(G_OBJECT_GET_CLASS(widget))); */
-  /* char* class = G_OBJECT_TYPE_NAME(widget); //gives "GtkButton"(I want "Button") */
-  /* class += strlen(namespace);  //TODO check for corresponding api method. but this seems to work. */
 
   char *class = SSDATA (Fcar (Fcdr (Fget (xw->type, QCxwgir_class))));
-
+  //////////////////////////////////////////////////////////////////////////////
+  // class, namespace, argumentss
   GIObjectInfo *obj_info =
     g_irepository_find_by_name (girepository, namespace, class);
   GIFunctionInfo *f_info =
     g_object_info_find_method (obj_info, SSDATA (method));
 
-  //loop over args, convert from lisp to primitive type, given arg introspection data
-  //TODO g_callable_info_get_n_args(f_info) should match
+  //loop over args, convert from lisp to primitive type, given arg
+  //introspection data TODO g_callable_info_get_n_args(f_info) should
+  //match
   int argscount = XFASTINT (Flength (arguments));
   if (argscount != g_callable_info_get_n_args (f_info))
     {
@@ -847,7 +913,7 @@ DEFUN ("xwgir-xwidget-call-method", Fxwgir_xwidget_call_method, Sxwgir_xwidget_c
     }
 
   in_args[0].v_pointer = widget;
-  if (g_function_info_invoke (f_info,
+  if (!g_function_info_invoke (f_info,
                               in_args, argscount + 1,
                               NULL, 0, &return_value, &error))
     {
@@ -1031,8 +1097,8 @@ xwidget_init_view (struct xwidget *xww, struct glyph_string *s, int x, int y)
 
   //////////////////////////////////////////////////////////////
   // xwgir debug
-  if (				//EQ(xww->type, Qwebkit_osr)|| //TODO should be able to choose compile time which method to use with webkit
-       EQ (xww->type, Qsocket_osr) || (!NILP (Fget (xww->type, QCxwgir_class))))	//xwgir widgets are OSR
+  if (
+       EQ (xww->type, Qsocket_osr) || (!NILP (Fget (xww->type, QCxwgir_class))))
     {
       printf ("gdk_offscreen_window_set_embedder %d %d\n",
               GDK_IS_WINDOW (gtk_widget_get_window (xww->widget_osr)),
@@ -1064,8 +1130,9 @@ void
 x_draw_xwidget_glyph_string (struct glyph_string *s)
 {
   /*
-     this method is called by the redisplay engine and places the xwidget on screen.
-     moving and clipping is done here. also view init.
+     this method is called by the redisplay engine and places the
+     xwidget on screen.  moving and clipping is done here. also view
+     init.
 
    */
   struct xwidget *xww = s->xwidget;
@@ -1084,8 +1151,9 @@ x_draw_xwidget_glyph_string (struct glyph_string *s)
    */
   xv = xwidget_init_view (xww, s, x, y);
 
-  //calculate clipping, which is used for all manner of onscreen xwidget views
-  //each widget border can get clipped by other emacs objects so there are four clipping variables
+  //calculate clipping, which is used for all manner of onscreen
+  //xwidget views each widget border can get clipped by other emacs
+  //objects so there are four clipping variables
   clip_right =
     min (xww->width,
          WINDOW_RIGHT_EDGE_X (s->w) - x -
@@ -1232,7 +1300,9 @@ xwidget_webkit_dom_dump (WebKitDOMNode * parent)
   WebKitDOMNode *attribute;
   WebKitDOMNamedNodeMap *attrs;
   WebKitDOMNode *child;
-  printf ("node:%d type:%d name:%s content:%s\n", parent, webkit_dom_node_get_node_type (parent),	//1 element 3 text 8 comment 2 attribute
+  printf ("node:%d type:%d name:%s content:%s\n", parent,
+          webkit_dom_node_get_node_type (parent),
+          //1 element 3 text 8 comment 2 attribute
           webkit_dom_node_get_local_name (parent),
           webkit_dom_node_get_text_content (parent));
 
@@ -1244,7 +1314,9 @@ xwidget_webkit_dom_dump (WebKitDOMNode * parent)
       for (int i = 0; i < length; i++)
         {
           attribute = webkit_dom_named_node_map_item (attrs, i);
-          printf (" attr node:%d type:%d name:%s content:%s\n", attribute, webkit_dom_node_get_node_type (attribute),	//1 element 3 text 8 comment
+          printf (" attr node:%d type:%d name:%s content:%s\n",
+                  attribute, webkit_dom_node_get_node_type (attribute),
+                  //1 element 3 text 8 comment
                   webkit_dom_node_get_local_name (attribute),
                   webkit_dom_node_get_text_content (attribute));
         }
@@ -1261,7 +1333,10 @@ xwidget_webkit_dom_dump (WebKitDOMNode * parent)
 }
 
 
-DEFUN ("xwidget-webkit-dom-dump", Fxwidget_webkit_dom_dump, Sxwidget_webkit_dom_dump, 1, 1, 0, doc:	/*Dump the DOM contained in the webkit instance in XWIDGET. */
+DEFUN ("xwidget-webkit-dom-dump",
+       Fxwidget_webkit_dom_dump, Sxwidget_webkit_dom_dump,
+       1, 1, 0, doc:	/*Dump the DOM contained in the webkit
+                          instance in XWIDGET. */
        )
   (Lisp_Object xwidget)
 {
@@ -1299,10 +1374,12 @@ DEFUN ("xwidget-resize", Fxwidget_resize, Sxwidget_resize, 3, 3, 0, doc:
   //if theres a osr resize it 1st
   if (xw->widget_osr)
     {
-      gtk_widget_set_size_request (GTK_WIDGET (xw->widget_osr), xw->width, xw->height);	//minimum size
+      gtk_widget_set_size_request (GTK_WIDGET (xw->widget_osr),
+                                   xw->width, xw->height);	//minimum size
       gtk_window_resize (GTK_WINDOW (xw->widgetwindow_osr), xw->width,
                          xw->height);
-      /* gtk_window_resize (GTK_WINDOW (xw->widgetscrolledwindow_osr), xw->width, */
+      /* gtk_window_resize (GTK_WINDOW (xw->widgetscrolledwindow_osr),
+         xw->width, */
       /*                    xw->height); */
       gtk_scrolled_window_set_min_content_height (GTK_SCROLLED_WINDOW
                                                   (xw->
@@ -1317,14 +1394,15 @@ DEFUN ("xwidget-resize", Fxwidget_resize, Sxwidget_resize, 3, 3, 0, doc:
 
     }
 
-  for (Lisp_Object tail = Vxwidget_view_list; CONSP (tail); tail = XCDR (tail))	//TODO MVC refactor lazy linear search
+  for (Lisp_Object tail = Vxwidget_view_list; CONSP (tail); tail = XCDR (tail))
     {
       if (XWIDGET_VIEW_P (XCAR (tail)))
         {
           xv = XXWIDGET_VIEW (XCAR (tail));
           if (XXWIDGET (xv->model) == xw)
             {
-              /* gtk_layout_set_size (GTK_CONTAINER (xv->widgetwindow), xw->width, */
+              /* gtk_layout_set_size (GTK_CONTAINER
+                 (xv->widgetwindow), xw->width, */
               /*                      xw->height); */
               gtk_widget_set_size_request (GTK_WIDGET (xv->widget), xw->width,
                                            xw->height);
@@ -1337,7 +1415,8 @@ DEFUN ("xwidget-resize", Fxwidget_resize, Sxwidget_resize, 3, 3, 0, doc:
 
 
 
-DEFUN ("xwidget-set-adjustment", Fxwidget_set_adjustment, Sxwidget_set_adjustment, 4, 4, 0, doc:
+DEFUN ("xwidget-set-adjustment",
+       Fxwidget_set_adjustment, Sxwidget_set_adjustment, 4, 4, 0, doc:
        /* set scrolling  */
 )
   (Lisp_Object xwidget, Lisp_Object axis, Lisp_Object relative,
@@ -1379,10 +1458,13 @@ DEFUN ("xwidget-set-adjustment", Fxwidget_set_adjustment, Sxwidget_set_adjustmen
 }
 
 
-DEFUN ("xwidget-size-request", Fxwidget_size_request, Sxwidget_size_request, 1, 1, 0, doc:
+DEFUN ("xwidget-size-request",
+       Fxwidget_size_request, Sxwidget_size_request,
+       1, 1, 0, doc:
        /* Desired size of the XWIDGET.
 
-          This can be used to read the xwidget desired size,  and resizes the Emacs allocated area accordingly.
+          This can be used to read the xwidget desired size, and
+          resizes the Emacs allocated area accordingly.
 
           (TODO crashes if arg not osr widget) */
 )
@@ -1399,22 +1481,29 @@ DEFUN ("xwidget-size-request", Fxwidget_size_request, Sxwidget_size_request, 1, 
 
 }
 
-DEFUN ("xwidgetp", Fxwidgetp, Sxwidgetp, 1, 1, 0, doc:	/* Return t if OBJECT is a xwidget.  */
+DEFUN ("xwidgetp",
+       Fxwidgetp, Sxwidgetp,
+       1, 1, 0, doc:	/* Return t if OBJECT is a xwidget.  */
        )
   (Lisp_Object object)
 {
   return XWIDGETP (object) ? Qt : Qnil;
 }
 
-DEFUN ("xwidget-view-p", Fxwidget_view_p, Sxwidget_view_p, 1, 1, 0, doc:/* Return t if OBJECT is a xwidget-view.  */
+DEFUN ("xwidget-view-p",
+       Fxwidget_view_p, Sxwidget_view_p,
+       1, 1, 0, doc:/* Return t if OBJECT is a xwidget-view.  */
        )
   (Lisp_Object object)
 {
   return XWIDGET_VIEW_P (object) ? Qt : Qnil;
 }
 
-DEFUN ("xwidget-info", Fxwidget_info, Sxwidget_info, 1, 1, 0, doc:	/* Get XWIDGET properties.
-                                                                           Currently type, title, width, height. */ )
+DEFUN ("xwidget-info",
+       Fxwidget_info, Sxwidget_info,
+       1, 1, 0, doc:	/* Get XWIDGET properties.
+                           Currently
+                           type, title, width, height. */ )
   (Lisp_Object xwidget)
 {
   CHECK_XWIDGET (xwidget);
@@ -1432,9 +1521,11 @@ DEFUN ("xwidget-info", Fxwidget_info, Sxwidget_info, 1, 1, 0, doc:	/* Get XWIDGE
   return info;
 }
 
-DEFUN ("xwidget-view-info", Fxwidget_view_info, Sxwidget_view_info, 1, 1, 0, doc:
-       /* Get XWIDGET-VIEW properties.
-          Currently x,y clip right, clip bottom, clip top, clip left */
+DEFUN ("xwidget-view-info",
+       Fxwidget_view_info, Sxwidget_view_info,
+       1, 1, 0, doc:
+       /* Get XWIDGET-VIEW properties.  Currently x,y clip right, clip
+          bottom, clip top, clip left */
 )
   (Lisp_Object xwidget_view)
 {
@@ -1453,7 +1544,9 @@ DEFUN ("xwidget-view-info", Fxwidget_view_info, Sxwidget_view_info, 1, 1, 0, doc
   return info;
 }
 
-DEFUN ("xwidget-view-model", Fxwidget_view_model, Sxwidget_view_model, 1, 1, 0, doc:	/* Get XWIDGET-VIEW model. */
+DEFUN ("xwidget-view-model",
+       Fxwidget_view_model, Sxwidget_view_model,
+       1, 1, 0, doc:	/* Get XWIDGET-VIEW model. */
        )
   (Lisp_Object xwidget_view)
 {
@@ -1461,7 +1554,9 @@ DEFUN ("xwidget-view-model", Fxwidget_view_model, Sxwidget_view_model, 1, 1, 0, 
   return XXWIDGET_VIEW (xwidget_view)->model;
 }
 
-DEFUN ("xwidget-view-window", Fxwidget_view_window, Sxwidget_view_window, 1, 1, 0, doc:/* Get XWIDGET-VIEW window. */
+DEFUN ("xwidget-view-window",
+       Fxwidget_view_window, Sxwidget_view_window,
+       1, 1, 0, doc:/* Get XWIDGET-VIEW window. */
        )
   (Lisp_Object xwidget_view)
 {
@@ -1469,12 +1564,15 @@ DEFUN ("xwidget-view-window", Fxwidget_view_window, Sxwidget_view_window, 1, 1, 
   return XXWIDGET_VIEW (xwidget_view)->w;
 }
 
-DEFUN ("xwidget-send-keyboard-event", Fxwidget_send_keyboard_event, Sxwidget_send_keyboard_event, 2, 2, 0, doc:/* Synthesize a kbd event for  XWIDGET. TODO crashes atm.. */
+DEFUN ("xwidget-send-keyboard-event",
+       Fxwidget_send_keyboard_event, Sxwidget_send_keyboard_event,
+       2, 2, 0, doc: /* Synthesize a kbd event for XWIDGET. TODO
+                        crashes atm.. */
 )(Lisp_Object xwidget,
   Lisp_Object keydescriptor)
 {
-  //TODO this code crashes for offscreen widgets and ive tried many different strategies
-  //int keyval = 0x058; //X
+  //TODO this code crashes for offscreen widgets and ive tried many
+  //different strategies int keyval = 0x058; //X
   int keyval = XFASTINT (keydescriptor);	//X
   GdkKeymapKey *keys;
   gint n_keys;
@@ -1497,7 +1595,8 @@ DEFUN ("xwidget-send-keyboard-event", Fxwidget_send_keyboard_event, Sxwidget_sen
   window = FRAME_SELECTED_WINDOW (SELECTED_FRAME ());
 
 
-  //TODO maybe we also need to special case sockets by picking up the plug rather than the socket
+  //TODO maybe we also need to special case sockets by picking up the
+  //plug rather than the socket
   if (xw->widget_osr)
     widget = xw->widget_osr;
   else
@@ -1535,7 +1634,9 @@ DEFUN ("xwidget-send-keyboard-event", Fxwidget_send_keyboard_event, Sxwidget_sen
   return Qnil;
 }
 
-DEFUN ("delete-xwidget-view", Fdelete_xwidget_view, Sdelete_xwidget_view, 1, 1, 0, doc:/* Delete the XWIDGET-VIEW. */
+DEFUN ("delete-xwidget-view",
+       Fdelete_xwidget_view, Sdelete_xwidget_view,
+       1, 1, 0, doc:/* Delete the XWIDGET-VIEW. */
        )
   (Lisp_Object xwidget_view)
 {
@@ -1556,8 +1657,11 @@ DEFUN ("delete-xwidget-view", Fdelete_xwidget_view, Sdelete_xwidget_view, 1, 1, 
   return Qnil;
 }
 
-DEFUN ("xwidget-view-lookup", Fxwidget_view_lookup, Sxwidget_view_lookup, 1, 2, 0, doc:/* Return the xwidget-view associated to XWIDGET in
-                                                                                           WINDOW if specified, otherwise it uses the selected window. */
+DEFUN ("xwidget-view-lookup",
+       Fxwidget_view_lookup, Sxwidget_view_lookup,
+       1, 2, 0, doc: /* Return the xwidget-view associated to XWIDGET in
+                        WINDOW
+                        if specified, otherwise it uses the selected window. */
 )
   (Lisp_Object xwidget, Lisp_Object window)
 {
@@ -1579,7 +1683,9 @@ DEFUN ("xwidget-view-lookup", Fxwidget_view_lookup, Sxwidget_view_lookup, 1, 2, 
   return Qnil;
 }
 
-DEFUN ("set-frame-visible", Fset_frame_visible, Sset_frame_visible, 2, 2, 0, doc:	/* HACKY */
+DEFUN ("set-frame-visible",
+       Fset_frame_visible, Sset_frame_visible,
+       2, 2, 0, doc:	/* HACKY */
        )
   (Lisp_Object frame, Lisp_Object flag)
 {
@@ -1589,7 +1695,9 @@ DEFUN ("set-frame-visible", Fset_frame_visible, Sset_frame_visible, 2, 2, 0, doc
   return flag;
 }
 
-DEFUN ("xwidget-plist", Fxwidget_plist, Sxwidget_plist, 1, 1, 0, doc:	/* Return the plist of XWIDGET.  */
+DEFUN ("xwidget-plist",
+       Fxwidget_plist, Sxwidget_plist,
+       1, 1, 0, doc:	/* Return the plist of XWIDGET.  */
        )
   (register Lisp_Object xwidget)
 {
@@ -1597,7 +1705,9 @@ DEFUN ("xwidget-plist", Fxwidget_plist, Sxwidget_plist, 1, 1, 0, doc:	/* Return 
   return XXWIDGET (xwidget)->plist;
 }
 
-DEFUN ("xwidget-buffer", Fxwidget_buffer, Sxwidget_buffer, 1, 1, 0, doc:/* Return the buffer of XWIDGET.  */
+DEFUN ("xwidget-buffer",
+       Fxwidget_buffer, Sxwidget_buffer,
+       1, 1, 0, doc:/* Return the buffer of XWIDGET.  */
        )
   (register Lisp_Object xwidget)
 {
@@ -1605,7 +1715,10 @@ DEFUN ("xwidget-buffer", Fxwidget_buffer, Sxwidget_buffer, 1, 1, 0, doc:/* Retur
   return XXWIDGET (xwidget)->buffer;
 }
 
-DEFUN ("set-xwidget-plist", Fset_xwidget_plist, Sset_xwidget_plist, 2, 2, 0, doc:	/* Replace the plist of XWIDGET with PLIST.  Returns PLIST.  */
+DEFUN ("set-xwidget-plist",
+       Fset_xwidget_plist, Sset_xwidget_plist,
+       2, 2, 0, doc:	/* Replace the plist of XWIDGET with PLIST.
+                           Returns PLIST.  */
        )
   (register Lisp_Object xwidget, Lisp_Object plist)
 {
@@ -1616,11 +1729,12 @@ DEFUN ("set-xwidget-plist", Fset_xwidget_plist, Sset_xwidget_plist, 2, 2, 0, doc
   return plist;
 }
 
-DEFUN ("set-xwidget-query-on-exit-flag", Fset_xwidget_query_on_exit_flag, Sset_xwidget_query_on_exit_flag, 2, 2, 0, doc:
-                                                                                                                        /* Specify if query is needed for XWIDGET when Emacs is
-                                                                                                                           exited.  If the second argument FLAG is non-nil, Emacs will query the
-                                                                                                                           user before exiting or killing a buffer if XWIDGET is running.  This
-                                                                                                                           function returns FLAG. */
+DEFUN ("set-xwidget-query-on-exit-flag",
+       Fset_xwidget_query_on_exit_flag, Sset_xwidget_query_on_exit_flag,
+       2, 2, 0, doc: /* Specify if query is needed for XWIDGET when
+Emacs is exited.  If the second argument FLAG is non-nil, Emacs will
+query the user before exiting or killing a buffer if XWIDGET is
+running.  This function returns FLAG. */
 )
   (Lisp_Object xwidget, Lisp_Object flag)
 {
@@ -1629,7 +1743,10 @@ DEFUN ("set-xwidget-query-on-exit-flag", Fset_xwidget_query_on_exit_flag, Sset_x
   return flag;
 }
 
-DEFUN ("xwidget-query-on-exit-flag", Fxwidget_query_on_exit_flag, Sxwidget_query_on_exit_flag, 1, 1, 0, doc:	/* Return the current value of query-on-exit flag for XWIDGET. */
+DEFUN ("xwidget-query-on-exit-flag",
+       Fxwidget_query_on_exit_flag, Sxwidget_query_on_exit_flag,
+       1, 1, 0, doc:	/* Return the current value of query-on-exit
+                           flag for XWIDGET. */
        )
   (Lisp_Object xwidget)
 {
@@ -1689,7 +1806,7 @@ syms_of_xwidget (void)
 
   /* Do not forget to update the docstring of make-xwidget if you add
      new types. */
-  DEFSYM (Qbutton, "Button");	//changed to match the gtk class because xwgir(experimental and not really needed)
+  DEFSYM (Qbutton, "Button");
   DEFSYM (Qtoggle, "ToggleButton");
   DEFSYM (Qslider, "slider");
   DEFSYM (Qsocket, "socket");
@@ -1812,12 +1929,13 @@ xwidget_view_lookup (struct xwidget *xw, struct window *w)
 struct xwidget *
 lookup_xwidget (Lisp_Object spec)
 {
-  /* When a xwidget lisp spec is found initialize the C struct that is used in the C code.
-     This is done by redisplay so values change if the spec changes.
-     So, take special care of one-shot events
+  /* When a xwidget lisp spec is found initialize the C struct that is
+     used in the C code.  This is done by redisplay so values change
+     if the spec changes.  So, take special care of one-shot events
 
-     TODO remove xwidget init from display spec. simply store an xwidget reference only and set
-     size etc when creating the xwidget, which should happen before insertion into buffer
+     TODO remove xwidget init from display spec. simply store an
+     xwidget reference only and set size etc when creating the
+     xwidget, which should happen before insertion into buffer
    */
   int found = 0;
   Lisp_Object value;
@@ -1906,7 +2024,8 @@ xwidget_end_redisplay (struct window *w, struct glyph_matrix *matrix)
         {
           struct xwidget_view *xv = XXWIDGET_VIEW (XCAR (tail));
 
-          //"touched" is only meaningful for the current window, so disregard other views
+          //"touched" is only meaningful for the current window, so
+          //disregard other views
           if (XWINDOW (xv->w) == w)
             {
               if (xwidget_touched (xv))

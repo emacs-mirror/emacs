@@ -20,7 +20,7 @@
 'native or 'image."
   :group 'xwidgets)
 
-(defun xwidget-insert (pos type title width height)
+(defun xwidget-insert (pos type title width height &optional args)
   "Insert an xwidget at POS.
 given ID, TYPE, TITLE WIDTH and
 HEIGHT in the current buffer.
@@ -30,7 +30,7 @@ Return ID
 see `make-xwidget' for types suitable for TYPE."
   (goto-char pos)
   (let ((id (make-xwidget (point) (point)
-                          type title width height nil)))
+                          type title width height args)))
     (put-text-property (point) (+ 1 (point))
                        'display (list 'xwidget ':xwidget id))
     id))

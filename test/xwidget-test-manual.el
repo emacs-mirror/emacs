@@ -85,30 +85,38 @@
 
 (xwidget-demo "a-xwgir-color-button"
               (xwgir-require-namespace "Gtk" "3.0")
-              (put 'ColorButton :xwgir-class '("Gtk" "ColorSelection"))
+              (put 'ColorButton :xwgir-class '("Gtk" "ColorSelection" "new"))
               (xwidget-insert (point-min)  'ColorButton "xwgir-color-button" 1000  1000)
               (define-key (current-local-map) [xwidget-event] 'xwidget-handler-demo-basic))
 
 (xwidget-demo "a-xwgir-button"
               (xwgir-require-namespace "Gtk" "3.0")
-              (put 'xwgirButton :xwgir-class '("Gtk" "Button"))
+              (put 'xwgirButton :xwgir-class '("Gtk" "Button" "new"))
 
               (xwidget-insert (point-min)  'xwgirButton "xwgir label didnt work..." 700  700)
               (xwgir-xwidget-call-method (xwidget-at 1) "set_label" '( "xwgir label worked!"))
               (define-key (current-local-map) [xwidget-event] 'xwidget-handler-demo-basic))
 
+(xwidget-demo "a-xwgir-button-constructor"
+              (xwgir-require-namespace "Gtk" "3.0")
+              (put 'xwgirButtonLabel :xwgir-class '("Gtk" "Button" "new_with_label"))
+
+              (xwidget-insert (point-min)  'xwgirButtonLabel "xwgir label didnt work..." 700  700 '("constructor label worked!"))
+              (define-key (current-local-map) [xwidget-event] 'xwidget-handler-demo-basic))
+
+
 (xwidget-demo "a-xwgir-check-button"
               (xwgir-require-namespace "Gtk" "3.0")
-              (put 'xwgirCheckButton :xwgir-class '("Gtk" "CheckButton"))
+              (put 'xwgirCheckButton :xwgir-class '("Gtk" "CheckButton" "new"))
 
               (xwidget-insert (point-min)  'xwgirCheckButton "xwgir label didnt work..." 700  700)
               (define-key (current-local-map) [xwidget-event] 'xwidget-handler-demo-basic))
 
-(xwidget-demo "a-xwgir-hscale"
+(xwidget-demo "a-xwgir-hscale-broken"
               (xwgir-require-namespace "Gtk" "3.0")
-              (put 'xwgirHScale :xwgir-class '("Gtk" "HScale"))
+              (put 'xwgirHScale :xwgir-class '("Gtk" "HScale" "new_with_range" ))
 
-              (xwidget-insert (point-min)  'xwgirHScale "xwgir label didnt work..." 700  700)
+              (xwidget-insert (point-min)  'xwgirHScale "xwgir label didnt work..." 700  700 '(0.0 100.0 1.0))
               (define-key (current-local-map) [xwidget-event] 'xwidget-handler-demo-basic))
 
 (xwidget-demo "a-xwgir-webkit"
