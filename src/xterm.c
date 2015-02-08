@@ -215,7 +215,7 @@ enum xembed_message
   };
 
 static bool x_alloc_nearest_color_1 (Display *, Colormap, XColor *);
-static void x_set_window_size_1 (struct frame *, bool, int, int, bool);
+static void x_set_window_size_1 (struct frame *, bool, int, int);
 static void x_raise_frame (struct frame *);
 static void x_lower_frame (struct frame *);
 static const XColor *x_color_cells (Display *, int *);
@@ -6585,6 +6585,10 @@ x_net_wm_state (struct frame *f, Window window)
       break;
     }
 
+  frame_size_history_add
+    (f, Qx_net_wm_state, 0, 0,
+     list2 (get_frame_param (f, Qfullscreen), lval));
+
   store_frame_param (f, Qfullscreen, lval);
 /**   store_frame_param (f, Qsticky, sticky ? Qt : Qnil); **/
 }
@@ -9242,30 +9246,78 @@ do_ewmh_fullscreen (struct frame *f)
                           None);
           break;
         case FULLSCREEN_WIDTH:
-          if (cur == FULLSCREEN_BOTH || cur == FULLSCREEN_HEIGHT
-              || cur == FULLSCREEN_MAXIMIZED)
-            set_wm_state (frame, false, dpyinfo->Xatom_net_wm_state_fullscreen,
-                          dpyinfo->Xatom_net_wm_state_maximized_vert);
-          if (cur != FULLSCREEN_MAXIMIZED)
-            set_wm_state (frame, true,
-			  dpyinfo->Xatom_net_wm_state_maximized_horz, None);
+	  if (x_frame_normalize_before_maximize && cur == FULLSCREEN_MAXIMIZED)
+	    {
+	      set_wm_state (frame, false,
+			    dpyinfo->Xatom_net_wm_state_maximized_horz,
+			    dpyinfo->Xatom_net_wm_state_maximized_vert);
+	      set_wm_state (frame, true,
+			    dpyinfo->Xatom_net_wm_state_maximized_horz, None);
+	    }
+	  else
+	    {
+	      if (cur == FULLSCREEN_BOTH || cur == FULLSCREEN_HEIGHT
+		  || cur == FULLSCREEN_MAXIMIZED)
+		set_wm_state (frame, false, dpyinfo->Xatom_net_wm_state_fullscreen,
+			      dpyinfo->Xatom_net_wm_state_maximized_vert);
+	      if (cur != FULLSCREEN_MAXIMIZED || x_frame_normalize_before_maximize)
+		set_wm_state (frame, true,
+			      dpyinfo->Xatom_net_wm_state_maximized_horz, None);
+	    }
           break;
         case FULLSCREEN_HEIGHT:
-          if (cur == FULLSCREEN_BOTH || cur == FULLSCREEN_WIDTH
-              || cur == FULLSCREEN_MAXIMIZED)
-            set_wm_state (frame, false, dpyinfo->Xatom_net_wm_state_fullscreen,
-                          dpyinfo->Xatom_net_wm_state_maximized_horz);
-          if (cur != FULLSCREEN_MAXIMIZED)
-            set_wm_state (frame, true,
-			  dpyinfo->Xatom_net_wm_state_maximized_vert, None);
+	  if (x_frame_normalize_before_maximize && cur == FULLSCREEN_MAXIMIZED)
+	    {
+	      set_wm_state (frame, false,
+			    dpyinfo->Xatom_net_wm_state_maximized_horz,
+			    dpyinfo->Xatom_net_wm_state_maximized_vert);
+	      set_wm_state (frame, true,
+			    dpyinfo->Xatom_net_wm_state_maximized_vert, None);
+	    }
+	  else
+	    {
+	      if (cur == FULLSCREEN_BOTH || cur == FULLSCREEN_WIDTH
+		  || cur == FULLSCREEN_MAXIMIZED)
+		set_wm_state (frame, false, dpyinfo->Xatom_net_wm_state_fullscreen,
+			      dpyinfo->Xatom_net_wm_state_maximized_horz);
+	      if (cur != FULLSCREEN_MAXIMIZED || x_frame_normalize_before_maximize)
+		set_wm_state (frame, true,
+			      dpyinfo->Xatom_net_wm_state_maximized_vert, None);
+	    }
           break;
         case FULLSCREEN_MAXIMIZED:
-          if (cur == FULLSCREEN_BOTH)
-            set_wm_state (frame, false, dpyinfo->Xatom_net_wm_state_fullscreen,
-			  None);
-          set_wm_state (frame, true,
-			dpyinfo->Xatom_net_wm_state_maximized_horz,
-                        dpyinfo->Xatom_net_wm_state_maximized_vert);
+	  if (x_frame_normalize_before_maximize && cur == FULLSCREEN_WIDTH)
+	    {
+	      set_wm_state (frame, false,
+			    dpyinfo->Xatom_net_wm_state_maximized_horz, None);
+	      set_wm_state (frame, true,
+			    dpyinfo->Xatom_net_wm_state_maximized_horz,
+			    dpyinfo->Xatom_net_wm_state_maximized_vert);
+	    }
+	  else if (x_frame_normalize_before_maximize && cur == FULLSCREEN_HEIGHT)
+	    {
+	      set_wm_state (frame, false,
+			    dpyinfo->Xatom_net_wm_state_maximized_vert, None);
+	      set_wm_state (frame, true,
+			    dpyinfo->Xatom_net_wm_state_maximized_horz,
+			    dpyinfo->Xatom_net_wm_state_maximized_vert);
+	    }
+	  else
+	    {
+	      if (cur == FULLSCREEN_BOTH)
+		set_wm_state (frame, false, dpyinfo->Xatom_net_wm_state_fullscreen,
+			      None);
+	      else if (cur == FULLSCREEN_HEIGHT)
+		set_wm_state (frame, true,
+			      dpyinfo->Xatom_net_wm_state_maximized_horz, None);
+	      else if (cur == FULLSCREEN_WIDTH)
+		set_wm_state (frame, true, None,
+			      dpyinfo->Xatom_net_wm_state_maximized_vert);
+	      else
+		set_wm_state (frame, true,
+			      dpyinfo->Xatom_net_wm_state_maximized_horz,
+			      dpyinfo->Xatom_net_wm_state_maximized_vert);
+	    }
           break;
         case FULLSCREEN_NONE:
           if (cur == FULLSCREEN_BOTH)
@@ -9322,6 +9374,10 @@ x_handle_net_wm_state (struct frame *f, const XPropertyEvent *event)
       break;
     }
 
+  frame_size_history_add
+    (f, Qx_handle_net_wm_state, 0, 0,
+     list2 (get_frame_param (f, Qfullscreen), lval));
+
   store_frame_param (f, Qfullscreen, lval);
   store_frame_param (f, Qsticky, sticky ? Qt : Qnil);
 
@@ -9358,13 +9414,26 @@ x_check_fullscreen (struct frame *f)
           break;
         case FULLSCREEN_WIDTH:
           width = x_display_pixel_width (dpyinfo);
-          break;
+	  height = height + FRAME_MENUBAR_HEIGHT (f);
+	  break;
         case FULLSCREEN_HEIGHT:
           height = x_display_pixel_height (dpyinfo);
         }
 
+      frame_size_history_add
+	(f, Qx_check_fullscreen, width, height, Qnil);
+
       XResizeWindow (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
-                     width, height);
+		     width, height);
+
+      if (FRAME_VISIBLE_P (f))
+	x_wait_for_event (f, ConfigureNotify);
+      else
+	{
+	  change_frame_size (f, width, height - FRAME_MENUBAR_HEIGHT (f),
+			     false, true, false, true);
+	  x_sync (f);
+	}
     }
 }
 
@@ -9505,21 +9574,57 @@ x_wait_for_event (struct frame *f, int eventtype)
 
 static void
 x_set_window_size_1 (struct frame *f, bool change_gravity,
-		     int width, int height, bool pixelwise)
+		     int width, int height)
 {
-  int pixelwidth, pixelheight;
-
-  pixelwidth = (pixelwise
-		? FRAME_TEXT_TO_PIXEL_WIDTH (f, width)
-		: FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, width));
-  pixelheight = ((pixelwise
-		  ? FRAME_TEXT_TO_PIXEL_HEIGHT (f, height)
-		  : FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, height)));
+  int pixelwidth = FRAME_TEXT_TO_PIXEL_WIDTH (f, width);
+  int pixelheight = FRAME_TEXT_TO_PIXEL_HEIGHT (f, height);
+  int old_width = FRAME_PIXEL_WIDTH (f);
+  int old_height = FRAME_PIXEL_HEIGHT (f);
+  Lisp_Object fullscreen = get_frame_param (f, Qfullscreen);
 
   if (change_gravity) f->win_gravity = NorthWestGravity;
   x_wm_set_size_hint (f, 0, false);
-  XResizeWindow (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
-		 pixelwidth, pixelheight + FRAME_MENUBAR_HEIGHT (f));
+
+  /* When the frame is fullheight and we only want to change the width
+     or it is fullwidth and we only want to change the height we should
+     be able to preserve the fullscreen property.  However, due to the
+     fact that we have to send a resize request anyway, the window
+     manager will abolish it.  At least the respective size should
+     remain unchanged but giving the frame back its normal size will
+     be broken ... */
+  if (EQ (fullscreen, Qfullwidth) && width == FRAME_TEXT_WIDTH (f))
+    {
+      frame_size_history_add
+	(f, Qxg_frame_set_char_size_1, width, height,
+	 list2 (make_number (old_height),
+		make_number (pixelheight + FRAME_MENUBAR_HEIGHT (f))));
+
+      XResizeWindow (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
+		     old_width, pixelheight + FRAME_MENUBAR_HEIGHT (f));
+    }
+  else if (EQ (fullscreen, Qfullheight) && height == FRAME_TEXT_HEIGHT (f))
+    {
+      frame_size_history_add
+	(f, Qxg_frame_set_char_size_2, width, height,
+	 list2 (make_number (old_width), make_number (pixelwidth)));
+
+      XResizeWindow (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
+		     pixelwidth, old_height);
+    }
+
+  else
+    {
+      frame_size_history_add
+	(f, Qxg_frame_set_char_size_3, width, height,
+	 list2 (make_number (pixelwidth + FRAME_TOOLBAR_WIDTH (f)),
+		make_number (pixelheight + FRAME_TOOLBAR_HEIGHT (f)
+			     + FRAME_MENUBAR_HEIGHT (f))));
+
+      XResizeWindow (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
+		     pixelwidth, pixelheight + FRAME_MENUBAR_HEIGHT (f));
+      fullscreen = Qnil;
+    }
+
 
 
   /* We've set {FRAME,PIXEL}_{WIDTH,HEIGHT} to the values we hope to
@@ -9546,7 +9651,16 @@ x_set_window_size_1 (struct frame *f, bool change_gravity,
      not right if the frame is visible.  Instead wait (with timeout)
      for the ConfigureNotify.  */
   if (FRAME_VISIBLE_P (f))
-    x_wait_for_event (f, ConfigureNotify);
+    {
+      x_wait_for_event (f, ConfigureNotify);
+
+      if (!NILP (fullscreen))
+	/* Try to restore fullscreen state.  */
+	{
+	  store_frame_param (f, Qfullscreen, fullscreen);
+	  x_set_fullscreen (f, fullscreen, fullscreen);
+	}
+    }
   else
     {
       change_frame_size (f, width, height, false, true, false, true);
@@ -9593,20 +9707,21 @@ x_set_window_size (struct frame *f, bool change_gravity,
     }
 #endif
 
+  /* Pixelize width and height, if necessary.  */
+  if (! pixelwise)
+    {
+      width = width * FRAME_COLUMN_WIDTH (f);
+      height = height * FRAME_LINE_HEIGHT (f);
+    }
+
 #ifdef USE_GTK
   if (FRAME_GTK_WIDGET (f))
-    if (! pixelwise)
-      xg_frame_set_char_size (f, width * FRAME_COLUMN_WIDTH (f),
-			      height * FRAME_LINE_HEIGHT (f));
-    else
-      xg_frame_set_char_size (f, width, height);
+    xg_frame_set_char_size (f, width, height);
   else
-    x_set_window_size_1 (f, change_gravity, width, height, pixelwise);
+    x_set_window_size_1 (f, change_gravity, width, height);
 #else /* not USE_GTK */
-
-  x_set_window_size_1 (f, change_gravity, width, height, pixelwise);
+  x_set_window_size_1 (f, change_gravity, width, height);
   x_clear_under_internal_border (f);
-
 #endif /* not USE_GTK */
 
   /* If cursor was outside the new size, mark it as off.  */
@@ -11617,4 +11732,15 @@ default is nil, which is the same as `super'.  */);
 				     make_float (DEFAULT_REHASH_SIZE),
 				     make_float (DEFAULT_REHASH_THRESHOLD),
 				     Qnil);
+
+  DEFVAR_BOOL ("x-frame-normalize-before-maximize",
+	       x_frame_normalize_before_maximize,
+    doc: /* Non-nil means normalize frame before maximizing.
+If this variable is t, Emacs asks the window manager to give the frame
+intermediately its normal size whenever changing from a full-height or
+full-width state to the fully maximized one and vice versa.
+
+Set this variable only if your window manager cannot handle the
+transition between the various maximization states.  */);
+  x_frame_normalize_before_maximize = false;
 }

@@ -462,22 +462,22 @@ FILE is created there."
 ;;        `gamegrid-add-score' was supposed to be used in the past and
 ;;        is covered here for backward-compatibility.
 ;;
-;;     2. The helper program "update-game-score" is setuid and the
-;;        file FILE does already exist in a system wide shared game
-;;        directory.  This should be the normal case on POSIX systems,
-;;        if the game was installed system wide.  Use
+;;     2. The helper program "update-game-score" is setgid or setuid
+;;        and the file FILE does already exist in a system wide shared
+;;        game directory.  This should be the normal case on POSIX
+;;        systems, if the game was installed system wide.  Use
 ;;        "update-game-score" to add the score to the file in the
 ;;        shared game directory.
 ;;
-;;     3. "update-game-score" is setuid, but the file FILE does *not*
-;;        exist in the system wide shared game directory.  Use
+;;     3. "update-game-score" is setgid/setuid, but the file FILE does
+;;        *not* exist in the system wide shared game directory.  Use
 ;;        `gamegrid-add-score-insecure' to create--if necessary--and
 ;;        update FILE.  This is for the case that a user has installed
 ;;        a game on her own.
 ;;
-;;     4. "update-game-score" is not setuid.  Use it to create/update
-;;        FILE in the user's home directory.  There is presumably no
-;;        shared game directory.
+;;     4. "update-game-score" is not setgid/setuid.  Use it to
+;;        create/update FILE in the user's home directory.  There is
+;;        presumably no shared game directory.
 
 (defvar gamegrid-shared-game-dir)
 
@@ -491,7 +491,7 @@ FILE is created there."
 	   (gamegrid-add-score-insecure file score))
 	  ((and gamegrid-shared-game-dir
 		(file-exists-p (expand-file-name file shared-game-score-directory)))
-	   ;; Use the setuid (or setgid) "update-game-score" program
+	   ;; Use the setgid (or setuid) "update-game-score" program
 	   ;; to update a system-wide score file.
 	   (gamegrid-add-score-with-update-game-score-1 file
 	    (expand-file-name file shared-game-score-directory) score))

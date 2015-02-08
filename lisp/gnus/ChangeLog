@@ -1,3 +1,33 @@
+2015-02-05  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-start.el (gnus-save-newsrc-file-check-timestamp): Remove
+	variable; always check the newrc timestamp.
+	(gnus-save-newsrc-file): Always check timestamp.
+
+2015-02-05  Timo Lilja  <timo.lilja@iki.fi>  (tiny change)
+
+	* mail-source.el (mail-source-call-script): If scripts exit with an
+	error, pop up an error buffer.
+
+2015-02-05  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-sum.el (gnus-extra-headers): Add the popular Gmail X-GM-LABELS
+	as a default.
+
+	* nnimap.el (nnimap-request-group-scan): Ensure that we've selected the
+	correct server.
+
+2015-02-05  Vincent Bernat  <bernat@luffy.cx>  (tiny change)
+
+	* nnimap.el (nnimap-request-group-scan): Fix the function name.
+
+	* gnus-int.el (gnus-request-group-scan): Use the correct function name.
+
+2015-02-05  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-sum.el (gnus-select-newsgroup): Pass the group info along so
+	that nnimap works for non-activated backends.
+
 2015-02-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mm-util.el (mm-with-unibyte-current-buffer): Don't emit a warning

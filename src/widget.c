@@ -460,7 +460,7 @@ update_wm_hints (EmacsFrame ew)
   base_width = (wmshell->core.width - ew->core.width
 		+ (rounded_width - (char_width * cw)));
   base_height = (wmshell->core.height - ew->core.height
-		+ (rounded_height - (char_height * ch)));
+		 + (rounded_height - (char_height * ch)));
 
   /* This is kind of sleazy, but I can't see how else to tell it to
      make it mark the WM_SIZE_HINTS size as user specified.
@@ -573,39 +573,20 @@ EmacsFrameResize (Widget widget)
 {
   EmacsFrame ew = (EmacsFrame)widget;
   struct frame *f = ew->emacs_frame.frame;
+  int width, height;
 
-  /* Always process resize requests pixelwise.  Frame maximizing
-     should work even when frame_resize_pixelwise is nil.  */
-  if (true || frame_resize_pixelwise)
-    {
-      int width, height;
+  pixel_to_text_size (ew, ew->core.width, ew->core.height, &width, &height);
 
-      pixel_to_text_size (ew, ew->core.width, ew->core.height, &width, &height);
-      change_frame_size (f, width, height, 0, 1, 0, 1);
+  frame_size_history_add
+    (f, QEmacsFrameResize, width, height,
+     list2 (make_number (ew->core.width), make_number (ew->core.height)));
 
-      update_wm_hints (ew);
-      update_various_frame_slots (ew);
+  change_frame_size (f, width, height, 0, 1, 0, 1);
 
-      cancel_mouse_face (f);
-    }
-  else
-    {
-      struct x_output *x = f->output_data.x;
-      int columns, rows;
+  update_wm_hints (ew);
+  update_various_frame_slots (ew);
 
-      pixel_to_char_size (ew, ew->core.width, ew->core.height, &columns, &rows);
-      if (columns != FRAME_COLS (f)
-	  || rows != FRAME_LINES (f)
-	  || ew->core.width != FRAME_PIXEL_WIDTH (f)
-	  || ew->core.height + x->menubar_height != FRAME_PIXEL_HEIGHT (f))
-	{
-	  change_frame_size (f, columns, rows, 0, 1, 0, 0);
-	  update_wm_hints (ew);
-	  update_various_frame_slots (ew);
-
-	  cancel_mouse_face (f);
-	}
-    }
+  cancel_mouse_face (f);
 }
 
 static XtGeometryResult

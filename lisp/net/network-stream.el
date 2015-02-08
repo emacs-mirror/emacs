@@ -374,10 +374,12 @@ asynchronously, if possible."
 	  (when (re-search-forward eoc nil t)
 	    (goto-char (match-beginning 0))
 	    (delete-region (point-min) (line-beginning-position))))
-	(let* ((capability-command (plist-get parameters :capability-command)))
+	(let ((capability-command (plist-get parameters :capability-command))
+	      (eo-capa (or (plist-get parameters :end-of-capability)
+			   eoc)))
 	  (list stream
 		(network-stream-get-response stream start eoc)
-		(network-stream-command stream capability-command eoc)
+		(network-stream-command stream capability-command eo-capa)
 		'tls))))))
 
 (defun network-stream-open-shell (name buffer host service parameters)

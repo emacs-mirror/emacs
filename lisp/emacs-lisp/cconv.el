@@ -48,7 +48,7 @@
 ;; if the function is suitable for lambda lifting (if all calls are known)
 ;;
 ;; (lambda (v0 ...) ... fv0 .. fv1 ...)  =>
-;; (internal-make-closure (v0 ...) (fv1 ...)
+;; (internal-make-closure (v0 ...) (fv0 ...) <doc>
 ;;   ... (internal-get-closed-var 0) ...  (internal-get-closed-var 1) ...)
 ;;
 ;; If the function has no free variables, we don't do anything.
@@ -64,6 +64,14 @@
 ;; (defun foo (... m-arg ...) (let ((m-arg (list m-arg))) ...))
 ;;
 ;;; Code:
+
+;; PROBLEM cases found during conversion to lexical binding.
+;; We should try and detect and warn about those cases, even
+;; for lexical-binding==nil to help prepare the migration.
+;; - Uses of run-hooks, and friends.
+;; - Cases where we want to apply the same code to different vars depending on
+;;   some test.  These sometimes use a (let ((foo (if bar 'a 'b)))
+;;   ... (symbol-value foo) ... (set foo ...)).
 
 ;; TODO: (not just for cconv but also for the lexbind changes in general)
 ;; - let (e)debug find the value of lexical variables from the stack.
@@ -87,9 +95,8 @@
 ;;   the bytecomp only compiles it once.
 ;; - Since we know here when a variable is not mutated, we could pass that
 ;;   info to the byte-compiler, e.g. by using a new `immutable-let'.
-;; - add tail-calls to bytecode.c and the byte compiler.
 ;; - call known non-escaping functions with `goto' rather than `call'.
-;; - optimize mapcar to a while loop.
+;; - optimize mapc to a dolist loop.
 
 ;; (defmacro dlet (binders &rest body)
 ;;   ;; Works in both lexical and non-lexical mode.
@@ -195,7 +202,7 @@ Returns a form where all lambdas don't have any free variables."
       (unless (memq (car b) s) (push b res)))
     (nreverse res)))
 
-(defun cconv--convert-function (args body env parentform)
+(defun cconv--convert-function (args body env parentform &optional docstring)
   (cl-assert (equal body (caar cconv-freevars-alist)))
   (let* ((fvs (cdr (pop cconv-freevars-alist)))
          (body-new '())
@@ -240,11 +247,11 @@ Returns a form where all lambdas don't have any free variables."
               `(,@(nreverse special-forms) (let ,letbind . ,body-new)))))
 
     (cond
-     ((null envector)                   ;if no freevars - do nothing
+     ((not (or envector docstring))     ;If no freevars - do nothing.
       `(function (lambda ,args . ,body-new)))
      (t
       `(internal-make-closure
-        ,args ,envector . ,body-new)))))
+        ,args ,envector ,docstring . ,body-new)))))
 
 (defun cconv-convert (form env extend)
   ;; This function actually rewrites the tree.
@@ -407,7 +414,9 @@ places where they originally did not directly appear."
                        cond-forms)))
 
     (`(function (lambda ,args . ,body) . ,_)
-     (cconv--convert-function args body env form))
+     (let ((docstring (if (eq :documentation (car-safe (car body)))
+                          (cconv-convert (cadr (pop body)) env extend))))
+       (cconv--convert-function args body env form docstring)))
 
     (`(internal-make-closure . ,_)
      (byte-compile-report-error
@@ -533,7 +542,7 @@ FORM is the parent form that binds this var."
   ;; use = `(,binder ,read ,mutated ,captured ,called)
   (pcase vardata
     (`(,_ nil nil nil nil) nil)
-    (`((,(and (pred (lambda (var) (eq ?_ (aref (symbol-name var) 0)))) var) . ,_)
+    (`((,(and var (guard (eq ?_ (aref (symbol-name var) 0)))) . ,_)
        ,_ ,_ ,_ ,_)
      (byte-compile-log-warning
       (format "%s `%S' not left unused" varkind var))))
@@ -643,6 +652,8 @@ and updates the data stored in ENV."
          (cconv--analyze-use vardata form "variable"))))
 
     (`(function (lambda ,vrs . ,body-forms))
+     (when (eq :documentation (car-safe (car body-forms)))
+       (cconv-analyze-form (cadr (pop body-forms)) env))
      (cconv--analyze-function vrs body-forms env form))
 
     (`(setq . ,forms)
@@ -664,6 +675,10 @@ and updates the data stored in ENV."
     (`(cond . ,cond-forms)              ; cond special form
      (dolist (forms cond-forms)
        (dolist (form forms) (cconv-analyze-form form env))))
+
+    ;; ((and `(quote ,v . ,_) (guard (assq v env)))
+    ;;  (byte-compile-log-warning
+    ;;   (format "Possible confusion variable/symbol for `%S'" v)))
 
     (`(quote . ,_) nil)                 ; quote form
     (`(function . ,_) nil)              ; same as quote

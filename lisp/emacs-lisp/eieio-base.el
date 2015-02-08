@@ -290,8 +290,7 @@ constructor functions are considered valid.
 Second, any text properties will be stripped from strings."
   (cond ((consp proposed-value)
 	 ;; Lists with something in them need special treatment.
-	 (let ((slot-idx (eieio--slot-name-index class
-                                                 nil slot))
+	 (let ((slot-idx (eieio--slot-name-index class slot))
 	       (type nil)
 	       (classtype nil))
 	   (setq slot-idx (- slot-idx

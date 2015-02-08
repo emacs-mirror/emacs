@@ -1,4 +1,4 @@
-;;; css-mode.el --- Major mode to edit CSS files -*- lexical-binding: t -*-
+;;; css-mode.el --- Major mode to edit CSS files  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2006-2015 Free Software Foundation, Inc.
 
@@ -401,11 +401,16 @@
               (cond
                ;; This is a false positive inside a string or comment.
                ((nth 8 (syntax-ppss)) nil)
+               ;; This is a false positive when encountering an
+               ;; interpolated variable (bug#19751).
+               ((eq (char-before (- (point) 1)) ?#) nil)
                ((eq (char-before) ?\})
                 (save-excursion
                   (forward-char -1)
                   (skip-chars-backward " \t")
-                  (unless (bolp) (newline))))
+                  (when (and (not (bolp))
+                             (scss-smie--not-interpolation-p))
+                    (newline))))
                (t
                 (while
                     (progn
@@ -450,7 +455,7 @@
 (defun scss-smie--not-interpolation-p ()
   (save-excursion
     (forward-char -1)
-    (or (zerop (skip-chars-backward "[:alnum:]"))
+    (or (zerop (skip-chars-backward "-[:alnum:]"))
         (not (looking-back "#{\\$" (- (point) 3))))))
 
 ;;;###autoload (add-to-list 'auto-mode-alist '("\\.scss\\'" . scss-mode))

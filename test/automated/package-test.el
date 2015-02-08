@@ -498,7 +498,7 @@ Must called from within a `tar-mode' buffer."
                      (list 1 package-x-test--single-archive-entry-1-4))))))
 
 (ert-deftest package-test-get-deps ()
-  "Test `package-test-get-deps' with complex structures."
+  "Test `package--get-deps' with complex structures."
   (let ((package-alist
          (mapcar (lambda (p) (list (package-desc-name p) p))
            (list simple-single-desc
@@ -525,6 +525,32 @@ Must called from within a `tar-mode' buffer."
     (should
      (equal (package--get-deps 'simple-depend-2 'direct)
             '(simple-depend-1 multi-file)))))
+
+(ert-deftest package-test-sort-by-dependence ()
+  "Test `package--sort-by-dependence' with complex structures."
+  (let ((package-alist
+         (mapcar (lambda (p) (list (package-desc-name p) p))
+           (list simple-single-desc
+                 simple-depend-desc
+                 multi-file-desc
+                 new-pkg-desc
+                 simple-depend-desc-1
+                 simple-depend-desc-2)))
+        (delete-list
+         (list simple-single-desc
+               simple-depend-desc
+               multi-file-desc
+               new-pkg-desc
+               simple-depend-desc-1
+               simple-depend-desc-2)))
+    (should
+     (equal (package--sort-by-dependence delete-list)
+            (list simple-depend-desc-2 simple-depend-desc-1 new-pkg-desc
+                  multi-file-desc simple-depend-desc simple-single-desc)))
+    (should
+     (equal (package--sort-by-dependence (reverse delete-list))
+            (list new-pkg-desc simple-depend-desc-2 simple-depend-desc-1
+                  multi-file-desc simple-depend-desc simple-single-desc)))))
 
 (provide 'package-test)
 

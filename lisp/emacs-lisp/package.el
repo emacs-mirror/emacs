@@ -161,6 +161,7 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'subr-x))
 (eval-when-compile (require 'cl-lib))
 (eval-when-compile (require 'epg))      ;For setf accessors.
 
@@ -1510,6 +1511,11 @@ with PKG-DESC entry removed."
                (and (memq pkg (mapcar #'car (package-desc-reqs (cadr p))))
                     (car p))))))
 
+(defun package--newest-p (pkg)
+  "Return t if PKG is the newest package with its name."
+  (equal (cadr (assq (package-desc-name pkg) package-alist))
+         pkg))
+
 (defun package-delete (pkg-desc &optional force nosave)
   "Delete package PKG-DESC.
 
@@ -1527,7 +1533,10 @@ If NOSAVE is non-nil, the package is not removed from
     ;; don't want it marked as selected, so we remove it from
     ;; `package-selected-packages' even if it can't be deleted.
     (when (and (null nosave)
-               (package--user-selected-p name))
+               (package--user-selected-p name)
+               ;; Don't delesect if this is an older version of an
+               ;; upgraded package.
+               (package--newest-p pkg-desc))
       (customize-save-variable
        'package-selected-packages (remove name package-selected-packages)))
     (cond ((not (string-prefix-p (file-name-as-directory
@@ -2262,7 +2271,7 @@ If optional arg BUTTON is non-nil, describe its associated package."
 (defun package-menu-mark-install (&optional _num)
   "Mark a package for installation and move to the next line."
   (interactive "p")
-  (if (member (package-menu-get-status) '("available" "new"))
+  (if (member (package-menu-get-status) '("available" "new" "dependency"))
       (tabulated-list-put-tag "I" t)
     (forward-line)))
 
@@ -2351,6 +2360,40 @@ call will upgrade the package."
                (length upgrades)
                (if (= (length upgrades) 1) "" "s")))))
 
+(defun package--sort-deps-in-alist (package only)
+  "Return a list of dependencies for PACKAGE sorted by dependency.
+PACKAGE is included as the first element of the returned list.
+ONLY is an alist associating package names to package objects.
+Only these packages will be in the return value an their cdrs are
+destructively set to nil in ONLY."
+  (let ((out))
+    (dolist (dep (package-desc-reqs package))
+      (when-let ((cell (assq (car dep) only))
+                 (dep-package (cdr-safe cell)))
+        (setcdr cell nil)
+        (setq out (append (package--sort-deps-in-alist dep-package only)
+                          out))))
+    (cons package out)))
+
+(defun package--sort-by-dependence (package-list)
+  "Return PACKAGE-LIST sorted by dependence.
+That is, any element of the returned list is guaranteed to not
+directly depend on any elements that come before it.
+
+PACKAGE-LIST is a list of package-desc objects.
+Indirect dependencies are guaranteed to be returned in order only
+if all the in-between dependencies are also in PACKAGE-LIST."
+  (let ((alist (mapcar (lambda (p) (cons (package-desc-name p) p)) package-list))
+        out-list)
+    (dolist (cell alist out-list)
+      ;; `package--sort-deps-in-alist' destructively changes alist, so
+      ;; some cells might already be empty.  We check this here.
+      (when-let ((pkg-desc (cdr cell)))
+        (setcdr cell nil)
+        (setq out-list
+              (append (package--sort-deps-in-alist pkg-desc alist)
+                      out-list))))))
+
 (defun package-menu-execute (&optional noquery)
   "Perform marked Package Menu actions.
 Packages marked for installation are downloaded and installed;
@@ -2384,7 +2427,13 @@ Optional argument NOQUERY non-nil means do not ask the user to confirm."
                       (mapconcat #'package-desc-full-name
                                  install-list ", ")))))
           (mapc (lambda (p)
-                  (package-install p (null (package-installed-p p))))
+                  ;; Mark as selected if it's the exact version of a
+                  ;; package that's already installed, or if it's not
+                  ;; installed at all.  Don't mark if it's a new
+                  ;; version of an installed package.
+                  (package-install p (or (package-installed-p p)
+                                         (not (package-installed-p
+                                               (package-desc-name p))))))
                 install-list)))
     ;; Delete packages, prompting if necessary.
     (when delete-list
@@ -2398,7 +2447,7 @@ Optional argument NOQUERY non-nil means do not ask the user to confirm."
                      (length delete-list)
                      (mapconcat #'package-desc-full-name
                                 delete-list ", ")))))
-          (dolist (elt delete-list)
+          (dolist (elt (package--sort-by-dependence delete-list))
             (condition-case-unless-debug err
                 (package-delete elt)
               (error (message (cadr err)))))
@@ -2412,7 +2461,8 @@ Optional argument NOQUERY non-nil means do not ask the user to confirm."
                       (format "These %d packages are no longer needed, delete them (%s)? "
                               (length removable)
                               (mapconcat #'symbol-name removable ", "))))
-            (mapc (lambda (p) (package-delete (cadr (assq p package-alist))))
+            ;; We know these are removable, so we can use force instead of sorting them.
+            (mapc (lambda (p) (package-delete (cadr (assq p package-alist)) 'force 'nosave))
                   removable))))
       (package-menu--generate t t))))
 

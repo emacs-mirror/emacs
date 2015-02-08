@@ -136,8 +136,8 @@ ARGS is a list of the first N arguments to pass to FUN.
 The result is a new function which does the same as FUN, except that
 the first N arguments are fixed at the values with which this function
 was called."
-  `(closure (t) (&rest args)
-            (apply ',fun ,@(mapcar (lambda (arg) `',arg) args) args)))
+  (lambda (&rest args2)
+    (apply fun (append args args2))))
 
 (defmacro push (newelt place)
   "Add NEWELT to the list stored in the generalized variable PLACE.
@@ -316,7 +316,7 @@ Defaults to `error'."
   (unless parent (setq parent 'error))
   (let ((conditions
          (if (consp parent)
-             (apply #'nconc
+             (apply #'append
                     (mapcar (lambda (parent)
                               (cons parent
                                     (or (get parent 'error-conditions)
@@ -1274,6 +1274,7 @@ is converted into a string by expressing it in decimal."
 (set-advertised-calling-convention
  'all-completions '(string collection &optional predicate) "23.1")
 (set-advertised-calling-convention 'unintern '(name obarray) "23.3")
+(set-advertised-calling-convention 'indirect-function '(object) "25.1")
 (set-advertised-calling-convention 'redirect-frame-focus '(frame focus-frame) "24.3")
 (set-advertised-calling-convention 'decode-char '(ch charset) "21.4")
 (set-advertised-calling-convention 'encode-char '(ch charset) "21.4")

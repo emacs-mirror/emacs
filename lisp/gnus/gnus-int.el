@@ -442,7 +442,7 @@ If it is down, start it up (again)."
 (defun gnus-request-group-scan (group info)
   "Request that GROUP get a complete rescan."
   (let ((gnus-command-method (gnus-find-method-for-group group))
-	(func 'request-group-description))
+	(func 'request-group-scan))
     (when (gnus-check-backend-function func group)
       (funcall (gnus-get-function gnus-command-method func)
 	       (gnus-group-real-name group) (nth 1 gnus-command-method) info))))

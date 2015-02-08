@@ -24,6 +24,11 @@
 (require 'ert)
 (require 'python)
 
+;; Dependencies for testing:
+(require 'electric)
+(require 'hideshow)
+
+
 (defmacro python-tests-with-temp-buffer (contents &rest body)
   "Create a `python-mode' enabled temp buffer with CONTENTS.
 BODY is code to be executed within the temp buffer.  Point is
@@ -103,6 +108,28 @@ STRING, it is skipped so the next STRING occurrence is selected."
        (let ((last-command-event char))
          (call-interactively 'self-insert-command)))
      chars)))
+
+(defun python-tests-visible-string (&optional min max)
+  "Return the buffer string excluding invisible overlays.
+Argument MIN and MAX delimit the region to be returned and
+default to `point-min' and `point-max' respectively."
+  (let* ((min (or min (point-min)))
+         (max (or max (point-max)))
+         (buffer (current-buffer))
+         (buffer-contents (buffer-substring-no-properties min max))
+         (overlays
+          (sort (overlays-in min max)
+                (lambda (a b)
+                  (let ((overlay-end-a (overlay-end a))
+                        (overlay-end-b (overlay-end b)))
+                    (> overlay-end-a overlay-end-b))))))
+    (with-temp-buffer
+      (insert buffer-contents)
+      (dolist (overlay overlays)
+        (if (overlay-get overlay 'invisible)
+            (delete-region (overlay-start overlay)
+                           (overlay-end overlay))))
+      (buffer-substring-no-properties (point-min) (point-max)))))
 
 
 ;;; Tests for your tests, so you can test while you test.
@@ -2916,6 +2943,63 @@ class Foo(models.Model):
 
 ;;; Eldoc
 
+(ert-deftest python-eldoc--get-symbol-at-point-1 ()
+  "Test paren handling."
+  (python-tests-with-temp-buffer
+   "
+map(xx
+map(codecs.open('somefile'
+"
+   (python-tests-look-at "ap(xx")
+   (should (string= (python-eldoc--get-symbol-at-point) "map"))
+   (goto-char (line-end-position))
+   (should (string= (python-eldoc--get-symbol-at-point) "map"))
+   (python-tests-look-at "('somefile'")
+   (should (string= (python-eldoc--get-symbol-at-point) "map"))
+   (goto-char (line-end-position))
+   (should (string= (python-eldoc--get-symbol-at-point) "codecs.open"))))
+
+(ert-deftest python-eldoc--get-symbol-at-point-2 ()
+  "Ensure self is replaced with the class name."
+  (python-tests-with-temp-buffer
+   "
+class TheClass:
+
+    def some_method(self, n):
+        return n
+
+    def other(self):
+        return self.some_method(1234)
+
+"
+   (python-tests-look-at "self.some_method")
+   (should (string= (python-eldoc--get-symbol-at-point)
+                    "TheClass.some_method"))
+   (python-tests-look-at "1234)")
+   (should (string= (python-eldoc--get-symbol-at-point)
+                    "TheClass.some_method"))))
+
+(ert-deftest python-eldoc--get-symbol-at-point-3 ()
+  "Ensure symbol is found when point is at end of buffer."
+  (python-tests-with-temp-buffer
+   "
+some_symbol
+
+"
+   (goto-char (point-max))
+   (should (string= (python-eldoc--get-symbol-at-point)
+                    "some_symbol"))))
+
+(ert-deftest python-eldoc--get-symbol-at-point-4 ()
+  "Ensure symbol is found when point is at whitespace."
+  (python-tests-with-temp-buffer
+   "
+some_symbol   some_other_symbol
+"
+   (python-tests-look-at "  some_other_symbol")
+   (should (string= (python-eldoc--get-symbol-at-point)
+                    "some_symbol"))))
+
 
 ;;; Imenu
 
@@ -4358,12 +4442,11 @@ def foo(a, b, c):
 ;;; Electricity
 
 (ert-deftest python-parens-electric-indent-1 ()
-  (require 'electric)
   (let ((eim electric-indent-mode))
     (unwind-protect
         (progn
           (python-tests-with-temp-buffer
-              "
+           "
 from django.conf.urls import patterns, include, url
 
 from django.contrib import admin
@@ -4375,65 +4458,147 @@ urlpatterns = patterns('',
     url(r'^$', views.index
 )
 "
-            (electric-indent-mode 1)
-            (python-tests-look-at "views.index")
-            (end-of-line)
+           (electric-indent-mode 1)
+           (python-tests-look-at "views.index")
+           (end-of-line)
 
-            ;; Inserting commas within the same line should leave
-            ;; indentation unchanged.
-            (python-tests-self-insert ",")
-            (should (= (current-indentation) 4))
+           ;; Inserting commas within the same line should leave
+           ;; indentation unchanged.
+           (python-tests-self-insert ",")
+           (should (= (current-indentation) 4))
 
-            ;; As well as any other input happening within the same
-            ;; set of parens.
-            (python-tests-self-insert " name='index')")
-            (should (= (current-indentation) 4))
+           ;; As well as any other input happening within the same
+           ;; set of parens.
+           (python-tests-self-insert " name='index')")
+           (should (= (current-indentation) 4))
 
-            ;; But a comma outside it, should trigger indentation.
-            (python-tests-self-insert ",")
-            (should (= (current-indentation) 23))
+           ;; But a comma outside it, should trigger indentation.
+           (python-tests-self-insert ",")
+           (should (= (current-indentation) 23))
 
-            ;; Newline indents to the first argument column
-            (python-tests-self-insert "\n")
-            (should (= (current-indentation) 23))
+           ;; Newline indents to the first argument column
+           (python-tests-self-insert "\n")
+           (should (= (current-indentation) 23))
 
-            ;; All this input must not change indentation
-            (indent-line-to 4)
-            (python-tests-self-insert "url(r'^/login$', views.login)")
-            (should (= (current-indentation) 4))
+           ;; All this input must not change indentation
+           (indent-line-to 4)
+           (python-tests-self-insert "url(r'^/login$', views.login)")
+           (should (= (current-indentation) 4))
 
-            ;; But this comma does
-            (python-tests-self-insert ",")
-            (should (= (current-indentation) 23))))
+           ;; But this comma does
+           (python-tests-self-insert ",")
+           (should (= (current-indentation) 23))))
       (or eim (electric-indent-mode -1)))))
 
 (ert-deftest python-triple-quote-pairing ()
-  (require 'electric)
   (let ((epm electric-pair-mode))
     (unwind-protect
         (progn
           (python-tests-with-temp-buffer
-              "\"\"\n"
-            (or epm (electric-pair-mode 1))
-            (goto-char (1- (point-max)))
-            (python-tests-self-insert ?\")
-            (should (string= (buffer-string)
-                             "\"\"\"\"\"\"\n"))
-            (should (= (point) 4)))
+           "\"\"\n"
+           (or epm (electric-pair-mode 1))
+           (goto-char (1- (point-max)))
+           (python-tests-self-insert ?\")
+           (should (string= (buffer-string)
+                            "\"\"\"\"\"\"\n"))
+           (should (= (point) 4)))
           (python-tests-with-temp-buffer
-              "\n"
-            (python-tests-self-insert (list ?\" ?\" ?\"))
-            (should (string= (buffer-string)
-                             "\"\"\"\"\"\"\n"))
-            (should (= (point) 4)))
+           "\n"
+           (python-tests-self-insert (list ?\" ?\" ?\"))
+           (should (string= (buffer-string)
+                            "\"\"\"\"\"\"\n"))
+           (should (= (point) 4)))
           (python-tests-with-temp-buffer
-              "\"\n\"\"\n"
-            (goto-char (1- (point-max)))
-            (python-tests-self-insert ?\")
-            (should (= (point) (1- (point-max))))
-            (should (string= (buffer-string)
-                             "\"\n\"\"\"\n"))))
+           "\"\n\"\"\n"
+           (goto-char (1- (point-max)))
+           (python-tests-self-insert ?\")
+           (should (= (point) (1- (point-max))))
+           (should (string= (buffer-string)
+                            "\"\n\"\"\"\n"))))
       (or epm (electric-pair-mode -1)))))
+
+
+;;; Hideshow support
+
+(ert-deftest python-hideshow-hide-levels-1 ()
+  "Should hide all methods when called after class start."
+  (let ((enabled hs-minor-mode))
+    (unwind-protect
+        (progn
+          (python-tests-with-temp-buffer
+           "
+class SomeClass:
+
+    def __init__(self, arg, kwarg=1):
+        self.arg = arg
+        self.kwarg = kwarg
+
+    def filter(self, nums):
+        def fn(item):
+            return item in [self.arg, self.kwarg]
+        return filter(fn, nums)
+
+    def __str__(self):
+        return '%s-%s' % (self.arg, self.kwarg)
+"
+           (hs-minor-mode 1)
+           (python-tests-look-at "class SomeClass:")
+           (forward-line)
+           (hs-hide-level 1)
+           (should
+            (string=
+             (python-tests-visible-string)
+             "
+class SomeClass:
+
+    def __init__(self, arg, kwarg=1):
+    def filter(self, nums):
+    def __str__(self):"))))
+      (or enabled (hs-minor-mode -1)))))
+
+(ert-deftest python-hideshow-hide-levels-2 ()
+  "Should hide nested methods and parens at end of defun."
+  (let ((enabled hs-minor-mode))
+    (unwind-protect
+        (progn
+          (python-tests-with-temp-buffer
+           "
+class SomeClass:
+
+    def __init__(self, arg, kwarg=1):
+        self.arg = arg
+        self.kwarg = kwarg
+
+    def filter(self, nums):
+        def fn(item):
+            return item in [self.arg, self.kwarg]
+        return filter(fn, nums)
+
+    def __str__(self):
+        return '%s-%s' % (self.arg, self.kwarg)
+"
+           (hs-minor-mode 1)
+           (python-tests-look-at "def fn(item):")
+           (hs-hide-block)
+           (should
+            (string=
+             (python-tests-visible-string)
+             "
+class SomeClass:
+
+    def __init__(self, arg, kwarg=1):
+        self.arg = arg
+        self.kwarg = kwarg
+
+    def filter(self, nums):
+        def fn(item):
+        return filter(fn, nums)
+
+    def __str__(self):
+        return '%s-%s' % (self.arg, self.kwarg)
+"))))
+      (or enabled (hs-minor-mode -1)))))
+
 
 
 (provide 'python-tests)

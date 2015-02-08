@@ -546,8 +546,8 @@ not their associated values.
   `auth' is one of the symbols `simple', `krbv41' or `krbv42'.
   `base' is the base for the search as described in RFC 1779.
   `scope' is one of the three symbols `sub', `base' or `one'.
-  `binddn' is the distinguished name of the user to bind as (in RFC 1779 syntax).
-  `auth' is one of the symbols `simple', `krbv41' or `krbv42'
+  `binddn' is the distinguished name of the user to bind as (in
+RFC 1779 syntax).
   `passwd' is the password to use for simple authentication.
   `deref' is one of the symbols `never', `always', `search' or `find'.
   `timelimit' is the timeout limit for the connection in seconds.

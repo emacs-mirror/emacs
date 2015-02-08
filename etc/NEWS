@@ -53,7 +53,7 @@ build with 'make V=1'.
 group instead of a user if its argument is prefixed by ':' (a colon).
 This will cause the game score files in ${localstatedir}/games/emacs
 to be owned by that group, and the helper program for updating them to
-be installed setgid.
+be installed setgid.  The option now defaults to the 'games' group.
 
 ---
 ** The `grep-changelog' script (and its manual page) are no longer included.
@@ -65,6 +65,8 @@ so if you want to use it, you can always take a copy from an older Emacs.
 
 
 * Changes in Emacs 25.1
+
+** New command `comment-line' bound to `C-x C-;'.
 
 ** New function `custom-prompt-customize-unsaved-options' checks for
 unsaved customizations and prompts user to customize (if found).
@@ -598,6 +600,10 @@ in languages like German where downcasing rules depend on grammar.
 
 
 * Lisp Changes in Emacs 25.1
+
+** lexical closures can use (:documentation <form>) to build their docstring.
+It should be placed right where the docstring would be, and <form> is then
+evaluated (and should return a string) when the closure is built.
 
 ** define-inline provides a new way to define inlinable functions.
 

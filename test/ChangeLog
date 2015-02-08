@@ -1,11 +1,39 @@
-2015-02-01 Joakim Verona  <joakim@verona.se>
-	Support for testing xwidgets
-	* xwidget-test-manual.el:
+2015-02-07  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	* automated/python-tests.el
+	(python-eldoc--get-symbol-at-point-1)
+	(python-eldoc--get-symbol-at-point-2)
+	(python-eldoc--get-symbol-at-point-3)
+	(python-eldoc--get-symbol-at-point-4): New tests.
+
+2015-02-07  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	* automated/python-tests.el
+	(python-tests-visible-string): New function.
+	(python-parens-electric-indent-1)
+	(python-triple-quote-pairing): Fix indentation, move require calls.
+	(python-hideshow-hide-levels-1)
+	(python-hideshow-hide-levels-2): New tests.
+
+2015-02-07  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* automated/vc-tests.el (vc-test--working-revision): Fix
+	`vc-working-revision' checks to be compared against nil, which is
+	what is should return for unregistered files.
+
+2015-02-06 Nicolas Petton <nicolas@petton.fr>
+
+	* automated/seq-tests.el: New tests for seq-mapcat, seq-partition
+	and seq-group-by.
+
+2015-02-05  Artur Malabarba  <bruce.connor.am@gmail.com>
+
+	* automated/package-test.el (package-test-get-deps): Fix typo.
+	(package-test-sort-by-dependence): New test
 
 2015-02-03  Artur Malabarba  <bruce.connor.am@gmail.com>
 
 	* automated/package-test.el (package-test-get-deps): New test.
-
 
 2015-01-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 

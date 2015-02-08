@@ -750,13 +750,16 @@ Deleting old (> %s day(s)) incoming mail file `%s'." diff bfile)
       (setq script (substring script 0 (match-beginning 0))
 	    background 0))
     (setq result
-	  (call-process shell-file-name nil background nil
+	  (call-process shell-file-name nil stderr nil
 			shell-command-switch script))
-    (when (and result
-	       (not (zerop result)))
-      (set-buffer stderr)
-      (message "Mail source error: %s" (buffer-string)))
-    (kill-buffer stderr)))
+    (if (and result
+             (not (zerop result)))
+        (progn
+          (split-window-vertically)
+          (other-window 1)
+          (switch-to-buffer stderr)
+          (message "Mail source error: %s " (buffer-string)))
+      (kill-buffer stderr))))
 
 ;;;
 ;;; Different fetchers

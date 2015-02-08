@@ -1,3 +1,13 @@
+2015-02-06  Nicolas Petton <nicolas@petton.fr>
+
+	* sequences.texi (Sequence Functions): Add documentation for
+	seq-mapcat, seq-partition and seq-group-by.
+
+2015-02-05  Martin Rudalics  <rudalics@gmx.at>
+
+	* display.texi (Size of Displayed Text): Remove description of
+	optional argument BUFFER of `window-text-pixel-size'.
+
 2015-02-01  Martin Rudalics  <rudalics@gmx.at>
 
 	* display.texi (Size of Displayed Text): Describe optional

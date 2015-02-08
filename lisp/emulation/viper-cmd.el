@@ -961,11 +961,11 @@ Suffixes such as .el or .elc should be stripped."
 (defun viper-ESC (arg)
   "Emulate ESC key in Emacs.
 Prevents multiple escape keystrokes if viper-no-multiple-ESC is true.
-If viper-no-multiple-ESC is 'twice double ESC would ding in vi-state.
+If `viper-no-multiple-ESC' is `twice' double ESC would ding in vi-state.
 Other ESC sequences are emulated via the current Emacs's major mode
 keymap.  This is more convenient on TTYs, since this won't block
 function keys such as up, down, etc.  ESC will also will also work as
-a Meta key in this case.  When viper-no-multiple-ESC is nil, ESC works
+a Meta key in this case.  When `viper-no-multiple-ESC' is nil, ESC works
 as a Meta key and any number of multiple escapes are allowed."
   (interactive "P")
   (let (char)

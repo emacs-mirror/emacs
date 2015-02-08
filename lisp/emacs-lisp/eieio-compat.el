@@ -188,11 +188,10 @@ Summary:
                 (args (help-function-arglist code 'preserve-names))
                 (doc-only (if docstring
                               (let ((split (help-split-fundoc docstring nil)))
-                                (if split (cdr split) docstring))))
-                (new-docstring (help-add-fundoc-usage doc-only
-                                                      (cons 'cl-cnm args))))
-           ;; FIXME: ¡Add new-docstring to those closures!
+                                (if split (cdr split) docstring)))))
            (lambda (cnm &rest args)
+             (:documentation
+              (help-add-fundoc-usage doc-only (cons 'cl-cnm args)))
              (cl-letf (((symbol-function 'call-next-method) cnm)
                        ((symbol-function 'next-method-p)
                         (lambda () (cl--generic-isnot-nnm-p cnm))))

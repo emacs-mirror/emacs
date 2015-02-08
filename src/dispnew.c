@@ -3911,45 +3911,35 @@ set_window_cursor_after_update (struct window *w)
     {
       cx = cy = vpos = hpos = 0;
 
-      if (cursor_in_echo_area >= 0)
+      /* If the mini-buffer is several lines high, find the last
+	 line that has any text on it.  Note: either all lines
+	 are enabled or none.  Otherwise we wouldn't be able to
+	 determine Y.  */
+      struct glyph_row *last_row = NULL;
+      int yb = window_text_bottom_y (w);
+
+      for (struct glyph_row *row = w->current_matrix->rows;
+	   row->enabled_p && (!last_row || MATRIX_ROW_BOTTOM_Y (row) <= yb);
+	   row++)
+	if (row->used[TEXT_AREA] && row->glyphs[TEXT_AREA][0].charpos >= 0)
+	  last_row = row;
+
+      if (last_row)
 	{
-	  /* If the mini-buffer is several lines high, find the last
-	     line that has any text on it.  Note: either all lines
-	     are enabled or none.  Otherwise we wouldn't be able to
-	     determine Y.  */
-	  struct glyph_row *row, *last_row;
-	  struct glyph *glyph;
-	  int yb = window_text_bottom_y (w);
+	  struct glyph *start = last_row->glyphs[TEXT_AREA];
+	  struct glyph *last = start + last_row->used[TEXT_AREA] - 1;
 
-	  last_row = NULL;
-	  row = w->current_matrix->rows;
-	  while (row->enabled_p
-		 && (last_row == NULL
-		     || MATRIX_ROW_BOTTOM_Y (row) <= yb))
+	  while (last > start && last->charpos < 0)
+	    --last;
+
+	  for (struct glyph *glyph = start; glyph < last; glyph++)
 	    {
-	      if (row->used[TEXT_AREA]
-		  && row->glyphs[TEXT_AREA][0].charpos >= 0)
-		last_row = row;
-	      ++row;
+	      cx += glyph->pixel_width;
+	      hpos++;
 	    }
 
-	  if (last_row)
-	    {
-	      struct glyph *start = last_row->glyphs[TEXT_AREA];
-	      struct glyph *last = start + last_row->used[TEXT_AREA] - 1;
-
-	      while (last > start && last->charpos < 0)
-		--last;
-
-	      for (glyph = start; glyph < last; ++glyph)
-		{
-		  cx += glyph->pixel_width;
-		  ++hpos;
-		}
-
-	      cy = last_row->y;
-	      vpos = MATRIX_ROW_VPOS (last_row, w->current_matrix);
-	    }
+	  cy = last_row->y;
+	  vpos = MATRIX_ROW_VPOS (last_row, w->current_matrix);
 	}
     }
   else
@@ -4569,58 +4559,43 @@ update_frame_1 (struct frame *f, bool force_p, bool inhibit_id_p,
 	  && EQ (FRAME_MINIBUF_WINDOW (f), echo_area_window))
 	{
 	  int top = WINDOW_TOP_EDGE_LINE (XWINDOW (FRAME_MINIBUF_WINDOW (f)));
-	  int row, col;
+	  int col;
 
-	  if (cursor_in_echo_area < 0)
+	  /* Put cursor at the end of the prompt.  If the mini-buffer
+	     is several lines high, find the last line that has
+	     any text on it.  */
+	  int row = FRAME_TOTAL_LINES (f);
+	  do
 	    {
-	      /* Negative value of cursor_in_echo_area means put
-                 cursor at beginning of line.  */
-	      row = top;
+	      row--;
 	      col = 0;
+
+	      if (MATRIX_ROW_ENABLED_P (current_matrix, row))
+		{
+		  /* Frame rows are filled up with spaces that
+		     must be ignored here.  */
+		  struct glyph_row *r = MATRIX_ROW (current_matrix, row);
+		  struct glyph *start = r->glyphs[TEXT_AREA];
+
+		  col = r->used[TEXT_AREA];
+		  while (0 < col && start[col - 1].charpos < 0)
+		    col--;
+		}
 	    }
-	  else
+	  while (row > top && col == 0);
+
+	  /* Make sure COL is not out of range.  */
+	  if (col >= FRAME_CURSOR_X_LIMIT (f))
 	    {
-	      /* Positive value of cursor_in_echo_area means put
-		 cursor at the end of the prompt.  If the mini-buffer
-		 is several lines high, find the last line that has
-		 any text on it.  */
-	      row = FRAME_TOTAL_LINES (f);
-	      do
+	      /* If we have another row, advance cursor into it.  */
+	      if (row < FRAME_TOTAL_LINES (f) - 1)
 		{
-		  --row;
-		  col = 0;
-
-		  if (MATRIX_ROW_ENABLED_P (current_matrix, row))
-		    {
-		      /* Frame rows are filled up with spaces that
-			 must be ignored here.  */
-		      struct glyph_row *r = MATRIX_ROW (current_matrix,
-							row);
-		      struct glyph *start = r->glyphs[TEXT_AREA];
-		      struct glyph *last = start + r->used[TEXT_AREA];
-
-		      while (last > start
-			     && (last - 1)->charpos < 0)
-			--last;
-
-		      col = last - start;
-		    }
+		  col = FRAME_LEFT_SCROLL_BAR_COLS (f);
+		  row++;
 		}
-	      while (row > top && col == 0);
-
-	      /* Make sure COL is not out of range.  */
-	      if (col >= FRAME_CURSOR_X_LIMIT (f))
-		{
-		  /* If we have another row, advance cursor into it.  */
-		  if (row < FRAME_TOTAL_LINES (f) - 1)
-		    {
-		      col = FRAME_LEFT_SCROLL_BAR_COLS (f);
-		      row++;
-		    }
-		  /* Otherwise move it back in range.  */
-		  else
-		    col = FRAME_CURSOR_X_LIMIT (f) - 1;
-		}
+	      /* Otherwise move it back in range.  */
+	      else
+		col = FRAME_CURSOR_X_LIMIT (f) - 1;
 	    }
 
 	  cursor_to (f, row, col);
@@ -5966,7 +5941,7 @@ init_display (void)
   space_glyph.charpos = -1;
 
   inverse_video = 0;
-  cursor_in_echo_area = 0;
+  cursor_in_echo_area = false;
 
   /* Now is the time to initialize this; it's used by init_sys_modes
      during startup.  */

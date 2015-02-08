@@ -3344,8 +3344,6 @@ static void x_horizontal_scroll_bar_report_motion (struct frame **, Lisp_Object 
 						   enum scroll_bar_part *,
 						   Lisp_Object *, Lisp_Object *,
 						   Time *);
-static void x_check_fullscreen (struct frame *);
-
 static void
 w32_define_cursor (Window window, Cursor cursor)
 {
@@ -4989,8 +4987,12 @@ w32_read_socket (struct terminal *terminal,
 		 sets the WAIT flag.  */
 	      if ((msg.msg.message == WM_WINDOWPOSCHANGED || msg.msg.wParam)
 		  && (f->want_fullscreen & FULLSCREEN_WAIT))
-		w32fullscreen_hook (f);
-	      x_check_fullscreen (f);
+		{
+		  /* Must set visibility right here since otherwise
+		     w32fullscreen_hook returns immediately.  */
+		  SET_FRAME_VISIBLE (f, 1);
+		  w32fullscreen_hook (f);
+		}
 	    }
 	  check_visibility = 1;
 	  break;
@@ -5269,11 +5271,18 @@ w32_read_socket (struct terminal *terminal,
 
 	  if (f)
 	    {
+	      Lisp_Object fullscreen = get_frame_param (f, Qfullscreen);
+
 	      dpyinfo->n_cbits = msg.msg.wParam;
 	      /* The new display could have a different resolution, in
-		 which case we must reconsider what fullscreen
-		 means.  */
-	      x_check_fullscreen (f);
+		 which case we must reconsider what fullscreen means.
+		 The following code is untested yet.  */
+	      if (!NILP (fullscreen))
+		{
+		  x_set_fullscreen (f, fullscreen, fullscreen);
+		  w32fullscreen_hook (f);
+		}
+
 	      DebPrint (("display change: %d %d\n",
 			 (short) LOWORD (msg.msg.lParam),
 			 (short) HIWORD (msg.msg.lParam)));
@@ -5959,75 +5968,6 @@ x_set_offset (struct frame *f, register int xoff, register int yoff,
   unblock_input ();
 }
 
-/* Calculate fullscreen size.  Return in *TOP_POS and *LEFT_POS the
-   wanted positions of the WM window (not Emacs window).
-   Return in *WIDTH and *HEIGHT the wanted width and height of Emacs
-   window (FRAME_X_WINDOW).
- */
-
-static void
-x_fullscreen_adjust (struct frame *f, int *width, int *height, int *top_pos, int *left_pos)
-{
-  int newwidth = FRAME_COLS (f);
-  int newheight = FRAME_LINES (f);
-  Display_Info *dpyinfo = FRAME_DISPLAY_INFO (f);
-
-  *top_pos = f->top_pos;
-  *left_pos = f->left_pos;
-
-  if (f->want_fullscreen & FULLSCREEN_HEIGHT)
-    {
-      int ph;
-
-      ph = x_display_pixel_height (dpyinfo);
-      newheight = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, ph);
-      ph = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, newheight) - f->y_pixels_diff;
-      newheight = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, ph);
-      *top_pos = 0;
-    }
-
-  if (f->want_fullscreen & FULLSCREEN_WIDTH)
-    {
-      int pw;
-
-      pw = x_display_pixel_width (dpyinfo);
-      newwidth = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, pw);
-      pw = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, newwidth) - f->x_pixels_diff;
-      newwidth = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, pw);
-      *left_pos = 0;
-    }
-
-  *width = newwidth;
-  *height = newheight;
-}
-
-/* Check if we need to resize the frame due to a fullscreen request.
-   If so needed, resize the frame.  */
-static void
-x_check_fullscreen (struct frame *f)
-{
-  if (f->want_fullscreen & FULLSCREEN_BOTH)
-    {
-      int width, height, ign;
-
-      x_real_positions (f, &f->left_pos, &f->top_pos);
-
-      x_fullscreen_adjust (f, &width, &height, &ign, &ign);
-
-      /* We do not need to move the window, it shall be taken care of
-         when setting WM manager hints.  */
-      if (FRAME_COLS (f) != width || FRAME_LINES (f) != height)
-        {
-          change_frame_size (f, width, height, 0, 1, 0, 0);
-          SET_FRAME_GARBAGED (f);
-          cancel_mouse_face (f);
-
-          /* Wait for the change of frame size to occur.  */
-          f->want_fullscreen |= FULLSCREEN_WAIT;
-        }
-    }
-}
-
 static void
 w32fullscreen_hook (struct frame *f)
 {
@@ -6074,6 +6014,10 @@ w32fullscreen_hook (struct frame *f)
           SetWindowPos (hwnd, HWND_TOP, rect.left, rect.top,
                         rect.right - rect.left, rect.bottom - rect.top,
                         SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+	  change_frame_size
+	    (f, FRAME_PIXEL_TO_TEXT_WIDTH (f, rect.right - rect.left),
+	     FRAME_PIXEL_TO_TEXT_HEIGHT (f, rect.bottom - rect.top),
+	     0, 1, 0, 1);
         }
       else
         {
@@ -6082,10 +6026,39 @@ w32fullscreen_hook (struct frame *f)
 			       FRAME_NORMAL_PLACEMENT (f).rcNormalPosition, &rect);
           SetWindowPos (hwnd, HWND_TOP, rect.left, rect.top,
                         rect.right - rect.left, rect.bottom - rect.top, 0);
+
+	  if (f->want_fullscreen == FULLSCREEN_WIDTH)
+	    {
+	      int border_width = GetSystemMetrics (SM_CXFRAME);
+
+	      change_frame_size
+		(f, (FRAME_PIXEL_TO_TEXT_WIDTH
+		     (f, rect.right - rect.left - 2 * border_width)),
+		 0, 0, 1, 0, 1);
+	    }
+	  else
+	    {
+	      int border_height = GetSystemMetrics (SM_CYFRAME);
+	      /* Won't work for wrapped menu bar.  */
+	      int menu_bar_height = GetSystemMetrics (SM_CYMENU);
+	      int title_height = GetSystemMetrics (SM_CYCAPTION);
+
+	      change_frame_size
+		(f, 0, (FRAME_PIXEL_TO_TEXT_HEIGHT
+			(f, rect.bottom - rect.top - 2 * border_height
+			 - title_height - menu_bar_height)),
+		 0, 1, 0, 1);
+	    }
         }
 
       f->want_fullscreen = FULLSCREEN_NONE;
       unblock_input ();
+
+      if (f->want_fullscreen == FULLSCREEN_BOTH
+	  || f->want_fullscreen == FULLSCREEN_WIDTH
+	  || f->want_fullscreen == FULLSCREEN_HEIGHT)
+	do_pending_window_change (0);
+
     }
   else
     f->want_fullscreen |= FULLSCREEN_WAIT;
@@ -6101,6 +6074,7 @@ x_set_window_size (struct frame *f, bool change_gravity,
 		   int width, int height, bool pixelwise)
 {
   int pixelwidth, pixelheight;
+  Lisp_Object fullscreen = get_frame_param (f, Qfullscreen);
   RECT rect;
 
   block_input ();
@@ -6119,7 +6093,7 @@ x_set_window_size (struct frame *f, bool change_gravity,
   if (w32_add_wrapped_menu_bar_lines)
     {
       /* When the menu bar wraps sending a SetWindowPos shrinks the
-	 height of the frame when the wrapped menu bar lines are not
+	 height of the frame then the wrapped menu bar lines are not
 	 accounted for (Bug#15174 and Bug#18720).  Here we add these
 	 extra lines to the frame height.  */
       MENUBARINFO info;
@@ -6143,9 +6117,6 @@ x_set_window_size (struct frame *f, bool change_gravity,
   f->win_gravity = NorthWestGravity;
   x_wm_set_size_hint (f, (long) 0, false);
 
-  f->want_fullscreen = FULLSCREEN_NONE;
-  w32fullscreen_hook (f);
-
   rect.left = rect.top = 0;
   rect.right = pixelwidth;
   rect.bottom = pixelheight;
@@ -6153,45 +6124,45 @@ x_set_window_size (struct frame *f, bool change_gravity,
   AdjustWindowRect (&rect, f->output_data.w32->dwStyle,
 		    FRAME_EXTERNAL_MENU_BAR (f));
 
-  my_set_window_pos (FRAME_W32_WINDOW (f),
-		     NULL,
-		     0, 0,
-		     rect.right - rect.left,
-		     rect.bottom - rect.top,
-		     SWP_NOZORDER | SWP_NOMOVE | SWP_NOACTIVATE);
-
-  /* If w32_enable_frame_resize_hack is non-nil, immediately apply the
-     new pixel sizes to the frame and its subwindows.
-
-     Jason Rumney earlier refused to call change_frame_size right here
-     with the following argument:
-
-     The following mirrors what is done in xterm.c. It appears to be for
-     informing lisp of the new size immediately, while the actual resize
-     will happen asynchronously. But on Windows, the menu bar
-     automatically wraps when the frame is too narrow to contain it, and
-     that causes any calculations made here to come out wrong.  The end
-     is some nasty buggy behavior, including the potential loss of the
-     minibuffer.
-
-     Disabling this code is either not sufficient to fix the problems
-     completely, or it causes fresh problems, but at least it removes
-     the most problematic symptom of the minibuffer becoming unusable.
-
-     However, as the discussion about how to handle frame size
-     parameters on Windows (Bug#1348, Bug#16028) shows, that cure seems
-     worse than the disease.  In particular, menu bar wrapping looks
-     like a non-issue - maybe so because Windows eventually gets back to
-     us with the correct client rectangle anyway.  But we have to avoid
-     calling change_frame_size with a delta of less than one canoncial
-     character size when frame_resize_pixelwise is nil, as explained in
-     the comment above.  */
-
-  if (w32_enable_frame_resize_hack)
-
+  if (!(f->after_make_frame)
+      && !(f->want_fullscreen & FULLSCREEN_WAIT)
+      && FRAME_VISIBLE_P (f))
     {
-      change_frame_size (f, FRAME_PIXEL_TO_TEXT_WIDTH (f, pixelwidth),
-			 FRAME_PIXEL_TO_TEXT_HEIGHT (f, pixelheight),
+      RECT window_rect;
+
+      GetWindowRect (FRAME_W32_WINDOW (f), &window_rect);
+
+      if (EQ (fullscreen, Qmaximized)
+	  || EQ (fullscreen, Qfullboth)
+	  || EQ (fullscreen, Qfullwidth))
+	{
+	  rect.left = window_rect.left;
+	  rect.right = window_rect.right;
+	  pixelwidth = 0;
+	}
+      if (EQ (fullscreen, Qmaximized)
+	  || EQ (fullscreen, Qfullboth)
+	  || EQ (fullscreen, Qfullheight))
+	{
+	  rect.top = window_rect.top;
+	  rect.bottom = window_rect.bottom;
+	  pixelheight = 0;
+	}
+    }
+
+  if (pixelwidth > 0 || pixelheight > 0)
+    {
+      my_set_window_pos (FRAME_W32_WINDOW (f), NULL,
+			 0, 0,
+			 rect.right - rect.left,
+			 rect.bottom - rect.top,
+			 SWP_NOZORDER | SWP_NOMOVE | SWP_NOACTIVATE);
+
+      change_frame_size (f,
+			 ((pixelwidth == 0)
+			     ? 0 : FRAME_PIXEL_TO_TEXT_WIDTH (f, pixelwidth)),
+			 ((pixelheight == 0)
+			  ? 0 : FRAME_PIXEL_TO_TEXT_HEIGHT (f, pixelheight)),
 			 0, 1, 0, 1);
       SET_FRAME_GARBAGED (f);
 
@@ -7102,7 +7073,7 @@ Windows 8.  It is set to nil on Windows 9X.  */);
   w32_unicode_filenames = 0;
 
 
-  /* FIXME: The following two variables will be (hopefully) removed
+  /* FIXME: The following variable will be (hopefully) removed
      before Emacs 25.1 gets released.  */
 
   DEFVAR_BOOL ("w32-add-wrapped-menu-bar-lines",
@@ -7115,16 +7086,6 @@ of wrapped menu bar lines.  If this is non-nil, Emacs adds the height of
 wrapped menu bar lines when sending frame resize requests to the Windows
 API.  */);
   w32_add_wrapped_menu_bar_lines = 1;
-
-  DEFVAR_BOOL ("w32-enable-frame-resize-hack",
-	       w32_enable_frame_resize_hack,
-     doc: /* Non-nil means enable hack for frame resizing on Windows.
-A value of nil means to resize frames by sending a corresponding request
-to the Windows API and changing the pixel sizes of the frame and its
-windows after the latter calls back.  If this is non-nil, Emacs changes
-the pixel sizes of the frame and its windows at the time it sends the
-resize request to the API.  */);
-  w32_enable_frame_resize_hack = 1;
 
   /* Tell Emacs about this window system.  */
   Fprovide (Qw32, Qnil);

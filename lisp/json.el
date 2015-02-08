@@ -166,7 +166,7 @@ without indentation.")
   "Advance past the character at point, returning it."
   (let ((char (json-peek)))
     (if (eq char :json-eof)
-        (signal 'end-of-file nil)
+        (signal 'json-end-of-file nil)
       (json-advance)
       char)))
 
@@ -186,6 +186,8 @@ without indentation.")
 (define-error 'json-string-format "Bad string format" 'json-error)
 (define-error 'json-key-format "Bad JSON object key" 'json-error)
 (define-error 'json-object-format "Bad JSON object" 'json-error)
+(define-error 'json-end-of-file "End of file while parsing JSON"
+  '(end-of-file json-error))
 
 
 
@@ -554,7 +556,7 @@ Advances point just past JSON object."
           (if (functionp (car record))
               (apply (car record) (cdr record))
             (signal 'json-readtable-error record)))
-      (signal 'end-of-file nil))))
+      (signal 'json-end-of-file nil))))
 
 ;; Syntactic sugar for the reader
 

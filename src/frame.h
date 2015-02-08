@@ -332,9 +332,8 @@ struct frame
      frame.  */
   bool_bf can_x_set_window_size : 1;
 
-  /* True means run_window_configuration_change_hook can be processed
-     for this frame.  */
-  bool_bf can_run_window_configuration_change_hook : 1;
+  /* Set to true after this frame was made by `make-frame'.  */
+  bool_bf after_make_frame : 1;
 
   /* True means tool bar has been redisplayed at least once in current
      session.  */
@@ -392,9 +391,9 @@ struct frame
   int left_pos, top_pos;
 
   /* Total width of this frame (including fringes, vertical scroll bar
-     and internal border widths) and total height (including menu bar,
-     tool bar, horizontal scroll bar and internal border widths) in
-     pixels.  */
+     and internal border widths) and total height (including internal
+     menu and tool bars, horizontal scroll bar and internal border
+     widths) in pixels.  */
   int pixel_width, pixel_height;
 
   /* These many pixels are the difference between the outer window (i.e. the
@@ -1124,6 +1123,8 @@ extern void frame_make_pointer_visible (struct frame *);
 extern Lisp_Object delete_frame (Lisp_Object, Lisp_Object);
 extern bool frame_inhibit_resize (struct frame *, bool, Lisp_Object);
 extern void adjust_frame_size (struct frame *, int, int, int, bool, Lisp_Object);
+extern void frame_size_history_add (struct frame *f, Lisp_Object fun_symbol,
+				    int width, int height, Lisp_Object rest);
 
 extern Lisp_Object Vframe_list;
 

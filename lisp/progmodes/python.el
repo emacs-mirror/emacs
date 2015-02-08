@@ -1068,7 +1068,9 @@ minimum."
          (levels (python-indent--calculate-levels indentation)))
     (if previous
         (python-indent--previous-level levels (current-indentation))
-      (apply #'max levels))))
+      (if levels
+          (apply #'max levels)
+        0))))
 
 (defun python-indent-line (&optional previous)
   "Internal implementation of `python-indent-line-function'.
@@ -2331,57 +2333,57 @@ goes wrong and syntax highlighting in the shell gets messed up."
   (interactive)
   (python-shell-with-shell-buffer
     (python-shell-font-lock-with-font-lock-buffer
-      (delete-region (point-min) (point-max)))))
+      (erase-buffer))))
 
 (defun python-shell-font-lock-comint-output-filter-function (output)
   "Clean up the font-lock buffer after any OUTPUT."
-  (when (and (not (string= "" output))
-             ;; Is end of output and is not just a prompt.
-             (not (member
-                   (python-shell-comint-end-of-output-p
-                    (ansi-color-filter-apply output))
-                   '(nil 0))))
-    ;; If output is other than an input prompt then "real" output has
-    ;; been received and the font-lock buffer must be cleaned up.
-    (python-shell-font-lock-cleanup-buffer))
+  (if (and (not (string= "" output))
+           ;; Is end of output and is not just a prompt.
+           (not (member
+                 (python-shell-comint-end-of-output-p
+                  (ansi-color-filter-apply output))
+                 '(nil 0))))
+      ;; If output is other than an input prompt then "real" output has
+      ;; been received and the font-lock buffer must be cleaned up.
+      (python-shell-font-lock-cleanup-buffer)
+    ;; Otherwise just add a newline.
+    (python-shell-font-lock-with-font-lock-buffer
+      (goto-char (point-max))
+      (newline)))
   output)
 
 (defun python-shell-font-lock-post-command-hook ()
   "Fontifies current line in shell buffer."
-  (if (eq this-command 'comint-send-input)
-      ;; Add a newline when user sends input as this may be a block.
-      (python-shell-font-lock-with-font-lock-buffer
-        (goto-char (line-end-position))
-        (newline))
-    (when (and (python-util-comint-last-prompt)
-               (> (point) (cdr (python-util-comint-last-prompt))))
-      (let ((input (buffer-substring-no-properties
-                    (cdr (python-util-comint-last-prompt)) (point-max)))
-            (old-input (python-shell-font-lock-with-font-lock-buffer
-                         (buffer-substring-no-properties
-                          (line-beginning-position) (point-max))))
-            (current-point (point))
-            (buffer-undo-list t))
-        ;; When input hasn't changed, do nothing.
-        (when (not (string= input old-input))
-          (delete-region (cdr (python-util-comint-last-prompt)) (point-max))
-          (insert
-           (python-shell-font-lock-with-font-lock-buffer
-             (delete-region (line-beginning-position)
-                            (line-end-position))
-             (insert input)
-             ;; Ensure buffer is fontified, keeping it
-             ;; compatible with Emacs < 24.4.
-             (if (fboundp 'font-lock-ensure)
-                 (funcall 'font-lock-ensure)
-               (font-lock-default-fontify-buffer))
-             ;; Replace FACE text properties with FONT-LOCK-FACE so
-             ;; they are not overwritten by comint buffer's font lock.
-             (python-util-text-properties-replace-name
-              'face 'font-lock-face)
-             (buffer-substring (line-beginning-position)
-                               (line-end-position))))
-          (goto-char current-point))))))
+  (when (and (python-util-comint-last-prompt)
+             (> (point) (cdr (python-util-comint-last-prompt))))
+    (let ((input (buffer-substring-no-properties
+                  (cdr (python-util-comint-last-prompt)) (point-max)))
+          (pos (point))
+          (buffer-undo-list t)
+          (font-lock-buffer-pos nil))
+      ;; Keep all markers untouched, this prevents `hippie-expand' and
+      ;; others from getting confused.  Bug#19650.
+      (insert-before-markers
+       (python-shell-font-lock-with-font-lock-buffer
+	 (delete-region (line-beginning-position)
+                        (point-max))
+         (setq font-lock-buffer-pos (point))
+         (insert input)
+	 ;; Ensure buffer is fontified, keeping it
+	 ;; compatible with Emacs < 24.4.
+	 (if (fboundp 'font-lock-ensure)
+	     (funcall 'font-lock-ensure)
+	   (font-lock-default-fontify-buffer))
+	 ;; Replace FACE text properties with FONT-LOCK-FACE so
+	 ;; they are not overwritten by comint buffer's font lock.
+	 (python-util-text-properties-replace-name
+	  'face 'font-lock-face)
+	 (buffer-substring font-lock-buffer-pos
+                           (point-max))))
+      ;; Remove non-fontified original text.
+      (delete-region pos (cdr (python-util-comint-last-prompt)))
+      ;; Point should be already at pos, this is for extra safety.
+      (goto-char pos))))
 
 (defun python-shell-font-lock-turn-on (&optional msg)
   "Turn on shell font-lock.
@@ -3148,67 +3150,68 @@ With argument MSG show activation/deactivation message."
   "Get completions using native readline for PROCESS.
 When IMPORT is non-nil takes precedence over INPUT for
 completion."
-  (when (and python-shell-completion-native-enable
-             (python-util-comint-last-prompt)
-             (>= (point) (cdr (python-util-comint-last-prompt))))
-    (let* ((input (or import input))
-           (original-filter-fn (process-filter process))
-           (redirect-buffer (get-buffer-create
-                             python-shell-completion-native-redirect-buffer))
-           (separators (python-rx
-                        (or whitespace open-paren close-paren)))
-           (trigger "\t\t\t")
-           (new-input (concat input trigger))
-           (input-length
-            (save-excursion
-              (+ (- (point-max) (comint-bol)) (length new-input))))
-           (delete-line-command (make-string input-length ?\b))
-           (input-to-send (concat new-input delete-line-command)))
-      ;; Ensure restoring the process filter, even if the user quits
-      ;; or there's some other error.
-      (unwind-protect
-          (with-current-buffer redirect-buffer
-            ;; Cleanup the redirect buffer
-            (delete-region (point-min) (point-max))
-            ;; Mimic `comint-redirect-send-command', unfortunately it
-            ;; can't be used here because it expects a newline in the
-            ;; command and that's exactly what we are trying to avoid.
-            (let ((comint-redirect-echo-input nil)
-                  (comint-redirect-verbose nil)
-                  (comint-redirect-perform-sanity-check nil)
-                  (comint-redirect-insert-matching-regexp nil)
-                  ;; Feed it some regex that will never match.
-                  (comint-redirect-finished-regexp "^\\'$")
-                  (comint-redirect-output-buffer redirect-buffer))
-              ;; Compatibility with Emacs 24.x.  Comint changed and
-              ;; now `comint-redirect-filter' gets 3 args.  This
-              ;; checks which version of `comint-redirect-filter' is
-              ;; in use based on its args and uses `apply-partially'
-              ;; to make it up for the 3 args case.
-              (if (= (length
-                      (help-function-arglist 'comint-redirect-filter)) 3)
-                  (set-process-filter
-                   process (apply-partially
-                            #'comint-redirect-filter original-filter-fn))
-                (set-process-filter process #'comint-redirect-filter))
-              (process-send-string process input-to-send)
-              (accept-process-output
-               process
-               python-shell-completion-native-output-timeout)
-              ;; XXX: can't use `python-shell-accept-process-output'
-              ;; here because there are no guarantees on how output
-              ;; ends.  The workaround here is to call
-              ;; `accept-process-output' until we don't find anything
-              ;; else to accept.
-              (while (accept-process-output
-                      process
-                      python-shell-completion-native-output-timeout))
-              (cl-remove-duplicates
-               (split-string
-                (buffer-substring-no-properties
-                 (point-min) (point-max))
-                separators t))))
-        (set-process-filter process original-filter-fn)))))
+  (with-current-buffer (process-buffer process)
+    (when (and python-shell-completion-native-enable
+               (python-util-comint-last-prompt)
+               (>= (point) (cdr (python-util-comint-last-prompt))))
+      (let* ((input (or import input))
+             (original-filter-fn (process-filter process))
+             (redirect-buffer (get-buffer-create
+                               python-shell-completion-native-redirect-buffer))
+             (separators (python-rx
+                          (or whitespace open-paren close-paren)))
+             (trigger "\t\t\t")
+             (new-input (concat input trigger))
+             (input-length
+              (save-excursion
+                (+ (- (point-max) (comint-bol)) (length new-input))))
+             (delete-line-command (make-string input-length ?\b))
+             (input-to-send (concat new-input delete-line-command)))
+        ;; Ensure restoring the process filter, even if the user quits
+        ;; or there's some other error.
+        (unwind-protect
+            (with-current-buffer redirect-buffer
+              ;; Cleanup the redirect buffer
+              (delete-region (point-min) (point-max))
+              ;; Mimic `comint-redirect-send-command', unfortunately it
+              ;; can't be used here because it expects a newline in the
+              ;; command and that's exactly what we are trying to avoid.
+              (let ((comint-redirect-echo-input nil)
+                    (comint-redirect-verbose nil)
+                    (comint-redirect-perform-sanity-check nil)
+                    (comint-redirect-insert-matching-regexp nil)
+                    ;; Feed it some regex that will never match.
+                    (comint-redirect-finished-regexp "^\\'$")
+                    (comint-redirect-output-buffer redirect-buffer))
+                ;; Compatibility with Emacs 24.x.  Comint changed and
+                ;; now `comint-redirect-filter' gets 3 args.  This
+                ;; checks which version of `comint-redirect-filter' is
+                ;; in use based on its args and uses `apply-partially'
+                ;; to make it up for the 3 args case.
+                (if (= (length
+                        (help-function-arglist 'comint-redirect-filter)) 3)
+                    (set-process-filter
+                     process (apply-partially
+                              #'comint-redirect-filter original-filter-fn))
+                  (set-process-filter process #'comint-redirect-filter))
+                (process-send-string process input-to-send)
+                (accept-process-output
+                 process
+                 python-shell-completion-native-output-timeout)
+                ;; XXX: can't use `python-shell-accept-process-output'
+                ;; here because there are no guarantees on how output
+                ;; ends.  The workaround here is to call
+                ;; `accept-process-output' until we don't find anything
+                ;; else to accept.
+                (while (accept-process-output
+                        process
+                        python-shell-completion-native-output-timeout))
+                (cl-remove-duplicates
+                 (split-string
+                  (buffer-substring-no-properties
+                   (point-min) (point-max))
+                  separators t))))
+          (set-process-filter process original-filter-fn))))))
 
 (defun python-shell-completion-get-completions (process import input)
   "Do completion at point using PROCESS for IMPORT or INPUT.
@@ -3251,20 +3254,23 @@ completion."
 Optional argument PROCESS forces completions to be retrieved
 using that one instead of current buffer's process."
   (setq process (or process (get-buffer-process (current-buffer))))
-  (let* ((last-prompt-end (cdr (python-util-comint-last-prompt)))
+  (let* ((line-start (if (derived-mode-p 'inferior-python-mode)
+                         ;; Working on a shell buffer: use prompt end.
+                         (cdr (python-util-comint-last-prompt))
+                       (line-beginning-position)))
          (import-statement
           (when (string-match-p
                  (rx (* space) word-start (or "from" "import") word-end space)
-                 (buffer-substring-no-properties last-prompt-end (point)))
-            (buffer-substring-no-properties last-prompt-end (point))))
+                 (buffer-substring-no-properties line-start (point)))
+            (buffer-substring-no-properties line-start (point))))
          (start
           (save-excursion
             (if (not (re-search-backward
                       (python-rx
                        (or whitespace open-paren close-paren string-delimiter))
-                      last-prompt-end
+                      line-start
                       t 1))
-                last-prompt-end
+                line-start
               (forward-char (length (match-string-no-properties 0)))
               (point))))
          (end (point))
@@ -3847,8 +3853,10 @@ The skeleton will be bound to python-skeleton-NAME."
   :type 'string
   :group 'python)
 
-(defvar-local python-check-custom-command nil
+(defvar python-check-custom-command nil
   "Internal use.")
+;; XXX: Avoid `defvar-local' for compat with Emacs<24.3
+(make-variable-buffer-local 'python-check-custom-command)
 
 (defun python-check (command)
   "Check a Python file (default current buffer's file).
@@ -3917,15 +3925,29 @@ See `python-check-command' for the default."
   :type 'string
   :group 'python)
 
+(defun python-eldoc--get-symbol-at-point ()
+  "Get the current symbol for eldoc.
+Returns the current symbol handling point within arguments."
+  (save-excursion
+    (let ((start (python-syntax-context 'paren)))
+      (when start
+        (goto-char start))
+      (when (or start
+                (eobp)
+                (memq (char-syntax (char-after)) '(?\ ?-)))
+        ;; Try to adjust to closest symbol if not in one.
+        (python-util-forward-comment -1)))
+    (python-info-current-symbol t)))
+
 (defun python-eldoc--get-doc-at-point (&optional force-input force-process)
   "Internal implementation to get documentation at point.
-If not FORCE-INPUT is passed then what `python-info-current-symbol'
+If not FORCE-INPUT is passed then what `python-eldoc--get-symbol-at-point'
 returns will be used.  If not FORCE-PROCESS is passed what
 `python-shell-get-process' returns is used."
   (let ((process (or force-process (python-shell-get-process))))
     (when process
       (let ((input (or force-input
-                       (python-info-current-symbol t))))
+                       (python-eldoc--get-symbol-at-point))))
         (and input
              ;; Prevent resizing the echo area when iPython is
              ;; enabled.  Bug#18794.
@@ -3945,13 +3967,24 @@ inferior Python process is updated properly."
   "Get help on SYMBOL using `help'.
 Interactively, prompt for symbol."
   (interactive
-   (let ((symbol (python-info-current-symbol t))
+   (let ((symbol (python-eldoc--get-symbol-at-point))
          (enable-recursive-minibuffers t))
      (list (read-string (if symbol
                             (format "Describe symbol (default %s): " symbol)
                           "Describe symbol: ")
                         nil nil symbol))))
   (message (python-eldoc--get-doc-at-point symbol)))
+
+
+;;; Hideshow
+
+(defun python-hideshow-forward-sexp-function (arg)
+  "Python specific `forward-sexp' function for `hs-minor-mode'.
+Argument ARG is ignored."
+  arg  ; Shut up, byte compiler.
+  (python-nav-end-of-defun)
+  (unless (python-info-current-line-empty-p)
+    (backward-char)))
 
 
 ;;; Imenu
@@ -4682,14 +4715,23 @@ Arguments START and END narrow the buffer region to work on."
                                                  (current-column))))
          (^ '(- (1+ (current-indentation))))))
 
-  (add-function :before-until (local 'eldoc-documentation-function)
-                #'python-eldoc-function)
+  (if (null eldoc-documentation-function)
+      ;; Emacs<25
+      (setq (make-local-variable 'eldoc-documentation-function)
+            #'python-eldoc-function)
+    (add-function :before-until (local 'eldoc-documentation-function)
+                  #'python-eldoc-function))
 
-  (add-to-list 'hs-special-modes-alist
-               `(python-mode "^\\s-*\\(?:def\\|class\\)\\>" nil "#"
-                             ,(lambda (_arg)
-                                (python-nav-end-of-defun))
-                             nil))
+  (add-to-list
+   'hs-special-modes-alist
+   `(python-mode
+     "\\s-*\\(?:def\\|class\\)\\>"
+     ;; Use the empty string as end regexp so it doesn't default to
+     ;; "\\s)".  This way parens at end of defun are properly hidden.
+     ""
+     "#"
+     python-hideshow-forward-sexp-function
+     nil))
 
   (set (make-local-variable 'outline-regexp)
        (python-rx (* space) block-start))

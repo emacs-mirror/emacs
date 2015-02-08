@@ -9,6 +9,8 @@ For older news, see Gnus info node "New Features".
 
 * New features
 
+** nnimap can request and use the Gmail "X-GM-LABELS".
+
 ** New package `gnus-notifications.el' can send notifications when you
    receive new messages.
 

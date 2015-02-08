@@ -1,3 +1,117 @@
+2015-02-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Minor tweaks to frame_size_history_add
+	* frame.c (frame_size_history_add): Don't assume length fits in 'int'.
+	Prefer XCAR and XCDR to Fcar and Fcdr when the arg is a cons.
+	(Fframe_after_make_frame): Simplify.
+	* gtkutil.c: Remove commented-out code.
+	* xfns.c (Fx_create_frame): Fix indenting.
+
+2015-02-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* frame.c (Fframe_parameter): Don't replace a non-nil value of
+	foreground-color or background-color parameters with a nil value.
+	(Bug#19802)
+
+2015-02-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* data.c (Findirect_function): Like `symbol-function', don't signal an
+	error for void functions any more.
+
+2015-02-07  Martin Rudalics  <rudalics@gmx.at>
+
+	* frame.c (frame_size_history_add): New function.
+	(frame_inhibit_resize): Consider frame_inhibit_implied_resize
+	only after frame's after_make_frame slot is true.
+	Inhibit resizing fullwidth-/height frames in one direction only.
+	Update frame_size_history.
+	(adjust_frame_size): Call frame_size_history_add.
+	(make_frame): Initalize after_make_frame slot.
+	(Fmake_terminal_frame): Adjust adjust_frame_size call.
+	(Fcan_run_window_configuration_change_hook): Rename to
+	Fframe_after_make_frame.  Set after_make_frame slot.
+	Return second argument.
+	(x_set_frame_parameters): Postpone handling fullscreen parameter
+	until after width and height parameters have been set.
+	Apply width and height changes only if can_x_set_window_size is true.
+	Update frame_size_history.
+	(Qadjust_frame_size_1, Qadjust_frame_size_2)
+	(Qadjust_frame_size_3, QEmacsFrameResize, Qframe_inhibit_resize)
+	(Qx_set_fullscreen, Qx_check_fullscreen, Qx_set_window_size_1)
+	(Qxg_frame_resized, Qxg_frame_set_char_size_1)
+	(Qxg_frame_set_char_size_2, Qxg_frame_set_char_size_3)
+	(Qxg_change_toolbar_position, Qx_net_wm_state)
+	(Qx_handle_net_wm_state, Qtb_size_cb, Qupdate_frame_tool_bar)
+	(Qfree_frame_tool_bar): New symbol for updating frame_size_history.
+	(Qtip_frame, Qterminal_frame): New symbols.
+	(Vframe_adjust_size_history): Rename to frame_size_history.
+	* frame.h (struct frame):
+	Rename can_run_window_configuration_change_hook slot to
+	after_make_frame.
+	(frame_size_history_add): Extern.
+	* gtkutil.c (xg_frame_resized): Call frame_size_history_add.
+	Don't set FRAME_PIXEL_WIDTH and FRAME_PIXEL_HEIGHT here.
+	(xg_frame_set_char_size): Try to preserve the status of
+	fullwidth/-height frames.  Call frame_size_history_add.
+	(tb_size_cb, update_frame_tool_bar, free_frame_tool_bar)
+	(xg_change_toolbar_position): Call frame_size_history_add.
+	* w32fns.c (x_change_tool_bar_height): Handle frame's fullscreen
+	status.
+	(Fx_create_frame): Process fullscreen parameter after frame has
+	been resized.
+	(x_create_tip_frame): Pass Qtip_frame to adjust_frame_size.
+	(Fx_frame_geometry): Don't pollute pure storage.
+	* w32term.c (w32_read_socket): For WM_WINDOWPOSCHANGED,
+	WM_ACTIVATE and WM_ACTIVATEAPP set frame's visibility before
+	calling w32fullscreen_hook.  For WM_DISPLAYCHANGE call
+	w32fullscreen_hook immediately.
+	(x_fullscreen_adjust, x_check_fullscreen): Remove.
+	(w32fullscreen_hook): Call change_frame_size just as with a
+	"normal" frame resize operation.  Call do_pending_window_change.
+	(x_set_window_size): Try to handle fullwidth and fullheight more
+	accurately.  Don't rely on w32_enable_frame_resize_hack.
+	(w32_enable_frame_resize_hack): Remove variable.
+	* widget.c (EmacsFrameResize): Remove dead code.
+	Call frame_size_history_add
+	* window.c (run_window_configuration_change_hook):
+	Check f->after_make_frame instead of
+	f->can_run_window_configuration_change_hook.
+	* xfns.c (x_change_tool_bar_height): Handle frame's fullscreen status.
+	(Fx_create_frame): Process fullscreen parameter after frame has
+	been resized.
+	(Fx_frame_geometry): Don't pollute pure storage.
+	* xterm.c (x_net_wm_state, x_handle_net_wm_state):
+	Call frame_size_history_add.
+	(do_ewmh_fullscreen): Handle x_frame_normalize_before_maximize.
+	(x_check_fullscreen): Count in menubar when calling
+	XResizeWindow.  Wait for ConfigureNotify event.
+	Call frame_size_history_add.
+	(x_set_window_size_1): Remove PIXELWISE argument.  Try to handle
+	changing a fullheight frame's width or a fullwidth frame's
+	height.  Call frame_size_history_add.
+	(x_set_window_size): Simplify xg_frame_set_char_size and
+	x_set_window_size_1 calls.
+	(x_frame_normalize_before_maximize): New variable.
+
+2015-02-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove no-longer-used cursor_in_echo_area code
+	* dispnew.c (set_window_cursor_after_update, update_frame_1):
+	Remove checks for negative cursor_in_echo_area, since this var is
+	a boolean, and has been a boolean for some time.  Simplify.
+	* dispnew.c (init_display):
+	* xdisp.c (message3_nolog, vmessage): Use bool for boolean.
+
+2015-02-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eval.c (Ffunction): Handle the new (:documentation ...) form.
+	(syms_of_eval): Declare `:documentation'.
+
+2015-02-05  Martin Rudalics  <rudalics@gmx.at>
+
+	* xdisp.c (Fwindow_text_pixel_size): Remove optional BUFFER
+	argument added on 2015-02-01.
+
 2015-02-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Remove no-longer-used two_byte_p calculations
@@ -224,8 +338,8 @@
 	(x_horizontal_scroll_bar_report_motion, w32_read_socket)
 	(w32_set_vertical_scroll_bar, w32_set_horizontal_scroll_bar)
 	(w32_draw_window_cursor, x_new_font, x_set_offset)
-	(x_set_window_size, x_make_frame_invisible, x_iconify_frame): Use
-	bool where appropriate.
+	(x_set_window_size, x_make_frame_invisible, x_iconify_frame):
+	Use bool where appropriate.
 
 	Use bool for boolean in w32fns.c
 	* w32fns.c (w32_defined_color, x_decode_color)
@@ -694,8 +808,8 @@
 	Qx_create_frame_2 to adjust_frame_size.
 	* w32menu.c (set_frame_menubar): Simplify adjust_frame_size
 	call.
-	* window.c (Fset_window_configuration): Pass
-	Qset_window_configuration to adjust_frame_size.
+	* window.c (Fset_window_configuration):
+	Pass Qset_window_configuration to adjust_frame_size.
 	* xdisp.c (redisplay_tool_bar): Assign new height to
 	frame_default_tool_bar_height.
 	(redisplay_internal): If we haven't redisplayed this frame's
@@ -763,8 +877,8 @@
 
 	* w32fns.c (Fw32_register_hot_key): Use XINT instead of XLI.
 
-	* w32notify.c (Fw32notify_add_watch, w32_get_watch_object): Use
-	make_pointer_integer instead of XIL.
+	* w32notify.c (Fw32notify_add_watch, w32_get_watch_object):
+	Use make_pointer_integer instead of XIL.
 	(Fw32notify_rm_watch): Use XINTPTR instead of XLI.
 
 	* w32inevt.c (handle_file_notifications): Use make_pointer_integer
