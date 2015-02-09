@@ -1,3 +1,200 @@
+2015-02-08  Artur Malabarba  <bruce.connor.am@gmail.com>
+
+	* newcomment.el (comment-line): Fix missing paren.
+
+2015-02-08  Ulrich Müller  <ulm@gentoo.org>
+
+	* play/gamegrid.el: Update comment to reflect that the
+	'update-game-score' helper program is now setgid by default.
+
+2015-02-08  David Kastrup  <dak@gnu.org>
+
+	* subr.el (apply-partially): Use lexical binding here.
+
+2015-02-08  Artur Malabarba  <bruce.connor.am@gmail.com>
+
+	* newcomment.el (comment-line): New command.
+
+	* bindings.el (ctl-x-map): Bind to `C-x C-;'.
+
+2015-02-08  Oleh Krehel  <ohwoeowho@gmail.com>
+
+	* outline.el (outline-show-entry): Fix one invisible char for the
+	file's last outline.  Fixes Bug#19493.
+
+2015-02-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (indirect-function): Change advertised calling convention.
+
+2015-02-08  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	python.el: Fix completion-at-point.  (Bug#19667)
+
+	* progmodes/python.el
+	(python-shell-completion-native-get-completions): Force process buffer.
+	(python-shell-completion-at-point): Handle case where call is not
+	in a shell buffer.
+
+2015-02-08  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	python.el: Fix shell font-lock multiline input.  (Bug#19744)
+
+	* progmodes/python.el
+	(python-shell-font-lock-post-command-hook): Handle multiline input.
+
+2015-02-08  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	python.el: Make shell font-lock respect markers.  (Bug#19650)
+
+	* progmodes/python.el (python-shell-font-lock-cleanup-buffer):
+	Use `erase-buffer`.
+	(python-shell-font-lock-comint-output-filter-function):
+	Handle newlines.
+	(python-shell-font-lock-post-command-hook): Respect markers on
+	text fontification.
+
+2015-02-07  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	python.el: Keep eldoc visible while typing args.  (Bug#19637)
+
+	* progmodes/python.el (python-eldoc--get-symbol-at-point):
+	New function based on Carlos Pita <carlosjosepita@gmail.com> patch.
+	(python-eldoc--get-doc-at-point, python-eldoc-at-point): Use it.
+
+2015-02-07  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	Fix hideshow integration.  (Bug#19761)
+
+	* progmodes/python.el
+	(python-hideshow-forward-sexp-function): New function based on
+	Carlos Pita <carlosjosepita@gmail.com> patch.
+	(python-mode): Make `hs-special-modes-alist` use it and initialize
+	the end regexp with the empty string to avoid skipping parens.
+
+2015-02-07  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	* progmodes/python.el (python-check-custom-command): Do not use
+	defvar-local for compat with Emacs<24.3.
+
+2015-02-07  Martin Rudalics  <rudalics@gmx.at>
+
+	* frame.el (frame-notice-user-settings):
+	Update `frame-size-history'.
+	(make-frame): Update `frame-size-history'.
+	Call `frame-after-make-frame'.
+	* faces.el (face-set-after-frame-default): Remove call to
+	frame-can-run-window-configuration-change-hook.
+
+2015-02-06  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* vc/vc-cvs.el (vc-cvs-dir-status-files): Don't pass DIR to
+	`vc-cvs-command' (bug#19732).
+
+2015-02-06  Nicolas Petton <nicolas@petton.fr>
+
+	* emacs-lisp/seq.el (seq-mapcat, seq-partition, seq-group-by): New functions.
+	* emacs-lisp/seq.el (seq-drop-while, seq-take-while, seq-count)
+	(seq--drop-list, seq--take-list, seq--take-while-list): Better docstring.
+
+2015-02-06  Artur Malabarba  <bruce.connor.am@gmail.com>
+
+	* doc-view.el (doc-view-kill-proc-and-buffer): Obsolete. Use
+	`image-kill-buffer' instead.
+
+2015-02-06  Thomas Fitzsimmons  <fitzsim@fitzsim.org>
+
+	* net/ldap.el (ldap-search-internal): Fix docstring.
+
+2015-02-06  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* subr.el (define-error): The error conditions may be constant
+	lists, so use `append' to concatenate them.
+
+2015-02-06  Wolfgang Jenkner  <wjenkner@inode.at>
+
+	* net/network-stream.el (network-stream-open-tls): Respect the
+	:end-of-capability setting.
+
+2015-02-05  Artur Malabarba  <bruce.connor.am@gmail.com>
+
+	* emacs-lisp/package.el (package--sort-by-dependence):
+	New function.  Return PACKAGE-LIST sorted by dependencies.
+	(package-menu-execute): Use it to delete packages in order.
+	(package--sort-deps-in-alist): New function.
+	(package-menu-mark-install): Can mark dependencies.
+	(package--newest-p): New function.
+	(package-delete): Don't delesect when deleting an older version of
+	an upgraded package.
+
+	* emacs-lisp/package.el: Add missing (require 'subr-x)
+
+2015-02-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/css-mode.el (scss-smie--not-interpolation-p): Vars can be
+	hyphenated (bug#19263).
+
+	* textmodes/css-mode.el (css-fill-paragraph): Fix filling in presence
+	of variable interpolation (bug#19751).
+
+2015-02-05  Era Eriksson  <era+emacs@iki.fi>
+
+	* json.el (json-end-of-file): New error (bug#19768).
+	(json-pop, json-read): Use it.
+
+2015-02-05  Kelly Dean <kelly@prtime.org>
+
+	* help-mode.el (help-xref-interned): Pass BUFFER and FRAME to
+	`describe-variable'.
+
+	* help-fns.el (describe-function-or-variable): New function.
+
+	* help.el (help-map): Bind `describe-function-or-variable' to o.
+	(help-for-help-internal): Document o key.
+
+2015-02-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/eieio-compat.el (eieio--defmethod): Use new
+	special (:documentation ...) feature.
+	* emacs-lisp/eieio-core.el (eieio-make-class-predicate)
+	(eieio-make-child-predicate): Same.
+	(eieio-copy-parents-into-subclass): Remove unused arg.
+	(eieio-defclass-internal): Adjust call accordingly and remove redundant
+	`pname' var.
+	(eieio--slot-name-index): Remove unused arg `obj' and adjust all
+	callers accordingly.
+
+	* emacs-lisp/cconv.el (cconv--convert-function):
+	Add `docstring' argument.
+	(cconv-convert): Use it to handle the new (:documentation ...) form.
+	(cconv-analyze-form): Handle the new (:documentation ...) form.
+
+	* emacs-lisp/bytecomp.el:
+	(byte-compile-initial-macro-environment): Use macroexp-progn.
+	(byte-compile-cl-warn): Don't silence use of cl-macroexpand-all.
+	(byte-compile-file-form-defvar-function): Rename from
+	byte-compile-file-form-define-abbrev-table.
+	(defvaralias, byte-compile-file-form-custom-declare-variable): Use it.
+	(byte-compile): Use byte-compile-top-level rather than
+	byte-compile-lambda so we can compile non-values.
+	(byte-compile-form): Add warnings for failed uses of lexical vars via
+	quoted symbols.
+	(byte-compile-unfold-bcf): Improve message for failed inlining.
+	(byte-compile-make-closure): Handle new format of internal-make-closure
+	for dynamically-generated docstrings.
+
+	* delsel.el: Deprecate the `kill' option.  Use lexical-binding.
+	(open-line): Delete like all other commands, instead of killing.
+	(delete-active-region): Don't define any return any value.
+
+	* progmodes/python.el: Try to preserve compatibility with Emacs-24.
+	(python-mode): Don't assume eldoc-documentation-function has a non-nil
+	default.
+
+2015-02-04  Sam Steingold  <sds@gnu.org>
+
+	* progmodes/python.el (python-indent-calculate-indentation):
+	Avoid the error when computing top-level indentation.
+
 2015-02-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/cl-generic.el (cl--generic-member-method): Fix paren typo.
@@ -13,6 +210,9 @@
 	void-variable error.
 
 2015-02-04  Artur Malabarba  <bruce.connor.am@gmail.com>
+
+	* image-mode.el (image-kill-buffer): New command.
+	(image-mode-map): Bind it to k.
 
 	* emacs-lisp/package.el (package-delete): Remove package from
 	`package-selected-packages' even if it can't be deleted.
@@ -14330,7 +14530,7 @@
 	Change default to "# encoding: %s" to differentiate it from the
 	default Ruby encoding comment template.
 
-2013-11-20  era eriksson  <era+emacsbugs@iki.fi>
+2013-11-20  Era Eriksson  <era+emacsbugs@iki.fi>
 
 	* ses.el (ses-mode): Doc fix.  (Bug#14748)
 

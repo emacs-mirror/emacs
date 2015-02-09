@@ -1076,7 +1076,7 @@ Query all files in DIR if files is nil."
     (if (and (not files) local (not (eq local 'only-file)))
 	(vc-cvs-dir-status-heuristic dir update-function)
       (if (not files) (setq files (vc-expand-dirs (list dir) 'CVS)))
-      (vc-cvs-command (current-buffer) 'async dir "-f" "status" files)
+      (vc-cvs-command (current-buffer) 'async files "-f" "status")
       ;; Alternative implementation: use the "update" command instead of
       ;; the "status" command.
       ;; (vc-cvs-command (current-buffer) 'async

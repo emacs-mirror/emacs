@@ -399,17 +399,12 @@ AC_ARG_WITH(gameuser,dnl
 		An argument prefixed by ':' specifies a group instead.])])
 gameuser=
 gamegroup=
+# We don't test if we can actually chown/chgrp here, because configure
+# may run without root privileges.  lib-src/Makefile.in will handle
+# any errors due to missing user/group gracefully.
 case ${with_gameuser} in
   no) ;;
-  "" | yes)
-    AC_MSG_CHECKING([whether a 'games' user exists])
-    if id -u games >/dev/null 2>&1; then
-      AC_MSG_RESULT([yes])
-      gameuser=games
-    else
-      AC_MSG_RESULT([no])
-    fi
-    ;;
+  "" | yes) gamegroup=games ;;
   :*) gamegroup=`echo "${with_gameuser}" | sed -e "s/://"` ;;
   *) gameuser=${with_gameuser} ;;
 esac

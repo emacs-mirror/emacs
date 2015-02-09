@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2014-2015 Free Software Foundation, Inc.
 
-;; Author: Nicolas Petton <petton.nicolas@gmail.com>
+;; Author: Nicolas Petton <nicolas@petton.fr>
 ;; Maintainer: emacs-devel@gnu.org
 
 ;; This file is part of GNU Emacs.
@@ -196,6 +196,30 @@ Evaluate BODY for each created sequence.
     (should (equal (seq-concatenate 'vector seq '(8 10)) [2 4 6 8 10]))
     (should (equal (seq-concatenate 'vector nil '(8 10)) [8 10]))
     (should (equal (seq-concatenate 'vector seq nil) [2 4 6]))))
+
+(ert-deftest test-seq-mapcat ()
+  (should (equal (seq-mapcat #'seq-reverse '((3 2 1) (6 5 4)))
+                 '(1 2 3 4 5 6)))
+  (should (equal (seq-mapcat #'seq-reverse '[(3 2 1) (6 5 4)])
+                 '(1 2 3 4 5 6)))
+  (should (equal (seq-mapcat #'seq-reverse '((3 2 1) (6 5 4)) 'vector)
+                 '[1 2 3 4 5 6])))
+
+(ert-deftest test-seq-partition ()
+  (should (same-contents-p (seq-partition '(0 1 2 3 4 5 6 7) 3)
+                           '((0 1 2) (3 4 5) (6 7))))
+  (should (same-contents-p (seq-partition '[0 1 2 3 4 5 6 7] 3)
+                           '([0 1 2] [3 4 5] [6 7])))
+  (should (same-contents-p (seq-partition "Hello world" 2)
+                           '("He" "ll" "o " "wo" "rl" "d")))
+  (should (equal (seq-partition '() 2) '()))
+  (should (equal (seq-partition '(1 2 3) -1) '())))
+
+(ert-deftest test-seq-group-by ()
+  (should (equal (seq-group-by #'test-sequences-oddp [1 2 3 4])
+                 '((t 3 1) (nil 4 2))))
+  (should (equal (seq-group-by #'car '((a 1) (b 3) (c 4) (a 2)))
+                 '((a (a 2) (a 1)) (b (b 3)) (c (c 4))))))
 
 (provide 'seq-tests)
 ;;; seq-tests.el ends here

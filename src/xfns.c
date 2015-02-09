@@ -1095,6 +1095,7 @@ x_change_tool_bar_height (struct frame *f, int height)
   int unit = FRAME_LINE_HEIGHT (f);
   int old_height = FRAME_TOOL_BAR_HEIGHT (f);
   int lines = (height + unit - 1) / unit;
+  Lisp_Object fullscreen;
 
   /* Make sure we redisplay all windows in this frame.  */
   windows_or_buffers_changed = 60;
@@ -1126,7 +1127,10 @@ x_change_tool_bar_height (struct frame *f, int height)
   f->n_tool_bar_rows = 0;
 
   adjust_frame_size (f, -1, -1,
-		     (!f->tool_bar_redisplayed_once ? 1
+		     ((!f->tool_bar_redisplayed_once
+		       && (NILP (fullscreen =
+				 get_frame_param (f, Qfullscreen))
+			   || EQ (fullscreen, Qfullwidth))) ? 1
 		      : (old_height == 0 || height == 0) ? 2
 		      : 4),
 		     false, Qtool_bar_lines);
@@ -3180,8 +3184,6 @@ This function is an internal primitive--use `make-frame' instead.  */)
 		       "title", "Title", RES_TYPE_STRING);
   x_default_parameter (f, parms, Qwait_for_wm, Qt,
 		       "waitForWM", "WaitForWM", RES_TYPE_BOOLEAN);
-  x_default_parameter (f, parms, Qfullscreen, Qnil,
-		       "fullscreen", "Fullscreen", RES_TYPE_SYMBOL);
   x_default_parameter (f, parms, Qtool_bar_position,
                        FRAME_TOOL_BAR_POSITION (f), 0, 0, RES_TYPE_SYMBOL);
 
@@ -3258,6 +3260,12 @@ This function is an internal primitive--use `make-frame' instead.  */)
   block_input ();
   x_wm_set_size_hint (f, window_prompting, false);
   unblock_input ();
+
+  /* Process fullscreen parameter here in the hope that normalizing a
+     fullheight/fullwidth frame will produce the size set by the last
+     adjust_frame_size call.  */
+  x_default_parameter (f, parms, Qfullscreen, Qnil,
+		       "fullscreen", "Fullscreen", RES_TYPE_SYMBOL);
 
   /* Make the window appear on the frame and enable display, unless
      the caller says not to.  However, with explicit parent, Emacs
@@ -4318,7 +4326,7 @@ elements (all size values are in pixels).
     inner_height -= tool_bar_height;
 
   return
-    listn (CONSTYPE_PURE, 10,
+    listn (CONSTYPE_HEAP, 10,
 	   Fcons (Qframe_position,
 		  Fcons (make_number (f->left_pos), make_number (f->top_pos))),
 	   Fcons (Qframe_outer_size,

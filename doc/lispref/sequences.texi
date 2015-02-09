@@ -695,9 +695,54 @@ concatenation of @var{sequences}.  @var{type} may be: @code{vector},
 @end example
 @end defun
 
+@defun seq-mapcat function sequence &optional type
+  This function returns the result of applying @code{seq-concatenate}
+to the result of applying @var{function} to each element of
+@var{sequence}.  The result is a sequence of type @var{type}, or a
+list if @var{type} is @code{nil}.
+
+@example
+@group
+(seq-mapcat #'seq-reverse '((3 2 1) (6 5 4)))
+@result{} (1 2 3 4 5 6)
+@end group
+@end example
+@end defun
+
+@defun seq-partition sequence n
+  This function returns a list of the elements of @var{sequence}
+grouped into sub-sequences of length @var{n}.  The last sequence may
+contain less elements than @var{n}.  @var{n} must be an integer.  If
+@var{n} is a negative integer or 0, nil is returned.
+
+@example
+@group
+(seq-partition '(0 1 2 3 4 5 6 7) 3)
+@result{} ((0 1 2) (3 4 5) (6 7))
+@end group
+@end example
+@end defun
+
+@defun seq-group-by function sequence
+  This function separates the elements of @var{sequence} into an alist
+whose keys are the result of applying @var{function} to each element
+of @var{sequence}.  Keys are compared using @code{equal}.
+
+@example
+@group
+(seq-group-by #'integerp '(1 2.1 3 2 3.2))
+@result{} ((t 2 3 1) (nil 3.2 2.1))
+@end group
+@group
+(seq-group-by #'car '((a 1) (b 2) (a 3) (c 4)))
+@result{} ((a (a 3) (a 1)) (b (b 2)) (c (c 4)))
+@end group
+@end example
+@end defun
+
 @defmac seq-doseq (var sequence [result]) body@dots{}
 @cindex sequence iteration
-This macro is like @code{dolist}, except that @var{sequence} can be a list,
+  This macro is like @code{dolist}, except that @var{sequence} can be a list,
 vector or string (@pxref{Iteration} for more information about the
 @code{dolist} macro).  This is primarily useful for side-effects.
 @end defmac

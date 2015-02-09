@@ -442,15 +442,6 @@ See also `gnus-before-startup-hook'."
   :group 'gnus-newsrc
   :type 'hook)
 
-(defcustom gnus-save-newsrc-file-check-timestamp nil
-  "Check the modification time of the newsrc.eld file before saving it.
-When the newsrc.eld file is updated by multiple machines,
-checking the file's modification time is a good way to avoid
-overwriting updated data."
-  :version "25.1"
-  :group 'gnus-newsrc
-  :type 'boolean)
-
 (defcustom gnus-save-newsrc-hook nil
   "A hook called before saving any of the newsrc files."
   :group 'gnus-newsrc
@@ -2833,19 +2824,18 @@ If FORCE is non-nil, the .newsrc file is read."
 
           ;; check timestamp of `gnus-current-startup-file'.eld against
           ;; `gnus-save-newsrc-file-last-timestamp'
-          (when gnus-save-newsrc-file-check-timestamp
-            (let* ((checkfile (concat gnus-current-startup-file ".eld"))
-                   (mtime (nth 5 (file-attributes checkfile))))
-              (when (and gnus-save-newsrc-file-last-timestamp
-                         (time-less-p gnus-save-newsrc-file-last-timestamp
-                                      mtime))
-                (unless (y-or-n-p
-                         (format "%s was updated externally after %s, save?"
-                                 checkfile
-                                 (format-time-string
-                                  "%c"
-                                  gnus-save-newsrc-file-last-timestamp)))
-                (error "Couldn't save %s: updated externally" checkfile)))))
+          (let* ((checkfile (concat gnus-current-startup-file ".eld"))
+                 (mtime (nth 5 (file-attributes checkfile))))
+            (when (and gnus-save-newsrc-file-last-timestamp
+                       (time-less-p gnus-save-newsrc-file-last-timestamp
+                                    mtime))
+              (unless (y-or-n-p
+                       (format "%s was updated externally after %s, save?"
+                               checkfile
+                               (format-time-string
+                                "%c"
+                                gnus-save-newsrc-file-last-timestamp)))
+                (error "Couldn't save %s: updated externally" checkfile))))
 
           (if gnus-save-startup-file-via-temp-buffer
               (let ((coding-system-for-write gnus-ding-file-coding-system)

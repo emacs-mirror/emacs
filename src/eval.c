@@ -575,10 +575,23 @@ usage: (function ARG)  */)
   if (!NILP (Vinternal_interpreter_environment)
       && CONSP (quoted)
       && EQ (XCAR (quoted), Qlambda))
-    /* This is a lambda expression within a lexical environment;
-       return an interpreted closure instead of a simple lambda.  */
-    return Fcons (Qclosure, Fcons (Vinternal_interpreter_environment,
-				   XCDR (quoted)));
+    { /* This is a lambda expression within a lexical environment;
+	 return an interpreted closure instead of a simple lambda.  */
+      Lisp_Object cdr = XCDR (quoted);
+      Lisp_Object tmp = cdr;
+      if (CONSP (tmp)
+	  && (tmp = XCDR (tmp), CONSP (tmp))
+	  && (tmp = XCAR (tmp), CONSP (tmp))
+	  && (EQ (QCdocumentation, XCAR (tmp))))
+	{ /* Handle the special (:documentation <form>) to build the docstring
+	     dynamically.  */
+	  Lisp_Object docstring = eval_sub (Fcar (XCDR (tmp)));
+	  CHECK_STRING (docstring);
+	  cdr = Fcons (XCAR (cdr), Fcons (docstring, XCDR (XCDR (cdr))));
+	}
+      return Fcons (Qclosure, Fcons (Vinternal_interpreter_environment,
+				     cdr));
+    }
   else
     /* Simply quote the argument.  */
     return quoted;
@@ -3668,6 +3681,7 @@ before making `inhibit-quit' nil.  */);
   DEFSYM (Qand_rest, "&rest");
   DEFSYM (Qand_optional, "&optional");
   DEFSYM (Qclosure, "closure");
+  DEFSYM (QCdocumentation, ":documentation");
   DEFSYM (Qdebug, "debug");
 
   DEFVAR_LISP ("inhibit-debugger", Vinhibit_debugger,

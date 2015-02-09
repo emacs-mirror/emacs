@@ -50,12 +50,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "emacsgtkfixed.h"
 #endif
 
-/** #define FRAME_TOTAL_PIXEL_HEIGHT(f) \ **/
-/**   (FRAME_PIXEL_HEIGHT (f) + FRAME_MENUBAR_HEIGHT (f) + FRAME_TOOLBAR_HEIGHT (f)) **/
-
-/** #define FRAME_TOTAL_PIXEL_WIDTH(f) \ **/
-/**   (FRAME_PIXEL_WIDTH (f) + FRAME_TOOLBAR_WIDTH (f)) **/
-
 #ifndef HAVE_GTK_WIDGET_SET_HAS_WINDOW
 #define gtk_widget_set_has_window(w, b) \
   (gtk_fixed_set_has_window (GTK_FIXED (w), b))
@@ -886,24 +880,23 @@ xg_frame_resized (struct frame *f, int pixelwidth, int pixelheight)
   if (pixelwidth == -1 && pixelheight == -1)
     {
       if (FRAME_GTK_WIDGET (f) && gtk_widget_get_mapped (FRAME_GTK_WIDGET (f)))
-          gdk_window_get_geometry (gtk_widget_get_window (FRAME_GTK_WIDGET (f)),
-                                   0, 0,
-                                   &pixelwidth, &pixelheight);
-      else return;
+	gdk_window_get_geometry (gtk_widget_get_window (FRAME_GTK_WIDGET (f)),
+				 0, 0, &pixelwidth, &pixelheight);
+      else
+	return;
     }
-
 
   width = FRAME_PIXEL_TO_TEXT_WIDTH (f, pixelwidth);
   height = FRAME_PIXEL_TO_TEXT_HEIGHT (f, pixelheight);
+
+  frame_size_history_add
+    (f, Qxg_frame_resized, width, height, Qnil);
 
   if (width != FRAME_TEXT_WIDTH (f)
       || height != FRAME_TEXT_HEIGHT (f)
       || pixelwidth != FRAME_PIXEL_WIDTH (f)
       || pixelheight != FRAME_PIXEL_HEIGHT (f))
     {
-      FRAME_PIXEL_WIDTH (f) = pixelwidth;
-      FRAME_PIXEL_HEIGHT (f) = pixelheight;
-
       xg_clear_under_internal_border (f);
       change_frame_size (f, width, height, 0, 1, 0, 1);
       SET_FRAME_GARBAGED (f);
@@ -921,24 +914,71 @@ xg_frame_set_char_size (struct frame *f, int width, int height)
 {
   int pixelwidth = FRAME_TEXT_TO_PIXEL_WIDTH (f, width);
   int pixelheight = FRAME_TEXT_TO_PIXEL_HEIGHT (f, height);
+  Lisp_Object fullscreen = get_frame_param (f, Qfullscreen);
+  gint gwidth, gheight;
 
   if (FRAME_PIXEL_HEIGHT (f) == 0)
     return;
 
+  gtk_window_get_size (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
+		       &gwidth, &gheight);
+
   /* Do this before resize, as we don't know yet if we will be resized.  */
   xg_clear_under_internal_border (f);
 
-  /* Must resize our top level widget.  Font size may have changed,
-     but not rows/cols.  */
-  gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
-                     pixelwidth + FRAME_TOOLBAR_WIDTH (f),
-		     pixelheight + FRAME_TOOLBAR_HEIGHT (f)
-		     + FRAME_MENUBAR_HEIGHT (f));
-  x_wm_set_size_hint (f, 0, 0);
+  /* Resize the top level widget so rows and columns remain constant.
+
+     When the frame is fullheight and we only want to change the width
+     or it is fullwidth and we only want to change the height we should
+     be able to preserve the fullscreen property.  However, due to the
+     fact that we have to send a resize request anyway, the window
+     manager will abolish it.  At least the respective size should
+     remain unchanged but giving the frame back its normal size will
+     be broken ... */
+  if (EQ (fullscreen, Qfullwidth) && width == FRAME_TEXT_WIDTH (f))
+    {
+      frame_size_history_add
+	(f, Qxg_frame_set_char_size_1, width, height,
+	 list2 (make_number (gheight),
+		make_number (pixelheight + FRAME_TOOLBAR_HEIGHT (f)
+			     + FRAME_MENUBAR_HEIGHT (f))));
+
+      gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
+			 gwidth,
+			 pixelheight + FRAME_TOOLBAR_HEIGHT (f)
+			 + FRAME_MENUBAR_HEIGHT (f));
+    }
+  else if (EQ (fullscreen, Qfullheight) && height == FRAME_TEXT_HEIGHT (f))
+    {
+      frame_size_history_add
+	(f, Qxg_frame_set_char_size_2, width, height,
+	 list2 (make_number (gwidth),
+		make_number (pixelwidth + FRAME_TOOLBAR_WIDTH (f))));
+
+      gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
+			 pixelwidth + FRAME_TOOLBAR_WIDTH (f),
+			 gheight);
+    }
+
+  else
+    {
+      frame_size_history_add
+	(f, Qxg_frame_set_char_size_3, width, height,
+	 list2 (make_number (pixelwidth + FRAME_TOOLBAR_WIDTH (f)),
+		make_number (pixelheight + FRAME_TOOLBAR_HEIGHT (f)
+			     + FRAME_MENUBAR_HEIGHT (f))));
+
+      gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
+			 pixelwidth + FRAME_TOOLBAR_WIDTH (f),
+			 pixelheight + FRAME_TOOLBAR_HEIGHT (f)
+			 + FRAME_MENUBAR_HEIGHT (f));
+      fullscreen = Qnil;
+    }
 
   SET_FRAME_GARBAGED (f);
   cancel_mouse_face (f);
 
+  x_wm_set_size_hint (f, 0, 0);
   /* We can not call change_frame_size for a mapped frame,
      we can not set pixel width/height either.  The window manager may
      override our resize request, XMonad does this all the time.
@@ -952,9 +992,17 @@ xg_frame_set_char_size (struct frame *f, int width, int height)
       (void)gtk_events_pending ();
       gdk_flush ();
       x_wait_for_event (f, ConfigureNotify);
+
+      if (!NILP (fullscreen))
+	/* Try to restore fullscreen state.  */
+	{
+	  store_frame_param (f, Qfullscreen, fullscreen);
+	  x_set_fullscreen (f, fullscreen, fullscreen);
+	}
     }
   else
-    adjust_frame_size (f, -1, -1, 5, 0, Qxg_frame_set_char_size);
+    adjust_frame_size (f, width, height, 5, 0, Qxg_frame_set_char_size);
+
 }
 
 /* Handle height/width changes (i.e. add/remove/move menu/toolbar).
@@ -4214,8 +4262,12 @@ tb_size_cb (GtkWidget    *widget,
      allocated between widgets, it may get another.  So we must update
      size hints if tool bar size changes.  Seen on Fedora 18 at least.  */
   struct frame *f = user_data;
+
   if (xg_update_tool_bar_sizes (f))
-    adjust_frame_size (f, -1, -1, 2, 0, Qtool_bar_lines);
+    {
+      frame_size_history_add (f, Qtb_size_cb, 0, 0, Qnil);
+      adjust_frame_size (f, -1, -1, 5, 0, Qtool_bar_lines);
+    }
 }
 
 /* Create a tool bar for frame F.  */
@@ -4489,10 +4541,11 @@ xg_update_tool_bar_sizes (struct frame *f)
       FRAME_TOOLBAR_RIGHT_WIDTH (f) = nr;
       FRAME_TOOLBAR_TOP_HEIGHT (f) = nt;
       FRAME_TOOLBAR_BOTTOM_HEIGHT (f) = nb;
-      return 1;
-    }
 
-  return 0;
+      return true;
+    }
+  else
+    return false;
 }
 
 static char *
@@ -4815,7 +4868,10 @@ update_frame_tool_bar (struct frame *f)
         xg_pack_tool_bar (f, FRAME_TOOL_BAR_POSITION (f));
       gtk_widget_show_all (x->toolbar_widget);
       if (xg_update_tool_bar_sizes (f))
-	adjust_frame_size (f, -1, -1, 2, 0, Qtool_bar_lines);
+	{
+	  frame_size_history_add (f, Qupdate_frame_tool_bar, 0, 0, Qnil);
+	  adjust_frame_size (f, -1, -1, 2, 0, Qtool_bar_lines);
+	}
     }
 
   unblock_input ();
@@ -4863,6 +4919,7 @@ free_frame_tool_bar (struct frame *f)
                              NULL);
         }
 
+      frame_size_history_add (f, Qfree_frame_tool_bar, 0, 0, Qnil);
       adjust_frame_size (f, -1, -1, 2, 0, Qtool_bar_lines);
 
       unblock_input ();
@@ -4892,8 +4949,13 @@ xg_change_toolbar_position (struct frame *f, Lisp_Object pos)
 
   xg_pack_tool_bar (f, pos);
   g_object_unref (top_widget);
+
   if (xg_update_tool_bar_sizes (f))
-    adjust_frame_size (f, -1, -1, 2, 0, Qtool_bar_lines);
+    {
+      frame_size_history_add (f, Qxg_change_toolbar_position, 0, 0, Qnil);
+      adjust_frame_size (f, -1, -1, 2, 0, Qtool_bar_lines);
+    }
+
 
   unblock_input ();
 }

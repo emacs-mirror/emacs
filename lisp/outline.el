@@ -777,7 +777,12 @@ Show the heading too, if it is currently invisible."
   (save-excursion
     (outline-back-to-heading t)
     (outline-flag-region (1- (point))
-                         (progn (outline-next-preface) (point)) nil)))
+                         (progn
+                           (outline-next-preface)
+                           (if (= 1 (- (point-max) (point)))
+                               (point-max)
+                             (point)))
+                         nil)))
 
 (define-obsolete-function-alias
     'show-entry 'outline-show-entry "25.1")

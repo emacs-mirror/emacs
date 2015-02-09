@@ -2,9 +2,9 @@
 
 ;; Copyright (C) 2014-2015 Free Software Foundation, Inc.
 
-;; Author: Nicolas Petton <petton.nicolas@gmail.com>
+;; Author: Nicolas Petton <nicolas@petton.fr>
 ;; Keywords: sequences
-;; Version: 1.0
+;; Version: 1.1
 
 ;; Maintainer: emacs-devel@gnu.org
 
@@ -92,14 +92,14 @@ returned."
     (seq-subseq seq 0 (min (max n 0) (seq-length seq)))))
 
 (defun seq-drop-while (pred seq)
-  "Return a sequence, from the first element for which (PRED element) is nil, of SEQ.
+  "Return a sequence from the first element for which (PRED element) is nil in SEQ.
 The result is a sequence of the same type as SEQ."
   (if (listp seq)
       (seq--drop-while-list pred seq)
     (seq-drop seq (seq--count-successive pred seq))))
 
 (defun seq-take-while (pred seq)
-  "Return a sequence of the successive elements for which (PRED element) is non-nil in SEQ.
+  "Return the successive elements for which (PRED element) is non-nil in SEQ.
 The result is a sequence of the same type as SEQ."
   (if (listp seq)
       (seq--take-while-list pred seq)
@@ -152,7 +152,7 @@ If SEQ is empty, return INITIAL-VALUE and FUNCTION is not called."
     t))
 
 (defun seq-count (pred seq)
-  "Return the number of elements for which (PRED element) returns non-nil in seq."
+  "Return the number of elements for which (PRED element) is non-nil in SEQ."
   (let ((count 0))
     (seq-doseq (elt seq)
       (when (funcall pred elt)
@@ -224,15 +224,50 @@ TYPE must be one of following symbols: vector, string or list.
     (`list (apply #'append (append seqs '(nil))))
     (t (error "Not a sequence type name: %s" type))))
 
+(defun seq-mapcat (function seq &optional type)
+  "Concatenate the result of applying FUNCTION to each element of SEQ.
+The result is a sequence of type TYPE, or a list if TYPE is nil."
+  (apply #'seq-concatenate (or type 'list)
+         (seq-map function seq)))
+
+(defun seq-partition (seq n)
+  "Return a list of the elements of SEQ grouped into sub-sequences of length N.
+The last sequence may contain less than N elements.  If N is a
+negative integer or 0, nil is returned."
+  (unless (< n 1)
+    (let ((result '()))
+      (while (not (seq-empty-p seq))
+        (push (seq-take seq n) result)
+        (setq seq (seq-drop seq n)))
+      (nreverse result))))
+
+(defun seq-group-by (function seq)
+  "Apply FUNCTION to each element of SEQ.
+Separate the elements of SEQ into an alist using the results as
+keys.  Keys are compared using `equal'."
+  (nreverse
+   (seq-reduce
+    (lambda (acc elt)
+      (let* ((key (funcall function elt))
+             (cell (assoc key acc)))
+        (if cell
+            (setcdr cell (push elt (cdr cell)))
+          (push (list key elt) acc))
+        acc))
+    seq
+    nil)))
+
 (defun seq--drop-list (list n)
-  "Optimized version of `seq-drop' for lists."
+  "Return a list from LIST without its first N elements.
+This is an optimization for lists in `seq-drop'."
   (while (and list (> n 0))
     (setq list (cdr list)
           n (1- n)))
   list)
 
 (defun seq--take-list (list n)
-  "Optimized version of `seq-take' for lists."
+  "Return a list from LIST made of its first N elements.
+This is an optimization for lists in `seq-take'."
   (let ((result '()))
     (while (and list (> n 0))
       (setq n (1- n))
@@ -240,13 +275,15 @@ TYPE must be one of following symbols: vector, string or list.
     (nreverse result)))
 
 (defun seq--drop-while-list (pred list)
-  "Optimized version of `seq-drop-while' for lists."
+  "Return a list from the first element for which (PRED element) is nil in LIST.
+This is an optimization for lists in `seq-drop-while'."
   (while (and list (funcall pred (car list)))
     (setq list (cdr list)))
   list)
 
 (defun seq--take-while-list (pred list)
-  "Optimized version of `seq-take-while' for lists."
+  "Return the successive elements for which (PRED element) is non-nil in LIST.
+This is an optimization for lists in `seq-take-while'."
   (let ((result '()))
     (while (and list (funcall pred (car list)))
       (push (pop list) result))

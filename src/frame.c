@@ -149,6 +149,32 @@ get_frame_param (register struct frame *frame, Lisp_Object prop)
   return Fcdr (tem);
 }
 
+
+void
+frame_size_history_add (struct frame *f, Lisp_Object fun_symbol,
+			int width, int height, Lisp_Object rest)
+{
+  Lisp_Object frame;
+
+  XSETFRAME (frame, f);
+  if (CONSP (frame_size_history)
+      && INTEGERP (XCAR (frame_size_history))
+      && 0 < XINT (XCAR (frame_size_history)))
+    frame_size_history =
+      Fcons (make_number (XINT (XCAR (frame_size_history)) - 1),
+	     Fcons (list4
+		    (frame, fun_symbol,
+		     ((width > 0)
+		      ? list4 (make_number (FRAME_TEXT_WIDTH (f)),
+			       make_number (FRAME_TEXT_HEIGHT (f)),
+			       make_number (width),
+			       make_number (height))
+		      : Qnil),
+		     rest),
+		    XCDR (frame_size_history)));
+}
+
+
 /* Return 1 if `frame-inhibit-implied-resize' is non-nil or fullscreen
    state of frame F would be affected by a vertical (horizontal if
    HORIZONTAL is true) resize.  PARAMETER is the symbol of the frame
@@ -156,11 +182,27 @@ get_frame_param (register struct frame *frame, Lisp_Object prop)
 bool
 frame_inhibit_resize (struct frame *f, bool horizontal, Lisp_Object parameter)
 {
-  return (EQ (frame_inhibit_implied_resize, Qt)
-	  || (CONSP (frame_inhibit_implied_resize)
-	      && !NILP (Fmemq (parameter, frame_inhibit_implied_resize)))
-	  || !NILP (get_frame_param (f, Qfullscreen))
-	  || FRAME_TERMCAP_P (f) || FRAME_MSDOS_P (f));
+  Lisp_Object fullscreen = get_frame_param (f, Qfullscreen);
+  bool inhibit
+    = ((f->after_make_frame
+	&& (EQ (frame_inhibit_implied_resize, Qt)
+	    || (CONSP (frame_inhibit_implied_resize)
+		&& !NILP (Fmemq (parameter, frame_inhibit_implied_resize)))))
+       || (horizontal
+	   && !EQ (fullscreen, Qnil) && !EQ (fullscreen, Qfullheight))
+       || (!horizontal
+	   && !EQ (fullscreen, Qnil) && !EQ (fullscreen, Qfullwidth))
+       || FRAME_TERMCAP_P (f) || FRAME_MSDOS_P (f));
+
+  if (inhibit && !FRAME_TERMCAP_P (f) && !FRAME_MSDOS_P (f))
+    frame_size_history_add
+      (f, Qframe_inhibit_resize, 0, 0,
+       list5 (horizontal ? Qt : Qnil, parameter,
+	      f->after_make_frame ? Qt : Qnil,
+	      frame_inhibit_implied_resize,
+	      fullscreen));
+
+  return inhibit;
 }
 
 static void
@@ -369,18 +411,9 @@ adjust_frame_size (struct frame *f, int new_width, int new_height, int inhibit,
 
   XSETFRAME (frame, f);
 
-  /* `make-frame' initializes Vframe_adjust_size_history to (Qt) and
-     strips its car when exiting.  Just in case make sure its size never
-     exceeds 100.  */
-  if (!NILP (Fconsp (Vframe_adjust_size_history))
-      && EQ (Fcar (Vframe_adjust_size_history), Qt)
-      && XFASTINT (Fsafe_length (Vframe_adjust_size_history)) <= 100)
-    Vframe_adjust_size_history =
-      Fcons (Qt, Fcons (list5 (make_number (0),
-			       make_number (new_text_width),
-			       make_number (new_text_height),
-			       make_number (inhibit), parameter),
-			Fcdr (Vframe_adjust_size_history)));
+  frame_size_history_add
+    (f, Qadjust_frame_size_1, new_text_width, new_text_height,
+     list2 (parameter, make_number (inhibit)));
 
   /* The following two values are calculated from the old window body
      sizes and any "new" settings for scroll bars, dividers, fringes and
@@ -391,7 +424,7 @@ adjust_frame_size (struct frame *f, int new_width, int new_height, int inhibit,
     = frame_windows_min_size (frame, Qnil, (inhibit == 5) ? Qt : Qnil, Qt);
 
   if (inhibit >= 2 && inhibit <= 4)
-    /* If INHIBIT is in [2..4] inhibit if the "old" window sizes stay
+    /* When INHIBIT is in [2..4] inhibit if the "old" window sizes stay
        within the limits and either frame_inhibit_resize tells us to do
        so or INHIBIT equals 4.  */
     {
@@ -449,16 +482,10 @@ adjust_frame_size (struct frame *f, int new_width, int new_height, int inhibit,
       else if (inhibit_vertical)
 	new_text_height = old_text_height;
 
-      if (!NILP (Fconsp (Vframe_adjust_size_history))
-	  && EQ (Fcar (Vframe_adjust_size_history), Qt)
-	  && XFASTINT (Fsafe_length (Vframe_adjust_size_history)) <= 100)
-	Vframe_adjust_size_history =
-	  Fcons (Qt, Fcons (list5 (make_number (1),
-				   make_number (new_text_width),
-				   make_number (new_text_height),
-				   make_number (new_cols),
-				   make_number (new_lines)),
-			    Fcdr (Vframe_adjust_size_history)));
+      frame_size_history_add
+	(f, Qadjust_frame_size_2, new_text_width, new_text_height,
+	 list2 (inhibit_horizontal ? Qt : Qnil,
+		inhibit_vertical ? Qt : Qnil));
 
       x_set_window_size (f, 0, new_text_width, new_text_height, 1);
       f->resized_p = true;
@@ -525,6 +552,11 @@ adjust_frame_size (struct frame *f, int new_width, int new_height, int inhibit,
 	FrameRows (FRAME_TTY (f)) = new_lines + FRAME_TOP_MARGIN (f);
     }
 
+  frame_size_history_add
+    (f, Qadjust_frame_size_3, new_text_width, new_text_height,
+     list4 (make_number (old_pixel_width), make_number (old_pixel_height),
+	    make_number (new_pixel_width), make_number (new_pixel_height)));
+
   /* Assign new sizes.  */
   FRAME_TEXT_WIDTH (f) = new_text_width;
   FRAME_TEXT_HEIGHT (f) = new_text_height;
@@ -532,17 +564,6 @@ adjust_frame_size (struct frame *f, int new_width, int new_height, int inhibit,
   FRAME_PIXEL_HEIGHT (f) = new_pixel_height;
   SET_FRAME_COLS (f, new_cols);
   SET_FRAME_LINES (f, new_lines);
-
-  if (!NILP (Fconsp (Vframe_adjust_size_history))
-      && EQ (Fcar (Vframe_adjust_size_history), Qt)
-      && XFASTINT (Fsafe_length (Vframe_adjust_size_history)) <= 100)
-    Vframe_adjust_size_history =
-      Fcons (Qt, Fcons (list5 (make_number (2),
-			       make_number (new_text_width),
-			       make_number (new_text_height),
-			       make_number (new_cols),
-			       make_number (new_lines)),
-			Fcdr (Vframe_adjust_size_history)));
 
   {
     struct window *w = XWINDOW (FRAME_SELECTED_WINDOW (f));
@@ -608,7 +629,7 @@ make_frame (bool mini_p)
   f->redisplay = true;
   f->garbaged = true;
   f->can_x_set_window_size = false;
-  f->can_run_window_configuration_change_hook = false;
+  f->after_make_frame = false;
   f->tool_bar_redisplayed_once = false;
   f->column_width = 1;  /* !FRAME_WINDOW_P value.  */
   f->line_height = 1;  /* !FRAME_WINDOW_P value.  */
@@ -1020,7 +1041,8 @@ affects all frames on the same terminal device.  */)
   {
     int width, height;
     get_tty_size (fileno (FRAME_TTY (f)->input), &width, &height);
-    adjust_frame_size (f, width, height - FRAME_MENU_BAR_LINES (f), 5, 0, Qnil);
+    adjust_frame_size (f, width, height - FRAME_MENU_BAR_LINES (f),
+		       5, 0, Qterminal_frame);
   }
 
   adjust_frame_glyphs (f);
@@ -2260,24 +2282,23 @@ If there is no window system support, this function does nothing.  */)
   return Qnil;
 }
 
-DEFUN ("frame-can-run-window-configuration-change-hook",
-       Fcan_run_window_configuration_change_hook,
-       Scan_run_window_configuration_change_hook, 2, 2, 0,
-       doc: /* Whether `window-configuration-change-hook' is run for frame FRAME.
-FRAME nil means use the selected frame.  Second argument ALLOW non-nil
+DEFUN ("frame-after-make-frame",
+       Fframe_after_make_frame,
+       Sframe_after_make_frame, 2, 2, 0,
+       doc: /* Mark FRAME as made.
+FRAME nil means use the selected frame.  Second argument MADE non-nil
 means functions on `window-configuration-change-hook' are called
-whenever the window configuration of FRAME changes.  ALLOW nil means
+whenever the window configuration of FRAME changes.  MADE nil means
 these functions are not called.
 
-This function is currently called by `face-set-after-frame-default' only
-and should be otherwise used with utter care to avoid that running
-functions on `window-configuration-change-hook' is impeded forever.  */)
-  (Lisp_Object frame, Lisp_Object allow)
+This function is currently called by `make-frame' only and should be
+otherwise used with utter care to avoid that running functions on
+`window-configuration-change-hook' is impeded forever.  */)
+  (Lisp_Object frame, Lisp_Object made)
 {
   struct frame *f = decode_live_frame (frame);
-
-  f->can_run_window_configuration_change_hook = NILP (allow) ? false : true;
-  return Qnil;
+  f->after_make_frame = !NILP (made);
+  return made;
 }
 
 
@@ -2591,7 +2612,12 @@ If FRAME is nil, describe the currently selected frame.  */)
 		 important when param_alist's notion of colors is
 		 "unspecified".  We need to do the same here.  */
 	      if (STRINGP (value) && !FRAME_WINDOW_P (f))
-		value = frame_unspecified_color (f, value);
+		{
+		  Lisp_Object tem = frame_unspecified_color (f, value);
+
+		  if (!NILP (tem))
+		    value = tem;
+		}
 	    }
 	  else
 	    value = Fcdr (Fassq (parameter, Fframe_parameters (frame)));
@@ -3037,13 +3063,17 @@ x_set_frame_parameters (struct frame *f, Lisp_Object alist)
      set them both at once.  So we wait until we've looked at the
      entire list before we set them.  */
   int width IF_LINT (= 0), height IF_LINT (= 0);
-  bool width_change = 0, height_change = 0;
+  bool width_change = false, height_change = false;
 
   /* Same here.  */
   Lisp_Object left, top;
 
   /* Same with these.  */
   Lisp_Object icon_left, icon_top;
+
+  /* And with this.  */
+  Lisp_Object fullscreen;
+  bool fullscreen_change = false;
 
   /* Record in these vectors all the parms specified.  */
   Lisp_Object *parms;
@@ -3138,6 +3168,11 @@ x_set_frame_parameters (struct frame *f, Lisp_Object alist)
 	icon_top = val;
       else if (EQ (prop, Qicon_left))
 	icon_left = val;
+      else if (EQ (prop, Qfullscreen))
+	{
+	  fullscreen = val;
+	  fullscreen_change = true;
+	}
       else if (EQ (prop, Qforeground_color)
 	       || EQ (prop, Qbackground_color)
 	       || EQ (prop, Qfont))
@@ -3218,14 +3253,14 @@ x_set_frame_parameters (struct frame *f, Lisp_Object alist)
 	   that here since otherwise a size change implied by an
 	   intermittent font change may get lost as in Bug#17142.  */
 	if (!width_change)
-	  width = (f->new_width
+	  width = ((f->can_x_set_window_size && f->new_width)
 		   ? (f->new_pixelwise
 		      ? f->new_width
 		      : (f->new_width * FRAME_COLUMN_WIDTH (f)))
 		   : FRAME_TEXT_WIDTH (f));
 
 	if (!height_change)
-	  height = (f->new_height
+	  height = ((f->can_x_set_window_size && f->new_height)
 		    ? (f->new_pixelwise
 		       ? f->new_height
 		       : (f->new_height * FRAME_LINE_HEIGHT (f)))
@@ -3298,6 +3333,20 @@ x_set_frame_parameters (struct frame *f, Lisp_Object alist)
 	/* Actually set that position, and convert to absolute.  */
 	x_set_offset (f, leftpos, toppos, -1);
       }
+
+    if (fullscreen_change)
+      {
+	Lisp_Object old_value = get_frame_param (f, Qfullscreen);
+
+	frame_size_history_add
+	  (f, Qx_set_fullscreen, 0, 0, list2 (old_value, fullscreen));
+
+	store_frame_param (f, Qfullscreen, fullscreen);
+	if (!EQ (fullscreen, old_value))
+	  x_set_fullscreen (f, fullscreen, old_value);
+      }
+
+
 #ifdef HAVE_X_WINDOWS
     if ((!NILP (icon_left) || !NILP (icon_top))
 	&& ! (icon_left_no_change && icon_top_no_change))
@@ -4834,11 +4883,33 @@ syms_of_frame (void)
   DEFSYM (Qtool_bar_external, "tool-bar-external");
   DEFSYM (Qtool_bar_size, "tool-bar-size");
   DEFSYM (Qframe_inner_size, "frame-inner-size");
+  /* The following are used for frame_size_history.  */
+  DEFSYM (Qadjust_frame_size_1, "adjust-frame-size-1");
+  DEFSYM (Qadjust_frame_size_2, "adjust-frame-size-2");
+  DEFSYM (Qadjust_frame_size_3, "adjust-frame-size-3");
+  DEFSYM (QEmacsFrameResize, "EmacsFrameResize");
+  DEFSYM (Qframe_inhibit_resize, "frame-inhibit-resize");
+  DEFSYM (Qx_set_fullscreen, "x-set-fullscreen");
+  DEFSYM (Qx_check_fullscreen, "x-check-fullscreen");
+  DEFSYM (Qx_set_window_size_1, "x-set-window-size-1");
+  DEFSYM (Qxg_frame_resized, "xg-frame-resized");
+  DEFSYM (Qxg_frame_set_char_size_1, "xg-frame-set-char-size-1");
+  DEFSYM (Qxg_frame_set_char_size_2, "xg-frame-set-char-size-2");
+  DEFSYM (Qxg_frame_set_char_size_3, "xg-frame-set-char-size-3");
+  DEFSYM (Qxg_change_toolbar_position, "xg-change-toolbar-position");
+  DEFSYM (Qx_net_wm_state, "x-net-wm-state");
+  DEFSYM (Qx_handle_net_wm_state, "x-handle-net-wm-state");
+  DEFSYM (Qtb_size_cb, "tb-size-cb");
+  DEFSYM (Qupdate_frame_tool_bar, "update-frame-tool-bar");
+  DEFSYM (Qfree_frame_tool_bar, "free-frame-tool-bar");
+
   DEFSYM (Qchange_frame_size, "change-frame-size");
   DEFSYM (Qxg_frame_set_char_size, "xg-frame-set-char-size");
   DEFSYM (Qset_window_configuration, "set-window-configuration");
   DEFSYM (Qx_create_frame_1, "x-create-frame-1");
   DEFSYM (Qx_create_frame_2, "x-create-frame-2");
+  DEFSYM (Qtip_frame, "tip-frame");
+  DEFSYM (Qterminal_frame, "terminal-frame");
 
 #ifdef HAVE_NS
   DEFSYM (Qns_parse_geometry, "ns-parse-geometry");
@@ -5106,9 +5177,22 @@ even if this option is non-nil.  */);
   frame_inhibit_implied_resize = Qt;
 #endif
 
-  DEFVAR_LISP ("frame-adjust-size-history", Vframe_adjust_size_history,
-               doc: /* History of frame size adjustments.  */);
-  Vframe_adjust_size_history = Qnil;
+  DEFVAR_LISP ("frame-size-history", frame_size_history,
+               doc: /* History of frame size adjustments.
+If non-nil, list recording frame size adjustment.  Adjustments are
+recorded only if the first element of this list is a positive number.
+Adding an adjustment decrements that number by one.
+
+The remaining elements are the adjustments.  Each adjustment is a list
+of four elements `frame', `function', `sizes' and `more'.  `frame' is
+the affected frame and `function' the invoking function.  `sizes' is
+usually a list of four elements `old-width', `old-height', `new-width'
+and `new-height' representing the old and new sizes recorded/requested
+by `function'.  `more' is a list with additional information.
+
+The function `frame--size-history' displays the value of this variable
+in a more readable form.  */);
+    frame_size_history = Qnil;
 
   staticpro (&Vframe_list);
 
@@ -5141,7 +5225,7 @@ even if this option is non-nil.  */);
   defsubr (&Sraise_frame);
   defsubr (&Slower_frame);
   defsubr (&Sx_focus_frame);
-  defsubr (&Scan_run_window_configuration_change_hook);
+  defsubr (&Sframe_after_make_frame);
   defsubr (&Sredirect_frame_focus);
   defsubr (&Sframe_focus);
   defsubr (&Sframe_parameters);

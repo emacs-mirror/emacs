@@ -380,6 +380,7 @@ call."
     (define-key map "a-" 'image-decrease-speed)
     (define-key map "a0" 'image-reset-speed)
     (define-key map "ar" 'image-reverse-speed)
+    (define-key map "k" 'image-kill-buffer)
     (define-key map [remap forward-char] 'image-forward-hscroll)
     (define-key map [remap backward-char] 'image-backward-hscroll)
     (define-key map [remap right-char] 'image-forward-hscroll)
@@ -721,6 +722,11 @@ the image by calling `image-mode'."
   (if (image-get-display-property)
       (image-mode-as-text)
     (image-mode)))
+
+(defun image-kill-buffer ()
+  "Kill the current buffer."
+  (interactive)
+  (kill-buffer (current-buffer)))
 
 (defun image-after-revert-hook ()
   (when (image-get-display-property)

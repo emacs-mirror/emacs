@@ -14182,6 +14182,7 @@ from different locations, or with different user agents.
 * Connecting to an IMAP Server::     Getting started with @acronym{IMAP}.
 * Customizing the IMAP Connection::  Variables for @acronym{IMAP} connection.
 * Client-Side IMAP Splitting::       Put mail in the correct mail box.
+* Support for IMAP Extensions::      Getting extensions and labels from servers.
 @end menu
 
 
@@ -14326,6 +14327,29 @@ Here's a complete example @code{nnimap} backend with a client-side
             (to "foo@@bar.com" "foo")
             "undecided")))
 @end example
+
+
+@node Support for IMAP Extensions
+@subsection Support for IMAP Extensions
+
+@cindex Gmail
+@cindex X-GM-LABELS
+@cindex IMAP labels
+
+If you're using Google's Gmail, you may want to see your Gmail labels
+when reading your mail.  Gnus can give you this information if you ask
+for @samp{X-GM-LABELS} in the variable @code{gnus-extra-headers}. For
+example:
+
+@example
+(setq gnus-extra-headers
+      '(To Newsgroups X-GM-LABELS))
+@end example
+
+This will result in Gnus storing your labels in message header
+structures for later use.  The content is always a parenthesized
+(possible empty) list.
+
 
 
 @node Getting Mail

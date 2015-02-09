@@ -288,16 +288,17 @@ It creates an autoload function for CNAME's constructor."
 
 (defun eieio-make-class-predicate (class)
   (lambda (obj)
-    ;; (:docstring (format "Test OBJ to see if it's an object of type %S."
-    ;;                     class))
+    (:documentation
+     (format "Return non-nil if OBJ is an object of type `%S'.\n\n(fn OBJ)"
+             class))
     (and (eieio-object-p obj)
          (same-class-p obj class))))
 
 (defun eieio-make-child-predicate (class)
   (lambda (obj)
-    ;; (:docstring (format
-    ;;              "Test OBJ to see if it's an object is a child of type %S."
-    ;;              class))
+    (:documentation
+     (format "Return non-nil if OBJ is an object of type `%S' or a subclass.
+\n(fn OBJ)" class))
     (and (eieio-object-p obj)
          (object-of-class-p obj class))))
 
@@ -312,8 +313,7 @@ See `defclass' for more information."
   (run-hooks 'eieio-hook)
   (setq eieio-hook nil)
 
-  (let* ((pname superclasses)
-	 (oldc (let ((c (eieio--class-v cname))) (if (eieio--class-p c) c)))
+  (let* ((oldc (let ((c (eieio--class-v cname))) (if (eieio--class-p c) c)))
 	 (newc (if (and oldc (not (eieio--class-default-object-cache oldc)))
                    ;; The oldc class is a stub setup by eieio-defclass-autoload.
                    ;; Reuse it instead of creating a new one, so that existing
@@ -338,9 +338,9 @@ See `defclass' for more information."
           (setf (eieio--class-children newc) children)
 	  (remhash cname eieio-defclass-autoload-map))))
 
-    (if pname
+    (if superclasses
 	(progn
-	  (dolist (p pname)
+	  (dolist (p superclasses)
 	    (if (not (and p (symbolp p)))
 		(error "Invalid parent class %S" p)
               (let ((c (eieio--class-v p)))
@@ -396,7 +396,7 @@ See `defclass' for more information."
 
     ;; Before adding new slots, let's add all the methods and classes
     ;; in from the parent class.
-    (eieio-copy-parents-into-subclass newc superclasses)
+    (eieio-copy-parents-into-subclass newc)
 
     ;; Store the new class vector definition into the symbol.  We need to
     ;; do this first so that we can call defmethod for the accessor.
@@ -784,7 +784,7 @@ if default value is nil."
 	))
     ))
 
-(defun eieio-copy-parents-into-subclass (newc _parents)
+(defun eieio-copy-parents-into-subclass (newc)
   "Copy into NEWC the slots of PARENTS.
 Follow the rules of not overwriting early parents when applying to
 the new child class."
@@ -911,7 +911,7 @@ Argument FN is the function calling this verifier."
                          (if (eieio--class-p c) (eieio-class-un-autoload obj))
                          c))
                       (t (eieio--object-class-object obj))))
-	 (c (eieio--slot-name-index class obj slot)))
+	 (c (eieio--slot-name-index class slot)))
     (if (not c)
 	;; It might be missing because it is a :class allocated slot.
 	;; Let's check that info out.
@@ -935,7 +935,7 @@ Fills in OBJ's SLOT with its default value."
   (cl-check-type slot symbol)
   (let* ((cl (cond ((symbolp obj) (eieio--class-v obj))
                    (t (eieio--object-class-object obj))))
-	 (c (eieio--slot-name-index cl obj slot)))
+	 (c (eieio--slot-name-index cl slot)))
     (if (not c)
 	;; It might be missing because it is a :class allocated slot.
 	;; Let's check that info out.
@@ -973,7 +973,7 @@ Fills in OBJ's SLOT with VALUE."
   (cl-check-type obj eieio-object)
   (cl-check-type slot symbol)
   (let* ((class (eieio--object-class-object obj))
-         (c (eieio--slot-name-index class obj slot)))
+         (c (eieio--slot-name-index class slot)))
     (if (not c)
 	;; It might be missing because it is a :class allocated slot.
 	;; Let's check that info out.
@@ -997,7 +997,7 @@ Fills in the default value in CLASS' in SLOT with VALUE."
   (setq class (eieio--class-object class))
   (cl-check-type class eieio--class)
   (cl-check-type slot symbol)
-  (let* ((c (eieio--slot-name-index class nil slot)))
+  (let* ((c (eieio--slot-name-index class slot)))
     (if (not c)
         ;; It might be missing because it is a :class allocated slot.
         ;; Let's check that info out.
@@ -1021,12 +1021,9 @@ Fills in the default value in CLASS' in SLOT with VALUE."
 
 ;;; EIEIO internal search functions
 ;;
-(defun eieio--slot-name-index (class obj slot)
-  "In CLASS for OBJ find the index of the named SLOT.
-The slot is a symbol which is installed in CLASS by the `defclass'
-call.  OBJ can be nil, but if it is an object, and the slot in question
-is protected, access will be allowed if OBJ is a child of the currently
-scoped class.
+(defun eieio--slot-name-index (class slot)
+  "In CLASS find the index of the named SLOT.
+The slot is a symbol which is installed in CLASS by the `defclass' call.
 If SLOT is the value created with :initarg instead,
 reverse-lookup that name, and recurse with the associated slot value."
   ;; Removed checks to outside this call
@@ -1035,7 +1032,7 @@ reverse-lookup that name, and recurse with the associated slot value."
     (if (integerp fsi)
         (+ (eval-when-compile eieio--object-num-slots) fsi)
       (let ((fn (eieio--initarg-to-attribute class slot)))
-	(if fn (eieio--slot-name-index class obj fn) nil)))))
+	(if fn (eieio--slot-name-index class fn) nil)))))
 
 (defun eieio--class-slot-name-index (class slot)
   "In CLASS find the index of the named SLOT.
@@ -1255,7 +1252,7 @@ method invocation orders of the involved classes."
             (eieio--class-precedence-list tag))))
 
 
-;;;### (autoloads nil "eieio-compat" "eieio-compat.el" "b568ffb3c90ed5d0ae673f0051d608ee")
+;;;### (autoloads nil "eieio-compat" "eieio-compat.el" "5b04c9a8fff2bd3f3d3ac54aba0f65b7")
 ;;; Generated autoloads from eieio-compat.el
 
 (autoload 'eieio--defalias "eieio-compat" "\

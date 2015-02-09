@@ -465,6 +465,16 @@ there (in decreasing order of priority)."
 		(frame-set-background-mode frame-initial-frame))
 	      (face-set-after-frame-default frame-initial-frame)
 	      (setq newparms (delq new-bg newparms)))
+
+	    (when (numberp (car frame-size-history))
+	      (setq frame-size-history
+		    (cons (1- (car frame-size-history))
+			  (cons
+			   (list frame-initial-frame
+				 "frame-notice-user-settings"
+				 nil newparms)
+			   (cdr frame-size-history)))))
+
 	    (modify-frame-parameters frame-initial-frame newparms)))))
 
     ;; Restore the original buffer.
@@ -686,7 +696,7 @@ the new frame according to its own rules."
     ;; Now make the frame.
     (run-hooks 'before-make-frame-hook)
 
-;;     (setq frame-adjust-size-history '(t))
+;;     (setq frame-size-history '(1000))
 
     (setq frame
           (funcall (gui-method frame-creation-function w) params))
@@ -697,11 +707,14 @@ the new frame according to its own rules."
         (let ((val (frame-parameter oldframe param)))
           (when val (set-frame-parameter frame param val)))))
 
-    (when (eq (car frame-adjust-size-history) t)
-      (setq frame-adjust-size-history
-	    (cons t (cons (list "Frame made")
-			  (cdr frame-adjust-size-history)))))
+    (when (numberp (car frame-size-history))
+      (setq frame-size-history
+	    (cons (1- (car frame-size-history))
+		  (cons (list frame "make-frame")
+			(cdr frame-size-history)))))
 
+    ;; We can run `window-configuration-change-hook' for this frame now.
+    (frame-after-make-frame frame t)
     (run-hook-with-args 'after-make-frame-functions frame)
     frame))
 

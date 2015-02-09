@@ -415,7 +415,6 @@ Typically \"page-%s.png\".")
     (define-key map "H"               'doc-view-fit-height-to-window)
     (define-key map "P"               'doc-view-fit-page-to-window)
     ;; Killing the buffer (and the process)
-    (define-key map (kbd "k")         'doc-view-kill-proc-and-buffer)
     (define-key map (kbd "K")         'doc-view-kill-proc)
     ;; Slicing the image
     (define-key map (kbd "s s")       'doc-view-set-slice)
@@ -645,12 +644,8 @@ at the top edge of the page moves to the previous page."
     (setq doc-view--current-timer nil))
   (setq mode-line-process nil))
 
-(defun doc-view-kill-proc-and-buffer ()
-  "Kill the current converter process and buffer."
-  (interactive)
-  (doc-view-kill-proc)
-  (when (eq major-mode 'doc-view-mode)
-    (kill-buffer (current-buffer))))
+(define-obsolete-function-alias 'doc-view-kill-proc-and-buffer
+  #'image-kill-buffer "25.1")
 
 (defun doc-view-make-safe-dir (dir)
   (condition-case nil
@@ -1685,6 +1680,9 @@ If BACKWARD is non-nil, jump to the previous match."
 ;; desktop.el integration
 
 (defun doc-view-desktop-save-buffer (_desktop-dirname)
+  ;; FIXME: This is wrong, since this info is per-window but we only do it once
+  ;; here for the buffer.  IOW it should be saved via something like
+  ;; `window-persistent-parameters'.
   `((page . ,(doc-view-current-page))
     (slice . ,(doc-view-current-slice))))
 
@@ -1695,8 +1693,13 @@ If BACKWARD is non-nil, jump to the previous match."
   (let ((page  (cdr (assq 'page misc)))
 	(slice (cdr (assq 'slice misc))))
     (desktop-restore-file-buffer file name misc)
+    ;; FIXME: We need to run this code after displaying the buffer.
     (with-selected-window (or (get-buffer-window (current-buffer) 0)
 			      (selected-window))
+      ;; FIXME: This should be done for all windows restored that show
+      ;; this buffer.  Basically, the page/slice should be saved as
+      ;; window-parameters in the window-state(s) and then restoring this
+      ;; window-state should call us back (to interpret/use those parameters).
       (doc-view-goto-page page)
       (when slice (apply 'doc-view-set-slice slice)))))
 

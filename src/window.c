@@ -3332,7 +3332,7 @@ run_window_configuration_change_hook (struct frame *f)
 
   if (NILP (Vrun_hooks)
       || !(f->can_x_set_window_size)
-      || !(f->can_run_window_configuration_change_hook))
+      || !(f->after_make_frame))
     return;
 
   /* Use the right buffer.  Matters when running the local hooks.  */

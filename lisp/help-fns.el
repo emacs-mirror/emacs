@@ -930,6 +930,37 @@ file-local variable.\n")
 
 
 ;;;###autoload
+(defun describe-function-or-variable (symbol &optional buffer frame)
+  "Display the full documentation of the function or variable SYMBOL.
+If SYMBOL is a variable and has a buffer-local value in BUFFER or FRAME
+\(default to the current buffer and current frame), it is displayed along
+with the global value."
+  (interactive
+   (let* ((v-or-f (variable-at-point))
+          (found (symbolp v-or-f))
+          (v-or-f (if found v-or-f (function-called-at-point)))
+          (found (or found v-or-f))
+          (enable-recursive-minibuffers t)
+          val)
+     (setq val (completing-read (if found
+				    (format
+                                        "Describe function or variable (default %s): " v-or-f)
+				  "Describe function or variable: ")
+				obarray
+				(lambda (vv)
+				  (or (fboundp vv)
+				      (get vv 'variable-documentation)
+				      (and (boundp vv) (not (keywordp vv)))))
+				t nil nil
+				(if found (symbol-name v-or-f))))
+     (list (if (equal val "")
+	       v-or-f (intern val)))))
+  (if (not (symbolp symbol)) (message "You didn't specify a function or variable")
+    (unless (buffer-live-p buffer) (setq buffer (current-buffer)))
+    (unless (frame-live-p frame) (setq frame (selected-frame)))
+    (help-xref-interned symbol buffer frame)))
+
+;;;###autoload
 (defun describe-syntax (&optional buffer)
   "Describe the syntax specifications in the syntax table of BUFFER.
 The descriptions are inserted in a help buffer, which is then displayed.

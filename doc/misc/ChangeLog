@@ -1,3 +1,20 @@
+2015-02-05  Glenn Morris  <rgm@gnu.org>
+
+	* auth.texi (Multiple GMail accounts with Gnus): Markup fix.
+
+2015-02-05  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth.texi (Multiple GMail accounts with Gnus): Add FAQ.
+
+2015-02-05  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Using IMAP): Fix menu node name.
+
+2015-02-05  Trevor Murphy  <trevor.m.murphy@gmail.com>
+
+	* gnus.texi (Support for IMAP Extensions): Document the Gmail label
+	extension.
+
 2015-02-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* texinfo.tex: Update from gnulib.

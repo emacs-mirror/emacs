@@ -1,3 +1,8 @@
+2015-02-08  Ulrich Müller  <ulm@gentoo.org>
+
+	* configure.ac (--with-gameuser): Default to 'games' group instead
+	of 'games' user.
+
 2015-02-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* .gitattributes: Ignore blanks at EOL in texinfo.tex.

@@ -621,10 +621,13 @@ See `help-make-xrefs'."
 
 
 ;; Additional functions for (re-)creating types of help buffers.
-(defun help-xref-interned (symbol)
+
+;;;###autoload
+(defun help-xref-interned (symbol &optional buffer frame)
   "Follow a hyperlink which appeared to be an arbitrary interned SYMBOL.
 Both variable, function and face documentation are extracted into a single
-help buffer."
+help buffer. If SYMBOL is a variable, include buffer-local value for optional
+BUFFER or FRAME."
   (with-current-buffer (help-buffer)
     ;; Push the previous item on the stack before clobbering the output buffer.
     (help-setup-xref nil nil)
@@ -640,7 +643,7 @@ help buffer."
 			  (get symbol 'variable-documentation))
 		  ;; Don't record the current entry in the stack.
 		  (setq help-xref-stack-item nil)
-		  (describe-variable symbol))))
+		  (describe-variable symbol buffer frame))))
       (cond
        (sdoc
 	;; We now have a help buffer on the variable.

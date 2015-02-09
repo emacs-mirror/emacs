@@ -330,18 +330,20 @@ For backends which dont support it, `vc-not-supported' is signalled."
 	    (vc-working-revision default-directory backend) '("0" "master")))
 
 	  (let ((tmp-name (expand-file-name "foo" default-directory)))
-	    ;; Check for initial state.
-	    (should
-	     (member (vc-working-revision tmp-name backend) '("0" "master")))
+	    ;; Check for initial state, should be nil until it's registered.
+            ;; Don't pass the backend explictly, otherwise some implementations
+            ;; return non-nil.
+	    (should (null (vc-working-revision tmp-name)))
 
-	    ;; Write a new file.  Check for state.
+	    ;; Write a new file.  Check state.
 	    (write-region "foo" nil tmp-name nil 'nomessage)
-	    (should
-	     (member (vc-working-revision tmp-name backend) '("0" "master")))
+	    (should (null (vc-working-revision tmp-name)))
 
 	    ;; Register a file.  Check for state.
 	    (vc-register
 	     (list backend (list (file-name-nondirectory tmp-name))))
+            ;; FIXME: Don't pass the backend.  Emacs should be able to
+            ;; figure it out.
 	    (should
 	     (member (vc-working-revision tmp-name backend) '("0" "master")))
 

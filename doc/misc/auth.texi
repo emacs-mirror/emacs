@@ -59,6 +59,7 @@ It is a way for multiple applications to share a single configuration
 @menu
 * Overview::                    Overview of the auth-source library.
 * Help for users::
+* Multiple GMail accounts with Gnus::
 * Secret Service API::
 * Help for developers::
 * GnuPG and EasyPG Assistant Configuration::
@@ -228,6 +229,27 @@ Note that the port denotes the Tramp connection method.  When you
 don't use a port entry, you match any Tramp method, as explained
 earlier.  Since Tramp has about 88 connection methods, this may be
 necessary if you have an unusual (see earlier comment on those) setup.
+
+@node Multiple GMail accounts with Gnus
+@chapter Multiple GMail accounts with Gnus
+
+For multiple GMail accounts with Gnus, you have to make two nnimap
+entries in your @code{gnus-secondary-select-methods} with distinct
+names:
+
+@example
+(setq gnus-secondary-select-methods '((nnimap "gmail"
+                                         (nnimap-address "imap.gmail.com"))
+                                      (nnimap "gmail2"
+                                         (nnimap-address "imap.gmail.com"))))
+@end example
+
+Your netrc entries will then be:
+
+@example
+machine gmail login account@@gmail.com password "accountpassword" port imap
+machine gmail2 login account2@@gmail.com password "account2password" port imap
+@end example
 
 @node Secret Service API
 @chapter Secret Service API

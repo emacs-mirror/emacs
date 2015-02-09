@@ -1880,7 +1880,7 @@ displayed in a given window.  This function is used by
 @code{fit-frame-to-buffer} (@pxref{Size and Position}) to make a window
 exactly as large as the text it contains.
 
-@defun window-text-pixel-size &optional window from to x-limit y-limit mode-and-header-line buffer
+@defun window-text-pixel-size &optional window from to x-limit y-limit mode-and-header-line
 This function returns the size of the text of @var{window}'s buffer in
 pixels.  @var{window} must be a live window and defaults to the selected
 one.  The return value is a cons of the maximum pixel-width of any text
@@ -1919,13 +1919,6 @@ means to not include the height of the mode- or header-line of
 @code{mode-line} or @code{header-line}, include only the height of that
 line, if present, in the return value.  If it is @code{t}, include the
 height of both, if present, in the return value.
-
-The optional argument @var{buffer} allows to specify an alternate buffer
-whose text size will be calculated.  If @var{buffer} is @code{nil} or
-omitted, then operate on the buffer of @var{window}.  If it is @code{t},
-then operate on the current buffer as if it were displayed in
-@var{window}.  If it specifies a live buffer, then operate on that
-buffer as if it were displayed in @var{window}.
 @end defun
 
 
