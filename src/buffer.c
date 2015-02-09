@@ -43,8 +43,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "frame.h"
 
 #ifdef HAVE_XWIDGETS
-#include "xwidget.h"
-#endif  /* HAVE_XWIDGETS */
+# include "xwidget.h"
+#endif
 #ifdef WINDOWSNT
 #include "w32heap.h"		/* for mmap_* */
 #endif
@@ -1762,7 +1762,7 @@ cleaning up all windows currently displaying the buffer to be killed. */)
   GCPRO1 (buffer);
   kill_buffer_xwidgets (buffer);
   UNGCPRO;
-#endif  /* HAVE_XWIDGETS */
+#endif
   /* Killing buffer processes may run sentinels which may have killed
      our buffer.  */
   if (!BUFFER_LIVE_P (b))

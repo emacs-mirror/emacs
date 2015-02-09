@@ -24,7 +24,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "frame.h"
 #include "xterm.h"
 #ifdef HAVE_XWIDGETS
-#include "xwidget.h"
+# include "xwidget.h"
 #endif
 #include "emacsgtkfixed.h"
 

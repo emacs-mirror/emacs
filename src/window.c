@@ -45,7 +45,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "msdos.h"
 #endif
 #ifdef HAVE_XWIDGETS
-#include "xwidget.h"
+# include "xwidget.h"
 #endif
 
 static int displayed_window_lines (struct window *);

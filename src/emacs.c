@@ -66,7 +66,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "window.h"
 
 #ifdef HAVE_XWIDGETS
-#include "xwidget.h"
+# include "xwidget.h"
 #endif
 #include "systty.h"
 #include "atimer.h"

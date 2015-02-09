@@ -49,7 +49,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif /* HAVE_WINDOW_SYSTEM */
 
 #ifdef HAVE_XWIDGETS
-#include "xwidget.h"
+# include "xwidget.h"
 #endif
 
 #include <errno.h>

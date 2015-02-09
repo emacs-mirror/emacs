@@ -319,7 +319,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif /* HAVE_WINDOW_SYSTEM */
 
 #ifdef HAVE_XWIDGETS
-#include "xwidget.h"
+# include "xwidget.h"
 #endif
 #ifndef FRAME_X_OUTPUT
 #define FRAME_X_OUTPUT(f) ((f)->output_data.x)
@@ -846,7 +846,7 @@ static int next_element_from_buffer (struct it *);
 static int next_element_from_composition (struct it *);
 static int next_element_from_image (struct it *);
 #ifdef HAVE_XWIDGETS
-static int next_element_from_xwidget(struct it *);
+ static int next_element_from_xwidget(struct it *);
 #endif
 static int next_element_from_stretch (struct it *);
 static void load_overlay_strings (struct it *, ptrdiff_t);
@@ -17054,13 +17054,6 @@ try_window_reusing_current_matrix (struct window *w)
   if (inhibit_try_window_reusing)
     return 0;
 #endif
-
-#ifdef HAVE_XWIDGETS_xxx
- //currently this is needed to detect xwidget movement reliably. or probably not.
-  printf("try_window_reusing_current_matrix\n");
-    return 0;
-#endif
-
 
   if (/* This function doesn't handle terminal frames.  */
       !FRAME_WINDOW_P (f)
