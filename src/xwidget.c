@@ -93,7 +93,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <gdk/gdk.h>
 
 #include <gtk/gtkx.h>
-#include <gtk/gtkscrolledwindow.h>
+
 #include "emacsgtkfixed.h"
 
 #include <wchar.h>
