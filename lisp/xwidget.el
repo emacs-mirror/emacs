@@ -27,7 +27,8 @@ HEIGHT in the current buffer.
 
 Return ID
 
-see `make-xwidget' for types suitable for TYPE."
+see `make-xwidget' for types suitable for TYPE.
+Optional argument ARGS usage depends on the xwidget."
   (goto-char pos)
   (let ((id (make-xwidget (point) (point)
                           type title width height args)))
@@ -235,6 +236,7 @@ XWIDGET instance, XWIDGET-EVENT-TYPE depends on the originating xwidget."
   (image-mode-setup-winprops))
 
 (defun xwidget-webkit-bookmark-make-record ()
+"Integrate Emacs bookmarks with the webkit xwidget."
   (nconc (bookmark-make-record-default t t)
          `((page     . ,(xwidget-webkit-current-url))
            (handler  . (lambda (bmk) (browse-url   (bookmark-prop-get bmk 'page)))))))
@@ -338,7 +340,9 @@ XW is the xwidget identifier, TEXT is retrieved from the webkit."
   )
 
 (defun xwidget-webkit-show-named-element (xw element-name)
-  "Make named-element show. for instance an anchor."
+  "Make named-element show.  for instance an anchor.
+Argument XW is the xwidget.
+Argument ELEMENT-NAME is the element name to display in the webkit xwidget."
   (interactive (list (xwidget-webkit-current-session) (read-string "element name:")))
   ;;TODO
   ;; since an xwidget is an Emacs object, it is not trivial to do some things that are taken for granted in a normal browser.
@@ -359,7 +363,9 @@ XW is the xwidget identifier, TEXT is retrieved from the webkit."
     (set-window-vscroll (selected-window) y t)))
 
 (defun xwidget-webkit-show-id-element (xw element-id)
-  "make id-element show. for instance an anchor."
+  "Make id-element show.  for instance an anchor.
+Argument XW is the webkit xwidget.
+Argument ELEMENT-ID is the id of the element to show."
   (interactive (list (xwidget-webkit-current-session)
                      (read-string "element id:")))
   (let ((y (string-to-number
@@ -371,7 +377,9 @@ XW is the xwidget identifier, TEXT is retrieved from the webkit."
     (set-window-vscroll (selected-window) y t)))
 
 (defun xwidget-webkit-show-id-or-named-element (xw element-id)
-  "make id-element show. for instance an anchor."
+  "Make id-element show.  for instance an anchor.
+Argument XW is the webkit xwidget.
+Argument ELEMENT-ID is either a name or an element id."
   (interactive (list (xwidget-webkit-current-session)
                      (read-string "element id:")))
   (let* ((y1 (string-to-number
@@ -520,7 +528,7 @@ It can be retrieved with `(xwidget-get XWIDGET PROPNAME)'."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun xwidget-delete-zombies ()
-  "Helper for xwidget-cleanup."
+  "Helper for `xwidget-cleanup'."
   (dolist (xwidget-view xwidget-view-list)
     (when (or (not (window-live-p (xwidget-view-window xwidget-view)))
               (not (memq (xwidget-view-model xwidget-view)
