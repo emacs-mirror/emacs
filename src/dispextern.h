@@ -504,7 +504,7 @@ struct glyph
     int img_id;
 
 #ifdef HAVE_XWIDGETS
-    struct xwidget* xwidget;
+    struct xwidget *xwidget;
 #endif
     /* Sub-structure for type == STRETCH_GLYPH.  */
     struct
@@ -1358,7 +1358,7 @@ struct glyph_string
   struct image *img;
 
 #ifdef HAVE_XWIDGETS
-  struct xwidget* xwidget;
+  struct xwidget *xwidget;
 #endif
   /* Slice */
   struct glyph_slice slice;
@@ -2526,9 +2526,10 @@ struct it
   ptrdiff_t image_id;
 
 #ifdef HAVE_XWIDGETS
-  /* If what == IT_XWIDGET*/
-  struct xwidget* xwidget;
+  /* If what == IT_XWIDGET.  */
+  struct xwidget *xwidget;
 #endif
+
   /* Values from `slice' property.  */
   struct it_slice slice;
 

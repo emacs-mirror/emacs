@@ -34,17 +34,17 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <X11/cursorfont.h>
 
 #ifndef makedev
-#include <sys/types.h>
-#endif /* makedev */
+# include <sys/types.h>
+#endif
 
 #ifdef BSD_SYSTEM
-#include <sys/ioctl.h>
-#endif /* ! defined (BSD_SYSTEM) */
+# include <sys/ioctl.h>
+#endif
 
 #include "systime.h"
 
 #ifndef INCLUDED_FCNTL
-#include <fcntl.h>
+# include <fcntl.h>
 #endif
 #include <ctype.h>
 #include <errno.h>
@@ -61,7 +61,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "termhooks.h"
 #include "termopts.h"
 #include "termchar.h"
-//#include "emacs-icon.h"
 #include "disptab.h"
 #include "buffer.h"
 #include "window.h"
@@ -343,28 +342,27 @@ xwidget_show_view (struct xwidget_view *xv)
 }
 
 
-/* hide an xvidget view */
+/* Hide an xvidget view.  */
 static void
 xwidget_hide_view (struct xwidget_view *xv)
 {
   xv->hidden = 1;
-  //gtk_widget_hide(xw->widgetwindow);
   gtk_fixed_move (GTK_FIXED (xv->emacswindow), xv->widgetwindow,
                   10000, 10000);
 }
 
 
 
-/* when the off-screen webkit master view changes this signal is called.
-   it copies the bitmap from the off-screen instance */
+/* When the off-screen webkit master view changes this signal is called.
+   It copies the bitmap from the off-screen instance.  */
 gboolean
 offscreen_damage_event (GtkWidget * widget, GdkEvent * event,
                         gpointer xv_widget)
 {
-  // Queue a redraw of onscreen widget
+  // Queue a redraw of onscreen widget.
   // There is a guard against receiving an invalid widget,
   // which should only happen if we failed to remove the
-  // the specific signal handler for the damage event
+  // specific signal handler for the damage event.
   if (GTK_IS_WIDGET (xv_widget))
     gtk_widget_queue_draw (GTK_WIDGET (xv_widget));
   else
@@ -378,18 +376,17 @@ static void
 store_xwidget_event_string (struct xwidget *xw, const char *eventname,
                             const char *eventstr)
 {
-  //refactor attempt
   struct input_event event;
   Lisp_Object xwl;
   XSETXWIDGET (xwl, xw);
   EVENT_INIT (event);
   event.kind = XWIDGET_EVENT;
-  event.frame_or_window = Qnil;	//frame;
+  event.frame_or_window = Qnil;
 
   event.arg = Qnil;
   event.arg = Fcons (build_string (eventstr), event.arg);
-  event.arg = Fcons (xwl, event.arg);	//TODO
-  event.arg = Fcons (intern (eventname), event.arg);	//interning should be ok
+  event.arg = Fcons (xwl, event.arg);
+  event.arg = Fcons (intern (eventname), event.arg);
   kbd_buffer_store_event (&event);
 
 }
@@ -429,10 +426,9 @@ webkit_mime_type_policy_typedecision_requested_cb (WebKitWebView *webView,
                                                    WebKitWebPolicyDecision *policy_decision,
                                                    gpointer user_data)
 {
-  printf ("mime policy requested\n");
-  // this function makes webkit send a download signal for all unknown
-  // mime types TODO defer the decision to lisp, so that its possible
-  // to make Emacs handle text mime for instance
+  // This function makes webkit send a download signal for all unknown
+  // mime types. TODO Defer the decision to lisp, so that its possible
+  // to make Emacs handle teext mime for instance.xs
   if (!webkit_web_view_can_show_mime_type (webView, mimetype))
     {
       webkit_web_policy_decision_download (policy_decision);
@@ -446,22 +442,16 @@ webkit_mime_type_policy_typedecision_requested_cb (WebKitWebView *webView,
 
 
 gboolean
-webkit_new_window_policy_decision_requested_cb (WebKitWebView *
-                                                          webView,
-                                                          WebKitWebFrame *
-                                                          frame,
-                                                          WebKitNetworkRequest
-                                                          * request,
-                                                          WebKitWebNavigationAction
-                                                          * navigation_action,
-                                                          WebKitWebPolicyDecision
-                                                          * policy_decision,
-                                                          gpointer user_data)
+webkit_new_window_policy_decision_requested_cb (WebKitWebView *webView,
+                                                WebKitWebFrame *frame,
+                                                WebKitNetworkRequest *request,
+                                                WebKitWebNavigationAction *navigation_action,
+                                                WebKitWebPolicyDecision *policy_decision,
+                                                gpointer user_data)
 {
   struct xwidget *xw =
     (struct xwidget *) g_object_get_data (G_OBJECT (webView), XG_XWIDGET);
-  printf ("webkit_new_window_policy_decision_requested_cb %s\n",
-          webkit_web_navigation_action_get_original_uri (navigation_action));
+  webkit_web_navigation_action_get_original_uri (navigation_action);
 
   store_xwidget_event_string (xw, "new-window-policy-decision-requested",
                               webkit_web_navigation_action_get_original_uri
@@ -470,17 +460,12 @@ webkit_new_window_policy_decision_requested_cb (WebKitWebView *
 }
 
 gboolean
-webkit_navigation_policy_decision_requested_cb (WebKitWebView *
-                                                          webView,
-                                                          WebKitWebFrame *
-                                                          frame,
-                                                          WebKitNetworkRequest
-                                                          * request,
-                                                          WebKitWebNavigationAction
-                                                          * navigation_action,
-                                                          WebKitWebPolicyDecision
-                                                          * policy_decision,
-                                                          gpointer user_data)
+webkit_navigation_policy_decision_requested_cb (WebKitWebView *webView,
+                                                WebKitWebFrame *frame,
+                                                WebKitNetworkRequest *request,
+                                                WebKitWebNavigationAction *navigation_action,
+                                                WebKitWebPolicyDecision * policy_decision,
+                                                gpointer user_data)
 {
   struct xwidget *xw =
     (struct xwidget *) g_object_get_data (G_OBJECT (webView), XG_XWIDGET);
@@ -490,7 +475,7 @@ webkit_navigation_policy_decision_requested_cb (WebKitWebView *
   return FALSE;
 }
 
-//for gtk3 offscreen rendered widgets
+// For gtk3 offscreen rendered widgets.
 static gboolean
 xwidget_osr_draw_cb (GtkWidget * widget, cairo_t * cr, gpointer data)
 {
@@ -500,7 +485,7 @@ xwidget_osr_draw_cb (GtkWidget * widget, cairo_t * cr, gpointer data)
     (struct xwidget_view *) g_object_get_data (G_OBJECT (widget),
                                                XG_XWIDGET_VIEW);
 
-  cairo_rectangle (cr, 0, 0, xv->clip_right, xv->clip_bottom);	//xw->width, xw->height);
+  cairo_rectangle (cr, 0, 0, xv->clip_right, xv->clip_bottom);
   cairo_clip (cr);
 
   if (xw->widgetscrolledwindow_osr != NULL)
@@ -515,13 +500,13 @@ xwidget_osr_event_forward (GtkWidget * widget,
                            GdkEvent * event,
                            gpointer user_data)
 {
-  /* copy events that arrive at the outer widget to the offscreen widget */
+  /* Copy events that arrive at the outer widget to the offscreen widget. */
   struct xwidget *xw =
     (struct xwidget *) g_object_get_data (G_OBJECT (widget), XG_XWIDGET);
   GdkEvent *eventcopy = gdk_event_copy (event);
-  eventcopy->any.window = gtk_widget_get_window (xw->widget_osr);	// works
+  eventcopy->any.window = gtk_widget_get_window (xw->widget_osr);
 
-  //TODO this might leak events. they should be deallocated later,
+  //TODO This might leak events. They should be deallocated later,
   //perhaps in xwgir_event_cb
   gtk_main_do_event (eventcopy);
   return TRUE;			//dont propagate this event furter
@@ -541,7 +526,7 @@ xwidget_osr_event_set_embedder (GtkWidget * widget,
 }
 
 
-/* Initializes and does initial placement of an xwidget view on screen */
+/* Initializes and does initial placement of an xwidget view on screen. */
 static struct xwidget_view *
 xwidget_init_view (struct xwidget *xww,
                    struct glyph_string *s,
@@ -559,7 +544,8 @@ xwidget_init_view (struct xwidget *xww,
   if (EQ (xww->type, Qwebkit_osr))
     {
       xv->widget = gtk_drawing_area_new ();
-      gtk_widget_set_app_paintable (xv->widget, TRUE);	//because expose event handling
+      // Expose event handling.
+      gtk_widget_set_app_paintable (xv->widget, TRUE);
       gtk_widget_add_events (xv->widget, GDK_ALL_EVENTS_MASK);
 
       /* Draw the view on damage-event */
@@ -568,7 +554,6 @@ xwidget_init_view (struct xwidget *xww,
 
       if (EQ (xww->type, Qwebkit_osr))
         {
-          /* //forward events. this isnt compatible with the set_embedded strategy */
           g_signal_connect (G_OBJECT (xv->widget), "button-press-event",
                             G_CALLBACK (xwidget_osr_event_forward), NULL);
           g_signal_connect (G_OBJECT (xv->widget), "button-release-event",
@@ -578,36 +563,37 @@ xwidget_init_view (struct xwidget *xww,
         }
       else
         {
-          //xwgir debug , orthogonal to forwarding
+          // xwgir debug , orthogonal to forwarding
           g_signal_connect (G_OBJECT (xv->widget), "enter-notify-event",
                             G_CALLBACK (xwidget_osr_event_set_embedder), xv);
         }
-
-      //draw
       g_signal_connect (G_OBJECT (xv->widget), "draw",
                         G_CALLBACK (xwidget_osr_draw_cb), NULL);
-
     }
-  //else return NULL;
+  // Widget realization.
 
-  //widget realization
-
-  //make container widget 1st, and put the actual widget inside the
-  //container later, drawing should crop container window if necessary
-  //to handle case where xwidget is partially obscured by other emacs
-  //windows other containers than gtk_fixed where explored, but
-  //gtk_fixed had the most predictable behaviour so far.
+  // Make container widget 1st, and put the actual widget inside the
+  // container later.  Drawing should crop container window if necessary
+  // to handle case where xwidget is partially obscured by other Emacs
+  // windows.  Other containers than gtk_fixed where explored, but
+  // gtk_fixed had the most predictable behaviour so far.
   xv->emacswindow = FRAME_GTK_WIDGET (s->f);
   xv->widgetwindow = gtk_fixed_new ();
   gtk_widget_set_has_window (xv->widgetwindow, TRUE);
   gtk_container_add (GTK_CONTAINER (xv->widgetwindow), xv->widget);
 
-  //store some xwidget data in the gtk widgets
-  g_object_set_data (G_OBJECT (xv->widget), XG_FRAME_DATA, (gpointer) (s->f));	//the emacs frame
-  g_object_set_data (G_OBJECT (xv->widget), XG_XWIDGET, (gpointer) (xww));	//the xwidget
-  g_object_set_data (G_OBJECT (xv->widget), XG_XWIDGET_VIEW, (gpointer) (xv));	//the xwidget
-  g_object_set_data (G_OBJECT (xv->widgetwindow), XG_XWIDGET, (gpointer) (xww));	//the xwidget window
-  g_object_set_data (G_OBJECT (xv->widgetwindow), XG_XWIDGET_VIEW, (gpointer) (xv));	//the xwidget window
+  // Store some xwidget data in the gtk widgets.
+  // The emacs frame.
+  g_object_set_data (G_OBJECT (xv->widget), XG_FRAME_DATA, (gpointer) (s->f));
+  // The xwidget.
+  g_object_set_data (G_OBJECT (xv->widget), XG_XWIDGET, (gpointer) (xww));
+  // The xwidget.
+  g_object_set_data (G_OBJECT (xv->widget), XG_XWIDGET_VIEW, (gpointer) (xv));
+  // The xwidget window.
+  g_object_set_data (G_OBJECT (xv->widgetwindow), XG_XWIDGET, (gpointer) (xww));
+  // the xwidget view.
+  g_object_set_data (G_OBJECT (xv->widgetwindow), XG_XWIDGET_VIEW,
+                     (gpointer) (xv));
 
 
   gtk_widget_set_size_request (GTK_WIDGET (xv->widget), xww->width,
@@ -626,11 +612,9 @@ xwidget_init_view (struct xwidget *xww,
 void
 x_draw_xwidget_glyph_string (struct glyph_string *s)
 {
-  /*
-     this method is called by the redisplay engine and places the
-     xwidget on screen.  moving and clipping is done here. also view
-     init.
-
+  /* This method is called by the redisplay engine and places the
+     xwidget on screen.  Moving and clipping is done here.  Also view
+     initialization.
    */
   struct xwidget *xww = s->xwidget;
   struct xwidget_view *xv = xwidget_view_lookup (xww, s->w);
@@ -643,14 +627,14 @@ x_draw_xwidget_glyph_string (struct glyph_string *s)
   int y = s->y + (s->height / 2) - (xww->height / 2);
   int moved = 0;
 
-  /* We do it here in the display loop because there is no other
-     time to know things like window placement etc.
+  /* We do initialization here in the display loop because there is no
+     other time to know things like window placement etc.
    */
   xv = xwidget_init_view (xww, s, x, y);
 
-  //calculate clipping, which is used for all manner of onscreen
-  //xwidget views each widget border can get clipped by other emacs
-  //objects so there are four clipping variables
+  // Calculate clipping, which is used for all manner of onscreen
+  // xwidget views.  Each widget border can get clipped by other emacs
+  // objects so there are four clipping variables.
   clip_right =
     min (xww->width,
          WINDOW_RIGHT_EDGE_X (s->w) - x -
@@ -667,32 +651,28 @@ x_draw_xwidget_glyph_string (struct glyph_string *s)
          WINDOW_BOTTOM_EDGE_Y (s->w) - WINDOW_MODE_LINE_HEIGHT (s->w) - y);
   clip_top = max (0, WINDOW_TOP_EDGE_Y (s->w) - y);
 
-  //we are conserned with movement of the onscreen area. the area
-  //might sit still when the widget actually moves this happens when
-  //an emacs window border moves across a widget window so, if any
-  //corner of the outer widget clippng window moves, that counts as
-  //movement here, even if it looks like no movement happens because
-  //the widget sits still inside the clipping area.  the widget can
-  //also move inside the clipping area, which happens later
+  // We are conserned with movement of the onscreen area. The area
+  // might sit still when the widget actually moves.  This happens
+  // when an Emacs window border moves across a widget window. So, if
+  // any corner of the outer widget clipping window moves, that counts
+  // as movement here, even if it looks like no movement happens
+  // because the widget sits still inside the clipping area.  The
+  // widget can also move inside the clipping area, which happens
+  // later
   moved = (xv->x + xv->clip_left != x + clip_left)
     || ((xv->y + xv->clip_top) != (y + clip_top));
   xv->x = x;
   xv->y = y;
-  if (moved)			//has it moved?
+  if (moved) // Has it moved?
     {
-      if (1)
-        //!xwidget_hidden(xv))
-        //hidden equals not being seen during redisplay
-        {
-          //TODO should be possible to use xwidget_show_view here
           gtk_fixed_move (GTK_FIXED (FRAME_GTK_WIDGET (s->f)),
                           xv->widgetwindow, x + clip_left, y + clip_top);
-        }
     }
-  //clip the widget window if some parts happen to be outside drawable
-  //area an emacs window is not a gtk window, a gtk window covers the
-  //entire frame cliping might have changed even if we havent actualy
-  //moved, we try figure out when we need to reclip for real
+  // Clip the widget window if some parts happen to be outside
+  // drawable area. An Emacs window is not a gtk window. A gtk window
+  // covers the entire frame. Clipping might have changed even if we
+  // havent actualy moved, we try figure out when we need to reclip
+  // for real.
   if ((xv->clip_right != clip_right)
       || (xv->clip_bottom != clip_bottom)
       || (xv->clip_top != clip_top) || (xv->clip_left != clip_left))
@@ -707,10 +687,10 @@ x_draw_xwidget_glyph_string (struct glyph_string *s)
       xv->clip_top = clip_top;
       xv->clip_left = clip_left;
     }
-  //if emacs wants to repaint the area where the widget lives, queue a
-  //redraw TODO it seems its possible to get out of sync with emacs
-  //redraws so emacs bg sometimes shows up instead of xwidget its just
-  //a visual glitch though
+  // If emacs wants to repaint the area where the widget lives, queue
+  // a redraw. It seems its possible to get out of sync with emacs
+  // redraws so emacs background sometimes shows up instead of the
+  // xwidgets background. It's just a visual glitch though.
   if (!xwidget_hidden (xv))
     {
       gtk_widget_queue_draw (xv->widgetwindow);
@@ -734,7 +714,7 @@ x_draw_xwidget_glyph_string (struct glyph_string *s)
 
 DEFUN ("xwidget-webkit-goto-uri",
        Fxwidget_webkit_goto_uri, Sxwidget_webkit_goto_uri,
-       2, 2, 0, doc:	/* Make the webkit instance referenced by
+       2, 2, 0, doc:	/* Make the xwidget webkit instance referenced by
                            XWIDGET browse URI. */
        )
   (Lisp_Object xwidget, Lisp_Object uri)
@@ -748,7 +728,7 @@ DEFUN ("xwidget-webkit-goto-uri",
 
 DEFUN ("xwidget-webkit-execute-script",
        Fxwidget_webkit_execute_script, Sxwidget_webkit_execute_script,
-       2, 2, 0, doc:	/* webkit exec js. */
+       2, 2, 0, doc:	/* Make the Webkit XWIDGET execute javascript SCRIPT. */
        )
   (Lisp_Object xwidget, Lisp_Object script)
 {
@@ -766,21 +746,19 @@ XWIDGET.  This can be used to work around the lack of a return value
 from the exec method.  */ )
   (Lisp_Object xwidget)
 {
-  //TODO support multibyte strings
+  // TODO support multibyte strings
   WEBKIT_FN_INIT ();
   const gchar *str =
     webkit_web_view_get_title (WEBKIT_WEB_VIEW (xw->widget_osr));
   if (str == 0)
     {
-      //TODO maybe return Qnil instead. I suppose webkit returns
-      //nullpointer when doc is not properly loaded or something
-      printf ("xwidget-webkit-get-title null webkit title\n");
+      // TODO maybe return Qnil instead. I suppose webkit returns
+      // nullpointer when doc is not properly loaded or something
       return build_string ("");
     }
   return build_string (str);
 }
 
-//TODO missnamed
 DEFUN ("xwidget-disable-plugin-for-mime",
        Fxwidget_disable_plugin_for_mime, Sxwidget_disable_plugin_for_mime,
        1, 1, 0, doc:	/* */ )
@@ -816,16 +794,13 @@ DEFUN ("xwidget-resize", Fxwidget_resize, Sxwidget_resize, 3, 3, 0, doc:
 
   xw->width = w;
   xw->height = h;
-  //if theres a osr resize it 1st
+  // If there is a offscreen widget resize it 1st.
   if (xw->widget_osr)
     {
       gtk_widget_set_size_request (GTK_WIDGET (xw->widget_osr),
                                    xw->width, xw->height);	//minimum size
       gtk_window_resize (GTK_WINDOW (xw->widgetwindow_osr), xw->width,
                          xw->height);
-      /* gtk_window_resize (GTK_WINDOW (xw->widgetscrolledwindow_osr),
-         xw->width, */
-      /*                    xw->height); */
       gtk_scrolled_window_set_min_content_height (GTK_SCROLLED_WINDOW
                                                   (xw->
                                                    widgetscrolledwindow_osr),
@@ -845,13 +820,8 @@ DEFUN ("xwidget-resize", Fxwidget_resize, Sxwidget_resize, 3, 3, 0, doc:
         {
           xv = XXWIDGET_VIEW (XCAR (tail));
           if (XXWIDGET (xv->model) == xw)
-            {
-              /* gtk_layout_set_size (GTK_CONTAINER
-                 (xv->widgetwindow), xw->width, */
-              /*                      xw->height); */
               gtk_widget_set_size_request (GTK_WIDGET (xv->widget), xw->width,
                                            xw->height);
-            }
         }
     }
 
@@ -862,7 +832,9 @@ DEFUN ("xwidget-resize", Fxwidget_resize, Sxwidget_resize, 3, 3, 0, doc:
 
 DEFUN ("xwidget-set-adjustment",
        Fxwidget_set_adjustment, Sxwidget_set_adjustment, 4, 4, 0, doc:
-       /* set scrolling  */
+       /* Set native scrolling for XWIDGET. AXIS can be 'vertical or
+          'horizontal. If RELATIVE is t, scroll relative, otherwise absolutely.
+       VALUE is the amount to scroll, either relatively or absolutely.  */
 )
   (Lisp_Object xwidget, Lisp_Object axis, Lisp_Object relative,
    Lisp_Object value)
@@ -909,9 +881,7 @@ DEFUN ("xwidget-size-request",
        /* Desired size of the XWIDGET.
 
           This can be used to read the xwidget desired size, and
-          resizes the Emacs allocated area accordingly.
-
-          (TODO crashes if arg not osr widget) */
+          resizes the Emacs allocated area accordingly.  */
 )
   (Lisp_Object xwidget)
 {
@@ -991,7 +961,7 @@ DEFUN ("xwidget-view-info",
 
 DEFUN ("xwidget-view-model",
        Fxwidget_view_model, Sxwidget_view_model,
-       1, 1, 0, doc:	/* Get XWIDGET-VIEW model. */
+       1, 1, 0, doc:  /* Get XWIDGET-VIEW model. */
        )
   (Lisp_Object xwidget_view)
 {
@@ -1001,7 +971,7 @@ DEFUN ("xwidget-view-model",
 
 DEFUN ("xwidget-view-window",
        Fxwidget_view_window, Sxwidget_view_window,
-       1, 1, 0, doc:/* Get XWIDGET-VIEW window. */
+       1, 1, 0, doc:  /* Get XWIDGET-VIEW window. */
        )
   (Lisp_Object xwidget_view)
 {
@@ -1012,7 +982,7 @@ DEFUN ("xwidget-view-window",
 
 DEFUN ("delete-xwidget-view",
        Fdelete_xwidget_view, Sdelete_xwidget_view,
-       1, 1, 0, doc:/* Delete the XWIDGET-VIEW. */
+       1, 1, 0, doc:  /* Delete the XWIDGET-VIEW. */
        )
   (Lisp_Object xwidget_view)
 {
@@ -1020,16 +990,12 @@ DEFUN ("delete-xwidget-view",
   struct xwidget_view *xv = XXWIDGET_VIEW (xwidget_view);
   gtk_widget_destroy (xv->widgetwindow);
   Vxwidget_view_list = Fdelq (xwidget_view, Vxwidget_view_list);
-  // xv->model still has signals pointing to the view
-  // there can be several views. find the matchin signals and delete them
-  int i;
-  i = g_signal_handlers_disconnect_matched  (XXWIDGET (xv->model)->widgetwindow_osr,
-                                             G_SIGNAL_MATCH_DATA,
-                                             0, 0, 0, 0,
-                                             xv->widget);
-  printf ("delete view num signals %d\n",i);
-
-
+  // xv->model still has signals pointing to the view. There can be
+  // several views. Find the matching signals and delete them all.
+  g_signal_handlers_disconnect_matched  (XXWIDGET (xv->model)->widgetwindow_osr,
+                                         G_SIGNAL_MATCH_DATA,
+                                         0, 0, 0, 0,
+                                         xv->widget);
   return Qnil;
 }
 
@@ -1206,33 +1172,14 @@ valid_xwidget_spec_p (Lisp_Object object)
   int valid_p = 0;
 
   if (CONSP (object) && EQ (XCAR (object), Qxwidget))
-    {
-      /* Lisp_Object tem; */
-
-      /* for (tem = XCDR (object); CONSP (tem); tem = XCDR (tem)) */
-      /*   if (EQ (XCAR (tem), QCtype)) */
-      /*     { */
-      /*       tem = XCDR (tem); */
-      /*       if (CONSP (tem) && SYMBOLP (XCAR (tem))) */
-      /*         { */
-      /*        struct xwidget_type *type; */
-      /*        type = lookup_xwidget_type (XCAR (tem)); */
-      /*        if (type) */
-      /*          valid_p = type->valid_p (object); */
-      /*         } */
-
-      /*       break; */
-      /*     } */
-      //never mind type support for now
       valid_p = 1;
-    }
 
   return valid_p;
 }
 
 
 
-/* find a value associated with key in spec */
+/* Find a value associated with key in spec.  */
 Lisp_Object
 xwidget_spec_value (Lisp_Object spec, Lisp_Object key, int *found)
 {
@@ -1292,7 +1239,7 @@ lookup_xwidget (Lisp_Object spec)
 {
   /* When a xwidget lisp spec is found initialize the C struct that is
      used in the C code.  This is done by redisplay so values change
-     if the spec changes.  So, take special care of one-shot events
+     if the spec changes.  So, take special care of one-shot events.
    */
   int found = 0;
   Lisp_Object value;
@@ -1316,7 +1263,8 @@ xwidget_start_redisplay (void)
     }
 }
 
-/* The xwidget was touched during redisplay, so it isnt a candidate for hiding*/
+/* The xwidget was touched during redisplay, so it isn't a candidate
+   for hiding.  */
 void
 xwidget_touch (struct xwidget_view *xv)
 {
@@ -1338,13 +1286,12 @@ xwidget_end_redisplay (struct window *w, struct glyph_matrix *matrix)
   int i;
   int area;
 
-
   xwidget_start_redisplay ();
-  //iterate desired glyph matrix of window here, hide gtk widgets
-  //not in the desired matrix.
+  // Iterate desired glyph matrix of window here, hide gtk widgets
+  // not in the desired matrix.
 
-  //this only takes care of xwidgets in active windows.
-  //if a window goes away from screen xwidget views wust be deleted
+  // This only takes care of xwidgets in active windows.  if a window
+  // goes away from screen xwidget views wust be deleted
 
   //  dump_glyph_matrix(matrix, 2);
   for (i = 0; i < matrix->nrows; ++i)
@@ -1363,7 +1310,7 @@ xwidget_end_redisplay (struct window *w, struct glyph_matrix *matrix)
                   if (glyph->type == XWIDGET_GLYPH)
                     {
                       /*
-                         the only call to xwidget_end_redisplay is in dispnew
+                        The only call to xwidget_end_redisplay is in dispnew
                          xwidget_end_redisplay(w->current_matrix);
                        */
                       xwidget_touch (xwidget_view_lookup (glyph->u.xwidget,
@@ -1381,8 +1328,8 @@ xwidget_end_redisplay (struct window *w, struct glyph_matrix *matrix)
         {
           struct xwidget_view *xv = XXWIDGET_VIEW (XCAR (tail));
 
-          //"touched" is only meaningful for the current window, so
-          //disregard other views
+          // "touched" is only meaningful for the current window, so
+          // disregard other views.
           if (XWINDOW (xv->w) == w)
             {
               if (xwidget_touched (xv))

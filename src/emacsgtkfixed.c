@@ -34,26 +34,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 # pragma GCC diagnostic ignored "-Wunused-local-typedefs"
 #endif
 
-//#define EMACS_TYPE_FIXED emacs_fixed_get_type ()
-/* #define EMACS_FIXED(obj) \ */
-/*   G_TYPE_CHECK_INSTANCE_CAST (obj, EMACS_TYPE_FIXED, EmacsFixed) */
-
 typedef struct _EmacsFixed EmacsFixed;
 typedef struct _EmacsFixedPrivate EmacsFixedPrivate;
 typedef struct _EmacsFixedClass EmacsFixedClass;
-
-/* struct _EmacsFixed */
-/* { */
-/*   GtkFixed container; */
-
-/*   /\*< private >*\/ */
-/*   EmacsFixedPrivate *priv; */
-/* }; */
-
-/* struct _EmacsFixedClass */
-/* { */
-/*   GtkFixedClass parent_class; */
-/* }; */
 
 struct _EmacsFixedPrivate
 {
@@ -84,11 +67,6 @@ static void emacs_fixed_gtk_widget_size_allocate (GtkWidget *widget,
   EmacsFixedClass *klass;
   GtkWidgetClass *parent_class;
   struct GtkFixedPrivateL* priv;
-  GtkFixedChild *child;
-  GtkAllocation child_allocation;
-  GtkRequisition child_requisition;
-  GList *children;
-  struct xwidget_view* xv;
 
   klass = EMACS_FIXED_GET_CLASS (widget);
   parent_class = g_type_class_peek_parent (klass);
@@ -110,16 +88,17 @@ static void emacs_fixed_gtk_widget_size_allocate (GtkWidget *widget,
                                 allocation->height);
     }
 
-  for (children = priv->children;
-       children;
-       children = children->next)
+  for (GList *children = priv->children; children; children = children->next)
     {
-      child = children->data;
+      GtkFixedChild *child = children->data;
 
       if (!gtk_widget_get_visible (child->widget))
         continue;
 
+      GtkRequisition child_requisition;
       gtk_widget_get_preferred_size (child->widget, &child_requisition, NULL);
+
+      GtkAllocation child_allocation;
       child_allocation.x = child->x;
       child_allocation.y = child->y;
 
@@ -132,17 +111,16 @@ static void emacs_fixed_gtk_widget_size_allocate (GtkWidget *widget,
       child_allocation.width = child_requisition.width;
       child_allocation.height = child_requisition.height;
 
+      struct xwidget_view *xv
+	= g_object_get_data (G_OBJECT (child->widget), XG_XWIDGET_VIEW);
+      if (xv)
+	{
+	  child_allocation.width = xv->clip_right;
+	  child_allocation.height = xv->clip_bottom - xv->clip_top;
+	}
 
-
-      xv = (struct xwidget_view*) g_object_get_data (G_OBJECT (child->widget), XG_XWIDGET_VIEW);
-      if(xv){
-        child_allocation.width = xv->clip_right;
-        child_allocation.height = xv->clip_bottom - xv->clip_top;
-      }
       gtk_widget_size_allocate (child->widget, &child_allocation);
-
     }
-
 }
 
 #endif  /* HAVE_XWIDGETS */
@@ -150,14 +128,12 @@ static void emacs_fixed_gtk_widget_size_allocate (GtkWidget *widget,
 static void
 emacs_fixed_class_init (EmacsFixedClass *klass)
 {
-  GtkWidgetClass *widget_class;
-
-  widget_class = (GtkWidgetClass*) klass;
+  GtkWidgetClass *widget_class = (GtkWidgetClass *) klass;
 
   widget_class->get_preferred_width = emacs_fixed_get_preferred_width;
   widget_class->get_preferred_height = emacs_fixed_get_preferred_height;
 #ifdef HAVE_XWIDGETS
-  widget_class->size_allocate =  emacs_fixed_gtk_widget_size_allocate;
+  widget_class->size_allocate = emacs_fixed_gtk_widget_size_allocate;
 #endif
   g_type_class_add_private (klass, sizeof (EmacsFixedPrivate));
 }
@@ -178,7 +154,7 @@ emacs_fixed_init (EmacsFixed *fixed)
  *
  * Returns: a new #EmacsFixed.
  */
-GtkWidget*
+GtkWidget *
 emacs_fixed_new (struct frame *f)
 {
   EmacsFixed *fixed = g_object_new (EMACS_TYPE_FIXED, NULL);
@@ -217,10 +193,7 @@ emacs_fixed_get_preferred_height (GtkWidget *widget,
    (Bug#8919), and so users can resize our frames as they wish.  */
 
 void
-XSetWMSizeHints (Display* d,
-                 Window w,
-                 XSizeHints* hints,
-                 Atom prop)
+XSetWMSizeHints (Display *d, Window w, XSizeHints* hints, Atom prop)
 {
   struct x_display_info *dpyinfo = x_display_info_for_display (d);
   struct frame *f = x_top_window_to_frame (dpyinfo, w);

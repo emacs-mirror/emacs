@@ -2681,11 +2681,10 @@ x_draw_glyph_string (struct glyph_string *s)
 
 #ifdef HAVE_XWIDGETS
     case XWIDGET_GLYPH:
-      //erase xwidget background
-      //x_draw_glyph_string_background (s, 0);
       x_draw_xwidget_glyph_string (s);
       break;
 #endif
+
     case STRETCH_GLYPH:
       x_draw_stretch_glyph_string (s);
       break;
@@ -8031,10 +8030,10 @@ x_draw_bar_cursor (struct window *w, struct glyph_row *row, int width, enum text
     return;
 
 #ifdef HAVE_XWIDGETS
-  if (cursor_glyph->type == XWIDGET_GLYPH){
-    return; //experimental avoidance of cursor on xwidget
-  }
+  if (cursor_glyph->type == XWIDGET_GLYPH)
+    return; // Experimental avoidance of cursor on xwidget.
 #endif
+
   /* If on an image, draw like a normal cursor.  That's usually better
      visible than drawing a bar, esp. if the image is large so that
      the bar might not be in the window.  */

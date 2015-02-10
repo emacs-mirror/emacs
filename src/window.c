@@ -4563,7 +4563,7 @@ Signal an error when WINDOW is the only window on its frame.  */)
       /* Block input.  */
       block_input ();
 #ifdef HAVE_XWIDGETS
-      xwidget_view_delete_all_in_window(w);
+      xwidget_view_delete_all_in_window (w);
 #endif
       window_resize_apply (p, horflag);
       /* If this window is referred to by the dpyinfo's mouse
