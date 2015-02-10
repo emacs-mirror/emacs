@@ -94,7 +94,6 @@ defaults to the string looking like a url around the cursor position."
                                              ;;( xwidget-webkit-current-url)
                                              )))
   (when (stringp url)
-    (setq url (url-tidy url))
     (if new-session
         (xwidget-webkit-new-session url)
       (xwidget-webkit-goto-url url))))
