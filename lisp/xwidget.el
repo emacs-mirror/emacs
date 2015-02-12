@@ -30,7 +30,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(require 'cl-lib)
 (require 'reporter)
 (require 'bookmark)
 
@@ -70,7 +70,6 @@ Optional argument ARGS usage depends on the xwidget."
 ;;; webkit support
 (require 'browse-url)
 (require 'image-mode);;for some image-mode alike functionality
-(require 'cl-macs);;for flet
 
 ;;;###autoload
 (defun xwidget-webkit-browse-url (url &optional new-session)
@@ -447,7 +446,7 @@ Argument H height."
 (defun xwidget-webkit-fit-width ()
   "Adjust width of webkit to window width."
   (interactive)
-  (xwidget-webkit-adjust-size (- (caddr (window-inside-pixel-edges))
+  (xwidget-webkit-adjust-size (- (nth 2 (window-inside-pixel-edges))
                                  (car (window-inside-pixel-edges)))
                               1000))
 
