@@ -1025,18 +1025,6 @@ DEFUN ("xwidget-view-lookup",
   return Qnil;
 }
 
-DEFUN ("set-frame-visible",
-       Fset_frame_visible, Sset_frame_visible,
-       2, 2, 0, doc:	/* HACKY */
-       )
-  (Lisp_Object frame, Lisp_Object flag)
-{
-  CHECK_FRAME (frame);
-  struct frame *f = XFRAME (frame);
-  SET_FRAME_VISIBLE (f, !NILP (flag));
-  return flag;
-}
-
 DEFUN ("xwidget-plist",
        Fxwidget_plist, Sxwidget_plist,
        1, 1, 0, doc:	/* Return the plist of XWIDGET.  */
@@ -1114,7 +1102,6 @@ syms_of_xwidget (void)
   defsubr (&Sxwidget_view_lookup);
   defsubr (&Sxwidget_query_on_exit_flag);
   defsubr (&Sset_xwidget_query_on_exit_flag);
-  defsubr (&Sset_frame_visible);
 
 #ifdef HAVE_WEBKIT_OSR
   defsubr (&Sxwidget_webkit_goto_uri);
