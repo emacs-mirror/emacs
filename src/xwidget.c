@@ -759,23 +759,6 @@ from the exec method.  */ )
   return build_string (str);
 }
 
-DEFUN ("xwidget-disable-plugin-for-mime",
-       Fxwidget_disable_plugin_for_mime, Sxwidget_disable_plugin_for_mime,
-       1, 1, 0, doc:	/* */ )
-  (Lisp_Object mime)
-{
-  WebKitWebPlugin *wp = webkit_web_plugin_database_get_plugin_for_mimetype
-    (webkit_get_web_plugin_database (), SSDATA (mime));
-  if (wp == NULL)
-    return Qnil;
-  if (webkit_web_plugin_get_enabled (wp))
-    {
-      webkit_web_plugin_set_enabled (wp, FALSE);
-      return Qt;
-    }
-  return Qnil;
-}
-
 DEFUN ("xwidget-resize", Fxwidget_resize, Sxwidget_resize, 3, 3, 0, doc:
        /* Resize XWIDGET.
           NEW_WIDTH NEW_HEIGHT defines the new size.)
@@ -1112,7 +1095,6 @@ syms_of_xwidget (void)
 
   defsubr (&Sxwidget_size_request);
   defsubr (&Sdelete_xwidget_view);
-  defsubr (&Sxwidget_disable_plugin_for_mime);
 
   defsubr (&Sxwidget_plist);
   defsubr (&Sxwidget_buffer);
