@@ -1,14 +1,33 @@
 ;;; xwidget.el --- api functions for xwidgets  -*- lexical-binding: t -*-
-;;  see xwidget.c for more api functions
+;;
+;; Copyright (C) 2011-2015 Free Software Foundation, Inc.
+;;
+;; Author: Joakim Verona (joakim@verona.se)
+;;
+;; This file is part of GNU Emacs.
+;;
+;; GNU Emacs is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;;
+;; --------------------------------------------------------------------
 
 ;;; Commentary:
 ;;
+;; See xwidget.c for more api functions
 
 ;;TODO this breaks compilation when we dont have xwidgets
 ;;(require 'xwidget-internal)
 
-;;TODO model after make-text-button instead!
 ;;; Code:
 
 (eval-when-compile (require 'cl))
