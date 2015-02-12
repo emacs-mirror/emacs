@@ -703,11 +703,11 @@ x_draw_xwidget_glyph_string (struct glyph_string *s)
 #define WEBKIT_FN_INIT()                        \
   struct xwidget* xw; \
   CHECK_XWIDGET (xwidget); \
- if(NILP (xwidget)) {printf("ERROR xwidget nil\n"); return Qnil;};    \
-  xw = XXWIDGET(xwidget);                                                    \
-  if(NULL == xw) printf("ERROR xw is 0\n");                               \
-  if((NULL == xw->widget_osr) || !WEBKIT_IS_WEB_VIEW(xw->widget_osr)){  \
-    printf("ERROR xw->widget_osr does not hold a webkit instance\n");\
+ if (NILP (xwidget)) {printf("ERROR xwidget nil\n"); return Qnil;};    \
+  xw = XXWIDGET (xwidget);                                                    \
+  if (NULL == xw) printf("ERROR xw is 0\n");                               \
+  if ((NULL == xw->widget_osr) || !WEBKIT_IS_WEB_VIEW(xw->widget_osr)){  \
+    printf ("ERROR xw->widget_osr does not hold a webkit instance\n");\
     return Qnil;\
   };
 
@@ -1262,7 +1262,7 @@ xwidget_end_redisplay (struct window *w, struct glyph_matrix *matrix)
   // This only takes care of xwidgets in active windows.  if a window
   // goes away from screen xwidget views wust be deleted
 
-  //  dump_glyph_matrix(matrix, 2);
+  //  dump_glyph_matrix (matrix, 2);
   for (i = 0; i < matrix->nrows; ++i)
     {
       //    dump_glyph_row (MATRIX_ROW (matrix, i), i, glyphs);
@@ -1280,7 +1280,7 @@ xwidget_end_redisplay (struct window *w, struct glyph_matrix *matrix)
                     {
                       /*
                         The only call to xwidget_end_redisplay is in dispnew
-                         xwidget_end_redisplay(w->current_matrix);
+                         xwidget_end_redisplay (w->current_matrix);
                        */
                       xwidget_touch (xwidget_view_lookup (glyph->u.xwidget,
                                                           w));

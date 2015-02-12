@@ -3547,7 +3547,7 @@ update_window (struct window *w, bool force_p)
 #endif
 
 #ifdef HAVE_XWIDGETS
-  xwidget_end_redisplay(w, w->current_matrix);
+  xwidget_end_redisplay (w, w->current_matrix);
 #endif
   clear_glyph_matrix (desired_matrix);
 
@@ -4123,7 +4123,7 @@ scrolling_window (struct window *w, bool header_line_p)
     }
 
 #ifdef HAVE_XWIDGETS
- //currently this is needed to detect xwidget movement reliably. or probably not.
+  /* Currently this seems needed to detect xwidget movement reliably. */
     return 0;
 #endif
 

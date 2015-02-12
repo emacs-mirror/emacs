@@ -60,10 +60,16 @@ struct GtkFixedPrivateL
 };
 
 static void emacs_fixed_gtk_widget_size_allocate (GtkWidget *widget,
-                                           GtkAllocation *allocation){
-  //for xwidgets
+                                                  GtkAllocation *allocation)
+{
+  // For xwidgets.
 
-  //TODO 1st call base class method
+  // This basically re-implements the base class method and adds an
+  // additional case for an xwidget view.
+
+  // It would be nicer if the bse class method could be called first,
+  // and the the xview modification only would remain here. It wasn't
+  // possible to solve it that way yet.
   EmacsFixedClass *klass;
   GtkWidgetClass *parent_class;
   struct GtkFixedPrivateL* priv;
@@ -112,12 +118,12 @@ static void emacs_fixed_gtk_widget_size_allocate (GtkWidget *widget,
       child_allocation.height = child_requisition.height;
 
       struct xwidget_view *xv
-	= g_object_get_data (G_OBJECT (child->widget), XG_XWIDGET_VIEW);
+        = g_object_get_data (G_OBJECT (child->widget), XG_XWIDGET_VIEW);
       if (xv)
-	{
-	  child_allocation.width = xv->clip_right;
-	  child_allocation.height = xv->clip_bottom - xv->clip_top;
-	}
+        {
+          child_allocation.width = xv->clip_right;
+          child_allocation.height = xv->clip_bottom - xv->clip_top;
+        }
 
       gtk_widget_size_allocate (child->widget, &child_allocation);
     }
@@ -226,7 +232,7 @@ XSetWMSizeHints (Display *d, Window w, XSizeHints* hints, Atom prop)
     }
 
   XChangeProperty (d, w, prop, XA_WM_SIZE_HINTS, 32, PropModeReplace,
-		   (unsigned char *) data, 18);
+                   (unsigned char *) data, 18);
 }
 
 /* Override this X11 function.
