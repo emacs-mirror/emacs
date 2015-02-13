@@ -1221,15 +1221,15 @@ using `package-compute-transaction'."
   (mapc #'package-install-from-archive packages))
 
 ;;;###autoload
-(defun package-install (pkg &optional mark-selected)
+(defun package-install (pkg &optional dont-select)
   "Install the package PKG.
 PKG can be a package-desc or the package name of one the available packages
 in an archive in `package-archives'.  Interactively, prompt for its name.
 
-If called interactively or if MARK-SELECTED is non-nil, add PKG
-to `package-selected-packages'.
+If called interactively or if DONT-SELECT nil, add PKG to
+`package-selected-packages'.
 
-if PKG is a package-desc and it is already installed, don't try
+If PKG is a package-desc and it is already installed, don't try
 to install it but still mark it as selected."
   (interactive
    (progn
@@ -1247,11 +1247,11 @@ to install it but still mark it as selected."
                                       (symbol-name (car elt))))
                                   package-archive-contents))
                     nil t))
-           t)))
+           nil)))
   (let ((name (if (package-desc-p pkg)
                   (package-desc-name pkg)
                 pkg)))
-    (when (and mark-selected (not (package--user-selected-p name)))
+    (unless (or dont-select (package--user-selected-p name))
       (customize-save-variable 'package-selected-packages
                                (cons name package-selected-packages))))
   (if (package-desc-p pkg)
@@ -1276,7 +1276,7 @@ object."
   (package-delete
    (if (package-desc-p pkg) pkg (cadr (assq pkg package-alist)))
    'force 'nosave)
-  (package-install pkg))
+  (package-install pkg 'dont-select))
 
 (defun package-strip-rcs-id (str)
   "Strip RCS version ID from the version string STR.
@@ -1796,7 +1796,9 @@ If optional arg NO-ACTIVATE is non-nil, don't activate packages."
           (pkg-dir
            (insert (propertize (if (member status '("unsigned" "dependency"))
                                    "Installed"
-                                 (capitalize status)) ;FIXME: Why comment-face?
+                                 (if (equal status "incompat")
+                                     "Incompatible"
+                                   (capitalize status))) ;FIXME: Why comment-face?
                                'font-lock-face 'font-lock-comment-face))
            (insert " in `")
            ;; Todo: Add button for uninstalling.
@@ -1929,7 +1931,7 @@ If optional arg NO-ACTIVATE is non-nil, don't activate packages."
   (let ((pkg-desc (button-get button 'package-desc)))
     (when (y-or-n-p (format "Install package `%s'? "
                             (package-desc-full-name pkg-desc)))
-      (package-install pkg-desc 1)
+      (package-install pkg-desc nil)
       (revert-buffer nil t)
       (goto-char (point-min)))))
 
@@ -2054,6 +2056,25 @@ package PKG-DESC, add one.  The alist is keyed with PKG-DESC."
 (defvar package-list-unsigned nil
   "If non-nil, mention in the list which packages were installed w/o signature.")
 
+(defvar package--emacs-version-list (version-to-list emacs-version)
+  "`emacs-version', as a list.")
+
+(defun package--incompatible-p (pkg)
+  "Return non-nil if PKG has no chance of being installable.
+PKG is a package-desc object.
+Return value is a string describing the reason why the package is
+incompatible.
+
+Currently, this only checks if PKG depends on a higher
+`emacs-version' than the one being used."
+  (let* ((reqs    (package-desc-reqs pkg))
+         (version (cadr (assq 'emacs reqs))))
+    (if (and version (version-list-< package--emacs-version-list version))
+        (format "`%s' requires Emacs %s, but current version is %s"
+          (package-desc-full-name pkg)
+          (package-version-join version)
+          emacs-version))))
+
 (defun package-desc-status (pkg-desc)
   (let* ((name (package-desc-name pkg-desc))
          (dir (package-desc-dir pkg-desc))
@@ -2072,6 +2093,7 @@ package PKG-DESC, add one.  The alist is keyed with PKG-DESC."
          ((version-list-< version hv) "obsolete")
          (t "disabled"))))
      ((package-built-in-p name version) "obsolete")
+     ((package--incompatible-p pkg-desc) "incompat")
      (dir                               ;One of the installed packages.
       (cond
        ((not (file-exists-p (package-desc-dir pkg-desc))) "deleted")
@@ -2222,6 +2244,7 @@ Return (PKG-DESC [NAME VERSION STATUS DOC])."
                  (`"installed" 'font-lock-comment-face)
                  (`"dependency" 'font-lock-comment-face)
                  (`"unsigned"  'font-lock-warning-face)
+                 (`"incompat"  'font-lock-comment-face)
                  (_            'font-lock-warning-face)))) ; obsolete.
     (list pkg-desc
           `[,(list (symbol-name (package-desc-name pkg-desc))
@@ -2427,13 +2450,11 @@ Optional argument NOQUERY non-nil means do not ask the user to confirm."
                       (mapconcat #'package-desc-full-name
                                  install-list ", ")))))
           (mapc (lambda (p)
-                  ;; Mark as selected if it's the exact version of a
-                  ;; package that's already installed, or if it's not
-                  ;; installed at all.  Don't mark if it's a new
-                  ;; version of an installed package.
-                  (package-install p (or (package-installed-p p)
-                                         (not (package-installed-p
-                                               (package-desc-name p))))))
+                  ;; Don't mark as selected if it's a new version of
+                  ;; an installed package.
+                  (package-install p (and (not (package-installed-p p))
+                                          (package-installed-p
+                                           (package-desc-name p)))))
                 install-list)))
     ;; Delete packages, prompting if necessary.
     (when delete-list
@@ -2494,6 +2515,8 @@ Optional argument NOQUERY non-nil means do not ask the user to confirm."
           ((string= sB "built-in") nil)
           ((string= sA "obsolete") t)
           ((string= sB "obsolete") nil)
+          ((string= sA "incompat") t)
+          ((string= sB "incompat") nil)
           (t (string< sA sB)))))
 
 (defun package-menu--description-predicate (A B)

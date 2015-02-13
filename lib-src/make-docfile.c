@@ -707,12 +707,9 @@ write_globals (void)
 		  globals[i].name, globals[i].name);
 	}
       else if (globals[i].type == SYMBOL)
-	printf (("DEFINE_LISP_SYMBOL_BEGIN (%s)\n"
-		 "#define i%s %d\n"
-		 "#define %s builtin_lisp_symbol (i%s)\n"
-		 "DEFINE_LISP_SYMBOL_END (%s)\n\n"),
-		globals[i].name, globals[i].name, symnum++,
-		globals[i].name, globals[i].name, globals[i].name);
+	printf (("#define i%s %d\n"
+		 "DEFINE_LISP_SYMBOL (%s)\n"),
+		globals[i].name, symnum++, globals[i].name);
       else
 	{
 	  if (globals[i].flags & DEFUN_noreturn)
@@ -740,14 +737,18 @@ write_globals (void)
   puts ("#ifdef DEFINE_SYMBOLS");
   puts ("static char const *const defsym_name[] = {");
   for (int i = 0; i < num_globals; i++)
-    {
-      if (globals[i].type == SYMBOL)
-	printf ("\t\"%s\",\n", globals[i].v.svalue);
-      while (i + 1 < num_globals
-	     && strcmp (globals[i].name, globals[i + 1].name) == 0)
-	i++;
-    }
+    if (globals[i].type == SYMBOL)
+      printf ("\t\"%s\",\n", globals[i].v.svalue);
   puts ("};");
+  puts ("#endif");
+
+  puts ("#define Qnil builtin_lisp_symbol (0)");
+  puts ("#if DEFINE_NONNIL_Q_SYMBOL_MACROS");
+  num_symbols = 0;
+  for (int i = 0; i < num_globals; i++)
+    if (globals[i].type == SYMBOL && num_symbols++ != 0)
+      printf ("# define %s builtin_lisp_symbol (%d)\n",
+	      globals[i].name, num_symbols - 1);
   puts ("#endif");
 }
 

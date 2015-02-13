@@ -541,11 +541,15 @@ instead."
 		      nil yank-action send-actions return-action))
     (let ((buf (current-buffer))
 	  ;; Don't use posting styles corresponding to any existing group.
-	  (gnus-newsgroup-name "")
+	  (group-name gnus-newsgroup-name)
 	  mail-buf)
-      (gnus-setup-message 'message
-	(message-mail to subject other-headers continue
-		      nil yank-action send-actions return-action))
+      (unwind-protect
+	  (progn
+	    (setq gnus-newsgroup-name "")
+	    (gnus-setup-message 'message
+	      (message-mail to subject other-headers continue
+			    nil yank-action send-actions return-action)))
+	(setq gnus-newsgroup-name group-name))
       (when switch-action
 	(setq mail-buf (current-buffer))
 	(switch-to-buffer buf)

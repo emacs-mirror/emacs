@@ -1799,6 +1799,11 @@ bidi_explicit_dir_char (int ch)
 
   if (!bidi_initialized)
     emacs_abort ();
+  if (ch < 0)
+    {
+      eassert (ch == BIDI_EOB);
+      return false;
+    }
   ch_type = (bidi_type_t) XINT (CHAR_TABLE_REF (bidi_type_table, ch));
   return (ch_type == LRE || ch_type == LRO
 	  || ch_type == RLE || ch_type == RLO

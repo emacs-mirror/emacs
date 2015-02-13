@@ -493,7 +493,7 @@ If you intend to use them heavily, Emacs provides caches which may
 improve the performance of your code.  @xref{Truncation, cache-long-scans}.
 @end ignore
 
-@defun vertical-motion count &optional window
+@defun vertical-motion count &optional window cur-col
 This function moves point to the start of the screen line @var{count}
 screen lines down from the screen line containing point.  If @var{count}
 is negative, it moves up instead.
@@ -515,6 +515,14 @@ The window @var{window} is used for obtaining parameters such as the
 width, the horizontal scrolling, and the display table.  But
 @code{vertical-motion} always operates on the current buffer, even if
 @var{window} currently displays some other buffer.
+
+The optional argument @var{cur-col} specifies the current column when
+the function is called.  This is the window-relative horizontal
+coordinate of point, measured in units of font width of the frame's
+default face.  Providing it speeds up the function, especially in very
+long lines, because it doesn't have to go back in the buffer in order
+to determine the current column.  Note that @var{cur-col} is also
+counted from the visual start of the line.
 @end defun
 
 @defun count-screen-lines &optional beg end count-final-newline window

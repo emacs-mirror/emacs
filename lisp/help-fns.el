@@ -352,7 +352,9 @@ suitable file is found, return nil."
       (insert ".\n"))))
 
 (defun help-fns--signature (function doc real-def real-function)
-  (unless (keymapp function)    ; If definition is a keymap, skip arglist note.
+  "Insert usage at point and return docstring.  With highlighting."
+  (if (keymapp function)
+      doc                       ; If definition is a keymap, skip arglist note.
     (let* ((advertised (gethash real-def advertised-signature-table t))
            (arglist (if (listp advertised)
                         advertised (help-function-arglist real-def)))

@@ -3796,7 +3796,7 @@ This function expects to be in the right *tramp* buffer."
 	(tramp-send-command
 	 vec
 	 (format (concat "while read d; "
-			 "do if test -x $d/%s -a -f $d/%s; "
+			 "do if test -x $d/%s && test -f $d/%s; "
 			 "then echo tramp_executable $d/%s; "
 			 "break; fi; done <<'%s'\n"
 			 "%s\n%s")

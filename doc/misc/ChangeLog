@@ -1,3 +1,7 @@
+2015-02-10  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* eww.texi (Basics): Mention eww-toggle-fonts.
+
 2015-02-05  Glenn Morris  <rgm@gnu.org>
 
 	* auth.texi (Multiple GMail accounts with Gnus): Markup fix.

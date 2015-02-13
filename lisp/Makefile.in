@@ -324,7 +324,7 @@ compile-clean:
 	@cd $(lisp) && $(setwins); \
 	elcs=`echo "$$wins " | sed -e 's|/\./|/|g' -e 's|/\. | |g' -e 's| |/*.elc |g'`; \
 	for el in `echo $$elcs | sed -e 's/\.elc/\.el/g'`; do \
-	  if test -f "$$el" -o \! -f "$${el}c"; then :; else \
+	  if test -f "$$el" || test ! -f "$${el}c"; then :; else \
 	    echo rm "$${el}c"; \
 	    rm "$${el}c"; \
 	  fi \

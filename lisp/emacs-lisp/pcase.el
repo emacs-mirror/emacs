@@ -164,6 +164,26 @@ like `(,a . ,(pred (< a))) or, with more checks:
      ;; FIXME: Could we add the FILE:LINE data in the error message?
      exp (append cases `((,x (error "No clause matching `%S'" ,x)))))))
 
+;;;###autoload
+(defmacro pcase-lambda (lambda-list &rest body)
+  "Like `lambda' but allow each argument to be a pattern.
+`&rest' argument is supported."
+  (declare (doc-string 2) (indent defun)
+           (debug ((&rest pcase-UPAT &optional ["&rest" pcase-UPAT]) body)))
+  (let ((args (make-symbol "args"))
+        (pats (mapcar (lambda (u)
+                        (unless (eq u '&rest)
+                          (if (eq (car-safe u) '\`) (cadr u) (list '\, u))))
+                      lambda-list))
+        (body (macroexp-parse-body body)))
+    ;; Handle &rest
+    (when (eq nil (car (last pats 2)))
+      (setq pats (append (butlast pats 2) (car (last pats)))))
+    `(lambda (&rest ,args)
+       ,@(remq nil (car body))
+       (pcase ,args
+         (,(list '\` pats) . ,(cdr body))))))
+
 (defun pcase--let* (bindings body)
   (cond
    ((null bindings) (macroexp-progn body))

@@ -1,15 +1,33 @@
+2015-02-13  Magnus Henoch  <magnus.henoch@gmail.com>
+
+	* automated/sasl-scram-rfc-tests.el: New file.
+
+2015-02-11  Nicolas Petton <nicolas@petton.fr>
+
+	* automated/seq-tests.el (test-seq-reverse, test-seq-group-by):
+	Add a test for seq-reverse and update test for seq-group-by to
+	test vectors and strings, not only lists.
+
+2015-02-10  Glenn Morris  <rgm@gnu.org>
+
+	* automated/package-test.el (package-test-signed):
+	More informative failure messages.
+
+2015-02-09  Nicolas Petton <nicolas@petton.fr>
+
+	* automated/seq-tests.el (test-seq-group-by): Update test for
+	seq-group-by to check that sequence elements are returned in the
+	correct order.
+
 2015-02-07  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
-	* automated/python-tests.el
-	(python-eldoc--get-symbol-at-point-1)
+	* automated/python-tests.el (python-eldoc--get-symbol-at-point-1)
 	(python-eldoc--get-symbol-at-point-2)
 	(python-eldoc--get-symbol-at-point-3)
 	(python-eldoc--get-symbol-at-point-4): New tests.
 
-2015-02-07  Fabián Ezequiel Gallina  <fgallina@gnu.org>
-
-	* automated/python-tests.el
-	(python-tests-visible-string): New function.
+	* automated/python-tests.el (python-tests-visible-string):
+	New function.
 	(python-parens-electric-indent-1)
 	(python-triple-quote-pairing): Fix indentation, move require calls.
 	(python-hideshow-hide-levels-1)

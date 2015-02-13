@@ -1,3 +1,19 @@
+2015-02-11  Martin Rudalics  <rudalics@gmx.at>
+
+	* frames.texi (Size Parameters): Update description of
+	fullscreen frame parameter.  Describe `fullscreen-restore'
+	parameter.
+
+2015-02-09 Nicolas Petton <nicolas@petton.fr>
+
+	* sequences.texi (Sequence Functions): Update documentation
+	examples for seq-group-by.
+
+2015-02-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* positions.texi (Screen Lines): Update the documentation of
+	vertical-motion to document the new additional argument.
+
 2015-02-06  Nicolas Petton <nicolas@petton.fr>
 
 	* sequences.texi (Sequence Functions): Add documentation for

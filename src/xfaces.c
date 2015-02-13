@@ -5141,12 +5141,10 @@ static bool
 realize_basic_faces (struct frame *f)
 {
   bool success_p = false;
-  ptrdiff_t count = SPECPDL_INDEX ();
 
   /* Block input here so that we won't be surprised by an X expose
      event, for instance, without having the faces set up.  */
   block_input ();
-  specbind (Qscalable_fonts_allowed, Qt);
 
   if (realize_default_face (f))
     {
@@ -5180,7 +5178,6 @@ realize_basic_faces (struct frame *f)
       success_p = true;
     }
 
-  unbind_to (count, Qnil);
   unblock_input ();
   return success_p;
 }

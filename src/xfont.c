@@ -394,88 +394,101 @@ xfont_list_pattern (Display *display, const char *pattern,
 	indices[i] = names[i];
       qsort (indices, num_fonts, sizeof (char *), compare_font_names);
 
-      for (i = 0; i < num_fonts; i++)
-	{
-	  ptrdiff_t len;
+      /* Take one or two passes over the font list.  Do the second
+	 pass only if we really need it, i.e., only if the first pass
+	 found no fonts and skipped some scalable fonts.  */
+      bool skipped_some_scalable_fonts = false;
+      for (int i_pass = 0;
+	   (i_pass == 0
+	    || (i_pass == 1 && NILP (list) && skipped_some_scalable_fonts));
+	   i_pass++)
+	for (i = 0; i < num_fonts; i++)
+	  {
+	    ptrdiff_t len;
 
-	  if (i > 0 && xstrcasecmp (indices[i - 1], indices[i]) == 0)
-	    continue;
-	  if (NILP (entity))
-	    entity = font_make_entity ();
-	  len = xfont_decode_coding_xlfd (indices[i], -1, buf);
-	  if (font_parse_xlfd (buf, len, entity) < 0)
-	    continue;
-	  ASET (entity, FONT_TYPE_INDEX, Qx);
-	  /* Avoid auto-scaled fonts.  */
-	  if (INTEGERP (AREF (entity, FONT_DPI_INDEX))
-	      && INTEGERP (AREF (entity, FONT_AVGWIDTH_INDEX))
-	      && XINT (AREF (entity, FONT_DPI_INDEX)) != 0
-	      && XINT (AREF (entity, FONT_AVGWIDTH_INDEX)) == 0)
-	    continue;
-	  /* Avoid not-allowed scalable fonts.  */
-	  if (NILP (Vscalable_fonts_allowed))
-	    {
-	      int size = 0;
-
-	      if (INTEGERP (AREF (entity, FONT_SIZE_INDEX)))
-		size = XINT (AREF (entity, FONT_SIZE_INDEX));
-	      else if (FLOATP (AREF (entity, FONT_SIZE_INDEX)))
-		size = XFLOAT_DATA (AREF (entity, FONT_SIZE_INDEX));
-	      if (size == 0)
-		continue;
-	    }
-	  else if (CONSP (Vscalable_fonts_allowed))
-	    {
-	      Lisp_Object tail, elt;
-
-	      for (tail = Vscalable_fonts_allowed; CONSP (tail);
-		   tail = XCDR (tail))
-		{
-		  elt = XCAR (tail);
-		  if (STRINGP (elt)
-		      && fast_c_string_match_ignore_case (elt, indices[i],
-							  len) >= 0)
-		    break;
-		}
-	      if (! CONSP (tail))
-		continue;
-	    }
-
-	  /* Avoid fonts of invalid registry.  */
-	  if (NILP (AREF (entity, FONT_REGISTRY_INDEX)))
-	    continue;
-
-	  /* Update encoding and repertory if necessary.  */
-	  if (! EQ (registry, AREF (entity, FONT_REGISTRY_INDEX)))
-	    {
-	      registry = AREF (entity, FONT_REGISTRY_INDEX);
-	      if (font_registry_charsets (registry, &encoding, &repertory) < 0)
-		encoding = NULL;
-	    }
-	  if (! encoding)
-	    /* Unknown REGISTRY, not supported.  */
-	    continue;
-	  if (repertory)
-	    {
-	      if (NILP (script)
-		  || xfont_chars_supported (chars, NULL, encoding, repertory))
-		list = Fcons (entity, list), entity = Qnil;
+	    if (i > 0 && xstrcasecmp (indices[i - 1], indices[i]) == 0)
 	      continue;
-	    }
-	  if (memcmp (props, aref_addr (entity, FONT_FOUNDRY_INDEX),
-		      word_size * 7)
-	      || ! EQ (AREF (entity, FONT_SPACING_INDEX), props[7]))
-	    {
-	      vcopy (xfont_scratch_props, 0,
-		     aref_addr (entity, FONT_FOUNDRY_INDEX), 7);
-	      ASET (xfont_scratch_props, 7, AREF (entity, FONT_SPACING_INDEX));
-	      scripts = xfont_supported_scripts (display, indices[i],
-						 xfont_scratch_props, encoding);
-	    }
-	  if (NILP (script)
-	      || ! NILP (Fmemq (script, scripts)))
-	    list = Fcons (entity, list), entity = Qnil;
-	}
+	    if (NILP (entity))
+	      entity = font_make_entity ();
+	    len = xfont_decode_coding_xlfd (indices[i], -1, buf);
+	    if (font_parse_xlfd (buf, len, entity) < 0)
+	      continue;
+	    ASET (entity, FONT_TYPE_INDEX, Qx);
+	    /* Avoid auto-scaled fonts.  */
+	    if (INTEGERP (AREF (entity, FONT_DPI_INDEX))
+		&& INTEGERP (AREF (entity, FONT_AVGWIDTH_INDEX))
+		&& XINT (AREF (entity, FONT_DPI_INDEX)) != 0
+		&& XINT (AREF (entity, FONT_AVGWIDTH_INDEX)) == 0)
+	      continue;
+	    /* Avoid not-allowed scalable fonts.  */
+	    if (NILP (Vscalable_fonts_allowed))
+	      {
+		int size = 0;
+
+		if (INTEGERP (AREF (entity, FONT_SIZE_INDEX)))
+		  size = XINT (AREF (entity, FONT_SIZE_INDEX));
+		else if (FLOATP (AREF (entity, FONT_SIZE_INDEX)))
+		  size = XFLOAT_DATA (AREF (entity, FONT_SIZE_INDEX));
+		if (size == 0 && i_pass == 0)
+		  {
+		    skipped_some_scalable_fonts = true;
+		    continue;
+		  }
+	      }
+	    else if (CONSP (Vscalable_fonts_allowed))
+	      {
+		Lisp_Object tail;
+
+		for (tail = Vscalable_fonts_allowed; CONSP (tail);
+		     tail = XCDR (tail))
+		  {
+		    Lisp_Object elt = XCAR (tail);
+		    if (STRINGP (elt)
+			&& (fast_c_string_match_ignore_case (elt, indices[i],
+							     len)
+			    >= 0))
+		      break;
+		  }
+		if (! CONSP (tail))
+		  continue;
+	      }
+
+	    /* Avoid fonts of invalid registry.  */
+	    if (NILP (AREF (entity, FONT_REGISTRY_INDEX)))
+	      continue;
+
+	    /* Update encoding and repertory if necessary.  */
+	    if (! EQ (registry, AREF (entity, FONT_REGISTRY_INDEX)))
+	      {
+		registry = AREF (entity, FONT_REGISTRY_INDEX);
+		if (font_registry_charsets (registry, &encoding, &repertory) < 0)
+		  encoding = NULL;
+	      }
+	    if (! encoding)
+	      /* Unknown REGISTRY, not supported.  */
+	      continue;
+	    if (repertory)
+	      {
+		if (NILP (script)
+		    || xfont_chars_supported (chars, NULL, encoding, repertory))
+		  list = Fcons (entity, list), entity = Qnil;
+		continue;
+	      }
+	    if (memcmp (props, aref_addr (entity, FONT_FOUNDRY_INDEX),
+			word_size * 7)
+		|| ! EQ (AREF (entity, FONT_SPACING_INDEX), props[7]))
+	      {
+		vcopy (xfont_scratch_props, 0,
+		       aref_addr (entity, FONT_FOUNDRY_INDEX), 7);
+		ASET (xfont_scratch_props, 7, AREF (entity, FONT_SPACING_INDEX));
+		scripts = xfont_supported_scripts (display, indices[i],
+						   xfont_scratch_props,
+						   encoding);
+	      }
+	    if (NILP (script)
+		|| ! NILP (Fmemq (script, scripts)))
+	      list = Fcons (entity, list), entity = Qnil;
+	  }
       XFreeFontNames (names);
     }
 

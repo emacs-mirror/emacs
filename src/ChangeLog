@@ -1,3 +1,108 @@
+2015-02-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Better support for future plugins
+	* lisp.h (DEFINE_LISP_SYMBOL): New macro, replacing and simplifying
+	DEFINE_LISP_SYMBOL_BEGIN / DEFINE_LISP_SYMBOL_END.  All uses changed.
+	(DEFINE_NONNIL_Q_SYMBOL_MACROS): New macro, defaulting to true.
+
+2015-02-11  Martin Rudalics  <rudalics@gmx.at>
+
+	* w32term.c (w32_read_socket): In SIZE_MAXIMIZED and
+	SIZE_RESTORED cases correctly handle `maximized' value for the
+	`fullscreen' parameter.  Don't use 'maximized' frame parameter
+	any more.
+	(w32fullscreen_hook): Include menu bar height when calculating
+	new text height in FULLSCREEN_BOTH case.
+	* xterm.c (do_ewmh_fullscreen): Handle transition from
+	FULLSCREEN_BOTH to FULLSCREEN_MAXIMIZED when
+	x_frame_normalize_before_maximize is set.
+
+2015-02-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use bool for boolean in xdisp.c
+	* dispextern.h (display_prop_intangible_p, resize_mini_window)
+	(pixel_to_glyph_coords, mark_window_display_accurate)
+	(compute_display_string_pos, handle_tool_bar_click)
+	(x_intersect_rectangles, clear_mouse_face, display_tty_menu_item):
+	* lisp.h (setup_echo_area_for_printing, message_with_string)
+	(pos_visible_p): Use bool for boolean.
+	* xdisp.c: Use bool, true, false intstead of int, 1, 0.
+	Remove unnecessary forward decls.
+	(trace_move) [DEBUG_TRACE_MOVE]: Now static.
+	(CHECK_IT, CHECK_WINDOW_END):
+	Now an inline function that is always defined.
+	(check_it) [0]:
+	(check_window_end) [oGLYPH_DEBUG && ENABLE_CHECKING]:
+	Remove; no longer needed.
+	(handle_stop): Prefer (X && !Y) to (X ? !Y : 0).
+	(get_overlay_strings): Omit unnecessary casts.
+	(forward_to_next_line_start):
+	(Ftool_bar_height):
+	Prefer !BOOL to (BOOL ? 0 : 1).
+	(next_element_function): New typedef.
+	(get_next_element): Use it.  Now const.
+	(IT_POS_VALID_AFTER_MOVE_P): Prefer !X || Y==0 to (X ? Y==0 : 1).
+	(vmessage): Now ATTRIBUTE_FORMAT_PRINTF (1, 0), to pacify GCC 4.9.2
+	(display_echo_area): Prefer BOOLEXPR to BOOLEXPR ? 1 : 0.
+	(tool_bar_item_info): Simplify.
+	(invisible_prop): Rename from invisible_p, since it doesn't
+	return bool.  All callers changed.
+	(x_produce_glyphs): Simplify.
+
+2015-02-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Check for some overflows in vertical-motion
+	* indent.c (window_column_x): New function.
+	(Fvertical_motion): Use it to protect against integer overflow
+	when computing column.  Prefer extract_float to doing things by hand.
+	Avoid unnecessary casts.
+
+	* xfont.c: Minor style fixes
+	(xfont_list_pattern): Reindent to 80 cols and use Emacs-style comments.
+	Redo loop so that less indentation is needed.
+
+2015-02-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* indent.c (Fvertical_motion): Accept an additional argument
+	CUR-COL and use it as the starting screen coordinate.
+	* window.c (window_scroll_line_based, Fmove_to_window_line): All
+	callers of vertical-motion changed.
+
+2015-02-09  Dima Kogan  <dima@secretsauce.net>
+
+	* font.c (font_score): Remove unused variable assignment.
+
+2015-02-09  Dima Kogan  <dima@secretsauce.net>
+
+	* xfaces.c (realize_basic_faces): Don't set Qscalable_fonts_allowed to
+	t.
+	* font.c (font_score): Try to find a font without scaling first,
+	and only accept scalable fonts if we did not get a match (Bug#19117).
+
+2015-02-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c (syms_of_keyboard): Use non-nil default value.
+
+2015-02-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use C99's INFINITY and NAN macros
+	* lread.c: Include <math.h>.
+	(string_to_number): Use INFINITY and NAN rather than rolling our own.
+	This avoids some runtime diagnostics when building with
+	gcc -fsanitize=undefined.
+
+	Fix bidi_explicit_dir_char undefined behavior
+	* bidi.c (bidi_explicit_dir_char): Avoid subscript error when
+	argument is BIDI_EOB.  This can happen in bidi_level_of_next_char.
+
+	Better distinguish infinite from invalid times
+	* editfns.c (check_time_validity): New function.
+	(decode_time_components): Return int, not bool.
+	Return -1 (not 0) if the time is out of range.
+	All callers changed.
+	(lisp_time_struct, lisp_seconds_argument): Distinguish better
+	between time overflow and invalid time values.
+
 2015-02-08  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Minor tweaks to frame_size_history_add

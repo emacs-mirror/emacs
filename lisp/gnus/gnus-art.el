@@ -1139,7 +1139,7 @@ predicate.  See Info node `(gnus)Customizing Articles'."
   :type gnus-article-treat-custom)
 (put 'gnus-treat-highlight-signature 'highlight t)
 
-(defcustom gnus-treat-buttonize 100000
+(defcustom gnus-treat-buttonize '(and 100000 (typep "text/plain"))
   "Add buttons.
 Valid values are nil, t, `head', `first', `last', an integer or a
 predicate.  See Info node `(gnus)Customizing Articles'."
@@ -2792,11 +2792,12 @@ summary buffer."
     (setq gnus-article-browse-html-temp-list nil))
   gnus-article-browse-html-temp-list)
 
-(defun gnus-article-browse-html-save-cid-content (cid handles directory)
+(defun gnus-article-browse-html-save-cid-content (cid handles directory abs)
   "Find CID content in HANDLES and save it in a file in DIRECTORY.
-Return file name."
+Return absolute file name if ABS is non-nil, otherwise relative to
+the parent of DIRECTORY."
   (save-match-data
-    (let (file)
+    (let (file afile)
       (catch 'found
 	(dolist (handle handles)
 	  (cond
@@ -2806,19 +2807,21 @@ Return file name."
 	   ((not (or (bufferp (car handle)) (stringp (car handle)))))
 	   ((equal (mm-handle-media-supertype handle) "multipart")
 	    (when (setq file (gnus-article-browse-html-save-cid-content
-			      cid handle directory))
+			      cid handle directory abs))
 	      (throw 'found file)))
 	   ((equal (concat "<" cid ">") (mm-handle-id handle))
-	    (setq file
-		  (expand-file-name
-		   (or (mm-handle-filename handle)
-		       (concat
-			(make-temp-name "cid")
-			(car (rassoc (car (mm-handle-type handle))
-				     mailcap-mime-extensions))))
-		   directory))
-	    (mm-save-part-to-file handle file)
-	    (throw 'found file))))))))
+	    (setq file (or (mm-handle-filename handle)
+			   (concat
+			    (make-temp-name "cid")
+			    (car (rassoc (car (mm-handle-type handle))
+					 mailcap-mime-extensions))))
+		  afile (expand-file-name file directory))
+	    (mm-save-part-to-file handle afile)
+	    (throw 'found (if abs
+			      afile
+			    (concat (file-name-nondirectory
+				     (directory-file-name directory))
+				    "/" file))))))))))
 
 (defun gnus-article-browse-html-parts (list &optional header)
   "View all \"text/html\" parts from LIST.
@@ -2854,8 +2857,13 @@ message header will be added to the bodies of the \"text/html\" parts."
 	       (insert content)
 	       ;; resolve cid contents
 	       (let ((case-fold-search t)
-		     cid-file)
+		     abs st cid-file)
 		 (goto-char (point-min))
+		 (when (re-search-forward "<head[\t\n >]" nil t)
+		   (setq st (match-end 0)
+			 abs (or
+			      (not (re-search-forward "</head[\t\n >]" nil t))
+			      (re-search-backward "<base[\t\n >]" st t))))
 		 (while (re-search-forward "\
 <img[\t\n ]+\\(?:[^\t\n >]+[\t\n ]+\\)*src=\"\\(cid:\\([^\"]+\\)\\)\""
 					   nil t)
@@ -2869,17 +2877,19 @@ message header will be added to the bodies of the \"text/html\" parts."
 				(match-string 2)
 				(with-current-buffer gnus-article-buffer
 				  gnus-article-mime-handles)
-				cid-dir))
-		     (when (eq system-type 'cygwin)
+				cid-dir abs))
+		     (when abs
 		       (setq cid-file
-			     (concat "/" (substring
+			     (if (eq system-type 'cygwin)
+				 (concat "file:///"
+					 (substring
 					  (with-output-to-string
 					    (call-process "cygpath" nil
 							  standard-output
 							  nil "-m" cid-file))
-					  0 -1))))
-		     (replace-match (concat "file://" cid-file)
-				    nil nil nil 1))))
+					  0 -1))
+			       (concat "file://" cid-file))))
+		     (replace-match cid-file nil nil nil 1))))
 	       (unless content (setq content (buffer-string))))
 	     (when (or charset header (not file))
 	       (setq tmp-file (mm-make-temp-file

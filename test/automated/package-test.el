@@ -419,13 +419,17 @@ Must called from within a `tar-mode' buffer."
       ;; Check if the installed package status is updated.
       (let ((buf (package-list-packages)))
 	(package-menu-refresh)
-	(should (re-search-forward "^\\s-+signed-good\\s-+1\\.0\\s-+installed"
-				   nil t)))
+	(should (re-search-forward
+		 "^\\s-+signed-good\\s-+\\(\\S-+\\)\\s-+\\(\\S-+\\)\\s-"
+		 nil t))
+	(should (string-equal (match-string-no-properties 1) "1.0"))
+	(should (string-equal (match-string-no-properties 2) "installed")))
       ;; Check if the package description is updated.
       (with-fake-help-buffer
        (describe-package 'signed-good)
        (goto-char (point-min))
-       (should (search-forward "signed-good is an installed package." nil t))
+       (should (re-search-forward "signed-good is an? \\(\\S-+\\) package." nil t))
+       (should (string-equal (match-string-no-properties 1) "installed"))
        (should (search-forward
 		"Status: Installed in `~/signed-good-1.0/'."
 		nil t))))))

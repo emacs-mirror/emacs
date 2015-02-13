@@ -4376,19 +4376,18 @@ Lisp_Object pending_funcalls;
 static bool
 decode_timer (Lisp_Object timer, struct timespec *result)
 {
-  Lisp_Object *vector;
+  Lisp_Object *vec;
 
   if (! (VECTORP (timer) && ASIZE (timer) == 9))
     return 0;
-  vector = XVECTOR (timer)->contents;
-  if (! NILP (vector[0]))
+  vec = XVECTOR (timer)->contents;
+  if (! NILP (vec[0]))
     return 0;
-  if (! INTEGERP (vector[2]))
+  if (! INTEGERP (vec[2]))
     return false;
 
   struct lisp_time t;
-  if (! decode_time_components (vector[1], vector[2], vector[3], vector[8],
-				&t, 0))
+  if (decode_time_components (vec[1], vec[2], vec[3], vec[8], &t, 0) <= 0)
     return false;
   *result = lisp_to_timespec (t);
   return timespec_valid_p (*result);
@@ -11727,7 +11726,7 @@ the previous echo area message.
 The input method function should refer to the variables
 `input-method-use-echo-area' and `input-method-exit-on-first-char'
 for guidance on what to do.  */);
-  Vinput_method_function = Qnil;
+  Vinput_method_function = Qlist;
 
   DEFVAR_LISP ("input-method-previous-message",
 	       Vinput_method_previous_message,

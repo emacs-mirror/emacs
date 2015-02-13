@@ -1928,7 +1928,22 @@ vmotion (register ptrdiff_t from, register ptrdiff_t from_byte,
 			 -1, hscroll, 0, w);
 }
 
-DEFUN ("vertical-motion", Fvertical_motion, Svertical_motion, 1, 2, 0,
+/* In window W (derived from WINDOW), return x coordinate for column
+   COL (derived from COLUMN).  */
+static int
+window_column_x (struct window *w, Lisp_Object window,
+		 double col, Lisp_Object column)
+{
+  double x = col * FRAME_COLUMN_WIDTH (XFRAME (w->frame)) + 0.5;
+
+  /* FIXME: Should this be limited to W's dimensions?  */
+  if (! (INT_MIN <= x && x <= INT_MAX))
+    args_out_of_range (window, column);
+
+  return x;
+}
+
+DEFUN ("vertical-motion", Fvertical_motion, Svertical_motion, 1, 3, 0,
        doc: /* Move point to start of the screen line LINES lines down.
 If LINES is negative, this means moving up.
 
@@ -1951,12 +1966,18 @@ is).  If the line is scrolled horizontally, COLS is interpreted
 visually, i.e., as addition to the columns of text beyond the left
 edge of the window.
 
+The optional third argument CUR-COL specifies the horizontal
+window-relative coordinate of point, in units of frame's canonical
+character width, where the function is invoked.  If this argument is
+omitted or nil, the function will determine the point coordinate by
+going back to the beginning of the line.
+
 `vertical-motion' always uses the current buffer,
 regardless of which buffer is displayed in WINDOW.
 This is consistent with other cursor motion functions
 and makes it possible to use `vertical-motion' in any buffer,
 whether or not it is currently displayed in some window.  */)
-  (Lisp_Object lines, Lisp_Object window)
+  (Lisp_Object lines, Lisp_Object window, Lisp_Object cur_col)
 {
   struct it it;
   struct text_pos pt;
@@ -1964,15 +1985,14 @@ whether or not it is currently displayed in some window.  */)
   Lisp_Object old_buffer;
   EMACS_INT old_charpos IF_LINT (= 0), old_bytepos IF_LINT (= 0);
   struct gcpro gcpro1;
-  Lisp_Object lcols = Qnil;
-  double cols IF_LINT (= 0);
+  Lisp_Object lcols;
   void *itdata = NULL;
 
   /* Allow LINES to be of the form (HPOS . VPOS) aka (COLUMNS . LINES).  */
-  if (CONSP (lines) && (NUMBERP (XCAR (lines))))
+  bool lcols_given = CONSP (lines);
+  if (lcols_given)
     {
       lcols = XCAR (lines);
-      cols = INTEGERP (lcols) ? (double) XINT (lcols) : XFLOAT_DATA (lcols);
       lines = XCDR (lines);
     }
 
@@ -2006,6 +2026,16 @@ whether or not it is currently displayed in some window.  */)
       bool disp_string_at_start_p = 0;
       ptrdiff_t nlines = XINT (lines);
       int vpos_init = 0;
+      double start_col;
+      int start_x IF_LINT (= 0);
+      int to_x = -1;
+
+      bool start_x_given = !NILP (cur_col);
+      if (start_x_given)
+	{
+	  start_col = extract_float (cur_col);
+	  start_x = window_column_x (w, window, start_col, cur_col);
+	}
 
       itdata = bidi_shelve_cache ();
       SET_TEXT_POS (pt, PT, PT_BYTE);
@@ -2042,11 +2072,19 @@ whether or not it is currently displayed in some window.  */)
 	it_overshoot_count =
 	  !(it.method == GET_FROM_IMAGE || it.method == GET_FROM_STRETCH);
 
-      /* Scan from the start of the line containing PT.  If we don't
-	 do this, we start moving with IT->current_x == 0, while PT is
-	 really at some x > 0.  */
-      reseat_at_previous_visible_line_start (&it);
-      it.current_x = it.hpos = 0;
+      if (start_x_given)
+	{
+	  it.hpos = start_col;
+	  it.current_x = start_x;
+	}
+      else
+	{
+	  /* Scan from the start of the line containing PT.  If we don't
+	     do this, we start moving with IT->current_x == 0, while PT is
+	     really at some x > 0.  */
+	  reseat_at_previous_visible_line_start (&it);
+	  it.current_x = it.hpos = 0;
+	}
       if (IT_CHARPOS (it) != PT)
 	/* We used to temporarily disable selective display here; the
 	   comment said this is "so we don't move too far" (2005-01-19
@@ -2108,12 +2146,15 @@ whether or not it is currently displayed in some window.  */)
 	     return the correct value to the caller.  */
 	  vpos_init = -1;
 	}
+      if (lcols_given)
+	to_x = window_column_x (w, window, extract_float (lcols), lcols);
       if (nlines <= 0)
 	{
 	  it.vpos = vpos_init;
 	  /* Do this even if LINES is 0, so that we move back to the
 	     beginning of the current line as we ought.  */
-	  if (nlines == 0 || IT_CHARPOS (it) > 0)
+	  if ((nlines < 0 && IT_CHARPOS (it) > 0)
+	      || (nlines == 0 && !(start_x_given && start_x <= to_x)))
 	    move_it_by_lines (&it, max (PTRDIFF_MIN, nlines));
 	}
       else if (overshoot_handled)
@@ -2152,12 +2193,8 @@ whether or not it is currently displayed in some window.  */)
       /* Move to the goal column, if one was specified.  If the window
 	 was originally hscrolled, the goal column is interpreted as
 	 an addition to the hscroll amount.  */
-      if (!NILP (lcols))
-	{
-	  int to_x = (int)(cols * FRAME_COLUMN_WIDTH (XFRAME (w->frame)) + 0.5);
-
-	  move_it_in_display_line (&it, ZV, first_x + to_x, MOVE_TO_X);
-	}
+      if (lcols_given)
+	move_it_in_display_line (&it, ZV, first_x + to_x, MOVE_TO_X);
 
       SET_PT_BOTH (IT_CHARPOS (it), IT_BYTEPOS (it));
       bidi_unshelve_cache (itdata, 0);

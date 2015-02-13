@@ -1,3 +1,13 @@
+2015-02-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Better support for future plugins
+	See the thread containing:
+	http://lists.gnu.org/archive/html/emacs-devel/2015-02/msg00720.html
+	* make-docfile.c (write_globals): Generate code that #defines
+	Qxxx macros other than Qnil only if DEFINE_NONNIL_Q_SYMBOL_MACROS.
+	Qnil is safe to define even in plugins, since it must be zero for
+	other reasons.
+
 2015-01-24  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix a couple of AM_V_GEN bugs

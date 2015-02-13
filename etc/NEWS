@@ -275,6 +275,14 @@ useful when, for example, one needs to distinguish various spaces (e.g. ] [,
 
 ** eww
 
+---
+*** HTML can now be rendered using variable-width fonts.
+
++++
+*** A new command `F' (`eww-toggle-fonts') can be used to toggle
+whether to use variable-pitch fonts or not.  The user can also
+customize the `shr-use-fonts' variable.
+
 +++
 *** A new command `R' (`eww-readable') will try do identify the main
 textual parts of a web page and display only that, leaving menus and

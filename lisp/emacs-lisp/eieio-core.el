@@ -1010,6 +1010,8 @@ Fills in the default value in CLASS' in SLOT with VALUE."
           (signal 'invalid-slot-name (list (eieio--class-symbol class) slot)))
       (eieio--validate-slot-value class c value slot)
       ;; Set this into the storage for defaults.
+      (if (eieio-eval-default-p value)
+          (error "Can't set default to a sexp that gets evaluated again"))
       (setcar (nthcdr (- c (eval-when-compile eieio--object-num-slots))
                       (eieio--class-public-d class))
               value)

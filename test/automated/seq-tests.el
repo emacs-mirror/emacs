@@ -216,10 +216,17 @@ Evaluate BODY for each created sequence.
   (should (equal (seq-partition '(1 2 3) -1) '())))
 
 (ert-deftest test-seq-group-by ()
-  (should (equal (seq-group-by #'test-sequences-oddp [1 2 3 4])
-                 '((t 3 1) (nil 4 2))))
+  (with-test-sequences (seq '(1 2 3 4))
+   (should (equal (seq-group-by #'test-sequences-oddp seq)
+                  '((t 1 3) (nil 2 4)))))
   (should (equal (seq-group-by #'car '((a 1) (b 3) (c 4) (a 2)))
-                 '((a (a 2) (a 1)) (b (b 3)) (c (c 4))))))
+                 '((b (b 3)) (c (c 4)) (a (a 1) (a 2))))))
+
+(ert-deftest test-seq-reverse ()
+  (with-test-sequences (seq '(1 2 3 4))
+    (should (same-contents-p (seq-reverse seq) '(4 3 2 1)))
+    (should (equal (type-of (seq-reverse seq))
+                   (type-of seq)))))
 
 (provide 'seq-tests)
 ;;; seq-tests.el ends here

@@ -2136,7 +2136,6 @@ font_score (Lisp_Object entity, Lisp_Object *spec_prop)
       }
 
   /* Score the size.  Maximum difference is 127.  */
-  i = FONT_SIZE_INDEX;
   if (! NILP (spec_prop[FONT_SIZE_INDEX])
       && XINT (AREF (entity, FONT_SIZE_INDEX)) > 0)
     {

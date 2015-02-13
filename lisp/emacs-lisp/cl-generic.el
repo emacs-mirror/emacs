@@ -243,8 +243,6 @@ This macro can only be used within the lexical scope of a cl-generic method."
     "Make the lambda expression for a method with ARGS and BODY."
     (let ((plain-args ())
           (specializers nil)
-          (doc-string (if (and (stringp (car-safe body)) (cdr body))
-                          (pop body)))
           (mandatory t))
       (dolist (arg args)
         (push (pcase arg
@@ -255,9 +253,7 @@ This macro can only be used within the lexical scope of a cl-generic method."
                 (_ arg))
               plain-args))
       (setq plain-args (nreverse plain-args))
-      (let ((fun `(cl-function (lambda ,plain-args
-                                 ,@(if doc-string (list doc-string))
-                                 ,@body)))
+      (let ((fun `(cl-function (lambda ,plain-args ,@body)))
             (macroenv (cons `(cl-generic-current-method-specializers
                               . ,(lambda () specializers))
                             macroexpand-all-environment)))
@@ -266,14 +262,13 @@ This macro can only be used within the lexical scope of a cl-generic method."
         ;; destructuring args, `declare' and whatnot).
         (pcase (macroexpand fun macroenv)
           (`#'(lambda ,args . ,body)
-           (let* ((doc-string (and doc-string (stringp (car body)) (cdr body)
-                                   (pop body)))
+           (let* ((parsed-body (macroexp-parse-body body))
                   (cnm (make-symbol "cl--cnm"))
                   (nmp (make-symbol "cl--nmp"))
                   (nbody (macroexpand-all
                           `(cl-flet ((cl-call-next-method ,cnm)
                                      (cl-next-method-p ,nmp))
-                             ,@body)
+                             ,@(cdr parsed-body))
                           macroenv))
                   ;; FIXME: Rather than `grep' after the fact, the
                   ;; macroexpansion should directly set some flag when cnm
@@ -283,7 +278,7 @@ This macro can only be used within the lexical scope of a cl-generic method."
                   (uses-cnm (cl--generic-fgrep (list cnm nmp) nbody)))
              (cons (not (not uses-cnm))
                    `#'(lambda (,@(if uses-cnm (list cnm)) ,@args)
-                        ,@(if doc-string (list doc-string))
+                        ,@(delq nil (car parsed-body))
                         ,(if (not (memq nmp uses-cnm))
                              nbody
                            `(let ((,nmp (lambda ()

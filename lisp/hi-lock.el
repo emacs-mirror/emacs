@@ -596,7 +596,12 @@ then remove all hi-lock highlighting."
         ;; Make `face' the next one to use by default.
         (when (symbolp face)          ;Don't add it if it's a list (bug#13297).
           (add-to-list 'hi-lock--unused-faces (face-name face))))
-      (font-lock-remove-keywords nil (list keyword))
+      ;; FIXME: Calling `font-lock-remove-keywords' causes
+      ;; `font-lock-specified-p' to go from nil to non-nil (because it
+      ;; calls font-lock-set-defaults).  This is yet-another bug in
+      ;; font-lock-add/remove-keywords, which we circumvent here by
+      ;; testing `font-lock-fontified' (bug#19737).
+      (if font-lock-fontified (font-lock-remove-keywords nil (list keyword)))
       (setq hi-lock-interactive-patterns
             (delq keyword hi-lock-interactive-patterns))
       (remove-overlays

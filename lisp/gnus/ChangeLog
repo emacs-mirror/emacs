@@ -1,3 +1,40 @@
+2015-02-13  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-msg.el (gnus-msg-mail): Don't let-bind `gnus-newsgroup-name' so
+	that we don't get a warning when setting the buffer-local variable
+	(bug#19573).
+
+	* nnmail.el (nnmail-expiry-target-group): Supply the info structure to
+	`gnus-request-group'.
+
+2015-02-12  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-browse-html-save-cid-content)
+	(gnus-article-browse-html-parts): Make cid file names relative if and
+	only if html doesn't specify <base> directory.
+
+2015-02-11  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-art.el (gnus-treat-buttonize): Don't re-buttonize URLs in HTML
+	parts, because that breaks filling (since buttons are in a bold face).
+
+2015-02-10  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-decode.el (mm-convert-shr-links): Delete useless variable `face';
+	use gnus-overlays-at and gnus-overlay-put.
+
+2015-02-10  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* mm-decode.el (mm-shr): Only pass the fill column when not using
+	fonts, because limiting the width to what's appropriate for followups
+	doesn't really help when not using proportional fonts.
+
+2015-02-09  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* mm-decode.el (mm-convert-shr-links): Don't overwrite the faces from
+	shr, beacause that breaks folding.
+	(mm-shr): Don't shorten the width when using fonts.
+
 2015-02-05  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* gnus-start.el (gnus-save-newsrc-file-check-timestamp): Remove

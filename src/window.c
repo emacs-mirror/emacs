@@ -5356,14 +5356,14 @@ window_scroll_line_based (Lisp_Object window, int n, bool whole, int noerror)
 
   if (NILP (tem))
     {
-      Fvertical_motion (make_number (- (ht / 2)), window);
+      Fvertical_motion (make_number (- (ht / 2)), window, Qnil);
       startpos = PT;
       startbyte = PT_BYTE;
     }
 
   SET_PT_BOTH (startpos, startbyte);
   lose = n < 0 && PT == BEGV;
-  Fvertical_motion (make_number (n), window);
+  Fvertical_motion (make_number (n), window, Qnil);
   pos = PT;
   pos_byte = PT_BYTE;
   bolp = Fbolp ();
@@ -5395,7 +5395,7 @@ window_scroll_line_based (Lisp_Object window, int n, bool whole, int noerror)
 	  && (whole || !EQ (Vscroll_preserve_screen_position, Qt)))
 	{
 	  SET_PT_BOTH (pos, pos_byte);
-	  Fvertical_motion (original_pos, window);
+	  Fvertical_motion (original_pos, window, Qnil);
 	}
       /* If we scrolled forward, put point enough lines down
 	 that it is outside the scroll margin.  */
@@ -5406,7 +5406,7 @@ window_scroll_line_based (Lisp_Object window, int n, bool whole, int noerror)
 	  if (this_scroll_margin > 0)
 	    {
 	      SET_PT_BOTH (pos, pos_byte);
-	      Fvertical_motion (make_number (this_scroll_margin), window);
+	      Fvertical_motion (make_number (this_scroll_margin), window, Qnil);
 	      top_margin = PT;
 	    }
 	  else
@@ -5418,7 +5418,7 @@ window_scroll_line_based (Lisp_Object window, int n, bool whole, int noerror)
 	  else if (!NILP (Vscroll_preserve_screen_position))
 	    {
 	      SET_PT_BOTH (pos, pos_byte);
-	      Fvertical_motion (original_pos, window);
+	      Fvertical_motion (original_pos, window, Qnil);
 	    }
 	  else
 	    SET_PT (top_margin);
@@ -5430,7 +5430,8 @@ window_scroll_line_based (Lisp_Object window, int n, bool whole, int noerror)
 	  /* If we scrolled backward, put point near the end of the window
 	     but not within the scroll margin.  */
 	  SET_PT_BOTH (pos, pos_byte);
-	  tem = Fvertical_motion (make_number (ht - this_scroll_margin), window);
+	  tem = Fvertical_motion (make_number (ht - this_scroll_margin), window,
+				  Qnil);
 	  if (XFASTINT (tem) == ht - this_scroll_margin)
 	    bottom_margin = PT;
 	  else
@@ -5444,10 +5445,10 @@ window_scroll_line_based (Lisp_Object window, int n, bool whole, int noerror)
 	      if (!NILP (Vscroll_preserve_screen_position))
 		{
 		  SET_PT_BOTH (pos, pos_byte);
-		  Fvertical_motion (original_pos, window);
+		  Fvertical_motion (original_pos, window, Qnil);
 		}
 	      else
-		Fvertical_motion (make_number (-1), window);
+		Fvertical_motion (make_number (-1), window, Qnil);
 	    }
 	}
     }
@@ -6005,7 +6006,7 @@ zero means top of window, negative means relative to bottom of window.  */)
   if (start < BEGV || start > ZV)
     {
       int height = window_internal_height (w);
-      Fvertical_motion (make_number (- (height / 2)), window);
+      Fvertical_motion (make_number (- (height / 2)), window, Qnil);
       set_marker_both (w->start, w->contents, PT, PT_BYTE);
       w->start_at_line_beg = !NILP (Fbolp ());
       w->force_start = 1;
@@ -6046,7 +6047,7 @@ zero means top of window, negative means relative to bottom of window.  */)
   if (w->vscroll)
     XSETINT (arg, XINT (arg) + 1);
 
-  return Fvertical_motion (arg, window);
+  return Fvertical_motion (arg, window, Qnil);
 }
 
 

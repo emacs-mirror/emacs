@@ -1629,9 +1629,19 @@ this trigger is subscribed to `gdb-buf-publisher' and called with
   :syntax-table nil :abbrev-table nil
   (make-comint-in-buffer "gdb-inferior" (current-buffer) nil))
 
+(defcustom gdb-display-io-nopopup nil
+  "When non-nil, and the 'gdb-inferior-io buffer is buried, don't pop it up."
+  :type 'boolean
+  :group 'gdb
+  :version "25.1")
+
 (defun gdb-inferior-filter (proc string)
   (unless (string-equal string "")
-    (gdb-display-buffer (gdb-get-buffer-create 'gdb-inferior-io)))
+    (let (buf)
+      (unless (and gdb-display-io-nopopup
+                   (setq buf (gdb-get-buffer 'gdb-inferior-io))
+                   (null (get-buffer-window buf)))
+        (gdb-display-buffer (gdb-get-buffer-create 'gdb-inferior-io)))))
   (with-current-buffer (gdb-get-buffer-create 'gdb-inferior-io)
     (comint-output-filter proc string)))
 

@@ -1874,57 +1874,56 @@ terminals, cursor blinking is controlled by the terminal."
 ;; Frame maximization/fullscreen
 
 (defun toggle-frame-maximized ()
-  "Toggle maximization state of the selected frame.
-Maximize the selected frame or un-maximize if it is already maximized.
-Respect window manager screen decorations.
-If the frame is in fullscreen mode, don't change its mode,
-just toggle the temporary frame parameter `maximized',
-so the frame will go to the right maximization state
-after disabling fullscreen mode.
+  "Toggle maximization state of selected frame.
+Maximize selected frame or un-maximize if it is already maximized.
+
+If the frame is in fullscreen state, don't change its state, but
+set the frame's `fullscreen-restore' parameter to `maximized', so
+the frame will be maximized after disabling fullscreen state.
 
 Note that with some window managers you may have to set
 `frame-resize-pixelwise' to non-nil in order to make a frame
-appear truly maximized.
+appear truly maximized.  In addition, you may have to set
+`x-frame-normalize-before-maximize' in order to enable
+transitions from one fullscreen state to another.
 
 See also `toggle-frame-fullscreen'."
   (interactive)
-  (if (memq (frame-parameter nil 'fullscreen) '(fullscreen fullboth))
-      (modify-frame-parameters
-       nil
-       `((maximized
-	  . ,(unless (eq (frame-parameter nil 'maximized) 'maximized)
-	       'maximized))))
-    (modify-frame-parameters
-     nil
-     `((fullscreen
-	. ,(unless (eq (frame-parameter nil 'fullscreen) 'maximized)
-	     'maximized))))))
+  (let ((fullscreen (frame-parameter nil 'fullscreen)))
+    (cond
+     ((memq fullscreen '(fullscreen fullboth))
+      (set-frame-parameter nil 'fullscreen-restore 'maximized))
+     ((eq fullscreen 'maximized)
+      (set-frame-parameter nil 'fullscreen nil))
+     (t
+      (set-frame-parameter nil 'fullscreen 'maximized)))))
 
 (defun toggle-frame-fullscreen ()
-  "Toggle fullscreen mode of the selected frame.
-Enable fullscreen mode of the selected frame or disable if it is
-already fullscreen.  Ignore window manager screen decorations.
-When turning on fullscreen mode, remember the previous value of the
-maximization state in the temporary frame parameter `maximized'.
-Restore the maximization state when turning off fullscreen mode.
+  "Toggle fullscreen state of selected frame.
+Make selected frame fullscreen or restore its previous size if it
+is already fullscreen.
+
+Before making the frame fullscreen remember the current value of
+the frame's `fullscreen' parameter in the `fullscreen-restore'
+parameter of the frame.  That value is used to restore the
+frame's fullscreen state when toggling fullscreen the next time.
 
 Note that with some window managers you may have to set
 `frame-resize-pixelwise' to non-nil in order to make a frame
-appear truly fullscreen.
+appear truly fullscreen.  In addition, you may have to set
+`x-frame-normalize-before-maximize' in order to enable
+transitions from one fullscreen state to another.
 
 See also `toggle-frame-maximized'."
   (interactive)
-  (modify-frame-parameters
-   nil
-   `((maximized
-      . ,(unless (memq (frame-parameter nil 'fullscreen) '(fullscreen fullboth))
-	   (frame-parameter nil 'fullscreen)))
-     (fullscreen
-      . ,(if (memq (frame-parameter nil 'fullscreen) '(fullscreen fullboth))
-	     (if (eq (frame-parameter nil 'maximized) 'maximized)
-		 'maximized)
-	   'fullscreen)))))
-
+  (let ((fullscreen (frame-parameter nil 'fullscreen)))
+    (if (memq fullscreen '(fullscreen fullboth))
+	(let ((fullscreen-restore (frame-parameter nil 'fullscreen-restore)))
+	  (if (memq fullscreen-restore '(maximized fullheight fullwidth))
+	      (set-frame-parameter nil 'fullscreen fullscreen-restore)
+	    (set-frame-parameter nil 'fullscreen nil)))
+      (modify-frame-parameters
+       nil `((fullscreen . fullboth) (fullscreen-restore . ,fullscreen))))))
 
 ;;;; Key bindings
 

@@ -1,3 +1,175 @@
+2015-02-13  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* net/rfc2104.el: Moved here from lisp/gnus.
+
+2015-02-13  Magnus Henoch  <magnus.henoch@gmail.com>
+
+	* net/sasl-scram-rfc.el: New file.
+
+	* net/sasl.el (sasl-mechanisms): Remove SCRAM-MD5.  Add
+	SCRAM-SHA-1 first.
+	(sasl-mechanism-alist): Remove SCRAM-MD5 entry.  Add SCRAM-SHA-1
+	entry (bug#17636).
+
+2015-02-13  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* net/shr.el (shr-tag-li): Speed up rendering pages with lots of
+	<ul>.
+
+2015-02-12  Oleh Krehel  <ohwoeowho@gmail.com>
+
+	* progmodes/gdb-mi.el (gdb-display-io-nopopup): New defcustom.
+	(gdb-inferior-filter): Don't pop up the buried output buffer when
+	`gdb-display-io-nopopup' is non-nil.
+
+2015-02-12  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	python.el: Allow killing shell buffer if process is dead.  (Bug#19823)
+
+	* progmodes/python.el (python-shell-font-lock-kill-buffer): Don't
+	require a running process.
+	(python-shell-font-lock-post-command-hook): Fontify only if the
+	shell process is running.
+
+2015-02-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* hi-lock.el (hi-lock-unface-buffer): Don't call
+	font-lock-remove-keywords if not needed (bug#19737).
+
+2015-02-11  Artur Malabarba  <bruce.connor.am@gmail.com>
+
+	* emacs-lisp/package.el (package-install): Invert the second
+	argument, for better backwards compatibility.
+	(package-install-button-action, package-reinstall)
+	(package-menu-execute): Account for the change.
+
+2015-02-11  Nicolas Petton <nicolas@petton.fr>
+
+	* emacs-lisp/seq.el (seq-reverse): Add a backward-compatible
+	version of seq-reverse that works on sequences in Emacs 24.
+	Bump seq.el version to 1.2.
+
+2015-02-11  Artur Malabarba  <bruce.connor.am@gmail.com>
+
+	* emacs-lisp/package.el (package--incompatible-p): New function.
+	Return non-nil if PKG has no chance of being installable.
+	(package--emacs-version-list): New variable.
+	(describe-package-1, package-desc-status)
+	(package-menu--print-info, package-menu--status-predicate):
+	Account for the "incompat" status.
+
+2015-02-11  Martin Rudalics  <rudalics@gmx.at>
+
+	* frame.el (toggle-frame-maximized, toggle-frame-fullscreen):
+	Rename frame parameter `maximized' to `fullscreen-restore'.
+	Restore fullwidth/-height after fullboth state.  Update doc-strings.
+
+2015-02-11  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* net/shr.el (shr-insert): Make sure the space inserted has the
+	right font (for width).
+	(shr-fill-line): Preserve background colours when indenting/folding.
+	(shr-ensure-paragraph): Don't insert a new paragraph as the first
+	item in a <li>.
+
+2015-02-10  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* net/shr.el (shr-use-fonts): New variable.
+	(shr-fill-text): Rename from "fold".
+	(shr-pixel-column, shr-pixel-region, shr-string-pixel-width):
+	New functions.
+	(shr-insert): Just insert, don't fill the text.  Filling is now
+	done afterwards per display unit.
+	(shr-fill-lines, shr-fill-line): New functions to fill text on a
+	per-unit base.
+	(shr-find-fill-point): Take a "beginning" parameter.
+	(shr-indent): Indent using the :width display parameter when using
+	fonts.
+	(shr-parse-style): Ignore "inherit" values, since we already do that.
+	(shr-tag-img): Remove the insertion states.
+	(shr-tag-blockquote): New-style filling.
+	(shr-tag-dd): Ditto.
+	(shr-tag-li): Ditto.
+	(shr-mark-fill): New function to mark lines that need filling.
+	(shr-tag-h1): Use a larger font.
+	(shr-tag-table-1): Get the natural and suggested widths in one
+	rendering.
+	(shr-tag-table): Create the "fixed" version of the table only once
+	so that we can cache data in the table.
+	(shr-insert-table): Get colspan calculations right by having
+	zero-width columns after colspan ones.
+	(shr-expand-alignments): New function to make :align-to specs work
+	right when rendered in one buffer and displayed in another one.
+	(shr-insert-table-ruler): Use :align-to to get the widths right.
+	(shr-make-table): Cache more.
+	(shr-make-table-1): Use the new <td> data layout.
+	(shr-pixel-buffer-width): New function.
+	(shr-render-td): Add a caching layer.
+	(shr-dom-max-natural-width): New function.
+	(shr-tag-h1): Don't use variable-pitch fonts on fontless rendering.
+	(shr-tag-tt): New function.
+	(shr-tag-hr): Compute the right length when using fonts.
+	(shr-table-widths): Off-by-one error in width computation.
+	(shr-expand-newlines): Remove dead code.
+	(shr-insert-table): Extend background colors to the end of the column.
+	(shr-insert-table): Only copy the background, not underline and
+	the like.
+	(shr-face-background): New function.
+
+2015-02-10  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	python.el: Improved shell font lock respecting markers.  (Bug#19650)
+
+	* progmodes/python.el
+	(python-shell-font-lock-get-or-create-buffer): Use special buffer name.
+	(python-shell-font-lock-with-font-lock-buffer): Enable font lock.
+	(python-shell-font-lock-post-command-hook): Fontify by copying text
+	properties from fontified buffer to shell, keeping markers unchanged.
+	(python-shell-font-lock-turn-off): Fix typo.
+	(python-util-text-properties-replace-name): Delete function.
+
+2015-02-09  Nicolas Petton <nicolas@petton.fr>
+
+	* emacs-lisp/seq.el (seq-group-by): Improves seq-group-by to
+	return sequence elements in correct order.
+
+2015-02-09  Simen Heggestøyl  <simenheg@gmail.com>  (tiny change)
+
+	* textmodes/css-mode.el (css-smie-rules): Fix paren indent (bug#19815).
+
+2015-02-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl-generic.el (cl--generic-lambda): Use macroexp-parse-body.
+
+	* emacs-lisp/eieio-core.el (eieio-oset-default): Catch the unexpected
+	case where the default value would be re-interpreted as a form!
+
+2015-02-09  Christopher Genovese  <genovese@cmu.edu>  (tiny change)
+
+	* help-fns.el (help-fns--signature): Keep doc for keymap.
+
+2015-02-09  Kelly Dean  <kelly@prtime.org>
+
+	* desktop.el: Save mark-ring less verbosely.
+	(desktop-var-serdes-funs): New var.
+	(desktop-buffer-info, desktop-create-buffer): Use it.
+	(desktop-file-version): Update to 208.
+
+2015-02-09  Leo Liu  <sdl.web@gmail.com>
+
+	* emacs-lisp/pcase.el (pcase-lambda): New Macro.  (Bug#19814)
+
+	* emacs-lisp/lisp-mode.el (el-kws-re): Include `pcase-lambda'.
+
+	* emacs-lisp/macroexp.el (macroexp-parse-body): New function.
+
+2015-02-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port to platforms lacking test -a and -o
+	* Makefile.in (compile-clean):
+	* net/tramp-sh.el (tramp-find-executable):
+	Prefer '&&' and '||' to 'test -a' and 'test -o'.
+
 2015-02-08  Artur Malabarba  <bruce.connor.am@gmail.com>
 
 	* newcomment.el (comment-line): Fix missing paren.

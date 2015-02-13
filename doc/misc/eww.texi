@@ -103,6 +103,12 @@ web page hit @kbd{g} (@code{eww-reload}).  Pressing @kbd{w}
 which part of the document contains the ``readable'' text, and will
 only display this part.  This usually gets rid of menus and the like.
 
+@findex eww-toggle-fonts
+@findex shr-use-fonts
+@kindex F
+  The @kbd{F} command (@code{eww-toggle-fonts}) toggles whether to use
+variable-pitch fonts or not.  This sets the @code{shr-use-fonts} variable.
+
 @findex eww-download
 @vindex eww-download-directory
 @kindex d

@@ -3555,7 +3555,7 @@ frame or window as an Elisp object.
 
 *** New variable `completion-extra-properties' used to specify extra
 properties of the current completion:
-- :annotate-function, same as the old completion-annotate-function.
+- :annotation-function, same as the old completion-annotate-function.
 - :exit-function, function to call after completion took place.
 
 *** Functions on `completion-at-point-functions' can return any of the

@@ -2297,16 +2297,15 @@ Signals an error if no shell buffer is available for current buffer."
       (let ((process-name
              (process-name (get-buffer-process (current-buffer)))))
         (generate-new-buffer
-         (format "*%s-font-lock*" process-name))))))
+         (format " *%s-font-lock*" process-name))))))
 
 (defun python-shell-font-lock-kill-buffer ()
   "Kill the font-lock buffer safely."
-  (python-shell-with-shell-buffer
-    (when (and python-shell--font-lock-buffer
-               (buffer-live-p python-shell--font-lock-buffer))
-      (kill-buffer python-shell--font-lock-buffer)
-      (when (derived-mode-p 'inferior-python-mode)
-        (setq python-shell--font-lock-buffer nil)))))
+  (when (and python-shell--font-lock-buffer
+             (buffer-live-p python-shell--font-lock-buffer))
+    (kill-buffer python-shell--font-lock-buffer)
+    (when (derived-mode-p 'inferior-python-mode)
+      (setq python-shell--font-lock-buffer nil))))
 
 (defmacro python-shell-font-lock-with-font-lock-buffer (&rest body)
   "Execute the forms in BODY in the font-lock buffer.
@@ -2320,6 +2319,8 @@ also `with-current-buffer'."
          (setq python-shell--font-lock-buffer
                (python-shell-font-lock-get-or-create-buffer)))
        (set-buffer python-shell--font-lock-buffer)
+       (when (not font-lock-mode)
+         (font-lock-mode 1))
        (set (make-local-variable 'delay-mode-hooks) t)
        (let ((python-indent-guess-indent-offset nil))
          (when (not (derived-mode-p 'python-mode))
@@ -2354,36 +2355,44 @@ goes wrong and syntax highlighting in the shell gets messed up."
 
 (defun python-shell-font-lock-post-command-hook ()
   "Fontifies current line in shell buffer."
-  (when (and (python-util-comint-last-prompt)
-             (> (point) (cdr (python-util-comint-last-prompt))))
-    (let ((input (buffer-substring-no-properties
-                  (cdr (python-util-comint-last-prompt)) (point-max)))
-          (pos (point))
-          (buffer-undo-list t)
-          (font-lock-buffer-pos nil))
-      ;; Keep all markers untouched, this prevents `hippie-expand' and
-      ;; others from getting confused.  Bug#19650.
-      (insert-before-markers
-       (python-shell-font-lock-with-font-lock-buffer
-	 (delete-region (line-beginning-position)
-                        (point-max))
-         (setq font-lock-buffer-pos (point))
-         (insert input)
-	 ;; Ensure buffer is fontified, keeping it
-	 ;; compatible with Emacs < 24.4.
-	 (if (fboundp 'font-lock-ensure)
-	     (funcall 'font-lock-ensure)
-	   (font-lock-default-fontify-buffer))
-	 ;; Replace FACE text properties with FONT-LOCK-FACE so
-	 ;; they are not overwritten by comint buffer's font lock.
-	 (python-util-text-properties-replace-name
-	  'face 'font-lock-face)
-	 (buffer-substring font-lock-buffer-pos
-                           (point-max))))
-      ;; Remove non-fontified original text.
-      (delete-region pos (cdr (python-util-comint-last-prompt)))
-      ;; Point should be already at pos, this is for extra safety.
-      (goto-char pos))))
+  (let ((prompt-end (cdr (python-util-comint-last-prompt))))
+    (when (and prompt-end (> (point) prompt-end)
+               (process-live-p (get-buffer-process (current-buffer))))
+      (let* ((input (buffer-substring-no-properties
+                     prompt-end (point-max)))
+             (start-pos prompt-end)
+             (buffer-undo-list t)
+             (font-lock-buffer-pos nil)
+             (replacement
+              (python-shell-font-lock-with-font-lock-buffer
+                (delete-region (line-beginning-position)
+                               (point-max))
+                (setq font-lock-buffer-pos (point))
+                (insert input)
+                ;; Ensure buffer is fontified, keeping it
+                ;; compatible with Emacs < 24.4.
+                (if (fboundp 'font-lock-ensure)
+                    (funcall 'font-lock-ensure)
+                  (font-lock-default-fontify-buffer))
+                (buffer-substring font-lock-buffer-pos
+                                  (point-max))))
+             (replacement-length (length replacement))
+             (i 0))
+        ;; Inject text properties to get input fontified.
+        (while (not (= i replacement-length))
+          (let* ((plist (text-properties-at i replacement))
+                 (next-change (or (next-property-change i replacement)
+                                  replacement-length))
+                 (plist (let ((face (plist-get plist 'face)))
+                          (if (not face)
+                              plist
+                            ;; Replace FACE text properties with
+                            ;; FONT-LOCK-FACE so input is fontified.
+                            (plist-put plist 'face nil)
+                            (plist-put plist 'font-lock-face face)))))
+            (set-text-properties
+             (+ start-pos i) (+ start-pos next-change) plist)
+            (setq i next-change)))))))
 
 (defun python-shell-font-lock-turn-on (&optional msg)
   "Turn on shell font-lock.
@@ -2416,7 +2425,7 @@ With argument MSG show deactivation message."
        '(face nil font-lock-face nil)))
     (set (make-local-variable 'python-shell--font-lock-buffer) nil)
     (remove-hook 'post-command-hook
-                 #'python-shell-font-lock-post-command-hook'local)
+                 #'python-shell-font-lock-post-command-hook 'local)
     (remove-hook 'kill-buffer-hook
                  #'python-shell-font-lock-kill-buffer 'local)
     (remove-hook 'comint-output-filter-functions
@@ -4606,23 +4615,6 @@ returned as is."
               n (1- n)))
       (reverse acc))))
 
-(defun python-util-text-properties-replace-name
-  (from to &optional start end)
-  "Replace properties named FROM to TO, keeping its value.
-Arguments START and END narrow the buffer region to work on."
-  (save-excursion
-    (goto-char (or start (point-min)))
-    (while (not (eobp))
-      (let ((plist (text-properties-at (point)))
-            (next-change (or (next-property-change (point) (current-buffer))
-                             (or end (point-max)))))
-        (when (plist-get plist from)
-          (let* ((face (plist-get plist from))
-                 (plist (plist-put plist from nil))
-                 (plist (plist-put plist to face)))
-            (set-text-properties (point) next-change plist (current-buffer))))
-        (goto-char next-change)))))
-
 (defun python-util-strip-string (string)
   "Strip STRING whitespace and newlines from end and beginning."
   (replace-regexp-in-string
@@ -4717,8 +4709,8 @@ Arguments START and END narrow the buffer region to work on."
 
   (if (null eldoc-documentation-function)
       ;; Emacs<25
-      (setq (make-local-variable 'eldoc-documentation-function)
-            #'python-eldoc-function)
+      (set (make-local-variable 'eldoc-documentation-function)
+           #'python-eldoc-function)
     (add-function :before-until (local 'eldoc-documentation-function)
                   #'python-eldoc-function))
 

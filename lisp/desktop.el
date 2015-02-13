@@ -136,7 +136,7 @@
 (require 'cl-lib)
 (require 'frameset)
 
-(defvar desktop-file-version "206"
+(defvar desktop-file-version "208"
   "Version number of desktop file format.
 Written into the desktop file and used at desktop read to provide
 backward compatibility.")
@@ -629,6 +629,18 @@ Only valid during frame saving & restoring; intended for internal use.")
   "When the desktop file was last modified to the knowledge of this Emacs.
 Used to detect desktop file conflicts.")
 
+(defvar desktop-var-serdes-funs
+  (list (list
+	 'mark-ring
+	 (lambda (mr)
+	   (mapcar #'marker-position mr))
+	 (lambda (mr)
+	   (mapcar #'copy-marker mr))))
+  "Table of serialization/deserialization functions for variables.
+Each record is a list of form: (var serializer deserializer).
+These records can be freely reordered, deleted, or new ones added.
+However, for compatibility, don't modify the functions for existing records.")
+
 (defun desktop-owner (&optional dirname)
   "Return the PID of the Emacs process that owns the desktop file in DIRNAME.
 Return nil if no desktop file found or no Emacs process is using it.
@@ -780,7 +792,12 @@ is nil, ask the user where to save the desktop."
 		(push here ll))
 	       ((member local loclist)
 		(push local ll)))))
-     ll)))
+     ll)
+   (mapcar (lambda (record)
+	     (let ((var (car record)))
+	       (list var
+		     (funcall (cadr record) (symbol-value var)))))
+	   desktop-var-serdes-funs)))
 
 ;; ----------------------------------------------------------------------------
 (defun desktop--v2s (value)
@@ -1336,7 +1353,9 @@ after that many seconds of idle time."
      buffer-readonly
      buffer-misc
      &optional
-     buffer-locals)
+     buffer-locals
+     compacted-vars
+     &rest _unsupported)
 
   (let ((desktop-file-version	    file-version)
 	(desktop-buffer-file-name   buffer-filename)
@@ -1426,7 +1445,14 @@ after that many seconds of idle time."
 		  (set (car this) (cdr this)))
 	      ;; An entry of the form `symbol'.
 	      (make-local-variable this)
-	      (makunbound this))))))))
+	      (makunbound this)))
+	  (unless (< desktop-file-version 208) ; Don't misinterpret any old custom args
+	    (dolist (record compacted-vars)
+	      (let*
+		  ((var (car record))
+		   (deser-fun (cl-caddr (assq var desktop-var-serdes-funs))))
+		(if deser-fun (set var (funcall deser-fun (cadr record))))))))
+	result))))
 
 ;; ----------------------------------------------------------------------------
 ;; Backward compatibility -- update parameters to 205 standards.

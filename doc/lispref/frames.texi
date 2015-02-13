@@ -701,6 +701,7 @@ parameters represent the user's stated preference; otherwise, use
 @code{nil}.
 @end table
 
+
 @node Size Parameters
 @subsubsection Size Parameters
 @cindex window size on display
@@ -731,21 +732,51 @@ user-position}) does for the position parameters @code{top} and
 @vindex fullscreen, a frame parameter
 @item fullscreen
 Specify that width, height or both shall be maximized.  The value
-@code{fullwidth} specifies that width shall be as wide as possible.
-The value @code{fullheight} specifies that height shall be as tall as
+@code{fullwidth} specifies that width shall be as wide as possible.  The
+value @code{fullheight} specifies that height shall be as tall as
 possible.  The value @code{fullboth} specifies that both the width and
 the height shall be set to the size of the screen.  The value
-@code{maximized} specifies that the frame shall be maximized.  The
-difference between @code{maximized} and @code{fullboth} is that the
-former can still be resized by dragging window manager decorations
-with the mouse, while the latter really covers the whole screen and
-does not allow resizing by mouse dragging.
+@code{maximized} specifies that the frame shall be maximized.
+
+The difference between @code{maximized} and @code{fullboth} is that a
+maximized frame usually keeps its title bar and the buttons for resizing
+and closing the frame.  Also, maximized frames typically avoid hiding
+any task bar or panels displayed on the desktop.  ``Fullboth'' frames,
+on the other hand, usually omit the title bar and occupy the entire
+available screen space.
+
+``Fullheight'' and ``fullwidth'' frames are more similar to maximized
+frames in this regard.  However, these typically display an external
+border which might be absent with maximized frames.  Hence the heights
+of maximized and fullheight frames and the widths of maximized and
+fullwidth frames often differ by a few pixels.
 
 With some window managers you may have to customize the variable
-@code{frame-resize-pixelwise} (@pxref{Size and Position}) to a
-non-@code{nil} value in order to make a frame appear ``maximized'' or
-``fullscreen''.
+@code{frame-resize-pixelwise} (@pxref{Size and Position}) in order to
+make a frame truly appear ``maximized'' or ``fullscreen''.  Moreover,
+some window managers might not support smooth transition between the
+various fullscreen or maximization states.  Customizing the variable
+@code{x-frame-normalize-before-maximize} can help to overcome that.
+
+@vindex fullscreen-restore, a frame parameter
+@item fullscreen-restore
+This parameter specifies the desired ``fullscreen'' state of the frame
+after invoking the @code{toggle-frame-fullscreen} command (@pxref{Frame
+Commands,,, emacs, The GNU Emacs Manual}) in the ``fullboth'' state.
+Normally this parameter is installed automatically by that command when
+toggling the state to fullboth.  If, however, you start Emacs in the
+fullboth state, you have to specify the desired behavior in your initial
+file as, for example
+
+@example
+(setq default-frame-alist
+    '((fullscreen . fullboth) (fullscreen-restore . fullheight)))
+@end example
+
+This will give a new frame full height after typing in it @key{F11} for
+the first time.
 @end table
+
 
 @node Layout Parameters
 @subsubsection Layout Parameters

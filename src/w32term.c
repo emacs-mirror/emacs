@@ -5052,6 +5052,7 @@ w32_read_socket (struct terminal *terminal,
 		case SIZE_MAXIMIZED:
 		  {
 		    bool iconified = FRAME_ICONIFIED_P (f);
+		    Lisp_Object fullscreen = get_frame_param (f, Qfullscreen);
 
 		    SET_FRAME_VISIBLE (f, 1);
 		    SET_FRAME_ICONIFIED (f, false);
@@ -5082,12 +5083,22 @@ w32_read_socket (struct terminal *terminal,
 			 to update the frame titles
 			 in case this is the second frame.  */
 		      record_asynch_buffer_change ();
-		  }
 
-		  if (EQ (get_frame_param (f, Qfullscreen), Qnil))
-		    set_frame_param (f, Qfullscreen, Qmaximized);
-		  else if (! EQ (get_frame_param (f, Qfullscreen), Qmaximized))
-		    set_frame_param (f, Qmaximized, Qmaximized);
+		  /* Windows can send us a SIZE_MAXIMIZED message even
+		     when fullscreen is fullboth.  The following is a
+		     simple hack to check that based on the fact that
+		     only a maximized fullscreen frame should have both
+		     top/left outside the screen.  */
+		  if (EQ (fullscreen, Qfullwidth) || EQ (fullscreen, Qfullheight)
+		      || NILP (fullscreen))
+		      {
+			int x, y;
+
+			x_real_positions (f, &x, &y);
+			if (x < 0 && y < 0)
+			  store_frame_param (f, Qfullscreen, Qmaximized);
+		      }
+		  }
 
 		  break;
 
@@ -5128,9 +5139,7 @@ w32_read_socket (struct terminal *terminal,
 		  }
 
 		  if (EQ (get_frame_param (f, Qfullscreen), Qmaximized))
-		    set_frame_param (f, Qfullscreen, Qnil);
-		  else if (! EQ (get_frame_param (f, Qmaximized), Qnil))
-		    set_frame_param (f, Qmaximized, Qnil);
+		    store_frame_param (f, Qfullscreen, Qnil);
 
 		  break;
 		}
@@ -6008,6 +6017,8 @@ w32fullscreen_hook (struct frame *f)
 	}
       else if (f->want_fullscreen == FULLSCREEN_BOTH)
         {
+	  int menu_bar_height = GetSystemMetrics (SM_CYMENU);
+
 	  w32_fullscreen_rect (hwnd, f->want_fullscreen,
 			       FRAME_NORMAL_PLACEMENT (f).rcNormalPosition, &rect);
           SetWindowLong (hwnd, GWL_STYLE, dwStyle & ~WS_OVERLAPPEDWINDOW);
@@ -6016,7 +6027,8 @@ w32fullscreen_hook (struct frame *f)
                         SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
 	  change_frame_size
 	    (f, FRAME_PIXEL_TO_TEXT_WIDTH (f, rect.right - rect.left),
-	     FRAME_PIXEL_TO_TEXT_HEIGHT (f, rect.bottom - rect.top),
+	     FRAME_PIXEL_TO_TEXT_HEIGHT (f, (rect.bottom - rect.top
+					     - menu_bar_height)),
 	     0, 1, 0, 1);
         }
       else

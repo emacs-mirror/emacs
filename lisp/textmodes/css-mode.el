@@ -331,8 +331,8 @@
     (`(:elem . basic) css-indent-offset)
     (`(:elem . arg) 0)
     (`(:list-intro . ,(or `";" `"")) t) ;"" stands for BOB (bug#15467).
-    (`(:before . "{") (if (smie-rule-hanging-p)
-                         (smie-rule-parent 0)))))
+    (`(:before . ,(or "{" "("))
+     (if (smie-rule-hanging-p) (smie-rule-parent 0)))))
 
 ;;;###autoload
 (define-derived-mode css-mode fundamental-mode "CSS"

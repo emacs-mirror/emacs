@@ -31,6 +31,9 @@
 (autoload 'gnus-replace-in-string "gnus-util")
 (autoload 'gnus-read-shell-command "gnus-util")
 
+(autoload 'gnus-overlays-at "gnus")
+(autoload 'gnus-overlay-put "gnus")
+
 (autoload 'mm-inline-partial "mm-partial")
 (autoload 'mm-inline-external-body "mm-extern")
 (autoload 'mm-extern-cache-contents "mm-extern")
@@ -1815,6 +1818,7 @@ If RECURSIVE, search recursively."
 		  (start end &optional base-url))
 (declare-function shr-insert-document "shr" (dom))
 (defvar shr-blocked-images)
+(defvar shr-use-fonts)
 (defvar gnus-inhibit-images)
 (autoload 'gnus-blocked-images "gnus-art")
 
@@ -1822,7 +1826,10 @@ If RECURSIVE, search recursively."
   ;; Require since we bind its variables.
   (require 'shr)
   (let ((article-buffer (current-buffer))
-	(shr-width fill-column)
+	(shr-width (if (and (boundp 'shr-use-fonts)
+			    shr-use-fonts)
+		       nil
+		     fill-column))
 	(shr-content-function (lambda (id)
 				(let ((handle (mm-get-content-id id)))
 				  (when handle
@@ -1896,6 +1903,8 @@ If RECURSIVE, search recursively."
 	 :keymap shr-map
 	 (get-text-property start 'shr-url))
 	(put-text-property start end 'local-map nil)
+	(dolist (overlay (gnus-overlays-at start))
+	  (gnus-overlay-put overlay 'face nil))
 	(setq start end)))))
 
 (defun mm-handle-filename (handle)
