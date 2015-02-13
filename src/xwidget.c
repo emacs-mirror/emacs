@@ -900,8 +900,8 @@ DEFUN ("xwidget-view-p",
 DEFUN ("xwidget-info",
        Fxwidget_info, Sxwidget_info,
        1, 1, 0,
-       doc: /* Return XWIDGET properties.  Currently type, title, width,
-height. */)
+       doc: /* Return XWIDGET properties in a vector.  Currently [TYPE
+TITLE WIDTH HEIGHT]. */)
   (Lisp_Object xwidget)
 {
   CHECK_XWIDGET (xwidget);
@@ -922,8 +922,8 @@ height. */)
 DEFUN ("xwidget-view-info",
        Fxwidget_view_info, Sxwidget_view_info,
        1, 1, 0,
-       doc: /* Return properties of XWIDGET-VIEW.  Currently x,y clip
-right, clip bottom, clip top, clip left */)
+       doc: /* Return properties of XWIDGET-VIEW in a vector.
+Currently [X Y CLIP_RIGHT CLIP_BOTTOM CLIP_TOP CLIP_LEFT] */)
   (Lisp_Object xwidget_view)
 {
   CHECK_XWIDGET_VIEW (xwidget_view);
