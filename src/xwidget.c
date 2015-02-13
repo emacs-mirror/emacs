@@ -158,18 +158,21 @@ webkit_navigation_policy_decision_requested_cb (WebKitWebView *,
 
 DEFUN ("make-xwidget",
        Fmake_xwidget, Smake_xwidget,
-       7, 8, 0, doc:	/* Make an xwidget from BEG to END of TYPE.
+       7, 8, 0,
+       doc: /* Make an xwidget from BEG to END of TYPE.
 
-                           If BUFFER is nil it uses the current
-                           buffer. If BUFFER is a string and no such
-                           buffer exists, it is created.
+If BUFFER is nil it uses the current
+buffer. If BUFFER is a string and no such
+buffer exists, it is created.
 
-                           TYPE is a symbol which can take one of the
-                           following values:
+TYPE is a symbol which can take one of the
+following values:
 
-                           - webkit_osr
-                        */
-)(Lisp_Object beg, Lisp_Object end,
+- webkit_osr
+
+Returns the newly constructed xwidget, or nil if construction
+fails.  */)
+  (Lisp_Object beg, Lisp_Object end,
   Lisp_Object type,
   Lisp_Object title,
   Lisp_Object width, Lisp_Object height,
@@ -297,10 +300,9 @@ DEFUN ("make-xwidget",
 }
 
 DEFUN ("get-buffer-xwidgets", Fget_buffer_xwidgets, Sget_buffer_xwidgets,
-       1, 1, 0, doc:/* Return a list of xwidgets associated with BUFFER.
-                       BUFFER
-                       may be a buffer or the name of one.
-                    */)
+       1, 1, 0,
+       doc: /* Return a list of xwidgets associated with BUFFER.
+BUFFER  may be a buffer or the name of one.  */)
   (Lisp_Object buffer)
 {
   Lisp_Object xw, tail, xw_list;
@@ -714,9 +716,9 @@ x_draw_xwidget_glyph_string (struct glyph_string *s)
 
 DEFUN ("xwidget-webkit-goto-uri",
        Fxwidget_webkit_goto_uri, Sxwidget_webkit_goto_uri,
-       2, 2, 0, doc:	/* Make the xwidget webkit instance referenced by
-                           XWIDGET browse URI. */
-       )
+       2, 2, 0,
+       doc: /* Make the xwidget webkit instance referenced by XWIDGET
+browse URI. */)
   (Lisp_Object xwidget, Lisp_Object uri)
 {
   WEBKIT_FN_INIT ();
@@ -728,8 +730,8 @@ DEFUN ("xwidget-webkit-goto-uri",
 
 DEFUN ("xwidget-webkit-execute-script",
        Fxwidget_webkit_execute_script, Sxwidget_webkit_execute_script,
-       2, 2, 0, doc:	/* Make the Webkit XWIDGET execute javascript SCRIPT. */
-       )
+       2, 2, 0,
+       doc: /* Make the Webkit XWIDGET execute javascript SCRIPT.  */)
   (Lisp_Object xwidget, Lisp_Object script)
 {
   WEBKIT_FN_INIT ();
@@ -741,9 +743,10 @@ DEFUN ("xwidget-webkit-execute-script",
 
 DEFUN ("xwidget-webkit-get-title",
        Fxwidget_webkit_get_title, Sxwidget_webkit_get_title,
-       1, 1, 0, doc:	/* Get the title from the Webkit instance in
-XWIDGET.  This can be used to work around the lack of a return value
-from the exec method.  */ )
+       1, 1, 0,
+       doc: /* Returns the title from the Webkit instance in XWIDGET.
+This can be used to work around the lack of a return value from the
+exec method.  */ )
   (Lisp_Object xwidget)
 {
   // TODO support multibyte strings
@@ -759,10 +762,9 @@ from the exec method.  */ )
   return build_string (str);
 }
 
-DEFUN ("xwidget-resize", Fxwidget_resize, Sxwidget_resize, 3, 3, 0, doc:
-       /* Resize XWIDGET.
-          NEW_WIDTH NEW_HEIGHT defines the new size.)
-        */ )
+DEFUN ("xwidget-resize", Fxwidget_resize, Sxwidget_resize, 3, 3, 0,
+       doc: /* Resize XWIDGET.  NEW_WIDTH NEW_HEIGHT defines the new
+size. */ )
   (Lisp_Object xwidget, Lisp_Object new_width, Lisp_Object new_height)
 {
   CHECK_XWIDGET (xwidget);
@@ -814,11 +816,10 @@ DEFUN ("xwidget-resize", Fxwidget_resize, Sxwidget_resize, 3, 3, 0, doc:
 
 
 DEFUN ("xwidget-set-adjustment",
-       Fxwidget_set_adjustment, Sxwidget_set_adjustment, 4, 4, 0, doc:
-       /* Set native scrolling for XWIDGET. AXIS can be 'vertical or
-          'horizontal. If RELATIVE is t, scroll relative, otherwise absolutely.
-       VALUE is the amount to scroll, either relatively or absolutely.  */
-)
+       Fxwidget_set_adjustment, Sxwidget_set_adjustment, 4, 4, 0,
+       doc: /* Set native scrolling for XWIDGET. AXIS can be 'vertical or
+'horizontal. If RELATIVE is t, scroll relative, otherwise absolutely.
+VALUE is the amount to scroll, either relatively or absolutely.  */)
   (Lisp_Object xwidget, Lisp_Object axis, Lisp_Object relative,
    Lisp_Object value)
 {
@@ -860,12 +861,11 @@ DEFUN ("xwidget-set-adjustment",
 
 DEFUN ("xwidget-size-request",
        Fxwidget_size_request, Sxwidget_size_request,
-       1, 1, 0, doc:
-       /* Desired size of the XWIDGET.
+       1, 1, 0,
+       doc: /* Return the desired size of the XWIDGET.
 
-          This can be used to read the xwidget desired size, and
-          resizes the Emacs allocated area accordingly.  */
-)
+This can be used to read the xwidget desired size, and resizes the
+Emacs allocated area accordingly.  */)
   (Lisp_Object xwidget)
 {
   CHECK_XWIDGET (xwidget);
@@ -881,8 +881,8 @@ DEFUN ("xwidget-size-request",
 
 DEFUN ("xwidgetp",
        Fxwidgetp, Sxwidgetp,
-       1, 1, 0, doc:	/* Return t if OBJECT is a xwidget.  */
-       )
+       1, 1, 0,
+       doc: /* Return t if OBJECT is a xwidget.  */)
   (Lisp_Object object)
 {
   return XWIDGETP (object) ? Qt : Qnil;
@@ -890,8 +890,8 @@ DEFUN ("xwidgetp",
 
 DEFUN ("xwidget-view-p",
        Fxwidget_view_p, Sxwidget_view_p,
-       1, 1, 0, doc:/* Return t if OBJECT is a xwidget-view.  */
-       )
+       1, 1, 0,
+       doc: /* Return t if OBJECT is a xwidget-view.  */)
   (Lisp_Object object)
 {
   return XWIDGET_VIEW_P (object) ? Qt : Qnil;
@@ -899,9 +899,9 @@ DEFUN ("xwidget-view-p",
 
 DEFUN ("xwidget-info",
        Fxwidget_info, Sxwidget_info,
-       1, 1, 0, doc:	/* Get XWIDGET properties.
-                           Currently
-                           type, title, width, height. */ )
+       1, 1, 0,
+       doc: /* Return XWIDGET properties.  Currently type, title, width,
+height. */)
   (Lisp_Object xwidget)
 {
   CHECK_XWIDGET (xwidget);
@@ -921,10 +921,9 @@ DEFUN ("xwidget-info",
 
 DEFUN ("xwidget-view-info",
        Fxwidget_view_info, Sxwidget_view_info,
-       1, 1, 0, doc:
-       /* Get XWIDGET-VIEW properties.  Currently x,y clip right, clip
-          bottom, clip top, clip left */
-)
+       1, 1, 0,
+       doc: /* Return properties of XWIDGET-VIEW.  Currently x,y clip
+right, clip bottom, clip top, clip left */)
   (Lisp_Object xwidget_view)
 {
   CHECK_XWIDGET_VIEW (xwidget_view);
@@ -944,8 +943,8 @@ DEFUN ("xwidget-view-info",
 
 DEFUN ("xwidget-view-model",
        Fxwidget_view_model, Sxwidget_view_model,
-       1, 1, 0, doc:  /* Get XWIDGET-VIEW model. */
-       )
+       1, 1, 0,
+       doc:  /* Return the model associated with XWIDGET-VIEW. */)
   (Lisp_Object xwidget_view)
 {
   CHECK_XWIDGET_VIEW (xwidget_view);
@@ -954,8 +953,8 @@ DEFUN ("xwidget-view-model",
 
 DEFUN ("xwidget-view-window",
        Fxwidget_view_window, Sxwidget_view_window,
-       1, 1, 0, doc:  /* Get XWIDGET-VIEW window. */
-       )
+       1, 1, 0,
+       doc:  /* Return the window of XWIDGET-VIEW. */)
   (Lisp_Object xwidget_view)
 {
   CHECK_XWIDGET_VIEW (xwidget_view);
@@ -965,8 +964,8 @@ DEFUN ("xwidget-view-window",
 
 DEFUN ("delete-xwidget-view",
        Fdelete_xwidget_view, Sdelete_xwidget_view,
-       1, 1, 0, doc:  /* Delete the XWIDGET-VIEW. */
-       )
+       1, 1, 0,
+       doc:  /* Delete the XWIDGET-VIEW. */)
   (Lisp_Object xwidget_view)
 {
   CHECK_XWIDGET_VIEW (xwidget_view);
@@ -984,10 +983,10 @@ DEFUN ("delete-xwidget-view",
 
 DEFUN ("xwidget-view-lookup",
        Fxwidget_view_lookup, Sxwidget_view_lookup,
-       1, 2, 0, doc: /* Return the xwidget-view associated to XWIDGET in
-                        WINDOW
-                        if specified, otherwise it uses the selected window. */
-)
+       1, 2, 0,
+       doc: /* Return the xwidget-view associated with XWIDGET in
+WINDOW if specified, otherwise it uses the selected window. Return nil
+if no association is found.  */)
   (Lisp_Object xwidget, Lisp_Object window)
 {
   CHECK_XWIDGET (xwidget);
@@ -1010,8 +1009,8 @@ DEFUN ("xwidget-view-lookup",
 
 DEFUN ("xwidget-plist",
        Fxwidget_plist, Sxwidget_plist,
-       1, 1, 0, doc:	/* Return the plist of XWIDGET.  */
-       )
+       1, 1, 0,
+       doc: /* Return the plist of XWIDGET.  */)
   (register Lisp_Object xwidget)
 {
   CHECK_XWIDGET (xwidget);
@@ -1020,8 +1019,8 @@ DEFUN ("xwidget-plist",
 
 DEFUN ("xwidget-buffer",
        Fxwidget_buffer, Sxwidget_buffer,
-       1, 1, 0, doc:/* Return the buffer of XWIDGET.  */
-       )
+       1, 1, 0,
+       doc: /* Return the buffer of XWIDGET.  */)
   (register Lisp_Object xwidget)
 {
   CHECK_XWIDGET (xwidget);
@@ -1030,9 +1029,9 @@ DEFUN ("xwidget-buffer",
 
 DEFUN ("set-xwidget-plist",
        Fset_xwidget_plist, Sset_xwidget_plist,
-       2, 2, 0, doc:	/* Replace the plist of XWIDGET with PLIST.
-                           Returns PLIST.  */
-       )
+       2, 2, 0,
+       doc: /* Replace the plist of XWIDGET with PLIST.
+Returns PLIST.  */)
   (register Lisp_Object xwidget, Lisp_Object plist)
 {
   CHECK_XWIDGET (xwidget);
@@ -1044,11 +1043,11 @@ DEFUN ("set-xwidget-plist",
 
 DEFUN ("set-xwidget-query-on-exit-flag",
        Fset_xwidget_query_on_exit_flag, Sset_xwidget_query_on_exit_flag,
-       2, 2, 0, doc: /* Specify if query is needed for XWIDGET when
+       2, 2, 0,
+       doc: /* Specify if query is needed for XWIDGET when
 Emacs is exited.  If the second argument FLAG is non-nil, Emacs will
-query the user before exiting or killing a buffer if XWIDGET is
-running.  This function returns FLAG. */
-)
+queries the user before exiting or killing a buffer if XWIDGET is
+running.  This function returns FLAG. */)
   (Lisp_Object xwidget, Lisp_Object flag)
 {
   CHECK_XWIDGET (xwidget);
@@ -1058,9 +1057,9 @@ running.  This function returns FLAG. */
 
 DEFUN ("xwidget-query-on-exit-flag",
        Fxwidget_query_on_exit_flag, Sxwidget_query_on_exit_flag,
-       1, 1, 0, doc:	/* Return the current value of query-on-exit
-                           flag for XWIDGET. */
-       )
+       1, 1, 0,
+       doc: /* Return the current value of query-on-exit
+flag for XWIDGET. */)
   (Lisp_Object xwidget)
 {
   CHECK_XWIDGET (xwidget);
