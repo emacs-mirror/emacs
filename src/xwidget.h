@@ -26,7 +26,7 @@ void syms_of_xwidget (void);
 //extern Lisp_Object Qxwidget;
 
 
-int valid_xwidget_spec_p (Lisp_Object object);
+bool valid_xwidget_spec_p (Lisp_Object object);
 
 #include <gtk/gtk.h>
 

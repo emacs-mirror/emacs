@@ -1135,13 +1135,13 @@ syms_of_xwidget (void)
    supported xwidget type.  The rest of the property list depends on the
    xwidget type.  */
 
-int
+bool
 valid_xwidget_spec_p (Lisp_Object object)
 {
-  int valid_p = 0;
+  int valid_p = false;
 
   if (CONSP (object) && EQ (XCAR (object), Qxwidget))
-      valid_p = 1;
+      valid_p = true;
 
   return valid_p;
 }
