@@ -379,13 +379,12 @@ base_obj = dispnew.o frame.o scroll.o xdisp.o menu.o $(XMENU_OBJ) window.o \
 	process.o gnutls.o callproc.o \
 	region-cache.o sound.o atimer.o \
 	doprnt.o intervals.o textprop.o composite.o xml.o $(NOTIFY_OBJ) \
-	xwidget.o \
+	$(XWIDGETS_OBJ) \
 	profiler.o decompress.o \
 	$(MSDOS_OBJ) $(MSDOS_X_OBJ) $(NS_OBJ) $(CYGWIN_OBJ) $(FONT_OBJ) \
 	$(W32_OBJ) $(WINDOW_SYSTEM_OBJ) $(XGSELOBJ)
 obj = $(base_obj) $(NS_OBJC_OBJ)
 
-xwidget.o: xwidget.c xwidget.h
 ## Object files used on some machine or other.
 ## These go in the DOC file on all machines in case they are needed.
 ## Some of them have no DOC entries, but it does no harm to have them
