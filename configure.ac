@@ -4840,8 +4840,11 @@ TOOLKIT_LIBW=
 case "$USE_X_TOOLKIT" in
   MOTIF) TOOLKIT_LIBW="$MOTIF_LIBW" ;;
   LUCID) TOOLKIT_LIBW="$LUCID_LIBW" ;;
-  none) test "x$HAVE_GTK" = "xyes" && TOOLKIT_LIBW="$GTK_LIBS -lXcomposite" ;;
+  none) test "x$HAVE_GTK" = "xyes" && TOOLKIT_LIBW="$GTK_LIBS" ;;
 esac
+if test "$HAVE_XWIDGETS" = "yes"; then
+  TOOLKIT_LIBW="$TOOLKIT_LIBW -lXcomposite"
+fi
 AC_SUBST(TOOLKIT_LIBW)
 
 if test "${opsys}" != "mingw32"; then
