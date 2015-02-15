@@ -554,7 +554,7 @@ If LOADEDP is nil, make sure non were loaded."
 
 (defun ede-detect-utest-subautomake-p (project)
   "Special predicate for testing the ede-proj-project type."
-  (and (project-am-makefile project)
+  (and (project-am-makefile-p project)
        (string= (file-name-nondirectory (directory-file-name (oref project directory))) "automake")
        (not (eq project (ede-current-project)))
        ))
