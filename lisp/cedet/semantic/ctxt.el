@@ -610,6 +610,8 @@ Depends on `semantic-function-argument-separation-character'."
 	  (let ((p (point))
 		(idx 1))
 	    (semantic-up-context)
+	    ;; TODO: myfun3(fun_for_arg1(i,j), arg2 !, arg3)
+	    ;; at ! it thinks it's arg 3.
 	    (while (re-search-forward
 		    (regexp-quote semantic-function-argument-separation-character)
 		    p t)
