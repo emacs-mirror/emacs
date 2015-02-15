@@ -2529,7 +2529,7 @@ fi
 HAVE_XWIDGETS=no
 HAVE_WEBKIT=no
 HAVE_GIR=no
-XWDIGETS_OBJ=
+XWIDGETS_OBJ=
 if test "$with_xwidgets" != "no" && test "$USE_GTK_TOOLKIT" = "GTK3" &&
    test "$window_system" != "none"
 then
@@ -2557,8 +2557,9 @@ then
   if test $HAVE_GIR = yes; then
      AC_DEFINE([HAVE_GIR], 1, [Define to 1 if you have GIR support.])
   fi
-  XWDIGETS_OBJ=xwidget.o
+  XWIDGETS_OBJ=xwidget.o
 fi
+AC_SUBST(XWIDGETS_OBJ)
 
 CFLAGS=$OLD_CFLAGS
 LIBS=$OLD_LIBS
