@@ -67,6 +67,22 @@ the current EDE project."
     (when loc
       (ede-locate-flush-hash loc))))
 
+(defun ede-global-list-sanity-check ()
+  "Perform a sanity check to make sure there are no duplicate projects."
+  (interactive)
+  (let ((scanned nil))
+    (dolist (P ede-projects)
+      (if (member (oref P :directory) scanned)
+	  (error "Duplicate project (by dir) found in %s!" (oref P :directory))
+	(push (oref P :directory) scanned)))
+    (unless ede--disable-inode
+      (setq scanned nil)
+      (dolist (P ede-projects)
+	(if (member (ede--project-inode P) scanned)
+	  (error "Duplicate project (by inode) found in %s!" (ede--project-inode P))
+	  (push (ede--project-inode P) scanned))))
+    (message "EDE by directory %sis still sane." (if ede--disable-inode "" "& inode "))))
+
 ;;; Placeholders for ROOT directory scanning on base objects
 ;;
 (cl-defmethod ede-project-root ((this ede-project-placeholder))

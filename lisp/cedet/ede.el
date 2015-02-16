@@ -63,6 +63,7 @@
 (declare-function ede-toplevel-project "ede/files")
 (declare-function ede-up-directory "ede/files")
 (declare-function semantic-lex-make-spp-table "semantic/lex-spp")
+(declare-function ede-directory-project-cons  "ede/files")
 
 (defconst ede-version "2.0"
   "Current version of the Emacs EDE.")
@@ -1095,22 +1096,6 @@ Flush the dead projects from the project cache."
     ))
 
 (defvar ede--disable-inode)             ;Defined in ede/files.el.
-
-(defun ede-global-list-sanity-check ()
-  "Perform a sanity check to make sure there are no duplicate projects."
-  (interactive)
-  (let ((scanned nil))
-    (dolist (P ede-projects)
-      (if (member (oref P directory) scanned)
-	  (error "Duplicate project (by dir) found in %s!" (oref P directory))
-	(push (oref P directory) scanned)))
-    (unless ede--disable-inode
-      (setq scanned nil)
-      (dolist (P ede-projects)
-	(if (member (ede--project-inode P) scanned)
-	  (error "Duplicate project (by inode) found in %s!" (ede--project-inode P))
-	  (push (ede--project-inode P) scanned))))
-    (message "EDE by directory %sis still sane." (if ede--disable-inode "" "& inode "))))
 
 (defun ede-load-project-file (dir &optional detectin rootreturn)
   "Project file independent way to read a project in from DIR.
