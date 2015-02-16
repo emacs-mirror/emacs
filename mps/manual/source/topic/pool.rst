@@ -58,12 +58,12 @@ making it available for allocation.
 
     .. warning::
 
-        It is not safe to destroy an :term:`automatically managed
-        <automatic memory management>` pool if it contains any objects
+        It is not safe to carry on running the :term:`garbage
+        collector` after destroying an :term:`automatically managed
+        <automatic memory management>` pool that contains any objects
         that are :term:`reachable` from your roots, or any objects
         that have been registered for :term:`finalization` but not yet
-        finalized, and then to carry on running the :term:`garbage
-        collector`.
+        finalized.
 
         Our recommended approach is to destroy automatically managed
         pools just before destroying the arena, and then only while
