@@ -376,7 +376,7 @@ Arena properties
     state>`). If it is called when the arena is in the unclamped state
     then the value may change after this function returns. A possible
     use might be to call it just after :c:func:`mps_arena_collect` to
-    (over-)estimate the size of the heap.
+    estimate the size of the heap.
 
     If you want to know how much memory the MPS is using then you're
     probably interested in the value :c:func:`mps_arena_committed()` −
