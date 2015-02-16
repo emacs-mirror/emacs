@@ -123,7 +123,7 @@ Completion options are calculated with `semantic-analyze-possible-completions'."
 	      ;; the smart completion engine sometimes fails.
 	      (semantic-complete-symbol))
 	;; Use try completion to seek a common substring.
-	(let* ((completion-ignore-case (string= (downcase pre) pre))
+	(let* ((completion-ignore-case (and pre (string= (downcase pre) pre)))
 	       (tc (try-completion (or pre "")  syms)))
 	  (if (and (stringp tc) (not (string= tc (or pre ""))))
 	      (let ((tok (semantic-find-first-tag-by-name
@@ -188,7 +188,11 @@ Completion options are calculated with `semantic-analyze-possible-completions'."
 	(when ans
 	  (if (not (semantic-tag-p ans))
 	      (setq ans (aref (cdr ans) 0)))
-	  (delete-region (car (oref a bounds)) (cdr (oref a bounds)))
+	  (with-slots ((bnds bounds)) a
+            ;; bounds could be nil if we are completing an empty prefix string
+            ;; (e.g. type constrained within a function argument list)
+            (when (and (car bnds) (cdr bnds))
+              (delete-region (car bnds) (cdr bnds))))
 	  (semantic-ia-insert-tag ans))
 	))))
 
