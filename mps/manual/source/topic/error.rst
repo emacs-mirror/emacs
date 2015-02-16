@@ -77,31 +77,27 @@ Result codes
     completed as requested without exceeding the :term:`commit limit`.
 
     You need to deallocate something or allow the :term:`garbage
-    collector` to reclaim something, to make more space, or increase
+    collector` to reclaim something to make more space, or increase
     the commit limit by calling :c:func:`mps_arena_commit_limit_set`.
 
 
 .. c:macro:: MPS_RES_FAIL
 
     A :term:`result code` indicating that something went wrong that
-    does not fall under the description of any other result code. The
-    exact meaning depends on the function that returned this result
-    code.
+    does not fall under the description of any other result code.
 
 
 .. c:macro:: MPS_RES_IO
 
     A :term:`result code` indicating that an input/output error
-    occurred. The exact meaning depends on the function that returned
-    this result code.
+    occurred in the :term:`telemetry` system.
 
 
 .. c:macro:: MPS_RES_LIMIT
 
     A :term:`result code` indicating that an operation could not be
     completed as requested because of an internal limitation of the
-    MPS. The exact meaning depends on the function that returned this
-    result code.
+    MPS.
 
 
 .. c:macro:: MPS_RES_MEMORY
@@ -141,18 +137,17 @@ Result codes
 
     A :term:`result code` indicating that an operation could not be
     completed as requested because an invalid parameter was passed to
-    the operation. The exact meaning depends on the function that
-    returned this result code.
+    the operation.
 
 
 .. c:macro:: MPS_RES_RESOURCE
 
     A :term:`result code` indicating that an operation could not be
     completed as requested because the MPS could not obtain a needed
-    resource. The resource in question depends on the operation, but
-    it can be returned when the MPS runs out of :term:`address space`.
-    If this happens, you need to reclaim memory within your process
-    (as for the result code :c:macro:`MPS_RES_MEMORY`).
+    resource. It can be returned when the MPS runs out of
+    :term:`address space`. If this happens, you need to reclaim memory
+    within your process (as for the result code
+    :c:macro:`MPS_RES_MEMORY`).
 
     Two special cases have their own result codes: when the MPS runs
     out of committed memory, it returns :c:macro:`MPS_RES_MEMORY`, and
@@ -276,7 +271,8 @@ this documentation.
 
     The client program has made a re-entrant call into the MPS. Look
     at the backtrace to see what it was. Common culprits are signal
-    handlers, :term:`format methods` and :term:`stepper functions`.
+    handlers, assertion handlers, :term:`format methods`, and
+    :term:`stepper functions`.
 
 
 ``locus.c: chain->activeTraces == TraceSetEMPTY``
