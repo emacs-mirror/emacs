@@ -377,7 +377,7 @@ automaton has only one entry point."
          (wisent-parse-lexer-function lexer)
          (wisent-recovering nil)
          (wisent-input (wisent-parse-start start starts))
-         state tokid choices choice)
+         state tokid choices choice wisent-lookahead-save)
     (setq wisent-nerrs     0 ;; Reset parse error counter
           wisent-lookahead nil) ;; and lookahead token
     (aset stack 0 0) ;; Initial state
@@ -469,7 +469,12 @@ automaton has only one entry point."
        ;; Reduce by rule (call semantic action)
        ;; -------------------------------------
        (t
+        ;; save the global variable wisent-lookahead,
+        ;; as the semantic action might be an expand or expandfull
+        ;; which calls this function recursively
+        (setq wisent-lookahead-save wisent-lookahead)
         (setq sp (funcall wisent-loop stack sp gotos))
+        (setq wisent-lookahead wisent-lookahead-save)
         (or wisent-input (setq wisent-input (wisent-lexer))))))
     (run-hooks 'wisent-post-parse-hook)
     (car (aref stack 1))))
