@@ -263,7 +263,7 @@ This command assumes point is not in a string or comment."
           (backward-up-list arg)
           (kill-sexp)
           (insert current-sexp))
-      (error "Not at a sexp"))))
+      (user-error "Not at a sexp"))))
 
 (defvar beginning-of-defun-function nil
   "If non-nil, function for `beginning-of-defun-raw' to call.
@@ -714,7 +714,8 @@ character."
   (condition-case data
       ;; Buffer can't have more than (point-max) sexps.
       (scan-sexps (point-min) (point-max))
-    (scan-error (goto-char (nth 2 data))
+    (scan-error (push-mark)
+		(goto-char (nth 2 data))
 		;; Could print (nth 1 data), which is either
 		;; "Containing expression ends prematurely" or
 		;; "Unbalanced parentheses", but those may not be so

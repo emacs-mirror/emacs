@@ -4326,7 +4326,7 @@ When this command inserts killed text into the buffer, it honors
 doc string for `insert-for-yank-1', which see."
   (interactive "*p")
   (if (not (eq last-command 'yank))
-      (error "Previous command was not a yank"))
+      (user-error "Previous command was not a yank"))
   (setq this-command 'yank)
   (unless arg (setq arg 1))
   (let ((inhibit-read-only t)
@@ -4958,7 +4958,7 @@ Start discarding off end if gets this big."
 \(Does not affect global mark ring)."
   (interactive)
   (if (null (mark t))
-      (error "No mark set in this buffer")
+      (user-error "No mark set in this buffer")
     (if (= (point) (mark t))
 	(message "Mark popped"))
     (goto-char (mark t))
@@ -5107,7 +5107,7 @@ mode temporarily."
   (let ((omark (mark t))
 	(temp-highlight (eq (car-safe transient-mark-mode) 'only)))
     (if (null omark)
-        (error "No mark set in this buffer"))
+        (user-error "No mark set in this buffer"))
     (set-mark (point))
     (goto-char omark)
     (cond (temp-highlight

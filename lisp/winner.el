@@ -415,7 +415,7 @@ In other words, \"undo\" changes in window configuration."
        (ring-ref winner-pending-undo-ring 0)))
     (unless (eq (selected-window) (minibuffer-window))
       (message "Winner undid undo")))
-   (t (error "Previous command was not a `winner-undo'"))))
+   (t (user-error "Previous command was not a `winner-undo'"))))
 
 (provide 'winner)
 ;;; winner.el ends here

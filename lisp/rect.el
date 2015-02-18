@@ -586,8 +586,7 @@ Activates the region if needed.  Only lasts until the region is deactivated."
     (add-hook 'deactivate-mark-hook
               (lambda () (rectangle-mark-mode -1)))
     (unless (region-active-p)
-      (push-mark)
-      (activate-mark)
+      (push-mark (point) t t)
       (message "Mark set (rectangle mode)"))))
 
 (defun rectangle-exchange-point-and-mark (&optional arg)

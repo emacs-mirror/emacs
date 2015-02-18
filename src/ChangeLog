@@ -1,3 +1,8 @@
+2015-02-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacs.c (Fkill_emacs): Exit with specified exit code even if
+	stdin is at EOF.  (Bug#19897)
+
 2015-02-18  Oscar Fuentes <ofv@wanadoo.es>
 
 	* keyboard.c (read_char): When there is an input method function,

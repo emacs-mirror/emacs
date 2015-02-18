@@ -2619,14 +2619,15 @@ function called to create the messages."
 (defun checkdoc-show-diagnostics ()
   "Display the checkdoc diagnostic buffer in a temporary window."
   (if checkdoc-pending-errors
-      (let ((b (get-buffer checkdoc-diagnostic-buffer)))
-	(if b (progn (pop-to-buffer b)
-		     (goto-char (point-max))
-		     (re-search-backward "\C-l" nil t)
-		     (beginning-of-line)
-		     (forward-line 1)
-		     (recenter 0)))
-	(other-window -1)
+      (let* ((b (get-buffer checkdoc-diagnostic-buffer))
+             (win (if b (display-buffer b))))
+	(when win
+          (with-selected-window win
+            (goto-char (point-max))
+            (re-search-backward "\C-l" nil t)
+            (beginning-of-line)
+            (forward-line 1)
+            (recenter 0)))
 	(setq checkdoc-pending-errors nil)
 	nil)))
 

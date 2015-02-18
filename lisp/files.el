@@ -1628,10 +1628,10 @@ killed."
             (confirm-nonexistent-file-or-buffer) file-name)
 	   t)))
   (unless (run-hook-with-args-until-failure 'kill-buffer-query-functions)
-    (error "Aborted"))
+    (user-error "Aborted"))
   (and (buffer-modified-p) buffer-file-name
        (not (yes-or-no-p "Kill and replace the buffer without saving it? "))
-       (error "Aborted"))
+       (user-error "Aborted"))
   (let ((obuf (current-buffer))
 	(ofile buffer-file-name)
 	(onum buffer-file-number)
@@ -1844,7 +1844,7 @@ OP-TYPE specifies the file operation being performed (for message to user)."
 	     (not (y-or-n-p (format "File %s is large (%s), really %s? "
 				    (file-name-nondirectory filename)
 				    (file-size-human-readable size) op-type))))
-    (error "Aborted")))
+    (user-error "Aborted")))
 
 (defun warn-maybe-out-of-memory (size)
   "Warn if an attempt to open file of SIZE bytes may run out of memory."
@@ -3883,7 +3883,7 @@ the old visited file has been renamed to the new name FILENAME."
 	   (not no-query)
 	   (not (y-or-n-p (format "A buffer is visiting %s; proceed? "
 				  filename)))
-	   (error "Aborted")))
+	   (user-error "Aborted")))
     (or (equal filename buffer-file-name)
 	(progn
 	  (and filename (lock-buffer filename))
@@ -4007,7 +4007,7 @@ Interactively, confirmation is required unless you supply a prefix argument."
 		       (listp last-nonmenu-event)
 		       use-dialog-box))
 	     (or (y-or-n-p (format "File `%s' exists; overwrite? " filename))
-		 (error "Canceled")))
+		 (user-error "Canceled")))
 	(set-visited-file-name filename (not confirm))))
   (set-buffer-modified-p t)
   ;; Make buffer writable if file is writable.

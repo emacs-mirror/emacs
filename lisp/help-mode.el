@@ -724,14 +724,14 @@ BUFFER or FRAME."
   (interactive)
   (if help-xref-stack
       (help-xref-go-back (current-buffer))
-    (error "No previous help buffer")))
+    (user-error "No previous help buffer")))
 
 (defun help-go-forward ()
   "Go back to next topic in this help buffer."
   (interactive)
   (if help-xref-forward-stack
       (help-xref-go-forward (current-buffer))
-    (error "No next help buffer")))
+    (user-error "No next help buffer")))
 
 (defun help-do-xref (_pos function args)
   "Call the help cross-reference function FUNCTION with args ARGS.
@@ -754,7 +754,7 @@ a proper [back] button."
 
 For the cross-reference format, see `help-make-xrefs'."
   (interactive)
-  (error "No cross-reference here"))
+  (user-error "No cross-reference here"))
 
 (defun help-follow-symbol (&optional pos)
   "In help buffer, show docs for symbol at POS, defaulting to point.

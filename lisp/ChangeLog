@@ -1,6 +1,35 @@
+2015-02-18  Kelly Dean  <kelly@prtime.org>
+
+	* register.el (jump-to-register):
+	* emacs-lisp/lisp.el (check-parens):
+	Push mark before goto-char so user doesn't lose his previous place.
+
+2015-02-18  Kelly Dean  <kelly@prtime.org>
+
+	* rect.el (rectangle-mark-mode):
+	Suppress superfluous "Mark set" message from push-mark.
+
+2015-02-18  Kelly Dean  <kelly@prtime.org>
+
+	* help-mode.el (help-go-back, help-go-forward, help-follow):
+	* simple.el (yank-pop, pop-to-mark-command, exchange-point-and-mark):
+	* winner.el (winner-redo):
+	* windmove.el (windmove-do-window-select):
+	* register.el (jump-to-register, increment-register, insert-register)
+	(append-to-register, prepend-to-register):
+	* files.el (find-alternate-file, abort-if-file-too-large, write-file)
+	(set-visited-file-name):
+	* emacs-lisp/lisp.el (kill-backward-up-list):
+	Use user-error instead of error. (Bug#14480)
+
+2015-02-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/checkdoc.el (checkdoc-show-diagnostics): Don't make bogus
+	assumptions about window ordering.
+
 2015-02-16  Kelly Dean  <kelly@prtime.org>
 
-	* lisp/files.el (insert-file-contents-literally): Fix docstring typo.
+	* files.el (insert-file-contents-literally): Fix docstring typo.
 
 2015-02-16  Kelly Dean  <kelly@prtime.org>
 

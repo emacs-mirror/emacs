@@ -235,6 +235,7 @@ If you need your objects to be named, do it by inheriting from `eieio-named'.
 *** The <class> variables are declared obsolete.
 *** The <initarg> variables are declared obsolete.
 *** defgeneric and defmethod are declared obsolete.
+*** `constructor' is now an obsolete alias for `make-instance'.
 
 ** ido
 *** New command `ido-bury-buffer-at-head' bound to C-S-b

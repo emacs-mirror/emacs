@@ -479,10 +479,10 @@ DIR, ARG, and WINDOW are handled as by `windmove-other-window-loc'.
 If no window is at direction DIR, an error is signaled."
   (let ((other-window (windmove-find-other-window dir arg window)))
     (cond ((null other-window)
-           (error "No window %s from selected window" dir))
+           (user-error "No window %s from selected window" dir))
           ((and (window-minibuffer-p other-window)
                 (not (minibuffer-window-active-p other-window)))
-           (error "Minibuffer is inactive"))
+           (user-error "Minibuffer is inactive"))
           (t
            (select-window other-window)))))
 
