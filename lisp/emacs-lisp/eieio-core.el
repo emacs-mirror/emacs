@@ -181,15 +181,15 @@ Currently under control of this var:
 CLASS is a symbol."                     ;FIXME: Is it a vector or a symbol?
   (and (symbolp class) (eieio--class-p (eieio--class-v class))))
 
+(defun eieio--class-print-name (class)
+  "Return a printed representation of CLASS."
+  (format "#<class %s>" (eieio-class-name class)))
+
 (defun eieio-class-name (class)
   "Return a Lisp like symbol name for CLASS."
-  ;; FIXME: What's a "Lisp like symbol name"?
-  ;; FIXME: CLOS returns a symbol, but the code returns a string.
-  (if (eieio--class-p class) (setq class (eieio--class-symbol class)))
-  (cl-check-type class class)
-  ;; I think this is supposed to return a symbol, but to me CLASS is a symbol,
-  ;; and I wanted a string.  Arg!
-  (format "#<class %s>" (symbol-name class)))
+  (setq class (eieio--class-object class))
+  (cl-check-type class eieio--class)
+  (eieio--class-symbol class))
 (define-obsolete-function-alias 'class-name #'eieio-class-name "24.4")
 
 (defalias 'eieio--class-constructor #'identity
@@ -317,7 +317,7 @@ See `defclass' for more information."
 	 (newc (if (and oldc (not (eieio--class-default-object-cache oldc)))
                    ;; The oldc class is a stub setup by eieio-defclass-autoload.
                    ;; Reuse it instead of creating a new one, so that existing
-                   ;; references are still valid.
+                   ;; references stay valid.
                    oldc
                  (eieio--class-make cname)))
 	 (groups nil) ;; list of groups id'd from slots
@@ -488,16 +488,10 @@ See `defclass' for more information."
     ;; Attach slot symbols into a hashtable, and store the index of
     ;; this slot as the value this table.
     (let* ((cnt 0)
-	   (pubsyms (eieio--class-public-a newc))
-	   (prots (eieio--class-protection newc))
 	   (oa (make-hash-table :test #'eq)))
-      (while pubsyms
-	(let ((newsym (list cnt)))
-          (setf (gethash (car pubsyms) oa) newsym)
-          (setq cnt (1+ cnt))
-          (if (car prots) (setcdr newsym (car prots))))
-	(setq pubsyms (cdr pubsyms)
-	      prots (cdr prots)))
+      (dolist (pubsym (eieio--class-public-a newc))
+        (setf (gethash pubsym oa) cnt)
+        (setq cnt (1+ cnt)))
       (setf (eieio--class-symbol-hashtable newc) oa))
 
     ;; Set up a specialized doc string.
@@ -895,7 +889,7 @@ INSTANCE is the object being referenced.  SLOTNAME is the offending
 slot.  If the slot is ok, return VALUE.
 Argument FN is the function calling this verifier."
   (if (and (eq value eieio-unbound) (not eieio-skip-typecheck))
-      (slot-unbound instance (eieio--object-class-name instance) slotname fn)
+      (slot-unbound instance (eieio--object-class-object instance) slotname fn)
     value))
 
 
@@ -1029,8 +1023,7 @@ The slot is a symbol which is installed in CLASS by the `defclass' call.
 If SLOT is the value created with :initarg instead,
 reverse-lookup that name, and recurse with the associated slot value."
   ;; Removed checks to outside this call
-  (let* ((fsym (gethash slot (eieio--class-symbol-hashtable class)))
-	 (fsi (car fsym)))
+  (let* ((fsi (gethash slot (eieio--class-symbol-hashtable class))))
     (if (integerp fsi)
         (+ (eval-when-compile eieio--object-num-slots) fsi)
       (let ((fn (eieio--initarg-to-attribute class slot)))

@@ -3095,7 +3095,14 @@ read_char (int commandflag, Lisp_Object map,
 
       cancel_echoing ();
       ok_to_echo_at_next_pause = saved_ok_to_echo;
-      kset_echo_string (current_kboard, saved_echo_string);
+      /* Do not restore the echo area string when the user is
+         introducing a prefix argument. Otherwise we end with
+         repetitions of the partially introduced prefix
+         argument. (bug#19875) */
+      if (NILP (intern ("prefix-arg")))
+        {
+          kset_echo_string (current_kboard, saved_echo_string);
+        }
       current_kboard->echo_after_prompt = saved_echo_after_prompt;
       if (saved_immediate_echo)
 	echo_now ();
@@ -4448,7 +4455,7 @@ timer_check_2 (Lisp_Object timers, Lisp_Object idle_timers)
       /* Set TIMER and TIMER_DIFFERENCE
 	 based on the next ordinary timer.
 	 TIMER_DIFFERENCE is the distance in time from NOW to when
-	 this timer becomes ripe (negative if it's already ripe).
+	 this timer becomes ripe.
          Skip past invalid timers and timers already handled.  */
       if (CONSP (timers))
 	{

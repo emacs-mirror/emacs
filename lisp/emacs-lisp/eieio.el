@@ -272,34 +272,9 @@ This method is obsolete."
                             ;; but hide it so we don't trigger indefinitely.
                             `(,(car whole) (identity ,(car slots))
                               ,@(cdr slots)))))))
-             (apply #'eieio-constructor ',name slots))))))
+             (apply #'make-instance ',name slots))))))
 
 
-;;; CLOS style implementation of object creators.
-;;
-(defun make-instance (class &rest initargs)
-  "Make a new instance of CLASS based on INITARGS.
-CLASS is a class symbol.  For example:
-
-  (make-instance 'foo)
-
-  INITARGS is a property list with keywords based on the :initarg
-for each slot.  For example:
-
-  (make-instance 'foo :slot1 value1 :slotN valueN)
-
-Compatibility note:
-
-If the first element of INITARGS is a string, it is used as the
-name of the class.
-
-In EIEIO, the class' constructor requires a name for use when printing.
-`make-instance' in CLOS doesn't use names the way Emacs does, so the
-class is used as the name slot instead when INITARGS doesn't start with
-a string."
-  (apply (eieio--class-constructor class) initargs))
-
-
 ;;; Get/Set slots in an object.
 ;;
 (defmacro oref (obj slot)
@@ -311,6 +286,7 @@ created by the :initarg tag."
 
 (defalias 'slot-value 'eieio-oref)
 (defalias 'set-slot-value 'eieio-oset)
+(make-obsolete 'set-slot-value "use (setf (slot-value ..) ..) instead" "25.1")
 
 (defmacro oref-default (obj slot)
   "Get the default value of OBJ (maybe a class) for SLOT.
@@ -363,7 +339,7 @@ variable name of the same name as the slot."
   (declare (obsolete eieio-named "25.1")))
 
 (defun eieio-object-name (obj &optional extra)
-  "Return a Lisp like symbol string for object OBJ.
+  "Return a printed representation for object OBJ.
 If EXTRA, include that in the string returned to represent the symbol."
   (cl-check-type obj eieio-object)
   (format "#<%s %s%s>" (eieio--object-class-name obj)
@@ -402,7 +378,7 @@ If EXTRA, include that in the string returned to represent the symbol."
 (defun eieio-object-class-name (obj)
   "Return a Lisp like symbol name for OBJ's class."
   (cl-check-type obj eieio-object)
-  (eieio-class-name (eieio--object-class-name obj)))
+  (eieio-class-name (eieio--object-class-object obj)))
 (define-obsolete-function-alias
   'object-class-name 'eieio-object-class-name "24.4")
 
@@ -463,10 +439,23 @@ The CLOS function `class-direct-subclasses' is aliased to this function."
                 child (pop p)))
         (if child t))))
 
+(defun eieio-slot-descriptor-name (slot) slot)
+
+(defun eieio-class-slots (class)
+  "Return list of slots available in instances of CLASS."
+  ;; FIXME: This only gives the instance slots and ignores the
+  ;; class-allocated slots.
+  ;; FIXME: It only gives the slot's *names* rather than actual
+  ;; slot descriptors.
+  (setq class (eieio--class-object class))
+  (cl-check-type class eieio--class)
+  (eieio--class-public-a class))
+
 (defun object-slots (obj)
   "Return list of slots available in OBJ."
+  (declare (obsolete eieio-class-slots "25.1"))
   (cl-check-type obj eieio-object)
-  (eieio--class-public-a (eieio--object-class-object obj)))
+  (eieio-class-slots (eieio--object-class-object obj)))
 
 (defun eieio--class-slot-initarg (class slot) "Fetch from CLASS, SLOT's :initarg."
   (cl-check-type class eieio--class)
@@ -613,6 +602,9 @@ If SLOT is unbound, do nothing."
 ;;; Here are some CLOS items that need the CL package
 ;;
 
+;; FIXME: Shouldn't this be a more complex gv-expander which extracts the
+;; common code between oref and oset, so as to reduce the redundant work done
+;; in (push foo (oref bar baz)), like we do for the `nth' expander?
 (gv-define-simple-setter eieio-oref eieio-oset)
 
 
@@ -636,20 +628,28 @@ This class is not stored in the `parent' slot of a class vector."
 
 (defalias 'standard-class 'eieio-default-superclass)
 
-(cl-defgeneric eieio-constructor (class &rest slots)
-  "Default constructor for CLASS `eieio-default-superclass'.")
+(cl-defgeneric make-instance (class &rest initargs)
+  "Make a new instance of CLASS based on INITARGS.
+For example:
 
-(define-obsolete-function-alias 'constructor #'eieio-constructor "25.1")
+  (make-instance 'foo)
 
-(cl-defmethod eieio-constructor
-  ((class (subclass eieio-default-superclass)) &rest slots)
+INITARGS is a property list with keywords based on the `:initarg'
+for each slot.  For example:
+
+  (make-instance 'foo :slot1 value1 :slotN valueN)")
+
+(define-obsolete-function-alias 'constructor #'make-instance "25.1")
+
+(cl-defmethod make-instance
+    ((class (subclass eieio-default-superclass)) &rest slots)
   "Default constructor for CLASS `eieio-default-superclass'.
-SLOTS are the initialization slots used by `shared-initialize'.
+SLOTS are the initialization slots used by `initialize-instance'.
 This static method is called when an object is constructed.
 It allocates the vector used to represent an EIEIO object, and then
-calls `shared-initialize' on that object."
+calls `initialize-instance' on that object."
   (let* ((new-object (copy-sequence (eieio--class-default-object-cache
-                                     (eieio--class-v class)))))
+                                     (eieio--class-object class)))))
     (if (and slots
              (let ((x (car slots)))
                (or (stringp x) (null x))))
@@ -662,6 +662,7 @@ calls `shared-initialize' on that object."
     ;; Return the created object.
     new-object))
 
+;; FIXME: CLOS uses "&rest INITARGS" instead.
 (cl-defgeneric shared-initialize (obj slots)
   "Set slots of OBJ with SLOTS which is a list of name/value pairs.
 Called from the constructor routine.")
@@ -677,6 +678,7 @@ Called from the constructor routine."
         (eieio-oset obj rn (car (cdr slots)))))
     (setq slots (cdr (cdr slots)))))
 
+;; FIXME: CLOS uses "&rest INITARGS" instead.
 (cl-defgeneric initialize-instance (this &optional slots)
   "Construct the new object THIS based on SLOTS.")
 
@@ -693,9 +695,8 @@ dynamically set from SLOTS."
   ;; First, see if any of our defaults are `lambda', and
   ;; re-evaluate them and apply the value to our slots.
   (let* ((this-class (eieio--object-class-object this))
-	 (slot (eieio--class-public-a this-class))
 	 (defaults (eieio--class-public-d this-class)))
-    (while slot
+    (dolist (slot (eieio--class-public-a this-class))
       ;; For each slot, see if we need to evaluate it.
       ;;
       ;; Paul Landes said in an email:
@@ -705,10 +706,9 @@ dynamically set from SLOTS."
       ;; > web.
       (let ((dflt (eieio-default-eval-maybe (car defaults))))
 	(when (not (eq dflt (car defaults)))
-	  (eieio-oset this (car slot) dflt) ))
+	  (eieio-oset this slot dflt) ))
       ;; Next.
-      (setq slot (cdr slot)
-	    defaults (cdr defaults))))
+      (setq defaults (cdr defaults))))
   ;; Shared initialize will parse our slots for us.
   (shared-initialize this slots))
 
@@ -742,7 +742,8 @@ Use `slot-boundp' to determine if a slot is bound or not.
 
 In CLOS, the argument list is (CLASS OBJECT SLOT-NAME), but
 EIEIO can only dispatch on the first argument, so the first two are swapped."
-  (signal 'unbound-slot (list (eieio-class-name class) (eieio-object-name object)
+  (signal 'unbound-slot (list (eieio-class-name class)
+                              (eieio-object-name object)
 			      slot-name fn)))
 
 (cl-defgeneric clone (obj &rest params)
@@ -861,7 +862,7 @@ this object."
 	((consp thing)
 	 (eieio-list-prin1 thing))
 	((eieio--class-p thing)
-	 (princ (eieio-class-name thing)))
+	 (princ (eieio--class-print-name thing)))
 	(t (prin1 thing))))
 
 (defun eieio-list-prin1 (list)
@@ -902,7 +903,7 @@ of `eq'."
 Used as advice around `edebug-prin1-to-string', held in the
 variable PRINT-FUNCTION.  Optional argument NOESCAPE is passed to
 `prin1-to-string' when appropriate."
-  (cond ((eieio--class-p object) (eieio-class-name object))
+  (cond ((eieio--class-p object) (eieio--class-print-name object))
 	((eieio-object-p object) (object-print object))
 	((and (listp object) (or (eieio--class-p (car object))
 				 (eieio-object-p (car object))))

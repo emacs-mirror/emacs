@@ -5505,7 +5505,8 @@ If no internal viewer is available, use an external viewer."
         (gnus-mime-view-part-as-type
          nil (lambda (type) (mm-inlinable-p handle type)))
       (when handle
-	(gnus-bind-safe-url-regexp (mm-display-part handle))))))
+	(gnus-bind-safe-url-regexp
+	 (mm-display-part handle nil t))))))
 
 (defun gnus-mime-action-on-part (&optional action)
   "Do something with the MIME attachment at \(point\)."

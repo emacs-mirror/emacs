@@ -2110,7 +2110,7 @@ Do you want to revisit the file normally now? ")
 (defun insert-file-contents-literally (filename &optional visit beg end replace)
   "Like `insert-file-contents', but only reads in the file literally.
 A buffer may be modified in several ways after reading into the buffer,
-to Emacs features such as format decoding, character code
+due to Emacs features such as format decoding, character code
 conversion, `find-file-hook', automatic uncompression, etc.
 
 This function ensures that none of these modifications will take place."

@@ -2360,6 +2360,7 @@ goes wrong and syntax highlighting in the shell gets messed up."
                (process-live-p (get-buffer-process (current-buffer))))
       (let* ((input (buffer-substring-no-properties
                      prompt-end (point-max)))
+             (deactivate-mark nil)
              (start-pos prompt-end)
              (buffer-undo-list t)
              (font-lock-buffer-pos nil)

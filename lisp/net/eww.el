@@ -60,6 +60,7 @@
   :group 'eww
   :type 'string)
 
+;;;###autoload
 (defcustom eww-suggest-uris
   '(eww-links-at-point
     url-get-url-at-point
@@ -686,6 +687,8 @@ the like."
     map)
   "Tool bar for `eww-mode'.")
 
+;; Autoload cookie needed by desktop.el.
+;;;###autoload
 (define-derived-mode eww-mode special-mode "eww"
   "Mode for browsing the web."
   (setq-local eww-data (list :title ""))
@@ -1877,8 +1880,9 @@ Otherwise, the restored buffer will contain a prompt to do so by using
 	(case eww-restore-desktop
 	  ((t auto) (eww (plist-get eww-data :url)))
 	  ((zerop (buffer-size))
-	   (insert (substitute-command-keys
-		    eww-restore-reload-prompt))))))
+	   (let ((inhibit-read-only t))
+	     (insert (substitute-command-keys
+		      eww-restore-reload-prompt)))))))
     ;; .
     (current-buffer)))
 

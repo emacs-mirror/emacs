@@ -114,9 +114,12 @@ Optional KEYMAP is the default keymap bound to the mode keymap.
 BODY contains code to execute each time the mode is enabled or disabled.
   It is executed after toggling the mode, and before running MODE-hook.
   Before the actual body code, you can write keyword arguments, i.e.
-  alternating keywords and values.  These following special keywords
-  are supported (other keywords are passed to `defcustom' if the minor
-  mode is global):
+  alternating keywords and values.  If you provide BODY, then you must
+  provide (even if just nil) INIT-VALUE, LIGHTER, and KEYMAP, or provide
+  at least one keyword argument, or both; otherwise, BODY would be
+  misinterpreted as the first omitted argument.  The following special
+  keywords are supported (other keywords are passed to `defcustom' if
+  the minor mode is global):
 
 :group GROUP	Custom group name to use in all generated `defcustom' forms.
 		Defaults to MODE without the possible trailing \"-mode\".
@@ -159,7 +162,8 @@ For example, you could write
   ;; Allow skipping the first three args.
   (cond
    ((keywordp init-value)
-    (setq body `(,init-value ,lighter ,keymap ,@body)
+    (setq body (if keymap `(,init-value ,lighter ,keymap ,@body)
+		 `(,init-value ,lighter))
 	  init-value nil lighter nil keymap nil))
    ((keywordp lighter)
     (setq body `(,lighter ,keymap ,@body) lighter nil keymap nil))
@@ -280,14 +284,23 @@ the mode if ARG is omitted or nil, and toggle it if ARG is `toggle'.
            (if (called-interactively-p 'any)
                (progn
                  ,(if (and globalp (symbolp mode))
+		      ;; Unnecessary but harmless if mode set buffer-locally
                       `(customize-mark-as-set ',mode))
                  ;; Avoid overwriting a message shown by the body,
                  ;; but do overwrite previous messages.
                  (unless (and (current-message)
                               (not (equal ,last-message
                                           (current-message))))
-                   (message ,(format "%s %%sabled" pretty-name)
-                            (if ,mode "en" "dis")))))
+                   (let ((local
+			  ,(if globalp
+			       (if (symbolp mode)
+				   `(if (local-variable-p ',mode)
+					" in current buffer"
+				      "")
+				 "")
+			     " in current buffer")))
+		     (message ,(format "%s %%sabled%%s" pretty-name)
+			      (if ,mode "en" "dis") local)))))
 	   ,@(when after-hook `(,after-hook)))
 	 (force-mode-line-update)
 	 ;; Return the new setting.

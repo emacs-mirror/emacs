@@ -2488,19 +2488,13 @@ non-nil value, that slot cannot be set via `setf'.
 	  (setq descs (append old-descs (delq (assq 'cl-tag-slot descs) descs))
 		type (car inc-type)
 		named (assq 'cl-tag-slot descs))
-	  (if (cadr inc-type) (setq tag name named t))
-	  (let ((incl include))
-	    (while incl
-	      (push `(cl-pushnew ',tag
-                              ,(intern (format "cl-struct-%s-tags" incl)))
-                    forms)
-	      (setq incl (get incl 'cl-struct-include)))))
+	  (if (cadr inc-type) (setq tag name named t)))
       (if type
 	  (progn
 	    (or (memq type '(vector list))
 		(error "Invalid :type specifier: %s" type))
 	    (if named (setq tag name)))
-	(setq type 'vector named 'true)))
+	(setq named 'true)))
     (or named (setq descs (delq (assq 'cl-tag-slot descs) descs)))
     (when (and (null predicate) named)
       (setq predicate (intern (format "cl--struct-%s-p" name))))
@@ -2509,7 +2503,7 @@ non-nil value, that slot cannot be set via `setf'.
 				       (length (memq (assq 'cl-tag-slot descs)
 						     descs)))))
 			   (cond
-                            ((eq type 'vector)
+                            ((memq type '(nil vector))
                              `(and (vectorp cl-x)
                                    (>= (length cl-x) ,(length descs))
                                    (memq (aref cl-x ,pos) ,tag-symbol)))
@@ -2541,7 +2535,7 @@ non-nil value, that slot cannot be set via `setf'.
 			      (list `(or ,pred-check
                                          (error "%s accessing a non-%s"
                                                 ',accessor ',name))))
-                       ,(if (eq type 'vector) `(aref cl-x ,pos)
+                       ,(if (memq type '(nil vector)) `(aref cl-x ,pos)
                           (if (= pos 0) '(car cl-x)
                             `(nth ,pos cl-x))))
                     forms)
@@ -2599,7 +2593,7 @@ non-nil value, that slot cannot be set via `setf'.
                    (&cl-defs '(nil ,@descs) ,@args)
                  ,@(if (cl--safe-expr-p `(progn ,@(mapcar #'cl-second descs)))
                        '((declare (side-effect-free t))))
-                 (,type ,@make))
+                 (,(or type #'vector) ,@make))
               forms)))
     (if print-auto (nconc print-func (list '(princ ")" cl-s) t)))
     ;; Don't bother adding to cl-custom-print-functions since it's not used
@@ -2661,64 +2655,70 @@ Of course, we really can't know that for sure, so it's just a heuristic."
            (or (cdr (assq sym byte-compile-function-environment))
                (cdr (assq sym byte-compile-macro-environment))))))
 
-(defun cl--make-type-test (val type)
-  (pcase type
-    ((and `(,name . ,args) (guard (get name 'cl-deftype-handler)))
-     (cl--make-type-test val (apply (get name 'cl-deftype-handler)
-                                    args)))
-    (`(,(and name (or 'integer 'float 'real 'number))
-       . ,(or `(,min ,max) pcase--dontcare))
-     `(and ,(cl--make-type-test val name)
-           ,(if (memq min '(* nil)) t
-              (if (consp min) `(> ,val ,(car min))
-                `(>= ,val ,min)))
-           ,(if (memq max '(* nil)) t
-              (if (consp max)
-                  `(< ,val ,(car max))
-                `(<= ,val ,max)))))
-    (`(,(and name (or 'and 'or 'not)) . ,args)
-     (cons name (mapcar (lambda (x) (cl--make-type-test val x)) args)))
-    (`(member . ,args)
-     `(and (cl-member ,val ',args) t))
-    (`(satisfies ,pred) `(funcall #',pred ,val))
-    ((and (pred symbolp) (guard (get type 'cl-deftype-handler)))
-     (cl--make-type-test val (funcall (get type 'cl-deftype-handler))))
-    ((and (pred symbolp) (guard (get type 'cl-deftype-satisfies)))
-     `(funcall #',(get type 'cl-deftype-satisfies) ,val))
-    ((or 'nil 't) type)
-    ('null `(null ,val))
-    ('atom `(atom ,val))
-    ('float `(floatp ,val))
-    ('real `(numberp ,val))
-    ('fixnum `(integerp ,val))
-    ;; FIXME: Implement `base-char' and `extended-char'.
-    ('character `(characterp ,val))
-    ((pred symbolp)
-     (let* ((name (symbol-name type))
-            (namep (intern (concat name "p"))))
-       (cond
-        ((cl--macroexp-fboundp namep) (list namep val))
-        ((cl--macroexp-fboundp
-          (setq namep (intern (concat name "-p"))))
-         (list namep val))
-        ((cl--macroexp-fboundp type) (list type val))
-        (t (error "Unknown type %S" type)))))
-    (_ (error "Bad type spec: %s" type))))
+(put 'null 'cl-deftype-satisfies #'null)
+(put 'atom 'cl-deftype-satisfies #'atom)
+(put 'real 'cl-deftype-satisfies #'numberp)
+(put 'fixnum 'cl-deftype-satisfies #'integerp)
+(put 'base-char 'cl-deftype-satisfies #'characterp)
+(put 'character 'cl-deftype-satisfies #'integerp)
 
-(defvar cl--object)
+
 ;;;###autoload
-(defun cl-typep (object type)   ; See compiler macro below.
-  "Check that OBJECT is of type TYPE.
-TYPE is a Common Lisp-style type specifier."
-  (declare (compiler-macro cl--compiler-macro-typep))
-  (let ((cl--object object)) ;; Yuck!!
-    (eval (cl--make-type-test 'cl--object type))))
+(define-inline cl-typep (val type)
+  (inline-letevals (val)
+    (pcase (inline-const-val type)
+      ((and `(,name . ,args) (guard (get name 'cl-deftype-handler)))
+       (inline-quote
+        (cl-typep ,val ',(apply (get name 'cl-deftype-handler) args))))
+      (`(,(and name (or 'integer 'float 'real 'number))
+         . ,(or `(,min ,max) pcase--dontcare))
+       (inline-quote
+        (and (cl-typep ,val ',name)
+             ,(if (memq min '(* nil)) t
+                (if (consp min)
+                    (inline-quote (> ,val ',(car min)))
+                  (inline-quote (>= ,val ',min))))
+             ,(if (memq max '(* nil)) t
+                (if (consp max)
+                    (inline-quote (< ,val ',(car max)))
+                  (inline-quote (<= ,val ',max)))))))
+      (`(not ,type) (inline-quote (not (cl-typep ,val ',type))))
+      (`(,(and name (or 'and 'or)) . ,types)
+       (cond
+        ((null types) (inline-quote ',(eq name 'and)))
+        ((null (cdr types))
+         (inline-quote (cl-typep ,val ',(car types))))
+        (t
+         (let ((head (car types))
+               (rest `(,name . ,(cdr types))))
+           (cond
+            ((eq name 'and)
+             (inline-quote (and (cl-typep ,val ',head)
+                             (cl-typep ,val ',rest))))
+            (t
+             (inline-quote (or (cl-typep ,val ',head)
+                            (cl-typep ,val ',rest)))))))))
+      (`(member . ,args)
+       (inline-quote (and (memql ,val ',args) t)))
+      (`(satisfies ,pred) (inline-quote (funcall #',pred ,val)))
+      ((and (pred symbolp) type (guard (get type 'cl-deftype-handler)))
+       (inline-quote
+        (cl-typep ,val ',(funcall (get type 'cl-deftype-handler)))))
+      ((and (pred symbolp) type (guard (get type 'cl-deftype-satisfies)))
+       (inline-quote (funcall #',(get type 'cl-deftype-satisfies) ,val)))
+      ((and (or 'nil 't) type) (inline-quote ',type))
+      ((and (pred symbolp) type)
+       (let* ((name (symbol-name type))
+              (namep (intern (concat name "p"))))
+         (cond
+          ((cl--macroexp-fboundp namep) (inline-quote (funcall #',namep ,val)))
+          ((cl--macroexp-fboundp
+            (setq namep (intern (concat name "-p"))))
+           (inline-quote (funcall #',namep ,val)))
+          ((cl--macroexp-fboundp type) (inline-quote (funcall #',type ,val)))
+          (t (error "Unknown type %S" type)))))
+      (type (error "Bad type spec: %s" type)))))
 
-(defun cl--compiler-macro-typep (form val type)
-  (if (macroexp-const-p type)
-      (macroexp-let2 macroexp-copyable-p temp val
-        (cl--make-type-test temp (cl--const-expr-val type)))
-    form))
 
 ;;;###autoload
 (defmacro cl-check-type (form type &optional string)
@@ -2751,10 +2751,9 @@ omitted, a default message listing FORM itself is used."
                                            (cdr form))))))
 	 `(progn
             (or ,form
-                ,(if string
-                     `(error ,string ,@sargs ,@args)
-                   `(signal 'cl-assertion-failed
-                            (list ',form ,@sargs))))
+                (cl--assertion-failed
+                 ',form ,@(if (or string sargs args)
+                              `(,string (list ,@sargs) (list ,@args)))))
             nil))))
 
 ;;; Compiler macros.
@@ -2962,23 +2961,26 @@ The type name can then be used in `cl-typecase', `cl-check-type', etc."
      (put ',name 'cl-deftype-handler
           (cl-function (lambda (&cl-defs '('*) ,@arglist) ,@body)))))
 
+(cl-deftype extended-char () `(and character (not base-char)))
+
 ;;; Additional functions that we can now define because we've defined
 ;;; `cl-defsubst' and `cl-typep'.
 
-(cl-defsubst cl-struct-slot-value (struct-type slot-name inst)
-  ;; The use of `cl-defsubst' here gives us both a compiler-macro
-  ;; and a gv-expander "for free".
+(define-inline cl-struct-slot-value (struct-type slot-name inst)
   "Return the value of slot SLOT-NAME in INST of STRUCT-TYPE.
 STRUCT and SLOT-NAME are symbols.  INST is a structure instance."
   (declare (side-effect-free t))
-  (unless (cl-typep inst struct-type)
-    (signal 'wrong-type-argument (list struct-type inst)))
-  ;; We could use `elt', but since the byte compiler will resolve the
-  ;; branch below at compile time, it's more efficient to use the
-  ;; type-specific accessor.
-  (if (eq (cl-struct-sequence-type struct-type) 'vector)
-      (aref inst (cl-struct-slot-offset struct-type slot-name))
-    (nth (cl-struct-slot-offset struct-type slot-name) inst)))
+  (inline-letevals (struct-type slot-name inst)
+    (inline-quote
+     (progn
+       (unless (cl-typep ,inst ,struct-type)
+         (signal 'wrong-type-argument (list ,struct-type ,inst)))
+       ;; We could use `elt', but since the byte compiler will resolve the
+       ;; branch below at compile time, it's more efficient to use the
+       ;; type-specific accessor.
+       (if (eq (cl-struct-sequence-type ,struct-type) 'vector)
+           (aref ,inst (cl-struct-slot-offset ,struct-type ,slot-name))
+         (nth (cl-struct-slot-offset ,struct-type ,slot-name) ,inst))))))
 
 (run-hooks 'cl-macs-load-hook)
 

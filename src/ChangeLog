@@ -1,3 +1,23 @@
+2015-02-18  Oscar Fuentes <ofv@wanadoo.es>
+
+	* keyboard.c (read_char): When there is an input method function,
+	do not restore the echo area if a prefix argument is being
+	introduced.  (Bug#19875)
+
+2015-02-16  Kelly Dean  <kelly@prtime.org>
+
+	* src/keyboard.c (timer_check_2): Fix incorrect comment.
+
+2015-02-14  Martin Rudalics  <rudalics@gmx.at>
+
+	* xterm.c (x_frame_normalize_before_maximize): Fix doc-string.
+	Suggested by Alan Mackenzie <acm@muc.de>.
+
+2015-02-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* menu.c (Fx_popup_menu) [HAVE_X_WINDOWS]: Call
+	x_relative_mouse_position only for X frames.  (Bug#19862)
+
 2015-02-13  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Better support for future plugins

@@ -1353,13 +1353,13 @@ extra args."
     (let ((keyword-args (cdr (cdr (cdr (cdr form)))))
           (name (cadr form)))
       (or (not (eq (car-safe name) 'quote))
-        (and (eq (car form) 'custom-declare-group)
-             (equal name ''emacs))
-        (plist-get keyword-args :group)
-        (not (and (consp name) (eq (car name) 'quote)))
-        (byte-compile-warn
-         "%s for `%s' fails to specify containing group"
-         (cdr (assq (car form)
+          (and (eq (car form) 'custom-declare-group)
+               (equal name ''emacs))
+          (plist-get keyword-args :group)
+          (not (and (consp name) (eq (car name) 'quote)))
+          (byte-compile-warn
+           "%s for `%s' fails to specify containing group"
+           (cdr (assq (car form)
                       '((custom-declare-group . defgroup)
                         (custom-declare-face . defface)
                         (custom-declare-variable . defcustom))))

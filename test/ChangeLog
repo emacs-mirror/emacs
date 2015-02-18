@@ -1,3 +1,8 @@
+2015-02-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* automated/eieio-test-methodinvoke.el (make-instance): Add methods
+	here rather than on eieio-constructor.
+
 2015-02-13  Magnus Henoch  <magnus.henoch@gmail.com>
 
 	* automated/sasl-scram-rfc-tests.el: New file.

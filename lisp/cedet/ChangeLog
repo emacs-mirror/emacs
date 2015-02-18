@@ -1,3 +1,9 @@
+2015-02-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* semantic/db-el.el (semanticdb-elisp-sym->tag): Fix copy&paste error
+	(semanticdb-project-database => sym).  Avoid eieio--class-public-a
+	when possible.
+
 2015-02-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Use cl-generic instead of EIEIO's defgeneric/defmethod.

@@ -731,7 +731,7 @@ Can only be used from within the lexical body of a primary or around method."
 (defun cl--generic-struct-tagcode (type name)
   (and (symbolp type)
        (get type 'cl-struct-type)
-       (or (eq 'vector (car (get type 'cl-struct-type)))
+       (or (null (car (get type 'cl-struct-type)))
            (error "Can't dispatch on cl-struct %S: type is %S"
                   type (car (get type 'cl-struct-type))))
        (or (equal '(cl-tag-slot) (car (get type 'cl-struct-slots)))
@@ -761,7 +761,7 @@ Can only be used from within the lexical body of a primary or around method."
        (let ((types (list (intern (substring (symbol-name tag) 10)))))
          (while (get (car types) 'cl-struct-include)
            (push (get (car types) 'cl-struct-include) types))
-         (push 'cl-struct types)        ;The "parent type" of all cl-structs.
+         (push 'cl-structure-object types) ;The "parent type" of all cl-structs.
          (nreverse types))))
 
 ;;; Dispatch on "system types".

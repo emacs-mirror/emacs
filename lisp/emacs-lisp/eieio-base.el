@@ -140,7 +140,7 @@ Multiple calls to `make-instance' will return this object."))
 A singleton is a class which will only ever have one instance."
   :abstract t)
 
-(cl-defmethod eieio-constructor ((class (subclass eieio-singleton)) &rest _slots)
+(cl-defmethod make-instance ((class (subclass eieio-singleton)) &rest _slots)
   "Constructor for singleton CLASS.
 NAME and SLOTS initialize the new object.
 This constructor guarantees that no matter how many you request,

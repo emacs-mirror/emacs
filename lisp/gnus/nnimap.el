@@ -196,6 +196,8 @@ textual parts.")
 	  (nnimap-article-ranges (gnus-compress-sequence articles))
 	  (nnimap-header-parameters))
 	 t)
+	(unless (process-live-p (get-buffer-process (current-buffer)))
+	  (error "Server closed connection"))
 	(nnimap-transform-headers)
 	(nnheader-remove-cr-followed-by-lf))
       (insert-buffer-substring

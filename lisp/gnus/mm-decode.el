@@ -791,6 +791,14 @@ MIME-Version header before proceeding."
 (autoload 'mailcap-parse-mailcaps "mailcap")
 (autoload 'mailcap-mime-info "mailcap")
 
+(defun mm-head-p (&optional point)
+  "Return non-nil if point is in the article header."
+  (let ((point (or point (point))))
+    (save-excursion
+      (goto-char point)
+      (and (not (re-search-backward "^$" nil t))
+	   (re-search-forward "^$" nil t)))))
+
 (defun mm-display-part (handle &optional no-default force)
   "Display the MIME part represented by HANDLE.
 Returns nil if the part is removed; inline if displayed inline;
@@ -824,6 +832,10 @@ external if displayed external."
 	  'inline)
 	 ((and (mm-inlinable-p ehandle)
 	       (mm-inlined-p ehandle))
+	  (when force
+	    (if (mm-head-p)
+		(re-search-forward "^$" nil t)
+	      (forward-line 1)))
 	  (mm-display-inline handle)
 	  'inline)
 	 ((or method

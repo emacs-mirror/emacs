@@ -1,3 +1,117 @@
+2015-02-16  Kelly Dean  <kelly@prtime.org>
+
+	* lisp/files.el (insert-file-contents-literally): Fix docstring typo.
+
+2015-02-16  Kelly Dean  <kelly@prtime.org>
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Process macro
+	arguments correctly. (Bug#19685)
+	(define-minor-mode): Clarify docstring.
+	Clarify mode switch messages for minor modes. (Bug#19690)
+
+2015-02-16  Kelly Dean  <kelly@prtime.org>
+
+	* emacs-lisp/package-x.el (package-upload-buffer-internal):
+	Create valid tar files. (Bug#19536)
+
+2015-02-16  Kelly Dean  <kelly@prtime.org>
+
+	* desktop.el (desktop-read): Conditionally re-enable desktop autosave.
+	(Bug#19059)
+
+2015-02-16  Kelly Dean  <kelly@prtime.org>
+
+	* help-mode.el (help-do-xref): Prevent duplicated display of Info
+	buffer, and prevent interference with existing buffer. (Bug#13190)
+
+2015-02-16  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	python.el: Do not deactivate mark on shell fontification.  (Bug#19871)
+
+	* progmodes/python.el (python-shell-font-lock-post-command-hook):
+	Do not deactivate mark on fontification.
+
+2015-02-16  Ivan Shmakov  <ivan@siamics.net>
+
+	* net/eww.el: Fix desktop support.  (Bug#19226)
+	(eww-mode): Add autoload cookie.
+	(eww-restore-desktop): Use inhibit-read-only.
+
+	* net/eww.el (eww-suggest-uris): Add autoload cookie, so that
+	add-hook works correctly even if the file is not yet loaded.
+
+2015-02-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/eieio.el (defclass): Use make-instance rather than
+	eieio-constructor.
+	(set-slot-value): Mark as obsolete.
+	(eieio-object-class-name): Improve call to eieio-class-name.
+	(eieio-slot-descriptor-name, eieio-class-slots): New functions.
+	(object-slots): Use it.  Declare obsolete.
+	(eieio-constructor): Merge it with `make-instance'.
+	(initialize-instance): Use `dolist'.
+	(eieio-override-prin1, eieio-edebug-prin1-to-string):
+	Use eieio--class-print-name.
+
+	* emacs-lisp/eieio-core.el (eieio--class-print-name): New function.
+	(eieio-class-name): Make it do what the docstring claims.
+	(eieio-defclass-internal): Simplify since `prots' isn't used any more.
+	(eieio--slot-name-index): Simplify accordingly.
+	(eieio-barf-if-slot-unbound): Pass the class object rather than its
+	name to `slot-unbound'.
+
+	* emacs-lisp/eieio-base.el (make-instance): Add a method here rather
+	than on eieio-constructor.
+
+2015-02-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl-macs.el (cl-defstruct): Keep type=nil by default.
+	* emacs-lisp/cl-preloaded.el (cl-struct-define): Add sanity checks
+	about relationship between `type', `named', and `slots'.
+	* emacs-lisp/cl-generic.el (cl--generic-struct-tagcode): Adjust to new
+	value of `cl-struct-type' property.
+
+2015-02-15  Jérémy Compostella  <jeremy.compostella@gmail.com>
+
+	* net/tramp-sh.el (tramp-remote-process-environment): Disable paging
+	with PAGER=cat.  (Bug#19870)
+
+2015-02-14  Artur Malabarba  <bruce.connor.am@gmail.com>
+
+	* emacs-lisp/package.el (package-read-all-archive-contents):
+	Don't build the compatibility table.
+	(package-refresh-contents, package-initialize): Do build the
+	compatibility table.
+	(package--build-compatibility-table): New function.
+	(describe-package-1): Describe why a package is incompatible.
+
+2015-02-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl-preloaded.el (cl-struct-define): Register as children
+	of the parent.
+	(cl--assertion-failed): New function.
+	(cl-assertion-failed): Move in from cl-lib.el.
+
+	* emacs-lisp/cl-macs.el (cl-defstruct): Don't generate code to register
+	as children of its parents.
+	(cl--make-type-test, cl--compiler-macro-typep): Remove functions.
+	(cl-typep): Reimplement using define-inline.
+	(cl-assert): Use cl--assertion-failed.
+	(cl-struct-slot-value): Use define-inline.
+
+	* emacs-lisp/cl-lib.el: Move autoloaded code to cl-preload.
+
+	* textmodes/flyspell.el (flyspell-word): Defvar (bug#19844).
+	(flyspell-generic-check-word-p): Mark as obsolete.
+
+2015-02-13  Artur Malabarba  <bruce.connor.am@gmail.com>
+
+	* emacs-lisp/package.el (package--compatibility-table): New var.
+	(package--add-to-compatibility-table): New function.
+	(package-read-all-archive-contents): Populate compatibility table.
+	(package--incompatible-p): Also look in dependencies.
+	(describe-package-1): Fix "incompat" handling.
+
 2015-02-13  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* net/rfc2104.el: Moved here from lisp/gnus.
@@ -6,8 +120,8 @@
 
 	* net/sasl-scram-rfc.el: New file.
 
-	* net/sasl.el (sasl-mechanisms): Remove SCRAM-MD5.  Add
-	SCRAM-SHA-1 first.
+	* net/sasl.el (sasl-mechanisms): Remove SCRAM-MD5.
+	Add SCRAM-SHA-1 first.
 	(sasl-mechanism-alist): Remove SCRAM-MD5 entry.  Add SCRAM-SHA-1
 	entry (bug#17636).
 
@@ -26,8 +140,8 @@
 
 	python.el: Allow killing shell buffer if process is dead.  (Bug#19823)
 
-	* progmodes/python.el (python-shell-font-lock-kill-buffer): Don't
-	require a running process.
+	* progmodes/python.el (python-shell-font-lock-kill-buffer):
+	Don't require a running process.
 	(python-shell-font-lock-post-command-hook): Fontify only if the
 	shell process is running.
 

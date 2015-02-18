@@ -426,6 +426,7 @@ AC_ARG_ENABLE(ns-self-contained,
    EN_NS_SELF_CONTAINED=$enableval,
    EN_NS_SELF_CONTAINED=yes)
 
+locallisppathset=no
 AC_ARG_ENABLE(locallisppath,
 [AS_HELP_STRING([--enable-locallisppath=PATH],
                 [directories Emacs should search for lisp files specific
@@ -433,7 +434,7 @@ AC_ARG_ENABLE(locallisppath,
 if test "${enableval}" = "no"; then
   locallisppath=
 elif test "${enableval}" != "yes"; then
-  locallisppath=${enableval}
+  locallisppath=${enableval} locallisppathset=yes
 fi)
 
 AC_ARG_ENABLE(checking,
@@ -1874,6 +1875,7 @@ if test "${HAVE_NS}" = yes; then
      infodir="\${ns_appresdir}/info"
      mandir="\${ns_appresdir}/man"
      lispdir="\${ns_appresdir}/lisp"
+     test "$locallisppathset" = no && locallisppath=""
      INSTALL_ARCH_INDEP_EXTRA=
   fi
 

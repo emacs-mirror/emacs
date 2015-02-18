@@ -304,8 +304,8 @@ Returns t to continue checking, nil otherwise.
 Flyspell mode sets this variable to whatever is the `flyspell-mode-predicate'
 property of the major mode name.")
 (make-variable-buffer-local 'flyspell-generic-check-word-predicate)
-(defvaralias 'flyspell-generic-check-word-p
-  'flyspell-generic-check-word-predicate)
+(define-obsolete-variable-alias 'flyspell-generic-check-word-p
+  'flyspell-generic-check-word-predicate "25.1")
 
 ;;*--- mail mode -------------------------------------------------------*/
 (put 'mail-mode 'flyspell-mode-predicate 'mail-mode-flyspell-verify)
@@ -398,7 +398,7 @@ like <img alt=\"Some thing.\">."
   "Turn on `flyspell-mode' for comments and strings."
   (interactive)
   (setq flyspell-generic-check-word-predicate
-        'flyspell-generic-progmode-verify)
+        #'flyspell-generic-progmode-verify)
   (flyspell-mode 1)
   (run-hooks 'flyspell-prog-mode-hook))
 
@@ -1039,6 +1039,8 @@ Mostly we check word delimiters."
 	      (setq r p)
 	    (goto-char (1+ p)))))
       r)))
+
+(defvar flyspell-word) ;Backward compatibility; some predicates made use of it!
 
 ;;*---------------------------------------------------------------------*/
 ;;*    flyspell-word ...                                                */

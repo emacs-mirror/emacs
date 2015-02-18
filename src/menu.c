@@ -1243,35 +1243,39 @@ no quit occurs and `x-popup-menu' returns nil.  */)
 	/* Use the mouse's current position.  */
 	struct frame *new_f = SELECTED_FRAME ();
 #ifdef HAVE_X_WINDOWS
-	/* Can't use mouse_position_hook for X since it returns
-	   coordinates relative to the window the mouse is in,
-	   we need coordinates relative to the edit widget always.  */
-	if (new_f != 0)
+	if (FRAME_X_P (new_f))
 	  {
-	    int cur_x, cur_y;
+	    /* Can't use mouse_position_hook for X since it returns
+	       coordinates relative to the window the mouse is in,
+	       we need coordinates relative to the edit widget always.  */
+	    if (new_f != 0)
+	      {
+		int cur_x, cur_y;
 
-	    x_relative_mouse_position (new_f, &cur_x, &cur_y);
-	    /* cur_x/y may be negative, so use make_number.  */
-	    x = make_number (cur_x);
-	    y = make_number (cur_y);
+		x_relative_mouse_position (new_f, &cur_x, &cur_y);
+		/* cur_x/y may be negative, so use make_number.  */
+		x = make_number (cur_x);
+		y = make_number (cur_y);
+	      }
 	  }
+	else
+#endif /* HAVE_X_WINDOWS */
+	  {
+	    Lisp_Object bar_window;
+	    enum scroll_bar_part part;
+	    Time time;
+	    void (*mouse_position_hook) (struct frame **, int,
+					 Lisp_Object *,
+					 enum scroll_bar_part *,
+					 Lisp_Object *,
+					 Lisp_Object *,
+					 Time *) =
+	      FRAME_TERMINAL (new_f)->mouse_position_hook;
 
-#else /* not HAVE_X_WINDOWS */
-	Lisp_Object bar_window;
-	enum scroll_bar_part part;
-	Time time;
-        void (*mouse_position_hook) (struct frame **, int,
-                                     Lisp_Object *,
-                                     enum scroll_bar_part *,
-                                     Lisp_Object *,
-                                     Lisp_Object *,
-                                     Time *) =
-	  FRAME_TERMINAL (new_f)->mouse_position_hook;
-
-	if (mouse_position_hook)
-	  (*mouse_position_hook) (&new_f, 1, &bar_window,
-				  &part, &x, &y, &time);
-#endif /* not HAVE_X_WINDOWS */
+	    if (mouse_position_hook)
+	      (*mouse_position_hook) (&new_f, 1, &bar_window,
+				      &part, &x, &y, &time);
+	  }
 
 	if (new_f != 0)
 	  XSETFRAME (window, new_f);

@@ -247,7 +247,7 @@ if it exists."
 	        	     (concat (symbol-name pkg-name) "-readme.txt")
 	        	     package-archive-upload-base)))
 
-	    (set-buffer pkg-buffer)
+	    (set-buffer (if (eq file-type 'tar) tar-data-buffer pkg-buffer))
 	    (write-region (point-min) (point-max)
 			  (expand-file-name
 			   (format "%s-%s.%s" pkg-name pkg-version extension)

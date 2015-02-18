@@ -1,3 +1,13 @@
+2015-02-14  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-retrieve-headers): If the server closes connection
+	during header retrieval, error out instead of interpreting the data in
+	the buffer as the only messages there.  This way, we don't mark
+	articles as read on a server hangup (bug#19035).
+
+	* mm-decode.el (mm-head-p): New function.
+	(mm-display-part): Go to a blank line when inserting parts internally.
+
 2015-02-13  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-msg.el (gnus-msg-mail): Don't let-bind `gnus-newsgroup-name' so

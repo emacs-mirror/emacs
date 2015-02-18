@@ -28,11 +28,19 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl-lib))
+
 (defun cl-struct-define (name docstring parent type named slots children-sym
                               tag print-auto)
+  (cl-assert (or type (equal '(cl-tag-slot) (car slots))))
+  (cl-assert (or type (not named)))
   (if (boundp children-sym)
       (add-to-list children-sym tag)
     (set children-sym (list tag)))
+  (let* ((parent-class parent))
+    (while parent-class
+      (add-to-list (intern (format "cl-struct-%s-tags" parent-class)) tag)
+      (setq parent-class (get parent-class 'cl-struct-include))))
   ;; If the cl-generic support, we need to be able to check
   ;; if a vector is a cl-struct object, without knowing its particular type.
   ;; So we use the (otherwise) unused function slots of the tag symbol
@@ -43,6 +51,28 @@
   (if parent (put name 'cl-struct-include parent))
   (if print-auto (put name 'cl-struct-print print-auto))
   (if docstring (put name 'structure-documentation docstring)))
+
+;; The `assert' macro from the cl package signals
+;; `cl-assertion-failed' at runtime so always define it.
+(define-error 'cl-assertion-failed (purecopy "Assertion failed"))
+
+(defun cl--assertion-failed (form &optional string sargs args)
+  (if debug-on-error
+      (debug `(cl-assertion-failed ,form ,string ,@sargs))
+    (if string
+        (apply #'error string (append sargs args))
+      (signal 'cl-assertion-failed `(,form ,@sargs)))))
+
+;; Make sure functions defined with cl-defsubst can be inlined even in
+;; packages which do not require CL.  We don't put an autoload cookie
+;; directly on that function, since those cookies only go to cl-loaddefs.
+(autoload 'cl--defsubst-expand "cl-macs")
+;; Autoload, so autoload.el and font-lock can use it even when CL
+;; is not loaded.
+(put 'cl-defun    'doc-string-elt 3)
+(put 'cl-defmacro 'doc-string-elt 3)
+(put 'cl-defsubst 'doc-string-elt 3)
+(put 'cl-defstruct 'doc-string-elt 2)
 
 (provide 'cl-preloaded)
 ;;; cl-preloaded.el ends here

@@ -1,3 +1,8 @@
+2015-02-13  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.ac: Set locallisppath to empty for NS self contained,
+	unless --enable-loadllisppath was given (Bug#19850).
+
 2015-02-09  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* configure.ac (HAVE_LIBXML2): Add missing comma.

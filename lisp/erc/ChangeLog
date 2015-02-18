@@ -1,3 +1,8 @@
+2015-02-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* erc-spelling.el (erc-spelling-init):
+	Use flyspell-generic-check-word-predicate.
+
 2015-01-28  Dima Kogan  <dima@secretsauce.net>
 
 	* erc-backend.el (define-erc-response-handler): Give hook-name

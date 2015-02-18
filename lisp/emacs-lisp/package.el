@@ -468,6 +468,19 @@ called via `package-initialize'.  To change which packages are
 loaded and/or activated, customize `package-load-list'.")
 (put 'package-alist 'risky-local-variable t)
 
+(defvar package--compatibility-table nil
+  "Hash table connecting package names to their compatibility.
+Each key is a symbol, the name of a package.
+
+The value is either nil, representing an incompatible package, or
+a version list, representing the highest compatible version of
+that package which is available.
+
+A package is considered incompatible if it requires an Emacs
+version higher than the one being used.  To check for package
+\(in)compatibility, don't read this table directly, use
+`package--incompatible-p' which also checks dependencies.")
+
 (defvar package-activated-list nil
   ;; FIXME: This should implicitly include all builtin packages.
   "List of the names of currently activated packages.")
@@ -1675,6 +1688,12 @@ similar to an entry in `package-alist'.  Save the cached copy to
     (epg-import-keys-from-file context file)
     (message "Importing %s...done" (file-name-nondirectory file))))
 
+(defun package--build-compatibility-table ()
+  "Build `package--compatibility-table' with `package--mapc'."
+  ;; Build compat table.
+  (setq package--compatibility-table (make-hash-table :test 'eq))
+  (package--mapc #'package--add-to-compatibility-table))
+
 ;;;###autoload
 (defun package-refresh-contents ()
   "Download the ELPA archive description if needed.
@@ -1697,7 +1716,8 @@ makes them available for download."
         (package--download-one-archive archive "archive-contents")
       (error (message "Failed to download `%s' archive."
                       (car archive)))))
-  (package-read-all-archive-contents))
+  (package-read-all-archive-contents)
+  (package--build-compatibility-table))
 
 (defun package--find-non-dependencies ()
   "Return a list of installed packages which are not dependencies.
@@ -1726,7 +1746,23 @@ If optional arg NO-ACTIVATE is non-nil, don't activate packages."
   (unless no-activate
     (dolist (elt package-alist)
       (package-activate (car elt))))
-  (setq package--initialized t))
+  (setq package--initialized t)
+  ;; This uses `package--mapc' so it must be called after
+  ;; `package--initialized' is t.
+  (package--build-compatibility-table))
+
+(defun package--add-to-compatibility-table (pkg)
+  "If PKG is compatible (without dependencies), add to the compatibility table.
+PKG is a package-desc object.
+Only adds if its version is higher than what's already stored in
+the table."
+  (unless (package--incompatible-p pkg 'shallow)
+    (let* ((name (package-desc-name pkg))
+           (version (or (package-desc-version pkg) '(0)))
+           (table-version (gethash name package--compatibility-table)))
+      (when (or (not table-version)
+                (version-list-< table-version version))
+        (puthash name version package--compatibility-table)))))
 
 
 ;;;; Package description buffer.
@@ -1781,7 +1817,10 @@ If optional arg NO-ACTIVATE is non-nil, don't activate packages."
          (built-in (eq pkg-dir 'builtin))
          (installable (and archive (not built-in)))
          (status (if desc (package-desc-status desc) "orphan"))
+         (incompatible-reason (package--incompatible-p desc))
          (signed (if desc (package-desc-signed desc))))
+    (when incompatible-reason
+      (setq status "incompatible"))
     (prin1 name)
     (princ " is ")
     (princ (if (memq (aref status 0) '(?a ?e ?i ?o ?u)) "an " "a "))
@@ -1796,9 +1835,7 @@ If optional arg NO-ACTIVATE is non-nil, don't activate packages."
           (pkg-dir
            (insert (propertize (if (member status '("unsigned" "dependency"))
                                    "Installed"
-                                 (if (equal status "incompat")
-                                     "Incompatible"
-                                   (capitalize status))) ;FIXME: Why comment-face?
+                                 (capitalize status)) ;FIXME: Why comment-face?
                                'font-lock-face 'font-lock-comment-face))
            (insert " in `")
            ;; Todo: Add button for uninstalling.
@@ -1814,6 +1851,12 @@ If optional arg NO-ACTIVATE is non-nil, don't activate packages."
            (if signed
                (insert ".")
              (insert " (unsigned).")))
+          (incompatible-reason
+           (insert (propertize "Incompatible" 'face font-lock-warning-face)
+                   " because it depends on ")
+           (if (stringp incompatible-reason)
+               (insert "Emacs " incompatible-reason ".")
+             (insert "uninstallable packages.")))
           (installable
            (insert (capitalize status))
            (insert " from " (format "%s" archive))
@@ -1834,19 +1877,22 @@ If optional arg NO-ACTIVATE is non-nil, don't activate packages."
     (setq reqs (if desc (package-desc-reqs desc)))
     (when reqs
       (insert "   " (propertize "Requires" 'font-lock-face 'bold) ": ")
-      (let ((first t)
-            name vers text)
+      (let ((first t))
         (dolist (req reqs)
-          (setq name (car req)
-                vers (cadr req)
-                text (format "%s-%s" (symbol-name name)
-                             (package-version-join vers)))
-          (cond (first (setq first nil))
-                ((>= (+ 2 (current-column) (length text))
-                     (window-width))
-                 (insert ",\n               "))
-                (t (insert ", ")))
-          (help-insert-xref-button text 'help-package name))
+          (let* ((name (car req))
+                 (vers (cadr req))
+                 (text (format "%s-%s" (symbol-name name)
+                               (package-version-join vers)))
+                 (reason (if (and (listp incompatible-reason)
+                                  (assq name incompatible-reason))
+                             " (not available)" "")))
+            (cond (first (setq first nil))
+                  ((>= (+ 2 (current-column) (length text) (length reason))
+                       (window-width))
+                   (insert ",\n               "))
+                  (t (insert ", ")))
+            (help-insert-xref-button text 'help-package name)
+            (insert reason)))
         (insert "\n")))
     (insert "    " (propertize "Summary" 'font-lock-face 'bold)
             ": " (if desc (package-desc-summary desc)) "\n")
@@ -2059,21 +2105,32 @@ package PKG-DESC, add one.  The alist is keyed with PKG-DESC."
 (defvar package--emacs-version-list (version-to-list emacs-version)
   "`emacs-version', as a list.")
 
-(defun package--incompatible-p (pkg)
+(defun package--incompatible-p (pkg &optional shallow)
   "Return non-nil if PKG has no chance of being installable.
 PKG is a package-desc object.
-Return value is a string describing the reason why the package is
-incompatible.
 
-Currently, this only checks if PKG depends on a higher
-`emacs-version' than the one being used."
+If SHALLOW is non-nil, this only checks if PKG depends on a
+higher `emacs-version' than the one being used.  Otherwise, also
+checks the viability of dependencies, according to
+`package--compatibility-table'.
+
+If PKG requires an incompatible Emacs version, the return value
+is this version (as a string).
+If PKG requires incompatible packages, the return value is a list
+of these dependencies, similar to the list returned by
+`package-desc-reqs'."
   (let* ((reqs    (package-desc-reqs pkg))
          (version (cadr (assq 'emacs reqs))))
     (if (and version (version-list-< package--emacs-version-list version))
-        (format "`%s' requires Emacs %s, but current version is %s"
-          (package-desc-full-name pkg)
-          (package-version-join version)
-          emacs-version))))
+        (package-version-join version)
+      (unless shallow
+        (let (out)
+          (dolist (dep (package-desc-reqs pkg) out)
+            (let ((dep-name (car dep)))
+              (unless (eq 'emacs dep-name)
+                (let ((cv (gethash dep-name package--compatibility-table)))
+                  (when (version-list-< (or cv '(0)) (or (cadr dep) '(0)))
+                    (push dep out)))))))))))
 
 (defun package-desc-status (pkg-desc)
   (let* ((name (package-desc-name pkg-desc))
