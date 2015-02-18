@@ -8,28 +8,37 @@ you can try the embedded webkit browser with m-x xwidget-webkit-browse-url.
 
 
 * lisp/Changelog
+#+BEGIN_SRC change-log
+2015-02-01  Grégoire Jadi  <daimrod@gmail.com>
+
+	* xwidget.el: Improvements to the Xwidget feature.
 
 2015-02-01  Joakim Verona  <joakim@verona.se>
-	Support for the new Xwidget feature.
-	* xwidget.el:
+
+	* xwidget.el: New file with support for the new Xwidget
+          feature.
+#+END_SRC
 * src/Changelog
+#+BEGIN_SRC change-log
+2015-02-01  Grégoire Jadi  <daimrod@gmail.com>
+
+        Various improvements to the Xwidget feature.
+	* xwidgets.c:
+        * emacsgtkfixed.c:
+
 2015-02-01  Joakim Verona  <joakim@verona.se>
+
+	New files for xwidgets:
+	* xwidget.c, xwidget.h:
 	Support for the new Xwidget feature.
 	* window.c, Makefile.in, buffer.c, dispextern.h, dispnew.c, emacs.c:
 	* emacsgtkfixed.c, emacsgtkfixed.h, keyboard.c, lisp.h, print.c:
 	* termhooks.h, window.c, xdisp.c, xterm.c
-	New files for xwidgets:
-	* xwidget.c, xwidget.h:
-	Support for testing xwidgets
-	* xwidget-test-manual.el:
-
-2015-02-01  Grégoire Jadi  <daimrod@gmail.com>
-	Support for testing xwidgets
-	* parallell-remote.el, parallell-xwidget.el, parallell.el:
-	* xwidget-tests.el:
-	various improvements to xwidgets:
-	* xwidgets.c:
+#+END_SRC
 * Changelog
+#+BEGIN_SRC change-log
 2015-02-01  Joakim Verona  <joakim@verona.se>
+
 	Support for the new Xwidget feature.
 	* configure.ac:
+#+END_SRC
