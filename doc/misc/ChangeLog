@@ -1,3 +1,7 @@
+2015-02-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* texinfo.tex: Update from gnulib.
+
 2015-02-10  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* eww.texi (Basics): Mention eww-toggle-fonts.

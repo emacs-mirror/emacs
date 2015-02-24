@@ -180,7 +180,7 @@ like `(,a . ,(pred (< a))) or, with more checks:
     (when (eq nil (car (last pats 2)))
       (setq pats (append (butlast pats 2) (car (last pats)))))
     `(lambda (&rest ,args)
-       ,@(remq nil (car body))
+       ,@(car body)
        (pcase ,args
          (,(list '\` pats) . ,(cdr body))))))
 

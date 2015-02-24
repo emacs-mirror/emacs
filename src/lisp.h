@@ -746,10 +746,10 @@ struct Lisp_Symbol
 
 /* By default, define macros for Qt, etc., as this leads to a bit
    better performance in the core Emacs interpreter.  A plugin can
-   define DEFINE_NONNIL_Q_SYMBOL_MACROS to be false, to be portable to
+   define DEFINE_NON_NIL_Q_SYMBOL_MACROS to be false, to be portable to
    other Emacs instances that assign different values to Qt, etc.  */
-#ifndef DEFINE_NONNIL_Q_SYMBOL_MACROS
-# define DEFINE_NONNIL_Q_SYMBOL_MACROS true
+#ifndef DEFINE_NON_NIL_Q_SYMBOL_MACROS
+# define DEFINE_NON_NIL_Q_SYMBOL_MACROS true
 #endif
 
 #include "globals.h"

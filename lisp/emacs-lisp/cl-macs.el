@@ -234,10 +234,9 @@ FORM is of the form (ARGS . BODY)."
   (let* ((args (car form)) (body (cdr form)) (orig-args args)
 	 (cl--bind-block bind-block) (cl--bind-defs nil) (cl--bind-enquote nil)
          (cl--bind-lets nil) (cl--bind-forms nil)
-	 (header nil) (simple-args nil))
-    (while (or (stringp (car body))
-	       (memq (car-safe (car body)) '(interactive declare cl-declare)))
-      (push (pop body) header))
+         (parsed-body (macroexp-parse-body body))
+	 (header (car parsed-body)) (simple-args nil))
+    (setq body (cdr parsed-body))
     (setq args (if (listp args) (cl-copy-list args) (list '&rest args)))
     (let ((p (last args))) (if (cdr p) (setcdr p (list '&rest (cdr p)))))
     (if (setq cl--bind-defs (cadr (memq '&cl-defs args)))
@@ -258,7 +257,7 @@ FORM is of the form (ARGS . BODY)."
     (or (eq cl--bind-block 'cl-none)
 	(setq body (list `(cl-block ,cl--bind-block ,@body))))
     (if (null args)
-	(cl-list* nil (nreverse simple-args) (nconc (nreverse header) body))
+	(cl-list* nil (nreverse simple-args) (nconc header body))
       (if (memq '&optional simple-args) (push '&optional args))
       (cl--do-arglist args nil (- (length simple-args)
                                   (if (memq '&optional simple-args) 1 0)))
@@ -266,20 +265,18 @@ FORM is of the form (ARGS . BODY)."
       (cl-list* nil
 	     (nconc (nreverse simple-args)
 		    (list '&rest (car (pop cl--bind-lets))))
-	     (nconc (let ((hdr (nreverse header)))
-                      ;; Macro expansion can take place in the middle of
-                      ;; apparently harmless computation, so it should not
-                      ;; touch the match-data.
-                      (save-match-data
-                        (require 'help-fns)
-                        (cons (help-add-fundoc-usage
-                               (if (stringp (car hdr)) (pop hdr))
-                               ;; Be careful with make-symbol and (back)quote,
-                               ;; see bug#12884.
-                               (let ((print-gensym nil) (print-quoted t))
-                                 (format "%S" (cons 'fn (cl--make-usage-args
-                                                         orig-args)))))
-                              hdr)))
+	     (nconc (save-match-data ;; Macro expansion can take place in the
+                      ;; middle of apparently harmless computation, so it
+                      ;; should not touch the match-data.
+                      (require 'help-fns)
+                      (cons (help-add-fundoc-usage
+                             (if (stringp (car header)) (pop header))
+                             ;; Be careful with make-symbol and (back)quote,
+                             ;; see bug#12884.
+                             (let ((print-gensym nil) (print-quoted t))
+                               (format "%S" (cons 'fn (cl--make-usage-args
+                                                       orig-args)))))
+                            header))
 		    (list `(let* ,cl--bind-lets
                              ,@(nreverse cl--bind-forms)
                              ,@body)))))))
@@ -2978,9 +2975,9 @@ STRUCT and SLOT-NAME are symbols.  INST is a structure instance."
        ;; We could use `elt', but since the byte compiler will resolve the
        ;; branch below at compile time, it's more efficient to use the
        ;; type-specific accessor.
-       (if (eq (cl-struct-sequence-type ,struct-type) 'vector)
-           (aref ,inst (cl-struct-slot-offset ,struct-type ,slot-name))
-         (nth (cl-struct-slot-offset ,struct-type ,slot-name) ,inst))))))
+       (if (eq (cl-struct-sequence-type ,struct-type) 'list)
+           (nth (cl-struct-slot-offset ,struct-type ,slot-name) ,inst)
+         (aref ,inst (cl-struct-slot-offset ,struct-type ,slot-name)))))))
 
 (run-hooks 'cl-macs-load-hook)
 

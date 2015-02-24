@@ -4,6 +4,11 @@
 	* url-dav.el (url-dav-delete-directory, url-dav-delete-file)
 	(url-dav-directory-files): Keep diagnostics consistent with system's.
 
+2015-01-17  Ivan Shmakov  <ivan@siamics.net>
+
+	* url-cookie.el (url-cookie-write-file): Let-bind print-length
+	and print-level to nil to avoid writing a garbled list.  (Bug#16805)
+
 2014-12-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* url-http.el (url-http-parse-headers): `gnutls-available-p' is

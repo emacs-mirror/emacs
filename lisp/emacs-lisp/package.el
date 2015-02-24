@@ -335,11 +335,10 @@ contents of the archive."
   :version "24.4")
 
 (defcustom package-selected-packages nil
-  "Store here packages installed explicitely by user.
-This variable will be feeded automatically by emacs,
-when installing a new package.
-This variable will be used by `package-autoremove' to decide
-which packages are no more needed.
+  "Store here packages installed explicitly by user.
+This variable is fed automatically by Emacs when installing a new package.
+This variable is used by `package-autoremove' to decide
+which packages are no longer needed.
 You can use it to (re)install packages on other machines
 by running `package-user-selected-packages-install'.
 
@@ -1280,7 +1279,7 @@ to install it but still mark it as selected."
 ;;;###autoload
 (defun package-reinstall (pkg)
   "Reinstall package PKG.
-PKG shoul be either a symbol, the package name, or a package-desc
+PKG should be either a symbol, the package name, or a package-desc
 object."
   (interactive (list (intern (completing-read
                               "Reinstall package: "
@@ -1547,7 +1546,7 @@ If NOSAVE is non-nil, the package is not removed from
     ;; `package-selected-packages' even if it can't be deleted.
     (when (and (null nosave)
                (package--user-selected-p name)
-               ;; Don't delesect if this is an older version of an
+               ;; Don't deselect if this is an older version of an
                ;; upgraded package.
                (package--newest-p pkg-desc))
       (customize-save-variable

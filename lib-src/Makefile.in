@@ -21,7 +21,7 @@
 SHELL = @SHELL@
 
 # Following ../lisp/Makefile.in.
-EMACS = ../src/emacs
+EMACS = ../src/emacs${EXEEXT}
 EMACSOPT = -batch --no-site-file --no-site-lisp
 
 # ==================== Things `configure' will edit ====================

@@ -1,3 +1,18 @@
+2015-02-23  Tassilo Horn  <tsdh@gnu.org>
+
+	* mailcap.el (mailcap-mime-data): Support `pdf-view-mode' (from PDF
+	Tools: https://github.com/politza/pdf-tools) for viewing PDF
+	attachments in emacs.
+
+2015-02-23  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-mime-display-single): Avoid "End of buffer" error.
+
+2015-02-18  Eric Abrahamsen  <eric@ericabrahamsen.net>
+
+	* nnimap.el (nnimap-get-groups): Correctly read unquoted group names
+	from the server LIST response.
+
 2015-02-14  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* nnimap.el (nnimap-retrieve-headers): If the server closes connection
@@ -822,7 +837,7 @@
 2014-01-30  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* nnmail.el (nnmail-split-it): Instead of redoing the search to restore
-	the match data, just save and restore it explictly (bug#12375).
+	the match data, just save and restore it explicitly (bug#12375).
 
 	* gnus-sum.el (gnus-summary-read-group-1): Initialize the spam code if
 	that's needed.
@@ -24079,7 +24094,7 @@
 	(spam-ham-copy-or-move-routine): Return the number of processed
 	ham messages.
 	(spam-summary-prepare-exit): Use the above values to decide
-	whether status messages shouled be displayed.
+	whether status messages should be displayed.
 
 2004-05-20  Katsumi Yamaoka  <yamaoka@jpl.org>
 

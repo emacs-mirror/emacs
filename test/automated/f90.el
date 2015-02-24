@@ -173,4 +173,20 @@ end program prog")
     (f90-indent-subprogram)
     (should (= 0 (current-indentation)))))
 
+(ert-deftest f90-test-bug-19809 ()
+  "Test for http://debbugs.gnu.org/19809 ."
+  (with-temp-buffer
+    (f90-mode)
+    ;; The Fortran standard says that continued strings should have
+    ;; '&' at the start of continuation lines, but it seems gfortran
+    ;; allows them to be absent (albeit with a warning).
+    (insert "program prog
+  write (*,*), '&
+end program prog'
+end program prog")
+    (goto-char (point-min))
+    (f90-end-of-subprogram)
+    (should (= (point) (point-max)))))
+
+
 ;;; f90.el ends here

@@ -657,7 +657,7 @@ Corresponding value is nil if there is no sunrise/sunset."
 Optional NOLOCATION non-nil means do not print the location."
   (let ((l (solar-sunrise-sunset date)))
     (format
-     "%s, %s%s (%s hours daylight)"
+     "%s, %s%s (%s hrs daylight)"
      (if (car l)
          (concat "Sunrise " (apply 'solar-time-string (car l)))
        "No sunrise")
@@ -847,20 +847,12 @@ This function is suitable for execution in an init file."
          (date (if (< arg 4) (calendar-current-date) (calendar-read-date)))
          (date-string (calendar-date-string date t))
          (time-string (solar-sunrise-sunset-string date))
-         (msg (format "%s: %s" date-string time-string))
-         (one-window (one-window-p t)))
-    (if (<= (length msg) (frame-width))
-        (message "%s" msg)
-      (with-output-to-temp-buffer "*temp*"
-        (princ (concat date-string "\n" time-string)))
-      (message "%s"
-               (substitute-command-keys
-                (if one-window
-                    (if pop-up-windows
-                        "Type \\[delete-other-windows] to remove temp window."
-                      "Type \\[switch-to-buffer] RET to remove temp window.")
-                  "Type \\[switch-to-buffer-other-window] RET to restore old \
-contents of temp window."))))))
+         (msg (format "%s%s"
+                      (if (< arg 4) ""  ; don't print date if it's today's
+                        (format "%s: " date-string))
+                      time-string)))
+    (message "%s" msg)
+    msg))
 
 ;;;###cal-autoload
 (defun calendar-sunrise-sunset (&optional event)

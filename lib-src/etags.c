@@ -122,7 +122,7 @@ char pot_etags_version[] = "@(#) pot revision number is 17.38.1.4";
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
+#include <sysstdio.h>
 #include <ctype.h>
 #include <errno.h>
 #include <sys/types.h>
@@ -1532,11 +1532,11 @@ process_file_name (char *file, language *lang)
   if (real_name == compressed_name)
     {
       char *cmd = concat (compr->command, " ", real_name);
-      inf = popen (cmd, "rb");
+      inf = popen (cmd, "r" FOPEN_BINARY);
       free (cmd);
     }
   else
-    inf = fopen (real_name, "rb");
+    inf = fopen (real_name, "r" FOPEN_BINARY);
   if (inf == NULL)
     {
       perror (real_name);
@@ -5600,7 +5600,7 @@ analyze_regex (char *regex_arg)
 	char *regexfile = regex_arg + 1;
 
 	/* regexfile is a file containing regexps, one per line. */
-	regexfp = fopen (regexfile, "rb");
+	regexfp = fopen (regexfile, "r" FOPEN_BINARY);
 	if (regexfp == NULL)
 	  pfatal (regexfile);
 	linebuffer_init (&regexbuf);

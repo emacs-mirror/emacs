@@ -2659,7 +2659,6 @@ syms_of_ftfont (void)
   DEFSYM (Qmonospace, "monospace");
   DEFSYM (Qsans_serif, "sans-serif");
   DEFSYM (Qserif, "serif");
-  DEFSYM (Qmono, "mono");
   DEFSYM (Qsans, "sans");
   DEFSYM (Qsans__serif, "sans serif");
 

@@ -1,3 +1,77 @@
+2015-02-22  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsfns.m (Fx_frame_geometry): New function.
+	(syms_of_nsfns): Defsubr Sx_frame_geometry.
+
+2015-02-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Spelling fixes
+	* lisp.h (DEFINE_NON_NIL_Q_SYMBOL_MACROS):
+	Rename from DEFINE_NONNIL_Q_SYMBOL_MACROS.  All uses changed.
+
+2015-02-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32term.c (queue_notifications):
+	* w32inevt.c (handle_file_notifications):
+	* w32font.c (w32_enumfont_pattern_entity): Prefer 'Qfoo' to
+	'intern ("foo")'.
+
+2015-02-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Prefer 'Qfoo' to 'intern ("foo")'
+	* buffer.c (syms_of_buffer):
+	* bytecode.c (exec_byte_code):
+	* callint.c (Fcall_interactively):
+	* callproc.c (create_temp_file):
+	* charset.c (define_charset_internal):
+	* coding.c (syms_of_coding):
+	* editfns.c (syms_of_editfns):
+	* emacs.c (main):
+	* fns.c (syms_of_fns):
+	* frame.c (delete_frame, Fframe_parameters):
+	* keyboard.c (syms_of_keyboard):
+	* keymap.c (syms_of_keymap):
+	* minibuf.c (read_minibuf, syms_of_minibuf):
+	* nsfns.m (ns_cursor_type_to_lisp):
+	* textprop.c (syms_of_textprop):
+	* xdisp.c (Fformat_mode_line, syms_of_xdisp):
+	* xfns.c (x_create_tip_frame, Fx_select_font):
+	* xml.c (parse_region):
+	Prefer constants like 'Qfoo' to calls like 'intern ("foo")'.
+	* buffer.c (syms_of_buffer): OK to do (put 'erase-buffer 'disabled
+	t) here now ...
+	(keys_of_buffer): ... instead of here.
+	* ftfont.c (syms_of_ftfont): Move DEFSYM of Qmono from here ...
+	* xfns.c (syms_of_xfns): ... to here, since ftfont.c is more
+	optional than xfns.c.
+
+2015-02-20  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* emacs.c (terminate_due_to_signal): Move totally_unblock_input after
+	setting fatal_error_in_progress, so gobble_input and *read_socket are
+	not read if there are pending_signals.
+
+2015-02-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Simplify binary I/O configuration
+	* lread.c (Fload): Prefer FOPEN_TEXT and FOPEN_BINARY to #ifdef DOS_NT.
+	* sysstdio.h: Add copyright notice.  Include <fcntl.h>.
+	(FOPEN_BINARY, FOPEN_TEXT): New macros.
+	* xfaces.c (Fx_load_color_file): Use FOPEN_TEXT, since POSIX
+	doesn't guarantee that "t" will work.
+
+2015-02-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* keyboard.c (read_char): Make sure this_single_command_key_start
+	is in sync with this_command_key_count, around the call to
+	input-method-function.  (Bug#19774)
+
+2015-02-19  Fujii Hironori  <fujii.hironori@gmail.com>  (tiny change)
+
+	* w32fns.c (w32_wnd_proc) <WM_IME_STARTCOMPOSITION>: Pass the
+	message to DefWindowProc, after positioning the IME window, to
+	trigger its display.  (Bug#11732)
+
 2015-02-18  Eli Zaretskii  <eliz@gnu.org>
 
 	* emacs.c (Fkill_emacs): Exit with specified exit code even if

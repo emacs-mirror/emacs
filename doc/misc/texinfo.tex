@@ -3,7 +3,7 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2015-01-31.10}
+\def\texinfoversion{2015-02-05.16}
 %
 % Copyright 1985, 1986, 1988, 1990, 1991, 1992, 1993, 1994, 1995,
 % 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
@@ -4489,7 +4489,6 @@ end
 % Called from \indexdummies and \atdummies.
 %
 \def\commondummies{%
-  %
   % \definedummyword defines \#1 as \string\#1\space, thus effectively
   % preventing its expansion.  This is used only for control words,
   % not control letters, because the \space would be incorrect for
@@ -4566,6 +4565,7 @@ end
   \definedummyword\guilsinglright
   \definedummyword\lbracechar
   \definedummyword\leq
+  \definedummyword\mathopsup
   \definedummyword\minus
   \definedummyword\ogonek
   \definedummyword\pounds
@@ -4579,6 +4579,8 @@ end
   \definedummyword\quotesinglbase
   \definedummyword\rbracechar
   \definedummyword\result
+  \definedummyword\sub
+  \definedummyword\sup
   \definedummyword\textdegree
   %
   % We want to disable all macros so that they are not expanded by \write.
@@ -4653,6 +4655,7 @@ end
   \definedummyword\samp
   \definedummyword\strong
   \definedummyword\tie
+  \definedummyword\U
   \definedummyword\uref
   \definedummyword\url
   \definedummyword\var
@@ -8335,14 +8338,7 @@ end
   \catcode`\\=\other
   %
   % Make the characters 128-255 be printing characters.
-  {%
-    \count1=128
-    \def\loop{%
-      \catcode\count1=\other
-      \advance\count1 by 1
-      \ifnum \count1<256 \loop \fi
-    }%
-  }%
+  {\setnonasciicharscatcodenonglobal\other}%
   %
   % @ is our escape character in .aux files, and we need braces.
   \catcode`\{=1
@@ -9831,14 +9827,50 @@ directory should work if nowhere else does.}
   \DeclareUnicodeCharacter{2261}{\equiv}
 }% end of \utfeightchardefs
 
-
 % US-ASCII character definitions.
 \def\asciichardefs{% nothing need be done
    \relax
 }
 
+% Latin1 (ISO-8859-1) character definitions.
+\def\nonasciistringdefs{%
+  \setnonasciicharscatcode\active
+  \def\defstringchar##1{\def##1{\string##1}}%
+  \defstringchar^^a0\defstringchar^^a1\defstringchar^^a2\defstringchar^^a3%
+  \defstringchar^^a4\defstringchar^^a5\defstringchar^^a6\defstringchar^^a7%
+  \defstringchar^^a8\defstringchar^^a9\defstringchar^^aa\defstringchar^^ab%
+  \defstringchar^^ac\defstringchar^^ad\defstringchar^^ae\defstringchar^^af%
+  %
+  \defstringchar^^b0\defstringchar^^b1\defstringchar^^b2\defstringchar^^b3%
+  \defstringchar^^b4\defstringchar^^b5\defstringchar^^b6\defstringchar^^b7%
+  \defstringchar^^b8\defstringchar^^b9\defstringchar^^ba\defstringchar^^bb%
+  \defstringchar^^bc\defstringchar^^bd\defstringchar^^be\defstringchar^^bf%
+  %
+  \defstringchar^^c0\defstringchar^^c1\defstringchar^^c2\defstringchar^^c3%
+  \defstringchar^^c4\defstringchar^^c5\defstringchar^^c6\defstringchar^^c7%
+  \defstringchar^^c8\defstringchar^^c9\defstringchar^^ca\defstringchar^^cb%
+  \defstringchar^^cc\defstringchar^^cd\defstringchar^^ce\defstringchar^^cf%
+  %
+  \defstringchar^^d0\defstringchar^^d1\defstringchar^^d2\defstringchar^^d3%
+  \defstringchar^^d4\defstringchar^^d5\defstringchar^^d6\defstringchar^^d7%
+  \defstringchar^^d8\defstringchar^^d9\defstringchar^^da\defstringchar^^db%
+  \defstringchar^^dc\defstringchar^^dd\defstringchar^^de\defstringchar^^df%
+  %
+  \defstringchar^^e0\defstringchar^^e1\defstringchar^^e2\defstringchar^^e3%
+  \defstringchar^^e4\defstringchar^^e5\defstringchar^^e6\defstringchar^^e7%
+  \defstringchar^^e8\defstringchar^^e9\defstringchar^^ea\defstringchar^^eb%
+  \defstringchar^^ec\defstringchar^^ed\defstringchar^^ee\defstringchar^^ef%
+  %
+  \defstringchar^^f0\defstringchar^^f1\defstringchar^^f2\defstringchar^^f3%
+  \defstringchar^^f4\defstringchar^^f5\defstringchar^^f6\defstringchar^^f7%
+  \defstringchar^^f8\defstringchar^^f9\defstringchar^^fa\defstringchar^^fb%
+  \defstringchar^^fc\defstringchar^^fd\defstringchar^^fe\defstringchar^^ff%
+}
+
+
 % define all the unicode characters we know about, for the sake of @U.
 \utfeightchardefs
+
 
 % Make non-ASCII characters printable again for compatibility with
 % existing Texinfo documents that may use them, even without declaring a
@@ -10193,6 +10225,7 @@ directory should work if nowhere else does.}
 %
 {@catcode`- = @active
  @gdef@normalturnoffactive{%
+   @nonasciistringdefs
    @let-=@normaldash
    @let"=@normaldoublequote
    @let$=@normaldollar %$ font-lock fix

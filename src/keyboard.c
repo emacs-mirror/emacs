@@ -3034,6 +3034,7 @@ read_char (int commandflag, Lisp_Object map,
       Lisp_Object keys;
       ptrdiff_t key_count;
       bool key_count_reset;
+      ptrdiff_t command_key_start;
       struct gcpro gcpro1;
       ptrdiff_t count = SPECPDL_INDEX ();
 
@@ -3057,6 +3058,7 @@ read_char (int commandflag, Lisp_Object map,
       /* Save the this_command_keys status.  */
       key_count = this_command_key_count;
       key_count_reset = this_command_key_count_reset;
+      command_key_start = this_single_command_key_start;
 
       if (key_count > 0)
 	keys = Fcopy_sequence (this_command_keys);
@@ -3067,6 +3069,7 @@ read_char (int commandflag, Lisp_Object map,
       /* Clear out this_command_keys.  */
       this_command_key_count = 0;
       this_command_key_count_reset = 0;
+      this_single_command_key_start = 0;
 
       /* Now wipe the echo area.  */
       if (!NILP (echo_area_buffer[0]))
@@ -3090,6 +3093,7 @@ read_char (int commandflag, Lisp_Object map,
 	 and this_command_keys state.  */
       this_command_key_count = key_count;
       this_command_key_count_reset = key_count_reset;
+      this_single_command_key_start = command_key_start;
       if (key_count > 0)
 	this_command_keys = keys;
 
@@ -11613,7 +11617,7 @@ and the minor mode maps regardless of `overriding-local-map'.  */);
 
   DEFVAR_LISP ("special-event-map", Vspecial_event_map,
 	       doc: /* Keymap defining bindings for special events to execute at low level.  */);
-  Vspecial_event_map = list1 (intern_c_string ("keymap"));
+  Vspecial_event_map = list1 (Qkeymap);
 
   DEFVAR_LISP ("track-mouse", do_mouse_tracking,
 	       doc: /* Non-nil means generate motion events for mouse motion.  */);

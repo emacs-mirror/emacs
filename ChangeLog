@@ -1,3 +1,19 @@
+2015-02-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib
+	* lib/getdtablesize.c, lib/getopt.c, lib/signal.in.h, lib/tempname.c:
+	* lib/tempname.h, m4/dup2.m4, m4/fcntl.m4, m4/getdtablesize.m4:
+	Update from gnulib, incorporating:
+	2015-02-20 getdtablesize: port better for Android
+	2015-02-19 fcntl: Fix cross compiling
+	2015-02-18 dup2, fcntl: cross-compile better for Android
+	2015-02-18 getopt: don't crash on memory exhaustion
+	2015-02-17 tempname: allow compilation with C++ (trivial)
+	2015-02-17 dup2, fcntl: port to AIX
+	2015-02-16 getdtablesize, dup2, fcntl: port to Android
+	2015-02-11 getdtablesize, signal_h: Fix Android build
+	2015-02-11 maint: various whitespace cleanups in tempname
+
 2015-02-13  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.ac: Set locallisppath to empty for NS self contained,

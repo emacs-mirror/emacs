@@ -247,8 +247,8 @@ names:
 Your netrc entries will then be:
 
 @example
-machine gmail login account@@gmail.com password "accountpassword" port imap
-machine gmail2 login account2@@gmail.com password "account2password" port imap
+machine gmail login account@@gmail.com password "account password" port imap
+machine gmail2 login account2@@gmail.com password "account2 password" port imap
 @end example
 
 @node Secret Service API

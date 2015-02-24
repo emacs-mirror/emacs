@@ -1072,11 +1072,11 @@ w32_enumfont_pattern_entity (Lisp_Object frame,
      truetype so that this information is not any worse than we could
      have obtained later.  */
   if (EQ (backend, Quniscribe) && (full_type & NTMFLAGS_OPENTYPE))
-    tem = intern ("opentype");
+    tem = Qopentype;
   else if (font_type & TRUETYPE_FONTTYPE)
     tem = intern ("truetype");
   else if (full_type & NTM_PS_OPENTYPE)
-    tem = intern ("postscript");
+    tem = Qpostscript;
   else if (full_type & NTM_TYPE1)
     tem = intern ("type1");
   else if (font_type & RASTER_FONTTYPE)
@@ -1875,10 +1875,10 @@ static Lisp_Object
 w32_to_fc_weight (int n)
 {
   if (n >= FW_EXTRABOLD) return intern ("black");
-  if (n >= FW_BOLD)      return intern ("bold");
+  if (n >= FW_BOLD)      return Qbold;
   if (n >= FW_SEMIBOLD)  return intern ("demibold");
   if (n >= FW_NORMAL)    return intern ("medium");
-  return intern ("light");
+  return Qlight;
 }
 
 /* Fill in all the available details of LOGFONT from FONT_SPEC.  */

@@ -278,7 +278,7 @@ This macro can only be used within the lexical scope of a cl-generic method."
                   (uses-cnm (cl--generic-fgrep (list cnm nmp) nbody)))
              (cons (not (not uses-cnm))
                    `#'(lambda (,@(if uses-cnm (list cnm)) ,@args)
-                        ,@(delq nil (car parsed-body))
+                        ,@(car parsed-body)
                         ,(if (not (memq nmp uses-cnm))
                              nbody
                            `(let ((,nmp (lambda ()

@@ -615,9 +615,9 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	      {
 		Lisp_Object tem2;
 
-		teml = Fget (teml, intern ("event-symbol-elements"));
+		teml = Fget (teml, Qevent_symbol_elements);
 		/* Ignore first element, which is the base key.  */
-		tem2 = Fmemq (intern ("down"), Fcdr (teml));
+		tem2 = Fmemq (Qdown, Fcdr (teml));
 		if (! NILP (tem2))
 		  up_event = Fread_event (Qnil, Qnil, Qnil);
 	      }
@@ -647,9 +647,9 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	      {
 		Lisp_Object tem2;
 
-		teml = Fget (teml, intern ("event-symbol-elements"));
+		teml = Fget (teml, Qevent_symbol_elements);
 		/* Ignore first element, which is the base key.  */
-		tem2 = Fmemq (intern ("down"), Fcdr (teml));
+		tem2 = Fmemq (Qdown, Fcdr (teml));
 		if (! NILP (tem2))
 		  up_event = Fread_event (Qnil, Qnil, Qnil);
 	      }

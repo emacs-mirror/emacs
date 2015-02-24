@@ -22729,7 +22729,7 @@ are the selected window and the WINDOW's buffer).  */)
   else
     {
       mode_line_string_list = Fnreverse (mode_line_string_list);
-      str = Fmapconcat (intern ("identity"), mode_line_string_list,
+      str = Fmapconcat (Qidentity, mode_line_string_list,
 			empty_unibyte_string);
     }
 
@@ -30729,8 +30729,7 @@ syms_of_xdisp (void)
 
   DEFSYM (Qinhibit_free_realized_faces, "inhibit-free-realized-faces");
 
-  list_of_error = list1 (list2 (intern_c_string ("error"),
-				intern_c_string ("void-variable")));
+  list_of_error = list1 (list2 (Qerror, Qvoid_variable));
   staticpro (&list_of_error);
 
   /* Values of those variables at last redisplay are stored as

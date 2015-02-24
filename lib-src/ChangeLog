@@ -1,3 +1,20 @@
+2015-02-23  Pete Williamson  <petewil0@googlemail.com>  (tiny change)
+
+	Use ${EXEEXT} more uniformly in makefiles
+	* Makefile.in (EMACS): Append ${EXEEXT}.
+
+2015-02-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Simplify binary I/O configuration
+	* etags.c: Include <sysstdio.h> rather than <stdio.h>.
+	(process_file_name, analyze_regex): Use FOPEN_BINARY rather than
+	hard-coded "b".
+
+2015-02-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* etags.c (process_file_name) [!DOS_NT]: Use "r", not "rb" in the
+	call to 'popen'.  (Bug#19735)
+
 2015-02-13  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Better support for future plugins

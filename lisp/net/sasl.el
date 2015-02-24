@@ -45,7 +45,7 @@
     ("LOGIN" sasl-login)
     ("ANONYMOUS" sasl-anonymous)
     ("NTLM" sasl-ntlm)
-    ("SCRAM-SHA-1" sasl-scram-sha-1)))
+    ("SCRAM-SHA-1" sasl-scram-rfc)))
 
 (defvar sasl-unique-id-function #'sasl-unique-id-function)
 

@@ -395,7 +395,7 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
   Lisp_Object dummy, frame;
 
   specbind (Qminibuffer_default, defalt);
-  specbind (intern ("inhibit-read-only"), Qnil);
+  specbind (Qinhibit_read_only, Qnil);
 
   /* If Vminibuffer_completing_file_name is `lambda' on entry, it was t
      in previous recursive minibuffer, but was not set explicitly
@@ -2070,9 +2070,7 @@ with completion; they always discard text properties.  */);
 	       doc: /* Text properties that are added to minibuffer prompts.
 These are in addition to the basic `field' property, and stickiness
 properties.  */);
-  /* We use `intern' here instead of Qread_only to avoid
-     initialization-order problems.  */
-  Vminibuffer_prompt_properties = list2 (intern_c_string ("read-only"), Qt);
+  Vminibuffer_prompt_properties = list2 (Qread_only, Qt);
 
   DEFVAR_LISP ("read-hide-char", Vread_hide_char,
 	       doc: /* Whether to hide input characters in noninteractive mode.

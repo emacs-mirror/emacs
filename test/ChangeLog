@@ -1,3 +1,13 @@
+2015-02-24  Glenn Morris  <rgm@gnu.org>
+
+	* automated/f90.el (f90-test-bug-19809): New test.
+
+2015-02-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/tramp-tests.el (tramp-test17-insert-directory):
+	Suppress localized settings in order to have a proper check for
+	the summary line.
+
 2015-02-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* automated/eieio-test-methodinvoke.el (make-instance): Add methods

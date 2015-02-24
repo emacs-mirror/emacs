@@ -99,6 +99,7 @@ If CLASS is actually an object, then also display current values of that object.
     (when pl
       (insert " Inherits from ")
       (while (setq cur (pop pl))
+	(setq cur (eieio--class-symbol cur))
 	(insert "`")
 	(help-insert-xref-button (symbol-name cur)
 				 'help-function cur)

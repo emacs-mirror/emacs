@@ -5664,13 +5664,14 @@ Then you'll be asked about a number of files to recover."
   (interactive)
   (if (null auto-save-list-file-prefix)
       (error "You set `auto-save-list-file-prefix' to disable making session files"))
-  (let ((dir (file-name-directory auto-save-list-file-prefix)))
+  (let ((dir (file-name-directory auto-save-list-file-prefix))
+        (nd (file-name-nondirectory auto-save-list-file-prefix)))
     (unless (file-directory-p dir)
       (make-directory dir t))
     (unless (directory-files dir nil
-			     (concat "\\`" (regexp-quote
-					    (file-name-nondirectory
-					     auto-save-list-file-prefix)))
+                             (if (string= "" nd)
+                                 directory-files-no-dot-files-regexp
+                               (concat "\\`" (regexp-quote nd)))
 			     t)
       (error "No previous sessions to recover")))
   (let ((ls-lisp-support-shell-wildcards t))

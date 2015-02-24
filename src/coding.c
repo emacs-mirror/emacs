@@ -11281,15 +11281,15 @@ internal character representation.  */);
 
   Lisp_Object plist[] =
     {
-      intern_c_string (":name"),
+      QCname,
       args[coding_arg_name] = Qno_conversion,
-      intern_c_string (":mnemonic"),
+      QCmnemonic,
       args[coding_arg_mnemonic] = make_number ('='),
       intern_c_string (":coding-type"),
       args[coding_arg_coding_type] = Qraw_text,
-      intern_c_string (":ascii-compatible-p"),
+      QCascii_compatible_p,
       args[coding_arg_ascii_compatible_p] = Qt,
-      intern_c_string (":default-char"),
+      QCdefault_char,
       args[coding_arg_default_char] = make_number (0),
       intern_c_string (":for-unibyte"),
       args[coding_arg_for_unibyte] = Qt,

@@ -331,8 +331,8 @@ For backends which dont support it, `vc-not-supported' is signalled."
 
 	  (let ((tmp-name (expand-file-name "foo" default-directory)))
 	    ;; Check for initial state, should be nil until it's registered.
-            ;; Don't pass the backend explictly, otherwise some implementations
-            ;; return non-nil.
+            ;; Don't pass the backend explicitly, otherwise some
+            ;; implementations return non-nil.
 	    (should (null (vc-working-revision tmp-name)))
 
 	    ;; Write a new file.  Check state.

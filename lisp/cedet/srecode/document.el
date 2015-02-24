@@ -395,7 +395,7 @@ It is assumed that the comment occurs just in front of FCN-IN."
     (beginning-of-line)
     (forward-char -1)
 
-    (let ((lextok (semantic-documentation-comment-preceeding-tag fcn-in 'lex))
+    (let ((lextok (semantic-documentation-comment-preceding-tag fcn-in 'lex))
 	  (doctext
 	   (srecode-document-function-name-comment fcn-in))
 	  )

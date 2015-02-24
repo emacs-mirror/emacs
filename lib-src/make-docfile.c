@@ -743,7 +743,7 @@ write_globals (void)
   puts ("#endif");
 
   puts ("#define Qnil builtin_lisp_symbol (0)");
-  puts ("#if DEFINE_NONNIL_Q_SYMBOL_MACROS");
+  puts ("#if DEFINE_NON_NIL_Q_SYMBOL_MACROS");
   num_symbols = 0;
   for (int i = 0; i < num_globals; i++)
     if (globals[i].type == SYMBOL && num_symbols++ != 0)

@@ -39,30 +39,8 @@
 
 (require 'cl-lib)
 (require 'sasl)
-
-;;; SCRAM-SHA-1
-
 (require 'hex-util)
 (require 'rfc2104)
-
-(defconst sasl-scram-sha-1-steps
-  '(sasl-scram-client-first-message
-    sasl-scram-sha-1-client-final-message
-    sasl-scram-sha-1-authenticate-server))
-
-(defun sasl-scram-sha-1-client-final-message (client step)
-  (sasl-scram--client-final-message
-   ;; HMAC-SHA1 uses block length 64 and hash length 20; see RFC 2104.
-   'sha1 64 20 client step))
-
-(defun sasl-scram-sha-1-authenticate-server (client step)
-  (sasl-scram--authenticate-server
-   'sha1 64 20 client step))
-
-(put 'sasl-scram-sha-1 'sasl-mechanism
-     (sasl-make-mechanism "SCRAM-SHA-1" sasl-scram-sha-1-steps))
-
-(provide 'sasl-scram-sha-1)
 
 ;;; Generic for SCRAM-*
 
@@ -155,6 +133,31 @@
 	(sasl-error "Server not authenticated"))))
    (t
     (sasl-error "Invalid response from server"))))
+
+;;; SCRAM-SHA-1
+
+(defconst sasl-scram-sha-1-steps
+  '(sasl-scram-client-first-message
+    sasl-scram-sha-1-client-final-message
+    sasl-scram-sha-1-authenticate-server))
+
+(defun sasl-scram-sha-1-client-final-message (client step)
+  (sasl-scram--client-final-message
+   ;; HMAC-SHA1 uses block length 64 and hash length 20; see RFC 2104.
+   'sha1 64 20 client step))
+
+(defun sasl-scram-sha-1-authenticate-server (client step)
+  (sasl-scram--authenticate-server
+   'sha1 64 20 client step))
+
+;; This needs to be at the end, because of how `sasl-make-mechanism'
+;; handles step function names.
+(put 'sasl-scram-sha-1 'sasl-mechanism
+     (sasl-make-mechanism "SCRAM-SHA-1" sasl-scram-sha-1-steps))
+
+(put 'sasl-scram-rfc 'sasl-mechanism (get 'sasl-scram-sha-1 'sasl-mechanism))
+
+(provide 'sasl-scram-sha-1)
 
 (provide 'sasl-scram-rfc)
 ;;; sasl-scram-rfc.el ends here

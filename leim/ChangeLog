@@ -1,3 +1,10 @@
+2015-02-23  Pete Williamson  <petewil0@googlemail.com>  (tiny change)
+
+	Use ${EXEEXT} more uniformly in makefiles
+	When porting Emacs to run on NaCl, we need to make sure that we always
+	call it with the proper extension (.nexe in this case) during the build.
+	* Makefile.in (EMACS): Append ${EXEEXT}.
+
 2015-01-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Less 'make' chatter for leim

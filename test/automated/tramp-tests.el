@@ -927,7 +927,10 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
   (skip-unless (tramp--test-enabled))
 
   (let* ((tmp-name1 (tramp--test-make-temp-name))
-	 (tmp-name2 (expand-file-name "foo" tmp-name1)))
+	 (tmp-name2 (expand-file-name "foo" tmp-name1))
+	 ;; We test for the summary line.  Keyword "total" could be localized.
+	 (process-environment
+	  (append '("LANG=C" "LANGUAGE=C" "LC_ALL=C") process-environment)))
     (unwind-protect
 	(progn
 	  (make-directory tmp-name1)

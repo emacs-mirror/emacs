@@ -791,7 +791,7 @@ the message being processed."
 		 (forward-line 1)
 		 (setq str (buffer-substring pos (1- (point))))
 		 (while (looking-at "[ \t]")
-		   (setq str (concat str " " 
+		   (setq str (concat str " "
 				     (buffer-substring (match-end 0)
 						       (line-end-position))))
 		   (forward-line 1))
@@ -804,7 +804,8 @@ the message being processed."
 
 (defun rmail-summary-next-all (&optional number)
   (interactive "p")
-  (forward-line (if number number 1))
+  (or number (setq number 1))
+  (forward-line number)
   ;; It doesn't look nice to move forward past the last message line.
   (and (eobp) (> number 0)
        (forward-line -1))
@@ -812,7 +813,8 @@ the message being processed."
 
 (defun rmail-summary-previous-all (&optional number)
   (interactive "p")
-  (forward-line (- (if number number 1)))
+  (or number (setq number 1))
+  (forward-line (- number))
   ;; It doesn't look nice to move forward past the last message line.
   (and (eobp) (< number 0)
        (forward-line -1))
@@ -823,6 +825,7 @@ the message being processed."
 With optional prefix argument NUMBER, moves forward this number of non-deleted
 messages, or backward if NUMBER is negative."
   (interactive "p")
+  (or number (setq number 1))
   (forward-line 0)
   (and (> number 0) (end-of-line))
   (let ((count (if (< number 0) (- number) number))

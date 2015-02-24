@@ -1544,7 +1544,7 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
 	}
     }
 
-  is_tooltip_frame = !NILP (Fframe_parameter (frame, intern ("tooltip")));
+  is_tooltip_frame = !NILP (Fframe_parameter (frame, Qtooltip));
 
   /* Run `delete-frame-functions' unless FORCE is `noelisp' or
      frame is a tooltip.  FORCE is set to `noelisp' when handling
@@ -2533,7 +2533,7 @@ If FRAME is omitted or nil, return information on the currently selected frame. 
       else
 	store_in_alist (&alist, Qbackground_color,
 			tty_color_name (f, FRAME_BACKGROUND_PIXEL (f)));
-      store_in_alist (&alist, intern ("font"),
+      store_in_alist (&alist, Qfont,
 		      build_string (FRAME_MSDOS_P (f)
 				    ? "ms-dos"
 				    : FRAME_W32_P (f) ? "w32term"

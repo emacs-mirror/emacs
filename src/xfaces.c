@@ -6187,7 +6187,7 @@ where R,G,B are numbers between 0 and 255 and name is an arbitrary string.  */)
   abspath = Fexpand_file_name (filename, Qnil);
 
   block_input ();
-  fp = emacs_fopen (SSDATA (abspath), "rt");
+  fp = emacs_fopen (SSDATA (abspath), "r" FOPEN_TEXT);
   if (fp)
     {
       char buf[512];

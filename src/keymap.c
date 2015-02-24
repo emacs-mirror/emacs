@@ -3730,8 +3730,8 @@ be preferred.  */);
   staticpro (&Vmouse_events);
   Vmouse_events = listn (CONSTYPE_PURE, 9,
 			 Qmenu_bar,
-			 intern_c_string ("tool-bar"),
-			 intern_c_string ("header-line"),
+			 Qtool_bar,
+			 Qheader_line,
 			 Qmode_line,
 			 intern_c_string ("mouse-1"),
 			 intern_c_string ("mouse-2"),

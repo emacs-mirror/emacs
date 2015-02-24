@@ -1268,7 +1268,7 @@ define_charset_internal (Lisp_Object name,
 
   args[charset_arg_plist] =
     listn (CONSTYPE_HEAP, 14,
-	   intern_c_string (":name"),
+	   QCname,
 	   args[charset_arg_name],
 	   intern_c_string (":dimension"),
 	   args[charset_arg_dimension],
@@ -1278,7 +1278,7 @@ define_charset_internal (Lisp_Object name,
 	   args[charset_arg_iso_final],
 	   intern_c_string (":emacs-mule-id"),
 	   args[charset_arg_emacs_mule_id],
-	   intern_c_string (":ascii-compatible-p"),
+	   QCascii_compatible_p,
 	   args[charset_arg_ascii_compatible_p],
 	   intern_c_string (":code-offset"),
 	   args[charset_arg_code_offset]);

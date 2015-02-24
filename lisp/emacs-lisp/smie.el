@@ -612,8 +612,11 @@ PREC2 is a table as returned by `smie-precs->prec2' or
              (cons (pcase (cdr x)
                      (`closer (cddr (assoc token table)))
                      (`opener (cdr (assoc token table))))))
-        (cl-assert (numberp (car cons)))
-        (setf (car cons) (list (car cons)))))
+        ;; `cons' can be nil for openers/closers which only contain
+        ;; "atomic" elements.
+        (when cons
+          (cl-assert (numberp (car cons)))
+          (setf (car cons) (list (car cons))))))
     (let ((ca (gethash :smie-closer-alist prec2)))
       (when ca (push (cons :smie-closer-alist ca) table)))
     ;; (smie-check-grammar table prec2 'step3)

@@ -102,6 +102,21 @@ make it.
   "FOO-tab -> ?\FOO-\t", "uppercase -> lowercase", "[fringe KEY...] ->
   [KEY]", "H-FOO -> M-FOO", "C-x C-y FOO -> H-FOO", ...
 
+* Things related to elpa.gnu.org.
+
+** Move idlwave to elpa.gnu.org.
+Need to sync up the Emacs and external versions.
+See <http://lists.gnu.org/archive/html/emacs-devel/2014-07/msg00008.html>
+
+** Move Org mode to elpa.gnu.org.
+See <http://lists.gnu.org/archive/html/emacs-devel/2014-08/msg00300.html>
+<http://lists.gnu.org/archive/html/emacs-devel/2014-11/msg00257.html>
+
+** Move verilog-mode to elpa.gnu.org.
+See <http://lists.gnu.org/archive/html/emacs-devel/2015-02/msg01180.html>
+
+** Move vhdl-mode to elpa.gnu.org.
+See <http://lists.gnu.org/archive/html/emacs-devel/2015-02/msg01180.html>
 
 * Simple tasks. These don't require much Emacs knowledge, they are
 suitable for anyone from beginners to experts.

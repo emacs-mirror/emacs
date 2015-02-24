@@ -4973,8 +4973,7 @@ of the buffer being accessed.  */);
     /* Do this here, because init_buffer_once is too early--it won't work.  */
     Fset_buffer (Vprin1_to_string_buffer);
     /* Make sure buffer-access-fontify-functions is nil in this buffer.  */
-    Fset (Fmake_local_variable (intern_c_string ("buffer-access-fontify-functions")),
-	  Qnil);
+    Fset (Fmake_local_variable (Qbuffer_access_fontify_functions), Qnil);
     Fset_buffer (obuf);
   }
 

@@ -272,7 +272,7 @@ Dump out the extracted dictionary."
 	      (not (semantic-tag-of-class-p fcn-in 'function)))
       (error "No tag of class 'function to insert comment for"))
 
-    (let ((lextok (semantic-documentation-comment-preceeding-tag fcn-in 'lex))
+    (let ((lextok (semantic-documentation-comment-preceding-tag fcn-in 'lex))
 	  )
 
       (when (not lextok)

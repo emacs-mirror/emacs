@@ -1020,7 +1020,7 @@ create_temp_file (ptrdiff_t nargs, Lisp_Object *args,
     specbind (intern ("coding-system-for-write"), val);
     /* POSIX lets mk[s]temp use "."; don't invoke jka-compr if we
        happen to get a ".Z" suffix.  */
-    specbind (intern ("file-name-handler-alist"), Qnil);
+    specbind (Qfile_name_handler_alist, Qnil);
     write_region (start, end, filename_string, Qnil, Qlambda, Qnil, Qnil, fd);
 
     unbind_to (count1, Qnil);

@@ -1,3 +1,10 @@
+2015-02-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Spelling fixes
+	* semantic/doc.el (semantic-documentation-comment-preceding-tag):
+	Rename from semantic-documentation-comment-preceeding-tag.  All
+	uses changed.  Leave an obsolete alias behind.
+
 2015-02-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* semantic/db-el.el (semanticdb-elisp-sym->tag): Fix copy&paste error

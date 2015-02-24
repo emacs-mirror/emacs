@@ -467,6 +467,8 @@ allows to customize this.
 *** Two new faces `compare-windows-removed' and `compare-windows-added'
 replace the obsolete face `compare-windows'.
 
+** VHDL mode supports VHDL'08.
+
 ** Calculator: decimal display mode uses "," groups, so it's more
 fitting for use in money calculations; factorial works with
 non-integer inputs.
@@ -555,6 +557,9 @@ command line's password prompt.
 +++
 ** tar-mode: new `tar-new-entry' command, allowing for new members to
 be added to the archive.
+
+** Autorevert: dired buffers are also auto-reverted via file
+notifications, if Emacs is compiled with file notification support.
 
 ** Obsolete packages
 

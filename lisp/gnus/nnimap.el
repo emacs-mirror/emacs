@@ -1262,7 +1262,12 @@ If LIMIT, first try to limit the search to the N last articles."
     (while (search-forward "* LIST " nil t)
       (let ((flags (read (current-buffer)))
 	    (separator (read (current-buffer)))
-	    (group (read (current-buffer))))
+	    (group (buffer-substring-no-properties
+		    (progn (skip-chars-forward " \"")
+			   (point))
+		    (progn (end-of-line)
+			   (skip-chars-backward " \"")
+			   (point)))))
 	(unless (member '%NoSelect flags)
 	  (push (utf7-decode (if (stringp group)
 				 group

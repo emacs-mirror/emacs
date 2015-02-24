@@ -3223,7 +3223,7 @@ queue_notifications (struct input_event *event, W32Msg *msg, struct frame *f,
   if (notification_buffer_in_use)
     {
       DWORD info_size = notifications_size;
-      Lisp_Object cs = intern ("utf-16le");
+      Lisp_Object cs = Qutf_16le;
       Lisp_Object obj = w32_get_watch_object (notifications_desc);
 
       /* notifications_size could be zero when the buffer of

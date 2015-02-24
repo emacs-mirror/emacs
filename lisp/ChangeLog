@@ -1,3 +1,163 @@
+2015-02-24  Johan Claesson  <johanclaesson@bredband.net>  (tiny change)
+
+	* filecache.el (file-cache-filter-regexps):
+	Add lock files.  (Bug#19516)
+
+2015-02-24  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmailsum.el (rmail-summary-next-all)
+	(rmail-summary-previous-all, rmail-summary-next-msg):
+	Fix handling of optional argument.  (Bug#19916)
+
+	* progmodes/f90.el (f90-beginning-of-subprogram)
+	(f90-end-of-subprogram, f90-match-end):
+	Handle continued strings where the continuation does not start
+	with "&" and happens to match our regexp.  (Bug#19809)
+
+2015-02-24  Bozhidar Batsov  <bozhidar@batsov.com>
+
+	* comint.el (comint-clear-buffer): New command.
+	(comint-mode-map): Bind `comint-clear-buffer' to 'C-c M-o'.
+
+2015-02-23  Pete Williamson  <petewil0@googlemail.com>  (tiny change)
+
+	Use ${EXEEXT} more uniformly in makefiles
+	* Makefile.in (EMACS): Append ${EXEEXT}.
+
+2015-02-23  Sam Steingold  <sds@gnu.org>
+
+	* files.el (recover-session): Handle `auto-save-list-file-prefix'
+	being a directory (empty non-directory part).
+
+2015-02-23  Magnus Henoch  <magnus.henoch@gmail.com>
+
+	* net/sasl.el (sasl-mechanism-alist): Refer to sasl-scram-rfc
+	instead of sasl-scram-sha-1, as the former is the name that can be
+	required.
+
+	* net/sasl-scram-rfc.el (sasl-scram-sha-1-steps)
+	(sasl-scram-sha-1-client-final-message)
+	(sasl-scram-sha-1-authenticate-server): Move to end of file.
+
+2015-02-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix the desired binding for comment-line
+	* bindings.el (ctl-x-map): Use [?\C-\;] to get the desired binding.
+	Fixes: bug#19826
+
+2015-02-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/macroexp.el (macroexp-parse-body): Handle cl-declare
+	and :documentation.  Change return value format accordingly.
+	* emacs-lisp/cl-generic.el (cl--generic-lambda):
+	* emacs-lisp/pcase.el (pcase-lambda): Adjust accordingly.
+	* emacs-lisp/cl-macs.el (cl--transform-lambda): Use macroexp-parse-body.
+
+2015-02-23  Dmitry Gutov  <dgutov@yandex.ru>
+
+	Introduce `xref-etags-mode'.
+	* progmodes/xref.el (xref-etags-mode--saved): New variable.
+	(xref-etags-mode): New minor mode.  (Bug#19466)
+
+2015-02-22  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* dom.el (dom-previous-sibling): New function.
+
+2015-02-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* bindings.el (ctl-x-map): There is no 'C-;'.
+	For now, make do with 'M-;'; this allows 'make bootstrap' to work.
+	Perhaps some other binding should be chosen.
+	Fixes: bug#19826
+
+2015-02-21  Artur Malabarba  <bruce.connor.am@gmail.com>
+
+	* bindings.el (ctl-x-map): Fix `comment-line' binding.  (Bug#19826)
+
+2015-02-21  Michael Albinus  <michael.albinus@gmx.de>
+
+	* autorevert.el (auto-revert-notify-add-watch)
+	(auto-revert-notify-handler, auto-revert-buffers): Handle also
+	buffers without an associated file, like dired buffers.  (Bug#16112)
+
+2015-02-21  Dima Kogan  <dima@secretsauce.net>
+
+	* autorevert.el (auto-revert-mode, auto-revert-tail-mode)
+	(global-auto-revert-mode): Remove (let (auto-revert-use-notify) ... )
+	wrappers.  Call (auto-revert-buffers) consequently in order to
+	install handlers.
+
+2015-02-21  Wilson Snyder  <wsnyder@wsnyder.org>
+
+	Sync with upstream verilog-mode revision 0d6420b.
+	* progmodes/verilog-mode.el (verilog-mode-version): Update.
+	(vector-skip-list): Remove.
+	(verilog-auto-inst-port, verilog-auto-inst-port-list)
+	(verilog-auto-inst, verilog-auto-inst-param):
+	Use arguments rather than vector-skip.
+	(verilog-auto-inst-port): Fix AUTOINST interfaces to not show
+	modport if signal attachment is itself a modport.  Reported by
+	Matthew Lovell.
+
+2015-02-21  Reto Zimmermann  <reto@gnu.org>
+
+	Sync with upstream vhdl mode v3.37.1.  Add VHDL'08 support.
+	* progmodes/vhdl-mode.el (vhdl-version, vhdl-time-stamp)
+	(vhdl-doc-release-notes): Update.
+	(vhdl-standard): Add VHDL'08 option.
+	(vhdl-sensitivity-list-all): New option.
+	(vhdl-directive-keywords): Add psl.
+	(vhdl-offsets-alist-default, vhdl-mode-abbrev-table-init)
+	(vhdl-template-construct-alist-init, vhdl-create-mode-menu):
+	(vhdl-imenu-generic-expression): Add context, directive.
+	(vhdl-offsets-alist, vhdl-mode, vhdl-doc-keywords): Doc fixes.
+	(vhdl-template-map-init): Add vhdl-template-context.
+	(vhdl-mode-syntax-table): Support VHDL'08 block comments.
+	(vhdl-create-mode-menu): Add some entries.
+	(vhdl-08-keywords, vhdl-08-types, vhdl-08-attributes)
+	(vhdl-08-functions, vhdl-08-packages, vhdl-08-directives):
+	New constants.
+	(vhdl-directives): New variable.
+	(vhdl-words-init, vhdl-template-process)
+	(vhdl-template-replace-header-keywords): Support VHDL'08.
+	(vhdl-abbrev-list-init): Add vhdl-directives.
+	(vhdl-in-comment-p, vhdl-in-literal, vhdl-win-il)
+	(vhdl-forward-syntactic-ws, vhdl-get-syntactic-context)
+	(vhdl-lineup-comment): Handle block comments and directives.
+	(vhdl-beginning-of-directive, vhdl-template-context)
+	(vhdl-template-context-hook): New functions.
+	(vhdl-libunit-re, vhdl-defun-re, vhdl-begin-p)
+	(vhdl-corresponding-begin, vhdl-get-library-unit, vhdl-regress-line)
+	(vhdl-align-declarations, vhdl-beginning-of-block, vhdl-end-of-block)
+	(vhdl-font-lock-keywords-2, vhdl-get-end-of-unit)
+	(vhdl-scan-context-clause): Add context.
+
+2015-02-20  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/solar.el (solar-sunrise-sunset-string):
+	Shorten message a little.
+	(sunrise-sunset): Use message rather than a window.  (Bug#19859)
+
+	* progmodes/f90.el (f90-keywords-re, f90-procedures-re)
+	(f90-font-lock-keywords-2): Some F2008 additions.
+
+2015-02-19  Dima Kogan  <dima@secretsauce.net>
+
+	* autorevert.el (auto-revert-buffers-counter)
+	(auto-revert-buffers-counter-lockedout): New variables.
+	(auto-revert-buffers): Increase `auto-revert-buffers-counter'.
+	(auto-revert-notify-handler): Apply `auto-revert-handler' if not
+	suppressed by lockout.  (Bug#18958)
+
+2015-02-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/eieio-opt.el (eieio-help-class): `eieio-class-parents'
+	returns classes, not class names (bug#19891).
+
+	* emacs-lisp/cl-macs.el (cl-struct-slot-value): Handle a nil type.
+
+	* emacs-lisp/smie.el (smie-prec2->grammar): Fix corner case problem.
+
 2015-02-18  Kelly Dean  <kelly@prtime.org>
 
 	* register.el (jump-to-register):
@@ -20,7 +180,7 @@
 	* files.el (find-alternate-file, abort-if-file-too-large, write-file)
 	(set-visited-file-name):
 	* emacs-lisp/lisp.el (kill-backward-up-list):
-	Use user-error instead of error. (Bug#14480)
+	Use user-error instead of error.  (Bug#14480)
 
 2015-02-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -36,12 +196,12 @@
 	* emacs-lisp/easy-mmode.el (define-minor-mode): Process macro
 	arguments correctly. (Bug#19685)
 	(define-minor-mode): Clarify docstring.
-	Clarify mode switch messages for minor modes. (Bug#19690)
+	Clarify mode switch messages for minor modes.  (Bug#19690)
 
 2015-02-16  Kelly Dean  <kelly@prtime.org>
 
 	* emacs-lisp/package-x.el (package-upload-buffer-internal):
-	Create valid tar files. (Bug#19536)
+	Create valid tar files.  (Bug#19536)
 
 2015-02-16  Kelly Dean  <kelly@prtime.org>
 
@@ -51,7 +211,7 @@
 2015-02-16  Kelly Dean  <kelly@prtime.org>
 
 	* help-mode.el (help-do-xref): Prevent duplicated display of Info
-	buffer, and prevent interference with existing buffer. (Bug#13190)
+	buffer, and prevent interference with existing buffer.  (Bug#13190)
 
 2015-02-16  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
@@ -438,7 +598,7 @@
 	(package--sort-deps-in-alist): New function.
 	(package-menu-mark-install): Can mark dependencies.
 	(package--newest-p): New function.
-	(package-delete): Don't delesect when deleting an older version of
+	(package-delete): Don't deselect when deleting an older version of
 	an upgraded package.
 
 	* emacs-lisp/package.el: Add missing (require 'subr-x)
@@ -1324,9 +1484,6 @@
 	* version.el (emacs-repository-get-version): Update docstring.
 
 2015-01-17  Ivan Shmakov  <ivan@siamics.net>
-
-	* url/url-cookie.el (url-cookie-write-file): Let-bind print-length
-	and print-level to nil to avoid writing a garbled list.  (Bug#16805)
 
 	* files.el (find-file-other-window, find-file-other-frame):
 	Use mapc instead of mapcar.  (Bug#18175)

@@ -1130,7 +1130,7 @@ if `inhibit-field-text-motion' is non-nil."
 (define-key esc-map "j" 'indent-new-comment-line)
 (define-key esc-map "\C-j" 'indent-new-comment-line)
 (define-key ctl-x-map ";" 'comment-set-column)
-(define-key ctl-x-map "C-;" 'comment-line)
+(define-key ctl-x-map [?\C-\;] 'comment-line)
 (define-key ctl-x-map "f" 'set-fill-column)
 (define-key ctl-x-map "$" 'set-selective-display)
 

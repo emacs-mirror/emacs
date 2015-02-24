@@ -2356,8 +2356,7 @@ inherits it if NONSTICKINESS is nil.  The `front-sticky' and
   /* Text properties `syntax-table'and `display' should be nonsticky
      by default.  */
   Vtext_property_default_nonsticky
-    = list2 (Fcons (intern_c_string ("syntax-table"), Qt),
-	     Fcons (intern_c_string ("display"), Qt));
+    = list2 (Fcons (Qsyntax_table, Qt), Fcons (Qdisplay, Qt));
 
   staticpro (&interval_insert_behind_hooks);
   staticpro (&interval_insert_in_front_hooks);

@@ -5185,7 +5185,7 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
     Lisp_Object disptype;
 
     if (FRAME_DISPLAY_INFO (f)->n_planes == 1)
-      disptype = intern ("mono");
+      disptype = Qmono;
     else if (FRAME_DISPLAY_INFO (f)->visual->class == GrayScale
              || FRAME_DISPLAY_INFO (f)->visual->class == StaticGray)
       disptype = intern ("grayscale");
@@ -6007,7 +6007,7 @@ nil, it defaults to the selected frame. */)
   GCPRO2 (font_param, font);
 
   XSETFONT (font, FRAME_FONT (f));
-  font_param = Ffont_get (font, intern (":name"));
+  font_param = Ffont_get (font, QCname);
   if (STRINGP (font_param))
     default_name = xlispstrdup (font_param);
   else
@@ -6194,6 +6194,7 @@ syms_of_xfns (void)
   DEFSYM (Qcompound_text, "compound-text");
   DEFSYM (Qcancel_timer, "cancel-timer");
   DEFSYM (Qfont_param, "font-parameter");
+  DEFSYM (Qmono, "mono");
 
   Fput (Qundefined_color, Qerror_conditions,
 	listn (CONSTYPE_PURE, 2, Qundefined_color, Qerror));

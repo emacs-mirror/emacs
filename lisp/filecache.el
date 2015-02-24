@@ -154,11 +154,12 @@
   ;; These are also used in buffers containing lines of file names,
   ;; so the end-of-name is matched with $ rather than \\'.
   (list "~$" "\\.o$" "\\.exe$" "\\.a$" "\\.elc$" ",v$" "\\.output$"
-	"\\.$" "#$" "\\.class$")
+	"\\.$" "#$" "\\.class$" "/\\.#")
   "List of regular expressions used as filters by the file cache.
 File names which match these expressions will not be added to the cache.
 Note that the functions `file-cache-add-file' and `file-cache-add-file-list'
 do not use this variable."
+  :version "25.1"                       ; added "/\\.#"
   :type '(repeat regexp)
   :group 'file-cache)
 

@@ -3295,12 +3295,12 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	     field being reset to nil.  */
 	  f = x_window_to_frame (dpyinfo, hwnd);
 	  if (!(f && FRAME_LIVE_P (f)))
-	    break;
+	    goto dflt;
 	  w = XWINDOW (FRAME_SELECTED_WINDOW (f));
 	  /* Punt if someone changed the frame's selected window
 	     behind our back. */
 	  if (w != w32_system_caret_window)
-	    break;
+	    goto dflt;
 
 	  form.dwStyle = CFS_RECT;
 	  form.ptCurrentPos.x = w32_system_caret_x;
@@ -3318,17 +3318,19 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 	  /* Punt if the window was deleted behind our back.  */
 	  if (!BUFFERP (w->contents))
-	    break;
+	    goto dflt;
 
 	  context = get_ime_context_fn (hwnd);
 
 	  if (!context)
-	    break;
+	    goto dflt;
 
 	  set_ime_composition_window_fn (context, &form);
 	  release_ime_context_fn (hwnd, context);
 	}
-      break;
+      /* Pass WM_IME_STARTCOMPOSITION to DefWindowProc, so that the
+	 composition window will actually be displayed.  */
+      goto dflt;
 
     case WM_IME_ENDCOMPOSITION:
       ignore_ime_char = 0;

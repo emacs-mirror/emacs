@@ -628,6 +628,29 @@ The argument has the same meaning as in `apropos'."
 ;;;###autoload (define-key ctl-x-5-map "." #'xref-find-definitions-other-frame)
 
 
+;;; Helper functions
+
+(defvar xref-etags-mode--saved nil)
+
+(define-minor-mode xref-etags-mode
+  "Minor mode to make xref use etags again.
+
+Certain major modes install their own mechanisms for listing
+identifiers and navigation.  Turn this on to undo those settings
+and just use etags."
+  :lighter ""
+  (if xref-etags-mode
+      (progn
+        (setq xref-etags-mode--saved
+              (cons xref-find-function
+                    xref-identifier-completion-table-function))
+        (kill-local-variable 'xref-find-function)
+        (kill-local-variable 'xref-identifier-completion-table-function))
+    (setq-local xref-find-function (car xref-etags-mode--saved))
+    (setq-local xref-identifier-completion-table-function
+                (cdr xref-etags-mode--saved))))
+
+
 (provide 'xref)
 
 ;;; xref.el ends here

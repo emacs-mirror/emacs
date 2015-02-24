@@ -6101,7 +6101,7 @@ If nil, don't show those extra buttons."
 	      (gnus-article-insert-newline)
 	    (if (prog1
 		    (= (skip-chars-backward "\n") -1)
-		  (forward-char 1))
+		  (unless (eobp) (forward-char 1)))
 		(gnus-article-insert-newline)
 	      (put-text-property (point) (point-max) 'gnus-undeletable t))
 	    (goto-char (point-max)))

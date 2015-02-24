@@ -149,6 +149,16 @@ ATTRIBUTE would typically be `class', `id' or the like."
 	  (setq result (dom-parent elem node))))
       result)))
 
+(defun dom-previous-sibling (dom node)
+  (when-let (parent (dom-parent dom node))
+    (let ((siblings (dom-children parent))
+	  (previous nil))
+      (while siblings
+	(when (eq (cadr siblings) node)
+	  (setq previous (car siblings)))
+	(pop siblings))
+      previous)))
+
 (defun dom-node (tag &optional attributes &rest children)
   "Return a DOM node with TAG and ATTRIBUTES."
   (if children

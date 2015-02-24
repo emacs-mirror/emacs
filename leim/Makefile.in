@@ -47,7 +47,7 @@ unexport EMACSDATA EMACSDOC EMACSPATH
 
 # Which Emacs to use to convert TIT files to Emacs Lisp files,
 # and generate the file leim-list.el.
-EMACS = ../src/emacs
+EMACS = ../src/emacs${EXEEXT}
 
 # How to run Emacs.
 # Prevent any setting of EMACSLOADPATH in user environment causing problems.

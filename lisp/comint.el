@@ -472,6 +472,7 @@ executed once when the buffer is created."
     (define-key map "\C-c\C-\\"   'comint-quit-subjob)
     (define-key map "\C-c\C-m" 	  'comint-copy-old-input)
     (define-key map "\C-c\C-o" 	  'comint-delete-output)
+    (defile-key map "\C-c\M-o"    'comint-clear-buffer)
     (define-key map "\C-c\C-r" 	  'comint-show-output)
     (define-key map "\C-c\C-e" 	  'comint-show-maximum-output)
     (define-key map "\C-c\C-l" 	  'comint-dynamic-list-input-ring)
@@ -2428,6 +2429,11 @@ Sets mark to the value of point when this command is run."
 	   (goto-char (field-beginning pos))
 	   (set-window-start (selected-window) (point))))))
 
+(defun comint-clear-buffer ()
+  "Clear the comint buffer."
+  (interactive)
+  (let ((comint-buffer-maximum-size 0))
+    (comint-truncate-buffer)))
 
 (defun comint-interrupt-subjob ()
   "Interrupt the current subjob.

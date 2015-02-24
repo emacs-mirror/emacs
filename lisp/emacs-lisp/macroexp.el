@@ -297,15 +297,16 @@ definitions to shadow the loaded ones for use in file byte-compilation."
 
 ;;; Handy functions to use in macros.
 
-(defun macroexp-parse-body (exps)
-  "Parse EXPS into ((DOC DECLARE-FORM INTERACTIVE-FORM) . BODY)."
-  `((,(and (stringp (car exps))
-           (pop exps))
-     ,(and (eq (car-safe (car exps)) 'declare)
-           (pop exps))
-     ,(and (eq (car-safe (car exps)) 'interactive)
-           (pop exps)))
-    ,@exps))
+(defun macroexp-parse-body (body)
+  "Parse a function BODY into (DECLARATIONS . EXPS)."
+  (let ((decls ()))
+    (while (and (cdr body)
+                (let ((e (car body)))
+                  (or (stringp e)
+                      (memq (car-safe e)
+                            '(:documentation declare interactive cl-declare)))))
+      (push (pop body) decls))
+    (cons (nreverse decls) body)))
 
 (defun macroexp-progn (exps)
   "Return an expression equivalent to `(progn ,@EXPS)."

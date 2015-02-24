@@ -342,8 +342,10 @@ The options are 'downcase-word, 'upcase-word, 'capitalize-word and nil."
                  "final" "generic" "import" "non_intrinsic" "non_overridable"
                  "nopass" "pass" "protected" "same_type_as" "value" "volatile"
                  ;; F2008.
+                 ;; FIXME f90-change-keywords does not work right if
+                 ;; there are spaces.
                  "contiguous" "submodule" "concurrent" "codimension"
-                 "sync all" "sync memory" "critical" "image_index"
+                 "sync all" "sync memory" "critical" "image_index" "error stop"
                  ))
    "\\_>")
   "Regexp used by the function `f90-change-keywords'.")
@@ -417,6 +419,8 @@ The options are 'downcase-word, 'upcase-word, 'capitalize-word and nil."
              "norm2" "parity" "findloc" "is_contiguous"
              "sync images" "lock" "unlock" "image_index"
              "lcobound" "ucobound" "num_images" "this_image"
+             "acosh" "asinh" "atanh"
+             "atomic_define" "atomic_ref" "execute_command_line"
              ;; F2008 iso_fortran_env module.
              "compiler_options" "compiler_version"
              ;; F2008 iso_c_binding module.
@@ -649,7 +653,8 @@ logical\\|double[ \t]*precision\\|type[ \t]*(\\(?:\\sw\\|\\s_\\)+)\\|none\\)[ \t
       (1 font-lock-keyword-face) (2 font-lock-constant-face nil t))
     "\\_<else\\([ \t]*if\\|where\\)?\\_>"
     '("\\(&\\)[ \t]*\\(!\\|$\\)"  (1 font-lock-keyword-face))
-    "\\_<\\(then\\|continue\\|format\\|include\\|stop\\|return\\)\\_>"
+    "\\_<\\(then\\|continue\\|format\\|include\\|\\(?:error[ \t]+\\)?stop\\|\
+return\\)\\_>"
     '("\\_<\\(exit\\|cycle\\)[ \t]*\\(\\(?:\\sw\\|\\s_\\)+\\)?\\_>"
       (1 font-lock-keyword-face) (2 font-lock-constant-face nil t))
     '("\\_<\\(case\\)[ \t]*\\(default\\|(\\)" . 1)
@@ -1629,7 +1634,10 @@ Return (TYPE NAME), or nil if not found."
                 (re-search-backward f90-program-block-re nil 'move))
       (beginning-of-line)
       (skip-chars-forward " \t0-9")
-      (cond ((setq matching-beg (f90-looking-at-program-block-start))
+      ;; Check if in string in case using non-standard feature where
+      ;; continued strings do not need "&" at start of continuations.
+      (cond ((f90-in-string))
+            ((setq matching-beg (f90-looking-at-program-block-start))
              (setq count (1- count)))
             ((f90-looking-at-program-block-end)
              (setq count (1+ count)))))
@@ -1654,7 +1662,8 @@ Return (TYPE NAME), or nil if not found."
                 (re-search-forward f90-program-block-re nil 'move))
       (beginning-of-line)
       (skip-chars-forward " \t0-9")
-      (cond ((f90-looking-at-program-block-start)
+      (cond ((f90-in-string))
+            ((f90-looking-at-program-block-start)
              (setq count (1+ count)))
             ((setq matching-end (f90-looking-at-program-block-end))
              (setq count (1- count))))
@@ -2194,8 +2203,12 @@ Leave point at the end of line."
         (end-point (point))
         (case-fold-search t)
         matching-beg beg-name end-name beg-block end-block end-struct)
+    ;; Check if in string in case using non-standard feature where
+    ;; continued strings do not need "&" at start of continuations.
     (when (save-excursion (beginning-of-line) (skip-chars-forward " \t0-9")
-                          (setq end-struct (f90-looking-at-program-block-end)))
+                          (unless (f90-in-string)
+                            (setq end-struct
+                                  (f90-looking-at-program-block-end))))
       (setq end-block (car end-struct)
             end-name  (cadr end-struct))
       (save-excursion
@@ -2338,6 +2351,8 @@ CHANGE-WORD should be one of 'upcase-word, 'downcase-word, 'capitalize-word."
                             (skip-chars-forward " \t0-9")
                             (looking-at "#"))))
               (setq ref-point (point)
+                    ;; FIXME this does not work for constructs with
+                    ;; embedded space, eg "sync all".
                     back-point (save-excursion (backward-word 1) (point))
                     saveword (buffer-substring back-point ref-point))
               (funcall change-word -1)
