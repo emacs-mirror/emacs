@@ -1820,8 +1820,10 @@ struct face_cache
   ((FACE) == (FACE)->ascii_face)
 
 /* Return the id of the realized face on frame F that is like the face
-   with id ID but is suitable for displaying character CHAR.
-   This macro is only meaningful for multibyte character CHAR.  */
+   FACE, but is suitable for displaying character CHAR at buffer or
+   string position POS.  OBJECT is the string object, or nil for
+   buffer.  This macro is only meaningful for multibyte character
+   CHAR.  */
 
 #define FACE_FOR_CHAR(F, FACE, CHAR, POS, OBJECT)	\
   face_for_char ((F), (FACE), (CHAR), (POS), (OBJECT))

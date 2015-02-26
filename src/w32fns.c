@@ -346,10 +346,6 @@ x_real_positions (struct frame *f, int *xptr, int *yptr)
   /* Convert (0, 0) in the client area to screen co-ordinates.  */
   ClientToScreen (FRAME_W32_WINDOW (f), &pt);
 
-  /* Remember x_pixels_diff and y_pixels_diff.  */
-  f->x_pixels_diff = pt.x - rect.left;
-  f->y_pixels_diff = pt.y - rect.top;
-
   *xptr = rect.left;
   *yptr = rect.top;
 }

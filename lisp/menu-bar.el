@@ -1747,12 +1747,14 @@ The menu frame is the frame for which we are updating the menu."
 	 (frame-visible-p menu-frame))))
 
 (defun menu-bar-non-minibuffer-window-p ()
-  "Return non-nil if selected window of the menu frame is not a minibuf window.
-
-See the documentation of `menu-bar-menu-frame-live-and-visible-p'
-for the definition of the menu frame."
+  "Return non-nil if the menu frame's selected window is no minibuffer window.
+Return nil if the menu frame is dead or its selected window is a
+minibuffer window.  The menu frame is the frame for which we are
+updating the menu."
   (let ((menu-frame (or menu-updating-frame (selected-frame))))
-    (not (window-minibuffer-p (frame-selected-window menu-frame)))))
+    (and (frame-live-p menu-frame)
+	 (not (window-minibuffer-p
+	       (frame-selected-window menu-frame))))))
 
 (defun kill-this-buffer ()	; for the menu bar
   "Kill the current buffer.

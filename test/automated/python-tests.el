@@ -204,7 +204,7 @@ foo = long_function_name(var_one, var_two,
    (should (eq (car (python-indent-context)) :no-indent))
    (should (= (python-indent-calculate-indentation) 0))
    (python-tests-look-at "foo = long_function_name(var_one, var_two,")
-   (should (eq (car (python-indent-context)) :after-line))
+   (should (eq (car (python-indent-context)) :after-comment))
    (should (= (python-indent-calculate-indentation) 0))
    (python-tests-look-at "var_three, var_four)")
    (should (eq (car (python-indent-context)) :inside-paren))
@@ -222,7 +222,7 @@ def long_function_name(
    (should (eq (car (python-indent-context)) :no-indent))
    (should (= (python-indent-calculate-indentation) 0))
    (python-tests-look-at "def long_function_name(")
-   (should (eq (car (python-indent-context)) :after-line))
+   (should (eq (car (python-indent-context)) :after-comment))
    (should (= (python-indent-calculate-indentation) 0))
    (python-tests-look-at "var_one, var_two, var_three,")
    (should (eq (car (python-indent-context))
@@ -248,7 +248,7 @@ foo = long_function_name(
    (should (eq (car (python-indent-context)) :no-indent))
    (should (= (python-indent-calculate-indentation) 0))
    (python-tests-look-at "foo = long_function_name(")
-   (should (eq (car (python-indent-context)) :after-line))
+   (should (eq (car (python-indent-context)) :after-comment))
    (should (= (python-indent-calculate-indentation) 0))
    (python-tests-look-at "var_one, var_two,")
    (should (eq (car (python-indent-context)) :inside-paren-newline-start))
@@ -313,10 +313,10 @@ class Blag(object):
 def func(arg):
     # I don't do much
     return arg
-    # This comment is badly indented just because.
-    # But we won't mess with the user in this line.
+    # This comment is badly indented because the user forced so.
+    # At this line python.el wont dedent, user is always right.
 
-now_we_do_mess_cause_this_is_not_a_comment = 1
+comment_wins_over_ender = True
 
 # yeah, that.
 "
@@ -328,27 +328,48 @@ now_we_do_mess_cause_this_is_not_a_comment = 1
    ;; the rules won't apply here.
    (should (eq (car (python-indent-context)) :after-block-start))
    (should (= (python-indent-calculate-indentation) 4))
-   (python-tests-look-at "# This comment is badly")
+   (python-tests-look-at "# This comment is badly indented")
    (should (eq (car (python-indent-context)) :after-block-end))
-   ;; The return keyword moves indentation backwards 4 spaces, but
-   ;; let's assume this comment was placed there because the user
-   ;; wanted to (manually adding spaces or whatever).
+   ;; The return keyword do make indentation lose a level...
    (should (= (python-indent-calculate-indentation) 0))
-   (python-tests-look-at "# but we won't mess")
+   ;; ...but the current indentation was forced by the user.
+   (python-tests-look-at "# At this line python.el wont dedent")
    (should (eq (car (python-indent-context)) :after-comment))
    (should (= (python-indent-calculate-indentation) 4))
-   ;; Behave the same for blank lines: potentially a comment.
+   ;; Should behave the same for blank lines: potentially a comment.
    (forward-line 1)
    (should (eq (car (python-indent-context)) :after-comment))
    (should (= (python-indent-calculate-indentation) 4))
-   (python-tests-look-at "now_we_do_mess")
-   ;; Here is where comment indentation starts to get ignored and
-   ;; where the user can't freely indent anymore.
-   (should (eq (car (python-indent-context)) :after-block-end))
-   (should (= (python-indent-calculate-indentation) 0))
+   (python-tests-look-at "comment_wins_over_ender")
+   ;; The comment won over the ender because the user said so.
+   (should (eq (car (python-indent-context)) :after-comment))
+   (should (= (python-indent-calculate-indentation) 4))
+   ;; The indentation calculated fine for the assignment, but the user
+   ;; choose to force it back to the first column.  Next line should
+   ;; be aware of that.
    (python-tests-look-at "# yeah, that.")
    (should (eq (car (python-indent-context)) :after-line))
    (should (= (python-indent-calculate-indentation) 0))))
+
+(ert-deftest python-indent-after-comment-3 ()
+  "Test after-comment in buggy case."
+  (python-tests-with-temp-buffer
+   "
+class A(object):
+
+    def something(self, arg):
+        if True:
+            return arg
+
+    # A comment
+
+    @adecorator
+    def method(self, a, b):
+        pass
+"
+   (python-tests-look-at "@adecorator")
+   (should (eq (car (python-indent-context)) :after-comment))
+   (should (= (python-indent-calculate-indentation) 4))))
 
 (ert-deftest python-indent-inside-paren-1 ()
   "The most simple inside-paren case that shouldn't fail."
@@ -2132,6 +2153,55 @@ if True:
    (should (= (current-indentation) 4))
    (call-interactively #'python-indent-dedent-line-backspace)
    (should (zerop (current-indentation)))))
+
+(ert-deftest python-indent-dedent-line-backspace-2 ()
+  "Check de-indentation with tabs.  Bug#19730."
+  (let ((tab-width 8))
+    (python-tests-with-temp-buffer
+     "
+if x:
+\tabcdefg
+"
+     (python-tests-look-at "abcdefg")
+     (goto-char (line-end-position))
+     (call-interactively #'python-indent-dedent-line-backspace)
+     (should
+      (string= (buffer-substring-no-properties
+                (line-beginning-position) (line-end-position))
+               "\tabcdef")))))
+
+(ert-deftest python-indent-dedent-line-backspace-3 ()
+  "Paranoid check of de-indentation with tabs.  Bug#19730."
+  (let ((tab-width 8))
+    (python-tests-with-temp-buffer
+     "
+if x:
+\tif y:
+\t abcdefg
+"
+     (python-tests-look-at "abcdefg")
+     (goto-char (line-end-position))
+     (call-interactively #'python-indent-dedent-line-backspace)
+     (should
+      (string= (buffer-substring-no-properties
+                (line-beginning-position) (line-end-position))
+               "\t abcdef"))
+     (back-to-indentation)
+     (call-interactively #'python-indent-dedent-line-backspace)
+     (should
+      (string= (buffer-substring-no-properties
+                (line-beginning-position) (line-end-position))
+               "\tabcdef"))
+     (call-interactively #'python-indent-dedent-line-backspace)
+     (should
+      (string= (buffer-substring-no-properties
+                (line-beginning-position) (line-end-position))
+               "    abcdef"))
+     (call-interactively #'python-indent-dedent-line-backspace)
+     (should
+      (string= (buffer-substring-no-properties
+                (line-beginning-position) (line-end-position))
+               "abcdef")))))
 
 
 ;;; Shell integration

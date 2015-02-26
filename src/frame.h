@@ -396,10 +396,6 @@ struct frame
      widths) in pixels.  */
   int pixel_width, pixel_height;
 
-  /* These many pixels are the difference between the outer window (i.e. the
-     left and top of the window manager decoration) and FRAME_X_WINDOW.  */
-  int x_pixels_diff, y_pixels_diff;
-
   /* This is the gravity value for the specified window position.  */
   int win_gravity;
 

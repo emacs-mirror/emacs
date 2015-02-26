@@ -2147,7 +2147,17 @@ snprintf (char *buf, size_t bufsize, char const *format, ...)
 /* If a backtrace is available, output the top lines of it to stderr.
    Do not output more than BACKTRACE_LIMIT or BACKTRACE_LIMIT_MAX lines.
    This function may be called from a signal handler, so it should
-   not invoke async-unsafe functions like malloc.  */
+   not invoke async-unsafe functions like malloc.
+
+   If BACKTRACE_LIMIT is -1, initialize tables that 'backtrace' uses
+   but do not output anything.  This avoids some problems that can
+   otherwise occur if the malloc arena is corrupted before 'backtrace'
+   is called, since 'backtrace' may call malloc if the tables are not
+   initialized.
+
+   If the static variable THREAD_BACKTRACE_NPOINTERS is nonzero, a
+   fatal error has occurred in some other thread; generate a thread
+   backtrace instead, ignoring BACKTRACE_LIMIT.  */
 void
 emacs_backtrace (int backtrace_limit)
 {

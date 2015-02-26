@@ -82,14 +82,12 @@ top-level @code{Emacs} group.  It looks like this, in part:
 @c @page
 @smallexample
 @group
-To apply changes, use the Save or Set buttons.
-For details, see [Saving Customizations] in the [Emacs manual].
+For help, see [Easy Customization] in the [Emacs manual].
 
 ________________________________________ [ Search ]
 
  Operate on all settings in this buffer:
- [ Set for current session ] [ Save for future sessions ]
- [ Undo edits ] [ Reset to saved ] [ Erase customizations ] [ Exit ]
+ [ Revert... ] [ Apply ] [ Apply and Save ]
 
 
 Emacs group: Customization of the One True Editor.
@@ -97,7 +95,6 @@ Emacs group: Customization of the One True Editor.
       See also [Manual].
 
 [Editing] : Basic text editing facilities.
-
 [Convenience] : Convenience features for faster editing.
 
 @var{more second-level groups}

@@ -1,3 +1,95 @@
+2015-02-26  Alan Mackenzie  <acm@muc.de>
+
+	Handle "#" operator properly inside macro.  Fix coding bug.
+
+	* progmodes/cc-mode.el (c-neutralize-syntax-in-and-mark-CPP): On
+	finding a "#" which looks like the start of a macro, check it
+	isn't already inside a macro.
+
+	* progmodes/cc-engine.el (c-state-safe-place): Don't record a new
+	"safe" position into the list of them when this is beyond our
+	current position.
+
+2015-02-26  Martin Rudalics  <rudalics@gmx.at>
+
+	* menu-bar.el (menu-bar-non-minibuffer-window-p): Return nil when
+	the menu frame is dead.  (Bug#19728)
+
+2015-02-26  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	python.el: Handle tabs in python-indent-dedent-line.
+
+	* progmodes/python.el (python-indent-dedent-line): Fixes for
+	indentation with tabs.  Thanks to <dale@codefu.org> (Bug#19730).
+
+2015-02-26  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	* progmodes/python.el (python-indent-context): Respect user
+	indentation after comment.
+
+2015-02-26  Tassilo Horn  <tsdh@gnu.org>
+
+	* textmodes/reftex-vars.el (featurep): Conditionalize value of
+	reftex-label-regexps in order to stay compatible with XEmacs 21.5
+	which has no explicitly numbered groups in regexps (bug#19714).
+
+2015-02-26  Daiki Ueno  <ueno@gnu.org>
+
+	* net/dbus.el (dbus-register-signal): Convert "N" of ":argN" to
+	integer before comparison.
+
+2015-02-25  Nicolas Richard  <theonewiththeevillook@yahoo.fr>
+
+	* progmodes/elisp-mode.el (elisp--eval-last-sexp): Document argument.
+
+2015-02-25  Oleh Krehel  <ohwoeowho@gmail.com>
+
+	* emacs-lisp/check-declare.el (check-declare-warn): Use
+	compilation-style warnings.
+	(check-declare-files): Make sure that
+	`check-declare-warning-buffer' is in `compilation-mode'.
+
+2015-02-25  Oleh Krehel  <ohwoeowho@gmail.com>
+
+	* emacs-lisp/check-declare.el (check-declare-ext-errors): New
+	defcustom.
+	(check-declare): New defgroup.
+	(check-declare-verify): When `check-declare-ext-errors' is
+	non-nil, warn about an unfound function, instead of saying
+	"skipping external file".
+
+2015-02-25  Tassilo Horn  <tsdh@gnu.org>
+
+	* textmodes/reftex-vars.el (reftex-include-file-commands): Call
+	reftex-set-dirty on changes.
+
+2015-02-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/edebug.el (edebug--display): Save-excursion (bug#19611).
+	* emacs-lisp/debug.el (debugger-env-macro): Remove redundant
+	save-excursion.
+
+2015-02-24  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmailsum.el (rmail-summary-previous-all)
+	(rmail-summary-previous-msg): Simplify.
+
+2015-02-25  Artur Malabarba  <bruce.connor.am@gmail.com>
+
+	* simple.el (region-active-p): Fix doc to say non-nil.
+
+2015-02-24  Samer Masterson  <nosefrog@gmail.com>
+
+	* eshell/em-hist.el (eshell-hist-parse-word-designator):
+	Return args joined with " ".
+	* eshell/em-pred.el (eshell-parse-modifiers): Correct docstring.
+	(eshell-hist-parse-modifier): Pass mod a list instead of a string
+	(bug#18960).
+
+2015-02-24  Karl Fogel  <kfogel@red-bean.com>  (tiny change)
+
+	* comint.el (comint-mode-map): Fix obvious typo.
+
 2015-02-24  Johan Claesson  <johanclaesson@bredband.net>  (tiny change)
 
 	* filecache.el (file-cache-filter-regexps):
@@ -96,8 +188,8 @@
 	(verilog-auto-inst, verilog-auto-inst-param):
 	Use arguments rather than vector-skip.
 	(verilog-auto-inst-port): Fix AUTOINST interfaces to not show
-	modport if signal attachment is itself a modport.  Reported by
-	Matthew Lovell.
+	modport if signal attachment is itself a modport.
+	Reported by Matthew Lovell.
 
 2015-02-21  Reto Zimmermann  <reto@gnu.org>
 
@@ -337,7 +429,7 @@
 2015-02-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* hi-lock.el (hi-lock-unface-buffer): Don't call
-	font-lock-remove-keywords if not needed (bug#19737).
+	font-lock-remove-keywords if not needed (bug#19796).
 
 2015-02-11  Artur Malabarba  <bruce.connor.am@gmail.com>
 
@@ -1618,7 +1710,7 @@
 	* vc/vc-svn.el (vc-svn-dir-status-files): Pass t as
 	vc-svn-after-dir-status's second argument.  (Bug#19429)
 
-2015-01-16  Samer Masterson  <samer@samertm.com>  (tiny change)
+2015-01-16  Samer Masterson  <samer@samertm.com>
 
 	* pcomplete.el (pcomplete-parse-arguments): Parse arguments
 	regardless of pcomplete-cycle-completions's value.  (Bug#18950)

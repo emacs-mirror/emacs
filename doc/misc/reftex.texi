@@ -2961,6 +2961,12 @@ label itself in order to be processed correctly by @RefTeX{}.  The only
 exception is that section labels referring to a section statement
 outside the current file can still use that section title as
 context.
+
+@item
+@vindex reftex-include-file-commands
+@RefTeX{} knows about the @code{\include} and @code{\input} macros.
+In case you use different commands to include files in a multifile
+document, customize the variable @code{reftex-include-file-commands}.
 @end itemize
 
 @node Language Support
@@ -3892,6 +3898,10 @@ variables have customize support, so if you are not familiar with Emacs
 Lisp (and even if you are) you might find it more comfortable to use
 @code{customize} to look at and change these variables. @kbd{M-x
 reftex-customize} will get you there.
+
+In case you don't use the @code{customize} interface, here's a caveat:
+Changing (mostly parsing-related) options might require a call to
+@code{reftex-compile-variables} in order to become effective.
 
 @menu
 * Options - Table of Contents::

@@ -3455,6 +3455,7 @@ sys_readdir (DIR *dirp)
 	      break;
 	    case ERROR_PATH_NOT_FOUND:
 	    case ERROR_INVALID_DRIVE:
+	    case ERROR_NOT_READY:
 	    case ERROR_BAD_NETPATH:
 	    case ERROR_BAD_NET_NAME:
 	      errno = ENOENT;

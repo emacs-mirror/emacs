@@ -1,3 +1,20 @@
+2015-02-26  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-mime-inline-part, gnus-mm-display-part):
+	Fix point motion when removing displayed MIME part.
+	(gnus-article-edit-part): Make jumping to the next part really work
+	when deleting or stripping.
+	(gnus-mime-buttonize-attachments-in-header): Make header attachment
+	buttons identical to the ones in the article body so as to work deleting
+	and stripping.
+
+2015-02-25  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-decode.el (mm-shr)
+	* mm-view.el (mm-inline-text-html-render-with-w3m):
+	Revert my bogus change that made the start marker of a part
+	the "moves after insertion" type.
+
 2015-02-23  Tassilo Horn  <tsdh@gnu.org>
 
 	* mailcap.el (mailcap-mime-data): Support `pdf-view-mode' (from PDF

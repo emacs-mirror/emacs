@@ -535,11 +535,7 @@ Applies to the frame whose line point is on in the backtrace."
 (defmacro debugger-env-macro (&rest body)
   "Run BODY in original environment."
   (declare (indent 0))
-  `(save-excursion
-    (if (null (buffer-live-p debugger-old-buffer))
-        ;; old buffer deleted
-        (setq debugger-old-buffer (current-buffer)))
-    (set-buffer debugger-old-buffer)
+  `(progn
     (set-match-data debugger-outer-match-data)
     (prog1
         (progn ,@body)

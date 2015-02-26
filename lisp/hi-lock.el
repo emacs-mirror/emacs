@@ -600,7 +600,7 @@ then remove all hi-lock highlighting."
       ;; `font-lock-specified-p' to go from nil to non-nil (because it
       ;; calls font-lock-set-defaults).  This is yet-another bug in
       ;; font-lock-add/remove-keywords, which we circumvent here by
-      ;; testing `font-lock-fontified' (bug#19737).
+      ;; testing `font-lock-fontified' (bug#19796).
       (if font-lock-fontified (font-lock-remove-keywords nil (list keyword)))
       (setq hi-lock-interactive-patterns
             (delq keyword hi-lock-interactive-patterns))

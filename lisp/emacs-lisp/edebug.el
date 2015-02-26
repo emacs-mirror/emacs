@@ -2358,6 +2358,12 @@ MSG is printed after `::::} '."
 (defalias 'edebug-mark-marker 'mark-marker)
 
 (defun edebug--display (value offset-index arg-mode)
+  ;; edebug--display-1 is too big, we should split it.  This function
+  ;; here was just introduced to avoid making edebug--display-1
+  ;; yet a bit deeper.
+  (save-excursion (edebug--display-1 value offset-index arg-mode)))
+
+(defun edebug--display-1 (value offset-index arg-mode)
   (unless (marker-position edebug-def-mark)
     ;; The buffer holding the source has been killed.
     ;; Let's at least show a backtrace so the user can figure out
@@ -3317,6 +3323,9 @@ Return the result of the last expression."
      ;; Restore outside context.
      (setq-default cursor-in-non-selected-windows edebug-outside-d-c-i-n-s-w)
      (unwind-protect
+         ;; FIXME: This restoring of edebug-outside-buffer and
+         ;; edebug-outside-point is redundant now that backtrace-eval does it
+         ;; for us.
          (with-current-buffer edebug-outside-buffer ; of edebug-buffer
            (goto-char edebug-outside-point)
            (if (marker-buffer (edebug-mark-marker))

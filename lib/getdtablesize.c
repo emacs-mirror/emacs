@@ -89,6 +89,13 @@ getdtablesize (void)
 # include <limits.h>
 # include <sys/resource.h>
 
+# ifndef RLIM_SAVED_CUR
+#  define RLIM_SAVED_CUR RLIM_INFINITY
+# endif
+# ifndef RLIM_SAVED_MAX
+#  define RLIM_SAVED_MAX RLIM_INFINITY
+# endif
+
 # ifdef __CYGWIN__
   /* Cygwin 1.7.25 auto-increases the RLIMIT_NOFILE soft limit until it
      hits the compile-time constant hard limit of 3200.  We might as

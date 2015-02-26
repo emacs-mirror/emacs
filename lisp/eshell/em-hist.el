@@ -724,7 +724,7 @@ matched."
 	(setq nth (eshell-hist-word-reference nth)))
       (unless (numberp mth)
 	(setq mth (eshell-hist-word-reference mth)))
-      (cons (mapconcat 'identity (eshell-sublist textargs nth mth) "")
+      (cons (mapconcat 'identity (eshell-sublist textargs nth mth) " ")
 	    end))))
 
 (defun eshell-hist-parse-modifier (hist reference)
@@ -737,7 +737,7 @@ matched."
 	  (goto-char (point-min))
 	  (let ((modifiers (cdr (eshell-parse-modifiers))))
 	    (dolist (mod modifiers)
-	      (setq hist (funcall mod hist)))
+	      (setq hist (car (funcall mod (list hist)))))
 	    hist))
       (delete-region here (point)))))
 

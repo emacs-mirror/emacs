@@ -1211,13 +1211,25 @@ create_and_show_popup_menu (struct frame *f, widget_value *first_wv,
 
   if (use_pos_func)
     {
+      Window dummy_window;
+
       /* Not invoked by a click.  pop up at x/y.  */
       pos_func = menu_position_func;
 
       /* Adjust coordinates to be root-window-relative.  */
-      x += f->left_pos + FRAME_OUTER_TO_INNER_DIFF_X (f);
-      y += f->top_pos + FRAME_OUTER_TO_INNER_DIFF_Y (f);
+      block_input ();
+      XTranslateCoordinates (FRAME_X_DISPLAY (f),
 
+                             /* From-window, to-window.  */
+                             FRAME_X_WINDOW (f),
+                             FRAME_DISPLAY_INFO (f)->root_window,
+
+                             /* From-position, to-position.  */
+                             x, y, &x, &y,
+
+                             /* Child of win.  */
+                             &dummy_window);
+      unblock_input ();
       popup_x_y.x = x;
       popup_x_y.y = y;
       popup_x_y.f = f;

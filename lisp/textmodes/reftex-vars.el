@@ -263,6 +263,7 @@ distribution.  Mixed-case symbols are convenience aliases.")
 The file name is expected after the command, either in braces or separated
 by whitespace."
   :group 'reftex-table-of-contents-browser
+  :set 'reftex-set-dirty
   :type '(repeat string))
 
 (defcustom reftex-max-section-depth 12
@@ -866,13 +867,17 @@ DOWNCASE    t:   Downcase words before using them."
                          (string :tag ""))
                 (option (boolean :tag "Downcase words          "))))
 
-(defcustom reftex-label-regexps
-  '(;; Normal \\label{foo} labels
-    "\\\\label{\\(?1:[^}]*\\)}"
-    ;; keyvals [..., label = {foo}, ...] forms used by ctable,
-    ;; listings, minted, ...
-    "\\[[^]]*\\<label[[:space:]]*=[[:space:]]*{?\\(?1:[^],}]+\\)}?")
-  "List of regexps matching \\label definitions.
+(if (featurep 'xemacs)
+    ;; XEmacs 21.5 doesn't have explicitly numbered matching groups,
+    ;; so this list mustn't get any more items.
+    (defconst reftex-label-regexps '("\\\\label{\\([^}]*\\)}"))
+  (defcustom reftex-label-regexps
+    '(;; Normal \\label{foo} labels
+      "\\\\label{\\(?1:[^}]*\\)}"
+      ;; keyvals [..., label = {foo}, ...] forms used by ctable,
+      ;; listings, minted, ...
+      "\\[[^]]*\\<label[[:space:]]*=[[:space:]]*{?\\(?1:[^],}]+\\)}?")
+    "List of regexps matching \\label definitions.
 The default value matches usual \\label{...} definitions and
 keyval style [..., label = {...}, ...] label definitions.  It is
 assumed that the regexp group 1 matches the label text, so you
@@ -881,13 +886,13 @@ have to define it using \\(?1:...\\) when adding new regexps.
 When changed from Lisp, make sure to call
 `reftex-compile-variables' afterwards to make the change
 effective."
-  :version "24.4"
-  :set (lambda (symbol value)
-	 (set symbol value)
-	 (when (fboundp 'reftex-compile-variables)
-	   (reftex-compile-variables)))
-  :group 'reftex-defining-label-environments
-  :type '(repeat (regexp :tag "Regular Expression")))
+    :version "24.4"
+    :set (lambda (symbol value)
+	   (set symbol value)
+	   (when (fboundp 'reftex-compile-variables)
+	     (reftex-compile-variables)))
+    :group 'reftex-defining-label-environments
+    :type '(repeat (regexp :tag "Regular Expression"))))
 
 (defcustom reftex-label-ignored-macros-and-environments nil
   "List of macros and environments to be ignored when searching for labels.

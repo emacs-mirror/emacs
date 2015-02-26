@@ -1,4 +1,4 @@
-#serial 22
+#serial 24
 dnl Copyright (C) 2002, 2005, 2007, 2009-2015 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -25,6 +25,12 @@ AC_DEFUN([gl_FUNC_DUP2],
              #include <limits.h>
              #include <sys/resource.h>
              #include <unistd.h>
+             #ifndef RLIM_SAVED_CUR
+             # define RLIM_SAVED_CUR RLIM_INFINITY
+             #endif
+             #ifndef RLIM_SAVED_MAX
+             # define RLIM_SAVED_MAX RLIM_INFINITY
+             #endif
            ]],
            [[int result = 0;
              int bad_fd = INT_MAX;
@@ -39,7 +45,7 @@ AC_DEFUN([gl_FUNC_DUP2],
                if (fcntl (1, F_SETFD, FD_CLOEXEC) == -1)
                  result |= 1;
              #endif
-             if (dup2 (1, 1) == 0)
+             if (dup2 (1, 1) != 1)
                result |= 2;
              #ifdef FD_CLOEXEC
                if (fcntl (1, F_GETFD) != FD_CLOEXEC)
@@ -69,6 +75,8 @@ AC_DEFUN([gl_FUNC_DUP2],
                    # not EBADF.
              gl_cv_func_dup2_works="guessing no" ;;
            haiku*) # on Haiku alpha 2, dup2(1, 1) resets FD_CLOEXEC.
+             gl_cv_func_dup2_works="guessing no" ;;
+           *-android*) # implemented using dup3(), which fails if oldfd == newfd
              gl_cv_func_dup2_works="guessing no" ;;
            *) gl_cv_func_dup2_works="guessing yes" ;;
          esac])

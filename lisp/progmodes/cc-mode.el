@@ -968,12 +968,17 @@ Note that the style variables are always made local to the buffer."
     (let ((pps-position (point))  pps-state mbeg)
       (while (and (< (point) c-new-END)
 		  (search-forward-regexp c-anchored-cpp-prefix c-new-END t))
-	;; If we've found a "#" inside a string/comment, ignore it.
-	(setq pps-state
-	      (parse-partial-sexp pps-position (point) nil nil pps-state)
-	      pps-position (point))
-	(unless (or (nth 3 pps-state)	; in a string?
-		    (nth 4 pps-state))	; in a comment?
+	;; If we've found a "#" inside a macro/string/comment, ignore it.
+	(unless
+	    (or (save-excursion
+		  (goto-char (match-beginning 0))
+		  (c-beginning-of-macro))
+		(progn
+		  (setq pps-state
+			(parse-partial-sexp pps-position (point) nil nil pps-state)
+			pps-position (point))
+		  (or (nth 3 pps-state)	   ; in a string?
+		      (nth 4 pps-state)))) ; in a comment?
 	  (goto-char (match-beginning 1))
 	  (setq mbeg (point))
 	  (if (> (c-syntactic-end-of-macro) mbeg)

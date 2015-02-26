@@ -1,3 +1,53 @@
+2015-02-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* dispextern.h (FACE_FOR_CHAR): Fix the commentary.
+
+2015-02-26  Hans Wennborg  <hwennborg@google.com>  (tiny change)
+
+	* emacs.c (decode_env_path): Add parentheses around ternary
+	operator to increase readability and pacify compiler warnings.
+
+2015-02-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (sys_readdir): Map ERROR_NOT_READY (as in "device not
+	ready") to ENOENT.
+
+2015-02-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* xfns.c (x_real_pos_and_offsets): Fix pointer signedness.
+
+2015-02-25  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.h (struct x_output): Remove x_pixels_outer_diff,
+	y_pixels_outer_diff, FRAME_OUTER_TO_INNER_DIFF_X,
+	FRAME_OUTER_TO_INNER_DIFF_Y. Declare x_real_pos_and_offsets.
+
+	* xmenu.c (create_and_show_popup_menu): Use XTranslateCoordinates
+	instead of OUTER_TO_INNER_DIFF macros.
+
+	* xfns.c (x_real_pos_and_offsets): New function, basically the code
+	from x_real_positions.
+	(x_real_positions): Call x_real_pos_and_offsets.
+	(x_relative_mouse_position): Use XTranslateCoordinates instead of
+	OUTER_TO_INNER_DIFF macros.
+	(Fx_frame_geometry): Get offsets with x_real_pos_and_offsets,
+	border from window attributes.  Adjust tool bar and menu widths.
+
+	* w32fns.c (x_real_positions): Remove setting of x_pixels_diff,
+	y_pixels_diff.
+
+	* frame.h (struct frame): Remove x_pixels_diff, y_pixels_diff.
+
+2015-02-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Backtrace after malloc arena is corrupted
+	Without this change, if the malloc arena is corrupted and then
+	'backtrace' is called, the backtrace can crash because 'backtrace'
+	calls 'malloc'.  For more, please see:
+	https://sourceware.org/ml/libc-alpha/2015-02/msg00678.html
+	* emacs.c (main): Initialize tables used by 'backtrace'.
+	* sysdep.c (emacs_backtrace): Document the newly used part of the API.
+
 2015-02-22  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsfns.m (Fx_frame_geometry): New function.

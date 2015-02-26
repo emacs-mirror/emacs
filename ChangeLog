@@ -1,3 +1,12 @@
+2015-02-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib
+	* lib/getdtablesize.c, m4/dup2.m4, m4/fcntl.m4:
+	Update from gnulib, incorporating:
+	2015-02-23 dup2: doc and test for Android bug
+	2015-02-23 Replace dup2() on Android
+	2015-02-22 Android doesn't define RLIM_SAVED_*
+
 2015-02-21  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Merge from gnulib

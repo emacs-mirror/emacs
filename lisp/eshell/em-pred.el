@@ -119,7 +119,8 @@ The format of each entry is
                (function
                 (lambda (str)
                   (eshell-stringify
-                   (car (eshell-parse-argument str))))) lst)))
+                   (car (eshell-parse-argument str)))))
+               lst)))
     (?L . #'(lambda (lst) (mapcar 'downcase lst)))
     (?U . #'(lambda (lst) (mapcar 'upcase lst)))
     (?C . #'(lambda (lst) (mapcar 'capitalize lst)))
@@ -296,16 +297,15 @@ This function is specially for adding onto `eshell-parse-argument-hook'."
 
 (defun eshell-parse-modifiers ()
   "Parse value modifiers and predicates at point.
-If ALLOW-PREDS is non-nil, predicates will be parsed as well.
 Return a cons cell of the form
 
   (PRED-FUNC-LIST . MOD-FUNC-LIST)
 
-NEW-STRING is STRING minus any modifiers.  PRED-FUNC-LIST is a list of
-predicate functions.  MOD-FUNC-LIST is a list of result modifier
-functions.  PRED-FUNCS take a filename and return t if the test
-succeeds; MOD-FUNCS take any string and preform a modification,
-returning the resultant string."
+PRED-FUNC-LIST is a list of predicate functions.  MOD-FUNC-LIST
+is a list of result modifier functions.  PRED-FUNCS take a
+filename and return t if the test succeeds; MOD-FUNCS take any
+list of strings and perform a modification, returning the
+resultant list of strings."
   (let (negate follow preds mods)
     (condition-case nil
 	(while (not (eobp))

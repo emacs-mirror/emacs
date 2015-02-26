@@ -883,10 +883,11 @@ If CHAR is not a character, return nil."
 
 (defun elisp--eval-last-sexp (eval-last-sexp-arg-internal)
   "Evaluate sexp before point; print value in the echo area.
-With argument, print output into current buffer.
-With a zero prefix arg, print output with no limit on the length
-and level of lists, and include additional formats for integers
-\(octal, hexadecimal, and character)."
+If EVAL-LAST-SEXP-ARG-INTERNAL is non-nil, print output into
+current buffer.  If EVAL-LAST-SEXP-ARG-INTERNAL is `0', print
+output with no limit on the length and level of lists, and
+include additional formats for integers \(octal, hexadecimal, and
+character)."
   (let ((standard-output (if eval-last-sexp-arg-internal (current-buffer) t)))
     ;; Setup the lexical environment if lexical-binding is enabled.
     (elisp--eval-last-sexp-print-value

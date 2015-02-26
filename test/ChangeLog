@@ -1,3 +1,16 @@
+2015-02-26  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	* automated/python-tests.el
+	(python-indent-dedent-line-backspace-2)
+	(python-indent-dedent-line-backspace-3): New tests.
+
+2015-02-26  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	* automated/python-tests.el (python-indent-pep8-1)
+	(python-indent-pep8-2, python-indent-pep8-3)
+	(python-indent-after-comment-2): Fix tests.
+	(python-indent-after-comment-3): New test.
+
 2015-02-24  Glenn Morris  <rgm@gnu.org>
 
 	* automated/f90.el (f90-test-bug-19809): New test.

@@ -249,7 +249,42 @@ removable and remote volumes, where this could potentially slow down
 Dired and other related features.  The value of @code{nil} means never
 issue those system calls.  Non-@code{nil} values are more useful on
 NTFS volumes, which support hard links and file security, than on FAT,
-FAT32, and XFAT volumes.
+FAT32, and exFAT volumes.
+
+@cindex file names, invalid characters on MS-Windows
+  Unlike Unix, MS-Windows file systems restrict the set of characters
+that can be used in a file name.  The following characters are not
+allowed:
+
+@itemize @bullet
+@item
+Shell redirection symbols @samp{<}, @samp{>}, and @samp{|}.
+
+@item
+Colon @samp{:} (except after the drive letter).
+
+@item
+Forward slash @samp{/} and backslash @samp{\} (except as directory
+separators).
+
+@item
+Wildcard characters @samp{*} and @samp{?}.
+
+@item
+Control characters whose codepoints are 1 through 31 decimal.  In
+particular, newlines in file names are not allowed.
+
+@item
+The null character, whose codepoint is zero (this limitation exists on
+Unix filesystems as well).
+@end itemize
+
+@noindent
+In addition, referencing any file whose name matches a DOS character
+device, such as @file{NUL} or @file{LPT1} or @file{PRN} or @file{CON},
+with or without any file-name extension, will always resolve to those
+character devices, in any directory.  Therefore, only use such file
+names when you want to use the corresponding character device.
 
 @node ls in Lisp
 @section Emulation of @code{ls} on MS-Windows

@@ -1666,7 +1666,7 @@ Delete the entire block of whitespace after point (@code{c-hungry-delete-forward
   As an alternative to the above commands, you can enable @dfn{hungry
 delete mode}.  When this feature is enabled (indicated by @samp{/h} in
 the mode line after the mode name), a single @key{DEL} deletes all
-preceding whitespace, not just one space, and a single @kbd{C-c C-d}
+preceding whitespace, not just one space, and a single @kbd{C-d}
 (but @emph{not} plain @key{Delete}) deletes all following whitespace.
 
 @table @kbd

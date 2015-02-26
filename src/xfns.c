@@ -168,12 +168,25 @@ check_x_display_info (Lisp_Object object)
   return dpyinfo;
 }
 
-/* Store the screen positions of frame F into XPTR and YPTR.
+/* Return the screen positions and offsets of frame F.
+   Store the offsets between FRAME_OUTER_WINDOW and the containing
+   window manager window into LEFT_OFFSET_X, RIGHT_OFFSET_X,
+   TOP_OFFSET_Y and BOTTOM_OFFSET_Y.
+   Store the offsets between FRAME_X_WINDOW and the containing
+   window manager window into X_PIXELS_DIFF and Y_PIXELS_DIFF.
+   Store the screen positions of frame F into XPTR and YPTR.
    These are the positions of the containing window manager window,
    not Emacs's own window.  */
-
 void
-x_real_positions (struct frame *f, int *xptr, int *yptr)
+x_real_pos_and_offsets (struct frame *f,
+                        int *left_offset_x,
+                        int *right_offset_x,
+                        int *top_offset_y,
+                        int *bottom_offset_y,
+                        int *x_pixels_diff,
+                        int *y_pixels_diff,
+                        int *xptr,
+                        int *yptr)
 {
   int win_x, win_y, outer_x IF_LINT (= 0), outer_y IF_LINT (= 0);
   int real_x = 0, real_y = 0;
@@ -187,6 +200,7 @@ x_real_positions (struct frame *f, int *xptr, int *yptr)
   Display *dpy = FRAME_X_DISPLAY (f);
   unsigned char *tmp_data = NULL;
   Atom target_type = XA_CARDINAL;
+  unsigned int ow IF_LINT (= 0), oh IF_LINT (= 0);
 
   block_input ();
 
@@ -230,7 +244,7 @@ x_real_positions (struct frame *f, int *xptr, int *yptr)
 
       /* Get the real coordinates for the WM window upper left corner */
       XGetGeometry (FRAME_X_DISPLAY (f), win,
-                    &rootw, &real_x, &real_y, &ign, &ign, &ign, &ign);
+                    &rootw, &real_x, &real_y, &ow, &oh, &ign, &ign);
 
       /* Translate real coordinates to coordinates relative to our
          window.  For our window, the upper left corner is 0, 0.
@@ -310,15 +324,38 @@ x_real_positions (struct frame *f, int *xptr, int *yptr)
 
   if (had_errors) return;
 
-  f->x_pixels_diff = -win_x;
-  f->y_pixels_diff = -win_y;
+  if (x_pixels_diff) *x_pixels_diff = -win_x;
+  if (y_pixels_diff) *y_pixels_diff = -win_y;
 
-  FRAME_X_OUTPUT (f)->x_pixels_outer_diff = -outer_x;
-  FRAME_X_OUTPUT (f)->y_pixels_outer_diff = -outer_y;
+  if (left_offset_x) *left_offset_x = -outer_x;
+  if (top_offset_y) *top_offset_y = -outer_x;
 
-  *xptr = real_x;
-  *yptr = real_y;
+  if (xptr) *xptr = real_x;
+  if (yptr) *yptr = real_y;
+
+  if (right_offset_x || bottom_offset_y)
+    {
+      int xy_ign;
+      unsigned int ign, fw, fh;
+      Window rootw;
+
+      XGetGeometry (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
+		    &rootw, &xy_ign, &xy_ign, &fw, &fh, &ign, &ign);
+      if (right_offset_x) *right_offset_x = ow - fw + outer_x;
+      if (bottom_offset_y) *bottom_offset_y = oh - fh + outer_y;
+    }
 }
+
+/* Store the screen positions of frame F into XPTR and YPTR.
+   These are the positions of the containing window manager window,
+   not Emacs's own window.  */
+
+void
+x_real_positions (struct frame *f, int *xptr, int *yptr)
+{
+  x_real_pos_and_offsets (f, NULL, NULL, NULL, NULL, NULL, NULL, xptr, yptr);
+}
+
 
 /* Get the mouse position in frame relative coordinates.  */
 
@@ -351,11 +388,19 @@ x_relative_mouse_position (struct frame *f, int *x, int *y)
                     we don't care.  */
                  (unsigned int *) &dummy);
 
-  unblock_input ();
+  XTranslateCoordinates (FRAME_X_DISPLAY (f),
 
-  /* Translate root window coordinates to window coordinates.  */
-  *x -= f->left_pos + FRAME_OUTER_TO_INNER_DIFF_X (f);
-  *y -= f->top_pos + FRAME_OUTER_TO_INNER_DIFF_Y (f);
+                         /* From-window, to-window.  */
+                         FRAME_DISPLAY_INFO (f)->root_window,
+                         FRAME_X_WINDOW (f),
+
+                         /* From-position, to-position.  */
+                         *x, *y, x, y,
+
+                         /* Child of win.  */
+                         &dummy_window);
+
+  unblock_input ();
 }
 
 /* Gamma-correct COLOR on frame F.  */
@@ -4279,13 +4324,23 @@ elements (all size values are in pixels).
   Lisp_Object fullscreen = Fframe_parameter (frame, Qfullscreen);
   int menu_bar_height, menu_bar_width, tool_bar_height, tool_bar_width;
 
-  border = FRAME_OUTER_TO_INNER_DIFF_X (f);
-  title = FRAME_X_OUTPUT (f)->y_pixels_outer_diff - border;
+  int left_off, right_off, top_off, bottom_off;
+  XWindowAttributes atts;
 
-  outer_width = FRAME_PIXEL_WIDTH (f) + 2 * border;
-  outer_height = (FRAME_PIXEL_HEIGHT (f)
-		  + FRAME_OUTER_TO_INNER_DIFF_Y (f)
-		  + FRAME_OUTER_TO_INNER_DIFF_X (f));
+  block_input ();
+
+  XGetWindowAttributes (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f), &atts);
+
+  x_real_pos_and_offsets (f, &left_off, &right_off, &top_off, &bottom_off,
+                          NULL, NULL, NULL, NULL);
+
+  unblock_input ();
+
+  border = atts.border_width;
+  title = top_off;
+
+  outer_width = FRAME_PIXEL_WIDTH (f) + 2 * border + right_off + left_off;
+  outer_height = FRAME_PIXEL_HEIGHT (f) + 2 * border + top_off + bottom_off;
 
 #if defined (USE_GTK)
   {
@@ -4298,16 +4353,10 @@ elements (all size values are in pixels).
     tool_bar_height = (tool_bar_left_right
 		       ? FRAME_PIXEL_HEIGHT (f)
 		       : FRAME_TOOLBAR_HEIGHT (f));
-    if (tool_bar_left_right)
-      /* For some reason FRAME_OUTER_TO_INNER_DIFF_X does not count the
-	 width of a tool bar.  */
-      outer_width += FRAME_TOOLBAR_WIDTH (f);
   }
 #else
   tool_bar_height = FRAME_TOOL_BAR_HEIGHT (f);
-  tool_bar_width = ((tool_bar_height > 0)
-		    ? outer_width - 2 * FRAME_INTERNAL_BORDER_WIDTH (f)
-		    : 0);
+  tool_bar_width = tool_bar_height > 0 ? FRAME_PIXEL_WIDTH (f) : 0;
 #endif
 
 #if defined (USE_X_TOOLKIT) || defined (USE_GTK)
@@ -4316,9 +4365,7 @@ elements (all size values are in pixels).
   menu_bar_height = FRAME_MENU_BAR_HEIGHT (f);
 #endif
 
-  menu_bar_width = ((menu_bar_height > 0)
-		    ? outer_width - 2 * border
-		    : 0);
+  menu_bar_width = menu_bar_height > 0 ? FRAME_PIXEL_WIDTH (f) : 0;
 
   if (!FRAME_EXTERNAL_MENU_BAR (f))
     inner_height -= menu_bar_height;

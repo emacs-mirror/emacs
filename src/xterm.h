@@ -628,15 +628,6 @@ struct x_output
      They are changed only when a different background is involved.  */
   unsigned long relief_background;
 
-  /* As x_pixels_diff, but to FRAME_OUTER_WINDOW.  For some reason the
-     two might differ by a pixel, depending on WM */
-  int x_pixels_outer_diff;
-
-  /* As y_pixels_diff, but to FRAME_OUTER_WINDOW.  In the toolkit version,
-     these may differ because this does not take into account possible
-     menubar.  y_pixels_diff is with menubar height included */
-  int y_pixels_outer_diff;
-
   /* Keep track of focus.  May be EXPLICIT if we received a FocusIn for this
      frame, or IMPLICIT if we received an EnterNotify.
      FocusOut and LeaveNotify clears EXPLICIT/IMPLICIT. */
@@ -758,16 +749,6 @@ enum
 
 /* This is the Colormap which frame F uses.  */
 #define FRAME_X_COLORMAP(f) FRAME_DISPLAY_INFO (f)->cmap
-
-/* The difference in pixels between the top left corner of the
-   Emacs window (including possible window manager decorations)
-   and FRAME_X_WINDOW (f).  */
-#define FRAME_OUTER_TO_INNER_DIFF_X(f) \
-     ((f)->output_data.x->x_pixels_outer_diff)
-#define FRAME_OUTER_TO_INNER_DIFF_Y(f)          \
-     ((f)->output_data.x->y_pixels_outer_diff   \
-      + FRAME_MENUBAR_HEIGHT (f) + FRAME_TOOLBAR_HEIGHT (f))
-
 
 #define FRAME_XIC(f) ((f)->output_data.x->xic)
 #define FRAME_X_XIM(f) (FRAME_DISPLAY_INFO (f)->xim)
@@ -971,6 +952,15 @@ SELECTION_EVENT_DISPLAY (struct input_event *ev)
 
 extern void x_free_gcs (struct frame *);
 extern void x_relative_mouse_position (struct frame *, int *, int *);
+extern void x_real_pos_and_offsets (struct frame *f,
+                                    int *left_offset_x,
+                                    int *right_offset_x,
+                                    int *top_offset_y,
+                                    int *bottom_offset_y,
+                                    int *x_pixels_diff,
+                                    int *y_pixels_diff,
+                                    int *xptr,
+                                    int *yptr);
 
 /* From xrdb.c.  */
 

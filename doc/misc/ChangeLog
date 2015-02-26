@@ -1,3 +1,10 @@
+2015-02-25  Tassilo Horn  <tsdh@gnu.org>
+
+	* reftex.texi (Multifile Documents): Document
+	reftex-include-file-commands.
+	(Options): Mention that non-customize changes might require
+	calling reftex-compile-variables.
+
 2015-02-21  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* texinfo.tex: Update from gnulib.

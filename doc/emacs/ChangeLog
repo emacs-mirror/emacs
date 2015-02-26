@@ -1,3 +1,19 @@
+2015-02-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdog.texi (Windows Files): Document characters invalid in
+	Windows file names.  (Bug#19463)
+
+	* custom.texi (Customization Groups): Update the looks of the
+	Customize Group buffer.
+
+	* programs.texi (Hungry Delete): Fix a typo: "C-d" instead of
+	"C-c C-d" in hungry-delete mode.
+
+2015-02-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* mule.texi (Language Environments): Work around refill bug in
+	makeinfo 4.x.  (Bug#19697)
+
 2015-01-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* cmdargs.texi (Action Arguments): Clarify into which buffer

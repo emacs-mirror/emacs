@@ -2277,7 +2277,9 @@ comment at the start of cc-engine.el for more info."
 	  (while
 	      ;; Add an element to `c-state-nonlit-pos-cache' each iteration.
 	      (and
-	       (<= (setq npos (+ pos c-state-nonlit-pos-interval)) here)
+	       (setq npos
+		     (when (<= (+ pos c-state-nonlit-pos-interval) here)
+		       (+ pos c-state-nonlit-pos-interval)))
 
 	       ;; Test for being in a literal.  If so, go to after it.
 	       (progn
@@ -2304,7 +2306,9 @@ comment at the start of cc-engine.el for more info."
 	  ;; Add one extra element above HERE so as to to avoid the previous
 	  ;; expensive calculation when the next call is close to the current
 	  ;; one.  This is especially useful when inside a large macro.
-	  (setq c-state-nonlit-pos-cache (cons npos c-state-nonlit-pos-cache)))
+	  (when npos
+	    (setq c-state-nonlit-pos-cache
+		  (cons npos c-state-nonlit-pos-cache))))
 
 	(if (> pos c-state-nonlit-pos-cache-limit)
 	    (setq c-state-nonlit-pos-cache-limit pos))
@@ -3069,7 +3073,7 @@ comment at the start of cc-engine.el for more info."
       (setq dropped-cons (consp (car c-state-cache)))
       (setq c-state-cache (cdr c-state-cache))
       (setq pos pa))
-    ;; At this stage, (> pos here);
+    ;; At this stage, (>= pos here);
     ;; (< (c-state-cache-top-lparen) here)  (or is nil).
 
     (cond

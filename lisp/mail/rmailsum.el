@@ -1,7 +1,6 @@
 ;;; rmailsum.el --- make summary buffers for the mail reader
 
-;; Copyright (C) 1985, 1993-1996, 2000-2015 Free Software Foundation,
-;; Inc.
+;; Copyright (C) 1985, 1993-1996, 2000-2015 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: mail
@@ -813,12 +812,7 @@ the message being processed."
 
 (defun rmail-summary-previous-all (&optional number)
   (interactive "p")
-  (or number (setq number 1))
-  (forward-line (- number))
-  ;; It doesn't look nice to move forward past the last message line.
-  (and (eobp) (< number 0)
-       (forward-line -1))
-  (display-buffer rmail-buffer))
+  (rmail-summary-next-all (- (or number 1))))
 
 (defun rmail-summary-next-msg (&optional number)
   "Display next non-deleted msg from rmail file.
@@ -843,7 +837,7 @@ messages, or backward if NUMBER is negative."
 With optional prefix argument NUMBER, moves backward this number of
 non-deleted messages."
   (interactive "p")
-  (rmail-summary-next-msg (- (if number number 1))))
+  (rmail-summary-next-msg (- (or number 1))))
 
 (defun rmail-summary-next-labeled-message (n labels)
   "Show next message with LABELS.  Defaults to last labels used.

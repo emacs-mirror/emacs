@@ -125,6 +125,14 @@ With optional argument FULL, sums the number of elements in each element."
 
 (autoload 'byte-compile-arglist-signature "bytecomp")
 
+(defgroup check-declare nil
+  "Check declare-function statements."
+  :group 'tools)
+
+(defcustom check-declare-ext-errors nil
+  "When non-nil, warn abount functions not found in :ext."
+  :type 'boolean)
+
 (defun check-declare-verify (fnfile fnlist)
   "Check that FNFILE contains function definitions matching FNLIST.
 Each element of FNLIST has the form (FILE FN ARGLIST FILEONLY), where
@@ -226,7 +234,8 @@ method\\|class\\)\\|fset\\)\\>" type)
       (when type
         (setq errlist (cons (list (car e) (cadr e) type) errlist))))
     (message "%s%s" m
-             (if (or re (not ext))
+             (if (or re (or check-declare-ext-errors
+                            (not ext)))
                  (check-declare-errmsg errlist)
                (progn
                  (setq errlist nil)
@@ -251,12 +260,29 @@ Returned list has elements FNFILE (FILE ...)."
   "Warn that FILE made a false claim about FN in FNFILE.
 TYPE is a string giving the nature of the error.  Warning is displayed in
 `check-declare-warning-buffer'."
-  (display-warning 'check-declare
-                   (format "%s said `%s' was defined in %s: %s"
-                           (file-name-nondirectory file) fn
-                           (file-name-nondirectory fnfile)
-                           type)
-                   nil check-declare-warning-buffer))
+  (let ((warning-prefix-function
+         (lambda (level entry)
+           (let ((line 0)
+                 (col 0))
+             (insert
+              (with-current-buffer (find-file-noselect file)
+                (goto-char (point-min))
+                (when (re-search-forward
+                       (format "(declare-function[ \t\n]+%s" fn) nil t)
+                  (goto-char (match-beginning 0))
+                  (setq line (line-number-at-pos))
+                  (setq col (1+ (current-column))))
+                (format "%s:%d:%d:"
+                        (file-name-nondirectory file)
+                        line col))))
+           entry))
+        (warning-fill-prefix "    "))
+    (display-warning 'check-declare
+                     (format "%s said `%s' was defined in %s: %s"
+                             (file-name-nondirectory file) fn
+                             (file-name-nondirectory fnfile)
+                             type)
+                     nil check-declare-warning-buffer)))
 
 (defun check-declare-files (&rest files)
   "Check veracity of all `declare-function' statements in FILES.
@@ -269,13 +295,20 @@ Return a list of any errors found."
     (dolist (e (check-declare-sort alist))
       (if (setq err (check-declare-verify (car e) (cdr e)))
           (setq errlist (cons (cons (car e) err) errlist))))
+    (setq errlist (nreverse errlist))
     (if (get-buffer check-declare-warning-buffer)
         (kill-buffer check-declare-warning-buffer))
+    (with-current-buffer (get-buffer-create check-declare-warning-buffer)
+      (unless (derived-mode-p 'compilation-mode)
+        (compilation-mode))
+      (let ((inhibit-read-only t))
+        (insert "\f\n"))
+      (compilation-forget-errors))
     ;; Sort back again so that errors are ordered by the files
     ;; containing the declare-function statements.
     (dolist (e (check-declare-sort errlist))
-        (dolist (f (cdr e))
-          (check-declare-warn (car e) (cadr f) (car f) (nth 2 f))))
+      (dolist (f (cdr e))
+        (check-declare-warn (car e) (cadr f) (car f) (nth 2 f))))
     errlist))
 
 ;;;###autoload

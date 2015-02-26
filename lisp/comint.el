@@ -472,7 +472,7 @@ executed once when the buffer is created."
     (define-key map "\C-c\C-\\"   'comint-quit-subjob)
     (define-key map "\C-c\C-m" 	  'comint-copy-old-input)
     (define-key map "\C-c\C-o" 	  'comint-delete-output)
-    (defile-key map "\C-c\M-o"    'comint-clear-buffer)
+    (define-key map "\C-c\M-o"    'comint-clear-buffer)
     (define-key map "\C-c\C-r" 	  'comint-show-output)
     (define-key map "\C-c\C-e" 	  'comint-show-maximum-output)
     (define-key map "\C-c\C-l" 	  'comint-dynamic-list-input-ring)
