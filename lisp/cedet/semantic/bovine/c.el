@@ -1313,14 +1313,15 @@ Optional argument STAR and REF indicate the number of * and & in the typedef."
 			  (nth 10 tokenpart) ; initializers
 			  )
 		      (not (car (nth 3 tokenpart)))))
-		(fcnpointer (and (> (length (car tokenpart)) 0)
+		(operator (if (string-match "[a-zA-Z]" (car tokenpart))
+			      nil
+			    t))
+		(fcnpointer (and (not operator)
+				 (> (length (car tokenpart)) 1)
 				 (= (aref (car tokenpart) 0) ?*)))
 		(fnname (if fcnpointer
 			    (substring (car tokenpart) 1)
 			  (car tokenpart)))
-		(operator (if (string-match "[a-zA-Z]" fnname)
-			      nil
-			    t))
 		)
 	   ;; The function
 	   (semantic-tag-new-function
